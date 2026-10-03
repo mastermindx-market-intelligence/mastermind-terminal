@@ -585,10 +585,11 @@ export function buildMarketStructure(input: BuildInput): MarketStructure {
 export type HedgeGreek = "gamma" | "delta" | "vanna" | "charm";
 
 /**
- * Second-order greeks measure a RATE (how the hedge changes as something moves), so their
- * cumulative curve is anchored at spot and accumulates outward — "what must dealers trade
- * to get from here to there". First-order greeks are a LEVEL (the position itself), so
- * their cumulative curve is a plain running total across the ladder.
+ * Second-order greeks measure a RATE (how the modeled sensitivity changes as something
+ * moves), so their cumulative curve is anchored at the reference spot and accumulates
+ * outward — the running subtotal of supplied strike contributions on each side. First-order
+ * greeks are a LEVEL (the position itself), so their cumulative curve is a plain running
+ * subtotal across the ladder. Neither is a spot-path or whole-book trade total.
  *
  * Volland's user guide documents exactly this split, and getting it wrong (cumsumming
  * everything identically from the low strike) produces a curve that looks plausible and
@@ -598,18 +599,19 @@ export const SECOND_ORDER: ReadonlySet<HedgeGreek> = new Set<HedgeGreek>(["gamma
 
 export interface HedgeRow {
   strike: number;
-  /** $mn of underlying to transact per unit move. Positive = dealers buy. */
+  /** USD mn modeled hedge sensitivity for the stated unit move. Positive = modeled buy. */
   hedgeMn: number;
 }
 
 export interface HedgeProfile {
   greek: HedgeGreek;
-  /** Per-strike requirement — the histogram. */
+  /** Per-strike snapshot sensitivity — the histogram. */
   rows: HedgeRow[];
   /**
-   * Cumulative requirement — the profile line. Anchored at spot for second-order greeks
-   * (spot reads 0 and the curve accumulates away from it in both directions); a plain
-   * running total for first-order greeks.
+   * Cumulative snapshot subtotal — the profile line. Anchored at the reference spot for
+   * second-order lenses (the running subtotal accumulates outward on each side of spot); a
+   * plain running subtotal across the ladder for first-order lenses. Every point is the sum
+   * of the KNOWN SUPPLIED strike contributions, never a spot-path or whole-book trade total.
    */
   cumulative: { strike: number; cumMn: number }[];
   anchored: boolean;
@@ -618,6 +620,14 @@ export interface HedgeProfile {
   maxAbsCumMn: number;
   /** The unit the per-unit move refers to, for the axis caption. */
   perUnit: "1% spot" | "1 vol point" | "1 day" | "position";
+  /** Every input row offered, including malformed/absent slots. */
+  inputRows: number;
+  /** Rows carrying a finite strike AND a finite value for the selected lens. */
+  knownRows: number;
+  /** inputRows − knownRows. A missing cell is excluded, never counted as a zero. */
+  missingRows: number;
+  /** True only when the input is non-empty AND every offered row is known/valid. */
+  complete: boolean;
 }
 
 const PER_UNIT: Record<HedgeGreek, HedgeProfile["perUnit"]> = {
@@ -635,22 +645,28 @@ function greekField(greek: HedgeGreek): keyof MscStrikeRow {
 }
 
 /**
- * Build the hedging-requirement histogram + cumulative profile for one greek lens.
+ * Build the per-strike snapshot-sensitivity histogram + cumulative subtotal for one lens.
  *
- * The anchored branch is the interesting one. Rows are split at spot; going up, the running
- * total accumulates from spot outward; going down, likewise. Spot therefore sits at zero and
- * each point answers "if price travelled from here to this strike, how much would dealers
- * have had to transact along the way" — the one-dimensional form of the same question the
- * (ΔS, Δσ, Δt) scenario grid answers in three.
+ * The anchored branch is the interesting one. Rows are split at the reference spot; going up,
+ * the running subtotal accumulates outward; going down, likewise. Each point is the sum of the
+ * KNOWN SUPPLIED strike contributions between the reference spot and that strike — a snapshot
+ * subtotal, not a spot-path or whole-book trade total.
+ *
+ * Coverage is additive and changes no arithmetic: inputRows counts every offered row
+ * (malformed included), knownRows counts the rows that carry a finite strike and a finite
+ * value for this lens, missingRows is their difference, and complete is true only for a
+ * non-empty, fully known book. An observed zero stays counted as known; a missing cell is
+ * never zero-filled.
  */
 export function hedgeProfile(
   rows: readonly MscStrikeRow[] | null | undefined,
   greek: HedgeGreek,
   spot: number | null | undefined,
 ): HedgeProfile {
+  const list = rows ?? [];
   const field = greekField(greek);
   const out: HedgeRow[] = [];
-  for (const r of rows ?? []) {
+  for (const r of list) {
     if (!r || !isNum(r.strike)) continue;
     const v = r[field];
     if (!isNum(v)) continue;
@@ -658,6 +674,11 @@ export function hedgeProfile(
     out.push({ strike: r.strike, hedgeMn: v === 0 ? 0 : -v });
   }
   out.sort((a, b) => a.strike - b.strike);
+
+  const inputRows = list.length;
+  const knownRows = out.length;
+  const missingRows = inputRows - knownRows;
+  const complete = inputRows > 0 && missingRows === 0;
 
   const anchored = SECOND_ORDER.has(greek) && isNum(spot) && spot > 0;
   const cumulative: { strike: number; cumMn: number }[] = [];
@@ -693,7 +714,19 @@ export function hedgeProfile(
   let maxAbsCumMn = 0;
   for (const c of cumulative) maxAbsCumMn = Math.max(maxAbsCumMn, Math.abs(c.cumMn));
 
-  return { greek, rows: out, cumulative, anchored, maxAbsMn, maxAbsCumMn, perUnit: PER_UNIT[greek] };
+  return {
+    greek,
+    rows: out,
+    cumulative,
+    anchored,
+    maxAbsMn,
+    maxAbsCumMn,
+    perUnit: PER_UNIT[greek],
+    inputRows,
+    knownRows,
+    missingRows,
+    complete,
+  };
 }
 
 // ─── Term structure with tenor banding ───────────────────────────────────────────────

@@ -441,6 +441,71 @@ describe("hedgeProfile", () => {
     expect(p.cumulative).toEqual([]);
     expect(p.maxAbsMn).toBe(0);
   });
+
+  it("adds coverage counts without changing the finite series arithmetic", () => {
+    const p = hedgeProfile(ROWS, "gamma", 100);
+    expect(p.inputRows).toBe(3);
+    expect(p.knownRows).toBe(3);
+    expect(p.missingRows).toBe(0);
+    expect(p.complete).toBe(true);
+    // The histogram and anchored cumulative subtotals are byte-for-byte unchanged.
+    expect(p.rows.map((r) => [r.strike, r.hedgeMn])).toEqual([[90, 30], [100, -40], [110, -20]]);
+    expect(p.cumulative.map((c) => [c.strike, c.cumMn])).toEqual([[90, 30], [100, -40], [110, -60]]);
+  });
+
+  it("counts an observed zero as a known row rather than a missing one", () => {
+    const rows: MscStrikeRow[] = [{ strike: 100, gamma_net: 0, gamma_call: 0, gamma_put: 0 }];
+    const p = hedgeProfile(rows, "gamma", 100);
+    expect(p.rows).toEqual([{ strike: 100, hedgeMn: 0 }]);
+    expect(p.knownRows).toBe(1);
+    expect(p.missingRows).toBe(0);
+    expect(p.complete).toBe(true);
+  });
+
+  it("counts missing, null, NaN and invalid-strike rows as missing, never zero-filling", () => {
+    const rows = [
+      { strike: 90, gamma_net: 5, gamma_call: 5, gamma_put: 0 },
+      { strike: 100, gamma_call: 5, gamma_put: 0 } as MscStrikeRow,
+      { strike: Number.NaN, gamma_net: 7, gamma_call: 7, gamma_put: 0 },
+      { strike: 120, gamma_net: Number.NaN, gamma_call: 1, gamma_put: 0 },
+      null as unknown as MscStrikeRow,
+    ];
+    const p = hedgeProfile(rows, "gamma", 100);
+    expect(p.inputRows).toBe(5);
+    expect(p.knownRows).toBe(1);
+    expect(p.missingRows).toBe(4);
+    expect(p.complete).toBe(false);
+    // Only the fully-known row survives; the rest are excluded, not turned into zeros.
+    expect(p.rows).toEqual([{ strike: 90, hedgeMn: -5 }]);
+  });
+
+  it("reports an empty book as 0/0 coverage that is not complete", () => {
+    const p = hedgeProfile(null, "gamma", 100);
+    expect(p.inputRows).toBe(0);
+    expect(p.knownRows).toBe(0);
+    expect(p.missingRows).toBe(0);
+    expect(p.complete).toBe(false);
+  });
+
+  it("recomputes for a different book and spot without retaining prior data", () => {
+    const first = hedgeProfile(ROWS, "gamma", 100);
+    const second = hedgeProfile(
+      [
+        { strike: 50, gamma_net: -7, gamma_call: 0, gamma_put: -7 },
+        { strike: 150, gamma_net: 3, gamma_call: 3, gamma_put: 0 },
+      ],
+      "gamma",
+      90,
+    );
+    // The second call reflects only its own book and reference spot.
+    expect(second.rows.map((r) => [r.strike, r.hedgeMn])).toEqual([[50, 7], [150, -3]]);
+    expect(second.cumulative.map((c) => [c.strike, c.cumMn])).toEqual([[50, 7], [150, -3]]);
+    expect(second.inputRows).toBe(2);
+    expect(second.knownRows).toBe(2);
+    // The first result object is untouched (no memo/shared state carried over).
+    expect(first.rows.map((r) => r.strike)).toEqual([90, 100, 110]);
+    expect(first.knownRows).toBe(3);
+  });
 });
 
 describe("tenorBand", () => {
