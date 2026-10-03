@@ -29,9 +29,13 @@ Resumable: skips a (sym,tf) whose file already exists unless --force.
 from __future__ import annotations
 
 import json
+import math
 import os
+import re
 import sys
+import threading
 import time
+import uuid
 import datetime as dt
 import urllib.request
 import urllib.error
@@ -46,6 +50,21 @@ OUT = Path(os.environ.get("TERMINAL_DATA_DIR") or (ROOT / "terminal" / "public" 
 MANIFEST = Path(os.environ.get("TERMINAL_MANIFEST") or (OUT / "manifest.json"))
 INTRADAY = OUT / "intraday"
 ET = ZoneInfo("America/New_York")
+
+MAX_STORE_ROWS = 60000
+FINALITY_LAG_S = 900
+MIN_STORE_ROWS = 20
+# A refresh re-reads the last few days the store already holds. If the vendor now quotes those
+# same bars on another price basis (a split or reverse split re-adjusts all history), merging
+# would leave one store on two bases. The median new/old close over the shared bars decides.
+BASIS_MIN_SHARED = 5
+BASIS_TOLERANCE = 0.005
+MAX_REBUILDS = 200
+# Stop the run early when the vendor is unreachable instead of retrying every store.
+BREAKER_CONSECUTIVE = 25
+BREAKER_MIN_SAMPLE = 200
+BREAKER_FRACTION = 0.5
+_stats_lock = threading.Lock()
 
 # Per-tf: Polygon (multiplier, unit) + how far back to store. 5m capped to ~2y to bound file
 # size (5m×5y ≈ 240k bars ≈ 10MB/file); 1h full window is only ~20k bars (~800KB).
@@ -73,8 +92,60 @@ def _polygon_key() -> str:
 
 POLY = _polygon_key()
 
+EXIT_OK = 0
+EXIT_STORE_FAILURES = 1
+EXIT_NO_STORES = 2
+EXIT_BREAKER_TRIPPED = 3
+EXIT_USAGE = 64
+
+
+class TransportExhausted(RuntimeError):
+    """Every retry of one request failed in transport (timeout, 429, 5xx, connection error)."""
+
+
+class EmptyOverlap(RuntimeError):
+    """A refresh window that contains the store's own last bar came back with no bars."""
+
+
+class AdjustmentMismatch(RuntimeError):
+    """The vendor's bars and the store disagree on price basis and the store was not rebuilt."""
+
+_INTRO_REDACT_PATTERNS = (
+    (re.compile(r"(?i)((?:^|[?&])api[_]?key=)([^&\s\"',})]+)"), r"\1REDACTED"),
+    (re.compile(r"(?i)(api[_]?key%3d)([^&\s\"',})]+)"), r"\1REDACTED"),
+    (re.compile(
+        r"(?i)([\"']?api[_]?key[\"']?\s*(?:[:=]|%3d)\s*)"
+        r"(?:\"([^\"]*)\"|'([^']*)'|([^&\s\"',})]+))"
+    ), r"\1REDACTED"),
+)
+
+
+def _redact(text: str) -> str:
+    try:
+        s = text if isinstance(text, str) else str(text)
+        for pat, repl in _INTRO_REDACT_PATTERNS:
+            s = pat.sub(repl, s)
+        if isinstance(POLY, str) and len(POLY) >= 8:
+            s = s.replace(POLY, "REDACTED")
+        return s
+    except Exception:
+        # Fail closed: a redactor that cannot run must not hand back the raw text.
+        return "[redaction failed: message withheld]"
+
+
+def _tf_seconds(tf: str) -> int:
+    spec = TF_SPEC[tf]
+    unit = spec["unit"]
+    mult = spec["mult"]
+    if unit == "minute":
+        return mult * 60
+    if unit == "hour":
+        return mult * 3600
+    raise ValueError(f"unsupported tf unit {unit!r}")
+
 
 def _get(url: str, tries: int = 5) -> dict:
+    last_error: Exception | None = None
     for attempt in range(tries):
         try:
             req = urllib.request.Request(url, headers={"User-Agent": "terminal-intraday/1.0"})
@@ -82,15 +153,19 @@ def _get(url: str, tries: int = 5) -> dict:
                 return json.loads(r.read())
         except urllib.error.HTTPError as e:
             if e.code == 429:                       # rate limited — back off and retry
+                last_error = e
                 time.sleep(2.0 * (attempt + 1))
                 continue
             if 500 <= e.code < 600:
+                last_error = e
                 time.sleep(1.5 * (attempt + 1))
                 continue
             raise
-        except Exception:
+        except Exception as e:
+            last_error = e
             time.sleep(1.5 * (attempt + 1))
-    return {}
+    raise TransportExhausted(
+        f"Polygon aggregate retries exhausted after {tries} attempts") from last_error
 
 
 def _disp_epoch(ms: int) -> int:
@@ -99,8 +174,39 @@ def _disp_epoch(ms: int) -> int:
     return int(dt.datetime(et.year, et.month, et.day, et.hour, et.minute, tzinfo=timezone.utc).timestamp())
 
 
-def fetch_polygon_intraday(sym: str, tf: str, frm: dt.date | None = None) -> list[list]:
+def _validate_aggregate_bar(b: dict, sym: str, tf: str) -> None:
+    if not isinstance(b, dict):
+        raise RuntimeError(f"malformed aggregate bar for {sym} {tf}: not an object")
+    t = b.get("t")
+    if not isinstance(t, int) or isinstance(t, bool):
+        raise RuntimeError(f"malformed aggregate bar for {sym} {tf}: t")
+    for field in ("o", "h", "l", "c"):
+        val = b.get(field)
+        if isinstance(val, bool) or not isinstance(val, (int, float)):
+            raise RuntimeError(f"malformed aggregate bar for {sym} {tf}: {field}")
+        if not math.isfinite(val) or val <= 0:
+            raise RuntimeError(f"malformed aggregate bar for {sym} {tf}: {field}")
+    if b["h"] < b["l"]:
+        raise RuntimeError(f"malformed aggregate bar for {sym} {tf}: h")
+    vol = b.get("v")
+    if vol is not None:
+        if isinstance(vol, bool) or not isinstance(vol, (int, float)):
+            raise RuntimeError(f"malformed aggregate bar for {sym} {tf}: v")
+        if not math.isfinite(vol) or vol < 0:
+            raise RuntimeError(f"malformed aggregate bar for {sym} {tf}: v")
+
+
+def fetch_polygon_intraday(
+    sym: str,
+    tf: str,
+    frm: dt.date | None = None,
+    *,
+    now: float | None = None,
+    stats: dict | None = None,
+) -> list[list]:
     spec = TF_SPEC[tf]
+    if now is None:
+        now = time.time()
     to = dt.date.today()
     if frm is None:
         frm = to - dt.timedelta(days=spec["days"])
@@ -110,36 +216,80 @@ def fetch_polygon_intraday(sym: str, tf: str, frm: dt.date | None = None) -> lis
            f"?adjusted=true&sort=asc&limit=50000&apiKey={POLY}")
     rows: list[list] = []
     pages = 0
+    bar_seconds = _tf_seconds(tf)
+    finality_cutoff = now - FINALITY_LAG_S
     while url and pages < 400:
         d = _get(url)
-        if d.get("status") not in ("OK", "DELAYED"):
-            break
-        for b in d.get("results") or []:
-            rows.append([_disp_epoch(b["t"]), b.get("o"), b.get("h"), b.get("l"),
-                         b.get("c"), int(b.get("v") or 0)])
+        status = d.get("status")
+        if status not in ("OK", "DELAYED"):
+            raise RuntimeError(
+                f"invalid aggregate response status={status!r} after {pages} completed page(s)")
+        if status == "DELAYED" and stats is not None:
+            with _stats_lock:
+                stats["delayed_pages"] = stats.get("delayed_pages", 0) + 1
+        results = d.get("results")
+        if results is None:                         # the vendor omits the key on an empty page
+            results = []
+        elif not isinstance(results, list):
+            raise RuntimeError(
+                f"invalid aggregate response: results is {type(results).__name__}, not a list")
+        for b in results:
+            _validate_aggregate_bar(b, sym, tf)
+            bar_end = b["t"] / 1000 + bar_seconds
+            if bar_end > finality_cutoff:
+                if stats is not None:
+                    with _stats_lock:
+                        stats["forming_skipped"] = stats.get("forming_skipped", 0) + 1
+                continue
+            vol = b.get("v")
+            rows.append([_disp_epoch(b["t"]), b["o"], b["h"], b["l"], b["c"],
+                         int(vol or 0)])
         nxt = d.get("next_url")
         url = (nxt + f"&apiKey={POLY}") if nxt else None
         pages += 1
         if url:
             time.sleep(0.1)
-    # ascending + de-dupe by epoch (pagination can overlap a boundary bar)
+    if url:
+        raise RuntimeError(f"pagination incomplete after {pages} pages")
     rows.sort(key=lambda r: r[0])
     out: list[list] = []
     last = None
     for r in rows:
-        if r[0] != last and r[1] is not None:
+        if r[0] != last:
             out.append(r)
             last = r[0]
     return out
 
 
 def write_store(sym: str, tf: str, rows: list[list]) -> int:
-    if len(rows) < 20:
+    """Write an intraday store atomically: temp file + os.replace so readers never see a
+    partial file. Returns 0 if the row count is below the minimum viable store size."""
+    if len(rows) < MIN_STORE_ROWS:
         return 0
     INTRADAY.mkdir(parents=True, exist_ok=True)
+    target = INTRADAY / f"{sym}.{tf}.json"
     doc = {"t": sym, "tf": tf, "src": "polygon", "bar_quality": "real_ohlc",
            "asof": rows[-1][0], "bars": rows}
-    (INTRADAY / f"{sym}.{tf}.json").write_text(json.dumps(doc, separators=(",", ":")))
+    tmp = INTRADAY / (
+        f"{sym}.{tf}.json.tmp.{os.getpid()}.{threading.get_ident()}.{uuid.uuid4().hex[:8]}"
+    )
+    try:
+        with open(tmp, "w", encoding="utf-8") as f:
+            f.write(json.dumps(doc, separators=(",", ":")))
+            f.flush()
+            os.fsync(f.fileno())
+        os.replace(tmp, target)
+        try:
+            dfd = os.open(str(INTRADAY), os.O_RDONLY)
+            try:
+                os.fsync(dfd)
+            finally:
+                os.close(dfd)
+        except OSError:
+            pass
+    finally:
+        if tmp.exists():
+            tmp.unlink(missing_ok=True)
     return len(rows)
 
 
@@ -173,6 +323,54 @@ def _merge(old: list[list], new: list[list]) -> list[list]:
     return [by_ep[k] for k in sorted(by_ep)]
 
 
+def _is_price(v) -> bool:
+    return isinstance(v, (int, float)) and not isinstance(v, bool) and math.isfinite(v) and v > 0
+
+
+def _basis_ratio(old: list[list], new: list[list]) -> tuple[float | None, int]:
+    """Median new/old close over the bars both carry, and how many bars that is.
+
+    The ratio is None when fewer than BASIS_MIN_SHARED bars are shared: too few to tell a
+    re-adjusted history from a handful of corrected bars. `old` and `new` are ascending.
+    """
+    if not new:
+        return None, 0
+    first = new[0][0]
+    old_close: dict[int, float] = {}
+    for r in reversed(old):
+        if r[0] < first:
+            break
+        if _is_price(r[4]):
+            old_close[r[0]] = r[4]
+    ratios = sorted(r[4] / old_close[r[0]] for r in new
+                    if r[0] in old_close and _is_price(r[4]))
+    n = len(ratios)
+    if n < BASIS_MIN_SHARED:
+        return None, n
+    mid = n // 2
+    return (ratios[mid] if n % 2 else (ratios[mid - 1] + ratios[mid]) / 2), n
+
+
+def existing_stores(tfs: list[str]) -> list[tuple[str, str]]:
+    """Enumerate already-present intraday store files for the given timeframes.
+
+    This is the incremental-refresh universe: it NEVER includes a symbol that has no
+    store on disk. Dot symbols (e.g. BRK.B) are included — the dot is valid in filenames.
+    """
+    if not INTRADAY.exists():
+        return []
+    out: list[tuple[str, str]] = []
+    for tf in tfs:
+        if tf not in TF_SPEC:
+            continue
+        pattern = f".{tf}.json"
+        for p in INTRADAY.iterdir():
+            if p.name.endswith(pattern) and p.name != f"{pattern}":  # guard empty glob
+                sym = p.name[: -len(pattern)]
+                out.append((sym, tf))
+    return out
+
+
 # ---------------------------------------------------------------- universe
 NON_US_SUFFIX = (".HK", ".TO", ".SS", ".SZ", "-USD")
 
@@ -195,7 +393,8 @@ def us_symbols_ranked() -> list[str]:
     return [s for _, s in scored]
 
 
-def main(argv: list[str]) -> None:
+def main(argv: list[str]) -> int:
+    """Exit contract: EXIT_OK, EXIT_STORE_FAILURES, EXIT_NO_STORES, EXIT_BREAKER_TRIPPED, EXIT_USAGE."""
     def opt(name, default=None):
         return argv[argv.index(name) + 1] if name in argv else default
 
@@ -205,60 +404,185 @@ def main(argv: list[str]) -> None:
     limit = int(opt("--limit") or 0)
     force = "--force" in argv
     update = "--update" in argv   # incremental: extend existing store files with recent bars
+    existing_only = "--existing-only" in argv
 
-    ranked = us_symbols_ranked()
-    if limit:
-        ranked = ranked[:limit]
-    top_set = set(ranked[:top])
+    if existing_only and (update or force):
+        print("intraday backfill: --existing-only cannot be combined with --update or --force",
+              flush=True)
+        return EXIT_USAGE
 
-    # build the (sym, tf) work list: 1h for all; sub-hour tfs only for the top-N liquid
-    jobs: list[tuple[str, str]] = []
-    for tf in tfs:
-        if tf not in TF_SPEC:
-            print(f"skip unknown tf {tf}", flush=True)
-            continue
-        pool = ranked if tf == "1h" else [s for s in ranked if s in top_set]
-        for s in pool:
-            # --update processes existing files (to extend them); a plain run skips them
-            if not force and not update and (INTRADAY / f"{s}.{tf}.json").exists():
+    # --existing-only: enumerate only the stores already on disk. Bypasses manifest/top-N;
+    # never creates a missing symbol. Not usable with --update (they share the same path).
+    if existing_only:
+        jobs = existing_stores(tfs)
+        print(f"intraday refresh --existing-only: {len(jobs)} existing (sym,tf) jobs | "
+              f"tfs={tfs} workers={workers}", flush=True)
+    else:
+        ranked = us_symbols_ranked()
+        if limit:
+            ranked = ranked[:limit]
+        top_set = set(ranked[:top])
+
+        jobs: list[tuple[str, str]] = []
+        for tf in tfs:
+            if tf not in TF_SPEC:
+                print(f"skip unknown tf {tf}", flush=True)
                 continue
-            jobs.append((s, tf))
+            pool = ranked if tf == "1h" else [s for s in ranked if s in top_set]
+            for s in pool:
+                if not force and not update and (INTRADAY / f"{s}.{tf}.json").exists():
+                    continue
+                jobs.append((s, tf))
+        print(f"intraday backfill{' [update]' if update else ''}: {len(jobs)} (sym,tf) jobs | "
+              f"tfs={tfs} top={top} universe={len(ranked)} workers={workers}", flush=True)
 
-    print(f"intraday backfill{' [update]' if update else ''}: {len(jobs)} (sym,tf) jobs | "
-          f"tfs={tfs} top={top} universe={len(ranked)} workers={workers}", flush=True)
+    if not jobs:
+        if existing_only:
+            print(f"intraday backfill: no existing stores under {INTRADAY} — refusing to report success",
+                  flush=True)
+            return EXIT_NO_STORES
+        print("intraday backfill: no jobs — nothing to do", flush=True)
+        return EXIT_OK
+
+    seen: set[tuple[str, str]] = set()
+    deduped: list[tuple[str, str]] = []
+    for job in jobs:
+        if job not in seen:
+            seen.add(job)
+            deduped.append(job)
+    jobs = deduped
+
+    stats: dict = {"delayed_pages": 0, "forming_skipped": 0}
+    failures: list[str] = []
+    abort = threading.Event()
+    rebuilds_left = [MAX_REBUILDS]
+    wall_now = time.time()
+
+    def rebuild(s, tf, old, why):
+        """Replace a store whose basis no longer matches the vendor with a full adjusted fetch."""
+        with _stats_lock:
+            if rebuilds_left[0] <= 0:
+                raise AdjustmentMismatch(f"{why}; rebuild budget of {MAX_REBUILDS} is spent")
+            rebuilds_left[0] -= 1
+        rows = fetch_polygon_intraday(s, tf, stats=stats)[-MAX_STORE_ROWS:]
+        if len(rows) < MIN_STORE_ROWS:
+            raise AdjustmentMismatch(f"{why}; full refetch returned {len(rows)} bar(s)")
+        write_store(s, tf, rows)
+        print(f"  rebuilt: {s}.{tf} {why}; {len(old)} -> {len(rows)} row(s)", flush=True)
+        return s, tf, "rebuilt", 0
+
+    def refresh(s, tf, old, asof):
+        if asof > wall_now:
+            raise RuntimeError("StoreAsofInFuture: the store's last bar is later than now")
+        frm = _date_of(asof) - dt.timedelta(days=3)
+        recent = fetch_polygon_intraday(s, tf, frm=frm, stats=stats)
+        if not recent:
+            raise EmptyOverlap("refetch of a window holding the store's last bar returned no bars")
+        if recent[0][0] > asof:
+            return rebuild(s, tf, old, "refetch shares no bar with the store")
+        ratio, shared = _basis_ratio(old, recent)
+        if ratio is None:
+            with _stats_lock:
+                stats["basis_unverified"] = stats.get("basis_unverified", 0) + 1
+        elif abs(ratio - 1.0) > BASIS_TOLERANCE:
+            return rebuild(s, tf, old, f"price basis moved x{ratio:.4f} over {shared} shared bar(s)")
+        merged_full = _merge(old, recent)
+        if len(merged_full) < MIN_STORE_ROWS:
+            raise RuntimeError(f"StoreTooSmall: {len(merged_full)} bar(s) after merge")
+        if merged_full == old:
+            return s, tf, "unchanged", 0
+        dropped = max(0, len(merged_full) - MAX_STORE_ROWS)
+        if dropped > 0:
+            print(f"  retention: {s}.{tf} dropped {dropped} oldest row(s) "
+                  f"(cap {MAX_STORE_ROWS})", flush=True)
+        write_store(s, tf, merged_full[-MAX_STORE_ROWS:])
+        return s, tf, "written", dropped
 
     def work(job):
         s, tf = job
+        if abort.is_set():
+            return s, tf, "skipped", 0
         try:
-            if update:
+            if update or existing_only:
                 old, asof = load_store(s, tf)
-                if asof is not None:  # extend an existing file: re-fetch the last few days + new bars
-                    frm = _date_of(asof) - dt.timedelta(days=3)
-                    recent = fetch_polygon_intraday(s, tf, frm=frm)
-                    if not recent:
-                        return s, tf, 0            # nothing new (weekend/holiday) — leave file intact
-                    merged = _merge(old, recent)[-60000:]
-                    return s, tf, write_store(s, tf, merged)
-                # no existing file → fall through to a full backfill for this new symbol
-            rows = fetch_polygon_intraday(s, tf)
-            return s, tf, write_store(s, tf, rows)
-        except Exception:
-            return s, tf, -1
+                if asof is not None:
+                    return refresh(s, tf, old, asof)
+                if existing_only:
+                    failures.append(
+                        f"{s}.{tf}: StoreUnreadable: existing store has no readable bars"
+                    )
+                    return s, tf, "failed", 0  # refresh-only mode never invents a missing store
+                # Preserve legacy --update semantics: a newly listed symbol with no store
+                # falls through to the ordinary full backfill path.
+            rows = fetch_polygon_intraday(s, tf, stats=stats)
+            return s, tf, ("written" if write_store(s, tf, rows) else "unchanged"), 0
+        except TransportExhausted as e:
+            failures.append(f"{s}.{tf}: {type(e).__name__}: {_redact(str(e))[:300]}")
+            return s, tf, "transport", 0
+        except Exception as e:
+            failures.append(f"{s}.{tf}: {type(e).__name__}: {_redact(str(e))[:300]}")
+            return s, tf, "failed", 0
 
-    done = ok = 0
+    counts = {"written": 0, "unchanged": 0, "rebuilt": 0, "failed": 0, "transport": 0,
+              "skipped": 0}
+    total_dropped = done = attempted = streak = 0
+    tripped = False
     t0 = time.time()
     with ThreadPoolExecutor(max_workers=workers) as ex:
         futs = [ex.submit(work, j) for j in jobs]
         for f in as_completed(futs):
-            s, tf, n = f.result()
             done += 1
-            if n and n > 0:
-                ok += 1
+            if f.cancelled():
+                counts["skipped"] += 1
+            else:
+                s, tf, kind, dropped_local = f.result()
+                counts[kind] += 1
+                total_dropped += dropped_local
+                if kind != "skipped":
+                    attempted += 1
+                    streak = streak + 1 if kind == "transport" else 0
+                if not tripped and (
+                        streak >= BREAKER_CONSECUTIVE
+                        or (attempted >= BREAKER_MIN_SAMPLE
+                            and counts["transport"] > BREAKER_FRACTION * attempted)):
+                    tripped = True
+                    abort.set()
+                    for other in futs:
+                        other.cancel()
+                    print(f"  BREAKER: vendor unreachable ({counts['transport']} of {attempted} "
+                          f"store(s) exhausted their retries, {streak} in a row) — "
+                          "skipping the rest of this run", flush=True)
             if done % 100 == 0 or done == len(jobs):
                 rate = done / max(1e-9, time.time() - t0)
-                print(f"  {done}/{len(jobs)} | {ok} written | {rate:.1f}/s", flush=True)
-    print(f"intraday backfill complete: {ok}/{len(jobs)} stored in {time.time()-t0:.0f}s", flush=True)
+                print(f"  {done}/{len(jobs)} | {counts['written'] + counts['rebuilt']} written "
+                      f"{counts['unchanged']} unchanged "
+                      f"{counts['failed'] + counts['transport']} failed | {rate:.1f}/s", flush=True)
+
+    for i, text in enumerate(failures[:50]):
+        print(f"  FAILED {text}", flush=True)
+    if len(failures) > 50:
+        print(f"  ... and {len(failures) - 50} more failure(s)", flush=True)
+
+    written = counts["written"] + counts["rebuilt"]
+    failed = counts["failed"] + counts["transport"]
+    print(
+        f"intraday backfill complete: {written}/{len(jobs)} stored "
+        f"(unchanged={counts['unchanged']} failed={failed} retention_dropped={total_dropped} "
+        f"forming_skipped={stats['forming_skipped']} delayed_pages={stats['delayed_pages']}) "
+        f"in {time.time()-t0:.0f}s",
+        flush=True,
+    )
+    print(
+        f"intraday backfill detail: rebuilt={counts['rebuilt']} "
+        f"basis_unverified={stats.get('basis_unverified', 0)} "
+        f"transport_failed={counts['transport']} skipped={counts['skipped']} "
+        f"breaker={'TRIPPED' if tripped else 'clear'}",
+        flush=True,
+    )
+    if tripped:
+        return EXIT_BREAKER_TRIPPED
+    return EXIT_STORE_FAILURES if failed else EXIT_OK
 
 
 if __name__ == "__main__":
-    main(sys.argv[1:])
+    sys.exit(main(sys.argv[1:]))
