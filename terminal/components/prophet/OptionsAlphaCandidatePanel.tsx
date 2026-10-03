@@ -459,9 +459,6 @@ export function OptionsAlphaCandidatePanel(props: OptionsAlphaCandidatePanelProp
       {state.status === "unavailable" && state.message ? (
         <p className="obs-options-alpha-footnote" role="status" data-testid="options-alpha-candidate-unavailable">{state.message}</p>
       ) : null}
-      {!source && state.status !== "purge" ? (
-        <p className="obs-options-alpha-empty">{t("candidatePanelUnavailable")}</p>
-      ) : null}
       {source ? (
         <>
           <div className="obs-options-alpha-metrics" data-testid="options-alpha-candidate-status">
