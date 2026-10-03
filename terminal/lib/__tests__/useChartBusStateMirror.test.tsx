@@ -186,6 +186,57 @@ describe("useChartBus state mirror", () => {
     });
   });
 
+  it("mirrors replay-safe rendered price bars and uses the active viewport tail", async () => {
+    const busRef = { current: null as ChartBus | null };
+    const rendered = Array.from({ length: 20 }, (_, i) => ({
+      time: "2026-02-" + String(i + 1).padStart(2, "0"),
+      o: 100 + i, h: 102 + i, l: 99 + i, c: 101 + i, v: 1000 + i,
+    }));
+    const host: ChartBusHost = {
+      ...hostWith([]),
+      getRenderedPriceWindowSource: () => ({
+        symbol: "NVDA", tf: "D", bars: rendered.slice(0, 15), replay: true,
+      }),
+    };
+    await act(async () => {
+      root!.render(React.createElement(Harness, {
+        host,
+        onBus: (bus) => { busRef.current = bus; },
+      }));
+    });
+    await act(async () => { await vi.advanceTimersByTimeAsync(250); });
+    fetchMock.mockClear();
+
+    act(() => busRef.current!.noteViewport(0, {
+      from: Date.parse("2026-02-05T00:00:00Z"),
+      to: Date.parse("2026-02-11T00:00:00Z"),
+    }));
+    await act(async () => { await vi.advanceTimersByTimeAsync(250); });
+
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    const body = JSON.parse(String((fetchMock.mock.calls[0][1] as RequestInit).body));
+    expect(body.session.price_window).toMatchObject({
+      schema: "chart.price_window.v1",
+      status: "observed",
+      symbol: "NVDA",
+      tf: "D",
+      source_bar_count: 15,
+      selection: {
+        scope: "visible_tail",
+        eligible_bars: 7,
+        returned_bars: 7,
+        omitted_older_bars: 0,
+        order: "oldest_to_newest",
+      },
+      basis: { data_status: "replay_slice", last_bar_closed: "unknown" },
+    });
+    expect(body.session.price_window.bars.map((row: any) => row.time)).toEqual([
+      "2026-02-05", "2026-02-06", "2026-02-07", "2026-02-08",
+      "2026-02-09", "2026-02-10", "2026-02-11",
+    ]);
+    expect(body.session.price_window.bars.at(-1).age_bars_from_loaded_end).toBe(4);
+  });
+
   it("never lets a viewport update postpone a higher-priority ACK mirror", async () => {
     const busRef = { current: null as ChartBus | null };
     await act(async () => {
@@ -213,6 +264,75 @@ describe("useChartBus state mirror", () => {
     const body = JSON.parse(String((fetchMock.mock.calls[0][1] as RequestInit).body));
     expect(body.acks[0]).toMatchObject({ batch_id: "ack-priority", seq: 0, ok: true });
     expect(body.session.visible_range).not.toBeNull();
+  });
+
+  it("mirrors committed presentation on a single-pane chart without inventing pane context", async () => {
+    const presentation = {
+      schema: "chart.presentation.v1",
+      status: "observed",
+      symbol: "NVDA",
+      tf: "D",
+      pane_id: 0,
+      chart_type: "line",
+      price_scale: { mode: "log", inverted: false, side: "right", auto: true },
+      session: {
+        replay: false, day_trade_mode: false,
+        extended_hours: { requested: false, eligible: true, effective: false },
+      },
+      display: {
+        price_line: true, last_value: true, grid_h: true, grid_v: true,
+        ohlc: true, volume: false, indicator_titles: true, watermark: true,
+        candle_body: true, candle_borders: true, candle_wicks: true,
+        extended_price_line: true, precision: "auto",
+      },
+      visual_intelligence: {
+        context: true, regime: false, volume: false, levels: false, events: false,
+      },
+      comparisons: [],
+    };
+    await act(async () => {
+      root!.render(React.createElement(Harness, {
+        host: { ...hostWith([]), getPresentationSnapshot: () => presentation },
+      }));
+      await vi.advanceTimersByTimeAsync(250);
+    });
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    const body = JSON.parse(String((fetchMock.mock.calls[0][1] as RequestInit).body));
+    expect(body.session.presentation).toEqual(presentation);
+    expect(body.session.pane_contexts).toBeNull();
+  });
+
+  it("mirrors the existing Data Window projection without turning failure into a market conclusion", async () => {
+    const readout = {
+      schema: "chart.data_readout.v1",
+      status: "partial",
+      reason: "readout_lookup_unavailable",
+      basis: { empty_result: "not_a_no_setup_judgment" },
+    };
+    await act(async () => {
+      root!.render(React.createElement(Harness, {
+        host: { ...hostWith([]), getReadoutSnapshot: () => readout },
+      }));
+    });
+    await act(async () => { await vi.advanceTimersByTimeAsync(250); });
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    let body = JSON.parse(String((fetchMock.mock.calls[0][1] as RequestInit).body));
+    expect(body.session.data_readout).toEqual(readout);
+
+    fetchMock.mockClear();
+    await act(async () => {
+      root!.render(React.createElement(Harness, {
+        host: {
+          ...hostWith([], { origin_id: "origin-test", context_revision: 5 }),
+          activeSymbol: "AAPL",
+          getReadoutSnapshot: () => { throw new Error("stale readout owner"); },
+        },
+      }));
+    });
+    await act(async () => { await vi.advanceTimersByTimeAsync(250); });
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    body = JSON.parse(String((fetchMock.mock.calls[0][1] as RequestInit).body));
+    expect(body.session.data_readout).toBeNull();
   });
 
   it("retains unsent command acknowledgements after a failed mirror POST", async () => {

@@ -140,6 +140,38 @@ export function subscribePaneVisibleWindow(id: number, fn: VisibleWindowListener
   };
 }
 
+
+/** Set one registered pane to an exact calendar window using the SAME time-domain owner as sync.
+ * Partial overlap is representable with honest whitespace. A no-overlap window would be clamped by
+ * Lightweight Charts; reject that case instead of ACKing a different viewport than was requested.
+ */
+export function setPaneVisibleWindow(id: number, window: TimeWindow): boolean {
+  const peer = peers.get(id);
+  if (!peer || !Number.isFinite(window.from) || !Number.isFinite(window.to) || window.to <= window.from)
+    return false;
+  try {
+    const clock = clockFor(peer);
+    if (!clock) return false;
+    const wanted = toLogicalRange(clock, window);
+    if (!wanted) return false;
+    const representable = clampLogicalRange(clock, wanted);
+    if (!representable || !sameLogicalRange(wanted, representable)) return false;
+    const current = peer.chart.timeScale().getVisibleLogicalRange();
+    if (sameLogicalRange(wanted, current)) {
+      reportVisibleWindow(id, peer, current);
+      return true;
+    }
+    // Do not arm an echo token: this is a genuine source-pane move. If pane sync is ON,
+    // its normal range event may lawfully mirror the same calendar window to peers.
+    peer.lastTarget = undefined;
+    peer.echoOf = undefined;
+    peer.chart.timeScale().setVisibleLogicalRange(wanted);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 export function registerPane(id: number, registration: PaneRegistration) {
   const peer: Peer = { ...registration };
   peers.set(id, peer);
