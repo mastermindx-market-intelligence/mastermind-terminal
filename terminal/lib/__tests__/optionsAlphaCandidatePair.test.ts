@@ -34,7 +34,9 @@ describe("Options Alpha R2 payload/receipt verifier", () => {
 
   it.each(["duplicate", "hash", "etag", "clock", "authority", "map", "inactive"]) ("fails closed for %s corruption", async (kind) => {
     await installPair((payload, receipt) => {
-      if (kind === "duplicate") return [Buffer.from(payload.toString().replace('{', '{"schema":"x",')), receipt];
+      // Duplicate-key JSON on purpose: prefix a second schema key and keep every
+      // remaining raw byte. Same malformed bytes as a first-brace injection.
+      if (kind === "duplicate") return [Buffer.concat([Buffer.from('{"schema":"x",'), payload.subarray(1)]), receipt];
       const body = JSON.parse(receipt.toString()); const feed = JSON.parse(payload.toString());
       if (kind === "hash") body.payload_sha256 = "0".repeat(64);
       if (kind === "etag") body.r2.etag = "wrong";
