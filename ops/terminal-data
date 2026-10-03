@@ -78,6 +78,7 @@ fi
 # OHLC (and watchlist LAST/CHG) freezes at file-creation date. Runs before hydrate so the
 # fresh close flows into the manifest same night (--days 7 self-corrects any missed day).
 run "$PY" ingest/refresh_ohlc.py --days 7 --write
+run node /opt/terminal/terminal/scripts/dist/score_personal_accuracy.mjs
 # Note: the quote hub resolves prevClose from the per-symbol OHLC daily file (anchor.js
 # resolution order: daily_file → polygon_prev → manifest fallback). refresh_ohlc.py above
 # writes today's close into each SYM.json in the live data dir, so the hub sees the correct
