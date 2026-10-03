@@ -927,11 +927,40 @@ test("corrupt owner-bound recovery storage fails closed without deleting or send
 test("a five-key version two recovery envelope hydrates without locking the carrier", async ({ page, baseURL }, testInfo) => {
   await prepare(page, testInfo, baseURL);
   const stored = await seedPending(page, "c2100000-0000-4000-8000-000000000001");
+  const body = JSON.parse(stored.raw).serializedBody as string;
+  const mutation = JSON.parse(body) as { clientRequestId: string; subject: Record<string, unknown>; content: { title: string } & Record<string, unknown> };
+  const thesisId = "11111111-1111-4111-8111-111111111111";
+  const current = {
+    id: "22222222-2222-4222-8222-222222222222", thesisId, version: 1, previousVersion: null,
+    transition: "create", lifecycleState: "active", subject: mutation.subject, content: mutation.content,
+    clientRequestId: mutation.clientRequestId, systemRecordedAt: "2026-10-03T15:00:00.000Z", effectiveAt: null,
+  };
+  const thesis = {
+    id: thesisId, currentVersion: 1, lifecycleState: "active", subject: mutation.subject,
+    title: mutation.content.title, updatedAt: "2026-10-03T15:00:00.000Z", createdAt: "2026-10-03T15:00:00.000Z",
+    current, history: [current], historyTruncated: false,
+  };
+  let created = false;
   const writes: string[] = [];
-  await page.route("**/api/theses", async (route) => {
-    if (route.request().method() !== "POST") return route.continue();
-    writes.push(route.request().postData() ?? "");
-    await fulfillCreatedThesis(route);
+  await page.route("**/api/theses**", async (route) => {
+    if (route.request().method() === "POST") {
+      writes.push(route.request().postData() ?? "");
+      created = true;
+      return fulfillCreatedThesis(route);
+    }
+    if (route.request().method() !== "GET") return route.continue();
+    const id = new URL(route.request().url()).searchParams.get("id");
+    return route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify(id === thesisId ? { thesis } : {
+        theses: created ? [{
+          id: thesis.id, currentVersion: thesis.currentVersion, lifecycleState: thesis.lifecycleState,
+          subject: thesis.subject, title: thesis.title, updatedAt: thesis.updatedAt,
+        }] : [],
+        truncated: false,
+      }),
+    });
   });
 
   await page.goto("/analysis?view=theses&symbol=NVDA");
