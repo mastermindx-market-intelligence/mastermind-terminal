@@ -99,6 +99,8 @@ const PENDING_STORAGE_PREFIX = "mm.thesis.pending.v2:";
 const LEGACY_PENDING_STORAGE_PREFIX = "mm.thesis.pending.v1:";
 const HISTORY_POSITION_KEY = "__mmThesisHistoryPosition";
 const PENDING_ACTIONS = new Set<ThesisAction>(["create", "revise", "archive", "invalidate", "reopen"]);
+const PENDING_ENVELOPE_KEYS_MODERN = ["schema", "ownerKey", "action", "clientRequestId", "savedSubjectKey", "serializedBody"];
+const PENDING_ENVELOPE_KEYS_LEGACY = ["schema", "ownerKey", "action", "clientRequestId", "serializedBody"];
 
 const COPY = {
   en: {
@@ -434,12 +436,22 @@ function decodePending(value: string | null, expectedOwner: string, expectedKey:
     const candidate = JSON.parse(value);
     if (!candidate || typeof candidate !== "object" || Array.isArray(candidate)) return null;
     const envelope = candidate as Record<string, unknown>;
-    if (!exactObjectKeys(envelope, ["schema", "ownerKey", "action", "clientRequestId", "savedSubjectKey", "serializedBody"])
+    // Back-compat: accept the modern 6-key envelope AND a legacy 5-key v2 envelope
+    // persisted before savedSubjectKey existed. A legacy envelope decodes with
+    // savedSubjectKey defaulted to "" so a persisted pre-upgrade pending hydrates and
+    // retries instead of freezing the workspace. A genuinely malformed envelope
+    // (wrong schema, bad field types, unknown/extra keys) still returns null and is
+    // retained, preserving the fail-closed-and-retain contract.
+    if ((!exactObjectKeys(envelope, PENDING_ENVELOPE_KEYS_MODERN) && !exactObjectKeys(envelope, PENDING_ENVELOPE_KEYS_LEGACY))
       || envelope.schema !== PENDING_SCHEMA || envelope.ownerKey !== expectedOwner
       || typeof envelope.action !== "string" || !PENDING_ACTIONS.has(envelope.action as ThesisAction)
-      || typeof envelope.clientRequestId !== "string" || typeof envelope.savedSubjectKey !== "string"
+      || typeof envelope.clientRequestId !== "string"
+      || (envelope.savedSubjectKey !== undefined && typeof envelope.savedSubjectKey !== "string")
       || typeof envelope.serializedBody !== "string") return null;
-    const pending = envelope as Pending;
+    const pending = {
+      ...envelope,
+      savedSubjectKey: typeof envelope.savedSubjectKey === "string" ? envelope.savedSubjectKey : "",
+    } as Pending;
     if (pendingKey(expectedOwner, pending.clientRequestId) !== expectedKey
       || !validSerializedMutation(pending.serializedBody, pending.action, pending.clientRequestId)) return null;
     return pending;

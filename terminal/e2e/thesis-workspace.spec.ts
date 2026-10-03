@@ -864,6 +864,49 @@ test("corrupt owner-bound recovery storage fails closed without deleting or send
   expect(writes).toEqual([]);
 });
 
+test("a five-key version two recovery envelope hydrates without locking the carrier", async ({ page, baseURL }, testInfo) => {
+  await prepare(page, testInfo, baseURL);
+  await page.addInitScript(() => {
+    const clientRequestId = "c2100000-0000-4000-8000-000000000001";
+    const subject = {
+      schema: "mastermind.thesis-subject-ref/v1",
+      kind: "issuer",
+      owner: "terminal.analysis_symbol",
+      key: "NVDA",
+      identityState: "listing_scoped",
+      listing: { symbol: "NVDA", mic: null, securityId: null },
+      companyId: null,
+      display: "NVDA · listing scoped",
+    };
+    const content = {
+      schema: "mastermind.thesis-content/v1",
+      title: "NVDA operating leverage",
+      statement: "Demand will outrun supply through the next platform cycle.",
+      catalysts: [],
+      falsifiers: [],
+      risks: [],
+      horizon: "unspecified",
+      effectiveAt: null,
+      revisionNote: null,
+    };
+    localStorage.setItem(`mm.thesis.pending.v2:local-preview:${clientRequestId}`, JSON.stringify({
+      schema: "mastermind.thesis-pending/v2",
+      ownerKey: "local-preview",
+      action: "create",
+      clientRequestId,
+      serializedBody: JSON.stringify({ action: "create", clientRequestId, subject, content }),
+    }));
+  });
+
+  await page.goto("/analysis?view=theses&symbol=NVDA");
+  await expect(page.getByText("response was interrupted")).toBeVisible();
+  await expect(page.getByTestId("thesis-pending-recovery-item")).toHaveCount(1);
+  await expect(page.getByText("browser could not safely preserve the request")).toHaveCount(0);
+  await expect(page.getByRole("button", { name: "Retry same request" })).toBeEnabled();
+  await expect(page.getByRole("button", { name: "Save", exact: true })).toBeDisabled();
+  await expect(page.getByRole("button", { name: "New thesis" })).toBeDisabled();
+});
+
 test("browser storage refusal preserves the draft and sends no mutation", async ({ page, baseURL }, testInfo) => {
   await prepare(page, testInfo, baseURL);
   await page.addInitScript(() => {

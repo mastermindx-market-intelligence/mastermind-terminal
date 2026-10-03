@@ -1,11 +1,11 @@
 # B-F11-4 research management views — capture evidence
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
 # Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
-# capturedAtHead: b5fdd6ccd171120c7a30baaed06430d7f78dd113
-# capturedAt: 2026-10-03T06:58:07.667Z
+# capturedAtHead: 932a38d6c0e473e05fe9629208aeb4727be2f165
+# capturedAt: 2026-10-03T07:34:03.533Z
 # capturedAtHead is informational. The lock is layoutFiles.
 layoutFiles:
-  terminal/components/workspaces/ThesisWorkspace.tsx: "da02bccb8844aa99f48b47b9a52fc45c332ff74b620c9c8031fb1086f9e18840"
+  terminal/components/workspaces/ThesisWorkspace.tsx: "eca70976cff49fc52e6fd2d17cfe26b8c3848ae2c59de314e9f5dc4804f1ce32"
   terminal/components/workspaces/ThesisWorkspace.module.css: "3afaa5c0a5794f3fc2cdfb5c9b65257f703e7a3105e08009e602363d40690891"
   terminal/lib/rmsViews.ts: "fd5f025806c5a4b1b27e7d99a026e82f555767f0d96b6a2766a5b363961897cb"
   terminal/lib/savedViews.ts: "16e2914a032cba50cce999d1802c53e51098ce76dd82931925ef41b8e0f7af54"
