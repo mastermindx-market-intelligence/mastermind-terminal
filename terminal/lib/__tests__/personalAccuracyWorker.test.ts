@@ -11,8 +11,13 @@ import {
   type ReadDailyBars,
 } from "@/lib/dailyCloseResolver";
 import { scoreDueClaims } from "../../scripts/score_personal_accuracy.mjs";
+import { runPersonalAccuracyNightly } from "../../scripts/score_personal_accuracy_entry";
 import { compareObserved, thresholdNumber } from "@/lib/personalAccuracy";
-import { UNDETERMINED_NOTE } from "@/lib/personalAccuracyStore";
+import {
+  RESOLVER_REGISTRY,
+  RESOLVER_REGISTRY_NAME,
+  UNDETERMINED_NOTE,
+} from "@/lib/personalAccuracyStore";
 
 const FIXTURE_DIR = join(__dirname, "fixtures/dailyClose");
 
@@ -187,5 +192,45 @@ describe("score_personal_accuracy worker last-close path", () => {
     expect(src).toContain(
       "the scoring worker now needs esbuild at runtime; it is a devDependency; install with dev deps or promote it in a later packet",
     );
+  });
+
+  it("build entry settles one due fixture once through the canonical registry", async () => {
+    expect(RESOLVER_REGISTRY[CLAIM_OWNER_LAST_CLOSE.owner]).toBe(resolveLastClose);
+    const due = [{ ...DUE }];
+    const client = stubClient(due);
+    const first = await runPersonalAccuracyNightly(client, {
+      resolverDeps: { readDailyBars },
+      now: "2026-09-05T00:00:00.000Z",
+    });
+    expect(first).toEqual({ settled: 1, undetermined: 0, skipped: 0 });
+    expect(client.writes).toHaveLength(1);
+    expect(client.writes[0].payload.resolution).toMatchObject({
+      outcome: 1,
+      observed: 227,
+      resolver: CLAIM_OWNER_LAST_CLOSE.owner,
+    });
+
+    due.pop();
+    const second = await runPersonalAccuracyNightly(client, {
+      resolverDeps: { readDailyBars },
+      now: "2026-09-05T00:05:00.000Z",
+    });
+    expect(second).toEqual({ settled: 0, undetermined: 0, skipped: 0 });
+    expect(client.writes).toHaveLength(1);
+  });
+
+  it("build entry leaves a missing close undetermined rather than inventing zero", async () => {
+    const client = stubClient([{ ...DUE }]);
+    const counts = await runPersonalAccuracyNightly(client, {
+      resolverDeps: { readDailyBars: async () => null },
+      now: "2026-09-05T00:00:00.000Z",
+    });
+    expect(counts).toEqual({ settled: 1, undetermined: 1, skipped: 0 });
+    expect(client.writes[0].payload.resolution).toMatchObject({
+      outcome: null,
+      observed: null,
+      resolver: RESOLVER_REGISTRY_NAME,
+      note: "the data this call named was not available",
+    });
   });
 });
