@@ -1,0 +1,50 @@
+{
+  "capability": {
+    "epistemic_types_preserved": true,
+    "horizon_zero_double_paint": false,
+    "kind": "observed_plus_conditional",
+    "observed_through_now": true,
+    "scenario_strictly_right_of_now": true
+  },
+  "carrier": "mastermind-terminal#640",
+  "non_claims": [
+    "SurfacePane mounted",
+    "browser acceptance",
+    "production deployment",
+    "live freshness",
+    "participant inventory",
+    "predictive edge",
+    "QuantedOptions parity",
+    "parent #603 completion"
+  ],
+  "operation": "options-workbench-r2-scenario-terminal-contract-20260918-sol-001",
+  "pre_composition_head": "da9fd7ab6b705c81f1319cd024b7d3d6975209c6",
+  "local_composition_commit": "55518af71666cdbfcd00d18eec32eb98fd7ca615",
+  "local_integrated_proof_head": "1f65e05370678a265cd492745fdd76bafaa3fddb",
+  "protected_master_checked": "82bee14ba3d7812b78fedd92b351318b575a9a81",
+  "schema": "mastermind.options_workbench.scenario_terminal_composition.v1",
+  "skillpack_sha": "55473bb43c3ae1908f53ddd4ccfe724643dd6c69",
+  "source_hashes": {
+    "docs/OPTIONS_WORKBENCH_SCENARIO_TERMINAL_CONTRACT_2026-09-18.md": "76a8c44896b07f94b8157379a7b2e085bb1e2f5c525b7e62c114fece70cf88ac",
+    "terminal/lib/__tests__/surfaceScenarioComposition.test.ts": "a5b6578266761e076018bb6e1488cd8d6a97153737443d744e66898b8776a0e1",
+    "terminal/lib/scenarioSurfaceContract.ts": "05795f3ad656b76fc8c8867b57bd588a8288933634b5f36f40e2b042810a975d",
+    "terminal/lib/surfaceScenarioComposition.ts": "8d901bb558b32044ce39f1a0b9a45361ee10ed40202de7702891bdca720d3a87"
+  },
+  "state": "BUILT_NOT_PROVEN",
+  "verification": {
+    "composition_tests": {
+      "failed": 0,
+      "passed": 3
+    },
+    "diff_check_exit": 0,
+    "owner_pack": {
+      "failed": 0,
+      "passed": 136
+    },
+    "integrated_owner_pack": {
+      "failed": 0,
+      "passed": 136
+    },
+    "typescript_exit": 0
+  }
+}
