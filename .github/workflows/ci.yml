@@ -2,6 +2,8 @@ name: CI
 
 on:
   pull_request:
+  merge_group:
+    types: [checks_requested]
   # merge-on-green refreshes stale branches with GITHUB_TOKEN. Those writes do
   # not recursively emit pull_request workflows, so the controller dispatches
   # this same proof explicitly on the refreshed branch.
