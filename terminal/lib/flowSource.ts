@@ -192,6 +192,13 @@ export function isValidF(f: string): boolean {
   if (f === "prophet_idx") return true;
   if (f === "prophet_marks") return true;
   if (f === "options_prophet_idx") return true;
+  // Options Alpha — candidate evidence transport (WIP). The publisher
+  // (MACRO PR #8310, options.alpha_candidate_feed/v1) does not yet
+  // publish formed candidates, so this key is wired into the gate BEFORE
+  // there is anything to fetch. Routing only: GET-only for now, no
+  // backend, no SSE producer — see upstreamSourceOrder() and the explicit
+  // /api/flow/stream rejection that mirrors the prophet_idx one.
+  if (f === "options_alpha_candidate_feed") return true;
   if (f === "enrich") return true;
   if (f === "leaders") return true;
   if (f === "radar") return true;
@@ -335,6 +342,10 @@ export function r2Key(f: string): string {
   // omitted rather than left as a live landmine for a future caller to find.
   if (f === "prophet_marks") return "live_flow/prophet_marks.json";
   if (f === "options_prophet_idx") return "options_prophet/index.json";
+  // Options Alpha — single canonical R2 object. The publisher (MACRO PR #8310) lands
+  // at this exact key; upstreamSourceOrder() pins the read to R2-only so a missing
+  // object resolves to "feed unavailable" rather than being served from another feed.
+  if (f === "options_alpha_candidate_feed") return "options_alpha/candidate_feed.json";
   if (f === "enrich") return "live_flow/enrich_current.json";
   if (f === "leaders") return "flowleaders/leaders.json";
   if (f === "radar") return "leaderradar/radar.json";
@@ -870,6 +881,22 @@ export async function fixtureFor(f: string): Promise<Record<string, unknown>> {
       };
     }
   }
+  // Options Alpha — explicit unavailable in fixture mode. The publisher
+  // (MACRO PR #8310, options.alpha_candidate_feed/v1) has not yet shipped formed
+  // candidates, so the fixture seam returns the honest inactive shape rather than
+  // reading the legacy flow_fixture.json (which would be a misleading fallback —
+  // no other feed family's data can stand in for candidate evidence). The shape
+  // is what the forthcoming consumer's validator will gate on; consumers that
+  // read `active` see "no candidates today" instead of an empty object.
+  if (f === "options_alpha_candidate_feed") {
+    return {
+      schema: "options.alpha_candidate_feed/v1",
+      active: false,
+      as_of: "",
+      candidates: [],
+      source: "fixture-empty",
+    };
+  }
   const raw = await fs.readFile(FIXTURE_FILE, "utf8");
   const all = JSON.parse(raw) as Record<string, Record<string, unknown>>;
   return all[f] ?? {};
@@ -976,6 +1003,12 @@ export async function intradayFixture(sym: string, tf: string): Promise<Bar6[] |
 export type FlowUpstreamSource = "backend" | "r2";
 
 export function upstreamSourceOrder(f: string): FlowUpstreamSource[] {
+  // Options Alpha candidate evidence: the publisher is R2-only (MACRO PR #8310). The
+  // backend has no route for this key and must NEVER be probed for it — probing would
+  // produce a misleading 503/404 attribution on the backend instead of the truth
+  // ("publisher hasn't shipped the artifact yet"). tryFetchUpstream() loops over this
+  // order, so a single-element array means "fail closed on the R2 read".
+  if (f === "options_alpha_candidate_feed") return ["r2"];
   return f === "options_prophet_idx" ? ["r2", "backend"] : ["backend", "r2"];
 }
 
