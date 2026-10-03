@@ -166,7 +166,12 @@ function normalizeMicrostructure(value: unknown): OptionsAlphaMeasuredMicrostruc
   const aggression = nullable(value.aggression_share, ratio);
   const balance = nullable(value.aggression_balance, signedRatio);
 
-  if (coveredPremium > 0) {
+  // A tiny but unrounded positive covered premium can round to zero on the
+  // wire, so the empty-set shape must be derived from whether any NBBO-valid
+  // print exists, not from the rounded covered premium. Genuine empty sets
+  // still carry producer empty/null shares; non-empty sets still satisfy the
+  // strict arithmetic constraints even when covered premium rounded to zero.
+  if (validPrintCount > 0) {
     if (
       atAsk == null || atBid == null || inside == null || outside == null
       || aggression == null || balance == null

@@ -72,7 +72,26 @@ describe("measured-set consistency", () => {
     expect(ids([event({ microstructure: zero({ quote_age_median_ms: 100, quote_age_max_ms: 200 }) })])).toEqual([]);
   });
   it("does not reject a tiny valid premium merely because money rounded to zero", () => {
-    expect(ids([event({ microstructure: zero({ nbbo_valid_print_count: 1, nbbo_print_coverage: .25, spread_median_usd: .000001, quote_age_median_ms: 0, quote_age_max_ms: 0 }) })])).toHaveLength(1);
+    // Producer-shaped: count>0 with coveredPremium on a 2-decimal wire that displays 0.00
+    // must keep its non-null location shares and pass the strict arithmetic checks.
+    expect(ids([event({ microstructure: zero({
+      nbbo_valid_print_count: 1, nbbo_print_coverage: .25,
+      at_ask_share: 1, at_bid_share: 0, inside_share: 0, outside_share: 0,
+      aggression_share: 1, aggression_balance: 1,
+      spread_median_usd: .000001, quote_age_median_ms: 0, quote_age_max_ms: 0,
+    }) })])).toHaveLength(1);
+  });
+  it("rejects positive count when producer omitted location shares", () => {
+    // Genuine rounded-zero premium cannot ride without producer-shaped shares.
+    expect(ids([event({ microstructure: zero({ nbbo_valid_print_count: 1, nbbo_print_coverage: .25 }) })])).toEqual([]);
+  });
+  it("rejects zero-valid count with non-null producer-shaped shares", () => {
+    // Genuine empty set must still enforce null share shape even if the producer
+    // emitted non-null location statistics alongside zero valid prints.
+    expect(ids([event({ microstructure: micro({
+      nbbo_valid_print_count: 0, nbbo_covered_premium_usd: 0,
+      nbbo_print_coverage: 0, nbbo_premium_coverage: 0,
+    }) })])).toEqual([]);
   });
   it("rejects counts that cannot be represented as exact safe integers", () => {
     expect(ids([event({ microstructure: micro({ source_print_count: 9007199254740992, nbbo_valid_print_count: 9007199254740992, nbbo_print_coverage: 1 }) })])).toEqual([]);
