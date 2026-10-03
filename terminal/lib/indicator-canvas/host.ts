@@ -195,7 +195,11 @@ function warnOnce(seen: Set<string>, id: string, msg: string, extra?: unknown): 
 // ─────────────────────────────────────────────────────────────────────────────────── memo cache
 
 const MEMO_MAX = 32;
-const MEMO = new Map<string, SuiteComputeResult>();
+// A memo hit must describe the same DATA, not merely the same row count and last timestamp.
+// Keep a bounded primitive snapshot alongside the existing result; equal payload copies still hit.
+// A numeric comparison is cheaper than serializing/hashing the full bar array on every pan frame.
+const MEMO = new Map<string, { result: SuiteComputeResult; bars: SuiteHostInput["bars"] }>();
+const BAR_FIELDS = ["time", "o", "h", "l", "c", "v"] as const;
 
 /** Stable, order-independent signature of the flat params that belong to THIS suite's modules. */
 function paramSignature(def: SuiteDef, flat: Record<string, any> | undefined): string {
@@ -237,6 +241,7 @@ function memoKey(
     colors.warn + "," + colors.brand + "," + colors.text + "," + colors.muted + "," + colors.neutral;
   return [
     def.key,
+    def.modules.map((module) => module.key).join(","),
     input.symbol,
     input.tf,
     input.isIntraday ? "i" : "d",
@@ -249,17 +254,20 @@ function memoKey(
   ].join("|");
 }
 
-function memoGet(key: string): SuiteComputeResult | undefined {
+function memoGet(key: string, rows: SuiteHostInput["bars"]): SuiteComputeResult | undefined {
   const hit = MEMO.get(key);
-  if (hit === undefined) return undefined;
-  MEMO.delete(key); // re-insert = most-recently-used
+  if (!hit || hit.bars.length !== rows.length) return undefined;
+  for (let i = 0; i < rows.length; i++) {
+    for (const field of BAR_FIELDS) if (!Object.is(hit.bars[i][field], rows[i][field])) return undefined;
+  }
+  MEMO.delete(key);
   MEMO.set(key, hit);
-  return hit;
+  return hit.result;
 }
 
-function memoSet(key: string, val: SuiteComputeResult): void {
+function memoSet(key: string, val: SuiteComputeResult, rows: SuiteHostInput["bars"]): void {
   MEMO.delete(key);
-  MEMO.set(key, val);
+  MEMO.set(key, { result: val, bars: rows.map(({ time, o, h, l, c, v }) => ({ time, o, h, l, c, v })) });
   while (MEMO.size > MEMO_MAX) {
     const oldest = MEMO.keys().next();
     if (oldest.done) break;
@@ -287,7 +295,7 @@ export function computeSuite(
 ): SuiteRenderBundle & { lockedModules: Array<{ key: string; label: string; tier: SuiteTier }> } {
   const paramSig = paramSignature(def, flatParams);
   const key = memoKey(def, input, tier, colors, paramSig);
-  const cached = memoGet(key);
+  const cached = memoGet(key, input.bars);
   if (cached) return cached;
 
   const lockedModules: Array<{ key: string; label: string; tier: SuiteTier }> = [];
@@ -400,6 +408,6 @@ export function computeSuite(
   const tables = Array.from(tablesById.values()).slice(0, 6); // sanity cap — dashboards are few by design
 
   const out: SuiteComputeResult = { prims: sorted, tooltips, candlePaint, events, lockedModules, tables };
-  memoSet(key, out);
+  memoSet(key, out, input.bars);
   return out;
 }

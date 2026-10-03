@@ -358,6 +358,7 @@ async function main() {
       for (const shot of shots) {
         process.stdout.write(`capture ${shot.file} … `);
         const context = await browser.newContext({
+          reducedMotion: "reduce",
           viewport: VIEWPORTS[shot.viewport],
           hasTouch: shot.viewport === "mobile",
           locale: shot.lang === "zh" ? "zh-CN" : "en-US",

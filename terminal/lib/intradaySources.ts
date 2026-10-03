@@ -660,14 +660,23 @@ async function fetchTencentQuotes(syms: string[]): Promise<Record<string, Quote>
   return out;
 }
 
+export type QuoteView = "full" | "regular";
+export type FetchQuotesOptions = { view?: QuoteView };
+
 // Batch US/crypto quotes from the localhost Quote Hub — /quotes?syms=CSV is already contract-shaped
 // ({SYM:{...}}). Hub down / non-200 / timeout → {} (→ those symbols fall back to manifest EOD).
-async function fetchHubQuotes(syms: string[]): Promise<Record<string, Quote>> {
+// `view=regular` closes the high-cadence lane over regular-session data only; extended-hours data
+// has its own /api/ext-quote poll and must not spend/churn the hub's 30-slot ExtFeed subscription LRU.
+async function fetchHubQuotes(
+  syms: string[],
+  view: QuoteView = "full",
+): Promise<Record<string, Quote>> {
   if (!syms.length) return {};
   try {
     const port = process.env.HUB_PORT ?? "3100";
+    const viewQuery = view === "regular" ? "&view=regular" : "";
     const r = await fetch(
-      "http://127.0.0.1:" + port + "/quotes?syms=" + encodeURIComponent(syms.join(",")),
+      "http://127.0.0.1:" + port + "/quotes?syms=" + encodeURIComponent(syms.join(",")) + viewQuery,
       { cache: "no-store", signal: AbortSignal.timeout(1500) }
     );
     if (!r.ok) return {};
@@ -691,7 +700,11 @@ function chunk<T>(a: T[], n: number): T[][] {
 // macro symbols the hub did not answer. Symbol-keyed map (failed/missing symbols simply absent →
 // the caller falls back to manifest EOD). This is the single source of truth behind BOTH the live
 // header and the live watchlist, so a symbol can never show two prices (see TerminalShell).
-export async function fetchQuotes(syms: string[]): Promise<Record<string, Quote>> {
+export async function fetchQuotes(
+  syms: string[],
+  options: FetchQuotesOptions = {},
+): Promise<Record<string, Quote>> {
+  const view = options.view ?? "full";
   const uniq = Array.from(new Set(syms.map((s) => s.trim()).filter(Boolean)));
   const hub: string[] = [];
   const tencent: string[] = [];
@@ -715,7 +728,7 @@ export async function fetchQuotes(syms: string[]): Promise<Record<string, Quote>
   }
   const out: Record<string, Quote> = {};
   await Promise.all([
-    ...chunk(hub, 100).map((c) => fetchHubQuotes(c).then((mp) => { Object.assign(out, mp); }).catch(() => {})),
+    ...chunk(hub, 100).map((c) => fetchHubQuotes(c, view).then((mp) => { Object.assign(out, mp); }).catch(() => {})),
     // 30/chunk (not 60): one slow/aborted Tencent response blanks its whole chunk, so smaller
     // chunks halve the blast radius of a single bad request (chunks run in parallel anyway).
     ...chunk(tencent, 30).map((c) => fetchTencentQuotes(c).then((mp) => { Object.assign(out, mp); }).catch(() => {})),
@@ -746,6 +759,9 @@ export async function fetchQuotes(syms: string[]): Promise<Record<string, Quote>
 
 // Single-symbol live quote (China/HK via Tencent, US/crypto via the Quote Hub; null for .TO and any
 // miss → manifest EOD backs the header). Delegates to the batch path so both share one code path.
-export async function fetchQuote(sym: string): Promise<Quote | null> {
-  return (await fetchQuotes([sym]))[sym] ?? null;
+export async function fetchQuote(
+  sym: string,
+  options: FetchQuotesOptions = {},
+): Promise<Quote | null> {
+  return (await fetchQuotes([sym], options))[sym] ?? null;
 }

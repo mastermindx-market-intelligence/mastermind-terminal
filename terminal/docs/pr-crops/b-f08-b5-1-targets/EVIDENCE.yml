@@ -4,8 +4,9 @@
 # capturedAtHead: 3a2519ce2ca531beeac84d21ad98bec2151c53b9
 # capturedAt: 2026-09-10T14:19:38.106Z
 # capturedAtHead is informational. The lock is layoutFiles.
+# 2026-09-19 seat merge of master 1c46b277 into #584 (B-F12-13): hash-only restamp of terminal/components/PortfolioView.tsx to the merged-tree bytes; crops NOT recaptured by this merge commit.
 layoutFiles:
-  terminal/components/PortfolioView.tsx: "14b30087415f19a6a557644d7e10c24cf004a1a83e88afddba83a7ba6ff3c509"
+  terminal/components/PortfolioView.tsx: "26cc1d903906d7e38fd276558699b0d49d301c1202a58e7b8e0eb11d4473cadc"
   terminal/lib/portfolioTargets.ts: "7857cef2eb79cd4f78b875744734a7d45ed04d1d50f1ea55dd7ce155248a2bf9"
   terminal/components/PortfolioTargets.module.css: "7a6cf0f47abdb773a3f56c11452ece374221c2a9140e87831023ecfd5120129a"
 theme: dark

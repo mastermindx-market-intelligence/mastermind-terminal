@@ -1,5 +1,6 @@
 "use client";
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import type { ChartReadoutMeta } from "@/lib/visualIntelligence";
 import ChartPanel, { type DetectCmd, type LiveQuote, type PineScript } from "@/components/ChartPanel";
 import ChartFrameBar, { DEFAULT_CHART_SETTINGS, type ChartSettings } from "@/components/ChartFrameBar";
 import ChartSettingsModal, { type ChartSettingsTab } from "@/components/ChartSettingsModal";
@@ -29,7 +30,7 @@ export default function ChartPane({ idx, symbol, drawingOwnerKey, isActive, onAc
     indParams?: Record<string, any>; hidden?: Set<string>; onToggleHidden?: (key: string) => void; onRemoveInd?: (key: string) => void; onOpenSettings?: (key: string) => void; onOpenSource?: (key: string) => void; pineScripts?: PineScript[];
     onAddAlert?: (price: number) => void; onTableView?: () => void; onObjectTree?: () => void;
     lockedVLine?: string | null; onSetLockedVLine?: (t: string | null) => void;
-    onIndRowsAt?: (fn: ((barTime: string | number) => Record<string, number | null>) | null) => void;
+    onIndRowsAt?: (fn: ((barTime: string | number) => Record<string, number | null>) | null, meta?: ChartReadoutMeta) => void;
     /** Day Trade Mode — enables session shading, countdown, and stats strip (C lane wires the impl). */
     dayMode?: boolean;
     /** B3: forwarded to ChartPanel to notify TerminalShell of sub-pane count changes. */
@@ -174,6 +175,7 @@ export default function ChartPane({ idx, symbol, drawingOwnerKey, isActive, onAc
         onOpenSettings={onOpenSettings} onOpenSource={onOpenSource}
         pineScripts={pineScripts} userTier={userTier}
         chartSettings={panelSettings}
+        onVisualSettings={patchSettings}
         onChartApi={setChartApi}
         extHours={extendedEligible && chartSettings.extHours}
         key={drawingPanelInstanceKey(drawingOwnerKey)}

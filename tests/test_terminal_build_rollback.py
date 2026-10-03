@@ -37,6 +37,7 @@ restoration and the BUILD_ID comparison are load-bearing rather than decorative.
 
 from __future__ import annotations
 
+import json
 import os
 import re
 import shutil
@@ -532,20 +533,52 @@ def test_mutant_accepting_marker_only_agreement_is_caught(tmp_path):
 
 SHIMS = {
     "node": "#!/bin/sh\necho v20.0.0\n",
-    "git": '#!/bin/sh\ncase "$*" in *rev-parse*) echo "$FAKE_SHA" ;; esac\nexit 0\n',
+    "git": (
+        '#!/bin/sh\n'
+        'printf "git %s\\n" "$*" >> "$MMX_EFFECT_LOG"\n'
+        'case "$*" in *rev-parse*) echo "$FAKE_SHA" ;; esac\n'
+        'exit 0\n'
+    ),
     "npm": (
         '#!/bin/sh\n'
+        'printf "npm %s\\n" "$*" >> "$MMX_EFFECT_LOG"\n'
         'if [ "$1" = run ] && [ "$2" = build ]; then\n'
         '  mkdir -p .next && printf "%s\\n" "$FAKE_BUILD_ID" > .next/BUILD_ID\n'
         'fi\nexit 0\n'
     ),
     "systemctl": (
         '#!/bin/sh\n'
+        'printf "systemctl %s\\n" "$*" >> "$MMX_EFFECT_LOG"\n'
         '[ -n "${FAIL_RESTART:-}" ] && { echo "systemctl: simulated failure" >&2; exit 1; }\n'
         'exit 0\n'
     ),
     "curl": '#!/bin/sh\n[ -n "${FAIL_HEALTH:-}" ] && exit 22\nexit 0\n',
     "sleep": "#!/bin/sh\nexit 0\n",
+    "install": (
+        '#!/bin/sh\n'
+        'if [ "$1" = -d ]; then\n'
+        '  [ -n "${FAIL_INSTALL_DIR:-}" ] && { echo "install -d: simulated failure" >&2; exit 1; }\n'
+        '  shift; mode=0755\n'
+        '  while [ "$#" -gt 0 ]; do\n'
+        '    case "$1" in -o|-g) shift 2 ;; -m) mode=$2; shift 2 ;; *) mkdir -p "$1" || exit $?; chmod "$mode" "$1" || exit $?; shift ;; esac\n'
+        '  done\n'
+        '  exit 0\n'
+        'fi\n'
+        'mode=0755\n'
+        'while [ "$#" -gt 0 ]; do case "$1" in -m) mode=$2; shift 2 ;; -o|-g) shift 2 ;; *) break ;; esac; done\n'
+        '[ "$#" -eq 2 ] || exit 64\n'
+        'cp "$1" "$2" || exit $?\n'
+        'chmod "$mode" "$2"\n'
+    ),
+    "stat": (
+        '#!/bin/sh\n'
+        'if [ "$1" = -c ] && [ "$2" = "%F:%a:%u:%g" ]; then\n'
+        '  [ -d "$3" ] || exit 1\n'
+        '  echo directory:750:0:0\n'
+        '  exit 0\n'
+        'fi\n'
+        'exit 64\n'
+    ),
     "mv": (
         '#!/bin/sh\n'
         'if [ -n "${FAIL_MV_MATCH:-}" ]; then\n'
@@ -562,9 +595,96 @@ def run_deploy(tmp_path: Path, script: Path = SCRIPT, **flags) -> tuple:
     root = tmp_path / "deployroot"
     app, src = root / "terminal", root / ".gitsrc"
     tsrc = src / "terminal"
+    ops = src / "ops"
     usrbin = tmp_path / "usrbin"
-    for d in (app / "node_modules", app / "public" / "data", tsrc, src / ".git", usrbin):
+    receipt_root = tmp_path / "varlib" / "mastermind-terminal"
+    for d in (app / "node_modules", app / "public" / "data", tsrc, src / ".git", ops, usrbin):
         d.mkdir(parents=True, exist_ok=True)
+    (ops / "terminal_source_audit.production.json").write_text("{}\n")
+    (ops / "terminal_audit").mkdir()
+    (ops / "terminal_audit" / "__init__.py").write_text("# sandbox runtime\n")
+    (ops / "terminal_release_preflight.py").write_text(
+        """import argparse
+import hashlib
+import json
+import os
+import sys
+from pathlib import Path
+
+
+def receipt_id(payload):
+    canonical = {
+        key: value
+        for key, value in payload.items()
+        if key not in {'generated_at', 'receipt_id'}
+    }
+    return hashlib.sha256(
+        json.dumps(canonical, sort_keys=True, separators=(',', ':')).encode()
+    ).hexdigest()
+
+
+parser = argparse.ArgumentParser()
+parser.add_argument('--canonical-repo')
+parser.add_argument('--policy', type=Path)
+parser.add_argument('--receipt-dir', type=Path)
+args = parser.parse_args()
+mode = os.environ.get('MMX_PREFLIGHT_MODE', 'clean')
+if mode == 'exit2':
+    print('sandbox UNKNOWN_STOP', file=sys.stderr)
+    raise SystemExit(2)
+if mode == 'nonclean':
+    print(json.dumps({
+        'schema': 'mastermind.terminal.release_preflight_receipt.v1',
+        'result': 'UNKNOWN_STOP',
+        'accepted_sha': '""" + OLD_SHA + """',
+        'receipt_path': str(args.receipt_dir / 'not-created.json'),
+        'receipt_id': 'not-clean',
+        'source_audit_receipt_id': 'not-clean-inner',
+    }))
+    raise SystemExit(0)
+
+policy = json.loads(args.policy.read_text(encoding='utf-8'))
+policy_digest = hashlib.sha256(
+    json.dumps(policy, sort_keys=True, separators=(',', ':')).encode()
+).hexdigest()
+inner = {
+    'schema': 'mastermind.terminal.source_audit_receipt.v1',
+    'generated_at': '2026-09-17T00:00:00Z',
+    'status': 'CLEAN',
+    'accepted_sha': '""" + OLD_SHA + """',
+    'policy_digest': policy_digest,
+    'summary': {'blocking_findings': 0, 'tracked_paths': 0, 'allowed_paths': 0},
+    'findings': [],
+}
+inner['receipt_id'] = receipt_id(inner)
+outer = {
+    'schema': 'mastermind.terminal.release_preflight_receipt.v1',
+    'generated_at': '2026-09-17T00:00:01Z',
+    'result': 'CLEAN',
+    'accepted_sha': '""" + OLD_SHA + """',
+    'policy_digest': policy_digest,
+    'source_audit_receipt_id': inner['receipt_id'],
+    'source_audit': inner,
+}
+outer['receipt_id'] = receipt_id(outer)
+args.receipt_dir.mkdir(parents=True, exist_ok=True)
+receipt = args.receipt_dir / 'sandbox-receipt.json'
+receipt.write_text(
+    json.dumps(outer, sort_keys=True, separators=(',', ':')) + '\\n',
+    encoding='utf-8',
+)
+os.chmod(receipt, 0o640)
+print(json.dumps({
+    'schema': 'mastermind.terminal.release_preflight_receipt.v1',
+    'result': 'CLEAN',
+    'accepted_sha': outer['accepted_sha'],
+    'receipt_path': str(receipt),
+    'receipt_id': outer['receipt_id'],
+    'source_audit_receipt_id': inner['receipt_id'],
+}))
+""",
+        encoding="utf-8",
+    )
     # identical lockfiles so the deploy skips `npm ci`
     (app / "package-lock.json").write_text("lock\n")
     (tsrc / "package-lock.json").write_text("lock\n")
@@ -577,8 +697,17 @@ def run_deploy(tmp_path: Path, script: Path = SCRIPT, **flags) -> tuple:
 
     text = script.read_text()
     assert "/opt/terminal/" in text, "deploy root anchor vanished — cannot sandbox"
-    text = text.replace("/usr/local/bin", str(usrbin)).replace("/opt/terminal/", f"{root}/")
+    text = (
+        text.replace("/usr/local/bin", str(usrbin))
+        .replace("/var/lib/mastermind-terminal", str(receipt_root))
+        .replace("/opt/terminal/", f"{root}/")
+        .replace(
+            'select_preflight_artifacts 0 "$AUTHORING_OPS_DIR" "$SRC/ops"',
+            f'select_preflight_artifacts {os.getuid()} "$AUTHORING_OPS_DIR" "$SRC/ops"',
+        )
+    )
     assert "/opt/terminal" not in text, "a real deploy path survived the rewrite"
+    assert "/var/lib/mastermind-terminal" not in text, "a real receipt path survived the rewrite"
     copy = tmp_path / "sandboxed-terminal-build.sh"
     copy.write_text(text)
     copy.chmod(0o755)
@@ -595,12 +724,242 @@ def run_deploy(tmp_path: Path, script: Path = SCRIPT, **flags) -> tuple:
         "PATH": f"{bindir}:{env['PATH']}",
         "FAKE_SHA": NEW_SHA,
         "FAKE_BUILD_ID": NEW_BUILD_ID,
+        "MMX_EFFECT_LOG": str(tmp_path / "effects.log"),
     })
     env.update({k: str(v) for k, v in flags.items()})
     proc = subprocess.run(
-        [_bash(), str(copy)], capture_output=True, text=True, timeout=180, env=env
+        [_bash(), str(copy), "--target-sha", NEW_SHA],
+        capture_output=True,
+        text=True,
+        timeout=180,
+        env=env,
     )
     return proc, app
+
+
+def _effect_lines(tmp_path: Path) -> list[str]:
+    effect_log = tmp_path / "effects.log"
+    if not effect_log.exists():
+        return []
+    return effect_log.read_text(encoding="utf-8").splitlines()
+
+
+@pytest.mark.parametrize(
+    ("mode", "expected_returncode"),
+    [("exit2", 2), ("nonclean", 64)],
+)
+def test_preflight_refusal_stops_before_git_build_or_service_effects(
+    tmp_path: Path, mode: str, expected_returncode: int
+) -> None:
+    proc, app = run_deploy(tmp_path, MMX_PREFLIGHT_MODE=mode)
+
+    assert proc.returncode == expected_returncode, proc.stdout + proc.stderr
+    assert _effect_lines(tmp_path) == [], proc.stdout + proc.stderr
+    assert marker_of(app) == OLD_SHA
+    assert live_build_id(app) == OLD_BUILD_ID
+    assert "next build" not in proc.stdout
+
+
+def test_mutant_ignoring_preflight_failure_reaches_downstream_effects(
+    tmp_path: Path,
+) -> None:
+    anchor = (
+        'run_release_preflight "$PREFLIGHT_SCRIPT" "$PREFLIGHT_POLICY" '
+        '"$SRC" "$PREFLIGHT_RECEIPT_DIR" auto'
+    )
+    mutant = _mutate(tmp_path, anchor, anchor + " || true  # MUTANT")
+
+    proc, _ = run_deploy(
+        tmp_path, script=mutant, MMX_PREFLIGHT_MODE="exit2"
+    )
+
+    effects = _effect_lines(tmp_path)
+    assert any(line.startswith("git ") for line in effects), (
+        "mutation was inert — ignoring UNKNOWN_STOP did not cross the Git gate; "
+        f"returncode={proc.returncode} stdout={proc.stdout!r} stderr={proc.stderr!r}"
+    )
+
+
+def test_receipt_directory_failure_stops_before_downstream_effects(
+    tmp_path: Path,
+) -> None:
+    proc, app = run_deploy(tmp_path, FAIL_INSTALL_DIR="1")
+
+    assert proc.returncode != 0
+    assert _effect_lines(tmp_path) == [], proc.stdout + proc.stderr
+    assert marker_of(app) == OLD_SHA
+    assert live_build_id(app) == OLD_BUILD_ID
+
+
+def test_receipt_validator_still_blocks_if_directory_failure_is_ignored(
+    tmp_path: Path,
+) -> None:
+    anchor = 'prepare_preflight_receipt_dir "$PREFLIGHT_RECEIPT_DIR"'
+    mutant = _mutate(tmp_path, anchor, anchor + " || true  # MUTANT")
+
+    proc, app = run_deploy(tmp_path, script=mutant, FAIL_INSTALL_DIR="1")
+
+    assert proc.returncode == 64, proc.stdout + proc.stderr
+    assert _effect_lines(tmp_path) == []
+    assert marker_of(app) == OLD_SHA
+    assert live_build_id(app) == OLD_BUILD_ID
+    assert "prepare_preflight_receipt_dir \"$PREFLIGHT_RECEIPT_DIR\" || true" not in _deploy_body(
+        code_only=True
+    )
+
+
+def _git(repo: Path, *args: str) -> str:
+    result = subprocess.run(
+        ["git", "-C", str(repo), *args],
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    return result.stdout.strip()
+
+
+def make_canonical_mismatch_fixture(tmp_path: Path, *, drift: bool = False):
+    repo = tmp_path / "canonical"
+    live = tmp_path / "live-terminal"
+    receipts = tmp_path / "receipts"
+    policy_path = tmp_path / "policy.json"
+    repo.mkdir()
+    live.mkdir()
+    receipts.mkdir(mode=0o750)
+    _git(repo, "init", "-q")
+    _git(repo, "config", "user.email", "deploy-test@example.com")
+    _git(repo, "config", "user.name", "Deploy Test")
+    source = repo / "terminal"
+    source.mkdir()
+    (source / "file.txt").write_text("old\n", encoding="utf-8")
+    _git(repo, "add", "terminal/file.txt")
+    _git(repo, "commit", "-q", "-m", "old generation")
+    old_sha = _git(repo, "rev-parse", "HEAD")
+
+    (source / "file.txt").write_text("new\n", encoding="utf-8")
+    _git(repo, "add", "terminal/file.txt")
+    _git(repo, "commit", "-q", "-m", "admitted target")
+    new_sha = _git(repo, "rev-parse", "HEAD")
+    _git(repo, "update-ref", "refs/remotes/origin/master", new_sha)
+
+    (live / "file.txt").write_text("drift\n" if drift else "old\n", encoding="utf-8")
+    marker = live / ".deployment-id"
+    marker.write_text(old_sha + "\n", encoding="ascii")
+    policy = {
+        "schema": "mastermind.terminal.source_audit_policy.v1",
+        "accepted_ref": "refs/remotes/origin/master",
+        "deployment_id_file": str(marker),
+        "mappings": [
+            {
+                "name": "terminal-app",
+                "repo_path": "terminal",
+                "live_path": str(live),
+                "allowances": [
+                    {
+                        "path": ".deployment-id",
+                        "classification": "deployment_marker",
+                        "expected_live_type": "file",
+                    }
+                ],
+            }
+        ],
+    }
+    policy_path.write_text(json.dumps(policy), encoding="utf-8")
+    return repo, live, marker, receipts, policy_path, old_sha, new_sha
+
+
+def test_recovery_receipt_accepts_only_the_single_canonical_head_mismatch(tmp_path):
+    repo, _, _, receipts, policy, old_sha, new_sha = make_canonical_mismatch_fixture(tmp_path)
+    preflight = REPO / "ops" / "terminal_release_preflight.py"
+    r = run_gen(
+        SCRIPT,
+        f'''
+        run_release_preflight "{preflight}" "{policy}" "{repo}" "{receipts}" canonical-head-mismatch
+        rc=$?
+        echo "RC=$rc ACCEPTED=$PREFLIGHT_ACCEPTED_SHA HEAD=$PREFLIGHT_CANONICAL_HEAD"
+        exit "$rc"
+        ''',
+    )
+    assert r.returncode == 0, r.stdout + r.stderr
+    assert f"ACCEPTED={old_sha}" in r.stdout
+    assert f"HEAD={new_sha}" in r.stdout
+    assert _git(repo, "rev-parse", "HEAD") == new_sha, "evidence collection must be read-only"
+
+
+def test_recovery_receipt_refuses_any_second_source_finding(tmp_path):
+    repo, _, _, receipts, policy, _, new_sha = make_canonical_mismatch_fixture(tmp_path, drift=True)
+    preflight = REPO / "ops" / "terminal_release_preflight.py"
+    r = run_gen(
+        SCRIPT,
+        f'''
+        run_release_preflight "{preflight}" "{policy}" "{repo}" "{receipts}" canonical-head-mismatch
+        rc=$?
+        echo "RC=$rc"
+        exit "$rc"
+        ''',
+    )
+    assert r.returncode == 64, r.stdout + r.stderr
+    assert _git(repo, "rev-parse", "HEAD") == new_sha
+
+
+def test_canonical_mismatch_recovery_restores_only_the_receipted_live_generation(tmp_path):
+    repo, _, marker, receipts, policy, old_sha, new_sha = make_canonical_mismatch_fixture(tmp_path)
+    preflight = REPO / "ops" / "terminal_release_preflight.py"
+    r = run_gen(
+        SCRIPT,
+        f'''
+        run_release_preflight "{preflight}" "{policy}" "{repo}" "{receipts}" auto
+        recover_canonical_head_mismatch "{repo}" "{marker}"
+        rc=$?
+        echo "RC=$rc"
+        exit "$rc"
+        ''',
+    )
+    assert r.returncode == 0, r.stdout + r.stderr
+    assert _git(repo, "rev-parse", "HEAD") == old_sha
+    assert _git(repo, "status", "--porcelain=v1", "--untracked-files=all") == ""
+    assert f"head={new_sha} live={old_sha}" in r.stdout
+
+
+def test_preswap_exit_recovery_returns_source_head_after_failed_build(tmp_path):
+    repo, live, marker, _, _, old_sha, _ = make_canonical_mismatch_fixture(tmp_path)
+    r = run_gen(
+        SCRIPT,
+        f'''
+        SRC="{repo}"
+        APP="{live}"
+        DEPLOYMENT_MARKER="{marker}"
+        CANONICAL_RECOVERY_SHA="{old_sha}"
+        CANONICAL_RECOVERY_ARMED=1
+        STAGE_ROOT=
+        false
+        cleanup_deploy_attempt
+        ''',
+    )
+    assert r.returncode == 1, r.stdout + r.stderr
+    assert _git(repo, "rev-parse", "HEAD") == old_sha
+    assert "pre-swap canonical checkout recovery OK" in r.stdout
+
+
+def test_preswap_exit_recovery_refuses_if_live_identity_changed(tmp_path):
+    repo, live, marker, _, _, old_sha, new_sha = make_canonical_mismatch_fixture(tmp_path)
+    marker.write_text(new_sha + "\n", encoding="ascii")
+    r = run_gen(
+        SCRIPT,
+        f'''
+        SRC="{repo}"
+        APP="{live}"
+        DEPLOYMENT_MARKER="{marker}"
+        CANONICAL_RECOVERY_SHA="{old_sha}"
+        CANONICAL_RECOVERY_ARMED=1
+        STAGE_ROOT=
+        false
+        cleanup_deploy_attempt
+        ''',
+    )
+    assert r.returncode == 74, r.stdout + r.stderr
+    assert _git(repo, "rev-parse", "HEAD") == new_sha
+    assert "pre-swap recovery refused" in r.stdout
 
 
 def test_empty_gated_archive_stages_the_app_alone(tmp_path):

@@ -59,7 +59,7 @@ function doFetch(url: string, entry: CacheEntry): Promise<unknown> {
  * flowGet — fetch /api/flow?f=<f> with stale-while-revalidate.
  * Returns null on a hard error (network failure or non-ok status).
  */
-export async function flowGet(f: string): Promise<unknown> {
+export async function flowGet(f: string, options: { refresh?: boolean } = {}): Promise<unknown> {
   const url = buildUrl(f);
   const now = Date.now();
   const entry = store.get(url);
@@ -67,6 +67,9 @@ export async function flowGet(f: string): Promise<unknown> {
   if (entry) {
     // Deduplicate in-flight
     if (entry.inflight !== null) return entry.inflight;
+
+    // An index refresh must await new bytes; ordinary consumers keep SWR.
+    if (options.refresh) return doFetch(url, { data: entry.data, ts: entry.ts, inflight: null });
 
     const age = now - entry.ts;
 
@@ -80,6 +83,26 @@ export async function flowGet(f: string): Promise<unknown> {
   }
 
   // Cache miss — blocking fetch
+  return doFetch(url, { data: null, ts: 0, inflight: null });
+}
+
+/**
+ * flowGetFresh — use the SAME cache owner, but wait for revalidation when the
+ * cached value is stale. This is for long-lived mounted consumers that must
+ * actually consume a nightly artifact after it advances rather than merely
+ * trigger SWR in the background and keep rendering the previous value.
+ */
+export async function flowGetFresh(f: string): Promise<unknown> {
+  const url = buildUrl(f);
+  const now = Date.now();
+  const entry = store.get(url);
+
+  if (entry) {
+    if (entry.inflight !== null) return entry.inflight;
+    if (now - entry.ts < TTL_MS) return Promise.resolve(entry.data);
+    return doFetch(url, { data: entry.data, ts: entry.ts, inflight: null });
+  }
+
   return doFetch(url, { data: null, ts: 0, inflight: null });
 }
 

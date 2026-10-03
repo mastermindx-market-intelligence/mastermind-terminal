@@ -199,9 +199,13 @@ ext block.
 > a paid plan. If `ALPACA_API_KEY` / `ALPACA_API_SECRET` are set but auth returns 402/403, the
 > hub automatically degrades to Webull and then the keyless Yahoo leg.
 
-**Multi-user note:** The hub is a singleton. The 30-symbol LRU budget is shared across ALL users. A
-`/quotes` request for symbol X from any user advances X to MRU. The oldest symbol is unsubscribed when
-the cap is exceeded. This is intentional: the hub is a loopback fan-out, not a per-user socket pool.
+**Multi-user note:** The hub is a singleton. The 30-symbol subscription LRU is shared across ALL
+users. Request order is priority order: the first requested US symbol is touched last and therefore
+finishes the demand pass as MRU. When the cap is exceeded, the oldest symbol stops receiving refreshes,
+but its last valid print is retained in a separate bounded 500-entry cache and remains servable only
+while the session and 90-minute freshness gates accept it. This prevents ordinary subscription churn
+from masquerading as a market-data deletion. The design is intentional: the hub is a loopback fan-out,
+not a per-user socket pool.
 
 **Ext fields on US quotes (outside RTH only):**
 

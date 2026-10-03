@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
-import { fetchQuotes } from "@/lib/intradaySources";
+import { fetchQuotes, type QuoteView } from "@/lib/intradaySources";
 import { rateLimit, tooMany } from "@/lib/rateLimit";
 import {
   withRegularSessionDisplay,
@@ -22,7 +22,8 @@ export const dynamic = "force-dynamic";
 // `quote.basis` (LIVE | DELAYED_15M | EOD) flows through transparently for the frontend badge.
 
 type Entry = { at: number; goodAt?: number; quote: any }; // goodAt: when quote was last genuinely fresh
-const CACHE = new Map<string, Entry>(); // per-symbol, shared by the single + batch paths
+const CACHE = new Map<string, Entry>(); // view + symbol, shared by the single + batch paths
+const cacheKey = (view: QuoteView, sym: string) => `${view}\u0000${sym}`;
 const TTL = 5_000; // real-time snapshot cadence; also bounds upstream call volume per symbol
 const CHART_TTL = 750; // visible-pane cadence; the hub's A.* lane publishes one aggregate per second
 const KEEP_GOOD_MS = 30_000; // ride out a transient upstream miss on a recently-good symbol
@@ -57,12 +58,16 @@ function exposeMap(quotes: Record<string, unknown>): Record<string, (PublicQuote
 }
 
 // Split requested symbols into fresh cache hits vs misses (the misses are fetched in one batch).
-function readCache(syms: string[], ttlMs: number = TTL): { hits: Record<string, any>; miss: string[] } {
+function readCache(
+  syms: string[],
+  ttlMs: number = TTL,
+  view: QuoteView = "full",
+): { hits: Record<string, unknown>; miss: string[] } {
   const now = Date.now();
-  const hits: Record<string, any> = {};
+  const hits: Record<string, unknown> = {};
   const miss: string[] = [];
   for (const s of syms) {
-    const c = CACHE.get(s);
+    const c = CACHE.get(cacheKey(view, s));
     if (c && now - c.at < ttlMs) hits[s] = c.quote;
     else miss.push(s);
   }
@@ -78,22 +83,26 @@ function readCache(syms: string[], ttlMs: number = TTL): { hits: Record<string, 
 // coalescing (retrying every request during a brownout would hammer Tencent hardest exactly while
 // it is struggling). goodAt is carried through unchanged by a stale re-serve, so it keeps the hard
 // window clock: a symbol that stays missing degrades to a genuine null (→ manifest EOD).
-async function fillMisses(miss: string[]): Promise<Record<string, any>> {
+async function fillMisses(
+  miss: string[],
+  view: QuoteView = "full",
+): Promise<Record<string, unknown>> {
   if (!miss.length) return {};
-  const fresh = await fetchQuotes(miss);
+  const fresh = await fetchQuotes(miss, { view });
   const at = Date.now();
-  const out: Record<string, any> = {};
+  const out: Record<string, unknown> = {};
   for (const s of miss) {
+    const key = cacheKey(view, s);
     const q = fresh[s] ?? null;
-    if (q) { CACHE.set(s, { at, quote: q }); out[s] = q; continue; }
-    const prior = CACHE.get(s);
+    if (q) { CACHE.set(key, { at, quote: q }); out[s] = q; continue; }
+    const prior = CACHE.get(key);
     const goodAt = prior?.quote ? prior.goodAt ?? prior.at : null;
     if (goodAt != null && at - goodAt < KEEP_GOOD_MS) {
-      CACHE.set(s, { at, goodAt, quote: prior!.quote });
+      CACHE.set(key, { at, goodAt, quote: prior!.quote });
       out[s] = prior!.quote;
       continue;
     }
-    CACHE.set(s, { at, quote: null });
+    CACHE.set(key, { at, quote: null });
     out[s] = null;
   }
   return out;
@@ -114,6 +123,14 @@ export async function GET(req: Request) {
   const rl = rateLimit(req, { name: "quote" });
   if (!rl.ok) return tooMany(rl);
   const { searchParams } = new URL(req.url);
+  const rawViews = searchParams.getAll("view");
+  if (
+    rawViews.length > 1 ||
+    (rawViews.length === 1 && rawViews[0] !== "full" && rawViews[0] !== "regular")
+  ) {
+    return NextResponse.json({ error: "bad view" }, { status: 400 });
+  }
+  const view: QuoteView = rawViews.length ? rawViews[0] as QuoteView : "full";
   const symsParam = (searchParams.get("syms") || "").trim();
   const sym = (searchParams.get("sym") || "").trim();
   const chartCadence = searchParams.get("cadence") === "chart";
@@ -129,10 +146,10 @@ export async function GET(req: Request) {
       ? { requested: asked.length, served: want.length, omitted: asked.slice(cap) }
       : null;
     if (!want.length) return NextResponse.json({ quotes: {} });
-    const { hits, miss } = readCache(want, ttlMs);
+    const { hits, miss } = readCache(want, ttlMs, view);
     if (miss.length) { const denied = await gate(); if (denied) return denied; }
     try {
-      const filled = await fillMisses(miss);
+      const filled = await fillMisses(miss, view);
       return NextResponse.json(
         { quotes: exposeMap({ ...hits, ...filled }), ...(truncated ? { truncated } : {}) },
         { headers: { "Cache-Control": "no-store" } },
@@ -148,11 +165,11 @@ export async function GET(req: Request) {
 
   // ── single: the detail/header pane (unchanged {sym, quote} contract) ──
   if (!sym) return NextResponse.json({ error: "bad params" }, { status: 400 });
-  const { hits, miss } = readCache([sym], ttlMs);
+  const { hits, miss } = readCache([sym], ttlMs, view);
   if (!miss.length) return NextResponse.json({ sym, quote: expose(hits[sym] ?? null) });
   const denied = await gate(); if (denied) return denied;
   try {
-    const filled = await fillMisses([sym]);
+    const filled = await fillMisses([sym], view);
     return NextResponse.json({ sym, quote: expose(filled[sym] ?? null) }, { headers: { "Cache-Control": "no-store" } });
   } catch (e: any) {
     return NextResponse.json({ sym, quote: null, error: e?.message || "fetch failed" });

@@ -34,7 +34,7 @@ const DEPLOYMENT_ID =
 //     inject inline <script> → script-src needs 'unsafe-inline' (a nonce migration is the
 //     follow-up hardening; documented in SECURITY.md).
 //   - React inline style attributes → style-src 'unsafe-inline'.
-//   - shared chart snapshots from Cloudflare R2 and asset identity logos from Logo.dev.
+//   - shared chart snapshots from Cloudflare R2; asset identity badges are inline data SVGs.
 //   - Supabase auth (REST + realtime WS) → connect-src. (The former browser→Polygon trades WS was
 //     removed 2026-07-19: any NEXT_PUBLIC_* key is world-readable and a dev sub is not a
 //     redistribution license — live data now flows server-mediated only, so wss://socket.polygon.io
@@ -61,7 +61,7 @@ const CSP = [
   "form-action 'self'",
   `script-src ${scriptSrc}`,
   "style-src 'self' 'unsafe-inline'",
-  "img-src 'self' data: blob: https://*.r2.dev https://img.logo.dev",
+  "img-src 'self' data: blob: https://*.r2.dev",
   "font-src 'self'",
   "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://qt.gtimg.cn https://web.ifzq.gtimg.cn https://ifzq.gtimg.cn",
   "worker-src 'self' blob:",

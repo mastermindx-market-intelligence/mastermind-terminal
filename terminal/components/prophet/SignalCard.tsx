@@ -20,6 +20,7 @@ import { makeProphetT, phaseWhy } from "./prophetStrings";
 import { OptionCard } from "./OptionCard";
 import type { OptionContractPayload } from "./OptionCard";
 import { Tip } from "@/components/ui/Tip";
+import { pick } from "@/lib/finFormat";
 import type { Lang } from "@/lib/i18n";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
@@ -92,6 +93,22 @@ export interface PlanSummary {
     action: string;
     status: "ACTIVE" | "PENDING" | "DONE";
   }> | null;
+  /** Structured producer-owned entry band. Terminal displays it; it never re-derives it. */
+  entry_zone?: {
+    low?: number | null;
+    high?: number | null;
+    chase_above?: number | null;
+    zone_class?: string | null;
+    stance?: string | null;
+    basis?: string | null;
+    basis_zh?: string | null;
+  } | null;
+  /** Nightly state of that band. Only a still-live band is drawn as a current opportunity box. */
+  entry_zone_state?: {
+    state?: string | null;
+    stance?: string | null;
+    sessions_remaining?: number | null;
+  } | null;
   /**
    * Machine tag for how the plan was originated, e.g. "outage_backfill_2026_08_09".
    * Present only on reconstructed rows — it exists so the cohort can be filtered, and
@@ -236,6 +253,47 @@ export function phaseTone(phase: string | null | undefined): string {
   return "var(--text-2)";
 }
 
+function entryZoneView(plan: PlanSummary, lang: Lang): {
+  range: string;
+  stance: string;
+  chase: string | null;
+  window: string | null;
+  aria: string | undefined;
+  color: string;
+} | null {
+  const zone = plan.entry_zone;
+  const state = plan.entry_zone_state;
+  // A converted zone is an expired band that the move skipped; it may license a
+  // starter elsewhere, but its old prices are not a current opportunity box.
+  // Likewise, once management has advanced to HOLD/TRAIL/INVALIDATED, a still-live
+  // unfilled band is historical entry context, not the user's current action.
+  if (!zone || !state || state.state !== "live") return null;
+  if (planRecommendedAction(plan) !== "wait") return null;
+  if (zone.high == null || !Number.isFinite(zone.high)) return null;
+
+  const low = zone.low != null && Number.isFinite(zone.low) ? zone.low : zone.high;
+  const range = `$${low.toFixed(2)}–$${zone.high.toFixed(2)}`;
+  const rawStance = state.stance ?? zone.stance ?? "wait";
+  const stanceMap: Record<string, [string, string]> = {
+    wait: ["Wait", "等待"],
+    starter: ["Starter", "试探仓"],
+    accumulate: ["Accumulate", "分批建仓"],
+  };
+  const stancePair = stanceMap[rawStance] ?? [rawStance, rawStance];
+  const stance = pick(lang === "zh", stancePair[0], stancePair[1]);
+  const chase = zone.chase_above != null && Number.isFinite(zone.chase_above)
+    ? `${pick(lang === "zh", "No chase", "不追高")} > $${zone.chase_above.toFixed(2)}`
+    : null;
+  const remaining = state.sessions_remaining;
+  const window = remaining != null && Number.isFinite(remaining) && remaining >= 0
+    ? pick(lang === "zh", `${remaining} sessions left`, `剩余 ${remaining} 个交易日`)
+    : null;
+  const aria = (lang === "zh" ? zone.basis_zh : zone.basis) ?? undefined;
+  const color = rawStance === "accumulate" ? "var(--up)"
+    : rawStance === "starter" ? "var(--brand-2)" : "var(--warn)";
+  return { range, stance, chase, window, aria, color };
+}
+
 // ── Component ──────────────────────────────────────────────────────────────────
 
 export function SignalCard({ plan, lang, selected, onSelect }: SignalCardProps) {
@@ -285,6 +343,10 @@ export function SignalCard({ plan, lang, selected, onSelect }: SignalCardProps) 
 
   // Reconstruction disclosure — null for every live plan, which is every plan today.
   const origination = planOriginationNote(plan, lang);
+
+  // Producer-owned structured opportunity band. Hide historical filled/expired bands:
+  // the compact card answers "where could I act now?", while the detail plan keeps history.
+  const entryZone = entryZoneView(plan, lang);
 
   return (
     <div
@@ -337,7 +399,9 @@ export function SignalCard({ plan, lang, selected, onSelect }: SignalCardProps) 
       {/* Row 2: entry / days / P&L */}
       <div style={{ ...ROW, marginTop: 6, gap: 12, fontSize: 10.5 }}>
         <span style={FACT}>
-          <span className="obs-lbl" style={FACT_LABEL}>{t("entryLabel")}</span>
+          <span className="obs-lbl" style={FACT_LABEL}>
+            {entryZone ? pick(lang === "zh", "Plan anchor", "计划锚点") : t("entryLabel")}
+          </span>
           <span className="num" style={FACT_VAL}>{plan.entry != null ? `$${plan.entry.toFixed(2)}` : "—"}</span>
         </span>
         <span style={FACT}>
@@ -353,6 +417,35 @@ export function SignalCard({ plan, lang, selected, onSelect }: SignalCardProps) 
           </span>
         )}
       </div>
+
+      {/* Current producer-owned action band: compact enough to scan in the stream. */}
+      {entryZone && (
+        <div
+          className="obs-prophet-entry-zone"
+          style={ENTRY_ZONE}
+          aria-label={entryZone.aria
+            ? `${pick(lang === "zh", "Opportunity box", "机会区间")}. ${entryZone.aria}`
+            : pick(lang === "zh", "Opportunity box", "机会区间")}
+        >
+          <div style={ENTRY_ZONE_TOP}>
+            <span style={ENTRY_ZONE_LABEL}>{pick(lang === "zh", "Opportunity box", "机会区间")}</span>
+            <span
+              className="obs-tag"
+              style={{ ...ENTRY_ZONE_STANCE, "--c": entryZone.color } as React.CSSProperties}
+            >
+              {entryZone.stance}
+            </span>
+          </div>
+          <div style={ENTRY_ZONE_MAIN}>
+            <span className="num" style={ENTRY_ZONE_RANGE}>{entryZone.range}</span>
+            {(entryZone.chase || entryZone.window) && (
+              <span style={ENTRY_ZONE_META}>
+                {[entryZone.chase, entryZone.window].filter(Boolean).join(" · ")}
+              </span>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* T1 progress bar */}
       {t1pct != null && (
@@ -481,6 +574,53 @@ const CHIP_BASE: React.CSSProperties = {
   fontWeight: 600,
   padding: "3px 8px",
   gap: 3,
+};
+
+const ENTRY_ZONE: React.CSSProperties = {
+  marginTop: 8,
+  padding: "8px 9px",
+  border: "1px solid var(--line-2)",
+  borderRadius: "var(--r-md)",
+  background: "color-mix(in srgb,var(--panel) 76%,var(--bg))",
+};
+
+const ENTRY_ZONE_TOP: React.CSSProperties = {
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "space-between",
+  gap: 8,
+};
+
+const ENTRY_ZONE_LABEL: React.CSSProperties = {
+  font: "650 9px/1 var(--font-ui)",
+  color: "var(--muted)",
+  letterSpacing: ".055em",
+  textTransform: "uppercase",
+};
+
+const ENTRY_ZONE_STANCE: React.CSSProperties = {
+  ...CHIP_BASE,
+  fontSize: 9,
+  padding: "2px 7px",
+};
+
+const ENTRY_ZONE_MAIN: React.CSSProperties = {
+  display: "flex",
+  alignItems: "baseline",
+  flexWrap: "wrap",
+  gap: "4px 9px",
+  marginTop: 5,
+};
+
+const ENTRY_ZONE_RANGE: React.CSSProperties = {
+  font: "700 13px/1 var(--font-num)",
+  fontVariantNumeric: "tabular-nums",
+  color: "var(--text)",
+};
+
+const ENTRY_ZONE_META: React.CSSProperties = {
+  font: "500 9px/1.3 var(--font-ui)",
+  color: "var(--text-2)",
 };
 
 const ORIGINATION_ROW: React.CSSProperties = {
