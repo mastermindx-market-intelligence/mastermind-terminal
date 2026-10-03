@@ -80,6 +80,65 @@ interface ChainHeatCampaign {
   direction_reliability: string;
   authority_tier: string;
   note?: string;
+  category_proxy?: ChainHeatCategoryProxy;
+}
+
+// Additive side-category proxy.  This is a fixed mapping category — NOT a
+// measured NBBO and NOT the legacy ask_share.  Absent on legacy payloads.
+interface ChainHeatCategoryProxy {
+  schema?: string;
+  basis?: string;
+  share?: number | null;
+  known_premium_usd?: number;
+  unknown_premium_usd?: number;
+  source_premium_usd?: number;
+  invalid_premium_count?: number;
+  source_certified_accepted?: boolean;
+}
+
+type CategoryProxyState =
+  | { kind: "none" }
+  | { kind: "invalid" }
+  | { kind: "valid"; share: number | null; known: number; source: number };
+
+/**
+ * Resolve the additive category_proxy object with the exact contract guard.
+ *
+ *   none    — payload carries no object (legacy); legacy bar may be shown,
+ *             clearly labelled as legacy with coverage unavailable.
+ *   invalid — a NEW object was claimed but fails the schema/basis/bounds
+ *             contract; render unavailable and NEVER fall back to legacy.
+ *   valid   — schema + basis match and every share/mass is finite and bounded.
+ */
+function resolveCategoryProxy(
+  p: ChainHeatCategoryProxy | undefined | null,
+): CategoryProxyState {
+  if (p === undefined || p === null) return { kind: "none" };
+  const finiteNonNeg = (v: unknown): v is number =>
+    typeof v === "number" && Number.isFinite(v) && v >= 0;
+  const shareOk =
+    p.share === null ||
+    (typeof p.share === "number" &&
+      Number.isFinite(p.share) &&
+      p.share >= 0 &&
+      p.share <= 1);
+  if (
+    p.schema !== "options_flow.category_proxy/v1" ||
+    p.basis !== "side_category" ||
+    !shareOk ||
+    !finiteNonNeg(p.known_premium_usd) ||
+    !finiteNonNeg(p.unknown_premium_usd) ||
+    !finiteNonNeg(p.source_premium_usd) ||
+    p.source_certified_accepted === true
+  ) {
+    return { kind: "invalid" };
+  }
+  return {
+    kind: "valid",
+    share: (p.share as number | null),
+    known: p.known_premium_usd,
+    source: p.source_premium_usd,
+  };
 }
 
 interface ChainHeatPayload {
@@ -217,8 +276,17 @@ function ChainCampaignRow({
   const premStr = `$${campaign.total_premium_mn.toFixed(1)}M`;
   const isBig = campaign.total_premium_mn >= 10;
 
-  // Ask share bar width
-  const askBarW = Math.round(campaign.ask_share * 100);
+  // Category proxy state: "none" (legacy payload) | "invalid" (claimed but
+  // malformed) | "valid" (exact schema/basis + bounded finite share/mass).
+  const proxyState = resolveCategoryProxy(campaign.category_proxy);
+  const proxyW =
+    proxyState.kind === "valid" && proxyState.share !== null
+      ? Math.round(Math.min(1, Math.max(0, proxyState.share)) * 100)
+      : 0;
+  // Legacy numeric bar — shown ONLY when no new object is present, and clearly
+  // labelled as legacy with coverage unavailable.  Never presented as "at ask"
+  // or as a measured neutral.
+  const legacyBarW = Math.round(Math.min(1, Math.max(0, campaign.ask_share ?? 0)) * 100);
 
   // First-seen time (ET)
   let firstSeenStr = "";
@@ -272,16 +340,51 @@ function ChainCampaignRow({
         </span>
       </div>
 
-      {/* Ask share bar */}
-      <div>
-        <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "var(--sp-1)" }}>
-          <span className="obs-fd-chain-stat-key">{t("chainHeatAskShare")}</span>
-          <span className="num" style={{ fontSize: "var(--fs-micro)", color: "var(--text-2)" }}>{askBarW}%</span>
+      {/* Category proxy bar — additive; never a measured NBBO */}
+      {proxyState.kind === "valid" ? (
+        <div>
+          <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "var(--sp-1)" }}>
+            <span className="obs-fd-chain-stat-key">{t("chainHeatAskShare")}</span>
+            <span className="num" style={{ fontSize: "var(--fs-micro)", color: "var(--text-2)" }}>
+              {proxyState.share === null ? t("chainHeatProxyUnavailable") : `${proxyW}%`}
+            </span>
+          </div>
+          <div className="obs-fd-chain-askbar-track">
+            {proxyState.share !== null && (
+              <div className="obs-fd-chain-askbar-fill" style={{ width: `${proxyW}%` }} />
+            )}
+          </div>
+          <div style={{ display: "flex", justifyContent: "space-between", marginTop: "var(--sp-1)" }}>
+            <span className="obs-fd-chain-caveat">{t("chainHeatProxyNote")}</span>
+            <span className="num" style={{ fontSize: "var(--fs-micro)", color: "var(--text-2)" }}>
+              {t("chainHeatProxyCoverage")} {(proxyState.known / 1e6).toFixed(1)}M / {(proxyState.source / 1e6).toFixed(1)}M
+            </span>
+          </div>
         </div>
-        <div className="obs-fd-chain-askbar-track">
-          <div className="obs-fd-chain-askbar-fill" style={{ width: `${askBarW}%` }} />
+      ) : proxyState.kind === "invalid" ? (
+        <div>
+          <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "var(--sp-1)" }}>
+            <span className="obs-fd-chain-stat-key">{t("chainHeatAskShare")}</span>
+            <span className="num" style={{ fontSize: "var(--fs-micro)", color: "var(--text-2)" }}>
+              {t("chainHeatProxyUnavailable")}
+            </span>
+          </div>
+          <div className="obs-fd-chain-askbar-track" />
+          <div style={{ marginTop: "var(--sp-1)" }}>
+            <span className="obs-fd-chain-caveat">{t("chainHeatProxyNote")}</span>
+          </div>
         </div>
-      </div>
+      ) : (
+        <div>
+          <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "var(--sp-1)" }}>
+            <span className="obs-fd-chain-stat-key">{t("chainHeatProxyLegacy")}</span>
+            <span className="num" style={{ fontSize: "var(--fs-micro)", color: "var(--text-2)" }}>{legacyBarW}%</span>
+          </div>
+          <div className="obs-fd-chain-askbar-track">
+            <div className="obs-fd-chain-askbar-fill" style={{ width: `${legacyBarW}%` }} />
+          </div>
+        </div>
+      )}
     </div>
   );
 }
