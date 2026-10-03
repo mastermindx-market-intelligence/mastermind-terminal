@@ -81,9 +81,33 @@ def _polygon_key() -> str:
 
 POLY = _polygon_key()
 
+EXIT_OK = 0
+EXIT_STORE_FAILURES = 1
+EXIT_NO_STORES = 2
+
+_INTRO_REDACT_PATTERNS = (
+    (re.compile(r"(?i)(apikey=)([^&\s\"',})]+)"), r"\1REDACTED"),
+    (re.compile(r"(?i)(api_key=)([^&\s\"',})]+)"), r"\1REDACTED"),
+    (re.compile(r"(?i)(apikey%3d)([^&\s\"',})]+)"), r"\1REDACTED"),
+    (re.compile(r"(?i)(api_key%3d)([^&\s\"',})]+)"), r"\1REDACTED"),
+    (re.compile(r'(?i)("apiKey"\s*:\s*")([^"\',})]+)'), r"\1REDACTED"),
+    (re.compile(r"(?i)('apiKey'\s*:\s*')([^'\s\"',})]+)"), r"\1REDACTED"),
+    (re.compile(r"(?i)(apikey\s*:\s*)([^&\s\"',})]+)"), r"\1REDACTED"),
+    (re.compile(r"(?i)(api_key\s*:\s*)([^&\s\"',})]+)"), r"\1REDACTED"),
+)
+
 
 def _redact(text: str) -> str:
-    return re.sub(r"apiKey=[^&\s]+", "apiKey=REDACTED", text)
+    try:
+        s = text if isinstance(text, str) else str(text)
+        for pat, repl in _INTRO_REDACT_PATTERNS:
+            s = pat.sub(repl, s)
+        if isinstance(POLY, str) and len(POLY) >= 8:
+            s = s.replace(POLY, "REDACTED")
+        return s
+    except Exception:
+        # Fail closed: a redactor that cannot run must not hand back the raw text.
+        return "[redaction failed: message withheld]"
 
 
 def _tf_seconds(tf: str) -> int:
@@ -309,8 +333,8 @@ def us_symbols_ranked() -> list[str]:
     return [s for _, s in scored]
 
 
-def main(argv: list[str]) -> int | None:
-    """Returns total failed count, exit code 2 for --existing-only with no jobs, or None if idle."""
+def main(argv: list[str]) -> int:
+    """Exit contract: EXIT_OK, EXIT_STORE_FAILURES, or EXIT_NO_STORES."""
     def opt(name, default=None):
         return argv[argv.index(name) + 1] if name in argv else default
 
@@ -351,9 +375,9 @@ def main(argv: list[str]) -> int | None:
         if existing_only:
             print(f"intraday backfill: no existing stores under {INTRADAY} — refusing to report success",
                   flush=True)
-            return 2
+            return EXIT_NO_STORES
         print("intraday backfill: no jobs — nothing to do", flush=True)
-        return None
+        return EXIT_OK
 
     seen: set[tuple[str, str]] = set()
     deduped: list[tuple[str, str]] = []
@@ -386,6 +410,9 @@ def main(argv: list[str]) -> int | None:
                     merged = merged_full[-MAX_STORE_ROWS:]
                     return s, tf, write_store(s, tf, merged), dropped_local
                 if existing_only:
+                    failures.append(
+                        f"{s}.{tf}: StoreUnreadable: existing store has no readable bars"
+                    )
                     return s, tf, -1, 0  # refresh-only mode never invents/rebuilds a missing store
                 # Preserve legacy --update semantics: a newly listed symbol with no store
                 # falls through to the ordinary full backfill path.
@@ -426,10 +453,8 @@ def main(argv: list[str]) -> int | None:
         f"in {time.time()-t0:.0f}s",
         flush=True,
     )
-    return failed
+    return EXIT_STORE_FAILURES if failed else EXIT_OK
 
 
 if __name__ == "__main__":
-    rc = main(sys.argv[1:])
-    if rc:
-        sys.exit(rc)
+    sys.exit(main(sys.argv[1:]))

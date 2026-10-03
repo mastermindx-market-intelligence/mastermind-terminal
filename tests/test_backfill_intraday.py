@@ -16,6 +16,7 @@ import hashlib
 import json
 import os
 import re
+import importlib
 import sys
 from pathlib import Path
 from unittest.mock import patch
@@ -59,6 +60,12 @@ def intraday_env(tmp_path, monkeypatch):
 # -----------------------------------------------------------------------------------------------
 # Helpers
 # -----------------------------------------------------------------------------------------------
+
+def _summary_failed_count(out: str) -> int:
+    m = re.search(r"failed=(\d+)", out)
+    assert m, out
+    return int(m.group(1))
+
 
 def make_store(path: Path, sym: str, tf: str, n: int = 30) -> None:
     """Write a valid minimal store with n bars."""
@@ -217,11 +224,11 @@ def test_existing_only_enumerates_only_present_stores(intraday_env, monkeypatch)
                 for i in range(5)]
 
     with patch.object(mod, "fetch_polygon_intraday", fake_fetch):
-        failed = mod.main(["--existing-only", "--tf", "1h,5m", "--workers", "4"])
+        rc = mod.main(["--existing-only", "--tf", "1h,5m", "--workers", "4"])
 
     # Both 1h stores + the 1h of XST + 5m of XST = 3 (YST has no 5m)
     assert len(fetches) == 3
-    assert failed == 0
+    assert rc == mod.EXIT_OK
 
 
 def test_existing_only_never_fetches_missing_symbols(intraday_env, monkeypatch):
@@ -256,9 +263,9 @@ def test_existing_only_returns_nonzero_on_partial_failure(intraday_env, monkeypa
                 for i in range(5)]
 
     with patch.object(mod, "fetch_polygon_intraday", fake_fetch):
-        failed = mod.main(["--existing-only", "--tf", "1h", "--workers", "4"])
+        rc = mod.main(["--existing-only", "--tf", "1h", "--workers", "4"])
 
-    assert failed == 1
+    assert rc == mod.EXIT_STORE_FAILURES
     # OK should have been written despite BAD failing
     assert (intraday_env / "OK.1h.json").exists()
 
@@ -267,11 +274,11 @@ def test_existing_only_zero_jobs_is_a_fault(intraday_env, monkeypatch, capsys):
     monkeypatch.setattr(mod, "INTRADAY", intraday_env)
     monkeypatch.setattr(mod, "MANIFEST", intraday_env.parent / "manifest.json")
     result = mod.main(["--existing-only", "--tf", "1h,5m"])
-    assert result == 2
+    assert result == mod.EXIT_NO_STORES
     assert "refusing to report success" in capsys.readouterr().out
     missing = intraday_env.parent / "no_intraday"
     monkeypatch.setattr(mod, "INTRADAY", missing)
-    assert mod.main(["--existing-only", "--tf", "1h"]) == 2
+    assert mod.main(["--existing-only", "--tf", "1h"]) == mod.EXIT_NO_STORES
 
 
 def test_zero_jobs_without_existing_only_keeps_legacy_behaviour(intraday_env, monkeypatch):
@@ -279,7 +286,7 @@ def test_zero_jobs_without_existing_only_keeps_legacy_behaviour(intraday_env, mo
     manifest = intraday_env.parent / "manifest.json"
     manifest.write_text(json.dumps({"symbols": {}}))
     monkeypatch.setattr(mod, "MANIFEST", manifest)
-    assert mod.main(["--tf", "1h", "--limit", "0"]) is None
+    assert mod.main(["--tf", "1h", "--limit", "0"]) == mod.EXIT_OK
 
 
 def test_existing_only_still_updates_existing_store(intraday_env, monkeypatch):
@@ -303,9 +310,9 @@ def test_existing_only_still_updates_existing_store(intraday_env, monkeypatch):
         return recent_rows
 
     with patch.object(mod, "fetch_polygon_intraday", fake_fetch):
-        failed = mod.main(["--existing-only", "--tf", "1h", "--workers", "4"])
+        rc = mod.main(["--existing-only", "--tf", "1h", "--workers", "4"])
 
-    assert failed == 0
+    assert rc == mod.EXIT_OK
     assert calls == [("EXT", "1h", mod._date_of(asof) - mod.dt.timedelta(days=3))]
     doc = json.loads((intraday_env / "EXT.1h.json").read_text())
     by_epoch = {row[0]: row for row in doc["bars"]}
@@ -403,9 +410,9 @@ def test_update_missing_store_preserves_legacy_full_backfill(intraday_env, monke
                 for i in range(25)]
 
     with patch.object(mod, "fetch_polygon_intraday", fake_fetch):
-        failed = mod.main(["--update", "--tf", "1h", "--workers", "4"])
+        rc = mod.main(["--update", "--tf", "1h", "--workers", "4"])
 
-    assert failed == 0
+    assert rc == mod.EXIT_OK
     assert calls == [("NEWONE", "1h", None)]
     doc = json.loads((intraday_env / "NEWONE.1h.json").read_text())
     assert len(doc["bars"]) == 25
@@ -560,9 +567,10 @@ def test_existing_only_malformed_bar_leaves_store_byte_identical(intraday_env, m
     })
     rc = mod.main(["--existing-only", "--tf", "5m", "--workers", "1"])
     after = hashlib.sha256(target.read_bytes()).hexdigest()
+    out = capsys.readouterr().out
     assert before == after
-    assert rc == 1
-    assert "failed=1" in capsys.readouterr().out
+    assert rc == mod.EXIT_STORE_FAILURES
+    assert _summary_failed_count(out) == 1
 
 
 def test_fetch_drops_still_forming_bar_at_frozen_clock(monkeypatch):
@@ -817,7 +825,7 @@ def test_tti_existing_only_exhausted_transport_preserves_store_and_counts_failed
 
     monkeypatch.setattr(mod.urllib.request, "urlopen", fail)
     rc = mod.main(["--existing-only", "--tf", "5m", "--workers", "1"])
-    assert rc == 1
+    assert rc == mod.EXIT_STORE_FAILURES
     assert target.read_bytes() == before
 
 
@@ -836,5 +844,257 @@ def test_tti_existing_only_failed_second_page_preserves_store_and_counts_failed(
     monkeypatch.setattr(mod, "_get", lambda _url: pages.pop(0))
     monkeypatch.setattr(mod.time, "sleep", lambda _seconds: None)
     rc = mod.main(["--existing-only", "--tf", "5m", "--workers", "1"])
-    assert rc == 1
+    assert rc == mod.EXIT_STORE_FAILURES
     assert target.read_bytes() == before
+
+
+# -----------------------------------------------------------------------------------------------
+# IDR_A2_T595_REPAIR2: exit status, unreadable stores, redaction
+# -----------------------------------------------------------------------------------------------
+
+def test_main_returns_exit_ok_when_no_store_fails(intraday_env, monkeypatch, capsys):
+    make_store(intraday_env / "CLEAN.1h.json", "CLEAN", "1h", n=30)
+    monkeypatch.setattr(mod, "INTRADAY", intraday_env)
+
+    def fake_fetch(sym, tf, frm=None, **kwargs):
+        return [[1_800_000_000, 10.0, 11.0, 9.0, 10.5, 100]]
+
+    with patch.object(mod, "fetch_polygon_intraday", fake_fetch):
+        rc = mod.main(["--existing-only", "--tf", "1h", "--workers", "1"])
+    out = capsys.readouterr().out
+    assert rc == mod.EXIT_OK
+    assert _summary_failed_count(out) == 0
+
+
+def test_main_returns_1_when_any_store_fails_and_summary_carries_the_count(
+        intraday_env, monkeypatch, capsys):
+    make_store(intraday_env / "A.1h.json", "A", "1h", n=30)
+    make_store(intraday_env / "B.1h.json", "B", "1h", n=30)
+    monkeypatch.setattr(mod, "INTRADAY", intraday_env)
+
+    def fake_fetch(sym, tf, frm=None, **kwargs):
+        if sym == "B":
+            raise RuntimeError("boom")
+        return [[1_800_000_000, 10.0, 11.0, 9.0, 10.5, 100]]
+
+    with patch.object(mod, "fetch_polygon_intraday", fake_fetch):
+        rc = mod.main(["--existing-only", "--tf", "1h", "--workers", "2"])
+    out = capsys.readouterr().out
+    assert rc == mod.EXIT_STORE_FAILURES
+    assert _summary_failed_count(out) == 1
+
+
+def _seed_n_stores(intraday_dir: Path, n: int, tf: str = "1h") -> None:
+    for i in range(n):
+        make_store(intraday_dir / f"S{i}.{tf}.json", f"S{i}", tf, n=30)
+
+
+def test_main_returns_1_not_0_when_exactly_256_stores_fail(intraday_env, monkeypatch, capsys):
+    _seed_n_stores(intraday_env, 256)
+    monkeypatch.setattr(mod, "INTRADAY", intraday_env)
+
+    def boom(sym, tf, frm=None, **kwargs):
+        raise RuntimeError("vendor down")
+
+    with patch.object(mod, "fetch_polygon_intraday", boom):
+        rc = mod.main(["--existing-only", "--tf", "1h", "--workers", "8"])
+    out = capsys.readouterr().out
+    assert rc == mod.EXIT_STORE_FAILURES
+    assert rc != 0
+    assert _summary_failed_count(out) == 256
+
+
+def _run_ingest_backfill_main(monkeypatch, intraday_env, argv: list[str], fetch_impl):
+    """Execute ingest.backfill_intraday __main__ (sys.exit(main(...))) with a patched store dir."""
+    monkeypatch.setenv("POLYGON_API_KEY", "test_key_for_pytest_only")
+    monkeypatch.setenv("TERMINAL_DATA_DIR", str(intraday_env.parent))
+    sys.modules.pop("ingest.backfill_intraday", None)
+    bf = importlib.import_module("ingest.backfill_intraday")
+    assert bf.INTRADAY == intraday_env
+    monkeypatch.setattr(bf, "fetch_polygon_intraday", fetch_impl)
+    sys.argv = ["backfill_intraday.py"] + argv
+    with pytest.raises(SystemExit) as exc:
+        sys.exit(bf.main(sys.argv[1:]))
+    return exc.value.code
+
+
+def test_process_exit_status_is_1_for_256_and_512_failures(intraday_env, monkeypatch):
+    def boom(sym, tf, frm=None, **kwargs):
+        raise RuntimeError("vendor down")
+
+    for n in (256, 512):
+        _seed_n_stores(intraday_env, n)
+        code = _run_ingest_backfill_main(
+            monkeypatch,
+            intraday_env,
+            ["--existing-only", "--tf", "1h", "--workers", "8"],
+            boom,
+        )
+        assert code == mod.EXIT_STORE_FAILURES
+
+
+def test_process_exit_status_is_0_on_clean_run_and_2_on_zero_stores(
+        intraday_env, monkeypatch, tmp_path):
+    make_store(intraday_env / "OK.1h.json", "OK", "1h", n=30)
+
+    def fake_fetch(sym, tf, frm=None, **kwargs):
+        return [[1_800_000_000, 10.0, 11.0, 9.0, 10.5, 100]]
+
+    code = _run_ingest_backfill_main(
+        monkeypatch,
+        intraday_env,
+        ["--existing-only", "--tf", "1h", "--workers", "1"],
+        fake_fetch,
+    )
+    assert code == mod.EXIT_OK
+
+    empty_root = tmp_path / "empty_root"
+    empty_intraday = empty_root / "intraday"
+    empty_intraday.mkdir(parents=True)
+    code2 = _run_ingest_backfill_main(
+        monkeypatch,
+        empty_intraday,
+        ["--existing-only", "--tf", "1h"],
+        fake_fetch,
+    )
+    assert code2 == mod.EXIT_NO_STORES
+
+
+def test_unreadable_existing_store_prints_a_named_failed_line(
+        intraday_env, monkeypatch, capsys):
+    make_store(intraday_env / "GOOD.1h.json", "GOOD", "1h", n=30)
+    (intraday_env / "EMPTY.1h.json").write_text("")
+    (intraday_env / "CORRUPT.1h.json").write_text("{not json")
+    monkeypatch.setattr(mod, "INTRADAY", intraday_env)
+
+    def fake_fetch(sym, tf, frm=None, **kwargs):
+        return [[1_800_000_000, 10.0, 11.0, 9.0, 10.5, 100]]
+
+    with patch.object(mod, "fetch_polygon_intraday", fake_fetch):
+        rc = mod.main(["--existing-only", "--tf", "1h", "--workers", "4"])
+    out = capsys.readouterr().out
+    assert rc == mod.EXIT_STORE_FAILURES
+    assert "FAILED EMPTY.1h:" in out
+    assert "StoreUnreadable" in out
+    assert "FAILED CORRUPT.1h:" in out
+
+
+@pytest.mark.parametrize("raw", [
+    "apiKey=SECRET123",
+    "apikey=SECRET123",
+    "APIKEY=SECRET123",
+    "api_key=SECRET123",
+    "apiKey%3DSECRET123",
+    '{"apiKey": "SECRET123"}',
+    "{'apiKey': 'SECRET123'}",
+    "api_key: SECRET123",
+    "x?a=1&apiKey=SECRET123&b=2",
+])
+def test_redact_covers_every_key_spelling(raw):
+    out = mod._redact(raw)
+    assert "SECRET123" not in out
+    if "a=1" in raw:
+        assert "a=1" in out
+        assert "b=2" in out
+
+
+def test_redact_scrubs_the_bare_module_key(monkeypatch):
+    monkeypatch.setattr(mod, "POLY", "FAKEKEYXYZ123")
+    out = mod._redact("boom FAKEKEYXYZ123 boom")
+    assert "FAKEKEYXYZ123" not in out
+    assert "REDACTED" in out
+
+
+def test_redact_leaves_ordinary_text_alone_and_never_raises(monkeypatch):
+    plain = "ordinary text without secrets"
+    assert mod._redact(plain) == plain
+    assert mod._redact("") == ""
+    monkeypatch.setattr(mod, "POLY", "abc")
+    assert mod._redact("alphabet soup") == "alphabet soup"
+
+
+def test_failed_line_never_contains_the_key_value(intraday_env, monkeypatch, capsys):
+    secret = "test_key_for_pytest_only"
+    make_store(intraday_env / "KEY.5m.json", "KEY", "5m", n=30)
+    monkeypatch.setattr(mod, "INTRADAY", intraday_env)
+
+    def boom(sym, tf, frm=None, **kwargs):
+        raise RuntimeError(f"apikey={secret} and bare {secret}")
+
+    with patch.object(mod, "fetch_polygon_intraday", boom):
+        mod.main(["--existing-only", "--tf", "5m", "--workers", "1"])
+    out = capsys.readouterr().out
+    assert secret not in out
+
+
+def test_write_store_fsyncs_the_directory(intraday_env, monkeypatch):
+    fsync_fds: list[int] = []
+    dir_fds: list[int] = []
+    intraday_str = str(intraday_env)
+    real_fsync = os.fsync
+    real_open = os.open
+
+    def track_fsync(fd):
+        fsync_fds.append(fd)
+        return real_fsync(fd)
+
+    def track_open(path, flags, *args, **kwargs):
+        fd = real_open(path, flags, *args, **kwargs)
+        if str(path) == intraday_str and flags == os.O_RDONLY:
+            dir_fds.append(fd)
+        return fd
+
+    monkeypatch.setattr(os, "fsync", track_fsync)
+    monkeypatch.setattr(os, "open", track_open)
+    rows = [[1_700_000_000 + i * 3600, 100 + i, 105 + i, 99 + i, 101 + i, 1000]
+            for i in range(30)]
+    mod.write_store("DIRFS", "1h", rows)
+    assert dir_fds, "expected a directory open on the intraday parent"
+    assert any(d in fsync_fds for d in dir_fds)
+
+    fail_dir_fsync = True
+    pending_dir_fds: list[int] = []
+
+    def track_open_fail_dir(path, flags, *args, **kwargs):
+        fd = real_open(path, flags, *args, **kwargs)
+        if fail_dir_fsync and str(path) == intraday_str and flags == os.O_RDONLY:
+            pending_dir_fds.append(fd)
+        return fd
+
+    def dir_fsync_fail(fd):
+        if fail_dir_fsync and fd in pending_dir_fds:
+            raise OSError("dir fsync unsupported")
+        return real_fsync(fd)
+
+    monkeypatch.setattr(os, "open", track_open_fail_dir)
+    monkeypatch.setattr(os, "fsync", dir_fsync_fail)
+    mod.write_store("DIRFS2", "1h", rows)
+    assert (intraday_env / "DIRFS2.1h.json").exists()
+
+
+def test_negative_volume_is_a_malformed_bar(intraday_env, monkeypatch, capsys):
+    make_store(intraday_env / "VOL.5m.json", "VOL", "5m", n=30)
+    monkeypatch.setattr(mod, "INTRADAY", intraday_env)
+    monkeypatch.setattr(mod, "_get", lambda _url: {
+        "status": "OK",
+        "results": [{"t": 1_700_000_000_000, "o": 1.0, "h": 2.0, "l": 0.5, "c": 1.0, "v": -1}],
+    })
+    rc = mod.main(["--existing-only", "--tf", "5m", "--workers", "1"])
+    out = capsys.readouterr().out
+    assert rc == mod.EXIT_STORE_FAILURES
+    assert "FAILED VOL.5m:" in out
+    assert "malformed aggregate bar" in out
+    assert " v" in out or ": v" in out
+
+
+def test_redact_fails_closed_when_a_pattern_raises(monkeypatch):
+    """A redactor that cannot run withholds the message instead of returning it raw."""
+    class _Boom:
+        def sub(self, repl, s):
+            raise RuntimeError("pattern exploded")
+
+    monkeypatch.setattr(mod, "_INTRO_REDACT_PATTERNS", [(_Boom(), "x")])
+    out = mod._redact("GET /v2/aggs?apiKey=SECRET123")
+    assert isinstance(out, str)
+    assert "SECRET123" not in out
+    assert "withheld" in out
