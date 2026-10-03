@@ -12,9 +12,10 @@ test.describe("Options Payoff Lab", () => {
     await preseedLanguage(page, "en");
     await page.goto("/options?tab=payoff");
 
-    const workspace = page.locator('[data-options-ia="eight-category-plan-stage"]');
+    const workspace = page.locator('[data-options-ia="seven-category-stage-a"]');
     const lab = page.getByTestId("payoff-lab");
     await expect(workspace).toBeVisible();
+    await expect(workspace).toHaveAttribute("data-options-ia-version", "eight-category-plan-stage");
     await expect(lab).toBeVisible();
     await expect(page).toHaveURL(/(?:\?|&)tab=payoff(?:&|$)/);
     await expect(workspace).toContainText("Plan");
@@ -79,4 +80,70 @@ test.describe("Options Payoff Lab", () => {
     }
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1)).toBe(true);
   });
+
+  test("distinct sub-tick break-evens stay visible and scenario-faithful in EN and ZH", async ({ page }) => {
+    await preseedLanguage(page, "en");
+    await page.goto("/options?tab=payoff");
+    const lab = page.getByTestId("payoff-lab");
+    await expect(lab).toBeVisible();
+
+    await page.getByLabel("Premium 1").fill("0");
+    await page.getByLabel("Qty 1").fill("2000");
+    await page.getByLabel("Side 2").selectOption("long");
+    await page.getByLabel("Type 2").selectOption("P");
+    await page.getByLabel("Strike 2").fill("100");
+    await page.getByLabel("Premium 2").fill("0");
+    await page.getByLabel("Qty 2").fill("2000");
+    await page.getByRole("button", { name: "Add leg" }).click();
+    await page.getByLabel("Strike 3").fill("200");
+    await page.getByLabel("Premium 3").fill("0.05");
+    await page.getByLabel("Qty 3").fill("1");
+
+    const breakEven = page.getByTestId("payoff-break-even-value");
+    await expect(breakEven).toHaveText("$99.999975 · $100.000025");
+    await expect(breakEven).toBeVisible();
+    const breakEvenStyle = await breakEven.evaluate((node) => ({
+      whiteSpace: getComputedStyle(node).whiteSpace,
+      overflow: getComputedStyle(node).overflow,
+      textOverflow: getComputedStyle(node).textOverflow,
+      clientWidth: node.clientWidth,
+      scrollWidth: node.scrollWidth,
+    }));
+    expect(breakEvenStyle.whiteSpace).not.toBe("nowrap");
+    expect(breakEvenStyle.overflow).not.toBe("hidden");
+    expect(breakEvenStyle.textOverflow).not.toBe("ellipsis");
+
+    const markers = lab.locator("[data-break-even-root]");
+    await expect(markers).toHaveCount(2);
+    expect(await markers.evaluateAll((nodes) => nodes.map((node) => node.getAttribute("data-break-even-root")))).toEqual([
+      "99.999975",
+      "100.000025",
+    ]);
+    expect(await markers.evaluateAll((nodes) => nodes.map((node) => node.getAttribute("aria-label")))).toEqual([
+      "Break-even $99.999975",
+      "Break-even $100.000025",
+    ]);
+
+    const scenario = page.locator("#payoff-scenario-price");
+    await scenario.fill("99.999975");
+    await expect(page.getByTestId("payoff-scenario-result")).toContainText("$0.00");
+    await scenario.fill("100");
+    await expect(page.getByTestId("payoff-scenario-result")).toContainText("−$5.00");
+    await scenario.fill("100.000025");
+    await expect(page.getByTestId("payoff-scenario-result")).toContainText("$0.00");
+
+    await page.evaluate(() => {
+      localStorage.setItem("mm.lang", "zh");
+      document.documentElement.setAttribute("data-lang", "zh");
+      window.dispatchEvent(new CustomEvent("mm:lang"));
+    });
+    await expect(page.locator("html")).toHaveAttribute("data-lang", "zh");
+    await expect(breakEven).toHaveText("$99.999975 · $100.000025");
+    expect(await markers.evaluateAll((nodes) => nodes.map((node) => node.getAttribute("aria-label")))).toEqual([
+      "盈亏平衡 $99.999975",
+      "盈亏平衡 $100.000025",
+    ]);
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1)).toBe(true);
+  });
+
 });

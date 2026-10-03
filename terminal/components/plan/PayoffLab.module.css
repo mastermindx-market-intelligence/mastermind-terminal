@@ -102,6 +102,7 @@
 .kpi { min-width: 0; padding: 12px 13px; background: var(--panel); }
 .kpiLabel { display: block; color: var(--text-dim); font-size: 9px; font-weight: 750; letter-spacing: .04em; text-transform: uppercase; }
 .kpiValue { display: block; margin-top: 5px; color: var(--text); font-size: 18px; font-weight: 760; font-variant-numeric: tabular-nums; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.kpiValueWrap { white-space: normal; overflow: visible; text-overflow: clip; overflow-wrap: anywhere; line-height: 1.18; }
 .kpiSub { display: block; margin-top: 3px; color: var(--muted); font-size: 9px; line-height: 1.35; }
 .chartWrap { padding: 10px 12px 12px; min-height: 330px; }
 .chart { display: block; width: 100%; height: auto; min-height: 300px; }

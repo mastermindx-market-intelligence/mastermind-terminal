@@ -144,8 +144,12 @@ function signedMoney(v: number): string {
   return `${prefix}${money(v)}`;
 }
 
-function price(v: number): string {
-  return `$${v.toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 2 })}`;
+export function formatPayoffPrice(v: number): string {
+  if (!Number.isFinite(v) || v < 0) return "—";
+  const normalized = Object.is(v, -0) ? 0 : v;
+  const compact = normalized.toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 2 });
+  const roundTrip = Number(compact.replace(/,/g, ""));
+  return `$${roundTrip === normalized ? compact : String(normalized)}`;
 }
 
 function breakEvenText(
@@ -153,9 +157,11 @@ function breakEvenText(
   ranges: { from: number; to: number | null }[],
   c: typeof COPY.en | typeof COPY.zh,
 ): string {
-  const parts = roots.map(price);
+  const parts = roots.map(formatPayoffPrice);
   for (const range of ranges) {
-    parts.push(range.to == null ? `${price(range.from)}+ ${c.range}` : `${price(range.from)}–${price(range.to)} ${c.range}`);
+    parts.push(range.to == null
+      ? `${formatPayoffPrice(range.from)}+ ${c.range}`
+      : `${formatPayoffPrice(range.from)}–${formatPayoffPrice(range.to)} ${c.range}`);
   }
   return parts.length ? parts.join(" · ") : c.none;
 }
@@ -313,7 +319,7 @@ export function PayoffLab() {
             </div>
             <div className={s.kpis}>
               <Kpi label={c.entry} value={ready ? cashValue : "—"} sub={ready ? cashLabel : undefined} />
-              <Kpi label={c.breakEven} value={ready ? breakEvenText(analysis.breakEvens, analysis.breakEvenRanges, c) : "—"} sub={ready && analysis.breakEvenRanges.length ? c.range : undefined} />
+              <Kpi label={c.breakEven} value={ready ? breakEvenText(analysis.breakEvens, analysis.breakEvenRanges, c) : "—"} sub={ready && analysis.breakEvenRanges.length ? c.range : undefined} wrap testId="payoff-break-even-value" />
               <Kpi label={c.bestPnl} value={ready ? riskProfit : "—"} />
               <Kpi label={c.maxLoss} value={ready ? riskLoss : "—"} />
             </div>
@@ -322,7 +328,7 @@ export function PayoffLab() {
             <div className={s.scenario}>
               <div className={s.scenarioControl}>
                 <label htmlFor="payoff-scenario-price">{c.underlying}</label>
-                <input id="payoff-scenario-price" className={s.input} type="number" min="0" step="0.5" value={editableValue(scenarioPrice)} onChange={(event) => setScenarioPrice(parseNumber(event.target.value))} />
+                <input id="payoff-scenario-price" className={s.input} type="number" min="0" step="any" value={editableValue(scenarioPrice)} onChange={(event) => setScenarioPrice(parseNumber(event.target.value))} />
               </div>
               <div className={s.scenarioResult} data-testid="payoff-scenario-result">
                 <span>{c.scenarioPnl}</span><strong style={{ color: scenarioPnl > 0 ? "var(--up)" : scenarioPnl < 0 ? "var(--down)" : "var(--text)" }}>{Number.isFinite(scenarioPnl) ? signedMoney(scenarioPnl) : "—"}</strong>
@@ -335,8 +341,8 @@ export function PayoffLab() {
   );
 }
 
-function Kpi({ label, value, sub }: { label: string; value: string; sub?: string }) {
-  return <div className={s.kpi}><span className={s.kpiLabel}>{label}</span><span className={s.kpiValue}>{value}</span>{sub && <span className={s.kpiSub}>{sub}</span>}</div>;
+function Kpi({ label, value, sub, wrap = false, testId }: { label: string; value: string; sub?: string; wrap?: boolean; testId?: string }) {
+  return <div className={s.kpi}><span className={s.kpiLabel}>{label}</span><span data-testid={testId} className={`${s.kpiValue}${wrap ? ` ${s.kpiValueWrap}` : ""}`}>{value}</span>{sub && <span className={s.kpiSub}>{sub}</span>}</div>;
 }
 
 function PayoffChart({
@@ -380,7 +386,7 @@ function PayoffChart({
         {xTicks.map((tick) => <g key={`x-${tick}`}><line x1={x(tick)} x2={x(tick)} y1={pad.t} y2={height - pad.b} stroke="var(--grid)" strokeWidth="1" opacity=".55" /><text x={x(tick)} y={height - 17} textAnchor="middle" fill="var(--muted)" fontSize="10">${fmtTick(tick, xTickSet.step)}</text></g>)}
         <line x1={pad.l} x2={width - pad.r} y1={y(0)} y2={y(0)} stroke="var(--text-dim)" strokeWidth="1.25" />
         <path d={line} fill="none" stroke="var(--brand-2)" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" />
-        {analysis.breakEvens.map((root) => root >= x0 && root <= x1 ? <g key={`be-${root}`}><line x1={x(root)} x2={x(root)} y1={y(0) - 8} y2={y(0) + 8} stroke="var(--warn)" strokeWidth="1.4" /><rect x={x(root) - 3} y={y(0) - 3} width="6" height="6" transform={`rotate(45 ${x(root)} ${y(0)})`} fill="var(--panel)" stroke="var(--warn)" /></g> : null)}
+        {analysis.breakEvens.map((root) => root >= x0 && root <= x1 ? <g key={`be-${root}`} data-break-even-root={String(root)} role="img" aria-label={`${c.breakEvenLegend} ${formatPayoffPrice(root)}`}><line x1={x(root)} x2={x(root)} y1={y(0) - 8} y2={y(0) + 8} stroke="var(--warn)" strokeWidth="1.4" /><rect x={x(root) - 3} y={y(0) - 3} width="6" height="6" transform={`rotate(45 ${x(root)} ${y(0)})`} fill="var(--panel)" stroke="var(--warn)" /></g> : null)}
         {scenarioInRange && <g><line x1={x(scenarioPrice)} x2={x(scenarioPrice)} y1={pad.t} y2={height - pad.b} stroke="var(--signal)" strokeWidth="1.2" strokeDasharray="4 4" /><circle cx={x(scenarioPrice)} cy={y(scenarioPnl)} r="4.5" fill="var(--panel)" stroke="var(--signal)" strokeWidth="2" /></g>}
         <text x={(pad.l + width - pad.r) / 2} y={height - 3} textAnchor="middle" fill="var(--muted)" fontSize="10">{c.underlyingAxis}</text>
         <text transform={`translate(12 ${(pad.t + height - pad.b) / 2}) rotate(-90)`} textAnchor="middle" fill="var(--muted)" fontSize="10">{c.pnlAxis}</text>

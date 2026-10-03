@@ -6,7 +6,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 const H = vi.hoisted(() => ({ lang: "en" as "en" | "zh" }));
 vi.mock("@/lib/i18n", () => ({ useLang: () => ({ lang: H.lang, setLang: () => undefined }) }));
 
-import { PayoffLab } from "@/components/plan/PayoffLab";
+import { PayoffLab, formatPayoffPrice } from "@/components/plan/PayoffLab";
 
 let host: HTMLDivElement;
 let root: Root;
@@ -46,6 +46,20 @@ async function type(input: HTMLInputElement, value: string) {
     input.dispatchEvent(new Event("change", { bubbles: true }));
   });
 }
+
+describe("Payoff Lab — break-even display precision", () => {
+  it.each([
+    [99.999975, "$99.999975"],
+    [100.000025, "$100.000025"],
+    [100.00001, "$100.00001"],
+    [1e-12, "$1e-12"],
+    [100.0000000001, "$100.0000000001"],
+    [92, "$92"],
+  ])("round-trips %s without collapsing the returned Number", (value, expected) => {
+    expect(formatPayoffPrice(value)).toBe(expected);
+    expect(Number(expected.slice(1))).toBe(value);
+  });
+});
 
 describe("Payoff Lab — manual expiration plan", () => {
   it("opens on a deterministic bull-call-spread example", async () => {

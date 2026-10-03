@@ -2257,7 +2257,7 @@ export default function OptionsHubView({
                   onClick={() => switchTab(tb.key)}
                 >
                   {tb.key === "payoff"
-                    ? (lang === "zh" ? "到期收益" : "Payoff Lab")
+                    ? pick(lang, "Payoff Lab", "到期收益")
                     : lang === "zh" ? t(tb.zhKey, tb.key) : t(tb.enKey, tb.key)}
                 </button>
               ))}
