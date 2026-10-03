@@ -372,6 +372,14 @@ const UNAVAILABLE: Record<Lang, string> = {
   zh: "候选证据当前不可用。尚未加载任何已校验历史；下一次刷新将重试。",
 };
 const RETAINED_ROWS_CLAIM = /last verified rows|continues to show|继续显示|最后一次已校验记录/i;
+// Stale copy (EN/ZH) mirroring prophetStrings candidatePanelStale. A panel that
+// already holds a verified pair and then hits a bad poll must say stale — never
+// unavailable, and never claim no history is loaded.
+const STALE: Record<Lang, string> = {
+  en: "Showing the last verified pair. Refresh is currently unavailable; treat every row as research context, not as a current signal.",
+  zh: "显示最近一次已校验配对。当前刷新暂不可用；请将每条记录视为研究背景，而非当前信号。",
+};
+const NO_HISTORY_CLAIM = /No verified history is loaded yet|尚未加载任何已校验历史/;
 
 // Verified empty feed: a real 200 payload with zero candidates and zero abstentions.
 // This is NOT the unavailable state — it renders the honest empty-feed line.
@@ -541,6 +549,68 @@ describe("OptionsAlphaCandidatePanel — verified pair render", () => {
     expect(unavailable[0].textContent ?? "").not.toMatch(RETAINED_ROWS_CLAIM);
     expect(host!.querySelector('[data-testid="options-alpha-candidate-stale"]')).toBeNull();
   });
+
+  // Regression: a 200 poll whose body is not a candidate feed envelope (malformed /
+  // unrelated payload) must be handled EXACTLY like the 503 / network / throw paths —
+  // keep the actual last-good row and label it stale (localized), never unavailable.
+  //
+  // Note on the normalize-null branch: normalizeCandidateFeed() re-checks the same
+  // isCandidateFeedResponse() guard and its as*/normalizers are total (they never
+  // throw), so no structurally recognized input exists that isCandidateFeedResponse
+  // accepts while normalizeCandidateFeed rejects. There is therefore no real fixture
+  // for that defensive branch; we do not fake/mock the module to manufacture one.
+  for (const lang of ["en", "zh"] as const) {
+    it(`good response then malformed-body poll keeps the actual row and goes stale (${lang})`, async () => {
+      vi.useFakeTimers();
+      fetchMock.mockResolvedValueOnce(jsonResponse({ status: 200, body: validResponse() }));
+      renderPanel({ lang });
+      await flushMicrotasks(8);
+      const before = host!.querySelector('[data-testid="options-alpha-candidate-item"]')?.textContent ?? "";
+      expect(before).toContain("oacnd_0000000000000000000001");
+      // Queue the malformed 200 BEFORE advancing; the second poll must resolve stale.
+      fetchMock.mockResolvedValueOnce(jsonResponse({ status: 200, body: { error: "feed unavailable" } }));
+      await act(async () => { await vi.advanceTimersByTimeAsync(60_000); });
+      await flushMicrotasks(8);
+      expect(fetchMock).toHaveBeenCalledTimes(2);
+      // Exact actual candidate identity + full row text retained untouched.
+      const after = host!.querySelector('[data-testid="options-alpha-candidate-item"]')?.textContent ?? "";
+      expect(after).toBe(before);
+      expect(after).toContain("oacnd_0000000000000000000001");
+      // Localized stale notice; no unavailable notice and no "no history" claim.
+      const stale = host!.querySelector('[data-testid="options-alpha-candidate-stale"]');
+      expect(stale).toBeTruthy();
+      expect(stale!.textContent).toBe(STALE[lang]);
+      expect(host!.querySelector('[data-testid="options-alpha-candidate-unavailable"]')).toBeNull();
+      expect(host!.textContent ?? "").not.toMatch(NO_HISTORY_CLAIM);
+      expect(host!.textContent ?? "").not.toMatch(RETAINED_ROWS_CLAIM);
+    });
+
+    it(`good response then JSON parse rejection on poll keeps the actual row and goes stale (${lang})`, async () => {
+      vi.useFakeTimers();
+      fetchMock.mockResolvedValueOnce(jsonResponse({ status: 200, body: validResponse() }));
+      renderPanel({ lang });
+      await flushMicrotasks(8);
+      const before = host!.querySelector('[data-testid="options-alpha-candidate-item"]')?.textContent ?? "";
+      expect(before).toContain("oacnd_0000000000000000000001");
+      // A genuine 200 whose body is not parseable JSON — response.json() rejects.
+      fetchMock.mockResolvedValueOnce(new Response("{not valid json", {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      }));
+      await act(async () => { await vi.advanceTimersByTimeAsync(60_000); });
+      await flushMicrotasks(8);
+      expect(fetchMock).toHaveBeenCalledTimes(2);
+      const after = host!.querySelector('[data-testid="options-alpha-candidate-item"]')?.textContent ?? "";
+      expect(after).toBe(before);
+      expect(after).toContain("oacnd_0000000000000000000001");
+      const stale = host!.querySelector('[data-testid="options-alpha-candidate-stale"]');
+      expect(stale).toBeTruthy();
+      expect(stale!.textContent).toBe(STALE[lang]);
+      expect(host!.querySelector('[data-testid="options-alpha-candidate-unavailable"]')).toBeNull();
+      expect(host!.textContent ?? "").not.toMatch(NO_HISTORY_CLAIM);
+      expect(host!.textContent ?? "").not.toMatch(RETAINED_ROWS_CLAIM);
+    });
+  }
 
   for (const lang of ["en", "zh"] as const) {
     it(`first-load 503 renders unavailable with no retained-rows claim (${lang})`, async () => {
