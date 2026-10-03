@@ -352,6 +352,9 @@ export function r2Key(f: string): string {
   return `live_flow/${f}_current.json`;
 }
 
+/** The receipt is deliberately not a generic f-param: it can only be read with its payload. */
+export const OPTIONS_ALPHA_CANDIDATE_RECEIPT_R2_KEY = "options_alpha/candidate_feed.receipt.json";
+
 async function fetchWithUA(url: string): Promise<Record<string, unknown>> {
   const ctrl = new AbortController();
   const timer = setTimeout(() => ctrl.abort(), 3_000);
