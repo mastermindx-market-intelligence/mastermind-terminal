@@ -2,6 +2,7 @@ import { expect, test, type Page, type TestInfo } from "@playwright/test";
 import { mkdirSync } from "node:fs";
 import path from "node:path";
 import { isolateWatchlistStore } from "./watchlistStore";
+import { fixtureUserId } from "../lib/watchlistsFixtureDb";
 
 test.setTimeout(120_000);
 
@@ -801,20 +802,23 @@ test("a bounded legacy session envelope migrates once to the exact v2 request ke
   await fillNew(page, false, "Legacy migration");
   await page.getByRole("button", { name: "Save", exact: true }).click();
   await expect(page.getByText("response was interrupted")).toBeVisible();
-  await page.evaluate(() => {
+  const legacyKey = await page.evaluate(() => {
     const key = Object.keys(localStorage).find((candidate) => candidate.startsWith("mm.thesis.pending.v2:"));
     if (!key) throw new Error("missing v2 envelope");
-    const envelope = JSON.parse(localStorage.getItem(key)!) as { action: string; serializedBody: string };
-    sessionStorage.setItem("mm.thesis.pending.v1:local-preview", JSON.stringify({
+    const envelope = JSON.parse(localStorage.getItem(key)!) as { ownerKey: string; action: string; serializedBody: string };
+    // The preview and API now use the same cookie-derived owner; migrate that exact owner's bytes.
+    const legacyKey = `mm.thesis.pending.v1:${envelope.ownerKey}`;
+    sessionStorage.setItem(legacyKey, JSON.stringify({
       action: envelope.action,
       body: JSON.parse(envelope.serializedBody),
     }));
     localStorage.removeItem(key);
+    return legacyKey;
   });
 
   await page.reload();
   await expect(page.getByTestId("thesis-pending-recovery-item")).toHaveCount(1);
-  expect(await page.evaluate(() => sessionStorage.getItem("mm.thesis.pending.v1:local-preview"))).toBeNull();
+  expect(await page.evaluate((key) => sessionStorage.getItem(key), legacyKey)).toBeNull();
   await expect.poll(() => page.evaluate(() => Object.keys(localStorage).filter((key) => key.startsWith("mm.thesis.pending.v2:")).length))
     .toBe(1);
   await page.getByRole("button", { name: "Retry same request" }).click();
@@ -851,8 +855,9 @@ test("an envelope belonging to the prior account stays isolated after an account
 });
 
 test("corrupt owner-bound recovery storage fails closed without deleting or sending", async ({ page, baseURL }, testInfo) => {
-  await prepare(page, testInfo, baseURL);
-  await page.addInitScript(() => localStorage.setItem("mm.thesis.pending.v2:local-preview:corrupt", "{"));
+  const storeKey = await prepare(page, testInfo, baseURL);
+  const recoveryKey = `mm.thesis.pending.v2:${encodeURIComponent(fixtureUserId(storeKey))}:corrupt`;
+  await page.addInitScript((key) => localStorage.setItem(key, "{"), recoveryKey);
   const writes: string[] = [];
   page.on("request", (request) => {
     if (request.method() === "POST" && request.url().includes("/api/theses")) writes.push(request.postData() ?? "");
@@ -860,7 +865,7 @@ test("corrupt owner-bound recovery storage fails closed without deleting or send
   await page.goto("/analysis?view=theses&symbol=NVDA");
   await expect(page.getByText("browser could not safely preserve the request")).toBeVisible();
   await expect(page.getByRole("button", { name: "Save", exact: true })).toBeDisabled();
-  expect(await page.evaluate(() => localStorage.getItem("mm.thesis.pending.v2:local-preview:corrupt"))).toBe("{");
+  expect(await page.evaluate((key) => localStorage.getItem(key), recoveryKey)).toBe("{");
   expect(writes).toEqual([]);
 });
 

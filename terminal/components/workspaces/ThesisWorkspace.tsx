@@ -47,6 +47,8 @@ import type {
   SavedView,
   ViewFilter,
 } from "@/lib/rmsViews";
+import { SavedViewClient, browserSavedViewHandles, savedViewOperationMessageKey, type SavedViewWritePhase } from "@/lib/savedViewClient";
+import { asLegacySavedView } from "@/lib/savedViewContract";
 import styles from "./ThesisWorkspace.module.css";
 import ClaimAuthoringForm from "./ClaimAuthoringForm";
 import BriefSubscribeControls from "@/components/briefs/BriefSubscribeControls";
@@ -554,6 +556,11 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
   const [subjectFilterLabel, setSubjectFilterLabel] = useState<string | null>(null);
   const [savedViews, setSavedViews] = useState<SavedView[]>([]);
   const [savedViewsUnavailable, setSavedViewsUnavailable] = useState(false);
+  const [savedViewsReady, setSavedViewsReady] = useState(false);
+  const [savedViewPhase, setSavedViewPhase] = useState<SavedViewWritePhase>("idle");
+  const [savedViewOperationError, setSavedViewOperationError] = useState<string | null>(null);
+  const savedViewClientRef = useRef<SavedViewClient | null>(null);
+  const savedViewOperationLocked = ["saving", "checking", "unknown", "conflict", "access_required", "recovery_blocked"].includes(savedViewPhase);
   const [activePreset, setActivePreset] = useState<ActivePreset | null>(null);
   const [namingOpen, setNamingOpen] = useState(false);
   const [nameDraft, setNameDraft] = useState("");
@@ -638,6 +645,7 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
     setSubjectFilterLabel(null);
     setSavedViews([]);
     setSavedViewsUnavailable(false);
+    setSavedViewsReady(false);
     setActivePreset(null);
     setNamingOpen(false);
     setNameDraft("");
@@ -1133,38 +1141,55 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
   // mutations. `deleteView` now re-reads the list through it (a delete can resolve
   // the truncation state and the save controls with it), so it has to exist before
   // that callback's dependency array is evaluated during render.
-  const loadSavedViews = useCallback(async () => {
+  // Saved-view requests are separate from thesis-version writes, but retain the existing data owner.
+  useEffect(() => {
+    let client: SavedViewClient;
     try {
-      const response = await fetch("/api/thesis-saved-views", { cache: "no-store" });
-      if (!response.ok) {
-        setSavedViewsUnavailable(true);
-        return;
-      }
-      const payload = await response.json();
-      if (!Array.isArray(payload.views)) {
-        setSavedViewsUnavailable(true);
-        return;
-      }
-      setSavedViews(payload.views);
-      setSavedViewsUnavailable(false);
-      // Round-5 review (Meta-CEO B ruling R3c): "That view was already removed." had
-      // exactly three writers and no clearer other than another delete or an owner swap,
-      // so it kept rendering beside unrelated later work. A successful read is a fresh
-      // answer about what exists, so it retires the notice — mirroring
-      // `savedViewNameError`, which every successful write clears. The 404 delete branch
-      // below therefore raises the notice AFTER its own re-read, not before it.
-      setSavedViewGone(false);
-      // `truncated` (round-2 review, Opus minor 3): more rows exist than this answer
-      // carries, so say so in words instead of dropping them silently. Round-3 review
-      // (ruling R4): in ITS OWN sentence — reusing the limit sentence told a user who
-      // holds more than 50 that they had reached 50, and pointed "delete one" at a set
-      // that excluded the hidden rows. The two states are mutually exclusive on screen.
-      const truncated = payload.truncated === true;
-      setSavedViewsTruncated(truncated);
-      setSavedViewsLimit(!truncated && payload.views.length >= MAX_SAVED_VIEWS);
+      client = new SavedViewClient(ownerKey, browserSavedViewHandles(), undefined, undefined, "thesis_filter");
     } catch {
-      setSavedViewsUnavailable(true);
+      setSavedViewPhase("recovery_blocked");
+      setSavedViewOperationError("recovery_storage_unavailable");
+      return;
     }
+    savedViewClientRef.current = client;
+    let consumedReceipt: string | null = null;
+    const unsubscribe = client.subscribe((state) => {
+      setSavedViewPhase(state.phase);
+      setSavedViewOperationError(state.error);
+      setSavedViews(state.views.map(asLegacySavedView).filter((view): view is SavedView => view !== null));
+      // Do not place the legacy "nothing changed" read-fault sentence over an uncertain write.
+      setSavedViewsUnavailable(state.listStatus === "unavailable" && !state.pending);
+      setSavedViewsReady(state.listStatus === "ready");
+      setSavedViewsTruncated(state.truncated);
+      setSavedViewsLimit(state.phase === "rejected" && state.error === "limit_reached"
+        || state.listStatus === "ready" && !state.truncated && state.views.length >= MAX_SAVED_VIEWS);
+      if (state.phase === "rejected") {
+        setSavedViewNameError(state.error === "invalid_name");
+        setSavedViewSaveFailed(state.error !== "invalid_name" && state.error !== "limit_reached");
+      }
+      const legacy = state.view ? asLegacySavedView(state.view) : null;
+      if (state.phase === "confirmed" && legacy && consumedReceipt !== legacy.id) {
+        consumedReceipt = legacy.id;
+        setActivePreset({ kind: "saved", id: legacy.id });
+        setNamingOpen(false);
+        setNameDraft("");
+        setSavedViewNameError(false);
+        setSavedViewSaveFailed(false);
+        setSavedViewGone(false);
+      }
+    });
+    return () => {
+      unsubscribe(); client.dispose();
+      if (savedViewClientRef.current === client) savedViewClientRef.current = null;
+    };
+  }, [ownerKey]);
+
+  const checkSavedView = useCallback(async () => { await savedViewClientRef.current?.check(); }, []);
+
+  const loadSavedViews = useCallback(async () => {
+    const client = savedViewClientRef.current;
+    if (!client) { setSavedViewsUnavailable(true); return; }
+    await client.load();
   }, []);
 
   // Round-5 review (Meta-CEO B ruling R3b): the route answers every rejection with
@@ -1180,57 +1205,11 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
   }, []);
 
   const saveCurrentView = useCallback(async () => {
-    if (savedViews.length >= MAX_SAVED_VIEWS) {
-      setSavedViewsLimit(true);
-      return;
-    }
-    const name = nameDraft;
-    try {
-      const response = await fetch("/api/thesis-saved-views", {
-        method: "PUT",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({ action: "create", name, filter: filterToSave }),
-      });
-      if (response.status === 409) {
-        setSavedViewsLimit(true);
-        return;
-      }
-      // Round-3 review (ruling R4): the route's own name rule, reported as a name
-      // problem rather than as a failed read (the same repair as `renameView` below).
-      // Round-5 review (ruling R3b): and ONLY the name rule — the other five 400 causes
-      // are a save that did not happen, which no amount of renaming fixes.
-      if (response.status === 400) {
-        const error = await readRouteError(response);
-        if (error === "invalid_name") {
-          setSavedViewSaveFailed(false);
-          setSavedViewNameError(true);
-        } else {
-          setSavedViewNameError(false);
-          setSavedViewSaveFailed(true);
-        }
-        return;
-      }
-      if (!response.ok) {
-        setSavedViewsUnavailable(true);
-        return;
-      }
-      const payload = await response.json();
-      if (payload.view) {
-        setSavedViews((current) => [payload.view, ...current].slice(0, MAX_SAVED_VIEWS));
-        setActivePreset({ kind: "saved", id: payload.view.id });
-      }
-      setNamingOpen(false);
-      setNameDraft("");
-      setSavedViewsLimit(false);
-      setSavedViewNameError(false);
-      setSavedViewSaveFailed(false);
-      // Round-5 review (ruling R3c): a successful create retires the already-removed
-      // notice, exactly as it retires the name error one line above.
-      setSavedViewGone(false);
-    } catch {
-      setSavedViewsUnavailable(true);
-    }
-  }, [filterToSave, nameDraft, savedViews.length, readRouteError]);
+    const client = savedViewClientRef.current;
+    if (!client) { setSavedViewPhase("recovery_blocked"); setSavedViewOperationError("recovery_storage_unavailable"); return; }
+    // The session owns one original request. It never resubmits an uncertain operation.
+    await client.save(nameDraft, { version: 1, kind: "thesis_filter", filter: filterToSave });
+  }, [filterToSave, nameDraft]);
 
   const renameView = useCallback(async (id: string, name: string) => {
     // Round-3 review (Meta-CEO B ruling R4): the create form has always carried this
@@ -1297,6 +1276,8 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
       // the read sorts `updatedAt` descending — so spec 2.6's frozen "updatedAt desc"
       // order was broken until the next page load. `deleteView` already re-reads for the
       // same reason; the map stays so the new name shows even if this read fails.
+      // Retire only a resolved prior save error; unknown requests stay check-only.
+      savedViewClientRef.current?.clearResolved();
       await loadSavedViews();
     } catch {
       setSavedViewsUnavailable(true);
@@ -1344,6 +1325,8 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
       // however many rows they deleted. `savedViewsTruncated` has exactly one writer —
       // this read — so the list is re-read, which also brings the previously hidden rows
       // into the strip the sentence promised.
+      // Retire only a resolved prior save error; unknown requests stay check-only.
+      savedViewClientRef.current?.clearResolved();
       await loadSavedViews();
     } catch {
       setSavedViewsUnavailable(true);
@@ -2131,6 +2114,19 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
               {activePreset?.kind === "builtin" && activePreset.id === "stale_30" && (
                 <p className={styles.savedViewsNote} data-testid="rms-builtin-what">{rms["builtin.staleWhat"]}</p>
               )}
+              {["saving", "checking", "unknown", "conflict", "access_required", "recovery_blocked", "deleted"].includes(savedViewPhase) && (
+                <div className={styles.savedViewsFault} role="status" aria-live="polite" data-testid="rms-saved-view-operation">
+                  <p className={styles.savedViewsNote}>
+                    {t(savedViewOperationMessageKey(savedViewPhase, savedViewOperationError))}
+                  </p>
+                  {["unknown", "conflict", "access_required"].includes(savedViewPhase) && (
+                    <button type="button" className={styles.savedViewAction} data-testid="rms-saved-view-check"
+                      onClick={() => { void checkSavedView(); }}>
+                      {t("savedViewOpCheckAction")}
+                    </button>
+                  )}
+                </div>
+              )}
               {savedViewsUnavailable && (
                 <div className={styles.savedViewsFault} role="status">
                   <p className={styles.savedViewsNote}>{rms["savedViews.unavailable"]}</p>
@@ -2140,7 +2136,8 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
                   </button>
                 </div>
               )}
-              {!savedViewsUnavailable && savedViews.length === 0 && (
+              {/* Only a completed current read may establish emptiness; an unresolved save may already exist. */}
+              {savedViewsReady && !savedViewOperationLocked && !savedViewsUnavailable && savedViews.length === 0 && (
                 <p className={styles.savedViewsNote} data-testid="rms-saved-views-empty">{rms["savedViews.empty"]}</p>
               )}
               {savedViewNameError && <p className={styles.savedViewsNote} role="status">{rms["savedViews.nameRequired"]}</p>}
@@ -2184,8 +2181,8 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
               )}
               {canSaveView && !namingOpen && (
                 <button type="button" className={styles.subjectChip} data-testid="rms-save-view"
-                  disabled={carrierLocked || savedViewsBlocked}
-                  onClick={() => { setNamingOpen(true); setNameDraft(""); }}>
+                  disabled={carrierLocked || savedViewsBlocked || savedViewOperationLocked}
+                  onClick={() => { savedViewClientRef.current?.clearResolved(); setNamingOpen(true); setNameDraft(""); }}>
                   {rms["savedViews.newView"]}
                 </button>
               )}
@@ -2194,7 +2191,7 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
                   <input aria-label={rms["savedViews.namePlaceholder"]} placeholder={rms["savedViews.namePlaceholder"]}
                     value={nameDraft} maxLength={80}
                     onChange={(event) => { setNameDraft(event.target.value); setSavedViewNameError(false); setSavedViewSaveFailed(false); }} />
-                  <button type="submit" className={styles.primaryButton} disabled={carrierLocked || savedViewsBlocked || !nameDraft.trim()}>
+                  <button type="submit" className={styles.primaryButton} disabled={carrierLocked || savedViewsBlocked || savedViewOperationLocked || !nameDraft.trim()}>
                     {rms["savedViews.save"]}
                   </button>
                 </form>

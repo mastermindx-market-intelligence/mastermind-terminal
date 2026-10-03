@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import { cookies } from "next/headers";
+import { fixtureUserId, FIXTURE_STORE_COOKIE } from "@/lib/watchlistsFixtureDb";
 import { createClient } from "@/lib/supabase/server";
 import AnalysisWorkspaceMount from "@/components/mounts/AnalysisWorkspaceMount";
 import ThesisWorkspaceMount from "@/components/mounts/ThesisWorkspaceMount";
@@ -40,6 +42,13 @@ export default async function AnalysisPage({ searchParams }: AnalysisPageProps) 
   // Local visual QA needs the real workspace without manufacturing a Supabase
   // session. The production build can never activate this escape hatch.
   if (process.env.NODE_ENV !== "production" && process.env.ANALYSIS_LOCAL_PREVIEW === "1") {
+    // The fixture API resolves this same cookie into its simulated account. Keep
+    // source and consumer identity aligned; the production authentication gate below
+    // is unchanged and can never enter this development-only branch.
+    if (process.env.TERMINAL_E2E_FIXTURE === "1") {
+      const jar = await cookies();
+      return workspace(fixtureUserId(jar.get(FIXTURE_STORE_COOKIE)?.value || "default"));
+    }
     return workspace("local-preview");
   }
   const supabase = await createClient();
