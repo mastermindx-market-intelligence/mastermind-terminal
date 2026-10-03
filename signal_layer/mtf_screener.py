@@ -105,6 +105,10 @@ def document_frame(doc: dict, symbol: str) -> tuple[pd.DataFrame, int, dict]:
 
 def history_calendar_status(dates: pd.DatetimeIndex, calendar: dict | None) -> dict:
     """Compare with caller-supplied owner sessions; this creates no calendar authority."""
+    if (not isinstance(dates, pd.DatetimeIndex) or not len(dates)
+            or dates.hasnans or dates.tz is not None or not dates.is_unique
+            or not dates.is_monotonic_increasing or not dates.equals(dates.normalize())):
+        raise ValueError("observed sessions must be nonempty ordered unique naive midnight dates")
     if calendar is None:
         return {"state": "not_provided", "authority": "not_certified"}
     if not isinstance(calendar, dict) or not isinstance(calendar.get("source"), str) or not calendar["source"].strip() or len(calendar["source"]) > 512:
