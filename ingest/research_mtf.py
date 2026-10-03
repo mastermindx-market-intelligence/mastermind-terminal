@@ -69,17 +69,23 @@ def read_json(path: Path, *, byte_limit: int):
 def validate_request(request: dict) -> ScreenPolicy:
     if not isinstance(request, dict) or request.get("schema") != REQUEST_SCHEMA:
         raise ValueError(f"request schema must be {REQUEST_SCHEMA}")
-    allowed = {"schema", "as_of", "policy", "tickers"}
+    allowed = {"schema", "as_of", "policy", "tickers", "session_calendars"}
     if set(request) - allowed:
         raise ValueError("unknown request fields")
     session_date(request.get("as_of"))
     tickers = request.get("tickers")
     if not isinstance(tickers, list) or not 1 <= len(tickers) <= MAX_SYMBOLS:
         raise ValueError("tickers must be a nonempty bounded list")
+    calendars = request.get("session_calendars", {})
+    if not isinstance(calendars, dict) or len(calendars) > 50 or any(not isinstance(k, str) or not k or len(k) > 64 or not isinstance(v, dict) or set(v) != {"source", "session_dates"} for k, v in calendars.items()):
+        raise ValueError("session_calendars must be a bounded mapping of source and session_dates")
     seen = set()
     for entry in tickers:
-        if not isinstance(entry, dict) or set(entry) != {"symbol", "market", "closed_through", "expected_session"}:
+        required = {"symbol", "market", "closed_through", "expected_session"}
+        if not isinstance(entry, dict) or not required.issubset(entry) or set(entry) - required - {"calendar_id"}:
             raise ValueError("each ticker requires symbol, market, closed_through, expected_session")
+        if "calendar_id" in entry and (not isinstance(entry["calendar_id"], str) or entry["calendar_id"] not in calendars):
+            raise ValueError("ticker calendar_id must reference a supplied calendar")
         symbol = entry["symbol"]
         if not isinstance(symbol, str) or not SYMBOL_RE.fullmatch(symbol) or symbol in seen:
             raise ValueError("symbols must be unique validated path components")
@@ -129,7 +135,7 @@ def build_report(data_dir: Path, request: dict) -> dict:
                 return None
 
     documents = Documents()
-    report = scan_universe(documents, request["tickers"], as_of=request["as_of"], policy=policy)
+    report = scan_universe(documents, request["tickers"], as_of=request["as_of"], policy=policy, session_calendars=request.get("session_calendars"))
     for row in report["rows"]:
         symbol = row["symbol"]
         if symbol in failures:

@@ -103,8 +103,34 @@ def document_frame(doc: dict, symbol: str) -> tuple[pd.DataFrame, int, dict]:
     return daily, row_zero, provenance
 
 
+def history_calendar_status(dates: pd.DatetimeIndex, calendar: dict | None) -> dict:
+    """Compare with caller-supplied owner sessions; this creates no calendar authority."""
+    if calendar is None:
+        return {"state": "not_provided", "authority": "not_certified"}
+    if not isinstance(calendar, dict) or not isinstance(calendar.get("source"), str) or not calendar["source"].strip() or len(calendar["source"]) > 512:
+        raise ValueError("session calendar requires a bounded source reference")
+    supplied = calendar.get("session_dates")
+    if not isinstance(supplied, list) or not 1 <= len(supplied) <= 30000:
+        raise ValueError("session calendar must contain 1 to 30000 explicit dates")
+    expected = pd.DatetimeIndex([session_date(value) for value in supplied])
+    if not expected.is_unique or not expected.is_monotonic_increasing:
+        raise ValueError("calendar dates must be unique and strictly increasing")
+    if not len(dates):
+        raise ValueError("observed sessions cannot be empty")
+    result = {"source": calendar["source"], "authority": "caller_supplied_not_certified",
+              "checked_from": _date(dates[0]), "checked_through": _date(dates[-1])}
+    if expected[0] > dates[0] or expected[-1] < dates[-1]:
+        return {**result, "state": "incomplete_calendar"}
+    expected = expected[(expected >= dates[0]) & (expected <= dates[-1])]
+    missing, unexpected = expected.difference(dates), dates.difference(expected)
+    return {**result, "state": "history_gaps" if len(missing) or len(unexpected) else "matches_supplied_calendar",
+            "missing_count": len(missing), "unexpected_count": len(unexpected),
+            "missing_sessions": missing.strftime("%Y-%m-%d").tolist(),
+            "unexpected_sessions": unexpected.strftime("%Y-%m-%d").tolist()}
+
+
 def screen_ticker(doc: dict, *, symbol: str, market: str, as_of, closed_through,
-                  expected_session, policy=ScreenPolicy()) -> dict:
+                  expected_session, policy=ScreenPolicy(), session_calendar=None) -> dict:
     """One ticker snapshot. A current expectation is explicit, never calendar-guessed.
 
     closed_through attests the latest settled bar supplied by the existing data
@@ -127,6 +153,15 @@ def screen_ticker(doc: dict, *, symbol: str, market: str, as_of, closed_through,
     source_session = daily.index[-1]
     if source_session > expected:
         raise ValueError("source contains a later settled session than the market expectation")
+    calendar_quality = history_calendar_status(daily.index, session_calendar)
+    if calendar_quality["state"] not in ("not_provided", "matches_supplied_calendar"):
+        return {"symbol": symbol, "market": market, "state": "incomplete_history",
+                "decision_cutoff": _date(cutoff), "source_session": _date(source_session),
+                "expected_session": _date(expected), "source_stale": source_session != expected,
+                "calendar_quality": calendar_quality, "provenance": provenance,
+                "setup_score": None, "historical_analogs": None, "timeframes": [],
+                "production_rank": None, "trade_authority": False,
+                "reason": "Supplied calendar does not establish complete observed sessions."}
     features = feature_frame(daily, anchor)
     point = features.iloc[-1]
     required = PRESETS[policy.preset]
@@ -185,7 +220,7 @@ def screen_ticker(doc: dict, *, symbol: str, market: str, as_of, closed_through,
     return {"symbol": symbol, "market": market, "state": state,
             "decision_cutoff": cutoff.date().isoformat(), "source_session": source_session.date().isoformat(),
             "expected_session": expected.date().isoformat(), "closed_through": min(cutoff, settled).date().isoformat(),
-            "preset": policy.preset, "required_timeframes": list(required), "missing_timeframes": missing,
+            "calendar_quality": calendar_quality, "preset": policy.preset, "required_timeframes": list(required), "missing_timeframes": missing,
             "setup_score": score, "score_status": "uncalibrated_prior",
             "setup_family": family, "new_reclaim_timeframes": new_reclaims,
             "deteriorating_timeframes": risk_lanes,
@@ -203,7 +238,7 @@ def screen_ticker(doc: dict, *, symbol: str, market: str, as_of, closed_through,
 
 
 def scan_universe(documents: Mapping[str, dict | None], requests: list[dict], *, as_of,
-                  policy=ScreenPolicy()) -> dict:
+                  policy=ScreenPolicy(), session_calendars=None) -> dict:
     """Account for every requested name, including missing, invalid and stale data."""
     cutoff = session_date(as_of)
     if not isinstance(requests, list) or any(not isinstance(r, dict) for r in requests):
@@ -211,6 +246,9 @@ def scan_universe(documents: Mapping[str, dict | None], requests: list[dict], *,
     symbols = [r.get("symbol") for r in requests]
     if any(not isinstance(s, str) or not SYMBOL_RE.fullmatch(s) for s in symbols) or len(set(symbols)) != len(symbols):
         raise ValueError("request symbols must be valid and unique")
+    if session_calendars is not None and not isinstance(session_calendars, Mapping):
+        raise ValueError("session_calendars must be a mapping")
+    calendars = session_calendars or {}
     rows = []
     for request in requests:
         symbol = request["symbol"]
@@ -220,9 +258,13 @@ def scan_universe(documents: Mapping[str, dict | None], requests: list[dict], *,
                          "setup_score": None, "production_rank": None, "trade_authority": False})
             continue
         try:
+            calendar_id = request.get("calendar_id")
+            if "calendar_id" in request and (not isinstance(calendar_id, str) or calendar_id not in calendars or calendars[calendar_id] is None):
+                raise ValueError("requested calendar is unavailable")
+            calendar = calendars[calendar_id] if calendar_id is not None else None
             rows.append(screen_ticker(doc, symbol=symbol, market=request["market"], as_of=cutoff,
                                       closed_through=request["closed_through"],
-                                      expected_session=request["expected_session"], policy=policy))
+                                      expected_session=request["expected_session"], policy=policy, session_calendar=calendar))
         except (ValueError, TypeError, KeyError, OverflowError) as exc:
             rows.append({"symbol": symbol, "market": request.get("market"), "state": "invalid_data",
                          "reason": str(exc)[:300], "setup_score": None,
