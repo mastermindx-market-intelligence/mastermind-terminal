@@ -289,6 +289,16 @@
       "applied_date": "2026-09-19",
       "note": "personal read-only API keys (packet B-F12-10, MO-PAID-055). Seat ruling h_t581 2026-09-18: #579 owns 0024, #577 owns 0025, #582 owns 0026, #581 owns 0027. Shipped UNAPPLIED — applied_in_production is false and applied_date is null, not recorded because there is no application yet. Seat 2026-09-19: PR #581 merged (squash c9381593, 04:58Z); applied in production 2026-09-19T05:02:24Z with scripts/supabase_apply.py (46/46 statements ok; receipt ddl/receipt_0027.json in the seat handoff kit; direct catalog readback confirmed api_keys/api_key_events/api_key_usage with RLS, indexes api_keys_user_active + api_key_events_user, triggers api_keys_active_limit/api_keys_audit/api_keys_no_unrevoke, and all 7 functions).",
       "merged_sha": "c9381593"
+    },
+    "0028": {
+      "state": "reserved",
+      "file": null,
+      "packet": "INTL-R10-SAVED-RESEARCH",
+      "pr": null,
+      "pr_state": null,
+      "applied_in_production": false,
+      "applied_date": null,
+      "note": "Reserved by Sol for International Markets R10 Saved Research Boards 121-130 / Board 124 authenticated owner and explicit write-effect vertical. No SQL file or pull request exists at reservation time; the migration will ship UNAPPLIED and must not be run without a separately reconciled operator/seat apply gate and readback receipt."
     }
   }
 }
