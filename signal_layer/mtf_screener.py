@@ -133,6 +133,68 @@ def history_calendar_status(dates: pd.DatetimeIndex, calendar: dict | None) -> d
             "unexpected_sessions": unexpected.strftime("%Y-%m-%d").tolist()}
 
 
+SLOW_CONTEXT_TFS = ("W", "2W", "1M")
+FAST_TRIGGER_TFS = ("D", "3D")
+
+
+def context_trigger_snapshot(point: pd.Series, source_session) -> dict:
+    """Separate slow context from fast entry timing; never emit a probability.
+
+    The existing composite score remains the descriptive ranking prior. This
+    view model only explains whether D/3D are pulling back or reclaiming while
+    slower W/2W/1M evidence is supportive. Research showed that fixed reclaim
+    triggers are regime-unstable, so these states MUST NOT replace the context
+    score or become trade authority without separate validation.
+    """
+    session = session_date(source_session)
+    slow_ready = all(pd.notna(point[f"{tf.lower()}_score"]) for tf in SLOW_CONTEXT_TFS)
+    fast_ready = all(pd.notna(point[f"{tf.lower()}_score"]) for tf in FAST_TRIGGER_TFS)
+    slow_support_tfs = [tf for tf in SLOW_CONTEXT_TFS
+                        if pd.notna(point[f"{tf.lower()}_score"]) and point[f"{tf.lower()}_score"] >= 50]
+    slow_falling_tfs = [tf for tf in SLOW_CONTEXT_TFS
+                        if point.get(f"{tf.lower()}_phase") in ("bear", "washout")]
+    fast_reclaim_tfs = [tf for tf in FAST_TRIGGER_TFS
+                        if point.get(f"{tf.lower()}_reclaim") == 1]
+    new_fast_reclaim_tfs = [tf for tf in fast_reclaim_tfs
+                            if pd.notna(point.get(f"{tf.lower()}_known_at"))
+                            and pd.Timestamp(point[f"{tf.lower()}_known_at"]) == session]
+    fast_pullback_tfs = [tf for tf in FAST_TRIGGER_TFS
+                         if pd.notna(point.get(f"{tf.lower()}_k")) and point[f"{tf.lower()}_k"] < 35]
+    fast_falling_tfs = [tf for tf in FAST_TRIGGER_TFS
+                        if point.get(f"{tf.lower()}_phase") in ("bear", "washout")]
+    slow_support = slow_ready and len(slow_support_tfs) == len(SLOW_CONTEXT_TFS)
+    slow_nondegrading = slow_ready and not slow_falling_tfs
+
+    if not (slow_ready and fast_ready):
+        readiness = "unavailable"
+    elif slow_support and new_fast_reclaim_tfs:
+        readiness = "supported_reclaim_now"
+    elif slow_support and fast_reclaim_tfs:
+        readiness = "supported_reclaim_active"
+    elif slow_support and fast_pullback_tfs:
+        readiness = "supported_pullback_waiting_reclaim"
+    elif new_fast_reclaim_tfs:
+        readiness = "reclaim_without_full_slow_support"
+    elif fast_falling_tfs:
+        readiness = "fast_momentum_falling"
+    elif slow_support:
+        readiness = "slow_context_supported_no_fast_trigger"
+    else:
+        readiness = "mixed_context_no_fast_trigger"
+
+    return {"status": "descriptive_research_state_not_probability",
+            "slow_context_ready": slow_ready, "fast_trigger_ready": fast_ready,
+            "slow_support": slow_support, "slow_nondegrading": slow_nondegrading,
+            "slow_support_timeframes": slow_support_tfs,
+            "slow_falling_timeframes": slow_falling_tfs,
+            "fast_reclaim_timeframes": fast_reclaim_tfs,
+            "new_fast_reclaim_timeframes": new_fast_reclaim_tfs,
+            "fast_pullback_timeframes": fast_pullback_tfs,
+            "fast_falling_timeframes": fast_falling_tfs,
+            "entry_readiness": readiness,
+            "ranking_role": "context_score_remains_primary_research_order"}
+
+
 def screen_ticker(doc: dict, *, symbol: str, market: str, as_of, closed_through,
                   expected_session, policy=ScreenPolicy(), session_calendar=None) -> dict:
     """One ticker snapshot. A current expectation is explicit, never calendar-guessed.
@@ -209,6 +271,7 @@ def screen_ticker(doc: dict, *, symbol: str, market: str, as_of, closed_through,
                     and point[f"{tf.lower()}_reclaim"] == 1]
     risk_lanes = [lane["timeframe"] for lane in lanes
                   if lane["required"] and lane["phase"] in ("rollover", "bear")]
+    context_trigger = context_trigger_snapshot(point, source_session)
     serialized = {"symbol": symbol, "source": provenance,
                   "bars": [[date, *row] for date, row in zip(
                       daily.index.strftime("%Y-%m-%d"), daily.to_numpy(dtype=float).tolist())]}
@@ -227,7 +290,7 @@ def screen_ticker(doc: dict, *, symbol: str, market: str, as_of, closed_through,
             "calendar_quality": calendar_quality, "preset": policy.preset, "required_timeframes": list(required), "missing_timeframes": missing,
             "setup_score": score, "score_status": "uncalibrated_prior",
             "setup_family": family, "new_reclaim_timeframes": new_reclaims,
-            "deteriorating_timeframes": risk_lanes,
+            "deteriorating_timeframes": risk_lanes, "context_trigger": context_trigger,
             "bottom_position": _number(point.bottom_position), "drawdown_252": _number(point.drawdown_252),
             "last_close": float(daily.close.iloc[-1]), "history_sessions": len(daily),
             "average_dollar_volume_20": float((daily.close * daily.volume).iloc[-20:].mean()) if len(daily) >= 20 else None,
