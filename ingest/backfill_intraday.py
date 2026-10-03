@@ -29,9 +29,13 @@ Resumable: skips a (sym,tf) whose file already exists unless --force.
 from __future__ import annotations
 
 import json
+import math
 import os
+import re
 import sys
+import threading
 import time
+import uuid
 import datetime as dt
 import urllib.request
 import urllib.error
@@ -46,6 +50,10 @@ OUT = Path(os.environ.get("TERMINAL_DATA_DIR") or (ROOT / "terminal" / "public" 
 MANIFEST = Path(os.environ.get("TERMINAL_MANIFEST") or (OUT / "manifest.json"))
 INTRADAY = OUT / "intraday"
 ET = ZoneInfo("America/New_York")
+
+MAX_STORE_ROWS = 60000
+FINALITY_LAG_S = 900
+_stats_lock = threading.Lock()
 
 # Per-tf: Polygon (multiplier, unit) + how far back to store. 5m capped to ~2y to bound file
 # size (5m×5y ≈ 240k bars ≈ 10MB/file); 1h full window is only ~20k bars (~800KB).
@@ -72,6 +80,21 @@ def _polygon_key() -> str:
 
 
 POLY = _polygon_key()
+
+
+def _redact(text: str) -> str:
+    return re.sub(r"apiKey=[^&\s]+", "apiKey=REDACTED", text)
+
+
+def _tf_seconds(tf: str) -> int:
+    spec = TF_SPEC[tf]
+    unit = spec["unit"]
+    mult = spec["mult"]
+    if unit == "minute":
+        return mult * 60
+    if unit == "hour":
+        return mult * 3600
+    raise ValueError(f"unsupported tf unit {unit!r}")
 
 
 def _get(url: str, tries: int = 5) -> dict:
@@ -103,8 +126,37 @@ def _disp_epoch(ms: int) -> int:
     return int(dt.datetime(et.year, et.month, et.day, et.hour, et.minute, tzinfo=timezone.utc).timestamp())
 
 
-def fetch_polygon_intraday(sym: str, tf: str, frm: dt.date | None = None) -> list[list]:
+def _validate_aggregate_bar(b: dict, sym: str, tf: str) -> None:
+    t = b.get("t")
+    if not isinstance(t, int) or isinstance(t, bool):
+        raise RuntimeError(f"malformed aggregate bar for {sym} {tf}: t")
+    for field in ("o", "h", "l", "c"):
+        val = b.get(field)
+        if isinstance(val, bool) or not isinstance(val, (int, float)):
+            raise RuntimeError(f"malformed aggregate bar for {sym} {tf}: {field}")
+        if not math.isfinite(val) or val <= 0:
+            raise RuntimeError(f"malformed aggregate bar for {sym} {tf}: {field}")
+    if b["h"] < b["l"]:
+        raise RuntimeError(f"malformed aggregate bar for {sym} {tf}: h")
+    vol = b.get("v")
+    if vol is not None:
+        if isinstance(vol, bool) or not isinstance(vol, (int, float)):
+            raise RuntimeError(f"malformed aggregate bar for {sym} {tf}: v")
+        if not math.isfinite(vol) or vol < 0:
+            raise RuntimeError(f"malformed aggregate bar for {sym} {tf}: v")
+
+
+def fetch_polygon_intraday(
+    sym: str,
+    tf: str,
+    frm: dt.date | None = None,
+    *,
+    now: float | None = None,
+    stats: dict | None = None,
+) -> list[list]:
     spec = TF_SPEC[tf]
+    if now is None:
+        now = time.time()
     to = dt.date.today()
     if frm is None:
         frm = to - dt.timedelta(days=spec["days"])
@@ -114,15 +166,28 @@ def fetch_polygon_intraday(sym: str, tf: str, frm: dt.date | None = None) -> lis
            f"?adjusted=true&sort=asc&limit=50000&apiKey={POLY}")
     rows: list[list] = []
     pages = 0
+    bar_seconds = _tf_seconds(tf)
+    finality_cutoff = now - FINALITY_LAG_S
     while url and pages < 400:
         d = _get(url)
         status = d.get("status")
         if status not in ("OK", "DELAYED"):
             raise RuntimeError(
                 f"invalid aggregate response status={status!r} after {pages} completed page(s)")
+        if status == "DELAYED" and stats is not None:
+            with _stats_lock:
+                stats["delayed_pages"] = stats.get("delayed_pages", 0) + 1
         for b in d.get("results") or []:
-            rows.append([_disp_epoch(b["t"]), b.get("o"), b.get("h"), b.get("l"),
-                         b.get("c"), int(b.get("v") or 0)])
+            _validate_aggregate_bar(b, sym, tf)
+            bar_end = b["t"] / 1000 + bar_seconds
+            if bar_end > finality_cutoff:
+                if stats is not None:
+                    with _stats_lock:
+                        stats["forming_skipped"] = stats.get("forming_skipped", 0) + 1
+                continue
+            vol = b.get("v")
+            rows.append([_disp_epoch(b["t"]), b["o"], b["h"], b["l"], b["c"],
+                         int(vol or 0)])
         nxt = d.get("next_url")
         url = (nxt + f"&apiKey={POLY}") if nxt else None
         pages += 1
@@ -130,12 +195,11 @@ def fetch_polygon_intraday(sym: str, tf: str, frm: dt.date | None = None) -> lis
             time.sleep(0.1)
     if url:
         raise RuntimeError(f"pagination incomplete after {pages} pages")
-    # ascending + de-dupe by epoch (pagination can overlap a boundary bar)
     rows.sort(key=lambda r: r[0])
     out: list[list] = []
     last = None
     for r in rows:
-        if r[0] != last and r[1] is not None:
+        if r[0] != last:
             out.append(r)
             last = r[0]
     return out
@@ -150,9 +214,26 @@ def write_store(sym: str, tf: str, rows: list[list]) -> int:
     target = INTRADAY / f"{sym}.{tf}.json"
     doc = {"t": sym, "tf": tf, "src": "polygon", "bar_quality": "real_ohlc",
            "asof": rows[-1][0], "bars": rows}
-    tmp = INTRADAY / f"{sym}.{tf}.json.tmp.{os.getpid()}"
-    tmp.write_text(json.dumps(doc, separators=(",", ":")))
-    os.replace(tmp, target)
+    tmp = INTRADAY / (
+        f"{sym}.{tf}.json.tmp.{os.getpid()}.{threading.get_ident()}.{uuid.uuid4().hex[:8]}"
+    )
+    try:
+        with open(tmp, "w", encoding="utf-8") as f:
+            f.write(json.dumps(doc, separators=(",", ":")))
+            f.flush()
+            os.fsync(f.fileno())
+        os.replace(tmp, target)
+        try:
+            dfd = os.open(str(INTRADAY), os.O_RDONLY)
+            try:
+                os.fsync(dfd)
+            finally:
+                os.close(dfd)
+        except OSError:
+            pass
+    finally:
+        if tmp.exists():
+            tmp.unlink(missing_ok=True)
     return len(rows)
 
 
@@ -229,7 +310,7 @@ def us_symbols_ranked() -> list[str]:
 
 
 def main(argv: list[str]) -> int | None:
-    """Returns total failed count, or None if there was nothing to do."""
+    """Returns total failed count, exit code 2 for --existing-only with no jobs, or None if idle."""
     def opt(name, default=None):
         return argv[argv.index(name) + 1] if name in argv else default
 
@@ -267,36 +348,60 @@ def main(argv: list[str]) -> int | None:
               f"tfs={tfs} top={top} universe={len(ranked)} workers={workers}", flush=True)
 
     if not jobs:
+        if existing_only:
+            print(f"intraday backfill: no existing stores under {INTRADAY} — refusing to report success",
+                  flush=True)
+            return 2
         print("intraday backfill: no jobs — nothing to do", flush=True)
         return None
 
+    seen: set[tuple[str, str]] = set()
+    deduped: list[tuple[str, str]] = []
+    for job in jobs:
+        if job not in seen:
+            seen.add(job)
+            deduped.append(job)
+    jobs = deduped
+
+    stats: dict = {"delayed_pages": 0, "forming_skipped": 0}
+    failures: list[str] = []
+    total_dropped = 0
+
     def work(job):
         s, tf = job
+        dropped_local = 0
         try:
             if update or existing_only:
                 old, asof = load_store(s, tf)
                 if asof is not None:
                     frm = _date_of(asof) - dt.timedelta(days=3)
-                    recent = fetch_polygon_intraday(s, tf, frm=frm)
+                    recent = fetch_polygon_intraday(s, tf, frm=frm, stats=stats)
                     if not recent:
-                        return s, tf, 0
-                    merged = _merge(old, recent)[-60000:]
-                    return s, tf, write_store(s, tf, merged)
+                        return s, tf, 0, 0
+                    merged_full = _merge(old, recent)
+                    dropped_local = max(0, len(merged_full) - MAX_STORE_ROWS)
+                    if dropped_local > 0:
+                        print(f"  retention: {s}.{tf} dropped {dropped_local} oldest row(s) "
+                              f"(cap {MAX_STORE_ROWS})", flush=True)
+                    merged = merged_full[-MAX_STORE_ROWS:]
+                    return s, tf, write_store(s, tf, merged), dropped_local
                 if existing_only:
-                    return s, tf, -1  # refresh-only mode never invents/rebuilds a missing store
+                    return s, tf, -1, 0  # refresh-only mode never invents/rebuilds a missing store
                 # Preserve legacy --update semantics: a newly listed symbol with no store
                 # falls through to the ordinary full backfill path.
-            rows = fetch_polygon_intraday(s, tf)
-            return s, tf, write_store(s, tf, rows)
-        except Exception:
-            return s, tf, -1
+            rows = fetch_polygon_intraday(s, tf, stats=stats)
+            return s, tf, write_store(s, tf, rows), 0
+        except Exception as e:
+            failures.append(f"{s}.{tf}: {type(e).__name__}: {_redact(str(e))[:300]}")
+            return s, tf, -1, 0
 
     attempted = written = unchanged = failed = 0
     t0 = time.time()
     with ThreadPoolExecutor(max_workers=workers) as ex:
         futs = [ex.submit(work, j) for j in jobs]
         for f in as_completed(futs):
-            s, tf, n = f.result()
+            s, tf, n, dropped_local = f.result()
+            total_dropped += dropped_local
             attempted += 1
             if n and n > 0:
                 written += 1
@@ -309,12 +414,22 @@ def main(argv: list[str]) -> int | None:
                 print(f"  {attempted}/{len(jobs)} | {written} written {unchanged} unchanged "
                       f"{failed} failed | {rate:.1f}/s", flush=True)
 
-    print(f"intraday backfill complete: {written}/{len(jobs)} stored "
-          f"(unchanged={unchanged} failed={failed}) in {time.time()-t0:.0f}s", flush=True)
+    for i, text in enumerate(failures[:50]):
+        print(f"  FAILED {text}", flush=True)
+    if len(failures) > 50:
+        print(f"  ... and {len(failures) - 50} more failure(s)", flush=True)
+
+    print(
+        f"intraday backfill complete: {written}/{len(jobs)} stored "
+        f"(unchanged={unchanged} failed={failed} retention_dropped={total_dropped} "
+        f"forming_skipped={stats['forming_skipped']} delayed_pages={stats['delayed_pages']}) "
+        f"in {time.time()-t0:.0f}s",
+        flush=True,
+    )
     return failed
 
 
 if __name__ == "__main__":
-    failed = main(sys.argv[1:])
-    if failed:
-        sys.exit(1)
+    rc = main(sys.argv[1:])
+    if rc:
+        sys.exit(rc)

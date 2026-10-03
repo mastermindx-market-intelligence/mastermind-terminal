@@ -208,7 +208,12 @@ fi
 # Must run BEFORE coverage index so refreshed files are indexed same night.
 # Weekdays only (UTC); holidays are silent no-ops.
 if [ "$(date -u +%u)" -le "5" ]; then
-  run "$PY" -m ingest.backfill_intraday --existing-only --tf 1h,5m --workers 8
+  echo "[$(ts)] -> ingest.backfill_intraday --existing-only"
+  if "$PY" -m ingest.backfill_intraday --existing-only --tf 1h,5m --workers 8; then
+    echo "[$(ts)] INTRADAY_REFRESH status=OK"
+  else
+    rc=$?; echo "[$(ts)] INTRADAY_REFRESH status=FAILED rc=$rc"
+  fi
 else
   echo "[$(ts)] -> skip ingest/backfill_intraday --existing-only (not a UTC weekday)"
 fi

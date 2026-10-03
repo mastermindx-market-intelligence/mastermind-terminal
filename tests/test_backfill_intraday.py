@@ -11,8 +11,11 @@ Scope:
 """
 from __future__ import annotations
 
+import datetime as dt
+import hashlib
 import json
 import os
+import re
 import sys
 from pathlib import Path
 from unittest.mock import patch
@@ -184,13 +187,13 @@ def test_merge_preserves_unmodified_old_rows():
 
 
 def test_merge_caps_at_60k_in_update_path():
-    """The 60k cap is applied at the call-site in work(), not inside _merge()."""
-    old = [[i, 10, 10, 10, 10, 100] for i in range(59000)]
-    new = [[59000 + i, 10, 10, 10, 10, 100] for i in range(2000)]
+    """The row cap is applied at the call-site in work(), not inside _merge()."""
+    cap = mod.MAX_STORE_ROWS
+    old = [[i, 10, 10, 10, 10, 100] for i in range(cap - 1000)]
+    new = [[cap - 1000 + i, 10, 10, 10, 10, 100] for i in range(2000)]
     merged = mod._merge(old, new)
-    # _merge itself does not cap; the caller slices [-60000:]
-    assert len(merged) == 61000
-    assert merged[-60000:] == merged[1000:]   # last 60k elements
+    assert len(merged) == cap + 1000
+    assert merged[-cap:] == merged[1000:]
 
 
 # -----------------------------------------------------------------------------------------------
@@ -208,7 +211,7 @@ def test_existing_only_enumerates_only_present_stores(intraday_env, monkeypatch)
     # Patch fetch so we can count calls without network
     fetches = []
 
-    def fake_fetch(sym, tf, frm=None):
+    def fake_fetch(sym, tf, frm=None, **kwargs):
         fetches.append((sym, tf, frm))
         return [[1_700_000_000 + i * 3600, 100 + i, 105 + i, 99 + i, 101 + i, 1000]
                 for i in range(5)]
@@ -228,7 +231,7 @@ def test_existing_only_never_fetches_missing_symbols(intraday_env, monkeypatch):
 
     fetches = []
 
-    def fake_fetch(sym, tf, frm=None):
+    def fake_fetch(sym, tf, frm=None, **kwargs):
         fetches.append(sym)
         return [[1_700_000_000 + i * 3600, 100 + i, 105 + i, 99 + i, 101 + i, 1000]
                 for i in range(5)]
@@ -246,7 +249,7 @@ def test_existing_only_returns_nonzero_on_partial_failure(intraday_env, monkeypa
     monkeypatch.setattr(mod, "INTRADAY", intraday_env)
     monkeypatch.setattr(mod, "MANIFEST", intraday_env.parent / "manifest.json")
 
-    def fake_fetch(sym, tf, frm=None):
+    def fake_fetch(sym, tf, frm=None, **kwargs):
         if sym == "BAD":
             raise RuntimeError("provider error")
         return [[1_700_000_000 + i * 3600, 100 + i, 105 + i, 99 + i, 101 + i, 1000]
@@ -260,11 +263,23 @@ def test_existing_only_returns_nonzero_on_partial_failure(intraday_env, monkeypa
     assert (intraday_env / "OK.1h.json").exists()
 
 
-def test_existing_only_zero_jobs_returns_none(intraday_env, monkeypatch):
+def test_existing_only_zero_jobs_is_a_fault(intraday_env, monkeypatch, capsys):
     monkeypatch.setattr(mod, "INTRADAY", intraday_env)
     monkeypatch.setattr(mod, "MANIFEST", intraday_env.parent / "manifest.json")
     result = mod.main(["--existing-only", "--tf", "1h,5m"])
-    assert result is None
+    assert result == 2
+    assert "refusing to report success" in capsys.readouterr().out
+    missing = intraday_env.parent / "no_intraday"
+    monkeypatch.setattr(mod, "INTRADAY", missing)
+    assert mod.main(["--existing-only", "--tf", "1h"]) == 2
+
+
+def test_zero_jobs_without_existing_only_keeps_legacy_behaviour(intraday_env, monkeypatch):
+    monkeypatch.setattr(mod, "INTRADAY", intraday_env)
+    manifest = intraday_env.parent / "manifest.json"
+    manifest.write_text(json.dumps({"symbols": {}}))
+    monkeypatch.setattr(mod, "MANIFEST", manifest)
+    assert mod.main(["--tf", "1h", "--limit", "0"]) is None
 
 
 def test_existing_only_still_updates_existing_store(intraday_env, monkeypatch):
@@ -283,7 +298,7 @@ def test_existing_only_still_updates_existing_store(intraday_env, monkeypatch):
         [new_epoch, 130, 131, 129, 130.5, 2222],
     ]
 
-    def fake_fetch(sym, tf, frm=None):
+    def fake_fetch(sym, tf, frm=None, **kwargs):
         calls.append((sym, tf, frm))
         return recent_rows
 
@@ -316,7 +331,7 @@ def test_backfill_skips_existing_without_force_or_update(intraday_env, monkeypat
 
     fetches = []
 
-    def fake_fetch(sym, tf, frm=None):
+    def fake_fetch(sym, tf, frm=None, **kwargs):
         fetches.append(sym)
         return [[1_700_000_000 + i * 3600, 100 + i, 105 + i, 99 + i, 101 + i, 1000]
                 for i in range(5)]
@@ -339,7 +354,7 @@ def test_force_backfills_existing(intraday_env, monkeypatch):
 
     fetches = []
 
-    def fake_fetch(sym, tf, frm=None):
+    def fake_fetch(sym, tf, frm=None, **kwargs):
         fetches.append(sym)
         return [[1_700_000_000 + i * 3600, 100 + i, 105 + i, 99 + i, 101 + i, 1000]
                 for i in range(5)]
@@ -361,7 +376,7 @@ def test_update_extends_existing_and_falls_back_on_missing(intraday_env, monkeyp
 
     fetches = []
 
-    def fake_fetch(sym, tf, frm=None):
+    def fake_fetch(sym, tf, frm=None, **kwargs):
         fetches.append((sym, "update" if frm else "full"))
         return [[1_700_000_000 + i * 3600, 100 + i, 105 + i, 99 + i, 101 + i, 1000]
                 for i in range(5)]
@@ -382,7 +397,7 @@ def test_update_missing_store_preserves_legacy_full_backfill(intraday_env, monke
     monkeypatch.setattr(mod, "MANIFEST", manifest)
     calls = []
 
-    def fake_fetch(sym, tf, frm=None):
+    def fake_fetch(sym, tf, frm=None, **kwargs):
         calls.append((sym, tf, frm))
         return [[1_700_000_000 + i * 3600, 100 + i, 105 + i, 99 + i, 101 + i, 1000]
                 for i in range(25)]
@@ -401,15 +416,21 @@ def test_update_missing_store_preserves_legacy_full_backfill(intraday_env, monke
 # -----------------------------------------------------------------------------------------------
 
 NIGHTLY = ROOT / "ops" / "terminal-data"
+INTRADAY_CMD = '"$PY" -m ingest.backfill_intraday --existing-only --tf 1h,5m --workers 8'
 
 
 def test_backfill_existing_only_in_nightly_once():
-    import re
     body = NIGHTLY.read_text()
-    matches = re.findall(r'run.*backfill_intraday\s+--existing-only', body)
-    assert len(matches) == 1, (
-        f"Expected exactly one --existing-only invocation; found {len(matches)}"
+    assert body.count(INTRADAY_CMD) == 1, (
+        f"Expected exactly one intraday refresh command; found {body.count(INTRADAY_CMD)}"
     )
+
+
+def test_intraday_refresh_prints_status_line_and_never_aborts():
+    body = NIGHTLY.read_text()
+    assert "INTRADAY_REFRESH status=OK" in body
+    assert "INTRADAY_REFRESH status=FAILED rc=" in body
+    assert body.count(INTRADAY_CMD) == 1
 
 
 def test_backfill_existing_only_before_coverage_index():
@@ -452,6 +473,287 @@ def test_backfill_existing_only_not_in_manifest_dependency():
                 )
 
 # -----------------------------------------------------------------------------------------------
+# Repair packet R1–R7 behavioural tests
+# -----------------------------------------------------------------------------------------------
+
+def _write_store_rows(path: Path, sym: str, tf: str, rows: list) -> None:
+    doc = {"t": sym, "tf": tf, "src": "polygon", "bar_quality": "real_ohlc",
+           "asof": rows[-1][0], "bars": rows}
+    path.write_text(json.dumps(doc, separators=(",", ":")))
+
+
+def test_update_reports_rows_dropped_by_retention(intraday_env, monkeypatch, capsys):
+    cap = mod.MAX_STORE_ROWS
+    sym, tf = "RET", "1h"
+    rows = [[i, 10.0, 11.0, 9.0, 10.5, 100] for i in range(cap)]
+    _write_store_rows(intraday_env / f"{sym}.{tf}.json", sym, tf, rows)
+    monkeypatch.setattr(mod, "INTRADAY", intraday_env)
+
+    def fake_fetch(s, t, frm=None, **kwargs):
+        base = rows[-1][0]
+        return [[base + 3600 * (i + 1), 10.0, 11.0, 9.0, 10.5, 100] for i in range(3)]
+
+    with patch.object(mod, "fetch_polygon_intraday", fake_fetch):
+        mod.main(["--existing-only", "--tf", "1h", "--workers", "1"])
+    out = capsys.readouterr().out
+    doc = json.loads((intraday_env / f"{sym}.{tf}.json").read_text())
+    assert len(doc["bars"]) == cap
+    assert f"retention: {sym}.{tf} dropped 3" in out
+    assert "retention_dropped=3" in out
+
+
+def test_update_under_cap_reports_zero_dropped(intraday_env, monkeypatch, capsys):
+    make_store(intraday_env / "SMALL.1h.json", "SMALL", "1h", n=30)
+    monkeypatch.setattr(mod, "INTRADAY", intraday_env)
+
+    def fake_fetch(s, t, frm=None, **kwargs):
+        return [[1_800_000_000, 10.0, 11.0, 9.0, 10.5, 100]]
+
+    with patch.object(mod, "fetch_polygon_intraday", fake_fetch):
+        mod.main(["--existing-only", "--tf", "1h", "--workers", "1"])
+    out = capsys.readouterr().out
+    assert "retention:" not in out
+    assert "retention_dropped=0" in out
+
+
+def test_fetch_refuses_bar_with_missing_close(monkeypatch):
+    monkeypatch.setattr(mod, "_get", lambda _url: {
+        "status": "OK", "results": [{"t": 1_700_000_000_000, "o": 1.0, "h": 2.0, "l": 0.5, "v": 1}],
+    })
+    with pytest.raises(RuntimeError, match="malformed aggregate bar"):
+        mod.fetch_polygon_intraday("TST", "5m", now=2_000_000_000.0)
+
+
+@pytest.mark.parametrize("bad_field,bad_row", [
+    ("o", {"t": 1_700_000_000_000, "o": "1.0", "h": 2.0, "l": 0.5, "c": 1.0, "v": 1}),
+    ("o", {"t": 1_700_000_000_000, "o": None, "h": 2.0, "l": 0.5, "c": 1.0, "v": 1}),
+    ("c", {"t": 1_700_000_000_000, "o": 1.0, "h": 2.0, "l": 0.5, "c": float("nan"), "v": 1}),
+    ("c", {"t": 1_700_000_000_000, "o": 1.0, "h": 2.0, "l": 0.5, "c": float("inf"), "v": 1}),
+    ("o", {"t": 1_700_000_000_000, "o": 0, "h": 2.0, "l": 0.5, "c": 1.0, "v": 1}),
+    ("o", {"t": 1_700_000_000_000, "o": -1.0, "h": 2.0, "l": 0.5, "c": 1.0, "v": 1}),
+    ("o", {"t": 1_700_000_000_000, "o": True, "h": 2.0, "l": 0.5, "c": 1.0, "v": 1}),
+    ("h", {"t": 1_700_000_000_000, "o": 2.0, "h": 1.0, "l": 2.5, "c": 1.5, "v": 1}),
+])
+def test_fetch_refuses_non_numeric_and_non_finite_prices(monkeypatch, bad_field, bad_row):
+    monkeypatch.setattr(mod, "_get", lambda _url: {"status": "OK", "results": [bad_row]})
+    with pytest.raises(RuntimeError, match="malformed aggregate bar"):
+        mod.fetch_polygon_intraday("TST", "5m", now=2_000_000_000.0)
+
+
+def test_fetch_refuses_bar_without_timestamp(monkeypatch):
+    monkeypatch.setattr(mod, "_get", lambda _url: {
+        "status": "OK",
+        "results": [{"o": 1.0, "h": 2.0, "l": 0.5, "c": 1.0, "v": 1}],
+    })
+    with pytest.raises(RuntimeError, match="malformed aggregate bar"):
+        mod.fetch_polygon_intraday("TST", "5m", now=2_000_000_000.0)
+
+
+def test_existing_only_malformed_bar_leaves_store_byte_identical(intraday_env, monkeypatch, capsys):
+    target = intraday_env / "HASH.5m.json"
+    make_store(target, "HASH", "5m", n=30)
+    before = hashlib.sha256(target.read_bytes()).hexdigest()
+    monkeypatch.setattr(mod, "INTRADAY", intraday_env)
+    monkeypatch.setattr(mod, "_get", lambda _url: {
+        "status": "OK",
+        "results": [{"t": 1_700_000_000_000, "o": 1.0, "h": 2.0, "l": 0.5, "v": 1}],
+    })
+    rc = mod.main(["--existing-only", "--tf", "5m", "--workers", "1"])
+    after = hashlib.sha256(target.read_bytes()).hexdigest()
+    assert before == after
+    assert rc == 1
+    assert "failed=1" in capsys.readouterr().out
+
+
+def test_fetch_drops_still_forming_bar_at_frozen_clock(monkeypatch):
+    now = 2_000_000_000.0
+    lag = mod.FINALITY_LAG_S
+    bar_sec = mod._tf_seconds("5m")
+    cutoff = now - lag
+    forming_end = cutoff + 1
+    forming_t = int((forming_end - bar_sec) * 1000)
+    kept_end = cutoff
+    kept_t = int((kept_end - bar_sec) * 1000)
+    stats: dict = {}
+    monkeypatch.setattr(mod, "_get", lambda _url: {
+        "status": "OK",
+        "results": [
+            {"t": forming_t, "o": 1.0, "h": 2.0, "l": 0.5, "c": 1.0, "v": 1},
+            {"t": kept_t, "o": 1.0, "h": 2.0, "l": 0.5, "c": 1.0, "v": 1},
+        ],
+    })
+    rows = mod.fetch_polygon_intraday("TST", "5m", now=now, stats=stats)
+    assert len(rows) == 1
+    assert stats["forming_skipped"] == 1
+
+
+def test_fetch_drops_forming_hour_bar_in_post_market(monkeypatch):
+    from datetime import timezone
+
+    def utc_ts(y, m, d, h, mi=0, s=0):
+        return int(dt.datetime(y, m, d, h, mi, s, tzinfo=timezone.utc).timestamp())
+
+    t20 = int(utc_ts(2024, 6, 3, 20, 0) * 1000)
+    t19 = int(utc_ts(2024, 6, 3, 19, 0) * 1000)
+    now_2030 = float(utc_ts(2024, 6, 3, 20, 30))
+    monkeypatch.setattr(mod, "_get", lambda _url: {
+        "status": "OK",
+        "results": [
+            {"t": t20, "o": 1.0, "h": 2.0, "l": 0.5, "c": 1.0, "v": 1},
+        ],
+    })
+    assert mod.fetch_polygon_intraday("TST", "1h", now=now_2030) == []
+
+    now_2010 = float(utc_ts(2024, 6, 3, 20, 10))
+    monkeypatch.setattr(mod, "_get", lambda _url: {
+        "status": "OK",
+        "results": [{"t": t19, "o": 1.0, "h": 2.0, "l": 0.5, "c": 1.0, "v": 1}],
+    })
+    assert mod.fetch_polygon_intraday("TST", "1h", now=now_2010) == []
+
+    now_2015 = float(utc_ts(2024, 6, 3, 20, 15))
+    rows = mod.fetch_polygon_intraday("TST", "1h", now=now_2015)
+    assert len(rows) == 1
+
+
+def test_failure_is_logged_with_symbol_tf_and_error(intraday_env, monkeypatch, capsys):
+    make_store(intraday_env / "AAA.5m.json", "AAA", "5m", n=30)
+    monkeypatch.setattr(mod, "INTRADAY", intraday_env)
+
+    def boom(sym, tf, frm=None, **kwargs):
+        raise RuntimeError("synthetic")
+
+    with patch.object(mod, "fetch_polygon_intraday", boom):
+        mod.main(["--existing-only", "--tf", "5m", "--workers", "1"])
+    assert "FAILED AAA.5m: RuntimeError:" in capsys.readouterr().out
+
+
+def test_failure_log_redacts_api_key(intraday_env, monkeypatch, capsys):
+    make_store(intraday_env / "RED.5m.json", "RED", "5m", n=30)
+    monkeypatch.setattr(mod, "INTRADAY", intraday_env)
+
+    def boom(sym, tf, frm=None, **kwargs):
+        raise RuntimeError("apiKey=SECRET123&x=1")
+
+    with patch.object(mod, "fetch_polygon_intraday", boom):
+        mod.main(["--existing-only", "--tf", "5m", "--workers", "1"])
+    out = capsys.readouterr().out
+    assert "apiKey=REDACTED" in out
+    assert "SECRET123" not in out
+
+
+def test_failure_log_is_bounded_to_fifty_lines(intraday_env, monkeypatch, capsys):
+    for i in range(60):
+        make_store(intraday_env / f"F{i}.5m.json", f"F{i}", "5m", n=30)
+    monkeypatch.setattr(mod, "INTRADAY", intraday_env)
+
+    def boom(sym, tf, frm=None, **kwargs):
+        raise RuntimeError("fail")
+
+    with patch.object(mod, "fetch_polygon_intraday", boom):
+        mod.main(["--existing-only", "--tf", "5m", "--workers", "4"])
+    out = capsys.readouterr().out
+    assert out.count("  FAILED ") == 50
+    assert "... and 10 more failure(s)" in out
+
+
+def test_write_store_fsyncs_before_replace(intraday_env, monkeypatch):
+    order: list[str] = []
+    real_fsync = os.fsync
+    real_replace = os.replace
+
+    def track_fsync(fd):
+        order.append("fsync")
+        return real_fsync(fd)
+
+    def track_replace(src, dst):
+        order.append("replace")
+        return real_replace(src, dst)
+
+    monkeypatch.setattr(os, "fsync", track_fsync)
+    monkeypatch.setattr(os, "replace", track_replace)
+    rows = [[1_700_000_000 + i * 3600, 100 + i, 105 + i, 99 + i, 101 + i, 1000]
+            for i in range(30)]
+    mod.write_store("FS", "1h", rows)
+    assert order.index("fsync") < order.index("replace")
+
+
+def test_write_store_replace_failure_keeps_target_and_leaves_no_temp(intraday_env, monkeypatch):
+    make_store(intraday_env / "ERR.1h.json", "ERR", "1h", n=30)
+    before = (intraday_env / "ERR.1h.json").read_bytes()
+
+    def boom(src, dst):
+        raise OSError("replace failed")
+
+    monkeypatch.setattr(os, "replace", boom)
+    rows = [[1_700_000_000 + i * 3600, 100 + i, 105 + i, 99 + i, 101 + i, 1000]
+            for i in range(30)]
+    with pytest.raises(OSError):
+        mod.write_store("ERR", "1h", rows)
+    assert (intraday_env / "ERR.1h.json").read_bytes() == before
+    assert not any(".tmp." in p.name for p in intraday_env.iterdir())
+
+
+def test_write_store_temp_names_are_unique_per_call(intraday_env, monkeypatch):
+    seen: list[str] = []
+    real_replace = os.replace
+
+    def capture(src, dst):
+        seen.append(str(src))
+        return real_replace(src, dst)
+
+    monkeypatch.setattr(os, "replace", capture)
+    rows = [[1_700_000_000 + i * 3600, 100 + i, 105 + i, 99 + i, 101 + i, 1000]
+            for i in range(30)]
+    mod.write_store("U1", "1h", rows)
+    mod.write_store("U2", "1h", rows)
+    assert len(seen) == 2 and seen[0] != seen[1]
+
+
+def test_main_dedupes_duplicate_jobs(intraday_env, monkeypatch):
+    make_store(intraday_env / "DED.5m.json", "DED", "5m", n=30)
+    monkeypatch.setattr(mod, "INTRADAY", intraday_env)
+    calls: list[str] = []
+
+    def fake_fetch(sym, tf, frm=None, **kwargs):
+        calls.append(sym)
+        return [[1_800_000_000, 10.0, 11.0, 9.0, 10.5, 100]]
+
+    with patch.object(mod, "fetch_polygon_intraday", fake_fetch):
+        mod.main(["--existing-only", "--tf", "5m,5m", "--workers", "1"])
+    assert calls == ["DED"]
+
+
+def test_delayed_pages_are_counted_in_summary(intraday_env, monkeypatch, capsys):
+    make_store(intraday_env / "DEL.5m.json", "DEL", "5m", n=30)
+    monkeypatch.setattr(mod, "INTRADAY", intraday_env)
+    monkeypatch.setattr(mod, "_get", lambda _url: {
+        "status": "DELAYED",
+        "results": [{"t": 1_700_000_000_000, "o": 1.0, "h": 2.0, "l": 0.5, "c": 1.0, "v": 1}],
+    })
+    mod.main(["--existing-only", "--tf", "5m", "--workers", "1"])
+    assert "delayed_pages=1" in capsys.readouterr().out
+
+
+def test_summary_line_has_all_counters(intraday_env, monkeypatch, capsys):
+    make_store(intraday_env / "SUM.5m.json", "SUM", "5m", n=30)
+    monkeypatch.setattr(mod, "INTRADAY", intraday_env)
+
+    def fake_fetch(sym, tf, frm=None, **kwargs):
+        return [[1_800_000_000, 10.0, 11.0, 9.0, 10.5, 100]]
+
+    with patch.object(mod, "fetch_polygon_intraday", fake_fetch):
+        mod.main(["--existing-only", "--tf", "5m", "--workers", "1"])
+    out = capsys.readouterr().out
+    pat = (
+        r"intraday backfill complete: \d+/\d+ stored "
+        r"\(unchanged=\d+ failed=\d+ retention_dropped=\d+ "
+        r"forming_skipped=\d+ delayed_pages=\d+\) in \d+s"
+    )
+    assert re.search(pat, out)
+
+
+# -----------------------------------------------------------------------------------------------
 # TTI review repair spike: internal transport/pagination failures must remain failures
 # -----------------------------------------------------------------------------------------------
 
@@ -480,7 +782,7 @@ def test_tti_fetch_rejects_non_ok_later_page_instead_of_returning_prefix(monkeyp
     monkeypatch.setattr(mod, "_get", lambda _url: pages.pop(0))
     monkeypatch.setattr(mod.time, "sleep", lambda _seconds: None)
     with pytest.raises(RuntimeError, match="invalid aggregate response"):
-        mod.fetch_polygon_intraday("TST", "5m")
+        mod.fetch_polygon_intraday("TST", "5m", now=2_000_000_000.0)
 
 
 def test_tti_fetch_refuses_unfinished_pagination_limit(monkeypatch):
@@ -493,13 +795,13 @@ def test_tti_fetch_refuses_unfinished_pagination_limit(monkeypatch):
     monkeypatch.setattr(mod, "_get", endless)
     monkeypatch.setattr(mod.time, "sleep", lambda _seconds: None)
     with pytest.raises(RuntimeError, match="pagination incomplete"):
-        mod.fetch_polygon_intraday("TST", "5m")
+        mod.fetch_polygon_intraday("TST", "5m", now=2_000_000_000.0)
     assert calls["n"] == 400
 
 
 def test_tti_valid_ok_empty_response_remains_a_lawful_empty(monkeypatch):
     monkeypatch.setattr(mod, "_get", lambda _url: {"status": "OK", "results": []})
-    assert mod.fetch_polygon_intraday("TST", "5m") == []
+    assert mod.fetch_polygon_intraday("TST", "5m", now=2_000_000_000.0) == []
 
 
 def test_tti_existing_only_exhausted_transport_preserves_store_and_counts_failed(
