@@ -9,7 +9,7 @@
 // Pine custom scripts are NOT in this registry — they carry their own source/params and are handled
 // directly in TerminalShell/ChartPanel.
 
-export type IndKey = "ema" | "bb" | "vwap" | "vol" | "rsi" | "stochrsi" | "macd" | "mtfconfluence" | "gaps"
+export type IndKey = "ema" | "bb" | "vwap" | "vol" | "rsi" | "stochrsi" | "macd" | "mtfconfluence" | "mtfstoch" | "mtfmacd" | "gaps"
   | "ichimoku" | "ribbon" | "supertrend" | "avwap" | "rvwap" | "wvwap" | "vprofile" | "volbox"
   | "rsistack" | "accum" | "_lab"
   // Day Trade suite
@@ -22,6 +22,7 @@ export type FieldType = "number" | "color" | "bool";
 export interface IndField {
   key: string;
   label: string;
+  tkey?: string;
   type: FieldType;
   group: "inputs" | "style";
   min?: number;
@@ -31,6 +32,7 @@ export interface IndField {
 
 export interface IndDef {
   key: IndKey;
+  tkey?: string;
   label: string;   // full legend name
   tag: string;     // short label (used in compact contexts)
   kind: IndKind;   // overlay = draws on the price pane; pane = gets its own sub-pane
@@ -47,7 +49,7 @@ export const IND_ORDER: IndKey[] = [
   "svwap", "orb", "slevels", "pivots",
   // Options positioning levels (price pane, data-fed — nightly options build)
   "optlevels",
-  "rsi", "stochrsi", "macd", "mtfconfluence", "rsistack", "accum",
+  "rsi", "stochrsi", "macd", "mtfstoch", "mtfmacd", "mtfconfluence", "rsistack", "accum",
   // Day Trade suite sub-panes
   "rvol", "ttmsq", "adx", "cvd",
   "_lab",
@@ -78,6 +80,18 @@ const COL = {
   downHist: _SHELL ? "rgba(242,54,69,0.55)" : "rgba(240,86,107,0.5)",
   bbBand: "rgba(77,130,255,0.55)", bbBasis: "rgba(214,218,227,0.45)",
 };
+
+const MTF_DEFAULTS = {
+  dOn: true, d3On: true, wOn: true, w2On: true, mOn: true,
+  dCol: "#2962ff", d3Col: "#00bcd4", wCol: "#26c281", w2Col: "#e8b339", mCol: "#b06cff", width: 1.4,
+};
+const MTF_FIELDS: IndField[] = [
+  ...([ ["dOn", "D"], ["d3On", "3D"], ["wOn", "W"], ["w2On", "2W"], ["mOn", "1M"] ] as const)
+    .map(([key, label]) => ({ key, label, type: "bool" as const, group: "inputs" as const })),
+  ...([ ["dCol", "D"], ["d3Col", "3D"], ["wCol", "W"], ["w2Col", "2W"], ["mCol", "1M"] ] as const)
+    .map(([key, label]) => ({ key, label: `${label} color`, tkey: `mtfColor${label}`, type: "color" as const, group: "style" as const })),
+  { key: "width", label: "Line width", tkey: "mtfLineWidth", type: "number", group: "style", min: 1, max: 4, step: 0.2 },
+];
 
 export const IND_DEFS: Record<IndKey, IndDef> = {
   ema: {
@@ -205,20 +219,33 @@ hline(upLine, "Upper", color=color.red)
 hline(lowLine, "Lower", color=color.lime)
 hline(50, "Mid", color=color.gray)`,
   },
+  mtfstoch: {
+    key: "mtfstoch", label: "MTF Stochastic (HLC)", tkey: "indMtfStoch", tag: "MTF Stoch", kind: "pane",
+    defaults: { ...MTF_DEFAULTS, showSignal: false },
+    fields: [...MTF_FIELDS, { key: "showSignal", label: "Show %D (dashed)", tkey: "mtfShowD", type: "bool", group: "inputs" }],
+    source: `// Existing Terminal price stochastic, not stochastic-of-RSI.
+// %K = SMA(100 * (close - lowest(low,14)) / (highest(high,14) - lowest(low,14)),3).
+// %D = SMA(%K,3). Each selected horizon uses canonical aggregated H/L/C.
+// Solid = %K; optional dashed = %D. Closed bars only; calendar lanes appear next session.
+// Raw values warm independently of RSI-MACD. No calibrated entry probability.`,
+  },
+  mtfmacd: {
+    key: "mtfmacd", label: "MTF MACD-RSI", tkey: "indMtfMacd", tag: "MTF MACD-RSI", kind: "pane",
+    defaults: { ...MTF_DEFAULTS, showSignal: false },
+    fields: [...MTF_FIELDS, { key: "showSignal", label: "Show signal (dashed)", tkey: "mtfShowSignal", type: "bool", group: "inputs" }],
+    source: `// Existing Terminal TH_RSIMACD+ convention, not price MACD.
+// RSI(14) -> SMA-seeded EMA(14) - EMA(60); signal = EMA(5).
+// Solid = raw RSI-MACD; optional dashed = signal, in the same horizon color.
+// Native oscillator units, with zero included in the scale. Not normalized to 0-100.
+// Closed bars only. Calendar horizons become visible at the next observed session.`,
+  },
   mtfconfluence: {
-    key: "mtfconfluence", label: "MTF Momentum Confluence", tag: "MTF Confluence", kind: "pane",
-    defaults: { dCol: "#2962ff", d3Col: "#00bcd4", wCol: "#26c281", w2Col: "#e8b339", mCol: "#b06cff", width: 1.4 },
-    fields: [
-      { key: "dCol", label: "D color", type: "color", group: "style" },
-      { key: "d3Col", label: "3D color", type: "color", group: "style" },
-      { key: "wCol", label: "W color", type: "color", group: "style" },
-      { key: "w2Col", label: "2W color", type: "color", group: "style" },
-      { key: "mCol", label: "1M color", type: "color", group: "style" },
-      { key: "width", label: "Line width", type: "number", group: "style", min: 1, max: 4, step: 0.2 },
-    ],
-    source: `// Mastermind native MTF pane.
-// Closed-bar D / 3D / W / 2W / 1M StochRSI + RSI-MACD state.
-// Score is descriptive until OOS calibration; forming HTF bars are excluded.`,
+    key: "mtfconfluence", label: "MTF Momentum Confluence", tkey: "indMtfConfluence", tag: "MTF Confluence", kind: "pane",
+    defaults: { ...MTF_DEFAULTS },
+    fields: [...MTF_FIELDS],
+    source: `// Descriptive 0-100 prior from the existing Terminal HLC stochastic and RSI-MACD.
+// D / 3D / W / 2W / 1M use the same closed-bar availability as the raw MTF panes.
+// Missing warmup is unavailable, never zero. This is not a calibrated entry probability.`,
   },
   macd: {
     // RSI-based MACD (TH_RSIMACD+): MACD of the RSI, not of price. This is the same math the

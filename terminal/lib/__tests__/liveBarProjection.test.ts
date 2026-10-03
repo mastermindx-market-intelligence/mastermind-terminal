@@ -57,7 +57,7 @@ describe("LIVE_BAR_PROJECTION — every built-in study has a decided live behavi
     // MTF confluence is derived from bars, but only CLOSED bars. It therefore has an
     // explicit non-live projection class rather than pretending to be data-fed.
     expect(LIVE_BAR_PROJECTION.mtfconfluence).toBe("closed-bar-series");
-    expect(LIVE_CLOSED_BAR_KEYS).toEqual(["mtfconfluence"]);
+    expect(LIVE_CLOSED_BAR_KEYS).toEqual(["mtfstoch", "mtfmacd", "mtfconfluence"]);
     expect(LIVE_REBUILD_KEYS).not.toContain("mtfconfluence");
     expect(LIVE_INPLACE_SERIES_KEYS.has("mtfconfluence")).toBe(false);
   });

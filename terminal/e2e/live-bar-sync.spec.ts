@@ -254,7 +254,7 @@ test("closed-bar MTF evidence freezes during RTH and advances on genuine US comp
     seconds: rthSeconds(LAST_SESSION, 15, 5),
     marketSession: "rth",
   };
-  await serveDailyWorkspace(page, () => phase, "D", ["mtfconfluence"]);
+  await serveDailyWorkspace(page, () => phase, "D", ["mtfstoch", "mtfmacd", "mtfconfluence"]);
   await page.goto(`/terminal?symbol=${SYMBOL}`);
 
   // The baseline itself must be an actually CONSUMED forming-session quote, not merely the
@@ -263,7 +263,7 @@ test("closed-bar MTF evidence freezes during RTH and advances on genuine US comp
     timeout: 45_000,
     message: "the forming REALTIME baseline should be accepted before MTF is sampled",
   }).toBe("REALTIME");
-  const before = await settledBaseline(page, ["mtfconfluence"]);
+  const before = await settledBaseline(page, ["mtfstoch", "mtfmacd", "mtfconfluence"]);
   expect(before.generation).toBeGreaterThan(0);
   const dBefore = before.series.mtfconfluence?.[0] ?? null;
   const d3Before = before.series.mtfconfluence?.[1] ?? null;
@@ -282,11 +282,12 @@ test("closed-bar MTF evidence freezes during RTH and advances on genuine US comp
     timeout: 45_000,
   }).toBe(LIVE_LAST);
 
-  const during = await settledBaseline(page, ["mtfconfluence"]);
+  const during = await settledBaseline(page, ["mtfstoch", "mtfmacd", "mtfconfluence"]);
   expect(during.priceTail?.value).toBe(LIVE_LAST);
   expect(during.projection.mtfconfluence).toBe("closed-bar-series");
   expect(during.series.mtfconfluence?.[0]).toEqual(dBefore);
   expect(during.series.mtfconfluence?.[1]).toEqual(d3Before);
+  for (const key of ["mtfstoch", "mtfmacd"]) expect(during.series[key]).toEqual(before.series[key]);
 
   // Same completed regular-session OHLC, but now the hub explicitly says the session is final.
   // The price need not move again; the closed-only owner must publish the newly eligible D/3D state.
@@ -302,9 +303,13 @@ test("closed-bar MTF evidence freezes during RTH and advances on genuine US comp
     timeout: 45_000,
   }).toBeGreaterThan(during.generation);
 
-  const completed = await settledBaseline(page, ["mtfconfluence"]);
+  const completed = await settledBaseline(page, ["mtfstoch", "mtfmacd", "mtfconfluence"]);
   expect(completed.series.mtfconfluence?.[0]).not.toEqual(dBefore);
   expect(completed.series.mtfconfluence?.[1]).not.toEqual(d3Before);
+  for (const key of ["mtfstoch", "mtfmacd"]) {
+    expect(completed.series[key][0]?.value).not.toBe(before.series[key][0]?.value);
+    expect(completed.series[key]).toHaveLength(5);
+  }
 });
 
 for (const lane of [
@@ -321,14 +326,14 @@ for (const lane of [
       seconds: local1305,
       // Deliberately no marketSession: this matches ordinary Tencent CN/HK parser output.
     };
-    await serveDailyWorkspace(page, () => phase, "D", ["mtfconfluence"], lane.symbol, lane.market);
+    await serveDailyWorkspace(page, () => phase, "D", ["mtfstoch", "mtfmacd", "mtfconfluence"], lane.symbol, lane.market);
     await page.goto(`/terminal?symbol=${lane.symbol}`);
 
     await expect.poll(async () => (await readWitness(page))?.tick?.basis ?? null, {
       timeout: 45_000,
       message: `${lane.name} forming baseline should be accepted before MTF is sampled`,
     }).toBe(lane.basis);
-    const before = await settledBaseline(page, ["mtfconfluence"]);
+    const before = await settledBaseline(page, ["mtfstoch", "mtfmacd", "mtfconfluence"]);
     expect(before.generation).toBeGreaterThan(0);
     const dBefore = before.series.mtfconfluence?.[0] ?? null;
     const d3Before = before.series.mtfconfluence?.[1] ?? null;
@@ -341,11 +346,16 @@ for (const lane of [
       timeout: 45_000,
     }).toBe(LIVE_LAST);
 
-    const after = await settledBaseline(page, ["mtfconfluence"]);
+    const after = await settledBaseline(page, ["mtfstoch", "mtfmacd", "mtfconfluence"]);
     expect(after.priceTail?.value).toBe(LIVE_LAST);
     expect(after.projection.mtfconfluence).toBe("closed-bar-series");
     expect(after.series.mtfconfluence?.[0]).toEqual(dBefore);
     expect(after.series.mtfconfluence?.[1]).toEqual(d3Before);
+    for (const key of ["mtfstoch", "mtfmacd"]) {
+      expect(before.series[key][0]?.value).not.toBeNull();
+      expect(after.series[key]).toEqual(before.series[key]);
+      expect(after.series[key]).toHaveLength(5);
+    }
   });
 }
 

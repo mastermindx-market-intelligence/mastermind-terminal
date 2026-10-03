@@ -1,4 +1,5 @@
 "use client";
+import { mtfPaneText } from "@/lib/mtfPaneCopy";
 // Full functional per-indicator settings dialog, structured like TradingView: Inputs / Style /
 // Visibility tabs. Every change applies live and is auto-persisted (TerminalShell writes indParams to
 // localStorage), so settings survive across sessions. Cancel reverts to the snapshot taken on open;
@@ -10,7 +11,7 @@ import { IND_DEFS, withDefaults, isIndKey, defaultVis, VIS_UNITS, type IndField,
 import { isSuiteKey, getSuiteDef, suiteDefaults } from "@/lib/suites/registry";
 import { getSuiteModuleCatalogEntry, type SuiteModuleCatalogEntry } from "@/lib/suites/catalog";
 import type { SuiteField, SuiteModuleMeta, SuiteTier } from "@/lib/indicator-canvas/types";
-import { useT } from "@/lib/i18n";
+import { useT, useLang } from "@/lib/i18n";
 
 const SWATCHES = ["#4d82ff", "#26c281", "#f0566b", "#e8b339", "#e8a33d", "#9d86ff", "#19c2c2", "#d6dae3", "#868d9c", "#ff8a3d"];
 const hexOf = (c: string) => (/^#([0-9a-f]{3}|[0-9a-f]{6})$/i.test(c) ? c : "#888888");
@@ -42,12 +43,15 @@ function ColorField({ value, onChange }: { value: string; onChange: (v: string) 
 }
 
 function Row({ f, val, onChange }: { f: IndField; val: any; onChange: (v: any) => void }) {
+  const t = useT();
+  const { lang } = useLang();
+  const label = f.tkey ? mtfPaneText(f.tkey, lang, t(f.tkey, f.label)) : f.label;
   return (
     <div className="is-row">
-      <span className="is-label">{f.label}</span>
+      <span className="is-label">{label}</span>
       {f.type === "number" && <NumberField value={typeof val === "number" ? val : 0} min={f.min} max={f.max} step={f.step} onChange={onChange} />}
       {f.type === "color" && <ColorField value={String(val ?? "#888888")} onChange={onChange} />}
-      {f.type === "bool" && <span className={`is-switch${val ? " on" : ""}`} onClick={() => onChange(!val)} role="switch" aria-checked={!!val} />}
+      {f.type === "bool" && <span className={`is-switch${val ? " on" : ""}`} onClick={() => onChange(!val)} onKeyDown={(e) => { if (e.key === " " || e.key === "Enter") { e.preventDefault(); onChange(!val); } }} tabIndex={0} role="switch" aria-label={label} aria-checked={!!val} />}
     </div>
   );
 }
@@ -259,11 +263,12 @@ export default function IndicatorSettings({ indKey, moduleTarget, params, onChan
   }, []);
   useEffect(() => { if (!defOpen) return; const close = () => setDefOpen(false); window.addEventListener("click", close); return () => window.removeEventListener("click", close); }, [defOpen]);
 
+  const { lang } = useLang();
   const isPine = indKey === "pine";
   const def = !moduleEntry && isIndKey(indKey) ? IND_DEFS[indKey] : null;
   const title = moduleEntry ? moduleEntry.label
     : suite ? (suite.tkey ? t(suite.tkey, suite.label) : suite.label)
-    : isPine ? (pine?.name || "Custom script") : def?.label || indKey;
+    : isPine ? (pine?.name || "Custom script") : def ? (def.tkey ? mtfPaneText(def.tkey, lang, t(def.tkey, def.label)) : def.label) : indKey;
 
   const rank = TIER_RANK[userTier] ?? 0;
   const isLocked = (m: SuiteModuleMeta) => rank < (TIER_RANK[m.tier] ?? 0);

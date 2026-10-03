@@ -48,6 +48,8 @@ export const LIVE_BAR_PROJECTION: Record<IndKey, LiveBarProjection> = {
   // MTF evidence is explicitly CLOSED-bar only. A developing RTH candle may move beside it,
   // but a live mutation must never recompute or replace the last published closed state.
   mtfconfluence: "closed-bar-series",
+  mtfstoch: "closed-bar-series",
+  mtfmacd: "closed-bar-series",
 
   // ── day-trade / premium studies: their builder is the single owner of both the math and the
   //    row→point mapping, so it is re-run against the series the key already owns ──
