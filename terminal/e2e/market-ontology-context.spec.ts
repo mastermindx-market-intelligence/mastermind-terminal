@@ -8,6 +8,11 @@ test.setTimeout(120_000);
 const CONTEXT_QUERY = "mo_from=ontology&mo_chain=context-chain&mo_path_rev=3&mo_focus=context-node&mo_asof=2026-09-23&mo_kc=2026-08-31";
 const RETURN_HREF = "https://www.mastermind-x.com/ontology.html?rev=3#ox-leg-context-node";
 const TRANSMISSION_QUERY = "mo_from=transmission&mo_chain=context-chain&mo_focus=leg-3&mo_path_rev=12&mo_asof=2026-10-01&mo_security=SEC:US";
+const TRANSMISSION_RETURN_HREF = `https://www.mastermind-x.com/transmission.html#tx-chain-context-chain`;
+
+function moKeys(url: URL) {
+  return [...new URL(url.href).searchParams.keys()].filter((key) => key.startsWith("mo_"));
+}
 
 async function prepare(page: Page, testInfo: TestInfo, baseURL: string | undefined, zh = false) {
   await isolateWatchlistStore(page, testInfo, baseURL);
@@ -20,7 +25,10 @@ async function prepare(page: Page, testInfo: TestInfo, baseURL: string | undefin
 
 async function openAnalysis(page: Page, query: string) {
   await page.goto(`/analysis?${query}`);
-  await expect(page.locator(".analysis-shell")).toBeVisible({ timeout: 45_000 });
+  const shell = query.includes("view=theses")
+    ? page.getByTestId("thesis-workspace")
+    : page.locator(".analysis-shell");
+  await expect(shell).toBeVisible({ timeout: 45_000 });
 }
 
 async function fillNewThesis(page: Page, title: string) {
@@ -88,7 +96,7 @@ test("MarketOntology context carries through Analysis and Thesis workspaces with
     }
   });
 
-  await openAnalysis(page, `symbol=NVDA&page=intelligence&${CONTEXT_QUERY}`);
+  await openAnalysis(page, `symbol=NVDA&page=intelligence&${CONTEXT_QUERY}&mo_zzz=unknown`);
   const strip = page.getByTestId("mo-context-strip");
   await expect(strip).toBeVisible();
   await expect(strip).toContainText("Opened from WTI Live Path");
@@ -124,7 +132,7 @@ test("MarketOntology context carries through Analysis and Thesis workspaces with
 
   await page.getByRole("button", { name: "New thesis" }).click();
   await expect(page.getByLabel("Title")).toHaveValue("");
-  await page.getByRole("button", { name: "New thesis" }).click();
+  expect(new URL(page.url()).searchParams.get("mo_zzz")).toBeNull();
   expectContextParams(new URL(page.url()));
   await expect(page.getByTestId("mo-context-strip")).toBeVisible();
 
@@ -153,7 +161,7 @@ test("symbol_switch_clears_every_mo_key_for_transmission_origin", async ({ page,
   await openAnalysis(page, `symbol=NVDA&page=intelligence&${TRANSMISSION_QUERY}&mo_channel=context-channel&mo_unknown=yes`);
   await expect(page.getByTestId("mo-context-strip")).toBeVisible();
   await expect(page.getByTestId("mo-context-strip")).toContainText("Opened from Transmission");
-  await expect(page.getByTestId("mo-context-strip").getByRole("link", { name: "Back to Transmission" })).toHaveAttribute("href", "https://www.mastermind-x.com/transmission.html");
+  await expect(page.getByTestId("mo-context-strip").getByRole("link", { name: "Back to Transmission" })).toHaveAttribute("href", TRANSMISSION_RETURN_HREF);
 
   await pickSymbol(page, "MSFT");
   await expect(page.locator(".analysis-shell")).toContainText("MSFT");
@@ -200,6 +208,58 @@ test("opening a thesis on another company clears the MarketOntology context", as
   expect([...new URL(page.url()).searchParams.keys()].filter((key) => key.startsWith("mo_"))).toEqual([]);
 });
 
+test("returning from a company thesis to the list clears the MarketOntology context", async ({ page, baseURL }, testInfo) => {
+  test.skip(testInfo.project.name !== "desktop", "The MarketOntology context contract is scoped to the desktop project.");
+  await prepare(page, testInfo, baseURL);
+  await page.setViewportSize({ width: 390, height: 844 });
+  await openAnalysis(page, `view=theses&symbol=NVDA&${CONTEXT_QUERY}&mo_zzz=unknown`);
+  await expect(page.getByTestId("thesis-workspace")).toBeVisible({ timeout: 45_000 });
+  await expect(page.getByTestId("mo-context-strip")).toBeVisible();
+
+  await page.getByRole("button", { name: "Back to list" }).click();
+  await expect(page.getByTestId("thesis-workspace")).toHaveAttribute("data-mobile-pane", "list");
+  await expect(page.getByTestId("mo-context-strip")).toHaveCount(0);
+  expect(moKeys(new URL(page.url()))).toEqual([]);
+});
+
+test("starting a new thesis on another company clears the MarketOntology context", async ({ page, baseURL }, testInfo) => {
+  test.skip(testInfo.project.name !== "desktop", "The MarketOntology context contract is scoped to the desktop project.");
+  await prepare(page, testInfo, baseURL);
+  await openAnalysis(page, `view=theses&symbol=NVDA&${CONTEXT_QUERY}&mo_zzz=unknown`);
+  await expect(page.getByTestId("thesis-workspace")).toBeVisible({ timeout: 45_000 });
+  await expect(page.getByTestId("mo-context-strip")).toBeVisible();
+
+  await page.getByLabel("Subject").fill("MSFT");
+  await page.evaluate(() => window.history.replaceState(window.history.state, "", "/analysis?view=theses&symbol=MSFT"));
+  await page.reload();
+  await expect(page.getByLabel("Title")).toHaveValue("");
+  await expect(page.getByTestId("mo-context-strip")).toHaveCount(0);
+  expect(moKeys(new URL(page.url()))).toEqual([]);
+  expect(new URL(page.url()).searchParams.get("symbol")).toBe("MSFT");
+});
+
+test("a Thesis deep link without a company drops every MarketOntology key", async ({ page, baseURL }, testInfo) => {
+  test.skip(testInfo.project.name !== "desktop", "The MarketOntology context contract is scoped to the desktop project.");
+  await prepare(page, testInfo, baseURL);
+  await openAnalysis(page, `view=theses&${CONTEXT_QUERY}&mo_zzz=unknown`);
+  await expect(page.getByTestId("thesis-workspace")).toBeVisible({ timeout: 45_000 });
+  await expect(page.getByTestId("mo-context-strip")).toHaveCount(0);
+  expect(moKeys(new URL(page.url()))).toEqual([]);
+});
+
+test("a same-company new thesis keeps the MarketOntology context but clears unknown keys", async ({ page, baseURL }, testInfo) => {
+  test.skip(testInfo.project.name !== "desktop", "The MarketOntology context contract is scoped to the desktop project.");
+  await prepare(page, testInfo, baseURL);
+  await openAnalysis(page, `view=theses&symbol=NVDA&${CONTEXT_QUERY}&mo_zzz=unknown`);
+  await expect(page.getByTestId("mo-context-strip")).toBeVisible();
+
+  await page.getByRole("button", { name: "New thesis" }).click();
+  await expect(page.getByTestId("mo-context-strip")).toBeVisible();
+  const url = new URL(page.url());
+  expect(url.searchParams.get("mo_zzz")).toBeNull();
+  expectContextParams(url);
+});
+
 test("the context strip remains usable across the responsive contract", async ({ page, baseURL }, testInfo) => {
   test.skip(testInfo.project.name !== "desktop", "The contract proof cycles all three viewports in one desktop run.");
   await prepare(page, testInfo, baseURL, true);
@@ -242,7 +302,7 @@ test("the transmission context strip has proof captures", async ({ page, baseURL
   await openAnalysis(page, `symbol=NVDA&page=intelligence&${TRANSMISSION_QUERY}`);
   const desktopStrip = page.getByTestId("mo-context-strip");
   await expect(desktopStrip).toBeVisible();
-  await expect(desktopStrip.getByRole("link")).toHaveAttribute("href", "https://www.mastermind-x.com/transmission.html");
+  await expect(desktopStrip.getByRole("link")).toHaveAttribute("href", TRANSMISSION_RETURN_HREF);
   await expect(desktopStrip).toContainText("Opened from Transmission");
   const proofDir = path.join(process.cwd(), "e2e/proof/mo-context-strip");
   mkdirSync(proofDir, { recursive: true });
@@ -255,7 +315,7 @@ test("the transmission context strip has proof captures", async ({ page, baseURL
     await openAnalysis(mobilePage, `symbol=NVDA&page=intelligence&${TRANSMISSION_QUERY}`);
     const mobileStrip = mobilePage.getByTestId("mo-context-strip");
     await expect(mobileStrip).toBeVisible();
-    await expect(mobileStrip.getByRole("link")).toHaveAttribute("href", "https://www.mastermind-x.com/transmission.html");
+    await expect(mobileStrip.getByRole("link")).toHaveAttribute("href", TRANSMISSION_RETURN_HREF);
     await expect(mobileStrip).toContainText("来自传导");
     await captureContextProof(mobilePage, proofDir, testInfo, "mobile-analysis-transmission", "zh");
   } finally {
@@ -296,7 +356,7 @@ test("a refreshed Thesis deep link reconstructs the strip and return link", asyn
   } });
   if (!createResponse.ok()) throw new Error(`The thesis could not be created (${createResponse.status()}): ${await createResponse.text()}.`);
   const thesisId = ((await createResponse.json()) as { thesisId: string }).thesisId;
-  await page.goto(`/analysis?view=theses&thesis=${thesisId}&${CONTEXT_QUERY}`);
+  await page.goto(`/analysis?view=theses&symbol=NVDA&thesis=${thesisId}&${CONTEXT_QUERY}`);
   await expect(page.getByText("Version 1 · Current")).toBeVisible({ timeout: 30_000 });
   await expect(page.getByTestId("mo-context-strip")).toBeVisible();
   await expect(page.getByTestId("mo-context-strip").getByRole("link", { name: "Back to WTI Live Path" })).toHaveAttribute("href", RETURN_HREF);

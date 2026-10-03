@@ -285,15 +285,14 @@ export function stripMarketOntologyParams(params: URLSearchParams): URLSearchPar
  *
  * Format: ontology contexts return to `${MARKET_ONTOLOGY_ORIGIN}/ontology.html`
  * + (pathRev ? `?rev=${pathRev}` : "") + (focus ? `#ox-leg-${encodeURIComponent(focus)}` : "").
- * Transmission contexts return to `${MARKET_ONTOLOGY_ORIGIN}/transmission.html`.
+ * Transmission contexts return to `${MARKET_ONTOLOGY_ORIGIN}/transmission.html#tx-chain-${encodeURIComponent(chain)}`.
  *
  * The grammar permits dots and colons; encodeURIComponent is what makes the fragment
  * one opaque token. Illegal hand-built values are omitted.
  */
 export function marketOntologyReturnHref(ctx: MarketOntologyContext): string {
   if (ctx.from === "transmission") {
-    // Transmission carries no query or fragment pending CEO A's anchor pin.
-    return `${MARKET_ONTOLOGY_ORIGIN}/transmission.html`;
+    return `${MARKET_ONTOLOGY_ORIGIN}/transmission.html#tx-chain-${encodeURIComponent(ctx.chain)}`;
   }
 
   let href = `${MARKET_ONTOLOGY_ORIGIN}/ontology.html`;

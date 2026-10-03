@@ -94,7 +94,7 @@ describe("MarketOntologyContextStrip transmission copy", () => {
     let dom = await mount(transmissionContext);
     expect(dom.textContent).toContain("Opened from Transmission");
     expect(dom.querySelector("a")?.textContent).toBe("Back to Transmission");
-    expect(dom.querySelector("a")?.getAttribute("href")).toBe("https://www.mastermind-x.com/transmission.html");
+    expect(dom.querySelector("a")?.getAttribute("href")).toBe("https://www.mastermind-x.com/transmission.html#tx-chain-chain_1");
     await act(async () => {
       root?.unmount();
     });

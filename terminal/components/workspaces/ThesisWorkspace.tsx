@@ -5,7 +5,7 @@ import { useLang, useT } from "@/lib/i18n";
 import { subjectKindLabel } from "@/lib/plainLabels";
 import { parseAnalysisSearchParams } from "@/lib/analysisRoute";
 import { normalizeAnalysisSymbol } from "@/lib/analysisSymbol";
-import { parseMarketOntologyContext, stripMarketOntologyParams, type MarketOntologyContext } from "@/lib/marketOntologyContext";
+import { hasMarketOntologyContext, parseMarketOntologyContext, serializeMarketOntologyContext, stripMarketOntologyParams, type MarketOntologyContext } from "@/lib/marketOntologyContext";
 import { isUuid, normalizeThesisContent, normalizeThesisSubject } from "@/lib/theses";
 import type {
   ThesisAction,
@@ -83,6 +83,7 @@ type Pending = {
   ownerKey: string;
   action: ThesisAction;
   clientRequestId: string;
+  savedSubjectKey: string;
   serializedBody: string;
 };
 type LoadState = "loading" | "ready" | "unavailable" | "session_expired";
@@ -492,6 +493,7 @@ function legacyPending(value: string | null, ownerKey: string): Pending | null {
       ownerKey,
       action: candidate.action as ThesisAction,
       clientRequestId: body.clientRequestId,
+      savedSubjectKey: normalizeThesisSubject(body.subject)?.key ?? "",
       serializedBody,
     };
   } catch {
@@ -517,7 +519,7 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
   const { lang } = useLang();
   const t = useT();
   const copy = COPY[lang];
-  const seededSymbol = normalizeAnalysisSymbol(initialSymbol) ?? "";
+  const initialSymbolKey = normalizeAnalysisSymbol(initialSymbol) ?? "";
   const [listState, setListState] = useState<LoadState>(invalidLink ? "ready" : "loading");
   const [detailState, setDetailState] = useState<DetailState>(initialThesisId ? "loading" : "idle");
   const [theses, setTheses] = useState<ThesisSummary[]>([]);
@@ -528,10 +530,10 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
   const [assistantText, setAssistantText] = useState("");
   const [proposalBusy, setProposalBusy] = useState(false);
   const [marketOntologyContext, setMarketOntologyContext] = useState<MarketOntologyContext | null>(null);
-  const [subjectDraft, setSubjectDraft] = useState(seededSymbol);
+  const [subjectDraft, setSubjectDraft] = useState(initialSymbolKey);
   const [draft, setDraft] = useState<Draft>(EMPTY_DRAFT);
   const [baseline, setBaseline] = useState<{ subject: string; draft: Draft }>(() => ({
-    subject: seededSymbol,
+    subject: initialSymbolKey,
     draft: EMPTY_DRAFT,
   }));
   const [effectiveBaselineUtc, setEffectiveBaselineUtc] = useState<string | null>(null);
@@ -544,7 +546,7 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
   const [message, setMessage] = useState<string | null>(null);
   const [inspectedVersion, setInspectedVersion] = useState<number | null>(null);
   const [routeInvalid, setRouteInvalid] = useState(invalidLink);
-  const [mobilePane, setMobilePane] = useState<MobilePane>(initialThesisId || seededSymbol ? "detail" : "list");
+  const [mobilePane, setMobilePane] = useState<MobilePane>(initialThesisId || initialSymbolKey ? "detail" : "list");
   const [claimFormOpen, setClaimFormOpen] = useState(false);
   const [view, setView] = useState<RmsViewId>(RMS_DEFAULT_VIEW);
   const [subjectFilterKey, setSubjectFilterKey] = useState<string | null>(null);
@@ -796,8 +798,14 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
     if (existing === null) {
       window.history.replaceState(historyState(0), "", window.location.href);
     }
+    const params = new URLSearchParams(window.location.search);
+    if (hasMarketOntologyContext(params) && !initialSymbolKey) {
+      const url = new URL(window.location.href);
+      url.search = stripMarketOntologyParams(params).toString();
+      window.history.replaceState(historyState(historyPositionRef.current), "", url.toString());
+    }
     // eslint-disable-next-line react-hooks/set-state-in-effect
-    setMarketOntologyContext(parseMarketOntologyContext(new URLSearchParams(window.location.search)));
+    setMarketOntologyContext(initialSymbolKey ? parseMarketOntologyContext(new URLSearchParams(window.location.search)) : null);
   }, []);
 
   useEffect(() => {
@@ -1648,14 +1656,20 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
       url.searchParams.delete("thesis");
       if (symbol) url.searchParams.set("symbol", symbol);
       else url.searchParams.delete("symbol");
+      const nextContext = marketOntologyContext;
+      if (!symbol || symbol !== initialSymbolKey || !nextContext) {
+        url.search = stripMarketOntologyParams(url.searchParams).toString();
+      } else {
+        url.search = serializeMarketOntologyContext(nextContext, url.searchParams).toString();
+      }
       writeRoute(url, "push");
     }
-  }, [writeRoute]);
+  }, [initialSymbolKey, marketOntologyContext, writeRoute]);
 
   const startNew = useCallback(() => {
     if (pending || !confirmDiscard()) return;
-    resetToNew(seededSymbol);
-  }, [confirmDiscard, pending, resetToNew, seededSymbol]);
+    resetToNew(normalizeAnalysisSymbol(subjectDraft) ?? "");
+  }, [confirmDiscard, pending, resetToNew, subjectDraft]);
 
   const resetToList = useCallback((historyMode: "push" | "none" = "push") => {
     detailRequest.current += 1;
@@ -1677,6 +1691,7 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
       url.searchParams.set("view", "theses");
       url.searchParams.delete("thesis");
       url.searchParams.delete("symbol");
+      url.search = stripMarketOntologyParams(url.searchParams).toString();
       writeRoute(url, "push");
     }
   }, [writeRoute]);
@@ -1707,6 +1722,7 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
         window.setTimeout(() => { routeDiscardAuthorized.current = false; }, 1000);
       }
       if (nextPosition !== null) historyPositionRef.current = nextPosition;
+      // Every pushed history entry lacking symbol has already had mo_* stripped.
       setMarketOntologyContext(parseMarketOntologyContext(new URLSearchParams(window.location.search)));
       if (window.location.pathname !== "/analysis") return;
       const route = parseAnalysisSearchParams(new URLSearchParams(window.location.search));
@@ -1843,13 +1859,16 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
     url.searchParams.set("view", "theses");
     url.searchParams.set("thesis", id);
     url.searchParams.delete("symbol");
+    if (!pendingMutation.savedSubjectKey || pendingMutation.savedSubjectKey !== initialSymbolKey) {
+      url.search = stripMarketOntologyParams(url.searchParams).toString();
+    }
     writeRoute(url, "replace");
     setSelectedId(id);
     setMobilePane("detail");
     setMessage(`${copy.saved} ${version}${payload.replayed ? ` · ${copy.replayed}` : ""}`);
     await loadList();
     await loadDetail(id);
-  }, [copy.ambiguous, copy.invalid, copy.replayed, copy.saved, copy.transition, loadDetail, loadList, removeTerminalPending, writeRoute]);
+  }, [copy.ambiguous, copy.invalid, copy.replayed, copy.saved, copy.transition, initialSymbolKey, loadDetail, loadList, removeTerminalPending, writeRoute]);
 
   const send = useCallback(async (pendingMutation: Pending) => {
     if (!storePending(pendingMutation)) {
@@ -1881,11 +1900,13 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
     const clientRequestId = crypto.randomUUID();
     const body = mutationBody(action, clientRequestId);
     if (!body) return setMessage(copy.invalid);
+    const savedSubjectKey = detail?.subject.key ?? normalizeAnalysisSymbol(subjectDraft) ?? "";
     const next: Pending = {
       schema: PENDING_SCHEMA,
       ownerKey,
       action,
       clientRequestId,
+      savedSubjectKey,
       serializedBody: JSON.stringify(body),
     };
     if (!storePending(next)) {
@@ -1896,7 +1917,7 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
     setPendingQueue((current) => current.some((candidate) => candidate.clientRequestId === clientRequestId)
       ? current : [...current, next]);
     void send(next);
-  }, [copy.carrierUnavailable, copy.invalid, copy.saveBeforeTransition, mutationBody, ownerKey, send, substantiveDirty]);
+  }, [copy.carrierUnavailable, copy.invalid, copy.saveBeforeTransition, detail?.subject.key, mutationBody, ownerKey, send, subjectDraft, substantiveDirty]);
 
   const copyDraft = useCallback(async () => {
     await navigator.clipboard.writeText(JSON.stringify({ subject: detail?.subject ?? subjectDraft, ...draft }, null, 2));

@@ -162,7 +162,7 @@ describe("parseMarketOntologyContext", () => {
       security: "SEC:US",
       asof: "2026-10-01",
     });
-    expect(marketOntologyReturnHref(result!)).toBe("https://www.mastermind-x.com/transmission.html");
+    expect(marketOntologyReturnHref(result!)).toBe("https://www.mastermind-x.com/transmission.html#tx-chain-chain-1");
   });
 
   it("transmission_origin_never_carries_focus_or_rev", () => {
@@ -174,7 +174,7 @@ describe("parseMarketOntologyContext", () => {
     expect(result?.from).toBe("transmission");
     expect(result?.focus).toBe("leg-3");
     expect(result?.pathRev).toBe("12");
-    expect(marketOntologyReturnHref(result!)).toBe("https://www.mastermind-x.com/transmission.html");
+    expect(marketOntologyReturnHref(result!)).toBe("https://www.mastermind-x.com/transmission.html#tx-chain-chain-1");
   });
 
   it("returns null when mo_from is empty string", () => {
