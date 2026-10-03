@@ -74,10 +74,23 @@ _SITECUSTOMIZE = textwrap.dedent(
     """
     import json
     import os
+    import socket
+    import sys
     import urllib.error
     import urllib.request
 
     _mode = os.environ.get("IDR_TEST_NET_MODE", "fail")
+    sys.stderr.write(f"OFFLINE_SHIM_ACTIVE mode={_mode}\\n")
+    sys.stderr.flush()
+
+    def _no_socket_connect(self, *args, **kwargs):
+        raise RuntimeError("OFFLINE_SHIM_NO_SOCKET")
+
+    def _no_create_connection(*args, **kwargs):
+        raise RuntimeError("OFFLINE_SHIM_NO_SOCKET")
+
+    socket.socket.connect = _no_socket_connect
+    socket.create_connection = _no_create_connection
 
     class _FakeResp:
         def __init__(self, body: bytes):
@@ -97,7 +110,7 @@ _SITECUSTOMIZE = textwrap.dedent(
             raise urllib.error.HTTPError(
                 getattr(req, "full_url", "http://offline.test/"),
                 401,
-                "Unauthorized",
+                "OFFLINE_SHIM_REFUSED Unauthorized",
                 {},
                 None,
             )
@@ -108,25 +121,43 @@ _SITECUSTOMIZE = textwrap.dedent(
     """
 )
 
+_OFFLINE_SHIM_MARKER = "OFFLINE_SHIM_ACTIVE"
 
-def _run_child_backfill(data_root: Path, argv: list[str], net_mode: str) -> subprocess.CompletedProcess:
+
+def _run_child_backfill(
+    data_root: Path,
+    argv: list[str],
+    net_mode: str,
+    *,
+    use_shim: bool = True,
+    cmd: list[str] | None = None,
+) -> subprocess.CompletedProcess:
     """Run ingest.backfill_intraday's real __main__ in a child (no vendor network)."""
     shim_dir = data_root / "_pytest_shim"
     shim_dir.mkdir(parents=True, exist_ok=True)
     (shim_dir / "sitecustomize.py").write_text(_SITECUSTOMIZE, encoding="utf-8")
     env = {k: v for k, v in os.environ.items() if k != "POLYGON_API_KEY"}
-    env["PYTHONPATH"] = f"{shim_dir}{os.pathsep}{ROOT}"
+    if use_shim:
+        env["PYTHONPATH"] = f"{shim_dir}{os.pathsep}{ROOT}"
+    else:
+        env["PYTHONPATH"] = str(ROOT)
     env["TERMINAL_DATA_DIR"] = str(data_root)
     env["IDR_TEST_NET_MODE"] = net_mode
     env["POLYGON_API_KEY"] = "test_key_for_pytest_only"
-    return subprocess.run(
-        [sys.executable, "-m", "ingest.backfill_intraday", *argv],
+    run_cmd = cmd if cmd is not None else [sys.executable, "-m", "ingest.backfill_intraday", *argv]
+    proc = subprocess.run(
+        run_cmd,
         cwd=ROOT,
         env=env,
         capture_output=True,
         text=True,
         timeout=120,
     )
+    marker = f"{_OFFLINE_SHIM_MARKER} mode={net_mode}"
+    assert marker in proc.stderr, (
+        f"expected offline shim marker {marker!r} in child stderr; got stderr={proc.stderr!r}"
+    )
+    return proc
 
 
 def make_store(path: Path, sym: str, tf: str, n: int = 30) -> None:
@@ -992,6 +1023,8 @@ def test_child_process_exits_1_when_256_stores_fail(intraday_env):
     )
     assert proc.returncode == 1
     assert "failed=256" in proc.stdout
+    combined = proc.stdout + proc.stderr
+    assert "OFFLINE_SHIM_REFUSED" in combined
 
 
 def test_child_process_exits_1_when_512_stores_fail(intraday_env):
@@ -1003,6 +1036,38 @@ def test_child_process_exits_1_when_512_stores_fail(intraday_env):
     )
     assert proc.returncode == 1
     assert "failed=512" in proc.stdout
+    combined = proc.stdout + proc.stderr
+    assert "OFFLINE_SHIM_REFUSED" in combined
+
+
+def test_child_shim_blocks_real_sockets(tmp_path):
+    data_root = tmp_path / "sock_data"
+    data_root.mkdir()
+    proc = _run_child_backfill(
+        data_root,
+        [],
+        net_mode="fail",
+        cmd=[
+            sys.executable,
+            "-c",
+            "import socket; socket.create_connection(('example.com', 80), timeout=1)",
+        ],
+    )
+    assert proc.returncode != 0
+    assert "OFFLINE_SHIM_NO_SOCKET" in proc.stderr
+
+
+def test_child_runner_fails_when_shim_is_absent(tmp_path):
+    data_root = tmp_path / "no_shim_data"
+    data_root.mkdir()
+    with pytest.raises(AssertionError, match=_OFFLINE_SHIM_MARKER):
+        _run_child_backfill(
+            data_root,
+            [],
+            net_mode="fail",
+            use_shim=False,
+            cmd=[sys.executable, "-c", "pass"],
+        )
 
 
 def test_child_process_exits_0_on_clean_run(intraday_env):
