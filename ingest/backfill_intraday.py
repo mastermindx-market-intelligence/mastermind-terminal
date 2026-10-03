@@ -86,14 +86,12 @@ EXIT_STORE_FAILURES = 1
 EXIT_NO_STORES = 2
 
 _INTRO_REDACT_PATTERNS = (
-    (re.compile(r"(?i)(apikey=)([^&\s\"',})]+)"), r"\1REDACTED"),
-    (re.compile(r"(?i)(api_key=)([^&\s\"',})]+)"), r"\1REDACTED"),
-    (re.compile(r"(?i)(apikey%3d)([^&\s\"',})]+)"), r"\1REDACTED"),
-    (re.compile(r"(?i)(api_key%3d)([^&\s\"',})]+)"), r"\1REDACTED"),
-    (re.compile(r'(?i)("apiKey"\s*:\s*")([^"\',})]+)'), r"\1REDACTED"),
-    (re.compile(r"(?i)('apiKey'\s*:\s*')([^'\s\"',})]+)"), r"\1REDACTED"),
-    (re.compile(r"(?i)(apikey\s*:\s*)([^&\s\"',})]+)"), r"\1REDACTED"),
-    (re.compile(r"(?i)(api_key\s*:\s*)([^&\s\"',})]+)"), r"\1REDACTED"),
+    (re.compile(r"(?i)((?:^|[?&])api[_]?key=)([^&\s\"',})]+)"), r"\1REDACTED"),
+    (re.compile(r"(?i)(api[_]?key%3d)([^&\s\"',})]+)"), r"\1REDACTED"),
+    (re.compile(
+        r"(?i)([\"']?api[_]?key[\"']?\s*(?:[:=]|%3d)\s*)"
+        r"(?:\"([^\"]*)\"|'([^']*)'|([^&\s\"',})]+))"
+    ), r"\1REDACTED"),
 )
 
 
