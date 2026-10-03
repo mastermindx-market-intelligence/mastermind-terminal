@@ -4,7 +4,7 @@ import { createRoot, type Root } from "react-dom/client";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import Ajv from "ajv/dist/2020";
 import addFormats from "ajv-formats";
-import { LangProvider } from "@/lib/i18n";
+import { LangProvider, type Lang } from "@/lib/i18n";
 import { OptionsAlphaCandidatePanel } from "@/components/prophet/OptionsAlphaCandidatePanel";
 import feedSchema from "@/contracts/options/options.alpha_candidate_feed.v2.schema.json";
 import candidateFeedJson from "@/lib/__tests__/fixtures/candidate_feed.json";
@@ -329,7 +329,7 @@ afterEach(() => {
   vi.restoreAllMocks();
 });
 
-function renderPanel(props: { cadenceMs?: number } = {}): { unmount: () => void } {
+function renderPanel(props: { cadenceMs?: number; lang?: Lang } = {}): { unmount: () => void } {
   root = createRoot(host!);
   const treeRoot = (
     <Provider key="x">
@@ -361,6 +361,27 @@ async function flushMicrotasks(times = 5) {
       await Promise.resolve();
     });
   }
+}
+
+// First-load evidence-unavailable copy (EN/ZH). The old copy claimed the desk was
+// "continuing to show last verified rows below" even when no source had ever loaded;
+// the state machine already distinguishes unavailable (no source) from stale (last-good),
+// so the copy must not promise retained rows.
+const UNAVAILABLE: Record<Lang, string> = {
+  en: "Candidate evidence is currently unavailable. No verified history is loaded yet; the next refresh will be retried.",
+  zh: "候选证据当前不可用。尚未加载任何已校验历史；下一次刷新将重试。",
+};
+const RETAINED_ROWS_CLAIM = /last verified rows|continues to show|继续显示|最后一次已校验记录/i;
+
+// Verified empty feed: a real 200 payload with zero candidates and zero abstentions.
+// This is NOT the unavailable state — it renders the honest empty-feed line.
+function verifiedEmptyFeed() {
+  const feed = structuredClone(baseFeed);
+  feed.header.formed_candidate_count = 0;
+  feed.header.abstention_count = 0;
+  feed.formed_candidates = [];
+  feed.abstentions = [];
+  return feed;
 }
 
 describe("OptionsAlphaCandidatePanel — verified pair render", () => {
@@ -444,15 +465,24 @@ describe("OptionsAlphaCandidatePanel — verified pair render", () => {
     fetchMock.mockResolvedValueOnce(jsonResponse({ status: 200, body: validResponse() }));
     renderPanel();
     await flushMicrotasks(8);
-    expect(host!.querySelector('[data-testid="options-alpha-candidate-item"]')).toBeTruthy();
+    const before = host!.querySelector('[data-testid="options-alpha-candidate-item"]')?.textContent ?? "";
+    expect(before).toContain("oacnd_0000000000000000000001");
     // Queue the 503 BEFORE advancing — the second poll must resolve into the panel's
     // stale state without unmounting.
     fetchMock.mockResolvedValueOnce(jsonResponse({ status: 503, body: { error: "feed unavailable" } }));
     await act(async () => { await vi.advanceTimersByTimeAsync(60_000); });
     await flushMicrotasks(8);
     expect(fetchMock).toHaveBeenCalledTimes(2);
-    expect(host!.querySelector('[data-testid="options-alpha-candidate-item"]')).toBeTruthy();
-    expect(host!.querySelector('[data-testid="options-alpha-candidate-stale"]')).toBeTruthy();
+    // The genuine last-good row is retained untouched …
+    const after = host!.querySelector('[data-testid="options-alpha-candidate-item"]')?.textContent ?? "";
+    expect(after).toBe(before);
+    // … and the distinct STALE state (not unavailable) explains the refresh failure.
+    const stale = host!.querySelector('[data-testid="options-alpha-candidate-stale"]');
+    expect(stale).toBeTruthy();
+    expect(stale!.textContent).toBe(
+      "Showing the last verified pair. Refresh is currently unavailable; treat every row as research context, not as a current signal.",
+    );
+    expect(host!.querySelector('[data-testid="options-alpha-candidate-unavailable"]')).toBeNull();
   });
 
   it("purges all candidate data on 401, even if a stale 200 lands later", async () => {
@@ -486,12 +516,17 @@ describe("OptionsAlphaCandidatePanel — verified pair render", () => {
     fetchMock.mockResolvedValueOnce(jsonResponse({ status: 200, body: validResponse() }));
     renderPanel();
     await flushMicrotasks(8);
-    expect(host!.querySelector('[data-testid="options-alpha-candidate-item"]')).toBeTruthy();
+    const before = host!.querySelector('[data-testid="options-alpha-candidate-item"]')?.textContent ?? "";
+    expect(before).toContain("oacnd_0000000000000000000001");
     fetchMock.mockRejectedValueOnce(new Error("network down"));
     await act(async () => { await vi.advanceTimersByTimeAsync(60_000); });
     await flushMicrotasks(8);
     expect(fetchMock).toHaveBeenCalledTimes(2);
-    expect(host!.querySelector('[data-testid="options-alpha-candidate-item"]')).toBeTruthy();
+    // Good-then-error keeps the actual row AND labels it stale — never unavailable.
+    const after = host!.querySelector('[data-testid="options-alpha-candidate-item"]')?.textContent ?? "";
+    expect(after).toBe(before);
+    expect(host!.querySelector('[data-testid="options-alpha-candidate-stale"]')).toBeTruthy();
+    expect(host!.querySelector('[data-testid="options-alpha-candidate-unavailable"]')).toBeNull();
   });
 
   it("never renders an unrelated payload as a healthy empty feed", async () => {
@@ -499,10 +534,47 @@ describe("OptionsAlphaCandidatePanel — verified pair render", () => {
     renderPanel();
     await flushMicrotasks(8);
     expect(host!.querySelector('[data-testid="options-alpha-candidate-item"]')).toBeNull();
-    expect(host!.querySelectorAll('[data-testid="options-alpha-candidate-unavailable"]')).toHaveLength(1);
-    expect(host!.textContent?.match(
-      /Candidate evidence is currently unavailable\. The desk continues to show last verified rows below until the next refresh succeeds\./g,
-    )).toHaveLength(1);
+    const unavailable = host!.querySelectorAll('[data-testid="options-alpha-candidate-unavailable"]');
+    expect(unavailable).toHaveLength(1);
+    // First-load malformed body → evidence unavailable, and NO claim of retained rows.
+    expect(unavailable[0].textContent).toBe(UNAVAILABLE.en);
+    expect(unavailable[0].textContent ?? "").not.toMatch(RETAINED_ROWS_CLAIM);
+    expect(host!.querySelector('[data-testid="options-alpha-candidate-stale"]')).toBeNull();
+  });
+
+  for (const lang of ["en", "zh"] as const) {
+    it(`first-load 503 renders unavailable with no retained-rows claim (${lang})`, async () => {
+      fetchMock.mockResolvedValueOnce(jsonResponse({ status: 503, body: { error: "feed unavailable" } }));
+      renderPanel({ lang });
+      await flushMicrotasks(8);
+      expect(host!.querySelector('[data-testid="options-alpha-candidate-item"]')).toBeNull();
+      const unavailable = host!.querySelectorAll('[data-testid="options-alpha-candidate-unavailable"]');
+      expect(unavailable).toHaveLength(1);
+      expect(unavailable[0].textContent).toBe(UNAVAILABLE[lang]);
+      expect(unavailable[0].textContent ?? "").not.toMatch(RETAINED_ROWS_CLAIM);
+      expect(host!.querySelector('[data-testid="options-alpha-candidate-count"]')?.textContent).toBe("—");
+    });
+
+    it(`first-load network error renders unavailable with no retained-rows claim (${lang})`, async () => {
+      fetchMock.mockRejectedValueOnce(new Error("network down"));
+      renderPanel({ lang });
+      await flushMicrotasks(8);
+      expect(host!.querySelector('[data-testid="options-alpha-candidate-item"]')).toBeNull();
+      const unavailable = host!.querySelectorAll('[data-testid="options-alpha-candidate-unavailable"]');
+      expect(unavailable).toHaveLength(1);
+      expect(unavailable[0].textContent).toBe(UNAVAILABLE[lang]);
+      expect(unavailable[0].textContent ?? "").not.toMatch(RETAINED_ROWS_CLAIM);
+    });
+  }
+
+  it("preserves genuine verified empty-feed behaviour (not unavailable)", async () => {
+    fetchMock.mockResolvedValueOnce(jsonResponse({ status: 200, body: validResponse({ feed: verifiedEmptyFeed() }) }));
+    renderPanel();
+    await flushMicrotasks(8);
+    expect(host!.querySelector('[data-testid="options-alpha-candidate-unavailable"]')).toBeNull();
+    expect(host!.querySelector('[data-testid="options-alpha-candidate-stale"]')).toBeNull();
+    expect(host!.querySelector('[data-testid="options-alpha-candidate-item"]')).toBeNull();
+    expect(host!.textContent).toMatch(/No formed candidates in this run/);
   });
 
   it("does not fetch a second time while the first fetch is still in flight", async () => {
