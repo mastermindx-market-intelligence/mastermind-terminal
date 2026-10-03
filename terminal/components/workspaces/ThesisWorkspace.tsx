@@ -1752,13 +1752,13 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
   const changeSubjectDraft = useCallback((value: string) => {
     const nextSymbol = normalizeAnalysisSymbol(value) ?? "";
     setSubjectDraft(value.toUpperCase());
-    if (!marketOntologyContext || !nextSymbol || nextSymbol === initialSymbol) return;
+    if (!marketOntologyContext || !nextSymbol || nextSymbol === initialSymbolKey) return;
 
     const url = new URL(window.location.href);
     url.search = stripMarketOntologyParams(url.searchParams).toString();
     window.history.replaceState(historyState(historyPositionRef.current), "", url.toString());
     setMarketOntologyContext(null);
-  }, [initialSymbol, marketOntologyContext]);
+  }, [initialSymbolKey, marketOntologyContext]);
 
   const mutationBody = useCallback((action: ThesisAction, requestId: string): Record<string, unknown> | null => {
     const symbol = detail?.subject.key ?? normalizeAnalysisSymbol(subjectDraft);

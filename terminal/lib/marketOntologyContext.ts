@@ -217,15 +217,7 @@ export function serializeMarketOntologyContext(
   ctx: MarketOntologyContext,
   into?: URLSearchParams
 ): URLSearchParams {
-  const result = into ? new URLSearchParams(into.toString()) : new URLSearchParams();
-
-  // Strip ALL mo_* keys (known or unknown) before writing validated fields.
-  // This implements "unknown mo_* keys are never serialized" — any pre-existing mo_*
-  // in the URL is cleared; the validated ctx fields are written fresh.
-  const keysToDelete = [...result.keys()].filter((k) => /^mo_/i.test(k));
-  for (const key of keysToDelete) {
-    result.delete(key);
-  }
+  const result = clearMarketOntologyContext(into ?? new URLSearchParams());
 
   const fields: Array<readonly [MoKey, keyof MarketOntologyContext]> = [
     ["mo_from", "from"],

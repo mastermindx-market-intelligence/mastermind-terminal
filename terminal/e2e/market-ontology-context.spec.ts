@@ -229,8 +229,11 @@ test("starting a new thesis on another company clears the MarketOntology context
   await expect(page.getByTestId("thesis-workspace")).toBeVisible({ timeout: 45_000 });
   await expect(page.getByTestId("mo-context-strip")).toBeVisible();
 
-  await page.getByLabel("Subject").fill("MSFT");
-  await page.evaluate(() => window.history.replaceState(window.history.state, "", "/analysis?view=theses&symbol=MSFT"));
+  await page.getByRole("navigation", { name: "Primary" }).getByRole("link", { name: "Analysis" }).click();
+  await expect(page.locator(".analysis-shell")).toBeVisible();
+  await pickSymbol(page, "MSFT");
+  await page.getByRole("link", { name: "Your theses on MSFT" }).click();
+  await expect(page.getByTestId("thesis-workspace")).toBeVisible({ timeout: 45_000 });
   await page.reload();
   await expect(page.getByLabel("Title")).toHaveValue("");
   await expect(page.getByTestId("mo-context-strip")).toHaveCount(0);
