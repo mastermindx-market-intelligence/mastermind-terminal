@@ -11,12 +11,15 @@ The research question is whether point-in-time abnormal downside dislocations fo
 by explicit exhaustion/reclaim evidence improve entry basis and reduce immediate adverse
 excursion enough to compensate for missed-move and execution costs.
 
-Ownership stays with existing systems:
+Ownership stays with existing systems and the already-approved Terminal Tactical Intelligence (#598) boundary:
 
-- Terminal owns intraday observations, market-data provenance, technical state, and UI.
+- Macro `WS:LIVE-ENTRY-RADAR` remains the tactical 5-minute entry-event/evaluator owner.
+- Macro `WS:TECHNICAL-OPPORTUNITY-INTELLIGENCE` remains the setup/trigger/path/remaining-opportunity owner.
+- Setup Species and Evaluation OS remain the scientific registration/evaluation owners.
+- Terminal owns the product consumer, intraday presentation, and source-provenance surfaces.
 - Mastermind/Prophet owns thesis quality, portfolio desirability, and portfolio constraints.
-- This R0 module owns only deterministic shadow classification and replay evidence.
-- No second quote daemon, data store, scheduler, retry plane, or execution plane is created.
+- This Terminal preregistration freezes the dislocation/reclaim product-research contract; it does not create a second detector runtime, radar, replay store, or market-data owner.
+- No second quote daemon, data store, scheduler, retry plane, event ledger, or execution plane is created.
 
 The engine is deliberately not an "oversold = buy" scanner. Its state grammar is:
 
@@ -36,10 +39,13 @@ All research must preserve what was knowable at the decision timestamp.
 - Beta/factor parameters used intraday must have an `asof` before the session being tested.
 - Missing, malformed, stale, partial, delayed, or unverified data is not an empty/healthy result.
 
-Existing Terminal source evidence is descriptive only. Before historical results are
-promoted beyond exploratory replay, the actual 5-minute store must be inventoried for
-symbol count, first/last bar, missing sessions, point-in-time universe coverage, instrument
-identity, corporate-action adjustment, and source hashes.
+Existing Terminal source evidence is descriptive only. The canonical qualification path is
+the already-built `ingest/intraday_qualification.py` plus
+`scripts/qualify_intraday_research.py`; this program reuses that owner rather than
+building another qualifier. Before historical results are promoted beyond exploratory replay,
+the actual 5-minute store must be inventoried for symbol count, first/last bar, missing
+sessions, point-in-time universe coverage, instrument identity, corporate-action adjustment,
+source hashes, and historical availability receipts.
 
 Historical 1-minute performance is **NOT** inferred by interpolating 5-minute bars.
 R0 historical replay starts at genuine stored 5-minute resolution. True 1-minute research
@@ -200,15 +206,20 @@ execution quality, and Mastermind thesis priority.
 
 ## 8. R0 implementation artifacts and acceptance
 
-R0 source artifacts:
+Terminal-side R0 artifacts are deliberately contract/evidence only:
 
-- `signal_layer/intraday_dislocation.py` — pure deterministic statistics, gates, state machine.
-- `tests/test_intraday_dislocation.py` — negative/fail-closed and point-in-time contract tests.
-- this preregistration — frozen before historical outcome replay.
+- this preregistration — frozen before historical outcome replay;
+- `docs/research/INTRADAY_DISLOCATION_R0_DATA_CENSUS_2026-10-02.md` — bounded read-only current-store evidence;
+- the existing D0 qualifier/consumer named above — reused, not copied.
 
-R0 core acceptance:
+The deterministic detector/state implementation belongs under the incumbent Macro
+`WS:LIVE-ENTRY-RADAR` research owner, with Setup Species/Evaluation OS registration before
+any authority claim. Terminal must consume its typed evidence later rather than becoming a
+second detector runtime.
 
-- no filesystem/network/model calls in the core;
+R0 acceptance still requires the following invariants in the owning implementation:
+
+- no filesystem/network/model calls in pure detector math;
 - insufficient or zero-MAD baselines cannot manufacture extreme Z;
 - degraded/outage catalyst coverage becomes UNKNOWN and blocks promotion;
 - delayed/stale basis can be observed but cannot become live-eligible;
@@ -219,9 +230,10 @@ R0 core acceptance:
 - confirmation/entry timestamps cannot be backdated;
 - deterministic versioned event identity.
 
-After the core is green, the next implementation dependency is a **read-only 5-minute data census**
-followed by a replay adapter that freezes bar geometry, beta construction, same-slot baselines,
-event de-duplication, and ledger schema before any outcome table is generated.
+The read-only census is now complete. The next implementation dependency is an
+**existing-owner Macro research child** that freezes bar geometry, beta construction,
+same-slot baselines, event de-duplication, and experiment/event schema before any outcome
+table is generated. It must consume qualified inputs; it must not add a Terminal replay plane.
 
 ## 9. DO-NOTs
 
