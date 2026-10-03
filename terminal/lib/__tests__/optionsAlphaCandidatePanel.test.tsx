@@ -602,7 +602,7 @@ describe("OptionsAlphaCandidatePanel — campaign context rendering", () => {
     expect(heading).not.toMatch(/SPY/);
   });
 
-  it("renders the inactive notice on the legacy options_prophet_idx path (legacy feed missing branches mount panel)", async () => {
+  it("renders the inactive notice when only the candidate panel is mounted", async () => {
     fetchMock.mockResolvedValueOnce(jsonResponse({ status: 200, body: validResponse() }));
     renderPanel();
     await flushMicrotasks(8);

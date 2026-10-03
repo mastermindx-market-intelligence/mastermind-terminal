@@ -655,7 +655,7 @@ export function OptionsAlphaView() {
         </header>
         <div className="obs-options-alpha-scroll obs-scroll">
           <MeasuredEvidenceSection key="measured" feed={measuredFeed} failed={measuredError} lang={lang} />
-          <OptionsAlphaCandidatePanel key="candidate-panel-fallback" lang={lang} />
+          <OptionsAlphaCandidatePanel key="candidate-panel" lang={lang} />
           <div className="obs-options-alpha-state" data-testid="options-alpha-shadow-unavailable">
             <span>{loading ? t("loading") : t("optionsLoadError")}</span>
             {error && <button className="obs-chip" onClick={fetchData}>{t("retry")}</button>}
