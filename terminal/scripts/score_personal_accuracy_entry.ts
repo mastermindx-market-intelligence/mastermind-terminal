@@ -85,15 +85,16 @@ export function envFileCandidates(scriptDir: string, override?: string): string[
  * The nightly runs from `ops/terminal-data` under cron, which sources only `/opt/terminal/.env` (hub /
  * Polygon keys) — the Supabase service credentials live in `terminal/.env.local`, which only the Next
  * app loads natively. Fill the worker's keys from the first candidate that supplies any of them; a key
- * already set in the environment is never overridden. Returns the path used and the key NAMES filled
- * (never values) so the caller can log them.
+ * already set in the environment is never overridden. Like suite_alerts, ONE file supplies the keys
+ * (no mixing across files). Returns the path used, the key NAMES filled, and the key NAMES still
+ * missing afterwards (never values) so the caller can log them.
  */
 export function hydrateWorkerEnv(
   candidates: string[],
   env: Record<string, string | undefined> = process.env,
-): { path: string | null; filled: string[] } {
+): { path: string | null; filled: string[]; missing: string[] } {
   const missing = WORKER_ENV_KEYS.filter((k) => !env[k]);
-  if (missing.length === 0) return { path: null, filled: [] };
+  if (missing.length === 0) return { path: null, filled: [], missing: [] };
   for (const path of candidates) {
     let text: string;
     try {
@@ -105,9 +106,9 @@ export function hydrateWorkerEnv(
     const filled = missing.filter((k) => parsed[k]);
     if (filled.length === 0) continue;
     for (const k of filled) env[k] = parsed[k];
-    return { path, filled };
+    return { path, filled, missing: missing.filter((k) => !filled.includes(k)) };
   }
-  return { path: null, filled: [] };
+  return { path: null, filled: [], missing };
 }
 
 function isDirectRun(): boolean {
@@ -128,8 +129,11 @@ if (isDirectRun()) {
   const hydrated = hydrateWorkerEnv(candidates);
   if (hydrated.filled.length > 0) {
     console.log(`score_personal_accuracy: env hydrated from ${hydrated.path} (${hydrated.filled.join(", ")})`);
-  } else if (WORKER_ENV_KEYS.some((k) => !process.env[k])) {
-    console.error(`score_personal_accuracy: no env file supplied the worker keys (searched: ${candidates.join(", ")})`);
+  }
+  if (hydrated.missing.length > 0) {
+    console.error(
+      `score_personal_accuracy: worker env still missing ${hydrated.missing.join(", ")} (searched: ${candidates.join(", ")})`,
+    );
   }
   runPersonalAccuracyNightly(undefined).then(
     (counts) => {

@@ -1,5 +1,5 @@
 import { execFileSync, spawnSync } from "node:child_process";
-import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { copyFileSync, mkdirSync, mkdtempSync, realpathSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { describe, expect, it } from "vitest";
@@ -65,7 +65,7 @@ describe("personal accuracy nightly env hydration (unit)", () => {
       );
       const env: Record<string, string | undefined> = { SUPABASE_SERVICE_ROLE_KEY: "already-set" };
       const result = hydrateWorkerEnv([join(dir, "absent.env"), file], env);
-      expect(result).toEqual({ path: file, filled: ["NEXT_PUBLIC_SUPABASE_URL"] });
+      expect(result).toEqual({ path: file, filled: ["NEXT_PUBLIC_SUPABASE_URL"], missing: [] });
       expect(env).toEqual({
         SUPABASE_SERVICE_ROLE_KEY: "already-set",
         NEXT_PUBLIC_SUPABASE_URL: "https://from-file.supabase.co",
@@ -77,11 +77,34 @@ describe("personal accuracy nightly env hydration (unit)", () => {
     }
   });
 
+  it("names the key still missing when the first useful file supplies only one of them (one file, no mixing)", () => {
+    const dir = mkdtempSync(join(tmpdir(), "pa-env-partial-"));
+    try {
+      const partial = join(dir, "partial.env");
+      const complete = join(dir, "complete.env");
+      writeFileSync(partial, "export SUPABASE_SERVICE_ROLE_KEY=not-parsed-as-the-key\nNEXT_PUBLIC_SUPABASE_URL=https://a.test\n");
+      writeFileSync(complete, "SUPABASE_SERVICE_ROLE_KEY=later-file-key\n");
+      const env: Record<string, string | undefined> = {};
+      expect(hydrateWorkerEnv([partial, complete], env)).toEqual({
+        path: partial,
+        filled: ["NEXT_PUBLIC_SUPABASE_URL"],
+        missing: ["SUPABASE_SERVICE_ROLE_KEY"],
+      });
+      expect(env).toEqual({ NEXT_PUBLIC_SUPABASE_URL: "https://a.test" });
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
+  });
+
   it("is a no-op when the keys are already set or no candidate is readable", () => {
     const full: Record<string, string | undefined> = { NEXT_PUBLIC_SUPABASE_URL: "https://a", SUPABASE_SERVICE_ROLE_KEY: "b" };
-    expect(hydrateWorkerEnv(["/nonexistent/.env.local"], full)).toEqual({ path: null, filled: [] });
+    expect(hydrateWorkerEnv(["/nonexistent/.env.local"], full)).toEqual({ path: null, filled: [], missing: [] });
     const empty: Record<string, string | undefined> = {};
-    expect(hydrateWorkerEnv(["/nonexistent/.env.local"], empty)).toEqual({ path: null, filled: [] });
+    expect(hydrateWorkerEnv(["/nonexistent/.env.local"], empty)).toEqual({
+      path: null,
+      filled: [],
+      missing: ["NEXT_PUBLIC_SUPABASE_URL", "SUPABASE_SERVICE_ROLE_KEY"],
+    });
     expect(empty).toEqual({});
     expect([...WORKER_ENV_KEYS]).toEqual(["NEXT_PUBLIC_SUPABASE_URL", "SUPABASE_SERVICE_ROLE_KEY"]);
   });
@@ -114,7 +137,11 @@ function buildEnvTestArtifact() {
   );
 }
 
-function runEnvTestArtifact(makeEnv: (caseDir: string) => Record<string, string>) {
+function runEnvTestArtifact(
+  makeEnv: (caseDir: string) => Record<string, string>,
+  artifact: string = ARTIFACT,
+  cwd: string = DIST_DIR,
+) {
   const caseDir = mkdtempSync(join(tmpdir(), "pa-env-bundle-"));
   const loader = join(caseDir, "loader.mjs");
   const registerHooks = join(caseDir, "register-hooks.mjs");
@@ -142,8 +169,8 @@ function runEnvTestArtifact(makeEnv: (caseDir: string) => Record<string, string>
   );
   try {
     const env = makeEnv(caseDir);
-    const result = spawnSync(process.execPath, ["--import", registerHooks, ARTIFACT], {
-      cwd: DIST_DIR,
+    const result = spawnSync(process.execPath, ["--import", registerHooks, artifact], {
+      cwd,
       encoding: "utf8",
       stdio: ["ignore", "pipe", "pipe"],
       env: env as unknown as NodeJS.ProcessEnv,
@@ -182,6 +209,35 @@ describe("personal accuracy nightly bundle under the cron environment", () => {
     expect(run.stdout).not.toContain("personal-accuracy-bundle-test-key");
   });
 
+  it("with no override and no Supabase env, finds terminal/.env.local by walking up from the bundle's own directory (CRLF file)", () => {
+    buildEnvTestArtifact();
+    // Deployed layout: <root>/terminal/scripts/dist/<bundle> with <root>/terminal/.env.local; cron's cwd is <root>.
+    // realpath: isDirectRun() compares argv[1] with import.meta.url, which Node resolves through symlinks
+    // (macOS tmpdir is /var -> /private/var); /opt/terminal has no such hop.
+    const root = realpathSync(mkdtempSync(join(tmpdir(), "pa-env-walk-")));
+    try {
+      const distDir = join(root, "terminal", "scripts", "dist");
+      mkdirSync(distDir, { recursive: true });
+      const artifact = join(distDir, "score_personal_accuracy.mjs");
+      copyFileSync(ARTIFACT, artifact);
+      const envFile = join(root, "terminal", ".env.local");
+      writeFileSync(
+        envFile,
+        "NEXT_PUBLIC_SUPABASE_URL=https://personal-accuracy-bundle.test\r\nSUPABASE_SERVICE_ROLE_KEY=personal-accuracy-bundle-test-key\r\n",
+      );
+      const run = runEnvTestArtifact(() => ({}), artifact, root);
+      expect(run.stderr).not.toContain("score_personal_accuracy");
+      expect(run.status).toBe(0);
+      expect(run.stdout.split("\n")[0]).toBe(
+        `score_personal_accuracy: env hydrated from ${envFile} (NEXT_PUBLIC_SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY)`,
+      );
+      expect(run.stdout).toContain("BUNDLE_SCORING_PASSES=1\n");
+      expect(run.stdout).not.toContain("personal-accuracy-bundle-test-key");
+    } finally {
+      rmSync(root, { recursive: true, force: true });
+    }
+  });
+
   it("with no Supabase env and no env file, exits 2 and names the paths it searched (the pre-fix nightly failure, now diagnosable)", () => {
     buildEnvTestArtifact();
     let absent = "";
@@ -191,7 +247,9 @@ describe("personal accuracy nightly bundle under the cron environment", () => {
     });
     expect(run.status).toBe(2);
     expect(run.stdout).toBe("");
-    expect(run.stderr).toContain(`score_personal_accuracy: no env file supplied the worker keys (searched: ${absent})`);
+    expect(run.stderr).toContain(
+      `score_personal_accuracy: worker env still missing NEXT_PUBLIC_SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY (searched: ${absent})`,
+    );
     expect(run.stderr).toContain("score_personal_accuracy: service client unavailable");
   });
 });
