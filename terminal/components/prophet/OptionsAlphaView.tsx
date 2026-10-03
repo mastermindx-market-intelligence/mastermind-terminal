@@ -5,6 +5,7 @@ import { flowGet, flowGetFresh } from "@/lib/flowClientCache";
 import { useLang, type Lang } from "@/lib/i18n";
 import { makeProphetT } from "./prophetStrings";
 import { OptionsAlphaInvestigation } from "./OptionsAlphaInvestigation";
+import { OptionsAlphaCandidatePanel } from "./OptionsAlphaCandidatePanel";
 import {
   normalizeOptionsAlphaMeasuredFeed,
   type OptionsAlphaMeasuredFeed,
@@ -654,6 +655,7 @@ export function OptionsAlphaView() {
         </header>
         <div className="obs-options-alpha-scroll obs-scroll">
           <MeasuredEvidenceSection key="measured" feed={measuredFeed} failed={measuredError} lang={lang} />
+          <OptionsAlphaCandidatePanel key="candidate-panel-fallback" lang={lang} />
           <div className="obs-options-alpha-state" data-testid="options-alpha-shadow-unavailable">
             <span>{loading ? t("loading") : t("optionsLoadError")}</span>
             {error && <button className="obs-chip" onClick={fetchData}>{t("retry")}</button>}
@@ -701,6 +703,7 @@ export function OptionsAlphaView() {
           </div>
         )}
         <MeasuredEvidenceSection key="measured" feed={measuredFeed} failed={measuredError} lang={lang} />
+        <OptionsAlphaCandidatePanel key="candidate-panel" lang={lang} />
         <PortfolioBoundary payload={payload} t={t} />
 
         <section className="obs-options-alpha-section" data-testid="options-alpha-fires-section">
