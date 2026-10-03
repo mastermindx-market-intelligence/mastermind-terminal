@@ -169,7 +169,7 @@ def _state(x: pd.DataFrame) -> pd.DataFrame:
     score = np.clip(score, 0, 100)
     score[~ready] = np.nan
     return pd.DataFrame({"k": k, "d": d, "macd": macd, "signal": signal, "score": score,
-                         "phase": phase, "ready": ready, "stoch_reclaim": stoch_reclaim.astype(float),
+                         "phase": pd.Series(phase, index=x.index, dtype=object), "ready": ready, "stoch_reclaim": stoch_reclaim.astype(float),
                          "macd_reclaim": macd_reclaim.astype(float), "reclaim": (phase == "reclaim").astype(float),
                          "washout": (phase == "washout").astype(float),
                          "falling": np.isin(phase, ["washout", "bear"]).astype(float)}, index=x.index)
