@@ -530,6 +530,53 @@ const PROPHET_LEX = {
     "Receipted feed — formed_candidates-v2 + publication receipt. The current receipt's external last-modified is the only clock a client may use to display the first consumer publish for a newly-current candidate.",
     "已签发源 — formed_candidates-v2 + 发布凭据。当前凭据的外部最后修改时间，是显示新晋候选首次消费发布的唯一时钟。",
   ],
+  // ── Per-card headings: ticker + right + expiration + strike (not opaque IDs) ─
+  candidateContractHeading: ["{ticker} {right} {expiration} {strike}", "{ticker} {right} {expiration} {strike}"],
+  candidateContractCall: ["Call", "认购"],
+  candidateContractPut: ["Put", "认沽"],
+  // ── Activation prerequisites (the 4 named preconditions) ──────────────────
+  candidatePrereqHeading: ["Activation prerequisites", "激活前提条件"],
+  candidatePrereqOa1t: ["Measured-source consumer proven", "实测来源消费方已验证"],
+  candidatePrereqAd1t2: ["Consumer availability production-accepted", "消费方可用性已通过生产验收"],
+  candidatePrereqCampaignIntegrity: ["Campaign integrity publication runtime accepted", "活动完整性发布运行时已通过"],
+  candidatePrereqSourceCollision: ["Source collision review clear", "来源冲突审查已清"],
+  // Aggregate preconditions status: only aggregate cleared/pending truth is published.
+  candidatePrereqCleared: ["Cleared", "已通过"],
+  candidatePrereqPending: ["Pending", "待定"],
+  // ── Campaign context (options.alpha_candidate_campaign_context/v1) ─────────
+  // The Macro enrichment carries a canonical campaign_context only for the first
+  // qualifying revision; later revisions get a snapshot-less row. The card must say
+  // so explicitly when the bytes are absent rather than inferring identity.
+  candidateContextHeading: ["Campaign context", "活动背景"],
+  candidateContextAbsent: [
+    "No canonical campaign context was published for this revision.",
+    "本次修订未发布规范的活动背景。",
+  ],
+  candidateContextContract: ["Contract", "合约"],
+  candidateContextSession: ["Session", "交易日"],
+  candidateContextFlowSide: ["Flow side counts", "资金流方向计数"],
+  candidateContextFlowBuy: ["~Buy", "~买入"],
+  candidateContextFlowSell: ["~Sell", "~卖出"],
+  candidateContextFlowMixed: ["Mixed", "混合"],
+  candidateContextIntent: ["Intent", "意图"],
+  candidateContextOpeningClosing: ["Opening/closing", "开仓/平仓"],
+  candidateContextDirectionReliability: ["Direction reliability", "方向可靠性"],
+  candidateContextAccumulationDistribution: ["Accumulation/distribution", "累积/派发"],
+  candidateContextUnavailable: ["Not published", "未发布"],
+  candidateContextDirectionSoft: ["Direction withheld", "方向暂不发布"],
+  candidateContextRevisionLabel: ["First qualifying revision", "首次合格修订"],
+  // Frozen-first vs current revision distinction: only the FROZEN formation carries
+  // campaign_context; the current revision may differ and the card must keep them apart.
+  candidateContextFrozenNote: [
+    "Context applies to the frozen first qualifying campaign revision. The current revision may have moved; current revision bytes are not in this panel.",
+    "背景仅适用于冻结的首次合格活动修订。当前修订可能已变化；本面板不展示当前修订字节。",
+  ],
+  // ── Measured NBBO prints (was wrongly labelled OI confirmation) ────────────
+  candidateNbboPrints: ["Measured NBBO valid / source prints", "实测 NBBO 有效 / 来源成交"],
+  candidateNbboPrintsCaption: [
+    "Not open interest. The numerator counts prints with a valid NBBO quote; the denominator is the source print count.",
+    "并非未平仓量。分子为具有有效 NBBO 报价的成交笔数，分母为来源成交总笔数。",
+  ],
 
   // ── Loading / error states ─────────────────────────────────────────────────
   loading:    ["Loading…", "加载中…"],

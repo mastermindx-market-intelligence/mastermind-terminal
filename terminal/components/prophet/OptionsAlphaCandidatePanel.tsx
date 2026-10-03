@@ -20,12 +20,14 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useLang, type Lang } from "@/lib/i18n";
-import { makeProphetT } from "./prophetStrings";
+import { makeProphetT, type ProphetKey } from "./prophetStrings";
 import {
   isCandidateFeedResponse,
   normalizeCandidateFeed,
   OPTIONS_ALPHA_CANDIDATE_HORIZONS,
+  type OptionsAlphaCandidateActivation,
   type OptionsAlphaCandidateAbstention,
+  type OptionsAlphaCandidateCampaignContext,
   type OptionsAlphaCandidateFeedSource,
   type OptionsAlphaCandidateHorizon,
   type OptionsAlphaCandidateHorizonOutcome,
@@ -138,25 +140,126 @@ function HorizonRow({ horizon, outcome, t }: { horizon: OptionsAlphaCandidateHor
   );
 }
 
+function contractHeading(item: OptionsAlphaCandidateItem, t: T): string {
+  const ctx = item.campaign_context;
+  if (!ctx || !ctx.group.ticker || !ctx.group.right || !ctx.group.expiration || ctx.group.strike == null) {
+    // Context absent — render the opaque IDs explicitly so the reader sees what the
+    // document carries instead of a misleading "—".
+    return item.candidate_id;
+  }
+  const right = ctx.group.right === "C" ? t("candidateContractCall") : t("candidateContractPut");
+  const expiration = ctx.group.expiration;
+  const strike = formatStrike(ctx.group.strike);
+  return t("candidateContractHeading")
+    .replace("{ticker}", ctx.group.ticker)
+    .replace("{right}", right)
+    .replace("{expiration}", expiration)
+    .replace("{strike}", strike);
+}
+
+function formatStrike(value: number): string {
+  if (!Number.isFinite(value)) return "—";
+  // Strikes are usually whole dollars; keep the print integer-shaped but allow decimals.
+  if (Number.isInteger(value)) return String(value);
+  return value.toString();
+}
+
+const PREREQ_KEYS: Record<string, ProphetKey> = {
+  // The 4 named preconditions, in the wire order they appear in activation_preconditions.
+  oa1t_measured_source_consumer_proven: "candidatePrereqOa1t",
+  ad1t2_consumer_availability_production_accepted: "candidatePrereqAd1t2",
+  campaign_integrity_publication_runtime_accepted: "candidatePrereqCampaignIntegrity",
+  source_collision_review_clear: "candidatePrereqSourceCollision",
+};
+
+function PrerequisiteList({ activation, t }: { activation: OptionsAlphaCandidateActivation; t: T }) {
+  const aggregate = activation.all_preconditions_cleared ? t("candidatePrereqCleared") : t("candidatePrereqPending");
+  return (
+    <div className="obs-options-alpha-prereqs" data-testid="options-alpha-candidate-prereqs">
+      <div className="obs-options-alpha-prereqs-head">
+        <span>{t("candidatePrereqHeading")}</span>
+        <b>{aggregate}</b>
+      </div>
+      <ul>
+        {activation.activation_preconditions.map((id) => (
+          <li key={id}>
+            <span>{id}</span>
+            <b>{t(PREREQ_KEYS[id] ?? "optionsClockUnavailable")}</b>
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+
+function CampaignContextBlock({
+  item,
+  t,
+}: {
+  item: OptionsAlphaCandidateItem;
+  t: T;
+}) {
+  const ctx = item.campaign_context;
+  return (
+    <section className="obs-options-alpha-context" data-testid="options-alpha-candidate-context">
+      <div className="obs-options-alpha-context-head">
+        <b>{t("candidateContextHeading")}</b>
+        <small>{t("candidateContextFrozenNote")}</small>
+      </div>
+      {!ctx ? (
+        <p className="obs-options-alpha-context-absent" data-testid="options-alpha-candidate-context-absent">{t("candidateContextAbsent")}</p>
+      ) : (
+        <div className="obs-options-alpha-context-grid">
+          <Metric label={t("candidateContextRevisionLabel")} value={ctx.campaign_revision_id ?? t("candidateContextUnavailable")} />
+          <Metric label={t("candidateContextContract")} value={ctx.group.ticker && ctx.group.right && ctx.group.expiration && ctx.group.strike != null
+            ? `${ctx.group.ticker} ${ctx.group.right} ${ctx.group.expiration} ${formatStrike(ctx.group.strike)}`
+            : t("candidateContextUnavailable")} />
+          <Metric label={t("candidateContextSession")} value={ctx.group.session_date ?? t("candidateContextUnavailable")} />
+          <div className="obs-options-alpha-context-flow">
+            <span>{t("candidateContextFlowSide")}</span>
+            <ul>
+              <li><b>{t("candidateContextFlowBuy")}</b><span>{ctx.flow_side_counts["~buy"]}</span></li>
+              <li><b>{t("candidateContextFlowSell")}</b><span>{ctx.flow_side_counts["~sell"]}</span></li>
+              <li><b>{t("candidateContextFlowMixed")}</b><span>{ctx.flow_side_counts.mixed}</span></li>
+            </ul>
+          </div>
+          <div className="obs-options-alpha-context-intent">
+            <span>{t("candidateContextIntent")}</span>
+            <ul>
+              <li><b>{t("candidateContextOpeningClosing")}</b><span>{t("candidateContextUnavailable")}</span></li>
+              <li><b>{t("candidateContextDirectionReliability")}</b><span>{t("candidateContextDirectionSoft")}</span></li>
+              <li><b>{t("candidateContextAccumulationDistribution")}</b><span>{t("candidateContextUnavailable")}</span></li>
+            </ul>
+          </div>
+        </div>
+      )}
+    </section>
+  );
+}
+
 function CandidateCard({
   item,
   receiptEntry,
   currentReceiptId,
   externalLastModified,
+  activation,
   t,
 }: {
   item: OptionsAlphaCandidateItem;
   receiptEntry: OptionsAlphaCandidateReceiptEntry | null;
   currentReceiptId: string | null;
   externalLastModified: string | null;
+  activation: OptionsAlphaCandidateActivation;
   t: T;
 }) {
   const frozen = item.frozen_formation;
   const micro = item.measured;
+  const heading = contractHeading(item, t);
+  const firstConsumerClock = displayFirstConsumerClock(receiptEntry, currentReceiptId, externalLastModified, t);
   return (
     <article className="obs-card obs-options-alpha-candidate is-candidate" data-testid="options-alpha-candidate-item">
       <div className="obs-options-alpha-candidate-head">
-        <strong>{item.candidate_id}</strong>
+        <strong data-testid="options-alpha-candidate-heading">{heading}</strong>
         <span className="obs-tag" style={{ "--c": "var(--muted)" } as React.CSSProperties}>{dispositionLabel(item.state, t)}</span>
       </div>
       <div className="obs-options-alpha-candidate-meta">
@@ -179,23 +282,26 @@ function CandidateCard({
         </div>
         <div>
           <span>{t("candidateFirstConsumerPub")}</span>
-          {receiptEntry
-            ? <time dateTime={displayFirstConsumerClock(receiptEntry, currentReceiptId, externalLastModified, t)}>{displayFirstConsumerClock(receiptEntry, currentReceiptId, externalLastModified, t)}</time>
-            : <b>{t("optionsClockUnavailable")}</b>}
+          {/^\d{4}-\d\d-\d\dT/.test(firstConsumerClock)
+            ? <time dateTime={firstConsumerClock}>{firstConsumerClock}</time>
+            : <b>{firstConsumerClock}</b>}
         </div>
       </div>
       <div className="obs-options-alpha-metrics">
         <Metric label={t("candidatePolicyVersion")} value={frozen.policy_version == null ? "—" : String(frozen.policy_version)} />
         <Metric label={t("candidateMicrostructure")} value={micro ? `${fmtPercent(micro.nbbo_premium_coverage, 1)}` : t("candidateNoMicrostructure")} />
         <Metric label={t("optionsNormPremium")} value={micro?.nbbo_covered_premium_usd == null ? "—" : `$${micro.nbbo_covered_premium_usd.toLocaleString("en-US", { maximumFractionDigits: 0 })}`} />
-        <Metric label={t("optionsOi")} value={micro ? `${micro.nbbo_valid_print_count ?? "—"}/${micro.source_print_count ?? "—"}` : "—"} />
+        <Metric label={t("candidateNbboPrints")} value={micro ? `${micro.nbbo_valid_print_count ?? "—"}/${micro.source_print_count ?? "—"}` : "—"} />
         <Metric label={t("candidateDisposition")} value={dispositionLabel(item.current_disposition.state, t)} />
       </div>
+      <p className="obs-options-alpha-footnote" data-testid="options-alpha-candidate-nbbo-caption">{t("candidateNbboPrintsCaption")}</p>
       {item.current_disposition.reasons.length > 0 && (
         <ul className="obs-options-alpha-why">
           {item.current_disposition.reasons.map((reason) => <li key={reason}>{reason}</li>)}
         </ul>
       )}
+      <CampaignContextBlock item={item} t={t} />
+      <PrerequisiteList activation={activation} t={t} />
       {item.post_formation_outcomes ? (
         <div className="obs-options-alpha-horizons" data-testid="options-alpha-candidate-horizons">
           {OPTIONS_ALPHA_CANDIDATE_HORIZONS.map((horizon) => (
@@ -203,6 +309,17 @@ function CandidateCard({
           ))}
         </div>
       ) : null}
+      <details className="obs-options-alpha-candidate-disclosure">
+        <summary>{t("candidateEvidence")} (ids)</summary>
+        <ul>
+          <li><b>candidate_id</b> <span>{item.candidate_id}</span></li>
+          <li><b>frozen revision</b> <span>{frozen.campaign_revision_id ?? t("optionsClockUnavailable")}</span></li>
+          <li><b>current revision</b> <span>{item.current_revision?.campaign_revision_id ?? t("optionsClockUnavailable")}</span></li>
+          <li><b>campaign_row digest</b> <span>{item.evidence_digests.campaign_row_digest_sha256 ?? t("optionsClockUnavailable")}</span></li>
+          <li><b>microstructure_row digest</b> <span>{item.evidence_digests.microstructure_row_digest_sha256 ?? t("optionsClockUnavailable")}</span></li>
+          <li><b>policy digest</b> <span>{item.evidence_digests.policy_digest_sha256 ?? frozen.policy_digest_sha256 ?? t("optionsClockUnavailable")}</span></li>
+        </ul>
+      </details>
       <p className="obs-options-alpha-footnote">{t("candidateOptionPerformanceUnavailable")}</p>
     </article>
   );
@@ -378,6 +495,7 @@ export function OptionsAlphaCandidatePanel(props: OptionsAlphaCandidatePanelProp
                   receiptEntry={source.receipt.candidates[item.candidate_id] ?? null}
                   currentReceiptId={source.receipt.receipt_id}
                   externalLastModified={source.metadata.receipt_last_modified}
+                  activation={source.feed.activation}
                   t={t}
                 />
               ))}

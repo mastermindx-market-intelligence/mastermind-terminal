@@ -10,14 +10,13 @@ import { OptionsAlphaCandidatePanel } from "@/components/prophet/OptionsAlphaCan
 interface MockResponseInit {
   status?: number;
   body?: unknown;
+  lastModified?: string;
 }
 
-function jsonResponse({ status = 200, body = null }: MockResponseInit): Response {
-  return new Response(JSON.stringify(body), {
-    status,
-    headers: { "Content-Type": "application/json" },
-    statusText: status < 300 ? "OK" : "ERR",
-  });
+function jsonResponse({ status = 200, body = null, lastModified }: MockResponseInit): Response {
+  const headers: Record<string, string> = { "Content-Type": "application/json" };
+  if (lastModified) headers["last-modified"] = lastModified;
+  return new Response(JSON.stringify(body), { status, headers, statusText: status < 300 ? "OK" : "ERR" });
 }
 
 const baseFeed = {
@@ -151,6 +150,22 @@ const baseFeed = {
           "10d": { state: "unavailable", campaign_outcome_id: null, campaign_revision_id: null, horizon: "10d", source_physical_ordinal: null, source_physical_row_sha256: null, status: null, campaign_available_at: null, computed_at: null, target_time: null, matured_at: null, underlying: null, source_outcome: null, source_outcome_prefix: null, reason: "BEFORE_ACTIVATION_BOUNDARY" },
         },
       },
+      // Canonical Macro enrichment copies campaign_context for the first qualifying revision.
+      // Same shape the running validator compiles from options.alpha_candidate_feed/v2.
+      campaign_context: {
+        schema: "options.alpha_candidate_campaign_context/v1",
+        campaign_revision_id: "ocrev_0000000000000000000001",
+        group: {
+          session_date: "2026-08-13",
+          ticker: "SPY",
+          right: "C",
+          expiration: "2026-08-15",
+          strike: 450,
+          strike_key: "450",
+        },
+        flow_side_counts: { "~buy": 2, "~sell": 1, mixed: 1 },
+        intent: { opening_closing: "unavailable", direction_reliability: "soft", accumulation_distribution: "unavailable" },
+      },
     },
   ],
   abstentions: [
@@ -219,17 +234,24 @@ function makeReceipt(currentId: string, candidates: Record<string, { first_recei
   };
 }
 
-function validResponse(overrides: { currentReceiptId?: string; candidates?: Record<string, { first_receipt_id: string | null; first_consumer_published_at: string | null }> } = {}) {
+function validResponse(overrides: { currentReceiptId?: string; candidates?: Record<string, { first_receipt_id: string | null; first_consumer_published_at: string | null }>; feed?: typeof baseFeed } = {}) {
+  const currentId = overrides.currentReceiptId ?? "oacfr_00000000000000000000000a";
   return {
-    feed: baseFeed,
+    feed: overrides.feed ?? baseFeed,
     receipt: makeReceipt(
-      overrides.currentReceiptId ?? "oacfr_00000000000000000000000a",
+      currentId,
       overrides.candidates ?? {
-        oacnd_0000000000000000000001: { first_receipt_id: overrides.currentReceiptId ?? "oacfr_00000000000000000000000a", first_consumer_published_at: null },
+        oacnd_0000000000000000000001: { first_receipt_id: currentId, first_consumer_published_at: null },
       },
     ),
     metadata: baseMetadata,
   };
+}
+
+function feedWithoutContext(): typeof baseFeed {
+  const feed = JSON.parse(JSON.stringify(baseFeed));
+  for (const candidate of feed.formed_candidates) delete candidate.campaign_context;
+  return feed;
 }
 
 let host: HTMLDivElement | null = null;
@@ -264,7 +286,14 @@ function renderPanel(props: { cadenceMs?: number } = {}): { unmount: () => void 
   act(() => {
     root!.render(treeRoot);
   });
-  return { unmount: () => { if (root) act(() => root!.unmount()); root = null; host?.remove(); host = null; } };
+  return {
+    unmount: () => {
+      if (root) act(() => root!.unmount());
+      root = null;
+      host?.remove();
+      host = null;
+    },
+  };
 }
 
 function Provider({ children }: { children: React.ReactNode }) {
@@ -339,14 +368,36 @@ describe("OptionsAlphaCandidatePanel — verified pair render", () => {
     expect(host!.innerHTML).toContain("Thu, 13 Aug 2026 14:30:02 GMT");
   });
 
-  it("preserves last-good rows and marks stale on 503, instead of rendering empty", async () => {
+  it("renders the current-first-consumer clock with a real time element when external last-modified is present", async () => {
+    fetchMock.mockResolvedValueOnce(jsonResponse({ status: 200, body: validResponse() }));
+    renderPanel();
+    await flushMicrotasks(8);
+    const clocks = Array.from(host!.querySelectorAll("time[dateTime]"));
+    // At least one of the clock time elements must carry a real ISO dateTime — the
+    // current receipt clock derived from last-modified. No element may carry a
+    // localized "Not published" inside its dateTime attribute.
+    const firstConsumerClocks = Array.from(host!.querySelectorAll('[data-testid="options-alpha-candidate-item"] time[dateTime]'));
+    expect(firstConsumerClocks.length).toBeGreaterThan(0);
+    for (const el of firstConsumerClocks) {
+      const dt = (el as HTMLTimeElement).getAttribute("dateTime") ?? "";
+      expect(dt).not.toMatch(/Not published|未发布/);
+    }
+  });
+
+  it("preserves last-good rows and marks stale on 503, after the 60s cadence triggers a second fetch", async () => {
+    vi.useFakeTimers();
     fetchMock.mockResolvedValueOnce(jsonResponse({ status: 200, body: validResponse() }));
     renderPanel();
     await flushMicrotasks(8);
     expect(host!.querySelector('[data-testid="options-alpha-candidate-item"]')).toBeTruthy();
+    // Queue the 503 BEFORE advancing — the second poll must resolve into the panel's
+    // stale state without unmounting.
     fetchMock.mockResolvedValueOnce(jsonResponse({ status: 503, body: { error: "feed unavailable" } }));
+    await act(async () => { await vi.advanceTimersByTimeAsync(60_000); });
     await flushMicrotasks(8);
+    expect(fetchMock).toHaveBeenCalledTimes(2);
     expect(host!.querySelector('[data-testid="options-alpha-candidate-item"]')).toBeTruthy();
+    expect(host!.querySelector('[data-testid="options-alpha-candidate-stale"]')).toBeTruthy();
   });
 
   it("purges all candidate data on 401, even if a stale 200 lands later", async () => {
@@ -361,6 +412,33 @@ describe("OptionsAlphaCandidatePanel — verified pair render", () => {
     expect(host!.querySelector('[data-testid="options-alpha-candidate-item"]')).toBeNull();
   });
 
+  it("purges a rendered 200 after the 60s cadence next poll returns 403", async () => {
+    vi.useFakeTimers();
+    fetchMock.mockResolvedValueOnce(jsonResponse({ status: 200, body: validResponse() }));
+    renderPanel();
+    await flushMicrotasks(8);
+    expect(host!.querySelector('[data-testid="options-alpha-candidate-item"]')).toBeTruthy();
+    fetchMock.mockResolvedValueOnce(jsonResponse({ status: 403, body: { error: "pro_required" } }));
+    await act(async () => { await vi.advanceTimersByTimeAsync(60_000); });
+    await flushMicrotasks(8);
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+    expect(host!.querySelector('[data-testid="options-alpha-candidate-item"]')).toBeNull();
+    expect(host!.querySelector('[data-testid="options-alpha-candidate-purge"]')).toBeTruthy();
+  });
+
+  it("treats a network error on the 60s poll as stale when last-good exists", async () => {
+    vi.useFakeTimers();
+    fetchMock.mockResolvedValueOnce(jsonResponse({ status: 200, body: validResponse() }));
+    renderPanel();
+    await flushMicrotasks(8);
+    expect(host!.querySelector('[data-testid="options-alpha-candidate-item"]')).toBeTruthy();
+    fetchMock.mockRejectedValueOnce(new Error("network down"));
+    await act(async () => { await vi.advanceTimersByTimeAsync(60_000); });
+    await flushMicrotasks(8);
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+    expect(host!.querySelector('[data-testid="options-alpha-candidate-item"]')).toBeTruthy();
+  });
+
   it("never renders an unrelated payload as a healthy empty feed", async () => {
     fetchMock.mockResolvedValueOnce(jsonResponse({ status: 200, body: { error: "feed unavailable" } }));
     renderPanel();
@@ -368,27 +446,98 @@ describe("OptionsAlphaCandidatePanel — verified pair render", () => {
     expect(host!.querySelector('[data-testid="options-alpha-candidate-item"]')).toBeNull();
   });
 
-  it("treats network error as stale when last-good exists", async () => {
-    fetchMock.mockResolvedValueOnce(jsonResponse({ status: 200, body: validResponse() }));
+  it("does not fetch a second time while the first fetch is still in flight", async () => {
+    vi.useFakeTimers();
+    let firstDeferred: ((value: Response) => void) | null = null;
+    fetchMock.mockImplementationOnce(() => new Promise<Response>((resolve) => {
+      firstDeferred = resolve;
+    }));
     renderPanel();
+    await flushMicrotasks(2);
+    // The cadence timer fires while the first request is still pending — the inflight
+    // guard must prevent a second fetch. If the guard regressed, fetchMock would be
+    // called again here.
+    await act(async () => { await vi.advanceTimersByTimeAsync(120_000); });
+    await flushMicrotasks(2);
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    firstDeferred!(jsonResponse({ status: 200, body: validResponse() }));
     await flushMicrotasks(8);
-    expect(host!.querySelector('[data-testid="options-alpha-candidate-item"]')).toBeTruthy();
-    fetchMock.mockRejectedValueOnce(new Error("network down"));
-    await flushMicrotasks(8);
-    expect(host!.querySelector('[data-testid="options-alpha-candidate-item"]')).toBeTruthy();
   });
 
   it("aborts in-flight request on unmount so a late response cannot repopulate state", async () => {
     let abortSignal: AbortSignal | undefined;
+    let deferred: ((value: Response) => void) | null = null;
     fetchMock.mockImplementationOnce((_input: RequestInfo | URL, init?: RequestInit) => {
       abortSignal = (init ?? {}).signal as AbortSignal | undefined;
       return new Promise<Response>((resolve) => {
-        setTimeout(() => resolve(jsonResponse({ status: 200, body: validResponse() })), 100);
+        deferred = resolve;
       });
     });
+    const capturedHost = host;
     const { unmount } = renderPanel();
     await flushMicrotasks(4);
     unmount();
+    // After unmount, resolve the deferred — React must NOT setState because the
+    // component is gone (no late state warning, no rendered items reappearing).
     expect(abortSignal?.aborted).toBe(true);
+    await act(async () => {
+      deferred?.(jsonResponse({ status: 200, body: validResponse() }));
+      await Promise.resolve();
+    });
+    expect(capturedHost!.querySelector('[data-testid="options-alpha-candidate-item"]')).toBeNull();
+  });
+});
+
+describe("OptionsAlphaCandidatePanel — campaign context rendering", () => {
+  it("renders the canonical Macro enrichment bytes for the frozen first qualifying revision", async () => {
+    fetchMock.mockResolvedValueOnce(jsonResponse({ status: 200, body: validResponse() }));
+    renderPanel();
+    await flushMicrotasks(8);
+    const ctx = host!.querySelector('[data-testid="options-alpha-candidate-context"]');
+    expect(ctx).toBeTruthy();
+    // Card heading reads ticker/contract, not the opaque candidate_id.
+    const heading = host!.querySelector('[data-testid="options-alpha-candidate-heading"]')?.textContent ?? "";
+    expect(heading).toMatch(/SPY/);
+    // The 4 named activation preconditions are listed with their human labels,
+    // and only an aggregate cleared/pending status is shown.
+    const prereqs = host!.querySelector('[data-testid="options-alpha-candidate-prereqs"]');
+    expect(prereqs).toBeTruthy();
+    expect(prereqs!.textContent).toMatch(/Measured-source consumer proven/);
+    expect(prereqs!.textContent).toMatch(/Consumer availability production-accepted/);
+    expect(prereqs!.textContent).toMatch(/Campaign integrity publication runtime accepted/);
+    expect(prereqs!.textContent).toMatch(/Source collision review clear/);
+    // Aggregate cleared/pending status, not individual statuses.
+    expect(prereqs!.textContent).toMatch(/Pending/);
+    // Flow side counts and direction reliability shown; direction is "withheld".
+    expect(ctx!.textContent).toMatch(/~Buy/);
+    expect(ctx!.textContent).toMatch(/~Sell/);
+    expect(ctx!.textContent).toMatch(/Mixed/);
+    expect(ctx!.textContent).toMatch(/Direction withheld/);
+    expect(ctx!.textContent).toMatch(/Not published/);
+    // Measured NBBO prints label, NOT the old OI confirmation label.
+    expect(host!.innerHTML).toMatch(/Measured NBBO valid/);
+    expect(host!.innerHTML).not.toMatch(/OI confirmation/);
+  });
+
+  it("renders an explicit absent context when the canonical Macro enrichment is missing", async () => {
+    fetchMock.mockResolvedValueOnce(jsonResponse({ status: 200, body: validResponse({ feed: feedWithoutContext() }) }));
+    renderPanel();
+    await flushMicrotasks(8);
+    const absent = host!.querySelector('[data-testid="options-alpha-candidate-context-absent"]');
+    expect(absent).toBeTruthy();
+    // The card heading must fall back to the opaque candidate_id when context is absent
+    // — and never synthesise a fake ticker.
+    expect(absent!.textContent).toMatch(/No canonical campaign context/);
+    const heading = host!.querySelector('[data-testid="options-alpha-candidate-heading"]')?.textContent ?? "";
+    expect(heading).toContain("oacnd_0000000000000000000001");
+    expect(heading).not.toMatch(/SPY/);
+  });
+
+  it("renders the inactive notice on the legacy options_prophet_idx path (legacy feed missing branches mount panel)", async () => {
+    fetchMock.mockResolvedValueOnce(jsonResponse({ status: 200, body: validResponse() }));
+    renderPanel();
+    await flushMicrotasks(8);
+    expect(host!.querySelector('[data-testid="options-alpha-candidate-panel"]')).toBeTruthy();
+    expect(host!.innerHTML).toMatch(/preregistered/i);
   });
 });

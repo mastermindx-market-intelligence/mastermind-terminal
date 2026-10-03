@@ -122,15 +122,24 @@ export async function fetchOptionsAlphaCandidatePair(): Promise<CandidatePair> {
   const formedIds = new Set(formed.map((item) => object(item, "formed candidate").candidate_id));
   const receiptCandidates = object(receipt.candidates, "receipt.candidates");
   if (formedIds.size !== formed.length || Object.keys(receiptCandidates).length !== formedIds.size || Object.keys(receiptCandidates).some((id) => !formedIds.has(id))) fail("receipt candidate map mismatch");
-  const utc = (value: unknown): number => typeof value === "string" && /^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d(?:\.\d+)?Z$/.test(value) ? Date.parse(value) : Number.NaN;
-  const generated = utc(feed.generated_at), durability = utc(receipt.local_durability_confirmed_at), confirmation = utc(receipt.payload_r2_confirmed_at), external = Date.parse(receiptObject.lastModified);
-  if (![generated, durability, confirmation, external].every(Number.isFinite) || generated > durability || durability > confirmation) fail("receipt clock ordering mismatch");
+  const utc = (value: unknown): bigint | null => {
+    if (typeof value !== "string") return null;
+    const match = /^(\d{4})-(\d\d)-(\d\d)T(\d\d):(\d\d):(\d\d)(?:\.(\d{6}))?Z$/.exec(value);
+    if (!match) return null;
+    const [year, month, day, hour, minute, second] = match.slice(1, 7).map(Number); const fraction = match[7];
+    if (year < 1 || month < 1 || month > 12 || day < 1 || hour > 23 || minute > 59 || second > 59 || fraction === "000000") return null;
+    const check = new Date(0); check.setUTCFullYear(year, month - 1, day); check.setUTCHours(hour, minute, second, 0);
+    if (check.getUTCFullYear() !== year || check.getUTCMonth() + 1 !== month || check.getUTCDate() !== day || check.getUTCHours() !== hour || check.getUTCMinutes() !== minute || check.getUTCSeconds() !== second) return null;
+    return BigInt(check.getTime()) * BigInt(1000) + BigInt(fraction ?? "0");
+  };
+  const generated = utc(feed.generated_at), durability = utc(receipt.local_durability_confirmed_at), confirmation = utc(receipt.payload_r2_confirmed_at); const externalMs = Date.parse(receiptObject.lastModified); const external = Number.isFinite(externalMs) ? BigInt(externalMs) * BigInt(1000) : null;
+  if (generated === null || durability === null || confirmation === null || external === null || generated > durability || durability > confirmation) fail("receipt clock ordering mismatch");
   const prior = receipt.prior_receipt;
   if (prior !== null && object(prior, "receipt.prior_receipt").receipt_id === receipt.receipt_id) fail("receipt self prior");
   for (const [id, entryValue] of Object.entries(receiptCandidates)) {
     const entry = object(entryValue, `receipt candidate ${id}`);
     if (entry.first_receipt_id === receipt.receipt_id) { if (entry.first_consumer_published_at !== null) fail("current first receipt clock mismatch"); }
-    else { const first = utc(entry.first_consumer_published_at); if (prior === null || !Number.isFinite(first) || first > external) fail("historical receipt clock mismatch"); }
+    else { const first = utc(entry.first_consumer_published_at); if (prior === null || first === null || first > external) fail("historical receipt clock mismatch"); }
   }
   if (header.header_digest_sha256 !== headerSeal(payload.raw, parsedFeed.root)) fail("header seal mismatch");
   // Last-Modified is external evidence for a newly-current receipt, not a clock to order

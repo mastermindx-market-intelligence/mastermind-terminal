@@ -103,6 +103,36 @@ export interface OptionsAlphaCandidateMeasureMicro {
   schema: string | null;
 }
 
+/**
+ * Optional canonical campaign context attached to the FIRST qualifying campaign revision
+ * (the immutable frozen formation). When absent, the candidate card must render an
+ * explicit "context absent" message rather than synthesising identity. The renderer
+ * MUST NEVER infer direction (bullish/bearish) from these fields — direction_reliability
+ * is "soft" and opening/closing + accumulation/distribution are "unavailable".
+ */
+export interface OptionsAlphaCandidateCampaignContext {
+  schema: "options.alpha_candidate_campaign_context/v1";
+  campaign_revision_id: string | null;
+  group: {
+    session_date: string | null;
+    ticker: string | null;
+    right: "C" | "P" | null;
+    expiration: string | null;
+    strike: number | null;
+    strike_key: string | null;
+  };
+  flow_side_counts: {
+    "~buy": number;
+    "~sell": number;
+    mixed: number;
+  };
+  intent: {
+    opening_closing: "unavailable";
+    direction_reliability: "soft";
+    accumulation_distribution: "unavailable";
+  };
+}
+
 export interface OptionsAlphaCandidateItem {
   candidate_id: string;
   campaign_id: string;
@@ -121,6 +151,7 @@ export interface OptionsAlphaCandidateItem {
   missingness: string[];
   contradictions: string[];
   post_formation_outcomes: Record<OptionsAlphaCandidateHorizon, OptionsAlphaCandidateHorizonOutcome> | null;
+  campaign_context: OptionsAlphaCandidateCampaignContext | null;
 }
 
 export interface OptionsAlphaCandidateAbstention {
@@ -335,6 +366,41 @@ function asPostFormationOutcomes(value: unknown): Record<OptionsAlphaCandidateHo
   };
 }
 
+function asCampaignContext(value: unknown): OptionsAlphaCandidateCampaignContext | null {
+  if (value === null || value === undefined) return null;
+  const obj = asObject(value);
+  if (!Object.keys(obj).length) return null;
+  if (obj.schema !== "options.alpha_candidate_campaign_context/v1") return null;
+  const group = asObject(obj.group);
+  const flow = asObject(obj.flow_side_counts);
+  const intent = asObject(obj.intent);
+  if (!Object.keys(group).length || !Object.keys(flow).length || !Object.keys(intent).length) return null;
+  if (intent.opening_closing !== "unavailable" || intent.direction_reliability !== "soft" || intent.accumulation_distribution !== "unavailable") return null;
+  const rightValue = group.right === "C" || group.right === "P" ? group.right : null;
+  return {
+    schema: "options.alpha_candidate_campaign_context/v1",
+    campaign_revision_id: asString(obj.campaign_revision_id),
+    group: {
+      session_date: asString(group.session_date),
+      ticker: asString(group.ticker),
+      right: rightValue,
+      expiration: asString(group.expiration),
+      strike: typeof group.strike === "number" && Number.isFinite(group.strike) && group.strike > 0 ? group.strike : null,
+      strike_key: asString(group.strike_key),
+    },
+    flow_side_counts: {
+      "~buy": asInteger(flow["~buy"]) ?? 0,
+      "~sell": asInteger(flow["~sell"]) ?? 0,
+      mixed: asInteger(flow.mixed) ?? 0,
+    },
+    intent: {
+      opening_closing: "unavailable",
+      direction_reliability: "soft",
+      accumulation_distribution: "unavailable",
+    },
+  };
+}
+
 function asCandidateItem(value: unknown): OptionsAlphaCandidateItem | null {
   const obj = asObject(value);
   const candidateId = asString(obj.candidate_id);
@@ -360,6 +426,7 @@ function asCandidateItem(value: unknown): OptionsAlphaCandidateItem | null {
     missingness: asArray(obj.missingness).filter((entry): entry is string => typeof entry === "string"),
     contradictions: asArray(obj.contradictions).filter((entry): entry is string => typeof entry === "string"),
     post_formation_outcomes: asPostFormationOutcomes(obj.post_formation_outcomes),
+    campaign_context: asCampaignContext(obj.campaign_context),
   };
 }
 
