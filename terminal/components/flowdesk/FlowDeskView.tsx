@@ -384,7 +384,7 @@ function ChainCampaignRow({
               <div className="obs-fd-chain-askbar-fill" style={{ width: `${proxyW}%` }} />
             )}
           </div>
-          <div style={{ display: "flex", justifyContent: "space-between", marginTop: "var(--sp-1)" }}>
+          <div style={{ display: "grid", gap: "var(--sp-1)", marginTop: "var(--sp-1)" }}>
             <span className="obs-fd-chain-caveat">{t("chainHeatProxyNote")}</span>
             <span className="num" style={{ fontSize: "var(--fs-micro)", color: "var(--text-2)" }}>
               {t("chainHeatProxyCoverage")} {(proxyState.known / 1e6).toFixed(1)}M / {(proxyState.source / 1e6).toFixed(1)}M
