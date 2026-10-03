@@ -499,6 +499,10 @@ describe("OptionsAlphaCandidatePanel — verified pair render", () => {
     renderPanel();
     await flushMicrotasks(8);
     expect(host!.querySelector('[data-testid="options-alpha-candidate-item"]')).toBeNull();
+    expect(host!.querySelectorAll('[data-testid="options-alpha-candidate-unavailable"]')).toHaveLength(1);
+    expect(host!.textContent?.match(
+      /Candidate evidence is currently unavailable\. The desk continues to show last verified rows below until the next refresh succeeds\./g,
+    )).toHaveLength(1);
   });
 
   it("does not fetch a second time while the first fetch is still in flight", async () => {
