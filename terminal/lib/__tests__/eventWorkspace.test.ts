@@ -481,6 +481,17 @@ describe("E3-B manifest v2 and canonical Q&A", () => {
     expect(normalizeEventWorkspaceManifest(manifest)).toBeNull();
   });
 
+  it("rejects a v2 manifest that names itself as its predecessor", () => {
+    const q3 = workspaceBody();
+    const manifest = {
+      ...manifestFor([{ eventId: FLAGSHIP, body: q3, aliases: ["AAPL/2026Q3"] }]),
+      schema: EVENT_WORKSPACE_MANIFEST_SCHEMA_V2,
+      previous_generation_id: GEN,
+      previous_manifest_sha256: "bb".repeat(32),
+    };
+    expect(normalizeEventWorkspaceManifest(manifest)).toBeNull();
+  });
+
   it("rejects unknown manifest keys", () => {
     const q3 = workspaceBody();
     const manifest = {
@@ -701,6 +712,14 @@ describe("manifest v3 (producer clocks)", () => {
     expect(normalizeEventWorkspaceManifest(poisoned)).toBeNull();
   });
 
+  it("accepts source_clock equal to generated_at", () => {
+    const equalClock = firstManifest.generated_at as string;
+    const manifest = { ...firstManifest, source_clock: equalClock };
+    const normalized = normalizeEventWorkspaceManifest(manifest);
+    expect(normalized).not.toBeNull();
+    expect(normalized?.source_clock).toBe(equalClock);
+  });
+
   it("rejects a v3 manifest whose source_clock is not a timestamp", () => {
     expect(normalizeEventWorkspaceManifest({ ...firstManifest, source_clock: "garbage" })).toBeNull();
   });
@@ -708,8 +727,16 @@ describe("manifest v3 (producer clocks)", () => {
   it("rejects a v3 manifest with only one predecessor field", () => {
     const poisoned = {
       ...firstManifest,
-      previous_generation_id: "999b346ecb3b643d38a3054f",
+      previous_generation_id: "ab".repeat(12),
       previous_manifest_sha256: null,
+    };
+    expect(normalizeEventWorkspaceManifest(poisoned)).toBeNull();
+  });
+
+  it("rejects a v3 manifest that names itself as its predecessor", () => {
+    const poisoned = {
+      ...chainedManifest,
+      previous_generation_id: chainedManifest.generation_id,
     };
     expect(normalizeEventWorkspaceManifest(poisoned)).toBeNull();
   });
