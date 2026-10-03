@@ -7,6 +7,7 @@ import {
   __resetEventWorkspaceCacheForTests,
   EVENT_WORKSPACE_MANIFEST_SCHEMA,
   EVENT_WORKSPACE_MANIFEST_SCHEMA_V2,
+  EVENT_WORKSPACE_MANIFEST_SCHEMA_V3,
   QA_UNAVAILABLE_TOPIC,
   normalizeEventWorkspace,
   normalizeEventWorkspaceManifest,
@@ -480,6 +481,17 @@ describe("E3-B manifest v2 and canonical Q&A", () => {
     expect(normalizeEventWorkspaceManifest(manifest)).toBeNull();
   });
 
+  it("rejects a v2 manifest that names itself as its predecessor", () => {
+    const q3 = workspaceBody();
+    const manifest = {
+      ...manifestFor([{ eventId: FLAGSHIP, body: q3, aliases: ["AAPL/2026Q3"] }]),
+      schema: EVENT_WORKSPACE_MANIFEST_SCHEMA_V2,
+      previous_generation_id: GEN,
+      previous_manifest_sha256: "bb".repeat(32),
+    };
+    expect(normalizeEventWorkspaceManifest(manifest)).toBeNull();
+  });
+
   it("rejects unknown manifest keys", () => {
     const q3 = workspaceBody();
     const manifest = {
@@ -635,6 +647,113 @@ describe("E3-B manifest v2 and canonical Q&A", () => {
     expect(visible.toLowerCase()).not.toContain("we will go ahead and take our first question");
     expect(first.respondents.filter((row) => row.name === "Tim Cook")).toHaveLength(2);
     expect(presented.completeness.some((item) => item.id === "fact_questions_count")).toBe(false);
+  });
+});
+
+const V3_FIXTURE_DIR = path.join(__dirname, "../../test-fixtures/event-workspace");
+
+describe("manifest v3 (producer clocks)", () => {
+  const firstBytes = readFileSync(path.join(V3_FIXTURE_DIR, "manifest_v3_first.json"));
+  const chainedBytes = readFileSync(path.join(V3_FIXTURE_DIR, "manifest_v3_chained.json"));
+  const firstManifest = JSON.parse(firstBytes.toString("utf8")) as Record<string, unknown>;
+  const chainedManifest = JSON.parse(chainedBytes.toString("utf8")) as Record<string, unknown>;
+
+  it("accepts the producer's first v3 manifest bytes", () => {
+    const normalized = normalizeEventWorkspaceManifest(firstManifest);
+    expect(normalized).not.toBeNull();
+    expect(normalized?.schema).toBe(EVENT_WORKSPACE_MANIFEST_SCHEMA_V3);
+    expect(normalized?.source_clock).toBe("2026-07-31T00:30:28Z");
+    expect(normalized?.generated_at).toBe("2026-10-03T05:23:48Z");
+    expect(normalized?.previous_generation_id).toBeNull();
+  });
+
+  it("accepts the producer's chained v3 manifest bytes", () => {
+    const normalized = normalizeEventWorkspaceManifest(chainedManifest);
+    expect(normalized).not.toBeNull();
+    expect(normalized?.previous_generation_id).toBe("999b346ecb3b643d38a3054f");
+    expect(normalized?.previous_manifest_sha256?.startsWith("52e46bac8caf")).toBe(true);
+  });
+
+  it("the chained fixture links to the first fixture's bytes", () => {
+    const firstHash = sha(firstBytes);
+    const normalized = normalizeEventWorkspaceManifest(chainedManifest);
+    expect(normalized?.previous_manifest_sha256).toBe(firstHash);
+    expect((firstManifest.generation_id as string)).toBe(normalized?.previous_generation_id);
+  });
+
+  it("rejects a v3 manifest without source_clock", () => {
+    const poisoned = { ...firstManifest };
+    delete poisoned.source_clock;
+    expect(normalizeEventWorkspaceManifest(poisoned)).toBeNull();
+  });
+
+  it("rejects a v3 manifest with an extra key", () => {
+    expect(normalizeEventWorkspaceManifest({ ...firstManifest, extra: true })).toBeNull();
+  });
+
+  it("rejects a v2 manifest that carries source_clock", () => {
+    const q3 = workspaceBody();
+    const manifest = {
+      ...manifestFor([{ eventId: FLAGSHIP, body: q3, aliases: ["AAPL/2026Q3"] }]),
+      schema: EVENT_WORKSPACE_MANIFEST_SCHEMA_V2,
+      previous_generation_id: null,
+      previous_manifest_sha256: null,
+      source_clock: "2026-07-31T00:30:28Z",
+    };
+    expect(normalizeEventWorkspaceManifest(manifest)).toBeNull();
+  });
+
+  it("rejects a v3 manifest whose source_clock is after generated_at", () => {
+    const poisoned = {
+      ...firstManifest,
+      source_clock: "2026-10-03T06:00:00Z",
+      generated_at: "2026-10-03T05:23:48Z",
+    };
+    expect(normalizeEventWorkspaceManifest(poisoned)).toBeNull();
+  });
+
+  it("accepts source_clock equal to generated_at", () => {
+    const equalClock = firstManifest.generated_at as string;
+    const manifest = { ...firstManifest, source_clock: equalClock };
+    const normalized = normalizeEventWorkspaceManifest(manifest);
+    expect(normalized).not.toBeNull();
+    expect(normalized?.source_clock).toBe(equalClock);
+  });
+
+  it("rejects a v3 manifest whose source_clock is not a timestamp", () => {
+    expect(normalizeEventWorkspaceManifest({ ...firstManifest, source_clock: "garbage" })).toBeNull();
+  });
+
+  it("rejects a v3 manifest with only one predecessor field", () => {
+    const poisoned = {
+      ...firstManifest,
+      previous_generation_id: "ab".repeat(12),
+      previous_manifest_sha256: null,
+    };
+    expect(normalizeEventWorkspaceManifest(poisoned)).toBeNull();
+  });
+
+  it("rejects a v3 manifest that names itself as its predecessor", () => {
+    const poisoned = {
+      ...chainedManifest,
+      previous_generation_id: chainedManifest.generation_id,
+    };
+    expect(normalizeEventWorkspaceManifest(poisoned)).toBeNull();
+  });
+
+  it("still accepts v1 and v2 exactly as before", () => {
+    const q3 = workspaceBody();
+    const v1 = normalizeEventWorkspaceManifest(manifestFor([{ eventId: FLAGSHIP, body: q3, aliases: ["AAPL/2026Q3"] }]));
+    const v2 = normalizeEventWorkspaceManifest({
+      ...manifestFor([{ eventId: FLAGSHIP, body: q3, aliases: ["AAPL/2026Q3"] }]),
+      schema: EVENT_WORKSPACE_MANIFEST_SCHEMA_V2,
+      previous_generation_id: null,
+      previous_manifest_sha256: null,
+    });
+    expect(v1).not.toBeNull();
+    expect(v2).not.toBeNull();
+    expect("source_clock" in (v1 ?? {})).toBe(false);
+    expect("source_clock" in (v2 ?? {})).toBe(false);
   });
 });
 
