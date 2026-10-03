@@ -434,10 +434,11 @@ function decodePending(value: string | null, expectedOwner: string, expectedKey:
     const candidate = JSON.parse(value);
     if (!candidate || typeof candidate !== "object" || Array.isArray(candidate)) return null;
     const envelope = candidate as Record<string, unknown>;
-    if (!exactObjectKeys(envelope, ["schema", "ownerKey", "action", "clientRequestId", "serializedBody"])
+    if (!exactObjectKeys(envelope, ["schema", "ownerKey", "action", "clientRequestId", "savedSubjectKey", "serializedBody"])
       || envelope.schema !== PENDING_SCHEMA || envelope.ownerKey !== expectedOwner
       || typeof envelope.action !== "string" || !PENDING_ACTIONS.has(envelope.action as ThesisAction)
-      || typeof envelope.clientRequestId !== "string" || typeof envelope.serializedBody !== "string") return null;
+      || typeof envelope.clientRequestId !== "string" || typeof envelope.savedSubjectKey !== "string"
+      || typeof envelope.serializedBody !== "string") return null;
     const pending = envelope as Pending;
     if (pendingKey(expectedOwner, pending.clientRequestId) !== expectedKey
       || !validSerializedMutation(pending.serializedBody, pending.action, pending.clientRequestId)) return null;
@@ -1668,8 +1669,8 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
 
   const startNew = useCallback(() => {
     if (pending || !confirmDiscard()) return;
-    resetToNew(normalizeAnalysisSymbol(subjectDraft) ?? "");
-  }, [confirmDiscard, pending, resetToNew, subjectDraft]);
+    resetToNew(normalizeAnalysisSymbol(subjectDraft) ?? initialSymbolKey);
+  }, [confirmDiscard, initialSymbolKey, pending, resetToNew, subjectDraft]);
 
   const resetToList = useCallback((historyMode: "push" | "none" = "push") => {
     detailRequest.current += 1;

@@ -1,11 +1,11 @@
 # B-F11-5 Suggested changes to your thesis — capture evidence
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
 # Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
-# capturedAtHead: 013dc875623e1e08a022f49d62c2cc99a87121ff
-# capturedAt: 2026-10-03T05:33:40.857Z
+# capturedAtHead: b5fdd6ccd171120c7a30baaed06430d7f78dd113
+# capturedAt: 2026-10-03T06:58:30.236Z
 # capturedAtHead is informational. The lock is layoutFiles.
 layoutFiles:
-  terminal/components/workspaces/ThesisWorkspace.tsx: "11d55732a0f3fe854aa64eb4624db38cc6e7036e82b83055fd7c52bbc7efcf82"
+  terminal/components/workspaces/ThesisWorkspace.tsx: "da02bccb8844aa99f48b47b9a52fc45c332ff74b620c9c8031fb1086f9e18840"
   terminal/components/workspaces/ThesisWorkspace.module.css: "3afaa5c0a5794f3fc2cdfb5c9b65257f703e7a3105e08009e602363d40690891"
   terminal/lib/thesisAmendmentProposals.ts: "f82b472f87e9c098fd1752ed357447e1462be5e5dee26bc4a0c110c15ada0d9b"
 theme: dark
