@@ -28,6 +28,15 @@ export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
 export default async function ShellLayout({ children }: { children: React.ReactNode }) {
+  if (process.env.NODE_ENV !== "production" && process.env.TERMINAL_E2E_FIXTURE === "1") {
+    const { cookies } = await import("next/headers");
+    const { fixtureUserId, FIXTURE_STORE_COOKIE } = await import("@/lib/watchlistsFixtureDb");
+    const { GUEST_COOKIE } = await import("@/lib/layoutsFixtureDb");
+    const jar = await cookies();
+    const key = jar.get(FIXTURE_STORE_COOKIE)?.value || "default";
+    const email = jar.get(GUEST_COOKIE)?.value === "1" ? "" : process.env.TERMINAL_E2E_EMAIL || "";
+    return <AppShell email={email} userId={email ? fixtureUserId(key) : ""}>{children}</AppShell>;
+  }
   const supabase = await createClient();
   const { data } = await supabase.auth.getClaims();
   const email = typeof data?.claims?.email === "string" ? data.claims.email : "";

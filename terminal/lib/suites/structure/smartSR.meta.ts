@@ -9,6 +9,14 @@ import type { SuiteModuleMeta } from "@/lib/indicator-canvas/types";
 import type { SuiteField } from "@/lib/indicator-canvas/types";
 
 const FIELDS: SuiteField[] = [
+  { key: "contextPanel", label: "Support Context", type: "bool",
+    tip: "Nearest displayed intact levels, touch counts and distance from the latest chart bar. Not a forecast." },
+  { key: "contextPos", label: "Context Position", type: "select",
+    options: [{ v: "tl", label: "Top Left" }, { v: "tr", label: "Top Right" },
+      { v: "bl", label: "Bottom Left" }, { v: "br", label: "Bottom Right" }],
+    showIf: { key: "contextPanel", eq: true } },
+  { key: "eventMarks", label: "Hold / Break Marks", type: "bool",
+    tip: "Latest eight source events: circle = hold, diamond = break. These are not buy/sell recommendations." },
   {
     key: "sensitivity",
     label: "Sensitivity",
@@ -53,6 +61,7 @@ const FIELDS: SuiteField[] = [
 ];
 
 const DEFAULTS: Record<string, any> = {
+  contextPanel: true, contextPos: "bl", eventMarks: true,
   sensitivity: "medium",
   minTouches: 2,
   showLast: 6,
