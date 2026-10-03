@@ -1203,6 +1203,9 @@
     flex: 0 0 300px;
     min-width: 0;
   }
+  .obs-fd-right > .obs-fd-chain.obs-card {
+    flex: 0 0 300px;
+  }
 }
 
 /* ── Radar in left rail: fills remaining height after FlowGauge+WatchlistRail ── */
