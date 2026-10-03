@@ -53,7 +53,7 @@ import {
 } from "./idbJsonStore";
 import { canonicalChartSymbol } from "./terminalBoot";
 
-type Entry = { data: any; ts: number; inflight: Promise<CacheOutcome> | null };
+type Entry = { data: any; ts: number; inflight: Promise<CacheOutcome> | null; revalidators?: Array<NonNullable<GetOpts["onRevalidate"]>> };
 
 const store = new Map<string, Entry>();
 
@@ -194,6 +194,8 @@ async function fetchOutcome(url: string): Promise<CacheOutcome> {
 // onRevalidate (optional) is invoked with the committed payload — the hook that lets a
 // background SWR refresh reach the caller that was already handed the stale value.
 function doFetch(url: string, entry: Entry, onRevalidate?: (data: any) => void): Promise<CacheOutcome> {
+  // Only callers served a cached answer register here; the list dies with this request.
+  const corrections = entry.revalidators = onRevalidate ? [onRevalidate] : [];
   const inflight: Promise<CacheOutcome> = fetchOutcome(url).then((outcome) => {
     // Both positive and negative cache writes belong to the currently registered request.
     // A late 404 from an invalidated/evicted request must not hide a newer successful read.
@@ -214,13 +216,15 @@ function doFetch(url: string, entry: Entry, onRevalidate?: (data: any) => void):
         if (idbAvailable()) {
           void idbPut(url, committed.data, committed.ts);
         }
-        // Hand the corrected payload to the caller that already received the stale one.
-        // Isolated: a throwing consumer must not break the cache commit above.
-        if (onRevalidate) {
-          try { onRevalidate(outcome.data); } catch { /* consumer's problem, not the cache's */ }
+        // Correct every cached reader, not only the one that started the network request.
+        // A consumer may invalidate during delivery; never notify beyond that generation.
+        for (const correct of corrections) {
+          if (store.get(url) !== committed) break;
+          try { correct(outcome.data); } catch { /* one consumer cannot break the others */ }
         }
       }
     }
+    corrections.length = 0;
     return outcome;
   });
 
@@ -228,6 +232,16 @@ function doFetch(url: string, entry: Entry, onRevalidate?: (data: any) => void):
   store.delete(url);
   store.set(url, entry);
   evictOldest();
+  return inflight;
+}
+
+// A stale answer is safe to return early only when this caller can consume its correction.
+// One-shot OHLC readers and explicit swr:false reads keep their existing blocking behavior.
+function reuseInflight(entry: Entry, inflight: Promise<CacheOutcome>, opts?: GetOpts): CacheOutcome | Promise<CacheOutcome> {
+  if (opts?.swr !== false && opts?.onRevalidate && entry.data != null && entry.revalidators) {
+    entry.revalidators.push(opts.onRevalidate);
+    return { status: "data", data: entry.data };
+  }
   return inflight;
 }
 
@@ -260,7 +274,7 @@ export function _seedDecision(ts: number, now: number, ttl: number, swr: boolean
  *
  * Algorithm:
  *   0. In-session 404 → "absent" immediately (never refetch).
- *   1. Inflight request present → return it (deduplication).
+ *   1. Inflight request present → share it; correction-aware readers may reuse cached data.
  *   2. Fresh (now - ts < ttl) → return cached data immediately.
  *   3. Stale + swr=true → kick off background revalidate; return stale data.
  *   3b. Full memory miss → try IndexedDB read-back before the network (see below).
@@ -283,7 +297,7 @@ export async function getJSONResult(url: string, opts?: GetOpts): Promise<CacheO
   if (entry) {
     // 1. Deduplicate in-flight requests.
     if (entry.inflight !== null) {
-      return entry.inflight;
+      return reuseInflight(entry, entry.inflight, opts);
     }
 
     const age = now - entry.ts;
@@ -314,7 +328,7 @@ export async function getJSONResult(url: string, opts?: GetOpts): Promise<CacheO
     // have populated it while we awaited the IDB read. If so, defer to it.
     const raced = store.get(url);
     if (raced) {
-      if (raced.inflight !== null) return raced.inflight;
+      if (raced.inflight !== null) return reuseInflight(raced, raced.inflight, opts);
       if (Date.now() - raced.ts < ttl) {
         touch(url, raced);
         return { status: "data", data: raced.data };
