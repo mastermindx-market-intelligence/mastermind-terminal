@@ -171,8 +171,8 @@ def screen_ticker(doc: dict, *, symbol: str, market: str, as_of, closed_through,
     risk_lanes = [lane["timeframe"] for lane in lanes
                   if lane["required"] and lane["phase"] in ("rollover", "bear")]
     serialized = {"symbol": symbol, "source": provenance,
-                  "bars": [[date.date().isoformat(), *[float(v) for v in row]]
-                           for date, row in daily.iterrows()]}
+                  "bars": [[date, *row] for date, row in zip(
+                      daily.index.strftime("%Y-%m-%d"), daily.to_numpy(dtype=float).tolist())]}
     input_sha = hashlib.sha256(json.dumps(serialized, sort_keys=True, separators=(",", ":"), allow_nan=False).encode()).hexdigest()
     analogs = None
     if not missing and not stale:

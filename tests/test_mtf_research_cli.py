@@ -83,3 +83,23 @@ def test_bad_request_rejected_before_input_reads(mutation):
     if mutation=="missing_cutoff": r["tickers"][0].pop("closed_through")
     if mutation=="schema": r["schema"]="other"
     with pytest.raises(ValueError): validate_request(r)
+
+
+def test_documents_are_consumed_one_at_a_time_not_held_for_the_whole_universe(tmp_path, monkeypatch):
+    import ingest.research_mtf as cli
+    import signal_layer.mtf_screener as screener
+    data=tmp_path/'data';data.mkdir()
+    r=request();r['tickers'].append({**r['tickers'][0], 'symbol':'OTHER'})
+    for symbol in ('TEST','OTHER'): (data/f'{symbol}.json').write_text('{}')
+    order=[]
+    original=cli.read_json
+    def read(p, **kwargs):
+        order.append('read:'+p.stem)
+        return original(p, **kwargs)
+    def screen(doc, **kwargs):
+        order.append('screen:'+kwargs['symbol'])
+        return {'symbol':kwargs['symbol'],'state':'insufficient_history','setup_score':None}
+    monkeypatch.setattr(cli,'read_json',read)
+    monkeypatch.setattr(screener,'screen_ticker',screen)
+    cli.build_report(data,r)
+    assert order == ['read:TEST','screen:TEST','read:OTHER','screen:OTHER']

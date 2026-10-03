@@ -11,6 +11,7 @@ No network, credential, scheduler, live strategy, or production data writes.
 from __future__ import annotations
 
 import argparse
+from collections.abc import Mapping
 from dataclasses import fields
 import hashlib
 import json
@@ -99,20 +100,35 @@ def build_report(data_dir: Path, request: dict) -> dict:
     if data_dir.is_symlink() or not data_dir.is_dir():
         raise ValueError("data-dir must be an explicit existing real directory")
     root = data_dir.resolve(strict=True)
-    documents, failures, digests = {}, {}, {}
-    for ticker in request["tickers"]:
-        symbol = ticker["symbol"]
-        source = root / f"{symbol}.json"
-        try:
-            document, digest = read_json(source, byte_limit=MAX_DOCUMENT_BYTES)
-            documents[symbol] = document
-            digests[symbol] = digest
-        except FileNotFoundError:
-            documents[symbol] = None
-        except (OSError, ValueError, UnicodeError) as exc:
-            documents[symbol] = None
-            # Error paths and machine-specific absolute locations are not published.
-            failures[symbol] = type(exc).__name__
+    failures, digests = {}, {}
+    symbols = [ticker["symbol"] for ticker in request["tickers"]]
+    allowed_symbols = set(symbols)
+
+    class Documents(Mapping):
+        # The scanner calls get once per requested ticker. This retains only the
+        # current input, not thousands of full OHLC histories in a universe bake.
+        def __iter__(self):
+            return iter(symbols)
+
+        def __len__(self):
+            return len(symbols)
+
+        def __getitem__(self, symbol):
+            if symbol not in allowed_symbols:
+                raise KeyError(symbol)
+            source = root / f"{symbol}.json"
+            try:
+                document, digest = read_json(source, byte_limit=MAX_DOCUMENT_BYTES)
+                digests[symbol] = digest
+                return document
+            except FileNotFoundError:
+                return None
+            except (OSError, ValueError, UnicodeError) as exc:
+                # Do not publish machine-specific paths from source read errors.
+                failures[symbol] = type(exc).__name__
+                return None
+
+    documents = Documents()
     report = scan_universe(documents, request["tickers"], as_of=request["as_of"], policy=policy)
     for row in report["rows"]:
         symbol = row["symbol"]

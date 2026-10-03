@@ -200,3 +200,34 @@ def test_evaluation_rejects_temporal_or_numeric_fabrication(history, mutation):
 def test_cutoff_is_an_explicit_session_date(value):
     from signal_layer.mtf_evaluation import session_date
     with pytest.raises(ValueError): session_date(value)
+
+
+@pytest.mark.parametrize('horizon', [1,5,21])
+def test_vectorized_barriers_match_an_independent_sequential_price_path(horizon):
+    rng=np.random.default_rng(779+horizon)
+    n=140
+    close=100*np.exp(np.cumsum(rng.normal(0,.04,n)))
+    opening=close*np.exp(rng.normal(0,.07,n))
+    x=pd.DataFrame({'open':opening,'close':close,
+                    'high':np.maximum(opening,close)*(1+rng.uniform(0,.15,n)),
+                    'low':np.minimum(opening,close)*(1-rng.uniform(0,.15,n))},
+                    index=pd.bdate_range('2015-01-02',periods=n))
+    out=outcome_frame(x,(horizon,),costs=ExecutionCosts(5,5))
+    for i in range(n-horizon):
+        entry=opening[i+1]
+        stop,target=entry*.95,entry*1.10
+        price,why,exit_i=close[i+horizon],'horizon',i+horizon
+        collision=False;gap=False
+        for j in range(i+1,i+horizon+1):
+            row=x.iloc[j]
+            if row.open<=stop: price,why,exit_i,gap=row.open,'stop',j,True;break
+            if row.open>=target: price,why,exit_i=target,'target',j;break
+            if row.low<=stop:
+                price,why,exit_i,collision=stop,'stop',j,bool(row.high>=target);break
+            if row.high>=target: price,why,exit_i=target,'target',j;break
+        actual=out.iloc[i]
+        assert actual[f'barrier_return_{horizon}'] == pytest.approx(price*.9995/(entry*1.0005)-1)
+        assert actual[f'barrier_outcome_{horizon}'] == why
+        assert actual[f'barrier_exit_{horizon}'] == x.index[exit_i]
+        assert actual[f'ambiguous_{horizon}'] == collision
+        assert actual[f'gap_stop_{horizon}'] == gap

@@ -116,27 +116,25 @@ def outcome_frame(daily: pd.DataFrame, horizons=(5, 21, 63), *,
         hits = stop_hits | target_hits
         any_hit = hits.any(axis=1)
         first = hits.argmax(axis=1)
-        for i in range(count):
-            j = int(first[i]) if any_hit[i] else h - 1
-            ambiguous = False
-            gap_stop = False
-            if not any_hit[i]:
-                price, reason = exits[i], "horizon"
-            elif opens[i, j] <= stops[i]:
-                price, reason, gap_stop = opens[i, j], "stop", True
-            elif opens[i, j] >= targets[i]:
-                price, reason = targets[i], "target"
-            elif stop_hits[i, j]:
-                price, reason = stops[i], "stop"
-                ambiguous = bool(target_hits[i, j])
-            else:
-                price, reason = targets[i], "target"
-            t = idx[i]
-            out.at[t, f"barrier_return_{h}"] = costs.net_return(entries[i], price)
-            out.at[t, f"barrier_exit_{h}"] = x.index[i + 1 + j]
-            out.at[t, f"barrier_outcome_{h}"] = reason
-            out.at[t, f"ambiguous_{h}"] = ambiguous
-            out.at[t, f"gap_stop_{h}"] = gap_stop
+        rows = np.arange(count)
+        offsets = np.where(any_hit, first, h - 1)
+        opening = opens[rows, offsets]
+        hit_stop = stop_hits[rows, offsets]
+        hit_target = target_hits[rows, offsets]
+        gap_stop = any_hit & (opening <= stops)
+        gap_target = any_hit & ~gap_stop & (opening >= targets)
+        stopped = any_hit & ~gap_target & hit_stop
+        ambiguous = stopped & ~gap_stop & hit_target
+        barrier_price = np.where(~any_hit, exits,
+                          np.where(gap_stop, opening,
+                          np.where(gap_target, targets,
+                          np.where(stopped, stops, targets))))
+        reason = np.where(~any_hit, "horizon", np.where(stopped, "stop", "target"))
+        out.loc[idx, f"barrier_return_{h}"] = costs.net_return(entries, barrier_price)
+        out.loc[idx, f"barrier_exit_{h}"] = x.index[rows + 1 + offsets]
+        out.loc[idx, f"barrier_outcome_{h}"] = reason
+        out.loc[idx, f"ambiguous_{h}"] = pd.array(ambiguous, dtype="boolean")
+        out.loc[idx, f"gap_stop_{h}"] = pd.array(gap_stop, dtype="boolean")
     out.attrs.update(evaluation_version=EVALUATION_VERSION,
                      execution="next_observed_session_open_to_hth_session_close",
                      costs=asdict(costs), stop_loss=stop_loss, target_gain=target_gain,
