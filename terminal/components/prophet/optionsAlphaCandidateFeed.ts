@@ -112,14 +112,14 @@ export interface OptionsAlphaCandidateMeasureMicro {
  */
 export interface OptionsAlphaCandidateCampaignContext {
   schema: "options.alpha_candidate_campaign_context/v1";
-  campaign_revision_id: string | null;
+  campaign_revision_id: string;
   group: {
-    session_date: string | null;
-    ticker: string | null;
-    right: "C" | "P" | null;
-    expiration: string | null;
-    strike: number | null;
-    strike_key: string | null;
+    session_date: string;
+    ticker: string;
+    right: "C" | "P";
+    expiration: string;
+    strike: number;
+    strike_key: string;
   };
   flow_side_counts: {
     "~buy": number;
@@ -222,6 +222,11 @@ function asNumber(value: unknown): number | null {
 function asInteger(value: unknown): number | null {
   if (typeof value !== "number" || !Number.isFinite(value)) return null;
   return Number.isInteger(value) ? value : null;
+}
+
+function asNonnegativeInteger(value: unknown): number | null {
+  const n = asInteger(value);
+  return n !== null && n >= 0 ? n : null;
 }
 
 function asArray<T>(value: unknown): unknown[] {
@@ -366,32 +371,54 @@ function asPostFormationOutcomes(value: unknown): Record<OptionsAlphaCandidateHo
   };
 }
 
-function asCampaignContext(value: unknown): OptionsAlphaCandidateCampaignContext | null {
+const CAMPAIGN_REVISION_ID = /^ocrev_[a-f0-9]{24}$/;
+const CAMPAIGN_TICKER = /^[A-Z0-9.^=-]+$/;
+const CAMPAIGN_STRIKE_KEY = /^(0|[1-9][0-9]*)(\.[0-9]*[1-9])?$/;
+const CAMPAIGN_DATE = /^\d{4}-\d{2}-\d{2}$/;
+
+function asCampaignContext(value: unknown, firstQualifyingRevisionId: string): OptionsAlphaCandidateCampaignContext | null {
   if (value === null || value === undefined) return null;
   const obj = asObject(value);
   if (!Object.keys(obj).length) return null;
   if (obj.schema !== "options.alpha_candidate_campaign_context/v1") return null;
+  const revisionId = asString(obj.campaign_revision_id);
+  if (!revisionId || !CAMPAIGN_REVISION_ID.test(revisionId) || revisionId !== firstQualifyingRevisionId) return null;
   const group = asObject(obj.group);
+  const sessionDate = asString(group.session_date);
+  const ticker = asString(group.ticker);
+  const right = group.right === "C" || group.right === "P" ? group.right : null;
+  const expiration = asString(group.expiration);
+  const strike = typeof group.strike === "number" && Number.isFinite(group.strike) && group.strike >= 0 ? group.strike : null;
+  const strikeKey = asString(group.strike_key);
+  if (!sessionDate || !CAMPAIGN_DATE.test(sessionDate)) return null;
+  if (!ticker || !CAMPAIGN_TICKER.test(ticker)) return null;
+  if (!right) return null;
+  if (!expiration || !CAMPAIGN_DATE.test(expiration)) return null;
+  if (strike === null) return null;
+  if (!strikeKey || !CAMPAIGN_STRIKE_KEY.test(strikeKey)) return null;
   const flow = asObject(obj.flow_side_counts);
+  if (!Object.prototype.hasOwnProperty.call(flow, "~buy") || !Object.prototype.hasOwnProperty.call(flow, "~sell") || !Object.prototype.hasOwnProperty.call(flow, "mixed")) return null;
+  const buy = asNonnegativeInteger(flow["~buy"]);
+  const sell = asNonnegativeInteger(flow["~sell"]);
+  const mixed = asNonnegativeInteger(flow.mixed);
+  if (buy === null || sell === null || mixed === null) return null;
   const intent = asObject(obj.intent);
-  if (!Object.keys(group).length || !Object.keys(flow).length || !Object.keys(intent).length) return null;
   if (intent.opening_closing !== "unavailable" || intent.direction_reliability !== "soft" || intent.accumulation_distribution !== "unavailable") return null;
-  const rightValue = group.right === "C" || group.right === "P" ? group.right : null;
   return {
     schema: "options.alpha_candidate_campaign_context/v1",
-    campaign_revision_id: asString(obj.campaign_revision_id),
+    campaign_revision_id: revisionId,
     group: {
-      session_date: asString(group.session_date),
-      ticker: asString(group.ticker),
-      right: rightValue,
-      expiration: asString(group.expiration),
-      strike: typeof group.strike === "number" && Number.isFinite(group.strike) && group.strike > 0 ? group.strike : null,
-      strike_key: asString(group.strike_key),
+      session_date: sessionDate,
+      ticker,
+      right,
+      expiration,
+      strike,
+      strike_key: strikeKey,
     },
     flow_side_counts: {
-      "~buy": asInteger(flow["~buy"]) ?? 0,
-      "~sell": asInteger(flow["~sell"]) ?? 0,
-      mixed: asInteger(flow.mixed) ?? 0,
+      "~buy": buy,
+      "~sell": sell,
+      mixed,
     },
     intent: {
       opening_closing: "unavailable",
@@ -426,7 +453,7 @@ function asCandidateItem(value: unknown): OptionsAlphaCandidateItem | null {
     missingness: asArray(obj.missingness).filter((entry): entry is string => typeof entry === "string"),
     contradictions: asArray(obj.contradictions).filter((entry): entry is string => typeof entry === "string"),
     post_formation_outcomes: asPostFormationOutcomes(obj.post_formation_outcomes),
-    campaign_context: asCampaignContext(obj.campaign_context),
+    campaign_context: asCampaignContext(obj.campaign_context, firstQualifying),
   };
 }
 

@@ -27,7 +27,6 @@ import {
   OPTIONS_ALPHA_CANDIDATE_HORIZONS,
   type OptionsAlphaCandidateActivation,
   type OptionsAlphaCandidateAbstention,
-  type OptionsAlphaCandidateCampaignContext,
   type OptionsAlphaCandidateFeedSource,
   type OptionsAlphaCandidateHorizon,
   type OptionsAlphaCandidateHorizonOutcome,
@@ -142,19 +141,20 @@ function HorizonRow({ horizon, outcome, t }: { horizon: OptionsAlphaCandidateHor
 
 function contractHeading(item: OptionsAlphaCandidateItem, t: T): string {
   const ctx = item.campaign_context;
-  if (!ctx || !ctx.group.ticker || !ctx.group.right || !ctx.group.expiration || ctx.group.strike == null) {
-    // Context absent — render the opaque IDs explicitly so the reader sees what the
-    // document carries instead of a misleading "—".
-    return item.candidate_id;
-  }
+  if (!ctx) return t("candidateContractUnavailable");
   const right = ctx.group.right === "C" ? t("candidateContractCall") : t("candidateContractPut");
-  const expiration = ctx.group.expiration;
-  const strike = formatStrike(ctx.group.strike);
   return t("candidateContractHeading")
     .replace("{ticker}", ctx.group.ticker)
     .replace("{right}", right)
-    .replace("{expiration}", expiration)
-    .replace("{strike}", strike);
+    .replace("{expiration}", ctx.group.expiration)
+    .replace("{strike}", formatStrike(ctx.group.strike));
+}
+
+function frozenCurrentLabel(item: OptionsAlphaCandidateItem, t: T): string {
+  const frozenId = item.frozen_formation.campaign_revision_id;
+  const currentId = item.current_revision?.campaign_revision_id ?? item.current_campaign_revision_id;
+  if (frozenId && currentId && frozenId === currentId) return t("candidateFrozenSame");
+  return t("candidateFrozenChanged");
 }
 
 function formatStrike(value: number): string {
@@ -174,6 +174,7 @@ const PREREQ_KEYS: Record<string, ProphetKey> = {
 
 function PrerequisiteList({ activation, t }: { activation: OptionsAlphaCandidateActivation; t: T }) {
   const aggregate = activation.all_preconditions_cleared ? t("candidatePrereqCleared") : t("candidatePrereqPending");
+  const named = activation.activation_preconditions.filter((id): id is keyof typeof PREREQ_KEYS => id in PREREQ_KEYS);
   return (
     <div className="obs-options-alpha-prereqs" data-testid="options-alpha-candidate-prereqs">
       <div className="obs-options-alpha-prereqs-head">
@@ -181,10 +182,9 @@ function PrerequisiteList({ activation, t }: { activation: OptionsAlphaCandidate
         <b>{aggregate}</b>
       </div>
       <ul>
-        {activation.activation_preconditions.map((id) => (
+        {named.map((id) => (
           <li key={id}>
-            <span>{id}</span>
-            <b>{t(PREREQ_KEYS[id] ?? "optionsClockUnavailable")}</b>
+            <span>{t(PREREQ_KEYS[id])}</span>
           </li>
         ))}
       </ul>
@@ -210,11 +210,8 @@ function CampaignContextBlock({
         <p className="obs-options-alpha-context-absent" data-testid="options-alpha-candidate-context-absent">{t("candidateContextAbsent")}</p>
       ) : (
         <div className="obs-options-alpha-context-grid">
-          <Metric label={t("candidateContextRevisionLabel")} value={ctx.campaign_revision_id ?? t("candidateContextUnavailable")} />
-          <Metric label={t("candidateContextContract")} value={ctx.group.ticker && ctx.group.right && ctx.group.expiration && ctx.group.strike != null
-            ? `${ctx.group.ticker} ${ctx.group.right} ${ctx.group.expiration} ${formatStrike(ctx.group.strike)}`
-            : t("candidateContextUnavailable")} />
-          <Metric label={t("candidateContextSession")} value={ctx.group.session_date ?? t("candidateContextUnavailable")} />
+          <Metric label={t("candidateContextContract")} value={`${ctx.group.ticker} ${ctx.group.right} ${ctx.group.expiration} ${formatStrike(ctx.group.strike)}`} />
+          <Metric label={t("candidateContextSession")} value={ctx.group.session_date} />
           <div className="obs-options-alpha-context-flow">
             <span>{t("candidateContextFlowSide")}</span>
             <ul>
@@ -242,14 +239,12 @@ function CandidateCard({
   receiptEntry,
   currentReceiptId,
   externalLastModified,
-  activation,
   t,
 }: {
   item: OptionsAlphaCandidateItem;
   receiptEntry: OptionsAlphaCandidateReceiptEntry | null;
   currentReceiptId: string | null;
   externalLastModified: string | null;
-  activation: OptionsAlphaCandidateActivation;
   t: T;
 }) {
   const frozen = item.frozen_formation;
@@ -262,11 +257,7 @@ function CandidateCard({
         <strong data-testid="options-alpha-candidate-heading">{heading}</strong>
         <span className="obs-tag" style={{ "--c": "var(--muted)" } as React.CSSProperties}>{dispositionLabel(item.state, t)}</span>
       </div>
-      <div className="obs-options-alpha-candidate-meta">
-        <span>{t("candidateEvidence")} {item.campaign_id}</span>
-        <span>{t("candidateFrozenFormation")} {frozen.campaign_revision_id ?? t("optionsClockUnavailable")}</span>
-        <span>{t("candidateCurrentRevision")} {item.current_revision?.campaign_revision_id ?? t("optionsClockUnavailable")}</span>
-      </div>
+      <p className="obs-options-alpha-candidate-meta" data-testid="options-alpha-candidate-revision-note">{frozenCurrentLabel(item, t)}</p>
       <div className="obs-options-alpha-clocks">
         <div>
           <span>{t("candidateDecisionAt")}</span>
@@ -301,7 +292,6 @@ function CandidateCard({
         </ul>
       )}
       <CampaignContextBlock item={item} t={t} />
-      <PrerequisiteList activation={activation} t={t} />
       {item.post_formation_outcomes ? (
         <div className="obs-options-alpha-horizons" data-testid="options-alpha-candidate-horizons">
           {OPTIONS_ALPHA_CANDIDATE_HORIZONS.map((horizon) => (
@@ -310,14 +300,16 @@ function CandidateCard({
         </div>
       ) : null}
       <details className="obs-options-alpha-candidate-disclosure">
-        <summary>{t("candidateEvidence")} (ids)</summary>
+        <summary>{t("candidateDisclosure")}</summary>
         <ul>
-          <li><b>candidate_id</b> <span>{item.candidate_id}</span></li>
-          <li><b>frozen revision</b> <span>{frozen.campaign_revision_id ?? t("optionsClockUnavailable")}</span></li>
-          <li><b>current revision</b> <span>{item.current_revision?.campaign_revision_id ?? t("optionsClockUnavailable")}</span></li>
-          <li><b>campaign_row digest</b> <span>{item.evidence_digests.campaign_row_digest_sha256 ?? t("optionsClockUnavailable")}</span></li>
-          <li><b>microstructure_row digest</b> <span>{item.evidence_digests.microstructure_row_digest_sha256 ?? t("optionsClockUnavailable")}</span></li>
-          <li><b>policy digest</b> <span>{item.evidence_digests.policy_digest_sha256 ?? frozen.policy_digest_sha256 ?? t("optionsClockUnavailable")}</span></li>
+          <li><b>{t("candidateDisclosureCandidateId")}</b> <span>{item.candidate_id}</span></li>
+          <li><b>{t("candidateDisclosureCampaignId")}</b> <span>{item.campaign_id}</span></li>
+          <li><b>{t("candidateDisclosureFrozenRevision")}</b> <span>{frozen.campaign_revision_id ?? t("optionsClockUnavailable")}</span></li>
+          <li><b>{t("candidateDisclosureCurrentRevision")}</b> <span>{item.current_revision?.campaign_revision_id ?? t("optionsClockUnavailable")}</span></li>
+          {item.campaign_context ? <li><b>{t("candidateDisclosureContextRevision")}</b> <span>{item.campaign_context.campaign_revision_id}</span></li> : null}
+          <li><b>{t("candidateDisclosureCampaignDigest")}</b> <span>{item.evidence_digests.campaign_row_digest_sha256 ?? t("optionsClockUnavailable")}</span></li>
+          <li><b>{t("candidateDisclosureMicroDigest")}</b> <span>{item.evidence_digests.microstructure_row_digest_sha256 ?? t("optionsClockUnavailable")}</span></li>
+          <li><b>{t("candidateDisclosurePolicyDigest")}</b> <span>{item.evidence_digests.policy_digest_sha256 ?? frozen.policy_digest_sha256 ?? t("optionsClockUnavailable")}</span></li>
         </ul>
       </details>
       <p className="obs-options-alpha-footnote">{t("candidateOptionPerformanceUnavailable")}</p>
@@ -446,15 +438,17 @@ export function OptionsAlphaCandidatePanel(props: OptionsAlphaCandidatePanelProp
     ? source.feed.activation.fence_state !== "post_activation" || !source.feed.activation.all_preconditions_cleared
     : false;
 
+  const candidateCount = source ? String(source.feed.formed_candidates.length) : "—";
+
   return (
-    <section className="obs-options-alpha-section" data-testid="options-alpha-candidate-panel">
+    <section className="obs-options-alpha-section obs-options-alpha-candidate-history" data-testid="options-alpha-candidate-panel">
       <div className="obs-options-alpha-section-head">
         <div>
           <span>{t("candidatePanelEyebrow")}</span>
-          <h3>{t("candidatePanelTitle")}</h3>
+          <h3 className="obs-options-alpha-history-title">{t("candidatePanelTitle")}</h3>
           <small>{t("candidatePanelNote")}</small>
         </div>
-        <span>{source ? source.feed.formed_candidates.length : 0}</span>
+        <span data-testid="options-alpha-candidate-count">{candidateCount}</span>
       </div>
       {state.status === "purge" ? (
         <p className="obs-options-alpha-footnote" role="status" data-testid="options-alpha-candidate-purge">{state.message}</p>
@@ -470,18 +464,33 @@ export function OptionsAlphaCandidatePanel(props: OptionsAlphaCandidatePanelProp
       ) : null}
       {source ? (
         <>
-          <div className="obs-options-alpha-accrual-events">
-            <Metric label={t("candidatePolicy")} value={source.feed.policy.policy_id ?? "—"} />
-            <Metric label={t("candidatePolicyVersion")} value={source.feed.policy.policy_version == null ? "—" : String(source.feed.policy.policy_version)} />
+          <div className="obs-options-alpha-metrics" data-testid="options-alpha-candidate-status">
+            <Metric label={t("candidateActivation")} value={source.feed.activation.all_preconditions_cleared ? t("candidateAllClear") : t("candidatePending")} />
             <Metric label={t("candidateFenceState")} value={fenceLabel(source.feed.activation.fence_state, t)} />
             <Metric label={t("candidateEligibility")} value={eligibilityLabel(source.feed.eligibility_state, t)} />
-            <Metric label={t("candidateActivation")} value={source.feed.activation.all_preconditions_cleared ? t("candidateAllClear") : t("candidatePending")} />
             <Metric label={t("candidateDecisionAt")} value={fmtClock(source.feed.generated_at, t)} />
             <Metric label={t("candidateServedAt")} value={fmtClock(source.metadata.served_at, t)} />
-            <Metric label={t("candidateReceiptLastModified")} value={fmtClock(source.metadata.receipt_last_modified, t)} />
-            <Metric label={t("candidatePriorReceipt")} value={fmtClock(source.receipt.prior_receipt_id, t)} />
-            <Metric label={t("candidateR2Etag")} value={fmtClock(source.metadata.payload_etag, t)} />
           </div>
+          <details className="obs-options-alpha-feed-details" data-testid="options-alpha-candidate-feed-details">
+            <summary>{t("candidateFeedDetails")}</summary>
+            <ul>
+              <li><b>{t("candidateFeedPolicyId")}</b> <span>{source.feed.policy.policy_id ?? t("optionsClockUnavailable")}</span></li>
+              <li><b>{t("candidateFeedPolicyDigest")}</b> <span>{source.feed.policy.policy_digest_sha256 ?? t("optionsClockUnavailable")}</span></li>
+              <li><b>{t("candidateFeedPayloadHash")}</b> <span>{source.receipt.payload_sha256 ?? t("optionsClockUnavailable")}</span></li>
+              <li><b>{t("candidateFeedEtag")}</b> <span>{source.metadata.payload_etag ?? t("optionsClockUnavailable")}</span></li>
+              <li><b>{t("candidateFeedReceiptId")}</b> <span>{source.receipt.receipt_id ?? t("optionsClockUnavailable")}</span></li>
+              <li><b>{t("candidateFeedPriorReceipt")}</b> <span>{source.receipt.prior_receipt_id ?? t("optionsClockUnavailable")}</span></li>
+              <li><b>{t("candidateReceiptLastModified")}</b> <span>{source.metadata.receipt_last_modified ?? t("optionsClockUnavailable")}</span></li>
+              <li><b>{t("candidateFeedDurabilityClock")}</b> <span>{source.receipt.local_durability_confirmed_at ?? t("optionsClockUnavailable")}</span></li>
+              <li><b>{t("candidateFeedConfirmationClock")}</b> <span>{source.receipt.payload_r2_confirmed_at ?? t("optionsClockUnavailable")}</span></li>
+              <li><b>{t("candidateFeedImplementationCarrier")}</b> <span>{source.feed.implementation_carrier ?? t("optionsClockUnavailable")}</span></li>
+              <li>
+                <b>{t("candidateFeedPrereqIds")}</b>
+                <span>{source.feed.activation.activation_preconditions.join(", ") || t("optionsClockUnavailable")}</span>
+              </li>
+            </ul>
+          </details>
+          <PrerequisiteList activation={source.feed.activation} t={t} />
           {isInactive ? <p className="obs-options-alpha-footnote">{t("candidatePanelInactive")}</p> : null}
           {source.feed.formed_candidates.length === 0 && source.feed.abstentions.length === 0 ? (
             <p className="obs-options-alpha-empty">{t("candidatePanelEmpty")}</p>
@@ -495,7 +504,6 @@ export function OptionsAlphaCandidatePanel(props: OptionsAlphaCandidatePanelProp
                   receiptEntry={source.receipt.candidates[item.candidate_id] ?? null}
                   currentReceiptId={source.receipt.receipt_id}
                   externalLastModified={source.metadata.receipt_last_modified}
-                  activation={source.feed.activation}
                   t={t}
                 />
               ))}

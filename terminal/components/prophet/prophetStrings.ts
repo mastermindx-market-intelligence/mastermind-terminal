@@ -454,8 +454,8 @@ const PROPHET_LEX = {
   // These strings serve the source-only derived panel. They MUST stay distinct
   // from the legacy "options_prophet_idx" view: that index runs a separate
   // envelope and is not part of this package.
-  candidatePanelTitle: ["Verified candidate feed", "已校验候选源"],
-  candidatePanelEyebrow: ["Source-only · verified pair", "仅供来源参考 · 已校验配对"],
+  candidatePanelTitle: ["Candidate history", "候选历史"],
+  candidatePanelEyebrow: ["Research history", "研究历史"],
   candidatePolicy: ["Formation policy", "形成策略"],
   candidatePolicyVersion: ["Version", "版本"],
   candidatePolicyDigest: ["Policy digest", "策略摘要"],
@@ -502,9 +502,20 @@ const PROPHET_LEX = {
   candidateHorizonUnderlyingUnv: ["Underlying unavailable", "标的不可用"],
   candidateOptionPerformanceUnavailable: ["Exact option performance is not yet published.", "精确期权表现尚未发布。"],
   candidatePanelNote: [
-    "Source-only derived view. The formed candidate carries an immutable first qualifying campaign revision and the current disposition may differ; exact option performance is not published until OA3-verified evidence is available.",
-    "仅供来源参考的派生视图。已形成候选保留不可变的首次合格活动修订，但当前处置可能不同；精确期权表现需 OA3 验证证据上线后才发布。",
+    "Each row keeps the first qualification that formed the candidate. Later underlying outcomes may differ from that first picture.",
+    "每条记录保留形成该候选时的首次合格快照。之后的标的结果可能与首次画面不同。",
   ],
+  candidateFeedDetails: ["Feed details", "源详情"],
+  candidateFeedPolicyId: ["Policy identifier", "策略标识"],
+  candidateFeedPolicyDigest: ["Policy digest", "策略摘要"],
+  candidateFeedPayloadHash: ["Payload hash", "载荷哈希"],
+  candidateFeedEtag: ["Payload tag", "载荷标记"],
+  candidateFeedPriorReceipt: ["Prior receipt identifier", "前一凭据标识"],
+  candidateFeedReceiptId: ["Receipt identifier", "凭据标识"],
+  candidateFeedDurabilityClock: ["Local durability clock", "本地耐久时钟"],
+  candidateFeedConfirmationClock: ["Confirmation clock", "确认时钟"],
+  candidateFeedImplementationCarrier: ["Implementation carrier", "实现载体"],
+  candidateFeedPrereqIds: ["Prerequisite identifiers", "前提条件标识"],
   candidatePanelInactive: [
     "The candidate feed is source-only · inactive until the publisher validates activation. Shown here for traceability; do not treat rows as signals, picks or executable contracts.",
     "候选源仅为参考 · 在发布方确认激活前不启用。此处仅展示用于追溯；请勿将条目视为信号、选股或可执行合约。",
@@ -527,13 +538,31 @@ const PROPHET_LEX = {
   ],
   candidateAbstention: ["Abstention", "保留"],
   candidatePanelFooter: [
-    "Receipted feed — formed_candidates-v2 + publication receipt. The current receipt's external last-modified is the only clock a client may use to display the first consumer publish for a newly-current candidate.",
-    "已签发源 — formed_candidates-v2 + 发布凭据。当前凭据的外部最后修改时间，是显示新晋候选首次消费发布的唯一时钟。",
+    "Exact option performance is not yet published. These rows are research history, not a ranking or a trade.",
+    "精确期权表现尚未发布。这些记录是研究历史，不是排名，也不是交易。",
   ],
   // ── Per-card headings: ticker + right + expiration + strike (not opaque IDs) ─
   candidateContractHeading: ["{ticker} {right} {expiration} {strike}", "{ticker} {right} {expiration} {strike}"],
   candidateContractCall: ["Call", "认购"],
   candidateContractPut: ["Put", "认沽"],
+  candidateContractUnavailable: ["Contract details unavailable", "合约详情不可用"],
+  candidateFrozenSame: [
+    "Frozen first qualification. The current revision is the same.",
+    "冻结的首次合格。当前修订相同。",
+  ],
+  candidateFrozenChanged: [
+    "Frozen first qualification. The current revision has changed.",
+    "冻结的首次合格。当前修订已变化。",
+  ],
+  candidateDisclosure: ["Technical identifiers", "技术标识"],
+  candidateDisclosureCandidateId: ["Candidate identifier", "候选标识"],
+  candidateDisclosureCampaignId: ["Campaign identifier", "活动标识"],
+  candidateDisclosureFrozenRevision: ["Frozen first revision identifier", "冻结首次修订标识"],
+  candidateDisclosureCurrentRevision: ["Current revision identifier", "当前修订标识"],
+  candidateDisclosureCampaignDigest: ["Campaign row digest", "活动行摘要"],
+  candidateDisclosureMicroDigest: ["Microstructure row digest", "微观结构行摘要"],
+  candidateDisclosurePolicyDigest: ["Policy digest", "策略摘要"],
+  candidateDisclosureContextRevision: ["Context revision identifier", "背景修订标识"],
   // ── Activation prerequisites (the 4 named preconditions) ──────────────────
   candidatePrereqHeading: ["Activation prerequisites", "激活前提条件"],
   candidatePrereqOa1t: ["Measured-source consumer proven", "实测来源消费方已验证"],
@@ -549,8 +578,8 @@ const PROPHET_LEX = {
   // so explicitly when the bytes are absent rather than inferring identity.
   candidateContextHeading: ["Campaign context", "活动背景"],
   candidateContextAbsent: [
-    "No canonical campaign context was published for this revision.",
-    "本次修订未发布规范的活动背景。",
+    "Contract details unavailable.",
+    "合约详情不可用。",
   ],
   candidateContextContract: ["Contract", "合约"],
   candidateContextSession: ["Session", "交易日"],
@@ -564,12 +593,11 @@ const PROPHET_LEX = {
   candidateContextAccumulationDistribution: ["Accumulation/distribution", "累积/派发"],
   candidateContextUnavailable: ["Not published", "未发布"],
   candidateContextDirectionSoft: ["Direction withheld", "方向暂不发布"],
-  candidateContextRevisionLabel: ["First qualifying revision", "首次合格修订"],
   // Frozen-first vs current revision distinction: only the FROZEN formation carries
   // campaign_context; the current revision may differ and the card must keep them apart.
   candidateContextFrozenNote: [
-    "Context applies to the frozen first qualifying campaign revision. The current revision may have moved; current revision bytes are not in this panel.",
-    "背景仅适用于冻结的首次合格活动修订。当前修订可能已变化；本面板不展示当前修订字节。",
+    "This contract snapshot is from the frozen first qualification. The current revision may have changed.",
+    "此合约快照来自冻结的首次合格。当前修订可能已变化。",
   ],
   // ── Measured NBBO prints (was wrongly labelled OI confirmation) ────────────
   candidateNbboPrints: ["Measured NBBO valid / source prints", "实测 NBBO 有效 / 来源成交"],

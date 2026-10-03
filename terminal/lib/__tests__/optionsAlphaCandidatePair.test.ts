@@ -124,10 +124,10 @@ describe("Options Alpha R2 payload/receipt verifier", () => {
     await expect(fetchOptionsAlphaCandidatePair()).rejects.toThrow(/historical receipt clock mismatch/);
   });
 
-  it("rejects a Feb 30 historical clock that AJV's date-time format accepts and Date.parse rolls into March", async () => {
-    // Feb 30 is invalid calendar date; AJV rejects it via the schema before the
-    // verifier sees it. Both layers agree: Feb 30 is not a valid producer output.
-    // We assert the verifier does not get a chance to accept it.
+  it("rejects a Feb 30 historical clock because the schema preempts it", async () => {
+    // Feb 30 is schema-preempted: Ajv date-time rejects it before the canonical
+    // UTC parser runs. Do not claim the old Date.parse mutant would have accepted
+    // Feb 30 through the full verifier — the schema layer already fails closed.
     await installPair((payload, receipt) => {
       const body = JSON.parse(receipt.toString());
       body.prior_receipt = { payload_sha256: body.payload_sha256, receipt_id: "oacfr_" + "1".repeat(25) };
@@ -139,31 +139,33 @@ describe("Options Alpha R2 payload/receipt verifier", () => {
     await expect(fetchOptionsAlphaCandidatePair()).rejects.toThrow(/options-alpha pair invalid/);
   });
 
-  it("rejects a 1-digit fractional clock that Date.parse accepts (canonical parser requires exactly 6 nonzero digits or none)", async () => {
-    // ".1" is a 1-digit fraction; Date.parse accepts it (ES2018+), the canonical
-    // parser requires exactly 6 digits. AJV rejects via the date-time format.
+  it("rejects a 1-digit fractional clock that Date.parse and Ajv accept", async () => {
+    // Ajv's date-time format accepts ".1". Date.parse also returns a finite value.
+    // The canonical parser still requires exactly 6 nonzero digits or none.
+    const weak = "2026-08-13T14:00:00.1Z";
+    expect(Number.isFinite(Date.parse(weak))).toBe(true);
     await installPair((payload, receipt) => {
       const body = JSON.parse(receipt.toString());
       body.prior_receipt = { payload_sha256: body.payload_sha256, receipt_id: "oacfr_" + "1".repeat(25) };
       const id = Object.keys(body.candidates)[0];
       body.candidates[id].first_receipt_id = "oacfr_" + "1".repeat(25);
-      body.candidates[id].first_consumer_published_at = "2026-08-13T14:00:00.1Z";
+      body.candidates[id].first_consumer_published_at = weak;
       return [payload, Buffer.from(JSON.stringify(body))];
     });
     await expect(fetchOptionsAlphaCandidatePair()).rejects.toThrow(/options-alpha pair invalid/);
   });
 
-  it("rejects a year-0000 historical clock that Date.parse treats as year 1900", async () => {
-    // Year 0000 is invalid per ISO 8601 (1..9999); the canonical parser refuses
-    // it on the year<1 guard, before the Date ctor ever sees it. Date.parse
-    // would silently coerce 0000 to year 1900 (positive ms value). AJV rejects
-    // via the date-time format.
+  it("rejects a year-0000 historical clock that Date.parse and Ajv accept", async () => {
+    // Ajv's date-time format accepts year 0000. Date.parse returns a finite value
+    // (often coerced). The canonical parser refuses year < 1.
+    const weak = "0000-01-01T00:00:00Z";
+    expect(Number.isFinite(Date.parse(weak))).toBe(true);
     await installPair((payload, receipt) => {
       const body = JSON.parse(receipt.toString());
       body.prior_receipt = { payload_sha256: body.payload_sha256, receipt_id: "oacfr_" + "1".repeat(25) };
       const id = Object.keys(body.candidates)[0];
       body.candidates[id].first_receipt_id = "oacfr_" + "1".repeat(25);
-      body.candidates[id].first_consumer_published_at = "0000-01-01T00:00:00Z";
+      body.candidates[id].first_consumer_published_at = weak;
       return [payload, Buffer.from(JSON.stringify(body))];
     });
     await expect(fetchOptionsAlphaCandidatePair()).rejects.toThrow(/options-alpha pair invalid/);

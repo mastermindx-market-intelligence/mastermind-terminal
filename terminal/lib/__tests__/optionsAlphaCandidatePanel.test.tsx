@@ -2,8 +2,13 @@
 import React, { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import Ajv from "ajv/dist/2020";
+import addFormats from "ajv-formats";
 import { LangProvider } from "@/lib/i18n";
 import { OptionsAlphaCandidatePanel } from "@/components/prophet/OptionsAlphaCandidatePanel";
+import feedSchema from "@/contracts/options/options.alpha_candidate_feed.v2.schema.json";
+import candidateFeedJson from "@/lib/__tests__/fixtures/candidate_feed.json";
+import candidateReceiptJson from "@/lib/__tests__/fixtures/candidate_feed.receipt.json";
 
 (globalThis as unknown as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 
@@ -248,10 +253,60 @@ function validResponse(overrides: { currentReceiptId?: string; candidates?: Reco
   };
 }
 
-function feedWithoutContext(): typeof baseFeed {
-  const feed = JSON.parse(JSON.stringify(baseFeed));
-  for (const candidate of feed.formed_candidates) delete candidate.campaign_context;
-  return feed;
+type JsonRecord = Record<string, unknown>;
+
+function schemaValidSyntheticContext(revisionId: string) {
+  return {
+    schema: "options.alpha_candidate_campaign_context/v1",
+    campaign_revision_id: revisionId,
+    group: {
+      session_date: "2026-08-13",
+      ticker: "SPY",
+      right: "C",
+      expiration: "2026-08-15",
+      strike: 450,
+      strike_key: "450",
+    },
+    flow_side_counts: { "~buy": 2, "~sell": 1, mixed: 1 },
+    intent: { opening_closing: "unavailable", direction_reliability: "soft", accumulation_distribution: "unavailable" },
+  };
+}
+
+function schemaValidSyntheticResponse(contextRevision?: string) {
+  const feed = structuredClone(candidateFeedJson) as JsonRecord;
+  const formed = (feed.formed_candidates as JsonRecord[])[0];
+  const firstRevision = String(formed.first_qualifying_campaign_revision_id);
+  formed.campaign_context = schemaValidSyntheticContext(contextRevision ?? firstRevision);
+  const ajv = new Ajv({ allErrors: true, strict: true });
+  addFormats(ajv);
+  expect(ajv.compile(feedSchema)(feed)).toBe(true);
+  return {
+    feed,
+    receipt: structuredClone(candidateReceiptJson),
+    metadata: {
+      payload_etag: "synthetic-test-only",
+      payload_last_modified: "Thu, 13 Aug 2026 14:30:02 GMT",
+      receipt_etag: "synthetic-test-only",
+      receipt_last_modified: "Thu, 13 Aug 2026 14:30:02 GMT",
+      served_at: "2026-08-13T14:30:05Z",
+    },
+  };
+}
+
+function fixtureFeedWithoutContext() {
+  const feed = structuredClone(candidateFeedJson) as JsonRecord;
+  for (const candidate of feed.formed_candidates as JsonRecord[]) delete candidate.campaign_context;
+  return {
+    feed,
+    receipt: structuredClone(candidateReceiptJson),
+    metadata: {
+      payload_etag: "synthetic-test-only",
+      payload_last_modified: "Thu, 13 Aug 2026 14:30:02 GMT",
+      receipt_etag: "synthetic-test-only",
+      receipt_last_modified: "Thu, 13 Aug 2026 14:30:02 GMT",
+      served_at: "2026-08-13T14:30:05Z",
+    },
+  };
 }
 
 let host: HTMLDivElement | null = null;
@@ -489,47 +544,61 @@ describe("OptionsAlphaCandidatePanel — verified pair render", () => {
 });
 
 describe("OptionsAlphaCandidatePanel — campaign context rendering", () => {
-  it("renders the canonical Macro enrichment bytes for the frozen first qualifying revision", async () => {
-    fetchMock.mockResolvedValueOnce(jsonResponse({ status: 200, body: validResponse() }));
+  it("renders a schema-valid synthetic fixture bound to the checked-in feed first revision", async () => {
+    fetchMock.mockResolvedValueOnce(jsonResponse({ status: 200, body: schemaValidSyntheticResponse() }));
     renderPanel();
     await flushMicrotasks(8);
     const ctx = host!.querySelector('[data-testid="options-alpha-candidate-context"]');
     expect(ctx).toBeTruthy();
-    // Card heading reads ticker/contract, not the opaque candidate_id.
     const heading = host!.querySelector('[data-testid="options-alpha-candidate-heading"]')?.textContent ?? "";
     expect(heading).toMatch(/SPY/);
-    // The 4 named activation preconditions are listed with their human labels,
-    // and only an aggregate cleared/pending status is shown.
-    const prereqs = host!.querySelector('[data-testid="options-alpha-candidate-prereqs"]');
-    expect(prereqs).toBeTruthy();
-    expect(prereqs!.textContent).toMatch(/Measured-source consumer proven/);
-    expect(prereqs!.textContent).toMatch(/Consumer availability production-accepted/);
-    expect(prereqs!.textContent).toMatch(/Campaign integrity publication runtime accepted/);
-    expect(prereqs!.textContent).toMatch(/Source collision review clear/);
-    // Aggregate cleared/pending status, not individual statuses.
-    expect(prereqs!.textContent).toMatch(/Pending/);
-    // Flow side counts and direction reliability shown; direction is "withheld".
+    expect(heading).not.toMatch(/oacnd_/);
+    expect(host!.querySelector("h3")?.textContent).toBe("Candidate history");
+    const prereqs = host!.querySelectorAll('[data-testid="options-alpha-candidate-prereqs"]');
+    expect(prereqs).toHaveLength(1);
+    expect(host!.querySelector('[data-testid="options-alpha-candidate-item"] [data-testid="options-alpha-candidate-prereqs"]')).toBeNull();
+    expect(prereqs[0].textContent).toMatch(/Measured-source consumer proven/);
+    expect(prereqs[0].textContent).toMatch(/Consumer availability production-accepted/);
+    expect(prereqs[0].textContent).toMatch(/Campaign integrity publication runtime accepted/);
+    expect(prereqs[0].textContent).toMatch(/Source collision review clear/);
+    expect(prereqs[0].textContent).not.toMatch(/oa1t_measured_source_consumer_proven/);
+    expect(prereqs[0].textContent).toMatch(/Cleared|Pending/);
     expect(ctx!.textContent).toMatch(/~Buy/);
     expect(ctx!.textContent).toMatch(/~Sell/);
     expect(ctx!.textContent).toMatch(/Mixed/);
     expect(ctx!.textContent).toMatch(/Direction withheld/);
     expect(ctx!.textContent).toMatch(/Not published/);
-    // Measured NBBO prints label, NOT the old OI confirmation label.
     expect(host!.innerHTML).toMatch(/Measured NBBO valid/);
     expect(host!.innerHTML).not.toMatch(/OI confirmation/);
+    expect(host!.querySelector('[data-testid="options-alpha-candidate-feed-details"]')).toBeTruthy();
+    const revisionNote = host!.querySelector('[data-testid="options-alpha-candidate-revision-note"]')?.textContent ?? "";
+    expect(revisionNote).toMatch(/Frozen first qualification/);
+    expect(revisionNote).not.toMatch(/ocrev_/);
   });
 
-  it("renders an explicit absent context when the canonical Macro enrichment is missing", async () => {
-    fetchMock.mockResolvedValueOnce(jsonResponse({ status: 200, body: validResponse({ feed: feedWithoutContext() }) }));
+  it("renders Contract details unavailable when campaign context is absent", async () => {
+    fetchMock.mockResolvedValueOnce(jsonResponse({ status: 200, body: fixtureFeedWithoutContext() }));
     renderPanel();
     await flushMicrotasks(8);
     const absent = host!.querySelector('[data-testid="options-alpha-candidate-context-absent"]');
     expect(absent).toBeTruthy();
-    // The card heading must fall back to the opaque candidate_id when context is absent
-    // — and never synthesise a fake ticker.
-    expect(absent!.textContent).toMatch(/No canonical campaign context/);
+    expect(absent!.textContent).toMatch(/Contract details unavailable/);
     const heading = host!.querySelector('[data-testid="options-alpha-candidate-heading"]')?.textContent ?? "";
-    expect(heading).toContain("oacnd_0000000000000000000001");
+    expect(heading).toBe("Contract details unavailable");
+    expect(heading).not.toMatch(/oacnd_/);
+    expect(heading).not.toMatch(/SPY/);
+  });
+
+  it("renders unavailable when a schema-valid context revision does not match first qualification", async () => {
+    fetchMock.mockResolvedValueOnce(jsonResponse({
+      status: 200,
+      body: schemaValidSyntheticResponse("ocrev_aaaaaaaaaaaaaaaaaaaaaaaa"),
+    }));
+    renderPanel();
+    await flushMicrotasks(8);
+    const heading = host!.querySelector('[data-testid="options-alpha-candidate-heading"]')?.textContent ?? "";
+    expect(heading).toBe("Contract details unavailable");
+    expect(host!.querySelector('[data-testid="options-alpha-candidate-context-absent"]')).toBeTruthy();
     expect(heading).not.toMatch(/SPY/);
   });
 
@@ -539,5 +608,12 @@ describe("OptionsAlphaCandidatePanel — campaign context rendering", () => {
     await flushMicrotasks(8);
     expect(host!.querySelector('[data-testid="options-alpha-candidate-panel"]')).toBeTruthy();
     expect(host!.innerHTML).toMatch(/preregistered/i);
+  });
+
+  it("shows an emdash for the candidate count when the feed is unavailable", async () => {
+    fetchMock.mockResolvedValueOnce(jsonResponse({ status: 200, body: { error: "feed unavailable" } }));
+    renderPanel();
+    await flushMicrotasks(8);
+    expect(host!.querySelector('[data-testid="options-alpha-candidate-count"]')?.textContent).toBe("—");
   });
 });
