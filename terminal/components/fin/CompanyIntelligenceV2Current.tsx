@@ -566,7 +566,7 @@ export default function CompanyIntelligenceV2Current({
       id: "as-known-at",
       label: pick(zh, "As known at", "截至"),
       value: result.workspace.generated_at.replace("T", " ").replace("Z", " UTC"),
-      detail: pick(zh, "Producer generation time", "生产者生成时间"),
+      detail: pick(zh, "Reported by the data producer", "由数据生产方报告"),
       tone: "present",
     },
     {
