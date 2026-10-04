@@ -1,11 +1,21 @@
 # Terminal Visual Intelligence Layer — chart-settings candidate recapture
+# Partial current capture receipt. Full behavioral acceptance remains blocked below.
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
 # Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
-# capturedAtHead: 4b358bbcf8b5783adcde1a00bb079511b25121e5 (TERMINAL-02 live-bar generation split, rebased onto #772)
-# capturedAt: 2026-09-29T19:37:11.851609+00:00
+#
+# capturedAtHead below is the REAL head of THIS capture (CURRENT_HASHES.json "head").
+# The prior receipt head 4b358bbcf8b5783adcde1a00bb079511b25121e5 is HISTORICAL ONLY,
+# preserved verbatim under historicalGates below; it does not describe this capture.
+capturedAtHead: 4ecd157013124a97d1df9c00853b2e294b9ffb77
+captureStartedAt: 2026-10-04T02:24:09.093044+00:00
+capturedAt: 2026-10-04T02:49:31.248865+00:00
 # Content-addressed layoutFiles + cropFiles, not ancestry, identify this capture.
+# Hash source: CURRENT_HASHES.json supplied by the parent. layoutFiles=13, cropFiles=6.
+# Fable independently rehashed all 13 source files and 6 actual PNG files after the external census.
+# The external census inspected the two logs and supplied hash inventory; it did not inspect pixels.
+hashSource: Fable current-file SHA256 verification; external log and inventory census
 layoutFiles:
-  terminal/components/ChartPanel.tsx: "06f59b1c67ee3661dd361f72b23f16f1cddb26a8020490463ea18f941a44361f"
+  terminal/components/ChartPanel.tsx: "5b4413b0cfa571683de1a36902bb437891b59981fffe3220542fb921afc29ab0"
   terminal/components/ChartSettingsModal.tsx: "f26bd7dcbb9bd23e96546e835dec4c62c593b9c4d7412c411511005e7418146e"
   terminal/components/ChartSettingsModal.module.css: "a1685d103511e11882f8d379b22570f018e47aed88266db5ca6fec8808100b0a"
   terminal/components/DrawingSidebar.tsx: "95910121c08efa2a41bcaac02ec626a48bc98021bbbf9e611ff0b61f7baaf6d9"
@@ -19,13 +29,19 @@ layoutFiles:
   terminal/lib/suites/trend/candlePainter.ts: "8384d2bce3af939a51e88584b1436ee2898a89f0fbf1aedc09ffee624a3e12e1"
   terminal/lib/indicator-canvas/host.ts: "4f2949efb22b8c378cab1ff9d176466c4857073c14a36ee4f0eeab4ec1015a25"
 cropFiles:
-  desktop-context.png: "b9b6f168acfe25d70dec683cf979c45d76d3afdbeb7b1c97efac280e5e32ff57"
-  desktop-context-zh.png: "f71078467fbf697ae55446df53d8ba302be442f480afce6b6480053bd21103a5"
-  tablet-context.png: "47d6503f75af5d1397418d9cf780704eb3489bfefd031a5aa41908724b7d9700"
-  tablet-context-zh.png: "0597f373202e9bcbd1fa6b7e92ed4d70d3291b2587359a1e96549b36c598927f"
-  mobile-context.png: "dd8d965842b0d042391568d7a7fc7b54070971bd476bde1f6c944fa48c99b65c"
-  mobile-context-zh.png: "850e5baaf94450ba1117e69b02259a21739b493ccdd022591466f2613309f008"
-
+  desktop-context.png: "e5b5a615145d0388301e2507081a722e7758f42a28a1e5708d57a2012273e5ad"
+  desktop-context-zh.png: "ea4a4f5ffa552571c673b5b861e9b7fa9dd3f09f825ecae92e0959fcc23d7cae"
+  tablet-context.png: "f26a27adff2e9a00c05941353ee2c0eac47d44e2fea29ae07f336c7eab382a16"
+  tablet-context-zh.png: "81096155d6dfc151f6c3f0940ab02468ef973b463aacde0fa2b62cca02c9a73b"
+  mobile-context.png: "6fad1a6d557f156f13c4fc7b336412bbdf9fa46b560779b0b275d6a4a6a88165"
+  mobile-context-zh.png: "ad75060538f18baf566e98fa844b06c841a6760dcefcf836f335aa13cce6a924"
+cropMtimes:
+  desktop-context.png: "2026-10-04T02:24:09.093044+00:00"
+  desktop-context-zh.png: "2026-10-04T02:26:46.077219+00:00"
+  tablet-context.png: "2026-10-04T02:42:00.911101+00:00"
+  tablet-context-zh.png: "2026-10-04T02:45:17.856390+00:00"
+  mobile-context.png: "2026-10-04T02:46:08.585581+00:00"
+  mobile-context-zh.png: "2026-10-04T02:49:31.248865+00:00"
 theme: dark
 languages: [en, zh]
 viewports:
@@ -36,20 +52,108 @@ surface: Terminal Chart context
 harness: /terminal?symbol=NVDA
 capture_flag: TERMINAL_E2E_FIXTURE
 capture_flag_law: Standard Playwright fixture also disables the Next.js dev indicator.
+
+# Actual commands executed for THIS capture (as printed in the supplied logs).
+# Runner: npm script "test:e2e:responsive" (terminal@0.1.0) -> playwright test.
 commands:
-  - TERMINAL_E2E_PORT=36947 npx playwright test e2e/visual-intelligence.spec.ts --project=desktop --project=tablet --project=mobile --workers=1 --retries=0 --reporter=list
-  - TERMINAL_E2E_PORT=36948 npx playwright test e2e/chart-view-reset.spec.ts --project=mobile --workers=1 --retries=0 --grep 'New chart tickers reserve space'
-browserResults:
-  desktop: 10/10 passed
-  tablet: 10/10 passed
-  mobile: 10/10 passed
-  mobileCrosshairRegression: 1/1 passed
-  visualIntelligenceMatrix: 30 passed; zero failures
-localGates:
-  typecheck: PASS
-  scopedLint: NOT_RERUN; evidence refresh does not claim a new lint receipt
-  plainLanguage: Existing localized copy retained; separate copy guard not rerun
-  vitest: 379 files passed; 6093 tests passed; 4 todo
+  - TERMINAL_E2E_PORT=38243 playwright test e2e/visual-intelligence.spec.ts --project=desktop --project=tablet --project=mobile --workers=1 --retries=0 --output=/Volumes/Mastermind/evidence/fable-options-20261003-01a10340/pr723-visual-intelligence-test-results
+  - TERMINAL_E2E_PORT=38246 playwright test e2e/visual-intelligence.spec.ts --project=tablet --project=mobile --workers=1 --retries=0 --output=/Volumes/Mastermind/evidence/fable-options-20261003-01a10340/pr723-visual-intelligence-resume-results
+
+# =============================== CURRENT RESULT ===============================
+# NOT FULLY PASS. Do not claim 30/30. The full 30-case matrix did not complete in a
+# single run: Run A was intentionally interrupted after desktop + 2 tablet cases;
+# Run B resumed tablet+mobile and finished 17 passed / 3 failed.
+currentResults:
+  status: NOT FULLY PASS
+  headline: >-
+    NOT FULLY PASS. All 6 screenshot capture cases passed, but the full
+    visual-intelligence matrix did not complete 30/30 and 3 cases failed.
+  doNotClaim: "30 passed / zero failures is the historical receipt (4b358b), not this capture"
+  sixScreenshotCaptureCases: "ALL 6 PASSED (default-context EN + Chinese-context ZH across desktop/tablet/mobile)"
+  runA_recapture:
+    projectSet: [desktop, tablet, mobile]
+    outcome: "12 passed; 1 interrupted (intentional SIGINT); 17 did not run (4.7m)"
+    detail: >-
+      desktop 10/10 passed; tablet first 2 cases passed; then an intentional SIGINT
+      stopped at [tablet] e2e/visual-intelligence.spec.ts:94:5.
+  runB_resume:
+    projectSet: [tablet, mobile]
+    cases: 20
+    outcome: "17 passed; 3 failed (9.3m)"
+  currentFailures:
+    - viewport: tablet
+      test: "e2e/visual-intelligence.spec.ts:17:5 saved startup timeframe hydrates chart context without stale SSR attributes"
+      error: 'expect(locator).toHaveAttribute failed — locator([data-visual-context]); Expected "1s", Received "3D" (timeout 20000ms)'
+    - viewport: mobile
+      test: "e2e/visual-intelligence.spec.ts:17:5 saved startup timeframe hydrates chart context without stale SSR attributes"
+      error: 'expect(locator).toHaveAttribute failed — locator([data-visual-context]); Expected "1s", Received "3D" (timeout 20000ms)'
+    - viewport: mobile
+      test: "e2e/visual-intelligence.spec.ts:183:5 table and CSV expose the same actual 3D bars and numeric context as the plotted chart"
+      error: "Test timeout of 30000ms exceeded — locator.click waiting for locator('.chart-wrap').first() to be visible, enabled and stable"
+
+# The six actual screenshots and their originating PASSING capture tests (from the logs).
+screenshots:
+  - file: desktop-context.png
+    language: en
+    viewport: desktop
+    originatingTest: "e2e/visual-intelligence.spec.ts:34:5 default context explains plotted bars, toggles original overlays, and persists choices"
+    run: runA_recapture
+    result: passed
+  - file: desktop-context-zh.png
+    language: zh
+    viewport: desktop
+    originatingTest: "e2e/visual-intelligence.spec.ts:262:5 Chinese context uses text alongside regional colors and remains keyboard dismissible"
+    run: runA_recapture
+    result: passed
+  - file: tablet-context.png
+    language: en
+    viewport: tablet
+    originatingTest: "e2e/visual-intelligence.spec.ts:34:5 default context explains plotted bars, toggles original overlays, and persists choices"
+    run: "runA_recapture (also) + runB_resume (last writer per mtime)"
+    result: passed
+  - file: tablet-context-zh.png
+    language: zh
+    viewport: tablet
+    originatingTest: "e2e/visual-intelligence.spec.ts:262:5 Chinese context uses text alongside regional colors and remains keyboard dismissible"
+    run: runB_resume
+    result: passed
+  - file: mobile-context.png
+    language: en
+    viewport: mobile
+    originatingTest: "e2e/visual-intelligence.spec.ts:34:5 default context explains plotted bars, toggles original overlays, and persists choices"
+    run: runB_resume
+    result: passed
+  - file: mobile-context-zh.png
+    language: zh
+    viewport: mobile
+    originatingTest: "e2e/visual-intelligence.spec.ts:262:5 Chinese context uses text alongside regional colors and remains keyboard dismissible"
+    run: runB_resume
+    result: passed
+
+# ========================= HISTORICAL (NOT CURRENT) ==========================
+# Prior receipt only: head 4b358bbcf8b5783adcde1a00bb079511b25121e5
+# (TERMINAL-02 live-bar generation split, rebased onto #772), captured 2026-09-29.
+# The blocks below are the prior EVIDENCE.yml browserResults/localGates kept VERBATIM
+# for historical receipt continuity. They do NOT describe the 4ecd capture above. Never copy
+# these pass figures into currentResults.
+historicalGates:
+  receiptHead: 4b358bbcf8b5783adcde1a00bb079511b25121e5
+  capturedAt: 2026-09-29T19:37:11.851609+00:00
+  browserResults:
+    desktop: 10/10 passed
+    tablet: 10/10 passed
+    mobile: 10/10 passed
+    mobileCrosshairRegression: 1/1 passed
+    visualIntelligenceMatrix: 30 passed; zero failures
+  localGates:
+    typecheck: PASS
+    scopedLint: NOT_RERUN; evidence refresh does not claim a new lint receipt
+    plainLanguage: Existing localized copy retained; separate copy guard not rerun
+    vitest: 379 files passed; 6093 tests passed; 4 todo
+  commands:
+    - TERMINAL_E2E_PORT=36947 npx playwright test e2e/visual-intelligence.spec.ts --project=desktop --project=tablet --project=mobile --workers=1 --retries=0 --reporter=list
+    - TERMINAL_E2E_PORT=36948 npx playwright test e2e/chart-view-reset.spec.ts --project=mobile --workers=1 --retries=0 --grep 'New chart tickers reserve space'
+
 files:
   - desktop-context.png
   - desktop-context-zh.png

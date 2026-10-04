@@ -2,7 +2,7 @@
 
 This directory preserves all 19 files from the two historical evidence folders in Terminal #723 at `c8705d6eacb6fcc706881dbf92e079e1c8ca01c4`. The originals were copied byte for byte; `PRESERVATION.json` maps every original path to its preserved path and SHA-256.
 
-The integration keeps the current-master versions from `fb6f5cc39e592e7f9967835a85617b4fef427b09` at `terminal/docs/pr-crops/options-level-axis-labels/` and `terminal/docs/pr-crops/terminal-visual-intelligence/`. Existing repository references continue to point to those locations. Both sets are historical captures, not verification of the current integrated UI or current production.
+The initial integration retained the current-master versions from `fb6f5cc39e592e7f9967835a85617b4fef427b09` at the original `terminal/docs/pr-crops/options-level-axis-labels/` and `terminal/docs/pr-crops/terminal-visual-intelligence/` paths. Their complete bytes remain in that Git revision. Those original paths are the current verification locations: a later recapture replaces their images and source-bound manifests together. Existing repository references continue to point to those locations. The copies under this archive remain historical evidence and supply no verification of the current integrated UI or current production.
 
 The preserved level-axis manifest and Visual Intelligence evidence bind September 25 worktree content from `83f14a56bbf6657916df2f9bc93498bacd94d833` plus `9aca42ee0047651856c8d7b632d8737b0dffd569`, through their source-file hashes. Their carrier commit `c8705d6e` is not the capture's source identity. The retained level-axis README names its earlier `06c23bfb3b87ed475d1f242770fb7c2c980a4c59` source; that historical statement is also preserved without rewriting.
 

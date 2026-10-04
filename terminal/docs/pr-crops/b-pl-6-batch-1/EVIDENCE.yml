@@ -1,15 +1,15 @@
 # B-PL-6 batch 1 — capture evidence
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
 # Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
-# capturedAtHead: 013dc875623e1e08a022f49d62c2cc99a87121ff
-# capturedAt: 2026-10-03T05:32:50.490Z
+# capturedAtHead: 4ecd157013124a97d1df9c00853b2e294b9ffb77
+# capturedAt: 2026-10-04T02:39:13.756Z
 # capturedAtHead is informational. The lock is layoutFiles.
 layoutFiles:
   terminal/components/OptionsHubView.tsx: "bc6201d94f709956b4ee70f52900db4431433c5f3dcef1606628900babf73f2a"
   terminal/components/SearchModal.tsx: "ed4545abe5d31c5f79e7eab96bad45b76b06694bf4d1994901dd6defd195bbc0"
   terminal/components/StockAnalysis.tsx: "7657d401a22f79d2b9649ce561545cb0a703e8c95d37a8b5d4e9388e0bda65f8"
   terminal/components/workspaces/AnalysisWorkspace.tsx: "a7a4a5d28373cade10361fe806d4a261bdaa7a6feb61c4f6a3d7ef9155e40624"
-  terminal/components/ChartPanel.tsx: "06f59b1c67ee3661dd361f72b23f16f1cddb26a8020490463ea18f941a44361f"
+  terminal/components/ChartPanel.tsx: "5b4413b0cfa571683de1a36902bb437891b59981fffe3220542fb921afc29ab0"
   terminal/components/DayRange.tsx: "c84724652783da1897ab4eeb98550eaf3dbd7942eefe3ce127b6ada2b16dd672"
   terminal/lib/plainLabels.ts: "711f94db978d842b8051e9a975ef772308dab45ba08b3f1859537b5747d372d1"
   terminal/lib/i18n.tsx: "51276ecc8db6956c6c4e5cc67c55eab029c0b468ccb61e34f8bb92f25e42b9f8"
@@ -23,7 +23,7 @@ capture_flag: TERMINAL_E2E_FIXTURE
 capture_flag_law: next.config.ts sets devIndicators: false when TERMINAL_E2E_FIXTURE is set; this script starts next dev with the same flag.
 command: |
   cd terminal
-  node e2e/tools/capture_pl6_batch1.cjs
+  TERMINAL_CROP_PORT=38245 CAPTURE_ONLY=ChartChrome node e2e/tools/capture_pl6_batch1.cjs
 files:
   - AnalysisWorkspace-1440-zh.png
   - AnalysisWorkspace-1440.png
@@ -45,3 +45,9 @@ files:
   - StockAnalysis-1440.png
   - StockAnalysis-390-zh.png
   - StockAnalysis-390.png
+
+recaptureScope:
+  refreshed: [ChartChrome]
+  preserved: [OptionsHubView, SearchModal, StockAnalysis, AnalysisWorkspace]
+  priorPacketHead: fb6f5cc39e592e7f9967835a85617b4fef427b09
+  note: Only ChartPanel changed among the eight layout sources; the other seven source hashes and sixteen non-ChartChrome crops are byte-identical to the prior packet.
