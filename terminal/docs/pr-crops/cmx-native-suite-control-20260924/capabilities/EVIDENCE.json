@@ -1,0 +1,54 @@
+{
+  "schema": "cmx.a1b.capability-evidence.v1",
+  "status": "BUILT_NOT_PROVEN",
+  "review": "REVIEW_WAIVED_BY_CHAIRMAN",
+  "review_record": "macro#7151/comment5826034970",
+  "previous_head": "88a400692e2e2254ca55f28b15c33be07b70062d",
+  "source_pin": "605cd056c3463c992d85ba76dbcc90fbb758da75",
+  "basis": "Synthetic OHLC and mocked account/model/state transport; real shell, callback, translator, native settings/kernel/renderer and serialized chart-state packet. Not production model proof.",
+  "new_tests": {
+    "red_failed": 8,
+    "focused_passed": 102,
+    "full_files_passed": 383,
+    "full_tests_passed": 6145,
+    "existing_todo": 4,
+    "browser_passed": 6,
+    "browser_retries": 0,
+    "typecheck_exit": 0
+  },
+  "native_metadata_max_utf8_bytes": 4096,
+  "screenshots": [
+    {
+      "path": "terminal/docs/pr-crops/cmx-native-suite-control-20260924/capabilities/desktop-en-native-sr.png",
+      "sha256": "67c1f2393c17cf9d367751d1e97ad75c12e468bd395db3076347a3a771c9744c",
+      "bytes": 287860
+    },
+    {
+      "path": "terminal/docs/pr-crops/cmx-native-suite-control-20260924/capabilities/mobile-en-native-sr.png",
+      "sha256": "973ef4e6feab38567c22a5e2e63abcf30f5b53a36d9ed9af6c25497da96b3864",
+      "bytes": 99880
+    },
+    {
+      "path": "terminal/docs/pr-crops/cmx-native-suite-control-20260924/capabilities/tablet-en-native-sr.png",
+      "sha256": "cd6da5def914fb51847d0abaa8796a6e9dcf241e994aa3b2f265e1ab4a0f3b6d",
+      "bytes": 194449
+    },
+    {
+      "path": "terminal/docs/pr-crops/cmx-native-suite-control-20260924/capabilities/desktop-zh-native-sr.png",
+      "sha256": "fbf9ad27679609a19bc1b8ff0562d1d2e50f3816cd3bae2b9c2226594ce2ca93",
+      "bytes": 291007
+    },
+    {
+      "path": "terminal/docs/pr-crops/cmx-native-suite-control-20260924/capabilities/mobile-zh-native-sr.png",
+      "sha256": "54cdb3a51ef6badd7be3a2e3d169940d13d65eeff78294201f9030f7851184a1",
+      "bytes": 98958
+    },
+    {
+      "path": "terminal/docs/pr-crops/cmx-native-suite-control-20260924/capabilities/tablet-zh-native-sr.png",
+      "sha256": "667969b36be4cb7f702bbcbb762f13b485523359d891982ca692453d1426f5a4",
+      "bytes": 193609
+    }
+  ],
+  "whole_state_body_limit": "not established by packet-only byte bound",
+  "backend_command_repair": "not implemented; real-source wire mismatch remains open"
+}

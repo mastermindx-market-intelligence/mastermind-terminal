@@ -62,7 +62,10 @@ TX_OUT    = CA_ROOT / "terminal" / "public" / "data" / "tx"
 TX_INDEX  = US_FUND / "_tx_index.json"
 MANIFEST  = CA_ROOT / "terminal" / "public" / "data" / "manifest.json"
 
-PARQUET_URL   = "https://huggingface.co/datasets/defeatbeta/yahoo-finance-data/resolve/main/data/stock_earning_call_transcripts.parquet"
+# DefeatBeta moved its corpus into market-scoped paths in September 2026.  The
+# former flat data/stock_earning_call_transcripts.parquet URL now returns 404,
+# so leaving the legacy path here silently freezes the last-good cache.
+PARQUET_URL   = "https://huggingface.co/datasets/defeatbeta/yahoo-finance-data/resolve/main/data/US/stock_earning_call_transcripts.parquet"
 LOCAL_PARQUET = TX_CACHE / "stock_earning_call_transcripts.parquet"
 PARQUET_REVISION_MARKER = TX_CACHE / ".stock_earning_call_transcripts.applied_revision"
 PARQUET_CACHE_REVISION_MARKER = TX_CACHE / ".stock_earning_call_transcripts.cache_revision"

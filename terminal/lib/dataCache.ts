@@ -195,12 +195,12 @@ async function fetchOutcome(url: string): Promise<CacheOutcome> {
 // background SWR refresh reach the caller that was already handed the stale value.
 function doFetch(url: string, entry: Entry, onRevalidate?: (data: any) => void): Promise<CacheOutcome> {
   const inflight: Promise<CacheOutcome> = fetchOutcome(url).then((outcome) => {
-    // Only permanently suppress on true 404/410 (resource does not exist).
-    // 5xx / 429 / network errors are transient — the entry evicts so the next call retries.
-    if (outcome.status === "absent") rememberAbsence(url);
-    // Only commit if this specific inflight is still the one registered.
+    // Both positive and negative cache writes belong to the currently registered request.
+    // A late 404 from an invalidated/evicted request must not hide a newer successful read.
     const current = store.get(url);
     if (current && current.inflight === inflight) {
+      // Only 404/410 are absence; transient errors remain retryable.
+      if (outcome.status === "absent") rememberAbsence(url);
       if (outcome.status !== "data") {
         // Never pin null — clear the key so the next call retries.
         // (the bounded absence cache prevents a 404/410 URL from being refetched for a while.)

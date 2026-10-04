@@ -7,6 +7,7 @@
 
 export type {
   ChartEngine,
+  EngineInventory,
   EngineOptions,
   EngineSeriesKind,
   EngineSeriesOptions,

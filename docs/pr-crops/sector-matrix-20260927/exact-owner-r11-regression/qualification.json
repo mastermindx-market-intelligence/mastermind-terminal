@@ -1,0 +1,394 @@
+{
+  "sourceRevision": "79dbe3f2431b9e21cabf23071f02eab5add57eb4",
+  "sourceBodiesChanged": false,
+  "transport": "local interception",
+  "productionProof": false,
+  "independentReviewRequired": false,
+  "themeRightsAdmitted": false,
+  "checks": [
+    {
+      "name": "chromium-1440-en-light: exact Technology population",
+      "passed": true,
+      "details": "Technology\n\nIndustry × market cap\n\n2026-09-25 · 79 names · 1D\n\nMARKET READ\n\nComputer Hardware has the broadest participation (7/7 up); Software - Infrastructure is weakest (5/15 up).\n\nSector\nTechnology · XLK\nCommunication Services · XLC\nHealth Care · XLV\nEnergy · XLE\nConsumer Discretionary · XLY\nUtilities · XLU\nFinancials · XLF\nConsumer Staples · XLP\nIndustrials · XLI\nReal Estate · XLRE\nMaterials · XLB\nPerformance window\n1D\n1W\nMTD\n1M\n3M\n6M\nYTD\n1Y\nReview sources →\nINDUSTRY\n≥ $200B\n$50–200B\n$10–50B\n< $10B\nInformation Technology Services\n0/1\nup\n1 names\n0/1\nup\n1 names\n5/6\nup\n6 names\n—\nSoftware - Infrastructure\n1/5\nup\n5 names\n3/5\nup\n5 names\n1/5\nup\n5 names\n—\nSemiconductors\n7/8\nup\n8 names\n3/3\nup\n3 names\n3/3\nup\n3 names\n—\nElectronic Components\n1/1\nup\n1 names\n3/3\nup\n3 names\n2/2\nup\n2 names\n—\nConsumer Electronics\n1/1\nup\n1 names\n—\n—\n—\nSemiconductor Equipment & Materials\n3/3\nup\n3 names\n1/1\nup\n1 names\n1/1\nup\n1 names\n—\nSoftware - Application\n—\n2/6\nup\n6 names\n2/5\nup\n5 names\n—\nCommunication Equipment\n1/2\nup\n2 names\n2/4\nup\n4 names\n1/1\nup\n1 names\n—\nComputer Hardware\n3/3\nup\n3 names\n1/1\nup\n1 names\n3/3\nup\n3 names\n—\nSolar\n—\n—\n1/1\nup\n1 names\n—\nScientific & Technical Instruments\n—\n1/2\nup\n2 names\n2/2\nup\n2 names\n—\nSELECTED CELL\nInformation Technology Services\n\n$50–200B · 1 names · 1 observed\n\nACN\nAccenture\n-0.73%\n$109B\nOpen sector intelligence →\n\nExact sector labels only; missing names are never inferred."
+    },
+    {
+      "name": "chromium-1440-en-light: exact source date",
+      "passed": true
+    },
+    {
+      "name": "chromium-1440-en-light: distinct Information Technology row excluded",
+      "passed": true
+    },
+    {
+      "name": "chromium-1440-en-light: answer derived from exact industry participation",
+      "passed": true,
+      "details": "MARKET READ\n\nComputer Hardware has the broadest participation (7/7 up); Software - Infrastructure is weakest (5/15 up)."
+    },
+    {
+      "name": "chromium-1440-en-light: size bands preserve exact source counts",
+      "passed": true
+    },
+    {
+      "name": "chromium-1440-en-light: selected cell identity stays URL-bound",
+      "passed": true
+    },
+    {
+      "name": "chromium-1440-en-light: selected cell exposes the complete exact member set",
+      "passed": true,
+      "details": "SELECTED CELL\nSoftware - Infrastructure\n\n$50–200B · 5 names · 5 observed\n\nADBE\nAdobe Inc.\n-1.45%\n$95.0B\nCDNS\nCadence Design Systems\n+1.28%\n$88.7B\nDDOG\nDatadog\n+4.36%\n$92.3B\nFTNT\nFortinet\n-2.92%\n$131B\nSNPS\nSynopsys\n+0.20%\n$81.4B\nOpen sector intelligence →"
+    },
+    {
+      "name": "chromium-1440-en-light: timeframe is durable URL state",
+      "passed": true
+    },
+    {
+      "name": "chromium-1440-en-light: Table remains the same Discover job",
+      "passed": true
+    },
+    {
+      "name": "chromium-1440-en-light: Matrix restores selected sector and timeframe",
+      "passed": true
+    },
+    {
+      "name": "chromium-1440-en-light: detail has explicit Discover return",
+      "passed": true
+    },
+    {
+      "name": "chromium-1440-en-light: explicit return restores Matrix context",
+      "passed": true
+    },
+    {
+      "name": "chromium-1440-en-light: explicit return restores Matrix action focus",
+      "passed": true
+    },
+    {
+      "name": "chromium-1440-en-light: Sources remains contextual to Discover",
+      "passed": true
+    },
+    {
+      "name": "chromium-1440-en-light: no horizontal overflow",
+      "passed": true,
+      "details": {
+        "inner": 0,
+        "document": 0
+      }
+    },
+    {
+      "name": "chromium-1440-en-light: access loss clears exact matrix names",
+      "passed": true
+    },
+    {
+      "name": "chromium-820-en-dark: exact Technology population",
+      "passed": true,
+      "details": "Technology\n\nIndustry × market cap\n\n2026-09-25 · 79 names · 1D\n\nMARKET READ\n\nComputer Hardware has the broadest participation (7/7 up); Software - Infrastructure is weakest (5/15 up).\n\nSector\nTechnology · XLK\nCommunication Services · XLC\nHealth Care · XLV\nEnergy · XLE\nConsumer Discretionary · XLY\nUtilities · XLU\nFinancials · XLF\nConsumer Staples · XLP\nIndustrials · XLI\nReal Estate · XLRE\nMaterials · XLB\nPerformance window\n1D\n1W\nMTD\n1M\n3M\n6M\nYTD\n1Y\nReview sources →\nINDUSTRY\n≥ $200B\n$50–200B\n$10–50B\n< $10B\nInformation Technology Services\n0/1\nup\n1 names\n0/1\nup\n1 names\n5/6\nup\n6 names\n—\nSoftware - Infrastructure\n1/5\nup\n5 names\n3/5\nup\n5 names\n1/5\nup\n5 names\n—\nSemiconductors\n7/8\nup\n8 names\n3/3\nup\n3 names\n3/3\nup\n3 names\n—\nElectronic Components\n1/1\nup\n1 names\n3/3\nup\n3 names\n2/2\nup\n2 names\n—\nConsumer Electronics\n1/1\nup\n1 names\n—\n—\n—\nSemiconductor Equipment & Materials\n3/3\nup\n3 names\n1/1\nup\n1 names\n1/1\nup\n1 names\n—\nSoftware - Application\n—\n2/6\nup\n6 names\n2/5\nup\n5 names\n—\nCommunication Equipment\n1/2\nup\n2 names\n2/4\nup\n4 names\n1/1\nup\n1 names\n—\nComputer Hardware\n3/3\nup\n3 names\n1/1\nup\n1 names\n3/3\nup\n3 names\n—\nSolar\n—\n—\n1/1\nup\n1 names\n—\nScientific & Technical Instruments\n—\n1/2\nup\n2 names\n2/2\nup\n2 names\n—\nSELECTED CELL\nInformation Technology Services\n\n$50–200B · 1 names · 1 observed\n\nACN\nAccenture\n-0.73%\n$109B\nOpen sector intelligence →\n\nExact sector labels only; missing names are never inferred."
+    },
+    {
+      "name": "chromium-820-en-dark: exact source date",
+      "passed": true
+    },
+    {
+      "name": "chromium-820-en-dark: distinct Information Technology row excluded",
+      "passed": true
+    },
+    {
+      "name": "chromium-820-en-dark: answer derived from exact industry participation",
+      "passed": true,
+      "details": "MARKET READ\n\nComputer Hardware has the broadest participation (7/7 up); Software - Infrastructure is weakest (5/15 up)."
+    },
+    {
+      "name": "chromium-820-en-dark: size bands preserve exact source counts",
+      "passed": true
+    },
+    {
+      "name": "chromium-820-en-dark: selected cell identity stays URL-bound",
+      "passed": true
+    },
+    {
+      "name": "chromium-820-en-dark: selected cell exposes the complete exact member set",
+      "passed": true,
+      "details": "SELECTED CELL\nSoftware - Infrastructure\n\n$50–200B · 5 names · 5 observed\n\nADBE\nAdobe Inc.\n-1.45%\n$95.0B\nCDNS\nCadence Design Systems\n+1.28%\n$88.7B\nDDOG\nDatadog\n+4.36%\n$92.3B\nFTNT\nFortinet\n-2.92%\n$131B\nSNPS\nSynopsys\n+0.20%\n$81.4B\nOpen sector intelligence →"
+    },
+    {
+      "name": "chromium-820-en-dark: timeframe is durable URL state",
+      "passed": true
+    },
+    {
+      "name": "chromium-820-en-dark: Table remains the same Discover job",
+      "passed": true
+    },
+    {
+      "name": "chromium-820-en-dark: Matrix restores selected sector and timeframe",
+      "passed": true
+    },
+    {
+      "name": "chromium-820-en-dark: detail has explicit Discover return",
+      "passed": true
+    },
+    {
+      "name": "chromium-820-en-dark: explicit return restores Matrix context",
+      "passed": true
+    },
+    {
+      "name": "chromium-820-en-dark: explicit return restores Matrix action focus",
+      "passed": true
+    },
+    {
+      "name": "chromium-820-en-dark: Sources remains contextual to Discover",
+      "passed": true
+    },
+    {
+      "name": "chromium-820-en-dark: no horizontal overflow",
+      "passed": true,
+      "details": {
+        "inner": 0,
+        "document": 0
+      }
+    },
+    {
+      "name": "chromium-820-en-dark: access loss clears exact matrix names",
+      "passed": true
+    },
+    {
+      "name": "chromium-390-en-light: exact Technology population",
+      "passed": true,
+      "details": "Technology\n\nIndustry × market cap\n\n2026-09-25 · 79 names · 1D\n\nMARKET READ\n\nComputer Hardware has the broadest participation (7/7 up); Software - Infrastructure is weakest (5/15 up).\n\nSector\nTechnology · XLK\nCommunication Services · XLC\nHealth Care · XLV\nEnergy · XLE\nConsumer Discretionary · XLY\nUtilities · XLU\nFinancials · XLF\nConsumer Staples · XLP\nIndustrials · XLI\nReal Estate · XLRE\nMaterials · XLB\nPerformance window\n1D\n1W\nMTD\n1M\n3M\n6M\nYTD\n1Y\nReview sources →\nBrowse matrix cells\n27 cells\nSELECTED CELL\nInformation Technology Services\n\n$50–200B · 1 names · 1 observed\n\nACN\nAccenture\n-0.73%\n$109B\nOpen sector intelligence →\n\nExact sector labels only; missing names are never inferred."
+    },
+    {
+      "name": "chromium-390-en-light: exact source date",
+      "passed": true
+    },
+    {
+      "name": "chromium-390-en-light: distinct Information Technology row excluded",
+      "passed": true
+    },
+    {
+      "name": "chromium-390-en-light: answer derived from exact industry participation",
+      "passed": true,
+      "details": "MARKET READ\n\nComputer Hardware has the broadest participation (7/7 up); Software - Infrastructure is weakest (5/15 up)."
+    },
+    {
+      "name": "chromium-390-en-light: size bands preserve exact source counts",
+      "passed": true
+    },
+    {
+      "name": "chromium-390-en-light: selected cell identity stays URL-bound",
+      "passed": true
+    },
+    {
+      "name": "chromium-390-en-light: selected cell exposes the complete exact member set",
+      "passed": true,
+      "details": "SELECTED CELL\nSoftware - Infrastructure\n\n$50–200B · 5 names · 5 observed\n\nADBE\nAdobe Inc.\n-1.45%\n$95.0B\nCDNS\nCadence Design Systems\n+1.28%\n$88.7B\nDDOG\nDatadog\n+4.36%\n$92.3B\nFTNT\nFortinet\n-2.92%\n$131B\nSNPS\nSynopsys\n+0.20%\n$81.4B\nOpen sector intelligence →"
+    },
+    {
+      "name": "chromium-390-en-light: timeframe is durable URL state",
+      "passed": true
+    },
+    {
+      "name": "chromium-390-en-light: Table remains the same Discover job",
+      "passed": true
+    },
+    {
+      "name": "chromium-390-en-light: Matrix restores selected sector and timeframe",
+      "passed": true
+    },
+    {
+      "name": "chromium-390-en-light: detail has explicit Discover return",
+      "passed": true
+    },
+    {
+      "name": "chromium-390-en-light: explicit return restores Matrix context",
+      "passed": true
+    },
+    {
+      "name": "chromium-390-en-light: explicit return restores Matrix action focus",
+      "passed": true
+    },
+    {
+      "name": "chromium-390-en-light: Sources remains contextual to Discover",
+      "passed": true
+    },
+    {
+      "name": "chromium-390-en-light: no horizontal overflow",
+      "passed": true,
+      "details": {
+        "inner": 0,
+        "document": 0
+      }
+    },
+    {
+      "name": "chromium-390-en-light: access loss clears exact matrix names",
+      "passed": true
+    },
+    {
+      "name": "webkit-1440-en-dark: exact Technology population",
+      "passed": true,
+      "details": "Technology\n\nIndustry × market cap\n\n2026-09-25 · 79 names · 1D\n\nMARKET READ\n\nComputer Hardware has the broadest participation (7/7 up); Software - Infrastructure is weakest (5/15 up).\n\nSector\nPerformance window\nReview sources →\nINDUSTRY\n≥ $200B\n$50–200B\n$10–50B\n< $10B\nInformation Technology Services\n0/1\nup\n1 names\n0/1\nup\n1 names\n5/6\nup\n6 names\n—\nSoftware - Infrastructure\n1/5\nup\n5 names\n3/5\nup\n5 names\n1/5\nup\n5 names\n—\nSemiconductors\n7/8\nup\n8 names\n3/3\nup\n3 names\n3/3\nup\n3 names\n—\nElectronic Components\n1/1\nup\n1 names\n3/3\nup\n3 names\n2/2\nup\n2 names\n—\nConsumer Electronics\n1/1\nup\n1 names\n—\n—\n—\nSemiconductor Equipment & Materials\n3/3\nup\n3 names\n1/1\nup\n1 names\n1/1\nup\n1 names\n—\nSoftware - Application\n—\n2/6\nup\n6 names\n2/5\nup\n5 names\n—\nCommunication Equipment\n1/2\nup\n2 names\n2/4\nup\n4 names\n1/1\nup\n1 names\n—\nComputer Hardware\n3/3\nup\n3 names\n1/1\nup\n1 names\n3/3\nup\n3 names\n—\nSolar\n—\n—\n1/1\nup\n1 names\n—\nScientific & Technical Instruments\n—\n1/2\nup\n2 names\n2/2\nup\n2 names\n—\nSELECTED CELL\nInformation Technology Services\n\n$50–200B · 1 names · 1 observed\n\nACN\nAccenture\n-0.73%\n$109B\nOpen sector intelligence →\n\nExact sector labels only; missing names are never inferred."
+    },
+    {
+      "name": "webkit-1440-en-dark: exact source date",
+      "passed": true
+    },
+    {
+      "name": "webkit-1440-en-dark: distinct Information Technology row excluded",
+      "passed": true
+    },
+    {
+      "name": "webkit-1440-en-dark: answer derived from exact industry participation",
+      "passed": true,
+      "details": "MARKET READ\n\nComputer Hardware has the broadest participation (7/7 up); Software - Infrastructure is weakest (5/15 up)."
+    },
+    {
+      "name": "webkit-1440-en-dark: size bands preserve exact source counts",
+      "passed": true
+    },
+    {
+      "name": "webkit-1440-en-dark: selected cell identity stays URL-bound",
+      "passed": true
+    },
+    {
+      "name": "webkit-1440-en-dark: selected cell exposes the complete exact member set",
+      "passed": true,
+      "details": "SELECTED CELL\nSoftware - Infrastructure\n\n$50–200B · 5 names · 5 observed\n\nADBE\nAdobe Inc.\n-1.45%\n$95.0B\nCDNS\nCadence Design Systems\n+1.28%\n$88.7B\nDDOG\nDatadog\n+4.36%\n$92.3B\nFTNT\nFortinet\n-2.92%\n$131B\nSNPS\nSynopsys\n+0.20%\n$81.4B\nOpen sector intelligence →"
+    },
+    {
+      "name": "webkit-1440-en-dark: timeframe is durable URL state",
+      "passed": true
+    },
+    {
+      "name": "webkit-1440-en-dark: Table remains the same Discover job",
+      "passed": true
+    },
+    {
+      "name": "webkit-1440-en-dark: Matrix restores selected sector and timeframe",
+      "passed": true
+    },
+    {
+      "name": "webkit-1440-en-dark: detail has explicit Discover return",
+      "passed": true
+    },
+    {
+      "name": "webkit-1440-en-dark: explicit return restores Matrix context",
+      "passed": true
+    },
+    {
+      "name": "webkit-1440-en-dark: explicit return restores Matrix action focus",
+      "passed": true
+    },
+    {
+      "name": "webkit-1440-en-dark: Sources remains contextual to Discover",
+      "passed": true
+    },
+    {
+      "name": "webkit-1440-en-dark: no horizontal overflow",
+      "passed": true,
+      "details": {
+        "inner": 0,
+        "document": 0
+      }
+    },
+    {
+      "name": "webkit-1440-en-dark: access loss clears exact matrix names",
+      "passed": true
+    },
+    {
+      "name": "webkit-390-zh-light: exact Technology population",
+      "passed": true,
+      "details": "科技\n\n行业 × 市值\n\n2026-09-25 · 79 家公司 · 1D\n\n市场解读\n\nComputer Hardware参与度最强（7/7上涨）；Software - Infrastructure最弱（5/15上涨）。\n\n板块\n表现周期\n查看来源 →\n浏览矩阵单元格\n27 个单元格\n所选单元格\nInformation Technology Services\n\n500–2000亿美元 · 1 家公司 · 1 有观察\n\nACN\nAccenture\n-0.73%\n$109B\n打开板块情报 →\n\n仅使用精确板块标签；不会推断缺失名称。"
+    },
+    {
+      "name": "webkit-390-zh-light: exact source date",
+      "passed": true
+    },
+    {
+      "name": "webkit-390-zh-light: distinct Information Technology row excluded",
+      "passed": true
+    },
+    {
+      "name": "webkit-390-zh-light: answer derived from exact industry participation",
+      "passed": true,
+      "details": "市场解读\n\nComputer Hardware参与度最强（7/7上涨）；Software - Infrastructure最弱（5/15上涨）。"
+    },
+    {
+      "name": "webkit-390-zh-light: size bands preserve exact source counts",
+      "passed": true
+    },
+    {
+      "name": "webkit-390-zh-light: selected cell identity stays URL-bound",
+      "passed": true
+    },
+    {
+      "name": "webkit-390-zh-light: selected cell exposes the complete exact member set",
+      "passed": true,
+      "details": "所选单元格\nSoftware - Infrastructure\n\n500–2000亿美元 · 5 家公司 · 5 有观察\n\nADBE\nAdobe Inc.\n-1.45%\n$95.0B\nCDNS\nCadence Design Systems\n+1.28%\n$88.7B\nDDOG\nDatadog\n+4.36%\n$92.3B\nFTNT\nFortinet\n-2.92%\n$131B\nSNPS\nSynopsys\n+0.20%\n$81.4B\n打开板块情报 →"
+    },
+    {
+      "name": "webkit-390-zh-light: timeframe is durable URL state",
+      "passed": true
+    },
+    {
+      "name": "webkit-390-zh-light: Table remains the same Discover job",
+      "passed": true
+    },
+    {
+      "name": "webkit-390-zh-light: Matrix restores selected sector and timeframe",
+      "passed": true
+    },
+    {
+      "name": "webkit-390-zh-light: detail has explicit Discover return",
+      "passed": true
+    },
+    {
+      "name": "webkit-390-zh-light: explicit return restores Matrix context",
+      "passed": true
+    },
+    {
+      "name": "webkit-390-zh-light: explicit return restores Matrix action focus",
+      "passed": true
+    },
+    {
+      "name": "webkit-390-zh-light: Sources remains contextual to Discover",
+      "passed": true
+    },
+    {
+      "name": "webkit-390-zh-light: no horizontal overflow",
+      "passed": true,
+      "details": {
+        "inner": 0,
+        "document": 0
+      }
+    },
+    {
+      "name": "webkit-390-zh-light: access loss clears exact matrix names",
+      "passed": true
+    },
+    {
+      "name": "zero page exceptions",
+      "passed": true,
+      "details": []
+    }
+  ],
+  "screenshots": [
+    {
+      "name": "chromium-1440-en-light-matrix.png",
+      "sha256": "f6e8630e672918f4957a0b98c7e105e0b726e0d1b7135c2a69860178d81e9ee8"
+    },
+    {
+      "name": "chromium-820-en-dark-matrix.png",
+      "sha256": "2da7a42fc7db05e1f419de02fc889c6abd7146c64b38fbf91de5a2bd0b45d08a"
+    },
+    {
+      "name": "chromium-390-en-light-matrix.png",
+      "sha256": "ddad34ac325ce62d6b8202ae2482997078db6801c498be4976d475e2937936d2"
+    },
+    {
+      "name": "webkit-1440-en-dark-matrix.png",
+      "sha256": "ff2019f5297f122e00359cd0ed8a45679e9411ddf9d254fcabf6e3d0b00e4344"
+    },
+    {
+      "name": "webkit-390-zh-light-matrix.png",
+      "sha256": "1fedbfaf0c96a5e5594ddb857de1f6cf2e56a979161ff3a435960251f671f85e"
+    }
+  ],
+  "errors": [],
+  "passed": true
+}
