@@ -76,7 +76,7 @@ def test_foreign_reads_and_direct_writes_are_denied(pg):
     assert apply(pg,"40000000-0000-4000-8000-000000000006","revise",3,actor=B)["status"] == "not_found"
 
 def test_retained_layout_does_not_follow_or_mutate_current(pg):
-    config = {"schema":"workspace_layout.v1","revision":1,"name":"My layout","requires":{"floor":1},"widgets":[],"link_groups":{}}
+    config = json.loads((ROOT / "terminal/lib/__tests__/fixtures/workspace/chart_layout_v2_real_capture.json").read_text())["expected"]
     pg("insert into chart_layouts values ('"+LAYOUT+"','"+A+"','My layout',"+quote(json.dumps(config))+",now())")
     capture={"layout_id":LAYOUT,"expected_revision":1,"revision_id":"50000000-0000-4000-8000-000000000001"}
     saved=apply(pg,"40000000-0000-4000-8000-000000000007","revise",3,capture=capture)

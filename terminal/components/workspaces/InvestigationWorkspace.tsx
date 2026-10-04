@@ -153,8 +153,8 @@ export default function InvestigationWorkspace({ownerKey,initialSymbol,initialIn
  const symbol=detail?.manifest.intent.subjects.find(s=>s.owner==="terminal.analysis_symbol")?.object_id??draft.symbol;
  const visible=items?.filter(i=>i.lifecycle===filter);
  const frozen=locked||storageBlocked;
- if(authEnded)return <main className={styles.root}><h1>{c.title}</h1><p role="status">{c.auth}</p><Link href="/login">{c.signIn}</Link></main>;
- return <main className={styles.root}>
+ if(authEnded)return <main className={`main2 ws-shell ${styles.root}`}><h1>{c.title}</h1><p role="status">{c.auth}</p><Link href="/login">{c.signIn}</Link></main>;
+ return <main className={`main2 ws-shell ${styles.root}`}>
   <Link className={styles.back} href={`/analysis${symbol?`?symbol=${encodeURIComponent(symbol)}`:""}`}>← {c.back}</Link>
   <header className={styles.heading}><div><h1>{c.title}</h1><p>{c.intro}</p></div><button disabled={frozen} onClick={()=>beginEdit(true)}>{c.start}</button></header>
   {storageBlocked&&<p className={styles.notice} role="alert">{c.storage}</p>}
