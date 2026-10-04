@@ -152,6 +152,7 @@ import WorkspaceTile from "@/components/WorkspaceTile";
 import { nextLayoutName, type SavedLayout } from "@/lib/layouts";
 import { applyLayoutConfig, captureLayoutConfig, type LayoutWorkspace } from "@/lib/layoutConfig";
 import { migrateLegacy, workspaceToLayout, captureWorkspace } from "@/lib/workspaceMigrate";
+import RetainedInvestigationLayout from "@/components/RetainedInvestigationLayout";
 import { SCHEMA as WORKSPACE_SCHEMA, validateEnvelope, type WorkspaceEnvelope, type Widget as WorkspaceWidget } from "@/lib/workspaceLayout";
 import { workspaceRowState, migrationUnclaimed, migrationUnsupportedWidgets, parseWorkspaceOutcome, absoluteLocalTime, safeWorkspaceFilename, importFailureKey, brainIncludedFromEnvelope, openBrainReincluding, type WorkspaceOpOutcome } from "@/lib/workspaceMenuOps";
 import { type PineScript } from "@/components/ChartPanel";
@@ -5066,6 +5067,12 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, s
         below are children of it, which is what matters. */}
     <SettingsProvider identity={identity} defaultSection="terminal">
     <div className={`app${fullChart ? " fs" : ""}${shellMode ? " shell-app" : ""}`} data-shell={shellMode ? "app" : undefined} data-tray={shellMode && shellTray ? "1" : undefined} data-dossier={dossierMode ? "1" : undefined} style={{ ["--rail-w" as any]: `${railW}px` }}>
+      {!shellMode && <RetainedInvestigationLayout search={urlSearch} owner={wlOwner} onOpen={(config,name)=>{
+        loadLayout({id:"",name,config,updated_at:null,rowState:"ok"});
+        // A historical read is an unnamed local working copy. It must never target the
+        // current named row (which may already be N+1) when the user next chooses Save.
+        setWorkspaceName(null);setWorkspaceRevision(null);setWorkspaceId(null);
+      }}/>}
       {!shellMode && (
       <header className="topbar">
         {fromMacro ? <DashboardBackButton onClick={onBack} /> : <BrandLockup />}

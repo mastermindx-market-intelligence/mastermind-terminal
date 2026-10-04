@@ -41,7 +41,7 @@ export INTRADAY_RUN_DATE_ET="$(TZ=America/New_York date +%F)"
 echo "[$(ts)] === terminal refresh start (staging) ==="
 
 rm -f "$STAGE"
-run(){ echo "[$(ts)] -> $*"; "$@" || echo "[$(ts)] WARN: '$*' exited $?"; }
+run(){ echo "[$(ts)] -> $*"; "$@" || { local rc=$?; echo "[$(ts)] WARN: '$*' exited $rc"; }; }
 
 # Snapshot the live manifest at run start: recovery artifact + shrink-guard baseline.
 BAK="$D/manifest.json.bak-nightly"
