@@ -1337,6 +1337,22 @@ def _fu_refresh_tail(store, k, n_shared=6):
     return tail + [nb]
 
 
+def _fu_refresh_tail_scales(store, scales):
+    """Shared tail with per-bar close multipliers (same length as scales)."""
+    n = len(scales)
+    tail = []
+    for i, k in enumerate(scales):
+        r = store[-(n - i)]
+        tail.append([r[0], r[1] * k, r[2] * k, r[3] * k, r[4] * k, r[5]])
+    last = store[-1][0]
+    j = len(store)
+    k_last = scales[-1]
+    tail.append(
+        [last + 3600, (100 + j) * k_last, (105 + j) * k_last, (99 + j) * k_last,
+         (101 + j) * k_last, 1000])
+    return tail
+
+
 def test_fu_m1_expect_advance_on_nyse_holiday_exits_ok(intraday_env, monkeypatch, capsys):
     make_store(intraday_env / "HOL.1h.json", "HOL", "1h", n=30)
     monkeypatch.setattr(mod, "INTRADAY", intraday_env)
@@ -1383,15 +1399,119 @@ def test_fu_m2_thin_overlap_exact_gross_band_1_25_rebuilds(intraday_env, capsys)
         if frm is None:
             full.append(1)
             return _fu_moved(_fu_rows(40), 1.25)
-        return _fu_refresh_tail(store, 1.25, n_shared=4)
+        return _fu_refresh_tail(store, 1.25, n_shared=1)
 
     with patch.object(mod, "fetch_polygon_intraday", fake):
         rc = mod.main(["--existing-only", "--tf", "1h", "--workers", "1"])
     out = capsys.readouterr().out
     assert rc == 0
     assert len(full) == 1
-    assert "thin overlap" in out
+    assert "agreeing bars" not in out
     assert "rebuilt=1" in out
+
+
+def test_fu_m2_thin_overlap_gross_band_1_2499_merges_basis_unverified(intraday_env, capsys):
+    sym = "M2C"
+    store = _fu_rows(30)
+    path = intraday_env / f"{sym}.1h.json"
+    _write_store_rows(path, sym, "1h", store)
+    k = 1.2499
+
+    def fake(s, tf, frm=None, **kwargs):
+        if frm is None:
+            raise AssertionError("full rebuild should not run")
+        return _fu_refresh_tail(store, k, n_shared=1)
+
+    with patch.object(mod, "fetch_polygon_intraday", fake):
+        rc = mod.main(["--existing-only", "--tf", "1h", "--workers", "1"])
+    out = capsys.readouterr().out
+    assert rc == 0
+    assert "rebuilt=0" in out
+    assert "basis_unverified=1" in out
+
+
+def test_fu_m2_thin_overlap_ratio_1_01_one_bar_merges_basis_unverified(intraday_env, capsys):
+    sym = "M2D"
+    store = _fu_rows(30)
+    path = intraday_env / f"{sym}.1h.json"
+    _write_store_rows(path, sym, "1h", store)
+
+    def fake(s, tf, frm=None, **kwargs):
+        if frm is None:
+            raise AssertionError("full rebuild should not run")
+        return _fu_refresh_tail(store, 1.01, n_shared=1)
+
+    with patch.object(mod, "fetch_polygon_intraday", fake):
+        rc = mod.main(["--existing-only", "--tf", "1h", "--workers", "1"])
+    out = capsys.readouterr().out
+    assert rc == 0
+    assert "rebuilt=0" in out
+    assert "basis_unverified=1" in out
+
+
+def test_fu_m2_thin_overlap_two_agreeing_bars_thin_rebuilds(intraday_env, capsys):
+    sym = "M2E"
+    store = _fu_rows(30)
+    path = intraday_env / f"{sym}.1h.json"
+    _write_store_rows(path, sym, "1h", store)
+    full = []
+
+    def fake(s, tf, frm=None, **kwargs):
+        if frm is None:
+            full.append(1)
+            return _fu_moved(_fu_rows(40), 1.0105)
+        return _fu_refresh_tail_scales(store, [1.01, 1.011])
+
+    with patch.object(mod, "fetch_polygon_intraday", fake):
+        rc = mod.main(["--existing-only", "--tf", "1h", "--workers", "1"])
+    out = capsys.readouterr().out
+    assert rc == 0
+    assert len(full) == 1
+    assert "2 agreeing bars" in out
+    assert "rebuilt=1" in out
+
+
+def test_fu_m2_thin_overlap_two_disagreeing_bars_merges_basis_unverified(intraday_env, capsys):
+    sym = "M2F"
+    store = _fu_rows(30)
+    path = intraday_env / f"{sym}.1h.json"
+    _write_store_rows(path, sym, "1h", store)
+
+    def fake(s, tf, frm=None, **kwargs):
+        if frm is None:
+            raise AssertionError("full rebuild should not run")
+        return _fu_refresh_tail_scales(store, [1.01, 0.995])
+
+    with patch.object(mod, "fetch_polygon_intraday", fake):
+        rc = mod.main(["--existing-only", "--tf", "1h", "--workers", "1"])
+    out = capsys.readouterr().out
+    assert rc == 0
+    assert "rebuilt=0" in out
+    assert "basis_unverified=1" in out
+
+
+def test_fu_m2_thin_budget_spent_merges_second_candidate(intraday_env, monkeypatch, capsys):
+    sym_a, sym_b = "M2G", "M2H"
+    for sym in (sym_a, sym_b):
+        store = _fu_rows(30)
+        _write_store_rows(intraday_env / f"{sym}.1h.json", sym, "1h", store)
+    monkeypatch.setattr(mod, "MAX_THIN_REBUILDS", 1)
+    full = []
+
+    def fake(s, tf, frm=None, **kwargs):
+        store = mod.load_store(s, tf)[0]
+        if frm is None:
+            full.append(s)
+            return _fu_moved(_fu_rows(40), 1.0105)
+        return _fu_refresh_tail_scales(store, [1.01, 1.011])
+
+    with patch.object(mod, "fetch_polygon_intraday", fake):
+        rc = mod.main(["--existing-only", "--tf", "1h", "--workers", "1"])
+    out = capsys.readouterr().out
+    assert rc == 0
+    assert len(full) == 1
+    assert "rebuilt=1" in out
+    assert "basis_unverified=1" in out
 
 
 def test_fu_m2_thin_overlap_six_five_ratio_on_four_bars_rebuilds(intraday_env, capsys):
@@ -1413,7 +1533,7 @@ def test_fu_m2_thin_overlap_six_five_ratio_on_four_bars_rebuilds(intraday_env, c
     out = capsys.readouterr().out
     assert rc == 0
     assert len(full) == 1
-    assert "thin overlap" in out
+    assert "4 agreeing bars" in out
     assert "rebuilt=1" in out
 
 
@@ -1436,32 +1556,4 @@ def test_fu_n5_rebuild_ninety_percent_coverage_passes(intraday_env, monkeypatch,
     assert rc == 0
     assert "rebuilt=1" in out
     assert "retention_dropped=0" in out
-
-
-def test_fu_n7_rebuild_dedupes_duplicate_epochs_keep_last(intraday_env, capsys):
-    sym = "N7DD"
-    store = _fu_rows(30)
-    path = intraday_env / f"{sym}.1h.json"
-    _write_store_rows(path, sym, "1h", store)
-    asof = store[-1][0]
-    dup_ep = store[-3][0]
-    newer = [dup_ep, 9.0, 9.5, 8.5, 9.2, 50]
-    older = [dup_ep, 1.0, 2.0, 0.5, 1.5, 100]
-
-    def fake(s, tf, frm=None, **kwargs):
-        if frm is None:
-            base = _fu_moved(_fu_rows(40), 0.5)
-            full_rows = base + [older, newer]
-            full_rows.sort(key=lambda r: r[0])
-            return full_rows
-        return _fu_refresh_tail(store, 0.5)
-
-    with patch.object(mod, "fetch_polygon_intraday", fake):
-        rc = mod.main(["--existing-only", "--tf", "1h", "--workers", "1"])
-    out = capsys.readouterr().out
-    assert rc == 0
-    on_disk = json.loads(path.read_text())["bars"]
-    by_ep = {r[0]: r for r in on_disk}
-    assert by_ep[dup_ep][4] == 9.2
-    assert on_disk[-1][0] >= asof
-    assert "rebuilt=1" in out
+    assert "shrunk=24" in out

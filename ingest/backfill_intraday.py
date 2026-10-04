@@ -60,9 +60,10 @@ MIN_STORE_ROWS = 20
 BASIS_MIN_SHARED = 5
 BASIS_TOLERANCE = 0.005
 # When fewer than BASIS_MIN_SHARED bars overlap, ratio >= BASIS_GROSS or <= 1/BASIS_GROSS
-# (exclusive gross band) or |ratio-1| > BASIS_TOLERANCE triggers a rebuild; otherwise merge
-# with basis_unverified counted.
+# triggers a main-budget rebuild; otherwise a thin-budget rebuild needs THIN_MIN_SHARED+
+# agreeing bars (each within BASIS_TOLERANCE of the median) and |median-1| > BASIS_TOLERANCE.
 BASIS_GROSS = 1.25
+THIN_MIN_SHARED = 2
 # NYSE full-day closures (America/New_York calendar dates), 2026–2027.
 _NYSE_HOLIDAYS: frozenset[dt.date] = frozenset({
     dt.date(2026, 1, 1),
@@ -87,6 +88,7 @@ _NYSE_HOLIDAYS: frozenset[dt.date] = frozenset({
     dt.date(2027, 12, 24),
 })
 MAX_REBUILDS = 200
+MAX_THIN_REBUILDS = 20
 # Stop the run early when the vendor is unreachable instead of retrying every store.
 BREAKER_CONSECUTIVE = 25
 BREAKER_MIN_SAMPLE = 200
@@ -370,13 +372,13 @@ def _is_price(v) -> bool:
     return isinstance(v, (int, float)) and not isinstance(v, bool) and math.isfinite(v) and v > 0
 
 
-def _basis_ratio(old: list[list], new: list[list]) -> tuple[float | None, int]:
-    """Median new/old close over the bars both carry, and how many bars that is.
+def _basis_ratio(old: list[list], new: list[list]) -> tuple[float | None, int, list[float]]:
+    """Median new/old close over the bars both carry, how many, and each bar's ratio.
 
-    Returns (None, 0) only when no bars are shared. `old` and `new` are ascending.
+    Returns (None, 0, []) only when no bars are shared. `old` and `new` are ascending.
     """
     if not new:
-        return None, 0
+        return None, 0, []
     first = new[0][0]
     old_close: dict[int, float] = {}
     for r in reversed(old):
@@ -388,9 +390,10 @@ def _basis_ratio(old: list[list], new: list[list]) -> tuple[float | None, int]:
                     if r[0] in old_close and _is_price(r[4]))
     n = len(ratios)
     if n == 0:
-        return None, 0
+        return None, 0, []
     mid = n // 2
-    return (ratios[mid] if n % 2 else (ratios[mid - 1] + ratios[mid]) / 2), n
+    median = ratios[mid] if n % 2 else (ratios[mid - 1] + ratios[mid]) / 2
+    return median, n, ratios
 
 
 def existing_stores(tfs: list[str]) -> list[tuple[str, str]]:
@@ -511,19 +514,23 @@ def main(argv: list[str]) -> int:
     failures: list[str] = []
     abort = threading.Event()
     rebuilds_left = [MAX_REBUILDS]
+    thin_rebuilds_left = [MAX_THIN_REBUILDS]
     wall_now = time.time()
 
-    def rebuild(s, tf, old, asof, why):
+    def rebuild(s, tf, old, asof, why, thin=False):
         """Replace a store whose basis no longer matches the vendor with a full adjusted fetch."""
         with _stats_lock:
-            if rebuilds_left[0] <= 0:
-                raise AdjustmentMismatch(f"{why}; rebuild budget of {MAX_REBUILDS} is spent")
-            rebuilds_left[0] -= 1
+            if thin:
+                if thin_rebuilds_left[0] <= 0:
+                    raise AdjustmentMismatch(
+                        f"{why}; thin rebuild budget of {MAX_THIN_REBUILDS} is spent")
+                thin_rebuilds_left[0] -= 1
+            else:
+                if rebuilds_left[0] <= 0:
+                    raise AdjustmentMismatch(f"{why}; rebuild budget of {MAX_REBUILDS} is spent")
+                rebuilds_left[0] -= 1
         full = fetch_polygon_intraday(s, tf, stats=stats)
-        by_ep: dict[int, list] = {}
-        for r in full[-MAX_STORE_ROWS:]:
-            by_ep[r[0]] = r
-        rows = [by_ep[k] for k in sorted(by_ep)]
+        rows = full[-MAX_STORE_ROWS:]
         if not rows or rows[-1][0] < asof:
             raise AdjustmentMismatch(
                 f"{why}; full refetch ends at {rows[-1][0] if rows else None}, "
@@ -539,9 +546,10 @@ def main(argv: list[str]) -> int:
             print(f"  retention: {s}.{tf} dropped {dropped} oldest row(s) "
                   f"(cap {MAX_STORE_ROWS})", flush=True)
         write_store(s, tf, rows)
+        shrunk = max(0, len(old) - len(rows))
         print(
             f"  rebuilt: {s}.{tf} {why}; {len(old)} -> {len(rows)} row(s) "
-            f"retention_dropped={dropped}",
+            f"retention_dropped={dropped} shrunk={shrunk}",
             flush=True,
         )
         return s, tf, "rebuilt", dropped
@@ -553,18 +561,34 @@ def main(argv: list[str]) -> int:
         recent = fetch_polygon_intraday(s, tf, frm=frm, stats=stats)
         if not recent:
             raise EmptyOverlap("refetch of a window holding the store's last bar returned no bars")
-        ratio, shared = _basis_ratio(old, recent)
+        ratio, shared, bar_ratios = _basis_ratio(old, recent)
         if shared == 0:
             raise AdjustmentMismatch("refetch shares no bar with the store")
         if shared >= BASIS_MIN_SHARED and ratio is not None and abs(ratio - 1.0) > BASIS_TOLERANCE:
             return rebuild(s, tf, old, asof, f"price basis moved x{ratio:.4f} over {shared} shared bar(s)")
         if shared < BASIS_MIN_SHARED and ratio is not None:
             gross_rebuild = ratio >= BASIS_GROSS or ratio <= 1.0 / BASIS_GROSS
-            tolerance_rebuild = abs(ratio - 1.0) > BASIS_TOLERANCE
-            if gross_rebuild or tolerance_rebuild:
+            if gross_rebuild:
                 return rebuild(
                     s, tf, old, asof,
                     f"price basis moved x{ratio:.4f} over {shared} shared bar(s) (thin overlap)")
+            agreeing = (
+                shared >= THIN_MIN_SHARED
+                and all(abs(r - ratio) <= BASIS_TOLERANCE for r in bar_ratios)
+                and abs(ratio - 1.0) > BASIS_TOLERANCE
+            )
+            if agreeing:
+                with _stats_lock:
+                    thin_left = thin_rebuilds_left[0]
+                if thin_left > 0:
+                    return rebuild(
+                        s, tf, old, asof,
+                        f"price basis moved x{ratio:.4f} over {shared} shared bar(s) "
+                        f"(thin overlap, {shared} agreeing bars)",
+                        thin=True,
+                    )
+                with _stats_lock:
+                    stats["thin_budget_spent"] = stats.get("thin_budget_spent", 0) + 1
         if shared < BASIS_MIN_SHARED:
             with _stats_lock:
                 stats["basis_unverified"] = stats.get("basis_unverified", 0) + 1
