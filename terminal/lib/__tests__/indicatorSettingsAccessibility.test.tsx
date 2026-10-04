@@ -1,36 +1,23 @@
 // @vitest-environment jsdom
 
-import React, { act } from "react";
+import React, { act, useState } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { afterEach, describe, expect, it, vi } from "vitest";
 import IndicatorSettings from "@/components/IndicatorSettings";
 import IndicatorSource from "@/components/IndicatorSource";
+import { IND_DEFS, defaultVis, withDefaults } from "@/lib/indicators";
 
 (globalThis as unknown as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 
 let host: HTMLDivElement | null = null;
 let root: Root | null = null;
 
-function mount(props: React.ComponentProps<typeof IndicatorSettings>): HTMLElement {
+function mount(node: React.ReactNode): HTMLElement {
   host = document.createElement("div");
   document.body.appendChild(host);
   root = createRoot(host);
-  act(() => root!.render(<IndicatorSettings {...props} />));
+  act(() => root!.render(node));
   return host;
-}
-
-function mountSource(props: React.ComponentProps<typeof IndicatorSource>): HTMLElement {
-  host = document.createElement("div");
-  document.body.appendChild(host);
-  root = createRoot(host);
-  act(() => root!.render(<IndicatorSource {...props} />));
-  return host;
-}
-
-function press(element: Element, key: string) {
-  act(() => {
-    element.dispatchEvent(new KeyboardEvent("keydown", { key, bubbles: true, cancelable: true }));
-  });
 }
 
 afterEach(() => {
@@ -40,144 +27,327 @@ afterEach(() => {
   host = null;
 });
 
-describe("Indicator Settings keyboard controls", () => {
-  it("lets a keyboard user toggle a classic boolean input and close the dialog", () => {
-    const onChange = vi.fn();
-    const onClose = vi.fn();
-    const view = mount({
-      indKey: "rsi",
-      params: {},
-      onChange,
-      onClose,
-    });
+function press(element: Element, key: string): KeyboardEvent {
+  const event = new KeyboardEvent("keydown", { key, bubbles: true, cancelable: true });
+  act(() => { element.dispatchEvent(event); });
+  return event;
+}
 
-    const toggle = view.querySelector<HTMLElement>('.is-row .is-switch[role="switch"]');
-    expect(toggle).not.toBeNull();
-    expect(toggle!.tabIndex).toBe(0);
-    toggle!.focus();
-    expect(document.activeElement).toBe(toggle);
+// IndicatorSettings moves focus into its dialog on the next animation frame.
+async function nextFrame() {
+  await act(async () => {
+    await new Promise<void>((resolve) => requestAnimationFrame(() => resolve()));
+  });
+}
 
-    press(toggle!, "Enter");
-    expect(onChange).toHaveBeenCalledWith({ showLevels: false });
+// Sequential focus navigation order for a subtree without positive tabindex: every element whose
+// tabIndex is >= 0 and that is not disabled, in document order. A control outside this list cannot
+// be reached with Tab, whatever its key handlers do.
+function tabOrder(scope: Element): HTMLElement[] {
+  return [...scope.querySelectorAll<HTMLElement>("*")]
+    .filter((el) => el.tabIndex >= 0 && !(el as HTMLButtonElement).disabled);
+}
 
-    const close = view.querySelector<HTMLElement>(".is-head .x");
-    expect(close).not.toBeNull();
-    expect(close!.getAttribute("role")).toBe("button");
-    expect(close!.tabIndex).toBe(0);
-    press(close!, "Enter");
-    expect(onClose).toHaveBeenCalledTimes(1);
+// Walk Tab forward from the focused element until `target` holds focus — the keyboard journey,
+// not a direct .focus() on a control a keyboard user could never land on.
+function tabTo(scope: Element, target: Element) {
+  const order = tabOrder(scope);
+  expect(order).toContain(target);
+  let i = order.indexOf(document.activeElement as HTMLElement);
+  while (document.activeElement !== target) {
+    i += 1;
+    expect(i).toBeLessThan(order.length);
+    act(() => order[i].focus());
+    expect(document.activeElement).toBe(order[i]);
+  }
+}
+
+// A native <button> turns Enter/Space into a click. jsdom does not synthesize that activation, so
+// native buttons on the journey (the owner's opener, tabs, Defaults) are clicked as the browser would.
+function activateNativeButton(button: HTMLButtonElement) {
+  expect(button.tagName).toBe("BUTTON");
+  act(() => button.click());
+}
+
+type Spies = {
+  onChange: ReturnType<typeof vi.fn>;
+  onPineChange: ReturnType<typeof vi.fn>;
+  onReset: ReturnType<typeof vi.fn>;
+  onClose: ReturnType<typeof vi.fn>;
+};
+const spies = (): Spies => ({ onChange: vi.fn(), onPineChange: vi.fn(), onReset: vi.fn(), onClose: vi.fn() });
+
+// Stands in for TerminalShell: owns open state and the params, merges each patch over the
+// registry defaults the way setIndParam does, and unmounts the dialog on close.
+function SettingsOwner({ indKey, initial = {}, pine, spy }: {
+  indKey: string;
+  initial?: Record<string, unknown>;
+  pine?: { name: string; params: Record<string, unknown> };
+  spy: Spies;
+}) {
+  const [open, setOpen] = useState(false);
+  const [params, setParams] = useState<Record<string, unknown>>(initial);
+  const [pineParams, setPineParams] = useState<Record<string, unknown>>(pine?.params ?? {});
+  return (
+    <>
+      <button type="button" className="opener" onClick={() => setOpen(true)}>Settings</button>
+      {open && (
+        <IndicatorSettings
+          indKey={indKey}
+          params={params}
+          onChange={(patch) => { spy.onChange(patch); setParams((p) => ({ ...withDefaults(indKey, p), ...patch })); }}
+          pine={pine ? { name: pine.name, params: pineParams } : null}
+          onPineChange={(patch) => { spy.onPineChange(patch); setPineParams((p) => ({ ...p, ...patch })); }}
+          onReset={() => { spy.onReset(); setParams(withDefaults(indKey, {})); }}
+          onClose={() => { spy.onClose(); setOpen(false); }}
+        />
+      )}
+    </>
+  );
+}
+
+async function openSettings(view: HTMLElement): Promise<HTMLElement> {
+  const opener = view.querySelector<HTMLButtonElement>(".opener")!;
+  act(() => opener.focus());
+  activateNativeButton(opener);
+  await nextFrame();
+  const dialog = view.querySelector<HTMLElement>(".ind-set");
+  expect(dialog).not.toBeNull();
+  expect(document.activeElement).toBe(dialog);
+  return dialog!;
+}
+
+function rowControl<T extends HTMLElement = HTMLElement>(dialog: HTMLElement, label: string, selector: string): T {
+  const row = [...dialog.querySelectorAll<HTMLElement>(".is-row")]
+    .find((candidate) => candidate.querySelector(".is-label")?.textContent === label);
+  expect(row).toBeDefined();
+  const control = row!.querySelector<T>(selector);
+  expect(control).not.toBeNull();
+  return control!;
+}
+
+function tabButton(dialog: HTMLElement, label: string): HTMLButtonElement {
+  const button = [...dialog.querySelectorAll<HTMLButtonElement>(".is-tab")].find((b) => b.textContent === label);
+  expect(button).toBeDefined();
+  return button!;
+}
+
+describe("Indicator Settings keyboard journey", () => {
+  it("reaches a classic boolean by Tab and toggles it exactly once per Enter or Space", async () => {
+    const spy = spies();
+    const view = mount(<SettingsOwner indKey="rsi" initial={{ length: 21 }} spy={spy} />);
+    const dialog = await openSettings(view);
+
+    const toggle = rowControl(dialog, "Show OB/OS lines", '.is-switch[role="switch"]');
+    tabTo(dialog, toggle);
+    expect(toggle.getAttribute("aria-checked")).toBe("true");
+
+    expect(press(toggle, "Enter").defaultPrevented).toBe(true);
+    expect(spy.onChange).toHaveBeenCalledTimes(1);
+    expect(spy.onChange).toHaveBeenLastCalledWith({ showLevels: false });
+    expect(toggle.getAttribute("aria-checked")).toBe("false");
+
+    expect(press(toggle, " ").defaultPrevented).toBe(true);
+    expect(spy.onChange).toHaveBeenCalledTimes(2);
+    expect(spy.onChange).toHaveBeenLastCalledWith({ showLevels: true });
+    expect(toggle.getAttribute("aria-checked")).toBe("true");
+
+    press(toggle, "a");
+    expect(spy.onChange).toHaveBeenCalledTimes(2);
+    // The patch carried only the toggled key; the saved length survived both toggles.
+    expect(rowControl<HTMLInputElement>(dialog, "Length", 'input[type="number"]').value).toBe("21");
   });
 
-  it("makes visibility checkboxes keyboard-operable", () => {
-    const onChange = vi.fn();
-    const view = mount({
-      indKey: "rsi",
-      params: {},
-      onChange,
-      onClose: vi.fn(),
-    });
+  it("toggles a timeframe Visibility checkbox from the keyboard without disturbing the other timeframes", async () => {
+    const spy = spies();
+    const view = mount(<SettingsOwner indKey="rsi" spy={spy} />);
+    const dialog = await openSettings(view);
 
-    const visibilityTab = [...view.querySelectorAll<HTMLButtonElement>(".is-tab")]
-      .find((button) => button.textContent === "Visibility");
-    expect(visibilityTab).toBeDefined();
-    act(() => visibilityTab!.click());
+    const visibility = tabButton(dialog, "Visibility");
+    tabTo(dialog, visibility);
+    activateNativeButton(visibility);
 
-    const checkbox = view.querySelector<HTMLElement>('.vis-row .is-cbx[role="checkbox"]');
-    expect(checkbox).not.toBeNull();
-    expect(checkbox!.tabIndex).toBe(0);
-    checkbox!.focus();
-    expect(document.activeElement).toBe(checkbox);
+    const days = dialog.querySelector<HTMLElement>('.vis-row .is-cbx[role="checkbox"]');
+    expect(days).not.toBeNull();
+    tabTo(dialog, days!);
+    expect(days!.getAttribute("aria-checked")).toBe("true");
 
-    press(checkbox!, " ");
-    expect(onChange).toHaveBeenCalledTimes(1);
-    expect(onChange.mock.calls[0][0]).toHaveProperty("_vis");
+    expect(press(days!, " ").defaultPrevented).toBe(true);
+    expect(spy.onChange).toHaveBeenCalledTimes(1);
+    expect(spy.onChange).toHaveBeenLastCalledWith({ _vis: { ...defaultVis(), days: { on: false, min: 1, max: 366 } } });
+    expect(days!.getAttribute("aria-checked")).toBe("false");
+
+    press(days!, "Enter");
+    expect(spy.onChange).toHaveBeenCalledTimes(2);
+    expect(spy.onChange).toHaveBeenLastCalledWith({ _vis: defaultVis() });
+    expect(days!.getAttribute("aria-checked")).toBe("true");
   });
 
-  it("lets Pine boolean inputs toggle from the keyboard too", () => {
-    const onPineChange = vi.fn();
-    const view = mount({
-      indKey: "pine",
-      params: {},
-      onChange: vi.fn(),
-      onClose: vi.fn(),
-      pine: { name: "Fixture", params: { enabled: true } },
-      onPineChange,
-    });
+  it("toggles a Pine boolean input from the keyboard through onPineChange only", async () => {
+    const spy = spies();
+    const view = mount(<SettingsOwner indKey="pine" pine={{ name: "Fixture", params: { enabled: true, length: 9 } }} spy={spy} />);
+    const dialog = await openSettings(view);
 
-    const toggle = view.querySelector<HTMLElement>('.is-row .is-switch[role="switch"]');
-    expect(toggle).not.toBeNull();
-    expect(toggle!.tabIndex).toBe(0);
+    const toggle = rowControl(dialog, "enabled", '.is-switch[role="switch"]');
+    tabTo(dialog, toggle);
 
-    press(toggle!, " ");
-    expect(onPineChange).toHaveBeenCalledWith({ enabled: false });
+    expect(press(toggle, "Enter").defaultPrevented).toBe(true);
+    expect(spy.onPineChange).toHaveBeenCalledTimes(1);
+    expect(spy.onPineChange).toHaveBeenLastCalledWith({ enabled: false });
+    expect(toggle.getAttribute("aria-checked")).toBe("false");
+
+    press(toggle, " ");
+    expect(spy.onPineChange).toHaveBeenCalledTimes(2);
+    expect(spy.onPineChange).toHaveBeenLastCalledWith({ enabled: true });
+    expect(spy.onChange).not.toHaveBeenCalled();
+    expect(rowControl<HTMLInputElement>(dialog, "length", 'input[type="number"]').value).toBe("9");
   });
 
-  it("lets a keyboard user activate Reset settings from the Defaults menu", () => {
-    const onReset = vi.fn();
-    const view = mount({
-      indKey: "rsi",
-      params: {},
-      onChange: vi.fn(),
-      onClose: vi.fn(),
-      onReset,
-    });
+  it("closes from the ✕ with Enter or Space and hands focus back to the opener", async () => {
+    const spy = spies();
+    const view = mount(<SettingsOwner indKey="rsi" spy={spy} />);
+    const opener = view.querySelector<HTMLButtonElement>(".opener")!;
 
-    const defaults = view.querySelector<HTMLButtonElement>(".is-def-btn");
-    expect(defaults).not.toBeNull();
-    act(() => defaults!.click());
+    for (const [n, key] of [[1, "Enter"], [2, " "]] as const) {
+      const dialog = await openSettings(view);
+      const close = dialog.querySelector<HTMLElement>(".is-head .x");
+      expect(close).not.toBeNull();
+      expect(close!.getAttribute("role")).toBe("button");
+      tabTo(dialog, close!);
 
-    const reset = view.querySelector<HTMLElement>(".is-def-row");
+      expect(press(close!, key).defaultPrevented).toBe(true);
+      expect(spy.onClose).toHaveBeenCalledTimes(n);
+      expect(view.querySelector(".ind-set")).toBeNull();
+      expect(document.activeElement).toBe(opener);
+    }
+    expect(spy.onChange).not.toHaveBeenCalled();
+  });
+
+  it("closes with Escape and returns focus to the opener", async () => {
+    const spy = spies();
+    const view = mount(<SettingsOwner indKey="rsi" spy={spy} />);
+    const dialog = await openSettings(view);
+
+    press(dialog, "Escape");
+    expect(spy.onClose).toHaveBeenCalledTimes(1);
+    expect(view.querySelector(".ind-set")).toBeNull();
+    expect(document.activeElement).toBe(view.querySelector(".opener"));
+  });
+
+  it("activates Reset settings from the Defaults menu by keyboard", async () => {
+    const spy = spies();
+    const view = mount(<SettingsOwner indKey="rsi" initial={{ showLevels: false }} spy={spy} />);
+    const dialog = await openSettings(view);
+    const toggle = rowControl(dialog, "Show OB/OS lines", '.is-switch[role="switch"]');
+    expect(toggle.getAttribute("aria-checked")).toBe("false");
+
+    const defaults = dialog.querySelector<HTMLButtonElement>(".is-def-btn")!;
+    tabTo(dialog, defaults);
+    activateNativeButton(defaults);
+
+    const reset = dialog.querySelector<HTMLElement>(".is-def-row");
     expect(reset).not.toBeNull();
     expect(reset!.getAttribute("role")).toBe("button");
-    expect(reset!.tabIndex).toBe(0);
+    tabTo(dialog, reset!);
 
-    press(reset!, "Enter");
-    expect(onReset).toHaveBeenCalledTimes(1);
+    expect(press(reset!, "Enter").defaultPrevented).toBe(true);
+    expect(spy.onReset).toHaveBeenCalledTimes(1);
+    expect(dialog.querySelector(".is-def-menu")).toBeNull();
+    expect(toggle.getAttribute("aria-checked")).toBe("true");
+    expect(spy.onChange).not.toHaveBeenCalled();
+    expect(spy.onClose).not.toHaveBeenCalled();
   });
 
-  it("gives the built-in source viewer real modal semantics, focus, and a keyboard close control", () => {
-    const invoker = document.createElement("button");
-    document.body.appendChild(invoker);
-    invoker.focus();
+  it("keeps pointer activation at one callback per click", async () => {
+    const spy = spies();
+    const view = mount(<SettingsOwner indKey="rsi" spy={spy} />);
+    const dialog = await openSettings(view);
+
+    act(() => rowControl(dialog, "Show OB/OS lines", ".is-switch").click());
+    expect(spy.onChange).toHaveBeenCalledTimes(1);
+    expect(spy.onChange).toHaveBeenLastCalledWith({ showLevels: false });
+
+    act(() => dialog.querySelector<HTMLElement>(".is-head .x")!.click());
+    expect(spy.onClose).toHaveBeenCalledTimes(1);
+    expect(view.querySelector(".ind-set")).toBeNull();
+  });
+
+  it("keeps valid color values intact on the Style tab", async () => {
+    const spy = spies();
+    const view = mount(<SettingsOwner indKey="rsi" spy={spy} />);
+    const dialog = await openSettings(view);
+    activateNativeButton(tabButton(dialog, "Style"));
+
+    const picker = rowControl<HTMLInputElement>(dialog, "RSI color", 'input[type="color"]');
+    expect(picker.value).toBe(String(withDefaults("rsi").col).toLowerCase());
+
+    const swatch = [...dialog.querySelectorAll<HTMLButtonElement>(".is-sw")].find((b) => b.title === "#26c281")!;
+    act(() => swatch.click());
+    expect(spy.onChange).toHaveBeenCalledTimes(1);
+    expect(spy.onChange).toHaveBeenLastCalledWith({ col: "#26c281" });
+    expect(picker.value).toBe("#26c281");
+  });
+});
+
+function SourceOwner({ indKey, onClose }: { indKey: string; onClose: () => void }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <>
+      <button type="button" className="opener" onClick={() => setOpen(true)}>Source</button>
+      {open && <IndicatorSource indKey={indKey} onClose={() => { onClose(); setOpen(false); }} />}
+    </>
+  );
+}
+
+function openSource(view: HTMLElement): HTMLElement {
+  const opener = view.querySelector<HTMLButtonElement>(".opener")!;
+  act(() => opener.focus());
+  activateNativeButton(opener);
+  const dialog = view.querySelector<HTMLElement>(".ind-src");
+  expect(dialog).not.toBeNull();
+  return dialog!;
+}
+
+describe("Indicator Source keyboard close", () => {
+  it("is a labelled modal that takes focus, closes from the ✕ with Space or Enter, and returns focus", () => {
     const onClose = vi.fn();
-    const view = mountSource({ indKey: "rsi", onClose });
+    const view = mount(<SourceOwner indKey="rsi" onClose={onClose} />);
+    const opener = view.querySelector<HTMLButtonElement>(".opener")!;
 
-    const dialog = view.querySelector<HTMLElement>(".ind-src");
-    expect(dialog).not.toBeNull();
-    expect(dialog!.getAttribute("role")).toBe("dialog");
-    expect(dialog!.getAttribute("aria-modal")).toBe("true");
-    expect(dialog!.getAttribute("aria-labelledby")).toBe("indicator-source-title");
-    expect(document.activeElement).toBe(dialog);
+    for (const [n, key] of [[1, " "], [2, "Enter"]] as const) {
+      const dialog = openSource(view);
+      expect(dialog.getAttribute("role")).toBe("dialog");
+      expect(dialog.getAttribute("aria-modal")).toBe("true");
+      expect(document.getElementById(dialog.getAttribute("aria-labelledby") ?? "")?.textContent).toBe("rsi.pine");
+      expect(document.activeElement).toBe(dialog);
+      expect(dialog.querySelector(".src-code")?.textContent).toBe(IND_DEFS.rsi.source);
 
-    const close = view.querySelector<HTMLElement>(".ind-src .is-head .x");
-    expect(close).not.toBeNull();
-    expect(close!.getAttribute("role")).toBe("button");
-    expect(close!.tabIndex).toBe(0);
+      const close = dialog.querySelector<HTMLElement>(".is-head .x");
+      expect(close).not.toBeNull();
+      expect(close!.getAttribute("role")).toBe("button");
+      tabTo(dialog, close!);
 
-    press(close!, " ");
-    expect(onClose).toHaveBeenCalledTimes(1);
-    invoker.remove();
+      expect(press(close!, key).defaultPrevented).toBe(true);
+      expect(onClose).toHaveBeenCalledTimes(n);
+      expect(view.querySelector(".ind-src")).toBeNull();
+      expect(document.activeElement).toBe(opener);
+    }
   });
 
-  it("shows the true RGB hue in color inputs even when an indicator default is translucent rgba", () => {
-    const view = mount({
-      indKey: "vol",
-      params: {},
-      onChange: vi.fn(),
-      onClose: vi.fn(),
-    });
+  it("still closes once from Escape and from the footer Close button", () => {
+    const onClose = vi.fn();
+    const view = mount(<SourceOwner indKey="rsi" onClose={onClose} />);
+    const opener = view.querySelector<HTMLButtonElement>(".opener")!;
 
-    const styleTab = [...view.querySelectorAll<HTMLButtonElement>(".is-tab")]
-      .find((button) => button.textContent === "Style");
-    expect(styleTab).toBeDefined();
-    act(() => styleTab!.click());
+    press(openSource(view), "Escape");
+    expect(onClose).toHaveBeenCalledTimes(1);
+    expect(view.querySelector(".ind-src")).toBeNull();
+    expect(document.activeElement).toBe(opener);
 
-    const colors = [...view.querySelectorAll<HTMLInputElement>('input[type="color"]')]
-      .map((input) => input.value.toLowerCase());
-    expect(colors).toEqual(["#26c281", "#f0566b"]);
-
-    const selectedSwatches = [...view.querySelectorAll<HTMLButtonElement>(".is-sw.on")]
-      .map((button) => button.title.toLowerCase());
-    expect(selectedSwatches).toEqual(["#26c281", "#f0566b"]);
+    const footerClose = openSource(view).querySelector<HTMLButtonElement>(".is-foot button")!;
+    activateNativeButton(footerClose);
+    expect(onClose).toHaveBeenCalledTimes(2);
+    expect(view.querySelector(".ind-src")).toBeNull();
+    expect(document.activeElement).toBe(opener);
   });
 });

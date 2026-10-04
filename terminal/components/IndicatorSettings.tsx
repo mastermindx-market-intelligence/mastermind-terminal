@@ -13,17 +13,7 @@ import type { SuiteField, SuiteModuleMeta, SuiteTier } from "@/lib/indicator-can
 import { useT } from "@/lib/i18n";
 
 const SWATCHES = ["#4d82ff", "#26c281", "#f0566b", "#e8b339", "#e8a33d", "#9d86ff", "#19c2c2", "#d6dae3", "#868d9c", "#ff8a3d"];
-const hexOf = (c: string) => {
-  const s = c.trim();
-  const hex = /^#([0-9a-f]{3}|[0-9a-f]{6})$/i.exec(s);
-  if (hex) {
-    const h = hex[1].length === 3 ? hex[1].split("").map((x) => x + x).join("") : hex[1];
-    return `#${h.toLowerCase()}`;
-  }
-  const rgb = /^rgba?\(\s*(\d{1,3})\s*,\s*(\d{1,3})\s*,\s*(\d{1,3})/i.exec(s);
-  if (!rgb) return "#888888";
-  return `#${rgb.slice(1, 4).map((part) => Math.max(0, Math.min(255, Number(part))).toString(16).padStart(2, "0")).join("")}`;
-};
+const hexOf = (c: string) => (/^#([0-9a-f]{3}|[0-9a-f]{6})$/i.test(c) ? c : "#888888");
 // preserve any alpha the current color carries, so translucent fills (volume/MACD histograms) stay translucent
 const alphaOf = (c: string) => { const m = /rgba?\([^)]*,\s*([\d.]+)\s*\)/i.exec(c); return m ? parseFloat(m[1]) : 1; };
 const hexToRgba = (hex: string, a: number) => { let h = hex.replace("#", ""); if (h.length === 3) h = h.split("").map((x) => x + x).join(""); const n = parseInt(h, 16); const r = (n >> 16) & 255, g = (n >> 8) & 255, b = n & 255; return a >= 1 ? `#${h}` : `rgba(${r}, ${g}, ${b}, ${a})`; };
@@ -45,7 +35,7 @@ function ColorField({ value, onChange }: { value: string; onChange: (v: string) 
   return (
     <span className="is-color">
       <span className="is-sw-cur" style={{ background: value }} />
-      {SWATCHES.map((s) => <button key={s} className={`is-sw${hexOf(value) === s.toLowerCase() ? " on" : ""}`} style={{ background: s }} title={s} onClick={() => apply(s)} />)}
+      {SWATCHES.map((s) => <button key={s} className={`is-sw${value === s ? " on" : ""}`} style={{ background: s }} title={s} onClick={() => apply(s)} />)}
       <input type="color" value={hexOf(value)} onChange={(e) => apply(e.target.value)} aria-label={t("customColor")} />
     </span>
   );
@@ -265,9 +255,15 @@ export default function IndicatorSettings({ indKey, moduleTarget, params, onChan
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, [onClose]);
+  // take focus on open and hand it back to the opener (legend / pane control) on every close path
   useEffect(() => {
+    const opener = document.activeElement;
+    const returnTo = opener instanceof HTMLElement && !dialogRef.current?.contains(opener) ? opener : null;
     const frame = window.requestAnimationFrame(() => dialogRef.current?.focus({ preventScroll: true }));
-    return () => window.cancelAnimationFrame(frame);
+    return () => {
+      window.cancelAnimationFrame(frame);
+      if (returnTo?.isConnected) returnTo.focus({ preventScroll: true });
+    };
   }, []);
   useEffect(() => { if (!defOpen) return; const close = () => setDefOpen(false); window.addEventListener("click", close); return () => window.removeEventListener("click", close); }, [defOpen]);
 
