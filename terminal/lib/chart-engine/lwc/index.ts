@@ -50,6 +50,7 @@ import {
 
 import type {
   ChartEngine,
+  EngineInventory,
   EngineOptions,
   EngineSeriesKind,
   EngineSeriesOptions,
@@ -486,6 +487,44 @@ class LwcChartEngine implements ChartEngine {
 
   unwrap<T>(): T {
     return this.ensure() as unknown as T;
+  }
+
+  // Census read from LWC's own public surface (panes() / pane.getSeries() /
+  // series.priceLines()), never from this.series — that Set only sees handles created
+  // through addSeries(), and ChartPanel still creates most of its series on the
+  // unwrapped IChartApi. Asking the renderer is what makes the count able to catch a
+  // resource we never tracked. Every read is individually guarded: a pane or series
+  // torn down between two lines of this loop must not turn a census into a throw.
+  inventory(): EngineInventory {
+    const chart = this.chart;
+    if (!chart) return { alive: false, panes: 0, series: 0, seriesByPane: [], priceLines: 0, watermarks: 0 };
+    let panes: ReturnType<IChartApi["panes"]> = [];
+    try {
+      panes = chart.panes();
+    } catch {
+      return { alive: true, panes: 0, series: 0, seriesByPane: [], priceLines: 0, watermarks: this.watermarks.size };
+    }
+    const seriesByPane: number[] = [];
+    let series = 0;
+    let priceLines = 0;
+    for (const pane of panes) {
+      let list: ISeriesApi<SeriesType>[] = [];
+      try {
+        list = pane.getSeries();
+      } catch {
+        // pane vanished mid-census — count it as empty rather than losing the whole reading.
+      }
+      seriesByPane.push(list.length);
+      series += list.length;
+      for (const s of list) {
+        try {
+          priceLines += s.priceLines().length;
+        } catch {
+          // series removed mid-census; its price lines went with it.
+        }
+      }
+    }
+    return { alive: true, panes: panes.length, series, seriesByPane, priceLines, watermarks: this.watermarks.size };
   }
 
   destroy(): void {

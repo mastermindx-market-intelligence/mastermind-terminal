@@ -1,6 +1,7 @@
 import { expect, test, type Locator, type Page } from "@playwright/test";
 import {
   injectLayoutFault, isolateLayoutStore, joinLayoutTeam, renderAsGuest, useLang,
+  useLayoutIdentity,
   forceStaleRevision, seedNameConflict, seedUnreadableWorkspace, seedFutureFloorWorkspace,
   seedUnknownWidgetTypeWorkspace, seedTolerantDefectWorkspace,
 } from "./layoutStore";
@@ -16,15 +17,8 @@ import { expectTapTarget } from "./tapTarget";
 //
 // Terminal is dark-only (frozen constraint): the matrix below is dark + zh, not light + dark + zh.
 //
-// PHONE ENTRY-POINT GAP (see GAPS in the final report): the Saved-Workspaces menu has NO phone entry
-// point in the shipped product — `app/globals.css:4940` (`.app:not(.shell-app) .chart-tabs{display:
-// none}` at `@media(max-width:640px)`) hides the ENTIRE toolbar, including the "More" overflow the
-// menu lives behind at every other narrow width. `layout-integrity.spec.ts`'s own
-// `skipWithoutLayoutMenu` already documents this. The spec's five 390×844 MENU screenshots
-// (390-en-ready/row-open/stale, 390-zh-row-open/import-error) are therefore skipped with a named
-// reason rather than fabricated — building a phone entry point is phone-nav architecture, out of
-// this commission's scope. `390-en-tile.png` does NOT need the menu (only a loaded workspace) and
-// IS captured below.
+// At 390px the canonical roller strip's Analysis hub exposes Workspaces in a MobileSheet. The
+// sheet mounts the same LayoutMenu used on desktop/tablet; there is no phone-only copy of its UI.
 
 const TERMINAL = "/terminal?symbol=NVDA";
 const PROOF_DIR = "e2e/proof/w2a-workspaces";
@@ -48,14 +42,17 @@ async function saveWorkspace(page: Page, name: string) {
 }
 
 async function openRow(menu: Locator, name: string) {
-  await menu.locator(`[data-ws-more="${name}"]`).click();
-  return menu.locator(`[data-layout-row="${name}"]`);
+  const row = menu.locator(`[data-layout-row="${name}"]`);
+  if (!(await row.locator('[data-ws-act="open"]').isVisible())) {
+    await row.locator(`[data-ws-more="${name}"]`).click();
+  }
+  return row;
 }
 
 // No raw failure code may ever reach the rendered DOM (spec §7 assertion 3).
 const RAW_CODE_RE = /malformed_workspace|unsupported_schema|unsupported_floor|unknown_widget_type|invalid_widget_config|duplicate_widget_id|invalid_lane|invalid_port|name_conflict|stale_revision|store_unavailable|unauthenticated|not_found|invalid_import|oversized_workspace|too_many_widgets/;
 
-async function assertNoRawCodes(page: Page, scopeSelector = ".pop.show, .toolbar-overflow-pop.show") {
+async function assertNoRawCodes(page: Page, scopeSelector = ".phone-workspaces-sheet, .pop.show, .toolbar-overflow-pop.show") {
   const text = await page.locator(scopeSelector).first().innerText();
   expect(text).not.toMatch(RAW_CODE_RE);
 }
@@ -415,21 +412,86 @@ test.describe("W2-A workspace menu — 820×1180 (drill-down mount)", () => {
   });
 });
 
-test.describe("W2-A workspace menu — 390×844 (phone: no entry point today)", () => {
-  const PHONE_GAP_REASON =
-    "The Saved-Workspaces menu has no phone entry point in the current product — " +
-    "app/globals.css:4940 hides the entire .chart-tabs toolbar at max-width:640px (confirmed by " +
-    "layout-integrity.spec.ts's pre-existing skipWithoutLayoutMenu). Wiring a phone entry point is " +
-    "phone-nav architecture, out of this commission's scope — reported as a GAP, not fabricated.";
+test.describe("W2-A workspace menu — 390×844", () => {
+  test.beforeEach(async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+  });
 
-  for (const name of ["390-en-ready", "390-en-row-open", "390-en-stale", "390-zh-row-open", "390-zh-import-error"]) {
-    test(name, () => { test.skip(true, PHONE_GAP_REASON); });
-  }
+  test("390-en-ready", async ({ page, baseURL }, testInfo) => {
+    await isolateLayoutStore(page, testInfo, baseURL);
+    await gotoTerminal(page);
+    await page.getByTestId("roller-more").click();
+    await expect(page.getByTestId("hub-tile-workspaces")).toBeVisible();
+    await shot(page, "390-en-hub-entry");
+    await saveWorkspace(page, "Phone Ready");
+    const menu = await openLayoutMenu(page);
+    await expect(menu.locator('[data-layout-row="Phone Ready"]')).toBeVisible();
+    await shot(page, "390-en-ready");
+    await assertNoRawCodes(page);
+  });
+
+  test("390-en-row-open", async ({ page, baseURL }, testInfo) => {
+    await isolateLayoutStore(page, testInfo, baseURL);
+    await gotoTerminal(page);
+    await saveWorkspace(page, "Phone Row");
+    const menu = await openLayoutMenu(page);
+    const row = await openRow(menu, "Phone Row");
+    await expect(row.locator('[data-ws-act="open"]')).toBeVisible();
+    await expect(row.locator('[data-ws-act="duplicate"]')).toBeVisible();
+    await shot(page, "390-en-row-open");
+    await assertNoRawCodes(page);
+  });
+
+  test("390-en-stale", async ({ page, baseURL }, testInfo) => {
+    await isolateLayoutStore(page, testInfo, baseURL);
+    await gotoTerminal(page);
+    await saveWorkspace(page, "Phone Stale");
+    let menu = await openLayoutMenu(page);
+    await menu.locator('[data-layout-row="Phone Stale"]').click();
+    await forceStaleRevision(page, "Phone Stale");
+    menu = await openLayoutMenu(page);
+    await menu.locator("[data-layout-save] input").fill("Phone Stale");
+    await menu.locator("[data-layout-save-btn]").click();
+    await expect(menu.locator('[data-ws-stale="Phone Stale"]')).toBeVisible();
+    await shot(page, "390-en-stale");
+    await assertNoRawCodes(page);
+  });
+
+  test("390-zh-row-open", async ({ page, baseURL }, testInfo) => {
+    await isolateLayoutStore(page, testInfo, baseURL);
+    await useLang(page, "zh");
+    await gotoTerminal(page);
+    await page.getByTestId("roller-more").click();
+    await expect(page.getByTestId("hub-tile-workspaces")).toBeVisible();
+    await shot(page, "390-zh-hub-entry");
+    await saveWorkspace(page, "手机工作区");
+    const menu = await openLayoutMenu(page);
+    const row = await openRow(menu, "手机工作区");
+    await expect(row.locator('[data-ws-act="open"]')).toBeVisible();
+    await shot(page, "390-zh-row-open");
+    await assertNoRawCodes(page);
+  });
+
+  test("390-zh-import-error", async ({ page, baseURL }, testInfo) => {
+    await isolateLayoutStore(page, testInfo, baseURL);
+    await useLang(page, "zh");
+    await gotoTerminal(page);
+    const menu = await openLayoutMenu(page);
+    const chooser = page.waitForEvent("filechooser");
+    await menu.locator("[data-ws-import]").click();
+    await (await chooser).setFiles({
+      name: "bad-workspace.json",
+      mimeType: "application/json",
+      buffer: Buffer.from("{")
+    });
+    await expect(menu.locator('[data-layout-feedback="error"]')).toBeVisible();
+    await shot(page, "390-zh-import-error");
+    await assertNoRawCodes(page);
+  });
 
   test("390-en-tile — the tile does not need the menu, only a loaded workspace", async ({ page, baseURL }, testInfo) => {
     await isolateLayoutStore(page, testInfo, baseURL);
-    // Seed + load via the DESKTOP-shaped menu (the phone chrome has no menu entry point — the
-    // documented gap above), THEN resize down. Resizing does not navigate, so the already-loaded
+    // Seed + load via the desktop shape, then resize down. Resizing does not navigate, so the already-loaded
     // client workspace state (including the extra rail-lane widget) survives into the phone frame —
     // exactly the point: the tile is a RENDER concern, independent of how the workspace got loaded.
     await page.setViewportSize({ width: 1440, height: 900 });
@@ -456,22 +518,217 @@ test.describe("W2-A workspace menu — 390×844 (phone: no entry point today)", 
   });
 });
 
+test.describe("F12 fixture regression — distinct synthetic browser identities", () => {
+  test("owner share → member read-only → private copy → membership removal → foreign-team denial", async ({ browser, baseURL }, testInfo) => {
+    test.setTimeout(120_000);
+    const origin = baseURL ?? "http://127.0.0.1:3108";
+    const ownerContext = await browser.newContext({ viewport: { width: 390, height: 844 } });
+    const memberContext = await browser.newContext({ viewport: { width: 390, height: 844 } });
+    const foreignContext = await browser.newContext({ viewport: { width: 390, height: 844 } });
+    const owner = await ownerContext.newPage();
+    const member = await memberContext.newPage();
+    const foreign = await foreignContext.newPage();
+
+    try {
+      const storeKey = await isolateLayoutStore(owner, testInfo, origin);
+      const teamId = `team-${storeKey}`;
+      await useLayoutIdentity(owner, "owner", origin);
+      await joinLayoutTeam(owner, teamId, "owner", origin);
+
+      await memberContext.addCookies([{ name: "mm_e2e_layouts", value: storeKey, url: origin }]);
+      await useLayoutIdentity(member, "member", origin);
+      await joinLayoutTeam(member, teamId, "member", origin);
+
+      await foreignContext.addCookies([{ name: "mm_e2e_layouts", value: storeKey, url: origin }]);
+      await useLayoutIdentity(foreign, "foreign", origin);
+      const foreignTeamId = `foreign-${storeKey}`;
+      await joinLayoutTeam(foreign, foreignTeamId, "owner", origin);
+      await gotoTerminal(foreign);
+
+      await gotoTerminal(owner);
+      await saveWorkspace(owner, "Team Source");
+      const original = await owner.evaluate(async () => {
+        const response = await fetch("/api/layouts", { headers: { Accept: "application/json" } });
+        const body = await response.json();
+        const row = body.layouts.find((item: { name: string }) => item.name === "Team Source");
+        return { id: row.id as string, config: row.config as Record<string, unknown> };
+      });
+      expect(original.id).toBeTruthy();
+      expect(original.config.revision).toBe(1);
+
+      // A second synthetic principal sharing the same process-global fixture store still cannot
+      // acquire the owner's private row by id. This is the RLS-shaped negative control.
+      const privateTakeover = await foreign.evaluate(async ({ id, teamId }) => {
+        const response = await fetch("/api/layouts", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ op: "set_sharing", id, sharing: "team", teamId }),
+        });
+        return { status: response.status, body: await response.json() };
+      }, { id: original.id, teamId: foreignTeamId });
+      expect(privateTakeover.status).toBe(404);
+      expect(privateTakeover.body.error).toBe("NOT_FOUND");
+
+      let ownerMenu = await openLayoutMenu(owner);
+      let ownerRow = await openRow(ownerMenu, "Team Source");
+      await ownerRow.locator('[data-ws-act="share"]').click();
+      await expect(ownerMenu.locator('[data-ws-share-confirm="team"]')).toBeVisible();
+      await ownerMenu.locator("[data-ws-share-yes]").click();
+      await expect(ownerMenu.locator('[data-layout-row="Team Source"]')).toHaveAttribute("data-ws-sharing", "team");
+
+      await gotoTerminal(member);
+      let memberMenu = await openLayoutMenu(member);
+      let memberRow = memberMenu.locator('[data-layout-row="Team Source"]');
+      await expect(memberRow).toBeVisible();
+      await expect(memberRow).toHaveAttribute("data-ws-sharing", "team");
+      await memberRow.locator('[data-ws-more="Team Source"]').click();
+      await expect(memberRow.locator("[data-ws-readonly-note]")).toBeVisible();
+      await expect(memberRow.locator('[data-ws-act="rename"]')).toHaveCount(0);
+      await expect(memberRow.locator('[data-ws-act="delete"]')).toHaveCount(0);
+      await expect(memberRow.locator('[data-ws-act="unshare"]')).toHaveCount(0);
+
+      await memberRow.locator('[data-ws-act="open"]').click();
+      await expect(member.locator(".chart-wrap, .chart-host, canvas").first()).toBeVisible();
+      memberMenu = await openLayoutMenu(member);
+      memberRow = await openRow(memberMenu, "Team Source");
+
+      const forbiddenWrite = await member.evaluate(async ({ id, config }) => {
+        const response = await fetch("/api/layouts", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            op: "save_workspace",
+            id,
+            name: "Team Source",
+            envelope: config,
+            expectedRevision: config.revision,
+          }),
+        });
+        return { status: response.status, body: await response.json() };
+      }, original);
+      expect(forbiddenWrite.status).toBe(403);
+      expect(forbiddenWrite.body.error).toBe("FORBIDDEN");
+
+      await memberRow.locator('[data-ws-act="duplicate"]').click();
+      await expect(memberMenu.locator('[data-layout-feedback="duplicated"]')).toBeVisible();
+      const memberInventory = await member.evaluate(async () => {
+        const response = await fetch("/api/layouts", { headers: { Accept: "application/json" } });
+        return (await response.json()).layouts as Array<{
+          id: string; name: string; sharing: "private" | "team"; mine: boolean; config: Record<string, unknown>;
+        }>;
+      });
+      const privateCopy = memberInventory.find((row) => row.id !== original.id && row.sharing === "private" && row.mine);
+      expect(privateCopy).toBeTruthy();
+      expect(privateCopy!.config).toEqual(original.config);
+
+      const copyMutation = await member.evaluate(async (copy) => {
+        const envelope = JSON.parse(JSON.stringify(copy.config)) as Record<string, unknown>;
+        const widgets = envelope.widgets as Array<{ type: string; config: Record<string, unknown> }>;
+        const chart = widgets.find((widget) => widget.type === "chart");
+        if (chart) chart.config.sync = chart.config.sync !== true;
+        const response = await fetch("/api/layouts", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            op: "save_workspace",
+            id: copy.id,
+            name: copy.name,
+            envelope,
+            expectedRevision: copy.config.revision,
+          }),
+        });
+        return { status: response.status, body: await response.json() };
+      }, privateCopy!);
+      expect(copyMutation.status).toBe(200);
+      expect(copyMutation.body.id).toBe(privateCopy!.id);
+      expect(copyMutation.body.revision).toBe(2);
+      const ownerOriginalAfterCopyWrite = await owner.evaluate(async (id) => {
+        const response = await fetch("/api/layouts", { headers: { Accept: "application/json" } });
+        const body = await response.json();
+        return body.layouts.find((row: { id: string }) => row.id === id).config as Record<string, unknown>;
+      }, original.id);
+      expect(ownerOriginalAfterCopyWrite).toEqual(original.config);
+
+      await gotoTerminal(foreign);
+      const foreignIds = await foreign.evaluate(async () => {
+        const response = await fetch("/api/layouts", { headers: { Accept: "application/json" } });
+        return ((await response.json()).layouts as Array<{ id: string }>).map((row) => row.id);
+      });
+      expect(foreignIds).not.toContain(original.id);
+
+      // Simulate the fixture's next authoritative membership read after removal. The private copy
+      // remains owned by the member; the team's original disappears from the API and phone sheet.
+      await memberContext.clearCookies({ name: "mm_e2e_layout_team" });
+      await memberContext.clearCookies({ name: "mm_e2e_layout_role" });
+      await gotoTerminal(member);
+      memberMenu = await openLayoutMenu(member);
+      await expect(memberMenu.locator('[data-layout-row="Team Source"]')).toHaveCount(0);
+      await expect(memberMenu.locator(`[data-layout-row="${privateCopy!.name}"]`)).toBeVisible();
+      const revokedIds = await member.evaluate(async () => {
+        const response = await fetch("/api/layouts", { headers: { Accept: "application/json" } });
+        return ((await response.json()).layouts as Array<{ id: string }>).map((row) => row.id);
+      });
+      expect(revokedIds).not.toContain(original.id);
+      expect(revokedIds).toContain(privateCopy!.id);
+
+      // The owner can still stop sharing through the same object identity after the member leaves.
+      ownerMenu = await openLayoutMenu(owner);
+      ownerRow = await openRow(ownerMenu, "Team Source");
+      await ownerRow.locator('[data-ws-act="unshare"]').click();
+      await ownerMenu.locator("[data-ws-share-yes]").click();
+      await expect(ownerMenu.locator('[data-layout-row="Team Source"]')).toHaveAttribute("data-ws-sharing", "private");
+    } finally {
+      await Promise.all([ownerContext.close(), memberContext.close(), foreignContext.close()]);
+    }
+  });
+});
+
 test.describe("W2-A workspace menu — non-screenshot assertions (spec §7)", () => {
-  // Per the documented phone-entry-point GAP above, every control this checks lives behind the
-  // Workspaces menu, which has no phone (390px) entry point in the shipped product — so this runs
-  // at 820 only. Re-run at 390 the moment a phone entry point ships.
-  test("tap targets are >=44x44 at 820 (390 unreachable — see the phone-gap note above)", async ({ page, baseURL }, testInfo) => {
-    for (const width of [820] as const) {
+  test("tap targets are >=44x44 at tablet and phone widths", async ({ page, baseURL }, testInfo) => {
+    for (const width of [820, 390] as const) {
       await page.setViewportSize({ width, height: 1180 });
       await isolateLayoutStore(page, testInfo, baseURL);
+      await joinLayoutTeam(page, `tap-team-${width}-${testInfo.workerIndex}`, "owner", baseURL);
       await gotoTerminal(page);
-      await saveWorkspace(page, "TapTarget");
-      const menu = await openLayoutMenu(page);
-      const row = await openRow(menu, "TapTarget");
-      await expectTapTarget(row.locator('[data-ws-more="TapTarget"]'), { width: 44, height: 44 });
+      const name = `TapTarget-${width}`;
+      await saveWorkspace(page, name);
+      let menu: Locator;
+      if (width === 390) {
+        // Exercise the complete ordinary phone route, including the controls that precede the
+        // shared LayoutMenu: roller More → Analysis hub Workspaces → mobile sheet.
+        await page.keyboard.press("Escape");
+        const trigger = page.getByTestId("roller-more");
+        await expectTapTarget(trigger, { width: 44, height: 44 });
+        await trigger.click();
+        const workspacesTile = page.getByTestId("hub-tile-workspaces");
+        await expectTapTarget(workspacesTile, { width: 44, height: 44 });
+        await workspacesTile.click();
+        menu = page.locator(".phone-workspaces-sheet:has([data-layout-save])");
+        await expect(menu).toBeVisible();
+      } else {
+        menu = await openLayoutMenu(page);
+      }
+      await expectTapTarget(menu.locator("[data-layout-save] input"), { width: 44, height: 44 });
+      await expectTapTarget(menu.locator("[data-layout-save-btn]"), { width: 44, height: 44 });
+      let row = menu.locator(`[data-layout-row="${name}"]`);
+      await expectTapTarget(row.locator(".menu-row").first(), { width: 44, height: 44 });
+      row = await openRow(menu, name);
+      await expectTapTarget(row.locator(`[data-ws-more="${name}"]`), { width: 44, height: 44 });
       for (const act of ["open", "rename", "duplicate", "export", "delete"]) {
         await expectTapTarget(row.locator(`[data-ws-act="${act}"]`), { width: 44, height: 44 });
       }
+      await expectTapTarget(row.locator('[data-ws-act="share"]'), { width: 44, height: 44 });
+      await row.locator('[data-ws-act="share"]').click();
+      await expectTapTarget(menu.locator("[data-ws-share-yes]"), { width: 44, height: 44 });
+      await expectTapTarget(menu.locator("[data-ws-share-no]"), { width: 44, height: 44 });
+      await menu.locator("[data-ws-share-yes]").click();
+      row = await openRow(menu, name);
+      await expectTapTarget(row.locator('[data-ws-act="unshare"]'), { width: 44, height: 44 });
+      await row.locator('[data-ws-act="unshare"]').click();
+      await expectTapTarget(menu.locator("[data-ws-share-yes]"), { width: 44, height: 44 });
+      await expectTapTarget(menu.locator("[data-ws-share-no]"), { width: 44, height: 44 });
+      await menu.locator("[data-ws-share-yes]").click();
+      row = await openRow(menu, name);
       await row.locator('[data-ws-act="rename"]').click();
       await expectTapTarget(row.locator("[data-ws-rename-commit]"), { width: 44, height: 44 });
       await expectTapTarget(row.locator("[data-ws-rename-cancel]"), { width: 44, height: 44 });
@@ -480,8 +737,8 @@ test.describe("W2-A workspace menu — non-screenshot assertions (spec §7)", ()
       await expectTapTarget(menu.locator("[data-ws-dock-toggle]"), { width: 44, height: 44 });
 
       // the fork buttons, via a real stale reproduction
-      await forceStaleRevision(page, "TapTarget");
-      await menu.locator("[data-layout-save] input").fill("TapTarget");
+      await forceStaleRevision(page, name);
+      await menu.locator("[data-layout-save] input").fill(name);
       await menu.locator("[data-layout-save-btn]").click();
       await expectTapTarget(menu.locator('[data-ws-fork="reload"]'), { width: 44, height: 44 });
       await expectTapTarget(menu.locator('[data-ws-fork="copy"]'), { width: 44, height: 44 });
@@ -492,19 +749,13 @@ test.describe("W2-A workspace menu — non-screenshot assertions (spec §7)", ()
     await isolateLayoutStore(page, testInfo, baseURL);
     await gotoTerminal(page);
     await saveWorkspace(page, "OverflowCheck");
-    for (const width of [1440, 820] as const) {
+    for (const width of [1440, 820, 390] as const) {
       await page.setViewportSize({ width, height: width === 1440 ? 900 : 1180 });
       const menu = await openLayoutMenu(page);
       await openRow(menu, "OverflowCheck");
       const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
       expect(overflow, `horizontal overflow at ${width}px`).toBeLessThanOrEqual(0);
     }
-    // 390: the menu has no entry point (documented GAP above), but the PAGE itself must still not
-    // overflow horizontally at that width regardless of menu state.
-    await page.setViewportSize({ width: 390, height: 844 });
-    await gotoTerminal(page);
-    const overflow390 = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
-    expect(overflow390).toBeLessThanOrEqual(0);
   });
 
   test("no raw failure code ever appears in the rendered menu, across every reachable failure state", async ({ page, baseURL }, testInfo) => {

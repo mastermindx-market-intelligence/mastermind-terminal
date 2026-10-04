@@ -1,25 +1,28 @@
-// Logo.dev publishable keys are intentionally client-visible and restricted to the
-// image CDN. The environment variable can rotate/override the project key.
-const LOGO_DEV_TOKEN =
-  process.env.NEXT_PUBLIC_LOGO_DEV_TOKEN?.trim() ||
-  "pk_c5LwRfhZRCWZUm6KzpmDRQ";
+const BADGE_URI_PREFIX = "data:image/svg+xml;charset=utf-8,";
 
-function logoDevImagePath(family: "ticker" | "crypto" | "name", lookup: string): string {
-  return `https://img.logo.dev/${family}/${encodeURIComponent(lookup)}?token=${encodeURIComponent(LOGO_DEV_TOKEN)}&size=64&format=webp&retina=true&fallback=404`;
+function badgeGlyph(raw: string): string {
+  const clean = raw
+    .trim()
+    .replace(/-USD$/i, "")
+    .replace(/[^A-Za-z0-9]/g, "")
+    .toUpperCase();
+  const safe = clean || "?";
+  const width = /^\d/.test(safe) || safe.length <= 3 ? 3 : 2;
+  return safe.slice(0, width);
 }
 
-export function assetLogoPath(symbol: string, market?: string): string {
-  const isCrypto = /crypto/i.test(market || "") || /-USD$/i.test(symbol);
-  const lookup = isCrypto ? symbol.replace(/-USD$/i, "") : symbol;
-  const family = isCrypto ? "crypto" : "ticker";
-  return logoDevImagePath(family, lookup);
+function badgeDataUri(raw: string): string {
+  const glyph = badgeGlyph(raw);
+  const fontSize = glyph.length === 1 ? 34 : glyph.length === 2 ? 27 : 21;
+  const letterSpacing = glyph.length === 3 ? -0.8 : 0;
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><text x="32" y="33" text-anchor="middle" dominant-baseline="middle" fill="#fff" font-family="-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif" font-size="${fontSize}" font-weight="800" letter-spacing="${letterSpacing}">${glyph}</text></svg>`;
+  return `${BADGE_URI_PREFIX}${encodeURIComponent(svg)}`;
 }
 
-export function assetLogoNamePath(name: string): string {
-  return logoDevImagePath("name", name.trim());
+export function assetLogoPath(symbol: string, _market?: string): string {
+  return badgeDataUri(symbol);
 }
 
 export function assetInitial(symbol: string): string {
-  const clean = symbol.trim().replace(/^[^A-Za-z0-9]+/, "");
-  return (clean[0] || "?").toUpperCase();
+  return badgeGlyph(symbol)[0] || "?";
 }

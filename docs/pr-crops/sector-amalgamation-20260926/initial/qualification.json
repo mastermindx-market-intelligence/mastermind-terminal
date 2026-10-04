@@ -1,0 +1,77 @@
+{
+  "sourceRevision": "79dbe3f2431b9e21cabf23071f02eab5add57eb4",
+  "purpose": "Sector Central unified destinations and contextual evidence",
+  "nativePaperModified": false,
+  "authenticatedProduction": false,
+  "independentDesignAcceptance": false,
+  "transport": "local interception with unmodified owner JSON",
+  "checks": [
+    {
+      "name": "chromium-1440-en-light: exactly five unified destinations",
+      "passed": true
+    },
+    {
+      "name": "chromium-1440-en-light: Sources is not a competing destination",
+      "passed": true
+    },
+    {
+      "name": "chromium-1440-en-light: source overlay preserves view and query",
+      "passed": true
+    },
+    {
+      "name": "chromium-1440-en-light: exact current source clocks",
+      "passed": true
+    },
+    {
+      "name": "chromium-1440-en-light: technical receipt stays in disclosure",
+      "passed": true
+    },
+    {
+      "name": "chromium-1440-en-light: Escape restores exact filtered view",
+      "passed": true
+    },
+    {
+      "name": "chromium-1440-en-light: evidence close preserves scroll",
+      "passed": true,
+      "details": {
+        "beforeScroll": {
+          "inner": 0,
+          "outer": 0
+        },
+        "afterScroll": {
+          "inner": 0,
+          "outer": 0
+        }
+      }
+    },
+    {
+      "name": "chromium-1440-en-light: Forward/open then close keeps company",
+      "passed": true
+    },
+    {
+      "name": "chromium-1440-en-light: signal destination retains selected group",
+      "passed": true
+    },
+    {
+      "name": "chromium-1440-en-light: no lost theme depth in consolidation",
+      "passed": true
+    },
+    {
+      "name": "chromium-1440-en-light: missing history does not fabricate a chart",
+      "passed": true
+    }
+  ],
+  "screenshots": [
+    {
+      "name": "chromium-1440-en-light-sources.png",
+      "sha256": "c2b23306b2aa5d2c2070137a81ed87829b708845b005a1fdea4a013900f6c7e0"
+    },
+    {
+      "name": "chromium-1440-en-light-signals.png",
+      "sha256": "70f97bb62aebc265a34ad7ff066b05a18c63f2eef27df14e2abae90cf8d3dbaf"
+    }
+  ],
+  "errors": [],
+  "passed": false,
+  "error": "locator.click: Timeout 30000ms exceeded.\nCall log:\n\u001b[2m  - waiting for getByTestId('sector-intelligence').getByRole('button', { name: 'Review sources', exact: true })\u001b[22m\n\n    at /Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/sector-intelligence-terminal-20260926-sol-001/terminal/e2e/tools/qualify_sector_amalgamation.cjs:80:67"
+}

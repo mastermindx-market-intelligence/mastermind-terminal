@@ -2,7 +2,7 @@ import { describe, it, expect } from "vitest";
 import { readFileSync } from "fs";
 import path from "path";
 import {
-  buildAlertsView, monitorFor, foldOutbox, deliveryFor, ALERTS_COPY, copy, conditionText, conditionsWord, verdictText,
+  buildAlertsView, monitorFor, foldOutbox, deliveryFor, ALERTS_COPY, copy, conditionText, conditionsWord, verdictText, formatFiredAt,
   firedEventTextZh, lanesForArmedAlerts, noCoverageAcross, rowChipKey,
   type RunReceipt, type OutboxRow, type Alert,
 } from "../alertsView";
@@ -741,5 +741,326 @@ describe("coverage.count excludes unresolved rows (REQUIRED 4)", () => {
       runsState: "READ_OK", outbox: [], outboxState: "READ_OK_ZERO", now: NOW,
     });
     expect(view.coverage.count).toBe(0);
+  });
+});
+
+// F11-11b-pre: producer-shaped thesis-condition rows (category + source, no kind,
+// synthetic alert_id) surface as thesis rows. Real producer payload keys:
+// thesis_id, thesis_version, fired_at, tripwire_id, tripwire_version, category,
+// source, subject, subject_zh, summary_plain, summary_plain_zh, condition_plain,
+// condition_plain_zh, engine_window_plain, engine_window_plain_zh, evidence_url,
+// requires_tier, coverage, ticker.
+describe("F11-11b-pre producer-shaped thesis-condition rows (category+source, no kind, synthetic alert_id)", () => {
+  const THESIS_ID = "11111111-1111-4111-8111-111111111111";
+
+  // The producer's alert_id is a synthetic uuid5 of "thesis:<thesis_id>"; thesis_id is the bare thesis UUID.
+  const PRODUCER_ALERT_ID = "e8e75107-3228-56c2-997c-05c4961bd088";
+  function producerRow(over: Partial<OutboxRow> = {}): OutboxRow {
+    return {
+      alert_id: PRODUCER_ALERT_ID,
+      fire_event_id: "fe-thesis-1",
+      status: "pending",
+      attempts: 0,
+      last_error: null,
+      deliver_after: null,
+      delivered_at: null,
+      created_at: "2026-09-05T11:59:30Z",
+      payload: {
+        thesis_id: THESIS_ID,
+        thesis_version: 1,
+        fired_at: "2026-09-05T11:58:00Z",
+        tripwire_id: "11111111-1111-1111-a111-111111111111",
+        tripwire_version: 1,
+        category: "thesis_window",
+        source: "macro.thesis_condition_monitor",
+        subject: "Your NVDA thesis window has closed.",
+        subject_zh: "你的英伟达论点观察窗口已结束。",
+        summary_plain: "Your NVDA thesis window has closed.",
+        summary_plain_zh: "你的英伟达论点观察窗口已结束。",
+        condition_plain: "Your NVDA thesis window has closed.",
+        condition_plain_zh: "你的英伟达论点观察窗口已结束。",
+        engine_window_plain: "The watch window expired.",
+        engine_window_plain_zh: "观察窗口已到期。",
+        evidence_url: null,
+        requires_tier: undefined,
+        coverage: "full",
+        ticker: "NVDA",
+        ...(over.payload as Record<string, unknown> ?? {}),
+      },
+      ...over,
+    };
+  }
+
+  function priceAlert(): Alert {
+    return {
+      id: "a-price",
+      active: false,
+      symbol: "NVDA",
+      created_at: "2026-09-01T00:00:00Z",
+      condition: { type: "price", triggered: { at: "2026-09-05T11:58:30Z", value: 42, note: "crossed" } },
+    };
+  }
+
+  function viewOf(outbox: OutboxRow[], alerts: Alert[] = []) {
+    return buildAlertsView({
+      alerts,
+      alertsState: alerts.length ? "READ_OK" : "READ_OK_ZERO",
+      run: baseRun(),
+      lastSuccessAt: "2026-09-05T11:59:00Z",
+      runsState: "READ_OK",
+      outbox,
+      outboxState: "READ_OK",
+      now: NOW,
+    });
+  }
+
+  it("producer-shaped row (category+source, no kind, synthetic alert_id) renders as a thesis row", () => {
+    const view = viewOf([producerRow()]);
+    expect(view.rows).toHaveLength(1);
+    expect(view.rows[0].thesisId).toBe(THESIS_ID);
+    expect(view.rows[0].alertId).toBe(`thesis:${THESIS_ID}:fe-thesis-1`);
+    expect(view.rows[0].delivery).toBe("pending");
+  });
+
+  it("a producer row with both recognizer fields and a full payload renders one bare-UUID thesis row", () => {
+    const row = producerRow({ payload: { ...producerRow().payload } });
+    const view = viewOf([row]);
+    expect(view.rows).toHaveLength(1);
+    expect(view.rows[0].thesisId).toBe(THESIS_ID);
+  });
+
+  it("does not render source-only producer payloads", () => {
+    const row = producerRow({ payload: { ...producerRow().payload, category: undefined as unknown as string } });
+    const view = viewOf([row]);
+    expect(view.rows).toHaveLength(0);
+  });
+
+  it("does not render legacy-kind payloads without producer source and category", () => {
+    const payload: Record<string, unknown> = { ...producerRow().payload };
+    payload.kind = "thesis_condition";
+    payload.category = undefined;
+    payload.source = undefined;
+    const row = producerRow({ payload: payload as ReturnType<typeof producerRow>["payload"] });
+    const view = viewOf([row]);
+    expect(view.rows).toHaveLength(0);
+  });
+
+  it("a row with a malformed thesis_id is skipped even when category+source are present", () => {
+    const badRow: OutboxRow = {
+      alert_id: "a-not-a-uuid",
+      fire_event_id: "fe-bad-thesis",
+      status: "pending",
+      attempts: 0,
+      last_error: null,
+      deliver_after: null,
+      delivered_at: null,
+      created_at: "2026-09-05T11:59:30Z",
+      payload: {
+        thesis_id: "not-a-valid-uuid",
+        category: "thesis_window",
+        source: "macro.thesis_condition_monitor",
+        summary_plain: "Some text",
+      },
+    };
+    const view = viewOf([badRow]);
+    expect(view.rows).toHaveLength(0);
+  });
+
+  it("a producer-shaped row with a zero-version house-invalid thesis_id is skipped", () => {
+    const legacyDatum = producerRow({
+      payload: { ...producerRow().payload, thesis_id: "00000000-0000-0000-0000-000000000001" },
+    });
+    const view = viewOf([legacyDatum]);
+    expect(view.rows).toHaveLength(0);
+  });
+
+  it("a row with well-formed thesis_id but without producer source and category is skipped", () => {
+    const orphanRow: OutboxRow = {
+      alert_id: "",
+      fire_event_id: "fe-orphan",
+      status: "pending",
+      attempts: 0,
+      last_error: null,
+      deliver_after: null,
+      delivered_at: null,
+      created_at: "2026-09-05T11:59:30Z",
+      payload: { thesis_id: THESIS_ID, ticker: "NVDA" },
+    };
+    const view = viewOf([orphanRow]);
+    expect(view.rows).toHaveLength(0);
+  });
+
+  it("producer-shaped row whose alert_id matches a real alerts entry stays on the alerts path once", () => {
+    const matchedRow = producerRow({ alert_id: "a-price" });
+    const view = viewOf([matchedRow], [priceAlert()]);
+    expect(view.rows).toHaveLength(1);
+    expect(view.rows[0].alertId).toBe("a-price");
+    expect(view.rows[0].thesisId).toBeUndefined();
+  });
+
+  it("producer-shaped row with a synthetic alert_id matching no alerts entry takes the thesis path once", () => {
+    const view = buildAlertsView({
+      alerts: [],
+      alertsState: "READ_OK_ZERO",
+      run: baseRun(),
+      lastSuccessAt: "2026-09-05T11:59:00Z",
+      runsState: "READ_OK",
+      outbox: [producerRow()],
+      outboxState: "READ_OK",
+      now: NOW,
+    });
+    expect(view.rows).toHaveLength(1);
+    expect(view.rows[0].alertId).toBe(`thesis:${THESIS_ID}:fe-thesis-1`);
+    expect(view.rows[0].thesisId).toBe(THESIS_ID);
+  });
+
+  it("two fires of one thesis render one row per fire, newest first", () => {
+    const older = producerRow({ fire_event_id: "fe-thesis-old", created_at: "2026-09-05T11:58:00Z" });
+    const newer = producerRow({ fire_event_id: "fe-thesis-new", created_at: "2026-09-05T11:59:30Z" });
+    const view = viewOf([older, newer]);
+    expect(view.rows).toHaveLength(2);
+    expect(view.rows.map((row) => row.alertId)).toEqual([
+      `thesis:${THESIS_ID}:fe-thesis-new`,
+      `thesis:${THESIS_ID}:fe-thesis-old`,
+    ]);
+    expect(view.rows.map((row) => row.thesisId)).toEqual([THESIS_ID, THESIS_ID]);
+    expect(view.rows.map((row) => row.foldedRows)).toEqual([0, 0]);
+  });
+
+  it("two rows for one fire render once, using the newest row and truthful fold count", () => {
+    const older = producerRow({
+      status: "pending",
+      created_at: "2026-09-05T11:58:00Z",
+    });
+    const newer = producerRow({
+      status: "sent",
+      delivered_at: "2026-09-05T11:59:20Z",
+      created_at: "2026-09-05T11:59:30Z",
+    });
+    const view = viewOf([older, newer]);
+    expect(view.rows).toHaveLength(1);
+    expect(view.rows[0].alertId).toBe(`thesis:${THESIS_ID}:fe-thesis-1`);
+    expect(view.rows[0].outboxRow).toBe(newer);
+    expect(view.rows[0].delivery).toBe("sent");
+    expect(view.rows[0].foldedRows).toBe(1);
+  });
+
+  it("duplicate rows without a fire id or creation time use a stable non-undefined key", () => {
+    const row = producerRow({
+      fire_event_id: "",
+      created_at: "",
+      payload: { ...producerRow().payload, fired_at: "" },
+    });
+    const view = viewOf([row, { ...row }]);
+    expect(view.rows).toHaveLength(1);
+    expect(view.rows[0].alertId).toBe("thesis:11111111-1111-4111-8111-111111111111:unknown-fire");
+  });
+
+  it("a row without a fire id uses its creation time as the fire key", () => {
+    const row = producerRow({
+      fire_event_id: "",
+      created_at: "2026-09-05T12:00:00Z",
+    });
+    const view = viewOf([row]);
+    expect(view.rows).toHaveLength(1);
+    expect(view.rows[0].alertId).toBe("thesis:11111111-1111-4111-8111-111111111111:2026-09-05T12:00:00Z");
+    expect(view.rows[0].foldedRows).toBe(0);
+  });
+
+  it("distinct thesis rows with empty fire ids do not collapse", () => {
+    const firstThesis = producerRow({
+      fire_event_id: "",
+      created_at: "2026-09-05T12:00:00Z",
+    });
+    const secondThesisId = "22222222-2222-4222-8222-222222222222";
+    const secondThesis = producerRow({
+      fire_event_id: "",
+      created_at: "2026-09-05T12:01:00Z",
+      payload: { ...producerRow().payload, thesis_id: secondThesisId },
+    });
+    const view = viewOf([firstThesis, secondThesis]);
+    expect(view.rows).toHaveLength(2);
+    expect(view.rows.map((row) => row.thesisId)).toEqual([secondThesisId, THESIS_ID]);
+    expect(view.rows.every((row) => row.foldedRows === 0)).toBe(true);
+  });
+
+  it("ordinary alert rows with empty fire ids fold by alert id and creation time", () => {
+    const ordinaryRow = (alertId: string): OutboxRow => ({
+      alert_id: alertId,
+      fire_event_id: "",
+      status: "pending",
+      attempts: 0,
+      last_error: null,
+      deliver_after: null,
+      delivered_at: null,
+      created_at: "2026-09-05T12:00:00Z",
+      payload: { subject: "A price condition changed" },
+    });
+    const view = viewOf([ordinaryRow("alert-one"), ordinaryRow("alert-two")]);
+    expect(view.rows).toHaveLength(0);
+    const folded = foldOutbox([ordinaryRow("alert-one"), ordinaryRow("alert-two")]);
+    expect([...folded.keys()].sort()).toEqual([
+      "alert:alert-one:2026-09-05T12:00:00Z",
+      "alert:alert-two:2026-09-05T12:00:00Z",
+    ]);
+  });
+
+  it("ties on created_at order by the newer payload fired_at", () => {
+    const older = producerRow({ fire_event_id: "fe-thesis-old", payload: { ...producerRow().payload, fired_at: "2026-09-05T11:57:00Z" } });
+    const newer = producerRow({ fire_event_id: "fe-thesis-new" });
+    const view = viewOf([newer, older]);
+    expect(view.rows.map((row) => row.outboxRow?.fire_event_id)).toEqual(["fe-thesis-new", "fe-thesis-old"]);
+  });
+
+  it("one fire uses the producer fire identity in its row id", () => {
+    const view = viewOf([producerRow()]);
+    expect(view.rows[0].alertId).toBe(`thesis:${THESIS_ID}:fe-thesis-1`);
+    expect(view.rows[0].foldedRows).toBe(0);
+  });
+
+
+  it("three fires across two theses render three globally newest-first rows", () => {
+    const secondThesisId = "22222222-2222-4222-8222-222222222222";
+    const rows = [
+      producerRow(),
+      producerRow({ fire_event_id: "fe-thesis-b-old", created_at: "2026-09-05T11:58:00Z", payload: { ...producerRow().payload, thesis_id: secondThesisId } }),
+      producerRow({ fire_event_id: "fe-thesis-b-new", created_at: "2026-09-05T11:59:40Z", payload: { ...producerRow().payload, thesis_id: secondThesisId } }),
+    ];
+    const view = viewOf(rows);
+    expect(view.rows.map((row) => row.alertId)).toEqual([
+      `thesis:${secondThesisId}:fe-thesis-b-new`,
+      `thesis:${THESIS_ID}:fe-thesis-1`,
+      `thesis:${secondThesisId}:fe-thesis-b-old`,
+    ]);
+    expect(view.rows.every((row) => row.foldedRows === 0)).toBe(true);
+  });
+});
+
+describe("formatFiredAt", () => {
+  it("renders a date-only producer value as an English calendar date", () => {
+    const rendered = formatFiredAt("2026-09-05", "en");
+    expect(rendered).toBe("Sep 5, 2026");
+    expect(rendered).not.toMatch(/\d{1,2}:\d{2}/);
+  });
+
+  it("renders a date-only producer value as a Chinese calendar date", () => {
+    const rendered = formatFiredAt("2026-09-05", "zh");
+    expect(rendered).toBe("2026年9月5日");
+    expect(rendered).not.toMatch(/\d{1,2}:\d{2}/);
+  });
+
+  it("keeps a full timestamp as a date and time", () => {
+    expect(formatFiredAt("2026-09-05T11:58:00Z", "en")).toMatch(/9\/5\/2026/);
+    expect(formatFiredAt("2026-09-05T11:58:00Z", "en")).toMatch(/\d{1,2}:\d{2}/);
+  });
+
+  it("returns the existing dash for empty values", () => {
+    expect(formatFiredAt(null, "en")).toBe("—");
+    expect(formatFiredAt("", "zh")).toBe("—");
+  });
+
+  it("returns the existing dash for invalid values", () => {
+    expect(formatFiredAt("not-a-date", "en")).toBe("—");
+    expect(formatFiredAt("2026-09-05Tnot-a-time", "zh")).toBe("—");
   });
 });
