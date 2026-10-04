@@ -234,6 +234,41 @@ describe("Indicator Settings keyboard journey", () => {
     expect(document.activeElement).toBe(view.querySelector(".opener"));
   });
 
+  // The live opener is the legend ⚙, which only :hover reveals. While the scrim covers its row the ⚙ is
+  // display:none, so the browser refuses focus at close time and re-reveals it a frame later. jsdom has
+  // no layout, so a disabled opener stands in for "not focusable yet".
+  it("returns focus to an opener that only becomes focusable a frame after close", async () => {
+    const spy = spies();
+    const view = mount(<SettingsOwner indKey="rsi" spy={spy} />);
+    const opener = view.querySelector<HTMLButtonElement>(".opener")!;
+    const dialog = await openSettings(view);
+
+    opener.disabled = true;
+    press(dialog, "Escape");
+    expect(spy.onClose).toHaveBeenCalledTimes(1);
+    expect(view.querySelector(".ind-set")).toBeNull();
+    expect(document.activeElement).toBe(document.body);
+    opener.disabled = false;
+    await nextFrame();
+    expect(document.activeElement).toBe(opener);
+  });
+
+  it("does not pull focus back from a control the user reached before the opener reappeared", async () => {
+    const spy = spies();
+    const view = mount(<><SettingsOwner indKey="rsi" spy={spy} /><button type="button" className="elsewhere">Elsewhere</button></>);
+    const opener = view.querySelector<HTMLButtonElement>(".opener")!;
+    const elsewhere = view.querySelector<HTMLButtonElement>(".elsewhere")!;
+    const dialog = await openSettings(view);
+
+    opener.disabled = true;
+    press(dialog, "Escape");
+    act(() => elsewhere.focus());
+    opener.disabled = false;
+    await nextFrame();
+    await nextFrame();
+    expect(document.activeElement).toBe(elsewhere);
+  });
+
   it("activates Reset settings from the Defaults menu by keyboard", async () => {
     const spy = spies();
     const view = mount(<SettingsOwner indKey="rsi" initial={{ showLevels: false }} spy={spy} />);
@@ -348,6 +383,22 @@ describe("Indicator Source keyboard close", () => {
     activateNativeButton(footerClose);
     expect(onClose).toHaveBeenCalledTimes(2);
     expect(view.querySelector(".ind-src")).toBeNull();
+    expect(document.activeElement).toBe(opener);
+  });
+
+  it("returns focus to an opener that only becomes focusable a frame after close", async () => {
+    const onClose = vi.fn();
+    const view = mount(<SourceOwner indKey="rsi" onClose={onClose} />);
+    const opener = view.querySelector<HTMLButtonElement>(".opener")!;
+    const dialog = openSource(view);
+
+    opener.disabled = true;
+    press(dialog, "Escape");
+    expect(onClose).toHaveBeenCalledTimes(1);
+    expect(view.querySelector(".ind-src")).toBeNull();
+    expect(document.activeElement).toBe(document.body);
+    opener.disabled = false;
+    await nextFrame();
     expect(document.activeElement).toBe(opener);
   });
 });
