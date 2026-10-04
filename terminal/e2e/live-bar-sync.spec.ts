@@ -77,12 +77,17 @@ const LIVE_LAST = Number((LAST_CLOSE * 1.25).toFixed(2));
 /** 11:00 ET on `date` (EDT), as epoch seconds — what `sessionDateOf` reads. */
 const rthSeconds = (date: string, hour = 15, minute = 0) => Date.parse(`${date}T${String(hour).padStart(2, "0")}:${String(minute).padStart(2, "0")}:00Z`) / 1000;
 
-type QuotePhase = { basis: string; last: number; sessionDate: string; seconds: number };
+type QuotePhase = { basis: string; last: number; sessionDate: string; seconds: number; marketSession?: string };
 
 const PHASE_BASELINE: QuotePhase = { basis: "EOD", last: LAST_CLOSE, sessionDate: LAST_SESSION, seconds: rthSeconds(LAST_SESSION) };
 
-function quoteBody(phase: QuotePhase, syms: string[]) {
-  const quotes = Object.fromEntries(syms.map((sym) => [sym, sym === SYMBOL ? {
+function quoteBody(
+  phase: QuotePhase,
+  syms: string[],
+  symbol: string = SYMBOL,
+  market: "us" | "cn" | "hk" = "us",
+) {
+  const quotes = Object.fromEntries(syms.map((sym) => [sym, sym === symbol ? {
     sym,
     last: phase.last,
     prevClose: LAST_CLOSE,
@@ -96,24 +101,33 @@ function quoteBody(phase: QuotePhase, syms: string[]) {
     lagMs: 40,
     live: phase.basis !== "EOD",
     basis: phase.basis,
-    market: "us",
-    marketSession: "rth",
-    regularSessionDate: phase.sessionDate,
-    regularSession: "rth",
-    regularPrice: phase.last,
-    regularChg: ((phase.last - LAST_CLOSE) / LAST_CLOSE) * 100,
+    market,
+    ...(phase.marketSession ? { marketSession: phase.marketSession } : {}),
+    ...(market === "us" ? {
+      regularSessionDate: phase.sessionDate,
+      regularSession: phase.marketSession ?? "rth",
+      regularPrice: phase.last,
+      regularChg: ((phase.last - LAST_CLOSE) / LAST_CLOSE) * 100,
+    } : {}),
   } : null]));
   return { quotes };
 }
 
 /** Route the daily fixture, the slice miss, and a phase-driven quote lane. */
-async function serveDailyWorkspace(page: Page, phase: () => QuotePhase, startTf: string, inds: string[]) {
-  await page.route(`**/data/${SYMBOL}.json`, (route) =>
-    route.fulfill({ json: { t: SYMBOL, o: SYMBOL, src: "live-bar-sync-e2e", bars: BARS } }));
-  await page.route(`**/data/${SYMBOL}.slice.json`, (route) => route.fulfill({ status: 404, body: "" }));
+async function serveDailyWorkspace(
+  page: Page,
+  phase: () => QuotePhase,
+  startTf: string,
+  inds: string[],
+  symbol: string = SYMBOL,
+  market: "us" | "cn" | "hk" = "us",
+) {
+  await page.route(`**/data/${symbol}.json`, (route) =>
+    route.fulfill({ json: { t: symbol, o: symbol, src: "live-bar-sync-e2e", bars: BARS } }));
+  await page.route(`**/data/${symbol}.slice.json`, (route) => route.fulfill({ status: 404, body: "" }));
   await page.route("**/api/quote?**", async (route) => {
-    const syms = (new URL(route.request().url()).searchParams.get("syms") || SYMBOL).split(",").filter(Boolean);
-    await route.fulfill({ json: quoteBody(phase(), syms) });
+    const syms = (new URL(route.request().url()).searchParams.get("syms") || symbol).split(",").filter(Boolean);
+    await route.fulfill({ json: quoteBody(phase(), syms, symbol, market) });
   });
   await seedWorkspace(page, startTf, inds);
 }
@@ -230,6 +244,120 @@ test("a daily live quote carries the candle, its studies, the table row and the 
   expect(stale?.lastBar?.c).toBe(LIVE_LAST);
   expect(stale?.priceTail?.value).toBe(LIVE_LAST);
 });
+
+test("closed-bar MTF evidence freezes during RTH and advances on genuine US completion", async ({ page }) => {
+  test.slow();
+  let phase: QuotePhase = {
+    basis: "REALTIME",
+    last: LAST_CLOSE,
+    sessionDate: LAST_SESSION,
+    seconds: rthSeconds(LAST_SESSION, 15, 5),
+    marketSession: "rth",
+  };
+  await serveDailyWorkspace(page, () => phase, "D", ["mtfstoch", "mtfmacd", "mtfconfluence"]);
+  await page.goto(`/terminal?symbol=${SYMBOL}`);
+
+  // The baseline itself must be an actually CONSUMED forming-session quote, not merely the
+  // preloaded fixture history. Wait on the live-generation witness before snapshotting MTF.
+  await expect.poll(async () => (await readWitness(page))?.tick?.basis ?? null, {
+    timeout: 45_000,
+    message: "the forming REALTIME baseline should be accepted before MTF is sampled",
+  }).toBe("REALTIME");
+  const before = await settledBaseline(page, ["mtfstoch", "mtfmacd", "mtfconfluence"]);
+  expect(before.generation).toBeGreaterThan(0);
+  const dBefore = before.series.mtfconfluence?.[0] ?? null;
+  const d3Before = before.series.mtfconfluence?.[1] ?? null;
+  expect(dBefore).not.toBeNull();
+  expect(d3Before).not.toBeNull();
+
+  phase = {
+    basis: "REALTIME",
+    last: LIVE_LAST,
+    sessionDate: LAST_SESSION,
+    seconds: rthSeconds(LAST_SESSION, 15, 30),
+    marketSession: "rth",
+  };
+  await expect.poll(async () => (await readWitness(page))?.lastBar?.c ?? null, {
+    message: "the RTH quote should mutate the developing daily candle",
+    timeout: 45_000,
+  }).toBe(LIVE_LAST);
+
+  const during = await settledBaseline(page, ["mtfstoch", "mtfmacd", "mtfconfluence"]);
+  expect(during.priceTail?.value).toBe(LIVE_LAST);
+  expect(during.projection.mtfconfluence).toBe("closed-bar-series");
+  expect(during.series.mtfconfluence?.[0]).toEqual(dBefore);
+  expect(during.series.mtfconfluence?.[1]).toEqual(d3Before);
+  for (const key of ["mtfstoch", "mtfmacd"]) expect(during.series[key]).toEqual(before.series[key]);
+
+  // Same completed regular-session OHLC, but now the hub explicitly says the session is final.
+  // The price need not move again; the closed-only owner must publish the newly eligible D/3D state.
+  phase = {
+    basis: "REALTIME",
+    last: LIVE_LAST,
+    sessionDate: LAST_SESSION,
+    seconds: rthSeconds(LAST_SESSION, 20, 5),
+    marketSession: "post",
+  };
+  await expect.poll(async () => (await readWitness(page))?.generation ?? 0, {
+    message: "the post-close quote should commit a new generation",
+    timeout: 45_000,
+  }).toBeGreaterThan(during.generation);
+
+  const completed = await settledBaseline(page, ["mtfstoch", "mtfmacd", "mtfconfluence"]);
+  expect(completed.series.mtfconfluence?.[0]).not.toEqual(dBefore);
+  expect(completed.series.mtfconfluence?.[1]).not.toEqual(d3Before);
+  for (const key of ["mtfstoch", "mtfmacd"]) {
+    expect(completed.series[key][0]?.value).not.toBe(before.series[key][0]?.value);
+    expect(completed.series[key]).toHaveLength(5);
+  }
+});
+
+for (const lane of [
+  { name: "CN", symbol: "600519.SS", market: "cn" as const, basis: "LIVE" },
+  { name: "HK", symbol: "0700.HK", market: "hk" as const, basis: "DELAYED_15M" },
+]) {
+  test(`closed-bar MTF evidence ignores parser-shaped ${lane.name} forming quotes with absent session state`, async ({ page }) => {
+    test.slow();
+    const local1305 = Date.parse(`${LAST_SESSION}T05:05:00Z`) / 1000; // 13:05 UTC+8
+    let phase: QuotePhase = {
+      basis: lane.basis,
+      last: LAST_CLOSE,
+      sessionDate: LAST_SESSION,
+      seconds: local1305,
+      // Deliberately no marketSession: this matches ordinary Tencent CN/HK parser output.
+    };
+    await serveDailyWorkspace(page, () => phase, "D", ["mtfstoch", "mtfmacd", "mtfconfluence"], lane.symbol, lane.market);
+    await page.goto(`/terminal?symbol=${lane.symbol}`);
+
+    await expect.poll(async () => (await readWitness(page))?.tick?.basis ?? null, {
+      timeout: 45_000,
+      message: `${lane.name} forming baseline should be accepted before MTF is sampled`,
+    }).toBe(lane.basis);
+    const before = await settledBaseline(page, ["mtfstoch", "mtfmacd", "mtfconfluence"]);
+    expect(before.generation).toBeGreaterThan(0);
+    const dBefore = before.series.mtfconfluence?.[0] ?? null;
+    const d3Before = before.series.mtfconfluence?.[1] ?? null;
+    expect(dBefore).not.toBeNull();
+    expect(d3Before).not.toBeNull();
+
+    phase = { ...phase, last: LIVE_LAST, seconds: local1305 + 60 };
+    await expect.poll(async () => (await readWitness(page))?.lastBar?.c ?? null, {
+      message: `${lane.name} forming quote should still move the price candle`,
+      timeout: 45_000,
+    }).toBe(LIVE_LAST);
+
+    const after = await settledBaseline(page, ["mtfstoch", "mtfmacd", "mtfconfluence"]);
+    expect(after.priceTail?.value).toBe(LIVE_LAST);
+    expect(after.projection.mtfconfluence).toBe("closed-bar-series");
+    expect(after.series.mtfconfluence?.[0]).toEqual(dBefore);
+    expect(after.series.mtfconfluence?.[1]).toEqual(d3Before);
+    for (const key of ["mtfstoch", "mtfmacd"]) {
+      expect(before.series[key][0]?.value).not.toBeNull();
+      expect(after.series[key]).toEqual(before.series[key]);
+      expect(after.series[key]).toHaveLength(5);
+    }
+  });
+}
 
 test("a new session appends a resampled bucket every consumer can address", async ({ page }) => {
   test.slow();

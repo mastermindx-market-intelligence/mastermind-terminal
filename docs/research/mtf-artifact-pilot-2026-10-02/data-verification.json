@@ -1,0 +1,99 @@
+[
+  {
+    "symbol": "NVDA",
+    "state": "verified",
+    "sha256": "9958c189fa1e967cdd509f533c047c046e78b093a654e24705ebe573a8948083"
+  },
+  {
+    "symbol": "AAPL",
+    "state": "verified",
+    "sha256": "e8d82ed9fbca3e83e366f6ba78922960dd09f9e09378182f10c1dcab662612be"
+  },
+  {
+    "symbol": "MSFT",
+    "state": "verified",
+    "sha256": "0689bb3965059c148e08ec14529c353a881583d1a1492dd8fd5caa283d0b7c48"
+  },
+  {
+    "symbol": "AMZN",
+    "state": "verified",
+    "sha256": "fc00fec58299d158366abb2c9b3c93c41112b3a6181cf79b6b69fff434fbed6f"
+  },
+  {
+    "symbol": "GOOGL",
+    "state": "verified",
+    "sha256": "94a2f9c9342fe407038103acdfc4ac865b09a172cdb21373b23d54b4df2265d3"
+  },
+  {
+    "symbol": "META",
+    "state": "verified",
+    "sha256": "e90cd58578a7ad45fd77b348c0850280bf6846f49032968e181814bbd07a22f2"
+  },
+  {
+    "symbol": "TSLA",
+    "state": "verified",
+    "sha256": "cd7b08d5a4abac15a373c83d4f3dec2a2bd8484b93e3ddb56f6a416839e2bee4"
+  },
+  {
+    "symbol": "AMD",
+    "state": "verified",
+    "sha256": "c2d36d1ae112e1ec8c2963646acba1114ee1ee0945803f389da1a491b1dbcf61"
+  },
+  {
+    "symbol": "AVGO",
+    "state": "verified",
+    "sha256": "afa5f1cb330b77b605976fd0dd4eaca3c63afa97ab34314862c2ce94206cde01"
+  },
+  {
+    "symbol": "INTC",
+    "state": "verified",
+    "sha256": "5c0b6ad48fc6fd7677cc943a9a9727acb7ad7814b87d9dccf6dddf02b3759a16"
+  },
+  {
+    "symbol": "MU",
+    "state": "verified",
+    "sha256": "5e7a301534c962d45f7598ce7177cef5244b60b1f6a79384caa28bbac01315dc"
+  },
+  {
+    "symbol": "JPM",
+    "state": "verified",
+    "sha256": "0c87d1c5fc48d708006eee014ae367321f30b55934fa1d3425d596772866969f"
+  },
+  {
+    "symbol": "XOM",
+    "state": "verified",
+    "sha256": "2e93a17e3f00b7962b4d98ab85334cd94c816e3ed8415bbc7156ac108780f7f7"
+  },
+  {
+    "symbol": "UNH",
+    "state": "missing"
+  },
+  {
+    "symbol": "SPY",
+    "state": "verified",
+    "sha256": "56f5f58ce2b309ad8f885273eac502adf828d911c779081597b39e04c28409d2"
+  },
+  {
+    "symbol": "QQQ",
+    "state": "verified",
+    "sha256": "acf6154224152f56633c04bd1cfd3267f8db2d97edfdc5d22699b2bef2ab15ee"
+  },
+  {
+    "symbol": "IWM",
+    "state": "verified",
+    "sha256": "a20ce729c941e17a516967961249d7b5ce7a500001d87b55c7d3d4db32b63e3e"
+  },
+  {
+    "symbol": "TLT",
+    "state": "verified",
+    "sha256": "c65a72ae6b0eca8735670c18fbd20803091277567bf2e592aa5429bd3f1e4e54"
+  },
+  {
+    "symbol": "0700.HK",
+    "state": "missing"
+  },
+  {
+    "symbol": "600519.SS",
+    "state": "missing"
+  }
+]
