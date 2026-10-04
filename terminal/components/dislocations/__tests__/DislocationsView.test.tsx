@@ -196,10 +196,13 @@ describe("DislocationsView §9", () => {
     vi.stubGlobal("fetch", fetchMock);
 
     fetchMock.mockResolvedValueOnce(
-      new Response(JSON.stringify({ state: "source_unavailable" }), {
-        status: 200,
-        headers: { "content-type": "application/json" },
-      }),
+      new Response(
+        JSON.stringify({ state: "source_unavailable", reason: "episodes_not_published" }),
+        {
+          status: 200,
+          headers: { "content-type": "application/json" },
+        },
+      ),
     );
     mount();
     await flush();
@@ -293,5 +296,244 @@ describe("DislocationsView §9", () => {
     await flush();
     const a = container!.querySelector(`a[href="${chartNavHref(ep.ticker)}"]`);
     expect(a).toBeTruthy();
+  });
+
+  it("10 — source_unavailable handler_error shows handler copy, not publishing", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () =>
+        new Response(
+          JSON.stringify({ state: "source_unavailable", reason: "handler_error" }),
+          { status: 200, headers: { "content-type": "application/json" } },
+        ),
+      ),
+    );
+    mount();
+    await flush();
+    expect(container!.textContent).toContain("Try again in a minute");
+    expect(container!.textContent).not.toContain("isn't publishing yet");
+  });
+
+  it("11 — overlapping fetches: newer generation wins when older resolves last", async () => {
+    type Resolver = (v: Response) => void;
+    let resolveOld: Resolver;
+    let resolveNew: Resolver;
+    const oldP = new Promise<Response>((r) => {
+      resolveOld = r;
+    });
+    const newP = new Promise<Response>((r) => {
+      resolveNew = r;
+    });
+    const fetchMock = vi.fn().mockReturnValueOnce(oldP).mockReturnValueOnce(newP);
+    vi.stubGlobal("fetch", fetchMock);
+
+    const epOld = withDisplay(freshFile.episodes).find((e) => e.ticker === "GOOGL")!;
+    const epNew = withDisplay(freshFile.episodes).find((e) => e.ticker === "NVDA")!;
+
+    mount();
+    await flush();
+    await act(async () => {
+      vi.advanceTimersByTime(60_000);
+    });
+    await flush();
+
+    await act(async () => {
+      resolveNew!(
+        new Response(
+          JSON.stringify(apiBody({ episodes: [epNew], count: 1 })),
+          { status: 200, headers: { "content-type": "application/json" } },
+        ),
+      );
+      await Promise.resolve();
+    });
+    await flush();
+    expect(container!.textContent).toContain("NVDA");
+    expect(container!.querySelectorAll("ol li").length).toBe(1);
+
+    await act(async () => {
+      resolveOld!(
+        new Response(
+          JSON.stringify(apiBody({ episodes: [epOld], count: 1 })),
+          { status: 200, headers: { "content-type": "application/json" } },
+        ),
+      );
+      await Promise.resolve();
+    });
+    await flush();
+    expect(container!.textContent).toContain("NVDA");
+    expect(container!.textContent).not.toMatch(/GOOGL/);
+  });
+
+  it("12 — my → market tab uses market fetch and drops prior tickers", async () => {
+    const myEp = withDisplay(freshFile.episodes).find((e) => e.ticker === "GOOGL")!;
+    const marketEp = withDisplay(freshFile.episodes).find((e) => e.ticker === "NVDA")!;
+    const fetchMock = vi.fn();
+    fetchMock.mockResolvedValueOnce(
+      new Response(
+        JSON.stringify(apiBody({ view: "my", episodes: [myEp], count: 1 })),
+        { status: 200, headers: { "content-type": "application/json" } },
+      ),
+    );
+    fetchMock.mockResolvedValueOnce(
+      new Response(
+        JSON.stringify(apiBody({ view: "market", episodes: [marketEp], count: 1 })),
+        { status: 200, headers: { "content-type": "application/json" } },
+      ),
+    );
+    vi.stubGlobal("fetch", fetchMock);
+
+    mount();
+    await flush();
+    expect(container!.textContent).toContain("GOOGL");
+
+    const marketTab = Array.from(container!.querySelectorAll("button")).find(
+      (b) => b.textContent === "Market",
+    );
+    expect(marketTab).toBeTruthy();
+    await act(async () => {
+      marketTab!.click();
+    });
+    await flush();
+
+    const lastUrl = fetchMock.mock.calls.at(-1)?.[0] as string;
+    expect(lastUrl).toContain("view=market");
+    expect(container!.textContent).toContain("NVDA");
+    expect(container!.textContent).not.toMatch(/\bGOOGL\b/);
+  });
+
+  it("13 — hidden document does not poll or advance age", async () => {
+    const ep = withDisplay(freshFile.episodes)[0];
+    const knowable = ep.display.knowable_at!;
+    const fetchMock = vi.fn(async () =>
+      new Response(
+        JSON.stringify(apiBody({ episodes: [ep], count: 1 })),
+        { status: 200, headers: { "content-type": "application/json" } },
+      ),
+    );
+    vi.stubGlobal("fetch", fetchMock);
+
+    Object.defineProperty(document, "visibilityState", {
+      configurable: true,
+      get: () => "hidden",
+    });
+
+    mount();
+    await flush();
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    const ageEl = container!.querySelector("[data-testid='dislo-age']");
+    const before = ageEl?.textContent;
+
+    await act(async () => {
+      vi.advanceTimersByTime(90_000);
+    });
+    await flush();
+
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(ageEl?.textContent).toBe(before);
+
+    Object.defineProperty(document, "visibilityState", {
+      configurable: true,
+      get: () => "visible",
+    });
+  });
+
+  it("14 — unknown episode state renders in Ended with UNKNOWN data-state", async () => {
+    const raw = { ...freshFile.episodes[0], state: "FUTURE_STATE" };
+    const ep = { ...raw, display: displayFor(raw as LiveEntryEpisode) };
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () =>
+        new Response(
+          JSON.stringify(apiBody({ episodes: [ep], count: 1 })),
+          { status: 200, headers: { "content-type": "application/json" } },
+        ),
+      ),
+    );
+    mount();
+    await flush();
+    const row = container!.querySelector("ol li[data-state='UNKNOWN']");
+    expect(row).toBeTruthy();
+    expect(container!.textContent).toContain("Status unavailable");
+  });
+
+  it("15 — stale with null asof still shows stale warn", async () => {
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () =>
+        new Response(
+          JSON.stringify(
+            apiBody({
+              state: "stale",
+              source: {
+                asof: null,
+                pack_as_of: freshFile.pack.as_of,
+                pack_fresh: true,
+                quote_age_s: 60,
+                delayed: true,
+              },
+            }),
+          ),
+          { status: 200, headers: { "content-type": "application/json" } },
+        ),
+      ),
+    );
+    mount();
+    await flush();
+    expect(container!.querySelector("[data-testid='dislo-stale-warn']")).toBeTruthy();
+    expect(container!.textContent).toContain("— ET");
+  });
+
+  it("16 — ZH catalyst detail uses localized until clock", async () => {
+    const ep = withDisplay(freshFile.episodes)[0];
+    const withCat = {
+      ...ep,
+      catalyst: {
+        coverage: "earnings",
+        relevant_until: "2026-10-03T20:30:00.000Z",
+      },
+    };
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () =>
+        new Response(
+          JSON.stringify(apiBody({ episodes: [withCat], count: 1 })),
+          { status: 200, headers: { "content-type": "application/json" } },
+        ),
+      ),
+    );
+    mount("zh");
+    await flush();
+    const details = container!.querySelector("details");
+    await act(async () => {
+      (details!.querySelector("summary") as HTMLElement).click();
+    });
+    await flush();
+    expect(container!.textContent).toContain("至");
+    expect(container!.textContent).not.toContain("until");
+    expect(container!.textContent).toContain("美东");
+  });
+
+  it("17 — loading state exposes status line", async () => {
+    let resolve!: (v: Response) => void;
+    const pending = new Promise<Response>((r) => {
+      resolve = r;
+    });
+    vi.stubGlobal("fetch", vi.fn(() => pending));
+    mount();
+    const loading = container!.querySelector("[data-testid='dislo-loading']");
+    expect(loading).toBeTruthy();
+    expect(loading?.textContent).toContain("Reading the latest bars");
+
+    await act(async () => {
+      resolve(
+        new Response(JSON.stringify(apiBody({})), {
+          status: 200,
+          headers: { "content-type": "application/json" },
+        }),
+      );
+      await Promise.resolve();
+    });
+    await flush();
+    expect(container!.querySelector("[data-testid='dislo-loading']")).toBeFalsy();
   });
 });
