@@ -3,6 +3,7 @@ import { isUuid } from "@/lib/theses";
 export type AnalysisRoute =
   | { kind: "company"; symbol?: string; page?: string }
   | { kind: "theses"; symbol?: string; thesisId?: string }
+  | { kind: "investigations"; symbol?: string; investigationId?: string; revision?: number }
   | { kind: "unsupported"; reason: "invalid_view" | "unsupported_view" | "thesis_requires_theses" }
   | { kind: "invalid_thesis" };
 
@@ -29,11 +30,18 @@ export function parseAnalysisRoute(query: SearchParams): AnalysisRoute {
   if (Array.isArray(view) || (typeof view === "string" && !view.trim())) {
     return { kind: "unsupported", reason: "invalid_view" };
   }
-  if (view !== undefined && view !== "company" && view !== "theses") {
+  if (view !== undefined && view !== "company" && view !== "theses" && view !== "investigations") {
     return { kind: "unsupported", reason: "unsupported_view" };
   }
   if (query.thesis !== undefined && view !== "theses") {
     return { kind: "unsupported", reason: "thesis_requires_theses" };
+  }
+  if ((query.investigation !== undefined || query.revision !== undefined) && view !== "investigations") return {kind:"unsupported",reason:"invalid_view"};
+  if (view === "investigations") {
+    const id=query.investigation, revision=query.revision;
+    if (Array.isArray(id) || (id !== undefined && !isUuid(id)) || Array.isArray(revision)
+      || (revision !== undefined && (!id || !/^[1-9][0-9]{0,9}$/.test(revision) || Number(revision)>2147483647))) return {kind:"unsupported",reason:"invalid_view"};
+    return {kind:"investigations",...(id ? {investigationId:id.toLowerCase()} : {}),...(revision ? {revision:Number(revision)} : {}),...(optional(query.symbol) !== undefined ? {symbol:optional(query.symbol)} : {})};
   }
   if (view === "theses") {
     if (Array.isArray(query.thesis)) return { kind: "invalid_thesis" };

@@ -283,6 +283,7 @@ export default function AnalysisWorkspace({ initialSymbol, initialPage }: Analys
           <i />
           <span>{t("wsCompanyResearch")}</span>
         </div>
+        {!invalidSymbol && <Link className="analysis-context-theses" href={`/analysis?view=investigations&symbol=${encodeURIComponent(sym)}`}>{zh ? "已保存研究" : "Saved research"}</Link>}
         {!invalidSymbol && (
           <Link
             href={thesesHref}
