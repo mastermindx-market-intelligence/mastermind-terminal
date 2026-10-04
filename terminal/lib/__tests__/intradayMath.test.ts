@@ -599,6 +599,28 @@ describe("adx", () => {
     expect(result.adx[5]).not.toBeNull();
   });
 
+  it("does not count a non-finite sample toward any stage's Wilder seed", () => {
+    const day0 = Math.floor(Date.UTC(2024, 0, 2) / 1000);
+    const bars: Bar[] = Array.from({ length: 9 }, (_, i) => {
+      const p = 100 + i;
+      return { time: day0 + 570 * 60 + i * 300, o: p, h: p + 2, l: p - 1, c: p + 1, v: 1000 };
+    });
+    // A corrupt high on bar 2 makes DM+ and TR non-finite there; DM− stays a finite 0.
+    bars[2] = { ...bars[2], h: Infinity };
+    const result = adx(bars, 3);
+
+    // TR seeds from bars 0,1,3 and DM− from bars 1,2,3, so DI− first appears on bar 3. DM+ must
+    // skip bar 2 and seed from bars 1,3,4 — DI+ on bar 3 would average only two finite samples.
+    expect(result.diMinus.slice(0, 3)).toEqual([null, null, null]);
+    expect(result.diMinus[3]).not.toBeNull();
+    expect(result.diPlus.slice(0, 4)).toEqual([null, null, null, null]);
+    expect(result.diPlus[4]).not.toBeNull();
+
+    // DX needs both DIs, so it is first finite on bar 4; ADX waits for DX on bars 4,5,6.
+    expect(result.adx.slice(0, 6)).toEqual([null, null, null, null, null, null]);
+    expect(result.adx[6]).not.toBeNull();
+  });
+
   it("ADX is always in [0, 100]", () => {
     const bars = buildEtSessions(3);
     const { adx: adxArr } = adx(bars, 10);
