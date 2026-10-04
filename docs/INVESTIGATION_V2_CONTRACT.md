@@ -52,9 +52,9 @@ event, schema, authority, complete dependency/qualification identity, bytes/hash
 and current rights on read/export. It must report HISTORICAL_UNAVAILABLE instead of
 substituting today's data. Pure manifest/storage acceptance does not certify this.
 
-Migration remains unapplied until source review and real database readback. G1
-acceptance still requires the genuine retained owner baseline and authenticated
-leave/fresh-session resume. Neither the storage tests nor a fixture pass completes G1.
+Migration 0028 was applied on 2026-10-04 after independent SQL review. Catalog
+readback verified all 19 objects and owner-only table grants. G1 acceptance still
+requires authenticated leave/fresh-session resume. Neither the storage tests nor a fixture pass completes G1.
 
 ## Implemented G1 reads and UI
 
@@ -115,15 +115,15 @@ retained-layout host and existing workspace golden vectors pass 78 cases.
 
 Rejected commands remain in the same principal-partitioned recovery buffer until
 an explicit new edit/save replaces them; they do not become automatic retries.
-The immutable success receipt remains the only commit/retry authority. The
-independent 0028 reviewer timed out after ACK/START without a review artifact;
-cleanup proved zero residual workers. No release approval is asserted.
+The immutable success receipt remains the only commit/retry authority. The independent 0028 source review returned PASS for the unchanged executable
+SQL; its normal-completion receipt proves zero residual workers. This accepts
+the SQL review scope only, not production G1.
 
 Production read-only inventory confirmed the existing `chart_layouts` table and
 absence of both new owners before migration. The connected Terminal project has
 no team rows; G7 requires a designated real team and approved existing principals.
-No migration, production Investigation write, source merge or deployment has yet
-occurred. These source and fixture results are not G1 or G0-G9 acceptance.
+Migration 0028 is applied; production Investigation writes, source merge and
+application deployment remain pending. These source and fixture results are not G1 or G0-G9 acceptance.
 
 ## Paired language contract and SQL admission
 
@@ -151,4 +151,7 @@ identity checks. The sanitized receipt is in
 `terminal/docs/verification/iw2-g1/current-owner-retention-receipt.json`. This proves
 a genuine retained owner baseline read, not authenticated product save/reopen.
 The existing Chris production session was observed signed in; no account, team
-or membership was created. Production migration and release remain outstanding.
+or membership was created. Migration 0028 is applied; application release remains
+outstanding. The initial wrapper receipt reported incomplete readback queries;
+a supplemental catalog query verified all 19 objects without replaying DDL.
+[Posted migration receipt](https://github.com/mastermindx-market-intelligence/mastermind-terminal/pull/777#issuecomment-5977275494).

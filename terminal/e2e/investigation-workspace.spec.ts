@@ -13,7 +13,7 @@ const question="  What explains the change?\n";
 const content={schema:"investigation_manifest.v2",intent:{title:"Apple research",question,subjects:[{kind:"security",owner:"terminal.analysis_symbol",object_id:"AAPL"},{kind:"issuer",owner:"data_os.security_master",object_id:golden.issuer.company_id}]},layout_refs:[],thesis_refs:[],evidence_refs:[reference],continuation:{},review_baseline_ref:reference};
 const committed=(target=id,manifest:unknown=content)=>({status:"committed",id:target,revision:1,lifecycle:"active",manifest,committed_at:"2026-10-04T00:00:00Z"});
 async function setup(page:Page) {
- await page.addInitScript(()=>{localStorage.setItem("mm.lang","en");});
+ await page.addInitScript(()=>{if(!localStorage.getItem("mm.lang"))localStorage.setItem("mm.lang","en");});
  await page.route("**/api/layouts",route=>route.fulfill({json:{layouts:[],teams:[],teamRead:{ok:true}}}));
  await page.route("**/api/investigations/baseline?*",route=>route.fulfill({json:fixtureBaseline}));
 }
@@ -41,6 +41,14 @@ test("exact save/readback/reopen and responsive retained evidence are read-only 
  expect(writes).toHaveLength(1);
  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=window.innerWidth+1)).toBe(true);
  await page.screenshot({path:testInfo.outputPath("saved-research-retained.png"),fullPage:true});
+ await expect(page.getByText("Not licensed",{exact:true})).toBeVisible();
+ await page.evaluate(()=>{localStorage.setItem("mm.lang","zh");});
+ await page.reload();
+ await expect(page.getByRole("heading",{name:"已保存研究",exact:true})).toBeVisible();
+ await expect(page.getByText("未获授权",{exact:true})).toBeVisible();
+ await expect(page.getByText("市场共识",{exact:true})).toBeVisible();
+ expect(writes).toHaveLength(1);
+ await page.screenshot({path:testInfo.outputPath("saved-research-retained-zh.png"),fullPage:true});
 });
 
 test("lost response and receipt miss preserve one operation across reload",async({page})=>{

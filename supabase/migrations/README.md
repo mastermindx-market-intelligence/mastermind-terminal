@@ -207,7 +207,7 @@ amendment, only a README edit.
 | `0025` | `thesis_amendment_proposals` | PR #577 (merged as `4169e0cf` on 2026-09-19, packet B-F11-5, MO-PAID-054 write-back) | merged + applied 2026-09-19 (readback receipt held in the seat's handoff kit at `ddl/receipt_0025.json`; the project ref is never written) |
 | `0026` | — | Reserved for packet B-F12-10 (seat ruling h_t581 2026-09-18) | reserved — not applied |
 | `0027` | `api_keys` | PR #581 (merged as `c9381593` on 2026-09-19, packet B-F12-10, personal read-only API keys) | merged + applied 2026-09-19 (readback receipt held in the seat's handoff kit at `ddl/receipt_0027.json`; the project ref is never written) |
-| `0028` | — | Reserved for `INTL-R10-SAVED-RESEARCH` (International Markets R10 Boards 121–130 / Board 124 authenticated Saved Research owner) | reserved — no file or PR yet; ships unapplied |
+| `0028` | `0028_investigations.sql` | `IW2-G1-INVESTIGATION`, converged from `INTL-R10-SAVED-RESEARCH`, #777 | applied 2026-10-04; [catalog receipt](https://github.com/mastermindx-market-intelligence/mastermind-terminal/pull/777#issuecomment-5977275494) |
 
 `0001`–`0007` and `0010` are **historical**: they predate this ledger, their creating pull
 requests were never recorded in-repo, and so their `pr` and `pr_state` fields in
@@ -341,8 +341,16 @@ contradicts itself and that no note reconciles.
 
 ### 0028 — Investigation convergence (#777)
 
-The former Saved Research reservation now owns `0028_investigations.sql`, packet
-`IW2-G1-INVESTIGATION`. It is **unapplied**. Heads, immutable revisions, operation
-receipts and the chart-layout owner retention extension form one G1 transaction.
-No DDL0022 replay or separate Saved Research tables are needed. Exact application
-and authenticated product acceptance must be recorded independently.
+The former Saved Research reservation owns `0028_investigations.sql`, packet
+`IW2-G1-INVESTIGATION`, on the existing PR #777. The per-file wrapper applied all
+39 statements at 2026-10-04T06:17:18Z. Its initial `failed_readback` came from
+incomplete readback queries; independent catalog reads verified all 19 objects,
+four RLS tables, SELECT-only authenticated table grants and private helpers.
+No DDL replay occurred. The source now includes complete readback queries, with
+executable statements unchanged from the independent review.
+
+Receipt: [#777 migration readback](https://github.com/mastermindx-market-intelligence/mastermind-terminal/pull/777#issuecomment-5977275494). Sanitized apply/catalog
+receipts are in `terminal/docs/verification/iw2-g1/`. Application deployment and
+real authenticated acceptance are separate gates. Rollback revokes the mutation
+RPC grant and retains heads, revisions, receipts and captures. Current layouts
+are not changed by the migration.

@@ -1,5 +1,5 @@
 -- IW2 G1: one Investigation aggregate, converged from Saved Research #777.
--- Ledger row: 0028 | IW2-G1-INVESTIGATION | PR #777 | unapplied
+-- Ledger row: 0028 | IW2-G1-INVESTIGATION | PR #777 | applied 2026-10-04; receipt 5977275494
 -- Rollback: retain user data and disable RPC grants; restore from verified backup before destructive down.
 -- Re-runnable source. Apply this file explicitly, never the entire migration directory.
 begin;
@@ -275,4 +275,6 @@ commit;
 
 -- readback:
 -- select relname,relrowsecurity from pg_class where relname in ('investigations','investigation_revisions','investigation_mutation_receipts','chart_layout_revisions');
--- select proname,prosecdef,proconfig from pg_proc where proname in ('apply_investigation_revision_v2','read_investigation_v2','read_investigation_operation_v2');
+-- select indexname from pg_indexes where schemaname='public' and indexname in ('investigations_owner_updated','investigation_revisions_owner','chart_layout_revisions_owner');
+-- select policyname from pg_policies where schemaname='public' and tablename in ('investigations','investigation_revisions','investigation_mutation_receipts','chart_layout_revisions');
+-- select proname,prosecdef,proconfig from pg_proc where proname in ('investigation_text_v2','investigation_keys_v2','investigation_json_v2','valid_investigation_manifest_v2','apply_investigation_revision_v2','read_investigation_v2','read_investigation_operation_v2','list_investigations_v2');
