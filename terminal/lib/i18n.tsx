@@ -755,6 +755,8 @@ export const LEX: Record<string, [string, string]> = {
   sgBodyPortfolio: ["Keep your holdings and watchlists in one place and watch how they move — stored on your account, on every device you sign in from.", "集中管理持仓与自选列表并跟踪其表现 —— 保存在账户中，任何登录设备均可查看。"],
   sgTitleAlerts: ["Sign up to set alerts", "注册后设置提醒"],
   sgBodyAlerts: ["Price and signal alerts on any symbol, evaluated on our servers every five minutes — they keep watching after you close the tab.", "对任意标的设置价格与信号提醒，服务器每 5 分钟评估一次 —— 关闭页面后仍在盯盘。"],
+  sgTitleDislocations: ["Sign up to watch dislocations", "注册后观察错位"],
+  sgBodyDislocations: ["Intraday washouts on your watchlist and whether the turn is holding, re-read every five minutes on delayed bars — windows, not certainties.", "你自选股的日内洗盘与转向是否站稳，基于延迟行情每 5 分钟重读 —— 是窗口，不是确定性。"],
   sgF1: ["Watchlists synced across your devices", "自选列表多设备同步"],
   sgF2: ["The full per-stock analysis desk", "完整的个股分析终端"],
   sgF3: ["Screener, heatmap and market movers", "选股器、热力图与涨跌榜"],

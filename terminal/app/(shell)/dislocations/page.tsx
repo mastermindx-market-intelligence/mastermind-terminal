@@ -13,8 +13,6 @@ export default async function DislocationsPage() {
 
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
-  // SignupGate surface key lands in a sibling nav/i18n lane; gate copy is unchanged until then.
-  // @ts-expect-error dislocations surface wired outside this lane
   if (!user) return <SignupGate surface="dislocations" />;
 
   return <DislocationsViewMount />;
