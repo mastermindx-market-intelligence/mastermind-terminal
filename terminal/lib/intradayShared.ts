@@ -1,11 +1,13 @@
 // Pure, node:fs-free helpers shared between intradaySources (client-shared) and intradayStore
-// (server-only, node:fs). NO imports beyond this file — keeping it dep-free is what makes it safe
+// (server-only, node:fs). Only immutable clock data imports — keeping it dep-free is what makes it safe
 // to import from both sides of the client/server boundary.
 //
 // Turbopack rule: a module that client code transitively imports must not pull in node: builtins.
 // intradaySources is imported by ChartPanel/TerminalShell/TechnicalsPage (all client components),
 // so intradaySources must stay free of node:fs. intradayStore owns all fs access and is imported
 // ONLY by the route. This shared module sits in between — no fs, no problem on either side.
+
+import { usRegularSessionWindow } from "./usEquitySessionClock";
 
 export type Bar6 = [number, number, number, number, number, number];
 
@@ -114,7 +116,6 @@ export function resampleSessionSegments(bars: Bar6[], minutes: number, segments:
 
 export type UsEquitySession = "regular" | "extended";
 const US_REGULAR_START = 9 * 60 + 30;
-const US_REGULAR_END = 16 * 60;
 const US_EXTENDED_START = 4 * 60;
 const US_EXTENDED_END = 20 * 60;
 
@@ -126,11 +127,13 @@ function displayMinuteOfDay(epoch: number): number {
 // This lets the session filter stay DST-safe without converting the timestamp
 // again: 09:30 in the display epoch is always the exchange's 09:30.
 export function filterUsEquitySession(bars: Bar6[], session: UsEquitySession): Bar6[] {
-  const start = session === "extended" ? US_EXTENDED_START : US_REGULAR_START;
-  const end = session === "extended" ? US_EXTENDED_END : US_REGULAR_END;
   return bars.filter((bar) => {
+    const window = session === "extended"
+      ? [US_EXTENDED_START, US_EXTENDED_END]
+      : usRegularSessionWindow(bar[0]);
+    if (!window) return false; // A full exchange closure is not a short session.
     const minute = displayMinuteOfDay(bar[0]);
-    return minute >= start && minute < end;
+    return minute >= window[0] && minute < window[1];
   });
 }
 
@@ -142,13 +145,16 @@ export function resampleUsEquitySession(
   minutes: number,
   session: UsEquitySession,
 ): Bar6[] {
-  if (minutes <= 1 || bars.length === 0) return bars;
+  // Enforce regular-session boundaries even for callers supplying raw bars.
+  // Extended-session policy is deliberately unchanged by this clock repair.
+  const selected = session === "regular" ? filterUsEquitySession(bars, session) : bars;
+  if (minutes <= 1 || selected.length === 0) return selected;
   const anchorMinute = session === "extended" ? US_EXTENDED_START : US_REGULAR_START;
   const span = minutes * 60;
   const out: Bar6[] = [];
   let current: Bar6 | null = null;
   let key = Number.NaN;
-  for (const bar of bars) {
+  for (const bar of selected) {
     const dayStart = Math.floor(bar[0] / 86400) * 86400;
     const offset = bar[0] - dayStart - anchorMinute * 60;
     const bucket = dayStart + anchorMinute * 60 + Math.floor(offset / span) * span;

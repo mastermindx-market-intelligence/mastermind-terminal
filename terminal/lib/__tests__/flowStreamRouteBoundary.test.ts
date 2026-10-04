@@ -134,3 +134,54 @@ describe("Prophet full-plan transport boundary", () => {
     },
   );
 });
+
+describe("Options Alpha candidate-feed transport boundary", () => {
+  it.each([
+    ["normal mode", undefined],
+    ["fixture mode", "1"],
+  ])(
+    "rejects options_alpha_candidate_feed before auth, upstream, or stream creation in %s",
+    async (_label, fixture) => {
+      if (fixture === undefined) delete process.env.FLOW_FIXTURE;
+      else process.env.FLOW_FIXTURE = fixture;
+
+      const NativeReadableStream = globalThis.ReadableStream;
+      vi.stubGlobal(
+        "ReadableStream",
+        new Proxy(NativeReadableStream, {
+          construct(target, args, newTarget) {
+            const source = args[0] as { type?: string } | undefined;
+            // Same probe as the prophet_idx guard: a Response(string) body
+            // allocation is the ONLY permitted bytes stream — the route's
+            // explicit SSE source has no `type: "bytes"` and must never exist,
+            // so this key (transport-only, GET-only, no poller yet) cannot
+            // quietly become a long-lived producer.
+            if (source?.type !== "bytes") {
+              throw new Error(
+                "options_alpha_candidate_feed must be rejected before SSE stream creation",
+              );
+            }
+            return Reflect.construct(target, args, newTarget);
+          },
+        }),
+      );
+
+      const res = await GET(
+        new Request("https://terminal.test/api/flow/stream?f=options_alpha_candidate_feed"),
+      );
+
+      expect(res.status).toBe(400);
+      expect(await res.text()).toBe("bad f param");
+      expect(res.headers.get("cache-control")).toBe("no-store");
+      expect(res.headers.get("content-type")).toBe("text/plain; charset=utf-8");
+      expect(res.headers.get("content-type")).not.toContain("text/event-stream");
+
+      // The rejection happens at the request-param boundary, BEFORE auth /
+      // entitlement / parse, so no upstream or producer can be touched.
+      expect(mocks.rateLimit).toHaveBeenCalledTimes(1);
+      expect(mocks.hasLiveOptions).not.toHaveBeenCalled();
+      expect(mocks.isValidF).not.toHaveBeenCalled();
+      expect(mocks.loadFlowFresh).not.toHaveBeenCalled();
+    },
+  );
+});

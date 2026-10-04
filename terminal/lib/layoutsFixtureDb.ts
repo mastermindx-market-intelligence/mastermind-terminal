@@ -23,6 +23,8 @@ import type { LayoutDb, LayoutDbResult, LayoutQuery, LayoutRow } from "@/lib/lay
 
 /** Per-test store key, so the three parallel viewport projects cannot see each other's writes. */
 export const LAYOUT_STORE_COOKIE = "mm_e2e_layouts";
+/** Optional identity within one store, used by the two-context team-sharing proof. */
+export const LAYOUT_USER_COOKIE = "mm_e2e_layout_user";
 /** Operation class that should fail: `list` | `save` | `delete` | `all`. */
 export const LAYOUT_FAULT_COOKIE = "mm_e2e_layout_fault";
 /** Renders the workspace as a signed-out visitor (page prop + API auth), for the guest-gate spec. */
@@ -51,9 +53,12 @@ type FixtureGlobal = typeof globalThis & {
 const stores: Map<string, Store> = ((globalThis as FixtureGlobal)[GLOBAL_KEY] ??= new Map<string, Store>());
 const teamStores: Map<string, Store> = ((globalThis as FixtureGlobal)[TEAM_GLOBAL_KEY] ??= new Map<string, Store>());
 
-/** Stable synthetic owner id per store key — the service still filters on it everywhere. */
-export function fixtureLayoutUserId(key: string): string {
-  return `e2e-layout-user-${key}`;
+/** Stable synthetic identity per store key — the service still filters on it everywhere. */
+export function fixtureLayoutUserId(key: string, identity = "owner"): string {
+  const safeIdentity = identity.replace(/[^a-zA-Z0-9_-]/g, "_") || "owner";
+  // Keep the long-standing default principal stable for every existing fixture test. Only an
+  // explicitly selected second identity receives a suffix.
+  return safeIdentity === "owner" ? `e2e-layout-user-${key}` : `e2e-layout-user-${key}-${safeIdentity}`;
 }
 
 function storeFor(key: string): Store {
@@ -109,12 +114,18 @@ function teamStoreFor(teamId: string): Store {
 }
 
 export function fixtureTeamName(teamId: string): string {
+  void teamId; // Every fixture team deliberately uses the same stable display name.
   return "Desk";
 }
 
-export function createLayoutFixtureDb(key: string, fault: LayoutFault = "", team?: LayoutTeamContext | null): LayoutDb {
+export function createLayoutFixtureDb(
+  key: string,
+  fault: LayoutFault = "",
+  team?: LayoutTeamContext | null,
+  actingUserId = fixtureLayoutUserId(key),
+): LayoutDb {
   const store = storeFor(key);
-  const userId = fixtureLayoutUserId(key);
+  const userId = actingUserId;
   const teamId = team?.teamId ?? "";
   const role: LayoutTeamRole = team?.role ?? "member";
   const teamName = team?.teamName || (teamId ? fixtureTeamName(teamId) : "");
@@ -133,7 +144,9 @@ export function createLayoutFixtureDb(key: string, fault: LayoutFault = "", team
       if (row.user_id === userId) return true;
       return !!teamId && row.team_id === teamId;
     }
-    return true;
+    // Production RLS hides another principal's private row even from an id-only query. This
+    // matters now that one fixture store can model several identities in separate browser contexts.
+    return row.user_id === userId;
   };
 
   const canTouchTeamRow = (row: LayoutRow): boolean => {
@@ -211,7 +224,10 @@ export function createLayoutFixtureDb(key: string, fault: LayoutFault = "", team
           return { data: [{ ...row }] };
         }
         case "update": {
-          const hit = allLayoutRows().filter(matches);
+          // Mirror the production RLS target set before applying write-policy checks. In
+          // particular, an id-only UPDATE from another synthetic principal must affect zero
+          // private rows rather than discovering and mutating a process-global fixture row.
+          const hit = allLayoutRows().filter(matches).filter(visibleOnSelect);
           const updateValues = op.values;
           const becomingTeam = updateValues.visibility === "team";
           if (becomingTeam) {
@@ -247,7 +263,10 @@ export function createLayoutFixtureDb(key: string, fault: LayoutFault = "", team
           return { data: [{ ...row }] };
         }
         case "delete": {
-          const hit = allLayoutRows().filter(matches);
+          // DELETE is subject to the same row visibility boundary as SELECT/UPDATE. Keeping
+          // the fixture's raw query path honest matters because application helpers normally
+          // perform a read first and would otherwise hide an unsafe low-level implementation.
+          const hit = allLayoutRows().filter(matches).filter(visibleOnSelect);
           if (hit.some((r) => r.visibility === "team" && !canTouchTeamRow(r))) {
             return { error: { code: "42501", message: "insufficient privilege" } };
           }

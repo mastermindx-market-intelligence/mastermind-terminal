@@ -1,0 +1,24 @@
+[warmup] /terminal?symbol=NVDA → 200 in 109ms
+[warmup] /options → 200 in 192ms
+[warmup] /portfolio → 200 in 90ms
+[warmup] /alerts → 200 in 122ms
+[warmup] /analysis → 200 in 133ms
+[warmup] /discover → 200 in 115ms
+[warmup] /admin → 200 in 66ms
+[warmup] /embed/chart?symbol=NVDA → 200 in 55ms
+[warmup] /login → 200 in 92ms
+[warmup] /api/me → 200 in 88ms
+[warmup] /api/watchlist → 200 in 30ms
+[warmup] /api/layouts → 200 in 36ms
+[warmup] 12 routes compiled in 1s
+
+Running 6 tests using 1 worker
+
+  ✓  1 [desktop] › e2e/options-surface-alignment.spec.ts:7:7 › served options surface keeps numeric band proportions (en) (1.5s)
+  ✓  2 [desktop] › e2e/options-surface-alignment.spec.ts:7:7 › served options surface keeps numeric band proportions (zh) (1.2s)
+  ✓  3 [tablet] › e2e/options-surface-alignment.spec.ts:7:7 › served options surface keeps numeric band proportions (en) (1.1s)
+  ✓  4 [tablet] › e2e/options-surface-alignment.spec.ts:7:7 › served options surface keeps numeric band proportions (zh) (1.8s)
+  ✓  5 [mobile] › e2e/options-surface-alignment.spec.ts:7:7 › served options surface keeps numeric band proportions (en) (1.2s)
+  ✓  6 [mobile] › e2e/options-surface-alignment.spec.ts:7:7 › served options surface keeps numeric band proportions (zh) (1.8s)
+
+  6 passed (19.7s)

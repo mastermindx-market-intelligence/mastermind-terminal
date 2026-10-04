@@ -254,20 +254,10 @@ test("the search watchlist shows the regular-session price and change", async ({
   });
 });
 
-test("Discover loads company logos in symbol rows", async ({ page }, testInfo) => {
-  const logoRequests: string[] = [];
-  await page.route("https://img.logo.dev/**", async (route) => {
-    const url = route.request().url();
-    logoRequests.push(url);
-    if (url.includes("/ticker/MU?")) {
-      await route.fulfill({ status: 404 });
-      return;
-    }
-    await route.fulfill({
-      status: 200,
-      contentType: "image/svg+xml",
-      body: '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64"><rect width="64" height="64" fill="#2962ff"/><path d="M18 46 32 15l14 31-14-8z" fill="white"/></svg>',
-    });
+test("Discover renders local asset badges without logo-network requests", async ({ page }, testInfo) => {
+  const externalLogoRequests: string[] = [];
+  page.on("request", (request) => {
+    if (/logo\.dev/i.test(request.url())) externalLogoRequests.push(request.url());
   });
 
   await page.goto("/discover");
@@ -275,10 +265,11 @@ test("Discover loads company logos in symbol rows", async ({ page }, testInfo) =
   const rows = page.locator("table.scr2 tbody tr").filter({ has: page.locator(".sym-cell") });
   await expect(rows.first()).toBeVisible();
   const logos = rows.locator(".asset-logo");
+  const image = logos.first().locator("img");
   await expect(logos.first()).toBeVisible();
-  await expect(logos.first().locator("img")).toBeVisible();
-  await expect.poll(() => logoRequests.length).toBeGreaterThan(0);
-  await expect(logos.first().locator("img")).toHaveAttribute("src", /https:\/\/img\.logo\.dev\/name\/Micron%20Technology/);
+  await expect(image).toBeVisible();
+  await expect(image).toHaveAttribute("src", /^data:image\/svg\+xml/);
+  expect(externalLogoRequests).toEqual([]);
 
   const iconSize = await logos.first().evaluate((el) => {
     const box = el.getBoundingClientRect();
@@ -292,7 +283,7 @@ test("Discover loads company logos in symbol rows", async ({ page }, testInfo) =
   expect(overflow.document).toBeLessThanOrEqual(overflow.viewport + 1);
 
   await page.screenshot({
-    path: testInfo.outputPath(`${testInfo.project.name}-discover-logos.png`),
+    path: testInfo.outputPath(`${testInfo.project.name}-discover-local-badges.png`),
     fullPage: false,
   });
 });
@@ -567,6 +558,25 @@ test("Prophet fills its Options workspace at every supported width", async ({ pa
 });
 
 test("Levels keeps the gamma map and named-level rail reachable at every supported width", async ({ page }, testInfo) => {
+  await page.route("**/api/flow?**", async (route) => {
+    const url = new URL(route.request().url());
+    if (url.searchParams.get("f") !== "levels:SPY") {
+      await route.fallback();
+      return;
+    }
+    const response = await route.fetch();
+    const body = await response.json() as {
+      nodes?: Array<{ role?: string; strike?: number | null }>;
+      [key: string]: unknown;
+    };
+    const nodes = (body.nodes ?? []).map((node) => {
+      if (node.role === "call_wall") return { ...node, strike: 775.5 };
+      if (node.role === "cluster" && node.strike === 770) return { ...node, strike: 775.25 };
+      return node;
+    });
+    await route.fulfill({ response, json: { ...body, nodes } });
+  });
+
   await page.goto("/options?tab=levels");
 
   const levelsTab = page.locator("#wtab-levels");
@@ -610,6 +620,27 @@ test("Levels keeps the gamma map and named-level rail reachable at every support
   await expect(keystone).toContainText("775");
   await keystone.click();
   await expect(rail).toContainText("The largest gamma concentration");
+
+  // The routed Levels payload crowds Ceiling/Cluster/Keystone within 0.5 points.
+  // Their exact-price anchors stay put, while readable rungs must never overlap.
+  const rungs = board.getByTestId("levels-rung");
+  await expect(rungs).toHaveCount(8);
+  const rungGeometry = await rungs.evaluateAll((els) => els.map((el) => {
+    const rect = el.getBoundingClientRect();
+    return {
+      top: rect.top,
+      bottom: rect.bottom,
+      rawY: Number(el.getAttribute("data-raw-y")),
+      displayY: Number(el.getAttribute("data-display-y")),
+    };
+  }));
+  const orderedRungs = [...rungGeometry].sort((a, b) => a.top - b.top);
+  for (let i = 1; i < orderedRungs.length; i += 1) {
+    expect(orderedRungs[i].top).toBeGreaterThanOrEqual(orderedRungs[i - 1].bottom + 1);
+  }
+  expect(rungGeometry.some((r) => Math.abs(r.rawY - r.displayY) > 0.002)).toBe(true);
+  await expect(board.getByTestId("levels-rung-leader").first()).toBeVisible();
+  await expect(board.getByTestId("levels-rung-anchor")).toHaveCount(8);
 
   const viewportWidth = page.viewportSize()?.width ?? 1440;
   const pageWidth = await page.evaluate(() => ({

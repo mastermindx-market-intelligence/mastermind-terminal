@@ -326,19 +326,15 @@ describe("condition read seam (B5)", () => {
 
 describe("no new schema", () => {
   it("carries no thesis migration of its own — 0012 is present (owned by terminal#502, already merged), and no thesis-scoped file was added or renamed by this packet", () => {
-    // Round-2 review BLOCKER: a hardcoded whole-directory equality list is base-fragile
-    // by construction — any *unrelated* migration landing on master (e.g. 0013, a
-    // different lane's packet) breaks this test on merge, even though this packet never
-    // touches the migrations directory at all. The invariant this guard actually owns is
-    // narrower and base-stable: 0012_thesis_objects.sql exists (this packet's filter
-    // layer depends on it) and no thesis-scoped schema file was added/renamed by *this*
-    // PR (a `thesis_saved_views` table, a renamed/duplicated 0012, etc). Sibling packets
-    // landing their own numbered migrations on master must never fail this test.
+    // The saved-views packet depends on 0012 but adds no thesis_saved_views migration
+    // and must not rename or duplicate 0012/thesis_objects. Sibling migrations are
+    // allowed: PR #577 adds 0025_thesis_amendment_proposals.sql, which a broad /thesis/i
+    // filter wrongly rejected even though it does not change this packet's invariant.
     const dir = path.resolve(__dirname, "../../../supabase/migrations");
     const entries = fs.readdirSync(dir);
     expect(entries).toContain("0012_thesis_objects.sql");
     const thesisScoped = entries.filter(
-      (name) => /thesis/i.test(name) && name !== "0012_thesis_objects.sql",
+      (name) => /thesis_saved_views|0012|thesis_objects/i.test(name) && name !== "0012_thesis_objects.sql",
     );
     expect(thesisScoped).toEqual([]);
   });

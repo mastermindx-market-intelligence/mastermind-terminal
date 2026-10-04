@@ -1,0 +1,490 @@
+{
+  "sourceRevision": "f94256971e49b6372645af3d329080d6e3747ea9",
+  "sourcePath": "mastermindx-market-intelligence/macro:site/sectordata/sector_central.json",
+  "sourceSha256": "61a45950781430f66fe00a93f64325819d226f6f36b704f9f899dd106b0b2dc1",
+  "sourceBodiesChanged": false,
+  "transport": "local interception",
+  "productionProof": false,
+  "independentDesignAcceptance": false,
+  "checks": [
+    {
+      "name": "chromium-1440-en-light: exact sector population plotted",
+      "passed": true
+    },
+    {
+      "name": "chromium-1440-en-light: compact dated receipt",
+      "passed": true,
+      "details": "Sep 25 · 11 sectors"
+    },
+    {
+      "name": "chromium-1440-en-light: answer is derived from the owner coordinates",
+      "passed": true,
+      "details": "MARKET READ\n\nTechnology is the only sector positive on both 21D and 63D relative strength. Energy has the strongest 63D relative strength, but its 21D trend is negative."
+    },
+    {
+      "name": "chromium-1440-en-light: only three outer jobs",
+      "passed": true
+    },
+    {
+      "name": "chromium-1440-en-light: exact 21-session coordinate",
+      "passed": true,
+      "details": "Technology (XLK), Leading, 21-session RS vs SPY: +6.5%, 63-session RS vs SPY: +2.3%"
+    },
+    {
+      "name": "chromium-1440-en-light: exact 63-session coordinate",
+      "passed": true,
+      "details": "Technology (XLK), Leading, 21-session RS vs SPY: +6.5%, 63-session RS vs SPY: +2.3%"
+    },
+    {
+      "name": "chromium-1440-en-light: selected source record",
+      "passed": true,
+      "details": "SELECTED SECTOR\nTechnology\n\nXLK · Leading\n\nTACTICAL STATE\nwatching for entry\n\n21-session RS vs SPY\n+6.5%\n63-session RS vs SPY\n+2.3%\nLeadership ranks\n#1 / #2\n21-session / 63-session\n200-day trend\nAbove\n1M sector return\n+8.34%\nAdvancing participation\n62%\n49 / 30\nOpen sector research →"
+    },
+    {
+      "name": "chromium-1440-en-light: tactical state is separately labeled",
+      "passed": true,
+      "details": "SELECTED SECTOR\nTechnology\n\nXLK · Leading\n\nTACTICAL STATE\nwatching for entry\n\n21-session RS vs SPY\n+6.5%\n63-session RS vs SPY\n+2.3%\nLeadership ranks\n#1 / #2\n21-session / 63-session\n200-day trend\nAbove\n1M sector return\n+8.34%\nAdvancing participation\n62%\n49 / 30\nOpen sector research →"
+    },
+    {
+      "name": "chromium-1440-en-light: no fabricated trail",
+      "passed": true
+    },
+    {
+      "name": "chromium-1440-en-light: display filter preserves coordinates",
+      "passed": true
+    },
+    {
+      "name": "chromium-1440-en-light: list shares the exact source population",
+      "passed": true
+    },
+    {
+      "name": "chromium-1440-en-light: selection remains one URL-bound object",
+      "passed": true
+    },
+    {
+      "name": "chromium-1440-en-light: research opens without a fabricated group join",
+      "passed": true
+    },
+    {
+      "name": "chromium-1440-en-light: detail exposes an explicit return path",
+      "passed": true
+    },
+    {
+      "name": "chromium-1440-en-light: explicit return restores rotation selection and list mode",
+      "passed": true
+    },
+    {
+      "name": "chromium-1440-en-light: browser Back also restores rotation state",
+      "passed": true
+    },
+    {
+      "name": "chromium-1440-en-light: keyboard navigation advances exact source order",
+      "passed": true
+    },
+    {
+      "name": "chromium-1440-en-light: Sources belongs to rotation",
+      "passed": true
+    },
+    {
+      "name": "chromium-1440-en-light: no horizontal overflow",
+      "passed": true,
+      "details": {
+        "inner": 0,
+        "document": 0
+      }
+    },
+    {
+      "name": "chromium-1440-en-light: access loss removes retained rotation coordinates",
+      "passed": true
+    },
+    {
+      "name": "chromium-820-en-dark: exact sector population plotted",
+      "passed": true
+    },
+    {
+      "name": "chromium-820-en-dark: compact dated receipt",
+      "passed": true,
+      "details": "Sep 25 · 11 sectors"
+    },
+    {
+      "name": "chromium-820-en-dark: answer is derived from the owner coordinates",
+      "passed": true,
+      "details": "MARKET READ\n\nTechnology is the only sector positive on both 21D and 63D relative strength. Energy has the strongest 63D relative strength, but its 21D trend is negative."
+    },
+    {
+      "name": "chromium-820-en-dark: only three outer jobs",
+      "passed": true
+    },
+    {
+      "name": "chromium-820-en-dark: exact 21-session coordinate",
+      "passed": true,
+      "details": "Technology (XLK), Leading, 21-session RS vs SPY: +6.5%, 63-session RS vs SPY: +2.3%"
+    },
+    {
+      "name": "chromium-820-en-dark: exact 63-session coordinate",
+      "passed": true,
+      "details": "Technology (XLK), Leading, 21-session RS vs SPY: +6.5%, 63-session RS vs SPY: +2.3%"
+    },
+    {
+      "name": "chromium-820-en-dark: selected source record",
+      "passed": true,
+      "details": "SELECTED SECTOR\nTechnology\n\nXLK · Leading\n\nTACTICAL STATE\nwatching for entry\n\n21-session RS vs SPY\n+6.5%\n63-session RS vs SPY\n+2.3%\nLeadership ranks\n#1 / #2\n21-session / 63-session\n200-day trend\nAbove\n1M sector return\n+8.34%\nAdvancing participation\n62%\n49 / 30\nOpen sector research →"
+    },
+    {
+      "name": "chromium-820-en-dark: tactical state is separately labeled",
+      "passed": true,
+      "details": "SELECTED SECTOR\nTechnology\n\nXLK · Leading\n\nTACTICAL STATE\nwatching for entry\n\n21-session RS vs SPY\n+6.5%\n63-session RS vs SPY\n+2.3%\nLeadership ranks\n#1 / #2\n21-session / 63-session\n200-day trend\nAbove\n1M sector return\n+8.34%\nAdvancing participation\n62%\n49 / 30\nOpen sector research →"
+    },
+    {
+      "name": "chromium-820-en-dark: no fabricated trail",
+      "passed": true
+    },
+    {
+      "name": "chromium-820-en-dark: display filter preserves coordinates",
+      "passed": true
+    },
+    {
+      "name": "chromium-820-en-dark: list shares the exact source population",
+      "passed": true
+    },
+    {
+      "name": "chromium-820-en-dark: selection remains one URL-bound object",
+      "passed": true
+    },
+    {
+      "name": "chromium-820-en-dark: research opens without a fabricated group join",
+      "passed": true
+    },
+    {
+      "name": "chromium-820-en-dark: detail exposes an explicit return path",
+      "passed": true
+    },
+    {
+      "name": "chromium-820-en-dark: explicit return restores rotation selection and list mode",
+      "passed": true
+    },
+    {
+      "name": "chromium-820-en-dark: browser Back also restores rotation state",
+      "passed": true
+    },
+    {
+      "name": "chromium-820-en-dark: keyboard navigation advances exact source order",
+      "passed": true
+    },
+    {
+      "name": "chromium-820-en-dark: Sources belongs to rotation",
+      "passed": true
+    },
+    {
+      "name": "chromium-820-en-dark: no horizontal overflow",
+      "passed": true,
+      "details": {
+        "inner": 0,
+        "document": 0
+      }
+    },
+    {
+      "name": "chromium-820-en-dark: access loss removes retained rotation coordinates",
+      "passed": true
+    },
+    {
+      "name": "chromium-390-en-light: exact sector population plotted",
+      "passed": true
+    },
+    {
+      "name": "chromium-390-en-light: compact dated receipt",
+      "passed": true,
+      "details": "Sep 25 · 11 sectors"
+    },
+    {
+      "name": "chromium-390-en-light: answer is derived from the owner coordinates",
+      "passed": true,
+      "details": "MARKET READ\n\nTechnology is the only sector positive on both 21D and 63D relative strength. Energy has the strongest 63D relative strength, but its 21D trend is negative."
+    },
+    {
+      "name": "chromium-390-en-light: only three outer jobs",
+      "passed": true
+    },
+    {
+      "name": "chromium-390-en-light: exact 21-session coordinate",
+      "passed": true,
+      "details": "Technology (XLK), Leading, 21-session RS vs SPY: +6.5%, 63-session RS vs SPY: +2.3%"
+    },
+    {
+      "name": "chromium-390-en-light: exact 63-session coordinate",
+      "passed": true,
+      "details": "Technology (XLK), Leading, 21-session RS vs SPY: +6.5%, 63-session RS vs SPY: +2.3%"
+    },
+    {
+      "name": "chromium-390-en-light: selected source record",
+      "passed": true,
+      "details": "SELECTED SECTOR\nTechnology\n\nXLK · Leading\n\nTACTICAL STATE\nwatching for entry\n\n21-session RS vs SPY\n+6.5%\n63-session RS vs SPY\n+2.3%\nLeadership ranks\n#1 / #2\n21-session / 63-session\n200-day trend\nAbove\n1M sector return\n+8.34%\nAdvancing participation\n62%\n49 / 30\nOpen sector research →"
+    },
+    {
+      "name": "chromium-390-en-light: tactical state is separately labeled",
+      "passed": true,
+      "details": "SELECTED SECTOR\nTechnology\n\nXLK · Leading\n\nTACTICAL STATE\nwatching for entry\n\n21-session RS vs SPY\n+6.5%\n63-session RS vs SPY\n+2.3%\nLeadership ranks\n#1 / #2\n21-session / 63-session\n200-day trend\nAbove\n1M sector return\n+8.34%\nAdvancing participation\n62%\n49 / 30\nOpen sector research →"
+    },
+    {
+      "name": "chromium-390-en-light: no fabricated trail",
+      "passed": true
+    },
+    {
+      "name": "chromium-390-en-light: display filter preserves coordinates",
+      "passed": true
+    },
+    {
+      "name": "chromium-390-en-light: list shares the exact source population",
+      "passed": true
+    },
+    {
+      "name": "chromium-390-en-light: selection remains one URL-bound object",
+      "passed": true
+    },
+    {
+      "name": "chromium-390-en-light: research opens without a fabricated group join",
+      "passed": true
+    },
+    {
+      "name": "chromium-390-en-light: detail exposes an explicit return path",
+      "passed": true
+    },
+    {
+      "name": "chromium-390-en-light: explicit return restores rotation selection and list mode",
+      "passed": true
+    },
+    {
+      "name": "chromium-390-en-light: browser Back also restores rotation state",
+      "passed": true
+    },
+    {
+      "name": "chromium-390-en-light: keyboard navigation advances exact source order",
+      "passed": true
+    },
+    {
+      "name": "chromium-390-en-light: Sources belongs to rotation",
+      "passed": true
+    },
+    {
+      "name": "chromium-390-en-light: no horizontal overflow",
+      "passed": true,
+      "details": {
+        "inner": 0,
+        "document": 0
+      }
+    },
+    {
+      "name": "chromium-390-en-light: access loss removes retained rotation coordinates",
+      "passed": true
+    },
+    {
+      "name": "webkit-1440-en-dark: exact sector population plotted",
+      "passed": true
+    },
+    {
+      "name": "webkit-1440-en-dark: compact dated receipt",
+      "passed": true,
+      "details": "Sep 25 · 11 sectors"
+    },
+    {
+      "name": "webkit-1440-en-dark: answer is derived from the owner coordinates",
+      "passed": true,
+      "details": "MARKET READ\n\nTechnology is the only sector positive on both 21D and 63D relative strength. Energy has the strongest 63D relative strength, but its 21D trend is negative."
+    },
+    {
+      "name": "webkit-1440-en-dark: only three outer jobs",
+      "passed": true
+    },
+    {
+      "name": "webkit-1440-en-dark: exact 21-session coordinate",
+      "passed": true,
+      "details": "Technology (XLK), Leading, 21-session RS vs SPY: +6.5%, 63-session RS vs SPY: +2.3%"
+    },
+    {
+      "name": "webkit-1440-en-dark: exact 63-session coordinate",
+      "passed": true,
+      "details": "Technology (XLK), Leading, 21-session RS vs SPY: +6.5%, 63-session RS vs SPY: +2.3%"
+    },
+    {
+      "name": "webkit-1440-en-dark: selected source record",
+      "passed": true,
+      "details": "SELECTED SECTOR\nTechnology\n\nXLK · Leading\n\nTACTICAL STATE\nwatching for entry\n\n21-session RS vs SPY\n+6.5%\n63-session RS vs SPY\n+2.3%\nLeadership ranks\n#1 / #2\n21-session / 63-session\n200-day trend\nAbove\n1M sector return\n+8.34%\nAdvancing participation\n62%\n49 / 30\nOpen sector research →"
+    },
+    {
+      "name": "webkit-1440-en-dark: tactical state is separately labeled",
+      "passed": true,
+      "details": "SELECTED SECTOR\nTechnology\n\nXLK · Leading\n\nTACTICAL STATE\nwatching for entry\n\n21-session RS vs SPY\n+6.5%\n63-session RS vs SPY\n+2.3%\nLeadership ranks\n#1 / #2\n21-session / 63-session\n200-day trend\nAbove\n1M sector return\n+8.34%\nAdvancing participation\n62%\n49 / 30\nOpen sector research →"
+    },
+    {
+      "name": "webkit-1440-en-dark: no fabricated trail",
+      "passed": true
+    },
+    {
+      "name": "webkit-1440-en-dark: display filter preserves coordinates",
+      "passed": true
+    },
+    {
+      "name": "webkit-1440-en-dark: list shares the exact source population",
+      "passed": true
+    },
+    {
+      "name": "webkit-1440-en-dark: selection remains one URL-bound object",
+      "passed": true
+    },
+    {
+      "name": "webkit-1440-en-dark: research opens without a fabricated group join",
+      "passed": true
+    },
+    {
+      "name": "webkit-1440-en-dark: detail exposes an explicit return path",
+      "passed": true
+    },
+    {
+      "name": "webkit-1440-en-dark: explicit return restores rotation selection and list mode",
+      "passed": true
+    },
+    {
+      "name": "webkit-1440-en-dark: browser Back also restores rotation state",
+      "passed": true
+    },
+    {
+      "name": "webkit-1440-en-dark: keyboard navigation advances exact source order",
+      "passed": true
+    },
+    {
+      "name": "webkit-1440-en-dark: Sources belongs to rotation",
+      "passed": true
+    },
+    {
+      "name": "webkit-1440-en-dark: no horizontal overflow",
+      "passed": true,
+      "details": {
+        "inner": 0,
+        "document": 0
+      }
+    },
+    {
+      "name": "webkit-1440-en-dark: access loss removes retained rotation coordinates",
+      "passed": true
+    },
+    {
+      "name": "webkit-390-zh-light: exact sector population plotted",
+      "passed": true
+    },
+    {
+      "name": "webkit-390-zh-light: compact dated receipt",
+      "passed": true,
+      "details": "9月25日 · 11个板块"
+    },
+    {
+      "name": "webkit-390-zh-light: answer is derived from the owner coordinates",
+      "passed": true,
+      "details": "市场解读\n\n科技是唯一在21日和63日相对强度均为正的板块。 能源的63日相对强度最强，但其21日趋势为负。"
+    },
+    {
+      "name": "webkit-390-zh-light: only three outer jobs",
+      "passed": true
+    },
+    {
+      "name": "webkit-390-zh-light: exact 21-session coordinate",
+      "passed": true,
+      "details": "科技 (XLK), 领先, 相对SPY的21个交易日强度: +6.5%, 相对SPY的63个交易日强度: +2.3%"
+    },
+    {
+      "name": "webkit-390-zh-light: exact 63-session coordinate",
+      "passed": true,
+      "details": "科技 (XLK), 领先, 相对SPY的21个交易日强度: +6.5%, 相对SPY的63个交易日强度: +2.3%"
+    },
+    {
+      "name": "webkit-390-zh-light: selected source record",
+      "passed": true,
+      "details": "所选板块\n科技\n\nXLK · 领先\n\n战术状态\n关注入场\n\n相对SPY的21个交易日强度\n+6.5%\n相对SPY的63个交易日强度\n+2.3%\n领涨排名\n#1 / #2\n21个交易日 / 63个交易日\n200日趋势\n上方\n板块1个月收益\n+8.34%\n上涨参与度\n62%\n49 / 30\n打开板块研究 →"
+    },
+    {
+      "name": "webkit-390-zh-light: tactical state is separately labeled",
+      "passed": true,
+      "details": "所选板块\n科技\n\nXLK · 领先\n\n战术状态\n关注入场\n\n相对SPY的21个交易日强度\n+6.5%\n相对SPY的63个交易日强度\n+2.3%\n领涨排名\n#1 / #2\n21个交易日 / 63个交易日\n200日趋势\n上方\n板块1个月收益\n+8.34%\n上涨参与度\n62%\n49 / 30\n打开板块研究 →"
+    },
+    {
+      "name": "webkit-390-zh-light: no fabricated trail",
+      "passed": true
+    },
+    {
+      "name": "webkit-390-zh-light: display filter preserves coordinates",
+      "passed": true
+    },
+    {
+      "name": "webkit-390-zh-light: list shares the exact source population",
+      "passed": true
+    },
+    {
+      "name": "webkit-390-zh-light: selection remains one URL-bound object",
+      "passed": true
+    },
+    {
+      "name": "webkit-390-zh-light: research opens without a fabricated group join",
+      "passed": true
+    },
+    {
+      "name": "webkit-390-zh-light: detail exposes an explicit return path",
+      "passed": true
+    },
+    {
+      "name": "webkit-390-zh-light: explicit return restores rotation selection and list mode",
+      "passed": true
+    },
+    {
+      "name": "webkit-390-zh-light: browser Back also restores rotation state",
+      "passed": true
+    },
+    {
+      "name": "webkit-390-zh-light: keyboard navigation advances exact source order",
+      "passed": true
+    },
+    {
+      "name": "webkit-390-zh-light: Sources belongs to rotation",
+      "passed": true
+    },
+    {
+      "name": "webkit-390-zh-light: no horizontal overflow",
+      "passed": true,
+      "details": {
+        "inner": 0,
+        "document": 0
+      }
+    },
+    {
+      "name": "webkit-390-zh-light: access loss removes retained rotation coordinates",
+      "passed": true
+    },
+    {
+      "name": "zero page exceptions",
+      "passed": true,
+      "details": []
+    }
+  ],
+  "screenshots": [
+    {
+      "name": "chromium-1440-en-light-rotation.png",
+      "sha256": "2572e4c785956c70fd6c3228b787579467f3581c960ba8ba234575fd7ce1c2d7"
+    },
+    {
+      "name": "chromium-820-en-dark-rotation.png",
+      "sha256": "d5848852225bd9aea2b313bb4b4278dc17cd4ee43d08f358e7dd7a43661a2290"
+    },
+    {
+      "name": "chromium-390-en-light-rotation.png",
+      "sha256": "ac427c256c5ec253db28b5827dba01105ecff2431ca2f33259c177a8ebad44b4"
+    },
+    {
+      "name": "webkit-1440-en-dark-rotation.png",
+      "sha256": "d20375d77b01c4e9d4883b2802b6c030163891d93ae9df02ec481a373ad4f74d"
+    },
+    {
+      "name": "webkit-390-zh-light-rotation.png",
+      "sha256": "acbc4fe0340ef44d0871c38fb32e871ece8abb287228782757a4ccc63b9d1682"
+    }
+  ],
+  "errors": [],
+  "passed": true
+}

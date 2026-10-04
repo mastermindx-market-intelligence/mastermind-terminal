@@ -1,0 +1,693 @@
+{
+  "sourceRevision": "f94256971e49b6372645af3d329080d6e3747ea9",
+  "sourceBodiesChanged": false,
+  "transport": "local interception",
+  "productionProof": false,
+  "independentReviewRequired": false,
+  "themeRightsAdmitted": false,
+  "checks": [
+    {
+      "name": "chromium-1440-en-light: exact Technology population",
+      "passed": true,
+      "details": "Technology\n\nCompany heatmap · Area = market cap · color = performance\n\n2026-09-25 · 79 names · 1D\n\nMARKET READ\n\nSemiconductors holds 41% of market cap; Computer Hardware has the broadest participation (7/7 up).\n\nSector\nTechnology · XLK\nCommunication Services · XLC\nHealth Care · XLV\nEnergy · XLE\nConsumer Discretionary · XLY\nUtilities · XLU\nFinancials · XLF\nConsumer Staples · XLP\nIndustrials · XLI\nReal Estate · XLRE\nMaterials · XLB\nPerformance window\n1D\n1W\nMTD\n1M\n3M\n6M\nYTD\n1Y\nIndustry\nAll industries\nInformation Technology Services\nSoftware - Infrastructure\nSemiconductors\nElectronic Components\nConsumer Electronics\nSemiconductor Equipment & Materials\nSoftware - Application\nCommunication Equipment\nComputer Hardware\nSolar\nScientific & Technical Instruments\nMarket-cap band\nAll market caps\n≥ $200B\n$50–200B\n$10–50B\n< $10B\nReview sources →\nLARGEST COMPANY IN SCOPE\nNVDA\n\nNvidia\n\nIndustry\nSemiconductors\nMarket cap\n$5.43T\n1D Performance\n+0.22%\nOpen company intelligence →\nOpen sector intelligence →\nSemiconductors\n13/14 up\nNVDA\n+0.22%\n$5.43T\nAVGO\n+0.70%\n$1.68T\nMU\n+0.16%\n$1.22T\nAMD\n+0.22%\n$1.03T\nINTC\n-3.45%\n$650B\nTXN\nMRVL\nQCOM\nADI\nSoftware - Infrastructure\n5/15 up\nMSFT\n+3.66%\n$3.83T\nPLTR\nORCL\nPANW\nCRWD\nConsumer Electronics\n1/1 up\nAAPL\n+1.53%\n$4.98T\nSemiconductor Equipment & Materials\n5/5 up\nLRCX\nAMAT\nKLAC\nComputer Hardware\n7/7 up\nDELL\nSNDK\nSTX\nCommunication Equipment\n4/7 up\nCSCO\nANET\nSoftware - Application\n4/11 up\nCRM\nElectronic Components\n6/6 up\nInformation Technology Services\n5/8 up\nScientific & Technical Instruments\n3/4 up\n-6.3%\n+6.3%\n\nExact owner labels only. Filters never rescale color; the smallest industry blocks receive a visibility floor so no source name disappears."
+    },
+    {
+      "name": "chromium-1440-en-light: exact source date",
+      "passed": true
+    },
+    {
+      "name": "chromium-1440-en-light: distinct Information Technology row excluded",
+      "passed": true
+    },
+    {
+      "name": "chromium-1440-en-light: full-population fixed domain",
+      "passed": true,
+      "details": {
+        "expected": 6.3,
+        "actual": 6.3
+      }
+    },
+    {
+      "name": "chromium-1440-en-light: answer names the cap owner and breadth leader",
+      "passed": true,
+      "details": "MARKET READ\n\nSemiconductors holds 41% of market cap; Computer Hardware has the broadest participation (7/7 up)."
+    },
+    {
+      "name": "chromium-1440-en-light: default inspector is the largest company",
+      "passed": true
+    },
+    {
+      "name": "chromium-1440-en-light: exact company selection stays URL-bound",
+      "passed": true
+    },
+    {
+      "name": "chromium-1440-en-light: industry filter never rescales color",
+      "passed": true
+    },
+    {
+      "name": "chromium-1440-en-light: cap filter is exact and URL-bound",
+      "passed": true
+    },
+    {
+      "name": "chromium-1440-en-light: cap filter never rescales color",
+      "passed": true
+    },
+    {
+      "name": "chromium-1440-en-light: empty combined scope remains honest",
+      "passed": true,
+      "details": {
+        "industry": "Information Technology Services",
+        "band": "smaller"
+      }
+    },
+    {
+      "name": "chromium-1440-en-light: empty scope clears industry and cap atomically",
+      "passed": true,
+      "details": [
+        [
+          "tab",
+          "sectors"
+        ],
+        [
+          "sectorWorkspace",
+          "discover"
+        ],
+        [
+          "sectorDiscoveryMode",
+          "heatmap"
+        ],
+        [
+          "sector",
+          "xlk"
+        ],
+        [
+          "sectorMatrixTimeframe",
+          "1D"
+        ],
+        [
+          "sectorTheme",
+          "light"
+        ],
+        [
+          "sectorDiscoverySort",
+          "source"
+        ],
+        [
+          "sectorCompanyTableSort",
+          "source"
+        ],
+        [
+          "sectorRotationMode",
+          "map"
+        ],
+        [
+          "sectorView",
+          "intelligence"
+        ],
+        [
+          "sectorCompany",
+          "NVDA"
+        ],
+        [
+          "group",
+          "semiconductors"
+        ],
+        [
+          "sectorSort",
+          "source"
+        ]
+      ]
+    },
+    {
+      "name": "chromium-1440-en-light: timeframe is durable URL state",
+      "passed": true
+    },
+    {
+      "name": "chromium-1440-en-light: Table remains the same Discover job",
+      "passed": true
+    },
+    {
+      "name": "chromium-1440-en-light: Heatmap restores selected sector, company and timeframe",
+      "passed": true
+    },
+    {
+      "name": "chromium-1440-en-light: detail has explicit Discover return",
+      "passed": true
+    },
+    {
+      "name": "chromium-1440-en-light: explicit return restores Heatmap context",
+      "passed": true
+    },
+    {
+      "name": "chromium-1440-en-light: explicit return restores Heatmap action focus",
+      "passed": true
+    },
+    {
+      "name": "chromium-1440-en-light: Sources remains contextual to Discover",
+      "passed": true
+    },
+    {
+      "name": "chromium-1440-en-light: no horizontal overflow",
+      "passed": true,
+      "details": {
+        "inner": 0,
+        "document": 0
+      }
+    },
+    {
+      "name": "chromium-1440-en-light: access loss clears exact company names",
+      "passed": true
+    },
+    {
+      "name": "chromium-820-en-dark: exact Technology population",
+      "passed": true,
+      "details": "Technology\n\nCompany heatmap · Area = market cap · color = performance\n\n2026-09-25 · 79 names · 1D\n\nMARKET READ\n\nSemiconductors holds 41% of market cap; Computer Hardware has the broadest participation (7/7 up).\n\nSector\nTechnology · XLK\nCommunication Services · XLC\nHealth Care · XLV\nEnergy · XLE\nConsumer Discretionary · XLY\nUtilities · XLU\nFinancials · XLF\nConsumer Staples · XLP\nIndustrials · XLI\nReal Estate · XLRE\nMaterials · XLB\nPerformance window\n1D\n1W\nMTD\n1M\n3M\n6M\nYTD\n1Y\nIndustry\nAll industries\nInformation Technology Services\nSoftware - Infrastructure\nSemiconductors\nElectronic Components\nConsumer Electronics\nSemiconductor Equipment & Materials\nSoftware - Application\nCommunication Equipment\nComputer Hardware\nSolar\nScientific & Technical Instruments\nMarket-cap band\nAll market caps\n≥ $200B\n$50–200B\n$10–50B\n< $10B\nReview sources →\nLARGEST COMPANY IN SCOPE\nNVDA\n\nNvidia\n\nIndustry\nSemiconductors\nMarket cap\n$5.43T\n1D Performance\n+0.22%\nOpen company intelligence →\nOpen sector intelligence →\nSemiconductors\n13/14 up\nNVDA\n+0.22%\n$5.43T\nAVGO\n+0.70%\n$1.68T\nMU\n+0.16%\n$1.22T\nAMD\n+0.22%\n$1.03T\nINTC\n-3.45%\n$650B\nTXN\nMRVL\nQCOM\nADI\nSoftware - Infrastructure\n5/15 up\nMSFT\n+3.66%\n$3.83T\nPLTR\nORCL\nPANW\nCRWD\nConsumer Electronics\n1/1 up\nAAPL\n+1.53%\n$4.98T\nSemiconductor Equipment & Materials\n5/5 up\nLRCX\nAMAT\nKLAC\nComputer Hardware\n7/7 up\nDELL\nSNDK\nSTX\nCommunication Equipment\n4/7 up\nCSCO\nANET\nSoftware - Application\n4/11 up\nCRM\nElectronic Components\n6/6 up\nInformation Technology Services\n5/8 up\nScientific & Technical Instruments\n3/4 up\n-6.3%\n+6.3%\n\nExact owner labels only. Filters never rescale color; the smallest industry blocks receive a visibility floor so no source name disappears."
+    },
+    {
+      "name": "chromium-820-en-dark: exact source date",
+      "passed": true
+    },
+    {
+      "name": "chromium-820-en-dark: distinct Information Technology row excluded",
+      "passed": true
+    },
+    {
+      "name": "chromium-820-en-dark: full-population fixed domain",
+      "passed": true,
+      "details": {
+        "expected": 6.3,
+        "actual": 6.3
+      }
+    },
+    {
+      "name": "chromium-820-en-dark: answer names the cap owner and breadth leader",
+      "passed": true,
+      "details": "MARKET READ\n\nSemiconductors holds 41% of market cap; Computer Hardware has the broadest participation (7/7 up)."
+    },
+    {
+      "name": "chromium-820-en-dark: default inspector is the largest company",
+      "passed": true
+    },
+    {
+      "name": "chromium-820-en-dark: exact company selection stays URL-bound",
+      "passed": true
+    },
+    {
+      "name": "chromium-820-en-dark: industry filter never rescales color",
+      "passed": true
+    },
+    {
+      "name": "chromium-820-en-dark: cap filter is exact and URL-bound",
+      "passed": true
+    },
+    {
+      "name": "chromium-820-en-dark: cap filter never rescales color",
+      "passed": true
+    },
+    {
+      "name": "chromium-820-en-dark: empty combined scope remains honest",
+      "passed": true,
+      "details": {
+        "industry": "Information Technology Services",
+        "band": "smaller"
+      }
+    },
+    {
+      "name": "chromium-820-en-dark: empty scope clears industry and cap atomically",
+      "passed": true,
+      "details": [
+        [
+          "tab",
+          "sectors"
+        ],
+        [
+          "sectorWorkspace",
+          "discover"
+        ],
+        [
+          "sectorDiscoveryMode",
+          "heatmap"
+        ],
+        [
+          "sector",
+          "xlk"
+        ],
+        [
+          "sectorMatrixTimeframe",
+          "1D"
+        ],
+        [
+          "sectorTheme",
+          "dark"
+        ],
+        [
+          "sectorDiscoverySort",
+          "source"
+        ],
+        [
+          "sectorCompanyTableSort",
+          "source"
+        ],
+        [
+          "sectorRotationMode",
+          "map"
+        ],
+        [
+          "sectorView",
+          "intelligence"
+        ],
+        [
+          "sectorCompany",
+          "NVDA"
+        ],
+        [
+          "group",
+          "semiconductors"
+        ],
+        [
+          "sectorSort",
+          "source"
+        ]
+      ]
+    },
+    {
+      "name": "chromium-820-en-dark: timeframe is durable URL state",
+      "passed": true
+    },
+    {
+      "name": "chromium-820-en-dark: Table remains the same Discover job",
+      "passed": true
+    },
+    {
+      "name": "chromium-820-en-dark: Heatmap restores selected sector, company and timeframe",
+      "passed": true
+    },
+    {
+      "name": "chromium-820-en-dark: detail has explicit Discover return",
+      "passed": true
+    },
+    {
+      "name": "chromium-820-en-dark: explicit return restores Heatmap context",
+      "passed": true
+    },
+    {
+      "name": "chromium-820-en-dark: explicit return restores Heatmap action focus",
+      "passed": true
+    },
+    {
+      "name": "chromium-820-en-dark: Sources remains contextual to Discover",
+      "passed": true
+    },
+    {
+      "name": "chromium-820-en-dark: no horizontal overflow",
+      "passed": true,
+      "details": {
+        "inner": 0,
+        "document": 0
+      }
+    },
+    {
+      "name": "chromium-820-en-dark: access loss clears exact company names",
+      "passed": true
+    },
+    {
+      "name": "chromium-390-en-light: exact Technology population",
+      "passed": true,
+      "details": "Technology\n\nCompany heatmap · Area = market cap · color = performance\n\n2026-09-25 · 79 names · 1D\n\nMARKET READ\n\nSemiconductors holds 41% of market cap; Computer Hardware has the broadest participation (7/7 up).\n\nSector\nTechnology · XLK\nCommunication Services · XLC\nHealth Care · XLV\nEnergy · XLE\nConsumer Discretionary · XLY\nUtilities · XLU\nFinancials · XLF\nConsumer Staples · XLP\nIndustrials · XLI\nReal Estate · XLRE\nMaterials · XLB\nPerformance window\n1D\n1W\nMTD\n1M\n3M\n6M\nYTD\n1Y\nIndustry\nAll industries\nInformation Technology Services\nSoftware - Infrastructure\nSemiconductors\nElectronic Components\nConsumer Electronics\nSemiconductor Equipment & Materials\nSoftware - Application\nCommunication Equipment\nComputer Hardware\nSolar\nScientific & Technical Instruments\nMarket-cap band\nAll market caps\n≥ $200B\n$50–200B\n$10–50B\n< $10B\nReview sources →\nLARGEST COMPANY IN SCOPE\nNVDA\n\nNvidia\n\nIndustry\nSemiconductors\nMarket cap\n$5.43T\n1D Performance\n+0.22%\nOpen company intelligence →\nOpen sector intelligence →\nBrowse company heatmap\n79 names\n-6.3%\n+6.3%\n\nExact owner labels only. Filters never rescale color; the smallest industry blocks receive a visibility floor so no source name disappears."
+    },
+    {
+      "name": "chromium-390-en-light: exact source date",
+      "passed": true
+    },
+    {
+      "name": "chromium-390-en-light: distinct Information Technology row excluded",
+      "passed": true
+    },
+    {
+      "name": "chromium-390-en-light: full-population fixed domain",
+      "passed": true,
+      "details": {
+        "expected": 6.3,
+        "actual": 6.3
+      }
+    },
+    {
+      "name": "chromium-390-en-light: answer names the cap owner and breadth leader",
+      "passed": true,
+      "details": "MARKET READ\n\nSemiconductors holds 41% of market cap; Computer Hardware has the broadest participation (7/7 up)."
+    },
+    {
+      "name": "chromium-390-en-light: default inspector is the largest company",
+      "passed": true
+    },
+    {
+      "name": "chromium-390-en-light: mobile serves selected insight before mechanics",
+      "passed": true
+    },
+    {
+      "name": "chromium-390-en-light: exact company selection stays URL-bound",
+      "passed": true
+    },
+    {
+      "name": "chromium-390-en-light: industry filter never rescales color",
+      "passed": true
+    },
+    {
+      "name": "chromium-390-en-light: cap filter is exact and URL-bound",
+      "passed": true
+    },
+    {
+      "name": "chromium-390-en-light: cap filter never rescales color",
+      "passed": true
+    },
+    {
+      "name": "chromium-390-en-light: empty combined scope remains honest",
+      "passed": true,
+      "details": {
+        "industry": "Information Technology Services",
+        "band": "smaller"
+      }
+    },
+    {
+      "name": "chromium-390-en-light: empty scope clears industry and cap atomically",
+      "passed": true,
+      "details": [
+        [
+          "tab",
+          "sectors"
+        ],
+        [
+          "sectorWorkspace",
+          "discover"
+        ],
+        [
+          "sectorDiscoveryMode",
+          "heatmap"
+        ],
+        [
+          "sector",
+          "xlk"
+        ],
+        [
+          "sectorMatrixTimeframe",
+          "1D"
+        ],
+        [
+          "sectorTheme",
+          "light"
+        ],
+        [
+          "sectorDiscoverySort",
+          "source"
+        ],
+        [
+          "sectorCompanyTableSort",
+          "source"
+        ],
+        [
+          "sectorRotationMode",
+          "map"
+        ],
+        [
+          "sectorView",
+          "intelligence"
+        ],
+        [
+          "sectorCompany",
+          "NVDA"
+        ],
+        [
+          "group",
+          "semiconductors"
+        ],
+        [
+          "sectorSort",
+          "source"
+        ]
+      ]
+    },
+    {
+      "name": "chromium-390-en-light: timeframe is durable URL state",
+      "passed": true
+    },
+    {
+      "name": "chromium-390-en-light: Table remains the same Discover job",
+      "passed": true
+    },
+    {
+      "name": "chromium-390-en-light: Heatmap restores selected sector, company and timeframe",
+      "passed": true
+    },
+    {
+      "name": "chromium-390-en-light: detail has explicit Discover return",
+      "passed": true
+    },
+    {
+      "name": "chromium-390-en-light: explicit return restores Heatmap context",
+      "passed": true
+    },
+    {
+      "name": "chromium-390-en-light: explicit return restores Heatmap action focus",
+      "passed": true
+    },
+    {
+      "name": "chromium-390-en-light: Sources remains contextual to Discover",
+      "passed": true
+    },
+    {
+      "name": "chromium-390-en-light: no horizontal overflow",
+      "passed": true,
+      "details": {
+        "inner": 0,
+        "document": 0
+      }
+    },
+    {
+      "name": "chromium-390-en-light: access loss clears exact company names",
+      "passed": true
+    },
+    {
+      "name": "webkit-1440-en-dark: exact Technology population",
+      "passed": true,
+      "details": "Technology\n\nCompany heatmap · Area = market cap · color = performance\n\n2026-09-25 · 79 names · 1D\n\nMARKET READ\n\nSemiconductors holds 41% of market cap; Computer Hardware has the broadest participation (7/7 up).\n\nSector\nPerformance window\nIndustry\nMarket-cap band\nReview sources →\nLARGEST COMPANY IN SCOPE\nNVDA\n\nNvidia\n\nIndustry\nSemiconductors\nMarket cap\n$5.43T\n1D Performance\n+0.22%\nOpen company intelligence →\nOpen sector intelligence →\nSemiconductors\n13/14 up\nNVDA\n+0.22%\n$5.43T\nAVGO\n+0.70%\n$1.68T\nMU\n+0.16%\n$1.22T\nAMD\n+0.22%\n$1.03T\nINTC\n-3.45%\n$650B\nTXN\nMRVL\nQCOM\nADI\nSoftware - Infrastructure\n5/15 up\nMSFT\n+3.66%\n$3.83T\nPLTR\nORCL\nPANW\nCRWD\nConsumer Electronics\n1/1 up\nAAPL\n+1.53%\n$4.98T\nSemiconductor Equipment & Materials\n5/5 up\nLRCX\nAMAT\nKLAC\nComputer Hardware\n7/7 up\nDELL\nSNDK\nSTX\nCommunication Equipment\n4/7 up\nCSCO\nANET\nSoftware - Application\n4/11 up\nCRM\nElectronic Components\n6/6 up\nInformation Technology Services\n5/8 up\n3/4 up\n-6.3%\n+6.3%\n\nExact owner labels only. Filters never rescale color; the smallest industry blocks receive a visibility floor so no source name disappears."
+    },
+    {
+      "name": "webkit-1440-en-dark: exact source date",
+      "passed": true
+    },
+    {
+      "name": "webkit-1440-en-dark: distinct Information Technology row excluded",
+      "passed": true
+    },
+    {
+      "name": "webkit-1440-en-dark: full-population fixed domain",
+      "passed": true,
+      "details": {
+        "expected": 6.3,
+        "actual": 6.3
+      }
+    },
+    {
+      "name": "webkit-1440-en-dark: answer names the cap owner and breadth leader",
+      "passed": true,
+      "details": "MARKET READ\n\nSemiconductors holds 41% of market cap; Computer Hardware has the broadest participation (7/7 up)."
+    },
+    {
+      "name": "webkit-1440-en-dark: default inspector is the largest company",
+      "passed": true
+    },
+    {
+      "name": "webkit-1440-en-dark: exact company selection stays URL-bound",
+      "passed": true
+    },
+    {
+      "name": "webkit-1440-en-dark: industry filter never rescales color",
+      "passed": true
+    },
+    {
+      "name": "webkit-1440-en-dark: cap filter is exact and URL-bound",
+      "passed": true
+    },
+    {
+      "name": "webkit-1440-en-dark: cap filter never rescales color",
+      "passed": true
+    },
+    {
+      "name": "webkit-1440-en-dark: empty combined scope remains honest",
+      "passed": true,
+      "details": {
+        "industry": "Information Technology Services",
+        "band": "smaller"
+      }
+    },
+    {
+      "name": "webkit-1440-en-dark: empty scope clears industry and cap atomically",
+      "passed": true,
+      "details": [
+        [
+          "tab",
+          "sectors"
+        ],
+        [
+          "sectorWorkspace",
+          "discover"
+        ],
+        [
+          "sectorDiscoveryMode",
+          "heatmap"
+        ],
+        [
+          "sector",
+          "xlk"
+        ],
+        [
+          "sectorMatrixTimeframe",
+          "1D"
+        ],
+        [
+          "sectorTheme",
+          "dark"
+        ],
+        [
+          "sectorDiscoverySort",
+          "source"
+        ],
+        [
+          "sectorCompanyTableSort",
+          "source"
+        ],
+        [
+          "sectorRotationMode",
+          "map"
+        ],
+        [
+          "sectorView",
+          "intelligence"
+        ],
+        [
+          "sectorCompany",
+          "NVDA"
+        ],
+        [
+          "group",
+          "semiconductors"
+        ],
+        [
+          "sectorSort",
+          "source"
+        ]
+      ]
+    },
+    {
+      "name": "webkit-1440-en-dark: timeframe is durable URL state",
+      "passed": true
+    },
+    {
+      "name": "webkit-1440-en-dark: Table remains the same Discover job",
+      "passed": true
+    },
+    {
+      "name": "webkit-1440-en-dark: Heatmap restores selected sector, company and timeframe",
+      "passed": true
+    },
+    {
+      "name": "webkit-1440-en-dark: detail has explicit Discover return",
+      "passed": true
+    },
+    {
+      "name": "webkit-1440-en-dark: explicit return restores Heatmap context",
+      "passed": true
+    },
+    {
+      "name": "webkit-1440-en-dark: explicit return restores Heatmap action focus",
+      "passed": true
+    },
+    {
+      "name": "webkit-1440-en-dark: Sources remains contextual to Discover",
+      "passed": true
+    },
+    {
+      "name": "webkit-1440-en-dark: no horizontal overflow",
+      "passed": true,
+      "details": {
+        "inner": 0,
+        "document": 0
+      }
+    },
+    {
+      "name": "webkit-1440-en-dark: access loss clears exact company names",
+      "passed": true
+    },
+    {
+      "name": "webkit-390-zh-light: exact Technology population",
+      "passed": true,
+      "details": "科技\n\n公司热图 · 面积 = 市值 · 颜色 = 表现\n\n2026-09-25 · 79 家公司 · 1D\n\n市场解读\n\nSemiconductors占此范围市值的41%；Computer Hardware参与度最强（7/7上涨）。\n\n板块\n表现周期\n行业\n市值区间\n查看来源 →\n范围内最大公司\nNVDA\n\nNvidia\n\n行业\nSemiconductors\n市值\n$5.43T\n1D 表现\n+0.22%\n打开公司情报 →\n打开板块情报 →\n浏览公司热图\n79 家公司\n-6.3%\n+6.3%\n\n仅使用精确来源标签。筛选不会重设颜色；最小行业区块采用可见性下限，确保来源公司不会消失。"
+    },
+    {
+      "name": "webkit-390-zh-light: exact source date",
+      "passed": true
+    },
+    {
+      "name": "webkit-390-zh-light: distinct Information Technology row excluded",
+      "passed": true
+    },
+    {
+      "name": "webkit-390-zh-light: full-population fixed domain",
+      "passed": true,
+      "details": {
+        "expected": 6.3,
+        "actual": 6.3
+      }
+    },
+    {
+      "name": "webkit-390-zh-light: answer names the cap owner and breadth leader",
+      "passed": true,
+      "details": "市场解读\n\nSemiconductors占此范围市值的41%；Computer Hardware参与度最强（7/7上涨）。"
+    },
+    {
+      "name": "webkit-390-zh-light: default inspector is the largest company",
+      "passed": true
+    },
+    {
+      "name": "webkit-390-zh-light: mobile serves selected insight before mechanics",
+      "passed": true
+    },
+    {
+      "name": "webkit-390-zh-light: exact company selection stays URL-bound",
+      "passed": true
+    },
+    {
+      "name": "webkit-390-zh-light: industry filter never rescales color",
+      "passed": true
+    },
+    {
+      "name": "webkit-390-zh-light: cap filter is exact and URL-bound",
+      "passed": true
+    },
+    {
+      "name": "webkit-390-zh-light: cap filter never rescales color",
+      "passed": true
+    }
+  ],
+  "screenshots": [
+    {
+      "name": "chromium-1440-en-light-heatmap.png",
+      "sha256": "1aa8f476686a9707ccff3150e8420984bb10b5b9362c6a80bd04c107d8b1e717"
+    },
+    {
+      "name": "chromium-820-en-dark-heatmap.png",
+      "sha256": "6e0c312f22a735f421d1517064d49863380cfe5ac3acfe32ff839ae5258f5104"
+    },
+    {
+      "name": "chromium-390-en-light-heatmap.png",
+      "sha256": "591e6a3d017e3351a40bccc27ccdd4dfc49143f92c94e251f94e0a0219cb198e"
+    },
+    {
+      "name": "webkit-1440-en-dark-heatmap.png",
+      "sha256": "d650c45244362196d6696d6d2391619922dca3e71f9708de1a3646a7f25bad84"
+    }
+  ],
+  "errors": [],
+  "passed": false,
+  "error": "Error: expect(locator).toContainText(expected) failed\n\nLocator: getByTestId('sector-company-heatmap').getByRole('status')\nExpected substring: \"没有精确名称与此范围匹配\"\nReceived string:    \"此范围没有精确匹配的公司。清除范围\"\nTimeout: 5000ms\n\nCall log:\n  - Expect \"to.have.text\" with timeout 5000ms\n  - waiting for getByTestId('sector-company-heatmap').getByRole('status')\n    14 × locator resolved to <div role=\"status\" class=\"SectorCompanyHeatmap-module__R9GgYq__empty\">…</div>\n       - unexpected value \"此范围没有精确匹配的公司。清除范围\"\n\n    at captureRawStack (/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/sector-intelligence-terminal-20260926-sol-001/terminal/node_modules/playwright-core/lib/coreBundle.js:3172:17)\n    at callMatcherAsStep (/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/sector-intelligence-terminal-20260926-sol-001/terminal/node_modules/playwright/lib/matchers/expect.js:12877:57)\n    at Object.toContainText (/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/sector-intelligence-terminal-20260926-sol-001/terminal/node_modules/playwright/lib/matchers/expect.js:12867:23)\n    at /Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/sector-intelligence-terminal-20260926-sol-001/terminal/e2e/tools/qualify_sector_heatmap.cjs:103:23"
+}

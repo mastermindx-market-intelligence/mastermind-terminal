@@ -41,6 +41,12 @@ def _transcript_row(text: str):
     )
 
 
+def test_transcript_parquet_source_uses_current_market_scoped_layout() -> None:
+    assert collect.PARQUET_URL.endswith(
+        "/resolve/main/data/US/stock_earning_call_transcripts.parquet"
+    )
+
+
 def test_unchanged_upstream_revision_skips_download_even_when_cache_is_old(
     tmp_path, monkeypatch,
 ) -> None:
