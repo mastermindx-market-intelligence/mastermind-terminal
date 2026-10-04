@@ -47,7 +47,8 @@ function Row({ f, val, onChange }: { f: IndField; val: any; onChange: (v: any) =
       <span className="is-label">{f.label}</span>
       {f.type === "number" && <NumberField value={typeof val === "number" ? val : 0} min={f.min} max={f.max} step={f.step} onChange={onChange} />}
       {f.type === "color" && <ColorField value={String(val ?? "#888888")} onChange={onChange} />}
-      {f.type === "bool" && <span className={`is-switch${val ? " on" : ""}`} onClick={() => onChange(!val)} role="switch" aria-checked={!!val} />}
+      {f.type === "bool" && <span className={`is-switch${val ? " on" : ""}`} onClick={() => onChange(!val)} role="switch" aria-checked={!!val} tabIndex={0}
+        onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onChange(!val); } }} />}
     </div>
   );
 }
@@ -58,7 +59,8 @@ function VisRow({ label, unitMax, val, onChange }: { label: string; unitMax: num
   const clampMax = (v: number) => Math.max(val.min, Math.min(unitMax, Math.round(v)));
   return (
     <div className="vis-row">
-      <span className={`is-cbx${val.on ? " on" : ""}`} onClick={() => onChange({ on: !val.on })} role="checkbox" aria-checked={val.on}>
+      <span className={`is-cbx${val.on ? " on" : ""}`} onClick={() => onChange({ on: !val.on })} role="checkbox" aria-checked={val.on} tabIndex={0}
+        onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onChange({ on: !val.on }); } }}>
         <svg viewBox="0 0 24 24"><path d="M4 12l5 5L20 6" /></svg>
       </span>
       <span className="vis-name">{label}</span>
@@ -253,9 +255,15 @@ export default function IndicatorSettings({ indKey, moduleTarget, params, onChan
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, [onClose]);
+  // take focus on open and hand it back to the opener (legend / pane control) on every close path
   useEffect(() => {
+    const opener = document.activeElement;
+    const returnTo = opener instanceof HTMLElement && !dialogRef.current?.contains(opener) ? opener : null;
     const frame = window.requestAnimationFrame(() => dialogRef.current?.focus({ preventScroll: true }));
-    return () => window.cancelAnimationFrame(frame);
+    return () => {
+      window.cancelAnimationFrame(frame);
+      if (returnTo?.isConnected) returnTo.focus({ preventScroll: true });
+    };
   }, []);
   useEffect(() => { if (!defOpen) return; const close = () => setDefOpen(false); window.addEventListener("click", close); return () => window.removeEventListener("click", close); }, [defOpen]);
 
@@ -286,6 +294,12 @@ export default function IndicatorSettings({ indKey, moduleTarget, params, onChan
     else onChange(snap.current);   // snapshot has all fields → merge restores the open-time state
     onClose();
   };
+  const resetSettings = () => {
+    setDefOpen(false);
+    if (isPine) cancel();
+    else if (directModule) onChange(moduleScopedReset(directModule));
+    else onReset?.();
+  };
 
   // Suite modules currently store visual fields alongside their inputs and only have suite-wide
   // visibility. Direct mode therefore exposes one honest, module-scoped tab; the legacy suite
@@ -308,7 +322,8 @@ export default function IndicatorSettings({ indKey, moduleTarget, params, onChan
       >
         <div className="is-head">
           <b id="indicator-settings-title">{title}</b>
-          <span className="x" onClick={onClose} aria-label="Close">✕</span>
+          <span className="x" onClick={onClose} role="button" tabIndex={0} aria-label="Close"
+            onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onClose(); } }}>✕</span>
         </div>
         <div className="is-tabs">
           {TABS.map(([k, l]) => <button key={k} className={`is-tab${activeTab === k ? " on" : ""}`} onClick={() => setTab(k)}>{l}</button>)}
@@ -350,7 +365,8 @@ export default function IndicatorSettings({ indKey, moduleTarget, params, onChan
                 <div key={k} className="is-row">
                   <span className="is-label">{k}</span>
                   {typeof v === "boolean"
-                    ? <span className={`is-switch${v ? " on" : ""}`} onClick={() => onPineChange?.({ [k]: !v })} role="switch" aria-checked={v} />
+                    ? <span className={`is-switch${v ? " on" : ""}`} onClick={() => onPineChange?.({ [k]: !v })} role="switch" aria-checked={v} tabIndex={0}
+                        onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onPineChange?.({ [k]: !v }); } }} />
                     : typeof v === "number"
                       ? <NumberField value={v} step={Number.isInteger(v) ? 1 : 0.1} onChange={(nv) => onPineChange?.({ [k]: nv })} />
                       : <input className="is-text" value={String(v)} onChange={(e) => onPineChange?.({ [k]: e.target.value })} />}
@@ -377,12 +393,10 @@ export default function IndicatorSettings({ indKey, moduleTarget, params, onChan
           <div className="is-def pophost" onClick={(e) => e.stopPropagation()}>
             <button className="is-def-btn" onClick={() => setDefOpen((o) => !o)}>{t("isDefaults", "Defaults")} <svg viewBox="0 0 24 24" style={{ width: 12, height: 12, stroke: "currentColor", fill: "none", strokeWidth: 2, transform: defOpen ? "rotate(180deg)" : "none" }}><path d="M6 15l6-6 6 6" /></svg></button>
             {defOpen && <div className="is-def-menu">
-              <div className="is-def-row" onClick={() => {
-                setDefOpen(false);
-                if (isPine) cancel();
-                else if (directModule) onChange(moduleScopedReset(directModule));
-                else onReset?.();
-              }}>{t("isResetSettings", "Reset settings")}</div>
+              <div className="is-def-row" role="button" tabIndex={0} onClick={resetSettings}
+                onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); resetSettings(); } }}>
+                {t("isResetSettings", "Reset settings")}
+              </div>
             </div>}
           </div>
           <div className="spacer" />
