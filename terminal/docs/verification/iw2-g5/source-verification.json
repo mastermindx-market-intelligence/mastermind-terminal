@@ -15,7 +15,8 @@
     "typecheck": "tsc --noEmit passed on final G5 product source; subsequent change only wraps existing capture code in a bounded Playwright assertion.",
     "migration_namespace": "86 passed, 1 skipped",
     "browser": "30 distinct cases covered: 6 G5 EN/ZH at 1440x900, 820x1180 and 390x844; 23 incumbent cases in initial run; repaired desktop Analysis capture passed its isolated rerun. Initial G5 wrapped-label selector failures were repaired with accessible combobox locators. A warm-cache route-wide 404 run is preserved; cold route compilation restored 200 responses. The independent Analysis capture hydration-box race was repaired with a bounded assertion retaining the same crop and source locks.",
-    "visual": "Desktop EN and mobile ZH final retained-version captures inspected; actual Terminal dark theme only"
+    "visual": "Desktop EN and mobile ZH final retained-version captures inspected; actual Terminal dark theme only",
+    "migration_apply_guard": "87 passed after restoring exact down/readback markers; no SQL execution change"
   },
   "review": {
     "verdict": "PASS_SCOPED",
@@ -28,13 +29,15 @@
       "Picker uses a Thesis title or localized retained-version label instead of raw UUID display; no mutation/read/identity changes",
       "Added command ownership-delegation test and browser matrix",
       "Ledger null-date explanation and documentation",
-      "Existing Analysis screenshot test reacquires a transiently detached hydration box within a bounded 5-second assertion; exact crop and source locks preserved"
+      "Existing Analysis screenshot test reacquires a transiently detached hydration box within a bounded 5-second assertion; exact crop and source locks preserved",
+      "Migration comments now use exact down/readback block markers consumed by the apply guard; rollback remains revoke writes and preserve retained data"
     ]
   },
   "limitations": [
     "No production 0029 apply, deployed G5 proof or CI acceptance",
     "Additional G5 subjects, evidence relations and scenarios unfinished",
-    "Dependent G1/G2/G4 source included; parent G0-G9 remains active"
+    "Dependent G1/G2/G4 source included; parent G0-G9 remains active",
+    "CI namespace gate rejects inherited open 0028 until #777 merges; dependency must converge without weakening guard"
   ],
   "evidence_sha256": {
     "g5-postgres-r2.log": "76b59092c536574c78a7c8789864bfcffd9cb7882d98d6bdc2af9c78a4f3bd26",
@@ -48,6 +51,8 @@
     "g5-typecheck-final.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
     "g5-analysis-responsive-repaired.log": "8ccffea71efacdf51189ac99ce17a2066ca936bd8ea68239597dd2438a20a5bb",
     "g5-analysis-responsive-cold.log": "7905de32540d65d3556f184ea2ffc8a961486e04712504a0a5a1f0bcf0b99004",
-    "g5-analysis-responsive-r2.log": "196655a910a41f67176c05b0f909a6f8cf9f615a6dc45df969cf3e56224641c1"
+    "g5-analysis-responsive-r2.log": "196655a910a41f67176c05b0f909a6f8cf9f615a6dc45df969cf3e56224641c1",
+    "g5-apply-guard-repair.log": "bda67e8074121420ec022ea808b3d567d20714301befb8e63a0da0a5d66b038e",
+    "g5-ci-ingest-job.log": "d0ebdb9df498de388e5e8e98a6d49af27ac744e9f8152f58cb71a77efafe9b67"
   }
 }

@@ -181,7 +181,11 @@ grant execute on function public.apply_investigation_revision_v2(uuid,integer,te
 
 commit;
 
--- Post-apply readback:
+-- down:
+-- revoke execute on function public.apply_investigation_revision_v2(uuid,integer,text,uuid,jsonb,jsonb) from authenticated;
+-- Preserve retained Thesis references and the validator until forward repair or verified backup restoration.
+
+-- readback:
 -- select proname,prosecdef,proconfig from pg_proc p join pg_namespace n on n.oid=p.pronamespace where n.nspname='public' and proname in ('valid_investigation_manifest_v2','apply_investigation_revision_v2') order by proname;
 -- select has_function_privilege('authenticated','public.apply_investigation_revision_v2(uuid,integer,text,uuid,jsonb,jsonb)','EXECUTE') as authenticated_apply,has_function_privilege('anon','public.apply_investigation_revision_v2(uuid,integer,text,uuid,jsonb,jsonb)','EXECUTE') as anon_apply,has_function_privilege('authenticated','public.valid_investigation_manifest_v2(jsonb)','EXECUTE') as authenticated_validator;
 -- select c.relname,c.relrowsecurity from pg_class c join pg_namespace n on n.oid=c.relnamespace where n.nspname='public' and c.relname in ('theses','thesis_versions','investigations','investigation_revisions') order by c.relname;
