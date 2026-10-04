@@ -81,8 +81,10 @@ test("lost response and receipt miss preserve one operation across reload",async
  expect(commands).toHaveLength(2);expect(commands[1]).toEqual(commands[0]);
 });
 
-test("evidence review advances only through an explicit saved revision and preserves the earlier baseline",async({page},testInfo)=>{
+for(const lang of ["en","zh"] as const) test(`evidence review advances only through an explicit saved revision (${lang}, Terminal dark theme)`,async({page},testInfo)=>{
  await setup(page);
+ await page.addInitScript(lang=>{localStorage.setItem("mm.lang",lang);},lang);
+ const copy=lang==="en"?{title:"Review evidence changes",review:"Review current evidence",missing:"Not observed in the current read",removed:"Confirmed removal",advance:"Use this reviewed version in an edit",question:"Research question",save:"Save research",previous:"Previous revision",selected:"Selected generation"}:{title:"复核证据变化",review:"复核当前证据",missing:"当前读取未观察到",removed:"来源确认已删除",advance:"在编辑中使用此已复核版本",question:"研究问题",save:"保存研究",previous:"上一修订",selected:"已选择的版本"};
  const newer={...fixtureBaseline,workspace:normalizeEventWorkspace({...golden,generation_id:"b".repeat(24)}),reference:{...reference,version_ref:"b".repeat(24),fingerprint:"b".repeat(64)},receipt:{...fixtureBaseline.receipt,generation_id:"b".repeat(24),fingerprint:"b".repeat(64)}};
  const commands:Array<{expected_revision:number;action:string;manifest:typeof content}>=[];
  let reviewReads=0,head=1,second:typeof content|null=null;
@@ -104,27 +106,40 @@ test("evidence review advances only through an explicit saved revision and prese
   await route.fulfill({json:{status:"listed",items:[{id,revision:head,lifecycle:"active",title:content.intent.title,question,updated_at:fixtureBaseline.receipt.rights.checked_at}]}});
  });
  await page.goto(`/analysis?view=investigations&investigation=${id}&revision=1`);
- await expect(page.getByRole("heading",{name:"Review evidence changes"})).toBeVisible();
+ // The actual Terminal host is deliberately dark-only (app/layout.tsx).
+ await expect(page.locator("html")).toHaveAttribute("data-theme","dark");
+ await expect(page.getByRole("heading",{name:copy.title})).toBeVisible();
  expect(reviewReads).toBe(0);expect(commands).toHaveLength(0);
- await page.getByRole("button",{name:"Review current evidence"}).click();
- await expect(page.getByText("Not observed in the current read",{exact:true})).toBeVisible();
- await expect(page.getByText("Owner-proven removal",{exact:true})).toHaveCount(0);
+ await page.getByRole("button",{name:copy.review}).click();
+ await expect(page.getByText(copy.missing,{exact:true})).toBeVisible();
+ await expect(page.getByText(copy.removed,{exact:true})).toHaveCount(0);
  expect(commands).toHaveLength(0);
  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=window.innerWidth+1)).toBe(true);
+ await page.getByRole("button",{name:copy.advance}).scrollIntoViewIfNeeded();
  await page.screenshot({path:testInfo.outputPath("evidence-review-incomplete.png"),fullPage:true});
- await page.getByRole("button",{name:"Use this reviewed version in an edit"}).click();
- await expect(page.getByLabel("Research question",{exact:true})).toHaveValue(question);
+ await page.getByRole("button",{name:copy.advance}).click();
+ await expect(page.getByLabel(copy.question,{exact:true})).toHaveValue(question);
  expect(commands).toHaveLength(0);
- await page.getByRole("button",{name:"Save research",exact:true}).click();
+ await page.getByRole("button",{name:copy.save,exact:true}).click();
  await expect(page).toHaveURL(new RegExp(`investigation=${id}&revision=2$`));
  expect(commands).toHaveLength(1);expect(commands[0]).toMatchObject({action:"revise",expected_revision:1,manifest:{review_baseline_ref:newer.reference}});
  await page.reload();await expect(page.getByRole("heading",{name:content.intent.title,exact:true})).toBeVisible();
  expect(commands).toHaveLength(1);expect(reviewReads).toBe(1);
- await page.getByRole("button",{name:"Previous revision"}).click();
+ await page.getByRole("button",{name:copy.previous}).click();
  await expect(page).toHaveURL(new RegExp(`investigation=${id}&revision=1$`));
- await page.getByText("Selected generation",{exact:true}).click();
+ await page.getByText(copy.selected,{exact:true}).click();
  await expect(page.getByText(fixtureBaseline.receipt.fingerprint,{exact:true})).toBeVisible();
  expect(commands).toHaveLength(1);expect(reviewReads).toBe(1);
+ if(testInfo.project.name==="mobile"&&lang==="en"){
+  await page.setViewportSize({width:320,height:844});
+  await page.getByRole("button",{name:copy.review}).click();
+  await expect(page.getByText(copy.missing,{exact:true})).toBeVisible();
+  await page.evaluate(()=>{const root=document.querySelector("main");if(!root)return;const sizes=[...root.querySelectorAll<HTMLElement>("*")].map(el=>[el,parseFloat(getComputedStyle(el).fontSize)] as const);for(const [el,size] of sizes)el.style.fontSize=`${size*2}px`;});
+  expect(await page.evaluate(()=>document.documentElement.scrollWidth<=window.innerWidth+1)).toBe(true);
+  await page.getByRole("button",{name:copy.review}).focus();await expect(page.getByRole("button",{name:copy.review})).toBeFocused();
+  await page.screenshot({path:testInfo.outputPath("evidence-review-320-double-text.png"),fullPage:true});
+  expect(commands).toHaveLength(1);
+ }
 });
 
 test("a rejected revision keeps its draft across reload and cannot become a new record",async({page})=>{

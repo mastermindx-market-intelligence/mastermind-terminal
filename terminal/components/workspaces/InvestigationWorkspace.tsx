@@ -46,8 +46,11 @@ export default function InvestigationWorkspace({ownerKey,initialSymbol,initialIn
  const [baseline,setBaseline]=useState<Baseline|null>(null),[baselineState,setBaselineState]=useState<"none"|"loading"|"ready"|"unavailable">("none"),[seenAt,setSeenAt]=useState<string|null>(null);
  const [layouts,setLayouts]=useState<Layout[]>([]),[layoutError,setLayoutError]=useState(false);
  const [saveState,setSaveState]=useState<InvestigationSaveState>({phase:"idle"}),[message,setMessage]=useState("");
- const [storageBlocked,setStorageBlocked]=useState(false),[authEnded,setAuthEnded]=useState(false),[filter,setFilter]=useState<"active"|"removed">("active");
+ const [storageBlocked,setStorageBlockedState]=useState(false),[authEnded,setAuthEnded]=useState(false),[filter,setFilter]=useState<"active"|"removed">("active");
  const scope=useRef<AbortController|null>(null),detailSeq=useRef(0),baselineSeq=useRef(0),stateRef=useRef<InvestigationSaveState>({phase:"idle"});
+ const storageBlockedRef=useRef(false);
+ const setStorageBlocked=(blocked:boolean)=>{storageBlockedRef.current=blocked;setStorageBlockedState(blocked);};
+ const editLocked=()=>stateRef.current.phase==="pending"||stateRef.current.phase==="uncertain"||storageBlockedRef.current||!!scope.current?.signal.aborted;
  const detailTitle=useRef<HTMLHeadingElement>(null),draftTitle=useRef<HTMLInputElement>(null);
  useEffect(()=>{if(editing)draftTitle.current?.focus();else if(detail)detailTitle.current?.focus();},[editing,detail?.id,detail?.revision]);
  const locked=saveState.phase==="pending"||saveState.phase==="uncertain";
@@ -143,24 +146,27 @@ export default function InvestigationWorkspace({ownerKey,initialSymbol,initialIn
   // eslint-disable-next-line react-hooks/exhaustive-deps
  },[ownerKey,initialInvestigationId,initialRevision]);
  function beginEdit(fresh=false) {
-  if(locked||storageBlocked)return;
+  // Async selection must consult current admission, never the render that
+  // started its GET. The boolean return pairs baseline installation with edit.
+  if(editLocked())return false;
   ++detailSeq.current;++baselineSeq.current;setMessage("");
-  if(fresh){try{sessionStorage.removeItem(storageKey(ownerKey));}catch{setStorageBlocked(true);return;}setSave({phase:"idle"});setDetail(null);setDraft(emptyDraft(initialSymbol));setBaseline(null);setBaselineState("none");window.history.replaceState({},"","/analysis?view=investigations");}
-  else if(detail){const m=detail.manifest;setDraft({title:m.intent.title,question:m.intent.question,symbol:m.intent.subjects.find(s=>s.owner==="terminal.analysis_symbol")?.object_id??"",next:m.continuation.next_question??"",horizon:m.intent.horizon??"",asOf:m.intent.research_as_of??"",layoutId:""});}
-  setEditing(true);
+  if(fresh){try{sessionStorage.removeItem(storageKey(ownerKey));}catch{setStorageBlocked(true);return false;}setSave({phase:"idle"});setDetail(null);setDraft(emptyDraft(initialSymbol));setBaseline(null);setBaselineState("none");window.history.replaceState({},"","/analysis?view=investigations");}
+  else if(detail){const m=detail.manifest;setDraft({title:m.intent.title,question:m.intent.question,symbol:m.intent.subjects.find(s=>s.owner==="terminal.analysis_symbol")?.object_id??"",next:m.continuation.next_question??"",horizon:m.intent.horizon??"",asOf:m.intent.research_as_of??"",layoutId:""});setBaselineState(baseline?"ready":"unavailable");}
+  setEditing(true);return true;
  }
  async function selectReviewedBaseline(receipt:RetainedEventWorkspaceReceipt) {
-  if(!detail||locked||storageBlocked||detail.lifecycle!=="active"||detail.revision!==detail.current_revision)return;
+  if(!detail||editLocked()||detail.lifecycle!=="active"||detail.revision!==detail.current_revision)return;
   const ticket=++baselineSeq.current,recordTicket=detailSeq.current;setBaselineState("loading");
   try {
    const value=await json(`/api/investigations/baseline?${new URLSearchParams({event_id:receipt.event_id,generation_id:receipt.generation_id,company_id:receipt.company_id,fingerprint:receipt.fingerprint})}`);
    if(ticket!==baselineSeq.current||recordTicket!==detailSeq.current)return;
    if(!record(value)||value.ok!==true||!record(value.receipt)||value.receipt.fingerprint!==receipt.fingerprint||!record(value.reference)||!record(value.workspace))throw Error("unavailable");
-   beginEdit();setBaseline(value as unknown as Baseline);setBaselineState("ready");setSeenAt(new Date().toISOString());
+   if(!beginEdit()){setBaselineState(baseline?"ready":"unavailable");return;}
+   setBaseline(value as unknown as Baseline);setBaselineState("ready");setSeenAt(new Date().toISOString());
   } catch {if(ticket===baselineSeq.current&&!scope.current?.signal.aborted){setBaselineState(baseline?"ready":"unavailable");setMessage(c.reviewFailed);}}
  }
  function save(action:InvestigationCommand["action"]=detail?"revise":"create") {
-  if(locked||storageBlocked)return;
+  if(editLocked())return;
   if(!detail&&saveState.phase==="rejected"&&saveState.command.expected_revision>0){setMessage(c.conflict);return;}
   let manifest:InvestigationManifest;
   if((action==="remove"||action==="restore")&&detail)manifest=detail.manifest;
@@ -176,6 +182,9 @@ export default function InvestigationWorkspace({ownerKey,initialSymbol,initialIn
   if(next.phase!=="pending"){setMessage(c.titleRequired);return;}
   try {sessionStorage.setItem(storageKey(ownerKey),JSON.stringify({owner:ownerKey,command:next.command}));if(!sessionStorage.getItem(storageKey(ownerKey)))throw Error("storage");}
   catch {setStorageBlocked(true);setMessage(c.storage);return;}
+  // A competing mutation cancels pending evidence selection before taking the
+  // synchronous operation lock. A late GET cannot change this saved baseline.
+  ++baselineSeq.current;setBaselineState(baseline?"ready":baselineState==="loading"?"unavailable":baselineState);
   setSave(next);void send(next.command);
  }
  const symbol=detail?.manifest.intent.subjects.find(s=>s.owner==="terminal.analysis_symbol")?.object_id??draft.symbol;

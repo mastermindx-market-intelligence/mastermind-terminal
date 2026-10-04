@@ -45,6 +45,6 @@ describe("read-only evidence review controls",()=>{
  it("keeps missing and unavailable observations visible without claiming removal",async()=>{
   const items=[{...result.review.items[0],membership:"not_observed",version:"unknown",qualification:"unknown",availability:"unavailable",interpretation:{comparable:false,reason:"unavailable"}}];
   vi.stubGlobal("fetch",vi.fn(async()=>({ok:true,json:async()=>({...result,review:{...result.review,items}})})));await mount();await click("Review current evidence");
-  expect(host!.textContent).toContain("Not observed in the current read");expect(host!.textContent).toContain("Value comparison unavailable");expect(host!.textContent).not.toContain("Owner-proven removal");expect(host!.textContent).not.toContain("No identified changes");
+  expect(host!.textContent).toContain("Not observed in the current read");expect(host!.textContent).toContain("Value comparison unavailable");expect(host!.textContent).not.toContain("Confirmed removal");expect(host!.textContent).not.toContain("No identified changes");
  });
 });
