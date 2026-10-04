@@ -60,6 +60,10 @@ const PAY_BODY: [string, string] = ["Your watchlist view stays free.", "自选�
 const CATALYST_ON: [string, string] = ["Catalyst on file", "有催化剂记录"];
 const CATALYST_AGED: [string, string] = ["Catalyst aged out", "催化剂已过期"];
 const DELAY_BADGE: [string, string] = ["Delayed data (≈15 min)", "延迟数据（约15分钟）"];
+const LOADING_STATUS: [string, string] = [
+  "Reading the latest bars…",
+  "正在读取最新行情…",
+];
 
 type GroupKey = "confirmed" | "forming" | "ended";
 
@@ -88,6 +92,17 @@ const GROUPS: Array<{
     states: new Set(["INVALIDATED", "EXPIRED", "RESOLVED"]),
   },
 ];
+
+const KNOWN_EPISODE_STATES = new Set<EpisodeState>(
+  GROUPS.flatMap((g) => [...g.states]),
+);
+
+function sourceUnavailableMessage(reason: string | undefined, L: number): string {
+  if (reason === "episodes_not_published" || reason === "missing") {
+    return SOURCE_UNAVAILABLE[L];
+  }
+  return HANDLER_ERROR[L];
+}
 
 type SourceMeta = {
   asof: string | null;
@@ -176,7 +191,12 @@ function catalystChip(ep: DislocationEpisode, lang: Lang): ReactNode {
 
 function rowsForGroup(group: typeof GROUPS[number], episodes: DislocationEpisode[]): DislocationEpisode[] {
   return episodes
-    .filter((ep) => group.states.has(ep.state as EpisodeState))
+    .filter((ep) => {
+      const st = ep.state as EpisodeState;
+      if (group.states.has(st)) return true;
+      if (group.key === "ended" && !KNOWN_EPISODE_STATES.has(st)) return true;
+      return false;
+    })
     .sort((a, b) => {
       const ka = a.display.knowable_at ?? "";
       const kb = b.display.knowable_at ?? "";
@@ -199,9 +219,22 @@ export default function DislocationsView() {
   const [read, setRead] = useState<ReadState>({ kind: "loading" });
   const [now, setNow] = useState(() => Date.now());
   const retry429 = useRef(false);
+  const fetchGenRef = useRef(0);
+  const inflightAbortRef = useRef<AbortController | null>(null);
+  const retry429TimerRef = useRef<number | null>(null);
   const L = lang === "zh" ? 1 : 0;
 
-  const load = useCallback(async (signal?: AbortSignal) => {
+  const commitRead = useCallback((gen: number, signal: AbortSignal, next: ReadState) => {
+    if (gen !== fetchGenRef.current || signal.aborted) return;
+    setRead(next);
+  }, []);
+
+  const load = useCallback(async () => {
+    const gen = ++fetchGenRef.current;
+    inflightAbortRef.current?.abort();
+    const ctrl = new AbortController();
+    inflightAbortRef.current = ctrl;
+    const { signal } = ctrl;
     try {
       const res = await fetch(`/api/v1/dislocations?view=${view}`, {
         cache: "no-store",
@@ -211,7 +244,7 @@ export default function DislocationsView() {
         try {
           const body = await res.json();
           if (body?.reason === "paid_tier_required") {
-            setRead({ kind: "paywall" });
+            commitRead(gen, signal, { kind: "paywall" });
             return;
           }
         } catch {
@@ -220,23 +253,23 @@ export default function DislocationsView() {
       }
       if (res.status === 429) {
         const n = Number.parseInt(res.headers.get("Retry-After") || "30", 10) || 30;
-        setRead({
+        commitRead(gen, signal, {
           kind: "rate",
           seconds: n,
         });
         if (!retry429.current) {
           retry429.current = true;
-          window.setTimeout(() => {
+          retry429TimerRef.current = window.setTimeout(() => {
             void load();
           }, n * 1000);
         }
         return;
       }
-      let body: ApiOk;
+      let body: ApiOk & { reason?: string };
       try {
-        body = (await res.json()) as ApiOk;
+        body = (await res.json()) as ApiOk & { reason?: string };
       } catch {
-        setRead({
+        commitRead(gen, signal, {
           kind: "message",
           text: HANDLER_ERROR[L],
           role: "status",
@@ -244,7 +277,7 @@ export default function DislocationsView() {
         return;
       }
       if (!res.ok || body?.state === "handler_error") {
-        setRead({
+        commitRead(gen, signal, {
           kind: "message",
           text: HANDLER_ERROR[L],
           role: "status",
@@ -253,7 +286,7 @@ export default function DislocationsView() {
       }
       retry429.current = false;
       if (body.state === "handler_error") {
-        setRead({
+        commitRead(gen, signal, {
           kind: "message",
           text: HANDLER_ERROR[L],
           role: "status",
@@ -261,29 +294,36 @@ export default function DislocationsView() {
         return;
       }
       if (body.state === "source_unavailable") {
-        setRead({
+        commitRead(gen, signal, {
           kind: "message",
-          text: SOURCE_UNAVAILABLE[L],
+          text: sourceUnavailableMessage(body.reason, L),
           role: "status",
         });
         return;
       }
-      setRead({ kind: "ok", body });
+      commitRead(gen, signal, { kind: "ok", body });
     } catch (e) {
       if ((e as Error).name === "AbortError") return;
-      setRead({
+      commitRead(gen, signal, {
         kind: "message",
         text: HANDLER_ERROR[L],
         role: "status",
       });
     }
-  }, [L, view]);
+  }, [L, view, commitRead]);
 
   useEffect(() => {
-    const ctrl = new AbortController();
     setRead({ kind: "loading" });
-    void load(ctrl.signal);
-    return () => ctrl.abort();
+    void load();
+    return () => {
+      fetchGenRef.current += 1;
+      inflightAbortRef.current?.abort();
+      inflightAbortRef.current = null;
+      if (retry429TimerRef.current != null) {
+        window.clearTimeout(retry429TimerRef.current);
+        retry429TimerRef.current = null;
+      }
+    };
   }, [load]);
 
   useEffect(() => {
@@ -301,6 +341,10 @@ export default function DislocationsView() {
       document.removeEventListener("visibilitychange", onVis);
       window.clearInterval(poll);
       window.clearInterval(tick);
+      if (retry429TimerRef.current != null) {
+        window.clearTimeout(retry429TimerRef.current);
+        retry429TimerRef.current = null;
+      }
     };
   }, [load]);
 
@@ -332,7 +376,10 @@ export default function DislocationsView() {
     if (!body) return { mode: "none" as const };
     const st = body.state;
     if (st === "source_unavailable") {
-      return { mode: "status" as const, text: SOURCE_UNAVAILABLE[L] };
+      return {
+        mode: "status" as const,
+        text: sourceUnavailableMessage((body as { reason?: string }).reason, L),
+      };
     }
     if (st === "ok_empty") {
       if (behindEmptyWarn(source)) {
@@ -343,7 +390,7 @@ export default function DislocationsView() {
     if (st === "stale" && episodes.length === 0) {
       return { mode: "status" as const, text: BEHIND_EMPTY[L] };
     }
-    if (st === "stale" && source.asof) {
+    if (st === "stale" && episodes.length > 0) {
       return {
         mode: "stale_warn" as const,
         text: STALE_WARN(fmtClock(source.asof, lang), lang),
@@ -423,6 +470,12 @@ export default function DislocationsView() {
         </p>
       )}
 
+      {read.kind === "loading" && (
+        <p className={s.statusBlock} role="status" data-testid="dislo-loading">
+          {LOADING_STATUS[L]}
+        </p>
+      )}
+
       {groupsVisible &&
         GROUPS.map((g) => {
           const rows = rowsForGroup(g, episodes);
@@ -444,7 +497,11 @@ export default function DislocationsView() {
                           className={s.row}
                           data-ticker={ep.ticker}
                           data-stance={ep.display.stance}
-                          data-state={ep.state}
+                          data-state={
+                            KNOWN_EPISODE_STATES.has(ep.state as EpisodeState)
+                              ? ep.state
+                              : "UNKNOWN"
+                          }
                         >
                           <div className={s.rail}>
                             <time className={s.when} dateTime={ep.display.knowable_at ?? undefined}>
@@ -481,7 +538,15 @@ export default function DislocationsView() {
                                 <dt>catalyst</dt>
                                 <dd>
                                   {ep.catalyst
-                                    ? `${ep.catalyst.coverage} · until ${ep.catalyst.relevant_until}`
+                                    ? (() => {
+                                        const coverage = ep.catalyst.coverage
+                                          ? ep.catalyst.coverage
+                                          : COVERAGE_UNKNOWN[L];
+                                        const until = fmtClock(ep.catalyst.relevant_until, lang);
+                                        return lang === "zh"
+                                          ? `${coverage} · 至 ${until}`
+                                          : `${coverage} · until ${until}`;
+                                      })()
                                     : COVERAGE_UNKNOWN[L]}
                                 </dd>
                                 <dt>episode</dt><dd>{ep.episode_id}</dd>
