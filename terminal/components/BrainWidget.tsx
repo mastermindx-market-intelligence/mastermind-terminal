@@ -21,7 +21,10 @@ type Props = {
   // DeepVue W1-C: reads the Terminal's current ai_context_client.v1 block at send time.
   // Optional — the deployed production mm_brain.js may not read this key yet (Macro's
   // context-compiler PR lands first), so this hook must be safely ignorable both ways.
-  getAiContext?: () => AiContextClientV1;
+  // `undefined` is a legal answer (an owner that has since unmounted — AnalysisBrainHost's
+  // alive guard, PR #798 finding 1); the widget then falls back to its legacy mapping exactly
+  // as it does when no getter is bound at all.
+  getAiContext?: () => AiContextClientV1 | undefined;
 };
 
 export default function BrainWidget({
