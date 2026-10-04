@@ -1,0 +1,75 @@
+{
+  "base_head": "3ee6f7ae31f0ba98b85308a15014799163fdc1ba",
+  "base_tree": "2f7513d039e466ad63cb2940d7bf016533ec29f2",
+  "changed_paths": [
+    "terminal/lib/__tests__/companyThemeExposureRoute.test.ts"
+  ],
+  "path": "terminal/lib/__tests__/companyThemeExposureRoute.test.ts",
+  "blob": "d8193248912d1ba33e3b2e3ac17b65c678aa17e8",
+  "sha256": "937b971778e8aee8aa5fc4bffb4b1ebd43db2ea968171a86f0cbda7c96e83097",
+  "bytes": 10677,
+  "patch_sha256": "a2654597dee2e275a2d279482c11ce9814c76e78a92725db4a72ad0ed72322f6",
+  "patch_bytes": 3456,
+  "runtime": {
+    "version": "v20.20.2",
+    "platform": "darwin",
+    "arch": "arm64"
+  },
+  "checks": {
+    "realm_witness": {
+      "exit": 0,
+      "pid": 98791
+    },
+    "owning_red": {
+      "failed": 4,
+      "passed": 36,
+      "exit": 1,
+      "pid": 98791
+    },
+    "owning_green": {
+      "passed": 40,
+      "exit": 0,
+      "pid": 3043
+    },
+    "typecheck": {
+      "exit": 0,
+      "pid": 3043
+    },
+    "focused_lint": {
+      "exit": 0,
+      "pid": 3043
+    }
+  },
+  "evidence": [
+    {
+      "path": ".claude/evidence/cte-aging/node20-realm-witness.log",
+      "sha256": "8b9f00017731d8eb1ab556197df95af570385b33a256481f8cf0f2f49a4f017b",
+      "bytes": 232
+    },
+    {
+      "path": ".claude/evidence/cte-aging/node20-test-red.log",
+      "sha256": "90ba452c8fd802a0ac19dc74a89bb86b24cfbb8d0217897c3d02d267113e84aa",
+      "bytes": 5798
+    },
+    {
+      "path": ".claude/evidence/cte-aging/node20-test-green.log",
+      "sha256": "147b91905d041bce66733863112e0de41c5e928d0b6b81d52bcea98c607b95d1",
+      "bytes": 846
+    },
+    {
+      "path": ".claude/evidence/cte-aging/node20-type-green.log",
+      "sha256": "0e606818852cc6d4e60902e87575d34ac32240a5d6906a692c9213d2c43e035c",
+      "bytes": 8
+    },
+    {
+      "path": ".claude/evidence/cte-aging/node20-lint-green.log",
+      "sha256": "0e606818852cc6d4e60902e87575d34ac32240a5d6906a692c9213d2c43e035c",
+      "bytes": 8
+    },
+    {
+      "path": ".claude/evidence/cte-aging/node20-harness-correction.patch",
+      "sha256": "a2654597dee2e275a2d279482c11ce9814c76e78a92725db4a72ad0ed72322f6",
+      "bytes": 3456
+    }
+  ]
+}

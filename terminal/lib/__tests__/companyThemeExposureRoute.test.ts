@@ -1,9 +1,10 @@
-// @vitest-environment jsdom
+// @vitest-environment node
 import React, { act } from "react";
 import { createRoot } from "react-dom/client";
 import { LangProvider } from "../i18n";
 import CompanyThemeContextCard from "@/components/fin/CompanyThemeContextCard";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { builtinEnvironments } from "vitest/environments";
 import { createHash } from "node:crypto";
 
 const state = vi.hoisted(() => ({
@@ -92,20 +93,29 @@ describe("/api/company-theme-context/[symbol]", () => {
     expect(createHash("sha256").update(futureRaw).digest("hex")).toBe(futureHash);
     globalThis.fetch = vi.fn(async () => new Response(JSON.stringify(wire))) as unknown as typeof globalThis.fetch;
     expect(await getCompanyThemeExposure("NVDA")).toMatchObject({ ok: true, state: "partial", context: { status: "ready" }, freshness: { status: "future" } });
-    const host = document.createElement("div");
-    document.body.append(host);
-    const mounted = createRoot(host);
+    // Resolve/hash the server receipt in Node. A DOM belongs only to the
+    // mounted browser leg: jsdom's ArrayBuffer cannot feed Node 20 WebCrypto.
+    const browserEnvironment = await builtinEnvironments.jsdom.setup(globalThis, {
+      jsdom: { runScripts: "outside-only" },
+    });
     try {
-      await act(async () => mounted.render(React.createElement(LangProvider, null, React.createElement(CompanyThemeContextCard, {
-        ticker: "NVDA", selectedEventId: latestEventId, selectedEventLabel: "Q1 FY2026", companyIntelligenceGenerationId: companyGeneration, latestEventId,
-      }))));
-      expect(host.querySelector(".ci-theme-footer")?.textContent).toContain("Future date");
-      expect(host.querySelector(".ci-theme-header")?.textContent).toContain("Partial");
-      expect(host.querySelector(".ci-theme-warning")?.textContent).toContain("not used");
-      expect(host.querySelector(".ci-theme-unavailable")).toBeNull();
+      const host = document.createElement("div");
+      document.body.append(host);
+      const mounted = createRoot(host);
+      try {
+        await act(async () => mounted.render(React.createElement(LangProvider, null, React.createElement(CompanyThemeContextCard, {
+          ticker: "NVDA", selectedEventId: latestEventId, selectedEventLabel: "Q1 FY2026", companyIntelligenceGenerationId: companyGeneration, latestEventId,
+        }))));
+        expect(host.querySelector(".ci-theme-footer")?.textContent).toContain("Future date");
+        expect(host.querySelector(".ci-theme-header")?.textContent).toContain("Partial");
+        expect(host.querySelector(".ci-theme-warning")?.textContent).toContain("not used");
+        expect(host.querySelector(".ci-theme-unavailable")).toBeNull();
+      } finally {
+        await act(async () => mounted.unmount());
+        host.remove();
+      }
     } finally {
-      await act(async () => mounted.unmount());
-      host.remove();
+      await browserEnvironment.teardown(globalThis);
     }
   });
   it("ages a hash-verified HTTP200 publication without changing its context receipts", async () => {

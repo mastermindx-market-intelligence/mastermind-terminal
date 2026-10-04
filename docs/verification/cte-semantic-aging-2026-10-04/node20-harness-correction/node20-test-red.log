@@ -1,0 +1,85 @@
+
+ RUN  v2.1.9 /Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/gmi-cte-semantic-aging-20261004-astra-001/terminal
+
+ ✓ lib/__tests__/companyThemeExposure.test.ts (21 tests) 45ms
+ ✓ lib/__tests__/companyThemeContextCardAging.test.tsx (11 tests) 68ms
+ ❯ lib/__tests__/companyThemeExposureRoute.test.ts (8 tests | 4 failed) 22ms
+   × /api/company-theme-context/[symbol] > round-trips a future-source derived partial from verified resolver through API to browser and mounted card 12ms
+     → Failed to execute 'digest' on 'SubtleCrypto': 2nd argument is not instance of ArrayBuffer, Buffer, TypedArray, or DataView.
+   × /api/company-theme-context/[symbol] > ages a hash-verified HTTP200 publication without changing its context receipts 2ms
+     → Failed to execute 'digest' on 'SubtleCrypto': 2nd argument is not instance of ArrayBuffer, Buffer, TypedArray, or DataView.
+   × /api/company-theme-context/[symbol] > returns a receipt-verified payload aligned to current Company Intelligence 2ms
+     → Failed to execute 'digest' on 'SubtleCrypto': 2nd argument is not instance of ArrayBuffer, Buffer, TypedArray, or DataView.
+   × /api/company-theme-context/[symbol] > returns a browser-parseable no-store rate-limit envelope 1ms
+     → Failed to execute 'digest' on 'SubtleCrypto': 2nd argument is not instance of ArrayBuffer, Buffer, TypedArray, or DataView.
+
+ Test Files  1 failed | 2 passed (3)
+      Tests  4 failed | 36 passed (40)
+   Start at  19:15:14
+   Duration  1.11s (transform 273ms, setup 0ms, collect 524ms, tests 135ms, environment 862ms, prepare 161ms)
+
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 4 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  lib/__tests__/companyThemeExposureRoute.test.ts > /api/company-theme-context/[symbol] > round-trips a future-source derived partial from verified resolver through API to browser and mounted card
+TypeError: Failed to execute 'digest' on 'SubtleCrypto': 2nd argument is not instance of ArrayBuffer, Buffer, TypedArray, or DataView.
+ ❯ sha256Hex lib/companyThemeExposure.ts:532:47
+    530|   const source = new ArrayBuffer(bytes.byteLength);
+    531|   new Uint8Array(source).set(bytes);
+    532|   const hash = await globalThis.crypto.subtle.digest("SHA-256", source…
+       |                                               ^
+    533|   return [...new Uint8Array(hash)].map((value) => value.toString(16).p…
+    534| }
+ ❯ Module.resolveCompanyThemeExposureFromR2 lib/companyThemeExposure.ts:605:22
+ ❯ Module.GET app/api/company-theme-context/[symbol]/route.ts:89:18
+ ❯ lib/__tests__/companyThemeExposureRoute.test.ts:87:22
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/4]⎯
+
+ FAIL  lib/__tests__/companyThemeExposureRoute.test.ts > /api/company-theme-context/[symbol] > ages a hash-verified HTTP200 publication without changing its context receipts
+TypeError: Failed to execute 'digest' on 'SubtleCrypto': 2nd argument is not instance of ArrayBuffer, Buffer, TypedArray, or DataView.
+ ❯ sha256Hex lib/companyThemeExposure.ts:532:47
+    530|   const source = new ArrayBuffer(bytes.byteLength);
+    531|   new Uint8Array(source).set(bytes);
+    532|   const hash = await globalThis.crypto.subtle.digest("SHA-256", source…
+       |                                               ^
+    533|   return [...new Uint8Array(hash)].map((value) => value.toString(16).p…
+    534| }
+ ❯ Module.resolveCompanyThemeExposureFromR2 lib/companyThemeExposure.ts:605:22
+ ❯ Module.GET app/api/company-theme-context/[symbol]/route.ts:89:18
+ ❯ lib/__tests__/companyThemeExposureRoute.test.ts:113:22
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/4]⎯
+
+ FAIL  lib/__tests__/companyThemeExposureRoute.test.ts > /api/company-theme-context/[symbol] > returns a receipt-verified payload aligned to current Company Intelligence
+TypeError: Failed to execute 'digest' on 'SubtleCrypto': 2nd argument is not instance of ArrayBuffer, Buffer, TypedArray, or DataView.
+ ❯ sha256Hex lib/companyThemeExposure.ts:532:47
+    530|   const source = new ArrayBuffer(bytes.byteLength);
+    531|   new Uint8Array(source).set(bytes);
+    532|   const hash = await globalThis.crypto.subtle.digest("SHA-256", source…
+       |                                               ^
+    533|   return [...new Uint8Array(hash)].map((value) => value.toString(16).p…
+    534| }
+ ❯ Module.resolveCompanyThemeExposureFromR2 lib/companyThemeExposure.ts:605:22
+ ❯ Module.GET app/api/company-theme-context/[symbol]/route.ts:89:18
+ ❯ lib/__tests__/companyThemeExposureRoute.test.ts:121:22
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[3/4]⎯
+
+ FAIL  lib/__tests__/companyThemeExposureRoute.test.ts > /api/company-theme-context/[symbol] > returns a browser-parseable no-store rate-limit envelope
+TypeError: Failed to execute 'digest' on 'SubtleCrypto': 2nd argument is not instance of ArrayBuffer, Buffer, TypedArray, or DataView.
+ ❯ sha256Hex lib/companyThemeExposure.ts:532:47
+    530|   const source = new ArrayBuffer(bytes.byteLength);
+    531|   new Uint8Array(source).set(bytes);
+    532|   const hash = await globalThis.crypto.subtle.digest("SHA-256", source…
+       |                                               ^
+    533|   return [...new Uint8Array(hash)].map((value) => value.toString(16).p…
+    534| }
+ ❯ Module.resolveCompanyThemeExposureFromR2 lib/companyThemeExposure.ts:605:22
+ ❯ Module.GET app/api/company-theme-context/[symbol]/route.ts:89:18
+ ❯ lib/__tests__/companyThemeExposureRoute.test.ts:169:63
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[4/4]⎯
+
+
+EXIT=1
