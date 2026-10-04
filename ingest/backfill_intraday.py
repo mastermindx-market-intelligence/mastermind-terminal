@@ -560,12 +560,7 @@ def main(argv: list[str]) -> int:
     def rebuild(s, tf, old, asof, why, thin=False):
         """Replace a store whose basis no longer matches the vendor with a full adjusted fetch."""
         with _stats_lock:
-            if thin:
-                if thin_rebuilds_left[0] <= 0:
-                    raise AdjustmentMismatch(
-                        f"{why}; thin rebuild budget of {MAX_THIN_REBUILDS} is spent")
-                thin_rebuilds_left[0] -= 1
-            else:
+            if not thin:
                 if rebuilds_left[0] <= 0:
                     raise AdjustmentMismatch(f"{why}; rebuild budget of {MAX_REBUILDS} is spent")
                 rebuilds_left[0] -= 1
@@ -619,16 +614,19 @@ def main(argv: list[str]) -> int:
             )
             if agreeing:
                 with _stats_lock:
-                    thin_left = thin_rebuilds_left[0]
-                if thin_left > 0:
+                    if thin_rebuilds_left[0] > 0:
+                        thin_rebuilds_left[0] -= 1
+                        thin_reserved = True
+                    else:
+                        thin_reserved = False
+                        stats["thin_budget_spent"] = stats.get("thin_budget_spent", 0) + 1
+                if thin_reserved:
                     return rebuild(
                         s, tf, old, asof,
                         f"price basis moved x{ratio:.4f} over {shared} shared bar(s) "
                         f"(thin overlap, {shared} agreeing bars)",
                         thin=True,
                     )
-                with _stats_lock:
-                    stats["thin_budget_spent"] = stats.get("thin_budget_spent", 0) + 1
         if shared < BASIS_MIN_SHARED:
             with _stats_lock:
                 stats["basis_unverified"] = stats.get("basis_unverified", 0) + 1
@@ -733,6 +731,9 @@ def main(argv: list[str]) -> int:
         f"breaker={'TRIPPED' if tripped else 'clear'}",
         flush=True,
     )
+    thin_spent = stats.get("thin_budget_spent", 0)
+    if thin_spent > 0:
+        print(f"intraday thin rebuild budget spent: {thin_spent}", flush=True)
     if tripped:
         return EXIT_BREAKER_TRIPPED
     if failed:

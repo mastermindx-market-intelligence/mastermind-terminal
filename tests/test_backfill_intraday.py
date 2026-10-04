@@ -1550,7 +1550,7 @@ def test_fu_m2_thin_overlap_two_disagreeing_bars_merges_basis_unverified(intrada
     def fake(s, tf, frm=None, **kwargs):
         if frm is None:
             raise AssertionError("full rebuild should not run")
-        return _fu_refresh_tail_scales(store, [1.01, 0.995])
+        return _fu_refresh_tail_scales(store, [1.0, 1.02])
 
     with patch.object(mod, "fetch_polygon_intraday", fake):
         rc = mod.main(["--existing-only", "--tf", "1h", "--workers", "1"])
@@ -1558,6 +1558,7 @@ def test_fu_m2_thin_overlap_two_disagreeing_bars_merges_basis_unverified(intrada
     assert rc == 0
     assert "rebuilt=0" in out
     assert "basis_unverified=1" in out
+    assert "intraday thin rebuild budget spent:" not in out
 
 
 def test_fu_m2_thin_budget_spent_merges_second_candidate(intraday_env, monkeypatch, capsys):
@@ -1582,6 +1583,7 @@ def test_fu_m2_thin_budget_spent_merges_second_candidate(intraday_env, monkeypat
     assert len(full) == 1
     assert "rebuilt=1" in out
     assert "basis_unverified=1" in out
+    assert "intraday thin rebuild budget spent: 1" in out
 
 
 def test_fu_m2_thin_overlap_six_five_ratio_on_four_bars_rebuilds(intraday_env, capsys):
