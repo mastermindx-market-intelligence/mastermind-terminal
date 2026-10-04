@@ -80,18 +80,19 @@ test("seven-category Options IA stays addressable, honest, and contained", async
     fullPage: false,
   });
 
-  // Statistics is a real IA destination, but it cannot imply an unbuilt feed.
+  // Statistics is a real IA destination over the existing read-only moves / vol / agg sources.
+  // It creates no new publisher or synthetic fallback.
   await page.locator("#wtab-cat-statistics").click();
   await expect(page).toHaveURL(/\/options\?tab=statistics$/);
-  await expect(page.locator('[data-options-ia-gate="statistics-r3"]')).toContainText(
-    zh ? "不使用合成数值" : "no synthetic values",
+  await expect(page.locator('[data-options-ia-gate="statistics-existing-sources"]')).toContainText(
+    zh ? "只读" : "Read-only",
   );
-  const statisticsGate = page.locator('[data-options-ia-state="statistics-pending"]');
-  await expect(statisticsGate).toBeVisible();
-  await expect(statisticsGate).toContainText(zh ? "当前不显示数值" : "No values shown");
+  const statisticsHome = page.locator('[data-options-ia-state="statistics-existing-sources"]');
+  await expect(statisticsHome).toBeVisible();
+  await expect(page.getByTestId("options-statistics-view")).toBeVisible();
 
   await page.screenshot({
-    path: testInfo.outputPath(`${testInfo.project.name}-options-statistics-gate.png`),
+    path: testInfo.outputPath(`${testInfo.project.name}-options-statistics-existing-sources.png`),
     fullPage: false,
   });
 

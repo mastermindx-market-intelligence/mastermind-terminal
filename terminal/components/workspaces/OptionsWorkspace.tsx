@@ -3,8 +3,9 @@ import { useCallback, useEffect, useState } from "react";
 import { useSearchParams } from "next/navigation";
 import WorkspaceTabs, { type WorkspaceTab } from "@/components/chrome/WorkspaceTabs";
 import OptionsHubView, { type TabKey } from "@/components/OptionsHubView";
+import { OptionsStatisticsView } from "@/components/statistics/OptionsStatisticsView";
 import OptionsWorkflowGuide from "@/components/options/OptionsWorkflowGuide";
-import { useT } from "@/lib/i18n";
+import { useLang, useT } from "@/lib/i18n";
 import s from "./OptionsWorkspace.module.css";
 import {
   OPTIONS_HUB_WORKSPACE_VIEWS,
@@ -21,12 +22,12 @@ import {
  * Options workspace composer — the `/options` body.
  *
  * The category row chooses a deterministic home and the view row keeps every existing
- * pane, component, fetch, and `?tab=` contract intact. The Plan category adds one
- * deterministic expiration-payoff surface inside the same OptionsHubView owner.
+ * pane, component, fetch, and `?tab=` contract intact. Plan adds deterministic payoff
+ * math; Statistics is a read-only synthesis over the existing moves / vol / agg owners.
  *
  * Reads resolve synchronously from `?tab=` on first render. Writes stay shallow
- * through history.replaceState. `statistics` is a category home with an explicit
- * source-build gate until the separate R3 publisher exists; no values are inferred.
+ * through history.replaceState. Statistics creates no publisher and keeps each source
+ * clock explicit instead of inferring synchronized values.
  */
 
 const ROUTE_VIEW: Record<string, OptionsWorkspaceViewKey> = {
@@ -51,6 +52,11 @@ const ROUTE_VIEW: Record<string, OptionsWorkspaceViewKey> = {
   statistics: "statistics",
 };
 
+const STATISTICS_STRIP = {
+  en: "Read-only · expected move + volatility + aggregate history",
+  zh: "只读 · 预期波动 + 波动率 + 聚合历史",
+} as const;
+
 const CATEGORY_TABS: WorkspaceTab[] = OPTIONS_IA_CATEGORIES.map((category) => ({
   key: `cat-${category.key}`,
   labelKey: category.labelKey,
@@ -74,6 +80,7 @@ function writeTabToUrl(pageKey: string) {
 
 export default function OptionsWorkspace() {
   const t = useT();
+  const { lang } = useLang();
   const searchParams = useSearchParams();
   const rawTab = searchParams.get("tab");
   const [activeView, setActiveView] = useState<OptionsWorkspaceViewKey>(
@@ -161,9 +168,9 @@ export default function OptionsWorkspace() {
               className="options-view-tabs"
             />
           ) : (
-            <div className="options-ia-gate-strip" data-options-ia-gate="statistics-r3">
+            <div className="options-ia-gate-strip" data-options-ia-gate="statistics-existing-sources">
               <span className="options-ia-gate-dot" aria-hidden="true" />
-              {t("optionsStatisticsGateShort", "Source publisher pending · no synthetic values")}
+              {STATISTICS_STRIP[lang === "zh" ? "zh" : "en"]}
             </div>
           )}
         </div>
@@ -172,26 +179,12 @@ export default function OptionsWorkspace() {
       {activeView === "statistics" ? (
         <section
           id="wpanel-statistics"
-          className="options-statistics-gate"
-          data-options-ia-state="statistics-pending"
+          className="options-statistics-live"
+          data-options-ia-state="statistics-existing-sources"
           aria-labelledby="wtab-cat-statistics"
+          style={{ flex: 1, minHeight: 0, overflow: "hidden" }}
         >
-          <div className="options-statistics-gate-card obs-card">
-            <div className="options-statistics-gate-eyebrow">
-              {t("optionsCategoryStatistics", "Statistics")}
-            </div>
-            <h1>{t("optionsStatisticsGateTitle", "Statistics opens when the source is honest")}</h1>
-            <p>
-              {t(
-                "optionsStatisticsGateBody",
-                "Exchange codes are retained. Contract statistics, trade-side statistics, and market share will appear here only after the publisher and validation gate ship.",
-              )}
-            </p>
-            <div className="options-statistics-gate-receipts" aria-label={t("optionsStatisticsStatusAria")}>
-              <span>{t("optionsStatisticsGatePublisher", "Publisher pending")}</span>
-              <span>{t("optionsStatisticsGateValues", "No values shown")}</span>
-            </div>
-          </div>
+          <OptionsStatisticsView />
         </section>
       ) : (
         <OptionsHubView

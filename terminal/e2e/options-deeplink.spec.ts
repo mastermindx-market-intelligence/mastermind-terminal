@@ -61,7 +61,7 @@ for (const { query, pill, category } of CASES) {
   });
 }
 
-test("/options?tab=statistics cold-loads the gated Statistics category", async ({ page }, testInfo) => {
+test("/options?tab=statistics cold-loads the existing-source Statistics category", async ({ page }, testInfo) => {
   test.setTimeout(60_000);
 
   const res = await page.request.get("/options?tab=statistics");
@@ -69,11 +69,12 @@ test("/options?tab=statistics cold-loads the gated Statistics category", async (
   const html = await res.text();
   const category = html.match(/<button[^>]*id="wtab-cat-statistics"[^>]*>/)?.[0];
   expect(category).toContain('aria-selected="true"');
-  expect(html).toContain('data-options-ia-state="statistics-pending"');
+  expect(html).toContain('data-options-ia-state="statistics-existing-sources"');
 
   await page.goto("/options?tab=statistics");
   await expect(page.locator("#wtab-cat-statistics")).toHaveAttribute("aria-selected", "true");
-  await expect(page.locator('[data-options-ia-state="statistics-pending"]')).toBeVisible();
+  await expect(page.locator('[data-options-ia-state="statistics-existing-sources"]')).toBeVisible();
+  await expect(page.getByTestId("options-statistics-view")).toBeVisible();
   await expect(page).toHaveURL(/\/options\?tab=statistics$/);
   await page.screenshot({
     path: testInfo.outputPath(`${testInfo.project.name}-options-deeplink-statistics.png`),
