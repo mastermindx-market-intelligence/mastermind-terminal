@@ -87,8 +87,14 @@ test.describe("analysis ai-context ambient page/panel", () => {
     expect(afterFirst.origin_id).toBe(before.origin_id); // same provider, same mount
     expect(afterFirst.context_revision).toBe(1);
 
-    await softNavigate(page, "/analysis?view=theses&symbol=NVDA"); // identical route → same logical context
-    await page.waitForTimeout(1_000);
+    // A URL change that leaves the logical tuple alone: `from=` is not a route switch, so the
+    // host re-renders with the same (path, panel, symbol) and nothing bumps. (An IDENTICAL URL
+    // would prove nothing here — Next re-renders nothing for it. The provider's duplicate
+    // suppression on an identical re-fire of the host effect is pinned at component level in
+    // lib/__tests__/analysisBrainHost.test.tsx, where a path-only change re-fires it.)
+    await softNavigate(page, "/analysis?view=theses&symbol=NVDA&from=repeat");
+    await page.waitForFunction(() => window.location.search.includes("from=repeat"));
+    await waitForPanel(page, "theses");
     const afterRepeat = await readAiContext(page);
     expect(afterRepeat.origin_id).toBe(before.origin_id);
     expect(afterRepeat.ambient.panel).toBe("theses");

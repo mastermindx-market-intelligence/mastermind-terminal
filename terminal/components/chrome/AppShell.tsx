@@ -147,12 +147,14 @@ export default function AppShell({
             AnalysisBrainHost (F11-6) wraps that same BrainWidget with the one ai-context
             provider that reports ambient page "analysis" + panel company|theses|null from
             the parsed ?view= route, so the Macro compiler can tell a Thesis turn from an
-            ordinary Analysis turn. It is the only AppShell child that reads useSearchParams,
-            and only mounts on /analysis, so static (shell) routes never bail out.
-            Rendered BEFORE {children}: BrainWidget returns null (no DOM/layout effect),
-            but mounting it first means MM_BRAIN_CFG exists on window before any sibling
-            child's effects run, so a child that reads the singleton on mount never races
-            its own creation. */}
+            ordinary Analysis turn. It is the only AppShell child that reads useSearchParams;
+            the whole (shell) group is dynamic = "force-dynamic" (app/(shell)/layout.tsx), so
+            nothing here is statically prerendered and the host needs NO Suspense boundary.
+            Rendered BEFORE {children} and deliberately unsuspended: BrainWidget returns null
+            (no DOM/layout effect), and mounting it first in the SAME hydration lane means
+            MM_BRAIN_CFG exists on window before any sibling child's effects run, so a child
+            that reads the singleton on mount never races its own creation (a Suspense
+            boundary would hydrate its children in a later lane and void that order). */}
         {path.startsWith("/analysis") && (
           <AnalysisBrainHost
             active={brainSymbol}
