@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } fro
 import WorkspaceTabs from "@/components/chrome/WorkspaceTabs";
 import { useOnboarding } from "@/components/onboarding/OnboardingProvider";
 import { useLang, useT, type Lang } from "@/lib/i18n";
+import { episodeStateLabel } from "@/lib/plainLabels";
 import type { DislocationEpisode, EpisodeState } from "@/lib/dislocations/types";
 import s from "./DislocationsView.module.css";
 
@@ -16,6 +17,15 @@ const PACK_STALE = (d: string, lang: Lang): string =>
   lang === "zh" ? `夜间数据包过期（截至 ${d}）` : `Nightly pack stale (as of ${d})`;
 const QUOTE_OLD: [string, string] = ["Quote older than 20 min", "报价超过 20 分钟"];
 const DETAILS: [string, string] = ["details", "详情"];
+const TECH: Record<"state" | "detector" | "price" | "bars" | "quality" | "packAsOf" | "catalyst", [string, string]> = {
+  state: ["state", "状态"],
+  detector: ["detector", "检测器"],
+  price: ["price at signal", "信号时价格"],
+  bars: ["bars", "K 线"],
+  quality: ["data quality", "数据质量"],
+  packAsOf: ["pack as of", "数据包时间"],
+  catalyst: ["catalyst", "催化剂"],
+};
 const COVERAGE_UNKNOWN: [string, string] = [
   "coverage unknown — not the same as no catalyst",
   "覆盖未知——不等于没有催化剂",
@@ -529,13 +539,13 @@ export default function DislocationsView() {
                             <details className={s.more}>
                               <summary>{DETAILS[L]}</summary>
                               <dl className={s.tech}>
-                                <dt>state</dt><dd>{ep.state}</dd>
-                                <dt>detector</dt><dd>{ep.detector_id}</dd>
-                                <dt>price at signal</dt><dd>{fmtPx(ep.price_at_signal)}</dd>
-                                <dt>bars</dt><dd>{(ep.bar_availability as { grain?: string })?.grain ?? "—"}</dd>
-                                <dt>data quality</dt><dd>{ep.data_quality ?? "—"}</dd>
-                                <dt>pack as of</dt><dd>{fresh?.pack_as_of ?? "—"}</dd>
-                                <dt>catalyst</dt>
+                                <dt>{TECH.state[L]}</dt><dd>{episodeStateLabel(ep.state, lang === "zh" ? "zh" : "en")}</dd>
+                                <dt>{TECH.detector[L]}</dt><dd>{ep.detector_id}</dd>
+                                <dt>{TECH.price[L]}</dt><dd>{fmtPx(ep.price_at_signal)}</dd>
+                                <dt>{TECH.bars[L]}</dt><dd>{(ep.bar_availability as { grain?: string })?.grain ?? "—"}</dd>
+                                <dt>{TECH.quality[L]}</dt><dd>{ep.data_quality ?? "—"}</dd>
+                                <dt>{TECH.packAsOf[L]}</dt><dd>{fresh?.pack_as_of ?? "—"}</dd>
+                                <dt>{TECH.catalyst[L]}</dt>
                                 <dd>
                                   {ep.catalyst
                                     ? (() => {
