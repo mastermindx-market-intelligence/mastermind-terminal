@@ -65,5 +65,10 @@
     "public_known replay",
     "user_seen replay",
     "universal historical owner coverage"
-  ]
+  ],
+  "typecheck": {
+    "returncode": 0,
+    "log": "g4-final-typecheck-r3.log",
+    "earlier_generated_file_race": "One concurrent check read a partially regenerated .next/dev/types/validator.ts; subsequent stopped-server checks passed without product changes."
+  }
 }
