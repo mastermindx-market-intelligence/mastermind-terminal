@@ -1,0 +1,28 @@
+{
+  "asof": "@now-120s",
+  "authority": {
+    "can_rank": false,
+    "can_size": false,
+    "can_gate": false,
+    "can_originate_signal": false,
+    "can_escalate": false
+  },
+  "schema": "entry_radar.live/v1",
+  "session": "2026-10-03",
+  "pack": { "as_of": "2026-10-03", "pack_hash": "fixture-empty" },
+  "health": {
+    "state": "in_window",
+    "reasons": [],
+    "pass": {},
+    "inputs": {},
+    "basis": {},
+    "null_readings": {},
+    "dark": {},
+    "content": {}
+  },
+  "names": [],
+  "events": [],
+  "transitions": [],
+  "research_priority": null,
+  "episodes": []
+}

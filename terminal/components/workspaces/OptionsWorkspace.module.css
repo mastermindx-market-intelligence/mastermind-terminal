@@ -1,0 +1,15 @@
+.nav {
+  min-width: 0;
+}
+
+@media (max-width: 640px) {
+  .nav :global(.obs-pillnav-tab) {
+    min-height: 44px;
+    display: inline-flex;
+    align-items: center;
+  }
+
+  .nav :global(.options-workflow-launch) {
+    min-height: 44px;
+  }
+}

@@ -1,0 +1,107 @@
+{
+  "basis": "recorded NVDA daily rows ending2026-06-26; native mtf module enabled; no independently sourced intraday inputs",
+  "request": {
+    "schema": "chart.native_snapshot_request.v1",
+    "suite": "rsix",
+    "symbol": "NVDA",
+    "timeframe": "D",
+    "data_revision": "recorded-mtf-sample",
+    "bar_state": "declared_closed",
+    "params": {
+      "mtf.on": true
+    }
+  },
+  "source_sha256": "5e35090abe17b18e7baf64c9f27323d11d3eb6fcfdff32d8954724e1a4525447",
+  "executable_sha256": "75383cb8da51e9b100705505a0479c52f8614ea34703cfaa2e51399bb417443c",
+  "full_table_count": 1,
+  "compact_rows": [
+    {
+      "cells": [
+        "37.5 \u25bc",
+        "45.7 \u25bc",
+        "56.0 \u25bc"
+      ],
+      "columns": [
+        {
+          "key": "f1",
+          "label": "chart"
+        },
+        {
+          "key": "f2",
+          "label": "2\u00d7"
+        },
+        {
+          "key": "f4",
+          "label": "4\u00d7"
+        }
+      ],
+      "footnote": "Rows are resampled from the loaded bars \u2014 not independent timeframe feeds.",
+      "id": "rsix-mtf",
+      "row_label": "RSI",
+      "source_ref": "/bundle/tables/0/rows/0",
+      "table_ref": "/bundle/tables/0",
+      "title": "RSI MTF"
+    },
+    {
+      "cells": [
+        "\u25bc 28 ago",
+        "\u25bc 13 ago",
+        "\u25bc 5 ago"
+      ],
+      "columns": [
+        {
+          "key": "f1",
+          "label": "chart"
+        },
+        {
+          "key": "f2",
+          "label": "2\u00d7"
+        },
+        {
+          "key": "f4",
+          "label": "4\u00d7"
+        }
+      ],
+      "footnote": "Rows are resampled from the loaded bars \u2014 not independent timeframe feeds.",
+      "id": "rsix-mtf",
+      "row_label": "Signal",
+      "source_ref": "/bundle/tables/0/rows/1",
+      "table_ref": "/bundle/tables/0",
+      "title": "RSI MTF"
+    },
+    {
+      "cells": [
+        "H Bull 6 ago",
+        "Bear 9 ago",
+        "H Bull 27 ago"
+      ],
+      "columns": [
+        {
+          "key": "f1",
+          "label": "chart"
+        },
+        {
+          "key": "f2",
+          "label": "2\u00d7"
+        },
+        {
+          "key": "f4",
+          "label": "4\u00d7"
+        }
+      ],
+      "footnote": "Rows are resampled from the loaded bars \u2014 not independent timeframe feeds.",
+      "id": "rsix-mtf",
+      "row_label": "Divergence",
+      "source_ref": "/bundle/tables/0/rows/2",
+      "table_ref": "/bundle/tables/0",
+      "title": "RSI MTF"
+    }
+  ],
+  "coverage": {
+    "available": 3,
+    "eligible": 3,
+    "invalid": 0,
+    "omitted": 0,
+    "returned": 3
+  }
+}
