@@ -97,7 +97,7 @@ asking the operator to finish it:
 1. commit;
 2. push;
 3. open a pull request against `master`;
-4. check CI and resolve genuine failures;
+4. read CI state once, arm exactly one asynchronous watcher/merge path, continue independent authorized work while checks run, and resolve genuine failures when the watcher/event returns;
 5. merge and delete the remote branch;
 6. deploy the merged `origin/master` through the git-gated
    `/opt/terminal/terminal-build.sh`;
@@ -130,9 +130,7 @@ work only as uncommitted changes in a session.
 - `merge-blocked` means the latest required CI is red or the branch has a real
   conflict. Fix the head; do not use an admin bypass. The controller removes the
   label automatically after the new head is green.
-- The controller moves only the merge wait off the interactive session. The
-  initiating session still owns the git-gated production deployment and live
-  verification required above; an armed PR is not a completed delivery.
+- The controller/native auto-merge moves the merge wait off the interactive session. **Ownership is accountability, not foreground occupation.** After the initial bounded CI read, bind exactly one watcher/return path to the exact PR/head (native auto-merge + the controller already provide the durable merge owner) and immediately continue another independent authorized project lane. Never run `gh run watch`, `gh run view --watch`, or `gh pr checks --watch` synchronously in the principal turn, and never emulate them with repeated sleep/poll rounds. A terminal green/merge event, genuine red, conflict, or watcher failure/staleness returns the owner to this PR. The initiating session still owns the git-gated production deployment and live verification required above; an armed PR is not a completed delivery. Only when useful independent in-scope work is genuinely exhausted may the external wait become a turn boundary.
 - If branch protection or any required-check context is changed, update this
   section, `.github/workflows/merge-on-green.yml`, and the controller tests in the
   same PR. Disabling protection makes native auto-merge unsafe again.
