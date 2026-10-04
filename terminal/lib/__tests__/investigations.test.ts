@@ -3,6 +3,15 @@ import { applyInvestigationRevision, parseInvestigationCommand, readInvestigatio
 const command = { id: "10000000-0000-4000-8000-000000000001", operation_id: "20000000-0000-4000-8000-000000000001", action: "create" as const, expected_revision: 0,
   manifest: { schema: "investigation_manifest.v2" as const, intent: { title: "Research", question: " Why?\r\n", subjects: [] }, layout_refs: [], thesis_refs: [], evidence_refs: [], continuation: {} } };
 describe("Investigation owner service", () => {
+  it("admits exact Thesis references but delegates ownership to the atomic database boundary", async () => {
+    const refs=[{thesis_id:command.id,version_id:command.operation_id,role:"alternative" as const}];
+    const selected={...command,manifest:{...command.manifest,thesis_refs:refs}};
+    expect(parseInvestigationCommand(selected)).toEqual(selected);
+    const calls:unknown[]=[];
+    expect(await applyInvestigationRevision({rpc:async(name,args)=>{calls.push({name,args});return {data:{status:"reference_unavailable"},error:null};}},selected)).toEqual({status:"reference_unavailable"});
+    expect(calls).toEqual([{name:"apply_investigation_revision_v2",args:{p_id:command.id,p_expected_revision:0,p_action:"create",p_operation_id:command.operation_id,p_manifest:selected.manifest,p_layout_capture:null}}]);
+    expect(parseInvestigationCommand({...selected,manifest:{...selected.manifest,thesis_refs:[{...refs[0],belief:"shadow"}]}})).toBeNull();
+  });
   it("refuses caller-supplied identity, unknown fields and predecessor contracts", () => {
     expect(parseInvestigationCommand({...command,user_id: command.id})).toBeNull();
     expect(parseInvestigationCommand({...command,manifest:{...command.manifest,schema:"investigation_manifest.v1"}})).toBeNull();

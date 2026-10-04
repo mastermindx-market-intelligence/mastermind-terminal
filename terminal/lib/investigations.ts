@@ -49,7 +49,7 @@ export function parseInvestigationCommand(raw: unknown): InvestigationCommand | 
       || !Number.isSafeInteger(raw.expected_revision) || Number(raw.expected_revision) < 0 || Number(raw.expected_revision) > 2147483646
       || typeof raw.action !== "string" || !["create", "revise", "remove", "restore"].includes(raw.action)) return null;
   const checked = validateInvestigationManifest(raw.manifest, INVESTIGATION_ADMISSION);
-  if (!checked.ok || checked.value.schema !== INVESTIGATION_MANIFEST_SCHEMA_V2 || checked.value.thesis_refs.length) return null;
+  if (!checked.ok || checked.value.schema !== INVESTIGATION_MANIFEST_SCHEMA_V2) return null;
   if (Object.hasOwn(raw, "layout_capture")) {
     const c = raw.layout_capture;
     if (!record(c) || !exact(c, ["layout_id", "expected_revision", "revision_id"])

@@ -4,20 +4,21 @@ import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { useLang } from "@/lib/i18n";
 import { createClient } from "@/lib/supabase/client";
-import { validateInvestigationManifest, type InvestigationManifest, type InvestigationEvidenceRef } from "@/lib/investigationContracts";
+import { validateInvestigationManifest, type InvestigationManifest, type InvestigationEvidenceRef, type InvestigationThesisRef } from "@/lib/investigationContracts";
 import { INVESTIGATION_ADMISSION, type InvestigationCommand, type InvestigationSummary } from "@/lib/investigations";
 import { beginInvestigationSave, settleInvestigationSave, retryInvestigationSave, recoverInvestigationSave, type InvestigationSaveState } from "@/lib/investigationSave";
 import type { EventWorkspace, RetainedEventWorkspaceReceipt } from "@/lib/eventWorkspace";
 import styles from "./InvestigationWorkspace.module.css";
 import InvestigationEvidenceReview from "./InvestigationEvidenceReview";
 import InvestigationReplay from "./InvestigationReplay";
+import {InvestigationThesisPicker,InvestigationThesisReader} from "./InvestigationTheses";
 
 type Props = { ownerKey:string; initialSymbol?:string; initialInvestigationId?:string; initialRevision?:number };
 type Detail = { id:string; revision:number; current_revision:number; lifecycle:"active"|"removed"; manifest:InvestigationManifest; committed_at:string; layouts:Array<{id:string;layout_id:string;digest:string;config:unknown}> };
 type Baseline = {workspace:EventWorkspace;receipt:RetainedEventWorkspaceReceipt;reference:InvestigationEvidenceRef};
 type Layout = {id:string;name:string;config:{schema:string;revision:number};userId?:string;mine?:boolean};
-type Draft = {title:string;question:string;symbol:string;next:string;horizon:string;asOf:string;layoutId:string};
-const emptyDraft=(symbol=""):Draft=>({title:"",question:"",symbol,next:"",horizon:"",asOf:"",layoutId:""});
+type Draft = {title:string;question:string;symbol:string;next:string;horizon:string;asOf:string;layoutId:string;theses:InvestigationThesisRef[]};
+const emptyDraft=(symbol=""):Draft=>({title:"",question:"",symbol,next:"",horizon:"",asOf:"",layoutId:"",theses:[]});
 const storageKey=(owner:string)=>`mm.investigation.pending.v2:${encodeURIComponent(owner)}`;
 const record=(v:unknown):v is Record<string,unknown>=>!!v&&typeof v==="object"&&!Array.isArray(v);
 const clock=(v:string|null|undefined)=>v ? new Date(v).toLocaleString() : "—";
@@ -130,7 +131,7 @@ export default function InvestigationWorkspace({ownerKey,initialSymbol,initialIn
    if(stored){const recovered=recoverInvestigationSave(ownerKey,JSON.parse(stored));
     if(!recovered||(recovered.phase!=="uncertain"&&recovered.phase!=="rejected"))throw Error("invalid recovery");
     const command=recovered.command;recovery=true;setSave(recovered);setEditing(true);
-    setDraft({title:command.manifest.intent.title,question:command.manifest.intent.question,symbol:command.manifest.intent.subjects.find(s=>s.owner==="terminal.analysis_symbol")?.object_id??"",next:command.manifest.continuation.next_question??"",horizon:command.manifest.intent.horizon??"",asOf:command.manifest.intent.research_as_of??"",layoutId:command.layout_capture?.layout_id??""});
+    setDraft({title:command.manifest.intent.title,question:command.manifest.intent.question,symbol:command.manifest.intent.subjects.find(s=>s.owner==="terminal.analysis_symbol")?.object_id??"",next:command.manifest.continuation.next_question??"",horizon:command.manifest.intent.horizon??"",asOf:command.manifest.intent.research_as_of??"",layoutId:command.layout_capture?.layout_id??"",theses:command.manifest.thesis_refs});
     retainedBaseline(command.manifest);if(recovered.phase==="uncertain")void checkOutcome();else setMessage(c.conflict);
    }
   } catch {setStorageBlocked(true);}
@@ -152,7 +153,7 @@ export default function InvestigationWorkspace({ownerKey,initialSymbol,initialIn
   if(editLocked())return false;
   ++detailSeq.current;++baselineSeq.current;setMessage("");
   if(fresh){try{sessionStorage.removeItem(storageKey(ownerKey));}catch{setStorageBlocked(true);return false;}setSave({phase:"idle"});setDetail(null);setDraft(emptyDraft(initialSymbol));setBaseline(null);setBaselineState("none");window.history.replaceState({},"","/analysis?view=investigations");}
-  else if(detail){const m=detail.manifest;setDraft({title:m.intent.title,question:m.intent.question,symbol:m.intent.subjects.find(s=>s.owner==="terminal.analysis_symbol")?.object_id??"",next:m.continuation.next_question??"",horizon:m.intent.horizon??"",asOf:m.intent.research_as_of??"",layoutId:""});setBaselineState(baseline?"ready":"unavailable");}
+  else if(detail){const m=detail.manifest;setDraft({title:m.intent.title,question:m.intent.question,symbol:m.intent.subjects.find(s=>s.owner==="terminal.analysis_symbol")?.object_id??"",next:m.continuation.next_question??"",horizon:m.intent.horizon??"",asOf:m.intent.research_as_of??"",layoutId:"",theses:m.thesis_refs});setBaselineState(baseline?"ready":"unavailable");}
   setEditing(true);return true;
  }
  async function selectReviewedBaseline(receipt:RetainedEventWorkspaceReceipt) {
@@ -174,7 +175,7 @@ export default function InvestigationWorkspace({ownerKey,initialSymbol,initialIn
   else {
    const reference=baseline?.reference??detail?.manifest.review_baseline_ref;
    const subjects=detail?.manifest.intent.subjects??[...(draft.symbol?[{owner:"terminal.analysis_symbol",kind:"security",object_id:draft.symbol}]:[]),...(baseline?[{owner:"data_os.security_master",kind:"issuer",object_id:baseline.receipt.company_id}]:[])];
-   manifest={schema:"investigation_manifest.v2",intent:{title:draft.title,question:draft.question,subjects,...(draft.horizon?{horizon:draft.horizon}:{}),...(draft.asOf?{research_as_of:draft.asOf}:{})},layout_refs:draft.layoutId?[]:detail?.manifest.layout_refs??[],thesis_refs:detail?.manifest.thesis_refs??[],evidence_refs:reference?[reference]:detail?.manifest.evidence_refs??[],continuation:{...(detail?.manifest.continuation??{}),...(draft.next?{next_question:draft.next}:{})},...(reference?{review_baseline_ref:reference}:{})};
+   manifest={schema:"investigation_manifest.v2",intent:{title:draft.title,question:draft.question,subjects,...(draft.horizon?{horizon:draft.horizon}:{}),...(draft.asOf?{research_as_of:draft.asOf}:{})},layout_refs:draft.layoutId?[]:detail?.manifest.layout_refs??[],thesis_refs:draft.theses,evidence_refs:reference?[reference]:detail?.manifest.evidence_refs??[],continuation:{...(detail?.manifest.continuation??{}),...(draft.next?{next_question:draft.next}:{})},...(reference?{review_baseline_ref:reference}:{})};
    if(!draft.next)delete manifest.continuation.next_question;
   }
   const layout=layouts.find(l=>l.id===draft.layoutId);
@@ -214,6 +215,7 @@ export default function InvestigationWorkspace({ownerKey,initialSymbol,initialIn
       <div className={styles.pair}><label>{c.horizon}<input value={draft.horizon} onChange={e=>setDraft({...draft,horizon:e.target.value})}/></label><label>{c.asOf}<input type="date" value={draft.asOf} onChange={e=>setDraft({...draft,asOf:e.target.value})}/></label></div>
       <label>{c.next}<textarea aria-label={c.next} rows={3} value={draft.next} onChange={e=>setDraft({...draft,next:e.target.value})}/><small>{Array.from(draft.next).length} / 4000</small></label>
       <label>{c.layout}<select value={draft.layoutId} onChange={e=>setDraft({...draft,layoutId:e.target.value})}><option value="">{c.none}</option>{layouts.map(l=><option key={l.id} value={l.id}>{l.name} · {c.revision} {l.config.revision}</option>)}</select></label>{layoutError&&<p role="status">{c.layoutUnavailable}</p>}
+      <InvestigationThesisPicker key={`thesis-edit:${ownerKey}:${detail?.id??"new"}:${detail?.revision??0}`} refs={draft.theses} lang={lang} disabled={frozen} onChange={theses=>{if(!editLocked())setDraft(current=>({...current,theses}));}}/>
       {!detail&&<button type="button" disabled={!draft.symbol||baselineState==="loading"} onClick={()=>void resolveBaseline(`/api/investigations/baseline?symbol=${encodeURIComponent(draft.symbol)}`)}>{c.capture}</button>}
       <div className={styles.actions}><button className={styles.primary} type="submit" disabled={baselineState==="loading"}>{saveState.phase==="pending"?c.saving:c.save}</button><button type="button" onClick={()=>{setEditing(false);if(detail)retainedBaseline(detail.manifest);}}>{c.cancel}</button></div>
      </fieldset>
@@ -222,6 +224,7 @@ export default function InvestigationWorkspace({ownerKey,initialSymbol,initialIn
      <dl className={styles.context}>{detail.manifest.intent.subjects.map((s,i)=><div key={i}><dt>{contextLabel(s.kind,lang)}</dt><dd>{s.object_id}</dd></div>)}{detail.manifest.intent.horizon&&<div><dt>{c.horizon}</dt><dd>{detail.manifest.intent.horizon}</dd></div>}{detail.manifest.intent.research_as_of&&<div><dt>{c.asOf}</dt><dd>{detail.manifest.intent.research_as_of}</dd></div>}</dl>
      <div className={styles.actions}><button disabled={frozen||detail.lifecycle==="removed"} onClick={()=>beginEdit()}>{c.edit}</button>{detail.revision!==detail.current_revision&&<button disabled={locked} onClick={()=>void openRecord(detail.id)}>{c.viewLatest}</button>}{detail.revision>1&&<button disabled={locked} onClick={()=>void openRecord(detail.id,detail.revision-1)}>{c.previous}</button>}{detail.revision<detail.current_revision&&<button disabled={locked} onClick={()=>void openRecord(detail.id,detail.revision+1)}>{c.nextRevision}</button>}</div>
      <section className={styles.card}><h3>{c.retained}</h3>{detail.manifest.layout_refs.length?detail.manifest.layout_refs.map(ref=><p key={ref.layout_revision_id}><Link href={`/terminal?investigation=${detail.id}&revision=${detail.revision}&layout_revision=${ref.layout_revision_id}`}>{c.openLayout} →</Link></p>):<p>{c.noLayout}</p>}{symbol&&<Link href={`/analysis?symbol=${encodeURIComponent(symbol)}`}>{c.continue} →</Link>}</section>
+     <InvestigationThesisReader key={`thesis-read:${ownerKey}:${detail.id}:${detail.revision}`} id={detail.id} revision={detail.revision} refs={detail.manifest.thesis_refs} lang={lang}/>
      {detail.manifest.continuation.next_question&&<section className={styles.card}><h3>{c.next}</h3><p className={styles.question}>{detail.manifest.continuation.next_question}</p></section>}
      {baseline&&<InvestigationEvidenceReview key={`${ownerKey}:${detail.id}:${detail.revision}`} id={detail.id} revision={detail.revision} lang={lang} baseline={baseline} canAdvance={!frozen&&baselineState==="ready"&&detail.revision===detail.current_revision&&detail.lifecycle==="active"} onSelect={receipt=>void selectReviewedBaseline(receipt)}/>}
      {baseline&&baselineState==="ready"&&<InvestigationReplay key={`replay:${ownerKey}:${detail.id}:${detail.revision}:${baseline.receipt.fingerprint}`} id={detail.id} revision={detail.revision} lang={lang} fingerprint={baseline.receipt.fingerprint} generation={baseline.receipt.generation_id} initialCutoff={baseline.receipt.generation_emitted_at??detail.committed_at}/>}
