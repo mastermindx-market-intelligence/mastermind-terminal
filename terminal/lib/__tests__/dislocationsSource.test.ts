@@ -101,7 +101,10 @@ describe("dislocations source", () => {
     await fs.utimes(file, new Date(st.mtimeMs + 5000), new Date(st.mtimeMs + 5000));
     const within = await readSource(file, t0 + MAX_STALE_MS - 1);
     expect(within.kind).toBe("ok");
-    if (within.kind === "ok") expect(within.servedFromCache).toBe(true);
+    if (within.kind === "ok") {
+      expect(within.servedFromCache).toBe(true);
+      expect(within.fallback_reason).toBe("malformed");
+    }
 
     const past = await readSource(file, t0 + MAX_STALE_MS + 1);
     expect(past.kind).toBe("unavailable");
@@ -284,5 +287,80 @@ describe("dislocations source", () => {
     const sorted = sortNewestFirst(eps);
     expect(sorted.map((e) => e.episode_id)).toEqual(["c", "a", "b"]);
     expect(knowableAtMax(eps)).toBe("2026-01-03T00:00:00Z");
+  });
+
+  it("D6 fixture @now re-materialises on every serve when now advances", async () => {
+    process.env.TERMINAL_E2E_FIXTURE = "1";
+    const fixturePath = path.join(FIXTURES, "fresh.json");
+    const t0 = Date.parse("2026-10-03T20:00:00.000Z");
+    const { readSource, freshness } = await loadSource();
+    const first = await readSource(fixturePath, t0);
+    expect(first.kind).toBe("ok");
+    if (first.kind !== "ok") return;
+    expect(freshness(first.file, t0).stale).toBe(false);
+
+    const t1 = t0 + 30 * 60 * 1000;
+    const second = await readSource(fixturePath, t1);
+    expect(second.kind).toBe("ok");
+    if (second.kind !== "ok") return;
+    expect(second.servedFromCache).toBe(true);
+    expect(freshness(second.file, t1).stale).toBe(false);
+    const age = (t1 - Date.parse(second.file.asof)) / 1000;
+    expect(age).toBeGreaterThanOrEqual(115);
+    expect(age).toBeLessThanOrEqual(125);
+  });
+
+  it("D7a pack dated after session is not pack_fresh", async () => {
+    const now = Date.parse("2026-10-03T20:00:00.000Z");
+    const { freshness } = await loadSource();
+    const v = freshness(
+      {
+        asof: new Date(now - 60_000).toISOString(),
+        schema: "entry_radar.live/v1",
+        session: "2026-10-01",
+        pack: { as_of: "2026-10-03" },
+        health: { state: "in_window" },
+      },
+      now
+    );
+    expect(v.pack_fresh).toBe(false);
+    expect(v.reason).toBe("pack_asof_after_session");
+    expect(v.stale).toBe(true);
+  });
+
+  it("D7b sort uses plain string compare not localeCompare", async () => {
+    const { sortNewestFirst } = await loadSource();
+    const mk = (episode_id: string, last_observed_at: string) => ({
+      episode_id,
+      ticker: "T",
+      detector_id: "",
+      detector_version: "",
+      detector_spec_hash: "",
+      state: "ARMED",
+      market_session: "",
+      variant: "",
+      first_armed_at: null,
+      candidate_at: null,
+      last_observed_at,
+      bar_availability: {},
+      feature_snapshot: {},
+      universe_admission: {},
+      lobe_nominations: [],
+      price_at_signal: null,
+      risk_geometry: {},
+      detector_score: null,
+      research_priority: null,
+      opportunity_score: null,
+      data_quality: "ok",
+      freshness: {},
+      evidence_refs: [],
+      schema: "mastermind.live_entry_episode.v1",
+    });
+    const sameTs = [
+      mk("ep-z", "2026-01-02T00:00:00Z"),
+      mk("ep-a", "2026-01-02T00:00:00Z"),
+      mk("ep-m", "2026-01-02T00:00:00Z"),
+    ];
+    expect(sortNewestFirst(sameTs).map((e) => e.episode_id)).toEqual(["ep-a", "ep-m", "ep-z"]);
   });
 });

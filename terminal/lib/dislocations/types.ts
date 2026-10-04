@@ -69,12 +69,15 @@ export type EpisodeDisplay = {
 
 export type DislocationEpisode = LiveEntryEpisode & { display: EpisodeDisplay };
 
+export type SourceFallbackReason = "malformed" | "missing" | "unreadable" | "schema";
+
 export type SourceReadOk = {
   kind: "ok";
   file: EntryRadarFile;
   mtimeMs: number;
   loadedAt: number;
   servedFromCache: boolean;
+  fallback_reason: SourceFallbackReason | null;
 };
 
 export type SourceReadUnavailable = {
@@ -89,5 +92,5 @@ export type FreshnessVerdict = {
   stale: boolean;
   pack_fresh: boolean;
   age_s: number | null;
-  reason: "fresh" | "pack_old" | "file_old" | "no_asof";
+  reason: "fresh" | "pack_old" | "pack_asof_after_session" | "file_old" | "no_asof";
 };

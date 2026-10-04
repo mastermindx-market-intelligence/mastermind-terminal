@@ -5,6 +5,7 @@ import type {
   EpisodeDisplay,
   FreshnessVerdict,
   LiveEntryEpisode,
+  SourceFallbackReason,
   SourceRead,
   Stance,
 } from "./types";
@@ -16,7 +17,7 @@ export const OUT_OF_WINDOW_STALE_S = 26 * 3600;
 
 export const fixtureCookieName = "mm_e2e_dislo";
 
-type CacheEntry = { mtimeMs: number; file: EntryRadarFile; loadedAt: number };
+type CacheEntry = { mtimeMs: number; raw: EntryRadarFile; loadedAt: number };
 const cache = new Map<string, CacheEntry>();
 
 export function liveDir(): string {
@@ -29,6 +30,10 @@ export function resolveSourcePath(cookieValue: string | undefined): string {
     return path.join(process.cwd(), "fixtures", "dislocations", `${cookieValue}.json`);
   }
   return path.join(liveDir(), "entry_radar.json");
+}
+
+function isFixturePath(filePath: string): boolean {
+  return filePath.includes(`${path.sep}fixtures${path.sep}dislocations${path.sep}`);
 }
 
 export function validateFile(raw: unknown): raw is EntryRadarFile {
@@ -57,11 +62,23 @@ export function materializeAsof(file: EntryRadarFile, now = Date.now()): EntryRa
   return file;
 }
 
-function daysBetween(a: string, b: string): number {
-  const da = Date.parse(`${a}T00:00:00Z`);
-  const db = Date.parse(`${b}T00:00:00Z`);
-  if (Number.isNaN(da) || Number.isNaN(db)) return Infinity;
-  return Math.abs(db - da) / (24 * 60 * 60 * 1000);
+function packLagDays(session: string, packAsOf: string): number {
+  const ds = Date.parse(`${session}T00:00:00Z`);
+  const dp = Date.parse(`${packAsOf}T00:00:00Z`);
+  if (Number.isNaN(ds) || Number.isNaN(dp)) return Infinity;
+  return (ds - dp) / (24 * 60 * 60 * 1000);
+}
+
+function serveFromCache(entry: CacheEntry, now: number, filePath: string): SourceRead {
+  const file = materializeAsof(entry.raw, now);
+  return {
+    kind: "ok",
+    file,
+    mtimeMs: entry.mtimeMs,
+    loadedAt: entry.loadedAt,
+    servedFromCache: true,
+    fallback_reason: null,
+  };
 }
 
 export async function readSource(filePath: string, now = Date.now()): Promise<SourceRead> {
@@ -73,18 +90,23 @@ export async function readSource(filePath: string, now = Date.now()): Promise<So
     mtimeMs = st.mtimeMs;
   } catch (err: unknown) {
     const code = err && typeof err === "object" && "code" in err ? (err as NodeJS.ErrnoException).code : undefined;
-    const reason = code === "ENOENT" ? "missing" : "unreadable";
+    const reason: SourceFallbackReason = code === "ENOENT" ? "missing" : "unreadable";
     return staleFallback(filePath, cached, now, reason);
   }
 
   if (cached && cached.mtimeMs === mtimeMs) {
-    return {
-      kind: "ok",
-      file: cached.file,
-      mtimeMs,
-      loadedAt: cached.loadedAt,
-      servedFromCache: true,
-    };
+    if (isFixturePath(filePath)) {
+      const file = materializeAsof(cached.raw, now);
+      return {
+        kind: "ok",
+        file,
+        mtimeMs,
+        loadedAt: cached.loadedAt,
+        servedFromCache: true,
+        fallback_reason: null,
+      };
+    }
+    return serveFromCache(cached, now, filePath);
   }
 
   let raw: string;
@@ -105,15 +127,17 @@ export async function readSource(filePath: string, now = Date.now()): Promise<So
     return staleFallback(filePath, cached, now, "schema");
   }
 
-  const file = materializeAsof(parsed, now);
-  const entry: CacheEntry = { mtimeMs, file, loadedAt: now };
+  const rawFile = parsed as EntryRadarFile;
+  const entry: CacheEntry = { mtimeMs, raw: rawFile, loadedAt: now };
   cache.set(filePath, entry);
+  const file = materializeAsof(rawFile, now);
   return {
     kind: "ok",
     file,
     mtimeMs,
     loadedAt: now,
     servedFromCache: false,
+    fallback_reason: null,
   };
 }
 
@@ -121,19 +145,23 @@ function staleFallback(
   filePath: string,
   cached: CacheEntry | undefined,
   now: number,
-  reason: "missing" | "unreadable" | "malformed" | "schema"
+  reason: SourceFallbackReason
 ): SourceRead {
   if (cached && now - cached.loadedAt <= MAX_STALE_MS) {
+    const file = materializeAsof(cached.raw, now);
     return {
       kind: "ok",
-      file: cached.file,
+      file,
       mtimeMs: cached.mtimeMs,
       loadedAt: cached.loadedAt,
       servedFromCache: true,
+      fallback_reason: reason,
     };
   }
   const lastGood =
-    cached != null ? { asof: cached.file.asof, at: cached.loadedAt } : null;
+    cached != null
+      ? { asof: materializeAsof(cached.raw, cached.loadedAt).asof, at: cached.loadedAt }
+      : null;
   if (cached && now - cached.loadedAt > MAX_STALE_MS) {
     cache.delete(filePath);
   }
@@ -144,8 +172,8 @@ export function freshness(file: EntryRadarFile, now = Date.now()): FreshnessVerd
   const parsed = Date.parse(file.asof);
   const age_s = Number.isNaN(parsed) ? null : Math.round((now - parsed) / 1000);
 
-  const pack_fresh =
-    daysBetween(file.pack.as_of, file.session) <= PACK_MAX_LAG_DAYS;
+  const lag = packLagDays(file.session, file.pack.as_of);
+  let pack_fresh = lag >= 0 && lag <= PACK_MAX_LAG_DAYS;
 
   const threshold =
     file.health?.state === "out_of_window" ? OUT_OF_WINDOW_STALE_S : IN_WINDOW_STALE_S;
@@ -155,7 +183,8 @@ export function freshness(file: EntryRadarFile, now = Date.now()): FreshnessVerd
 
   let reason: FreshnessVerdict["reason"] = "fresh";
   if (age_s === null) reason = "no_asof";
-  else if (!pack_fresh) reason = "pack_old";
+  else if (lag < 0) reason = "pack_asof_after_session";
+  else if (lag > PACK_MAX_LAG_DAYS) reason = "pack_old";
   else if (file_old) reason = "file_old";
 
   return { stale, pack_fresh, age_s, reason };
@@ -217,9 +246,9 @@ export function sortNewestFirst(eps: LiveEntryEpisode[]): LiveEntryEpisode[] {
     .sort((a, b) => {
       const ka = sortKey(a.ep);
       const kb = sortKey(b.ep);
-      if (ka !== kb) return kb.localeCompare(ka);
+      if (ka !== kb) return ka < kb ? 1 : -1;
       if (a.ep.episode_id !== b.ep.episode_id) {
-        return a.ep.episode_id.localeCompare(b.ep.episode_id);
+        return a.ep.episode_id < b.ep.episode_id ? -1 : 1;
       }
       return a.i - b.i;
     })
@@ -238,5 +267,3 @@ export function knowableAtMax(eps: LiveEntryEpisode[]): string | null {
 export function resetDislocationsSourceCacheForTests(): void {
   cache.clear();
 }
-
-// Fix staleFallback to delete expired cache - I need to pass filePath to staleFallback
