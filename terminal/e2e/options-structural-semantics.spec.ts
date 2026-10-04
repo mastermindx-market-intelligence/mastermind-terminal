@@ -30,6 +30,7 @@ for (const lang of ["en", "zh"] as const) {
       const cov23 = T("2/3 supplied rows known", "已知 2/3 条输入");
       const cov33 = T("3/3 supplied rows known", "已知 3/3 条输入");
       const partial = T("Partial snapshot · missing values excluded", "部分快照 · 缺失数值未计入");
+      const signedEstimate = T("Signed estimate", "带符号估计");
       const spyDate = T(`Nightly EOD · as of ${SPY_DATE}`, `每日收盘 · 截至 ${SPY_DATE}`);
       const qqqDate = T(`Nightly EOD · as of ${QQQ_DATE}`, `每日收盘 · 截至 ${QQQ_DATE}`);
       const qqqRevDate = T(`Nightly EOD · as of ${QQQ_REV_DATE}`, `每日收盘 · 截至 ${QQQ_REV_DATE}`);
@@ -73,6 +74,73 @@ for (const lang of ["en", "zh"] as const) {
       await expect(spyCard).toContainText(cov23);
       await expect(spyCard).toContainText(partial);
       await expect(page.locator("body")).toContainText(spyDate);
+
+      // ── Shared #703 card-header layout ─────────────────────────────────────
+      // The title must render IN FULL at every size, and the header's right chrome
+      // (the unit caption + the "signed estimate" tier badge) must stay inside the
+      // header without clipping or overlapping the title. On mobile the header wraps,
+      // so the title must be allowed to break — the nowrap that caused the width:0
+      // mobile regression #703 fixed must not come back.
+      const header = spyCard.locator("header").first();
+      const titleEl = header.locator("xpath=./span[1]");
+      await expect(titleEl).toBeVisible();
+      const layout = await titleEl.evaluate((node) => {
+        const e = node as HTMLElement;
+        const style = getComputedStyle(e);
+        const rect = e.getBoundingClientRect();
+        const head = e.closest("header") as HTMLElement | null;
+        const headRect = head?.getBoundingClientRect() ?? null;
+        const right = (head?.lastElementChild as HTMLElement | null) ?? null;
+        const rightRect = right?.getBoundingClientRect() ?? null;
+        return {
+          text: e.textContent ?? "",
+          width: rect.width,
+          height: rect.height,
+          clientWidth: e.clientWidth,
+          scrollWidth: e.scrollWidth,
+          whiteSpace: style.whiteSpace,
+          headerClientWidth: head?.clientWidth ?? 0,
+          headerScrollWidth: head?.scrollWidth ?? 0,
+          rightText: right?.textContent ?? "",
+          rightClientWidth: right?.clientWidth ?? 0,
+          rightScrollWidth: right?.scrollWidth ?? 0,
+          titleRight: rect.right,
+          titleBottom: rect.bottom,
+          rightLeft: rightRect?.left ?? 0,
+          rightTop: rightRect?.top ?? 0,
+          rightRight: rightRect?.right ?? 0,
+          rightBottom: rightRect?.bottom ?? 0,
+          headerRight: headRect?.right ?? 0,
+          headerBottom: headRect?.bottom ?? 0,
+        };
+      });
+
+      // Full title present (never an ellipsised fragment) in a positive, readable box.
+      expect(layout.text).toBe(title);
+      expect(layout.width).toBeGreaterThan(40);
+      expect(layout.height).toBeGreaterThan(12);
+      // The whole title fits its own box — no horizontal clipping at any size.
+      expect(layout.scrollWidth).toBeLessThanOrEqual(layout.clientWidth + 1);
+      if (info.project.name === "mobile") {
+        expect(layout.whiteSpace).not.toBe("nowrap");
+      }
+
+      // The header never overflows horizontally …
+      expect(layout.headerScrollWidth).toBeLessThanOrEqual(layout.headerClientWidth + 1);
+      // … and its right chrome carries the unit caption + signed-estimate badge,
+      // fully inside the header and unclipped.
+      expect(layout.rightText).toContain(perUnit);
+      expect(layout.rightText).toContain(signedEstimate);
+      expect(layout.rightScrollWidth).toBeLessThanOrEqual(layout.rightClientWidth + 1);
+      expect(layout.rightRight).toBeLessThanOrEqual(layout.headerRight + 1);
+      expect(layout.rightBottom).toBeLessThanOrEqual(layout.headerBottom + 1);
+      // No title/chrome overlap: stacked on mobile, side-by-side on wider viewports.
+      if (info.project.name === "mobile") {
+        expect(layout.rightTop).toBeGreaterThanOrEqual(layout.titleBottom - 1);
+      } else {
+        expect(layout.titleRight).toBeLessThanOrEqual(layout.rightLeft + 1);
+      }
+
       await spyCard.screenshot({ path: info.outputPath(`${info.project.name}-${lang}-${theme}-hedges-partial.png`) });
 
       // QQQ revision: brand-new payload, 3/3 distinct values, new as-of date.

@@ -529,8 +529,8 @@ const PROPHET_LEX = {
     "权限已变更。已清空候选证据，以避免在登出或降级后继续保留受限条目。",
   ],
   candidatePanelUnavailable: [
-    "Candidate evidence is currently unavailable. The desk continues to show last verified rows below until the next refresh succeeds.",
-    "候选证据当前不可用。展示台将继续显示下方最近一次已校验记录，直至下次刷新成功。",
+    "Candidate evidence is currently unavailable. No verified history is loaded yet; the next refresh will be retried.",
+    "候选证据当前不可用。尚未加载任何已校验历史；下一次刷新将重试。",
   ],
   candidatePanelEmpty: [
     "No formed candidates in this run; abstentions explain why. No executable contract or trade was issued.",
