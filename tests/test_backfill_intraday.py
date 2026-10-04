@@ -600,10 +600,17 @@ def test_backfill_existing_only_weekday_gated():
 def test_backfill_existing_only_step_has_a_time_limit():
     """A stalled vendor must not hold the nightly lock: the step is killed after 90 minutes."""
     lines = NIGHTLY.read_text().splitlines()
-    steps = [line.strip() for line in lines if INTRADAY_CMD in line]
+    steps = [line.strip() for line in lines if INTRADAY_CMD in line and "timeout" in line]
     assert steps == [
-        "if timeout -k 60 90m " + INTRADAY_CMD + ' >"$INTRADAY_LOG" 2>&1; then'
+        "timeout -k 60 90m " + INTRADAY_CMD + ' 2>&1 | tee "$INTRADAY_LOG"'
     ]
+    assert any("rc=${PIPESTATUS[0]}" in ln for ln in lines)
+
+
+def test_intraday_log_in_trap_cleanup():
+    body = NIGHTLY.read_text()
+    assert 'rm -f "$LOCKFILE" "${INTRADAY_LOG:-}"' in body
+    assert 'export INTRADAY_RUN_DATE_ET="$(TZ=America/New_York date +%F)"' in body
 
 
 def test_backfill_existing_only_not_in_manifest_dependency():
@@ -875,23 +882,36 @@ def test_main_dedupes_duplicate_jobs(intraday_env, monkeypatch):
 def test_delayed_pages_are_counted_in_summary(intraday_env, monkeypatch, capsys):
     make_store(intraday_env / "DEL.5m.json", "DEL", "5m", n=30)
     monkeypatch.setattr(mod, "INTRADAY", intraday_env)
+    monkeypatch.setattr(mod, "_disp_epoch", lambda ms: ms // 1000)
     store, asof = mod.load_store("DEL", "5m")
     tail = store[-6:]
     last = asof
 
-    def fake_fetch(sym, tf, frm=None, stats=None, **kwargs):
-        if stats is not None:
-            stats["delayed_pages"] = stats.get("delayed_pages", 0) + 1
-        if frm is None:
-            return tail
-        extra = [[last + 300, 10.0, 11.0, 9.0, 10.5, 100]]
-        return tail + extra
+    def polygon_bar(row):
+        disp_epoch = row[0]
+        ms = int(disp_epoch * 1000)
+        return {
+            "t": ms,
+            "o": row[1],
+            "h": row[2],
+            "l": row[3],
+            "c": row[4],
+            "v": row[5],
+        }
 
-    with patch.object(mod, "fetch_polygon_intraday", _with_overlap(fake_fetch)):
-        rc = mod.main(["--existing-only", "--tf", "5m", "--workers", "1"])
+    def fake_get(_url):
+        extra_row = [last + 300, 10.0, 11.0, 9.0, 10.5, 100]
+        return {
+            "status": "DELAYED",
+            "results": [polygon_bar(r) for r in tail] + [polygon_bar(extra_row)],
+        }
+
+    monkeypatch.setattr(mod, "_get", fake_get)
+    rc = mod.main(["--existing-only", "--tf", "5m", "--workers", "1"])
     out = capsys.readouterr().out
     assert rc == 0
-    assert "delayed_pages=1" in out
+    m = re.search(r"delayed_pages=(\d+)", out)
+    assert m and int(m.group(1)) >= 1
     assert "1/1 stored" in out
 
 
@@ -1353,10 +1373,56 @@ def _fu_refresh_tail_scales(store, scales):
     return tail
 
 
+_NYSE_PINNED_HOLIDAYS = (
+    "2026-01-01",
+    "2026-01-19",
+    "2026-02-16",
+    "2026-04-03",
+    "2026-05-25",
+    "2026-06-19",
+    "2026-07-03",
+    "2026-09-07",
+    "2026-11-26",
+    "2026-12-25",
+    "2027-01-01",
+    "2027-01-18",
+    "2027-02-15",
+    "2027-03-26",
+    "2027-05-31",
+    "2027-06-18",
+    "2027-07-05",
+    "2027-09-06",
+    "2027-11-25",
+    "2027-12-24",
+)
+
+
+@pytest.mark.parametrize("iso", _NYSE_PINNED_HOLIDAYS)
+def test_is_nyse_holiday_pinned_calendar(iso):
+    assert mod.is_nyse_holiday(dt.date.fromisoformat(iso))
+
+
+@pytest.mark.parametrize("iso", ("2026-11-27", "2026-12-24", "2026-07-04"))
+def test_is_nyse_holiday_pinned_non_holidays(iso):
+    assert not mod.is_nyse_holiday(dt.date.fromisoformat(iso))
+
+
+def test_nyse_holiday_calendar_expiry_warns_once(capsys):
+    mod._NYSE_HOLIDAY_WARNED = False
+    assert not mod.is_nyse_holiday(dt.date(2028, 1, 2))
+    assert not mod.is_nyse_holiday(dt.date(2028, 1, 3))
+    out = capsys.readouterr().out
+    assert out.count(
+        "WARNING: NYSE holiday calendar ends 2027-12-31 — extend _NYSE_HOLIDAYS"
+    ) == 1
+
+
 def test_fu_m1_expect_advance_on_nyse_holiday_exits_ok(intraday_env, monkeypatch, capsys):
+    from test_backfill_intraday_breaker import _DETAIL_RE, detail
+
     make_store(intraday_env / "HOL.1h.json", "HOL", "1h", n=30)
     monkeypatch.setattr(mod, "INTRADAY", intraday_env)
-    monkeypatch.setattr(mod, "is_nyse_holiday", lambda _d: True)
+    monkeypatch.setenv("INTRADAY_RUN_DATE_ET", "2026-11-26")
     called = {"n": 0}
 
     def fake(sym, tf, frm=None, **kwargs):
@@ -1369,14 +1435,18 @@ def test_fu_m1_expect_advance_on_nyse_holiday_exits_ok(intraday_env, monkeypatch
     assert rc == 0
     assert called["n"] == 0
     assert "holiday=1" in out
-    assert "not_advanced=1" in out
+    assert _DETAIL_RE.search(out)
+    d = detail(out)
+    assert d["skipped"] == 1
+    assert d["not_advanced"] == 0
     assert "STALE:" not in out
+    assert "intraday backfill complete:" in out
 
 
 def test_fu_m1_expect_advance_weekday_none_advanced_rc4(intraday_env, monkeypatch, capsys):
     make_store(intraday_env / "WKD.1h.json", "WKD", "1h", n=30)
     monkeypatch.setattr(mod, "INTRADAY", intraday_env)
-    monkeypatch.setattr(mod, "is_nyse_holiday", lambda _d: False)
+    monkeypatch.setenv("INTRADAY_RUN_DATE_ET", "2026-11-27")
 
     def fake(sym, tf, frm=None, **kwargs):
         return mod.load_store(sym, tf)[0][-6:]

@@ -31,10 +31,12 @@ count(){ "$PY" -c "import json,sys;print(len(json.load(open(sys.argv[1]))['symbo
 LOCKFILE=/tmp/terminal-data.lock
 exec 9>"$LOCKFILE" || exit 1
 flock -n 9 || { echo "[$(ts)] another terminal-data holds the lock — exit"; exit 0; }
-trap 'rm -f "$LOCKFILE"' EXIT
+INTRADAY_LOG=""
+trap 'rm -f "$LOCKFILE" "${INTRADAY_LOG:-}"' EXIT
 # The UTC weekday this run STARTED on. The run begins 21:30 UTC and reaches its last steps
 # after midnight, so a weekday test made there reads the next day — and skips every Friday.
 RUN_DOW="$(date -u +%u)"
+export INTRADAY_RUN_DATE_ET="$(TZ=America/New_York date +%F)"
 
 echo "[$(ts)] === terminal refresh start (staging) ==="
 
@@ -218,17 +220,17 @@ fi
 if [ "$RUN_DOW" -le "5" ]; then
   echo "[$(ts)] -> ingest.backfill_intraday --existing-only"
   INTRADAY_LOG=$(mktemp "${TMPDIR:-/tmp}/intraday-refresh.XXXXXX")
-  if timeout -k 60 90m "$PY" -m ingest.backfill_intraday --existing-only --expect-advance --tf 1h,5m --workers 8 >"$INTRADAY_LOG" 2>&1; then
-    cat "$INTRADAY_LOG"
+  timeout -k 60 90m "$PY" -m ingest.backfill_intraday --existing-only --expect-advance --tf 1h,5m --workers 8 2>&1 | tee "$INTRADAY_LOG"
+  rc=${PIPESTATUS[0]}
+  if [ "$rc" -eq 0 ]; then
     if grep -q 'holiday=1' "$INTRADAY_LOG"; then
       echo "[$(ts)] INTRADAY_REFRESH status=SKIPPED_HOLIDAY"
     else
       echo "[$(ts)] INTRADAY_REFRESH status=OK"
     fi
   else
-    rc=$?; cat "$INTRADAY_LOG"; echo "[$(ts)] INTRADAY_REFRESH status=FAILED rc=$rc"
+    echo "[$(ts)] INTRADAY_REFRESH status=FAILED rc=$rc"
   fi
-  rm -f "$INTRADAY_LOG"
 else
   echo "[$(ts)] -> skip ingest/backfill_intraday --existing-only (run did not start on a UTC weekday)"
 fi

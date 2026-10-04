@@ -87,6 +87,8 @@ _NYSE_HOLIDAYS: frozenset[dt.date] = frozenset({
     dt.date(2027, 11, 25),
     dt.date(2027, 12, 24),
 })
+_NYSE_HOLIDAY_CALENDAR_END = max(_NYSE_HOLIDAYS)
+_NYSE_HOLIDAY_WARNED = False
 MAX_REBUILDS = 200
 MAX_THIN_REBUILDS = 20
 # Stop the run early when the vendor is unreachable instead of retrying every store.
@@ -143,7 +145,29 @@ class AdjustmentMismatch(RuntimeError):
 
 def is_nyse_holiday(day: dt.date) -> bool:
     """True when ``day`` is a full NYSE closure (fixed 2026–2027 set)."""
+    global _NYSE_HOLIDAY_WARNED
+    if day > _NYSE_HOLIDAY_CALENDAR_END:
+        if not _NYSE_HOLIDAY_WARNED:
+            print(
+                "WARNING: NYSE holiday calendar ends 2027-12-31 — extend _NYSE_HOLIDAYS",
+                flush=True,
+            )
+            _NYSE_HOLIDAY_WARNED = True
+        return False
     return day in _NYSE_HOLIDAYS
+
+
+def _today_et_for_holiday_check() -> dt.date:
+    raw = os.environ.get("INTRADAY_RUN_DATE_ET")
+    if raw:
+        try:
+            return dt.date.fromisoformat(raw)
+        except ValueError:
+            print(
+                f"WARNING: invalid INTRADAY_RUN_DATE_ET={raw!r} — using current ET date",
+                flush=True,
+            )
+    return dt.datetime.now(ET).date()
 
 
 _INTRO_REDACT_PATTERNS = (
@@ -499,13 +523,29 @@ def main(argv: list[str]) -> int:
             deduped.append(job)
     jobs = deduped
 
-    today_et = dt.datetime.now(ET).date()
+    today_et = _today_et_for_holiday_check()
+    n_jobs = len(jobs)
     if expect_advance and is_nyse_holiday(today_et):
-        print(f"intraday refresh --existing-only: NYSE holiday {today_et} "
-              f"({len(jobs)} store(s) — no advance expected)", flush=True)
+        if existing_only:
+            print(
+                f"intraday refresh --existing-only: NYSE holiday {today_et} "
+                f"({n_jobs} store(s) — no advance expected)",
+                flush=True,
+            )
+        print(
+            f"intraday refresh: NYSE holiday {today_et} — no advance expected "
+            f"(holiday=1, {n_jobs} store(s))",
+            flush=True,
+        )
         print(
             f"intraday backfill detail: rebuilt=0 basis_unverified=0 "
-            f"transport_failed=0 skipped=0 not_advanced={len(jobs)} holiday=1 breaker=clear",
+            f"transport_failed=0 skipped={n_jobs} not_advanced=0 breaker=clear",
+            flush=True,
+        )
+        print(
+            f"intraday backfill complete: 0/{n_jobs} stored "
+            f"(unchanged=0 failed=0 retention_dropped=0 forming_skipped=0 delayed_pages=0) "
+            f"in 0s",
             flush=True,
         )
         return EXIT_OK
