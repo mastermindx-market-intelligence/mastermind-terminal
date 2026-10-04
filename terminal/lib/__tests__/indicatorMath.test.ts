@@ -312,10 +312,28 @@ describe("rsiStack", () => {
   it("reads a flat market as neutral RSI 50 instead of overbought 100", () => {
     const bars = constBars(80, 50);
     const result = rsiStack(bars, 7, 14, 21);
+    for (const [series, len] of [[result.r1, 7], [result.r2, 14], [result.r3, 21]] as const) {
+      // Warmup stays null (bar 0 has no change; RMA seeds on the len-th change), never a fabricated 50.
+      expect(series.slice(0, len).every((v) => v === null)).toBe(true);
+      expect(new Set(series.slice(len))).toEqual(new Set([50]));
+    }
+  });
+
+  it("leaves history too short to warm null rather than neutral", () => {
+    const result = rsiStack(constBars(7, 50), 7, 14, 21);
     for (const series of [result.r1, result.r2, result.r3]) {
-      const finite = series.filter((v): v is number => v != null);
-      expect(finite.length).toBeGreaterThan(0);
-      expect(new Set(finite)).toEqual(new Set([50]));
+      expect(series.every((v) => v === null)).toBe(true);
+    }
+  });
+
+  it("keeps the one-sided limits: gains only → 100, losses only → 0", () => {
+    const up = rsiStack(stairBars(80, 50, 1), 7, 14, 21);
+    const down = rsiStack(stairBars(80, 200, -1), 7, 14, 21);
+    for (const [series, len] of [[up.r1, 7], [up.r2, 14], [up.r3, 21]] as const) {
+      expect(new Set(series.slice(len))).toEqual(new Set([100]));
+    }
+    for (const [series, len] of [[down.r1, 7], [down.r2, 14], [down.r3, 21]] as const) {
+      expect(new Set(series.slice(len))).toEqual(new Set([0]));
     }
   });
 
