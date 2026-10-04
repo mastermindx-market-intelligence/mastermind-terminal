@@ -7,6 +7,18 @@ import { useEffect, useRef } from "react";
 import { IND_DEFS, isIndKey } from "@/lib/indicators";
 import { tPlain } from "@/lib/i18n";
 
+// Hand focus back to the opener. The legend ⚙ is revealed only by :hover, so while the scrim covers its row
+// it is display:none and refuses focus; the browser re-reveals it a frame after the scrim goes. Retry for a
+// few frames, and only while focus is still unclaimed (on <body>), so nothing the user reached is taken.
+function returnFocus(el: HTMLElement | null, frames = 3) {
+  if (!el?.isConnected) return;
+  el.focus({ preventScroll: true });
+  if (document.activeElement === el || frames <= 0) return;
+  window.requestAnimationFrame(() => {
+    if (!document.activeElement || document.activeElement === document.body) returnFocus(el, frames - 1);
+  });
+}
+
 export default function IndicatorSource({ indKey, onClose }: { indKey: string; onClose: () => void }) {
   const dialogRef = useRef<HTMLDivElement | null>(null);
   const returnFocusRef = useRef<HTMLElement | null>(null);
@@ -15,10 +27,7 @@ export default function IndicatorSource({ indKey, onClose }: { indKey: string; o
     const active = document.activeElement;
     if (active instanceof HTMLElement && !dialogRef.current?.contains(active)) returnFocusRef.current = active;
     dialogRef.current?.focus({ preventScroll: true });
-    return () => {
-      const target = returnFocusRef.current;
-      if (target?.isConnected) target.focus({ preventScroll: true });
-    };
+    return () => returnFocus(returnFocusRef.current);
   }, []);
 
   useEffect(() => {
