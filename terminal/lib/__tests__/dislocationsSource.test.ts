@@ -35,7 +35,7 @@ describe("dislocations source", () => {
     const age = (now - Date.parse(first.file.asof)) / 1000;
     expect(age).toBeGreaterThanOrEqual(115);
     expect(age).toBeLessThanOrEqual(125);
-    expect(first.file.episodes?.length).toBe(4);
+    expect(first.file.episodes?.length).toBe(9);
 
     const second = await readSource(file, now);
     expect(second.kind).toBe("ok");
