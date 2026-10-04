@@ -59,10 +59,38 @@ MIN_STORE_ROWS = 20
 # would leave one store on two bases. The median new/old close over the shared bars decides.
 BASIS_MIN_SHARED = 5
 BASIS_TOLERANCE = 0.005
-# When fewer than BASIS_MIN_SHARED bars overlap, only a gross basis move (outside this band)
-# triggers a rebuild; smaller ratios are merged with basis_unverified counted.
+# When fewer than BASIS_MIN_SHARED bars overlap, ratio >= BASIS_GROSS or <= 1/BASIS_GROSS
+# triggers a main-budget rebuild; otherwise a thin-budget rebuild needs THIN_MIN_SHARED+
+# agreeing bars (each within BASIS_TOLERANCE of the median) and |median-1| > BASIS_TOLERANCE.
 BASIS_GROSS = 1.25
+THIN_MIN_SHARED = 2
+# NYSE full-day closures (America/New_York calendar dates), 2026–2027.
+_NYSE_HOLIDAYS: frozenset[dt.date] = frozenset({
+    dt.date(2026, 1, 1),
+    dt.date(2026, 1, 19),
+    dt.date(2026, 2, 16),
+    dt.date(2026, 4, 3),
+    dt.date(2026, 5, 25),
+    dt.date(2026, 6, 19),
+    dt.date(2026, 7, 3),
+    dt.date(2026, 9, 7),
+    dt.date(2026, 11, 26),
+    dt.date(2026, 12, 25),
+    dt.date(2027, 1, 1),
+    dt.date(2027, 1, 18),
+    dt.date(2027, 2, 15),
+    dt.date(2027, 3, 26),
+    dt.date(2027, 5, 31),
+    dt.date(2027, 6, 18),
+    dt.date(2027, 7, 5),
+    dt.date(2027, 9, 6),
+    dt.date(2027, 11, 25),
+    dt.date(2027, 12, 24),
+})
+_NYSE_HOLIDAY_CALENDAR_END = max(_NYSE_HOLIDAYS)
+_NYSE_HOLIDAY_WARNED = False
 MAX_REBUILDS = 200
+MAX_THIN_REBUILDS = 20
 # Stop the run early when the vendor is unreachable instead of retrying every store.
 BREAKER_CONSECUTIVE = 25
 BREAKER_MIN_SAMPLE = 200
@@ -113,6 +141,34 @@ class EmptyOverlap(RuntimeError):
 
 class AdjustmentMismatch(RuntimeError):
     """The vendor's bars and the store disagree on price basis and the store was not rebuilt."""
+
+
+def is_nyse_holiday(day: dt.date) -> bool:
+    """True when ``day`` is a full NYSE closure (fixed 2026–2027 set)."""
+    global _NYSE_HOLIDAY_WARNED
+    if day > _NYSE_HOLIDAY_CALENDAR_END:
+        if not _NYSE_HOLIDAY_WARNED:
+            print(
+                "WARNING: NYSE holiday calendar ends 2027-12-31 — extend _NYSE_HOLIDAYS",
+                flush=True,
+            )
+            _NYSE_HOLIDAY_WARNED = True
+        return False
+    return day in _NYSE_HOLIDAYS
+
+
+def _today_et_for_holiday_check() -> dt.date:
+    raw = os.environ.get("INTRADAY_RUN_DATE_ET")
+    if raw:
+        try:
+            return dt.date.fromisoformat(raw)
+        except ValueError:
+            print(
+                f"WARNING: invalid INTRADAY_RUN_DATE_ET={raw!r} — using current ET date",
+                flush=True,
+            )
+    return dt.datetime.now(ET).date()
+
 
 _INTRO_REDACT_PATTERNS = (
     (re.compile(r"(?i)((?:^|[?&])api[_]?key=)([^&\s\"',})]+)"), r"\1REDACTED"),
@@ -340,13 +396,13 @@ def _is_price(v) -> bool:
     return isinstance(v, (int, float)) and not isinstance(v, bool) and math.isfinite(v) and v > 0
 
 
-def _basis_ratio(old: list[list], new: list[list]) -> tuple[float | None, int]:
-    """Median new/old close over the bars both carry, and how many bars that is.
+def _basis_ratio(old: list[list], new: list[list]) -> tuple[float | None, int, list[float]]:
+    """Median new/old close over the bars both carry, how many, and each bar's ratio.
 
-    Returns (None, 0) only when no bars are shared. `old` and `new` are ascending.
+    Returns (None, 0, []) only when no bars are shared. `old` and `new` are ascending.
     """
     if not new:
-        return None, 0
+        return None, 0, []
     first = new[0][0]
     old_close: dict[int, float] = {}
     for r in reversed(old):
@@ -358,9 +414,10 @@ def _basis_ratio(old: list[list], new: list[list]) -> tuple[float | None, int]:
                     if r[0] in old_close and _is_price(r[4]))
     n = len(ratios)
     if n == 0:
-        return None, 0
+        return None, 0, []
     mid = n // 2
-    return (ratios[mid] if n % 2 else (ratios[mid - 1] + ratios[mid]) / 2), n
+    median = ratios[mid] if n % 2 else (ratios[mid - 1] + ratios[mid]) / 2
+    return median, n, ratios
 
 
 def existing_stores(tfs: list[str]) -> list[tuple[str, str]]:
@@ -406,7 +463,8 @@ def us_symbols_ranked() -> list[str]:
 
 
 def main(argv: list[str]) -> int:
-    """Exit contract: EXIT_OK, EXIT_STORE_FAILURES, EXIT_NO_STORES, EXIT_BREAKER_TRIPPED, EXIT_USAGE."""
+    """Exit contract: EXIT_OK, EXIT_STORE_FAILURES, EXIT_NO_STORES, EXIT_BREAKER_TRIPPED,
+    EXIT_STALE_VENDOR, EXIT_USAGE."""
     def opt(name, default=None):
         return argv[argv.index(name) + 1] if name in argv else default
 
@@ -465,18 +523,47 @@ def main(argv: list[str]) -> int:
             deduped.append(job)
     jobs = deduped
 
+    today_et = _today_et_for_holiday_check()
+    n_jobs = len(jobs)
+    if expect_advance and is_nyse_holiday(today_et):
+        if existing_only:
+            print(
+                f"intraday refresh --existing-only: NYSE holiday {today_et} "
+                f"({n_jobs} store(s) — no advance expected)",
+                flush=True,
+            )
+        print(
+            f"intraday refresh: NYSE holiday {today_et} — no advance expected "
+            f"(holiday=1, {n_jobs} store(s))",
+            flush=True,
+        )
+        print(
+            f"intraday backfill detail: rebuilt=0 basis_unverified=0 "
+            f"transport_failed=0 skipped={n_jobs} not_advanced=0 breaker=clear",
+            flush=True,
+        )
+        print(
+            f"intraday backfill complete: 0/{n_jobs} stored "
+            f"(unchanged=0 failed=0 retention_dropped=0 forming_skipped=0 delayed_pages=0) "
+            f"in 0s",
+            flush=True,
+        )
+        return EXIT_OK
+
     stats: dict = {"delayed_pages": 0, "forming_skipped": 0}
     failures: list[str] = []
     abort = threading.Event()
     rebuilds_left = [MAX_REBUILDS]
+    thin_rebuilds_left = [MAX_THIN_REBUILDS]
     wall_now = time.time()
 
-    def rebuild(s, tf, old, asof, why):
+    def rebuild(s, tf, old, asof, why, thin=False):
         """Replace a store whose basis no longer matches the vendor with a full adjusted fetch."""
         with _stats_lock:
-            if rebuilds_left[0] <= 0:
-                raise AdjustmentMismatch(f"{why}; rebuild budget of {MAX_REBUILDS} is spent")
-            rebuilds_left[0] -= 1
+            if not thin:
+                if rebuilds_left[0] <= 0:
+                    raise AdjustmentMismatch(f"{why}; rebuild budget of {MAX_REBUILDS} is spent")
+                rebuilds_left[0] -= 1
         full = fetch_polygon_intraday(s, tf, stats=stats)
         rows = full[-MAX_STORE_ROWS:]
         if not rows or rows[-1][0] < asof:
@@ -494,7 +581,12 @@ def main(argv: list[str]) -> int:
             print(f"  retention: {s}.{tf} dropped {dropped} oldest row(s) "
                   f"(cap {MAX_STORE_ROWS})", flush=True)
         write_store(s, tf, rows)
-        print(f"  rebuilt: {s}.{tf} {why}; {len(old)} -> {len(rows)} row(s)", flush=True)
+        shrunk = max(0, len(old) - len(rows))
+        print(
+            f"  rebuilt: {s}.{tf} {why}; {len(old)} -> {len(rows)} row(s) "
+            f"retention_dropped={dropped} shrunk={shrunk}",
+            flush=True,
+        )
         return s, tf, "rebuilt", dropped
 
     def refresh(s, tf, old, asof):
@@ -504,16 +596,37 @@ def main(argv: list[str]) -> int:
         recent = fetch_polygon_intraday(s, tf, frm=frm, stats=stats)
         if not recent:
             raise EmptyOverlap("refetch of a window holding the store's last bar returned no bars")
-        ratio, shared = _basis_ratio(old, recent)
+        ratio, shared, bar_ratios = _basis_ratio(old, recent)
         if shared == 0:
             raise AdjustmentMismatch("refetch shares no bar with the store")
         if shared >= BASIS_MIN_SHARED and ratio is not None and abs(ratio - 1.0) > BASIS_TOLERANCE:
             return rebuild(s, tf, old, asof, f"price basis moved x{ratio:.4f} over {shared} shared bar(s)")
-        if (shared < BASIS_MIN_SHARED and ratio is not None
-                and (ratio > BASIS_GROSS or ratio < 1.0 / BASIS_GROSS)):
-            return rebuild(
-                s, tf, old, asof,
-                f"price basis moved x{ratio:.4f} over {shared} shared bar(s) (thin overlap)")
+        if shared < BASIS_MIN_SHARED and ratio is not None:
+            gross_rebuild = ratio >= BASIS_GROSS or ratio <= 1.0 / BASIS_GROSS
+            if gross_rebuild:
+                return rebuild(
+                    s, tf, old, asof,
+                    f"price basis moved x{ratio:.4f} over {shared} shared bar(s) (thin overlap)")
+            agreeing = (
+                shared >= THIN_MIN_SHARED
+                and all(abs(r - ratio) <= BASIS_TOLERANCE for r in bar_ratios)
+                and abs(ratio - 1.0) > BASIS_TOLERANCE
+            )
+            if agreeing:
+                with _stats_lock:
+                    if thin_rebuilds_left[0] > 0:
+                        thin_rebuilds_left[0] -= 1
+                        thin_reserved = True
+                    else:
+                        thin_reserved = False
+                        stats["thin_budget_spent"] = stats.get("thin_budget_spent", 0) + 1
+                if thin_reserved:
+                    return rebuild(
+                        s, tf, old, asof,
+                        f"price basis moved x{ratio:.4f} over {shared} shared bar(s) "
+                        f"(thin overlap, {shared} agreeing bars)",
+                        thin=True,
+                    )
         if shared < BASIS_MIN_SHARED:
             with _stats_lock:
                 stats["basis_unverified"] = stats.get("basis_unverified", 0) + 1
@@ -618,6 +731,9 @@ def main(argv: list[str]) -> int:
         f"breaker={'TRIPPED' if tripped else 'clear'}",
         flush=True,
     )
+    thin_spent = stats.get("thin_budget_spent", 0)
+    if thin_spent > 0:
+        print(f"intraday thin rebuild budget spent: {thin_spent}", flush=True)
     if tripped:
         return EXIT_BREAKER_TRIPPED
     if failed:
