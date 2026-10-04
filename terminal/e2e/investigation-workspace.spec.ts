@@ -72,6 +72,45 @@ test("lost response and receipt miss preserve one operation across reload",async
  expect(commands).toHaveLength(2);expect(commands[1]).toEqual(commands[0]);
 });
 
+test("a rejected revision keeps its draft across reload and cannot become a new record",async({page})=>{
+ await setup(page);const commands:Array<{action:string;expected_revision:number}>=[];
+ await page.route("**/api/investigations{,?*}",async route=>{
+  const request=route.request(),query=new URL(request.url()).searchParams;
+  if(request.method()==="POST"){commands.push(request.postDataJSON());await route.fulfill({status:409,json:{status:"version_conflict",current_revision:2}});return;}
+  if(query.has("id")){await route.fulfill({json:{...committed(),status:"found",current_revision:2,layouts:[]}});return;}
+  if(query.has("operation_id")){await route.fulfill({status:404,json:{status:"not_found"}});return;}
+  await route.fulfill({json:{status:"listed",items:[]}});
+ });
+ await page.goto(`/analysis?view=investigations&investigation=${id}&revision=1`);
+ await page.getByRole("button",{name:"Edit saved question"}).click();
+ await page.getByLabel("Research question",{exact:true}).fill("My conflicting draft 🧠");
+ await page.getByRole("button",{name:"Save research",exact:true}).click();
+ await expect(page.getByText("The save was not committed.",{exact:false})).toBeVisible();
+ await page.reload();
+ await expect(page.getByLabel("Research question",{exact:true})).toHaveValue("My conflicting draft 🧠");
+ await page.getByRole("button",{name:"Save research",exact:true}).click();
+ expect(commands).toHaveLength(1);expect(commands[0]).toMatchObject({action:"revise",expected_revision:1});
+ await expect(page.getByRole("button",{name:"Open latest revision"})).toBeVisible();
+});
+
+test("a committed save preserves its exact revision URL when readback fails",async({page})=>{
+ await setup(page);let writes=0;
+ await page.route("**/api/investigations{,?*}",async route=>{
+  const request=route.request(),query=new URL(request.url()).searchParams;
+  if(request.method()==="POST"){writes++;const command=request.postDataJSON();await route.fulfill({json:committed(command.id,command.manifest)});return;}
+  if(query.has("id")){await route.fulfill({status:503,json:{status:"unavailable"}});return;}
+  await route.fulfill({json:{status:"listed",items:[]}});
+ });
+ await page.goto("/analysis?view=investigations");
+ await page.getByRole("button",{name:"Start new research"}).click();
+ await page.getByLabel("Title",{exact:true}).fill("Saved despite read outage");
+ await page.getByLabel("Research question",{exact:true}).fill("Keep the committed identity");
+ await page.getByRole("button",{name:"Save research",exact:true}).click();
+ await expect(page.getByText("Saved, but exact readback is unavailable.",{exact:false})).toBeVisible();
+ await expect(page).toHaveURL(/investigation=[0-9a-f-]+&revision=1$/);
+ await page.reload();await expect(page.getByText("This saved research link is unavailable.")).toBeVisible();expect(writes).toBe(1);
+});
+
 test("320px at doubled text keeps the question editor usable without horizontal overflow",async({page},testInfo)=>{
  await setup(page);await page.setViewportSize({width:320,height:844});
  await page.route("**/api/investigations",route=>route.fulfill({json:{status:"listed",items:[]}}));

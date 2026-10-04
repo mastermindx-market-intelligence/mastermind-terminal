@@ -20,6 +20,18 @@ function matchesCommand(result: InvestigationCommitted, command: InvestigationCo
     && sameJson({...result.manifest,layout_refs:[]},command.manifest);
 }
 const definitive = new Set(["invalid_payload", "version_conflict", "idempotency_conflict", "invalid_transition", "reference_unavailable", "layout_conflict", "limit_reached"]);
+/** Local recovery is a draft buffer; only an owner receipt establishes a commit. */
+export function recoverInvestigationSave(principal: string, raw: unknown): InvestigationSaveState | null {
+  if (!raw || typeof raw !== "object" || Array.isArray(raw)) return null;
+  const saved = raw as Record<string, unknown>;
+  if (saved.owner !== principal) return null;
+  const command = parseInvestigationCommand(saved.command);
+  if (!command) return null;
+  if (saved.phase === "rejected" && typeof saved.reason === "string" && definitive.has(saved.reason)) {
+    return { phase: "rejected", principal, command, reason: saved.reason };
+  }
+  return { phase: "uncertain", principal, command };
+}
 export function beginInvestigationSave(principal: string, raw: unknown, previous: InvestigationSaveState): InvestigationSaveState {
   previous = partitionInvestigationSave(previous, principal || null);
   if (!principal || previous.phase === "pending" || previous.phase === "uncertain") return previous;

@@ -5,8 +5,8 @@ import { useEffect, useRef, useState } from "react";
 import { useLang } from "@/lib/i18n";
 import { createClient } from "@/lib/supabase/client";
 import { validateInvestigationManifest, type InvestigationManifest, type InvestigationEvidenceRef } from "@/lib/investigationContracts";
-import { INVESTIGATION_ADMISSION, parseInvestigationCommand, type InvestigationCommand, type InvestigationSummary } from "@/lib/investigations";
-import { beginInvestigationSave, settleInvestigationSave, retryInvestigationSave, type InvestigationSaveState } from "@/lib/investigationSave";
+import { INVESTIGATION_ADMISSION, type InvestigationCommand, type InvestigationSummary } from "@/lib/investigations";
+import { beginInvestigationSave, settleInvestigationSave, retryInvestigationSave, recoverInvestigationSave, type InvestigationSaveState } from "@/lib/investigationSave";
 import type { EventWorkspace, RetainedEventWorkspaceReceipt } from "@/lib/eventWorkspace";
 import styles from "./InvestigationWorkspace.module.css";
 
@@ -79,11 +79,14 @@ export default function InvestigationWorkspace({ownerKey,initialSymbol,initialIn
  }
  async function settle(response:unknown) {
   const next=settleInvestigationSave(stateRef.current,ownerKey,response);setSave(next);
-  if(next.phase==="committed"||next.phase==="rejected") {
+  if(next.phase==="committed") {
    try{sessionStorage.removeItem(storageKey(ownerKey));}catch{/* exact receipt remains authoritative */}
   }
-  if(next.phase==="committed") {setMessage(c.readback);await Promise.all([openRecord(next.result.id,next.result.revision,true),inventory()]);}
-  else if(next.phase==="rejected")setMessage(c.conflict);
+  if(next.phase==="committed") {window.history.replaceState({},"",`/analysis?view=investigations&investigation=${next.result.id}&revision=${next.result.revision}`);setMessage(c.readback);await Promise.all([openRecord(next.result.id,next.result.revision,true),inventory()]);}
+  else if(next.phase==="rejected") {
+   try{sessionStorage.setItem(storageKey(ownerKey),JSON.stringify({owner:ownerKey,command:next.command,phase:"rejected",reason:next.reason}));}catch{setStorageBlocked(true);}
+   setMessage(c.conflict);
+  }
  }
  async function send(command:InvestigationCommand) {
   try {await settle(await json("/api/investigations",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(command)}));}
@@ -106,11 +109,11 @@ export default function InvestigationWorkspace({ownerKey,initialSymbol,initialIn
   let recovery=false;
   try {
    const stored=sessionStorage.getItem(storageKey(ownerKey));
-   if(stored){const raw:unknown=JSON.parse(stored);const command=record(raw)&&raw.owner===ownerKey?parseInvestigationCommand(raw.command):null;
-    if(!command)throw Error("invalid recovery");
-    recovery=true;setSave({phase:"uncertain",principal:ownerKey,command});setEditing(true);
+   if(stored){const recovered=recoverInvestigationSave(ownerKey,JSON.parse(stored));
+    if(!recovered||(recovered.phase!=="uncertain"&&recovered.phase!=="rejected"))throw Error("invalid recovery");
+    const command=recovered.command;recovery=true;setSave(recovered);setEditing(true);
     setDraft({title:command.manifest.intent.title,question:command.manifest.intent.question,symbol:command.manifest.intent.subjects.find(s=>s.owner==="terminal.analysis_symbol")?.object_id??"",next:command.manifest.continuation.next_question??"",horizon:command.manifest.intent.horizon??"",asOf:command.manifest.intent.research_as_of??"",layoutId:command.layout_capture?.layout_id??""});
-    retainedBaseline(command.manifest);void checkOutcome();
+    retainedBaseline(command.manifest);if(recovered.phase==="uncertain")void checkOutcome();else setMessage(c.conflict);
    }
   } catch {setStorageBlocked(true);}
   if(!recovery&&initialInvestigationId)void openRecord(initialInvestigationId,initialRevision);
@@ -128,12 +131,13 @@ export default function InvestigationWorkspace({ownerKey,initialSymbol,initialIn
  function beginEdit(fresh=false) {
   if(locked||storageBlocked)return;
   ++detailSeq.current;++baselineSeq.current;setMessage("");
-  if(fresh){setDetail(null);setDraft(emptyDraft(initialSymbol));setBaseline(null);setBaselineState("none");window.history.replaceState({},"","/analysis?view=investigations");}
+  if(fresh){try{sessionStorage.removeItem(storageKey(ownerKey));}catch{setStorageBlocked(true);return;}setSave({phase:"idle"});setDetail(null);setDraft(emptyDraft(initialSymbol));setBaseline(null);setBaselineState("none");window.history.replaceState({},"","/analysis?view=investigations");}
   else if(detail){const m=detail.manifest;setDraft({title:m.intent.title,question:m.intent.question,symbol:m.intent.subjects.find(s=>s.owner==="terminal.analysis_symbol")?.object_id??"",next:m.continuation.next_question??"",horizon:m.intent.horizon??"",asOf:m.intent.research_as_of??"",layoutId:""});}
   setEditing(true);
  }
  function save(action:InvestigationCommand["action"]=detail?"revise":"create") {
   if(locked||storageBlocked)return;
+  if(!detail&&saveState.phase==="rejected"&&saveState.command.expected_revision>0){setMessage(c.conflict);return;}
   let manifest:InvestigationManifest;
   if((action==="remove"||action==="restore")&&detail)manifest=detail.manifest;
   else {
@@ -160,6 +164,7 @@ export default function InvestigationWorkspace({ownerKey,initialSymbol,initialIn
   {storageBlocked&&<p className={styles.notice} role="alert">{c.storage}</p>}
   {locked&&<section className={styles.notice} aria-label={c.operation}><p role="status">{c.uncertain}</p><div className={styles.actions}><button onClick={()=>void checkOutcome()}>{c.check}</button><button disabled={saveState.phase==="pending"} onClick={()=>{const cmd=retryInvestigationSave(stateRef.current,ownerKey);if(cmd){setSave({phase:"pending",principal:ownerKey,command:cmd});void send(cmd);}}}>{c.retrySave}</button></div></section>}
   {message&&<p role="status" className={styles.notice}>{message}</p>}
+  {saveState.phase==="rejected"&&<section className={styles.notice}>{saveState.command.expected_revision>0&&<button onClick={()=>void openRecord(saveState.command.id)}>{c.viewLatest}</button>}<details><summary>{lang==="zh"?"保留的草稿":"Retained draft"}</summary><h3>{saveState.command.manifest.intent.title}</h3><p className={styles.question}>{saveState.command.manifest.intent.question}</p><p className={styles.question}>{saveState.command.manifest.continuation.next_question}</p></details></section>}
   <div className={styles.columns}>
    <aside className={styles.library} aria-label={c.list}><h2>{c.list}</h2><div className={styles.actions}><button aria-pressed={filter==="active"} onClick={()=>setFilter("active")}>{c.all}</button><button aria-pressed={filter==="removed"} onClick={()=>setFilter("removed")}>{c.trash}</button></div>
     {listError?<p role="status">{c.unavailable} <button onClick={()=>void inventory()}>{c.retry}</button></p>:items===null?<p role="status">{c.loading}</p>:!visible?.length?<p>{c.empty}</p>:visible.map(item=><button key={item.id} disabled={locked} className={`${styles.record} ${detail?.id===item.id?styles.selected:""}`} aria-pressed={detail?.id===item.id} onClick={()=>{setEditing(false);void openRecord(item.id);}}><strong>{item.title}</strong><span>{item.question}</span><small>{c.revision} {item.revision} · {clock(item.updated_at)}</small></button>)}

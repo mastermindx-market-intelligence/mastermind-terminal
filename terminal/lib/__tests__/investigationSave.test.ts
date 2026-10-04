@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { beginInvestigationSave, settleInvestigationSave, retryInvestigationSave, partitionInvestigationSave } from "../investigationSave";
+import { beginInvestigationSave, settleInvestigationSave, retryInvestigationSave, partitionInvestigationSave, recoverInvestigationSave } from "../investigationSave";
 const command=()=>({id:"10000000-0000-4000-8000-000000000001",operation_id:"20000000-0000-4000-8000-000000000001",action:"create",expected_revision:0,manifest:{schema:"investigation_manifest.v2",intent:{title:"Research",question:"Exact draft",subjects:[]},layout_refs:[],thesis_refs:[],evidence_refs:[],continuation:{}}});
 describe("lost Investigation save response",()=>{
  it("retains the original operation and draft across loss and a temporary receipt miss",()=>{
@@ -35,4 +35,16 @@ describe("lost Investigation save response",()=>{
   const result=settleInvestigationSave(pending,"alice",{status:"version_conflict",current_revision:8});
   expect(result.phase).toBe("rejected");expect(retryInvestigationSave(result,"alice")).toBeNull();
  });
+});
+
+
+it("recovers a rejected exact draft without inventing a commit or automatic retry",()=>{
+ const original=command();
+ const rejected=recoverInvestigationSave("alice",{owner:"alice",command:original,phase:"rejected",reason:"version_conflict"});
+ expect(rejected).toEqual({phase:"rejected",principal:"alice",command:original,reason:"version_conflict"});
+ expect(retryInvestigationSave(rejected!,"alice")).toBeNull();
+ expect(recoverInvestigationSave("bob",{owner:"alice",command:original})).toBeNull();
+ expect(recoverInvestigationSave("alice",{owner:"alice",command:{...original,manifest:{}}})).toBeNull();
+ expect(recoverInvestigationSave("alice",{owner:"alice",command:original,phase:"committed"})?.phase).toBe("uncertain");
+ expect(recoverInvestigationSave("alice",{owner:"alice",command:original})?.phase).toBe("uncertain");
 });

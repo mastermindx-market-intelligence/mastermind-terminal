@@ -94,15 +94,29 @@ migration/validation code. The local working copy has no current-row write targe
 a subsequent Save creates a copy unless the user explicitly selects an overwrite.
 Loading retained N never writes current N+1.
 
-## Verification status at f2220413
+## Verification status — source and fixture proof
 
-The preceding backend checkpoint `1fdefeaf` passed all hosted CI suites. The new
-checkpoint passed 10 isolated PostgreSQL cases (including atomic record capacity),
-ingest checks, and 7095 unit cases. Two existing visual source-lock checks correctly
-require recapture after the new Analysis entry changed its source. Local focused
-contract/API/recovery/retention checks passed 42 cases plus 4 baseline-route cases.
-The local full typecheck completed during implementation. Hosted type generation and typecheck also passed at f2220413. Current-head browser
-verification and source-bound recaptures remain outstanding.
+The preceding backend checkpoint `1fdefeaf` passed all hosted CI suites. Hosted
+PostgreSQL invariants also passed at `9d70e2ec`, including lifecycle content guards.
+At `f2220413`, hosted type generation/typecheck and 7095 unit cases passed; two
+source-bound Analysis visual locks required actual recapture. Those ten affected
+images have now been recaptured through the browser harness with per-viewport
+source hashes, routes and timestamps; both visual-lock suites pass (9 cases).
+
+Local browser journeys passed all 12 cases across desktop 1440x900, tablet
+820x1180 and mobile 390x844: exact save/readback/reopen, lost response and temporary
+receipt miss, 320px doubled text, and bilingual Analysis entry captures. Six
+additional browser cases prove rejected stale drafts survive reload without a new
+create, and successful saves retain their exact revision URL during a read outage.
+These use transport fixtures and the existing local preview seam, not real-user
+production authentication. Local full typecheck passes after the shared-shell and
+browser-crypto compatibility fixes. Recovery unit checks pass six cases. Native
+retained-layout host and existing workspace golden vectors pass 78 cases.
+
+Rejected commands remain in the same principal-partitioned recovery buffer until
+an explicit new edit/save replaces them; they do not become automatic retries.
+The immutable success receipt remains the only commit/retry authority. The
+independent 0028 source review is in progress; no release approval is asserted.
 
 Production read-only inventory confirmed the existing `chart_layouts` table and
 absence of both new owners before migration. The connected Terminal project has

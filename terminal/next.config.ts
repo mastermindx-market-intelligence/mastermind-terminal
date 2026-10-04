@@ -118,7 +118,7 @@ const nextConfig: NextConfig = {
   // client graph, normalize the builtin scheme so Next's existing crypto browser
   // fallback can resolve it. Server imports and Turbopack keep their normal path.
   webpack(config, { isServer, webpack }) {
-    if (!isServer) config.plugins.push(new webpack.NormalModuleReplacementPlugin(/^node:crypto$/, resource => {
+    if (!isServer) config.plugins.push(new webpack.NormalModuleReplacementPlugin(/^node:crypto$/, (resource: { request: string }) => {
       resource.request = "crypto";
     }));
     return config;
