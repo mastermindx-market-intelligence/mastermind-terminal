@@ -39,7 +39,7 @@ RUN_DOW="$(date -u +%u)"
 echo "[$(ts)] === terminal refresh start (staging) ==="
 
 rm -f "$STAGE"
-run(){ echo "[$(ts)] -> $*"; "$@" || echo "[$(ts)] WARN: '$*' exited $?"; }
+run(){ echo "[$(ts)] -> $*"; "$@" || { local rc=$?; echo "[$(ts)] WARN: '$*' exited $rc"; }; }
 
 # Snapshot the live manifest at run start: recovery artifact + shrink-guard baseline.
 BAK="$D/manifest.json.bak-nightly"
