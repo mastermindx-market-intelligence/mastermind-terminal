@@ -1,0 +1,20 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+[1m[7m[36m RUN [39m[27m[22m [36mv2.1.9 [39m[90m/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/gmi-cte-semantic-aging-20261004-astra-001/terminal[39m
+
+ [32m✓[39m lib/__tests__/accountPrefs.test.ts [2m([22m[2m35 tests[22m[2m)[22m[90m 6[2mms[22m[39m
+ [32m✓[39m lib/__tests__/companyThemeExposure.test.ts [2m([22m[2m21 tests[22m[2m)[22m[90m 47[2mms[22m[39m
+ [32m✓[39m lib/__tests__/marketPrefsOwner.test.ts [2m([22m[2m32 tests[22m[2m)[22m[90m 77[2mms[22m[39m
+ [32m✓[39m lib/__tests__/companyThemeExposureSuccessor.test.ts [2m([22m[2m64 tests[22m[2m)[22m[90m 65[2mms[22m[39m
+ [32m✓[39m lib/__tests__/terminalAppearance.test.ts [2m([22m[2m18 tests[22m[2m)[22m[90m 7[2mms[22m[39m
+ [32m✓[39m lib/__tests__/companyThemeExposureRoute.test.ts [2m([22m[2m8 tests[22m[2m)[22m[90m 236[2mms[22m[39m
+ [32m✓[39m lib/__tests__/companyThemeContextCardAging.test.tsx [2m([22m[2m11 tests[22m[2m)[22m[90m 64[2mms[22m[39m
+ [32m✓[39m lib/__tests__/terminalAppearanceSync.test.tsx [2m([22m[2m12 tests[22m[2m)[22m[90m 83[2mms[22m[39m
+ [32m✓[39m lib/__tests__/chartAppearanceContract.test.tsx [2m([22m[2m6 tests[22m[2m)[22m[90m 40[2mms[22m[39m
+
+[2m Test Files [22m [1m[32m9 passed[39m[22m[90m (9)[39m
+[2m      Tests [22m [1m[32m207 passed[39m[22m[90m (207)[39m
+[2m   Start at [22m 10:50:55
+[2m   Duration [22m 1.44s[2m (transform 648ms, setup 0ms, collect 2.00s, tests 625ms, environment 1.72s, prepare 353ms)[22m
+
+JUNIT report written to /tmp/gmi-terminal-integrated-verification-20261004/units.xml

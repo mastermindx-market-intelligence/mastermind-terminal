@@ -1,0 +1,14 @@
+{
+  "argv": [
+    "npm",
+    "--logs-dir=/tmp/gmi-terminal-canonical-launch-build-20261004/npm-logs",
+    "config",
+    "get",
+    "script-shell"
+  ],
+  "start": "2026-10-04T11:26:18.201445+00:00",
+  "end": "2026-10-04T11:26:18.315537+00:00",
+  "exit": 0,
+  "stdout": "null\n",
+  "stderr": ""
+}

@@ -1,0 +1,17 @@
+{
+  "argv": [
+    "npm",
+    "--loglevel=verbose",
+    "run",
+    "build"
+  ],
+  "child_pid": 17205,
+  "start": "2026-10-04T11:25:09.375322+00:00",
+  "end": "2026-10-04T11:25:29.382111+00:00",
+  "exit": -15,
+  "bounded_startup_timeout_seconds": 20,
+  "startup_timed_out": true,
+  "node": "v20.20.2",
+  "coverage_created": false,
+  "log": "canonical-npm-build.log"
+}

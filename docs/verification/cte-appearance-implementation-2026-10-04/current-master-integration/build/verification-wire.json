@@ -1,0 +1,183 @@
+{
+  "schema": "gmi.terminal.canonical_launcher_build.v1",
+  "status": "LOCAL_CANONICAL_SCRIPTS_PASS_WITH_ISOLATED_LOG_OUTPUT_STOP",
+  "head": "2e9c81f51267ba1cab62789db0504d8315d031a6",
+  "tree": "52e5bfa4b2a57f2174de1a12e58111c3eeac54ee",
+  "native_worktree": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/gmi-cte-semantic-aging-20261004-astra-001",
+  "admission": {
+    "comment": 5977917720,
+    "updated": "2026-10-04T11:19:58Z",
+    "chars": 25179,
+    "bytes": 25213,
+    "sha256": "4b724d2e75d1498efbd96ad23a507f4c91921bf05769cdaf8bd7e2c2c03318e7"
+  },
+  "runtime": {
+    "node": "v20.20.2",
+    "npm": "11.17.0",
+    "next": "16.2.9",
+    "node_executable": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/gmi-cte-semantic-aging-20261004-astra-001/.claude/evidence/cte-aging/node20-runtime/node_modules/node/bin/node",
+    "npm_cli": "/opt/homebrew/lib/node_modules/npm/bin/npm-cli.js",
+    "added_env_names": [
+      "PATH retainedNode20",
+      "TZ UTC",
+      "CI 1"
+    ],
+    "env_files_present": false,
+    "no_added_auth_or_testfixture_values": true
+  },
+  "mechanism": {
+    "default_log_target": "/Volumes/Mastermind/agent-workspaces/cache/npm/_logs",
+    "default_stall": "Owned17205 synchronousopen afterlogfile announcement; sampled1s",
+    "source": "/opt/homebrew/lib/node_modules/npm/lib/utils/log-file.js:157\u2013168",
+    "sample_sha256": "1f6abef526b896ee96174acef5798c918bce4aa4d06e11e07c0d6fb61f0631f3",
+    "diagnostic": {
+      "argv": [
+        "npm",
+        "--logs-dir=/tmp/gmi-terminal-canonical-launch-build-20261004/npm-logs",
+        "config",
+        "get",
+        "script-shell"
+      ],
+      "start": "2026-10-04T11:26:18.201445+00:00",
+      "end": "2026-10-04T11:26:18.315537+00:00",
+      "exit": 0,
+      "stdout": "null\n",
+      "stderr": ""
+    },
+    "scope": "Exact target logopen problem established; underlying mount/FS health not inspected/repaired",
+    "isolated_log_override": "Invocation-only --logs-dir in new temporary evidence namespace; no source/global npm configuration/cachevolume mutation"
+  },
+  "default_build_attempt": {
+    "pid": 17194,
+    "result": "canonical-npm-build-result.json",
+    "startup_timeout_seconds": 20,
+    "prebuild_not_started": true,
+    "coverage_created": false
+  },
+  "bounded_launch": {
+    "pid": 21107,
+    "receipt": "canonical-npm-launch-isolated-log.json",
+    "ready_ms": 337,
+    "result": "Launcher started; HTTP200 reached errorboundary after /login307redirect",
+    "not_auth_flow_pass": true,
+    "missing_runtime_dependency": "Existing Supabase URL/key absent; no substitution; production request acceptance held"
+  },
+  "production_build": {
+    "pid": 22378,
+    "receipt": {
+      "argv": [
+        "npm",
+        "--logs-dir=/tmp/gmi-terminal-canonical-launch-build-20261004/npm-logs",
+        "run",
+        "build"
+      ],
+      "child_pid": 22393,
+      "head": "2e9c81f51267ba1cab62789db0504d8315d031a6",
+      "tree": "52e5bfa4b2a57f2174de1a12e58111c3eeac54ee",
+      "node": "v20.20.2",
+      "npm": "11.17.0",
+      "start": "2026-10-04T11:29:03.157754+00:00",
+      "end": "2026-10-04T11:29:30.888136+00:00",
+      "exit": 0,
+      "bounded_seconds": 600,
+      "timed_out": false,
+      "env_selection": "RetainedNode20PATH/TZUTC/CI1 only; no auth/provider/testfixture/deployment inputs added",
+      "coverage_build_artifact": {
+        "exists": true,
+        "sha256": "5860f4f474ff00d95582169e40411a0114cc4b8d5db28e9185b4ded9a9ca71d9"
+      },
+      "BUILD_ID_exists": true,
+      "BUILD_ID": "gocGEqG5MrhL_xIBpopV7",
+      "log_sha256": "a2e992754580f8f72ff5716019b64748c88cb927ec9debe88aed9546f540cf8f"
+    },
+    "bundler": "Turbopack",
+    "compiled_seconds": 4.9,
+    "typescript_seconds": 20.9,
+    "static_pages": 59,
+    "webpack_flag": false,
+    "canonical_deploy_source": "ops/terminal-build.sh:1114 npm run build; package build=next build",
+    "current_CI_has_production_build": false,
+    "no_added_secrets_or_auth_fixture": true,
+    "warning": "NFT trace next.config.ts\u2192lib/flowSource.ts\u2192api/flow/stream; nonfatal, no inherited/regression attribution made"
+  },
+  "source": [
+    {
+      "path": "terminal/package.json",
+      "sha256": "722f7d03e3c7e8a14423612a3b9bf6416442498e90f5890b2249a188edd27f10"
+    },
+    {
+      "path": "terminal/package-lock.json",
+      "sha256": "c8bd178646d6ee83c463c6c8f77a6b277ddfd2e5d80f60395b4b747a9cecd1c1"
+    },
+    {
+      "path": ".github/workflows/ci.yml",
+      "sha256": "0184a31a3e98bca66cc36bf4fbe18312ff2bfbc2bccaee2654d549c594d9b295"
+    },
+    {
+      "path": "ops/terminal-build.sh",
+      "sha256": "31d04362f041258524bbce1551befbae7322d2dd80a2f368cf6ae43c98de669f"
+    },
+    {
+      "path": "DEPLOY.md",
+      "sha256": "ad2b07bdfeb1697ea9d1ee932dd1f502067b6fbd21b927ac4eba22bbac91f357"
+    },
+    {
+      "path": "scripts/build_data_coverage.py",
+      "sha256": "652c994ecfd8573a005091242c273c008b2bd64690c05ac1ccc198293b21691d"
+    },
+    {
+      "path": "terminal/next.config.ts",
+      "sha256": "85305db0bd0c943fbc40b4b1f4032e9c60d5991aa3313067a20eb0e7ea189ce0"
+    },
+    {
+      "path": "terminal/playwright.config.ts",
+      "sha256": "c075c66531c8adbe369f525e20ed864c9d8594cc7ed81fb62ecb601659f857d3"
+    }
+  ],
+  "build_output_manifest": "build-output-manifest.json",
+  "postflight": {
+    "at": "2026-10-04T11:30:53.109224+00:00",
+    "head": "2e9c81f51267ba1cab62789db0504d8315d031a6",
+    "tree": "52e5bfa4b2a57f2174de1a12e58111c3eeac54ee",
+    "source200_preserved": true,
+    "prior977_preserved": true,
+    "integrated178mappedfiles_and_wire_preserved": true,
+    "tracked": "",
+    "index": "",
+    "owned_ids": [
+      17205,
+      21121,
+      21145,
+      21153,
+      21173,
+      21174,
+      22393
+    ],
+    "owned_live_ps": "",
+    "ports": {
+      "33298": {
+        "listener": "",
+        "free_bind": true
+      },
+      "33300": {
+        "listener": "",
+        "free_bind": true
+      }
+    },
+    "coverage_local_build_output": {
+      "path": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/gmi-cte-semantic-aging-20261004-astra-001/terminal/public/data/coverage.json",
+      "bytes": 1115,
+      "sha256": "5860f4f474ff00d95582169e40411a0114cc4b8d5db28e9185b4ded9a9ca71d9",
+      "prior_existed": false,
+      "not_published": true
+    }
+  },
+  "holds": [
+    "Defaultnative npm logs volume target remains unresolved; root/incumbent runtime owner, no cachecleanup or global change",
+    "Explicit webpack build not executed and not the current canonical production command",
+    "Local dev login/terminal requires existingSupabase configuration; no authenticated/private/live consumer proof",
+    "Root owns Gitpush/currenthostedCI/merge/deploy/livepostimage; no releaseeffect",
+    "All \u00a70/\u00a79 natural/currentrights/premiumprivate/service/tier and productcompletion holds remain, all influencefalse"
+  ],
+  "STOP": true
+}

@@ -1,0 +1,256 @@
+{
+  "schema": "gmi.terminal.integrated-verification.v1",
+  "status": "CONTROLLED_SOURCE_UI_PASS_CANONICAL_NPM_LAUNCH_INCONCLUSIVE_STOP",
+  "head": "2e9c81f51267ba1cab62789db0504d8315d031a6",
+  "tree": "52e5bfa4b2a57f2174de1a12e58111c3eeac54ee",
+  "parents": [
+    "a122cc2a9aa0748399fa2162d8a40a576af01807",
+    "d9128b500fb434e3548574e89b25a2a85053f3d7"
+  ],
+  "carrier": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/gmi-cte-semantic-aging-20261004-astra-001",
+  "admission": {
+    "comment": 5977917720,
+    "updated": "2026-10-04T10:47:24Z",
+    "characters": 21287,
+    "sha256": "d94d52418c23a19391c75e15fc75a95eb5309bc41351591816646d912cd89e09"
+  },
+  "owning_tests": {
+    "pid": 87361,
+    "exit": 0,
+    "cases": 207,
+    "source_receipt": "source-tests.json",
+    "typecheck": true,
+    "node": "v20.20.2"
+  },
+  "changed_shell_tests": {
+    "pid": 14638,
+    "exit": 0,
+    "cases": 36,
+    "receipt": "changed-shell-units.json"
+  },
+  "served": {
+    "pid": 48389,
+    "exit": 0,
+    "desktop_mobile_cases": 48,
+    "tablet_cases": 4,
+    "images": 148,
+    "image_bytes": 20111819,
+    "repeat_each": 1,
+    "workers": 1,
+    "retries": 0,
+    "CI": true,
+    "no_server_reuse": true,
+    "actual_controlled_app": true,
+    "receipts": [
+      "served-direct-results.json",
+      "images.json"
+    ],
+    "launch_config": "playwright-direct.config.ts",
+    "launch_config_sha256": "0e4ff584f9d82de0de342ed70144311c329ce17af5c4db3b6dd36661323ddeb3"
+  },
+  "failed_first_launch": {
+    "pid": 9594,
+    "exit": 1,
+    "timeout_seconds": 120,
+    "tests_started": 0,
+    "images": 0,
+    "receipt": "served-results.json",
+    "attribution": "Canonical npm run dev did not open33298; cause not established. npm and Next version commands passed. No app assertion or blanket timeout increase."
+  },
+  "postflight": {
+    "at": "2026-10-04T11:03:21.306757+00:00",
+    "head": "2e9c81f51267ba1cab62789db0504d8315d031a6",
+    "tree": "52e5bfa4b2a57f2174de1a12e58111c3eeac54ee",
+    "candidate200_preserved": true,
+    "prior_proof_files_preserved": 977,
+    "prior_proof_bytes_preserved": 159003639,
+    "errors": [],
+    "tracked": "",
+    "index": "",
+    "owned_started_ids": [
+      9594,
+      9616,
+      9660,
+      48389,
+      48405,
+      48438,
+      48449,
+      48589,
+      48602,
+      48834,
+      48881,
+      48917,
+      48922,
+      51793,
+      79684,
+      79767,
+      79791,
+      80364,
+      80456,
+      80475,
+      80476,
+      84852,
+      84890
+    ],
+    "owned_live_ps": "",
+    "port": 33298,
+    "listener": "",
+    "port_free_bind": true
+  },
+  "artifact_manifest": {
+    "path": "artifact-manifest.json",
+    "sha256": "0c6e10c79dc470710697ccd2d060ad65c1cf11730b7211ea03decbec04626979",
+    "mapped_files": 178,
+    "mapped_bytes": 20665916
+  },
+  "inspected_images": [
+    {
+      "path": "desktop-mobile-direct-raw/company-intelligence-appea-02048-ading-or-fetching-light-ZH--mobile/light-zh-expired-shell.png",
+      "bytes": 110235,
+      "sha256": "f3fa80924f3f4f873dad3670cf7d7c128eb8501bbe47847738afb62108ebb9f9",
+      "dimensions": [
+        390,
+        844
+      ]
+    },
+    {
+      "path": "desktop-mobile-direct-raw/company-intelligence-appea-7035a-theme-card-future-light-ZH--mobile/light-zh-future-card.png",
+      "bytes": 78106,
+      "sha256": "2eb1a04e8adf3645eb8979a9892ffa2da7963004dc9a3ca4de27cf60ce747523",
+      "dimensions": [
+        366,
+        353
+      ]
+    },
+    {
+      "path": "desktop-mobile-direct-raw/company-intelligence-appea-db038--and-a-new-cold-context-EN--desktop/control-dark-cold-en-shell.png",
+      "bytes": 335325,
+      "sha256": "4434dcdbc5826880a9f589d389fbbfdff3cbb49569eeb918dcc7002db9540d8c",
+      "dimensions": [
+        1440,
+        900
+      ]
+    },
+    {
+      "path": "desktop-mobile-direct-raw/company-intelligence-appea-db038--and-a-new-cold-context-EN--desktop/control-light-en-shell.png",
+      "bytes": 322740,
+      "sha256": "b8b3758c0e072523f67606a3ed6544db4ada9a3c0793387a3f0cde6d30b9e9e5",
+      "dimensions": [
+        1440,
+        900
+      ]
+    },
+    {
+      "path": "desktop-mobile-direct-raw/company-intelligence-appea-15fd2--and-a-new-cold-context-ZH--mobile/control-dark-cold-zh-shell.png",
+      "bytes": 123606,
+      "sha256": "30e2a382eb90856bac201c95fd10adc2d789348ab8c8ff92b1d691d6022da614",
+      "dimensions": [
+        390,
+        844
+      ]
+    },
+    {
+      "path": "tablet-controls-direct-raw/company-intelligence-appea-15fd2--and-a-new-cold-context-ZH--tablet/control-light-zh-shell.png",
+      "bytes": 221779,
+      "sha256": "da816f075cbe6863f309e556a47a7cabf4e1227d08b0f60b3d8103431b140c44",
+      "dimensions": [
+        820,
+        1180
+      ]
+    },
+    {
+      "path": "desktop-mobile-direct-raw/company-intelligence-appea-f71de-oading-or-fetching-dark-EN--mobile/dark-en-expired-card.png",
+      "bytes": 80528,
+      "sha256": "35849a6b576cd745257e6296320aeaf7cbd7f3e21d5f58212d381d0be77b4a77",
+      "dimensions": [
+        366,
+        368
+      ]
+    },
+    {
+      "path": "desktop-mobile-direct-raw/company-intelligence-appea-9e4c3-theme-card-future-light-EN--desktop/light-en-future-card.png",
+      "bytes": 125467,
+      "sha256": "095eced0a2a038c8a6fbf08a48aa716ecccf104950a039671fd215b7ebfa4a9b",
+      "dimensions": [
+        614,
+        367
+      ]
+    },
+    {
+      "path": "desktop-mobile-direct-raw/company-intelligence-appea-02048-ading-or-fetching-light-ZH--desktop/light-zh-expired-card.png",
+      "bytes": 111952,
+      "sha256": "a4cf768bcbc5f77af95fcde67197cab7dcad45007234ca2437216a98b42b5371",
+      "dimensions": [
+        614,
+        350
+      ]
+    }
+  ],
+  "current_source": [
+    {
+      "path": "AGENTS.md",
+      "sha256": "6fac041833148126262ec243bc23cc49186df58a82444b552565c370e01e89f0"
+    },
+    {
+      "path": "terminal/AGENTS.md",
+      "sha256": "e3fa317ad3eefc1cc0105f0ed7d8f0e51e14bd4d7a8bc9f3b5f048506cd5c8b6"
+    },
+    {
+      "path": "terminal/CLAUDE.md",
+      "sha256": "cbbb81e6108ee2f0836d4bd7af3ad44f9eb7d17fe7e8bb620abdf3866d15f587"
+    },
+    {
+      "path": "terminal/components/chrome/AppShell.tsx",
+      "sha256": "8304dcb1f7d3d414f8748cd84eb7d8ffdd434de7d4514a2837aab3b1c1fb079d"
+    },
+    {
+      "path": "terminal/components/chrome/AnalysisBrainHost.tsx",
+      "sha256": "18000d1e299a5d060bd6c1b546ca431b31693b82ed505156785554531a5c22be"
+    },
+    {
+      "path": "terminal/components/BrainWidget.tsx",
+      "sha256": "4791dd558d5f3daa5def9fc0f83810d2b864fff9ea727e7716820a0dde483ee5"
+    },
+    {
+      "path": "terminal/components/workspaces/AnalysisWorkspace.tsx",
+      "sha256": "f98764b71e4e1301d6149aef0d3e47615455801f95a9691b4d8807febe92226e"
+    },
+    {
+      "path": "terminal/app/company-intelligence.css",
+      "sha256": "16ca4e131ad1f2973b6346e7f051af802dbfa27227d6c33615af87578e73f885"
+    },
+    {
+      "path": "terminal/next.config.ts",
+      "sha256": "85305db0bd0c943fbc40b4b1f4032e9c60d5991aa3313067a20eb0e7ea189ce0"
+    },
+    {
+      "path": "terminal/e2e/company-intelligence-appearance.spec.ts",
+      "sha256": "aacc676fa0c6d1ee2975236256303c54a54c2a04328b30b1972d3ba64b79354f"
+    },
+    {
+      "path": "terminal/playwright.config.ts",
+      "sha256": "c075c66531c8adbe369f525e20ed864c9d8594cc7ed81fb62ecb601659f857d3"
+    },
+    {
+      "path": "terminal/e2e/globalSetup.ts",
+      "sha256": "8a9e68f225d762d53fb43271e6f5437fe51bbfe674e2e7917f34213a9433db99"
+    },
+    {
+      "path": "terminal/node_modules/next/dist/docs/01-app/03-api-reference/05-config/01-next-config-js/webpack.md",
+      "sha256": "41302b7c328a2aac0f74cb2582e848772ba19c37b94f61c42314a42a4b4c0154"
+    }
+  ],
+  "limits": [
+    "Synthetic clocks/business API/identity; no natural/private/authenticated production claim",
+    "Temporarylaunch config only replaces npm wrapper with same actualNext dev CLI; canonicalnpm/current hosted gate not accepted",
+    "Dev Turbopack does not execute webpack-only crypto adapter; canonical production build remains root gate",
+    "Prior128/168 matrices remain exact earlier-source evidence; no new full128repeat claim",
+    "Inherited273errors/24warnings lint remains source-attributed, not rerun or waived",
+    "Premium private/service/tier owner dependency remains separate/unsatisfied; sign-in-only BFF insufficient",
+    "No source/index/CI/dependency/auth/provider/publication/rights changes or release effect",
+    "ZH whole-shell syntheticbusiness inputs remain English outside localizedUI claim"
+  ],
+  "source_effects": false,
+  "runtime_effects": "Two isolatedcontrolledNext dev previews started/stopped; canonicalnpm startupfailed/stopped; no live/runtimeproduction effect",
+  "STOP": true
+}

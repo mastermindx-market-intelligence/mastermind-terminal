@@ -1,0 +1,47 @@
+[
+  {
+    "at": "2026-10-04T11:01:56.149256+00:00",
+    "rows": [
+      {
+        "pid": 48389,
+        "identity": "48389 11274 /opt/homebrew/Cellar/python@3.14/3.14.7/Frameworks/Python.framework/Versions/3.14/Resources/Python.app/Contents/MacOS/Python"
+      },
+      {
+        "pid": 79684,
+        "identity": "79684 48389 /Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/gmi-cte-semantic-aging-20261004-astra-001/.claude/evidence/cte-aging/node20-runtime/node_modules/node/bin/node"
+      },
+      {
+        "pid": 79767,
+        "identity": "79767 79684 /Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/gmi-cte-semantic-aging-20261004-astra-001/.claude/evidence/cte-aging/node20-runtime/node_modules/node/bin/node"
+      },
+      {
+        "pid": 80364,
+        "identity": "80364 79684 /Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/gmi-cte-semantic-aging-20261004-astra-001/.claude/evidence/cte-aging/node20-runtime/node_modules/node/bin/node"
+      },
+      {
+        "pid": 79791,
+        "identity": "79791 79767 next-server (v16.2.9)"
+      },
+      {
+        "pid": 80456,
+        "identity": "80456 80364 /Users/chriswong/Library/Caches/ms-playwright/chromium_headless_shell-1228/chrome-headless-shell-mac-arm64/chrome-headless-shell"
+      },
+      {
+        "pid": 84890,
+        "identity": "84890 79791 /Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/gmi-cte-semantic-aging-20261004-astra-001/.claude/evidence/cte-aging/node20-runtime/node_modules/node/bin/node"
+      },
+      {
+        "pid": 80475,
+        "identity": "80475 80456 /Users/chriswong/Library/Caches/ms-playwright/chromium_headless_shell-1228/chrome-headless-shell-mac-arm64/chrome-headless-shell"
+      },
+      {
+        "pid": 80476,
+        "identity": "80476 80456 /Users/chriswong/Library/Caches/ms-playwright/chromium_headless_shell-1228/chrome-headless-shell-mac-arm64/chrome-headless-shell"
+      },
+      {
+        "pid": 84852,
+        "identity": "84852 80456 /Users/chriswong/Library/Caches/ms-playwright/chromium_headless_shell-1228/chrome-headless-shell-mac-arm64/chrome-headless-shell"
+      }
+    ]
+  }
+]

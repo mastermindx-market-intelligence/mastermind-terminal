@@ -1,0 +1,435 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<testsuites name="vitest tests" tests="207" failures="0" errors="0" time="1.439">
+    <testsuite name="lib/__tests__/accountPrefs.test.ts" timestamp="2026-10-04T10:50:57.048Z" hostname="m2studio" tests="35" failures="0" errors="0" skipped="0" time="0.005646041">
+        <testcase classname="lib/__tests__/accountPrefs.test.ts" name="metaObject — the merge base &gt; returns a COPY, so mutating the spread never writes through to the loaded metadata" time="0.000652875">
+        </testcase>
+        <testcase classname="lib/__tests__/accountPrefs.test.ts" name="metaObject — the merge base &gt; preserves keys it does not understand — a future macro field must survive our write" time="0.000306125">
+        </testcase>
+        <testcase classname="lib/__tests__/accountPrefs.test.ts" name="metaObject — the merge base &gt; degrades to {} for a missing key, a null, an array or a primitive" time="0.000256958">
+        </testcase>
+        <testcase classname="lib/__tests__/accountPrefs.test.ts" name="readTerminalMeta &gt; keeps a valid start_tf and updown" time="0.000156">
+        </testcase>
+        <testcase classname="lib/__tests__/accountPrefs.test.ts" name="readTerminalMeta &gt; drops a timeframe the Terminal does not offer rather than propagating it into the chart" time="0.000131417">
+        </testcase>
+        <testcase classname="lib/__tests__/accountPrefs.test.ts" name="readTerminalMeta &gt; drops an unknown up/down convention" time="0.000088542">
+        </testcase>
+        <testcase classname="lib/__tests__/accountPrefs.test.ts" name="readTerminalMeta &gt; leaves absent keys ABSENT — &apos;never expressed&apos; is not &apos;wants the default&apos;" time="0.0000865">
+        </testcase>
+        <testcase classname="lib/__tests__/accountPrefs.test.ts" name="readMetaPrefs — the macro prefs blob &gt; reads theme, themeAuto and lang" time="0.000143375">
+        </testcase>
+        <testcase classname="lib/__tests__/accountPrefs.test.ts" name="readMetaPrefs — the macro prefs blob &gt; keeps themeAuto as macro&apos;s &apos;1&apos;/&apos;0&apos; STRING — they read it back verbatim" time="0.000083917">
+        </testcase>
+        <testcase classname="lib/__tests__/accountPrefs.test.ts" name="readMetaPrefs — the macro prefs blob &gt; drops unknown languages and themes" time="0.0000685">
+        </testcase>
+        <testcase classname="lib/__tests__/accountPrefs.test.ts" name="readMetaPrefs — the macro prefs blob &gt; degrades to {} on junk" time="0.000165792">
+        </testcase>
+        <testcase classname="lib/__tests__/accountPrefs.test.ts" name="guards &gt; accepts only the documented vocabularies" time="0.000121542">
+        </testcase>
+        <testcase classname="lib/__tests__/accountPrefs.test.ts" name="readUpDown / applyUpDown &gt; reads the live &lt;html&gt; attribute first — the pre-paint script already reconciled it" time="0.00027775">
+        </testcase>
+        <testcase classname="lib/__tests__/accountPrefs.test.ts" name="readUpDown / applyUpDown &gt; falls back to localStorage, then to the west default" time="0.000098708">
+        </testcase>
+        <testcase classname="lib/__tests__/accountPrefs.test.ts" name="readUpDown / applyUpDown &gt; ignores a junk attribute rather than painting an undefined convention" time="0.000078">
+        </testcase>
+        <testcase classname="lib/__tests__/accountPrefs.test.ts" name="readUpDown / applyUpDown &gt; applies all three writes — storage, attribute, and the repaint event canvases listen for" time="0.000120417">
+        </testcase>
+        <testcase classname="lib/__tests__/accountPrefs.test.ts" name="readUpDown / applyUpDown &gt; reads the live language off the document, defaulting to en" time="0.000089083">
+        </testcase>
+        <testcase classname="lib/__tests__/accountPrefs.test.ts" name="readSharedPrefs — v2 atomic wins, legacy blob is the fallback (macro has already migrated) &gt; prefers the atomic over the legacy sibling — macro&apos;s own writer is atomic-only now" time="0.000133167">
+        </testcase>
+        <testcase classname="lib/__tests__/accountPrefs.test.ts" name="readSharedPrefs — v2 atomic wins, legacy blob is the fallback (macro has already migrated) &gt; falls back FIELD BY FIELD — a half-migrated account is the normal rollout state" time="0.000053708">
+        </testcase>
+        <testcase classname="lib/__tests__/accountPrefs.test.ts" name="readSharedPrefs — v2 atomic wins, legacy blob is the fallback (macro has already migrated) &gt; reads an account that has only ever had the legacy blob" time="0.000053083">
+        </testcase>
+        <testcase classname="lib/__tests__/accountPrefs.test.ts" name="readSharedPrefs — v2 atomic wins, legacy blob is the fallback (macro has already migrated) &gt; reads an account that has only the atomics" time="0.000048417">
+        </testcase>
+        <testcase classname="lib/__tests__/accountPrefs.test.ts" name="readSharedPrefs — v2 atomic wins, legacy blob is the fallback (macro has already migrated) &gt; ignores a junk legacy value and uses the atomic rather than dropping the preference" time="0.000047459">
+        </testcase>
+        <testcase classname="lib/__tests__/accountPrefs.test.ts" name="readSharedPrefs — v2 atomic wins, legacy blob is the fallback (macro has already migrated) &gt; leaves an unexpressed field ABSENT" time="0.000069542">
+        </testcase>
+        <testcase classname="lib/__tests__/accountPrefs.test.ts" name="readSharedPrefs — v2 atomic wins, legacy blob is the fallback (macro has already migrated) &gt; a macro-only edit made AFTER Terminal last touched the account is not hidden" time="0.000048125">
+        </testcase>
+        <testcase classname="lib/__tests__/accountPrefs.test.ts" name="sharedPrefsPatch — write ONLY what changed, as the v2 atomics &gt; emits just the field the user touched, so a language change carries no theme" time="0.000084209">
+        </testcase>
+        <testcase classname="lib/__tests__/accountPrefs.test.ts" name="sharedPrefsPatch — write ONLY what changed, as the v2 atomics &gt; never emits the nested blob shape — that is legacyPrefsPatch&apos;s job" time="0.000370083">
+        </testcase>
+        <testcase classname="lib/__tests__/accountPrefs.test.ts" name="sharedPrefsPatch — write ONLY what changed, as the v2 atomics &gt; drops invalid values rather than writing them to the shared account" time="0.000061959">
+        </testcase>
+        <testcase classname="lib/__tests__/accountPrefs.test.ts" name="legacyPrefsPatch — the SAME patch, shaped for the dual-written nested blob &gt; mirrors sharedPrefsPatch&apos;s fields but keeps the nested blob&apos;s camelCase names" time="0.000127292">
+        </testcase>
+        <testcase classname="lib/__tests__/accountPrefs.test.ts" name="legacyPrefsPatch — the SAME patch, shaped for the dual-written nested blob &gt; drops invalid values, exactly like sharedPrefsPatch" time="0.00006675">
+        </testcase>
+        <testcase classname="lib/__tests__/accountPrefs.test.ts" name="legacyPrefsPatch — the SAME patch, shaped for the dual-written nested blob &gt; emits only the touched fields — the caller spreads this over the last-known blob, never replaces it" time="0.000045667">
+        </testcase>
+        <testcase classname="lib/__tests__/accountPrefs.test.ts" name="the dual write round-trips through BOTH representations &gt; an atomic-ONLY macro write is visible even when a stale legacy sibling already exists" time="0.000057208">
+        </testcase>
+        <testcase classname="lib/__tests__/accountPrefs.test.ts" name="the dual write round-trips through BOTH representations &gt; the SAME edit, dual-written, takes effect immediately" time="0.000060583">
+        </testcase>
+        <testcase classname="lib/__tests__/accountPrefs.test.ts" name="the dual write round-trips through BOTH representations &gt; a Terminal legacy write reads back correctly once merged into the account&apos;s nested blob" time="0.000056375">
+        </testcase>
+        <testcase classname="lib/__tests__/accountPrefs.test.ts" name="isScopedToEmpty — result-shaped predicate &gt; is true for a ScopedToEmpty send result" time="0.000056875">
+        </testcase>
+        <testcase classname="lib/__tests__/accountPrefs.test.ts" name="isScopedToEmpty — result-shaped predicate &gt; is false for null, a string, and an Error without that name" time="0.000077875">
+        </testcase>
+    </testsuite>
+    <testsuite name="lib/__tests__/chartAppearanceContract.test.tsx" timestamp="2026-10-04T10:50:57.053Z" hostname="m2studio" tests="6" failures="0" errors="0" skipped="0" time="0.039818083">
+        <testcase classname="lib/__tests__/chartAppearanceContract.test.tsx" name="actual ChartPanel palette seam &gt; a real theme event advances style epoch and drops cached suite colors" time="0.01128775">
+        </testcase>
+        <testcase classname="lib/__tests__/chartAppearanceContract.test.tsx" name="actual ChartPanel palette seam &gt; retains up/down refresh and removes both event handlers on cleanup" time="0.002345167">
+        </testcase>
+        <testcase classname="lib/__tests__/chartAppearanceContract.test.tsx" name="actual ChartPanel palette seam &gt; uses the readable light crosshair label backdrop and preserves dark panel fallback" time="0.022105042">
+        </testcase>
+        <testcase classname="lib/__tests__/chartAppearanceContract.test.tsx" name="actual ChartPanel palette seam &gt; west token snapshot follows actual directional values" time="0.001396333">
+        </testcase>
+        <testcase classname="lib/__tests__/chartAppearanceContract.test.tsx" name="actual ChartPanel palette seam &gt; east token snapshot follows actual directional values" time="0.000957">
+        </testcase>
+        <testcase classname="lib/__tests__/chartAppearanceContract.test.tsx" name="actual ChartPanel palette seam &gt; the incumbent style consumer preserves custom overrides and existing indicator recoloring" time="0.001114417">
+        </testcase>
+    </testsuite>
+    <testsuite name="lib/__tests__/companyThemeContextCardAging.test.tsx" timestamp="2026-10-04T10:50:57.053Z" hostname="m2studio" tests="11" failures="0" errors="0" skipped="0" time="0.064167125">
+        <testcase classname="lib/__tests__/companyThemeContextCardAging.test.tsx" name="mounted company theme card semantic aging &gt; ages the existing footer and warning at expiry without a fetch or click" time="0.023981375">
+        </testcase>
+        <testcase classname="lib/__tests__/companyThemeContextCardAging.test.tsx" name="mounted company theme card semantic aging &gt; discloses a future receipt as partial instead of a Verified header" time="0.006508375">
+        </testcase>
+        <testcase classname="lib/__tests__/companyThemeContextCardAging.test.tsx" name="mounted company theme card semantic aging &gt; re-ages on focus after a background clock jump" time="0.006052625">
+        </testcase>
+        <testcase classname="lib/__tests__/companyThemeContextCardAging.test.tsx" name="mounted company theme card semantic aging &gt; re-ages on visibilitychange after a background clock jump" time="0.004196417">
+        </testcase>
+        <testcase classname="lib/__tests__/companyThemeContextCardAging.test.tsx" name="mounted company theme card semantic aging &gt; cancels the old expiry when context identity changes" time="0.005088042">
+        </testcase>
+        <testcase classname="lib/__tests__/companyThemeContextCardAging.test.tsx" name="mounted company theme card semantic aging &gt; quarantines a changed parent and cancels late results" time="0.002103416">
+        </testcase>
+        <testcase classname="lib/__tests__/companyThemeContextCardAging.test.tsx" name="mounted company theme card semantic aging &gt; historical quarantine outranks expired receipts and schedules no expiry" time="0.003048875">
+        </testcase>
+        <testcase classname="lib/__tests__/companyThemeContextCardAging.test.tsx" name="mounted company theme card semantic aging &gt; quarantines retained context until a return-to-latest fetch settles" time="0.003299459">
+        </testcase>
+        <testcase classname="lib/__tests__/companyThemeContextCardAging.test.tsx" name="mounted company theme card semantic aging &gt; parent quarantine wins even when the sidecar publication clock is future" time="0.001826167">
+        </testcase>
+        <testcase classname="lib/__tests__/companyThemeContextCardAging.test.tsx" name="mounted company theme card semantic aging &gt; uses current ZH copy on timed expiry without leaking EN status" time="0.004686709">
+        </testcase>
+        <testcase classname="lib/__tests__/companyThemeContextCardAging.test.tsx" name="mounted company theme card semantic aging &gt; clears expiry and resume listeners on unmount" time="0.002702041">
+        </testcase>
+    </testsuite>
+    <testsuite name="lib/__tests__/companyThemeExposure.test.ts" timestamp="2026-10-04T10:50:57.054Z" hostname="m2studio" tests="21" failures="0" errors="0" skipped="0" time="0.046887125">
+        <testcase classname="lib/__tests__/companyThemeExposure.test.ts" name="company theme exposure normalizer &gt; accepts only a closed context-only membership projection" time="0.002463958">
+        </testcase>
+        <testcase classname="lib/__tests__/companyThemeExposure.test.ts" name="company theme exposure normalizer &gt; keeps mapped, unmapped-only, and no-membership coverage distinct" time="0.00039275">
+        </testcase>
+        <testcase classname="lib/__tests__/companyThemeExposure.test.ts" name="company theme exposure normalizer &gt; requires manifest global coverage and every safe company path" time="0.000801584">
+        </testcase>
+        <testcase classname="lib/__tests__/companyThemeExposure.test.ts" name="company theme exposure R2 verification &gt; proves marker then immutable manifest then object receipt" time="0.021493667">
+        </testcase>
+        <testcase classname="lib/__tests__/companyThemeExposure.test.ts" name="company theme exposure R2 verification &gt; refuses a non-identical immutable manifest before reading a company object" time="0.001012708">
+        </testcase>
+        <testcase classname="lib/__tests__/companyThemeExposure.test.ts" name="company theme exposure R2 verification &gt; never widens the trusted R2 origin and validates object bytes" time="0.002207959">
+        </testcase>
+        <testcase classname="lib/__tests__/companyThemeExposure.test.ts" name="company theme exposure R2 verification &gt; binds the company object to manifest and current Company Intelligence lineage" time="0.005339833">
+        </testcase>
+        <testcase classname="lib/__tests__/companyThemeExposure.test.ts" name="company theme exposure R2 verification &gt; requires matching generation timestamp and theme-state receipt" time="0.001460125">
+        </testcase>
+        <testcase classname="lib/__tests__/companyThemeExposure.test.ts" name="company theme exposure R2 verification &gt; serves a stale fallback only while its Company Intelligence lineage still matches" time="0.000936125">
+        </testcase>
+        <testcase classname="lib/__tests__/companyThemeExposure.test.ts" name="company theme exposure browser client &gt; rejects an unexplained partial wire override on a fresh ready source" time="0.000631709">
+        </testcase>
+        <testcase classname="lib/__tests__/companyThemeExposure.test.ts" name="company theme exposure browser client &gt; rejects an unexplained not_covered wire override on a fresh ready source" time="0.000218792">
+        </testcase>
+        <testcase classname="lib/__tests__/companyThemeExposure.test.ts" name="company theme exposure browser client &gt; uses a same-origin no-store BFF" time="0.001048416">
+        </testcase>
+        <testcase classname="lib/__tests__/companyThemeExposure.test.ts" name="company theme exposure per-use calendar age &gt; ages first HTTP200, cache hits and identical refetches without refreshing source time" time="0.001513125">
+        </testcase>
+        <testcase classname="lib/__tests__/companyThemeExposure.test.ts" name="company theme exposure per-use calendar age &gt; keeps day five fresh and crosses UTC day six inside both cache TTLs" time="0.000547542">
+        </testcase>
+        <testcase classname="lib/__tests__/companyThemeExposure.test.ts" name="company theme exposure per-use calendar age &gt; keeps a source-admitted stale receipt stale while it is young" time="0.000652958">
+        </testcase>
+        <testcase classname="lib/__tests__/companyThemeExposure.test.ts" name="company theme exposure per-use calendar age &gt; keeps missing source receipt unknown with no expiry" time="0.000765709">
+        </testcase>
+        <testcase classname="lib/__tests__/companyThemeExposure.test.ts" name="company theme exposure per-use calendar age &gt; keeps invalid source receipt unknown with no expiry" time="0.000786292">
+        </testcase>
+        <testcase classname="lib/__tests__/companyThemeExposure.test.ts" name="company theme exposure per-use calendar age &gt; rejects future publication clocks and discloses future source dates" time="0.001656917">
+        </testcase>
+        <testcase classname="lib/__tests__/companyThemeExposure.test.ts" name="company theme exposure per-use calendar age &gt; re-ages last-good fallback and still refuses a new parent identity" time="0.000954292">
+        </testcase>
+        <testcase classname="lib/__tests__/companyThemeExposure.test.ts" name="company theme exposure per-use calendar age &gt; recomputes browser freshness from source bytes rather than trusting an injected expiry" time="0.00033925">
+        </testcase>
+        <testcase classname="lib/__tests__/companyThemeExposure.test.ts" name="company theme exposure per-use calendar age &gt; preserves a verified empty membership projection while aging its independent receipt" time="0.000718958">
+        </testcase>
+    </testsuite>
+    <testsuite name="lib/__tests__/companyThemeExposureRoute.test.ts" timestamp="2026-10-04T10:50:57.056Z" hostname="m2studio" tests="8" failures="0" errors="0" skipped="0" time="0.236442042">
+        <testcase classname="lib/__tests__/companyThemeExposureRoute.test.ts" name="/api/company-theme-context/[symbol] &gt; round-trips a future-source derived partial from verified resolver through API to browser and mounted card" time="0.22375825">
+        </testcase>
+        <testcase classname="lib/__tests__/companyThemeExposureRoute.test.ts" name="/api/company-theme-context/[symbol] &gt; ages a hash-verified HTTP200 publication without changing its context receipts" time="0.002057167">
+        </testcase>
+        <testcase classname="lib/__tests__/companyThemeExposureRoute.test.ts" name="/api/company-theme-context/[symbol] &gt; returns a receipt-verified payload aligned to current Company Intelligence" time="0.001446417">
+        </testcase>
+        <testcase classname="lib/__tests__/companyThemeExposureRoute.test.ts" name="/api/company-theme-context/[symbol] &gt; requires a server-verified session before either data plane is read" time="0.000477375">
+        </testcase>
+        <testcase classname="lib/__tests__/companyThemeExposureRoute.test.ts" name="/api/company-theme-context/[symbol] &gt; rejects malformed ticker segments before upstream access" time="0.000649375">
+        </testcase>
+        <testcase classname="lib/__tests__/companyThemeExposureRoute.test.ts" name="/api/company-theme-context/[symbol] &gt; quarantines a sidecar whose Company Intelligence generation lags current" time="0.00087575">
+        </testcase>
+        <testcase classname="lib/__tests__/companyThemeExposureRoute.test.ts" name="/api/company-theme-context/[symbol] &gt; does not read the sidecar when current Company Intelligence is unavailable" time="0.000346375">
+        </testcase>
+        <testcase classname="lib/__tests__/companyThemeExposureRoute.test.ts" name="/api/company-theme-context/[symbol] &gt; returns a browser-parseable no-store rate-limit envelope" time="0.006215875">
+        </testcase>
+    </testsuite>
+    <testsuite name="lib/__tests__/companyThemeExposureSuccessor.test.ts" timestamp="2026-10-04T10:50:57.057Z" hostname="m2studio" tests="64" failures="0" errors="0" skipped="0" time="0.064936709">
+        <testcase classname="lib/__tests__/companyThemeExposureSuccessor.test.ts" name="closed shadow reader from actual controlled Macro and State owners &gt; embeds the owner definitions exactly and pins development provenance" time="0.001924375">
+        </testcase>
+        <testcase classname="lib/__tests__/companyThemeExposureSuccessor.test.ts" name="closed shadow reader from actual controlled Macro and State owners &gt; accepts real composed descriptive without mutation" time="0.011289875">
+        </testcase>
+        <testcase classname="lib/__tests__/companyThemeExposureSuccessor.test.ts" name="closed shadow reader from actual controlled Macro and State owners &gt; accepts real composed qualified without mutation" time="0.001887666">
+        </testcase>
+        <testcase classname="lib/__tests__/companyThemeExposureSuccessor.test.ts" name="closed shadow reader from actual controlled Macro and State owners &gt; accepts real composed valid_empty without mutation" time="0.001277375">
+        </testcase>
+        <testcase classname="lib/__tests__/companyThemeExposureSuccessor.test.ts" name="closed shadow reader from actual controlled Macro and State owners &gt; accepts real composed unavailable without mutation" time="0.001207541">
+        </testcase>
+        <testcase classname="lib/__tests__/companyThemeExposureSuccessor.test.ts" name="closed shadow reader from actual controlled Macro and State owners &gt; accepts real composed missing without mutation" time="0.000589166">
+        </testcase>
+        <testcase classname="lib/__tests__/companyThemeExposureSuccessor.test.ts" name="closed shadow reader from actual controlled Macro and State owners &gt; accepts real composed future without mutation" time="0.000602666">
+        </testcase>
+        <testcase classname="lib/__tests__/companyThemeExposureSuccessor.test.ts" name="closed shadow reader from actual controlled Macro and State owners &gt; accepts real composed rights without mutation" time="0.001172417">
+        </testcase>
+        <testcase classname="lib/__tests__/companyThemeExposureSuccessor.test.ts" name="closed shadow reader from actual controlled Macro and State owners &gt; accepts real composed specialist without mutation" time="0.007108791">
+        </testcase>
+        <testcase classname="lib/__tests__/companyThemeExposureSuccessor.test.ts" name="closed shadow reader from actual controlled Macro and State owners &gt; preserves local unmapped context and explicit current-valid canonical qualification" time="0.001184625">
+        </testcase>
+        <testcase classname="lib/__tests__/companyThemeExposureSuccessor.test.ts" name="closed shadow reader from actual controlled Macro and State owners &gt; preserves specialist units/windows/nulls/conflicts and source clocks" time="0.00127525">
+        </testcase>
+        <testcase classname="lib/__tests__/companyThemeExposureSuccessor.test.ts" name="closed shadow reader from actual controlled Macro and State owners &gt; does not grant delivery rights from a retained research receipt" time="0.001621958">
+        </testcase>
+        <testcase classname="lib/__tests__/companyThemeExposureSuccessor.test.ts" name="closed shadow reader from actual controlled Macro and State owners &gt; keeps explicit empty and unavailable count meanings" time="0.001119584">
+        </testcase>
+        <testcase classname="lib/__tests__/companyThemeExposureSuccessor.test.ts" name="closed shadow reader from actual controlled Macro and State owners &gt; requires exact dense index descriptors for open JSON arrays without normalization" time="0.004647791">
+        </testcase>
+        <testcase classname="lib/__tests__/companyThemeExposureSuccessor.test.ts" name="closed shadow reader from actual controlled Macro and State owners &gt; preserves actual v1 acceptance and closes it against v2 additions" time="0.001007833">
+        </testcase>
+        <testcase classname="lib/__tests__/companyThemeExposureSuccessor.test.ts" name="closed shadow reader from actual controlled Macro and State owners &gt; has no fetch or ambient clock dependency" time="0.002317208">
+        </testcase>
+        <testcase classname="lib/__tests__/companyThemeExposureSuccessor.test.ts" name="closed shadow reader from actual controlled Macro and State owners &gt; refuses shape/type/publication mutation: unknown root key" time="0.000394459">
+        </testcase>
+        <testcase classname="lib/__tests__/companyThemeExposureSuccessor.test.ts" name="closed shadow reader from actual controlled Macro and State owners &gt; refuses shape/type/publication mutation: unknown state key" time="0.000384542">
+        </testcase>
+        <testcase classname="lib/__tests__/companyThemeExposureSuccessor.test.ts" name="closed shadow reader from actual controlled Macro and State owners &gt; refuses shape/type/publication mutation: unknown subject key" time="0.000379875">
+        </testcase>
+        <testcase classname="lib/__tests__/companyThemeExposureSuccessor.test.ts" name="closed shadow reader from actual controlled Macro and State owners &gt; refuses shape/type/publication mutation: numeric true" time="0.000339708">
+        </testcase>
+        <testcase classname="lib/__tests__/companyThemeExposureSuccessor.test.ts" name="closed shadow reader from actual controlled Macro and State owners &gt; refuses shape/type/publication mutation: numeric false" time="0.000335917">
+        </testcase>
+        <testcase classname="lib/__tests__/companyThemeExposureSuccessor.test.ts" name="closed shadow reader from actual controlled Macro and State owners &gt; refuses shape/type/publication mutation: boolean count" time="0.000347416">
+        </testcase>
+        <testcase classname="lib/__tests__/companyThemeExposureSuccessor.test.ts" name="closed shadow reader from actual controlled Macro and State owners &gt; refuses shape/type/publication mutation: publication flag" time="0.000356875">
+        </testcase>
+        <testcase classname="lib/__tests__/companyThemeExposureSuccessor.test.ts" name="closed shadow reader from actual controlled Macro and State owners &gt; refuses shape/type/publication mutation: published mode" time="0.000351916">
+        </testcase>
+        <testcase classname="lib/__tests__/companyThemeExposureSuccessor.test.ts" name="closed shadow reader from actual controlled Macro and State owners &gt; refuses shape/type/publication mutation: materialized state bytes" time="0.000457667">
+        </testcase>
+        <testcase classname="lib/__tests__/companyThemeExposureSuccessor.test.ts" name="closed shadow reader from actual controlled Macro and State owners &gt; refuses shape/type/publication mutation: non-PIT rewrite" time="0.000295792">
+        </testcase>
+        <testcase classname="lib/__tests__/companyThemeExposureSuccessor.test.ts" name="closed shadow reader from actual controlled Macro and State owners &gt; refuses shape/type/publication mutation: NaN" time="0.000165375">
+        </testcase>
+        <testcase classname="lib/__tests__/companyThemeExposureSuccessor.test.ts" name="closed shadow reader from actual controlled Macro and State owners &gt; refuses shape/type/publication mutation: nested observation extra" time="0.000346291">
+        </testcase>
+        <testcase classname="lib/__tests__/companyThemeExposureSuccessor.test.ts" name="closed shadow reader from actual controlled Macro and State owners &gt; cross-field RED control: parent event null mismatch" time="0.000380459">
+        </testcase>
+        <testcase classname="lib/__tests__/companyThemeExposureSuccessor.test.ts" name="closed shadow reader from actual controlled Macro and State owners &gt; cross-field RED control: query substitution" time="0.000352584">
+        </testcase>
+        <testcase classname="lib/__tests__/companyThemeExposureSuccessor.test.ts" name="closed shadow reader from actual controlled Macro and State owners &gt; cross-field RED control: wrong state generation" time="0.000353375">
+        </testcase>
+        <testcase classname="lib/__tests__/companyThemeExposureSuccessor.test.ts" name="closed shadow reader from actual controlled Macro and State owners &gt; cross-field RED control: digest scope substitution" time="0.000352041">
+        </testcase>
+        <testcase classname="lib/__tests__/companyThemeExposureSuccessor.test.ts" name="closed shadow reader from actual controlled Macro and State owners &gt; cross-field RED control: wrong read generation" time="0.000360292">
+        </testcase>
+        <testcase classname="lib/__tests__/companyThemeExposureSuccessor.test.ts" name="closed shadow reader from actual controlled Macro and State owners &gt; cross-field RED control: unrelated read" time="0.000359042">
+        </testcase>
+        <testcase classname="lib/__tests__/companyThemeExposureSuccessor.test.ts" name="closed shadow reader from actual controlled Macro and State owners &gt; cross-field RED control: duplicate read" time="0.000454167">
+        </testcase>
+        <testcase classname="lib/__tests__/companyThemeExposureSuccessor.test.ts" name="closed shadow reader from actual controlled Macro and State owners &gt; cross-field RED control: wrong native ID" time="0.000365417">
+        </testcase>
+        <testcase classname="lib/__tests__/companyThemeExposureSuccessor.test.ts" name="closed shadow reader from actual controlled Macro and State owners &gt; cross-field RED control: HUBB inverse / OTHER forward" time="0.00081975">
+        </testcase>
+        <testcase classname="lib/__tests__/companyThemeExposureSuccessor.test.ts" name="closed shadow reader from actual controlled Macro and State owners &gt; cross-field RED control: wrong issuer" time="0.000657167">
+        </testcase>
+        <testcase classname="lib/__tests__/companyThemeExposureSuccessor.test.ts" name="closed shadow reader from actual controlled Macro and State owners &gt; cross-field RED control: wrong security" time="0.000618792">
+        </testcase>
+        <testcase classname="lib/__tests__/companyThemeExposureSuccessor.test.ts" name="closed shadow reader from actual controlled Macro and State owners &gt; cross-field RED control: inverse source clock refreshed" time="0.000750958">
+        </testcase>
+        <testcase classname="lib/__tests__/companyThemeExposureSuccessor.test.ts" name="closed shadow reader from actual controlled Macro and State owners &gt; cross-field RED control: usable state emitted +1microsecond" time="0.000369084">
+        </testcase>
+        <testcase classname="lib/__tests__/companyThemeExposureSuccessor.test.ts" name="closed shadow reader from actual controlled Macro and State owners &gt; cross-field RED control: usable state exceeds30h by1microsecond" time="0.000367166">
+        </testcase>
+        <testcase classname="lib/__tests__/companyThemeExposureSuccessor.test.ts" name="closed shadow reader from actual controlled Macro and State owners &gt; cross-field RED control: date-only knowledge at same-day cutoff" time="0.000501375">
+        </testcase>
+        <testcase classname="lib/__tests__/companyThemeExposureSuccessor.test.ts" name="closed shadow reader from actual controlled Macro and State owners &gt; cross-field RED control: definitely impossible receipt chronology" time="0.000471166">
+        </testcase>
+        <testcase classname="lib/__tests__/companyThemeExposureSuccessor.test.ts" name="closed shadow reader from actual controlled Macro and State owners &gt; cross-field RED control: malformed empty inferred AVAILABLE" time="0.000477459">
+        </testcase>
+        <testcase classname="lib/__tests__/companyThemeExposureSuccessor.test.ts" name="closed shadow reader from actual controlled Macro and State owners &gt; cross-field RED control: local coverage drift" time="0.000500709">
+        </testcase>
+        <testcase classname="lib/__tests__/companyThemeExposureSuccessor.test.ts" name="closed shadow reader from actual controlled Macro and State owners &gt; cross-field RED control: canonical coverage drift" time="0.000332667">
+        </testcase>
+        <testcase classname="lib/__tests__/companyThemeExposureSuccessor.test.ts" name="closed shadow reader from actual controlled Macro and State owners &gt; cross-field RED control: observation declared/observed drift" time="0.000601041">
+        </testcase>
+        <testcase classname="lib/__tests__/companyThemeExposureSuccessor.test.ts" name="closed shadow reader from actual controlled Macro and State owners &gt; cross-field RED control: warning drift" time="0.000511125">
+        </testcase>
+        <testcase classname="lib/__tests__/companyThemeExposureSuccessor.test.ts" name="closed shadow reader from actual controlled Macro and State owners &gt; cross-field RED control: usable canonical source after cutoff" time="0.000440583">
+        </testcase>
+        <testcase classname="lib/__tests__/companyThemeExposureSuccessor.test.ts" name="closed shadow reader from actual controlled Macro and State owners &gt; cross-field RED control: usable canonical date-only source knowledge" time="0.001172416">
+        </testcase>
+        <testcase classname="lib/__tests__/companyThemeExposureSuccessor.test.ts" name="closed shadow reader from actual controlled Macro and State owners &gt; cross-field RED control: usable subject missing rights receipt" time="0.000534084">
+        </testcase>
+        <testcase classname="lib/__tests__/companyThemeExposureSuccessor.test.ts" name="closed shadow reader from actual controlled Macro and State owners &gt; cross-field RED control: usable subject denied research rights" time="0.000466041">
+        </testcase>
+        <testcase classname="lib/__tests__/companyThemeExposureSuccessor.test.ts" name="closed shadow reader from actual controlled Macro and State owners &gt; cross-field RED control: invalid calendar date" time="0.000383209">
+        </testcase>
+        <testcase classname="lib/__tests__/companyThemeExposureSuccessor.test.ts" name="closed shadow reader from actual controlled Macro and State owners &gt; refuses QUALIFIED when eligibility is not qualified" time="0.000339208">
+        </testcase>
+        <testcase classname="lib/__tests__/companyThemeExposureSuccessor.test.ts" name="closed shadow reader from actual controlled Macro and State owners &gt; admits the exact30h boundary and equivalent timezone source clocks" time="0.000681958">
+        </testcase>
+        <testcase classname="lib/__tests__/companyThemeExposureSuccessor.test.ts" name="closed shadow reader from actual controlled Macro and State owners &gt; admits date-only uncertainty as unavailable, not inferred emptiness" time="0.000527667">
+        </testcase>
+        <testcase classname="lib/__tests__/companyThemeExposureSuccessor.test.ts" name="closed shadow reader from actual controlled Macro and State owners &gt; manifest refuses files cannot become materialized" time="0.000464208">
+        </testcase>
+        <testcase classname="lib/__tests__/companyThemeExposureSuccessor.test.ts" name="closed shadow reader from actual controlled Macro and State owners &gt; manifest refuses numeric caps" time="0.000274666">
+        </testcase>
+        <testcase classname="lib/__tests__/companyThemeExposureSuccessor.test.ts" name="closed shadow reader from actual controlled Macro and State owners &gt; manifest refuses global canonical arithmetic" time="0.001042458">
+        </testcase>
+        <testcase classname="lib/__tests__/companyThemeExposureSuccessor.test.ts" name="closed shadow reader from actual controlled Macro and State owners &gt; manifest refuses global local denominator" time="0.001509709">
+        </testcase>
+        <testcase classname="lib/__tests__/companyThemeExposureSuccessor.test.ts" name="closed shadow reader from actual controlled Macro and State owners &gt; manifest refuses empty company nonempty projection" time="0.000611417">
+        </testcase>
+        <testcase classname="lib/__tests__/companyThemeExposureSuccessor.test.ts" name="closed shadow reader from actual controlled Macro and State owners &gt; manifest refuses manifest query drift" time="0.000551167">
+        </testcase>
+        <testcase classname="lib/__tests__/companyThemeExposureSuccessor.test.ts" name="closed shadow reader from actual controlled Macro and State owners &gt; manifest refuses manifest status drift" time="0.000566083">
+        </testcase>
+    </testsuite>
+    <testsuite name="lib/__tests__/marketPrefsOwner.test.ts" timestamp="2026-10-04T10:50:57.061Z" hostname="m2studio" tests="32" failures="0" errors="0" skipped="0" time="0.077025834">
+        <testcase classname="lib/__tests__/marketPrefsOwner.test.ts" name="the owner key is the uuid, never the email &gt; does NOT reload when the same account changes its email address" time="0.002993917">
+        </testcase>
+        <testcase classname="lib/__tests__/marketPrefsOwner.test.ts" name="the owner key is the uuid, never the email &gt; DOES reload when a different account arrives at the same address" time="0.002348083">
+        </testcase>
+        <testcase classname="lib/__tests__/marketPrefsOwner.test.ts" name="the transition publishes the incoming owner&apos;s not-ready snapshot IMMEDIATELY &gt; erases the outgoing owner&apos;s markets synchronously, before the incoming request resolves" time="0.00352225">
+        </testcase>
+        <testcase classname="lib/__tests__/marketPrefsOwner.test.ts" name="the transition publishes the incoming owner&apos;s not-ready snapshot IMMEDIATELY &gt; ignores a late answer tagged with the outgoing generation" time="0.00316775">
+        </testcase>
+        <testcase classname="lib/__tests__/marketPrefsOwner.test.ts" name="local persistence is owner-scoped, and the legacy slot belongs to GUEST &gt; writes an account&apos;s cached prefs under its OWN slot, never the unscoped legacy key" time="0.001776458">
+        </testcase>
+        <testcase classname="lib/__tests__/marketPrefsOwner.test.ts" name="local persistence is owner-scoped, and the legacy slot belongs to GUEST &gt; adopts a pre-boundary unscoped payload into GUEST once, then removes it" time="0.002337125">
+        </testcase>
+        <testcase classname="lib/__tests__/marketPrefsOwner.test.ts" name="local persistence is owner-scoped, and the legacy slot belongs to GUEST &gt; falls back to the SAME owner&apos;s cache when its own read fails — never another owner&apos;s" time="0.003366125">
+        </testcase>
+        <testcase classname="lib/__tests__/marketPrefsOwner.test.ts" name="a read that did not land is not an empty account &gt; treats Supabase&apos;s `{ user: null, error }` as a FAILURE, so no write gets an empty merge base" time="0.001723667">
+        </testcase>
+        <testcase classname="lib/__tests__/marketPrefsOwner.test.ts" name="a read that did not land is not an empty account &gt; HOLDS the user&apos;s intent across a failed hydrate instead of discarding it" time="0.001621791">
+        </testcase>
+        <testcase classname="lib/__tests__/marketPrefsOwner.test.ts" name="a read that did not land is not an empty account &gt; delivers a SHARED preference&apos;s atomic half immediately even with no merge base" time="0.003326042">
+        </testcase>
+        <testcase classname="lib/__tests__/marketPrefsOwner.test.ts" name="a read that did not land is not an empty account &gt; refuses an answer for a DIFFERENT account than the shell resolved" time="0.001560667">
+        </testcase>
+        <testcase classname="lib/__tests__/marketPrefsOwner.test.ts" name="writes carry the whole nested blob, and stop at the owner boundary &gt; pushes every sibling key so `updateUser` cannot delete one" time="0.00168275">
+        </testcase>
+        <testcase classname="lib/__tests__/marketPrefsOwner.test.ts" name="writes carry the whole nested blob, and stop at the owner boundary &gt; never pushes for a guest" time="0.001618667">
+        </testcase>
+        <testcase classname="lib/__tests__/marketPrefsOwner.test.ts" name="writes carry the whole nested blob, and stop at the owner boundary &gt; drops a write decided for the OUTGOING owner once the owner has changed" time="0.003145666">
+        </testcase>
+        <testcase classname="lib/__tests__/marketPrefsOwner.test.ts" name="delivery is serialized, acknowledged, and retryable &gt; reports `saved` only after the AUTHORITY acknowledges, not when the request is fired" time="0.003015583">
+        </testcase>
+        <testcase classname="lib/__tests__/marketPrefsOwner.test.ts" name="delivery is serialized, acknowledged, and retryable &gt; reports a RESOLVED `{ error }` as a failure — the pane used to call this Saved" time="0.002984667">
+        </testcase>
+        <testcase classname="lib/__tests__/marketPrefsOwner.test.ts" name="delivery is serialized, acknowledged, and retryable &gt; runs ONE write at a time and coalesces the rest into the newest complete blob" time="0.002296084">
+        </testcase>
+        <testcase classname="lib/__tests__/marketPrefsOwner.test.ts" name="delivery is serialized, acknowledged, and retryable &gt; evicts an acknowledged shared atomic AND the legacy prefs blob — a LATER unrelated edit re-sends neither (M3)" time="0.002871333">
+        </testcase>
+        <testcase classname="lib/__tests__/marketPrefsOwner.test.ts" name="delivery is serialized, acknowledged, and retryable &gt; evicts the legacy prefs blob delivered through the PENDING-hydrate path too — a LATER unrelated edit re-sends nothing (round-3 review MAJOR 1)" time="0.001896">
+        </testcase>
+        <testcase classname="lib/__tests__/marketPrefsOwner.test.ts" name="delivery is serialized, acknowledged, and retryable &gt; delivers an intent held through a FAILED hydrate once a retried read answers" time="0.000592875">
+        </testcase>
+        <testcase classname="lib/__tests__/marketPrefsOwner.test.ts" name="delivery is serialized, acknowledged, and retryable &gt; cancels the hydrate retry when the owner changes" time="0.000523417">
+        </testcase>
+        <testcase classname="lib/__tests__/marketPrefsOwner.test.ts" name="delivery is serialized, acknowledged, and retryable &gt; retrySync() re-attempts a failed delivery immediately" time="0.004278333">
+        </testcase>
+        <testcase classname="lib/__tests__/marketPrefsOwner.test.ts" name="delivery is serialized, acknowledged, and retryable &gt; a guest reads `local` and never queues a delivery" time="0.001477167">
+        </testcase>
+        <testcase classname="lib/__tests__/marketPrefsOwner.test.ts" name="a deferred mutation carries its owner (E5) &gt; recognises its own owner, and stops recognising it after a switch" time="0.002784625">
+        </testcase>
+        <testcase classname="lib/__tests__/marketPrefsOwner.test.ts" name="a deferred mutation carries its owner (E5) &gt; routes trade_types through the SAME lane, so it cannot race the other writes" time="0.00379925">
+        </testcase>
+        <testcase classname="lib/__tests__/marketPrefsOwner.test.ts" name="an in-flight hydrate cannot answer over a newer local edit &gt; keeps the market choice the user made while the account read was still out" time="0.002289">
+        </testcase>
+        <testcase classname="lib/__tests__/marketPrefsOwner.test.ts" name="a shared preference edit dual-writes into the legacy `prefs` blob too (E6 flip condition) &gt; merges the change into the account&apos;s OWN nested blob rather than replacing it" time="0.002972791">
+        </testcase>
+        <testcase classname="lib/__tests__/marketPrefsOwner.test.ts" name="a shared preference edit dual-writes into the legacy `prefs` blob too (E6 flip condition) &gt; holds the legacy half until the merge base loads, then delivers it merged — never as a partial blob" time="0.001408042">
+        </testcase>
+        <testcase classname="lib/__tests__/marketPrefsOwner.test.ts" name="a shared preference edit dual-writes into the legacy `prefs` blob too (E6 flip condition) &gt; reads back ATOMIC-first once hydrated — mirrors macro&apos;s own atomic-first priority (round-2 BLOCKER, M1)" time="0.001510541">
+        </testcase>
+        <testcase classname="lib/__tests__/marketPrefsOwner.test.ts" name="a shared preference edit dual-writes into the legacy `prefs` blob too (E6 flip condition) &gt; never dual-writes for a guest, same as the atomic half" time="0.00153625">
+        </testcase>
+        <testcase classname="lib/__tests__/marketPrefsOwner.test.ts" name="persistMetaPrefs sanitizes what it PUBLISHES, not just what it sends (round-2 review minor) &gt; never publishes an invalid value even when the caller&apos;s patch is a junk cast" time="0.003629416">
+        </testcase>
+        <testcase classname="lib/__tests__/marketPrefsOwner.test.ts" name="a failed hydrate resets BOTH merge bases, not just rawTerminal (round-2 review nit) &gt; clears rawMetaPrefs alongside rawTerminal, even after an in-flight edit populated it" time="0.001534667">
+        </testcase>
+    </testsuite>
+    <testsuite name="lib/__tests__/terminalAppearance.test.ts" timestamp="2026-10-04T10:50:57.064Z" hostname="m2studio" tests="18" failures="0" errors="0" skipped="0" time="0.006762708">
+        <testcase classname="lib/__tests__/terminalAppearance.test.ts" name="incumbent light/dark/auto contract &gt; auto at local 6:59 is dark" time="0.001460666">
+        </testcase>
+        <testcase classname="lib/__tests__/terminalAppearance.test.ts" name="incumbent light/dark/auto contract &gt; auto at local 7:0 is light" time="0.000216667">
+        </testcase>
+        <testcase classname="lib/__tests__/terminalAppearance.test.ts" name="incumbent light/dark/auto contract &gt; auto at local 18:59 is light" time="0.00011625">
+        </testcase>
+        <testcase classname="lib/__tests__/terminalAppearance.test.ts" name="incumbent light/dark/auto contract &gt; auto at local 19:0 is dark" time="0.000197166">
+        </testcase>
+        <testcase classname="lib/__tests__/terminalAppearance.test.ts" name="incumbent light/dark/auto contract &gt; explicit choices ignore the clock" time="0.0001185">
+        </testcase>
+        <testcase classname="lib/__tests__/terminalAppearance.test.ts" name="incumbent light/dark/auto contract &gt; uses only closed incumbent preference values" time="0.00024325">
+        </testcase>
+        <testcase classname="lib/__tests__/terminalAppearance.test.ts" name="incumbent light/dark/auto contract &gt; reads the same cache and fails safely when storage is absent or malformed" time="0.000653709">
+        </testcase>
+        <testcase classname="lib/__tests__/terminalAppearance.test.ts" name="incumbent light/dark/auto contract &gt; applies visible mode even when cache writes are blocked, with one event per mode change" time="0.001019459">
+        </testcase>
+        <testcase classname="lib/__tests__/terminalAppearance.test.ts" name="incumbent light/dark/auto contract &gt; notifies actual device intents even without a mode change, suppresses sync echoes and unsubscribes" time="0.000616208">
+        </testcase>
+        <testcase classname="lib/__tests__/terminalAppearance.test.ts" name="incumbent light/dark/auto contract &gt; explicit selection clears the incumbent auto flag; auto caches the current resolved mode" time="0.000399416">
+        </testcase>
+        <testcase classname="lib/__tests__/terminalAppearance.test.ts" name="incumbent light/dark/auto contract &gt; schedules the next local calendar boundary without a fixed UTC/day interval" time="0.000165959">
+        </testcase>
+        <testcase classname="lib/__tests__/terminalAppearance.test.ts" name="real prepaint program &gt; cache theme=light auto=null hour=23 paints light" time="0.00013125">
+        </testcase>
+        <testcase classname="lib/__tests__/terminalAppearance.test.ts" name="real prepaint program &gt; cache theme=dark auto=null hour=8 paints dark" time="0.000211916">
+        </testcase>
+        <testcase classname="lib/__tests__/terminalAppearance.test.ts" name="real prepaint program &gt; cache theme=dark auto=1 hour=7 paints light" time="0.000127208">
+        </testcase>
+        <testcase classname="lib/__tests__/terminalAppearance.test.ts" name="real prepaint program &gt; cache theme=light auto=1 hour=19 paints dark" time="0.000066417">
+        </testcase>
+        <testcase classname="lib/__tests__/terminalAppearance.test.ts" name="real prepaint program &gt; cache theme=system auto=true hour=8 paints dark" time="0.000055875">
+        </testcase>
+        <testcase classname="lib/__tests__/terminalAppearance.test.ts" name="real prepaint program &gt; cache theme=null auto=null hour=8 paints dark" time="0.000056917">
+        </testcase>
+        <testcase classname="lib/__tests__/terminalAppearance.test.ts" name="real prepaint program &gt; blocked storage still paints safe dark instead of aborting initialization" time="0.000093166">
+        </testcase>
+    </testsuite>
+    <testsuite name="lib/__tests__/terminalAppearanceSync.test.tsx" timestamp="2026-10-04T10:50:57.066Z" hostname="m2studio" tests="12" failures="0" errors="0" skipped="0" time="0.082848459">
+        <testcase classname="lib/__tests__/terminalAppearanceSync.test.tsx" name="canonical appearance through the real provider and controls &gt; device intent arms same-route Auto even when resolved mode stays light, replaces timers and unsubscribes" time="0.014108125">
+        </testcase>
+        <testcase classname="lib/__tests__/terminalAppearanceSync.test.tsx" name="canonical appearance through the real provider and controls &gt; same-route device Auto intent still ages and cancels when storage is blocked" time="0.003032292">
+        </testcase>
+        <testcase classname="lib/__tests__/terminalAppearanceSync.test.tsx" name="canonical appearance through the real provider and controls &gt; volatile device intent outranks a readable stale cache when only writes fail" time="0.002363667">
+        </testcase>
+        <testcase classname="lib/__tests__/terminalAppearanceSync.test.tsx" name="canonical appearance through the real provider and controls &gt; applies the current account&apos;s saved light preference without opening Settings" time="0.00329025">
+        </testcase>
+        <testcase classname="lib/__tests__/terminalAppearanceSync.test.tsx" name="canonical appearance through the real provider and controls &gt; an actual light click survives an older hydration answer and uses the incumbent delivery" time="0.02591875">
+        </testcase>
+        <testcase classname="lib/__tests__/terminalAppearanceSync.test.tsx" name="canonical appearance through the real provider and controls &gt; does not apply a late prior account at the same email after switching UUID" time="0.003601667">
+        </testcase>
+        <testcase classname="lib/__tests__/terminalAppearanceSync.test.tsx" name="canonical appearance through the real provider and controls &gt; rejects mismatched store snapshots and stale controls instead of writing another owner" time="0.011920375">
+        </testcase>
+        <testcase classname="lib/__tests__/terminalAppearanceSync.test.tsx" name="canonical appearance through the real provider and controls &gt; preserves the effective device display on signout and does not subscribe a guest account reader" time="0.001695041">
+        </testcase>
+        <testcase classname="lib/__tests__/terminalAppearanceSync.test.tsx" name="canonical appearance through the real provider and controls &gt; the device auto choice keeps following local time after signout without a guest account reader" time="0.002378167">
+        </testcase>
+        <testcase classname="lib/__tests__/terminalAppearanceSync.test.tsx" name="canonical appearance through the real provider and controls &gt; a new explicit choice cancels the prior auto boundary and visibility resume respects it" time="0.010860041">
+        </testcase>
+        <testcase classname="lib/__tests__/terminalAppearanceSync.test.tsx" name="canonical appearance through the real provider and controls &gt; an unmounted provider cancels auto timer and resume listeners" time="0.001516709">
+        </testcase>
+        <testcase classname="lib/__tests__/terminalAppearanceSync.test.tsx" name="canonical appearance through the real provider and controls &gt; recomputes auto after local-time boundary and focus resume without another auth read" time="0.001479667">
+        </testcase>
+    </testsuite>
+</testsuites>

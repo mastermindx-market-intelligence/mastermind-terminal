@@ -1,0 +1,58 @@
+{
+  "at": "2026-10-04T11:48:48.981771+00:00",
+  "head": "2e9c81f51267ba1cab62789db0504d8315d031a6",
+  "tree": "52e5bfa4b2a57f2174de1a12e58111c3eeac54ee",
+  "admission_comment": 5977917720,
+  "admission_body_sha256": "e95dbdf0eb4ef5308e8c76f65f5acf5ebd3ff5f43cf4a1e98dc0e872916065b1",
+  "candidate200_preserved": true,
+  "prior977_preserved": true,
+  "prior_bytes": 159003639,
+  "original_integrated178_and_build17_preserved": true,
+  "original_wires_preserved": true,
+  "copies": 41,
+  "tracked_clean": true,
+  "index_empty": true,
+  "owned_prior_ids": [
+    9594,
+    9616,
+    9660,
+    17205,
+    21121,
+    21145,
+    21153,
+    21173,
+    21174,
+    22393,
+    48389,
+    48405,
+    48438,
+    48449,
+    48589,
+    48602,
+    48834,
+    48881,
+    48917,
+    48922,
+    51793,
+    79684,
+    79767,
+    79791,
+    80364,
+    80456,
+    80475,
+    80476,
+    84852,
+    84890
+  ],
+  "owned_live": [],
+  "ports": {
+    "33298": {
+      "free_bind": true
+    },
+    "33300": {
+      "free_bind": true
+    }
+  },
+  "no_new_test_server_or_source_effect": true,
+  "STOP": true
+}

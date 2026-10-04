@@ -1,0 +1,68 @@
+[warmup] /terminal?symbol=NVDA → 200 in 63ms
+[warmup] /options → 200 in 131ms
+[warmup] /portfolio → 200 in 65ms
+[warmup] /alerts → 200 in 65ms
+[warmup] /analysis → 200 in 145ms
+[warmup] /discover → 200 in 79ms
+[warmup] /admin → 200 in 49ms
+[warmup] /embed/chart?symbol=NVDA → 200 in 42ms
+[warmup] /login → 200 in 57ms
+[warmup] /reset-password → 200 in 74ms
+[warmup] /api/me → 200 in 62ms
+[warmup] /api/watchlist → 200 in 25ms
+[warmup] /api/layouts → 200 in 25ms
+[warmup] 13 routes compiled in 1s
+
+Running 48 tests using 1 worker
+
+[1/48] [desktop] › e2e/company-intelligence-appearance.spec.ts:69:7 › existing card ages at UTC expiry without reloading or fetching (dark/EN)
+
+[WebServer] [analyticsEvents] SUPABASE_SERVICE_ROLE_KEY absent — events held in memory only (dev mode)
+[2/48] [desktop] › e2e/company-intelligence-appearance.spec.ts:96:9 › degraded existing theme card: future (dark/EN)
+[3/48] [desktop] › e2e/company-intelligence-appearance.spec.ts:96:9 › degraded existing theme card: last-good (dark/EN)
+[4/48] [desktop] › e2e/company-intelligence-appearance.spec.ts:96:9 › degraded existing theme card: refreshing (dark/EN)
+[5/48] [desktop] › e2e/company-intelligence-appearance.spec.ts:96:9 › degraded existing theme card: unavailable (dark/EN)
+[6/48] [desktop] › e2e/company-intelligence-appearance.spec.ts:69:7 › existing card ages at UTC expiry without reloading or fetching (dark/ZH)
+[7/48] [desktop] › e2e/company-intelligence-appearance.spec.ts:96:9 › degraded existing theme card: future (dark/ZH)
+[8/48] [desktop] › e2e/company-intelligence-appearance.spec.ts:96:9 › degraded existing theme card: last-good (dark/ZH)
+[9/48] [desktop] › e2e/company-intelligence-appearance.spec.ts:96:9 › degraded existing theme card: refreshing (dark/ZH)
+[10/48] [desktop] › e2e/company-intelligence-appearance.spec.ts:96:9 › degraded existing theme card: unavailable (dark/ZH)
+[11/48] [desktop] › e2e/company-intelligence-appearance.spec.ts:69:7 › existing card ages at UTC expiry without reloading or fetching (light/EN)
+[12/48] [desktop] › e2e/company-intelligence-appearance.spec.ts:96:9 › degraded existing theme card: future (light/EN)
+[13/48] [desktop] › e2e/company-intelligence-appearance.spec.ts:96:9 › degraded existing theme card: last-good (light/EN)
+[14/48] [desktop] › e2e/company-intelligence-appearance.spec.ts:96:9 › degraded existing theme card: refreshing (light/EN)
+[15/48] [desktop] › e2e/company-intelligence-appearance.spec.ts:96:9 › degraded existing theme card: unavailable (light/EN)
+[16/48] [desktop] › e2e/company-intelligence-appearance.spec.ts:69:7 › existing card ages at UTC expiry without reloading or fetching (light/ZH)
+[17/48] [desktop] › e2e/company-intelligence-appearance.spec.ts:96:9 › degraded existing theme card: future (light/ZH)
+[18/48] [desktop] › e2e/company-intelligence-appearance.spec.ts:96:9 › degraded existing theme card: last-good (light/ZH)
+[19/48] [desktop] › e2e/company-intelligence-appearance.spec.ts:96:9 › degraded existing theme card: refreshing (light/ZH)
+[20/48] [desktop] › e2e/company-intelligence-appearance.spec.ts:96:9 › degraded existing theme card: unavailable (light/ZH)
+[21/48] [desktop] › e2e/company-intelligence-appearance.spec.ts:136:7 › actual appearance selection survives navigation and a new cold context (EN)
+[22/48] [desktop] › e2e/company-intelligence-appearance.spec.ts:136:7 › actual appearance selection survives navigation and a new cold context (ZH)
+[23/48] [desktop] › e2e/company-intelligence-appearance.spec.ts:182:7 › auto survives route navigation, local19:00 and focus resume (EN)
+[24/48] [desktop] › e2e/company-intelligence-appearance.spec.ts:182:7 › auto survives route navigation, local19:00 and focus resume (ZH)
+[25/48] [mobile] › e2e/company-intelligence-appearance.spec.ts:69:7 › existing card ages at UTC expiry without reloading or fetching (dark/EN)
+[26/48] [mobile] › e2e/company-intelligence-appearance.spec.ts:96:9 › degraded existing theme card: future (dark/EN)
+[27/48] [mobile] › e2e/company-intelligence-appearance.spec.ts:96:9 › degraded existing theme card: last-good (dark/EN)
+[28/48] [mobile] › e2e/company-intelligence-appearance.spec.ts:96:9 › degraded existing theme card: refreshing (dark/EN)
+[29/48] [mobile] › e2e/company-intelligence-appearance.spec.ts:96:9 › degraded existing theme card: unavailable (dark/EN)
+[30/48] [mobile] › e2e/company-intelligence-appearance.spec.ts:69:7 › existing card ages at UTC expiry without reloading or fetching (dark/ZH)
+[31/48] [mobile] › e2e/company-intelligence-appearance.spec.ts:96:9 › degraded existing theme card: future (dark/ZH)
+[32/48] [mobile] › e2e/company-intelligence-appearance.spec.ts:96:9 › degraded existing theme card: last-good (dark/ZH)
+[33/48] [mobile] › e2e/company-intelligence-appearance.spec.ts:96:9 › degraded existing theme card: refreshing (dark/ZH)
+[34/48] [mobile] › e2e/company-intelligence-appearance.spec.ts:96:9 › degraded existing theme card: unavailable (dark/ZH)
+[35/48] [mobile] › e2e/company-intelligence-appearance.spec.ts:69:7 › existing card ages at UTC expiry without reloading or fetching (light/EN)
+[36/48] [mobile] › e2e/company-intelligence-appearance.spec.ts:96:9 › degraded existing theme card: future (light/EN)
+[37/48] [mobile] › e2e/company-intelligence-appearance.spec.ts:96:9 › degraded existing theme card: last-good (light/EN)
+[38/48] [mobile] › e2e/company-intelligence-appearance.spec.ts:96:9 › degraded existing theme card: refreshing (light/EN)
+[39/48] [mobile] › e2e/company-intelligence-appearance.spec.ts:96:9 › degraded existing theme card: unavailable (light/EN)
+[40/48] [mobile] › e2e/company-intelligence-appearance.spec.ts:69:7 › existing card ages at UTC expiry without reloading or fetching (light/ZH)
+[41/48] [mobile] › e2e/company-intelligence-appearance.spec.ts:96:9 › degraded existing theme card: future (light/ZH)
+[42/48] [mobile] › e2e/company-intelligence-appearance.spec.ts:96:9 › degraded existing theme card: last-good (light/ZH)
+[43/48] [mobile] › e2e/company-intelligence-appearance.spec.ts:96:9 › degraded existing theme card: refreshing (light/ZH)
+[44/48] [mobile] › e2e/company-intelligence-appearance.spec.ts:96:9 › degraded existing theme card: unavailable (light/ZH)
+[45/48] [mobile] › e2e/company-intelligence-appearance.spec.ts:136:7 › actual appearance selection survives navigation and a new cold context (EN)
+[46/48] [mobile] › e2e/company-intelligence-appearance.spec.ts:136:7 › actual appearance selection survives navigation and a new cold context (ZH)
+[47/48] [mobile] › e2e/company-intelligence-appearance.spec.ts:182:7 › auto survives route navigation, local19:00 and focus resume (EN)
+[48/48] [mobile] › e2e/company-intelligence-appearance.spec.ts:182:7 › auto survives route navigation, local19:00 and focus resume (ZH)
+  48 passed (4.5m)

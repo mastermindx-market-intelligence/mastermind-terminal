@@ -1,0 +1,14 @@
+{
+  "argv": [
+    "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/gmi-cte-semantic-aging-20261004-astra-001/.claude/evidence/cte-aging/node20-runtime/node_modules/node/bin/node",
+    "node_modules/vitest/vitest.mjs",
+    "run",
+    "lib/__tests__/analysisBrainHost.test.tsx",
+    "lib/__tests__/shellBrainSymbol.test.ts",
+    "lib/__tests__/analysisRoute.test.ts"
+  ],
+  "start": "2026-10-04T10:53:45.555876+00:00",
+  "end": "2026-10-04T10:53:46.406547+00:00",
+  "exit": 0,
+  "log_sha256": "5d0818354ba696e14d83529bf27bc7c988f4707640df276c20ececb70d8bc071"
+}

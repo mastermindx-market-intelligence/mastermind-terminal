@@ -1,0 +1,93 @@
+{
+  "head": "2e9c81f51267ba1cab62789db0504d8315d031a6",
+  "excludes": [
+    "artifact-manifest.json"
+  ],
+  "files": [
+    {
+      "path": "build-output-manifest.json",
+      "bytes": 1617,
+      "sha256": "dc557c2b415e508de9421b16bf3e7a6974dcfbc6e14321f0ead91a79f3bb519a"
+    },
+    {
+      "path": "build-owned-processes-start.json",
+      "bytes": 60,
+      "sha256": "431e7f80d3fb1a7bbb82568e46a3ad0ae1af3dc61808795197f0639d24febba4"
+    },
+    {
+      "path": "canonical-npm-build-result.json",
+      "bytes": 365,
+      "sha256": "4bdad50939e140caba0c7b4fa032e33892718bc957bf60d05b9bc423cfc1cbb0"
+    },
+    {
+      "path": "canonical-npm-build.log",
+      "bytes": 471,
+      "sha256": "f60862b00d8d58bc6442c303a082210910a61102c39c754f8fa81d5077524767"
+    },
+    {
+      "path": "canonical-npm-launch-isolated-log.json",
+      "bytes": 1534,
+      "sha256": "0d54cb48781107e4ee3308842972619627be3d09276036890cc36545c79d7287"
+    },
+    {
+      "path": "canonical-npm-launch-isolated-log.log",
+      "bytes": 1066,
+      "sha256": "57883b31f222dcd0e3a76f66b25aac8611d5281b20b25260df974af7918e6094"
+    },
+    {
+      "path": "canonical-production-build-result.json",
+      "bytes": 852,
+      "sha256": "1fb42aec1aa40e3d612c4ddde85c3cccb476180a22f5e0418e73c2f3aac90d1d"
+    },
+    {
+      "path": "canonical-production-build.log",
+      "bytes": 4923,
+      "sha256": "a2e992754580f8f72ff5716019b64748c88cb927ec9debe88aed9546f540cf8f"
+    },
+    {
+      "path": "npm-isolated-log-diagnostic.json",
+      "bytes": 294,
+      "sha256": "87846017e7eae6997eb22f936a99b96da2179da0387f674e63be198677307cb7"
+    },
+    {
+      "path": "npm-logs/2026-10-04T11_26_18_266Z-debug-0.log",
+      "bytes": 1252,
+      "sha256": "36eeb38fc39d5730056392740e94a71377c05a93953434a262cdf2b34a510958"
+    },
+    {
+      "path": "npm-logs/2026-10-04T11_27_46_473Z-debug-0.log",
+      "bytes": 1299,
+      "sha256": "6b4dd77d4ade24f44d72f1b23788b29bf46a2247b4c9ae212b335376dcf08c93"
+    },
+    {
+      "path": "npm-logs/2026-10-04T11_29_03_231Z-debug-0.log",
+      "bytes": 1222,
+      "sha256": "e6c69085ae4d2743a0364c0891c13c785e3b5e6cf1b0591d868f407110a7b35b"
+    },
+    {
+      "path": "npm-owned-stack.txt",
+      "bytes": 87077,
+      "sha256": "1f6abef526b896ee96174acef5798c918bce4aa4d06e11e07c0d6fb61f0631f3"
+    },
+    {
+      "path": "npm-resolution-diagnostic.json",
+      "bytes": 2649,
+      "sha256": "81f3b2c13414d7b23b79fa620114352aba7a61a689858a0109ca5cfe1dcf0655"
+    },
+    {
+      "path": "postflight.json",
+      "bytes": 928,
+      "sha256": "4312cf3ac39eb2f5d1fbaf149a98aa2c0596d882d8c44f725bbf7bc3bc4aff90"
+    },
+    {
+      "path": "preflight.json",
+      "bytes": 1280,
+      "sha256": "8fdbae5ec53e8333fb9be6c201e50efc93aa9724d6eeccc23af0872e1c649810"
+    },
+    {
+      "path": "verification-wire.json",
+      "bytes": 6930,
+      "sha256": "a33271d2a26677e4f4e6a6200982440f6c933a352c3ba0c22950feb78fbc6d3f"
+    }
+  ]
+}
