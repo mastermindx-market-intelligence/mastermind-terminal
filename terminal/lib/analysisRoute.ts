@@ -70,3 +70,18 @@ export function parseAnalysisSearchParams(searchParams: URLSearchParams): Analys
   });
   return parseAnalysisRoute(query);
 }
+
+/**
+ * The Brain widget's ambient panel for a parsed `/analysis` route (MarketOntology F11-6).
+ *
+ * Pure mapping, no store access: `company` → "company", `theses` → "theses", and every
+ * closed/malformed shape (`unsupported`, `invalid_thesis`) → null, which the Macro context
+ * compiler reads as "page analysis, no panel" (its malformed flag). Keep this the ONLY place
+ * that turns a route into a panel string so the vocabulary cannot drift between the host and
+ * the server page.
+ */
+export function ambientForAnalysisRoute(route: AnalysisRoute): "company" | "theses" | null {
+  if (route.kind === "company") return "company";
+  if (route.kind === "theses") return "theses";
+  return null;
+}
