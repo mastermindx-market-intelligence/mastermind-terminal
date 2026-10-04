@@ -1,0 +1,88 @@
+[warmup] /terminal?symbol=NVDA → 200 in 166ms
+[warmup] /options → 200 in 199ms
+[warmup] /portfolio → 200 in 64ms
+[warmup] /alerts → 200 in 59ms
+[warmup] /analysis → 200 in 64ms
+[warmup] /discover → 200 in 143ms
+[warmup] /admin → 200 in 55ms
+[warmup] /embed/chart?symbol=NVDA → 200 in 57ms
+[warmup] /login → 200 in 128ms
+[warmup] /api/me → 200 in 154ms
+[warmup] /api/watchlist → 200 in 25ms
+[warmup] /api/layouts → 200 in 27ms
+[warmup] 12 routes compiled in 1s
+
+Running 69 tests using 1 worker
+
+  -   1 [desktop] › e2e/mobile-chart-chrome.spec.ts:46:5 › phone: the roller strip replaces the top toolbar row and the floating dock
+  -   2 [desktop] › e2e/mobile-chart-chrome.spec.ts:127:5 › phone: rolling the interval wheel commits the timeframe live
+  -   3 [desktop] › e2e/mobile-chart-chrome.spec.ts:140:5 › phone: the pencil opens the TV Drawings sheet and a tile arms the tool
+  -   4 [desktop] › e2e/mobile-chart-chrome.spec.ts:189:5 › phone: the Drawings sheet opens at 62% over a live chart and drags to full
+  -   5 [desktop] › e2e/mobile-chart-chrome.spec.ts:251:5 › phone: ••• opens the analysis hub at 60% and drags to full
+  -   6 [desktop] › e2e/mobile-chart-chrome.spec.ts:312:5 › phone: the fold sits under the oracle cards and the strip survives the expanded chart
+  -   7 [desktop] › e2e/mobile-chart-chrome.spec.ts:343:5 › phone: tapping the symbol wheel opens the ticker picker as a drawer
+  -   8 [desktop] › e2e/mobile-chart-chrome.spec.ts:396:5 › phone: the fullscreen control is the only expansion affordance
+  ✓   9 [desktop] › e2e/mobile-chart-chrome.spec.ts:477:5 › tablet and desktop never see the phone chrome (2.4s)
+  -  10 [desktop] › e2e/mobile-chart-hub-upgrade.spec.ts:63:5 › MM-005: the hub owns the complete keyboard cycle and returns focus on dismissal
+  -  11 [desktop] › e2e/mobile-chart-hub-upgrade.spec.ts:94:5 › MM-005: focus hands into supported overlays without racing back to the dismissed hub
+  -  12 [desktop] › e2e/mobile-chart-hub-upgrade.spec.ts:117:5 › MM-006: only supported tools are actionable and chart type uses canonical persistent state
+  -  13 [desktop] › e2e/mobile-chart-hub-upgrade.spec.ts:180:5 › MM-006: Alerts and Symbol details act on the current symbol
+  -  14 [desktop] › e2e/mobile-chart-hub-upgrade.spec.ts:203:5 › MM-006: EN and ZH expose the same truthful capability decisions
+  -  15 [desktop] › e2e/mobile-chart-hub-upgrade.spec.ts:215:5 › MM-005/MM-006: hub controls stay nonoverlapping and reachable across phone widths
+  ✓  16 [desktop] › e2e/options-companion.spec.ts:35:7 › [en] real chart + options companion, controls, native pins and restoration (6.7s)
+  ✓  17 [desktop] › e2e/options-companion.spec.ts:35:7 › [zh] real chart + options companion, controls, native pins and restoration (6.1s)
+  ✓  18 [desktop] › e2e/options-companion.spec.ts:87:5 › wrong-root source is refused; explicit refresh recovers without a page reload (3.1s)
+  ✓  19 [desktop] › e2e/options-companion.spec.ts:99:5 › 0DTE never silently becomes the nearest later expiry (3.2s)
+  ✓  20 [desktop] › e2e/options-companion.spec.ts:108:5 › uncovered symbol does not inherit an index heatmap (3.9s)
+  ✓  21 [desktop] › e2e/options-companion.spec.ts:117:5 › unentitled account never mounts an options data consumer (3.4s)
+  ✓  22 [desktop] › e2e/options-companion.spec.ts:128:5 › keyboard grid inspection clears without closing, then Escape restores the opener (3.9s)
+  ✓  23 [desktop] › e2e/options-companion.spec.ts:146:5 › switching the real chart symbol resets the pin and binds the new heatmap (5.9s)
+  -  24 [tablet] › e2e/mobile-chart-chrome.spec.ts:46:5 › phone: the roller strip replaces the top toolbar row and the floating dock
+  -  25 [tablet] › e2e/mobile-chart-chrome.spec.ts:127:5 › phone: rolling the interval wheel commits the timeframe live
+  -  26 [tablet] › e2e/mobile-chart-chrome.spec.ts:140:5 › phone: the pencil opens the TV Drawings sheet and a tile arms the tool
+  -  27 [tablet] › e2e/mobile-chart-chrome.spec.ts:189:5 › phone: the Drawings sheet opens at 62% over a live chart and drags to full
+  -  28 [tablet] › e2e/mobile-chart-chrome.spec.ts:251:5 › phone: ••• opens the analysis hub at 60% and drags to full
+  -  29 [tablet] › e2e/mobile-chart-chrome.spec.ts:312:5 › phone: the fold sits under the oracle cards and the strip survives the expanded chart
+  -  30 [tablet] › e2e/mobile-chart-chrome.spec.ts:343:5 › phone: tapping the symbol wheel opens the ticker picker as a drawer
+  -  31 [tablet] › e2e/mobile-chart-chrome.spec.ts:396:5 › phone: the fullscreen control is the only expansion affordance
+  ✓  32 [tablet] › e2e/mobile-chart-chrome.spec.ts:477:5 › tablet and desktop never see the phone chrome (3.9s)
+  -  33 [tablet] › e2e/mobile-chart-hub-upgrade.spec.ts:63:5 › MM-005: the hub owns the complete keyboard cycle and returns focus on dismissal
+  -  34 [tablet] › e2e/mobile-chart-hub-upgrade.spec.ts:94:5 › MM-005: focus hands into supported overlays without racing back to the dismissed hub
+  -  35 [tablet] › e2e/mobile-chart-hub-upgrade.spec.ts:117:5 › MM-006: only supported tools are actionable and chart type uses canonical persistent state
+  -  36 [tablet] › e2e/mobile-chart-hub-upgrade.spec.ts:180:5 › MM-006: Alerts and Symbol details act on the current symbol
+  -  37 [tablet] › e2e/mobile-chart-hub-upgrade.spec.ts:203:5 › MM-006: EN and ZH expose the same truthful capability decisions
+  -  38 [tablet] › e2e/mobile-chart-hub-upgrade.spec.ts:215:5 › MM-005/MM-006: hub controls stay nonoverlapping and reachable across phone widths
+  ✓  39 [tablet] › e2e/options-companion.spec.ts:35:7 › [en] real chart + options companion, controls, native pins and restoration (6.7s)
+  ✓  40 [tablet] › e2e/options-companion.spec.ts:35:7 › [zh] real chart + options companion, controls, native pins and restoration (6.7s)
+  ✓  41 [tablet] › e2e/options-companion.spec.ts:87:5 › wrong-root source is refused; explicit refresh recovers without a page reload (5.6s)
+  ✓  42 [tablet] › e2e/options-companion.spec.ts:99:5 › 0DTE never silently becomes the nearest later expiry (4.2s)
+  ✓  43 [tablet] › e2e/options-companion.spec.ts:108:5 › uncovered symbol does not inherit an index heatmap (4.3s)
+  ✓  44 [tablet] › e2e/options-companion.spec.ts:117:5 › unentitled account never mounts an options data consumer (4.2s)
+  ✓  45 [tablet] › e2e/options-companion.spec.ts:128:5 › keyboard grid inspection clears without closing, then Escape restores the opener (4.6s)
+  -  46 [tablet] › e2e/options-companion.spec.ts:146:5 › switching the real chart symbol resets the pin and binds the new heatmap
+  ✓  47 [mobile] › e2e/mobile-chart-chrome.spec.ts:46:5 › phone: the roller strip replaces the top toolbar row and the floating dock (3.2s)
+  ✓  48 [mobile] › e2e/mobile-chart-chrome.spec.ts:127:5 › phone: rolling the interval wheel commits the timeframe live (3.4s)
+  ✓  49 [mobile] › e2e/mobile-chart-chrome.spec.ts:140:5 › phone: the pencil opens the TV Drawings sheet and a tile arms the tool (5.1s)
+  ✓  50 [mobile] › e2e/mobile-chart-chrome.spec.ts:189:5 › phone: the Drawings sheet opens at 62% over a live chart and drags to full (5.3s)
+  ✓  51 [mobile] › e2e/mobile-chart-chrome.spec.ts:251:5 › phone: ••• opens the analysis hub at 60% and drags to full (7.7s)
+  ✓  52 [mobile] › e2e/mobile-chart-chrome.spec.ts:312:5 › phone: the fold sits under the oracle cards and the strip survives the expanded chart (4.1s)
+  ✓  53 [mobile] › e2e/mobile-chart-chrome.spec.ts:343:5 › phone: tapping the symbol wheel opens the ticker picker as a drawer (7.2s)
+  ✓  54 [mobile] › e2e/mobile-chart-chrome.spec.ts:396:5 › phone: the fullscreen control is the only expansion affordance (5.0s)
+  -  55 [mobile] › e2e/mobile-chart-chrome.spec.ts:477:5 › tablet and desktop never see the phone chrome
+  ✓  56 [mobile] › e2e/mobile-chart-hub-upgrade.spec.ts:63:5 › MM-005: the hub owns the complete keyboard cycle and returns focus on dismissal (5.6s)
+  ✓  57 [mobile] › e2e/mobile-chart-hub-upgrade.spec.ts:94:5 › MM-005: focus hands into supported overlays without racing back to the dismissed hub (5.9s)
+  ✓  58 [mobile] › e2e/mobile-chart-hub-upgrade.spec.ts:117:5 › MM-006: only supported tools are actionable and chart type uses canonical persistent state (11.3s)
+  ✓  59 [mobile] › e2e/mobile-chart-hub-upgrade.spec.ts:180:5 › MM-006: Alerts and Symbol details act on the current symbol (6.0s)
+  ✓  60 [mobile] › e2e/mobile-chart-hub-upgrade.spec.ts:203:5 › MM-006: EN and ZH expose the same truthful capability decisions (4.7s)
+  ✓  61 [mobile] › e2e/mobile-chart-hub-upgrade.spec.ts:215:5 › MM-005/MM-006: hub controls stay nonoverlapping and reachable across phone widths (7.2s)
+  ✓  62 [mobile] › e2e/options-companion.spec.ts:35:7 › [en] real chart + options companion, controls, native pins and restoration (6.5s)
+  ✓  63 [mobile] › e2e/options-companion.spec.ts:35:7 › [zh] real chart + options companion, controls, native pins and restoration (6.3s)
+  ✓  64 [mobile] › e2e/options-companion.spec.ts:87:5 › wrong-root source is refused; explicit refresh recovers without a page reload (3.6s)
+  ✓  65 [mobile] › e2e/options-companion.spec.ts:99:5 › 0DTE never silently becomes the nearest later expiry (4.2s)
+  ✓  66 [mobile] › e2e/options-companion.spec.ts:108:5 › uncovered symbol does not inherit an index heatmap (4.0s)
+  ✓  67 [mobile] › e2e/options-companion.spec.ts:117:5 › unentitled account never mounts an options data consumer (3.9s)
+  ✓  68 [mobile] › e2e/options-companion.spec.ts:128:5 › keyboard grid inspection clears without closing, then Escape restores the opener (4.8s)
+  -  69 [mobile] › e2e/options-companion.spec.ts:146:5 › switching the real chart symbol resets the pin and binds the new heatmap
+
+  31 skipped
+  38 passed (3.3m)
