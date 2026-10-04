@@ -295,7 +295,7 @@
       "file": "0028_investigations.sql",
       "packet": "IW2-G1-INVESTIGATION",
       "pr": 777,
-      "pr_state": "open",
+      "pr_state": "merged",
       "applied_in_production": true,
       "applied_date": "2026-10-04T06:17:18Z",
       "note": "Single Investigation aggregate on existing #777. All 39 DDL statements applied; independent read-only catalog reconciled the incomplete initial readback and verified all 19 objects, RLS and grants. Receipt: https://github.com/mastermindx-market-intelligence/mastermind-terminal/pull/777#issuecomment-5977275494. Application save/reopen acceptance remains pending deployment."
