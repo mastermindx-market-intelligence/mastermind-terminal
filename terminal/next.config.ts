@@ -34,7 +34,7 @@ const DEPLOYMENT_ID =
 //     inject inline <script> → script-src needs 'unsafe-inline' (a nonce migration is the
 //     follow-up hardening; documented in SECURITY.md).
 //   - React inline style attributes → style-src 'unsafe-inline'.
-//   - shared chart snapshots from Cloudflare R2 and asset identity logos from Logo.dev.
+//   - shared chart snapshots from Cloudflare R2; asset identity badges are inline data SVGs.
 //   - Supabase auth (REST + realtime WS) → connect-src. (The former browser→Polygon trades WS was
 //     removed 2026-07-19: any NEXT_PUBLIC_* key is world-readable and a dev sub is not a
 //     redistribution license — live data now flows server-mediated only, so wss://socket.polygon.io
@@ -61,7 +61,7 @@ const CSP = [
   "form-action 'self'",
   `script-src ${scriptSrc}`,
   "style-src 'self' 'unsafe-inline'",
-  "img-src 'self' data: blob: https://*.r2.dev https://img.logo.dev",
+  "img-src 'self' data: blob: https://*.r2.dev",
   "font-src 'self'",
   "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://qt.gtimg.cn https://web.ifzq.gtimg.cn https://ifzq.gtimg.cn",
   "worker-src 'self' blob:",
@@ -114,6 +114,15 @@ const nextConfig: NextConfig = {
   deploymentId: DEPLOYMENT_ID,
   // pin the workspace root (sibling lockfiles exist) so Turbopack stops warning
   turbopack: { root: path.resolve(__dirname) },
+  // The shared pure validators also export Node-side digest helpers. For webpack's
+  // client graph, normalize the builtin scheme so Next's existing crypto browser
+  // fallback can resolve it. Server imports and Turbopack keep their normal path.
+  webpack(config, { isServer, webpack }) {
+    if (!isServer) config.plugins.push(new webpack.NormalModuleReplacementPlugin(/^node:crypto$/, (resource: { request: string }) => {
+      resource.request = "crypto";
+    }));
+    return config;
+  },
   // Never ship client source maps to the browser (this is Next's default; pinned here as a
   // guardrail so proprietary chart/indicator/Pine logic can't be trivially de-minified).
   productionBrowserSourceMaps: false,

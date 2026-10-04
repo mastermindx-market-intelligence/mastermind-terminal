@@ -151,3 +151,79 @@ afterEach(() => {
   // never let fake time leak into an unrelated later suite in the same run.
   vi.useRealTimers();
 });
+
+// ── MarketOntology F11-6: ambient page/panel joins the revision tuple ─────────────────────
+describe("createAiContextProvider — ambient page/panel (F11-6)", () => {
+  it("defaults to the chart Terminal's historical ambient when constructed bare", () => {
+    const p = createAiContextProvider();
+    expect(p.getAiContext().ambient).toEqual({ symbol: undefined, timeframe: undefined, page: "terminal", panel: null });
+    expect(p.getAiContext().context_revision).toBe(0);
+  });
+
+  it("first-send law: an initial tuple is reported at revision 0 without a transition", () => {
+    const p = createAiContextProvider({ symbol: "NVDA", page: "analysis", panel: "theses" });
+    const ctx = p.getAiContext();
+    expect(ctx.context_revision).toBe(0);
+    expect(ctx.active).toEqual({ type: "security", id: "NVDA" });
+    expect(ctx.ambient).toEqual({ symbol: "NVDA", timeframe: undefined, page: "analysis", panel: "theses" });
+  });
+
+  it("re-applying the construction-time tuple from the host's first effect is a no-op", () => {
+    const p = createAiContextProvider({ symbol: "NVDA", page: "analysis", panel: "company" });
+    p.noteContextChange({ symbol: "NVDA", page: "analysis", panel: "company" });
+    p.noteContextChange({ symbol: "NVDA", page: "analysis", panel: "company" }); // StrictMode double effect
+    expect(p.getAiContext().context_revision).toBe(0);
+  });
+
+  it("a panel change alone bumps exactly once; repeating it does not bump again", () => {
+    const p = createAiContextProvider({ symbol: "NVDA", page: "analysis", panel: "company" });
+    p.noteContextChange({ symbol: "NVDA", page: "analysis", panel: "theses" });
+    expect(p.getAiContext().context_revision).toBe(1);
+    expect(p.getAiContext().ambient.panel).toBe("theses");
+    p.noteContextChange({ symbol: "NVDA", page: "analysis", panel: "theses" });
+    expect(p.getAiContext().context_revision).toBe(1);
+    p.noteContextChange({ symbol: "NVDA", page: "analysis", panel: "company" }); // back again: real transition
+    expect(p.getAiContext().context_revision).toBe(2);
+  });
+
+  it("an explicit panel: null clears the panel and counts as a transition", () => {
+    const p = createAiContextProvider({ page: "analysis", panel: "company" });
+    p.noteContextChange({ page: "analysis", panel: null });
+    expect(p.getAiContext().ambient).toMatchObject({ page: "analysis", panel: null });
+    expect(p.getAiContext().context_revision).toBe(1);
+  });
+
+  it("omitting page/panel leaves them unchanged — TerminalShell's symbol/timeframe calls never reset them", () => {
+    const p = createAiContextProvider({ page: "analysis", panel: "theses" });
+    p.noteContextChange({ symbol: "AAOI", timeframe: "1D" });
+    expect(p.getAiContext().ambient).toEqual({ symbol: "AAOI", timeframe: "1D", page: "analysis", panel: "theses" });
+    expect(p.getAiContext().context_revision).toBe(1);
+  });
+
+  it("symbol/timeframe keep their clearing semantics: an omitted key is null, not unchanged", () => {
+    const p = createAiContextProvider({ symbol: "NVDA", timeframe: "1D" });
+    p.noteContextChange({ symbol: "NVDA" }); // timeframe omitted → cleared → a transition
+    expect(p.getAiContext().ambient).toEqual({ symbol: "NVDA", timeframe: undefined, page: "terminal", panel: null });
+    expect(p.getAiContext().context_revision).toBe(1);
+  });
+
+  it("a page change bumps once and is independent of the panel", () => {
+    const p = createAiContextProvider();
+    p.noteContextChange({ page: "analysis" });
+    expect(p.getAiContext().ambient).toMatchObject({ page: "analysis", panel: null });
+    expect(p.getAiContext().context_revision).toBe(1);
+    p.noteContextChange({ page: "analysis" });
+    expect(p.getAiContext().context_revision).toBe(1);
+  });
+
+  it("the schema tag and origin identity are unchanged by the ambient extension", () => {
+    const p = createAiContextProvider({ page: "analysis", panel: "theses" });
+    const a = p.getAiContext();
+    p.noteContextChange({ page: "analysis", panel: "company" });
+    const b = p.getAiContext();
+    expect(a.schema).toBe("ai_context_client.v1");
+    expect(b.schema).toBe("ai_context_client.v1");
+    expect(b.origin_id).toBe(a.origin_id);
+    expect(a.pinned).toEqual([]);
+  });
+});

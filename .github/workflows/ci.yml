@@ -335,3 +335,24 @@ jobs:
       - run: python -m pytest tests/ -q
         env:
           PR_NUMBER: ${{ github.event.pull_request.number || inputs.pr_number }}
+
+  investigation-postgres:
+    name: Investigation PostgreSQL invariants
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install isolated test dependencies
+        run: |
+          python -m pip install pytest==8.3.5
+          echo "$(pg_config --bindir)" >> "$GITHUB_PATH"
+      - name: Require PostgreSQL rather than silently skip
+        run: |
+          command -v initdb
+          command -v pg_ctl
+          command -v psql
+      - name: Exercise migration, replay, CAS and owner isolation
+        run: python -m pytest tests/test_investigation_postgres.py -q

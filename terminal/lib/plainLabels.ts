@@ -640,3 +640,17 @@ export function timeZoneLabel(zone: string, lang: PlainLang, at: Date = new Date
   if (!offset) return name;
   return lang === "zh" ? `${name}（${offset}）` : `${name} (${offset})`;
 }
+
+/** ArcGauge state → localized label for aria-label. */
+export const ARC_STATE_LABEL: Record<string, [string, string]> = {
+  bull: ["bullish", "看涨"],
+  bear: ["bearish", "看跌"],
+  neutral: ["neutral", "中性"],
+  warn: ["warning", "警示"],
+};
+
+export function arcStateLabel(state: string, lang: PlainLang): string {
+  const pair = ARC_STATE_LABEL[state];
+  if (!pair) return notClassified(lang);
+  return lang === "zh" ? pair[1] : pair[0];
+}

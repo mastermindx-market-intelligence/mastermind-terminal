@@ -38,6 +38,7 @@ design_refs/
 
 # suite-alerts sidecar bundle — built on the box by terminal-build.sh step 9
 ingest/dist/
+terminal/scripts/dist/
 
 # native app shells — local build products and per-user Xcode state
 apps/ios/build/

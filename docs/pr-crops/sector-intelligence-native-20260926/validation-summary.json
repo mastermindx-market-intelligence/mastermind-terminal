@@ -1,0 +1,61 @@
+{
+  "operation": "sector-intelligence-terminal-20260926-sol-001",
+  "parent": "mastermindx-market-intelligence/macro#7646",
+  "terminal_base": "61d55a7e1d12a9104f90d17bfa2cd8b16982ac6f",
+  "procedure_start": "0d12bb45c4429a7441614fac8eff4830db5e7c0d",
+  "procedure_repin": "763ec8f920177fdf48b18df1b8e37b61ab482ef0",
+  "procedure_delta": {
+    "files": [
+      "ops/executive_os/status.sh",
+      "tests/test_executive_status.py"
+    ],
+    "status": "ahead"
+  },
+  "capability_state": "BUILT_NOT_PROVEN",
+  "mission_complete": false,
+  "typecheck": {
+    "command": "npx tsc --noEmit --incremental false",
+    "exit_code": 0
+  },
+  "scoped_lint": {
+    "command": "npx eslint lib/sectorIntelligence.ts lib/sectorIntelligenceLex.ts components/sector-intelligence/SectorIntelligenceWorkspace.tsx app/api/sector-intelligence/route.ts",
+    "exit_code": 0
+  },
+  "existing_regression_tests": {
+    "files": [
+      "lib/__tests__/workspaceIsolation.test.ts",
+      "lib/__tests__/navSymbol.test.ts"
+    ],
+    "passed": 8,
+    "failed": 0
+  },
+  "browser_fixture_checks": {
+    "passed": 87,
+    "failed": 0,
+    "new_screenshots": 21,
+    "page_errors": 0,
+    "independent_usability_acceptance": false
+  },
+  "actual_local_bff_negative_checks": {
+    "passed": 3,
+    "failed": 0,
+    "mocked": false
+  },
+  "production_proof": false,
+  "authenticated_positive_path": false,
+  "owner_payload_compatibility": false,
+  "canonical_dossier_bound": false,
+  "new_source_tests_added": false,
+  "new_source_tests_hold": "A compound source write creating the unit-test file plus transport cleanup and a dossier-label amendment was blocked before dispatch. None of those effects was applied or retried.",
+  "baseline_lint_note": "DiscoverWorkspace.tsx already contains the synchronous effect setTab lint error; the same baseline behavior is not changed in this candidate.",
+  "current_design_correction": "macro#7646 comment 5845387557 controls acceptance; this is a reusable V3 implementation baseline, not final consolidated design approval.",
+  "source_sha256": {
+    "terminal/app/api/sector-intelligence/route.ts": "164b7aeab0ce14b824152a21bdad16623facd815c7ab7abad501700b95910dfb",
+    "terminal/components/sector-intelligence/SectorIntelligenceWorkspace.tsx": "e038bbe99bb23740533ca1ce488766d97647476bb5f411d51d1bb8f026da49a7",
+    "terminal/components/sector-intelligence/SectorIntelligenceWorkspace.module.css": "0df08a5c6060c82d488b7956706b6118250ccf749a0dfb31429db81369e51dea",
+    "terminal/lib/sectorIntelligence.ts": "c5906e07abbb8968f21d63a4a173e9cd36c920b69e7a9ea26543fc82992cff48",
+    "terminal/lib/sectorIntelligenceLex.ts": "a8d2043fdcaf00e9fb023133f89826ba4bbf6da2ad03d5a89a9a29e08d815783",
+    "terminal/lib/i18n.tsx": "01dcf4a241c8bec0deaa55b92adfd323112fe7e287ca6cc861c242d6a9d49bbd",
+    "terminal/components/workspaces/DiscoverWorkspace.tsx": "f6a92d3f4f2c521b49c74ba320000568e3726217b846868bb758286717734209"
+  }
+}
