@@ -1,0 +1,219 @@
+{
+  "schema": "gmi_terminal_appearance_verification.v1",
+  "carrier": {
+    "pr": 796,
+    "draft": true,
+    "branch": "claude/gmi-cte-semantic-aging-20261004-astra-001",
+    "worktree": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/gmi-cte-semantic-aging-20261004-astra-001",
+    "head": "48ab22b5d429bf4f95a3ac924c765246ae4a1976",
+    "tree": "76c69fd492b00d89d83db018f7582aba22561169",
+    "committed_appearance_source": false
+  },
+  "protected_pin": "17b9fa1363db6071d338be3373a4fdb11fc0076d",
+  "admission": {
+    "comment": 5977917720,
+    "receipt": "admission-final.json",
+    "sha256": "98bea1d4e12f4fd0dcaeab20fa8ed3151cac937279585a0854b579a0ceff21de"
+  },
+  "source": {
+    "patch": "source-final-accepted-candidate.patch",
+    "patch_sha256": "e0d8cbade534779fdd8a7090999ef7a559cbf5e51959a9c8c4dbd2c7838117d4",
+    "manifest": "source-final-accepted-candidate.json",
+    "manifest_sha256": "78577ad07af65b8e82a51cc6c02b407ab20ffc985b8665ded9e8b4d16f2226e6",
+    "files": [
+      {
+        "path": "terminal/lib/terminalAppearance.ts",
+        "bytes": 3424,
+        "sha256": "b6b6ce8efddc4e5704a403cac0a56b161e35f058c1e1569267913de8fe8d55a8",
+        "git_blob": "79504892ccacc9940027dcaff568f66956991d0d",
+        "base_blob": null
+      },
+      {
+        "path": "terminal/app/terminal-appearance-light.css",
+        "bytes": 3354,
+        "sha256": "a4954f9808d975746191ec9ddce75a7b8df0e0a8f3c4d58c65e67347cef7f7d1",
+        "git_blob": "bc167d8e3c9d59151f13e46952412543c15ed208",
+        "base_blob": null
+      },
+      {
+        "path": "terminal/app/layout.tsx",
+        "bytes": 3247,
+        "sha256": "48c48ece64b871740ae938fcc2568197902a7f42a67dae0a602a76aebc68888e",
+        "git_blob": "fc4aa2c799eb95f3648f04c0c0a2a3bdecb17c6c",
+        "base_blob": "9d62b2ba98361b549e50a5ce2229cea5433c87b6"
+      },
+      {
+        "path": "terminal/components/settings/SettingsProvider.tsx",
+        "bytes": 9925,
+        "sha256": "b7de6f9aac2c31b5373e5ecab59a0280c82e605c9b5aacb657b2684f6a12e63d",
+        "git_blob": "7947c3e65269903f7ddb72288e086693efa2f4c0",
+        "base_blob": "157e4a0ca97181e3b8373452404212549e2bb639"
+      },
+      {
+        "path": "terminal/components/settings/SectionPreferences.tsx",
+        "bytes": 10019,
+        "sha256": "43835aaf41242d2a691c5c15ae15198dcaba03ec6012121c1213cedee1036b83",
+        "git_blob": "71f449b4b6e790d6cdea64b1e24eddc3d2181dc5",
+        "base_blob": "001aa26496ca640625632227b0d47499eb916e87"
+      },
+      {
+        "path": "terminal/lib/i18n.tsx",
+        "bytes": 200995,
+        "sha256": "bbdf0d17f38452c04820f065d46965565e778e5395658c1423be3919bb8ba163",
+        "git_blob": "eb94dbbb3d2b0e24c64f4aad510aaa964f2ab90d",
+        "base_blob": "cb2624e2fac1abb858bdb2b57f5f1ea46e56d56d"
+      },
+      {
+        "path": "terminal/components/ChartPanel.tsx",
+        "bytes": 643827,
+        "sha256": "90f4eaad48a4f73d331be8a016c843d6d22d1ac9c4e9f5561fa6a013325511cf",
+        "git_blob": "ad3416c44897031d0299571abc44dd22528d0680",
+        "base_blob": "639cf9180ebd82c4a0c7644a013e8dba2ddcd442"
+      },
+      {
+        "path": "terminal/lib/__tests__/terminalAppearance.test.ts",
+        "bytes": 5761,
+        "sha256": "ad21c13915eac9e6b8b21fa21c7f22c61e36452ed59458f18cdf072f58d489cd",
+        "git_blob": "35cf0a2f6c93071aaa202b4603d38981d63380af",
+        "base_blob": null
+      },
+      {
+        "path": "terminal/lib/__tests__/terminalAppearanceSync.test.tsx",
+        "bytes": 12590,
+        "sha256": "5fd08163bcd49f6414b6b0debdafa07e9db727e49b5af2600cff561a81a434a5",
+        "git_blob": "1f781515357b925fc1c1bfce58e5d3c9b82138fb",
+        "base_blob": null
+      },
+      {
+        "path": "terminal/lib/__tests__/chartAppearanceContract.test.tsx",
+        "bytes": 7119,
+        "sha256": "22587a5b41970469341644f88185d6c737300590d6973c67cc543982ee9bf254",
+        "git_blob": "63e3cacef841709ecf1e2b7852e541fb8f054e41",
+        "base_blob": null
+      },
+      {
+        "path": "terminal/e2e/company-intelligence-appearance.spec.ts",
+        "bytes": 23351,
+        "sha256": "aacc676fa0c6d1ee2975236256303c54a54c2a04328b30b1972d3ba64b79354f",
+        "git_blob": "6ef32f51fecc8e19843b52f4f4b8e20f2e52385e",
+        "base_blob": null
+      }
+    ]
+  },
+  "runtime": {
+    "node": "v20.20.2",
+    "executable": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/gmi-cte-semantic-aging-20261004-astra-001/.claude/evidence/cte-aging/node20-runtime/node_modules/node/bin/node",
+    "receipt": "runtime-final.log"
+  },
+  "current_tests": {
+    "units": {
+      "pid": 80904,
+      "exit": 0,
+      "pass": 207,
+      "files": 9,
+      "log": "appearance-owning-ultimate.log",
+      "sha256": "09591ba3a96665c1ac896c11c475b2c2e5d27556935ede5ade317b12bca8d1ef",
+      "module_counts": {
+        "terminalAppearance": 18,
+        "terminalAppearanceSync": 12,
+        "chartAppearanceContract": 6,
+        "companyThemeExposureSuccessor": 64,
+        "companyThemeExposure": 21,
+        "companyThemeExposureRoute": 8,
+        "companyThemeContextCardAging": 11,
+        "accountPrefs": 35,
+        "marketPrefsOwner": 32
+      }
+    },
+    "typecheck": {
+      "pid": 80904,
+      "exit": 0,
+      "log": "typecheck-ultimate.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "served": [
+      {
+        "manifest": "desktop-repeat-final.json",
+        "sha256": "7376737a7bc8d812e83927e81fe832ec39aea63670304c3c51c7a2497197a2d3",
+        "pid": 80328,
+        "exit": 0,
+        "cases": 112,
+        "repeat_each": 2,
+        "retries": 0,
+        "workers": 1,
+        "ci_no_server_reuse": true
+      },
+      {
+        "manifest": "targeted-widths-final.json",
+        "sha256": "5aa2f1c28c7c762568c75259fc0e790ccf810cf2a68a6530f99521c2dce51225",
+        "pid": 19717,
+        "exit": 0,
+        "cases": 16,
+        "repeat_each": 2,
+        "retries": 0,
+        "workers": 1,
+        "ci_no_server_reuse": true
+      }
+    ],
+    "total_served_cases": 128,
+    "png_count": 320
+  },
+  "historical_responsive": {
+    "manifest": "matrix-168-before-device-repair.json",
+    "sha256": "d74d948fff738a8dd917d5d13b33da7ee8b6a58541a85a947e9b7a4cade83c0a",
+    "cases": 168,
+    "png_count": 408,
+    "source_patch_sha256": "4e4028a0188b75c6ebcf4a6577c017893169ad7a13c2c061ea6028d90bf1d033",
+    "not_final_full_source_acceptance": true
+  },
+  "independent_control": {
+    "reviewer": "d2d_curation",
+    "pid": 64787,
+    "exit": 0,
+    "selected_pass": 8,
+    "unmatched_filtered": 4,
+    "source_manifest_sha256": "78577ad07af65b8e82a51cc6c02b407ab20ffc985b8665ded9e8b4d16f2226e6",
+    "no_browser_or_source_writes": true,
+    "receipt_location": "reviewer/root native receipt"
+  },
+  "lint": {
+    "pid": 2704,
+    "exit": 1,
+    "errors": 273,
+    "warnings": 24,
+    "added_diagnostics": 0,
+    "removed_diagnostics": 0,
+    "raw": "lint-ultimate.json",
+    "baseline": "lint-final-base.json",
+    "comparison": "lint-ultimate-comparison-mapped.json"
+  },
+  "superseded": {
+    "pid": 83605,
+    "exit": 130,
+    "passed": 34,
+    "interrupted": 1,
+    "not_run": 77,
+    "reason": "SOURCE_SUPERSEDED write-only storage source blocker",
+    "receipt": "source-superseded-stop.json",
+    "accepted_full_run": false
+  },
+  "postflight": "packaging-postflight.json",
+  "commands": "README.md",
+  "limits": [
+    "Synthetic clocks/business API/account fixtures; no natural or authenticated production claim",
+    "ZH whole-shell contains English synthetic business input; card UI localized",
+    "Current full desktop and targeted widths only; historical full168 remains source-attributed",
+    "Root owns hosted CI, principal UI acceptance and all delivery effects",
+    "Premium private/service/tier owner dependency separate and unsatisfied",
+    "No auth/access/new publisher/schema/scheduler/publication-age/rights-expiry changes"
+  ],
+  "effect_flags": {
+    "stage": false,
+    "commit": false,
+    "push": false,
+    "merge": false,
+    "deploy": false,
+    "ssh": false,
+    "live_account_write": false
+  }
+}

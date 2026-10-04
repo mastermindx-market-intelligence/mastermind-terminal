@@ -523,7 +523,7 @@ const shellAxisFontSize = () => (shellAxis() && shellWide() ? 13 : 12);
 // `axis`/`grid` resolve through the --chart-axis-text / --chart-grid indirection whose :root
 // defaults reproduce --muted / --grid exactly; only the native shell retunes them (D6).
 type Tokens = { up: string; down: string; grid: string; axis: string; line: string; p3: string; link: string; warn: string; signal: string; buy: string; sell: string; mut: string; brand2: string };
-const readTokens = (): Tokens => ({ up: css("--up"), down: css("--down"), grid: css("--chart-grid") || css("--grid"), axis: css("--chart-axis-text") || css("--muted"), line: css("--line"), p3: css("--panel-3"), link: css("--link"), warn: css("--warn"), signal: css("--signal"), buy: css("--buy"), sell: css("--sell"), mut: css("--muted"), brand2: css("--brand-2") });
+const readTokens = (): Tokens => ({ up: css("--up"), down: css("--down"), grid: css("--chart-grid") || css("--grid"), axis: css("--chart-axis-text") || css("--muted"), line: css("--line"), p3: css("--chart-label-bg") || css("--panel-3"), link: css("--link"), warn: css("--warn"), signal: css("--signal"), buy: css("--buy"), sell: css("--sell"), mut: css("--muted"), brand2: css("--brand-2") });
 
 // Directional tint. LWC paints to canvas and cannot resolve var(--up)/var(--down), so every shaded
 // directional band has to be built in JS from the LIVE token — hardcoding the green/red rgba is what
@@ -1113,9 +1113,9 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
 
   // rebuild the CHART STYLE (not the chart) when the up/down color scheme flips (Effect 5)
   const [csNonce, setCsNonce] = useState(0);
-  useEffect(() => { const h = () => setCsNonce((n) => n + 1); window.addEventListener("mm:updown", h); return () => window.removeEventListener("mm:updown", h); }, []);
+  useEffect(() => { const h = () => setCsNonce((n) => n + 1); window.addEventListener("mm:updown", h); window.addEventListener("mm:theme", h); return () => { window.removeEventListener("mm:updown", h); window.removeEventListener("mm:theme", h); }; }, []);
   // suite colors resolve from CSS tokens — drop the cache on an up/down flip so the next frame re-reads
-  useEffect(() => { const h = () => { suiteColorsRef.current = null; }; window.addEventListener("mm:updown", h); return () => window.removeEventListener("mm:updown", h); }, []);
+  useEffect(() => { const h = () => { suiteColorsRef.current = null; }; window.addEventListener("mm:updown", h); window.addEventListener("mm:theme", h); return () => { window.removeEventListener("mm:updown", h); window.removeEventListener("mm:theme", h); }; }, []);
   // Options Levels bakes tPlain() titles into canvas price-line labels at build time — rebuild on a
   // language flip or zh axis titles persist into the EN view (LEX law: no cross-language leaks).
   useEffect(() => {

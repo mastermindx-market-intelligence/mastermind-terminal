@@ -1,0 +1,1147 @@
+--- /dev/null
++++ b/terminal/lib/terminalAppearance.ts
+@@ -0,0 +1,71 @@
++/** Canonical Terminal display adapter. Account delivery remains in useMarketPrefs.
++ * The device cache is the incumbent Macro theme/themeAuto cache, not account state.
++ * Auto follows local 07:00–19:00; it does not mean OS color preference.
++ * Server-safe: browser access happens only inside the application/read functions.
++ */
++export type ThemeChoice = "light" | "dark" | "auto";
++export type Appearance = "light" | "dark";
++
++export function appearanceChoice(meta: unknown, fallback: ThemeChoice = "dark"): ThemeChoice {
++  if (!meta || typeof meta !== "object" || Array.isArray(meta)) return fallback;
++  const value = meta as { theme?: unknown; themeAuto?: unknown };
++  if (value.themeAuto === "1") return "auto";
++  if (value.theme === "light" || value.theme === "dark") return value.theme;
++  return fallback;
++}
++
++export function resolveAppearance(choice: ThemeChoice, now = new Date()): Appearance {
++  if (choice !== "auto") return choice;
++  const hour = now.getHours();
++  return hour >= 7 && hour < 19 ? "light" : "dark";
++}
++
++export function readAppearanceChoice(): ThemeChoice {
++  try {
++    return appearanceChoice({ theme: localStorage.getItem("theme"), themeAuto: localStorage.getItem("themeAuto") });
++  } catch { return "dark"; }
++}
++
++/** Local device-intent observers are display consumers, not account subscribers. */
++const appearanceIntentListeners = new Set<(choice: ThemeChoice) => void>();
++export function subscribeAppearanceIntent(listener: (choice: ThemeChoice) => void): () => void {
++  appearanceIntentListeners.add(listener);
++  return () => { appearanceIntentListeners.delete(listener); };
++}
++
++/** One local application/event path for account hydration, controls and auto resume.
++ * Clock/account synchronizers suppress intent notification to avoid re-arming themselves.
++ */
++export function applyTerminalAppearance(choice: ThemeChoice, now = new Date(), notifyIntent = true): Appearance {
++  const mode = resolveAppearance(choice, now);
++  if (typeof document === "undefined") return mode;
++  const before = document.documentElement.getAttribute("data-theme");
++  document.documentElement.setAttribute("data-theme", mode);
++  try {
++    localStorage.setItem("theme", mode);
++    if (choice === "auto") localStorage.setItem("themeAuto", "1");
++    else localStorage.removeItem("themeAuto");
++  } catch { /* Display still applies when the device cache is unavailable. */ }
++  if (before !== mode) window.dispatchEvent(new CustomEvent("mm:theme", { detail: mode }));
++  if (notifyIntent) for (const listener of [...appearanceIntentListeners]) listener(choice);
++  return mode;
++}
++
++/** Calendar construction retains local timezone/DST semantics at each boundary. */
++export function nextAppearanceBoundary(now = new Date()): Date {
++  const hour = now.getHours();
++  return new Date(now.getFullYear(), now.getMonth(), now.getDate() + (hour >= 19 ? 1 : 0), hour < 7 || hour >= 19 ? 7 : 19);
++}
++
++/** Runs before first paint. Kept beside the tested resolver/cache contract.
++ * Cache reads are separately guarded so denied storage still sets safe dark.
++ */
++export const TERMINAL_APPEARANCE_INIT = `(function(){
++  var mode='dark';
++  try{
++    var theme=localStorage.getItem('theme'), auto=localStorage.getItem('themeAuto');
++    if(auto==='1'){var hour=new Date().getHours();mode=hour>=7&&hour<19?'light':'dark';}
++    else if(theme==='light') mode='light';
++  }catch(e){}
++  document.documentElement.setAttribute('data-theme',mode);
++})();`;
+--- /dev/null
++++ b/terminal/app/terminal-appearance-light.css
+@@ -0,0 +1,55 @@
++/*
++ * Canonical light layer admitted from the pinned appearance reference.
++ * Terminal 48ab22b5d429bf4f95a3ac924c765246ae4a1976 markup remains unchanged.
++ * Macro818d1bcea9f878a3872d341b6ee355441fd620cf theme.css208–249/365–380;
++ * existing Terminal embed/theme.ts74–96. Exact mapping: docs/verification/cte-appearance-reference-2026-10-04/DESIGN.md.
++ * Dark rules, type, geometry and CTE markup/semantics remain unchanged.
++ */
++html[data-theme="light"] {
++  color-scheme:light;
++  --bg:#f7f8fa; --panel:#ffffff; --panel-2:#eef1f6; --panel-3:#e3e7ee; --inset:#f7f8fa;
++  --text:#1c2430; --text-2:#5d6b7e; --muted:#5d6b7e; --text-dim:#6b7280;
++  --line:color-mix(in srgb,#1c2430 16%,#eaecf0); --line-2:#e3e7ee; --line-3:#cdd5e0;
++  --hairline:color-mix(in srgb,#1c2430 16%,#eaecf0);
++  --hairline-strong:color-mix(in srgb,#1c2430 32%,#eaecf0); --grid:rgba(15,23,42,.06);
++  --brand:#2962ff; --brand-2:color-mix(in srgb,#285fff 88%,#1c2430); --brand-hov:#1d52ed;
++  --link:color-mix(in srgb,#285fff 88%,#1c2430);
++  --up:#1f9a55; --down:#cf4040; --up-rgb:31,154,85; --down-rgb:207,64,64;
++  --buy:#1f9a55; --sell:#cf4040; --signal:#b9791a; --regime-up:#1f9a55;
++  --warn:#b9791a; --danger:#cf4040; --state-accepted:#2f8a52;
++  --chart-bg:#fbfcfe; --chart-axis-text:#4a5160; --chart-grid:rgba(15,23,42,.06);
++  --chart-label-bg:#2a2e38; --pane-sep:#e3e7ee; --pane-sep-h:#cdd5e0;
++  --pop-bg:color-mix(in srgb,#ffffff 90%,transparent);
++  --pop-bg-modal:color-mix(in srgb,#ffffff 96%,transparent);
++  --pop-edge:color-mix(in srgb,#1c2430 16%,#eaecf0);
++  --pop-sheen:inset 0 1px 0 rgba(255,255,255,.85);
++  --pop-shadow:0 20px 54px -24px rgba(20,32,64,.34),0 10px 24px -14px rgba(20,32,64,.20);
++  --pop-hover:rgba(15,23,42,.04); --pop-scrim:rgba(20,30,50,.30);
++  --shadow-card:0 1px 3px rgba(20,30,50,.07);
++  --shadow-2:0 4px 10px rgba(20,30,50,.06),0 12px 28px rgba(20,30,50,.14);
++  --shadow-3:0 20px 54px -24px rgba(20,32,64,.34),0 10px 24px -14px rgba(20,32,64,.20);
++}
++html[data-theme="light"][data-updown="east"] {
++  --up:#cf4040; --down:#1f9a55; --up-rgb:207,64,64; --down-rgb:31,154,85; --regime-up:#cf4040;
++}
++/* Macro's declared ink mixtures on the containing CI surface. Fills retain
++   direction semantics; immutable CTE markup receives readable light ink. */
++html[data-theme="light"] .ci-page {
++  --up:color-mix(in srgb,#1f9a55 62%,#1c2430);
++  --down:color-mix(in srgb,#cf4040 84%,#1c2430);
++  --warn:color-mix(in srgb,#b9791a 62%,#1c2430);
++}
++html[data-theme="light"][data-updown="east"] .ci-page {
++  --up:color-mix(in srgb,#cf4040 84%,#1c2430); --down:color-mix(in srgb,#1f9a55 62%,#1c2430);
++}
++/* Concrete literal-color adapters, with no layout changes. */
++html[data-theme="light"] .ci-company-mark {color:var(--brand-2);box-shadow:inset 0 1px 0 rgba(255,255,255,.7)}
++html[data-theme="light"] .ci-lenses button.on {color:var(--text)}
++html[data-theme="light"] .ci-source-state button:hover,
++html[data-theme="light"] .ci-source-state a:hover {color:var(--text)}
++
++/* The shared header mark retains its white M and original SVG geometry. A
++   direct incumbent brand fill keeps its backing legible with repeated SVG
++   gradient ids in hidden responsive chrome; no other icon or chart is targeted. */
++html[data-theme="light"] header.topbar .brand > svg > rect:first-of-type,
++html[data-theme="light"] .mobilebar .m-brand > svg > rect:first-of-type {fill:var(--brand)}
+--- a/terminal/app/layout.tsx
++++ b/terminal/app/layout.tsx
+@@ -10,6 +10,8 @@
+ import "./observatory.css";
+ import "./onboarding.css";
+ import "./settings.css";
++import "./terminal-appearance-light.css";
++import { TERMINAL_APPEARANCE_INIT } from "@/lib/terminalAppearance";
+ import { LangProvider } from "@/lib/i18n";
+ import Tracker from "@/components/Tracker";
+ import EmbeddedTerminalBridge from "@/components/EmbeddedTerminalBridge";
+@@ -52,7 +54,7 @@
+ export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
+   return (
+     <html lang="en" data-theme="dark" className={`${inter.variable} ${jetbrainsMono.variable}`} suppressHydrationWarning>
+-      <head><script dangerouslySetInnerHTML={{ __html: LOCALE_INIT }} /></head>
++      <head><script dangerouslySetInnerHTML={{ __html: TERMINAL_APPEARANCE_INIT + LOCALE_INIT }} /></head>
+       <body><LangProvider>{children}</LangProvider><EmbeddedTerminalBridge /><Tracker /></body>
+     </html>
+   );
+--- a/terminal/components/settings/SettingsProvider.tsx
++++ b/terminal/components/settings/SettingsProvider.tsx
+@@ -2,6 +2,8 @@
+ import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from "react";
+ import dynamic from "next/dynamic";
+ import { createClient } from "@/lib/supabase/client";
++import { currentOwnerToken, ownerTokenIsCurrent, useAccountPrefs } from "@/lib/useMarketPrefs";
++import { appearanceChoice, readAppearanceChoice, applyTerminalAppearance, nextAppearanceBoundary, subscribeAppearanceIntent } from "@/lib/terminalAppearance";
+ import {
+   GUEST_IDENTITY, identityOwnerKey, isAccountOwner, ownerUserId, type AccountIdentity,
+ } from "@/lib/accountIdentity";
+@@ -79,6 +81,66 @@
+ // settings for the first time (mirrors OnboardingProvider's sheet).
+ const SettingsPanel = dynamic(() => import("./SettingsPanel"), { ssr: false });
+ 
++/** One display-only timer; it never fetches or delivers an account preference. */
++function watchAppearance(
++  getChoice: () => ReturnType<typeof appearanceChoice>, isCurrent = () => true,
++  listenIntent?: (refresh: () => void) => () => void,
++) {
++  let cancelled = false;
++  let timer: ReturnType<typeof setTimeout> | null = null;
++  const refresh = () => {
++    if (cancelled || !isCurrent()) return;
++    if (timer !== null) clearTimeout(timer);
++    const now = new Date(), choice = getChoice();
++    applyTerminalAppearance(choice, now, false);
++    if (choice === "auto") timer = setTimeout(refresh, Math.max(1, nextAppearanceBoundary(now).getTime() - now.getTime()));
++  };
++  const resume = () => { if (document.visibilityState === "visible") refresh(); };
++  const removeIntent = listenIntent?.(refresh);
++  refresh();
++  window.addEventListener("focus", refresh);
++  document.addEventListener("visibilitychange", resume);
++  return () => {
++    cancelled = true;
++    removeIntent?.();
++    if (timer !== null) clearTimeout(timer);
++    window.removeEventListener("focus", refresh);
++    document.removeEventListener("visibilitychange", resume);
++  };
++}
++
++/** Signed-out display still follows the device cache; no guest account subscriber. */
++function DeviceAppearance() {
++  useEffect(() => {
++    // The cache seeds this mount; newer device intent wins even if writes fail.
++    let choice = readAppearanceChoice();
++    return watchAppearance(
++      () => choice,
++      () => true,
++      refresh => subscribeAppearanceIntent(intent => { choice = intent; refresh(); }),
++    );
++  }, []);
++  return null;
++}
++
++/** Actual-account subscriber. The shared store folds newer local intent over late
++ * hydration; no mismatched snapshot or expired owner generation may apply here.
++ */
++function AccountAppearance({ identity }: { identity: AccountIdentity }) {
++  const expectedOwner = identityOwnerKey(identity);
++  const { owner, metaPrefs } = useAccountPrefs(identity);
++  const { theme, themeAuto } = metaPrefs;
++  useEffect(() => {
++    const token = currentOwnerToken();
++    if (owner !== expectedOwner || token.owner !== expectedOwner) return;
++    return watchAppearance(
++      () => appearanceChoice({ theme, themeAuto }, readAppearanceChoice()),
++      () => ownerTokenIsCurrent(token),
++    );
++  }, [owner, expectedOwner, theme, themeAuto]);
++  return null;
++}
++
+ export function SettingsProvider({
+   identity = GUEST_IDENTITY,
+   defaultSection = "account",
+@@ -156,6 +218,7 @@
+ 
+   return (
+     <SettingsCtx.Provider value={api}>
++      {isAccountOwner(owner) ? <AccountAppearance key={owner} identity={identity} /> : <DeviceAppearance />}
+       {children}
+       {everOpened && (
+         <SettingsPanel
+--- a/terminal/components/settings/SectionPreferences.tsx
++++ b/terminal/components/settings/SectionPreferences.tsx
+@@ -1,7 +1,8 @@
+ "use client";
+ import { useEffect, useRef, useState } from "react";
+ import { useLang } from "@/lib/i18n";
+-import { isAccountOwner } from "@/lib/accountIdentity";
++import { identityOwnerKey, isAccountOwner } from "@/lib/accountIdentity";
++import { appearanceChoice, applyTerminalAppearance, readAppearanceChoice } from "@/lib/terminalAppearance";
+ import {
+   currentOwnerToken, ownerTokenIsCurrent, persistMetaPrefs, persistTradeTypes, useAccountPrefs,
+   type OwnerToken,
+@@ -123,15 +124,14 @@
+     }, 500);
+   }
+ 
+-  const themeChoice: ThemeChoice = metaPrefs.themeAuto === "1"
+-    ? "auto"
+-    : (metaPrefs.theme === "light" ? "light" : "dark");
++  const themeChoice: ThemeChoice = appearanceChoice(metaPrefs, readAppearanceChoice());
+ 
+   function pickTheme(choice: ThemeChoice) {
+-    // Matches the macro semantics: `auto` records the flag and lets the dashboard
+-    // compute the theme from local time; an explicit pick records the theme and
+-    // clears the flag. Nothing is applied to the Terminal — it has no light mode.
++    // A stale rendered section must not apply or write under a different UUID.
++    const token = currentOwnerToken();
++    if (owner !== identityOwnerKey(identity) || token.owner !== owner || !ownerTokenIsCurrent(token)) return;
+     setTouched((s) => ({ ...s, theme: true }));
++    applyTerminalAppearance(choice);
+     if (choice === "auto") persistMetaPrefs({ themeAuto: "1" });
+     else persistMetaPrefs({ theme: choice, themeAuto: "0" });
+   }
+--- a/terminal/lib/i18n.tsx
++++ b/terminal/lib/i18n.tsx
+@@ -2214,7 +2214,7 @@
+   acsAppearance: ["Appearance", "外观"],
+   // NEW — deliberately NOT macro's appearNote ("Auto follows your local time of
+   // day"): the Terminal has no light mode, so promising one here would be a lie.
+-  acsAppearNote: ["Applies to the Macro Dashboard — the Terminal is always dark.", "应用于宏观仪表盘——终端始终为深色。"],
++  acsAppearNote: ["Applies to the Terminal and Macro Dashboard. Auto follows local time.", "适用于终端和宏观仪表板。自动模式按本地时间切换。"],
+   acsThemeLight: ["Light", "浅色"],
+   acsThemeAuto: ["Auto", "自动"],
+   acsThemeDark: ["Dark", "深色"],
+--- a/terminal/components/ChartPanel.tsx
++++ b/terminal/components/ChartPanel.tsx
+@@ -523,7 +523,7 @@
+ // `axis`/`grid` resolve through the --chart-axis-text / --chart-grid indirection whose :root
+ // defaults reproduce --muted / --grid exactly; only the native shell retunes them (D6).
+ type Tokens = { up: string; down: string; grid: string; axis: string; line: string; p3: string; link: string; warn: string; signal: string; buy: string; sell: string; mut: string; brand2: string };
+-const readTokens = (): Tokens => ({ up: css("--up"), down: css("--down"), grid: css("--chart-grid") || css("--grid"), axis: css("--chart-axis-text") || css("--muted"), line: css("--line"), p3: css("--panel-3"), link: css("--link"), warn: css("--warn"), signal: css("--signal"), buy: css("--buy"), sell: css("--sell"), mut: css("--muted"), brand2: css("--brand-2") });
++const readTokens = (): Tokens => ({ up: css("--up"), down: css("--down"), grid: css("--chart-grid") || css("--grid"), axis: css("--chart-axis-text") || css("--muted"), line: css("--line"), p3: css("--chart-label-bg") || css("--panel-3"), link: css("--link"), warn: css("--warn"), signal: css("--signal"), buy: css("--buy"), sell: css("--sell"), mut: css("--muted"), brand2: css("--brand-2") });
+ 
+ // Directional tint. LWC paints to canvas and cannot resolve var(--up)/var(--down), so every shaded
+ // directional band has to be built in JS from the LIVE token — hardcoding the green/red rgba is what
+@@ -1113,9 +1113,9 @@
+ 
+   // rebuild the CHART STYLE (not the chart) when the up/down color scheme flips (Effect 5)
+   const [csNonce, setCsNonce] = useState(0);
+-  useEffect(() => { const h = () => setCsNonce((n) => n + 1); window.addEventListener("mm:updown", h); return () => window.removeEventListener("mm:updown", h); }, []);
++  useEffect(() => { const h = () => setCsNonce((n) => n + 1); window.addEventListener("mm:updown", h); window.addEventListener("mm:theme", h); return () => { window.removeEventListener("mm:updown", h); window.removeEventListener("mm:theme", h); }; }, []);
+   // suite colors resolve from CSS tokens — drop the cache on an up/down flip so the next frame re-reads
+-  useEffect(() => { const h = () => { suiteColorsRef.current = null; }; window.addEventListener("mm:updown", h); return () => window.removeEventListener("mm:updown", h); }, []);
++  useEffect(() => { const h = () => { suiteColorsRef.current = null; }; window.addEventListener("mm:updown", h); window.addEventListener("mm:theme", h); return () => { window.removeEventListener("mm:updown", h); window.removeEventListener("mm:theme", h); }; }, []);
+   // Options Levels bakes tPlain() titles into canvas price-line labels at build time — rebuild on a
+   // language flip or zh axis titles persist into the EN view (LEX law: no cross-language leaks).
+   useEffect(() => {
+--- /dev/null
++++ b/terminal/lib/__tests__/terminalAppearance.test.ts
+@@ -0,0 +1,107 @@
++// @vitest-environment jsdom
++// Wrong local-hour boundaries, cache fallback, event duplication or divergent
++// prepaint behavior each changes a visible document state asserted here.
++import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
++import {
++  appearanceChoice, resolveAppearance, readAppearanceChoice, applyTerminalAppearance,
++  nextAppearanceBoundary, TERMINAL_APPEARANCE_INIT, subscribeAppearanceIntent,
++} from "@/lib/terminalAppearance";
++
++beforeEach(() => {
++  localStorage.clear(); document.documentElement.dataset.theme = "dark";
++});
++afterEach(() => { vi.restoreAllMocks(); });
++
++describe("incumbent light/dark/auto contract", () => {
++  it.each([
++    [6, 59, "dark"], [7, 0, "light"], [18, 59, "light"], [19, 0, "dark"],
++  ] as const)("auto at local %i:%i is %s", (hour, minute, want) => {
++    expect(resolveAppearance("auto", new Date(2026, 7, 1, hour, minute))).toBe(want);
++  });
++  it("explicit choices ignore the clock", () => {
++    expect(resolveAppearance("light", new Date(2026, 7, 1, 23))).toBe("light");
++    expect(resolveAppearance("dark", new Date(2026, 7, 1, 12))).toBe("dark");
++  });
++  it("uses only closed incumbent preference values", () => {
++    expect(appearanceChoice({ theme: "light", themeAuto: "1" })).toBe("auto");
++    expect(appearanceChoice({ theme: "light", themeAuto: "0" })).toBe("light");
++    expect(appearanceChoice({ theme: "dark" }, "light")).toBe("dark");
++    expect(appearanceChoice({ theme: "system", themeAuto: true }, "light")).toBe("light");
++    expect(appearanceChoice(null)).toBe("dark");
++    expect(appearanceChoice(["light"])).toBe("dark");
++  });
++  it("reads the same cache and fails safely when storage is absent or malformed", () => {
++    expect(readAppearanceChoice()).toBe("dark");
++    localStorage.setItem("theme", "light"); expect(readAppearanceChoice()).toBe("light");
++    localStorage.setItem("themeAuto", "1"); expect(readAppearanceChoice()).toBe("auto");
++    localStorage.setItem("themeAuto", "true"); localStorage.setItem("theme", "system");
++    expect(readAppearanceChoice()).toBe("dark");
++    vi.spyOn(Storage.prototype, "getItem").mockImplementation(() => { throw Error("blocked"); });
++    expect(readAppearanceChoice()).toBe("dark");
++  });
++  it("applies visible mode even when cache writes are blocked, with one event per mode change", () => {
++    const seen: string[] = [];
++    const listen = (event: Event) => seen.push((event as CustomEvent<string>).detail);
++    window.addEventListener("mm:theme", listen);
++    try {
++      vi.spyOn(Storage.prototype, "setItem").mockImplementation(() => { throw Error("blocked"); });
++      applyTerminalAppearance("light"); applyTerminalAppearance("light");
++      expect(document.documentElement.dataset.theme).toBe("light");
++      applyTerminalAppearance("dark");
++      expect(seen).toEqual(["light", "dark"]);
++    } finally { window.removeEventListener("mm:theme", listen); }
++  });
++  it("notifies actual device intents even without a mode change, suppresses sync echoes and unsubscribes", () => {
++    const intent = vi.fn();
++    const unsubscribe = subscribeAppearanceIntent(intent);
++    try {
++      applyTerminalAppearance("light", new Date(2026, 7, 1, 8));
++      applyTerminalAppearance("auto", new Date(2026, 7, 1, 8));
++      expect(intent.mock.calls).toEqual([["light"], ["auto"]]);
++      applyTerminalAppearance("auto", new Date(2026, 7, 1, 19), false);
++      expect(document.documentElement.dataset.theme).toBe("dark");
++      expect(intent).toHaveBeenCalledTimes(2);
++      unsubscribe();
++      applyTerminalAppearance("light");
++      expect(intent).toHaveBeenCalledTimes(2);
++    } finally { unsubscribe(); }
++  });
++  it("explicit selection clears the incumbent auto flag; auto caches the current resolved mode", () => {
++    applyTerminalAppearance("auto", new Date(2026, 7, 1, 8));
++    expect(localStorage.getItem("themeAuto")).toBe("1");
++    expect(localStorage.getItem("theme")).toBe("light");
++    applyTerminalAppearance("dark");
++    expect(localStorage.getItem("themeAuto")).toBeNull();
++    expect(localStorage.getItem("theme")).toBe("dark");
++  });
++  it("schedules the next local calendar boundary without a fixed UTC/day interval", () => {
++    expect(nextAppearanceBoundary(new Date(2026, 7, 1, 6, 59)).getTime()).toBe(new Date(2026, 7, 1, 7).getTime());
++    expect(nextAppearanceBoundary(new Date(2026, 7, 1, 7)).getTime()).toBe(new Date(2026, 7, 1, 19).getTime());
++    expect(nextAppearanceBoundary(new Date(2026, 7, 1, 19)).getTime()).toBe(new Date(2026, 7, 2, 7).getTime());
++  });
++});
++
++describe("real prepaint program", () => {
++  it.each([
++    ["light", null, 23, "light"], ["dark", null, 8, "dark"],
++    ["dark", "1", 7, "light"], ["light", "1", 19, "dark"],
++    ["system", "true", 8, "dark"], [null, null, 8, "dark"],
++  ] as const)("cache theme=%s auto=%s hour=%i paints %s", (theme, auto, hour, want) => {
++    const values: Record<string, string | null> = { theme, themeAuto: auto };
++    const attrs: Record<string, string> = {};
++    class LocalClock extends Date { getHours() { return hour; } }
++    new Function("document", "localStorage", "Date", TERMINAL_APPEARANCE_INIT)(
++      { documentElement: { setAttribute: (key: string, value: string) => { attrs[key] = value; } } },
++      { getItem: (key: string) => values[key] }, LocalClock,
++    );
++    expect(attrs["data-theme"]).toBe(want);
++  });
++  it("blocked storage still paints safe dark instead of aborting initialization", () => {
++    const attrs: Record<string, string> = {};
++    new Function("document", "localStorage", TERMINAL_APPEARANCE_INIT)(
++      { documentElement: { setAttribute: (key: string, value: string) => { attrs[key] = value; } } },
++      { getItem: () => { throw Error("blocked"); } },
++    );
++    expect(attrs["data-theme"]).toBe("dark");
++  });
++});
+--- /dev/null
++++ b/terminal/lib/__tests__/terminalAppearanceSync.test.tsx
+@@ -0,0 +1,242 @@
++// @vitest-environment jsdom
++// Removing the real provider's application or the controls' local application
++// must fail these consumer-visible tests. Only the remote auth edge is doubled.
++import { act } from "react";
++import { createRoot, type Root } from "react-dom/client";
++import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
++import { SettingsProvider } from "@/components/settings/SettingsProvider";
++import SectionPreferences from "@/components/settings/SectionPreferences";
++import { LangProvider, useT } from "@/lib/i18n";
++import { accountIdentity, GUEST_IDENTITY, type AccountIdentity } from "@/lib/accountIdentity";
++import { applyTerminalAppearance } from "@/lib/terminalAppearance";
++import { __loadOwner, __resetMarketPrefsStore } from "@/lib/useMarketPrefs";
++
++type Result = { data: { user: { id: string; user_metadata: Record<string, unknown> } | null }; error: unknown };
++let read: () => Promise<Result>;
++let reads = 0;
++const writes: Record<string, unknown>[] = [];
++vi.mock("@/lib/supabase/client", () => ({
++  createClient: () => ({ auth: {
++    getUser: () => { reads++; return read(); },
++    updateUser: async ({ data }: { data: Record<string, unknown> }) => { writes.push(data); return { error: null }; },
++  } }),
++}));
++// The asynchronously loaded sheet is closed in these tests. Its actual section
++// is mounted below, without replacing the provider or preference store.
++vi.mock("next/dynamic", () => ({ default: () => () => null }));
++
++const A = accountIdentity("appearance-a", "same@example.test");
++const B = accountIdentity("appearance-b", "same@example.test");
++const answer = (id: string, meta: Record<string, unknown>): Result => ({
++  data: { user: { id, user_metadata: meta } }, error: null,
++});
++function deferred() {
++  let resolve!: (result: Result) => void;
++  const promise = new Promise<Result>((r) => { resolve = r; });
++  return { promise, resolve };
++}
++function Controls({ identity }: { identity: AccountIdentity }) {
++  const t = useT();
++  return <SectionPreferences identity={identity} t={t} lang="en" email="same@example.test"
++    user={null} onClose={() => {}} onPatchMeta={() => {}} onRefreshUser={async () => {}} />;
++}
++let root: Root;
++let host: HTMLDivElement;
++async function mount(identity: AccountIdentity, controls = false) {
++  await act(async () => {
++    root.render(<LangProvider><SettingsProvider identity={identity}>
++      {controls ? <Controls identity={identity} /> : <div>Terminal</div>}
++    </SettingsProvider></LangProvider>);
++  });
++}
++async function click(label: string) {
++  const button = [...host.querySelectorAll("button")].find((b) => b.textContent?.trim() === label);
++  expect(button, label).toBeDefined();
++  await act(async () => { button!.click(); });
++}
++beforeEach(() => {
++  (globalThis as Record<string, unknown>).IS_REACT_ACT_ENVIRONMENT = true;
++  __resetMarketPrefsStore(); localStorage.clear();
++  document.documentElement.dataset.theme = "dark";
++  document.documentElement.dataset.lang = "en";
++  reads = 0; writes.length = 0;
++  read = async () => answer("appearance-a", {});
++  host = document.createElement("div"); document.body.append(host); root = createRoot(host);
++});
++afterEach(async () => {
++  await act(async () => { root.unmount(); });
++  host.remove(); __resetMarketPrefsStore(); vi.useRealTimers();
++});
++
++describe("canonical appearance through the real provider and controls", () => {
++  it("device intent arms same-route Auto even when resolved mode stays light, replaces timers and unsubscribes", async () => {
++    vi.useFakeTimers({ toFake: ["Date", "setTimeout", "clearTimeout"] });
++    const expectTimers = (count: number) => {
++      vi.advanceTimersByTime(1); // fake clock nests jsdom zero-delay storage tasks one tick later
++      expect(vi.getTimerCount()).toBe(count);
++    };
++    vi.setSystemTime(new Date(2026, 7, 1, 18, 59, 59));
++    await mount(GUEST_IDENTITY);
++    vi.advanceTimersByTime(0); // drain React async-act bookkeeping; measure only the device clock
++    act(() => { applyTerminalAppearance("light"); });
++    expectTimers(0);
++    act(() => { applyTerminalAppearance("auto"); });
++    expect(document.documentElement.dataset.theme).toBe("light");
++    expectTimers(1);
++    act(() => { vi.advanceTimersByTime(1000); });
++    expect(document.documentElement.dataset.theme).toBe("dark");
++    expectTimers(1);
++    act(() => { applyTerminalAppearance("auto"); applyTerminalAppearance("auto"); });
++    expectTimers(1);
++    act(() => { applyTerminalAppearance("light"); });
++    expectTimers(0);
++    act(() => { applyTerminalAppearance("auto"); root.render(null); });
++    expectTimers(0);
++    act(() => { applyTerminalAppearance("auto"); });
++    expectTimers(0);
++    expect(reads).toBe(0); expect(writes).toEqual([]);
++  });
++
++  it("same-route device Auto intent still ages and cancels when storage is blocked", async () => {
++    vi.useFakeTimers({ toFake: ["Date", "setTimeout", "clearTimeout"] });
++    const expectTimers = (count: number) => {
++      vi.advanceTimersByTime(1); // fake clock nests jsdom zero-delay storage tasks one tick later
++      expect(vi.getTimerCount()).toBe(count);
++    };
++    vi.setSystemTime(new Date(2026, 7, 1, 18, 59, 59));
++    const get = vi.spyOn(Storage.prototype, "getItem").mockImplementation(() => { throw new Error("blocked"); });
++    const set = vi.spyOn(Storage.prototype, "setItem").mockImplementation(() => { throw new Error("blocked"); });
++    try {
++      await mount(GUEST_IDENTITY);
++    vi.advanceTimersByTime(0); // drain React async-act bookkeeping; measure only the device clock
++      act(() => { applyTerminalAppearance("auto"); });
++      expect(document.documentElement.dataset.theme).toBe("light");
++      act(() => { vi.advanceTimersByTime(1000); });
++      expect(document.documentElement.dataset.theme).toBe("dark");
++      expectTimers(1);
++      act(() => { applyTerminalAppearance("light"); });
++      expect(document.documentElement.dataset.theme).toBe("light");
++      expectTimers(0);
++      expect(reads).toBe(0); expect(writes).toEqual([]);
++    } finally { get.mockRestore(); set.mockRestore(); }
++  });
++
++  it("volatile device intent outranks a readable stale cache when only writes fail", async () => {
++    localStorage.setItem("theme", "dark");
++    vi.useFakeTimers({ toFake: ["Date", "setTimeout", "clearTimeout"] });
++    vi.setSystemTime(new Date(2026, 7, 1, 18, 59, 59));
++    await mount(GUEST_IDENTITY);
++    const set = vi.spyOn(Storage.prototype, "setItem").mockImplementation(() => { throw new Error("quota"); });
++    try {
++      act(() => { applyTerminalAppearance("light"); });
++      expect(document.documentElement.dataset.theme).toBe("light");
++      expect(localStorage.getItem("theme")).toBe("dark");
++      act(() => { applyTerminalAppearance("auto"); });
++      expect(document.documentElement.dataset.theme).toBe("light");
++      act(() => { vi.advanceTimersByTime(1000); });
++      expect(document.documentElement.dataset.theme).toBe("dark");
++      vi.advanceTimersByTime(1);
++      expect(vi.getTimerCount()).toBe(1);
++      act(() => { applyTerminalAppearance("light"); });
++      expect(document.documentElement.dataset.theme).toBe("light");
++      vi.advanceTimersByTime(1);
++      expect(vi.getTimerCount()).toBe(0);
++      expect(localStorage.getItem("theme")).toBe("dark");
++      expect(localStorage.getItem("themeAuto")).toBeNull();
++      expect(reads).toBe(0); expect(writes).toEqual([]);
++    } finally { set.mockRestore(); }
++  });
++
++  it("applies the current account's saved light preference without opening Settings", async () => {
++    read = async () => answer("appearance-a", { theme: "light", theme_auto: "0" });
++    await mount(A);
++    expect(document.documentElement.dataset.theme).toBe("light");
++    expect(reads).toBe(1); // incumbent hydration, no second appearance auth reader
++    expect(writes).toEqual([]);
++  });
++
++  it("an actual light click survives an older hydration answer and uses the incumbent delivery", async () => {
++    const pending = deferred(); read = () => pending.promise;
++    await mount(A, true);
++    await click("Light");
++    expect(document.documentElement.dataset.theme).toBe("light");
++    expect(localStorage.getItem("theme")).toBe("light");
++    await act(async () => { pending.resolve(answer("appearance-a", { theme: "dark", theme_auto: "0" })); });
++    expect(document.documentElement.dataset.theme).toBe("light");
++    const light = [...host.querySelectorAll("button")].find((b) => b.textContent?.trim() === "Light");
++    expect(light?.getAttribute("aria-pressed")).toBe("true");
++    expect(reads).toBe(1);
++    expect(writes.some((w) => w.theme === "light")).toBe(true);
++    expect(writes.every((w) => !("appearance" in w))).toBe(true);
++  });
++
++  it("does not apply a late prior account at the same email after switching UUID", async () => {
++    const old = deferred(), next = deferred();
++    read = () => old.promise; await mount(A);
++    read = () => next.promise; await mount(B);
++    await act(async () => { next.resolve(answer("appearance-b", { theme: "light", theme_auto: "0" })); });
++    expect(document.documentElement.dataset.theme).toBe("light");
++    await act(async () => { old.resolve(answer("appearance-a", { theme: "dark", theme_auto: "0" })); });
++    expect(document.documentElement.dataset.theme).toBe("light");
++    expect(writes).toEqual([]);
++  });
++
++  it("rejects mismatched store snapshots and stale controls instead of writing another owner", async () => {
++    read = async () => answer("appearance-a", { theme: "dark", theme_auto: "0" });
++    await mount(A, true);
++    read = async () => answer("appearance-b", { theme: "light", theme_auto: "0" });
++    await act(async () => { __loadOwner("account:appearance-b"); });
++    expect(document.documentElement.dataset.theme).toBe("dark");
++    await click("Light");
++    expect(document.documentElement.dataset.theme).toBe("dark");
++    expect(writes).toEqual([]);
++  });
++
++  it("preserves the effective device display on signout and does not subscribe a guest account reader", async () => {
++    read = async () => answer("appearance-a", { theme: "light", theme_auto: "0" });
++    await mount(A); await mount(GUEST_IDENTITY);
++    expect(document.documentElement.dataset.theme).toBe("light");
++    expect(reads).toBe(1);
++    expect(writes).toEqual([]);
++  });
++
++  it("the device auto choice keeps following local time after signout without a guest account reader", async () => {
++    vi.useFakeTimers(); vi.setSystemTime(new Date(2026, 7, 1, 18, 59, 59));
++    read = async () => answer("appearance-a", { theme: "dark", theme_auto: "1" });
++    await mount(A); await mount(GUEST_IDENTITY);
++    expect(document.documentElement.dataset.theme).toBe("light");
++    await act(async () => { vi.advanceTimersByTime(1000); });
++    expect(document.documentElement.dataset.theme).toBe("dark");
++    expect(reads).toBe(1); expect(writes).toEqual([]);
++  });
++
++  it("a new explicit choice cancels the prior auto boundary and visibility resume respects it", async () => {
++    vi.useFakeTimers(); vi.setSystemTime(new Date(2026, 7, 1, 18, 59, 59));
++    read = async () => answer("appearance-a", { theme: "dark", theme_auto: "1" });
++    await mount(A, true); await click("Light");
++    await act(async () => { vi.advanceTimersByTime(1000); document.dispatchEvent(new Event("visibilitychange")); });
++    expect(document.documentElement.dataset.theme).toBe("light");
++    expect(localStorage.getItem("themeAuto")).toBeNull();
++  });
++
++  it("an unmounted provider cancels auto timer and resume listeners", async () => {
++    vi.useFakeTimers(); vi.setSystemTime(new Date(2026, 7, 1, 18, 59, 59));
++    read = async () => answer("appearance-a", { theme: "dark", theme_auto: "1" });
++    await mount(A); await act(async () => { root.render(null); });
++    await act(async () => { vi.advanceTimersByTime(1000); window.dispatchEvent(new Event("focus")); document.dispatchEvent(new Event("visibilitychange")); });
++    expect(document.documentElement.dataset.theme).toBe("light");
++  });
++
++  it("recomputes auto after local-time boundary and focus resume without another auth read", async () => {
++    vi.useFakeTimers(); vi.setSystemTime(new Date(2026, 7, 1, 18, 59, 59));
++    read = async () => answer("appearance-a", { theme: "dark", theme_auto: "1" });
++    await mount(A);
++    expect(document.documentElement.dataset.theme).toBe("light");
++    await act(async () => { vi.advanceTimersByTime(1000); });
++    expect(document.documentElement.dataset.theme).toBe("dark");
++    vi.setSystemTime(new Date(2026, 7, 2, 8));
++    await act(async () => { window.dispatchEvent(new Event("focus")); });
++    expect(document.documentElement.dataset.theme).toBe("light");
++    expect(reads).toBe(1);
++  });
++});
+--- /dev/null
++++ b/terminal/lib/__tests__/chartAppearanceContract.test.tsx
+@@ -0,0 +1,109 @@
++// @vitest-environment jsdom
++// Execute the exact private ChartPanel seams without exporting test-only app APIs
++// or mounting unrelated chart/data/Copilot operations. AST selection is a harness;
++// assertions concern real hook events/cache and actual style options, not source text.
++import fs from "node:fs";
++import path from "node:path";
++import ts from "typescript";
++import { act, useEffect, useState } from "react";
++import { createRoot } from "react-dom/client";
++import { afterEach, describe, expect, it } from "vitest";
++
++const text = fs.readFileSync(path.resolve("components/ChartPanel.tsx"), "utf8");
++const source = ts.createSourceFile("ChartPanel.tsx", text, ts.ScriptTarget.Latest, true, ts.ScriptKind.TSX);
++const declarations = new Map<string, string>();
++const effects: ts.CallExpression[] = [];
++function visit(node: ts.Node) {
++  if (ts.isVariableDeclaration(node) && ts.isIdentifier(node.name) && ["css", "readTokens"].includes(node.name.text)) {
++    declarations.set(node.name.text, "const " + node.getText(source) + ";");
++  }
++  if (ts.isCallExpression(node) && node.expression.getText(source) === "useEffect") effects.push(node);
++  ts.forEachChild(node, visit);
++}
++visit(source);
++const compile = (code: string) => ts.transpileModule(code, { compilerOptions: { target: ts.ScriptTarget.ES2020, module: ts.ModuleKind.CommonJS } }).outputText;
++const readTokens = new Function("getComputedStyle", "document", compile(declarations.get("css")! + declarations.get("readTokens")!) + ";return readTokens;")(getComputedStyle, document) as () => Record<string, string>;
++const selected = effects.filter((e) => {
++  const body = e.arguments[0]?.getText(source) || "";
++  return body.includes("mm:updown") && (body.includes("setCsNonce") || body.includes("suiteColorsRef"));
++});
++const useSeams = new Function("useEffect", "window", "setCsNonce", "suiteColorsRef", compile(selected.map((e) => e.getText(source) + ";").join("\n"))) as (
++  effect: typeof useEffect, win: Window, setEpoch: React.Dispatch<React.SetStateAction<number>>, cache: { current: unknown },
++) => void;
++const styleEffect = effects.find((e) => e.arguments[1]?.getText(source) === "[csNonce]" && e.arguments[0].getText(source).includes("chart.applyOptions"))!;
++const styleCode = compile("const style = " + styleEffect.arguments[0].getText(source) + ";") + "return style();";
++const cache: { current: unknown } = { current: null };
++let unmount: (() => Promise<void>) | undefined;
++afterEach(async () => { await unmount?.(); unmount = undefined; document.documentElement.removeAttribute("style"); });
++
++function Harness() {
++  const [epoch, setEpoch] = useState(0);
++  useSeams(useEffect, window, setEpoch, cache);
++  return <output>{epoch}</output>;
++}
++async function mount() {
++  (globalThis as Record<string, unknown>).IS_REACT_ACT_ENVIRONMENT = true;
++  const host = document.createElement("div"); document.body.append(host);
++  const root = createRoot(host);
++  await act(async () => { root.render(<Harness />); });
++  unmount = async () => { await act(async () => { root.unmount(); }); host.remove(); };
++  return host;
++}
++function tokens(values: Record<string, string>) {
++  for (const [key, value] of Object.entries(values)) document.documentElement.style.setProperty(key, value);
++}
++
++describe("actual ChartPanel palette seam", () => {
++  it("a real theme event advances style epoch and drops cached suite colors", async () => {
++    const host = await mount(); cache.current = { up: "#old" };
++    await act(async () => { window.dispatchEvent(new CustomEvent("mm:theme")); });
++    expect(host.textContent).toBe("1"); expect(cache.current).toBeNull();
++  });
++  it("retains up/down refresh and removes both event handlers on cleanup", async () => {
++    const host = await mount(); cache.current = { up: "#old" };
++    await act(async () => { window.dispatchEvent(new CustomEvent("mm:updown")); });
++    expect(host.textContent).toBe("1"); expect(cache.current).toBeNull();
++    await unmount!(); unmount = undefined;
++    cache.current = { retained: true };
++    window.dispatchEvent(new CustomEvent("mm:theme"));
++    window.dispatchEvent(new CustomEvent("mm:updown"));
++    expect(cache.current).toEqual({ retained: true });
++  });
++  it("uses the readable light crosshair label backdrop and preserves dark panel fallback", () => {
++    tokens({ "--panel-3": "#e3e7ee", "--chart-label-bg": "#2a2e38" });
++    expect(readTokens().p3).toBe("#2a2e38");
++    // LWC label text remains white; independent WCAG luminance for the mapped backdrop.
++    const channels = [42, 46, 56].map((n) => n / 255).map((n) => n <= .04045 ? n / 12.92 : ((n + .055) / 1.055) ** 2.4);
++    const luminance = .2126 * channels[0] + .7152 * channels[1] + .0722 * channels[2];
++    expect(1.05 / (luminance + .05)).toBeGreaterThan(4.5);
++    document.documentElement.style.removeProperty("--chart-label-bg");
++    tokens({ "--panel-3": "#1a1d25" }); expect(readTokens().p3).toBe("#1a1d25");
++  });
++  it.each([["west", "#1f9a55", "#cf4040"], ["east", "#cf4040", "#1f9a55"]] as const)(
++    "%s token snapshot follows actual directional values", (direction, up, down) => {
++      document.documentElement.dataset.updown = direction;
++      tokens({ "--up": up, "--down": down, "--buy": "#1f9a55", "--sell": "#cf4040" });
++      expect(readTokens()).toMatchObject({ up, down, buy: "#1f9a55", sell: "#cf4040" });
++    },
++  );
++  it("the incumbent style consumer preserves custom overrides and existing indicator recoloring", () => {
++    tokens({ "--up": "#1f9a55", "--down": "#cf4040", "--chart-axis-text": "#4a5160", "--chart-label-bg": "#2a2e38" });
++    const chartOptions: Record<string, unknown>[] = [], priceOptions: Record<string, unknown>[] = [];
++    let rebuilds = 0, renders = 0;
++    const bindings: Record<string, unknown> = {
++      chartRef: { current: { applyOptions: (options: Record<string, unknown>) => chartOptions.push(options) } },
++      priceSeriesRef: { current: { applyOptions: (options: Record<string, unknown>) => priceOptions.push(options) } },
++      tokensRef: { current: null }, readTokens,
++      chartSettingsRef: { current: { scaleTextColor: "#123456", candleUpColor: "#abcdef", candleDownColor: "#fedcba", paneSeparatorColor: "#445566" } },
++      css: (key: string) => getComputedStyle(document.documentElement).getPropertyValue(key).trim(),
++      axisLineColor: (value: string) => value, chartType: "candles", isValueChartType: () => false,
++      indSeriesRef: { current: new Map() }, barsRef: { current: [{}] }, csNonce: 1,
++      indicatorsRef: { current: new Set(["macd"]) }, rebuildIndicators: () => { rebuilds++; },
++      renderSignalsRef: { current: () => { renders++; } }, renderRef: { current: () => { renders++; } },
++    };
++    new Function(...Object.keys(bindings), styleCode)(...Object.values(bindings));
++    expect(chartOptions[0]).toMatchObject({ layout: { textColor: "#123456", panes: { separatorColor: "#445566" } }, crosshair: { vertLine: { labelBackgroundColor: "#2a2e38" }, horzLine: { labelBackgroundColor: "#2a2e38" } } });
++    expect(priceOptions[0]).toMatchObject({ upColor: "#abcdef", downColor: "#fedcba" });
++    expect(rebuilds).toBe(1); expect(renders).toBe(2);
++  });
++});
+--- /dev/null
++++ b/terminal/e2e/company-intelligence-appearance.spec.ts
+@@ -0,0 +1,372 @@
++import { expect, test, type Page } from "@playwright/test";
++import fs from "node:fs/promises";
++
++test.use({ timezoneId: "UTC" });
++
++// Synthetic business data, real served appearance controls. No mode/CSS injection.
++
++
++
++function themeFixture() {
++  return {
++    schema: "company_theme_exposure.v1", authority: "context_only", is_context_only: true,
++    generated_at: "2026-08-01T12:00:00Z", generation_id: "f".repeat(24), status: "ready",
++    company: { ticker: "NVDA" },
++    company_intelligence: { generation_id: "a".repeat(24), context_sha256: "9".repeat(64), latest_event_id: "cie_d8488221fd8c710c53d6537d", latest_event_call_date: "2026-05-20" },
++    exposures: [{ theme_id: "ai_infrastructure", name_en: "AI Infrastructure", name_zh: "人工智能基础设施", basket_id: "ai_semiconductors", mapping_qualifier: "proxy" }],
++    coverage: { status: "mapped", active_basket_count: 1, mapped_basket_count: 1, unmapped_basket_count: 0 },
++    theme_state: { status: "fresh", as_of: "2026-08-01", sha256: "8".repeat(64) }, warnings: [] as string[],
++  };
++}
++async function arrange(page: Page, zh: boolean, payload: unknown, status = 200) {
++  const browserErrors: string[] = [];
++  page.on("pageerror", error => browserErrors.push(error.message));
++  await page.addInitScript(zh => localStorage.setItem("mm.lang", zh ? "zh" : "en"), zh);
++  await page.route("https://www.mastermind-x.com/mm_brain.js", route => route.fulfill({ contentType: "application/javascript", body: "" }));
++  await page.route("**/api/event-workspace/**", route => route.fulfill({ status: 404, json: { ok: false, state: "error", available: false, error: { code: "not_found", message: "fixture uncovered", retryable: false } } }));
++  await page.route("**/api/company-intelligence/NVDA**", route => route.fulfill({ json: { ok: true, state: "ready", context: contextFixture() } }));
++  await page.route("**/api/company-institutional-context/NVDA**", route => route.fulfill({ status: 404, json: { ok: false, state: "error", error: { code: "not_found", message: "fixture uncovered", retryable: false } } }));
++  await page.route("**/api/company-theme-context/NVDA**", route => route.fulfill({ status, json: payload }));
++  await page.goto("/analysis?symbol=NVDA&page=intelligence");
++  await expect(page.locator(".ci-page")).toBeVisible({ timeout: 30_000 });
++  return browserErrors;
++}
++async function selectAppearance(page: Page, zh: boolean, mode: "dark" | "light" | "auto", returnToAnalysis = true) {
++  // /analysis's incumbent local preview is guest. The existing /terminal E2E
++  // identity seam supplies a fixture account to the real served settings host.
++  // Select there, then navigate to the card; no auth-plane or mode injection.
++  if (!new URL(page.url()).pathname.startsWith("/terminal")) await page.goto("/terminal?symbol=NVDA");
++  await expect(page.locator(".mm-ptag")).toBeVisible({ timeout: 60_000 });
++  const mobile = (page.viewportSize()?.width || 1440) <= 860;
++  await page.locator(mobile ? ".mobilebar .avatar" : "header.topbar .avatar").first().click({ timeout: 20_000 });
++  await expect(page.locator(".acs-card")).toBeVisible({ timeout: 20_000 });
++  await page.getByRole("tab", { name: zh ? "偏好" : "Preferences", exact: true }).click({ timeout: 20_000 });
++  const group = page.getByRole("group", { name: zh ? "外观" : "Appearance", exact: true });
++  const label = mode === "light" ? (zh ? "浅色" : "Light") : mode === "dark" ? (zh ? "深色" : "Dark") : (zh ? "自动" : "Auto");
++  await group.getByRole("button", { name: label, exact: true }).click({ timeout: 20_000 });
++  await expect(group.getByRole("button", { name: label, exact: true })).toHaveAttribute("aria-pressed", "true");
++  await page.keyboard.press("Escape");
++  await expect(page.locator(".acs-card")).not.toBeVisible();
++  if (returnToAnalysis) {
++    await page.goto("/analysis?symbol=NVDA&page=intelligence");
++    await expect(page.locator(".ci-page")).toBeVisible({ timeout: 30_000 });
++  }
++}
++async function assertAppearance(page: Page, mode: "dark" | "light") {
++  await expect(page.locator("html")).toHaveAttribute("data-theme", mode);
++  await expect.poll(() => page.evaluate(() => getComputedStyle(document.body).backgroundColor)).toBe(mode === "light" ? "rgb(247, 248, 250)" : "rgb(10, 11, 14)");
++}
++async function proof(page: Page, name: string, outputPath: (path: string) => string) {
++  await page.screenshot({ path: outputPath(name + "-shell.png") });
++  const card = page.locator(".ci-theme-card");
++  await card.scrollIntoViewIfNeeded();
++  const widths = await page.evaluate(() => ({ viewport: document.documentElement.clientWidth, width: document.documentElement.scrollWidth }));
++  expect(widths.width).toBeLessThanOrEqual(widths.viewport + 1);
++  await card.screenshot({ path: outputPath(name + "-card.png") });
++}
++
++for (const mode of ["dark", "light"] as const) for (const zh of [false, true]) {
++  test(`existing card ages at UTC expiry without reloading or fetching (${mode}/${zh ? "ZH" : "EN"})`, async ({ page }, info) => {
++    test.setTimeout(90_000);
++    await page.clock.install({ time: new Date("2026-08-06T23:00:00Z") });
++    let reads = 0;
++    page.on("request", request => { if (request.url().includes("/api/company-theme-context/NVDA")) reads++; });
++    const errors = await arrange(page, zh, { ok: true, state: "ready", context: themeFixture() });
++    await selectAppearance(page, zh, mode);
++    await assertAppearance(page, mode);
++    const footer = page.locator(".ci-theme-footer");
++    await expect(footer).toContainText(zh ? "新鲜" : "Fresh");
++    await proof(page, `${mode}-${zh ? "zh" : "en"}-fresh`, info.outputPath.bind(info));
++    const before = reads;
++    await page.clock.fastForward(3_600_000);
++    await expect(footer).toContainText(zh ? "已过期" : "Stale");
++    await expect(page.locator(".ci-theme-header")).toContainText(zh ? "最近验证" : "Last verified");
++    await expect(page.locator(".ci-theme-warning")).toContainText(zh ? "独立主题状态凭证已过期" : "theme-state receipt is stale");
++    expect(reads).toBe(before);
++    await proof(page, `${mode}-${zh ? "zh" : "en"}-expired`, info.outputPath.bind(info));
++    const eventSelector = page.getByLabel(zh ? "选择公司事件" : "Select company event");
++    await eventSelector.selectOption("cie_4c0410e7c4358283cf37a557", { timeout: 20_000 });
++    await expect(page.locator(".ci-theme-boundary")).toBeVisible();
++    await expect(page.locator(".ci-theme-card")).not.toContainText(zh ? "人工智能基础设施" : "AI Infrastructure");
++    await proof(page, `${mode}-${zh ? "zh" : "en"}-historical`, info.outputPath.bind(info));
++    expect(errors).toEqual([]);
++  });
++
++  for (const variant of ["source-stale", "missing", "invalid", "future", "future-generation", "last-good", "mixed", "unmapped-only", "empty", "refreshing", "unavailable"] as const) {
++    test(`degraded existing theme card: ${variant} (${mode}/${zh ? "ZH" : "EN"})`, async ({ page }, info) => {
++      test.setTimeout(90_000);
++      await page.clock.setFixedTime(new Date("2026-08-01T12:00:01Z"));
++      const body = themeFixture();
++      let expected = zh ? "新鲜" : "Fresh";
++      if (variant === "source-stale") { body.theme_state.status = "stale"; body.status = "partial"; body.warnings = ["theme_state_stale"]; expected = zh ? "已过期" : "Stale"; }
++      if (variant === "missing" || variant === "invalid") {
++        Object.assign(body.theme_state, { status: variant, as_of: null, sha256: variant === "missing" ? null : "8".repeat(64) });
++        body.status = "partial"; body.warnings = [`theme_state_${variant}`]; expected = variant === "missing" ? (zh ? "缺失" : "Missing") : (zh ? "无效" : "Invalid");
++      }
++      if (variant === "future") { body.theme_state.as_of = "2026-08-02"; expected = zh ? "未来日期" : "Future date"; }
++      if (variant === "future-generation") body.generated_at = "2026-08-02T12:00:00Z";
++      if (variant === "mixed") { body.coverage = { status: "mixed", active_basket_count: 2, mapped_basket_count: 1, unmapped_basket_count: 1 }; body.status = "partial"; body.warnings = ["active_membership_unmapped"]; }
++      if (variant === "unmapped-only") { body.coverage = { status: "unmapped_only", active_basket_count: 1, mapped_basket_count: 0, unmapped_basket_count: 1 }; body.exposures = []; body.status = "partial"; body.warnings = ["active_membership_unmapped"]; }
++      if (variant === "empty") { body.coverage = { status: "no_active_membership", active_basket_count: 0, mapped_basket_count: 0, unmapped_basket_count: 0 }; body.exposures = []; }
++      if (variant === "refreshing") body.company_intelligence.generation_id = "7".repeat(24);
++      const payload = variant === "unavailable" ? { ok: false, state: "error", error: { code: "upstream_unavailable", message: "opaque fixture outage", retryable: true } } : { ok: true, state: variant === "last-good" || variant === "source-stale" ? "stale" : variant === "future" ? "partial" : body.status, context: body };
++      const errors = await arrange(page, zh, payload, variant === "unavailable" ? 503 : 200);
++      await selectAppearance(page, zh, mode);
++      await assertAppearance(page, mode);
++      if (variant === "refreshing") {
++        await expect(page.locator(".ci-theme-unavailable")).toContainText(zh ? "主题背景正在刷新" : "Theme context is refreshing");
++        await expect(page.locator(".ci-theme-card")).not.toContainText(zh ? "人工智能基础设施" : "AI Infrastructure");
++      } else if (variant === "unavailable" || variant === "future-generation") {
++        await expect(page.locator(".ci-theme-unavailable")).toContainText(zh ? "已验证主题背景暂不可用" : "Verified theme context unavailable");
++      } else {
++        await expect(page.locator(".ci-theme-footer")).toContainText(expected);
++        if (variant === "future") await expect(page.locator(".ci-theme-header")).toContainText(zh ? "部分覆盖" : "Partial");
++        if (variant === "last-good") await expect(page.locator(".ci-theme-header")).toContainText(zh ? "最近验证" : "Last verified");
++        if (variant === "empty") await expect(page.locator(".ci-theme-empty")).toContainText(zh ? "不在当前策展篮子名册" : "no active membership");
++        if (variant === "unmapped-only") await expect(page.locator(".ci-theme-empty")).toContainText(zh ? "不会为其推断主题标签" : "no theme label is inferred");
++      }
++      await proof(page, `${mode}-${zh ? "zh" : "en"}-${variant}`, info.outputPath.bind(info));
++      expect(errors).toEqual([]);
++    });
++  }
++}
++
++// Synthetic owner-shaped fixtures; no natural-publication or production claim.
++for (const zh of [false, true]) {
++  test(`actual appearance selection survives navigation and a new cold context (${zh ? "ZH" : "EN"})`, async ({ page, browser }, info) => {
++    test.setTimeout(120_000);
++    await page.clock.setFixedTime(new Date("2026-08-01T12:00:01Z"));
++    await arrange(page, zh, { ok: true, state: "ready", context: themeFixture() });
++    await selectAppearance(page, zh, "light"); await assertAppearance(page, "light");
++    await proof(page, `control-light-${zh ? "zh" : "en"}`, info.outputPath.bind(info));
++    // New page/context receives only the browser's actual stored selection.
++    // No init script sets theme or html attributes.
++    const cold = await browser.newContext({ baseURL: new URL(page.url()).origin, storageState: await page.context().storageState(), viewport: page.viewportSize()!, locale: zh ? "zh-CN" : "en-US" });
++    try {
++      const next = await cold.newPage();
++      await next.clock.setFixedTime(new Date("2026-08-01T12:00:01Z"));
++      await arrange(next, zh, { ok: true, state: "ready", context: themeFixture() });
++      await assertAppearance(next, "light");
++      await selectAppearance(next, zh, "dark"); await assertAppearance(next, "dark");
++      await next.goto("/analysis?symbol=NVDA&page=intelligence");
++      await expect(next.locator(".ci-page")).toBeVisible({ timeout: 30_000 });
++      await assertAppearance(next, "dark");
++      await proof(next, `control-dark-cold-${zh ? "zh" : "en"}`, info.outputPath.bind(info));
++    } finally { await cold.close(); }
++  });
++}
++
++for (const zh of [false, true]) {
++  test(`shared header brand remains legible in served light and preserves dark (${zh ? "ZH" : "EN"})`, async ({ page }, info) => {
++    test.setTimeout(120_000);
++    await page.clock.setFixedTime(new Date("2026-08-01T12:00:01Z"));
++    await arrange(page, zh, { ok: true, state: "ready", context: themeFixture() });
++    const selector = (page.viewportSize()?.width || 1440) <= 860 ? ".mobilebar .m-brand > svg" : "header.topbar .brand > svg";
++    const inspect = () => page.locator(selector).evaluate((svg) => {
++      const rect = svg.querySelector("rect")!, path = svg.querySelector("path")!;
++      return { svg: svg.outerHTML, rectFill: getComputedStyle(rect).fill, pathStroke: getComputedStyle(path).stroke, rect: [rect.getAttribute("x"), rect.getAttribute("y"), rect.getAttribute("width"), rect.getAttribute("height"), rect.getAttribute("rx")], duplicateGradientIds: document.querySelectorAll('[id="mbT"]').length };
++    });
++    const dark = await inspect();
++    await selectAppearance(page, zh, "light");
++    const light = await inspect();
++    await fs.writeFile(info.outputPath("brand-computed.json"), JSON.stringify({ dark, light }, null, 2));
++    expect(light.rectFill).toBe("rgb(41, 98, 255)");
++    expect(light.pathStroke).toBe("rgb(255, 255, 255)");
++    expect(light.rect).toEqual(dark.rect); expect(light.svg).toBe(dark.svg);
++    await page.locator(selector).screenshot({ path: info.outputPath(`brand-light-${zh ? "zh" : "en"}.png`) });
++    await selectAppearance(page, zh, "dark");
++    expect(await inspect()).toEqual(dark);
++    await page.locator(selector).screenshot({ path: info.outputPath(`brand-dark-${zh ? "zh" : "en"}.png`) });
++  });
++
++  test(`auto survives route navigation, local19:00 and focus resume (${zh ? "ZH" : "EN"})`, async ({ page }, info) => {
++    test.setTimeout(120_000);
++    await page.clock.install({ time: new Date("2026-08-01T18:00:00Z") });
++    await arrange(page, zh, { ok: true, state: "ready", context: themeFixture() });
++    await selectAppearance(page, zh, "auto"); await assertAppearance(page, "light");
++    await page.clock.fastForward(3_600_000); await assertAppearance(page, "dark");
++    await page.clock.setSystemTime(new Date("2026-08-02T08:00:00Z"));
++    await page.evaluate(() => window.dispatchEvent(new Event("focus")));
++    await assertAppearance(page, "light");
++    await proof(page, `auto-resumed-light-${zh ? "zh" : "en"}`, info.outputPath.bind(info));
++  });
++}
++
++for (const zh of [false, true]) {
++  test(`chart palette changes in place through real appearance and directional controls (${zh ? "ZH" : "EN"})`, async ({ page }, info) => {
++    test.setTimeout(180_000);
++    await page.clock.setFixedTime(new Date("2026-08-01T12:00:01Z"));
++    await arrange(page, zh, { ok: true, state: "ready", context: themeFixture() });
++    await selectAppearance(page, zh, "dark", false);
++    const canvas = page.locator(".chart-wrap canvas").first();
++    await expect(canvas).toBeVisible({ timeout: 45_000 });
++    const initialCanvas = await canvas.elementHandle();
++    const records: unknown[] = [];
++    const read = () => page.evaluate(() => {
++      type ProofWindow = Window & { __mmChartAxisOpts?: () => { rowCount?: number; contextProof?: { colors?: { up: string; down: string } } }; __mmChartOwnership?: () => { engine?: number } };
++      const win = window as ProofWindow;
++      return { axis: win.__mmChartAxisOpts?.(), ownership: win.__mmChartOwnership?.(), labelBg: getComputedStyle(document.documentElement).getPropertyValue("--chart-label-bg").trim() };
++    });
++    await expect.poll(async () => (await read()).axis?.rowCount || 0, { timeout: 45_000 }).toBeGreaterThan(0);
++    for (const mode of ["light", "dark"] as const) {
++      await selectAppearance(page, zh, mode, false); await assertAppearance(page, mode);
++      for (const direction of ["west", "east"] as const) {
++        const mobile = (page.viewportSize()?.width || 1440) <= 860;
++        await page.locator(mobile ? ".mobilebar .avatar" : "header.topbar .avatar").first().click({ timeout: 20_000 });
++        await page.getByRole("tab", { name: zh ? "终端" : "Terminal", exact: true }).click({ timeout: 20_000 });
++        const group = page.getByRole("group", { name: zh ? "涨跌颜色" : "Up / Down colors", exact: true });
++        await group.getByRole("button", { name: direction === "west" ? (zh ? "绿涨红跌" : "Green up") : (zh ? "红涨绿跌" : "Red up"), exact: true }).click({ timeout: 20_000 });
++        await page.keyboard.press("Escape"); await expect(page.locator(".acs-card")).not.toBeVisible();
++        await expect(page.locator("html")).toHaveAttribute("data-updown", direction);
++        const green = mode === "light" ? "#1f9a55" : "#26c281", red = mode === "light" ? "#cf4040" : "#f0566b";
++        await expect.poll(async () => (await read()).axis?.contextProof?.colors).toMatchObject({ up: direction === "west" ? green : red, down: direction === "west" ? red : green });
++        expect(await initialCanvas!.evaluate((el) => el.isConnected && document.querySelector(".chart-wrap canvas") === el)).toBe(true);
++        expect((await read()).ownership?.engine).toBe(1);
++        if (mode === "light") expect((await read()).labelBg).toBe("#2a2e38");
++        const box = await page.locator(".chart-wrap").first().boundingBox();
++        await page.mouse.move(box!.x + box!.width * .6, box!.y + box!.height * .25);
++        // Read actual canvas pixels: a CSS-token read alone cannot prove the
++        // already-mounted engine or its crosshair accepted the new palette.
++        const painted = (rgb: number[]) => page.locator(".chart-wrap canvas").evaluateAll((canvases, rgb) => {
++          let count = 0;
++          for (const node of canvases) {
++            const canvas = node as HTMLCanvasElement, ctx = canvas.getContext("2d");
++            if (!ctx || !canvas.width || !canvas.height) continue;
++            const data = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
++            for (let n = 0; n < data.length; n += 4) if (data[n] === rgb[0] && data[n + 1] === rgb[1] && data[n + 2] === rgb[2] && data[n + 3] > 0) count++;
++          }
++          return count;
++        }, rgb);
++        const upRgb = (mode === "light" ? (direction === "west" ? [31,154,85] : [207,64,64]) : (direction === "west" ? [38,194,129] : [240,86,107]));
++        await expect.poll(() => painted(upRgb), { timeout: 15_000 }).toBeGreaterThan(20);
++        if (mode === "light") await expect.poll(() => painted([42,46,56]), { timeout: 15_000 }).toBeGreaterThan(20);
++        await page.locator(".chart-wrap").first().screenshot({ path: info.outputPath(`chart-${mode}-${direction}-${zh ? "zh" : "en"}.png`) });
++        records.push({ mode, direction, proof: await read() });
++      }
++    }
++    await fs.writeFile(info.outputPath("chart-live-readback.json"), JSON.stringify(records, null, 2));
++  });
++}
++
++const SHA = "a".repeat(64);
++const metrics = (overrides: Record<string, number | null> = {}) => ({
++  sentiment: 68,
++  performance: 72,
++  confidence: 64,
++  combined: 68,
++  call_positivity: 71,
++  management_confidence: 66,
++  analyst_criticism: 22,
++  future_outlook: 74,
++  revenue_growth_pct: 18.4,
++  eps_growth_pct: 21.1,
++  gross_margin_pct: 74.2,
++  analysts_count: 12,
++  questions_count: 18,
++  ...overrides,
++});
++
++function event(id: string, fiscalYear: number, fiscalQuarter: number, callDate: string, summary: string) {
++  const eventMetrics = metrics();
++  return {
++    event_id: id,
++    ticker: "NVDA",
++    fiscal_year: fiscalYear,
++    fiscal_quarter: fiscalQuarter,
++    call_date: callDate,
++    summary,
++    highlights: ["Data-center demand remained broad across the period."],
++    positive_highlights: ["Revenue growth accelerated with broad data-center demand."],
++    negative_highlights: ["Supply and deployment timing remain watch items."],
++    key_quote: "We continue to see broad demand across our platform.",
++    tags: ["data center", "demand"],
++    metrics: eventMetrics,
++    field_lineage: {
++      summary: "earnings_history",
++      key_quote: "earnings_history",
++      metrics: Object.fromEntries(Object.keys(eventMetrics).map((key) => [key, "score_overlay"])),
++      positive_highlights: ["earnings_history"],
++      negative_highlights: ["earnings_history"],
++      highlights: ["earnings_history"],
++      tags: { "data center": "earnings_history", demand: "earnings_history" },
++    },
++    previous_event_deltas: metrics({ revenue_growth_pct: 2.1, eps_growth_pct: 1.6, gross_margin_pct: 0.4, questions_count: 3 }),
++    sources: [
++      {
++        source_ref: "earnings_history",
++        kind: "earnings_history",
++        status: "present",
++        citation_precision: "document",
++        url: "https://investor.nvidia.com/earnings",
++        receipt: { source_hash: SHA, source_date: callDate, record_id: `${id}-earnings` },
++      },
++      {
++        source_ref: "score_overlay",
++        kind: "score_overlay",
++        status: "metadata_only",
++        citation_precision: "metadata",
++        url: null,
++        receipt: { source_hash: "b".repeat(64), source_date: callDate, record_id: `${id}-overlay` },
++      },
++      {
++        source_ref: "transcript",
++        kind: "transcript",
++        status: "present",
++        citation_precision: "document",
++        url: `/data/tx/NVDA/${fiscalYear}Q${fiscalQuarter}.json.gz`,
++        receipt: { source_hash: "c".repeat(64), source_date: callDate, record_id: `${fiscalYear}Q${fiscalQuarter}` },
++      },
++    ],
++    claim_citations_pending: true,
++  };
++}
++
++function contextFixture() {
++  const latest = event(
++    "cie_d8488221fd8c710c53d6537d",
++    2026,
++    1,
++    "2026-05-20",
++    "NVIDIA reported broad platform demand, with revenue growth and gross-margin discipline remaining central to the event read-through.",
++  );
++  const prior = event(
++    "cie_4c0410e7c4358283cf37a557",
++    2025,
++    4,
++    "2026-02-19",
++    "The preceding event established the demand and supply baseline for this quarter-over-quarter comparison.",
++  );
++  return {
++    schema: "company_intelligence_context.v1",
++    authority: "context_only",
++    is_context_only: true,
++    generated_at: "2026-08-01T12:00:00Z",
++    generation_id: "a".repeat(24),
++    company: { ticker: "NVDA", display_name: "NVIDIA Corporation", exchange: null },
++    status: "ready",
++    latest_event_id: latest.event_id,
++    latest_event: latest,
++    history: [latest, prior],
++    topics: {
++      timeline: [
++        { tag: "data center", first_event_id: prior.event_id, last_event_id: latest.event_id, event_count: 2, status: "persistent" },
++        { tag: "demand", first_event_id: latest.event_id, last_event_id: latest.event_id, event_count: 1, status: "added" },
++      ],
++      added: ["demand"],
++      dropped: [],
++      persistent: ["data center"],
++    },
++    source_completeness: {
++      earnings_history: { status: "present", event_count: 2 },
++      score_overlay: { status: "metadata_only", event_count: 2 },
++      transcripts: { status: "present", event_count: 2 },
++    },
++    warnings: [],
++    missing_sources: [],
++    transport_lineage: {
++      earnings_manifest: { generation_id: "b".repeat(24), sha256: "d".repeat(64) },
++      tx_index: { schema: "mastermind.tx-index/v1", generation_id: "c".repeat(24), sha256: "e".repeat(64) },
++      builder: "company_intelligence.v1",
++    },
++  };
++}

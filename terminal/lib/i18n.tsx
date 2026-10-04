@@ -2214,7 +2214,7 @@ export const LEX: Record<string, [string, string]> = {
   acsAppearance: ["Appearance", "外观"],
   // NEW — deliberately NOT macro's appearNote ("Auto follows your local time of
   // day"): the Terminal has no light mode, so promising one here would be a lie.
-  acsAppearNote: ["Applies to the Macro Dashboard — the Terminal is always dark.", "应用于宏观仪表盘——终端始终为深色。"],
+  acsAppearNote: ["Applies to the Terminal and Macro Dashboard. Auto follows local time.", "适用于终端和宏观仪表板。自动模式按本地时间切换。"],
   acsThemeLight: ["Light", "浅色"],
   acsThemeAuto: ["Auto", "自动"],
   acsThemeDark: ["Dark", "深色"],

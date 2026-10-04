@@ -1,0 +1,65 @@
+--- a/terminal/lib/terminalAppearance.ts
++++ b/terminal/lib/terminalAppearance.ts
+@@ -20,10 +20,10 @@
+   return hour >= 7 && hour < 19 ? "light" : "dark";
+ }
+ 
+-export function readAppearanceChoice(fallback: ThemeChoice = "dark"): ThemeChoice {
++export function readAppearanceChoice(): ThemeChoice {
+   try {
+-    return appearanceChoice({ theme: localStorage.getItem("theme"), themeAuto: localStorage.getItem("themeAuto") }, fallback);
+-  } catch { return fallback; }
++    return appearanceChoice({ theme: localStorage.getItem("theme"), themeAuto: localStorage.getItem("themeAuto") });
++  } catch { return "dark"; }
+ }
+ 
+ /** Local device-intent observers are display consumers, not account subscribers. */
+--- a/terminal/components/settings/SettingsProvider.tsx
++++ b/terminal/components/settings/SettingsProvider.tsx
+@@ -112,9 +112,10 @@
+ /** Signed-out display still follows the device cache; no guest account subscriber. */
+ function DeviceAppearance() {
+   useEffect(() => {
++    // The cache seeds this mount; newer device intent wins even if writes fail.
+     let choice = readAppearanceChoice();
+     return watchAppearance(
+-      () => (choice = readAppearanceChoice(choice)),
++      () => choice,
+       () => true,
+       refresh => subscribeAppearanceIntent(intent => { choice = intent; refresh(); }),
+     );
+--- a/terminal/lib/__tests__/terminalAppearanceSync.test.tsx
++++ b/terminal/lib/__tests__/terminalAppearanceSync.test.tsx
+@@ -121,6 +121,32 @@
+     } finally { get.mockRestore(); set.mockRestore(); }
+   });
+ 
++  it("volatile device intent outranks a readable stale cache when only writes fail", async () => {
++    localStorage.setItem("theme", "dark");
++    vi.useFakeTimers({ toFake: ["Date", "setTimeout", "clearTimeout"] });
++    vi.setSystemTime(new Date(2026, 7, 1, 18, 59, 59));
++    await mount(GUEST_IDENTITY);
++    const set = vi.spyOn(Storage.prototype, "setItem").mockImplementation(() => { throw new Error("quota"); });
++    try {
++      act(() => { applyTerminalAppearance("light"); });
++      expect(document.documentElement.dataset.theme).toBe("light");
++      expect(localStorage.getItem("theme")).toBe("dark");
++      act(() => { applyTerminalAppearance("auto"); });
++      expect(document.documentElement.dataset.theme).toBe("light");
++      act(() => { vi.advanceTimersByTime(1000); });
++      expect(document.documentElement.dataset.theme).toBe("dark");
++      vi.advanceTimersByTime(1);
++      expect(vi.getTimerCount()).toBe(1);
++      act(() => { applyTerminalAppearance("light"); });
++      expect(document.documentElement.dataset.theme).toBe("light");
++      vi.advanceTimersByTime(1);
++      expect(vi.getTimerCount()).toBe(0);
++      expect(localStorage.getItem("theme")).toBe("dark");
++      expect(localStorage.getItem("themeAuto")).toBeNull();
++      expect(reads).toBe(0); expect(writes).toEqual([]);
++    } finally { set.mockRestore(); }
++  });
++
+   it("applies the current account's saved light preference without opening Settings", async () => {
+     read = async () => answer("appearance-a", { theme: "light", theme_auto: "0" });
+     await mount(A);

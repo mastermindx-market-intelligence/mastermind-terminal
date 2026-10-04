@@ -1,0 +1,28 @@
+{
+  "dark": {
+    "svg": "<svg width=\"28\" height=\"28\" viewBox=\"0 0 40 40\" aria-hidden=\"true\"><defs><linearGradient id=\"mbT\" x1=\"0\" y1=\"0\" x2=\"1\" y2=\"1\"><stop offset=\"0\" stop-color=\"#4d82ff\"></stop><stop offset=\"1\" stop-color=\"#2962ff\"></stop></linearGradient></defs><rect x=\"3\" y=\"3\" width=\"34\" height=\"34\" rx=\"8\" fill=\"url(#mbT)\"></rect><rect x=\"3.6\" y=\"3.6\" width=\"32.8\" height=\"32.8\" rx=\"7.4\" fill=\"none\" stroke=\"#fff\" stroke-opacity=\".22\"></rect><path d=\"M13 28 L13 14.5 L20 22 L27 12.5 L27 28\" fill=\"none\" stroke=\"#fff\" stroke-width=\"3.2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"></path></svg>",
+    "rectFill": "url(\"#mbT\")",
+    "pathStroke": "rgb(255, 255, 255)",
+    "rect": [
+      "3",
+      "3",
+      "34",
+      "34",
+      "8"
+    ],
+    "duplicateGradientIds": 3
+  },
+  "light": {
+    "svg": "<svg width=\"28\" height=\"28\" viewBox=\"0 0 40 40\" aria-hidden=\"true\"><defs><linearGradient id=\"mbT\" x1=\"0\" y1=\"0\" x2=\"1\" y2=\"1\"><stop offset=\"0\" stop-color=\"#4d82ff\"></stop><stop offset=\"1\" stop-color=\"#2962ff\"></stop></linearGradient></defs><rect x=\"3\" y=\"3\" width=\"34\" height=\"34\" rx=\"8\" fill=\"url(#mbT)\"></rect><rect x=\"3.6\" y=\"3.6\" width=\"32.8\" height=\"32.8\" rx=\"7.4\" fill=\"none\" stroke=\"#fff\" stroke-opacity=\".22\"></rect><path d=\"M13 28 L13 14.5 L20 22 L27 12.5 L27 28\" fill=\"none\" stroke=\"#fff\" stroke-width=\"3.2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"></path></svg>",
+    "rectFill": "rgb(41, 98, 255)",
+    "pathStroke": "rgb(255, 255, 255)",
+    "rect": [
+      "3",
+      "3",
+      "34",
+      "34",
+      "8"
+    ],
+    "duplicateGradientIds": 3
+  }
+}
