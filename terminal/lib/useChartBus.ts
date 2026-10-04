@@ -14,6 +14,7 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import type { Drawing } from "@/lib/drawings";
 import { timeToMs } from "@/lib/timeWindow";
+import {createWorkspaceContextSession,type WorkspaceContextSession} from "./workspaceContextSession";
 import {
   CommandQueue, applyToStore, isV2Envelope, translate, validateEnvelope,
   fitMetrics, type Ack, type AiObject, type Fit, type FitBar, type IndicatorSpec,
@@ -40,6 +41,8 @@ export type ChartBusHost = {
 };
 
 export type ChartBus = {
+  /** Ephemeral view context owned by this mount; never a Brain pin or persisted layout. */
+  readonly context: WorkspaceContextSession|null;
   dispatchV2: (cmd: unknown) => void;
   /** PaneSync calendar window in epoch ms; only active-pane changes trigger a mirror. */
   noteViewport: (paneId: number, windowMs: { from: number; to: number } | null) => void;
@@ -63,6 +66,20 @@ export function useChartBus(host: ChartBusHost): ChartBus {
   // layout-phase command consumer can fire, without exposing an uncommitted concurrent render.
   const hostRef = useRef(host);
   useLayoutEffect(() => { hostRef.current = host; }, [host]);
+  const contextRef=useRef<WorkspaceContextSession|null>(null),contextSequence=useRef(0);
+  // Allocate/close in the committed lifecycle. StrictMode's effect remount gets a
+  // new epoch; abandoned mounts and their asynchronous response tokens stay closed.
+  useLayoutEffect(()=>{
+    const h=hostRef.current;
+    const epoch=globalThis.crypto?.randomUUID?.()??`context_${Date.now().toString(36)}_${Math.random().toString(36).slice(2)}`;
+    const context=createWorkspaceContextSession(epoch,[{id:"active_security",initial:{kind:"security",id:h.activeSymbol,timeframe:h.currentTf,pane_id:h.activePaneId},accepts:value=>Object.keys(value).length===4&&value.kind==="security"&&typeof value.id==="string"&&typeof value.timeframe==="string"&&Number.isInteger(value.pane_id)&&Number(value.pane_id)>=0}]);
+    context.register({id:"active-chart",group:"active_security",emit:true});contextRef.current=context;contextSequence.current=0;
+    return()=>{context.close();if(contextRef.current===context)contextRef.current=null;};
+  },[]);
+  useLayoutEffect(()=>{
+    const context=contextRef.current,source=context?.snapshot("active-chart");if(!context||!source)return;
+    context.publish({epoch:source.epoch,origin:source.consumer,origin_generation:source.incarnation,sequence:++contextSequence.current,value:{kind:"security",id:host.activeSymbol,timeframe:host.currentTf,pane_id:host.activePaneId}});
+  },[host.activeSymbol,host.currentTf,host.activePaneId]);
   // aiStoreRef is the SYNCHRONOUS working copy of the AI store — updated immediately in dispatch so a
   // burst of queued draws in one tick each see the prior draw's result (React state timing would lag).
   // setAiStore mirrors it for rendering. The legend/aiDrawingsFor read the React state (aiStore).
@@ -274,7 +291,7 @@ export function useChartBus(host: ChartBusHost): ChartBus {
     clear: () => { const next = { ...aiStoreRef.current, [activeSym]: [] }; aiStoreRef.current = next; setAiStore(next); scheduleState(); },
   }), [aiStore, hiddenSyms, activeSym, scheduleState]);
 
-  return { dispatchV2, noteViewport, aiDrawingsFor, legend, queue };
+  return { get context(){return contextRef.current;}, dispatchV2, noteViewport, aiDrawingsFor, legend, queue };
 }
 
 // ── shape helpers for the state mirror ──────────────────────────────────────────────────────────
