@@ -15,6 +15,7 @@ export { normalizeCompanyIntelligenceSymbol };
 export const EVENT_WORKSPACE_SCHEMA = "event_workspace.v1" as const;
 export const EVENT_WORKSPACE_MANIFEST_SCHEMA = "event_workspace_manifest.v1" as const;
 export const EVENT_WORKSPACE_MANIFEST_SCHEMA_V2 = "event_workspace_manifest.v2" as const;
+export const EVENT_WORKSPACE_MANIFEST_SCHEMA_V3 = "event_workspace_manifest.v3" as const;
 export const QA_EXCHANGE_SCHEMA = "qa_exchange.v1" as const;
 export const QA_TOPIC_VERSION = "qa_topic.v1" as const;
 export const QA_TOPIC_HASH = "a928ca72ab2e91bda74bd1e69021e08a5234e501f095610e623655db7e323b5e" as const;
@@ -294,7 +295,10 @@ export interface EventWorkspace {
 }
 
 export interface EventWorkspaceManifest {
-  schema: typeof EVENT_WORKSPACE_MANIFEST_SCHEMA | typeof EVENT_WORKSPACE_MANIFEST_SCHEMA_V2;
+  schema:
+    | typeof EVENT_WORKSPACE_MANIFEST_SCHEMA
+    | typeof EVENT_WORKSPACE_MANIFEST_SCHEMA_V2
+    | typeof EVENT_WORKSPACE_MANIFEST_SCHEMA_V3;
   generation_id: string;
   generated_at: string;
   status: EventWorkspaceManifestStatus;
@@ -305,6 +309,7 @@ export interface EventWorkspaceManifest {
   warnings: string[];
   previous_generation_id?: string | null;
   previous_manifest_sha256?: string | null;
+  source_clock?: string;
 }
 
 export interface EventWorkspaceVerifiedReceipt {
@@ -356,6 +361,11 @@ const MANIFEST_KEYS_V2 = [
   ...MANIFEST_KEYS,
   "previous_generation_id",
   "previous_manifest_sha256",
+] as const;
+
+const MANIFEST_KEYS_V3 = [
+  ...MANIFEST_KEYS_V2,
+  "source_clock",
 ] as const;
 
 const QA_EXCHANGE_KEYS = [
@@ -1375,7 +1385,8 @@ export function normalizeEventWorkspaceManifest(raw: unknown): EventWorkspaceMan
   if (!obj || obj.authority !== "context_only") return null;
   const isV1 = obj.schema === EVENT_WORKSPACE_MANIFEST_SCHEMA && exactKeys(obj, MANIFEST_KEYS);
   const isV2 = obj.schema === EVENT_WORKSPACE_MANIFEST_SCHEMA_V2 && exactKeys(obj, MANIFEST_KEYS_V2);
-  if (!isV1 && !isV2) return null;
+  const isV3 = obj.schema === EVENT_WORKSPACE_MANIFEST_SCHEMA_V3 && exactKeys(obj, MANIFEST_KEYS_V3);
+  if (!isV1 && !isV2 && !isV3) return null;
   const generationId = typeof obj.generation_id === "string" ? obj.generation_id : "";
   if (!isEventWorkspaceGenerationId(generationId) || !validTimestamp(obj.generated_at)) return null;
   if (obj.status !== "ready" && obj.status !== "degraded" && obj.status !== "partial" && obj.status !== "empty") return null;
@@ -1411,7 +1422,7 @@ export function normalizeEventWorkspaceManifest(raw: unknown): EventWorkspaceMan
   if (warnings.join("\0") !== [...new Set(warnings)].sort().join("\0")) return null;
   let previousGenerationId: string | null | undefined;
   let previousManifestSha: string | null | undefined;
-  if (isV2) {
+  if (isV2 || isV3) {
     const previousId = obj.previous_generation_id;
     const previousSha = obj.previous_manifest_sha256;
     const idOk = previousId === null || (typeof previousId === "string" && isEventWorkspaceGenerationId(previousId));
@@ -1422,8 +1433,18 @@ export function normalizeEventWorkspaceManifest(raw: unknown): EventWorkspaceMan
     previousGenerationId = previousId;
     previousManifestSha = previousSha;
   }
+  let sourceClock: string | undefined;
+  if (isV3) {
+    if (!validTimestamp(obj.source_clock)) return null;
+    if (Date.parse(obj.source_clock) > Date.parse(obj.generated_at)) return null;
+    sourceClock = obj.source_clock;
+  }
   return {
-    schema: isV2 ? EVENT_WORKSPACE_MANIFEST_SCHEMA_V2 : EVENT_WORKSPACE_MANIFEST_SCHEMA,
+    schema: isV3
+      ? EVENT_WORKSPACE_MANIFEST_SCHEMA_V3
+      : isV2
+        ? EVENT_WORKSPACE_MANIFEST_SCHEMA_V2
+        : EVENT_WORKSPACE_MANIFEST_SCHEMA,
     generation_id: generationId,
     generated_at: obj.generated_at,
     status: obj.status,
@@ -1432,7 +1453,8 @@ export function normalizeEventWorkspaceManifest(raw: unknown): EventWorkspaceMan
     aliases,
     authority: "context_only",
     warnings,
-    ...(isV2 ? { previous_generation_id: previousGenerationId ?? null, previous_manifest_sha256: previousManifestSha ?? null } : {}),
+    ...(isV2 || isV3 ? { previous_generation_id: previousGenerationId ?? null, previous_manifest_sha256: previousManifestSha ?? null } : {}),
+    ...(isV3 ? { source_clock: sourceClock } : {}),
   };
 }
 

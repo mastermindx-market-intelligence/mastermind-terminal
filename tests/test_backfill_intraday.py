@@ -1,0 +1,1302 @@
+"""Tests for ingest/backfill_intraday.py.
+
+Scope:
+- --existing-only job enumeration (including dotted symbols; zero creation of absent symbols)
+- Atomic replacement: readers see either the old file or the complete new JSON, never partial
+- Correction overlap / new-row overwrite; unchanged / no-new-data preservation
+- Partial failure continues remaining jobs but surfaces a nonzero exit code
+- Nightly wiring: --existing-only present once, weekday-gated, before coverage index
+- Non-update/backfill semantics unchanged
+- No network calls in any test
+"""
+from __future__ import annotations
+
+import datetime as dt
+import hashlib
+import json
+import os
+import re
+import importlib
+import stat
+import subprocess
+import sys
+import textwrap
+from pathlib import Path
+from unittest.mock import patch
+
+import pytest
+
+ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT))
+
+# Import the module directly so we can inspect/override internals without network.
+# The module-level POLY = _polygon_key() call must be satisfied with a fake key.
+os.environ.setdefault("POLYGON_API_KEY", "test_key_for_pytest_only")
+import importlib.util
+spec = importlib.util.spec_from_file_location("backfill_intraday", ROOT / "ingest" / "backfill_intraday.py")
+mod = importlib.util.module_from_spec(spec)
+sys.modules["backfill_intraday"] = mod
+spec.loader.exec_module(mod)
+
+
+# -----------------------------------------------------------------------------------------------
+# Fixtures
+# -----------------------------------------------------------------------------------------------
+
+@pytest.fixture
+def intraday_dir(tmp_path):
+    d = tmp_path / "intraday"
+    d.mkdir()
+    return d
+
+
+@pytest.fixture
+def intraday_env(tmp_path, monkeypatch):
+    d = tmp_path / "data"
+    intraday = d / "intraday"
+    intraday.mkdir(parents=True)
+    monkeypatch.setattr(mod, "OUT", d)
+    monkeypatch.setattr(mod, "INTRADAY", intraday)
+    return intraday
+
+
+# -----------------------------------------------------------------------------------------------
+# Helpers
+# -----------------------------------------------------------------------------------------------
+
+def _summary_failed_count(out: str) -> int:
+    m = re.search(r"failed=(\d+)", out)
+    assert m, out
+    return int(m.group(1))
+
+
+_SITECUSTOMIZE = textwrap.dedent(
+    """
+    import json
+    import os
+    import socket
+    import sys
+    import urllib.error
+    import urllib.request
+
+    _mode = os.environ.get("IDR_TEST_NET_MODE", "fail")
+    sys.stderr.write(f"OFFLINE_SHIM_ACTIVE mode={_mode}\\n")
+    sys.stderr.flush()
+
+    def _no_socket_connect(self, *args, **kwargs):
+        raise RuntimeError("OFFLINE_SHIM_NO_SOCKET")
+
+    def _no_create_connection(*args, **kwargs):
+        raise RuntimeError("OFFLINE_SHIM_NO_SOCKET")
+
+    socket.socket.connect = _no_socket_connect
+    socket.create_connection = _no_create_connection
+
+    class _FakeResp:
+        def __init__(self, body: bytes):
+            self._body = body
+
+        def read(self):
+            return self._body
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *args):
+            pass
+
+    def _fake_urlopen(req, *args, **kwargs):
+        if _mode == "fail":
+            raise urllib.error.HTTPError(
+                getattr(req, "full_url", "http://offline.test/"),
+                401,
+                "OFFLINE_SHIM_REFUSED Unauthorized",
+                {},
+                None,
+            )
+        results = []
+        if _mode == "bars":
+            # The 30 bars make_child_store() seeds, plus one newer bar: what the vendor
+            # returns for a window that holds the store's own last bars.
+            results = [{"t": (1_700_000_040 + 18_000 + i * 3600) * 1000, "o": 100 + i,
+                        "h": 105 + i, "l": 99 + i, "c": 101 + i, "v": 1000}
+                       for i in range(31)]
+        payload = json.dumps({"status": "OK", "results": results}).encode()
+        return _FakeResp(payload)
+
+    urllib.request.urlopen = _fake_urlopen
+    """
+)
+
+_OFFLINE_SHIM_MARKER = "OFFLINE_SHIM_ACTIVE"
+
+
+def _run_child_backfill(
+    data_root: Path,
+    argv: list[str],
+    net_mode: str,
+    *,
+    use_shim: bool = True,
+    cmd: list[str] | None = None,
+) -> subprocess.CompletedProcess:
+    """Run ingest.backfill_intraday's real __main__ in a child (no vendor network)."""
+    shim_dir = data_root / "_pytest_shim"
+    shim_dir.mkdir(parents=True, exist_ok=True)
+    (shim_dir / "sitecustomize.py").write_text(_SITECUSTOMIZE, encoding="utf-8")
+    env = {k: v for k, v in os.environ.items() if k != "POLYGON_API_KEY"}
+    if use_shim:
+        env["PYTHONPATH"] = f"{shim_dir}{os.pathsep}{ROOT}"
+    else:
+        env["PYTHONPATH"] = str(ROOT)
+    env["TERMINAL_DATA_DIR"] = str(data_root)
+    env["IDR_TEST_NET_MODE"] = net_mode
+    env["POLYGON_API_KEY"] = "test_key_for_pytest_only"
+    run_cmd = cmd if cmd is not None else [sys.executable, "-m", "ingest.backfill_intraday", *argv]
+    proc = subprocess.run(
+        run_cmd,
+        cwd=ROOT,
+        env=env,
+        capture_output=True,
+        text=True,
+        timeout=120,
+    )
+    marker = f"{_OFFLINE_SHIM_MARKER} mode={net_mode}"
+    assert marker in proc.stderr, (
+        f"expected offline shim marker {marker!r} in child stderr; got stderr={proc.stderr!r}"
+    )
+    return proc
+
+
+def make_store(path: Path, sym: str, tf: str, n: int = 30) -> None:
+    """Write a valid minimal store with n bars."""
+    rows = [[1_700_000_000 + i * 3600, 100 + i, 105 + i, 99 + i, 101 + i, 1000]
+            for i in range(n)]
+    doc = {"t": sym, "tf": tf, "src": "polygon", "bar_quality": "real_ohlc",
+           "asof": rows[-1][0], "bars": rows}
+    path.write_text(json.dumps(doc, separators=(",", ":")))
+
+
+def make_child_store(path: Path, sym: str, tf: str, n: int = 30) -> None:
+    """A store whose bars are the first n bars the shim's "bars" mode returns."""
+    rows = [[1_700_000_040 + i * 3600, 100 + i, 105 + i, 99 + i, 101 + i, 1000]
+            for i in range(n)]
+    doc = {"t": sym, "tf": tf, "src": "polygon", "bar_quality": "real_ohlc",
+           "asof": rows[-1][0], "bars": rows}
+    path.write_text(json.dumps(doc, separators=(",", ":")))
+
+
+def _with_overlap(fake):
+    """Make a fetch fake answer a refresh the way the vendor does.
+
+    A refresh asks for a window that starts before the store's last bar, so a real
+    answer always re-reads the store's own last bars.  This prepends them to whatever
+    the fake returns for a refresh; a full fetch (frm is None) is passed through.
+    """
+    def wrapped(sym, tf, frm=None, **kwargs):
+        rows = fake(sym, tf, frm=frm, **kwargs)
+        if frm is None or not rows:
+            return rows
+        old, _asof = mod.load_store(sym, tf)
+        seen = {r[0] for r in rows}
+        return [r for r in old[-6:] if r[0] not in seen] + rows
+    return wrapped
+
+
+# -----------------------------------------------------------------------------------------------
+# Tests: existing_stores()
+# -----------------------------------------------------------------------------------------------
+
+def test_existing_stores_enumerates_present_files(intraday_env):
+    (intraday_env / "AAPL.1h.json").write_text("{}")
+    (intraday_env / "BRK.B.1h.json").write_text("{}")
+    (intraday_env / "AAPL.5m.json").write_text("{}")
+    (intraday_env / "SPY.5m.json").write_text("{}")
+    (intraday_env / "README.txt").write_text("not a store")
+
+    jobs = mod.existing_stores(["1h", "5m"])
+    assert set(jobs) == {("AAPL", "1h"), ("BRK.B", "1h"), ("AAPL", "5m"), ("SPY", "5m")}
+
+
+def test_existing_stores_never_invents_absent_symbols(intraday_env):
+    (intraday_env / "AAPL.1h.json").write_text("{}")
+    jobs = mod.existing_stores(["1h", "5m"])
+    assert ("MISSING", "1h") not in jobs
+    assert ("MISSING", "5m") not in jobs
+
+
+def test_existing_stores_empty_dir_returns_empty(intraday_env):
+    assert mod.existing_stores(["1h", "5m"]) == []
+
+
+def test_existing_stores_unknown_tf_skipped(intraday_env):
+    (intraday_env / "AAPL.1h.json").write_text("{}")
+    (intraday_env / "AAPL.99m.json").write_text("{}")  # not a known tf
+    jobs = mod.existing_stores(["1h", "5m"])
+    assert ("AAPL", "99m") not in jobs
+    assert ("AAPL", "1h") in jobs
+
+
+# -----------------------------------------------------------------------------------------------
+# Tests: write_store / atomicity
+# -----------------------------------------------------------------------------------------------
+
+def test_write_store_atomic_never_leaves_partial(tmp_path, monkeypatch):
+    monkeypatch.setattr(mod, "OUT", tmp_path)
+    monkeypatch.setattr(mod, "INTRADAY", tmp_path / "intraday")
+    (tmp_path / "intraday").mkdir()
+
+    rows = [[1_700_000_000 + i * 3600, 100 + i, 105 + i, 99 + i, 101 + i, 1000]
+            for i in range(30)]
+    mod.write_store("ATOM", "1h", rows)
+
+    target = tmp_path / "intraday" / "ATOM.1h.json"
+    assert target.exists()
+    # No temp file left behind
+    assert not any(p.name.startswith("ATOM.1h.json.tmp") for p in (tmp_path / "intraday").iterdir())
+    doc = json.loads(target.read_text())
+    assert doc["t"] == "ATOM"
+    assert doc["tf"] == "1h"
+    assert len(doc["bars"]) == 30
+
+
+def test_write_store_refuses_to_write_empty_store(intraday_env):
+    result = mod.write_store("SMALL", "1h", [[1, 1, 1, 1, 1, 1]])
+    assert result == 0
+    assert not (intraday_env / "SMALL.1h.json").exists()
+
+
+def test_write_store_overwrites_previous_content(intraday_env):
+    make_store(intraday_env / "OW.1h.json", "OW", "1h", n=30)
+    new_rows = [[1_700_000_000 + i * 3600, 200 + i, 205 + i, 199 + i, 201 + i, 2000]
+                for i in range(35)]
+    mod.write_store("OW", "1h", new_rows)
+    doc = json.loads((intraday_env / "OW.1h.json").read_text())
+    assert doc["asof"] == new_rows[-1][0]
+    assert len(doc["bars"]) == 35
+
+
+# -----------------------------------------------------------------------------------------------
+# Tests: load_store
+# -----------------------------------------------------------------------------------------------
+
+def test_load_store_returns_bars_and_asof(intraday_env):
+    make_store(intraday_env / "LOAD.1h.json", "LOAD", "1h", n=40)
+    bars, asof = mod.load_store("LOAD", "1h")
+    assert len(bars) == 40
+    assert asof == bars[-1][0]
+
+
+def test_load_store_missing_file_returns_empty(intraday_env):
+    bars, asof = mod.load_store("NOTHERE", "1h")
+    assert bars == []
+    assert asof is None
+
+
+def test_load_store_corrupt_file_returns_empty(intraday_env):
+    (intraday_env / "BAD.1h.json").write_text("{not json")
+    bars, asof = mod.load_store("BAD", "1h")
+    assert bars == []
+    assert asof is None
+
+
+# -----------------------------------------------------------------------------------------------
+# Tests: _merge
+# -----------------------------------------------------------------------------------------------
+
+def test_merge_newer_rows_win_on_overlap():
+    old = [[1000, 10, 10, 10, 10, 100], [2000, 20, 20, 20, 20, 200]]
+    new = [[2000, 99, 99, 99, 99, 99], [3000, 30, 30, 30, 30, 300]]
+    merged = mod._merge(old, new)
+    assert merged[0] == [1000, 10, 10, 10, 10, 100]
+    assert merged[1] == [2000, 99, 99, 99, 99, 99]   # new wins
+    assert merged[2] == [3000, 30, 30, 30, 30, 300]
+
+
+def test_merge_preserves_unmodified_old_rows():
+    old = [[1000, 10, 10, 10, 10, 100], [2000, 20, 20, 20, 20, 200]]
+    new = [[3000, 30, 30, 30, 30, 300]]
+    merged = mod._merge(old, new)
+    assert len(merged) == 3
+
+
+def test_merge_caps_at_60k_in_update_path():
+    """The row cap is applied at the call-site in work(), not inside _merge()."""
+    cap = mod.MAX_STORE_ROWS
+    old = [[i, 10, 10, 10, 10, 100] for i in range(cap - 1000)]
+    new = [[cap - 1000 + i, 10, 10, 10, 10, 100] for i in range(2000)]
+    merged = mod._merge(old, new)
+    assert len(merged) == cap + 1000
+    assert merged[-cap:] == merged[1000:]
+
+
+# -----------------------------------------------------------------------------------------------
+# Tests: main() with --existing-only
+# -----------------------------------------------------------------------------------------------
+
+def test_existing_only_enumerates_only_present_stores(intraday_env, monkeypatch):
+    make_store(intraday_env / "XST.1h.json", "XST", "1h", n=30)
+    make_store(intraday_env / "XST.5m.json", "XST", "5m", n=30)
+    make_store(intraday_env / "YST.1h.json", "YST", "1h", n=30)
+    # MISSING.5m.json does NOT exist
+    monkeypatch.setattr(mod, "INTRADAY", intraday_env)
+    monkeypatch.setattr(mod, "MANIFEST", intraday_env.parent / "manifest.json")
+
+    # Patch fetch so we can count calls without network
+    fetches = []
+
+    def fake_fetch(sym, tf, frm=None, **kwargs):
+        fetches.append((sym, tf, frm))
+        return [[1_700_000_000 + i * 3600, 100 + i, 105 + i, 99 + i, 101 + i, 1000]
+                for i in range(5)]
+
+    with patch.object(mod, "fetch_polygon_intraday", fake_fetch):
+        rc = mod.main(["--existing-only", "--tf", "1h,5m", "--workers", "4"])
+
+    # Both 1h stores + the 1h of XST + 5m of XST = 3 (YST has no 5m)
+    assert len(fetches) == 3
+    assert rc == 0
+
+
+def test_existing_only_never_fetches_missing_symbols(intraday_env, monkeypatch):
+    make_store(intraday_env / "ONLY1.1h.json", "ONLY1", "1h", n=30)
+    monkeypatch.setattr(mod, "INTRADAY", intraday_env)
+    monkeypatch.setattr(mod, "MANIFEST", intraday_env.parent / "manifest.json")
+
+    fetches = []
+
+    def fake_fetch(sym, tf, frm=None, **kwargs):
+        fetches.append(sym)
+        return [[1_700_000_000 + i * 3600, 100 + i, 105 + i, 99 + i, 101 + i, 1000]
+                for i in range(5)]
+
+    with patch.object(mod, "fetch_polygon_intraday", fake_fetch):
+        mod.main(["--existing-only", "--tf", "1h", "--workers", "4"])
+
+    assert "ONLY1" in fetches
+    assert "NOTONDISK" not in fetches
+
+
+def test_existing_only_returns_nonzero_on_partial_failure(intraday_env, monkeypatch):
+    make_store(intraday_env / "OK.1h.json", "OK", "1h", n=30)
+    make_store(intraday_env / "BAD.1h.json", "BAD", "1h", n=30)
+    monkeypatch.setattr(mod, "INTRADAY", intraday_env)
+    monkeypatch.setattr(mod, "MANIFEST", intraday_env.parent / "manifest.json")
+
+    def fake_fetch(sym, tf, frm=None, **kwargs):
+        if sym == "BAD":
+            raise RuntimeError("provider error")
+        return [[1_700_000_000 + i * 3600, 100 + i, 105 + i, 99 + i, 101 + i, 1000]
+                for i in range(5)]
+
+    with patch.object(mod, "fetch_polygon_intraday", fake_fetch):
+        rc = mod.main(["--existing-only", "--tf", "1h", "--workers", "4"])
+
+    assert rc == 1
+    # OK should have been written despite BAD failing
+    assert (intraday_env / "OK.1h.json").exists()
+
+
+def test_existing_only_zero_jobs_is_a_fault(intraday_env, monkeypatch, capsys):
+    monkeypatch.setattr(mod, "INTRADAY", intraday_env)
+    monkeypatch.setattr(mod, "MANIFEST", intraday_env.parent / "manifest.json")
+    result = mod.main(["--existing-only", "--tf", "1h,5m"])
+    assert result == 2
+    assert "refusing to report success" in capsys.readouterr().out
+    missing = intraday_env.parent / "no_intraday"
+    monkeypatch.setattr(mod, "INTRADAY", missing)
+    assert mod.main(["--existing-only", "--tf", "1h"]) == 2
+
+
+def test_zero_jobs_without_existing_only_keeps_legacy_behaviour(intraday_env, monkeypatch):
+    monkeypatch.setattr(mod, "INTRADAY", intraday_env)
+    manifest = intraday_env.parent / "manifest.json"
+    manifest.write_text(json.dumps({"symbols": {}}))
+    monkeypatch.setattr(mod, "MANIFEST", manifest)
+    assert mod.main(["--tf", "1h", "--limit", "0"]) == 0
+
+
+def test_existing_only_still_updates_existing_store(intraday_env, monkeypatch):
+    """--existing-only must use bounded overlap refresh, then merge into the owned store."""
+    make_store(intraday_env / "EXT.1h.json", "EXT", "1h", n=30)
+    monkeypatch.setattr(mod, "INTRADAY", intraday_env)
+    monkeypatch.setattr(mod, "MANIFEST", intraday_env.parent / "manifest.json")
+
+    original = json.loads((intraday_env / "EXT.1h.json").read_text())["bars"]
+    asof = original[-1][0]
+    overlap_epoch = original[-2][0]
+    new_epoch = asof + 3600
+    calls = []
+    recent_rows = [list(r) for r in original[-6:]]
+    recent_rows[-2] = [overlap_epoch, 999, 1001, 998, 1000, 7777]
+    recent_rows.append([new_epoch, 130, 131, 129, 130.5, 2222])
+
+    def fake_fetch(sym, tf, frm=None, **kwargs):
+        calls.append((sym, tf, frm))
+        return recent_rows
+
+    with patch.object(mod, "fetch_polygon_intraday", fake_fetch):
+        rc = mod.main(["--existing-only", "--tf", "1h", "--workers", "4"])
+
+    assert rc == 0
+    assert calls == [("EXT", "1h", mod._date_of(asof) - mod.dt.timedelta(days=3))]
+    doc = json.loads((intraday_env / "EXT.1h.json").read_text())
+    by_epoch = {row[0]: row for row in doc["bars"]}
+    assert len(doc["bars"]) == 31
+    assert by_epoch[original[0][0]] == original[0]  # historical prefix survived
+    assert by_epoch[overlap_epoch][1:6] == [999, 1001, 998, 1000, 7777]  # correction won
+    assert by_epoch[new_epoch][1:6] == [130, 131, 129, 130.5, 2222]
+    assert doc["asof"] == new_epoch
+
+
+# -----------------------------------------------------------------------------------------------
+# Tests: non-update / backfill semantics unchanged
+# -----------------------------------------------------------------------------------------------
+
+def test_backfill_skips_existing_without_force_or_update(intraday_env, monkeypatch):
+    make_store(intraday_env / "SKIPME.1h.json", "SKIPME", "1h", n=30)
+    monkeypatch.setattr(mod, "INTRADAY", intraday_env)
+    manifest = intraday_env.parent / "manifest.json"
+    manifest.write_text(json.dumps({
+        "symbols": {"SKIPME": {"mkt": "NASDAQ", "last": 100, "vol": 1_000_000}}
+    }))
+    monkeypatch.setattr(mod, "MANIFEST", manifest)
+
+    fetches = []
+
+    def fake_fetch(sym, tf, frm=None, **kwargs):
+        fetches.append(sym)
+        return [[1_700_000_000 + i * 3600, 100 + i, 105 + i, 99 + i, 101 + i, 1000]
+                for i in range(5)]
+
+    with patch.object(mod, "fetch_polygon_intraday", fake_fetch):
+        mod.main(["--tf", "1h", "--workers", "4"])
+
+    # Without --update or --force, existing stores are skipped
+    assert "SKIPME" not in fetches
+
+
+def test_force_backfills_existing(intraday_env, monkeypatch):
+    make_store(intraday_env / "FORCE.1h.json", "FORCE", "1h", n=30)
+    monkeypatch.setattr(mod, "INTRADAY", intraday_env)
+    manifest = intraday_env.parent / "manifest.json"
+    manifest.write_text(json.dumps({
+        "symbols": {"FORCE": {"mkt": "NASDAQ", "last": 100, "vol": 1_000_000}}
+    }))
+    monkeypatch.setattr(mod, "MANIFEST", manifest)
+
+    fetches = []
+
+    def fake_fetch(sym, tf, frm=None, **kwargs):
+        fetches.append(sym)
+        return [[1_700_000_000 + i * 3600, 100 + i, 105 + i, 99 + i, 101 + i, 1000]
+                for i in range(5)]
+
+    with patch.object(mod, "fetch_polygon_intraday", fake_fetch):
+        mod.main(["--force", "--tf", "1h", "--workers", "4"])
+
+    assert "FORCE" in fetches
+
+
+def test_update_extends_existing_and_falls_back_on_missing(intraday_env, monkeypatch):
+    make_store(intraday_env / "UPD.1h.json", "UPD", "1h", n=30)
+    monkeypatch.setattr(mod, "INTRADAY", intraday_env)
+    manifest = intraday_env.parent / "manifest.json"
+    manifest.write_text(json.dumps({
+        "symbols": {"UPD": {"mkt": "NASDAQ", "last": 100, "vol": 1_000_000}}
+    }))
+    monkeypatch.setattr(mod, "MANIFEST", manifest)
+
+    fetches = []
+
+    def fake_fetch(sym, tf, frm=None, **kwargs):
+        fetches.append((sym, "update" if frm else "full"))
+        return [[1_700_000_000 + i * 3600, 100 + i, 105 + i, 99 + i, 101 + i, 1000]
+                for i in range(5)]
+
+    with patch.object(mod, "fetch_polygon_intraday", fake_fetch):
+        mod.main(["--update", "--tf", "1h", "--workers", "4"])
+
+    assert ("UPD", "update") in fetches
+
+
+def test_update_missing_store_preserves_legacy_full_backfill(intraday_env, monkeypatch):
+    """--existing-only must not silently narrow the established --update operator contract."""
+    monkeypatch.setattr(mod, "INTRADAY", intraday_env)
+    manifest = intraday_env.parent / "manifest.json"
+    manifest.write_text(json.dumps({
+        "symbols": {"NEWONE": {"mkt": "NASDAQ", "last": 100, "vol": 1_000_000}}
+    }))
+    monkeypatch.setattr(mod, "MANIFEST", manifest)
+    calls = []
+
+    def fake_fetch(sym, tf, frm=None, **kwargs):
+        calls.append((sym, tf, frm))
+        return [[1_700_000_000 + i * 3600, 100 + i, 105 + i, 99 + i, 101 + i, 1000]
+                for i in range(25)]
+
+    with patch.object(mod, "fetch_polygon_intraday", fake_fetch):
+        rc = mod.main(["--update", "--tf", "1h", "--workers", "4"])
+
+    assert rc == 0
+    assert calls == [("NEWONE", "1h", None)]
+    doc = json.loads((intraday_env / "NEWONE.1h.json").read_text())
+    assert len(doc["bars"]) == 25
+
+
+# -----------------------------------------------------------------------------------------------
+# Tests: nightly wiring
+# -----------------------------------------------------------------------------------------------
+
+NIGHTLY = ROOT / "ops" / "terminal-data"
+INTRADAY_CMD = (
+    '"$PY" -m ingest.backfill_intraday --existing-only --expect-advance --tf 1h,5m --workers 8'
+)
+
+
+def test_backfill_existing_only_in_nightly_once():
+    body = NIGHTLY.read_text()
+    assert body.count(INTRADAY_CMD) == 1, (
+        f"Expected exactly one intraday refresh command; found {body.count(INTRADAY_CMD)}"
+    )
+
+
+def test_intraday_refresh_prints_status_line_and_never_aborts():
+    body = NIGHTLY.read_text()
+    assert "INTRADAY_REFRESH status=OK" in body
+    assert "INTRADAY_REFRESH status=FAILED rc=" in body
+    assert body.count(INTRADAY_CMD) == 1
+
+
+def test_backfill_existing_only_before_coverage_index():
+    import re
+    lines = NIGHTLY.read_text().splitlines()
+
+    def line_of(pat: str) -> int:
+        for i, ln in enumerate(lines):
+            if re.search(pat, ln):
+                return i
+        raise AssertionError(f"Pattern {pat!r} not found in ops/terminal-data")
+
+    bi = line_of(r"backfill_intraday\s+--existing-only")
+    cov = line_of(r"build_data_coverage\.py")
+    assert bi < cov, "backfill_intraday --existing-only must run BEFORE coverage index"
+
+
+def test_backfill_existing_only_weekday_gated():
+    lines = NIGHTLY.read_text().splitlines()
+    # The weekday is read ONCE, when the run starts.  The refresh step is reached hours
+    # later, after midnight UTC, and a weekday read there skips every Friday session.
+    captures = [i for i, line in enumerate(lines) if line.strip() == 'RUN_DOW="$(date -u +%u)"']
+    assert len(captures) == 1
+    start = next(i for i, line in enumerate(lines) if "=== terminal refresh start" in line)
+    assert captures[0] < start
+    step = next(i for i, line in enumerate(lines) if INTRADAY_CMD in line)
+    opener = max(i for i in range(step) if lines[i].startswith("if "))
+    assert lines[opener] == 'if [ "$RUN_DOW" -le "5" ]; then'
+    assert captures[0] < opener
+
+
+def test_backfill_existing_only_step_has_a_time_limit():
+    """A stalled vendor must not hold the nightly lock: the step is killed after 90 minutes."""
+    lines = NIGHTLY.read_text().splitlines()
+    steps = [line.strip() for line in lines if INTRADAY_CMD in line]
+    assert steps == ["if timeout -k 60 90m " + INTRADAY_CMD + "; then"]
+
+
+def test_backfill_existing_only_not_in_manifest_dependency():
+    """The --existing-only step must not require TERMINAL_MANIFEST."""
+    import re
+    lines = NIGHTLY.read_text().splitlines()
+    for i, ln in enumerate(lines):
+        if re.search(r"backfill_intraday\s+--existing-only", ln):
+            # No line immediately above should export TERMINAL_MANIFEST
+            if i > 0 and "TERMINAL_MANIFEST" in lines[i - 1]:
+                raise AssertionError(
+                    "backfill_intraday --existing-only is preceded by TERMINAL_MANIFEST export; "
+                    "it must run independently before the staging manifest moves"
+                )
+
+# -----------------------------------------------------------------------------------------------
+# Repair packet R1–R7 behavioural tests
+# -----------------------------------------------------------------------------------------------
+
+def _write_store_rows(path: Path, sym: str, tf: str, rows: list) -> None:
+    doc = {"t": sym, "tf": tf, "src": "polygon", "bar_quality": "real_ohlc",
+           "asof": rows[-1][0], "bars": rows}
+    path.write_text(json.dumps(doc, separators=(",", ":")))
+
+
+def test_update_reports_rows_dropped_by_retention(intraday_env, monkeypatch, capsys):
+    cap = mod.MAX_STORE_ROWS
+    sym, tf = "RET", "1h"
+    rows = [[i, 10.0, 11.0, 9.0, 10.5, 100] for i in range(cap)]
+    _write_store_rows(intraday_env / f"{sym}.{tf}.json", sym, tf, rows)
+    monkeypatch.setattr(mod, "INTRADAY", intraday_env)
+
+    def fake_fetch(s, t, frm=None, **kwargs):
+        base = rows[-1][0]
+        return [[base + 3600 * (i + 1), 10.0, 11.0, 9.0, 10.5, 100] for i in range(3)]
+
+    with patch.object(mod, "fetch_polygon_intraday", _with_overlap(fake_fetch)):
+        mod.main(["--existing-only", "--tf", "1h", "--workers", "1"])
+    out = capsys.readouterr().out
+    doc = json.loads((intraday_env / f"{sym}.{tf}.json").read_text())
+    assert len(doc["bars"]) == cap
+    assert f"retention: {sym}.{tf} dropped 3" in out
+    assert "retention_dropped=3" in out
+
+
+def test_update_under_cap_reports_zero_dropped(intraday_env, monkeypatch, capsys):
+    make_store(intraday_env / "SMALL.1h.json", "SMALL", "1h", n=30)
+    monkeypatch.setattr(mod, "INTRADAY", intraday_env)
+
+    def fake_fetch(s, t, frm=None, **kwargs):
+        return [[1_800_000_000, 10.0, 11.0, 9.0, 10.5, 100]]
+
+    with patch.object(mod, "fetch_polygon_intraday", _with_overlap(fake_fetch)):
+        mod.main(["--existing-only", "--tf", "1h", "--workers", "1"])
+    out = capsys.readouterr().out
+    assert "retention:" not in out
+    assert "retention_dropped=0" in out
+
+
+def test_fetch_refuses_bar_with_missing_close(monkeypatch):
+    monkeypatch.setattr(mod, "_get", lambda _url: {
+        "status": "OK", "results": [{"t": 1_700_000_000_000, "o": 1.0, "h": 2.0, "l": 0.5, "v": 1}],
+    })
+    with pytest.raises(RuntimeError, match="malformed aggregate bar"):
+        mod.fetch_polygon_intraday("TST", "5m", now=2_000_000_000.0)
+
+
+@pytest.mark.parametrize("bad_field,bad_row", [
+    ("o", {"t": 1_700_000_000_000, "o": "1.0", "h": 2.0, "l": 0.5, "c": 1.0, "v": 1}),
+    ("o", {"t": 1_700_000_000_000, "o": None, "h": 2.0, "l": 0.5, "c": 1.0, "v": 1}),
+    ("c", {"t": 1_700_000_000_000, "o": 1.0, "h": 2.0, "l": 0.5, "c": float("nan"), "v": 1}),
+    ("c", {"t": 1_700_000_000_000, "o": 1.0, "h": 2.0, "l": 0.5, "c": float("inf"), "v": 1}),
+    ("o", {"t": 1_700_000_000_000, "o": 0, "h": 2.0, "l": 0.5, "c": 1.0, "v": 1}),
+    ("o", {"t": 1_700_000_000_000, "o": -1.0, "h": 2.0, "l": 0.5, "c": 1.0, "v": 1}),
+    ("o", {"t": 1_700_000_000_000, "o": True, "h": 2.0, "l": 0.5, "c": 1.0, "v": 1}),
+    ("h", {"t": 1_700_000_000_000, "o": 2.0, "h": 1.0, "l": 2.5, "c": 1.5, "v": 1}),
+])
+def test_fetch_refuses_non_numeric_and_non_finite_prices(monkeypatch, bad_field, bad_row):
+    monkeypatch.setattr(mod, "_get", lambda _url: {"status": "OK", "results": [bad_row]})
+    with pytest.raises(RuntimeError, match="malformed aggregate bar"):
+        mod.fetch_polygon_intraday("TST", "5m", now=2_000_000_000.0)
+
+
+def test_fetch_refuses_bar_without_timestamp(monkeypatch):
+    monkeypatch.setattr(mod, "_get", lambda _url: {
+        "status": "OK",
+        "results": [{"o": 1.0, "h": 2.0, "l": 0.5, "c": 1.0, "v": 1}],
+    })
+    with pytest.raises(RuntimeError, match="malformed aggregate bar"):
+        mod.fetch_polygon_intraday("TST", "5m", now=2_000_000_000.0)
+
+
+def test_existing_only_malformed_bar_leaves_store_byte_identical(intraday_env, monkeypatch, capsys):
+    target = intraday_env / "HASH.5m.json"
+    make_store(target, "HASH", "5m", n=30)
+    before = hashlib.sha256(target.read_bytes()).hexdigest()
+    monkeypatch.setattr(mod, "INTRADAY", intraday_env)
+    monkeypatch.setattr(mod, "_get", lambda _url: {
+        "status": "OK",
+        "results": [{"t": 1_700_000_000_000, "o": 1.0, "h": 2.0, "l": 0.5, "v": 1}],
+    })
+    rc = mod.main(["--existing-only", "--tf", "5m", "--workers", "1"])
+    after = hashlib.sha256(target.read_bytes()).hexdigest()
+    out = capsys.readouterr().out
+    assert before == after
+    assert rc == 1
+    assert _summary_failed_count(out) == 1
+
+
+def test_fetch_drops_still_forming_bar_at_frozen_clock(monkeypatch):
+    now = 2_000_000_000.0
+    lag = mod.FINALITY_LAG_S
+    bar_sec = mod._tf_seconds("5m")
+    cutoff = now - lag
+    forming_end = cutoff + 1
+    forming_t = int((forming_end - bar_sec) * 1000)
+    kept_end = cutoff
+    kept_t = int((kept_end - bar_sec) * 1000)
+    stats: dict = {}
+    monkeypatch.setattr(mod, "_get", lambda _url: {
+        "status": "OK",
+        "results": [
+            {"t": forming_t, "o": 1.0, "h": 2.0, "l": 0.5, "c": 1.0, "v": 1},
+            {"t": kept_t, "o": 1.0, "h": 2.0, "l": 0.5, "c": 1.0, "v": 1},
+        ],
+    })
+    rows = mod.fetch_polygon_intraday("TST", "5m", now=now, stats=stats)
+    assert len(rows) == 1
+    assert stats["forming_skipped"] == 1
+
+
+def test_fetch_drops_forming_hour_bar_in_post_market(monkeypatch):
+    from datetime import timezone
+
+    def utc_ts(y, m, d, h, mi=0, s=0):
+        return int(dt.datetime(y, m, d, h, mi, s, tzinfo=timezone.utc).timestamp())
+
+    t20 = int(utc_ts(2024, 6, 3, 20, 0) * 1000)
+    t19 = int(utc_ts(2024, 6, 3, 19, 0) * 1000)
+    now_2030 = float(utc_ts(2024, 6, 3, 20, 30))
+    monkeypatch.setattr(mod, "_get", lambda _url: {
+        "status": "OK",
+        "results": [
+            {"t": t20, "o": 1.0, "h": 2.0, "l": 0.5, "c": 1.0, "v": 1},
+        ],
+    })
+    assert mod.fetch_polygon_intraday("TST", "1h", now=now_2030) == []
+
+    now_2010 = float(utc_ts(2024, 6, 3, 20, 10))
+    monkeypatch.setattr(mod, "_get", lambda _url: {
+        "status": "OK",
+        "results": [{"t": t19, "o": 1.0, "h": 2.0, "l": 0.5, "c": 1.0, "v": 1}],
+    })
+    assert mod.fetch_polygon_intraday("TST", "1h", now=now_2010) == []
+
+    now_2015 = float(utc_ts(2024, 6, 3, 20, 15))
+    rows = mod.fetch_polygon_intraday("TST", "1h", now=now_2015)
+    assert len(rows) == 1
+
+
+def test_failure_is_logged_with_symbol_tf_and_error(intraday_env, monkeypatch, capsys):
+    make_store(intraday_env / "AAA.5m.json", "AAA", "5m", n=30)
+    monkeypatch.setattr(mod, "INTRADAY", intraday_env)
+
+    def boom(sym, tf, frm=None, **kwargs):
+        raise RuntimeError("synthetic")
+
+    with patch.object(mod, "fetch_polygon_intraday", boom):
+        mod.main(["--existing-only", "--tf", "5m", "--workers", "1"])
+    assert "FAILED AAA.5m: RuntimeError:" in capsys.readouterr().out
+
+
+def test_failure_log_redacts_api_key(intraday_env, monkeypatch, capsys):
+    make_store(intraday_env / "RED.5m.json", "RED", "5m", n=30)
+    monkeypatch.setattr(mod, "INTRADAY", intraday_env)
+
+    def boom(sym, tf, frm=None, **kwargs):
+        raise RuntimeError("apiKey=SECRET123&x=1")
+
+    with patch.object(mod, "fetch_polygon_intraday", boom):
+        mod.main(["--existing-only", "--tf", "5m", "--workers", "1"])
+    out = capsys.readouterr().out
+    assert "apiKey=REDACTED" in out
+    assert "SECRET123" not in out
+
+
+def test_failure_log_is_bounded_to_fifty_lines(intraday_env, monkeypatch, capsys):
+    for i in range(60):
+        make_store(intraday_env / f"F{i}.5m.json", f"F{i}", "5m", n=30)
+    monkeypatch.setattr(mod, "INTRADAY", intraday_env)
+
+    def boom(sym, tf, frm=None, **kwargs):
+        raise RuntimeError("fail")
+
+    with patch.object(mod, "fetch_polygon_intraday", boom):
+        mod.main(["--existing-only", "--tf", "5m", "--workers", "4"])
+    out = capsys.readouterr().out
+    assert out.count("  FAILED ") == 50
+    assert "... and 10 more failure(s)" in out
+
+
+def test_write_store_fsyncs_before_replace(intraday_env, monkeypatch):
+    order: list[str] = []
+    real_fsync = os.fsync
+    real_replace = os.replace
+
+    def track_fsync(fd):
+        order.append("fsync")
+        return real_fsync(fd)
+
+    def track_replace(src, dst):
+        order.append("replace")
+        return real_replace(src, dst)
+
+    monkeypatch.setattr(os, "fsync", track_fsync)
+    monkeypatch.setattr(os, "replace", track_replace)
+    rows = [[1_700_000_000 + i * 3600, 100 + i, 105 + i, 99 + i, 101 + i, 1000]
+            for i in range(30)]
+    mod.write_store("FS", "1h", rows)
+    assert order.index("fsync") < order.index("replace")
+
+
+def test_write_store_replace_failure_keeps_target_and_leaves_no_temp(intraday_env, monkeypatch):
+    make_store(intraday_env / "ERR.1h.json", "ERR", "1h", n=30)
+    before = (intraday_env / "ERR.1h.json").read_bytes()
+
+    def boom(src, dst):
+        raise OSError("replace failed")
+
+    monkeypatch.setattr(os, "replace", boom)
+    rows = [[1_700_000_000 + i * 3600, 100 + i, 105 + i, 99 + i, 101 + i, 1000]
+            for i in range(30)]
+    with pytest.raises(OSError):
+        mod.write_store("ERR", "1h", rows)
+    assert (intraday_env / "ERR.1h.json").read_bytes() == before
+    assert not any(".tmp." in p.name for p in intraday_env.iterdir())
+
+
+def test_write_store_temp_names_are_unique_per_call(intraday_env, monkeypatch):
+    seen: list[str] = []
+    real_replace = os.replace
+
+    def capture(src, dst):
+        seen.append(str(src))
+        return real_replace(src, dst)
+
+    monkeypatch.setattr(os, "replace", capture)
+    rows = [[1_700_000_000 + i * 3600, 100 + i, 105 + i, 99 + i, 101 + i, 1000]
+            for i in range(30)]
+    mod.write_store("U1", "1h", rows)
+    mod.write_store("U2", "1h", rows)
+    assert len(seen) == 2 and seen[0] != seen[1]
+
+
+def test_main_dedupes_duplicate_jobs(intraday_env, monkeypatch):
+    make_store(intraday_env / "DED.5m.json", "DED", "5m", n=30)
+    monkeypatch.setattr(mod, "INTRADAY", intraday_env)
+    calls: list[str] = []
+
+    def fake_fetch(sym, tf, frm=None, **kwargs):
+        calls.append(sym)
+        return [[1_800_000_000, 10.0, 11.0, 9.0, 10.5, 100]]
+
+    with patch.object(mod, "fetch_polygon_intraday", _with_overlap(fake_fetch)):
+        mod.main(["--existing-only", "--tf", "5m,5m", "--workers", "1"])
+    assert calls == ["DED"]
+
+
+def test_delayed_pages_are_counted_in_summary(intraday_env, monkeypatch, capsys):
+    make_store(intraday_env / "DEL.5m.json", "DEL", "5m", n=30)
+    monkeypatch.setattr(mod, "INTRADAY", intraday_env)
+    monkeypatch.setattr(mod, "_get", lambda _url: {
+        "status": "DELAYED",
+        "results": [{"t": 1_700_000_000_000, "o": 1.0, "h": 2.0, "l": 0.5, "c": 1.0, "v": 1}],
+    })
+    mod.main(["--existing-only", "--tf", "5m", "--workers", "1"])
+    assert "delayed_pages=1" in capsys.readouterr().out
+
+
+def test_summary_line_has_all_counters(intraday_env, monkeypatch, capsys):
+    make_store(intraday_env / "SUM.5m.json", "SUM", "5m", n=30)
+    monkeypatch.setattr(mod, "INTRADAY", intraday_env)
+
+    def fake_fetch(sym, tf, frm=None, **kwargs):
+        return [[1_800_000_000, 10.0, 11.0, 9.0, 10.5, 100]]
+
+    with patch.object(mod, "fetch_polygon_intraday", _with_overlap(fake_fetch)):
+        mod.main(["--existing-only", "--tf", "5m", "--workers", "1"])
+    out = capsys.readouterr().out
+    pat = (
+        r"intraday backfill complete: \d+/\d+ stored "
+        r"\(unchanged=\d+ failed=\d+ retention_dropped=\d+ "
+        r"forming_skipped=\d+ delayed_pages=\d+\) in \d+s"
+    )
+    assert re.search(pat, out)
+
+
+# -----------------------------------------------------------------------------------------------
+# TTI review repair spike: internal transport/pagination failures must remain failures
+# -----------------------------------------------------------------------------------------------
+
+def test_tti_internal_get_exhausted_503_raises_instead_of_empty(monkeypatch):
+    calls = []
+    monkeypatch.setattr(mod.time, "sleep", lambda _seconds: None)
+
+    def fail(req, timeout=45):
+        calls.append(getattr(req, "full_url", str(req)))
+        raise mod.urllib.error.HTTPError(calls[-1], 503, "synthetic", None, None)
+
+    monkeypatch.setattr(mod.urllib.request, "urlopen", fail)
+    with pytest.raises(RuntimeError, match="retries exhausted"):
+        mod._get("https://example.invalid/test", tries=3)
+    assert len(calls) == 3
+
+
+def test_tti_fetch_rejects_non_ok_later_page_instead_of_returning_prefix(monkeypatch):
+    first_ms = 1_789_660_800_000
+    pages = [
+        {"status": "OK", "results": [{"t": first_ms, "o": 100, "h": 101,
+                                         "l": 99, "c": 100.5, "v": 1000}],
+         "next_url": "https://example.invalid/page2"},
+        {},
+    ]
+    monkeypatch.setattr(mod, "_get", lambda _url: pages.pop(0))
+    monkeypatch.setattr(mod.time, "sleep", lambda _seconds: None)
+    with pytest.raises(RuntimeError, match="invalid aggregate response"):
+        mod.fetch_polygon_intraday("TST", "5m", now=2_000_000_000.0)
+
+
+def test_tti_fetch_refuses_unfinished_pagination_limit(monkeypatch):
+    calls = {"n": 0}
+
+    def endless(_url):
+        calls["n"] += 1
+        return {"status": "OK", "results": [], "next_url": "https://example.invalid/next"}
+
+    monkeypatch.setattr(mod, "_get", endless)
+    monkeypatch.setattr(mod.time, "sleep", lambda _seconds: None)
+    with pytest.raises(RuntimeError, match="pagination incomplete"):
+        mod.fetch_polygon_intraday("TST", "5m", now=2_000_000_000.0)
+    assert calls["n"] == 400
+
+
+def test_tti_valid_ok_empty_response_remains_a_lawful_empty(monkeypatch):
+    monkeypatch.setattr(mod, "_get", lambda _url: {"status": "OK", "results": []})
+    assert mod.fetch_polygon_intraday("TST", "5m", now=2_000_000_000.0) == []
+
+
+def test_tti_existing_only_exhausted_transport_preserves_store_and_counts_failed(
+        intraday_env, monkeypatch):
+    target = intraday_env / "FAIL.5m.json"
+    make_store(target, "FAIL", "5m", n=30)
+    before = target.read_bytes()
+    monkeypatch.setattr(mod.time, "sleep", lambda _seconds: None)
+
+    def fail(req, timeout=45):
+        url = getattr(req, "full_url", str(req))
+        raise mod.urllib.error.HTTPError(url, 503, "synthetic", None, None)
+
+    monkeypatch.setattr(mod.urllib.request, "urlopen", fail)
+    rc = mod.main(["--existing-only", "--tf", "5m", "--workers", "1"])
+    assert rc == 1
+    assert target.read_bytes() == before
+
+
+def test_tti_existing_only_failed_second_page_preserves_store_and_counts_failed(
+        intraday_env, monkeypatch):
+    target = intraday_env / "PART.5m.json"
+    make_store(target, "PART", "5m", n=30)
+    before = target.read_bytes()
+    ms = 1_789_660_800_000
+    pages = [
+        {"status": "OK", "results": [{"t": ms, "o": 100, "h": 101,
+                                         "l": 99, "c": 100.5, "v": 1000}],
+         "next_url": "https://example.invalid/page2"},
+        {},
+    ]
+    monkeypatch.setattr(mod, "_get", lambda _url: pages.pop(0))
+    monkeypatch.setattr(mod.time, "sleep", lambda _seconds: None)
+    rc = mod.main(["--existing-only", "--tf", "5m", "--workers", "1"])
+    assert rc == 1
+    assert target.read_bytes() == before
+
+
+# -----------------------------------------------------------------------------------------------
+# IDR_A2_T595_REPAIR2: exit status, unreadable stores, redaction
+# -----------------------------------------------------------------------------------------------
+
+def test_main_returns_exit_ok_when_no_store_fails(intraday_env, monkeypatch, capsys):
+    make_store(intraday_env / "CLEAN.1h.json", "CLEAN", "1h", n=30)
+    monkeypatch.setattr(mod, "INTRADAY", intraday_env)
+
+    def fake_fetch(sym, tf, frm=None, **kwargs):
+        return [[1_800_000_000, 10.0, 11.0, 9.0, 10.5, 100]]
+
+    with patch.object(mod, "fetch_polygon_intraday", _with_overlap(fake_fetch)):
+        rc = mod.main(["--existing-only", "--tf", "1h", "--workers", "1"])
+    out = capsys.readouterr().out
+    assert rc == 0
+    assert _summary_failed_count(out) == 0
+
+
+def test_main_returns_1_when_any_store_fails_and_summary_carries_the_count(
+        intraday_env, monkeypatch, capsys):
+    make_store(intraday_env / "A.1h.json", "A", "1h", n=30)
+    make_store(intraday_env / "B.1h.json", "B", "1h", n=30)
+    monkeypatch.setattr(mod, "INTRADAY", intraday_env)
+
+    def fake_fetch(sym, tf, frm=None, **kwargs):
+        if sym == "B":
+            raise RuntimeError("boom")
+        return [[1_800_000_000, 10.0, 11.0, 9.0, 10.5, 100]]
+
+    with patch.object(mod, "fetch_polygon_intraday", _with_overlap(fake_fetch)):
+        rc = mod.main(["--existing-only", "--tf", "1h", "--workers", "2"])
+    out = capsys.readouterr().out
+    assert rc == 1
+    assert _summary_failed_count(out) == 1
+
+
+def _seed_n_stores(intraday_dir: Path, n: int, tf: str = "1h") -> None:
+    for i in range(n):
+        make_store(intraday_dir / f"S{i}.{tf}.json", f"S{i}", tf, n=30)
+
+
+def test_main_returns_1_not_0_when_exactly_256_stores_fail(intraday_env, monkeypatch, capsys):
+    _seed_n_stores(intraday_env, 256)
+    monkeypatch.setattr(mod, "INTRADAY", intraday_env)
+
+    def boom(sym, tf, frm=None, **kwargs):
+        raise RuntimeError("vendor down")
+
+    with patch.object(mod, "fetch_polygon_intraday", boom):
+        rc = mod.main(["--existing-only", "--tf", "1h", "--workers", "8"])
+    out = capsys.readouterr().out
+    assert rc == 1
+    assert rc != 0
+    assert _summary_failed_count(out) == 256
+
+
+def test_exit_constants_are_the_documented_literals():
+    assert mod.EXIT_OK == 0
+    assert mod.EXIT_STORE_FAILURES == 1
+    assert mod.EXIT_NO_STORES == 2
+
+
+def test_child_backfill_runs_as_python_module_main(intraday_env):
+    make_child_store(intraday_env / "ONE.1h.json", "ONE", "1h", n=30)
+    proc = _run_child_backfill(
+        intraday_env.parent,
+        ["--existing-only", "--tf", "1h", "--workers", "1"],
+        net_mode="bars",
+    )
+    assert proc.returncode == 0, proc.stdout
+    assert "intraday refresh --existing-only" in proc.stdout
+
+
+def test_child_process_exits_1_when_256_stores_fail(intraday_env):
+    _seed_n_stores(intraday_env, 256)
+    proc = _run_child_backfill(
+        intraday_env.parent,
+        ["--existing-only", "--tf", "1h", "--workers", "4"],
+        net_mode="fail",
+    )
+    assert proc.returncode == 1
+    assert "failed=256" in proc.stdout
+    combined = proc.stdout + proc.stderr
+    assert "OFFLINE_SHIM_REFUSED" in combined
+
+
+def test_child_process_exits_1_when_512_stores_fail(intraday_env):
+    _seed_n_stores(intraday_env, 512)
+    proc = _run_child_backfill(
+        intraday_env.parent,
+        ["--existing-only", "--tf", "1h", "--workers", "4"],
+        net_mode="fail",
+    )
+    assert proc.returncode == 1
+    assert "failed=512" in proc.stdout
+    combined = proc.stdout + proc.stderr
+    assert "OFFLINE_SHIM_REFUSED" in combined
+
+
+def test_child_shim_blocks_real_sockets(tmp_path):
+    data_root = tmp_path / "sock_data"
+    data_root.mkdir()
+    proc = _run_child_backfill(
+        data_root,
+        [],
+        net_mode="fail",
+        cmd=[
+            sys.executable,
+            "-c",
+            "import socket; socket.create_connection(('example.com', 80), timeout=1)",
+        ],
+    )
+    assert proc.returncode != 0
+    assert "OFFLINE_SHIM_NO_SOCKET" in proc.stderr
+
+
+def test_child_runner_fails_when_shim_is_absent(tmp_path):
+    data_root = tmp_path / "no_shim_data"
+    data_root.mkdir()
+    with pytest.raises(AssertionError, match=_OFFLINE_SHIM_MARKER):
+        _run_child_backfill(
+            data_root,
+            [],
+            net_mode="fail",
+            use_shim=False,
+            cmd=[sys.executable, "-c", "pass"],
+        )
+
+
+def test_child_process_exits_0_on_clean_run(intraday_env):
+    make_child_store(intraday_env / "OK.1h.json", "OK", "1h", n=30)
+    proc = _run_child_backfill(
+        intraday_env.parent,
+        ["--existing-only", "--tf", "1h", "--workers", "4"],
+        net_mode="bars",
+    )
+    assert proc.returncode == 0, proc.stdout
+    assert "1/1 stored" in proc.stdout
+    assert _summary_failed_count(proc.stdout) == 0
+    doc = json.loads((intraday_env / "OK.1h.json").read_text())
+    assert len(doc["bars"]) == 31
+    assert doc["asof"] == 1_700_000_040 + 30 * 3600
+
+
+def test_child_process_exits_1_when_every_refetch_is_empty(intraday_env):
+    """A refetch window always holds the store's last bar; an empty answer is a failure."""
+    path = intraday_env / "OK.1h.json"
+    make_child_store(path, "OK", "1h", n=30)
+    before = path.read_bytes()
+    proc = _run_child_backfill(
+        intraday_env.parent,
+        ["--existing-only", "--tf", "1h", "--workers", "4"],
+        net_mode="ok",
+    )
+    assert proc.returncode == 1, proc.stdout
+    assert "EmptyOverlap" in proc.stdout
+    assert _summary_failed_count(proc.stdout) == 1
+    assert path.read_bytes() == before
+
+
+def test_child_process_exits_2_when_no_stores_exist(tmp_path):
+    data_root = tmp_path / "empty_data"
+    (data_root / "intraday").mkdir(parents=True)
+    proc = _run_child_backfill(
+        data_root,
+        ["--existing-only", "--tf", "1h", "--workers", "4"],
+        net_mode="ok",
+    )
+    assert proc.returncode == 2
+
+
+def test_unreadable_existing_store_prints_a_named_failed_line(
+        intraday_env, monkeypatch, capsys):
+    make_store(intraday_env / "GOOD.1h.json", "GOOD", "1h", n=30)
+    (intraday_env / "EMPTY.1h.json").write_text("")
+    (intraday_env / "CORRUPT.1h.json").write_text("{not json")
+    monkeypatch.setattr(mod, "INTRADAY", intraday_env)
+
+    def fake_fetch(sym, tf, frm=None, **kwargs):
+        return [[1_800_000_000, 10.0, 11.0, 9.0, 10.5, 100]]
+
+    with patch.object(mod, "fetch_polygon_intraday", _with_overlap(fake_fetch)):
+        rc = mod.main(["--existing-only", "--tf", "1h", "--workers", "4"])
+    out = capsys.readouterr().out
+    assert rc == 1
+    assert "FAILED EMPTY.1h:" in out
+    assert "StoreUnreadable" in out
+    assert "FAILED CORRUPT.1h:" in out
+
+
+@pytest.mark.parametrize("raw", [
+    "apiKey=SECRET123",
+    "apikey=SECRET123",
+    "APIKEY=SECRET123",
+    "api_key=SECRET123",
+    "apiKey%3DSECRET123",
+    '{"apiKey": "SECRET123"}',
+    "{'apiKey': 'SECRET123'}",
+    "api_key: SECRET123",
+    'apikey: "SECRET123"',
+    '{"api_key": "SECRET123"}',
+    '"apikey": SECRET123',
+    "apiKey:'SECRET123'",
+    "apiKey = SECRET123",
+    "x?a=1&apiKey=SECRET123&b=2",
+])
+def test_redact_covers_every_key_spelling(raw):
+    out = mod._redact(raw)
+    assert "SECRET123" not in out
+    if "a=1" in raw:
+        assert "a=1" in out
+        assert "b=2" in out
+
+
+def test_redact_scrubs_the_bare_module_key(monkeypatch):
+    monkeypatch.setattr(mod, "POLY", "FAKEKEYXYZ123")
+    out = mod._redact("boom FAKEKEYXYZ123 boom")
+    assert "FAKEKEYXYZ123" not in out
+    assert "REDACTED" in out
+
+
+def test_redact_leaves_ordinary_text_alone_and_never_raises(monkeypatch):
+    plain = "ordinary text without secrets"
+    assert mod._redact(plain) == plain
+    assert mod._redact("") == ""
+
+
+def test_bare_key_scrub_threshold_is_eight_characters(monkeypatch):
+    monkeypatch.setattr(mod, "POLY", "abc")
+    assert mod._redact("abcdef abc") == "abcdef abc"
+    monkeypatch.setattr(mod, "POLY", "ABCDEFG")
+    assert mod._redact("x ABCDEFG y") == "x ABCDEFG y"
+    monkeypatch.setattr(mod, "POLY", "ABCDEFGH")
+    out = mod._redact("x ABCDEFGH y")
+    assert "ABCDEFGH" not in out
+
+
+def test_failed_line_never_contains_the_key_value(intraday_env, monkeypatch, capsys):
+    secret = "test_key_for_pytest_only"
+    make_store(intraday_env / "KEY.5m.json", "KEY", "5m", n=30)
+    monkeypatch.setattr(mod, "INTRADAY", intraday_env)
+
+    def boom(sym, tf, frm=None, **kwargs):
+        raise RuntimeError(f"apikey={secret} and bare {secret}")
+
+    with patch.object(mod, "fetch_polygon_intraday", boom):
+        mod.main(["--existing-only", "--tf", "5m", "--workers", "1"])
+    out = capsys.readouterr().out
+    assert secret not in out
+
+
+def test_write_store_fsyncs_the_directory(intraday_env, monkeypatch):
+    fsync_is_dir: list[bool] = []
+    intraday_str = str(intraday_env)
+    real_fsync = os.fsync
+    real_fstat = os.fstat
+    real_open = os.open
+
+    def track_fsync(fd):
+        fsync_is_dir.append(stat.S_ISDIR(real_fstat(fd).st_mode))
+        return real_fsync(fd)
+
+    monkeypatch.setattr(os, "fsync", track_fsync)
+    rows = [[1_700_000_000 + i * 3600, 100 + i, 105 + i, 99 + i, 101 + i, 1000]
+            for i in range(30)]
+    mod.write_store("DIRFS", "1h", rows)
+    assert any(fsync_is_dir), "expected at least one directory fsync"
+    assert any(not is_dir for is_dir in fsync_is_dir), "expected at least one regular-file fsync"
+
+    fail_dir_fsync = True
+    pending_dir_fds: list[int] = []
+
+    def track_open_fail_dir(path, flags, *args, **kwargs):
+        fd = real_open(path, flags, *args, **kwargs)
+        if fail_dir_fsync and str(path) == intraday_str and flags == os.O_RDONLY:
+            pending_dir_fds.append(fd)
+        return fd
+
+    def dir_fsync_fail(fd):
+        if fail_dir_fsync and fd in pending_dir_fds:
+            raise OSError("dir fsync unsupported")
+        return real_fsync(fd)
+
+    monkeypatch.setattr(os, "open", track_open_fail_dir)
+    monkeypatch.setattr(os, "fsync", dir_fsync_fail)
+    mod.write_store("DIRFS2", "1h", rows)
+    assert (intraday_env / "DIRFS2.1h.json").exists()
+
+
+def test_negative_volume_is_a_malformed_bar(intraday_env, monkeypatch, capsys):
+    make_store(intraday_env / "VOL.5m.json", "VOL", "5m", n=30)
+    monkeypatch.setattr(mod, "INTRADAY", intraday_env)
+    monkeypatch.setattr(mod, "_get", lambda _url: {
+        "status": "OK",
+        "results": [{"t": 1_700_000_000_000, "o": 1.0, "h": 2.0, "l": 0.5, "c": 1.0, "v": -1}],
+    })
+    rc = mod.main(["--existing-only", "--tf", "5m", "--workers", "1"])
+    out = capsys.readouterr().out
+    assert rc == 1
+    assert "FAILED VOL.5m:" in out
+    assert "malformed aggregate bar" in out
+    assert " v" in out or ": v" in out
+
+
+def test_redact_fails_closed_when_a_pattern_raises(monkeypatch):
+    """A redactor that cannot run withholds the message instead of returning it raw."""
+    class _Boom:
+        def sub(self, repl, s):
+            raise RuntimeError("pattern exploded")
+
+    monkeypatch.setattr(mod, "_INTRO_REDACT_PATTERNS", [(_Boom(), "x")])
+    out = mod._redact("GET /v2/aggs?apiKey=SECRET123")
+    assert isinstance(out, str)
+    assert "SECRET123" not in out
+    assert "withheld" in out

@@ -1,4 +1,4 @@
-import { expect, test, type Page, type TestInfo } from "@playwright/test";
+import { expect, test, type Page, type Route, type TestInfo } from "@playwright/test";
 import { mkdirSync } from "node:fs";
 import path from "node:path";
 import { isolateWatchlistStore } from "./watchlistStore";
@@ -49,6 +49,118 @@ async function createThesis(page: Page, title: string, requestId: string, symbol
   } });
   expect(response.status()).toBe(201);
   return (await response.json()).thesisId as string;
+}
+
+type PendingSeed = {
+  schema: "mastermind.thesis-pending/v2";
+  ownerKey: string;
+  action: "create";
+  clientRequestId: string;
+  serializedBody: string;
+};
+
+function pendingSeed(requestId: string): { key: string; raw: string; seed: PendingSeed } {
+  const seed: PendingSeed = {
+    schema: "mastermind.thesis-pending/v2",
+    ownerKey: "local-preview",
+    action: "create",
+    clientRequestId: requestId,
+    serializedBody: JSON.stringify({
+      action: "create",
+      clientRequestId: requestId,
+      subject: {
+        schema: "mastermind.thesis-subject-ref/v1", kind: "issuer", owner: "terminal.analysis_symbol",
+        key: "NVDA", identityState: "listing_scoped", listing: { symbol: "NVDA", mic: null, securityId: null },
+        companyId: null, display: "NVDA · listing scoped",
+      },
+      content: {
+        schema: "mastermind.thesis-content/v1", title: "NVDA operating leverage",
+        statement: "Demand will outrun supply through the next platform cycle.",
+        catalysts: [], falsifiers: [], risks: [], horizon: "unspecified", effectiveAt: null, revisionNote: null,
+      },
+    }),
+  };
+  return {
+    key: `mm.thesis.pending.v2:local-preview:${requestId}`,
+    raw: JSON.stringify(seed),
+    seed,
+  };
+}
+
+async function seedPending(page: Page, requestId: string, savedSubjectKey?: string) {
+  const { key, raw, seed } = pendingSeed(requestId);
+  const value = savedSubjectKey === undefined
+    ? raw
+    : JSON.stringify({ ...seed, savedSubjectKey });
+  await page.addInitScript(([storageKey, storageValue]) => {
+    localStorage.setItem(storageKey as string, storageValue as string);
+  }, [key, value] as const);
+  return { key, raw: value };
+}
+
+const FAKE_CREATED_THESIS_ID = "11111111-1111-4111-8111-111111111111";
+
+async function fulfillCreatedThesis(route: Route) {
+  await route.fulfill({
+    status: 201,
+    contentType: "application/json",
+    body: JSON.stringify({
+      thesisId: FAKE_CREATED_THESIS_ID,
+      version: 1,
+      lifecycleState: "active",
+      replayed: false,
+    }),
+  });
+}
+
+type FakeCreateMutation = {
+  clientRequestId: string;
+  subject: Record<string, unknown>;
+  content: { title: string } & Record<string, unknown>;
+};
+
+// `**/api/theses` stops before a query string, so the detail GET missed the
+// fake create and the real server returned 404. The trailing ** keeps list
+// and detail on this handler. Any other method or path continues.
+async function routeCreatedThesisReads(page: Page, serializedBody: string, writes: string[]) {
+  const mutation = JSON.parse(serializedBody) as FakeCreateMutation;
+  const thesisId = FAKE_CREATED_THESIS_ID;
+  const current = {
+    id: "22222222-2222-4222-8222-222222222222", thesisId, version: 1, previousVersion: null,
+    transition: "create", lifecycleState: "active", subject: mutation.subject, content: mutation.content,
+    clientRequestId: mutation.clientRequestId, systemRecordedAt: "2026-10-03T15:00:00.000Z", effectiveAt: null,
+  };
+  const thesis = {
+    id: thesisId, currentVersion: 1, lifecycleState: "active", subject: mutation.subject,
+    title: mutation.content.title, updatedAt: "2026-10-03T15:00:00.000Z", createdAt: "2026-10-03T15:00:00.000Z",
+    current, history: [current], historyTruncated: false,
+  };
+  let created = false;
+  await page.route("**/api/theses**", async (route) => {
+    const request = route.request();
+    const url = new URL(request.url());
+    if (url.pathname !== "/api/theses") return route.continue();
+    if (request.method() === "POST") {
+      writes.push(request.postData() ?? "");
+      created = true;
+      return fulfillCreatedThesis(route);
+    }
+    if (request.method() === "GET") {
+      const id = url.searchParams.get("id");
+      return route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify(id === thesisId ? { thesis } : {
+          theses: created ? [{
+            id: thesis.id, currentVersion: thesis.currentVersion, lifecycleState: thesis.lifecycleState,
+            subject: thesis.subject, title: thesis.title, updatedAt: thesis.updatedAt,
+          }] : [],
+          truncated: false,
+        }),
+      });
+    }
+    return route.continue();
+  });
 }
 
 test("create → deep link → reload → revise → conflict → archive/invalidate/reopen keeps immutable history", async ({ page, baseURL }, testInfo) => {
@@ -862,6 +974,88 @@ test("corrupt owner-bound recovery storage fails closed without deleting or send
   await expect(page.getByRole("button", { name: "Save", exact: true })).toBeDisabled();
   expect(await page.evaluate(() => localStorage.getItem("mm.thesis.pending.v2:local-preview:corrupt"))).toBe("{");
   expect(writes).toEqual([]);
+});
+
+test("a five-key version two recovery envelope hydrates without locking the carrier", async ({ page, baseURL }, testInfo) => {
+  await prepare(page, testInfo, baseURL);
+  const stored = await seedPending(page, "c2100000-0000-4000-8000-000000000001");
+  const writes: string[] = [];
+  await routeCreatedThesisReads(page, JSON.parse(stored.raw).serializedBody as string, writes);
+
+  await page.goto("/analysis?view=theses&symbol=NVDA");
+  await expect(page.getByText("response was interrupted")).toBeVisible();
+  await expect(page.getByTestId("thesis-pending-recovery-item")).toHaveCount(1);
+  await expect(page.getByText("browser could not safely preserve the request")).toHaveCount(0);
+  expect(await page.evaluate((storageKey) => localStorage.getItem(storageKey), stored.key)).toBe(stored.raw);
+  await expect(page.getByRole("button", { name: "Retry same request" })).toBeEnabled();
+  await page.getByRole("button", { name: "Retry same request" }).click();
+  await expect(page.getByText("Saved as version 1")).toBeVisible();
+  expect(writes).toEqual([JSON.parse(stored.raw).serializedBody]);
+  await expect(page.getByTestId("thesis-pending-recovery-item")).toHaveCount(0);
+  await expect.poll(() => page.evaluate((storageKey) => localStorage.getItem(storageKey), stored.key)).toBeNull();
+});
+
+test("a historical six-key recovery envelope retries and clears its original bytes", async ({ page, baseURL }, testInfo) => {
+  await prepare(page, testInfo, baseURL);
+  const stored = await seedPending(page, "c2200000-0000-4000-8000-000000000001", "NVDA");
+  const writes: string[] = [];
+  await routeCreatedThesisReads(page, JSON.parse(stored.raw).serializedBody as string, writes);
+
+  await page.goto("/analysis?view=theses&symbol=NVDA");
+  await expect(page.getByTestId("thesis-pending-recovery-item")).toHaveCount(1);
+  expect(await page.evaluate((storageKey) => localStorage.getItem(storageKey), stored.key)).toBe(stored.raw);
+  await page.getByRole("button", { name: "Retry same request" }).click();
+  await expect(page.getByText("Saved as version 1")).toBeVisible();
+  expect(writes).toEqual([JSON.parse(stored.raw).serializedBody]);
+  await expect(page.getByTestId("thesis-pending-recovery-item")).toHaveCount(0);
+  await expect.poll(() => page.evaluate((storageKey) => localStorage.getItem(storageKey), stored.key)).toBeNull();
+});
+
+test("a mismatched historical sixth field fails closed and retains its exact bytes", async ({ page, baseURL }, testInfo) => {
+  await prepare(page, testInfo, baseURL);
+  const stored = await seedPending(page, "c2300000-0000-4000-8000-000000000001", "AAPL");
+  const writes: string[] = [];
+  page.on("request", (request) => {
+    if (request.method() === "POST" && request.url().includes("/api/theses")) writes.push(request.postData() ?? "");
+  });
+
+  await page.goto("/analysis?view=theses&symbol=NVDA");
+  await expect(page.getByTestId("thesis-pending-recovery-item")).toHaveCount(0);
+  await expect(page.getByText("browser could not safely preserve the request")).toBeVisible();
+  await expect(page.getByRole("button", { name: "Save", exact: true })).toBeDisabled();
+  expect(await page.evaluate((storageKey) => localStorage.getItem(storageKey), stored.key)).toBe(stored.raw);
+  expect(writes).toEqual([]);
+});
+
+test("a five-key recovery envelope survives reloads and two live mounts with exact retry bytes", async ({ page, context, baseURL }, testInfo) => {
+  await prepare(page, testInfo, baseURL);
+  const stored = await seedPending(page, "c2400000-0000-4000-8000-000000000001");
+  const second = await context.newPage();
+  await prepare(second, testInfo, baseURL);
+  const writes: string[] = [];
+  const serializedBody = JSON.parse(stored.raw).serializedBody as string;
+  for (const target of [page, second]) {
+    await routeCreatedThesisReads(target, serializedBody, writes);
+  }
+
+  await page.goto("/analysis?view=theses&symbol=NVDA");
+  await expect(page.getByTestId("thesis-pending-recovery-item")).toHaveCount(1);
+  expect(await page.evaluate((storageKey) => localStorage.getItem(storageKey), stored.key)).toBe(stored.raw);
+  await page.reload();
+  await expect(page.getByTestId("thesis-pending-recovery-item")).toHaveCount(1);
+  expect(await page.evaluate((storageKey) => localStorage.getItem(storageKey), stored.key)).toBe(stored.raw);
+
+  await second.goto("/analysis?view=theses&symbol=NVDA");
+  await expect(second.getByTestId("thesis-pending-recovery-item")).toHaveCount(1);
+  expect(await second.evaluate((storageKey) => localStorage.getItem(storageKey), stored.key)).toBe(stored.raw);
+  await second.getByRole("button", { name: "Retry same request" }).click();
+  await expect(second.getByTestId("thesis-pending-recovery-item")).toHaveCount(0);
+
+  await page.getByRole("button", { name: "Retry same request" }).click();
+  await expect(page.getByTestId("thesis-pending-recovery-item")).toHaveCount(0);
+  const expected = JSON.parse(stored.raw).serializedBody;
+  await expect.poll(() => writes).toEqual([expected, expected]);
+  await expect.poll(() => page.evaluate((storageKey) => localStorage.getItem(storageKey), stored.key)).toBeNull();
 });
 
 test("browser storage refusal preserves the draft and sends no mutation", async ({ page, baseURL }, testInfo) => {
