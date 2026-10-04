@@ -114,6 +114,15 @@ const nextConfig: NextConfig = {
   deploymentId: DEPLOYMENT_ID,
   // pin the workspace root (sibling lockfiles exist) so Turbopack stops warning
   turbopack: { root: path.resolve(__dirname) },
+  // The shared pure validators also export Node-side digest helpers. For webpack's
+  // client graph, normalize the builtin scheme so Next's existing crypto browser
+  // fallback can resolve it. Server imports and Turbopack keep their normal path.
+  webpack(config, { isServer, webpack }) {
+    if (!isServer) config.plugins.push(new webpack.NormalModuleReplacementPlugin(/^node:crypto$/, (resource: { request: string }) => {
+      resource.request = "crypto";
+    }));
+    return config;
+  },
   // Never ship client source maps to the browser (this is Next's default; pinned here as a
   // guardrail so proprietary chart/indicator/Pine logic can't be trivially de-minified).
   productionBrowserSourceMaps: false,

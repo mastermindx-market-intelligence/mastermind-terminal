@@ -5,7 +5,7 @@ import { useT } from "@/lib/i18n";
 import { resolveDetentRelease } from "@/lib/sheetDetent";
 import styles from "./AnalysisHubSheet.module.css";
 
-export type HubAction = "indicators" | "compare" | "alerts" | "chartType" | "symbolDetails";
+export type HubAction = "indicators" | "compare" | "alerts" | "chartType" | "workspaces" | "symbolDetails";
 
 export type AnalysisHubSheetProps = {
   open: boolean;
@@ -38,10 +38,10 @@ const CAPABILITIES: {
     { id: "compare", labelKey: "compare", path: "M4 18l5-9 4 5 3-4 4 8", action: "compare" },
     { id: "alerts", labelKey: "alerts", path: "M18 15V10a6 6 0 1 0-12 0v5l-2 3h16zM10 21h4", action: "alerts" },
     { id: "chartType", labelKey: "hubChartType", path: "M6 6v12M6 8h4M6 14h4M15 4v16M15 7h4M15 16h4", action: "chartType" },
+    { id: "workspaces", labelKey: "layouts", path: "M4 5h16v14H4zM4 9h16M9 9v10", action: "workspaces" },
   ],
   unavailable: [
     { id: "objectTree", labelKey: "hubObjectTree" },
-    { id: "templates", labelKey: "hubTemplates" },
   ],
   info: [
     { id: "symbolDetails", labelKey: "hubSymbolDetails", path: "M12 3a9 9 0 1 0 0 18 9 9 0 1 0 0-18M12 11v6M12 7.5h.01", action: "symbolDetails" },

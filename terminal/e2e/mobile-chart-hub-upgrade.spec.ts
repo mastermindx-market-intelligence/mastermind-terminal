@@ -35,6 +35,7 @@ function supportedHubControls(hub: Locator) {
     hub.getByTestId("hub-tile-compare"),
     hub.getByTestId("hub-tile-alerts"),
     hub.getByTestId("hub-tile-chartType"),
+    hub.getByTestId("hub-tile-workspaces"),
     hub.getByTestId("hub-tile-symbolDetails"),
   ];
 }
@@ -116,16 +117,36 @@ test("MM-006: only supported tools are actionable and chart type uses canonical 
   await openTerminal(page);
   const { hub, trigger } = await openHub(page);
 
-  await expect(hub.locator(".mhub-grid .mhub-tile")).toHaveCount(5);
+  await expect(hub.locator(".mhub-grid .mhub-tile")).toHaveCount(6);
   await expect(hub.getByTestId("hub-tile-objectTree")).toHaveCount(0);
   await expect(hub.getByTestId("hub-tile-templates")).toHaveCount(0);
   await expect(hub.getByTestId("hub-unavailable-tools")).toContainText("This panel isn't available in this version");
   await expect(hub.getByTestId("hub-unavailable-tools")).toContainText("Object tree");
-  await expect(hub.getByTestId("hub-unavailable-tools")).toContainText("Templates");
+  await expect(hub.getByTestId("hub-unavailable-tools")).not.toContainText("Templates");
   await expect(hub).not.toContainText("Not in this alpha");
 
-  await hub.getByTestId("hub-tile-chartType").tap();
+  await hub.getByTestId("hub-tile-workspaces").tap();
   await expect(hub).toHaveCount(0);
+  const workspaces = page.locator(".phone-workspaces-sheet:has([data-layout-save])");
+  await expect(workspaces).toBeVisible();
+  await expect(page.locator(".chart-tabs")).toBeHidden();
+
+  // Rotating through the tablet breakpoint must dismiss the phone-only sheet permanently.
+  // Returning to phone width should restore the phone chrome without resurrecting stale UI.
+  await page.setViewportSize({ width: 820, height: 1180 });
+  await expect(workspaces).toHaveCount(0);
+  await page.setViewportSize({ width: 390, height: 844 });
+  await expect(workspaces).toHaveCount(0);
+
+  const reopenedWorkspaces = await openHub(page);
+  await reopenedWorkspaces.hub.getByTestId("hub-tile-workspaces").tap();
+  await expect(workspaces).toBeVisible();
+  await page.keyboard.press("Escape");
+  await expect(workspaces).toHaveCount(0);
+
+  const chartHub = await openHub(page);
+  await chartHub.hub.getByTestId("hub-tile-chartType").tap();
+  await expect(chartHub.hub).toHaveCount(0);
   const picker = page.getByRole("dialog", { name: "Chart type" });
   await expect(picker).toBeVisible();
   await expect.poll(() => activeElementIsInside(picker)).toBe(true);
@@ -183,7 +204,7 @@ test("MM-006: EN and ZH expose the same truthful capability decisions", async ({
 
   await expect(hub.getByTestId("hub-unavailable-tools")).toContainText("此面板在当前版本中不可用");
   await expect(hub.getByTestId("hub-unavailable-tools")).toContainText("对象树");
-  await expect(hub.getByTestId("hub-unavailable-tools")).toContainText("模板");
+  await expect(hub.getByTestId("hub-unavailable-tools")).not.toContainText("模板");
   await expect(hub).not.toContainText("此版本暂未提供");
   await hub.getByTestId("hub-tile-chartType").click();
   await expect(page.getByRole("dialog", { name: "图表类型" })).toBeVisible();
