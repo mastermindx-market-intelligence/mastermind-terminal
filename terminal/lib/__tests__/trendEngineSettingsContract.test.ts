@@ -38,4 +38,44 @@ describe("Trend Engine settings contract", () => {
     // persisted input must resolve to 108 * (1 - .90) = 10.8 rather than 100%/zero.
     expect(tp1!.p).toBeCloseTo(10.8, 10);
   });
+
+  it("applies the same 90% maximum to TP2 and TP3", () => {
+    const result = run({ sensitivity: 1, tpMode: "fixed", tpFixed1: 150, tpFixed2: 200, tpFixed3: 400, showLast: 6 });
+    const chips = tpChips(result, 13);
+
+    // Unclamped 200%/400% put a short's target below zero, so both chips used to vanish.
+    expect(chips.map((chip) => chip?.text?.slice(0, 3))).toEqual(["TP1", "TP2", "TP3"]);
+    for (const chip of chips) expect(chip!.p).toBeCloseTo(10.8, 10);
+  });
+
+  it("leaves defaults and in-range values unchanged", () => {
+    const defaults = tpChips(run({ sensitivity: 1, tpMode: "fixed", showLast: 6 }), 13);
+    expect(defaults.map((chip) => chip!.p)).toEqual([
+      expect.closeTo(108 * 0.98, 10),
+      expect.closeTo(108 * 0.96, 10),
+      expect.closeTo(108 * 0.92, 10),
+    ]);
+
+    const inRange = tpChips(run({ sensitivity: 1, tpMode: "fixed", tpFixed1: 0.1, tpFixed2: 45, tpFixed3: 90, showLast: 6 }), 13);
+    expect(inRange.map((chip) => chip!.p)).toEqual([
+      expect.closeTo(108 * 0.999, 10),
+      expect.closeTo(108 * 0.55, 10),
+      expect.closeTo(108 * 0.1, 10),
+    ]);
+  });
+
+  it("keeps the existing minimum and default rules for out-of-range low and malformed input", () => {
+    const chips = tpChips(run({ sensitivity: 1, tpMode: "fixed", tpFixed1: 0, tpFixed2: "abc", tpFixed3: null, showLast: 6 }), 13);
+    expect(chips.map((chip) => chip!.p)).toEqual([
+      expect.closeTo(108 * 0.999, 10), // below the 0.1% minimum clamps up to it
+      expect.closeTo(108 * 0.96, 10), // unparseable falls back to the TP2 default (4%)
+      expect.closeTo(108 * 0.92, 10), // null falls back to the TP3 default (8%)
+    ]);
+  });
 });
+
+function tpChips(result: ReturnType<typeof run>, flipIndex: number) {
+  return [0, 1, 2].map(
+    (t) => result.prims.find((prim) => prim.id === `te-tpc${flipIndex}-${t}`) as { p?: number; text?: string } | undefined,
+  );
+}
