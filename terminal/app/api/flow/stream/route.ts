@@ -38,6 +38,22 @@ export async function GET(req: Request): Promise<Response> {
     });
   }
 
+  // Options Alpha candidate evidence: GET-only for now. The publisher has not yet
+  // shipped formed candidates (MACRO PR #8310, options.alpha_candidate_feed/v1),
+  // and there is no poller, no SSE contract, and no UI consumer wired in. Refuse
+  // the stream before entitlement/upstream/stream creation so a future caller
+  // cannot quietly turn it into a long-lived producer the publisher would have to
+  // honour.
+  if (requestedFeed === "options_alpha_candidate_feed") {
+    return new Response("bad f param", {
+      status: 400,
+      headers: {
+        "Cache-Control": "no-store",
+        "Content-Type": "text/plain; charset=utf-8",
+      },
+    });
+  }
+
   // Options data is a PAID feature — gate the stream at connection open against
   // the macro-api entitlement (terminal_live_options via /api/me), not
   // profiles.is_pro. Fixture mode (dev/CI) is exempt.

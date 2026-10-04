@@ -1,0 +1,29 @@
+{
+  "schema": "iw2.migration_privileges.v1",
+  "tables": [
+    {
+      "relname": "chart_layout_revisions",
+      "anon_read": false,
+      "owner_read": true,
+      "client_write": false
+    },
+    {
+      "relname": "investigation_mutation_receipts",
+      "anon_read": false,
+      "owner_read": true,
+      "client_write": false
+    },
+    {
+      "relname": "investigation_revisions",
+      "anon_read": false,
+      "owner_read": true,
+      "client_write": false
+    },
+    {
+      "relname": "investigations",
+      "anon_read": false,
+      "owner_read": true,
+      "client_write": false
+    }
+  ]
+}

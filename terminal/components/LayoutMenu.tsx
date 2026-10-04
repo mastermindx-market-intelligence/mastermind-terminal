@@ -317,7 +317,14 @@ export default function LayoutMenu({
       </button>
 
       {isGuest && (
-        <button ref={gateRowRef} type="button" role="menuitem" className="menu-row layout-gate" data-layout-gate onClick={onSignUp}>
+        <button
+          ref={gateRowRef}
+          type="button"
+          role="menuitem"
+          className="menu-row layout-gate"
+          data-layout-gate
+          onClick={() => { onPicked?.(); onSignUp(); }}
+        >
           <span>{t("gateLayouts")}</span>
           <span className="layout-gate-cta">{t("gateSignupCta")}</span>
         </button>

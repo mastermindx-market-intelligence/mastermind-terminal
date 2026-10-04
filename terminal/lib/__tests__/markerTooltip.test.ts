@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
-  hitTestMarkers, placeMarkerTip, isTapGesture, gestureStamp, isTapSample,
+  hitTestMarkers, placeMarkerTip, isTapGesture, gestureStamp, isTapSample, reanchorMarker,
   MARKER_HOVER_SLACK, MARKER_TAP_SLACK, type MarkerHit,
 } from "../markerTooltip";
 
@@ -203,5 +203,31 @@ describe("isTapSample", () => {
     expect(isTapSample({ x: 0, y: 0, t: 0, ts: 100 }, { x: 0, y: 0, t: 0, ts: 401 })).toBe(false);
     expect(isTapSample({ x: 0, y: 0, t: 0, ts: 100 }, { x: 12, y: 0, t: 0, ts: 200 })).toBe(true);
     expect(isTapSample({ x: 0, y: 0, t: 0, ts: 100 }, { x: 13, y: 0, t: 0, ts: 200 })).toBe(false);
+  });
+});
+
+describe("reanchorMarker — a relayout moves a pinned tooltip, it does not kill it", () => {
+  const at = (x: number, y: number, title: string): MarkerHit =>
+    ({ x, y, w: 11, h: 19, title, t: title.split(" ·")[0] });
+
+  it("finds the same marker at its NEW box after a relayout", () => {
+    const before = at(100, 200, "2026-07-27 · BUY — would have entered");
+    const after = [at(60, 240, "2026-07-27 · BUY — would have entered"), at(300, 180, "2026-08-14 · CUT")];
+    expect(reanchorMarker(after, before)).toBe(after[0]);
+  });
+
+  it("returns null when that marker is no longer painted — then the tooltip really is litter", () => {
+    const before = at(100, 200, "2026-07-27 · BUY — would have entered");
+    expect(reanchorMarker([at(300, 180, "2026-08-14 · CUT")], before)).toBeNull();
+  });
+
+  it("returns null when nothing is pinned, so a hover tooltip still just drops on a resize", () => {
+    expect(reanchorMarker([at(60, 240, "2026-07-27 · BUY")], null)).toBeNull();
+  });
+
+  it("keys on the full title, so two markers sharing one BAR cannot swap tooltips", () => {
+    const before = at(100, 200, "2026-07-27 · BUY — would have entered");
+    const after = [at(100, 200, "2026-07-27 · ⊘ not an entry"), at(104, 220, "2026-07-27 · BUY — would have entered")];
+    expect(reanchorMarker(after, before)).toBe(after[1]);
   });
 });
