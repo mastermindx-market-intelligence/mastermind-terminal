@@ -167,3 +167,22 @@ def test_lifecycle_actions_preserve_content_and_have_their_own_receipts(pg):
     assert restored["status"]=="committed" and restored["lifecycle"]=="active" and restored["revision"]==6
     assert apply(pg,key,"remove",4,current)==removed
     assert json.loads(pg("select read_investigation_v2('"+ID+"',5)",A))["lifecycle"]=="removed"
+
+
+def test_full_paired_manifest_corpus_at_the_sql_admission_boundary(pg):
+    bundle = json.loads((ROOT / "terminal/lib/__tests__/fixtures/investigation_manifest_vectors.json").read_text())
+    for vector in bundle["vectors"]:
+        content = vector["manifest"]
+        expected = vector["valid"] and content.get("schema") == "investigation_manifest.v2" and not content.get("thesis_refs")
+        # This private SQL boundary has the fixed G1 adapter admission, while
+        # the language contract also tests the caller's empty admission.
+        if vector["name"] == "owner not implicitly admitted":
+            expected = True
+        body = json.dumps(content, ensure_ascii=True)
+        # PostgreSQL JSONB itself refuses NUL and unpaired surrogate escapes.
+        response = pg("select public.valid_investigation_manifest_v2(" + quote(body) + "::jsonb);", check=False)
+        if response.returncode:
+            assert not expected, (vector["name"], response.stderr)
+            assert "Unicode" in response.stderr or "unicode" in response.stderr, response.stderr
+        else:
+            assert (response.stdout.strip() == "t") is bool(expected), vector["name"]

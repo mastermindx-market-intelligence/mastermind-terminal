@@ -116,10 +116,22 @@ retained-layout host and existing workspace golden vectors pass 78 cases.
 Rejected commands remain in the same principal-partitioned recovery buffer until
 an explicit new edit/save replaces them; they do not become automatic retries.
 The immutable success receipt remains the only commit/retry authority. The
-independent 0028 source review is in progress; no release approval is asserted.
+independent 0028 reviewer timed out after ACK/START without a review artifact;
+cleanup proved zero residual workers. No release approval is asserted.
 
 Production read-only inventory confirmed the existing `chart_layouts` table and
 absence of both new owners before migration. The connected Terminal project has
 no team rows; G7 requires a designated real team and approved existing principals.
 No migration, production Investigation write, source merge or deployment has yet
 occurred. These source and fixture results are not G1 or G0-G9 acceptance.
+
+## Paired language contract and SQL admission
+
+`api/investigation_contracts.py` validates already-decoded manifests using the same
+v1/v2 limits and caller-supplied owner admission as the existing TypeScript
+contract. It performs no wire decoding, persistence, authorization or compiler
+work. Both consume 47 frozen full-manifest cases, including exact Unicode, typed
+references, duplicate identity, dates, modes and aggregate/byte limits. The SQL
+admission boundary consumes the same corpus with explicit G1-only restrictions
+(v2 and no Thesis references). Distinct versions and ordered reference identities
+use JSONB equality; JSONB containment would incorrectly collapse them.

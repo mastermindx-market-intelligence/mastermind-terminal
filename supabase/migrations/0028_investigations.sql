@@ -109,7 +109,8 @@ begin
    or not public.investigation_text_v2(r->'object_id',256,true)
    or not ((r->>'owner'='terminal.analysis_symbol' and r->>'kind'='security') or (r->>'owner'='data_os.security_master' and r->>'kind' in ('security','issuer')))
    or (r ? 'version_ref' and not public.investigation_text_v2(r->'version_ref',256,true)) then return false; end if;
-  if seen @> jsonb_build_array(r) then return false; end if; seen:=seen||jsonb_build_array(r);
+  identity:=jsonb_build_array(r->'owner',r->'kind',r->'object_id',r->'version_ref');
+  if exists(select 1 from jsonb_array_elements(seen) prior(value) where prior.value=identity) then return false; end if; seen:=seen||jsonb_build_array(identity);
  end loop;
  n:=0;
  foreach k in array array['layout_refs','thesis_refs','evidence_refs'] loop
@@ -124,7 +125,7 @@ begin
   or (r->>'layout_revision_id') !~ '^[0-9a-f]{8}(-[0-9a-f]{4}){3}-[0-9a-f]{12}$'
   or (r->>'digest') !~ '^[0-9a-f]{64}$' or r->>'role' not in ('primary','supporting') then return false; end if;
   identity:=jsonb_build_array(r->'layout_id',r->'layout_revision_id');
-  if seen @> jsonb_build_array(identity) then return false; end if; seen:=seen||jsonb_build_array(identity);
+  if exists(select 1 from jsonb_array_elements(seen) prior(value) where prior.value=identity) then return false; end if; seen:=seen||jsonb_build_array(identity);
  end loop;
  -- Thesis integration remains with its owner. G1 admits no unverified Thesis rows.
  if jsonb_array_length(m->'thesis_refs')>0 then return false; end if;
@@ -146,7 +147,7 @@ begin
   n:=n+1;
   identity:=jsonb_build_array(r->'owner',r->'object_type',r->'object_id',r->'mode',r->'version_ref',r#>'{selection,field}');
   if n<=jsonb_array_length(m->'evidence_refs') then
-   if seen @> jsonb_build_array(identity) then return false; end if; seen:=seen||jsonb_build_array(identity);
+   if exists(select 1 from jsonb_array_elements(seen) prior(value) where prior.value=identity) then return false; end if; seen:=seen||jsonb_build_array(identity);
   end if;
  end loop;
  return true;
