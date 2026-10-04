@@ -392,7 +392,7 @@ export function OptionsAlphaCandidatePanel(props: OptionsAlphaCandidatePanelProp
         setState((prev) => ({
           source: prev.source,
           status: prev.source ? "stale" : "unavailable",
-          message: messages.unavailable,
+          message: prev.source ? messages.stale : messages.unavailable,
         }));
         return;
       }
@@ -401,7 +401,7 @@ export function OptionsAlphaCandidatePanel(props: OptionsAlphaCandidatePanelProp
         setState((prev) => ({
           source: prev.source,
           status: prev.source ? "stale" : "unavailable",
-          message: messages.unavailable,
+          message: prev.source ? messages.stale : messages.unavailable,
         }));
         return;
       }
