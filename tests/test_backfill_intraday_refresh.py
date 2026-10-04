@@ -77,7 +77,7 @@ def test_t02_rebuild_refused_when_full_refetch_small(intraday_env, capsys):
 
     def fake_small(s, tf, frm=None, **kwargs):
         if frm is None:
-            return moved(rows(19), 0.5)
+            return moved(store[-19:], 0.5)
         return _refresh_tail_plus_new(store, 0.5)
 
     rc = run(fake_small)
@@ -85,17 +85,17 @@ def test_t02_rebuild_refused_when_full_refetch_small(intraday_env, capsys):
     assert rc == 1
     assert path.read_bytes() == before
     assert "AdjustmentMismatch" in out
-    assert "full refetch returned 19 bar(s)" in out
+    assert "full refetch covers 19 of 30 row(s)" in out
     assert "failed=1" in out
 
     def fake_ok(s, tf, frm=None, **kwargs):
         if frm is None:
-            return moved(rows(20), 0.5)
+            return moved(store[-27:], 0.5)
         return _refresh_tail_plus_new(store, 0.5)
 
     rc2 = run(fake_ok)
     assert rc2 == 0
-    assert _read_bars(path) == moved(rows(20), 0.5)
+    assert _read_bars(path) == moved(store[-27:], 0.5)
 
 
 def test_t03_rebuild_budget(intraday_env, monkeypatch, capsys):
@@ -163,6 +163,7 @@ def test_t04_tolerance_boundary(intraday_env, capsys, k, expect_rebuild):
 
 
 def test_t05_too_few_shared_bars(intraday_env, capsys):
+    """R3a: four shared bars at a 10:1 basis move must rebuild, not merge two bases."""
     sym = "T05"
     store = rows(30)
     path = put(intraday_env, sym, store)
@@ -171,15 +172,17 @@ def test_t05_too_few_shared_bars(intraday_env, capsys):
     def fake4(s, tf, frm=None, **kwargs):
         if frm is None:
             full.append(1)
-            return rows(40)
-        return _refresh_tail_plus_new(store, 0.5, n_shared=4)
+            return moved(rows(40), 0.1)
+        return _refresh_tail_plus_new(store, 0.1, n_shared=4)
 
     rc = run(fake4)
     out = capsys.readouterr().out
     assert rc == 0
-    assert not full
-    assert "basis_unverified=1" in out
-    assert "rebuilt=0" in out
+    assert len(full) == 1
+    assert "rebuilt=1" in out
+    assert "thin overlap" in out
+    on_disk = _read_bars(path)
+    assert on_disk == moved(rows(40), 0.1)
 
     path.unlink()
     store2 = rows(30)
@@ -198,6 +201,54 @@ def test_t05_too_few_shared_bars(intraday_env, capsys):
     assert len(full) == 1
     assert "rebuilt=1" in out2
     assert "basis_unverified=0" in out2
+
+
+def test_r3a_thin_overlap_within_band_merges(intraday_env, capsys):
+    sym = "R3A"
+    store = rows(30)
+    path = put(intraday_env, sym, store)
+    full = []
+
+    def fake(s, tf, frm=None, **kwargs):
+        if frm is None:
+            full.append(1)
+            return rows(40)
+        return _refresh_tail_plus_new(store, 1.002, n_shared=3)
+
+    rc = run(fake)
+    out = capsys.readouterr().out
+    assert rc == 0
+    assert not full
+    assert "basis_unverified=1" in out
+    assert "rebuilt=0" in out
+    assert len(_read_bars(path)) == 31
+
+
+def test_r3b_one_shared_bar_at_boundary_rebuilds(intraday_env, capsys):
+    sym = "R3B"
+    store = rows(30)
+    path = put(intraday_env, sym, store)
+    asof = store[-1][0]
+    full = []
+
+    def fake(s, tf, frm=None, **kwargs):
+        if frm is None:
+            full.append(1)
+            return moved(rows(40), 0.1)
+        last = moved([store[-1]], 0.1)[0]
+        later = [
+            [asof + 3600, 10.0, 11.0, 9.0, 1.0, 100],
+            [asof + 7200, 10.0, 11.0, 9.0, 1.0, 100],
+            [asof + 10800, 10.0, 11.0, 9.0, 1.0, 100],
+        ]
+        return [last] + later
+
+    rc = run(fake)
+    out = capsys.readouterr().out
+    assert rc == 0
+    assert len(full) == 1
+    assert "thin overlap" in out
+    assert _read_bars(path) == moved(rows(40), 0.1)
 
 
 def test_t06_one_corrected_bar_not_basis_move(intraday_env, capsys):
@@ -265,10 +316,12 @@ def test_t07_empty_refetch_store_failure(intraday_env, capsys):
 
 
 def test_t08_refetch_starts_after_store(intraday_env, capsys):
+    """R3c: refetch with zero shared bars fails the store; no full rebuild fetch."""
     sym = "T08"
     store = rows(30)
     path = put(intraday_env, sym, store)
     asof = store[-1][0]
+    before = path.read_bytes()
     full = []
 
     def fake(s, tf, frm=None, **kwargs):
@@ -282,10 +335,11 @@ def test_t08_refetch_starts_after_store(intraday_env, capsys):
 
     rc = run(fake)
     out = capsys.readouterr().out
-    assert len(full) == 1
-    assert f"rebuilt: {sym}.1h refetch shares no bar with the store" in out
-    assert _read_bars(path) == rows(40)
-    assert rc == 0
+    assert not full
+    assert "refetch shares no bar with the store" in out
+    assert "AdjustmentMismatch" in out
+    assert path.read_bytes() == before
+    assert rc == 1
 
 
 def test_t09_unchanged_store_not_rewritten(intraday_env, capsys):
@@ -388,6 +442,138 @@ def test_t13_rebuild_retention_under_cap(intraday_env, monkeypatch, capsys):
         return _refresh_tail_plus_new(store, 0.5)
 
     rc = run(fake)
+    out = capsys.readouterr().out
     assert rc == 0
     expected = moved(rows(40), 0.5)[-25:]
     assert _read_bars(path) == expected
+    assert f"retention: {sym}.1h dropped 15 oldest row(s) (cap 25)" in out
+    assert "retention_dropped=15" in out
+
+
+def test_r3d_rebuild_short_coverage_refused(intraday_env, monkeypatch, capsys):
+    sym = "R3D"
+    store = rows(240)
+    path = put(intraday_env, sym, store)
+    before = path.read_bytes()
+
+    def fake(s, tf, frm=None, **kwargs):
+        if frm is None:
+            return moved(store[-25:], 0.1)
+        return _refresh_tail_plus_new(store, 0.1, n_shared=4)
+
+    rc = run(fake)
+    out = capsys.readouterr().out
+    assert rc == 1
+    assert path.read_bytes() == before
+    assert "full refetch covers 25 of 240 row(s)" in out
+
+
+def test_r3d2_rebuild_ending_before_asof_refused(intraday_env, capsys):
+    sym = "R3D2"
+    store = rows(30)
+    path = put(intraday_env, sym, store)
+    asof = store[-1][0]
+    before = path.read_bytes()
+
+    def fake(s, tf, frm=None, **kwargs):
+        if frm is None:
+            return moved(rows(20), 0.5)
+        return _refresh_tail_plus_new(store, 0.5)
+
+    rc = run(fake)
+    out = capsys.readouterr().out
+    assert rc == 1
+    assert path.read_bytes() == before
+    assert f"before the store's last bar {asof}" in out
+
+
+def test_r3f_expect_advance_stale_vendor_rc4(intraday_env, capsys):
+    sym_a, sym_b = "R3FA", "R3FB"
+    store_a, store_b = rows(30), rows(30)
+    put(intraday_env, sym_a, store_a)
+    put(intraday_env, sym_b, store_b)
+
+    def fake(s, tf, frm=None, **kwargs):
+        st = store_a if s == sym_a else store_b
+        return st[-6:]
+
+    rc_stale = run(fake, ["--existing-only", "--expect-advance", "--tf", "1h", "--workers", "2"])
+    out_stale = capsys.readouterr().out
+    assert rc_stale == 4
+    assert "not_advanced=2" in out_stale
+    assert "STALE: no store advanced on a run that expected new bars" in out_stale
+
+    rc_ok = run(fake, ["--existing-only", "--tf", "1h", "--workers", "2"])
+    assert rc_ok == 0
+
+
+def test_r3f2_one_store_advanced_is_not_stale(intraday_env, capsys):
+    sym_a, sym_b = "R3F2A", "R3F2B"
+    store_a, store_b = rows(30), rows(30)
+    put(intraday_env, sym_a, store_a)
+    put(intraday_env, sym_b, store_b)
+    last_b = store_b[-1][0]
+
+    def fake(s, tf, frm=None, **kwargs):
+        if s == sym_a:
+            return store_a[-6:]
+        extra = [[last_b + 3600, 10.0, 11.0, 9.0, 10.5, 100]]
+        return store_b[-6:] + extra
+
+    rc = run(fake, ["--existing-only", "--expect-advance", "--tf", "1h", "--workers", "2"])
+    out = capsys.readouterr().out
+    assert rc == 0
+    assert "STALE:" not in out
+
+
+def test_r3h_future_asof_uses_real_utc(intraday_env, monkeypatch, capsys):
+    sym_ok, sym_bad = "R3HOK", "R3HBAD"
+    wall = time.time()
+    monkeypatch.setattr(mod.time, "time", lambda: wall)
+    asof_ok = int(wall) + 3600
+    assert asof_ok > wall
+    store_ok = rows(30, start=asof_ok - 29 * 3600)
+    put(intraday_env, sym_ok, store_ok)
+    called_ok = []
+    real_conv = mod._display_epoch_to_real_utc
+
+    def conv_ok(ep: int) -> int:
+        if ep == asof_ok:
+            return int(wall) - 7200
+        return real_conv(ep)
+
+    monkeypatch.setattr(mod, "_display_epoch_to_real_utc", conv_ok)
+
+    def fake_ok(s, tf, frm=None, **kwargs):
+        called_ok.append(1)
+        return store_ok[-6:]
+
+    rc_ok = run(fake_ok, ["--existing-only", "--tf", "1h", "--workers", "1"])
+    out_ok = capsys.readouterr().out
+    assert rc_ok == 0
+    assert called_ok
+    assert "StoreAsofInFuture" not in out_ok
+
+    asof_bad = int(wall) + 7200
+    store_bad = rows(30, start=asof_bad - 29 * 3600)
+    path_bad = put(intraday_env, sym_bad, store_bad)
+    before_bad = path_bad.read_bytes()
+    called_bad = []
+
+    def conv_bad(ep: int) -> int:
+        if ep == asof_bad:
+            return int(wall) + 7200
+        return real_conv(ep)
+
+    monkeypatch.setattr(mod, "_display_epoch_to_real_utc", conv_bad)
+
+    def fake_bad(s, tf, frm=None, **kwargs):
+        called_bad.append(1)
+        return []
+
+    rc_bad = run(fake_bad, ["--existing-only", "--tf", "1h", "--workers", "1"])
+    out_bad = capsys.readouterr().out
+    assert rc_bad == 1
+    assert not called_bad
+    assert "StoreAsofInFuture" in out_bad
+    assert path_bad.read_bytes() == before_bad

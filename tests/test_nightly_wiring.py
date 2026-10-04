@@ -293,7 +293,9 @@ def test_the_history_bridge_leaves_the_old_file_alone_when_no_source_is_reachabl
 # -> coverage still says XYZ has no intel -> an open tab refuses to ask for it. Pinning the step
 # here is the producer half; the consumer half is the bounded TTL in terminal/lib/dataCache.ts.
 
-INTRADAY_REFRESH = '"$PY" -m ingest.backfill_intraday --existing-only --tf 1h,5m --workers 8'
+INTRADAY_REFRESH = (
+    '"$PY" -m ingest.backfill_intraday --existing-only --expect-advance --tf 1h,5m --workers 8'
+)
 
 
 def test_the_nightly_runs_the_bounded_existing_intraday_refresh():

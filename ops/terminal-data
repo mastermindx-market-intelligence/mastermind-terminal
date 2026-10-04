@@ -216,7 +216,7 @@ fi
 # atomically, so a killed run leaves each store either old or complete.
 if [ "$RUN_DOW" -le "5" ]; then
   echo "[$(ts)] -> ingest.backfill_intraday --existing-only"
-  if timeout -k 60 90m "$PY" -m ingest.backfill_intraday --existing-only --tf 1h,5m --workers 8; then
+  if timeout -k 60 90m "$PY" -m ingest.backfill_intraday --existing-only --expect-advance --tf 1h,5m --workers 8; then
     echo "[$(ts)] INTRADAY_REFRESH status=OK"
   else
     rc=$?; echo "[$(ts)] INTRADAY_REFRESH status=FAILED rc=$rc"

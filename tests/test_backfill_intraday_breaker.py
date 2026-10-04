@@ -68,7 +68,7 @@ def run(fake, argv=None):
 def detail(out):
     m = re.search(
         r"^intraday backfill detail: rebuilt=(\d+) basis_unverified=(\d+) "
-        r"transport_failed=(\d+) skipped=(\d+) breaker=(clear|TRIPPED)$",
+        r"transport_failed=(\d+) skipped=(\d+) not_advanced=(\d+) breaker=(clear|TRIPPED)$",
         out,
         re.MULTILINE,
     )
@@ -78,7 +78,8 @@ def detail(out):
         "basis_unverified": int(m.group(2)),
         "transport_failed": int(m.group(3)),
         "skipped": int(m.group(4)),
-        "breaker": m.group(5),
+        "not_advanced": int(m.group(5)),
+        "breaker": m.group(6),
     }
 
 
@@ -90,7 +91,7 @@ _COMPLETE_RE = re.compile(
 )
 _DETAIL_RE = re.compile(
     r"^intraday backfill detail: rebuilt=\d+ basis_unverified=\d+ "
-    r"transport_failed=\d+ skipped=\d+ breaker=(clear|TRIPPED)$",
+    r"transport_failed=\d+ skipped=\d+ not_advanced=\d+ breaker=(clear|TRIPPED)$",
     re.MULTILINE,
 )
 

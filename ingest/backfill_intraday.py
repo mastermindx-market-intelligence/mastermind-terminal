@@ -59,6 +59,9 @@ MIN_STORE_ROWS = 20
 # would leave one store on two bases. The median new/old close over the shared bars decides.
 BASIS_MIN_SHARED = 5
 BASIS_TOLERANCE = 0.005
+# When fewer than BASIS_MIN_SHARED bars overlap, only a gross basis move (outside this band)
+# triggers a rebuild; smaller ratios are merged with basis_unverified counted.
+BASIS_GROSS = 1.25
 MAX_REBUILDS = 200
 # Stop the run early when the vendor is unreachable instead of retrying every store.
 BREAKER_CONSECUTIVE = 25
@@ -96,6 +99,7 @@ EXIT_OK = 0
 EXIT_STORE_FAILURES = 1
 EXIT_NO_STORES = 2
 EXIT_BREAKER_TRIPPED = 3
+EXIT_STALE_VENDOR = 4
 EXIT_USAGE = 64
 
 
@@ -172,6 +176,15 @@ def _disp_epoch(ms: int) -> int:
     """Polygon UTC ms → ET wall-clock reinterpreted as a UTC epoch (the route's display epoch)."""
     et = dt.datetime.fromtimestamp(ms / 1000, tz=timezone.utc).astimezone(ET)
     return int(dt.datetime(et.year, et.month, et.day, et.hour, et.minute, tzinfo=timezone.utc).timestamp())
+
+
+def _display_epoch_to_real_utc(disp_epoch: int) -> int:
+    """Invert _disp_epoch: display epoch → true UTC instant (for finality / asof guards)."""
+    fake = dt.datetime.fromtimestamp(disp_epoch, tz=timezone.utc)
+    et_wall = dt.datetime(
+        fake.year, fake.month, fake.day, fake.hour, fake.minute, fake.second, tzinfo=ET,
+    )
+    return int(et_wall.timestamp())
 
 
 def _validate_aggregate_bar(b: dict, sym: str, tf: str) -> None:
@@ -330,8 +343,7 @@ def _is_price(v) -> bool:
 def _basis_ratio(old: list[list], new: list[list]) -> tuple[float | None, int]:
     """Median new/old close over the bars both carry, and how many bars that is.
 
-    The ratio is None when fewer than BASIS_MIN_SHARED bars are shared: too few to tell a
-    re-adjusted history from a handful of corrected bars. `old` and `new` are ascending.
+    Returns (None, 0) only when no bars are shared. `old` and `new` are ascending.
     """
     if not new:
         return None, 0
@@ -345,8 +357,8 @@ def _basis_ratio(old: list[list], new: list[list]) -> tuple[float | None, int]:
     ratios = sorted(r[4] / old_close[r[0]] for r in new
                     if r[0] in old_close and _is_price(r[4]))
     n = len(ratios)
-    if n < BASIS_MIN_SHARED:
-        return None, n
+    if n == 0:
+        return None, 0
     mid = n // 2
     return (ratios[mid] if n % 2 else (ratios[mid - 1] + ratios[mid]) / 2), n
 
@@ -405,6 +417,7 @@ def main(argv: list[str]) -> int:
     force = "--force" in argv
     update = "--update" in argv   # incremental: extend existing store files with recent bars
     existing_only = "--existing-only" in argv
+    expect_advance = "--expect-advance" in argv
 
     if existing_only and (update or force):
         print("intraday backfill: --existing-only cannot be combined with --update or --force",
@@ -458,34 +471,52 @@ def main(argv: list[str]) -> int:
     rebuilds_left = [MAX_REBUILDS]
     wall_now = time.time()
 
-    def rebuild(s, tf, old, why):
+    def rebuild(s, tf, old, asof, why):
         """Replace a store whose basis no longer matches the vendor with a full adjusted fetch."""
         with _stats_lock:
             if rebuilds_left[0] <= 0:
                 raise AdjustmentMismatch(f"{why}; rebuild budget of {MAX_REBUILDS} is spent")
             rebuilds_left[0] -= 1
-        rows = fetch_polygon_intraday(s, tf, stats=stats)[-MAX_STORE_ROWS:]
+        full = fetch_polygon_intraday(s, tf, stats=stats)
+        rows = full[-MAX_STORE_ROWS:]
+        if not rows or rows[-1][0] < asof:
+            raise AdjustmentMismatch(
+                f"{why}; full refetch ends at {rows[-1][0] if rows else None}, "
+                f"before the store's last bar {asof}")
+        min_cover = int(0.9 * min(len(old), MAX_STORE_ROWS))
+        if len(rows) < min_cover:
+            raise AdjustmentMismatch(
+                f"{why}; full refetch covers {len(rows)} of {len(old)} row(s)")
         if len(rows) < MIN_STORE_ROWS:
             raise AdjustmentMismatch(f"{why}; full refetch returned {len(rows)} bar(s)")
+        dropped = max(0, len(full) - MAX_STORE_ROWS)
+        if dropped > 0:
+            print(f"  retention: {s}.{tf} dropped {dropped} oldest row(s) "
+                  f"(cap {MAX_STORE_ROWS})", flush=True)
         write_store(s, tf, rows)
         print(f"  rebuilt: {s}.{tf} {why}; {len(old)} -> {len(rows)} row(s)", flush=True)
-        return s, tf, "rebuilt", 0
+        return s, tf, "rebuilt", dropped
 
     def refresh(s, tf, old, asof):
-        if asof > wall_now:
+        if _display_epoch_to_real_utc(asof) > wall_now:
             raise RuntimeError("StoreAsofInFuture: the store's last bar is later than now")
         frm = _date_of(asof) - dt.timedelta(days=3)
         recent = fetch_polygon_intraday(s, tf, frm=frm, stats=stats)
         if not recent:
             raise EmptyOverlap("refetch of a window holding the store's last bar returned no bars")
-        if recent[0][0] > asof:
-            return rebuild(s, tf, old, "refetch shares no bar with the store")
         ratio, shared = _basis_ratio(old, recent)
-        if ratio is None:
+        if shared == 0:
+            raise AdjustmentMismatch("refetch shares no bar with the store")
+        if shared >= BASIS_MIN_SHARED and ratio is not None and abs(ratio - 1.0) > BASIS_TOLERANCE:
+            return rebuild(s, tf, old, asof, f"price basis moved x{ratio:.4f} over {shared} shared bar(s)")
+        if (shared < BASIS_MIN_SHARED and ratio is not None
+                and (ratio > BASIS_GROSS or ratio < 1.0 / BASIS_GROSS)):
+            return rebuild(
+                s, tf, old, asof,
+                f"price basis moved x{ratio:.4f} over {shared} shared bar(s) (thin overlap)")
+        if shared < BASIS_MIN_SHARED:
             with _stats_lock:
                 stats["basis_unverified"] = stats.get("basis_unverified", 0) + 1
-        elif abs(ratio - 1.0) > BASIS_TOLERANCE:
-            return rebuild(s, tf, old, f"price basis moved x{ratio:.4f} over {shared} shared bar(s)")
         merged_full = _merge(old, recent)
         if len(merged_full) < MIN_STORE_ROWS:
             raise RuntimeError(f"StoreTooSmall: {len(merged_full)} bar(s) after merge")
@@ -501,31 +532,34 @@ def main(argv: list[str]) -> int:
     def work(job):
         s, tf = job
         if abort.is_set():
-            return s, tf, "skipped", 0
+            return s, tf, "skipped", 0, None, None
         try:
             if update or existing_only:
                 old, asof = load_store(s, tf)
                 if asof is not None:
-                    return refresh(s, tf, old, asof)
+                    ret = refresh(s, tf, old, asof)
+                    _, asof_after = load_store(s, tf)
+                    return ret[0], ret[1], ret[2], ret[3], asof, asof_after
                 if existing_only:
                     failures.append(
                         f"{s}.{tf}: StoreUnreadable: existing store has no readable bars"
                     )
-                    return s, tf, "failed", 0  # refresh-only mode never invents a missing store
+                    return s, tf, "failed", 0, None, None
                 # Preserve legacy --update semantics: a newly listed symbol with no store
                 # falls through to the ordinary full backfill path.
             rows = fetch_polygon_intraday(s, tf, stats=stats)
-            return s, tf, ("written" if write_store(s, tf, rows) else "unchanged"), 0
+            kind = "written" if write_store(s, tf, rows) else "unchanged"
+            return s, tf, kind, 0, None, None
         except TransportExhausted as e:
             failures.append(f"{s}.{tf}: {type(e).__name__}: {_redact(str(e))[:300]}")
-            return s, tf, "transport", 0
+            return s, tf, "transport", 0, None, None
         except Exception as e:
             failures.append(f"{s}.{tf}: {type(e).__name__}: {_redact(str(e))[:300]}")
-            return s, tf, "failed", 0
+            return s, tf, "failed", 0, None, None
 
     counts = {"written": 0, "unchanged": 0, "rebuilt": 0, "failed": 0, "transport": 0,
               "skipped": 0}
-    total_dropped = done = attempted = streak = 0
+    total_dropped = done = attempted = streak = not_advanced = 0
     tripped = False
     t0 = time.time()
     with ThreadPoolExecutor(max_workers=workers) as ex:
@@ -535,9 +569,12 @@ def main(argv: list[str]) -> int:
             if f.cancelled():
                 counts["skipped"] += 1
             else:
-                s, tf, kind, dropped_local = f.result()
+                s, tf, kind, dropped_local, asof_before, asof_after = f.result()
                 counts[kind] += 1
                 total_dropped += dropped_local
+                if kind in ("unchanged", "written", "rebuilt"):
+                    if asof_after is None or asof_before is None or asof_after <= asof_before:
+                        not_advanced += 1
                 if kind != "skipped":
                     attempted += 1
                     streak = streak + 1 if kind == "transport" else 0
@@ -572,16 +609,24 @@ def main(argv: list[str]) -> int:
         f"in {time.time()-t0:.0f}s",
         flush=True,
     )
+    finished_ok = counts["unchanged"] + counts["written"] + counts["rebuilt"]
     print(
         f"intraday backfill detail: rebuilt={counts['rebuilt']} "
         f"basis_unverified={stats.get('basis_unverified', 0)} "
         f"transport_failed={counts['transport']} skipped={counts['skipped']} "
+        f"not_advanced={not_advanced} "
         f"breaker={'TRIPPED' if tripped else 'clear'}",
         flush=True,
     )
     if tripped:
         return EXIT_BREAKER_TRIPPED
-    return EXIT_STORE_FAILURES if failed else EXIT_OK
+    if failed:
+        return EXIT_STORE_FAILURES
+    if (expect_advance and not_advanced >= 1
+            and not_advanced == finished_ok):
+        print("  STALE: no store advanced on a run that expected new bars", flush=True)
+        return EXIT_STALE_VENDOR
+    return EXIT_OK
 
 
 if __name__ == "__main__":

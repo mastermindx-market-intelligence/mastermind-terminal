@@ -426,10 +426,9 @@ def test_existing_only_still_updates_existing_store(intraday_env, monkeypatch):
     overlap_epoch = original[-2][0]
     new_epoch = asof + 3600
     calls = []
-    recent_rows = [
-        [overlap_epoch, 999, 1001, 998, 1000, 7777],
-        [new_epoch, 130, 131, 129, 130.5, 2222],
-    ]
+    recent_rows = [list(r) for r in original[-6:]]
+    recent_rows[-2] = [overlap_epoch, 999, 1001, 998, 1000, 7777]
+    recent_rows.append([new_epoch, 130, 131, 129, 130.5, 2222])
 
     def fake_fetch(sym, tf, frm=None, **kwargs):
         calls.append((sym, tf, frm))
@@ -549,7 +548,9 @@ def test_update_missing_store_preserves_legacy_full_backfill(intraday_env, monke
 # -----------------------------------------------------------------------------------------------
 
 NIGHTLY = ROOT / "ops" / "terminal-data"
-INTRADAY_CMD = '"$PY" -m ingest.backfill_intraday --existing-only --tf 1h,5m --workers 8'
+INTRADAY_CMD = (
+    '"$PY" -m ingest.backfill_intraday --existing-only --expect-advance --tf 1h,5m --workers 8'
+)
 
 
 def test_backfill_existing_only_in_nightly_once():
