@@ -192,6 +192,9 @@ begin
   next_revision:=head.current_revision+1;
   next_lifecycle:=case when p_action='remove' then 'removed' else 'active' end;
  end if;
+ if p_action in ('remove','restore') and p_manifest is distinct from (select manifest from public.investigation_revisions where investigation_id=p_id and revision=head.current_revision and user_id=actor) then
+  return jsonb_build_object('status','invalid_transition');
+ end if;
  if (p_action='create' and (select count(*) from public.investigations where user_id=actor)>=500)
  or (select count(*) from public.investigation_revisions where user_id=actor)>=2000 then
   return jsonb_build_object('status','limit_reached');

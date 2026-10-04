@@ -146,6 +146,7 @@ def test_concurrent_record_capacity_is_atomic_and_replay_still_works(pg):
     stamp="2026-10-04T00:00:00Z"
     values=','.join('('+','.join([quote(str(uuid4())),quote(B),'1',quote('active'),quote(stamp),quote(stamp)])+')' for _ in range(499))
     pg('insert into investigations values '+values)
+    pg("insert into investigation_revisions select id,user_id,1,'create','active',"+quote(json.dumps(manifest()))+"::jsonb,created_at from investigations where user_id="+quote(B))
     ids=[str(uuid4()),str(uuid4())];keys=[str(uuid4()),str(uuid4())]
     with ThreadPoolExecutor(2) as pool:
         results=list(pool.map(lambda n:apply(pg,keys[n],actor=B,target=ids[n]),[0,1]))
@@ -154,3 +155,15 @@ def test_concurrent_record_capacity_is_atomic_and_replay_still_works(pg):
     assert apply(pg,keys[winner],actor=B,target=ids[winner])==results[winner]
     assert pg('select count(*) from investigations',B)=='500'
     assert pg('select count(*) from investigation_mutation_receipts',B)=='1'
+
+
+def test_lifecycle_actions_preserve_content_and_have_their_own_receipts(pg):
+    from uuid import uuid4
+    current=json.loads(pg("select read_investigation_v2('"+ID+"',4)",A))["manifest"]
+    assert apply(pg,str(uuid4()),"remove",4,manifest("Hidden edit"))["status"]=="invalid_transition"
+    key=str(uuid4());removed=apply(pg,key,"remove",4,current)
+    assert removed["status"]=="committed" and removed["lifecycle"]=="removed" and removed["revision"]==5
+    restored=apply(pg,str(uuid4()),"restore",5,current)
+    assert restored["status"]=="committed" and restored["lifecycle"]=="active" and restored["revision"]==6
+    assert apply(pg,key,"remove",4,current)==removed
+    assert json.loads(pg("select read_investigation_v2('"+ID+"',5)",A))["lifecycle"]=="removed"

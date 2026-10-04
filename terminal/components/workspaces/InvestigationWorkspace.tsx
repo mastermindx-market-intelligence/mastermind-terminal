@@ -34,6 +34,8 @@ export default function InvestigationWorkspace({ownerKey,initialSymbol,initialIn
  const [saveState,setSaveState]=useState<InvestigationSaveState>({phase:"idle"}),[message,setMessage]=useState("");
  const [storageBlocked,setStorageBlocked]=useState(false),[authEnded,setAuthEnded]=useState(false),[filter,setFilter]=useState<"active"|"removed">("active");
  const scope=useRef<AbortController|null>(null),detailSeq=useRef(0),baselineSeq=useRef(0),stateRef=useRef<InvestigationSaveState>({phase:"idle"});
+ const detailTitle=useRef<HTMLHeadingElement>(null),draftTitle=useRef<HTMLInputElement>(null);
+ useEffect(()=>{if(editing)draftTitle.current?.focus();else if(detail)detailTitle.current?.focus();},[editing,detail?.id,detail?.revision]);
  const locked=saveState.phase==="pending"||saveState.phase==="uncertain";
  const setSave=(s:InvestigationSaveState)=>{stateRef.current=s;setSaveState(s);};
  async function json(url:string,init?:RequestInit):Promise<unknown> {
@@ -167,7 +169,7 @@ export default function InvestigationWorkspace({ownerKey,initialSymbol,initialIn
     {editing?<form onSubmit={e=>{e.preventDefault();save();}}>
      <p className={styles.eyebrow}>{detail?c.edit:c.new}</p><h2>{c.question}</h2>
      <fieldset disabled={frozen}>
-      <label>{c.name}<input aria-label={c.name} required value={draft.title} onChange={e=>setDraft({...draft,title:e.target.value})}/><small>{Array.from(draft.title).length} / 160</small></label>
+      <label>{c.name}<input ref={draftTitle} aria-label={c.name} required value={draft.title} onChange={e=>setDraft({...draft,title:e.target.value})}/><small>{Array.from(draft.title).length} / 160</small></label>
       <label>{c.question}<textarea aria-label={c.question} required rows={5} value={draft.question} onChange={e=>setDraft({...draft,question:e.target.value})}/><small>{Array.from(draft.question).length} / 4000</small></label>
       <label>{c.symbol}<input value={draft.symbol} disabled={!!detail} onChange={e=>{++baselineSeq.current;setDraft({...draft,symbol:e.target.value.toUpperCase()});setBaseline(null);setBaselineState("none");}} autoCapitalize="characters"/></label>
       <div className={styles.pair}><label>{c.horizon}<input value={draft.horizon} onChange={e=>setDraft({...draft,horizon:e.target.value})}/></label><label>{c.asOf}<input type="date" value={draft.asOf} onChange={e=>setDraft({...draft,asOf:e.target.value})}/></label></div>
@@ -177,7 +179,7 @@ export default function InvestigationWorkspace({ownerKey,initialSymbol,initialIn
       <div className={styles.actions}><button className={styles.primary} type="submit" disabled={baselineState==="loading"}>{saveState.phase==="pending"?c.saving:c.save}</button><button type="button" onClick={()=>{setEditing(false);if(detail)retainedBaseline(detail.manifest);}}>{c.cancel}</button></div>
      </fieldset>
     </form>:detail?<>
-     <p className={styles.eyebrow}>{c.saved} · {c.revision} {detail.revision}{detail.lifecycle==="removed"?` · ${c.removed}`:""}</p><h2>{detail.manifest.intent.title}</h2><p className={styles.question}>{detail.manifest.intent.question}</p>
+     <p className={styles.eyebrow}>{c.saved} · {c.revision} {detail.revision}{detail.lifecycle==="removed"?` · ${c.removed}`:""}</p><h2 ref={detailTitle} tabIndex={-1}>{detail.manifest.intent.title}</h2><p className={styles.question}>{detail.manifest.intent.question}</p>
      <dl className={styles.context}>{detail.manifest.intent.subjects.map((s,i)=><div key={i}><dt>{s.kind}</dt><dd>{s.object_id}</dd></div>)}{detail.manifest.intent.horizon&&<div><dt>{c.horizon}</dt><dd>{detail.manifest.intent.horizon}</dd></div>}{detail.manifest.intent.research_as_of&&<div><dt>{c.asOf}</dt><dd>{detail.manifest.intent.research_as_of}</dd></div>}</dl>
      <div className={styles.actions}><button disabled={frozen||detail.lifecycle==="removed"} onClick={()=>beginEdit()}>{c.edit}</button>{detail.revision!==detail.current_revision&&<button disabled={locked} onClick={()=>void openRecord(detail.id)}>{c.viewLatest}</button>}{detail.revision>1&&<button disabled={locked} onClick={()=>void openRecord(detail.id,detail.revision-1)}>{c.previous}</button>}{detail.revision<detail.current_revision&&<button disabled={locked} onClick={()=>void openRecord(detail.id,detail.revision+1)}>{c.nextRevision}</button>}</div>
      <section className={styles.card}><h3>{c.retained}</h3>{detail.manifest.layout_refs.length?detail.manifest.layout_refs.map(ref=><p key={ref.layout_revision_id}><Link href={`/terminal?investigation=${detail.id}&revision=${detail.revision}&layout_revision=${ref.layout_revision_id}`}>{c.openLayout} →</Link></p>):<p>{c.noLayout}</p>}{symbol&&<Link href={`/analysis?symbol=${encodeURIComponent(symbol)}`}>{c.continue} →</Link>}</section>

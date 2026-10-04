@@ -1,4 +1,8 @@
 import { expect, test, type Page } from "@playwright/test";
+import {createHash} from "node:crypto";
+import {readFileSync,writeFileSync} from "node:fs";
+import {execFileSync} from "node:child_process";
+import path from "node:path";
 import golden from "../lib/__tests__/fixtures/aapl-event-workspace.json";
 
 test.setTimeout(120_000);
@@ -84,4 +88,42 @@ test("320px at doubled text keeps the question editor usable without horizontal 
  await page.getByRole("button",{name:"Save research",exact:true}).focus();
  await expect(page.getByRole("button",{name:"Save research",exact:true})).toBeFocused();
  await page.screenshot({path:testInfo.outputPath("320-double-text-editor.png"),fullPage:true});
+});
+
+
+// These source-bound captures repair the existing Analysis visual locks. They are
+// emitted through the existing CI browser artifact, never fabricated by updating a hash.
+test("Analysis research entries retain their responsive bilingual source evidence",async({browser},testInfo)=>{
+ const project=testInfo.project.name;
+ test.skip(!["desktop","tablet","mobile"].includes(project));
+ const viewport=project==="desktop"?{width:1440,height:900}:project==="tablet"?{width:820,height:1180}:{width:390,height:844};
+ const repo=path.resolve(process.cwd(),"..");
+ const files=["terminal/components/workspaces/AnalysisWorkspace.tsx","terminal/app/company-intelligence.css","terminal/lib/i18n.tsx"];
+ const hashes=()=>Object.fromEntries(files.map(file=>[file,createHash("sha256").update(readFileSync(path.join(repo,file))).digest("hex")]));
+ const before=hashes();const captures:Array<{file:string;url:string;state:string}>=[];
+ for(const lang of ["en","zh"]){
+  const context=await browser.newContext({viewport,hasTouch:project!=="desktop",locale:lang==="zh"?"zh-CN":"en-US",colorScheme:"dark"});
+  try {
+   await context.addInitScript(l=>{localStorage.setItem("mm.lang",l);localStorage.setItem("theme","dark");localStorage.setItem("theme_auto","0");},lang);
+   const page=await context.newPage();
+   const url=`/analysis?symbol=NVDA&lang=${lang}`;
+   await page.goto(`${testInfo.project.use.baseURL}${url}`);
+   await expect(page.getByRole("link",{name:lang==="zh"?"已保存研究":"Saved research",exact:true})).toBeVisible();
+   await expect(page.getByLabel(lang==="zh"?"你的研究论点：NVDA":"Your theses on NVDA")).toBeVisible();
+   expect(await page.evaluate(()=>document.documentElement.scrollWidth<=window.innerWidth+1)).toBe(true);
+   const file=`analysis-entry-${project}-${lang}.png`;
+   await page.screenshot({path:testInfo.outputPath(file)});captures.push({file,url,state:"context-bar-with-theses-control-and-saved-research"});
+   if(project!=="tablet"){
+    const spyUrl=`/analysis?symbol=SPY&lang=${lang}`;await page.goto(`${testInfo.project.use.baseURL}${spyUrl}`);
+    const bar=page.locator(".analysis-context-bar");await expect(bar).toBeVisible();
+    const rect=await bar.boundingBox();expect(rect).not.toBeNull();
+    const crop=`AnalysisWorkspace-${viewport.width}${lang==="zh"?"-zh":""}.png`;
+    const x=Math.max(0,rect!.x-12),y=Math.max(0,rect!.y-12);
+    await page.screenshot({path:testInfo.outputPath(crop),clip:{x,y,width:Math.min(viewport.width-x,rect!.width+24),height:rect!.height+24}});
+    captures.push({file:crop,url:spyUrl,state:"analysis-context-bar"});
+   }
+  }finally{await context.close();}
+ }
+ expect(hashes()).toEqual(before);
+ writeFileSync(testInfo.outputPath("analysis-source-captures.json"),JSON.stringify({capturedAtHead:execFileSync("git",["rev-parse","HEAD"],{cwd:repo,encoding:"utf8"}).trim(),capturedAt:new Date().toISOString(),layoutFiles:before,viewport,project,captures},null,2));
 });

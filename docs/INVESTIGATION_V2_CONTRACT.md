@@ -55,3 +55,57 @@ substituting today's data. Pure manifest/storage acceptance does not certify thi
 Migration remains unapplied until source review and real database readback. G1
 acceptance still requires the genuine retained owner baseline and authenticated
 leave/fresh-session resume. Neither the storage tests nor a fixture pass completes G1.
+
+## Implemented G1 reads and UI
+
+The authenticated `/api/investigations` GET lists owner heads, reads one exact
+revision, or looks up the original operation receipt. `/analysis?view=investigations`
+uses those reads for Saved Research. `investigation=<uuid>&revision=<n>` retains an
+exact revision link. Opening and refreshing do not create revisions, receipts,
+layouts, Brain runs or schedules. The browser retains one pending command per
+principal in session storage before sending it; this is a recovery buffer, not a
+second retry authority. A missing receipt keeps the original command and key.
+Account changes clear in-memory data and abort outstanding requests.
+
+The additive migration serializes new mutations by principal before testing
+capacity: 500 lifetime records and 2000 retained revisions per principal. Removed
+records count because their immutable history remains. At capacity the operation
+returns `limit_reached` without writes; exact committed replay remains available.
+These are explicit storage bounds, not subscription or ranking rules.
+
+`/api/investigations/baseline` delegates to the existing Earnings reader. Exact
+historical reads require event, generation, company and complete fingerprint. The
+fingerprint binds immutable manifest and workspace bytes, including transcript,
+qualification and exclusion changes, rather than only the issuer release hash.
+The read projects public-known, platform-known and generation-emitted clocks
+separately. The client adds a session-local viewed time, never a backdated stored
+observation.
+
+Current access for this G1 adapter is intentionally limited to personal public-primary
+context display. Every byte-replayed source must have an explicit
+`rp_public_primary_v1` annotation in the retained object and a fresh current owner
+publication. Missing, changed, private or unknown current declarations deny display.
+This is not a license registry, nor an export, team-sharing or AI-reuse permission.
+No general rights grant is inferred from an old receipt or an unmerged rights row.
+Unavailable retained generations remain `HISTORICAL_UNAVAILABLE`.
+
+A retained layout opens through the existing Terminal layout host and its existing
+migration/validation code. The local working copy has no current-row write target;
+a subsequent Save creates a copy unless the user explicitly selects an overwrite.
+Loading retained N never writes current N+1.
+
+## Verification status at f2220413
+
+The preceding backend checkpoint `1fdefeaf` passed all hosted CI suites. The new
+checkpoint passed 10 isolated PostgreSQL cases (including atomic record capacity),
+ingest checks, and 7095 unit cases. Two existing visual source-lock checks correctly
+require recapture after the new Analysis entry changed its source. Local focused
+contract/API/recovery/retention checks passed 42 cases plus 4 baseline-route cases.
+The local full typecheck completed during implementation. Hosted type generation and typecheck also passed at f2220413. Current-head browser
+verification and source-bound recaptures remain outstanding.
+
+Production read-only inventory confirmed the existing `chart_layouts` table and
+absence of both new owners before migration. The connected Terminal project has
+no team rows; G7 requires a designated real team and approved existing principals.
+No migration, production Investigation write, source merge or deployment has yet
+occurred. These source and fixture results are not G1 or G0-G9 acceptance.
