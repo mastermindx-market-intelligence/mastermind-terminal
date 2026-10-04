@@ -17,6 +17,17 @@ const hexOf = (c: string) => (/^#([0-9a-f]{3}|[0-9a-f]{6})$/i.test(c) ? c : "#88
 // preserve any alpha the current color carries, so translucent fills (volume/MACD histograms) stay translucent
 const alphaOf = (c: string) => { const m = /rgba?\([^)]*,\s*([\d.]+)\s*\)/i.exec(c); return m ? parseFloat(m[1]) : 1; };
 const hexToRgba = (hex: string, a: number) => { let h = hex.replace("#", ""); if (h.length === 3) h = h.split("").map((x) => x + x).join(""); const n = parseInt(h, 16); const r = (n >> 16) & 255, g = (n >> 8) & 255, b = n & 255; return a >= 1 ? `#${h}` : `rgba(${r}, ${g}, ${b}, ${a})`; };
+// Hand focus back to the opener. The legend ⚙ is revealed only by :hover, so while the scrim covers its row
+// it is display:none and refuses focus; the browser re-reveals it a frame after the scrim goes. Retry for a
+// few frames, and only while focus is still unclaimed (on <body>), so nothing the user reached is taken.
+function returnFocus(el: HTMLElement | null, frames = 3) {
+  if (!el?.isConnected) return;
+  el.focus({ preventScroll: true });
+  if (document.activeElement === el || frames <= 0) return;
+  window.requestAnimationFrame(() => {
+    if (!document.activeElement || document.activeElement === document.body) returnFocus(el, frames - 1);
+  });
+}
 
 function NumberField({ value, min, max, step = 1, onChange }: { value: number; min?: number; max?: number; step?: number; onChange: (v: number) => void }) {
   const clamp = (v: number) => Math.max(min ?? -Infinity, Math.min(max ?? Infinity, +v.toFixed(4)));
@@ -262,7 +273,7 @@ export default function IndicatorSettings({ indKey, moduleTarget, params, onChan
     const frame = window.requestAnimationFrame(() => dialogRef.current?.focus({ preventScroll: true }));
     return () => {
       window.cancelAnimationFrame(frame);
-      if (returnTo?.isConnected) returnTo.focus({ preventScroll: true });
+      returnFocus(returnTo);
     };
   }, []);
   useEffect(() => { if (!defOpen) return; const close = () => setDefOpen(false); window.addEventListener("click", close); return () => window.removeEventListener("click", close); }, [defOpen]);
