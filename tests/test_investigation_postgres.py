@@ -2,7 +2,6 @@
 No production users, credentials, or services are used. Requires PostgreSQL binaries.
 """
 import json
-import os
 from pathlib import Path
 import shutil
 import subprocess
@@ -94,8 +93,29 @@ def test_retained_layout_does_not_follow_or_mutate_current(pg):
     assert pg("select count(*) from investigation_mutation_receipts",A)=="4"
 
 def test_invalid_manifest_and_unowned_reference_cannot_commit(pg):
-    for bad in ({**manifest(),"facts":{"price":5}},manifest("x"*4001),{**manifest(),"intent":{"title":"X","question":"Q","subjects":[{"kind":"security","owner":"invented","object_id":"AAPL"}]}}):
+    for bad in ({**manifest(),"facts":{"price":5}},manifest("x"*4001),manifest("\ufeff"),manifest("\u00a0"),{**manifest(),"intent":{"title":"X","question":"Q","subjects":[{"kind":"security","owner":"invented","object_id":"AAPL"}]}}):
         assert apply(pg,"40000000-0000-4000-8000-000000000009","revise",4,bad)["status"]=="invalid_payload"
     forged={**manifest(),"layout_refs":[{"layout_id":LAYOUT,"layout_revision_id":"50000000-0000-4000-8000-000000000099","digest":"a"*64,"role":"primary"}]}
     assert apply(pg,"40000000-0000-4000-8000-000000000009","revise",4,forged)["status"]=="reference_unavailable"
     assert pg("select count(*) from investigation_revisions",A)=="4"
+
+
+def test_receipt_failure_rolls_back_capture_head_and_revision(pg):
+    pg("create function fail_iw_receipt() returns trigger language plpgsql as $$begin raise exception 'receipt_write_injected_failure'; end$$; create trigger fail_iw_receipt before insert on investigation_mutation_receipts for each row execute function fail_iw_receipt();")
+    capture={"layout_id":LAYOUT,"expected_revision":2,"revision_id":"50000000-0000-4000-8000-000000000044"}
+    try:
+        with pytest.raises(AssertionError,match="receipt_write_injected_failure"):
+            apply(pg,"40000000-0000-4000-8000-000000000044","revise",4,capture=capture)
+        assert pg("select current_revision from investigations where id='"+ID+"'",A)=="4"
+        assert pg("select count(*) from investigation_revisions",A)=="4"
+        assert pg("select count(*) from investigation_mutation_receipts",A)=="4"
+        assert pg("select count(*) from chart_layout_revisions",A)=="1"
+    finally:
+        pg("drop trigger fail_iw_receipt on investigation_mutation_receipts; drop function fail_iw_receipt();")
+
+
+def test_database_preserves_authored_scalar_and_whitespace_rules(pg):
+    for text in ("v", "  Why?\r\n", "🧠"*4000, "e\u0301"):
+        assert pg("select public.valid_investigation_manifest_v2("+quote(json.dumps(manifest(text),ensure_ascii=False))+"::jsonb)")=="t"
+    for text in ("\ufeff", "\u00a0", "🧠"*4001, "\t\r\n"):
+        assert pg("select public.valid_investigation_manifest_v2("+quote(json.dumps(manifest(text),ensure_ascii=False))+"::jsonb)")=="f"

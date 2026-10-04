@@ -80,7 +80,7 @@ describe("P1 Investigation command manifest (shape, not owner qualification)", (
     reject({ ...draft(), [key]: "forged" }, "unknown_field", `$.${key}`);
   });
   it("rejects an unsupported schema instead of reducing its fields", () => {
-    reject({ ...draft(), schema: "investigation_manifest.v2" }, "unsupported_schema", "$.schema");
+    reject({ ...draft(), schema: "investigation_manifest.v99" }, "unsupported_schema", "$.schema");
   });
   it.each([null, [], true, 42, "question"])("rejects non-object input %j", value => reject(value, "invalid_type", "$"));
   it.each(["schema", "intent", "layout_refs", "thesis_refs", "evidence_refs", "continuation"])("requires %s", field => {

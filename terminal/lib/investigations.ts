@@ -38,7 +38,7 @@ export function parseInvestigationCommand(raw: unknown): InvestigationCommand | 
   if (!record(raw) || !exact(raw, ["id", "operation_id", "expected_revision", "action", "manifest", "layout_capture"])
       || !isInvestigationId(raw.id) || !isInvestigationId(raw.operation_id)
       || !Number.isSafeInteger(raw.expected_revision) || Number(raw.expected_revision) < 0 || Number(raw.expected_revision) > 2147483646
-      || !["create", "revise", "remove", "restore"].includes(String(raw.action))) return null;
+      || typeof raw.action !== "string" || !["create", "revise", "remove", "restore"].includes(raw.action)) return null;
   const checked = validateInvestigationManifest(raw.manifest, INVESTIGATION_ADMISSION);
   if (!checked.ok || checked.value.schema !== INVESTIGATION_MANIFEST_SCHEMA_V2 || checked.value.thesis_refs.length) return null;
   if (Object.hasOwn(raw, "layout_capture")) {

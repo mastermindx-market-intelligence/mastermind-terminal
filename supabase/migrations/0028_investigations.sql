@@ -67,7 +67,7 @@ grant select on public.investigations,public.investigation_revisions,public.inve
 create or replace function public.investigation_text_v2(v jsonb, lim integer, single_line boolean default false)
 returns boolean language sql immutable set search_path=pg_catalog as $$
   select coalesce(jsonb_typeof(v)='string' and char_length(v#>>'{}') between 1 and lim
-    and (v#>>'{}') !~ '^[[:space:]]*$'
+    and btrim(v#>>'{}',E' \t\n\r'||U&'\00a0\feff\1680\2028\2029\202f\205f\3000\2000\2001\2002\2003\2004\2005\2006\2007\2008\2009\200a')<>''
     and (v#>>'{}') !~ '[\x01-\x08\x0b\x0c\x0e-\x1f\x7f]'
     and (not single_line or (v#>>'{}') !~ '[\t\r\n]'),false)
 $$;
@@ -239,7 +239,10 @@ revoke all on function public.read_investigation_v2(uuid,integer),public.read_in
 grant execute on function public.read_investigation_v2(uuid,integer),public.read_investigation_operation_v2(uuid) to authenticated;
 commit;
 
--- down: revoke execute on function public.apply_investigation_revision_v2(uuid,integer,text,uuid,jsonb,jsonb) from authenticated;
--- down: preserve heads/revisions/receipts/captures until backup restoration is independently verified.
--- readback: select relname,relrowsecurity from pg_class where relname in ('investigations','investigation_revisions','investigation_mutation_receipts','chart_layout_revisions');
--- readback: select proname,prosecdef,proconfig from pg_proc where proname in ('apply_investigation_revision_v2','read_investigation_v2','read_investigation_operation_v2');
+-- down:
+-- revoke execute on function public.apply_investigation_revision_v2(uuid,integer,text,uuid,jsonb,jsonb) from authenticated;
+-- Preserve heads/revisions/receipts/captures until backup restoration is independently verified.
+
+-- readback:
+-- select relname,relrowsecurity from pg_class where relname in ('investigations','investigation_revisions','investigation_mutation_receipts','chart_layout_revisions');
+-- select proname,prosecdef,proconfig from pg_proc where proname in ('apply_investigation_revision_v2','read_investigation_v2','read_investigation_operation_v2');

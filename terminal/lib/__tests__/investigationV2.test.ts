@@ -13,6 +13,16 @@ describe("versioned Investigation envelope", () => {
     if (result.ok) expect(result.value.intent.question).toBe(input.intent.question);
     expect(validateInvestigationManifest(manifest(undefined, "🧠".repeat(4001))).ok).toBe(false);
   });
+  it("admits envelopes over 64 KiB only in v2 and still enforces 128 KiB", () => {
+    const admission = {evidence: [{owner: "earnings.workspace_generation", object_types: ["event_workspace"]}]};
+    const refs = Array.from({length:100},(_,i)=>({owner:"earnings.workspace_generation",object_type:"event_workspace",object_id:"🧠".repeat(140)+i,mode:"pinned",version_ref:"v".repeat(256)}));
+    const input={...manifest(),evidence_refs:refs};
+    expect(new TextEncoder().encode(JSON.stringify(input)).byteLength).toBeGreaterThan(65536);
+    expect(validateInvestigationManifest(input,admission).ok).toBe(true);
+    expect(validateInvestigationManifest({...input,schema:"investigation_manifest.v1"},admission).ok).toBe(false);
+    const huge={...input,evidence_refs:Array.from({length:128},(_,i)=>({...refs[0],object_id:"🧠".repeat(250)+i}))};
+    expect(validateInvestigationManifest(huge,admission).ok).toBe(false);
+  });
   it("keeps the published v1 question boundary", () => {
     expect(validateInvestigationManifest(manifest("investigation_manifest.v1", "x".repeat(2000))).ok).toBe(true);
     expect(validateInvestigationManifest(manifest("investigation_manifest.v1", "x".repeat(2001))).ok).toBe(false);
