@@ -4,11 +4,12 @@ import {readFileSync,writeFileSync} from "node:fs";
 import {execFileSync} from "node:child_process";
 import path from "node:path";
 import golden from "../lib/__tests__/fixtures/aapl-event-workspace.json";
+import {normalizeEventWorkspace} from "../lib/eventWorkspace";
 
 test.setTimeout(120_000);
 const id="10000000-0000-4000-8000-000000000001";
 const reference={owner:"earnings.workspace_generation",object_type:"event_workspace",object_id:golden.event_id,mode:"pinned",version_ref:golden.generation_id,fingerprint:"a".repeat(64)};
-const fixtureBaseline={ok:true,workspace:golden,reference,receipt:{schema:"earnings.retained_baseline.v1",owner:"earnings.workspace_generation",company_id:golden.issuer.company_id,event_id:golden.event_id,generation_id:golden.generation_id,fingerprint:reference.fingerprint,public_known_at:golden.lifecycle.source_available_at,platform_known_at:golden.lifecycle.observed_at,generation_emitted_at:golden.generated_at,rights:{allowed:true,policy_version:"test.transport_only",checked_at:"2026-10-04T00:00:00Z"}}};
+const fixtureBaseline={ok:true,workspace:normalizeEventWorkspace(golden),reference,receipt:{schema:"earnings.retained_baseline.v1",owner:"earnings.workspace_generation",company_id:golden.issuer.company_id,event_id:golden.event_id,generation_id:golden.generation_id,fingerprint:reference.fingerprint,public_known_at:golden.lifecycle.source_available_at,platform_known_at:golden.lifecycle.observed_at,generation_emitted_at:golden.generated_at,rights:{allowed:true,policy_version:"test.transport_only",checked_at:"2026-10-04T00:00:00Z"}}};
 const question="  What explains the change?\n";
 const content={schema:"investigation_manifest.v2",intent:{title:"Apple research",question,subjects:[{kind:"security",owner:"terminal.analysis_symbol",object_id:"AAPL"},{kind:"issuer",owner:"data_os.security_master",object_id:golden.issuer.company_id}]},layout_refs:[],thesis_refs:[],evidence_refs:[reference],continuation:{},review_baseline_ref:reference};
 const committed=(target=id,manifest:unknown=content)=>({status:"committed",id:target,revision:1,lifecycle:"active",manifest,committed_at:"2026-10-04T00:00:00Z"});
@@ -78,6 +79,52 @@ test("lost response and receipt miss preserve one operation across reload",async
  await page.getByRole("button",{name:"Retry original save"}).click();
  await expect(page.getByRole("heading",{name:"Uncertain question",exact:true})).toBeVisible();
  expect(commands).toHaveLength(2);expect(commands[1]).toEqual(commands[0]);
+});
+
+test("evidence review advances only through an explicit saved revision and preserves the earlier baseline",async({page},testInfo)=>{
+ await setup(page);
+ const newer={...fixtureBaseline,workspace:normalizeEventWorkspace({...golden,generation_id:"b".repeat(24)}),reference:{...reference,version_ref:"b".repeat(24),fingerprint:"b".repeat(64)},receipt:{...fixtureBaseline.receipt,generation_id:"b".repeat(24),fingerprint:"b".repeat(64)}};
+ const commands:Array<{expected_revision:number;action:string;manifest:typeof content}>=[];
+ let reviewReads=0,head=1,second:typeof content|null=null;
+ await page.route("**/api/investigations/baseline?*",route=>{
+  const query=new URL(route.request().url()).searchParams;
+  return route.fulfill({json:query.get("generation_id")===newer.receipt.generation_id?newer:fixtureBaseline});
+ });
+ await page.route("**/api/investigations/review?*",route=>{
+  reviewReads++;
+  return route.fulfill({json:{status:"reviewed",id,revision:1,baseline:fixtureBaseline.receipt,current:newer.receipt,coverage:"observed_owner_rows_only",removalProofAvailable:false,review:{schema:"investigation.evidence_review.v1",priorGeneration:golden.generation_id,currentGeneration:newer.receipt.generation_id,summary:"incomplete",items:[{id:"source:transcript:call",membership:"not_observed",version:"unknown",qualification:"unknown",availability:"unavailable",excluded:false,correction:false,interpretation:{comparable:false,reason:"unavailable"}}]}}});
+ });
+ await page.route("**/api/investigations{,?*}",async route=>{
+  const request=route.request(),query=new URL(request.url()).searchParams;
+  if(request.method()==="POST"){
+   const command=request.postDataJSON();commands.push(command);head=2;second=command.manifest;
+   await route.fulfill({json:{...committed(id,second),revision:2}});return;
+  }
+  if(query.has("id")){const revision=Number(query.get("revision")||head);await route.fulfill({json:{...committed(id,revision===1?content:second),status:"found",revision,current_revision:head,layouts:[]}});return;}
+  await route.fulfill({json:{status:"listed",items:[{id,revision:head,lifecycle:"active",title:content.intent.title,question,updated_at:fixtureBaseline.receipt.rights.checked_at}]}});
+ });
+ await page.goto(`/analysis?view=investigations&investigation=${id}&revision=1`);
+ await expect(page.getByRole("heading",{name:"Review evidence changes"})).toBeVisible();
+ expect(reviewReads).toBe(0);expect(commands).toHaveLength(0);
+ await page.getByRole("button",{name:"Review current evidence"}).click();
+ await expect(page.getByText("Not observed in the current read",{exact:true})).toBeVisible();
+ await expect(page.getByText("Owner-proven removal",{exact:true})).toHaveCount(0);
+ expect(commands).toHaveLength(0);
+ expect(await page.evaluate(()=>document.documentElement.scrollWidth<=window.innerWidth+1)).toBe(true);
+ await page.screenshot({path:testInfo.outputPath("evidence-review-incomplete.png"),fullPage:true});
+ await page.getByRole("button",{name:"Use this reviewed version in an edit"}).click();
+ await expect(page.getByLabel("Research question",{exact:true})).toHaveValue(question);
+ expect(commands).toHaveLength(0);
+ await page.getByRole("button",{name:"Save research",exact:true}).click();
+ await expect(page).toHaveURL(new RegExp(`investigation=${id}&revision=2$`));
+ expect(commands).toHaveLength(1);expect(commands[0]).toMatchObject({action:"revise",expected_revision:1,manifest:{review_baseline_ref:newer.reference}});
+ await page.reload();await expect(page.getByRole("heading",{name:content.intent.title,exact:true})).toBeVisible();
+ expect(commands).toHaveLength(1);expect(reviewReads).toBe(1);
+ await page.getByRole("button",{name:"Previous revision"}).click();
+ await expect(page).toHaveURL(new RegExp(`investigation=${id}&revision=1$`));
+ await page.getByText("Selected generation",{exact:true}).click();
+ await expect(page.getByText(fixtureBaseline.receipt.fingerprint,{exact:true})).toBeVisible();
+ expect(commands).toHaveLength(1);expect(reviewReads).toBe(1);
 });
 
 test("a rejected revision keeps its draft across reload and cannot become a new record",async({page})=>{

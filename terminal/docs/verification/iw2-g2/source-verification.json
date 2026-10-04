@@ -1,0 +1,41 @@
+{
+  "schema": "iw2.g2.verification.v1",
+  "recorded_at": "2026-10-04T07:23:20.451442+00:00",
+  "base": "015d9c7d3b66d3c7c5cac6f10b36651598002290",
+  "files": {
+    "terminal/lib/investigationEvidenceDiff.ts": "c10f75678b5e1a5caf1004007b60bf70e946cb0fc6b1f5aba0d193364b121579",
+    "terminal/lib/investigationEarningsReview.ts": "021c5c1106e0175cb600ea5f6815d8e8d207f97c2c0278ff0be3ec3d341503af",
+    "terminal/app/api/investigations/review/route.ts": "bc497bff2a501a59006e31385c97dd8b057a04b1c3c0473661c089e61da69e0a",
+    "terminal/components/workspaces/InvestigationEvidenceReview.tsx": "214e6520ada0f405eff2eeca995ec1e3de6bf7fe6c0caa0ccb2970012d5b67bc",
+    "terminal/components/workspaces/InvestigationEvidenceReview.module.css": "ea2258b9b6f446d87257d050b9fa99b368f2691d3faa6514df672b546dc9cc13",
+    "terminal/components/workspaces/InvestigationWorkspace.tsx": "6e8d9b2a7545167baa290669a2237ab8e2748b0c78465c54c74117fbe14c9605",
+    "terminal/lib/__tests__/investigationEvidenceDiff.test.ts": "531ffa84aaccffdd1efe38e6f0294d7afc596c43fb657ccf11170885cb1614e8",
+    "terminal/lib/__tests__/investigationEarningsReview.test.ts": "e5f3f940b6a2aa5be5849b2fe9540498daf255652d13f91de1059fc02c5a8094",
+    "terminal/lib/__tests__/investigationReviewRoute.test.ts": "81e1ac35a5a9f3601341e843292720006554c7e8e2b88d35f468d09c11e7fd43",
+    "terminal/lib/__tests__/investigationEvidenceReview.test.tsx": "968442944e027587f2f916607b8971477dba596cbbd3a10ea9a9e31efe022929",
+    "terminal/e2e/investigation-workspace.spec.ts": "849cfb319ac8ddffdb1f54410e443594ac84a0246f09cc4720144da60b488d94"
+  },
+  "unit_tests": {
+    "passed": 30,
+    "log": "g2-focused-r3.log"
+  },
+  "typecheck": {
+    "returncode": 0,
+    "log": "g2-typecheck-r3.log"
+  },
+  "backend_review": {
+    "run": "rs_20261004T065903Z_7672",
+    "verdict": "PASS_SCOPED",
+    "frozen_bundle_sha256": "b41d102087d144b2747e4998700dfdda737160ac612310d5f398336381b78d3e",
+    "transport_returncode": 124,
+    "cleanup_proven": true,
+    "residual_count": 0,
+    "lease_id": "c2224bc0ad6e",
+    "lease_state": "released",
+    "amendment": "The Earnings test now normalizes publisher JSON using the existing owner normalizer. The three reviewed production backend files remain unchanged. UI is outside this review."
+  },
+  "browser_test": "Added integrated read-review-edit-save-reopen-history journey to the existing responsive suite; not yet executed on G2 source. Local server attempts stopped after confirmed external-volume I/O stall.",
+  "acceptance": "BUILT_NOT_PROVEN",
+  "production_review": false,
+  "red_first_limit": "Initial backend test invocation loaded after implementation; no red-first pass is claimed."
+}
