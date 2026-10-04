@@ -27,8 +27,17 @@ export type InvestigationCommitted = {
   manifest: InvestigationManifest;
   committed_at: string;
 };
-export type InvestigationFailure = { status: "invalid_payload" | "unauthenticated" | "not_found" | "version_conflict" | "idempotency_conflict" | "invalid_transition" | "reference_unavailable" | "layout_conflict" | "unavailable"; current_revision?: number };
+export type InvestigationFailure = { status: "invalid_payload" | "unauthenticated" | "not_found" | "version_conflict" | "idempotency_conflict" | "invalid_transition" | "reference_unavailable" | "layout_conflict" | "limit_reached" | "unavailable"; current_revision?: number };
 export type InvestigationDb = { rpc(name: string, args: Record<string, unknown>): PromiseLike<{ data: unknown; error: unknown }> };
+export type InvestigationSummary = {id:string;revision:number;lifecycle:"active"|"removed";title:string;question:string;updated_at:string};
+export async function listInvestigations(db:InvestigationDb):Promise<{status:"listed";items:InvestigationSummary[]}|InvestigationFailure> {
+  try {
+    const {data,error}=await db.rpc("list_investigations_v2",{});
+    if(error || !record(data) || data.status!=="listed" || !Array.isArray(data.items)
+      || !data.items.every(r=>record(r) && isInvestigationId(r.id) && Number.isSafeInteger(r.revision) && Number(r.revision)>0 && (r.lifecycle==="active"||r.lifecycle==="removed") && typeof r.title==="string" && typeof r.question==="string" && typeof r.updated_at==="string")) return {status:"unavailable"};
+    return {status:"listed",items:data.items as InvestigationSummary[]};
+  } catch {return {status:"unavailable"};}
+}
 const UUID = /^[0-9a-f]{8}(?:-[0-9a-f]{4}){3}-[0-9a-f]{12}$/;
 export const isInvestigationId = (v: unknown): v is string => typeof v === "string" && UUID.test(v);
 const record = (v: unknown): v is Record<string, unknown> => v !== null && typeof v === "object" && !Array.isArray(v);
@@ -56,9 +65,10 @@ export function isInvestigationCommitted(raw: unknown): raw is InvestigationComm
     && Number.isSafeInteger(raw.revision) && Number(raw.revision) > 0
     && (raw.lifecycle === "active" || raw.lifecycle === "removed")
     && typeof raw.committed_at === "string" && Number.isFinite(Date.parse(raw.committed_at))
+    && record(raw.manifest) && raw.manifest.schema===INVESTIGATION_MANIFEST_SCHEMA_V2
     && validateInvestigationManifest(raw.manifest, INVESTIGATION_ADMISSION).ok;
 }
-const failureCodes = new Set(["invalid_payload", "unauthenticated", "not_found", "version_conflict", "idempotency_conflict", "invalid_transition", "reference_unavailable", "layout_conflict"]);
+const failureCodes = new Set(["invalid_payload", "unauthenticated", "not_found", "version_conflict", "idempotency_conflict", "invalid_transition", "reference_unavailable", "layout_conflict", "limit_reached"]);
 export async function applyInvestigationRevision(db: InvestigationDb, command: InvestigationCommand): Promise<InvestigationCommitted | InvestigationFailure> {
   const valid = parseInvestigationCommand(command);
   if (!valid) return { status: "invalid_payload" };
@@ -95,6 +105,9 @@ export async function readInvestigation(db: InvestigationDb, id: string, revisio
     if (error) return { status: "unavailable" };
     if (record(data) && data.status === "not_found") return { status: "not_found" };
     if (!record(data) || data.status !== "found" || data.id !== id || !Number.isSafeInteger(data.revision)
+      || Number(data.revision)<1 || !Number.isSafeInteger(data.current_revision) || Number(data.current_revision)<Number(data.revision)
+      || (data.lifecycle!=="active" && data.lifecycle!=="removed")
+      || typeof data.committed_at!=="string" || !Number.isFinite(Date.parse(data.committed_at))
       || (revision !== null && data.revision !== revision) || !Array.isArray(data.layouts)
       || !validateInvestigationManifest(data.manifest, INVESTIGATION_ADMISSION).ok) return { status: "unavailable" };
     return data;

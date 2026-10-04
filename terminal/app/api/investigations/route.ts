@@ -1,12 +1,12 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { rateLimit, tooMany } from "@/lib/rateLimit";
-import { applyInvestigationRevision, parseInvestigationCommand, readInvestigation, readInvestigationOperation, type InvestigationDb } from "@/lib/investigations";
+import { applyInvestigationRevision, listInvestigations, parseInvestigationCommand, readInvestigation, readInvestigationOperation, type InvestigationDb } from "@/lib/investigations";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 const headers = { "Cache-Control": "private, no-store", "Vary": "Cookie" };
 const respond = (body: unknown, status = 200) => NextResponse.json(body, { status, headers });
-const statuses: Record<string, number> = { found: 200, committed: 200, invalid_payload: 400, unauthenticated: 401, not_found: 404, version_conflict: 409, idempotency_conflict: 409, layout_conflict: 409, invalid_transition: 422, reference_unavailable: 422, unavailable: 503 };
+const statuses: Record<string, number> = { found: 200, committed: 200, invalid_payload: 400, unauthenticated: 401, not_found: 404, version_conflict: 409, idempotency_conflict: 409, layout_conflict: 409, invalid_transition: 422, reference_unavailable: 422, limit_reached: 429, unavailable: 503 };
 async function session(): Promise<InvestigationDb | null> {
   const db = await createClient();
   const { data: { user }, error } = await db.auth.getUser();
@@ -19,6 +19,10 @@ export async function GET(request: Request) {
     if (!db) return respond({ status: "unauthenticated" }, 401);
     const params = new URL(request.url).searchParams;
     const keys = [...params.keys()];
+    if (!keys.length) {
+      const result=await listInvestigations(db);
+      return respond(result,result.status==="listed"?200:503);
+    }
     if (new Set(keys).size !== keys.length || keys.some(k => !["id", "revision", "operation_id"].includes(k))) return respond({ status: "invalid_payload" }, 400);
     const operation = params.get("operation_id");
     if (operation !== null) {

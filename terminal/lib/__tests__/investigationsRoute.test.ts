@@ -6,6 +6,14 @@ import { GET, POST } from "@/app/api/investigations/route";
 const id="10000000-0000-4000-8000-000000000001";
 beforeEach(()=>{rpc.mockReset();getUser.mockReset();getUser.mockResolvedValue({data:{user:{id}},error:null});});
 describe("authenticated Investigation BFF",()=>{
+ it("lists the authenticated inventory without writes and preserves an outage",async()=>{
+  rpc.mockResolvedValue({data:{status:"listed",items:[]},error:null});
+  const response=await GET(new Request("https://terminal.test/api/investigations"));
+  expect(response.status).toBe(200);expect(await response.json()).toEqual({status:"listed",items:[]});
+  expect(rpc.mock.calls).toEqual([["list_investigations_v2",{}]]);
+  rpc.mockResolvedValue({data:null,error:{message:"offline"}});
+  expect((await GET(new Request("https://terminal.test/api/investigations"))).status).toBe(503);
+ });
  it("refuses anonymous reads and writes before touching the database",async()=>{
   getUser.mockResolvedValue({data:{user:null},error:null});
   expect((await GET(new Request(`https://terminal.test/api/investigations?id=${id}`))).status).toBe(401);

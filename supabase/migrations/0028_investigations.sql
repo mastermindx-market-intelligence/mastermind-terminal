@@ -134,6 +134,7 @@ begin
   refs:=refs||jsonb_build_array(m->'review_baseline_ref');
  end if;
  seen:='[]';
+ n:=0;
  for r in select value from jsonb_array_elements(refs) loop
   if not public.investigation_keys_v2(r,array['owner','object_type','object_id','mode'],array['version_ref','fingerprint','selection'])
   or r->>'owner'<>'earnings.workspace_generation' or r->>'object_type'<>'event_workspace'
@@ -141,7 +142,12 @@ begin
   or (r->>'mode'='pinned' and not public.investigation_text_v2(r->'version_ref',256,true))
   or (r->>'mode'='follow_head' and (r ? 'version_ref' or r ? 'fingerprint'))
   or (r ? 'fingerprint' and (jsonb_typeof(r->'fingerprint')<>'string' or r->>'fingerprint' !~ '^[0-9a-f]{64}$'))
-  or (r ? 'selection' and (not public.investigation_keys_v2(r->'selection',array['field']) or r#>>'{selection,field}' !~ '^[A-Za-z0-9_][A-Za-z0-9_.:-]{0,127}$')) then return false; end if;
+  or (r ? 'selection' and (not public.investigation_keys_v2(r->'selection',array['field']) or jsonb_typeof(r#>'{selection,field}')<>'string' or r#>>'{selection,field}' !~ '^[A-Za-z0-9_][A-Za-z0-9_.:-]{0,127}$')) then return false; end if;
+  n:=n+1;
+  identity:=jsonb_build_array(r->'owner',r->'object_type',r->'object_id',r->'mode',r->'version_ref',r#>'{selection,field}');
+  if n<=jsonb_array_length(m->'evidence_refs') then
+   if seen @> jsonb_build_array(identity) then return false; end if; seen:=seen||jsonb_build_array(identity);
+  end if;
  end loop;
  return true;
 exception when others then return false;
@@ -168,6 +174,9 @@ begin
   return jsonb_build_object('status','idempotency_conflict');
  end if;
  if p_expected_revision<0 or p_action not in ('create','revise','remove','restore') or not public.valid_investigation_manifest_v2(content) then return jsonb_build_object('status','invalid_payload'); end if;
+ -- Serialize this principal's capacity check with every new mutation. Receipt replay above
+ -- remains available at capacity. These limits include removed records and retained history.
+ perform pg_advisory_xact_lock(hashtextextended('investigation.capacity:'||actor::text,0));
  -- Lock globally by target, including create, so foreign target collisions cannot race INSERT.
  perform pg_advisory_xact_lock(hashtextextended('investigation.target:'||p_id::text,0));
  select * into head from public.investigations where id=p_id for update;
@@ -182,6 +191,10 @@ begin
   if (p_action='restore' and head.lifecycle<>'removed') or (p_action<>'restore' and head.lifecycle<>'active') then return jsonb_build_object('status','invalid_transition'); end if;
   next_revision:=head.current_revision+1;
   next_lifecycle:=case when p_action='remove' then 'removed' else 'active' end;
+ end if;
+ if (p_action='create' and (select count(*) from public.investigations where user_id=actor)>=500)
+ or (select count(*) from public.investigation_revisions where user_id=actor)>=2000 then
+  return jsonb_build_object('status','limit_reached');
  end if;
  -- Validate retained refs under this principal; unknown UUIDs are never trusted as captures.
  for ref in select value from jsonb_array_elements(content->'layout_refs') loop
@@ -226,7 +239,7 @@ grant execute on function public.apply_investigation_revision_v2(uuid,integer,te
 create or replace function public.read_investigation_v2(p_id uuid,p_revision integer default null)
 returns jsonb language sql stable security invoker set search_path=pg_catalog,public,auth as $$
  select coalesce((select jsonb_build_object('status','found','id',h.id,'current_revision',h.current_revision,'revision',r.revision,'lifecycle',r.lifecycle,'manifest',r.manifest,'committed_at',r.committed_at,
- 'layouts',coalesce((select jsonb_agg(jsonb_build_object('id',l.id,'layout_id',l.layout_id,'config',l.config,'digest',l.digest)) from jsonb_array_elements(r.manifest->'layout_refs') ref
+ 'layouts',coalesce((select jsonb_agg(jsonb_build_object('id',l.id,'layout_id',l.layout_id,'name',l.name,'source_revision',l.source_revision,'config',l.config,'digest',l.digest)) from jsonb_array_elements(r.manifest->'layout_refs') ref
  join public.chart_layout_revisions l on l.id=(ref->>'layout_revision_id')::uuid and l.user_id=auth.uid() and l.digest=ref->>'digest'),'[]'::jsonb))
  from public.investigations h join public.investigation_revisions r on r.investigation_id=h.id and r.user_id=h.user_id and r.revision=coalesce(p_revision,h.current_revision)
  where h.id=p_id and h.user_id=auth.uid()),jsonb_build_object('status','not_found'))
@@ -237,6 +250,19 @@ returns jsonb language sql stable security invoker set search_path=pg_catalog,pu
 $$;
 revoke all on function public.read_investigation_v2(uuid,integer),public.read_investigation_operation_v2(uuid) from public,anon,authenticated;
 grant execute on function public.read_investigation_v2(uuid,integer),public.read_investigation_operation_v2(uuid) to authenticated;
+
+-- Bounded by the aggregate's per-principal lifetime record limit. SELECT has no side effects.
+create or replace function public.list_investigations_v2()
+returns jsonb language sql stable security invoker set search_path=pg_catalog,public,auth as $$
+ select jsonb_build_object('status','listed','items',coalesce(jsonb_agg(jsonb_build_object(
+  'id',h.id,'revision',h.current_revision,'lifecycle',h.lifecycle,'title',r.manifest#>>'{intent,title}',
+  'question',r.manifest#>>'{intent,question}','updated_at',h.updated_at) order by h.updated_at desc,h.id),'[]'::jsonb))
+ from public.investigations h join public.investigation_revisions r on r.investigation_id=h.id and r.user_id=h.user_id and r.revision=h.current_revision
+ where h.user_id=auth.uid()
+$$;
+revoke all on function public.list_investigations_v2() from public,anon,authenticated;
+grant execute on function public.list_investigations_v2() to authenticated;
+
 commit;
 
 -- down:

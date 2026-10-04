@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import textVectors from "./fixtures/investigation_text_vectors_v2.json";
 import { validateInvestigationManifest } from "../investigationContracts";
 
 const manifest = (schema = "investigation_manifest.v2", question = "Why now?") => ({
@@ -6,6 +7,14 @@ const manifest = (schema = "investigation_manifest.v2", question = "Why now?") =
   layout_refs: [], thesis_refs: [], evidence_refs: [], continuation: {},
 });
 describe("versioned Investigation envelope", () => {
+  it.each(textVectors.vectors)("paired Python/TypeScript text: $name", vector => {
+    const input=manifest();
+    input.intent[vector.field as "question" | "title"] = vector.text;
+    const result=validateInvestigationManifest(input);
+    expect(result.ok).toBe(vector.valid);
+    if (result.ok) expect(result.value.intent[vector.field as "question" | "title"]).toBe(vector.text);
+    else expect(result.errors).toEqual(expect.arrayContaining([expect.objectContaining({code:vector.code})]));
+  });
   it("retains all 4000 authored scalars including astral Unicode in v2", () => {
     const input = manifest(undefined, " 🧠\r\n" + "x".repeat(3996));
     const result = validateInvestigationManifest(input);

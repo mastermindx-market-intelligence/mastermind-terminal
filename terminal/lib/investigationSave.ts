@@ -19,7 +19,7 @@ function matchesCommand(result: InvestigationCommitted, command: InvestigationCo
     && refs[0].layout_revision_id === command.layout_capture.revision_id && refs[0].role === "primary"
     && sameJson({...result.manifest,layout_refs:[]},command.manifest);
 }
-const definitive = new Set(["invalid_payload", "version_conflict", "idempotency_conflict", "invalid_transition", "reference_unavailable", "layout_conflict"]);
+const definitive = new Set(["invalid_payload", "version_conflict", "idempotency_conflict", "invalid_transition", "reference_unavailable", "layout_conflict", "limit_reached"]);
 export function beginInvestigationSave(principal: string, raw: unknown, previous: InvestigationSaveState): InvestigationSaveState {
   previous = partitionInvestigationSave(previous, principal || null);
   if (!principal || previous.phase === "pending" || previous.phase === "uncertain") return previous;
@@ -31,7 +31,9 @@ export function settleInvestigationSave(state: InvestigationSaveState, principal
   if (state.phase !== "pending" && state.phase !== "uncertain") return state;
   if (state.principal !== principal) return { phase: "idle" };
   if (isInvestigationCommitted(response) && response.id === state.command.id
-    && response.revision === state.command.expected_revision + 1 && matchesCommand(response,state.command)) return { phase: "committed", principal, result: response };
+    && response.revision === state.command.expected_revision + 1
+    && response.lifecycle === (state.command.action === "remove" ? "removed" : "active")
+    && matchesCommand(response,state.command)) return { phase: "committed", principal, result: response };
   const status = response !== null && typeof response === "object" ? (response as { status?: unknown }).status : null;
   if (typeof status === "string" && definitive.has(status)) return { phase: "rejected", principal, command: state.command, reason: status };
   // not_found on receipt lookup, auth expiry, timeout and malformed replies are all inconclusive.

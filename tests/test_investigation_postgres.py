@@ -119,3 +119,38 @@ def test_database_preserves_authored_scalar_and_whitespace_rules(pg):
         assert pg("select public.valid_investigation_manifest_v2("+quote(json.dumps(manifest(text),ensure_ascii=False))+"::jsonb)")=="t"
     for text in ("\ufeff", "\u00a0", "🧠"*4001, "\t\r\n"):
         assert pg("select public.valid_investigation_manifest_v2("+quote(json.dumps(manifest(text),ensure_ascii=False))+"::jsonb)")=="f"
+
+
+def test_inventory_is_owner_scoped_and_read_only(pg):
+    before=pg("select count(*) from investigation_mutation_receipts",A)
+    own=json.loads(pg("select list_investigations_v2()",A))
+    assert own["status"]=="listed" and own["items"][0]["id"]==ID
+    assert own["items"][0]["revision"]==4
+    assert own["items"][0]["title"]=="Retained"
+    assert json.loads(pg("select list_investigations_v2()",B))=={"status":"listed","items":[]}
+    assert pg("select count(*) from investigation_mutation_receipts",A)==before
+
+
+def test_manifest_evidence_duplicate_identity_and_null_optional_rejected(pg):
+    evidence={"owner":"earnings.workspace_generation","object_type":"event_workspace","object_id":"event","mode":"pinned","version_ref":"generation"}
+    for refs in ([evidence,evidence],[evidence,{**evidence,"fingerprint":"a"*64}],[{**evidence,"selection":{"field":None}}],[{**evidence,"version_ref":None}]):
+        body={**manifest(),"evidence_refs":refs}
+        assert pg("select valid_investigation_manifest_v2("+quote(json.dumps(body))+"::jsonb)")=="f"
+    # A baseline may deliberately refer to the same object as an evidence row.
+    body={**manifest(),"evidence_refs":[evidence],"review_baseline_ref":evidence}
+    assert pg("select valid_investigation_manifest_v2("+quote(json.dumps(body))+"::jsonb)")=="t"
+
+
+def test_concurrent_record_capacity_is_atomic_and_replay_still_works(pg):
+    from uuid import uuid4
+    stamp="2026-10-04T00:00:00Z"
+    values=','.join('('+','.join([quote(str(uuid4())),quote(B),'1',quote('active'),quote(stamp),quote(stamp)])+')' for _ in range(499))
+    pg('insert into investigations values '+values)
+    ids=[str(uuid4()),str(uuid4())];keys=[str(uuid4()),str(uuid4())]
+    with ThreadPoolExecutor(2) as pool:
+        results=list(pool.map(lambda n:apply(pg,keys[n],actor=B,target=ids[n]),[0,1]))
+    assert sorted(r['status'] for r in results)==['committed','limit_reached']
+    winner=next(n for n,r in enumerate(results) if r['status']=='committed')
+    assert apply(pg,keys[winner],actor=B,target=ids[winner])==results[winner]
+    assert pg('select count(*) from investigations',B)=='500'
+    assert pg('select count(*) from investigation_mutation_receipts',B)=='1'

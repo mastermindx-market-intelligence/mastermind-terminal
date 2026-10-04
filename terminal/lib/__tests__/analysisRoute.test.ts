@@ -2,6 +2,11 @@ import { describe, expect, it } from "vitest";
 import { parseAnalysisRoute, parseAnalysisSearchParams } from "@/lib/analysisRoute";
 
 describe("the closed /analysis route vocabulary", () => {
+  it("binds retained research links to the Investigation view and exact revision",()=>{
+    const id="123e4567-e89b-42d3-a456-426614174000";
+    expect(parseAnalysisRoute({view:"investigations",investigation:id,revision:"7"})).toEqual({kind:"investigations",investigationId:id,revision:7});
+    for(const query of [{view:"company",investigation:id},{view:"investigations",investigation:[id,id]},{view:"investigations",revision:"7"},{view:"investigations",investigation:id,revision:"0"}]) expect(parseAnalysisRoute(query).kind).toBe("unsupported");
+  });
   it("preserves the existing company route when view is absent or explicitly company", () => {
     expect(parseAnalysisRoute({ symbol: "NVDA", pane: "earnings" })).toEqual({
       kind: "company", symbol: "NVDA", page: "earnings",

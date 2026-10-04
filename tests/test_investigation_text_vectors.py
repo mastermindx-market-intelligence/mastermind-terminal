@@ -20,11 +20,11 @@ TRIM = "\u0009\u000b\u000c\u0020\u00a0\ufeff\u000a\u000d\u1680\u2028\u2029\u202f
 )
 
 
-def text_error(text: str, field: str) -> str | None:
+def text_error(text: str, field: str, *, version: int = 1) -> str | None:
     """Express the frozen test-vector rule, without changing the supplied text."""
     if not text.strip(TRIM):
         return "empty_text"
-    limit = {"title": 160, "question": 2000}[field]
+    limit = {"title": 160, "question": 4000 if version == 2 else 2000}[field]
     for index, character in enumerate(text, start=1):
         point = ord(character)
         if 0xD800 <= point <= 0xDFFF:
@@ -54,6 +54,15 @@ class InvestigationTextVectors(unittest.TestCase):
                 self.assertEqual(json.loads(json.dumps(before, ensure_ascii=True)), before)
                 if error is None:
                     self.assertEqual(before.encode("utf-8").decode("utf-8"), before)
+
+    def test_v2_shared_vectors_without_redefining_v1(self) -> None:
+        bundle = json.loads(FIXTURE.with_name("investigation_text_vectors_v2.json").read_text())
+        for vector in bundle["vectors"]:
+            with self.subTest(vector=vector["name"]):
+                error = text_error(vector["text"], vector["field"], version=2)
+                self.assertEqual(error is None, vector["valid"])
+                self.assertEqual(error, vector["code"])
+                self.assertEqual(json.loads(json.dumps(vector["text"])), vector["text"])
 
     def test_preserves_distinct_composed_and_decomposed_belief_text(self) -> None:
         self.assertNotEqual("é", "e\u0301")
