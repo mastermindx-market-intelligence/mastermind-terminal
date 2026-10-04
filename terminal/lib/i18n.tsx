@@ -31,6 +31,7 @@ export const LEX: Record<string, [string, string]> = {
   chart: ["Chart", "图表"],
   analysis: ["Analysis", "分析"],
   discover: ["Discover", "发现"],
+  dislocations: ["Dislocations", "错位"],
   options: ["Options", "期权"],
   research: ["Research", "研究"],
   automate: ["Automate", "自动化"],
@@ -945,6 +946,7 @@ export const LEX: Record<string, [string, string]> = {
   // what you HOLD, never what you watch, so the ranked-watchlist copy (suggested tilt, bullish
   // signals, avg win rate, "this watchlist is empty") went with the surface that used it.
   pagePortfolio: ["Portfolio", "投资组合"],
+  pageDislocations: ["Dislocations", "日内错位"],
   pageAdmin: ["Admin", "管理"],
   names: ["Names", "标的数"],
   positions: ["Positions", "持仓"],

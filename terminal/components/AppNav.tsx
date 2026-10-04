@@ -50,6 +50,7 @@ export const TOP = [
   { k: "chart", label: "Chart", href: "/terminal" },
   { k: "analysis", label: "Analysis", href: "/analysis" },
   { k: "discover", label: "Discover", href: "/discover" },
+  { k: "dislocations", label: "Dislocations", href: "/dislocations" },
   { k: "options", label: "Options", href: "/options" },
   { k: "scripts", label: "Scripts", href: "/scripts" },
   { k: "portfolio", label: "Portfolio", href: "/portfolio" },
