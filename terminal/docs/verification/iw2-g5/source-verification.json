@@ -12,9 +12,9 @@
   "checks": {
     "postgres": "PostgreSQL 17.11: 17 passed (4 G5 and 13 incumbent Investigation tests), isolated local cluster stopped",
     "vitest": "51 passed including canonical Thesis owner, command/save, exact-ref route and UI",
-    "typecheck": "tsc --noEmit passed on final G5 product source and browser tests before the capture-only retry repair",
+    "typecheck": "tsc --noEmit passed on final G5 product source; subsequent change only wraps existing capture code in a bounded Playwright assertion.",
     "migration_namespace": "86 passed, 1 skipped",
-    "browser": "6 new EN/ZH cases passed at 1440x900, 820x1180 and 390x844; 23 incumbent cases passed. Desktop Analysis capture: preserved route-wide warm-cache 404 trace, cold compilation restored 200 routes and exposed transiently detached boundingBox. Capture-only bounded assertion repair awaiting rerun.",
+    "browser": "30 distinct cases covered: 6 G5 EN/ZH at 1440x900, 820x1180 and 390x844; 23 incumbent cases in initial run; repaired desktop Analysis capture passed its isolated rerun. Initial G5 wrapped-label selector failures were repaired with accessible combobox locators. A warm-cache route-wide 404 run is preserved; cold route compilation restored 200 responses. The independent Analysis capture hydration-box race was repaired with a bounded assertion retaining the same crop and source locks.",
     "visual": "Desktop EN and mobile ZH final retained-version captures inspected; actual Terminal dark theme only"
   },
   "review": {
@@ -44,6 +44,10 @@
     "g5-responsive-r1.log": "258e43a94a0e8d8872e870ed7e39926fa27e4c5c29b68577520878b57680313d",
     "g5-responsive-r2.log": "08f8b43d71a4eb603d7f338b5dac049baaf4cab95b86508d02e73d5e1467b65a",
     "g5-ui-display-r2.log": "93f4e12d60d41d98e18070376ec66d1b149d33051e7d1b8a542c36b2ef252cdf",
-    "G5-THESIS-REVIEW-r1.md": "765feef5c54c22da0e8b6969cd1821897fd54cf635e59957f27c89897dd50fb3"
+    "G5-THESIS-REVIEW-r1.md": "765feef5c54c22da0e8b6969cd1821897fd54cf635e59957f27c89897dd50fb3",
+    "g5-typecheck-final.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "g5-analysis-responsive-repaired.log": "8ccffea71efacdf51189ac99ce17a2066ca936bd8ea68239597dd2438a20a5bb",
+    "g5-analysis-responsive-cold.log": "7905de32540d65d3556f184ea2ffc8a961486e04712504a0a5a1f0bcf0b99004",
+    "g5-analysis-responsive-r2.log": "196655a910a41f67176c05b0f909a6f8cf9f615a6dc45df969cf3e56224641c1"
   }
 }
