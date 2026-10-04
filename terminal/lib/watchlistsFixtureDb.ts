@@ -19,6 +19,7 @@
 // The positions table is seeded EMPTY: a new book has nothing in it, and every spec that wants
 // rows creates them through the real route.
 
+import { createHash } from "node:crypto";
 import type { DbResult, DbRow, WatchlistDb, WatchlistQuery } from "@/lib/watchlists";
 
 export const FIXTURE_STORE_COOKIE = "mm_e2e_wl";
@@ -483,6 +484,43 @@ function thesisRpcResult(row: DbRow): Promise<DbResult> {
   });
 }
 
+export function uuid5ThesisAlertId(thesisId: string): string {
+  // PROVEN producer namespace: engine/thesis_condition_monitor.py:126.
+  // uuid5("thesis:<id>"): engine/thesis_condition_monitor.py:318-323.
+  const namespace = "6f1e6cf4-6e9b-5f2a-9d0a-6d0f6a5b6c00";
+  const namespaceBytes = Buffer.from(namespace.replace(/-/g, ""), "hex");
+  const digest = createHash("sha1").update(namespaceBytes).update(`thesis:${thesisId}`, "utf8").digest();
+  digest[6] = (digest[6] & 0x0f) | 0x50;
+  digest[8] = (digest[8] & 0x3f) | 0x80;
+  const hex = digest.toString("hex");
+  return [
+    hex.slice(0, 8), hex.slice(8, 12), hex.slice(12, 16), hex.slice(16, 20), hex.slice(20, 32),
+  ].join("-").toLowerCase();
+}
+
+export function producerThesisFireEventId(
+  thesisId: string,
+  tripwireId: string,
+  tripwireVersion: number,
+  firedOn: string,
+): string {
+  // Mirrors engine/thesis_condition_monitor.py:296-315.
+  const digest = createHash("sha256")
+    .update([thesisId, tripwireId, String(tripwireVersion), firedOn].join("|"), "utf8")
+    .digest("hex")
+    .slice(0, 32);
+  return `thesis:${digest}`;
+}
+
+function userConditionText(value: unknown): string {
+  if (!Array.isArray(value)) return typeof value === "string" ? value : "";
+  return value.filter((item): item is string => typeof item === "string" && item.length > 0).join("; ");
+}
+
+function closeSentence(text: string): string {
+  return text && ".!?".includes(text.slice(-1)) ? text : `${text}.`;
+}
+
 function thesisSubstance(value: unknown): unknown {
   if (!value || typeof value !== "object" || Array.isArray(value)) return value;
   const substance = { ...value as Record<string, unknown> };
@@ -561,19 +599,81 @@ function applyThesisVersionFixture(store: Store, args: Record<string, unknown>):
     store.theses.push(head);
     store.thesisVersions.push(version);
     if (store.monitorFires && store.alertOutbox.length === 0) {
-      // Shaped like compose_payload()'s row in macro's thesis condition monitor: the
-      // route only reads user_id, status, created_at and payload->>thesis_id.
+      const contentRecord = content as { title?: unknown; falsifiers?: unknown };
+      const subjectRefRecord = subjectRef as {
+        display?: unknown;
+        key?: unknown;
+        kind?: unknown;
+        owner?: unknown;
+        listing?: unknown;
+      };
+      const isIssuer = subjectRefRecord.kind === "issuer"
+        && (subjectRefRecord.owner === "terminal.analysis_symbol" || subjectRefRecord.owner === "data_os.security_master");
+      const isSupportedSubject = (subjectRefRecord.kind === "issuer"
+        && (subjectRefRecord.owner === "terminal.analysis_symbol" || subjectRefRecord.owner === "data_os.security_master"))
+        || (subjectRefRecord.kind === "theme" && subjectRefRecord.owner === "macro.theme_registry");
+      const rawListing = subjectRefRecord.listing;
+      const listingSymbol = rawListing && typeof rawListing === "object" && !Array.isArray(rawListing)
+        ? (rawListing as { symbol?: unknown }).symbol
+        : undefined;
+      const rawTicker = typeof listingSymbol === "string" && listingSymbol.trim()
+        ? listingSymbol
+        : subjectRefRecord.key;
+      const subjectDisplay = isIssuer && isSupportedSubject && typeof rawTicker === "string" && rawTicker.trim()
+        ? rawTicker.trim().toUpperCase()
+        : "";
+      if (!isSupportedSubject) return thesisRpcResult({ status: "created", thesis_id: id, version: 1, current_version: 1, lifecycle_state: "active", replayed: false });
+      const title = typeof contentRecord.title === "string" && contentRecord.title.trim() ? contentRecord.title.trim() : "your thesis";
+      const condition = userConditionText(contentRecord.falsifiers);
+      const tripwireId = "11111111-1111-4111-8111-111111111111";
+      const tripwireVersion = 1;
+      const firedOn = "2026-09-25";
+      const subject = subjectDisplay
+        ? `A window we watch for ${subjectDisplay} has closed`
+        : "A market condition we watch for your thesis has changed";
+      const subjectZh = subjectDisplay
+        ? `你关注的“${subjectDisplay}”窗口已关闭`
+        : "你关注的一项市场条件已发生变化";
+      const closedPrefix = `${subject}.`;
+      const closedPrefixZh = `${subjectZh}。`;
+      const summaryPlain = condition
+        ? `${closedPrefix} Your thesis "${title}" lists: ${closeSentence(condition)}`
+        : `${closedPrefix} Your thesis lists no conditions yet.`;
+      const summaryPlainZh = condition
+        ? `${closedPrefixZh}你的论点《${title}》列出的条件：${condition}（翻译待补）`
+        : `${closedPrefixZh}你的论点尚未列出任何条件。`;
       store.alertOutbox.push({
         id: crypto.randomUUID(),
         user_id: userId,
-        alert_id: null,
-        fire_event_id: crypto.randomUUID(),
+        alert_id: uuid5ThesisAlertId(id),
+        fire_event_id: producerThesisFireEventId(id, tripwireId, tripwireVersion, firedOn),
+        channel: "email",
         status: "pending",
         attempts: 0,
         last_error: null,
         deliver_after: null,
         delivered_at: null,
-        payload: { thesis_id: id, kind: "thesis_condition", fired_at: now },
+        payload: {
+          thesis_id: id,
+          thesis_version: 1,
+          fired_at: firedOn,
+          tripwire_id: tripwireId,
+          tripwire_version: tripwireVersion,
+          category: "thesis_window",
+          source: "macro.thesis_condition_monitor",
+          subject,
+          subject_zh: subjectZh,
+          summary_plain: summaryPlain,
+          summary_plain_zh: summaryPlainZh,
+          condition_plain: condition,
+          condition_plain_zh: condition ? `${condition}（翻译待补）` : "",
+          engine_window_plain: "",
+          engine_window_plain_zh: "",
+          evidence_url: "https://www.mastermind-x.com/cycle.html",
+          requires_tier: null,
+          coverage: "full",
+          ticker: isIssuer ? String(subjectDisplay) : null,
+        },
         created_at: now,
       });
     }
