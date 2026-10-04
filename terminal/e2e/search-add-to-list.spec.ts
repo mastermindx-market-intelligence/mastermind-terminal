@@ -118,6 +118,12 @@ test("the add-to-list picker stays above the search sheet on mobile", async ({ p
   await page.locator(".s-pick-row", { hasText: "China" }).click();
   await expect.poll(async () => (await savedLists(page)).China?.map((r: { symbol: string }) => r.symbol) ?? [],
     { timeout: 10_000 }).toContain("AMD");
+  await expect(pick).toBeHidden();
+  // Exactly one membership change, in exactly the chosen list: a tap that also reached the sheet
+  // underneath would add twice or land in the active list instead.
+  const after = await savedLists(page);
+  expect(after.China.filter((r: { symbol: string }) => r.symbol === "AMD")).toHaveLength(1);
+  expect(after.Default.map((r: { symbol: string }) => r.symbol)).not.toContain("AMD");
 });
 
 test("scrolling the result list closes the picker instead of stranding it", async ({ page, baseURL }, testInfo) => {
