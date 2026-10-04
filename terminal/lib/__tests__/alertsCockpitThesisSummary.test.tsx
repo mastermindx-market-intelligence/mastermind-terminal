@@ -8,6 +8,9 @@
 // - whitespace-only summary falls back to fixed sentence
 //
 // Mount pattern copied from alertsCockpitZhParity.test.ts (lines 30-36 / 181-220).
+// Fixtures carry the producer's real row identity (#759 F11-11b-pre): payload.source
+// "macro.thesis_condition_monitor" + payload.category "thesis_window" and a well-formed
+// v4 thesis_id — the recognizer in lib/alertsView.ts keys thesis rows on exactly those.
 import { describe, expect, it, beforeEach, afterEach, vi } from "vitest";
 import { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
@@ -18,9 +21,9 @@ import { LangProvider } from "@/lib/i18n";
 
 (globalThis as unknown as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 
-// A real v4 UUID (thesis_id shape on the payload).
-const THESIS_ID_1 = "a1b2c3d4-e5f6-7890-abcd-ef1234567890";
-const THESIS_ID_2 = "b2c3d4e5-f6a7-8901-bcde-f12345678901";
+// Well-formed v4 UUIDs (version nibble 4, variant 8/9/a/b) — lib/alertsView.ts isWellFormedThesisId.
+const THESIS_ID_1 = "a1b2c3d4-e5f6-4890-abcd-ef1234567890";
+const THESIS_ID_2 = "b2c3d4e5-f6a7-4901-bcde-f12345678901";
 const NOW_ISO = new Date().toISOString();
 const FRESH_RUN = {
   lane: "alerts_engine", run_id: "r1", started_at: NOW_ISO, concluded_at: NOW_ISO,
@@ -32,7 +35,8 @@ const THESIS_OUTBOX_WITH_SUMMARY = [{
   alert_id: "", fire_event_id: "f-thesis-1", status: "sent", attempts: 1, last_error: null,
   deliver_after: null, delivered_at: NOW_ISO, created_at: NOW_ISO,
   payload: {
-    kind: "thesis_condition",
+    category: "thesis_window",
+    source: "macro.thesis_condition_monitor",
     thesis_id: THESIS_ID_1,
     ticker: "NVDA",
     summary_plain: "Desk summary EN",
@@ -46,7 +50,8 @@ const THESIS_OUTBOX_NO_SUMMARY = [{
   alert_id: "", fire_event_id: "f-thesis-2", status: "sent", attempts: 1, last_error: null,
   deliver_after: null, delivered_at: NOW_ISO, created_at: NOW_ISO,
   payload: {
-    kind: "thesis_condition",
+    category: "thesis_window",
+    source: "macro.thesis_condition_monitor",
     thesis_id: THESIS_ID_2,
     ticker: "NVDA",
     fired_at: NOW_ISO,
@@ -58,8 +63,9 @@ const THESIS_OUTBOX_WHITESPACE_SUMMARY = [{
   alert_id: "", fire_event_id: "f-thesis-3", status: "sent", attempts: 1, last_error: null,
   deliver_after: null, delivered_at: NOW_ISO, created_at: NOW_ISO,
   payload: {
-    kind: "thesis_condition",
-    thesis_id: "c3d4e5f6-a7b8-9012-cdef-123456789abc",
+    category: "thesis_window",
+    source: "macro.thesis_condition_monitor",
+    thesis_id: "c3d4e5f6-a7b8-4012-8def-123456789abc",
     ticker: "NVDA",
     summary_plain: "   ",
     fired_at: NOW_ISO,
@@ -71,8 +77,9 @@ const THESIS_OUTBOX_ZH_ONLY = [{
   alert_id: "", fire_event_id: "f-thesis-4", status: "sent", attempts: 1, last_error: null,
   deliver_after: null, delivered_at: NOW_ISO, created_at: NOW_ISO,
   payload: {
-    kind: "thesis_condition",
-    thesis_id: "d4e5f6a7-b8c9-0123-def0-23456789abcd",
+    category: "thesis_window",
+    source: "macro.thesis_condition_monitor",
+    thesis_id: "d4e5f6a7-b8c9-4123-9ef0-23456789abcd",
     ticker: "NVDA",
     summary_plain_zh: "仅ZH摘要",
     fired_at: NOW_ISO,
@@ -85,8 +92,9 @@ const THESIS_OUTBOX_PENDING_MARKER = [{
   alert_id: "", fire_event_id: "f-thesis-5", status: "sent", attempts: 1, last_error: null,
   deliver_after: null, delivered_at: NOW_ISO, created_at: NOW_ISO,
   payload: {
-    kind: "thesis_condition",
-    thesis_id: "e5f6a7b8-c9d0-1234-ef01-3456789abcde",
+    category: "thesis_window",
+    source: "macro.thesis_condition_monitor",
+    thesis_id: "e5f6a7b8-c9d0-4234-af01-3456789abcde",
     ticker: "NVDA",
     summary_plain: "A window we watch for NVDA has closed. Your thesis \"AI chip leader\" lists: condition",
     summary_plain_zh: "A window we watch for NVDA has closed. Your thesis \"AI芯片龙头\" lists: condition（翻译待补）",
@@ -258,8 +266,9 @@ describe("AlertsCockpit — thesis row producer summary (B-F11-11b-pre-2)", () =
       alert_id: "", fire_event_id: "f-thesis-enonly", status: "sent", attempts: 1, last_error: null,
       deliver_after: null, delivered_at: NOW_ISO, created_at: NOW_ISO,
       payload: {
-        kind: "thesis_condition",
-        thesis_id: "f6a7b8c9-d0e1-2345-f012-456789abcdef",
+        category: "thesis_window",
+        source: "macro.thesis_condition_monitor",
+        thesis_id: "f6a7b8c9-d0e1-4345-b012-456789abcdef",
         ticker: "NVDA",
         summary_plain: "EN only summary here",
         fired_at: NOW_ISO,
