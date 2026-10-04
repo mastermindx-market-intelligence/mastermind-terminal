@@ -119,6 +119,12 @@ const ET_CLOCK = new Intl.DateTimeFormat("en-US", {
   timeZone: "America/New_York",
 });
 
+/** "11:30 ET" -> ["11:30", " ET"]: the digits carry the row, the zone is a small suffix (textContent unchanged). */
+export function splitClock(clock: string): [string, string] {
+  const i = clock.lastIndexOf(" ");
+  return i < 0 ? [clock, ""] : [clock.slice(0, i), clock.slice(i)];
+}
+
 export function fmtClock(iso: string | null | undefined, lang: Lang): string {
   if (!iso) return lang === "zh" ? "— 美东" : "— ET";
   const t = Date.parse(iso);
@@ -442,7 +448,8 @@ export default function DislocationsView() {
                         >
                           <div className={s.rail}>
                             <time className={s.when} dateTime={ep.display.knowable_at ?? undefined}>
-                              {fmtClock(ep.display.knowable_at, lang)}
+                              {splitClock(fmtClock(ep.display.knowable_at, lang))[0]}
+                              <span className={s.tz}>{splitClock(fmtClock(ep.display.knowable_at, lang))[1]}</span>
                             </time>
                             <span className={s.age} data-testid="dislo-age">
                               {fmtAge(ep.display.knowable_at, now, lang)}
