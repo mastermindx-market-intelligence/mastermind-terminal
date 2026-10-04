@@ -88,7 +88,7 @@ export function OiChangePanel({
         <span>{t("changeTitle")}</span>
         {prev && <span style={{ ...NEUTRAL_CHIP, fontWeight: 500 }}>{t("changePrevCaption").replace("{date}", prev)}</span>}
         <span style={{ flex: 1 }} />
-        <div role="group" aria-label={t("changeScopeAria")} style={{ display: "flex", gap: 6 }}>
+        <div role="group" aria-label={t("changeScopeAria")} className={s.scopeGroup} style={{ display: "flex", gap: 6 }}>
           <button className={`chip ${s.scopeChip}${scope === "root" ? " on" : ""}`} style={SCOPE_CHIP}
             aria-pressed={scope === "root"} onClick={() => onScope("root")}>
             {t("changeScopeRoot")}
