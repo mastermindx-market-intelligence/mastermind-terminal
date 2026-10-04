@@ -1668,3 +1668,209 @@ export function __expireEventWorkspaceCacheForTests(): void {
   if (manifestCache) manifestCache.at = 0;
   for (const entry of workspaceCache.values()) entry.at = 0;
 }
+
+export type RetainedEventWorkspacePin = {
+  event_id: string;
+  generation_id: string;
+  company_id: string;
+  fingerprint?: string;
+};
+export type RetainedEventWorkspaceRights = {
+  allowed: boolean;
+  policy_version: string;
+  checked_at: string;
+};
+export type RetainedEventWorkspaceReceipt = {
+  schema: "earnings.retained_baseline.v1";
+  owner: "earnings.workspace_generation";
+  company_id: string;
+  event_id: string;
+  generation_id: string;
+  workspace_schema: typeof EVENT_WORKSPACE_SCHEMA;
+  manifest_schema: EventWorkspaceManifest["schema"];
+  authority: "context_only";
+  manifest_sha256: string;
+  manifest_bytes: number;
+  workspace_sha256: string;
+  workspace_bytes: number;
+  /** Hashes the entire owner objects, including transcript/qualification changes. */
+  fingerprint: string;
+  public_known_at: string | null;
+  platform_known_at: string | null;
+  generation_emitted_at: string;
+  rights: RetainedEventWorkspaceRights;
+};
+export type RetainedEventWorkspaceResult =
+  | { ok: true; workspace: EventWorkspace; receipt: RetainedEventWorkspaceReceipt }
+  | { ok: false; code: "HISTORICAL_UNAVAILABLE"; reason: "invalid_reference" | "missing_generation" | "invalid_owner_receipt" | "subject_mismatch" | "rights_unavailable" | "denied" };
+
+/** Consumer-specific immutable-generation read. No current selection, history dedupe, cache
+ * fallback or alternate source. The caller supplies the existing owner's CURRENT rights check;
+ * a persisted rights receipt is never accepted as a permission grant. This method performs no writes. */
+export async function resolveRetainedEventWorkspaceFromR2(
+  pin: RetainedEventWorkspacePin,
+  base: string,
+  options: {
+    signal?: AbortSignal;
+    authorize?: (workspace: EventWorkspace) => Promise<RetainedEventWorkspaceRights>;
+  } = {},
+): Promise<RetainedEventWorkspaceResult> {
+  const unavailable = (reason: Extract<RetainedEventWorkspaceResult, { ok: false }>["reason"]): RetainedEventWorkspaceResult => ({ ok: false, code: "HISTORICAL_UNAVAILABLE", reason });
+  const safeBase = validateR2Base(base);
+  if (!safeBase || !isEventWorkspaceEventId(pin.event_id) || !isEventWorkspaceGenerationId(pin.generation_id)
+    || !/^cik:[0-9]{10}$/.test(pin.company_id) || (pin.fingerprint !== undefined && !validSha(pin.fingerprint))) return unavailable("invalid_reference");
+  if (!options.authorize || options.signal?.aborted) return unavailable("rights_unavailable");
+  const generationBase = `${safeBase}/company_intelligence/${EVENT_WORKSPACE_NEST}/generations/${pin.generation_id}`;
+  const manifestRead = await fetchJson(`${generationBase}/manifest.json`, MAX_MANIFEST_BYTES, options.signal);
+  if (manifestRead.kind !== "ok") return unavailable("missing_generation");
+  const manifest = normalizeEventWorkspaceManifest(manifestRead.raw);
+  if (!manifest || manifest.generation_id !== pin.generation_id) return unavailable("invalid_owner_receipt");
+  const relative = `workspaces/${pin.event_id}.json`;
+  const file = manifest.files[relative];
+  if (!file) return unavailable("missing_generation");
+  const objectRead = await fetchJson(`${generationBase}/${relative}`, EVENT_WORKSPACE_MAX_R2_JSON_BYTES, options.signal);
+  if (objectRead.kind !== "ok") return unavailable("missing_generation");
+  const objectHash = await sha256Hex(objectRead.bytes);
+  if (objectRead.bytes.byteLength !== file.bytes || objectHash !== file.sha256) return unavailable("invalid_owner_receipt");
+  const workspace = normalizeEventWorkspace(objectRead.raw, pin.event_id, pin.generation_id);
+  if (!workspace) return unavailable("invalid_owner_receipt");
+  if (workspace.issuer.company_id !== pin.company_id) return unavailable("subject_mismatch");
+  const manifestHash = await sha256Hex(manifestRead.bytes);
+  const identity = {
+    schema: "earnings.retained_baseline.v1" as const,
+    owner: "earnings.workspace_generation" as const,
+    company_id: pin.company_id,
+    event_id: workspace.event_id,
+    generation_id: workspace.generation_id,
+    workspace_schema: workspace.schema,
+    manifest_schema: manifest.schema,
+    authority: "context_only" as const,
+    manifest_sha256: manifestHash,
+    manifest_bytes: manifestRead.bytes.byteLength,
+    workspace_sha256: objectHash,
+    workspace_bytes: objectRead.bytes.byteLength,
+  };
+  // The full immutable workspace receipt binds ALL dependencies, qualifications, exclusions,
+  // clocks and rights annotations. Do not use the release-only source_sha256 history helper.
+  const identityJson = canonicalJson(identity);
+  if (!identityJson) return unavailable("invalid_owner_receipt");
+  const fingerprint = await sha256Hex(new TextEncoder().encode(identityJson));
+  if (pin.fingerprint !== undefined && fingerprint !== pin.fingerprint) return unavailable("invalid_owner_receipt");
+  let rights: RetainedEventWorkspaceRights;
+  try { rights = await options.authorize(workspace); } catch { return unavailable("rights_unavailable"); }
+  if (!rights || typeof rights.policy_version !== "string" || !rights.policy_version || !validTimestamp(rights.checked_at)) return unavailable("rights_unavailable");
+  if (rights.allowed !== true) return unavailable("denied");
+  if (options.signal?.aborted) return unavailable("rights_unavailable");
+  return {
+    ok: true,
+    workspace,
+    receipt: {
+      ...identity, fingerprint,
+      public_known_at: workspace.lifecycle.source_available_at,
+      platform_known_at: workspace.lifecycle.observed_at,
+      generation_emitted_at: workspace.generated_at,
+      rights,
+    },
+  };
+}
+
+export type EventWorkspaceReplayPolicy = "platform_snapshot" | "public_known" | "user_seen";
+export type EventWorkspaceReplayResult =
+  | (Extract<RetainedEventWorkspaceResult, {ok:true}> & {replay:{
+      schema:"earnings.platform_snapshot_replay.v1"; policy:"platform_snapshot";
+      cutoff:string; root_generation_id:string; selected_generation_id:string;
+      scope:"retained_chain_through_saved_baseline"; steps:number;
+      public_known_replay:false; user_seen_replay:false;
+    }})
+  | {ok:false;code:"HISTORICAL_UNAVAILABLE";reason:"unsupported_policy"|"invalid_reference"|"denied"|"root_unavailable"|"missing_history"|"invalid_history"|"history_limit"|"no_retained_snapshot_at_cutoff"|"selected_snapshot_unavailable"};
+
+/** Replay only snapshots that the existing owner emitted, bounded by the saved
+ * generation. The release clock is NOT a whole-snapshot public-knowledge clock.
+ * Every history edge is hash-bound; missing history never selects current data
+ * or skips an unavailable selected snapshot. Current rights still govern reads. */
+export async function resolveRetainedEventWorkspaceAtCutoff(
+  pin:RetainedEventWorkspacePin,
+  selection:{policy:EventWorkspaceReplayPolicy;cutoff:string},
+  base:string,
+  options:Parameters<typeof resolveRetainedEventWorkspaceFromR2>[2]={},
+):Promise<EventWorkspaceReplayResult> {
+  const unavailable=(reason:Extract<EventWorkspaceReplayResult,{ok:false}>["reason"]):EventWorkspaceReplayResult=>({ok:false,code:"HISTORICAL_UNAVAILABLE",reason});
+  if(selection.policy!=="platform_snapshot")return unavailable("unsupported_policy");
+  if(!validTimestamp(selection.cutoff)||!validDate(selection.cutoff.slice(0,10))||!pin.fingerprint||!validSha(pin.fingerprint))return unavailable("invalid_reference");
+  const safeBase=validateR2Base(base);if(!safeBase)return unavailable("invalid_reference");
+  const root=await resolveRetainedEventWorkspaceFromR2(pin,safeBase,options);
+  if(!root.ok)return unavailable(root.reason==="denied"?"denied":"root_unavailable");
+  const cutoff=Date.parse(selection.cutoff),visited=new Set<string>();
+  let generation=pin.generation_id,expectedHash=root.receipt.manifest_sha256,newerTime=Infinity;
+  for(let steps=1;steps<=32;steps++){
+    if(options.signal?.aborted)return unavailable("missing_history");
+    if(visited.has(generation))return unavailable("invalid_history");visited.add(generation);
+    const read=await fetchJson(`${safeBase}/company_intelligence/${EVENT_WORKSPACE_NEST}/generations/${generation}/manifest.json`,MAX_MANIFEST_BYTES,options.signal);
+    if(read.kind!=="ok")return unavailable("missing_history");
+    const digest=await sha256Hex(read.bytes),manifest=normalizeEventWorkspaceManifest(read.raw);
+    if(digest!==expectedHash||!manifest||manifest.generation_id!==generation)return unavailable("invalid_history");
+    const emitted=Date.parse(manifest.generated_at);
+    if(emitted>=newerTime)return unavailable("invalid_history");
+    if(emitted<=cutoff){
+      const selected=generation===pin.generation_id?root:await resolveRetainedEventWorkspaceFromR2({event_id:pin.event_id,company_id:pin.company_id,generation_id:generation},safeBase,options);
+      if(!selected.ok)return unavailable(selected.reason==="denied"?"denied":"selected_snapshot_unavailable");
+      // Bind the selected read to the traversed immutable bytes. The lifecycle
+      // observation and object emission cannot come from after this manifest.
+      const objectTime=Date.parse(selected.receipt.generation_emitted_at),observed=selected.receipt.platform_known_at;
+      if(selected.receipt.manifest_sha256!==digest||!Number.isFinite(objectTime)||objectTime>emitted||!observed||!validTimestamp(observed)||Date.parse(observed)>emitted)return unavailable("invalid_history");
+      return {...selected,replay:{schema:"earnings.platform_snapshot_replay.v1",policy:"platform_snapshot",cutoff:selection.cutoff,root_generation_id:pin.generation_id,selected_generation_id:generation,scope:"retained_chain_through_saved_baseline",steps,public_known_replay:false,user_seen_replay:false}};
+    }
+    if(!manifest.previous_generation_id||!manifest.previous_manifest_sha256)return unavailable("no_retained_snapshot_at_cutoff");
+    newerTime=emitted;generation=manifest.previous_generation_id;expectedHash=manifest.previous_manifest_sha256;
+  }
+  return unavailable("history_limit");
+}
+
+/** Public-primary context display is the existing Earnings producer's rights profile.
+ * No licensed/private material, export, sharing or AI reuse is admitted by this adapter. */
+function publicContextDocuments(workspace: EventWorkspace): Set<string> | null {
+  const documents = new Set<string>();
+  let qualified = true;
+  const walk = (value: unknown, documentId?: string): void => {
+    if (!value || typeof value !== "object") return;
+    if (Array.isArray(value)) { value.forEach(v => walk(v, documentId)); return; }
+    const row = value as Record<string, unknown>;
+    const ownId = typeof row.document_id === "string" ? row.document_id : documentId;
+    if (Object.hasOwn(row, "rights_profile")) {
+      if (row.rights_profile !== "rp_public_primary_v1") qualified = false;
+      else if (ownId) documents.add(ownId);
+    }
+    Object.values(row).forEach(v => walk(v, ownId));
+  };
+  walk(workspace);
+  const heldDocuments=workspace.sources.filter(source=>source.receipt_state==="byte_replayed");
+  return qualified && documents.size > 0 && heldDocuments.every(source=>typeof source.document_id==="string"&&documents.has(source.document_id)) ? documents : null;
+}
+
+/** Fresh owner publication, read at use time. The retained generation's rights annotations
+ * alone cannot grant access. If its source documents no longer have an explicit public-primary
+ * declaration in the current event publication, historical display stays unavailable. */
+export async function authorizeRetainedPublicEventContext(
+  retained: EventWorkspace,
+  base: string,
+  signal?: AbortSignal,
+): Promise<RetainedEventWorkspaceRights> {
+  const decision = (allowed: boolean): RetainedEventWorkspaceRights => ({
+    allowed, policy_version: "earnings.public_primary.context_read.v1", checked_at: new Date().toISOString(),
+  });
+  const retainedDocuments = publicContextDocuments(retained);
+  const safeBase = validateR2Base(base);
+  if (!safeBase || !retainedDocuments || signal?.aborted) return decision(false);
+  const current = await fetchJson(`${safeBase}/company_intelligence/${EVENT_WORKSPACE_NEST}/manifest.json`, MAX_MANIFEST_BYTES, signal);
+  if (current.kind !== "ok") return decision(false);
+  const marker = normalizeEventWorkspaceManifest(current.raw);
+  if (!marker) return decision(false);
+  // Reuse the same exact-generation owner reader. This inner decision applies only to the
+  // fresh public publication being used as rights evidence, never to the saved old generation.
+  const currentEvent = await resolveRetainedEventWorkspaceFromR2({
+    event_id: retained.event_id, generation_id: marker.generation_id, company_id: retained.issuer.company_id,
+  }, safeBase, { signal, authorize: async workspace => decision(publicContextDocuments(workspace) !== null) });
+  if (!currentEvent.ok || currentEvent.receipt.manifest_sha256 !== await sha256Hex(current.bytes)) return decision(false);
+  const currentDocuments = publicContextDocuments(currentEvent.workspace);
+  return decision(!!currentDocuments && [...retainedDocuments].every(id => currentDocuments.has(id)));
+}
