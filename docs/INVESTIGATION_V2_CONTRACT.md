@@ -135,3 +135,20 @@ references, duplicate identity, dates, modes and aggregate/byte limits. The SQL
 admission boundary consumes the same corpus with explicit G1-only restrictions
 (v2 and no Thesis references). Distinct versions and ordered reference identities
 use JSONB equality; JSONB containment would incorrectly collapse them.
+
+## Recovery and real-owner proof
+
+Local PostgreSQL 17 now passes 13 cases, including a full custom-format dump and
+restore into a second disposable database, whole-row equality for heads, revisions,
+receipts and retained layouts, original-receipt replay after restore, foreign-user
+read denial, and the documented write-disable/read-preserving rollback followed
+by grant restoration. This is an isolated restore proof, not a production backup.
+
+The actual current Apple owner generation `9054efc5f27850f6c063ba52` was resolved
+through the repository adapter with fresh public-context rights on 2026-10-04.
+Its 111562-byte workspace and 2339-byte manifest passed byte/hash and semantic
+identity checks. The sanitized receipt is in
+`terminal/docs/verification/iw2-g1/current-owner-retention-receipt.json`. This proves
+a genuine retained owner baseline read, not authenticated product save/reopen.
+The existing Chris production session was observed signed in; no account, team
+or membership was created. Production migration and release remain outstanding.

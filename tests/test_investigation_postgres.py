@@ -30,11 +30,13 @@ def pg(tmp_path_factory):
     sock.mkdir()
     subprocess.run(["initdb","-D",str(data),"-U","postgres","-A","trust","--no-locale","--encoding=UTF8","--no-sync"],check=True,capture_output=True)
     subprocess.run(["pg_ctl","-D",str(data),"-l",str(base/"server.log"),"-o",f"-k {sock} -h '' -p 55487","-w","start"],check=True,capture_output=True)
-    def run(sql, actor=None, check=True):
+    def run(sql, actor=None, check=True, database="postgres"):
         if actor: sql = "set role authenticated; set request.jwt.claim.sub=" + quote(actor) + ";" + sql
-        r = subprocess.run(["psql","-h",str(sock),"-p","55487","-U","postgres","-d","postgres","-X","-qAt","-v","ON_ERROR_STOP=1","-c",sql],text=True,capture_output=True)
+        r = subprocess.run(["psql","-h",str(sock),"-p","55487","-U","postgres","-d",database,"-X","-qAt","-v","ON_ERROR_STOP=1","-c",sql],text=True,capture_output=True)
         if check: assert r.returncode == 0, r.stderr
         return r.stdout.strip() if check else r
+    run.connection = ["-h",str(sock),"-p","55487","-U","postgres"]
+    run.backup_path = base / "investigation-backup.dump"
     try:
         run("create role anon; create role authenticated; create schema auth; create schema extensions; create extension pgcrypto with schema extensions; create table auth.users(id uuid primary key); create function auth.uid() returns uuid language sql stable as $$select nullif(current_setting('request.jwt.claim.sub',true),'')::uuid$$; grant usage on schema auth to authenticated; create table public.chart_layouts(id uuid primary key,user_id uuid references auth.users(id),name text,config jsonb,updated_at timestamptz default now()); insert into auth.users values ('"+A+"'),('"+B+"');")
         assert SQL.exists(), "Investigation migration is not implemented"
@@ -186,3 +188,27 @@ def test_full_paired_manifest_corpus_at_the_sql_admission_boundary(pg):
             assert "Unicode" in response.stderr or "unicode" in response.stderr, response.stderr
         else:
             assert (response.stdout.strip() == "t") is bool(expected), vector["name"]
+
+
+def test_backup_restore_preserves_owner_rows_receipts_and_read_only_rollback(pg):
+    for binary in ('pg_dump', 'pg_restore'):
+        assert shutil.which(binary), f'restore proof requires {binary}'
+    subprocess.run(['pg_dump', *pg.connection, '-d', 'postgres', '-Fc', '-f', str(pg.backup_path)], check=True, capture_output=True)
+    pg('create database investigation_restore;')
+    subprocess.run(['pg_restore', *pg.connection, '-d', 'investigation_restore', '--exit-on-error', str(pg.backup_path)], check=True, capture_output=True)
+    def restored(sql, actor=None, check=True):
+        return pg(sql, actor, check, database='investigation_restore')
+    for table in ('investigations', 'investigation_revisions', 'investigation_mutation_receipts', 'chart_layout_revisions'):
+        # Whole-row multiset equality includes original request/result, clocks,
+        # exact manifests and retained layout config rather than counts alone.
+        query = f"select coalesce(jsonb_agg(row order by row::text),'[]'::jsonb) from (select to_jsonb(t) row from public.{table} t) q;"
+        assert restored(query) == pg(query), table
+    replay = apply(restored, '40000000-0000-4000-8000-000000000001')
+    assert replay['status'] == 'committed' and replay['revision'] == 1
+    assert json.loads(restored('select public.read_investigation_v2('+quote(ID)+'::uuid);', B))['status'] == 'not_found'
+    # Documented non-destructive rollback keeps owner readback, removes writes.
+    restored('revoke execute on function public.apply_investigation_revision_v2(uuid,integer,text,uuid,jsonb,jsonb) from authenticated;')
+    assert restored("select has_function_privilege('authenticated','public.apply_investigation_revision_v2(uuid,integer,text,uuid,jsonb,jsonb)','EXECUTE');") == "f"
+    assert json.loads(restored('select public.read_investigation_v2('+quote(ID)+'::uuid,1);', A))['revision'] == 1
+    restored('grant execute on function public.apply_investigation_revision_v2(uuid,integer,text,uuid,jsonb,jsonb) to authenticated;')
+    assert apply(restored, '40000000-0000-4000-8000-000000000001') == replay
