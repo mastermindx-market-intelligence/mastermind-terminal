@@ -6,7 +6,7 @@ import DashboardBackButton from "@/components/DashboardBackButton";
 import { AppNav } from "@/components/AppNav";
 import MobileNav from "@/components/MobileNav";
 import SettingsButton from "@/components/settings/SettingsButton";
-import BrainWidget from "@/components/BrainWidget";
+import AnalysisBrainHost from "@/components/chrome/AnalysisBrainHost";
 import { SettingsProvider } from "@/components/settings/SettingsProvider";
 import { OnboardingProvider } from "@/components/onboarding/OnboardingProvider";
 import { useShellBrainSymbol } from "@/lib/shellBrainSymbol";
@@ -144,12 +144,17 @@ export default function AppShell({
         {/* /analysis owns exact-source attachment UI but previously had no Brain host.
             Reuse the existing document singleton here; chart routes do not compose
             AppShell and keep their sole TerminalShell -> BrainWidget mount.
+            AnalysisBrainHost (F11-6) wraps that same BrainWidget with the one ai-context
+            provider that reports ambient page "analysis" + panel company|theses|null from
+            the parsed ?view= route, so the Macro compiler can tell a Thesis turn from an
+            ordinary Analysis turn. It is the only AppShell child that reads useSearchParams,
+            and only mounts on /analysis, so static (shell) routes never bail out.
             Rendered BEFORE {children}: BrainWidget returns null (no DOM/layout effect),
             but mounting it first means MM_BRAIN_CFG exists on window before any sibling
             child's effects run, so a child that reads the singleton on mount never races
             its own creation. */}
         {path.startsWith("/analysis") && (
-          <BrainWidget
+          <AnalysisBrainHost
             active={brainSymbol}
             onCommand={ignoreBrainShellEvent}
             onAnnotate={ignoreBrainShellEvent}
