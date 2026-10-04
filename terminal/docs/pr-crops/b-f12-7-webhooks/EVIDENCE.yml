@@ -17,7 +17,7 @@ layoutFiles:
   terminal/components/settings/icons.tsx: "7f3e17e45cb92545437ade898fe47a92cf6a65d1682cec9b9cea7a5bb8bd4d83"
 informationalFiles:
   asserted: false
-  terminal/lib/i18n.tsx: "51276ecc8db6956c6c4e5cc67c55eab029c0b468ccb61e34f8bb92f25e42b9f8"
+  terminal/lib/i18n.tsx: "399d9e1d2480ae8217d7f12f45b09ebba91a79670fbb0f16e68c38d43cb144de"
 theme: dark
 languages: [en, zh]
 viewports:
