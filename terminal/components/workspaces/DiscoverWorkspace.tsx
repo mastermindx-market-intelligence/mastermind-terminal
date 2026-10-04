@@ -1,11 +1,14 @@
 "use client";
 import { useCallback, useEffect, useState } from "react";
+import dynamic from "next/dynamic";
+const SectorIntelligenceWorkspace = dynamic(() => import("@/components/sector-intelligence/SectorIntelligenceWorkspace"));
 import WorkspaceTabs, { type WorkspaceTab } from "@/components/chrome/WorkspaceTabs";
 import ScreenerView from "@/components/ScreenerView";
 import HeatmapPageRoot from "@/components/heatmap/HeatmapPageRoot";
 import { DiscoverLeadersMount, DiscoverRadarMount } from "@/components/workspaces/DiscoverFlowMounts";
 import { useShellIdentity } from "@/components/chrome/AppShell";
 import { useT } from "@/lib/i18n";
+import { SECTOR_INTELLIGENCE_LEX } from "@/lib/sectorIntelligenceLex";
 
 /**
  * Discover workspace composer (Wave-2 IA) — the `/discover` body.
@@ -31,11 +34,12 @@ import { useT } from "@/lib/i18n";
 const TABS: WorkspaceTab[] = [
   { key: "screener", labelKey: "wtStockScreener" },
   { key: "heatmap", labelKey: "wtHeatmap" },
+  { key: "sectors", labelKey: SECTOR_INTELLIGENCE_LEX.siTab[0], zhLabel: SECTOR_INTELLIGENCE_LEX.siTab[1] },
   { key: "leaders", labelKey: "wtLeaders" },
   { key: "radar", labelKey: "wtRadar" },
 ];
 
-const KEYS = new Set(["screener", "heatmap", "leaders", "radar"]);
+const KEYS = new Set(["screener", "heatmap", "sectors", "leaders", "radar"]);
 const DEFAULT_TAB = "screener";
 
 export default function DiscoverWorkspace() {
@@ -78,6 +82,7 @@ export default function DiscoverWorkspace() {
       <div className="ws-body">
         {tab === "screener" && <ScreenerView identity={identity} />}
         {tab === "heatmap" && <HeatmapPageRoot />}
+        {tab === "sectors" && <SectorIntelligenceWorkspace />}
         {tab === "leaders" && <DiscoverLeadersMount key={`leaders-${nonce}`} />}
         {tab === "radar" && <DiscoverRadarMount key={`radar-${nonce}`} />}
       </div>

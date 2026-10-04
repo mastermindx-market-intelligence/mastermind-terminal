@@ -2,7 +2,7 @@
 import { useEffect } from "react";
 import s from "./alerts.module.css";
 import { pick } from "@/lib/finFormat";
-import { copy, firedEventTextZh, type DeliveryState, type ReadState, type ResolutionState } from "@/lib/alertsView";
+import { copy, firedEventTextZh, formatFiredAt, type DeliveryState, type ReadState, type ResolutionState } from "@/lib/alertsView";
 
 export interface AlertDetailData {
   kind?: "alert" | "thesis";
@@ -89,7 +89,7 @@ export default function AlertDetail({ data, lang, onClose }: { data: AlertDetail
       {data.kind !== "thesis" && (
       <div className={s.detailFact}><span className={s.detailLabel}>{pick(lang === "zh", "What changed", "发生了什么")}</span><span>{lang === "zh" ? firedEventTextZh(data.triggeredValue, data.conditionType) : (data.summaryPlain || data.conditionPlain || copy("null.notRecorded", lang))}</span></div>
       )}
-      <div className={s.detailFact}><span className={s.detailLabel}>{lang === "zh" ? "时间线" : "Timeframe"}</span><span>{data.firedAt ? (lang === "zh" ? `触发于 ${fmt(data.firedAt)}` : `Fired ${fmt(data.firedAt)}`) : copy("null.notRecorded", lang)}{lang === "zh" ? `，建立于 ${fmt(data.armedAt)}` : `, armed ${fmt(data.armedAt)}`}</span></div>
+      <div className={s.detailFact}><span className={s.detailLabel}>{lang === "zh" ? "时间线" : "Timeframe"}</span><span>{data.firedAt ? (lang === "zh" ? `触发于 ${formatFiredAt(data.firedAt, lang)}` : `Fired ${formatFiredAt(data.firedAt, lang)}`) : copy("null.notRecorded", lang)}{lang === "zh" ? `，建立于 ${fmt(data.armedAt)}` : `, armed ${fmt(data.armedAt)}`}</span></div>
       <div className={s.detailFact}>
         <span className={s.detailLabel}>{lang === "zh" ? "证据" : "Evidence"}</span>
         <span>{data.evidenceUrl ? <a href={data.evidenceUrl}>{pick(lang === "zh", "View evidence", "查看证据")}</a> : pick(lang === "zh", "No evidence link", "无证据链接")}</span>

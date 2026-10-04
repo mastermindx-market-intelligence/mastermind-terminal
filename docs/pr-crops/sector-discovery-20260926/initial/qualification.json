@@ -1,0 +1,378 @@
+{
+  "sourceRevision": "79dbe3f2431b9e21cabf23071f02eab5add57eb4",
+  "sourceBodiesChanged": false,
+  "transport": "local interception",
+  "productionProof": false,
+  "independentDesignAcceptance": false,
+  "checks": [
+    {
+      "name": "chromium-1440-en-light: all 11 exact sectors",
+      "passed": true
+    },
+    {
+      "name": "chromium-1440-en-light: source date retained",
+      "passed": true
+    },
+    {
+      "name": "chromium-1440-en-light: owner return rendered",
+      "passed": true
+    },
+    {
+      "name": "chromium-1440-en-light: sector selection is not a fabricated group join",
+      "passed": true
+    },
+    {
+      "name": "chromium-1440-en-light: Back restores filter and sort",
+      "passed": true
+    },
+    {
+      "name": "chromium-1440-en-light: supplied breadth and population",
+      "passed": true
+    },
+    {
+      "name": "chromium-1440-en-light: common 0-100 bar scale",
+      "passed": true
+    },
+    {
+      "name": "chromium-1440-en-light: breadth opens exact sector research",
+      "passed": true
+    },
+    {
+      "name": "chromium-1440-en-light: return restores list position",
+      "passed": true,
+      "details": {
+        "inner": 505,
+        "outer": 0
+      }
+    },
+    {
+      "name": "chromium-1440-en-light: evidence belongs to the breadth workspace",
+      "passed": true
+    },
+    {
+      "name": "chromium-1440-en-light: Sources closes to the same breadth view",
+      "passed": true
+    },
+    {
+      "name": "chromium-1440-en-light: empty search recovers without reload",
+      "passed": true
+    },
+    {
+      "name": "chromium-1440-en-light: no horizontal overflow",
+      "passed": true,
+      "details": {
+        "inner": 0,
+        "document": 0
+      }
+    },
+    {
+      "name": "chromium-1440-en-light: access loss removes retained breadth values",
+      "passed": true
+    },
+    {
+      "name": "chromium-820-en-dark: all 11 exact sectors",
+      "passed": true
+    },
+    {
+      "name": "chromium-820-en-dark: source date retained",
+      "passed": true
+    },
+    {
+      "name": "chromium-820-en-dark: owner return rendered",
+      "passed": true
+    },
+    {
+      "name": "chromium-820-en-dark: sector selection is not a fabricated group join",
+      "passed": true
+    },
+    {
+      "name": "chromium-820-en-dark: Back restores filter and sort",
+      "passed": true
+    },
+    {
+      "name": "chromium-820-en-dark: supplied breadth and population",
+      "passed": true
+    },
+    {
+      "name": "chromium-820-en-dark: common 0-100 bar scale",
+      "passed": true
+    },
+    {
+      "name": "chromium-820-en-dark: breadth opens exact sector research",
+      "passed": true
+    },
+    {
+      "name": "chromium-820-en-dark: return restores list position",
+      "passed": true,
+      "details": {
+        "inner": 0,
+        "outer": 631
+      }
+    },
+    {
+      "name": "chromium-820-en-dark: evidence belongs to the breadth workspace",
+      "passed": true
+    },
+    {
+      "name": "chromium-820-en-dark: Sources closes to the same breadth view",
+      "passed": true
+    },
+    {
+      "name": "chromium-820-en-dark: empty search recovers without reload",
+      "passed": true
+    },
+    {
+      "name": "chromium-820-en-dark: no horizontal overflow",
+      "passed": true,
+      "details": {
+        "inner": 0,
+        "document": 0
+      }
+    },
+    {
+      "name": "chromium-820-en-dark: access loss removes retained breadth values",
+      "passed": true
+    },
+    {
+      "name": "chromium-390-en-light: all 11 exact sectors",
+      "passed": true
+    },
+    {
+      "name": "chromium-390-en-light: source date retained",
+      "passed": true
+    },
+    {
+      "name": "chromium-390-en-light: owner return rendered",
+      "passed": true
+    },
+    {
+      "name": "chromium-390-en-light: sector selection is not a fabricated group join",
+      "passed": true
+    },
+    {
+      "name": "chromium-390-en-light: Back restores filter and sort",
+      "passed": true
+    },
+    {
+      "name": "chromium-390-en-light: supplied breadth and population",
+      "passed": true
+    },
+    {
+      "name": "chromium-390-en-light: common 0-100 bar scale",
+      "passed": true
+    },
+    {
+      "name": "chromium-390-en-light: breadth opens exact sector research",
+      "passed": true
+    },
+    {
+      "name": "chromium-390-en-light: return restores list position",
+      "passed": true,
+      "details": {
+        "inner": 0,
+        "outer": 1855
+      }
+    },
+    {
+      "name": "chromium-390-en-light: evidence belongs to the breadth workspace",
+      "passed": true
+    },
+    {
+      "name": "chromium-390-en-light: Sources closes to the same breadth view",
+      "passed": true
+    },
+    {
+      "name": "chromium-390-en-light: empty search recovers without reload",
+      "passed": true
+    },
+    {
+      "name": "chromium-390-en-light: no horizontal overflow",
+      "passed": true,
+      "details": {
+        "inner": 0,
+        "document": 0
+      }
+    },
+    {
+      "name": "chromium-390-en-light: access loss removes retained breadth values",
+      "passed": true
+    },
+    {
+      "name": "webkit-1440-en-dark: all 11 exact sectors",
+      "passed": true
+    },
+    {
+      "name": "webkit-1440-en-dark: source date retained",
+      "passed": true
+    },
+    {
+      "name": "webkit-1440-en-dark: owner return rendered",
+      "passed": true
+    },
+    {
+      "name": "webkit-1440-en-dark: sector selection is not a fabricated group join",
+      "passed": true
+    },
+    {
+      "name": "webkit-1440-en-dark: Back restores filter and sort",
+      "passed": true
+    },
+    {
+      "name": "webkit-1440-en-dark: supplied breadth and population",
+      "passed": true
+    },
+    {
+      "name": "webkit-1440-en-dark: common 0-100 bar scale",
+      "passed": true
+    },
+    {
+      "name": "webkit-1440-en-dark: breadth opens exact sector research",
+      "passed": true
+    },
+    {
+      "name": "webkit-1440-en-dark: return restores list position",
+      "passed": true,
+      "details": {
+        "inner": 505,
+        "outer": 0
+      }
+    },
+    {
+      "name": "webkit-1440-en-dark: evidence belongs to the breadth workspace",
+      "passed": true
+    },
+    {
+      "name": "webkit-1440-en-dark: Sources closes to the same breadth view",
+      "passed": true
+    },
+    {
+      "name": "webkit-1440-en-dark: empty search recovers without reload",
+      "passed": true
+    },
+    {
+      "name": "webkit-1440-en-dark: no horizontal overflow",
+      "passed": true,
+      "details": {
+        "inner": 0,
+        "document": 0
+      }
+    },
+    {
+      "name": "webkit-1440-en-dark: access loss removes retained breadth values",
+      "passed": true
+    },
+    {
+      "name": "webkit-390-zh-light: all 11 exact sectors",
+      "passed": true
+    },
+    {
+      "name": "webkit-390-zh-light: source date retained",
+      "passed": true
+    },
+    {
+      "name": "webkit-390-zh-light: owner return rendered",
+      "passed": true
+    },
+    {
+      "name": "webkit-390-zh-light: sector selection is not a fabricated group join",
+      "passed": true
+    },
+    {
+      "name": "webkit-390-zh-light: Back restores filter and sort",
+      "passed": true
+    },
+    {
+      "name": "webkit-390-zh-light: supplied breadth and population",
+      "passed": true
+    },
+    {
+      "name": "webkit-390-zh-light: common 0-100 bar scale",
+      "passed": true
+    },
+    {
+      "name": "webkit-390-zh-light: breadth opens exact sector research",
+      "passed": true
+    },
+    {
+      "name": "webkit-390-zh-light: return restores list position",
+      "passed": true,
+      "details": {
+        "inner": 0,
+        "outer": 1776
+      }
+    },
+    {
+      "name": "webkit-390-zh-light: evidence belongs to the breadth workspace",
+      "passed": true
+    },
+    {
+      "name": "webkit-390-zh-light: Sources closes to the same breadth view",
+      "passed": true
+    },
+    {
+      "name": "webkit-390-zh-light: empty search recovers without reload",
+      "passed": true
+    },
+    {
+      "name": "webkit-390-zh-light: no horizontal overflow",
+      "passed": true,
+      "details": {
+        "inner": 0,
+        "document": 0
+      }
+    },
+    {
+      "name": "webkit-390-zh-light: access loss removes retained breadth values",
+      "passed": true
+    },
+    {
+      "name": "zero page exceptions",
+      "passed": true,
+      "details": []
+    }
+  ],
+  "screenshots": [
+    {
+      "name": "chromium-1440-en-light-discover.png",
+      "sha256": "bd446acbbc3fdab2bb6c1772659e07df24e456c00cd2101e1b847ee2c1154126"
+    },
+    {
+      "name": "chromium-1440-en-light-breadth.png",
+      "sha256": "cbe835c68f0aeb3a817ba562dc0881e318a053c2c606239e61a6799233b6bf40"
+    },
+    {
+      "name": "chromium-820-en-dark-discover.png",
+      "sha256": "e995c7d790448a6e12186a0c446040d7d6fbc0cb7389a42a57d001d6ef4e5989"
+    },
+    {
+      "name": "chromium-820-en-dark-breadth.png",
+      "sha256": "fb0a060ecc167aeff9d67d0322ab196d4c7a5708fd29191cabb4acbee80fd186"
+    },
+    {
+      "name": "chromium-390-en-light-discover.png",
+      "sha256": "86c36870721e5deba3ad442cbc22fd91a72dc6cffa63b0d1708b3ad4b1d02002"
+    },
+    {
+      "name": "chromium-390-en-light-breadth.png",
+      "sha256": "05b7c6c3ce3ccd4a347646f681f900ac2fa8da9ce7ca51e9b55ade56222dabdc"
+    },
+    {
+      "name": "webkit-1440-en-dark-discover.png",
+      "sha256": "b8a49bff0667f2264eaecfe048dc636298f49f2fa604ce4ba7c6edc93193baa9"
+    },
+    {
+      "name": "webkit-1440-en-dark-breadth.png",
+      "sha256": "2bbeadca19ebdc81fc06830b83190e40ec27873814dbc2b635f56deb196e4e3d"
+    },
+    {
+      "name": "webkit-390-zh-light-discover.png",
+      "sha256": "0d505ef5016805e3e2e56c5ed177dc6d6a6d29beeba1abfd65c1d5c84cc93daa"
+    },
+    {
+      "name": "webkit-390-zh-light-breadth.png",
+      "sha256": "09607e9204338d8dd763f97c2eb87a3d9bed71f69b1033b337aafdc34e59fbd0"
+    }
+  ],
+  "errors": [],
+  "passed": true
+}

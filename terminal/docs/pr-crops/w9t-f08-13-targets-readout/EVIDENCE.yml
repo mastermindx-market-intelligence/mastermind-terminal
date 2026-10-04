@@ -1,9 +1,9 @@
 {
-  "capturedAtHead": "85dcb1f04aa6610c393ff905ef775e1173e53c63",
-  "capturedAt": "2026-09-27T03:42:12.084Z",
+  "capturedAtHead": "bfe98ed4f82f30506af69e9ada13811343e386fe",
+  "capturedAt": "2026-09-27T10:18:21.534Z",
   "layoutFiles": {
     "terminal/components/settings/SectionPortfolioTargets.tsx": "42efc4318fe724c0315b065b2833862ff241f9bc612aae976d32518ba523371b",
-    "terminal/components/settings/SettingsPanel.tsx": "4b2d7345916eeb9c9b5d38fb2931471dacaace0a7af6fc64e947ceb36e7dfa20",
+    "terminal/components/settings/SettingsPanel.tsx": "526725b37af04f1092359a8aca1e6d3d6d62815b5913b3a7eba754e4ca020329",
     "terminal/components/settings/SettingsProvider.tsx": "a4c829c956ca7ffd89bbc3158009b1148bb613569a9716b092dd9a27d449d910",
     "terminal/components/settings/icons.tsx": "7f3e17e45cb92545437ade898fe47a92cf6a65d1682cec9b9cea7a5bb8bd4d83",
     "terminal/lib/i18n.tsx": "51276ecc8db6956c6c4e5cc67c55eab029c0b468ccb61e34f8bb92f25e42b9f8"
