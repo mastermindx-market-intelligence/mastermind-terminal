@@ -32,7 +32,9 @@ def pg(tmp_path_factory):
     subprocess.run(["pg_ctl","-D",str(data),"-l",str(base/"server.log"),"-o",f"-k {sock} -h '' -p 55487","-w","start"],check=True,capture_output=True)
     def run(sql, actor=None, check=True, database="postgres"):
         if actor: sql = "set role authenticated; set request.jwt.claim.sub=" + quote(actor) + ";" + sql
-        r = subprocess.run(["psql","-h",str(sock),"-p","55487","-U","postgres","-d",database,"-X","-qAt","-v","ON_ERROR_STOP=1","-c",sql],text=True,capture_output=True)
+        # Corpus cases deliberately exceed 128 KiB; Linux limits each argv entry.
+        # stdin exercises PostgreSQL's real parser without a shell or argv ceiling.
+        r = subprocess.run(["psql","-h",str(sock),"-p","55487","-U","postgres","-d",database,"-X","-qAt","-v","ON_ERROR_STOP=1"],input=sql,text=True,capture_output=True)
         if check: assert r.returncode == 0, r.stderr
         return r.stdout.strip() if check else r
     run.connection = ["-h",str(sock),"-p","55487","-U","postgres"]
