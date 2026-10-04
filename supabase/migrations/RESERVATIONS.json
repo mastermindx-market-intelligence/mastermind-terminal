@@ -179,7 +179,7 @@
       "merged_sha": "b7aa0981",
       "applied_in_production": true,
       "applied_date": "2026-09-10",
-      "note": "claimed by packet B-F13-5 in PR #547; DDL shipped, not applied. Merged to master as b7aa0981 on 2026-09-10 (squash of #547's ratified head 661713ec); DDL still unapplied at merge time — the seat applies 0017 with a receipt in ledger order. Applied in production 2026-09-10T20:57:38Z by the seat (receipt comment on #547)."
+      "note": "claimed by packet B-F13-5 in PR #547; DDL shipped, not applied. Merged to master as b7aa0981 on 2026-09-10 (squash of #547's ratified head 661713ec); DDL still unapplied at merge time \u2014 the seat applies 0017 with a receipt in ledger order. Applied in production 2026-09-10T20:57:38Z by the seat (receipt comment on #547)."
     },
     "0018": {
       "state": "taken",
@@ -190,7 +190,7 @@
       "merged_sha": "cd1269fe",
       "applied_in_production": true,
       "applied_date": "2026-09-10",
-      "note": "shipped unapplied; the seat applies with a receipt. applied_date not recorded because DDL is unapplied. File landed in open PR #549 (packet B-F12-7, seat ruling R2). B-F12-7 here is the seat's re-scoped Terminal signed-webhooks packet of 2026-09-09 (branch claude/mo-b-f12-7-signed-webhooks), not the refused public-API packet recorded against macro #6925 under the same id. Open-PR query at authoring: #547 holds 0017 (B-F13-5); #543 reserves 0017-0020 in the ledger only; 0019 remains for B-F12-8. Merged to master 2026-09-10T19:13Z via merge-on-green (#549); not yet applied — waits for 0017 in ledger order. Applied in production 2026-09-10T20:58:44Z by the seat, after 0017 (receipt comment on #549)."
+      "note": "shipped unapplied; the seat applies with a receipt. applied_date not recorded because DDL is unapplied. File landed in open PR #549 (packet B-F12-7, seat ruling R2). B-F12-7 here is the seat's re-scoped Terminal signed-webhooks packet of 2026-09-09 (branch claude/mo-b-f12-7-signed-webhooks), not the refused public-API packet recorded against macro #6925 under the same id. Open-PR query at authoring: #547 holds 0017 (B-F13-5); #543 reserves 0017-0020 in the ledger only; 0019 remains for B-F12-8. Merged to master 2026-09-10T19:13Z via merge-on-green (#549); not yet applied \u2014 waits for 0017 in ledger order. Applied in production 2026-09-10T20:58:44Z by the seat, after 0017 (receipt comment on #549)."
     },
     "0019": {
       "state": "taken",
@@ -223,7 +223,7 @@
       "merged_sha": "bad423f5",
       "applied_in_production": true,
       "applied_date": "2026-09-11",
-      "note": "packet B-F12-B5-1 explicit grants; prefix ruled by the seat 2026-09-09 (0017-0020 reserved for B-F13-5 / B-F12-7 / B-F12-8 / B-F12-9); draft PR #548; shipped unapplied — the seat applies with a receipt. Merged to master 2026-09-11T02:00:51Z via auto-merge (#548). Applied in production 2026-09-11T05:59:15Z by the seat, after 0019 and 0020 in ledger order (0017 and 0018 were applied 2026-09-10); readback receipt comment 5630176531 on the owning PR: https://github.com/mastermindx-market-intelligence/mastermind-terminal/pull/548#issuecomment-5630176531"
+      "note": "packet B-F12-B5-1 explicit grants; prefix ruled by the seat 2026-09-09 (0017-0020 reserved for B-F13-5 / B-F12-7 / B-F12-8 / B-F12-9); draft PR #548; shipped unapplied \u2014 the seat applies with a receipt. Merged to master 2026-09-11T02:00:51Z via auto-merge (#548). Applied in production 2026-09-11T05:59:15Z by the seat, after 0019 and 0020 in ledger order (0017 and 0018 were applied 2026-09-10); readback receipt comment 5630176531 on the owning PR: https://github.com/mastermindx-market-intelligence/mastermind-terminal/pull/548#issuecomment-5630176531"
     },
     "0022": {
       "state": "taken",
@@ -266,7 +266,7 @@
       "pr_state": "merged",
       "applied_in_production": true,
       "applied_date": "2026-09-19",
-      "note": "packet B-F11-5 thesis amendment proposals (MO-PAID-054 write-back). Shipped UNAPPLIED; the seat applies after merge. Prefix 0025 is ruled by seat 026851bd (2026-09-18T23:40Z). applied_in_production is false and applied_date is null because there is no application yet — the date is not recorded, never because a real date was lost. Open draft PR #577. Seat 2026-09-19: PR #577 merged (squash 4169e0cf, 06:36Z); applied in production 2026-09-19T06:38:03Z with scripts/supabase_apply.py (20/20 statements ok; receipt ddl/receipt_0025.json in the seat handoff kit; direct catalog readback confirmed table thesis_amendment_proposals with RLS, indexes thesis_amendment_proposals_thesis + thesis_amendment_proposals_amended_from, trigger thesis_amendment_proposals_guard, security-definer functions set_thesis_amendment_state + thesis_amendment_proposals_guard, policies select_own + insert_own).",
+      "note": "packet B-F11-5 thesis amendment proposals (MO-PAID-054 write-back). Shipped UNAPPLIED; the seat applies after merge. Prefix 0025 is ruled by seat 026851bd (2026-09-18T23:40Z). applied_in_production is false and applied_date is null because there is no application yet \u2014 the date is not recorded, never because a real date was lost. Open draft PR #577. Seat 2026-09-19: PR #577 merged (squash 4169e0cf, 06:36Z); applied in production 2026-09-19T06:38:03Z with scripts/supabase_apply.py (20/20 statements ok; receipt ddl/receipt_0025.json in the seat handoff kit; direct catalog readback confirmed table thesis_amendment_proposals with RLS, indexes thesis_amendment_proposals_thesis + thesis_amendment_proposals_amended_from, trigger thesis_amendment_proposals_guard, security-definer functions set_thesis_amendment_state + thesis_amendment_proposals_guard, policies select_own + insert_own).",
       "merged_sha": "4169e0cf"
     },
     "0026": {
@@ -287,8 +287,18 @@
       "pr_state": "merged",
       "applied_in_production": true,
       "applied_date": "2026-09-19",
-      "note": "personal read-only API keys (packet B-F12-10, MO-PAID-055). Seat ruling h_t581 2026-09-18: #579 owns 0024, #577 owns 0025, #582 owns 0026, #581 owns 0027. Shipped UNAPPLIED — applied_in_production is false and applied_date is null, not recorded because there is no application yet. Seat 2026-09-19: PR #581 merged (squash c9381593, 04:58Z); applied in production 2026-09-19T05:02:24Z with scripts/supabase_apply.py (46/46 statements ok; receipt ddl/receipt_0027.json in the seat handoff kit; direct catalog readback confirmed api_keys/api_key_events/api_key_usage with RLS, indexes api_keys_user_active + api_key_events_user, triggers api_keys_active_limit/api_keys_audit/api_keys_no_unrevoke, and all 7 functions).",
+      "note": "personal read-only API keys (packet B-F12-10, MO-PAID-055). Seat ruling h_t581 2026-09-18: #579 owns 0024, #577 owns 0025, #582 owns 0026, #581 owns 0027. Shipped UNAPPLIED \u2014 applied_in_production is false and applied_date is null, not recorded because there is no application yet. Seat 2026-09-19: PR #581 merged (squash c9381593, 04:58Z); applied in production 2026-09-19T05:02:24Z with scripts/supabase_apply.py (46/46 statements ok; receipt ddl/receipt_0027.json in the seat handoff kit; direct catalog readback confirmed api_keys/api_key_events/api_key_usage with RLS, indexes api_keys_user_active + api_key_events_user, triggers api_keys_active_limit/api_keys_audit/api_keys_no_unrevoke, and all 7 functions).",
       "merged_sha": "c9381593"
+    },
+    "0028": {
+      "state": "taken",
+      "file": "0028_investigations.sql",
+      "packet": "IW2-G1-INVESTIGATION",
+      "pr": 777,
+      "pr_state": "open",
+      "applied_in_production": true,
+      "applied_date": "2026-10-04T06:17:18Z",
+      "note": "Single Investigation aggregate on existing #777. All 39 DDL statements applied; independent read-only catalog reconciled the incomplete initial readback and verified all 19 objects, RLS and grants. Receipt: https://github.com/mastermindx-market-intelligence/mastermind-terminal/pull/777#issuecomment-5977275494. Application save/reopen acceptance remains pending deployment."
     }
   }
 }
