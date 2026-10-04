@@ -9,6 +9,8 @@
  */
 export const INVESTIGATION_MANIFEST_SCHEMA = "investigation_manifest.v1" as const;
 export const INVESTIGATION_MANIFEST_MAX_BYTES = 64 * 1024;
+export const INVESTIGATION_MANIFEST_SCHEMA_V2 = "investigation_manifest.v2" as const;
+export const INVESTIGATION_MANIFEST_V2_MAX_BYTES = 128 * 1024;
 const MAX_ERRORS = 32;
 const MAX_NODES = 4096;
 const SUBJECT_KINDS = new Set([
@@ -43,7 +45,7 @@ export type InvestigationEvidenceRef = {
   selection?: { field: string };
 };
 export type InvestigationManifest = {
-  schema: typeof INVESTIGATION_MANIFEST_SCHEMA;
+  schema: typeof INVESTIGATION_MANIFEST_SCHEMA | typeof INVESTIGATION_MANIFEST_SCHEMA_V2;
   intent: {
     title: string;
     question: string;
@@ -91,7 +93,7 @@ class Validator {
     if (value === null || typeof value === "boolean") return true;
     if (typeof value === "string") {
       this.stringUnits += value.length;
-      if (this.stringUnits > INVESTIGATION_MANIFEST_MAX_BYTES) {
+      if (this.stringUnits > INVESTIGATION_MANIFEST_V2_MAX_BYTES) {
         this.add("$", "manifest_too_large"); return false;
       }
       return true;
@@ -242,10 +244,15 @@ class Validator {
   manifest(raw: unknown): void {
     const manifest = this.object(raw, "$", ["schema", "intent", "layout_refs", "thesis_refs", "evidence_refs", "continuation"], ["review_baseline_ref"]);
     if (!manifest) return;
-    if (manifest.schema !== INVESTIGATION_MANIFEST_SCHEMA) this.add("$.schema", "unsupported_schema");
+    const v2 = manifest.schema === INVESTIGATION_MANIFEST_SCHEMA_V2;
+    const questionLimit = v2 ? 4000 : 2000;
+    if (!v2 && manifest.schema !== INVESTIGATION_MANIFEST_SCHEMA) this.add("$.schema", "unsupported_schema");
+    if (v2 && [manifest.layout_refs, manifest.thesis_refs, manifest.evidence_refs].reduce<number>((n, refs) => n + (Array.isArray(refs) ? refs.length : 0), 0) > 128) {
+      this.add("$", "too_many_references");
+    }
     const intent = this.object(manifest.intent, "$.intent", ["title", "question", "subjects"], ["horizon", "research_as_of"]);
     if (intent) {
-      this.text(intent.title, "$.intent.title", 160, true); this.text(intent.question, "$.intent.question", 2000);
+      this.text(intent.title, "$.intent.title", 160, true); this.text(intent.question, "$.intent.question", questionLimit);
       this.list(intent.subjects, "$.intent.subjects", 16, (v, p) => this.subject(v, p));
       if (Object.hasOwn(intent, "horizon")) this.text(intent.horizon, "$.intent.horizon", 64, true);
       if (Object.hasOwn(intent, "research_as_of")) this.date(intent.research_as_of, "$.intent.research_as_of");
@@ -256,7 +263,7 @@ class Validator {
     const continuation = this.object(manifest.continuation, "$.continuation", [], ["next_question", "next_observation"]);
     if (continuation) {
       for (const key of ["next_question", "next_observation"]) {
-        if (Object.hasOwn(continuation, key)) this.text(continuation[key], `$.continuation.${key}`, 2000);
+        if (Object.hasOwn(continuation, key)) this.text(continuation[key], `$.continuation.${key}`, questionLimit);
       }
     }
     if (Object.hasOwn(manifest, "review_baseline_ref")) this.evidence(manifest.review_baseline_ref, "$.review_baseline_ref", true);
@@ -269,7 +276,9 @@ export function validateInvestigationManifest(raw: unknown, admission: Investiga
   try {
     if (!validator.dataOnly(raw)) return { ok: false, errors: validator.errors };
     const serialized = JSON.stringify(raw);
-    if (new TextEncoder().encode(serialized).byteLength > INVESTIGATION_MANIFEST_MAX_BYTES) {
+    const maxBytes = raw !== null && typeof raw === "object" && (raw as Obj).schema === INVESTIGATION_MANIFEST_SCHEMA_V2
+      ? INVESTIGATION_MANIFEST_V2_MAX_BYTES : INVESTIGATION_MANIFEST_MAX_BYTES;
+    if (new TextEncoder().encode(serialized).byteLength > maxBytes) {
       return { ok: false, errors: [{ path: "$", code: "manifest_too_large" }] };
     }
     validator.manifest(raw);

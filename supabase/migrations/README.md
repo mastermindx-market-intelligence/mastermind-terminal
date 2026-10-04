@@ -338,3 +338,11 @@ combination is legitimate, which is why `0001`–`0007` pass, but only when the 
 date is unknown, since an unexplained null is indistinguishable from a forgotten one; and an
 `applied_date` carried while `applied_in_production` is anything but `true`, which is a row that
 contradicts itself and that no note reconciles.
+
+### 0028 — Investigation convergence (#777)
+
+The former Saved Research reservation now owns `0028_investigations.sql`, packet
+`IW2-G1-INVESTIGATION`. It is **unapplied**. Heads, immutable revisions, operation
+receipts and the chart-layout owner retention extension form one G1 transaction.
+No DDL0022 replay or separate Saved Research tables are needed. Exact application
+and authenticated product acceptance must be recorded independently.

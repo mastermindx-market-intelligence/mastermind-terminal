@@ -1,3 +1,5 @@
+> **Superseded implementation plan:** The Chairman's 2026-10-03 continuation and backend-gate override converge this existing #777 carrier and 0028 reservation into the single Investigation aggregate. See `docs/INVESTIGATION_V2_CONTRACT.md` for the current source contract. The historical plan below is retained for provenance; it is not a second store or a current stop instruction.
+
 # Saved Research Owner/API Vertical Implementation Plan
 
 > **For implementers:** Execute test-first in this worktree. Do not apply the migration or deploy this vertical until the authenticated runtime and real-browser proof phase explicitly clears those effects.
