@@ -78,6 +78,7 @@ function AppNavInner() {
   // pane still exists but no longer drives the nav.
   const activeKey = path.startsWith("/analysis") ? "analysis"
     : path.startsWith("/discover") ? "discover"
+    : path.startsWith("/dislocations") ? "dislocations"
     : path.startsWith("/options") ? "options"
     : path.startsWith("/scripts") ? "scripts"
     : path.startsWith("/alerts") ? "alerts"
