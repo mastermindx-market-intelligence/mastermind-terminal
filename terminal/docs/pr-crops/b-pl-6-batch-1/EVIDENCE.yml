@@ -7,6 +7,7 @@
 # The other 16 images and their original provenance above are preserved.
 # Analysis recapture command: npm run test:e2e:responsive -- investigation-workspace.spec.ts --grep 'Analysis research entries' --workers=1
 # capturedAtHead is informational. The lock is layoutFiles.
+# 2026-10-04 #808 dislocations screen: hash-only restamp of plainLabels.ts — +18 added lines (EPISODE_STATE_WORDS / episodeStateLabel) imported only by components/dislocations/DislocationsView.tsx, which no surface in this capture renders; crops unchanged
 layoutFiles:
   terminal/components/OptionsHubView.tsx: "bc6201d94f709956b4ee70f52900db4431433c5f3dcef1606628900babf73f2a"
   terminal/components/SearchModal.tsx: "ed4545abe5d31c5f79e7eab96bad45b76b06694bf4d1994901dd6defd195bbc0"
@@ -14,7 +15,7 @@ layoutFiles:
   terminal/components/workspaces/AnalysisWorkspace.tsx: "f98764b71e4e1301d6149aef0d3e47615455801f95a9691b4d8807febe92226e"
   terminal/components/ChartPanel.tsx: "06f59b1c67ee3661dd361f72b23f16f1cddb26a8020490463ea18f941a44361f"
   terminal/components/DayRange.tsx: "c84724652783da1897ab4eeb98550eaf3dbd7942eefe3ce127b6ada2b16dd672"
-  terminal/lib/plainLabels.ts: "711f94db978d842b8051e9a975ef772308dab45ba08b3f1859537b5747d372d1"
+  terminal/lib/plainLabels.ts: "8f57e32a21abcae530075b7c4da72f170afff8ea38084026995887b4a18fe29a"
   terminal/lib/i18n.tsx: "399d9e1d2480ae8217d7f12f45b09ebba91a79670fbb0f16e68c38d43cb144de"
   terminal/app/company-intelligence.css: "16ca4e131ad1f2973b6346e7f051af802dbfa27227d6c33615af87578e73f885"
 theme: dark
