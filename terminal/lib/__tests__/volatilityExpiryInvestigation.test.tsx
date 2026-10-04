@@ -132,4 +132,71 @@ describe("Volatility expiry-led investigation", () => {
     expect(smileExpiry("2026-11-20").getAttribute("aria-pressed")).toBe("true");
     expect(flowGetMock.mock.calls.filter(([key]) => key === "vol:SPY")).toHaveLength(1);
   });
+
+  it("keeps a smile-only selected expiry in the real term selector, then returns to an admitted term expiry", async () => {
+    const smileOnly = {
+      ...payload,
+      term: [{ exp: "2026-10-09", dte: 14, atm_iv: 13.3 }],
+      smile: [{ exp: "2026-10-23", points: [point(90, 22, 23), point(100, 20, 20), point(110, 21, 22)] }],
+    };
+    flowGetMock.mockImplementation(async (key: string) => key === "vol:SPY" ? smileOnly : null);
+    const context = await mount();
+    await act(async () => smileExpiry("2026-10-23").click());
+    expect(context.textContent).toContain("2026-10-23");
+    expect(context.textContent).toContain("ATM IV unavailable");
+    expect(context.textContent).toContain("smile supplied");
+    expect(termSelect().value).toBe("2026-10-23");
+    expect([...termSelect().options].find(option => option.value === "2026-10-23")?.textContent).toBe("2026-10-23 · ATM IV unavailable");
+
+    await selectTerm("2026-10-09");
+    expect(context.textContent).toContain("2026-10-09");
+    expect(context.textContent).toContain("14 days");
+    expect(context.textContent).toContain("reported ATM IV 13.3%");
+    expect(context.textContent).toContain("smile unavailable for this expiry");
+    expect(termSelect().value).toBe("2026-10-09");
+  });
+
+  it("keeps an ambiguous-DTE shared selection exact instead of silently falling back", async () => {
+    const ambiguous = {
+      ...payload,
+      term: [
+        { exp: "2026-10-09", dte: 14, atm_iv: 13.3 },
+        { exp: "2026-10-16", dte: 21, atm_iv: 14.6 },
+        { exp: "2026-10-16", dte: 28, atm_iv: 99 },
+      ],
+      smile: [{ exp: "2026-10-16", points: [point(90, 22, 23), point(100, 20, 20), point(110, 21, 22)] }],
+    };
+    flowGetMock.mockImplementation(async (key: string) => key === "vol:SPY" ? ambiguous : null);
+    const context = await mount();
+    expect(context.textContent).toContain("2026-10-16");
+    expect(context.textContent).not.toContain("21 days");
+    expect(context.textContent).not.toContain("28 days");
+    expect(context.textContent).toContain("ATM IV unavailable · conflicting expiry records");
+    expect(context.textContent).toContain("smile supplied");
+    expect(termSelect().value).toBe("2026-10-16");
+    expect([...termSelect().options].find(option => option.value === "2026-10-16")?.textContent).toBe("2026-10-16 · ATM IV unavailable");
+
+    await selectTerm("2026-10-09");
+    expect(context.textContent).toContain("2026-10-09");
+    expect(context.textContent).toContain("14 days");
+    expect(context.textContent).toContain("reported ATM IV 13.3%");
+    expect(termSelect().value).toBe("2026-10-09");
+  });
+
+  it("renders the exact shared expiry when the term inventory is empty", async () => {
+    const noTerm = {
+      ...payload,
+      term: [],
+      smile: [{ exp: "2026-10-23", points: [point(90, 22, 23), point(100, 20, 20), point(110, 21, 22)] }],
+    };
+    flowGetMock.mockImplementation(async (key: string) => key === "vol:SPY" ? noTerm : null);
+    const context = await mount();
+    expect(context.textContent).toContain("2026-10-23");
+    expect(context.textContent).toContain("ATM IV unavailable");
+    expect(context.textContent).toContain("smile supplied");
+    expect(termSelect().value).toBe("2026-10-23");
+    expect(termSelect().options).toHaveLength(1);
+    expect(termSelect().options[0].textContent).toBe("2026-10-23 · ATM IV unavailable");
+  });
+
 });

@@ -17,7 +17,7 @@ import type { Lang } from "@/lib/i18n";
 import { makeVolT } from "./volStrings";
 import type { VolTermRow } from "./volTypes";
 import {
-  admitVolTermRows, finiteSegments, fmtPct, ProvenanceLine, PanelEmpty, PLOT_PAD, AXIS_TXT, REF_TXT, NEUTRAL_CHIP,
+  admitVolTermRows, finiteSegments, fmtPct, volIsoDay, ProvenanceLine, PanelEmpty, PLOT_PAD, AXIS_TXT, REF_TXT, NEUTRAL_CHIP,
   type AdmittedVolTermPoint,
 } from "./volShared";
 
@@ -45,6 +45,9 @@ export function VolTermPanel({
 
   const admission = useMemo(() => admitVolTermRows(term), [term]);
   const pts = admission.rows;
+  // Keep the shared identity even when this surface has no admitted term row.
+  const selectedExpiry = volIsoDay(selectedExp) ? selectedExp : null;
+  const selectedUnavailable = selectedExpiry != null && !pts.some((p) => p.exp === selectedExpiry);
   const finite = useMemo(() => pts.filter((p) => Number.isFinite(p.v)), [pts]);
   const segments = useMemo(
     () => admission.ambiguousCoordinateExpiries.size > 0
@@ -142,16 +145,21 @@ export function VolTermPanel({
           {conflictSummary}
         </div>
       )}
-      {onSelectExp && pts.length > 0 && (
+      {onSelectExp && (pts.length > 0 || selectedUnavailable) && (
         <div role="group" aria-label={t("termExpAria")} style={EXPIRY_ROW}>
           <span style={EXPIRY_LABEL}>{t("termExpControl")}</span>
           <select
             data-testid="term-expiry-select"
             aria-label={t("termExpAria")}
-            value={selectedExp && pts.some((p) => p.exp === selectedExp) ? selectedExp : pts[0].exp}
+            value={selectedExpiry ?? pts[0]?.exp ?? ""}
             onChange={(event) => onSelectExp(event.target.value)}
             style={EXPIRY_SELECT}
           >
+            {selectedUnavailable && (
+              <option value={selectedExpiry!}>
+                {selectedExpiry} · {t("termExpUnavailable")}
+              </option>
+            )}
             {pts.map((p) => (
               <option key={p.exp} value={p.exp}>
                 {p.exp} · {p.dte}D · {Number.isFinite(p.v) ? fmtPct(p.v) : t("termExpUnavailable")}
