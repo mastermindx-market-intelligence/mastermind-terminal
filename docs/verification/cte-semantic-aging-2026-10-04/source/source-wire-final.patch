@@ -1,0 +1,880 @@
+diff --git a/terminal/components/fin/CompanyThemeContextCard.tsx b/terminal/components/fin/CompanyThemeContextCard.tsx
+index 2b251df2..1f85277c 100644
+--- a/terminal/components/fin/CompanyThemeContextCard.tsx
++++ b/terminal/components/fin/CompanyThemeContextCard.tsx
+@@ -5,7 +5,10 @@ import { useLang } from "../../lib/i18n";
+ import { pick } from "../../lib/finFormat";
+ import {
+   getCompanyThemeExposure,
++  ageCompanyThemeExposureResult,
++  evaluateCompanyThemeExposureFreshness,
+   type CompanyThemeExposure,
++  type CompanyThemeExposureFreshness,
+   type CompanyThemeExposureItem,
+   type CompanyThemeExposureResult,
+ } from "../../lib/companyThemeExposure";
+@@ -46,10 +49,11 @@ function stateLabel(state: "ready" | "partial" | "stale", zh: boolean): string {
+   return pick(zh, "Partial", "部分覆盖");
+ }
+ 
+-function themeStateLabel(state: CompanyThemeExposure["theme_state"]["status"], zh: boolean): string {
++function themeStateLabel(state: CompanyThemeExposureFreshness["status"], zh: boolean): string {
+   if (state === "fresh") return pick(zh, "Fresh", "新鲜");
+   if (state === "stale") return pick(zh, "Stale", "已过期");
+   if (state === "missing") return pick(zh, "Missing", "缺失");
++  if (state === "future") return pick(zh, "Future date", "未来日期");
+   return pick(zh, "Invalid", "无效");
+ }
+ 
+@@ -62,7 +66,7 @@ function errorCopy(code: "invalid_symbol" | "not_found" | "unauthorized" | "upst
+ 
+ function effectiveState(result: CompanyThemeExposureResult): "ready" | "partial" | "stale" {
+   if (!result.ok) return "partial";
+-  return result.state === "stale" ? "stale" : result.context.status;
++  return result.state === "stale" ? "stale" : result.state === "partial" ? "partial" : result.context.status;
+ }
+ 
+ function EventBoundary({ label, onUseLatest }: { label: string; onUseLatest?: () => void }) {
+@@ -89,7 +93,7 @@ function LoadingCard() {
+   return <section className="ci-theme-card ci-theme-loading" aria-busy="true" aria-label={pick(lang === "zh", "Loading verified company theme context", "正在加载已验证的公司主题背景")}><span className="fin-skel" /><span className="fin-skel" /><span className="fin-skel" /></section>;
+ }
+ 
+-function ContextCard({ context, state }: { context: CompanyThemeExposure; state: "ready" | "partial" | "stale" }) {
++function ContextCard({ context, state, freshness }: { context: CompanyThemeExposure; state: "ready" | "partial" | "stale"; freshness: CompanyThemeExposureFreshness }) {
+   const { lang } = useLang();
+   const zh = lang === "zh";
+   const [receiptsOpen, setReceiptsOpen] = useState(false);
+@@ -97,6 +101,9 @@ function ContextCard({ context, state }: { context: CompanyThemeExposure; state:
+   const noMapped = context.coverage.mapped_basket_count === 0;
+   const mappedWord = context.coverage.mapped_basket_count === 1 ? pick(zh, "mapping", "个映射") : pick(zh, "mappings", "个映射");
+   const palette = state === "ready" ? "var(--up)" : "var(--warn)";
++  const displayWarnings = [...context.warnings];
++  if (freshness.reason === "expired" && !displayWarnings.includes("theme_state_stale")) displayWarnings.push("theme_state_stale");
++  if (freshness.status === "future" && !displayWarnings.includes("theme_state_future")) displayWarnings.push("theme_state_future");
+   const contextHeadline = noMembership
+     ? pick(zh, "No active curated basket membership", "暂无活跃策展篮子成员身份")
+     : noMapped
+@@ -148,10 +155,10 @@ function ContextCard({ context, state }: { context: CompanyThemeExposure; state:
+         <span className={context.coverage.unmapped_basket_count ? "warn" : ""}><b className="num">{context.coverage.unmapped_basket_count}</b>{pick(zh, "excluded", "排除")}</span>
+       </div>
+ 
+-      {(context.warnings.length > 0 || context.coverage.unmapped_basket_count > 0) && <div className="ci-theme-warning" role="status"><span aria-hidden>!</span><p>{context.warnings.map((item) => warning(item, zh)).join(" ") || pick(zh, "Some active curated baskets are excluded from the crosswalk; no label is inferred.", "部分活跃策展篮子被排除在映射之外；不会推断标签。")}</p></div>}
++      {(displayWarnings.length > 0 || context.coverage.unmapped_basket_count > 0) && <div className="ci-theme-warning" role="status"><span aria-hidden>!</span><p>{displayWarnings.map((item) => warning(item, zh)).join(" ") || pick(zh, "Some active curated baskets are excluded from the crosswalk; no label is inferred.", "部分活跃策展篮子被排除在映射之外；不会推断标签。")}</p></div>}
+ 
+       <div className="ci-theme-footer">
+-        <span>{pick(zh, "Theme state", "主题状态")} <b>{themeStateLabel(context.theme_state.status, zh)}</b>{context.theme_state.as_of ? <time className="num" dateTime={context.theme_state.as_of}>{context.theme_state.as_of}</time> : null}</span>
++        <span>{pick(zh, "Theme state", "主题状态")} <b>{themeStateLabel(freshness.status, zh)}</b>{context.theme_state.as_of ? <time className="num" dateTime={context.theme_state.as_of}>{context.theme_state.as_of}</time> : null}</span>
+         <button className="ci-theme-receipts" aria-expanded={receiptsOpen} aria-controls="ci-theme-receipts" onClick={() => setReceiptsOpen((open) => !open)}>{pick(zh, receiptsOpen ? "Hide receipts" : "View receipts", receiptsOpen ? "隐藏凭证" : "查看凭证")}</button>
+       </div>
+ 
+@@ -179,8 +186,15 @@ export default function CompanyThemeContextCard({
+ }: CompanyThemeContextCardProps) {
+   const [loaded, setLoaded] = useState<{ key: string; result: CompanyThemeExposureResult } | null>(null);
+   const [nonce, setNonce] = useState(0);
++  const [clock, setClock] = useState(() => Date.now());
++  const [selection, setSelection] = useState({ id: selectedEventId, revision: 0 });
++  // Returning from a historical event starts a new request identity. Never
++  // paint an earlier latest-event result while that new request is settling.
++  if (selection.id !== selectedEventId) {
++    setSelection({ id: selectedEventId, revision: selection.revision + 1 });
++  }
+   const selectedHistorical = !!latestEventId && latestEventId !== selectedEventId;
+-  const requestKey = `${ticker}:${companyIntelligenceGenerationId}:${latestEventId ?? "none"}:${nonce}`;
++  const requestKey = `${ticker}:${companyIntelligenceGenerationId}:${latestEventId ?? "none"}:${selection.revision}:${nonce}`;
+ 
+   useEffect(() => {
+     // Current-vs-historical is owned by the already loaded Company Intelligence
+@@ -188,25 +202,52 @@ export default function CompanyThemeContextCard({
+     if (selectedHistorical) return;
+     const controller = new AbortController();
+     getCompanyThemeExposure(ticker, { signal: controller.signal, retryNonce: nonce })
+-      .then((result) => { if (!controller.signal.aborted) setLoaded({ key: requestKey, result }); })
++      .then((result) => { if (!controller.signal.aborted) { setClock(Date.now()); setLoaded({ key: requestKey, result }); } })
+       .catch(() => { if (!controller.signal.aborted) setLoaded({ key: requestKey, result: { ok: false, state: "error", error: { code: "upstream_unavailable", message: "Company theme context request failed", retryable: true } } }); });
+     return () => controller.abort();
+   }, [nonce, requestKey, selectedHistorical, ticker]);
+ 
+-  const result = loaded?.key === requestKey ? loaded.result : null;
++  const verified = loaded?.key === requestKey ? loaded.result : null;
++  // This is local presentation aging, not a second fetch or product scheduler.
++  useEffect(() => {
++    if (selectedHistorical || !verified?.ok
++      || verified.context.company_intelligence.generation_id !== companyIntelligenceGenerationId
++      || verified.context.company_intelligence.latest_event_id !== latestEventId) return;
++    let timer: ReturnType<typeof setTimeout> | undefined;
++    const schedule = () => {
++      if (timer !== undefined) clearTimeout(timer);
++      const now = Date.now();
++      const freshness = evaluateCompanyThemeExposureFreshness(verified.context, now);
++      const expires = freshness.expires_at ? Date.parse(freshness.expires_at) : null;
++      if (freshness.status === "fresh" && expires !== null && expires > now) {
++        timer = setTimeout(() => { setClock(Date.now()); schedule(); }, expires - now);
++      }
++    };
++    const resume = () => { setClock(Date.now()); schedule(); };
++    schedule();
++    window.addEventListener("focus", resume);
++    document.addEventListener("visibilitychange", resume);
++    return () => {
++      if (timer !== undefined) clearTimeout(timer);
++      window.removeEventListener("focus", resume);
++      document.removeEventListener("visibilitychange", resume);
++    };
++  }, [verified, selectedHistorical, companyIntelligenceGenerationId, latestEventId]);
++
++  const result = useMemo(() => verified ? ageCompanyThemeExposureResult(verified, clock) : null, [verified, clock]);
+   const state = useMemo(() => result ? effectiveState(result) : "partial", [result]);
+   const { lang } = useLang();
+   const zh = lang === "zh";
+ 
+   if (selectedHistorical) return <EventBoundary label={selectedEventLabel} onUseLatest={onUseLatest} />;
+   if (!result) return <LoadingCard />;
++  if (verified?.ok && (verified.context.company_intelligence.generation_id !== companyIntelligenceGenerationId
++    || verified.context.company_intelligence.latest_event_id !== latestEventId)) {
++    return <section className="ci-theme-card ci-theme-unavailable" role="status"><div><span className="ci-theme-kicker">{pick(zh, "CURRENT THEME CONTEXT", "当前主题背景")}</span><h3>{pick(zh, "Theme context is refreshing", "主题背景正在刷新")}</h3><p>{pick(zh, "The sidecar is not pinned to this Company Intelligence generation, so it is quarantined until publication catches up.", "主题侧车尚未锚定当前公司情报版本，因此在发布追平前不会展示。")}</p></div><button className="btn btn-ghost" onClick={() => setNonce(Date.now())}>{pick(zh, "Retry", "重试")}</button></section>;
++  }
+   if (!result.ok) {
+     if (result.error.code === "not_found") return null;
+     return <section className="ci-theme-card ci-theme-unavailable" role="status"><div><span className="ci-theme-kicker">{pick(zh, "CURRENT THEME CONTEXT", "当前主题背景")}</span><h3>{pick(zh, "Verified theme context unavailable", "已验证主题背景暂不可用")}</h3><p>{errorCopy(result.error.code, zh)}</p></div>{result.error.retryable && <button className="btn btn-ghost" onClick={() => setNonce(Date.now())}>{pick(zh, "Retry", "重试")}</button>}</section>;
+   }
+-  if (result.context.company_intelligence.generation_id !== companyIntelligenceGenerationId
+-    || result.context.company_intelligence.latest_event_id !== latestEventId) {
+-    return <section className="ci-theme-card ci-theme-unavailable" role="status"><div><span className="ci-theme-kicker">{pick(zh, "CURRENT THEME CONTEXT", "当前主题背景")}</span><h3>{pick(zh, "Theme context is refreshing", "主题背景正在刷新")}</h3><p>{pick(zh, "The sidecar is not pinned to this Company Intelligence generation, so it is quarantined until publication catches up.", "主题侧车尚未锚定当前公司情报版本，因此在发布追平前不会展示。")}</p></div><button className="btn btn-ghost" onClick={() => setNonce(Date.now())}>{pick(zh, "Retry", "重试")}</button></section>;
+-  }
+-  return <ContextCard context={result.context} state={state} />;
++  return <ContextCard context={result.context} state={state} freshness={result.freshness} />;
+ }
+diff --git a/terminal/lib/__tests__/companyThemeExposure.test.ts b/terminal/lib/__tests__/companyThemeExposure.test.ts
+index 6be97488..dd6bc9fe 100644
+--- a/terminal/lib/__tests__/companyThemeExposure.test.ts
++++ b/terminal/lib/__tests__/companyThemeExposure.test.ts
+@@ -8,6 +8,7 @@ import {
+   resolveCompanyThemeExposureFromR2,
+ } from "@/lib/companyThemeExposure";
+ 
++
+ const generation = "a".repeat(24);
+ const companyGeneration = "b".repeat(24);
+ 
+@@ -52,12 +53,12 @@ function manifest(body: unknown = context()) {
+       company_intelligence: { generation_id: companyGeneration, sha256: "e".repeat(64) },
+       membership: { sha256: "f".repeat(64) },
+       crosswalk: { sha256: "1".repeat(64) },
+-      theme_state: { status: "fresh", as_of: "2026-08-01", sha256: "d".repeat(64) },
++      theme_state: { status: "fresh", as_of: "2026-08-01" as string | null, sha256: "d".repeat(64) as string | null },
+       builder: "company_theme_exposure.v1",
+     },
+     files: { "companies/NVDA.json": { sha256: createHash("sha256").update(wire).digest("hex"), bytes: Buffer.byteLength(wire) } },
+     status: "ready",
+-    warnings: [],
++    warnings: [] as string[],
+   };
+ }
+ 
+@@ -74,6 +75,7 @@ function install(upstream: (url: string) => Response | Promise<Response>) {
+ beforeEach(() => {
+   realFetch = globalThis.fetch;
+   calls = [];
++  vi.spyOn(Date, "now").mockReturnValue(Date.parse("2026-08-01T12:00:01Z"));
+ });
+ 
+ afterEach(() => {
+@@ -203,7 +205,7 @@ describe("company theme exposure R2 verification", () => {
+   });
+ 
+   it("serves a stale fallback only while its Company Intelligence lineage still matches", async () => {
+-    let now = 1_000;
++    let now = Date.parse("2026-08-01T12:00:01Z");
+     vi.spyOn(Date, "now").mockImplementation(() => now);
+     const body = context();
+     const root = manifest(body);
+@@ -230,6 +232,11 @@ describe("company theme exposure R2 verification", () => {
+ });
+ 
+ describe("company theme exposure browser client", () => {
++  it.each(["partial", "not_covered"])("rejects an unexplained %s wire override on a fresh ready source", async state => {
++    vi.mocked(Date.now).mockReturnValue(Date.parse("2026-08-01T12:00:01Z"));
++    install(() => new Response(JSON.stringify({ ok: true, state, context: context() })));
++    expect(await getCompanyThemeExposure("NVDA")).toMatchObject({ ok: false, error: { code: "upstream_unavailable" } });
++  });
+   it("uses a same-origin no-store BFF", async () => {
+     const fetchSpy = vi.spyOn(globalThis, "fetch").mockResolvedValue(new Response(JSON.stringify({ ok: true, state: "ready", context: context() })));
+     const result = await getCompanyThemeExposure("nvda", { retryNonce: 8 });
+@@ -237,3 +244,110 @@ describe("company theme exposure browser client", () => {
+     expect(fetchSpy).toHaveBeenCalledWith("/api/company-theme-context/NVDA?retry=8", expect.objectContaining({ cache: "no-store" }));
+   });
+ });
++
++describe("company theme exposure per-use calendar age", () => {
++  const base = "https://pub-f7ffb4441c5f4ad983ca56ec7c651c61.r2.dev";
++  const expectedCompanyIntelligence = { generation_id: companyGeneration, latest_event_id: "NVDA-2026Q1" };
++  const resolve = () => resolveCompanyThemeExposureFromR2("NVDA", base, { expectedCompanyIntelligence });
++  function serve(body = context()) {
++    const root = manifest(body);
++    root.source.theme_state = { ...body.theme_state };
++    root.status = body.status;
++    root.warnings = [...body.warnings];
++    install(url => new Response(JSON.stringify(url.endsWith("companies/NVDA.json") ? body : root)));
++    return body;
++  }
++
++  it("ages first HTTP200, cache hits and identical refetches without refreshing source time", async () => {
++    const body = serve();
++    const original = JSON.stringify(body);
++    vi.mocked(Date.now).mockReturnValue(Date.parse("2026-08-07T00:00:00Z"));
++    const first = await resolve();
++    expect(first).toMatchObject({ ok: true, state: "stale", freshness: { status: "stale", reason: "expired", age_days: 6, expires_at: "2026-08-07T00:00:00.000Z" } });
++    expect(calls).toHaveLength(3);
++    vi.mocked(Date.now).mockReturnValue(Date.parse("2026-08-07T00:00:01Z"));
++    expect(await resolve()).toMatchObject({ ok: true, state: "stale", freshness: { age_days: 6 } });
++    expect(calls).toHaveLength(3);
++    vi.mocked(Date.now).mockReturnValue(Date.parse("2026-08-07T00:00:32Z"));
++    const refetch = await resolve();
++    expect(refetch).toMatchObject({ ok: true, state: "stale", freshness: { expires_at: "2026-08-07T00:00:00.000Z" } });
++    expect(calls).toHaveLength(6);
++    expect(JSON.stringify(body)).toBe(original);
++    if (first.ok && refetch.ok) {
++      expect(first.context).toEqual({ ...body, is_context_only: true });
++      expect(refetch.context).toEqual(first.context);
++      expect(first.context.theme_state.status).toBe("fresh");
++    }
++  });
++
++  it("keeps day five fresh and crosses UTC day six inside both cache TTLs", async () => {
++    serve();
++    vi.mocked(Date.now).mockReturnValue(Date.parse("2026-08-06T23:59:59Z"));
++    expect(await resolve()).toMatchObject({ ok: true, state: "ready", freshness: { status: "fresh", age_days: 5, expires_at: "2026-08-07T00:00:00.000Z" } });
++    vi.mocked(Date.now).mockReturnValue(Date.parse("2026-08-07T00:00:00Z"));
++    expect(await resolve()).toMatchObject({ ok: true, state: "stale", freshness: { age_days: 6 } });
++    expect(calls).toHaveLength(3);
++  });
++
++  it("keeps a source-admitted stale receipt stale while it is young", async () => {
++    const body = context("NVDA", "partial");
++    body.theme_state.status = "stale";
++    serve(body);
++    expect(await resolve()).toMatchObject({ ok: true, state: "stale", freshness: { status: "stale", reason: "source_status", age_days: 0 } });
++  });
++
++  it.each(["missing", "invalid"] as const)("keeps %s source receipt unknown with no expiry", async status => {
++    const body = context("NVDA", "partial");
++    const raw = { ...body, theme_state: { status, as_of: null, sha256: status === "missing" ? null : "d".repeat(64) }, warnings: [`theme_state_${status}`] };
++    const root = manifest(raw);
++    root.source.theme_state = raw.theme_state as typeof root.source.theme_state;
++    root.status = "partial";
++    root.warnings = raw.warnings;
++    install(url => new Response(JSON.stringify(url.endsWith("companies/NVDA.json") ? raw : root)));
++    expect(await resolve()).toMatchObject({ ok: true, state: "partial", freshness: { status, age_days: null, expires_at: null } });
++  });
++
++  it("rejects future publication clocks and discloses future source dates", async () => {
++    const future = context();
++    future.generated_at = "2026-08-02T12:00:00Z";
++    const root = manifest(future);
++    root.generated_at = future.generated_at;
++    install(url => new Response(JSON.stringify(url.endsWith("companies/NVDA.json") ? future : root)));
++    expect(await resolve()).toMatchObject({ ok: false, error: { code: "invalid_payload" } });
++    install(() => new Response("down", { status: 503 }));
++    expect(await resolve()).toMatchObject({ ok: false, error: { code: "upstream_unavailable" } });
++    __resetCompanyThemeExposureCacheForTests();
++    const futureSource = context();
++    futureSource.theme_state.as_of = "2026-08-02";
++    serve(futureSource);
++    expect(await resolve()).toMatchObject({ ok: true, state: "partial", freshness: { status: "future", reason: "future_clock", expires_at: null } });
++  });
++
++  it("re-ages last-good fallback and still refuses a new parent identity", async () => {
++    serve();
++    vi.mocked(Date.now).mockReturnValue(Date.parse("2026-08-06T23:59:30Z"));
++    expect(await resolve()).toMatchObject({ ok: true, state: "ready" });
++    vi.mocked(Date.now).mockReturnValue(Date.parse("2026-08-07T00:00:01Z"));
++    install(() => new Response("down", { status: 503 }));
++    expect(await resolve()).toMatchObject({ ok: true, state: "stale", freshness: { status: "stale", age_days: 6 } });
++    expect(await resolveCompanyThemeExposureFromR2("NVDA", base, { expectedCompanyIntelligence: { ...expectedCompanyIntelligence, generation_id: "7".repeat(24) } }))
++      .toMatchObject({ ok: false, error: { code: "invalid_payload" } });
++  });
++
++  it("recomputes browser freshness from source bytes rather than trusting an injected expiry", async () => {
++    vi.mocked(Date.now).mockReturnValue(Date.parse("2026-08-07T00:00:00Z"));
++    install(() => new Response(JSON.stringify({ ok: true, state: "ready", context: context(), freshness: { status: "fresh", expires_at: "2099-01-01T00:00:00Z" } })));
++    expect(await getCompanyThemeExposure("NVDA")).toMatchObject({ ok: true, state: "stale", freshness: { status: "stale", expires_at: "2026-08-07T00:00:00.000Z" } });
++  });
++
++  it("preserves a verified empty membership projection while aging its independent receipt", async () => {
++    const body = context();
++    body.exposures = [];
++    body.coverage = { status: "no_active_membership", active_basket_count: 0, mapped_basket_count: 0, unmapped_basket_count: 0 };
++    const root = manifest(body);
++    root.exposure_count = 0;
++    root.coverage = { active_membership_count: 0, mapped_membership_count: 0, unmapped_membership_count: 0, active_member_ticker_count: 0, unmapped_only_ticker_count: 0, active_member_tickers_without_company_context: 0 };
++    install(url => new Response(JSON.stringify(url.endsWith("companies/NVDA.json") ? body : root)));
++    expect(await resolve()).toMatchObject({ ok: true, state: "ready", context: { coverage: { status: "no_active_membership" } }, freshness: { status: "fresh" } });
++  });
++});
+diff --git a/terminal/lib/__tests__/companyThemeExposureRoute.test.ts b/terminal/lib/__tests__/companyThemeExposureRoute.test.ts
+index db7af3e9..cf84bc5c 100644
+--- a/terminal/lib/__tests__/companyThemeExposureRoute.test.ts
++++ b/terminal/lib/__tests__/companyThemeExposureRoute.test.ts
+@@ -1,3 +1,8 @@
++// @vitest-environment jsdom
++import React, { act } from "react";
++import { createRoot } from "react-dom/client";
++import { LangProvider } from "../i18n";
++import CompanyThemeContextCard from "@/components/fin/CompanyThemeContextCard";
+ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+ import { createHash } from "node:crypto";
+ 
+@@ -17,9 +22,11 @@ vi.mock("@/lib/companyIntelligence", async (importOriginal) => {
+   return { ...actual, resolveCompanyIntelligenceFromR2: state.resolveCompanyIntelligence };
+ });
+ 
+-import { __resetCompanyThemeExposureCacheForTests } from "@/lib/companyThemeExposure";
++import { __resetCompanyThemeExposureCacheForTests, getCompanyThemeExposure } from "@/lib/companyThemeExposure";
+ import { GET } from "@/app/api/company-theme-context/[symbol]/route";
+ 
++(globalThis as unknown as { IS_REACT_ACT_ENVIRONMENT: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
++
+ const generation = "a".repeat(24);
+ const companyGeneration = "b".repeat(24);
+ const latestEventId = "NVDA-2026Q1";
+@@ -44,6 +51,7 @@ let ip = 0;
+ 
+ beforeEach(() => {
+   __resetCompanyThemeExposureCacheForTests();
++  vi.spyOn(Date, "now").mockReturnValue(Date.parse("2026-08-01T12:00:01Z"));
+   originalFetch = globalThis.fetch;
+   delete process.env.TERMINAL_E2E_FIXTURE;
+   state.user = true;
+@@ -66,6 +74,49 @@ const request = (address = `203.0.113.${++ip}`) => new Request("https://app.mast
+ const params = (symbol: string) => ({ params: Promise.resolve({ symbol }) });
+ 
+ describe("/api/company-theme-context/[symbol]", () => {
++  it("round-trips a future-source derived partial from verified resolver through API to browser and mounted card", async () => {
++    const futureBody = { ...body, theme_state: { ...body.theme_state, as_of: "2026-08-02" } };
++    const futureRaw = JSON.stringify(futureBody);
++    const futureHash = createHash("sha256").update(futureRaw).digest("hex");
++    const futureRoot = {
++      ...root,
++      source: { ...root.source, theme_state: futureBody.theme_state },
++      files: { "companies/NVDA.json": { sha256: futureHash, bytes: Buffer.byteLength(futureRaw) } },
++    };
++    globalThis.fetch = vi.fn(async (url: string) => new Response(JSON.stringify(url.endsWith("companies/NVDA.json") ? futureBody : futureRoot))) as unknown as typeof globalThis.fetch;
++    const response = await GET(request(), params("NVDA"));
++    expect(response.status).toBe(200);
++    const wire = await response.json();
++    expect(wire).toMatchObject({ ok: true, state: "partial", context: { status: "ready" }, freshness: { status: "future" } });
++    expect(wire.context).toEqual({ ...futureBody, is_context_only: true });
++    expect(createHash("sha256").update(futureRaw).digest("hex")).toBe(futureHash);
++    globalThis.fetch = vi.fn(async () => new Response(JSON.stringify(wire))) as unknown as typeof globalThis.fetch;
++    expect(await getCompanyThemeExposure("NVDA")).toMatchObject({ ok: true, state: "partial", context: { status: "ready" }, freshness: { status: "future" } });
++    const host = document.createElement("div");
++    document.body.append(host);
++    const mounted = createRoot(host);
++    try {
++      await act(async () => mounted.render(React.createElement(LangProvider, null, React.createElement(CompanyThemeContextCard, {
++        ticker: "NVDA", selectedEventId: latestEventId, selectedEventLabel: "Q1 FY2026", companyIntelligenceGenerationId: companyGeneration, latestEventId,
++      }))));
++      expect(host.querySelector(".ci-theme-footer")?.textContent).toContain("Future date");
++      expect(host.querySelector(".ci-theme-header")?.textContent).toContain("Partial");
++      expect(host.querySelector(".ci-theme-warning")?.textContent).toContain("not used");
++      expect(host.querySelector(".ci-theme-unavailable")).toBeNull();
++    } finally {
++      await act(async () => mounted.unmount());
++      host.remove();
++    }
++  });
++  it("ages a hash-verified HTTP200 publication without changing its context receipts", async () => {
++    vi.mocked(Date.now).mockReturnValue(Date.parse("2026-08-07T00:00:00Z"));
++    const response = await GET(request(), params("NVDA"));
++    expect(response.status).toBe(200);
++    expect(response.headers.get("cache-control")).toBe("no-store");
++    const result = await response.json();
++    expect(result).toMatchObject({ ok: true, state: "stale", freshness: { status: "stale", reason: "expired", expires_at: "2026-08-07T00:00:00.000Z" } });
++    expect(result.context).toEqual({ ...body, is_context_only: true });
++  });
+   it("returns a receipt-verified payload aligned to current Company Intelligence", async () => {
+     const response = await GET(request(), params("NVDA"));
+     expect(response.status).toBe(200);
+diff --git a/terminal/lib/companyThemeExposure.ts b/terminal/lib/companyThemeExposure.ts
+index 671b81a9..a7992cff 100644
+--- a/terminal/lib/companyThemeExposure.ts
++++ b/terminal/lib/companyThemeExposure.ts
+@@ -98,8 +98,19 @@ export type CompanyThemeExposureErrorCode =
+   | "upstream_unavailable"
+   | "invalid_payload";
+ 
++/** Consumer evaluation; never part of the immutable producer context or its hash. */
++export interface CompanyThemeExposureFreshness {
++  policy: "company_theme_exposure.v1/five_calendar_days";
++  evaluated_at: string;
++  status: CompanyThemeStateReceipt["status"] | "future";
++  reason: "source_status" | "expired" | "future_clock" | null;
++  source_as_of: string | null;
++  age_days: number | null;
++  expires_at: string | null;
++}
++
+ export type CompanyThemeExposureResult =
+-  | { ok: true; state: CompanyThemeExposureState; context: CompanyThemeExposure }
++  | { ok: true; state: CompanyThemeExposureState; context: CompanyThemeExposure; freshness: CompanyThemeExposureFreshness }
+   | { ok: false; state: "error"; error: { code: CompanyThemeExposureErrorCode; message: string; retryable: boolean } };
+ 
+ export interface CompanyThemeExposureLineageExpectation {
+@@ -362,8 +373,51 @@ function error(code: CompanyThemeExposureErrorCode, message: string, retryable:
+   return { ok: false, state: "error", error: { code, message, retryable } };
+ }
+ 
+-function ready(context: CompanyThemeExposure, state: CompanyThemeExposureState = context.status): CompanyThemeExposureResult {
+-  return { ok: true, state, context };
++/**
++ * Mirrors Macro views.py's existing v1 predicate: calendar-date difference > 5.
++ * as_of is a UTC calendar date, so expiration starts on day six at 00:00Z.
++ * Fetch/cache timestamps and generated_at never renew the source receipt.
++ */
++export function evaluateCompanyThemeExposureFreshness(context: CompanyThemeExposure, now = Date.now()): CompanyThemeExposureFreshness {
++  const receipt = context.theme_state;
++  const out: CompanyThemeExposureFreshness = {
++    policy: "company_theme_exposure.v1/five_calendar_days",
++    evaluated_at: new Date(now).toISOString(),
++    status: receipt.status,
++    reason: receipt.status === "fresh" ? null : "source_status",
++    source_as_of: receipt.as_of,
++    age_days: null,
++    expires_at: null,
++  };
++  // Unknown or invalid source clocks have no inferred age or expiration.
++  if (receipt.status === "missing" || receipt.status === "invalid" || !validDate(receipt.as_of)) return out;
++  const dayMs = 86_400_000;
++  const sourceDay = Date.parse(`${receipt.as_of}T00:00:00.000Z`);
++  const currentDay = Math.floor(now / dayMs) * dayMs;
++  const age = (currentDay - sourceDay) / dayMs;
++  if (age < 0) return { ...out, status: "future", reason: "future_clock" };
++  out.age_days = age;
++  out.expires_at = new Date(sourceDay + 6 * dayMs).toISOString();
++  if (receipt.status === "fresh" && age > 5) {
++    out.status = "stale";
++    out.reason = "expired";
++  }
++  return out;
++}
++
++function ready(context: CompanyThemeExposure, state: CompanyThemeExposureState = context.status, now = Date.now()): CompanyThemeExposureResult {
++  if (Date.parse(context.generated_at) > now) {
++    return error("invalid_payload", "Company theme context has a future publication clock", true);
++  }
++  const freshness = evaluateCompanyThemeExposureFreshness(context, now);
++  const effective = state === "stale" || freshness.status === "stale" ? "stale"
++    : freshness.status === "fresh" ? state : "partial";
++  return { ok: true, state: effective, context, freshness };
++}
++
++/** Re-evaluate an already verified result without mutating its source context. */
++export function ageCompanyThemeExposureResult(result: CompanyThemeExposureResult, now = Date.now()): CompanyThemeExposureResult {
++  return result.ok ? ready(result.context, result.state, now) : result;
+ }
+ 
+ function sameThemeState(left: CompanyThemeStateReceipt, right: CompanyThemeStateReceipt): boolean {
+@@ -554,8 +608,9 @@ export async function resolveCompanyThemeExposureFromR2(
+   const context = normalizeCompanyThemeExposure(fetched.raw, ticker, manifest.generation_id);
+   if (!context || !matchesLineage(context, manifest, expected)) return cachedContext ? ready(cachedContext, "stale") : lastGoodContext ? ready(lastGoodContext, "stale")
+     : error("invalid_payload", "Company theme context payload is invalid", true);
+-  remember(`${manifest.generation_id}:${ticker}`, ticker, context, now);
+-  return ready(context);
++  const result = ready(context);
++  if (result.ok) remember(`${manifest.generation_id}:${ticker}`, ticker, context, now);
++  return result;
+ }
+ 
+ /** Client-side same-origin call; public R2 never enters a client bundle. */
+@@ -580,7 +635,16 @@ export async function getCompanyThemeExposure(symbol: string, options: { signal?
+     }
+     if (payload.ok === true && (payload.state === "ready" || payload.state === "partial" || payload.state === "stale" || payload.state === "not_covered")) {
+       const context = normalizeCompanyThemeExposure(payload.context, ticker);
+-      if (context && (payload.state === "stale" || context.status === payload.state)) return ready(context, payload.state);
++      if (context) {
++        // The BFF may derive partial for an unusable source clock while the
++        // immutable publication still says ready. Admit that override only
++        // when our own source-clock evaluation independently derives partial.
++        const derived = ready(context);
++        if (payload.state === "stale" || context.status === payload.state
++          || (payload.state === "partial" && derived.ok && derived.state === "partial")) {
++          return ready(context, payload.state);
++        }
++      }
+     }
+     return error(response.status === 404 ? "not_found" : "upstream_unavailable", "Company theme context returned an invalid response", response.status !== 404);
+   } catch { return error("upstream_unavailable", "Company theme context could not be reached", true); }
+diff --git a/terminal/lib/__tests__/companyThemeContextCardAging.test.tsx b/terminal/lib/__tests__/companyThemeContextCardAging.test.tsx
+new file mode 100644
+index 00000000..5e92d619
+--- /dev/null
++++ b/terminal/lib/__tests__/companyThemeContextCardAging.test.tsx
+@@ -0,0 +1,142 @@
++// @vitest-environment jsdom
++import React, { act } from "react";
++import { createRoot, type Root } from "react-dom/client";
++import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
++import { LangProvider, applyLang } from "../i18n";
++import CompanyThemeContextCard, { type CompanyThemeContextCardProps } from "@/components/fin/CompanyThemeContextCard";
++
++const transport = vi.hoisted(() => ({ get: vi.fn() }));
++vi.mock("@/lib/companyThemeExposure", async importOriginal => {
++  const actual = await importOriginal<typeof import("@/lib/companyThemeExposure")>();
++  return { ...actual, getCompanyThemeExposure: transport.get };
++});
++(globalThis as unknown as { IS_REACT_ACT_ENVIRONMENT: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
++const generation = "b".repeat(24);
++function fixture(ticker = "NVDA", asOf = "2026-08-01") {
++  return {
++    ok: true, state: "ready",
++    context: {
++      schema: "company_theme_exposure.v1", authority: "context_only", is_context_only: true,
++      generated_at: "2026-08-01T12:00:00Z", generation_id: "a".repeat(24), status: "ready",
++      company: { ticker }, company_intelligence: { generation_id: generation, context_sha256: "c".repeat(64), latest_event_id: "latest", latest_event_call_date: "2026-05-28" },
++      exposures: [{ theme_id: "ai_infrastructure", name_en: "AI Infrastructure", name_zh: "人工智能基础设施", basket_id: "ai_semiconductors", mapping_qualifier: "proxy" }],
++      coverage: { status: "mapped", active_basket_count: 1, mapped_basket_count: 1, unmapped_basket_count: 0 },
++      theme_state: { status: "fresh", as_of: asOf, sha256: "d".repeat(64) }, warnings: [],
++    },
++  };
++}
++describe("mounted company theme card semantic aging", () => {
++  let host: HTMLDivElement, root: Root;
++  const props: CompanyThemeContextCardProps = { ticker: "NVDA", selectedEventId: "latest", companyIntelligenceGenerationId: generation, latestEventId: "latest", selectedEventLabel: "Q1 FY2026" };
++  const render = async (patch: Partial<CompanyThemeContextCardProps> = {}) => {
++    await act(async () => root.render(<LangProvider><CompanyThemeContextCard {...props} {...patch} /></LangProvider>));
++  };
++  beforeEach(() => {
++    vi.useFakeTimers();
++    vi.setSystemTime("2026-08-06T23:59:59Z");
++    transport.get.mockReset().mockResolvedValue(fixture());
++    document.documentElement.setAttribute("data-lang", "en");
++    host = document.createElement("div"); document.body.append(host); root = createRoot(host);
++  });
++  afterEach(async () => {
++    await act(async () => root.unmount());
++    host.remove(); vi.useRealTimers(); vi.restoreAllMocks();
++  });
++
++  it("ages the existing footer and warning at expiry without a fetch or click", async () => {
++    await render();
++    expect(host.querySelector(".ci-theme-footer")?.textContent).toContain("Fresh");
++    await act(async () => vi.advanceTimersByTime(1000));
++    expect(host.querySelector(".ci-theme-footer")?.textContent).toContain("Stale");
++    expect(host.querySelector(".ci-theme-header")?.textContent).toContain("Last verified");
++    expect(host.querySelector(".ci-theme-warning")?.textContent).toContain("theme-state receipt is stale");
++    expect(transport.get).toHaveBeenCalledTimes(1);
++  });
++
++  it("discloses a future receipt as partial instead of a Verified header", async () => {
++    transport.get.mockResolvedValue(fixture("NVDA", "2026-08-07"));
++    await render();
++    expect(host.querySelector(".ci-theme-footer")?.textContent).toContain("Future date");
++    expect(host.querySelector(".ci-theme-header")?.textContent).toContain("Partial");
++    expect(host.querySelector(".ci-theme-header")?.textContent).not.toContain("Verified");
++  });
++
++  it.each(["focus", "visibilitychange"])("re-ages on %s after a background clock jump", async event => {
++    await render();
++    vi.setSystemTime("2026-08-08T12:00:00Z");
++    await act(async () => (event === "focus" ? window : document).dispatchEvent(new Event(event)));
++    expect(host.querySelector(".ci-theme-footer")?.textContent).toContain("Stale");
++    expect(transport.get).toHaveBeenCalledTimes(1);
++  });
++
++  it("cancels the old expiry when context identity changes", async () => {
++    await render();
++    transport.get.mockResolvedValue(fixture("AAPL", "2026-08-06"));
++    await render({ ticker: "AAPL" });
++    await act(async () => vi.advanceTimersByTime(1000));
++    expect(host.querySelector(".ci-theme-footer")?.textContent).toContain("Fresh");
++    expect(transport.get).toHaveBeenCalledTimes(2);
++    expect(vi.getTimerCount()).toBe(1);
++  });
++
++  it("quarantines a changed parent and cancels late results", async () => {
++    let deliver!: (value: ReturnType<typeof fixture>) => void;
++    transport.get.mockImplementationOnce(() => new Promise(resolve => { deliver = resolve; }));
++    await render();
++    transport.get.mockResolvedValue(fixture());
++    await render({ companyIntelligenceGenerationId: "7".repeat(24) });
++    expect(host.textContent).toContain("Theme context is refreshing");
++    await act(async () => deliver(fixture()));
++    expect(host.textContent).toContain("Theme context is refreshing");
++    expect(host.textContent).not.toContain("AI Infrastructure");
++  });
++
++  it("historical quarantine outranks expired receipts and schedules no expiry", async () => {
++    await render();
++    await render({ selectedEventId: "historical", selectedEventLabel: "Q4 FY2025" });
++    await act(async () => vi.advanceTimersByTime(1000));
++    expect(host.textContent).toContain("Q4 FY2025 is historical");
++    expect(host.textContent).not.toContain("AI Infrastructure");
++    expect(host.querySelector(".ci-theme-footer")).toBeNull();
++    expect(transport.get).toHaveBeenCalledTimes(1);
++    expect(vi.getTimerCount()).toBe(0);
++  });
++
++  it("quarantines retained context until a return-to-latest fetch settles", async () => {
++    await render();
++    await render({ selectedEventId: "historical" });
++    vi.setSystemTime("2026-08-07T00:00:01Z");
++    transport.get.mockImplementation(() => new Promise(() => {}));
++    await render();
++    expect(host.querySelector(".ci-theme-loading")).not.toBeNull();
++    expect(host.querySelector(".ci-theme-footer")).toBeNull();
++    expect(vi.getTimerCount()).toBe(0);
++  });
++
++  it("parent quarantine wins even when the sidecar publication clock is future", async () => {
++    const future = fixture();
++    future.context.generated_at = "2026-08-08T12:00:00Z";
++    transport.get.mockResolvedValue(future);
++    await render({ companyIntelligenceGenerationId: "7".repeat(24) });
++    expect(host.textContent).toContain("Theme context is refreshing");
++    expect(host.textContent).not.toContain("AI Infrastructure");
++  });
++
++  it("uses current ZH copy on timed expiry without leaking EN status", async () => {
++    await render();
++    await act(async () => applyLang("zh"));
++    await act(async () => vi.advanceTimersByTime(1000));
++    expect(host.querySelector(".ci-theme-footer")?.textContent).toContain("已过期");
++    expect(host.querySelector(".ci-theme-warning")?.textContent).toContain("独立主题状态凭证已过期");
++    expect(host.querySelector(".ci-theme-footer")?.textContent).not.toContain("Stale");
++  });
++
++  it("clears expiry and resume listeners on unmount", async () => {
++    await render();
++    await act(async () => root.unmount());
++    expect(vi.getTimerCount()).toBe(0);
++    await act(async () => window.dispatchEvent(new Event("focus")));
++    expect(transport.get).toHaveBeenCalledTimes(1);
++    root = createRoot(host);
++  });
++});
+diff --git a/terminal/e2e/company-theme-context-aging.spec.ts b/terminal/e2e/company-theme-context-aging.spec.ts
+new file mode 100644
+index 00000000..c1e2dc82
+--- /dev/null
++++ b/terminal/e2e/company-theme-context-aging.spec.ts
+@@ -0,0 +1,220 @@
++import { expect, test, type Page } from "@playwright/test";
++
++
++function themeFixture() {
++  return {
++    schema: "company_theme_exposure.v1", authority: "context_only", is_context_only: true,
++    generated_at: "2026-08-01T12:00:00Z", generation_id: "f".repeat(24), status: "ready",
++    company: { ticker: "NVDA" },
++    company_intelligence: { generation_id: "a".repeat(24), context_sha256: "9".repeat(64), latest_event_id: "cie_d8488221fd8c710c53d6537d", latest_event_call_date: "2026-05-20" },
++    exposures: [{ theme_id: "ai_infrastructure", name_en: "AI Infrastructure", name_zh: "人工智能基础设施", basket_id: "ai_semiconductors", mapping_qualifier: "proxy" }],
++    coverage: { status: "mapped", active_basket_count: 1, mapped_basket_count: 1, unmapped_basket_count: 0 },
++    theme_state: { status: "fresh", as_of: "2026-08-01", sha256: "8".repeat(64) }, warnings: [] as string[],
++  };
++}
++async function arrange(page: Page, zh: boolean, payload: unknown, status = 200) {
++  const browserErrors: string[] = [];
++  page.on("pageerror", error => browserErrors.push(error.message));
++  await page.addInitScript(zh => localStorage.setItem("mm.lang", zh ? "zh" : "en"), zh);
++  await page.route("https://www.mastermind-x.com/mm_brain.js", route => route.fulfill({ contentType: "application/javascript", body: "" }));
++  await page.route("**/api/event-workspace/**", route => route.fulfill({ status: 404, json: { ok: false, state: "error", available: false, error: { code: "not_found", message: "fixture uncovered", retryable: false } } }));
++  await page.route("**/api/company-intelligence/NVDA**", route => route.fulfill({ json: { ok: true, state: "ready", context: contextFixture() } }));
++  await page.route("**/api/company-institutional-context/NVDA**", route => route.fulfill({ status: 404, json: { ok: false, state: "error", error: { code: "not_found", message: "fixture uncovered", retryable: false } } }));
++  await page.route("**/api/company-theme-context/NVDA**", route => route.fulfill({ status, json: payload }));
++  await page.goto("/analysis?symbol=NVDA&page=intelligence");
++  await expect(page.locator(".ci-page")).toBeVisible({ timeout: 30_000 });
++  return browserErrors;
++}
++async function proof(page: Page, name: string, outputPath: (path: string) => string) {
++  const card = page.locator(".ci-theme-card");
++  await card.scrollIntoViewIfNeeded();
++  const widths = await page.evaluate(() => ({ viewport: document.documentElement.clientWidth, width: document.documentElement.scrollWidth }));
++  expect(widths.width).toBeLessThanOrEqual(widths.viewport + 1);
++  await card.screenshot({ path: outputPath(name + ".png") });
++}
++
++for (const zh of [false, true]) {
++  test(`existing card ages at UTC expiry without reloading or fetching (${zh ? "ZH" : "EN"})`, async ({ page }, info) => {
++    test.setTimeout(90_000);
++    await page.clock.install({ time: new Date("2026-08-06T23:00:00Z") });
++    let reads = 0;
++    page.on("request", request => { if (request.url().includes("/api/company-theme-context/NVDA")) reads++; });
++    const errors = await arrange(page, zh, { ok: true, state: "ready", context: themeFixture() });
++    const footer = page.locator(".ci-theme-footer");
++    await expect(footer).toContainText(zh ? "新鲜" : "Fresh");
++    await proof(page, `dark-${zh ? "zh" : "en"}-fresh`, info.outputPath.bind(info));
++    const before = reads;
++    await page.clock.fastForward(3_600_000);
++    await expect(footer).toContainText(zh ? "已过期" : "Stale");
++    await expect(page.locator(".ci-theme-header")).toContainText(zh ? "最近验证" : "Last verified");
++    await expect(page.locator(".ci-theme-warning")).toContainText(zh ? "独立主题状态凭证已过期" : "theme-state receipt is stale");
++    expect(reads).toBe(before);
++    await proof(page, `dark-${zh ? "zh" : "en"}-expired`, info.outputPath.bind(info));
++    const eventSelector = page.getByLabel(zh ? "选择公司事件" : "Select company event");
++    await eventSelector.selectOption("cie_4c0410e7c4358283cf37a557");
++    await expect(page.locator(".ci-theme-boundary")).toBeVisible();
++    await expect(page.locator(".ci-theme-card")).not.toContainText(zh ? "人工智能基础设施" : "AI Infrastructure");
++    await proof(page, `dark-${zh ? "zh" : "en"}-historical`, info.outputPath.bind(info));
++    expect(errors).toEqual([]);
++  });
++
++  for (const variant of ["source-stale", "missing", "invalid", "future", "future-generation", "last-good", "mixed", "unmapped-only", "empty", "refreshing", "unavailable"] as const) {
++    test(`degraded existing theme card: ${variant} (${zh ? "ZH" : "EN"})`, async ({ page }, info) => {
++      test.setTimeout(90_000);
++      await page.clock.setFixedTime(new Date("2026-08-01T12:00:01Z"));
++      const body = themeFixture();
++      let expected = zh ? "新鲜" : "Fresh";
++      if (variant === "source-stale") { body.theme_state.status = "stale"; body.status = "partial"; body.warnings = ["theme_state_stale"]; expected = zh ? "已过期" : "Stale"; }
++      if (variant === "missing" || variant === "invalid") {
++        Object.assign(body.theme_state, { status: variant, as_of: null, sha256: variant === "missing" ? null : "8".repeat(64) });
++        body.status = "partial"; body.warnings = [`theme_state_${variant}`]; expected = variant === "missing" ? (zh ? "缺失" : "Missing") : (zh ? "无效" : "Invalid");
++      }
++      if (variant === "future") { body.theme_state.as_of = "2026-08-02"; expected = zh ? "未来日期" : "Future date"; }
++      if (variant === "future-generation") body.generated_at = "2026-08-02T12:00:00Z";
++      if (variant === "mixed") { body.coverage = { status: "mixed", active_basket_count: 2, mapped_basket_count: 1, unmapped_basket_count: 1 }; body.status = "partial"; body.warnings = ["active_membership_unmapped"]; }
++      if (variant === "unmapped-only") { body.coverage = { status: "unmapped_only", active_basket_count: 1, mapped_basket_count: 0, unmapped_basket_count: 1 }; body.exposures = []; body.status = "partial"; body.warnings = ["active_membership_unmapped"]; }
++      if (variant === "empty") { body.coverage = { status: "no_active_membership", active_basket_count: 0, mapped_basket_count: 0, unmapped_basket_count: 0 }; body.exposures = []; }
++      if (variant === "refreshing") body.company_intelligence.generation_id = "7".repeat(24);
++      const payload = variant === "unavailable" ? { ok: false, state: "error", error: { code: "upstream_unavailable", message: "opaque fixture outage", retryable: true } } : { ok: true, state: variant === "last-good" || variant === "source-stale" ? "stale" : variant === "future" ? "partial" : body.status, context: body };
++      const errors = await arrange(page, zh, payload, variant === "unavailable" ? 503 : 200);
++      if (variant === "refreshing") {
++        await expect(page.locator(".ci-theme-unavailable")).toContainText(zh ? "主题背景正在刷新" : "Theme context is refreshing");
++        await expect(page.locator(".ci-theme-card")).not.toContainText(zh ? "人工智能基础设施" : "AI Infrastructure");
++      } else if (variant === "unavailable" || variant === "future-generation") {
++        await expect(page.locator(".ci-theme-unavailable")).toContainText(zh ? "已验证主题背景暂不可用" : "Verified theme context unavailable");
++      } else {
++        await expect(page.locator(".ci-theme-footer")).toContainText(expected);
++        if (variant === "future") await expect(page.locator(".ci-theme-header")).toContainText(zh ? "部分覆盖" : "Partial");
++        if (variant === "last-good") await expect(page.locator(".ci-theme-header")).toContainText(zh ? "最近验证" : "Last verified");
++        if (variant === "empty") await expect(page.locator(".ci-theme-empty")).toContainText(zh ? "不在当前策展篮子名册" : "no active membership");
++        if (variant === "unmapped-only") await expect(page.locator(".ci-theme-empty")).toContainText(zh ? "不会为其推断主题标签" : "no theme label is inferred");
++      }
++      await proof(page, `dark-${zh ? "zh" : "en"}-${variant}`, info.outputPath.bind(info));
++      expect(errors).toEqual([]);
++    });
++  }
++}
++
++// Synthetic owner-shaped fixtures; no natural-publication or production claim.
++const SHA = "a".repeat(64);
++const metrics = (overrides: Record<string, number | null> = {}) => ({
++  sentiment: 68,
++  performance: 72,
++  confidence: 64,
++  combined: 68,
++  call_positivity: 71,
++  management_confidence: 66,
++  analyst_criticism: 22,
++  future_outlook: 74,
++  revenue_growth_pct: 18.4,
++  eps_growth_pct: 21.1,
++  gross_margin_pct: 74.2,
++  analysts_count: 12,
++  questions_count: 18,
++  ...overrides,
++});
++
++function event(id: string, fiscalYear: number, fiscalQuarter: number, callDate: string, summary: string) {
++  const eventMetrics = metrics();
++  return {
++    event_id: id,
++    ticker: "NVDA",
++    fiscal_year: fiscalYear,
++    fiscal_quarter: fiscalQuarter,
++    call_date: callDate,
++    summary,
++    highlights: ["Data-center demand remained broad across the period."],
++    positive_highlights: ["Revenue growth accelerated with broad data-center demand."],
++    negative_highlights: ["Supply and deployment timing remain watch items."],
++    key_quote: "We continue to see broad demand across our platform.",
++    tags: ["data center", "demand"],
++    metrics: eventMetrics,
++    field_lineage: {
++      summary: "earnings_history",
++      key_quote: "earnings_history",
++      metrics: Object.fromEntries(Object.keys(eventMetrics).map((key) => [key, "score_overlay"])),
++      positive_highlights: ["earnings_history"],
++      negative_highlights: ["earnings_history"],
++      highlights: ["earnings_history"],
++      tags: { "data center": "earnings_history", demand: "earnings_history" },
++    },
++    previous_event_deltas: metrics({ revenue_growth_pct: 2.1, eps_growth_pct: 1.6, gross_margin_pct: 0.4, questions_count: 3 }),
++    sources: [
++      {
++        source_ref: "earnings_history",
++        kind: "earnings_history",
++        status: "present",
++        citation_precision: "document",
++        url: "https://investor.nvidia.com/earnings",
++        receipt: { source_hash: SHA, source_date: callDate, record_id: `${id}-earnings` },
++      },
++      {
++        source_ref: "score_overlay",
++        kind: "score_overlay",
++        status: "metadata_only",
++        citation_precision: "metadata",
++        url: null,
++        receipt: { source_hash: "b".repeat(64), source_date: callDate, record_id: `${id}-overlay` },
++      },
++      {
++        source_ref: "transcript",
++        kind: "transcript",
++        status: "present",
++        citation_precision: "document",
++        url: `/data/tx/NVDA/${fiscalYear}Q${fiscalQuarter}.json.gz`,
++        receipt: { source_hash: "c".repeat(64), source_date: callDate, record_id: `${fiscalYear}Q${fiscalQuarter}` },
++      },
++    ],
++    claim_citations_pending: true,
++  };
++}
++
++function contextFixture() {
++  const latest = event(
++    "cie_d8488221fd8c710c53d6537d",
++    2026,
++    1,
++    "2026-05-20",
++    "NVIDIA reported broad platform demand, with revenue growth and gross-margin discipline remaining central to the event read-through.",
++  );
++  const prior = event(
++    "cie_4c0410e7c4358283cf37a557",
++    2025,
++    4,
++    "2026-02-19",
++    "The preceding event established the demand and supply baseline for this quarter-over-quarter comparison.",
++  );
++  return {
++    schema: "company_intelligence_context.v1",
++    authority: "context_only",
++    is_context_only: true,
++    generated_at: "2026-08-01T12:00:00Z",
++    generation_id: "a".repeat(24),
++    company: { ticker: "NVDA", display_name: "NVIDIA Corporation", exchange: null },
++    status: "ready",
++    latest_event_id: latest.event_id,
++    latest_event: latest,
++    history: [latest, prior],
++    topics: {
++      timeline: [
++        { tag: "data center", first_event_id: prior.event_id, last_event_id: latest.event_id, event_count: 2, status: "persistent" },
++        { tag: "demand", first_event_id: latest.event_id, last_event_id: latest.event_id, event_count: 1, status: "added" },
++      ],
++      added: ["demand"],
++      dropped: [],
++      persistent: ["data center"],
++    },
++    source_completeness: {
++      earnings_history: { status: "present", event_count: 2 },
++      score_overlay: { status: "metadata_only", event_count: 2 },
++      transcripts: { status: "present", event_count: 2 },
++    },
++    warnings: [],
++    missing_sources: [],
++    transport_lineage: {
++      earnings_manifest: { generation_id: "b".repeat(24), sha256: "d".repeat(64) },
++      tx_index: { schema: "mastermind.tx-index/v1", generation_id: "c".repeat(24), sha256: "e".repeat(64) },
++      builder: "company_intelligence.v1",
++    },
++  };
++}

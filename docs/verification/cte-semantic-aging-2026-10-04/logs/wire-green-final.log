@@ -1,0 +1,15 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+ RUN  v2.1.9 /Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/gmi-cte-semantic-aging-20261004-astra-001/terminal
+
+ ✓ lib/__tests__/companyThemeExposure.test.ts (21 tests) 23ms
+(node:49599) ExperimentalWarning: localStorage is not available because --localstorage-file was not provided.
+(Use `node --trace-warnings ...` to show where the warning was created)
+ ✓ lib/__tests__/companyThemeContextCardAging.test.tsx (11 tests) 58ms
+ ✓ lib/__tests__/companyThemeExposureRoute.test.ts (8 tests) 50ms
+
+ Test Files  3 passed (3)
+      Tests  40 passed (40)
+   Start at  18:30:37
+   Duration  960ms (transform 211ms, setup 0ms, collect 409ms, tests 131ms, environment 766ms, prepare 114ms)
+

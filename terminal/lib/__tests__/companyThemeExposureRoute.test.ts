@@ -1,3 +1,8 @@
+// @vitest-environment jsdom
+import React, { act } from "react";
+import { createRoot } from "react-dom/client";
+import { LangProvider } from "../i18n";
+import CompanyThemeContextCard from "@/components/fin/CompanyThemeContextCard";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { createHash } from "node:crypto";
 
@@ -17,8 +22,10 @@ vi.mock("@/lib/companyIntelligence", async (importOriginal) => {
   return { ...actual, resolveCompanyIntelligenceFromR2: state.resolveCompanyIntelligence };
 });
 
-import { __resetCompanyThemeExposureCacheForTests } from "@/lib/companyThemeExposure";
+import { __resetCompanyThemeExposureCacheForTests, getCompanyThemeExposure } from "@/lib/companyThemeExposure";
 import { GET } from "@/app/api/company-theme-context/[symbol]/route";
+
+(globalThis as unknown as { IS_REACT_ACT_ENVIRONMENT: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 
 const generation = "a".repeat(24);
 const companyGeneration = "b".repeat(24);
@@ -44,6 +51,7 @@ let ip = 0;
 
 beforeEach(() => {
   __resetCompanyThemeExposureCacheForTests();
+  vi.spyOn(Date, "now").mockReturnValue(Date.parse("2026-08-01T12:00:01Z"));
   originalFetch = globalThis.fetch;
   delete process.env.TERMINAL_E2E_FIXTURE;
   state.user = true;
@@ -66,6 +74,49 @@ const request = (address = `203.0.113.${++ip}`) => new Request("https://app.mast
 const params = (symbol: string) => ({ params: Promise.resolve({ symbol }) });
 
 describe("/api/company-theme-context/[symbol]", () => {
+  it("round-trips a future-source derived partial from verified resolver through API to browser and mounted card", async () => {
+    const futureBody = { ...body, theme_state: { ...body.theme_state, as_of: "2026-08-02" } };
+    const futureRaw = JSON.stringify(futureBody);
+    const futureHash = createHash("sha256").update(futureRaw).digest("hex");
+    const futureRoot = {
+      ...root,
+      source: { ...root.source, theme_state: futureBody.theme_state },
+      files: { "companies/NVDA.json": { sha256: futureHash, bytes: Buffer.byteLength(futureRaw) } },
+    };
+    globalThis.fetch = vi.fn(async (url: string) => new Response(JSON.stringify(url.endsWith("companies/NVDA.json") ? futureBody : futureRoot))) as unknown as typeof globalThis.fetch;
+    const response = await GET(request(), params("NVDA"));
+    expect(response.status).toBe(200);
+    const wire = await response.json();
+    expect(wire).toMatchObject({ ok: true, state: "partial", context: { status: "ready" }, freshness: { status: "future" } });
+    expect(wire.context).toEqual({ ...futureBody, is_context_only: true });
+    expect(createHash("sha256").update(futureRaw).digest("hex")).toBe(futureHash);
+    globalThis.fetch = vi.fn(async () => new Response(JSON.stringify(wire))) as unknown as typeof globalThis.fetch;
+    expect(await getCompanyThemeExposure("NVDA")).toMatchObject({ ok: true, state: "partial", context: { status: "ready" }, freshness: { status: "future" } });
+    const host = document.createElement("div");
+    document.body.append(host);
+    const mounted = createRoot(host);
+    try {
+      await act(async () => mounted.render(React.createElement(LangProvider, null, React.createElement(CompanyThemeContextCard, {
+        ticker: "NVDA", selectedEventId: latestEventId, selectedEventLabel: "Q1 FY2026", companyIntelligenceGenerationId: companyGeneration, latestEventId,
+      }))));
+      expect(host.querySelector(".ci-theme-footer")?.textContent).toContain("Future date");
+      expect(host.querySelector(".ci-theme-header")?.textContent).toContain("Partial");
+      expect(host.querySelector(".ci-theme-warning")?.textContent).toContain("not used");
+      expect(host.querySelector(".ci-theme-unavailable")).toBeNull();
+    } finally {
+      await act(async () => mounted.unmount());
+      host.remove();
+    }
+  });
+  it("ages a hash-verified HTTP200 publication without changing its context receipts", async () => {
+    vi.mocked(Date.now).mockReturnValue(Date.parse("2026-08-07T00:00:00Z"));
+    const response = await GET(request(), params("NVDA"));
+    expect(response.status).toBe(200);
+    expect(response.headers.get("cache-control")).toBe("no-store");
+    const result = await response.json();
+    expect(result).toMatchObject({ ok: true, state: "stale", freshness: { status: "stale", reason: "expired", expires_at: "2026-08-07T00:00:00.000Z" } });
+    expect(result.context).toEqual({ ...body, is_context_only: true });
+  });
   it("returns a receipt-verified payload aligned to current Company Intelligence", async () => {
     const response = await GET(request(), params("NVDA"));
     expect(response.status).toBe(200);
