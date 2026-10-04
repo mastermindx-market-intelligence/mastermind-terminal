@@ -32,11 +32,14 @@ LOCKFILE=/tmp/terminal-data.lock
 exec 9>"$LOCKFILE" || exit 1
 flock -n 9 || { echo "[$(ts)] another terminal-data holds the lock — exit"; exit 0; }
 trap 'rm -f "$LOCKFILE"' EXIT
+# The UTC weekday this run STARTED on. The run begins 21:30 UTC and reaches its last steps
+# after midnight, so a weekday test made there reads the next day — and skips every Friday.
+RUN_DOW="$(date -u +%u)"
 
 echo "[$(ts)] === terminal refresh start (staging) ==="
 
 rm -f "$STAGE"
-run(){ echo "[$(ts)] -> $*"; "$@" || echo "[$(ts)] WARN: '$*' exited $?"; }
+run(){ echo "[$(ts)] -> $*"; "$@" || { local rc=$?; echo "[$(ts)] WARN: '$*' exited $rc"; }; }
 
 # Snapshot the live manifest at run start: recovery artifact + shrink-guard baseline.
 BAK="$D/manifest.json.bak-nightly"
@@ -75,6 +78,7 @@ fi
 # OHLC (and watchlist LAST/CHG) freezes at file-creation date. Runs before hydrate so the
 # fresh close flows into the manifest same night (--days 7 self-corrects any missed day).
 run "$PY" ingest/refresh_ohlc.py --days 7 --write
+run node /opt/terminal/terminal/scripts/dist/score_personal_accuracy.mjs
 # Note: the quote hub resolves prevClose from the per-symbol OHLC daily file (anchor.js
 # resolution order: daily_file → polygon_prev → manifest fallback). refresh_ohlc.py above
 # writes today's close into each SYM.json in the live data dir, so the hub sees the correct
@@ -201,6 +205,24 @@ if [ "${NEW:-0}" -ge "$MIN" ]; then
 else
   echo "[$(ts)] GUARD: staged $NEW < min $MIN (live $LIVEN) — keeping live, discarding staging"
   rm -f "$STAGE"
+fi
+
+# ── INTRADAY NIGHTLY REFRESH ──
+# Refresh existing 1h/5m intraday stores in place (incremental, no new symbols).
+# Must run BEFORE coverage index so refreshed files are indexed same night.
+# Runs that STARTED on a UTC weekday only (RUN_DOW, set at the top); holidays are silent no-ops.
+# Bounded: a hung vendor must not hold the nightly lock into the next night's run, which would
+# then skip itself. On timeout the step reports FAILED rc=124; every store file is written
+# atomically, so a killed run leaves each store either old or complete.
+if [ "$RUN_DOW" -le "5" ]; then
+  echo "[$(ts)] -> ingest.backfill_intraday --existing-only"
+  if timeout -k 60 90m "$PY" -m ingest.backfill_intraday --existing-only --expect-advance --tf 1h,5m --workers 8; then
+    echo "[$(ts)] INTRADAY_REFRESH status=OK"
+  else
+    rc=$?; echo "[$(ts)] INTRADAY_REFRESH status=FAILED rc=$rc"
+  fi
+else
+  echo "[$(ts)] -> skip ingest/backfill_intraday --existing-only (run did not start on a UTC weekday)"
 fi
 
 # ── COVERAGE INDEX (must be LAST: it describes what is published) ──
