@@ -10,8 +10,8 @@
  * never guesses. The scoring worker now needs esbuild at runtime; it is a
  * devDependency; install with dev deps or promote it in a later packet.
  *
- * From terminal/:
- *   node scripts/score_personal_accuracy.mjs
+ * Deploy entry:
+ *   node scripts/dist/score_personal_accuracy.mjs
  *
  * Reads NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY from the environment.
  * No key, ref, or token value is printed, logged, or committed.
@@ -101,7 +101,7 @@ export async function loadResolverRegistry() {
   return mod.RESOLVER_REGISTRY;
 }
 
-function createServiceClient() {
+export function createServiceClient() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
   if (!url || !key || !/^https:\/\//.test(url)) return null;
@@ -215,36 +215,4 @@ export async function scoreDueClaims(client, options = {}) {
   }
 
   return { settled, undetermined, skipped };
-}
-
-async function main() {
-  const client = createServiceClient();
-  if (!client) {
-    console.error("score_personal_accuracy: service client unavailable");
-    process.exit(2);
-  }
-  const mod = await loadStoreModule();
-  const counts = await scoreDueClaims(client, {
-    registry: mod.RESOLVER_REGISTRY,
-    thresholdNumber: typeof mod.thresholdNumber === "function" ? mod.thresholdNumber : thresholdNumber,
-    compareObserved: typeof mod.compareObserved === "function" ? mod.compareObserved : compareObserved,
-  });
-  console.log(`score_personal_accuracy: settled ${counts.settled}, undetermined ${counts.undetermined}, skipped ${counts.skipped}`);
-}
-
-function isDirectRun() {
-  const entry = process.argv[1];
-  if (!entry) return false;
-  try {
-    return import.meta.url === pathToFileURL(resolve(entry)).href;
-  } catch {
-    return false;
-  }
-}
-
-if (isDirectRun()) {
-  main().catch(() => {
-    console.error("score_personal_accuracy: failed");
-    process.exit(1);
-  });
 }

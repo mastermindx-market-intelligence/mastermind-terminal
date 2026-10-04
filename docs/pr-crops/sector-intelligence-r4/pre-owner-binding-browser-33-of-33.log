@@ -1,0 +1,52 @@
+[warmup] /terminal?symbol=NVDA → 200 in 71ms
+[warmup] /options → 200 in 161ms
+[warmup] /portfolio → 200 in 120ms
+[warmup] /alerts → 200 in 145ms
+[warmup] /analysis → 200 in 252ms
+[warmup] /discover → 200 in 119ms
+[warmup] /admin → 200 in 74ms
+[warmup] /embed/chart?symbol=NVDA → 200 in 53ms
+[warmup] /login → 200 in 59ms
+[warmup] /reset-password → 200 in 77ms
+[warmup] /api/me → 200 in 67ms
+[warmup] /api/watchlist → 200 in 36ms
+[warmup] /api/layouts → 200 in 33ms
+[warmup] 13 routes compiled in 1s
+
+Running 33 tests using 2 workers
+
+  ✓   1 [desktop] › e2e/sector-company-workflow.spec.ts:16:5 › overview comparison selects a company, preserves source semantics and opens existing research (2.1s)
+  ✓   2 [desktop] › e2e/sector-company-workflow.spec.ts:39:5 › table selection and browser Back restore exact comparison context (2.2s)
+  ✓   4 [desktop] › e2e/sector-company-workflow.spec.ts:72:5 › refresh after lost source access clears previously visible company data (1.0s)
+  ✓   3 [desktop] › e2e/sector-company-workflow.spec.ts:59:5 › shared language, dark appearance and keyboard selection remain synchronized (1.2s)
+  ✓   5 [desktop] › e2e/sector-group-discovery.spec.ts:21:5 › group discovery uses the real shared modal and returns focus on Escape (1.2s)
+  ✓   6 [desktop] › e2e/sector-group-discovery.spec.ts:39:5 › choosing another group resets only company context and browser Back restores the prior research (1.4s)
+  ✓   8 [desktop] › e2e/sector-group-discovery.spec.ts:71:5 › Chinese group discovery and unavailable access remain explicit (1.4s)
+  ✓   7 [desktop] › e2e/sector-group-discovery.spec.ts:60:5 › same-group selection preserves context and no-match is a recoverable search state (1.8s)
+  ✓  10 [desktop] › e2e/sector-group-discovery.spec.ts:90:5 › history navigation closes the open group dialog and restores the prior company context (1.3s)
+  ✓   9 [desktop] › e2e/sector-group-discovery.spec.ts:79:5 › denied group feed never presents stale group choices (1.8s)
+  ✓  11 [desktop] › e2e/sector-group-discovery.spec.ts:110:5 › single-company coverage uses singular copy and keeps zero priced visible (834ms)
+  ✓  12 [tablet] › e2e/sector-company-workflow.spec.ts:16:5 › overview comparison selects a company, preserves source semantics and opens existing research (1.3s)
+  ✓  13 [tablet] › e2e/sector-company-workflow.spec.ts:39:5 › table selection and browser Back restore exact comparison context (2.1s)
+  ✓  14 [tablet] › e2e/sector-company-workflow.spec.ts:59:5 › shared language, dark appearance and keyboard selection remain synchronized (1.8s)
+  ✓  15 [tablet] › e2e/sector-company-workflow.spec.ts:72:5 › refresh after lost source access clears previously visible company data (950ms)
+  ✓  16 [tablet] › e2e/sector-group-discovery.spec.ts:21:5 › group discovery uses the real shared modal and returns focus on Escape (1.2s)
+  ✓  18 [tablet] › e2e/sector-group-discovery.spec.ts:60:5 › same-group selection preserves context and no-match is a recoverable search state (1.4s)
+  ✓  17 [tablet] › e2e/sector-group-discovery.spec.ts:39:5 › choosing another group resets only company context and browser Back restores the prior research (1.9s)
+  ✓  19 [tablet] › e2e/sector-group-discovery.spec.ts:71:5 › Chinese group discovery and unavailable access remain explicit (1.3s)
+  ✓  20 [tablet] › e2e/sector-group-discovery.spec.ts:79:5 › denied group feed never presents stale group choices (1.2s)
+  ✓  22 [tablet] › e2e/sector-group-discovery.spec.ts:110:5 › single-company coverage uses singular copy and keeps zero priced visible (882ms)
+  ✓  21 [tablet] › e2e/sector-group-discovery.spec.ts:90:5 › history navigation closes the open group dialog and restores the prior company context (1.0s)
+  ✓  23 [mobile] › e2e/sector-company-workflow.spec.ts:16:5 › overview comparison selects a company, preserves source semantics and opens existing research (1.2s)
+  ✓  24 [mobile] › e2e/sector-company-workflow.spec.ts:39:5 › table selection and browser Back restore exact comparison context (1.3s)
+  ✓  26 [mobile] › e2e/sector-company-workflow.spec.ts:72:5 › refresh after lost source access clears previously visible company data (906ms)
+  ✓  25 [mobile] › e2e/sector-company-workflow.spec.ts:59:5 › shared language, dark appearance and keyboard selection remain synchronized (1.1s)
+  ✓  27 [mobile] › e2e/sector-group-discovery.spec.ts:21:5 › group discovery uses the real shared modal and returns focus on Escape (1.1s)
+  ✓  28 [mobile] › e2e/sector-group-discovery.spec.ts:39:5 › choosing another group resets only company context and browser Back restores the prior research (1.2s)
+  ✓  30 [mobile] › e2e/sector-group-discovery.spec.ts:71:5 › Chinese group discovery and unavailable access remain explicit (1.5s)
+  ✓  29 [mobile] › e2e/sector-group-discovery.spec.ts:60:5 › same-group selection preserves context and no-match is a recoverable search state (2.0s)
+  ✓  32 [mobile] › e2e/sector-group-discovery.spec.ts:90:5 › history navigation closes the open group dialog and restores the prior company context (1.0s)
+  ✓  31 [mobile] › e2e/sector-group-discovery.spec.ts:79:5 › denied group feed never presents stale group choices (1.7s)
+  ✓  33 [mobile] › e2e/sector-group-discovery.spec.ts:110:5 › single-company coverage uses singular copy and keeps zero priced visible (997ms)
+
+  33 passed (27.4s)

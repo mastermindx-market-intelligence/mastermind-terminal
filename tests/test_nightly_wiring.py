@@ -24,6 +24,7 @@ from __future__ import annotations
 import json
 import os
 import re
+import subprocess
 import sys
 from pathlib import Path
 
@@ -33,6 +34,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
 NIGHTLY = ROOT / "ops" / "terminal-data"
+BUILD = ROOT / "ops" / "terminal-build.sh"
 
 # The bridges the nightly must run, and the file each one writes. Adding a bridge without
 # adding it here is the mistake this table exists to make impossible.
@@ -44,6 +46,10 @@ POST_SLICE_BRIDGES = [
     ("ingest/pull_macro_opportunities.py", "*.slice.json#opportunities"),
 ]
 BRIDGES = PRE_SLICE_BRIDGES + POST_SLICE_BRIDGES
+
+ACCURACY_ENTRY = "terminal/scripts/score_personal_accuracy_entry.ts"
+ACCURACY_ARTIFACT = "terminal/scripts/dist/score_personal_accuracy.mjs"
+ACCURACY_SOURCE = "terminal/scripts/score_personal_accuracy.mjs"
 
 
 @pytest.mark.parametrize("script,_out", BRIDGES, ids=[b[0] for b in BRIDGES])
@@ -74,6 +80,95 @@ def test_both_washout_bridges_run_before_the_slice_generator_that_consumes_them(
     consumer = line_of("ingest/gen_slices_all.py")
     for script, _out in PRE_SLICE_BRIDGES:
         assert line_of(script) < consumer, f"{script} must run BEFORE gen_slices_all"
+
+
+def test_personal_accuracy_runs_once_after_the_us_equity_close_refresh():
+    """The worker must see the same night's close, not the previous bundle's chance."""
+    body = NIGHTLY.read_text()
+    invocation = re.search(
+        r'^run node /opt/terminal/terminal/scripts/dist/score_personal_accuracy\.mjs$',
+        body,
+        re.M,
+    )
+    assert invocation, f"{ACCURACY_ARTIFACT} is never invoked by ops/terminal-data"
+    assert body.count(invocation.group(0)) == 1, "personal accuracy must run exactly once"
+    refresh = body.find('run "$PY" ingest/refresh_ohlc.py --days 7 --write')
+    assert refresh >= 0 and invocation.start() > refresh, (
+        "personal accuracy must run AFTER ingest/refresh_ohlc.py --days 7 --write"
+    )
+
+
+def test_personal_accuracy_worker_has_one_owner_and_no_second_scheduler():
+    """One generated worker, invoked by the one existing nightly, is the whole cadence."""
+    nightly = NIGHTLY.read_text()
+    build = BUILD.read_text()
+    entry = ROOT / ACCURACY_ENTRY
+    entry_source = entry.read_text()
+    assert entry.is_file(), f"{ACCURACY_ENTRY} is missing"
+    assert 'from "@/lib/personalAccuracyStore"' in entry_source
+    assert "RESOLVER_REGISTRY,\n  thresholdNumber," in entry_source
+    assert nightly.count("score_personal_accuracy") == 1
+    assert build.count(ACCURACY_ARTIFACT) >= 2
+    assert re.search(r"--exclude='scripts/dist'", build)
+    for name in ("workflow", "cron", "systemd", "timer"):
+        assert name not in ACCURACY_ENTRY.lower()
+    for workflow in (ROOT / ".github" / "workflows").glob("*.yml"):
+        assert "score_personal_accuracy" not in workflow.read_text(), (
+            f"{workflow.name} introduces a second personal-accuracy scheduler"
+        )
+
+
+def test_canonical_deploy_script_bundles_personal_accuracy_and_preserves_the_prior_artifact():
+    """A failed deploy bundle must leave the nightly's previous worker untouched."""
+    build = BUILD.read_text()
+    start = build.find("# personal-accuracy nightly worker")
+    end = build.find('log "DONE — live = origin/', start)
+    assert 0 <= start < end, f"{ACCURACY_ENTRY} is not bundled by {BUILD}"
+    block = build[start:end]
+    assert f"npx esbuild scripts/score_personal_accuracy_entry.ts" in block
+    assert "--packages=external" in block
+    assert "--outfile=scripts/dist/score_personal_accuracy.mjs.new" in block
+    assert "mv -f \"$APP/scripts/dist/score_personal_accuracy.mjs.new\"" in block
+    assert "rm -f \"$APP/scripts/dist/score_personal_accuracy.mjs.new\"" in block
+    assert "nightly keeps the previous bundle" in block
+
+
+def test_failed_personal_accuracy_bundle_keeps_the_previous_artifact(tmp_path):
+    """Execute the deploy branch with a failing esbuild, not merely trust its wording."""
+    build = BUILD.read_text()
+    start = build.find("# personal-accuracy nightly worker")
+    end = build.find('log "DONE — live = origin/', start)
+    block = build[start:end]
+    app = tmp_path / "app"
+    dist = app / "scripts" / "dist"
+    dist.mkdir(parents=True)
+    artifact = dist / "score_personal_accuracy.mjs"
+    artifact.write_text("previous known good worker")
+    bin_dir = tmp_path / "bin"
+    bin_dir.mkdir()
+    (bin_dir / "npx").write_text("#!/bin/sh\nexit 1\n")
+    (bin_dir / "npx").chmod(0o755)
+
+    result = subprocess.run(
+        ["bash", "-c", "log(){ echo \"$*\"; }\n" + block],
+        env={**os.environ, "APP": str(app), "PATH": f"{bin_dir}:{os.environ['PATH']}"},
+        text=True,
+        capture_output=True,
+        check=False,
+    )
+
+    assert result.returncode == 0
+    assert artifact.read_text() == "previous known good worker"
+    assert not (dist / "score_personal_accuracy.mjs.new").exists()
+
+
+def test_personal_accuracy_generated_artifact_has_no_secret_or_ref_logging():
+    """The deploy sidecar may name an error, but it must never expose credentials."""
+    source = (ROOT / ACCURACY_SOURCE).read_text()
+    entry = (ROOT / ACCURACY_ENTRY).read_text()
+    combined = source + entry
+    assert "No key, ref, or token value is printed, logged, or committed." in source
+    assert not re.search(r'console\.(?:log|error)\([^)]*(?:url|key|token|ref)', combined, re.I)
 
 
 def test_opportunity_bridge_runs_after_slice_generation_and_before_verification():
@@ -197,6 +292,39 @@ def test_the_history_bridge_leaves_the_old_file_alone_when_no_source_is_reachabl
 # deploy) while `ops/terminal-data` published artifacts nightly. So: nightly writes XYZ.intel.json
 # -> coverage still says XYZ has no intel -> an open tab refuses to ask for it. Pinning the step
 # here is the producer half; the consumer half is the bounded TTL in terminal/lib/dataCache.ts.
+
+INTRADAY_REFRESH = (
+    '"$PY" -m ingest.backfill_intraday --existing-only --expect-advance --tf 1h,5m --workers 8'
+)
+
+
+def test_the_nightly_runs_the_bounded_existing_intraday_refresh():
+    body = NIGHTLY.read_text()
+    assert body.count(INTRADAY_REFRESH) == 1, (
+        "existing intraday stores have an incremental refresher but ops/terminal-data does not run it"
+    )
+
+
+def test_intraday_refresh_prints_status_line_and_never_aborts():
+    body = NIGHTLY.read_text()
+    assert "INTRADAY_REFRESH status=OK" in body
+    assert "INTRADAY_REFRESH status=FAILED rc=" in body
+    assert body.count(INTRADAY_REFRESH) == 1
+
+
+def test_intraday_refresh_runs_after_core_publish_and_before_coverage_index():
+    body = NIGHTLY.read_text().splitlines()
+    def line_of(exact: str) -> int:
+        for i, line in enumerate(body):
+            if exact in line:
+                return i
+        raise AssertionError(f"{exact} not found in ops/terminal-data")
+    swap = line_of('mv -f "$STAGE" "$LIVE"')
+    refresh = line_of(INTRADAY_REFRESH)
+    coverage = next(i for i, line in enumerate(body)
+                    if line.strip().startswith('run "$PY" scripts/build_data_coverage.py'))
+    assert swap < refresh < coverage
+
 
 COVERAGE_STEP = "scripts/build_data_coverage.py"
 

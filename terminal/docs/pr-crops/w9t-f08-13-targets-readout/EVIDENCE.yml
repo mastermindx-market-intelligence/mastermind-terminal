@@ -1,0 +1,43 @@
+{
+  "capturedAtHead": "bfe98ed4f82f30506af69e9ada13811343e386fe",
+  "capturedAt": "2026-09-27T10:18:21.534Z",
+  "layoutFiles": {
+    "terminal/components/settings/SectionPortfolioTargets.tsx": "42efc4318fe724c0315b065b2833862ff241f9bc612aae976d32518ba523371b",
+    "terminal/components/settings/SettingsPanel.tsx": "526725b37af04f1092359a8aca1e6d3d6d62815b5913b3a7eba754e4ca020329",
+    "terminal/components/settings/SettingsProvider.tsx": "a4c829c956ca7ffd89bbc3158009b1148bb613569a9716b092dd9a27d449d910",
+    "terminal/components/settings/icons.tsx": "7f3e17e45cb92545437ade898fe47a92cf6a65d1682cec9b9cea7a5bb8bd4d83",
+    "terminal/lib/i18n.tsx": "51276ecc8db6956c6c4e5cc67c55eab029c0b468ccb61e34f8bb92f25e42b9f8"
+  },
+  "theme": "dark",
+  "languages": [
+    "en",
+    "zh"
+  ],
+  "viewports": [
+    {
+      "name": "desktop",
+      "width": 1440,
+      "height": 900
+    },
+    {
+      "name": "mobile",
+      "width": 390,
+      "height": 844
+    }
+  ],
+  "surfaces": [
+    "SectionPortfolioTargets"
+  ],
+  "capture_flag": "TERMINAL_E2E_FIXTURE",
+  "capture_flag_law": "next.config.ts sets devIndicators: false when TERMINAL_E2E_FIXTURE is set; this script starts next dev with the same flag.",
+  "files": [
+    "PortfolioTargetsSettings-empty-390-en.png",
+    "PortfolioTargetsSettings-empty-390-zh.png",
+    "PortfolioTargetsSettings-empty-1440-en.png",
+    "PortfolioTargetsSettings-empty-1440-zh.png",
+    "PortfolioTargetsSettings-populated-390-en.png",
+    "PortfolioTargetsSettings-populated-390-zh.png",
+    "PortfolioTargetsSettings-populated-1440-en.png",
+    "PortfolioTargetsSettings-populated-1440-zh.png"
+  ]
+}

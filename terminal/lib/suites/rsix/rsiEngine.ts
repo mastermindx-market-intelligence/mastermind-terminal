@@ -32,7 +32,6 @@ import type {
   Prim,
   SuiteBar,
   SuiteEvent,
-  SuiteField,
   SuiteModuleDef,
 } from "@/lib/indicator-canvas/types";
 import { emaArr, rsiArr } from "@/lib/suites/shared/oscUtils";
@@ -69,20 +68,20 @@ export function clampNum(v: number, lo: number, hi: number): number {
   return v < lo ? lo : v > hi ? hi : v;
 }
 
-export function numOpt(v: any, d: number, lo: number, hi: number): number {
+export function numOpt(v: unknown, d: number, lo: number, hi: number): number {
   const n = typeof v === "number" ? v : parseFloat(String(v));
   return Number.isFinite(n) ? clampNum(n, lo, hi) : d;
 }
 
-export function intOpt(v: any, d: number, lo: number, hi: number): number {
+export function intOpt(v: unknown, d: number, lo: number, hi: number): number {
   return Math.round(numOpt(v, d, lo, hi));
 }
 
-export function boolOpt(v: any, d: boolean): boolean {
+export function boolOpt(v: unknown, d: boolean): boolean {
   return typeof v === "boolean" ? v : d;
 }
 
-export function selOpt<T extends string>(v: any, d: T, allowed: readonly T[]): T {
+export function selOpt<T extends string>(v: unknown, d: T, allowed: readonly T[]): T {
   return typeof v === "string" && (allowed as readonly string[]).includes(v) ? (v as T) : d;
 }
 
@@ -217,7 +216,7 @@ export function computeUltimateRsi(
  * option readers `compute()` below uses, so a satellite calling `sharedRsi` gets bit-identical
  * series to the ones the Engine draws. Tolerates a missing/partial `ctx.suite` (tests, warm-up).
  */
-export function rsiEngineParams(suite: Record<string, any> | undefined): {
+export function rsiEngineParams(suite: Record<string, unknown> | undefined): {
   len: number;
   source: RsiSource;
   smooth: boolean;
@@ -243,10 +242,41 @@ export function rsiEngineParams(suite: Record<string, any> | undefined): {
   };
 }
 
-/** The RSI pair the ENGINE is drawing for this pass — the one series every satellite must read. */
+type RsiPassCache = {
+  bars: SuiteBar[];
+  key: string;
+  result: UltimateRsi;
+};
+const RSI_PASS_CACHE: unique symbol = Symbol("rsix.pass-rsi");
+
+/**
+ * The RSI pair the ENGINE is drawing for this pass — the one series every satellite must read.
+ *
+ * `host.computeSuite()` creates one fresh `ctx.suite` object and shares it across every module in
+ * that suite pass. Keep the kernel result on that ephemeral object so Engine, Signals, Divergence
+ * and Channels reuse the same typed arrays. The Symbol is non-enumerable and therefore cannot
+ * become a setting, memo-key input or serialized payload. A new suite pass gets a new object, so
+ * accepted live bars can never observe a stale prior-pass reading.
+ */
 export function sharedRsi(ctx: ModuleCtx): UltimateRsi {
   const p = rsiEngineParams(ctx.suite);
-  return computeUltimateRsi(ctx.bars, p.len, p.source, p.smoothLen, p.smoothType);
+  const resultForPass = () => computeUltimateRsi(ctx.bars, p.len, p.source, p.smoothLen, p.smoothType);
+  // Legacy/unit callers may omit ctx.suite; keep their exact fail-soft direct path.
+  if (!ctx.suite) return resultForPass();
+
+  const key = `${p.len}|${p.source}|${p.smoothLen}|${p.smoothType}`;
+  const pass = ctx.suite as ModuleCtx["suite"] & { [RSI_PASS_CACHE]?: RsiPassCache };
+  const hit = pass[RSI_PASS_CACHE];
+  if (hit?.bars === ctx.bars && hit.key === key) return hit.result;
+
+  const result = resultForPass();
+  Object.defineProperty(pass, RSI_PASS_CACHE, {
+    value: { bars: ctx.bars, key, result } satisfies RsiPassCache,
+    writable: true,
+    configurable: true,
+    enumerable: false,
+  });
+  return result;
 }
 
 // -------------------------------------------------------------------------------- module settings
@@ -276,14 +306,10 @@ function compute(ctx: ModuleCtx): ModuleResult {
   if (n < 3) return empty;
 
   const s = ctx.s || {};
-  const len = intOpt(s.len, RSI_DEFAULTS.len, 2, 50);
-  const source = selOpt<RsiSource>(s.source, RSI_DEFAULTS.source, ["close", "hl2", "hlc3"]);
   const wantSmooth = boolOpt(s.smooth, RSI_DEFAULTS.smooth);
-  const smoothLen = intOpt(s.smoothLen, RSI_DEFAULTS.smoothLen, 1, 50);
-  const smoothType = selOpt<RsiSmoothType>(s.smoothType, RSI_DEFAULTS.smoothType, ["ema", "sma", "wma"]);
   const zh = lang === "zh";
 
-  const { rsi, smooth } = computeUltimateRsi(bars, len, source, smoothLen, smoothType);
+  const { rsi, smooth } = sharedRsi(ctx);
   const fin = finiteIdx(rsi);
   if (fin.length < 2) return empty;
 

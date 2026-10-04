@@ -9,6 +9,7 @@ import {
   attachFlowScores,
   tryFetchUpstream,
 } from "@/lib/flowSource";
+import { fetchOptionsAlphaCandidatePair } from "@/lib/optionsAlphaCandidatePair";
 
 // Bare-minimum in-memory cache so concurrent renders share one fetch.
 type CacheEntry = { data: Record<string, unknown>; ts: number };
@@ -46,6 +47,14 @@ export async function GET(req: Request): Promise<Response> {
 
   // Dev fixture mode: return static fixture data without touching any upstream.
   if (process.env.FLOW_FIXTURE === "1") {
+    // Candidate evidence is only meaningful as its verified R2 payload/receipt pair.
+    // There is deliberately no synthetic one-object fallback.
+    if (f === "options_alpha_candidate_feed") {
+      return NextResponse.json(
+        { error: "feed unavailable" },
+        { status: 503, headers: { "Cache-Control": "private, no-store" } }
+      );
+    }
     try {
       const data = await fixtureFor(f);
       attachFlowScores(f, data);
@@ -57,6 +66,21 @@ export async function GET(req: Request): Promise<Response> {
         { error: "fixture unavailable" },
         { status: 503, headers: { "Cache-Control": "no-store" } }
       );
+    }
+  }
+
+  // The candidate feed is a coupled, raw-byte-attested R2 pair. It is always fetched and
+  // verified for this request: never enter the generic SWR cache or its stale background path.
+  if (f === "options_alpha_candidate_feed") {
+    try {
+      return NextResponse.json(await fetchOptionsAlphaCandidatePair(), {
+        headers: { "Cache-Control": "no-store", "X-Flow-Source": "options-alpha-r2-pair" },
+      });
+    } catch {
+      // Do not reveal which contract check failed to an unauthenticated edge/cache layer.
+      return NextResponse.json({ error: "feed unavailable" }, {
+        status: 503, headers: { "Cache-Control": "private, no-store" },
+      });
     }
   }
 
