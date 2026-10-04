@@ -1,0 +1,58 @@
+.root { min-width: 0; color: var(--text); }
+.header { display: flex; align-items: baseline; justify-content: space-between; gap: 24px; padding: 18px 0 10px; }
+.header h2 { margin: 0 0 5px; font-size: clamp(25px, 2.2vw, 34px); line-height: 1.15; letter-spacing: -.8px; }
+.header p { margin: 0; color: var(--text-2); font-size: 12px; }
+.receipt { flex-shrink: 0; text-align: right; font-variant-numeric: tabular-nums; }
+.answer { margin: 0 0 16px; padding: 14px 16px; border: 1px solid var(--line); border-left: 3px solid var(--brand); border-radius: var(--r-card); background: var(--panel); }
+.answer span { display: block; margin-bottom: 5px; color: var(--text-2); font-size: 10px; font-weight: 650; letter-spacing: .08em; text-transform: uppercase; }
+.answer p { margin: 0; max-width: 1040px; font-size: clamp(16px, 1.45vw, 19px); font-weight: 620; line-height: 1.45; letter-spacing: -.15px; }
+.controls { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 13px; padding: 0 0 16px; }
+.controls label { display: flex; min-width: 142px; flex: 0 1 190px; flex-direction: column; gap: 6px; color: var(--text-2); font-size: 11px; }
+.controls input, .controls select { width: 100%; min-height: 44px; height: 44px; padding: 9px 12px; border: 1px solid var(--line); border-radius: var(--r-ctl); background: var(--panel); color: var(--text); font: 13px var(--font-ui); }
+.controls > span { margin-left: auto; padding-bottom: 13px; color: var(--text-2); font-size: 11px; }
+.controls > button, .empty button { min-height: 44px; padding: 8px 10px; border: 0; background: transparent; color: var(--link); font: 600 12px var(--font-ui); cursor: pointer; }
+.tableWrap { overflow: auto; border: 1px solid var(--line); border-radius: var(--r-card); background: var(--panel); }
+.tableWrap table { width: 100%; border-collapse: collapse; font-size: 12px; font-variant-numeric: tabular-nums; }
+.tableWrap th, .tableWrap td { padding: 11px 14px; border-bottom: 1px solid var(--line); text-align: right; vertical-align: middle; }
+.tableWrap thead th { position: sticky; top: 0; z-index: 2; background: var(--panel); color: var(--text-2); font-size: 10px; font-weight: 550; letter-spacing: .02em; }
+.tableWrap th:first-child, .tableWrap td:nth-child(2) { text-align: left; }
+.tableWrap tbody tr:last-child > * { border-bottom: 0; }
+.tableWrap tbody tr:hover, .tableWrap tbody tr[aria-selected="true"] { background: var(--panel-2); }
+.tableWrap tbody tr[aria-selected="true"] { box-shadow: inset 3px 0 0 var(--brand); }
+.tableWrap th button { display: grid; width: 100%; min-height: 44px; align-content: center; gap: 3px; padding: 0; border: 0; background: transparent; color: var(--text); font: inherit; text-align: left; cursor: pointer; }
+.tableWrap th button strong { font: 700 13px var(--font-num); }
+.tableWrap th button small { overflow: hidden; max-width: 260px; color: var(--text-2); font-size: 10px; font-weight: 400; text-overflow: ellipsis; white-space: nowrap; }
+.root [data-sign="up"] { color: var(--si-up, var(--up)); }
+.root [data-sign="down"] { color: var(--si-down, var(--down)); }
+.selectedBar { display: flex; align-items: center; justify-content: space-between; gap: 18px; margin: 0 0 14px; padding: 14px 16px; border: 1px solid var(--line); border-radius: var(--r-card); background: var(--panel); }
+.selectedBar > div:first-child { display: grid; min-width: 0; gap: 3px; }
+.selectedBar > div:last-child { display: flex; flex-shrink: 0; align-items: center; gap: 8px; }
+.selectedBar span { color: var(--text-2); font-size: 10px; font-weight: 650; letter-spacing: .07em; text-transform: uppercase; }
+.selectedBar strong { overflow: hidden; font-size: 13px; text-overflow: ellipsis; white-space: nowrap; }
+.selectedBar small { color: var(--text-2); font-size: 10px; }
+.selectedBar em { color: var(--warning, var(--text-2)); font-size: 10px; font-style: normal; }
+.selectedBar a, .selectedBar button { min-height: 44px; align-content: center; padding: 8px 11px; border: 1px solid var(--line); background: transparent; color: var(--link); font: 600 12px var(--font-ui); text-align: center; text-decoration: none; cursor: pointer; }
+.note { margin: 12px 0 0; color: var(--text-2); font-size: 10px; line-height: 1.5; }
+.empty { padding: 30px 20px; border: 1px dashed var(--line); border-radius: var(--r-card); background: var(--panel); color: var(--text-2); }
+.empty p { margin: 0; }
+.root :is(button,input,select,a):focus-visible { outline: 2px solid var(--brand-2); outline-offset: 3px; }
+@media (max-width: 760px) {
+  .header { align-items: flex-start; gap: 12px; padding-top: 14px; }
+  .receipt { max-width: 142px; line-height: 1.45; }
+  .answer { padding: 12px 13px; }
+  .answer p { font-size: 16px; line-height: 1.42; }
+  .controls { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 11px; }
+  .controls label { min-width: 0; }
+  .controls > span { margin: 0; padding: 0; align-self: center; }
+  .controls > button { justify-self: end; }
+  .tableWrap thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+  .tableWrap table, .tableWrap tbody { display: block; }
+  .tableWrap tr { display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 10px 16px; padding: 13px 15px; border-bottom: 1px solid var(--line); }
+  .tableWrap tr:last-child { border-bottom: 0; }
+  .tableWrap th, .tableWrap td { display: flex; flex-direction: column; gap: 3px; padding: 0; border: 0; text-align: left; }
+  .tableWrap tbody th { grid-column: 1 / -1; }
+  .tableWrap td::before { content: attr(data-label); color: var(--text-2); font-size: 9px; }
+  .tableWrap tbody tr[aria-selected="true"] { box-shadow: inset 3px 0 0 var(--brand); }
+  .selectedBar { align-items: stretch; flex-direction: column; }
+  .selectedBar > div:last-child { display: grid; grid-template-columns: 1fr; }
+}

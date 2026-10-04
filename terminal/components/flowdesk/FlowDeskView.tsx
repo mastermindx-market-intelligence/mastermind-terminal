@@ -80,6 +80,87 @@ interface ChainHeatCampaign {
   direction_reliability: string;
   authority_tier: string;
   note?: string;
+  category_proxy?: ChainHeatCategoryProxy;
+}
+
+// Additive side-category proxy.  This is a fixed mapping category — NOT a
+// measured NBBO and NOT the legacy ask_share.  Absent on legacy payloads.
+interface ChainHeatCategoryProxy {
+  schema?: string;
+  basis?: string;
+  share?: number | null;
+  known_premium_usd?: number;
+  unknown_premium_usd?: number;
+  source_premium_usd?: number;
+  invalid_premium_count?: number;
+  source_certified_accepted?: boolean;
+}
+
+type CategoryProxyState =
+  | { kind: "none" }
+  | { kind: "invalid" }
+  | { kind: "valid"; share: number | null; known: number; source: number };
+
+/**
+ * Resolve the additive category_proxy object with the exact contract guard.
+ *
+ *   none    — payload carries no object (legacy); legacy bar may be shown,
+ *             clearly labelled as legacy with coverage unavailable.
+ *   invalid — a NEW object was claimed but fails the schema/basis/bounds
+ *             contract; render unavailable and NEVER fall back to legacy.
+ *   valid   — schema + basis match and every share/mass is finite and bounded.
+ */
+function resolveCategoryProxy(
+  p: unknown,
+): CategoryProxyState {
+  // Only an ABSENT field is legacy.  null / primitives / arrays are a claimed
+  // but malformed object → invalid, and must NEVER fall back to the legacy bar.
+  if (p === undefined) return { kind: "none" };
+  if (p === null || typeof p !== "object" || Array.isArray(p)) {
+    return { kind: "invalid" };
+  }
+  const o = p as Record<string, unknown>;
+  const finiteNonNeg = (v: unknown): v is number =>
+    typeof v === "number" && Number.isFinite(v) && v >= 0;
+  if (
+    o.schema !== "options_flow.category_proxy/v1" ||
+    o.basis !== "side_category" ||
+    o.source_certified_accepted !== false ||
+    !finiteNonNeg(o.known_premium_usd) ||
+    !finiteNonNeg(o.unknown_premium_usd) ||
+    !finiteNonNeg(o.source_premium_usd) ||
+    !Number.isInteger(o.invalid_premium_count) ||
+    (o.invalid_premium_count as number) < 0
+  ) {
+    return { kind: "invalid" };
+  }
+  const known = o.known_premium_usd as number;
+  const unknown = o.unknown_premium_usd as number;
+  const source = o.source_premium_usd as number;
+  const invalidCount = o.invalid_premium_count as number;
+  // Mass must reconcile to the selected source within rounding: known+unknown
+  // ≈ source (0.02 USD + 1e-12 relative), and known ≤ source within rounding.
+  const tol = 0.02 + 1e-12 * source;
+  if (Math.abs(known + unknown - source) > tol) return { kind: "invalid" };
+  if (known > source + tol) return { kind: "invalid" };
+  // share: null is allowed; a numeric share requires real known mass and no
+  // invalid premium rows.
+  let share: number | null;
+  if (o.share === null) {
+    share = null;
+  } else if (
+    typeof o.share === "number" &&
+    Number.isFinite(o.share) &&
+    o.share >= 0 &&
+    o.share <= 1 &&
+    known > 0 &&
+    invalidCount === 0
+  ) {
+    share = o.share;
+  } else {
+    return { kind: "invalid" };
+  }
+  return { kind: "valid", share, known, source };
 }
 
 interface ChainHeatPayload {
@@ -217,8 +298,25 @@ function ChainCampaignRow({
   const premStr = `$${campaign.total_premium_mn.toFixed(1)}M`;
   const isBig = campaign.total_premium_mn >= 10;
 
-  // Ask share bar width
-  const askBarW = Math.round(campaign.ask_share * 100);
+  // Category proxy state: "none" (legacy payload) | "invalid" (claimed but
+  // malformed) | "valid" (exact schema/basis + bounded finite share/mass).
+  const proxyState = resolveCategoryProxy(campaign.category_proxy);
+  const proxyW =
+    proxyState.kind === "valid" && proxyState.share !== null
+      ? Math.round(Math.min(1, Math.max(0, proxyState.share)) * 100)
+      : 0;
+  // Legacy numeric bar — shown ONLY when no new object is present, and clearly
+  // labelled as legacy with coverage unavailable.  A legacy ask_share that is
+  // not a finite 0..1 number renders as unavailable with NO fill (never NaN,
+  // never a 0 fallback).  Never presented as "at ask" or a measured neutral.
+  const legacyShareOk =
+    typeof campaign.ask_share === "number" &&
+    Number.isFinite(campaign.ask_share) &&
+    campaign.ask_share >= 0 &&
+    campaign.ask_share <= 1;
+  const legacyBarW = legacyShareOk
+    ? Math.round(Math.min(1, Math.max(0, campaign.ask_share)) * 100)
+    : null;
 
   // First-seen time (ET)
   let firstSeenStr = "";
@@ -272,16 +370,55 @@ function ChainCampaignRow({
         </span>
       </div>
 
-      {/* Ask share bar */}
-      <div>
-        <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "var(--sp-1)" }}>
-          <span className="obs-fd-chain-stat-key">{t("chainHeatAskShare")}</span>
-          <span className="num" style={{ fontSize: "var(--fs-micro)", color: "var(--text-2)" }}>{askBarW}%</span>
+      {/* Category proxy bar — additive; never a measured NBBO */}
+      {proxyState.kind === "valid" ? (
+        <div>
+          <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "var(--sp-1)" }}>
+            <span className="obs-fd-chain-stat-key">{t("chainHeatAskShare")}</span>
+            <span className="num" style={{ fontSize: "var(--fs-micro)", color: "var(--text-2)" }}>
+              {proxyState.share === null ? t("chainHeatProxyUnavailable") : `${proxyW}%`}
+            </span>
+          </div>
+          <div className="obs-fd-chain-askbar-track">
+            {proxyState.share !== null && (
+              <div className="obs-fd-chain-askbar-fill" style={{ width: `${proxyW}%` }} />
+            )}
+          </div>
+          <div style={{ display: "grid", gap: "var(--sp-1)", marginTop: "var(--sp-1)" }}>
+            <span className="obs-fd-chain-caveat">{t("chainHeatProxyNote")}</span>
+            <span className="num" style={{ fontSize: "var(--fs-micro)", color: "var(--text-2)" }}>
+              {t("chainHeatProxyCoverage")} {(proxyState.known / 1e6).toFixed(1)}M / {(proxyState.source / 1e6).toFixed(1)}M
+            </span>
+          </div>
         </div>
-        <div className="obs-fd-chain-askbar-track">
-          <div className="obs-fd-chain-askbar-fill" style={{ width: `${askBarW}%` }} />
+      ) : proxyState.kind === "invalid" ? (
+        <div>
+          <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "var(--sp-1)" }}>
+            <span className="obs-fd-chain-stat-key">{t("chainHeatAskShare")}</span>
+            <span className="num" style={{ fontSize: "var(--fs-micro)", color: "var(--text-2)" }}>
+              {t("chainHeatProxyUnavailable")}
+            </span>
+          </div>
+          <div className="obs-fd-chain-askbar-track" />
+          <div style={{ marginTop: "var(--sp-1)" }}>
+            <span className="obs-fd-chain-caveat">{t("chainHeatProxyNote")}</span>
+          </div>
         </div>
-      </div>
+      ) : (
+        <div>
+          <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "var(--sp-1)" }}>
+            <span className="obs-fd-chain-stat-key">{t("chainHeatProxyLegacy")}</span>
+            <span className="num" style={{ fontSize: "var(--fs-micro)", color: "var(--text-2)" }}>
+              {legacyBarW === null ? t("chainHeatProxyUnavailable") : `${legacyBarW}%`}
+            </span>
+          </div>
+          <div className="obs-fd-chain-askbar-track">
+            {legacyBarW !== null && (
+              <div className="obs-fd-chain-askbar-fill" style={{ width: `${legacyBarW}%` }} />
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

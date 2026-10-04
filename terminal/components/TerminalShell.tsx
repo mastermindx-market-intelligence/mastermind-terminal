@@ -1,6 +1,6 @@
 "use client";
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
-import { useIsMobile, useIsPhone } from "@/lib/useMediaQuery";
+import { PHONE_QUERY, useIsMobile, useIsPhone } from "@/lib/useMediaQuery";
 import MobileSheet from "@/components/ui/MobileSheet";
 import { DndContext, DragOverlay, PointerSensor, KeyboardSensor, useDroppable, useSensor, useSensors, closestCenter, type CollisionDetection, type DragEndEvent, type DragStartEvent, type Modifier } from "@dnd-kit/core";
 import { SortableContext, sortableKeyboardCoordinates, useSortable, verticalListSortingStrategy } from "@dnd-kit/sortable";
@@ -41,7 +41,7 @@ import { accountIdentity } from "@/lib/accountIdentity";
 import { FIN_PAGES, type FinPage } from "@/components/fin/finPages";
 import { getFund, getOpts, getBars, type Fund, type Bar } from "@/lib/fund";
 import { allDefaults, indDefaults, withDefaults, IND_ORDER, IND_DEFS, isIndKey } from "@/lib/indicators";
-import { isSuiteKey, suiteDefaults } from "@/lib/suites/registry";
+import { isSuiteKey, suiteDefaults, SUITE_ORDER } from "@/lib/suites/registry";
 import { isAmbientCandleSuite, migrateMastermindCandlesDefault, MASTERMIND_CANDLES_MIGRATION_KEY, MASTERMIND_CANDLES_MODULE_ID, MASTERMIND_CANDLES_SUITE_KEY } from "@/lib/mastermindCandlesDefault";
 import {
   enabledModulesForSuite,
@@ -86,6 +86,7 @@ import { useGateEntitlement } from "@/lib/entitlementStore";
 import { normalizeDevTierOverride } from "@/lib/subscriptionTier";
 import { useChartBus } from "@/lib/useChartBus";
 import { isV2Envelope, type IndicatorSpec } from "@/lib/chartBus";
+import { describeNativeSuiteCapabilities } from "@/lib/chartIndicatorParams";
 import SeasonalityCard from "@/components/SeasonalityCard";
 // Code-split the conditionally-mounted heavies out of the /terminal first-paint bundle (task 9).
 // TerminalShell is a Client Component, so ssr:false is allowed — none of these render on any SSR
@@ -117,7 +118,7 @@ import WashoutTurnRow from "@/components/WashoutTurnRow";
 import { oracleVerdict, deskVerdict } from "@/lib/signalVerdict";
 import { computeTrendState } from "@/lib/trend";
 import { useLive } from "@/lib/live";
-import { setPaneSync } from "@/lib/paneSync";
+import { setPaneSync, subscribePaneVisibleWindow } from "@/lib/paneSync";
 import {
   MAX_DRAWINGS_PER_SYMBOL,
   type Dash,
@@ -151,6 +152,7 @@ import WorkspaceTile from "@/components/WorkspaceTile";
 import { nextLayoutName, type SavedLayout } from "@/lib/layouts";
 import { applyLayoutConfig, captureLayoutConfig, type LayoutWorkspace } from "@/lib/layoutConfig";
 import { migrateLegacy, workspaceToLayout, captureWorkspace } from "@/lib/workspaceMigrate";
+import RetainedInvestigationLayout from "@/components/RetainedInvestigationLayout";
 import { SCHEMA as WORKSPACE_SCHEMA, validateEnvelope, type WorkspaceEnvelope, type Widget as WorkspaceWidget } from "@/lib/workspaceLayout";
 import { workspaceRowState, migrationUnclaimed, migrationUnsupportedWidgets, parseWorkspaceOutcome, absoluteLocalTime, safeWorkspaceFilename, importFailureKey, brainIncludedFromEnvelope, openBrainReincluding, type WorkspaceOpOutcome } from "@/lib/workspaceMenuOps";
 import { type PineScript } from "@/components/ChartPanel";
@@ -1549,6 +1551,18 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, s
   // ── phone chart chrome (R2): the roller strip's two sheets ──
   const [drawSheetOpen, setDrawSheetOpen] = useState(false);
   const [hubOpen, setHubOpen] = useState(false);
+  const [phoneWorkspacesOpen, setPhoneWorkspacesOpen] = useState(false);
+  // A phone-only sheet must not survive a breakpoint transition in component state. Without
+  // clearing it here, rotating to tablet/landscape unmounts the sheet while leaving `open=true`,
+  // so returning to the phone breakpoint unexpectedly reopens it.
+  useEffect(() => {
+    const query = window.matchMedia(PHONE_QUERY);
+    const closeOutsidePhone = (event: MediaQueryListEvent) => {
+      if (!event.matches) setPhoneWorkspacesOpen(false);
+    };
+    query.addEventListener("change", closeOutsidePhone);
+    return () => query.removeEventListener("change", closeOutsidePhone);
+  }, []);
   // Optimistic "seen" so the ••• badge cannot flash before localStorage is read on mount.
   const [hubSeen, setHubSeen] = useState(true);
   useEffect(() => { try { setHubSeen(localStorage.getItem("mm.hubSeen") === "1"); } catch {} }, []);
@@ -4284,30 +4298,52 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, s
     if (shellMode) postToShell({ type: "stateChanged", tf, favTimeframes: favTfOrder, drawTools: [...SHELL_DRAW_TOOLS] });
   }, [shellMode, tf, favTfOrder]);
 
+  // ── DeepVue W1-C: typed ai-context provider ────────────────────────────────────────────────
+  // One provider per TerminalShell mount. Commit the active symbol/timeframe in a layout effect
+  // before useChartBus' passive initial mirror can run, so chat context and chart state share
+  // the same origin_id/context_revision from the first observable snapshot onward.
+  const aiContextProviderRef = useRef<ReturnType<typeof createAiContextProvider> | null>(null);
+  if (!aiContextProviderRef.current) aiContextProviderRef.current = createAiContextProvider();
+  useLayoutEffect(() => {
+    aiContextProviderRef.current?.noteContextChange({ symbol: active, timeframe: tf });
+  }, [active, tf]);
+
   // ── Chart Bus v2 (CMX W1) ──────────────────────────────────────────────────────────────────
   // The v2 typed drawing/command vocabulary. v1 envelopes stay on handleBrainCommand below; a v:2
   // envelope routes here. The bus owns the in-memory per-symbol AI drawing layer, acks, and the
   // debounced state-mirror POST. capabilities report the REAL enums (kills hallucinated names).
   const sessionIndicators: IndicatorSpec[] = useMemo(
-    () => [...inds].map((k) => ({ name: k, params: indParams[k] as Record<string, number> | undefined })),
+    () => [...inds].map((k) => ({ name: k, params: indParams[k] as IndicatorSpec["params"] })),
     [inds, indParams],
   );
+  // Metadata only; the existing mirror forwards this exact object to Brain.
+  // Memoize off settings, not live price ticks. No second indicator catalog/compute.
+  const chartCapabilities = useMemo(() => ({
+    tfs: TF_CANONICAL_ORDER,
+    indicators: [...IND_ORDER, ...SUITE_ORDER],
+    native_parameters: describeNativeSuiteCapabilities([...inds], indParams),
+  }), [inds, indParams]);
   const chartBus = useChartBus({
     activeSymbol: active,
     bars,
-    capabilities: { tfs: TF_CANONICAL_ORDER, indicators: [...IND_ORDER] },
+    capabilities: chartCapabilities,
     sessionIndicators,
     currentTf: tf,
+    activePaneId: activePane,
     // AI objects live in the bus's own store. Detector drawings do share the
     // durable drawing collection, so keep them out of the bus's user-authored
     // context rather than reporting generated levels as operator marks.
     userDrawings: (drawStore[active] ?? []).filter(isUserDrawing),
+    getContextIdentity: () => {
+      const ctx = aiContextProviderRef.current!.getAiContext();
+      return { origin_id: ctx.origin_id, context_revision: ctx.context_revision };
+    },
     setSymbol: (s) => pick(s),
     setTf: (t2) => setTf(t2),
     setIndicators: (specs) => {
-      const keys = specs.map((s) => s.name).filter((k) => isIndKey(k) || scriptById[k]);
+      const keys = specs.map((s) => s.name).filter((k) => isIndKey(k) || isSuiteKey(k) || scriptById[k]);
       setInds(new Set(keys));
-      const withParams = specs.filter((s) => s.params && isIndKey(s.name));
+      const withParams = specs.filter((s) => s.params && (isIndKey(s.name) || isSuiteKey(s.name)));
       if (withParams.length) setIndParams((p) => { const n = { ...p }; for (const s of withParams) n[s.name] = { ...(n[s.name] || {}), ...s.params }; return n; });
     },
     // MVP: jump the chart to the range start via the existing mm:chart-jump consumer. A precise
@@ -4315,17 +4351,12 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, s
     setRange: (from) => { try { window.dispatchEvent(new CustomEvent("mm:chart-jump", { detail: { ts: from } })); } catch {} },
   });
 
-  // ── DeepVue W1-C: typed ai-context provider ────────────────────────────────────────────────
-  // One provider instance per TerminalShell mount (mints origin_id once). Observe-only: the
-  // effect below is the ONLY writer into it, keyed on the exact same [active, tf] values fed to
-  // useChartBus above, so one symbol/timeframe transition produces exactly one
-  // noteContextChange call. Nothing from the widget (acks, receipts) may call it — that would
-  // create a context loop, which the contract forbids.
-  const aiContextProviderRef = useRef<ReturnType<typeof createAiContextProvider> | null>(null);
-  if (!aiContextProviderRef.current) aiContextProviderRef.current = createAiContextProvider();
-  useEffect(() => {
-    aiContextProviderRef.current?.noteContextChange({ symbol: active, timeframe: tf });
-  }, [active, tf]);
+  // Observe the already-registered active pane's calendar viewport. paneSync remains the
+  // single logical-range→calendar owner; Chart Bus only mirrors the result into Brain state.
+  useEffect(() => subscribePaneVisibleWindow(
+    activePane,
+    (window) => chartBus.noteViewport(activePane, window),
+  ), [activePane, chartBus.noteViewport]);
 
   // Brain widget → chart command executor. Mirrors the retired CopilotPanel's FLAT single-command
   // contract EXACTLY ({action, symbol|tf|indicator+on|kind} at top level): every field is
@@ -5004,6 +5035,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, s
   };
   const openAnalysisHub = () => {
     setDrawSheetOpen(false);
+    setPhoneWorkspacesOpen(false);
     setHubOpen(true);
     if (!hubSeen) { setHubSeen(true); try { localStorage.setItem("mm.hubSeen", "1"); } catch {} }
   };
@@ -5035,6 +5067,12 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, s
         below are children of it, which is what matters. */}
     <SettingsProvider identity={identity} defaultSection="terminal">
     <div className={`app${fullChart ? " fs" : ""}${shellMode ? " shell-app" : ""}`} data-shell={shellMode ? "app" : undefined} data-tray={shellMode && shellTray ? "1" : undefined} data-dossier={dossierMode ? "1" : undefined} style={{ ["--rail-w" as any]: `${railW}px` }}>
+      {!shellMode && <RetainedInvestigationLayout search={urlSearch} owner={wlOwner} onOpen={(config,name)=>{
+        loadLayout({id:"",name,config,updated_at:null,rowState:"ok"});
+        // A historical read is an unnamed local working copy. It must never target the
+        // current named row (which may already be N+1) when the user next chooses Save.
+        setWorkspaceName(null);setWorkspaceRevision(null);setWorkspaceId(null);
+      }}/>}
       {!shellMode && (
       <header className="topbar">
         {fromMacro ? <DashboardBackButton onClick={onBack} /> : <BrandLockup />}
@@ -5558,6 +5596,8 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, s
             setHubOpen(false);
             if (action === "indicators") setIndOpen(true);
             else if (action === "compare") { setSearchMode("compare"); setSeed(""); setSearchOpen(true); }
+            else if (action === "chartType") setCtOpen(true);
+            else if (action === "workspaces") setPhoneWorkspacesOpen(true);
             else if (action === "alerts") window.location.assign(`/alerts?sym=${encodeURIComponent(active)}`);
             else if (action === "symbolDetails") {
               setFullChart(false);
@@ -5567,6 +5607,19 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, s
             }
           }}
         />
+        <MobileSheet
+          open={phoneWorkspacesOpen}
+          onClose={() => setPhoneWorkspacesOpen(false)}
+          title={t("layouts")}
+          className="phone-workspaces-sheet"
+          detents={[60, 96]}
+        >
+          <LayoutMenu
+            {...layoutMenuProps}
+            onPicked={() => setPhoneWorkspacesOpen(false)}
+            isOpen={phoneWorkspacesOpen}
+          />
+        </MobileSheet>
       </>)}
 
       {/* The rail and the chart workspace are INDEPENDENT surfaces (the rail's intel/fund/opts

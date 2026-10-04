@@ -1,0 +1,151 @@
+{
+  "scope": "Group-browser diagnostic after explicit trigger-focus repair",
+  "production": false,
+  "authenticatedOwnerData": false,
+  "independentUsabilityAcceptance": false,
+  "fixture": "Historical Semiconductor rows plus synthetic Hardware test group. Not current membership.",
+  "regressionGate": "The persistent timing checks remain unresolved; this diagnostic does not waive them.",
+  "checks": [
+    {
+      "name": "v2-chromium-desktop-en-light: settled bounds",
+      "passed": true,
+      "detail": {
+        "top": 493,
+        "bottom": 884,
+        "height": 900,
+        "overflow": 0,
+        "transform": "matrix(1, 0, 0, 1, 0, 0)",
+        "background": "rgb(255, 255, 255)"
+      }
+    },
+    {
+      "name": "v2-chromium-desktop-en-light: two groups",
+      "passed": true
+    },
+    {
+      "name": "v2-chromium-desktop-en-light: exact search",
+      "passed": true
+    },
+    {
+      "name": "v2-chromium-desktop-en-light: focus restored",
+      "passed": true
+    },
+    {
+      "name": "v2-chromium-desktop-en-light: selection preserved",
+      "passed": true
+    },
+    {
+      "name": "v2-chromium-desktop-en-light: scroll restored",
+      "passed": true
+    },
+    {
+      "name": "v2-chromium-mobile-en-light: settled bounds",
+      "passed": true,
+      "detail": {
+        "top": 453,
+        "bottom": 836,
+        "height": 844,
+        "overflow": 0,
+        "transform": "matrix(1, 0, 0, 1, 0, 0)",
+        "background": "rgb(255, 255, 255)"
+      }
+    },
+    {
+      "name": "v2-chromium-mobile-en-light: two groups",
+      "passed": true
+    },
+    {
+      "name": "v2-chromium-mobile-en-light: exact search",
+      "passed": true
+    },
+    {
+      "name": "v2-chromium-mobile-en-light: focus restored",
+      "passed": true
+    },
+    {
+      "name": "v2-chromium-mobile-en-light: selection preserved",
+      "passed": true
+    },
+    {
+      "name": "v2-chromium-mobile-en-light: scroll restored",
+      "passed": true
+    },
+    {
+      "name": "v2-webkit-desktop-en-dark: settled bounds",
+      "passed": true,
+      "detail": {
+        "top": 493,
+        "bottom": 884,
+        "height": 900,
+        "overflow": 0,
+        "transform": "matrix(1, 0, 0, 1, 0, 0)",
+        "background": "rgb(13, 15, 19)"
+      }
+    },
+    {
+      "name": "v2-webkit-desktop-en-dark: two groups",
+      "passed": true
+    },
+    {
+      "name": "v2-webkit-desktop-en-dark: exact search",
+      "passed": true
+    },
+    {
+      "name": "v2-webkit-desktop-en-dark: focus restored",
+      "passed": true
+    },
+    {
+      "name": "v2-webkit-desktop-en-dark: selection preserved",
+      "passed": true
+    },
+    {
+      "name": "v2-webkit-desktop-en-dark: scroll restored",
+      "passed": true
+    },
+    {
+      "name": "v2-webkit-mobile-zh-light: settled bounds",
+      "passed": true,
+      "detail": {
+        "top": 453,
+        "bottom": 836,
+        "height": 844,
+        "overflow": 0,
+        "transform": "matrix(1, 0, 0, 1, 0, 0)",
+        "background": "rgb(255, 255, 255)"
+      }
+    },
+    {
+      "name": "v2-webkit-mobile-zh-light: two groups",
+      "passed": true
+    },
+    {
+      "name": "v2-webkit-mobile-zh-light: exact search",
+      "passed": true
+    },
+    {
+      "name": "v2-webkit-mobile-zh-light: focus restored",
+      "passed": true
+    },
+    {
+      "name": "v2-webkit-mobile-zh-light: selection preserved",
+      "passed": true
+    },
+    {
+      "name": "v2-webkit-mobile-zh-light: scroll restored",
+      "passed": true
+    },
+    {
+      "name": "zero page exceptions",
+      "passed": true,
+      "detail": []
+    }
+  ],
+  "captures": [
+    "v2-chromium-desktop-en-light-groups.png",
+    "v2-chromium-mobile-en-light-groups.png",
+    "v2-webkit-desktop-en-dark-groups.png",
+    "v2-webkit-mobile-zh-light-groups.png"
+  ],
+  "pageErrors": [],
+  "passed": true
+}
