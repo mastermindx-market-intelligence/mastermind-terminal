@@ -1,5 +1,4 @@
-import { sessionEpoch, type Bar6 } from "./intradayShared";
-import { usRegularSessionWindow } from "./usEquitySessionClock";
+import type { Bar6 } from "./intradayShared";
 
 export const RETURNS_CALENDAR_SESSION_TF = "30m" as const;
 export const RETURNS_CALENDAR_SESSION_MINUTES = 30;
@@ -19,18 +18,6 @@ function hhmm(minute: number): string {
   const h = Math.floor(minute / 60);
   const m = minute % 60;
   return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
-}
-
-function regularWindow(sessionDate: string): readonly [number, number] | null {
-  const noon = sessionEpoch(sessionDate, "12:00");
-  if (!Number.isFinite(noon)) return null;
-  try {
-    return usRegularSessionWindow(noon);
-  } catch {
-    // The canonical projection owns session truth. Outside its coverage, abstain instead of
-    // silently reintroducing a second hard-coded session calendar.
-    return null;
-  }
 }
 
 function finite(n: unknown): n is number {
@@ -84,9 +71,8 @@ function aggregateSession(
 export function buildReturnsCalendarSessions(
   current: Bar6[],
   previous: Bar6[],
-  sessionDate: string,
+  rth: readonly [number, number] | null,
 ): SessionRange[] {
-  const rth = regularWindow(sessionDate);
   const regularStart = rth?.[0] ?? null;
   const regularEnd = rth?.[1] ?? null;
   const overnight = [
