@@ -67,13 +67,16 @@ export function useChartBus(host: ChartBusHost): ChartBus {
   const hostRef = useRef(host);
   useLayoutEffect(() => { hostRef.current = host; }, [host]);
   const contextRef=useRef<WorkspaceContextSession|null>(null),contextSequence=useRef(0);
+  // The owner is created after commit. Notify rendered consumers once its
+  // epoch exists; the ref remains the sole session and closes on unmount.
+  const [,setContextEpoch]=useState<string|null>(null);
   // Allocate/close in the committed lifecycle. StrictMode's effect remount gets a
   // new epoch; abandoned mounts and their asynchronous response tokens stay closed.
   useLayoutEffect(()=>{
     const h=hostRef.current;
     const epoch=globalThis.crypto?.randomUUID?.()??`context_${Date.now().toString(36)}_${Math.random().toString(36).slice(2)}`;
     const context=createWorkspaceContextSession(epoch,[{id:"active_security",initial:{kind:"security",id:h.activeSymbol,timeframe:h.currentTf,pane_id:h.activePaneId},accepts:value=>Object.keys(value).length===4&&value.kind==="security"&&typeof value.id==="string"&&typeof value.timeframe==="string"&&Number.isInteger(value.pane_id)&&Number(value.pane_id)>=0}]);
-    context.register({id:"active-chart",group:"active_security",emit:true});contextRef.current=context;contextSequence.current=0;
+    context.register({id:"active-chart",group:"active_security",emit:true});contextRef.current=context;contextSequence.current=0;setContextEpoch(epoch);
     return()=>{context.close();if(contextRef.current===context)contextRef.current=null;};
   },[]);
   useLayoutEffect(()=>{
