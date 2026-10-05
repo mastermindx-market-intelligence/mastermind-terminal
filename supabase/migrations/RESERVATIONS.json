@@ -306,9 +306,9 @@
       "packet": "IW2-G5-THESIS-REFERENCES",
       "pr": 804,
       "pr_state": "open",
-      "applied_in_production": false,
-      "applied_date": null,
-      "note": "Claimed by draft #804 after current master and open-PR SQL namespace inspection on 2026-10-04. Exact owned canonical Thesis version references; no separate belief store. Not applied. Application date is not recorded because this migration has not been applied."
+      "applied_in_production": true,
+      "applied_date": "2026-10-05T06:31:03Z",
+      "note": "Canonical Thesis version references; all 8 migration statements applied and both function definitions, grants and four RLS tables read back. Receipt: https://github.com/mastermindx-market-intelligence/mastermind-terminal/pull/804#issuecomment-5989351431. Application acceptance awaits merged-code deployment."
     }
   }
 }
