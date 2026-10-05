@@ -84,9 +84,11 @@ For an exact “highest/lowest printed trade” product, the correct future lane
 ### Alpaca / BOATS
 
 Alpaca exposes overnight U.S. market data from 20:00–04:00 ET. Its historical bars API
-supports the `boats` feed, and Alpaca documents historical BOATS availability for overnight
-data. The repo already contained an Alpaca overnight websocket path for live extended-hours quotes
-inside Quote Hub. This implementation extends **that same owner** with a bounded historical BOATS
+supports the `boats` feed. Alpaca's current 24/5 documentation explicitly says the **Free Plan**
+can request historical BOATS bars/quotes/trades on a 15-minute delay (the request `end` must be
+at least 15 minutes old), which makes this the lowest-cost clean historical overnight source for
+this product. The repo already contained an Alpaca overnight websocket path for live extended-hours
+quotes inside Quote Hub. This implementation extends **that same owner** with a bounded historical BOATS
 adapter and localhost endpoint; Terminal remains credential-free for Alpaca and only proxies the
 selected wall date. The adapter is split-adjusted to match the canonical Massive aggregate basis,
 15-minute-delay safe, fail-soft, and cached for 60 seconds.
