@@ -112,6 +112,7 @@ import BrainWidget from "@/components/BrainWidget";
 // the same active-pane symbol/tf the Chart Bus already owns; never writes back into chart state).
 import { createAiContextProvider } from "@/lib/aiContext";
 import StockAnalysis from "@/components/StockAnalysis";
+import ReturnsCalendar from "@/components/ReturnsCalendar";
 import SignalButton from "@/components/SignalButton";
 import TrendRow from "@/components/TrendRow";
 import WashoutTurnRow from "@/components/WashoutTurnRow";
@@ -6003,6 +6004,13 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, s
                   Volatility (order: analysis → Seasonality → IV) rather than after the whole card. */}
               <StockAnalysis intel={intel} row={m} fund={fund} opts={opts} bars={bars} glance={parseGlanceState(railGex, active)} onOpenPane={(p) => setPaneOpen(p)} onOpenSignals={() => setSignalsOpen(true)}
                 beforeIv={<div style={{ padding: 12 }}><SeasonalityCard symbol={active} onOpenPane={() => setPaneOpen("seasonals")} /></div>} />
+              <div style={{ padding: "0 12px 12px" }}>
+                <ReturnsCalendar
+                  symbol={active}
+                  bars={bars}
+                  pick={(en, cn) => lang === "zh" ? (cn || en || "") : (en || cn || "")}
+                />
+              </div>
               {/* ── bottom button group (after Seasonality): full analysis + Ask AI ── */}
               <div className="sa-btn-group">
                 <button className="btn btn-primary" style={{ width: "100%", height: 38 }} onClick={() => setPaneOpen("overview")}>{t("openFullAnalysis")}</button>
