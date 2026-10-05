@@ -195,7 +195,10 @@ jobs:
   terminal-e2e:
     name: Terminal e2e ${{ matrix.shard }} (shard)
     runs-on: ubuntu-latest
-    # 6h default masked a 70-min job. Bound it: the slowest shard measured ~24 min.
+    # 6h default masked a 70-min job. Bound it. On 2026-10-04 the slowest shards measured
+    # tablet ~35-36 min and each desktop half ~28-31 min (from the old whole-desktop runs).
+    # This cap is a hang detector, not a budget to grow into: when a shard creeps toward it,
+    # split that shard (as desktop is below), never just raise the number.
     timeout-minutes: 60
     strategy:
       # NEVER fail-fast. One red shard must not delete the other shards' evidence — the
@@ -203,8 +206,17 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - shard: desktop
-            projects: "--project=desktop"
+          # The desktop project is the largest (482 tests on CI's single worker) and ran
+          # 55.3 min green, then got cancelled at the 60-min cap on a slower runner with
+          # 465/482 done (PR #677, runs 37224001752 / 37227645892). Playwright's own
+          # `--shard` splits it into two contiguous halves by test count; `--list` of the
+          # halves is 241 + 241 with no overlap, so nothing is dropped or run twice. On those
+          # same two runs the 240th result landed at 28.5 / 31.1 min, so each half is ~30 min.
+          # tests/test_ci_e2e_shards.py fails if a half or a project goes missing.
+          - shard: desktop-1
+            projects: "--project=desktop --shard=1/2"
+          - shard: desktop-2
+            projects: "--project=desktop --shard=2/2"
           - shard: tablet
             projects: "--project=tablet"
           - shard: mobile
