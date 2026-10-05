@@ -190,6 +190,9 @@ test.describe("native shell mode", () => {
     const rail = page.locator("aside.rail");
     await expect(rail).toBeVisible();
     await expect(page.locator(".detail-board")).toBeVisible();
+    // The shared StockAnalysis owner carries the returns calendar into the native dossier slice.
+    await expect(page.locator(".sa-returns")).toBeVisible({ timeout: 30_000 });
+    expect(await page.locator("button.sa-return-cell").count()).toBeGreaterThan(0);
     // Watchlist board + resizer stay out at every viewport (the native list owns them).
     await expect(page.locator(".rail .wl-board")).toBeHidden();
     await expect(page.locator(".rail-resizer")).toHaveCount(0);
