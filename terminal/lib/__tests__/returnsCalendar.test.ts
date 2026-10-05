@@ -2,6 +2,8 @@ import { describe, expect, it } from "vitest";
 import {
   buildReturnsCalendarSessions,
   previousCalendarDate,
+  RETURNS_CALENDAR_SESSION_MINUTES,
+  RETURNS_CALENDAR_SESSION_TF,
   returnsCalendarDayKey,
 } from "../returnsCalendar";
 
@@ -52,6 +54,14 @@ describe("returns calendar session partitioning", () => {
     expect(sessions.find((s) => s.key === "pre")?.barCount).toBe(2);
     expect(sessions.find((s) => s.key === "regular")?.barCount).toBe(2);
     expect(sessions.find((s) => s.key === "post")?.barCount).toBe(2);
+  });
+
+  it("uses a 30-minute study grain that lands on every U.S. session boundary", () => {
+    expect(RETURNS_CALENDAR_SESSION_TF).toBe("30m");
+    const boundaries = [4 * 60, 9 * 60 + 30, 16 * 60, 20 * 60];
+    for (const minute of boundaries) {
+      expect((minute - 4 * 60) % RETURNS_CALENDAR_SESSION_MINUTES).toBe(0);
+    }
   });
 
   it("normalizes daily keys and calendar-date rollover deterministically", () => {
