@@ -1,5 +1,8 @@
 import type { Bar6 } from "./intradayShared";
 
+export const RETURNS_CALENDAR_SESSION_TF = "30m" as const;
+export const RETURNS_CALENDAR_SESSION_MINUTES = 30;
+
 export type SessionRange = {
   key: "overnight" | "pre" | "regular" | "post";
   hours: string;
