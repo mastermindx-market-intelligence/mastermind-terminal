@@ -16,6 +16,7 @@ type JsonRecord = Record<string, unknown>;
 export type CatalystIdentityState =
   | "resolved"
   | "unresolved"
+  | "ambiguous"
   | "not_reviewed";
 
 export interface CatalystIdentity {
@@ -147,14 +148,21 @@ function unavailableFromOwner(
   fallbackReason: string,
 ): CatalystUnavailable {
   const value = record(row[key], `biocatalyst row.${key}`);
-  if (value.state !== "unavailable") {
+  if (value.state !== "NOT_ESTIMABLE") {
     throw new Error(`biocatalyst ${key} authority is not admitted in the common read model`);
+  }
+  if (value.value !== null || value.method_ref !== null || value.as_of !== null) {
+    throw new Error(`biocatalyst ${key} NOT_ESTIMABLE slot carries an estimate`);
+  }
+  const evidenceRefs = list(value.evidence_refs, `biocatalyst row.${key}.evidence_refs`);
+  if (evidenceRefs.length !== 0) {
+    throw new Error(`biocatalyst ${key} NOT_ESTIMABLE slot carries evidence`);
   }
   return {
     state: "unavailable",
     reason:
-      typeof value.reason === "string" && value.reason.trim()
-        ? value.reason
+      typeof value.reason_code === "string" && value.reason_code.trim()
+        ? value.reason_code
         : fallbackReason,
   };
 }
@@ -162,12 +170,16 @@ function unavailableFromOwner(
 function normalizeBioIdentity(row: JsonRecord): CatalystIdentity {
   const issuer = record(row.issuer, "biocatalyst row.issuer");
   const state = issuer.state;
-  if (state === "unresolved") {
+  if (state === "unresolved" || state === "ambiguous") {
     if (issuer.issuer_id !== null && issuer.issuer_id !== undefined) {
-      throw new Error("biocatalyst unresolved identity cannot carry issuer_id");
+      throw new Error(`biocatalyst ${state} identity cannot carry issuer_id`);
+    }
+    const securities = list(issuer.securities, "biocatalyst row.issuer.securities");
+    if (securities.length !== 0) {
+      throw new Error(`biocatalyst ${state} identity cannot carry securities`);
     }
     return {
-      state: "unresolved",
+      state,
       issuerId: null,
       securityIds: [],
       displaySymbols: [],

@@ -5,12 +5,18 @@ import {
   normalizeFmsCasePage,
 } from "../catalystReadModel";
 
-const unavailable = {
-  state: "unavailable",
-  reason: "owner_not_admitted",
-} as const;
+function notEstimable(kind: string) {
+  return {
+    state: "NOT_ESTIMABLE",
+    value: null,
+    reason_code: `${kind.toUpperCase()}_OWNER_NOT_ADMITTED`,
+    method_ref: null,
+    as_of: null,
+    evidence_refs: [],
+  } as const;
+}
 
-function bioRow(identity: "resolved" | "unresolved" = "resolved") {
+function bioRow(identity: "resolved" | "unresolved" | "ambiguous" = "resolved") {
   return {
     row_key: { event_fact_ref: "evt-biib-readout", issuer_id: identity === "resolved" ? "ISS:US-XNAS-BIIB" : null },
     event_fact_ref: "evt-biib-readout",
@@ -48,7 +54,7 @@ function bioRow(identity: "resolved" | "unresolved" = "resolved") {
             ],
           }
         : {
-            state: "unresolved",
+            state: identity,
             issuer_id: null,
             company_id: "company:cik:0001280776",
             relationship_role: null,
@@ -71,10 +77,10 @@ function bioRow(identity: "resolved" | "unresolved" = "resolved") {
       disposition: "SELECTED",
       reason_codes: identity === "resolved" ? [] : ["CURRENT_ISSUER_UNRESOLVED"],
     },
-    probability: unavailable,
-    materiality: unavailable,
-    historical_response: unavailable,
-    incorporation: unavailable,
+    probability: notEstimable("probability"),
+    materiality: notEstimable("materiality"),
+    historical_response: notEstimable("historical_response"),
+    incorporation: notEstimable("incorporation"),
     missingness: {
       source: [],
       identity: identity === "resolved" ? [] : ["CURRENT_ISSUER_UNRESOLVED"],
@@ -96,7 +102,7 @@ function bioRow(identity: "resolved" | "unresolved" = "resolved") {
   };
 }
 
-function bioPage(identity: "resolved" | "unresolved" = "resolved") {
+function bioPage(identity: "resolved" | "unresolved" | "ambiguous" = "resolved") {
   return {
     contract_id: "biocatalyst_what_matters_next.v1",
     schema_version: "1.0.0",
@@ -250,6 +256,24 @@ describe("catalyst common read model", () => {
       role: null,
     });
     expect(page.items[0].researchPriority).toEqual({ state: "research_only", lane: "RECONCILE" });
+  });
+
+  it("preserves ambiguous Bio identity without selecting a candidate issuer", () => {
+    const page = normalizeBioCatalystPage(bioPage("ambiguous"));
+    expect(page.items[0].identity).toEqual({
+      state: "ambiguous",
+      issuerId: null,
+      securityIds: [],
+      displaySymbols: [],
+      role: null,
+    });
+    expect(page.items[0].researchPriority).toEqual({ state: "research_only", lane: "RECONCILE" });
+  });
+
+  it("rejects a Bio estimate slot that pretends an owner estimate is admitted", () => {
+    const raw = bioPage() as any;
+    raw.rows[0].probability = { state: "unavailable", reason: "owner_not_admitted" };
+    expect(() => normalizeBioCatalystPage(raw)).toThrow(/probability/i);
   });
 
   it("normalizes FMS source facts while keeping contractor identity and financial materiality unavailable", () => {
