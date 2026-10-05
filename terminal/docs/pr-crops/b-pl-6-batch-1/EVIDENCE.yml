@@ -6,11 +6,13 @@
 # AnalysisWorkspace-only recapture: 2026-10-04T05:20:34.976Z at af6647a242e7a1f1e08ed3a00470a566f699c656.
 # The other 16 images and their original provenance above are preserved.
 # Analysis recapture command: npm run test:e2e:responsive -- investigation-workspace.spec.ts --grep 'Analysis research entries' --workers=1
+# SearchModal-only recapture: 2026-10-04T18:30:15.469Z at c7b9e703305b80d3eefbaee8a813087d1728631a (mobile add-picker layer, PR #708).
+# SearchModal recapture command: CAPTURE_ONLY=SearchModal node e2e/tools/capture_pl6_batch1.cjs
 # capturedAtHead is informational. The lock is layoutFiles.
 # 2026-10-04 #808 dislocations screen: hash-only restamp of plainLabels.ts — +18 added lines (EPISODE_STATE_WORDS / episodeStateLabel) imported only by components/dislocations/DislocationsView.tsx, which no surface in this capture renders; crops unchanged
 layoutFiles:
   terminal/components/OptionsHubView.tsx: "bc6201d94f709956b4ee70f52900db4431433c5f3dcef1606628900babf73f2a"
-  terminal/components/SearchModal.tsx: "ed4545abe5d31c5f79e7eab96bad45b76b06694bf4d1994901dd6defd195bbc0"
+  terminal/components/SearchModal.tsx: "51b7b514f169a40db9644b502ddd0d933100a305aea55ea0f6a1fb028dbe69ad"
   terminal/components/StockAnalysis.tsx: "7657d401a22f79d2b9649ce561545cb0a703e8c95d37a8b5d4e9388e0bda65f8"
   terminal/components/workspaces/AnalysisWorkspace.tsx: "f98764b71e4e1301d6149aef0d3e47615455801f95a9691b4d8807febe92226e"
   terminal/components/ChartPanel.tsx: "06f59b1c67ee3661dd361f72b23f16f1cddb26a8020490463ea18f941a44361f"
