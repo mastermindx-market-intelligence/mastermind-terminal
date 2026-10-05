@@ -168,6 +168,134 @@ async function fetchPolygon(sym: string, market: Market, tf: string, ext: boolea
   return out;
 }
 
+
+// ── Historical U.S. overnight bars → Alpaca BOATS ───────────────────────────
+//
+// Massive/Polygon owns the canonical 04:00–20:00 U.S. equity lane in this app. BOATS is a
+// deliberately narrow supplement for the one interval Massive does not carry: 20:00–04:00 ET.
+// It is opt-in at the API route and never replaces/overwrites regular, premarket, or postmarket
+// bars. Missing credentials or entitlement are returned as explicit coverage states so callers
+// can render "—" rather than inventing an overnight range.
+export type OvernightBarsResult = {
+  bars: Bar6[];
+  source: "alpaca-boats";
+  status: "available" | "empty" | "not_configured" | "unavailable";
+  note?: string;
+};
+
+const BOATS_CACHE = new Map<string, { at: number; value: OvernightBarsResult }>();
+const BOATS_TTL_MS = 60_000;
+
+function nextIsoDate(dateStr: string): string {
+  return new Date(Date.parse(`${dateStr}T00:00:00Z`) + 86400000).toISOString().slice(0, 10);
+}
+
+function alpacaTimeframe(tf: string): string | null {
+  const minutes = tfMinutes(tf);
+  if (minutes <= 0) return null;
+  if (minutes < 60) return `${minutes}Min`;
+  if (minutes % 60 === 0 && minutes / 60 <= 23) return `${minutes / 60}Hour`;
+  return null;
+}
+
+/**
+ * Historical BOATS bars whose ET wall date is exactly `dateStr`.
+ *
+ * The request spans one ET wall-calendar day. BOATS itself only prints in 20:00–04:00, so the
+ * returned set naturally contains the early-morning tail plus that evening's next-trade-date
+ * head. Returns use the same ET display-epoch convention as the Polygon leg.
+ */
+export async function fetchAlpacaBoatsWallDate(
+  sym: string,
+  tf: string,
+  dateStr: string,
+  nowMs: number = Date.now(),
+): Promise<OvernightBarsResult> {
+  const key = process.env.ALPACA_API_KEY || process.env.APCA_API_KEY_ID || "";
+  const secret = process.env.ALPACA_API_SECRET || process.env.APCA_API_SECRET_KEY || "";
+  if (!key || !secret) {
+    return { bars: [], source: "alpaca-boats", status: "not_configured", note: "Alpaca overnight credentials are not configured" };
+  }
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(dateStr) || classify(sym) !== "us" || isMacroSymbol(sym) || isDailyOnlySymbol(sym)) {
+    return { bars: [], source: "alpaca-boats", status: "empty" };
+  }
+  const timeframe = alpacaTimeframe(tf);
+  if (!timeframe) return { bars: [], source: "alpaca-boats", status: "unavailable", note: "unsupported BOATS timeframe" };
+
+  const cacheKey = `${sym.toUpperCase()}|${tf}|${dateStr}`;
+  const hit = BOATS_CACHE.get(cacheKey);
+  if (hit && nowMs - hit.at < BOATS_TTL_MS) return hit.value;
+
+  const startMs = etWallToUtcMs(dateStr, 0);
+  const wallEndMs = etWallToUtcMs(nextIsoDate(dateStr), 0);
+  // Alpaca's free/overnight plans expose historical BOATS at a 15-minute delay. Capping the
+  // request end keeps a current-day query inside that documented historical entitlement.
+  const endMs = Math.min(wallEndMs, nowMs - 15 * 60_000);
+  if (!Number.isFinite(startMs) || !Number.isFinite(endMs) || endMs <= startMs) {
+    const value: OvernightBarsResult = { bars: [], source: "alpaca-boats", status: "empty" };
+    BOATS_CACHE.set(cacheKey, { at: nowMs, value });
+    return value;
+  }
+
+  const params = new URLSearchParams({
+    symbols: sym.toUpperCase(),
+    timeframe,
+    start: new Date(startMs).toISOString(),
+    end: new Date(endMs).toISOString(),
+    adjustment: "all",
+    feed: "boats",
+    sort: "asc",
+    limit: "1000",
+  });
+  const r = await fetch(`https://data.alpaca.markets/v2/stocks/bars?${params.toString()}`, {
+    headers: {
+      "APCA-API-KEY-ID": key,
+      "APCA-API-SECRET-KEY": secret,
+    },
+    cache: "no-store",
+    signal: AbortSignal.timeout(8000),
+  });
+  if (!r.ok) {
+    const value: OvernightBarsResult = {
+      bars: [],
+      source: "alpaca-boats",
+      status: "unavailable",
+      note: `alpaca-boats ${r.status}`,
+    };
+    BOATS_CACHE.set(cacheKey, { at: nowMs, value });
+    return value;
+  }
+
+  const j = (await r.json()) as {
+    bars?: Record<string, Array<{ t?: string; o?: number; h?: number; l?: number; c?: number; v?: number }>>;
+  };
+  const raw = j?.bars?.[sym.toUpperCase()] || [];
+  const bars: Bar6[] = [];
+  for (const b of raw) {
+    const ms = Date.parse(String(b.t || ""));
+    const o = Number(b.o), h = Number(b.h), l = Number(b.l), c = Number(b.c), v = Number(b.v ?? 0);
+    if (!Number.isFinite(ms) || ![o, h, l, c, v].every(Number.isFinite)) continue;
+    const display = etDisplay(ms);
+    // Defense-in-depth: BOATS should only contain overnight prints, but never let a provider
+    // feed change leak into the pre/RTH/post lane that Massive already owns.
+    if (!(display.minOfDay < 4 * 60 || display.minOfDay >= 20 * 60)) continue;
+    if (new Date(display.epoch * 1000).toISOString().slice(0, 10) !== dateStr) continue;
+    bars.push([display.epoch, o, h, l, c, v]);
+  }
+  bars.sort((a, b) => a[0] - b[0]);
+  const uniq: Bar6[] = [];
+  let last = -1;
+  for (const b of bars) if (b[0] !== last) { uniq.push(b); last = b[0]; }
+
+  const value: OvernightBarsResult = {
+    bars: uniq,
+    source: "alpaca-boats",
+    status: uniq.length ? "available" : "empty",
+  };
+  BOATS_CACHE.set(cacheKey, { at: nowMs, value });
+  return value;
+}
+
 // ── Second-resolution aggregates (US equities only) ──────────────────────────
 //
 // ENTITLEMENT. `…/range/<n>/second/…` is a Stocks-Advanced feature and the plan covers US
