@@ -93,3 +93,28 @@ after all lock admission and fallible validation. RED demonstrated a timestamp
 before the admission marker; all 58 PostgreSQL/kernel/CI checks then passed,
 including dump/restore and no-effect fencing. This does not rewrite older receipts
 or claim a PostgreSQL physical commit timestamp.
+
+## Actual migration transport
+
+The approved `scripts/supabase_apply.py` sends separate statements on separate
+connections. A real PostgreSQL regression reproduced `LOCK TABLE can only be
+used in transaction blocks` with the old outer BEGIN/COMMIT file, after its
+validator replacement had already committed. Unapplied 0030 now executes its
+unchanged repair statements inside one dollar-quoted DO/EXECUTE block with a
+transaction-local search path. The helper, applied migrations and readback
+contract are unchanged.
+
+The actual helper's `run_apply` now runs against separate local PostgreSQL
+connections in `tests/test_investigation_migration_transport.py`: initial apply,
+idempotent reapply, exact original receipt/manifest retention, and both ambiguous
+receipt and duplicate-capture failures. Failure cases compare schema, function
+definitions, grants, indexes, constraints and retained rows before/after. All 61
+transport/kernel/CI checks passed. A production aggregate-only preflight found
+one head/revision and zero duplicate captures, ambiguous receipt associations,
+missing parents or missing head revisions; no 0030 columns were present. This
+preflight is read-only and does not establish production migration acceptance.
+
+Fabric SQL review `rs_20261005T085012Z_43838` returned PASS_SCOPED on 272596eb;
+parent accepted its SQL-only findings, verified terminal cleanup and released
+lease 67e935d33ff3. That earlier review did not cover the deployment transport;
+the changed DO wrapper requires its own review. #804 remains Draft/HOLD.
