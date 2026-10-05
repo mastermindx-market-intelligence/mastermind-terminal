@@ -192,7 +192,7 @@ export default function ReturnsCalendar({
         : !isUsEquity(symbol)
           ? pick("Extended-session breakdown is currently defined for U.S. equities.", "扩展时段拆分目前适用于美股。")
           : overnightMissing && sessionLoad?.key === requestKey && sessionLoad.overnightStatus === "not_configured"
-            ? pick("Premarket, regular and after-hours use 30-minute aggregate OHLC. Overnight is blank because Quote Hub has no BOATS credentials; nothing is estimated.", "盘前、常规和盘后采用30分钟聚合OHLC。隔夜为空，因为 Quote Hub 未配置 BOATS 凭据；不进行估算。")
+            ? pick("Premarket, regular and after-hours use 30-minute aggregate OHLC. Overnight history is not configured on this server; nothing is estimated.", "盘前、常规和盘后采用30分钟聚合OHLC。此服务器尚未配置隔夜历史数据；不进行估算。")
             : overnightMissing && sessionLoad?.key === requestKey && sessionLoad.overnightStatus === "unavailable"
               ? pick("Overnight history is unavailable for this date. Other sessions use 30-minute aggregate OHLC; nothing is estimated.", "该日期的隔夜历史数据不可用。其他时段采用30分钟聚合OHLC；不进行估算。")
               : sessionLoad?.key === requestKey && sessionLoad.studyStatus === "empty"
