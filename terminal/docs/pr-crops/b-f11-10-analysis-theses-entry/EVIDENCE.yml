@@ -7,7 +7,7 @@
 layoutFiles:
   terminal/components/workspaces/AnalysisWorkspace.tsx: "f98764b71e4e1301d6149aef0d3e47615455801f95a9691b4d8807febe92226e"
   terminal/app/company-intelligence.css: "16ca4e131ad1f2973b6346e7f051af802dbfa27227d6c33615af87578e73f885"
-  terminal/lib/i18n.tsx: "51276ecc8db6956c6c4e5cc67c55eab029c0b468ccb61e34f8bb92f25e42b9f8"
+  terminal/lib/i18n.tsx: "399d9e1d2480ae8217d7f12f45b09ebba91a79670fbb0f16e68c38d43cb144de"
 theme: dark
 languages: [en, zh]
 viewports:
