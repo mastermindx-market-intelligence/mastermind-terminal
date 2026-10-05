@@ -140,54 +140,54 @@ export default function ReturnsCalendar({
   const latestDate = days.length ? days[days.length - 1].date : null;
   const minMonth = days.length ? monthKey(days[0].date) : null;
   const maxMonth = latestDate ? monthKey(latestDate) : null;
-  const [month, setMonth] = useState<string>(maxMonth || new Date().toISOString().slice(0, 7));
-  const [selectedDate, setSelectedDate] = useState<string | null>(latestDate);
-  const [sessions, setSessions] = useState<SessionRange[] | null>(null);
-  const [detailState, setDetailState] = useState<"idle" | "loading" | "ready" | "error">("idle");
-
-  useEffect(() => {
-    if (maxMonth && (month < (minMonth || maxMonth) || month > maxMonth)) setMonth(maxMonth);
-  }, [maxMonth, minMonth, month]);
+  const initialMonth = maxMonth || new Date().toISOString().slice(0, 7);
+  const [requestedMonth, setRequestedMonth] = useState<string>(initialMonth);
+  const [requestedDate, setRequestedDate] = useState<string | null>(latestDate);
+  const [sessionLoad, setSessionLoad] = useState<{
+    key: string;
+    sessions: SessionRange[] | null;
+    error: boolean;
+  } | null>(null);
 
   const byDate = useMemo(() => new Map(days.map((d) => [d.date, d])), [days]);
+  const month =
+    minMonth && maxMonth && (requestedMonth < minMonth || requestedMonth > maxMonth)
+      ? maxMonth
+      : requestedMonth;
   const monthDays = useMemo(() => days.filter((d) => monthKey(d.date) === month), [days, month]);
-
-  useEffect(() => {
-    if (!monthDays.length) return;
-    if (!selectedDate || monthKey(selectedDate) !== month || !byDate.has(selectedDate)) {
-      setSelectedDate(monthDays[monthDays.length - 1].date);
-    }
-  }, [month, monthDays, selectedDate, byDate]);
+  const selectedDate =
+    requestedDate && monthKey(requestedDate) === month && byDate.has(requestedDate)
+      ? requestedDate
+      : monthDays.length
+        ? monthDays[monthDays.length - 1].date
+        : null;
+  const requestKey = selectedDate && symbol && isUsEquity(symbol) ? `${symbol}:${selectedDate}` : null;
 
   useEffect(() => {
     let cancelled = false;
-    if (!selectedDate || !symbol || !isUsEquity(symbol)) {
-      setSessions(null);
-      setDetailState("idle");
-      return;
-    }
-    setDetailState("loading");
+    if (!requestKey || !selectedDate) return;
     const prior = previousCalendarDate(selectedDate);
     const url = (date: string) => `/api/intraday?sym=${encodeURIComponent(symbol)}&tf=1h&ext=1&date=${date}`;
-    Promise.all([fetch(url(selectedDate)), fetch(url(prior))])
-      .then(async ([cur, prev]) => {
+    void (async () => {
+      try {
+        const [cur, prev] = await Promise.all([fetch(url(selectedDate)), fetch(url(prior))]);
         if (!cur.ok || !prev.ok) throw new Error("session history unavailable");
         const [cj, pj] = await Promise.all([cur.json(), prev.json()]);
         const current = Array.isArray(cj?.bars) ? cj.bars as Bar6[] : [];
         const previous = Array.isArray(pj?.bars) ? pj.bars as Bar6[] : [];
         if (!cancelled) {
-          setSessions(buildReturnsCalendarSessions(current, previous));
-          setDetailState("ready");
+          setSessionLoad({ key: requestKey, sessions: buildReturnsCalendarSessions(current, previous), error: false });
         }
-      })
-      .catch(() => {
-        if (!cancelled) {
-          setSessions(null);
-          setDetailState("error");
-        }
-      });
+      } catch {
+        if (!cancelled) setSessionLoad({ key: requestKey, sessions: null, error: true });
+      }
+    })();
     return () => { cancelled = true; };
-  }, [selectedDate, symbol]);
+  }, [requestKey, selectedDate, symbol]);
+
+  const sessions = sessionLoad?.key === requestKey ? sessionLoad.sessions : null;
+  const detailState: "idle" | "loading" | "ready" | "error" =
+    !requestKey ? "idle" : sessionLoad?.key !== requestKey ? "loading" : sessionLoad.error ? "error" : "ready";
 
   if (days.length < 2) return null;
 
@@ -218,9 +218,9 @@ export default function ReturnsCalendar({
           <div className="sa-returns-sub">{pick("Close-to-close return · daily OHLC range", "收盘至收盘收益 · 每日 OHLC 区间")}</div>
         </div>
         <div className="sa-returns-nav">
-          <button type="button" disabled={!canPrev} onClick={() => canPrev && setMonth(shiftMonth(month, -1))} aria-label={pick("Previous month", "上月")}>‹</button>
+          <button type="button" disabled={!canPrev} onClick={() => canPrev && setRequestedMonth(shiftMonth(month, -1))} aria-label={pick("Previous month", "上月")}>‹</button>
           <span>{monthLabel}</span>
-          <button type="button" disabled={!canNext} onClick={() => canNext && setMonth(shiftMonth(month, 1))} aria-label={pick("Next month", "下月")}>›</button>
+          <button type="button" disabled={!canNext} onClick={() => canNext && setRequestedMonth(shiftMonth(month, 1))} aria-label={pick("Next month", "下月")}>›</button>
         </div>
       </div>
 
@@ -235,7 +235,7 @@ export default function ReturnsCalendar({
           if (!d) return <div key={slot.date} className="sa-return-cell empty"><span className="date">{Number(slot.date.slice(8))}</span></div>;
           const up = (d.ret ?? 0) >= 0;
           return (
-            <button key={d.date} type="button" className={`sa-return-cell ${up ? "up" : "down"} ${selectedCell ? "selected" : ""}`} onClick={() => setSelectedDate(d.date)}>
+            <button key={d.date} type="button" className={`sa-return-cell ${up ? "up" : "down"} ${selectedCell ? "selected" : ""}`} onClick={() => setRequestedDate(d.date)}>
               <span className="date">{d.day}</span>
               <strong className="ret num">{pct(d.ret)}</strong>
               <span className="range num"><i>H {px(d.bar.h)}</i><i>L {px(d.bar.l)}</i></span>
