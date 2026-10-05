@@ -1828,6 +1828,10 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
       if (initialSymbol) setTimeout(() => setTf("5m"), 0);
       setTimeout(() => setDtm(true), 0);
     }
+    // ?sym=&episode= deep links land on 5m: a dislocation episode is built from 5-minute bars and the daily
+    // default would collapse every transition onto one bar. The DTM branch above already set 5m when the
+    // mode is on, so this fires only for the swing workspace (no double setTf).
+    if (initialSymbol && initialEpisode && !load("mm.dtm", false)) setTimeout(() => setTf("5m"), 0);
     setWorkspaceRestored(true);
   }, []);
   // Legacy workspaces stored one hidden bit per suite. Expand that bit to the suite's currently
