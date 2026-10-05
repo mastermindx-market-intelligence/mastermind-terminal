@@ -21,6 +21,21 @@ describe("OvernightHistory — ownership and clock contract", () => {
     assert.equal(history.health().configured, false);
   });
 
+  it("honors the shared extended-hours kill switch", async () => {
+    let calls = 0;
+    const history = new OvernightHistory({
+      apiKey: "key",
+      apiSecret: "secret",
+      disabled: true,
+      fetchImpl: async () => { calls++; throw new Error("must not run"); },
+    });
+    const result = await history.getWallDate("AAPL", "1h", "2026-10-14");
+    assert.equal(result.status, "unavailable");
+    assert.match(result.note, /disabled/);
+    assert.equal(calls, 0);
+    assert.equal(history.health().disabled, true);
+  });
+
   it("converts ET wall dates to true UTC across daylight and standard time", () => {
     assert.equal(
       new Date(etWallToUtcMs("2026-10-14", 0)).toISOString(),
