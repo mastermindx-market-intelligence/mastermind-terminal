@@ -8,7 +8,6 @@ type Bar6 = [number, number, number, number, number, number];
 
 type SessionRange = {
   key: "overnight" | "pre" | "regular" | "post";
-  label: string;
   hours: string;
   low: number | null;
   high: number | null;
