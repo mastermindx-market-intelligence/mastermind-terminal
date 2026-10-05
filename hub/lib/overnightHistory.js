@@ -90,6 +90,7 @@ class OvernightHistory {
   constructor(opts = {}) {
     this.apiKey = opts.apiKey || "";
     this.apiSecret = opts.apiSecret || "";
+    this.disabled = opts.disabled === true || process.env.EXT_FEED_DISABLE === "1";
     this.fetchImpl = opts.fetchImpl || globalThis.fetch;
     this.timeoutMs = Number.isFinite(opts.timeoutMs) ? opts.timeoutMs : DEFAULT_TIMEOUT_MS;
     this.cache = new Map();
@@ -100,6 +101,7 @@ class OvernightHistory {
   health() {
     return {
       configured: !!(this.apiKey && this.apiSecret),
+      disabled: this.disabled,
       cacheSize: this.cache.size,
       lastRequestAt: this.lastRequestAt ? new Date(this.lastRequestAt).toISOString() : null,
       lastStatus: this.lastStatus,
@@ -109,6 +111,10 @@ class OvernightHistory {
 
   async getWallDate(sym, tf, dateStr, nowMs = Date.now()) {
     const symbol = String(sym || "").trim().toUpperCase();
+    if (this.disabled) {
+      this.lastStatus = "unavailable";
+      return empty("unavailable", "extended-hours feed is disabled");
+    }
     if (!this.apiKey || !this.apiSecret) {
       this.lastStatus = "not_configured";
       return empty("not_configured", "Alpaca overnight credentials are not configured on Quote Hub");
