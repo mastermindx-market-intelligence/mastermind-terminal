@@ -5380,7 +5380,7 @@ button.sa-return-cell:hover{border-color:var(--line-2,var(--line))}
 .sa-return-cell .date{font:650 9px/1 var(--font-num);color:var(--muted)}
 .sa-return-cell .ret{font:750 12px/1 var(--font-num);font-variant-numeric:tabular-nums}
 .sa-return-cell.up .ret{color:var(--up)}.sa-return-cell.down .ret{color:var(--down)}
-.sa-return-cell .range{max-width:100%;font:550 7.5px/1.15 var(--font-num);color:var(--text-3,var(--muted));white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-variant-numeric:tabular-nums}
+.sa-return-cell .range{max-width:100%;display:flex;flex-direction:column;gap:2px;font:550 7.5px/1.05 var(--font-num);color:var(--text-3,var(--muted));font-variant-numeric:tabular-nums}.sa-return-cell .range i{font-style:normal;white-space:nowrap}
 .sa-return-detail{display:flex;flex-direction:column;gap:8px;margin-top:3px;padding-top:10px;border-top:1px solid var(--line)}
 .sa-return-detail-head{display:flex;align-items:flex-start;justify-content:space-between;gap:8px}
 .sa-return-detail-head>div{display:flex;align-items:baseline;gap:7px}
