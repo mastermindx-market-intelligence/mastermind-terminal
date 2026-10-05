@@ -2,7 +2,8 @@ import { expect, test, type Page } from "@playwright/test";
 
 // Proves `/terminal?sym=&episode=` draws dislocation transition marks on the knowable-at 5m bars.
 // The dislocations feed is `fixtures/dislocations/fresh.json` via cookie `mm_e2e_dislo=fresh` (honoured
-// because Playwright's webServer sets TERMINAL_E2E_FIXTURE=1). AMD 5m/daily bars are route-intercepted;
+// because Playwright's webServer sets TERMINAL_E2E_FIXTURE=1); the fixture account's watchlist is this spec's
+// own `mm_e2e_wl` store with AMD added (see `open`). AMD 5m/daily bars are route-intercepted;
 // screenshots attach to the PR as `responsive-qa-*` CI artifacts (terminal-e2e upload-artifact).
 
 test.setTimeout(120_000);
@@ -68,7 +69,16 @@ async function serve(page: Page) {
 
 async function open(page: Page, baseURL: string | undefined, lang: "en" | "zh", episode: string | null) {
   const origin = baseURL ?? "http://127.0.0.1:3108";
-  await page.context().addCookies([{ name: "mm_e2e_dislo", value: "fresh", url: origin }]);
+  // The chart reads `view=my` first — and for a free-tier account only — which lists watchlist + holdings
+  // tickers, so a deep link from a My Dislocations row always names a watchlist ticker. AMD is not in the
+  // fixture seed (`lib/watchlistsFixtureDb.ts` SEED_SYMBOLS), so put it on this test's OWN fixture store
+  // first: the store is keyed by `mm_e2e_wl`, so nothing leaks into any other spec's Default list.
+  await page.context().addCookies([
+    { name: "mm_e2e_dislo", value: "fresh", url: origin },
+    { name: "mm_e2e_wl", value: `idr-chart-marks-${lang}-${episode ?? "none"}`, url: origin },
+  ]);
+  const added = await page.request.post("/api/watchlist", { data: { action: "add", symbol: SYMBOL, section: "Equities" } });
+  expect(added.ok(), "AMD must sit on the fixture watchlist before the deep link is followed").toBe(true);
   await page.addInitScript((l: string) => {
     window.localStorage.setItem("mm.lang", l);
     document.documentElement.setAttribute("data-lang", l);
@@ -104,9 +114,12 @@ for (const lang of ["en", "zh"] as const) {
 
 test("no episode param → no marks", async ({ page, baseURL }) => {
   await open(page, baseURL, "en", null);
+  // Without the deep link the shell keeps its default timeframe (the 5m switch is the deep link's own
+  // doing), so the chart does not load the 78 five-minute bars here — only "bars are on the chart" is
+  // asserted before the witness is read. Measured: 21 bars on the default timeframe, 78 on 5m.
   await expect
     .poll(() => page.evaluate(() => ((window as any).__mmLiveBarGeneration?.() ?? null)?.barCount ?? 0), { timeout: 90_000 })
-    .toBeGreaterThan(50);
+    .toBeGreaterThan(0);
   expect((await witness(page))?.count ?? 0).toBe(0);
 });
 
