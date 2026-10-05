@@ -106,6 +106,7 @@ function getWithQuery(qs: string, extra: Record<string, string> = {}): Request {
 
 const params = (...path: string[]) => ({ params: Promise.resolve({ path }) });
 
+
 function anon() {
   H.session = null;
   H.user = null;
@@ -627,4 +628,21 @@ describe("DELETE threads/<id>: session-required", () => {
     expect(res.status).toBe(404);
     expect(calls).toHaveLength(0);
   });
+});
+
+describe("thread identifiers cannot change the upstream URL", () => {
+  for (const [method, handle] of [["GET", GET], ["PATCH", PATCH], ["DELETE", DELETE]] as const) {
+    for (const id of ["t_42?cursor=9", "t_42#ignored", "t_42%2Fstream", "t_42%252Fstream", "t_42\\stream", "t_42 extra", "t_42\n", "线程", "x".repeat(65)]) {
+      it(`${method} refuses ${JSON.stringify(id)} before any gateway call`, async () => {
+        signedIn();
+        const response = await handle(
+          req(method, method === "PATCH" ? { "content-type": "application/json" } : {},
+            method === "PATCH" ? JSON.stringify({ title: "Rename" }) : undefined),
+          params("threads", id),
+        );
+        expect(response.status).toBe(404);
+        expect(calls).toHaveLength(0);
+      });
+    }
+  }
 });

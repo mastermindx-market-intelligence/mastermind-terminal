@@ -43,13 +43,13 @@ const GATEWAY = process.env.BRAIN_GATEWAY_URL || "https://mastermind-x.com";
 // slashes) so `threads/abc/../secret` can never slip through.
 type Method = "GET" | "POST" | "PATCH" | "DELETE";
 
-// `threads/<id>` where <id> is a single, non-empty, path-safe segment — the sole
-// per-thread target, shared by GET (read) / PATCH (rename) / DELETE. Returns the joined
-// upstream path or null.
+// `threads/<id>` is shared by GET (read), PATCH (rename), and DELETE. Params are
+// already decoded: reject URL separators/escapes before interpolating the upstream
+// path. UUIDs and the existing bounded alphanumeric/underscore/hyphen IDs remain valid.
 function threadIdPath(segs: string[]): string | null {
   if (segs.length === 2 && segs[0] === "threads") {
     const id = segs[1];
-    if (id && !id.includes("/") && !id.includes("..")) return `threads/${id}`;
+    if (id && /^[A-Za-z0-9_-]{1,64}$/.test(id)) return `threads/${id}`;
   }
   return null;
 }
