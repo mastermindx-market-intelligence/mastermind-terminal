@@ -21,7 +21,7 @@ describe("returns calendar session partitioning", () => {
       bar(t(9, 30), 105, 110, 104, 109),
       bar(t(16), 109, 111, 108, 110),
     ];
-    const sessions = buildReturnsCalendarSessions(current, previous);
+    const sessions = buildReturnsCalendarSessions(current, previous, "2026-10-14");
 
     expect(sessions.find((s) => s.key === "overnight")).toMatchObject({
       low: 99, high: 105, open: 100, close: 104, barCount: 3,
@@ -32,7 +32,7 @@ describe("returns calendar session partitioning", () => {
   });
 
   it("keeps an unavailable session null instead of estimating a range", () => {
-    const sessions = buildReturnsCalendarSessions([bar(t(10), 100, 101, 99, 100.5)], []);
+    const sessions = buildReturnsCalendarSessions([bar(t(10), 100, 101, 99, 100.5)], [], "2026-10-14");
     expect(sessions.find((s) => s.key === "overnight")).toMatchObject({
       low: null, high: null, open: null, close: null, ret: null, barCount: 0,
     });
@@ -49,7 +49,7 @@ describe("returns calendar session partitioning", () => {
       bar(t(19, 59), 106, 106, 106, 106),
       bar(t(20), 107, 107, 107, 107),
     ];
-    const sessions = buildReturnsCalendarSessions(current, []);
+    const sessions = buildReturnsCalendarSessions(current, [], "2026-10-14");
     expect(sessions.find((s) => s.key === "overnight")?.barCount).toBe(1);
     expect(sessions.find((s) => s.key === "pre")?.barCount).toBe(2);
     expect(sessions.find((s) => s.key === "regular")?.barCount).toBe(2);
@@ -62,6 +62,21 @@ describe("returns calendar session partitioning", () => {
     for (const minute of boundaries) {
       expect((minute - 4 * 60) % RETURNS_CALENDAR_SESSION_MINUTES).toBe(0);
     }
+  });
+
+  it("moves the post-market boundary to the canonical early close", () => {
+    const early = (h: number, m = 0) => Date.UTC(2026, 10, 27, h, m) / 1000;
+    const current = [
+      bar(early(12, 30), 100, 102, 99, 101),
+      bar(early(13), 101, 103, 100, 102),
+      bar(early(15, 30), 102, 104, 101, 103),
+    ];
+    const sessions = buildReturnsCalendarSessions(current, [], "2026-11-27");
+    const regular = sessions.find((session) => session.key === "regular");
+    const post = sessions.find((session) => session.key === "post");
+
+    expect(regular).toMatchObject({ hours: "09:30–13:00", barCount: 1 });
+    expect(post).toMatchObject({ hours: "13:00–20:00", barCount: 2 });
   });
 
   it("normalizes daily keys and calendar-date rollover deterministically", () => {
