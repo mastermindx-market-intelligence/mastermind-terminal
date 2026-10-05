@@ -16,6 +16,8 @@ export type EpisodeCatalyst = {
   fresh_until: string;
   relevant_until: string;
   coverage: string;
+  context_state?: string;
+  catalyst_schema?: string;
 };
 
 export type LiveEntryEpisode = {
