@@ -9,8 +9,8 @@
 //     taken name answers `{code:"23505"}` and `upsert(onConflict:"user_id,name")` updates in place.
 //     So "two concurrent saves leave exactly one row" is proved against a store that behaves like
 //     the post-`0008` schema, not against UI debouncing. (The fixture therefore always models the
-//     APPLIED world; the unapplied-DDL fallback path in lib/layouts.ts is covered by unit tests,
-//     which can return 42P10 on demand.)
+//     APPLIED world; the best-effort pre-insert name check without that DDL is covered by
+//     scripted unit tests, without claiming concurrent uniqueness in that state.)
 //
 //  2. FAULT INJECTION. Production Supabase must never be broken to prove an error state, so the
 //     store fails on request instead: the `mm_e2e_layout_fault` cookie makes the matching operation
@@ -80,17 +80,24 @@ type Op =
 const faultClassOf = (op: Op): LayoutFault => (op.kind === "select" ? "list" : op.kind === "delete" ? "delete" : "save");
 
 /** `column` is either a plain row column ("user_id", "name", "id") or a PostgREST JSON-path
- *  reference ("config->>revision"). The `->>` operator always yields TEXT, so a path read is
- *  stringified (never a raw number/boolean) and a missing key or non-object base reads as `null` —
- *  the same "NULL never satisfies eq/neq" semantics real Postgres gives a still-legacy row that has
- *  no `config.schema` key at all (see the `LayoutQuery` doc-comment in `lib/layouts.ts`). */
+ *  reference ("config->>revision", "config->requires->>floor"). `->` yields JSON, `->>` yields
+ *  TEXT (stringified, never a raw number/boolean). A missing key, JSON null, or non-object base
+ *  reads as `null` — the same "NULL never satisfies eq/neq" semantics real Postgres gives a still-
+ *  legacy row that has no `config.schema` key at all, and a v1 row that omits `requires.floor`
+ *  (see the `LayoutQuery` doc-comment in `lib/layouts.ts`). */
 function readPath(row: LayoutRow, column: string): unknown {
-  const idx = column.indexOf("->>");
-  if (idx === -1) return row[column];
-  const base = row[column.slice(0, idx)];
-  if (typeof base !== "object" || base === null || Array.isArray(base)) return null;
-  const val = (base as Record<string, unknown>)[column.slice(idx + 3)];
-  return val === undefined || val === null ? null : String(val);
+  const parts = column.split(/(->>|->)/);
+  if (parts.length === 1) return row[column];
+  let value: unknown = row[parts[0]];
+  for (let i = 1; i < parts.length; i += 2) {
+    if (typeof value !== "object" || value === null || Array.isArray(value)) return null;
+    value = (value as Record<string, unknown>)[parts[i + 1]];
+    if (value === undefined || value === null) return null;
+    if (parts[i] === "->>") {
+      value = typeof value === "object" ? JSON.stringify(value) : String(value);
+    }
+  }
+  return value;
 }
 
 type Filter = { column: string; op: "eq" | "neq" | "is"; value: unknown };
@@ -100,8 +107,8 @@ function filterMatches(row: LayoutRow, filter: Filter): boolean {
   switch (filter.op) {
     case "eq": return actual !== null && actual === filter.value;
     // SQL `<>` semantics: NULL is never distinct-or-equal to anything under `neq`/`eq` — it simply
-    // never satisfies either. Callers that need "no value OR a different value" use `is`+`neq` as
-    // two disjoint attempts (see `saveWorkspace`'s migrate-on-write guard).
+    // never satisfies either. Callers that need "value = 1 OR omitted" use `eq`+`is` as two
+    // disjoint attempts (see `saveWorkspace`'s numbered floor fence).
     case "neq": return actual !== null && actual !== filter.value;
     case "is": return filter.value === null ? actual === null : actual === filter.value;
   }
