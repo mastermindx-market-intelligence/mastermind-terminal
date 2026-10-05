@@ -1,4 +1,5 @@
-import type { Bar6 } from "./intradayShared";
+import { sessionEpoch, type Bar6 } from "./intradayShared";
+import { usRegularSessionWindow } from "./usEquitySessionClock";
 
 export const RETURNS_CALENDAR_SESSION_TF = "30m" as const;
 export const RETURNS_CALENDAR_SESSION_MINUTES = 30;
@@ -14,12 +15,23 @@ export type SessionRange = {
   barCount: number;
 };
 
-const SESSION_HOURS: Record<SessionRange["key"], string> = {
-  overnight: "20:00–04:00",
-  pre: "04:00–09:30",
-  regular: "09:30–16:00",
-  post: "16:00–20:00",
-};
+function hhmm(minute: number): string {
+  const h = Math.floor(minute / 60);
+  const m = minute % 60;
+  return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
+}
+
+function regularWindow(sessionDate: string): readonly [number, number] | null {
+  const noon = sessionEpoch(sessionDate, "12:00");
+  if (!Number.isFinite(noon)) return null;
+  try {
+    return usRegularSessionWindow(noon);
+  } catch {
+    // The canonical projection owns session truth. Outside its coverage, abstain instead of
+    // silently reintroducing a second hard-coded session calendar.
+    return null;
+  }
+}
 
 function finite(n: unknown): n is number {
   return typeof n === "number" && Number.isFinite(n);
@@ -48,12 +60,12 @@ function minuteOfDisplayDay(epochSec: number): number {
 
 function aggregateSession(
   key: SessionRange["key"],
+  hours: string,
   bars: Bar6[],
 ): SessionRange {
   const clean = bars
     .filter((b) => b.length >= 6 && b.slice(0, 6).every(finite))
     .sort((a, b) => a[0] - b[0]);
-  const hours = SESSION_HOURS[key];
   if (!clean.length) {
     return { key, hours, low: null, high: null, open: null, close: null, ret: null, barCount: 0 };
   }
@@ -69,27 +81,38 @@ function aggregateSession(
  * Partition bars already expressed in the app's ET display-epoch convention.
  * Overnight for trading date D = prior wall-date >=20:00 plus D <04:00.
  */
-export function buildReturnsCalendarSessions(current: Bar6[], previous: Bar6[]): SessionRange[] {
+export function buildReturnsCalendarSessions(
+  current: Bar6[],
+  previous: Bar6[],
+  sessionDate: string,
+): SessionRange[] {
+  const rth = regularWindow(sessionDate);
+  const regularStart = rth?.[0] ?? null;
+  const regularEnd = rth?.[1] ?? null;
   const overnight = [
     ...previous.filter((b) => minuteOfDisplayDay(b[0]) >= 20 * 60),
     ...current.filter((b) => minuteOfDisplayDay(b[0]) < 4 * 60),
   ];
-  const pre = current.filter((b) => {
+  const pre = regularStart == null ? [] : current.filter((b) => {
     const m = minuteOfDisplayDay(b[0]);
-    return m >= 4 * 60 && m < 9 * 60 + 30;
+    return m >= 4 * 60 && m < regularStart;
   });
-  const regular = current.filter((b) => {
+  const regular = regularStart == null || regularEnd == null ? [] : current.filter((b) => {
     const m = minuteOfDisplayDay(b[0]);
-    return m >= 9 * 60 + 30 && m < 16 * 60;
+    return m >= regularStart && m < regularEnd;
   });
-  const post = current.filter((b) => {
+  const post = regularEnd == null ? [] : current.filter((b) => {
     const m = minuteOfDisplayDay(b[0]);
-    return m >= 16 * 60 && m < 20 * 60;
+    return m >= regularEnd && m < 20 * 60;
   });
   return [
-    aggregateSession("overnight", overnight),
-    aggregateSession("pre", pre),
-    aggregateSession("regular", regular),
-    aggregateSession("post", post),
+    aggregateSession("overnight", "20:00–04:00", overnight),
+    aggregateSession("pre", regularStart == null ? "04:00–—" : `04:00–${hhmm(regularStart)}`, pre),
+    aggregateSession(
+      "regular",
+      regularStart == null || regularEnd == null ? "—" : `${hhmm(regularStart)}–${hhmm(regularEnd)}`,
+      regular,
+    ),
+    aggregateSession("post", regularEnd == null ? "—–20:00" : `${hhmm(regularEnd)}–20:00`, post),
   ];
 }
