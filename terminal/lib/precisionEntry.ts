@@ -1,6 +1,7 @@
 import { TF_CANONICAL_ORDER } from "./startTf";
 
 export type PrecisionHorizon = "day" | "swing" | "position" | "deep";
+export const PRECISION_HORIZONS: readonly PrecisionHorizon[] = ["day", "swing", "position", "deep"];
 export type PrecisionPaneRole = "execution" | "trigger" | "durability" | "structure";
 
 export type PrecisionPane = {
@@ -220,7 +221,7 @@ export function detectPrecisionHorizon(args: {
   functional: ReadonlySet<string>;
 }): PrecisionHorizon | null {
   if (args.panes.length !== 4 || !args.panes.every((s) => s === args.subject)) return null;
-  for (const horizon of ["day", "swing", "position", "deep"] as const) {
+  for (const horizon of PRECISION_HORIZONS) {
     const plan = buildPrecisionPlan({ horizon, functional: args.functional });
     if (plan.status !== "ready") continue;
     if (plan.panes.map((p) => p.tf).join(",") === args.paneTfs.slice(0, 4).join(",")) return horizon;

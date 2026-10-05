@@ -1,22 +1,25 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { useT } from "@/lib/i18n";
+import { useLang, useT } from "@/lib/i18n";
 import { resolveDetentRelease } from "@/lib/sheetDetent";
 import styles from "./AnalysisHubSheet.module.css";
 
-export type HubAction = "indicators" | "compare" | "alerts" | "chartType" | "workspaces" | "symbolDetails";
+export type HubAction = "indicators" | "compare" | "alerts" | "chartType" | "precisionMtf" | "workspaces" | "symbolDetails";
 
 export type AnalysisHubSheetProps = {
   open: boolean;
   onClose: () => void;
   /** Every action is backed by an existing Terminal capability. */
   onAction: (action: HubAction) => void;
+  precisionActive?: boolean;
 };
 
 type ActionTile = {
   id: string;
-  labelKey: string;
+  labelKey?: string;
+  label?: readonly [string, string];
+  activeLabel?: readonly [string, string];
   path: string;
   action: HubAction;
 };
@@ -38,6 +41,13 @@ const CAPABILITIES: {
     { id: "compare", labelKey: "compare", path: "M4 18l5-9 4 5 3-4 4 8", action: "compare" },
     { id: "alerts", labelKey: "alerts", path: "M18 15V10a6 6 0 1 0-12 0v5l-2 3h16zM10 21h4", action: "alerts" },
     { id: "chartType", labelKey: "hubChartType", path: "M6 6v12M6 8h4M6 14h4M15 4v16M15 7h4M15 16h4", action: "chartType" },
+    {
+      id: "precisionMtf",
+      label: ["Precision MTF", "精确多周期"],
+      activeLabel: ["Exit Precision MTF", "退出精确多周期"],
+      path: "M3 14h4v6H3zM10 9h4v11h-4zM17 4h4v16h-4z",
+      action: "precisionMtf",
+    },
     { id: "workspaces", labelKey: "layouts", path: "M4 5h16v14H4zM4 9h16M9 9v10", action: "workspaces" },
   ],
   unavailable: [
@@ -85,8 +95,10 @@ const FULL = 0.96;
  * The drag below is the twin of MobileSheet's `detents` prop, kept here rather than shared because
  * this surface has its own scrim, markup and focus model — change one and check the other.
  */
-export default function AnalysisHubSheet({ open, onClose, onAction }: AnalysisHubSheetProps) {
+export default function AnalysisHubSheet({ open, onClose, onAction, precisionActive = false }: AnalysisHubSheetProps) {
   const t = useT();
+  const { lang } = useLang();
+  const pick = (pair: readonly [string, string]) => pair[lang === "zh" ? 1 : 0];
   const [mounted, setMounted] = useState(false);
   const [full, setFull] = useState(false);
   const [dragH, setDragH] = useState<number | null>(null);
@@ -268,18 +280,27 @@ export default function AnalysisHubSheet({ open, onClose, onAction }: AnalysisHu
 
   if (!mounted || !open) return null;
 
-  const tile = (entry: ActionTile) => (
-    <button
-      key={entry.id}
-      type="button"
-      className="mhub-tile"
-      data-testid={`hub-tile-${entry.id}`}
-      onClick={(event) => handOff(entry.action, event)}
-    >
-      <svg viewBox="0 0 24 24" aria-hidden="true"><path d={entry.path} /></svg>
-      <span>{t(entry.labelKey)}</span>
-    </button>
-  );
+  const tile = (entry: ActionTile) => {
+    const active = entry.action === "precisionMtf" && precisionActive;
+    const label = active && entry.activeLabel
+      ? pick(entry.activeLabel)
+      : entry.label
+        ? pick(entry.label)
+        : t(entry.labelKey || "");
+    return (
+      <button
+        key={entry.id}
+        type="button"
+        className={`mhub-tile${active ? " on" : ""}`}
+        data-testid={`hub-tile-${entry.id}`}
+        aria-pressed={entry.action === "precisionMtf" ? active : undefined}
+        onClick={(event) => handOff(entry.action, event)}
+      >
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d={entry.path} /></svg>
+        <span>{label}</span>
+      </button>
+    );
+  };
 
   return createPortal(
     <>
