@@ -1,7 +1,7 @@
 # Returns Calendar — data contract and implementation note
 
 Date: 2026-10-04  
-Owner surface: Terminal `StockAnalysis` / stock dossier  
+Owner surface: TerminalShell shared detail rail / native stock-dossier slice  
 Implementation branch: `sol/returns-calendar-20261004`
 
 ## Product contract
@@ -29,16 +29,23 @@ A session return is `session_close / session_open - 1`. A day return is
 
 No second market-data owner is introduced.
 
-- Daily return and daily H/L use the already-loaded `Bar[]` supplied to `StockAnalysis`.
+- Daily return and daily H/L use the already-loaded `Bar[]` already owned by TerminalShell.
+- The calendar is mounted once in TerminalShell's shared detail rail, so the browser Terminal and
+  native `?shell=app&dossier=1` slice use the same component/data contract.
 - Selected-day session detail hydrates lazily through the existing authenticated
   `/api/intraday` route using `tf=1h&ext=1&overnight=1&date=YYYY-MM-DD`.
-- The route already owns server-side vendor credentials, source selection, stored-history
-  stitching, U.S. session filtering, rate limiting, and cache semantics.
-- The optional `overnight=1` lane supplements the canonical Massive/store bars with
-  Alpaca BOATS bars for the ET wall date. It never replaces 04:00–20:00 bars.
-- Overnight is assembled in the component from the prior calendar day's >=20:00 BOATS bars
-  plus the selected date's <04:00 BOATS bars. If BOATS credentials/entitlement/data are absent,
-  the API reports explicit `overnight_evidence` and the UI renders a dash rather than estimating.
+- Massive/store remains the canonical 04:00–20:00 intraday owner. The optional overnight lane is
+  delegated over loopback to **Quote Hub**, which already owns all extended/overnight market data,
+  Alpaca credentials, source selection, and singleton request capacity.
+- Quote Hub exposes `/overnight-bars?symbol=...&date=...&tf=...` on localhost only. Its historical
+  BOATS adapter requests one ET wall date, emits the app's ET display-epoch convention, returns only
+  20:00–04:00 bars, uses split adjustment, caps current-date history 15 minutes behind now, caches
+  for 60 seconds, and fails soft with a closed coverage status.
+- `/api/intraday` merges those disjoint BOATS bars after date-scoping the canonical response;
+  canonical Massive/store bars win any unexpected epoch overlap.
+- Overnight is assembled in the component from the prior calendar day's >=20:00 BOATS bars plus the
+  selected date's <04:00 BOATS bars. If Hub credentials/entitlement/data are absent, the API reports
+  explicit `overnight_evidence` and the UI renders a dash rather than estimating.
 
 This makes the feature useful immediately without increasing Terminal first-paint data cost.
 
@@ -63,9 +70,10 @@ For an exact “highest/lowest printed trade” product, the correct future lane
 
 Alpaca exposes overnight U.S. market data from 20:00–04:00 ET. Its historical bars API
 supports the `boats` feed, and Alpaca documents historical BOATS availability for overnight
-data. The repo already contained an Alpaca overnight websocket path for live extended-hours quotes.
-This implementation adds a bounded historical BOATS adapter inside the existing intraday owner:
-one ET wall date per request, split-adjusted to match the canonical Massive aggregate basis,
+data. The repo already contained an Alpaca overnight websocket path for live extended-hours quotes
+inside Quote Hub. This implementation extends **that same owner** with a bounded historical BOATS
+adapter and localhost endpoint; Terminal remains credential-free for Alpaca and only proxies the
+selected wall date. The adapter is split-adjusted to match the canonical Massive aggregate basis,
 15-minute-delay safe, fail-soft, and cached for 60 seconds.
 
 Relevant docs:
@@ -84,15 +92,16 @@ For current Mastermind coverage:
 
 - daily: canonical daily bars;
 - premarket / regular / after-hours: existing Massive/intraday path where available;
-- overnight: Alpaca BOATS historical bars when `ALPACA_API_KEY` / `ALPACA_API_SECRET`
-  (or APCA-compatible aliases) are configured and entitled; otherwise the lane is explicitly blank.
+- overnight: Alpaca BOATS historical bars when Quote Hub's existing `ALPACA_API_KEY` /
+  `ALPACA_API_SECRET` are configured and entitled; otherwise `overnight_evidence` reports
+  `not_configured` / `unavailable` and the lane is explicitly blank.
 
 ## Overnight hardening still required for guaranteed fleet-wide history
 
 The selected-day product path is now wired, but coverage is not yet guaranteed across every
-ticker/date. The next data-plane upgrade remains in the existing intraday owner:
+ticker/date. The next data-plane upgrade stays with Quote Hub + the existing intraday store:
 
-1. verify production BOATS credentials and entitlement on the deployed Terminal runtime;
+1. verify production Quote Hub BOATS credentials and historical entitlement on the deployed Hub;
 2. persist 1–5 minute overnight bars under the same point-in-time/session conventions as the
    current intraday store so dossier reads do not depend on an on-demand vendor call;
 3. backfill the desired universe/date horizon;
@@ -102,8 +111,10 @@ ticker/date. The next data-plane upgrade remains in the existing intraday owner:
 
 ## UX and performance decisions
 
-- The calendar sits directly after the existing Performance block: aggregate performance first,
-  day-by-day decomposition second.
+- The calendar is owned by TerminalShell's shared detail rail and is placed immediately after the
+  StockAnalysis research/market-data stack and before the trailing full-analysis / Ask-AI actions.
+  This avoids invalidating StockAnalysis's locked visual-evidence packet while keeping one calendar
+  implementation across browser rail and native dossier.
 - Only the selected date triggers historical intraday requests.
 - Empty weekdays/holidays are visually inert.
 - Return direction uses color plus signed numeric text, so meaning is not color-only.
@@ -115,7 +126,9 @@ ticker/date. The next data-plane upgrade remains in the existing intraday owner:
 
 Paper file: `01M3P1TW5Y3XWQC37ADDS8K5AG`  
 Page: `p-7-0` — **06 · Returns Calendar · Terminal + Dossier**  
-Desktop artboard: `AOD-0` — **Returns Calendar · Stock Dossier · Desktop**
+Desktop artboard: `AOD-0` — **Returns Calendar · Stock Dossier · Desktop**  
+Mobile artboard: `AT2-0` — **Returns Calendar · Native Dossier · 390**
 
-The specimen uses the existing Mastermind dark tokens and explicitly shows an unavailable
-overnight lane so the product contract remains null-honest.
+Both specimens use the existing Mastermind dark tokens and explicitly show an unavailable
+overnight lane so the product contract remains null-honest. The 390px specimen preserves the five
+trading-day columns, stacks H/L inside each cell, and uses a 2×2 selected-session detail grid.
