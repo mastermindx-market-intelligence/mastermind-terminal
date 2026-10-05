@@ -176,8 +176,18 @@ function isPlainRecord(value: unknown): value is Obj {
 
 function exactKeys(value: Obj, required: readonly string[], optional: readonly string[] = []): boolean {
   const allowed = new Set([...required, ...optional]);
-  return required.every(key => Object.hasOwn(value, key))
-    && Object.keys(value).every(key => allowed.has(key));
+  const ownNames = Object.getOwnPropertyNames(value);
+  return Object.getOwnPropertySymbols(value).length === 0
+    && required.every(key => Object.hasOwn(value, key))
+    && ownNames.every(key => allowed.has(key));
+}
+
+function plainArray(value: unknown, max: number): value is unknown[] {
+  if (!Array.isArray(value) || Object.getPrototypeOf(value) !== Array.prototype || value.length > max) return false;
+  if (Object.getOwnPropertySymbols(value).length !== 0) return false;
+  return Object.getOwnPropertyNames(value).every(name =>
+    name === "length" || (/^(?:0|[1-9][0-9]*)$/.test(name) && Number(name) < value.length)
+  );
 }
 
 function safeRevision(value: unknown): value is number {
@@ -268,7 +278,7 @@ function validRfc3339(value: unknown): value is string {
   return Number.isFinite(Date.parse(value));
 }
 
-export function validateSemanticContextValue(
+function validateSemanticContextValueUnsafe(
   raw: unknown,
   path = "$",
 ): SemanticContextValidationResult<SemanticContextValue> {
@@ -290,8 +300,8 @@ export function validateSemanticContextValue(
   }
 
   if (raw.kind === "entity_set") {
-    if (!exactKeys(raw, ["kind", "refs"]) || !Array.isArray(raw.refs)
-        || raw.refs.length === 0 || raw.refs.length > MAX_SET_REFS) return fail("invalid_entity_set");
+    if (!exactKeys(raw, ["kind", "refs"]) || !plainArray(raw.refs, MAX_SET_REFS)
+        || raw.refs.length === 0) return fail("invalid_entity_set");
     const refs: SemanticContextRef[] = [];
     const errors: SemanticContextValidationError[] = [];
     const seen = new Set<string>();
@@ -346,6 +356,17 @@ export function validateSemanticContextValue(
   };
 }
 
+export function validateSemanticContextValue(
+  raw: unknown,
+  path = "$",
+): SemanticContextValidationResult<SemanticContextValue> {
+  try {
+    return validateSemanticContextValueUnsafe(raw, path);
+  } catch {
+    return { ok: false, errors: [{ path, code: "invalid_value" }] };
+  }
+}
+
 function validatePort(raw: unknown, path: string): SemanticContextValidationResult<SemanticContextPort> {
   const required = ["port_id", "origin_id", "direction", "mode", "accepts", "temporal_capabilities"];
   if (!isPlainRecord(raw) || !exactKeys(raw, required, ["adapter_id"])) {
@@ -357,17 +378,27 @@ function validatePort(raw: unknown, path: string): SemanticContextValidationResu
       || typeof raw.origin_id !== "string" || !OPAQUE_64.test(raw.origin_id)
       || typeof raw.direction !== "string" || !directions.has(raw.direction)
       || typeof raw.mode !== "string" || !modes.has(raw.mode)
-      || !Array.isArray(raw.accepts) || raw.accepts.length < 1 || raw.accepts.length > SEMANTIC_CONTEXT_KINDS.length
+      || !plainArray(raw.accepts, SEMANTIC_CONTEXT_KINDS.length) || raw.accepts.length < 1
       || raw.accepts.some(value => typeof value !== "string" || !KIND_SET.has(value))
       || new Set(raw.accepts).size !== raw.accepts.length
-      || !Array.isArray(raw.temporal_capabilities)
-      || raw.temporal_capabilities.length > SEMANTIC_TEMPORAL_CAPABILITIES.length
+      || !plainArray(raw.temporal_capabilities, SEMANTIC_TEMPORAL_CAPABILITIES.length)
       || raw.temporal_capabilities.some(value => typeof value !== "string" || !TEMPORAL_SET.has(value))
       || new Set(raw.temporal_capabilities).size !== raw.temporal_capabilities.length
       || (Object.hasOwn(raw, "adapter_id") && (typeof raw.adapter_id !== "string" || !OPAQUE_128.test(raw.adapter_id)))) {
     return { ok: false, errors: [{ path, code: "invalid_port" }] };
   }
-  return { ok: true, value: cloneJson(raw) as SemanticContextPort };
+  return {
+    ok: true,
+    value: {
+      port_id: raw.port_id as string,
+      origin_id: raw.origin_id as string,
+      direction: raw.direction as SemanticContextPort["direction"],
+      mode: raw.mode as SemanticContextPort["mode"],
+      accepts: [...raw.accepts] as SemanticContextKind[],
+      ...(Object.hasOwn(raw, "adapter_id") ? { adapter_id: raw.adapter_id as string } : {}),
+      temporal_capabilities: [...raw.temporal_capabilities] as SemanticTemporalCapability[],
+    },
+  };
 }
 
 export function validateSemanticContextGroup(
@@ -382,7 +413,7 @@ export function validateSemanticContextGroup(
         || !safeRevision(raw.revision)
         || typeof raw.kind !== "string" || !KIND_SET.has(raw.kind)
         || !text(raw.label, 120)
-        || !Array.isArray(raw.ports) || raw.ports.length < 1 || raw.ports.length > MAX_PORTS) {
+        || !plainArray(raw.ports, MAX_PORTS) || raw.ports.length < 1) {
       return { ok: false, errors: [{ path: "$", code: "invalid_group" }] };
     }
 

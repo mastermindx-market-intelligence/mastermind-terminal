@@ -4,6 +4,7 @@ import {
   matchesSemanticContextGeneration,
   validateSemanticContextDelta,
   validateSemanticContextGroup,
+  validateSemanticContextValue,
   type SemanticContextGroup,
   type SemanticContextTransformAdapter,
 } from "@/lib/semanticContext";
@@ -336,6 +337,9 @@ describe("existing-owner adapters stay honest", () => {
     expect(investigationSubjectsToSemanticValue([
       { owner: "terminal.analysis_symbol", kind: "security", object_id: "NVDA" },
       { owner: "macro.theme_registry", kind: "theme", object_id: "theme:ai", version_ref: "42" },
+    ], [
+      { owner: "terminal.analysis_symbol", kinds: ["security"] },
+      { owner: "macro.theme_registry", kinds: ["theme"] },
     ])).toEqual({
       status: "qualified",
       value: {
@@ -494,5 +498,40 @@ describe("semantic context adversarial coordinator cases", () => {
     protoValue.kind = "entity_selection";
     protoValue.ref = securityAapl.ref;
     expect(validateSemanticContextGroup({ ...baseGroup(), value: protoValue }).ok).toBe(false);
+  });
+});
+
+
+describe("semantic context hostile-boundary and owner-admission cases", () => {
+  it("refuses an unadmitted Investigation owner instead of promoting namespace shape to identity", () => {
+    expect(investigationSubjectsToSemanticValue([
+      { owner: "untrusted.fake_owner", kind: "security", object_id: "NVDA" },
+    ])).toEqual({
+      status: "missing_adapter",
+      reason: "investigation_subject_owner_not_admitted",
+    });
+  });
+
+  it("fails closed rather than throwing when a hostile value proxy traps structural inspection", () => {
+    const hostile = new Proxy(
+      { kind: "entity_selection", ref: securityAapl.ref },
+      { ownKeys() { throw new Error("hostile ownKeys"); } },
+    );
+    expect(() => validateSemanticContextValue(hostile)).not.toThrow();
+    expect(validateSemanticContextValue(hostile).ok).toBe(false);
+  });
+
+  it("fails closed without executing nested array toJSON hooks while validating a port", () => {
+    let calls = 0;
+    const accepts = ["entity_selection"] as string[] & { toJSON?: () => unknown };
+    accepts.toJSON = () => {
+      calls += 1;
+      return ["entity_set"];
+    };
+    const group = baseGroup();
+    group.ports[0] = { ...group.ports[0], accepts: accepts as SemanticContextGroup["ports"][number]["accepts"] };
+    const result = validateSemanticContextGroup(group);
+    expect(result.ok).toBe(false);
+    expect(calls).toBe(0);
   });
 });

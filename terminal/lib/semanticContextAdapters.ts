@@ -18,6 +18,11 @@ export type SemanticAdapterResult =
       reason: string;
     };
 
+export type SemanticSubjectAdmission = readonly {
+  owner: string;
+  kinds: readonly string[];
+}[];
+
 function asEntityRef(subject: InvestigationSubject): SemanticContextRef | null {
   const candidate = {
     owner: subject.owner,
@@ -51,10 +56,14 @@ export function semanticSecurityFromAiContextV1(context: AiContextClientV1): Sem
 
 export function investigationSubjectsToSemanticValue(
   subjects: readonly InvestigationSubject[],
+  admission: SemanticSubjectAdmission = [],
 ): SemanticAdapterResult {
   if (!subjects.length) return { status: "unsupported", reason: "investigation_has_no_subjects" };
   const refs: SemanticContextRef[] = [];
   for (const subject of subjects) {
+    if (!admission.some(entry => entry.owner === subject.owner && entry.kinds.includes(subject.kind))) {
+      return { status: "missing_adapter", reason: "investigation_subject_owner_not_admitted" };
+    }
     const ref = asEntityRef(subject);
     if (!ref) return { status: "unsupported", reason: "investigation_subject_invalid" };
     refs.push(ref);
