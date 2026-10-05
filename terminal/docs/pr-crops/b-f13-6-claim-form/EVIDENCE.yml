@@ -1,14 +1,15 @@
 # B-F13-6 Claim authoring form — capture evidence
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
 # Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
-# capturedAtHead: 21168c818212c4fe058f9d731f3be873f430c387
-# capturedAt: 2026-09-25T12:10:10.477Z
+# capturedAtHead: f207382291015629e8ec5e68dde8a7797305daca
+# capturedAt: 2026-10-04T18:18:11.626Z
 # capturedAtHead is informational. The lock is layoutFiles.
+# 2026-10-05 F11-PROPOSALS (macro#6819, C4 5988747810): hash-only restamp of terminal/components/workspaces/ThesisWorkspace.tsx — the Suggested changes section now binds proposal rows to the selected thesis and adds loading/unavailable states; the settled ready markup (count + rows, or count 0 + empty statement) is byte-identical and no captured frame shows a pending or failed proposal read, so crops NOT recaptured and capturedAtHead unchanged. Not acceptance.
 layoutFiles:
   terminal/components/workspaces/ClaimAuthoringForm.tsx: "58c9be616f9ef5b7d90c7efdc164138ef76bdc6d7ffd590ff27ad904bfea4a3f"
   terminal/components/workspaces/ClaimAuthoringForm.module.css: "a8f3030eef0538dccc9f32f5a2688ecbf5f7b8e9c1601717fa819fae763acdc1"
   terminal/lib/claimAuthoring.ts: "b87652bc9c484de109395fb1d5b8dd8a0ba0ddb0ff8e88d629c4bd616b535ed5"
-  terminal/components/workspaces/ThesisWorkspace.tsx: "d1c18da171f599360f44cb6024f88bcfe3a2a3c4faac135815844fd4481ca523"
+  terminal/components/workspaces/ThesisWorkspace.tsx: "2a1d1d3a8d9f1226b8b61bdf1f87ac209092c05156ac599fd415bf511381fbf3"
 theme: dark
 languages: [en, zh]
 viewports:

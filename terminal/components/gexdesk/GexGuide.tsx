@@ -72,6 +72,7 @@ export function GexGuide({ lang }: GexGuideProps) {
 
         {/* Toggle button */}
         <button
+          className="obs-gex-mobile-target"
           style={TOGGLE_BTN}
           onClick={() => setOpen((v) => !v)}
           aria-expanded={open}

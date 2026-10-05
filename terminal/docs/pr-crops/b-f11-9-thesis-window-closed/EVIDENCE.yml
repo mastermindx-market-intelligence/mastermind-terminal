@@ -1,14 +1,15 @@
 # B-F11-9 thesis window-closed — capture evidence
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
 # Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
-capturedAtHead: 05de3537a18609909b453a2f254c51d02baf0376
-# capturedAt: 2026-09-19T21:31:09.300Z
+capturedAtHead: aa5c7581df26b2e86209b6001a5294467fc798d5
+# capturedAt: 2026-10-02T08:13:11.499Z
 # capturedAtHead is informational. The lock is layoutFiles.
+# 2026-10-02 round 3 — moved the layout hashes and PNG bytes with the full producer-shaped stub, date-only rendering, and N4 fold-key fix.
 layoutFiles:
-  terminal/lib/alertsView.ts: "ee48893ed7706de4d6fa306b237a5df647166acb6737dc4b9dd3b23c350b1d0f"
-  terminal/components/alerts/AlertsCockpit.tsx: "468a506890408b90a5621982a178fcef4ebf711e0d8bbb9428de78a4abd3f8a7"
+  terminal/lib/alertsView.ts: "7885c00404c3b09eaf188eac79ea48ff3845c3a55de2596e31bb98d0490c783f"
+  terminal/components/alerts/AlertsCockpit.tsx: "eefaa5b73f8f329fcffe84d9518fd859b42cec4aa3b6db03fc38cab8adcb7a45"
   terminal/components/alerts/AlertTimeline.tsx: "22395c8972c8fc88f80fae1f72a0c9d546a1fd6e8354e0ef6a8ae62211514d96"
-  terminal/components/alerts/AlertDetail.tsx: "b628caa9aadcab4a9b161b69657cf9485fc4da7d345623b03079847e07e3bdcf"
+  terminal/components/alerts/AlertDetail.tsx: "bc780f85d33d567e0b0055824c6e390663a53776990abe06380c265431fd6a21"
 theme: dark
 languages: [en, zh]
 viewports:

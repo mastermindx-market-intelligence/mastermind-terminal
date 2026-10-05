@@ -26,6 +26,44 @@ import { ALERTS_CHANGED_EVENT, conditionText, firedEventTextZh } from "@/lib/ale
 
 type Alert = { id: string; symbol: string; condition: any; active: boolean; created_at: string };
 
+/**
+ * Where one row's re-arm stands (F08-REARM, macro#6819 C4 5990007233). Absent = no re-arm in play.
+ *   sending       the PATCH is in flight — the row is fenced; an inventory read landing now settles nothing
+ *   checking      the PATCH answered without this row's acknowledgement (lost, malformed, another row, a
+ *                 gateway page); the existing inventory GET is reading the row's current state
+ *   unconfirmed   that read answered: the row shows the LATEST OBSERVATION, still qualified — a read is
+ *                 not proof the unacknowledged write finished. A further re-arm is a new, informed write.
+ *   check-failed  the read failed too: nothing is known, so no re-arm is offered — only a GET-only check
+ * Apart from the phase, a row whose re-arm outcome was never learned says so for as long as it is on
+ * screen: a later attempt's acknowledgement or refusal answers only that attempt (C4 5991393156).
+ */
+type RearmPhase = "sending" | "checking" | "unconfirmed" | "check-failed";
+
+// Component-local, keyed by language — the idiom SectionSync/SectionAlertDelivery use. Not in
+// lib/i18n.tsx: seventeen evidence packets pin that file byte-for-byte.
+const REARM_COPY = {
+  rearming: { en: "Re-arming…", zh: "正在重新启用…" },
+  checking: { en: "Re-arm not confirmed — checking the alert's current state…", zh: "重新启用未获确认——正在核对提醒的当前状态…" },
+  unconfirmed: { en: "Re-arm not confirmed — showing the latest saved state.", zh: "重新启用未获确认——以下为最新保存的状态。" },
+  "check-failed": { en: "Re-arm not confirmed, and the alert's current state could not be checked.", zh: "重新启用未获确认，且无法核对提醒的当前状态。" },
+  checkStatus: { en: "Check status", zh: "核对状态" },
+  earlier: { en: "An earlier re-arm of this alert was never confirmed — it may still take effect.", zh: "此提醒先前的一次重新启用从未获得确认——它仍可能生效。" },
+} as const;
+
+/**
+ * A PATCH reply that acknowledges THIS re-arm and can stand in for the row on screen: the expected
+ * id, armed, a symbol and creation time, a plain-object condition, and no trigger stamp (route.ts
+ * PATCH deletes it). Anything less is not an acknowledgement — the row is reconciled by reading.
+ */
+function isRearmAck(x: unknown, id: string): x is Alert {
+  if (!x || typeof x !== "object" || Array.isArray(x)) return false;
+  const a = x as Record<string, unknown>;
+  const c = a.condition;
+  return a.id === id && a.active === true && typeof a.symbol === "string" && typeof a.created_at === "string"
+    && !!c && typeof c === "object" && !Array.isArray(c)
+    && !Object.prototype.hasOwnProperty.call(c, "triggered");
+}
+
 // ── suite-event catalog (lib/suiteAlerts.ts is the authority for events + tiers) ──
 type Tier = "free" | "essential" | "pro";
 type CatalogEvt = SuiteAlertEventDef;
@@ -146,6 +184,7 @@ export function _resetAlertPrefill(): void {
 export default function AlertsView({ email, panelOnly, listOnly }: { email: string; panelOnly?: boolean; listOnly?: boolean }) {
   const t = useT();
   const { lang } = useLang();
+  const L = lang === "zh" ? "zh" : "en";
   const fmtDate = (iso: string) => {
     try {
       return new Date(iso).toLocaleDateString(lang === "zh" ? "zh-CN" : "en-US");
@@ -249,6 +288,28 @@ export default function AlertsView({ email, panelOnly, listOnly }: { email: stri
     gateTimer.current = setTimeout(() => setGateNudge(null), 5000);
   };
 
+  // F08-REARM. Phases live in a ref as well as state: the fence must hold for a second click
+  // in the same tick, which still sees the previous render.
+  const [rearmPhase, setRearmPhaseState] = useState<Record<string, RearmPhase>>({});
+  const rearmPhaseRef = useRef<Record<string, RearmPhase>>({});
+  const updateRearm = useCallback((update: (p: Record<string, RearmPhase>) => Record<string, RearmPhase>) => {
+    const next = update(rearmPhaseRef.current);
+    if (next === rearmPhaseRef.current) return;
+    rearmPhaseRef.current = next;
+    setRearmPhaseState(next);
+  }, []);
+  // Inventory reads can finish out of order. Each read takes a sequence number as it STARTS;
+  // only an answer newer than the one on screen may replace it.
+  const readSeq = useRef(0);
+  const appliedSeq = useRef(0);
+  const lastReadOk = useRef(false); // was the answer on screen a usable inventory?
+  // A re-arm acknowledged while reads were in flight is newer than what those reads saw for that
+  // row: until a read that STARTED after the acknowledgement lands, the acknowledged row stands.
+  const ackedRows = useRef(new Map<string, { floor: number; row: Alert }>());
+  // Rows with a re-arm whose outcome was never learned. Kept apart from the current attempt's phase:
+  // a later attempt settling does not settle the earlier one.
+  const [earlierUnknown, setEarlierUnknown] = useState<Record<string, true>>({});
+
   /**
    * Read the inventory. FOUR outcomes, none of them allowed to wear another's clothes:
    * 401 → signed out · non-2xx or unusable body → unavailable (existing rows kept) ·
@@ -259,23 +320,46 @@ export default function AlertsView({ email, panelOnly, listOnly }: { email: stri
    */
   const loadAlerts = useCallback(async (aliveRef?: { alive: boolean }) => {
     const alive = () => aliveRef?.alive !== false;
+    const seq = ++readSeq.current;
+    // An older read finishing late describes a state the panel has already moved past: it says nothing.
+    const speaks = (ok: boolean) => {
+      if (!alive() || seq <= appliedSeq.current) return false;
+      appliedSeq.current = seq;
+      lastReadOk.current = ok;
+      return true;
+    };
     try {
       const r = await fetch("/api/alerts");
       if (r.status === 401) {
-        if (alive()) { setSignedOut(true); setUnavailable(false); }
+        if (speaks(false)) { setSignedOut(true); setUnavailable(false); }
         return;
       }
-      if (!r.ok) { if (alive()) setUnavailable(true); return; }
+      if (!r.ok) { if (speaks(false)) setUnavailable(true); return; }
       const d = await r.json().catch(() => null);
-      if (!d || !Array.isArray(d.alerts)) { if (alive()) setUnavailable(true); return; }
-      if (alive()) { setAlerts(d.alerts); setUnavailable(false); setSignedOut(false); }
+      if (!d || !Array.isArray(d.alerts)) { if (speaks(false)) setUnavailable(true); return; }
+      if (speaks(true)) {
+        const acked = ackedRows.current;
+        const rows = (d.alerts as Alert[]).map((x) => {
+          const a = acked.get(x.id);
+          return a && seq <= a.floor ? a.row : x;
+        });
+        for (const [id, a] of acked) if (seq > a.floor) acked.delete(id);
+        setAlerts(rows); setUnavailable(false); setSignedOut(false);
+        // This read began after any failed re-arm check did, so it IS an observation of that row.
+        updateRearm((p) => {
+          if (!Object.values(p).includes("check-failed")) return p;
+          const next = { ...p };
+          for (const id of Object.keys(next)) if (next[id] === "check-failed") next[id] = "unconfirmed";
+          return next;
+        });
+      }
     } catch {
       // Transport failure. Say nothing about the inventory — and above all do not empty it.
-      if (alive()) setUnavailable(true);
+      if (speaks(false)) setUnavailable(true);
     } finally {
       if (alive()) setLoaded(true);
     }
-  }, []);
+  }, [updateRearm]);
 
   const retryLoad = useCallback(async () => {
     setReloading(true);
@@ -419,15 +503,59 @@ export default function AlertsView({ email, panelOnly, listOnly }: { email: stri
       setBusy(false);
     }
   }
+  /**
+   * Re-arm one fired row. Only THIS row's acknowledgement is success, and only a refusal the route
+   * issues BEFORE it attempts the update — 401 (no user) or 404 (no such owned row), each with its
+   * {error} body — is failure. Anything else means the write may or may not have landed: a lost
+   * reply, a 2xx without this row, a gateway page, and the route's own 400 after the update call
+   * (supabase-js reports a lost upstream reply as an error too). Such a row is fenced and the
+   * existing inventory read reconciles it. Never replayed: a repeat PATCH after a lost reply could
+   * clear a NEWER trigger the first, committed one let the engine stamp (C4's counterexample).
+   */
   async function rearm(id: string) {
+    const phase = rearmPhaseRef.current[id];
+    if (phase && phase !== "unconfirmed") return;
+    const refused = t("couldNotRearm");
+    setErr((e) => (e === refused ? null : e)); // a new attempt supersedes the last re-arm's verdict
+    updateRearm((p) => ({ ...p, [id]: "sending" }));
+    let r: Response | null = null;
     try {
-      const r = await fetch("/api/alerts", { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id }) });
-      const d = await r.json().catch(() => ({}));
-      if (d.alert) { setAlerts((a) => a.map((x) => (x.id === id ? d.alert : x))); window.dispatchEvent(new Event(ALERTS_CHANGED_EVENT)); }
-      else setErr(d.error || t("couldNotRearm"));
-    } catch {
-      setErr(t("couldNotRearm"));
+      r = await fetch("/api/alerts", { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id }) });
+    } catch { /* lost: the write may have landed */ }
+    const d = r ? await r.json().catch(() => null) : null;
+    if (r?.ok && isRearmAck(d?.alert, id)) {
+      ackedRows.current.set(id, { floor: readSeq.current, row: d.alert });
+      setAlerts((a) => a.map((x) => (x.id === id ? d.alert : x)));
+      dropRearm(id);
+      window.dispatchEvent(new Event(ALERTS_CHANGED_EVENT));
+      return;
     }
+    if (r && (r.status === 401 || r.status === 404) && typeof d?.error === "string") {
+      dropRearm(id);
+      setErr(t("couldNotRearm")); // localized — the route's {error} is a code, not user copy
+      return;
+    }
+    // This write's outcome is unknown for the rest of the row's life on screen: a later attempt's
+    // acknowledgement or refusal settles only that later attempt, never this one.
+    setEarlierUnknown((u) => (u[id] ? u : { ...u, [id]: true }));
+    await checkRearm(id);
+  }
+
+  function dropRearm(id: string) {
+    updateRearm((p) => {
+      if (!(id in p)) return p;
+      const next = { ...p };
+      delete next[id];
+      return next;
+    });
+  }
+
+  /** GET-only: read the row's current state. Never a write. */
+  async function checkRearm(id: string) {
+    updateRearm((p) => ({ ...p, [id]: "checking" }));
+    await loadAlerts();
+    // The answer on screen began after the re-arm resolved — this read's, or a newer one's.
+    updateRearm((p) => ({ ...p, [id]: lastReadOk.current ? "unconfirmed" : "check-failed" }));
   }
   async function del(id: string) {
     setConfirmDel(null);
@@ -626,12 +754,13 @@ export default function AlertsView({ email, panelOnly, listOnly }: { email: stri
   const existingAlertsPanel = (
         <div className="panel">
           {/* The count is a claim about the inventory — it must not print "0 total" over a
-              read that never landed. The re-read control is always present when signed in: a
+              read that never landed, and that includes the FIRST read while it is still in
+              flight (`alerts` starts as [], so only `loaded` can tell). The re-read control is always present when signed in: a
               retry path that only exists once a failure is already on screen cannot recover a
               refresh that failed over rows the user can still see. */}
           <div className="ph">
             {t("activeAlerts")}
-            {!signedOut && !(unavailable && alerts.length === 0) && <span className="sub">{alerts.length} {t("total")}</span>}
+            {loaded && !signedOut && !(unavailable && alerts.length === 0) && <span className="sub">{alerts.length} {t("total")}</span>}
             {!signedOut && loaded && (
               <button
                 type="button"
@@ -690,11 +819,16 @@ export default function AlertsView({ email, panelOnly, listOnly }: { email: stri
             // actually about to render — an unconditional row reference was allocating an
             // always-empty row-2 track (and its row-gap on both edges) on every unfired row.
             const hasNote = lang === "zh" ? !!trig : !!(trig && note);
+            const phase = rearmPhase[a.id];
             return (
               <div key={a.id} className={`arow${hasNote ? " has-note" : ""}`}>
                 <span className={`dot${a.active ? "" : " off"}`} style={trig ? { background: "var(--signal)" } : undefined} />
                 <span><span className="tk">{a.symbol}</span> <span className="cond">· {condText(a.condition)}</span></span>
-                {trig ? <button className="btn" style={{ height: 26, fontSize: 11.5, justifySelf: "end" }} onClick={() => rearm(a.id)}>{t("rearm")}</button> : <span />}
+                {phase === "sending" ? (
+                  <button className="btn" style={{ height: 26, fontSize: 11.5, justifySelf: "end" }} disabled>{REARM_COPY.rearming[L]}</button>
+                ) : trig && (!phase || phase === "unconfirmed") ? (
+                  <button className="btn" style={{ height: 26, fontSize: 11.5, justifySelf: "end" }} onClick={() => rearm(a.id)}>{t("rearm")}</button>
+                ) : <span />}
                 <span style={{ color: "var(--muted)", fontSize: 11.5 }}>{fmtDate(a.created_at)}</span>
                 {trig ? (
                   <span style={{ color: "var(--signal)", fontSize: 11.5 }}>
@@ -741,6 +875,21 @@ export default function AlertsView({ email, panelOnly, listOnly }: { email: stri
                         {tval != null ? ` · ${tval}` : ""}
                       </span>
                     )}
+                {/* Re-arm not confirmed: say so, beside the latest observation. Rides the delete
+                    confirm's full-width track (appended after child 6, so the 390px grid's
+                    nth-child placement is untouched). */}
+                {phase && phase !== "sending" ? (
+                  <span className="arow-confirm arow-rearm" role="status" data-rearm-state={phase}>
+                    <span className="arow-confirm-q">{REARM_COPY[phase][L]}</span>
+                    {phase === "check-failed" && (
+                      <button type="button" className="btn" onClick={() => checkRearm(a.id)}>{REARM_COPY.checkStatus[L]}</button>
+                    )}
+                  </span>
+                ) : earlierUnknown[a.id] ? (
+                  <span className="arow-confirm arow-rearm" role="status" data-rearm-state="earlier-unconfirmed">
+                    <span className="arow-confirm-q">{REARM_COPY.earlier[L]}</span>
+                  </span>
+                ) : null}
                 {confirmDel === a.id && (
                   <span className="arow-confirm" role="group" aria-label={t("deleteAlertQ")}>
                     <span className="arow-confirm-q">{t("deleteAlertQ")}</span>

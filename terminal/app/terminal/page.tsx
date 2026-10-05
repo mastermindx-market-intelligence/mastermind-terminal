@@ -3,16 +3,19 @@ import { createClient } from "@/lib/supabase/server";
 import { GUEST_COOKIE } from "@/lib/layoutsFixtureDb";
 import TerminalShell from "@/components/TerminalShell";
 import { canonicalChartSymbol, criticalTerminalDataUrls, resolveTerminalLandingSymbol } from "@/lib/terminalBoot";
+import { canonicalEpisodeId } from "@/lib/dislocations/episodeDeepLink";
 import { preload } from "react-dom";
 
 // dynamic='auto': supabase reads cookies → Next auto-detects dynamic; no need to force it.
 
-export default async function Terminal({ searchParams }: { searchParams: Promise<{ sym?: string; symbol?: string; shell?: string; tray?: string; dossier?: string }> }) {
+export default async function Terminal({ searchParams }: { searchParams: Promise<{ sym?: string; symbol?: string; episode?: string; shell?: string; tray?: string; dossier?: string }> }) {
   const sp = await searchParams;
   // Canonicalized HERE, at the route boundary, so exactly one string reaches the shell, the
   // preload, and `dataCache`. A value that is not a usable symbol resolves to `undefined` — the
   // same state as no deep link at all — rather than travelling on as a raw URL fragment.
   const initialSymbol = canonicalChartSymbol(sp?.symbol ?? sp?.sym) ?? undefined;
+  // Episode deep link without a usable symbol is dropped, same as any other non-canonical param.
+  const initialEpisode = initialSymbol ? (canonicalEpisodeId(sp?.episode) ?? undefined) : undefined;
   // ?shell=app — the installable apps' WebView mode: chart-only chrome + window.__mmShell bridge.
   const shellMode = sp?.shell === "app";
   // ?tray=1 (shell mode only) — keeps the TF quick tray visible; the symbol-preview sheet
@@ -85,7 +88,7 @@ export default async function Terminal({ searchParams }: { searchParams: Promise
           .map(({ symbol, section }) => ({ symbol, section })) ?? [])
       : guestRows;
     preloadChartData(resolveTerminalLandingSymbol(initialSymbol, fixtureRows));
-    return <TerminalShell symbols={fixtureRows} email={fixtureEmail} userId={fixtureEmail ? fixtureUserId(fixtureKey) : undefined} initialSymbol={initialSymbol} shellMode={shellMode} shellTray={shellTray} shellDossier={shellDossier} secondBarsEnabled={secondBarsEnabled} />;
+    return <TerminalShell symbols={fixtureRows} email={fixtureEmail} userId={fixtureEmail ? fixtureUserId(fixtureKey) : undefined} initialSymbol={initialSymbol} initialEpisode={initialEpisode} shellMode={shellMode} shellTray={shellTray} shellDossier={shellDossier} secondBarsEnabled={secondBarsEnabled} />;
   }
 
   const supabase = await createClient();
@@ -94,7 +97,7 @@ export default async function Terminal({ searchParams }: { searchParams: Promise
   // login disabled for now — render an open guest workspace (no server-side persistence)
   if (!user) {
     preloadChartData(resolveTerminalLandingSymbol(initialSymbol, guestRows));
-    return <TerminalShell symbols={guestRows} email="" initialSymbol={initialSymbol} shellMode={shellMode} shellTray={shellTray} shellDossier={shellDossier} secondBarsEnabled={secondBarsEnabled} />;
+    return <TerminalShell symbols={guestRows} email="" initialSymbol={initialSymbol} initialEpisode={initialEpisode} shellMode={shellMode} shellTray={shellTray} shellDossier={shellDossier} secondBarsEnabled={secondBarsEnabled} />;
   }
 
   // load or seed the user's first watchlist (idempotent via unique (user_id,name)).
@@ -150,5 +153,5 @@ export default async function Terminal({ searchParams }: { searchParams: Promise
   // `userId`, not `email`, is what watchlist local state is namespaced by: an address can be
   // changed and reassigned, the auth uuid cannot, and a durable owner key that can be recycled is
   // not an owner boundary.
-  return <TerminalShell symbols={rows} email={user?.email || ""} userId={user.id} initialSymbol={initialSymbol} shellMode={shellMode} shellTray={shellTray} shellDossier={shellDossier} secondBarsEnabled={secondBarsEnabled} />;
+  return <TerminalShell symbols={rows} email={user?.email || ""} userId={user.id} initialSymbol={initialSymbol} initialEpisode={initialEpisode} shellMode={shellMode} shellTray={shellTray} shellDossier={shellDossier} secondBarsEnabled={secondBarsEnabled} />;
 }
