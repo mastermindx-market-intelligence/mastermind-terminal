@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import type { Bar } from "@/lib/fund";
-import { buildReturnsCalendarSessions, previousCalendarDate, returnsCalendarDayKey, type SessionRange } from "@/lib/returnsCalendar";
+import { buildReturnsCalendarSessions, previousCalendarDate, RETURNS_CALENDAR_SESSION_TF, returnsCalendarDayKey, type SessionRange } from "@/lib/returnsCalendar";
 
 type Pick = (en?: string | null, cn?: string | null) => string;
 type Bar6 = [number, number, number, number, number, number];
@@ -104,7 +104,7 @@ export default function ReturnsCalendar({
     let cancelled = false;
     if (!requestKey || !selectedDate) return;
     const prior = previousCalendarDate(selectedDate);
-    const url = (date: string) => `/api/intraday?sym=${encodeURIComponent(symbol)}&tf=30m&ext=1&overnight=1&date=${date}`;
+    const url = (date: string) => `/api/intraday?sym=${encodeURIComponent(symbol)}&tf=${RETURNS_CALENDAR_SESSION_TF}&ext=1&overnight=1&date=${date}`;
     void (async () => {
       try {
         const [cur, prev] = await Promise.all([fetch(url(selectedDate)), fetch(url(prior))]);
