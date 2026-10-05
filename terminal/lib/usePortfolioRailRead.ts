@@ -20,9 +20,12 @@ import { ownerKeyFor } from "@/lib/accountIdentity";
 // newer read, an owner change or unmount writes nothing when it lands. An older success or
 // failure therefore cannot overwrite a newer answer, or a newer read that is still pending.
 //
-// The state is TAGGED with its owner, and the rail reads it only while the tag matches. That
-// needs no effect, which would run after paint: one account's book is never painted under another
-// account's session, even for a frame, and a write that slips in during a render is ignored.
+// An owner change RESETS the state during render, not in an effect, which would run after paint.
+// One account's book is therefore never painted under another account's session, even for a frame.
+// The saved snapshot is dropped, not merely hidden, so after A → signed-out → A (or A → B → A) the
+// new A read starts unanswered and cannot resurrect what A read before the transition (C4
+// 5997134203). The state also stays tagged with its owner, so a write that slips in during a
+// render is ignored.
 
 export type PortfolioRailRow = { id: string; ticker: string; status: string };
 
@@ -62,12 +65,6 @@ function answeredRows(payload: unknown): PortfolioRailRow[] | null {
     .map((row) => ({ id: row.id, ticker: row.ticker, status: row.status }));
 }
 
-/**
- * @param owner   who the book belongs to. Any change starts a fresh, unanswered read state, and
- *                every read the previous owner started is discarded.
- * @param enabled the lazy trigger. A read is issued whenever this turns true, and again when the
- *                owner changes while it is true. Nothing is fetched while it is false.
- */
 /** One GET of the book: its rows when the store answered, `null` when it did not. */
 async function readBook(): Promise<PortfolioRailRow[] | null> {
   try {
@@ -78,12 +75,23 @@ async function readBook(): Promise<PortfolioRailRow[] | null> {
   }
 }
 
+/**
+ * @param owner   who the book belongs to. Any change starts a fresh, unanswered read state, and
+ *                every read the previous owner started is discarded.
+ * @param enabled the lazy trigger. A read is issued whenever this turns true, and again when the
+ *                owner changes while it is true. Nothing is fetched while it is false.
+ */
 export function usePortfolioRailRead(owner: string, enabled: boolean): PortfolioRailRead {
   const [snap, setSnap] = useState<Snapshot>(() => ({ owner, rows: null, failed: false, busy: false }));
   const generation = useRef(0);
 
-  // Mount lifetime and the owner boundary in one place. This cleanup runs on unmount AND whenever
-  // the owner changes, and either one advances the generation, so every read in flight is
+  // The owner boundary for STATE. Adjusted during render (React re-renders before committing), and
+  // the outgoing snapshot is replaced rather than masked, so returning to an earlier owner shows
+  // nothing that owner read before it left.
+  if (snap.owner !== owner) setSnap({ owner, rows: null, failed: false, busy: false });
+
+  // Mount lifetime and the owner boundary for READS in one place. This cleanup runs on unmount AND
+  // whenever the owner changes, and either one advances the generation, so every read in flight is
   // invalidated. That also covers an A → signed-out → A round trip, which the owner tag alone
   // would let through.
   useEffect(() => () => { generation.current += 1; }, [owner]);

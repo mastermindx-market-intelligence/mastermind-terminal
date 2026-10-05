@@ -205,6 +205,46 @@ describe("read ordering", () => {
     expect(tickers()).toEqual(["AAPL"]);
   });
 
+  // C4 5997134203: the old read's fetch has ANSWERED but its JSON is still parsing when a newer read
+  // starts through a real trigger. Whether that JSON then resolves or rejects, the newer read stays
+  // pending. The generation check runs after the body settles, never before it.
+  const triggers: [string, () => Promise<void>][] = [
+    ["Retry", async () => { await act(async () => { void latest.retry(); }); }],
+    ["the lazy trigger re-enabling", async () => { await render(A, false); await render(A, true); }],
+  ];
+  for (const [trigger, start] of triggers) {
+    for (const outcome of ["resolves", "rejects"] as const) {
+      it(`old fetch answered with its JSON held, newer read via ${trigger} pending, old JSON ${outcome}: the newer read stays pending`, async () => {
+        await render(A);
+        let body!: { resolve: (value: unknown) => void; reject: (error: unknown) => void };
+        const parsing = {
+          ok: true,
+          status: 200,
+          json: () => new Promise((resolve, reject) => { body = { resolve, reject }; }),
+        } as unknown as Response;
+        await answer(0, parsing);
+        expect(body).toBeDefined();
+        expect(latest.rows).toBeNull();
+
+        await start();
+        expect(held).toHaveLength(2);
+        const busy = latest.busy;
+        await act(async () => {
+          if (outcome === "resolves") body.resolve({ positions: [NVDA] });
+          else body.reject(new SyntaxError("Unexpected token < in JSON"));
+        });
+        await flush();
+        expect(latest.rows).toBeNull();
+        expect(latest.failed).toBe(false);
+        expect(latest.busy).toBe(busy);
+
+        await answer(1, book(AAPL));
+        expect(tickers()).toEqual(["AAPL"]);
+        expect(latest.busy).toBe(false);
+      });
+    }
+  }
+
   it("a superseded Retry does not clear the newer read's state when it lands", async () => {
     await render(A);
     await answer(0, json(503, {}));
@@ -273,6 +313,36 @@ describe("owner boundary", () => {
     await answer(1, book());
     expect(latest.rows).toEqual([]);
   });
+
+  // C4 5997134203: A has ANSWERED before the transition. The saved snapshot must be dropped, not
+  // masked, so the new A read starts unanswered (Loading, not A's old rows) and, if it fails, is
+  // unavailable rather than A's old rows qualified as a last read.
+  const away: [string, () => Promise<void>][] = [
+    ["signed out", () => render("", false)],
+    ["account B, whose read is still pending", () => render(portfolioRailOwner("b@example.com", "uuid-b"))],
+  ];
+  for (const [label, leave] of away) {
+    it(`A answered → ${label} → A: the new A read is unanswered while pending and unavailable when it fails`, async () => {
+      await render(A);
+      await answer(0, book(NVDA));
+      expect(tickers()).toEqual(["NVDA"]);
+
+      await leave();
+      expect(latest.rows).toBeNull();
+      await render(A);
+      const fresh = held.length - 1;
+      expect(fresh).toBeGreaterThan(0);
+      expect(latest.rows).toBeNull();
+      expect(latest.failed).toBe(false);
+
+      await answer(fresh, json(503, {}));
+      expect(latest.rows).toBeNull();
+      expect(latest.failed).toBe(true);
+
+      for (let i = 1; i < fresh; i++) await answer(i, book(AAPL));
+      expect(latest.rows).toBeNull();
+    });
+  }
 
   it("a read outlives a sign-out and the same owner's return without a new read: still rejected", async () => {
     await render(A);

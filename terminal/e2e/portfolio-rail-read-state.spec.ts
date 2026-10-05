@@ -44,10 +44,16 @@ async function prepare(page: Page, testInfo: TestInfo, baseURL: string | undefin
   await page.route("**/api/quote**", (route) => route.fulfill({ json: QUOTES }));
 }
 
-async function seed(page: Page, ticker: string) {
+async function seed(page: Page, ticker: string): Promise<string> {
   const response = await page.request.post("/api/portfolio", {
     data: { action: "create", ticker, shares: "10", entryPrice: "150", entryDate: "2026-01-05" },
   });
+  expect(response.ok()).toBe(true);
+  return (await response.json()).position.id;
+}
+
+async function close(page: Page, id: string) {
+  const response = await page.request.post("/api/portfolio", { data: { action: "close", id } });
   expect(response.ok()).toBe(true);
 }
 
@@ -155,6 +161,36 @@ test("control: a valid empty book is the empty state with Add position", async (
   await expect(page.getByTestId("rail-portfolio-unavailable")).toHaveCount(0);
   await crop(page, "empty-control-en");
 });
+
+// C4 5997134203: the last good read had nothing open, so the rail shows the empty state. The failed
+// refresh must still be QUALIFIED, never the bare empty state asserted as current.
+for (const [label, closed] of [["an empty book", false], ["a book whose only position is closed", true]] as const) {
+  test(`a failed refresh after ${label} is qualified as the last read, never the bare empty state`, async ({ page, baseURL }, testInfo) => {
+    await prepare(page, testInfo, baseURL);
+    if (closed) await close(page, await seed(page, "AAPL"));
+    const gate = await steerBook(page);
+    await openTerminal(page);
+
+    await tab(page, "portfolio").click();
+    await expect(panel(page)).toContainText(COPY.en.empty, { timeout: 20_000 });
+    const stale = page.getByTestId("rail-portfolio-stale");
+    await expect(stale).toHaveCount(0);
+
+    gate.next = "fail";
+    await tab(page, "watchlists").click();
+    await tab(page, "portfolio").click();
+    await expect(stale).toBeVisible({ timeout: 20_000 });
+    await expect(stale).toContainText(COPY.en.stale);
+    await expect(page.getByTestId("rail-portfolio-unavailable")).toHaveCount(0);
+    expect(gate.gets).toBe(2);
+
+    gate.next = "pass";
+    await stale.getByRole("button", { name: COPY.en.retry }).click();
+    await expect(stale).toHaveCount(0, { timeout: 20_000 });
+    await expect(panel(page)).toContainText(COPY.en.empty);
+    expect(gate.gets).toBe(3);
+  });
+}
 
 test("an older read landing late cannot overwrite a newer one", async ({ page, baseURL }, testInfo) => {
   await prepare(page, testInfo, baseURL);
