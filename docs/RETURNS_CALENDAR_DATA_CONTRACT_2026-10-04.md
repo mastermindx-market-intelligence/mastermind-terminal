@@ -23,8 +23,11 @@ Session boundaries are Eastern Time and half-open:
 | After hours | selected day regular close <= t < 20:00 |
 
 For a normal NYSE session, regular close is 16:00. On canonical early-close dates it is 13:00,
-and the after-hours lane begins at 13:00. The calendar reads this from the existing
-`usEquitySessionClock` projection rather than maintaining a second holiday/half-day calendar.
+and the after-hours lane begins at 13:00. The **server-side intraday owner** reads this from the
+existing `usEquitySessionClock` projection and returns only
+`regular_session_window {start_minute,end_minute}` to the client. The large 2016–2028 projection
+is therefore not bundled into Terminal's browser code, and the calendar does not maintain a second
+holiday/half-day authority.
 
 A session return is `session_close / session_open - 1`. A day return is
 `daily_close / previous_trading_day_close - 1`. They are intentionally different metrics.
