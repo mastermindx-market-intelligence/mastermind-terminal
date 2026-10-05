@@ -35,7 +35,7 @@ export type LayoutDbResult = { data?: LayoutRow[] | LayoutRow | null; error?: La
  *
  *  `neq`/`is` were added for the W2-A workspace CAS paths (contract §4/§6): a numbered UPDATE
  *  binds `.eq("config->>revision", String(expected))` AND `.eq("config->>schema", WORKSPACE_SCHEMA)`
- *  plus a supported floor (`.eq("config->requires->>floor", "1")` or `.is(..., null)`; absent means
+ *  plus an exact supported requirements object (`{"floor":1}`, `{}`, or absent; absent means
  *  1) so an older writer cannot consume a future schema or floor. Migrate-on-write matches only an
  *  unversioned legacy row (`.is("config->>schema", null)`), never an explicitly unknown stored
  *  schema. Postgres NULL never satisfies `eq`/`neq`. */
@@ -340,16 +340,16 @@ function supportsStoredLayout(config: unknown): boolean {
   if (!isRecordLike(config) || config.schema == null) return true;
   if (config.schema !== WORKSPACE_SCHEMA) return false;
   if (config.requires === undefined) return true;
-  if (!isRecordLike(config.requires)) return false;
+  if (!isRecordLike(config.requires) || Object.keys(config.requires).some(key => key !== "floor")) return false;
   return config.requires.floor === undefined || config.requires.floor === 1;
 }
 
 function bindStoredLayoutFormat(query: LayoutQuery, config: Record<string, unknown>): LayoutQuery {
   if (config.schema == null) return query.is("config->>schema", null);
   const bound = query.eq("config->>schema", WORKSPACE_SCHEMA);
-  return isRecordLike(config.requires) && config.requires.floor === 1
-    ? bound.eq("config->requires->>floor", "1")
-    : bound.is("config->requires->>floor", null);
+  return config.requires === undefined
+    ? bound.is("config->requires", null)
+    : bound.eq("config->requires", JSON.stringify(config.requires));
 }
 
 export type WorkspaceFailureReason = "unavailable" | "invalid_name" | "name_conflict" | "stale_revision" | "not_found" | "forbidden";
@@ -384,7 +384,7 @@ export type DuplicateWorkspaceResult =
  *
  * `expectedId`, when supplied, is the uuid of the row the caller believes it is targeting (loaded
  * via an earlier read) — Amendment A3 ruling 5 (completing A2 ruling 9's ABA fence): the id
- * predicate is added to the conversion attempt and both numbered floor attempts, so a
+ * predicate is added to the conversion attempt and all numbered requirements attempts, so a
  * delete-recreate of the same name under a NEW row can never be silently matched by a stale
  * caller's write. A pure CREATE (brand-new name, nothing loaded) has no id to supply.
  */
@@ -406,12 +406,15 @@ export async function saveWorkspace(
     const values = { config: payload, updated_at: nowIso() };
     const bindNumbered = (query: LayoutQuery) =>
       query.eq("config->>revision", String(expectedRevision)).eq("config->>schema", WORKSPACE_SCHEMA);
-    // Disjoint floor attempts: stored 1 vs omitted (NULL means 1). Never pre-read.
+    // Compare JSON objects, not extracted text: "1", null, malformed containers and
+    // unknown requirement keys must never count as a supported floor. Missing means 1.
+    // All three attempts remain atomic and need no pre-read.
     const updated = await applyWorkspaceUpdate(
       db, userId, values, workspaceName, expectedId,
       [
-        (query) => bindNumbered(query).eq("config->requires->>floor", "1"),
-        (query) => bindNumbered(query).is("config->requires->>floor", null),
+        (query) => bindNumbered(query).eq("config->requires", '{"floor":1}'),
+        (query) => bindNumbered(query).eq("config->requires", "{}"),
+        (query) => bindNumbered(query).is("config->requires", null),
       ],
     );
     if (errOf(updated)) return { ok: false, reason: storeWriteReason(errOf(updated)) };

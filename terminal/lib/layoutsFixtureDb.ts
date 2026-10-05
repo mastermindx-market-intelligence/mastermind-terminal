@@ -20,6 +20,7 @@
 // falls through to the RLS'd Supabase server client.
 
 import type { LayoutDb, LayoutDbResult, LayoutQuery, LayoutRow } from "@/lib/layouts";
+import { canonicalJson } from "@/lib/workspaceLayout";
 
 /** Per-test store key, so the three parallel viewport projects cannot see each other's writes. */
 export const LAYOUT_STORE_COOKIE = "mm_e2e_layouts";
@@ -79,21 +80,19 @@ type Op =
 /** Which fault class an operation belongs to, so one cookie can target reads or writes. */
 const faultClassOf = (op: Op): LayoutFault => (op.kind === "select" ? "list" : op.kind === "delete" ? "delete" : "save");
 
-/** `column` is either a plain row column ("user_id", "name", "id") or a PostgREST JSON-path
- *  reference ("config->>revision", "config->requires->>floor"). `->` yields JSON, `->>` yields
- *  TEXT (stringified, never a raw number/boolean). A missing key, JSON null, or non-object base
- *  reads as `null` — the same "NULL never satisfies eq/neq" semantics real Postgres gives a still-
- *  legacy row that has no `config.schema` key at all, and a v1 row that omits `requires.floor`
- *  (see the `LayoutQuery` doc-comment in `lib/layouts.ts`). */
+/** SQL NULL and JSON null differ for a `->` path. Only missing keys/non-object
+ * bases produce SQL NULL; `->>` also maps JSON null to SQL NULL and yields text. */
+const SQL_NULL = Symbol("layout-fixture-sql-null");
 function readPath(row: LayoutRow, column: string): unknown {
   const parts = column.split(/(->>|->)/);
-  if (parts.length === 1) return row[column];
+  if (parts.length === 1) return row[column] ?? SQL_NULL;
   let value: unknown = row[parts[0]];
   for (let i = 1; i < parts.length; i += 2) {
-    if (typeof value !== "object" || value === null || Array.isArray(value)) return null;
+    if (typeof value !== "object" || value === null || Array.isArray(value)) return SQL_NULL;
     value = (value as Record<string, unknown>)[parts[i + 1]];
-    if (value === undefined || value === null) return null;
+    if (value === undefined) return SQL_NULL;
     if (parts[i] === "->>") {
+      if (value === null) return SQL_NULL;
       value = typeof value === "object" ? JSON.stringify(value) : String(value);
     }
   }
@@ -104,14 +103,19 @@ type Filter = { column: string; op: "eq" | "neq" | "is"; value: unknown };
 
 function filterMatches(row: LayoutRow, filter: Filter): boolean {
   const actual = readPath(row, filter.column);
-  switch (filter.op) {
-    case "eq": return actual !== null && actual === filter.value;
-    // SQL `<>` semantics: NULL is never distinct-or-equal to anything under `neq`/`eq` — it simply
-    // never satisfies either. Callers that need "value = 1 OR omitted" use `eq`+`is` as two
-    // disjoint attempts (see `saveWorkspace`'s numbered floor fence).
-    case "neq": return actual !== null && actual !== filter.value;
-    case "is": return filter.value === null ? actual === null : actual === filter.value;
-  }
+  if (filter.op === "is") return filter.value === null ? actual === SQL_NULL : actual === filter.value;
+  if (actual === SQL_NULL) return false;
+  // PostgREST passes JSON filter values as encoded text; PostgreSQL compares jsonb
+  // structurally, preserving number/string/null types and ignoring object key order.
+  const path = filter.column.split(/(->>|->)/);
+  let equal: boolean;
+  if (path.length > 1 && path[path.length - 2] === "->") {
+    try {
+      const expected = typeof filter.value === "string" ? JSON.parse(filter.value) : filter.value;
+      equal = canonicalJson(actual) === canonicalJson(expected);
+    } catch { return false; }
+  } else equal = actual === filter.value;
+  return filter.op === "eq" ? equal : !equal;
 }
 
 function teamStoreFor(teamId: string): Store {

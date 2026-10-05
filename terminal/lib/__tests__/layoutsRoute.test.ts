@@ -239,8 +239,8 @@ describe("POST /api/layouts — op: save_workspace", () => {
   });
 
   it("409s a stale revision (0 rows updated, row still present)", async () => {
-    // Both supported-floor UPDATE attempts miss before the conflict read.
-    H.results = [{ data: [] }, { data: [] }, { data: [{ id: "L1" }] }];
+    // All three supported-requirements UPDATE attempts miss before the conflict read.
+    H.results = [{ data: [] }, { data: [] }, { data: [] }, { data: [{ id: "L1" }] }];
     const r = await post({ op: "save_workspace", name: "Swing", envelope: VALID_ENVELOPE, expectedRevision: 3 });
     expect(r.status).toBe(409);
     await expect(r.json()).resolves.toEqual({ error: "stale_revision" });

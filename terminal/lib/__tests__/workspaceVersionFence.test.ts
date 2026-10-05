@@ -18,6 +18,46 @@ describe("old workspace writers preserve unsupported stored formats",()=>{
 });
 
 describe("supported format fences remain atomic and preserve old readers", () => {
+  const malformedRequirements = [null, [], "1", { floor: null }, { floor: "1" }, { floor: 1, future: true }, { future: true }];
+  for (const [index, requires] of malformedRequirements.entries()) {
+    for (const mode of ["numbered", "rename", "duplicate"] as const) {
+      it(`${mode} preserves malformed requirements ${index}`, async () => {
+        const key = `malformed-requires-${index}-${mode}`, db = createLayoutFixtureDb(key), user = fixtureLayoutUserId(key);
+        const created = await saveWorkspace(db, user, "Preserve", v1(), null);
+        expect(created.ok).toBe(true);
+        const stored = { ...v1(), requires };
+        pokeLayoutFixtureRow(key, user, "Preserve", { config: stored });
+        const id = created.ok ? created.id : undefined;
+        const result = mode === "numbered" ? await saveWorkspace(db, user, "Preserve", v1(), 1, id)
+          : mode === "rename" ? await renameWorkspace(db, user, "Preserve", "Renamed", 1, id)
+          : await duplicateWorkspace(db, user, "Preserve", "Copy", id);
+        expect(result.ok).toBe(false);
+        const listed = await listLayouts(db, user);
+        expect(listed.ok && listed.layouts).toHaveLength(1);
+        expect(listed.ok && listed.layouts[0].name).toBe("Preserve");
+        expect(listed.ok && listed.layouts[0].config).toEqual(stored);
+      });
+    }
+    it(`rename rejects requirements ${index} arriving after its read`, async () => {
+      const key = `rename-requires-race-${index}`, db = createLayoutFixtureDb(key), user = fixtureLayoutUserId(key);
+      const created = await saveWorkspace(db, user, "Preserve", v1(), null);
+      const stored = { ...v1(), requires };
+      const racingDb = { from(table: string) {
+        const query = db.from(table);
+        return new Proxy(query, { get(target, property) {
+          if (property === "update") return (values: Record<string, unknown>) => {
+            pokeLayoutFixtureRow(key, user, "Preserve", { config: stored });
+            return target.update(values);
+          };
+          return Reflect.get(target, property);
+        } });
+      } };
+      expect((await renameWorkspace(racingDb, user, "Preserve", "Renamed", 1, created.ok ? created.id : undefined)).ok).toBe(false);
+      const listed = await listLayouts(db, user);
+      expect(listed.ok && listed.layouts[0].name).toBe("Preserve");
+      expect(listed.ok && listed.layouts[0].config).toEqual(stored);
+    });
+  }
   for (const omitted of ["requires", "floor"] as const) {
     it(`saves an omitted ${omitted} without reading or consulting unapplied team columns`, async () => {
       const key = `supported-omitted-${omitted}`, db = createLayoutFixtureDb(key), user = fixtureLayoutUserId(key);
