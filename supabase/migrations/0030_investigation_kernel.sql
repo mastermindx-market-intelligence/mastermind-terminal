@@ -2,7 +2,13 @@
 -- Ledger row: 0030 | IW2-G1-KERNEL-REPAIR | PR #804 | not applied
 -- Rollback: disable apply/reconcile grants and preserve retained data for forward repair.
 -- Prerequisites: 0012, 0028 and 0029 already applied.
-begin;
+-- The approved Management API helper sends one statement per connection.
+-- Keep the entire repair inside one DO statement, so a backfill/index failure
+-- rolls back the validator, grants, schema and data together on that transport.
+do $migration$
+begin
+perform set_config('search_path','pg_catalog,public,extensions',true);
+execute $ddl$
 
 create or replace function public.valid_investigation_manifest_v2(m jsonb)
 returns boolean language plpgsql immutable set search_path=pg_catalog,public as $$
@@ -293,7 +299,8 @@ returns jsonb language sql stable security invoker set search_path=pg_catalog,pu
  where h.id=p_id and h.user_id=auth.uid()),jsonb_build_object('status','not_found'))
 $$;
 
-commit;
+$ddl$;
+end $migration$;
 
 -- down:
 -- Disable Investigation writes, preserve retained rows and use a reviewed forward repair.
