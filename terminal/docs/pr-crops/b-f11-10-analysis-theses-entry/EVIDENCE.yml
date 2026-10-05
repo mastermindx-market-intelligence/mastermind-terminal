@@ -1,13 +1,13 @@
 # B-F11-10a Analysis context-bar theses entry — capture evidence
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
 # Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
-# capturedAtHead: af6647a242e7a1f1e08ed3a00470a566f699c656
-# capturedAt: 2026-10-04T05:20:34.976Z
+# capturedAtHead: 2846101a95c9f9c4e1b3f21d0005c356cc41ba8f
+# capturedAt: 2026-10-05T10:58:46.160Z
 # capturedAtHead is informational. The lock is layoutFiles.
 layoutFiles:
   terminal/components/workspaces/AnalysisWorkspace.tsx: "f98764b71e4e1301d6149aef0d3e47615455801f95a9691b4d8807febe92226e"
   terminal/app/company-intelligence.css: "16ca4e131ad1f2973b6346e7f051af802dbfa27227d6c33615af87578e73f885"
-  terminal/lib/i18n.tsx: "51276ecc8db6956c6c4e5cc67c55eab029c0b468ccb61e34f8bb92f25e42b9f8"
+  terminal/lib/i18n.tsx: "8122566023e6c4f4536e6d41bd6310917f9fb7d781497fabe19538dbfd961d4f"
 theme: dark
 languages: [en, zh]
 viewports:
@@ -15,17 +15,17 @@ viewports:
   - { name: tablet, width: 820, height: 1180 }
   - { name: mobile, width: 390, height: 844 }
 harness:
-  desktop-en.png: { url: "/analysis?symbol=NVDA&lang=en", state: context-bar-with-theses-control-and-saved-research }
-  desktop-zh.png: { url: "/analysis?symbol=NVDA&lang=zh", state: context-bar-with-theses-control-and-saved-research }
-  tablet-en.png: { url: "/analysis?symbol=NVDA&lang=en", state: context-bar-with-theses-control-and-saved-research }
-  tablet-zh.png: { url: "/analysis?symbol=NVDA&lang=zh", state: context-bar-with-theses-control-and-saved-research }
-  mobile-en.png: { url: "/analysis?symbol=NVDA&lang=en", state: context-bar-with-theses-control-and-saved-research }
-  mobile-zh.png: { url: "/analysis?symbol=NVDA&lang=zh", state: context-bar-with-theses-control-and-saved-research }
+  desktop-en.png: { url: "/analysis?symbol=NVDA&lang=en", state: context-bar-with-theses-control }
+  desktop-zh.png: { url: "/analysis?symbol=NVDA&lang=zh", state: context-bar-with-theses-control }
+  tablet-en.png: { url: "/analysis?symbol=NVDA&lang=en", state: context-bar-with-theses-control }
+  tablet-zh.png: { url: "/analysis?symbol=NVDA&lang=zh", state: context-bar-with-theses-control }
+  mobile-en.png: { url: "/analysis?symbol=NVDA&lang=en", state: context-bar-with-theses-control }
+  mobile-zh.png: { url: "/analysis?symbol=NVDA&lang=zh", state: context-bar-with-theses-control }
 capture_flag: TERMINAL_E2E_FIXTURE
 capture_flag_law: next.config.ts sets devIndicators: false when TERMINAL_E2E_FIXTURE is set; playwright.config.ts already sets that flag on the e2e dev server. This script starts next dev with the same flag.
 command: |
   cd terminal
-  npm run test:e2e:responsive -- investigation-workspace.spec.ts --grep "Analysis research entries" --workers=1
+  node e2e/tools/capture_b_f11_10_analysis_theses_entry.cjs
 files:
   - desktop-en.png
   - desktop-zh.png
@@ -33,5 +33,3 @@ files:
   - tablet-zh.png
   - mobile-en.png
   - mobile-zh.png
-
-# Exact capture timestamps, source hashes, routes, and states: iw2-capture-{desktop,tablet,mobile}.json

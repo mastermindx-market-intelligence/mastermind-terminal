@@ -137,5 +137,39 @@
       "file": "g3-independent-base-browser-desktop-recheck.log",
       "sha256": "5f0e06295a00f9cea57e7fc26e89d3a597bc1a414cddd714e0ad3b1f699fe0f2"
     }
-  ]
+  ],
+  "ci_repair": {
+    "source_commit": "2846101a95c9f9c4e1b3f21d0005c356cc41ba8f",
+    "failed_ci_run": 37294621638,
+    "repair": "Scope symbol input selector separately from the Seasonality month select; recapture all eight invalidated visual evidence packets using their existing browser tools. Preserve all existing asserted source files, including Company Intelligence CSS.",
+    "capture_tools": 8,
+    "fresh_captures": 106,
+    "evidence_lock_tests_passed": 47,
+    "browser_journeys_passed": 9,
+    "viewports": [
+      "1440x900",
+      "820x1180",
+      "390x844"
+    ],
+    "typecheck": "passed",
+    "production_acceptance": false,
+    "logs": [
+      {
+        "file": "g3-recapture-evidence-lock-tests.log",
+        "sha256": "6670aa51e08e9d4d0f75d558af358014f37ae6626b5fb021ea9e3c9317cd782c"
+      },
+      {
+        "file": "g3-recapture-css-lock-test.log",
+        "sha256": "b24793b554dacac7ad913168ed5f959fe631ddbc7702c37a6c4e07c7298c73a9"
+      },
+      {
+        "file": "g3-ci-repair-browser.log",
+        "sha256": "dd8eeae60d0d172aecaa8a463906f0fe4cb1ca5efc715cd41517646242b83dcb"
+      },
+      {
+        "file": "g3-ci-repair-typecheck.log",
+        "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+      }
+    ]
+  }
 }
