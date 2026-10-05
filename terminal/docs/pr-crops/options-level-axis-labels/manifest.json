@@ -13,7 +13,7 @@
     192.6
   ],
   "sourceFiles": {
-    "components/ChartPanel.tsx": "06f59b1c67ee3661dd361f72b23f16f1cddb26a8020490463ea18f941a44361f",
+    "components/ChartPanel.tsx": "6ef107b08b6be7b02a4ab6c22b17f1f0ef1b323e1ed824006771dd27940e4ad5",
     "lib/optionsLevels.ts": "ba5268ff0097eca172ae2192c4ad1659e597acdb5934e27f165f022754a93efd",
     "lib/priceTagPlacement.ts": "75798f32a3b1cf6432c38e076b4a9fac580e2ef402cb862596525a86a09465ff"
   },
