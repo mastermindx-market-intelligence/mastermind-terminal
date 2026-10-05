@@ -241,6 +241,8 @@ test.describe("native shell mode", () => {
     await expect(page.locator("[data-dossier]")).toHaveCount(0);
     await expect(page.locator(".workspace")).toHaveCount(1);
     await expect(page.locator("aside.rail")).toHaveCount(1);
+    // Browser Terminal uses the same shared detail-rail calendar as the native dossier slice.
+    await expect(page.locator(".sa-returns")).toBeVisible({ timeout: 30_000 });
   });
 
   // ── R2.5 bridge additions: tool activation, panels, history, richer payloads ──────────
