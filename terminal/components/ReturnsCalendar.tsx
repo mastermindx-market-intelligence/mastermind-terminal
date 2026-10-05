@@ -107,10 +107,11 @@ export default function ReturnsCalendar({
     let cancelled = false;
     if (!requestKey || !selectedDate) return;
     const prior = previousCalendarDate(selectedDate);
-    const url = (date: string) => `/api/intraday?sym=${encodeURIComponent(symbol)}&tf=${RETURNS_CALENDAR_SESSION_TF}&ext=1&overnight=1&date=${date}`;
+    const url = (date: string, overnightOnly = false) =>
+      `/api/intraday?sym=${encodeURIComponent(symbol)}&tf=${RETURNS_CALENDAR_SESSION_TF}&ext=1&overnight=${overnightOnly ? "only" : "1"}&date=${date}`;
     void (async () => {
       try {
-        const [cur, prev] = await Promise.all([fetch(url(selectedDate)), fetch(url(prior))]);
+        const [cur, prev] = await Promise.all([fetch(url(selectedDate)), fetch(url(prior, true))]);
         if (!cur.ok || !prev.ok) throw new Error("session history unavailable");
         const [cj, pj] = await Promise.all([cur.json(), prev.json()]);
         const current = Array.isArray(cj?.bars) ? cj.bars as Bar6[] : [];
