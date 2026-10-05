@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
-import { fetchIntraday, isIntradayTf, isSecondTf, classify } from "@/lib/intradaySources";
+import { fetchAlpacaBoatsWallDate, fetchIntraday, isIntradayTf, isSecondTf, classify } from "@/lib/intradaySources";
 import { isMacroSymbol } from "@/lib/macroSymbols";
 import { withStoredHistory } from "@/lib/intradayStore";
 import { buildIntradaySourceEvidence, type IntradayAssemblyTrace } from "@/lib/intradayEvidence";
@@ -26,6 +26,12 @@ type IntradayResponse = {
   error?: string;
   session_date?: string;
   source_evidence?: ReturnType<typeof buildIntradaySourceEvidence>;
+  overnight_evidence?: {
+    source: "alpaca-boats";
+    status: "available" | "empty" | "not_configured" | "unavailable";
+    bars: number;
+    note?: string;
+  };
 };
 type EvidenceState = {
   trace: IntradayAssemblyTrace;
@@ -85,6 +91,44 @@ function errorMessage(error: unknown, fallback: string): string {
   return error instanceof Error && error.message ? error.message : fallback;
 }
 
+async function withRequestedOvernight(
+  response: IntradayResponse,
+  sym: string,
+  tf: string,
+  date: string,
+  requested: boolean,
+): Promise<IntradayResponse> {
+  if (!requested || !date || classify(sym) !== "us" || isMacroSymbol(sym)) return response;
+  const overnight = await fetchAlpacaBoatsWallDate(sym, tf, date);
+  if (!overnight.bars.length) {
+    return {
+      ...response,
+      overnight_evidence: {
+        source: overnight.source,
+        status: overnight.status,
+        bars: 0,
+        ...(overnight.note ? { note: overnight.note } : {}),
+      },
+    };
+  }
+
+  // BOATS owns only 20:00–04:00. Preserve every canonical Massive/store bar and fill the
+  // disjoint overnight epochs; if an upstream ever overlaps, the canonical bar wins.
+  const byEpoch = new Map<number, Bar6>(overnight.bars.map((bar) => [bar[0], bar]));
+  for (const bar of response.bars) byEpoch.set(bar[0], bar);
+  const bars = [...byEpoch.values()].sort((a, b) => a[0] - b[0]);
+  return {
+    ...response,
+    bars,
+    overnight_evidence: {
+      source: overnight.source,
+      status: overnight.status,
+      bars: overnight.bars.length,
+      ...(overnight.note ? { note: overnight.note } : {}),
+    },
+  };
+}
+
 export async function GET(req: Request) {
   const rl = rateLimit(req, { name: "intraday" });
   if (!rl.ok) return tooMany(rl);
@@ -93,6 +137,7 @@ export async function GET(req: Request) {
   const tf = (searchParams.get("tf") || "").trim();
   const date = (searchParams.get("date") || "").trim();
   const ext = searchParams.get("ext") === "1"; // regular session by default; extended is explicit opt-in
+  const overnight = ext && searchParams.get("overnight") === "1"; // optional BOATS overlay for date-scoped studies
   if (!sym || !isIntradayTf(tf) || (date && !isValidSessionDate(date))) {
     return NextResponse.json({ error: "bad params" }, { status: 400 });
   }
@@ -156,7 +201,9 @@ export async function GET(req: Request) {
   const ckey = `${sym}|${tf}|${ext ? 1 : 0}|${source}|${basis}${seconds ? `|${date || "latest"}` : ""}`;
   const hit = CACHE.get(ckey);
   if (hit && Date.now() - hit.at < (seconds ? SECOND_TTL : TTL)) {
-    return NextResponse.json(seconds ? hit.data : responseForSession(hit.data, date, hit.evidence, "cache"));
+    if (seconds) return NextResponse.json(hit.data);
+    const cached = responseForSession(hit.data, date, hit.evidence, "cache");
+    return NextResponse.json(await withRequestedOvernight(cached, sym, tf, date, overnight));
   }
 
   // ── Second band: single-session live window, no store ────────────────────────────────────
@@ -211,13 +258,19 @@ export async function GET(req: Request) {
       : undefined);
   } catch (error: unknown) {
     // store read failed entirely (unlikely; readStore swallows its own errors)
-    if (hit) return NextResponse.json(responseForSession(hit.data, date, hit.evidence, "stale_cache"));
+    if (hit) {
+      const stale = responseForSession(hit.data, date, hit.evidence, "stale_cache");
+      return NextResponse.json(await withRequestedOvernight(stale, sym, tf, date, overnight));
+    }
     return NextResponse.json({ t: sym, tf, bars: [], error: errorMessage(error, "store error") });
   }
 
   if (bars.length === 0 && liveErr) {
     // nothing at all — propagate the live error; stale cache wins if present
-    if (hit) return NextResponse.json(responseForSession(hit.data, date, hit.evidence, "stale_cache"));
+    if (hit) {
+      const stale = responseForSession(hit.data, date, hit.evidence, "stale_cache");
+      return NextResponse.json(await withRequestedOvernight(stale, sym, tf, date, overnight));
+    }
     return NextResponse.json({ t: sym, tf, bars: [], error: liveErr });
   }
 
@@ -230,5 +283,7 @@ export async function GET(req: Request) {
     trace, assembledAtMs, symbol: sym, timeframe: tf, extended: ext,
   } : null;
   CACHE.set(ckey, { at: assembledAtMs, data, evidence });
-  return NextResponse.json(responseForSession(data, date, evidence, "new_assembly"), { headers: { "Cache-Control": "no-store" } });
+  const response = responseForSession(data, date, evidence, "new_assembly");
+  const served = await withRequestedOvernight(response, sym, tf, date, overnight);
+  return NextResponse.json(served, { headers: { "Cache-Control": "no-store" } });
 }
