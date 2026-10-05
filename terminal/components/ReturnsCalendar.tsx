@@ -238,7 +238,7 @@ export default function ReturnsCalendar({
             <button key={d.date} type="button" className={`sa-return-cell ${up ? "up" : "down"} ${selectedCell ? "selected" : ""}`} onClick={() => setSelectedDate(d.date)}>
               <span className="date">{d.day}</span>
               <strong className="ret num">{pct(d.ret)}</strong>
-              <span className="range num">H {px(d.bar.h)} · L {px(d.bar.l)}</span>
+              <span className="range num"><i>H {px(d.bar.h)}</i><i>L {px(d.bar.l)}</i></span>
             </button>
           );
         })}
