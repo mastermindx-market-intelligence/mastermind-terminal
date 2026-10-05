@@ -34,6 +34,7 @@ import { parseGlanceState } from "@/lib/mscGlance";
 import { DEFAULT_START_TF, TF_CANONICAL_ORDER, mobileTimeframeOptions, readStartTf, resolveStartTf } from "@/lib/startTf";
 import { useMarketPrefs } from "@/lib/useMarketPrefs";
 import { accountIdentity } from "@/lib/accountIdentity";
+import { portfolioRailOwner, usePortfolioRailRead } from "@/lib/usePortfolioRailRead";
 // Import the page ids from the import-free leaf, NOT from MegaPane: MegaPane is mounted
 // through next/dynamic below, and a value import out of it here would statically pull its
 // entire graph (14 fundamentals pages + statement/intelligence/transcript libs, ~709 KB of
@@ -227,6 +228,14 @@ function quoteEq(a: any, b: any): boolean {
 // Overlay a live quote's price fields onto the EOD manifest row (live wins when present; a missing
 // live field — e.g. a US placeholder that has no volume yet — keeps the manifest value). Used so the
 // watchlist rows + movers tape render the SAME live prices the header already shows.
+// F08-RAIL: the one sentence the Portfolio rail adds, shown above rows kept from the last good read
+// after a later read failed. Component-local EN/ZH, the idiom AlertsView's re-arm copy uses, rather
+// than a lib/i18n.tsx key: evidence packets pin that file byte-for-byte.
+const PF_RAIL_STALE = {
+  en: "Couldn't refresh. Showing your last read.",
+  zh: "未能刷新，显示的是上次读取的持仓。",
+} as const;
+
 function mergeLive(r: Row | undefined, q: any): Row | undefined {
   if (!q) return r;
   const base: any = { ...(r || {}) };
@@ -1019,31 +1028,8 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
   // folded into `lists`, written to `mm.wls`, or touched by the watchlist sync chain. Holding a
   // name and watching a name are different facts; the rail shows both without mixing them.
   const [railTab, setRailTab] = useState<"watchlists" | "portfolio">("watchlists");
-  const [pfRows, setPfRows] = useState<{ id: string; ticker: string; status: string }[]>([]);
-  const [pfLoaded, setPfLoaded] = useState(false);
   /** Symbol queued for the "Add to → Portfolio" modal; `null` = closed. */
   const [pfAddSymbol, setPfAddSymbol] = useState<string | null>(null);
-  const loadPortfolioRows = useCallback(async () => {
-    try {
-      const response = await fetch("/api/portfolio", { headers: { Accept: "application/json" } });
-      if (!response.ok) return;
-      const payload = await response.json();
-      if (!Array.isArray(payload?.positions)) return;
-      const rows = (payload.positions as { id: string; ticker: string; status: string }[])
-        .filter((row) => row && typeof row.ticker === "string")
-        .map((row) => ({ id: row.id, ticker: row.ticker, status: row.status }));
-      // Identity-stable: an unchanged book must not re-render the rail (and with it the chart
-      // workspace) every time this runs.
-      setPfRows((current) => (current.length === rows.length
-        && current.every((row, index) => row.id === rows[index].id && row.ticker === rows[index].ticker && row.status === rows[index].status)
-        ? current
-        : rows));
-    } catch {
-      // UWP-R6: an unreachable store leaves the rail on its last good read; no error chrome here.
-    } finally {
-      setPfLoaded(true);
-    }
-  }, []);
   // Live mirror of `lists` for the async migration: reading it from a ref keeps the effect keyed
   // on `loggedIn` alone, so a symbol edit mid-migration cannot restart the whole run.
   const listsRef = useRef(lists);
@@ -1207,7 +1193,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
   const [symbolNotes, setSymbolNotes] = useState<Record<string, string>>({});
 
   // ── A1: the owner boundary, adjusted DURING RENDER ──────────────────────────────────────────
-  // Same idiom as `pfEmail` further down, and for the same reason: an effect runs AFTER paint, so
+  // Adjusted during render, not in an effect: an effect runs AFTER paint, so
   // for one frame the rail would render the OUTGOING owner's watchlists under the INCOMING
   // owner's session — and the persist effects, keyed on the state itself, could write them into
   // the incoming owner's namespace. React re-invokes this component before committing, so
@@ -2250,21 +2236,14 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
   // work in that window can beat the restore commit it depends on. A user who never opens the
   // Portfolio tab issues no request at all, and one who has it persisted issues it strictly after
   // the restore has landed — the interactive path stays as clear as it is on master.
-  useEffect(() => {
-    if (railTab !== "portfolio" || !loggedIn || !wlsRestored) return;
-    void loadPortfolioRows();
-  }, [loggedIn, railTab, wlsRestored, loadPortfolioRows]);
-  // A different account must not inherit the previous one's book, the same way `serverListIds`
-  // resets on an email change (W1b F7). Adjusted DURING RENDER rather than in an effect: React
-  // re-runs this component before committing, so the rail can never paint one account's holdings
-  // under another's session — which an effect, running after paint, would allow for one frame.
-  // A sign-out clears it too: `loggedIn` is `!!email`, so "" is just another email change.
-  const [pfEmail, setPfEmail] = useState(email);
-  if (pfEmail !== email) {
-    setPfEmail(email);
-    setPfRows([]);
-    setPfLoaded(false);
-  }
+  //
+  // F08-RAIL (macro#6819 C4 5995397563): the read state, its owner/generation/mount fence and this
+  // lazy trigger live in `usePortfolioRailRead`. A different account must not inherit the previous
+  // one's book, so the owner (`portfolioRailOwner`) is the immutable account key AND the address:
+  // a new uuid behind the same email is a new owner, and so is a sign-out (`loggedIn` is `!!email`).
+  // The hook reads its state only while the owner tag matches, so the rail cannot paint one
+  // account's holdings under another's session, even for the frame an effect would take.
+  const pfRail = usePortfolioRailRead(portfolioRailOwner(email, userId), loggedIn && railTab === "portfolio" && wlsRestored);
 
   // ── TRAP 1 (guest → signed-in reconciliation) now lives in the render-time owner transition
   //    above, together with sign-out and account→account. It used to be an `email`-keyed effect
@@ -5659,20 +5638,45 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
               </div>
               <div className="wl-scroll">
                 {(() => {
-                  const held = pfRows.filter((row) => row.status !== "closed");
+                  const retry = (
+                    <button type="button" className="pf-board-cta pf-board-retry" onClick={() => void pfRail.retry()} disabled={pfRail.busy}>
+                      {pfRail.busy ? t("portfolioUnreadableRetrying") : t("portfolioUnreadableRetry")}
+                    </button>
+                  );
+                  // No answered read yet: loading, or an honest "could not read". Never the empty
+                  // book — a store that did not answer has not said the user holds nothing.
+                  if (!pfRail.rows) {
+                    return pfRail.failed ? (
+                      <div className="pf-board-empty" role="status" data-testid="rail-portfolio-unavailable">
+                        <span>{t("portfolioUnreadableTitle")}</span>
+                        {retry}
+                      </div>
+                    ) : (
+                      <div className="pf-board-empty"><span>{t("railPortfolioLoading")}</span></div>
+                    );
+                  }
+                  // A later read failed: keep the last good answer, but say it is the last good one.
+                  const stale = pfRail.failed && (
+                    <div className="pf-board-note" role="status" data-testid="rail-portfolio-stale">
+                      <span>{lang === "zh" ? PF_RAIL_STALE.zh : PF_RAIL_STALE.en}</span>
+                      {retry}
+                    </div>
+                  );
+                  const held = pfRail.rows.filter((row) => row.status !== "closed");
                   if (!held.length) {
                     return (
-                      <div className="pf-board-empty">
-                        {pfLoaded ? (
-                          <>
-                            <span>{t("railPortfolioEmpty")}</span>
-                            <Link className="pf-board-cta" href="/portfolio">{t("addPosition")}</Link>
-                          </>
-                        ) : <span>{t("railPortfolioLoading")}</span>}
-                      </div>
+                      <>
+                        {stale}
+                        <div className="pf-board-empty">
+                          <span>{t("railPortfolioEmpty")}</span>
+                          <Link className="pf-board-cta" href="/portfolio">{t("addPosition")}</Link>
+                        </div>
+                      </>
                     );
                   }
                   return (
+                    <>
+                    {stale}
                     <div className="pf-board-list" role="listbox" aria-label={t("myPortfolio")}>
                       {held.map((row) => {
                         const quote = mergeLive(man?.symbols?.[row.ticker], quotes[row.ticker]);
@@ -5692,6 +5696,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
                         );
                       })}
                     </div>
+                    </>
                   );
                 })()}
               </div>
@@ -6079,7 +6084,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
             setPfAddSymbol(null);
             // The rail only holds a book while the Portfolio tab is open; refresh it there so the
             // new row appears without a reload, and leave it alone otherwise.
-            if (railTab === "portfolio") void loadPortfolioRows();
+            if (railTab === "portfolio") void pfRail.load();
             return true;
           }}
         />
