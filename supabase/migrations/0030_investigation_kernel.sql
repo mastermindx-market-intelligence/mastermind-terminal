@@ -154,7 +154,7 @@ create or replace function public.apply_investigation_revision_v2(
 declare
  actor uuid:=auth.uid(); request jsonb; prior public.investigation_mutation_receipts%rowtype;
  head public.investigations%rowtype; layout public.chart_layouts%rowtype;
- content jsonb:=p_manifest; output jsonb; stamp timestamptz:=clock_timestamp();
+ content jsonb:=p_manifest; output jsonb; stamp timestamptz;
  next_revision integer; next_lifecycle text; ref jsonb; capture_id uuid; content_digest text;
  retained public.chart_layout_revisions%rowtype; revision_id uuid:=gen_random_uuid(); manifest_digest text;
 begin
@@ -227,6 +227,8 @@ begin
  end if;
  -- No INSERT/UPDATE occurs before every fallible validation above. The following effects share
  -- a transaction, and any constraint/storage failure rolls all four writes back together.
+ -- Record the write phase after admission, not a potentially much earlier lock-wait start.
+ stamp:=clock_timestamp();
  if capture_id is not null then
   insert into public.chart_layout_revisions values(capture_id,actor,layout.id,(layout.config->>'revision')::integer,layout.name,layout.config,content_digest,stamp)
    on conflict(user_id,layout_id,source_revision) do nothing;
