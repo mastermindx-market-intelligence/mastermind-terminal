@@ -90,5 +90,13 @@
     "negotiated multidomain Brain compiler contract"
   ],
   "initial_failure": "Next startup timed out before assertions; separately started identical fixture environment and warmed route",
-  "product_defect_fixed": "Existing StockAnalysis omitted its injected slot without research coverage; render the stable keyed slot in both branches. Coverage-loss/remount regression passes."
+  "product_defect_fixed": "Existing StockAnalysis omitted its injected slot without research coverage; render the stable keyed slot in both branches. Coverage-loss/remount regression passes.",
+  "kernel_integration": {
+    "source_commit": "7f13a876730bca530ae8c63e98e8b6e7373eb147",
+    "dependency_head": "36ba495bd20b80faad3fbc740e8881071f9eb683",
+    "unit_passed": 143,
+    "responsive_passed": 6,
+    "typecheck": "passed with dev server quiescent",
+    "release_state": "Draft; depends on held #804; no production acceptance"
+  }
 }
