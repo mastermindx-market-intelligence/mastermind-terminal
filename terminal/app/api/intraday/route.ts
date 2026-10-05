@@ -5,7 +5,8 @@ import { fetchHubOvernightWallDate } from "@/lib/overnightHistory";
 import { isMacroSymbol } from "@/lib/macroSymbols";
 import { withStoredHistory } from "@/lib/intradayStore";
 import { buildIntradaySourceEvidence, type IntradayAssemblyTrace } from "@/lib/intradayEvidence";
-import { filterBarsToSessionDate, type Bar6 } from "@/lib/intradayShared";
+import { filterBarsToSessionDate, sessionEpoch, type Bar6 } from "@/lib/intradayShared";
+import { usRegularSessionWindow } from "@/lib/usEquitySessionClock";
 import { intradayFixture } from "@/lib/flowSource";
 import { rateLimit, tooMany } from "@/lib/rateLimit";
 
@@ -26,6 +27,7 @@ type IntradayResponse = {
   note?: string;
   error?: string;
   session_date?: string;
+  regular_session_window?: { start_minute: number; end_minute: number } | null;
   source_evidence?: ReturnType<typeof buildIntradaySourceEvidence>;
   overnight_evidence?: {
     source: "alpaca-boats";
@@ -78,8 +80,24 @@ function responseForSession(
   const bars = date && Array.isArray(data.bars)
     ? filterBarsToSessionDate(data.bars as Bar6[], date)
     : data.bars;
+  let regularSessionWindow: IntradayResponse["regular_session_window"] | undefined;
+  if (date) {
+    try {
+      const window = usRegularSessionWindow(sessionEpoch(date, "12:00"));
+      regularSessionWindow = window
+        ? { start_minute: window[0], end_minute: window[1] }
+        : null;
+    } catch {
+      regularSessionWindow = undefined;
+    }
+  }
   const response: IntradayResponse = date
-    ? { ...data, bars, session_date: date }
+    ? {
+        ...data,
+        bars,
+        session_date: date,
+        ...(regularSessionWindow !== undefined ? { regular_session_window: regularSessionWindow } : {}),
+      }
     : { ...data, bars };
   if (!evidence) return response;
   return {
