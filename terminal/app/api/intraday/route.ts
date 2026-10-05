@@ -146,7 +146,8 @@ async function withRequestedSessionStudy(
   }
   // The original evidence describes the empty stored/recent assembly. Once this fallback supplies
   // bars, do not attach that trace to different bytes; emit an explicit date-study receipt instead.
-  const { source_evidence: _staleEvidence, ...rest } = response;
+  const rest: IntradayResponse = { ...response };
+  delete rest.source_evidence;
   return {
     ...rest,
     bars,
