@@ -210,26 +210,75 @@ export function stanceOf(state: string): Stance {
 const DELAY_EN = "Delayed data (≈15 min)" as const;
 const DELAY_ZH = "延迟数据（约15分钟）" as const;
 
+const ET_HM = new Intl.DateTimeFormat("en-US", {
+  hour: "2-digit",
+  minute: "2-digit",
+  hour12: false,
+  timeZone: "America/New_York",
+});
+
+function stanceStrings(state: string): { stance_en: string; stance_zh: string } {
+  switch (state) {
+    case "PROBING":
+    case "ARMED":
+      return { stance_en: "Washout, no turn yet", stance_zh: "洗盘中，尚未转向" };
+    case "TURNING":
+      return { stance_en: "Turn forming, not held", stance_zh: "转向形成，未站稳" };
+    case "CANDIDATE":
+      return { stance_en: "Reclaim held", stance_zh: "收复已站稳" };
+    case "INVALIDATED":
+      return { stance_en: "Turn failed", stance_zh: "转向失败" };
+    case "EXPIRED":
+      return { stance_en: "Ran out of session", stance_zh: "本节已到时" };
+    case "RESOLVED":
+      return { stance_en: "Window closed", stance_zh: "观察期结束" };
+    default:
+      return { stance_en: "Status unavailable", stance_zh: "状态不可用" };
+  }
+}
+
+function watchingLines(risk_geometry: Record<string, unknown>): {
+  watching_en: string | null;
+  watching_zh: string | null;
+} {
+  try {
+    const levelRaw = risk_geometry.invalidation_level;
+    const untilRaw = risk_geometry.time_budget_until;
+    if (typeof untilRaw !== "string") {
+      return { watching_en: null, watching_zh: null };
+    }
+    const level =
+      typeof levelRaw === "number" ? levelRaw : typeof levelRaw === "string" ? Number(levelRaw) : NaN;
+    if (!Number.isFinite(level)) {
+      return { watching_en: null, watching_zh: null };
+    }
+    const parsed = Date.parse(untilRaw);
+    if (Number.isNaN(parsed)) {
+      return { watching_en: null, watching_zh: null };
+    }
+    const hhmm = ET_HM.format(parsed);
+    const levelStr = level.toFixed(2);
+    return {
+      watching_en: `Turn fails below ${levelStr} · budget to ${hhmm} ET`,
+      watching_zh: `跌破 ${levelStr} 即失效 · 预算至 ${hhmm} 美东`,
+    };
+  } catch {
+    return { watching_en: null, watching_zh: null };
+  }
+}
+
 export function displayFor(ep: LiveEntryEpisode): EpisodeDisplay {
   const stance = stanceOf(ep.state);
-  let stance_en: string;
-  let stance_zh: string;
-  if (stance === "forming") {
-    stance_en = "Watching — not confirmed yet";
-    stance_zh = "观察中——尚未确认";
-  } else if (stance === "confirmed") {
-    stance_en = "Reclaim confirmed — see when it was knowable";
-    stance_zh = "回收已确认——查看可知时间";
-  } else {
-    stance_en = "Ended — kept for the record";
-    stance_zh = "已结束——仅作记录";
-  }
+  const { stance_en, stance_zh } = stanceStrings(ep.state);
+  const { watching_en, watching_zh } = watchingLines(ep.risk_geometry ?? {});
   const knowable_at =
     ep.candidate_at ?? ep.last_observed_at ?? ep.first_armed_at ?? null;
   return {
     stance,
     stance_en,
     stance_zh,
+    watching_en,
+    watching_zh,
     knowable_at,
     delay_badge_en: DELAY_EN,
     delay_badge_zh: DELAY_ZH,
