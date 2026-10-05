@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
-import { fetchAlpacaBoatsWallDate, fetchIntraday, isIntradayTf, isSecondTf, classify } from "@/lib/intradaySources";
+import { fetchIntraday, isIntradayTf, isSecondTf, classify } from "@/lib/intradaySources";
+import { fetchHubOvernightWallDate } from "@/lib/overnightHistory";
 import { isMacroSymbol } from "@/lib/macroSymbols";
 import { withStoredHistory } from "@/lib/intradayStore";
 import { buildIntradaySourceEvidence, type IntradayAssemblyTrace } from "@/lib/intradayEvidence";
@@ -99,7 +100,7 @@ async function withRequestedOvernight(
   requested: boolean,
 ): Promise<IntradayResponse> {
   if (!requested || !date || classify(sym) !== "us" || isMacroSymbol(sym)) return response;
-  const overnight = await fetchAlpacaBoatsWallDate(sym, tf, date);
+  const overnight = await fetchHubOvernightWallDate(sym, tf, date);
   if (!overnight.bars.length) {
     return {
       ...response,
