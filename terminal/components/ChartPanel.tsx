@@ -638,6 +638,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
   const episodeMarkersRef = useRef<ISeriesMarkersPluginApi<any> | null>(null); // dislocation episode transition marks (spec §4.3)
   const episodeRef = useRef<LiveEntryEpisode | null>(null);
   const renderEpisodeMarksRef = useRef<() => void>(() => {});
+  const episodeSpecsRef = useRef<Array<{ time: unknown }>>([]); // what the pane currently draws for ?episode= (witness)
   const pinePaneMapRef = useRef<Map<string, number>>(new Map());             // sub-pane scriptId → pane index (overlay scripts absent)
   const pineErrRef = useRef<Map<string, string>>(new Map());                 // scriptId → error text (surfaced in the legend)
   const pineCacheRef = useRef<Map<string, { key: string; result: RunResult | null; error: string | null }>>(new Map()); // memo: scriptId → last run
@@ -3772,6 +3773,9 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
       // still hold a handle the renderer already dropped (a stale owner). Zero heap bytes are
       // involved — this counts owners, so it cannot be fooled by GC timing.
       (window as any).__mmChartOwnership = () => chartOwnershipCensus();
+      // Dislocation episode marks witness (product spec §4.3 e2e): the episode the pane drew and the exact bar
+      // times of its marks — a canvas screenshot cannot show that the marks sit on the knowable-at bars.
+      (window as any).__mmEpisodeMarks = () => ({ episodeId: episodeRef.current?.episode_id ?? null, count: episodeSpecsRef.current.length, times: episodeSpecsRef.current.map((s) => s.time) });
       // Live-bar coherence test hook. Every witness below is read in ONE synchronous pass off the
       // REAL canvas series / readout maps / sync peer, so a spec can prove that a single accepted
       // quote left them all describing the same generation of the developing candle — the thing a
@@ -9155,6 +9159,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
   const renderEpisodeMarks = () => {
     try { episodeMarkersRef.current?.detach(); } catch {}
     episodeMarkersRef.current = null;
+    episodeSpecsRef.current = [];
     const ep = episodeRef.current; const priceS = priceSeriesRef.current; const bars = barsRef.current;
     if (!ep || !priceS || !bars.length) return;
     if (ep.ticker.toUpperCase() !== symbolRef.current.toUpperCase()) return;
@@ -9166,7 +9171,8 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
       failed: t.down || "#f0566b", expired: t.mut || "#8a94a6", resolved: t.link || "#5b8def",
     };
     const lang = typeof document !== "undefined" && document.documentElement.getAttribute("data-lang") === "zh" ? "zh" as const : "en" as const;
-    try { episodeMarkersRef.current = createSeriesMarkers(priceS, chartMarkerSpecs(marks, palette, lang) as any); } catch {}
+    const specs = chartMarkerSpecs(marks, palette, lang);
+    try { episodeMarkersRef.current = createSeriesMarkers(priceS, specs as any); episodeSpecsRef.current = specs; } catch { episodeSpecsRef.current = []; }
   };
   renderEpisodeMarksRef.current = renderEpisodeMarks;
   // ── EFFECT 3-episode — [episodeId, symbol]: fetch the deep-linked episode; the chart draws nothing on 401/403/absent (the screen owns the honest state). ──
