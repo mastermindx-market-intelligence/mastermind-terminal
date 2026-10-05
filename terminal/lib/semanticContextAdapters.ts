@@ -5,6 +5,7 @@
  * already canonical owner value or return a typed refusal.
  */
 import type { AiContextClientV1 } from "./aiContext";
+import { normalizeAnalysisSymbol } from "./analysisSymbol";
 import type { InvestigationSubject } from "./investigationContracts";
 import type { MarketOntologyContext } from "./marketOntologyContext";
 import type { SemanticContextRef, SemanticContextValue } from "./semanticContext";
@@ -38,7 +39,11 @@ export function semanticSecurityFromAiContextV1(context: AiContextClientV1): Sem
   if (context.schema !== "ai_context_client.v1" || context.active?.type !== "security" || !context.active.id) {
     return { status: "unsupported", reason: "security_context_unavailable" };
   }
-  if (context.ambient.symbol !== undefined && context.ambient.symbol !== context.active.id) {
+  const canonical = normalizeAnalysisSymbol(context.active.id);
+  if (!canonical || canonical !== context.active.id) {
+    return { status: "unsupported", reason: "security_context_invalid" };
+  }
+  if (context.ambient.symbol !== canonical) {
     return { status: "incompatible", reason: "active_ambient_mismatch" };
   }
   const result = validateSemanticContextValue({
@@ -46,7 +51,7 @@ export function semanticSecurityFromAiContextV1(context: AiContextClientV1): Sem
     ref: {
       owner: "terminal.analysis_symbol",
       kind: "security",
-      object_id: context.active.id,
+      object_id: canonical,
     },
   });
   return result.ok

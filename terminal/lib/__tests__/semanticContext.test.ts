@@ -535,3 +535,54 @@ describe("semantic context hostile-boundary and owner-admission cases", () => {
     expect(calls).toBe(0);
   });
 });
+
+
+describe("semantic context emission identity and dense-container cases", () => {
+  it("rejects sparse port capability arrays instead of admitting holes as typed values", () => {
+    const group = baseGroup();
+    const accepts = new Array<SemanticContextGroup["ports"][number]["accepts"][number]>(1);
+    group.ports[0] = { ...group.ports[0], accepts };
+    expect(validateSemanticContextGroup(group).ok).toBe(false);
+  });
+
+  it("rejects two emitting ports for the same origin because a delta names no port id", () => {
+    const group: SemanticContextGroup = {
+      ...baseGroup(),
+      ports: [
+        {
+          port_id: "same.emit.1",
+          origin_id: "same-origin",
+          direction: "emit",
+          mode: "linked",
+          accepts: ["entity_selection"],
+          temporal_capabilities: ["live"],
+        },
+        {
+          port_id: "same.emit.2",
+          origin_id: "same-origin",
+          direction: "both",
+          mode: "linked",
+          accepts: ["entity_selection"],
+          temporal_capabilities: ["live"],
+        },
+        ...baseGroup().ports.filter(port => port.port_id === "brain.scope"),
+      ],
+    };
+    expect(validateSemanticContextGroup(group).ok).toBe(false);
+  });
+
+  it("refuses a non-canonical Analysis symbol rather than silently promoting it to owner identity", () => {
+    expect(semanticSecurityFromAiContextV1({
+      schema: "ai_context_client.v1",
+      origin_id: "origin",
+      context_revision: 1,
+      captured_at: "2026-10-05T06:00:00.000Z",
+      pinned: [],
+      active: { type: "security", id: "nvda" },
+      ambient: { symbol: "nvda", timeframe: "1D", page: "analysis", panel: "company" },
+    })).toEqual({
+      status: "unsupported",
+      reason: "security_context_invalid",
+    });
+  });
+});

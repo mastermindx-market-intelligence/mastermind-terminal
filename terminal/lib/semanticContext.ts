@@ -185,9 +185,13 @@ function exactKeys(value: Obj, required: readonly string[], optional: readonly s
 function plainArray(value: unknown, max: number): value is unknown[] {
   if (!Array.isArray(value) || Object.getPrototypeOf(value) !== Array.prototype || value.length > max) return false;
   if (Object.getOwnPropertySymbols(value).length !== 0) return false;
-  return Object.getOwnPropertyNames(value).every(name =>
+  if (!Object.getOwnPropertyNames(value).every(name =>
     name === "length" || (/^(?:0|[1-9][0-9]*)$/.test(name) && Number(name) < value.length)
-  );
+  )) return false;
+  for (let index = 0; index < value.length; index += 1) {
+    if (!Object.hasOwn(value, index)) return false;
+  }
+  return true;
 }
 
 function safeRevision(value: unknown): value is number {
@@ -426,6 +430,7 @@ export function validateSemanticContextGroup(
 
     const ports: SemanticContextPort[] = [];
     const seen = new Set<string>();
+    const emittingOrigins = new Set<string>();
     for (let index = 0; index < raw.ports.length; index += 1) {
       const parsed = validatePort(raw.ports[index], "$.ports[" + index + "]");
       if (!parsed.ok) return parsed;
@@ -433,6 +438,13 @@ export function validateSemanticContextGroup(
         return { ok: false, errors: [{ path: "$.ports[" + index + "].port_id", code: "duplicate_port" }] };
       }
       seen.add(parsed.value.port_id);
+      if (parsed.value.mode === "linked"
+          && (parsed.value.direction === "emit" || parsed.value.direction === "both")) {
+        if (emittingOrigins.has(parsed.value.origin_id)) {
+          return { ok: false, errors: [{ path: "$.ports[" + index + "].origin_id", code: "ambiguous_emitter_origin" }] };
+        }
+        emittingOrigins.add(parsed.value.origin_id);
+      }
       ports.push(parsed.value);
     }
 
