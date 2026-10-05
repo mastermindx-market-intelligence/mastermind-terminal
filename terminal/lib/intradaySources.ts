@@ -169,6 +169,60 @@ async function fetchPolygon(sym: string, market: Market, tf: string, ext: boolea
 }
 
 
+// ── Date-scoped U.S. equity study bars ─────────────────────────────────────
+//
+// The normal chart fetch intentionally has a bounded recent lookback. A selected-day dossier
+// study can point years back, and not every symbol has a local 5m store. This narrow helper asks
+// the SAME canonical Massive aggregate source for exactly one ET calendar date when the normal
+// stored/recent assembly has no precise bars. It is server-called from /api/intraday only; it
+// does not create a second route or alternate market-data owner.
+export async function fetchUsEquityDateStudyBars(
+  sym: string,
+  tf: string,
+  ext: boolean,
+  dateStr: string,
+): Promise<Bar6[]> {
+  if (
+    classify(sym) !== "us" ||
+    isMacroSymbol(sym) ||
+    isDailyOnlySymbol(sym) ||
+    !/^\d{4}-\d{2}-\d{2}$/.test(dateStr) ||
+    !isIntradayTf(tf) ||
+    isSecondTf(tf)
+  ) return [];
+
+  const key = process.env.POLYGON_API_KEY || process.env.MASSIVE_API_KEY;
+  if (!key) throw new Error("POLYGON_API_KEY not set");
+  const minutes = tfMinutes(tf);
+  if (!Number.isFinite(minutes) || minutes < 1) return [];
+
+  const sourceMinutes = polygonUsSessionBaseMinutes(minutes);
+  const url =
+    `https://api.polygon.io/v2/aggs/ticker/${encodeURIComponent(sym.toUpperCase())}` +
+    `/range/${sourceMinutes}/minute/${dateStr}/${dateStr}` +
+    `?adjusted=true&sort=asc&limit=50000&apiKey=${key}`;
+  const r = await fetch(url, { cache: "no-store", signal: AbortSignal.timeout(8000) });
+  if (!r.ok) {
+    if (r.status === 429) throw new Error("polygon rate-limited");
+    throw new Error("polygon " + r.status);
+  }
+
+  const j: { results?: Array<{ t: number; o: number; h: number; l: number; c: number; v: number }> } =
+    await r.json();
+  const raw: Bar6[] = [];
+  for (const b of j?.results || []) {
+    if (![b.t, b.o, b.h, b.l, b.c, b.v].every(Number.isFinite)) continue;
+    const { epoch } = etDisplay(b.t);
+    raw.push([epoch, b.o, b.h, b.l, b.c, b.v]);
+  }
+
+  const session = ext ? "extended" : "regular";
+  const selected = filterUsEquitySession(raw, session);
+  return minutes === sourceMinutes
+    ? selected
+    : resampleUsEquitySession(selected, minutes, session);
+}
+
 // ── Second-resolution aggregates (US equities only) ──────────────────────────
 //
 // ENTITLEMENT. `…/range/<n>/second/…` is a Stocks-Advanced feature and the plan covers US
