@@ -117,4 +117,31 @@ preflight is read-only and does not establish production migration acceptance.
 Fabric SQL review `rs_20261005T085012Z_43838` returned PASS_SCOPED on 272596eb;
 parent accepted its SQL-only findings, verified terminal cleanup and released
 lease 67e935d33ff3. That earlier review did not cover the deployment transport;
-the changed DO wrapper requires its own review. #804 remains Draft/HOLD.
+the changed DO wrapper subsequently passed scoped review `rs_20261005T092050Z_23778` on 3db9d31a, with released lease 2d66ae4d43b6 and proven residual-zero cleanup. Constants-only live DO/EXECUTE probes confirmed transport syntax, without applying the migration. #804 remains Draft/HOLD.
+
+
+## Current-base recovery qualification
+
+Integration c6a1c9b0 merges Terminal master 99a7d973 without changing the repaired
+kernel, migration or client recovery files. The complete Investigation Python
+selection passed 177 tests plus 40 subtests with CI missing-binary enforcement;
+139 selected TypeScript cases and TypeScript checking passed. PostgreSQL's first
+local attempt could not start because macOS's temporary Unix socket path exceeded
+103 bytes; the unchanged suite passed with a short external-SSD basetemp.
+
+Parent integration testing then reproduced a client race: after the owner fences
+a failed operation and a new save begins, a delayed failure response from the old
+operation could reject the new pending state and unlock editing. Every POST,
+reconcile PUT and receipt GET now carries its issuing command into settlement;
+responses for a different operation, target, action, expected revision or owner
+are ignored. A fenced retry clears obsolete failure text and confirms the exact
+new operation in the local draft buffer before sending. Six mounted race tests
+and seven recovery-state tests pass, including delayed-original failure and
+failed exact retry-buffer readback.
+
+The preceding static recovery review rs_20261005T101236Z_6577 returned
+PASS_SCOPED but did not close the concurrent response-ordering gap exposed by the
+parent's RED test. Its lease 726e02d55d18 is released with residual-zero cleanup;
+its verdict is not accepted as approval of the final repaired source. Independent
+review of this bounded delta, exact-head CI, B5, current rights, 0030 apply,
+deployment and renewed authenticated G1 proof remain separate requirements.

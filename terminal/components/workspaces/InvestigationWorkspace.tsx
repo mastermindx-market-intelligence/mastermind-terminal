@@ -96,8 +96,14 @@ export default function InvestigationWorkspace({ownerKey,initialSymbol,initialIn
   } catch {if(ticket===detailSeq.current&&!scope.current?.signal.aborted){setMessage(afterSave?c.readbackFailed:c.invalidLink);if(!afterSave)setDetail(null);}}
   finally {if(ticket===detailSeq.current)setDetailLoading(false);}
  }
- async function settle(response:unknown) {
-  const next=settleInvestigationSave(stateRef.current,ownerKey,response);setSave(next);
+ async function settle(command:InvestigationCommand,response:unknown) {
+  const current=stateRef.current;
+  // An original response may arrive after an explicit no-effect fence admitted
+  // a new operation. Only the request owning the current operation can settle it.
+  if((current.phase!=="pending"&&current.phase!=="uncertain")||current.principal!==ownerKey
+    ||current.command.operation_id!==command.operation_id||current.command.id!==command.id
+    ||current.command.action!==command.action||current.command.expected_revision!==command.expected_revision)return;
+  const next=settleInvestigationSave(current,ownerKey,response);setSave(next);
   if(next.phase==="committed") {
    try{sessionStorage.removeItem(storageKey(ownerKey));}catch{/* exact receipt remains authoritative */}
   }
@@ -107,21 +113,32 @@ export default function InvestigationWorkspace({ownerKey,initialSymbol,initialIn
    setMessage(c.conflict);
   }
  }
+ function retainPendingSave(command:InvestigationCommand) {
+  const stored=JSON.stringify({owner:ownerKey,command});
+  sessionStorage.setItem(storageKey(ownerKey),stored);
+  if(sessionStorage.getItem(storageKey(ownerKey))!==stored)throw Error("storage");
+ }
+ function retryFencedSave() {
+  if(editLocked())return;
+  const command=retryInvestigationSave(stateRef.current,ownerKey);if(!command)return;
+  try{retainPendingSave(command);}catch{setStorageBlocked(true);setMessage(c.storage);return;}
+  setMessage("");setSave({phase:"pending",principal:ownerKey,command});void send(command);
+ }
  async function send(command:InvestigationCommand) {
-  try {await settle(await json("/api/investigations",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(command)}));}
-  catch {if(!scope.current?.signal.aborted)await settle(null);}
+  try {await settle(command,await json("/api/investigations",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(command)}));}
+  catch {if(!scope.current?.signal.aborted)await settle(command,null);}
  }
  async function checkOutcome() {
   const command=investigationCommandToReconcile(stateRef.current,ownerKey);if(!command)return;
   setMessage(c.checking);
-  try {await settle(await json("/api/investigations",{method:"PUT",headers:{"Content-Type":"application/json"},body:JSON.stringify(command)}));}catch{if(!scope.current?.signal.aborted)await settle(null);}
+  try {await settle(command,await json("/api/investigations",{method:"PUT",headers:{"Content-Type":"application/json"},body:JSON.stringify(command)}));}catch{if(!scope.current?.signal.aborted)await settle(command,null);}
   if(stateRef.current.phase==="uncertain")setMessage("");
  }
  async function readOriginalOutcome() {
   const command=investigationCommandToReconcile(stateRef.current,ownerKey);if(!command)return;
   // Reopen may observe an existing receipt, but only the explicit button fences a miss.
-  try {await settle(await json(`/api/investigations?operation_id=${command.operation_id}`));}
-  catch {if(!scope.current?.signal.aborted)await settle(null);}
+  try {await settle(command,await json(`/api/investigations?operation_id=${command.operation_id}`));}
+  catch {if(!scope.current?.signal.aborted)await settle(command,null);}
  }
  useEffect(()=>{
   const controller=new AbortController();scope.current=controller;
@@ -190,7 +207,7 @@ export default function InvestigationWorkspace({ownerKey,initialSymbol,initialIn
   const command={id:detail?.id??crypto.randomUUID(),operation_id:crypto.randomUUID(),expected_revision:detail?.revision??0,action,manifest,...(layout&&action!=="remove"&&action!=="restore"?{layout_capture:{layout_id:layout.id,expected_revision:layout.config.revision}}:{})};
   const next=beginInvestigationSave(ownerKey,command,stateRef.current);
   if(next.phase!=="pending"){setMessage(c.titleRequired);return;}
-  try {sessionStorage.setItem(storageKey(ownerKey),JSON.stringify({owner:ownerKey,command:next.command}));if(!sessionStorage.getItem(storageKey(ownerKey)))throw Error("storage");}
+  try {retainPendingSave(next.command);}
   catch {setStorageBlocked(true);setMessage(c.storage);return;}
   // A competing mutation cancels pending evidence selection before taking the
   // synchronous operation lock. A late GET cannot change this saved baseline.
@@ -207,7 +224,7 @@ export default function InvestigationWorkspace({ownerKey,initialSymbol,initialIn
   {storageBlocked&&<p className={styles.notice} role="alert">{c.storage}</p>}
   {locked&&<section className={styles.notice} aria-label={c.operation}><p role="status">{c.uncertain}</p><div className={styles.actions}><button onClick={()=>void checkOutcome()}>{c.check}</button></div></section>}
   {message&&<p role="status" className={styles.notice}>{message}</p>}
-  {saveState.phase==="rejected"&&<section className={styles.notice}>{saveState.reason==="not_applied"&&<><p role="status">{lang==="zh"?"已确认未保存，未创建任何记录。":"Save failure confirmed. No records were created."}</p><button onClick={()=>{const cmd=retryInvestigationSave(stateRef.current,ownerKey);if(!cmd)return;try{sessionStorage.setItem(storageKey(ownerKey),JSON.stringify({owner:ownerKey,command:cmd}));}catch{setStorageBlocked(true);return;}setSave({phase:"pending",principal:ownerKey,command:cmd});void send(cmd);}}>{lang==="zh"?"重新保存":"Try save again"}</button></>}{saveState.command.expected_revision>0&&<button onClick={()=>void openRecord(saveState.command.id)}>{c.viewLatest}</button>}<details><summary>{c.retainedDraft}</summary><h3>{saveState.command.manifest.intent.title}</h3><p className={styles.question}>{saveState.command.manifest.intent.question}</p><p className={styles.question}>{saveState.command.manifest.continuation.next_question}</p></details></section>}
+  {saveState.phase==="rejected"&&<section className={styles.notice}>{saveState.reason==="not_applied"&&<><p role="status">{lang==="zh"?"已确认未保存，未创建任何记录。":"Save failure confirmed. No records were created."}</p><button onClick={retryFencedSave}>{lang==="zh"?"重新保存":"Try save again"}</button></>}{saveState.command.expected_revision>0&&<button onClick={()=>void openRecord(saveState.command.id)}>{c.viewLatest}</button>}<details><summary>{c.retainedDraft}</summary><h3>{saveState.command.manifest.intent.title}</h3><p className={styles.question}>{saveState.command.manifest.intent.question}</p><p className={styles.question}>{saveState.command.manifest.continuation.next_question}</p></details></section>}
   <div className={styles.columns}>
    <aside className={styles.library} aria-label={c.list}><h2>{c.list}</h2><div className={styles.actions}><button aria-pressed={filter==="active"} onClick={()=>setFilter("active")}>{c.all}</button><button aria-pressed={filter==="removed"} onClick={()=>setFilter("removed")}>{c.trash}</button></div>
     {listError?<p role="status">{c.unavailable} <button onClick={()=>void inventory()}>{c.retry}</button></p>:items===null?<p role="status">{c.loading}</p>:!visible?.length?<p>{c.empty}</p>:visible.map(item=><button key={item.id} disabled={locked} className={`${styles.record} ${detail?.id===item.id?styles.selected:""}`} aria-pressed={detail?.id===item.id} onClick={()=>{setEditing(false);void openRecord(item.id);}}><strong>{item.title}</strong><span>{item.question}</span><small>{c.revision} {item.revision} · {clock(item.updated_at)}</small></button>)}
