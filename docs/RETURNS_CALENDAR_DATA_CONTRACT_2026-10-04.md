@@ -33,7 +33,7 @@ No second market-data owner is introduced.
 - The calendar is mounted once in TerminalShell's shared detail rail, so the browser Terminal and
   native `?shell=app&dossier=1` slice use the same component/data contract.
 - Selected-day session detail hydrates lazily through the existing authenticated
-  `/api/intraday` route using `tf=1h&ext=1&overnight=1&date=YYYY-MM-DD`.
+  `/api/intraday` route using `tf=30m&ext=1&overnight=1&date=YYYY-MM-DD`.
 - Massive/store remains the canonical 04:00–20:00 intraday owner. The optional overnight lane is
   delegated over loopback to **Quote Hub**, which already owns all extended/overnight market data,
   Alpaca credentials, source selection, and singleton request capacity.
@@ -46,6 +46,12 @@ No second market-data owner is introduced.
 - Overnight is assembled in the component from the prior calendar day's >=20:00 BOATS bars plus the
   selected date's <04:00 BOATS bars. If Hub credentials/entitlement/data are absent, the API reports
   explicit `overnight_evidence` and the UI renders a dash rather than estimating.
+
+The selected-day study deliberately uses **30-minute** bars. The existing extended-session resampler
+anchors at 04:00 ET; 30 minutes lands exactly on 09:30, 16:00, and 20:00, while a 1-hour bar
+would create a 09:00–10:00 bucket that straddles the premarket/RTH boundary. Publishing session
+H/L from that 1-hour grain would be numerically wrong. Where 30-minute history is unavailable,
+the session stays blank rather than falling back to a boundary-crossing approximation.
 
 This makes the feature useful immediately without increasing Terminal first-paint data cost.
 
