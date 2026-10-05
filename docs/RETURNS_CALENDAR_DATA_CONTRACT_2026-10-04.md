@@ -31,11 +31,14 @@ No second market-data owner is introduced.
 
 - Daily return and daily H/L use the already-loaded `Bar[]` supplied to `StockAnalysis`.
 - Selected-day session detail hydrates lazily through the existing authenticated
-  `/api/intraday` route using `tf=1h&ext=1&date=YYYY-MM-DD`.
+  `/api/intraday` route using `tf=1h&ext=1&overnight=1&date=YYYY-MM-DD`.
 - The route already owns server-side vendor credentials, source selection, stored-history
   stitching, U.S. session filtering, rate limiting, and cache semantics.
-- Overnight is assembled from the prior calendar day's >=20:00 bars plus the selected
-  date's <04:00 bars. If those bars are absent, the UI renders a dash and does not estimate.
+- The optional `overnight=1` lane supplements the canonical Massive/store bars with
+  Alpaca BOATS bars for the ET wall date. It never replaces 04:00–20:00 bars.
+- Overnight is assembled in the component from the prior calendar day's >=20:00 BOATS bars
+  plus the selected date's <04:00 BOATS bars. If BOATS credentials/entitlement/data are absent,
+  the API reports explicit `overnight_evidence` and the UI renders a dash rather than estimating.
 
 This makes the feature useful immediately without increasing Terminal first-paint data cost.
 
@@ -60,9 +63,10 @@ For an exact “highest/lowest printed trade” product, the correct future lane
 
 Alpaca exposes overnight U.S. market data from 20:00–04:00 ET. Its historical bars API
 supports the `boats` feed, and Alpaca documents historical BOATS availability for overnight
-data. The repo already contains an Alpaca overnight websocket path for live extended-hours
-quotes, but historical overnight entitlement/retention has not been promoted to a canonical
-Mastermind historical owner.
+data. The repo already contained an Alpaca overnight websocket path for live extended-hours quotes.
+This implementation adds a bounded historical BOATS adapter inside the existing intraday owner:
+one ET wall date per request, split-adjusted to match the canonical Massive aggregate basis,
+15-minute-delay safe, fail-soft, and cached for 60 seconds.
 
 Relevant docs:
 
@@ -80,22 +84,21 @@ For current Mastermind coverage:
 
 - daily: canonical daily bars;
 - premarket / regular / after-hours: existing Massive/intraday path where available;
-- overnight: first-class schema and UI lane, populated only when historical 20:00–04:00 bars
-  are actually present.
+- overnight: Alpaca BOATS historical bars when `ALPACA_API_KEY` / `ALPACA_API_SECRET`
+  (or APCA-compatible aliases) are configured and entitled; otherwise the lane is explicitly blank.
 
-## Recommended overnight hardening
+## Overnight hardening still required for guaranteed fleet-wide history
 
-The next data-plane upgrade should be made in the existing intraday market-data owner, not in
-the component:
+The selected-day product path is now wired, but coverage is not yet guaranteed across every
+ticker/date. The next data-plane upgrade remains in the existing intraday owner:
 
-1. add a licensed historical overnight source adapter using Alpaca `feed=boats`;
+1. verify production BOATS credentials and entitlement on the deployed Terminal runtime;
 2. persist 1–5 minute overnight bars under the same point-in-time/session conventions as the
-   current intraday store;
-3. expose source and coverage metadata through `/api/intraday`;
-4. backfill the desired universe/date horizon;
-5. add completeness checks around NYSE holidays, half-days, DST transitions, symbol changes,
+   current intraday store so dossier reads do not depend on an on-demand vendor call;
+3. backfill the desired universe/date horizon;
+4. add completeness checks around NYSE holidays, half-days, DST transitions, symbol changes,
    and no-trade intervals;
-6. only then promote overnight from availability-aware to coverage-guaranteed.
+5. only then promote overnight from availability-aware to coverage-guaranteed.
 
 ## UX and performance decisions
 
