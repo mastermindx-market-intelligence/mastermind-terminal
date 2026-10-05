@@ -81,7 +81,7 @@ function responseForSession(
     ? filterBarsToSessionDate(data.bars as Bar6[], date)
     : data.bars;
   let regularSessionWindow: IntradayResponse["regular_session_window"] | undefined;
-  if (date) {
+  if (date && classify(data.t) === "us" && !isMacroSymbol(data.t)) {
     try {
       const window = usRegularSessionWindow(sessionEpoch(date, "12:00"));
       regularSessionWindow = window
