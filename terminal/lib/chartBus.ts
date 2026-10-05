@@ -48,6 +48,17 @@ const STYLE_KINDS = new Set(["solid", "dashed", "dotted"]);
 // ── wire types ────────────────────────────────────────────────────────────────────────────────
 export type WirePt = { t: number; p: number };
 export type WireStyle = { kind?: "solid" | "dashed" | "dotted"; width?: number; color?: string };
+// An equality precondition over EXISTING chart identity. This is neither an auth token
+// nor a second session/revision owner. The paired server must author it, never the model.
+export const CHART_COMMAND_TARGET_SCHEMA = "chart.command_target.v1" as const;
+export type ChartCommandTarget = {
+  schema: typeof CHART_COMMAND_TARGET_SCHEMA;
+  origin_id: string;
+  context_revision: number;
+  pane_id: number;
+  symbol: string;
+  tf: string;
+};
 export type ChartCommandV2 = {
   on: true;
   v: 2;
@@ -57,6 +68,7 @@ export type ChartCommandV2 = {
   id?: string;
   args?: Record<string, unknown>;
   caption?: string;
+  target?: ChartCommandTarget;
 };
 
 // A drawing produced by the AI layer. Extends Drawing with provenance the state mirror + caps read.
@@ -77,7 +89,7 @@ export type Applied =
       draw?: AiObject[]; // draw.* → objects to add
       setSymbol?: string; setTf?: string; setIndicators?: IndicatorSpec[];
       setRange?: { from: number; to: number };
-      clear?: true; undo?: number; scene?: "begin" | "end"; sceneTitle?: string; }
+      clear?: true; clearIds?: string[]; undo?: number; scene?: "begin" | "end"; sceneTitle?: string; }
   | { ok: false; op: string; id: string | null; error: string };
 
 export type IndicatorSpec = { name: string; params?: Record<string, IndicatorParam> };
@@ -121,6 +133,45 @@ function readStyle(v: unknown): WireStyle {
   return out;
 }
 
+// The two additive edit extensions may never degrade to the legacy untargeted path.
+export function requiresExactChartTarget(cmd: { op: string; args?: unknown }): boolean {
+  const args = isObj(cmd.args) ? cmd.args : {};
+  return (cmd.op === "chart.set_indicators" && args.mode === "patch")
+    || (cmd.op === "ai.clear" && Object.prototype.hasOwnProperty.call(args, "ids"));
+}
+
+/** Read a detached, closed target value. No coercion, normalization or inferred defaults. */
+export function readChartCommandTarget(value: unknown): ChartCommandTarget | null {
+  if (!isObj(value) || value.schema !== CHART_COMMAND_TARGET_SCHEMA) return null;
+  const keys = ["schema", "origin_id", "context_revision", "pane_id", "symbol", "tf"];
+  if (Object.keys(value).some(key => !keys.includes(key))) return null;
+  const token = (v: unknown, max: number): v is string => typeof v === "string"
+    && v.length > 0 && v.length <= max && v.trim() === v
+    && ![...v].some(ch => ch.charCodeAt(0) < 32 || ch.charCodeAt(0) === 127);
+  if (!token(value.origin_id, 64) || !token(value.symbol, 64) || !token(value.tf, 32)) return null;
+  if (typeof value.context_revision !== "number" || !Number.isSafeInteger(value.context_revision)
+    || value.context_revision < 0 || typeof value.pane_id !== "number"
+    || !Number.isSafeInteger(value.pane_id) || value.pane_id < 0) return null;
+  return { schema: CHART_COMMAND_TARGET_SCHEMA, origin_id: value.origin_id,
+    context_revision: value.context_revision, pane_id: value.pane_id,
+    symbol: value.symbol, tf: value.tf };
+}
+
+/** Equality only; a mismatch is a refused edit, never a request to switch the chart. */
+export function chartCommandTargetError(
+  target: ChartCommandTarget | undefined,
+  current: ChartCommandTarget | null,
+  required: boolean,
+): string | null {
+  if (!target) return required ? "command_target_required" : null;
+  if (!current) return "command_target_unavailable";
+  if (target.origin_id !== current.origin_id) return "command_target_origin_mismatch";
+  if (target.context_revision !== current.context_revision) return "command_target_revision_mismatch";
+  if (target.pane_id !== current.pane_id) return "command_target_pane_mismatch";
+  if (target.symbol !== current.symbol || target.tf !== current.tf) return "command_target_chart_mismatch";
+  return null;
+}
+
 // ── validation ────────────────────────────────────────────────────────────────────────────────
 // Returns a discriminated result. NEVER throws. `isV2` lets the caller decide whether to fall back to
 // the v1 dispatcher (an envelope without v:2 is not our concern).
@@ -134,24 +185,100 @@ export type ValidateResult =
 
 // Validate the envelope shell (v/on/batch_id/seq/op/id/caption). Arg-level validation happens in
 // translate() per op-family so the reject carries the right id/seq.
+/** Capture plain JSON data without invoking accessors/toJSON or losing a selector.
+ * The same v2 boundary owns this snapshot; it adds no command queue or identity store.
+ * Optional root fields may be omitted by typed local callers, but undefined arguments,
+ * sparse arrays and nonfinite/functional data are not a valid chart edit.
+ */
+function chartCommandSnapshot(input: unknown): Record<string, unknown> {
+  let remaining = 4096;
+  const ancestors = new Set<object>();
+  const optionalRoot = new Set(["id", "caption", "target"]);
+  const copy = (value: unknown, depth: number): unknown => {
+    if (--remaining < 0 || depth > 12) throw new Error("command_payload_limit");
+    if (value === null || typeof value === "string" || typeof value === "boolean") return value;
+    if (typeof value === "number" && Number.isFinite(value)) return value;
+    if (typeof value !== "object" || value === null || ancestors.has(value))
+      throw new Error("not_plain_command_data");
+    const prototype = Object.getPrototypeOf(value);
+    if (!Array.isArray(value) && prototype !== Object.prototype && prototype !== null)
+      throw new Error("not_plain_command_object");
+    if (Object.getOwnPropertySymbols(value).length) throw new Error("symbol_command_property");
+    const descriptors = Object.getOwnPropertyDescriptors(value);
+    ancestors.add(value);
+    try {
+      if (Array.isArray(value)) {
+        const length = descriptors.length?.value;
+        if (!Number.isSafeInteger(length) || length > 4096 || length < 0
+            || Object.keys(descriptors).length !== length + 1)
+          throw new Error("non_dense_command_array");
+        const out: unknown[] = [];
+        for (let i = 0; i < length; i++) {
+          const item = descriptors[String(i)];
+          if (!item || !item.enumerable || !("value" in item))
+            throw new Error("non_data_command_array");
+          out.push(copy(item.value, depth + 1));
+        }
+        return out;
+      }
+      const out: Record<string, unknown> = Object.create(null);
+      for (const [key, property] of Object.entries(descriptors)) {
+        if (!property.enumerable) throw new Error("non_enumerable_command_property");
+        if (!("value" in property) || ["__proto__", "prototype", "constructor"].includes(key))
+          throw new Error("non_data_command_property");
+        if (depth === 0 && property.value === undefined && optionalRoot.has(key)) continue;
+        out[key] = copy(property.value, depth + 1);
+      }
+      return out;
+    } finally { ancestors.delete(value); }
+  };
+  const snapshot = copy(input, 0);
+  if (!isObj(snapshot) || new TextEncoder().encode(JSON.stringify(snapshot)).byteLength > 64 * 1024)
+    throw new Error("command_payload_limit");
+  return snapshot;
+}
+
 export function validateEnvelope(j: unknown): ValidateResult {
   if (!isObj(j)) return { ok: false, op: "", id: null, seq: -1, batch_id: "", error: "not_an_object" };
-  const idOf = (x: Record<string, unknown>): string | null => (isStr(x.id) ? x.id : null);
-  const seqOf = (x: Record<string, unknown>): number => (isFiniteNum(x.seq) ? x.seq : -1);
-  const batchOf = (x: Record<string, unknown>): string => (isStr(x.batch_id) ? x.batch_id : "");
-  const op = isStr(j.op) ? j.op : "";
-  const base = { op, id: idOf(j), seq: seqOf(j), batch_id: batchOf(j) };
-  if (j.v !== 2) return { ok: false, ...base, error: "bad_version" };
-  if (j.on !== true) return { ok: false, ...base, error: "not_on" };
-  if (!isStr(j.batch_id) || !j.batch_id) return { ok: false, ...base, error: "bad_batch_id" };
-  if (!isFiniteNum(j.seq)) return { ok: false, ...base, error: "bad_seq" };
+  // Salvage only inert own identity fields for a refusal. Never evaluate a local getter
+  // just to describe an invalid request; real JSON wire messages have data properties.
+  const own = (key: string): unknown => {
+    try { const d = Object.getOwnPropertyDescriptor(j, key); return d && "value" in d ? d.value : undefined; }
+    catch { return undefined; }
+  };
+  const rawOp = own("op"), rawId = own("id"), rawSeq = own("seq"), rawBatch = own("batch_id");
+  const base = { op: isStr(rawOp) ? rawOp : "", id: isStr(rawId) ? rawId : null,
+    seq: isFiniteNum(rawSeq) ? rawSeq : -1, batch_id: isStr(rawBatch) ? rawBatch : "" };
+  let value: Record<string, unknown>;
+  try { value = chartCommandSnapshot(j); }
+  catch { return { ok: false, ...base, error: "bad_command_payload" }; }
+  const op = isStr(value.op) ? value.op : "";
+  if (value.v !== 2) return { ok: false, ...base, error: "bad_version" };
+  if (value.on !== true) return { ok: false, ...base, error: "not_on" };
+  if (!isStr(value.batch_id) || !value.batch_id || value.batch_id.length > 40
+      || /[\u0000-\u001f\u007f]/.test(value.batch_id))
+    return { ok: false, ...base, error: "bad_batch_id" };
+  if (!isFiniteNum(value.seq) || !Number.isSafeInteger(value.seq) || value.seq < 0)
+    return { ok: false, ...base, error: "bad_seq" };
   if (!OP_SET.has(op)) return { ok: false, ...base, error: "unknown_op" };
-  // id, when present, MUST be an ai_* namespaced string (contract). draw.* ops require an id.
-  if (j.id != null && (!isStr(j.id) || !j.id.startsWith("ai_")))
+  if (Object.hasOwn(value, "args") && !isObj(value.args))
+    return { ok: false, ...base, error: "bad_command_args" };
+  if (value.id != null && (!isStr(value.id) || !value.id.startsWith("ai_")
+      || value.id.length > 64 || /[\u0000-\u001f\u007f]/.test(value.id)))
     return { ok: false, ...base, error: "bad_id_namespace" };
-  if (op.startsWith("draw.") && (!isStr(j.id) || !j.id.startsWith("ai_")))
+  if (op.startsWith("draw.") && (!isStr(value.id) || !value.id.startsWith("ai_")))
     return { ok: false, ...base, error: "draw_requires_ai_id" };
-  return { ok: true, cmd: j as unknown as ChartCommandV2 };
+  const targetRequired = requiresExactChartTarget({ op, args: value.args });
+  if (targetRequired && value.target === undefined)
+    return { ok: false, ...base, error: "command_target_required" };
+  if (value.target !== undefined) {
+    const target = readChartCommandTarget(value.target);
+    if (!target) return { ok: false, ...base, error: "bad_command_target" };
+    value.target = target;
+  }
+  // All accepted v2 commands now refer to this inert snapshot, not a caller-owned object
+  // which could change while the existing queue waits. Target comparison semantics stay intact.
+  return { ok: true, cmd: value as unknown as ChartCommandV2 };
 }
 
 // ── op → Drawing translation ──────────────────────────────────────────────────────────────────
@@ -192,9 +319,11 @@ const dashOf = (s: WireStyle): Drawing["dash"] => (s.kind === "dashed" ? "dashed
 export function translate(
   cmd: ChartCommandV2,
   caps: { tfs: string[]; indicators: string[] },
+  currentIndicators?: readonly IndicatorSpec[],
 ): Applied {
   const a = (isObj(cmd.args) ? cmd.args : {}) as Record<string, unknown>;
   const reject = (error: string): Applied => ({ ok: false, op: cmd.op, id: cmd.id ?? null, error });
+  if (Object.hasOwn(cmd, "args") && !isObj(cmd.args)) return reject("bad_command_args");
   const okDraw = (objs: AiObject[]): Applied => ({ ok: true, op: cmd.op, id: cmd.id ?? null, caption: cleanCaption(cmd.caption), draw: objs });
 
   switch (cmd.op) {
@@ -209,23 +338,54 @@ export function translate(
       return { ok: true, op: cmd.op, id: null, setTf: a.tf };
     }
     case "chart.set_indicators": {
-      if (!Array.isArray(a.indicators)) return reject("bad_indicators");
+      const mode = Object.hasOwn(a, "mode") ? a.mode : "replace";
+      if (mode !== "replace" && mode !== "patch") return reject("bad_indicator_mode");
+      if (!Array.isArray(a.indicators) || (mode === "patch" && a.indicators.length > 64)) return reject("bad_indicators");
+      if (mode === "replace" && a.remove !== undefined) return reject("remove_requires_patch");
+      if (mode === "patch" && !currentIndicators) return reject("indicator_state_unavailable");
       const specs: IndicatorSpec[] = [];
+      const edited = new Set<string>();
       for (const raw of a.indicators) {
         if (!isObj(raw) || !isStr(raw.name)) return reject("bad_indicator_entry");
         if (!caps.indicators.includes(raw.name)) return reject("unknown_indicator");
+        if (mode === "patch" && edited.has(raw.name)) return reject("duplicate_indicator_edit");
+        edited.add(raw.name);
         if (isSuiteKey(raw.name)) {
           const native = readNativeSuiteParams(raw.name, raw.params);
           if (!native.ok) return reject(native.error);
           specs.push({ name: raw.name, params: native.params });
           continue;
         }
-        // The legacy classic path remains numeric-only; native schemas are explicit above.
+        // Preserve legacy replace semantics. Patch edits refuse bad values instead of
+        // claiming a requested change succeeded after silently dropping that value.
+        if (mode === "patch" && raw.params !== undefined && !isObj(raw.params))
+          return reject("bad_indicator_params");
         const params: Record<string, number> = {};
-        if (isObj(raw.params)) for (const [k, v] of Object.entries(raw.params)) if (isFiniteNum(v)) params[k] = v;
+        if (isObj(raw.params)) for (const [k, v] of Object.entries(raw.params)) {
+          if (mode === "patch" && (!isFiniteNum(v) || ["__proto__", "constructor", "prototype"].includes(k)))
+            return reject("bad_indicator_params");
+          if (isFiniteNum(v)) params[k] = v;
+        }
         specs.push({ name: raw.name, params: Object.keys(params).length ? params : undefined });
       }
-      return { ok: true, op: cmd.op, id: null, setIndicators: specs };
+      if (mode === "replace") return { ok: true, op: cmd.op, id: null, setIndicators: specs };
+      const remove = a.remove ?? [];
+      if (!Array.isArray(remove) || remove.length > 64 || remove.some(name => !isStr(name)))
+        return reject("bad_indicator_removal");
+      const known = new Set([...caps.indicators, ...currentIndicators!.map(spec => spec.name)]);
+      if (remove.some(name => !known.has(name as string))) return reject("unknown_indicator");
+      if (remove.some(name => edited.has(name as string))) return reject("conflicting_indicator_edit");
+      if (!specs.length && !remove.length) return reject("empty_indicator_patch");
+      const removed = new Set(remove as string[]);
+      // Existing order and user scripts survive. Only named settings are overlaid.
+      const next = new Map<string, IndicatorSpec>(currentIndicators!.filter(spec => !removed.has(spec.name))
+        .map(spec => [spec.name, { ...spec, params: spec.params ? { ...spec.params } : undefined }]));
+      for (const spec of specs) {
+        const old = next.get(spec.name);
+        const params = { ...(old?.params ?? {}), ...(spec.params ?? {}) };
+        next.set(spec.name, { name: spec.name, params: Object.keys(params).length ? params : undefined });
+      }
+      return { ok: true, op: cmd.op, id: null, setIndicators: [...next.values()] };
     }
     case "chart.set_range": {
       if (!isSaneTime(a.from) || !isSaneTime(a.to) || (a.from as number) >= (a.to as number)) return reject("bad_range");
@@ -349,8 +509,13 @@ export function translate(
       return { ok: true, op: cmd.op, id: null, scene: "end" };
 
     // ── ai.* ────────────────────────────────────────────────────────────────────────────────
-    case "ai.clear":
-      return { ok: true, op: cmd.op, id: null, clear: true };
+    case "ai.clear": {
+      if (!Object.hasOwn(a, "ids")) return { ok: true, op: cmd.op, id: null, clear: true };
+      if (!Array.isArray(a.ids) || !a.ids.length || a.ids.length > AI_OBJECT_CAP
+          || a.ids.some(id => !isStr(id) || !/^ai_[A-Za-z0-9_-]{1,61}$/.test(id)))
+        return reject("bad_ai_clear_ids");
+      return { ok: true, op: cmd.op, id: null, clearIds: [...new Set(a.ids as string[])] };
+    }
     case "ai.undo": {
       const n = isFiniteNum(a.n) && a.n > 0 ? Math.min(Math.floor(a.n), 1000) : 1;
       return { ok: true, op: cmd.op, id: null, undo: n };
@@ -391,6 +556,16 @@ export function applyToStore(
   if (res.scene != null) return same({ kind: "scene", phase: res.scene, title: res.sceneTitle }, ackOk(null));
 
   const cur = store[activeSym] ?? [];
+
+  // Selective removal is atomic: an absent/stale id refuses the complete request.
+  // Human drawings and other symbols never enter this AI-owned collection.
+  if (res.clearIds) {
+    const ids = new Set(res.clearIds);
+    if (res.clearIds.some(id => !cur.some(object => object.id === id)))
+      return { store, ack: ackErr("unknown_ai_object"), effect: null };
+    return { store: { ...store, [activeSym]: cur.filter(object => !ids.has(object.id)) },
+      ack: ackOk(null), effect: null };
+  }
 
   // ai.clear — remove ONLY AI objects (the store holds only AI objects; user drawings live elsewhere).
   if (res.clear) return { store: { ...store, [activeSym]: [] }, ack: ackOk(null), effect: null };
@@ -565,12 +740,16 @@ export function fitMetrics(obj: { kind: string; points: Pt[] }, bars: FitBar[]):
 // for the object that step produced (populated by the dispatch job, which owns the bar series).
 // `anchor` (epoch-seconds t + price p of the object's FIRST point) rides the step so W3's ghost cursor
 // can glide to the exact pane pixel via the DrawLayer transform — the step is otherwise geometry-free.
-export type QueueStep = { op: ChartOp; id: string | null; caption?: string; ok: boolean; fit?: Fit; anchor?: { t: number; p: number } };
+// "unknown" describes a rejected local input in the UI only; it is NOT an accepted wire op.
+export type QueueStep = { op: ChartOp | "unknown"; id: string | null; caption?: string; ok: boolean; error?: string; fit?: Fit; anchor?: { t: number; p: number } };
 export type StepListener = (step: QueueStep) => void;
 export type LifecycleListener = () => void;
 
+// Batch identity is supplied by the existing dispatcher, not minted by the queue.
+type PendingChartCommand = { run: () => QueueStep; cancel?: () => QueueStep; batchId?: string };
+
 export class CommandQueue {
-  private q: Array<() => QueueStep> = [];
+  private q: PendingChartCommand[] = [];
   private listeners = new Set<StepListener>();
   private startListeners = new Set<LifecycleListener>();
   private drainListeners = new Set<LifecycleListener>();
@@ -602,6 +781,16 @@ export class CommandQueue {
     return () => this.drainListeners.delete(fn);
   }
 
+  /** Surface a pre-queue refusal through the existing step/lifecycle listeners.
+   * No job is enqueued, no chart effect is executed and no retry is introduced.
+   */
+  reportRejection(step: { op: string; id: string | null; error?: string }) {
+    if (!this.active) { this.active = true; this.emitStart(); }
+    this.emit({ op: OP_SET.has(step.op) ? step.op as ChartOp : "unknown",
+      id: step.id, ok: false, error: step.error });
+    this.settleDrain();
+  }
+
   private emit(step: QueueStep) {
     for (const fn of this.listeners) { try { fn(step); } catch { /* listener errors never break the queue */ } }
   }
@@ -615,20 +804,24 @@ export class CommandQueue {
   // Enqueue a unit of work. `run` performs the side-effect and returns the step descriptor to emit.
   // The batch-start edge is the transition into an active session — detected BEFORE the job runs so
   // W3 can arm the overlay ahead of the first stroke.
-  enqueue(run: () => QueueStep) {
+  enqueue(run: () => QueueStep, cancel?: () => QueueStep, batchId?: string) {
     if (!this.active) { this.active = true; this.emitStart(); }
-    this.q.push(run);
+    this.q.push({ run, cancel, batchId });
     this.pump();
   }
 
   private pump() {
     if (this.running || this.timer) return;
+    if (!this.q.length) { this.settleDrain(); return; }
     const step = () => {
       this.timer = null;
       const job = this.q.shift();
       if (!job) { this.settleDrain(); return; }
-      const desc = job();
-      this.emit(desc);
+      // Listener callbacks may enqueue or cancel pending work. Keep this operation
+      // non-reentrant until its result has reached the existing step listeners.
+      this.running = true;
+      try { this.emit(job.run()); }
+      finally { this.running = false; }
       if (this.q.length) {
         if (this.delayMs > 0) this.timer = setTimeout(step, this.delayMs);
         else step();
@@ -642,7 +835,7 @@ export class CommandQueue {
 
   // Fire the drain edge exactly once per active session, only when genuinely empty.
   private settleDrain() {
-    if (this.active && this.q.length === 0 && !this.timer) {
+    if (this.active && this.q.length === 0 && !this.timer && !this.running) {
       this.active = false;
       this.emitDrain();
     }
@@ -650,15 +843,67 @@ export class CommandQueue {
 
   // Drain everything synchronously right now, ignoring the pace delay (the W3 "skip" escape).
   applyInstantly() {
+    if (this.running) return;
     if (this.timer) { clearTimeout(this.timer); this.timer = null; }
     this.running = true;
     try {
-      let job: (() => QueueStep) | undefined;
-      while ((job = this.q.shift())) this.emit(job());
+      let job: PendingChartCommand | undefined;
+      while ((job = this.q.shift())) this.emit(job.run());
     } finally {
       this.running = false;
     }
     this.settleDrain();
+  }
+
+  /** Cancel only work still pending at this call. Never invoke its run callback.
+   * Accepted changes are not undone; later streamed commands are not a cancelled reply.
+   * The existing host supplies one negative ACK callback per real chart command.
+   */
+  cancelPending(): number {
+    return this.cancelWhere(() => true);
+  }
+
+  /** A stopped reply cancels only its already-received batches. Malformed or
+   * empty scope is a no-op, never permission to clear another reply's work. */
+  cancelBatches(batchIds: readonly string[]): number {
+    if (!Array.isArray(batchIds) || !batchIds.length || batchIds.length > 64
+        || batchIds.some(id => typeof id !== "string" || !id.length || id.length > 40
+          || /[\u0000-\u001f\u007f]/.test(id))) return 0;
+    const wanted = new Set(batchIds);
+    return this.cancelWhere(job => job.batchId !== undefined && wanted.has(job.batchId));
+  }
+
+  private cancelWhere(matches: (job: PendingChartCommand) => boolean): number {
+    const pending: PendingChartCommand[] = [];
+    const kept: PendingChartCommand[] = [];
+    for (const job of this.q) (matches(job) ? pending : kept).push(job);
+    if (!pending.length) return 0;
+    this.q = kept;
+    // Preserve the existing due time of unrelated work. Cancelling one reply
+    // must not restart another reply's animation delay or change FIFO order.
+    if (!kept.length && this.timer) { clearTimeout(this.timer); this.timer = null; }
+    const wasRunning = this.running;
+    this.running = true;
+    try {
+      for (const job of pending) {
+        let result: QueueStep;
+        try {
+          result = job.cancel?.() ?? {
+            op: "unknown", id: null, ok: false, error: "command_cancelled_by_user",
+          };
+        } catch {
+          // The pending run was removed even if its ACK callback failed. Do not run
+          // it as a recovery or invent a successfully delivered cancellation receipt.
+          result = { op: "unknown", id: null, ok: false, error: "command_cancel_receipt_failed" };
+        }
+        this.emit(result);
+      }
+    } finally { this.running = wasRunning; }
+    if (!this.running) {
+      if (this.q.length) this.pump();
+      else this.settleDrain();
+    }
+    return pending.length;
   }
 
   get size() { return this.q.length; }

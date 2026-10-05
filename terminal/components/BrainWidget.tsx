@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useRef } from "react";
-import { handoffMastermindBrainSymbol, type MastermindBrainHost } from "@/lib/mastermindBrain";
+import { handoffMastermindBrainSymbol, type MastermindBrainHost,
+  type ChartStopRequest, type ChartStopResult } from "@/lib/mastermindBrain";
 import type { AiContextClientV1 } from "@/lib/aiContext";
 
 // Mounts the production Mastermind Brain widget (mm_brain.js) into the Terminal, replacing
@@ -17,6 +18,7 @@ type Props = {
   active: string;
   onCommand: (j: any) => void;
   onAnnotate: (j: any) => void;
+  onChartStop?: (request: ChartStopRequest) => ChartStopResult | undefined;
   onAuthRequired?: () => void;
   // DeepVue W1-C: reads the Terminal's current ai_context_client.v1 block at send time.
   // Optional — the deployed production mm_brain.js may not read this key yet (Macro's
@@ -31,6 +33,7 @@ export default function BrainWidget({
   active,
   onCommand,
   onAnnotate,
+  onChartStop,
   onAuthRequired,
   getAiContext,
 }: Props) {
@@ -39,6 +42,7 @@ export default function BrainWidget({
   const symRef = useRef(active);
   const onCommandRef = useRef(onCommand);
   const onAnnotateRef = useRef(onAnnotate);
+  const onChartStopRef = useRef(onChartStop);
   const onAuthRequiredRef = useRef(onAuthRequired);
   const getAiContextRef = useRef(getAiContext);
 
@@ -197,6 +201,23 @@ export default function BrainWidget({
     // from two sites (TerminalShell on /terminal, AppShell on /analysis) that never render at
     // the same time; tearing the script down would orphan window.MMBrain.
   }, []);
+
+  // Bind AFTER initial CFG installation, so the first mount has the same owned
+  // cleanup as a remount. A retained callback cannot call an unmounted host.
+  useEffect(() => {
+    onChartStopRef.current = onChartStop;
+    if (typeof window === "undefined") return;
+    const w = window as unknown as MastermindBrainHost;
+    if (!w.MM_BRAIN_CFG) return;
+    let attached = true;
+    const fn = (request: ChartStopRequest) => attached
+      ? onChartStopRef.current?.(request) : undefined;
+    w.MM_BRAIN_CFG.onChartStop = fn;
+    return () => {
+      attached = false;
+      if (w.MM_BRAIN_CFG?.onChartStop === fn) w.MM_BRAIN_CFG.onChartStop = undefined;
+    };
+  }, [onChartStop]);
 
   return null;
 }

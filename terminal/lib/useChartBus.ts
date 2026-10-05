@@ -14,11 +14,27 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import type { Drawing } from "@/lib/drawings";
 import { timeToMs } from "@/lib/timeWindow";
+import { prepareChartStatePayload } from "@/lib/chartStatePayload";
+import { buildChartPriceWindow, CHART_PRICE_WINDOW_SCHEMA, type ChartPriceWindowSource } from "@/lib/chartPriceWindow";
+import { CHART_PRESENTATION_SCHEMA } from "@/lib/chartPresentation";
 import {
   CommandQueue, applyToStore, isV2Envelope, translate, validateEnvelope,
   fitMetrics, type Ack, type AiObject, type Fit, type FitBar, type IndicatorSpec,
-  type QueueStep, type StoreEffect,
+  type QueueStep, type StoreEffect, type ChartCommandTarget,
+  CHART_COMMAND_TARGET_SCHEMA, requiresExactChartTarget, readChartCommandTarget, chartCommandTargetError,
 } from "@/lib/chartBus";
+
+export const CHART_PANE_CONTEXT_SCHEMA = "chart.pane_contexts.v1" as const;
+export const CHART_PANE_CONTEXT_MAX = 4;
+
+export type ChartPaneContextSnapshot = {
+  pane_id: number;
+  symbol: string;
+  tf: string;
+  price_window_source: ChartPriceWindowSource | null;
+  presentation: unknown;
+  native_observations: unknown;
+};
 
 // What TerminalShell must supply so the bus can act on the chart + build a complete state snapshot.
 export type ChartBusHost = {
@@ -32,16 +48,23 @@ export type ChartBusHost = {
   // Existing DeepVue ai-context identity. Read at POST time so revision stays in lockstep
   // with the same provider the Brain widget sends on the chat request.
   getContextIdentity: () => { origin_id: string; context_revision: number };
+  getReadoutSnapshot?: () => unknown; // existing Data Window projection, never new calculation
+  getRenderedPriceWindowSource?: () => ChartPriceWindowSource | null; // accepted renderer bars, replay-safe
+  getPresentationSnapshot?: () => unknown; // committed chart presentation, read-only
+  getNativeObservationSnapshot?: () => unknown; // active pane's exact renderer-bundle projection
+  getPaneContextSnapshots?: () => readonly ChartPaneContextSnapshot[]; // mounted panes, read-only evidence
   // chart mutators (already exist in TerminalShell):
   setSymbol: (s: string) => void;
   setTf: (tf: string) => void;
   setIndicators: (specs: IndicatorSpec[]) => void;
-  setRange: (from: number, to: number) => void;
+  setRange: (from: number, to: number) => void | boolean;
 };
 
 export type ChartBus = {
   dispatchV2: (cmd: unknown) => void;
-  /** PaneSync calendar window in epoch ms; only active-pane changes trigger a mirror. */
+  noteReadoutChange: () => void; // reuse ordinary state coalescing; ACK priority remains higher
+  noteNativeObservationChange: () => void;
+  /** PaneSync calendar window in epoch ms; mounted panes share the existing mirror. */
   noteViewport: (paneId: number, windowMs: { from: number; to: number } | null) => void;
   aiDrawingsFor: (symbol: string) => Drawing[];
   legend: { count: number; hidden: boolean; toggleHidden: () => void; clear: () => void };
@@ -52,6 +75,7 @@ export type ChartBus = {
 const STATE_DEBOUNCE_MS = 2000;
 const VIEWPORT_DEBOUNCE_MS = 250;
 const ACK_DEBOUNCE_MS = 100;
+const STATE_POST_TIMEOUT_MS = 4000;
 
 export function useChartBus(host: ChartBusHost): ChartBus {
   // per-symbol AI objects. Keyed by symbol; NEVER reset on symbol switch (that's the whole point).
@@ -62,7 +86,20 @@ export function useChartBus(host: ChartBusHost): ChartBus {
   // symbol/timeframe during the render→passive-effect gap. Layout effects refresh this before any
   // layout-phase command consumer can fire, without exposing an uncommitted concurrent render.
   const hostRef = useRef(host);
-  useLayoutEffect(() => { hostRef.current = host; }, [host]);
+  const mountedRef = useRef(true);
+  // A context-changing setter schedules React work. Targeted edits must not slip
+  // through in that same tick against the still-committed OLD chart.
+  const pendingContextRef = useRef<{ symbol: string; tf: string } | null>(null);
+  useLayoutEffect(() => {
+    hostRef.current = host;
+    const pending = pendingContextRef.current;
+    if (pending && (host.activeSymbol !== pending.symbol || host.currentTf !== pending.tf))
+      pendingContextRef.current = null;
+  }, [host]);
+  useLayoutEffect(() => {
+    mountedRef.current = true;
+    return () => { mountedRef.current = false; };
+  }, []);
   // aiStoreRef is the SYNCHRONOUS working copy of the AI store — updated immediately in dispatch so a
   // burst of queued draws in one tick each see the prior draw's result (React state timing would lag).
   // setAiStore mirrors it for rendering. The legend/aiDrawingsFor read the React state (aiStore).
@@ -75,7 +112,15 @@ export function useChartBus(host: ChartBusHost): ChartBus {
   // ── debounced state mirror POST ────────────────────────────────────────────────────────────
   const stateTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const stateTimerDelay = useRef<number | null>(null);
+  // Request state for this existing mirror only, not another queue or retry owner.
+  const stateRequestRef = useRef({ inFlight: false, pending: false });
+  const scheduleStateRef = useRef<((delayMs: number) => void) | null>(null);
   const postState = useCallback(() => {
+    if (!mountedRef.current) return;
+    if (stateRequestRef.current.inFlight) {
+      stateRequestRef.current.pending = true;
+      return;
+    }
     const h = hostRef.current;
     const sym = h.activeSymbol;
     const aiObjs = aiStoreRef.current[sym] ?? [];
@@ -91,19 +136,18 @@ export function useChartBus(host: ChartBusHost): ChartBus {
       ...h.userDrawings.map(userDrawingState),
     ];
     const acks = acksRef.current;
-    acksRef.current = [];
-    const identity = h.getContextIdentity();
+    // Do not consume receipts before identity lookup and payload preparation succeed.
+    let identity: ReturnType<ChartBusHost["getContextIdentity"]>;
+    try { identity = h.getContextIdentity(); } catch { return; }
     if (
       !identity
       || typeof identity.origin_id !== "string"
       || !identity.origin_id
       || identity.origin_id.length > 64
-      || !Number.isInteger(identity.context_revision)
+      || !Number.isSafeInteger(identity.context_revision)
       || identity.context_revision < 0
     ) {
-      // Exact origin is part of chart-state identity now. Do not silently fall back to
-      // the legacy shared key when the mounted Terminal provider is malformed.
-      acksRef.current = [...acks, ...acksRef.current];
+      // Keep every ACK in the incumbent accumulator. No shared-key fallback.
       return;
     }
     const dataRange = seriesSpan(bars);
@@ -111,6 +155,95 @@ export function useChartBus(host: ChartBusHost): ChartBus {
     const visibleRange = viewportMs
       ? { from: viewportMs.from / 1000, to: viewportMs.to / 1000 }
       : null;
+    let dataReadout: unknown = null;
+    try { dataReadout = h.getReadoutSnapshot?.() ?? null; }
+    catch { /* absent/failed readout is not an empty market conclusion */ }
+    let priceWindow: unknown = null;
+    try {
+      const priceSource = h.getRenderedPriceWindowSource?.() ?? null;
+      if (priceSource) priceWindow = buildChartPriceWindow(
+        priceSource, sym, h.currentTf, visibleRange,
+      );
+    } catch { /* absent/failed price window is missing evidence, never a market conclusion */ }
+    let presentation: unknown = null;
+    try { presentation = h.getPresentationSnapshot?.() ?? null; }
+    catch { /* absent/failed presentation is missing view evidence, never a chart conclusion */ }
+    let nativeObservations: unknown = null;
+    try { nativeObservations = h.getNativeObservationSnapshot?.() ?? null; }
+    catch { /* absent/failed native evidence is not an empty/no-setup conclusion */ }
+
+    // Read-only multi-pane evidence rides the SAME state mirror. It never changes
+    // the active pane or grants mutation authority to an inactive pane.
+    let paneContexts: unknown = null;
+    try {
+      const rows = h.getPaneContextSnapshots?.() ?? [];
+      if (rows.length > CHART_PANE_CONTEXT_MAX) throw new Error("pane_context_limit");
+      const seen = new Set<number>();
+      const panes: Array<Record<string, unknown>> = [];
+      for (const row of rows) {
+        if (
+          !row
+          || !Number.isSafeInteger(row.pane_id)
+          || row.pane_id < 0
+          || row.pane_id >= CHART_PANE_CONTEXT_MAX
+          || seen.has(row.pane_id)
+          || typeof row.symbol !== "string"
+          || !row.symbol
+          || row.symbol.length > 64
+          || typeof row.tf !== "string"
+          || !row.tf
+          || row.tf.length > 32
+        ) throw new Error("pane_context_identity");
+        seen.add(row.pane_id);
+        const windowMs = viewportByPaneRef.current.get(row.pane_id) ?? null;
+        const paneVisibleRange = windowMs
+          ? { from: windowMs.from / 1000, to: windowMs.to / 1000 }
+          : null;
+        const activeRow = row.pane_id === h.activePaneId;
+        const paneRow: Record<string, unknown> = {
+          pane_id: row.pane_id,
+          symbol: row.symbol,
+          tf: row.tf,
+          visible_range: paneVisibleRange,
+        };
+        if (activeRow) {
+          // Root active packets are already carried and separately qualified. References
+          // prevent multi-pane context from paying their JSON size twice.
+          paneRow.price_window_ref = "session.price_window";
+          paneRow.presentation_ref = "session.presentation";
+          paneRow.native_observations_ref = "session.native_observations";
+        } else {
+          paneRow.price_window = row.price_window_source
+            ? buildChartPriceWindow(row.price_window_source, row.symbol, row.tf, paneVisibleRange)
+            : { schema: CHART_PRICE_WINDOW_SCHEMA, status: "unavailable",
+                reason: "price_window_source_not_current" };
+          paneRow.presentation = row.presentation ?? {
+            schema: CHART_PRESENTATION_SCHEMA, status: "unavailable",
+            reason: "presentation_source_not_current",
+          };
+          paneRow.native_observations = row.native_observations;
+        }
+        panes.push(paneRow);
+      }
+      if (panes.length > 1) {
+        paneContexts = {
+          schema: CHART_PANE_CONTEXT_SCHEMA,
+          status: "observed",
+          active_pane_id: h.activePaneId,
+          pane_count: panes.length,
+          control_authority: "active_pane_only",
+          panes,
+        };
+      }
+    } catch {
+      // Cross-pane evidence is optional, but absence must be explicit rather than
+      // silently looking like a complete smaller layout.
+      paneContexts = {
+        schema: CHART_PANE_CONTEXT_SCHEMA,
+        status: "unavailable",
+        reason: "pane_context_snapshot_invalid",
+      };
+    }
     const body = {
       client: "terminal",
       origin_id: identity.origin_id,
@@ -124,32 +257,49 @@ export function useChartBus(host: ChartBusHost): ChartBus {
         visible_range: visibleRange,
         // Loaded-series availability is useful context but is not the viewport.
         data_range: dataRange,
+        data_readout: dataReadout,
+        price_window: priceWindow,
+        presentation,
+        native_observations: nativeObservations,
+        pane_contexts: paneContexts,
         capabilities: h.capabilities,
         drawings,
       },
       acks,
     };
-    // Fire-and-forget through the session-verified proxy. The session snapshot itself is best-effort,
-    // but command acknowledgements are not: the gateway needs them to close/reject command steps.
-    // We remove this batch optimistically above, then restore it ahead of any newer acks when the
-    // request fails or returns non-2xx so the next scheduled state write retries it.
-    let restored = false;
-    const restoreAcks = () => {
-      if (restored || !acks.length) return;
-      restored = true;
-      acksRef.current = [...acks, ...acksRef.current];
+    const prepared = prepareChartStatePayload(body);
+    if (!prepared.ok) return; // essential identity/receipts stay intact, not truncated to fit
+    acksRef.current = prepared.remainingAcks;
+    stateRequestRef.current = { inFlight: true, pending: false };
+    let finished = false;
+    let deadline: ReturnType<typeof setTimeout> | null = null;
+    const finish = (delivered: boolean) => {
+      if (finished) return;
+      finished = true;
+      if (deadline) clearTimeout(deadline);
+      if (!delivered && prepared.sentAcks.length)
+        acksRef.current = [...prepared.sentAcks, ...acksRef.current];
+      const pending = stateRequestRef.current.pending;
+      stateRequestRef.current = { inFlight: false, pending: false };
+      // Drain remaining receipt batches after success. After a failure, only an
+      // actual new coalesced update justifies another attempt; no periodic retry loop.
+      if (mountedRef.current && (pending || (delivered && acksRef.current.length > 0)))
+        scheduleStateRef.current?.(acksRef.current.length ? ACK_DEBOUNCE_MS : VIEWPORT_DEBOUNCE_MS);
     };
     try {
+      const controller = new AbortController();
+      // A stalled telemetry request must not hold the sole mirror forever. A failed
+      // or aborted POST is not a delivered ACK; preserve its original batch identities.
+      deadline = setTimeout(() => { controller.abort(); finish(false); }, STATE_POST_TIMEOUT_MS);
       void fetch("/api/brain/chart/state", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         credentials: "include",
-        body: JSON.stringify(body),
-      }).then((response) => {
-        if (!response.ok) restoreAcks();
-      }, restoreAcks);
+        signal: controller.signal,
+        body: prepared.text,
+      }).then((response) => finish(response.ok), () => finish(false));
     } catch {
-      restoreAcks();
+      finish(false);
     }
   }, []);
 
@@ -170,6 +320,13 @@ export function useChartBus(host: ChartBusHost): ChartBus {
       postState();
     }, delayMs);
   }, [postState]);
+  useLayoutEffect(() => {
+    scheduleStateRef.current = scheduleState;
+    return () => { scheduleStateRef.current = null; };
+  }, [scheduleState]);
+
+  const noteReadoutChange = useCallback(() => scheduleState(), [scheduleState]);
+  const noteNativeObservationChange = useCallback(() => scheduleState(VIEWPORT_DEBOUNCE_MS), [scheduleState]);
 
   // Context targeting (symbol/tf/active pane) mirrors promptly, including the initial mount.
   const contextSig = `${host.activeSymbol}|${host.currentTf}|${host.activePaneId}`;
@@ -204,7 +361,15 @@ export function useChartBus(host: ChartBusHost): ChartBus {
     ) return;
     if (next) viewportByPaneRef.current.set(paneId, next);
     else viewportByPaneRef.current.delete(paneId);
-    if (paneId === hostRef.current.activePaneId) scheduleState(VIEWPORT_DEBOUNCE_MS);
+    // Up to four MOUNTED panes share one bounded mirror. Ignore stray/stale pane ids:
+    // they may update this local cache but cannot create network churn or evidence.
+    const h = hostRef.current;
+    let mounted = paneId === h.activePaneId;
+    if (!mounted) {
+      try { mounted = (h.getPaneContextSnapshots?.() ?? []).some((row) => row.pane_id === paneId); }
+      catch { mounted = false; }
+    }
+    if (mounted) scheduleState(VIEWPORT_DEBOUNCE_MS);
   }, [scheduleState]);
 
   // ── ack helper ───────────────────────────────────────────────────────────────────────────
@@ -215,29 +380,89 @@ export function useChartBus(host: ChartBusHost): ChartBus {
 
   // ── the v2 dispatcher ──────────────────────────────────────────────────────────────────────
   const dispatchV2 = useCallback((j: unknown) => {
+    if (!mountedRef.current) return; // an unmounted chart has no execution authority
     if (!isV2Envelope(j)) return; // not a v2 envelope — caller handles v1 fallback
     const v = validateEnvelope(j);
-    if (!v.ok) { pushAck({ batch_id: v.batch_id, seq: v.seq, id: v.id, ok: false, error: v.error }); return; }
+    if (!v.ok) {
+      pushAck({ batch_id: v.batch_id, seq: v.seq, id: v.id, ok: false, error: v.error });
+      queue.reportRejection({ op: v.op, id: v.id, error: v.error });
+      return;
+    }
     const cmd = v.cmd;
+    const targetRequired = requiresExactChartTarget(cmd);
+    const checkTarget = (): string | null => {
+      if (!cmd.target && !targetRequired) return null; // retained legacy behavior
+      if (pendingContextRef.current) return "command_target_transition_pending";
+      return chartCommandTargetError(cmd.target, currentCommandTarget(hostRef.current), targetRequired);
+    };
+    const rejectTarget = (error: string): QueueStep => {
+      pushAck({ batch_id: cmd.batch_id, seq: cmd.seq, id: cmd.id ?? null, ok: false, error });
+      return { op: cmd.op, id: cmd.id ?? null, ok: false, error };
+    };
+    const targetError = checkTarget();
+    if (targetError) { queue.reportRejection(rejectTarget(targetError)); return; }
     const h = hostRef.current;
-    const res = translate(cmd, h.capabilities);
-    if (!res.ok) { pushAck({ batch_id: cmd.batch_id, seq: cmd.seq, id: cmd.id ?? null, ok: false, error: res.error }); return; }
+    const res = translate(cmd, h.capabilities, h.sessionIndicators);
+    if (!res.ok) {
+      pushAck({ batch_id: cmd.batch_id, seq: cmd.seq, id: cmd.id ?? null, ok: false, error: res.error });
+      queue.reportRejection({ op: cmd.op, id: cmd.id ?? null, error: res.error });
+      return;
+    }
 
     // Enqueue the side-effect. The queue applies sequentially (instant by default; W3 paces it later).
     queue.enqueue((): QueueStep => {
+      // No auto-retargeting, requeue or replay. A valid receipt-time target may have
+      // changed while this command waited; refuse BEFORE any store or host mutation.
+      if (!mountedRef.current) return { op: cmd.op, id: cmd.id ?? null, ok: false, error: "command_receiver_unmounted" };
+      const targetError = checkTarget();
+      if (targetError) return rejectTarget(targetError);
       // Run the PURE reducer against the synchronous working store, commit the result to both the ref
       // (so the next queued draw sees it) and React state (for render), then apply the chart.* effect.
-      const r = applyToStore(aiStoreRef.current, hostRef.current.activeSymbol, cmd, res);
+      // Rebase a patch on the committed host at EXECUTION time, not on a snapshot
+      // taken while a paced queue (or a human edit) was still ahead of this command.
+      const applied = cmd.op === "chart.set_indicators" && cmd.args?.mode === "patch"
+        ? translate(cmd, hostRef.current.capabilities, hostRef.current.sessionIndicators)
+        : res;
+      const r = applyToStore(aiStoreRef.current, hostRef.current.activeSymbol, cmd, applied);
       aiStoreRef.current = r.store;
       setAiStore(r.store);
       const e: StoreEffect = r.effect;
       if (e) {
         const h = hostRef.current;
         switch (e.kind) {
-          case "setSymbol": h.setSymbol(e.symbol); break;
-          case "setTf": h.setTf(e.tf); break;
-          case "setIndicators": h.setIndicators(e.indicators); break;
-          case "setRange": h.setRange(e.from, e.to); break;
+          case "setSymbol":
+            if (e.symbol.trim().toUpperCase() !== h.activeSymbol.trim().toUpperCase())
+              pendingContextRef.current = { symbol: h.activeSymbol, tf: h.currentTf };
+            try { h.setSymbol(e.symbol); }
+            catch {
+              // A throwing setter may have started a transition. Keep the guard closed
+              // until a committed context change; an error is not proof of no effect.
+              return rejectTarget("chart_context_application_failed");
+            }
+            break;
+          case "setTf":
+            if (e.tf !== h.currentTf)
+              pendingContextRef.current = { symbol: h.activeSymbol, tf: h.currentTf };
+            try { h.setTf(e.tf); }
+            catch { return rejectTarget("chart_context_application_failed"); }
+            break;
+          case "setIndicators":
+            try {
+              h.setIndicators(e.indicators);
+              // The next same-tick queued patch sees this accepted configuration even
+              // before React commits the corresponding host render. No second store.
+              hostRef.current = { ...h, sessionIndicators: e.indicators };
+            } catch {
+              pushAck({ ...r.ack, ok: false, error: "indicator_application_failed" });
+              return { op: cmd.op, id: null, ok: false, error: "indicator_application_failed" };
+            }
+            break;
+          case "setRange":
+            try {
+              if (h.setRange(e.from, e.to) === false)
+                return rejectTarget("chart_range_not_representable");
+            } catch { return rejectTarget("chart_range_application_failed"); }
+            break;
           case "scene": break; // markers only — inert now (W3 consumes)
         }
       }
@@ -255,8 +480,15 @@ export function useChartBus(host: ChartBusHost): ChartBus {
         const p0 = obj.points[0];
         if (p0) { const tSec = Number(p0.t); if (Number.isFinite(tSec)) anchor = { t: tSec, p: p0.p }; }
       }
-      return { op: cmd.op, id: cmd.id ?? null, caption: res.ok ? res.caption : undefined, ok: r.ack.ok, fit, anchor };
-    });
+      return { op: cmd.op, id: cmd.id ?? null, caption: res.ok ? res.caption : undefined, ok: r.ack.ok, error: r.ack.error, fit, anchor };
+    }, () => {
+      // User cancellation consumes this pending command without calling a chart setter
+      // or the AI drawing reducer. Reuse the same exact batch/seq ACK transport.
+      if (!mountedRef.current) return {
+        op: cmd.op, id: cmd.id ?? null, ok: false, error: "command_receiver_unmounted",
+      };
+      return rejectTarget("command_cancelled_by_user");
+    }, cmd.batch_id);
   }, [queue, pushAck]);
 
   // ── AI drawings for a symbol (merged into ChartPane), respecting the eye-toggle ──────────────
@@ -274,7 +506,18 @@ export function useChartBus(host: ChartBusHost): ChartBus {
     clear: () => { const next = { ...aiStoreRef.current, [activeSym]: [] }; aiStoreRef.current = next; setAiStore(next); scheduleState(); },
   }), [aiStore, hiddenSyms, activeSym, scheduleState]);
 
-  return { dispatchV2, noteViewport, aiDrawingsFor, legend, queue };
+  return { dispatchV2, noteViewport, noteReadoutChange, noteNativeObservationChange, aiDrawingsFor, legend, queue };
+}
+
+// Read only the incumbent provider/host. A failed identity read cannot silently fall
+// back to legacy targeting, and no new origin, revision counter or pane registry is created.
+function currentCommandTarget(host: ChartBusHost): ChartCommandTarget | null {
+  try {
+    const identity = host.getContextIdentity();
+    return readChartCommandTarget({ schema: CHART_COMMAND_TARGET_SCHEMA,
+      origin_id: identity.origin_id, context_revision: identity.context_revision,
+      pane_id: host.activePaneId, symbol: host.activeSymbol, tf: host.currentTf });
+  } catch { return null; }
 }
 
 // ── shape helpers for the state mirror ──────────────────────────────────────────────────────────
