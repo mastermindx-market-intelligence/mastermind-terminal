@@ -6,6 +6,7 @@ import { buildReturnsCalendarSessions, previousCalendarDate, RETURNS_CALENDAR_SE
 
 type Pick = (en?: string | null, cn?: string | null) => string;
 type Bar6 = [number, number, number, number, number, number];
+type CoverageStatus = "available" | "empty" | "not_configured" | "unavailable" | null;
 
 type DayDatum = {
   date: string;
@@ -84,6 +85,8 @@ export default function ReturnsCalendar({
     key: string;
     sessions: SessionRange[] | null;
     error: boolean;
+    overnightStatus: CoverageStatus;
+    studyStatus: CoverageStatus;
   } | null>(null);
 
   const byDate = useMemo(() => new Map(days.map((d) => [d.date, d])), [days]);
@@ -113,10 +116,41 @@ export default function ReturnsCalendar({
         const current = Array.isArray(cj?.bars) ? cj.bars as Bar6[] : [];
         const previous = Array.isArray(pj?.bars) ? pj.bars as Bar6[] : [];
         if (!cancelled) {
-          setSessionLoad({ key: requestKey, sessions: buildReturnsCalendarSessions(current, previous), error: false });
+          const statuses = [pj?.overnight_evidence?.status, cj?.overnight_evidence?.status]
+            .filter((value): value is Exclude<CoverageStatus, null> =>
+              value === "available" || value === "empty" || value === "not_configured" || value === "unavailable");
+          const overnightStatus: CoverageStatus = statuses.includes("available")
+            ? "available"
+            : statuses.includes("not_configured")
+              ? "not_configured"
+              : statuses.includes("unavailable")
+                ? "unavailable"
+                : statuses.includes("empty")
+                  ? "empty"
+                  : null;
+          const studyRaw = cj?.session_study_evidence?.status;
+          const studyStatus: CoverageStatus =
+            studyRaw === "available" || studyRaw === "empty" || studyRaw === "unavailable"
+              ? studyRaw
+              : null;
+          setSessionLoad({
+            key: requestKey,
+            sessions: buildReturnsCalendarSessions(current, previous),
+            error: false,
+            overnightStatus,
+            studyStatus,
+          });
         }
       } catch {
-        if (!cancelled) setSessionLoad({ key: requestKey, sessions: null, error: true });
+        if (!cancelled) {
+          setSessionLoad({
+            key: requestKey,
+            sessions: null,
+            error: true,
+            overnightStatus: null,
+            studyStatus: null,
+          });
+        }
       }
     })();
     return () => { cancelled = true; };
@@ -145,7 +179,25 @@ export default function ReturnsCalendar({
   const selected = selectedDate ? byDate.get(selectedDate) || null : null;
   const canPrev = !!minMonth && shiftMonth(month, -1) >= minMonth;
   const canNext = !!maxMonth && shiftMonth(month, 1) <= maxMonth;
-  const monthLabel = new Intl.DateTimeFormat("en-US", { month: "long", year: "numeric", timeZone: "UTC" }).format(monthStart);
+  const monthLabel = pick(
+    new Intl.DateTimeFormat("en-US", { month: "long", year: "numeric", timeZone: "UTC" }).format(monthStart),
+    new Intl.DateTimeFormat("zh-CN", { month: "long", year: "numeric", timeZone: "UTC" }).format(monthStart),
+  );
+  const overnightMissing = sessions?.find((session) => session.key === "overnight")?.barCount === 0;
+  const detailNote =
+    detailState === "loading"
+      ? pick("Loading session ranges…", "正在加载分时区间…")
+      : detailState === "error"
+        ? pick("Session history is temporarily unavailable. No ranges were estimated.", "分时历史数据暂时不可用；未进行区间估算。")
+        : !isUsEquity(symbol)
+          ? pick("Extended-session breakdown is currently defined for U.S. equities.", "扩展时段拆分目前适用于美股。")
+          : overnightMissing && sessionLoad?.key === requestKey && sessionLoad.overnightStatus === "not_configured"
+            ? pick("Premarket, regular and after-hours use 30-minute aggregate OHLC. Overnight is blank because Quote Hub has no BOATS credentials; nothing is estimated.", "盘前、常规和盘后采用30分钟聚合OHLC。隔夜为空，因为 Quote Hub 未配置 BOATS 凭据；不进行估算。")
+            : overnightMissing && sessionLoad?.key === requestKey && sessionLoad.overnightStatus === "unavailable"
+              ? pick("Overnight history is unavailable for this date. Other sessions use 30-minute aggregate OHLC; nothing is estimated.", "该日期的隔夜历史数据不可用。其他时段采用30分钟聚合OHLC；不进行估算。")
+              : sessionLoad?.key === requestKey && sessionLoad.studyStatus === "empty"
+                ? pick("No precise 30-minute session bars were found for this date. Missing ranges remain blank rather than using boundary-crossing hourly bars.", "该日期未找到精确的30分钟分时K线。缺失区间保持为空，不使用跨时段边界的小时K线替代。")
+                : pick("Session ranges use 30-minute eligible aggregate-bar OHLC. A dash means the historical feed has no usable bars for that session; it is not estimated.", "分时区间采用30分钟合资格聚合K线OHLC。破折号表示历史数据源中没有可用K线，不进行估算。");
 
   return (
     <section className="sa-returns" aria-label={pick("Daily returns calendar", "每日收益日历")}>
@@ -204,13 +256,7 @@ export default function ReturnsCalendar({
             })}
           </div>
 
-          <div className="sa-return-note">
-            {detailState === "loading"
-              ? pick("Loading session ranges…", "正在加载分时区间…")
-              : !isUsEquity(symbol)
-                ? pick("Extended-session breakdown is currently defined for U.S. equities.", "扩展时段拆分目前适用于美股。")
-                : pick("Session ranges use eligible aggregate-bar OHLC. A dash means that session is not present in the historical feed; it is not estimated.", "分时区间采用合资格聚合 K 线 OHLC。破折号表示历史数据源中没有该时段数据，不进行估算。")}
-          </div>
+          <div className="sa-return-note">{detailNote}</div>
         </div>
       )}
     </section>
