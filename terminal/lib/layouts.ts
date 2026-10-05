@@ -189,15 +189,23 @@ async function applyWorkspaceUpdate(
   values: LayoutRow,
   workspaceName: string,
   expectedId: string | undefined,
-  extra: (query: LayoutQuery) => LayoutQuery,
+  extra: ((query: LayoutQuery) => LayoutQuery) | Array<(query: LayoutQuery) => LayoutQuery>,
 ): Promise<LayoutDbResult> {
-  const run = (teamShared: boolean) => {
-    let query = db.from(LAYOUTS_TABLE).update(values);
-    query = teamShared ? query.eq("visibility", "team") : query.eq("user_id", userId);
-    query = extra(query.eq("name", workspaceName));
-    if (expectedId) query = query.eq("id", expectedId);
-    return query.select("id");
+  const guards = Array.isArray(extra) ? extra : [extra];
+  const run = async (teamShared: boolean): Promise<LayoutDbResult> => {
+    let result: LayoutDbResult = { data: [] };
+    for (const guard of guards) {
+      let query = db.from(LAYOUTS_TABLE).update(values);
+      query = teamShared ? query.eq("visibility", "team") : query.eq("user_id", userId);
+      query = guard(query.eq("name", workspaceName));
+      if (expectedId) query = query.eq("id", expectedId);
+      result = await query.select("id");
+      if (errOf(result) || rowsOf(result).length) return result;
+    }
+    return result;
   };
+  // Exhaust supported-format variants for the owner before consulting team columns.
+  // Personal writes must still work where the optional sharing DDL is unapplied.
   const ownerWrite = await run(false);
   if (errOf(ownerWrite) || rowsOf(ownerWrite).length || !expectedId) return ownerWrite;
   return run(true);
@@ -327,6 +335,23 @@ const WORKSPACE_SCHEMA = "workspace_layout.v1";
 const isRecordLike = (v: unknown): v is Record<string, unknown> =>
   typeof v === "object" && v !== null && !Array.isArray(v);
 
+/** Legacy records are unversioned; explicit schemas and reader floors belong to their owner. */
+function supportsStoredLayout(config: unknown): boolean {
+  if (!isRecordLike(config) || config.schema == null) return true;
+  if (config.schema !== WORKSPACE_SCHEMA) return false;
+  if (config.requires === undefined) return true;
+  if (!isRecordLike(config.requires)) return false;
+  return config.requires.floor === undefined || config.requires.floor === 1;
+}
+
+function bindStoredLayoutFormat(query: LayoutQuery, config: Record<string, unknown>): LayoutQuery {
+  if (config.schema == null) return query.is("config->>schema", null);
+  const bound = query.eq("config->>schema", WORKSPACE_SCHEMA);
+  return isRecordLike(config.requires) && config.requires.floor === 1
+    ? bound.eq("config->requires->>floor", "1")
+    : bound.is("config->requires->>floor", null);
+}
+
 export type WorkspaceFailureReason = "unavailable" | "invalid_name" | "name_conflict" | "stale_revision" | "not_found" | "forbidden";
 
 export type SaveWorkspaceResult =
@@ -382,22 +407,16 @@ export async function saveWorkspace(
     const bindNumbered = (query: LayoutQuery) =>
       query.eq("config->>revision", String(expectedRevision)).eq("config->>schema", WORKSPACE_SCHEMA);
     // Disjoint floor attempts: stored 1 vs omitted (NULL means 1). Never pre-read.
-    const withFloor = await applyWorkspaceUpdate(
+    const updated = await applyWorkspaceUpdate(
       db, userId, values, workspaceName, expectedId,
-      (query) => bindNumbered(query).eq("config->requires->>floor", "1"),
+      [
+        (query) => bindNumbered(query).eq("config->requires->>floor", "1"),
+        (query) => bindNumbered(query).is("config->requires->>floor", null),
+      ],
     );
-    if (errOf(withFloor)) return { ok: false, reason: storeWriteReason(errOf(withFloor)) };
-    if (rowsOf(withFloor).length) {
-      const id = str(rowsOf(withFloor)[0]?.id);
-      return id ? { ok: true, id, revision: nextRevision } : { ok: false, reason: "unavailable" };
-    }
-    const withOmittedFloor = await applyWorkspaceUpdate(
-      db, userId, values, workspaceName, expectedId,
-      (query) => bindNumbered(query).is("config->requires->>floor", null),
-    );
-    if (errOf(withOmittedFloor)) return { ok: false, reason: storeWriteReason(errOf(withOmittedFloor)) };
-    if (rowsOf(withOmittedFloor).length) {
-      const id = str(rowsOf(withOmittedFloor)[0]?.id);
+    if (errOf(updated)) return { ok: false, reason: storeWriteReason(errOf(updated)) };
+    if (rowsOf(updated).length) {
+      const id = str(rowsOf(updated)[0]?.id);
       return id ? { ok: true, id, revision: nextRevision } : { ok: false, reason: "unavailable" };
     }
     return resolveZeroRowUpdate(db, userId, workspaceName, payload, nextRevision, expectedId);
@@ -544,6 +563,8 @@ export async function renameWorkspace(
   const refused = await refuseSharedIfNotWriter(db, userId, row);
   if (refused) return refused;
 
+  if (!supportsStoredLayout(row.config)) return { ok: false, reason: "stale_revision" };
+
   const nextRevision = expectedRevision + 1;
   const config: Record<string, unknown> = isRecordLike(row.config) ? { ...row.config } : {};
   config.name = null;
@@ -555,6 +576,7 @@ export async function renameWorkspace(
     .eq("id", rowId)
     .eq("name", from)
     .eq("config->>revision", String(expectedRevision));
+  updatedQuery = bindStoredLayoutFormat(updatedQuery, config);
   if (!isTeamShared(row)) updatedQuery = updatedQuery.eq("user_id", userId);
   const updated = await updatedQuery.select("id");
   const error = errOf(updated);
@@ -622,6 +644,8 @@ export async function duplicateWorkspace(
   }
   if (row.name !== from) return { ok: false, reason: "stale_revision" }; // moved out from under the id we loaded
   if (!isTeamShared(row) && str(row.user_id) && str(row.user_id) !== userId) return { ok: false, reason: "not_found" };
+
+  if (!supportsStoredLayout(row.config)) return { ok: false, reason: "unavailable" };
 
   let target = normalizeLayoutName(newName);
   if (!target) {
