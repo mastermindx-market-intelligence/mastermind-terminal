@@ -654,3 +654,21 @@ export function arcStateLabel(state: string, lang: PlainLang): string {
   if (!pair) return notClassified(lang);
   return lang === "zh" ? pair[1] : pair[0];
 }
+
+/** Live Radar episode owner states (mastermind.live_entry_episode.v1) as plain words. */
+const EPISODE_STATE_WORDS: Record<string, [string, string]> = {
+  PROBING: ["probing", "探测中"],
+  ARMED: ["armed", "已就位"],
+  TURNING: ["turning", "转向中"],
+  CANDIDATE: ["candidate", "候选"],
+  INVALIDATED: ["invalidated", "已失效"],
+  EXPIRED: ["expired", "已过期"],
+  RESOLVED: ["resolved", "已结束"],
+};
+
+export function episodeStateLabel(value: string | null | undefined, lang: PlainLang): string {
+  if (value == null || value === "") return notClassified(lang);
+  const pair = EPISODE_STATE_WORDS[value];
+  if (!pair) return value.toLowerCase();
+  return pair[lang === "zh" ? 1 : 0];
+}
