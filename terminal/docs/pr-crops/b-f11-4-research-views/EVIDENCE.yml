@@ -5,8 +5,9 @@
 # capturedAt: 2026-10-04T18:17:31.164Z
 # capturedAtHead is informational. The lock is layoutFiles.
 # 2026-10-04 #808 dislocations screen: hash-only restamp of plainLabels.ts — +18 added lines (EPISODE_STATE_WORDS / episodeStateLabel) imported only by components/dislocations/DislocationsView.tsx, which no surface in this capture renders; crops unchanged
+# 2026-10-05 F11-PROPOSALS (macro#6819, C4 5988747810): hash-only restamp of terminal/components/workspaces/ThesisWorkspace.tsx — the Suggested changes section now binds proposal rows to the selected thesis and adds loading/unavailable states; the settled ready markup (count + rows, or count 0 + empty statement) is byte-identical and no captured frame shows a pending or failed proposal read, so crops NOT recaptured and capturedAtHead unchanged. Not acceptance.
 layoutFiles:
-  terminal/components/workspaces/ThesisWorkspace.tsx: "a951862e7424db3a74fcebbaa6712b1f7e97ec89d0969b95274a0be133de142c"
+  terminal/components/workspaces/ThesisWorkspace.tsx: "2a1d1d3a8d9f1226b8b61bdf1f87ac209092c05156ac599fd415bf511381fbf3"
   terminal/components/workspaces/ThesisWorkspace.module.css: "3afaa5c0a5794f3fc2cdfb5c9b65257f703e7a3105e08009e602363d40690891"
   terminal/lib/rmsViews.ts: "fd5f025806c5a4b1b27e7d99a026e82f555767f0d96b6a2766a5b363961897cb"
   terminal/lib/savedViews.ts: "16e2914a032cba50cce999d1802c53e51098ce76dd82931925ef41b8e0f7af54"
