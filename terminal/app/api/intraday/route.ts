@@ -219,8 +219,16 @@ export async function GET(req: Request) {
   const tf = (searchParams.get("tf") || "").trim();
   const date = (searchParams.get("date") || "").trim();
   const ext = searchParams.get("ext") === "1"; // regular session by default; extended is explicit opt-in
-  const overnight = ext && searchParams.get("overnight") === "1"; // optional BOATS overlay for date-scoped studies
-  if (!sym || !isIntradayTf(tf) || (date && !isValidSessionDate(date))) {
+  const overnightMode = (searchParams.get("overnight") || "").trim();
+  const overnight = ext && (overnightMode === "1" || overnightMode === "only");
+  const overnightOnly = ext && overnightMode === "only";
+  if (
+    !sym ||
+    !isIntradayTf(tf) ||
+    (date && !isValidSessionDate(date)) ||
+    (overnightMode && overnightMode !== "1" && overnightMode !== "only") ||
+    (overnightOnly && !date)
+  ) {
     return NextResponse.json({ error: "bad params" }, { status: 400 });
   }
 
@@ -275,6 +283,14 @@ export async function GET(req: Request) {
     const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return NextResponse.json({ error: "unauthenticated" }, { status: 401 });
+  }
+
+  // The calendar's prior-wall-date request needs only 20:00–24:00 BOATS bars. Do not spend
+  // Massive/store work on pre/RTH/post data that the client will discard.
+  if (overnightOnly) {
+    const base: IntradayResponse = { t: sym, tf, bars: [], session_date: date };
+    const served = await withRequestedOvernight(base, sym, tf, date, true);
+    return NextResponse.json(served, { headers: { "Cache-Control": "no-store" } });
   }
 
   // `date` joins the key for the SECOND band only. Minute-band entries are deliberately
