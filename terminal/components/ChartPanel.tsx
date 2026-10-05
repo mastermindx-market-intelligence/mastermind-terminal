@@ -59,6 +59,9 @@ import { getJSON, getSliceAndOhlc, getCompositeOhlc, getOhlc } from "@/lib/dataC
 import { parseComposite, alignAndSum } from "@/lib/composite";
 import { CMP_PALETTE, type CmpCfg, defaultCmpCfg, cmpKey } from "@/lib/compare";
 import { isIntradayTf, isSecondTf, classify, tfMinutes, type Market } from "@/lib/intradaySources";
+import { episodeMarks, type MarkTone } from "@/lib/dislocations/episodeMarks";
+import { chartMarkerSpecs, toChartMarks } from "@/lib/dislocations/episodeChartTimes";
+import type { LiveEntryEpisode } from "@/lib/dislocations/types";
 import { liveDisplayEpoch, mutateLiveCandle } from "@/lib/liveCandle";
 import { isMacroSymbol, macroOnEtAxis } from "@/lib/macroSymbols";
 import { sessionVwap, openingRange, sessionLevels, pivotLevels, rvolSeries, ttmSqueeze, adx as calcAdx, cvdApprox, type Bar as IMBar, type DailyBar } from "@/lib/intradayMath";
@@ -569,7 +572,7 @@ import { buildVisualSeries, participationColor, visualOverlayBundle, visualReado
 import { candleVolumeRank } from "@/lib/suites/trend/candlePainter";
 
 export default function ChartPanel({ symbol, chartType = "candles", indicators, timeframe = "D", replayIdx = null, onMeta, tool = null, toolActivation = 0, drawingSticky = false, drawingCreationDisabled = false, drawStyle, drawings = [], onDrawingsChange, detectCmd = null, magnet = "off", compare = [], compareCfg = EMPTY_OBJ, isActive = true, syncId = null, liveQuote = null,
-  indParams = EMPTY_OBJ, hidden = EMPTY_SET, onToggleHidden, onRemoveInd, onOpenSettings, onOpenSource, pineScripts = EMPTY_PINE, chartSettings, onVisualSettings, onChartApi, extHours = false,
+  indParams = EMPTY_OBJ, hidden = EMPTY_SET, onToggleHidden, onRemoveInd, onOpenSettings, onOpenSource, pineScripts = EMPTY_PINE, chartSettings, onVisualSettings, onChartApi, extHours = false, episodeId = null,
   instrumentName, instrumentMarket, instrumentColor, onAddAlert, onTableView, onObjectTree, onOpenSettingsModal, lockedVLine = null, onSetLockedVLine, onIndRowsAt, dayMode = false, onPaneCount, companyName = "", userTier = "free", dataReady = true, initialTimeframe = null }:
   { symbol: string; companyName?: string; chartType?: string; indicators: Set<string>; timeframe?: string; replayIdx?: number | null; onMeta?: (m: { total: number }) => void;
     /** False until the shell has COMMITTED its persisted prefs. See `effectiveTimeframe`. */
@@ -583,7 +586,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
     instrumentName?: string;
     instrumentMarket?: string;
     instrumentColor?: string;
-    onChartApi?: (api: IChartApi | null) => void; extHours?: boolean;
+    onChartApi?: (api: IChartApi | null) => void; extHours?: boolean; episodeId?: string | null;
     onAddAlert?: (price: number) => void;
     onTableView?: () => void;
     onObjectTree?: () => void;
@@ -632,6 +635,9 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
   const pineMarkersRef = useRef<Map<string, ISeriesMarkersPluginApi<any>>>(new Map()); // scriptId → its markers plugin
   const ttmsqMarkersRef = useRef<ISeriesMarkersPluginApi<any> | null>(null); // ttmsq squeeze-tier dots plugin
   const macdMarkersRef = useRef<ISeriesMarkersPluginApi<any> | null>(null);  // TH_RSIMACD+ crossover dots plugin (on the MACD-RSI line series)
+  const episodeMarkersRef = useRef<ISeriesMarkersPluginApi<any> | null>(null); // dislocation episode transition marks (spec §4.3)
+  const episodeRef = useRef<LiveEntryEpisode | null>(null);
+  const renderEpisodeMarksRef = useRef<() => void>(() => {});
   const pinePaneMapRef = useRef<Map<string, number>>(new Map());             // sub-pane scriptId → pane index (overlay scripts absent)
   const pineErrRef = useRef<Map<string, string>>(new Map());                 // scriptId → error text (surfaced in the legend)
   const pineCacheRef = useRef<Map<string, { key: string; result: RunResult | null; error: string | null }>>(new Map()); // memo: scriptId → last run
@@ -2924,6 +2930,8 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
    * symbol-guarded consumer (splice, options levels, drawings) that this pane is unpainted.
    */
   const clearChartData = () => {
+    try { episodeMarkersRef.current?.detach(); } catch {}
+    episodeMarkersRef.current = null;
     barsRef.current = []; fullBarsRef.current = []; dailyBarsRef.current = []; closesRef.current = [];
     barIdxRef.current = { src: null, map: new Map() };
     sliceRef.current = null; sigMarksRef.current = []; earlyDotsRef.current = []; warnMarksRef.current = [];
@@ -8451,6 +8459,8 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
       // Nulled unconditionally: the plugin is already gone with the chart, so there is nothing
       // to detach, only a reference to drop.
       ttmsqMarkersRef.current = null; macdMarkersRef.current = null;
+      try { episodeMarkersRef.current?.detach(); } catch {}
+      episodeMarkersRef.current = null;
       priceSeriesRef.current = null; priceFamilyRef.current = null;
       futureAxisRef.current = null;   // the engine disposes every series with the chart
       watermarkPluginRef.current = null;   // plugin is attached to a pane; engine.destroy() tears it down
@@ -8628,6 +8638,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
         } else { priceS.applyOptions({ priceFormat: priceFmt() }); }
         if (chartType === "baseline" && onChart.length) priceS!.applyOptions({ baseValue: { type: "price", price: onChart[0].c } });
         priceS!.setData(priceData(onChart) as any);
+        renderEpisodeMarksRef.current();
       suitePaintKeyRef.current = "";
         applyFutureAxis();   // future dates on the time axis follow the loaded bars
         cpMark(`chart-painted[${symbol}@${effectiveTimeframe}:intraday]`);
@@ -8772,6 +8783,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
       }
       if (chartType === "baseline" && onChart.length) priceS!.applyOptions({ baseValue: { type: "price", price: onChart[0].c } });
       priceS!.setData(priceData(onChart) as any);
+      renderEpisodeMarksRef.current();
       suitePaintKeyRef.current = "";
       applyFutureAxis();   // future dates on the time axis follow the loaded bars
       cpMark(`chart-painted[${symbol}@${effectiveTimeframe}:daily]`);   // first candle on canvas
@@ -9138,6 +9150,48 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
     return () => { alive = false; };
     // eslint-disable-next-line
   }, [hasLab, symbol]);
+
+  // ── Dislocation episode marks (product spec §4.3) — transition markers at knowable-at bars; NO levels (G7). ──
+  const renderEpisodeMarks = () => {
+    try { episodeMarkersRef.current?.detach(); } catch {}
+    episodeMarkersRef.current = null;
+    const ep = episodeRef.current; const priceS = priceSeriesRef.current; const bars = barsRef.current;
+    if (!ep || !priceS || !bars.length) return;
+    if (ep.ticker.toUpperCase() !== symbolRef.current.toUpperCase()) return;
+    const marks = toChartMarks(episodeMarks(ep), bars.map((b) => b.time as unknown as number | string), isIntradayRef.current);
+    if (!marks.length) return;
+    const t = tokensRef.current;
+    const palette: Record<MarkTone, string> = {
+      flagged: t.warn || "#f5a524", confirmed: t.up || "#26c281", observed: t.mut || "#8a94a6",
+      failed: t.down || "#f0566b", expired: t.mut || "#8a94a6", resolved: t.link || "#5b8def",
+    };
+    const lang = typeof document !== "undefined" && document.documentElement.getAttribute("data-lang") === "zh" ? "zh" as const : "en" as const;
+    try { episodeMarkersRef.current = createSeriesMarkers(priceS, chartMarkerSpecs(marks, palette, lang) as any); } catch {}
+  };
+  renderEpisodeMarksRef.current = renderEpisodeMarks;
+  // ── EFFECT 3-episode — [episodeId, symbol]: fetch the deep-linked episode; the chart draws nothing on 401/403/absent (the screen owns the honest state). ──
+  useEffect(() => {
+    episodeRef.current = null;
+    renderEpisodeMarksRef.current();
+    if (!episodeId) return;
+    const sym = symbolRef.current; if (!sym) return;
+    let alive = true;
+    const url = (view: "my" | "market") => `/api/v1/dislocations?view=${view}&sym=${encodeURIComponent(sym.toUpperCase())}`;
+    const pick = (j: any): LiveEntryEpisode | null => { const eps = Array.isArray(j?.episodes) ? j.episodes : []; return eps.find((e: any) => e?.episode_id === episodeId) ?? null; };
+    (async () => {
+      try {
+        let r = await fetch(url("my"), { cache: "no-store", credentials: "same-origin" });
+        if (r.status === 401) return;
+        let ep = r.ok ? pick(await r.json().catch(() => null)) : null;
+        if (!ep) { r = await fetch(url("market"), { cache: "no-store", credentials: "same-origin" }); ep = r.ok ? pick(await r.json().catch(() => null)) : null; }
+        if (!alive || symbolRef.current !== sym) return;
+        episodeRef.current = ep;
+        renderEpisodeMarksRef.current();
+      } catch { /* feed unavailable — no marks */ }
+    })();
+    return () => { alive = false; };
+    // eslint-disable-next-line
+  }, [episodeId, symbol]);
 
   // ── EFFECT 3-optlevels — fetch ladder + moves + current state when Options Levels is ON ──
   // The strike-resolved gex ladder remains authoritative. gex_state is a current root-scoped
