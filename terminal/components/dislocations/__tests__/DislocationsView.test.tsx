@@ -513,7 +513,179 @@ describe("DislocationsView §9", () => {
     expect(container!.textContent).toContain("美东");
   });
 
-  it("17 — loading state exposes status line", async () => {
+  it("17 — EN — checked-clear catalyst reads as no filing", async () => {
+    const ep = withDisplay(freshFile.episodes)[0];
+    const withCat = {
+      ...ep,
+      catalyst: {
+        coverage: "no earnings filing in window",
+        context_state: "no_blocking_event_observed",
+        relevant_until: "2026-10-03T22:00:00.000Z",
+        fresh_until: "2026-10-03T22:00:00.000Z",
+      },
+    };
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () =>
+        new Response(
+          JSON.stringify(apiBody({ episodes: [withCat], count: 1 })),
+          { status: 200, headers: { "content-type": "application/json" } },
+        ),
+      ),
+    );
+    mount();
+    await flush();
+    expect(container!.textContent).toContain("Checked: no earnings filing");
+    expect(container!.textContent).not.toContain("Catalyst on file");
+    const chips = container!.querySelectorAll("[data-tone]");
+    const chip = [...chips].find((el) => el.textContent === "Checked: no earnings filing");
+    expect(chip).toBeTruthy();
+    expect(chip?.getAttribute("data-tone")).toBe("clear");
+    expect(chip?.className).toMatch(/chipQuiet/);
+  });
+
+  it("18 — ZH — same", async () => {
+    const ep = withDisplay(freshFile.episodes)[0];
+    const withCat = {
+      ...ep,
+      catalyst: {
+        coverage: "no earnings filing in window",
+        context_state: "no_blocking_event_observed",
+        relevant_until: "2026-10-03T22:00:00.000Z",
+        fresh_until: "2026-10-03T22:00:00.000Z",
+      },
+    };
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () =>
+        new Response(
+          JSON.stringify(apiBody({ episodes: [withCat], count: 1 })),
+          { status: 200, headers: { "content-type": "application/json" } },
+        ),
+      ),
+    );
+    mount("zh");
+    await flush();
+    expect(container!.textContent).toContain("已核查：无业绩公告");
+    expect(container!.textContent).not.toContain("有催化剂记录");
+  });
+
+  it("19 — EN — blocking filing reads as filing in window", async () => {
+    const ep = withDisplay(freshFile.episodes)[0];
+    const withCat = {
+      ...ep,
+      catalyst: {
+        coverage: "earnings filing in window",
+        context_state: "blocking_event_observed",
+        relevant_until: "2026-10-03T22:00:00.000Z",
+        fresh_until: "2026-10-03T22:00:00.000Z",
+      },
+    };
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () =>
+        new Response(
+          JSON.stringify(apiBody({ episodes: [withCat], count: 1 })),
+          { status: 200, headers: { "content-type": "application/json" } },
+        ),
+      ),
+    );
+    mount();
+    await flush();
+    expect(container!.textContent).toContain("Earnings filing in window");
+    const chip = [...container!.querySelectorAll("[data-tone]")].find(
+      (el) => el.textContent === "Earnings filing in window",
+    );
+    expect(chip?.getAttribute("data-tone")).toBe("event");
+    const details = container!.querySelector("details");
+    await act(async () => {
+      (details!.querySelector("summary") as HTMLElement).click();
+    });
+    await flush();
+    expect(container!.textContent).toContain("Earnings filing in window · until");
+  });
+
+  it("20 — unknown or missing context_state falls back to Catalyst on file", async () => {
+    const base = withDisplay(freshFile.episodes)[0];
+    const epFuture = {
+      ...base,
+      episode_id: "ep-future-cat",
+      catalyst: {
+        coverage: "x",
+        context_state: "some_future_state",
+        relevant_until: "2026-10-03T22:00:00.000Z",
+        fresh_until: "2026-10-03T22:00:00.000Z",
+      },
+    };
+    const epMissing = {
+      ...base,
+      episode_id: "ep-missing-cat",
+      catalyst: {
+        coverage: "y",
+        relevant_until: "2026-10-03T22:00:00.000Z",
+        fresh_until: "2026-10-03T22:00:00.000Z",
+      },
+    };
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () =>
+        new Response(
+          JSON.stringify(apiBody({ episodes: [epFuture, epMissing], count: 2 })),
+          { status: 200, headers: { "content-type": "application/json" } },
+        ),
+      ),
+    );
+    mount();
+    await flush();
+    const chips = [...container!.querySelectorAll("[data-tone]")].filter(
+      (el) => el.textContent === "Catalyst on file",
+    );
+    expect(chips.length).toBe(2);
+  });
+
+  it("21 — aged reads differ by state", async () => {
+    const base = withDisplay(freshFile.episodes)[0];
+    const knowable = base.display.knowable_at!;
+    const epClear = {
+      ...base,
+      episode_id: "ep-aged-clear",
+      catalyst: {
+        coverage: "no earnings filing in window",
+        context_state: "no_blocking_event_observed",
+        relevant_until: "2026-10-03T10:00:00.000Z",
+        fresh_until: "2026-10-03T10:00:00.000Z",
+      },
+    };
+    const epEvent = {
+      ...base,
+      episode_id: "ep-aged-event",
+      catalyst: {
+        coverage: "earnings filing in window",
+        context_state: "blocking_event_observed",
+        relevant_until: "2026-10-03T10:00:00.000Z",
+        fresh_until: "2026-10-03T10:00:00.000Z",
+      },
+    };
+    expect(epClear.catalyst.relevant_until < knowable).toBe(true);
+    vi.stubGlobal(
+      "fetch",
+      vi.fn(async () =>
+        new Response(
+          JSON.stringify(apiBody({ episodes: [epClear, epEvent], count: 2 })),
+          { status: 200, headers: { "content-type": "application/json" } },
+        ),
+      ),
+    );
+    mount();
+    await flush();
+    const chips = [...container!.querySelectorAll("[data-tone]")];
+    const clearChip = chips.find((el) => el.textContent === "Filing check aged out");
+    const eventChip = chips.find((el) => el.textContent === "Catalyst aged out");
+    expect(clearChip?.getAttribute("data-tone")).toBe("aged");
+    expect(eventChip?.getAttribute("data-tone")).toBe("aged");
+  });
+
+  it("22 — loading state exposes status line", async () => {
     let resolve!: (v: Response) => void;
     const pending = new Promise<Response>((r) => {
       resolve = r;
