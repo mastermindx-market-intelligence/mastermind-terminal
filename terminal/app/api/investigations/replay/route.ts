@@ -4,6 +4,7 @@ import {R2_BASE} from "@/lib/upstreams";
 import {readInvestigation,isInvestigationId,INVESTIGATION_ADMISSION,type InvestigationDb} from "@/lib/investigations";
 import {validateStoredInvestigationManifest} from "@/lib/investigationContracts";
 import {resolveRetainedEventWorkspaceAtCutoff,authorizeRetainedPublicEventContext,type EventWorkspaceReplayPolicy} from "@/lib/eventWorkspace";
+import {resolveInvestigationIssuerReleaseAtCutoff} from "@/lib/investigationIssuerRelease";
 export const runtime="nodejs";
 export const dynamic="force-dynamic";
 const response=(value:unknown,status=200)=>NextResponse.json(value,{status,headers:{"Cache-Control":"private, no-store","Vary":"Cookie"}});
@@ -22,6 +23,11 @@ export async function GET(request:Request){
   if(!manifest.ok)return response({status:"unavailable"},503);
   const ref=manifest.value.review_baseline_ref,issuers=manifest.value.intent.subjects.filter(s=>s.owner==="data_os.security_master"&&s.kind==="issuer");
   if(!ref||ref.owner!=="earnings.workspace_generation"||ref.object_type!=="event_workspace"||ref.mode!=="pinned"||!ref.version_ref||!ref.fingerprint||issuers.length!==1)return response({status:"unavailable"},503);
+  if(ref.selection?.field==="issuer_release"){
+   const result=await resolveInvestigationIssuerReleaseAtCutoff({event_id:ref.object_id,generation_id:ref.version_ref,company_id:issuers[0].object_id,fingerprint:ref.fingerprint},{policy:policy as EventWorkspaceReplayPolicy,cutoff},R2_BASE,{signal:request.signal});
+   if(!result.ok)return response(result,result.reason==="unsupported_policy"?422:result.reason==="invalid_reference"?400:503);
+   return response({status:"replayed",id,revision:Number(revision),root_fingerprint:ref.fingerprint,...result});
+  }
   const result=await resolveRetainedEventWorkspaceAtCutoff({event_id:ref.object_id,generation_id:ref.version_ref,company_id:issuers[0].object_id,fingerprint:ref.fingerprint},{policy:policy as EventWorkspaceReplayPolicy,cutoff},R2_BASE,{signal:request.signal,authorize:workspace=>authorizeRetainedPublicEventContext(workspace,R2_BASE,request.signal)});
   if(!result.ok)return response(result,result.reason==="unsupported_policy"?422:result.reason==="invalid_reference"?400:503);
   return response({status:"replayed",id,revision:Number(revision),root_fingerprint:ref.fingerprint,...result});

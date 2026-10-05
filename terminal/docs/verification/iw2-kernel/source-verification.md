@@ -66,3 +66,23 @@ binary checks and CI refusal tests, and preserved the old migration corpus. The 
 settled COMPLETE with residual0. The worker reported preparing output before START;
 that capsule-only scope violation was recorded separately from source acceptance.
 No descendants or production rights were granted.
+
+## Selected-release integration follow-through
+
+The existing review and replay routes now recognize `selection.field=issuer_release`.
+The current-rights dependency remains absent/default-deny in production. A permitted
+fixture exercises only the closed release reference projection; the old mixed-owner
+adapter is preserved and remains denied by its compatibility authorization function.
+
+Container and selected-release fingerprints remain distinct in review, history and
+explicit baseline advancement. A transcript-only container change is not a release
+content change. The selected snapshot walks the same immutable owner history and
+checks the selected older release's current rights independently of the root.
+No current-generation fallback, new evidence store or source-body display is added.
+
+Validation: 48 focused owner/route/component tests passed; 12 responsive browser
+cases passed across desktop/tablet/mobile in English and Chinese; both selected
+release journeys then passed at 320px with doubled text and keyboard focus. The
+browser checks prove explicit GET-only review/replay and draft selection, including
+separate selection/container identities and no automatic replay after reload.
+These are source/fixture receipts, not production-rights or G2/G4 acceptance.

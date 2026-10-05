@@ -48,3 +48,34 @@ export function reviewRetainedEarnings(prior:RetainedEventWorkspaceResult,curren
  try{return {review:reviewEvidence(project(prior),project(current)),coverage:"observed_owner_rows_only",removalProofAvailable:false};}
  catch{return unavailable("invalid");}
 }
+
+/** The admitted SEC selection is a separate comparison scope. Container changes
+ * (including transcripts) cannot become selected-release content changes. */
+export function reviewSelectedIssuerRelease(
+ prior:import("./investigationIssuerRelease").IssuerReleaseBaseline,
+ current:import("./investigationIssuerRelease").IssuerReleaseBaseline,
+):EarningsEvidenceReview {
+ const invalid=():EarningsEvidenceReview=>({review:{schema:"investigation.evidence_review.v1",priorGeneration:"",currentGeneration:"",summary:"unavailable",items:[]},coverage:"observed_owner_rows_only",removalProofAvailable:false});
+ const bound=(value:typeof prior)=>{
+  const w=value.workspace,r=value.receipt,s=value.selection_receipt,release=w.selected_release,rights=s.rights,ref=value.reference;
+  return w.schema==="earnings.issuer_release_projection.v1"&&r.owner==="earnings.workspace_generation"&&r.rights.allowed===true&&rights.allowed===true
+   &&rights.family==="sec_edgar"&&rights.permitted_display_class==="direct_display_ok"&&!!rights.registry_revision&&!!rights.policy_version
+   &&r.company_id===w.issuer.company_id&&r.event_id===w.event_id&&r.generation_id===w.generation_id
+   &&release.company_id===r.company_id&&release.event_id===r.event_id&&release.generation_id===r.generation_id
+   &&rights.document_id===release.document_id&&rights.source_sha256===release.source_sha256
+   &&s.container_fingerprint===r.fingerprint&&s.fingerprint===ref.fingerprint
+   &&ref.owner===r.owner&&ref.object_type==="event_workspace"&&ref.object_id===r.event_id&&ref.version_ref===r.generation_id&&ref.mode==="pinned"&&ref.selection.field==="issuer_release";
+ };
+ try{
+  if(!bound(prior)||!bound(current))return invalid();
+  const census=(value:typeof prior):EvidenceCensus=>{
+   const w=value.workspace,s=w.selected_release,rights=value.selection_receipt.rights;
+   return {scope:{owner:"earnings.workspace_generation",query:`${w.event_id}:issuer_release`,cohort:w.issuer.company_id,temporalPolicy:"platform-known-owner-generation"},read:"ok",membership:"unknown",generation:w.generation_id,tombstones:[],items:[{
+    id:`source:issuer_release:${s.document_id}`,availability:"available",contentIdentity:s.source_sha256,
+    qualificationIdentity:canonicalJson({receipt_state:s.receipt_state,filing_key:s.filing_key,family:rights.family,policy_version:rights.policy_version,registry_revision:rights.registry_revision,permitted_display_class:rights.permitted_display_class}),
+    correction:false,excluded:false,interpretation:null,
+   }]};
+  };
+  return {review:reviewEvidence(census(prior),census(current)),coverage:"observed_owner_rows_only",removalProofAvailable:false};
+ }catch{return invalid();}
+}
