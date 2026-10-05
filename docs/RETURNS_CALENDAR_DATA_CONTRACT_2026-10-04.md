@@ -104,6 +104,23 @@ Relevant docs:
 - https://docs.alpaca.markets/us/reference/stockbars
 - https://docs.alpaca.markets/us/docs/historical-stock-data-1
 
+### Alternative overnight sources considered
+
+**Webull official API** now exposes explicit overnight fields on stock snapshots
+(`overnight_required=true`, including overnight H/L/volume) and authenticated market-data
+interfaces for historical bars/ticks. That is useful corroboration and a potential future vendor
+adapter, but the public historical-bars documentation does not make the same clear historical
+20:00–04:00 BOATS entitlement/retention promise that Alpaca does, and Webull's server API requires
+app-key/access-token/signature machinery. The existing keyless Webull code in Quote Hub remains a
+best-effort live fallback and is **not** promoted into a historical owner.
+
+**Massive** remains superior for exact 04:00–20:00 tape work. Its own documentation warns that
+aggregate OHLC excludes many condition-ineligible extended-hours prints and explicitly recommends
+`/v3/trades` when the real extended-hours tape is required. If this product graduates from
+eligible-bar extrema to absolute printed-trade extrema, the next implementation should aggregate
+Massive raw trades with explicit sale-condition policy for premarket/RTH/after-hours; that is a
+separate metric and should not silently replace today's aggregate semantics.
+
 ## Availability rule
 
 The UI must distinguish **no eligible aggregate bar** from **zero range**. A missing value is
