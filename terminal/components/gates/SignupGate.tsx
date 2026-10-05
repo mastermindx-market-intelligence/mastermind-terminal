@@ -1,6 +1,6 @@
 "use client";
 
-// Shown on the five member workspaces (/analysis, /discover, /scripts, /portfolio,
+// Shown on the six member workspaces (/dislocations, /analysis, /discover, /scripts, /portfolio,
 // /alerts) when the visitor is signed out — each page gates server-side and returns
 // this instead of its workspace. The chart (/terminal) is deliberately NOT gated:
 // guests get the full charting surface, and these are the surfaces that need an
@@ -13,7 +13,7 @@
 import { useOnboarding } from "@/components/onboarding/OnboardingProvider";
 import { useT } from "@/lib/i18n";
 
-export type GateSurface = "analysis" | "discover" | "scripts" | "portfolio" | "alerts";
+export type GateSurface = "analysis" | "discover" | "scripts" | "portfolio" | "alerts" | "dislocations";
 
 // surface → [title key, body key]. Kept as data so a new gated workspace is one row.
 const COPY: Record<GateSurface, [string, string]> = {
@@ -22,6 +22,7 @@ const COPY: Record<GateSurface, [string, string]> = {
   scripts: ["sgTitleScripts", "sgBodyScripts"],
   portfolio: ["sgTitlePortfolio", "sgBodyPortfolio"],
   alerts: ["sgTitleAlerts", "sgBodyAlerts"],
+  dislocations: ["sgTitleDislocations", "sgBodyDislocations"],
 };
 
 export default function SignupGate({ surface }: { surface: GateSurface }) {

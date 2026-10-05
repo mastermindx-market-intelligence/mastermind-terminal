@@ -12,7 +12,7 @@
  * State owned here:
  *   - ticker (default "SPY")
  *   - gexPayload (from /api/flow?f=gex:<ROOT>)
- *   - statePayload (from /api/flow?f=gexstate:<ROOT> — FUTURE endpoint, handled gracefully)
+ *   - statePayload (from /api/flow?f=gexstate:<ROOT> — selected-root guarded read)
  *   - selectedExpiry (expiry filter chip)
  *   - polling interval (~60s)
  *
@@ -52,7 +52,7 @@ import type { GexStatePayload } from "./MarketStateCard";
 import { GexGuide } from "./GexGuide";
 import { ExposureMatrix } from "./ExposureMatrix";
 import { HeatSeekerCard } from "./HeatSeekerCard";
-import { isMatrixDocForRoot, mergeMatrixLevels, type MatrixDoc } from "./matrixDoc";
+import { isMatrixDocForRoot, readGexStateForRoot, mergeMatrixLevels, type MatrixDoc } from "./matrixDoc";
 import { EodContextBelt } from "@/components/eodcontext/EodContextBelt";
 import { isGexDates, gexSessionOf } from "@/lib/gexSessions";
 import {
@@ -202,6 +202,9 @@ export function GexDeskView() {
     return q.get("tab") === "prism" || q.get("view") === "matrix" ? "matrix" : "strike";
   });
   const [statePayload, setStatePayload] = useState<GexStatePayload | null>(null);
+  // Selection changes render before passive effects clear state: do not let that
+  // interim render put another root's state, OI or levels under this ticker.
+  const visibleStatePayload = statePayload?.root === ticker ? statePayload : null;
   // Expiry lens — All / 0DTE / All−0DTE / one expiration. Owned here because BOTH the
   // ladder and the summary bar have to be scoped by it (it used to be ladder-local state
   // with no consumer at all: a dead control).
@@ -214,6 +217,7 @@ export function GexDeskView() {
   // validation stops substitution, but without request ordering an internally valid SPY
   // response can still arrive after a newer QQQ request and clobber QQQ's state.
   const matrixReqRef = useRef(0);
+  const stateReqRef = useRef(0);
   // ── Dated session replay (R0.10) ──────────────────────────────────────────
   // sessionDates = the gex_history dates.json index (null = absent/invalid → no dropdown;
   // the scrubber's explicit per-date probe still works — the index is an enumeration aid,
@@ -249,11 +253,11 @@ export function GexDeskView() {
   // ── Fetch functions ───────────────────────────────────────────────────────────
 
   const fetchGexState = useCallback(async (root: string) => {
-    // FUTURE endpoint — handle gracefully when absent (404 / null)
-    const data = await safeFetch<GexStatePayload>(
-      `/api/flow?f=gexstate:${root}`
-    );
-    setStatePayload(data);
+    const request = ++stateReqRef.current;
+    const data = await safeFetch<unknown>(`/api/flow?f=gexstate:${root}`);
+    // A later ticker/poll owns the result. An old completion, even an error,
+    // cannot overwrite newer state; absent or wrong-root current data is null.
+    if (request === stateReqRef.current) setStatePayload(readGexStateForRoot(data, root));
   }, []);
 
   // ── GEX-state feed (market-state card) ─────────────────────────────────────────
@@ -342,6 +346,7 @@ export function GexDeskView() {
     document.addEventListener("visibilitychange", onVis);
 
     return () => {
+      stateReqRef.current++;
       if (pollRef.current) clearInterval(pollRef.current);
       document.removeEventListener("visibilitychange", onVis);
     };
@@ -465,12 +470,12 @@ export function GexDeskView() {
       ? levels
       : { callWall: null, putWall: null, gammaFlip: null, hvl: null };
 
-  // ONE levels provenance for the matrix view (§5.3): gex_state wins the flip, because
-  // the matrix builder's own levels block still carries the retired cumulative-by-strike
-  // estimator. See matrixDoc.mergeMatrixLevels for the measurement and the RCA link.
+  // Preserve state-first flip precedence using only the selected root. Current
+  // Macro's matrix fallback also uses the raw-chain profile method; missing or
+  // invalid price levels remain unavailable (see matrixDoc.mergeMatrixLevels).
   const matrixLevels = useMemo(
-    () => mergeMatrixLevels(visibleMatrix, statePayload),
-    [visibleMatrix, statePayload]
+    () => mergeMatrixLevels(visibleMatrix, visibleStatePayload),
+    [visibleMatrix, visibleStatePayload]
   );
 
   // Format spot for display
@@ -613,8 +618,8 @@ export function GexDeskView() {
       <GexSummaryBar
         payload={activePayload}
         /* gexstate OI describes the CURRENT session — never dress an archived bar in it. */
-        callOI={isArchived ? null : (statePayload as unknown as Record<string, number | null | undefined>)?.call_oi ?? null}
-        putOI={isArchived ? null : (statePayload as unknown as Record<string, number | null | undefined>)?.put_oi ?? null}
+        callOI={isArchived ? null : (visibleStatePayload as unknown as Record<string, number | null | undefined>)?.call_oi ?? null}
+        putOI={isArchived ? null : (visibleStatePayload as unknown as Record<string, number | null | undefined>)?.put_oi ?? null}
         lens={lens}
         lensNetMn={lensValues.cellCount > 0 ? lensValues.totalMn : null}
         lensCoveredStrikes={lensCoveredStrikeCount}
@@ -647,7 +652,7 @@ export function GexDeskView() {
       {!isArchived && (
         <EodContextBelt
           root={ticker}
-          gexState={statePayload}
+          gexState={visibleStatePayload}
           gex={gexPayload}
           lang={lang}
         />
@@ -834,7 +839,7 @@ export function GexDeskView() {
               />
             </div>
             <MarketStateCard
-              statePayload={statePayload}
+              statePayload={visibleStatePayload}
               gexPayload={gexPayload}
               isIndexProduct={isIndex}
               lang={lang}
