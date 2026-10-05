@@ -12,7 +12,8 @@
 //   1. a lost reply after a commit is UNCONFIRMED, never "failed": one PATCH, the same row cannot
 //      be re-armed again while unsettled, and the existing inventory GET reconciles it;
 //   2. a reply without this row's acknowledgement (malformed, another row, this row still fired,
-//      a gateway page) takes the same path;
+//      a gateway page) takes the same path — and so does a 2xx whose row could not be rendered
+//      (condition missing, null, a scalar or an array; symbol or created_at missing) (C4 5991393156);
 //   3. the reconciliation shows the LATEST OBSERVATION (armed, or a newer trigger) without
 //      another PATCH, and keeps the "not confirmed" qualification — a GET is not proof the
 //      unacknowledged PATCH finished;
@@ -21,7 +22,9 @@
 //   6. a refusal issued before any write (401/404) stays a distinct, localized failure with no
 //      reconciliation, and a later attempt clears its message as it starts; the route's
 //      post-update 400 is NOT such a refusal; and an older inventory read can never overwrite a
-//      newer acknowledgement or reconciliation.
+//      newer acknowledgement or reconciliation;
+//   7. an earlier attempt whose outcome was never learned STAYS qualified after a later attempt is
+//      acknowledged or refused: the later result settles only itself (C4 5991393156, 5992243085).
 import { describe, expect, it, beforeEach, afterEach, vi } from "vitest";
 import { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
@@ -52,6 +55,7 @@ const COPY = {
     unconfirmed: "Re-arm not confirmed — showing the latest saved state.",
     checkFailed: "Re-arm not confirmed, and the alert's current state could not be checked.",
     checkStatus: "Check status", armed: "Armed",
+    earlier: "An earlier re-arm of this alert was never confirmed — it may still take effect.",
   },
   zh: {
     rearm: "重新启用", rearming: "正在重新启用…", couldNot: "无法重新启用提醒。",
@@ -59,6 +63,7 @@ const COPY = {
     unconfirmed: "重新启用未获确认——以下为最新保存的状态。",
     checkFailed: "重新启用未获确认，且无法核对提醒的当前状态。",
     checkStatus: "核对状态", armed: "已启用",
+    earlier: "此提醒先前的一次重新启用从未获得确认——它仍可能生效。",
   },
 } as const;
 type Lang = keyof typeof COPY;
@@ -68,7 +73,10 @@ const res = (status: number, body: unknown) =>
 const htmlPage = (status: number) =>
   ({ ok: status >= 200 && status < 300, status, json: async () => { throw new SyntaxError("Unexpected token <"); } }) as unknown as Response;
 
-type Reply = "ack" | "ack-other-row" | "ack-still-fired" | "lost" | "malformed" | "gateway" | "update-error" | "refuse";
+type Reply =
+  | "ack" | "ack-other-row" | "ack-still-fired" | "lost" | "malformed" | "gateway" | "update-error" | "refuse"
+  | "ack-no-condition" | "ack-null-condition" | "ack-scalar-condition" | "ack-array-condition"
+  | "ack-no-symbol" | "ack-no-created-at";
 type GetAnswer = { rows: Row[] } | { status: number } | "transport";
 type HeldPatch = { id: string; commit: () => void; reply: (r: Reply) => Promise<void> };
 
@@ -117,6 +125,12 @@ describe("Existing alerts — re-arm acknowledgement, uncertainty and reconcilia
                 else if (kind === "ack-other-row") resolve(res(200, { alert: { ...armed(OLD_FIRE), id: "zz" } }));
                 else if (kind === "ack-still-fired") resolve(res(200, { alert: OLD_FIRE })); // this row, not re-armed
                 else if (kind === "malformed") resolve(res(200, {}));
+                else if (kind === "ack-no-condition") resolve(res(200, { alert: { id, active: true } }));
+                else if (kind === "ack-null-condition") resolve(res(200, { alert: { ...armed(OLD_FIRE), condition: null } }));
+                else if (kind === "ack-scalar-condition") resolve(res(200, { alert: { ...armed(OLD_FIRE), condition: "signal" } }));
+                else if (kind === "ack-array-condition") resolve(res(200, { alert: { ...armed(OLD_FIRE), condition: [] } }));
+                else if (kind === "ack-no-symbol") { const rest: Record<string, unknown> = { ...armed(OLD_FIRE) }; delete rest.symbol; resolve(res(200, { alert: rest })); }
+                else if (kind === "ack-no-created-at") { const rest: Record<string, unknown> = { ...armed(OLD_FIRE) }; delete rest.created_at; resolve(res(200, { alert: rest })); }
                 else if (kind === "gateway") resolve(htmlPage(504));
                 else if (kind === "update-error") resolve(res(400, { error: "Could not update alert" }));
                 else resolve(res(404, { error: "not found" }));
@@ -258,11 +272,62 @@ describe("Existing alerts — re-arm acknowledgement, uncertainty and reconcilia
       expect(row().textContent).toContain(c.armed);
       expect(patchCount).toBe(2);
     });
+
+    /** P1's reply is lost and nothing has landed; the read shows the row still fired; P2 is sent. */
+    async function earlierUnknownThenSecondAttempt() {
+      await mount(lang);
+      await click(buttonNamed(c.rearm));
+      await patches[0].reply("lost");                  // P1: delayed, its outcome unknown
+      await releaseGet();                              // the read still sees the fired row
+      expect(status()?.dataset.rearmState).toBe("unconfirmed");
+      expect(row().textContent).toContain("101.5");
+      await click(buttonNamed(c.rearm));               // P2: an explicit, informed new attempt
+      expect(patchCount).toBe(2);
+      expect(status()?.dataset.rearmState).toBe("earlier-unconfirmed");
+      expect(status()?.textContent).toBe(c.earlier);
+    }
+
+    it(`${lang.toUpperCase()}: a later acknowledgement does not settle an earlier unknown re-arm`, async () => {
+      await earlierUnknownThenSecondAttempt();
+      patches[1].commit();
+      await patches[1].reply("ack");                   // P2 is acknowledged …
+      expect(row().textContent).toContain(c.armed);
+      expect(errText()).toBeNull();
+      expect(status()?.dataset.rearmState).toBe("earlier-unconfirmed"); // … P1 is still unknown
+      expect(status()?.textContent).toBe(c.earlier);
+
+      patches[0].commit();                             // P1 lands late — the copy already allowed for it
+      await otherRead();
+      await releaseGet();
+      expect(status()?.dataset.rearmState).toBe("earlier-unconfirmed");
+      expect(patchCount).toBe(2);
+    });
+
+    it(`${lang.toUpperCase()}: a later refusal does not settle an earlier unknown re-arm`, async () => {
+      await earlierUnknownThenSecondAttempt();
+      await patches[1].reply("refuse");                // P2 is refused before any write …
+      expect(errText()).toBe(c.couldNot);
+      expect(status()?.dataset.rearmState).toBe("earlier-unconfirmed"); // … P1 may still land
+      expect(status()?.textContent).toBe(c.earlier);
+
+      patches[0].commit();                             // and it does, late
+      await otherRead();
+      await releaseGet();
+      expect(row().textContent).toContain(c.armed);
+      expect(status()?.dataset.rearmState).toBe("earlier-unconfirmed");
+      expect(patchCount).toBe(2);
+    });
   }
 
   // update-error: the route's 400 AFTER its update call — supabase-js reports a reply lost between
   // the route and the database as an error too, so the route cannot know the write did not land.
-  for (const reply of ["malformed", "ack-other-row", "ack-still-fired", "gateway", "update-error"] as const) {
+  // The ack-* shapes are 2xx replies naming this row, armed, that could not stand in for it on
+  // screen: rendering them would show a blank or broken row as the acknowledged state.
+  for (const reply of [
+    "malformed", "ack-other-row", "ack-still-fired", "gateway", "update-error",
+    "ack-no-condition", "ack-null-condition", "ack-scalar-condition", "ack-array-condition",
+    "ack-no-symbol", "ack-no-created-at",
+  ] as const) {
     it(`a reply without this row's acknowledgement (${reply}) is unconfirmed, not failed`, async () => {
       await mount("en");
       await click(buttonNamed(COPY.en.rearm));
