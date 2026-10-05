@@ -36,7 +36,7 @@ function finite(n: unknown): n is number {
   return typeof n === "number" && Number.isFinite(n);
 }
 
-function dayKey(time: string | number): string | null {
+export function returnsCalendarDayKey(time: string | number): string | null {
   if (typeof time === "string") {
     const key = time.slice(0, 10);
     return /^\d{4}-\d{2}-\d{2}$/.test(key) ? key : null;
@@ -66,7 +66,7 @@ function shiftMonth(month: string, offset: number): string {
   return d.toISOString().slice(0, 7);
 }
 
-function previousCalendarDate(date: string): string {
+export function previousCalendarDate(date: string): string {
   const d = new Date(`${date}T00:00:00Z`);
   d.setUTCDate(d.getUTCDate() - 1);
   return d.toISOString().slice(0, 10);
@@ -77,18 +77,18 @@ function minuteOfDisplayDay(epochSec: number): number {
   return d.getUTCHours() * 60 + d.getUTCMinutes();
 }
 
-function aggregateSession(key: SessionRange["key"], label: string, hours: string, bars: Bar6[]): SessionRange {
+function aggregateSession(key: SessionRange["key"], hours: string, bars: Bar6[]): SessionRange {
   const clean = bars.filter((b) => b.length >= 6 && b.slice(0, 6).every(finite)).sort((a, b) => a[0] - b[0]);
-  if (!clean.length) return { key, label, hours, low: null, high: null, open: null, close: null, ret: null, barCount: 0 };
+  if (!clean.length) return { key, hours, low: null, high: null, open: null, close: null, ret: null, barCount: 0 };
   const open = clean[0][1];
   const close = clean[clean.length - 1][4];
   const low = Math.min(...clean.map((b) => b[3]));
   const high = Math.max(...clean.map((b) => b[2]));
   const ret = open !== 0 ? ((close - open) / open) * 100 : null;
-  return { key, label, hours, low, high, open, close, ret, barCount: clean.length };
+  return { key, hours, low, high, open, close, ret, barCount: clean.length };
 }
 
-function buildSessions(current: Bar6[], previous: Bar6[], pick: Pick): SessionRange[] {
+export function buildReturnsCalendarSessions(current: Bar6[], previous: Bar6[]): SessionRange[] {
   const overnight = [
     ...previous.filter((b) => minuteOfDisplayDay(b[0]) >= 20 * 60),
     ...current.filter((b) => minuteOfDisplayDay(b[0]) < 4 * 60),
@@ -106,7 +106,7 @@ function buildSessions(current: Bar6[], previous: Bar6[], pick: Pick): SessionRa
     return m >= 16 * 60 && m < 20 * 60;
   });
   const groups = { overnight, pre, regular, post };
-  return SESSION_SPECS.map((s) => aggregateSession(s.key, pick(s.en, s.cn), s.hours, groups[s.key]));
+  return SESSION_SPECS.map((s) => aggregateSession(s.key, s.hours, groups[s.key]));
 }
 
 function isUsEquity(symbol: string): boolean {
@@ -124,7 +124,7 @@ export default function ReturnsCalendar({
 }) {
   const days = useMemo<DayDatum[]>(() => {
     const ordered = bars
-      .map((bar) => ({ bar, date: dayKey(bar.time) }))
+      .map((bar) => ({ bar, date: returnsCalendarDayKey(bar.time) }))
       .filter((x): x is { bar: Bar; date: string } => !!x.date && finite(x.bar.c))
       .sort((a, b) => a.date.localeCompare(b.date));
     return ordered.map((x, i) => {
@@ -177,7 +177,7 @@ export default function ReturnsCalendar({
         const current = Array.isArray(cj?.bars) ? cj.bars as Bar6[] : [];
         const previous = Array.isArray(pj?.bars) ? pj.bars as Bar6[] : [];
         if (!cancelled) {
-          setSessions(buildSessions(current, previous, pick));
+          setSessions(buildReturnsCalendarSessions(current, previous));
           setDetailState("ready");
         }
       })
@@ -188,7 +188,7 @@ export default function ReturnsCalendar({
         }
       });
     return () => { cancelled = true; };
-  }, [selectedDate, symbol, pick]);
+  }, [selectedDate, symbol]);
 
   if (days.length < 2) return null;
 
