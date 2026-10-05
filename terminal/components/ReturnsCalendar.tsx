@@ -87,6 +87,7 @@ export default function ReturnsCalendar({
     error: boolean;
     overnightStatus: CoverageStatus;
     studyStatus: CoverageStatus;
+    regularWindowAvailable: boolean;
   } | null>(null);
 
   const byDate = useMemo(() => new Map(days.map((d) => [d.date, d])), [days]);
@@ -150,6 +151,7 @@ export default function ReturnsCalendar({
             error: false,
             overnightStatus,
             studyStatus,
+            regularWindowAvailable: regularWindow !== null,
           });
         }
       } catch {
@@ -160,6 +162,7 @@ export default function ReturnsCalendar({
             error: true,
             overnightStatus: null,
             studyStatus: null,
+            regularWindowAvailable: false,
           });
         }
       }
@@ -202,6 +205,8 @@ export default function ReturnsCalendar({
         ? pick("Session history is temporarily unavailable. No ranges were estimated.", "分时历史数据暂时不可用；未进行区间估算。")
         : !isUsEquity(symbol)
           ? pick("Extended-session breakdown is currently defined for U.S. equities.", "扩展时段拆分目前适用于美股。")
+          : sessionLoad?.key === requestKey && !sessionLoad.regularWindowAvailable
+            ? pick("The exchange-hours calendar is unavailable for this date, so premarket, regular and after-hours ranges are withheld rather than guessed.", "该日期的交易时段日历不可用，因此盘前、常规和盘后区间保持为空，不进行推测。")
           : overnightMissing && sessionLoad?.key === requestKey && sessionLoad.overnightStatus === "not_configured"
             ? pick("Premarket, regular and after-hours use 30-minute aggregate OHLC. Overnight history is not configured on this server; nothing is estimated.", "盘前、常规和盘后采用30分钟聚合OHLC。此服务器尚未配置隔夜历史数据；不进行估算。")
             : overnightMissing && sessionLoad?.key === requestKey && sessionLoad.overnightStatus === "unavailable"
