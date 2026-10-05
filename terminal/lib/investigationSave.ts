@@ -15,10 +15,8 @@ function sameJson(a: unknown, b: unknown): boolean {
 function matchesCommand(result: InvestigationCommitted, command: InvestigationCommand): boolean {
   if (!command.layout_capture) return sameJson(result.manifest,command.manifest);
   const refs = result.manifest.layout_refs;
-  const legacyCaptureId = (command.layout_capture as {revision_id?:unknown}).revision_id;
   return refs.length === 1 && refs[0].layout_id === command.layout_capture.layout_id
-    && (legacyCaptureId === undefined || refs[0].layout_revision_id === legacyCaptureId)
-    && refs[0].role === "primary"
+    && refs[0].layout_revision_id === command.layout_capture.revision_id && refs[0].role === "primary"
     && sameJson({...result.manifest,layout_refs:[]},command.manifest);
 }
 const definitive = new Set(["invalid_payload", "version_conflict", "idempotency_conflict", "invalid_transition", "reference_unavailable", "layout_conflict", "limit_reached"]);
@@ -27,7 +25,7 @@ export function recoverInvestigationSave(principal: string, raw: unknown): Inves
   if (!raw || typeof raw !== "object" || Array.isArray(raw)) return null;
   const saved = raw as Record<string, unknown>;
   if (saved.owner !== principal) return null;
-  const command = parseInvestigationCommand(saved.command, true);
+  const command = parseInvestigationCommand(saved.command);
   if (!command) return null;
   if (saved.phase === "rejected" && typeof saved.reason === "string" && definitive.has(saved.reason)) {
     return { phase: "rejected", principal, command, reason: saved.reason };
@@ -45,23 +43,15 @@ export function settleInvestigationSave(state: InvestigationSaveState, principal
   if (state.phase !== "pending" && state.phase !== "uncertain") return state;
   if (state.principal !== principal) return { phase: "idle" };
   if (isInvestigationCommitted(response) && response.id === state.command.id
-    && (response.operation_id === undefined || response.operation_id === state.command.operation_id)
     && response.revision === state.command.expected_revision + 1
     && response.lifecycle === (state.command.action === "remove" ? "removed" : "active")
     && matchesCommand(response,state.command)) return { phase: "committed", principal, result: response };
   const status = response !== null && typeof response === "object" ? (response as { status?: unknown }).status : null;
-  if (status === "not_applied" && (response as {id?:unknown}).id === state.command.id && (response as {operation_id?:unknown}).operation_id === state.command.operation_id) return {phase:"rejected",principal,command:state.command,reason:"not_applied"};
-  if (state.phase === "pending" && typeof status === "string" && definitive.has(status)) return { phase: "rejected", principal, command: state.command, reason: status };
+  if (typeof status === "string" && definitive.has(status)) return { phase: "rejected", principal, command: state.command, reason: status };
   // not_found on receipt lookup, auth expiry, timeout and malformed replies are all inconclusive.
   return { phase: "uncertain", principal, command: state.command };
 }
 export function retryInvestigationSave(state: InvestigationSaveState, principal: string): InvestigationCommand | null {
-  // A persisted local rejection is never proof of a fence; recovery rechecks the owner.
-  if (state.phase !== "rejected" || state.reason !== "not_applied" || state.principal !== principal) return null;
-  const command = parseInvestigationCommand({...state.command,operation_id:crypto.randomUUID()});
-  return command;
-}
-export function investigationCommandToReconcile(state: InvestigationSaveState, principal: string): InvestigationCommand | null {
   return (state.phase === "pending" || state.phase === "uncertain") && state.principal === principal ? JSON.parse(JSON.stringify(state.command)) : null;
 }
 export function partitionInvestigationSave(state: InvestigationSaveState, principal: string | null): InvestigationSaveState {

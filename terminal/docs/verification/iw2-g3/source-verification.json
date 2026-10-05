@@ -1,10 +1,15 @@
 {
   "scope": "G3 security-group Seasonality consumer only",
-  "source_commit": "5b344228be1d2fe051a9755fdd2fbcc762f2fda8",
+  "qualified_base": "99a7d973d12ba699bc161ffdfadca89292f38a47",
+  "reviewed_source_commit": "2ae96728a06506e63999118ab92b0085aaaeea41",
+  "code_and_test_patch_id": "4f2e015f04c9e8f79138f4a71c09d8d71ceee8ae",
+  "integration": "Independent vertical on Terminal master; Investigation kernel remains on held PR #804. Reviewed code and test patch is unchanged.",
   "unit_tests": {
-    "passed": 78,
-    "files": 5
+    "passed": 206,
+    "focused": 78,
+    "compatibility": 128
   },
+  "typecheck": "Passed after removing stale generated dev-route types from the prior kernel branch and regenerating types; no application or compiler setting changes.",
   "responsive": {
     "passed": 6,
     "languages": [
@@ -62,7 +67,7 @@
     },
     {
       "file": "tablet-zh.png",
-      "sha256": "3fc8e2e4dd2367f5bea7ce9e4d3352d266b22b00f60125687ee96f5a3d626fde",
+      "sha256": "ed95baa688cb907a23e3b9cce2fcf8542c3bb8aa1a09624dc26bd642eba1395c",
       "viewport": "tablet",
       "locale": "zh",
       "mobile_capture": null
@@ -82,21 +87,55 @@
       "mobile_capture": "320 CSS pixels, all computed text sizes doubled, keyboard pin selected"
     }
   ],
+  "browser_attempts": {
+    "first_matrix": {
+      "passed": 5,
+      "failed": 1
+    },
+    "desktop_en_recheck": {
+      "passed": 1,
+      "failed": 0
+    },
+    "diagnosis": "First desktop EN assertion reached Follow MSFT while /data/MSFT.json and unrelated requests were still pending during cold /api/brain compilation. Unchanged test passed on warmed server; retained trace confirms MSFT data HTTP 200 in 35.95 ms.",
+    "assertions_changed": false
+  },
+  "independent_review": {
+    "run": "rs_20261005T091219Z_97137",
+    "verdict": "PASS_SCOPED",
+    "code_and_test_patch_unchanged": true,
+    "parent_integration": "206 tests, TypeScript, six EN/ZH viewport journeys including targeted unchanged desktop retry"
+  },
   "runtime_proof": "not yet deployed",
-  "independent_review": "pending",
   "open_g3_scope": [
     "second materially different domain group",
     "versioned persisted composition and migration",
     "negotiated multidomain Brain compiler contract"
   ],
-  "initial_failure": "Next startup timed out before assertions; separately started identical fixture environment and warmed route",
   "product_defect_fixed": "Existing StockAnalysis omitted its injected slot without research coverage; render the stable keyed slot in both branches. Coverage-loss/remount regression passes.",
-  "kernel_integration": {
-    "source_commit": "7f13a876730bca530ae8c63e98e8b6e7373eb147",
-    "dependency_head": "36ba495bd20b80faad3fbc740e8881071f9eb683",
-    "unit_passed": 143,
-    "responsive_passed": 6,
-    "typecheck": "passed with dev server quiescent",
-    "release_state": "Draft; depends on held #804; no production acceptance"
-  }
+  "local_receipts": [
+    {
+      "file": "g3-independent-base-unit.log",
+      "sha256": "6a4aff526d90bef89273d5b1a3ef9021693046072e4f15e60b5fb3c821336e56"
+    },
+    {
+      "file": "g3-independent-base-chart-bus.log",
+      "sha256": "8852bd8189b6b4b4ed62d00ceec090c89046576d5906d01b335c65902912e4c0"
+    },
+    {
+      "file": "g3-independent-base-compatibility.log",
+      "sha256": "1e33175eee80331a3db09caaa2bc5a830ba56e265f89ee0fc63514d0a9c0f6d8"
+    },
+    {
+      "file": "g3-independent-base-typecheck-green.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "file": "g3-independent-base-browser.log",
+      "sha256": "317bb69e508d3431f2f14f9933e3c114671ad634b6409d8b671e675fe7aca22d"
+    },
+    {
+      "file": "g3-independent-base-browser-desktop-recheck.log",
+      "sha256": "5f0e06295a00f9cea57e7fc26e89d3a597bc1a414cddd714e0ad3b1f699fe0f2"
+    }
+  ]
 }

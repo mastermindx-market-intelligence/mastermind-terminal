@@ -52,10 +52,14 @@ describe("owner-backed retained Earnings generation",()=>{
  it("does not grant access without an owner rights decision",async()=>{
   serve();expect((await resolveRetainedEventWorkspaceFromR2(pin,R2)).ok).toBe(false);
  });
- it("does not treat public-primary annotations as a mixed-workspace rights grant",async()=>{
+ it("rechecks current publication on every retained read and fails closed during outage",async()=>{
   const calls=serve();
   const currentRights={authorize:(workspace:Parameters<typeof authorizeRetainedPublicEventContext>[0])=>authorizeRetainedPublicEventContext(workspace,R2)};
-  expect(await resolveRetainedEventWorkspaceFromR2(pin,R2,currentRights)).toMatchObject({ok:false,code:"HISTORICAL_UNAVAILABLE",reason:"rights_unavailable"});
-  expect(calls.every(url=>url.includes(`/generations/${generation}/`))).toBe(true);
+  const first=await resolveRetainedEventWorkspaceFromR2(pin,R2,currentRights);
+  expect(first.ok).toBe(true);
+  expect(calls.some(url=>url.endsWith("/manifest.json")&&!url.includes("/generations/"))).toBe(true);
+  vi.stubGlobal("fetch",vi.fn(async(url:string)=>String(url).includes("/generations/")?new Response(String(url).endsWith("manifest.json")?manifest:wire):new Response("",{status:503})));
+  const denied=await resolveRetainedEventWorkspaceFromR2(pin,R2,currentRights);
+  expect(denied).toMatchObject({ok:false,code:"HISTORICAL_UNAVAILABLE",reason:"denied"});
  });
 });

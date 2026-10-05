@@ -1,12 +1,12 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { rateLimit, tooMany } from "@/lib/rateLimit";
-import { applyInvestigationRevision, listInvestigations, parseInvestigationCommand, readInvestigation, readInvestigationOperation, reconcileInvestigationOperation, type InvestigationDb } from "@/lib/investigations";
+import { applyInvestigationRevision, listInvestigations, parseInvestigationCommand, readInvestigation, readInvestigationOperation, type InvestigationDb } from "@/lib/investigations";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 const headers = { "Cache-Control": "private, no-store", "Vary": "Cookie" };
 const respond = (body: unknown, status = 200) => NextResponse.json(body, { status, headers });
-const statuses: Record<string, number> = { found: 200, committed: 200, not_applied: 200, invalid_payload: 400, unauthenticated: 401, not_found: 404, version_conflict: 409, idempotency_conflict: 409, layout_conflict: 409, invalid_transition: 422, reference_unavailable: 422, limit_reached: 429, unavailable: 503 };
+const statuses: Record<string, number> = { found: 200, committed: 200, invalid_payload: 400, unauthenticated: 401, not_found: 404, version_conflict: 409, idempotency_conflict: 409, layout_conflict: 409, invalid_transition: 422, reference_unavailable: 422, limit_reached: 429, unavailable: 503 };
 async function session(): Promise<InvestigationDb | null> {
   const db = await createClient();
   const { data: { user }, error } = await db.auth.getUser();
@@ -38,9 +38,7 @@ export async function GET(request: Request) {
     return respond(result, statuses[String(result.status)] ?? 503);
   } catch { return respond({ status: "unavailable" }, 503); }
 }
-export async function POST(request: Request) { return mutate(request, false); }
-export async function PUT(request: Request) { return mutate(request, true); }
-async function mutate(request: Request, reconcile: boolean) {
+export async function POST(request: Request) {
   const limit = rateLimit(request, { name: "investigations-save", max: 30 });
   if (!limit.ok) return tooMany(limit);
   try {
@@ -54,9 +52,9 @@ async function mutate(request: Request, reconcile: boolean) {
     if (new TextEncoder().encode(raw).byteLength > maxBytes) return respond({ status: "invalid_payload" }, 413);
     let body: unknown;
     try { body = JSON.parse(raw); } catch { return respond({ status: "invalid_payload" }, 400); }
-    const command = parseInvestigationCommand(body, reconcile);
+    const command = parseInvestigationCommand(body);
     if (!command) return respond({ status: "invalid_payload" }, 400);
-    const result = await (reconcile ? reconcileInvestigationOperation(db, command) : applyInvestigationRevision(db, command));
+    const result = await applyInvestigationRevision(db, command);
     return respond(result, statuses[result.status] ?? 503);
   } catch { return respond({ status: "unavailable" }, 503); }
 }

@@ -168,7 +168,7 @@
     "missing_after": [],
     "ddl_replayed": false,
     "readback_only_correction": true,
-    "executable_statements_identical_to_review": true,
-    "readback_corrected_file_sha256_before_ledger_header": "ecd521f66fd2d71554ac0f5f33aec3362fad9becbd215da69fea63c95f63a024"
+    "current_file_sha256": "ecd521f66fd2d71554ac0f5f33aec3362fad9becbd215da69fea63c95f63a024",
+    "executable_statements_identical_to_review": true
   }
 }

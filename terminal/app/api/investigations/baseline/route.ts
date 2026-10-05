@@ -1,8 +1,7 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { R2_BASE } from "@/lib/upstreams";
-import { normalizeCompanyIntelligenceSymbol, resolveCurrentEventWorkspaceFromR2, type RetainedEventWorkspacePin } from "@/lib/eventWorkspace";
-import { resolveInvestigationIssuerRelease } from "@/lib/investigationIssuerRelease";
+import { normalizeCompanyIntelligenceSymbol, resolveCurrentEventWorkspaceFromR2, resolveRetainedEventWorkspaceFromR2, authorizeRetainedPublicEventContext, type RetainedEventWorkspacePin } from "@/lib/eventWorkspace";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 const headers = { "Cache-Control": "private, no-store", "Vary": "Cookie" };
@@ -27,10 +26,14 @@ export async function GET(request: Request) {
       if (keys.length !== 4 || keys.some(k => !["event_id", "generation_id", "company_id", "fingerprint"].includes(k))) return response({ status: "invalid_payload" }, 400);
       pin = { event_id: query.get("event_id")!, generation_id: query.get("generation_id")!, company_id: query.get("company_id")!, fingerprint: query.get("fingerprint")! };
     }
-    // Production remains default-deny until the existing rights owner supplies a
-    // current SEC decision. Never substitute historical public-primary labels.
-    const result = await resolveInvestigationIssuerRelease(pin, R2_BASE, { signal: request.signal });
+    const result = await resolveRetainedEventWorkspaceFromR2(pin, R2_BASE, {
+      signal: request.signal,
+      authorize: workspace => authorizeRetainedPublicEventContext(workspace, R2_BASE, request.signal),
+    });
     if (!result.ok) return response(result, result.reason === "invalid_reference" ? 400 : 503);
-    return response(result);
+    return response({ ...result, reference: {
+      owner: "earnings.workspace_generation", object_type: "event_workspace", object_id: result.receipt.event_id,
+      mode: "pinned", version_ref: result.receipt.generation_id, fingerprint: result.receipt.fingerprint,
+    } });
   } catch { return response({ ok: false, code: "HISTORICAL_UNAVAILABLE", reason: "owner_unavailable" }, 503); }
 }

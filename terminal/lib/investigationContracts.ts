@@ -3,15 +3,16 @@
  * or entitlement owner. An accepted shape still needs authenticated owner resolution
  * and a same-owner transaction. It cannot certify that a referenced object exists.
  *
- * Server-owned clocks/authors/qualification are rejected, not discarded. Canonical
- * serialization preserves authored text. No I/O or implicit writes occur.
+ * Deliberately unconnected until Saved Research #777 owner convergence. Server-owned
+ * clocks/authors/qualification and future P4/P5 payloads are rejected, not discarded.
+ * No normalization of authored text, canonical digest, I/O, or implicit writes occurs.
  */
 export const INVESTIGATION_MANIFEST_SCHEMA = "investigation_manifest.v1" as const;
 export const INVESTIGATION_MANIFEST_MAX_BYTES = 64 * 1024;
 export const INVESTIGATION_MANIFEST_SCHEMA_V2 = "investigation_manifest.v2" as const;
 export const INVESTIGATION_MANIFEST_V2_MAX_BYTES = 128 * 1024;
 const MAX_ERRORS = 32;
-const MAX_NODES = 16384;
+const MAX_NODES = 4096;
 const SUBJECT_KINDS = new Set([
   "security", "issuer", "industry", "subtheme", "theme", "regime", "economy",
   "event", "portfolio", "option_underlying", "option_contract", "policy_question",
@@ -55,29 +56,9 @@ export type InvestigationManifest = {
   layout_refs: InvestigationLayoutRef[];
   thesis_refs: InvestigationThesisRef[];
   evidence_refs: InvestigationEvidenceRef[];
-  /** Required for new v2 commands; absent only in v1 or pre-repair stored rows. */
-  argument_relations?: InvestigationArgumentRelation[];
   continuation: { next_question?: string; next_observation?: string };
   review_baseline_ref?: InvestigationEvidenceRef;
 };
-export type InvestigationArgumentEndpoint =
-  | { kind: "thesis"; thesis_id: string; version_id: string }
-  | ({ kind: "evidence" } & Omit<InvestigationEvidenceRef, "fingerprint">);
-export type InvestigationArgumentRelation = {
-  source: InvestigationArgumentEndpoint;
-  target: InvestigationArgumentEndpoint;
-  relation: "supports" | "weakens" | "contradicts" | "unresolved_interpretation" | "discriminates_between";
-  rationale: string;
-  discrimination_criterion?: string;
-};
-
-/** Only call on validated semantic JSON. Keys are ASCII in this closed schema. */
-export function canonicalInvestigationJson(value: unknown): string {
-  if (Array.isArray(value)) return `[${value.map(canonicalInvestigationJson).join(",")}]`;
-  if (value !== null && typeof value === "object") return `{${Object.keys(value).sort().map(key =>
-    `${JSON.stringify(key)}:${canonicalInvestigationJson((value as Obj)[key])}`).join(",")}}`;
-  return JSON.stringify(value);
-}
 /** Supplied by existing admitted adapters. This module owns no adapter registry. */
 export type InvestigationAdmission = {
   subjects?: readonly { owner: string; kinds: readonly string[] }[];
@@ -100,7 +81,7 @@ class Validator {
   private nodes = 0;
   private stringUnits = 0;
   private readonly ancestors = new WeakSet<object>();
-  constructor(private readonly admission: InvestigationAdmission, private readonly legacyStored = false) {}
+  constructor(private readonly admission: InvestigationAdmission) {}
   add(path: string, code: string): void {
     if (this.errors.length < MAX_ERRORS) this.errors.push({ path, code });
   }
@@ -198,12 +179,6 @@ class Validator {
     const days = [31, leap ? 29 : 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
     if (year < 1 || month < 1 || month > 12 || day < 1 || day > days[month - 1]) this.add(path, "invalid_date");
   }
-  timestamp(value: unknown, path: string): void {
-    if (typeof value !== "string" || !/^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}\.[0-9]{3}Z$/.test(value)
-        || value.startsWith("0000") || !Number.isFinite(Date.parse(value)) || new Date(value).toISOString() !== value) {
-      this.add(path, "invalid_timestamp");
-    }
-  }
   list(value: unknown, path: string, max: number, item: (value: unknown, path: string) => string | null): void {
     if (!Array.isArray(value)) { this.add(path, "invalid_type"); return; }
     if (value.length > max) { this.add(path, "too_many_items"); return; }
@@ -266,29 +241,13 @@ class Validator {
     }
     return JSON.stringify([ref.owner, ref.object_type, ref.object_id, ref.mode, ref.version_ref, field]);
   }
-  endpoint(value: unknown, path: string, manifest: Obj): void {
-    if (!value || typeof value !== "object" || Array.isArray(value)) { this.add(path, "invalid_type"); return; }
-    const endpoint = value as Obj;
-    if (endpoint.kind === "thesis") {
-      this.object(endpoint, path, ["kind", "thesis_id", "version_id"]);
-      this.uuid(endpoint.thesis_id, `${path}.thesis_id`); this.uuid(endpoint.version_id, `${path}.version_id`);
-      if (!Array.isArray(manifest.thesis_refs) || !manifest.thesis_refs.some(r => r?.thesis_id === endpoint.thesis_id && r?.version_id === endpoint.version_id)) this.add(path, "unresolved_endpoint");
-    } else if (endpoint.kind === "evidence") {
-      this.object(endpoint, path, ["kind", "owner", "object_type", "object_id", "mode"], ["version_ref", "selection"]);
-      const { kind: _kind, ...ref } = endpoint;
-      const identity = this.evidence(ref, path);
-      const key = (r: Obj) => JSON.stringify([r.owner, r.object_type, r.object_id, r.mode, r.version_ref, (r.selection as Obj | undefined)?.field]);
-      if (!Array.isArray(manifest.evidence_refs) || !manifest.evidence_refs.some(r => r && key(r) === identity)) this.add(path, "unresolved_endpoint");
-    } else this.add(`${path}.kind`, "unsupported_value");
-  }
   manifest(raw: unknown): void {
-    const v2 = (raw as Obj)?.schema === INVESTIGATION_MANIFEST_SCHEMA_V2;
-    const strictV2 = v2 && !this.legacyStored;
-    const manifest = this.object(raw, "$", ["schema", "intent", "layout_refs", "thesis_refs", "evidence_refs", "continuation", ...(strictV2 ? ["argument_relations"] : [])], ["review_baseline_ref"]);
+    const manifest = this.object(raw, "$", ["schema", "intent", "layout_refs", "thesis_refs", "evidence_refs", "continuation"], ["review_baseline_ref"]);
     if (!manifest) return;
+    const v2 = manifest.schema === INVESTIGATION_MANIFEST_SCHEMA_V2;
     const questionLimit = v2 ? 4000 : 2000;
     if (!v2 && manifest.schema !== INVESTIGATION_MANIFEST_SCHEMA) this.add("$.schema", "unsupported_schema");
-    if (this.legacyStored && [manifest.layout_refs, manifest.thesis_refs, manifest.evidence_refs].reduce<number>((n, refs) => n + (Array.isArray(refs) ? refs.length : 0), 0) > 128) {
+    if (v2 && [manifest.layout_refs, manifest.thesis_refs, manifest.evidence_refs].reduce<number>((n, refs) => n + (Array.isArray(refs) ? refs.length : 0), 0) > 128) {
       this.add("$", "too_many_references");
     }
     const intent = this.object(manifest.intent, "$.intent", ["title", "question", "subjects"], ["horizon", "research_as_of"]);
@@ -296,10 +255,7 @@ class Validator {
       this.text(intent.title, "$.intent.title", 160, true); this.text(intent.question, "$.intent.question", questionLimit);
       this.list(intent.subjects, "$.intent.subjects", 16, (v, p) => this.subject(v, p));
       if (Object.hasOwn(intent, "horizon")) this.text(intent.horizon, "$.intent.horizon", 64, true);
-      if (Object.hasOwn(intent, "research_as_of")) {
-        if (strictV2) this.timestamp(intent.research_as_of, "$.intent.research_as_of");
-        else this.date(intent.research_as_of, "$.intent.research_as_of");
-      }
+      if (Object.hasOwn(intent, "research_as_of")) this.date(intent.research_as_of, "$.intent.research_as_of");
     }
     this.list(manifest.layout_refs, "$.layout_refs", 4, (v, p) => this.layout(v, p));
     this.list(manifest.thesis_refs, "$.thesis_refs", 16, (v, p) => this.thesis(v, p));
@@ -310,38 +266,16 @@ class Validator {
         if (Object.hasOwn(continuation, key)) this.text(continuation[key], `$.continuation.${key}`, questionLimit);
       }
     }
-    if (Object.hasOwn(manifest, "review_baseline_ref")) {
-      this.evidence(manifest.review_baseline_ref, "$.review_baseline_ref", true);
-      if (strictV2 && (!Array.isArray(manifest.evidence_refs) || !manifest.evidence_refs.some(ref => canonicalInvestigationJson(ref) === canonicalInvestigationJson(manifest.review_baseline_ref)))) this.add("$.review_baseline_ref", "baseline_not_member");
-    }
-    if (strictV2) this.list(manifest.argument_relations, "$.argument_relations", 256, (value, path) => {
-      const edge = this.object(value, path, ["source", "target", "relation", "rationale"], ["discrimination_criterion"]);
-      if (!edge) return null;
-      this.endpoint(edge.source, `${path}.source`, manifest); this.endpoint(edge.target, `${path}.target`, manifest);
-      this.enumeration(edge.relation, `${path}.relation`, ["supports", "weakens", "contradicts", "unresolved_interpretation", "discriminates_between"]);
-      this.text(edge.rationale, `${path}.rationale`, 4000);
-      if (Object.hasOwn(edge, "discrimination_criterion")) this.text(edge.discrimination_criterion, `${path}.discrimination_criterion`, 4000);
-      return null; // Annotations are ordered authored statements, not owner identities.
-    });
+    if (Object.hasOwn(manifest, "review_baseline_ref")) this.evidence(manifest.review_baseline_ref, "$.review_baseline_ref", true);
   }
 }
 
 /** Shape acceptance is never authentication, referent existence, historical availability, or save success. */
 export function validateInvestigationManifest(raw: unknown, admission: InvestigationAdmission = {}): InvestigationValidationResult {
-  return validate(raw, admission, false);
-}
-
-/** Read compatibility for immutable pre-repair rows. Never use at a write boundary.
- * Returns their exact original value, without inventing relations or timestamps. */
-export function validateStoredInvestigationManifest(raw: unknown, admission: InvestigationAdmission = {}): InvestigationValidationResult {
-  const legacy = raw !== null && typeof raw === "object" && !Object.hasOwn(raw, "argument_relations") && (raw as Obj).schema === INVESTIGATION_MANIFEST_SCHEMA_V2;
-  return validate(raw, admission, legacy);
-}
-function validate(raw: unknown, admission: InvestigationAdmission, legacyStored: boolean): InvestigationValidationResult {
-  const validator = new Validator(admission, legacyStored);
+  const validator = new Validator(admission);
   try {
     if (!validator.dataOnly(raw)) return { ok: false, errors: validator.errors };
-    const serialized = (raw as Obj)?.schema === INVESTIGATION_MANIFEST_SCHEMA_V2 ? canonicalInvestigationJson(raw) : JSON.stringify(raw);
+    const serialized = JSON.stringify(raw);
     const maxBytes = raw !== null && typeof raw === "object" && (raw as Obj).schema === INVESTIGATION_MANIFEST_SCHEMA_V2
       ? INVESTIGATION_MANIFEST_V2_MAX_BYTES : INVESTIGATION_MANIFEST_MAX_BYTES;
     if (new TextEncoder().encode(serialized).byteLength > maxBytes) {
