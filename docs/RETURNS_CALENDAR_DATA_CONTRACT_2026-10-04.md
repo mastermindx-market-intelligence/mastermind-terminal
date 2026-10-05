@@ -51,8 +51,10 @@ No second market-data owner is introduced.
 - `/api/intraday` merges those disjoint BOATS bars after date-scoping the canonical response;
   canonical Massive/store bars win any unexpected epoch overlap.
 - Overnight is assembled in the component from the prior calendar day's >=20:00 BOATS bars plus the
-  selected date's <04:00 BOATS bars. If Hub credentials/entitlement/data are absent, the API reports
-  explicit `overnight_evidence` and the UI renders a dash rather than estimating.
+  selected date's <04:00 BOATS bars. The prior-wall-date request uses `overnight=only`, which exits
+  after the authenticated Quote Hub lookup and deliberately skips Massive/store work for data the
+  client would discard. If Hub credentials/entitlement/data are absent, the API reports explicit
+  `overnight_evidence` and the UI renders a dash rather than estimating.
 
 The selected-day study deliberately uses **30-minute** bars. The existing extended-session resampler
 anchors at 04:00 ET; 30 minutes lands exactly on 09:30, 16:00, and 20:00, while a 1-hour bar
