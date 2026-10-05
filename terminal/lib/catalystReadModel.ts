@@ -193,6 +193,9 @@ function normalizeBioIdentity(row: JsonRecord): CatalystIdentity {
   const issuerId = text(issuer.issuer_id, "biocatalyst row.issuer.issuer_id");
   const role = textOrNull(issuer.relationship_role, "biocatalyst row.issuer.relationship_role");
   const securities = list(issuer.securities, "biocatalyst row.issuer.securities");
+  if (securities.length === 0) {
+    throw new Error("biocatalyst resolved identity requires at least one security");
+  }
   const securityIds: string[] = [];
   const displaySymbols: string[] = [];
   for (const rawSecurity of securities) {

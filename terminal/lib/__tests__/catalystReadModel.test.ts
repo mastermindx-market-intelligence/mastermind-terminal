@@ -258,6 +258,12 @@ describe("catalyst common read model", () => {
     expect(page.items[0].researchPriority).toEqual({ state: "research_only", lane: "RECONCILE" });
   });
 
+  it("rejects resolved Bio identity without an active security", () => {
+    const raw = bioPage() as any;
+    raw.rows[0].issuer.securities = [];
+    expect(() => normalizeBioCatalystPage(raw)).toThrow(/requires at least one security/i);
+  });
+
   it("preserves ambiguous Bio identity without selecting a candidate issuer", () => {
     const page = normalizeBioCatalystPage(bioPage("ambiguous"));
     expect(page.items[0].identity).toEqual({
