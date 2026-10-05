@@ -7,7 +7,7 @@ vi.mock("@/lib/eventWorkspace",async()=>({...await vi.importActual<typeof import
 import {GET} from "@/app/api/investigations/review/route";
 const id="10000000-0000-4000-8000-000000000001";
 const reference={owner:"earnings.workspace_generation",object_type:"event_workspace",object_id:fixture.event_id,mode:"pinned",version_ref:fixture.generation_id,fingerprint:"a".repeat(64)};
-const manifest={schema:"investigation_manifest.v2",intent:{title:"Research",question:"What changed?",subjects:[{owner:"data_os.security_master",kind:"issuer",object_id:fixture.issuer.company_id}]},layout_refs:[],thesis_refs:[],evidence_refs:[reference],review_baseline_ref:reference,continuation:{}};
+const manifest={schema:"investigation_manifest.v2",argument_relations:[],intent:{title:"Research",question:"What changed?",subjects:[{owner:"data_os.security_master",kind:"issuer",object_id:fixture.issuer.company_id}]},layout_refs:[],thesis_refs:[],evidence_refs:[reference],review_baseline_ref:reference,continuation:{}};
 const owner={ok:true,workspace:fixture,receipt:{owner:"earnings.workspace_generation",company_id:fixture.issuer.company_id,event_id:fixture.event_id,generation_id:fixture.generation_id,workspace_schema:fixture.schema,authority:fixture.authority,rights:{allowed:true}}};
 const request=(query=`id=${id}&revision=1`)=>new Request(`https://terminal.test/api/investigations/review?${query}`);
 beforeEach(()=>{vi.clearAllMocks();getUser.mockResolvedValue({data:{user:{id:"unit-owner"}},error:null});read.mockResolvedValue({status:"found",id,revision:1,manifest});current.mockResolvedValue({ok:true,state:"ready",workspace:fixture});retained.mockResolvedValue(owner);});

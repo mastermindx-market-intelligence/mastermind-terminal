@@ -12,7 +12,7 @@ vi.mock("@/lib/supabase/client",()=>({createClient:()=>({auth:{onAuthStateChange
 (globalThis as unknown as {IS_REACT_ACT_ENVIRONMENT:boolean}).IS_REACT_ACT_ENVIRONMENT=true;
 const id="10000000-0000-4000-8000-000000000001",oldHash="a".repeat(64),newHash="b".repeat(64);
 const reference={owner:"earnings.workspace_generation",object_type:"event_workspace",object_id:fixture.event_id,mode:"pinned",version_ref:fixture.generation_id,fingerprint:oldHash};
-const manifest={schema:"investigation_manifest.v2",intent:{title:"Retained question",question:"Keep the saved version",subjects:[{kind:"security",owner:"terminal.analysis_symbol",object_id:"AAPL"},{kind:"issuer",owner:"data_os.security_master",object_id:fixture.issuer.company_id}]},layout_refs:[],thesis_refs:[],evidence_refs:[reference],continuation:{},review_baseline_ref:reference};
+const manifest={schema:"investigation_manifest.v2",argument_relations:[],intent:{title:"Retained question",question:"Keep the saved version",subjects:[{kind:"security",owner:"terminal.analysis_symbol",object_id:"AAPL"},{kind:"issuer",owner:"data_os.security_master",object_id:fixture.issuer.company_id}]},layout_refs:[],thesis_refs:[],evidence_refs:[reference],continuation:{},review_baseline_ref:reference};
 const old={ok:true,workspace:normalizeEventWorkspace(fixture),reference,receipt:{fingerprint:oldHash,generation_id:fixture.generation_id,event_id:fixture.event_id,company_id:fixture.issuer.company_id,rights:{checked_at:"2026-10-04T00:00:00Z"}}};
 const next={...old,reference:{...reference,version_ref:"b".repeat(24),fingerprint:newHash},receipt:{...old.receipt,generation_id:"b".repeat(24),fingerprint:newHash}};
 let root:Root,host:HTMLDivElement,completeSelection:(value:unknown)=>void,completeSave:(value:unknown)=>void;

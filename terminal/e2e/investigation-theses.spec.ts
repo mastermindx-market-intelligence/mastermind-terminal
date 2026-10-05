@@ -11,7 +11,7 @@ for(const lang of ["en","zh"] as const)test(`retains canonical Thesis N when hea
  await page.route("**/api/theses{,?*}",route=>route.fulfill({json:new URL(route.request().url()).searchParams.has("id")?{thesis:{id:tid,current:version(v2,2),history:[version(v2,2),version(v1,1)],historyTruncated:false}}:{theses:[{id:tid,title:"Apple belief",currentVersion:2}],truncated:false}}));
  await page.route("**/api/investigations{,?*}",route=>{
   if(route.request().method()==="POST"){
-   const command=route.request().postDataJSON();saved={status:"found",id:command.id,revision:command.expected_revision+1,current_revision:command.expected_revision+1,lifecycle:"active",manifest:command.manifest,committed_at:"2026-10-04T00:00:00Z",layouts:[]};
+   const command=route.request().postDataJSON();saved={investigation_id:command.id,revision_id:crypto.randomUUID(),parent_revision_id:saved?.revision_id??null,sequence:command.expected_revision+1,operation_id:command.operation_id,author_ref:"40000000-0000-4000-8000-000000000001",recorded_at:"2026-10-04T00:00:00Z",manifest_digest:"a".repeat(64),status:"found",id:command.id,revision:command.expected_revision+1,current_revision:command.expected_revision+1,lifecycle:"active",manifest:command.manifest,committed_at:"2026-10-04T00:00:00Z",layouts:[]};
    return route.fulfill({json:{...saved,status:"committed"}});
   }
   return route.fulfill({json:new URL(route.request().url()).searchParams.has("id")?saved:{status:"listed",items:saved?[{id:saved.id,revision:saved.revision,lifecycle:"active",title:saved.manifest.intent.title,question:saved.manifest.intent.question,updated_at:saved.committed_at}]:[]}});

@@ -6,7 +6,7 @@ vi.mock("@/lib/eventWorkspace",async()=>({...await vi.importActual<typeof import
 import {GET} from "@/app/api/investigations/replay/route";
 const id="10000000-0000-4000-8000-000000000001",fingerprint="a".repeat(64),company="cik:0000320193";
 const ref={owner:"earnings.workspace_generation",object_type:"event_workspace",object_id:"evt_cik0000320193_2026q3_results",mode:"pinned",version_ref:"a".repeat(24),fingerprint};
-const manifest={schema:"investigation_manifest.v2",intent:{title:"Research",question:"What changed?",subjects:[{owner:"data_os.security_master",kind:"issuer",object_id:company}]},layout_refs:[],thesis_refs:[],evidence_refs:[ref],review_baseline_ref:ref,continuation:{}};
+const manifest={schema:"investigation_manifest.v2",argument_relations:[],intent:{title:"Research",question:"What changed?",subjects:[{owner:"data_os.security_master",kind:"issuer",object_id:company}]},layout_refs:[],thesis_refs:[],evidence_refs:[ref],review_baseline_ref:ref,continuation:{}};
 const query=new URLSearchParams({id,revision:"1",policy:"platform_snapshot",cutoff:"2026-08-01T00:00:00Z"});
 const request=(q=query.toString())=>new Request(`https://terminal.test/api/investigations/replay?${q}`);
 beforeEach(()=>{vi.clearAllMocks();getUser.mockResolvedValue({data:{user:{id:"owner"}},error:null});read.mockResolvedValue({status:"found",id,revision:1,manifest});replay.mockResolvedValue({ok:true,workspace:{generation_id:"b".repeat(24)},receipt:{fingerprint:"b".repeat(64)},replay:{policy:"platform_snapshot"}});});

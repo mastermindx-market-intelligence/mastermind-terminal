@@ -2,7 +2,7 @@ import {NextResponse} from "next/server";
 import {createClient} from "@/lib/supabase/server";
 import {R2_BASE} from "@/lib/upstreams";
 import {readInvestigation,isInvestigationId,INVESTIGATION_ADMISSION,type InvestigationDb} from "@/lib/investigations";
-import {validateInvestigationManifest} from "@/lib/investigationContracts";
+import {validateStoredInvestigationManifest} from "@/lib/investigationContracts";
 import {resolveCurrentEventWorkspaceFromR2,resolveRetainedEventWorkspaceFromR2,authorizeRetainedPublicEventContext} from "@/lib/eventWorkspace";
 import {reviewRetainedEarnings} from "@/lib/investigationEarningsReview";
 export const runtime="nodejs";
@@ -22,7 +22,7 @@ export async function GET(request:Request){
    ||!isInvestigationId(id)||!revision||!/^[1-9][0-9]{0,9}$/.test(revision)||Number(revision)>2147483647)return response({status:"invalid_payload"},400);
   const saved=await readInvestigation(db as unknown as InvestigationDb,id,Number(revision));
   if(saved.status!=="found")return response({status:saved.status==="not_found"?"not_found":"unavailable"},saved.status==="not_found"?404:503);
-  const manifest=validateInvestigationManifest("manifest" in saved?saved.manifest:null,INVESTIGATION_ADMISSION);
+  const manifest=validateStoredInvestigationManifest("manifest" in saved?saved.manifest:null,INVESTIGATION_ADMISSION);
   if(!manifest.ok)return unavailable("invalid_saved_reference");
   const ref=manifest.value.review_baseline_ref;
   const issuers=manifest.value.intent.subjects.filter(subject=>subject.owner==="data_os.security_master"&&subject.kind==="issuer");
