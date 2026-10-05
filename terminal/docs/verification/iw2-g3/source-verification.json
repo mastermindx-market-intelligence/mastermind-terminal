@@ -1,0 +1,94 @@
+{
+  "scope": "G3 security-group Seasonality consumer only",
+  "source_commit": "5b344228be1d2fe051a9755fdd2fbcc762f2fda8",
+  "unit_tests": {
+    "passed": 78,
+    "files": 5
+  },
+  "responsive": {
+    "passed": 6,
+    "languages": [
+      "en",
+      "zh"
+    ],
+    "viewports": [
+      [
+        1440,
+        900
+      ],
+      [
+        820,
+        1180
+      ],
+      [
+        390,
+        844
+      ]
+    ],
+    "additional_reflow": [
+      320,
+      844
+    ],
+    "text_resize_percent": 200,
+    "assertions": [
+      "actual Seasonality data-owner provenance retains pinned symbol",
+      "Brain host active context follows chart",
+      "local mode retains value and follow resumes current",
+      "no layout Investigation or pin writes",
+      "keyboard pin and no context-card overflow"
+    ]
+  },
+  "screenshots": [
+    {
+      "file": "desktop-en.png",
+      "sha256": "8af0202cfcb0ada4bb477a8d88a13808795208752c5e89150f705740ec33c513",
+      "viewport": "desktop",
+      "locale": "en",
+      "mobile_capture": null
+    },
+    {
+      "file": "desktop-zh.png",
+      "sha256": "f85524b4131cfee7b195b554143142f10c354fc5978ed902f9c7ca1523619aa6",
+      "viewport": "desktop",
+      "locale": "zh",
+      "mobile_capture": null
+    },
+    {
+      "file": "tablet-en.png",
+      "sha256": "88f268c56c4181a1b87bb1ab36b6595a5d200b570c174eb08f2d4945d2f1d36a",
+      "viewport": "tablet",
+      "locale": "en",
+      "mobile_capture": null
+    },
+    {
+      "file": "tablet-zh.png",
+      "sha256": "3fc8e2e4dd2367f5bea7ce9e4d3352d266b22b00f60125687ee96f5a3d626fde",
+      "viewport": "tablet",
+      "locale": "zh",
+      "mobile_capture": null
+    },
+    {
+      "file": "mobile-en.png",
+      "sha256": "63dbdaf763ff2714494f02ca8d649ecd2427721cdab1744b37b8e74cd0f0db8e",
+      "viewport": "mobile",
+      "locale": "en",
+      "mobile_capture": "320 CSS pixels, all computed text sizes doubled, keyboard pin selected"
+    },
+    {
+      "file": "mobile-zh.png",
+      "sha256": "2082fbc0b02df1a0030f8b9fd83efc2c3cb8e077ba5bc86c77e75cd185c71961",
+      "viewport": "mobile",
+      "locale": "zh",
+      "mobile_capture": "320 CSS pixels, all computed text sizes doubled, keyboard pin selected"
+    }
+  ],
+  "runtime_proof": "not yet deployed",
+  "independent_review": "pending",
+  "open_g3_scope": [
+    "second materially different domain group",
+    "versioned persisted composition and migration",
+    "negotiated multidomain Brain compiler contract"
+  ],
+  "initial_failure": "Next startup timed out before assertions; separately started identical fixture environment and warmed route",
+  "product_defect_fixed": "Existing StockAnalysis omitted its injected slot without research coverage; render the stable keyed slot in both branches. Coverage-loss/remount regression passes."
+}
