@@ -28,7 +28,6 @@ import { analystReading, ratingVerdict, readingToArc } from "@/components/fin/Fo
 // pulls the whole fundamentals graph into first paint (components/fin/finPages.ts).
 import type { FinPage } from "@/components/fin/finPages";
 import EventEdgePop from "@/components/fin/EventEdgePop";
-import ReturnsCalendar from "@/components/ReturnsCalendar";
 // R3.2 positioning block: the ONE regime colour/label convention (lib/mscGlance + the
 // desk's gexStrings), staleness via the shared weekday counter. The parent parses the
 // payload (root-match guard needs the authoritative active symbol) and passes the row.
@@ -642,7 +641,6 @@ export default function StockAnalysis({
       <DividendsMini fund={fund} pick={pick} />
       <FinancialsMini fund={fund} pick={pick} zh={zh} onOpen={onOpenPane && (() => onOpenPane("statements"))} />
       <PerfGrid bars={bars} pick={pick} />
-      <ReturnsCalendar symbol={fund?.ticker || intel?.ticker || row?.t || row?.symbol || ""} bars={bars} pick={pick} />
     </>
   ) : null;
   const tvWidgets2 = !deep && (fund || opts || bars.length) ? (
