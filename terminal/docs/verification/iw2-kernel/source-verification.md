@@ -86,3 +86,10 @@ release journeys then passed at 320px with doubled text and keyboard focus. The
 browser checks prove explicit GET-only review/replay and draft selection, including
 separate selection/container identities and no automatic replay after reload.
 These are source/fixture receipts, not production-rights or G2/G4 acceptance.
+
+A further real-lock regression found that `recorded_at` was sampled before the
+capacity lock wait. The unapplied 0030 migration now samples the write-phase time
+after all lock admission and fallible validation. RED demonstrated a timestamp
+before the admission marker; all 58 PostgreSQL/kernel/CI checks then passed,
+including dump/restore and no-effect fencing. This does not rewrite older receipts
+or claim a PostgreSQL physical commit timestamp.

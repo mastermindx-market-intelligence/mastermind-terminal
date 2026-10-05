@@ -4,6 +4,7 @@ import json
 import subprocess
 import time
 from concurrent.futures import ThreadPoolExecutor
+from datetime import datetime
 from uuid import uuid4
 
 import pytest
@@ -151,6 +152,35 @@ def test_reconcile_waits_for_original_transaction_and_returns_exact_commit(kerne
         assert time.monotonic()-start >= .5
         assert recovered == committed and recovered["status"] == "committed"
         assert process.wait(timeout=5) == 0
+    finally:
+        if process.poll() is None: process.terminate(); process.wait(timeout=5)
+
+
+def test_recorded_clock_is_sampled_after_write_admission_not_before_lock_wait(kernel):
+    target, op = str(uuid4()), str(uuid4())
+    lock = "select pg_advisory_xact_lock(hashtextextended('investigation.capacity:" + A + "',0));"
+    process = subprocess.Popen([kernel.binaries["psql"],*kernel.connection,"-d","postgres","-X","-qAt","-v","ON_ERROR_STOP=1"],stdin=subprocess.PIPE,stdout=subprocess.PIPE,stderr=subprocess.PIPE,text=True)
+    try:
+        process.stdin.write("begin; " + lock + " select 'LOCKED';\n"); process.stdin.flush()
+        assert process.stdout.readline().strip() == ""
+        assert process.stdout.readline().strip() == "LOCKED"
+        with ThreadPoolExecutor(1) as pool:
+            pending = pool.submit(apply,kernel,op,content=draft(),target=target)
+            try:
+                deadline = time.monotonic()+5
+                while time.monotonic()<deadline:
+                    waiting = kernel("select count(*) from pg_stat_activity where pid<>pg_backend_pid() and wait_event='advisory' and query like " + quote("%"+op+"%"))
+                    if waiting == "1": break
+                    time.sleep(.02)
+                else: pytest.fail("mutation never reached its admission lock")
+                admitted_after = float(kernel("select extract(epoch from clock_timestamp())"))
+            finally:
+                process.stdin.write("commit;\n"); process.stdin.close()
+                assert process.wait(timeout=5)==0
+            result = pending.result(timeout=5)
+        assert result["status"] == "committed"
+        assert datetime.fromisoformat(result["recorded_at"]).timestamp() >= admitted_after
+        assert result["recorded_at"] == result["committed_at"]
     finally:
         if process.poll() is None: process.terminate(); process.wait(timeout=5)
 
