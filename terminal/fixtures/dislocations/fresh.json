@@ -101,7 +101,15 @@
       "data_quality": "ok",
       "freshness": { "quote_age_s": 1500 },
       "evidence_refs": [],
-      "schema": "mastermind.live_entry_episode.v1"
+      "schema": "mastermind.live_entry_episode.v1",
+      "catalyst": {
+        "radar_episode_schema": "radar.v1",
+        "radar_episode_id": "rad-2",
+        "fresh_until": "2026-10-04T00:00:00.000Z",
+        "relevant_until": "2026-10-03T20:00:00.000Z",
+        "coverage": "no earnings filing in window",
+        "context_state": "no_blocking_event_observed"
+      }
     },
     {
       "episode_id": "ep-msft-turning",
@@ -159,7 +167,8 @@
         "radar_episode_id": "rad-1",
         "fresh_until": "2026-10-04T00:00:00.000Z",
         "relevant_until": "2026-10-03T20:00:00.000Z",
-        "coverage": "edgar_8k_item_2_02"
+        "coverage": "earnings filing in window",
+        "context_state": "blocking_event_observed"
       }
     },
     {
