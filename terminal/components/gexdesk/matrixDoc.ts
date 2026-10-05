@@ -15,6 +15,7 @@
 
 import type { MatrixLevels } from "@/components/shared/StrikeExpiryMatrix";
 import type { HeatSeekerPick } from "./HeatSeekerCard";
+import type { GexStatePayload } from "./MarketStateCard";
 
 export const MATRIX_DOC_SCHEMA = "options_structure.matrix/v1" as const;
 
@@ -66,9 +67,9 @@ export interface MatrixDoc {
   strikes?: number[];
   cells?: MatrixDocCell[];
   /**
-   * The builder's structural levels. NOTE the flip caveat: this block still carries a
-   * retired cumulative-by-strike estimator, so consumers must prefer gex_state's
-   * `gamma_flip` — see `mergeMatrixLevels` below.
+   * Structural levels from the matrix snapshot. Current Macro uses the canonical
+   * raw-chain spot-grid flip (or null), not the retired cumulative-strike estimate.
+   * This type does not attest the method or freshness of an arbitrary old payload.
    */
   levels?: MatrixLevels | null;
   heat_seeker?: HeatSeekerPick | null;
@@ -96,8 +97,25 @@ export function isMatrixDocForRoot(value: unknown, expectedRoot: string): value 
   return root.length > 0 && root === expectedRoot.trim().toUpperCase();
 }
 
+/** A plotted price is not a count: missing, non-finite and nonpositive stay null. */
+const price = (value: unknown): number | null =>
+  typeof value === "number" && Number.isFinite(value) && value > 0 ? value : null;
+
+/** Selected-root state admission; retains source clocks and non-price context. */
+export function readGexStateForRoot(value: unknown, expectedRoot: string): GexStatePayload | null {
+  if (!isRecord(value) || value.schema !== "options_structure.gex_state/v1") return null;
+  const root = typeof value.root === "string" ? value.root.trim().toUpperCase() : "";
+  if (!root || root !== expectedRoot.trim().toUpperCase()) return null;
+  return {
+    ...value, root,
+    gamma_flip: price(value.gamma_flip), call_wall: price(value.call_wall),
+    put_wall: price(value.put_wall), magnet: price(value.magnet), spot: price(value.spot),
+  } as unknown as GexStatePayload;
+}
+
 /** The gex_state fields the levels merge reads. */
 export interface MatrixStateLevels {
+  root?: string;
   call_wall?: number | null;
   put_wall?: number | null;
   gamma_flip?: number | null;
@@ -106,27 +124,26 @@ export interface MatrixStateLevels {
 }
 
 /**
- * ONE levels provenance for every matrix surface (§5.3).
+ * ONE level-selection rule for every matrix surface (§5.3).
  *
- * ⚠️ gex_state FIRST for the flip. The matrix builder's own levels block still carries
- * the retired cumulative-by-strike estimator (measured live 2026-08-01: SPY
- * levels.gamma_flip 594.28 against spot 741.69, while gex_state's spot-grid flip was
- * sane) — prefer the builder that uses the profile method until the matrix lane is
- * repaired and republished end to end. RCA:
- * docs/MARKET_STRUCTURE_CORE_MASTERPLAN_2026-08-01.md:270-284.
- *
- * Every other level prefers the matrix (it is strike-resolved there) and falls back to
- * gex_state.
+ * Preserve state-first flip precedence and matrix-first structural levels. Current
+ * Macro computes both flips with its raw-chain spot-grid method; the old comment
+ * describing every matrix flip as retired was stale (Terminal #591). Refuse invalid
+ * price values and an explicitly mismatched state root, without replacing missing
+ * data by a synthetic level. Snapshot/method provenance is not inferred here.
  */
 export function mergeMatrixLevels(
   matrix: MatrixDoc | null | undefined,
   state: MatrixStateLevels | null | undefined
 ): MatrixLevels {
+  const sameRoot = !matrix?.root || !state?.root ||
+    matrix.root.trim().toUpperCase() === state.root.trim().toUpperCase();
+  const accepted = sameRoot ? state : null;
   return {
-    call_wall: matrix?.levels?.call_wall ?? state?.call_wall ?? null,
-    put_support: matrix?.levels?.put_support ?? state?.put_wall ?? null,
-    hvl: matrix?.levels?.hvl ?? state?.hvl ?? state?.magnet ?? null,
-    gamma_flip: state?.gamma_flip ?? matrix?.levels?.gamma_flip ?? null,
-    max_pain: matrix?.levels?.max_pain ?? null,
+    call_wall: price(matrix?.levels?.call_wall) ?? price(accepted?.call_wall),
+    put_support: price(matrix?.levels?.put_support) ?? price(accepted?.put_wall),
+    hvl: price(matrix?.levels?.hvl) ?? price(accepted?.hvl) ?? price(accepted?.magnet),
+    gamma_flip: price(accepted?.gamma_flip) ?? price(matrix?.levels?.gamma_flip),
+    max_pain: price(matrix?.levels?.max_pain),
   };
 }
