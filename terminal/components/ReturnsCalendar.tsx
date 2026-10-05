@@ -104,7 +104,7 @@ export default function ReturnsCalendar({
     let cancelled = false;
     if (!requestKey || !selectedDate) return;
     const prior = previousCalendarDate(selectedDate);
-    const url = (date: string) => `/api/intraday?sym=${encodeURIComponent(symbol)}&tf=1h&ext=1&overnight=1&date=${date}`;
+    const url = (date: string) => `/api/intraday?sym=${encodeURIComponent(symbol)}&tf=30m&ext=1&overnight=1&date=${date}`;
     void (async () => {
       try {
         const [cur, prev] = await Promise.all([fetch(url(selectedDate)), fetch(url(prior))]);
