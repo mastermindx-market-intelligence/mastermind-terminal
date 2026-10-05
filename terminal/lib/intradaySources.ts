@@ -247,14 +247,26 @@ export async function fetchAlpacaBoatsWallDate(
     sort: "asc",
     limit: "1000",
   });
-  const r = await fetch(`https://data.alpaca.markets/v2/stocks/bars?${params.toString()}`, {
-    headers: {
-      "APCA-API-KEY-ID": key,
-      "APCA-API-SECRET-KEY": secret,
-    },
-    cache: "no-store",
-    signal: AbortSignal.timeout(8000),
-  });
+  let r: Response;
+  try {
+    r = await fetch(`https://data.alpaca.markets/v2/stocks/bars?${params.toString()}`, {
+      headers: {
+        "APCA-API-KEY-ID": key,
+        "APCA-API-SECRET-KEY": secret,
+      },
+      cache: "no-store",
+      signal: AbortSignal.timeout(8000),
+    });
+  } catch (error: unknown) {
+    const value: OvernightBarsResult = {
+      bars: [],
+      source: "alpaca-boats",
+      status: "unavailable",
+      note: error instanceof Error ? `alpaca-boats: ${error.message}` : "alpaca-boats network error",
+    };
+    BOATS_CACHE.set(cacheKey, { at: nowMs, value });
+    return value;
+  }
   if (!r.ok) {
     const value: OvernightBarsResult = {
       bars: [],
