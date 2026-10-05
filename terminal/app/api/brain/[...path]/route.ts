@@ -54,9 +54,9 @@ function threadIdPath(segs: string[]): string | null {
   return null;
 }
 
-// A run id as the gateway mints it: `uuid.uuid4().hex`. We validate by CHARSET rather than
-// by banning "/" and ".." the way threadIdPath does, because the resolved path is
-// interpolated into the upstream URL — so a segment containing "?" or "#" would not just be
+// A run id as the gateway mints it: `uuid.uuid4().hex`. Both run and thread ids use
+// a bounded charset because the resolved path is interpolated into the upstream
+// URL — so a segment containing "?" or "#" would not just be
 // an odd id, it would smuggle a query string (or truncate the path) into the gateway call.
 // Next decodes route params, so `%3F` arrives here as a literal "?"; this charset is what
 // stops it. Kept a little wider than 32 hex chars so a future id format does not 404, but

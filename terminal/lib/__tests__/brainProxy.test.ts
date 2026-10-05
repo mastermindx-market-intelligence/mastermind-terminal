@@ -106,7 +106,6 @@ function getWithQuery(qs: string, extra: Record<string, string> = {}): Request {
 
 const params = (...path: string[]) => ({ params: Promise.resolve({ path }) });
 
-
 function anon() {
   H.session = null;
   H.user = null;
@@ -632,6 +631,19 @@ describe("DELETE threads/<id>: session-required", () => {
 
 describe("thread identifiers cannot change the upstream URL", () => {
   for (const [method, handle] of [["GET", GET], ["PATCH", PATCH], ["DELETE", DELETE]] as const) {
+    it(`${method} preserves a real thread UUID and authenticated target`, async () => {
+      signedIn("thread-owner-token");
+      const id = "550e8400-e29b-41d4-a716-446655440000";
+      const response = await handle(
+        req(method, method === "PATCH" ? { "content-type": "application/json" } : {},
+          method === "PATCH" ? JSON.stringify({ title: "Rename" }) : undefined),
+        params("threads", id),
+      );
+      expect(response.status).toBe(200);
+      expect(calls).toHaveLength(1);
+      expect(calls[0].url).toBe(`https://mastermind-x.com/api/brain/threads/${id}`);
+      expect(calls[0].headers.authorization).toBe("Bearer thread-owner-token");
+    });
     for (const id of ["t_42?cursor=9", "t_42#ignored", "t_42%2Fstream", "t_42%252Fstream", "t_42\\stream", "t_42 extra", "t_42\n", "线程", "x".repeat(65)]) {
       it(`${method} refuses ${JSON.stringify(id)} before any gateway call`, async () => {
         signedIn();
