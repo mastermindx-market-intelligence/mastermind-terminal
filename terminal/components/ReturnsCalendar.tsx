@@ -115,6 +115,16 @@ export default function ReturnsCalendar({
         const [cj, pj] = await Promise.all([cur.json(), prev.json()]);
         const current = Array.isArray(cj?.bars) ? cj.bars as Bar6[] : [];
         const previous = Array.isArray(pj?.bars) ? pj.bars as Bar6[] : [];
+        const windowRaw = cj?.regular_session_window;
+        const regularWindow: readonly [number, number] | null =
+          windowRaw &&
+          Number.isInteger(windowRaw.start_minute) &&
+          Number.isInteger(windowRaw.end_minute) &&
+          windowRaw.start_minute >= 0 &&
+          windowRaw.end_minute > windowRaw.start_minute &&
+          windowRaw.end_minute <= 1440
+            ? [windowRaw.start_minute, windowRaw.end_minute]
+            : null;
         if (!cancelled) {
           const statuses = [pj?.overnight_evidence?.status, cj?.overnight_evidence?.status]
             .filter((value): value is Exclude<CoverageStatus, null> =>
@@ -135,7 +145,7 @@ export default function ReturnsCalendar({
               : null;
           setSessionLoad({
             key: requestKey,
-            sessions: buildReturnsCalendarSessions(current, previous, selectedDate),
+            sessions: buildReturnsCalendarSessions(current, previous, regularWindow),
             error: false,
             overnightStatus,
             studyStatus,
