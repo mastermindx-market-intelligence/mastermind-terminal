@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
-import { fetchIntraday, isIntradayTf, isSecondTf, classify } from "@/lib/intradaySources";
+import { fetchIntraday, fetchUsEquityDateStudyBars, isIntradayTf, isSecondTf, classify } from "@/lib/intradaySources";
 import { fetchHubOvernightWallDate } from "@/lib/overnightHistory";
 import { isMacroSymbol } from "@/lib/macroSymbols";
 import { withStoredHistory } from "@/lib/intradayStore";
@@ -33,6 +33,12 @@ type IntradayResponse = {
     bars: number;
     note?: string;
   };
+  session_study_evidence?: {
+    source: "massive-date";
+    status: "available" | "empty" | "unavailable";
+    bars: number;
+    note?: string;
+  };
 };
 type EvidenceState = {
   trace: IntradayAssemblyTrace;
@@ -49,6 +55,8 @@ const TTL = 45_000; // delayed data doesn't move faster than this; also bounds u
 // (and every other viewer of the same symbol) into one upstream call.
 const SECOND_TTL = 10_000;
 const SESSION_DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
+const SESSION_STUDY_TTL = 60_000;
+const SESSION_STUDY_CACHE = new Map<string, { at: number; bars: Bar6[] }>();
 
 function isValidSessionDate(date: string): boolean {
   if (!SESSION_DATE_RE.test(date)) return false;
@@ -90,6 +98,60 @@ function responseForSession(
 
 function errorMessage(error: unknown, fallback: string): string {
   return error instanceof Error && error.message ? error.message : fallback;
+}
+
+async function withRequestedSessionStudy(
+  response: IntradayResponse,
+  sym: string,
+  tf: string,
+  date: string,
+  requested: boolean,
+): Promise<IntradayResponse> {
+  if (
+    !requested ||
+    !date ||
+    response.bars.length > 0 ||
+    classify(sym) !== "us" ||
+    isMacroSymbol(sym) ||
+    isSecondTf(tf)
+  ) return response;
+
+  const key = `${sym.toUpperCase()}|${tf}|${date}`;
+  const hit = SESSION_STUDY_CACHE.get(key);
+  let bars: Bar6[];
+  if (hit && Date.now() - hit.at < SESSION_STUDY_TTL) {
+    bars = hit.bars;
+  } else {
+    try {
+      bars = await fetchUsEquityDateStudyBars(sym, tf, true, date);
+      SESSION_STUDY_CACHE.set(key, { at: Date.now(), bars });
+    } catch (error: unknown) {
+      return {
+        ...response,
+        session_study_evidence: {
+          source: "massive-date",
+          status: "unavailable",
+          bars: 0,
+          note: errorMessage(error, "date-scoped session study unavailable"),
+        },
+      };
+    }
+  }
+
+  if (!bars.length) {
+    return {
+      ...response,
+      session_study_evidence: { source: "massive-date", status: "empty", bars: 0 },
+    };
+  }
+  // The original evidence describes the empty stored/recent assembly. Once this fallback supplies
+  // bars, do not attach that trace to different bytes; emit an explicit date-study receipt instead.
+  const { source_evidence: _staleEvidence, ...rest } = response;
+  return {
+    ...rest,
+    bars,
+    session_study_evidence: { source: "massive-date", status: "available", bars: bars.length },
+  };
 }
 
 async function withRequestedOvernight(
@@ -204,7 +266,8 @@ export async function GET(req: Request) {
   if (hit && Date.now() - hit.at < (seconds ? SECOND_TTL : TTL)) {
     if (seconds) return NextResponse.json(hit.data);
     const cached = responseForSession(hit.data, date, hit.evidence, "cache");
-    return NextResponse.json(await withRequestedOvernight(cached, sym, tf, date, overnight));
+    const studied = await withRequestedSessionStudy(cached, sym, tf, date, overnight);
+    return NextResponse.json(await withRequestedOvernight(studied, sym, tf, date, overnight));
   }
 
   // ── Second band: single-session live window, no store ────────────────────────────────────
@@ -261,7 +324,8 @@ export async function GET(req: Request) {
     // store read failed entirely (unlikely; readStore swallows its own errors)
     if (hit) {
       const stale = responseForSession(hit.data, date, hit.evidence, "stale_cache");
-      return NextResponse.json(await withRequestedOvernight(stale, sym, tf, date, overnight));
+      const studied = await withRequestedSessionStudy(stale, sym, tf, date, overnight);
+      return NextResponse.json(await withRequestedOvernight(studied, sym, tf, date, overnight));
     }
     return NextResponse.json({ t: sym, tf, bars: [], error: errorMessage(error, "store error") });
   }
@@ -270,7 +334,8 @@ export async function GET(req: Request) {
     // nothing at all — propagate the live error; stale cache wins if present
     if (hit) {
       const stale = responseForSession(hit.data, date, hit.evidence, "stale_cache");
-      return NextResponse.json(await withRequestedOvernight(stale, sym, tf, date, overnight));
+      const studied = await withRequestedSessionStudy(stale, sym, tf, date, overnight);
+      return NextResponse.json(await withRequestedOvernight(studied, sym, tf, date, overnight));
     }
     return NextResponse.json({ t: sym, tf, bars: [], error: liveErr });
   }
@@ -285,6 +350,7 @@ export async function GET(req: Request) {
   } : null;
   CACHE.set(ckey, { at: assembledAtMs, data, evidence });
   const response = responseForSession(data, date, evidence, "new_assembly");
-  const served = await withRequestedOvernight(response, sym, tf, date, overnight);
+  const studied = await withRequestedSessionStudy(response, sym, tf, date, overnight);
+  const served = await withRequestedOvernight(studied, sym, tf, date, overnight);
   return NextResponse.json(served, { headers: { "Cache-Control": "no-store" } });
 }
