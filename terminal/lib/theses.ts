@@ -623,6 +623,25 @@ const DETAIL_HEAD_FIELDS = "id,current_version,lifecycle_state,subject_ref,creat
 const LIST_HEAD_FIELDS = "id,current_version,lifecycle_state,subject_ref,updated_at";
 const VERSION_FIELDS = "id,thesis_id,version,previous_version,transition,lifecycle_state,subject_ref,content,client_request_id,system_recorded_at,effective_at";
 
+/** Exact retained-version read under the canonical Thesis owner's current RLS.
+ * Never searches only recent history or substitutes the current head. */
+export async function readThesisVersion(db: ThesisDb, userId: string, thesisId: string, versionId: string): Promise<
+  | {ok:true;version:ThesisVersion}
+  | {ok:false;status:"not_found"|"unavailable";error:string}
+> {
+  if (!isCanonicalUuid(thesisId) || !isCanonicalUuid(versionId)) return {ok:false,status:"not_found",error:"thesis version not found"};
+  try {
+    const result = await db.from("thesis_versions").select(VERSION_FIELDS)
+      .eq("user_id", userId).eq("thesis_id", thesisId).eq("id", versionId).maybeSingle();
+    if (result?.error) return {ok:false,status:"unavailable",error:"thesis version unavailable"};
+    const row = one(result);
+    if (!row) return {ok:false,status:"not_found",error:"thesis version not found"};
+    const version = rowToVersion(row);
+    if (!version || version.id !== versionId || version.thesisId !== thesisId) return {ok:false,status:"unavailable",error:"thesis version identity mismatch"};
+    return {ok:true,version};
+  } catch { return {ok:false,status:"unavailable",error:"thesis version unavailable"}; }
+}
+
 export async function readThesis(db: ThesisDb, userId: string, thesisId: string): Promise<ThesisRead> {
   if (!isUuid(thesisId)) return { ok: false, status: "not_found", error: "thesis not found" };
   try {

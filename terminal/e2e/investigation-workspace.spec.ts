@@ -225,10 +225,14 @@ test("Analysis research entries retain their responsive bilingual source evidenc
    if(project!=="tablet"){
     const spyUrl=`/analysis?symbol=SPY&lang=${lang}`;await page.goto(`${testInfo.project.use.baseURL}${spyUrl}`);
     const bar=page.locator(".analysis-context-bar");await expect(bar).toBeVisible();
-    const rect=await bar.boundingBox();expect(rect).not.toBeNull();
     const crop=`AnalysisWorkspace-${viewport.width}${lang==="zh"?"-zh":""}.png`;
-    const x=Math.max(0,rect!.x-12),y=Math.max(0,rect!.y-12);
-    await page.screenshot({path:testInfo.outputPath(crop),clip:{x,y,width:Math.min(viewport.width-x,rect!.width+24),height:rect!.height+24}});
+    // The server-rendered context bar can be replaced during hydration after
+    // toBeVisible. Reacquire the actual box before capture, within a finite wait.
+    await expect(async()=>{
+     const rect=await bar.boundingBox();expect(rect).not.toBeNull();
+     const x=Math.max(0,rect!.x-12),y=Math.max(0,rect!.y-12);
+     await page.screenshot({path:testInfo.outputPath(crop),clip:{x,y,width:Math.min(viewport.width-x,rect!.width+24),height:rect!.height+24}});
+    }).toPass({timeout:5000});
     captures.push({file:crop,url:spyUrl,state:"analysis-context-bar"});
    }
   }finally{await context.close();}
