@@ -626,12 +626,13 @@ export default function AlertsView({ email, panelOnly, listOnly }: { email: stri
   const existingAlertsPanel = (
         <div className="panel">
           {/* The count is a claim about the inventory — it must not print "0 total" over a
-              read that never landed. The re-read control is always present when signed in: a
+              read that never landed, and that includes the FIRST read while it is still in
+              flight (`alerts` starts as [], so only `loaded` can tell). The re-read control is always present when signed in: a
               retry path that only exists once a failure is already on screen cannot recover a
               refresh that failed over rows the user can still see. */}
           <div className="ph">
             {t("activeAlerts")}
-            {!signedOut && !(unavailable && alerts.length === 0) && <span className="sub">{alerts.length} {t("total")}</span>}
+            {loaded && !signedOut && !(unavailable && alerts.length === 0) && <span className="sub">{alerts.length} {t("total")}</span>}
             {!signedOut && loaded && (
               <button
                 type="button"
