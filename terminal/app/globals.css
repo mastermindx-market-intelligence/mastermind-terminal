@@ -5352,3 +5352,56 @@ html[data-shell="app"] .mm-brandbug{
     overflow: visible !important;
   }
 }
+
+
+/* === Returns calendar · StockAnalysis / dossier =================================
+   Daily layer is derived from the already-loaded adjusted D1 bars. Session detail is
+   selected-day only and hydrates through /api/intraday; no extra first-paint market-data
+   request. Five columns intentionally model trading weekdays rather than wall-calendar weekends. */
+.sa-returns{display:flex;flex-direction:column;gap:8px;border:1px solid var(--line);border-radius:var(--r-lg);background:var(--panel);padding:12px 13px}
+.sa-returns-head{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}
+.sa-returns-title{font:700 11px/1 var(--font-ui);letter-spacing:.06em;text-transform:uppercase;color:var(--text);border-left:2px solid var(--brand);padding-left:9px}
+.sa-returns-sub{font:500 9.5px/1.25 var(--font-ui);color:var(--muted);padding:5px 0 0 11px}
+.sa-returns-nav{display:flex;align-items:center;gap:5px;min-width:0}
+.sa-returns-nav span{font:650 10px/1 var(--font-ui);color:var(--text-2);white-space:nowrap}
+.sa-returns-nav button{width:22px;height:22px;border:1px solid var(--line);border-radius:6px;background:var(--panel-2);color:var(--text-2);font:700 15px/1 var(--font-ui);cursor:pointer}
+.sa-returns-nav button:hover:not(:disabled){border-color:var(--brand-2);color:var(--text)}
+.sa-returns-nav button:disabled{opacity:.3;cursor:default}
+.sa-returns-weekdays,.sa-returns-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:4px}
+.sa-returns-weekdays span{text-align:center;font:650 8.5px/1 var(--font-ui);letter-spacing:.05em;text-transform:uppercase;color:var(--muted);padding:3px 0}
+.sa-return-cell{min-width:0;min-height:63px;display:flex;flex-direction:column;align-items:flex-start;justify-content:space-between;gap:4px;padding:7px;border:1px solid transparent;border-radius:7px;background:var(--panel-2);color:var(--text);text-align:left}
+button.sa-return-cell{cursor:pointer}
+button.sa-return-cell:hover{border-color:var(--line-2,var(--line))}
+.sa-return-cell.up{background:color-mix(in srgb,var(--up) 8%,var(--panel-2))}
+.sa-return-cell.down{background:color-mix(in srgb,var(--down) 8%,var(--panel-2))}
+.sa-return-cell.selected{border-color:var(--brand-2);box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--brand-2) 35%,transparent)}
+.sa-return-cell.blank,.sa-return-cell.empty{background:transparent;border-color:transparent;cursor:default}
+.sa-return-cell.empty{opacity:.38}
+.sa-return-cell .date{font:650 9px/1 var(--font-num);color:var(--muted)}
+.sa-return-cell .ret{font:750 12px/1 var(--font-num);font-variant-numeric:tabular-nums}
+.sa-return-cell.up .ret{color:var(--up)}.sa-return-cell.down .ret{color:var(--down)}
+.sa-return-cell .range{max-width:100%;font:550 7.5px/1.15 var(--font-num);color:var(--text-3,var(--muted));white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-variant-numeric:tabular-nums}
+.sa-return-detail{display:flex;flex-direction:column;gap:8px;margin-top:3px;padding-top:10px;border-top:1px solid var(--line)}
+.sa-return-detail-head{display:flex;align-items:flex-start;justify-content:space-between;gap:8px}
+.sa-return-detail-head>div{display:flex;align-items:baseline;gap:7px}
+.sa-return-detail-head b{font:700 11px/1 var(--font-num);color:var(--text)}
+.sa-return-detail-head .up,.sa-return-detail-head .down{font:750 11px/1 var(--font-num)}
+.sa-return-detail-head .up{color:var(--up)}.sa-return-detail-head .down{color:var(--down)}
+.sa-return-detail-head>span{font:550 8.5px/1.25 var(--font-num);color:var(--muted);text-align:right}
+.sa-session-grid{display:grid;grid-template-columns:1fr 1fr;gap:5px}
+.sa-session{display:flex;flex-direction:column;gap:5px;min-width:0;padding:8px;border:1px solid var(--line);border-radius:7px;background:var(--panel-2)}
+.sa-session-name{display:flex;align-items:baseline;justify-content:space-between;gap:5px}
+.sa-session-name b{font:650 9px/1 var(--font-ui);color:var(--text-2)}
+.sa-session-name span{font:500 7.5px/1 var(--font-num);color:var(--muted);white-space:nowrap}
+.sa-session>strong{font:750 11px/1 var(--font-num);color:var(--text);font-variant-numeric:tabular-nums}
+.sa-session>strong.up{color:var(--up)}.sa-session>strong.down{color:var(--down)}
+.sa-session>span{font:550 8px/1 var(--font-num);color:var(--muted);white-space:nowrap;font-variant-numeric:tabular-nums}
+.sa-return-note{font:500 8.5px/1.35 var(--font-ui);color:var(--muted)}
+@media (max-width:560px){
+  .sa-returns-head{align-items:flex-end}
+  .sa-returns-sub{display:none}
+  .sa-return-cell{min-height:58px;padding:6px 5px}
+  .sa-return-cell .range{font-size:7px}
+  .sa-return-detail-head{flex-direction:column}
+  .sa-return-detail-head>span{text-align:left}
+}
