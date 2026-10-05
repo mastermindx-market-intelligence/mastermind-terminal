@@ -135,7 +135,7 @@ export default function ReturnsCalendar({
               : null;
           setSessionLoad({
             key: requestKey,
-            sessions: buildReturnsCalendarSessions(current, previous),
+            sessions: buildReturnsCalendarSessions(current, previous, selectedDate),
             error: false,
             overnightStatus,
             studyStatus,
@@ -248,7 +248,7 @@ export default function ReturnsCalendar({
               const s = sessions?.find((x) => x.key === spec.key) || null;
               return (
                 <div key={spec.key} className="sa-session">
-                  <div className="sa-session-name"><b>{pick(spec.en, spec.cn)}</b><span>{spec.hours} ET</span></div>
+                  <div className="sa-session-name"><b>{pick(spec.en, spec.cn)}</b><span>{s?.hours || spec.hours} ET</span></div>
                   <strong className={s?.ret != null ? (s.ret >= 0 ? "up" : "down") : ""}>{s?.ret != null ? pct(s.ret) : "—"}</strong>
                   <span className="num">H {px(s?.high ?? null)} · L {px(s?.low ?? null)}</span>
                 </div>
