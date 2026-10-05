@@ -50,8 +50,13 @@ No second market-data owner is introduced.
 The selected-day study deliberately uses **30-minute** bars. The existing extended-session resampler
 anchors at 04:00 ET; 30 minutes lands exactly on 09:30, 16:00, and 20:00, while a 1-hour bar
 would create a 09:00–10:00 bucket that straddles the premarket/RTH boundary. Publishing session
-H/L from that 1-hour grain would be numerically wrong. Where 30-minute history is unavailable,
-the session stays blank rather than falling back to a boundary-crossing approximation.
+H/L from that 1-hour grain would be numerically wrong.
+
+If the ordinary stored/recent assembly has no 30-minute bars for the selected date, the existing
+intraday owner makes one **date-scoped Massive aggregate request** for that ET calendar date and
+caches the result for 60 seconds. This is a fallback inside the same owner, not a second data plane.
+If that precise request is empty or unavailable, the session stays blank rather than falling back
+to a boundary-crossing hourly approximation.
 
 This makes the feature useful immediately without increasing Terminal first-paint data cost.
 
