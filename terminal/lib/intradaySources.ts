@@ -242,7 +242,7 @@ export async function fetchAlpacaBoatsWallDate(
     timeframe,
     start: new Date(startMs).toISOString(),
     end: new Date(endMs).toISOString(),
-    adjustment: "all",
+    adjustment: "split",
     feed: "boats",
     sort: "asc",
     limit: "1000",
