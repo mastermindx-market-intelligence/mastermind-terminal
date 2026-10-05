@@ -2,6 +2,7 @@ import {afterEach,beforeEach,describe,expect,it,vi} from "vitest";
 import {createHash} from "node:crypto";
 import golden from "./fixtures/aapl-event-workspace.json";
 import {resolveRetainedEventWorkspaceFromR2,resolveRetainedEventWorkspaceAtCutoff} from "../eventWorkspace";
+import {resolveInvestigationIssuerRelease,resolveInvestigationIssuerReleaseAtCutoff,type IssuerReleaseIdentity} from "../investigationIssuerRelease";
 const base="https://pub-f7ffb4441c5f4ad983ca56ec7c651c61.r2.dev",event=golden.event_id;
 const sha=(value:string)=>createHash("sha256").update(value).digest("hex");
 const a="a".repeat(24),b="b".repeat(24),c="c".repeat(24),dates=["2026-08-01T00:00:00Z","2026-08-02T00:00:00Z","2026-08-03T00:00:00Z"];
@@ -60,5 +61,23 @@ describe("retained Earnings platform snapshot replay",()=>{
  it("refuses an object observed after its containing snapshot was supposedly emitted",async()=>{
   const path=key(b,`workspaces/${event}.json`),workspace=JSON.parse(files.get(path)!);workspace.lifecycle.observed_at=dates[2];const wire=JSON.stringify(workspace);files.set(path,wire);const m=JSON.parse(files.get(key(b))!);m.files[`workspaces/${event}.json`]={sha256:sha(wire),bytes:Buffer.byteLength(wire)};files.set(key(b),JSON.stringify(m));add(c,dates[2],b);
   expect(await resolveRetainedEventWorkspaceAtCutoff(await root(),{policy:"platform_snapshot",cutoff:dates[1]},base,{authorize:allow})).toMatchObject({ok:false,reason:"invalid_history"});
+ });
+});
+
+describe("selected release history uses the same retained owner",()=>{
+ const rights=async(i:IssuerReleaseIdentity)=>({allowed:true,family:"sec_edgar" as const,policy_version:"fixture",registry_revision:"fixture-r1",permitted_display_class:"direct_display_ok" as const,checked_at:"2026-10-05T00:00:00Z",document_id:i.document_id,source_sha256:i.source_sha256});
+ async function selectedRoot(){const value=await resolveInvestigationIssuerRelease({event_id:event,generation_id:c,company_id:golden.issuer.company_id},base,{authorize:rights});if(!value.ok)throw Error(value.reason);return {...await root(),fingerprint:value.reference.fingerprint};}
+ it("returns only the older selected release and rechecks its current rights",async()=>{
+  const authorize=vi.fn(rights),pin=await selectedRoot();
+  const value=await resolveInvestigationIssuerReleaseAtCutoff(pin,{policy:"platform_snapshot",cutoff:dates[1]},base,{authorize});
+  expect(value).toMatchObject({ok:true,workspace:{schema:"earnings.issuer_release_projection.v1",generation_id:b},replay:{root_generation_id:c,selected_generation_id:b,steps:2}});
+  expect(authorize.mock.calls.map(call=>call[0].generation_id)).toContain(b);
+  expect(JSON.stringify(value)).not.toContain("qa_exchanges");expect(JSON.stringify(value)).not.toContain("tx:AAPL");
+  expect(calls.every(url=>url.includes("/generations/"))).toBe(true);
+ });
+ it("a permitted root never authorizes a now-denied older release",async()=>{
+  const pin=await selectedRoot();
+  const value=await resolveInvestigationIssuerReleaseAtCutoff(pin,{policy:"platform_snapshot",cutoff:dates[1]},base,{authorize:async i=>({...await rights(i),allowed:i.generation_id===c})});
+  expect(value).toEqual({ok:false,code:"HISTORICAL_UNAVAILABLE",reason:"denied"});
  });
 });

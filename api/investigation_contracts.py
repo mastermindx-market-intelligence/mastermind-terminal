@@ -6,7 +6,7 @@ admitted owner/kind pairs; shape acceptance cannot establish reference existence
 """
 from __future__ import annotations
 
-from datetime import date
+from datetime import date, datetime
 import json
 import math
 import re
@@ -61,7 +61,7 @@ def data_only(value):
 
     def visit(v, depth=0):
         counters[0] += 1
-        require(counters[0] <= 4096 and depth <= 24, "$", "non_json_value")
+        require(counters[0] <= 16384 and depth <= 24, "$", "non_json_value")
         if type(v) is str:
             counters[1] += len(v.encode("utf-16-le", errors="surrogatepass")) // 2
             require(counters[1] <= 131072, "$", "manifest_too_large")
@@ -81,12 +81,18 @@ def data_only(value):
     visit(value)
 
 
+def canonical_investigation_json(value):
+    """Serialize an accepted semantic value, preserving exact authored Unicode."""
+    return json.dumps(value, sort_keys=True, separators=(",", ":"), ensure_ascii=False, allow_nan=False)
+
+
 def validate_investigation_manifest(raw, admission=None):
     """Return detached accepted value or a bounded first error; never normalize text."""
     admission = admission if admission is not None else {}
     try:
         data_only(raw)
-        m = obj(raw, "$", ("schema", "intent", "layout_refs", "thesis_refs", "evidence_refs", "continuation"), ("review_baseline_ref",))
+        v2 = type(raw) is dict and raw.get("schema") == "investigation_manifest.v2"
+        m = obj(raw, "$", ("schema", "intent", "layout_refs", "thesis_refs", "evidence_refs", "continuation") + (("argument_relations",) if v2 else ()), ("review_baseline_ref",))
         choice(m["schema"], "$.schema", ("investigation_manifest.v1", "investigation_manifest.v2"))
         v2 = m["schema"] == "investigation_manifest.v2"
         limit = 4000 if v2 else 2000
@@ -151,21 +157,52 @@ def validate_investigation_manifest(raw, admission=None):
             text(intent["horizon"], "$.intent.horizon", 64, True)
         if "research_as_of" in intent:
             value = intent["research_as_of"]
-            require(type(value) is str and re.fullmatch(r"[0-9]{4}-[0-9]{2}-[0-9]{2}", value), "$.intent.research_as_of", "invalid_date")
+            code = "invalid_timestamp" if v2 else "invalid_date"
+            expression = r"[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}\.[0-9]{3}Z" if v2 else r"[0-9]{4}-[0-9]{2}-[0-9]{2}"
+            require(type(value) is str and re.fullmatch(expression, value), "$.intent.research_as_of", code)
             try:
-                date.fromisoformat(value)
+                if v2:
+                    parsed = datetime.fromisoformat(value)
+                    require(parsed.isoformat(timespec="milliseconds").replace("+00:00", "Z") == value, "$.intent.research_as_of", code)
+                else:
+                    date.fromisoformat(value)
             except ValueError:
-                raise Invalid("$.intent.research_as_of", "invalid_date") from None
+                raise Invalid("$.intent.research_as_of", code) from None
         refs(m["layout_refs"], "$.layout_refs", 4, layout)
         refs(m["thesis_refs"], "$.thesis_refs", 16, thesis)
         refs(m["evidence_refs"], "$.evidence_refs", 128, evidence)
-        require(not v2 or sum(len(m[k]) for k in ("layout_refs", "thesis_refs", "evidence_refs")) <= 128, "$", "too_many_references")
         continuation = obj(m["continuation"], "$.continuation", (), ("next_question", "next_observation"))
         for key, value in continuation.items():
             text(value, "$.continuation." + key, limit)
         if "review_baseline_ref" in m:
             evidence(m["review_baseline_ref"], "$.review_baseline_ref", True)
-        serialized = json.dumps(m, ensure_ascii=False, separators=(",", ":"))
+            require(not v2 or m["review_baseline_ref"] in m["evidence_refs"], "$.review_baseline_ref", "baseline_not_member")
+        if v2:
+            def endpoint(v, p):
+                require(type(v) is dict, p, "invalid_type")
+                if v.get("kind") == "thesis":
+                    obj(v, p, ("kind", "thesis_id", "version_id"))
+                    for k in ("thesis_id", "version_id"):
+                        pattern(v[k], p + "." + k, UUID, "invalid_uuid")
+                    require(any(r["thesis_id"] == v["thesis_id"] and r["version_id"] == v["version_id"] for r in m["thesis_refs"]), p, "unresolved_endpoint")
+                elif v.get("kind") == "evidence":
+                    obj(v, p, ("kind", "owner", "object_type", "object_id", "mode"), ("version_ref", "selection"))
+                    key = evidence({k: value for k, value in v.items() if k != "kind"}, p)
+                    require(any(evidence(r, p) == key for r in m["evidence_refs"]), p, "unresolved_endpoint")
+                else:
+                    raise Invalid(p + ".kind", "unsupported_value")
+            require(type(m["argument_relations"]) is list, "$.argument_relations", "invalid_type")
+            require(len(m["argument_relations"]) <= 256, "$.argument_relations", "too_many_items")
+            for i, edge in enumerate(m["argument_relations"]):
+                p = f"$.argument_relations[{i}]"
+                obj(edge, p, ("source", "target", "relation", "rationale"), ("discrimination_criterion",))
+                endpoint(edge["source"], p + ".source")
+                endpoint(edge["target"], p + ".target")
+                choice(edge["relation"], p + ".relation", ("supports", "weakens", "contradicts", "unresolved_interpretation", "discriminates_between"))
+                text(edge["rationale"], p + ".rationale", 4000)
+                if "discrimination_criterion" in edge:
+                    text(edge["discrimination_criterion"], p + ".discrimination_criterion", 4000)
+        serialized = canonical_investigation_json(m) if v2 else json.dumps(m, ensure_ascii=False, separators=(",", ":"))
         require(len(serialized.encode("utf-8")) <= (131072 if v2 else 65536), "$", "manifest_too_large")
         return {"ok": True, "value": json.loads(serialized)}
     except Invalid as e:

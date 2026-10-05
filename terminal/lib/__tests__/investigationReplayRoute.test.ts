@@ -1,12 +1,13 @@
 import {beforeEach,describe,expect,it,vi} from "vitest";
-const {getUser,read,replay,authorize}=vi.hoisted(()=>({getUser:vi.fn(),read:vi.fn(),replay:vi.fn(),authorize:vi.fn()}));
+const {getUser,read,replay,authorize,selected}=vi.hoisted(()=>({getUser:vi.fn(),read:vi.fn(),replay:vi.fn(),authorize:vi.fn(),selected:vi.fn()}));
 vi.mock("@/lib/supabase/server",()=>({createClient:async()=>({auth:{getUser}})}));
 vi.mock("@/lib/investigations",async()=>({...await vi.importActual<typeof import("@/lib/investigations")>("@/lib/investigations"),readInvestigation:read}));
 vi.mock("@/lib/eventWorkspace",async()=>({...await vi.importActual<typeof import("@/lib/eventWorkspace")>("@/lib/eventWorkspace"),resolveRetainedEventWorkspaceAtCutoff:replay,authorizeRetainedPublicEventContext:authorize}));
+vi.mock("@/lib/investigationIssuerRelease",()=>({resolveInvestigationIssuerReleaseAtCutoff:selected}));
 import {GET} from "@/app/api/investigations/replay/route";
 const id="10000000-0000-4000-8000-000000000001",fingerprint="a".repeat(64),company="cik:0000320193";
 const ref={owner:"earnings.workspace_generation",object_type:"event_workspace",object_id:"evt_cik0000320193_2026q3_results",mode:"pinned",version_ref:"a".repeat(24),fingerprint};
-const manifest={schema:"investigation_manifest.v2",intent:{title:"Research",question:"What changed?",subjects:[{owner:"data_os.security_master",kind:"issuer",object_id:company}]},layout_refs:[],thesis_refs:[],evidence_refs:[ref],review_baseline_ref:ref,continuation:{}};
+const manifest={schema:"investigation_manifest.v2",argument_relations:[],intent:{title:"Research",question:"What changed?",subjects:[{owner:"data_os.security_master",kind:"issuer",object_id:company}]},layout_refs:[],thesis_refs:[],evidence_refs:[ref],review_baseline_ref:ref,continuation:{}};
 const query=new URLSearchParams({id,revision:"1",policy:"platform_snapshot",cutoff:"2026-08-01T00:00:00Z"});
 const request=(q=query.toString())=>new Request(`https://terminal.test/api/investigations/replay?${q}`);
 beforeEach(()=>{vi.clearAllMocks();getUser.mockResolvedValue({data:{user:{id:"owner"}},error:null});read.mockResolvedValue({status:"found",id,revision:1,manifest});replay.mockResolvedValue({ok:true,workspace:{generation_id:"b".repeat(24)},receipt:{fingerprint:"b".repeat(64)},replay:{policy:"platform_snapshot"}});});
@@ -27,4 +28,13 @@ describe("read-only authenticated retained snapshot route",()=>{
  it("rejects ambiguous selectors and caller-supplied baseline overrides",async()=>{
   for(const suffix of ["&revision=1","&generation_id=other","&fingerprint=bad"]){expect((await GET(request(query+suffix))).status).toBe(400);}const q=new URLSearchParams(query);q.set("policy","current");expect((await GET(request(q.toString()))).status).toBe(400);expect(read).not.toHaveBeenCalled();expect(replay).not.toHaveBeenCalled();
  });
+});
+
+it("keeps selected replay default-denied without falling back to mixed content",async()=>{
+ const selectedRef={...ref,selection:{field:"issuer_release"}};
+ read.mockResolvedValue({status:"found",id,revision:1,manifest:{...manifest,evidence_refs:[selectedRef],review_baseline_ref:selectedRef}});
+ selected.mockResolvedValue({ok:false,code:"HISTORICAL_UNAVAILABLE",reason:"rights_unavailable"});
+ expect(await (await GET(request())).json()).toMatchObject({ok:false,reason:"rights_unavailable"});
+ expect(selected.mock.calls[0][0]).toMatchObject({fingerprint});expect(selected.mock.calls[0][3]).not.toHaveProperty("authorize");
+ expect(replay).not.toHaveBeenCalled();
 });

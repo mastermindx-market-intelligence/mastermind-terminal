@@ -1,7 +1,7 @@
 import {NextResponse} from "next/server";
 import {createClient} from "@/lib/supabase/server";
 import {readInvestigation,isInvestigationId,INVESTIGATION_ADMISSION,type InvestigationDb} from "@/lib/investigations";
-import {validateInvestigationManifest} from "@/lib/investigationContracts";
+import {validateStoredInvestigationManifest} from "@/lib/investigationContracts";
 import {readThesisVersion,type ThesisDb} from "@/lib/theses";
 export const runtime="nodejs";
 export const dynamic="force-dynamic";
@@ -17,7 +17,7 @@ export async function GET(request:Request){
   if(keys.length!==2||new Set(keys).size!==2||keys.some(key=>!["id","revision"].includes(key))||!isInvestigationId(id)||!revision||!/^[1-9][0-9]{0,9}$/.test(revision)||Number(revision)>2147483647)return response({status:"invalid_payload"},400);
   const saved=await readInvestigation(db as unknown as InvestigationDb,id,Number(revision));
   if(saved.status!=="found")return response({status:saved.status==="not_found"?"not_found":"unavailable"},saved.status==="not_found"?404:503);
-  const manifest=validateInvestigationManifest("manifest" in saved?saved.manifest:null,INVESTIGATION_ADMISSION);
+  const manifest=validateStoredInvestigationManifest("manifest" in saved?saved.manifest:null,INVESTIGATION_ADMISSION);
   if(!manifest.ok)return response({status:"unavailable"},503);
   const items=await Promise.all(manifest.value.thesis_refs.map(async ref=>{
    const result=await readThesisVersion(db as unknown as ThesisDb,user.id,ref.thesis_id,ref.version_id);

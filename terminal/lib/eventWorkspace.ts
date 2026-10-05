@@ -1826,51 +1826,14 @@ export async function resolveRetainedEventWorkspaceAtCutoff(
   return unavailable("history_limit");
 }
 
-/** Public-primary context display is the existing Earnings producer's rights profile.
- * No licensed/private material, export, sharing or AI reuse is admitted by this adapter. */
-function publicContextDocuments(workspace: EventWorkspace): Set<string> | null {
-  const documents = new Set<string>();
-  let qualified = true;
-  const walk = (value: unknown, documentId?: string): void => {
-    if (!value || typeof value !== "object") return;
-    if (Array.isArray(value)) { value.forEach(v => walk(v, documentId)); return; }
-    const row = value as Record<string, unknown>;
-    const ownId = typeof row.document_id === "string" ? row.document_id : documentId;
-    if (Object.hasOwn(row, "rights_profile")) {
-      if (row.rights_profile !== "rp_public_primary_v1") qualified = false;
-      else if (ownId) documents.add(ownId);
-    }
-    Object.values(row).forEach(v => walk(v, ownId));
-  };
-  walk(workspace);
-  const heldDocuments=workspace.sources.filter(source=>source.receipt_state==="byte_replayed");
-  return qualified && documents.size > 0 && heldDocuments.every(source=>typeof source.document_id==="string"&&documents.has(source.document_id)) ? documents : null;
-}
-
-/** Fresh owner publication, read at use time. The retained generation's rights annotations
- * alone cannot grant access. If its source documents no longer have an explicit public-primary
- * declaration in the current event publication, historical display stays unavailable. */
+/** The old public-primary token is not a grant for a mixed Earnings workspace.
+ * This compatibility entry point refuses until the existing rights owner admits
+ * a complete-workspace display policy. SEC-only use goes through the selected
+ * issuer-release adapter, which never returns transcript/QA/model bodies. */
 export async function authorizeRetainedPublicEventContext(
-  retained: EventWorkspace,
-  base: string,
-  signal?: AbortSignal,
+  _retained: EventWorkspace,
+  _base: string,
+  _signal?: AbortSignal,
 ): Promise<RetainedEventWorkspaceRights> {
-  const decision = (allowed: boolean): RetainedEventWorkspaceRights => ({
-    allowed, policy_version: "earnings.public_primary.context_read.v1", checked_at: new Date().toISOString(),
-  });
-  const retainedDocuments = publicContextDocuments(retained);
-  const safeBase = validateR2Base(base);
-  if (!safeBase || !retainedDocuments || signal?.aborted) return decision(false);
-  const current = await fetchJson(`${safeBase}/company_intelligence/${EVENT_WORKSPACE_NEST}/manifest.json`, MAX_MANIFEST_BYTES, signal);
-  if (current.kind !== "ok") return decision(false);
-  const marker = normalizeEventWorkspaceManifest(current.raw);
-  if (!marker) return decision(false);
-  // Reuse the same exact-generation owner reader. This inner decision applies only to the
-  // fresh public publication being used as rights evidence, never to the saved old generation.
-  const currentEvent = await resolveRetainedEventWorkspaceFromR2({
-    event_id: retained.event_id, generation_id: marker.generation_id, company_id: retained.issuer.company_id,
-  }, safeBase, { signal, authorize: async workspace => decision(publicContextDocuments(workspace) !== null) });
-  if (!currentEvent.ok || currentEvent.receipt.manifest_sha256 !== await sha256Hex(current.bytes)) return decision(false);
-  const currentDocuments = publicContextDocuments(currentEvent.workspace);
-  return decision(!!currentDocuments && [...retainedDocuments].every(id => currentDocuments.has(id)));
+  throw new Error("current_rights_owner_unavailable");
 }

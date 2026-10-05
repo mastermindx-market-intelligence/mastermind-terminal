@@ -208,6 +208,8 @@ amendment, only a README edit.
 | `0026` | — | Reserved for packet B-F12-10 (seat ruling h_t581 2026-09-18) | reserved — not applied |
 | `0027` | `api_keys` | PR #581 (merged as `c9381593` on 2026-09-19, packet B-F12-10, personal read-only API keys) | merged + applied 2026-09-19 (readback receipt held in the seat's handoff kit at `ddl/receipt_0027.json`; the project ref is never written) |
 | `0028` | `0028_investigations.sql` | `IW2-G1-INVESTIGATION`, converged from `INTL-R10-SAVED-RESEARCH`, #777 | applied 2026-10-04; [catalog receipt](https://github.com/mastermindx-market-intelligence/mastermind-terminal/pull/777#issuecomment-5977275494) |
+| `0029` | `0029_investigation_thesis_refs.sql` | `IW2-G5-THESIS-REFERENCES`, #804 | applied 2026-10-05; [catalog receipt](https://github.com/mastermindx-market-intelligence/mastermind-terminal/pull/804#issuecomment-5989351431) |
+| `0030` | `0030_investigation_kernel.sql` | `IW2-G1-KERNEL-REPAIR`, #804 | open; not applied; forward repair only |
 | `0029` | `0029_investigation_thesis_refs.sql` | `IW2-G5-THESIS-REFERENCES`, #804 | applied 2026-10-05; exact owned canonical Thesis version references; [catalog receipt](https://github.com/mastermindx-market-intelligence/mastermind-terminal/pull/804#issuecomment-5989351431) |
 
 `0001`–`0007` and `0010` are **historical**: they predate this ledger, their creating pull

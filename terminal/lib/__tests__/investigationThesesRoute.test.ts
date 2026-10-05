@@ -6,7 +6,7 @@ vi.mock("@/lib/theses",()=>({readThesisVersion:version}));
 import {GET} from "@/app/api/investigations/theses/route";
 const id="10000000-0000-4000-8000-000000000001",tid="20000000-0000-4000-8000-000000000001",vid="30000000-0000-4000-8000-000000000001";
 const ref={thesis_id:tid,version_id:vid,role:"alternative"};
-const manifest={schema:"investigation_manifest.v2",intent:{title:"Research",question:"Why?",subjects:[]},layout_refs:[],thesis_refs:[ref],evidence_refs:[],continuation:{}};
+const manifest={schema:"investigation_manifest.v2",argument_relations:[],intent:{title:"Research",question:"Why?",subjects:[]},layout_refs:[],thesis_refs:[ref],evidence_refs:[],continuation:{}};
 const request=(suffix="")=>new Request(`https://terminal.test/api/investigations/theses?id=${id}&revision=1${suffix}`);
 beforeEach(()=>{vi.clearAllMocks();getUser.mockResolvedValue({data:{user:{id:"owner"}},error:null});read.mockResolvedValue({status:"found",id,revision:1,manifest});version.mockResolvedValue({ok:true,version:{id:vid,thesisId:tid,version:1}});});
 describe("exact saved canonical Thesis references",()=>{
