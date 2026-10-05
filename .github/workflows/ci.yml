@@ -367,4 +367,4 @@ jobs:
           command -v pg_ctl
           command -v psql
       - name: Exercise migration, replay, CAS and owner isolation
-        run: python -m pytest tests/test_investigation_postgres.py -q
+        run: python -m pytest tests/test_investigation_postgres.py tests/test_investigation_thesis_postgres.py -q
