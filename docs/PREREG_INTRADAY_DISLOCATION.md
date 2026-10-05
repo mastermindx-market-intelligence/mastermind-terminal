@@ -1,5 +1,14 @@
 # PREREG — Intraday Dislocation + Reclaim R0 (2026-10-02)
 
+> **Status 2026-10-05 (seat a0115103, Fable CEO, carrier mastermind-terminal#784).** This
+> preregistration is frozen as written on 2026-10-02 and is kept as the Terminal-side contract
+> of record; nothing below is re-litigated here, this note only dates it. Since the freeze: the
+> Terminal consumer shipped as a reader of Macro `WS:LIVE-ENTRY-RADAR`'s served
+> `entry_radar.json` only (`/dislocations` #808, episode deep link #813, catalyst chip #827 —
+> all merged); Macro's R1-B 60-cell v4 grid is registered once (#7274, parked on a Sol hold)
+> and is never re-registered from here; the initial local detector prototype was removed
+> rather than becoming a second radar. Edge is not claimed anywhere in this lane.
+
 This document freezes the first research implementation before any outcome sweep.
 R0 is a **shadow research lane**. It may describe abnormal downside events; it may not
 emit scored BUY/SELL authority, alter Prophet or portfolio decisions, size positions,
