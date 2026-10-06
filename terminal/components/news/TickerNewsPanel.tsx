@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 
+import styles from "@/components/news/TickerNewsPanel.module.css";
+
 import {
   parseTickerNewsStory,
   type TickerNewsStory,
@@ -65,9 +67,9 @@ function EmptyState({
   state: TickerNewsLoadState;
   copy: typeof COPY.en | typeof COPY.zh;
 }) {
-  if (state === "loading") return <div className="news-empty" role="status">{copy.loading}</div>;
-  if (state === "restricted") return <div className="news-empty news-restricted" role="status">{copy.restricted}</div>;
-  if (state === "unavailable") return <div className="news-empty" role="status">{copy.unavailable}</div>;
+  if (state === "loading") return <div className={styles.empty} role="status">{copy.loading}</div>;
+  if (state === "restricted") return <div className={`${styles.empty} ${styles.restricted}`} role="status">{copy.restricted}</div>;
+  if (state === "unavailable") return <div className={styles.empty} role="status">{copy.unavailable}</div>;
   return null;
 }
 
@@ -104,53 +106,53 @@ export default function TickerNewsPanel({ symbol, lang }: { symbol: string; lang
 
   return (
     <section
-      className="board news-board"
+      className={`board ${styles.board}`}
       id="rail-panel-news"
       role="tabpanel"
       aria-labelledby="rail-tab-news"
       data-testid="ticker-news-panel"
       data-news-state={loadState === "ready" ? state : loadState}
     >
-      <div className="news-bar">
-        <div className="news-heading">
-          <span className="news-title">{copy.title}</span>
-          <span className="news-symbol">{symbol}</span>
+      <div className={styles.bar}>
+        <div className={styles.heading}>
+          <span className={styles.title}>{copy.title}</span>
+          <span className={styles.symbol}>{symbol}</span>
         </div>
-        {state === "live" && <span className="news-live-dot" aria-label="live" />}
-        {state === "catching_up" && <span className="news-state-chip">{copy.catchingUp}</span>}
+        {state === "live" && <span className={styles.liveDot} aria-label="live" />}
+        {state === "catching_up" && <span className={styles.stateChip}>{copy.catchingUp}</span>}
       </div>
 
-      <div className="news-scroll">
+      <div className={styles.scroll}>
         <EmptyState state={loadState} copy={copy} />
         {loadState === "ready" && state === "degraded" && (
-          <div className="news-note" role="status">{copy.degraded}</div>
+          <div className={styles.note} role="status">{copy.degraded}</div>
         )}
         {loadState === "ready" && liveInterrupted && (
-          <div className="news-note" role="status">{copy.liveInterrupted}</div>
+          <div className={styles.note} role="status">{copy.liveInterrupted}</div>
         )}
         {loadState === "ready" && state === "quiet" && rows.length === 0 && (
-          <div className="news-empty" role="status">{copy.quiet}</div>
+          <div className={styles.empty} role="status">{copy.quiet}</div>
         )}
 
         {loadState === "ready" && rows.map((row) => {
           const detail = details[row.story_id];
           const timeRaw = row.updated_at || row.published_at || row.received_at;
           return (
-            <article className="news-row" key={row.story_id} data-story-id={row.story_id}>
-              <div className="news-meta">
-                <span className="news-source">{sourceLabel(row.source)}</span>
+            <article className={styles.row} key={row.story_id} data-story-id={row.story_id}>
+              <div className={styles.meta}>
+                <span className={styles.source}>{sourceLabel(row.source)}</span>
                 <time dateTime={timeRaw}>{displayTime(row, lang)}</time>
               </div>
               {row.url ? (
-                <a className="news-headline" href={row.url} target="_blank" rel="noopener noreferrer">{row.title}</a>
+                <a data-news-headline className={styles.headline} href={row.url} target="_blank" rel="noopener noreferrer">{row.title}</a>
               ) : (
-                <span className="news-headline news-headline-static" title={copy.sourceUnavailable}>{row.title}</span>
+                <span data-news-headline className={`${styles.headline} ${styles.headlineStatic}`} title={copy.sourceUnavailable}>{row.title}</span>
               )}
-              {row.teaser && <p className="news-teaser">{row.teaser}</p>}
+              {row.teaser && <p className={styles.teaser}>{row.teaser}</p>}
               {row.item_count > 1 && (
                 <button
                   type="button"
-                  className="news-sources-btn"
+                  className={styles.sourcesButton}
                   aria-expanded={!!detail}
                   onClick={() => void toggleStory(row)}
                   disabled={detailBusy === row.story_id}
@@ -159,14 +161,14 @@ export default function TickerNewsPanel({ symbol, lang }: { symbol: string; lang
                 </button>
               )}
               {detail && (
-                <div className="news-source-list" aria-label={copy.reports(detail.item_count)}>
+                <div className={styles.sourceList} aria-label={copy.reports(detail.item_count)}>
                   {detail.members.map((member) => (
                     member.url ? (
-                      <a key={member.source_item_id} href={member.url} target="_blank" rel="noopener noreferrer" className="news-source-link">
+                      <a key={member.source_item_id} href={member.url} target="_blank" rel="noopener noreferrer" className={styles.sourceLink}>
                         <span>{sourceLabel(member.source)}</span><span>{member.title}</span>
                       </a>
                     ) : (
-                      <div className="news-source-link static" key={member.source_item_id}>
+                      <div className={`${styles.sourceLink} ${styles.static}`} key={member.source_item_id}>
                         <span>{sourceLabel(member.source)}</span><span>{member.title}</span>
                       </div>
                     )
