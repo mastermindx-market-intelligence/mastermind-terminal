@@ -1,10 +1,13 @@
 // @vitest-environment jsdom
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
-import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
-import { SelectionCohortCard } from "@/components/prophet/SelectionCohortCard";
+import {
+  SelectionCohortCard,
+  useSelectionCohort,
+} from "@/components/prophet/SelectionCohortCard";
 import { parseSelectionCohort } from "@/lib/selectionCohort";
 
 (globalThis as unknown as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
@@ -23,6 +26,15 @@ const EMPTY = JSON.parse(
 let container: HTMLDivElement;
 let root: Root;
 
+function jsonResponse(body: unknown, ok = true, status = 200): Response {
+  return { ok, status, json: async () => body } as Response;
+}
+
+function CohortStateProbe() {
+  const { view } = useSelectionCohort();
+  return <div data-testid="cohort-hook-state" data-state={view?.kind ?? "pending"} />;
+}
+
 async function renderCard(lang: "en" | "zh", view: ReturnType<typeof parseSelectionCohort> | null) {
   container = document.createElement("div");
   document.body.appendChild(container);
@@ -33,7 +45,7 @@ async function renderCard(lang: "en" | "zh", view: ReturnType<typeof parseSelect
 }
 
 beforeEach(() => {
-  // no fetch — view is passed from parent
+  vi.restoreAllMocks();
 });
 
 afterEach(() => {
@@ -41,6 +53,7 @@ afterEach(() => {
     root?.unmount();
   });
   container?.remove();
+  vi.unstubAllGlobals();
 });
 
 describe("SelectionCohortCard", () => {
@@ -112,5 +125,81 @@ describe("SelectionCohortCard", () => {
       "The theme read for these picks didn't pass its checks, so nothing is shown.",
     );
     expect(container.querySelectorAll("[title]").length).toBe(0);
+  });
+});
+
+describe("useSelectionCohort fetch dedupe", () => {
+  it("(a) two mounts in the same act share one fetch", async () => {
+    const fetchMock = vi.fn(() => Promise.resolve(jsonResponse(READY)));
+    vi.stubGlobal("fetch", fetchMock);
+
+    const c1 = document.createElement("div");
+    const c2 = document.createElement("div");
+    document.body.appendChild(c1);
+    document.body.appendChild(c2);
+    const r1 = createRoot(c1);
+    const r2 = createRoot(c2);
+
+    await act(async () => {
+      r1.render(<CohortStateProbe />);
+      r2.render(<CohortStateProbe />);
+      await Promise.resolve();
+    });
+
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+
+    act(() => {
+      r1.unmount();
+      r2.unmount();
+    });
+    c1.remove();
+    c2.remove();
+  });
+
+  it("(b) remount after settle refetches; second ready wins over first 503", async () => {
+    let call = 0;
+    const fetchMock = vi.fn(() => {
+      call += 1;
+      if (call === 1) {
+        return Promise.resolve(jsonResponse({ error: "feed unavailable" }, false, 503));
+      }
+      return Promise.resolve(jsonResponse(READY));
+    });
+    vi.stubGlobal("fetch", fetchMock);
+
+    const c1 = document.createElement("div");
+    document.body.appendChild(c1);
+    const r1 = createRoot(c1);
+
+    await act(async () => {
+      r1.render(<CohortStateProbe />);
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+
+    act(() => {
+      r1.unmount();
+    });
+    c1.remove();
+
+    const c2 = document.createElement("div");
+    document.body.appendChild(c2);
+    const r2 = createRoot(c2);
+
+    await act(async () => {
+      r2.render(<CohortStateProbe />);
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+    expect(c2.querySelector("[data-testid=cohort-hook-state]")?.getAttribute("data-state")).toBe(
+      "ready",
+    );
+
+    act(() => {
+      r2.unmount();
+    });
+    c2.remove();
   });
 });

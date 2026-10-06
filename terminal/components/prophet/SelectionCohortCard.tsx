@@ -23,7 +23,7 @@ import styles from "./SelectionCohortCard.module.css";
 const POLL_MS = 300_000; // producer republishes at most nightly; the route caches 5 min
 const COHORT_API = "/api/nw?f=selection_cohort_us";
 
-/** Dev Strict Mode mounts twice; share one in-flight initial fetch per page load. */
+/** Dev Strict Mode mounts twice; dedupe the concurrent in-flight request only. */
 let initialCohortFetch: Promise<SelectionCohortView> | null = null;
 
 function fetchCohortProjection(): Promise<SelectionCohortView> {
@@ -31,7 +31,10 @@ function fetchCohortProjection(): Promise<SelectionCohortView> {
     initialCohortFetch = fetch(COHORT_API)
       .then((r) => (r.ok ? r.json() : null))
       .catch(() => null)
-      .then((raw: unknown) => parseSelectionCohort(raw));
+      .then((raw: unknown) => parseSelectionCohort(raw))
+      .finally(() => {
+        initialCohortFetch = null;
+      });
   }
   return initialCohortFetch;
 }
@@ -237,6 +240,21 @@ export function SelectionCohortMastheadTile({
   };
   const tileValue = sharedThemesTileValue(view);
 
+  const popover =
+    open && view ? (
+      <div
+        id={popoverId}
+        role="dialog"
+        aria-modal="false"
+        aria-labelledby="selection-cohort-popover-title"
+        className={`obs-card ${styles.popover}`}
+        data-testid="selection-cohort-popover"
+        data-state={view.kind}
+      >
+        <SelectionCohortBody lang={lang} view={view} panel />
+      </div>
+    ) : null;
+
   return (
     <div ref={wrapRef} className={styles.tileWrap} data-testid="selection-cohort-tile-wrap">
       <button
@@ -252,19 +270,7 @@ export function SelectionCohortMastheadTile({
         <span>{cohortTileLabel(t)}</span>
         <b>{tileValue}</b>
       </button>
-      {open && view ? (
-        <div
-          id={popoverId}
-          role="dialog"
-          aria-modal="false"
-          aria-labelledby="selection-cohort-popover-title"
-          className={`obs-card ${styles.popover}`}
-          data-testid="selection-cohort-popover"
-          data-state={view.kind}
-        >
-          <SelectionCohortBody lang={lang} view={view} panel />
-        </div>
-      ) : null}
+      {popover}
     </div>
   );
 }
