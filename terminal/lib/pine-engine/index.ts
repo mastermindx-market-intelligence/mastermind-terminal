@@ -18,17 +18,33 @@
 //   ✓ plot (→ line/histogram/area/circles), plotshape/plotchar (→ markers), hline (→ price line)
 //   ✓ request.security: a COARSER timeframe is truly resampled — the chart bars are grouped up to the
 //     requested TF, the whole script re-runs on those HTF bars, and the expression reads that series.
-//     `_src[1]` = confirmed/closed HTF bar (non-repaint, lookahead_off); `_src` = developing HTF bar.
+//     Daily→1W historical (isrealtime=false) default lookahead_off publishes the current HTF value at
+//     the last actual session of a closed ISO-week group (ChartPanel W key = last session; 5- and
+//     7-session calendars; no universal Friday rule) and otherwise carries the previous confirmed
+//     value (gaps_off); gaps_on returns na except at that confirmation. Expression `[n]` indexes the
+//     published HTF bar. lookahead_on + expr[1] projects the prior confirmed bar at period start.
+//     An uncertified final tail (no later-ISO-week successor; RunOpts has no period-closed witness)
+//     is not confirmed merely because it is Friday or the last array item. Other calendar/session/
+//     intraday units still use bucket mapping — lookahead/gaps flags are not claimed supported there.
+//     Conflict named: flagship secScalar uses `_src[1]` + lookahead_off intending “confirmed on every
+//     intra-week bar”; that matched the old leaky bucket mapping. Vendor historical lookahead_off
+//     publishes unshifted `close` at period end; `[1]` is then one published HTF bar earlier.
+//     Default flagship confirmTF on a daily chart is 3D (outside this 1W vertical).
 //     Same TF evaluates in place. Empty-string symbol argument (positional or named) means current
 //     chart context — Pine same-chart convention (named assumption) — and uses the existing
 //     same-context series without an unsupported-symbol warning. A different/missing/ambiguous
 //     symbol returns na with an explicit unsupported-symbol warning — chart bars are never a
 //     cross-symbol data plane (no alias guessing, no exchange-prefix stripping). A timeframe FINER
-//     than the chart returns na with an explicit unsupported-finer-timeframe warning — never
-//     chart-TF substituted values (finer bars cannot be rebuilt from chart-TF bars). Empty timeframe
-//     ≡ chart TF (Pine same-chart convention, named assumption). Unknown/unparseable/zero-second
-//     timeframes refuse rather than being treated as valid. Existing HTF lookahead/knowledge-cut
-//     fidelity is a separate owed vertical, not fixed here.
+//     than the effective current context (chart TF outside a request; requested TF inside one)
+//     returns na with an explicit unsupported-finer-timeframe warning — never chart-TF substituted
+//     values (finer bars cannot be rebuilt from chart-TF bars). Nested coarser than that context
+//     is na + diagnostic (admitted single HTF hop). Empty timeframe ≡ effective current context
+//     (chart TF on the chart pass — Pine same-chart convention, named assumption). Unknown/
+//     unparseable/zero-second timeframes refuse rather than being treated as valid.
+//     timeframe.period/multiplier/isdaily/isweekly/ismonthly/isintraday inside request.security
+//     read the requested TF on the existing HTF binding, not lexical chart TF; chart-context
+//     outputs outside request are unchanged. Whole-script HTF re-run and separate chart-level
+//     coarser requests stay supported and share one run budget.
 //   ✗ tables/labels/lines/boxes/fill/bgcolor/alertcondition: parsed and treated as no-ops (they don't
 //     produce chart series). The flagship's MTF dashboard table is therefore not drawn here — its
 //     validated BUY/SELL/CUT/RE-BUY signals keep coming from the precomputed Python oracle path.
