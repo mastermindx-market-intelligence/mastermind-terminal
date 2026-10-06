@@ -101,6 +101,7 @@ const GuidePanel = dynamic(() => import("@/components/GuidePanel"), { ssr: false
 const IndicatorSource = dynamic(() => import("@/components/IndicatorSource"), { ssr: false });
 const CompareSettings = dynamic(() => import("@/components/CompareSettings"), { ssr: false });
 const ChartObjectTree = dynamic(() => import("@/components/ChartObjectTree"), { ssr: false });
+const TickerNewsPanel = dynamic(() => import("@/components/news/TickerNewsPanel"), { ssr: false });
 // Phone-only chart chrome (R2): the bottom roller strip and the two sheets it raises. Never
 // server-rendered — the phone breakpoint is a client media query, and shell mode brings its own.
 const RollerStrip = dynamic(() => import("@/components/mobile/RollerStrip"), { ssr: false });
@@ -1027,7 +1028,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
   // mm.wls". These rows come from `portfolio_positions` through /api/portfolio and are NEVER
   // folded into `lists`, written to `mm.wls`, or touched by the watchlist sync chain. Holding a
   // name and watching a name are different facts; the rail shows both without mixing them.
-  const [railTab, setRailTab] = useState<"watchlists" | "portfolio">("watchlists");
+  const [railTab, setRailTab] = useState<"watchlists" | "portfolio" | "news">("watchlists");
   /** Symbol queued for the "Add to → Portfolio" modal; `null` = closed. */
   const [pfAddSymbol, setPfAddSymbol] = useState<string | null>(null);
   // Live mirror of `lists` for the async migration: reading it from a ref keeps the effect keyed
@@ -1796,7 +1797,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
     // rail's other view preferences rather than in an effect of its own; a lazy `useState`
     // initializer cannot read localStorage without a hydration mismatch (the server always renders
     // the default), so a mount read is the only correct shape and this is where the file does them.
-    { const savedTab = localStorage.getItem("mm.railTab"); if (savedTab === "portfolio" || savedTab === "watchlists") setRailTab(savedTab); }
+    { const savedTab = localStorage.getItem("mm.railTab"); if (savedTab === "portfolio" || savedTab === "watchlists" || savedTab === "news") setRailTab(savedTab); }
     // restore the saved multi-pane workspace — but a deep-link (?sym=) always wins
     if (!initialSymbol) {
       try {
@@ -5614,10 +5615,10 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
       {(!shellMode || dossierMode) && (<>
       <aside className="rail">
         <div className="rail-body">
-          {/* W5 — the rail's two SOURCES (packet section 6). Signed-in only: a guest has no book,
-              so the guest rail is byte-for-byte what it was. The watchlist board below is HIDDEN,
-              never unmounted, when Portfolio is showing — unmounting it would throw away drag
-              state, scroll position and selection every time the user glanced at their holdings. */}
+          {/* The authenticated rail has three distinct sources: Portfolio, Watchlists and News.
+              A guest has no book/news entitlement, so the guest rail is byte-for-byte what it was.
+              The watchlist board below is HIDDEN, never unmounted, when another source is showing —
+              unmounting it would throw away drag state, scroll position and selection. */}
           {loggedIn && (
             <div className="rail-tabs" role="tablist" aria-label={t("railSourceLabel")} data-testid="rail-source-tabs">
               <button type="button" role="tab" id="rail-tab-portfolio" aria-selected={railTab === "portfolio"}
@@ -5628,6 +5629,10 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
                 aria-controls="rail-panel-watchlists" tabIndex={railTab === "watchlists" ? 0 : -1}
                 className={`rail-tab${railTab === "watchlists" ? " on" : ""}`}
                 onClick={() => setRailTab("watchlists")}>{t("watchlists")}</button>
+              <button type="button" role="tab" id="rail-tab-news" aria-selected={railTab === "news"}
+                aria-controls="rail-panel-news" tabIndex={railTab === "news" ? 0 : -1}
+                className={`rail-tab${railTab === "news" ? " on" : ""}`}
+                onClick={() => setRailTab("news")}>{lang === "zh" ? "新闻" : "News"}</button>
             </div>
           )}
           {loggedIn && railTab === "portfolio" && (
@@ -5702,7 +5707,8 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
               </div>
             </div>
           )}
-          <div className={`board wl-board${loggedIn && railTab === "portfolio" ? " rail-hidden" : ""}`}
+          {loggedIn && railTab === "news" && <TickerNewsPanel symbol={active} lang={lang} />}
+          <div className={`board wl-board${loggedIn && railTab !== "watchlists" ? " rail-hidden" : ""}`}
             id="rail-panel-watchlists" {...(loggedIn ? { role: "tabpanel", "aria-labelledby": "rail-tab-watchlists" } : {})}>
             <div className="wl-bar pophost">
               <button className="wl-select" onClick={(e) => { e.stopPropagation(); const willOpen = !wlMenuOpen; closeAll(); setWlMenuOpen(willOpen); }}>{activeList} <svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6" /></svg></button>
