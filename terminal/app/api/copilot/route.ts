@@ -18,6 +18,7 @@ export const runtime = "nodejs";
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { rateLimit, tooMany } from "@/lib/rateLimit";
+import { presentCopilotEvidence } from "@/lib/copilotTools";
 
 const GATEWAY = process.env.BRAIN_GATEWAY_URL || "https://mastermind-x.com";
 
@@ -28,6 +29,24 @@ export async function POST(req: Request) {
   // Rate-limit at the edge before we do any work — tight per-IP ceiling for a paid-LLM route.
   const rl = rateLimit(req, { name: "copilot", max: 20 });
   if (!rl.ok) return tooMany(rl);
+
+  // Parse and sanitize client body — only forward the contract fields.
+  let body: any;
+  try {
+    body = await req.json();
+  } catch {
+    body = {};
+  }
+
+  // Evidence envelope enforcement: client-supplied curated tool facts are
+  // classified before any synthesis. Unknown clocks cannot read as fresh.
+  // When synthesis is explicitly skipped, return the envelope alone — no
+  // model, no gateway, no fabricated values or trade authority.
+  const toolResults = Array.isArray(body?.tool_results) ? body.tool_results : null;
+  const evidence = toolResults ? presentCopilotEvidence(toolResults) : null;
+  if (evidence && body?.synthesize === false) {
+    return NextResponse.json(evidence);
+  }
 
   // Auth gate: obtain the user's access token to forward to the gateway.
   // getSession() alone is unverified (relies on the cookie value); getUser() verifies
@@ -44,14 +63,6 @@ export async function POST(req: Request) {
       { error: "Please sign in to use the copilot.", code: "unauthenticated" },
       { status: 401 },
     );
-  }
-
-  // Parse and sanitize client body — only forward the contract fields.
-  let body: any;
-  try {
-    body = await req.json();
-  } catch {
-    body = {};
   }
 
   const message =
@@ -94,6 +105,7 @@ export async function POST(req: Request) {
   if (thread_id) payload.thread_id = thread_id;
   if (history && history.length > 0) payload.history = history;
   if (Object.keys(context).length > 0) payload.context = context;
+  if (evidence) payload.evidence = evidence;
 
   // Forward to gateway stream endpoint.
   let upstream: Response;
@@ -108,6 +120,13 @@ export async function POST(req: Request) {
       signal: req.signal,
     });
   } catch (e: any) {
+    if (evidence) {
+      return NextResponse.json({
+        ...evidence,
+        error: "Gateway unreachable",
+        detail: e?.message,
+      }, { status: 502 });
+    }
     return NextResponse.json(
       { error: "Gateway unreachable", detail: e?.message },
       { status: 502 },

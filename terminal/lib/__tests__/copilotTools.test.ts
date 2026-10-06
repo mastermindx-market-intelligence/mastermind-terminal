@@ -230,6 +230,68 @@ describe("curateOpts / curateGex", () => {
     expect(out.net_gex_bn).toBe(-1.1); // gexstate (fresher, curated) wins
     expect(curateGex(null, null).no_data).toBe(true);
   });
+  it("refuses or separates mixed root/session/basis/revision instead of one merged snapshot", () => {
+    const ladder = {
+      schema: "options_hub.gex/v1",
+      root: "QQQ",
+      asof: "2026-09-30T20:00:00Z",
+      session: "2026-09-30",
+      basis: "dealer-sign-a",
+      revision: "ladder-1",
+      net_gex_bn: 2,
+      spot_ref: 480,
+      by_strike: [{ strike: 600, gamma_call: 3 }],
+    };
+    const state = {
+      schema: "options_structure.gex_state/v1",
+      root: "SPY",
+      asof: "2026-10-02T20:00:00Z",
+      session: "2026-10-02",
+      basis: "assumption-b",
+      revision: "state-9",
+      net_gex_bn: 1,
+      spot: 500,
+    };
+    const out = curateGex(ladder, state);
+    const mergedWallsOnStateClock =
+      out.asof === state.asof &&
+      Array.isArray(out.call_walls) &&
+      (out.call_walls as Obj[])[0]?.strike === 600 &&
+      out.spot === 500 &&
+      out.net_gex_bn === 1;
+    expect(mergedWallsOnStateClock).toBe(false);
+    expect(out.mixed_source === true || out.no_data === true).toBe(true);
+    if (out.no_data === true) {
+      expect(out.call_walls).toBeUndefined();
+    } else {
+      expect(out.mixed_source).toBe(true);
+      expect(out.call_walls).toBeUndefined();
+      const ladderOut = out.ladder as Obj | undefined;
+      const stateOut = out.state as Obj | undefined;
+      expect(Array.isArray(ladderOut?.call_walls)).toBe(true);
+      expect((ladderOut?.call_walls as Obj[])[0]?.strike).toBe(600);
+      expect(stateOut?.net_gex_bn).toBe(1);
+      expect(ladderOut?.asof).toBe(ladder.asof);
+      expect(stateOut?.asof).toBe(state.asof);
+    }
+  });
+  it("does not let a matching-root state clock certify a different-session ladder", () => {
+    const ladder = {
+      root: "SPY",
+      asof: "2026-09-30T20:00:00Z",
+      net_gex_bn: 2,
+      by_strike: [{ strike: 600, gamma_call: 3 }],
+    };
+    const state = {
+      root: "SPY",
+      asof: "2026-10-02T20:00:00Z",
+      net_gex_bn: 1,
+      spot: 500,
+    };
+    const out = curateGex(ladder, state);
+    expect(out.asof === state.asof && Array.isArray(out.call_walls)).toBe(false);
+    expect(out.mixed_source === true || out.no_data === true).toBe(true);
+  });
 });
 
 describe("curateFundamentals — units contract (0..1 fractions → %, d/e raw ratio)", () => {
@@ -315,6 +377,22 @@ describe("curateMarketRisk / curatePlane", () => {
     expect(old.stale).toBe(true);
     expect(curateMarketRisk(null, NOW).no_data).toBe(true);
     expect(curateMarketRisk({ display: {} }, NOW).no_data).toBe(true);
+  });
+  it("missing, malformed and future build clocks are never a supported fresh verdict", () => {
+    const display = { verdict: "RISK_ON", score: 71, label_en: "Risk on" };
+    const missing = curateMarketRisk({ display }, NOW);
+    const malformed = curateMarketRisk({ built: "not-a-clock", display }, NOW);
+    const future = curateMarketRisk({ built: "2026-07-15T00:00:00Z", display }, NOW);
+    for (const out of [missing, malformed, future]) {
+      expect(out.stale).not.toBe(false);
+      expect(out.freshness === "unknown" || out.no_data === true).toBe(true);
+    }
+  });
+  it("compares unrounded elapsed age against the 48h threshold", () => {
+    const built = new Date(NOW - 48.4 * 3_600_000).toISOString();
+    const out = curateMarketRisk({ built, display: { verdict: "RISK_ON", score: 71 } }, NOW);
+    expect(out.stale).toBe(true);
+    expect(out.freshness).toBe("stale");
   });
   it("plane: headline regime fields + producer staleness contract", () => {
     const out = curatePlane({ asof: "2026-07-13", verdict: { verdict: "RISK_ON", score: 0.6, label_en: "Risk on" }, regime: { quad: "Q2", quad_name: "Reflation", confidence: 0.8, cycle_tag: "mid", transition_state: "stable" }, vol: { regime: "calm", risk_score: 22 }, liquidity_plumbing: { state: "ample", netliq_bn: 6210 }, contradiction_count: 1 }, NOW);

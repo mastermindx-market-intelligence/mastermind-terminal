@@ -72,11 +72,54 @@ export function scalarize(o: unknown, maxKeys = 12): Record<string, unknown> | n
 /* ── payload size cap ──────────────────────────────────────────────────────── */
 
 const CAP_CHARS = 2000;
+/** Explicit budget unit for capJson. JS string length is UTF-16 code units and
+ *  would silently under-count multibyte payloads relative to JSON/network size. */
+export const CAP_UNIT = "utf8_bytes" as const;
+
+const EVIDENCE_ENVELOPE_KEYS = new Set([
+  "truncated",
+  "no_data",
+  "symbol",
+  "reason",
+  "error",
+  "root",
+  "schema",
+  "asof",
+  "built",
+  "age_hours",
+  "stale",
+  "freshness",
+  "clock_status",
+  "clock",
+  "basis",
+  "coverage",
+  "limitations",
+  "mixed_source",
+  "cap_unit",
+  "identity",
+  "asof_state",
+  "asof_ladder",
+  "session",
+  "revision",
+  "correction_revision",
+  "trade_authority",
+  "synthesis",
+  "facts",
+  "presentable_as_fresh",
+  "status",
+  "ladder",
+  "state",
+]);
+
+function jsonUtf8Bytes(value: unknown): number {
+  return Buffer.byteLength(JSON.stringify(value), "utf8");
+}
 
 function shrinkInPlace(o: unknown): void {
   if (!o || typeof o !== "object") return;
   const rec = o as Record<string, unknown>;
   for (const k of Object.keys(rec)) {
+    if (EVIDENCE_ENVELOPE_KEYS.has(k)) continue;
     const v = rec[k];
     if (typeof v === "string" && v.length > 200) rec[k] = v.slice(0, 197) + "…";
     else if (Array.isArray(v)) {
@@ -88,26 +131,30 @@ function shrinkInPlace(o: unknown): void {
 
 /** Enforce the ≤~2KB curated-payload contract. Over-cap objects get their arrays
  *  halved / long strings trimmed (and finally their largest keys dropped) until the
- *  serialized form fits, with truncated:true set so the model knows it saw a cut. */
+ *  serialized form fits, with truncated:true set so the model knows it saw a cut.
+ *  Identity, clocks, basis, coverage and limitations are never dropped or clipped. */
 export function capJson(obj: Record<string, unknown>, cap = CAP_CHARS): Record<string, unknown> {
   try {
-    if (JSON.stringify(obj).length <= cap) return obj;
+    if (jsonUtf8Bytes(obj) <= cap) return obj;
   } catch {
     return { no_data: true, reason: "unserializable tool payload" };
   }
   const out: Record<string, unknown> = structuredClone(obj);
   out.truncated = true;
+  out.cap_unit = CAP_UNIT;
   for (let pass = 0; pass < 12; pass++) {
     shrinkInPlace(out);
-    if (JSON.stringify(out).length <= cap) return out;
+    if (jsonUtf8Bytes(out) <= cap) return out;
   }
-  // Last resort: drop the biggest fields until under cap.
+  // Last resort: drop the biggest non-envelope fields until under cap. Envelope
+  // keys stay even if the remainder still exceeds the budget — never emit a
+  // sliced JSON string.
   const droppable = Object.entries(out)
-    .filter(([k]) => !["truncated", "no_data", "symbol", "reason"].includes(k))
-    .sort((a, b) => JSON.stringify(b[1] ?? null).length - JSON.stringify(a[1] ?? null).length);
+    .filter(([k]) => !EVIDENCE_ENVELOPE_KEYS.has(k))
+    .sort((a, b) => jsonUtf8Bytes(b[1] ?? null) - jsonUtf8Bytes(a[1] ?? null));
   for (const [k] of droppable) {
     delete out[k];
-    if (JSON.stringify(out).length <= cap) break;
+    if (jsonUtf8Bytes(out) <= cap) break;
   }
   return out;
 }
@@ -482,14 +529,42 @@ export function curateOpts(opts: unknown): Record<string, unknown> {
   return { spot: rnd(o.spot, 4), asof: o.asof ?? null, iv_term, term_slope, skew_summary };
 }
 
-export function curateGex(gex: unknown, state: unknown): Record<string, unknown> {
-  const g = gex as Record<string, unknown> | null;
-  const s = state as Record<string, unknown> | null;
-  const gOk = g && typeof g === "object" && (num(g.net_gex_bn) != null || Array.isArray(g.by_strike));
-  const sOk = s && typeof s === "object" && num(s.net_gex_bn) != null;
-  if (!gOk && !sOk) return { no_data: true, reason: "no GEX coverage for this root (options-hub covers liquid names only)" };
+type GexIdentity = {
+  root: string | null;
+  session: string | null;
+  basis: string | null;
+  revision: string | null;
+};
 
-  const strikes = gOk && Array.isArray(g!.by_strike) ? (g!.by_strike as Record<string, unknown>[]).filter((r) => r && num(r.strike) != null) : [];
+function asIdentityString(v: unknown): string | null {
+  return typeof v === "string" && v.trim() ? v.trim() : null;
+}
+
+/** Identity slots reused from owner GEX envelopes (root, session date, basis, correction revision). */
+function gexIdentity(o: Record<string, unknown> | null | undefined): GexIdentity {
+  if (!o || typeof o !== "object") return { root: null, session: null, basis: null, revision: null };
+  const rootRaw = asIdentityString(o.root);
+  const root = rootRaw ? rootRaw.toUpperCase() : null;
+  const sessionRaw = asIdentityString(o.session) ?? asIdentityString(o.asof);
+  const session = sessionRaw ? sessionRaw.slice(0, 10) : null;
+  const passport = o.regime_passport && typeof o.regime_passport === "object" ? (o.regime_passport as Record<string, unknown>) : null;
+  const profile = o.profile && typeof o.profile === "object" ? (o.profile as Record<string, unknown>) : null;
+  const basis = asIdentityString(o.basis) ?? asIdentityString(o.convention) ?? asIdentityString(passport?.basis) ?? asIdentityString(profile?.method);
+  const revision = asIdentityString(o.revision) ?? asIdentityString(o.correction_revision) ?? asIdentityString(o.source_revision);
+  return { root, session, basis, revision };
+}
+
+function gexIdentitiesConflict(ladder: GexIdentity, state: GexIdentity): boolean {
+  const keys: (keyof GexIdentity)[] = ["root", "session", "basis", "revision"];
+  for (const key of keys) {
+    if (key === "session" && !(ladder.root && state.root)) continue;
+    if (ladder[key] && state[key] && ladder[key] !== state[key]) return true;
+  }
+  return false;
+}
+
+function gexWalls(g: Record<string, unknown> | null, ok: boolean) {
+  const strikes = ok && Array.isArray(g!.by_strike) ? (g!.by_strike as Record<string, unknown>[]).filter((r) => r && num(r.strike) != null) : [];
   const call_walls = strikes
     .filter((r) => num(r.gamma_call) != null)
     .sort((a, b) => (b.gamma_call as number) - (a.gamma_call as number))
@@ -500,16 +575,66 @@ export function curateGex(gex: unknown, state: unknown): Record<string, unknown>
     .sort((a, b) => (a.gamma_put as number) - (b.gamma_put as number))
     .slice(0, 3)
     .map((r) => ({ strike: r.strike, gamma: rnd(r.gamma_put, 3) }));
+  return {
+    call_walls: call_walls.length ? call_walls : null,
+    put_walls: put_walls.length ? put_walls : null,
+  };
+}
+
+export function curateGex(gex: unknown, state: unknown): Record<string, unknown> {
+  const g = gex as Record<string, unknown> | null;
+  const s = state as Record<string, unknown> | null;
+  const gOk = !!(g && typeof g === "object" && (num(g.net_gex_bn) != null || Array.isArray(g.by_strike)));
+  const sOk = !!(s && typeof s === "object" && num(s.net_gex_bn) != null);
+  if (!gOk && !sOk) return { no_data: true, reason: "no GEX coverage for this root (options-hub covers liquid names only)" };
+
+  const ladderId = gOk ? gexIdentity(g) : gexIdentity(null);
+  const stateId = sOk ? gexIdentity(s) : gexIdentity(null);
+  const walls = gexWalls(g, gOk);
+
+  if (gOk && sOk && gexIdentitiesConflict(ladderId, stateId)) {
+    return {
+      mixed_source: true,
+      reason: "GEX state and ladder disagree on root, session, basis or revision",
+      limitations: "state and ladder are separate evidence; one clock does not certify the other",
+      state: {
+        ...stateId,
+        asof: s!.asof ?? null,
+        spot: rnd(s!.spot, 4),
+        net_gex_bn: rnd(s!.net_gex_bn),
+        gamma_flip: rnd(s!.gamma_flip),
+        call_wall: rnd(s!.call_wall),
+        put_wall: rnd(s!.put_wall),
+        gamma_regime: s!.gamma_regime ?? null,
+        pin_probability: rnd(s!.pin_probability),
+        magnet: rnd(s!.magnet),
+        max_pain: rnd(s!.max_pain),
+        dist_to_flip_pct: rnd(s!.dist_to_flip_pct),
+      },
+      ladder: {
+        ...ladderId,
+        asof: g!.asof ?? null,
+        spot: rnd(g!.spot_ref, 4),
+        net_gex_bn: rnd(g!.net_gex_bn),
+        gamma_flip: rnd(g!.gamma_flip),
+        call_wall: rnd(g!.call_wall),
+        put_wall: rnd(g!.put_wall),
+        ...walls,
+      },
+    };
+  }
 
   return {
+    ...(!gOk ? stateId : ladderId.root ? ladderId : stateId),
     asof: (s?.asof as string) ?? (g?.asof as string) ?? null,
+    asof_state: sOk ? (s!.asof ?? null) : null,
+    asof_ladder: gOk ? (g!.asof ?? null) : null,
     spot: rnd(s?.spot ?? g?.spot_ref, 4),
     net_gex_bn: rnd(s?.net_gex_bn ?? g?.net_gex_bn),
     gamma_flip: rnd(s?.gamma_flip ?? g?.gamma_flip),
     call_wall: rnd(s?.call_wall ?? g?.call_wall),
     put_wall: rnd(s?.put_wall ?? g?.put_wall),
-    call_walls: call_walls.length ? call_walls : null,
-    put_walls: put_walls.length ? put_walls : null,
+    ...walls,
     ...(sOk
       ? {
           gamma_regime: s!.gamma_regime ?? null,
@@ -624,19 +749,57 @@ export function curateIntel(intel: unknown): Record<string, unknown> {
   return out;
 }
 
+const MARKET_RISK_STALE_MS = 48 * 3_600_000;
+
+export type ClockFreshness = "fresh" | "stale" | "unknown";
+
+/** Missing, malformed and future clocks are unknown — never a supported fresh verdict.
+ *  Age is compared as unrounded elapsed milliseconds against the 48h threshold. */
+export function classifyBuildClock(builtRaw: unknown, nowMs: number): {
+  freshness: ClockFreshness;
+  stale: boolean | null;
+  age_hours: number | null;
+  built: string | null;
+  clock_status: "ok" | "missing" | "malformed" | "future";
+} {
+  if (builtRaw == null || builtRaw === "") {
+    return { freshness: "unknown", stale: null, age_hours: null, built: null, clock_status: "missing" };
+  }
+  if (typeof builtRaw !== "string") {
+    return { freshness: "unknown", stale: null, age_hours: null, built: null, clock_status: "malformed" };
+  }
+  const builtMs = Date.parse(builtRaw);
+  if (!Number.isFinite(builtMs)) {
+    return { freshness: "unknown", stale: null, age_hours: null, built: builtRaw, clock_status: "malformed" };
+  }
+  const elapsedMs = nowMs - builtMs;
+  if (elapsedMs < 0) {
+    return { freshness: "unknown", stale: null, age_hours: elapsedMs / 3_600_000, built: builtRaw, clock_status: "future" };
+  }
+  const stale = elapsedMs > MARKET_RISK_STALE_MS;
+  return {
+    freshness: stale ? "stale" : "fresh",
+    stale,
+    age_hours: elapsedMs / 3_600_000,
+    built: builtRaw,
+    clock_status: "ok",
+  };
+}
+
 export function curateMarketRisk(mr: unknown, nowMs: number = Date.now()): Record<string, unknown> {
   const m = mr as Record<string, unknown> | null;
   const disp = m?.display as Record<string, unknown> | undefined;
   if (!disp?.verdict) return { no_data: true, reason: "market_risk.json unavailable on this box" };
-  const built = typeof m!.built === "string" ? Date.parse(m!.built as string) : NaN;
-  const ageH = Number.isFinite(built) ? Math.round((nowMs - built) / 3_600_000) : null;
+  const clock = classifyBuildClock(m!.built, nowMs);
   return {
     verdict: disp.verdict,
     score: rnd(disp.score, 0),
     label: disp.label_en ?? disp.verdict,
-    built: m!.built ?? null,
-    age_hours: ageH,
-    stale: ageH != null && ageH > 48,
+    built: clock.built ?? m!.built ?? null,
+    age_hours: clock.age_hours,
+    stale: clock.stale,
+    freshness: clock.freshness,
+    clock_status: clock.clock_status,
   };
 }
 
@@ -767,4 +930,61 @@ export async function execTool(name: string, args: Record<string, unknown> | nul
     console.error(`[copilot] tool ${name} failed:`, e);
     return { no_data: true, reason: `tool ${name} failed (server error, not missing data)` };
   }
+}
+
+function asRecord(v: unknown): Record<string, unknown> | null {
+  return v && typeof v === "object" && !Array.isArray(v) ? (v as Record<string, unknown>) : null;
+}
+
+function factStatusFromPayload(payload: Record<string, unknown>): {
+  status: "unavailable" | "stale" | "fresh" | "unknown" | "mixed_source";
+  clock: string;
+  presentable_as_fresh: boolean;
+} {
+  if (payload.no_data === true || payload.error) {
+    return { status: "unavailable", clock: "n/a", presentable_as_fresh: false };
+  }
+  const gex = asRecord(payload.gex) ?? payload;
+  if (gex.mixed_source === true) {
+    return { status: "mixed_source", clock: "mixed", presentable_as_fresh: false };
+  }
+  const risk = asRecord(payload.market_risk) ?? payload;
+  const freshness = risk.freshness ?? payload.freshness;
+  const stale = risk.stale ?? payload.stale;
+  if (freshness === "unknown" || stale === null) {
+    return { status: "unknown", clock: "unknown", presentable_as_fresh: false };
+  }
+  if (freshness === "stale" || stale === true) {
+    return { status: "stale", clock: "stale", presentable_as_fresh: false };
+  }
+  if (freshness === "fresh" && stale === false) {
+    return { status: "fresh", clock: "ok", presentable_as_fresh: true };
+  }
+  if (stale === false && freshness !== "unknown") {
+    return { status: "fresh", clock: "ok", presentable_as_fresh: true };
+  }
+  return { status: "unknown", clock: "unknown", presentable_as_fresh: false };
+}
+
+/**
+ * Deterministic consumer of curated tool facts. Unknown clocks cannot read as
+ * fresh. Unavailable / stale / mixed-source statuses are retained even when
+ * model synthesis is unavailable. Never a trade authority.
+ */
+export function presentCopilotEvidence(toolResults: unknown): Record<string, unknown> {
+  const list = Array.isArray(toolResults) ? toolResults : [];
+  const facts = list.map((raw) => {
+    const item = asRecord(raw) ?? {};
+    const tool = typeof item.tool === "string" ? item.tool : "unknown";
+    const nested = asRecord(item.payload);
+    const payload = nested ?? item;
+    const classified = factStatusFromPayload(payload);
+    return { tool, ...classified, payload };
+  });
+  return {
+    synthesis: "unavailable",
+    trade_authority: false,
+    facts,
+    limitations: "deterministic facts only — no model synthesis, never a trade instruction",
+  };
 }
