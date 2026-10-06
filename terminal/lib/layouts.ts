@@ -566,7 +566,11 @@ export async function renameWorkspace(
   const refused = await refuseSharedIfNotWriter(db, userId, row);
   if (refused) return refused;
 
-  if (!supportsStoredLayout(row.config)) return { ok: false, reason: "stale_revision" };
+  // Rename stamps workspace identity fields. A legacy config can contain unrelated
+  // name/revision keys; only migrate-on-write may convert it into an envelope.
+  if (!isRecordLike(row.config) || row.config.schema !== WORKSPACE_SCHEMA || !supportsStoredLayout(row.config)) {
+    return { ok: false, reason: "stale_revision" };
+  }
 
   const nextRevision = expectedRevision + 1;
   const config: Record<string, unknown> = isRecordLike(row.config) ? { ...row.config } : {};

@@ -120,3 +120,23 @@ describe("supported format fences remain atomic and preserve old readers", () =>
     });
   }
 });
+
+
+describe("workspace rename never stamps identity onto legacy configuration", () => {
+  for (const schema of [undefined, null]) {
+    it(`preserves a legacy row with ${String(schema)} schema and an overlapping revision`, async () => {
+      const key = `rename-legacy-identity-${String(schema)}`;
+      const db = createLayoutFixtureDb(key), user = fixtureLayoutUserId(key);
+      const created = await saveWorkspace(db, user, "Legacy", v1(), null);
+      expect(created.ok).toBe(true);
+      const legacy = { ...(schema === undefined ? {} : { schema }), name: "owner-native-name", revision: 1, panes: [{ symbol: "AAPL" }], custom: { retain: "exact" } };
+      pokeLayoutFixtureRow(key, user, "Legacy", { config: legacy });
+      expect(await renameWorkspace(db, user, "Legacy", "Renamed", 1, created.ok ? created.id : undefined))
+        .toEqual({ ok: false, reason: "stale_revision" });
+      const listed = await listLayouts(db, user);
+      expect(listed.ok && listed.layouts).toHaveLength(1);
+      expect(listed.ok && listed.layouts[0].name).toBe("Legacy");
+      expect(listed.ok && listed.layouts[0].config).toEqual(legacy);
+    });
+  }
+});

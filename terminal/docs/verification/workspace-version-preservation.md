@@ -38,6 +38,12 @@ Logs, traces and fresh PNGs are retained under
 The screenshot manifest binds their exact bytes. Existing repository screenshots
 are unchanged because this repair changes storage guards and test partitioning.
 
-Independent review is still required. The Fabric implementation attempt timed out;
-its recovered draft was corrected and expanded by the parent. No independent
-approval, merge, deployment or production acceptance is claimed here.
+Independent GLM review `rs_20261006T043453Z_46520` found that workspace rename
+could stamp reserved identity keys onto schema-less legacy configuration when an
+unrelated legacy revision happened to match. Two regressions reproduce this on
+missing-schema and JSON-null-schema records. Rename now requires a supported v1
+workspace envelope; the explicit migrate-on-write path remains unchanged. All 132
+storage, route, team and format-preservation tests pass, including those two cases.
+The original implementation attempt timed out and its recovered draft was corrected
+by the parent. The targeted rename repair awaits independent rereview; no merge,
+deployment or production acceptance is claimed here.
