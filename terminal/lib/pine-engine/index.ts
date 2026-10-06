@@ -19,7 +19,16 @@
 //   ✓ request.security: a COARSER timeframe is truly resampled — the chart bars are grouped up to the
 //     requested TF, the whole script re-runs on those HTF bars, and the expression reads that series.
 //     `_src[1]` = confirmed/closed HTF bar (non-repaint, lookahead_off); `_src` = developing HTF bar.
-//     Same/finer TF evaluates in place (the engine only receives chart-TF bars, so finer can't be rebuilt).
+//     Same TF evaluates in place. Empty-string symbol argument (positional or named) means current
+//     chart context — Pine same-chart convention (named assumption) — and uses the existing
+//     same-context series without an unsupported-symbol warning. A different/missing/ambiguous
+//     symbol returns na with an explicit unsupported-symbol warning — chart bars are never a
+//     cross-symbol data plane (no alias guessing, no exchange-prefix stripping). A timeframe FINER
+//     than the chart returns na with an explicit unsupported-finer-timeframe warning — never
+//     chart-TF substituted values (finer bars cannot be rebuilt from chart-TF bars). Empty timeframe
+//     ≡ chart TF (Pine same-chart convention, named assumption). Unknown/unparseable/zero-second
+//     timeframes refuse rather than being treated as valid. Existing HTF lookahead/knowledge-cut
+//     fidelity is a separate owed vertical, not fixed here.
 //   ✗ tables/labels/lines/boxes/fill/bgcolor/alertcondition: parsed and treated as no-ops (they don't
 //     produce chart series). The flagship's MTF dashboard table is therefore not drawn here — its
 //     validated BUY/SELL/CUT/RE-BUY signals keep coming from the precomputed Python oracle path.

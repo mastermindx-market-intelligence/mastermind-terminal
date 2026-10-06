@@ -9,9 +9,23 @@
 //
 // request.security: a coarser timeframe is RESAMPLED for real — the chart bars are grouped up to
 // the requested timeframe, the whole script is re-run on those higher-timeframe bars, and the
-// requested expression reads that higher-TF series. The expression keeps its own `[n]` indexing,
+// requested expression reads that higher-timeframe series. The expression keeps its own `[n]` indexing,
 // so the flagship's `_src[1]` (confirmed/closed HTF bar = non-repaint, lookahead_off) vs `_src`
 // (developing HTF bar) distinction maps onto the HTF timeline exactly. See callNs() below.
+//
+// request.security refusal boundary (A01 r2/r3/r4 — unsupported symbol / finer TF / empty-string symbol):
+// symbol and timeframe args are read BEFORE the expression is evaluated. Only the canonical exact
+// chart symbol (syminfo.tickerid / syminfo.ticker / an explicit identical string) OR an empty-string
+// symbol argument (Pine same-chart convention: "" means current context) may evaluate on chart bars —
+// a different, missing, or ambiguous symbol returns na with a deduplicated unsupported-symbol warning
+// (no cross-symbol data plane, no alias guessing). Unsupported/unresolved symbol-producing members
+// and functions (unknown syminfo.*, unimplemented str.*) return na, never an empty-string stub that
+// would be accepted as current-context. A timeframe FINER than the chart cannot be rebuilt
+// from chart-TF bars: it returns na with a deduplicated unsupported-finer-TF warning — never chart-TF
+// substituted values. Empty timeframe preserves the Pine same-chart convention (named assumption:
+// "" ≡ chart TF here). Unknown/unparseable/zero-second timeframes refuse. Valid same/coarser
+// arithmetic is unchanged. Existing HTF lookahead/knowledge-cut fidelity is a separate owed vertical
+// and is NOT fixed or claimed here.
 import { Node, Stmt, Arg, parse, type ParseResult } from "./parser";
 import { PineSyntaxError } from "./lexer";
 import { NA, NS_CONST, toCss, fmtNum, tfSeconds } from "./builtins";
@@ -72,8 +86,9 @@ function builtinSeriesAt(name: string, B: Bar[], NB: number, j: number): any {
 
 // ── higher-timeframe resampling ──────────────────────────────────────────────────────────────
 // Group already-resampled chart bars UP to a coarser timeframe (we only ever have chart-TF bars,
-// so a finer TF can't be reconstructed — callers fall back to passthrough for same/finer). Returns
-// the HTF bars plus, for each chart bar, the index of the HTF bar it belongs to (groupOf[i]).
+// so a finer TF can't be reconstructed — callNs() refuses finer-than-chart requests with na +
+// an unsupported-finer-timeframe warning rather than silently substituting chart-TF values).
+// Returns the HTF bars plus, for each chart bar, the index of the HTF bar it belongs to (groupOf[i]).
 function htfBucketKey(time: string, n: number, unit: string): string {
   if (unit === "W") { const dt = new Date(time + "T00:00:00Z"); const day = (dt.getUTCDay() + 6) % 7; dt.setUTCDate(dt.getUTCDate() - day); return "W" + dt.toISOString().slice(0, 10); }   // ISO week (Mon-anchored) — matches ChartPanel.resampleTf
   if (unit === "M") { const y = parseInt(time.slice(0, 4), 10), mo = parseInt(time.slice(5, 7), 10); return "M" + Math.floor((y * 12 + (mo - 1)) / n); }  // 1M→month, 3M→quarter, 12M→year
@@ -94,6 +109,27 @@ function resampleBars(src: Bar[], tf: string): { bars: Bar[]; groupOf: number[] 
   }
   if (cur) out.push(cur);
   return { bars: out, groupOf };
+}
+
+// seconds-per-bar for a Pine timeframe string — STRICT parse for the request.security refusal
+// boundary. Returns null for empty input and for anything unknown/unparseable/zero-second
+// (unlike builtins.tfSeconds, which falls back to 86400 for unknown units — that fallback must
+// not be mistaken for a valid finer/same TF when deciding whether to refuse).
+function parseTfSecStrict(tf: string): number | null {
+  const s = String(tf).trim().toUpperCase();
+  if (s === "") return null;
+  const m = s.match(/^(\d*)([A-Z]*)$/);
+  if (!m) return null;
+  const n = m[1] === "" ? 1 : parseInt(m[1], 10);
+  if (!Number.isFinite(n) || n <= 0) return null;   // "0D"/"0"/… — never zero-second valid
+  const unit = m[2];
+  if (unit === "" || unit === "MIN") return n * 60;
+  if (unit === "S") return n;
+  if (unit === "H") return n * 3600;
+  if (unit === "D") return n * 86400;
+  if (unit === "W") return n * 604800;
+  if (unit === "M") return n * 2592000;             // calendar month ≈ 30d, same as tfSeconds
+  return null;                                      // unknown unit (e.g. "FOO", "1X") → refuse
 }
 
 interface Frame { path: string; params: Map<string, ParamBinding>; localNames: Set<string>; }
@@ -264,7 +300,9 @@ export function run(source: string | ParseResult, bars: Bar[], opts: { timeframe
         const ns = n.obj.name, prop = n.prop;
         if (ns === "timeframe") { if (prop === "period") return chartTf; if (prop === "multiplier") return parseInt(chartTf) || 1; if (prop === "isdaily") return /D$/.test(chartTf); if (prop === "isweekly") return /W$/.test(chartTf); if (prop === "ismonthly") return /M$/.test(chartTf); if (prop === "isintraday") return tfSeconds(chartTf) < 86400; return NA; }
         if (ns === "barstate") { if (prop === "islast" || prop === "islastconfirmedhistory") return ctx.i === N - 1; if (prop === "isfirst") return ctx.i === 0; if (prop === "ishistory") return ctx.i < N - 1; if (prop === "isrealtime") return false; if (prop === "isnew" || prop === "isconfirmed") return true; return false; }
-        if (ns === "syminfo") { if (prop === "tickerid" || prop === "ticker") return symbol; if (prop === "mintick") return 0.01; if (prop === "pointvalue") return 1; if (prop === "type") return "stock"; if (prop === "currency") return "USD"; return ""; }
+        // Unknown members return na (not ""). An empty-string stub here would be accepted by
+        // request.security as current-context and silently substitute chart bars.
+        if (ns === "syminfo") { if (prop === "tickerid" || prop === "ticker") return symbol; if (prop === "mintick") return 0.01; if (prop === "pointvalue") return 1; if (prop === "type") return "stock"; if (prop === "currency") return "USD"; return NA; }
         if (ns === "bar_index") return ctx.i;
         if (ns === "ta" && prop === "tr") { const b = bars[ctx.i]; const pc = ctx.i > 0 ? bars[ctx.i - 1].c : NaN; return isNaN(pc) ? b.h - b.l : Math.max(b.h - b.l, Math.abs(b.h - pc), Math.abs(b.l - pc)); }
         const tbl = NS_CONST[ns]; if (tbl && prop in tbl) return tbl[prop];
@@ -327,21 +365,81 @@ export function run(source: string | ParseResult, bars: Bar[], opts: { timeframe
     function callNs(ns: string, method: string, n: Extract<Node, { t: "call" }>, ctx: Ctx): any {
       if (ns === "request" && method === "security") {
         // args: (symbol, timeframe, expression, …) positionally, also named symbol=/timeframe=/expression=
-        let tfArg: Arg | undefined, exprArg: Arg | undefined; const posA: Arg[] = [];
-        for (const a of n.args) { if (a.name === "timeframe") tfArg = a; else if (a.name === "expression") exprArg = a; else if (!a.name) posA.push(a); }
-        tfArg = tfArg || posA[1]; exprArg = exprArg || posA[2];
+        let tfArg: Arg | undefined, exprArg: Arg | undefined, symArg: Arg | undefined;
+        const posA: Arg[] = [];
+        for (const a of n.args) {
+          if (a.name === "symbol") symArg = a;
+          else if (a.name === "timeframe") tfArg = a;
+          else if (a.name === "expression") exprArg = a;
+          else if (!a.name) posA.push(a);
+        }
+        // Named args override positional (same rule as pick() elsewhere in this engine).
+        tfArg = tfArg || posA[1]; exprArg = exprArg || posA[2]; symArg = symArg || posA[0];
         const exprNode = exprArg ? exprArg.value : null;
         if (!exprNode) return NA;
-        const tf = tfArg ? String(evalNode(tfArg.value, ctx)) : chartTf;
-        // Same/finer TF (or an HTF re-run that mustn't recurse) → evaluate the expression in place.
+
+        // ── A01 r2/r3 refusal boundary: READ symbol + timeframe BEFORE evaluating the expression ──
+        // 1) Symbol — only the canonical exact chart symbol, OR an empty-string symbol argument
+        //    (Pine same-chart convention: "" means current context), may evaluate on chart bars.
+        if (!symArg) {
+          warn(`request.security() unsupported symbol (missing) — returning na`);
+          return NA;
+        }
+        const symVal = evalNode(symArg.value, ctx);
+        // Pine: an empty-string symbol argument means the current chart's symbol (same context).
+        // This is the actual evaluated empty string from a present argument (explicit "" or a
+        // variable whose value is ""), distinct from a missing argument (still refused above),
+        // a non-empty different symbol (refused below), and unresolved members/functions that
+        // now return na rather than stubbing "". Named assumption, not a data-plane fetch.
+        const emptySym = typeof symVal === "string" && symVal.length === 0;
+        const sameSymbol = emptySym || (typeof symVal === "string" && symVal === symbol);
+        if (!sameSymbol) {
+          // Different, missing, or ambiguous/unresolvable symbol: chart bars cannot stand in for
+          // another instrument. No alias guessing, no exchange-prefix stripping, no fetch.
+          warn(typeof symVal === "string" && symVal.length > 0
+            ? `request.security() unsupported symbol '${symVal}' (chart symbol '${symbol}') — returning na`
+            : `request.security() unsupported symbol (unresolved/ambiguous) — returning na`);
+          return NA;
+        }
+
+        // 2) Timeframe — read the arg node before any expression evaluation.
+        let tf: string;
+        if (!tfArg) tf = chartTf;                      // missing timeframe arg → chart TF (existing contract)
+        else {
+          const raw = evalNode(tfArg.value, ctx);
+          tf = raw == null ? "" : String(raw);
+        }
+        // Named assumption: empty timeframe preserves the Pine same-chart convention ("" ≡ chart TF).
+        // The engine only ever receives chart-TF bars, so "" cannot mean finer-than-chart here.
+        if (tf.trim() === "") tf = chartTf;
+        const reqSec = parseTfSecStrict(tf);
+        if (reqSec == null) {
+          // Unknown/unparseable/zero-second — refuse; do NOT treat as a valid TF (builtins.tfSeconds
+          // falls back to 86400 for junk units, which would silently compare as same/finer).
+          warn(`request.security() unsupported timeframe '${tf}' (unknown/unparseable) — returning na`);
+          return NA;
+        }
+        const chartSec = tfSeconds(chartTf) || 86400;
+
+        // 3) Finer-than-chart cannot be reconstructed from the supplied bars — refuse with na +
+        // an explicit unsupported-finer-TF warning. Never chart-TF substituted values.
+        if (reqSec < chartSec) {
+          warn(`request.security() unsupported timeframe '${tf}' finer than chart '${chartTf}' — returning na`);
+          return NA;
+        }
+
+        // Valid same/coarser TF on the exact chart symbol (or an HTF re-run that mustn't recurse):
+        // existing in-place arithmetic — unchanged by this vertical.
         // For the chart TF this is exactly request.security at that TF, and the expression's own `[1]`
         // still yields the prior-bar (non-repaint) value, so single-/same-TF behavior is unchanged.
-        if (htfDepth > 0 || tfSeconds(tf) <= tfSeconds(chartTf)) return evalNode(exprNode, ctx);
+        if (htfDepth > 0 || reqSec <= chartSec) return evalNode(exprNode, ctx);
         const htfc = getHtfCtx(tf);
         if (!htfc) return evalNode(exprNode, ctx);
         // chart bar ctx.i lives in HTF bar groupOf[i]; evaluate the SAME expression on the resampled
         // timeline at that HTF bar. `_src` reads the developing HTF bar; `_src[1]` the confirmed/closed
         // one (lookahead_off, no repaint) — the distinction is the expression's own history offset.
+        // NOTE: existing HTF lookahead/knowledge-cut fidelity is a separate owed vertical — not
+        // claimed fixed here.
         const g = htfc.groupOf[ctx.i];
         const sub: Ctx = { i: ctx.i, frame: ctx.frame, scalars: ctx.scalars, depth: ctx.depth, htf: { globals: htfc.globals, localStore: htfc.localStore, bars: htfc.bars, N: htfc.bars.length, barIdx: g } };
         return evalNode(exprNode, sub);
@@ -363,7 +461,8 @@ export function run(source: string | ParseResult, bars: Bar[], opts: { timeframe
           if (method === "contains") return String(pos[0]).includes(String(pos[1]));
           if (method === "upper") return String(pos[0]).toUpperCase();
           if (method === "lower") return String(pos[0]).toLowerCase();
-          warn(`unsupported str.${method}() ("")`); return "";
+          // na, not "": an empty-string stub would be accepted by request.security as current-context.
+          warn(`unsupported str.${method}() (na)`); return NA;
         case "input": return inputDispatch(method, pos, named);
         case "timeframe":
           if (method === "in_seconds") return tfSeconds(pos[0] != null ? String(pos[0]) : chartTf);
