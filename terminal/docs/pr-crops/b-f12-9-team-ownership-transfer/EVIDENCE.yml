@@ -4,6 +4,15 @@
 # capturedAtHead: 3115a7ea5b0140b1ec54c96e6a494850a3a7ae87
 capturedAtHead: 3115a7ea5b0140b1ec54c96e6a494850a3a7ae87
 capturedAt: 2026-10-05T12:29:38.141Z
+# Record addition (parent-adjudicated squash-source admission). Original capture
+# metadata above is preserved. GitHub associates that capture with merged PR #802
+# (final head e23a140306f66e61359fd0e60df73ac03f297d80), squash-landed on master
+# as 64c1ea5e25a335a0b0636e73e7fdbe0f8beb7b0e. Evidence checks capture blobs and
+# landed blobs against the five layoutFiles hashes, and checks landedAtHead as
+# ancestor-or-equal of real current HEAD. Direct capturedAtHead ancestry remains
+# the rule when landedAtHead is omitted.
+landedAtHead: 64c1ea5e25a335a0b0636e73e7fdbe0f8beb7b0e
+sourceCarrierPR: 802
 layoutFiles:
   terminal/components/settings/SectionTeam.tsx: "00f61441215f0cdb8c6b40536e66e243d0ae83ffa54d6f19ae8a67dd99d7a79d"
   terminal/components/settings/SectionTeam.module.css: "069056ff7ac4274a57ae9a835a0fdda178e9625a591b4374e855b9d41a3fd5bc"
