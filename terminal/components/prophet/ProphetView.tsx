@@ -29,6 +29,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { flowGet } from "@/lib/flowClientCache";
 import { useLang } from "@/lib/i18n";
 import { makeProphetT, phaseWhy } from "./prophetStrings";
+import { SelectionCohortCard } from "./SelectionCohortCard";
 import { SignalCard, phaseTone, planAsof, planConfidence, planOriginationNote, planPhase, planRecommendedAction } from "./SignalCard";
 import type { PlanSummary } from "./SignalCard";
 import { ConfidencePanel } from "./ConfidencePanel";
@@ -300,7 +301,7 @@ export function ProphetView() {
         </div>
       </header>
 
-      <div className="obs-prophet-grid">
+      <div className="obs-prophet-grid" style={{ minHeight: 360 }}>
       {/* ── LEFT — alert stream ── */}
       <div className="obs-card obs-prophet-pane obs-prophet-left" style={LEFT_PANE}>
         {/* Sub-tabs */}
@@ -394,6 +395,8 @@ export function ProphetView() {
         )}
       </div>
       </div>
+      {/* ── Shared themes for the latest finalized U.S. picks — context only (gate #8) ── */}
+      <SelectionCohortCard lang={lang} />
     </div>
   );
 }
