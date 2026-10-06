@@ -285,3 +285,298 @@ describe("PineHost worker: supersession + budget error shape (stubbed Worker)", 
     expect(r.result!.plots.length).toBe(1);
   });
 });
+
+// ── A02 frozen lifecycle contract (compile budget, honest sibling interruption, dispose, generations) ──
+// These cases encode the containment contract against the actual host module + fake Worker/timers.
+// They are written to FAIL on the supplied unmodified host and pass after a minimal lifecycle fix.
+describe("A02 PineHost lifecycle contract (fake Worker + fake timers)", () => {
+  let created: StubWorker[] = [];
+  let postThrows = false;
+  let spawnThrows = false;
+  let autoReply: "none" | "success" = "none";
+
+  class StubWorker {
+    onmessage: ((e: any) => void) | null = null;
+    onerror: (() => void) | null = null;
+    posted: any[] = [];
+    terminated = false;
+    replyWith: ((msg: any) => any) | null = null;
+    constructor(_url: any, _opts: any) {
+      if (spawnThrows) throw new Error("pine worker startup failed (stub)");
+      created.push(this);
+    }
+    postMessage(msg: any) {
+      if (postThrows) throw new Error("pine postMessage failed (stub)");
+      this.posted.push(msg);
+      let r: any = null;
+      if (this.replyWith) r = this.replyWith(msg);
+      else if (autoReply === "success") {
+        if (msg.kind === "compile") r = { kind: "compiled", reqId: msg.reqId, ok: true, errors: [], astId: hashSource(msg.source) };
+        else if (msg.kind === "run") r = { kind: "ran", reqId: msg.reqId, ok: true, errors: [], result: { plots: [], shapes: [], warnings: [] } };
+      }
+      if (r) queueMicrotask(() => this.onmessage?.({ data: r }));
+    }
+    terminate() { this.terminated = true; }
+  }
+
+  beforeEach(() => {
+    created = [];
+    postThrows = false;
+    spawnThrows = false;
+    autoReply = "none";
+    (globalThis as any).window = globalThis;
+    (globalThis as any).Worker = StubWorker as any;
+    vi.useFakeTimers();
+  });
+  afterEach(() => {
+    vi.useRealTimers();
+    delete (globalThis as any).window;
+    delete (globalThis as any).Worker;
+    vi.resetModules();
+  });
+
+  it("compile has a finite wall budget; overdue compile terminates worker and settles once (compile-shaped)", async () => {
+    const host = await import("../pine-engine/host");
+    const h = host.createPineHost();
+    expect(h.usingWorker).toBe(true);
+
+    const p = h.compile(SMA);
+    await vi.advanceTimersByTimeAsync(1600); // DEFAULT 1500ms compile budget + slack
+    const res = await p;
+    expect(res.ok).toBe(false);
+    expect(res.budgetExceeded).toBe(true);
+    expect(res.astId).toBeNull();
+    expect(res.errors[0].message).toMatch(/budget/);
+    expect(created[0].terminated).toBe(true);
+
+    // recovery: a later compile on a fresh worker still succeeds
+    autoReply = "success";
+    const rec = await h.compile(SMA);
+    expect(rec.ok).toBe(true);
+    expect(rec.astId).toBe(hashSource(SMA));
+    expect(created.length).toBe(2);
+    expect(created[1].terminated).toBe(false);
+    h.dispose();
+  });
+
+  it("superseding a compile cancels the stale one, terminates/preempts its worker, and lets the latest compile proceed", async () => {
+    const host = await import("../pine-engine/host");
+    const h = host.createPineHost();
+    const src1 = SMA;
+    const src2 = SMA + "\nplot(close)";
+
+    const c1 = h.compile(src1);
+    autoReply = "success"; // latest compile's fresh generation auto-answers
+    const c2 = h.compile(src2); // latest must actually preempt stale compile work
+
+    const r1 = await c1;
+    expect(r1.ok).toBe(false);
+    expect(r1.cancelled).toBe(true);
+    expect(r1.astId).toBeNull();
+
+    // stale compile's worker generation was terminated (not left running the stale parse)
+    expect(created.length).toBeGreaterThanOrEqual(1);
+    expect(created[0].terminated).toBe(true);
+    expect(created.length).toBeGreaterThanOrEqual(2); // fresh worker for the latest compile
+
+    autoReply = "success";
+    const r2 = await c2;
+    expect(r2.ok).toBe(true);
+    expect(r2.astId).toBe(hashSource(src2));
+    h.dispose();
+  });
+
+  it("run-budget breach settles only the offending run as budgetExceeded; sibling queued request is interrupted, not budget-exceeded", async () => {
+    const host = await import("../pine-engine/host");
+    const h = host.createPineHost();
+    const a = h.run({ slot: "a", source: SMA, bars: genBars(10), budgetMs: 300 });
+    const b = h.run({ slot: "b", source: SMA, bars: genBars(10), budgetMs: 800 });
+
+    await vi.advanceTimersByTimeAsync(400); // only A's 300ms budget elapses
+    const ra = await a;
+    const rb = await b;
+
+    // A breached its own wall budget
+    expect(ra.budgetExceeded).toBe(true);
+    expect(ra.ok).toBe(false);
+    expect(ra.errors[0].message).toMatch(/budget/);
+
+    // B was queued/sibling — must say cancelled/interrupted, NOT claim it consumed A's budget
+    expect(rb.ok).toBe(false);
+    expect(rb.cancelled).toBe(true);
+    expect(rb.interrupted).toBe(true);
+    expect(rb.budgetExceeded).toBeFalsy();
+    expect(rb.errors.some((e) => /budget/.test(e.message))).toBe(false);
+    expect(created[0].terminated).toBe(true);
+    h.dispose();
+  });
+
+  it("compile-budget breach interrupts a sibling run honestly (cancelled/interrupted, not budgetExceeded)", async () => {
+    const host = await import("../pine-engine/host");
+    const h = host.createPineHost();
+    const runP = h.run({ slot: "s", source: SMA, bars: genBars(10), budgetMs: 5000 });
+    const cP = h.compile(SMA); // compile default budget 1500ms; never replies
+
+    await vi.advanceTimersByTimeAsync(1600);
+    const c = await cP;
+    expect(c.ok).toBe(false);
+    expect(c.budgetExceeded).toBe(true);
+    expect(c.astId).toBeNull();
+
+    const r = await runP;
+    expect(r.ok).toBe(false);
+    expect(r.cancelled).toBe(true);
+    expect(r.interrupted).toBe(true);
+    expect(r.budgetExceeded).toBeFalsy();
+    expect(created[0].terminated).toBe(true);
+    h.dispose();
+  });
+
+  it("disposed WorkerHost: typed cancellation, no sync compile/run, parser never invoked, no new worker", async () => {
+    const host = await import("../pine-engine/host");
+    const h = host.createPineHost();
+    expect(h.usingWorker).toBe(true);
+    h.dispose();
+
+    const spy = vi.spyOn(parser, "parse");
+    const c = await h.compile(SMA);
+    const r = await h.run({ slot: "x", source: SMA, bars: genBars(10) });
+    expect(c.ok).toBe(false);
+    expect(c.cancelled).toBe(true);
+    expect(c.astId).toBeNull();
+    expect(r.ok).toBe(false);
+    expect(r.cancelled).toBe(true);
+    expect(r.result).toBeNull();
+    expect(spy).not.toHaveBeenCalled();
+    expect(created.length).toBe(0); // dispose must not lazily spawn
+    spy.mockRestore();
+  });
+
+  it("disposed SyncHost: typed cancellation, parser never invoked", async () => {
+    delete (globalThis as any).Worker;
+    vi.resetModules();
+    const host = await import("../pine-engine/host");
+    const h = host.createPineHost();
+    expect(h.usingWorker).toBe(false);
+    h.dispose();
+
+    const spy = vi.spyOn(parser, "parse");
+    const c = await h.compile(SMA);
+    const r = await h.run({ slot: "x", source: SMA, bars: genBars(10) });
+    expect(c.ok).toBe(false);
+    expect(c.cancelled).toBe(true);
+    expect(c.astId).toBeNull();
+    expect(r.ok).toBe(false);
+    expect(r.cancelled).toBe(true);
+    expect(r.result).toBeNull();
+    expect(spy).not.toHaveBeenCalled();
+    spy.mockRestore();
+  });
+
+  it("reset of shared worker settles interrupted other requests honestly (dispose with in-flight work)", async () => {
+    const host = await import("../pine-engine/host");
+    const h = host.createPineHost();
+    const runP = h.run({ slot: "s", source: SMA, bars: genBars(10), budgetMs: 5000 });
+    const cP = h.compile(SMA);
+    h.dispose();
+
+    const r = await runP;
+    const c = await cP;
+    expect(r.ok).toBe(false);
+    expect(r.cancelled).toBe(true);
+    expect(r.interrupted).toBe(true);
+    expect(r.budgetExceeded).toBeFalsy();
+    expect(c.ok).toBe(false);
+    expect(c.cancelled).toBe(true);
+    expect(c.astId).toBeNull();
+    expect(created[0].terminated).toBe(true);
+  });
+
+  it("late onerror/onmessage from a terminated worker generation cannot cancel/settle a newer request", async () => {
+    const host = await import("../pine-engine/host");
+    const h = host.createPineHost();
+
+    // gen1: compile never replies → budget breach terminates it
+    const c1 = h.compile(SMA);
+    await vi.advanceTimersByTimeAsync(1600);
+    const r1 = await c1;
+    expect(r1.budgetExceeded).toBe(true);
+    expect(created[0].terminated).toBe(true);
+    const stale = created[0];
+
+    // gen2: a newer in-flight run
+    autoReply = "none";
+    const runP = h.run({ slot: "s", source: SMA, bars: genBars(10), budgetMs: 5000 });
+    expect(created.length).toBe(2);
+    const fresh = created[1];
+
+    // stale generation callbacks must be ignored — they must NOT failAll/cancel the newer request
+    stale.onerror?.();
+    stale.onmessage?.({ data: { kind: "ran", reqId: runP as any, ok: false, errors: [], result: null } });
+    // also fire a plausible stale compiled/run reply carrying a non-existent reqId shape
+    stale.onmessage?.({ data: { kind: "compiled", reqId: 999999, ok: true, errors: [], astId: "dead" } });
+
+    // newer request still in flight (not settled by stale callbacks)
+    let settledEarly = false;
+    void runP.then(() => { settledEarly = true; });
+    await Promise.resolve();
+    expect(settledEarly).toBe(false);
+
+    // fresh generation still answers the newer request
+    fresh.onmessage?.({ data: { kind: "ran", reqId: fresh.posted[0].reqId, ok: true, errors: [], result: { plots: [], shapes: [], warnings: [] } } });
+    const rr = await runP;
+    expect(rr.ok).toBe(true);
+    h.dispose();
+  });
+
+  it("worker constructor (startup) throw settles compile/run promises instead of stranding them", async () => {
+    spawnThrows = true;
+    const host = await import("../pine-engine/host");
+    const h = host.createPineHost();
+
+    let cRes: any; let cThrew = false;
+    try { cRes = await h.compile(SMA); } catch { cThrew = true; }
+    expect(cThrew).toBe(false);
+    expect(cRes.ok).toBe(false);
+
+    let rRes: any; let rThrew = false;
+    try { rRes = await h.run({ slot: "s", source: SMA, bars: genBars(5), budgetMs: 500 }); } catch { rThrew = true; }
+    expect(rThrew).toBe(false);
+    expect(rRes.ok).toBe(false);
+    h.dispose();
+  });
+
+  it("postMessage throw settles the request promise (typed outcome, no hang, no strand)", async () => {
+    postThrows = true;
+    const host = await import("../pine-engine/host");
+    const h = host.createPineHost();
+
+    let cRes: any; let cThrew = false;
+    try { cRes = await h.compile(SMA); } catch { cThrew = true; }
+    expect(cThrew).toBe(false);
+    expect(cRes.ok).toBe(false);
+
+    let rRes: any; let rThrew = false;
+    try { rRes = await h.run({ slot: "s", source: SMA, bars: genBars(5), budgetMs: 500 }); } catch { rThrew = true; }
+    expect(rThrew).toBe(false);
+    expect(rRes.ok).toBe(false);
+    h.dispose();
+  });
+
+  it("sibling interruption identity: the interrupted sibling is its own request (slot/reqId identity preserved in settlement shape)", async () => {
+    const host = await import("../pine-engine/host");
+    const h = host.createPineHost();
+    const keep = h.run({ slot: "keep", source: SMA, bars: genBars(10), budgetMs: 300 });
+    const drop = h.run({ slot: "drop", source: SMA, bars: genBars(10), budgetMs: 900 });
+    await vi.advanceTimersByTimeAsync(400);
+    const rk = await keep;
+    const rd = await drop;
+    expect(rk.budgetExceeded).toBe(true);
+    expect(rd.interrupted).toBe(true);
+    expect(rd.cancelled).toBe(true);
+    expect(rd.budgetExceeded).toBeFalsy();
+    // honest shape: sibling still carries run payload fields (result null) rather than a compile-only shape
+    expect(rd).toHaveProperty("result", null);
+    h.dispose();
+  });
+});
