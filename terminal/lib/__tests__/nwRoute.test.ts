@@ -21,14 +21,12 @@ afterEach(() => {
 });
 
 describe("/api/nw", () => {
-  it("NW_FIXTURE=1 + selection_cohort_us serves fixture", async () => {
+  it("NW_FIXTURE=1 + selection_cohort_us -> 503 fixture unavailable", async () => {
     process.env.NW_FIXTURE = "1";
     const { GET } = await import("@/app/api/nw/route");
     const res = await GET(new Request("https://x.test/api/nw?f=selection_cohort_us"));
-    expect(res.status).toBe(200);
-    expect(res.headers.get("X-NW-Source")).toBe("fixture");
-    const body = await res.json();
-    expect(body.schema).toBe("mastermind.selection_cohort_projection.v1");
+    expect(res.status).toBe(503);
+    expect(await res.json()).toEqual({ error: "fixture unavailable" });
   });
 
   it("NW_FIXTURE=1 default f serves market_plane fixture unchanged", async () => {

@@ -21,7 +21,6 @@ const FEEDS: Record<string, string> = {
 // Checked-in samples served when NW_FIXTURE=1, one per feed.
 const FIXTURES: Record<string, string> = {
   market_plane: "nw_plane_fixture.json",
-  selection_cohort_us: "nw_selection_cohort_us_fixture.json",
 };
 
 // In-memory cache so concurrent renders share one upstream fetch. The producer publishes
@@ -58,8 +57,12 @@ export async function GET(req: Request): Promise<Response> {
 
   // Dev fixture mode: serve the checked-in sample without touching the upstream.
   if (process.env.NW_FIXTURE === "1") {
+    const fixtureFile = FIXTURES[f];
+    if (!fixtureFile) {
+      return NextResponse.json({ error: "fixture unavailable" }, { status: 503 });
+    }
     try {
-      const raw = await fs.readFile(path.join(FIXTURE_DIR, FIXTURES[f]), "utf8");
+      const raw = await fs.readFile(path.join(FIXTURE_DIR, fixtureFile), "utf8");
       return NextResponse.json(JSON.parse(raw) as Record<string, unknown>, {
         headers: { "Cache-Control": "no-store", "X-NW-Source": "fixture" },
       });

@@ -1,16 +1,17 @@
 // @vitest-environment jsdom
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { SelectionCohortCard } from "@/components/prophet/SelectionCohortCard";
+import { parseSelectionCohort } from "@/lib/selectionCohort";
 
 (globalThis as unknown as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 
 const ROOT = join(__dirname, "..", "..");
 const READY = JSON.parse(
-  readFileSync(join(ROOT, "public", "data", "nw_selection_cohort_us_fixture.json"), "utf8"),
+  readFileSync(join(ROOT, "lib", "__tests__", "fixtures", "selection_cohort", "ready.json"), "utf8"),
 );
 const UNAVAILABLE = JSON.parse(
   readFileSync(join(ROOT, "lib", "__tests__", "fixtures", "selection_cohort", "unavailable.json"), "utf8"),
@@ -22,32 +23,17 @@ const EMPTY = JSON.parse(
 let container: HTMLDivElement;
 let root: Root;
 
-function jsonResponse(body: unknown, ok = true, status = 200): Response {
-  return { ok, status, json: async () => body } as Response;
-}
-
-async function renderCard(lang: "en" | "zh") {
+async function renderCard(lang: "en" | "zh", view: ReturnType<typeof parseSelectionCohort> | null) {
   container = document.createElement("div");
   document.body.appendChild(container);
   root = createRoot(container);
   await act(async () => {
-    root.render(<SelectionCohortCard lang={lang} />);
-  });
-}
-
-async function flushFetch(body: unknown, ok = true, status = 200) {
-  vi.stubGlobal(
-    "fetch",
-    vi.fn(() => Promise.resolve(jsonResponse(body, ok, status))),
-  );
-  await renderCard("en");
-  await act(async () => {
-    await Promise.resolve();
+    root.render(<SelectionCohortCard lang={lang} view={view} />);
   });
 }
 
 beforeEach(() => {
-  vi.restoreAllMocks();
+  // no fetch — view is passed from parent
 });
 
 afterEach(() => {
@@ -55,32 +41,16 @@ afterEach(() => {
     root?.unmount();
   });
   container?.remove();
-  vi.unstubAllGlobals();
 });
 
 describe("SelectionCohortCard", () => {
-  it("(a) container empty before fetch resolves", async () => {
-    let resolveFetch: (v: Response) => void = () => {};
-    vi.stubGlobal(
-      "fetch",
-      vi.fn(
-        () =>
-          new Promise<Response>((resolve) => {
-            resolveFetch = resolve;
-          }),
-      ),
-    );
-    await renderCard("en");
+  it("(a) null view renders nothing", async () => {
+    await renderCard("en", null);
     expect(container.querySelector("[data-testid=selection-cohort-card]")).toBeNull();
-    await act(async () => {
-      resolveFetch(jsonResponse(READY));
-      await Promise.resolve();
-    });
-    expect(container.querySelector("[data-testid=selection-cohort-card]")).not.toBeNull();
   });
 
   it("(b) READY en copy and no CJK", async () => {
-    await flushFetch(READY, true, 200);
+    await renderCard("en", parseSelectionCohort(READY));
     const card = container.querySelector("[data-testid=selection-cohort-card]")!;
     expect(card.getAttribute("data-state")).toBe("ready");
     const text = card.textContent ?? "";
@@ -97,11 +67,7 @@ describe("SelectionCohortCard", () => {
   });
 
   it("(c) READY zh copy and no Latin letters", async () => {
-    vi.stubGlobal("fetch", vi.fn(() => Promise.resolve(jsonResponse(READY))));
-    await renderCard("zh");
-    await act(async () => {
-      await Promise.resolve();
-    });
+    await renderCard("zh", parseSelectionCohort(READY));
     const text = container.textContent ?? "";
     expect(text).toContain("部分入选标的至少共享一个主题。");
     expect(text).toContain("仅供背景参考 — 非信号");
@@ -110,7 +76,7 @@ describe("SelectionCohortCard", () => {
   });
 
   it("(d) 503 feed -> unavailable feed why", async () => {
-    await flushFetch({ error: "feed unavailable" }, false, 503);
+    await renderCard("en", parseSelectionCohort({ error: "feed unavailable" }));
     const card = container.querySelector("[data-testid=selection-cohort-card]")!;
     expect(card.getAttribute("data-state")).toBe("unavailable");
     expect(card.textContent).toContain(
@@ -120,7 +86,7 @@ describe("SelectionCohortCard", () => {
   });
 
   it("(e) unavailable.json -> source why", async () => {
-    await flushFetch(UNAVAILABLE);
+    await renderCard("en", parseSelectionCohort(UNAVAILABLE));
     const card = container.querySelector("[data-testid=selection-cohort-card]")!;
     expect(card.getAttribute("data-state")).toBe("unavailable");
     expect(card.textContent).toContain(
@@ -130,7 +96,7 @@ describe("SelectionCohortCard", () => {
   });
 
   it("(f) empty.json -> empty state", async () => {
-    await flushFetch(EMPTY);
+    await renderCard("en", parseSelectionCohort(EMPTY));
     const card = container.querySelector("[data-testid=selection-cohort-card]")!;
     expect(card.getAttribute("data-state")).toBe("empty");
     expect(card.textContent).toContain("No U.S. picks were finalized for this run.");
@@ -139,7 +105,7 @@ describe("SelectionCohortCard", () => {
 
   it("(g) can_rank true -> checks unavailable", async () => {
     const bad = { ...READY, can_rank: true };
-    await flushFetch(bad);
+    await renderCard("en", parseSelectionCohort(bad));
     const card = container.querySelector("[data-testid=selection-cohort-card]")!;
     expect(card.getAttribute("data-state")).toBe("unavailable");
     expect(card.textContent).toContain(

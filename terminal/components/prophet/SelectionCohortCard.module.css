@@ -11,6 +11,72 @@
   min-width: 0;
   padding: 10px 14px 12px;
 }
+.inFlowCard {
+  display: none;
+}
+@media (max-width: 1180px) {
+  .inFlowCard {
+    display: flex;
+  }
+}
+.tileWrap {
+  position: relative;
+  display: none;
+  flex: 0 0 auto;
+}
+@media (min-width: 1181px) {
+  .tileWrap {
+    display: block;
+  }
+}
+/* Masthead clips overflow; lift stacking while the cohort popover is open (D2). */
+:global(.obs-prophet-masthead.cohortPopoverOpen) {
+  overflow: visible;
+  z-index: 4;
+}
+.tileBtn {
+  cursor: pointer;
+  font: inherit;
+  color: inherit;
+  text-align: left;
+  transition: border-color 0.12s ease, background 0.12s ease;
+}
+.tileBtn:hover {
+  border-color: rgba(255, 255, 255, 0.14);
+  background: rgba(5, 7, 12, 0.42);
+}
+.tileBtn:focus-visible {
+  outline: 2px solid rgba(255, 255, 255, 0.35);
+  outline-offset: 2px;
+}
+.tileBtnOpen {
+  border-color: rgba(255, 255, 255, 0.16);
+  background: rgba(5, 7, 12, 0.48);
+}
+.popover {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  z-index: 12;
+  width: min(560px, 90vw);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+  padding: 10px 14px 12px;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.45);
+}
+.panelHead {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 6px 10px;
+  min-width: 0;
+}
+.panelTitle {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
 .head {
   display: flex;
   flex-wrap: wrap;

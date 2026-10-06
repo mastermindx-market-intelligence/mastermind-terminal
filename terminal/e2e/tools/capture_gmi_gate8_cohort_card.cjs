@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * GMI gate #8 — dark evidence crops for the selection cohort card.
+ * GMI gate #8 — dark evidence crops for the selection cohort card (D2 layout).
  *
  * Dark only (DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06).
  * TERMINAL_E2E_FIXTURE suppresses the Next.js N indicator.
@@ -24,17 +24,16 @@ const LAYOUT_FILES = [
   "terminal/lib/selectionCohort.ts",
   "terminal/components/prophet/SelectionCohortCard.tsx",
   "terminal/components/prophet/SelectionCohortCard.module.css",
+  "terminal/components/prophet/ProphetView.tsx",
 ];
 const PORT = Number(process.env.TERMINAL_CROP_PORT || 3572);
 const BASE = `http://127.0.0.1:${PORT}`;
-const VIEWPORTS = {
-  1440: { width: 1440, height: 900 },
-  390: { width: 390, height: 844 },
-};
-const STATES = ["ready", "unavailable", "empty"];
 const COHORT_ROUTE = /\/api\/nw\?f=selection_cohort_us$/;
 
-const READY = readFileSync(join(ROOT, "public", "data", "nw_selection_cohort_us_fixture.json"), "utf8");
+const READY = readFileSync(
+  join(ROOT, "lib", "__tests__", "fixtures", "selection_cohort", "ready.json"),
+  "utf8",
+);
 const UNAVAILABLE = readFileSync(
   join(ROOT, "lib", "__tests__", "fixtures", "selection_cohort", "unavailable.json"),
   "utf8",
@@ -48,11 +47,6 @@ mkdirSync(OUT, { recursive: true });
 
 function sha256File(rel) {
   return createHash("sha256").update(readFileSync(join(REPO, rel))).digest("hex");
-}
-
-function cropName(state, width, lang) {
-  const vp = width === 1440 ? "desktop" : "mobile";
-  return `${vp}-${lang}-${state}.png`;
 }
 
 function bodyForState(state) {
@@ -113,10 +107,10 @@ async function waitForServer(timeoutMs) {
   throw new Error(`dev server on ${PORT} never answered (${last})`);
 }
 
-async function newPage(browser, width, lang, storeKey) {
+async function newPage(browser, width, height, lang, storeKey) {
   const context = await browser.newContext({
-    viewport: VIEWPORTS[width],
-    hasTouch: width === 390,
+    viewport: { width, height },
+    hasTouch: width <= 820,
     locale: lang === "zh" ? "zh-CN" : "en-US",
     colorScheme: "dark",
     reducedMotion: "reduce",
@@ -158,7 +152,7 @@ async function cropLocator(page, locator, outPath, pad = 18) {
     await page.waitForTimeout(150);
     const box = await fresh.boundingBox();
     const h = box ? Math.ceil(box.height) : 0;
-    if (h >= 120 && Math.abs(h - lastH) < 4) break;
+    if (h >= 40 && Math.abs(h - lastH) < 4) break;
     lastH = h;
   }
   const box = await fresh.boundingBox();
@@ -171,75 +165,88 @@ async function cropLocator(page, locator, outPath, pad = 18) {
   await page.screenshot({ path: outPath, clip: { x, y, width, height } });
 }
 
-async function captureState(page, state, outPath, width) {
-  const { status, body } = bodyForState(state);
+async function gotoProphet(page, body, status = 200) {
   await page.route(COHORT_ROUTE, (route) =>
     route.fulfill({ status, contentType: "application/json", body }));
   await page.goto(`${BASE}/options?tab=prophet`, { waitUntil: "domcontentloaded", timeout: 90_000 });
-  const card = page.getByTestId("selection-cohort-card");
-  await card.waitFor({ state: "visible", timeout: 20_000 });
-  await expectState(card, state);
-  await cropLocator(page, card, outPath, width === 390 ? 10 : 16);
 }
 
-async function expectState(card, state) {
-  const handle = await card.elementHandle();
-  if (!handle) throw new Error("card missing");
-  const attr = await handle.getAttribute("data-state");
-  if (attr !== state) throw new Error(`expected data-state=${state}, got ${attr}`);
+async function captureDesktopMasthead(page, lang, state, outPath) {
+  const { status, body } = bodyForState(state);
+  await gotoProphet(page, body, status);
+  const tile = page.getByTestId("selection-cohort-tile");
+  await tile.waitFor({ state: "visible", timeout: 20_000 });
+  const masthead = page.locator(".obs-prophet-masthead");
+  await cropLocator(page, masthead, outPath, 12);
 }
 
-async function capturePageShot(page, outPath) {
-  await page.route(COHORT_ROUTE, (route) =>
-    route.fulfill({ status: 200, contentType: "application/json", body: READY }));
-  await page.goto(`${BASE}/options?tab=prophet`, { waitUntil: "domcontentloaded", timeout: 90_000 });
+async function captureDesktopPopover(page, lang, outPath, fullPage = false) {
+  await gotoProphet(page, READY);
+  const tile = page.getByTestId("selection-cohort-tile");
+  await tile.waitFor({ state: "visible", timeout: 20_000 });
+  await tile.click();
+  const popover = page.getByTestId("selection-cohort-popover");
+  await popover.waitFor({ state: "visible", timeout: 10_000 });
+  if (fullPage) {
+    await page.screenshot({ path: outPath, fullPage: false });
+    return;
+  }
+  await cropLocator(page, popover, outPath, 16);
+}
+
+async function captureInFlowCard(page, state, outPath, width) {
+  const { status, body } = bodyForState(state);
+  await gotoProphet(page, body, status);
   const card = page.getByTestId("selection-cohort-card");
-  await card.waitFor({ state: "visible", timeout: 20_000 });
   await card.scrollIntoViewIfNeeded();
-  await page.screenshot({ path: outPath, fullPage: false });
+  await card.waitFor({ state: "visible", timeout: 20_000 });
+  await cropLocator(page, card, outPath, width === 390 ? 10 : 16);
 }
 
 async function main() {
   const child = startServer();
   const files = [];
   let failed = 0;
+  const shots = [
+    { name: "desktop-en-closed.png", run: async (page) => captureDesktopMasthead(page, "en", "ready", join(OUT, "desktop-en-closed.png")) },
+    { name: "desktop-zh-closed.png", run: async (page) => captureDesktopMasthead(page, "zh", "ready", join(OUT, "desktop-zh-closed.png")) },
+    { name: "desktop-en-open.png", run: async (page) => captureDesktopPopover(page, "en", join(OUT, "desktop-en-open.png")) },
+    { name: "desktop-zh-open.png", run: async (page) => captureDesktopPopover(page, "zh", join(OUT, "desktop-zh-open.png")) },
+    { name: "desktop-en-page-open.png", run: async (page) => captureDesktopPopover(page, "en", join(OUT, "desktop-en-page-open.png"), true) },
+    { name: "desktop-en-closed-unavailable.png", run: async (page) => captureDesktopMasthead(page, "en", "unavailable", join(OUT, "desktop-en-closed-unavailable.png")) },
+    { name: "tablet-en-ready.png", run: async (page) => captureInFlowCard(page, "ready", join(OUT, "tablet-en-ready.png"), 820) },
+    { name: "mobile-en-ready.png", run: async (page) => captureInFlowCard(page, "ready", join(OUT, "mobile-en-ready.png"), 390) },
+    { name: "mobile-en-unavailable.png", run: async (page) => captureInFlowCard(page, "unavailable", join(OUT, "mobile-en-unavailable.png"), 390) },
+    { name: "mobile-en-empty.png", run: async (page) => captureInFlowCard(page, "empty", join(OUT, "mobile-en-empty.png"), 390) },
+    { name: "mobile-zh-ready.png", run: async (page) => captureInFlowCard(page, "ready", join(OUT, "mobile-zh-ready.png"), 390) },
+    { name: "mobile-zh-unavailable.png", run: async (page) => captureInFlowCard(page, "unavailable", join(OUT, "mobile-zh-unavailable.png"), 390) },
+    { name: "mobile-zh-empty.png", run: async (page) => captureInFlowCard(page, "empty", join(OUT, "mobile-zh-empty.png"), 390) },
+  ];
+
   try {
     await waitForServer(180_000);
     const browser = await chromium.launch({ headless: true });
     try {
-      for (const width of [1440, 390]) {
-        for (const lang of ["en", "zh"]) {
-          for (const state of STATES) {
-            const file = cropName(state, width, lang);
-            process.stdout.write(`capture ${file} … `);
-            const storeKey = `crop-g8-${state}-${width}-${lang}-${Date.now()}`;
-            const { context, page } = await newPage(browser, width, lang, storeKey);
-            try {
-              await captureState(page, state, join(OUT, file), width);
-              await assertNoNextIndicator(page, file);
-              files.push(file);
-              console.log("ok");
-            } catch (err) {
-              failed += 1;
-              console.log(`FAIL ${err && err.message ? err.message : err}`);
-            } finally {
-              await context.close();
-            }
-          }
+      for (const shot of shots) {
+        process.stdout.write(`capture ${shot.name} … `);
+        const isTablet = shot.name.startsWith("tablet-");
+        const isMobile = shot.name.startsWith("mobile-");
+        const width = isTablet ? 820 : isMobile ? 390 : 1440;
+        const height = isTablet ? 1180 : isMobile ? 844 : 900;
+        const lang = shot.name.includes("-zh-") ? "zh" : "en";
+        const storeKey = `crop-g8-d2-${shot.name}-${Date.now()}`;
+        const { context, page } = await newPage(browser, width, height, lang, storeKey);
+        try {
+          await shot.run(page);
+          await assertNoNextIndicator(page, shot.name);
+          files.push(shot.name);
+          console.log("ok");
+        } catch (err) {
+          failed += 1;
+          console.log(`FAIL ${err && err.message ? err.message : err}`);
+        } finally {
+          await context.close();
         }
-      }
-      process.stdout.write("capture desktop-en-ready-page.png … ");
-      const { context, page } = await newPage(browser, 1440, "en", `crop-g8-page-${Date.now()}`);
-      try {
-        await capturePageShot(page, join(OUT, "desktop-en-ready-page.png"));
-        await assertNoNextIndicator(page, "desktop-en-ready-page.png");
-        files.push("desktop-en-ready-page.png");
-        console.log("ok");
-      } catch (err) {
-        failed += 1;
-        console.log(`FAIL ${err && err.message ? err.message : err}`);
-      } finally {
-        await context.close();
       }
     } finally {
       await browser.close();
@@ -262,6 +269,7 @@ async function main() {
     "languages: [en, zh]",
     "viewports:",
     "  - { name: desktop, width: 1440, height: 900 }",
+    "  - { name: tablet, width: 820, height: 1180 }",
     "  - { name: mobile, width: 390, height: 844 }",
     "surfaces: [SelectionCohortCard]",
     "capture_flag: TERMINAL_E2E_FIXTURE",

@@ -2,16 +2,18 @@
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
 # Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
 # capturedAtHead: c9d211fdcc7b370575af91868932a6764294df0d
-# capturedAt: 2026-10-06T11:12:33.641Z
+# capturedAt: 2026-10-06T12:28:05.813Z
 # capturedAtHead is informational. The lock is layoutFiles.
 layoutFiles:
   terminal/lib/selectionCohort.ts: "795de709d83958ebf9cb7022969037430203a6a1c9b6091ceade89cecc2c9795"
-  terminal/components/prophet/SelectionCohortCard.tsx: "d439c590f8ce5ce51da67d3385cbab16ed82a6c893c35e0e03f6014713dd948f"
-  terminal/components/prophet/SelectionCohortCard.module.css: "e715a1a5b0d0b1668b0af3c10737fbb357fcae058e1c273a7bcde52bdcbf4f24"
+  terminal/components/prophet/SelectionCohortCard.tsx: "d84398f21307f030ca8de2904bc4cd8273bc7c62a798f60f4c27f3555cb8b813"
+  terminal/components/prophet/SelectionCohortCard.module.css: "c44b5464f955135aea4c326f74ded8103a4d88ff5a4c5b142dab1977f2111023"
+  terminal/components/prophet/ProphetView.tsx: "44c8e8cad3d86641374ebcfeb2cbd5eead493763b2e6ed41637d8ec0227b90aa"
 theme: dark
 languages: [en, zh]
 viewports:
   - { name: desktop, width: 1440, height: 900 }
+  - { name: tablet, width: 820, height: 1180 }
   - { name: mobile, width: 390, height: 844 }
 surfaces: [SelectionCohortCard]
 capture_flag: TERMINAL_E2E_FIXTURE
@@ -20,16 +22,16 @@ command: |
   cd terminal
   node e2e/tools/capture_gmi_gate8_cohort_card.cjs
 files:
-  - desktop-en-empty.png
-  - desktop-en-ready-page.png
-  - desktop-en-ready.png
-  - desktop-en-unavailable.png
-  - desktop-zh-empty.png
-  - desktop-zh-ready.png
-  - desktop-zh-unavailable.png
+  - desktop-en-closed-unavailable.png
+  - desktop-en-closed.png
+  - desktop-en-open.png
+  - desktop-en-page-open.png
+  - desktop-zh-closed.png
+  - desktop-zh-open.png
   - mobile-en-empty.png
   - mobile-en-ready.png
   - mobile-en-unavailable.png
   - mobile-zh-empty.png
   - mobile-zh-ready.png
   - mobile-zh-unavailable.png
+  - tablet-en-ready.png

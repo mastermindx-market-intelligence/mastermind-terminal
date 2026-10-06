@@ -9,7 +9,7 @@ import {
 
 const ROOT = join(__dirname, "..", "..");
 const READY = JSON.parse(
-  readFileSync(join(ROOT, "public", "data", "nw_selection_cohort_us_fixture.json"), "utf8"),
+  readFileSync(join(ROOT, "lib", "__tests__", "fixtures", "selection_cohort", "ready.json"), "utf8"),
 ) as Record<string, unknown>;
 const UNAVAILABLE = JSON.parse(
   readFileSync(join(ROOT, "lib", "__tests__", "fixtures", "selection_cohort", "unavailable.json"), "utf8"),
