@@ -5,6 +5,7 @@ import WorkspaceTabs from "@/components/chrome/WorkspaceTabs";
 import { useOnboarding } from "@/components/onboarding/OnboardingProvider";
 import { useLang, useT, type Lang } from "@/lib/i18n";
 import { episodeStateLabel } from "@/lib/plainLabels";
+import { catalystLabel, catalystPhrase } from "@/lib/dislocations/catalystLabels";
 import type { DislocationEpisode, EpisodeState } from "@/lib/dislocations/types";
 import s from "./DislocationsView.module.css";
 
@@ -67,8 +68,6 @@ const PAY_TITLE: [string, string] = [
   "全市场错位为付费功能。",
 ];
 const PAY_BODY: [string, string] = ["Your watchlist view stays free.", "自选股视图保持免费。"];
-const CATALYST_ON: [string, string] = ["Catalyst on file", "有催化剂记录"];
-const CATALYST_AGED: [string, string] = ["Catalyst aged out", "催化剂已过期"];
 const DELAY_BADGE: [string, string] = ["Delayed data (≈15 min)", "延迟数据（约15分钟）"];
 const LOADING_STATUS: [string, string] = [
   "Reading the latest bars…",
@@ -190,13 +189,16 @@ function watching(ep: DislocationEpisode, lang: Lang): string | null {
 }
 
 function catalystChip(ep: DislocationEpisode, lang: Lang): ReactNode {
-  const cat = ep.catalyst;
-  if (!cat) return null;
-  const knowable = ep.display.knowable_at;
-  if (!knowable) return null;
-  const aged = cat.relevant_until < knowable;
-  const label = aged ? CATALYST_AGED[lang === "zh" ? 1 : 0] : CATALYST_ON[lang === "zh" ? 1 : 0];
-  return <span className={s.chip}>{label}</span>;
+  const r = catalystLabel(ep.catalyst, ep.display.knowable_at, lang);
+  if (!r) return null;
+  return (
+    <span
+      className={r.tone === "clear" ? `${s.chip} ${s.chipQuiet}` : s.chip}
+      data-tone={r.tone}
+    >
+      {r.label}
+    </span>
+  );
 }
 
 function rowsForGroup(group: typeof GROUPS[number], episodes: DislocationEpisode[]): DislocationEpisode[] {
@@ -549,13 +551,12 @@ export default function DislocationsView() {
                                 <dd>
                                   {ep.catalyst
                                     ? (() => {
-                                        const coverage = ep.catalyst.coverage
-                                          ? ep.catalyst.coverage
-                                          : COVERAGE_UNKNOWN[L];
+                                        const phrase =
+                                          catalystPhrase(ep.catalyst, lang) ?? COVERAGE_UNKNOWN[L];
                                         const until = fmtClock(ep.catalyst.relevant_until, lang);
                                         return lang === "zh"
-                                          ? `${coverage} · 至 ${until}`
-                                          : `${coverage} · until ${until}`;
+                                          ? `${phrase} · 至 ${until}`
+                                          : `${phrase} · until ${until}`;
                                       })()
                                     : COVERAGE_UNKNOWN[L]}
                                 </dd>
