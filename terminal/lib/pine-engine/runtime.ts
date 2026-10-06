@@ -2,6 +2,9 @@
 // actually runs. Series live as per-bar arrays; `var` persists across bars; `expr[n]` reads
 // history; `ta.*` calls keep per-call-site state. User functions bind their params as ALIASES
 // to the caller's series (so `_src[1]` inside a function reads the real history of the argument).
+// Non-identifier `expr[n]` history is isolated per effective request context (chart vs each
+// requested TF) AND per function-call frame, so a shared function-body AST cannot mix daily /
+// weekly / monthly timelines or two call sites with different args.
 //
 // Deliberately tolerant: any unimplemented namespace call (table.*, label.*, fill, bgcolor, …)
 // is a no-op returning `na` rather than throwing, so a large real-world script still runs and
@@ -232,7 +235,10 @@ export function run(source: string | ParseResult, bars: Bar[], opts: { timeframe
     const localVarInit = new Set<string>();
     const localVarKeys = new Set<string>();        // storage keys of function-local `var`s — carried forward each bar
     const taState = new Map<string, any>();        // per-call-site state for ta.* and friends
-    const histStore = new Map<number, any[]>();    // recorded history for non-identifier index bases
+    // Non-identifier `[n]` history. Keyed by effective TF + function-call frame + AST hid so a
+    // shared user-function body (one hid) cannot mix chart/HTF timelines or separate call sites.
+    // ctxBaseI still selects the slot on that isolated buffer (chart i vs published HTF barIdx).
+    const histStore = new Map<string, any[]>();
     type HtfBuilt = { globals: Map<string, any[]>; localStore: Map<string, any[]>; bars: Bar[]; groupOf: number[]; confirmChartIdx: number[]; timeframe: string };
     const htfCache = new Map<string, HtfBuilt | null>();  // one resampled re-run per coarser timeframe (shared budget)
     // Effective TF of the current evaluation context: requested TF inside an HTF binding,
@@ -241,6 +247,11 @@ export function run(source: string | ParseResult, bars: Bar[], opts: { timeframe
     const contextTf = (ctx: Ctx): string => (ctx.htf && ctx.htf.timeframe ? ctx.htf.timeframe : chartTf);
     const ctxBaseI = (ctx: Ctx): number => (ctx.htf ? ctx.htf.barIdx : ctx.i);
     const ctxLS = (ctx: Ctx) => (ctx.htf ? ctx.htf.localStore : localStore);
+    const histBuf = (ctx: Ctx, hid: number): any[] => {
+      const key = contextTf(ctx) + "\0" + (ctx.frame ? ctx.frame.path : "") + "\0" + hid;
+      let h = histStore.get(key); if (!h) { h = []; histStore.set(key, h); }
+      return h;
+    };
 
     const meta: PineMeta = { title: "Script", overlay: false };
     const plotAcc = new Map<number, PinePlot & { lastColor: string }>();
@@ -307,7 +318,7 @@ export function run(source: string | ParseResult, bars: Bar[], opts: { timeframe
           if (n.base.t === "id") return resolveGet(ctx, n.base.name, off);
           const hid = (n.base as any).hid;
           const val = evalNode(n.base, ctx);
-          if (hid != null) { let h = histStore.get(hid); if (!h) { h = []; histStore.set(hid, h); } const at = ctxBaseI(ctx); h[at] = val; const idx = at - off; return idx >= 0 && h[idx] !== undefined ? h[idx] : NA; }
+          if (hid != null) { const h = histBuf(ctx, hid); const at = ctxBaseI(ctx); h[at] = val; const idx = at - off; return idx >= 0 && h[idx] !== undefined ? h[idx] : NA; }
           return off === 0 ? val : NA;
         }
         case "unary": {
@@ -551,7 +562,9 @@ export function run(source: string | ParseResult, bars: Bar[], opts: { timeframe
         }
 
         // Evaluate the SAME expression on the resampled timeline at the published HTF bar.
-        // `[n]` is an HTF-series offset from that published bar (expression history preserved).
+        // `[n]` is an HTF-series offset from that published bar. Expression history is isolated
+        // per requested TF + call frame (histBuf), so this write cannot clobber chart-context
+        // slots of the same AST hid.
         const sub: Ctx = { i: ctx.i, frame: ctx.frame, scalars: ctx.scalars, depth: ctx.depth, htf: { globals: htfc.globals, localStore: htfc.localStore, bars: htfc.bars, N: htfc.bars.length, barIdx, timeframe: htfc.timeframe } };
         return evalNode(exprNode, sub);
       }

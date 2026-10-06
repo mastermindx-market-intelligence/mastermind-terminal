@@ -305,3 +305,79 @@ plot(close, "c")
     expect(out.result!.warnings.filter((w) => w.includes("unsupported symbol")).length).toBe(0);
   });
 });
+
+
+describe("unresolved timeframe does not become explicit empty context", () => {
+ it("an unresolved timeframe member refuses instead of substituting chart close", () => {
+  const out = runPine(`//@version=6
+indicator("unresolved tf")
+x = request.security(syminfo.tickerid, timeframe.no_such_member, close)
+plot(x, "x")
+`, fixture(), { timeframe:"1D", symbol:"TEST" });
+  expect(out.ok).toBe(true);
+  expect(out.result!.plots[0].data.every(p=>p.value===undefined)).toBe(true);
+  expect(out.result!.warnings.some(w=>w.includes("unsupported timeframe"))).toBe(true);
+ });
+});
+
+
+describe("chart and HTF function histories are distinct", () => {
+ it("an HTF call cannot overwrite the daily expression history of the same user function", () => {
+  const src = (weekly: boolean) => `//@version=6
+indicator("separate histories")
+f() => (timeframe.isweekly ? close : -1)[5]
+${weekly ? 'plot(request.security(syminfo.tickerid, "W", f()), "w")' : ''}
+plot(f(), "d")
+`;
+  const bars = barsOn([...dates, "2025-01-20"]);
+  expect(bars.length).toBe(11);
+  const a = runPine(src(false), bars, {timeframe:"1D",symbol:"TEST"});
+  const b = runPine(src(true), bars, {timeframe:"1D",symbol:"TEST"});
+  expect(a.ok, JSON.stringify(a.errors)).toBe(true);
+  expect(b.ok, JSON.stringify(b.errors)).toBe(true);
+  const d = (x: typeof a) => x.result!.plots.find(p=>p.title==="d")!.data.map(p=>p.value);
+  const dailyA = d(a), dailyB = d(b);
+  // chart without HTF: daily [5] is bar-0 of (isweekly?close:-1) = -1. Adding the weekly
+  // call must not publish 105 into that slot (shared AST hid / lexical histStore).
+  expect(dailyA[5]).toBe(-1);
+  expect(dailyB[5]).toBe(-1);
+  expect(dailyB).toEqual(dailyA);
+  const w = b.result!.plots.find(p=>p.title==="w")!.data.map(p=>p.value);
+  expect(w.length).toBe(11);
+  expect(w[4]).not.toBe(105);
+ });
+
+ it("weekly and monthly requests cannot mix into daily function-body history", () => {
+  const src = `//@version=6
+indicator("three contexts")
+f() => (timeframe.isweekly ? 2 : timeframe.ismonthly ? 3 : -1)[5]
+plot(request.security(syminfo.tickerid, "W", f()), "w")
+plot(request.security(syminfo.tickerid, "M", f()), "m")
+plot(f(), "d")
+`;
+  const bars = barsOn([...dates, "2025-01-20"]);
+  const out = runPine(src, bars, {timeframe:"1D",symbol:"TEST"});
+  expect(out.ok, JSON.stringify(out.errors)).toBe(true);
+  const d = out.result!.plots.find(p=>p.title==="d")!.data.map(p=>p.value);
+  expect(d[5]).toBe(-1);
+  expect(d[5]).not.toBe(2);
+  expect(d[5]).not.toBe(3);
+ });
+
+ it("two call sites with different expression args keep separate function-body histories", () => {
+  const src = `//@version=6
+indicator("two args")
+f(src) => (src + 0)[5]
+plot(f(-1), "a")
+plot(f(close), "b")
+`;
+  const bars = barsOn([...dates, "2025-01-20"]);
+  const out = runPine(src, bars, {timeframe:"1D",symbol:"TEST"});
+  expect(out.ok, JSON.stringify(out.errors)).toBe(true);
+  const a = out.result!.plots.find(p=>p.title==="a")!.data.map(p=>p.value);
+  const b = out.result!.plots.find(p=>p.title==="b")!.data.map(p=>p.value);
+  expect(a[5]).toBe(-1);
+  expect(b[5]).toBe(101);
+  expect(a).not.toEqual(b);
+ });
+});
