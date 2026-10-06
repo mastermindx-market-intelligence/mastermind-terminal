@@ -4,7 +4,7 @@ import { describe, expect, it } from "vitest";
 
 const root = join(process.cwd());
 const shell = () => readFileSync(join(root, "components/TerminalShell.tsx"), "utf8");
-const css = () => readFileSync(join(root, "app/globals.css"), "utf8");
+const css = () => readFileSync(join(root, "components/news/TickerNewsPanel.module.css"), "utf8");
 
 describe("Terminal ticker-news rail integration", () => {
   it("offers News as a third authenticated rail source and persists the selection", () => {
@@ -28,10 +28,10 @@ describe("Terminal ticker-news rail integration", () => {
 
   it("has deliberate news treatments for dark, light and responsive layouts", () => {
     const source = css();
-    expect(source).toContain(".news-board");
-    expect(source).toContain('html[data-theme="light"] .news-row');
-    expect(source).toContain('html:not([data-theme="light"]) .news-row');
+    expect(source).toContain(".board");
+    expect(source).toContain(':global(html[data-theme="light"]) .row');
+    expect(source).toContain(':global(html:not([data-theme="light"])) .row');
     expect(source).toContain("@media (max-width:860px)");
-    expect(source).toContain(".news-board{height:auto");
+    expect(source).toContain(".board{height:auto");
   });
 });
