@@ -17,6 +17,18 @@ export type Lang = "en" | "zh";
 // Exported for tests that hold a feature's new strings to EN+ZH parity by key (see
 // lib/__tests__/feedFreshness.test.ts). Runtime call sites use `useT`/`tPlain`, never LEX directly.
 export const LEX: Record<string, [string, string]> = {
+  contextSeasonality: ["Seasonality view context", "季节性视图上下文"],
+  contextLinking: ["Linking for this view", "此视图的关联方式"],
+  contextFollow: ["Follow chart", "跟随图表"],
+  contextPin: ["Pin this view", "固定此视图"],
+  contextUnlink: ["Unlink", "取消关联"],
+  contextUnavailable: ["Context is unavailable.", "上下文暂不可用。"],
+  contextFollowing: ["Following chart: {symbol}", "跟随图表：{symbol}"],
+  contextPinned: ["This view is pinned to {symbol}; chart is {active}", "此视图固定为 {symbol}；图表为 {active}"],
+  contextUnlinked: ["This view is unlinked at {symbol}; chart is {active}", "此视图已取消关联，保留 {symbol}；图表为 {active}"],
+  contextRefused: ["This view's context could not be changed.", "无法更改此视图的上下文。"],
+  contextSessionOnly: ["Linking applies to this session only.", "关联方式仅用于当前会话。"],
+  contextOpenResearch: ["Open {symbol} company research", "打开 {symbol} 公司研究"],
   // settings
   settings: ["Settings", "设置"],
   updownColors: ["Up / Down colors", "涨跌颜色"],
