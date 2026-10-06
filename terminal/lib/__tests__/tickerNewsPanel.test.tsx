@@ -103,7 +103,7 @@ describe("TickerNewsPanel", () => {
 
     expect(host.textContent).toContain("Nvidia launches accelerator");
     expect(host.textContent).toContain("Benzinga");
-    const link = host.querySelector<HTMLAnchorElement>("a.news-headline");
+    const link = host.querySelector<HTMLAnchorElement>("a[data-news-headline]");
     expect(link?.href).toBe("https://www.benzinga.com/news/ev2_a");
     expect(link?.rel).toContain("noopener");
     expect(FakeEventSource.instances[0]?.url).toContain("symbol=NVDA");
