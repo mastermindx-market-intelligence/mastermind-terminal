@@ -94,6 +94,14 @@ test.describe("Selection cohort masthead tile (D2)", () => {
     await page.keyboard.press("Enter");
     const popover = page.getByTestId("selection-cohort-popover");
     await expect(popover).toBeVisible();
+    const bg = await popover.evaluate((el) => getComputedStyle(el).backgroundColor);
+    const alpha = (() => {
+      const slash = bg.match(/\/\s*([\d.]+%?)\s*\)\s*$/);
+      if (slash) return slash[1].endsWith("%") ? parseFloat(slash[1]) / 100 : parseFloat(slash[1]);
+      const rgba = bg.match(/^rgba\(\s*[\d.]+\s*,\s*[\d.]+\s*,\s*[\d.]+\s*,\s*([\d.]+)\s*\)$/);
+      return rgba ? parseFloat(rgba[1]) : 1;
+    })();
+    expect(alpha, `popover background must be an opaque overlay surface, got ${bg}`).toBeGreaterThanOrEqual(0.95);
     await expect(tile).toHaveAttribute("aria-expanded", "true");
 
     const topHit = await page.evaluate(() => {

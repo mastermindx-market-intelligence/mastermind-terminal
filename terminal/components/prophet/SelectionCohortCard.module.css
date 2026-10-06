@@ -66,6 +66,11 @@
   padding: 10px 14px 12px;
   box-shadow: 0 12px 40px rgba(0, 0, 0, 0.45);
 }
+/* D2.3: overlay surface = incumbent dialog idiom (.obs-modal); .obs-card's 3% wash is see-through over the grid. */
+.popover:global(.obs-card) {
+  background: color-mix(in srgb, var(--panel) 96%, transparent);
+  border-color: rgba(255, 255, 255, 0.14);
+}
 .panelHead {
   display: flex;
   flex-wrap: wrap;

@@ -2,12 +2,12 @@
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
 # Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
 # capturedAtHead: c9d211fdcc7b370575af91868932a6764294df0d
-# capturedAt: 2026-10-06T12:43:46.255Z
+# capturedAt: 2026-10-06T12:58:20.448Z
 # capturedAtHead is informational. The lock is layoutFiles.
 layoutFiles:
   terminal/lib/selectionCohort.ts: "795de709d83958ebf9cb7022969037430203a6a1c9b6091ceade89cecc2c9795"
   terminal/components/prophet/SelectionCohortCard.tsx: "c88884dd550558e8fbb491ba2d1abc58987cf90a0981fbdcdb4af51402189d28"
-  terminal/components/prophet/SelectionCohortCard.module.css: "c44b5464f955135aea4c326f74ded8103a4d88ff5a4c5b142dab1977f2111023"
+  terminal/components/prophet/SelectionCohortCard.module.css: "77d37ead92eb54398a2bf813acc3861b66afba75f84521c717594566cd16d322"
   terminal/components/prophet/ProphetView.tsx: "44c8e8cad3d86641374ebcfeb2cbd5eead493763b2e6ed41637d8ec0227b90aa"
 theme: dark
 languages: [en, zh]
