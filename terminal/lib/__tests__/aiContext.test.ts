@@ -120,7 +120,13 @@ describe("createAiContextProvider — getAiContext shape (ai_context_client.v1)"
     const a = p.getAiContext();
     const b = p.getAiContext();
     expect(a).not.toBe(b);
-    expect(a).toEqual(b);
+
+    // captured_at is read-time evidence and may legitimately cross a millisecond boundary
+    // between consecutive reads. Compare the stable context payload here; the dedicated
+    // captured_at test below owns timestamp freshness/clock semantics.
+    const { captured_at: _capturedAtA, ...stableA } = a;
+    const { captured_at: _capturedAtB, ...stableB } = b;
+    expect(stableA).toEqual(stableB);
   });
 
   it("captured_at strictly increases and tracks the (faked) system clock", () => {
