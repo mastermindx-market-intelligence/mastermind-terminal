@@ -9,10 +9,18 @@ import { rateLimit, tooMany } from "@/lib/rateLimit";
 // Terminal never ranks, gates, or scores features off these feeds.
 // NW_BASE is shared with copilotTools via lib/upstreams (one edit rotates every consumer).
 import { NW_BASE } from "@/lib/upstreams";
-const PLANE_FIXTURE_FILE = path.join(process.cwd(), "public", "data", "nw_plane_fixture.json");
+const FIXTURE_DIR = path.join(process.cwd(), "public", "data");
 
 const FEEDS: Record<string, string> = {
   market_plane: "market_plane.json",
+  // Gate #8: macro's read-only projection of the latest finalized U.S. picks
+  // (mastermind.selection_cohort_projection.v1). Same proxy, same cache, same 503 honesty.
+  selection_cohort_us: "selection_cohort/us.json",
+};
+
+// Checked-in samples served when NW_FIXTURE=1, one per feed.
+const FIXTURES: Record<string, string> = {
+  market_plane: "nw_plane_fixture.json",
 };
 
 // In-memory cache so concurrent renders share one upstream fetch. The producer publishes
@@ -49,8 +57,12 @@ export async function GET(req: Request): Promise<Response> {
 
   // Dev fixture mode: serve the checked-in sample without touching the upstream.
   if (process.env.NW_FIXTURE === "1") {
+    const fixtureFile = FIXTURES[f];
+    if (!fixtureFile) {
+      return NextResponse.json({ error: "fixture unavailable" }, { status: 503 });
+    }
     try {
-      const raw = await fs.readFile(PLANE_FIXTURE_FILE, "utf8");
+      const raw = await fs.readFile(path.join(FIXTURE_DIR, fixtureFile), "utf8");
       return NextResponse.json(JSON.parse(raw) as Record<string, unknown>, {
         headers: { "Cache-Control": "no-store", "X-NW-Source": "fixture" },
       });
