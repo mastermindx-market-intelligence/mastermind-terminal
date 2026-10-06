@@ -1,0 +1,230 @@
+// @vitest-environment jsdom
+import React, { act } from "react";
+import { createRoot, type Root } from "react-dom/client";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+
+import TickerNewsPanel from "@/components/news/TickerNewsPanel";
+
+(globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
+
+const row = (storyId: string, title: string, sequence = 1, itemCount = 1) => ({
+  sequence,
+  source: "benzinga",
+  source_item_id: storyId + "-item",
+  story_id: storyId,
+  source_count: 1,
+  item_count: itemCount,
+  title,
+  url: "https://www.benzinga.com/news/" + storyId,
+  teaser: "Short lead",
+  published_at: "2026-10-05T14:00:00+00:00",
+  updated_at: "2026-10-05T14:01:00+00:00",
+  received_at: "2026-10-05T14:01:01+00:00",
+  universe_revision: "sp500-r1",
+});
+
+const snapshot = (ticker: string, rows: ReturnType<typeof row>[], state = "live") => ({
+  schema: "ticker_news.snapshot.v1",
+  ticker,
+  security_id: "SEC:" + ticker,
+  state,
+  rows,
+  next_cursor: rows[rows.length - 1]?.sequence ?? null,
+  has_more: false,
+  source_health: { state: state === "quiet" ? "live" : state, last_successful_catchup: "2026-10-05T14:01:01+00:00" },
+});
+
+class FakeEventSource {
+  static instances: FakeEventSource[] = [];
+  url: string;
+  listeners = new Map<string, ((event: MessageEvent) => void)[]>();
+  closed = false;
+  onerror: ((event: Event) => void) | null = null;
+
+  constructor(url: string) {
+    this.url = url;
+    FakeEventSource.instances.push(this);
+  }
+
+  addEventListener(name: string, cb: EventListener) {
+    const list = this.listeners.get(name) ?? [];
+    list.push(cb as (event: MessageEvent) => void);
+    this.listeners.set(name, list);
+  }
+
+  emit(name: string, payload: unknown) {
+    for (const cb of this.listeners.get(name) ?? []) {
+      cb(new MessageEvent(name, { data: JSON.stringify(payload) }));
+    }
+  }
+
+  close() {
+    this.closed = true;
+  }
+}
+
+let host: HTMLDivElement;
+let root: Root;
+let realFetch: typeof globalThis.fetch;
+let realEventSource: typeof globalThis.EventSource;
+
+function response(body: unknown, status = 200) {
+  return Promise.resolve(new Response(JSON.stringify(body), {
+    status,
+    headers: { "content-type": "application/json" },
+  }));
+}
+
+beforeEach(() => {
+  host = document.createElement("div");
+  document.body.appendChild(host);
+  root = createRoot(host);
+  realFetch = globalThis.fetch;
+  realEventSource = globalThis.EventSource;
+  FakeEventSource.instances = [];
+  Object.defineProperty(globalThis, "EventSource", { configurable: true, writable: true, value: FakeEventSource as unknown as typeof EventSource });
+});
+
+afterEach(async () => {
+  await act(async () => root.unmount());
+  host.remove();
+  globalThis.fetch = realFetch;
+  Object.defineProperty(globalThis, "EventSource", { configurable: true, writable: true, value: realEventSource });
+  vi.restoreAllMocks();
+});
+
+describe("TickerNewsPanel", () => {
+  it("renders a live ticker story feed and opens the original source", async () => {
+    globalThis.fetch = vi.fn(() => response(snapshot("NVDA", [row("ev2_a", "Nvidia launches accelerator")]))) as unknown as typeof globalThis.fetch;
+
+    await act(async () => {
+      root.render(<TickerNewsPanel symbol="NVDA" lang="en" />);
+    });
+
+    expect(host.textContent).toContain("Nvidia launches accelerator");
+    expect(host.textContent).toContain("Benzinga");
+    const link = host.querySelector<HTMLAnchorElement>("a.news-headline");
+    expect(link?.href).toBe("https://www.benzinga.com/news/ev2_a");
+    expect(link?.rel).toContain("noopener");
+    expect(FakeEventSource.instances[0]?.url).toContain("symbol=NVDA");
+  });
+
+  it("never paints a late prior-symbol response over the current ticker", async () => {
+    let resolveA!: (r: Response) => void;
+    const lateA = new Promise<Response>((resolve) => { resolveA = resolve; });
+    globalThis.fetch = vi.fn((input: RequestInfo | URL) => {
+      const url = String(input);
+      if (url.includes("/AAPL")) return lateA;
+      if (url.includes("/MSFT")) return response(snapshot("MSFT", [row("ev2_m", "Microsoft current story")]));
+      throw new Error("unexpected " + url);
+    }) as unknown as typeof globalThis.fetch;
+
+    await act(async () => {
+      root.render(<TickerNewsPanel symbol="AAPL" lang="en" />);
+    });
+    await act(async () => {
+      root.render(<TickerNewsPanel symbol="MSFT" lang="en" />);
+    });
+    expect(host.textContent).toContain("Microsoft current story");
+
+    await act(async () => {
+      resolveA(new Response(JSON.stringify(snapshot("AAPL", [row("ev2_a", "Apple stale story")])), {
+        status: 200,
+        headers: { "content-type": "application/json" },
+      }));
+      await lateA;
+    });
+
+    expect(host.textContent).toContain("Microsoft current story");
+    expect(host.textContent).not.toContain("Apple stale story");
+  });
+
+  it("renders rights-unavailable as restricted rather than an empty-news claim", async () => {
+    globalThis.fetch = vi.fn(() => response({ detail: "ticker news rights unavailable" }, 503)) as unknown as typeof globalThis.fetch;
+
+    await act(async () => {
+      root.render(<TickerNewsPanel symbol="NVDA" lang="en" />);
+    });
+
+    expect(host.textContent).toContain("News access is unavailable");
+    expect(host.textContent).not.toContain("No recent stories");
+    expect(FakeEventSource.instances).toHaveLength(0);
+  });
+
+  it("expands grouped coverage through the story endpoint", async () => {
+    globalThis.fetch = vi.fn((input: RequestInfo | URL) => {
+      const url = String(input);
+      if (url.includes("/stories/")) {
+        return response({
+          schema: "ticker_news.story.v1",
+          story_id: "ev2_group",
+          source_count: 1,
+          item_count: 2,
+          members: [
+            row("ev2_group", "Primary headline", 2, 2),
+            { ...row("ev2_group", "Earlier wording", 1, 2), source_item_id: "second" },
+          ],
+        });
+      }
+      return response(snapshot("NVDA", [row("ev2_group", "Primary headline", 2, 2)]));
+    }) as unknown as typeof globalThis.fetch;
+
+    await act(async () => {
+      root.render(<TickerNewsPanel symbol="NVDA" lang="en" />);
+    });
+    const button = [...host.querySelectorAll("button")].find((b) => b.textContent?.includes("2 reports"));
+    expect(button).toBeTruthy();
+
+    await act(async () => {
+      button!.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+    });
+
+    expect(host.textContent).toContain("Earlier wording");
+  });
+
+  it("refreshes after an SSE change while keeping one stream per mounted symbol", async () => {
+    let version = 0;
+    globalThis.fetch = vi.fn((input: RequestInfo | URL) => {
+      if (String(input).includes("/stories/")) throw new Error("unexpected story fetch");
+      version += 1;
+      return response(snapshot("NVDA", [
+        row("ev2_a", version === 1 ? "First headline" : "Corrected headline", version),
+      ]));
+    }) as unknown as typeof globalThis.fetch;
+
+    await act(async () => {
+      root.render(<TickerNewsPanel symbol="NVDA" lang="en" />);
+    });
+    expect(host.textContent).toContain("First headline");
+    expect(FakeEventSource.instances).toHaveLength(1);
+
+    await act(async () => {
+      FakeEventSource.instances[0].emit("upsert", {
+        sequence: 2,
+        kind: "upsert",
+        source: "benzinga",
+        source_item_id: "1",
+        story_id: "ev2_a",
+        title: "Corrected headline",
+        url: "https://www.benzinga.com/news/1",
+        teaser: "",
+        security_ids: ["SEC:NVDA"],
+        universe_revision: "sp500-r1",
+        observed_at: "2026-10-05T14:02:00+00:00",
+      });
+      await Promise.resolve();
+    });
+
+    expect(host.textContent).toContain("Corrected headline");
+    expect(FakeEventSource.instances).toHaveLength(1);
+  });
+
+  it("renders bilingual quiet state without claiming the feed is broken", async () => {
+    globalThis.fetch = vi.fn(() => response(snapshot("NVDA", [], "quiet"))) as unknown as typeof globalThis.fetch;
+    await act(async () => {
+      root.render(<TickerNewsPanel symbol="NVDA" lang="zh" />);
+    });
+    expect(host.textContent).toContain("暂时没有新的公司新闻");
+    expect(host.textContent).not.toContain("不可用");
+  });
+});
