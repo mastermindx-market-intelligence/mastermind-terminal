@@ -16,7 +16,7 @@
  *   - No "validated" or predictive copy anywhere.
  */
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useLang } from "@/lib/i18n";
 import { trackSearch } from "@/lib/searchTrack";
 import { makeHeatmapT, sectorChipLabel } from "@/lib/heatmapStrings";
@@ -25,6 +25,11 @@ import { Treemap, heatSwatches } from "./Treemap";
 import { HeatmapTable } from "./HeatmapTable";
 import { DetailPanel } from "./DetailPanel";
 import { getSector } from "./sectorMap";
+import {
+  MARKET_CAP_SOURCE,
+  capCoverage,
+  type CapCoverage,
+} from "@/lib/heatmapCapitalization";
 import type {
   HeatmapTile,
   Layer,
@@ -85,11 +90,29 @@ async function fetchLiveChg(tickers: string[]): Promise<Record<string, number>> 
 
 // ─── Data join: manifest + flow_idx → HeatmapTile[] ──────────────────────────
 
-function buildTiles(
+/** Result of buildTiles: render set + original scoped universe (pre prune). */
+export interface HeatmapBuildResult {
+  /** Tiles to render (pruned to MAX_TILES for readability). */
+  tiles: HeatmapTile[];
+  /**
+   * Original scoped universe BEFORE render pruning.
+   * Breadth denominator and cap-coverage base — render pruning must not rewrite these.
+   */
+  scopedTiles: HeatmapTile[];
+  /** True when MAX_TILES pruned names from the scoped universe. */
+  pruned: boolean;
+}
+
+/**
+ * Join manifest + flow index into HeatmapTile[].
+ * Propagates source USD cap + named provenance onto each tile.
+ * Returns both the render-ready set and the original scoped universe.
+ */
+export function buildTiles(
   manifest: ManifestPayload | null,
   flowIdx: FlowIdxPayload | null
-): HeatmapTile[] {
-  if (!manifest) return [];
+): HeatmapBuildResult {
+  if (!manifest) return { tiles: [], scopedTiles: [], pruned: false };
 
   // Index flow by ticker
   const flowMap: Record<string, FlowIdxRow> = {};
@@ -123,6 +146,13 @@ function buildTiles(
       hasFlow: false,
     };
 
+    // Propagate already-present universe cap + named cached-reference provenance.
+    // Raw value kept so missing (absent key) vs invalid (0/NaN/Inf) stay distinguishable.
+    if (sym.mcap !== undefined && sym.mcap !== null) {
+      tile.mcap = sym.mcap;
+      tile.mcapSource = MARKET_CAP_SOURCE.tileProvenance;
+    }
+
     if (flow) {
       tile.hasFlow = true;
       tile.flowAsof = flow.asof;
@@ -143,7 +173,10 @@ function buildTiles(
   // Cap the render set: the full universe (~8.7k) makes the treemap unreadable
   // and slow. Keep every name with flow data (the 368-name flow universe) plus
   // the most liquid names by dollar volume, up to ~500 tiles total.
+  // NOTE: pruning is RENDER-only — scopedTiles keeps the original breadth denominator
+  // and the cap-coverage base.
   const MAX_TILES = 500;
+  const scopedTiles = tiles;
   if (tiles.length > MAX_TILES) {
     const dollarVol = (t: HeatmapTile) => (t.price ?? 0) * (t.vol ?? 0);
     // US-listed only for the map: the manifest carries international listings
@@ -154,10 +187,11 @@ function buildTiles(
     const rest = tiles
       .filter(t => !t.hasFlow && isUS(t))
       .sort((a, b) => dollarVol(b) - dollarVol(a));
-    return [...flowTiles, ...rest.slice(0, Math.max(0, MAX_TILES - flowTiles.length))];
+    const rendered = [...flowTiles, ...rest.slice(0, Math.max(0, MAX_TILES - flowTiles.length))];
+    return { tiles: rendered, scopedTiles, pruned: true };
   }
 
-  return tiles;
+  return { tiles, scopedTiles, pruned: false };
 }
 
 // ─── Breadth strip computations ───────────────────────────────────────────────
@@ -363,11 +397,11 @@ export function HeatmapView() {
   // Kick off intraday refresh once the manifest is loaded (gives us dollar-vol ranks).
   useEffect(() => {
     if (!manifest) return;
-    const tiles = buildTiles(manifest, flowIdx);
-    void refreshIntraday(tiles);
+    const built = buildTiles(manifest, flowIdx);
+    void refreshIntraday(built.tiles);
     if (intradayPollRef.current) clearInterval(intradayPollRef.current);
     intradayPollRef.current = setInterval(() => {
-      void refreshIntraday(buildTiles(manifest, flowIdx));
+      void refreshIntraday(buildTiles(manifest, flowIdx).tiles);
     }, INTRADAY_POLL_MS);
     return () => {
       if (intradayPollRef.current) { clearInterval(intradayPollRef.current); intradayPollRef.current = null; }
@@ -376,6 +410,8 @@ export function HeatmapView() {
   }, [manifest]);
 
   // ── Layer change: auto-select sizing ─────────────────────────────────────────
+  // Legacy default preserved: price → "cap" (price×vol proxy). Cached USD cap is
+  // an explicit opt-in — never silently substituted for old saved views.
   const handleLayerChange = useCallback((l: Layer) => {
     setLayer(l);
     setSizing(l === "flow" ? "premium" : "cap");  // CAP (dollar-vol) for price; PREMIUM for flow
@@ -383,7 +419,8 @@ export function HeatmapView() {
   }, []);
 
   // ── Build tiles ───────────────────────────────────────────────────────────────
-  const rawTiles = buildTiles(manifest, flowIdx);
+  const built = useMemo(() => buildTiles(manifest, flowIdx), [manifest, flowIdx]);
+  const rawTiles = built.tiles;
 
   // Apply live chg% overlay for top-N tickers (guard: null → keep manifest value).
   const liveSet = liveChg ? new Set(Object.keys(liveChg)) : new Set<string>();
@@ -403,10 +440,25 @@ export function HeatmapView() {
     return true;
   });
 
-  const breadth = computeBreadth(allTiles);
-  const sectorChips = computeSectorChips(allTiles);
+  // Breadth denominator = ORIGINAL scoped universe (pre render-pruning).
+  // Render pruning must not rewrite it.
+  const breadth = useMemo(() => computeBreadth(built.scopedTiles), [built.scopedTiles]);
+  const sectorChips = useMemo(() => computeSectorChips(allTiles), [allTiles]);
+  // Cap coverage disclosed against the same original scoped universe.
+  const coverage: CapCoverage = useMemo(
+    () => capCoverage(built.scopedTiles),
+    [built.scopedTiles]
+  );
 
   const isLoading = loadingManifest;
+
+  // Inline bilingual labels — heatmapStrings.ts is owner-held READ ONLY.
+  const capCopy = cachedUsdCapCopy(zh, coverage, {
+    pruned: built.pruned,
+    renderedCount: built.tiles.length,
+    scopedCount: built.scopedTiles.length,
+  });
+  const missingNames = completeMissingCapNames(coverage);
 
   // ── Render ────────────────────────────────────────────────────────────────────
 
@@ -553,17 +605,27 @@ export function HeatmapView() {
                 className={`obs-chip${sizing === "cap" ? " on" : ""}`}
                 style={CHIP_COMPACT}
                 onClick={() => setSizing("cap")}
+                aria-pressed={sizing === "cap"}
               >{t("sizeCap")}</button>
+              <button
+                className={`obs-chip${sizing === "marketCap" ? " on" : ""}`}
+                style={CHIP_COMPACT}
+                onClick={() => setSizing("marketCap")}
+                aria-pressed={sizing === "marketCap"}
+                aria-label={capCopy.modeLabel}
+              >{capCopy.modeLabel}</button>
               <button
                 className={`obs-chip${sizing === "equal" ? " on" : ""}`}
                 style={CHIP_COMPACT}
                 onClick={() => setSizing("equal")}
+                aria-pressed={sizing === "equal"}
               >{t("sizeEqual")}</button>
               {layer === "flow" && (
                 <button
                   className={`obs-chip${sizing === "premium" ? " on" : ""}`}
                   style={CHIP_COMPACT}
                   onClick={() => setSizing("premium")}
+                  aria-pressed={sizing === "premium"}
                 >{t("sizePremium")}</button>
               )}
             </div>
@@ -631,6 +693,32 @@ export function HeatmapView() {
       {flowError && (
         <div style={FLOW_ERR_BAR}>
           {t("noFlowData")}
+        </div>
+      )}
+
+      {/* ═══ CACHED USD-CAP DISCLOSURE (marketCap sizing, map view) ════════ */}
+      {view === "map" && sizing === "marketCap" && !isLoading && (
+        <div className="obs-note" style={CAP_NOTE_BAR}>
+          <div>{capCopy.modeNote}</div>
+          <div style={{ marginTop: 2 }}>{capCopy.coverageNote}</div>
+          {capCopy.pruneNote && <div style={{ marginTop: 2 }}>{capCopy.pruneNote}</div>}
+          <MissingCapDisclosure
+            names={missingNames}
+            heading={capCopy.missingHeading}
+            regionLabel={capCopy.missingRegionLabel}
+          />
+          {coverage.withCap === 0 && coverage.total > 0 && (
+            <div style={{ marginTop: 3, color: "var(--warn)" }}>
+              {capCopy.emptyCapWarn}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Render-prune note when not in marketCap mode (breadth honesty). */}
+      {view === "map" && sizing !== "marketCap" && capCopy.pruneNote && !isLoading && (
+        <div className="obs-note" style={CAP_NOTE_BAR}>
+          {capCopy.pruneNote}
         </div>
       )}
 
@@ -708,6 +796,129 @@ export function HeatmapView() {
       )}
 
     </div>
+  );
+}
+
+// ─── Cached USD-cap product copy (inline — heatmapStrings.ts is owner-held) ───
+
+/**
+ * Complete missing/unusable ticker list. Never truncated.
+ * Invalid (present but not finite positive) first, then missing (absent key).
+ */
+export function completeMissingCapNames(coverage: CapCoverage): string[] {
+  return [...coverage.invalidTickers, ...coverage.missingTickers];
+}
+
+/**
+ * Truthful bilingual product copy for cached USD-cap mode.
+ * Explains cached USD capitalization, unknown reference date, and that quote
+ * time is a separate timestamp. Does not name raw columns, cache keys, or
+ * ingest modules.
+ */
+export function cachedUsdCapCopy(
+  zh: boolean,
+  coverage: CapCoverage,
+  opts: { pruned: boolean; renderedCount: number; scopedCount: number }
+): {
+  modeLabel: string;
+  modeNote: string;
+  coverageNote: string;
+  pruneNote: string | null;
+  emptyCapWarn: string;
+  missingHeading: string;
+  missingRegionLabel: string;
+} {
+  const excluded = coverage.missingCap + coverage.invalidCap;
+  return {
+    modeLabel: zh ? "美元市值" : "USD CAP",
+    modeNote: zh
+      ? "图块面积按缓存的美元市值加权。CAP 仍使用价格×成交量代理。财务参考日期未知；行情时间（实时覆盖或收盘）单独显示。"
+      : "Tile area uses cached USD market capitalization. CAP continues to use its price × volume proxy. The capitalization reference date is unknown. Quote time (live overlay or end-of-day) is shown separately.",
+    coverageNote: zh
+      ? `缓存美元市值覆盖（所选范围共 ${coverage.total} 只）：可用 ${coverage.withCap}/${coverage.total} · 缺失 ${coverage.missingCap} · 不可用 ${coverage.invalidCap}。完整名单如下。`
+      : `Cached USD cap coverage: usable ${coverage.withCap}/${coverage.total} · missing ${coverage.missingCap} · unusable ${coverage.invalidCap}. Coverage uses the original scoped universe of ${coverage.total} symbols; the complete missing list is below.`,
+    pruneNote: opts.pruned
+      ? (zh
+        ? `显示 ${opts.renderedCount}/${opts.scopedCount} 只标的；市场广度包含当前筛选范围内全部 ${opts.scopedCount} 只标的。`
+        : `Showing ${opts.renderedCount}/${opts.scopedCount} symbols. Breadth includes all ${opts.scopedCount} symbols in the current scope.`)
+      : null,
+    emptyCapWarn: zh
+      ? "当前范围内暂无可用缓存美元市值。可选择 CAP 或 EQUAL 查看这些标的。"
+      : "No usable cached USD market cap in the current scope. Choose CAP or EQUAL to view these symbols.",
+    missingHeading: zh
+      ? `无可用缓存美元市值的标的 ${excluded} 个（缺失 ${coverage.missingCap} · 不可用 ${coverage.invalidCap}）— 保持可见，不参与面积`
+      : `${excluded} names without usable cached USD cap (${coverage.missingCap} missing · ${coverage.invalidCap} unusable) — kept visible, no map area`,
+    missingRegionLabel: zh
+      ? "无可用缓存美元市值的完整标的列表"
+      : "Complete list of names without usable cached USD cap",
+  };
+}
+
+/**
+ * Complete, keyboard- and touch-accessible list of names without usable
+ * cached USD cap. Native <details>/<summary> is the disclosure control
+ * (Enter/Space, tap). The region is focusable and scrollable on keyboard
+ * and mobile; every name is rendered — nothing is hidden after 24.
+ */
+export function MissingCapDisclosure({
+  names,
+  heading,
+  regionLabel,
+}: {
+  names: string[];
+  heading: string;
+  regionLabel: string;
+}) {
+  if (names.length === 0) return null;
+  return (
+    <details open style={{ marginTop: 3 }}>
+      <summary
+        style={{
+          cursor: "pointer",
+          fontWeight: 600,
+          listStylePosition: "outside",
+          touchAction: "manipulation",
+        }}
+      >
+        {heading}
+      </summary>
+      <div
+        role="list"
+        tabIndex={0}
+        aria-label={regionLabel}
+        style={{
+          display: "flex",
+          flexWrap: "wrap",
+          gap: 4,
+          marginTop: 6,
+          maxHeight: 140,
+          overflowY: "auto",
+          overflowX: "hidden",
+          WebkitOverflowScrolling: "touch",
+          overscrollBehavior: "contain",
+          touchAction: "pan-y",
+          padding: "2px 0",
+          outline: "1px solid transparent",
+        }}
+      >
+        {names.map((ticker) => (
+          <span
+            key={ticker}
+            role="listitem"
+            className="num"
+            style={{
+              fontVariantNumeric: "tabular-nums",
+              padding: "1px 6px",
+              borderRadius: 3,
+              background: "rgba(255,255,255,0.06)",
+              flexShrink: 0,
+            }}
+          >
+            {ticker}
+          </span>
+        ))}
+      </div>
+    </details>
   );
 }
 
@@ -875,6 +1086,18 @@ const FLOW_ERR_BAR: React.CSSProperties = {
   fontSize: 10,
   color: "var(--warn)",
   borderBottom: "1px solid rgba(255,255,255,0.06)",
+  flexShrink: 0,
+};
+
+// Cached USD-cap / render-prune disclosure bar (inline bilingual — heatmapStrings held READ ONLY).
+const CAP_NOTE_BAR: React.CSSProperties = {
+  margin: 0,
+  borderRadius: 0,
+  borderLeft: "none",
+  borderRight: "none",
+  borderTop: "none",
+  fontSize: 9,
+  lineHeight: 1.45,
   flexShrink: 0,
 };
 
