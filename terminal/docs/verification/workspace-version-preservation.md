@@ -44,6 +44,11 @@ unrelated legacy revision happened to match. Two regressions reproduce this on
 missing-schema and JSON-null-schema records. Rename now requires a supported v1
 workspace envelope; the explicit migrate-on-write path remains unchanged. All 132
 storage, route, team and format-preservation tests pass, including those two cases.
-The original implementation attempt timed out and its recovered draft was corrected
-by the parent. The targeted rename repair awaits independent rereview; no merge,
+TypeScript passes after regenerating route types for this branch; an initial check
+encountered a generated route reference left over from the previous checkout.
+Independent GLM rereview `rs_20261006T044422Z_67336` accepts the corrective storage
+source `ecf71caa28eceff98342c05fced7a3f29aa30a44`. The parent accepted both the first
+review's finding and the scoped repair approval, with exact ACK/START, complete
+returns, process cleanup and released provider leases. The original implementation
+attempt timed out and its recovered draft was corrected by the parent. No merge,
 deployment or production acceptance is claimed here.
