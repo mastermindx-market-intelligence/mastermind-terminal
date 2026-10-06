@@ -28,7 +28,7 @@ export function useTickerNewsFeed(symbol: string) {
     background: boolean,
   ): Promise<TickerNewsSnapshot | null> => {
     try {
-      const res = await fetch(`/api/news/${encodeURIComponent(symbol)}?limit=50`, {
+      const res = await fetch(`/api/news/${encodeURIComponent(symbol)}?limit=20`, {
         method: "GET",
         headers: { Accept: "application/json" },
         signal: controller.signal,
