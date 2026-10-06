@@ -2,6 +2,7 @@
 import { useEffect, useRef } from "react";
 import { handoffMastermindBrainSymbol, type MastermindBrainHost } from "@/lib/mastermindBrain";
 import type { AiContextClientV1 } from "@/lib/aiContext";
+import { ensureBrainPrincipalBinding } from "@/lib/brainPrincipal";
 
 // Mounts the production Mastermind Brain widget (mm_brain.js) into the Terminal, replacing
 // the old CopilotPanel. The widget is a self-contained IIFE that reads window.MM_BRAIN_CFG
@@ -187,6 +188,8 @@ export default function BrainWidget({
     // for this path (`lib/__tests__/brainWidgetColdSymbol.test.ts`) proves only that
     // `MM_BRAIN_CFG` becomes populated and readable in jsdom; it cannot and does not prove a
     // real external host re-reads it afterward.
+    ensureBrainPrincipalBinding(window as unknown as MastermindBrainHost & EventTarget);
+
     if (hostAlreadyMounted || document.querySelector(`script[src="${SCRIPT_SRC}"]`)) return;
 
     const s = document.createElement("script");

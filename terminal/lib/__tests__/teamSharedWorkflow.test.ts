@@ -1,4 +1,5 @@
 import { describe, expect, it } from "vitest";
+import { canonicalJson } from "@/lib/workspaceLayout";
 import { TENANT_SCOPE_VISIBILITIES, decideTenantScope, type DenyReason } from "@/lib/tenantScope";
 import type { Team, TeamRole } from "@/lib/teams";
 import {
@@ -15,24 +16,40 @@ import { deleteLayout, duplicateWorkspace, renameWorkspace, saveWorkspace } from
 import { createLayoutFixtureDb, fixtureLayoutUserId } from "@/lib/layoutsFixtureDb";
 
 type Row = Record<string, unknown>;
-type Filter = { column: string; op: "eq" | "neq" | "is"; value: unknown };
-
+const SQL_NULL = Symbol("layout-fixture-sql-null");
 function readPath(row: Row, column: string): unknown {
-  const idx = column.indexOf("->>");
-  if (idx === -1) return row[column];
-  const base = row[column.slice(0, idx)];
-  if (typeof base !== "object" || base === null || Array.isArray(base)) return null;
-  const val = (base as Record<string, unknown>)[column.slice(idx + 3)];
-  return val === undefined || val === null ? null : String(val);
+  const parts = column.split(/(->>|->)/);
+  if (parts.length === 1) return row[column] ?? SQL_NULL;
+  let value: unknown = row[parts[0]];
+  for (let i = 1; i < parts.length; i += 2) {
+    if (typeof value !== "object" || value === null || Array.isArray(value)) return SQL_NULL;
+    value = (value as Record<string, unknown>)[parts[i + 1]];
+    if (value === undefined) return SQL_NULL;
+    if (parts[i] === "->>") {
+      if (value === null) return SQL_NULL;
+      value = typeof value === "object" ? JSON.stringify(value) : String(value);
+    }
+  }
+  return value;
 }
+
+type Filter = { column: string; op: "eq" | "neq" | "is"; value: unknown };
 
 function filterMatches(row: Row, filter: Filter): boolean {
   const actual = readPath(row, filter.column);
-  switch (filter.op) {
-    case "eq": return actual !== null && actual === filter.value;
-    case "neq": return actual !== null && actual !== filter.value;
-    case "is": return filter.value === null ? actual === null : actual === filter.value;
-  }
+  if (filter.op === "is") return filter.value === null ? actual === SQL_NULL : actual === filter.value;
+  if (actual === SQL_NULL) return false;
+  // PostgREST passes JSON filter values as encoded text; PostgreSQL compares jsonb
+  // structurally, preserving number/string/null types and ignoring object key order.
+  const path = filter.column.split(/(->>|->)/);
+  let equal: boolean;
+  if (path.length > 1 && path[path.length - 2] === "->") {
+    try {
+      const expected = typeof filter.value === "string" ? JSON.parse(filter.value) : filter.value;
+      equal = canonicalJson(actual) === canonicalJson(expected);
+    } catch { return false; }
+  } else equal = actual === filter.value;
+  return filter.op === "eq" ? equal : !equal;
 }
 
 function makeDb(init?: {
