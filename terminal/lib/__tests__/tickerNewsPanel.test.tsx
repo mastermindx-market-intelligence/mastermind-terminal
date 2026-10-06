@@ -109,6 +109,20 @@ describe("TickerNewsPanel", () => {
     expect(FakeEventSource.instances[0]?.url).toContain("symbol=NVDA");
   });
 
+  it("requests the proven 20-story initial page", async () => {
+    const fetchMock = vi.fn((input: RequestInfo | URL) => {
+      void input;
+      return response(snapshot("NVDA", [row("ev2_a", "Nvidia launches accelerator")]));
+    });
+    globalThis.fetch = fetchMock as unknown as typeof globalThis.fetch;
+
+    await act(async () => {
+      root.render(<TickerNewsPanel symbol="NVDA" lang="en" />);
+    });
+
+    expect(String(fetchMock.mock.calls[0]?.[0])).toContain("/api/news/NVDA?limit=20");
+  });
+
   it("never paints a late prior-symbol response over the current ticker", async () => {
     let resolveA!: (r: Response) => void;
     const lateA = new Promise<Response>((resolve) => { resolveA = resolve; });
