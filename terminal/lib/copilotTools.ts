@@ -76,8 +76,11 @@ const CAP_CHARS = 2000;
  *  would silently under-count multibyte payloads relative to JSON/network size. */
 export const CAP_UNIT = "utf8_bytes" as const;
 
-const EVIDENCE_ENVELOPE_KEYS = new Set([
+/** Compact identity / clock / status scalars. Nested payloads (state, ladder,
+ *  facts) are not in this set — they can exceed the budget and must compact. */
+const IDENTITY_KEYS = new Set([
   "truncated",
+  "oversize",
   "no_data",
   "symbol",
   "reason",
@@ -92,8 +95,6 @@ const EVIDENCE_ENVELOPE_KEYS = new Set([
   "clock_status",
   "clock",
   "basis",
-  "coverage",
-  "limitations",
   "mixed_source",
   "cap_unit",
   "identity",
@@ -103,23 +104,44 @@ const EVIDENCE_ENVELOPE_KEYS = new Set([
   "revision",
   "correction_revision",
   "trade_authority",
-  "synthesis",
-  "facts",
   "presentable_as_fresh",
   "status",
-  "ladder",
-  "state",
 ]);
+
+const QUALIFIER_KEYS = new Set(["coverage", "limitations"]);
+const NESTED_EVIDENCE_KEYS = new Set(["state", "ladder", "facts", "gex", "market_risk"]);
+
+function asRecord(v: unknown): Record<string, unknown> | null {
+  return v && typeof v === "object" && !Array.isArray(v) ? (v as Record<string, unknown>) : null;
+}
 
 function jsonUtf8Bytes(value: unknown): number {
   return Buffer.byteLength(JSON.stringify(value), "utf8");
+}
+
+function trimEllipsis(s: string, maxChars: number): string {
+  if (maxChars <= 1) return "…";
+  return s.length > maxChars ? s.slice(0, maxChars - 1) + "…" : s;
+}
+
+function isEvidenceShaped(v: unknown): v is Record<string, unknown> {
+  const rec = asRecord(v);
+  if (!rec) return false;
+  return (
+    rec.mixed_source === true ||
+    rec.freshness != null ||
+    rec.clock_status != null ||
+    rec.limitations != null ||
+    rec.coverage != null ||
+    rec.no_data === true
+  );
 }
 
 function shrinkInPlace(o: unknown): void {
   if (!o || typeof o !== "object") return;
   const rec = o as Record<string, unknown>;
   for (const k of Object.keys(rec)) {
-    if (EVIDENCE_ENVELOPE_KEYS.has(k)) continue;
+    if (IDENTITY_KEYS.has(k) || QUALIFIER_KEYS.has(k)) continue;
     const v = rec[k];
     if (typeof v === "string" && v.length > 200) rec[k] = v.slice(0, 197) + "…";
     else if (Array.isArray(v)) {
@@ -129,10 +151,133 @@ function shrinkInPlace(o: unknown): void {
   }
 }
 
-/** Enforce the ≤~2KB curated-payload contract. Over-cap objects get their arrays
- *  halved / long strings trimmed (and finally their largest keys dropped) until the
- *  serialized form fits, with truncated:true set so the model knows it saw a cut.
- *  Identity, clocks, basis, coverage and limitations are never dropped or clipped. */
+function dropKeys(
+  out: Record<string, unknown>,
+  cap: number,
+  keep: (key: string, value: unknown) => boolean,
+): void {
+  const droppable = Object.entries(out)
+    .filter(([k, v]) => !keep(k, v))
+    .sort((a, b) => jsonUtf8Bytes(b[1] ?? null) - jsonUtf8Bytes(a[1] ?? null));
+  for (const [k] of droppable) {
+    delete out[k];
+    if (jsonUtf8Bytes(out) <= cap) return;
+  }
+}
+
+function identityStub(v: unknown): Record<string, unknown> {
+  if (Array.isArray(v)) return { omitted: true, n: v.length };
+  const rec = asRecord(v);
+  if (!rec) return {};
+  const stub: Record<string, unknown> = {};
+  for (const k of IDENTITY_KEYS) {
+    if (k in rec && k !== "truncated" && k !== "cap_unit" && k !== "oversize") stub[k] = rec[k];
+  }
+  for (const k of QUALIFIER_KEYS) {
+    if (k in rec) stub[k] = rec[k];
+  }
+  if (rec.reason != null && stub.reason == null) stub.reason = rec.reason;
+  return stub;
+}
+
+function compactNestedEvidence(out: Record<string, unknown>): void {
+  for (const k of Object.keys(out)) {
+    if (!NESTED_EVIDENCE_KEYS.has(k) && !isEvidenceShaped(out[k]) && !Array.isArray(out[k])) continue;
+    if (IDENTITY_KEYS.has(k) || QUALIFIER_KEYS.has(k)) continue;
+    out[k] = identityStub(out[k]);
+  }
+}
+
+function compactQualifiersToFit(out: Record<string, unknown>, cap: number): void {
+  for (let guard = 0; guard < 24 && jsonUtf8Bytes(out) > cap; guard++) {
+    const lim = out.limitations;
+    if (typeof lim === "string" && lim.length > 48) {
+      out.limitations = trimEllipsis(lim, Math.max(24, Math.floor(lim.length / 2)));
+      continue;
+    }
+    const cov = out.coverage;
+    const covRec = asRecord(cov);
+    if (covRec) {
+      let trimmed = false;
+      for (const [k, v] of Object.entries(covRec)) {
+        if (typeof v === "string" && v.length > 24) {
+          covRec[k] = trimEllipsis(v, Math.max(12, Math.floor(v.length / 2)));
+          trimmed = true;
+        }
+      }
+      if (trimmed) {
+        out.coverage = covRec;
+        continue;
+      }
+    }
+    if (typeof cov === "string" && cov.length > 24) {
+      out.coverage = trimEllipsis(cov, Math.max(12, Math.floor(cov.length / 2)));
+      continue;
+    }
+    break;
+  }
+}
+
+function oversizeRefusal(src: Record<string, unknown>, cap: number): Record<string, unknown> {
+  const out: Record<string, unknown> = {
+    truncated: true,
+    oversize: true,
+    no_data: true,
+    cap_unit: CAP_UNIT,
+    reason: "protected evidence envelope exceeds utf8_bytes budget",
+    trade_authority: false,
+  };
+  for (const k of [
+    "symbol",
+    "root",
+    "schema",
+    "asof",
+    "built",
+    "session",
+    "basis",
+    "revision",
+    "freshness",
+    "stale",
+    "clock_status",
+    "mixed_source",
+  ]) {
+    const v = src[k];
+    if (typeof v === "string" || typeof v === "boolean" || (typeof v === "number" && isFinite(v))) out[k] = v;
+  }
+  out.limitations =
+    typeof src.limitations === "string" && src.limitations.trim()
+      ? src.limitations
+      : "protected evidence exceeded utf8_bytes budget; nested payload omitted";
+  const cov = asRecord(src.coverage);
+  if (cov) {
+    const compact: Record<string, unknown> = {};
+    for (const [k, v] of Object.entries(cov)) {
+      if (typeof v === "string" || typeof v === "number" || typeof v === "boolean" || v == null) compact[k] = v;
+      if (Object.keys(compact).length >= 6) break;
+    }
+    if (Object.keys(compact).length) out.coverage = compact;
+  }
+  compactQualifiersToFit(out, cap);
+  if (jsonUtf8Bytes(out) <= cap) return out;
+  const minimal: Record<string, unknown> = {
+    truncated: true,
+    oversize: true,
+    no_data: true,
+    cap_unit: CAP_UNIT,
+    reason: "protected evidence envelope exceeds utf8_bytes budget",
+    limitations: "oversize",
+    trade_authority: false,
+  };
+  if (typeof src.symbol === "string") minimal.symbol = src.symbol.slice(0, 15);
+  if (typeof src.root === "string") minimal.root = src.root.slice(0, 15);
+  return minimal;
+}
+
+/** Enforce the ≤~2KB curated-payload contract in utf8 bytes. Over-cap objects
+ *  shrink arrays / long strings, then drop optional fields. Nested protected
+ *  state/ladder/facts are compacted to identity/clock/limitations rather than
+ *  emitted unbounded. If the remainder still cannot fit, a typed oversize
+ *  refusal is returned — never sliced JSON, never financials without limitations. */
 export function capJson(obj: Record<string, unknown>, cap = CAP_CHARS): Record<string, unknown> {
   try {
     if (jsonUtf8Bytes(obj) <= cap) return obj;
@@ -146,17 +291,19 @@ export function capJson(obj: Record<string, unknown>, cap = CAP_CHARS): Record<s
     shrinkInPlace(out);
     if (jsonUtf8Bytes(out) <= cap) return out;
   }
-  // Last resort: drop the biggest non-envelope fields until under cap. Envelope
-  // keys stay even if the remainder still exceeds the budget — never emit a
-  // sliced JSON string.
-  const droppable = Object.entries(out)
-    .filter(([k]) => !EVIDENCE_ENVELOPE_KEYS.has(k))
-    .sort((a, b) => jsonUtf8Bytes(b[1] ?? null) - jsonUtf8Bytes(a[1] ?? null));
-  for (const [k] of droppable) {
-    delete out[k];
-    if (jsonUtf8Bytes(out) <= cap) break;
-  }
-  return out;
+  dropKeys(out, cap, (k, v) => IDENTITY_KEYS.has(k) || QUALIFIER_KEYS.has(k) || NESTED_EVIDENCE_KEYS.has(k) || isEvidenceShaped(v));
+  if (jsonUtf8Bytes(out) <= cap) return out;
+
+  compactNestedEvidence(out);
+  if (jsonUtf8Bytes(out) <= cap) return out;
+
+  dropKeys(out, cap, (k) => IDENTITY_KEYS.has(k) || QUALIFIER_KEYS.has(k));
+  if (jsonUtf8Bytes(out) <= cap) return out;
+
+  compactQualifiersToFit(out, cap);
+  if (jsonUtf8Bytes(out) <= cap) return out;
+
+  return oversizeRefusal(out, cap);
 }
 
 /* ── fs / fetch plumbing ───────────────────────────────────────────────────── */
@@ -540,13 +687,26 @@ function asIdentityString(v: unknown): string | null {
   return typeof v === "string" && v.trim() ? v.trim() : null;
 }
 
-/** Identity slots reused from owner GEX envelopes (root, session date, basis, correction revision). */
+function gexSession(o: Record<string, unknown>): string | null {
+  const explicit = asIdentityString(o.session);
+  if (explicit) {
+    const day = explicit.slice(0, 10);
+    return /^\d{4}-\d{2}-\d{2}$/.test(day) ? day : null;
+  }
+  const asof = asIdentityString(o.asof);
+  if (!asof || !Number.isFinite(Date.parse(asof))) return null;
+  const day = asof.slice(0, 10);
+  return /^\d{4}-\d{2}-\d{2}$/.test(day) ? day : null;
+}
+
+/** Identity slots reused from owner GEX envelopes (root, session date, basis, correction revision).
+ *  Missing or malformed clocks stay unknown — they are never inferred from the other envelope
+ *  or from a URL-bound symbol. */
 function gexIdentity(o: Record<string, unknown> | null | undefined): GexIdentity {
   if (!o || typeof o !== "object") return { root: null, session: null, basis: null, revision: null };
   const rootRaw = asIdentityString(o.root);
   const root = rootRaw ? rootRaw.toUpperCase() : null;
-  const sessionRaw = asIdentityString(o.session) ?? asIdentityString(o.asof);
-  const session = sessionRaw ? sessionRaw.slice(0, 10) : null;
+  const session = gexSession(o);
   const passport = o.regime_passport && typeof o.regime_passport === "object" ? (o.regime_passport as Record<string, unknown>) : null;
   const profile = o.profile && typeof o.profile === "object" ? (o.profile as Record<string, unknown>) : null;
   const basis = asIdentityString(o.basis) ?? asIdentityString(o.convention) ?? asIdentityString(passport?.basis) ?? asIdentityString(profile?.method);
@@ -554,11 +714,19 @@ function gexIdentity(o: Record<string, unknown> | null | undefined): GexIdentity
   return { root, session, basis, revision };
 }
 
-function gexIdentitiesConflict(ladder: GexIdentity, state: GexIdentity): boolean {
-  const keys: (keyof GexIdentity)[] = ["root", "session", "basis", "revision"];
-  for (const key of keys) {
-    if (key === "session" && !(ladder.root && state.root)) continue;
-    if (ladder[key] && state[key] && ladder[key] !== state[key]) return true;
+function identitySlotConflict(a: string | null, b: string | null): boolean {
+  if (!a || !b) return true;
+  return a !== b;
+}
+
+function gexIdentitiesConflict(ladder: GexIdentity, state: GexIdentity, ownerRoot?: string): boolean {
+  if (identitySlotConflict(ladder.root, state.root)) return true;
+  if (identitySlotConflict(ladder.session, state.session)) return true;
+  if (identitySlotConflict(ladder.basis, state.basis)) return true;
+  if (identitySlotConflict(ladder.revision, state.revision)) return true;
+  if (ownerRoot) {
+    const owner = ownerRoot.trim().toUpperCase();
+    if (owner && (ladder.root !== owner || state.root !== owner)) return true;
   }
   return false;
 }
@@ -581,7 +749,7 @@ function gexWalls(g: Record<string, unknown> | null, ok: boolean) {
   };
 }
 
-export function curateGex(gex: unknown, state: unknown): Record<string, unknown> {
+export function curateGex(gex: unknown, state: unknown, ownerRoot?: string): Record<string, unknown> {
   const g = gex as Record<string, unknown> | null;
   const s = state as Record<string, unknown> | null;
   const gOk = !!(g && typeof g === "object" && (num(g.net_gex_bn) != null || Array.isArray(g.by_strike)));
@@ -591,11 +759,12 @@ export function curateGex(gex: unknown, state: unknown): Record<string, unknown>
   const ladderId = gOk ? gexIdentity(g) : gexIdentity(null);
   const stateId = sOk ? gexIdentity(s) : gexIdentity(null);
   const walls = gexWalls(g, gOk);
+  const owner = typeof ownerRoot === "string" && ownerRoot.trim() ? ownerRoot.trim().toUpperCase() : undefined;
 
-  if (gOk && sOk && gexIdentitiesConflict(ladderId, stateId)) {
+  if (gOk && sOk && gexIdentitiesConflict(ladderId, stateId, owner)) {
     return {
       mixed_source: true,
-      reason: "GEX state and ladder disagree on root, session, basis or revision",
+      reason: "GEX state and ladder disagree on root, session, basis or revision, or identity is unknown",
       limitations: "state and ladder are separate evidence; one clock does not certify the other",
       state: {
         ...stateId,
@@ -878,9 +1047,13 @@ async function runMarketState(): Promise<Record<string, unknown>> {
 }
 
 /**
- * execTool — the single server-side dispatcher the copilot route delegates to.
+ * execTool — the single server-side dispatcher historically used by /api/copilot.
  * annotate_chart is NOT handled here: it is client-executed (the route streams the
  * levels to the browser via the {type:"annotate"} SSE event).
+ *
+ * The shipped Terminal UI now uses the Mastermind Brain widget via /api/brain/*.
+ * /api/copilot is a deprecated rollback proxy and is not the live consumer.
+ * Original live-tool integration remains owed through owning Brain/Macro contracts.
  */
 export async function execTool(name: string, args: Record<string, unknown> | null): Promise<Record<string, unknown>> {
   try {
@@ -907,7 +1080,7 @@ export async function execTool(name: string, args: Record<string, unknown> | nul
       }
       case "get_options_summary": {
         const [opts, gexPair] = await Promise.all([readDataJson(`${sym}.opts.json`), fetchGexPayloads(sym)]);
-        return capJson({ symbol: sym, iv: curateOpts(opts), gex: curateGex(gexPair.gex, gexPair.state) });
+        return capJson({ symbol: sym, iv: curateOpts(opts), gex: curateGex(gexPair.gex, gexPair.state, sym) });
       }
       case "get_fundamentals": {
         const fund = await readDataJson(`${sym}.fund.json`);
@@ -930,61 +1103,4 @@ export async function execTool(name: string, args: Record<string, unknown> | nul
     console.error(`[copilot] tool ${name} failed:`, e);
     return { no_data: true, reason: `tool ${name} failed (server error, not missing data)` };
   }
-}
-
-function asRecord(v: unknown): Record<string, unknown> | null {
-  return v && typeof v === "object" && !Array.isArray(v) ? (v as Record<string, unknown>) : null;
-}
-
-function factStatusFromPayload(payload: Record<string, unknown>): {
-  status: "unavailable" | "stale" | "fresh" | "unknown" | "mixed_source";
-  clock: string;
-  presentable_as_fresh: boolean;
-} {
-  if (payload.no_data === true || payload.error) {
-    return { status: "unavailable", clock: "n/a", presentable_as_fresh: false };
-  }
-  const gex = asRecord(payload.gex) ?? payload;
-  if (gex.mixed_source === true) {
-    return { status: "mixed_source", clock: "mixed", presentable_as_fresh: false };
-  }
-  const risk = asRecord(payload.market_risk) ?? payload;
-  const freshness = risk.freshness ?? payload.freshness;
-  const stale = risk.stale ?? payload.stale;
-  if (freshness === "unknown" || stale === null) {
-    return { status: "unknown", clock: "unknown", presentable_as_fresh: false };
-  }
-  if (freshness === "stale" || stale === true) {
-    return { status: "stale", clock: "stale", presentable_as_fresh: false };
-  }
-  if (freshness === "fresh" && stale === false) {
-    return { status: "fresh", clock: "ok", presentable_as_fresh: true };
-  }
-  if (stale === false && freshness !== "unknown") {
-    return { status: "fresh", clock: "ok", presentable_as_fresh: true };
-  }
-  return { status: "unknown", clock: "unknown", presentable_as_fresh: false };
-}
-
-/**
- * Deterministic consumer of curated tool facts. Unknown clocks cannot read as
- * fresh. Unavailable / stale / mixed-source statuses are retained even when
- * model synthesis is unavailable. Never a trade authority.
- */
-export function presentCopilotEvidence(toolResults: unknown): Record<string, unknown> {
-  const list = Array.isArray(toolResults) ? toolResults : [];
-  const facts = list.map((raw) => {
-    const item = asRecord(raw) ?? {};
-    const tool = typeof item.tool === "string" ? item.tool : "unknown";
-    const nested = asRecord(item.payload);
-    const payload = nested ?? item;
-    const classified = factStatusFromPayload(payload);
-    return { tool, ...classified, payload };
-  });
-  return {
-    synthesis: "unavailable",
-    trade_authority: false,
-    facts,
-    limitations: "deterministic facts only — no model synthesis, never a trade instruction",
-  };
 }

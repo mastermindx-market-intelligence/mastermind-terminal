@@ -211,9 +211,14 @@ describe("curateOpts / curateGex", () => {
     expect((out.skew_summary as Obj).skew_pts_90_110_moneyness).toBe(7);
     expect(curateOpts(null).no_data).toBe(true);
   });
-  it("gex: walls top-3 by gamma, state fields folded in; both absent → no_data", () => {
+  it("gex: walls top-3 by gamma, state fields folded in when identity matches; both absent → no_data", () => {
     const gex = {
-      asof: "2026-07-05", spot_ref: 135.7, net_gex_bn: -1.24, gamma_flip: 130, call_wall: 150, put_wall: 120,
+      root: "SPY",
+      session: "2026-07-10",
+      asof: "2026-07-10T16:00:00Z",
+      basis: "dealer-sign",
+      revision: "r1",
+      spot_ref: 135.7, net_gex_bn: -1.24, gamma_flip: 130, call_wall: 150, put_wall: 120,
       by_strike: [
         { strike: 100, gamma_call: 0.01, gamma_put: -0.06 },
         { strike: 110, gamma_call: 0.05, gamma_put: -0.01 },
@@ -222,12 +227,22 @@ describe("curateOpts / curateGex", () => {
         { strike: 140, gamma_call: 0.03, gamma_put: -0.005 },
       ],
     };
-    const state = { asof: "2026-07-10", spot: 136, net_gex_bn: -1.1, gamma_regime: "SLIDE", pin_probability: 0.41, magnet: 135, max_pain: 132, dist_to_flip_pct: 0.4, gamma_flip: 131, call_wall: 150, put_wall: 120 };
-    const out = curateGex(gex, state);
+    const state = {
+      root: "SPY",
+      session: "2026-07-10",
+      asof: "2026-07-10T20:00:00Z",
+      basis: "dealer-sign",
+      revision: "r1",
+      spot: 136, net_gex_bn: -1.1, gamma_regime: "SLIDE", pin_probability: 0.41, magnet: 135, max_pain: 132, dist_to_flip_pct: 0.4, gamma_flip: 131, call_wall: 150, put_wall: 120,
+    };
+    const out = curateGex(gex, state, "SPY");
     expect((out.call_walls as Obj[]).map((w) => w.strike)).toEqual([130, 110, 140]);
     expect((out.put_walls as Obj[]).map((w) => w.strike)).toEqual([120, 100, 130]);
     expect(out.gamma_regime).toBe("SLIDE");
     expect(out.net_gex_bn).toBe(-1.1); // gexstate (fresher, curated) wins
+    expect(out.asof_state).toBe(state.asof);
+    expect(out.asof_ladder).toBe(gex.asof);
+    expect(out.mixed_source).not.toBe(true);
     expect(curateGex(null, null).no_data).toBe(true);
   });
   it("refuses or separates mixed root/session/basis/revision instead of one merged snapshot", () => {
@@ -291,6 +306,67 @@ describe("curateOpts / curateGex", () => {
     const out = curateGex(ladder, state);
     expect(out.asof === state.asof && Array.isArray(out.call_walls)).toBe(false);
     expect(out.mixed_source === true || out.no_data === true).toBe(true);
+  });
+  it("missing root plus a different session cannot authorize a unified snapshot", () => {
+    const ladder = {
+      asof: "2026-09-30T20:00:00Z",
+      net_gex_bn: 2,
+      by_strike: [{ strike: 600, gamma_call: 3 }],
+    };
+    const state = {
+      asof: "2026-10-02T20:00:00Z",
+      net_gex_bn: 1,
+      spot: 500,
+    };
+    const out = curateGex(ladder, state);
+    const unified =
+      out.mixed_source !== true &&
+      out.no_data !== true &&
+      Array.isArray(out.call_walls) &&
+      (out.call_walls as Obj[])[0]?.strike === 600 &&
+      out.net_gex_bn === 1;
+    expect(unified).toBe(false);
+    expect(out.mixed_source === true || out.no_data === true).toBe(true);
+    if (out.mixed_source === true) {
+      const ladderOut = out.ladder as Obj | undefined;
+      const stateOut = out.state as Obj | undefined;
+      expect(ladderOut?.asof).toBe(ladder.asof);
+      expect(stateOut?.asof).toBe(state.asof);
+      expect(ladderOut?.asof).not.toBe(stateOut?.asof);
+    }
+  });
+  it("invalid or missing clocks cannot certify unmatched GEX fields", () => {
+    const missingClock = curateGex(
+      { root: "SPY", net_gex_bn: 2, by_strike: [{ strike: 600, gamma_call: 3 }] },
+      { root: "SPY", asof: "2026-10-02T20:00:00Z", net_gex_bn: 1, spot: 500 },
+    );
+    const invalidClock = curateGex(
+      { root: "SPY", asof: "not-a-clock", net_gex_bn: 2, by_strike: [{ strike: 600, gamma_call: 3 }] },
+      { root: "SPY", asof: "2026-10-02T20:00:00Z", net_gex_bn: 1, spot: 500 },
+    );
+    for (const out of [missingClock, invalidClock]) {
+      const unified =
+        out.mixed_source !== true &&
+        out.no_data !== true &&
+        Array.isArray(out.call_walls) &&
+        out.net_gex_bn === 1;
+      expect(unified).toBe(false);
+      expect(out.mixed_source === true || out.no_data === true).toBe(true);
+    }
+  });
+  it("does not invent a producer root from an owner-bound symbol", () => {
+    const out = curateGex(
+      { asof: "2026-10-02T20:00:00Z", net_gex_bn: 2, by_strike: [{ strike: 600, gamma_call: 3 }] },
+      { asof: "2026-10-02T20:00:00Z", net_gex_bn: 1, spot: 500 },
+      "SPY",
+    );
+    expect(out.root).not.toBe("SPY");
+    const ladderOut = out.ladder as Obj | undefined;
+    const stateOut = out.state as Obj | undefined;
+    if (out.mixed_source === true) {
+      expect(ladderOut?.root ?? null).not.toBe("SPY");
+      expect(stateOut?.root ?? null).not.toBe("SPY");
+    }
   });
 });
 
