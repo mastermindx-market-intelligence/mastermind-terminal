@@ -26,11 +26,11 @@ describe("Terminal ticker-news rail integration", () => {
     expect(source).toContain('loggedIn && railTab !== "watchlists" ? " rail-hidden" : ""');
   });
 
-  it("has deliberate news treatments for dark, light and responsive layouts", () => {
+  it("uses the dark Terminal palette and explicit responsive layout", () => {
     const source = css();
     expect(source).toContain(".board");
-    expect(source).toContain(':global(html[data-theme="light"]) .row');
-    expect(source).toContain(':global(html:not([data-theme="light"])) .row');
+    expect(source).toContain("background:color-mix(in srgb,var(--panel-2) 58%,transparent)");
+    expect(source).not.toContain('data-theme="light"');
     expect(source).toContain("@media (max-width:860px)");
     expect(source).toContain(".board{height:auto");
   });

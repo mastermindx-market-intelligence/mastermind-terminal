@@ -6,11 +6,8 @@
 .liveDot{width:7px;height:7px;flex:none;border-radius:50%;background:var(--buy);box-shadow:0 0 0 3px color-mix(in srgb,var(--buy) 15%,transparent)}
 .stateChip{padding:3px 6px;border:1px solid var(--line);border-radius:999px;color:var(--muted);font:600 9.5px/1 var(--font-ui)}
 .scroll{flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain}
-.row{padding:10px 11px 11px;border-bottom:1px solid var(--line-2);transition:background var(--t),box-shadow var(--t)}
-:global(html:not([data-theme="light"])) .row{background:color-mix(in srgb,var(--panel-2) 58%,transparent)}
-:global(html:not([data-theme="light"])) .row:hover{background:color-mix(in srgb,var(--brand) 8%,var(--panel-2))}
-:global(html[data-theme="light"]) .row{background:var(--panel);box-shadow:inset 0 0 0 1px color-mix(in srgb,var(--line) 35%,transparent)}
-:global(html[data-theme="light"]) .row:hover{background:var(--panel-2)}
+.row{padding:10px 11px 11px;border-bottom:1px solid var(--line-2);background:color-mix(in srgb,var(--panel-2) 58%,transparent);transition:background var(--t),box-shadow var(--t)}
+.row:hover{background:color-mix(in srgb,var(--brand) 8%,var(--panel-2))}
 .meta{display:flex;align-items:center;gap:7px;margin-bottom:5px;color:var(--text-dim);font:600 9.5px/1.2 var(--font-ui)}
 .source{color:var(--muted);letter-spacing:.04em;text-transform:uppercase}
 .meta time{font-variant-numeric:tabular-nums}
