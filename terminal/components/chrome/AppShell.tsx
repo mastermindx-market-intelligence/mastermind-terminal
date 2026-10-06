@@ -59,6 +59,7 @@ export function useShellEmail(): string {
 const TITLE_MAP: Array<[string, string, string]> = [
   ["/analysis", "analysis", "Analysis"],
   ["/discover", "discover", "Discover"],
+  ["/dislocations", "pageDislocations", "Dislocations"],
   ["/options", "options", "Options"],
   ["/scripts", "scripts", "Scripts"],
   ["/alerts", "alerts", "Alerts"],

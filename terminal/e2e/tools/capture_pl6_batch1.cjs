@@ -32,6 +32,7 @@ const LAYOUT_FILES = [
   "terminal/components/DayRange.tsx",
   "terminal/lib/plainLabels.ts",
   "terminal/lib/i18n.tsx",
+  "terminal/app/company-intelligence.css",
 ];
 const ONLY = (process.env.CAPTURE_ONLY || "")
   .split(",")
