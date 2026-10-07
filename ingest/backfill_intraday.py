@@ -46,6 +46,17 @@ from pathlib import Path
 from zoneinfo import ZoneInfo
 
 ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT))
+from ingest import intraday_capture as capture_owner  # noqa: E402
+
+_capture_runs = threading.local()
+
+
+def _active_run(sym: str, tf: str):
+    run = getattr(_capture_runs, "current", None)
+    return run if run and run["identity"] == (sym, tf) else None
+
+
 OUT = Path(os.environ.get("TERMINAL_DATA_DIR") or (ROOT / "terminal" / "public" / "data"))
 MANIFEST = Path(os.environ.get("TERMINAL_MANIFEST") or (OUT / "manifest.json"))
 INTRADAY = OUT / "intraday"
@@ -204,13 +215,25 @@ def _tf_seconds(tf: str) -> int:
     raise ValueError(f"unsupported tf unit {unit!r}")
 
 
-def _get(url: str, tries: int = 5) -> dict:
+def _get(url: str, tries: int = 5, *, capture=None) -> dict:
     last_error: Exception | None = None
     for attempt in range(tries):
         try:
             req = urllib.request.Request(url, headers={"User-Agent": "terminal-intraday/1.0"})
+            requested_ns = capture.clock() if capture is not None else None
             with urllib.request.urlopen(req, timeout=45) as r:
-                return json.loads(r.read())
+                raw = (r.read(capture_owner.MAX_RESPONSE_BYTES + 1)
+                       if capture is not None else r.read())
+                received_ns = capture.clock() if capture is not None else None
+            if capture is not None:
+                capture.received(raw, requested_ns, received_ns)
+                try:
+                    return json.loads(raw)
+                except (ValueError, UnicodeError):
+                    raise capture_owner.CaptureError("malformed_response") from None
+            return json.loads(raw)
+        except capture_owner.CaptureError:
+            raise
         except urllib.error.HTTPError as e:
             if e.code == 429:                       # rate limited — back off and retry
                 last_error = e
@@ -279,6 +302,16 @@ def fetch_polygon_intraday(
     to = dt.date.today()
     if frm is None:
         frm = to - dt.timedelta(days=spec["days"])
+    run = _active_run(sym, tf)
+    session = run["capture"] if run else None
+    capture = None
+    if session is not None:
+        if tf != "1m" or FINALITY_LAG_S != capture_owner.FINALITY_LAG_S:
+            raise capture_owner.CaptureError("capture_requires_unchanged_1m_finality")
+        capture = capture_owner.CaptureAttempt(
+            sym, {"multiplier": 1, "timespan": "minute", "from_date": frm.isoformat(),
+                  "to_date": to.isoformat(), "adjusted": True, "sort": "asc", "limit": 50000},
+            int(now * 1_000_000_000), clock=time.time_ns)
     ticker = sym.upper()
     url = (f"https://api.polygon.io/v2/aggs/ticker/{urllib.parse.quote(ticker)}/range/"
            f"{spec['mult']}/{spec['unit']}/{frm}/{to}"
@@ -287,79 +320,152 @@ def fetch_polygon_intraday(
     pages = 0
     bar_seconds = _tf_seconds(tf)
     finality_cutoff = now - FINALITY_LAG_S
-    while url and pages < 400:
-        d = _get(url)
-        status = d.get("status")
-        if status not in ("OK", "DELAYED"):
-            raise RuntimeError(
-                f"invalid aggregate response status={status!r} after {pages} completed page(s)")
-        if status == "DELAYED" and stats is not None:
-            with _stats_lock:
-                stats["delayed_pages"] = stats.get("delayed_pages", 0) + 1
-        results = d.get("results")
-        if results is None:                         # the vendor omits the key on an empty page
-            results = []
-        elif not isinstance(results, list):
-            raise RuntimeError(
-                f"invalid aggregate response: results is {type(results).__name__}, not a list")
-        for b in results:
-            _validate_aggregate_bar(b, sym, tf)
-            bar_end = b["t"] / 1000 + bar_seconds
-            if bar_end > finality_cutoff:
-                if stats is not None:
-                    with _stats_lock:
-                        stats["forming_skipped"] = stats.get("forming_skipped", 0) + 1
-                continue
-            vol = b.get("v")
-            rows.append([_disp_epoch(b["t"]), b["o"], b["h"], b["l"], b["c"],
-                         int(vol or 0)])
-        nxt = d.get("next_url")
-        url = (nxt + f"&apiKey={POLY}") if nxt else None
-        pages += 1
+    try:
+        while url and pages < 400:
+            if capture is not None and pages >= capture_owner.MAX_CAPTURE_PAGES:
+                raise capture_owner.CaptureCapacity("capture_pages_capacity")
+            d = _get(url, capture=capture) if capture is not None else _get(url)
+            if capture is not None and not isinstance(d, dict):
+                raise capture_owner.CaptureError("invalid_response")
+            status = d.get("status")
+            if status not in ("OK", "DELAYED"):
+                if capture is not None:
+                    raise capture_owner.CaptureError("invalid_response")
+                raise RuntimeError(
+                    f"invalid aggregate response status={status!r} after {pages} completed page(s)")
+            if status == "DELAYED" and stats is not None:
+                with _stats_lock:
+                    stats["delayed_pages"] = stats.get("delayed_pages", 0) + 1
+            results = d.get("results")
+            if results is None:
+                results = []
+            elif not isinstance(results, list):
+                if capture is not None:
+                    raise capture_owner.CaptureError("invalid_response")
+                raise RuntimeError(
+                    f"invalid aggregate response: results is {type(results).__name__}, not a list")
+            page = None
+            if capture is not None:
+                if len(capture.data["pages"]) != pages + 1:
+                    raise capture_owner.CaptureError("source_failure")
+                page = capture.data["pages"][-1]
+                page["status"] = status
+                page["rows_received"] = len(results)
+            for row_index, b in enumerate(results):
+                raw = capture_owner.raw_minute(b) if capture is not None else None
+                _validate_aggregate_bar(b, sym, tf)
+                bar_end = b["t"] / 1000 + bar_seconds
+                if bar_end > finality_cutoff:
+                    if page is not None:
+                        page["forming_skipped"] += 1
+                    if stats is not None:
+                        with _stats_lock:
+                            stats["forming_skipped"] = stats.get("forming_skipped", 0) + 1
+                    continue
+                if page is not None:
+                    page["finalized_rows"] += 1
+                    capture.data["observations"].append({
+                        "page_index": pages, "row_index": row_index,
+                        "event_start_utc_ms": b["t"], "event_end_utc_ms": b["t"] + 60000,
+                        "raw": raw})
+                vol = b.get("v")
+                rows.append([_disp_epoch(b["t"]), b["o"], b["h"], b["l"], b["c"],
+                             int(vol or 0)])
+            nxt = d.get("next_url")
+            if capture is not None and nxt:
+                if not isinstance(nxt, str):
+                    raise capture_owner.CaptureError("invalid_response")
+                parsed = urllib.parse.urlsplit(nxt)
+                if (parsed.scheme != "https" or parsed.hostname != "api.polygon.io"
+                        or parsed.username or parsed.password or parsed.port not in (None, 443)
+                        or not parsed.path.startswith("/v2/aggs/ticker/")):
+                    raise capture_owner.CaptureError("invalid_response")
+            url = (nxt + f"&apiKey={POLY}") if nxt else None
+            pages += 1
+            if url:
+                time.sleep(0.1)
         if url:
-            time.sleep(0.1)
-    if url:
-        raise RuntimeError(f"pagination incomplete after {pages} pages")
-    rows.sort(key=lambda r: r[0])
-    out: list[list] = []
-    last = None
-    for r in rows:
-        if r[0] != last:
-            out.append(r)
-            last = r[0]
+            raise RuntimeError(f"pagination incomplete after {pages} pages")
+        rows.sort(key=lambda r: r[0])
+        out: list[list] = []
+        last = None
+        for r in rows:
+            if r[0] != last:
+                out.append(r)
+                last = r[0]
+    except Exception as error:
+        if capture is not None:
+            if isinstance(error, capture_owner.CaptureCapacity):
+                session.blocked = True
+            else:
+                reason = ("transport_exhausted" if isinstance(error, TransportExhausted) else
+                          "http_error" if isinstance(error, urllib.error.HTTPError) else
+                          str(error) if isinstance(error, capture_owner.CaptureError)
+                          and str(error) in capture_owner.FAILURE_KINDS else "source_failure")
+                session.retain(capture, reason)
+        raise
+    if capture is not None:
+        session.retain(capture)
     return out
 
 
 def write_store(sym: str, tf: str, rows: list[list]) -> int:
-    """Write an intraday store atomically: temp file + os.replace so readers never see a
-    partial file. Returns 0 if the row count is below the minimum viable store size."""
-    if len(rows) < MIN_STORE_ROWS:
-        return 0
-    INTRADAY.mkdir(parents=True, exist_ok=True)
+    """Atomically replace the same chart file and its source evidence, if enabled."""
+    if not capture_owner.valid_symbol(sym) or tf not in TF_SPEC:
+        raise capture_owner.CaptureError("invalid_store_identity")
     target = INTRADAY / f"{sym}.{tf}.json"
-    doc = {"t": sym, "tf": tf, "src": "polygon", "bar_quality": "real_ohlc",
-           "asof": rows[-1][0], "bars": rows}
-    tmp = INTRADAY / (
-        f"{sym}.{tf}.json.tmp.{os.getpid()}.{threading.get_ident()}.{uuid.uuid4().hex[:8]}"
-    )
-    try:
-        with open(tmp, "w", encoding="utf-8") as f:
-            f.write(json.dumps(doc, separators=(",", ":")))
-            f.flush()
-            os.fsync(f.fileno())
-        os.replace(tmp, target)
+    with capture_owner.store_lock(target):
+        run = _active_run(sym, tf)
+        old_doc = run["document"] if run else capture_owner.read_document(target)
+        session = run["capture"] if run else None
+        if old_doc and "minute_capture" in old_doc and session is None:
+            raise capture_owner.CaptureError("capture_context_required")
+        if session is not None:
+            if session.blocked:
+                raise capture_owner.CaptureCapacity("capture_retention_refused")
+            if not session.attempts:
+                raise capture_owner.CaptureError("capture_observation_required")
+        elif len(rows) < MIN_STORE_ROWS:
+            return 0
+        doc = {"t": sym, "tf": tf, "src": "polygon", "bar_quality": "real_ohlc",
+               "asof": rows[-1][0] if rows else None, "bars": rows}
+        if session is not None:
+            doc["minute_capture"] = session.envelope
+        encoded = json.dumps(doc, separators=(",", ":"), allow_nan=False).encode("utf-8")
+        if len(encoded) > capture_owner.MAX_FILE_BYTES:
+            if session is not None:
+                session.blocked = True
+            raise capture_owner.CaptureCapacity("store_bytes_capacity")
+        if session is not None and old_doc == doc:
+            return len(rows)
+        INTRADAY.mkdir(parents=True, exist_ok=True)
+        tmp = INTRADAY / (
+            f"{sym}.{tf}.json.tmp.{os.getpid()}.{threading.get_ident()}.{uuid.uuid4().hex[:8]}"
+        )
         try:
-            dfd = os.open(str(INTRADAY), os.O_RDONLY)
+            with open(tmp, "wb") as f:
+                f.write(encoded)
+                f.flush()
+                os.fsync(f.fileno())
+            os.replace(tmp, target)
+            if run is not None:
+                run["document"] = doc
             try:
-                os.fsync(dfd)
-            finally:
-                os.close(dfd)
-        except OSError:
-            pass
-    finally:
-        if tmp.exists():
-            tmp.unlink(missing_ok=True)
-    return len(rows)
+                dfd = os.open(str(INTRADAY), os.O_RDONLY)
+                try:
+                    os.fsync(dfd)
+                finally:
+                    os.close(dfd)
+            except OSError:
+                pass
+        except Exception:
+            if session is not None:
+                session.persistence_failed = True
+            raise
+        finally:
+            if tmp.exists():
+                tmp.unlink(missing_ok=True)
+        return len(rows)
 
 
 # ---------------------------------------------------------------- incremental refresh (--update)
@@ -369,7 +475,8 @@ def load_store(sym: str, tf: str) -> tuple[list[list], int | None]:
     if not p.exists():
         return [], None
     try:
-        d = json.loads(p.read_text())
+        run = _active_run(sym, tf)
+        d = run["document"] if run else capture_owner.read_document(p)
         bars = d.get("bars") or []
         return bars, (bars[-1][0] if bars else None)
     except Exception:
@@ -468,12 +575,30 @@ def main(argv: list[str]) -> int:
     def opt(name, default=None):
         return argv[argv.index(name) + 1] if name in argv else default
 
-    tfs = (opt("--tf") or "1h,5m").split(",")
-    top = int(opt("--top") or 500)
-    workers = int(opt("--workers") or 8)
-    limit = int(opt("--limit") or 0)
+    capture_minutes = "--capture-minutes" in argv
+    try:
+        symbol_arg = opt("--symbols")
+        symbols = capture_owner.parse_symbols(symbol_arg) if symbol_arg is not None else None
+        if symbols is not None and not capture_minutes:
+            raise capture_owner.CaptureError("symbols_requires_capture_minutes")
+        if capture_minutes and (symbols is None or "--existing-only" in argv
+                                or "--top" in argv or "--limit" in argv):
+            raise capture_owner.CaptureError("capture_requires_explicit_bounded_cohort")
+        tfs = (opt("--tf") or ("1m" if capture_minutes else "1h,5m")).split(",")
+        if capture_minutes and tfs != ["1m"]:
+            raise capture_owner.CaptureError("capture_requires_true_1m")
+    except (ValueError, IndexError):
+        print("intraday backfill: invalid --capture-minutes/--symbols arguments", flush=True)
+        return EXIT_USAGE
+    try:
+        top = int(opt("--top") or 500)
+        workers = int(opt("--workers") or 8)
+        limit = int(opt("--limit") or 0)
+    except (ValueError, IndexError):
+        print("intraday backfill: invalid numeric arguments", flush=True)
+        return EXIT_USAGE
     force = "--force" in argv
-    update = "--update" in argv   # incremental: extend existing store files with recent bars
+    update = "--update" in argv or (capture_minutes and not force)
     existing_only = "--existing-only" in argv
     expect_advance = "--expect-advance" in argv
 
@@ -484,7 +609,13 @@ def main(argv: list[str]) -> int:
 
     # --existing-only: enumerate only the stores already on disk. Bypasses manifest/top-N;
     # never creates a missing symbol. Not usable with --update (they share the same path).
-    if existing_only:
+    if capture_minutes:
+        jobs = [(symbol, "1m") for symbol in symbols]
+        if not 1 <= workers <= capture_owner.MAX_SYMBOLS:
+            print("intraday backfill: invalid capture worker count", flush=True)
+            return EXIT_USAGE
+        print(f"intraday capture: {len(jobs)} explicit 1m jobs | workers={workers}", flush=True)
+    elif existing_only:
         jobs = existing_stores(tfs)
         print(f"intraday refresh --existing-only: {len(jobs)} existing (sym,tf) jobs | "
               f"tfs={tfs} workers={workers}", flush=True)
@@ -574,7 +705,7 @@ def main(argv: list[str]) -> int:
         if len(rows) < min_cover:
             raise AdjustmentMismatch(
                 f"{why}; full refetch covers {len(rows)} of {len(old)} row(s)")
-        if len(rows) < MIN_STORE_ROWS:
+        if len(rows) < MIN_STORE_ROWS and not _active_run(s, tf)["capture"]:
             raise AdjustmentMismatch(f"{why}; full refetch returned {len(rows)} bar(s)")
         dropped = max(0, len(full) - MAX_STORE_ROWS)
         if dropped > 0:
@@ -631,7 +762,7 @@ def main(argv: list[str]) -> int:
             with _stats_lock:
                 stats["basis_unverified"] = stats.get("basis_unverified", 0) + 1
         merged_full = _merge(old, recent)
-        if len(merged_full) < MIN_STORE_ROWS:
+        if len(merged_full) < MIN_STORE_ROWS and not _active_run(s, tf)["capture"]:
             raise RuntimeError(f"StoreTooSmall: {len(merged_full)} bar(s) after merge")
         if merged_full == old:
             return s, tf, "unchanged", 0
@@ -642,7 +773,7 @@ def main(argv: list[str]) -> int:
         write_store(s, tf, merged_full[-MAX_STORE_ROWS:])
         return s, tf, "written", dropped
 
-    def work(job):
+    def work_unlocked(job):
         s, tf = job
         if abort.is_set():
             return s, tf, "skipped", 0, None, None
@@ -669,6 +800,53 @@ def main(argv: list[str]) -> int:
         except Exception as e:
             failures.append(f"{s}.{tf}: {type(e).__name__}: {_redact(str(e))[:300]}")
             return s, tf, "failed", 0, None, None
+
+    def work(job):
+        s, tf = job
+        if abort.is_set():
+            return s, tf, "skipped", 0, None, None
+        if not capture_owner.valid_symbol(s) or tf not in TF_SPEC:
+            failures.append(f"{s}.{tf}: invalid_store_identity")
+            return s, tf, "failed", 0, None, None
+        target = INTRADAY / f"{s}.{tf}.json"
+        previous_run = getattr(_capture_runs, "current", None)
+        try:
+            with capture_owner.store_lock(target):
+                document = capture_owner.read_document(target)
+                envelope = document.get("minute_capture") if document else None
+                enabled = capture_minutes or (document is not None and "minute_capture" in document)
+                if enabled and (tf != "1m" or (document and (
+                        document.get("t") != s or document.get("tf") != tf
+                        or document.get("src") != "polygon"))):
+                    raise capture_owner.CaptureError("capture_identity_invalid")
+                if enabled and document and "minute_capture" in document and envelope is None:
+                    raise capture_owner.CaptureError("capture_envelope_invalid")
+                session = capture_owner.CaptureSession(s, envelope) if enabled else None
+                run = {"identity": (s, tf), "document": document, "capture": session}
+                _capture_runs.current = run
+                result = work_unlocked(job)
+                if session is not None and session.attempts:
+                    if session.persistence_failed:
+                        raise capture_owner.CaptureError("capture_write_failed")
+                    if session.blocked:
+                        raise capture_owner.CaptureCapacity("capture_retention_refused")
+                    # A failed fetch preserves the chart projection while retaining its
+                    # sanitized partial/failed attempt; unchanged fetches retain receipts too.
+                    current = run["document"]
+                    write_store(s, tf, current["bars"] if current else [])
+                    print(f"  capture_retention: {s}.{tf} retained "
+                          f"captures={len(session.envelope['captures'])} "
+                          f"latest_status={session.envelope['captures'][-1]['payload']['status']} "
+                          f"prefix_sha256={session.envelope['prefix_sha256']}", flush=True)
+                elif session is not None and session.blocked:
+                    raise capture_owner.CaptureCapacity("capture_retention_refused")
+                return result
+        except Exception as error:
+            label = "StoreUnreadable" if str(error) == "unreadable_store" else type(error).__name__
+            failures.append(f"{s}.{tf}: {label}: {_redact(str(error))[:300]}")
+            return s, tf, "failed", 0, None, None
+        finally:
+            _capture_runs.current = previous_run
 
     counts = {"written": 0, "unchanged": 0, "rebuilt": 0, "failed": 0, "transport": 0,
               "skipped": 0}

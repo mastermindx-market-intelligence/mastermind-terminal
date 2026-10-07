@@ -1,0 +1,211 @@
+# RS Pullback Launch: source observation retention
+
+Operation: `rs-pullback-launch-source-retention-20261007-sol-002`
+Parent: `WS:LIVE-ENTRY-RADAR` / `market-timing-intelligence`
+Source base: Terminal `ad36a332cd4b53af1d917a94f6fb3a10e27dad84`
+Protected procedure recovered by parent: Mastermind `ee120e80f5d5e0344c453dd7cbf4108b9c429b38`
+
+## Delivered capability and boundary
+
+The existing intraday producer can opt in to preserving original finalized one-minute
+observations, successful-response receipts and later changed versions inside its existing
+`<symbol>.1m.json` file. It continues to emit the legacy six-value `bars` projection.
+One conventional per-file lock now serializes read, fetch, merge and atomic replacement.
+There is no second collector, store, scheduler, lifecycle, revision selector or authority plane.
+
+This is source retention infrastructure. No runtime cohort was enrolled, schedule changed,
+provider called, outcome read, detector added or production activation performed by this
+implementation. The RS Phase 1 verdict remains **NOT_ADMITTED**; H1/H2/H3 remain **NOT_TESTED**.
+Neither source merge nor successful synthetic tests establish live collection or data admission.
+
+## Existing-owner invocation
+
+```bash
+python3 ingest/backfill_intraday.py \
+  --capture-minutes --symbols MU,SPY,QQQ,SMH --tf 1m --workers 1
+```
+
+This example describes the source interface, not a performed production action. The new mode
+requires 1–16 unique, explicit uppercase symbols and true `1m`. It bypasses manifest ranking
+and defaults to the existing incremental refresh path. `--symbols` without capture mode,
+other timeframes, `--top`, `--limit`, or `--existing-only` together with explicit capture mode
+are refused. The symbol cap is an operational bound, not an investable universe or a scientific
+cohort definition. Existing `--force`/`--update` behavior remains available within that cohort.
+
+Ordinary default timeframes stay `1h,5m`. The existing nightly command and 900-second finality
+lag are unchanged. Once a file has a valid capture envelope, a later ordinary producer refresh
+of that file continues recording captures. A direct row-only overwrite of an enabled file
+refuses with `capture_context_required`; malformed or tampered capture state is never silently
+reinitialized. Existing missing/empty source files do not acquire fictional bars.
+
+The first successful short or empty fetch is retained even below the legacy 20-row minimum.
+An empty fetch on an already populated store still fails the existing overlap/freshness check
+and preserves the chart, while its completed-empty response remains visible in the capture.
+
+## Wire contract
+
+The existing JSON object gains exactly one `minute_capture` envelope:
+
+```text
+schema: mastermind.intraday_minute_capture.v1
+observer_id: terminal.backfill_intraday
+authority: {research_admitted: false, trading_authority: false}
+captures: ordered list of sealed capture records
+prefix_sha256: final capture_sha256, or 64 zeroes for the empty prefix
+```
+
+`observer_id` identifies the logical collector. It is not an invented host identity, entitlement
+receipt, signed attestation or independent proof that a vendor supplied the bytes.
+
+Each record contains:
+
+| Field | Meaning |
+|---|---|
+| `sequence` | Contiguous one-based index. |
+| `capture_id` | Immutable 32-character UUID hex identifier for this attempt. |
+| `previous_capture_sha256` | Previous sealed record hash; 64 zeroes for genesis. |
+| `payload_sha256` | Hash of the canonical retained payload. |
+| `payload` | Sanitized attempt evidence described below. |
+| `capture_sha256` | Hash of the record excluding this field. |
+
+Canonical hash encoding is Python `json.dumps(value, sort_keys=True, separators=(",", ":"),
+ensure_ascii=True, allow_nan=False).encode("utf-8")`, followed by SHA-256. Complete prefix
+validation checks contiguous sequence, unique IDs, every payload seal, each predecessor and
+the final prefix seal. Hashes detect content changes; they are not signatures.
+
+### Attempt payload
+
+- Identity: `symbol`, `timeframe="1m"`, `source="polygon"`.
+- Disposition: `status="complete"|"partial"|"failed"` and `failure_kind`.
+- True UTC clocks: `started_at_utc_ns`, `completed_at_utc_ns`,
+  `finality_reference_utc_ns`, and integer `finality_lag_s=900`.
+- Sanitized request: `multiplier=1`, `timespan="minute"`, ISO `from_date`/`to_date`,
+  `adjusted=true`, `sort="asc"`, `limit=50000`.
+- `pages`: successful HTTP body-read receipts, including an invalid-body receipt when the
+  successful HTTP read cannot be decoded or its aggregate envelope is invalid.
+- `observations`: changed finalized minute episodes with their original consumed values.
+- `counts`: `rows_received`, `finalized_rows`, `forming_skipped`, `unchanged_suppressed`,
+  and `observations_retained`.
+
+A complete empty response has `status="complete"` and zero rows. A forming-only response
+has positive received/forming counts and no finalized observations. A failed HTTP/transport
+attempt before any body was read has `status="failed"`; a later-page or malformed-response
+failure after a body was received has `status="partial"`. Only complete attempts may
+contribute to an eventual consumer. These states are not feed-completeness assertions.
+
+Fixed failure kinds are `transport_exhausted`, `http_error`, `malformed_response`,
+`invalid_response`, `malformed_bar`, `pagination_incomplete`, `source_failure`, and
+`clock_invalid`. Complete attempts require `failure_kind=null`. Capacity refusals are
+separate exceptions: they preserve the prior file and do not claim that the refused attempt
+was retained.
+
+Each page receipt contains zero-based `page_index`, `request_started_at_utc_ns`,
+`response_received_at_utc_ns`, exact received-byte `response_sha256`/`response_bytes`,
+`status="OK"|"DELAYED"|"INVALID"`, and its received/finalized/forming row counts.
+Request/response clocks must lie inside the attempt clocks. `DELAYED` stays an explicit
+source declaration; it is not relabeled real time.
+
+Each observation contains zero-based `page_index`/`row_index`, `event_start_utc_ms`,
+`event_end_utc_ms`, and `raw`. The raw allowlist is only `t/o/h/l/c/v`; all other provider
+fields are discarded. UTC starts come directly from integer source `t`, aligned to a minute;
+ends are start plus 60,000 ms. Valid finalized rows must satisfy the recorded finality cutoff
+and have ended before their page was received. No display-epoch guessing is used.
+
+Raw volume preserves absent `v`, explicit `null`, zero, integer and fractional values.
+The legacy projection keeps its existing display-epoch and integer-volume behavior. Thus
+the retained raw observation, not the lossy chart tuple, is the downstream source input.
+Request `adjusted=true` is only a request declaration; native security identity, action
+lineage, and qualified price/volume basis remain separate owner obligations.
+
+Request URLs, credentials, headers, unknown metadata and string-valued provider payloads
+are never retained. The response-byte hash is provenance for the actual bytes read; the
+full response body is **not** retained. Only reviewed input fields are recoverable from this
+store. Captured pagination refuses a different upstream host before another request.
+
+## Compaction, replay and preservation
+
+Only consecutive equal finalized raw payloads relative to the latest **complete** observation
+for that minute are suppressed. A → A retains one changed episode; A → B → A retains three.
+Partial/failed attempts never advance that complete-observation state and never suppress a
+later successful observation. The full original attempt is sealed in memory before replay
+handling; persisted payload seals cover the explicitly compacted evidence.
+
+`append_capture` builds a record from an already-compacted payload.
+`append_sealed_capture(envelope, sealed_record)` is the explicit replay interface: it accepts
+the exact immutable record, preserving bytes after subsequent captures, and rejects changed
+content under the same ID. It does not recompact a raw historical attempt against the current
+state. Re-retaining the same finalized in-memory `CaptureAttempt` reuses its immutable seal
+and rejects changed original attempt data. Tests cover a replay that actually suppressed
+24 of 25 rows.
+
+All producer writing paths preserve the envelope, including unchanged fetches, overlap
+corrections, basis rebuilds and row-cap trimming of the chart projection. Old captured
+versions are never pruned when the chart's latest-row projection changes. A later-page
+failure retains its safe sanitized partial attempt when capacity allows, but leaves the
+chart projection unchanged. A failed atomic replacement is not silently retried by the
+post-fetch retention step.
+
+The persistent `.json.lock` inode is ordinary per-file flock coordination. It is deliberately
+not unlinked on release: replacing a held lock inode would permit concurrent owners.
+Thread reentrancy allows existing nested read/write paths within the same critical section.
+The existing tmp → file fsync → replace → directory fsync write remains the only commit.
+
+## Bounded retention
+
+| Bound | Limit |
+|---|---:|
+| Explicit cohort | 16 symbols |
+| Captures per symbol file | 4,096 |
+| Successful response bodies per capture | 16 |
+| One received response body | 8 MiB |
+| Entire serialized symbol file | 32 MiB |
+
+Crossing a count, page, response or whole-file limit returns failure and leaves the prior
+valid file byte-identical. It emits an explicit capacity/refusal reason and makes no retention
+claim for the refused addition. No automatic prefix pruning, secondary archive, retry daemon
+or fabricated coverage continuation is provided. The existing owner must choose a reviewed
+retention evolution before these bounds prevent further accrual.
+
+## Consumer clock and authority
+
+Collector request/response time is **not** file visibility or Radar `known_at`. A page can
+arrive before a later multi-page failure or before an atomic file becomes readable.
+The Macro bridge reads exact file bytes, validates the capture prefix, and records its own
+actual read-completion clock. The earliest valid reader receipt covering a prefix is the
+only permitted `known_at` for the corresponding episodes in the existing RS input bundle.
+
+A first read that discovers A/B/A together gives those episodes the same knowledge time.
+The existing selector then refuses the conflicting revisions. Neither Terminal nor the
+bridge invents time offsets or adds another revision-selection authority. Legacy D0 file
+qualification continues to withhold as-observed admission because it does not interpret this
+new envelope; its canonical revision boundary remains with Radar.
+
+Nightly receipt retention cannot reconstruct earlier daytime availability. The 15-minute
+finality lag also prevents claiming that this unchanged producer serves the freshest closed
+intraday frame. Cohort/cadence activation, natural-session accrual, lawful storage rights,
+identity/action-basis/calendar receipts, current daily context and faithful incumbent
+assessment evidence remain actual program dependencies.
+
+## Verification
+
+The focused injected-transport suite and existing affected producer/nightly suites passed:
+
+```bash
+python3 -m pytest tests/test_intraday_capture.py \
+  tests/test_backfill_intraday.py tests/test_backfill_intraday_refresh.py \
+  tests/test_backfill_intraday_breaker.py tests/test_nightly_wiring.py -q
+```
+
+Result at this implementation checkpoint: **219 passed** (32 new capture cases), with four
+unrelated existing pytest cleanup warnings. The new cases exercise actual injected HTTP-body
+read → fetch → atomic file → validated read, original values and secret exclusion, A/A/B/A,
+partial failure and recovery, first empty/short captures, malformed/transport failure, basis
+rebuild, each capacity refusal with unchanged preimage, existing-owner continuation, tamper
+refusal, two-process serialization, sealed replay, and file entry from outside the checkout
+with a hostile ambient import path. Existing nightly wiring remains unchanged.
+
+The parent also runs a reproducible cross-repository synthetic harness through the actual
+Macro reader and canonical RS selector. Its acceptance receipt belongs to the parent carrier;
+local test success here does not substitute for independent review, hosted checks, source
+merge or real runtime proof. The unchanged D0 qualification, CLI and session-chain suites
+also passed separately: **59 passed**, with the same four unrelated cleanup warnings.
