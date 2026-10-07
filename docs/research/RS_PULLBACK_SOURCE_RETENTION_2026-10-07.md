@@ -36,7 +36,11 @@ Ordinary default timeframes stay `1h,5m`. The existing nightly command and 900-s
 lag are unchanged. Once a file has a valid capture envelope, a later ordinary producer refresh
 of that file continues recording captures. A direct row-only overwrite of an enabled file
 refuses with `capture_context_required`; malformed or tampered capture state is never silently
-reinitialized. Existing missing/empty source files do not acquire fictional bars.
+reinitialized. With `--existing-only --tf 1m`, a validated already-enabled file whose chart is
+empty can full-fetch through this same owner: it preserves its old capture prefix, appends the
+new attempt and populates the chart only from a successful response. This covers initial empty,
+forming-only and failed captures. Missing files are not created by existing-only mode; empty
+legacy files and unreadable stores still refuse before transport.
 
 The first successful short or empty fetch is retained even below the legacy 20-row minimum.
 An empty fetch on an already populated store still fails the existing overlap/freshness check
@@ -120,7 +124,15 @@ lineage, and qualified price/volume basis remain separate owner obligations.
 Request URLs, credentials, headers, unknown metadata and string-valued provider payloads
 are never retained. The response-byte hash is provenance for the actual bytes read; the
 full response body is **not** retained. Only reviewed input fields are recoverable from this
-store. Captured pagination refuses a different upstream host before another request.
+store. Captured pagination requires HTTPS on the original host and the exact original
+aggregate path: ticker, multiplier, timespan and both date bounds must match. A next URL cannot
+contain credentials or a fragment. Opaque cursor parameters are allowed; supplied `adjusted`,
+`sort` and `limit` values, including duplicates, must match the original request. Contradictions
+refuse before another request, leaving the attempt noncomplete and the chart unchanged. An
+explicit response `ticker` that conflicts with the requested symbol marks that page `INVALID`
+before any of its rows contribute to observations or the chart. Its byte receipt and received
+row count may be retained, with `failure_kind="invalid_response"`. These are request-consistency
+checks; they do not establish native security identity or action/adjustment-basis admission.
 
 ## Compaction, replay and preservation
 
@@ -196,13 +208,20 @@ python3 -m pytest tests/test_intraday_capture.py \
   tests/test_backfill_intraday_breaker.py tests/test_nightly_wiring.py -q
 ```
 
-Result at this implementation checkpoint: **219 passed** (32 new capture cases), with four
+Result after the review repairs: **238 passed** (51 capture cases), with four
 unrelated existing pytest cleanup warnings. The new cases exercise actual injected HTTP-body
 read → fetch → atomic file → validated read, original values and secret exclusion, A/A/B/A,
 partial failure and recovery, first empty/short captures, malformed/transport failure, basis
 rebuild, each capacity refusal with unchanged preimage, existing-owner continuation, tamper
 refusal, two-process serialization, sealed replay, and file entry from outside the checkout
 with a hostile ambient import path. Existing nightly wiring remains unchanged.
+
+The 19 review cases cover symbol, multiplier, timespan, date-bound and query-invariant
+pagination conflicts before a second request; valid same-request cursor paging with omitted
+or explicit matching invariants; response ticker contradictions on the first or later page;
+empty/forming-only/failed enabled-file recovery; and legacy empty/unreadable/missing refusal.
+Against the reviewed pre-repair source, the initial 18-case gate produced 14 failures and four
+passing controls. After repair, the expanded 19-case gate passed. All transports were injected.
 
 The parent also runs a reproducible cross-repository synthetic harness through the actual
 Macro reader and canonical RS selector. Its acceptance receipt belongs to the parent carrier;

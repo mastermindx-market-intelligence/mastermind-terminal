@@ -156,7 +156,7 @@ def test_later_page_failure_keeps_chart_and_does_not_poison_complete_compaction(
     def partial(request):
         if "cursor=next" in request.full_url:
             raise urllib.error.HTTPError(request.full_url, 503, "upstream " + TOKEN, {}, None)
-        return response(changed, next_url="https://api.polygon.io/v2/aggs/ticker/SPY/range/1/minute/x?cursor=next")
+        return response(changed, next_url=cursor_url(request))
     install(monkeypatch, partial)
     assert run() == 1
     assert read(env)["bars"] == chart_before
@@ -223,9 +223,8 @@ def test_capacity_refusal_keeps_prior_file_byte_identical(env, monkeypatch, capa
     limit = {"MAX_CAPTURES": 1, "MAX_RESPONSE_BYTES": 8,
              "MAX_FILE_BYTES": len(before) + 8, "MAX_CAPTURE_PAGES": 1}[capacity]
     monkeypatch.setattr(cap, capacity, limit)
-    install(monkeypatch, response([bar(close=100.25)],
-            next_url=("https://api.polygon.io/v2/aggs/ticker/SPY/range/1/minute/x?cursor=next"
-                      if capacity == "MAX_CAPTURE_PAGES" else None)))
+    install(monkeypatch, lambda request: response([bar(close=100.25)],
+            next_url=cursor_url(request) if capacity == "MAX_CAPTURE_PAGES" else None))
     assert run() == 1
     assert env.read_bytes() == before
     output = capsys.readouterr().out
@@ -408,3 +407,139 @@ def test_invalid_empty_envelope_is_not_treated_as_initial_capture(env, monkeypat
     before = env.read_bytes()
     assert run() == 1
     assert env.read_bytes() == before
+
+
+def cursor_url(request, query="cursor=next"):
+    parts = writer.urllib.parse.urlsplit(request.full_url)
+    return writer.urllib.parse.urlunsplit((parts.scheme, parts.netloc, parts.path, query, ""))
+
+
+@pytest.mark.parametrize("conflict", [
+    "symbol", "multiplier", "timespan", "from_date", "to_date",
+    "adjusted", "sort", "limit", "duplicate_adjusted",
+])
+def test_reviewed_pagination_refuses_identity_change_before_second_request(env, monkeypatch, conflict):
+    install(monkeypatch, response([bar()]))
+    assert run() == 0
+    before = read(env)
+    calls = []
+    def provider(request):
+        calls.append(request.full_url)
+        next_url = cursor_url(request)
+        parts = writer.urllib.parse.urlsplit(next_url)
+        path = parts.path
+        query = "cursor=next"
+        if conflict == "symbol":
+            path = path.replace("/ticker/SPY/", "/ticker/QQQ/")
+        elif conflict == "multiplier":
+            path = path.replace("/range/1/minute/", "/range/5/minute/")
+        elif conflict == "timespan":
+            path = path.replace("/range/1/minute/", "/range/1/hour/")
+        elif conflict in ("from_date", "to_date"):
+            segments = path.split("/")
+            segments[-2 if conflict == "from_date" else -1] = "2000-01-01"
+            path = "/".join(segments)
+        else:
+            query += {"adjusted": "&adjusted=false", "sort": "&sort=desc",
+                      "limit": "&limit=1",
+                      "duplicate_adjusted": "&adjusted=true&adjusted=false"}[conflict]
+        if len(calls) > 1:
+            raise AssertionError("wrong-identity pagination must not be requested")
+        return response([bar(close=100.25)], ticker="SPY",
+                        next_url=writer.urllib.parse.urlunsplit(
+                            (parts.scheme, parts.netloc, path, query, "")))
+    install(monkeypatch, provider)
+    assert run() == 1
+    assert len(calls) == 1
+    after = read(env)
+    assert after["bars"] == before["bars"]
+    assert after["minute_capture"]["captures"][0] == before["minute_capture"]["captures"][0]
+    assert payloads(env)[-1]["status"] == "partial"
+    assert payloads(env)[-1]["failure_kind"] == "invalid_response"
+
+
+@pytest.mark.parametrize("query", ["cursor=next", "cursor=next&adjusted=true&sort=asc&limit=50000"])
+def test_reviewed_same_request_cursor_pagination_remains_valid(env, monkeypatch, query):
+    calls = []
+    def provider(request):
+        calls.append(request.full_url)
+        if len(calls) == 1:
+            return response([bar()], ticker="SPY",
+                            next_url=cursor_url(request, query))
+        return response([bar(1)], ticker="SPY")
+    install(monkeypatch, provider)
+    assert run() == 0
+    payload = payloads(env)[0]
+    assert len(calls) == 2 and payload["status"] == "complete"
+    assert len(read(env)["bars"]) == 2
+    assert [observation["page_index"] for observation in payload["observations"]] == [0, 1]
+
+
+@pytest.mark.parametrize("mismatch_page", [0, 1])
+def test_reviewed_conflicting_response_ticker_never_contributes_rows(env, monkeypatch, mismatch_page):
+    install(monkeypatch, response([bar()], ticker="SPY"))
+    assert run() == 0
+    before = read(env)["bars"]
+    calls = []
+    def provider(request):
+        page_index = len(calls)
+        calls.append(request.full_url)
+        if page_index == mismatch_page:
+            return response([bar(page_index, close=2000)], ticker="QQQ")
+        return response([bar(close=100.25)], ticker="SPY", next_url=cursor_url(request))
+    install(monkeypatch, provider)
+    assert run() == 1
+    payload = payloads(env)[-1]
+    assert read(env)["bars"] == before
+    assert payload["status"] == "partial" and payload["failure_kind"] == "invalid_response"
+    assert all(observation["raw"]["c"] != 2000 for observation in payload["observations"])
+    assert len(payload["observations"]) == mismatch_page
+    assert payload["pages"][-1]["status"] == "INVALID"
+
+
+@pytest.mark.parametrize("initial", ["empty", "forming", "failed"])
+def test_reviewed_enabled_empty_store_recovers_through_existing_only(env, monkeypatch, initial):
+    if initial == "failed":
+        def first(_request):
+            raise urllib.error.URLError("synthetic source unavailable")
+    elif initial == "forming":
+        row = bar()
+        row["t"] = int(NOW * 1000) - 60000
+        first = response([row])
+    else:
+        first = response()
+    install(monkeypatch, first)
+    assert run() == (1 if initial == "failed" else 0)
+    before = read(env)
+    assert before["bars"] == []
+    calls = []
+    def recovered(request):
+        calls.append(request.full_url)
+        return response([bar()], ticker="SPY")
+    install(monkeypatch, recovered)
+    assert writer.main(["--existing-only", "--tf", "1m", "--workers", "1"]) == 0
+    assert len(calls) == 1
+    after = read(env)
+    assert len(after["bars"]) == 1
+    assert len(after["minute_capture"]["captures"]) == 2
+    assert after["minute_capture"]["captures"][0] == before["minute_capture"]["captures"][0]
+    assert after["minute_capture"]["captures"][1]["previous_capture_sha256"] == before["minute_capture"]["prefix_sha256"]
+    assert payloads(env)[-1]["status"] == "complete"
+
+
+@pytest.mark.parametrize("legacy", ["empty", "unreadable", "missing"])
+def test_reviewed_legacy_empty_unreadable_missing_stays_refused(env, monkeypatch, legacy):
+    if legacy != "missing":
+        env.parent.mkdir(parents=True)
+        env.write_bytes(b"{unreadable" if legacy == "unreadable" else json.dumps(
+            {"t": "SPY", "tf": "1m", "src": "polygon", "bars": []}).encode())
+    before = env.read_bytes() if env.exists() else None
+    calls = []
+    def forbidden(request):
+        calls.append(request.full_url)
+        raise AssertionError("legacy refusal must not fetch")
+    install(monkeypatch, forbidden)
+    assert writer.main(["--existing-only", "--tf", "1m", "--workers", "1"]) == (
+        2 if legacy == "missing" else 1)
+    assert calls == []
+    assert (env.read_bytes() if env.exists() else None) == before

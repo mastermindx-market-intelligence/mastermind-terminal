@@ -288,6 +288,27 @@ def _validate_aggregate_bar(b: dict, sym: str, tf: str) -> None:
             raise RuntimeError(f"malformed aggregate bar for {sym} {tf}: v")
 
 
+def _capture_next_url(nxt: str, original_path: str) -> str:
+    """Keep cursor pagination within the original aggregate request identity."""
+    try:
+        parsed = urllib.parse.urlsplit(nxt)
+        query = urllib.parse.parse_qs(
+            parsed.query, keep_blank_values=True, max_num_fields=64)
+        if (parsed.scheme != "https" or parsed.hostname != "api.polygon.io"
+                or parsed.username or parsed.password or parsed.port not in (None, 443)
+                or parsed.fragment or parsed.path != original_path):
+            raise ValueError
+        for field, expected in (("adjusted", "true"), ("sort", "asc"), ("limit", "50000")):
+            if any(value != expected for value in query.get(field, [])):
+                raise ValueError
+    except (TypeError, ValueError):
+        raise capture_owner.CaptureError("invalid_response") from None
+    # A legitimate cursor URL may omit the invariant parameters or the entire query.
+    query_string = (parsed.query + "&" if parsed.query else "") + f"apiKey={POLY}"
+    return urllib.parse.urlunsplit(
+        (parsed.scheme, parsed.netloc, parsed.path, query_string, ""))
+
+
 def fetch_polygon_intraday(
     sym: str,
     tf: str,
@@ -316,6 +337,7 @@ def fetch_polygon_intraday(
     url = (f"https://api.polygon.io/v2/aggs/ticker/{urllib.parse.quote(ticker)}/range/"
            f"{spec['mult']}/{spec['unit']}/{frm}/{to}"
            f"?adjusted=true&sort=asc&limit=50000&apiKey={POLY}")
+    original_path = urllib.parse.urlsplit(url).path
     rows: list[list] = []
     pages = 0
     bar_seconds = _tf_seconds(tf)
@@ -349,8 +371,11 @@ def fetch_polygon_intraday(
                 if len(capture.data["pages"]) != pages + 1:
                     raise capture_owner.CaptureError("source_failure")
                 page = capture.data["pages"][-1]
-                page["status"] = status
                 page["rows_received"] = len(results)
+                if "ticker" in d and d["ticker"] != ticker:
+                    # Keep the bounded response receipt INVALID, never its wrong-symbol rows.
+                    raise capture_owner.CaptureError("invalid_response")
+                page["status"] = status
             for row_index, b in enumerate(results):
                 raw = capture_owner.raw_minute(b) if capture is not None else None
                 _validate_aggregate_bar(b, sym, tf)
@@ -372,15 +397,12 @@ def fetch_polygon_intraday(
                 rows.append([_disp_epoch(b["t"]), b["o"], b["h"], b["l"], b["c"],
                              int(vol or 0)])
             nxt = d.get("next_url")
-            if capture is not None and nxt:
-                if not isinstance(nxt, str):
+            if capture is not None:
+                if nxt is not None and nxt != "" and not isinstance(nxt, str):
                     raise capture_owner.CaptureError("invalid_response")
-                parsed = urllib.parse.urlsplit(nxt)
-                if (parsed.scheme != "https" or parsed.hostname != "api.polygon.io"
-                        or parsed.username or parsed.password or parsed.port not in (None, 443)
-                        or not parsed.path.startswith("/v2/aggs/ticker/")):
-                    raise capture_owner.CaptureError("invalid_response")
-            url = (nxt + f"&apiKey={POLY}") if nxt else None
+                url = _capture_next_url(nxt, original_path) if nxt else None
+            else:
+                url = (nxt + f"&apiKey={POLY}") if nxt else None
             pages += 1
             if url:
                 time.sleep(0.1)
@@ -784,13 +806,17 @@ def main(argv: list[str]) -> int:
                     ret = refresh(s, tf, old, asof)
                     _, asof_after = load_store(s, tf)
                     return ret[0], ret[1], ret[2], ret[3], asof, asof_after
-                if existing_only:
+                run = _active_run(s, tf)
+                enabled_empty = (run is not None and run["capture"] is not None
+                                 and run["document"] is not None
+                                 and run["document"]["bars"] == [])
+                if existing_only and not enabled_empty:
                     failures.append(
                         f"{s}.{tf}: StoreUnreadable: existing store has no readable bars"
                     )
                     return s, tf, "failed", 0, None, None
-                # Preserve legacy --update semantics: a newly listed symbol with no store
-                # falls through to the ordinary full backfill path.
+                # A validated enabled empty file needs a full fetch to recover. Preserve
+                # legacy --update full backfill and --existing-only no-creation behavior.
             rows = fetch_polygon_intraday(s, tf, stats=stats)
             kind = "written" if write_store(s, tf, rows) else "unchanged"
             return s, tf, kind, 0, None, None
