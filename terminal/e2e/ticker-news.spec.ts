@@ -275,7 +275,7 @@ async function openNews(page: Page, expectedState = "live") {
   return panel;
 }
 
-async function pickSymbol(page: Page, testInfo: TestInfo, query: string, pickText: RegExp) {
+async function pickSymbol(page: Page, testInfo: TestInfo, symbol: string, searchText: string) {
   const desktop = testInfo.project.name === "desktop";
   if (desktop) await page.locator(".pair").first().click();
   else await page.locator(".m-symbar").click();
@@ -283,10 +283,10 @@ async function pickSymbol(page: Page, testInfo: TestInfo, query: string, pickTex
   const input = page.locator(".sh input");
   await expect(input).toBeVisible({ timeout: 20_000 });
   await input.click();
-  await page.keyboard.type(query);
+  await page.keyboard.type(searchText);
   await expect(page.locator(".sres .r").first()).toBeVisible({ timeout: 20_000 });
-  await page.locator(".sres .r").filter({ hasText: pickText }).first().click();
-  await expect(page).toHaveURL(new RegExp(`symbol=${query}`), { timeout: 30_000 });
+  await page.locator(".sres .r").filter({ hasText: new RegExp(symbol, "i") }).locator(".r-opt").click();
+  await expect(page.locator(".mm-ptag-sym")).toHaveText(symbol, { timeout: 30_000 });
 }
 
 test("ticker News rail is readable across EN/ZH desktop/tablet/mobile matrix", async ({ page, baseURL }, testInfo) => {
@@ -417,7 +417,7 @@ test("MSFT grouped detail starts while an Apple story response is still held", a
   await panel.getByRole("button", { name: "2 reports" }).click();
   await expect.poll(() => page.locator('[data-story-id="ev2_aapl_grp"] button').isDisabled()).toBeTruthy();
 
-  await pickSymbol(page, testInfo, "MSFT", /Microsoft/i);
+  await pickSymbol(page, testInfo, "MSFT", "Microsoft");
   const msftPanel = await openNews(page);
   await expect(msftPanel).toContainText("Microsoft expands cloud AI services");
 
