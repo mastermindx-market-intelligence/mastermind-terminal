@@ -75,6 +75,26 @@ function response(body: unknown, status = 200) {
   }));
 }
 
+function deferredStoryJson(body: unknown, status = 200) {
+  let releaseJson!: (value: unknown) => void;
+  let enteredJson!: () => void;
+  const jsonEntered = new Promise<void>((resolve) => {
+    enteredJson = resolve;
+  });
+  const jsonPromise = new Promise<unknown>((resolve) => {
+    releaseJson = resolve;
+  });
+  const res = {
+    ok: status >= 200 && status < 300,
+    status,
+    json: async () => {
+      enteredJson();
+      return jsonPromise;
+    },
+  } as Response;
+  return { response: Promise.resolve(res), jsonEntered, releaseJson };
+}
+
 beforeEach(() => {
   host = document.createElement("div");
   document.body.appendChild(host);
@@ -240,5 +260,185 @@ describe("TickerNewsPanel", () => {
     });
     expect(host.textContent).toContain("暂时没有新的公司新闻");
     expect(host.textContent).not.toContain("不可用");
+  });
+
+  it("starts MSFT grouped detail immediately while a prior symbol's json() is still pending", async () => {
+    const aaplDeferred = deferredStoryJson({
+      schema: "ticker_news.story.v1",
+      story_id: "ev2_aapl_grp",
+      source_count: 1,
+      item_count: 2,
+      members: [row("ev2_aapl_grp", "Apple grouped", 2, 2)],
+    });
+    const fetchMock = vi.fn((input: RequestInfo | URL, init?: RequestInit) => {
+      const url = String(input);
+      if (url.includes("/stories/ev2_aapl_grp")) return aaplDeferred.response;
+      if (url.includes("/stories/ev2_msft_grp")) {
+        return response({
+          schema: "ticker_news.story.v1",
+          story_id: "ev2_msft_grp",
+          source_count: 1,
+          item_count: 2,
+          members: [row("ev2_msft_grp", "Microsoft grouped", 2, 2)],
+        });
+      }
+      if (url.includes("/AAPL")) {
+        return response(snapshot("AAPL", [row("ev2_aapl_grp", "Apple grouped headline", 2, 2)]));
+      }
+      if (url.includes("/MSFT")) {
+        return response(snapshot("MSFT", [row("ev2_msft_grp", "Microsoft grouped headline", 2, 2)]));
+      }
+      throw new Error("unexpected " + url);
+    });
+    globalThis.fetch = fetchMock as unknown as typeof globalThis.fetch;
+
+    await act(async () => {
+      root.render(<TickerNewsPanel symbol="AAPL" lang="en" />);
+    });
+    const aaplButton = [...host.querySelectorAll("button")].find((b) => b.textContent?.includes("2 reports"));
+    await act(async () => {
+      aaplButton!.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+    });
+    await aaplDeferred.jsonEntered;
+
+    await act(async () => {
+      root.render(<TickerNewsPanel symbol="MSFT" lang="en" />);
+    });
+    expect(host.textContent).toContain("Microsoft grouped headline");
+
+    const storyCallsBefore = fetchMock.mock.calls.filter((c) => String(c[0]).includes("/stories/")).length;
+    const msftButton = [...host.querySelectorAll("button")].find((b) => b.textContent?.includes("2 reports"));
+    await act(async () => {
+      msftButton!.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+    });
+
+    const msftStoryCalls = fetchMock.mock.calls.filter((c) => String(c[0]).includes("/stories/ev2_msft_grp"));
+    expect(msftStoryCalls.length).toBeGreaterThan(storyCallsBefore);
+    expect(msftButton?.disabled).toBe(true);
+  });
+
+  it("ignores a stale prior-symbol json completion while the current symbol detail is pending", async () => {
+    const aaplDeferred = deferredStoryJson({
+      schema: "ticker_news.story.v1",
+      story_id: "ev2_aapl_grp",
+      source_count: 1,
+      item_count: 2,
+      members: [row("ev2_aapl_grp", "Apple grouped detail", 2, 2)],
+    });
+    const msftDeferred = deferredStoryJson({
+      schema: "ticker_news.story.v1",
+      story_id: "ev2_msft_grp",
+      source_count: 1,
+      item_count: 2,
+      members: [row("ev2_msft_grp", "Microsoft grouped detail", 2, 2)],
+    });
+    const fetchMock = vi.fn((input: RequestInfo | URL) => {
+      const url = String(input);
+      if (url.includes("/stories/ev2_aapl_grp")) return aaplDeferred.response;
+      if (url.includes("/stories/ev2_msft_grp")) return msftDeferred.response;
+      if (url.includes("/AAPL")) {
+        return response(snapshot("AAPL", [row("ev2_aapl_grp", "Apple grouped headline", 2, 2)]));
+      }
+      if (url.includes("/MSFT")) {
+        return response(snapshot("MSFT", [row("ev2_msft_grp", "Microsoft grouped headline", 2, 2)]));
+      }
+      throw new Error("unexpected " + url);
+    });
+    globalThis.fetch = fetchMock as unknown as typeof globalThis.fetch;
+
+    await act(async () => {
+      root.render(<TickerNewsPanel symbol="AAPL" lang="en" />);
+    });
+    const aaplButton = [...host.querySelectorAll("button")].find((b) => b.textContent?.includes("2 reports"));
+    await act(async () => {
+      aaplButton!.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+    });
+    await aaplDeferred.jsonEntered;
+
+    await act(async () => {
+      root.render(<TickerNewsPanel symbol="MSFT" lang="en" />);
+    });
+    const msftButton = [...host.querySelectorAll("button")].find((b) => b.textContent?.includes("2 reports"));
+    await act(async () => {
+      msftButton!.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+    });
+    await Promise.race([
+      msftDeferred.jsonEntered,
+      new Promise((resolve) => setTimeout(resolve, 100)),
+    ]);
+
+    const callsBeforeAaplSettles = fetchMock.mock.calls.filter((c) => String(c[0]).includes("/stories/")).length;
+    await act(async () => {
+      aaplDeferred.releaseJson({
+        schema: "ticker_news.story.v1",
+        story_id: "ev2_aapl_grp",
+        source_count: 1,
+        item_count: 2,
+        members: [row("ev2_aapl_grp", "Apple grouped detail", 2, 2)],
+      });
+      await Promise.resolve();
+    });
+
+    expect(host.textContent).not.toContain("Apple grouped detail");
+    expect(msftButton?.disabled).toBe(true);
+    await act(async () => {
+      msftButton!.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+    });
+    const callsAfterSecondClick = fetchMock.mock.calls.filter((c) => String(c[0]).includes("/stories/")).length;
+    expect(callsAfterSecondClick).toBe(callsBeforeAaplSettles);
+  });
+
+  it("aborts an in-flight detail json on unmount without poisoning a remounted panel", async () => {
+    let capturedSignal: AbortSignal | undefined;
+    const pending = deferredStoryJson({
+      schema: "ticker_news.story.v1",
+      story_id: "ev2_nvda_grp",
+      source_count: 1,
+      item_count: 2,
+      members: [row("ev2_nvda_grp", "Nvidia grouped detail", 2, 2)],
+    });
+    const fetchMock = vi.fn((input: RequestInfo | URL, init?: RequestInit) => {
+      const url = String(input);
+      if (url.includes("/stories/")) {
+        capturedSignal = init?.signal as AbortSignal | undefined;
+        return pending.response;
+      }
+      return response(snapshot("NVDA", [row("ev2_nvda_grp", "Nvidia grouped headline", 2, 2)]));
+    });
+    globalThis.fetch = fetchMock as unknown as typeof globalThis.fetch;
+
+    await act(async () => {
+      root.render(<TickerNewsPanel symbol="NVDA" lang="en" />);
+    });
+    const button = [...host.querySelectorAll("button")].find((b) => b.textContent?.includes("2 reports"));
+    await act(async () => {
+      button!.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+    });
+    await pending.jsonEntered;
+    expect(capturedSignal).toBeDefined();
+
+    await act(async () => {
+      root.unmount();
+    });
+    expect(capturedSignal?.aborted).toBe(true);
+
+    await act(async () => {
+      pending.releaseJson({
+        schema: "ticker_news.story.v1",
+        story_id: "ev2_nvda_grp",
+        source_count: 1,
+        item_count: 2,
+        members: [row("ev2_nvda_grp", "Nvidia grouped detail", 2, 2)],
+      });
+      await Promise.resolve();
+    });
+
+    root = createRoot(host);
+    await act(async () => {
+      root.render(<TickerNewsPanel symbol="NVDA" lang="en" />);
+    });
+    const freshButton = [...host.querySelectorAll("button")].find((b) => b.textContent?.includes("2 reports"));
+    expect(freshButton?.disabled).toBe(false);
+    expect(host.textContent).not.toContain("Nvidia grouped detail");
   });
 });
