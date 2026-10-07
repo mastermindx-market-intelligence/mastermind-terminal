@@ -69,6 +69,9 @@ export default async function Terminal({ searchParams }: { searchParams: Promise
   // as a prop: a NEXT_PUBLIC_ twin would put a second switch in play and let the two drift.
   // Default OFF — /api/intraday refuses the band unless this is set, so the picker must agree.
   const secondBarsEnabled = process.env.HUB_REALTIME_QUOTES === "1";
+  // The ticker-news rail is operator-armed like the real-time quote leg: read HERE on the server,
+  // handed down as a prop (no NEXT_PUBLIC_ twin). Default OFF — /api/news routes stay as-is.
+  const newsRailEnabled = process.env.TICKER_NEWS_RAIL === "1";
   const e2eFixture = process.env.TERMINAL_E2E_FIXTURE === "1";
   const guestSymbols: [string, string][] = [["Crypto", "BTC-USD"], ["Crypto", "ETH-USD"], ["Equities", "NVDA"], ["Equities", "AAPL"], ["Equities", "MSFT"], ["Equities", "QQQ"]];
   const guestRows = guestSymbols.map(([section, symbol]) => ({ symbol, section }));
@@ -95,7 +98,7 @@ export default async function Terminal({ searchParams }: { searchParams: Promise
           .map(({ symbol, section }) => ({ symbol, section })) ?? [])
       : guestRows;
     preloadChartData(resolveTerminalLandingSymbol(initialSymbol, fixtureRows));
-    return <TerminalShell symbols={fixtureRows} email={fixtureEmail} userId={fixtureEmail ? fixtureUserId(fixtureKey) : undefined} initialSymbol={initialSymbol} initialEpisode={initialEpisode} shellMode={shellMode} shellTray={shellTray} shellDossier={shellDossier} secondBarsEnabled={secondBarsEnabled} />;
+    return <TerminalShell symbols={fixtureRows} email={fixtureEmail} userId={fixtureEmail ? fixtureUserId(fixtureKey) : undefined} initialSymbol={initialSymbol} initialEpisode={initialEpisode} shellMode={shellMode} shellTray={shellTray} shellDossier={shellDossier} secondBarsEnabled={secondBarsEnabled} newsRailEnabled={newsRailEnabled} />;
   }
 
   const supabase = await createClient();
@@ -104,7 +107,7 @@ export default async function Terminal({ searchParams }: { searchParams: Promise
   // login disabled for now — render an open guest workspace (no server-side persistence)
   if (!user) {
     preloadChartData(resolveTerminalLandingSymbol(initialSymbol, guestRows));
-    return <TerminalShell symbols={guestRows} email="" initialSymbol={initialSymbol} initialEpisode={initialEpisode} shellMode={shellMode} shellTray={shellTray} shellDossier={shellDossier} secondBarsEnabled={secondBarsEnabled} />;
+    return <TerminalShell symbols={guestRows} email="" initialSymbol={initialSymbol} initialEpisode={initialEpisode} shellMode={shellMode} shellTray={shellTray} shellDossier={shellDossier} secondBarsEnabled={secondBarsEnabled} newsRailEnabled={newsRailEnabled} />;
   }
 
   // load or seed the user's first watchlist (idempotent via unique (user_id,name)).
@@ -155,5 +158,5 @@ export default async function Terminal({ searchParams }: { searchParams: Promise
   // `userId`, not `email`, is what watchlist local state is namespaced by: an address can be
   // changed and reassigned, the auth uuid cannot, and a durable owner key that can be recycled is
   // not an owner boundary.
-  return <TerminalShell symbols={rows} email={user?.email || ""} userId={user.id} initialSymbol={initialSymbol} initialEpisode={initialEpisode} shellMode={shellMode} shellTray={shellTray} shellDossier={shellDossier} secondBarsEnabled={secondBarsEnabled} />;
+  return <TerminalShell symbols={rows} email={user?.email || ""} userId={user.id} initialSymbol={initialSymbol} initialEpisode={initialEpisode} shellMode={shellMode} shellTray={shellTray} shellDossier={shellDossier} secondBarsEnabled={secondBarsEnabled} newsRailEnabled={newsRailEnabled} />;
 }
