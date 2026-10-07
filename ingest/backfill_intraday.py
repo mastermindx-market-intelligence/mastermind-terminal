@@ -237,6 +237,13 @@ def _get(url: str, tries: int = 5, *, capture=None) -> dict:
             with open_request(req, timeout=45) as r:
                 raw = (r.read(capture_owner.MAX_RESPONSE_BYTES + 1)
                        if capture is not None else r.read())
+                # Bounded HTTPResponse.read() can return a valid JSON prefix at
+                # premature Content-Length EOF without raising IncompleteRead.
+                # Oversize still reaches received() for its immediate hard refusal.
+                if (capture is not None
+                        and len(raw) <= capture_owner.MAX_RESPONSE_BYTES
+                        and getattr(r, "length", None) not in (None, 0)):
+                    raise OSError("captured aggregate response ended before Content-Length")
                 received_ns = capture.clock() if capture is not None else None
             if capture is not None:
                 page = capture.received(raw, requested_ns, received_ns)
@@ -298,7 +305,7 @@ def _validate_aggregate_bar(b: dict, sym: str, tf: str) -> None:
             raise RuntimeError(f"malformed aggregate bar for {sym} {tf}: v")
 
 
-def _capture_next_url(nxt: str, original_path: str) -> str:
+def _capture_next_url(nxt: str, original_path: str, *, adjusted: bool = True) -> str:
     """Keep cursor pagination within the original aggregate request identity."""
     try:
         parsed = urllib.parse.urlsplit(nxt)
@@ -308,13 +315,18 @@ def _capture_next_url(nxt: str, original_path: str) -> str:
                 or parsed.username or parsed.password or parsed.port not in (None, 443)
                 or parsed.fragment or parsed.path != original_path):
             raise ValueError
-        for field, expected in (("adjusted", "true"), ("sort", "asc"), ("limit", "50000")):
+        for field, expected in (("adjusted", "true" if adjusted else "false"),
+                                ("sort", "asc"), ("limit", "50000")):
             if any(value != expected for value in query.get(field, [])):
                 raise ValueError
     except (TypeError, ValueError):
         raise capture_owner.CaptureError("invalid_response") from None
     # A legitimate cursor URL may omit the invariant parameters or the entire query.
-    query_string = (parsed.query + "&" if parsed.query else "") + f"apiKey={POLY}"
+    query_string = parsed.query
+    if not adjusted and "adjusted" not in query:
+        # A cursor-only URL must not fall back to the provider's adjusted default.
+        query_string += ("&" if query_string else "") + "adjusted=false"
+    query_string = (query_string + "&" if query_string else "") + f"apiKey={POLY}"
     return urllib.parse.urlunsplit(
         (parsed.scheme, parsed.netloc, parsed.path, query_string, ""))
 
@@ -335,18 +347,20 @@ def fetch_polygon_intraday(
         frm = to - dt.timedelta(days=spec["days"])
     run = _active_run(sym, tf)
     session = run["capture"] if run else None
+    role = run["acquisition_role"] if run else capture_owner.CHART_ADJUSTED
+    adjusted = role != capture_owner.RESEARCH_UNADJUSTED
     capture = None
     if session is not None:
         if tf != "1m" or FINALITY_LAG_S != capture_owner.FINALITY_LAG_S:
             raise capture_owner.CaptureError("capture_requires_unchanged_1m_finality")
         capture = capture_owner.CaptureAttempt(
             sym, {"multiplier": 1, "timespan": "minute", "from_date": frm.isoformat(),
-                  "to_date": to.isoformat(), "adjusted": True, "sort": "asc", "limit": 50000},
-            int(now * 1_000_000_000), clock=time.time_ns)
+                  "to_date": to.isoformat(), "adjusted": adjusted, "sort": "asc", "limit": 50000},
+            int(now * 1_000_000_000), clock=time.time_ns, acquisition_role=role)
     ticker = sym.upper()
     url = (f"https://api.polygon.io/v2/aggs/ticker/{urllib.parse.quote(ticker)}/range/"
            f"{spec['mult']}/{spec['unit']}/{frm}/{to}"
-           f"?adjusted=true&sort=asc&limit=50000&apiKey={POLY}")
+           f"?adjusted={str(adjusted).lower()}&sort=asc&limit=50000&apiKey={POLY}")
     original_path = urllib.parse.urlsplit(url).path
     rows: list[list] = []
     pages = 0
@@ -410,7 +424,7 @@ def fetch_polygon_intraday(
             if capture is not None:
                 if nxt is not None and nxt != "" and not isinstance(nxt, str):
                     raise capture_owner.CaptureError("invalid_response")
-                url = _capture_next_url(nxt, original_path) if nxt else None
+                url = _capture_next_url(nxt, original_path, adjusted=adjusted) if nxt else None
             else:
                 url = (nxt + f"&apiKey={POLY}") if nxt else None
             pages += 1
@@ -438,10 +452,12 @@ def fetch_polygon_intraday(
         raise
     if capture is not None:
         session.retain(capture)
-        if not capture.data["chart_eligible"]:
-            # Acquisition completeness and compatibility with the requested chart
-            # basis are separate facts. Retain complete evidence, preserve the chart.
-            raise AdjustmentMismatch("captured_response_adjusted_not_true")
+        if not capture_owner.request_compliant(capture.data):
+            # Completeness and declaration compatibility are separate facts. A raw
+            # response is never chart-eligible, even when its declaration is TRUE.
+            reason = ("captured_response_adjusted_not_true" if adjusted else
+                      "captured_response_adjusted_not_false")
+            raise AdjustmentMismatch(reason)
     return out
 
 
@@ -463,8 +479,15 @@ def write_store(sym: str, tf: str, rows: list[list]) -> int:
                 raise capture_owner.CaptureError("capture_observation_required")
         elif len(rows) < MIN_STORE_ROWS:
             return 0
-        doc = {"t": sym, "tf": tf, "src": "polygon", "bar_quality": "real_ohlc",
-               "asof": rows[-1][0] if rows else None, "bars": rows}
+        if run is not None and run["acquisition_role"] == capture_owner.RESEARCH_UNADJUSTED:
+            # Only the existing evidence envelope changes; raw data never reaches
+            # the display projection, even after a refusal or partial acquisition.
+            doc = dict(old_doc) if old_doc is not None else {
+                "t": sym, "tf": tf, "src": "polygon", "bar_quality": "real_ohlc",
+                "asof": None, "bars": []}
+        else:
+            doc = {"t": sym, "tf": tf, "src": "polygon", "bar_quality": "real_ohlc",
+                   "asof": rows[-1][0] if rows else None, "bars": rows}
         if session is not None:
             doc["minute_capture"] = session.envelope
         encoded = json.dumps(doc, separators=(",", ":"), allow_nan=False).encode("utf-8")
@@ -611,8 +634,15 @@ def main(argv: list[str]) -> int:
     def opt(name, default=None):
         return argv[argv.index(name) + 1] if name in argv else default
 
-    capture_minutes = "--capture-minutes" in argv
+    capture_chart = "--capture-minutes" in argv
+    capture_unadjusted = "--capture-unadjusted-minutes" in argv
+    capture_minutes = capture_chart or capture_unadjusted
     try:
+        if capture_chart and capture_unadjusted:
+            raise capture_owner.CaptureError("capture_roles_mutually_exclusive")
+        if capture_unadjusted and any(flag in argv for flag in (
+                "--existing-only", "--top", "--limit", "--update", "--force", "--expect-advance")):
+            raise capture_owner.CaptureError("raw_capture_requires_explicit_fixed_window")
         symbol_arg = opt("--symbols")
         symbols = capture_owner.parse_symbols(symbol_arg) if symbol_arg is not None else None
         if symbols is not None and not capture_minutes:
@@ -624,7 +654,7 @@ def main(argv: list[str]) -> int:
         if capture_minutes and tfs != ["1m"]:
             raise capture_owner.CaptureError("capture_requires_true_1m")
     except (ValueError, IndexError):
-        print("intraday backfill: invalid --capture-minutes/--symbols arguments", flush=True)
+        print("intraday backfill: invalid minute-capture/--symbols arguments", flush=True)
         return EXIT_USAGE
     try:
         top = int(opt("--top") or 500)
@@ -634,7 +664,7 @@ def main(argv: list[str]) -> int:
         print("intraday backfill: invalid numeric arguments", flush=True)
         return EXIT_USAGE
     force = "--force" in argv
-    update = "--update" in argv or (capture_minutes and not force)
+    update = "--update" in argv or (capture_chart and not force)
     existing_only = "--existing-only" in argv
     expect_advance = "--expect-advance" in argv
 
@@ -814,6 +844,13 @@ def main(argv: list[str]) -> int:
         if abort.is_set():
             return s, tf, "skipped", 0, None, None
         try:
+            if capture_unadjusted:
+                # Reuse the fixed 40-day 1m profile, not the chart watermark. One
+                # selected acquisition chain; display rows returned by fetch are discarded.
+                fetch_polygon_intraday(s, tf, stats=stats)
+                document = _active_run(s, tf)["document"]
+                write_store(s, tf, document["bars"] if document else [])
+                return s, tf, "written", 0, None, None
             if update or existing_only:
                 old, asof = load_store(s, tf)
                 if asof is not None:
@@ -862,7 +899,9 @@ def main(argv: list[str]) -> int:
                 if enabled and document and "minute_capture" in document and envelope is None:
                     raise capture_owner.CaptureError("capture_envelope_invalid")
                 session = capture_owner.CaptureSession(s, envelope) if enabled else None
-                run = {"identity": (s, tf), "document": document, "capture": session}
+                run = {"identity": (s, tf), "document": document, "capture": session,
+                       "acquisition_role": (capture_owner.RESEARCH_UNADJUSTED if capture_unadjusted
+                                            else capture_owner.CHART_ADJUSTED)}
                 _capture_runs.current = run
                 result = work_unlocked(job)
                 if session is not None and session.attempts:

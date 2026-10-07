@@ -9,6 +9,11 @@ Basis-declaration continuation: `rs-pullback-launch-basis-binding-20261007-sol-0
 Source base: Terminal `52b9107b2f33738256b1e4877bbf166a45556525`
 Current protected procedure pin: Mastermind `1fc040f7343dde73fec3556dd3bf9bc8c1b18129`
 
+Unadjusted-acquisition continuation: `rs-pullback-launch-unadjusted-capture-20261007-sol-007`.
+The current v3 contract, source-only invocation and verification are in
+[Unadjusted acquisition continuation (v3)](#unadjusted-acquisition-continuation-v3).
+Earlier v1/v2 sections and their receipts are retained as historical context.
+
 ## Delivered capability and boundary
 
 The existing intraday producer can opt in to preserving original finalized one-minute
@@ -332,3 +337,169 @@ It used the private injected transport and a temporary store. Source hashes and 
 review belong to the frozen worker packet. The Phase 1 verdict remains **NOT_ADMITTED**, all
 authority flags remain false, and no outcome or scientific hypothesis is tested by these
 engineering controls.
+
+
+## Unadjusted acquisition continuation (v3)
+
+Operation: `rs-pullback-launch-unadjusted-capture-20261007-sol-007`.
+Source base: Terminal `29224303b192bf70c2692227239a62cde1ee0c6b`.
+Protected procedure: Mastermind `1fc040f7343dde73fec3556dd3bf9bc8c1b18129`.
+This section supersedes the v2-only wire and invocation descriptions above for the
+new writer; the earlier verification receipts remain historical evidence.
+
+The existing producer gains one exclusive mode:
+
+```bash
+python3 ingest/backfill_intraday.py \
+  --capture-unadjusted-minutes --symbols MU,SPY,QQQ,SMH --tf 1m --workers 1
+```
+
+This is an interface example, not an authorized or performed provider acquisition.
+The new flag is mutually exclusive with `--capture-minutes`. It requires the same
+1–16 explicit-symbol bound and 1–16 workers, and refuses other grains, `--existing-only`,
+`--top`, `--limit`, `--update`, `--force`, and `--expect-advance`.
+The distinct flag plus required `--symbols` also refuses on the old v2 CLI: that
+binary requires `--capture-minutes` for an explicit symbol cohort.
+
+Each invocation selects one acquisition role. Raw mode makes one acquisition chain
+per explicit symbol through the existing fetch owner, per-file lock, capture session,
+bounded no-redirect transport and atomic writer. It issues no companion chart fetch.
+It bypasses chart refresh, chart watermark, basis-ratio check, rebuild and merge. The
+existing noncapture fields—including `bars`, `asof`, extra metadata and fractional
+chart values—are preserved as JSON values; their canonical byte representation is
+unchanged. The enclosing JSON file is still atomically serialized and therefore its
+original whitespace is not a promised invariant. A legitimately missing file receives
+the existing identity envelope with an empty chart. An unreadable, mismatched or
+tampered existing input refuses before transport; it is not reinitialized.
+
+Raw mode always reuses the existing one-minute **40-day** request profile. It neither
+uses a chart watermark nor introduces a raw watermark. The exact from/to dates remain
+sealed request provenance. Compaction reduces stored observations, **not request
+traffic**: another invocation downloads that window again. The shared caps remain
+16 pages per acquisition, 8 MiB per response, 4,096 total captures across both roles,
+32 MiB for the whole file, and the existing up-to-five transport attempts per page.
+No live cadence, cohort, request budget or scheduler change is approved here.
+
+### Version and role law
+
+The outer schema becomes `mastermind.intraday_minute_capture.v3`. Every newly created
+payload—including an ordinary adjusted chart capture—uses
+`mastermind.intraday_minute_capture_payload.v3` and includes `acquisition_role`.
+All existing record keys, seals, count definitions, page declarations and observations
+remain unchanged.
+
+| Payload | Acquisition role | Required request.adjusted |
+|---|---|---|
+| v1 (no payload schema) | Derived `chart_adjusted` | Actual Boolean `true` |
+| v2 | Derived `chart_adjusted` | Actual Boolean `true` |
+| v3 | Explicit `chart_adjusted` | Actual Boolean `true` |
+| v3 | Explicit `research_unadjusted` | Actual Boolean `false` |
+
+No numeric/string substitute is a Boolean. The v3 envelope permits an exact sealed
+v1 prefix, then v2, then v3; versions never decrease, and a record version cannot
+exceed its envelope version. Either legacy prefix can be absent. Upgrading the outer
+schema leaves prior IDs, observations, clocks and seals exact, including zero-observation
+suppressed records. Exact sealed-record replay remains idempotent. Legacy mismatched
+responses are never retrospectively promoted to the raw role.
+
+Request, response declaration, transport completeness and chart eligibility remain
+separate facts. All seven normalized `response_adjusted.state` values are unchanged.
+A chart payload is eligible only for the chart role, an actual true request, complete
+acquisition, nonempty successful page receipts, and a TRUE declaration on every page.
+A raw request complies only with an actual false request, complete acquisition,
+nonempty successful page receipts, and a FALSE declaration on every page. Complete
+empty responses remain distinguishable from failed and forming-only responses.
+Every raw payload has `chart_eligible:false`, including a mismatched TRUE response.
+
+Raw TRUE/missing/null/invalid/ambiguous responses remain complete retained evidence
+with a fixed `captured_response_adjusted_not_false` refusal. Malformed or non-object
+responses retain UNPARSED receipts and their existing partial/failed distinction.
+No returned raw display rows enter the chart projection. Source numeric volume retains
+fractional, null and missing values exactly. The true-UTC event boundaries and
+900-second finality lag are unchanged; the latest fifteen minutes remain structurally
+unavailable under that finality rule.
+
+The first raw URL explicitly requests `adjusted=false`. A pagination URL must preserve
+the original aggregate path, admitted HTTPS host and all supplied query invariants.
+A cursor-only URL is accepted and gains `adjusted=false` before its outgoing raw
+request. A supplied true or mixed true/false query refuses rather than being overwritten.
+The chart path's prior pagination behavior is unchanged. Redirects remain disabled,
+and an explicit conflicting response ticker contributes no rows.
+
+### Compaction and consumer boundary
+
+The latest complete observation map is partitioned by acquisition role and requested
+adjusted Boolean, then keyed by event start. Its equality comparison is the unchanged
+canonical raw row plus the exact referenced page's normalized declaration. Date-window
+changes do not define a new partition. Equal values and even equal returned declarations
+in different roles cannot suppress each other. A→B→A remains three observed episodes
+within each role.
+
+Partial and failed attempts never replace the latest complete baseline. Empty and
+fully suppressed complete attempts contribute no new observation to that baseline.
+This preserves the inherited recovery behavior: a later complete response retains
+only changes relative to that role's latest complete observations. An interruption in
+another role neither suppresses a correction nor re-expands previously suppressed rows.
+The inherited 25-row partial-recovery case still retains one changed row, and the
+mixed-page recovery case still suppresses one row and retains one.
+
+A compatible Macro reader must be delivered before this v3 writer can be released.
+It must preserve whole-file integrity checks and apply payload version/order/role
+semantics only to the visible enrolled capture prefix. Its actual read receipt remains
+a custody link, not a provider authenticity attestation. The response-bound role and
+FALSE declaration do not provide action factors, historical security identity or full
+basis admission. The consumer still emits `basis_id:null` and
+`TERMINAL_BASIS_UNPROVEN` until the existing source owner supplies the separately
+required reconstructable evidence. The parent owns that dependent implementation.
+
+### V3 source verification
+
+The affected synthetic gate passed **405 tests**, including **159 capture cases** and
+the unchanged 59 D0 qualification/CLI/session-chain cases (Studio Direct process
+`71298`, exit 0). The command is the eight-file affected gate recorded above, with
+bytecode and pytest cache disabled. Eight unrelated inherited pytest cleanup warnings
+concern older Chromium temporary directories.
+
+New controls exercise the actual producer and atomic store: every chart field across
+raw success/empty/forming/refusal/partial/failed outcomes; fractional/null/missing volume;
+all raw outgoing page queries; cursor-only and explicit-false pagination; conflicting
+queries/ticker/path/host and standard-urllib redirects; explicit CLI bounds; corruption
+before transport; all four capacity limits and atomic-replace failure without retry;
+equal-declaration role isolation; independent correction/reversion histories; same-role
+and cross-role interruptions; exact v1/v2 prefix migration; correctly resealed invalid
+role/request/version combinations; two-process mixed-role serialization; and both
+actual file-entry modes from outside the checkout.
+
+The first expanded run exposed two new test expectations that incorrectly treated an
+empty chart refresh as successful. Those expectations were corrected to preserve the
+existing EmptyOverlap refusal; no producer behavior or inherited recovery assertion
+was changed for that correction. The final affected gate passed.
+
+Only these four source/test/documentation files change. No provider or credential
+operation, live store, Macro source, schedule, deployment, outcome or admission effect
+occurred. This packet awaits independent source review; it is not a merged or installed
+capability. Phase 1 remains **NOT_ADMITTED**, H1/H2/H3 remain **NOT_TESTED**, and all
+authority flags remain false.
+
+
+## Captured HTTP Content-Length completeness repair
+
+The captured-read path checks outstanding declared Content-Length before creating
+a successful page receipt or decoding an in-bound body. Python's bounded
+`HTTPResponse.read(size)` can return a syntactically valid JSON prefix while
+declared bytes remain outstanding; such a response now follows the existing
+bounded transport retry path. Five failed attempts yield `transport_exhausted`: a
+first-page failure records no successful pages or observations, and a later-page
+failure retains only prior complete-page observations in a partial acquisition.
+Neither case publishes chart data or becomes chart-eligible. These failed HTTP
+attempts do not acquire successful response receipts, matching the existing
+truncated-chunked behavior; no new wire or failure diagnostic is introduced.
+
+Complete Content-Length, complete chunked and normal EOF-delimited responses remain
+supported. A response exceeding `MAX_RESPONSE_BYTES` retains the existing immediate
+capacity refusal without extra framing retries or a truncated page receipt; the
+prior valid file stays byte-identical. Noncapture reads, retry policy, private
+redirect guard, helpers, sealed prefixes, roles and compaction remain unchanged.
+The same transport check is applied to both v2 and v3 producers. Verification uses
+real `http.client.HTTPResponse` framing with synthetic sockets, existing CLI/store
+paths and temporary stores; it establishes no provider or historical availability.

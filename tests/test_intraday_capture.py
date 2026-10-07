@@ -287,7 +287,8 @@ def test_capture_does_not_follow_untrusted_pagination_host(env, monkeypatch):
     assert b"untrusted.invalid" not in env.read_bytes()
 
 
-def test_cross_process_updates_serialize_entire_fetch_and_append(env, monkeypatch):
+@pytest.mark.parametrize("raw_first", [False, True])
+def test_cross_process_updates_serialize_entire_fetch_and_append(env, monkeypatch, raw_first):
     install(monkeypatch, response([bar()]))
     assert run() == 0
     context = multiprocessing.get_context("fork")
@@ -299,9 +300,9 @@ def test_cross_process_updates_serialize_entire_fetch_and_append(env, monkeypatc
             entered.set()
             if block and not release.wait(5):
                 raise AssertionError("test release missing")
-            return io.BytesIO(response([bar(close=close)]))
+            return io.BytesIO(response([bar(close=close)], adjusted=not (raw_first and block)))
         writer._open_capture_request = provider
-        exits.put(run())
+        exits.put(run_raw() if raw_first and block else run())
 
     first = context.Process(target=child, args=(100.25, first_entered, True))
     second = context.Process(target=child, args=(100.5, second_entered, False))
@@ -322,13 +323,15 @@ def test_cross_process_updates_serialize_entire_fetch_and_append(env, monkeypatc
                 process.terminate(); process.join(5)
 
 
-def test_actual_file_entry_pins_repo_and_captures_from_outside_checkout(tmp_path):
+@pytest.mark.parametrize("raw_mode", [False, True])
+def test_actual_file_entry_pins_repo_and_captures_from_outside_checkout(tmp_path, raw_mode):
     foreign = tmp_path / "foreign"
     (foreign / "ingest").mkdir(parents=True)
     marker = tmp_path / "foreign-imported"
     (foreign / "ingest" / "__init__.py").write_text(
         "raise RuntimeError('foreign ingest must never execute')")
-    body = response([bar(volume=1.25)])
+    body = response([bar(volume=1.25)], adjusted=not raw_mode)
+    flag = "--capture-unadjusted-minutes" if raw_mode else "--capture-minutes"
     script = ROOT / "ingest" / "backfill_intraday.py"
     program = (
         "import io,runpy,sys,urllib.request\n"
@@ -336,7 +339,7 @@ def test_actual_file_entry_pins_repo_and_captures_from_outside_checkout(tmp_path
         "def forbidden(*a,**k): raise AssertionError('urlopen transport forbidden')\n"
         "urllib.request.urlopen=forbidden\n"
         f"urllib.request.build_opener=lambda *handlers: SimpleNamespace(open=lambda *a,**k: io.BytesIO({body!r}))\n"
-        f"sys.argv=[{str(script)!r},'--capture-minutes','--symbols','SPY','--workers','1']\n"
+        f"sys.argv=[{str(script)!r},{flag!r},'--symbols','SPY','--workers','1']\n"
         f"runpy.run_path({str(script)!r},run_name='__main__')\n")
     environment = dict(os.environ, POLYGON_API_KEY=TOKEN, TERMINAL_DATA_DIR=str(tmp_path / "out"),
                        PYTHONPATH=os.pathsep.join([str(foreign), str(ROOT)]))
@@ -345,6 +348,7 @@ def test_actual_file_entry_pins_repo_and_captures_from_outside_checkout(tmp_path
     assert result.returncode == 0, result.stdout + result.stderr
     path = tmp_path / "out" / "intraday" / "SPY.1m.json"
     assert payloads(path)[0]["observations"][0]["raw"]["v"] == 1.25
+    assert (read(path)["bars"] == []) is raw_mode
     assert not marker.exists()
 
 
@@ -650,6 +654,7 @@ def v1_document(document):
         payload = record["payload"]
         payload.pop("schema")
         payload.pop("chart_eligible")
+        payload.pop("acquisition_role", None)
         for page in payload["pages"]:
             page.pop("response_adjusted")
         record["previous_capture_sha256"] = previous
@@ -683,7 +688,7 @@ def test_v1_prefix_upgrades_without_resealing_or_expansion(env, monkeypatch, dec
     assert [cap.canonical_bytes(r) for r in upgraded["captures"][:2]] == prior_records
     assert upgraded["captures"][2]["previous_capture_sha256"] == prior["prefix_sha256"]
     assert [len(r["payload"]["observations"]) for r in upgraded["captures"]] == [3, 0, 3, 0]
-    assert upgraded["captures"][2]["payload"]["schema"] == cap.PAYLOAD_SCHEMA_V2
+    assert upgraded["captures"][2]["payload"]["schema"] == cap.PAYLOAD_SCHEMA_V3
     assert cap.canonical_bytes(cap.append_sealed_capture(upgraded, prior["captures"][0])) == cap.canonical_bytes(upgraded)
     # A new v1 attempt cannot follow the first v2 attempt, even if freshly sealed.
     with pytest.raises(cap.CaptureError, match="capture_schema_order_invalid"):
@@ -861,3 +866,473 @@ def test_missing_declaration_empty_capture_recovers_via_existing_owner(env, monk
     assert doc["minute_capture"]["captures"][0] == original
     assert len(doc["minute_capture"]["captures"]) == 2 and len(doc["bars"]) == 1
     assert doc["minute_capture"]["captures"][-1]["payload"]["observations"][0]["raw"]["v"] == 0.125
+
+# V3 keeps unadjusted acquisition in this owner without touching its chart projection.
+def run_raw(*extra):
+    return writer.main(["--capture-unadjusted-minutes", "--symbols", "SPY", "--tf", "1m",
+                        "--workers", "1", *extra])
+
+
+def projection(document):
+    return cap.canonical_bytes({k: v for k, v in document.items() if k != "minute_capture"})
+
+
+def seed_chart(path):
+    # Extra fields and a deliberately unrelated watermark detect reconstruction or
+    # accidental reuse of chart state in the raw-only path.
+    path.parent.mkdir(parents=True, exist_ok=True)
+    document = {"t": "SPY", "tf": "1m", "src": "polygon", "bar_quality": "real_ohlc",
+                "asof": 17, "bars": [[17, 10, 12, 9, 11, 3.5]],
+                "metadata": {"label": "keep café", "sequence": [None, False, 1.25]}}
+    path.write_bytes(cap.canonical_bytes(document))
+    return document
+
+
+@pytest.mark.parametrize("outcome", [
+    "complete", "empty", "forming", "true", "missing", "null", "integer", "string",
+    "object", "array", "duplicate_conflict", "duplicate_equal", "malformed", "partial", "failed",
+])
+def test_raw_capture_preserves_every_chart_field_for_success_and_refusal(env, monkeypatch, outcome):
+    before = projection(seed_chart(env))
+    calls = []
+    def forbidden(*args, **kwargs):
+        raise AssertionError("raw acquisition must not use chart refresh/basis/merge")
+    for name in ("load_store", "_basis_ratio", "_merge"):
+        monkeypatch.setattr(writer, name, forbidden)
+    def provider(request):
+        calls.append(request.full_url)
+        assert writer.urllib.parse.parse_qs(writer.urllib.parse.urlsplit(request.full_url).query)["adjusted"] == ["false"]
+        if outcome == "failed" or (outcome == "partial" and "cursor=next" in request.full_url):
+            raise urllib.error.HTTPError(request.full_url, 404, TOKEN, {}, None)
+        if outcome == "malformed":
+            return b'{"adjusted":false,'
+        rows = [bar(0, volume=1.75), bar(1, volume=None), bar(2)]
+        del rows[2]["v"]
+        if outcome == "empty":
+            rows = []
+        if outcome == "forming":
+            rows = [dict(bar(), t=int(NOW * 1000) - 60000)]
+        if outcome in ("true", "missing", "null", "integer", "string", "object", "array",
+                       "duplicate_conflict", "duplicate_equal"):
+            return declaration_body(outcome, rows)
+        return response(rows, adjusted=False,
+                        next_url=cursor_url(request) if outcome == "partial" else None)
+    install(monkeypatch, provider)
+    assert run_raw() == (0 if outcome in ("complete", "empty", "forming") else 1)
+    document = read(env)
+    assert projection(document) == before
+    payload = payloads(env)[0]
+    assert payload["schema"] == cap.PAYLOAD_SCHEMA_V3
+    assert payload["acquisition_role"] == cap.RESEARCH_UNADJUSTED
+    assert payload["request"]["adjusted"] is False and payload["chart_eligible"] is False
+    assert payload["finality_lag_s"] == 900
+    assert payload["finality_reference_utc_ns"] == int(NOW * 1e9)
+    assert len(calls) == (2 if outcome == "partial" else 1)  # no companion chart fetch
+    if outcome == "complete":
+        originals = [o["raw"] for o in payload["observations"]]
+        assert originals[0]["v"] == 1.75 and originals[1]["v"] is None and "v" not in originals[2]
+    if outcome == "empty":
+        assert payload["counts"]["rows_received"] == 0 and payload["status"] == "complete"
+    if outcome == "forming":
+        assert payload["counts"]["forming_skipped"] == 1 and payload["status"] == "complete"
+    assert payload["status"] == ("failed" if outcome == "failed" else
+                                  "partial" if outcome in ("partial", "malformed") else "complete")
+    assert TOKEN.encode() not in env.read_bytes()
+
+
+@pytest.mark.parametrize("query", ["cursor=next", "cursor=next&adjusted=false&sort=asc&limit=50000"])
+def test_raw_pages_request_false_and_fixed_window_ignores_chart_watermark(env, monkeypatch, query):
+    seed_chart(env)
+    urls = []
+    def provider(request):
+        urls.append(request.full_url)
+        return response([bar(len(urls) - 1)], adjusted=False,
+                        next_url=cursor_url(request, query) if len(urls) == 1 else None)
+    install(monkeypatch, provider)
+    assert run_raw() == 0
+    assert len(urls) == 2
+    for url in urls:
+        parsed = writer.urllib.parse.urlsplit(url)
+        assert writer.urllib.parse.parse_qs(parsed.query)["adjusted"] == ["false"]
+        assert "/range/1/minute/" in parsed.path
+    request = payloads(env)[0]["request"]
+    start, end = [writer.dt.date.fromisoformat(request[k]) for k in ("from_date", "to_date")]
+    assert (end - start).days == writer.TF_SPEC["1m"]["days"] == 40
+    assert end == writer.dt.date.today()
+    assert [o["page_index"] for o in payloads(env)[0]["observations"]] == [0, 1]
+
+
+@pytest.mark.parametrize("conflict", ["adjusted", "duplicate_adjusted", "ticker", "path", "host"])
+def test_raw_conflicting_source_identity_refuses_without_following(env, monkeypatch, conflict):
+    before = projection(seed_chart(env))
+    calls = []
+    def provider(request):
+        calls.append(request.full_url)
+        next_url = cursor_url(request)
+        extra = {}
+        if conflict in ("adjusted", "duplicate_adjusted"):
+            next_url += "&adjusted=true"
+            if conflict == "duplicate_adjusted":
+                next_url += "&adjusted=false"
+        elif conflict == "ticker":
+            extra["ticker"] = "QQQ"
+        elif conflict == "path":
+            next_url = next_url.replace("/range/1/minute/", "/range/5/minute/")
+        else:
+            next_url = next_url.replace("api.polygon.io", "untrusted.invalid")
+        return response([bar()], adjusted=False, next_url=next_url, **extra)
+    install(monkeypatch, provider)
+    assert run_raw() == 1 and len(calls) == 1
+    assert projection(read(env)) == before
+    payload = payloads(env)[0]
+    assert payload["status"] == "partial" and payload["failure_kind"] == "invalid_response"
+    assert len(payload["observations"]) == (0 if conflict == "ticker" else 1)
+
+
+@pytest.mark.parametrize("page", [0, 1])
+def test_raw_standard_urllib_redirect_is_refused_before_body_or_target(env, monkeypatch, page):
+    before = projection(seed_chart(env))
+    calls = []
+    def provider(request):
+        calls.append(request.full_url)
+        if len(calls) == page + 1:
+            return 302, request.full_url.replace("adjusted=false", "adjusted=true"), b"redirect body"
+        return 200, None, response([bar()], adjusted=False, next_url=cursor_url(request))
+    install_standard_urllib_transport(monkeypatch, provider)
+    assert run_raw() == 1
+    assert len(calls) == page + 1 and projection(read(env)) == before
+    payload = payloads(env)[0]
+    assert payload["failure_kind"] == "http_error"
+    assert payload["status"] == ("failed" if page == 0 else "partial")
+    assert len(payload["pages"]) == page
+
+
+@pytest.mark.parametrize("arguments", [
+    [], ["--symbols", ""], ["--symbols", "SPY", "--capture-minutes"],
+    ["--symbols", "SPY", "--tf", "5m"], ["--symbols", "SPY", "--workers", "0"],
+    ["--symbols", "SPY", "--workers", "17"], ["--symbols", "SPY,SPY"],
+    ["--symbols", "../SPY"], ["--symbols", ",".join("S" + str(i) for i in range(17))],
+    *[["--symbols", "SPY", flag] for flag in
+      ("--existing-only", "--top", "--limit", "--update", "--force", "--expect-advance")],
+])
+def test_raw_cli_is_explicit_bounded_and_rejects_chart_controls(env, arguments):
+    assert writer.main(["--capture-unadjusted-minutes", *arguments]) == 64
+    assert not env.exists()
+
+
+@pytest.mark.parametrize("body", [b"{", b"[]", b'{"t":"SPY","tf":"1m","src":"polygon","bars":{}}',
+                                b'{"t":"QQQ","tf":"1m","src":"polygon","bars":[]}'])
+def test_raw_unreadable_or_mismatched_existing_store_refuses_before_transport(env, body):
+    env.parent.mkdir(parents=True)
+    env.write_bytes(body)
+    assert run_raw() == 1  # env's transport is forbidden
+    assert env.read_bytes() == body
+
+
+@pytest.mark.parametrize("capacity", ["MAX_CAPTURES", "MAX_RESPONSE_BYTES", "MAX_FILE_BYTES", "MAX_CAPTURE_PAGES"])
+def test_raw_capacity_limits_preserve_entire_prior_file(env, monkeypatch, capacity):
+    seed_chart(env)
+    install(monkeypatch, response([bar()], adjusted=False))
+    assert run_raw() == 0
+    before = env.read_bytes()
+    monkeypatch.setattr(cap, capacity, {"MAX_CAPTURES": 1, "MAX_RESPONSE_BYTES": 8,
+                                      "MAX_FILE_BYTES": len(before) + 8, "MAX_CAPTURE_PAGES": 1}[capacity])
+    install(monkeypatch, lambda request: response([bar(close=100.25)], adjusted=False,
+            next_url=cursor_url(request) if capacity == "MAX_CAPTURE_PAGES" else None))
+    assert run_raw() == 1 and env.read_bytes() == before
+
+
+def test_raw_atomic_replace_failure_has_no_blind_retry(env, monkeypatch):
+    seed_chart(env)
+    before = env.read_bytes()
+    install(monkeypatch, response([bar()], adjusted=False))
+    attempts = []
+    def fail_replace(*args):
+        attempts.append(args)
+        raise OSError("synthetic replace failure")
+    monkeypatch.setattr(writer.os, "replace", fail_replace)
+    assert run_raw() == 1 and len(attempts) == 1
+    assert env.read_bytes() == before
+    assert not list(env.parent.glob("*.tmp.*"))
+
+
+def test_equal_values_and_declarations_never_suppress_across_roles(env, monkeypatch):
+    # Both responses say FALSE. The chart request is incompatible, while the raw
+    # request complies. Their identical raw values still belong to separate runs.
+    for acquire, expected in [(run, 1), (run_raw, 0), (run, 1), (run_raw, 0)]:
+        install(monkeypatch, response([bar()], adjusted=False))
+        assert acquire() == expected
+    captures = payloads(env)
+    assert [p["counts"]["observations_retained"] for p in captures] == [1, 1, 0, 0]
+    assert [p["request"]["adjusted"] for p in captures] == [True, False, True, False]
+    assert [p["acquisition_role"] for p in captures] == [
+        cap.CHART_ADJUSTED, cap.RESEARCH_UNADJUSTED, cap.CHART_ADJUSTED, cap.RESEARCH_UNADJUSTED]
+    assert all(p["chart_eligible"] is False for p in captures)
+    assert read(env)["bars"] == []
+
+
+def test_each_role_keeps_its_own_correction_and_reversion_history(env, monkeypatch):
+    # Interleaving equal values from the other role must not change which value
+    # counts as this role's previous observation.
+    schedule = [(run, True, 100), (run_raw, False, 100),
+                (run_raw, False, 100.25), (run, True, 100),
+                (run, True, 100.25), (run_raw, False, 100),
+                (run, True, 100), (run_raw, False, 100)]
+    for acquire, adjusted, close in schedule:
+        install(monkeypatch, response([bar(close=close)], adjusted=adjusted))
+        assert acquire() == 0
+    captures = payloads(env)
+    assert [p["counts"]["observations_retained"] for p in captures] == [1, 1, 1, 0, 1, 1, 1, 0]
+    for role in (cap.CHART_ADJUSTED, cap.RESEARCH_UNADJUSTED):
+        assert [o["raw"]["c"] for p in captures if p["acquisition_role"] == role
+                for o in p["observations"]] == [100, 100.25, 100]
+
+
+@pytest.mark.parametrize("target_raw", [False, True])
+@pytest.mark.parametrize("interruption", ["empty", "forming", "partial", "failed"])
+@pytest.mark.parametrize("same_role", [False, True])
+def test_role_local_latest_complete_baseline_survives_interruptions(
+        env, monkeypatch, target_raw, interruption, same_role):
+    target, other = (run_raw, run) if target_raw else (run, run_raw)
+    target_adjusted = not target_raw
+    install(monkeypatch, response([bar()], adjusted=target_adjusted))
+    assert target() == 0
+    first_record = copy.deepcopy(read(env)["minute_capture"]["captures"][0])
+    interrupted = target if same_role else other
+    interrupted_adjusted = target_adjusted if same_role else not target_adjusted
+    def provider(request):
+        if interruption == "failed" or (interruption == "partial" and "cursor=next" in request.full_url):
+            raise urllib.error.HTTPError(request.full_url, 404, "synthetic", {}, None)
+        rows = [] if interruption == "empty" else [bar(close=100.25)]
+        if interruption == "forming":
+            rows[0]["t"] = int(NOW * 1000) - 60000
+        return response(rows, adjusted=interrupted_adjusted,
+                        next_url=cursor_url(request) if interruption == "partial" else None)
+    install(monkeypatch, provider)
+    # Existing chart refresh still rejects an empty overlap; the complete empty
+    # receipt remains retained. Raw acquisition has no chart-overlap requirement.
+    expected_failure = interruption in ("partial", "failed") or (same_role and not target_raw)
+    assert interrupted() == (1 if expected_failure else 0)
+    install(monkeypatch, response([bar()], adjusted=target_adjusted))
+    assert target() == 0
+    assert payloads(env)[-1]["counts"]["observations_retained"] == 0
+    assert payloads(env)[-1]["counts"]["unchanged_suppressed"] == 1
+    assert read(env)["minute_capture"]["captures"][0] == first_record
+    # The partial other-role value cannot pre-suppress a real correction.
+    install(monkeypatch, response([bar(close=100.25)], adjusted=target_adjusted))
+    assert target() == 0
+    assert payloads(env)[-1]["counts"]["observations_retained"] == 1
+
+
+def reseal_fixture(envelope):
+    previous = cap.GENESIS_SHA256
+    for record in envelope["captures"]:
+        record["previous_capture_sha256"] = previous
+        record["payload_sha256"] = cap.digest(record["payload"])
+        record["capture_sha256"] = cap.digest({k: v for k, v in record.items() if k != "capture_sha256"})
+        previous = record["capture_sha256"]
+    envelope["prefix_sha256"] = previous
+
+
+def test_v1_v2_prefix_upgrades_to_v3_without_resealing_or_suppressed_row_expansion(env, monkeypatch):
+    for close in (100, 100.25, 100.25):
+        install(monkeypatch, response([bar(close=close)]))
+        assert run() == 0
+    document = read(env)
+    envelope = document["minute_capture"]
+    envelope["schema"] = cap.SCHEMA_V2
+    for index, record in enumerate(envelope["captures"]):
+        payload = record["payload"]
+        payload.pop("acquisition_role")
+        if index == 0:
+            payload.pop("schema")
+            payload.pop("chart_eligible")
+            for page in payload["pages"]:
+                page.pop("response_adjusted")
+        else:
+            payload["schema"] = cap.PAYLOAD_SCHEMA_V2
+    reseal_fixture(envelope)
+    cap.validate_envelope(envelope, "SPY")
+    env.write_bytes(cap.canonical_bytes(document))
+    prior = [cap.canonical_bytes(r) for r in envelope["captures"]]
+    assert [len(r["payload"]["observations"]) for r in envelope["captures"]] == [1, 1, 0]
+    install(monkeypatch, response([bar(close=100.25)], adjusted=False))
+    assert run_raw() == 0
+    install(monkeypatch, response([bar(close=100.25)]))
+    assert writer.main(["--existing-only", "--tf", "1m", "--workers", "1"]) == 0
+    upgraded = read(env)["minute_capture"]
+    assert upgraded["schema"] == cap.SCHEMA
+    assert [cap.canonical_bytes(r) for r in upgraded["captures"][:3]] == prior
+    assert [len(r["payload"]["observations"]) for r in upgraded["captures"]] == [1, 1, 0, 1, 0]
+    assert upgraded["captures"][-1]["payload"]["acquisition_role"] == cap.CHART_ADJUSTED
+    for record in envelope["captures"][:2]:
+        assert cap.append_sealed_capture(upgraded, record) == upgraded
+        with pytest.raises(cap.CaptureError, match="capture_schema_order_invalid"):
+            cap.append_capture(upgraded, record["payload"], "f" * 32)
+
+
+@pytest.mark.parametrize("mutation", [
+    "unknown_role", "null_role", "object_role", "missing_role", "wrong_bool", "integer_bool",
+    "raw_chart_eligible", "v2_envelope", "v2_payload", "unknown_payload", "null_payload",
+])
+def test_v3_closed_role_and_request_contract_refuses_correctly_resealed_bad_inputs(env, monkeypatch, mutation):
+    install(monkeypatch, response([bar()], adjusted=False))
+    assert run_raw() == 0
+    envelope = read(env)["minute_capture"]
+    payload = envelope["captures"][0]["payload"]
+    if mutation == "unknown_role":
+        payload["acquisition_role"] = "unadjusted"
+    elif mutation == "null_role":
+        payload["acquisition_role"] = None
+    elif mutation == "object_role":
+        payload["acquisition_role"] = {}
+    elif mutation == "missing_role":
+        payload.pop("acquisition_role")
+    elif mutation in ("wrong_bool", "integer_bool"):
+        payload["request"]["adjusted"] = True if mutation == "wrong_bool" else 0
+    elif mutation == "raw_chart_eligible":
+        payload["chart_eligible"] = True
+    elif mutation == "v2_envelope":
+        envelope["schema"] = cap.SCHEMA_V2
+    else:
+        payload["schema"] = {"v2_payload": cap.PAYLOAD_SCHEMA_V2,
+                             "unknown_payload": "v999", "null_payload": None}[mutation]
+    reseal_fixture(envelope)
+    env.write_bytes(cap.canonical_bytes({"t": "SPY", "tf": "1m", "src": "polygon", "bars": [],
+                                       "minute_capture": envelope}))
+    before = env.read_bytes()
+    def forbidden(*args, **kwargs):
+        raise AssertionError("invalid existing v3 input must refuse before HTTP")
+    install(monkeypatch, forbidden)
+    with pytest.raises(cap.CaptureError):
+        cap.validate_envelope(envelope, "SPY")
+    assert run_raw() == 1
+    assert env.read_bytes() == before
+
+
+# Actual HTTP framing controls: a valid JSON prefix is not transport completion.
+_FRAMING_FLAGS = ("--capture-minutes", "--capture-unadjusted-minutes")
+
+
+def _framed_http_response(body, kind):
+    import http.client
+    class Socket:
+        def makefile(self, mode):
+            return io.BytesIO(wire)
+    if kind in ("chunked", "truncated_chunked"):
+        wire = (b"HTTP/1.1 200 OK\r\nTransfer-Encoding: chunked\r\n\r\n"
+                + format(len(body), "x").encode() + b"\r\n" + body + b"\r\n")
+        if kind == "chunked":
+            wire += b"0\r\n\r\n"
+    elif kind == "eof":
+        wire = b"HTTP/1.1 200 OK\r\nConnection: close\r\n\r\n" + body
+    else:
+        declared = len(body) + (10 if kind == "short_length" else 0)
+        wire = (b"HTTP/1.1 200 OK\r\nContent-Length: " + str(declared).encode()
+                + b"\r\n\r\n" + body)
+    result = http.client.HTTPResponse(Socket())
+    result.begin()
+    return result
+
+
+def _run_framed(flag):
+    return writer.main([flag, "--symbols", "SPY", "--tf", "1m", "--workers", "1"])
+
+
+@pytest.mark.parametrize("flag", _FRAMING_FLAGS)
+@pytest.mark.parametrize("kind", ["length", "chunked", "eof"])
+def test_captured_http_complete_framing_positive(env, monkeypatch, flag, kind):
+    calls = []
+    raw = flag == "--capture-unadjusted-minutes"
+    body = response([bar(volume=1.25)], adjusted=not raw)
+    def transport(request, *, timeout):
+        calls.append(request.full_url)
+        assert timeout == 45
+        return _framed_http_response(body, kind)
+    monkeypatch.setattr(writer, "_open_capture_request", transport)
+    assert _run_framed(flag) == 0 and len(calls) == 1
+    doc = read(env)
+    payload = payloads(env)[-1]
+    assert payload["status"] == "complete" and payload["failure_kind"] is None
+    assert len(payload["pages"]) == len(payload["observations"]) == 1
+    assert payload["pages"][0]["response_bytes"] == len(body)
+    assert payload["pages"][0]["response_sha256"] == hashlib.sha256(body).hexdigest()
+    assert payload["chart_eligible"] is (not raw)
+    assert len(doc["bars"]) == (0 if raw else 1)
+
+
+@pytest.mark.parametrize("flag", _FRAMING_FLAGS)
+@pytest.mark.parametrize("kind", ["short_length", "truncated_chunked"])
+def test_captured_http_incomplete_first_page_retains_existing_transport_failure(env, monkeypatch, flag, kind):
+    calls = []
+    raw = flag == "--capture-unadjusted-minutes"
+    def transport(request, *, timeout):
+        calls.append(request.full_url)
+        return _framed_http_response(response([bar()], adjusted=not raw), kind)
+    monkeypatch.setattr(writer, "_open_capture_request", transport)
+    assert _run_framed(flag) == 1
+    assert len(calls) == 5
+    payload = payloads(env)[-1]
+    assert payload["status"] == "failed" and payload["failure_kind"] == "transport_exhausted"
+    assert payload["pages"] == payload["observations"] == []
+    assert payload["chart_eligible"] is False and read(env)["bars"] == []
+    assert TOKEN.encode() not in env.read_bytes()
+
+
+@pytest.mark.parametrize("flag", _FRAMING_FLAGS)
+@pytest.mark.parametrize("kind", ["short_length", "truncated_chunked"])
+def test_captured_http_later_page_retains_only_complete_prefix_and_preserves_chart(env, monkeypatch, flag, kind):
+    install(monkeypatch, response([bar(i) for i in range(25)]))
+    assert run() == 0
+    before = read(env)
+    calls = []
+    raw = flag == "--capture-unadjusted-minutes"
+    def transport(request, *, timeout):
+        calls.append(request.full_url)
+        if "cursor=next" not in request.full_url:
+            body = response([bar(close=100.25)], adjusted=not raw, next_url=cursor_url(request))
+            return _framed_http_response(body, "length")
+        return _framed_http_response(response([bar(1, close=100.5)], adjusted=not raw), kind)
+    monkeypatch.setattr(writer, "_open_capture_request", transport)
+    assert _run_framed(flag) == 1 and len(calls) == 6
+    after = read(env)
+    payload = payloads(env)[-1]
+    assert payload["status"] == "partial" and payload["failure_kind"] == "transport_exhausted"
+    assert len(payload["pages"]) == len(payload["observations"]) == 1
+    assert payload["observations"][0]["raw"]["c"] == 100.25
+    assert payload["chart_eligible"] is False
+    assert {k: v for k, v in after.items() if k != "minute_capture"} == {k: v for k, v in before.items() if k != "minute_capture"}
+    assert after["minute_capture"]["captures"][0] == before["minute_capture"]["captures"][0]
+
+
+@pytest.mark.parametrize("flag", _FRAMING_FLAGS)
+def test_captured_http_oversize_keeps_immediate_refusal_before_framing_retry(env, monkeypatch, flag):
+    install(monkeypatch, response([bar()]))
+    assert run() == 0
+    before = env.read_bytes()
+    # Keep the prior sealed page valid; only the new response exceeds this cap.
+    monkeypatch.setattr(cap, "MAX_RESPONSE_BYTES", len(response([bar()])) + 8)
+    calls, responses = [], []
+    def transport(request, *, timeout):
+        calls.append(request.full_url)
+        result = _framed_http_response(response([bar()], adjusted=flag != "--capture-unadjusted-minutes", padding="x" * 512), "short_length")
+        responses.append(result)
+        return result
+    monkeypatch.setattr(writer, "_open_capture_request", transport)
+    assert _run_framed(flag) == 1
+    assert len(calls) == 1 and responses[0].length > 0
+    assert env.read_bytes() == before
+
+
+def test_noncapture_http_read_behavior_is_unchanged(monkeypatch):
+    calls = []
+    body = response([bar()])
+    def legacy(request, *, timeout):
+        calls.append(request.full_url)
+        return _framed_http_response(body, "short_length")
+    monkeypatch.setattr(writer.urllib.request, "urlopen", legacy)
+    # The legacy unbounded read already raises IncompleteRead and retries.
+    monkeypatch.setattr(writer.time, "sleep", lambda _: None)
+    with pytest.raises(writer.TransportExhausted):
+        writer._get("https://example.invalid/legacy")
+    assert len(calls) == 5
