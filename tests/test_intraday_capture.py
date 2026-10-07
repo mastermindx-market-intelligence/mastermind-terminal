@@ -39,7 +39,7 @@ def bar(index=0, *, close=100, volume=10):
 
 
 def response(rows=(), *, next_url=None, status="OK", **extra):
-    data = {"status": status, "results": list(rows), **extra}
+    data = {"status": status, "adjusted": True, "results": list(rows), **extra}
     if next_url is not None:
         data["next_url"] = next_url
     return json.dumps(data, separators=(",", ":")).encode()
@@ -378,7 +378,8 @@ def test_in_memory_attempt_replay_does_not_recompact_or_reclock(env, monkeypatch
     attempt = cap.CaptureAttempt("SPY", previous["request"], previous["finality_reference_utc_ns"],
                                  clock=writer.time.time_ns)
     page = attempt.received(raw, writer.time.time_ns(), writer.time.time_ns())
-    page.update(status="OK", rows_received=25, finalized_rows=25)
+    page.update(status="OK", rows_received=25, finalized_rows=25,
+                response_adjusted={"state": "TRUE"})
     attempt.data["observations"] = copy.deepcopy(previous["observations"])
     attempt.data["observations"][-1]["raw"]["c"] = 100.25
     session.retain(attempt)
@@ -636,3 +637,355 @@ def test_redirect_capture_direct_standard_urllib_response_still_succeeds(env, mo
     payload = payloads(env)[0]
     assert payload["status"] == "complete" and len(payload["pages"]) == 1
     assert payload["observations"][0]["raw"]["v"] == 1.25
+
+
+# V2 declares what the response actually said, independently of request.adjusted.
+def v1_document(document):
+    """Synthetic legacy fixture, sealed by the unchanged v1 hash definition."""
+    result = copy.deepcopy(document)
+    envelope = result["minute_capture"]
+    envelope["schema"] = cap.SCHEMA_V1
+    previous = cap.GENESIS_SHA256
+    for record in envelope["captures"]:
+        payload = record["payload"]
+        payload.pop("schema")
+        payload.pop("chart_eligible")
+        for page in payload["pages"]:
+            page.pop("response_adjusted")
+        record["previous_capture_sha256"] = previous
+        record["payload_sha256"] = cap.digest(payload)
+        record["capture_sha256"] = cap.digest({k: v for k, v in record.items()
+                                               if k != "capture_sha256"})
+        previous = record["capture_sha256"]
+    envelope["prefix_sha256"] = previous
+    cap.validate_envelope(envelope, "SPY")
+    return result
+
+
+@pytest.mark.parametrize("declaration", ["TRUE", "MISSING"])
+def test_v1_prefix_upgrades_without_resealing_or_expansion(env, monkeypatch, declaration):
+    install(monkeypatch, response([bar(i) for i in range(3)]))
+    assert run() == run() == 0
+    legacy = v1_document(read(env))
+    env.write_bytes(cap.canonical_bytes(legacy))
+    prior = copy.deepcopy(legacy["minute_capture"])
+    prior_records = [cap.canonical_bytes(r) for r in prior["captures"]]
+    assert [len(r["payload"]["observations"]) for r in prior["captures"]] == [3, 0]
+    # The unchanged minute gains a genuinely observed declaration, not a re-expanded
+    # old suppressed observation. The next identical complete response compacts.
+    if declaration == "MISSING":
+        install(monkeypatch, declaration_body("missing", [bar(i) for i in range(3)]))
+    expected = 0 if declaration == "TRUE" else 1
+    assert writer.main(["--existing-only", "--tf", "1m", "--workers", "1"]) == expected
+    assert run() == expected
+    upgraded = read(env)["minute_capture"]
+    assert upgraded["schema"] == cap.SCHEMA
+    assert [cap.canonical_bytes(r) for r in upgraded["captures"][:2]] == prior_records
+    assert upgraded["captures"][2]["previous_capture_sha256"] == prior["prefix_sha256"]
+    assert [len(r["payload"]["observations"]) for r in upgraded["captures"]] == [3, 0, 3, 0]
+    assert upgraded["captures"][2]["payload"]["schema"] == cap.PAYLOAD_SCHEMA_V2
+    assert cap.canonical_bytes(cap.append_sealed_capture(upgraded, prior["captures"][0])) == cap.canonical_bytes(upgraded)
+    # A new v1 attempt cannot follow the first v2 attempt, even if freshly sealed.
+    with pytest.raises(cap.CaptureError, match="capture_schema_order_invalid"):
+        cap.append_capture(upgraded, prior["captures"][0]["payload"], "e" * 32)
+
+
+def test_equal_values_false_true_false_are_three_declaration_episodes(env, monkeypatch):
+    rows = [bar(i, volume=1.75) for i in range(30)]
+    for adjusted, expected in [(False, 1), (True, 0), (False, 1), (False, 1)]:
+        install(monkeypatch, response(rows, adjusted=adjusted))
+        assert run() == expected
+    captures = payloads(env)
+    assert [p["status"] for p in captures] == ["complete"] * 4
+    assert [p["failure_kind"] for p in captures] == [None] * 4
+    assert [p["chart_eligible"] for p in captures] == [False, True, False, False]
+    assert [p["counts"]["observations_retained"] for p in captures] == [30, 30, 30, 0]
+    assert [p["pages"][0]["response_adjusted"]["state"] for p in captures] == ["FALSE", "TRUE", "FALSE", "FALSE"]
+    assert captures[-1]["counts"]["unchanged_suppressed"] == 30
+    assert len(read(env)["bars"]) == 30
+
+
+def declaration_body(kind, rows):
+    data = json.loads(response(rows))
+    if kind == "missing":
+        data.pop("adjusted")
+    else:
+        data["adjusted"] = {"false": False, "null": None, "integer": 1,
+                            "string": TOKEN, "object": {"secret": TOKEN}, "array": []}.get(kind, True)
+    raw = json.dumps(data, separators=(",", ":")).encode()
+    if kind == "duplicate_conflict":
+        raw = raw.replace(b'"adjusted":true', b'"adjusted":true,"adjusted":false')
+    if kind == "duplicate_equal":
+        raw = raw.replace(b'"adjusted":true', b'"adjusted":true,"adjusted":true')
+    return raw
+
+
+@pytest.mark.parametrize("kind,state", [
+    ("false", "FALSE"), ("missing", "MISSING"), ("null", "NULL"),
+    ("integer", "INVALID_TYPE"), ("string", "INVALID_TYPE"),
+    ("object", "INVALID_TYPE"), ("array", "INVALID_TYPE"),
+    ("duplicate_conflict", "AMBIGUOUS"), ("duplicate_equal", "AMBIGUOUS"),
+])
+def test_unavailable_declarations_retain_complete_evidence_and_preserve_chart(env, monkeypatch, kind, state):
+    install(monkeypatch, response([bar()]))
+    assert run() == 0
+    before = read(env)
+    # Different values discriminate a forbidden chart promotion from a no-op.
+    raw = declaration_body(kind, [bar(close=100.25)])
+    install(monkeypatch, raw)
+    assert run() == 1
+    after = read(env)
+    assert {k: v for k, v in after.items() if k != "minute_capture"} == {k: v for k, v in before.items() if k != "minute_capture"}
+    payload = after["minute_capture"]["captures"][-1]["payload"]
+    assert payload["status"] == "complete" and payload["failure_kind"] is None
+    assert payload["chart_eligible"] is False
+    assert payload["observations"][0]["raw"]["c"] == 100.25
+    assert payload["pages"][0]["response_adjusted"] == {"state": state}
+    assert payload["pages"][0]["response_sha256"] == hashlib.sha256(raw).hexdigest()
+    assert payload["request"]["adjusted"] is True
+    assert TOKEN.encode() not in env.read_bytes()
+
+
+@pytest.mark.parametrize("raw,reason", [(b'{"adjusted":true,', "malformed_response"),
+                                       (b'[]', "invalid_response")])
+def test_unparsed_declaration_is_explicit_on_invalid_response(env, monkeypatch, raw, reason):
+    install(monkeypatch, raw)
+    assert run() == 1
+    payload = payloads(env)[0]
+    assert payload["status"] == "partial" and payload["failure_kind"] == reason
+    assert payload["pages"][0]["response_adjusted"] == {"state": "UNPARSED"}
+    assert payload["chart_eligible"] is False and not payload["observations"]
+
+
+def test_nested_declaration_duplicates_do_not_ambiguate_top_level(env, monkeypatch):
+    raw = response([bar()]).replace(b'"adjusted":true', b'"adjusted":true,"unknown":{"adjusted":false,"adjusted":true}')
+    install(monkeypatch, raw)
+    assert run() == 0
+    assert payloads(env)[0]["pages"][0]["response_adjusted"] == {"state": "TRUE"}
+    assert b"unknown" not in env.read_bytes()
+
+
+def test_mixed_page_declarations_and_partial_attempt_do_not_invent_basis_vintages(env, monkeypatch):
+    install(monkeypatch, response([bar(0), bar(1)]))
+    assert run() == 0
+    before = read(env)["bars"]
+    def mixed(request):
+        if "cursor=next" in request.full_url:
+            return response([bar(1, close=100.25)], adjusted=False)
+        return response([bar(0, close=100.25)], next_url=cursor_url(request))
+    install(monkeypatch, mixed)
+    assert run() == 1
+    assert read(env)["bars"] == before
+    p = payloads(env)[-1]
+    assert p["status"] == "complete" and p["chart_eligible"] is False
+    assert [x["response_adjusted"]["state"] for x in p["pages"]] == ["TRUE", "FALSE"]
+    assert [x["page_index"] for x in p["observations"]] == [0, 1]
+    def partial(request):
+        if "cursor=next" in request.full_url:
+            raise urllib.error.URLError("synthetic no network")
+        return response([bar(1, close=100.25)], adjusted=True, next_url=cursor_url(request))
+    install(monkeypatch, partial)
+    assert run() == 1
+    assert payloads(env)[-1]["status"] == "partial"
+    install(monkeypatch, response([bar(0, close=100.25), bar(1, close=100.25)]))
+    assert run() == 0
+    p = payloads(env)[-1]
+    assert p["counts"]["unchanged_suppressed"] == 1
+    assert len(p["observations"]) == 1 and p["observations"][0]["raw"]["t"] == bar(1)["t"]
+
+
+def test_v1_capacity_refusal_does_not_publish_schema_upgrade(env, monkeypatch):
+    install(monkeypatch, response([bar()]))
+    assert run() == 0
+    env.write_bytes(cap.canonical_bytes(v1_document(read(env))))
+    before = env.read_bytes()
+    monkeypatch.setattr(cap, "MAX_CAPTURES", 1)
+    assert run() == 1
+    assert env.read_bytes() == before
+
+
+@pytest.mark.parametrize("mutation", ["unknown_state", "extra_value", "chart_flag", "v1_envelope", "unknown_payload_schema"])
+def test_v2_closed_declaration_and_version_validation(env, monkeypatch, mutation):
+    install(monkeypatch, response([bar()]))
+    assert run() == 0
+    envelope = read(env)["minute_capture"]
+    payload = envelope["captures"][0]["payload"]
+    if mutation == "unknown_state":
+        payload["pages"][0]["response_adjusted"]["state"] = "UNRECORDED"
+    elif mutation == "extra_value":
+        payload["pages"][0]["response_adjusted"]["raw"] = TOKEN
+    elif mutation == "chart_flag":
+        payload["chart_eligible"] = False
+    elif mutation == "unknown_payload_schema":
+        payload["schema"] = "unknown"
+    else:
+        envelope["schema"] = cap.SCHEMA_V1
+    # Reseal the synthetic mutation so this discriminates semantic validation
+    # from the independent tamper-digest check already exercised elsewhere.
+    record = envelope["captures"][0]
+    record["payload_sha256"] = cap.digest(payload)
+    record["capture_sha256"] = cap.digest({k: v for k, v in record.items()
+                                           if k != "capture_sha256"})
+    envelope["prefix_sha256"] = record["capture_sha256"]
+    with pytest.raises(cap.CaptureError):
+        cap.validate_envelope(envelope, "SPY")
+
+
+
+def test_equal_values_preserve_every_normalized_declaration_transition(env, monkeypatch):
+    # Different invalid values are one normalized unavailable class; no raw
+    # arbitrary declaration payload may leak just to distinguish those values.
+    kinds = ["missing", "null", "integer", "string", "duplicate_equal", "false", "missing"]
+    for kind in kinds:
+        install(monkeypatch, declaration_body(kind, [bar()]))
+        assert run() == 1
+    captures = payloads(env)
+    assert [p["pages"][0]["response_adjusted"]["state"] for p in captures] == [
+        "MISSING", "NULL", "INVALID_TYPE", "INVALID_TYPE", "AMBIGUOUS", "FALSE", "MISSING"]
+    assert [p["counts"]["observations_retained"] for p in captures] == [1, 1, 1, 0, 1, 1, 1]
+    assert all(p["status"] == "complete" and p["chart_eligible"] is False for p in captures)
+    assert read(env)["bars"] == []
+    assert TOKEN.encode() not in env.read_bytes()
+
+
+def test_missing_declaration_empty_capture_recovers_via_existing_owner(env, monkeypatch):
+    install(monkeypatch, declaration_body("missing", []))
+    assert run() == 1
+    original = read(env)["minute_capture"]["captures"][0]
+    assert original["payload"]["status"] == "complete"
+    assert original["payload"]["counts"]["rows_received"] == 0
+    assert original["payload"]["chart_eligible"] is False
+    install(monkeypatch, response([bar(volume=0.125)]))
+    assert writer.main(["--existing-only", "--tf", "1m", "--workers", "1"]) == 0
+    doc = read(env)
+    assert doc["minute_capture"]["captures"][0] == original
+    assert len(doc["minute_capture"]["captures"]) == 2 and len(doc["bars"]) == 1
+    assert doc["minute_capture"]["captures"][-1]["payload"]["observations"][0]["raw"]["v"] == 0.125
+
+
+# Actual HTTP framing controls: a valid JSON prefix is not transport completion.
+_FRAMING_FLAGS = ("--capture-minutes",)
+
+
+def _framed_http_response(body, kind):
+    import http.client
+    class Socket:
+        def makefile(self, mode):
+            return io.BytesIO(wire)
+    if kind in ("chunked", "truncated_chunked"):
+        wire = (b"HTTP/1.1 200 OK\r\nTransfer-Encoding: chunked\r\n\r\n"
+                + format(len(body), "x").encode() + b"\r\n" + body + b"\r\n")
+        if kind == "chunked":
+            wire += b"0\r\n\r\n"
+    elif kind == "eof":
+        wire = b"HTTP/1.1 200 OK\r\nConnection: close\r\n\r\n" + body
+    else:
+        declared = len(body) + (10 if kind == "short_length" else 0)
+        wire = (b"HTTP/1.1 200 OK\r\nContent-Length: " + str(declared).encode()
+                + b"\r\n\r\n" + body)
+    result = http.client.HTTPResponse(Socket())
+    result.begin()
+    return result
+
+
+def _run_framed(flag):
+    return writer.main([flag, "--symbols", "SPY", "--tf", "1m", "--workers", "1"])
+
+
+@pytest.mark.parametrize("flag", _FRAMING_FLAGS)
+@pytest.mark.parametrize("kind", ["length", "chunked", "eof"])
+def test_captured_http_complete_framing_positive(env, monkeypatch, flag, kind):
+    calls = []
+    raw = flag == "--capture-unadjusted-minutes"
+    body = response([bar(volume=1.25)], adjusted=not raw)
+    def transport(request, *, timeout):
+        calls.append(request.full_url)
+        assert timeout == 45
+        return _framed_http_response(body, kind)
+    monkeypatch.setattr(writer, "_open_capture_request", transport)
+    assert _run_framed(flag) == 0 and len(calls) == 1
+    doc = read(env)
+    payload = payloads(env)[-1]
+    assert payload["status"] == "complete" and payload["failure_kind"] is None
+    assert len(payload["pages"]) == len(payload["observations"]) == 1
+    assert payload["pages"][0]["response_bytes"] == len(body)
+    assert payload["pages"][0]["response_sha256"] == hashlib.sha256(body).hexdigest()
+    assert payload["chart_eligible"] is (not raw)
+    assert len(doc["bars"]) == (0 if raw else 1)
+
+
+@pytest.mark.parametrize("flag", _FRAMING_FLAGS)
+@pytest.mark.parametrize("kind", ["short_length", "truncated_chunked"])
+def test_captured_http_incomplete_first_page_retains_existing_transport_failure(env, monkeypatch, flag, kind):
+    calls = []
+    raw = flag == "--capture-unadjusted-minutes"
+    def transport(request, *, timeout):
+        calls.append(request.full_url)
+        return _framed_http_response(response([bar()], adjusted=not raw), kind)
+    monkeypatch.setattr(writer, "_open_capture_request", transport)
+    assert _run_framed(flag) == 1
+    assert len(calls) == 5
+    payload = payloads(env)[-1]
+    assert payload["status"] == "failed" and payload["failure_kind"] == "transport_exhausted"
+    assert payload["pages"] == payload["observations"] == []
+    assert payload["chart_eligible"] is False and read(env)["bars"] == []
+    assert TOKEN.encode() not in env.read_bytes()
+
+
+@pytest.mark.parametrize("flag", _FRAMING_FLAGS)
+@pytest.mark.parametrize("kind", ["short_length", "truncated_chunked"])
+def test_captured_http_later_page_retains_only_complete_prefix_and_preserves_chart(env, monkeypatch, flag, kind):
+    install(monkeypatch, response([bar(i) for i in range(25)]))
+    assert run() == 0
+    before = read(env)
+    calls = []
+    raw = flag == "--capture-unadjusted-minutes"
+    def transport(request, *, timeout):
+        calls.append(request.full_url)
+        if "cursor=next" not in request.full_url:
+            body = response([bar(close=100.25)], adjusted=not raw, next_url=cursor_url(request))
+            return _framed_http_response(body, "length")
+        return _framed_http_response(response([bar(1, close=100.5)], adjusted=not raw), kind)
+    monkeypatch.setattr(writer, "_open_capture_request", transport)
+    assert _run_framed(flag) == 1 and len(calls) == 6
+    after = read(env)
+    payload = payloads(env)[-1]
+    assert payload["status"] == "partial" and payload["failure_kind"] == "transport_exhausted"
+    assert len(payload["pages"]) == len(payload["observations"]) == 1
+    assert payload["observations"][0]["raw"]["c"] == 100.25
+    assert payload["chart_eligible"] is False
+    assert {k: v for k, v in after.items() if k != "minute_capture"} == {k: v for k, v in before.items() if k != "minute_capture"}
+    assert after["minute_capture"]["captures"][0] == before["minute_capture"]["captures"][0]
+
+
+@pytest.mark.parametrize("flag", _FRAMING_FLAGS)
+def test_captured_http_oversize_keeps_immediate_refusal_before_framing_retry(env, monkeypatch, flag):
+    install(monkeypatch, response([bar()]))
+    assert run() == 0
+    before = env.read_bytes()
+    # Keep the prior sealed page valid; only the new response exceeds this cap.
+    monkeypatch.setattr(cap, "MAX_RESPONSE_BYTES", len(response([bar()])) + 8)
+    calls, responses = [], []
+    def transport(request, *, timeout):
+        calls.append(request.full_url)
+        result = _framed_http_response(response([bar()], adjusted=flag != "--capture-unadjusted-minutes", padding="x" * 512), "short_length")
+        responses.append(result)
+        return result
+    monkeypatch.setattr(writer, "_open_capture_request", transport)
+    assert _run_framed(flag) == 1
+    assert len(calls) == 1 and responses[0].length > 0
+    assert env.read_bytes() == before
+
+
+def test_noncapture_http_read_behavior_is_unchanged(monkeypatch):
+    calls = []
+    body = response([bar()])
+    def legacy(request, *, timeout):
+        calls.append(request.full_url)
+        return _framed_http_response(body, "short_length")
+    monkeypatch.setattr(writer.urllib.request, "urlopen", legacy)
+    # The legacy unbounded read already raises IncompleteRead and retries.
+    monkeypatch.setattr(writer.time, "sleep", lambda _: None)
+    with pytest.raises(writer.TransportExhausted):
+        writer._get("https://example.invalid/legacy")
+    assert len(calls) == 5
