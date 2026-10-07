@@ -35,10 +35,14 @@ const snapshot = (ticker: string, rows: ReturnType<typeof row>[], state = "live"
 });
 
 class FakeEventSource {
+  static readonly CONNECTING = 0;
+  static readonly OPEN = 1;
+  static readonly CLOSED = 2;
   static instances: FakeEventSource[] = [];
   url: string;
   listeners = new Map<string, ((event: MessageEvent) => void)[]>();
   closed = false;
+  readyState = FakeEventSource.OPEN;
   onerror: ((event: Event) => void) | null = null;
 
   constructor(url: string) {
@@ -60,6 +64,7 @@ class FakeEventSource {
 
   close() {
     this.closed = true;
+    this.readyState = FakeEventSource.CLOSED;
   }
 }
 
@@ -443,5 +448,58 @@ describe("TickerNewsPanel", () => {
     const freshButton = [...host.querySelectorAll("button")].find((b) => b.textContent?.includes("2 reports"));
     expect(freshButton?.disabled).toBe(false);
     expect(host.textContent).not.toContain("Nvidia grouped detail");
+  });
+
+  it.each([404, 503])("shows unavailable for snapshot %i without retrying", async (status) => {
+    vi.useFakeTimers();
+    const fetchMock = vi.fn(() => response({ detail: "upstream missing" }, status));
+    globalThis.fetch = fetchMock as unknown as typeof globalThis.fetch;
+
+    await act(async () => {
+      root.render(<TickerNewsPanel symbol="NVDA" lang="en" />);
+    });
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(12_000);
+    });
+
+    const panel = host.querySelector("[data-testid=ticker-news-panel]");
+    expect(panel?.getAttribute("data-news-state")).toBe("unavailable");
+    expect(host.querySelector("[role=status]")?.textContent).toContain("News is temporarily unavailable");
+    expect(fetchMock.mock.calls.filter((c) => String(c[0]).includes("/api/news/NVDA"))).toHaveLength(1);
+    vi.useRealTimers();
+  });
+
+  it.each([401, 403])("shows restricted for snapshot %i", async (status) => {
+    globalThis.fetch = vi.fn(() => response({ detail: "forbidden" }, status)) as unknown as typeof globalThis.fetch;
+
+    await act(async () => {
+      root.render(<TickerNewsPanel symbol="NVDA" lang="en" />);
+    });
+
+    const panel = host.querySelector("[data-testid=ticker-news-panel]");
+    expect(panel?.getAttribute("data-news-state")).toBe("restricted");
+    expect(host.querySelector("[role=status]")?.textContent).toContain("News access is unavailable");
+    expect(FakeEventSource.instances).toHaveLength(0);
+  });
+
+  it("does not open a new stream or snapshot fetch after a terminal EventSource error", async () => {
+    globalThis.fetch = vi.fn(() => response(snapshot("NVDA", [row("ev2_a", "Headline")]))) as unknown as typeof globalThis.fetch;
+
+    await act(async () => {
+      root.render(<TickerNewsPanel symbol="NVDA" lang="en" />);
+    });
+    expect(FakeEventSource.instances).toHaveLength(1);
+    const initialFetches = (globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls.length;
+
+    const stream = FakeEventSource.instances[0];
+    stream.readyState = FakeEventSource.CLOSED;
+    await act(async () => {
+      stream.onerror?.(new Event("error"));
+      await Promise.resolve();
+    });
+
+    expect(host.textContent).toContain("Live updates interrupted");
+    expect(FakeEventSource.instances).toHaveLength(1);
+    expect((globalThis.fetch as ReturnType<typeof vi.fn>).mock.calls.length).toBe(initialFetches);
   });
 });

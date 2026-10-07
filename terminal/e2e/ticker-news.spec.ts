@@ -30,56 +30,135 @@ const MANIFEST = {
       sec: "Equities",
       mkt: "NASDAQ",
     },
+    AAPL: {
+      name: "Apple",
+      zh: "苹果",
+      col: "#555555",
+      last: 220,
+      chg: 0.8,
+      open: 218,
+      high: 222,
+      low: 217,
+      vol: 8000000,
+      hi52: 240,
+      lo52: 160,
+      verdict: null,
+      wr: null,
+      pf: null,
+      cagr: null,
+      regimeBull: null,
+      sec: "Equities",
+      mkt: "NASDAQ",
+    },
+    MSFT: {
+      name: "Microsoft",
+      zh: "微软",
+      col: "#0078d4",
+      last: 410,
+      chg: 1.1,
+      open: 405,
+      high: 412,
+      low: 404,
+      vol: 5000000,
+      hi52: 450,
+      lo52: 300,
+      verdict: null,
+      wr: null,
+      pf: null,
+      cagr: null,
+      regimeBull: null,
+      sec: "Equities",
+      mkt: "NASDAQ",
+    },
   },
 };
 
-const SNAPSHOT = {
-  schema: "ticker_news.snapshot.v1",
-  ticker: "NVDA",
-  security_id: "SEC:US-XNAS-NVDA",
-  state: "live",
-  rows: [
-    {
-      sequence: 11,
-      source: "benzinga",
-      source_item_id: "101",
-      story_id: "ev2_nvda_launch",
-      source_count: 1,
-      item_count: 2,
-      title: "Nvidia launches next-generation AI accelerator",
-      url: "https://www.benzinga.com/news/101",
-      teaser: "The company introduced a new accelerator platform for AI workloads.",
-      published_at: "2026-10-05T19:30:00+00:00",
-      updated_at: "2026-10-05T19:31:00+00:00",
-      received_at: "2026-10-05T19:31:01+00:00",
-      universe_revision: "sp500-r1",
-    },
-    {
-      sequence: 10,
-      source: "benzinga",
-      source_item_id: "100",
-      story_id: "ev2_nvda_supply",
-      source_count: 1,
-      item_count: 1,
-      title: "Nvidia supplier expands advanced packaging capacity",
-      url: "https://www.benzinga.com/news/100",
-      teaser: "",
-      published_at: "2026-10-05T18:50:00+00:00",
-      updated_at: "2026-10-05T18:50:00+00:00",
-      received_at: "2026-10-05T18:50:01+00:00",
-      universe_revision: "sp500-r1",
-    },
-  ],
-  next_cursor: 10,
-  has_more: false,
-  source_health: {
+function snapshotFor(ticker: string, rows: typeof SNAPSHOT.rows) {
+  return {
+    schema: "ticker_news.snapshot.v1",
+    ticker,
+    security_id: `SEC:US-XNAS-${ticker}`,
     state: "live",
-    last_successful_catchup: "2026-10-05T19:31:01+00:00",
-  },
-};
+    rows,
+    next_cursor: rows[rows.length - 1]?.sequence ?? null,
+    has_more: false,
+    source_health: {
+      state: "live",
+      last_successful_catchup: "2026-10-05T19:31:01+00:00",
+    },
+  };
+}
 
-async function prepare(page: Page, testInfo: TestInfo, baseURL?: string) {
-  await isolateWatchlistStore(page, testInfo, baseURL);
+const SNAPSHOT = snapshotFor("NVDA", [
+  {
+    sequence: 11,
+    source: "benzinga",
+    source_item_id: "101",
+    story_id: "ev2_nvda_launch",
+    source_count: 1,
+    item_count: 2,
+    title: "Nvidia launches next-generation AI accelerator",
+    url: "https://www.benzinga.com/news/101",
+    teaser: "The company introduced a new accelerator platform for AI workloads.",
+    published_at: "2026-10-05T19:30:00+00:00",
+    updated_at: "2026-10-05T19:31:00+00:00",
+    received_at: "2026-10-05T19:31:01+00:00",
+    universe_revision: "sp500-r1",
+  },
+  {
+    sequence: 10,
+    source: "benzinga",
+    source_item_id: "100",
+    story_id: "ev2_nvda_supply",
+    source_count: 1,
+    item_count: 1,
+    title: "Nvidia supplier expands advanced packaging capacity",
+    url: "https://www.benzinga.com/news/100",
+    teaser: "",
+    published_at: "2026-10-05T18:50:00+00:00",
+    updated_at: "2026-10-05T18:50:00+00:00",
+    received_at: "2026-10-05T18:50:01+00:00",
+    universe_revision: "sp500-r1",
+  },
+]);
+
+const AAPL_SNAPSHOT = snapshotFor("AAPL", [
+  {
+    sequence: 21,
+    source: "benzinga",
+    source_item_id: "201",
+    story_id: "ev2_aapl_grp",
+    source_count: 1,
+    item_count: 2,
+    title: "Apple unveils refreshed product lineup",
+    url: "https://www.benzinga.com/news/201",
+    teaser: "The company refreshed several hardware lines.",
+    published_at: "2026-10-05T19:30:00+00:00",
+    updated_at: "2026-10-05T19:31:00+00:00",
+    received_at: "2026-10-05T19:31:01+00:00",
+    universe_revision: "sp500-r1",
+  },
+]);
+
+const MSFT_SNAPSHOT = snapshotFor("MSFT", [
+  {
+    sequence: 31,
+    source: "benzinga",
+    source_item_id: "301",
+    story_id: "ev2_msft_grp",
+    source_count: 1,
+    item_count: 2,
+    title: "Microsoft expands cloud AI services",
+    url: "https://www.benzinga.com/news/301",
+    teaser: "The company added new AI capacity to its cloud regions.",
+    published_at: "2026-10-05T19:32:00+00:00",
+    updated_at: "2026-10-05T19:33:00+00:00",
+    received_at: "2026-10-05T19:33:01+00:00",
+    universe_revision: "sp500-r1",
+  },
+]);
+
+async function installEventSourceStub(page: Page) {
   await page.addInitScript(() => {
     const NativeEventSource = window.EventSource;
     class QuietEventSource {
@@ -114,12 +193,25 @@ async function prepare(page: Page, testInfo: TestInfo, baseURL?: string) {
       value: QuietEventSource,
     });
   });
+}
+
+async function prepare(page: Page, testInfo: TestInfo, baseURL?: string, symbol = "NVDA") {
+  await isolateWatchlistStore(page, testInfo, baseURL);
+  await installEventSourceStub(page);
 
   await page.route("**/data/manifest.json**", (route) => route.fulfill({ json: MANIFEST }));
   await page.route("**/api/quote**", (route) => route.fulfill({
-    json: { quotes: { NVDA: { last: 180.2, chg: 2.5 } } },
+    json: {
+      quotes: {
+        NVDA: { last: 180.2, chg: 2.5 },
+        AAPL: { last: 221.1, chg: 0.9 },
+        MSFT: { last: 411.4, chg: 1.2 },
+      },
+    },
   }));
   await page.route(/\/api\/news\/NVDA(?:\?.*)?$/, (route) => route.fulfill({ json: SNAPSHOT }));
+  await page.route(/\/api\/news\/AAPL(?:\?.*)?$/, (route) => route.fulfill({ json: AAPL_SNAPSHOT }));
+  await page.route(/\/api\/news\/MSFT(?:\?.*)?$/, (route) => route.fulfill({ json: MSFT_SNAPSHOT }));
   await page.route("**/api/news/stories/ev2_nvda_launch", (route) => route.fulfill({
     json: {
       schema: "ticker_news.story.v1",
@@ -137,8 +229,26 @@ async function prepare(page: Page, testInfo: TestInfo, baseURL?: string) {
       ],
     },
   }));
+  await page.route("**/api/news/stories/ev2_aapl_grp", (route) => route.fulfill({
+    json: {
+      schema: "ticker_news.story.v1",
+      story_id: "ev2_aapl_grp",
+      source_count: 1,
+      item_count: 2,
+      members: [AAPL_SNAPSHOT.rows[0], { ...AAPL_SNAPSHOT.rows[0], sequence: 20, title: "Apple product refresh details" }],
+    },
+  }));
+  await page.route("**/api/news/stories/ev2_msft_grp", (route) => route.fulfill({
+    json: {
+      schema: "ticker_news.story.v1",
+      story_id: "ev2_msft_grp",
+      source_count: 1,
+      item_count: 2,
+      members: [MSFT_SNAPSHOT.rows[0], { ...MSFT_SNAPSHOT.rows[0], sequence: 30, title: "Microsoft cloud AI expansion details" }],
+    },
+  }));
 
-  await page.goto("/terminal?symbol=NVDA");
+  await page.goto(`/terminal?symbol=${symbol}`);
   await expect(page.locator(".mm-ptag")).toBeVisible({ timeout: 60_000 });
 }
 
@@ -153,7 +263,7 @@ async function setPresentation(page: Page, lang: "en" | "zh") {
   await expect(page.locator("html")).toHaveAttribute("data-theme", "dark");
 }
 
-async function openNews(page: Page) {
+async function openNews(page: Page, expectedState = "live") {
   const tab = page.locator("#rail-tab-news");
   await tab.scrollIntoViewIfNeeded();
   await expect(tab).toBeVisible();
@@ -161,8 +271,22 @@ async function openNews(page: Page) {
   const panel = page.getByTestId("ticker-news-panel");
   await panel.scrollIntoViewIfNeeded();
   await expect(panel).toBeVisible();
-  await expect(panel).toHaveAttribute("data-news-state", "live");
+  await expect(panel).toHaveAttribute("data-news-state", expectedState);
   return panel;
+}
+
+async function pickSymbol(page: Page, testInfo: TestInfo, query: string, pickText: RegExp) {
+  const desktop = testInfo.project.name === "desktop";
+  if (desktop) await page.locator(".pair").first().click();
+  else await page.locator(".m-symbar").click();
+
+  const input = page.locator(".sh input");
+  await expect(input).toBeVisible({ timeout: 20_000 });
+  await input.click();
+  await page.keyboard.type(query);
+  await expect(page.locator(".sres .r").first()).toBeVisible({ timeout: 20_000 });
+  await page.locator(".sres .r").filter({ hasText: pickText }).first().click();
+  await expect(page).toHaveURL(new RegExp(`symbol=${query}`), { timeout: 30_000 });
 }
 
 test("ticker News rail is readable across EN/ZH desktop/tablet/mobile matrix", async ({ page, baseURL }, testInfo) => {
@@ -214,6 +338,41 @@ test("ticker News rail is readable across EN/ZH desktop/tablet/mobile matrix", a
   }
 });
 
+test("unavailable snapshot renders without rail overflow", async ({ page, baseURL }, testInfo) => {
+  test.skip(testInfo.project.name !== "desktop" && testInfo.project.name !== "mobile", "Desktop and mobile own unavailable crops.");
+  await isolateWatchlistStore(page, testInfo, baseURL);
+  await installEventSourceStub(page);
+  await page.route("**/data/manifest.json**", (route) => route.fulfill({ json: MANIFEST }));
+  await page.route("**/api/quote**", (route) => route.fulfill({
+    json: { quotes: { NVDA: { last: 180.2, chg: 2.5 } } },
+  }));
+  await page.route(/\/api\/news\/NVDA(?:\?.*)?$/, (route) => route.fulfill({
+    status: 503,
+    json: { detail: "service unavailable" },
+  }));
+  await page.goto("/terminal?symbol=NVDA");
+  await expect(page.locator(".mm-ptag")).toBeVisible({ timeout: 60_000 });
+
+  const languages = ["en", "zh"] as const;
+  const size = testInfo.project.name === "mobile" ? "mobile" : "desktop";
+  await page.setViewportSize(size === "mobile" ? { width: 390, height: 844 } : { width: 1440, height: 900 });
+
+  if (CROPS) mkdirSync(OUT, { recursive: true });
+
+  for (const lang of languages) {
+    await setPresentation(page, lang);
+    const panel = await openNews(page, "unavailable");
+    await expect(panel.getByRole("status")).toContainText(
+      lang === "zh" ? "新闻暂时不可用" : "News is temporarily unavailable",
+    );
+    const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
+    expect(overflow).toBeLessThanOrEqual(1);
+    if (CROPS) {
+      await panel.screenshot({ path: join(OUT, `unavailable-${size}-${lang}-dark.png`) });
+    }
+  }
+});
+
 test("grouped reports expand inside the real rail without leaving ticker context", async ({ page, baseURL }, testInfo) => {
   test.skip(testInfo.project.name !== "desktop", "Desktop owns grouped-source browser proof.");
   await prepare(page, testInfo, baseURL);
@@ -223,4 +382,49 @@ test("grouped reports expand inside the real rail without leaving ticker context
   await panel.getByRole("button", { name: "2 reports" }).click();
   await expect(panel).toContainText("Nvidia details next-generation AI accelerator platform");
   await expect(page).toHaveURL(/\/terminal\?symbol=NVDA/);
+});
+
+test("MSFT grouped detail starts while an Apple story response is still held", async ({ page, baseURL }, testInfo) => {
+  test.skip(testInfo.project.name !== "desktop", "Desktop owns real-shell symbol transition proof.");
+  await prepare(page, testInfo, baseURL, "AAPL");
+  await setPresentation(page, "en");
+
+  let releaseAaplStory!: () => void;
+  const aaplStoryGate = new Promise<void>((resolve) => {
+    releaseAaplStory = resolve;
+  });
+  await page.route("**/api/news/stories/ev2_aapl_grp", async (route) => {
+    await aaplStoryGate;
+    await route.fulfill({
+      json: {
+        schema: "ticker_news.story.v1",
+        story_id: "ev2_aapl_grp",
+        source_count: 1,
+        item_count: 2,
+        members: [AAPL_SNAPSHOT.rows[0], { ...AAPL_SNAPSHOT.rows[0], sequence: 20, title: "Apple product refresh details" }],
+      },
+    });
+  });
+
+  const panel = await openNews(page);
+  const msftStoryWaits: Promise<void>[] = [];
+  page.on("request", (req) => {
+    if (req.url().includes("/api/news/stories/ev2_msft_grp")) {
+      msftStoryWaits.push(req.response().then(() => undefined).catch(() => undefined));
+    }
+  });
+
+  await panel.getByRole("button", { name: "2 reports" }).click();
+  await expect.poll(() => page.locator('[data-story-id="ev2_aapl_grp"] button').isDisabled()).toBeTruthy();
+
+  await pickSymbol(page, testInfo, "MSFT", /Microsoft/i);
+  const msftPanel = await openNews(page);
+  await expect(msftPanel).toContainText("Microsoft expands cloud AI services");
+
+  const beforeMsft = Date.now();
+  await msftPanel.getByRole("button", { name: "2 reports" }).click();
+  await expect.poll(() => msftStoryWaits.length, { timeout: 10_000 }).toBeGreaterThan(0);
+  expect(Date.now() - beforeMsft).toBeLessThan(10_000);
+
+  releaseAaplStory();
 });

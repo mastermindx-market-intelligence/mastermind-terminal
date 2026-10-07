@@ -176,4 +176,33 @@ describe("SSE BFF", () => {
     expect(res.status).toBe(401);
     expect(calls).toHaveLength(0);
   });
+
+  it("returns upstream 503 as JSON instead of an event stream", async () => {
+    signedIn();
+    calls = [];
+    globalThis.fetch = vi.fn(async () => new Response(JSON.stringify({ detail: "macro down" }), {
+      status: 503,
+      headers: { "content-type": "application/json" },
+    })) as unknown as typeof globalThis.fetch;
+
+    const res = await streamGET(
+      new Request("https://app.test/api/news/stream?symbol=NVDA&after_sequence=0"),
+    );
+    expect(res.status).toBe(503);
+    expect(res.headers.get("content-type")).toContain("application/json");
+    expect(await res.json()).toEqual({ detail: "macro down" });
+  });
+
+  it("maps upstream transport failure to gateway_unreachable", async () => {
+    signedIn();
+    globalThis.fetch = vi.fn(async () => {
+      throw new Error("network down");
+    }) as unknown as typeof globalThis.fetch;
+    const res = await snapshotGET(
+      new Request("https://app.test/api/news/NVDA"),
+      { params: Promise.resolve({ symbol: "NVDA" }) },
+    );
+    expect(res.status).toBe(503);
+    expect(await res.json()).toEqual({ error: "gateway_unreachable" });
+  });
 });
