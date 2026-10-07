@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import styles from "@/components/news/TickerNewsPanel.module.css";
 
@@ -78,8 +78,23 @@ export default function TickerNewsPanel({ symbol, lang }: { symbol: string; lang
   const { snapshot, loadState, liveInterrupted } = useTickerNewsFeed(symbol);
   const [details, setDetails] = useState<Record<string, TickerNewsStory | null>>({});
   const [detailBusy, setDetailBusy] = useState<string | null>(null);
+  const detailGen = useRef(0);
+  const detailReq = useRef<{ controller: AbortController; gen: number } | null>(null);
   const rows = snapshot?.rows ?? [];
   const state = snapshot?.state;
+
+  useEffect(() => {
+    detailGen.current += 1;
+    detailReq.current?.controller.abort();
+    detailReq.current = null;
+    setDetailBusy(null);
+    setDetails({});
+    return () => {
+      detailGen.current += 1;
+      detailReq.current?.controller.abort();
+      detailReq.current = null;
+    };
+  }, [symbol]);
 
   const toggleStory = async (row: TickerNewsStoryRow) => {
     if (details[row.story_id]) {
@@ -87,20 +102,31 @@ export default function TickerNewsPanel({ symbol, lang }: { symbol: string; lang
       return;
     }
     if (detailBusy) return;
+    const gen = detailGen.current;
+    const controller = new AbortController();
+    detailReq.current = { controller, gen };
     setDetailBusy(row.story_id);
     try {
       const res = await fetch(`/api/news/stories/${encodeURIComponent(row.story_id)}`, {
         headers: { Accept: "application/json" },
         cache: "no-store",
+        signal: controller.signal,
       });
+      if (gen !== detailGen.current) return;
       if (!res.ok) return;
       const parsed = parseTickerNewsStory(await res.json());
+      if (gen !== detailGen.current) return;
       if (parsed.story_id !== row.story_id) return;
       setDetails((current) => ({ ...current, [row.story_id]: parsed }));
-    } catch {
+    } catch (error) {
+      if (error instanceof DOMException && error.name === "AbortError") return;
+      if (error instanceof Error && error.name === "AbortError") return;
       // Grouped-source expansion is optional depth; keep the main feed usable.
     } finally {
-      setDetailBusy(null);
+      if (gen === detailGen.current && detailReq.current?.controller === controller) {
+        detailReq.current = null;
+        setDetailBusy(null);
+      }
     }
   };
 

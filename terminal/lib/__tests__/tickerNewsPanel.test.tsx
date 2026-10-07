@@ -270,18 +270,17 @@ describe("TickerNewsPanel", () => {
       item_count: 2,
       members: [row("ev2_aapl_grp", "Apple grouped", 2, 2)],
     });
-    const fetchMock = vi.fn((input: RequestInfo | URL, init?: RequestInit) => {
+    const msftDeferred = deferredStoryJson({
+      schema: "ticker_news.story.v1",
+      story_id: "ev2_msft_grp",
+      source_count: 1,
+      item_count: 2,
+      members: [row("ev2_msft_grp", "Microsoft grouped", 2, 2)],
+    });
+    const fetchMock = vi.fn((input: RequestInfo | URL) => {
       const url = String(input);
       if (url.includes("/stories/ev2_aapl_grp")) return aaplDeferred.response;
-      if (url.includes("/stories/ev2_msft_grp")) {
-        return response({
-          schema: "ticker_news.story.v1",
-          story_id: "ev2_msft_grp",
-          source_count: 1,
-          item_count: 2,
-          members: [row("ev2_msft_grp", "Microsoft grouped", 2, 2)],
-        });
-      }
+      if (url.includes("/stories/ev2_msft_grp")) return msftDeferred.response;
       if (url.includes("/AAPL")) {
         return response(snapshot("AAPL", [row("ev2_aapl_grp", "Apple grouped headline", 2, 2)]));
       }
@@ -306,14 +305,18 @@ describe("TickerNewsPanel", () => {
     });
     expect(host.textContent).toContain("Microsoft grouped headline");
 
-    const storyCallsBefore = fetchMock.mock.calls.filter((c) => String(c[0]).includes("/stories/")).length;
+    const msftCallsBefore = fetchMock.mock.calls.filter((c) => String(c[0]).includes("/stories/ev2_msft_grp")).length;
     const msftButton = [...host.querySelectorAll("button")].find((b) => b.textContent?.includes("2 reports"));
     await act(async () => {
       msftButton!.dispatchEvent(new MouseEvent("click", { bubbles: true }));
     });
 
     const msftStoryCalls = fetchMock.mock.calls.filter((c) => String(c[0]).includes("/stories/ev2_msft_grp"));
-    expect(msftStoryCalls.length).toBeGreaterThan(storyCallsBefore);
+    expect(msftStoryCalls.length).toBe(msftCallsBefore + 1);
+    await Promise.race([
+      msftDeferred.jsonEntered,
+      new Promise((resolve) => setTimeout(resolve, 100)),
+    ]);
     expect(msftButton?.disabled).toBe(true);
   });
 
