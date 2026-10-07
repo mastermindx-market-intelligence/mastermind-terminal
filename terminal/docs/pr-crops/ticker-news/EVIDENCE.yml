@@ -1,0 +1,59 @@
+capturedAtHead: 5a945e9f
+layoutFiles:
+  - path: terminal/components/news/TickerNewsPanel.tsx
+    sha256: e855a84e0d60671028cd475c21e6c3578afa1f323643e71209017d5d65ffc7b4
+  - path: terminal/components/news/TickerNewsPanel.module.css
+    sha256: 57464a037b904a52c01c16cbcb0484fde288de0354d98b59901738c1a2f3bbac
+  - path: terminal/components/TerminalShell.tsx
+    sha256: 870c21f4f8a45c5388feeac63bff920631ce8baabbe7b5392aad5968da652b64
+crops:
+  - file: desktop-en-dark.png
+    viewport: 1440x900
+    lang: en
+    state: live-feed
+    sha256: 33069288d64956826dab063198eb6faa0f15553ececa1f31426f5dc4e17e9706
+  - file: desktop-zh-dark.png
+    viewport: 1440x900
+    lang: zh
+    state: live-feed
+    sha256: 6dfec55b446961f5be12ac7c6201c9852fb4c1dd2ae87e62a660cfc405776d0b
+  - file: tablet-en-dark.png
+    viewport: 820x1180
+    lang: en
+    state: live-feed
+    sha256: 62e9fd0a4d0c153f0cf5575b547d5b889f165a1b042b16dd117037c1d92a349c
+  - file: tablet-zh-dark.png
+    viewport: 820x1180
+    lang: zh
+    state: live-feed
+    sha256: 899df5c8192a4041050c4d10ab206233fd4a0fc40eddabcb33659f722a23c558
+  - file: mobile-en-dark.png
+    viewport: 390x844
+    lang: en
+    state: live-feed
+    sha256: a4e9edffe0da69d68bdbdb44d744e4dfd4441ca41cbf0c02b3bc8baf25d5d30b
+  - file: mobile-zh-dark.png
+    viewport: 390x844
+    lang: zh
+    state: live-feed
+    sha256: 86d70abddf0bd664639da4fbcef95a44a97479f16ac9ea967ab3fdcfff387e26
+  - file: unavailable-desktop-en-dark.png
+    viewport: 1440x900
+    lang: en
+    state: unavailable
+    sha256: d4d30294183e96dab2fac4b70c4c29f60ecf094640139b8d5117b01179b1d36e
+  - file: unavailable-desktop-zh-dark.png
+    viewport: 1440x900
+    lang: zh
+    state: unavailable
+    sha256: 1a173ba4662d3fa869c7e7c76a5be853ad85186dcd9d5b3624a11f4ba11dc3ae
+  - file: unavailable-mobile-en-dark.png
+    viewport: 390x844
+    lang: en
+    state: unavailable
+    sha256: b84227da6a330c5e89f9dfb4d486440f3e75b81c5c3be9048abbe0ffd021ce93
+  - file: unavailable-mobile-zh-dark.png
+    viewport: 390x844
+    lang: zh
+    state: unavailable
+    sha256: 3b66b0e473791b599073b74102a4bf7e2896609c0a6fe952e4bb8aefa1b32ebc
