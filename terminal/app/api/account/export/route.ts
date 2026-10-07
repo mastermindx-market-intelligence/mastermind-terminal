@@ -7,6 +7,8 @@ import {
   assertNoSecrets,
   buildAccountExport,
   exportFilename,
+  readChartLayoutsForExport,
+  readSavedScriptsForExport,
   readWatchlistsForExport,
   serializeCsv,
   serializeJson,
@@ -15,10 +17,12 @@ import {
 
 // Owner-scoped account-data export (B-F12-4 / MO-PAID-086).
 //
-// Terminal-owned tables ONLY (watchlists, portfolio_positions) — reusing the same anon-key,
-// cookie-session, RLS-scoped server client `portfolio/route.ts` and `watchlist/route.ts` already
-// use. No service-role key, no second auth plane (F12 do_not_redo). A whole-account export and
-// deletion itself stay with macro's owner surface; this route ships at most a link there.
+// Terminal-owned tables (watchlists, portfolio_positions, saved_scripts, chart_layouts) — reusing
+// the same anon-key, cookie-session, RLS-scoped server client `portfolio/route.ts` and
+// `watchlist/route.ts` already use. No service-role key, no second auth plane (F12 do_not_redo).
+// Scripts/layouts are a per-collection point-in-time page on that client; they are not a
+// cross-service atomic snapshot and this is not a whole-account export. A whole-account export
+// and deletion itself stay with macro's owner surface; this route ships at most a link there.
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -72,15 +76,17 @@ export async function GET(req: Request): Promise<Response> {
     );
   }
 
-  const [watchlists, positionsRead] = await Promise.all([
+  const [watchlists, positionsRead, savedScripts, chartLayouts] = await Promise.all([
     readWatchlistsForExport(session.db, session.userId),
     readPositions(session.db, session.userId),
+    readSavedScriptsForExport(session.db, session.userId),
+    readChartLayoutsForExport(session.db, session.userId),
   ]);
   const positions = positionsRead.ok
     ? ({ ok: true, positions: positionsRead.positions } as const)
     : ({ ok: false, error: positionsRead.error } as const);
 
-  if (!watchlists.ok && !positions.ok) {
+  if (!watchlists.ok && !positions.ok && !savedScripts.ok && !chartLayouts.ok) {
     return NextResponse.json({ error: "export unavailable" }, { status: 503 });
   }
 
@@ -92,6 +98,8 @@ export async function GET(req: Request): Promise<Response> {
     generatedAt: new Date(now).toISOString(),
     watchlists,
     positions,
+    saved_scripts: savedScripts,
+    chart_layouts: chartLayouts,
   });
 
   const body = format === "csv" ? serializeCsv(doc) : serializeJson(doc);
