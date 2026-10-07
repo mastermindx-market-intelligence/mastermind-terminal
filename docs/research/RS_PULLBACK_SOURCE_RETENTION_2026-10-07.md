@@ -134,6 +134,14 @@ before any of its rows contribute to observations or the chart. Its byte receipt
 row count may be retained, with `failure_kind="invalid_response"`. These are request-consistency
 checks; they do not establish native security identity or action/adjustment-basis admission.
 
+Captured requests also use a private standard-urllib opener that refuses HTTP redirects before
+following `Location`, including same-host redirects. A first-request redirect records
+`failed`/`http_error`; a later-page redirect records `partial`/`http_error` and preserves only
+earlier safe response receipts. Redirect bodies are not successful aggregate-body receipts.
+The legacy noncapture transport remains unchanged. Synthetic integrations must inject the
+captured transport at `backfill_intraday._open_capture_request(request, *, timeout)` (the caller
+supplies `timeout=45`); patching `urllib.request.urlopen` alone does not intercept capture mode.
+
 ## Compaction, replay and preservation
 
 Only consecutive equal finalized raw payloads relative to the latest **complete** observation
@@ -208,7 +216,7 @@ python3 -m pytest tests/test_intraday_capture.py \
   tests/test_backfill_intraday_breaker.py tests/test_nightly_wiring.py -q
 ```
 
-Result after the review repairs: **238 passed** (51 capture cases), with four
+Result after the review repairs: **242 passed** (55 capture cases), with four
 unrelated existing pytest cleanup warnings. The new cases exercise actual injected HTTP-body
 read → fetch → atomic file → validated read, original values and secret exclusion, A/A/B/A,
 partial failure and recovery, first empty/short captures, malformed/transport failure, basis
@@ -222,6 +230,14 @@ or explicit matching invariants; response ticker contradictions on the first or 
 empty/forming-only/failed enabled-file recovery; and legacy empty/unreadable/missing refusal.
 Against the reviewed pre-repair source, the initial 18-case gate produced 14 failures and four
 passing controls. After repair, the expanded 19-case gate passed. All transports were injected.
+
+A second review gate exercises the standard urllib HTTP/error/redirect handler chain with a
+synthetic HTTPS handler and no network. Same-host wrong-grain redirects, cross-host redirects
+and a later-page redirect all failed their refusal assertions against pre-repair `ee385847`,
+while the direct valid-response control passed. After redirect refusal was added, all four
+passed: no redirected request was issued, no later payload was retained, and earlier safe
+receipts and chart bytes were preserved. Existing injected fixtures use the new private
+transport seam, including the concurrent-process and actual-file-entry checks.
 
 The parent also runs a reproducible cross-repository synthetic harness through the actual
 Macro reader and canonical RS selector. Its acceptance receipt belongs to the parent carrier;

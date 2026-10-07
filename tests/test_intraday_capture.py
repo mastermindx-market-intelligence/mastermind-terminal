@@ -15,6 +15,8 @@ import sys
 import threading
 import urllib.error
 from datetime import datetime, timezone
+from email.message import Message
+from urllib.response import addinfourl
 from pathlib import Path
 from unittest.mock import patch
 
@@ -28,6 +30,7 @@ ROOT = Path(__file__).resolve().parents[1]
 NOW = datetime(2026, 10, 7, 16, tzinfo=timezone.utc).timestamp()
 EVENT = int(datetime(2026, 10, 6, 14, tzinfo=timezone.utc).timestamp() * 1000)
 TOKEN = "capture-test-key-not-a-credential"
+CAPTURE_OPEN = getattr(writer, "_open_capture_request", None)
 
 
 def bar(index=0, *, close=100, volume=10):
@@ -46,7 +49,7 @@ def install(monkeypatch, body):
     def urlopen(request, *args, **kwargs):
         result = body(request) if callable(body) else body
         return io.BytesIO(result)
-    monkeypatch.setattr(writer.urllib.request, "urlopen", urlopen)
+    monkeypatch.setattr(writer, "_open_capture_request", urlopen)
 
 
 @pytest.fixture
@@ -62,6 +65,7 @@ def env(monkeypatch, tmp_path):
     def forbidden(*args, **kwargs):
         raise AssertionError("real transport forbidden")
     monkeypatch.setattr(writer.urllib.request, "urlopen", forbidden)
+    monkeypatch.setattr(writer, "_open_capture_request", forbidden)
     return writer.INTRADAY / "SPY.1m.json"
 
 
@@ -296,7 +300,7 @@ def test_cross_process_updates_serialize_entire_fetch_and_append(env, monkeypatc
             if block and not release.wait(5):
                 raise AssertionError("test release missing")
             return io.BytesIO(response([bar(close=close)]))
-        writer.urllib.request.urlopen = provider
+        writer._open_capture_request = provider
         exits.put(run())
 
     first = context.Process(target=child, args=(100.25, first_entered, True))
@@ -328,7 +332,10 @@ def test_actual_file_entry_pins_repo_and_captures_from_outside_checkout(tmp_path
     script = ROOT / "ingest" / "backfill_intraday.py"
     program = (
         "import io,runpy,sys,urllib.request\n"
-        f"urllib.request.urlopen=lambda *a,**k: io.BytesIO({body!r})\n"
+        "from types import SimpleNamespace\n"
+        "def forbidden(*a,**k): raise AssertionError('urlopen transport forbidden')\n"
+        "urllib.request.urlopen=forbidden\n"
+        f"urllib.request.build_opener=lambda *handlers: SimpleNamespace(open=lambda *a,**k: io.BytesIO({body!r}))\n"
         f"sys.argv=[{str(script)!r},'--capture-minutes','--symbols','SPY','--workers','1']\n"
         f"runpy.run_path({str(script)!r},run_name='__main__')\n")
     environment = dict(os.environ, POLYGON_API_KEY=TOKEN, TERMINAL_DATA_DIR=str(tmp_path / "out"),
@@ -543,3 +550,89 @@ def test_reviewed_legacy_empty_unreadable_missing_stays_refused(env, monkeypatch
         2 if legacy == "missing" else 1)
     assert calls == []
     assert (env.read_bytes() if env.exists() else None) == before
+
+
+def install_standard_urllib_transport(monkeypatch, provider):
+    """Use standard urllib HTTP/error/redirect dispatch with synthetic HTTPS bodies."""
+    build_opener = writer.urllib.request.build_opener
+    class SyntheticHTTPSHandler(writer.urllib.request.HTTPSHandler):
+        def https_open(self, request):
+            code, location, body = provider(request)
+            headers = Message()
+            if location is not None:
+                headers["Location"] = location
+            result = addinfourl(io.BytesIO(body), headers, request.full_url, code)
+            result.msg = "Found" if code == 302 else "OK"
+            return result
+    def injected_opener(*handlers):
+        return build_opener(*handlers, SyntheticHTTPSHandler())
+    monkeypatch.setattr(writer.urllib.request, "build_opener", injected_opener)
+    # Support reproducing the old urlopen path and testing the repaired private opener.
+    monkeypatch.setattr(writer.urllib.request, "urlopen", injected_opener().open)
+    if CAPTURE_OPEN is not None:
+        monkeypatch.setattr(writer, "_open_capture_request", CAPTURE_OPEN)
+
+
+@pytest.mark.parametrize("destination", ["wrong_grain", "cross_host"])
+def test_redirect_capture_refuses_before_following(env, monkeypatch, destination):
+    install(monkeypatch, response([bar()]))
+    assert run() == 0
+    before = read(env)
+    calls = []
+    def provider(request):
+        calls.append(request.full_url)
+        if len(calls) == 1:
+            location = (request.full_url.replace("/range/1/minute/", "/range/5/minute/")
+                        if destination == "wrong_grain" else "https://other.invalid/redirect")
+            return 302, location, b"redirect body must not become an aggregate receipt"
+        return 200, None, response([bar(close=100.25)], ticker="SPY")
+    install_standard_urllib_transport(monkeypatch, provider)
+    assert run() == 1
+    assert len(calls) == 1
+    after = read(env)
+    assert after["bars"] == before["bars"]
+    assert after["minute_capture"]["captures"][0] == before["minute_capture"]["captures"][0]
+    payload = payloads(env)[-1]
+    assert payload["status"] == "failed" and payload["failure_kind"] == "http_error"
+    assert payload["pages"] == [] and payload["observations"] == []
+    assert TOKEN.encode() not in env.read_bytes()
+    assert b"other.invalid" not in env.read_bytes()
+
+
+def test_redirect_capture_later_page_preserves_only_earlier_safe_receipt(env, monkeypatch):
+    install(monkeypatch, response([bar()]))
+    assert run() == 0
+    before = read(env)
+    calls = []
+    def provider(request):
+        calls.append(request.full_url)
+        if len(calls) == 1:
+            return 200, None, response([bar(close=100.25)], ticker="SPY",
+                                       next_url=cursor_url(request))
+        if len(calls) == 2:
+            return 302, request.full_url.replace("/range/1/minute/", "/range/5/minute/"), b""
+        return 200, None, response([bar(1, close=100.5)], ticker="SPY")
+    install_standard_urllib_transport(monkeypatch, provider)
+    assert run() == 1
+    assert len(calls) == 2
+    after = read(env)
+    assert after["bars"] == before["bars"]
+    assert after["minute_capture"]["captures"][0] == before["minute_capture"]["captures"][0]
+    payload = payloads(env)[-1]
+    assert payload["status"] == "partial" and payload["failure_kind"] == "http_error"
+    assert len(payload["pages"]) == 1
+    assert [item["raw"]["c"] for item in payload["observations"]] == [100.25]
+    assert payload["counts"]["unchanged_suppressed"] == 0
+
+
+def test_redirect_capture_direct_standard_urllib_response_still_succeeds(env, monkeypatch):
+    calls = []
+    def provider(request):
+        calls.append(request.full_url)
+        return 200, None, response([bar(volume=1.25)], ticker="SPY")
+    install_standard_urllib_transport(monkeypatch, provider)
+    assert run() == 0
+    assert len(calls) == 1
+    payload = payloads(env)[0]
+    assert payload["status"] == "complete" and len(payload["pages"]) == 1
+    assert payload["observations"][0]["raw"]["v"] == 1.25

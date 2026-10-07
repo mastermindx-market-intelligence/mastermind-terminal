@@ -215,13 +215,26 @@ def _tf_seconds(tf: str) -> int:
     raise ValueError(f"unsupported tf unit {unit!r}")
 
 
+class _CaptureNoRedirect(urllib.request.HTTPRedirectHandler):
+    """A redirect cannot change a captured aggregate request's identity."""
+
+    def redirect_request(self, req, fp, code, msg, headers, newurl):
+        return None
+
+
+def _open_capture_request(request, *, timeout):
+    # Use a private opener; the ordinary producer's global transport is unchanged.
+    return urllib.request.build_opener(_CaptureNoRedirect()).open(request, timeout=timeout)
+
+
 def _get(url: str, tries: int = 5, *, capture=None) -> dict:
     last_error: Exception | None = None
     for attempt in range(tries):
         try:
             req = urllib.request.Request(url, headers={"User-Agent": "terminal-intraday/1.0"})
             requested_ns = capture.clock() if capture is not None else None
-            with urllib.request.urlopen(req, timeout=45) as r:
+            open_request = _open_capture_request if capture is not None else urllib.request.urlopen
+            with open_request(req, timeout=45) as r:
                 raw = (r.read(capture_owner.MAX_RESPONSE_BYTES + 1)
                        if capture is not None else r.read())
                 received_ns = capture.clock() if capture is not None else None
