@@ -237,6 +237,13 @@ def _get(url: str, tries: int = 5, *, capture=None) -> dict:
             with open_request(req, timeout=45) as r:
                 raw = (r.read(capture_owner.MAX_RESPONSE_BYTES + 1)
                        if capture is not None else r.read())
+                # Bounded HTTPResponse.read() can return a valid JSON prefix at
+                # premature Content-Length EOF without raising IncompleteRead.
+                # Oversize still reaches received() for its immediate hard refusal.
+                if (capture is not None
+                        and len(raw) <= capture_owner.MAX_RESPONSE_BYTES
+                        and getattr(r, "length", None) not in (None, 0)):
+                    raise OSError("captured aggregate response ended before Content-Length")
                 received_ns = capture.clock() if capture is not None else None
             if capture is not None:
                 page = capture.received(raw, requested_ns, received_ns)

@@ -861,3 +861,131 @@ def test_missing_declaration_empty_capture_recovers_via_existing_owner(env, monk
     assert doc["minute_capture"]["captures"][0] == original
     assert len(doc["minute_capture"]["captures"]) == 2 and len(doc["bars"]) == 1
     assert doc["minute_capture"]["captures"][-1]["payload"]["observations"][0]["raw"]["v"] == 0.125
+
+
+# Actual HTTP framing controls: a valid JSON prefix is not transport completion.
+_FRAMING_FLAGS = ("--capture-minutes",)
+
+
+def _framed_http_response(body, kind):
+    import http.client
+    class Socket:
+        def makefile(self, mode):
+            return io.BytesIO(wire)
+    if kind in ("chunked", "truncated_chunked"):
+        wire = (b"HTTP/1.1 200 OK\r\nTransfer-Encoding: chunked\r\n\r\n"
+                + format(len(body), "x").encode() + b"\r\n" + body + b"\r\n")
+        if kind == "chunked":
+            wire += b"0\r\n\r\n"
+    elif kind == "eof":
+        wire = b"HTTP/1.1 200 OK\r\nConnection: close\r\n\r\n" + body
+    else:
+        declared = len(body) + (10 if kind == "short_length" else 0)
+        wire = (b"HTTP/1.1 200 OK\r\nContent-Length: " + str(declared).encode()
+                + b"\r\n\r\n" + body)
+    result = http.client.HTTPResponse(Socket())
+    result.begin()
+    return result
+
+
+def _run_framed(flag):
+    return writer.main([flag, "--symbols", "SPY", "--tf", "1m", "--workers", "1"])
+
+
+@pytest.mark.parametrize("flag", _FRAMING_FLAGS)
+@pytest.mark.parametrize("kind", ["length", "chunked", "eof"])
+def test_captured_http_complete_framing_positive(env, monkeypatch, flag, kind):
+    calls = []
+    raw = flag == "--capture-unadjusted-minutes"
+    body = response([bar(volume=1.25)], adjusted=not raw)
+    def transport(request, *, timeout):
+        calls.append(request.full_url)
+        assert timeout == 45
+        return _framed_http_response(body, kind)
+    monkeypatch.setattr(writer, "_open_capture_request", transport)
+    assert _run_framed(flag) == 0 and len(calls) == 1
+    doc = read(env)
+    payload = payloads(env)[-1]
+    assert payload["status"] == "complete" and payload["failure_kind"] is None
+    assert len(payload["pages"]) == len(payload["observations"]) == 1
+    assert payload["pages"][0]["response_bytes"] == len(body)
+    assert payload["pages"][0]["response_sha256"] == hashlib.sha256(body).hexdigest()
+    assert payload["chart_eligible"] is (not raw)
+    assert len(doc["bars"]) == (0 if raw else 1)
+
+
+@pytest.mark.parametrize("flag", _FRAMING_FLAGS)
+@pytest.mark.parametrize("kind", ["short_length", "truncated_chunked"])
+def test_captured_http_incomplete_first_page_retains_existing_transport_failure(env, monkeypatch, flag, kind):
+    calls = []
+    raw = flag == "--capture-unadjusted-minutes"
+    def transport(request, *, timeout):
+        calls.append(request.full_url)
+        return _framed_http_response(response([bar()], adjusted=not raw), kind)
+    monkeypatch.setattr(writer, "_open_capture_request", transport)
+    assert _run_framed(flag) == 1
+    assert len(calls) == 5
+    payload = payloads(env)[-1]
+    assert payload["status"] == "failed" and payload["failure_kind"] == "transport_exhausted"
+    assert payload["pages"] == payload["observations"] == []
+    assert payload["chart_eligible"] is False and read(env)["bars"] == []
+    assert TOKEN.encode() not in env.read_bytes()
+
+
+@pytest.mark.parametrize("flag", _FRAMING_FLAGS)
+@pytest.mark.parametrize("kind", ["short_length", "truncated_chunked"])
+def test_captured_http_later_page_retains_only_complete_prefix_and_preserves_chart(env, monkeypatch, flag, kind):
+    install(monkeypatch, response([bar(i) for i in range(25)]))
+    assert run() == 0
+    before = read(env)
+    calls = []
+    raw = flag == "--capture-unadjusted-minutes"
+    def transport(request, *, timeout):
+        calls.append(request.full_url)
+        if "cursor=next" not in request.full_url:
+            body = response([bar(close=100.25)], adjusted=not raw, next_url=cursor_url(request))
+            return _framed_http_response(body, "length")
+        return _framed_http_response(response([bar(1, close=100.5)], adjusted=not raw), kind)
+    monkeypatch.setattr(writer, "_open_capture_request", transport)
+    assert _run_framed(flag) == 1 and len(calls) == 6
+    after = read(env)
+    payload = payloads(env)[-1]
+    assert payload["status"] == "partial" and payload["failure_kind"] == "transport_exhausted"
+    assert len(payload["pages"]) == len(payload["observations"]) == 1
+    assert payload["observations"][0]["raw"]["c"] == 100.25
+    assert payload["chart_eligible"] is False
+    assert {k: v for k, v in after.items() if k != "minute_capture"} == {k: v for k, v in before.items() if k != "minute_capture"}
+    assert after["minute_capture"]["captures"][0] == before["minute_capture"]["captures"][0]
+
+
+@pytest.mark.parametrize("flag", _FRAMING_FLAGS)
+def test_captured_http_oversize_keeps_immediate_refusal_before_framing_retry(env, monkeypatch, flag):
+    install(monkeypatch, response([bar()]))
+    assert run() == 0
+    before = env.read_bytes()
+    # Keep the prior sealed page valid; only the new response exceeds this cap.
+    monkeypatch.setattr(cap, "MAX_RESPONSE_BYTES", len(response([bar()])) + 8)
+    calls, responses = [], []
+    def transport(request, *, timeout):
+        calls.append(request.full_url)
+        result = _framed_http_response(response([bar()], adjusted=flag != "--capture-unadjusted-minutes", padding="x" * 512), "short_length")
+        responses.append(result)
+        return result
+    monkeypatch.setattr(writer, "_open_capture_request", transport)
+    assert _run_framed(flag) == 1
+    assert len(calls) == 1 and responses[0].length > 0
+    assert env.read_bytes() == before
+
+
+def test_noncapture_http_read_behavior_is_unchanged(monkeypatch):
+    calls = []
+    body = response([bar()])
+    def legacy(request, *, timeout):
+        calls.append(request.full_url)
+        return _framed_http_response(body, "short_length")
+    monkeypatch.setattr(writer.urllib.request, "urlopen", legacy)
+    # The legacy unbounded read already raises IncompleteRead and retries.
+    monkeypatch.setattr(writer.time, "sleep", lambda _: None)
+    with pytest.raises(writer.TransportExhausted):
+        writer._get("https://example.invalid/legacy")
+    assert len(calls) == 5

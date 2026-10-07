@@ -332,3 +332,26 @@ It used the private injected transport and a temporary store. Source hashes and 
 review belong to the frozen worker packet. The Phase 1 verdict remains **NOT_ADMITTED**, all
 authority flags remain false, and no outcome or scientific hypothesis is tested by these
 engineering controls.
+
+
+## Captured HTTP Content-Length completeness repair
+
+The captured-read path checks outstanding declared Content-Length before creating
+a successful page receipt or decoding an in-bound body. Python's bounded
+`HTTPResponse.read(size)` can return a syntactically valid JSON prefix while
+declared bytes remain outstanding; such a response now follows the existing
+bounded transport retry path. Five failed attempts yield `transport_exhausted`: a
+first-page failure records no successful pages or observations, and a later-page
+failure retains only prior complete-page observations in a partial acquisition.
+Neither case publishes chart data or becomes chart-eligible. These failed HTTP
+attempts do not acquire successful response receipts, matching the existing
+truncated-chunked behavior; no new wire or failure diagnostic is introduced.
+
+Complete Content-Length, complete chunked and normal EOF-delimited responses remain
+supported. A response exceeding `MAX_RESPONSE_BYTES` retains the existing immediate
+capacity refusal without extra framing retries or a truncated page receipt; the
+prior valid file stays byte-identical. Noncapture reads, retry policy, private
+redirect guard, helpers, sealed prefixes, roles and compaction remain unchanged.
+The same transport check is applied to both v2 and v3 producers. Verification uses
+real `http.client.HTTPResponse` framing with synthetic sockets, existing CLI/store
+paths and temporary stores; it establishes no provider or historical availability.
