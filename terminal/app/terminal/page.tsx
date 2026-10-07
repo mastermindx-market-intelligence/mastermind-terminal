@@ -5,6 +5,13 @@ import TerminalShell from "@/components/TerminalShell";
 import { canonicalChartSymbol, criticalTerminalDataUrls, resolveTerminalLandingSymbol } from "@/lib/terminalBoot";
 import { canonicalEpisodeId } from "@/lib/dislocations/episodeDeepLink";
 import { preload } from "react-dom";
+import { readFirstOwnedWatchlistWithSymbols, type WatchlistDb } from "@/lib/watchlists";
+
+async function provisioningScreen() {
+  const { default: ProvisioningRetry } = await import("@/components/ProvisioningRetry");
+  const { T } = await import("@/components/LocalizedCopy");
+  return <main className="center"><div className="hero"><T as="h1" k="provSettingUp" style={{ fontSize: 20 }} /><T as="p" k="provOneMoment" className="tag" /><ProvisioningRetry /></div></main>;
+}
 
 // dynamic='auto': supabase reads cookies → Next auto-detects dynamic; no need to force it.
 
@@ -107,9 +114,11 @@ export default async function Terminal({ searchParams }: { searchParams: Promise
   // UPSERT, not insert: right after signup the router.refresh and the page load race
   // this block concurrently — a plain insert made the loser error out and fall through
   // with no row visible yet (operator-reported stuck "Setting up your workspace").
-  const { data: lists0 } = await supabase.from("watchlists").select("id,name").order("position");
-  let lists = lists0;
-  if (!lists || lists.length === 0) {
+  const db = supabase as unknown as WatchlistDb;
+  let landing = await readFirstOwnedWatchlistWithSymbols(db, user.id);
+  // Unknown inventory is not an empty account: never upsert/seed because a read failed.
+  if (landing.status === "unavailable") return provisioningScreen();
+  if (!landing.list) {
     const { data: wl } = await supabase
       .from("watchlists")
       .upsert({ user_id: user!.id, name: "Default", position: 0 }, { onConflict: "user_id,name" })
@@ -127,7 +136,7 @@ export default async function Terminal({ searchParams }: { searchParams: Promise
       //     before the unique index that produced TWELVE Default rows, six of them duplicates.
       const { count, error: countError } = await supabase.from("watchlist_symbols")
         .select("watchlist_id", { count: "exact", head: true }).eq("watchlist_id", wl.id);
-      if (!countError && !count) {
+      if (!countError && count === 0) {
         const { seedMembership } = await import("@/lib/watchlists");
         await seedMembership(supabase as never,
           guestSymbols.map(([section, symbol], i) => ({ watchlist_id: wl.id, section, symbol, position: i })));
@@ -135,23 +144,16 @@ export default async function Terminal({ searchParams }: { searchParams: Promise
     }
     // Re-read with a short backoff — the concurrent request's commit can land a beat later.
     for (let attempt = 0; attempt < 3; attempt++) {
-      ({ data: lists } = await supabase.from("watchlists").select("id,name").order("position"));
-      if (lists && lists.length > 0) break;
+      landing = await readFirstOwnedWatchlistWithSymbols(db, user.id);
+      if (landing.status === "unavailable") return provisioningScreen();
+      if (landing.list) break;
       await new Promise((r) => setTimeout(r, 350));
     }
   }
-  const active = lists?.[0];
-  if (!active) {
-    // Still nothing after the retries — render the honest holding screen, but with
-    // AUTO-RECOVERY (bounded refresh loop + manual Retry), never a dead end.
-    const { default: ProvisioningRetry } = await import("@/components/ProvisioningRetry");
-    const { T } = await import("@/components/LocalizedCopy");
-    return <main className="center"><div className="hero"><T as="h1" k="provSettingUp" style={{ fontSize: 20 }} /><T as="p" k="provOneMoment" className="tag" /><ProvisioningRetry /></div></main>;
-  }
-  const { data: syms } = await supabase
-    .from("watchlist_symbols").select("symbol,section").eq("watchlist_id", active.id).order("position");
-
-  const rows = (syms as { symbol: string; section: string }[] | null) || [];
+  if (!landing.list) return provisioningScreen();
+  // Keep the original shell row projection, including nullable pre-section-migration values.
+  // The combined read changes request scheduling, not symbols, sections, or landing selection.
+  const rows = landing.list.symbols as { symbol: string; section: string }[];
   preloadChartData(resolveTerminalLandingSymbol(initialSymbol, rows));
   // `userId`, not `email`, is what watchlist local state is namespaced by: an address can be
   // changed and reassigned, the auth uuid cannot, and a durable owner key that can be recycled is
