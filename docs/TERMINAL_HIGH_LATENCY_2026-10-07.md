@@ -25,7 +25,7 @@ The following are individual diagnostic samples from the connected development h
 
 The JS/CSS census comprises 919,096 bytes of JavaScript and 112,328 bytes of CSS. It excludes later dynamic chunks, fonts, Brain, and subsequent API/data requests. It is not a complete browser HAR.
 
-Brotli is already available: an explicit Brotli request for the largest sampled chunk returned `content-encoding: br`. A later `br,gzip` census observed mixed compressed variants and 1,027,780 total JS/CSS bytes. Enabling compression is therefore not an established missing fix.
+Brotli is already available: an explicit Brotli request for the largest sampled chunk returned `content-encoding: br`. A later `br,gzip` census observed mixed compressed variants and 1,027,780 total JS/CSS bytes. A further Brotli-only census of the same 35 assets at the same release returned 1,012,061 bytes, about 1.9% below the gzip census. Enabling compression is therefore not an established missing fix, and compression choice alone does not explain the loading problem.
 
 The root URL also incurs a cached-capable 307 redirect to `/terminal`. Starting directly at `/terminal` avoids that navigation hop.
 
@@ -87,9 +87,11 @@ The next network evaluation should compare the actual current configuration with
 ## Verification and release record
 
 - Focused tests: 92/92 passed across the new server-startup suite (30), canonical watchlists (30), grant reads (13), and boot contracts (19).
-- TypeScript: `npx tsc --noEmit` passed.
+- Complete unit suite under Node 20.20.2: 469/469 suites passed; 7,727 tests passed and four existing TODOs remained (7,731 total).
+- TypeScript passed under both the normal host runtime and Node 20.
 - Production build: `npm run build` passed.
-- Independent read-only review: PASS on the exact three-file SHA256 values below.
+- Independent read-only review: PASS on the production page/helper and initial transport suite. Parent review accepted the subsequent test-only CI repair; final reviewed hashes are below.
+- First hosted CI exposed a test harness portability error: Supabase resolves a realtime constructor even for REST-only clients, while Node 20 lacks native WebSocket. The harness now supplies a test-only transport that fails on any attempted socket; real REST serialization and actual page execution remain. The obsolete count source-string assertion was replaced by the existing actual-transport coverage. The failure was reproduced, both focused runtime runs passed 45/45, and the full Node 20 suite then passed.
 - Deployed anonymous PostgREST preflight: HTTP 200 and an empty array for a nonexistent owner using the embedded query shape. This proves deployed syntax/FK acceptance, not authenticated nonempty membership order or completeness.
 - Responsive preload checks: 18/18 passed at desktop 1440×900, tablet 820×1180, and mobile 390×844, covering actual preload reuse, canonical and malformed deep links, and the unknown-symbol state. These use the existing fixture mode and do not execute a private production account read.
 - This document records local acceptance and the baseline assessment. Required hosted CI, merge SHA, deployment identity, and live verification belong to the associated PR/release receipt; these local results alone do not claim release acceptance.
@@ -98,7 +100,8 @@ The next network evaluation should compare the actual current configuration with
 | --- | --- |
 | `terminal/app/terminal/page.tsx` | `7dca3460aaa24eaa51d25396e029f114831735d74ff37e8135b0318bd1076bbb` |
 | `terminal/lib/watchlists.ts` | `7ffa9055bc4f2ebb9f05b73e08b42907033b5cb0f547e7d94cb9a28c501dbabd` |
-| `terminal/lib/__tests__/terminalServerStartup.test.tsx` | `d16138284d9d97597daa5b0ee6de42da4853d8816d9b05eca06e0799f06348c4` |
+| `terminal/lib/__tests__/terminalServerStartup.test.tsx` | `e00cf26bd9e93e68ce0cfe8b11818c2820d7e09d53bd5895c2c749a6bcb0dfbb` |
+| `terminal/lib/__tests__/watchlistOwner.test.ts` | `7b11eb9169f0c6f703d101b8aa737c905cdd340520588ddfc6c7e8be4fa36a07` |
 
 ### Proof still owed for the broader mission
 

@@ -39,6 +39,12 @@ function deferred<T>() {
   return { promise, resolve };
 }
 
+// Supabase resolves a realtime constructor even for REST-only clients; Node 20 has none.
+// Any attempted socket remains a test failure, including when SDK code catches the error.
+const rejectRealtimeConnection = vi.fn(function (): never {
+  throw new Error("Unexpected realtime connection in REST-only startup test");
+});
+
 function transport() {
   const state = {
     lists: [{ id: "owned", name: "Default", user_id: OWNER, position: 0 }] as List[],
@@ -126,6 +132,7 @@ function transport() {
   };
   const client = createSupabaseClient("https://startup-test.supabase.co", "test-public-key", {
     global: { fetch: fetcher },
+    realtime: { transport: rejectRealtimeConnection },
     auth: { persistSession: false, autoRefreshToken: false, detectSessionInUrl: false },
   });
   vi.spyOn(client.auth, "getUser").mockResolvedValue({
@@ -142,12 +149,14 @@ const writes = (state: ReturnType<typeof transport>["state"]) => state.calls.fil
 const holding = (element: ReactElement) => expect(renderToStaticMarkup(element)).toContain("provisioning-retry");
 
 beforeEach(() => {
+  rejectRealtimeConnection.mockClear();
   H.preload.mockReset();
   H.cookies.clear();
   vi.stubEnv("TERMINAL_E2E_FIXTURE", "");
   vi.stubEnv("HUB_REALTIME_QUOTES", "");
 });
 afterEach(() => {
+  expect(rejectRealtimeConnection).not.toHaveBeenCalled();
   vi.useRealTimers();
   vi.restoreAllMocks();
   vi.unstubAllEnvs();
