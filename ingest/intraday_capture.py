@@ -17,7 +17,12 @@ import uuid
 from contextlib import contextmanager
 from pathlib import Path
 
-SCHEMA = "mastermind.intraday_minute_capture.v1"
+SCHEMA_V1 = "mastermind.intraday_minute_capture.v1"
+SCHEMA = "mastermind.intraday_minute_capture.v2"
+PAYLOAD_SCHEMA_V2 = "mastermind.intraday_minute_capture_payload.v2"
+ADJUSTED_STATES = frozenset({
+    "TRUE", "FALSE", "MISSING", "NULL", "INVALID_TYPE", "UNPARSED", "AMBIGUOUS",
+})
 OBSERVER_ID = "terminal.backfill_intraday"
 GENESIS_SHA256 = "0" * 64
 AUTHORITY = {"research_admitted": False, "trading_authority": False}
@@ -161,11 +166,64 @@ def raw_minute(bar: dict) -> dict:
     return {key: bar[key] for key in ("t", "o", "h", "l", "c", "v") if key in bar}
 
 
+class _ResponseObject(dict):
+    """Track duplicate keys while retaining no extra provider metadata in receipts."""
+    def __init__(self, pairs):
+        super().__init__(pairs)
+        self.adjusted_count = sum(key == "adjusted" for key, _ in pairs)
+
+
+def decode_response(raw: bytes, page: dict):
+    """Normalize the actual top-level declaration without retaining its payload."""
+    try:
+        body = json.loads(raw, object_pairs_hook=_ResponseObject)
+    except (ValueError, UnicodeError):
+        raise CaptureError("malformed_response") from None
+    if isinstance(body, _ResponseObject):
+        if body.adjusted_count > 1:
+            state = "AMBIGUOUS"
+        elif not body.adjusted_count:
+            state = "MISSING"
+        elif body["adjusted"] is True:
+            state = "TRUE"
+        elif body["adjusted"] is False:
+            state = "FALSE"
+        elif body["adjusted"] is None:
+            state = "NULL"
+        else:
+            state = "INVALID_TYPE"
+        page["response_adjusted"] = {"state": state}
+    return body
+
+
+def _v2(payload: dict) -> bool:
+    if "schema" not in payload:
+        return False
+    if payload["schema"] != PAYLOAD_SCHEMA_V2:
+        raise CaptureError("capture_schema_invalid")
+    return True
+
+
+def chart_eligible(payload: dict) -> bool:
+    """A returned TRUE declaration supports this request, not full basis admission."""
+    return (payload["status"] == "complete" and bool(payload["pages"])
+            and all(page["response_adjusted"] == {"state": "TRUE"}
+                    for page in payload["pages"]))
+
+
+def _observation_identity(payload: dict, observation: dict) -> bytes:
+    declaration = (payload["pages"][observation["page_index"]]["response_adjusted"]
+                   if _v2(payload) else {"state": "UNRECORDED"})
+    return canonical_bytes({"raw": observation["raw"], "response_adjusted": declaration})
+
+
 def validate_payload(payload: dict, symbol: str) -> None:
+    v2 = _v2(payload)
     _keys(payload, ("symbol", "timeframe", "source", "status", "failure_kind",
                     "started_at_utc_ns", "completed_at_utc_ns",
                     "finality_reference_utc_ns", "finality_lag_s",
-                    "request", "pages", "observations", "counts"))
+                    "request", "pages", "observations", "counts")
+          + (("schema", "chart_eligible") if v2 else ()))
     if (payload["symbol"] != symbol or not valid_symbol(symbol)
             or payload["timeframe"] != "1m" or payload["source"] != "polygon"
             or payload["status"] not in ("complete", "partial", "failed")
@@ -208,7 +266,15 @@ def validate_payload(payload: dict, symbol: str) -> None:
     for index, page in enumerate(pages):
         _keys(page, ("page_index", "request_started_at_utc_ns", "response_received_at_utc_ns",
                      "response_sha256", "response_bytes", "status", "rows_received",
-                     "finalized_rows", "forming_skipped"))
+                     "finalized_rows", "forming_skipped")
+              + (("response_adjusted",) if v2 else ()))
+        if v2:
+            _keys(page["response_adjusted"], ("state",))
+            state = page["response_adjusted"]["state"]
+            if not isinstance(state, str) or state not in ADJUSTED_STATES:
+                raise CaptureError("capture_adjusted_declaration_invalid")
+            if page["status"] != "INVALID" and state == "UNPARSED":
+                raise CaptureError("capture_adjusted_declaration_invalid")
         for field in ("page_index", "request_started_at_utc_ns", "response_received_at_utc_ns",
                       "response_bytes", "rows_received", "finalized_rows", "forming_skipped"):
             _nat(page[field])
@@ -223,6 +289,9 @@ def validate_payload(payload: dict, symbol: str) -> None:
             raise CaptureError("capture_page_invalid")
         for key in totals:
             totals[key] += page[key]
+    if v2 and (type(payload["chart_eligible"]) is not bool
+               or payload["chart_eligible"] != chart_eligible(payload)):
+        raise CaptureError("capture_chart_eligibility_invalid")
     if status == "complete" and not pages:
         raise CaptureError("capture_page_missing")
     if any(counts[key] != total for key, total in totals.items()):
@@ -254,7 +323,7 @@ def validate_payload(payload: dict, symbol: str) -> None:
 
 def validate_envelope(envelope: dict, symbol: str) -> dict:
     _keys(envelope, ("schema", "observer_id", "authority", "captures", "prefix_sha256"))
-    if (envelope["schema"] != SCHEMA or envelope["observer_id"] != OBSERVER_ID
+    if (envelope["schema"] not in (SCHEMA_V1, SCHEMA) or envelope["observer_id"] != OBSERVER_ID
             or envelope["authority"] != AUTHORITY):
         raise CaptureError("capture_envelope_invalid")
     _keys(envelope["authority"], AUTHORITY)
@@ -265,7 +334,7 @@ def validate_envelope(envelope: dict, symbol: str) -> dict:
         raise CaptureError("capture_envelope_invalid")
     if len(records) > MAX_CAPTURES:
         raise CaptureCapacity("capture_count_capacity")
-    previous, ids = GENESIS_SHA256, set()
+    previous, ids, seen_v2 = GENESIS_SHA256, set(), False
     for sequence, record in enumerate(records, 1):
         _keys(record, ("sequence", "capture_id", "previous_capture_sha256",
                        "payload_sha256", "payload", "capture_sha256"))
@@ -275,6 +344,10 @@ def validate_envelope(envelope: dict, symbol: str) -> dict:
                 or cid in ids or record["previous_capture_sha256"] != previous):
             raise CaptureError("capture_sequence_invalid")
         ids.add(cid)
+        v2 = _v2(record["payload"])
+        if (v2 and envelope["schema"] == SCHEMA_V1) or (seen_v2 and not v2):
+            raise CaptureError("capture_schema_order_invalid")
+        seen_v2 = seen_v2 or v2
         validate_payload(record["payload"], symbol)
         if digest(record["payload"]) != record["payload_sha256"]:
             raise CaptureError("capture_payload_seal_invalid")
@@ -303,6 +376,8 @@ def append_capture(envelope: dict, payload: dict, capture_id: str) -> dict:
               "payload_sha256": digest(payload), "payload": copy.deepcopy(payload)}
     record["capture_sha256"] = digest(record)
     result = copy.deepcopy(envelope)
+    if _v2(payload):
+        result["schema"] = SCHEMA
     result["captures"].append(record)
     result["prefix_sha256"] = record["capture_sha256"]
     validate_envelope(result, payload["symbol"])
@@ -321,6 +396,8 @@ def append_sealed_capture(envelope: dict, record: dict) -> dict:
     if len(envelope["captures"]) >= MAX_CAPTURES:
         raise CaptureCapacity("capture_count_capacity")
     result = copy.deepcopy(envelope)
+    if _v2(record["payload"]):
+        result["schema"] = SCHEMA
     result["captures"].append(copy.deepcopy(record))
     result["prefix_sha256"] = record["capture_sha256"]
     validate_envelope(result, symbol)
@@ -336,10 +413,10 @@ def compact_complete(envelope: dict, payload: dict) -> dict:
     for record in envelope["captures"]:
         if record["payload"]["status"] == "complete":
             for observation in record["payload"]["observations"]:
-                latest[observation["event_start_utc_ms"]] = canonical_bytes(observation["raw"])
+                latest[observation["event_start_utc_ms"]] = _observation_identity(record["payload"], observation)
     retained = []
     for observation in result["observations"]:
-        key, raw = observation["event_start_utc_ms"], canonical_bytes(observation["raw"])
+        key, raw = observation["event_start_utc_ms"], _observation_identity(result, observation)
         if latest.get(key) == raw:
             result["counts"]["unchanged_suppressed"] += 1
         else:
@@ -357,7 +434,8 @@ class CaptureAttempt:
         self.capture_id = capture_id or uuid.uuid4().hex
         self.sealed_record = None
         self.source_payload_sha256 = None
-        self.data = {"symbol": symbol, "timeframe": "1m", "source": "polygon",
+        self.data = {"schema": PAYLOAD_SCHEMA_V2, "chart_eligible": False,
+                     "symbol": symbol, "timeframe": "1m", "source": "polygon",
                      "status": "failed", "failure_kind": "source_failure",
                      "started_at_utc_ns": clock(), "completed_at_utc_ns": None,
                      "finality_reference_utc_ns": finality_reference_utc_ns,
@@ -375,7 +453,8 @@ class CaptureAttempt:
         page = {"page_index": len(pages), "request_started_at_utc_ns": requested_ns,
                 "response_received_at_utc_ns": received_ns,
                 "response_sha256": hashlib.sha256(raw).hexdigest(), "response_bytes": len(raw),
-                "status": "INVALID", "rows_received": 0, "finalized_rows": 0, "forming_skipped": 0}
+                "status": "INVALID", "rows_received": 0, "finalized_rows": 0, "forming_skipped": 0,
+                "response_adjusted": {"state": "UNPARSED"}}
         pages.append(page)
         return page
 
@@ -384,6 +463,7 @@ class CaptureAttempt:
         self.data["status"] = ("complete" if failure_kind is None else
                                "partial" if self.data["pages"] else "failed")
         self.data["failure_kind"] = failure_kind
+        self.data["chart_eligible"] = chart_eligible(self.data)
         for field in ("rows_received", "finalized_rows", "forming_skipped"):
             self.data["counts"][field] = sum(page[field] for page in self.data["pages"])
         self.data["counts"]["observations_retained"] = len(self.data["observations"])
