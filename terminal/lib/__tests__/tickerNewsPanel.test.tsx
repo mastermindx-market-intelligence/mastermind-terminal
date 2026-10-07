@@ -80,6 +80,26 @@ function response(body: unknown, status = 200) {
   }));
 }
 
+const SHARED_GROUP_STORY_ID = "ev2_shared_grp";
+
+/** Parser-valid grouped story with two members; same story_id, distinct member headlines per ticker fixture. */
+function twoMemberStoryDetail(
+  storyId: string,
+  primaryMemberTitle: string,
+  earlierMemberTitle: string,
+) {
+  return {
+    schema: "ticker_news.story.v1",
+    story_id: storyId,
+    source_count: 1,
+    item_count: 2,
+    members: [
+      row(storyId, primaryMemberTitle, 2, 2),
+      { ...row(storyId, earlierMemberTitle, 1, 2), source_item_id: storyId + "-earlier" },
+    ],
+  };
+}
+
 function deferredStoryJson(body: unknown, status = 200) {
   let releaseJson!: (value: unknown) => void;
   let enteredJson!: () => void;
@@ -326,29 +346,24 @@ describe("TickerNewsPanel", () => {
   });
 
   it("ignores a stale prior-symbol json completion while the current symbol detail is pending", async () => {
-    const aaplDeferred = deferredStoryJson({
-      schema: "ticker_news.story.v1",
-      story_id: "ev2_aapl_grp",
-      source_count: 1,
-      item_count: 2,
-      members: [row("ev2_aapl_grp", "Apple grouped detail", 2, 2)],
-    });
-    const msftDeferred = deferredStoryJson({
-      schema: "ticker_news.story.v1",
-      story_id: "ev2_msft_grp",
-      source_count: 1,
-      item_count: 2,
-      members: [row("ev2_msft_grp", "Microsoft grouped detail", 2, 2)],
-    });
+    const aaplDeferred = deferredStoryJson(
+      twoMemberStoryDetail(SHARED_GROUP_STORY_ID, "Apple member primary", "Apple member earlier"),
+    );
+    const msftDeferred = deferredStoryJson(
+      twoMemberStoryDetail(SHARED_GROUP_STORY_ID, "Microsoft member primary", "Microsoft member earlier"),
+    );
+    let sharedStoryDetailFetch = 0;
     const fetchMock = vi.fn((input: RequestInfo | URL) => {
       const url = String(input);
-      if (url.includes("/stories/ev2_aapl_grp")) return aaplDeferred.response;
-      if (url.includes("/stories/ev2_msft_grp")) return msftDeferred.response;
+      if (url.includes(`/stories/${SHARED_GROUP_STORY_ID}`)) {
+        sharedStoryDetailFetch += 1;
+        return sharedStoryDetailFetch === 1 ? aaplDeferred.response : msftDeferred.response;
+      }
       if (url.includes("/AAPL")) {
-        return response(snapshot("AAPL", [row("ev2_aapl_grp", "Apple grouped headline", 2, 2)]));
+        return response(snapshot("AAPL", [row(SHARED_GROUP_STORY_ID, "Apple grouped headline", 2, 2)]));
       }
       if (url.includes("/MSFT")) {
-        return response(snapshot("MSFT", [row("ev2_msft_grp", "Microsoft grouped headline", 2, 2)]));
+        return response(snapshot("MSFT", [row(SHARED_GROUP_STORY_ID, "Microsoft grouped headline", 2, 2)]));
       }
       throw new Error("unexpected " + url);
     });
@@ -370,48 +385,56 @@ describe("TickerNewsPanel", () => {
     await act(async () => {
       msftButton!.dispatchEvent(new MouseEvent("click", { bubbles: true }));
     });
-    await Promise.race([
-      msftDeferred.jsonEntered,
-      new Promise((resolve) => setTimeout(resolve, 100)),
-    ]);
+    await msftDeferred.jsonEntered;
 
     const callsBeforeAaplSettles = fetchMock.mock.calls.filter((c) => String(c[0]).includes("/stories/")).length;
     await act(async () => {
-      aaplDeferred.releaseJson({
-        schema: "ticker_news.story.v1",
-        story_id: "ev2_aapl_grp",
-        source_count: 1,
-        item_count: 2,
-        members: [row("ev2_aapl_grp", "Apple grouped detail", 2, 2)],
-      });
+      aaplDeferred.releaseJson(
+        twoMemberStoryDetail(SHARED_GROUP_STORY_ID, "Apple member primary", "Apple member earlier"),
+      );
       await Promise.resolve();
     });
 
-    expect(host.textContent).not.toContain("Apple grouped detail");
+    expect(host.textContent).not.toContain("Apple member primary");
+    expect(host.textContent).not.toContain("Apple member earlier");
     expect(msftButton?.disabled).toBe(true);
     await act(async () => {
       msftButton!.dispatchEvent(new MouseEvent("click", { bubbles: true }));
     });
     const callsAfterSecondClick = fetchMock.mock.calls.filter((c) => String(c[0]).includes("/stories/")).length;
     expect(callsAfterSecondClick).toBe(callsBeforeAaplSettles);
+
+    await act(async () => {
+      msftDeferred.releaseJson(
+        twoMemberStoryDetail(SHARED_GROUP_STORY_ID, "Microsoft member primary", "Microsoft member earlier"),
+      );
+      await Promise.resolve();
+    });
+    expect(host.textContent).toContain("Microsoft member primary");
+    expect(host.textContent).toContain("Microsoft member earlier");
   });
 
   it("aborts an in-flight detail json on unmount without poisoning a remounted panel", async () => {
-    let capturedSignal: AbortSignal | undefined;
-    const pending = deferredStoryJson({
-      schema: "ticker_news.story.v1",
-      story_id: "ev2_nvda_grp",
-      source_count: 1,
-      item_count: 2,
-      members: [row("ev2_nvda_grp", "Nvidia grouped detail", 2, 2)],
-    });
+    const remountStoryId = "ev2_nvda_grp";
+    let firstSignal: AbortSignal | undefined;
+    const oldMountPending = deferredStoryJson(
+      twoMemberStoryDetail(remountStoryId, "Old mount member primary", "Old mount member earlier"),
+    );
+    const newMountPending = deferredStoryJson(
+      twoMemberStoryDetail(remountStoryId, "New mount member primary", "New mount member earlier"),
+    );
+    let storyFetchCount = 0;
     const fetchMock = vi.fn((input: RequestInfo | URL, init?: RequestInit) => {
       const url = String(input);
       if (url.includes("/stories/")) {
-        capturedSignal = init?.signal as AbortSignal | undefined;
-        return pending.response;
+        storyFetchCount += 1;
+        if (storyFetchCount === 1) {
+          firstSignal = init?.signal as AbortSignal | undefined;
+          return oldMountPending.response;
+        }
+        return newMountPending.response;
       }
-      return response(snapshot("NVDA", [row("ev2_nvda_grp", "Nvidia grouped headline", 2, 2)]));
+      return response(snapshot("NVDA", [row(remountStoryId, "Nvidia grouped headline", 2, 2)]));
     });
     globalThis.fetch = fetchMock as unknown as typeof globalThis.fetch;
 
@@ -422,32 +445,42 @@ describe("TickerNewsPanel", () => {
     await act(async () => {
       button!.dispatchEvent(new MouseEvent("click", { bubbles: true }));
     });
-    await pending.jsonEntered;
-    expect(capturedSignal).toBeDefined();
+    await oldMountPending.jsonEntered;
+    expect(firstSignal).toBeDefined();
 
     await act(async () => {
       root.unmount();
     });
-    expect(capturedSignal?.aborted).toBe(true);
-
-    await act(async () => {
-      pending.releaseJson({
-        schema: "ticker_news.story.v1",
-        story_id: "ev2_nvda_grp",
-        source_count: 1,
-        item_count: 2,
-        members: [row("ev2_nvda_grp", "Nvidia grouped detail", 2, 2)],
-      });
-      await Promise.resolve();
-    });
+    expect(firstSignal?.aborted).toBe(true);
 
     root = createRoot(host);
     await act(async () => {
       root.render(<TickerNewsPanel symbol="NVDA" lang="en" />);
     });
     const freshButton = [...host.querySelectorAll("button")].find((b) => b.textContent?.includes("2 reports"));
-    expect(freshButton?.disabled).toBe(false);
-    expect(host.textContent).not.toContain("Nvidia grouped detail");
+    await act(async () => {
+      freshButton!.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+    });
+    await newMountPending.jsonEntered;
+
+    await act(async () => {
+      oldMountPending.releaseJson(
+        twoMemberStoryDetail(remountStoryId, "Old mount member primary", "Old mount member earlier"),
+      );
+      await Promise.resolve();
+    });
+
+    expect(host.textContent).not.toContain("Old mount member primary");
+    expect(host.textContent).not.toContain("Old mount member earlier");
+
+    await act(async () => {
+      newMountPending.releaseJson(
+        twoMemberStoryDetail(remountStoryId, "New mount member primary", "New mount member earlier"),
+      );
+      await Promise.resolve();
+    });
+    expect(host.textContent).toContain("New mount member primary");
+    expect(host.textContent).toContain("New mount member earlier");
   });
 
   it.each([404, 503])("shows unavailable for snapshot %i without retrying", async (status) => {
