@@ -106,10 +106,12 @@ export default function ReturnsCalendar({
   symbol,
   bars,
   pick,
+  mode = "compact",
 }: {
   symbol: string;
   bars: Bar[];
   pick: Pick;
+  mode?: "compact" | "full";
 }) {
   const records = useMemo(() => buildDailyReturnRecords(bars), [bars]);
   const latestDate = records.length ? records[records.length - 1].date : null;
@@ -131,7 +133,7 @@ export default function ReturnsCalendar({
     : monthRecords.length ? monthRecords[monthRecords.length - 1].date : null;
   const selected = selectedDate ? byDate.get(selectedDate) ?? null : null;
   const usEquity = isUsEquity(symbol);
-  const requestKey = selectedDate && usEquity ? symbol + ":" + selectedDate : null;
+  const requestKey = mode === "full" && selectedDate && usEquity ? symbol + ":" + selectedDate : null;
 
   useEffect(() => {
     if (!requestKey || !selectedDate) {
@@ -198,6 +200,44 @@ export default function ReturnsCalendar({
   }, [requestKey, selectedDate, symbol]);
 
   if (records.length < 2) return null;
+
+  if (mode === "compact") {
+    const recent = records.slice(-5);
+    return (
+      <section className="returns-preview" aria-label={pick("Returns summary", "收益概览")}>
+        <div className="returns-preview-head">
+          <div>
+            <span className="returns-kicker">{pick("Returns", "收益")}</span>
+            <strong>{month ? month : symbol}</strong>
+          </div>
+          <a href={"/analysis?symbol=" + encodeURIComponent(symbol) + "&page=returns"}>{pick("Open study", "打开研究")}</a>
+        </div>
+        <div className="returns-preview-main">
+          <div>
+            <span>{pick("Observed month", "本月已观察")}</span>
+            <strong className={(summary.returnPct ?? 0) >= 0 ? "up" : "down"}>{pct(summary.returnPct)}</strong>
+            <small>{summary.referenceDate && summary.endDate
+              ? summary.referenceDate + " → " + summary.endDate
+              : pick("Reference close unavailable", "缺少参考收盘价")}</small>
+          </div>
+          <div className="returns-preview-counts">
+            <span><b>{summary.upDays}</b>{pick(" up", " 上涨")}</span>
+            <span><b>{summary.downDays}</b>{pick(" down", " 下跌")}</span>
+            <span><b>{summary.observedDays}</b>{pick(" days", " 天")}</span>
+          </div>
+        </div>
+        <div className="returns-preview-strip" aria-label={pick("Last five observed daily moves", "最近五个观察日")}>
+          {recent.map((record) => (
+            <div key={record.date} className={(record.returnPct ?? 0) >= 0 ? "up" : "down"}>
+              <span>{record.date.slice(5)}</span>
+              <strong>{pct(record.returnPct)}</strong>
+              <small>O {px(record.bar.o)} · C {px(record.bar.c)}</small>
+            </div>
+          ))}
+        </div>
+      </section>
+    );
+  }
 
   const crypto = isCryptoLike(symbol);
   const weekdays = crypto
