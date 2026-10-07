@@ -113,7 +113,7 @@ import BrainWidget from "@/components/BrainWidget";
 // the same active-pane symbol/tf the Chart Bus already owns; never writes back into chart state).
 import { createAiContextProvider } from "@/lib/aiContext";
 import StockAnalysis from "@/components/StockAnalysis";
-import ReturnsCalendar from "@/components/ReturnsCalendar";
+import ReturnsPreview from "@/components/ReturnsPreview";
 import SignalButton from "@/components/SignalButton";
 import TrendRow from "@/components/TrendRow";
 import WashoutTurnRow from "@/components/WashoutTurnRow";
@@ -6014,10 +6014,10 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
               <StockAnalysis intel={intel} row={m} fund={fund} opts={opts} bars={bars} glance={parseGlanceState(railGex, active)} onOpenPane={(p) => setPaneOpen(p)} onOpenSignals={() => setSignalsOpen(true)}
                 beforeIv={<div key="linked-seasonality" style={{ padding: 12 }}><LinkedSeasonalityCard context={chartBus.context} activeSymbol={active} onOpenCurrent={() => setPaneOpen("seasonals")} /></div>} />
               <div style={{ padding: "0 12px 12px" }}>
-                <ReturnsCalendar
-                  symbol={active}
+                <ReturnsPreview
                   bars={bars}
                   pick={(en, cn) => lang === "zh" ? (cn || en || "") : (en || cn || "")}
+                  onOpen={() => setPaneOpen("returns")}
                 />
               </div>
               {/* ── bottom button group (after Seasonality): full analysis + Ask AI ── */}

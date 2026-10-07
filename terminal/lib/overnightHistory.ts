@@ -10,7 +10,9 @@ export type OvernightHistoryResult = {
 };
 
 const HUB_PORT = process.env.HUB_PORT ?? "3100";
-const HUB_TIMEOUT_MS = 5_000;
+// Quote Hub's bounded upstream deadline is 8s. The loopback caller must outlive that
+// operation or it can manufacture a false timeout while the Hub request is still valid.
+const HUB_TIMEOUT_MS = 12_000;
 const STATUS = new Set<OvernightHistoryResult["status"]>([
   "available",
   "empty",
@@ -23,9 +25,11 @@ function unavailable(note: string): OvernightHistoryResult {
 }
 
 function bar6(value: unknown): value is Bar6 {
-  return Array.isArray(value)
-    && value.length >= 6
-    && value.slice(0, 6).every((n) => typeof n === "number" && Number.isFinite(n));
+  if (!Array.isArray(value) || value.length < 6) return false;
+  const [t, o, h, l, c, v] = value;
+  return [t, o, h, l, c, v].every((n) => typeof n === "number" && Number.isFinite(n))
+    && t > 0 && o > 0 && h > 0 && l > 0 && c > 0 && v >= 0
+    && h >= Math.max(o, c) && l <= Math.min(o, c) && h >= l;
 }
 
 /**
@@ -46,8 +50,8 @@ export async function fetchHubOvernightWallDate(
       cache: "no-store",
       signal: AbortSignal.timeout(HUB_TIMEOUT_MS),
     });
-  } catch (error: unknown) {
-    return unavailable(error instanceof Error ? `quote hub overnight: ${error.message}` : "quote hub overnight unavailable");
+  } catch {
+    return unavailable("quote hub overnight unavailable");
   }
 
   if (!response.ok) return unavailable(`quote hub overnight ${response.status}`);

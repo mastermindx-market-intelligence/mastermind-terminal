@@ -153,6 +153,63 @@ describe("OvernightHistory — ownership and clock contract", () => {
     });
     const b = await broken.getWallDate("AAPL", "1h", "2026-10-14", Date.UTC(2026, 9, 16));
     assert.equal(b.status, "unavailable");
-    assert.match(b.note, /offline/);
+    assert.equal(b.note, "overnight provider request failed");
+    assert.doesNotMatch(b.note, /offline/);
+  });
+
+  it("rejects impossible dates and unsupported timeframes before upstream work", async () => {
+    let calls = 0;
+    const history = new OvernightHistory({
+      apiKey: "key",
+      apiSecret: "secret",
+      fetchImpl: async () => { calls++; throw new Error("must not run"); },
+    });
+    assert.equal((await history.getWallDate("AAPL", "30m", "2026-02-30")).status, "unavailable");
+    assert.equal((await history.getWallDate("AAPL", "7m", "2026-10-14")).status, "unavailable");
+    assert.equal(calls, 0);
+  });
+
+  it("coalesces concurrent identical requests and bounds the cache", async () => {
+    let calls = 0;
+    let release;
+    const gate = new Promise((resolve) => { release = resolve; });
+    const history = new OvernightHistory({
+      apiKey: "key",
+      apiSecret: "secret",
+      cacheMax: 2,
+      fetchImpl: async () => {
+        calls++;
+        await gate;
+        return { ok: true, status: 200, async json() { return { bars: { AAPL: [] } }; } };
+      },
+    });
+    const now = Date.UTC(2026, 9, 16, 12, 0, 0);
+    const a = history.getWallDate("AAPL", "30m", "2026-10-14", now);
+    const b = history.getWallDate("AAPL", "30m", "2026-10-14", now);
+    release();
+    await Promise.all([a, b]);
+    assert.equal(calls, 1);
+    assert.equal(history.health().inflight, 0);
+
+    await history.getWallDate("MSFT", "30m", "2026-10-14", now);
+    await history.getWallDate("NVDA", "30m", "2026-10-14", now);
+    assert.equal(history.health().cacheSize, 2);
+  });
+
+  it("refuses a truncated provider page rather than silently publishing incomplete extrema", async () => {
+    const history = new OvernightHistory({
+      apiKey: "key",
+      apiSecret: "secret",
+      fetchImpl: async () => ({
+        ok: true,
+        status: 200,
+        async json() {
+          return { bars: { AAPL: [] }, next_page_token: "more" };
+        },
+      }),
+    });
+    const result = await history.getWallDate("AAPL", "30m", "2026-10-14", Date.UTC(2026, 9, 16));
+    assert.equal(result.status, "unavailable");
+    assert.match(result.note, /exceeded/);
   });
 });

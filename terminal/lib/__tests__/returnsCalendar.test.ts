@@ -1,10 +1,13 @@
 import { describe, expect, it } from "vitest";
 import {
+  buildDailyReturnRecords,
   buildReturnsCalendarSessions,
   previousCalendarDate,
+  rangePercent,
   RETURNS_CALENDAR_SESSION_MINUTES,
   RETURNS_CALENDAR_SESSION_TF,
   returnsCalendarDayKey,
+  summarizeReturnMonth,
 } from "../returnsCalendar";
 
 type Bar6 = [number, number, number, number, number, number];
@@ -83,5 +86,38 @@ describe("returns calendar session partitioning", () => {
     expect(returnsCalendarDayKey("2026-10-14T16:00:00Z")).toBe("2026-10-14");
     expect(returnsCalendarDayKey(Date.UTC(2026, 9, 14) / 1000)).toBe("2026-10-14");
     expect(previousCalendarDate("2026-10-01")).toBe("2026-09-30");
+  });
+
+  it("withholds contradictory duplicate daily bars instead of picking one arbitrarily", () => {
+    const records = buildDailyReturnRecords([
+      { time: "2026-09-30", o: 95, h: 101, l: 94, c: 100, v: 10 },
+      { time: "2026-10-01", o: 101, h: 104, l: 100, c: 103, v: 11 },
+      { time: "2026-10-01", o: 101, h: 106, l: 100, c: 105, v: 12 },
+      { time: "2026-10-02", o: 103, h: 107, l: 102, c: 106, v: 13 },
+    ]);
+    expect(records.map((record) => record.date)).toEqual(["2026-09-30", "2026-10-02"]);
+    expect(records[1].previousClose).toBe(100);
+    expect(records[1].returnPct).toBeCloseTo(6);
+  });
+
+  it("uses the prior observed close as the monthly return denominator", () => {
+    const records = buildDailyReturnRecords([
+      { time: "2026-09-30", o: 95, h: 101, l: 94, c: 100, v: 10 },
+      { time: "2026-10-01", o: 110, h: 113, l: 109, c: 112, v: 11 },
+      { time: "2026-10-02", o: 112, h: 121, l: 111, c: 120, v: 12 },
+    ]);
+    const summary = summarizeReturnMonth(records, "2026-10");
+    expect(summary.referenceDate).toBe("2026-09-30");
+    expect(summary.referenceClose).toBe(100);
+    expect(summary.endClose).toBe(120);
+    expect(summary.returnPct).toBeCloseTo(20);
+    expect(summary.upDays).toBe(2);
+  });
+
+  it("positions open and close markers inside the observed low-high range", () => {
+    expect(rangePercent(100, 90, 110)).toBe(50);
+    expect(rangePercent(85, 90, 110)).toBe(0);
+    expect(rangePercent(115, 90, 110)).toBe(100);
+    expect(rangePercent(100, 100, 100)).toBeNull();
   });
 });

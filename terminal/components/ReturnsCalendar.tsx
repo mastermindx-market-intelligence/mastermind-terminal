@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { type KeyboardEvent, useEffect, useMemo, useState } from "react";
 import type { Bar } from "@/lib/fund";
 import {
   buildDailyReturnRecords,
@@ -18,10 +18,17 @@ type Pick = (en?: string | null, cn?: string | null) => string;
 type Bar6 = [number, number, number, number, number, number];
 type CoverageStatus = "available" | "empty" | "not_configured" | "unavailable" | null;
 
+type IntradayStudyPayload = {
+  bars?: unknown;
+  regular_session_window?: { start_minute?: unknown; end_minute?: unknown };
+  overnight_evidence?: { status?: unknown };
+  session_study_evidence?: { status?: unknown };
+};
+
 type LoadResult = {
   ok: boolean;
   bars: Bar6[];
-  raw: any;
+  raw: IntradayStudyPayload | null;
 };
 
 type SessionLoad = {
@@ -89,7 +96,10 @@ async function loadStudy(url: string, signal: AbortSignal): Promise<LoadResult> 
   try {
     const response = await fetch(url, { signal, cache: "no-store" });
     if (!response.ok) return { ok: false, bars: [], raw: null };
-    const raw = await response.json();
+    const value: unknown = await response.json();
+    const raw = value && typeof value === "object" && !Array.isArray(value)
+      ? value as IntradayStudyPayload
+      : null;
     const bars = Array.isArray(raw?.bars) ? raw.bars.filter(validBar6) : [];
     return { ok: true, bars, raw };
   } catch {
@@ -106,12 +116,10 @@ export default function ReturnsCalendar({
   symbol,
   bars,
   pick,
-  mode = "compact",
 }: {
   symbol: string;
   bars: Bar[];
   pick: Pick;
-  mode?: "compact" | "full";
 }) {
   const records = useMemo(() => buildDailyReturnRecords(bars), [bars]);
   const latestDate = records.length ? records[records.length - 1].date : null;
@@ -132,14 +140,11 @@ export default function ReturnsCalendar({
     ? requestedDate
     : monthRecords.length ? monthRecords[monthRecords.length - 1].date : null;
   const selected = selectedDate ? byDate.get(selectedDate) ?? null : null;
-  const usEquity = isUsEquity(symbol);
-  const requestKey = mode === "full" && selectedDate && usEquity ? symbol + ":" + selectedDate : null;
+  const usEquity = isUsEquity(symbol) && !isCryptoLike(symbol);
+  const requestKey = selectedDate && usEquity ? symbol + ":" + selectedDate : null;
 
   useEffect(() => {
-    if (!requestKey || !selectedDate) {
-      setSessionLoad(null);
-      return;
-    }
+    if (!requestKey || !selectedDate) return;
 
     const controller = new AbortController();
     const prior = previousCalendarDate(selectedDate);
@@ -157,14 +162,17 @@ export default function ReturnsCalendar({
       if (controller.signal.aborted) return;
 
       const windowRaw = current.raw?.regular_session_window;
+      const startMinute = windowRaw?.start_minute;
+      const endMinute = windowRaw?.end_minute;
       const regularWindow: readonly [number, number] | null =
-        windowRaw
-        && Number.isInteger(windowRaw.start_minute)
-        && Number.isInteger(windowRaw.end_minute)
-        && windowRaw.start_minute >= 0
-        && windowRaw.end_minute > windowRaw.start_minute
-        && windowRaw.end_minute <= 1440
-          ? [windowRaw.start_minute, windowRaw.end_minute]
+        typeof startMinute === "number"
+        && typeof endMinute === "number"
+        && Number.isInteger(startMinute)
+        && Number.isInteger(endMinute)
+        && startMinute >= 0
+        && endMinute > startMinute
+        && endMinute <= 1440
+          ? [startMinute, endMinute]
           : null;
 
       const statuses = [
@@ -201,44 +209,6 @@ export default function ReturnsCalendar({
 
   if (records.length < 2) return null;
 
-  if (mode === "compact") {
-    const recent = records.slice(-5);
-    return (
-      <section className="returns-preview" aria-label={pick("Returns summary", "收益概览")}>
-        <div className="returns-preview-head">
-          <div>
-            <span className="returns-kicker">{pick("Returns", "收益")}</span>
-            <strong>{month ? month : symbol}</strong>
-          </div>
-          <a href={"/analysis?symbol=" + encodeURIComponent(symbol) + "&page=returns"}>{pick("Open study", "打开研究")}</a>
-        </div>
-        <div className="returns-preview-main">
-          <div>
-            <span>{pick("Observed month", "本月已观察")}</span>
-            <strong className={(summary.returnPct ?? 0) >= 0 ? "up" : "down"}>{pct(summary.returnPct)}</strong>
-            <small>{summary.referenceDate && summary.endDate
-              ? summary.referenceDate + " → " + summary.endDate
-              : pick("Reference close unavailable", "缺少参考收盘价")}</small>
-          </div>
-          <div className="returns-preview-counts">
-            <span><b>{summary.upDays}</b>{pick(" up", " 上涨")}</span>
-            <span><b>{summary.downDays}</b>{pick(" down", " 下跌")}</span>
-            <span><b>{summary.observedDays}</b>{pick(" days", " 天")}</span>
-          </div>
-        </div>
-        <div className="returns-preview-strip" aria-label={pick("Last five observed daily moves", "最近五个观察日")}>
-          {recent.map((record) => (
-            <div key={record.date} className={(record.returnPct ?? 0) >= 0 ? "up" : "down"}>
-              <span>{record.date.slice(5)}</span>
-              <strong>{pct(record.returnPct)}</strong>
-              <small>O {px(record.bar.o)} · C {px(record.bar.c)}</small>
-            </div>
-          ))}
-        </div>
-      </section>
-    );
-  }
-
   const crypto = isCryptoLike(symbol);
   const weekdays = crypto
     ? ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"]
@@ -266,6 +236,26 @@ export default function ReturnsCalendar({
   );
   const canPrev = !!minMonth && shiftMonth(month, -1) >= minMonth;
   const canNext = !!maxMonth && shiftMonth(month, 1) <= maxMonth;
+  const focusDate = (date: string) => {
+    setRequestedDate(date);
+    requestAnimationFrame(() => document.getElementById("returns-day-" + date)?.focus());
+  };
+  const moveObserved = (from: string, delta: number) => {
+    const index = monthRecords.findIndex((record) => record.date === from);
+    const next = monthRecords[Math.max(0, Math.min(monthRecords.length - 1, index + delta))];
+    if (next) focusDate(next.date);
+  };
+  const handleDayKey = (event: KeyboardEvent<HTMLButtonElement>, date: string) => {
+    const columns = crypto ? 7 : 5;
+    if (event.key === "ArrowLeft") { event.preventDefault(); moveObserved(date, -1); }
+    else if (event.key === "ArrowRight") { event.preventDefault(); moveObserved(date, 1); }
+    else if (event.key === "ArrowUp") { event.preventDefault(); moveObserved(date, -columns); }
+    else if (event.key === "ArrowDown") { event.preventDefault(); moveObserved(date, columns); }
+    else if (event.key === "Home" && monthRecords[0]) { event.preventDefault(); focusDate(monthRecords[0].date); }
+    else if (event.key === "End" && monthRecords.length) { event.preventDefault(); focusDate(monthRecords[monthRecords.length - 1].date); }
+    else if (event.key === "PageUp" && canPrev) { event.preventDefault(); setRequestedMonth(shiftMonth(month, -1)); }
+    else if (event.key === "PageDown" && canNext) { event.preventDefault(); setRequestedMonth(shiftMonth(month, 1)); }
+  };
   const openingGap = selected?.previousClose ? (selected.bar.o / selected.previousClose - 1) * 100 : null;
   const openToClose = selected ? (selected.bar.c / selected.bar.o - 1) * 100 : null;
   const openPos = selected ? rangePercent(selected.bar.o, selected.bar.l, selected.bar.h) : null;
@@ -373,6 +363,7 @@ export default function ReturnsCalendar({
                   aria-pressed={active}
                   aria-label={record.date + " " + pct(record.returnPct)}
                   onClick={() => setRequestedDate(record.date)}
+                  onKeyDown={(event) => handleDayKey(event, record.date)}
                 >
                   <span className="date">{record.date.slice(8)}</span>
                   <strong>{pct(record.returnPct)}</strong>
