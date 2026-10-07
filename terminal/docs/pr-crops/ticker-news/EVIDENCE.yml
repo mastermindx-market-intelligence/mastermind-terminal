@@ -5,7 +5,7 @@ layoutFiles:
   - path: terminal/components/news/TickerNewsPanel.module.css
     sha256: 57464a037b904a52c01c16cbcb0484fde288de0354d98b59901738c1a2f3bbac
   - path: terminal/components/TerminalShell.tsx
-    sha256: 2501f41c8985d5a3389f6dc2e7d703c814b10cdf9c8cd7f3e68d464c72d57175
+    sha256: 870c21f4f8a45c5388feeac63bff920631ce8baabbe7b5392aad5968da652b64
 crops:
   - file: desktop-en-dark.png
     viewport: 1440x900

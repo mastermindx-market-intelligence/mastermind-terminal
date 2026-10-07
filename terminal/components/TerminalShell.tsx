@@ -938,7 +938,7 @@ function btMark(name: string) {
   console.log(`[boottrace] ${name} +${(now - _btStart).toFixed(1)}ms`);
 }
 
-export default function TerminalShell({ symbols, email, userId, initialSymbol, initialEpisode, shellMode = false, shellTray = false, shellDossier = false, secondBarsEnabled = false }: { symbols: { symbol: string; section: string }[]; email: string; userId?: string; initialSymbol?: string; initialEpisode?: string; shellMode?: boolean; shellTray?: boolean; shellDossier?: boolean; secondBarsEnabled?: boolean }) {
+export default function TerminalShell({ symbols, email, userId, initialSymbol, initialEpisode, shellMode = false, shellTray = false, shellDossier = false, secondBarsEnabled = false, newsRailEnabled = false }: { symbols: { symbol: string; section: string }[]; email: string; userId?: string; initialSymbol?: string; initialEpisode?: string; shellMode?: boolean; shellTray?: boolean; shellDossier?: boolean; secondBarsEnabled?: boolean; newsRailEnabled?: boolean }) {
   const [man, setMan] = useState<Manifest | null>(null);
   // A1: which identity the LOCAL watchlist state on this browser belongs to. `guest` when signed
   // out, `account:<auth uuid>` otherwise — the immutable id, never the email (see
@@ -1797,7 +1797,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
     // rail's other view preferences rather than in an effect of its own; a lazy `useState`
     // initializer cannot read localStorage without a hydration mismatch (the server always renders
     // the default), so a mount read is the only correct shape and this is where the file does them.
-    { const savedTab = localStorage.getItem("mm.railTab"); if (savedTab === "portfolio" || savedTab === "watchlists" || savedTab === "news") setRailTab(savedTab); }
+    { const savedTab = localStorage.getItem("mm.railTab"); if (savedTab === "portfolio" || savedTab === "watchlists" || (newsRailEnabled && savedTab === "news")) setRailTab(savedTab); }
     // restore the saved multi-pane workspace — but a deep-link (?sym=) always wins
     if (!initialSymbol) {
       try {
@@ -1834,7 +1834,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
     // mode is on, so this fires only for the swing workspace (no double setTf).
     if (initialSymbol && initialEpisode && !load("mm.dtm", false)) setTimeout(() => setTf("5m"), 0);
     setWorkspaceRestored(true);
-  }, []);
+  }, [newsRailEnabled]);
   // Legacy workspaces stored one hidden bit per suite. Expand that bit to the suite's currently
   // enabled qualified module ids so new module-level eyes preserve the old all-hidden appearance.
   useEffect(() => {
@@ -5629,10 +5629,12 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
                 aria-controls="rail-panel-watchlists" tabIndex={railTab === "watchlists" ? 0 : -1}
                 className={`rail-tab${railTab === "watchlists" ? " on" : ""}`}
                 onClick={() => setRailTab("watchlists")}>{t("watchlists")}</button>
+              {newsRailEnabled && (
               <button type="button" role="tab" id="rail-tab-news" aria-selected={railTab === "news"}
                 aria-controls="rail-panel-news" tabIndex={railTab === "news" ? 0 : -1}
                 className={`rail-tab${railTab === "news" ? " on" : ""}`}
                 onClick={() => setRailTab("news")}>{lang === "zh" ? "新闻" : "News"}</button>
+              )}
             </div>
           )}
           {loggedIn && railTab === "portfolio" && (
@@ -5707,7 +5709,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
               </div>
             </div>
           )}
-          {loggedIn && railTab === "news" && <TickerNewsPanel symbol={active} lang={lang} />}
+          {loggedIn && newsRailEnabled && railTab === "news" && <TickerNewsPanel symbol={active} lang={lang} />}
           <div className={`board wl-board${loggedIn && railTab !== "watchlists" ? " rail-hidden" : ""}`}
             id="rail-panel-watchlists" {...(loggedIn ? { role: "tabpanel", "aria-labelledby": "rail-tab-watchlists" } : {})}>
             <div className="wl-bar pophost">
