@@ -17,15 +17,12 @@
 // 0008_chart_layouts_unique_name.sql` adds the real invariant, `unique (user_id, name)`.
 //
 // That DDL is an operator action (the estate has no DDL credential path — see the migration
-// header), so this module is written to be correct in BOTH states:
-//   * constraint applied  -> `upsert(..., {onConflict:"user_id,name"})` is a single atomic
-//     statement, and a concurrent create race surfaces as 23505 rather than a duplicate row;
-//   * constraint absent   -> PostgREST answers 42P10 ("no unique or exclusion constraint matching
-//     the ON CONFLICT specification") and we fall back to the legacy select-then-write. The
-//     fallback is NOT cached: layout saves are rare, and re-probing every time means the atomic
-//     path starts working the moment the DDL lands, with no restart and no stale capability flag.
-// Exactness is deliberate: lookups have always been exact-name, so the constraint is exact-name
-// too. Case-folding would be a separate product ruling and would silently merge existing names.
+// header). Legacy overwrite is a schema-null conditional UPDATE, then insert-only create; a 23505
+// on that insert retries the same fenced UPDATE once (a concurrent unversioned create) and never
+// upserts over a stored schema. Without the unique index, concurrent creates of a free name can
+// still duplicate — this module does not fabricate that guarantee. Exactness is deliberate:
+// lookups have always been exact-name, so the constraint is exact-name too. Case-folding would be
+// a separate product ruling and would silently merge existing names.
 
 import { canonicalJson } from "./workspaceLayout";
 
@@ -36,12 +33,12 @@ export type LayoutDbResult = { data?: LayoutRow[] | LayoutRow | null; error?: La
 /** Structural view of the Supabase query builder — only the subset this service calls, so the e2e
  *  fixture transport and unit tests can supply a stand-in that satisfies the same shape.
  *
- *  `neq`/`is` were added for the W2-A workspace CAS paths (contract §4/§6): a conditional UPDATE
- *  needs `.eq("config->>revision", String(expected))` to fence a normal save, and — because
- *  Postgres's plain `<>` never matches a NULL column (a legacy row has no `config->>schema` key at
- *  all) — the migrate-on-write guard is two atomic attempts, `.is("config->>schema", null)` then
- *  `.neq("config->>schema", WORKSPACE_SCHEMA)`, together covering "not yet workspace_layout.v1"
- *  without ever matching a row a concurrent writer already converted. */
+ *  `neq`/`is` were added for the W2-A workspace CAS paths (contract §4/§6): a numbered UPDATE
+ *  binds `.eq("config->>revision", String(expected))` AND `.eq("config->>schema", WORKSPACE_SCHEMA)`
+ *  plus an exact supported requirements object (`{"floor":1}`, `{}`, or absent; absent means
+ *  1) so an older writer cannot consume a future schema or floor. Migrate-on-write matches only an
+ *  unversioned legacy row (`.is("config->>schema", null)`), never an explicitly unknown stored
+ *  schema. Postgres NULL never satisfies `eq`/`neq`. */
 export type LayoutQuery = PromiseLike<LayoutDbResult> & {
   select: (fields?: string) => LayoutQuery;
   eq: (column: string, value: unknown) => LayoutQuery;
@@ -67,7 +64,6 @@ export const AUTO_LAYOUT_PREFIX = "Layout";
 
 /** PostgREST/Postgres codes this module reasons about. */
 const CODE_UNIQUE_VIOLATION = "23505";
-const CODE_NO_CONFLICT_TARGET = "42P10";
 
 export type SavedLayout = {
   id: string;
@@ -193,15 +189,23 @@ async function applyWorkspaceUpdate(
   values: LayoutRow,
   workspaceName: string,
   expectedId: string | undefined,
-  extra: (query: LayoutQuery) => LayoutQuery,
+  extra: ((query: LayoutQuery) => LayoutQuery) | Array<(query: LayoutQuery) => LayoutQuery>,
 ): Promise<LayoutDbResult> {
-  const run = (teamShared: boolean) => {
-    let query = db.from(LAYOUTS_TABLE).update(values);
-    query = teamShared ? query.eq("visibility", "team") : query.eq("user_id", userId);
-    query = extra(query.eq("name", workspaceName));
-    if (expectedId) query = query.eq("id", expectedId);
-    return query.select("id");
+  const guards = Array.isArray(extra) ? extra : [extra];
+  const run = async (teamShared: boolean): Promise<LayoutDbResult> => {
+    let result: LayoutDbResult = { data: [] };
+    for (const guard of guards) {
+      let query = db.from(LAYOUTS_TABLE).update(values);
+      query = teamShared ? query.eq("visibility", "team") : query.eq("user_id", userId);
+      query = guard(query.eq("name", workspaceName));
+      if (expectedId) query = query.eq("id", expectedId);
+      result = await query.select("id");
+      if (errOf(result) || rowsOf(result).length) return result;
+    }
+    return result;
   };
+  // Exhaust supported-format variants for the owner before consulting team columns.
+  // Personal writes must still work where the optional sharing DDL is unapplied.
   const ownerWrite = await run(false);
   if (errOf(ownerWrite) || rowsOf(ownerWrite).length || !expectedId) return ownerWrite;
   return run(true);
@@ -245,32 +249,38 @@ async function createLayout(db: LayoutDb, userId: string, name: string, config: 
   return id ? { ok: true, id, created: true } : { ok: false, reason: "unavailable" };
 }
 
-/** Legacy select-then-write, used only while `unique (user_id, name)` is unapplied. */
-async function overwriteWithoutConstraint(db: LayoutDb, userId: string, name: string, config: unknown): Promise<SaveLayoutResult> {
-  const existing = await db.from(LAYOUTS_TABLE).select("id").eq("user_id", userId).eq("name", name).maybeSingle();
-  if (errOf(existing)) return { ok: false, reason: "unavailable" };
-  const existingId = str(rowsOf(existing)[0]?.id);
-  if (existingId) {
-    const updated = await db
-      .from(LAYOUTS_TABLE)
-      .update({ config, updated_at: new Date().toISOString() })
-      .eq("user_id", userId)
-      .eq("id", existingId)
-      .select("id");
-    if (errOf(updated)) return { ok: false, reason: "unavailable" };
-    // A row that vanished between the SELECT and the UPDATE wrote nothing — reporting ok:true here
-    // is exactly the "failed mutation reported as success" this module exists to stop.
-    return rowsOf(updated).length ? { ok: true, id: existingId, created: false } : { ok: false, reason: "unavailable" };
-  }
-  return createLayout(db, userId, name, config);
+/** Overwrite only an unversioned (schema-null) row. Never upsert over a stored schema. A 23505 on
+ *  the follow-up INSERT retries this same fenced UPDATE once — a concurrent unversioned create —
+ *  and never retries unconditionally. A versioned occupant (0-row retry) is `unavailable`. */
+async function overwriteUnversioned(db: LayoutDb, userId: string, name: string, config: unknown): Promise<SaveLayoutResult> {
+  const stamp = () => ({ config, updated_at: new Date().toISOString() });
+  const fencedUpdate = () =>
+    db.from(LAYOUTS_TABLE).update(stamp()).eq("user_id", userId).eq("name", name).is("config->>schema", null).select("id");
+
+  const updated = await fencedUpdate();
+  if (errOf(updated)) return { ok: false, reason: "unavailable" };
+  const updatedId = str(rowsOf(updated)[0]?.id);
+  if (updatedId) return { ok: true, id: updatedId, created: false };
+
+  // Keep the best-effort name read before an insert while migration 0008 is
+  // unapplied. A present versioned row must never gain a duplicate legacy row.
+  // The database unique index remains the authority for a concurrent first create.
+  const created = await createLayout(db, userId, name, config);
+  if (created.ok) return { ...created, created: false };
+  if (created.reason !== "name_taken") return created;
+
+  const retried = await fencedUpdate();
+  if (errOf(retried)) return { ok: false, reason: "unavailable" };
+  const retryId = str(rowsOf(retried)[0]?.id);
+  return retryId ? { ok: true, id: retryId, created: false } : { ok: false, reason: "unavailable" };
 }
 
 /**
- * Authoritative save. `overwrite` mode is a single atomic upsert on (user_id, name) whenever the
- * constraint exists; `create` mode refuses an existing name outright.
+ * Authoritative save. `overwrite` mode is a schema-null conditional UPDATE then insert-only create;
+ * `create` mode refuses an existing name outright.
  */
-// Legacy blind-upsert path is NOT extended. It never sets visibility or team_id, so every
-// legacy write lands private by the column default (or stays owner-only while 0022 is unapplied).
+// Legacy overwrite is NOT extended onto versioned rows. It never sets visibility or team_id, so
+// every legacy write lands private by the column default (or stays owner-only while 0022 is unapplied).
 export async function saveLayout(
   db: LayoutDb,
   userId: string,
@@ -280,21 +290,7 @@ export async function saveLayout(
   if (!name) return { ok: false, reason: "invalid_name" };
   const config = input.config ?? {};
   if (input.mode === "create") return createLayout(db, userId, name, config);
-
-  const upserted = await db
-    .from(LAYOUTS_TABLE)
-    .upsert({ user_id: userId, name, config, updated_at: new Date().toISOString() }, { onConflict: "user_id,name" })
-    .select("id");
-  const error = errOf(upserted);
-  if (error) {
-    // 42P10 means only that the DDL has not been applied yet — degrade, don't fail the user's save.
-    if (error.code === CODE_NO_CONFLICT_TARGET) return overwriteWithoutConstraint(db, userId, name, config);
-    return { ok: false, reason: "unavailable" };
-  }
-  const id = str(rowsOf(upserted)[0]?.id);
-  // `created` is not knowable from an upsert's returning clause; the client only needs "it is saved
-  // under this name", and reports it as such.
-  return id ? { ok: true, id, created: false } : { ok: false, reason: "unavailable" };
+  return overwriteUnversioned(db, userId, name, config);
 }
 
 /**
@@ -339,6 +335,23 @@ const WORKSPACE_SCHEMA = "workspace_layout.v1";
 const isRecordLike = (v: unknown): v is Record<string, unknown> =>
   typeof v === "object" && v !== null && !Array.isArray(v);
 
+/** Legacy records are unversioned; explicit schemas and reader floors belong to their owner. */
+function supportsStoredLayout(config: unknown): boolean {
+  if (!isRecordLike(config) || config.schema == null) return true;
+  if (config.schema !== WORKSPACE_SCHEMA) return false;
+  if (config.requires === undefined) return true;
+  if (!isRecordLike(config.requires) || Object.keys(config.requires).some(key => key !== "floor")) return false;
+  return config.requires.floor === undefined || config.requires.floor === 1;
+}
+
+function bindStoredLayoutFormat(query: LayoutQuery, config: Record<string, unknown>): LayoutQuery {
+  if (config.schema == null) return query.is("config->>schema", null);
+  const bound = query.eq("config->>schema", WORKSPACE_SCHEMA);
+  return config.requires === undefined
+    ? bound.is("config->requires", null)
+    : bound.eq("config->requires", JSON.stringify(config.requires));
+}
+
 export type WorkspaceFailureReason = "unavailable" | "invalid_name" | "name_conflict" | "stale_revision" | "not_found" | "forbidden";
 
 export type SaveWorkspaceResult =
@@ -358,20 +371,20 @@ export type DuplicateWorkspaceResult =
  *
  * `expectedRevision === null` covers BOTH real cases where the caller has no revision to fence on:
  * a brand-new name (CREATE — insert-only, fenced by the existing `(user_id, name)` unique index)
- * and the FIRST workspace-format write over a row that still holds a legacy payload (migrate-on-
- * write, contract §6 — fenced by the row not yet carrying `schema = "workspace_layout.v1"`, so two
- * devices reading the same legacy row can never both convert it). Both share one code path: the
- * migrate-on-write guard only ever matches a row that already exists and is not yet a workspace: if
- * it touches zero rows, a follow-up read tells CREATE (no row at all) apart from a stale attempt (a
- * concurrent writer already produced a `workspace_layout.v1` row under this name).
+ * and the FIRST workspace-format write over a row that still holds an unversioned legacy payload
+ * (migrate-on-write, contract §6 — fenced by `config->>schema` IS NULL, so an explicitly unknown
+ * stored schema is never treated as convertible). If that guard touches zero rows, a follow-up read
+ * tells CREATE (no row at all) apart from a stale attempt (a concurrent writer already produced a
+ * versioned row under this name).
  *
- * `expectedRevision` as a number is the ordinary save-over path: one atomic conditional UPDATE
- * gated on `config->>'revision' = expected`. Zero rows updated is resolved by a follow-up read
- * (contract §4, amended by A3 rulings 4/5 below).
+ * `expectedRevision` as a number is the ordinary save-over path: atomic conditional UPDATE gated on
+ * revision AND stored `workspace_layout.v1` AND supported `requires.floor` (1, or omitted meaning
+ * 1). No pre-read: writes must still land when list reads fail. Zero rows updated is resolved by a
+ * follow-up read (contract §4, amended by A3 rulings 4/5 below).
  *
  * `expectedId`, when supplied, is the uuid of the row the caller believes it is targeting (loaded
  * via an earlier read) — Amendment A3 ruling 5 (completing A2 ruling 9's ABA fence): the id
- * predicate is added to BOTH conversion attempts (and the numbered-revision update), so a
+ * predicate is added to the conversion attempt and all numbered requirements attempts, so a
  * delete-recreate of the same name under a NEW row can never be silently matched by a stale
  * caller's write. A pure CREATE (brand-new name, nothing loaded) has no id to supply.
  */
@@ -390,14 +403,23 @@ export async function saveWorkspace(
   if (typeof expectedRevision === "number") {
     const nextRevision = expectedRevision + 1;
     const payload = { ...envelope, name: null, revision: nextRevision };
+    const values = { config: payload, updated_at: nowIso() };
+    const bindNumbered = (query: LayoutQuery) =>
+      query.eq("config->>revision", String(expectedRevision)).eq("config->>schema", WORKSPACE_SCHEMA);
+    // Compare JSON objects, not extracted text: "1", null, malformed containers and
+    // unknown requirement keys must never count as a supported floor. Missing means 1.
+    // All three attempts remain atomic and need no pre-read.
     const updated = await applyWorkspaceUpdate(
-      db, userId, { config: payload, updated_at: nowIso() }, workspaceName, expectedId,
-      (query) => query.eq("config->>revision", String(expectedRevision)),
+      db, userId, values, workspaceName, expectedId,
+      [
+        (query) => bindNumbered(query).eq("config->requires", '{"floor":1}'),
+        (query) => bindNumbered(query).eq("config->requires", "{}"),
+        (query) => bindNumbered(query).is("config->requires", null),
+      ],
     );
     if (errOf(updated)) return { ok: false, reason: storeWriteReason(errOf(updated)) };
-    const rows = rowsOf(updated);
-    if (rows.length) {
-      const id = str(rows[0]?.id);
+    if (rowsOf(updated).length) {
+      const id = str(rowsOf(updated)[0]?.id);
       return id ? { ok: true, id, revision: nextRevision } : { ok: false, reason: "unavailable" };
     }
     return resolveZeroRowUpdate(db, userId, workspaceName, payload, nextRevision, expectedId);
@@ -405,10 +427,8 @@ export async function saveWorkspace(
 
   const payload = { ...envelope, name: null, revision: 1 };
 
-  // Migrate-on-write: two disjoint atomic attempts, together covering "row exists and is not yet
-  // workspace_layout.v1" without ever matching an already-converted row (see the `LayoutQuery`
-  // doc-comment for why a single `.neq()` cannot do this alone). A3 ruling 5: the id fence applies
-  // to BOTH attempts, not just one.
+  // Migrate-on-write: only an unversioned legacy row (`config->>schema` IS NULL). An explicit
+  // unknown schema (including a future identifier) must not convert. A3 ruling 5: id fence applies.
   const attempt1 = await applyWorkspaceUpdate(
     db, userId, { config: payload, updated_at: nowIso() }, workspaceName, expectedId,
     (query) => query.is("config->>schema", null),
@@ -419,17 +439,7 @@ export async function saveWorkspace(
     return id ? { ok: true, id, revision: 1 } : { ok: false, reason: "unavailable" };
   }
 
-  const attempt2 = await applyWorkspaceUpdate(
-    db, userId, { config: payload, updated_at: nowIso() }, workspaceName, expectedId,
-    (query) => query.neq("config->>schema", WORKSPACE_SCHEMA),
-  );
-  if (errOf(attempt2)) return { ok: false, reason: storeWriteReason(errOf(attempt2)) };
-  if (rowsOf(attempt2).length) {
-    const id = str(rowsOf(attempt2)[0]?.id);
-    return id ? { ok: true, id, revision: 1 } : { ok: false, reason: "unavailable" };
-  }
-
-  // Neither guarded update touched a row. Resolve via the shared retry/ABA-aware read; a genuine
+  // Guarded update touched no row. Resolve via the shared retry/ABA-aware read; a genuine
   // CREATE (no expectedId, nothing there at all) falls through to a plain INSERT.
   const resolved = await resolveZeroRowUpdate(db, userId, workspaceName, payload, 1, expectedId);
   if (resolved.ok) return resolved;
@@ -556,6 +566,12 @@ export async function renameWorkspace(
   const refused = await refuseSharedIfNotWriter(db, userId, row);
   if (refused) return refused;
 
+  // Rename stamps workspace identity fields. A legacy config can contain unrelated
+  // name/revision keys; only migrate-on-write may convert it into an envelope.
+  if (!isRecordLike(row.config) || row.config.schema !== WORKSPACE_SCHEMA || !supportsStoredLayout(row.config)) {
+    return { ok: false, reason: "stale_revision" };
+  }
+
   const nextRevision = expectedRevision + 1;
   const config: Record<string, unknown> = isRecordLike(row.config) ? { ...row.config } : {};
   config.name = null;
@@ -567,6 +583,7 @@ export async function renameWorkspace(
     .eq("id", rowId)
     .eq("name", from)
     .eq("config->>revision", String(expectedRevision));
+  updatedQuery = bindStoredLayoutFormat(updatedQuery, config);
   if (!isTeamShared(row)) updatedQuery = updatedQuery.eq("user_id", userId);
   const updated = await updatedQuery.select("id");
   const error = errOf(updated);
@@ -634,6 +651,8 @@ export async function duplicateWorkspace(
   }
   if (row.name !== from) return { ok: false, reason: "stale_revision" }; // moved out from under the id we loaded
   if (!isTeamShared(row) && str(row.user_id) && str(row.user_id) !== userId) return { ok: false, reason: "not_found" };
+
+  if (!supportsStoredLayout(row.config)) return { ok: false, reason: "unavailable" };
 
   let target = normalizeLayoutName(newName);
   if (!target) {
