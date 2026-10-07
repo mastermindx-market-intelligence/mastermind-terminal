@@ -5,6 +5,10 @@ Parent: `WS:LIVE-ENTRY-RADAR` / `market-timing-intelligence`
 Source base: Terminal `ad36a332cd4b53af1d917a94f6fb3a10e27dad84`
 Protected procedure recovered by parent: Mastermind `ee120e80f5d5e0344c453dd7cbf4108b9c429b38`
 
+Basis-declaration continuation: `rs-pullback-launch-basis-binding-20261007-sol-005`
+Source base: Terminal `52b9107b2f33738256b1e4877bbf166a45556525`
+Current protected procedure pin: Mastermind `1fc040f7343dde73fec3556dd3bf9bc8c1b18129`
+
 ## Delivered capability and boundary
 
 The existing intraday producer can opt in to preserving original finalized one-minute
@@ -38,7 +42,8 @@ of that file continues recording captures. A direct row-only overwrite of an ena
 refuses with `capture_context_required`; malformed or tampered capture state is never silently
 reinitialized. With `--existing-only --tf 1m`, a validated already-enabled file whose chart is
 empty can full-fetch through this same owner: it preserves its old capture prefix, appends the
-new attempt and populates the chart only from a successful response. This covers initial empty,
+new attempt and populates the chart only from a complete response whose returned adjustment
+declarations all support the requested adjusted chart basis. This covers initial empty,
 forming-only and failed captures. Missing files are not created by existing-only mode; empty
 legacy files and unreadable stores still refuse before transport.
 
@@ -51,12 +56,20 @@ and preserves the chart, while its completed-empty response remains visible in t
 The existing JSON object gains exactly one `minute_capture` envelope:
 
 ```text
-schema: mastermind.intraday_minute_capture.v1
+schema: mastermind.intraday_minute_capture.v2
 observer_id: terminal.backfill_intraday
 authority: {research_admitted: false, trading_authority: false}
 captures: ordered list of sealed capture records
 prefix_sha256: final capture_sha256, or 64 zeroes for the empty prefix
 ```
+
+The writer reads both v1 and v2 envelopes. A v2 envelope may contain an exact sealed v1
+record prefix followed by v2 records. V1 payloads have no payload `schema`; v2 payloads carry
+`schema="mastermind.intraday_minute_capture_payload.v2"`. A v1 record after the first v2 record
+refuses. Appending v2 changes the outer envelope schema but never changes a prior record,
+sequence, capture ID, predecessor, payload hash or record hash. Old reader receipts still
+refer to the same sealed prefixes; no legacy observation is manufactured during upgrade.
+Capacity refusal leaves even the outer v1 envelope byte-identical.
 
 `observer_id` identifies the logical collector. It is not an invented host identity, entitlement
 receipt, signed attestation or independent proof that a vendor supplied the bytes.
@@ -79,7 +92,9 @@ the final prefix seal. Hashes detect content changes; they are not signatures.
 
 ### Attempt payload
 
+- Version: `schema="mastermind.intraday_minute_capture_payload.v2"` on new payloads only.
 - Identity: `symbol`, `timeframe="1m"`, `source="polygon"`.
+- Chart compatibility: `chart_eligible`, a strict boolean distinct from acquisition status.
 - Disposition: `status="complete"|"partial"|"failed"` and `failure_kind`.
 - True UTC clocks: `started_at_utc_ns`, `completed_at_utc_ns`,
   `finality_reference_utc_ns`, and integer `finality_lag_s=900`.
@@ -108,6 +123,37 @@ Each page receipt contains zero-based `page_index`, `request_started_at_utc_ns`,
 `status="OK"|"DELAYED"|"INVALID"`, and its received/finalized/forming row counts.
 Request/response clocks must lie inside the attempt clocks. `DELAYED` stays an explicit
 source declaration; it is not relabeled real time.
+
+Each v2 page also has exactly `response_adjusted: {"state": STATE}`. This is derived from the
+actual top-level `adjusted` declaration in that exact response body, whose hash/count and page
+location are already sealed. No arbitrary declaration value is retained.
+
+| State | Actual response evidence |
+|---|---|
+| `TRUE` | Exactly JSON boolean `true`. |
+| `FALSE` | Exactly JSON boolean `false`. |
+| `MISSING` | Parsed object has no top-level `adjusted` key. |
+| `NULL` | Exactly JSON `null`. |
+| `INVALID_TYPE` | Present value is any other type; numbers and strings are never coerced. |
+| `UNPARSED` | Body could not be decoded or is not an object. |
+| `AMBIGUOUS` | More than one top-level `adjusted` key, even if values agree. |
+
+Nested keys do not affect the top-level declaration. Invalid values, error strings and unknown
+metadata are discarded. Legacy v1 pages have derived state `UNRECORDED`; that state is never
+written into or resealed within an old record and differs from observed v2 `MISSING`.
+
+`chart_eligible` is true only for a complete capture with at least one page and `TRUE` on every
+page. A complete response with false/missing/null/invalid/ambiguous declarations remains a
+complete retained observation, with `failure_kind=null` and `chart_eligible=false`. The writer
+returns the fixed diagnostic `captured_response_adjusted_not_true`, reports a store failure,
+and preserves the prior chart fields. It does not recast successful acquisition as a partial
+transport failure. An initially incompatible capture creates the evidence envelope with an
+empty chart, which can later recover through the existing owner. Partial/failed attempts
+always have `chart_eligible=false`. Mixed-page declarations retain each page's state separately.
+
+A returned `TRUE` supports only compatibility with this request. Native identity, action
+lineage, transform/vintage, price and volume basis, and exact occurrence-bound downstream
+admission evidence remain separate obligations. This flag grants no research or trade authority.
 
 Each observation contains zero-based `page_index`/`row_index`, `event_start_utc_ms`,
 `event_end_utc_ms`, and `raw`. The raw allowlist is only `t/o/h/l/c/v`; all other provider
@@ -144,8 +190,14 @@ supplies `timeout=45`); patching `urllib.request.urlopen` alone does not interce
 
 ## Compaction, replay and preservation
 
-Only consecutive equal finalized raw payloads relative to the latest **complete** observation
-for that minute are suppressed. A → A retains one changed episode; A → B → A retains three.
+Only consecutive equal finalized raw values **and normalized referenced-page declarations**
+relative to the latest **complete** observation for that minute are suppressed. Equality uses
+canonical `{"raw": RAW, "response_adjusted": DECLARATION}`; response-byte hashes alone are not
+a compaction key. V1 uses derived `{"state":"UNRECORDED"}`. Equal OHLCV with declarations
+false → true → false retains three episodes; another false observation may suppress. A new
+v2 `MISSING` differs from v1 `UNRECORDED`, even when raw values match. Different unsupported
+values within the same `INVALID_TYPE` class do not require retention of their arbitrary data.
+A → A retains one changed episode; A → B → A retains three.
 Partial/failed attempts never advance that complete-observation state and never suppress a
 later successful observation. The full original attempt is sealed in memory before replay
 handling; persisted payload seals cover the explicitly compacted evidence.
@@ -154,7 +206,8 @@ handling; persisted payload seals cover the explicitly compacted evidence.
 `append_sealed_capture(envelope, sealed_record)` is the explicit replay interface: it accepts
 the exact immutable record, preserving bytes after subsequent captures, and rejects changed
 content under the same ID. It does not recompact a raw historical attempt against the current
-state. Re-retaining the same finalized in-memory `CaptureAttempt` reuses its immutable seal
+state. Suppressed rows are never expanded into a new observation vintage, including during
+v1-to-v2 upgrade. Re-retaining the same finalized in-memory `CaptureAttempt` reuses its immutable seal
 and rejects changed original attempt data. Tests cover a replay that actually suppressed
 24 of 25 rows.
 
@@ -242,5 +295,40 @@ transport seam, including the concurrent-process and actual-file-entry checks.
 The parent also runs a reproducible cross-repository synthetic harness through the actual
 Macro reader and canonical RS selector. Its acceptance receipt belongs to the parent carrier;
 local test success here does not substitute for independent review, hosted checks, source
-merge or real runtime proof. The unchanged D0 qualification, CLI and session-chain suites
+merge or real runtime proof. The v2 producer must not be activated before the paired Macro
+dual-version reader is delivered. The transport injection seam is unchanged; synthetic positive
+fixtures must declare actual top-level `adjusted:true`. That declaration alone does not satisfy
+the consumer's independently required occurrence-bound basis evidence. The unchanged D0 qualification, CLI and session-chain suites
 also passed separately: **59 passed**, with the same four unrelated cleanup warnings.
+
+
+### Basis-declaration continuation verification
+
+The continuation uses synthetic bodies through `_open_capture_request`, actual producer fetch,
+atomic store replacement and validated file reads. Its controls cover unchanged v1 record/seal
+prefixes, legacy `UNRECORDED` to observed `MISSING`/`TRUE`, false/true/false equal-value episodes,
+all normalized unavailable states, duplicate top-level keys including equal duplicates, nested
+key isolation, mixed-page declarations, partial failures, empty recovery and capacity refusal.
+The unchanged response-identity, cursor pagination and redirect defenses continue to run in
+the same focused suite. Captured raw fractional/null/missing volume remains exact; legacy chart
+volume remains its existing integer projection. No scheduler, cohort, rights, source endpoint,
+finality cutoff, cap, lock or atomic-write route is changed.
+
+The affected gate passed **325 tests**, including **79 capture cases** and **59 unchanged D0
+qualification/CLI/session-chain cases** (Studio Direct process `35871`, exit 0). It ran with
+bytecode and pytest cache disabled, isolated temporary inputs, and no provider access:
+
+```bash
+python3 -B -m pytest tests/test_intraday_capture.py \
+  tests/test_backfill_intraday.py tests/test_backfill_intraday_refresh.py \
+  tests/test_backfill_intraday_breaker.py tests/test_nightly_wiring.py \
+  tests/test_intraday_qualification.py tests/test_intraday_qualification_cli.py \
+  tests/test_intraday_session_chain.py -q -p no:cacheprovider
+```
+
+A separate actual producer-to-file sample (`25272`, exit 0) retained a `TRUE` declaration bound
+to its exact page hash/count, immutable capture/payload seals and original fractional volume.
+It used the private injected transport and a temporary store. Source hashes and independent
+review belong to the frozen worker packet. The Phase 1 verdict remains **NOT_ADMITTED**, all
+authority flags remain false, and no outcome or scientific hypothesis is tested by these
+engineering controls.

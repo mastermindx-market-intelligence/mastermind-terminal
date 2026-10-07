@@ -239,11 +239,8 @@ def _get(url: str, tries: int = 5, *, capture=None) -> dict:
                        if capture is not None else r.read())
                 received_ns = capture.clock() if capture is not None else None
             if capture is not None:
-                capture.received(raw, requested_ns, received_ns)
-                try:
-                    return json.loads(raw)
-                except (ValueError, UnicodeError):
-                    raise capture_owner.CaptureError("malformed_response") from None
+                page = capture.received(raw, requested_ns, received_ns)
+                return capture_owner.decode_response(raw, page)
             return json.loads(raw)
         except capture_owner.CaptureError:
             raise
@@ -441,6 +438,10 @@ def fetch_polygon_intraday(
         raise
     if capture is not None:
         session.retain(capture)
+        if not capture.data["chart_eligible"]:
+            # Acquisition completeness and compatibility with the requested chart
+            # basis are separate facts. Retain complete evidence, preserve the chart.
+            raise AdjustmentMismatch("captured_response_adjusted_not_true")
     return out
 
 
