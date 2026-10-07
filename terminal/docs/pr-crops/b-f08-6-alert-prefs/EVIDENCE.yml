@@ -1,3 +1,4 @@
+# 2026-10-05 #802/#808 source hash reconciliation: preserves captured PNG bytes/provenance; added Dislocations-only labels are not rendered by these capture surfaces.
 # B-F08-6 Alert delivery — capture evidence
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
 # Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
@@ -9,7 +10,7 @@ layoutFiles:
   terminal/components/settings/SectionAlertDelivery.tsx: "9c770be9ef78bc2bb9f1fa3c0b21824632ba63bc061f852264e3bc412d719aa0"
   terminal/components/settings/SettingsPanel.tsx: "526725b37af04f1092359a8aca1e6d3d6d62815b5913b3a7eba754e4ca020329"
   terminal/components/settings/icons.tsx: "7f3e17e45cb92545437ade898fe47a92cf6a65d1682cec9b9cea7a5bb8bd4d83"
-  terminal/lib/i18n.tsx: "399d9e1d2480ae8217d7f12f45b09ebba91a79670fbb0f16e68c38d43cb144de"
+  terminal/lib/i18n.tsx: "858306597ebbfc2d912cefc997ad88e4805cafb08794b5cd4d3dfeacb109371f"
   terminal/lib/plainLabels.ts: "8f57e32a21abcae530075b7c4da72f170afff8ea38084026995887b4a18fe29a"
   terminal/app/settings.css: "d17ceff6469db97d3d4bcfb800503ee3c22e89b0770a1c0a88c9d39eb5a72837"
   terminal/components/settings/SettingsProvider.tsx: "a4c829c956ca7ffd89bbc3158009b1148bb613569a9716b092dd9a27d449d910"
