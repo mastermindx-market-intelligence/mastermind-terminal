@@ -465,7 +465,8 @@ describe("TickerNewsPanel", () => {
     const panel = host.querySelector("[data-testid=ticker-news-panel]");
     expect(panel?.getAttribute("data-news-state")).toBe("unavailable");
     expect(host.querySelector("[role=status]")?.textContent).toContain("News is temporarily unavailable");
-    expect(fetchMock.mock.calls.filter((c) => String(c[0]).includes("/api/news/NVDA"))).toHaveLength(1);
+    const snapshotCalls = (fetchMock.mock.calls as unknown[][]).filter((c) => String(c[0]).includes("/api/news/NVDA"));
+    expect(snapshotCalls).toHaveLength(1);
     vi.useRealTimers();
   });
 

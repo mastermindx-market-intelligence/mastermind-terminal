@@ -73,7 +73,23 @@ const MANIFEST = {
   },
 };
 
-function snapshotFor(ticker: string, rows: typeof SNAPSHOT.rows) {
+type NewsRow = {
+  sequence: number;
+  source: string;
+  source_item_id: string;
+  story_id: string;
+  source_count: number;
+  item_count: number;
+  title: string;
+  url: string;
+  teaser: string;
+  published_at: string;
+  updated_at: string;
+  received_at: string;
+  universe_revision: string;
+};
+
+function snapshotFor(ticker: string, rows: NewsRow[]) {
   return {
     schema: "ticker_news.snapshot.v1",
     ticker,
