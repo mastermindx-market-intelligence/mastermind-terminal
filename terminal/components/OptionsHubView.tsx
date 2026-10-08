@@ -12,7 +12,7 @@ import { CoachProvider, useCoach } from "@/lib/tutorial/coach";
 import { getTutStr } from "@/lib/tutorial/tutorialStrings";
 import { abbrevSector } from "@/lib/sectorAbbrev";
 import { windowGexRows } from "@/lib/windowGexRows.mjs";
-import { flowGet, flowInvalidate, flowPrefetch } from "@/lib/flowClientCache";
+import { flowGet, flowGetFresh, flowInvalidate, flowPrefetch } from "@/lib/flowClientCache";
 import { useFlowStream } from "@/lib/flowStream";
 import { usOptionsSessionState } from "@/lib/flowFreshness";
 import { trackSearch } from "@/lib/searchTrack";
@@ -2139,20 +2139,32 @@ export default function OptionsHubView({
   const [leadersLoading, setLeadersLoading] = useState(false);
   const [leadersError, setLeadersError] = useState(false);
   const [leadersBoard, setLeadersBoard] = useState<"a" | "b">("a");
+  const [showHistoricalLeaders, setShowHistoricalLeaders] = useState(false);
 
+  // The nightly data can advance while this workspace stays mounted. The ordinary
+  // flowGet SWR path returns yesterday's cache and only refreshes it in the background;
+  // the previous "if (leadersData) return" then held that first payload indefinitely.
+  // Wait for revalidation on each Leaders entry or explicit retry.
   const fetchLeaders = useCallback(async () => {
-    if (leadersData) return;
     setLeadersLoading(true); setLeadersError(false);
     try {
-      const d = await flowGet("leaders");
-      if (d) setLeadersData(d as unknown as LeadersPayload);
-      else setLeadersError(true);
+      const d = await flowGetFresh("leaders");
+      if (d && typeof d === "object" &&
+          Array.isArray((d as LeadersPayload).board_a) &&
+          Array.isArray((d as LeadersPayload).board_b) &&
+          (d as LeadersPayload).coverage) {
+        const payload = d as LeadersPayload;
+        setLeadersData(payload);
+        if (!payload.stale) setShowHistoricalLeaders(false);
+      } else {
+        setLeadersError(true);
+      }
     } catch { setLeadersError(true); }
     setLeadersLoading(false);
-  }, [leadersData]);
+  }, []);
 
   useEffect(() => {
-    if (activeTab === "leaders") fetchLeaders();
+    if (activeTab === "leaders") void fetchLeaders();
   }, [activeTab, fetchLeaders]);
 
   // ── Leader Radar fetch ────────────────────────────────────────────────────
@@ -3958,6 +3970,45 @@ export default function OptionsHubView({
                 const boardARows = [...leadersData.board_a].sort((a, b) => b.K_a - a.K_a);
                 const boardBRows = [...leadersData.board_b].sort((a, b) => b.K_b - a.K_b);
                 const displayRows = leadersBoard === "a" ? boardARows : boardBRows;
+
+                // A recent build stamp is NOT a recent source session. Keep historical
+                // tables out of the active discovery surface by default: legacy
+                // options summaries froze on 2026-08-12 and can still be republished.
+                if (leadersData.stale && !showHistoricalLeaders) {
+                  return (
+                    <div role="status" style={{ padding: "24px 20px", border: "1px solid var(--border)", borderRadius: "var(--r-md)" }}>
+                      <div style={{ fontSize: 14, fontWeight: 600, color: "var(--warn)", marginBottom: 8 }}>
+                        {pick(lang, "Current Flow Leaders unavailable", "当前资金流领涨榜不可用")}
+                      </div>
+                      <div style={{ fontSize: 12, color: "var(--text-2)", lineHeight: 1.6 }}>
+                        {leadersData.session_date
+                          ? pick(lang,
+                              `Last verified source session: ${leadersData.session_date}. This is a historical snapshot, not today's options activity.`,
+                              `最后验证的数据会话：${leadersData.session_date}。这是历史快照，并非今日的期权活动。`)
+                          : pick(lang, "The latest market session cannot be verified.", "无法核实最新市场交易日。")}
+                        {" "}
+                        {pick(lang, "Rankings and signal flags are withheld until current-session evidence is available.",
+                          "在取得当前交易日证据之前，暂不展示排名和信号标记。")}
+                      </div>
+                      {leadersError && (
+                        <div style={{ fontSize: 12, color: "var(--warn)", marginTop: 8 }}>
+                          {pick(lang, "The latest refresh failed; the historical snapshot remains unchanged.",
+                            "最新刷新失败；历史快照未更改。")}
+                        </div>
+                      )}
+                      <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginTop: 16 }}>
+                        <button type="button" className="btn btn-ghost" disabled={leadersLoading}
+                          onClick={() => void fetchLeaders()}>
+                          {leadersLoading ? t("loading", "Loading…") : pick(lang, "Check for new data", "检查新数据")}
+                        </button>
+                        <button type="button" className="btn btn-ghost"
+                          onClick={() => setShowHistoricalLeaders(true)}>
+                          {pick(lang, "Inspect historical snapshot", "查看历史快照")}
+                        </button>
+                      </div>
+                    </div>
+                  );
+                }
 
                 return (
                   <>
