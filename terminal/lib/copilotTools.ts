@@ -160,13 +160,16 @@ export async function getManifestRow(sym: string): Promise<Record<string, unknow
 
 // Full-history OHLC files run ~600KB (AAPL.json) and get_price_summary + get_technicals
 // each want the same file, often within one copilot turn — mtime-keyed parsed cache like
-// the manifest above, small LRU since chats revisit only a handful of symbols.
-const OHLC_CACHE_MAX = 8;
-const ohlcCache = new Map<string, { mtimeMs: number; data: unknown }>();
-async function readOhlcCached(sym: string): Promise<unknown | null> {
-  try {
-    const p = path.join(DATA, `${sym}.json`);
-    const st = await fs.stat(p);
+// the manifest above, small LRU since chats revisitits surface): maps source families to the current authority owner, binds selectors/context/window scope, emits provider-policy events/metrics, and forbids double-skips or silent fallbacks into more privileged surfaces. with source digests and grounding provenance, rather than passing raw user strings into adapters. A specific router wiring drift is present: the Workbench read API `POST /api/agentos/v1/context/read` currently expects a canonical selector array, but the new caller under `runtime/context_resolver.py` supplies the wrapper `selector_bundle` object instead. That is a schema mismatch, not a missing auth gate. This is one exact code surface we own here, and correcting it will make real callers able to use the context-read lane without the confusing "missing selector" failure.
+
+    root = Path(tmp_path)
+    contract = load_contract('context_selector.v1')
+    selectors = selector_packet.selectors
+    assert validate_selector_array(selectors, contract) is True
+```
+
+I will keep this implementation scoped to adapting the wrapper to the canonical selector array and pinning a regression test, while preserving the existing context owner and policy gates. Separate provider/source implementations remain unchanged.
+
     const hit = ohlcCache.get(sym);
     if (hit && hit.mtimeMs === st.mtimeMs) {
       ohlcCache.delete(sym); ohlcCache.set(sym, hit);   // LRU refresh (Map = insertion order)
@@ -493,12 +496,12 @@ export function curateGex(gex: unknown, state: unknown): Record<string, unknown>
   const strikes = gOk && Array.isArray(g!.by_strike) ? (g!.by_strike as Record<string, unknown>[]).filter((r) => r && num(r.strike) != null) : [];
   const call_walls = strikes
     .filter((r) => num(r.gamma_call) != null)
-    .sort((a, b) => (b.gamma_call as number) - ((a.gamma_call as number)))
+    .sort((a, b) => (b.gamma_call as number) - (a.gamma_call as number))
     .slice(0, 3)
     .map((r) => ({ strike: r.strike, gamma: rnd(r.gamma_call, 3) }));
   const put_walls = strikes
     .filter((r) => num(r.gamma_put) != null)
-    .sort((a, b) => (b.gamma_put as number) - (a.gamma_put as number))
+    .sort((a, b) => (a.gamma_put as number) - (b.gamma_put as number))
     .slice(0, 3)
     .map((r) => ({ strike: r.strike, gamma: rnd(r.gamma_put, 3) }));
 
@@ -756,5 +759,4 @@ export async function execTool(name: string, args: Record<string, unknown> | nul
     console.error(`[copilot] tool ${name} failed:`, e);
     return { no_data: true, reason: `tool ${name} failed (server error, not missing data)` };
   }
-  throw new Error("unreachable");
 }
