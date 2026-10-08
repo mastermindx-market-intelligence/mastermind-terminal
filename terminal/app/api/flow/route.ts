@@ -124,5 +124,14 @@ export async function GET(req: Request): Promise<Response> {
       }
     );
   }
+  // Leaders is a nightly-derived source with a source-session admission gate.
+  // The generic background SWR response reports stale:true immediately, even if
+  // the new Macro artifact is already current. Wait for this one coalesced check
+  // so an explicit Leaders refresh actually consumes the newly published source.
+  // On upstream failure the historical cached snapshot stays explicitly stale.
+  if (f === "leaders") {
+    const refreshed = await INFLIGHT[f];
+    return NextResponse.json(refreshed ?? stale, { headers: { "Cache-Control": "no-store" } });
+  }
   return NextResponse.json(stale, { headers: { "Cache-Control": "no-store" } });
 }
