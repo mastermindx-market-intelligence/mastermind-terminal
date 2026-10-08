@@ -69,6 +69,50 @@ describe("GET /api/flow leaders source-session revalidation", () => {
     expect(upstream).toHaveBeenCalledTimes(2);
   });
 
+  it("forces a real source refresh before server TTL expires", async () => {
+    const GET = await loadGet();
+    upstream.mockResolvedValueOnce(leader("2026-08-12", true))
+      .mockResolvedValueOnce(leader("2026-10-06", false));
+    await GET(new Request(URL));
+    // The 30-second cache is still fresh, but an explicit button click is not
+    // equivalent to showing the same stale bytes a second time.
+    const second = await GET(new Request(URL + "&refresh=1"));
+    expect((await second.json()).session_date).toBe("2026-10-06");
+    expect(upstream).toHaveBeenCalledTimes(2);
+    expect(second.headers.get("cache-control")).toBe("no-store");
+    const cached = await GET(new Request(URL));
+    expect((await cached.json()).session_date).toBe("2026-10-06");
+    expect(upstream).toHaveBeenCalledTimes(2);
+  });
+
+  it("an explicit check retains stale evidence when the publisher is unavailable", async () => {
+    const GET = await loadGet();
+    upstream.mockResolvedValueOnce(leader("2026-08-12", false))
+      .mockResolvedValueOnce(null);
+    await GET(new Request(URL));
+    const response = await GET(new Request(URL + "&refresh=1"));
+    expect((await response.json())).toMatchObject({
+      session_date: "2026-08-12", stale: true,
+    });
+    expect(response.headers.get("cache-control")).toBe("no-store");
+  });
+
+  it("coalesces concurrent manual source checks into one upstream request", async () => {
+    const GET = await loadGet();
+    upstream.mockResolvedValueOnce(leader("2026-08-12", true));
+    await GET(new Request(URL));
+    let resolve!: (v: ReturnType<typeof leader>) => void;
+    const pending = new Promise<ReturnType<typeof leader>>((r) => { resolve = r; });
+    upstream.mockReturnValueOnce(pending);
+    const p1 = GET(new Request(URL + "&refresh=1"));
+    const p2 = GET(new Request(URL + "&refresh=1"));
+    resolve(leader("2026-10-06", false));
+    const [a, b] = await Promise.all([p1, p2]);
+    expect((await a.json()).session_date).toBe("2026-10-06");
+    expect((await b.json()).session_date).toBe("2026-10-06");
+    expect(upstream).toHaveBeenCalledTimes(2);
+  });
+
   it("deduplicates two concurrent source checks into one producer refresh", async () => {
     const GET = await loadGet();
     upstream.mockResolvedValueOnce(leader("2026-08-12", true));
