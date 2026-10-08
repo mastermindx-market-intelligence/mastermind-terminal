@@ -1,10 +1,12 @@
+import { TIMEFRAMES } from "@/lib/finvizThemes";
+import { isAdminRequest } from "@/lib/adminGate";
 import { createHash } from "node:crypto";
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { rateLimit } from "@/lib/rateLimit";
 import { NW_BASE } from "@/lib/upstreams";
-import { object, sourceDate, readableOwnerEnvelope, type FeedReceipt, type SectorFeed } from "@/lib/sectorIntelligence";
+import { object, number, sourceDate, readableOwnerEnvelope, type FeedReceipt, type SectorFeed } from "@/lib/sectorIntelligence";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -15,6 +17,7 @@ const PATHS: Record<SectorFeed, string> = {
   confluence: "/marketdata/subsector_confluence.json",
   themes: "/neuralwebdata/theme_state.json",
   heatmap: "/marketdata/sp500_heatmap.json",
+  finviz: "/marketdata/themes_heatmap.json",
 };
 const MAX_BYTES = 4 * 1024 * 1024;
 
@@ -109,6 +112,16 @@ export async function GET(req: Request): Promise<Response> {
   } catch { return failure(401, "access"); }
   if (!authCookie) return failure(401, "access");
 
+  // Finviz remains INTERNAL ONLY under Macro #8509. A customer login is not
+  // internal authorization. Reuse the existing owner/admin gate before fetch.
+  if (key === "finviz") {
+    try {
+      const authority = await isAdminRequest();
+      if (authority.status === "unavailable") return failure(503, "unavailable");
+      if (authority.status !== "admin") return failure(403, "access");
+    } catch { return failure(503, "unavailable"); }
+  }
+
   // The established Neural Web origin also owns these static Macro outputs.
   // Never send a caller cookie to arbitrary env hosts, redirects, R2, or a sidecar.
   let url: URL;
@@ -141,7 +154,21 @@ export async function GET(req: Request): Promise<Response> {
     if (!readableOwnerEnvelope(key, parsed.data)) return failure(502, "invalid");
     const receipt: FeedReceipt = { ...baseReceipt, status: "ready", asOf: sourceDate(parsed.data),
       observedAt: new Date().toISOString(), stale: object(parsed.data).stale === true, contentHash: parsed.hash };
-    return NextResponse.json({ data: parsed.data, receipt }, { headers: HEADERS });
+    // Transport factual identity/membership/measurements only, never vendor prose.
+    const owner = object(parsed.data);
+    const factualPerf = (value: unknown) => Object.fromEntries(TIMEFRAMES.map(tf => [tf, number(object(value)[tf])]));
+    const data = key === "finviz" ? {
+      map_type: owner.map_type, source: owner.source, asof: owner.asof,
+      generated_utc: owner.generated_utc, n_tiles: owner.n_tiles, n_members: owner.n_members,
+      size_basis: owner.size_basis, timeframes: (owner.timeframes as unknown[]).map(value => { const row = object(value); return { key: row.key, available: row.available === true }; }),
+      sectors: (owner.sectors as unknown[]).map(value => { const row = object(value); return { key: row.key, en: row.en, zh: row.zh }; }),
+      tiles: (owner.tiles as unknown[]).map(value => {
+        const tile = object(value);
+        return { t: tile.t, name: tile.name, sector: tile.sector, size: tile.size, perf: factualPerf(tile.perf),
+          members: (tile.members as unknown[]).map(value => { const member = object(value); return { t: member.t, perf: factualPerf(member.perf) }; }) };
+      }),
+    } : parsed.data;
+    return NextResponse.json({ data, receipt }, { headers: HEADERS });
   } catch { return failure(503, "error"); }
   finally { clearTimeout(timer); req.signal.removeEventListener("abort", abort); }
 }

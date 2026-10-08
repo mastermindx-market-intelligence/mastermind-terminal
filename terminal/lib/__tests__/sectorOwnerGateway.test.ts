@@ -3,6 +3,8 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 // Synthetic authentication exists only inside this unit test. No account/session
 // is installed, no network is used, and these cases are not production auth proof.
+const adminGate = vi.hoisted(() => ({ isAdminRequest: vi.fn() }));
+vi.mock("@/lib/adminGate", () => adminGate);
 const auth = vi.hoisted(() => ({ getUser: vi.fn(), getSession: vi.fn() }));
 const currentCookieStore = vi.hoisted(() => {
   const state = { values: [] as { name: string; value: string }[] };
@@ -26,6 +28,7 @@ const payload = { as_of: "2026-09-25", sectors: [] };
 let upstream: ReturnType<typeof vi.fn>;
 beforeEach(() => {
   vi.clearAllMocks();
+  adminGate.isAdminRequest.mockResolvedValue({ status: "denied" });
   currentCookieStore.state.values = [
     { name: "sb-fsldfzlxyavsuwqbceod-auth-token.0", value: "base64-part-0" },
     { name: "theme", value: "dark" },
@@ -171,4 +174,37 @@ describe("sector gateway owner-envelope admission", () => {
     const oversized = await GET(request("sector"));
     expect(oversized.status).toBe(502); expect((await oversized.json()).receipt.status).toBe("invalid");
   });
+});
+
+
+describe("Finviz remains internal-only", () => {
+  it("does not fetch internal Finviz for an authenticated customer", async () => {
+    const response = await GET(request("finviz"));
+    expect(response.status).toBe(403);
+    expect(upstream).not.toHaveBeenCalled();
+  });
+  it("does not turn admin authority failure into permission", async () => {
+    adminGate.isAdminRequest.mockResolvedValue({ status: "unavailable" });
+    expect((await GET(request("finviz"))).status).toBe(503);
+    expect(upstream).not.toHaveBeenCalled();
+  });
+  it("requires shared authentication before the admin gate", async () => {
+    expect((await GET(request("finviz", null))).status).toBe(401);
+    expect(adminGate.isAdminRequest).not.toHaveBeenCalled();
+    expect(upstream).not.toHaveBeenCalled();
+  });
+});
+
+it("returns factual internal owner data without vendor descriptions", async () => {
+  adminGate.isAdminRequest.mockResolvedValue({ status: "admin" });
+  const internal = { source: "finviz-themes", map_type: "themes", asof: "2026-10-07", generated_utc: "2026-10-07 19:59", n_tiles: 1, n_members: 1, size_basis: "count",
+    sectors: [{ key: "AI", en: "AI", zh: "人工智能" }], timeframes: ["1D", "1W", "MTD", "1M", "3M", "6M", "YTD", "1Y"].map(key => ({ key, available: true, description: "VENDOR_TIMEFRAME_PROSE" })),
+    tiles: [{ t: "compute", name: "Compute", sector: "AI", size: 1, desc: "VENDOR_PROSE", perf: { "1D": 1 }, members: [{ t: "NVDA", perf: { "1D": 1 }, description: "VENDOR_MEMBER_PROSE" }] }], description: "VENDOR_ROOT_PROSE" };
+  upstream.mockResolvedValue(new Response(JSON.stringify(internal), { headers: { "Content-Type": "application/json" } }));
+  const response = await GET(request("finviz")), result = await response.json();
+  expect(response.status).toBe(200);
+  expect(JSON.stringify(result.data)).not.toContain("VENDOR_");
+  expect(result.data.tiles[0].members[0].t).toBe("NVDA");
+  expect(String(upstream.mock.calls[0][0])).toBe("https://www.mastermind-x.com/marketdata/themes_heatmap.json");
+  expect(response.headers.get("cache-control")).toBe("private, no-store");
 });

@@ -11,6 +11,7 @@ import { SECTOR_FEEDS, SECTOR_VIEWS, DEFAULT_SECTOR_STATE, object, text, number,
   formatValue, type FeedMap, type FeedPayload, type FeedStatus,
   type SectorFeed, type SectorState, type SectorView, type Row } from "@/lib/sectorIntelligence";
 import SectorGroupBrowser from "./SectorGroupBrowser";
+import FinvizDiscovery from "./FinvizDiscovery";
 import SectorCentralDiscovery from "./SectorCentralDiscovery";
 import SectorRotationMap from "./SectorRotationMap";
 import styles from "./SectorIntelligenceWorkspace.module.css";
@@ -28,7 +29,7 @@ const RETURN_KEYS: Record<OuterWorkspace, string> = {
   rotation: "siReturnToRotation", discover: "siReturnToDiscover", breadth: "siReturnToBreadth",
 };
 const FEED_KEYS: Record<SectorFeed, string> = {
-  sector: "siFeedSector", confluence: "siFeedConfluence", themes: "siFeedThemes", heatmap: "siFeedHeatmap",
+  sector: "siFeedSector", confluence: "siFeedConfluence", themes: "siFeedThemes", heatmap: "siFeedHeatmap", finviz: "siFeedFinviz",
 };
 const STATUS_KEYS: Record<FeedStatus, string> = {
   loading: "siStatusLoading", ready: "siStatusReady", access: "siStatusAccess", unavailable: "siStatusUnavailable",
@@ -269,7 +270,11 @@ export default function SectorIntelligenceWorkspace() {
         <button type="button" data-testid="sector-detail-return" onClick={returnToOuterWorkspace}>← {t(RETURN_KEYS[returnWorkspace])}</button>
         <span>{t("siResearchDepth")} · {sectorName || state.sector.toUpperCase()}</span>
       </div>}
-      {state.workspace === "rotation" ? <SectorRotationMap rows={sectors} status={status}
+      {state.workspace === "discover" && <nav className={styles.workspaceNavigation} aria-label={lang === "zh" ? "数据来源" : "Source family"}>
+        <button type="button" aria-pressed={state.sourceFamily === "sectors"} onClick={() => change({ sourceFamily: "sectors" }, true)}>{lang === "zh" ? "行业板块" : "Sectors"}</button>
+        <button type="button" aria-pressed={state.sourceFamily === "finviz"} onClick={() => change({ sourceFamily: "finviz" }, true)}>{lang === "zh" ? "Finviz 主题" : "Finviz themes"}</button>
+      </nav>}
+      {state.workspace === "discover" && state.sourceFamily === "finviz" ? <FinvizDiscovery feed={feeds.finviz} state={state} onChange={patch => change(patch, !Object.hasOwn(patch, "discoveryQuery"))} /> : state.workspace === "rotation" ? <SectorRotationMap rows={sectors} status={status}
         asOf={feeds.sector?.receipt.asOf || null} selected={state.sector} mode={state.rotationMode} query={state.rotationQuery}
         onMode={rotationMode => change({ rotationMode })} onQuery={rotationQuery => change({ rotationQuery })}
         onSources={() => openSources()} onSelect={sector => change({ sector }, true)}

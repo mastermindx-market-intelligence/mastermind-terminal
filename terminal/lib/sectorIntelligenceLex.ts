@@ -133,6 +133,7 @@ export const SECTOR_INTELLIGENCE_LEX: Record<string, [string, string]> = {
   siReceipt: ["Technical receipt", "技术凭据"], siSourcePath: ["Owner path", "来源路径"],
   siHash: ["Snapshot SHA-256", "快照SHA-256"], siFeedSector: ["Sector Central", "板块中心"],
   siFeedConfluence: ["Subsector confluence", "子行业共振"], siFeedThemes: ["Theme state", "主题状态"],
+  siFeedFinviz: ["Finviz themes (internal)", "Finviz 主题（内部）"],
   siFeedHeatmap: ["Market heatmap", "市场热力图"], siStatusReady: ["Received", "已接收"],
   siStatusLoading: ["Loading", "加载中"], siStatusAccess: ["Access required", "需要权限"],
   siStatusUnavailable: ["Unavailable", "不可用"], siStatusInvalid: ["Unrecognized data", "数据不匹配"],

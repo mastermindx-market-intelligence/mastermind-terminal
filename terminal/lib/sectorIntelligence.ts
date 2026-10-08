@@ -1,8 +1,9 @@
+import { normalizeFinviz } from "./finvizThemes";
 /** Read-only presentation of the existing Sector Central owner feeds.
  * This module neither emits a dossier nor creates rankings/entry permission.
  * Missing numbers stay null. Every feed keeps its own clock and cohort.
  */
-export const SECTOR_FEEDS = ["sector", "confluence", "themes", "heatmap"] as const;
+export const SECTOR_FEEDS = ["sector", "confluence", "themes", "heatmap", "finviz"] as const;
 export type SectorFeed = typeof SECTOR_FEEDS[number];
 export type FeedStatus = "loading" | "ready" | "access" | "unavailable" | "invalid" | "error";
 export interface FeedReceipt {
@@ -27,13 +28,17 @@ export type SectorDiscoveryMode = "summary" | "table" | "heatmap" | "matrix";
 export type SectorMatrixTimeframe = "1D" | "1W" | "MTD" | "1M" | "3M" | "6M" | "YTD" | "1Y";
 export type SectorCapBand = "mega" | "large" | "mid" | "smaller";
 export type SectorRotationMode = "map" | "list";
+export type FinvizMode = "heatmap" | "bubbles" | "clusters" | "matrix" | "table";
+export type FinvizAxis = "1D" | "1W" | "MTD" | "1M" | "3M" | "6M" | "YTD" | "1Y" | "members";
 export type SectorState = {
+  sourceFamily: "sectors" | "finviz"; finvizMode: FinvizMode; finvizTheme: string; finvizSubtheme: string; bubbleX: FinvizAxis; bubbleY: FinvizAxis; bubbleSize: "members" | "equal";
   view: SectorView; sector: string; group: string; sort: MemberSort; query: string; theme: "dark" | "light"; company: string; expanded: boolean; sourcesOpen: boolean;
   workspace: SectorWorkspace; discoveryQuery: string; discoverySort: SectorDiscoverySort; companyTableQuery: string; companyTableSort: SectorCompanyTableSort;
   discoveryMode: SectorDiscoveryMode; matrixTimeframe: SectorMatrixTimeframe; matrixIndustry: string; matrixBand: SectorCapBand | "";
   rotationMode: SectorRotationMode; rotationQuery: string;
 };
 export const DEFAULT_SECTOR_STATE: SectorState = {
+  sourceFamily: "sectors", finvizMode: "heatmap", finvizTheme: "", finvizSubtheme: "", bubbleX: "1W", bubbleY: "1M", bubbleSize: "members",
   view: "intelligence", sector: "xlk", group: "semiconductors", sort: "source", query: "", theme: "dark", company: "", expanded: false, sourcesOpen: false,
   workspace: "discover", discoveryQuery: "", discoverySort: "source", companyTableQuery: "", companyTableSort: "source", discoveryMode: "summary", matrixTimeframe: "1D", matrixIndustry: "", matrixBand: "",
   rotationMode: "map", rotationQuery: "",
@@ -56,6 +61,7 @@ export function sourceDate(data: unknown): string | null {
  * This is a consumer boundary, not a dossier/schema producer or authority manifest.
  */
 export function readableOwnerEnvelope(source: SectorFeed, data: unknown): boolean {
+  if (source === "finviz") { try { normalizeFinviz(data); return true; } catch { return false; } }
   const root = object(data);
   const bounded = (value: unknown) => Array.isArray(value) && value.length <= 10_000;
   if (source === "sector") return bounded(root.sectors);
@@ -152,6 +158,7 @@ export function concentration(data: unknown, sectorName: string): {
     count: tiles.length, names: top.map(row => text(row.t)) };
 }
 export function parseSectorState(params: URLSearchParams): SectorState {
+  const axis = (key: string, fallback: FinvizAxis): FinvizAxis => ["1D","1W","MTD","1M","3M","6M","YTD","1Y","members"].includes(params.get(key) || "") ? params.get(key) as FinvizAxis : fallback;
   const view = params.get("sectorView") || "", sector = params.get("sector") || "", group = params.get("group") || "";
   const sort = params.get("sectorSort") || "";
   const workspace = params.get("sectorWorkspace"), discoverySort = params.get("sectorDiscoverySort");
@@ -160,6 +167,10 @@ export function parseSectorState(params: URLSearchParams): SectorState {
   const matrixBand = params.get("sectorMatrixBand"), rotationMode = params.get("sectorRotationMode");
   const legacyDetail = ["sectorView", "sector", "group", "sectorCompany", "sectorQuery"].some(key => params.has(key));
   return {
+    sourceFamily: params.get("sectorSource") === "finviz" ? "finviz" : "sectors",
+    finvizMode: ["heatmap","bubbles","clusters","matrix","table"].includes(params.get("finvizMode") || "") ? params.get("finvizMode") as FinvizMode : "heatmap",
+    finvizTheme: (params.get("finvizTheme") || "").slice(0, 180), finvizSubtheme: (params.get("finvizSubtheme") || "").slice(0, 180),
+    bubbleX: axis("bubbleX", "1W"), bubbleY: axis("bubbleY", "1M"), bubbleSize: params.get("bubbleSize") === "equal" ? "equal" : "members",
     workspace: workspace === "rotation" || workspace === "discover" || workspace === "breadth" || workspace === "detail" ? workspace : legacyDetail ? "detail" : "discover",
     discoveryQuery: (params.get("sectorDiscoveryQuery") || "").slice(0, 60),
     discoverySort: discoverySort === "return" || discoverySort === "participation" ? discoverySort : "source",
@@ -185,6 +196,11 @@ export function parseSectorState(params: URLSearchParams): SectorState {
 }
 export function writeSectorState(url: URL, state: SectorState): string {
   url.searchParams.set("tab", "sectors");
+  url.searchParams.set("sectorSource", state.sourceFamily);
+  url.searchParams.set("finvizMode", state.finvizMode);
+  for (const key of ["finvizTheme", "finvizSubtheme", "bubbleX", "bubbleY", "bubbleSize"] as const) {
+    if (state[key]) url.searchParams.set(key, state[key]); else url.searchParams.delete(key);
+  }
   url.searchParams.set("sectorWorkspace", state.workspace);
   url.searchParams.set("sectorDiscoverySort", state.discoverySort);
   url.searchParams.set("sectorCompanyTableSort", state.companyTableSort);
