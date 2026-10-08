@@ -1,3 +1,4 @@
+import { normalizeDrawings } from "../lib/drawings";
 import { expect, test, type Locator, type Page } from "@playwright/test";
 import { chooseToolbarSplit, runToolbarDetector, toggleToolbarReplay } from "./terminalToolbar";
 
@@ -6,11 +7,11 @@ type SavePayload = { drawings?: Array<{ id?: string; kind?: string; locked?: boo
 async function openTerminal(page: Page, options: { drawings?: unknown[]; onPut?: (payload: SavePayload) => void } = {}) {
   await page.route("**/api/drawings**", async (route) => {
     if (route.request().method() === "GET") {
-      await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ drawings: options.drawings ?? [] }) });
+      await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ drawings: normalizeDrawings(options.drawings ?? []), revision: options.drawings?.length ? "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa" : null, schemaVersion: 1 }) });
       return;
     }
     try { options.onPut?.(route.request().postDataJSON()); } catch {}
-    await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ ok: true }) });
+    await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ ok: true, operationId: route.request().postDataJSON().operationId, revision: "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb", idempotentReplay: false, superseded: false }) });
   });
   await page.addInitScript(() => {
     localStorage.removeItem("mm.draw");
@@ -303,11 +304,13 @@ test("bulk drawing controls preserve source scopes and lock only user-authored o
   await openTerminal(page, {
     drawings: [
       { id: "bulk-user", kind: "trendline", source: "user", points: [{ t: "2026-05-20", p: 176 }, { t: "2026-06-17", p: 210 }] },
-      { id: "bulk-detector", kind: "hline", source: "detector", auto: true, points: [{ t: "2026-06-17", p: 188 }] },
     ],
     onPut: (payload) => saves.push(payload),
   });
 
+  // Account storage contains hand-authored drawings; generate the detector object
+  // through its real chart command instead of fabricating it in a cloud GET.
+  await runToolbarDetector(page, "Auto Fibonacci");
   const lockAll = page.getByTestId("drawing-lock-all");
   await expect(lockAll).toHaveAttribute("data-user-drawing-count", "1");
   await lockAll.click();

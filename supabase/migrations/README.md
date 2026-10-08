@@ -358,3 +358,7 @@ are not changed by the migration.
 ### 0031 — Audit20 drawing snapshot and atomic replacement
 
 Reserved for `TERMINAL-AUDIT20-A04`, root `01a10f92`. Prefixes 0029 and 0030 remain with #804. Source qualification and any production application have separate receipts.
+
+`0031_drawings_atomic_replace.sql` adds three invoker functions on the existing `drawings` table, with no table or RLS changes. GET returns an opaque revision for one coherent owner/symbol snapshot. PUT compares that revision inside the replacement transaction and keeps at most 32 prior operation receipts. Legacy rows are never assigned invented receipts. A table write fence covers old direct INSERTs; this serializes drawing writes across accounts while reads remain available.
+
+Readback: `SELECT p.oid::regprocedure, p.prosecdef, p.proconfig FROM pg_proc p JOIN pg_namespace n ON n.oid=p.pronamespace WHERE n.nspname='public' AND p.proname IN ('validate_drawing_replace_input','read_drawings_collection','replace_drawings_collection');` Verify all three are invoker (`prosecdef=false`), with `search_path=pg_catalog`, execute only for the authenticated role, and `public.drawings` still has RLS enabled. Application status remains **unapplied** until the owning PR receives apply and catalog receipts. Rollback drops only these functions after rolling back the API; drawing rows are preserved.

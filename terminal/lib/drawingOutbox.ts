@@ -3,6 +3,7 @@ import {
   normalizeDrawings,
   type Drawing,
 } from "@/lib/drawings";
+import { parsePersistedDrawings, validDrawingRevision, validDrawingOperationId, type DrawingJournal } from "@/lib/drawingPersistence";
 
 const DRAWING_OUTBOX_KEY = "mm.drawing.account-outbox.v1";
 
@@ -64,3 +65,47 @@ export function writeDrawingOutbox(storage: StoragePort, owner: string, outbox: 
 }
 
 export { DRAWING_OUTBOX_KEY };
+
+/** The existing namespace also holds versioned attempts; old arrays remain explicit recovery work. */
+export function readDrawingJournal(storage: StoragePort, owner: string): DrawingJournal {
+  if (!accountOwner(owner)) return {};
+  const stored = readEnvelope(storage)[owner];
+  if (!stored || typeof stored !== "object" || Array.isArray(stored)) return {};
+  const journal: DrawingJournal = {};
+  for (const [symbol, value] of Object.entries(stored)) {
+    if (Array.isArray(value)) {
+      const drawings = parsePersistedDrawings(value, false);
+      if (drawings) journal[symbol] = { drawings: normalizeDrawings(drawings), blocked: "legacy" };
+      continue;
+    }
+    if (!value || typeof value !== "object") continue;
+    const raw = value as Record<string, unknown>;
+    const drawings = parsePersistedDrawings(raw.drawings);
+    if (!drawings) continue;
+    const entry: DrawingJournal[string] = { drawings };
+    if (Object.hasOwn(raw, "revision") && validDrawingRevision(raw.revision)) entry.revision = raw.revision;
+    if (["legacy", "conflict", "superseded", "invalid"].includes(String(raw.blocked))) entry.blocked = raw.blocked as typeof entry.blocked;
+    if (raw.attempt && typeof raw.attempt === "object") {
+      const attempt = raw.attempt as Record<string, unknown>;
+      const attemptedDrawings = parsePersistedDrawings(attempt.drawings);
+      if (attemptedDrawings && validDrawingOperationId(attempt.operationId) && validDrawingRevision(attempt.expectedRevision)) {
+        entry.attempt = { operationId: attempt.operationId, expectedRevision: attempt.expectedRevision, drawings: attemptedDrawings };
+      } else entry.blocked = "invalid";
+    }
+    if (!Object.hasOwn(entry, "revision") && !entry.attempt) entry.blocked ??= "legacy";
+    journal[symbol] = entry;
+  }
+  return journal;
+}
+
+export function writeDrawingJournal(storage: StoragePort, owner: string, journal: DrawingJournal): boolean {
+  if (!accountOwner(owner)) return false;
+  try {
+    const envelope = readEnvelope(storage);
+    if (Object.keys(journal).length) envelope[owner] = journal;
+    else delete envelope[owner];
+    if (Object.keys(envelope).length) storage.setItem(DRAWING_OUTBOX_KEY, JSON.stringify(envelope));
+    else storage.removeItem(DRAWING_OUTBOX_KEY);
+    return true;
+  } catch { return false; }
+}
