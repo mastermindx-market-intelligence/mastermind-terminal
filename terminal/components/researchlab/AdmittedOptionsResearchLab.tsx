@@ -4,11 +4,13 @@ import { useShellIdentity } from "@/components/chrome/AppShell";
 import { identityOwnerKey } from "@/lib/accountIdentity";
 import { useEntitlementSnapshot } from "@/lib/entitlementStore";
 import { OptionsResearchLab } from "./OptionsResearchLab";
+import { useResearchAppearance } from "./useResearchAppearance";
 import styles from "./ResearchLab.module.css";
 
 /** Subscribe to the established account owner; no separate entitlement reader or cache. */
 export function AdmittedOptionsResearchLab(props: React.ComponentProps<typeof OptionsResearchLab>) {
   const identity = useShellIdentity(), entitlement = useEntitlementSnapshot(identity);
+  useResearchAppearance(identity);
   const verified = entitlement.owner === identityOwnerKey(identity)
     && (entitlement.state === "VERIFIED_PAID" || entitlement.state === "VERIFIED_FREE");
   const allowed = verified && (entitlement.plan?.features?.includes("terminal_live_options")

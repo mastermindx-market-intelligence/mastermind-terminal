@@ -29,8 +29,8 @@
    #9b5cff is kept verbatim — it is the house accent shared with macro, not a
    palette token on either side.
 
-   Terminal is dark-only, so the macro `html[data-theme="light"]` branch is not
-   ported. Every animation is gated by prefers-reduced-motion, as upstream.
+   Most Terminal routes remain dark. The Research Lab's scoped light treatment
+   below uses opaque material. Animations are gated by prefers-reduced-motion.
    ═══════════════════════════════════════════════════════════════════════════ */
 
 .acs-overlay {
@@ -108,6 +108,14 @@ html.acs-lock, html.acs-lock body { overflow: hidden; }
   transform: none;
   opacity: 1;
   animation: acsCardIn .3s cubic-bezier(.32, 1.28, .5, 1);
+}
+html[data-research-appearance="lab"][data-theme="light"] .acs-card-surface {
+  background:var(--panel); border-color:var(--line-3); box-shadow:var(--shadow-3);
+  -webkit-backdrop-filter:none; backdrop-filter:none;
+}
+html[data-research-appearance="lab"][data-theme="light"] .acs-aurora { display:none; }
+html[data-research-appearance="lab"][data-theme="light"] .acs-overlay {
+  -webkit-backdrop-filter:none; backdrop-filter:none;
 }
 @keyframes acsCardIn {
   from { transform: translateY(14px) scale(.985); opacity: .4; }

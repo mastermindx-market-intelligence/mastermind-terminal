@@ -2228,9 +2228,8 @@ export const LEX: Record<string, [string, string]> = {
   acsUsageStale: ["Couldn't refresh these counts — showing the last confirmed ones.", "无法刷新这些用量——显示上次确认的结果。"],
   acsThemeLang: ["Theme & language", "主题与语言"],
   acsAppearance: ["Appearance", "外观"],
-  // NEW — deliberately NOT macro's appearNote ("Auto follows your local time of
-  // day"): the Terminal has no light mode, so promising one here would be a lie.
-  acsAppearNote: ["Applies to the Macro Dashboard — the Terminal is always dark.", "应用于宏观仪表盘——终端始终为深色。"],
+  // Appearance is shared with Macro; Terminal currently applies it only in the Lab.
+  acsAppearNote: ["Applies to the Macro Dashboard and 3D Research Lab. Other Terminal views remain dark. Auto uses local time: light from 07:00 to 19:00.", "应用于宏观仪表盘与 3D 研究室。终端其他视图保持深色。自动模式按本地时间在 07:00–19:00 使用浅色。"],
   acsThemeLight: ["Light", "浅色"],
   acsThemeAuto: ["Auto", "自动"],
   acsThemeDark: ["Dark", "深色"],

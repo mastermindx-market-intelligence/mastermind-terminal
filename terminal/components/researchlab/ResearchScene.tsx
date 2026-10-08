@@ -43,9 +43,13 @@ export default function ResearchScene({ marks, domain, selected, onSelect, onFai
         void main(){vColor=markColor;vHollow=hollow;vHighlight=highlight;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);gl_PointSize=(markSize+highlight*6.)*pixelRatio;}`,
       fragmentShader: `uniform vec3 ink; varying vec3 vColor; varying float vHollow; varying float vHighlight;
         void main(){float d=length(gl_PointCoord-vec2(.5));if(d>.5)discard;
-        if(vHollow>.5&&d<.34)discard;vec3 c=vHighlight>.5&&d>.4?ink:vColor;gl_FragColor=vec4(c,.86);}` });
+        if(vHollow>.5&&d<.34)discard;vec3 c=vHighlight>.5&&d>.4?ink:vColor;gl_FragColor=vec4(c,.86);
+        #include <colorspace_fragment>
+        }` });
     const points = new THREE.Points(geometry, material); points.visible = false; scene.add(points);
     const grid = new THREE.GridHelper(3.6, 12); grid.position.y = -1.1; scene.add(grid);
+    // GridHelper's built-in gray vertex colors would multiply/darken the token.
+    (Array.isArray(grid.material)?grid.material:[grid.material]).forEach(m => { (m as THREE.LineBasicMaterial).vertexColors = false; });
     const render = () => { if (!renderer.getContext().isContextLost()) renderer.render(scene,camera); };
     const paint = () => {
       const css = getComputedStyle(container);

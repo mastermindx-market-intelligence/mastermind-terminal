@@ -130,7 +130,7 @@ export default function SectionPreferences({ t, identity, user, onClose, onPatch
   function pickTheme(choice: ThemeChoice) {
     // Matches the macro semantics: `auto` records the flag and lets the dashboard
     // compute the theme from local time; an explicit pick records the theme and
-    // clears the flag. Nothing is applied to the Terminal — it has no light mode.
+    // clears the flag. The mounted 3D Research Lab also consumes this preference.
     setTouched((s) => ({ ...s, theme: true }));
     if (choice === "auto") persistMetaPrefs({ themeAuto: "1" });
     else persistMetaPrefs({ theme: choice, themeAuto: "0" });
