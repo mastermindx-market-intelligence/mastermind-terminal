@@ -21,6 +21,7 @@ import { ema, atr, supertrend, bollingerBands, type Bar } from "@/lib/indicatorM
 import { verdictIsStale, ORACLE_STALE_DAYS, anchorSignal, signalKnownTs, isBlockedSignal, sliceSignalBasis } from "@/lib/signalVerdict";
 import { isStalePlane, type MarketPlane } from "@/lib/nwPlane";
 import { nextDateCountdown } from "@/lib/finFormat";
+import { curateMarketRiskContext } from "@/lib/marketRiskContext";
 // Same upstream topology as app/api/flow/route.ts (Python hub first, R2 mirror second) and
 // app/api/nw/route.ts — the shared endpoint constants live in lib/upstreams (the routes
 // themselves must not be imported from a lib).
@@ -492,12 +493,12 @@ export function curateGex(gex: unknown, state: unknown): Record<string, unknown>
   const strikes = gOk && Array.isArray(g!.by_strike) ? (g!.by_strike as Record<string, unknown>[]).filter((r) => r && num(r.strike) != null) : [];
   const call_walls = strikes
     .filter((r) => num(r.gamma_call) != null)
-    .sort((a, b) => (b.gamma_call as number) - (a.gamma_call as number))
+    .sort((a, b) => (b.gamma_call as number) - ((a.gamma_call as number)))
     .slice(0, 3)
     .map((r) => ({ strike: r.strike, gamma: rnd(r.gamma_call, 3) }));
   const put_walls = strikes
     .filter((r) => num(r.gamma_put) != null)
-    .sort((a, b) => (a.gamma_put as number) - (b.gamma_put as number))
+    .sort((a, b) => (b.gamma_put as number) - (a.gamma_put as number))
     .slice(0, 3)
     .map((r) => ({ strike: r.strike, gamma: rnd(r.gamma_put, 3) }));
 
@@ -625,19 +626,7 @@ export function curateIntel(intel: unknown): Record<string, unknown> {
 }
 
 export function curateMarketRisk(mr: unknown, nowMs: number = Date.now()): Record<string, unknown> {
-  const m = mr as Record<string, unknown> | null;
-  const disp = m?.display as Record<string, unknown> | undefined;
-  if (!disp?.verdict) return { no_data: true, reason: "market_risk.json unavailable on this box" };
-  const built = typeof m!.built === "string" ? Date.parse(m!.built as string) : NaN;
-  const ageH = Number.isFinite(built) ? Math.round((nowMs - built) / 3_600_000) : null;
-  return {
-    verdict: disp.verdict,
-    score: rnd(disp.score, 0),
-    label: disp.label_en ?? disp.verdict,
-    built: m!.built ?? null,
-    age_hours: ageH,
-    stale: ageH != null && ageH > 48,
-  };
+  return curateMarketRiskContext(mr, nowMs);
 }
 
 export function curatePlane(plane: MarketPlane | null, nowMs: number = Date.now()): Record<string, unknown> {
@@ -767,4 +756,5 @@ export async function execTool(name: string, args: Record<string, unknown> | nul
     console.error(`[copilot] tool ${name} failed:`, e);
     return { no_data: true, reason: `tool ${name} failed (server error, not missing data)` };
   }
+  throw new Error("unreachable");
 }
