@@ -1,0 +1,13 @@
+# Independent source-review disposition
+
+Retained Fabric run: `options3d-01a118f3-source-review-r1`, original root `01a118f3-fc4e-7941-b432-03703dccd19b`. Reviewed head `1f7eed536be8f4593b99b188094ec1984afe410e`, base `d660d98b1ebc0bdf0d1b16d66202b1760f6cc94a`. The report returned rc=0 with 8,616 bytes, was consumed through the same adapter, and was accepted as a useful review report after parent adjudication. No browser or production run was performed by that reviewer. This is not independent approval of later source.
+
+| Finding | Parent disposition and evidence |
+| --- | --- |
+| Medium: every filter change recreates WebGL renderer and resets camera | Confirmed. New browser regression failed because the original canvas became disconnected. `6b8e0855` keeps renderer, controls, camera and grid mounted, updates point buffers and frees old GPU attributes before changing count. The repaired test and 20K filter/pick stress pass. |
+| Medium: canvas/deep-link selection dismissal loses focus | Already repaired in later source. Canvas/IV selections record origin; disconnected origin falls back to Back to Exposure. Browser regression selects by keyboard, dismisses and observes canvas focus. |
+| Low: exact table headers have no scope | Confirmed. Added column/row scope in Chain and IV tables. Browser asserts every Chain header has the correct scope. |
+| Low: linear picking could exceed the 100ms target under repeated clicks | Risk was plausible, not an observed violation. Retained the bounded 20K projection loop. Twenty clicks with alternating 20K/10K filters measured max 2.4ms on current source. Spatial indexing is deferred until a measured violation justifies added complexity. Native-device qualification remains separate. |
+| Low: closing the lab leaves `view=research` in URL | Confirmed. Open/close updates only the `view` search parameter and preserves other query fields, fragment and existing history state. The review's suggestion to replace the whole URL with pathname was rejected because it drops `tab=gex` and unrelated context. Browser proves close/reload stays in Exposure, focus returns, and reopening writes the deep link. |
+
+The reviewer confirmed the initial adapter's null/zero/source-session/duplicate rules, sign separation, cleanup, no additional network owner and withdrawal of missing matrix values. Its initial scope explicitly excluded the unavailable lenses and persistence gap. Later raw-IV acquisition, entitlement wrapper, development fixture identity and renderer repairs need their own exact-source delta review. Full-project acceptance, native graphics proof and authenticated production-data parity remain open.
