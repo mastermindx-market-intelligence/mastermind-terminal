@@ -310,7 +310,13 @@ export function joinEventImpact(input: {
   const ctxObj = ctx as Record<string, unknown>;
 
   const asof = typeof ctxObj.asof === "string" ? ctxObj.asof : "";
-  const tickersBlock = isPlainObject(ctxObj.tickers) ? ctxObj.tickers : {};
+  // The producer always emits a ticker dictionary, including {} when it has no
+  // coverage. A missing or malformed dictionary is unreadable, not evidence that
+  // no upcoming event touches the book. Individual ticker/block absence stays legal.
+  if (!isPlainObject(ctxObj.tickers)) {
+    return { state: "calendar_unreadable", detail: "bad ticker map" };
+  }
+  const tickersBlock = ctxObj.tickers;
 
   const events: EventTouch[] = [];
   for (const ticker of Array.from(heldTickerSet).sort()) {
