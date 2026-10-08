@@ -32,3 +32,9 @@ Exact dependency: the existing options producer must supply a retained immutable
 
 
 r2/evidence-owner acceptance was read back in the existing Fabric ledger (`accepted_by=reviewer`, timestamp1791425630). The exact navigation follow-up `options3d-01a118f3-source-review-r3` targeting e13ef243 returned a pre-start admission refusal (`active_lane_limit_reached`, rc75); no review occurred. Independent approval of that delta remains open. Parent production build on e13ef243 passes.
+
+## Parent counterexamples — magnification and ordered comparisons
+
+The Options route's rendered viewport disabled user magnification; a failing HTTP check reproduced the inherited chart policy. The route now clears the maximum scale and allows scaling; server and actual Chrome direct/client-navigation checks pass. This does not claim a physical mobile gesture test.
+
+Two new component tests also reproduced comparison cards sorting into source order and dismissal focusing an unrelated older table row. The consumer now preserves the existing ordered key array and the true comparison-button origin. Twenty view/adapter tests and native Chrome EN/ZH order/focus checks pass, including remove/re-add and source-withdrawal unit cases. TypeScript, scoped ESLint and production build pass. This is parent repair/validation, not an independent review return. The required independent delta review includes these changes and the still-unreviewed navigation/framing repairs; no terminal review ID was reopened or replaced to bypass admission.

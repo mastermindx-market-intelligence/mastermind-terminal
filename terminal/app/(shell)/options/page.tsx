@@ -1,5 +1,5 @@
 import { Suspense } from "react";
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import OptionsWorkspaceMount from "@/components/mounts/OptionsWorkspaceMount";
 import OptionsPaywall from "@/components/OptionsPaywall";
 import { hasLiveOptions } from "@/lib/entitlement";
@@ -15,6 +15,13 @@ import { hasLiveOptions } from "@/lib/entitlement";
 // reads auth cookies (auto-dynamic); this page adds nothing server-side.
 
 export const metadata: Metadata = { title: "Options · Mastermind Terminal" };
+
+// Options research must support magnification. Explicitly clear the root chart
+// viewport's maximum scale while inheriting its width and safe-area settings.
+export const viewport: Viewport = {
+  maximumScale: undefined,
+  userScalable: true,
+};
 
 export default async function OptionsPage() {
   // Live options is a PAID surface (the `terminal_live_options` entitlement — the

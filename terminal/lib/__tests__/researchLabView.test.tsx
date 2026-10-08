@@ -30,6 +30,27 @@ it("keeps save unavailable without inventing an options persistence owner", asyn
   expect([...node.querySelectorAll("button")].find(b => b.textContent === "Save investigation")?.disabled).toBe(true);
   expect(node.textContent).toContain("Options evidence is not yet admitted by Saved Research");
 });
+it("preserves comparison insertion order through removal, re-addition and source withdrawal", async () => {
+  const data = { ...matrix, cells: [785, 786, 787].map(strike => ({ ...matrix.cells[0], strike })) };
+  await mount("SPY", data);
+  const comparisonLabels = () => [...node.querySelectorAll('[data-testid="research-inspector"] li button')].map(b => b.textContent);
+  for (const strike of [787, 785, 786]) {
+    await click(`${strike} Call · 2026-10-09`); await click("Compare selection");
+  }
+  expect(comparisonLabels()).toEqual([787, 785, 786].map(s => `${s} Call · 2026-10-09`));
+  await click("785 Call · 2026-10-09"); await click("Remove comparison"); await click("Compare selection");
+  expect(comparisonLabels()).toEqual([787, 786, 785].map(s => `${s} Call · 2026-10-09`));
+  await mount("SPY", { ...data, cells: data.cells.filter(c => c.strike !== 786) });
+  expect(comparisonLabels()).toEqual([787, 785].map(s => `${s} Call · 2026-10-09`));
+});
+it("returns focus to the comparison button after dismissing its selected coordinate", async () => {
+  await mount(); await click("785 Call · 2026-10-09"); await click("Compare selection");
+  await click("785 Put · 2026-10-09");
+  const comparison = node.querySelector<HTMLButtonElement>('[data-testid="research-inspector"] li button')!;
+  await act(async () => comparison.click());
+  await click("Dismiss selection");
+  expect(document.activeElement).toBe(comparison);
+});
 it("joins IV only on the same known source session and withdraws it on mismatch", async () => {
   const volatility = { schema: "options_hub.vol/v1", root: "SPY", asof: "2026-10-05", smile: [
     { exp: "2026-10-09", points: [{ strike: 785, call_iv: 58.2, put_iv: 0 }] },

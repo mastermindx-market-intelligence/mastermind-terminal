@@ -81,7 +81,9 @@ export function OptionsResearchLab({ root, matrix, volatility = null, lang, onCl
   const selected = data.rows.find(r => r.key === safeSelection.selected);
   const sameVolSession = data.session !== null && data.session === vol.session;
   const selectedVol = sameVolSession ? vol.rows.find(r => r.key === safeSelection.selected)?.ivRatio ?? null : null;
-  const comparisons = data.rows.filter(r => safeSelection.comparisons.includes(r.key));
+  const comparisons = safeSelection.comparisons
+    .map(key => data.rows.find(r => r.key === key))
+    .filter((r): r is ResearchRow => r !== undefined);
   const pages = Math.max(1, Math.ceil(rows.length / 50)), shownPage = Math.min(page, pages - 1);
   const label = (r: ResearchRow) => `${number(r.strike)} ${lang === "zh" ? r.side === "call" ? "看涨" : "看跌" : r.side === "call" ? "Call" : "Put"} · ${r.expiry}`;
   const pin = (key: string) => setSelection(s => ({ ...s, selected: key }));
@@ -136,7 +138,7 @@ export function OptionsResearchLab({ root, matrix, volatility = null, lang, onCl
           <dl><dt>{t("rawIv")}</dt><dd>{selectedVol === null ? t("unknown") : number(selectedVol * 100) + "%"}</dd></dl>
           <button disabled={comparisons.length >= 3 && !safeSelection.comparisons.includes(selected.key)} onClick={() => setSelection(s => ({ ...s, comparisons: toggleComparison(safeSelection.comparisons, selected.key) }))}>{t(safeSelection.comparisons.includes(selected.key) ? "removeCompare" : "compare")}</button>
           <button onClick={dismiss}>{t("dismiss")}</button></> : <p>{t("choose")}</p>}
-        {comparisons.length > 0 && <ul className={styles.comparisons}>{comparisons.map(r => <li key={r.key}><button onClick={() => pin(r.key)}>{label(r)}</button><strong>{t(metric)}: {number(r[metric])}</strong></li>)}</ul>}
+        {comparisons.length > 0 && <ul className={styles.comparisons}>{comparisons.map(r => <li key={r.key}><button onClick={e => { focusOrigin.current = e.currentTarget; pin(r.key); }}>{label(r)}</button><strong>{t(metric)}: {number(r[metric])}</strong></li>)}</ul>}
         <div className={styles.save}><button disabled>{t("save")}</button><p>{t("saveGap")}</p></div>
       </aside>
     </div>
