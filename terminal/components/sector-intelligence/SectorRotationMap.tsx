@@ -51,6 +51,7 @@ const COPY = {
   filter: ["Filter sectors", "筛选板块"],
   query: ["Find a sector", "搜索板块"], clear: ["Clear search", "清除搜索"],
   sourceDate: ["Source date", "来源日期"], unknownDate: ["Date unavailable", "日期不可用"],
+  unavailableObservationDate: ["Unavailable source observation date:", "不可用来源的观测日期："],
   sectors: ["sectors", "个板块"], shown: ["shown", "已显示"],
   coordinates: ["coordinates available", "个坐标可用"],
   currentOnly: ["Current source snapshot; no historical trail is inferred.", "当前来源快照；不推断历史轨迹。"],
@@ -294,7 +295,7 @@ export default function SectorRotationMap(props: SectorRotationMapProps) {
         <div data-testid="rotation-risk-detail">
           {riskCopy.details.map(detail => <p key={detail}>{detail}</p>)}
           {(!riskRead?.qualified || props.risk?.receipt.stale) && props.risk?.receipt.asOf && <p>
-            {lang === "zh" ? "不可用来源的观测日期：" : "Unavailable source observation date: "}{props.risk.receipt.asOf}
+            {t("unavailableObservationDate")} {props.risk.receipt.asOf}
           </p>}
         </div><p>{t("sourceBoundary")}</p><p>{t("currentOnly")} {t("displayOnly")}</p>
         <p><strong>{t("noTrail")}</strong> · {t("noTrailCopy")}</p>
