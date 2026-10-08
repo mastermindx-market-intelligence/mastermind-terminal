@@ -363,11 +363,18 @@ interface LeadersPayload {
   as_of: string;
   session_date?: string;
   stale: boolean;
+  stale_reason?: string | null;
+  source_age_stale?: boolean;
+  source_family?: string;
+  signal_policy?: string;
   cold_start: boolean;
   cold_start_detail?: LeadersColdStart;
   direction_note?: string;
   coverage: {
     n_universe: number;
+    n_expected_roots?: number;
+    n_current_roots?: number;
+    same_session_coverage_ratio?: number;
     n_flow_sessions: number;
     flow_z_live: boolean;
     tape_names: string[];
@@ -3974,6 +3981,7 @@ export default function OptionsHubView({
                 // A recent build stamp is NOT a recent source session. Keep historical
                 // tables out of the active discovery surface by default: legacy
                 // options summaries froze on 2026-08-12 and can still be republished.
+                const insufficientCoverage = leadersData.stale_reason === "insufficient_same_session_coverage";
                 if (leadersData.stale && !showHistoricalLeaders) {
                   return (
                     <div role="status" style={{ padding: "24px 20px", border: "1px solid var(--border)", borderRadius: "var(--r-md)" }}>
@@ -3981,11 +3989,15 @@ export default function OptionsHubView({
                         {pick(lang, "Current Flow Leaders unavailable", "当前资金流领涨榜不可用")}
                       </div>
                       <div style={{ fontSize: 12, color: "var(--text-2)", lineHeight: 1.6 }}>
-                        {leadersData.session_date
+                        {insufficientCoverage
                           ? pick(lang,
-                              `Last verified source session: ${leadersData.session_date}. This is a historical snapshot, not today's options activity.`,
-                              `最后验证的数据会话：${leadersData.session_date}。这是历史快照，并非今日的期权活动。`)
-                          : pick(lang, "The latest market session cannot be verified.", "无法核实最新市场交易日。")}
+                              `Partial ThetaData coverage for ${leadersData.session_date ?? "unknown session"}: ${cov.n_current_roots ?? 0} of ${cov.n_expected_roots ?? "?"} configured roots. Full-universe rankings are not qualified.`,
+                              `${leadersData.session_date ?? "未知交易日"} 的 ThetaData 覆盖不足：${cov.n_current_roots ?? 0}/${cov.n_expected_roots ?? "?"} 个股票。尚不足以形成全市场排名。`)
+                          : leadersData.session_date
+                            ? pick(lang,
+                                `Last verified source session: ${leadersData.session_date}. This is a historical snapshot, not today's options activity.`,
+                                `最后验证的数据会话：${leadersData.session_date}。这是历史快照，并非今日的期权活动。`)
+                            : pick(lang, "The latest market session cannot be verified.", "无法核实最新市场交易日。")}
                         {" "}
                         {pick(lang, "Rankings and signal flags are withheld until current-session evidence is available.",
                           "在取得当前交易日证据之前，暂不展示排名和信号标记。")}
@@ -4003,7 +4015,9 @@ export default function OptionsHubView({
                         </button>
                         <button type="button" className="btn btn-ghost"
                           onClick={() => setShowHistoricalLeaders(true)}>
-                          {pick(lang, "Inspect historical snapshot", "查看历史快照")}
+                          {insufficientCoverage
+                            ? pick(lang, "Inspect incomplete snapshot", "查看不完整快照")
+                            : pick(lang, "Inspect historical snapshot", "查看历史快照")}
                         </button>
                       </div>
                     </div>
@@ -4035,9 +4049,13 @@ export default function OptionsHubView({
                       </span>
                       {leadersData.stale && (
                         <span style={{ fontSize: 11, color: "var(--warn)", fontWeight: 600 }}>
-                          {leadersData.session_date
-                            ? pick(lang, `Historical snapshot · source session ${leadersData.session_date}`, `历史快照 · 数据会话 ${leadersData.session_date}`)
-                            : t("leadersStale", "Snapshot from prior session")}
+                          {leadersData.stale_reason === "insufficient_same_session_coverage"
+                            ? pick(lang,
+                                `Incomplete ThetaData coverage · ${cov.n_current_roots ?? 0}/${cov.n_expected_roots ?? "?"} roots`,
+                                `ThetaData 覆盖不足 · ${cov.n_current_roots ?? 0}/${cov.n_expected_roots ?? "?"} 个股票`)
+                            : leadersData.session_date
+                              ? pick(lang, `Historical snapshot · source session ${leadersData.session_date}`, `历史快照 · 数据会话 ${leadersData.session_date}`)
+                              : t("leadersStale", "Snapshot from prior session")}
                         </span>
                       )}
                     </div>
