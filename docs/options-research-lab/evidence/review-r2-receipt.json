@@ -1,0 +1,67 @@
+{
+  "schema": "options-research-lab.review-repair-evidence.v1",
+  "source_head": "e13ef243d32f573aa83bf5fe63fa5334b6f2c278",
+  "browser_passed": 15,
+  "browser_viewport_inapplicable": 18,
+  "browser_seconds": 21.4,
+  "adapter_tests_passed": 10,
+  "typecheck": "passed",
+  "production_build": "passed",
+  "eslint": "same inherited one error and one warning in GexDeskView as parent HEAD; no new findings",
+  "fixture": true,
+  "production_parity": false,
+  "screenshots": [
+    {
+      "path": "/Volumes/Mastermind/evidence/options-3d-research-lab-01a118f3/r2-browser-green/options-research-lab-3D-re-102aa--and-responsive-fallback-zh-desktop/desktop-zh-chain.png",
+      "sha256": "cefb627a20c726c15f9e579808aa6bc0c15244ca9096a0e09596119b70863d35"
+    },
+    {
+      "path": "/Volumes/Mastermind/evidence/options-3d-research-lab-01a118f3/r2-browser-green/options-research-lab-3D-re-102aa--and-responsive-fallback-zh-desktop/desktop-zh-fallback.png",
+      "sha256": "0f2fd231c41b682927536c4aa1683f6fcf59e13bb8a904a9118157793394441b"
+    },
+    {
+      "path": "/Volumes/Mastermind/evidence/options-3d-research-lab-01a118f3/r2-browser-green/options-research-lab-3D-re-102aa--and-responsive-fallback-zh-mobile/mobile-zh-chain.png",
+      "sha256": "8f67dd7c181e28613cbc2a76606dc8cf611c9b44fba590dd2bffcc4c47311628"
+    },
+    {
+      "path": "/Volumes/Mastermind/evidence/options-3d-research-lab-01a118f3/r2-browser-green/options-research-lab-3D-re-102aa--and-responsive-fallback-zh-mobile/mobile-zh-fallback.png",
+      "sha256": "72e922a7367b866af76f2f28dae5e1cb5ed2f69fd2c06ceb7e75a488d14d88cd"
+    },
+    {
+      "path": "/Volumes/Mastermind/evidence/options-3d-research-lab-01a118f3/r2-browser-green/options-research-lab-3D-re-102aa--and-responsive-fallback-zh-tablet/tablet-zh-chain.png",
+      "sha256": "15f3b3e713a12632ed677d37ddf7aa49dae2a5019dc00662dfdff1b2a5247f3e"
+    },
+    {
+      "path": "/Volumes/Mastermind/evidence/options-3d-research-lab-01a118f3/r2-browser-green/options-research-lab-3D-re-102aa--and-responsive-fallback-zh-tablet/tablet-zh-fallback.png",
+      "sha256": "18f376d6c85eddbde38b45f5de6ad64009bce06aedcf12e59e4f2ff959c7a364"
+    },
+    {
+      "path": "/Volumes/Mastermind/evidence/options-3d-research-lab-01a118f3/r2-browser-green/options-research-lab-3D-re-72be8--and-responsive-fallback-en-desktop/desktop-en-chain.png",
+      "sha256": "ff1567f2f287294ed079539f8d3519e6dfe8204f3c8b21da63d68b33e2791fd5"
+    },
+    {
+      "path": "/Volumes/Mastermind/evidence/options-3d-research-lab-01a118f3/r2-browser-green/options-research-lab-3D-re-72be8--and-responsive-fallback-en-desktop/desktop-en-fallback.png",
+      "sha256": "0923bd82f695bffd0451b6b3d7463665b73173ec760b3b7075795ac82cf7aa86"
+    },
+    {
+      "path": "/Volumes/Mastermind/evidence/options-3d-research-lab-01a118f3/r2-browser-green/options-research-lab-3D-re-72be8--and-responsive-fallback-en-mobile/mobile-en-chain.png",
+      "sha256": "438595d06c5669ebf161996b6c3a8ebe157e2c5b10394d20b7da4088c1289264"
+    },
+    {
+      "path": "/Volumes/Mastermind/evidence/options-3d-research-lab-01a118f3/r2-browser-green/options-research-lab-3D-re-72be8--and-responsive-fallback-en-mobile/mobile-en-fallback.png",
+      "sha256": "2c57af59660da07974e6db2b6a7ac2740ba9e409441fd6c8b73077b123cab201"
+    },
+    {
+      "path": "/Volumes/Mastermind/evidence/options-3d-research-lab-01a118f3/r2-browser-green/options-research-lab-3D-re-72be8--and-responsive-fallback-en-tablet/tablet-en-chain.png",
+      "sha256": "3fc204ead018c6c8af493e3fc60bf390820b0d4b320858eff342d808683907ef"
+    },
+    {
+      "path": "/Volumes/Mastermind/evidence/options-3d-research-lab-01a118f3/r2-browser-green/options-research-lab-3D-re-72be8--and-responsive-fallback-en-tablet/tablet-en-fallback.png",
+      "sha256": "2f50bbf9cb3b25da9d4105bd8525df7eb07dc818ecc74969b19f1374b586e296"
+    },
+    {
+      "path": "/Volumes/Mastermind/evidence/options-3d-research-lab-01a118f3/r2-browser-green/options-research-lab-resea-d0501-xt-keeps-controls-reachable-mobile/narrow-zoom.png",
+      "sha256": "b7489a3297369d5482f14617a49536ca956259b4af1a4004f00732dbe298b76f"
+    }
+  ]
+}
