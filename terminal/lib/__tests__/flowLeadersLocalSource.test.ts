@@ -64,7 +64,7 @@ describe("Flow Leaders current-source admission and fallback", () => {
     const file = path.join(dir, "leaders.json");
     await writeFile(file, JSON.stringify(candidate("2026-08-12")));
     process.env.FLOW_LEADERS_LOCAL_PATH = file;
-    const fetchMock = vi.fn(async () => jsonResponse(qualified()));
+    const fetchMock = vi.fn(async (_input: RequestInfo | URL) => jsonResponse(qualified()));
     globalThis.fetch = fetchMock as unknown as typeof globalThis.fetch;
 
     const result = await tryFetchUpstream("leaders");
