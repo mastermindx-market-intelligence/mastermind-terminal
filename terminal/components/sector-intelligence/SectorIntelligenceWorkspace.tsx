@@ -270,9 +270,9 @@ export default function SectorIntelligenceWorkspace() {
         <button type="button" data-testid="sector-detail-return" onClick={returnToOuterWorkspace}>← {t(RETURN_KEYS[returnWorkspace])}</button>
         <span>{t("siResearchDepth")} · {sectorName || state.sector.toUpperCase()}</span>
       </div>}
-      {state.workspace === "discover" && <nav className={styles.workspaceNavigation} aria-label={lang === "zh" ? "数据来源" : "Source family"}>
-        <button type="button" aria-pressed={state.sourceFamily === "sectors"} onClick={() => change({ sourceFamily: "sectors" }, true)}>{lang === "zh" ? "行业板块" : "Sectors"}</button>
-        <button type="button" aria-pressed={state.sourceFamily === "finviz"} onClick={() => change({ sourceFamily: "finviz" }, true)}>{lang === "zh" ? "Finviz 主题" : "Finviz themes"}</button>
+      {state.workspace === "discover" && <nav className={styles.workspaceNavigation} aria-label={t("siFinvizSourceFamily")}>
+        <button type="button" aria-pressed={state.sourceFamily === "sectors"} onClick={() => change({ sourceFamily: "sectors" }, true)}>{t("siFinvizSectors")}</button>
+        <button type="button" aria-pressed={state.sourceFamily === "finviz"} onClick={() => change({ sourceFamily: "finviz" }, true)}>{t("siFeedFinviz")}</button>
       </nav>}
       {state.workspace === "discover" && state.sourceFamily === "finviz" ? <FinvizDiscovery feed={feeds.finviz} state={state} onChange={patch => change(patch, !Object.hasOwn(patch, "discoveryQuery"))} /> : state.workspace === "rotation" ? <SectorRotationMap rows={sectors} status={status}
         asOf={feeds.sector?.receipt.asOf || null} selected={state.sector} mode={state.rotationMode} query={state.rotationQuery}
