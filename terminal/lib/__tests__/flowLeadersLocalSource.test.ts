@@ -4,7 +4,7 @@ import os from "os";
 import path from "path";
 
 import {
-  isQualifiedLeadersArtifact, localFlowArtifactPath,
+  isQualifiedLeadersArtifact, localFlowArtifactPath, sanitizeLeadersArtifact,
   tryFetchUpstream, upstreamSourceOrder,
 } from "@/lib/flowSource";
 
@@ -116,6 +116,37 @@ describe("Flow Leaders current-source admission and fallback", () => {
       coverage: { n_expected_roots: 375, n_current_roots: 20 },
     }))).toBe(false);
     expect(isQualifiedLeadersArtifact(qualified())).toBe(true);
+  });
+
+  it("forces a false-fresh retired source into an explicit unavailable state", async () => {
+    const file = path.join(dir, "leaders.json");
+    await writeFile(file, JSON.stringify(candidate("2026-08-12")));
+    process.env.FLOW_LEADERS_LOCAL_PATH = file;
+    const falseFresh = candidate(today(), {
+      stale: false, source_family: "legacy_options_flow_archive",
+      as_of: new Date().toISOString(),
+    });
+    const fetchMock = vi.fn(async (_input: RequestInfo | URL) => jsonResponse(falseFresh));
+    globalThis.fetch = fetchMock as unknown as typeof globalThis.fetch;
+    const result = await tryFetchUpstream("leaders");
+    expect(result?.session_date).toBe(today());
+    expect(result?.stale).toBe(true);
+    expect(result?.stale_reason).toBe("unqualified_source_or_session");
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+  });
+
+  it("refuses a recent but undercovered Theta board marked fresh", () => {
+    const falselyFresh = candidate(today(), {
+      stale: false,
+      source_family: "thetadata_t2a_tape",
+      coverage: { n_expected_roots: 375, n_current_roots: 18 },
+    });
+    expect(isQualifiedLeadersArtifact(falselyFresh)).toBe(false);
+    expect(sanitizeLeadersArtifact(falselyFresh)).toMatchObject({
+      session_date: today(),
+      stale: true,
+      stale_reason: "unqualified_source_or_session",
+    });
   });
 
   it("falls through when the local file is malformed", async () => {
