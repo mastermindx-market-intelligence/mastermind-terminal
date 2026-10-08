@@ -21,7 +21,7 @@ chip therefore shows verdict/score/radar/headline; component legs appear only wh
 richer file is the source.
 
 DISPLAY-ONLY. This never originates a sell; ``is_display_only`` is propagated and a stale
-tape is flagged (and must not drive the Phase-2 sensitivity dial).
+tape is flagged. Stale observations must not be presented as current/live evidence.
 
 Usage:  python ingest/pull_macro_risk.py
         MACRO_REPO / MACRO_RISK_URL / RISK_MAX_STALE_DAYS override the defaults.
@@ -30,6 +30,7 @@ from __future__ import annotations
 
 import json
 import logging
+import math
 import os
 import urllib.request
 from datetime import date
@@ -41,19 +42,25 @@ log = logging.getLogger(__name__)
 
 
 def _is_stale(asof, today: date, max_days: int) -> bool:
-    """Return True if ``asof`` is absent or older than ``max_days`` calendar days.
+    """Reject unknown/future session dates and preserve the calendar-day age budget.
 
-    Mirrors ``ingest.pull_macro_intel._is_stale`` verbatim; kept inline so this
-    display-JSON bridge does not import the pandas-heavy universe module. Parity is
-    covered by the bridge tests.
+    The source contract is a settled session date, not a quote timestamp. Accept
+    an actual date or its exact YYYY-MM-DD spelling; never make a malformed or
+    future observation current by truncating/coercing it.
     """
-    if not asof:
+    if type(asof) is date:
+        src_date = asof
+    elif isinstance(asof, str):
+        try:
+            src_date = date.fromisoformat(asof)
+        except ValueError:
+            return True
+        if src_date.isoformat() != asof:
+            return True
+    else:
         return True
-    try:
-        src_date = date.fromisoformat(str(asof)[:10])
-    except (ValueError, TypeError):
-        return True
-    return (today - src_date).days >= max_days
+    age = (today - src_date).days
+    return age < 0 or age >= max_days
 
 MACRO = Path(os.environ.get("MACRO_REPO", "/Users/chriswong/Documents/Cluade/Macro Dashboard"))
 OUT = ROOT / "terminal" / "public" / "data" / "market_risk.json"
@@ -66,11 +73,17 @@ _LOCAL_SOURCES = ("site/live/risk_state.json", "data/market_state/latest.json")
 
 
 def _num(v):
-    if v is None:
+    """Return a finite display number, keeping zero distinct from missing evidence."""
+    if v is None or isinstance(v, bool):
         return None
     try:
-        return round(float(v), 4) if isinstance(v, float) else int(v) if isinstance(v, (int,)) else float(v)
-    except (TypeError, ValueError):
+        number = float(v)
+        if not math.isfinite(number):
+            return None
+        if isinstance(v, int):
+            return int(v)
+        return round(number, 4) if isinstance(v, float) else number
+    except (TypeError, ValueError, OverflowError):
         return None
 
 
@@ -111,7 +124,7 @@ def build_market_risk(src: dict, today: date | None = None) -> dict:
         headline_en = live.get("headline_en") or nightly.get("headline_en")
         headline_zh = live.get("headline_zh") or nightly.get("headline_zh")
         radar = _radar(live.get("radar")) or _radar(nightly.get("radar"))
-        realtime = bool(src.get("realtime")) and bool(src.get("live_active"))
+        realtime = src.get("realtime") is True and src.get("live_active") is True
         components = None
     else:
         # market_state.v1 — the richer nightly file (carries component legs).
@@ -131,11 +144,14 @@ def build_market_risk(src: dict, today: date | None = None) -> dict:
             for c in (src.get("components") or []) if isinstance(c, dict)
         ] or None
 
+    # Absent marker preserves the older date-only source contract. An explicit
+    # stale or malformed marker cannot be laundered by a recent artifact date.
+    stale = _is_stale(asof, today, MAX_STALE_DAYS) or src.get("stale", False) is not False
     out = {
         "schema": "market_risk/v1",
         "asof": str(asof) if asof is not None else None,
-        "stale": _is_stale(asof, today, MAX_STALE_DAYS),
-        "realtime": realtime,
+        "stale": stale,
+        "realtime": realtime and not stale,
         "verdict": str(verdict) if verdict is not None else None,
         "score": _num(score),
         "color": str(color) if color is not None else None,
