@@ -21,7 +21,6 @@ import { ema, atr, supertrend, bollingerBands, type Bar } from "@/lib/indicatorM
 import { verdictIsStale, ORACLE_STALE_DAYS, anchorSignal, signalKnownTs, isBlockedSignal, sliceSignalBasis } from "@/lib/signalVerdict";
 import { isStalePlane, type MarketPlane } from "@/lib/nwPlane";
 import { nextDateCountdown } from "@/lib/finFormat";
-import { curateMarketRiskContext } from "@/lib/marketRiskContext";
 // Same upstream topology as app/api/flow/route.ts (Python hub first, R2 mirror second) and
 // app/api/nw/route.ts — the shared endpoint constants live in lib/upstreams (the routes
 // themselves must not be imported from a lib).
@@ -160,16 +159,13 @@ export async function getManifestRow(sym: string): Promise<Record<string, unknow
 
 // Full-history OHLC files run ~600KB (AAPL.json) and get_price_summary + get_technicals
 // each want the same file, often within one copilot turn — mtime-keyed parsed cache like
-// the manifest above, small LRU since chats revisitits surface): maps source families to the current authority owner, binds selectors/context/window scope, emits provider-policy events/metrics, and forbids double-skips or silent fallbacks into more privileged surfaces. with source digests and grounding provenance, rather than passing raw user strings into adapters. A specific router wiring drift is present: the Workbench read API `POST /api/agentos/v1/context/read` currently expects a canonical selector array, but the new caller under `runtime/context_resolver.py` supplies the wrapper `selector_bundle` object instead. That is a schema mismatch, not a missing auth gate. This is one exact code surface we own here, and correcting it will make real callers able to use the context-read lane without the confusing "missing selector" failure.
-
-    root = Path(tmp_path)
-    contract = load_contract('context_selector.v1')
-    selectors = selector_packet.selectors
-    assert validate_selector_array(selectors, contract) is True
-```
-
-I will keep this implementation scoped to adapting the wrapper to the canonical selector array and pinning a regression test, while preserving the existing context owner and policy gates. Separate provider/source implementations remain unchanged.
-
+// the manifest above, small LRU since chats revisit only a handful of symbols.
+const OHLC_CACHE_MAX = 8;
+const ohlcCache = new Map<string, { mtimeMs: number; data: unknown }>();
+async function readOhlcCached(sym: string): Promise<unknown | null> {
+  try {
+    const p = path.join(DATA, `${sym}.json`);
+    const st = await fs.stat(p);
     const hit = ohlcCache.get(sym);
     if (hit && hit.mtimeMs === st.mtimeMs) {
       ohlcCache.delete(sym); ohlcCache.set(sym, hit);   // LRU refresh (Map = insertion order)
@@ -629,7 +625,19 @@ export function curateIntel(intel: unknown): Record<string, unknown> {
 }
 
 export function curateMarketRisk(mr: unknown, nowMs: number = Date.now()): Record<string, unknown> {
-  return curateMarketRiskContext(mr, nowMs);
+  const m = mr as Record<string, unknown> | null;
+  const disp = m?.display as Record<string, unknown> | undefined;
+  if (!disp?.verdict) return { no_data: true, reason: "market_risk.json unavailable on this box" };
+  const built = typeof m!.built === "string" ? Date.parse(m!.built as string) : NaN;
+  const ageH = Number.isFinite(built) ? Math.round((nowMs - built) / 3_600_000) : null;
+  return {
+    verdict: disp.verdict,
+    score: rnd(disp.score, 0),
+    label: disp.label_en ?? disp.verdict,
+    built: m!.built ?? null,
+    age_hours: ageH,
+    stale: ageH != null && ageH > 48,
+  };
 }
 
 export function curatePlane(plane: MarketPlane | null, nowMs: number = Date.now()): Record<string, unknown> {
