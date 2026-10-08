@@ -27,8 +27,10 @@ const current = {
 async function installIntercept(page: Page) {
   let fresh = false;
   let requests = 0;
-  await page.route("**/api/flow?f=leaders", async (route) => {
+  const urls: string[] = [];
+  await page.route(/\/api\/flow\?f=leaders(?:&refresh=1)?$/, async (route) => {
     requests += 1;
+    urls.push(route.request().url());
     await route.fulfill({
       status: 200,
       contentType: "application/json",
@@ -39,6 +41,7 @@ async function installIntercept(page: Page) {
   return {
     enableFresh: () => { fresh = true; },
     requests: () => requests,
+    urls: () => urls,
   };
 }
 
@@ -63,6 +66,7 @@ test("stale Discover Leaders is hidden, inspectable, reversible, and explicitly 
   await expect(page.locator("table.scr").getByText("AAL", { exact: true })).toBeVisible();
   await expect(page.getByText("Current Flow Leaders unavailable")).toHaveCount(0);
   expect(source.requests()).toBeGreaterThanOrEqual(2);
+  expect(source.urls().some((url) => url.endsWith("?f=leaders&refresh=1"))).toBe(true);
 });
 
 test("the stale and inspect experience is bilingual in Chinese", async ({ page }) => {
