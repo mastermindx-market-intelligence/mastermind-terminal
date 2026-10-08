@@ -1012,13 +1012,77 @@ export function upstreamSourceOrder(f: string): FlowUpstreamSource[] {
   // ("publisher hasn't shipped the artifact yet"). tryFetchUpstream() loops over this
   // order, so a single-element array means "fail closed on the R2 read".
   if (f === "options_alpha_candidate_feed") return ["r2"];
+  // Flow Leaders is an artifact-native Macro publication. If the co-located
+  // file is stale, favor the newly published R2 object before a backend timeout.
+  if (f === "leaders") return ["r2", "backend"];
   return f === "options_prophet_idx" ? ["r2", "backend"] : ["backend", "r2"];
 }
 
+/** Flow Leaders artifact integrity and downstream admission boundary. */
+export function isLeadersArtifact(data: Record<string, unknown> | null): boolean {
+  return Boolean(data && data.schema === "flow_leaders.v1" &&
+    typeof data.session_date === "string" &&
+    /^\d{4}-\d{2}-\d{2}$/.test(data.session_date) &&
+    Array.isArray(data.board_a) && Array.isArray(data.board_b));
+}
+
+export function isQualifiedLeadersArtifact(data: Record<string, unknown> | null): boolean {
+  if (!isLeadersArtifact(data) || !data || data.stale !== false ||
+      data.source_family !== "thetadata_t2a_tape") return false;
+  const coverage = data.coverage;
+  if (!coverage || typeof coverage !== "object") return false;
+  const c = coverage as Record<string, unknown>;
+  const current = c.n_current_roots, expected = c.n_expected_roots;
+  if (typeof current !== "number" || typeof expected !== "number" ||
+      !Number.isInteger(current) || !Number.isInteger(expected) ||
+      expected <= 0 || current < 0 || current > expected ||
+      current / expected < 0.9) return false;
+  // Backstop only: producer owns NYSE-session freshness and exact 2-session SLA.
+  // Never accept a years-old object stamped stale=false due to a producer fault.
+  const session = String(data.session_date);
+  const t = Date.parse(session + "T00:00:00Z");
+  const ageDays = (Date.now() - t) / 86_400_000;
+  return Number.isFinite(t) && new Date(t).toISOString().slice(0, 10) === session &&
+    ageDays >= 0 && ageDays <= 7;
+}
+
+function chooseMoreRecentLeaders(
+  oldData: Record<string, unknown> | null,
+  newData: Record<string, unknown> | null,
+): Record<string, unknown> | null {
+  if (!isLeadersArtifact(newData)) return oldData;
+  if (!isLeadersArtifact(oldData)) return newData;
+  const a = String(oldData?.session_date), b = String(newData?.session_date);
+  if (b > a) return newData;
+  if (a > b) return oldData;
+  // Same session: prefer signed-tape provenance, then the newest build.
+  if (newData?.source_family === "thetadata_t2a_tape" &&
+      oldData?.source_family !== "thetadata_t2a_tape") return newData;
+  if (oldData?.source_family === "thetadata_t2a_tape" &&
+      newData?.source_family !== "thetadata_t2a_tape") return oldData;
+  return String(newData?.as_of ?? "") > String(oldData?.as_of ?? "") ? newData : oldData;
+}
+
 export async function tryFetchUpstream(f: string): Promise<Record<string, unknown> | null> {
+  // Do not let a co-located historical JSON shadow a new R2 session. Retain
+  // the old snapshot for explicit historical viewing when all fresh sources fail.
   if (f === "leaders") {
     const local = await tryReadLocalFlowArtifact(f);
-    if (local) return local;
+    if (isQualifiedLeadersArtifact(local)) return local;
+    let best = isLeadersArtifact(local) ? local : null;
+    for (const source of upstreamSourceOrder(f)) {
+      try {
+        const url = source === "r2"
+          ? R2_BASE + "/" + r2Key(f)
+          : BACKEND + backendPath(f);
+        const remote = await fetchWithUA(url);
+        if (isQualifiedLeadersArtifact(remote)) return remote;
+        best = chooseMoreRecentLeaders(best, remote);
+      } catch {
+        // Preserve an explicitly degraded snapshot if upstream is unreachable.
+      }
+    }
+    return best;
   }
   if (f === "manifest") {
     try {
