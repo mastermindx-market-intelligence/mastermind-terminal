@@ -299,6 +299,16 @@
       "applied_in_production": true,
       "applied_date": "2026-10-04T06:17:18Z",
       "note": "Single Investigation aggregate on existing #777. All 39 DDL statements applied; independent read-only catalog reconciled the incomplete initial readback and verified all 19 objects, RLS and grants. Receipt: https://github.com/mastermindx-market-intelligence/mastermind-terminal/pull/777#issuecomment-5977275494. Application save/reopen acceptance remains pending deployment."
+    },
+    "0031": {
+      "state": "reserved",
+      "file": null,
+      "packet": "TERMINAL-AUDIT20-A04",
+      "pr": null,
+      "pr_state": null,
+      "applied_in_production": false,
+      "applied_date": null,
+      "note": "Audit20 parent takeover 01a10f92: read-only legacy snapshot tokens and transactional drawing CAS/replay on the existing RLS table. Open-PR namespace census 2026-10-08 preserves 0029/0030 for #804. Source only; no production application."
     }
   }
 }

@@ -354,3 +354,7 @@ receipts are in `terminal/docs/verification/iw2-g1/`. Application deployment and
 real authenticated acceptance are separate gates. Rollback revokes the mutation
 RPC grant and retains heads, revisions, receipts and captures. Current layouts
 are not changed by the migration.
+
+### 0031 — Audit20 drawing snapshot and atomic replacement
+
+Reserved for `TERMINAL-AUDIT20-A04`, root `01a10f92`. Prefixes 0029 and 0030 remain with #804. Source qualification and any production application have separate receipts.
