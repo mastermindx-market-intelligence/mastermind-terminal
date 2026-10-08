@@ -2152,9 +2152,12 @@ export default function OptionsHubView({
   // flowGet SWR path returns yesterday's cache and only refreshes it in the background;
   // the previous "if (leadersData) return" then held that first payload indefinitely.
   // Wait for revalidation on each Leaders entry or explicit retry.
-  const fetchLeaders = useCallback(async () => {
+  const fetchLeaders = useCallback(async (force = false) => {
     setLeadersLoading(true); setLeadersError(false);
     try {
+      // An explicit "Check for new data" must bypass the 25-second client
+      // cache; the shared server cache still owns upstream coalescing.
+      if (force) flowInvalidate("leaders");
       const d = await flowGetFresh("leaders");
       if (d && typeof d === "object" &&
           Array.isArray((d as LeadersPayload).board_a) &&
@@ -3961,7 +3964,7 @@ export default function OptionsHubView({
                     type="button"
                     className="btn btn-ghost"
                     style={{ height: 28, marginTop: 14 }}
-                    onClick={() => void fetchLeaders()}
+                    onClick={() => void fetchLeaders(true)}
                     disabled={leadersLoading}
                   >
                     {leadersLoading ? t("loading", "Loading…") : pick(lang, "Retry", "重试")}
@@ -4010,7 +4013,7 @@ export default function OptionsHubView({
                       )}
                       <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginTop: 16 }}>
                         <button type="button" className="btn btn-ghost" disabled={leadersLoading}
-                          onClick={() => void fetchLeaders()}>
+                          onClick={() => void fetchLeaders(true)}>
                           {leadersLoading ? t("loading", "Loading…") : pick(lang, "Check for new data", "检查新数据")}
                         </button>
                         <button type="button" className="btn btn-ghost"
