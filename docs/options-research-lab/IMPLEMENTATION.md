@@ -113,3 +113,19 @@ FINALIZATION_CLASSIFICATION: CHECKPOINTED_CONTINUATION
 MISSION_COMPLETE: false
 CAPABILITY_STATE: BUILT_NOT_PROVEN_IN_PRODUCTION
 Boundary: the native proof surface now requires human dismissal of an extension panel, independent delta review hit a proven pre-start capacity refusal, and the next producer/resolver/persistence phase materially expands source custody/contracts beyond this consumer. Preserve this cumulative checkpoint before that larger phase. Same chat, same root and worktree, same PR and existing five-minute heartbeat remain the continuation path. Verify this containing evidence commit on the existing remote branch; source remains e13ef243. No merge or deployment has been attempted.
+
+## Exact resume frontier — 2026-10-08 narrow-viewport framing repair
+
+The Chairman requested continued execution to full completion. Same PR #846 and original root remain; this section supersedes the unchanged-source assumption above. The preceding cumulative head was `ac4a3a60423b7a34aeb3c80243773bbbfb379518` and its CI run37717488898 is accepted SUCCESS, not a run to rewatch.
+
+The renderer's fixed vertical frustum clipped valid marks at narrow aspect ratios. A component test using the real Three scene, camera, geometry and OrbitControls reproduced seven failing cases across Reset/Front/Top and desktop-to-narrow resize. Only WebGL submission is replaced in jsdom; these are projection assertions, not rendered screenshot or native-GPU evidence.
+
+`ResearchScene.tsx` now fits a sphere enclosing the full normalized snapshot to the shorter viewport dimension, reserving room for the largest marker and selection ring. It retains camera/controls, explicit user zoom/pan, selected identity and the same scale across filters. Front/Top/Reset already existed; no new controls or data source were added. Intentional user zoom may still crop the view; Reset returns to the complete framing.
+
+Validation: 14 new projection cases pass, including 128×320, 300×400, 800×400 and 1440×320 scene areas, intermediate camera angles, resize and filtering. With the existing adapter/IV cases, 38 focused tests pass. TypeScript, changed-file ESLint and production build pass. Raw logs: external `framing-red.log`, `framing-green.log`, `framing-production-build.log`. The earlier full unit and native resource results keep their original source binding. This new renderer framing requires current-head browser/native visual and independent review; none is claimed here.
+
+At21:15Z the existing Minimax placement owner still returned NO_HOST_ELIGIBLE, mini2 active3/max1; no child was launched and terminal r3 remains consumed. Current Macro producer `8aa1aca8c593982e722bbc666a221fdd82466f15`, `scripts/build_options_matrix.py`, publishes a mutable `options_structure/matrix/<ROOT>.json`; this source read does not establish an immutable retained reference. Existing Options and Intelligence Workspace owners must supply/qualify that dependency. No producer, SQL or persistence source was changed.
+
+Browser automation remains paused pending explicit acknowledgement of the existing extension-panel blocker. The retained temporary tab, required Chinese proof and zoom/viewport cleanup remain as described above. Other browser-control paths must not be used to evade that hold. Paper's seven original research boards were re-observed without edits; the root-light design gate remains open.
+
+Next: publish and observe CI for the containing new source commit through the existing heartbeat; qualify this framing visually after browser acknowledgement; obtain independent review only after genuine route capacity opens. Then continue producer-owned immutable evidence and matching Saved Research admission/recovery. Full mission, light art direction, qualified fitted/replay/package/scenario inputs and authenticated release acceptance remain incomplete. Keep PR draft.

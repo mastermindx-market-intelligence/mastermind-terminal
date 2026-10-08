@@ -24,6 +24,7 @@ export default function ResearchScene({ marks, domain, selected, onSelect, onFai
     try { renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, powerPreference: "low-power" }); }
     catch { callbacks.current.onFailure(); return; }
     let drawn: ResearchMark[] = [];
+    const extent = { magnitude: 1.6, strike: 1, expiry: .75 };
     const scene = new THREE.Scene();
     const camera = new THREE.OrthographicCamera(-2.5, 2.5, 1.65, -1.65, .1, 100);
     const canvas = renderer.domElement;
@@ -57,7 +58,19 @@ export default function ResearchScene({ marks, domain, selected, onSelect, onFai
       (Array.isArray(grid.material)?grid.material:[grid.material]).forEach(m => { (m as THREE.LineBasicMaterial).color.set(line); });
       render();
     };
-    const resize = () => { const w=Math.max(1,container.clientWidth), h=Math.max(1,container.clientHeight); renderer.setSize(w,h);camera.left=-1.65*w/h;camera.right=1.65*w/h;camera.updateProjectionMatrix();render(); };
+    const resize = () => {
+      const w = Math.max(1, container.clientWidth), h = Math.max(1, container.clientHeight);
+      renderer.setSize(w, h);
+      // A sphere around the full normalized snapshot fits at every orbit angle.
+      // Reserve 22 CSS px for the largest 34px mark + 6px selection ring, with
+      // a small margin. Fit the shorter viewport axis, not just its height.
+      // Filters retain these bounds; explicit user zoom/pan remain untouched.
+      const radius = Math.hypot(extent.magnitude, extent.strike, extent.expiry);
+      const unitsPerPixel = 2 * radius / Math.max(1, Math.min(w, h) - 44);
+      camera.left = -w * unitsPerPixel / 2; camera.right = -camera.left;
+      camera.top = h * unitsPerPixel / 2; camera.bottom = -camera.top;
+      camera.updateProjectionMatrix(); render();
+    };
     const preset = (mode: string) => {
       camera.up.set(0,1,0); camera.zoom=1;
       if(mode==="front")camera.position.set(0,0,6);
@@ -83,9 +96,9 @@ export default function ResearchScene({ marks, domain, selected, onSelect, onFai
       const { expiries, minStrike: lo, maxStrike: hi, maxValue: maximum } = domain;
       const expiryIndex = new Map(expiries.map((e,i) => [e,i]));
       drawn.forEach((m,i) => {
-        positions[i*3] = (m.side === "put" ? -1 : 1) * Math.abs(m.value) / maximum * 1.6;
-        positions[i*3+1] = hi === lo ? 0 : (m.strike-lo)/(hi-lo)*2-1;
-        positions[i*3+2] = expiries.length === 1 ? 0 : expiryIndex.get(m.expiry)!/(expiries.length-1)*1.5-.75;
+        positions[i*3] = (m.side === "put" ? -1 : 1) * Math.abs(m.value) / maximum * extent.magnitude;
+        positions[i*3+1] = hi === lo ? 0 : ((m.strike-lo)/(hi-lo)*2-1) * extent.strike;
+        positions[i*3+2] = expiries.length === 1 ? 0 : (expiryIndex.get(m.expiry)!/(expiries.length-1)*2-1) * extent.expiry;
         sizes[i] = Math.max(2, Math.min(domain.maxDiameter, Math.sqrt(Math.abs(m.value)/maximum)*domain.maxDiameter));
         hollow[i] = m.value < 0 ? 1 : 0;
         highlights[i] = m.key === callbacks.current.selected ? 1 : 0;
