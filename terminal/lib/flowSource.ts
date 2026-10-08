@@ -1020,15 +1020,30 @@ export function upstreamSourceOrder(f: string): FlowUpstreamSource[] {
 
 /** Flow Leaders artifact integrity and downstream admission boundary. */
 export function isLeadersArtifact(data: Record<string, unknown> | null): boolean {
-  return Boolean(data && data.schema === "flow_leaders.v1" &&
-    typeof data.session_date === "string" &&
-    /^\d{4}-\d{2}-\d{2}$/.test(data.session_date) &&
-    Array.isArray(data.board_a) && Array.isArray(data.board_b));
+  if (!data || data.schema !== "flow_leaders.v1" ||
+      typeof data.session_date !== "string" ||
+      !/^\d{4}-\d{2}-\d{2}$/.test(data.session_date) ||
+      !Array.isArray(data.board_a) || !Array.isArray(data.board_b)) return false;
+  const coverage = data.coverage;
+  if (!coverage || typeof coverage !== "object") return false;
+  const c = coverage as Record<string, unknown>;
+  if (typeof c.n_universe !== "number" || !Number.isInteger(c.n_universe) ||
+      c.n_universe < 0) return false;
+  return [...data.board_a, ...data.board_b].every((row) =>
+    row !== null && typeof row === "object" &&
+    typeof (row as Record<string, unknown>).ticker === "string");
 }
 
 export function isQualifiedLeadersArtifact(data: Record<string, unknown> | null): boolean {
   if (!isLeadersArtifact(data) || !data || data.stale !== false ||
-      data.source_family !== "thetadata_t2a_tape") return false;
+      data.source_family !== "thetadata_t2a_tape" ||
+      data.signal_policy !== "research_only") return false;
+  // Theta tape's licensed quote-rule evidence is NOT a validated live entry
+  // signal. A future publisher cannot silently promote fire flags by merely
+  // supplying a recent market timestamp and sufficient raw coverage.
+  const rows = [...(data.board_a as Record<string, unknown>[]),
+    ...(data.board_b as Record<string, unknown>[])];
+  if (rows.some((row) => row.fire_a !== false || row.fire_b !== false)) return false;
   const coverage = data.coverage;
   if (!coverage || typeof coverage !== "object") return false;
   const c = coverage as Record<string, unknown>;
