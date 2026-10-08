@@ -1110,21 +1110,34 @@ export async function tryFetchUpstream(f: string): Promise<Record<string, unknow
   // the old snapshot for explicit historical viewing when all fresh sources fail.
   if (f === "leaders") {
     const local = await tryReadLocalFlowArtifact(f);
-    if (isQualifiedLeadersArtifact(local)) return local;
+    const localQualified = isQualifiedLeadersArtifact(local);
     let best = isLeadersArtifact(local) ? local : null;
-    for (const source of upstreamSourceOrder(f)) {
+    // A locally QUALIFIED but lagging session can still shadow a newer R2
+    // publication for up to the full freshness window. Make one bounded R2
+    // comparison; when the local proof is valid, there is no reason to wait
+    // for the slower backend after a failed/missing R2 read.
+    const sources: FlowUpstreamSource[] = localQualified
+      ? ["r2"] : upstreamSourceOrder(f);
+    for (const source of sources) {
       try {
         const url = source === "r2"
           ? R2_BASE + "/" + r2Key(f)
           : BACKEND + backendPath(f);
         const remote = await fetchWithUA(url);
-        if (isQualifiedLeadersArtifact(remote)) return remote;
-        best = chooseMoreRecentLeaders(best, remote);
+        if (isQualifiedLeadersArtifact(remote)) {
+          if (localQualified && local &&
+              String(local.session_date) >= String(remote.session_date)) {
+            return local;
+          }
+          return remote;
+        }
+        if (!localQualified) best = chooseMoreRecentLeaders(best, remote);
       } catch {
-        // Preserve an explicitly degraded snapshot if upstream is unreachable.
+        // Missing/blocked remote evidence never displaces a qualified local
+        // session; otherwise keep searching the documented backend fallback.
       }
     }
-    return sanitizeLeadersArtifact(best);
+    return localQualified ? local : sanitizeLeadersArtifact(best);
   }
   if (f === "manifest") {
     try {
