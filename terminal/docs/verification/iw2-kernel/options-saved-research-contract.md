@@ -117,6 +117,14 @@ blob or the review baseline. All fields below are required and extra keys refuse
   Its value must match the producer coordinate exactly without rounding or
   approximation. Out-of-range/unrepresentable source coordinates cannot be saved.
   This bounds cross-language serialization without claiming an option-contract ID.
+  A concrete retained-membership counterexample is the raw JSON numeric token
+  `999999999999.12345678`: JavaScript and Python floating-point parsing produce
+  `999999999999.1234`. The original decimal string passes the structural contract,
+  but the rounded UI key is not that source identity. The producer/resolver must
+  supply and qualify a lossless source representation or refuse that coordinate;
+  constructing a purported original identity from the parsed Number is insufficient.
+  Do not narrow this structural schema to conceal the loss. The producer owns this
+  remaining representation/domain qualification alongside underlying identity.
 - `view.lens` is `chain` only; `metric` is `volume`, `openInterest` or `deltaOi`;
   `side` is `all`, `call` or `put`; `expiry` is `all` or an admitted expiry in the same
   snapshot; `display_mode` is `3d` or `table`. No implicit defaults on stored reads.
@@ -257,3 +265,25 @@ C1 mechanical task class. Its retained run receipt proves launch, COMPLETE,
 settlement and zero residual processes. Deterministic acceptance was recorded
 through the existing adapter after both executable suites passed. The worker
 correctly claimed fixture authorship only, with no test execution or descendants.
+
+## Pure reference and source-session decoder
+
+`terminal/lib/investigationOptionsReference.ts` now implements the agreed syntax
+and clock consistency as pure functions within the existing Investigation owner.
+`parseOptionsMatrixVersionRef` requires exact lowercase digest/fingerprint equality,
+canonical positive safe byte length within an explicit producer-supplied bound,
+and a real Gregorian session or the exact unknown marker. Extra characters,
+whitespace, overlong references, unsafe counts and unsupported date forms refuse.
+`readOptionsMatrixSourceSession` refuses malformed or contradictory clocks,
+distinguishes absent/null from malformed fields, and inspects the relevant own data
+properties without invoking getters. Neither helper performs I/O or certifies the
+rest of the payload, source identity, coordinate membership or current rights.
+
+Fabric leaf `iw2-options-reference-codec-20261008` supplied the implementation on
+the admitted DeepSeek Flash/Ubuntu1 route, preserving the original root. Parent
+wrote the independent tests first, inspected the returned source, and integrated
+it only into the existing #804 checkout. All 64 decoder tests pass; the combined
+decoder, candidate-shape and existing v2 run passes 157 tests. The earlier Python
+candidate-shape suite remains 77 passed. Runtime admission, byte acquisition,
+producer limits/root bindings, lossless coordinate identity, current source-use
+rights, SQL parity and installation remain separate gates.
