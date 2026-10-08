@@ -33,6 +33,85 @@ async function noOverflow(page: Page) {
   expect(await page.getByTestId("finviz-discovery").evaluate(el => el.scrollWidth - el.clientWidth)).toBeLessThanOrEqual(1);
 }
 
+// Transport-only synthetic readiness checks, not source-population evidence.
+async function prepareCustomerSources(page: Page, heatmapUnavailable = false) {
+  const requests: string[] = [];
+  await page.addInitScript(() => localStorage.setItem("mm.lang", "en"));
+  await page.route("**/api/sector-intelligence?**", async route => {
+    const source = new URL(route.request().url()).searchParams.get("source") || "";
+    requests.push(source);
+    if (source !== "finviz" && (source !== "heatmap" || heatmapUnavailable)) return sectorFixture(route);
+    const restricted = source === "finviz";
+    return route.fulfill({ status: restricted ? 403 : 200, json: {
+      data: restricted ? null : { size_basis: "marketcap", n_tiles: 0, tiles: [] },
+      receipt: { source, status: restricted ? "access" : "ready", path: "", asOf: "2026-10-07", observedAt: null, stale: false, contentHash: null },
+    } });
+  });
+  return requests;
+}
+
+test("customer source completeness excludes internal Finviz until selected", async ({ page }) => {
+  const requests = await prepareCustomerSources(page);
+  await page.goto("/discover?tab=sectors&sectorWorkspace=detail&sectorView=signals");
+  const root = page.getByTestId("sector-intelligence");
+  await expect(root.getByText(/4 \/ 4 sources received/)).toBeVisible();
+  await expect(root.getByText("Some sources are unavailable.", { exact: true })).toHaveCount(0);
+  expect(requests).not.toContain("finviz");
+  await root.getByRole("button", { name: "Sources", exact: true }).click();
+  const sources = page.getByRole("dialog", { name: "Sources", exact: true });
+  await expect(sources.getByRole("heading", { name: "Finviz themes (internal)", exact: true })).toHaveCount(0);
+  await sources.getByRole("button", { name: "Back to research", exact: true }).click();
+  await root.getByRole("button", { name: "Discover", exact: true }).click();
+  const customerRequestsBeforeFinviz = requests.filter(source => source === "sector").length;
+  await root.getByRole("button", { name: "Finviz themes (internal)", exact: true }).click();
+  await expect(root.getByTestId("finviz-discovery")).toContainText("restricted");
+  expect(requests.filter(source => source === "finviz")).toHaveLength(1);
+  await root.getByRole("button", { name: "Rotation", exact: true }).click();
+  await expect(root.getByTestId("finviz-discovery")).toHaveCount(0);
+  await expect.poll(() => requests.filter(source => source === "sector").length).toBeGreaterThan(customerRequestsBeforeFinviz);
+  expect(requests.filter(source => source === "finviz")).toHaveLength(1);
+});
+
+test("customer source completeness still reports a missing customer feed", async ({ page }) => {
+  const requests = await prepareCustomerSources(page, true);
+  await page.goto("/discover?tab=sectors&sectorWorkspace=detail&sectorView=signals");
+  const root = page.getByTestId("sector-intelligence");
+  await expect(root.getByText(/3 \/ 4 sources received/)).toBeVisible();
+  await expect(root.getByText("Some sources are unavailable.", { exact: true })).toBeVisible();
+  expect(requests).not.toContain("finviz");
+});
+
+test("revisiting Finviz hides prior data while access is checked again", async ({ page }) => {
+  let release!: () => void;
+  const pending = new Promise<void>(resolve => { release = resolve; });
+  let finvizRequests = 0;
+  await page.addInitScript(() => localStorage.setItem("mm.lang", "en"));
+  await page.route("**/api/sector-intelligence?**", async route => {
+    const source = new URL(route.request().url()).searchParams.get("source");
+    if (source !== "finviz") { await pending; return sectorFixture(route); }
+    const restricted = ++finvizRequests > 1;
+    if (restricted) await pending;
+    return route.fulfill({ status: restricted ? 403 : 200, json: {
+      data: restricted ? null : payload,
+      receipt: { source, status: restricted ? "access" : "ready", path: "/marketdata/themes_heatmap.json", asOf: payload.asof, observedAt: null, stale: false, contentHash: hash },
+    } });
+  });
+  try {
+    await page.goto(url);
+    const root = page.getByTestId("sector-intelligence");
+    await expect(root.getByTestId("finviz-group")).toHaveCount(payload.n_tiles);
+    await root.getByRole("button", { name: "Sectors", exact: true }).click();
+    await expect(root.getByTestId("finviz-discovery")).toHaveCount(0);
+    await root.getByRole("button", { name: "Finviz themes (internal)", exact: true }).click();
+    await expect.poll(() => finvizRequests).toBe(2);
+    await expect(root.getByTestId("finviz-discovery")).toContainText("Loading themes");
+    await expect(root.getByTestId("finviz-group")).toHaveCount(0);
+    release();
+    await expect(root.getByTestId("finviz-discovery")).toContainText("restricted");
+    await expect(root.getByTestId("finviz-group")).toHaveCount(0);
+  } finally { release(); }
+});
+
 test("one inventory, hierarchy, company drill and browser history across all representations", async ({ page }, info) => {
   const errors: string[] = []; page.on("pageerror", error => errors.push(error.message));
   await prepare(page); await page.goto(url);

@@ -3,8 +3,9 @@ import { normalizeFinviz } from "./finvizThemes";
  * This module neither emits a dossier nor creates rankings/entry permission.
  * Missing numbers stay null. Every feed keeps its own clock and cohort.
  */
-export const SECTOR_FEEDS = ["sector", "confluence", "themes", "heatmap", "finviz"] as const;
-export type SectorFeed = typeof SECTOR_FEEDS[number];
+export const SECTOR_FEEDS = ["sector", "confluence", "themes", "heatmap"] as const;
+export const FINVIZ_FEEDS = ["finviz"] as const;
+export type SectorFeed = typeof SECTOR_FEEDS[number] | typeof FINVIZ_FEEDS[number];
 export type FeedStatus = "loading" | "ready" | "access" | "unavailable" | "invalid" | "error";
 export interface FeedReceipt {
   source: SectorFeed;

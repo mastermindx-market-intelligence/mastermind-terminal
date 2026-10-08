@@ -6,7 +6,7 @@ import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } fro
 import { useLang } from "@/lib/i18n";
 import { useSectorT } from "@/lib/sectorIntelligenceLex";
 import { useShellIdentity } from "@/components/chrome/AppShell";
-import { SECTOR_FEEDS, SECTOR_VIEWS, DEFAULT_SECTOR_STATE, object, text, number, sectorRows,
+import { SECTOR_FEEDS, FINVIZ_FEEDS, SECTOR_VIEWS, DEFAULT_SECTOR_STATE, object, text, number, sectorRows,
   groupRows, themeRows, themeEntryReady, themeStaleLegs, members, concentration, sortMembers, parseSectorState, writeSectorState,
   formatValue, type FeedMap, type FeedPayload, type FeedStatus,
   type SectorFeed, type SectorState, type SectorView, type Row } from "@/lib/sectorIntelligence";
@@ -59,8 +59,13 @@ function Metric({ label, value, foot }: { label: string; value: string; foot: st
 export default function SectorIntelligenceWorkspace() {
   const t = useSectorT(), { lang } = useLang(), identity = useShellIdentity();
   const [state, setState] = useState<SectorState>(DEFAULT_SECTOR_STATE);
-  const [received, setReceived] = useState<{ identity: typeof identity; revision: number; feeds: FeedMap }>({ identity, revision: 0, feeds: {} });
   const [revision, setRevision] = useState(0);
+  const activeFeeds = state.workspace === "discover" && state.sourceFamily === "finviz" ? FINVIZ_FEEDS : SECTOR_FEEDS;
+  // Each visit owns fresh responses, even if a user leaves and re-enters Finviz
+  // before the intervening customer feeds settle. Neither access refusal nor
+  // retained internal data contributes to the ordinary customer workspace.
+  const requestOwner = useMemo(() => ({ identity, revision, activeFeeds }), [identity, revision, activeFeeds]);
+  const [received, setReceived] = useState<{ owner: typeof requestOwner | null; feeds: FeedMap }>({ owner: null, feeds: {} });
   const [groupBrowserOpen, setGroupBrowserOpen] = useState(false);
   const [returnWorkspace, setReturnWorkspace] = useState<OuterWorkspace>("rotation");
   const [returnState, setReturnState] = useState<SectorState | null>(null);
@@ -81,9 +86,9 @@ export default function SectorIntelligenceWorkspace() {
       focus: returnFocus ? `return:${returnFocus}` : choiceFocus ? `choice:${choiceFocus}` : null,
     };
   }, []);
-  // A changed account hides the previous account's data in the render itself,
-  // before effects run. Nothing is persisted in browser storage or shared caches.
-  const feeds = received.identity === identity && received.revision === revision ? received.feeds : {};
+  // A changed account, refresh or source surface hides prior responses before
+  // effects run. Nothing is persisted in browser storage or shared caches.
+  const feeds = received.owner === requestOwner ? received.feeds : {};
   useEffect(() => {
     const sync = () => {
       const next = parseSectorState(new URLSearchParams(window.location.search));
@@ -111,7 +116,7 @@ export default function SectorIntelligenceWorkspace() {
   }, [state.workspace]);
   useEffect(() => {
     const controller = new AbortController(); let alive = true;
-    for (const source of SECTOR_FEEDS) {
+    for (const source of requestOwner.activeFeeds) {
       void (async () => {
         let payload: FeedPayload;
         try {
@@ -133,12 +138,12 @@ export default function SectorIntelligenceWorkspace() {
           if (controller.signal.aborted) return;
           payload = emptyFeed(source, "error");
         }
-        if (alive) setReceived(previous => ({ identity, revision,
-          feeds: { ...(previous.identity === identity && previous.revision === revision ? previous.feeds : {}), [source]: payload } }));
+        if (alive) setReceived(previous => ({ owner: requestOwner,
+          feeds: { ...(previous.owner === requestOwner ? previous.feeds : {}), [source]: payload } }));
       })();
     }
     return () => { alive = false; controller.abort(); };
-  }, [identity, revision]);
+  }, [requestOwner]);
 
   const sectors = useMemo(() => sectorRows(feeds.sector?.data), [feeds.sector]);
   const groups = useMemo(() => groupRows(feeds.confluence?.data), [feeds.confluence]);
@@ -152,8 +157,8 @@ export default function SectorIntelligenceWorkspace() {
   const rotation = object(sector.rotation), conviction = object(sector.conviction), entry = object(group.entry), regime = object(group.regime);
   const status = feeds.sector?.receipt.status || "loading";
   const hasSector = !!sector.id;
-  const completed = SECTOR_FEEDS.filter(k => feeds[k]).length;
-  const ready = SECTOR_FEEDS.filter(k => feeds[k]?.receipt.status === "ready").length;
+  const completed = activeFeeds.filter(k => feeds[k]).length;
+  const ready = activeFeeds.filter(k => feeds[k]?.receipt.status === "ready").length;
   const sectorSourceName = text(sector.name);
   const sectorName = text(lang === "zh" ? sector.name_zh : sector.name) || sectorSourceName || text(sector.ticker);
   const groupName = text(lang === "zh" ? group.label_zh : group.label) || text(group.label);
@@ -205,7 +210,7 @@ export default function SectorIntelligenceWorkspace() {
     <div><h3>{t("siStrength")}</h3><p>{t("siRS")} {rank(momentum.rs_21d_rank)} · {t("siRS63")} {rank(momentum.rs_rank)}</p><span>{momentum.above_200d === true ? t("siAbove200") : momentum.above_200d === false ? t("siBelow200") : t("siTrendUnknown")}</span></div>
     <div><h3>{t("siFormation")}</h3><p>{t("siSlow")}: {stateLabel(conviction.label_en)} · {stateLabel(cycle.phaseLabel)}</p><span>{t("siFast")}: {stateLabel(rotation.state)}</span></div>
     <div><h3>{t("siEntry")}</h3><p>{t("siNotConnected")}</p><span>{t("siEntryCopy")}</span></div>
-    <div><h3>{t("siEvidence")}</h3><p>{ready} / {SECTOR_FEEDS.length} {t("siSourceCount")}</p><span>{t("siSourceRecordCopy")}</span></div>
+    <div><h3>{t("siEvidence")}</h3><p>{ready} / {activeFeeds.length} {t("siSourceCount")}</p><span>{t("siSourceRecordCopy")}</span></div>
   </div>;
   const pocket = <Card title={groupName || t("siPocket")} subtitle={t("siPocket")}>
     {!!group.key ? <><div className={styles.split}>
@@ -240,7 +245,7 @@ export default function SectorIntelligenceWorkspace() {
             : t(state.workspace === "rotation" ? "siRotation" : state.workspace === "breadth" ? "siMarketBreadth" : "siDiscoverSectors")}</p></div>
           <button type="button" className={styles.button} onClick={closeSources}>{t("siCloseSources")}</button></header>
         <div className={styles.sectionHeading}><h2>{t("siSourceRecord")}</h2><p>{t("siSourceRecordCopy")}</p></div><div className={styles.sourceGrid}>
-          {SECTOR_FEEDS.map(source => { const receipt = feeds[source]?.receipt; return <Card key={source} title={t(FEED_KEYS[source])} action={<span className={styles.badge}>{t(STATUS_KEYS[receipt?.status || "loading"])}</span>}>
+          {activeFeeds.map(source => { const receipt = feeds[source]?.receipt; return <Card key={source} title={t(FEED_KEYS[source])} action={<span className={styles.badge}>{t(STATUS_KEYS[receipt?.status || "loading"])}</span>}>
             <dl className={styles.pairs}><div><dt>{t("siSnapshotDate")}</dt><dd>{receipt?.asOf || t("siUnknownDate")}</dd></div><div><dt>{t("siFetched")}</dt><dd>{receipt?.observedAt || "—"}</dd></div></dl>
             {receipt?.stale && <p className={styles.note}>{t("siStale")}</p>}
             <details className={styles.explanation}><summary>{t("siReceipt")}</summary><p>{t("siSourcePath")}</p><code>{receipt?.path || "—"}</code><p>{t("siHash")}</p><code>{receipt?.contentHash || "—"}</code></details>
@@ -315,7 +320,7 @@ export default function SectorIntelligenceWorkspace() {
       </nav><button ref={sourceTrigger} type="button" className={styles.sourceTrigger} aria-haspopup="dialog"
         aria-expanded={state.sourcesOpen} onClick={event => openSources(event.currentTarget)}>{t("siSourcesPanel")}</button></div>
       <div className={styles.contextLine}><span className={styles.badge}>{t("siResearchOnly")}</span><span>{t("siDated")} · {feeds.sector?.receipt.asOf || t("siUnknownDate")}</span></div>
-      {completed === SECTOR_FEEDS.length && ready < SECTOR_FEEDS.length && <div className={styles.notice} role="status"><div><strong>{t("siCompactPartial")}</strong></div>{sourcesLink}</div>}
+      {completed === activeFeeds.length && ready < activeFeeds.length && <div className={styles.notice} role="status"><div><strong>{t("siCompactPartial")}</strong></div>{sourcesLink}</div>}
       <div role="tabpanel" id={`si-panel-${state.view}`} aria-labelledby={`si-tab-${state.view}`} tabIndex={0} className={styles.view}>
         {state.view === "intelligence" && <>
           {status === "loading" ? <div className={styles.empty} role="status">{t("siLoading")}</div> : !hasSector ? <div className={styles.empty} role="status">

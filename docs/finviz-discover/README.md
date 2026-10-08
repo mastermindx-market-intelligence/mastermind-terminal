@@ -11,6 +11,7 @@ Implementation scope: the existing Sector Intelligence Discover route, with one 
 - The consumer checks source identity, parents, duplicate rows, member identities and owner-reported counts. It does not mint another taxonomy, membership store or analytical score. Missing axes withhold only plotted points.
 - The current public owner payload does not carry the complete membership-vintage/correction/unresolved-member manifest. The parallel source-hardening carrier has not been located in the bounded GitHub recovery. Final source acceptance remains OPEN; this legacy owner integration must be reconciled against that accepted contract before claiming the full commission complete.
 - `config/theme_sources.yml` at this Macro revision retains `finviz_themes=internal_only` (#8509). The gateway requires both its existing authenticated shared session and `isAdminRequest()` before upstream access. Ordinary customers receive an access refusal. No rights registry or grandfathered-surface exemption is changed. Vendor descriptions are stripped; no vendor assets/code/styles are imported.
+- Ordinary Sector Central fetches and scores only its four customer feeds. The internal Finviz feed is fetched only while Finviz Discover is selected; its expected access refusal cannot make customer evidence look incomplete. Responses belong to the current identity, refresh and surface visit, so revisiting Finviz hides previous data until a fresh access check completes.
 
 ## Donor and design
 
