@@ -60,15 +60,17 @@ export const TOP = [
 // useSearchParams() forces a CSR bailout during static prerender; the primary nav no longer
 // reads params (active key is pure path-prefix), but the Suspense boundary is retained so the
 // nav keeps rendering a stable fallback while the shell hydrates.
-export function AppNav() {
+type AppNavPresentation = { labelled?: boolean; id?: string };
+
+export function AppNav({ labelled = false, id }: AppNavPresentation = {}) {
   return (
-    <Suspense fallback={<nav className="appnav" aria-label="Primary" />}>
-      <AppNavInner />
+    <Suspense fallback={<nav id={id} className="appnav" aria-label="Primary" />}>
+      <AppNavInner labelled={labelled} id={id} />
     </Suspense>
   );
 }
 
-function AppNavInner() {
+function AppNavInner({ labelled = false, id }: AppNavPresentation) {
   const path = usePathname();
   const router = useRouter();
   const t = useT();
@@ -86,7 +88,7 @@ function AppNavInner() {
     : "chart";
   const openAI = () => { if (path.startsWith("/terminal")) window.dispatchEvent(new CustomEvent("mm:copilot")); else router.push("/terminal?ai=1"); };
   return (
-    <nav className="appnav" aria-label="Primary">
+    <nav id={id} className="appnav" aria-label="Primary">
       {TOP.map((it) => {
         const on = it.k === activeKey;
         return (
@@ -97,13 +99,13 @@ function AppNavInner() {
               className={`navbtn${on ? " on" : ""}`}
               aria-current={on ? "page" : undefined}
               aria-label={t(it.k, it.label)}
-            ><Glyph k={it.k} /></Link>
+            ><Glyph k={it.k} />{labelled && <span className="investor-nav-label">{t(it.k, it.label)}</span>}</Link>
           </Tip>
         );
       })}
       <div className="gap" />
       <Tip label={t("ai")} side="right" size="mini">
-        <button className="navbtn" onClick={openAI} aria-label={t("ai")}><Glyph k="ai" /></button>
+        <button className="navbtn" onClick={openAI} aria-label={t("ai")}><Glyph k="ai" />{labelled && <span className="investor-nav-label">{t("ai")}</span>}</button>
       </Tip>
     </nav>
   );

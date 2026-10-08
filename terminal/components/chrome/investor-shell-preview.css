@@ -1,0 +1,105 @@
+/* Default-off presentation of the existing AppShell / AppNav. Never changes
+ * chart chrome, page data, tokens, access policy or the MobileNav owner. */
+.investor-shell-preview::before { display: none; }
+.investor-shell-preview .investor-nav-toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex: 0 0 44px;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  color: var(--text-2);
+  border: 1px solid transparent;
+  border-radius: var(--r-md, 8px);
+  background: transparent;
+  cursor: pointer;
+}
+.investor-shell-preview .investor-nav-toggle svg {
+  width: 20px;
+  height: 20px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.4;
+}
+.investor-shell-preview .investor-nav-toggle:hover {
+  color: var(--text);
+  background: var(--panel-2);
+}
+.investor-shell-preview .investor-nav-toggle:focus-visible,
+.investor-shell-preview > .appnav .navbtn:focus-visible {
+  outline: 2px solid var(--brand-2, var(--brand));
+  outline-offset: 2px;
+}
+
+.investor-shell-preview .investor-nav-label {
+  min-width: 0;
+  text-align: start;
+  overflow-wrap: anywhere;
+  font: 500 14px/1.4 var(--font-ui);
+}
+
+@media (min-width: 861px) {
+  .app2.investor-shell-preview {
+    grid-template-columns: 224px minmax(0, 1fr);
+    grid-template-rows: 64px minmax(0, 1fr) 28px;
+    background: var(--bg);
+  }
+  .app2.investor-shell-preview[data-investor-compact="true"] {
+    grid-template-columns: 72px minmax(0, 1fr);
+  }
+  .investor-shell-preview > .topbar {
+    gap: 12px;
+    padding-inline: 16px 20px;
+    background: var(--bg);
+  }
+  .investor-shell-preview > .appnav {
+    align-items: stretch;
+    gap: 6px;
+    padding: 20px 12px;
+    background: var(--panel);
+  }
+  .investor-shell-preview > .appnav > :not(.gap) { width: 100%; }
+  .investor-shell-preview > .appnav .navbtn {
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    width: 100%;
+    min-height: 44px;
+    height: auto;
+    padding: 10px 12px;
+    gap: 12px;
+    color: var(--text-2);
+    border: 1px solid transparent;
+    border-radius: var(--r-md, 8px);
+    background: transparent;
+    box-shadow: none;
+    transform: none;
+  }
+  .investor-shell-preview > .appnav .navbtn svg {
+    flex: 0 0 20px;
+    width: 20px;
+    height: 20px;
+  }
+  .investor-shell-preview > .appnav .navbtn:hover {
+    color: var(--text);
+    background: var(--panel-2);
+  }
+  .investor-shell-preview > .appnav .navbtn.on {
+    color: var(--text);
+    background: var(--panel-3);
+  }
+  .investor-shell-preview > .appnav .navbtn.on::before { display: none; }
+  .investor-shell-preview > .appnav .navbtn.on .investor-nav-label { font-weight: 600; }
+  .investor-shell-preview[data-investor-compact="true"] > .appnav .navbtn {
+    justify-content: center;
+    padding-inline: 0;
+  }
+}
+
+/* The existing <=860px MobileNav owns the drawer, focus and safe areas. Do not
+ * create another mobile shell or override its grid-to-document transition. */
+@media (prefers-reduced-motion: reduce) {
+  .investor-shell-preview > .appnav .navbtn,
+  .investor-shell-preview .investor-nav-toggle { transition: none; }
+}

@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import AppShell from "@/components/chrome/AppShell";
+import { isInvestorShellPreviewEnabled } from "@/lib/investorShellPreview";
 
 /**
  * Route-group layout for every non-chart workspace (Discover / Research /
@@ -32,5 +33,5 @@ export default async function ShellLayout({ children }: { children: React.ReactN
   const { data } = await supabase.auth.getClaims();
   const email = typeof data?.claims?.email === "string" ? data.claims.email : "";
   const userId = typeof data?.claims?.sub === "string" ? data.claims.sub : "";
-  return <AppShell email={email} userId={userId}>{children}</AppShell>;
+  return <AppShell email={email} userId={userId} investorShellPreview={isInvestorShellPreviewEnabled(process.env.MMX_INVESTOR_SHELL_PREVIEW)}>{children}</AppShell>;
 }
