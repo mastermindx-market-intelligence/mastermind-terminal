@@ -116,7 +116,7 @@ describe("Flow Leaders current-source admission and fallback", () => {
     }))).toBe(false);
     expect(isQualifiedLeadersArtifact(candidate(today(), {
       stale: false, source_family: "thetadata_t2a_tape",
-      coverage: { n_expected_roots: 375, n_current_roots: 20 },
+      coverage: { n_universe: 371, n_expected_roots: 375, n_current_roots: 20 },
     }))).toBe(false);
     expect(isQualifiedLeadersArtifact(qualified())).toBe(true);
   });
@@ -142,7 +142,7 @@ describe("Flow Leaders current-source admission and fallback", () => {
     const falselyFresh = candidate(today(), {
       stale: false,
       source_family: "thetadata_t2a_tape",
-      coverage: { n_expected_roots: 375, n_current_roots: 18 },
+      coverage: { n_universe: 371, n_expected_roots: 375, n_current_roots: 18 },
     });
     expect(isQualifiedLeadersArtifact(falselyFresh)).toBe(false);
     expect(sanitizeLeadersArtifact(falselyFresh)).toMatchObject({
