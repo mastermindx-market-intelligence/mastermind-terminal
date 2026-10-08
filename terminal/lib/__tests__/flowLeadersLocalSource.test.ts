@@ -51,8 +51,7 @@ describe("Flow Leaders current-source admission and fallback", () => {
     const file = path.join(dir, "leaders.json");
     await writeFile(file, JSON.stringify(qualified()));
     process.env.FLOW_LEADERS_LOCAL_PATH = file;
-    globalThis.fetch = vi.fn(async () => { throw new Error("unnecessary network"); })
-      as unknown as typeof globalThis.fetch;
+    globalThis.fetch = vi.fn(async () => { throw new Error("unnecessary network"); }) as unknown as typeof globalThis.fetch;
 
     const result = await tryFetchUpstream("leaders");
     expect(result?.source_family).toBe("thetadata_t2a_tape");
