@@ -159,9 +159,13 @@ describe("Flow Leaders current-source admission and fallback", () => {
     expect(isQualifiedLeadersArtifact({ ...ready, board_a: [
       { ticker: "AAPL", fire_a: true, fire_b: false },
     ] })).toBe(false);
-    expect(sanitizeLeadersArtifact({ ...ready, board_a: [
-      { ticker: "AAPL", fire_a: true, fire_b: false },
-    ] })?.stale).toBe(true);
+    const unqualified = sanitizeLeadersArtifact({ ...ready, board_a: [
+      { ticker: "AAPL", fire_a: true, fire_b: true },
+    ] });
+    expect(unqualified?.stale).toBe(true);
+    expect(unqualified?.board_a).toEqual([
+      { ticker: "AAPL", fire_a: false, fire_b: false },
+    ]);
     expect(sanitizeLeadersArtifact({ ...ready, coverage: undefined })).toBeNull();
     expect(sanitizeLeadersArtifact({ ...ready, board_a: [null] })).toBeNull();
   });
