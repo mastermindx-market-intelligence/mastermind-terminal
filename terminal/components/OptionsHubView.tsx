@@ -2155,10 +2155,9 @@ export default function OptionsHubView({
   const fetchLeaders = useCallback(async (force = false) => {
     setLeadersLoading(true); setLeadersError(false);
     try {
-      // An explicit "Check for new data" must bypass the 25-second client
-      // cache; the shared server cache still owns upstream coalescing.
-      if (force) flowInvalidate("leaders");
-      const d = await flowGetFresh("leaders");
+      // A manual check explicitly revalidates the publisher through the
+      // existing client/server cache owners, even inside the normal TTL.
+      const d = await flowGetFresh("leaders", { forceUpstream: force });
       if (d && typeof d === "object" &&
           Array.isArray((d as LeadersPayload).board_a) &&
           Array.isArray((d as LeadersPayload).board_b) &&
