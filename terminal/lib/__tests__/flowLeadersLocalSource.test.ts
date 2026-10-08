@@ -18,14 +18,17 @@ const candidate = (session: string, extra: Record<string, unknown> = {}) => ({
   as_of: new Date().toISOString(),
   session_date: session,
   stale: true,
-  board_a: [{ ticker: "AAPL" }],
+  board_a: [{ ticker: "AAPL", fire_a: false, fire_b: false }],
   board_b: [],
+  coverage: { n_universe: 1, n_flow_sessions: 3, tape_names: [], n_etfs: 0 },
   ...extra,
 });
 const qualified = (session = today()) => candidate(session, {
   stale: false,
   source_family: "thetadata_t2a_tape",
-  coverage: { n_expected_roots: 375, n_current_roots: 340 },
+  signal_policy: "research_only",
+  coverage: { n_universe: 371, n_flow_sessions: 3, tape_names: [], n_etfs: 0,
+    n_expected_roots: 375, n_current_roots: 340 },
 });
 const jsonResponse = (data: Record<string, unknown>) =>
   new Response(JSON.stringify(data), {
@@ -147,6 +150,20 @@ describe("Flow Leaders current-source admission and fallback", () => {
       stale: true,
       stale_reason: "unqualified_source_or_session",
     });
+  });
+
+  it("refuses a source that tries to promote unqualified Theta observations", () => {
+    const ready = qualified();
+    expect(isQualifiedLeadersArtifact(ready)).toBe(true);
+    expect(isQualifiedLeadersArtifact({ ...ready, signal_policy: "live_trade" })).toBe(false);
+    expect(isQualifiedLeadersArtifact({ ...ready, board_a: [
+      { ticker: "AAPL", fire_a: true, fire_b: false },
+    ] })).toBe(false);
+    expect(sanitizeLeadersArtifact({ ...ready, board_a: [
+      { ticker: "AAPL", fire_a: true, fire_b: false },
+    ] })?.stale).toBe(true);
+    expect(sanitizeLeadersArtifact({ ...ready, coverage: undefined })).toBeNull();
+    expect(sanitizeLeadersArtifact({ ...ready, board_a: [null] })).toBeNull();
   });
 
   it("falls through when the local file is malformed", async () => {
