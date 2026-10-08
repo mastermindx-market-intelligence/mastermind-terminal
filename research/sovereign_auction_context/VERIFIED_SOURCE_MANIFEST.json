@@ -1,0 +1,85 @@
+{
+  "schema": "sovereign_auction_verified_source_v1",
+  "verified_at": "2026-10-08T23:48:59.338759+00:00",
+  "base_commit": "d660d98b1ebc0bdf0d1b16d66202b1760f6cc94a",
+  "branch": "sol/web-sovereign-auction-context-20261008-sol-terminal-001",
+  "source_binding": "Exact file hashes; the enclosing Git commit is the final revision identity.",
+  "accepted_gates": {
+    "native_tests": 42,
+    "tsc": "passed",
+    "changed_leaf_lint": "passed",
+    "browser_cases": 18,
+    "browser_passed": 18,
+    "whole_shell_lint": "54 existing errors and 14 existing warnings; exact diagnostic equivalence, no new diagnostic"
+  },
+  "files": [
+    {
+      "path": "terminal/app/api/nw/route.ts",
+      "sha256": "d25e4086de89828470f6216532e638163de0940aa1479818b30ca12cc91b00f2",
+      "bytes": 5457
+    },
+    {
+      "path": "terminal/components/TerminalShell.tsx",
+      "sha256": "7e96d08385d921fd1ca624c3481271ac94ae297034f7126284836cd6429a1e5b",
+      "bytes": 385770
+    },
+    {
+      "path": "terminal/components/SovereignAuctionContext.tsx",
+      "sha256": "2b8cb70a8d0b43ce650e48868f3d5471a3b3b5e178bec089b3c3b7bf03946086",
+      "bytes": 11150
+    },
+    {
+      "path": "terminal/lib/sovereignAuctionContext.ts",
+      "sha256": "d949fbcdb50cc720d2e7c373177761c315c1e0fdcf0219f44066cfdd159aab9f",
+      "bytes": 16312
+    },
+    {
+      "path": "terminal/lib/upstreams.ts",
+      "sha256": "021e39cadbc7fb70769ef0dcb87fc67d9d9d8bc1a48fb13ac4dfa5c4cd9f3efb",
+      "bytes": 1501
+    },
+    {
+      "path": "terminal/lib/i18n.tsx",
+      "sha256": "cc6b9efb57ea38a9f2b22c6daa993e5766008e2e1c08ddae276fb11314ec9a9c",
+      "bytes": 206042
+    },
+    {
+      "path": "terminal/lib/__tests__/nwRoute.test.ts",
+      "sha256": "77bd472dc0d3b5af11bf804e16cd87afb5b232b4feb429de1b7005b8a3b326a6",
+      "bytes": 13899
+    },
+    {
+      "path": "terminal/lib/__tests__/sovereignAuctionContext.test.ts",
+      "sha256": "850258eb96e4c0dc6927fc7567b5bdfcffb7ca6289d461485ed17bedece78623",
+      "bytes": 8988
+    },
+    {
+      "path": "terminal/lib/__tests__/sovereignAuctionComponent.test.tsx",
+      "sha256": "1c568ed8ca406f8d4def37eaf4c753ba7a620d5b7b0463471d645a0a14780657",
+      "bytes": 11237
+    },
+    {
+      "path": "terminal/lib/__tests__/fixtures/sovereign_auction_context_w1.json",
+      "sha256": "c3019af2c6439d954886744a4261b8ec84b98f33ebb32ee8aecfa6dcfa98c268",
+      "bytes": 33500
+    },
+    {
+      "path": "terminal/e2e/fixtures/sovereign_auction_context_full_capture.json",
+      "sha256": "e363d46c7082b8c997d3385af3faf5ebab0eb9c07be9a89912c4d215a8cb32b3",
+      "bytes": 1140469
+    },
+    {
+      "path": "terminal/e2e/sovereign-auction-context.spec.ts",
+      "sha256": "ca3739d28066f123f57a49f6d7fe2d8d6cd9f024c3f2501ac516957e09570b81",
+      "bytes": 21924
+    },
+    {
+      "path": "terminal/playwright.sovereign-auctions.config.ts",
+      "sha256": "fb10c1fcbf6d4ed0bc44aec32dd2ae4500441427dba5a2e46f427c804468667b",
+      "bytes": 1047
+    }
+  ],
+  "production_deployed": false,
+  "forecast_authority": "RESEARCH_ONLY",
+  "data_owner_pr": "mastermindx-market-intelligence/macro#8657"
+}

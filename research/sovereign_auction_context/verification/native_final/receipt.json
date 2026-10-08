@@ -1,0 +1,34 @@
+[
+  {
+    "command": [
+      "npx",
+      "vitest",
+      "run",
+      "lib/__tests__/sovereignAuctionContext.test.ts",
+      "lib/__tests__/nwRoute.test.ts",
+      "lib/__tests__/sovereignAuctionComponent.test.tsx"
+    ],
+    "exit_code": 0,
+    "log": "../research/sovereign_auction_context/verification/native_final/run-1.txt"
+  },
+  {
+    "command": [
+      "npx",
+      "tsc",
+      "--noEmit"
+    ],
+    "exit_code": 0,
+    "log": "../research/sovereign_auction_context/verification/native_final/run-2.txt"
+  },
+  {
+    "command": [
+      "npx",
+      "eslint",
+      "components/SovereignAuctionContext.tsx",
+      "lib/i18n.tsx",
+      "e2e/sovereign-auction-context.spec.ts"
+    ],
+    "exit_code": 0,
+    "log": "../research/sovereign_auction_context/verification/native_final/run-3.txt"
+  }
+]

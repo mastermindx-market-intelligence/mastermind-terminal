@@ -22,6 +22,7 @@ import ChartConductor from "@/components/ChartConductor";
 import { intradayCapable } from "@/components/ChartPanel";
 import { classify, SECOND_TFS, isSecondTf } from "@/lib/intradaySources";
 import { isMacroSymbol } from "@/lib/macroSymbols";
+import SovereignAuctionContext from "@/components/SovereignAuctionContext";
 import { freshnessLabel } from "@/lib/feedFreshness";
 import { flowGet } from "@/lib/flowClientCache";
 // R3.2 glance layer: the rail block's per-root gexstate read. Entitlement-gated at
@@ -6025,6 +6026,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
                 <button className="btn btn-primary" style={{ width: "100%", height: 38 }} onClick={() => setPaneOpen("overview")}>{t("openFullAnalysis")}</button>
                 <button className="btn btn-ghost" style={{ width: "100%", height: 36 }} onClick={() => openBrainReincluding(setBrainIncluded, () => (window as any).MMBrain?.open())}>{t("askAIabout")} {active} →</button>
               </div>
+              <div style={{ padding: 12, minWidth: 0 }}><SovereignAuctionContext /></div>
             </div>
           </div>
         </div>

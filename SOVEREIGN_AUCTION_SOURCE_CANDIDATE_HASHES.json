@@ -1,0 +1,72 @@
+[
+  {
+    "path": "README_SOVEREIGN_AUCTION_SOURCE_CANDIDATE.md",
+    "sha256": "a0770c502304b3ce80b6bb21267cbf28eca31173e542a65c0827fe88602b3e2c",
+    "bytes": 8942
+  },
+  {
+    "path": "review/INDEPENDENT_REVIEW.md",
+    "sha256": "b2d1b3ecd75d5473f80474e8ce1388d6f87c607005fbeae355a29b5b70141bae",
+    "bytes": 5938
+  },
+  {
+    "path": "review/pure_model_review.mjs",
+    "sha256": "e92a7ad45240930c272e435b0da55fb5c6e8d769d97bc2979f8eea099bc6e513",
+    "bytes": 5033
+  },
+  {
+    "path": "review/pure_model_review_result.json",
+    "sha256": "a9b0455e57a0b3f2cc5fc293bc50dc81b417f76a246051a1e21a28dea22017b2",
+    "bytes": 536
+  },
+  {
+    "path": "terminal/app/api/nw/route.ts",
+    "sha256": "d25e4086de89828470f6216532e638163de0940aa1479818b30ca12cc91b00f2",
+    "bytes": 5457
+  },
+  {
+    "path": "terminal/components/NeuralWebStrip.tsx",
+    "sha256": "f8a6f3445eea16ae8b4767a4df1b8d917af48bfa21d2ea5b4b5f7e72fe109d68",
+    "bytes": 4593
+  },
+  {
+    "path": "terminal/components/SovereignAuctionContext.tsx",
+    "sha256": "e2abc532c086efd384ab0647f51ba0a17da0467584a5b610ddd532f70847fdd6",
+    "bytes": 7803
+  },
+  {
+    "path": "terminal/lib/__tests__/fixtures/sovereign_auction_context_w1.json",
+    "sha256": "b3e7eb3b5ca32e0ebe3d23011d9fa917841f38e9fb436c73c8ca62b53b01d0cb",
+    "bytes": 33462
+  },
+  {
+    "path": "terminal/lib/__tests__/nwRoute.test.ts",
+    "sha256": "77bd472dc0d3b5af11bf804e16cd87afb5b232b4feb429de1b7005b8a3b326a6",
+    "bytes": 13899
+  },
+  {
+    "path": "terminal/lib/__tests__/sovereignAuctionComponent.test.tsx",
+    "sha256": "b678e4b8c1fb55712d8f78d11283463ef37f59a9926066646dab8ac61e2c5f04",
+    "bytes": 8448
+  },
+  {
+    "path": "terminal/lib/__tests__/sovereignAuctionContext.test.ts",
+    "sha256": "850258eb96e4c0dc6927fc7567b5bdfcffb7ca6289d461485ed17bedece78623",
+    "bytes": 8988
+  },
+  {
+    "path": "terminal/lib/i18n.tsx",
+    "sha256": "03c8e6f16530acd425903602d6f16e3f040dff1280f38003ad223b2f632c6105",
+    "bytes": 204805
+  },
+  {
+    "path": "terminal/lib/sovereignAuctionContext.ts",
+    "sha256": "05e19ae39a37960b021e962ec32344d42033103273ba5c9693c8c72c23feee07",
+    "bytes": 16290
+  },
+  {
+    "path": "terminal/lib/upstreams.ts",
+    "sha256": "021e39cadbc7fb70769ef0dcb87fc67d9d9d8bc1a48fb13ac4dfa5c4cd9f3efb",
+    "bytes": 1501
+  }
+]

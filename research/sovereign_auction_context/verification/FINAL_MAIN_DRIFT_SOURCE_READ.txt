@@ -1,0 +1,113 @@
+Process started with PID 39475 (shell: /bin/zsh)
+Initial output:
+{"ref": "base", "needle": "import NeuralWebStrip", "matches": []}
+{"ref": "base", "needle": "sa-btn-group", "matches": [6024]}
+6017:                 <WashoutTurnRow wt={intel?.tape?.washout_turn} zh={lang === "zh"} />
+6018:               </div>
+6019:               {/* Seasonality is injected via beforeIv so it renders BETWEEN the Analyst gauge and Implied
+6020:                   Volatility (order: analysis → Seasonality → IV) rather than after the whole card. */}
+6021:               <StockAnalysis intel={intel} row={m} fund={fund} opts={opts} bars={bars} glance={parseGlanceState(railGex, active)} onOpenPane={(p) => setPaneOpen(p)} onOpenSignals={() => setSignalsOpen(true)}
+6022:                 beforeIv={<div key="linked-seasonality" style={{ padding: 12 }}><LinkedSeasonalityCard context={chartBus.context} activeSymbol={active} onOpenCurrent={() => setPaneOpen("seasonals")} /></div>} />
+6023:               {/* ── bottom button group (after Seasonality): full analysis + Ask AI ── */}
+6024:               <div className="sa-btn-group">
+6025:                 <button className="btn btn-primary" style={{ width: "100%", height: 38 }} onClick={() => setPaneOpen("overview")}>{t("openFullAnalysis")}</button>
+6026:                 <button className="btn btn-ghost" style={{ width: "100%", height: 36 }} onClick={() => openBrainReincluding(setBrainIncluded, () => (window as any).MMBrain?.open())}>{t("askAIabout")} {active} →</button>
+6027:               </div>
+6028:             </div>
+6029:           </div>
+6030:         </div>
+6031:       </aside>
+6032:       </>)}
+6033: 
+6034:       {/* The rail's "Open full analysis" / seasonality drill-ins call setPaneOpen, and the ONLY
+6035:           MegaPane mount lives inside the chart workspace — which dossier mode does not render.
+6036:           Mount the same pane here in overlay mode so those buttons are not dead in the sheet. */}
+6037:       {dossierMode && paneOpen && (
+6038:         <MegaPane
+6039:           sym={active}
+6040:           fund={fund}
+6041:           fundLoading={fundLoading}
+6042:           quote={liveQuote ? { last: lastPx ?? null } : null}
+6043:           bars={bars}
+6044:           page={paneOpen}
+6045:           onPage={(p) => setPaneOpen(p)}
+{"ref": "current", "needle": "import NeuralWebStrip", "matches": []}
+{"ref": "current", "needle": "sa-btn-group", "matches": [6017]}
+6010:                 <WashoutTurnRow wt={intel?.tape?.washout_turn} zh={lang === "zh"} />
+6011:               </div>
+6012:               {/* Seasonality is injected via beforeIv so it renders BETWEEN the Analyst gauge and Implied
+6013:                   Volatility (order: analysis → Seasonality → IV) rather than after the whole card. */}
+6014:               <StockAnalysis intel={intel} row={m} fund={fund} opts={opts} bars={bars} glance={parseGlanceState(railGex, active)} onOpenPane={(p) => setPaneOpen(p)} onOpenSignals={() => setSignalsOpen(true)}
+6015:                 beforeIv={<div key="linked-seasonality" style={{ padding: 12 }}><LinkedSeasonalityCard context={chartBus.context} activeSymbol={active} onOpenCurrent={() => setPaneOpen("seasonals")} /></div>} />
+6016:               {/* ── bottom button group (after Seasonality): full analysis + Ask AI ── */}
+6017:               <div className="sa-btn-group">
+6018:                 <button className="btn btn-primary" style={{ width: "100%", height: 38 }} onClick={() => setPaneOpen("overview")}>{t("openFullAnalysis")}</button>
+6019:                 <button className="btn btn-ghost" style={{ width: "100%", height: 36 }} onClick={() => openBrainReincluding(setBrainIncluded, () => (window as any).MMBrain?.open())}>{t("askAIabout")} {active} →</button>
+6020:               </div>
+6021:             </div>
+6022:           </div>
+6023:         </div>
+6024:       </aside>
+6025:       </>)}
+6026: 
+6027:       {/* The rail's "Open full analysis" / seasonality drill-ins call setPaneOpen, and the ONLY
+6028:           MegaPane mount lives inside the chart workspace — which dossier mode does not render.
+6029:           Mount the same pane here in overlay mode so those buttons are not dead in the sheet. */}
+6030:       {dossierMode && paneOpen && (
+6031:         <MegaPane
+6032:           sym={active}
+6033:           fund={fund}
+6034:           fundLoading={fundLoading}
+6035:           quote={liveQuote ? { last: lastPx ?? null } : null}
+6036:           bars={bars}
+6037:           page={paneOpen}
+6038:           onPage={(p) => setPaneOpen(p)}
+CURRENT_HELPER_DEPENDENCY
+180:  * send the row's last observed stamp, publish a validated receipt so the next rename uses
+181:  * that token. No list reread, no retry overwrite. renameScript returns ScriptWriteReceipt | null
+182:  * (not a boolean).
+183:  */
+184: export function runRenameScriptClick(
+185:   loggedIn: boolean,
+186:   s: UserScript | null | undefined,
+187:   name: string,
+188:   setScripts: (updater: (list: UserScript[]) => UserScript[]) => void,
+189: ): Promise<void> {
+190:   if (!s || !name.trim() || name.trim() === s.name) return Promise.resolve();
+191:   const nm = name.trim();
+192:   const prev = s.name;
+193:   const id = s.id;
+194:   setScripts((list) => list.map((x) => (x.id === id ? { ...x, name: nm } : x)));
+195:   return renameScript(loggedIn, { id, name: nm, source: s.source, params: s.params, updated_at: s.updated_at }).then((receipt) => {
+196:     setScripts((list) => publishRenameOutcome(list, id, nm, prev, receipt));
+197:   });
+198: }
+199: 
+200: export async function deleteScript(loggedIn: boolean, id: string): Promise<boolean> {
+201:   if (!loggedIn) { writeGuest(readGuest().filter((x) => x.id !== id)); return true; }
+202:   try {
+203:     const r = await fetch(`/api/scripts/delete?id=${encodeURIComponent(id)}`, { method: "DELETE" });
+204:     return r.ok;
+205:   } catch { return false; }
+206: }
+207: 
+208: // ── enabled-state helpers (localStorage, both tiers) ─────────────────────────────────────────────
+209: export function enabledScriptIds(): string[] { return readLS<string[]>(ENABLED_KEY, []); }
+210: export function setEnabledScriptIds(ids: string[]) { writeLS(ENABLED_KEY, ids); }
+211: 
+212: // ── per-script param overrides (localStorage, both tiers) ────────────────────────────────────────
+213: // Shape: { [scriptId]: { [inputVar]: value } }. Only the keys the user actually changed are stored;
+214: // the render path merges these OVER the script's declared `params`.
+215: export type PineParamStore = Record<string, Record<string, any>>;
+216: export function pineParamStore(): PineParamStore { return readLS<PineParamStore>(PARAMS_KEY, {}); }
+217: export function setPineParamStore(store: PineParamStore) { writeLS(PARAMS_KEY, store); }
+218: 
+219: // Merge a script's declared defaults with any stored per-script overrides.
+220: export function mergedParams(script: UserScript, store: PineParamStore): Record<string, any> {
+221:   return { ...(script.params || {}), ...(store[script.id] || {}) };
+222: }
+DEPENDENCY_DIFF_STAT
+ terminal/lib/userScripts.ts | 119 ++++++++++++++++++++++++++++++++++++++------
+ 1 file changed, 104 insertions(+), 15 deletions(-)
+
+

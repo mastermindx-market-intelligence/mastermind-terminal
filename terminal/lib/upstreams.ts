@@ -17,3 +17,6 @@ export const ISSUE_DESK_API_BASE = process.env.ISSUE_DESK_API_BASE || "https://w
 /** Neural Web display feeds (macro repo producer — market_plane.json etc.). The canonical host is
  * www: the bare host 301s there, and /api/nw never follows a redirect (T-NW-AUTH 2026-10-06). */
 export const NW_BASE = process.env.NW_DATA_BASE || "https://www.mastermind-x.com/neuralwebdata";
+
+/** Fixed display-only Macro calendar on the NW canonical origin; never supplied by a caller. */
+export const EVENT_CALENDAR_URL = new URL("/feeds/event_calendar.json", NW_BASE).href;

@@ -43,13 +43,14 @@ function expectPrivate(res: Response): void {
 
 beforeEach(() => {
   vi.resetModules();
-  process.env = { ...envSnapshot };
+  process.env = { ...envSnapshot, NODE_ENV: "test" };
   delete process.env.NW_FIXTURE;
   delete process.env.NW_DATA_BASE;
   vi.stubGlobal("fetch", vi.fn());
 });
 
 afterEach(() => {
+  vi.useRealTimers();
   vi.unstubAllGlobals();
   process.env = { ...envSnapshot };
 });
@@ -210,5 +211,60 @@ describe("/api/nw entitlement relay (T-NW-AUTH)", () => {
       expect(await res.json()).toEqual({ error: "feed unavailable" });
       expectPrivate(res);
     }
+  });
+});
+
+
+const AUCTION_WRAPPER = JSON.parse(readFileSync(join(__dirname, "fixtures", "sovereign_auction_context_w1.json"), "utf8"));
+const AUCTION = "sovereign_auction_context";
+describe("/api/nw sovereign auction authenticated extraction", () => {
+  beforeEach(() => { vi.useFakeTimers(); vi.setSystemTime(new Date("2026-10-08T22:16:00Z")); });
+  it("fixed calendar path ignores caller URLs, relays only session cookies and extracts only curated nested context", async () => {
+    vi.mocked(fetch).mockResolvedValueOnce(upstream(200, { ...AUCTION_WRAPPER, protected_marker: "NEVER-EXPOSE" }));
+    const { GET } = await import("@/app/api/nw/route");
+    const { validateSovereignAuctionContext } = await import("@/lib/sovereignAuctionContext");
+    const res = await GET(new Request(`https://x.test/api/nw?f=${AUCTION}&url=https://evil.example&path=../secret`, { headers: { cookie: `theme=dark; ${SB0}; ${SB1}; mm_session=bad` } }));
+    const expected = validateSovereignAuctionContext(AUCTION_WRAPPER.sovereign_auction_context, Date.now());
+    expect(expected.ok).toBe(true); if (!expected.ok) return;
+    expect(res.status).toBe(200); expect(await res.json()).toEqual(expected.context);
+    expect(String(vi.mocked(fetch).mock.calls[0][0])).toBe("https://www.mastermind-x.com/feeds/event_calendar.json");
+    expect(sentCookie()).toBe(ENTITLED); expect(new Headers(fetchInit().headers).get("authorization")).toBeNull();
+    expect(fetchInit()).toMatchObject({ cache: "no-store", redirect: "manual" }); expectPrivate(res); expect(res.headers.get("vary")).toBe("Cookie");
+  });
+  it("uses NW_BASE canonical origin and a fixed path", async () => {
+    process.env.NW_DATA_BASE = "https://canonical.example/other-nw-path";
+    vi.mocked(fetch).mockResolvedValue(upstream(200, AUCTION_WRAPPER));
+    const { GET } = await import("@/app/api/nw/route"); await GET(req(AUCTION, ENTITLED));
+    expect(String(vi.mocked(fetch).mock.calls[0][0])).toBe("https://canonical.example/feeds/event_calendar.json");
+  });
+  it("no session never fetches, even in development fixture mode", async () => {
+    process.env.NW_FIXTURE = "1";
+    const { GET } = await import("@/app/api/nw/route");
+    const res = await GET(req(AUCTION)); expect(res.status).toBe(401); expectPrivate(res); expect(res.headers.get("vary")).toBe("Cookie"); expect(fetch).not.toHaveBeenCalled();
+  });
+  it("production fixture flag cannot bypass auth for either new or incumbent feeds", async () => {
+    process.env = { ...process.env, NODE_ENV: "production", NW_FIXTURE: "1" };
+    const { GET } = await import("@/app/api/nw/route");
+    for (const f of [AUCTION, "market_plane", "selection_cohort_us"]) expect((await GET(req(f))).status).toBe(401);
+    expect(fetch).not.toHaveBeenCalled();
+  });
+  it("propagates auth losses without bytes or fallback, rejects redirects, failures and malformed/absent nested data", async () => {
+    const { GET } = await import("@/app/api/nw/route");
+    for (const [status, expected] of [[401,401],[402,403],[403,403],[301,503],[302,503],[500,503]]) {
+      vi.mocked(fetch).mockResolvedValueOnce(upstream(status, AUCTION_WRAPPER));
+      const res = await GET(req(AUCTION, ENTITLED)); expect(res.status).toBe(expected); expectPrivate(res); expect(res.headers.get("vary")).toBe("Cookie"); expect(await res.text()).not.toContain("912797SU2");
+    }
+    for (const body of [{}, { sovereign_auction_context: [] }, { sovereign_auction_context: { ...AUCTION_WRAPPER.sovereign_auction_context, probabilities: .8 } }]) {
+      vi.mocked(fetch).mockResolvedValueOnce(upstream(200, body)); expect((await GET(req(AUCTION, ENTITLED))).status).toBe(503);
+    }
+    vi.mocked(fetch).mockResolvedValueOnce(new Response("<html>", { status: 200 })); expect((await GET(req(AUCTION, ENTITLED))).status).toBe(503);
+  });
+  it("four second timeout remains unavailable and entitled bytes never reach a later anonymous/failing caller", async () => {
+    const { GET } = await import("@/app/api/nw/route");
+    vi.mocked(fetch).mockResolvedValueOnce(upstream(200, AUCTION_WRAPPER)); expect((await GET(req(AUCTION, ENTITLED))).status).toBe(200);
+    const anon = await GET(req(AUCTION)); expect(anon.status).toBe(401); expect(await anon.text()).not.toContain("912797SU2"); expect(fetch).toHaveBeenCalledTimes(1);
+    vi.mocked(fetch).mockImplementationOnce((_input, init) => new Promise((_resolve, reject) => init?.signal?.addEventListener("abort", () => reject(new Error("aborted")))));
+    const pending = GET(req(AUCTION, ENTITLED)); await vi.advanceTimersByTimeAsync(4001);
+    const timedOut = await pending; expect(timedOut.status).toBe(503); expectPrivate(timedOut); expect(await timedOut.text()).not.toContain("912797SU2");
   });
 });
