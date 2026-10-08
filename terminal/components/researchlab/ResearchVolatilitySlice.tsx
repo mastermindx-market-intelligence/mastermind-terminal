@@ -25,9 +25,9 @@ export function ResearchVolatilitySlice({ data, lang, side, expiry, selected, ca
     <div className={styles.toolbar}><h3>{t("title")}</h3><span>{t("session")}: {data.session ?? t("unknown")}</span></div>
     <p className={styles.notice}>{t("law")}</p><p className={styles.legend}>{t("join")}</p>
     {data.status === "unavailable" || !rows.length ? <p role="status" className={styles.notice}>{t("empty")}</p> :
-      <div className={styles.tableScroll} tabIndex={0} aria-label={t("title")}><table><thead><tr><th>{t("strike")} · {t("expiry")}</th><th>{t("iv")}</th></tr></thead>
+      <div className={styles.tableScroll} tabIndex={0} aria-label={t("title")}><table><thead><tr><th scope="col">{t("strike")} · {t("expiry")}</th><th scope="col">{t("iv")}</th></tr></thead>
         <tbody>{rows.slice(shown * 50, shown * 50 + 50).map(r => <tr key={r.key} data-selected={r.key === selected}>
-          <th><button disabled={!canPin(r.key)} aria-pressed={r.key === selected} onClick={e => onSelect(r.key, e.currentTarget)}>{r.strike} {t(r.side)} · {r.expiry}</button></th>
+          <th scope="row"><button disabled={!canPin(r.key)} aria-pressed={r.key === selected} onClick={e => onSelect(r.key, e.currentTarget)}>{r.strike} {t(r.side)} · {r.expiry}</button></th>
           <td>{r.ivRatio === null ? t("unknown") : (r.ivRatio * 100).toLocaleString(lang === "zh" ? "zh-CN" : "en-US", { maximumFractionDigits: 4 }) + "%"}</td>
         </tr>)}</tbody></table></div>}
     <div className={styles.toolbar}><button disabled={shown === 0} onClick={() => setPage(shown - 1)}>{t("previous")}</button><span>{shown + 1} / {pages}</span><button disabled={shown + 1 >= pages} onClick={() => setPage(shown + 1)}>{t("next")}</button></div>

@@ -119,9 +119,9 @@ export function OptionsResearchLab({ root, matrix, volatility = null, lang, onCl
           : <div className={styles.capability}><span>{t(lens)}</span><h3>{t("unavailable")}</h3><p>{t(`${lens}Gap`)}</p><p>{t("clockLaw")}</p></div>}
         <section className={styles.tablePanel} aria-label={t("exact")}>
           <div className={styles.toolbar}><h3>{t("exact")}</h3><span>{rows.length} · {t("quantities")}</span></div>
-          <div className={styles.tableScroll} tabIndex={0} aria-label={t("exact")}><table><thead><tr><th>{t("strike")} · {t("expiryLabel")}</th>{metricNames.map(m => <th key={m}>{t(m)}</th>)}</tr></thead>
+          <div className={styles.tableScroll} tabIndex={0} aria-label={t("exact")}><table><thead><tr><th scope="col">{t("strike")} · {t("expiryLabel")}</th>{metricNames.map(m => <th scope="col" key={m}>{t(m)}</th>)}</tr></thead>
             <tbody>{rows.slice(shownPage * 50, shownPage * 50 + 50).map(r => <tr key={r.key} data-selected={r.key === safeSelection.selected}>
-              <th><button aria-pressed={r.key === safeSelection.selected} onClick={e => { focusOrigin.current = e.currentTarget; pin(r.key); }}>{label(r)}</button></th>
+              <th scope="row"><button aria-pressed={r.key === safeSelection.selected} onClick={e => { focusOrigin.current = e.currentTarget; pin(r.key); }}>{label(r)}</button></th>
               {metricNames.map(m => <td key={m}>{number(r[m])}</td>)}
             </tr>)}</tbody></table></div>
           <div className={styles.toolbar}><button disabled={shownPage === 0} onClick={() => setPage(shownPage - 1)}>{t("previous")}</button><span>{shownPage + 1} / {pages}</span><button disabled={shownPage + 1 >= pages} onClick={() => setPage(shownPage + 1)}>{t("next")}</button></div>

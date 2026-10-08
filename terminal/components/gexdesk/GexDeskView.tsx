@@ -194,6 +194,12 @@ export function GexDeskView() {
   const [researchOpen, setResearchOpen] = useState(() => typeof window !== "undefined" && new URLSearchParams(window.location.search).get("view") === "research");
   const researchEntryRef = useRef<HTMLButtonElement>(null);
   const returnFromResearch = useRef(false);
+  const openResearch = (open: boolean) => {
+    const url = new URL(window.location.href);
+    if (open) url.searchParams.set("view", "research"); else url.searchParams.delete("view");
+    window.history.replaceState(window.history.state, "", url);
+    setResearchOpen(open);
+  };
   useEffect(() => {
     if (!researchOpen && returnFromResearch.current) { researchEntryRef.current?.focus(); returnFromResearch.current = false; }
   }, [researchOpen]);
@@ -528,14 +534,14 @@ export function GexDeskView() {
 
   if (researchOpen) return <OptionsResearchLab key={ticker} root={ticker}
     matrix={isArchived ? null : matrix} volatility={eodContext.vol} lang={lang}
-    onClose={() => { returnFromResearch.current = true; setResearchOpen(false); }} />;
+    onClose={() => { returnFromResearch.current = true; openResearch(false); }} />;
 
   return (
     <div style={DESK_OUTER} className="obs obs-ambient">
 
       {/* ── Controls bar ──────────────────────────────────────────────────── */}
       <div style={CONTROLS_BAR}>
-        <button ref={researchEntryRef} className="chip" onClick={() => setResearchOpen(true)}>
+        <button ref={researchEntryRef} className="chip" onClick={() => openResearch(true)}>
           {pick("3D Research Lab", "3D 研究室")}
         </button>
         <div style={TICKER_GROUP}>

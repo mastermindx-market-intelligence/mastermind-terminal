@@ -13,44 +13,29 @@ export default function ResearchScene({ marks, domain, selected, onSelect, onFai
 }) {
   const pick = (en: string, zh: string) => lang === "zh" ? zh : en;
   const host = useRef<HTMLDivElement>(null);
-  const actions = useRef<{ preset: (mode: string) => void; select: (key: string | null) => void } | null>(null);
+  const actions = useRef<{ preset: (mode: string) => void; select: (key: string | null) => void;
+    update: (marks: ResearchMark[], domain: ResearchDomain) => void } | null>(null);
   const callbacks = useRef({ onSelect, onFailure, selected });
   useEffect(() => { callbacks.current = { onSelect, onFailure, selected }; }, [onSelect, onFailure, selected]);
-  useEffect(() => { actions.current?.select(selected); }, [selected]);
   useEffect(() => {
     const container = host.current;
     if (!container) return;
     let renderer: THREE.WebGLRenderer;
     try { renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, powerPreference: "low-power" }); }
     catch { callbacks.current.onFailure(); return; }
-    const drawn = marks.slice(0, 20000);
+    let drawn: ResearchMark[] = [];
     const scene = new THREE.Scene();
     const camera = new THREE.OrthographicCamera(-2.5, 2.5, 1.65, -1.65, .1, 100);
     const canvas = renderer.domElement;
     canvas.tabIndex = 0;
-    canvas.setAttribute("aria-label", lang === "zh" ? "期权链三维图，方向键选择，精确值见下表" : "3D chain. Arrow keys select. Exact values are in the table below.");
     renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
     container.append(canvas);
     const controls = new OrbitControls(camera, canvas);
     controls.enableDamping = false; controls.minZoom = .6; controls.maxZoom = 5;
     controls.target.set(0, 0, 0);
     const geometry = new THREE.BufferGeometry();
-    const positions = new Float32Array(drawn.length * 3), sizes = new Float32Array(drawn.length);
-    const colors = new Float32Array(drawn.length * 3), hollow = new Float32Array(drawn.length), highlights = new Float32Array(drawn.length);
-    const { expiries, minStrike: lo, maxStrike: hi, maxValue: maximum } = domain;
-    const expiryIndex = new Map(expiries.map((e,i) => [e,i]));
-    drawn.forEach((m,i) => {
-      positions[i*3] = (m.side === "put" ? -1 : 1) * Math.abs(m.value) / maximum * 1.6;
-      positions[i*3+1] = hi === lo ? 0 : (m.strike-lo)/(hi-lo)*2-1;
-      positions[i*3+2] = expiries.length === 1 ? 0 : expiryIndex.get(m.expiry)!/(expiries.length-1)*1.5-.75;
-      sizes[i] = Math.max(2, Math.min(domain.maxDiameter, Math.sqrt(Math.abs(m.value)/maximum)*domain.maxDiameter));
-      hollow[i] = m.value < 0 ? 1 : 0;
-    });
-    geometry.setAttribute("position", new THREE.BufferAttribute(positions,3));
-    geometry.setAttribute("markSize", new THREE.BufferAttribute(sizes,1));
-    geometry.setAttribute("markColor", new THREE.BufferAttribute(colors,3));
-    geometry.setAttribute("hollow", new THREE.BufferAttribute(hollow,1));
-    geometry.setAttribute("highlight", new THREE.BufferAttribute(highlights,1));
+    let positions = new Float32Array(0), sizes = new Float32Array(0);
+    let colors = new Float32Array(0), hollow = new Float32Array(0), highlights = new Float32Array(0);
     const material = new THREE.ShaderMaterial({ transparent: true, depthWrite: false, uniforms: { pixelRatio: { value: renderer.getPixelRatio() }, ink: { value: new THREE.Color() } },
       vertexShader: `attribute float markSize; attribute vec3 markColor; attribute float hollow; attribute float highlight;
         uniform float pixelRatio; varying vec3 vColor; varying float vHollow; varying float vHighlight;
@@ -58,7 +43,7 @@ export default function ResearchScene({ marks, domain, selected, onSelect, onFai
       fragmentShader: `uniform vec3 ink; varying vec3 vColor; varying float vHollow; varying float vHighlight;
         void main(){float d=length(gl_PointCoord-vec2(.5));if(d>.5)discard;
         if(vHollow>.5&&d<.34)discard;vec3 c=vHighlight>.5&&d>.4?ink:vColor;gl_FragColor=vec4(c,.86);}` });
-    const points = new THREE.Points(geometry, material); scene.add(points);
+    const points = new THREE.Points(geometry, material); points.visible = false; scene.add(points);
     const grid = new THREE.GridHelper(3.6, 12); grid.position.y = -1.1; scene.add(grid);
     const render = () => { if (!renderer.getContext().isContextLost()) renderer.render(scene,camera); };
     const paint = () => {
@@ -80,8 +65,37 @@ export default function ResearchScene({ marks, domain, selected, onSelect, onFai
       else camera.position.set(3,2.2,5);
       controls.target.set(0,0,0); controls.update(); camera.updateProjectionMatrix();render();
     };
-    const select = (key: string | null) => {drawn.forEach((m,i)=>{highlights[i]=m.key===key?1:0;});geometry.attributes.highlight.needsUpdate=true;render();};
-    actions.current = { preset, select };
+    const select = (key: string | null) => {drawn.forEach((m,i)=>{highlights[i]=m.key===key?1:0;});if(geometry.attributes.highlight)geometry.attributes.highlight.needsUpdate=true;render();};
+    const update = (marks: ResearchMark[], domain: ResearchDomain) => {
+      drawn = marks.slice(0, 20000);
+      if (sizes.length !== drawn.length) {
+        // Release the old GPU buffers before replacing attributes. The renderer,
+        // camera and controls stay mounted, including the user's current orbit.
+        geometry.dispose();
+        positions = new Float32Array(drawn.length * 3); sizes = new Float32Array(drawn.length);
+        colors = new Float32Array(drawn.length * 3); hollow = new Float32Array(drawn.length); highlights = new Float32Array(drawn.length);
+        geometry.setAttribute("position", new THREE.BufferAttribute(positions,3));
+        geometry.setAttribute("markSize", new THREE.BufferAttribute(sizes,1));
+        geometry.setAttribute("markColor", new THREE.BufferAttribute(colors,3));
+        geometry.setAttribute("hollow", new THREE.BufferAttribute(hollow,1));
+        geometry.setAttribute("highlight", new THREE.BufferAttribute(highlights,1));
+      }
+      const { expiries, minStrike: lo, maxStrike: hi, maxValue: maximum } = domain;
+      const expiryIndex = new Map(expiries.map((e,i) => [e,i]));
+      drawn.forEach((m,i) => {
+        positions[i*3] = (m.side === "put" ? -1 : 1) * Math.abs(m.value) / maximum * 1.6;
+        positions[i*3+1] = hi === lo ? 0 : (m.strike-lo)/(hi-lo)*2-1;
+        positions[i*3+2] = expiries.length === 1 ? 0 : expiryIndex.get(m.expiry)!/(expiries.length-1)*1.5-.75;
+        sizes[i] = Math.max(2, Math.min(domain.maxDiameter, Math.sqrt(Math.abs(m.value)/maximum)*domain.maxDiameter));
+        hollow[i] = m.value < 0 ? 1 : 0;
+        highlights[i] = m.key === callbacks.current.selected ? 1 : 0;
+      });
+      for (const name of ["position", "markSize", "hollow", "highlight"]) geometry.attributes[name].needsUpdate = true;
+      geometry.computeBoundingSphere();
+      points.visible = drawn.length > 0;
+      paint();
+    };
+    actions.current = { preset, select, update };
     const resizeObserver = new ResizeObserver(resize); resizeObserver.observe(container);
     const themeObserver = new MutationObserver(paint);themeObserver.observe(document.documentElement,{attributes:true,attributeFilter:["data-theme","class"]});
     controls.addEventListener("change",render);
@@ -106,11 +120,16 @@ export default function ResearchScene({ marks, domain, selected, onSelect, onFai
       const index=(current+delta+drawn.length)%drawn.length;if(drawn[index])callbacks.current.onSelect(drawn[index].key,canvas);};
     const lost=(e:Event)=>{e.preventDefault();callbacks.current.onFailure();};
     canvas.addEventListener("pointerdown",down);canvas.addEventListener("pointerup",up);canvas.addEventListener("keydown",key);canvas.addEventListener("webglcontextlost",lost);
-    preset("iso");resize();paint();select(callbacks.current.selected);
+    preset("iso");resize();
     return ()=>{actions.current=null;resizeObserver.disconnect();themeObserver.disconnect();controls.removeEventListener("change",render);controls.dispose();
       canvas.removeEventListener("pointerdown",down);canvas.removeEventListener("pointerup",up);canvas.removeEventListener("keydown",key);canvas.removeEventListener("webglcontextlost",lost);
       geometry.dispose();material.dispose();grid.geometry.dispose();(Array.isArray(grid.material)?grid.material:[grid.material]).forEach(m=>m.dispose());renderer.dispose();renderer.forceContextLoss();canvas.remove();};
-  }, [marks,domain,lang]);
+  }, []);
+  useEffect(() => { actions.current?.update(marks, domain); }, [marks, domain]);
+  useEffect(() => { actions.current?.select(selected); }, [selected]);
+  useEffect(() => {
+    host.current?.querySelector("canvas")?.setAttribute("aria-label", lang === "zh" ? "期权链三维图，方向键选择，精确值见下表" : "3D chain. Arrow keys select. Exact values are in the table below.");
+  }, [lang]);
   const first=domain.expiries[0],last=domain.expiries.at(-1);
   return <><div className={styles.axes}><span>{pick("Strike ↑", "行权价 ↑")}: {domain.minStrike}–{domain.maxStrike}</span><span>{pick("Expiry depth", "到期日纵深")}: {first} → {last}</span>
     <span>{pick("Distance and area: magnitude · fixed snapshot scale", "距离与面积：绝对值 · 固定快照比例")}: 0–{domain.maxValue.toLocaleString()}</span></div>

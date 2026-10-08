@@ -86,6 +86,39 @@ test("research lab withdraws values when the existing account authority revokes 
   await expect(lab.locator("canvas")).toHaveCount(0);
 });
 
+test("research lab keeps its renderer while filtering and restores focus and route", async ({page},info) => {
+  test.skip(info.project.name !== "desktop");
+  await page.route("**/api/flow?*", route => new URL(route.request().url()).searchParams.get("f")==="matrix:SPY" ? route.fulfill({json:matrix}) : route.fallback());
+  await page.goto("/options?tab=gex&view=research&context=retained");
+  const lab=page.getByRole("region",{name:"3D Research Lab",exact:true});
+  const canvas=lab.locator("canvas");
+  await expect(canvas).toBeVisible();
+  const original=await canvas.elementHandle();
+  await canvas.focus(); await page.keyboard.press("ArrowRight");
+  await lab.getByRole("button",{name:"Dismiss selection",exact:true}).click();
+  await expect(canvas).toBeFocused();
+  for (const side of ["call","put","all"]) {
+    await lab.getByRole("combobox").first().selectOption(side);
+    expect(await original!.evaluate(node=>node.isConnected)).toBe(true);
+    await canvas.focus(); await page.keyboard.press("ArrowRight");
+    await expect(lab.getByTestId("research-inspector")).toContainText("Source coordinate");
+  }
+  await lab.getByRole("button",{name:"Open interest",exact:true}).click();
+  expect(await original!.evaluate(node=>node.isConnected)).toBe(true);
+  await expect(lab.locator("thead th:not([scope=col])")).toHaveCount(0);
+  await expect(lab.locator("tbody th:not([scope=row])")).toHaveCount(0);
+  await lab.getByRole("button",{name:"Back to Exposure",exact:true}).click();
+  await expect(page).not.toHaveURL(/view=research/);
+  expect(new URL(page.url()).searchParams.get("context")).toBe("retained");
+  expect(new URL(page.url()).searchParams.get("tab")).toBe("gex");
+  await expect(page.getByRole("button",{name:"3D Research Lab",exact:true})).toBeFocused();
+  await page.reload();
+  await expect(lab).toHaveCount(0);
+  await page.getByRole("button",{name:"3D Research Lab",exact:true}).click();
+  await expect(page).toHaveURL(/view=research/);
+  await expect(lab).toBeVisible();
+});
+
 for (const count of [1000,5000,20000]) test(`research lab ${count} marks picking`,async({page},info)=>{
   test.skip(info.project.name!=="desktop");
   const payload={...matrix,cells:Array.from({length:count/2},(_,i)=>({strike:100+i/100,expiry:"2026-10-09",gex:null,call_vol:i+1,put_vol:i+1,call_oi:null,put_oi:null}))};
@@ -93,12 +126,18 @@ for (const count of [1000,5000,20000]) test(`research lab ${count} marks picking
   await page.goto("/options?tab=gex&view=research");
   const canvas=page.getByTestId("research-scene").locator("canvas");
   await expect(canvas).toBeVisible({timeout:30000});
-  await canvas.click({position:{x:100,y:120}});
-  const pickMs=await canvas.getAttribute("data-pick-ms");
-  expect(pickMs).not.toBeNull();
-  expect(Number.isFinite(Number(pickMs))).toBe(true);
-  expect(Number(pickMs)).toBeLessThan(100);
-  const measurement={count,pickMs:Number(pickMs),fixture:true,browser:"Playwright Chromium",activeFps:"unmeasured",idleCpu:"unmeasured"};
+  const original=await canvas.elementHandle(), measurements:number[]=[];
+  for(let i=0;i<(count===20000?20:1);i++) {
+    if(count===20000) await page.getByRole("region",{name:"3D Research Lab",exact:true}).getByRole("combobox").first().selectOption(i%2?"call":"all");
+    expect(await original!.evaluate(node=>node.isConnected)).toBe(true);
+    await canvas.click({position:{x:100+i*3,y:120}});
+    const pickMs=await canvas.getAttribute("data-pick-ms");
+    expect(pickMs).not.toBeNull();
+    expect(Number.isFinite(Number(pickMs))).toBe(true);
+    expect(Number(pickMs)).toBeLessThan(100);
+    measurements.push(Number(pickMs));
+  }
+  const measurement={count,pickMs:Math.max(...measurements),samples:measurements.length,fixture:true,browser:"Playwright Chromium",activeFps:"unmeasured",idleCpu:"unmeasured"};
   console.log("RESEARCH_PERFORMANCE " + JSON.stringify(measurement));
   await info.attach("picking-performance",{body:JSON.stringify(measurement),contentType:"application/json"});
 });
