@@ -18,7 +18,7 @@ const TTL_MS = 30_000;
 
 // Inflight dedup: a single background revalidation promise per cache key.
 // Without this, N concurrent stale requests each fire a separate upstream fetch.
-const INFLIGHT: Record<string, Promise<Record<string, unknown> | null>> = {};
+const INFLIGHT: Record<string, Promise<Record<string, unknown> | null> | undefined> = {};
 
 function revalidateFlow(f: string): Promise<Record<string, unknown> | null> {
   if (INFLIGHT[f]) return INFLIGHT[f];
