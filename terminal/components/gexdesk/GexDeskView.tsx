@@ -191,12 +191,24 @@ export function GexDeskView() {
 
   // ── State ────────────────────────────────────────────────────────────────────
   const [ticker, setTicker]           = useState("SPY");
-  const [researchOpen, setResearchOpen] = useState(() => typeof window !== "undefined" && new URLSearchParams(window.location.search).get("view") === "research");
+  const [researchOpen, setResearchOpen] = useState(() => {
+    if (typeof window === "undefined") return false;
+    const q = new URLSearchParams(window.location.search);
+    return q.get("research") === "1" || q.get("view") === "research";
+  });
   const researchEntryRef = useRef<HTMLButtonElement>(null);
   const returnFromResearch = useRef(false);
   const openResearch = (open: boolean) => {
     const url = new URL(window.location.href);
-    if (open) url.searchParams.set("view", "research"); else url.searchParams.delete("view");
+    if (open) {
+      // Keep the Exposure axis in the URL even if the page reloads inside the lab.
+      url.searchParams.set("view", view);
+      url.searchParams.set("research", "1");
+    } else {
+      url.searchParams.delete("research");
+      // Legacy lab links remain supported, but are cleared on dismissal.
+      if (url.searchParams.get("view") === "research") url.searchParams.delete("view");
+    }
     window.history.replaceState(window.history.state, "", url);
     setResearchOpen(open);
   };
@@ -216,7 +228,9 @@ export function GexDeskView() {
     // effect would flash the ladder first and could race the workspace's URL rewrite.
     if (typeof window === "undefined") return "strike";
     const q = new URLSearchParams(window.location.search);
-    return q.get("tab") === "prism" || q.get("view") === "matrix" ? "matrix" : "strike";
+    const axis = q.get("view");
+    if (axis === "strike" || axis === "expiry" || axis === "matrix") return axis;
+    return q.get("tab") === "prism" ? "matrix" : "strike";
   });
   const [statePayload, setStatePayload] = useState<GexStatePayload | null>(null);
   // Selection changes render before passive effects clear state: do not let that

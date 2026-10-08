@@ -115,9 +115,34 @@ test("research lab keeps its renderer while filtering and restores focus and rou
   await page.reload();
   await expect(lab).toHaveCount(0);
   await page.getByRole("button",{name:"3D Research Lab",exact:true}).click();
-  await expect(page).toHaveURL(/view=research/);
+  await expect(page).toHaveURL(/research=1/);
   await expect(lab).toBeVisible();
 });
+
+for (const entry of ["tab=gex&view=matrix", "tab=prism", "tab=gex&view=expiry"]) {
+  test(`research lab preserves Exposure view across reload: ${entry}`, async ({page}, info) => {
+    test.skip(info.project.name !== "desktop");
+    await page.route("**/api/flow?*", route => new URL(route.request().url()).searchParams.get("f")==="matrix:SPY" ? route.fulfill({json:matrix}) : route.fallback());
+    await page.goto(`/options?${entry}&context=retained#exposure`);
+    const viewLabel = entry.includes("expiry") ? "By Expiration" : "Matrix";
+    const view = page.getByRole("button", {name:viewLabel, exact:true});
+    await expect(view).toHaveAttribute("aria-pressed", "true");
+    await page.getByRole("button", {name:"3D Research Lab", exact:true}).click();
+    const lab = page.getByRole("region", {name:"3D Research Lab", exact:true});
+    await expect(lab).toBeVisible();
+    expect(new URL(page.url()).searchParams.get("research")).toBe("1");
+    await page.reload();
+    await expect(lab).toBeVisible();
+    await lab.getByRole("button", {name:"Back to Exposure", exact:true}).click();
+    await expect(view).toHaveAttribute("aria-pressed", "true");
+    expect(new URL(page.url()).searchParams.get("research")).toBeNull();
+    expect(new URL(page.url()).searchParams.get("context")).toBe("retained");
+    expect(new URL(page.url()).hash).toBe("#exposure");
+    await page.reload();
+    await expect(lab).toHaveCount(0);
+    await expect(view).toHaveAttribute("aria-pressed", "true");
+  });
+}
 
 for (const count of [1000,5000,20000]) test(`research lab ${count} marks picking`,async({page},info)=>{
   test.skip(info.project.name!=="desktop");

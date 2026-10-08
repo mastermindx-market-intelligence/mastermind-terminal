@@ -18,6 +18,8 @@ export function adaptResearchVolatility(raw: unknown, expectedRoot: string): Res
   if (!object(raw) || raw.schema !== "options_hub.vol/v1" || typeof raw.root !== "string"
     || raw.root.toUpperCase() !== root || !Array.isArray(raw.smile)) return result;
   result.status = "available";
+  // compute_vol publishes the greeks reference session as YYYY-MM-DD. A fixture
+  // timestamp has no admitted session semantics; truncating it could create a false join.
   result.session = date(raw.asof) ? raw.asof : null;
   const points: { expiry: string; strike: number; call_iv: unknown; put_iv: unknown }[] = [];
   for (const slice of raw.smile) {

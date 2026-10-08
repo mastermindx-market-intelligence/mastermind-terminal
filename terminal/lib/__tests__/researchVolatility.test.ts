@@ -29,3 +29,11 @@ it("does not substitute the matrix build date or fabricate a settlement time", (
   expect(result.session).toBeNull();
   expect(result.rows[0]).not.toHaveProperty("settlement");
 });
+
+it.each(["2026-10-05T20:00:00Z", "2026-10-05T23:30:00-04:00", "2026-02-30", "2026-10-05unknown"])("does not infer a trading session from an unqualified timestamp: %s", asof => {
+  const result = adaptResearchVolatility({ ...source, asof }, "SPY");
+  expect(result.status).toBe("available");
+  expect(result.rows).toHaveLength(4);
+  expect(result.session).toBeNull();
+  expect(result.availableAt).toBeNull();
+});
