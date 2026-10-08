@@ -50,6 +50,6 @@
 :global(html[data-theme="light"]) .plotPanel,:global(html[data-theme="light"]) .inspector,:global(html[data-theme="light"]) .tablePanel { box-shadow:var(--shadow-card); border-color:var(--line-3); }
 :global(html[data-theme="light"]) .summary { background:var(--panel); border-left:3px solid var(--link); }
 :global(html[data-theme="light"]) .scene { background:var(--panel); }
-@media(max-width:1000px) { .columns { grid-template-columns:1fr; }.inspector { order:2; }.lab { padding:var(--sp-4); }.scene { height:340px; } }
+@media(max-width:1000px) { .columns { grid-template-columns:1fr; }.main { display:contents; }.inspector { order:1; }.tablePanel { order:2; }.lab { padding:var(--sp-4); }.scene { height:340px; } }
 @media(max-width:480px) { .lab { padding:var(--sp-3); height:auto; overflow:visible; }.lab h2 { font-size:24px; }.lab button,.lab select { min-height:44px; }.toolbar { padding:var(--sp-3); }.scene { height:270px; }.summary { padding:var(--sp-3); }.lenses { gap:4px; }.lenses button { padding:8px; }.context { width:100%; } }
 @media(prefers-reduced-motion:reduce) { .lab * { scroll-behavior:auto; transition:none; } }

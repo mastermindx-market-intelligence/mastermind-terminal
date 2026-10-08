@@ -66,6 +66,17 @@ export function toggleComparison(keys: string[], key: string): string[] {
   return keys.includes(key) ? keys.filter(k => k !== key) : keys.length < 3 ? [...keys, key] : keys;
 }
 export type ResearchMark = { key: string; strike: number; expiry: string; side: "call" | "put"; value: number };
+export type ResearchDomain = { minStrike: number; maxStrike: number; maxValue: number; expiries: string[] };
+/** Full admitted snapshot owns the axes. Filtering never silently rescales comparisons. */
+export function buildResearchDomain(rows: ResearchRow[], metric: ResearchMetric): ResearchDomain {
+  let minStrike = Infinity, maxStrike = -Infinity, maxValue = 0;
+  for (const row of rows) {
+    minStrike = Math.min(minStrike, row.strike); maxStrike = Math.max(maxStrike, row.strike);
+    maxValue = Math.max(maxValue, Math.abs(row[metric] ?? 0));
+  }
+  return { minStrike: rows.length ? minStrike : 0, maxStrike: rows.length ? maxStrike : 0,
+    maxValue, expiries: [...new Set(rows.map(r => r.expiry))].sort() };
+}
 export function buildResearchMarks(rows: ResearchRow[], metric: ResearchMetric): ResearchMark[] {
   return rows.flatMap(r => {
     const value = r[metric];

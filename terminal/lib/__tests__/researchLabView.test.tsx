@@ -30,3 +30,20 @@ it("keeps save unavailable without inventing an options persistence owner", asyn
   expect([...node.querySelectorAll("button")].find(b => b.textContent === "Save investigation")?.disabled).toBe(true);
   expect(node.textContent).toContain("Options evidence is not yet admitted by Saved Research");
 });
+it("joins IV only on the same known source session and withdraws it on mismatch", async () => {
+  const volatility = { schema: "options_hub.vol/v1", root: "SPY", asof: "2026-10-05", smile: [
+    { exp: "2026-10-09", points: [{ strike: 785, call_iv: 58.2, put_iv: 0 }] },
+  ] };
+  const render = (data: unknown) => act(async () => root.render(<OptionsResearchLab root="SPY" matrix={matrix} volatility={data} lang="en" onClose={() => {}} />));
+  await render(volatility); await click("785 Call · 2026-10-09");
+  expect(node.querySelector('[data-testid="research-inspector"]')?.textContent).toContain("58.2%");
+  await click("Volatility terrain");
+  expect(node.textContent).toContain("Published IV observations");
+  await render({ ...volatility, asof: "2026-10-02" });
+  expect(node.querySelector('[data-testid="research-inspector"]')?.textContent).not.toContain("58.2%");
+  const volSection = node.querySelector('section[aria-label="Published IV observations"]');
+  expect(volSection?.textContent).toContain("58.2%");
+  expect(volSection?.querySelector("tbody button")?.hasAttribute("disabled")).toBe(true);
+  await render({ ...volatility, root: "QQQ" });
+  expect(volSection?.textContent).not.toContain("58.2%");
+});

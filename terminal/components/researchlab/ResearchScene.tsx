@@ -3,17 +3,19 @@ import React, { useEffect, useRef } from "react";
 import * as THREE from "three";
 import { OrbitControls } from "three/addons/controls/OrbitControls.js";
 import type { Lang } from "@/lib/i18n";
-import type { ResearchMark } from "./researchLabAdapter";
+import type { ResearchDomain, ResearchMark } from "./researchLabAdapter";
 import styles from "./ResearchLab.module.css";
 
 /** One batched point draw, demand-driven frames; no data requests and no animation loop. */
-export default function ResearchScene({ marks, selected, onSelect, onFailure, lang }: {
-  marks: ResearchMark[]; selected: string | null; onSelect: (key: string) => void; onFailure: () => void; lang: Lang;
+export default function ResearchScene({ marks, domain, selected, onSelect, onFailure, lang }: {
+  marks: ResearchMark[]; domain: ResearchDomain; selected: string | null;
+  onSelect: (key: string, origin: HTMLCanvasElement) => void; onFailure: () => void; lang: Lang;
 }) {
+  const pick = (en: string, zh: string) => lang === "zh" ? zh : en;
   const host = useRef<HTMLDivElement>(null);
   const actions = useRef<{ preset: (mode: string) => void; select: (key: string | null) => void } | null>(null);
   const callbacks = useRef({ onSelect, onFailure, selected });
-  callbacks.current = { onSelect, onFailure, selected };
+  useEffect(() => { callbacks.current = { onSelect, onFailure, selected }; }, [onSelect, onFailure, selected]);
   useEffect(() => { actions.current?.select(selected); }, [selected]);
   useEffect(() => {
     const container = host.current;
@@ -35,10 +37,8 @@ export default function ResearchScene({ marks, selected, onSelect, onFailure, la
     const geometry = new THREE.BufferGeometry();
     const positions = new Float32Array(drawn.length * 3), sizes = new Float32Array(drawn.length);
     const colors = new Float32Array(drawn.length * 3), hollow = new Float32Array(drawn.length), highlights = new Float32Array(drawn.length);
-    const expiries = [...new Set(drawn.map(m => m.expiry))].sort();
+    const { expiries, minStrike: lo, maxStrike: hi, maxValue: maximum } = domain;
     const expiryIndex = new Map(expiries.map((e,i) => [e,i]));
-    let lo = Infinity, hi = -Infinity, maximum = 0;
-    for (const m of drawn) { lo = Math.min(lo, m.strike); hi = Math.max(hi, m.strike); maximum = Math.max(maximum, Math.abs(m.value)); }
     drawn.forEach((m,i) => {
       positions[i*3] = (m.side === "put" ? -1 : 1) * Math.abs(m.value) / maximum * 1.6;
       positions[i*3+1] = hi === lo ? 0 : (m.strike-lo)/(hi-lo)*2-1;
@@ -98,21 +98,22 @@ export default function ResearchScene({ marks, selected, onSelect, onFailure, la
         const distance=Math.hypot(e.clientX-x,e.clientY-y);
         if(distance<=Math.max(8,sizes[i]/2)&&distance<best){best=distance;found=i;}});
       canvas.dataset.pickMs=String(performance.now()-began);
-      if(found>=0)callbacks.current.onSelect(drawn[found].key);
+      if(found>=0){canvas.focus();callbacks.current.onSelect(drawn[found].key,canvas);}
     };
     const key=(e:KeyboardEvent)=>{if(!["ArrowLeft","ArrowRight","ArrowUp","ArrowDown"].includes(e.key))return;e.preventDefault();
       const current=drawn.findIndex(m=>m.key===callbacks.current.selected);
       const delta=e.key==="ArrowLeft"||e.key==="ArrowUp"?-1:1;
-      const index=(current+delta+drawn.length)%drawn.length;if(drawn[index])callbacks.current.onSelect(drawn[index].key);};
+      const index=(current+delta+drawn.length)%drawn.length;if(drawn[index])callbacks.current.onSelect(drawn[index].key,canvas);};
     const lost=(e:Event)=>{e.preventDefault();callbacks.current.onFailure();};
     canvas.addEventListener("pointerdown",down);canvas.addEventListener("pointerup",up);canvas.addEventListener("keydown",key);canvas.addEventListener("webglcontextlost",lost);
     preset("iso");resize();paint();select(callbacks.current.selected);
     return ()=>{actions.current=null;resizeObserver.disconnect();themeObserver.disconnect();controls.removeEventListener("change",render);controls.dispose();
       canvas.removeEventListener("pointerdown",down);canvas.removeEventListener("pointerup",up);canvas.removeEventListener("keydown",key);canvas.removeEventListener("webglcontextlost",lost);
       geometry.dispose();material.dispose();grid.geometry.dispose();(Array.isArray(grid.material)?grid.material:[grid.material]).forEach(m=>m.dispose());renderer.dispose();renderer.forceContextLoss();canvas.remove();};
-  }, [marks,lang]);
-  const first=marks[0]?.expiry,last=marks[marks.length-1]?.expiry;
-  return <><div className={styles.axes}><span>{lang==="zh"?"行权价 ↑":"Strike ↑"}</span><span>{lang==="zh"?"到期日纵深":"Expiry depth"}: {first} → {last}</span></div>
+  }, [marks,domain,lang]);
+  const first=domain.expiries[0],last=domain.expiries.at(-1);
+  return <><div className={styles.axes}><span>{pick("Strike ↑", "行权价 ↑")}: {domain.minStrike}–{domain.maxStrike}</span><span>{pick("Expiry depth", "到期日纵深")}: {first} → {last}</span>
+    <span>{pick("Distance and area: magnitude · fixed snapshot scale", "距离与面积：绝对值 · 固定快照比例")}: 0–{domain.maxValue.toLocaleString()}</span></div>
     <div ref={host} className={styles.scene} data-testid="research-scene" />
     <div className={styles.sceneControls}>{[["iso",lang==="zh"?"重置":"Reset"],["front",lang==="zh"?"正视":"Front"],["top",lang==="zh"?"俯视":"Top"]].map(([mode,label])=><button key={mode} onClick={()=>actions.current?.preset(mode)}>{label}</button>)}</div></>;
 }

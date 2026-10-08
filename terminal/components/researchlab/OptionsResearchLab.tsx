@@ -1,10 +1,12 @@
 "use client";
-import React, { useEffect, useMemo, useRef, useState } from "react";
+import React, { useMemo, useRef, useState } from "react";
 import dynamic from "next/dynamic";
 import type { Lang } from "@/lib/i18n";
-import { adaptResearchMatrix, buildResearchMarks, filterResearchRows, reconcileResearchSelection, toggleComparison,
+import { adaptResearchMatrix, buildResearchDomain, buildResearchMarks, filterResearchRows, reconcileResearchSelection, toggleComparison,
   type ResearchMetric, type ResearchRow, type ResearchSelection } from "./researchLabAdapter";
 import styles from "./ResearchLab.module.css";
+import { adaptResearchVolatility } from "./researchVolatility";
+import { ResearchVolatilitySlice } from "./ResearchVolatilitySlice";
 
 const ResearchScene = dynamic(() => import("./ResearchScene"), { ssr: false });
 const LEX = {
@@ -41,6 +43,7 @@ const LEX = {
   ratio: ["Published volume / published OI", "已发布成交量／已发布未平仓量"], strike: ["Strike", "行权价"], expiryLabel: ["Expiry", "到期日"],
   gamma: ["Gamma, bid/ask, trade direction", "Gamma、买卖报价、交易方向"],
   notSnapshot: ["Not in this snapshot", "此快照未提供"],
+  rawIv: ["Published IV · matching source session", "已发布隐含波动率 · 同一数据交易日"],
 } as const;
 type Lens = "chain" | "volatility" | "replay" | "flow" | "scenario";
 const lenses: Lens[] = ["chain", "volatility", "replay", "flow", "scenario"];
@@ -52,35 +55,44 @@ class SceneBoundary extends React.Component<{ children: React.ReactNode; fallbac
 }
 
 /** No I/O, clock, cache, valuation or persistence ownership lives in this consumer. */
-export function OptionsResearchLab({ root, matrix, lang, onClose }: { root: string; matrix: unknown; lang: Lang; onClose: () => void }) {
+export function OptionsResearchLab({ root, matrix, volatility = null, lang, onClose }: { root: string; matrix: unknown; volatility?: unknown; lang: Lang; onClose: () => void }) {
   const t = (key: keyof typeof LEX) => LEX[key][lang === "zh" ? 1 : 0];
   const number = (v: number | null) => v == null ? t("unknown") : v.toLocaleString(lang === "zh" ? "zh-CN" : "en-US", { maximumFractionDigits: 4 });
   const data = useMemo(() => adaptResearchMatrix(matrix, root), [matrix, root]);
+  const vol = useMemo(() => adaptResearchVolatility(volatility, root), [volatility, root]);
   const [lens, setLens] = useState<Lens>("chain");
   const [metric, setMetric] = useState<ResearchMetric>("volume");
   const [side, setSide] = useState<"all" | "call" | "put">("all");
   const [expiry, setExpiry] = useState("all");
-  const [mode, setMode] = useState<"3d" | "table">("3d");
+  const [mode, setMode] = useState<"3d" | "table">(() => typeof window !== "undefined" && window.innerWidth < 600 ? "table" : "3d");
   const [failed, setFailed] = useState(false);
   const [page, setPage] = useState(0);
   const [selection, setSelection] = useState<ResearchSelection>({ selected: null, comparisons: [] });
   const safeSelection = useMemo(() => reconcileResearchSelection(selection, data.rows), [selection, data.rows]);
-  useEffect(() => {
-    if (safeSelection.selected !== selection.selected || safeSelection.comparisons.length !== selection.comparisons.length) setSelection(safeSelection);
-  }, [safeSelection, selection]);
-  const focusOrigin = useRef<HTMLButtonElement | null>(null);
+  // Adjust only this component's state before committing an incompatible source.
+  // Derived safeSelection already gates this render; the bounded adjustment also
+  // prevents a removed coordinate from reappearing if a later payload restores it.
+  if (safeSelection.selected !== selection.selected || safeSelection.comparisons.length !== selection.comparisons.length) setSelection(safeSelection);
+  const focusOrigin = useRef<HTMLElement | null>(null);
+  const backRef = useRef<HTMLButtonElement>(null);
   const rows = useMemo(() => filterResearchRows(data.rows, { side, expiry }), [data.rows, side, expiry]);
   const marks = useMemo(() => buildResearchMarks(rows, metric), [rows, metric]);
+  const domain = useMemo(() => buildResearchDomain(data.rows, metric), [data.rows, metric]);
   const selected = data.rows.find(r => r.key === safeSelection.selected);
+  const sameVolSession = data.session !== null && data.session === vol.session;
+  const selectedVol = sameVolSession ? vol.rows.find(r => r.key === safeSelection.selected)?.ivRatio ?? null : null;
   const comparisons = data.rows.filter(r => safeSelection.comparisons.includes(r.key));
   const pages = Math.max(1, Math.ceil(rows.length / 50)), shownPage = Math.min(page, pages - 1);
   const label = (r: ResearchRow) => `${number(r.strike)} ${lang === "zh" ? r.side === "call" ? "看涨" : "看跌" : r.side === "call" ? "Call" : "Put"} · ${r.expiry}`;
   const pin = (key: string) => setSelection(s => ({ ...s, selected: key }));
-  const dismiss = () => { setSelection(s => ({ ...s, selected: null })); focusOrigin.current?.focus(); };
+  const dismiss = () => {
+    setSelection(s => ({ ...s, selected: null }));
+    if (focusOrigin.current?.isConnected) focusOrigin.current.focus(); else backRef.current?.focus();
+  };
   const unavailable = <p className={styles.notice} role="status">{t("rendererFailed")}</p>;
   return <section className={styles.lab} aria-label={t("title")}>
     <header className={styles.header}>
-      <div><button className={styles.back} onClick={onClose}>{t("back")}</button><h2>{t("title")} <span>{root}</span></h2></div>
+      <div><button ref={backRef} className={styles.back} onClick={onClose}>{t("back")}</button><h2>{t("title")} <span>{root}</span></h2></div>
       <div className={styles.context}><span>{t("session")}: {data.session ?? t("unknown")}</span><span>{t("oi")}</span><a href="#research-sources">{t("sources")}</a></div>
     </header>
     <div className={styles.summary}><strong>{t("description")}</strong><p>{t("caution")}</p></div>
@@ -95,12 +107,15 @@ export function OptionsResearchLab({ root, matrix, lang, onClose }: { root: stri
             <label><span className={styles.sr}>{t("expiry")}</span><select value={expiry} onChange={e => { setExpiry(e.target.value); setPage(0); }}><option value="all">{t("expiry")}</option>{[...new Set(data.rows.map(r => r.expiry))].map(exp => <option key={exp}>{exp}</option>)}</select></label>
             <button aria-pressed={mode === "3d"} onClick={() => setMode(mode === "3d" ? "table" : "3d")}>{mode === "3d" ? t("table") : t("chart")}</button>
           </div>
-          {mode === "3d" && !failed && marks.length > 0 && <SceneBoundary fallback={unavailable}><ResearchScene marks={marks} selected={safeSelection.selected} onSelect={pin} onFailure={() => setFailed(true)} lang={lang} /></SceneBoundary>}
+          {mode === "3d" && !failed && marks.length > 0 && <SceneBoundary fallback={unavailable}><ResearchScene marks={marks} domain={domain} selected={safeSelection.selected}
+            onSelect={(key, origin) => { focusOrigin.current = origin; pin(key); }} onFailure={() => setFailed(true)} lang={lang} /></SceneBoundary>}
           {failed && unavailable}
           {marks.length === 0 && <p className={styles.notice}>{t("noValues")}</p>}
           <p className={styles.legend}><i className={styles.call} />{t("call")} <i className={styles.put} />{t("put")} · {t(metric)} · {t("renderLaw")}</p>
           <p className={styles.legend}>{t("areaLaw")}</p>{marks.length > 20000 && <p className={styles.notice}>{t("markCap")}</p>}
-        </div> : <div className={styles.capability}><span>{t(lens)}</span><h3>{t("unavailable")}</h3><p>{t(`${lens}Gap`)}</p><p>{t("clockLaw")}</p></div>}
+        </div> : lens === "volatility" ? <ResearchVolatilitySlice data={vol} lang={lang} side={side} expiry={expiry}
+          selected={sameVolSession ? safeSelection.selected : null} canPin={key => sameVolSession && data.rows.some(r => r.key === key)} onSelect={pin} />
+          : <div className={styles.capability}><span>{t(lens)}</span><h3>{t("unavailable")}</h3><p>{t(`${lens}Gap`)}</p><p>{t("clockLaw")}</p></div>}
         <section className={styles.tablePanel} aria-label={t("exact")}>
           <div className={styles.toolbar}><h3>{t("exact")}</h3><span>{rows.length} · {t("quantities")}</span></div>
           <div className={styles.tableScroll} tabIndex={0} aria-label={t("exact")}><table><thead><tr><th>{t("strike")} · {t("expiryLabel")}</th>{metricNames.map(m => <th key={m}>{t(m)}</th>)}</tr></thead>
@@ -117,6 +132,7 @@ export function OptionsResearchLab({ root, matrix, lang, onClose }: { root: stri
           {!rows.some(r => r.key === selected.key) && <p role="status" className={styles.notice}>{t("outside")}</p>}
           <dl>{metricNames.map(m => <React.Fragment key={m}><dt>{t(m)}</dt><dd>{number(selected[m])}</dd></React.Fragment>)}<dt>{t("ratio")}</dt><dd>{selected.volume != null && selected.openInterest != null && selected.openInterest > 0 ? `${(selected.volume / selected.openInterest).toFixed(2)}×` : t("unknown")}</dd><dt>{t("gamma")}</dt><dd>{t("notSnapshot")}</dd></dl>
           <p className={styles.notice}>{t("caution")}</p>
+          <dl><dt>{t("rawIv")}</dt><dd>{selectedVol === null ? t("unknown") : number(selectedVol * 100) + "%"}</dd></dl>
           <button disabled={comparisons.length >= 3 && !safeSelection.comparisons.includes(selected.key)} onClick={() => setSelection(s => ({ ...s, comparisons: toggleComparison(safeSelection.comparisons, selected.key) }))}>{t(safeSelection.comparisons.includes(selected.key) ? "removeCompare" : "compare")}</button>
           <button onClick={dismiss}>{t("dismiss")}</button></> : <p>{t("choose")}</p>}
         {comparisons.length > 0 && <ul className={styles.comparisons}>{comparisons.map(r => <li key={r.key}><button onClick={() => pin(r.key)}>{label(r)}</button><strong>{t(metric)}: {number(r[metric])}</strong></li>)}</ul>}

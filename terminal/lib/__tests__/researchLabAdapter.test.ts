@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { adaptResearchMatrix, filterResearchRows, reconcileResearchSelection, toggleComparison, buildResearchMarks } from "@/components/researchlab/researchLabAdapter";
+import { adaptResearchMatrix, filterResearchRows, reconcileResearchSelection, toggleComparison, buildResearchMarks, buildResearchDomain, ivPercentToRatio } from "@/components/researchlab/researchLabAdapter";
 
 const cell = { strike: 785, expiry: "2026-10-09", gex: -42000, call_vol: 243000, put_vol: 0, call_oi: 110000, put_oi: null, delta_oi: { call: -10, put: null } };
 const doc = (cells: unknown[] = [cell]) => ({ schema: "options_structure.matrix/v1", root: "SPY", asof: "2026-10-06T02:00:00Z", _build_meta: { asof_date: "2026-10-05" }, spot: 774.77, cells });
@@ -62,5 +62,14 @@ describe("research matrix: source coordinates are not verified instruments", () 
   it("does not render an all-null metric as a field of zeroes", () => {
     const r = adaptResearchMatrix(doc([{ ...cell, call_vol: null, put_vol: null }]), "SPY");
     expect(buildResearchMarks(r.rows, "volume")).toEqual([]);
+  });
+  it("keeps full-source magnitude and axes when a filtered comparison excludes the largest point", () => {
+    const rows = adaptResearchMatrix(doc([cell, { ...cell, strike: 800, expiry: "2026-10-16", call_vol: 1000000 }]), "SPY").rows;
+    const domain = buildResearchDomain(rows, "volume");
+    expect(domain).toEqual({ minStrike: 785, maxStrike: 800, maxValue: 1000000, expiries: ["2026-10-09", "2026-10-16"] });
+    const filtered = filterResearchRows(rows, { side: "call", expiry: "2026-10-09" });
+    expect(buildResearchMarks(filtered, "volume")[0].value / domain.maxValue).toBe(.243);
+    expect(ivPercentToRatio(58.2, "percent")).toBeCloseTo(.582, 12);
+    expect(ivPercentToRatio(.582, "ratio" as never)).toBeNull();
   });
 });

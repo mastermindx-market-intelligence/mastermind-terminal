@@ -55,6 +55,7 @@ import { ExposureMatrix } from "./ExposureMatrix";
 import { HeatSeekerCard } from "./HeatSeekerCard";
 import { isMatrixDocForRoot, readGexStateForRoot, mergeMatrixLevels, type MatrixDoc } from "./matrixDoc";
 import { EodContextBelt } from "@/components/eodcontext/EodContextBelt";
+import { useEodContext } from "@/components/eodcontext/useEodContext";
 import { isGexDates, gexSessionOf } from "@/lib/gexSessions";
 import {
   LENS_ALL,
@@ -64,7 +65,7 @@ import {
   type ExpiryLens,
 } from "@/lib/gexLadder";
 
-const OptionsResearchLab = dynamic(() => import("@/components/researchlab/OptionsResearchLab").then(m => m.OptionsResearchLab), { ssr: false });
+const OptionsResearchLab = dynamic(() => import("@/components/researchlab/AdmittedOptionsResearchLab").then(m => m.AdmittedOptionsResearchLab), { ssr: false });
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -186,6 +187,7 @@ async function safeFetch<T>(url: string): Promise<T | null> {
 export function GexDeskView() {
   const { lang } = useLang();
   const t = makeGexT(lang);
+  const pick = (en: string, zh: string) => lang === "zh" ? zh : en;
 
   // ── State ────────────────────────────────────────────────────────────────────
   const [ticker, setTicker]           = useState("SPY");
@@ -398,6 +400,7 @@ export function GexDeskView() {
   // the LIVE payload (it is the navigation, and an archived payload's history is cut to
   // that session's past by construction).
   const isArchived = sessionDate != null;
+  const eodContext = useEodContext(ticker, !isArchived);
   const activePayload = isArchived ? archivedPayload : gexPayload;
 
   const spot = activePayload?.spot_ref ?? null;
@@ -524,7 +527,7 @@ export function GexDeskView() {
   // ── Render ────────────────────────────────────────────────────────────────────
 
   if (researchOpen) return <OptionsResearchLab key={ticker} root={ticker}
-    matrix={isArchived ? null : matrix} lang={lang}
+    matrix={isArchived ? null : matrix} volatility={eodContext.vol} lang={lang}
     onClose={() => { returnFromResearch.current = true; setResearchOpen(false); }} />;
 
   return (
@@ -533,7 +536,7 @@ export function GexDeskView() {
       {/* ── Controls bar ──────────────────────────────────────────────────── */}
       <div style={CONTROLS_BAR}>
         <button ref={researchEntryRef} className="chip" onClick={() => setResearchOpen(true)}>
-          {lang === "zh" ? "3D 研究室" : "3D Research Lab"}
+          {pick("3D Research Lab", "3D 研究室")}
         </button>
         <div style={TICKER_GROUP}>
           <div style={{ position: "relative", display: "flex", alignItems: "center" }}>
@@ -668,6 +671,7 @@ export function GexDeskView() {
       {!isArchived && (
         <EodContextBelt
           root={ticker}
+          context={eodContext}
           gexState={visibleStatePayload}
           gex={gexPayload}
           lang={lang}
