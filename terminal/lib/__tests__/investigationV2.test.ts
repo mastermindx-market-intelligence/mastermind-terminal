@@ -40,6 +40,20 @@ describe("versioned Investigation envelope", () => {
     expect(validateInvestigationManifest({ ...manifest(), facts: { price: 100 } }).ok).toBe(false);
     expect(validateInvestigationManifest(manifest("investigation_manifest.v99")).ok).toBe(false);
   });
+  it("does not admit the proposed Options selection by changing only an owner allowlist", () => {
+    const admission = { evidence: [{ owner: "options_structure.matrix", object_types: ["matrix_snapshot"] }] };
+    const ref = { owner: "options_structure.matrix", object_type: "matrix_snapshot", object_id: "SPY",
+      mode: "pinned", version_ref: `sha256:${"a".repeat(64)}:bytes:512:session:2026-10-08`, fingerprint: "a".repeat(64) };
+    const input = { ...manifest(), evidence_refs: [ref] };
+    // The fixture-only allowlist isolates selection/version validation; it does
+    // not alter the application's actual admission registry.
+    expect(validateInvestigationManifest(input, admission).ok).toBe(true);
+    const selection = { schema: "options_matrix_selection.v1",
+      primary: { expiry: "2026-10-16", side: "call", strike: "600" }, comparisons: [],
+      view: { lens: "chain", metric: "volume", side: "all", expiry: "all", display_mode: "table" } };
+    expect(validateInvestigationManifest({ ...input, evidence_refs: [{ ...ref, selection }] }, admission).ok).toBe(false);
+    expect(validateInvestigationManifest({ ...input, schema: "investigation_manifest.v3" }, admission).ok).toBe(false);
+  });
   it("counts evidence separately from the bounded layout and Thesis references", () => {
     const input = manifest();
     const refs = Array.from({ length: 128 }, (_, i) => ({owner: "earnings.workspace_generation", object_type: "event_workspace", object_id: `evt_${i}`, mode: "pinned", version_ref: "generation"}));

@@ -164,6 +164,24 @@ export async function hasLiveOptions(): Promise<boolean> {
 }
 
 /**
+ * Fresh product check for retained-evidence reads, reopen and export. Resolves
+ * the current request's verified auth, then asks the existing billing authority
+ * without the positive TTL map, shared in-flight promise or entitlement memo.
+ * This is only the product gate: callers must independently authorize source use
+ * for the exact snapshot and operation before returning any retained values.
+ */
+export async function hasLiveOptionsFresh(): Promise<boolean> {
+  try {
+    const auth = await billingAuth();
+    if (!auth) return false;
+    const e = await fetchEntitlementFor(auth.token);
+    return !!e && LIVE_OPTIONS.ok(e);
+  } catch {
+    return false;
+  }
+}
+
+/**
  * Human research issuance is deliberately narrower than the paid options read
  * surface.  A paid account may read options evidence; it may never turn a
  * proposal into a research position unless the billing authority supplies this
