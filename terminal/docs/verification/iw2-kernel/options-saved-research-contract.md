@@ -19,7 +19,9 @@ Root: `01a104c8-6e11-7e52-93c1-6b8dbc45bb9c`.
 - Rights source inspected: Macro #7870
   `f12db8bff1d1a46a2c9fbf100bed8f6f3abc9ec9`,
   `engine/theme_graph/rights.py` and `config/theme_sources.yml`.
-- Protected procedure: Mastermind `c7e47c859eb2925c5626931fd511800773ba09ac`.
+- Protected procedure for the candidate-shape continuation: Mastermind
+  `f74e912d3efa3b67cae40ba04f9e558d579096e9` (same compatible Skillpack;
+  required execution/reliability/delegation texts unchanged from the previous pin).
 
 ## Retention decision: one matrix payload, no separate manifest
 
@@ -56,9 +58,13 @@ are refused. Root grammar and authoritative root-to-subject mapping must come fr
 the producer/underlying owner before admission, not from ticker equality alone.
 
 Payload schema must equal `options_structure.matrix/v1`; its root and validated
-`_build_meta.asof_date` must match the reference. `unknown` is allowed only when
-source-session metadata is absent/null and the producer contract permits it;
-malformed metadata is not converted to unknown. `available_at` and OI session stay
+source session must match the reference. Producer #7861 at
+`c63e9e289d269372ef951ded7a8eb3dbe06e2cbb` emits top-level `session` alongside
+`_build_meta.asof_date`. Use a valid top-level session, falling back to the build
+metadata only when the top-level field is absent/null; when both are supplied,
+both must be valid and agree. `unknown` is allowed only when both session fields
+are absent/null and the producer contract permits it. Malformed or contradictory
+metadata is refused, never converted to unknown. `available_at` and OI session stay
 null when unsupported. Top-level `asof` is build time, never a knowledge clock.
 A null/empty matrix may have retained identity but cannot satisfy this vertical's
 required primary-coordinate membership and therefore cannot enable Save.
@@ -107,7 +113,7 @@ blob or the review baseline. All fields below are required and extra keys refuse
   `side` is exactly `call` or `put`. `strike` is a positive canonical decimal string:
   at most 12 integral and 8 fractional digits, no leading zeros except `0.`, no
   trailing fractional zeros, sign or exponent. Grammar:
-  `^(0|[1-9][0-9]{0,11})(\.[0-9]{0,7}[1-9])?$`, with zero refused.
+  `^(0|[1-9][0-9]{0,11})(\.[0-9]{0,7}[1-9])?(?![\s\S])`, with zero refused.
   Its value must match the producer coordinate exactly without rounding or
   approximation. Out-of-range/unrepresentable source coordinates cannot be saved.
   This bounds cross-language serialization without claiming an option-contract ID.
@@ -221,3 +227,33 @@ follows from this contract or the product-gate tests.
 These checks qualify the new helper and the unchanged admission boundary locally.
 No Options source-rights callable was available to test, and no source-rights
 success is claimed. Independent review, hosted CI and live integration remain open.
+
+## Candidate-shape qualification after producer agreement
+
+The producer owner accepted the digest/length/session reference and matrix-only
+no-separate-manifest scope, with the two-session-field consistency rule above.
+This is contract agreement; actual retention, byte limits, root-to-underlying
+binding and current source-use rights still require the producer's exact return.
+
+`contracts/options_matrix_selection.v1.schema.json` is the closed candidate shape,
+exercised against the same 76 vectors in TypeScript/Ajv and Python/jsonschema.
+Both suites pass 77 cases including corpus identity; the existing v2 suite's 16
+cases also pass. No input coercion, default insertion, comparison reordering or
+silent deduplication is permitted. The schema is consumed by qualification tests
+only. It is not imported by a runtime route, and does not establish retained-byte
+membership, subject identity, authorization or database admission. SQL parity
+remains a later gate for the additive v3 implementation.
+
+The parent reproduced one cross-language defect before fixing it: Python's `$`
+regex anchor accepted a final newline in a strike that Ajv refused. The contract
+now requires true end-of-input with `(?![\s\S])`; the same counterexample passes
+in both languages. The parent also added missing-field, alternate-key-order
+duplicate, decimal-limit, Gregorian-century and character-boundary cases.
+
+Fabric leaf `iw2-options-selection-vectors-20261008` supplied 34 of the vectors;
+the parent inspected them and added 42 cases. GLM was preferred; the incumbent
+router admitted `deepseek-v4.1-flash` on Ubuntu1 under the unchanged root and
+C1 mechanical task class. Its retained run receipt proves launch, COMPLETE,
+settlement and zero residual processes. Deterministic acceptance was recorded
+through the existing adapter after both executable suites passed. The worker
+correctly claimed fixture authorship only, with no test execution or descendants.
