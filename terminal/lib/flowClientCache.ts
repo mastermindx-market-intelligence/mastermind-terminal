@@ -34,8 +34,8 @@ function buildUrl(f: string): string {
   return `/api/flow?f=${encodeURIComponent(f)}`;
 }
 
-function doFetch(url: string, entry: CacheEntry): Promise<unknown> {
-  const inflight: Promise<unknown> = fetch(url, { cache: "no-store" })
+function doFetch(url: string, entry: CacheEntry, requestUrl = url): Promise<unknown> {
+  const inflight: Promise<unknown> = fetch(requestUrl, { cache: "no-store" })
     .then((r) => (r.ok ? r.json() : null))
     .catch(() => null)
     .then((data: unknown) => {
@@ -92,10 +92,27 @@ export async function flowGet(f: string, options: { refresh?: boolean } = {}): P
  * actually consume a nightly artifact after it advances rather than merely
  * trigger SWR in the background and keep rendering the previous value.
  */
-export async function flowGetFresh(f: string): Promise<unknown> {
+export async function flowGetFresh(
+  f: string,
+  options: { forceUpstream?: boolean } = {},
+): Promise<unknown> {
   const url = buildUrl(f);
   const now = Date.now();
   const entry = store.get(url);
+
+  // A user-explicit Leaders refresh is not just a client-cache invalidation:
+  // it asks the SAME entitlement-gated API to recheck the publisher even when
+  // the server's 30s TTL has not expired. Preserve this cache's single key,
+  // dedup ownership and post-fetch value for the next ordinary read.
+  if (f === "leaders" && options.forceUpstream) {
+    if (entry?.inflight) await entry.inflight;
+    const current = store.get(url);
+    return doFetch(
+      url,
+      { data: current?.data ?? null, ts: current?.ts ?? 0, inflight: null },
+      url + "&refresh=1",
+    );
+  }
 
   if (entry) {
     if (entry.inflight !== null) return entry.inflight;
