@@ -1,4 +1,5 @@
 import { isMatrixDocForRoot } from "@/components/gexdesk/matrixDoc";
+import { readOptionsMatrixSourceSession } from "@/lib/investigationOptionsReference";
 
 export type ResearchMetric = "volume" | "openInterest" | "deltaOi";
 export type ResearchRow = {
@@ -25,8 +26,10 @@ export function adaptResearchMatrix(raw: unknown, expectedRoot: string): Researc
     builtAt: null, oiSession: null, availableAt: null, spot: null,
     excluded: { duplicate: 0, invalidIdentity: 0, invalidMetric: 0 } };
   if (!isMatrixDocForRoot(raw, root)) return result;
+  const clock = readOptionsMatrixSourceSession(raw);
+  if (!clock.ok) return result;
   result.status = "available";
-  result.session = date(raw._build_meta?.asof_date) ? raw._build_meta.asof_date : null;
+  result.session = clock.sourceSession;
   result.builtAt = typeof raw.asof === "string" && Number.isFinite(Date.parse(raw.asof)) ? raw.asof : null;
   result.spot = finite(raw.spot) && raw.spot > 0 ? raw.spot : null;
   const cells = (raw.cells as unknown[]).filter((c): c is Record<string, unknown> => {

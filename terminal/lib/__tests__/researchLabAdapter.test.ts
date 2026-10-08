@@ -38,6 +38,49 @@ describe("research matrix: source coordinates are not verified instruments", () 
   it("does not infer source session from build time", () => {
     expect(adaptResearchMatrix({ ...doc(), _build_meta: null }, "SPY").session).toBeNull();
   });
+  it.each([
+    { session: "2026-10-05", _build_meta: undefined },
+    { session: "2026-10-05", _build_meta: null },
+    { session: "2026-10-05", _build_meta: {} },
+    { session: "2026-10-05", _build_meta: { asof_date: null } },
+    { session: "2026-10-05", _build_meta: { asof_date: "2026-10-05" } },
+    { session: null, _build_meta: { asof_date: "2026-10-05" } },
+  ])("reads source-qualified session metadata without inferring build/availability time: %j", metadata => {
+    // Exercise the JSON wire boundary: undefined properties are absent on the wire.
+    const result = adaptResearchMatrix(JSON.parse(JSON.stringify({ ...doc(), ...metadata })), "SPY");
+    expect(result.status).toBe("available");
+    expect(result.rows).toHaveLength(2);
+    expect(result.session).toBe("2026-10-05");
+    expect(result.builtAt).toBe("2026-10-06T02:00:00Z");
+    expect(result.availableAt).toBeNull();
+  });
+  it.each([
+    { session: "2026-10-04" },
+    { session: "2026-02-30" },
+    { session: "2026-10-05T20:00:00Z" },
+    { session: "2026-10-05\n" },
+    { session: "" },
+    { session: 20261005 },
+    { session: "2026-10-05", _build_meta: { asof_date: "invalid" } },
+    { session: "2026-10-05", _build_meta: [] },
+    { _build_meta: { asof_date: "2026-02-30" } },
+  ])("refuses malformed or conflicting sessions instead of relabeling rows: %j", metadata => {
+    const result = adaptResearchMatrix({ ...doc(), ...metadata }, "SPY");
+    expect(result.status).toBe("unavailable");
+    expect(result.rows).toEqual([]);
+    expect(result.exposures).toEqual([]);
+    expect(result.session).toBeNull();
+  });
+  it.each([
+    { session: undefined, _build_meta: undefined },
+    { session: null, _build_meta: null },
+    { session: null, _build_meta: { asof_date: null } },
+  ])("keeps undated source values readable when both clocks are genuinely absent: %j", metadata => {
+    const result = adaptResearchMatrix(JSON.parse(JSON.stringify({ ...doc(), ...metadata })), "SPY");
+    expect(result.status).toBe("available");
+    expect(result.rows).toHaveLength(2);
+    expect(result.session).toBeNull();
+  });
   it("preserves a pinned row outside filters and drops it after source/root withdrawal", () => {
     const r = adaptResearchMatrix(doc(), "SPY");
     const selection = { selected: r.rows[0].key, comparisons: r.rows.map(x => x.key) };

@@ -68,3 +68,22 @@ it("joins IV only on the same known source session and withdraws it on mismatch"
   await render({ ...volatility, root: "QQQ" });
   expect(volSection?.textContent).not.toContain("58.2%");
 });
+it("joins top-level matrix sessions and immediately withdraws conflicting source selections", async () => {
+  const volatility = { schema: "options_hub.vol/v1", root: "SPY", asof: "2026-10-05", smile: [
+    { exp: "2026-10-09", points: [{ strike: 785, call_iv: 58.2, put_iv: 0 }] },
+  ] };
+  const render = (data: unknown) => act(async () => root.render(<OptionsResearchLab root="SPY" matrix={data} volatility={volatility} lang="en" onClose={() => {}} />));
+  await render({ ...matrix, session: "2026-10-05", _build_meta: null });
+  await click("785 Call · 2026-10-09"); await click("Compare selection");
+  const inspector = () => node.querySelector('[data-testid="research-inspector"]');
+  expect(inspector()?.textContent).toContain("58.2%");
+  await click("Volatility terrain");
+  await render({ ...matrix, session: "2026-10-04" });
+  expect(node.textContent).toContain("Matrix unavailable");
+  expect(inspector()?.textContent).not.toContain("58.2%");
+  expect(inspector()?.textContent).not.toContain("243,000");
+  expect(inspector()?.querySelectorAll("li")).toHaveLength(0);
+  const observations = node.querySelector('section[aria-label="Published IV observations"]');
+  expect(observations?.textContent).toContain("58.2%");
+  expect(observations?.querySelector("tbody button")?.hasAttribute("disabled")).toBe(true);
+});
