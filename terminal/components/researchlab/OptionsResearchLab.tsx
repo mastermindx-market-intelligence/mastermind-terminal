@@ -38,7 +38,7 @@ const LEX = {
   excluded: ["Excluded cells / metrics", "已排除单元格／指标"], next: ["Next", "下一页"], previous: ["Previous", "上一页"],
   rendererFailed: ["3D unavailable. Your selection and exact slice are preserved.", "3D 不可用，已保留选择和精确切片。"],
   renderLaw: ["Orthographic · expiry depth · puts mirrored only for separation · hollow marks: negative ΔOI", "正交投影 · 到期日纵深 · 看跌仅镜像分开 · 空心标记为负未平仓变化"],
-  areaLaw: ["Marker area: |value|, capped at 2–34 px diameter. Zero has no mark. All exact values remain below.", "标记面积按数值绝对值，直径限 2–34 像素。零值无标记，精确数值保留于下方。"],
+  areaLaw: ["Marker area: |value|, capped at 2–{cap} px diameter for this snapshot's density. Zero has no mark. All exact values remain below.", "标记面积按数值绝对值，依此快照密度将直径限为 2–{cap} 像素。零值无标记，精确数值保留于下方。"],
   markCap: ["3D shows at most 20,000 marks in expiry/strike order. The table retains every admitted row.", "3D 按到期日和行权价顺序最多显示 20,000 个标记，表格保留全部有效行。"],
   ratio: ["Published volume / published OI", "已发布成交量／已发布未平仓量"], strike: ["Strike", "行权价"], expiryLabel: ["Expiry", "到期日"],
   gamma: ["Gamma, bid/ask, trade direction", "Gamma、买卖报价、交易方向"],
@@ -112,9 +112,10 @@ export function OptionsResearchLab({ root, matrix, volatility = null, lang, onCl
           {failed && unavailable}
           {marks.length === 0 && <p className={styles.notice}>{t("noValues")}</p>}
           <p className={styles.legend}><i className={styles.call} />{t("call")} <i className={styles.put} />{t("put")} · {t(metric)} · {t("renderLaw")}</p>
-          <p className={styles.legend}>{t("areaLaw")}</p>{marks.length > 20000 && <p className={styles.notice}>{t("markCap")}</p>}
+          <p className={styles.legend}>{t("areaLaw").replace("{cap}", String(domain.maxDiameter))}</p>{marks.length > 20000 && <p className={styles.notice}>{t("markCap")}</p>}
         </div> : lens === "volatility" ? <ResearchVolatilitySlice data={vol} lang={lang} side={side} expiry={expiry}
-          selected={sameVolSession ? safeSelection.selected : null} canPin={key => sameVolSession && data.rows.some(r => r.key === key)} onSelect={pin} />
+          selected={sameVolSession ? safeSelection.selected : null} canPin={key => sameVolSession && data.rows.some(r => r.key === key)}
+          onSelect={(key, origin) => { focusOrigin.current = origin; pin(key); }} />
           : <div className={styles.capability}><span>{t(lens)}</span><h3>{t("unavailable")}</h3><p>{t(`${lens}Gap`)}</p><p>{t("clockLaw")}</p></div>}
         <section className={styles.tablePanel} aria-label={t("exact")}>
           <div className={styles.toolbar}><h3>{t("exact")}</h3><span>{rows.length} · {t("quantities")}</span></div>

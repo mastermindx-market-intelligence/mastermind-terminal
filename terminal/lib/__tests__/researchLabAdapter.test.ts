@@ -66,10 +66,16 @@ describe("research matrix: source coordinates are not verified instruments", () 
   it("keeps full-source magnitude and axes when a filtered comparison excludes the largest point", () => {
     const rows = adaptResearchMatrix(doc([cell, { ...cell, strike: 800, expiry: "2026-10-16", call_vol: 1000000 }]), "SPY").rows;
     const domain = buildResearchDomain(rows, "volume");
-    expect(domain).toEqual({ minStrike: 785, maxStrike: 800, maxValue: 1000000, expiries: ["2026-10-09", "2026-10-16"] });
+    expect(domain).toEqual({ minStrike: 785, maxStrike: 800, maxValue: 1000000, expiries: ["2026-10-09", "2026-10-16"], maxDiameter: 34 });
     const filtered = filterResearchRows(rows, { side: "call", expiry: "2026-10-09" });
     expect(buildResearchMarks(filtered, "volume")[0].value / domain.maxValue).toBe(.243);
     expect(ivPercentToRatio(58.2, "percent")).toBeCloseTo(.582, 12);
     expect(ivPercentToRatio(.582, "ratio" as never)).toBeNull();
+  });
+  it("bounds dense-chain pixel overdraw without removing row identities", () => {
+    const rows = adaptResearchMatrix(doc(Array.from({ length: 10000 }, (_,i) => ({ ...cell, strike: i+1 }))), "SPY").rows;
+    expect(rows).toHaveLength(20000);
+    expect(buildResearchDomain(rows, "volume").maxDiameter).toBe(12);
+    expect(buildResearchMarks(rows, "deltaOi")).toHaveLength(10000);
   });
 });

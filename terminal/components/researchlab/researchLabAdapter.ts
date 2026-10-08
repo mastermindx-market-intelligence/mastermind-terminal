@@ -66,7 +66,7 @@ export function toggleComparison(keys: string[], key: string): string[] {
   return keys.includes(key) ? keys.filter(k => k !== key) : keys.length < 3 ? [...keys, key] : keys;
 }
 export type ResearchMark = { key: string; strike: number; expiry: string; side: "call" | "put"; value: number };
-export type ResearchDomain = { minStrike: number; maxStrike: number; maxValue: number; expiries: string[] };
+export type ResearchDomain = { minStrike: number; maxStrike: number; maxValue: number; expiries: string[]; maxDiameter: number };
 /** Full admitted snapshot owns the axes. Filtering never silently rescales comparisons. */
 export function buildResearchDomain(rows: ResearchRow[], metric: ResearchMetric): ResearchDomain {
   let minStrike = Infinity, maxStrike = -Infinity, maxValue = 0;
@@ -75,7 +75,9 @@ export function buildResearchDomain(rows: ResearchRow[], metric: ResearchMetric)
     maxValue = Math.max(maxValue, Math.abs(row[metric] ?? 0));
   }
   return { minStrike: rows.length ? minStrike : 0, maxStrike: rows.length ? maxStrike : 0,
-    maxValue, expiries: [...new Set(rows.map(r => r.expiry))].sort() };
+    maxValue, expiries: [...new Set(rows.map(r => r.expiry))].sort(),
+    // Full-source density bounds pixel overdraw and locks the cap across filters.
+    maxDiameter: rows.length > 10000 ? 12 : rows.length > 5000 ? 20 : 34 };
 }
 export function buildResearchMarks(rows: ResearchRow[], metric: ResearchMetric): ResearchMark[] {
   return rows.flatMap(r => {

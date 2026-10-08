@@ -43,7 +43,7 @@ export default function ResearchScene({ marks, domain, selected, onSelect, onFai
       positions[i*3] = (m.side === "put" ? -1 : 1) * Math.abs(m.value) / maximum * 1.6;
       positions[i*3+1] = hi === lo ? 0 : (m.strike-lo)/(hi-lo)*2-1;
       positions[i*3+2] = expiries.length === 1 ? 0 : expiryIndex.get(m.expiry)!/(expiries.length-1)*1.5-.75;
-      sizes[i] = Math.max(2, Math.min(34, Math.sqrt(Math.abs(m.value)/maximum)*34));
+      sizes[i] = Math.max(2, Math.min(domain.maxDiameter, Math.sqrt(Math.abs(m.value)/maximum)*domain.maxDiameter));
       hollow[i] = m.value < 0 ? 1 : 0;
     });
     geometry.setAttribute("position", new THREE.BufferAttribute(positions,3));

@@ -15,7 +15,7 @@ const LEX = {
 } as const;
 export function ResearchVolatilitySlice({ data, lang, side, expiry, selected, canPin, onSelect }: {
   data: ResearchVolatility; lang: Lang; side: "all" | "call" | "put"; expiry: string;
-  selected: string | null; canPin: (key: string) => boolean; onSelect: (key: string) => void;
+  selected: string | null; canPin: (key: string) => boolean; onSelect: (key: string, origin: HTMLButtonElement) => void;
 }) {
   const t = (key: keyof typeof LEX) => LEX[key][lang === "zh" ? 1 : 0];
   const [page, setPage] = useState(0);
@@ -27,7 +27,7 @@ export function ResearchVolatilitySlice({ data, lang, side, expiry, selected, ca
     {data.status === "unavailable" || !rows.length ? <p role="status" className={styles.notice}>{t("empty")}</p> :
       <div className={styles.tableScroll} tabIndex={0} aria-label={t("title")}><table><thead><tr><th>{t("strike")} · {t("expiry")}</th><th>{t("iv")}</th></tr></thead>
         <tbody>{rows.slice(shown * 50, shown * 50 + 50).map(r => <tr key={r.key} data-selected={r.key === selected}>
-          <th><button disabled={!canPin(r.key)} aria-pressed={r.key === selected} onClick={() => onSelect(r.key)}>{r.strike} {t(r.side)} · {r.expiry}</button></th>
+          <th><button disabled={!canPin(r.key)} aria-pressed={r.key === selected} onClick={e => onSelect(r.key, e.currentTarget)}>{r.strike} {t(r.side)} · {r.expiry}</button></th>
           <td>{r.ivRatio === null ? t("unknown") : (r.ivRatio * 100).toLocaleString(lang === "zh" ? "zh-CN" : "en-US", { maximumFractionDigits: 4 }) + "%"}</td>
         </tr>)}</tbody></table></div>}
     <div className={styles.toolbar}><button disabled={shown === 0} onClick={() => setPage(shown - 1)}>{t("previous")}</button><span>{shown + 1} / {pages}</span><button disabled={shown + 1 >= pages} onClick={() => setPage(shown + 1)}>{t("next")}</button></div>
