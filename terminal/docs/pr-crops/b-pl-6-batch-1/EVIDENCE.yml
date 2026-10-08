@@ -1,11 +1,11 @@
 # B-PL-6 batch 1 — capture evidence
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
 # Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
-# capturedAtHead: 089d229dd506486298cd153dd5b59e824abd937f
-# capturedAt: 2026-10-08T01:01:05.719Z
+# capturedAtHead: 37a221a8161fa1e21a777026018da715500980f3
+# capturedAt: 2026-10-08T21:27:31.244Z
 # capturedAtHead is informational. The lock is layoutFiles.
 layoutFiles:
-  terminal/components/OptionsHubView.tsx: "cb88254e434d9c8c467271d0214b65f3fadcf8e0ed89ddede95e71b7abec1fbe"
+  terminal/components/OptionsHubView.tsx: "dd8e4e9d5234aae8fb41b597fe1a262bd54dfd8abebb2e46361bde50354c9f08"
   terminal/components/SearchModal.tsx: "51b7b514f169a40db9644b502ddd0d933100a305aea55ea0f6a1fb028dbe69ad"
   terminal/components/StockAnalysis.tsx: "376a907d0d8ea3dc5819e0092f02e19ce56fa1f4b71a3489551adf52fddb35c0"
   terminal/components/workspaces/AnalysisWorkspace.tsx: "f98764b71e4e1301d6149aef0d3e47615455801f95a9691b4d8807febe92226e"
@@ -50,3 +50,5 @@ files:
   - StockAnalysis-1440.png
   - StockAnalysis-390-zh.png
   - StockAnalysis-390.png
+
+[executed on device: m2studio (3f5ce987-e3eb-40a3-af9f-4b0ae54919cc)]
