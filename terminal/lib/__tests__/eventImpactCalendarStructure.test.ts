@@ -38,3 +38,47 @@ describe("event impact calendar structure", () => {
     expect(joinEventImpact({ positions: null, ctx: ctx(null) })).toEqual({ state: "holdings_unreadable" });
   });
 });
+
+const event = { earnings: { next: "2026-10-12", days_to: 4 } };
+
+describe("event impact held ticker structure", () => {
+  it.each([null, [], "", 42, false])("rejects present malformed held row %j", (row) => {
+    expect(joinEventImpact({ positions, ctx: ctx({ AAPL: row }) })).toEqual({
+      state: "calendar_unreadable",
+      detail: "bad ticker row",
+    });
+  });
+
+  it("keeps an absent held ticker as uncovered", () => {
+    expect(joinEventImpact({ positions, ctx: ctx({}) }).state).toBe("no_events");
+  });
+
+  it("keeps a valid empty held ticker object as uncovered", () => {
+    expect(joinEventImpact({ positions, ctx: ctx({ AAPL: {} }) }).state).toBe("no_events");
+  });
+
+  it("ignores a malformed ticker outside the open book", () => {
+    const result = joinEventImpact({ positions, ctx: ctx({ AAPL: event, MSFT: null }) });
+    expect(result.state).toBe("ok");
+    if (result.state === "ok") expect(result.events.map((e) => e.ticker)).toEqual(["AAPL"]);
+  });
+
+  it("keeps covered events when another held ticker is absent", () => {
+    const result = joinEventImpact({
+      positions: [...positions, { id: "p2", ticker: "MSFT", shares: 2, status: "open" }],
+      ctx: ctx({ AAPL: event }),
+    });
+    expect(result.state).toBe("ok");
+    if (result.state === "ok") expect(result.events.map((e) => e.ticker)).toEqual(["AAPL"]);
+  });
+
+  it.each([
+    { AAPL: event, MSFT: null },
+    { AAPL: null, MSFT: event },
+  ])("rejects a broken held row before or after a valid event", (tickers) => {
+    expect(joinEventImpact({
+      positions: [...positions, { id: "p2", ticker: "MSFT", shares: 2, status: "open" }],
+      ctx: ctx(tickers),
+    }).state).toBe("calendar_unreadable");
+  });
+});

@@ -320,8 +320,13 @@ export function joinEventImpact(input: {
 
   const events: EventTouch[] = [];
   for (const ticker of Array.from(heldTickerSet).sort()) {
+    // The producer omits uncovered tickers; a present row must be an object.
+    // Do not turn a broken held row into an affirmative no-events result.
+    if (!Object.prototype.hasOwnProperty.call(tickersBlock, ticker)) continue;
     const tickerBlock = tickersBlock[ticker];
-    if (!isPlainObject(tickerBlock)) continue;
+    if (!isPlainObject(tickerBlock)) {
+      return { state: "calendar_unreadable", detail: "bad ticker row" };
+    }
     const earnings = tickerBlock.earnings;
     if (!isPlainObject(earnings)) continue;
 
