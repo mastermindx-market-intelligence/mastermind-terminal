@@ -1063,6 +1063,24 @@ function chooseMoreRecentLeaders(
   return String(newData?.as_of ?? "") > String(oldData?.as_of ?? "") ? newData : oldData;
 }
 
+/** No unqualified leaders payload can leave this server marked live. The API
+ * is also consumed by machine clients, not just by the React display gate.
+ * Treat a missing/misleading producer stale flag as a false-green input. */
+export function sanitizeLeadersArtifact(
+  data: Record<string, unknown> | null,
+): Record<string, unknown> | null {
+  if (!isLeadersArtifact(data)) return null;
+  if (isQualifiedLeadersArtifact(data)) return data;
+  if (!data) return null;
+  return {
+    ...data,
+    stale: true,
+    stale_reason: typeof data.stale_reason === "string" && data.stale_reason
+      ? data.stale_reason
+      : "unqualified_source_or_session",
+  };
+}
+
 export async function tryFetchUpstream(f: string): Promise<Record<string, unknown> | null> {
   // Do not let a co-located historical JSON shadow a new R2 session. Retain
   // the old snapshot for explicit historical viewing when all fresh sources fail.
@@ -1082,7 +1100,7 @@ export async function tryFetchUpstream(f: string): Promise<Record<string, unknow
         // Preserve an explicitly degraded snapshot if upstream is unreachable.
       }
     }
-    return best;
+    return sanitizeLeadersArtifact(best);
   }
   if (f === "manifest") {
     try {
