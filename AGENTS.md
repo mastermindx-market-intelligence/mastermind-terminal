@@ -130,6 +130,13 @@ work only as uncommitted changes in a session.
 - `merge-blocked` means the latest required CI is red or the branch has a real
   conflict. Fix the head; do not use an admin bypass. The controller removes the
   label automatically after the new head is green.
+- Automated refreshes use the existing controller with a repository-scoped
+  GitHub App installation token. Enroll the App and its two Actions secrets
+  before merging the identity change; see `docs/MERGE_REFRESH_IDENTITY.md`.
+  Missing enrollment stops the sweep with `MERGE_REFRESH_APP_ENROLLMENT_REQUIRED`.
+  Never downgrade branch refreshes to `GITHUB_TOKEN` or ask the operator to
+  approve each generated PR workflow. Prove automatic CI on the refreshed head
+  before claiming this mechanism is active; all existing merge gates still apply.
 - The controller moves only the merge wait off the interactive session. The
   initiating session still owns the git-gated production deployment and live
   verification required above; an armed PR is not a completed delivery.

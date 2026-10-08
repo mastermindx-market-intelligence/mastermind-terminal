@@ -39,11 +39,55 @@ jobs:
       - uses: actions/checkout@v4
         with:
           ref: master
+          persist-credentials: false
           sparse-checkout: scripts/merge_on_green.py
           sparse-checkout-cone-mode: false
+      # GITHUB_TOKEN-authored update-branch leaves same-repository required CI in
+      # action_required. Mint a repository-scoped GitHub App installation token
+      # for MERGE_TOKEN instead. Default GITHUB_TOKEN still runs checkout.
+      # Official actions/create-github-app-token v3.2.0
+      # The action is pinned to its immutable reviewed release commit.
+      - name: require merge-refresh GitHub App enrollment
+        env:
+          TERMINAL_MERGE_REFRESH_APP_ID: ${{ secrets.TERMINAL_MERGE_REFRESH_APP_ID }}
+          TERMINAL_MERGE_REFRESH_APP_PRIVATE_KEY: ${{ secrets.TERMINAL_MERGE_REFRESH_APP_PRIVATE_KEY }}
+        run: |
+          python3 - <<'PY'
+          import os
+          import sys
+
+          required = (
+              "TERMINAL_MERGE_REFRESH_APP_ID",
+              "TERMINAL_MERGE_REFRESH_APP_PRIVATE_KEY",
+          )
+          missing = [name for name in required if not os.environ.get(name, "").strip()]
+          if missing:
+              print(
+                  "::error::MERGE_REFRESH_APP_ENROLLMENT_REQUIRED: one-time operator "
+                  f"enrollment of {', '.join(missing)} is required before merge-on-green "
+                  "may refresh a branch. Failing closed so this sweep cannot mint a "
+                  "GITHUB_TOKEN branch update that would leave required CI in "
+                  "action_required. See docs/MERGE_REFRESH_IDENTITY.md.",
+                  file=sys.stderr,
+              )
+              raise SystemExit(1)
+          PY
+      - name: mint repository-scoped merge-refresh App token
+        id: merge-refresh-app
+        uses: actions/create-github-app-token@bcd2ba49218906704ab6c1aa796996da409d3eb1 # v3.2.0
+        with:
+          app-id: ${{ secrets.TERMINAL_MERGE_REFRESH_APP_ID }}
+          private-key: ${{ secrets.TERMINAL_MERGE_REFRESH_APP_PRIVATE_KEY }}
+          repositories: ${{ github.event.repository.name }}
+          permission-actions: write
+          permission-checks: read
+          permission-contents: write
+          permission-issues: write
+          permission-pull-requests: write
+          skip-token-revoke: false
       - name: reconcile armed pull requests
         env:
           GH_REPO: ${{ github.repository }}
-          MERGE_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          MERGE_TOKEN: ${{ steps.merge-refresh-app.outputs.token }}
           TRIGGER_PR_NUMBER: ${{ github.event.pull_request.number }}
         run: python3 scripts/merge_on_green.py
