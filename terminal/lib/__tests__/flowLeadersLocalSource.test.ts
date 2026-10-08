@@ -50,7 +50,7 @@ afterEach(async () => {
 });
 
 describe("Flow Leaders current-source admission and fallback", () => {
-  it("reads a qualified local Theta artifact without network latency", async () => {
+  it("preserves a qualified local Theta artifact when the R2 comparison is unavailable", async () => {
     const file = path.join(dir, "leaders.json");
     await writeFile(file, JSON.stringify(qualified()));
     process.env.FLOW_LEADERS_LOCAL_PATH = file;
@@ -59,7 +59,7 @@ describe("Flow Leaders current-source admission and fallback", () => {
     const result = await tryFetchUpstream("leaders");
     expect(result?.source_family).toBe("thetadata_t2a_tape");
     expect(result?.stale).toBe(false);
-    expect(globalThis.fetch).not.toHaveBeenCalled();
+    expect(globalThis.fetch).toHaveBeenCalledTimes(1);
   });
 
   it("does not let an August historical local snapshot shadow a current R2 feed", async () => {
@@ -74,6 +74,38 @@ describe("Flow Leaders current-source admission and fallback", () => {
     expect(result?.stale).toBe(false);
     expect(fetchMock).toHaveBeenCalledTimes(1);
     expect(String(fetchMock.mock.calls[0]?.[0])).toContain("r2.dev");
+  });
+
+  it("prefers a newer qualified R2 session over an older qualified local session", async () => {
+    const file = path.join(dir, "leaders.json");
+    const older = new Date(Date.now() - 86_400_000).toISOString().slice(0, 10);
+    await writeFile(file, JSON.stringify(qualified(older)));
+    process.env.FLOW_LEADERS_LOCAL_PATH = file;
+    const fetchMock = vi.fn(async (_input: RequestInfo | URL) => jsonResponse(qualified()));
+    globalThis.fetch = fetchMock as unknown as typeof globalThis.fetch;
+
+    const result = await tryFetchUpstream("leaders");
+    expect(result?.session_date).toBe(today());
+    expect(result?.stale).toBe(false);
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(String(fetchMock.mock.calls[0]?.[0])).toContain("r2.dev");
+  });
+
+  it("keeps a qualified local session when R2 is newer but unqualified", async () => {
+    const file = path.join(dir, "leaders.json");
+    const older = new Date(Date.now() - 86_400_000).toISOString().slice(0, 10);
+    await writeFile(file, JSON.stringify(qualified(older)));
+    process.env.FLOW_LEADERS_LOCAL_PATH = file;
+    const newerButUnqualified = candidate(today(), {
+      stale: false,
+      source_family: "legacy_options_flow_archive",
+    });
+    const fetchMock = vi.fn(async (_input: RequestInfo | URL) => jsonResponse(newerButUnqualified));
+    globalThis.fetch = fetchMock as unknown as typeof globalThis.fetch;
+    const result = await tryFetchUpstream("leaders");
+    expect(result?.session_date).toBe(older);
+    expect(result?.stale).toBe(false);
+    expect(fetchMock).toHaveBeenCalledTimes(1);
   });
 
   it("preserves an explicitly stale snapshot when R2 and backend are down", async () => {
