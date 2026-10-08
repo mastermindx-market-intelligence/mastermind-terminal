@@ -4061,6 +4061,13 @@ export default function OptionsHubView({
                               : t("leadersStale", "Snapshot from prior session")}
                         </span>
                       )}
+                      {leadersData.stale && showHistoricalLeaders && (
+                        <button type="button" className="btn btn-ghost"
+                          style={{ height: 26, fontSize: 11 }}
+                          onClick={() => setShowHistoricalLeaders(false)}>
+                          {pick(lang, "Hide historical snapshot", "收起历史快照")}
+                        </button>
+                      )}
                     </div>
 
                     {/* Cold-start banner */}
