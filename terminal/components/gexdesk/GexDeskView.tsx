@@ -35,6 +35,7 @@ import React, {
   useRef,
   useState,
 } from "react";
+import dynamic from "next/dynamic";
 import { flowGet } from "@/lib/flowClientCache";
 import { useFlowStream } from "@/lib/flowStream";
 import { useLang } from "@/lib/i18n";
@@ -62,6 +63,8 @@ import {
   matrixSessionsAgree,
   type ExpiryLens,
 } from "@/lib/gexLadder";
+
+const OptionsResearchLab = dynamic(() => import("@/components/researchlab/OptionsResearchLab").then(m => m.OptionsResearchLab), { ssr: false });
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -186,6 +189,12 @@ export function GexDeskView() {
 
   // ── State ────────────────────────────────────────────────────────────────────
   const [ticker, setTicker]           = useState("SPY");
+  const [researchOpen, setResearchOpen] = useState(() => typeof window !== "undefined" && new URLSearchParams(window.location.search).get("view") === "research");
+  const researchEntryRef = useRef<HTMLButtonElement>(null);
+  const returnFromResearch = useRef(false);
+  useEffect(() => {
+    if (!researchOpen && returnFromResearch.current) { researchEntryRef.current?.focus(); returnFromResearch.current = false; }
+  }, [researchOpen]);
   const [inputVal, setInputVal]       = useState("SPY");
   const [greek, setGreek]             = useState<GreekLens>("gamma");
   // Exposure axis. §5.3 added "matrix" — the strike × expiry grid merged in from the
@@ -514,11 +523,18 @@ export function GexDeskView() {
 
   // ── Render ────────────────────────────────────────────────────────────────────
 
+  if (researchOpen) return <OptionsResearchLab key={ticker} root={ticker}
+    matrix={isArchived ? null : matrix} lang={lang}
+    onClose={() => { returnFromResearch.current = true; setResearchOpen(false); }} />;
+
   return (
     <div style={DESK_OUTER} className="obs obs-ambient">
 
       {/* ── Controls bar ──────────────────────────────────────────────────── */}
       <div style={CONTROLS_BAR}>
+        <button ref={researchEntryRef} className="chip" onClick={() => setResearchOpen(true)}>
+          {lang === "zh" ? "3D 研究室" : "3D Research Lab"}
+        </button>
         <div style={TICKER_GROUP}>
           <div style={{ position: "relative", display: "flex", alignItems: "center" }}>
             <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="var(--muted)" strokeWidth="2"

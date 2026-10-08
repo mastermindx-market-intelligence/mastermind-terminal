@@ -1,0 +1,66 @@
+import { describe, expect, it } from "vitest";
+import { adaptResearchMatrix, filterResearchRows, reconcileResearchSelection, toggleComparison, buildResearchMarks } from "@/components/researchlab/researchLabAdapter";
+
+const cell = { strike: 785, expiry: "2026-10-09", gex: -42000, call_vol: 243000, put_vol: 0, call_oi: 110000, put_oi: null, delta_oi: { call: -10, put: null } };
+const doc = (cells: unknown[] = [cell]) => ({ schema: "options_structure.matrix/v1", root: "SPY", asof: "2026-10-06T02:00:00Z", _build_meta: { asof_date: "2026-10-05" }, spot: 774.77, cells });
+
+describe("research matrix: source coordinates are not verified instruments", () => {
+  it("keeps zero, null, negative change and aggregate exposure distinct", () => {
+    const result = adaptResearchMatrix(doc(), "SPY");
+    expect(result.rows).toHaveLength(2);
+    expect(result.rows[0]).toMatchObject({ side: "call", volume: 243000, openInterest: 110000, deltaOi: -10 });
+    expect(result.rows[1]).toMatchObject({ side: "put", volume: 0, openInterest: null, deltaOi: null });
+    expect(result.rows[0]).not.toHaveProperty("gamma");
+    expect(result.exposures[0].netGexDollars).toBe(-42000);
+    expect(result.oiSession).toBeNull();
+    expect(result.availableAt).toBeNull();
+    expect(result.session).toBe("2026-10-05");
+    expect(result.builtAt).toBe("2026-10-06T02:00:00Z");
+  });
+  it.each([null, {}, { ...doc(), root: "QQQ" }, { ...doc(), schema: "v2" }])("rejects incompatible envelopes", raw => {
+    const result = adaptResearchMatrix(raw, "SPY");
+    expect(result.rows).toEqual([]);
+    expect(result.status).toBe("unavailable");
+  });
+  it("excludes every duplicate coordinate, not arbitrarily the first", () => {
+    const r = adaptResearchMatrix(doc([cell, { ...cell, call_vol: 99 }]), "SPY");
+    expect(r.rows).toEqual([]);
+    expect(r.excluded.duplicate).toBe(2);
+  });
+  it("rejects impossible dates and nonfinite strikes and discloses invalid metrics", () => {
+    const r = adaptResearchMatrix(doc([{ ...cell, expiry: "2026-02-30" }, { ...cell, strike: Infinity }, { ...cell, call_vol: -5, put_vol: NaN, call_oi: Infinity }]), "SPY");
+    expect(r.rows).toHaveLength(2);
+    expect(r.rows[0].volume).toBeNull();
+    expect(r.rows[1].volume).toBeNull();
+    expect(r.excluded.invalidIdentity).toBe(2);
+    expect(r.excluded.invalidMetric).toBe(3);
+  });
+  it("does not infer source session from build time", () => {
+    expect(adaptResearchMatrix({ ...doc(), _build_meta: null }, "SPY").session).toBeNull();
+  });
+  it("preserves a pinned row outside filters and drops it after source/root withdrawal", () => {
+    const r = adaptResearchMatrix(doc(), "SPY");
+    const selection = { selected: r.rows[0].key, comparisons: r.rows.map(x => x.key) };
+    expect(filterResearchRows(r.rows, { side: "put", expiry: "all" })).toHaveLength(1);
+    expect(reconcileResearchSelection(selection, r.rows)).toEqual(selection);
+    expect(reconcileResearchSelection(selection, adaptResearchMatrix({ ...doc(), root: "QQQ" }, "QQQ").rows)).toEqual({ selected: null, comparisons: [] });
+    expect(reconcileResearchSelection(selection, [])).toEqual({ selected: null, comparisons: [] });
+  });
+  it("caps explicit comparisons at three", () => {
+    expect(toggleComparison(["a", "b", "c"], "d")).toEqual(["a", "b", "c"]);
+    expect(toggleComparison(["a", "b", "c"], "b")).toEqual(["a", "c"]);
+  });
+  it("keeps identity after reorder and zero in the table but not as positive geometry", () => {
+    const r = adaptResearchMatrix(doc(), "SPY");
+    const marks = buildResearchMarks([...r.rows].reverse(), "volume");
+    expect(marks).toHaveLength(1);
+    expect(marks[0].key).toBe(r.rows[0].key);
+    expect(marks[0].value).toBe(243000);
+    expect(marks[0].side).toBe("call");
+    expect(buildResearchMarks(r.rows, "deltaOi")[0].value).toBe(-10);
+  });
+  it("does not render an all-null metric as a field of zeroes", () => {
+    const r = adaptResearchMatrix(doc([{ ...cell, call_vol: null, put_vol: null }]), "SPY");
+    expect(buildResearchMarks(r.rows, "volume")).toEqual([]);
+  });
+});
