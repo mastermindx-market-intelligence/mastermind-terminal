@@ -1087,12 +1087,21 @@ export function sanitizeLeadersArtifact(
   if (!isLeadersArtifact(data)) return null;
   if (isQualifiedLeadersArtifact(data)) return data;
   if (!data) return null;
+  // An unqualified historical or malformed source must never continue
+  // advertising a FIRE flag through the machine-readable API, even when a
+  // user deliberately opens its research/history view. Preserve observed
+  // evidence; refuse only the signal authority the source has not earned.
+  const suppressFire = (row: Record<string, unknown>) => ({
+    ...row, fire_a: false, fire_b: false,
+  });
   return {
     ...data,
     stale: true,
     stale_reason: typeof data.stale_reason === "string" && data.stale_reason
       ? data.stale_reason
       : "unqualified_source_or_session",
+    board_a: (data.board_a as Record<string, unknown>[]).map(suppressFire),
+    board_b: (data.board_b as Record<string, unknown>[]).map(suppressFire),
   };
 }
 
