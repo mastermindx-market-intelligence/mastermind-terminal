@@ -65,7 +65,12 @@ export default function PortfolioBriefPanel({ population }: { population: PagePo
       } catch {
         body = null;
       }
-      if (!controller.signal.aborted) setPhase(stateForResponse(res.status, body));
+      if (!controller.signal.aborted) {
+        // A successful status still needs a parsed brief, not an absent body.
+        setPhase(res.status === 200 && body === null
+          ? { kind: "unavailable" }
+          : stateForResponse(res.status, body));
+      }
     } catch {
       // Network failure — same quiet branch as a 503.
       if (!controller.signal.aborted) setPhase({ kind: "unavailable" });

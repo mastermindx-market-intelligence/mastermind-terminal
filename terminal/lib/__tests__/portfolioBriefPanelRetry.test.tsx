@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { act, StrictMode } from "react";
+import { act, Component, StrictMode, type ReactNode } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import PortfolioBriefPanel from "@/components/PortfolioBriefPanel";
 import { LangProvider, LEX, type Lang } from "@/lib/i18n";
@@ -21,6 +21,14 @@ let container: HTMLDivElement;
 let root: Root | null;
 let lang: Lang;
 
+class BriefErrorBoundary extends Component<{ children: ReactNode }, { failed: boolean }> {
+  state = { failed: false };
+  static getDerivedStateFromError() { return { failed: true }; }
+  render() {
+    return this.state.failed ? <div data-testid="brief-render-failed">Brief render failed</div> : this.props.children;
+  }
+}
+
 function copy(key: string) { return LEX[key][lang === "zh" ? 1 : 0]; }
 function bodyText() { return container.textContent ?? ""; }
 function retryButton() {
@@ -37,13 +45,14 @@ async function answer(index: number, status = 200, body: unknown = fixture) {
 async function fail(index: number) {
   await act(async () => { requests[index].reject(new TypeError("network unavailable")); });
 }
-async function mount(locale: Lang = "en", strict = false) {
+async function mount(locale: Lang = "en", strict = false, boundary = false) {
   lang = locale;
   document.documentElement.setAttribute("data-lang", locale);
   container = document.createElement("div");
   document.body.appendChild(container);
   root = createRoot(container);
-  const panel = <LangProvider><PortfolioBriefPanel population={{ kind: "positions", count: 9 }} /></LangProvider>;
+  const content = <LangProvider><PortfolioBriefPanel population={{ kind: "positions", count: 9 }} /></LangProvider>;
+  const panel = boundary ? <BriefErrorBoundary>{content}</BriefErrorBoundary> : content;
   await act(async () => { root!.render(strict ? <StrictMode>{panel}</StrictMode> : panel); });
 }
 function unmount() {
@@ -85,6 +94,7 @@ afterEach(() => {
   unmount();
   document.documentElement.removeAttribute("data-lang");
   vi.unstubAllGlobals();
+  vi.restoreAllMocks();
 });
 
 describe("PortfolioBriefPanel in-place recovery", () => {
@@ -97,6 +107,22 @@ describe("PortfolioBriefPanel in-place recovery", () => {
       assertReady();
     });
 
+    for (const body of ["null", "", "<html>Gateway unavailable</html>"]) {
+      it(`recovers from unreadable or null HTTP 200 body ${JSON.stringify(body)} (${locale})`, async () => {
+        const consoleError = vi.spyOn(console, "error").mockImplementation(() => {});
+        await mount(locale, false, true);
+        await act(async () => { requests[0].resolve(new Response(body, { status: 200 })); });
+        expect(container.querySelector('[data-testid="brief-render-failed"]')).toBeNull();
+        expect(bodyText()).toContain(copy("briefUnavailable"));
+        expect(consoleError).not.toHaveBeenCalled();
+        await act(async () => { retryButton().click(); });
+        assertLoading();
+        await answer(1);
+        assertReady();
+        expect(requests).toHaveLength(2);
+      });
+    }
+
     for (const failure of ["503", "network"] as const) {
       it(`recovers from ${failure} without remounting (${locale})`, async () => {
         await mount(locale);
@@ -107,6 +133,20 @@ describe("PortfolioBriefPanel in-place recovery", () => {
         assertLoading();
         await answer(1);
         assertReady();
+      });
+    }
+
+    for (const status of [401, 403, 503]) {
+      it(`preserves non-JSON HTTP ${status} handling (${locale})`, async () => {
+        await mount(locale, false, true);
+        await act(async () => { requests[0].resolve(new Response("<html>Unavailable</html>", { status })); });
+        expect(container.querySelector('[data-testid="brief-render-failed"]')).toBeNull();
+        if (status === 401) expect(bodyText()).toBe("");
+        else if (status === 403) expect(bodyText()).toContain(copy("briefTeaserWhat"));
+        else {
+          expect(bodyText()).toContain(copy("briefUnavailable"));
+          expect(retryButton()).toBeDefined();
+        }
       });
     }
 
