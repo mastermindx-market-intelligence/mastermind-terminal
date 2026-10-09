@@ -398,7 +398,7 @@ export default function SectorRotationMap(props: SectorRotationMapProps) {
           <h4>{t("cycleTurnsTitle")}</h4>
           <p>{t("cycleTurnsCaveat")}</p>
           {recentCycleTurns.length ? <ol>{recentCycleTurns.map(turn =>
-            <li key={`${turn.date}:${turn.kind}`}>
+            <li key={turn.date}>
               <time dateTime={turn.date}>{rotationHistoryDate(turn.date, language)}</time>
               <span>{t(turn.kind === "peak" ? "cyclePeak" : "cycleTrough")}</span>
               {turn.magnitudePct !== null && <small>{t("cycleMagnitude")}: {formatValue(turn.magnitudePct, 1, "%")}</small>}
