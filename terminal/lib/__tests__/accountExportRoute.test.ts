@@ -135,3 +135,18 @@ describe("normal-session owned archive route", () => {
     expect(response.headers.get("content-disposition")).toBeNull(); expect(await response.json()).toEqual({ error: "export_withheld" });
   });
 });
+
+
+describe("raw archive JSON credential withholding", () => {
+  it.each(["json", "csv"])("withholds %s for a credential-shaped key in raw nested alert JSON", async format => {
+    withOwnedTables({ drawings: [], alerts: [{ ...ownedAlert(), condition: { metadata: { api_key: "fictional-test-value" } } }] });
+    vi.spyOn(console, "error").mockImplementation(() => undefined);
+    const response = await GET(request(format)); expect(response.status).toBe(500);
+    expect(response.headers.get("content-disposition")).toBeNull();
+    expect(await response.json()).toEqual({ error: "export_withheld" });
+  });
+  it("keeps benign null/empty credential fields and ordinary prose exportable", async () => {
+    withOwnedTables({ drawings: [], alerts: [{ ...ownedAlert(), condition: { metadata: { api_key: null, password: "", note: "changed password; Secret picks" } } }] });
+    expect((await GET(request())).status).toBe(200);
+  });
+});

@@ -119,7 +119,10 @@ export async function GET(req: Request): Promise<Response> {
   } catch {
     return NextResponse.json({ error: "export_withheld" }, { status: 500 });
   }
-  const secretCheck = assertNoSecrets(body);
+  // Scan the logical JSON before either transport: CSV quoting must not hide
+  // credential-shaped keys in nested raw drawings/alert definitions.
+  const logicalSecretCheck = assertNoSecrets(serializeJson(sealed));
+  const secretCheck = logicalSecretCheck.ok ? assertNoSecrets(body) : logicalSecretCheck;
   if (!secretCheck.ok) {
     console.error("account export withheld: secret-shaped content detected", secretCheck.hit);
     return NextResponse.json({ error: "export_withheld" }, { status: 500 });

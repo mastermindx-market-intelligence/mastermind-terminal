@@ -580,6 +580,25 @@ const SECRET_PATTERNS: Array<{ label: string; test: (raw: string) => boolean }> 
 ];
 
 export function assertNoSecrets(serialized: string): { ok: true } | { ok: false; hit: string } {
+  // JSON keys are quoted, so text key=value patterns alone miss raw nested user
+  // content such as a condition/params object containing an api_key string.
+  // Null/empty values and prose mentioning credentials are not secret-shaped.
+  const secretKey = /^(password|secret|access_token|refresh_token|service_role|api[_-]?key|authorization)$/i;
+  function hasStructuredSecret(value: unknown): boolean {
+    const pending: unknown[] = [value];
+    while (pending.length) {
+      const item = pending.pop();
+      if (item === null || typeof item !== "object") continue;
+      for (const [key, entry] of Object.entries(item)) {
+        if (secretKey.test(key) && typeof entry === "string" && entry.trim().length >= 4) return true;
+        if (entry !== null && typeof entry === "object") pending.push(entry);
+      }
+    }
+    return false;
+  }
+  try {
+    if (hasStructuredSecret(JSON.parse(serialized))) return { ok: false, hit: "json_key_value_secret" };
+  } catch { /* Non-JSON text/CSV keeps the existing text-pattern checks below. */ }
   for (const pattern of SECRET_PATTERNS) {
     if (pattern.test(serialized)) return { ok: false, hit: pattern.label };
   }

@@ -770,3 +770,16 @@ describe("owned drawings and alert definition archive", () => {
     expect(csv).toContain("data,alerts,alert-1,active,false"); expect(JSON.parse(serializeJson(doc)).chart_drawings[0].data).toEqual(drawingRow().data);
   });
 });
+
+
+describe("structured JSON credential guard", () => {
+  it("detects escaped credential strings nested in arrays without treating null, empty or prose as a credential", () => {
+    expect(assertNoSecrets(JSON.stringify({ metadata: [{ API_Key: 'ab"cd' }] })).ok).toBe(false);
+    expect(assertNoSecrets(JSON.stringify({ secret: null, password: "", note: "changed password; Secret picks" })).ok).toBe(true);
+  });
+  it("does not lose the withholding guard on deeply nested valid JSON", () => {
+    const depth = 5000;
+    const json = '{"child":'.repeat(depth) + '{"api_key":"fictional-deep-value"}' + '}'.repeat(depth);
+    expect(assertNoSecrets(json).ok).toBe(false);
+  });
+});
