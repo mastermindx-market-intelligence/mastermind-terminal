@@ -100,6 +100,11 @@ const GEX_LEX = {
     "per-expiration split not available for this ticker — ladder stays all-expiry",
     "该品种暂无按到期日拆分 — 梯图保持全到期日合计",
   ],
+  // A matrix read that did not land says nothing about whether the split exists.
+  expiryLensUnread: [
+    "per-expiration split could not be read just now — ladder stays all-expiry",
+    "暂时无法读取按到期日拆分 — 梯图保持全到期日合计",
+  ],
   expiryGammaOnlyNote: [
     "per-expiration split is gamma-only — switch to GEX to use the lens",
     "按到期日拆分仅支持伽马 — 切换到 GEX 使用该视角",
@@ -142,6 +147,13 @@ const GEX_LEX = {
   // ── Market state card ──────────────────────────────────────────────────────
   stateTitle:         ["Market State", "市场状态"],
   stateComputing:     ["State computing — nightly", "状态计算中 — 每日更新"],
+  // "Computing" is a published absence (404). A read that did not land is its own state.
+  stateErrorTitle:    ["Could not load the market state", "无法加载市场状态"],
+  stateErrorWhy:      [
+    "The nightly state could not be read just now. This is a failed read, not a state still computing.",
+    "暂时无法读取每日状态。这是读取失败，并非状态仍在计算。",
+  ],
+  stateRefreshFailed: ["Could not refresh — showing the last read.", "无法刷新 — 显示上次读取的数据。"],
   stateRegimeLabel:   ["Regime", "状态"],
   stateStability:     ["Stability", "稳定性"],
   stateGravity:       ["Gravity", "引力"],
@@ -300,6 +312,12 @@ const GEX_LEX = {
     "{sym} isn't in this nightly build — index anchors and the most liquid single names publish first.",
     "本次夜间构建中没有 {sym} — 指数锚定品种与流动性最高的个股优先发布。",
   ],
+  // The read itself failed (5xx, network, unparseable body): nothing is known about
+  // coverage, so the coverage-gap sentence above would be a guess.
+  gexLoadErrorWhy: [
+    "The strike snapshot for {sym} could not be read just now. This is a failed read, not a coverage gap.",
+    "暂时无法读取 {sym} 的逐行权价快照。这是读取失败，并非未覆盖。",
+  ],
 
   // ── Tooltip / hover labels ─────────────────────────────────────────────────
   tooltipNetGex:   ["Net GEX", "净GEX"],
@@ -373,6 +391,7 @@ const GEX_LEX = {
   // archive held fewer than two sessions — it now keeps its header and names the condition.
   gexHistThin:        ["Only {n} settled session on file", "仅有 {n} 个已结算交易日"],
   gexHistThinNone:    ["No settled sessions on file yet", "暂无已结算交易日"],
+  gexHistUnread:      ["Session history could not be read just now", "暂时无法读取交易日历史"],
   gexHistThinWhy:     [
     "The history strip needs at least two archived sessions to draw a trend.",
     "历史条形图需要至少两个已归档交易日才能绘制趋势。",
@@ -394,6 +413,11 @@ const GEX_LEX = {
   archivedMissingWhy: [
     "This session was never published to the ladder history plane — an archive gap, not a data error. Pick another date or return to the latest session.",
     "该交易日的完整梯图未发布到历史层——属于归档缺口，并非数据错误。请选择其他日期或返回最新交易日。",
+  ],
+  archivedErrorTitle: ["Could not load the {date} session", "无法加载 {date} 交易日"],
+  archivedErrorWhy: [
+    "The archived ladder for this session could not be read just now. This is a failed read, not an archive gap — retry, pick another date or return to the latest session.",
+    "暂时无法读取该交易日的归档梯图。这是读取失败，并非归档缺口——请重试、选择其他日期或返回最新交易日。",
   ],
   archivedMatrixTitle: ["Matrix unavailable while replaying", "回放时矩阵不可用"],
   archivedMatrixNote:  [
@@ -488,6 +512,11 @@ const GEX_LEX = {
     "No strike × expiry matrix published for this root.",
     "该品种暂无行权价×到期日矩阵数据。",
   ],
+  mtxErrorTitle:   ["Could not load the strike × expiry matrix", "无法加载行权价×到期日矩阵"],
+  mtxErrorWhy:     [
+    "The matrix for {sym} could not be read just now. This is a failed read, not a missing matrix.",
+    "暂时无法读取 {sym} 的矩阵。这是读取失败，并非矩阵缺失。",
+  ],
 
   // ── Exact-side settled-volume rail ────────────────────────────────────────
   // This is an annotation over RAW contracts, not a fifth matrix lens. The heatmap
@@ -551,6 +580,15 @@ const GEX_LEX = {
     "No alignment detected across indices at this metric.",
     "当前指标下指数间未检测到对齐。",
   ],
+  // Alignment is a three-index judgment: with one index unread it cannot be made.
+  confluenceError:    [
+    "Could not read {roots} — alignment is not judged on a partial read.",
+    "无法读取 {roots} — 不基于部分读取判断对齐。",
+  ],
+  confluenceStale:    [
+    "Could not refresh {roots} — showing the last read.",
+    "无法刷新 {roots} — 显示上次读取的数据。",
+  ],
 
   // ── HeatSeeker card, ported from prism/HeatSeekerCard ─────────────────────
   heatSeekerTitle:      ["HeatSeeker Pick", "热点精选"],
@@ -567,6 +605,11 @@ const GEX_LEX = {
   heatSeekerNull:       [
     "No standout pick — load is shared across levels.",
     "无突出精选 — 仓位分布于多个价位。",
+  ],
+  // A third fact: the matrix read did not land, so whether a pick exists is unknown.
+  heatSeekerError:      [
+    "Could not read the published pick just now — a failed read, not an empty one.",
+    "暂时无法读取已发布的精选 — 这是读取失败，并非无精选。",
   ],
   // A DIFFERENT fact from "no pick": the build published one, but it expired on or before
   // the session this snapshot describes. Saying "load is shared" there would be a guess.

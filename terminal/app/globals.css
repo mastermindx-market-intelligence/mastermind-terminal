@@ -2874,8 +2874,8 @@ body.col-resizing .wl-rz::after{background:var(--brand)}
 /* Options Hub sector sparkline card */
 .hub-sector-card{border:1px solid var(--line);border-radius:var(--r-lg);background:var(--panel);padding:10px 12px;text-align:left;cursor:pointer;transition:background var(--t),border-color var(--t)}
 .hub-sector-card:hover{background:var(--panel-2)}
-/* Volatility tab Retry (a failed read is re-read in place): the touch floor every coarse-pointer control meets. */
-@media (pointer:coarse){.vol-retry{min-height:44px}}
+/* Load-error Retry (a failed read is re-read in place — Volatility, GEX desk, Levels, Heatmap): the touch floor every coarse-pointer control meets. */
+@media (pointer:coarse){.vol-retry,.load-retry{min-height:44px}}
 /* Options Hub placeholder tabs */
 .hub-placeholder{flex:1;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:12px;color:var(--muted)}
 @media(max-width:640px){

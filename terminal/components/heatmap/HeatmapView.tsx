@@ -3,7 +3,10 @@
  * HeatmapView.tsx — dual-layer market heatmap orchestrator.
  *
  * Data sources:
- *   - Manifest (price): /api/flow?f=manifest → manifest.json (34 names, nightly)
+ *   - Manifest (price): /api/flow?f=manifest → manifest.json (34 names, nightly);
+ *     the static /data/manifest.json copy is the second source (guests get a 403 from
+ *     the route). Only a 404/410 from EVERY source is an empty market — any read that
+ *     did not land is a load error with a Retry, and a failed refresh keeps the last read.
  *   - Flow index:        /api/flow?f=flow_idx → flow_idx.json (EOD, ΔOI-based)
  *
  * HONESTY DOCTRINE:
@@ -18,6 +21,8 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useLang } from "@/lib/i18n";
+import { flowGetResult, flowInvalidate, type FlowOutcome } from "@/lib/flowClientCache";
+import { getJSONResult, invalidate, type CacheOutcome } from "@/lib/dataCache";
 import { trackSearch } from "@/lib/searchTrack";
 import { makeHeatmapT, sectorChipLabel } from "@/lib/heatmapStrings";
 import { Tip } from "@/components/ui/Tip";
@@ -58,6 +63,53 @@ async function safeFetch<T>(url: string): Promise<T | null> {
   } catch {
     return null;
   }
+}
+
+const STATIC_MANIFEST = "/data/manifest.json";
+
+/** A manifest is an object carrying a `symbols` map. Anything else parsed fine but is not a
+ *  price snapshot — painting it as zero tiles would print "No data available" over an
+ *  unread market (and `buildTiles` cannot walk it). */
+function isManifest(m: unknown): m is ManifestPayload {
+  if (!m || typeof m !== "object" || Array.isArray(m)) return false;
+  const symbols = (m as { symbols?: unknown }).symbols;
+  return !!symbols && typeof symbols === "object" && !Array.isArray(symbols);
+}
+
+/** What the latest manifest read established. `loading` until the first read settles. */
+type ManifestRead = "loading" | "data" | "absent" | "unavailable";
+
+type ManifestOutcome =
+  | { status: "data"; manifest: ManifestPayload }
+  | { status: "absent" }
+  | { status: "unavailable" };
+
+/**
+ * Read the price snapshot: /api/flow first, the static copy second. The route answers a
+ * guest 403 and never claims the manifest is absent, so a missing static copy behind a
+ * failed route read is still a read that did not land. Only when every source answered
+ * 404/410 is the market honestly empty.
+ */
+async function readManifest(onRevalidate: (m: ManifestPayload) => void): Promise<ManifestOutcome> {
+  let primary: FlowOutcome;
+  try {
+    primary = await flowGetResult("manifest");
+  } catch {
+    primary = { status: "unavailable", reason: "network" };
+  }
+  if (primary.status === "data" && isManifest(primary.data)) return { status: "data", manifest: primary.data };
+
+  let fallback: CacheOutcome;
+  try {
+    fallback = await getJSONResult(STATIC_MANIFEST, {
+      onRevalidate: (m: unknown) => { if (isManifest(m)) onRevalidate(m); },
+    });
+  } catch {
+    fallback = { status: "unavailable", reason: "network" };
+  }
+  if (fallback.status === "data" && isManifest(fallback.data)) return { status: "data", manifest: fallback.data };
+  if (primary.status === "absent" && fallback.status === "absent") return { status: "absent" };
+  return { status: "unavailable" };
 }
 
 /**
@@ -268,7 +320,7 @@ export function HeatmapView() {
   // ── Data state ──────────────────────────────────────────────────────────────
   const [manifest, setManifest] = useState<ManifestPayload | null>(null);
   const [flowIdx, setFlowIdx]   = useState<FlowIdxPayload | null>(null);
-  const [loadingManifest, setLoadingManifest] = useState(true);
+  const [manifestRead, setManifestRead] = useState<ManifestRead>("loading");
   const [loadingFlow,     setLoadingFlow]     = useState(true);
   const [flowError,       setFlowError]       = useState(false);
   /** Live chg% values for top-N tiles; keyed by ticker. Null map = not yet loaded. */
@@ -294,18 +346,36 @@ export function HeatmapView() {
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   // ── Fetch manifest ────────────────────────────────────────────────────────────
-  // Primary: /api/flow?f=manifest (integrator wires this in route.ts)
-  // Fallback: /data/manifest.json (static public file, always present)
+  // Primary: /api/flow?f=manifest; second source: /data/manifest.json (see readManifest).
+  // A read that did not land keeps whatever is on screen — it is the last read, labelled
+  // so — and only a proven absence withdraws it. The fence drops a read a newer one replaced.
+  const manifestReqRef = useRef(0);
   const fetchManifest = useCallback(async () => {
-    let data = await safeFetch<ManifestPayload>("/api/flow?f=manifest");
-    if (!data) {
-      data = await safeFetch<ManifestPayload>("/data/manifest.json");
+    const req = ++manifestReqRef.current;
+    const current = () => manifestReqRef.current === req;
+    const read = await readManifest((fresh) => {
+      if (current()) { setManifest(fresh); setManifestRead("data"); }
+    });
+    if (!current()) return;
+    if (read.status === "data") {
+      setManifest(read.manifest);
+      setManifestRead("data");
+    } else if (read.status === "absent") {
+      setManifest(null);
+      setManifestRead("absent");
+    } else {
+      setManifestRead("unavailable");
     }
-    if (data) {
-      setManifest(data);
-    }
-    setLoadingManifest(false);
   }, []);
+
+  // Retry asks both sources again: a failed read never stays cached, but a 200 that was not
+  // a manifest does, and the static copy's 404 is remembered — both must reach the network.
+  const retryManifest = useCallback(() => {
+    flowInvalidate("manifest");
+    invalidate(STATIC_MANIFEST);
+    setManifestRead("loading");
+    void fetchManifest();
+  }, [fetchManifest]);
 
   // ── Fetch flow index ──────────────────────────────────────────────────────────
   // Primary: /api/flow?f=flow_idx (integrator wires this in route.ts)
@@ -406,7 +476,11 @@ export function HeatmapView() {
   const breadth = computeBreadth(allTiles);
   const sectorChips = computeSectorChips(allTiles);
 
-  const isLoading = loadingManifest;
+  // The canvas states, by what the manifest read established. A held manifest is always
+  // painted; without one, only a proven absence is an empty market.
+  const isLoading = !manifest && manifestRead === "loading";
+  const loadFailed = !manifest && manifestRead === "unavailable";
+  const refreshFailed = manifest != null && manifestRead === "unavailable";
 
   // ── Render ────────────────────────────────────────────────────────────────────
 
@@ -422,10 +496,10 @@ export function HeatmapView() {
       </div>
 
       {/* ═══ BREADTH STRIP — glass header card ════════════════════════════════ */}
-      <div className="obs-card" style={BREADTH_STRIP}>
-        {/* Mode label */}
+      <div className="obs-card" style={BREADTH_STRIP} data-testid="heatmap-breadth">
+        {/* Mode label — derived from the manifest, so no reading until one is held */}
         <div style={BREADTH_MODE}>
-          <span style={{
+          {!manifest ? <span style={{ color: "var(--muted)" }}>—</span> : <span style={{
             fontWeight: 700,
             color: layer === "price"
               ? (breadth.priceMode === "BULLISH" ? "var(--up)" : breadth.priceMode === "BEARISH" ? "var(--down)" : "var(--warn)")
@@ -435,7 +509,7 @@ export function HeatmapView() {
               ? (breadth.priceMode === "BULLISH" ? t("bullish") : breadth.priceMode === "BEARISH" ? t("bearish") : t("mixed"))
               : (breadth.callShareClass === "CALL-HEAVY" ? t("bullish") : breadth.callShareClass === "PUT-HEAVY" ? t("bearish") : t("mixed"))
             }
-          </span>
+          </span>}
         </div>
 
         <div style={BREADTH_SEP} />
@@ -443,16 +517,22 @@ export function HeatmapView() {
         {/* Advancers / decliners */}
         <div style={BREADTH_ITEM}>
           <span className="obs-lbl" style={{ textTransform: "none", letterSpacing: 0, fontSize: 10 }}>{t("advancers")}</span>
-          <span className="num" style={{ color: "var(--up)", marginLeft: 4 }}>
-            {breadth.advancers}
-          </span>
-          <span style={{ color: "var(--muted)", margin: "0 3px" }}>/</span>
-          <span className="num" style={{ color: "var(--down)" }}>
-            {breadth.decliners}
-          </span>
-          <span style={{ color: "var(--muted)", marginLeft: 3 }}>
-            ({breadth.total > 0 ? Math.round(breadth.advancers / breadth.total * 100) : 0}%)
-          </span>
+          {!manifest ? (
+            <span className="num" style={{ color: "var(--muted)", marginLeft: 4 }}>—</span>
+          ) : (
+            <>
+              <span className="num" style={{ color: "var(--up)", marginLeft: 4 }}>
+                {breadth.advancers}
+              </span>
+              <span style={{ color: "var(--muted)", margin: "0 3px" }}>/</span>
+              <span className="num" style={{ color: "var(--down)" }}>
+                {breadth.decliners}
+              </span>
+              <span style={{ color: "var(--muted)", marginLeft: 3 }}>
+                ({breadth.total > 0 ? Math.round(breadth.advancers / breadth.total * 100) : 0}%)
+              </span>
+            </>
+          )}
         </div>
 
         {/* Total flow premium */}
@@ -634,10 +714,21 @@ export function HeatmapView() {
         </div>
       )}
 
+      {refreshFailed && (
+        <div style={REFRESH_FAILED_BAR} data-testid="heatmap-refresh-failed" role="status">
+          <span>{t("refreshFailed")}</span>
+          <button type="button" className="btn btn-ghost load-retry" style={RETRY_INLINE} onClick={retryManifest}>
+            {t("retry")}
+          </button>
+        </div>
+      )}
+
       {/* ═══ MAIN CANVAS ═════════════════════════════════════════════════════ */}
       <div style={CANVAS_AREA} data-tut="heatmap-canvas">
         {isLoading ? (
           <LoadingState t={t} />
+        ) : loadFailed ? (
+          <LoadErrorState t={t} onRetry={retryManifest} />
         ) : tiles.length === 0 ? (
           <EmptyState t={t} />
         ) : view === "map" ? (
@@ -754,6 +845,17 @@ function LoadingState({ t }: { t: (k: Parameters<ReturnType<typeof makeHeatmapT>
   return (
     <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "100%", color: "var(--muted)", fontSize: 13 }}>
       {t("loadingHeatmap")}
+    </div>
+  );
+}
+
+/** The manifest read did not land: say so, and re-read in place. Never the empty state. */
+function LoadErrorState({ t, onRetry }: { t: (k: Parameters<ReturnType<typeof makeHeatmapT>>[0]) => string; onRetry: () => void }) {
+  return (
+    <div data-testid="heatmap-load-error" role="alert" style={LOAD_ERROR_STATE}>
+      <div style={{ fontSize: 13, fontWeight: 600, color: "var(--text)" }}>{t("loadErrorTitle")}</div>
+      <div style={{ fontSize: 12, color: "var(--muted)", maxWidth: 420 }}>{t("loadErrorWhy")}</div>
+      <button type="button" className="btn btn-ghost load-retry" onClick={onRetry}>{t("retry")}</button>
     </div>
   );
 }
@@ -876,6 +978,34 @@ const FLOW_ERR_BAR: React.CSSProperties = {
   color: "var(--warn)",
   borderBottom: "1px solid rgba(255,255,255,0.06)",
   flexShrink: 0,
+};
+
+const REFRESH_FAILED_BAR: React.CSSProperties = {
+  display: "flex",
+  alignItems: "center",
+  flexWrap: "wrap",
+  gap: 8,
+  padding: "4px 14px",
+  fontSize: 10,
+  color: "var(--warn)",
+  borderBottom: "1px solid rgba(255,255,255,0.06)",
+  flexShrink: 0,
+};
+
+const RETRY_INLINE: React.CSSProperties = {
+  padding: "2px 10px",
+  fontSize: 11,
+};
+
+const LOAD_ERROR_STATE: React.CSSProperties = {
+  display: "flex",
+  flexDirection: "column",
+  alignItems: "center",
+  justifyContent: "center",
+  gap: 8,
+  height: "100%",
+  padding: "0 16px",
+  textAlign: "center",
 };
 
 const CANVAS_AREA: React.CSSProperties = {
