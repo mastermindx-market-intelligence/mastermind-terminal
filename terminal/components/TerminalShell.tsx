@@ -149,7 +149,7 @@ import { isComposite, parseComposite, compositeQuote as calcCompositeQuote } fro
 import { planQuoteBatch, type QuoteDemandGroup } from "@/lib/quoteDemand";
 import { pushRecentlyViewed } from "@/lib/recentlyViewed";
 import { writeActiveSymbol } from "@/lib/activeSymbol";
-import { listScripts, deleteScript as delScript, renameScript as renScript, enabledScriptIds, setEnabledScriptIds, pineParamStore, setPineParamStore, mergedParams, type UserScript } from "@/lib/userScripts";
+import { listScripts, deleteScript as delScript, runRenameScriptClick, enabledScriptIds, setEnabledScriptIds, pineParamStore, setPineParamStore, mergedParams, type UserScript } from "@/lib/userScripts";
 import LayoutMenu, { type LayoutFeedback, type LayoutStatus, type SavedWorkspace } from "@/components/LayoutMenu";
 import WorkspaceTile from "@/components/WorkspaceTile";
 import { nextLayoutName, type SavedLayout } from "@/lib/layouts";
@@ -4277,15 +4277,8 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
 
   const toggleScript = useCallback((id: string) => setEnabledIds((ids) => (ids.includes(id) ? ids.filter((x) => x !== id) : [...ids, id])), []);
   const handleRenameScript = useCallback((id: string, name: string) => {
-    const s = scriptById[id]; if (!s || !name.trim() || name.trim() === s.name) return;
-    const nm = name.trim(); const prev = s.name;
-    setScripts((list) => list.map((x) => (x.id === id ? { ...x, name: nm } : x)));   // optimistic
-    // roll back on server failure (a logged-in non-Pro user hits the save 403 → renScript returns false),
-    // otherwise the legend/modal keep an optimistic name that silently reverts on the next reload. Only
-    // revert if the name is still the one we set (don't clobber a newer concurrent rename).
-    renScript(loggedIn, { id, name: nm, source: s.source, params: s.params }).then((ok) => {
-      if (!ok) setScripts((list) => list.map((x) => (x.id === id && x.name === nm ? { ...x, name: prev } : x)));
-    });
+    const s = scriptById[id];
+    void runRenameScriptClick(loggedIn, s, name, setScripts);
   }, [scriptById, loggedIn]);
   const handleDeleteScript = useCallback((id: string) => {
     setScripts((list) => list.filter((x) => x.id !== id));
