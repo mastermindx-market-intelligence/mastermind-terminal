@@ -375,6 +375,16 @@ export function tencentKlineUrl(code: string, scale: string): string {
   return `https://ifzq.gtimg.cn/appstock/app/kline/mkline?param=${seg(code)},${seg(scale)},,640`;
 }
 
+// HK 1-min tick feeds (see fetchTencentHK): up to 5 sessions of rows, and the live current
+// session. Exported for tests.
+export function tencentHkDayUrl(code: string): string {
+  return `https://web.ifzq.gtimg.cn/appstock/app/day/query?code=${seg(code)}&days=5`;
+}
+
+export function tencentHkMinuteUrl(code: string): string {
+  return `https://web.ifzq.gtimg.cn/appstock/app/hkMinute/query?code=${seg(code)}`;
+}
+
 async function fetchTencent(sym: string, market: Market, tf: string): Promise<Bar6[]> {
   const code = tencentCode(sym, market);
   if (!code) return [];
@@ -432,14 +442,14 @@ function hkSessionBars(date: string, rows: unknown[]): Bar6[] {
 async function fetchTencentHK(sym: string, tf: string): Promise<Bar6[]> {
   const code = tencentCode(sym, "hk");
   if (!code) return [];
-  const get = (path: string) =>
-    fetch(`https://web.ifzq.gtimg.cn/appstock/app/${path}`, {
+  const get = (url: string) =>
+    fetch(url, {
       headers: { "User-Agent": "Mozilla/5.0", Referer: "https://gu.qq.com/" },
       cache: "no-store", signal: AbortSignal.timeout(8000),
     }).then((r) => (r.ok ? r.json() : null)).catch(() => null);
   const [multi, live] = await Promise.all([
-    get(`day/query?code=${code}&days=5`),
-    get(`hkMinute/query?code=${code}`),
+    get(tencentHkDayUrl(code)),
+    get(tencentHkMinuteUrl(code)),
   ]);
   if (!multi && !live) throw new Error("tencent hk unreachable"); // let the route serve its stale copy
   const byDate = new Map<string, unknown[]>();
