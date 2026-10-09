@@ -132,11 +132,11 @@ type LegacyImports = Record<string, Copies>;
 const journalNamespaces = new WeakMap<DrawingJournal, JournalNamespace>();
 function resolveLegacyAlias(record: JournalRecord, alias: string | undefined, token: string | undefined): { id: string; retired: boolean } | undefined {
   if (!alias || !token) return;
-  // Hydration persists an import before the recovery choice, replacing the
-  // virtual alias with its physical UUID. Keep that same identity retired
-  // after another tab acknowledges it; unchanged memory is not a new edit.
+  // A UUID with a local observed preimage was genuinely durable, whether
+  // imported or created here. Its absence retires unchanged memory even when
+  // the last acknowledgement removed the namespace; memory forks are not UUIDs.
   if (!alias.startsWith("legacy:")) {
-    if (record.legacyLinks[alias] && !record.copies[alias]) return { id: alias, retired: true };
+    if (validDrawingOperationId(alias) && !record.copies[alias]) return { id: alias, retired: true };
     return;
   }
   const sourceId = alias.slice("legacy:".length);
@@ -269,7 +269,7 @@ export async function writeDrawingJournal(
         } else {
           const alias = resolveLegacyAlias(record, entry.recoveryId, entry.recoveryId ? base?.hashes[entry.recoveryId] : undefined);
           if (alias?.retired && fingerprint(entry) === base?.hashes[entry.recoveryId!]) {
-            // Another tab acknowledged this exact import. A stale hydration
+            // Another tab acknowledged this exact observed copy. A stale hydration
             // is not a new edit and must not manufacture a replacement copy.
             retiredSymbols.push(symbol);
             continue;
@@ -330,9 +330,10 @@ export function reconcileDrawingJournal(storage: StoragePort, owner: string, jou
     if (!current) { if (stored) { journal[symbol] = stored; baseline[symbol] = freshBaseline[symbol]; } continue; }
     const memoryCopies = [current, ...(current.alternatives ?? [])].filter((copy) => {
       const token = copy.recoveryId ? baseline[symbol]?.hashes[copy.recoveryId] : undefined;
-      const alias = namespace[symbol] && resolveLegacyAlias(namespace[symbol], copy.recoveryId, token);
+      const record = namespace[symbol] ?? { format: 2 as const, copies: {}, legacySeen: {}, legacyLinks: {} };
+      const alias = resolveLegacyAlias(record, copy.recoveryId, token);
       if (alias?.retired && fingerprint(copy) === token) return false;
-      if (alias && !alias.retired && fingerprint(namespace[symbol].copies[alias.id]) === token) {
+      if (alias && !alias.retired && fingerprint(record.copies[alias.id]) === token) {
         baseline[symbol].hashes[alias.id] = token!;
         copy.recoveryId = alias.id;
       }

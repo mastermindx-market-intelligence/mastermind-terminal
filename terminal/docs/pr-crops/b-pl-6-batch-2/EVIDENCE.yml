@@ -1,3 +1,4 @@
+# 2026-10-09 PR858: hash-only reconciliation for ten Drawing recovery LEX keys. Existing keys/layout/crop bytes unchanged; no recapture or provenance-date change claimed.
 # 2026-10-05 #802/#808 source hash reconciliation: preserves captured PNG bytes/provenance; added Dislocations-only labels are not rendered by these capture surfaces.
 # 2026-09-19 #669 plain-language debt: hash-only restamp of plainLabels.ts, i18n.tsx — copy-only change, crops unchanged
 # B-PL-6 batch 2 — capture evidence
@@ -21,7 +22,7 @@ layoutFiles:
   terminal/components/levels/LevelsLearn.tsx: "ca8923e68f511cb525db2bac1b41e9e1d93c3c1492cb345162085de1412cee05"
   terminal/components/ChartConductor.tsx: "6592289cd32f6e92f58c280507d3ed853533ba03364c8ced9bab6037f60cc1ad"
   terminal/lib/plainLabels.ts: "8f57e32a21abcae530075b7c4da72f170afff8ea38084026995887b4a18fe29a"
-  terminal/lib/i18n.tsx: "858306597ebbfc2d912cefc997ad88e4805cafb08794b5cd4d3dfeacb109371f"
+  terminal/lib/i18n.tsx: "c801f095af26ce80e0f39826c2fec057f4247640deb446fcc9fd959a1e6fdb01"
 theme: dark
 languages: [en, zh]
 viewports:

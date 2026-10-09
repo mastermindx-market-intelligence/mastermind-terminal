@@ -1,3 +1,4 @@
+# 2026-10-09 PR858: hash-only reconciliation for ten Drawing recovery LEX keys. Existing keys/layout/crop bytes unchanged; no recapture or provenance-date change claimed.
 # B-PL-6 batch 1 — capture evidence
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
 # Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
@@ -12,7 +13,7 @@ layoutFiles:
   terminal/components/ChartPanel.tsx: "5d5d73aa589e349e7e4d9dfd9ba82c3cd9443278103c216ef9bfa595b12f8684"
   terminal/components/DayRange.tsx: "c84724652783da1897ab4eeb98550eaf3dbd7942eefe3ce127b6ada2b16dd672"
   terminal/lib/plainLabels.ts: "8f57e32a21abcae530075b7c4da72f170afff8ea38084026995887b4a18fe29a"
-  terminal/lib/i18n.tsx: "858306597ebbfc2d912cefc997ad88e4805cafb08794b5cd4d3dfeacb109371f"
+  terminal/lib/i18n.tsx: "c801f095af26ce80e0f39826c2fec057f4247640deb446fcc9fd959a1e6fdb01"
   terminal/app/company-intelligence.css: "16ca4e131ad1f2973b6346e7f051af802dbfa27227d6c33615af87578e73f885"
 theme: dark
 languages: [en, zh]

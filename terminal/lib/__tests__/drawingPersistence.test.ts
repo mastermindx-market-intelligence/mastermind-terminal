@@ -224,11 +224,13 @@ describe("concurrent legacy import ownership",()=>{
     delete journal.NVDA; expect(await persist(storage, journal)).toBe(true);
     expect(readDrawingJournal(storage, "account:a").NVDA.recoveryId).toBe(originalId);
   });
+  for (const legacy of [true, false]) {
   for (const reconcile of [false, true]) {
     for (const edited of [false, true]) {
-      it(`retires the hydrated physical import after another tab acknowledges it (reconcile=${reconcile}, edited=${edited})`, async () => {
+      it(`retires an observed ${legacy ? "legacy import" : "modern copy"} after another tab acknowledges it (reconcile=${reconcile}, edited=${edited})`, async () => {
         const storage = new MemoryStorage();
-        writeDrawingOutbox(storage, "account:a", { NVDA: [line("legacy")] });
+        if (legacy) writeDrawingOutbox(storage, "account:a", { NVDA: [line("legacy")] });
+        else expect(await persist(storage, { NVDA: { drawings: [line("modern")], revision: null } })).toBe(true);
         const a = readDrawingJournal(storage, "account:a"), b = readDrawingJournal(storage, "account:a");
         expect(await persist(storage, a)).toBe(true); expect(await persist(storage, b)).toBe(true);
         expect(a.NVDA.recoveryId).toBe(b.NVDA.recoveryId);
@@ -241,6 +243,7 @@ describe("concurrent legacy import ownership",()=>{
         else { expect(remaining).toBeUndefined(); expect(a.NVDA).toBeUndefined(); }
       });
     }
+  }
   }
  it("reconciles two importers to the same physical legacy copy",async()=>{
   const storage=new MemoryStorage();writeDrawingOutbox(storage,"account:a",{NVDA:[line("legacy-copy")]});

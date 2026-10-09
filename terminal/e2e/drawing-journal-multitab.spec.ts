@@ -127,10 +127,20 @@ test("a real stale importer cannot resurrect the snapshot another tab acknowledg
   } finally { await second.close(); }
 });
 
-test("two hydrated real tabs keep a physical import retired after one acknowledges it", async ({ page, context }) => {
+for (const legacy of [true, false]) {
+test(`two hydrated real tabs keep an observed ${legacy ? "import" : "modern copy"} retired after one acknowledges it`, async ({ page, context }) => {
   const second = await context.newPage(), owner = "account:hydrated-retirement";
   try {
-    await readLegacyInBothTabs(page, second, owner);
+    if (legacy) await readLegacyInBothTabs(page, second, owner);
+    else {
+      await load(page); await load(second);
+      await page.evaluate(async ({owner, drawing}) => {
+        const api = (window as any).A04Journal;
+        if (!await api.writeDrawingJournal(localStorage, owner, {NVDA:{drawings:[drawing],revision:null}})) throw new Error("Copy was not durable");
+        (window as any).journal = api.readDrawingJournal(localStorage, owner);
+      }, {owner, drawing:line("modern")});
+      await second.evaluate(owner => { (window as any).journal = (window as any).A04Journal.readDrawingJournal(localStorage, owner); }, owner);
+    }
     expect(await page.evaluate(async owner => (window as any).A04Journal.writeDrawingJournal(localStorage, owner, (window as any).journal), owner)).toBe(true);
     expect(await second.evaluate(async owner => {
       const api = (window as any).A04Journal, journal = (window as any).journal;
@@ -144,6 +154,7 @@ test("two hydrated real tabs keep a physical import retired after one acknowledg
     }), owner)).toEqual({ memory: undefined, durable: undefined });
   } finally { await second.close(); }
 });
+}
 
 test("real same-origin tabs retain distinct same-symbol copies including a clear tombstone", async ({ page, context }) => {
   const second = await context.newPage();
