@@ -32,6 +32,23 @@ test("research lab source → comparison → chart/replay → frozen export and 
   await expect(page.getByTestId("rs-pivot-chart")).toBeVisible({timeout:30000});
   await expect(page.getByRole("status").filter({hasText:"Historical research snapshot"})).toContainText("DEGRADED");
   await expect(page.getByLabel("Historical trade")).not.toHaveValue("");
+  // Root scrollWidth misses content clipped by the shell's overflow:hidden.
+  // Only metric tables may scroll horizontally; the lab and controls must fit.
+  const assertContentFits = async () => {
+    const bounds = await page.getByTestId("rs-pivot-lab").evaluate(lab => {
+      const parent = lab.getBoundingClientRect();
+      return {
+        width: parent.width, available: window.innerWidth,
+        clipped: Array.from(lab.querySelectorAll("section, header, input, select, button, p")).filter(el => {
+          const b = el.getBoundingClientRect();
+          return b.left < parent.left - 1 || b.right > parent.right + 1;
+        }).map(el => el.tagName + ":" + el.textContent?.slice(0, 60)),
+      };
+    });
+    expect(bounds.width).toBeLessThanOrEqual(bounds.available);
+    expect(bounds.clipped).toEqual([]);
+  };
+  await assertContentFits();
   await page.getByLabel("Replay candle",{exact:true}).fill("10");
   await expect(page.getByLabel("Replay candle",{exact:true})).toHaveValue("10");
   await page.getByLabel("Test arm",{exact:true}).selectOption("pivot");
@@ -55,6 +72,7 @@ test("research lab source → comparison → chart/replay → frozen export and 
   await expect(page.getByRole("heading",{name:"相对强度 × 30分钟枢轴研究"})).toBeVisible();
   await page.getByRole("button",{name:"运行本地研究"}).click(); await expect(page.getByTestId("rs-pivot-chart")).toBeVisible();
   await expect(page.getByRole("heading",{name:"历史图表与交易重放"})).toBeVisible();
+  await assertContentFits();
   await page.screenshot({path:`e2e/proof/rs30/${info.project.name}-zh-research.png`,fullPage:true});
   expect(errors).toEqual([]);
 });

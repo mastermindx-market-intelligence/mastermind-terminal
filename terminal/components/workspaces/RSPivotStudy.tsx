@@ -76,18 +76,19 @@ const ARM_LABELS: Record<string, [string, string]> = {
   rs_ema: ["RS + EMA20 reclaim", "相对强度 + EMA20收复"],
   ema: ["EMA20 reclaim, no RS filter", "EMA20收复（无相对强度过滤）"],
 };
-const container: React.CSSProperties = { background: "var(--panel)", border: "1px solid var(--line)", borderRadius: 10, padding: 16 };
+const container: React.CSSProperties = { background: "var(--panel)", border: "1px solid var(--line)", borderRadius: 10, padding: 16, minWidth: 0 };
 const field: React.CSSProperties = { background: "var(--bg)", color: "var(--text)", border: "1px solid var(--line)", borderRadius: 6, minHeight: 38, padding: "6px 9px", width: "100%" };
 const label: React.CSSProperties = { display: "grid", gap: 5, fontSize: 12, color: "var(--muted)", minWidth: 120, flex: "1 1 140px" };
 const th: React.CSSProperties = { textAlign: "left", fontSize: 11, color: "var(--muted)", padding: "10px 9px", borderBottom: "1px solid var(--line)", whiteSpace: "nowrap" };
 const td: React.CSSProperties = { padding: "9px", fontSize: 12, borderBottom: "1px solid var(--line)", whiteSpace: "nowrap", fontVariantNumeric: "tabular-nums" };
 const fmt = (v: number | null, d = 2) => v == null || !Number.isFinite(v) ? "—" : v.toFixed(d);
 const pct = (v: number | null) => v == null ? "—" : (v * 100).toFixed(1) + "%";
+const rMetric = (v: number | null) => v == null ? "—" : fmt(v) + "R";
 const dt = (t: number) => new Date(t * 1000).toISOString().slice(0, 16).replace("T", " ");
 
 function SummaryRow({ row }: { row: StudySummary }) {
   return <><td style={td}>{row.trades}</td><td style={td}>{pct(row.winRate)}</td>
-    <td style={td}>{fmt(row.expectancyR)}R</td><td style={td}>{fmt(row.profitFactor)}</td></>;
+    <td style={td}>{rMetric(row.expectancyR)}</td><td style={td}>{fmt(row.profitFactor)}</td></>;
 }
 async function loadBars(sym: string, signal: AbortSignal): Promise<SourceResponse> {
   const res = await fetch("/api/intraday?sym=" + encodeURIComponent(sym) + "&tf=5m&ext=0", { cache: "no-store", signal });
@@ -177,8 +178,8 @@ export default function RSPivotStudy() {
   const recent = preferred?.trades.slice(-60).reverse() ?? [];
   const trade = recent.find(x => String(x.signalBarAt) === selectedTrade) ?? recent[0] ?? null;
   return (
-    <main className="main2" style={{ overflowY: "auto", padding: "clamp(12px, 2vw, 26px)", color: "var(--text)", height: "100%" }}>
-      <div style={{ maxWidth: 1280, margin: "0 auto", display: "grid", gap: 16, paddingBottom: 40 }}>
+    <main data-testid="rs-pivot-lab" className="main2" style={{ overflowY: "auto", padding: "clamp(12px, 2vw, 26px)", color: "var(--text)", height: "100%", width: "100%", minWidth: 0 }}>
+      <div style={{ maxWidth: 1280, width: "100%", minWidth: 0, margin: "0 auto", display: "grid", gridTemplateColumns: "minmax(0, 1fr)", gap: 16, paddingBottom: 40 }}>
         <header>
           <div style={{ fontSize: 11, fontWeight: 700, color: "var(--warn)", letterSpacing: 1 }}>{c("SHADOW RESEARCH / 30M", "模拟研究 / 30分钟")}</div>
           <h1 style={{ fontSize: "clamp(20px, 2vw, 28px)", margin: "7px 0" }}>{t.title}</h1>
@@ -227,7 +228,7 @@ export default function RSPivotStudy() {
                 if (!row) return null;
                 return <tr key={arm}><th scope="row" style={{ ...td, textAlign: "left" }}>{ARM_LABELS[arm][lang === "en" ? 0 : 1]}</th>
                   <SummaryRow row={row.summary} />
-                  <td style={td}>{fmt(row.earlier.expectancyR)}R</td><td style={td}>{fmt(row.recent.expectancyR)}R</td><td style={td}>{row.censored + row.unresolved}</td></tr>;
+                  <td style={td}>{rMetric(row.earlier.expectancyR)}</td><td style={td}>{rMetric(row.recent.expectancyR)}</td><td style={td}>{row.censored + row.unresolved}</td></tr>;
               })}</tbody>
             </table></div>
             <p style={{ fontSize: 12, color: "var(--warn)", marginTop: 10 }}>{t.sparse}</p>
