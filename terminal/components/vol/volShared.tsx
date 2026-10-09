@@ -48,8 +48,13 @@ export interface VolTermAdmission {
   conflictExpiries: Set<string>;
   /** Duplicate expiry rows whose DTE coordinates disagree; no gap coordinate can be invented safely. */
   ambiguousCoordinateExpiries: Set<string>;
-  /** DTE positions of rows whose expiry identity is invalid: curve gaps only, never selectable expiries. */
+  /** DTE values of every supplied row whose expiry identity is invalid (disclosure count). Never selectable expiries. */
   invalidExpiryDtes: number[];
+  /**
+   * Curve gap positions from invalid-expiry rows: only DTEs no admitted row already occupies.
+   * A rejected row at an observed tenor adds no gap, so a span the source fully reported stays continuous.
+   */
+  invalidExpiryGapDtes: number[];
   /** Supplied rows with no valid DTE: their curve position is unknown, so line continuity is withheld. */
   unplaceableRows: number;
 }
@@ -61,7 +66,8 @@ export interface VolTermAdmission {
  * position as a gap. If DTE itself conflicts, report the ambiguity and omit a fake
  * coordinate; the panel then suppresses line continuity for the curve. A row with a valid
  * DTE but an invalid expiry keeps only its DTE as a gap position (never a selectable
- * identity); a row with no valid DTE cannot be placed, so continuity is withheld.
+ * identity) unless an admitted row already occupies that DTE; a row with no valid DTE
+ * cannot be placed, so continuity is withheld.
  */
 export function admitVolTermRows(term: VolTermRow[] | undefined): VolTermAdmission {
   const valid: AdmittedVolTermPoint[] = [];
@@ -99,7 +105,9 @@ export function admitVolTermRows(term: VolTermRow[] | undefined): VolTermAdmissi
   }
   rows.sort((a, b) => a.dte - b.dte || a.exp.localeCompare(b.exp));
   invalidExpiryDtes.sort((a, b) => a - b);
-  return { rows, conflictExpiries, ambiguousCoordinateExpiries, invalidExpiryDtes, unplaceableRows };
+  const observedDtes = new Set(rows.map((row) => row.dte));
+  const invalidExpiryGapDtes = [...new Set(invalidExpiryDtes)].filter((dte) => !observedDtes.has(dte));
+  return { rows, conflictExpiries, ambiguousCoordinateExpiries, invalidExpiryDtes, invalidExpiryGapDtes, unplaceableRows };
 }
 
 export interface AdmittedVolSmilePoint {

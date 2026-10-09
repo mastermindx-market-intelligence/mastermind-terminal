@@ -50,11 +50,12 @@ export function VolTermPanel({
   const selectedExpiry = volIsoDay(selectedExp) ? selectedExp : null;
   const selectedUnavailable = selectedExpiry != null && !pts.some((p) => p.exp === selectedExpiry);
   const finite = useMemo(() => pts.filter((p) => Number.isFinite(p.v)), [pts]);
-  // Curve positions = admitted rows + invalid-expiry gap placeholders (NaN, never selectable).
+  // Curve positions = admitted rows + invalid-expiry gap placeholders (NaN, never selectable)
+  // at DTEs no admitted row already occupies; the rejected row is still disclosed below.
   const curve = useMemo<AdmittedVolTermPoint[]>(() => [
     ...pts,
-    ...admission.invalidExpiryDtes.map((dte) => ({ dte, exp: "", v: Number.NaN, conflict: false })),
-  ].sort((a, b) => a.dte - b.dte), [admission.invalidExpiryDtes, pts]);
+    ...admission.invalidExpiryGapDtes.map((dte) => ({ dte, exp: "", v: Number.NaN, conflict: false })),
+  ].sort((a, b) => a.dte - b.dte), [admission.invalidExpiryGapDtes, pts]);
   const continuityWithheld = admission.ambiguousCoordinateExpiries.size > 0 || admission.unplaceableRows > 0;
   const segments = useMemo(
     () => continuityWithheld

@@ -65,7 +65,7 @@ function sessionRuns(pts: VrpPoint[]): VrpPoint[][] {
  * gap: the client never picks a winning revision or a "correct" position, and no return is
  * computed across a pair of rows whose session order is not established.
  */
-function admitSessionDays(raw: unknown[]): (string | null)[] {
+function admitSessionDays(raw: unknown[]): { days: (string | null)[]; orderRejected: number } {
   const days = raw.map((d) => volIsoDay(d));
   const suffixMin: (string | null)[] = new Array(days.length).fill(null);
   let min: string | null = null;
@@ -75,18 +75,36 @@ function admitSessionDays(raw: unknown[]): (string | null)[] {
     if (d != null && (min == null || d < min)) min = d;
   }
   let max: string | null = null;
-  return days.map((d, i) => {
+  let orderRejected = 0;
+  const admittedDays = days.map((d, i) => {
     const admitted = d != null && (max == null || d > max) && (suffixMin[i] == null || d < (suffixMin[i] as string));
     if (d != null && (max == null || d > max)) max = d;
+    // A valid ISO day that is not admitted was rejected only for duplicate/out-of-order identity.
+    if (d != null && !admitted) orderRejected += 1;
     return admitted ? d : null;
   });
+  return { days: admittedDays, orderRejected };
+}
+
+export interface VrpHistory {
+  points: VrpPoint[];
+  /** The agg store supplied at least one row (so "not published" would be false). */
+  supplied: boolean;
+  /** Supplied rows with a valid date rejected for a duplicate or out-of-order date. */
+  orderRejected: number;
 }
 
 /** Derive the trailing VRP series (vol points) from the agg store's spot+IV columns. */
 export function deriveVrpSeries(agg: AggTrendPayload | null | undefined): VrpPoint[] {
+  return deriveVrpHistory(agg).points;
+}
+
+/** The derived series plus what was supplied and what admission rejected, for honest empty/partial states. */
+export function deriveVrpHistory(agg: AggTrendPayload | null | undefined): VrpHistory {
   const series = agg?.series;
-  if (!Array.isArray(series) || series.length < 22) return [];
-  const days = admitSessionDays(series.map((row) => row?.d));
+  if (!Array.isArray(series) || series.length === 0) return { points: [], supplied: false, orderRejected: 0 };
+  const { days, orderRejected } = admitSessionDays(series.map((row) => row?.d));
+  if (series.length < 22) return { points: [], supplied: true, orderRejected };
   const out: VrpPoint[] = [];
   // log returns over published closes; rv20 = stdev(last 20) × √252, in percent.
   const rets: number[] = [];
@@ -105,7 +123,7 @@ export function deriveVrpSeries(agg: AggTrendPayload | null | undefined): VrpPoi
     const rv20 = Math.sqrt(varSum * 252) * 100;
     out.push({ d: days[i] as string, v: iv * 100 - rv20, i });
   }
-  return out.slice(-WINDOW);
+  return { points: out.slice(-WINDOW), supplied: true, orderRejected };
 }
 
 function pctileOf(sorted: number[], p: number): number {
@@ -133,7 +151,8 @@ export function VolVrpPanel({
   const boxRef = useRef<HTMLDivElement | null>(null);
   const w = useChartWidth(boxRef, 460);
 
-  const pts = useMemo(() => deriveVrpSeries(agg), [agg]);
+  const derived = useMemo(() => deriveVrpHistory(agg), [agg]);
+  const pts = derived.points;
   const enough = pts.length >= MIN_SESSIONS;
   const sourceDay = volIsoDay(typeof sourceAsOf === "string" ? sourceAsOf.slice(0, 10) : null);
   const historyDay = pts.length ? volIsoDay(pts[pts.length - 1].d) : null;
@@ -209,6 +228,17 @@ export function VolVrpPanel({
   const regimeTone =
     currentStats?.regime === "elevated" ? "var(--warn)" : currentStats?.regime === "compressed" ? "var(--signal)" : "var(--text)";
 
+  // A supplied store is never described as unpublished; rejected rows are counted, not hidden.
+  const orderNote = derived.orderRejected > 0
+    ? t("vrpOrderRejected").replace("{n}", String(derived.orderRejected))
+    : null;
+  const emptyTitle = derived.supplied && derived.orderRejected > 0 ? t("vrpEmptyRejectedTitle") : t("vrpEmptyTitle");
+  const emptyWhy = !derived.supplied
+    ? t("vrpEmptyWhy")
+    : derived.orderRejected > 0
+      ? t("vrpEmptyWhyRejected").replace("{n}", String(derived.orderRejected))
+      : t("vrpEmptyWhyShort").replace("{n}", String(MIN_SESSIONS));
+
   const fmtPts = (v: number | null | undefined, signed = false) =>
     v == null || !Number.isFinite(v)
       ? "—"
@@ -231,6 +261,13 @@ export function VolVrpPanel({
             : sourceDay
               ? t("vrpHistoryMismatch").replace("{history}", historyDay).replace("{current}", sourceDay)
               : t("vrpHistoryThrough").replace("{date}", historyDay)}
+        </div>
+      )}
+
+      {orderNote && (
+        <div data-testid="vrp-order-status" role="status"
+          style={{ fontSize: 10.5, lineHeight: 1.45, color: "var(--warn)", margin: "-2px 0 8px" }}>
+          {orderNote}
         </div>
       )}
 
@@ -261,9 +298,9 @@ export function VolVrpPanel({
 
       <div ref={boxRef} style={{ width: "100%", minWidth: 0 }}>
         {!enough || !geom || !stats ? (
-          <PanelEmpty title={t("vrpEmptyTitle")} why={t("vrpEmptyWhy")} minHeight={120} />
+          <PanelEmpty title={emptyTitle} why={emptyWhy} minHeight={120} />
         ) : (
-          <svg viewBox={`0 0 ${w} ${H}`} width={w} height={H} role="img" aria-label={t("vrpTitle")}>
+          <svg viewBox={`0 0 ${w} ${H}`} width={w} height={H} role="img" aria-label={orderNote ? `${t("vrpTitle")}. ${orderNote}` : t("vrpTitle")}>
             {/* p25–p75 band: "normal for this ticker", drawn not asserted */}
             <rect
               x={PAD.l}

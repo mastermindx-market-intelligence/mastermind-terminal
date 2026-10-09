@@ -156,6 +156,16 @@ const VOL_LEX = {
     "The historical band needs the aggregate-trend store (spot + IV per session); it has not been published for this root.",
     "历史区间需要聚合趋势数据（每日现价与IV）；该标的尚未发布。",
   ],
+  vrpOrderRejected:  ["Partial spread history · {n} supplied row rejected for a duplicate or out-of-order date", "差值历史不完整 · {n} 个已提供行因日期重复或顺序错乱被排除"],
+  vrpEmptyRejectedTitle: ["Supplied spread history could not be put in session order", "已提供的差值历史无法按交易日排序"],
+  vrpEmptyWhyRejected: [
+    "Aggregate-trend rows were supplied for this root, but {n} were rejected for duplicate or out-of-order dates, leaving too few sessions in an established order to derive the band.",
+    "该标的已提供聚合趋势数据，但其中 {n} 行因日期重复或顺序错乱被排除，顺序确定的交易日不足以推导历史区间。",
+  ],
+  vrpEmptyWhyShort: [
+    "Aggregate-trend rows were supplied for this root, but fewer than {n} sessions have the closes and IV needed to derive the band.",
+    "该标的已提供聚合趋势数据，但具备推导历史区间所需收盘价与IV的交易日少于 {n} 个。",
+  ],
 
   // ── Skew read (95–105% moneyness, from the drawn expiry) ───────────────────
   skewRead:          ["Proxy skew 95–105%", "代理中心偏斜 95–105%"],
