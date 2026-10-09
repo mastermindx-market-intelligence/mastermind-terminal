@@ -28,9 +28,8 @@ const RETURN_KEYS: Record<OuterWorkspace, string> = {
   rotation: "siReturnToRotation", discover: "siReturnToDiscover", breadth: "siReturnToBreadth",
 };
 const FEED_KEYS: Record<SectorFeed, string> = {
-  sector: "siFeedSector", confluence: "siFeedConfluence", themes: "siFeedThemes", heatmap: "siFeedHeatmap", risk: "siFeedRisk",
-  sector: "siFeedSector", confluence: "siFeedConfluence", themes: "siFeedThemes", heatmap: "siFeedHeatmap", history: "siFeedHistory",
-
+  sector: "siFeedSector", confluence: "siFeedConfluence", themes: "siFeedThemes",
+  heatmap: "siFeedHeatmap", risk: "siFeedRisk", history: "siFeedHistory",
 };
 const STATUS_KEYS: Record<FeedStatus, string> = {
   loading: "siStatusLoading", ready: "siStatusReady", access: "siStatusAccess", unavailable: "siStatusUnavailable",
