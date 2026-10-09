@@ -4,7 +4,7 @@ import { createRoot, type Root } from "react-dom/client";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import SectorRotationMap, { filterRotationPoints, rotationDomain, rotationQuadrant, rotationReceipt, rotationSynthesis, sectorRotationPoints, type SectorRotationMapProps } from "@/components/sector-intelligence/SectorRotationMap";
 import { LangProvider, applyLang } from "../i18n";
-import type { Row } from "../sectorIntelligence";
+import { sectorRotationHistory, type Row } from "../sectorIntelligence";
 
 (globalThis as unknown as { IS_REACT_ACT_ENVIRONMENT: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 const rows: Row[] = [
@@ -52,11 +52,76 @@ describe("source-native sector rotation math", () => {
   });
 });
 
+
+
+const historyPayload = {
+  meta: {
+    asOf: "2026-09-25",
+    benchmark: "SPY",
+    rs_history: {
+      schema: "sector_cycles.rs_history.v1",
+      mode: "reconstructed_price_history",
+      naturally_observed: false,
+      basis: "tr",
+      benchmark: "SPY",
+      horizons_sessions: [21, 63],
+      max_points_per_sector: 252,
+    },
+  },
+  sectors: [
+    {
+      id: "xlk", ticker: "XLK", kind: "sector",
+      rs_history: [
+        { date: "2026-09-23", rs_21d: 2.0, rs_63d: 4.0 },
+        { date: "2026-09-24", rs_21d: 4.5, rs_63d: 4.8 },
+        { date: "2026-09-25", rs_21d: 7.0, rs_63d: 5.0 },
+      ],
+    },
+    {
+      id: "xlf", ticker: "XLF", kind: "sector",
+      rs_history: [
+        { date: "2026-09-24", rs_21d: 1.5, rs_63d: -3.0 },
+        { date: "2026-09-25", rs_21d: 2.0, rs_63d: -4.0 },
+      ],
+    },
+  ],
+};
+
+describe("sector rotation historical owner contract", () => {
+  it("admits only the exact reconstructed-price history envelope without relabeling it observed", () => {
+    const parsed = sectorRotationHistory(historyPayload);
+    expect(parsed).not.toBeNull();
+    expect(parsed?.mode).toBe("reconstructed_price_history");
+    expect(parsed?.naturallyObserved).toBe(false);
+    expect(parsed?.benchmark).toBe("SPY");
+    expect(parsed?.series.xlk.points.at(-1)).toEqual({ date: "2026-09-25", rs21: 7, rs63: 5 });
+
+    const malformed = structuredClone(historyPayload);
+    malformed.meta.rs_history.naturally_observed = true;
+    expect(sectorRotationHistory(malformed)).toBeNull();
+    malformed.meta.rs_history.naturally_observed = false;
+    malformed.sectors[0].rs_history[1].date = "09/24/2026";
+    expect(sectorRotationHistory(malformed)).toBeNull();
+  });
+
+  it("fails the whole history population on duplicate, unordered, or nonfinite points", () => {
+    const mutations: Array<(data: typeof historyPayload) => void> = [
+      data => { data.sectors[0].rs_history.push({ ...data.sectors[0].rs_history[1] }); },
+      data => { data.sectors[0].rs_history.reverse(); },
+      data => { data.sectors[0].rs_history[0].rs_21d = Number.NaN; },
+    ];
+    for (const mutate of mutations) {
+      const candidate = structuredClone(historyPayload); mutate(candidate);
+      expect(sectorRotationHistory(candidate)).toBeNull();
+    }
+  });
+});
+
 describe("SectorRotationMap", () => {
   let root: Root, host: HTMLDivElement;
   const select = vi.fn(), mode = vi.fn(), query = vi.fn(), research = vi.fn(), sources = vi.fn();
   const render = async (patch: Partial<SectorRotationMapProps> = {}) => {
-    const props: SectorRotationMapProps = { rows, status: "ready", asOf: "2026-09-25", selected: "xlk", mode: "map", query: "", onMode: mode, onQuery: query, onSelect: select, onOpenResearch: research, onSources: sources, ...patch };
+    const props: SectorRotationMapProps = { rows, status: "ready", asOf: "2026-09-25", selected: "xlk", mode: "map", query: "", history: sectorRotationHistory(historyPayload), historyStatus: "ready", onMode: mode, onQuery: query, onSelect: select, onOpenResearch: research, onSources: sources, ...patch };
     await act(async () => root.render(<LangProvider><SectorRotationMap {...props} /></LangProvider>));
   };
   beforeEach(() => {
@@ -72,7 +137,7 @@ describe("SectorRotationMap", () => {
     expect(host.querySelector('[data-testid="rotation-answer"]')?.textContent).toContain("Technology is the only sector positive on both 21D and 63D relative strength.");
     const method = host.querySelector<HTMLDetailsElement>("[data-rotation-method]")!;
     expect(method.open).toBe(false); expect(method.textContent).toContain("5 / 6 coordinates available");
-    expect(method.textContent).toContain("Historical trail is not connected");
+    expect(method.textContent).toContain("Historical trail"); expect(method.textContent).toContain("not a record of what Mastermind observed then");
     expect(host.querySelector('[data-sector-rotation-point="xlk"]')?.getAttribute("data-quadrant")).toBe("leading");
     expect(host.querySelector('[data-sector-rotation-point="xli"]')?.getAttribute("style")).toContain("left: 50%");
     expect(host.querySelector('[data-sector-rotation-point="xli"]')?.getAttribute("style")).toContain("top: 50%");
@@ -117,10 +182,39 @@ describe("SectorRotationMap", () => {
     expect(host.querySelectorAll("[data-sector-rotation-point]")).toHaveLength(0);
     expect(host.textContent).not.toContain("+7.0%");
   });
+  it("connects a truthful daily reconstructed history without changing current coordinates", async () => {
+    await render();
+    const history = host.querySelector('[data-testid="rotation-history"]');
+    expect(history).not.toBeNull();
+    expect(history?.textContent).toContain("Reconstructed from sector/SPY price history");
+    expect(history?.textContent).toContain("not a record of what Mastermind observed then");
+    expect(history?.textContent).toContain("Sep 25");
+    expect(history?.textContent).toContain("+7.0%");
+    expect(history?.textContent).toContain("+5.0%");
+    expect(host.querySelector('[data-sector-rotation-point="xlk"]')?.getAttribute("data-quadrant")).toBe("leading");
+
+    const slider = history?.querySelector('input[type="range"]') as HTMLInputElement;
+    await act(async () => {
+      slider.value = "0";
+      slider.dispatchEvent(new Event("input", { bubbles: true }));
+    });
+    expect(history?.textContent).toContain("Sep 23");
+    expect(history?.textContent).toContain("+2.0%");
+    expect(history?.textContent).toContain("+4.0%");
+    expect(host.querySelector('[data-testid="rotation-receipt"]')?.textContent).toBe("Sep 25 · 6 sectors");
+  });
+
+  it("keeps the current snapshot usable when historical owner data is unavailable", async () => {
+    await render({ history: null, historyStatus: "unavailable" });
+    expect(host.querySelectorAll("[data-sector-rotation-point]")).toHaveLength(5);
+    expect(host.querySelector('[data-testid="rotation-history"]')?.textContent).toContain("Historical trail unavailable");
+    expect(host.textContent).not.toContain("Reconstructed from sector/SPY price history");
+  });
+
   it("uses the shared language provider for answer, map, tactical state and method copy", async () => {
     await render(); await act(async () => applyLang("zh"));
     expect(host.textContent).toContain("轮动"); expect(host.textContent).toContain("科技是唯一在21日和63日相对强度均为正的板块");
-    expect(host.textContent).toContain("战术状态关注入场"); expect(host.textContent).toContain("不推断历史轨迹");
+    expect(host.textContent).toContain("战术状态关注入场"); expect(host.textContent).toContain("由板块/SPY历史价格重建");
     expect(host.textContent).not.toContain("Market read");
   });
 });

@@ -15,6 +15,7 @@ const PATHS: Record<SectorFeed, string> = {
   confluence: "/marketdata/subsector_confluence.json",
   themes: "/neuralwebdata/theme_state.json",
   heatmap: "/marketdata/sp500_heatmap.json",
+  history: "/sectordata/sector_cycles.json",
 };
 const MAX_BYTES = 4 * 1024 * 1024;
 

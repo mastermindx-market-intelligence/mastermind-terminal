@@ -2,7 +2,7 @@
  * This module neither emits a dossier nor creates rankings/entry permission.
  * Missing numbers stay null. Every feed keeps its own clock and cohort.
  */
-export const SECTOR_FEEDS = ["sector", "confluence", "themes", "heatmap"] as const;
+export const SECTOR_FEEDS = ["sector", "confluence", "themes", "heatmap", "history"] as const;
 export type SectorFeed = typeof SECTOR_FEEDS[number];
 export type FeedStatus = "loading" | "ready" | "access" | "unavailable" | "invalid" | "error";
 export interface FeedReceipt {
@@ -43,10 +43,70 @@ export function object(value: unknown): Row {
 }
 export const text = (v: unknown): string => typeof v === "string" ? v : "";
 export const number = (v: unknown): number | null => typeof v === "number" && Number.isFinite(v) ? v : null;
+
+export interface SectorRotationHistoryPoint {
+  date: string;
+  rs21: number;
+  rs63: number;
+}
+export interface SectorRotationHistorySeries {
+  id: string;
+  ticker: string;
+  points: SectorRotationHistoryPoint[];
+}
+export interface SectorRotationHistory {
+  schema: "sector_cycles.rs_history.v1";
+  asOf: string;
+  mode: "reconstructed_price_history";
+  naturallyObserved: false;
+  basis: "tr";
+  benchmark: "SPY";
+  horizons: readonly [21, 63];
+  maxPoints: 252;
+  series: Record<string, SectorRotationHistorySeries>;
+}
+const ISO_DAY = /^\d{4}-\d{2}-\d{2}$/;
+function strictDay(value: unknown): string | null {
+  if (typeof value !== "string" || !ISO_DAY.test(value)) return null;
+  const parsed = new Date(value + "T00:00:00Z");
+  return Number.isFinite(parsed.getTime()) && parsed.toISOString().slice(0, 10) === value ? value : null;
+}
+export function sectorRotationHistory(data: unknown): SectorRotationHistory | null {
+  const root = object(data), meta = object(root.meta), contract = object(meta.rs_history);
+  const asOf = strictDay(meta.asOf);
+  if (!asOf || contract.schema !== "sector_cycles.rs_history.v1"
+    || contract.mode !== "reconstructed_price_history" || contract.naturally_observed !== false
+    || contract.basis !== "tr" || contract.benchmark !== "SPY"
+    || !Array.isArray(contract.horizons_sessions)
+    || contract.horizons_sessions.length !== 2 || contract.horizons_sessions[0] !== 21 || contract.horizons_sessions[1] !== 63
+    || contract.max_points_per_sector !== 252
+    || !Array.isArray(root.sectors) || root.sectors.length > 100) return null;
+
+  const series: Record<string, SectorRotationHistorySeries> = {};
+  for (const value of root.sectors) {
+    const row = object(value), id = text(row.id), ticker = text(row.ticker), raw = row.rs_history;
+    if (!KEY.test(id) || !SYMBOL.test(ticker) || row.kind !== "sector"
+      || !Array.isArray(raw) || raw.length === 0 || raw.length > 252 || Object.hasOwn(series, id)) return null;
+    const points: SectorRotationHistoryPoint[] = [];
+    let prior = "";
+    for (const pointValue of raw) {
+      const point = object(pointValue), date = strictDay(point.date), rs21 = number(point.rs_21d), rs63 = number(point.rs_63d);
+      if (!date || date > asOf || date <= prior || rs21 === null || rs63 === null) return null;
+      prior = date;
+      points.push({ date, rs21, rs63 });
+    }
+    series[id] = { id, ticker, points };
+  }
+  return {
+    schema: "sector_cycles.rs_history.v1", asOf, mode: "reconstructed_price_history",
+    naturallyObserved: false, basis: "tr", benchmark: "SPY", horizons: [21, 63],
+    maxPoints: 252, series,
+  };
+}
 export function sourceDate(data: unknown): string | null {
-  const row = object(data);
+  const row = object(data), meta = object(row.meta);
   // These are source-date aliases, not generated/fetched-time substitutes.
-  const value = row.as_of ?? row.asof;
+  const value = row.as_of ?? row.asof ?? meta.asOf;
   if (typeof value !== "string" || !/^\d{4}-\d{2}-\d{2}(?:T.*)?$/.test(value)) return null;
   const day = value.slice(0, 10), parsed = new Date(day + "T00:00:00Z");
   return Number.isFinite(parsed.getTime()) && parsed.toISOString().slice(0, 10) === day ? day : null;
@@ -61,6 +121,7 @@ export function readableOwnerEnvelope(source: SectorFeed, data: unknown): boolea
   if (source === "sector") return bounded(root.sectors);
   if (source === "confluence") return root.ok === true && bounded(root.subsectors) && bounded(root.sectors);
   if (source === "themes") return root.schema === "neuralweb.theme_state.v1" && bounded(root.themes);
+  if (source === "history") return sectorRotationHistory(data) !== null;
   return root.size_basis === "marketcap" && bounded(root.tiles) && root.n_tiles === (root.tiles as unknown[]).length;
 }
 function uniqueRows(found: Row[], key: string): Row[] {

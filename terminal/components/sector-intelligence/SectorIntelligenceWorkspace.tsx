@@ -7,7 +7,7 @@ import { useLang } from "@/lib/i18n";
 import { useSectorT } from "@/lib/sectorIntelligenceLex";
 import { useShellIdentity } from "@/components/chrome/AppShell";
 import { SECTOR_FEEDS, SECTOR_VIEWS, DEFAULT_SECTOR_STATE, object, text, number, sectorRows,
-  groupRows, themeRows, themeEntryReady, themeStaleLegs, members, concentration, sortMembers, parseSectorState, writeSectorState,
+  groupRows, themeRows, themeEntryReady, themeStaleLegs, sectorRotationHistory, members, concentration, sortMembers, parseSectorState, writeSectorState,
   formatValue, type FeedMap, type FeedPayload, type FeedStatus,
   type SectorFeed, type SectorState, type SectorView, type Row } from "@/lib/sectorIntelligence";
 import SectorGroupBrowser from "./SectorGroupBrowser";
@@ -28,7 +28,7 @@ const RETURN_KEYS: Record<OuterWorkspace, string> = {
   rotation: "siReturnToRotation", discover: "siReturnToDiscover", breadth: "siReturnToBreadth",
 };
 const FEED_KEYS: Record<SectorFeed, string> = {
-  sector: "siFeedSector", confluence: "siFeedConfluence", themes: "siFeedThemes", heatmap: "siFeedHeatmap",
+  sector: "siFeedSector", confluence: "siFeedConfluence", themes: "siFeedThemes", heatmap: "siFeedHeatmap", history: "siFeedHistory",
 };
 const STATUS_KEYS: Record<FeedStatus, string> = {
   loading: "siStatusLoading", ready: "siStatusReady", access: "siStatusAccess", unavailable: "siStatusUnavailable",
@@ -142,6 +142,7 @@ export default function SectorIntelligenceWorkspace() {
   const sectors = useMemo(() => sectorRows(feeds.sector?.data), [feeds.sector]);
   const groups = useMemo(() => groupRows(feeds.confluence?.data), [feeds.confluence]);
   const themes = useMemo(() => themeRows(feeds.themes?.data), [feeds.themes]);
+  const rotationHistory = useMemo(() => sectorRotationHistory(feeds.history?.data), [feeds.history]);
   const sector = useMemo(() => sectors.find(r => r.id === state.sector) || {}, [sectors, state.sector]);
   const group = useMemo(() => groups.find(r => r.key === state.group) || {}, [groups, state.group]);
   const roster = useMemo(() => members(group), [group]);
@@ -271,6 +272,7 @@ export default function SectorIntelligenceWorkspace() {
       </div>}
       {state.workspace === "rotation" ? <SectorRotationMap rows={sectors} status={status}
         asOf={feeds.sector?.receipt.asOf || null} selected={state.sector} mode={state.rotationMode} query={state.rotationQuery}
+        history={rotationHistory} historyStatus={feeds.history?.receipt.status || "loading"}
         onMode={rotationMode => change({ rotationMode })} onQuery={rotationQuery => change({ rotationQuery })}
         onSources={() => openSources()} onSelect={sector => change({ sector }, true)}
         onOpenResearch={openSectorResearch} />

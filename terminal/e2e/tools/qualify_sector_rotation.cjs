@@ -6,16 +6,27 @@ const fs = require("node:fs"), path = require("node:path"), crypto = require("no
 const { chromium, webkit, expect } = require("@playwright/test");
 const input = process.argv[2], port = process.argv[3] || "3157", run = process.argv[4] || "initial";
 assert(input && /^\d{4,5}$/.test(port) && /^[a-z0-9-]+$/.test(run));
-const origin = `http://127.0.0.1:${port}`, out = path.resolve(`../docs/pr-crops/sector-rotation-20260927/${run}`);
+const origin = `http://localhost:${port}`, out = path.resolve(`../docs/pr-crops/sector-rotation-20260927/${run}`);
 assert(!fs.existsSync(out), "Retain earlier proof runs"); fs.mkdirSync(out, { recursive: true });
 const provenance = JSON.parse(fs.readFileSync(path.join(input, "provenance.json"), "utf8"));
 const bytes = fs.readFileSync(path.join(input, "sector.json")), source = JSON.parse(bytes);
+const historyBytes = fs.readFileSync(path.join(input, "history.json")), history = JSON.parse(historyBytes);
 assert.equal(crypto.createHash("sha256").update(bytes).digest("hex"), provenance.files.sector.sha256);
+assert.equal(crypto.createHash("sha256").update(historyBytes).digest("hex"), provenance.files.history.sha256);
+assert.equal(history.meta?.rs_history?.schema, "sector_cycles.rs_history.v1");
+assert.equal(history.meta?.rs_history?.mode, "reconstructed_price_history");
+assert.equal(history.meta?.rs_history?.naturally_observed, false);
 const report = { sourceRevision: provenance.ref, sourcePath: provenance.source, sourceSha256: provenance.files.sector.sha256,
+  historyRevision: provenance.historyRef, historyPath: provenance.historySource, historySha256: provenance.files.history.sha256,
   sourceBodiesChanged: false, transport: "local interception", productionProof: false, independentDesignAcceptance: false,
   checks: [], screenshots: [], errors: [] };
 function check(name, ok, details) { report.checks.push({ name, passed: !!ok, details }); assert(ok, name); }
 async function shot(page, name) { const file = path.join(out, name + ".png"); await page.screenshot({ path: file, fullPage: true }); report.screenshots.push({ name: name + ".png", sha256: crypto.createHash("sha256").update(fs.readFileSync(file)).digest("hex") }); }
+function shortDate(day, lang) {
+ const m = String(day || "").match(/^(\d{4})-(\d{2})-(\d{2})$/); if (!m) return "";
+ const month = Number(m[2]), date = Number(m[3]), months = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+ return lang === "zh" ? `${month}月${date}日` : `${months[month - 1]} ${date}`;
+}
 const cases = [["chromium",1440,900,"en","light"],["chromium",820,1180,"en","dark"],["chromium",390,844,"en","light"],["webkit",1440,900,"en","dark"],["webkit",390,844,"zh","light"]];
 let browser;
 (async () => {
@@ -34,7 +45,11 @@ let browser;
     if (key === "sector") return route.fulfill({ status: access ? 200 : 401, json: { data: access ? source : null,
       receipt: { source: "sector", path: "/sectordata/sector_central.json", status: access ? "ready" : "access",
         asOf: access ? source.as_of : null, contentHash: access ? provenance.files.sector.sha256 : null,
-        observedAt: access ? "2026-09-27T08:50:00Z" : null, stale: false } } });
+        observedAt: access ? "2026-10-05T08:30:00Z" : null, stale: false } } });
+    if (key === "history") return route.fulfill({ status: access ? 200 : 401, json: { data: access ? history : null,
+      receipt: { source: "history", path: "/sectordata/sector_cycles.json", status: access ? "ready" : "access",
+        asOf: access ? history.meta.asOf : null, contentHash: access ? provenance.files.history.sha256 : null,
+        observedAt: access ? "2026-10-05T08:30:00Z" : null, stale: false } } });
     return route.fulfill({ status: 401, json: { data: null, receipt: { source: key, path: null, status: "access", asOf: null, contentHash: null, observedAt: null, stale: false } } });
    }
    if (url.pathname.startsWith("/api/")) return route.fulfill({ status: 200, json: {} });
@@ -48,7 +63,7 @@ let browser;
   await expect(rotation.locator("[data-sector-rotation-point]")).toHaveCount(complete.length);
   check(label + ": exact sector population plotted", complete.length === 11);
   const receipt = await rotation.getByTestId("rotation-receipt").innerText();
-  check(label + ": compact dated receipt", receipt === (lang === "zh" ? "9月25日 · 11个板块" : "Sep 25 · 11 sectors"), receipt);
+  check(label + ": compact dated receipt", receipt === `${shortDate(source.as_of, lang)} · ${lang === "zh" ? "11个板块" : "11 sectors"}`, receipt);
   const positiveBoth = complete.filter(row => row.momentum.rs_21d > 0 && row.momentum.rs_63d > 0);
   const strongestQuarter = complete.reduce((best, row) => row.momentum.rs_63d > best.momentum.rs_63d ? row : best);
   const localName = row => lang === "zh" ? row.name_zh || row.name : row.name;
@@ -66,8 +81,21 @@ let browser;
   check(label + ": tactical state is separately labeled", inspectorText.toLocaleLowerCase("en-US").includes((lang === "zh" ? "战术状态" : "Tactical state").toLocaleLowerCase("en-US")), inspectorText);
   const method = rotation.locator("[data-rotation-method]"), methodSummary = method.locator("summary");
   await methodSummary.click();
-  check(label + ": no fabricated trail", (await method.innerText()).includes(lang === "zh" ? "尚未连接历史轨迹" : "Historical trail is not connected"));
+  const methodText = await method.innerText();
+  check(label + ": history is explicitly reconstructed, never presented as observed", methodText.includes(lang === "zh" ? "由板块/SPY历史价格重建" : "Reconstructed from sector/SPY price history"), methodText);
   await methodSummary.click();
+  const historical = rotation.getByTestId("rotation-history");
+  await expect(historical).toBeVisible();
+  const historyText = await historical.innerText();
+  check(label + ": historical owner date is visible", historyText.includes(shortDate(history.meta.asOf, lang)), historyText);
+  check(label + ": reconstructed provenance is visible at point of use", historyText.includes(lang === "zh" ? "并非Mastermind当时实时观察的记录" : "not a record of what Mastermind observed then"), historyText);
+  const selectedHistory = history.sectors.find(row => row.id === "xlk").rs_history;
+  const historySlider = historical.getByRole("slider", { name: lang === "zh" ? "历史日期" : "Historical date" });
+  await historySlider.fill("0");
+  const firstHistory = await historical.innerText();
+  check(label + ": history date navigation reaches the first retained point", firstHistory.includes(shortDate(selectedHistory[0].date, lang)), firstHistory);
+  check(label + ": historical coordinate is source-exact", firstHistory.includes((selectedHistory[0].rs_21d >= 0 ? "+" : "") + selectedHistory[0].rs_21d.toFixed(1) + "%")
+    && firstHistory.includes((selectedHistory[0].rs_63d >= 0 ? "+" : "") + selectedHistory[0].rs_63d.toFixed(1) + "%"), firstHistory);
   const filter = rotation.locator("[data-rotation-filter]"); await filter.locator("summary").click();
   const priorStyle = await techPoint.getAttribute("style"), search = rotation.getByRole("searchbox");
   await search.fill(lang === "zh" ? "科技" : "tech"); await expect(rotation.locator("[data-sector-rotation-point]")).toHaveCount(1);
@@ -93,9 +121,14 @@ let browser;
   await expect(root).toHaveAttribute("data-sector-workspace", "rotation"); await expect(rotation.locator('[data-sector-rotation-row="xle"]')).toHaveAttribute("aria-pressed", "true");
   check(label + ": browser Back also restores rotation state", true);
   await rotation.getByRole("button", { name: lang === "zh" ? "图表" : "Map", exact: true }).click();
-  const first = rotation.locator('[data-sector-rotation-point="xlk"]'); await first.focus(); await page.keyboard.press("ArrowRight");
-  await expect(page).toHaveURL(/sector=xlc/); await expect(rotation.locator('[data-sector-rotation-point="xlc"]')).toBeFocused();
-  check(label + ": keyboard navigation advances exact source order", true);
+  const first = rotation.locator('[data-sector-rotation-point="xlk"]');
+  const currentIndex = complete.findIndex(row => row.id === "xlk");
+  check(label + ": keyboard anchor belongs to the observed plotted population", currentIndex >= 0);
+  const nextSourceId = complete[(currentIndex + 1) % complete.length].id;
+  await first.focus(); await page.keyboard.press("ArrowRight");
+  await expect.poll(() => new URL(page.url()).searchParams.get("sector")).toBe(nextSourceId);
+  await expect(rotation.locator(`[data-sector-rotation-point="${nextSourceId}"]`)).toBeFocused();
+  check(label + ": keyboard navigation advances exact source order", true, nextSourceId);
   const sourceButton = rotation.getByRole("button", { name: new RegExp(lang === "zh" ? "查看来源" : "Review sources") });
   await sourceButton.click(); const dialog = page.getByRole("dialog", { name: lang === "zh" ? "来源" : "Sources", exact: true });
   await expect(dialog).toBeVisible(); check(label + ": Sources belongs to rotation", (await dialog.innerText()).includes(lang === "zh" ? "轮动" : "Rotation"));

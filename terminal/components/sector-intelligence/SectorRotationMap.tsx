@@ -1,8 +1,8 @@
 "use client";
 
-import { useMemo, useRef, type CSSProperties, type KeyboardEvent } from "react";
+import { useMemo, useRef, useState, type CSSProperties, type KeyboardEvent } from "react";
 import { useLang } from "@/lib/i18n";
-import { formatValue, number, object, text, type FeedStatus, type Row, type SectorRotationMode } from "@/lib/sectorIntelligence";
+import { formatValue, number, object, text, type FeedStatus, type Row, type SectorRotationHistory, type SectorRotationMode } from "@/lib/sectorIntelligence";
 import styles from "./SectorRotationMap.module.css";
 
 export type RotationQuadrant = "leading" | "improving" | "lagging" | "weakening";
@@ -34,6 +34,8 @@ export interface SectorRotationMapProps {
   selected: string;
   mode: SectorRotationMode;
   query: string;
+  history?: SectorRotationHistory | null;
+  historyStatus?: FeedStatus;
   onMode: (mode: SectorRotationMode) => void;
   onQuery: (query: string) => void;
   onSelect: (id: string) => void;
@@ -51,7 +53,7 @@ const COPY = {
   sourceDate: ["Source date", "来源日期"], unknownDate: ["Date unavailable", "日期不可用"],
   sectors: ["sectors", "个板块"], shown: ["shown", "已显示"],
   coordinates: ["coordinates available", "个坐标可用"],
-  currentOnly: ["Current source snapshot; no historical trail is inferred.", "当前来源快照；不推断历史轨迹。"],
+  currentOnly: ["Current map remains the dated Sector Central snapshot; history selection never changes the current source population or axis scale.", "当前图表仍为带日期的板块中心快照；历史选择不会改变当前来源样本或坐标尺度。"],
   displayOnly: ["Display filtering never changes the source population or axis scale.", "显示筛选不会改变来源样本或坐标尺度。"],
   faster: ["21-session RS vs SPY", "相对SPY的21个交易日强度"],
   quarter: ["63-session RS vs SPY", "相对SPY的63个交易日强度"],
@@ -70,8 +72,15 @@ const COPY = {
   participation: ["Advancing participation", "上涨参与度"],
   ranks: ["Leadership ranks", "领涨排名"],
   rankCopy: ["21-session / 63-session", "21个交易日 / 63个交易日"],
-  noTrail: ["Historical trail is not connected", "尚未连接历史轨迹"],
-  noTrailCopy: ["This surface plots one dated owner snapshot. It does not manufacture prior positions, turns or forecasts.", "此界面仅绘制一个带日期的来源快照，不生成历史位置、转折或预测。"],
+  noTrail: ["Historical trail unavailable", "历史轨迹不可用"],
+  noTrailCopy: ["The current snapshot remains usable; no prior coordinates are inferred while the history owner is unavailable.", "当前快照仍可使用；历史来源不可用时不推断任何过去坐标。"],
+  historyTitle: ["Historical trail", "历史轨迹"],
+  historySource: ["Sector RS history", "板块相对强度历史"],
+  historyProvenance: ["Reconstructed from sector/SPY price history — not a record of what Mastermind observed then.", "由板块/SPY历史价格重建——并非Mastermind当时实时观察的记录。"],
+  historyDate: ["Historical date", "历史日期"],
+  historyPoint: ["Historical coordinate", "历史坐标"],
+  historyLoading: ["Historical trail is loading; the current snapshot remains available.", "历史轨迹正在加载；当前快照仍可使用。"],
+  historyCount: ["daily reconstructed points", "个每日重建点"],
   method: ["Method and source", "方法与来源"],
   methodCopy: ["Horizontal: 63-session change in the sector/SPY relative-strength ratio. Vertical: 21-session change in the same ratio. Quadrants are sign-based and descriptive, not entry permission.", "横轴：板块/SPY相对强度比率的63个交易日变化；纵轴：同一比率的21个交易日变化。象限按正负划分，仅作描述，不授予入场资格。"],
   sector: ["Sector", "板块"], quadrant: ["Quadrant", "象限"],
@@ -178,6 +187,14 @@ export function rotationReceipt(asOf: string | null, total: number, lang: "en" |
   return `${date} · ${count}`;
 }
 
+function rotationHistoryDate(day: string, lang: "en" | "zh"): string {
+  const match = day.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (!match) return day;
+  const month = Number(match[2]), date = Number(match[3]);
+  const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+  return lang === "zh" ? `${month}月${date}日` : `${months[month - 1]} ${date}`;
+}
+
 function sign(value: number | null, digits = 1, suffix = "%"): string {
   return formatValue(value, digits, suffix, true);
 }
@@ -194,6 +211,14 @@ export default function SectorRotationMap(props: SectorRotationMapProps) {
   const language = lang === "zh" ? "zh" : "en";
   const synthesis = useMemo(() => rotationSynthesis(points, language), [points, language]);
   const receipt = rotationReceipt(props.asOf, points.length, language);
+  const historyKey = `${props.selected}|${props.history?.asOf || ""}`;
+  const [historySelection, setHistorySelection] = useState<{ key: string; index: number | null }>({ key: "", index: null });
+  const historyCursor = historySelection.key === historyKey ? historySelection.index : null;
+  const historySeries = props.history?.series[props.selected] || null;
+  const historyPoints = historySeries?.points || [];
+  const historyIndex = historyPoints.length ? Math.min(historyCursor ?? historyPoints.length - 1, historyPoints.length - 1) : -1;
+  const historical = historyIndex >= 0 ? historyPoints[historyIndex] : null;
+  const historyConnected = props.historyStatus === "ready" && props.history !== null && !!historical;
   const refs = useRef<Record<string, HTMLButtonElement | null>>({});
   const name = (point: SectorRotationPoint) => lang === "zh" ? point.nameZh || point.name : point.name;
   const quadrantName = (point: SectorRotationPoint) => point.quadrant ? t(point.quadrant) : t("unavailable");
@@ -275,10 +300,29 @@ export default function SectorRotationMap(props: SectorRotationMapProps) {
         <RotationInspector point={selected} name={name} quadrantName={quadrantName} t={t} lang={lang} onOpen={props.onOpenResearch} />
       </div>}
 
+    <section className={styles.history} data-testid="rotation-history" aria-label={t("historyTitle")}>
+      <header><div><span>{t("historySource")}</span><h3>{t("historyTitle")}</h3></div>
+        <small>{props.history?.asOf ? rotationHistoryDate(props.history.asOf, language) : t("unknownDate")}</small></header>
+      {historyConnected && historical ? <>
+        <p className={styles.historyProvenance}>{t("historyProvenance")}</p>
+        <label className={styles.historyControl}>{t("historyDate")}
+          <input type="range" min={0} max={Math.max(0, historyPoints.length - 1)} step={1} value={historyIndex}
+            aria-label={t("historyDate")} onInput={event => setHistorySelection({ key: historyKey, index: Number(event.currentTarget.value) })} />
+        </label>
+        <div className={styles.historyRead} aria-live="polite">
+          <time dateTime={historical.date}>{rotationHistoryDate(historical.date, language)}</time>
+          <dl><div><dt>{t("faster")}</dt><dd>{sign(historical.rs21)}</dd></div>
+            <div><dt>{t("quarter")}</dt><dd>{sign(historical.rs63)}</dd></div>
+            <div><dt>{t("quadrant")}</dt><dd>{t(rotationQuadrant(historical.rs63, historical.rs21) || "unavailable")}</dd></div></dl>
+        </div>
+        <p className={styles.historyFoot}>{historyPoints.length} {t("historyCount")} · {t("displayOnly")}</p>
+      </> : <p className={styles.historyUnavailable}>{props.historyStatus === "loading" ? t("historyLoading") : `${t("noTrail")} · ${t("noTrailCopy")}`}</p>}
+    </section>
+
     <div className={styles.disclosures}>
       <details data-rotation-method><summary>{t("method")}</summary><div className={styles.methodBody}>
         <p>{t("methodCopy")}</p><p>{t("sourceBoundary")}</p><p>{t("currentOnly")} {t("displayOnly")}</p>
-        <p><strong>{t("noTrail")}</strong> · {t("noTrailCopy")}</p>
+        <p><strong>{historyConnected ? t("historyTitle") : t("noTrail")}</strong> · {historyConnected ? t("historyProvenance") : t("noTrailCopy")}</p>
         <p>{allPlotted.length} / {points.length} {t("coordinates")}{points.some(point => point.quadrant === null)
           ? ` · ${points.filter(point => point.quadrant === null).length} ${t("missingCoordinates")}` : ""}.</p>
       </div></details>
