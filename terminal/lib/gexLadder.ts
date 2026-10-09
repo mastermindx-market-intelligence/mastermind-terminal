@@ -57,6 +57,9 @@ export interface GexMatrixCell {
   gex: number | null;
 }
 
+/** A cell whose `gex` is a finite measured value (a measured 0 included). */
+export type KnownGexMatrixCell = GexMatrixCell & { gex: number };
+
 /** The slice of `options_structure.matrix/v1` the ladder needs. */
 export interface GexMatrix {
   /** The build clock — NOT the source session. */
@@ -163,16 +166,35 @@ export interface LensStrikeDetail {
 export type LensUnavailableReason =
   | "source_session_unavailable"
   | "different_source_session"
+  | "population_unavailable"
   | "invalid_axis"
   | "invalid_cell_identity"
   | "duplicate_cell_identity"
   | "unsupported_scope"
   | "numeric_overflow";
 
+/**
+ * The population a narrow lens is REQUIRED to cover in the coupled desk view: what the desk
+ * displays and what the lens label names. The matrix is windowed differently from both
+ * (producer: strikes ±20% of spot with no cap, expiries ≤90 DTE; the ladder is the 160
+ * strikes nearest spot and `by_expiry` is the whole chain), so its own grid is never the
+ * population: a required pair the matrix does not carry is unresolved, not out of scope,
+ * and a matrix strike the ladder does not show never enters the sum.
+ */
+export interface LensPopulation {
+  /** The ladder's strikes (gex `by_strike[].strike`), i.e. the rows the desk renders. */
+  strikes: Iterable<number>;
+  /** The chain's expirations (gex `by_expiry[].exp`); null when the payload did not supply them. */
+  expiries: Iterable<string | null | undefined> | null;
+}
+
 export interface LensStrikeValues {
   /** strike → net gamma exposure in $mn, set ONLY for strikes whose every selected cell is known. */
   byStrike: Map<number, number>;
-  /** The strike axis the lens was judged over — the same set for every narrow lens. */
+  /**
+   * Strikes of the judged population that the matrix strike axis carries. The judged
+   * population (the keys of `byStrikeDetail`) is the same for every narrow lens.
+   */
   covered: Set<number>;
   /** Σ over the whole selected grid, $mn — null unless every selected cell is known. */
   totalMn: number | null;
@@ -188,6 +210,10 @@ export interface LensStrikeValues {
   byStrikeDetail: Map<number, LensStrikeDetail>;
   /** Selected (strike, expiry) pairs that are absent, null or non-finite. */
   unresolvedPairCount: number;
+  /** Judged strikes the matrix strike axis does not carry (all of their pairs are unresolved). */
+  missingStrikeCount: number;
+  /** Selected expiries the matrix expiry axis does not carry (all of their pairs are unresolved). */
+  missingExpiryCount: number;
   /** Selected-grid arithmetic only; never a claim about source quality or the full book. */
   complete: boolean;
   reason: LensUnavailableReason | null;
@@ -263,15 +289,24 @@ const MAX_GRID_CELLS = 100_000;
 /**
  * Sum the matrix cells selected by `lens` down to one value per strike, in $mn.
  *
- * The selected grid is every matrix strike × every selected expiry on or after the source
+ * The selected grid is the judged strikes × every selected expiry on or after the source
  * session (an earlier expiry was already expired at capture time). Every pair in that
  * grid is required:
  *   - a known cell (finite `gex`, including a measured 0) contributes its value;
  *   - an absent pair, or a null / non-finite `gex`, is UNRESOLVED — never an inferred 0.
  * A strike row is set only when all its selected cells are known, and `totalMn` is set only
  * when the whole grid is known. The known part stays available as `knownTotalMn` so the view
- * can disclose it as a subtotal. The strike population (`covered`, `byStrikeDetail`) is the
- * matrix strike axis for every narrow lens, so changing the lens never silently changes it.
+ * can disclose it as a subtotal.
+ *
+ * The judged population:
+ *   - with `population` (the desk): the ladder's strikes × the chain expiries (gex
+ *     `by_expiry`, united with the matrix's own expiry axis) the lens selects. A required pair
+ *     the matrix windowed away — a ladder strike off its strike axis, a chain expiry past its
+ *     DTE window — is unresolved and withholds the total; a matrix strike the ladder does not
+ *     show never enters the sum, so a complete total always equals the sum of the rows shown.
+ *   - without it (source-local readers): the matrix's own strike × expiry axes.
+ * Either way the strike population is the same for every narrow lens, so changing the lens
+ * never silently changes it.
  *
  * `operation: "coupled-view"` (the desk) also requires the gex payload to describe the same
  * session (`matrixDescribedSessionsMatch`); `"source-local"` reads the matrix on its own.
@@ -282,9 +317,41 @@ export function matrixLensByStrike(
   lens: ExpiryLens,
   gexAsOf: string | null | undefined,
   operation: "coupled-view" | "source-local" = "coupled-view",
+  population?: LensPopulation,
 ): LensStrikeValues {
-  const sourceSession = matrixSourceSession(matrix);
-  const empty: LensStrikeValues = {
+  if (lens.kind === "all") return emptyLensValues(matrixSourceSession(matrix));
+  return selectedGrid(matrix, lens, gexAsOf, operation, population).values;
+}
+
+/**
+ * The cells behind the ladder tooltip's per-strike expiry shares, or null when no share can
+ * be stated honestly. Shares are renormalised over the cells handed in, so a strike is
+ * offered only when EVERY pair of its selected grid is known — one unresolved cell would
+ * otherwise inflate the shares of the rest. Under the All lens the grid is every chain
+ * expiry on or after the source session; under a narrow lens, the lens's selection. The
+ * coupled-view session gate applies: a matrix from another session offers nothing.
+ */
+export function matrixShareCells(
+  matrix: GexMatrix | null | undefined,
+  lens: ExpiryLens,
+  gexAsOf: string | null | undefined,
+  population: LensPopulation,
+): KnownGexMatrixCell[] | null {
+  const grid = selectedGrid(matrix, lens, gexAsOf, "coupled-view", population);
+  if (grid.values.reason || grid.values.requestedExpiries.length === 0) return null;
+  const out: KnownGexMatrixCell[] = [];
+  for (const [strike, row] of grid.cells) {
+    if (!grid.values.byStrike.has(strike)) continue;
+    for (const e of grid.values.requestedExpiries) {
+      const c = row.get(e);
+      if (c) out.push(c);
+    }
+  }
+  return out;
+}
+
+function emptyLensValues(sourceSession: string | null): LensStrikeValues {
+  return {
     byStrike: new Map(),
     covered: new Set(),
     totalMn: null,
@@ -294,12 +361,30 @@ export function matrixLensByStrike(
     requestedExpiries: [],
     byStrikeDetail: new Map(),
     unresolvedPairCount: 0,
+    missingStrikeCount: 0,
+    missingExpiryCount: 0,
     complete: false,
     reason: null,
   };
-  const unavailable = (reason: LensUnavailableReason): LensStrikeValues => ({ ...empty, reason });
+}
 
-  if (lens.kind === "all") return empty;
+interface SelectedGrid {
+  values: LensStrikeValues;
+  /** strike → selected expiry → the known cell (finite gex), for judged strikes only. */
+  cells: Map<number, Map<string, KnownGexMatrixCell>>;
+}
+
+function selectedGrid(
+  matrix: GexMatrix | null | undefined,
+  lens: ExpiryLens,
+  gexAsOf: string | null | undefined,
+  operation: "coupled-view" | "source-local",
+  population: LensPopulation | undefined,
+): SelectedGrid {
+  const sourceSession = matrixSourceSession(matrix);
+  const empty = emptyLensValues(sourceSession);
+  const unavailable = (reason: LensUnavailableReason): SelectedGrid => ({ values: { ...empty, reason }, cells: new Map() });
+
   if (!sourceSession) return unavailable("source_session_unavailable");
   if (operation !== "source-local" && !matrixDescribedSessionsMatch(sourceSession, gexAsOf)) {
     return unavailable("different_source_session");
@@ -337,9 +422,25 @@ export function matrixLensByStrike(
     return unavailable("invalid_axis");
   }
 
-  // Selected expiries: on or after the source session, narrowed by the lens.
-  let selected = [...expiries].filter((e) => e >= sourceSession).sort();
-  if (lens.kind === "zero") selected = selected.filter((e) => e === sourceSession);
+  // The judged population: the displayed ladder × the chain, or the matrix's own axes.
+  let judgedStrikes: number[] = [...strikes];
+  const candidateExpiries = new Set(expiries);
+  if (population) {
+    judgedStrikes = [...new Set([...population.strikes].filter((k) => Number.isFinite(k) && k > 0))];
+    if (judgedStrikes.length === 0) return unavailable("unsupported_scope");
+    if (population.expiries == null) return unavailable("population_unavailable");
+    for (const raw of population.expiries) {
+      const e = isoSession(normExp(raw));
+      if (!e) return unavailable("invalid_axis");
+      candidateExpiries.add(e);
+    }
+  }
+
+  // Selected expiries: on or after the source session, narrowed by the lens. The All lens
+  // keeps the whole live grid (only the tooltip's share cells read it that way).
+  let selected = [...candidateExpiries].filter((e) => e >= sourceSession).sort();
+  if (lens.kind === "all") { /* every live expiry */ }
+  else if (lens.kind === "zero") selected = selected.filter((e) => e === sourceSession);
   else if (lens.kind === "ex-zero") selected = selected.filter((e) => e !== sourceSession);
   else if (lens.kind === "one") {
     // The lens key tolerates the ' 00:00:00' store shape; cell identities stay strict.
@@ -347,29 +448,37 @@ export function matrixLensByStrike(
     if (!wantExp) return unavailable("unsupported_scope");
     selected = selected.filter((e) => e === wantExp);
   } else return unavailable("unsupported_scope");
-  if (selected.length === 0 || strikes.size * selected.length > MAX_GRID_CELLS) {
+  if (selected.length === 0 || judgedStrikes.length * selected.length > MAX_GRID_CELLS) {
     return unavailable("unsupported_scope");
   }
 
   const wanted = new Set(selected);
-  const values = new Map<number, Map<string, number | null>>();
+  const judged = new Set(judgedStrikes);
+  const known = new Map<number, Map<string, KnownGexMatrixCell>>();
   for (const c of cells) {
-    if (!wanted.has(c.expiry)) continue;
-    let row = values.get(c.strike);
-    if (!row) { row = new Map(); values.set(c.strike, row); }
-    row.set(c.expiry, typeof c.gex === "number" && Number.isFinite(c.gex) ? c.gex / DOLLARS_PER_MN : null);
+    if (!wanted.has(c.expiry) || !judged.has(c.strike)) continue;
+    if (typeof c.gex !== "number" || !Number.isFinite(c.gex)) continue;
+    let row = known.get(c.strike);
+    if (!row) { row = new Map(); known.set(c.strike, row); }
+    row.set(c.expiry, c as KnownGexMatrixCell);
   }
 
-  const out: LensStrikeValues = { ...empty, covered: strikes, requestedExpiries: selected };
+  const out: LensStrikeValues = {
+    ...empty,
+    covered: new Set(judgedStrikes.filter((k) => strikes.has(k))),
+    requestedExpiries: selected,
+    missingStrikeCount: judgedStrikes.filter((k) => !strikes.has(k)).length,
+    missingExpiryCount: selected.filter((e) => !expiries.has(e)).length,
+  };
   let sum = 0;
-  for (const k of strikes) {
+  for (const k of judgedStrikes) {
     let knownMn = 0;
     let knownCells = 0;
     let unresolvedCells = 0;
     for (const e of selected) {
-      const v = values.get(k)?.get(e);
-      if (v == null) { unresolvedCells++; continue; }
-      knownMn += v;
+      const c = known.get(k)?.get(e);
+      if (!c) { unresolvedCells++; continue; }
+      knownMn += c.gex / DOLLARS_PER_MN;
       knownCells++;
     }
     if (!Number.isFinite(knownMn)) return unavailable("numeric_overflow");
@@ -383,7 +492,7 @@ export function matrixLensByStrike(
   out.knownTotalMn = out.cellCount ? sum : null;
   out.complete = out.cellCount > 0 && out.unresolvedPairCount === 0;
   out.totalMn = out.complete ? sum : null;
-  return out;
+  return { values: out, cells: known };
 }
 
 /**

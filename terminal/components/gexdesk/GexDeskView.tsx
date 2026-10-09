@@ -61,8 +61,10 @@ import {
   matrixDescribedSessionsMatch,
   matrixExpiryCoverage,
   matrixLensByStrike,
+  matrixShareCells,
   matrixSourceSession,
   type ExpiryLens,
+  type LensPopulation,
 } from "@/lib/gexLadder";
 
 // ─── Types ────────────────────────────────────────────────────────────────────
@@ -424,17 +426,20 @@ export function GexDeskView() {
   // SPY document can never flash under a newly selected QQQ header for even one render.
   const visibleMatrix = isMatrixDocForRoot(matrix, ticker) ? matrix : null;
 
-  const matrixCells = useMemo(
-    () => (Array.isArray(visibleMatrix?.cells)
-      ? visibleMatrix.cells.filter((c): c is { strike: number; expiry: string; gex: number } =>
-          c.gex != null && Number.isFinite(c.gex))
-      : null),
-    [visibleMatrix]
-  );
-
   const ladderStrikes = useMemo(
     () => (activePayload?.by_strike ?? []).map((s) => s.strike),
     [activePayload?.by_strike]
+  );
+
+  // The population every narrow lens is judged over: the strikes the ladder SHOWS × the
+  // chain expirations the lens NAMES (gex `by_expiry`). The matrix is windowed differently
+  // (±20% strikes uncapped, ≤90 DTE), so a required pair it lacks withholds the total, and a
+  // matrix strike off the ladder never enters it — the headline, the WallChip and the rows
+  // stay one population. No `by_expiry` → the chain is unknown and no narrow total is stated.
+  const byExpiry = activePayload?.by_expiry;
+  const lensPopulation = useMemo<LensPopulation>(
+    () => ({ strikes: ladderStrikes, expiries: Array.isArray(byExpiry) ? byExpiry.map((e) => e.exp) : null }),
+    [ladderStrikes, byExpiry]
   );
 
   // Honesty gate: the matrix's SOURCE session (`_build_meta.asof_date`, never its build
@@ -459,12 +464,23 @@ export function GexDeskView() {
   const effectiveLens = greek === "gamma" ? lens : LENS_ALL;
 
   const lensValues = useMemo(
-    () => matrixLensByStrike(visibleMatrix, effectiveLens, asof),
-    [visibleMatrix, effectiveLens, asof]
+    () => matrixLensByStrike(visibleMatrix, effectiveLens, asof, "coupled-view", lensPopulation),
+    [visibleMatrix, effectiveLens, asof, lensPopulation]
   );
-  // One unknown selected cell withholds the total; the known part is disclosed, labelled.
+  // One unknown selected cell withholds the total; the known part is disclosed, labelled,
+  // and so is any part of the population the per-expiration snapshot does not carry.
+  const lensOutside = lensValues.missingStrikeCount + lensValues.missingExpiryCount > 0;
   const lensPartial =
-    effectiveLens.kind !== "all" && lensValues.totalMn == null && lensValues.knownTotalMn != null;
+    effectiveLens.kind !== "all" && lensValues.totalMn == null
+    && (lensValues.knownTotalMn != null || lensOutside);
+
+  // The strike tooltip's per-expiry shares renormalise over the cells handed in, so they are
+  // offered only for a strike whose whole live gamma grid is known, on the gex session, and
+  // never under a non-gamma greek (the matrix is gamma-only).
+  const matrixCells = useMemo(
+    () => (greek === "gamma" ? matrixShareCells(visibleMatrix, effectiveLens, asof, lensPopulation) : null),
+    [greek, visibleMatrix, effectiveLens, asof, lensPopulation]
+  );
 
   // Strike-window disclosure for the summary bar's scoped Net GEX (bug: the hero used to
   // swap strike universe under a narrow lens while naming only the expiry scope). N of the
@@ -644,9 +660,17 @@ export function GexDeskView() {
       )}
       {!(isArchived && archivedMissing) && lensPartial && (
         <div style={LENS_PARTIAL} data-testid="gex-lens-partial" role="note">
-          {t("lensPartialNote")
+          {lensValues.knownTotalMn != null && t("lensPartialNote")
             .replace("{k}", String(lensValues.unresolvedPairCount))
             .replace("{v}", fmtMn(lensValues.knownTotalMn))}
+          {lensOutside && (
+            <span>
+              {lensValues.knownTotalMn != null ? " " : ""}
+              {t("lensOutsideNote")
+                .replace("{s}", String(lensValues.missingStrikeCount))
+                .replace("{e}", String(lensValues.missingExpiryCount))}
+            </span>
+          )}
           {matrixSourceDay && <span style={{ opacity: 0.75 }}> · {matrixSourceDay}</span>}
         </div>
       )}

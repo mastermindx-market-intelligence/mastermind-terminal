@@ -659,6 +659,10 @@ export function StrikeLadder({
             </button>
             {dropdownOpen && (
               <div style={DD_MENU} role="listbox">
+                {/* The per-expiration badges are by_expiry's whole-chain totals (every
+                    strike), while a selected lens sums only the ladder's strikes — say so
+                    before a badge is read as the headline it need not equal. */}
+                <div style={DD_BADGE_NOTE} data-testid="gex-lens-badge-note">{t("expiryBadgeChainNote")}</div>
                 {/* All — always available: it is the by_strike aggregate itself */}
                 <button
                   style={{ ...DD_OPT, ...(lens.kind === "all" ? DD_OPT_ACTIVE : {}) }}
@@ -1305,6 +1309,13 @@ const DD_OPT_DTE: React.CSSProperties = {
   fontFamily: "var(--font-num)",
   fontVariantNumeric: "tabular-nums",
   flexShrink: 0,
+};
+
+const DD_BADGE_NOTE: React.CSSProperties = {
+  padding: "var(--sp-1) var(--sp-3)",
+  fontSize: "var(--fs-micro)",
+  color: "var(--muted)",
+  lineHeight: 1.35,
 };
 
 const DD_GROUP_LBL: React.CSSProperties = {

@@ -130,3 +130,89 @@ describe("mounted Exposure desk — partial expiry totals", () => {
     expect(ladderValue(771)).toBe("—");
   });
 });
+
+// Repair round 1 (review P1/P2): the scoped headline, the WallChip and the ladder rows are
+// one population — the ladder's strikes × the chain expirations the lens names.
+type Gex = { by_expiry: { exp: string; gamma_net: number }[] };
+const wallNet = () => {
+  const label = [...node.querySelectorAll("span")].find((s) => s.textContent?.startsWith(`${t()("ladderWallsNet")} · `));
+  expect(label, "scoped NET GEX wall chip").toBeDefined();
+  return label!.nextElementSibling!.textContent;
+};
+async function pickExZero() {
+  await act(async () => (node.querySelector(`button[aria-label="${t()("expiryLensAria")}"]`) as HTMLButtonElement).click());
+  const opt = [...node.querySelectorAll<HTMLButtonElement>('[role="option"]')]
+    .find((b) => b.firstElementChild?.textContent === t()("expiryLensExZero"));
+  expect(opt?.getAttribute("aria-disabled")).toBe("false");
+  await act(async () => opt!.click());
+}
+function hoverStrike(strike: number) {
+  const scroll = node.querySelector('[data-tut="gex-ladder"] .obs-scroll')!;
+  const row = [...scroll.children].find((r) => r.firstElementChild?.firstElementChild?.textContent === String(strike))!;
+  act(() => { row.dispatchEvent(new MouseEvent("mouseover", { bubbles: true, relatedTarget: document.body })); });
+}
+const sharesShown = () => node.textContent!.includes(t()("expiryBreakdownTitle"));
+
+describe("mounted Exposure desk — one population for summary, WallChip and ladder", () => {
+  it("(e) a matrix strike off the ladder never moves the scoped total away from the ladder rows", async () => {
+    const doc = fixture([cell(770, 1e6), cell(771, 2e6), cell(900, -50e6)]);
+    doc.strikes = [770, 771, 900];
+    input.matrix = doc;
+    await mount(); await click(t()("expiry0Dte"));
+    expect(ladderValue(770)).toBe("+1.0M");
+    expect(ladderValue(771)).toBe("+2.0M");
+    expect(netValue()).toBe("+3.0M");
+    expect(wallNet()).toBe("+3.0M");
+  });
+
+  it("(e) All except 0DTE is a complete total only when every chain expiration is in the snapshot", async () => {
+    input.matrix = fixture([cell(770, 1e6), cell(771, 2e6), cell(770, 3e6, later), cell(771, 4e6, later)]);
+    await mount(); await pickExZero();
+    expect(netValue()).toBe("+7.0M");
+    expect(wallNet()).toBe("+7.0M");
+    expect([ladderValue(770), ladderValue(771)]).toEqual(["+3.0M", "+4.0M"]);
+  });
+
+  it("(e) a chain expiration beyond the snapshot window withholds the All except 0DTE total everywhere", async () => {
+    input.matrix = fixture([cell(770, 1e6), cell(771, 2e6), cell(770, 3e6, later), cell(771, 4e6, later)]);
+    (input.gex as Gex).by_expiry.push({ exp: "2027-12-17", gamma_net: -500 });
+    await mount(); await pickExZero();
+    expect(netValue()).toBe("—");
+    expect(wallNet()).toBe("—");
+    expect([ladderValue(770), ladderValue(771)]).toEqual(["—", "—"]);
+    const partial = node.querySelector('[data-testid="gex-lens-partial"]')?.textContent ?? "";
+    expect(partial).toContain("+7.0M");
+    expect(partial).toContain("2");
+    expect(partial).toContain(t()("lensOutsideNote").replace("{s}", "0").replace("{e}", "1"));
+  });
+
+  it("(P2) expiry shares in the strike tooltip need a fully known gamma grid on the same session", async () => {
+    input.matrix = fixture([cell(770, 10e6), cell(770, null, later), cell(771, 1e6), cell(771, 3e6, later)]);
+    await mount();
+    hoverStrike(771);
+    expect(sharesShown()).toBe(true);
+    hoverStrike(770);
+    expect(sharesShown()).toBe(false);
+    await click(t()("greekDelta"));
+    hoverStrike(771);
+    expect(sharesShown()).toBe(false);
+  });
+
+  it("(P3) the lens menu labels its per-expiration badges as whole-chain, all-strike figures", async () => {
+    input.matrix = fixture([cell(770, 1e6), cell(771, 2e6), cell(770, 3e6, later), cell(771, 4e6, later)]);
+    await mount();
+    await act(async () => (node.querySelector(`button[aria-label="${t()("expiryLensAria")}"]`) as HTMLButtonElement).click());
+    expect(node.querySelector('[role="listbox"] [data-testid="gex-lens-badge-note"]')?.textContent)
+      .toBe(t()("expiryBadgeChainNote"));
+  });
+
+  it("(P2) no expiry shares when the matrix describes a different session", async () => {
+    const doc = fixture([cell(770, 1e6), cell(771, 3e6)]);
+    doc._build_meta = { asof_date: "2026-09-24" };
+    doc.expiries = ["2026-09-24", session, later];
+    input.matrix = doc;
+    await mount();
+    hoverStrike(771);
+    expect(sharesShown()).toBe(false);
+  });
+});
