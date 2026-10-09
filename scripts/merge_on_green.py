@@ -6,8 +6,11 @@ auto-merge as the fastest server-side path. This controller is the fallback for 
 ready pull request that was labelled but never natively armed. It only considers
 same-repository, non-draft pull requests carrying the
 ``merge-on-green`` label; requires the latest trusted instance of all three CI jobs
-to have completed successfully; refreshes a stale branch onto current master before
-merge; and pins the squash merge to the head SHA it evaluated.
+to have completed successfully; and pins every state-changing action to the head SHA
+it evaluated. When GitHub's native merge queue is enabled for master, the controller
+enqueues every eligible green head (including a head that is merely behind master)
+and leaves integration ordering/revalidation to that queue. Without a merge queue it
+retains the historical refresh-then-SHA-pinned-squash fallback.
 
 The controller is deliberately label-gated. ``hold`` and ``do-not-merge`` are hard
 vetoes. A genuine trusted red or conflict is labelled ``merge-blocked`` with one
@@ -20,6 +23,7 @@ from __future__ import annotations
 import json
 import os
 import sys
+import time
 import urllib.error
 import urllib.parse
 import urllib.request
@@ -80,8 +84,116 @@ class GitHubApi:
                 message = raw
             raise ApiError(error.code, str(message)) from error
 
+    def graphql_request(self, query: str, variables: dict[str, Any]) -> dict[str, Any]:
+        body = json.dumps({"query": query, "variables": variables}).encode()
+        req = urllib.request.Request(
+            "https://api.github.com/graphql",
+            data=body,
+            method="POST",
+            headers={
+                "Accept": "application/vnd.github+json",
+                "Authorization": f"Bearer {self.token}",
+                "Content-Type": "application/json",
+                "User-Agent": "mastermind-terminal-merge-sweeper",
+            },
+        )
+        try:
+            with urllib.request.urlopen(req, timeout=30) as response:
+                raw = response.read()
+        except urllib.error.HTTPError as error:
+            raw = error.read().decode(errors="replace")
+            try:
+                message = json.loads(raw).get("message", raw)
+            except json.JSONDecodeError:
+                message = raw
+            raise ApiError(error.code, str(message)) from error
+
+        try:
+            payload = json.loads(raw) if raw else {}
+        except json.JSONDecodeError as error:
+            raise ApiError(502, "GraphQL response was not valid JSON") from error
+        if not isinstance(payload, dict):
+            raise ApiError(502, "GraphQL response was not an object")
+        errors = payload.get("errors")
+        if errors:
+            messages = []
+            for item in errors if isinstance(errors, list) else [errors]:
+                if isinstance(item, dict):
+                    messages.append(str(item.get("message") or "unknown GraphQL error"))
+                else:
+                    messages.append(str(item))
+            raise ApiError(422, "GraphQL: " + "; ".join(messages))
+        data = payload.get("data")
+        if not isinstance(data, dict):
+            raise ApiError(502, "GraphQL response did not contain a data object")
+        return data
+
+    def merge_queue_enabled(self, base_ref: str) -> bool:
+        owner, name = self.repo.split("/", 1)
+        data = self.graphql_request(
+            """
+            query($owner: String!, $name: String!, $branch: String!) {
+              repository(owner: $owner, name: $name) {
+                mergeQueue(branch: $branch) { id }
+              }
+            }
+            """,
+            {"owner": owner, "name": name, "branch": base_ref},
+        )
+        repository = data.get("repository")
+        return isinstance(repository, dict) and isinstance(repository.get("mergeQueue"), dict)
+
+    def queue_entry(self, pull_request_id: str) -> str | None:
+        data = self.graphql_request(
+            """
+            query($id: ID!) {
+              node(id: $id) {
+                ... on PullRequest {
+                  mergeQueueEntry { id }
+                }
+              }
+            }
+            """,
+            {"id": pull_request_id},
+        )
+        node = data.get("node")
+        entry = node.get("mergeQueueEntry") if isinstance(node, dict) else None
+        if not isinstance(entry, dict):
+            return None
+        entry_id = entry.get("id")
+        return str(entry_id) if entry_id else None
+
+    def enqueue(self, pull_request_id: str, head_sha: str) -> str:
+        data = self.graphql_request(
+            """
+            mutation($pullRequestId: ID!, $expectedHeadOid: GitObjectID!) {
+              enqueuePullRequest(
+                input: {
+                  pullRequestId: $pullRequestId
+                  expectedHeadOid: $expectedHeadOid
+                }
+              ) {
+                mergeQueueEntry { id }
+              }
+            }
+            """,
+            {"pullRequestId": pull_request_id, "expectedHeadOid": head_sha},
+        )
+        payload = data.get("enqueuePullRequest")
+        entry = payload.get("mergeQueueEntry") if isinstance(payload, dict) else None
+        if not isinstance(entry, dict) or not entry.get("id"):
+            raise ApiError(422, "enqueuePullRequest returned no merge queue entry")
+        return str(entry["id"])
+
     def list_pulls(self) -> list[dict[str, Any]]:
-        return self.request("GET", "/pulls?state=open&per_page=100&sort=created&direction=asc")
+        pulls: list[dict[str, Any]] = []
+        page = 1
+        while True:
+            batch = self.request("GET", f"/pulls?state=open&per_page=100&sort=created&direction=asc&page={page}")
+            pulls.extend(batch)
+            if len(batch) < 100:
+                return pulls
+            page += 1
 
     def pull(self, number: int) -> dict[str, Any]:
         return self.request("GET", f"/pulls/{number}")
@@ -164,6 +276,9 @@ class MergeApi(Protocol):
     def check_runs(self, sha: str) -> list[dict[str, Any]]: ...
     def update_branch(self, number: int, head_sha: str) -> None: ...
     def dispatch_ci(self, branch: str, pr_number: int | None = None) -> None: ...
+    def merge_queue_enabled(self, base_ref: str) -> bool: ...
+    def queue_entry(self, pull_request_id: str) -> str | None: ...
+    def enqueue(self, pull_request_id: str, head_sha: str) -> str: ...
     def merge(self, number: int, head_sha: str) -> dict[str, Any]: ...
     def add_labels(self, number: int, labels: list[str]) -> None: ...
     def remove_label(self, number: int, label: str) -> None: ...
@@ -250,7 +365,7 @@ def mark_blocked(api: MergeApi, pull: dict[str, Any], reason: str) -> None:
     )
 
 
-def sweep(api: MergeApi, trigger_number: int | None = None) -> list[str]:
+def sweep(api: MergeApi, trigger_number: int | None = None, *, wait=time.sleep) -> list[str]:
     pulls = [pull for pull in api.list_pulls() if is_armed_candidate(pull, api.repo)]
     if trigger_number is not None:
         pulls.sort(key=lambda pull: (int(pull["number"]) != trigger_number, pull.get("created_at", "")))
@@ -258,8 +373,15 @@ def sweep(api: MergeApi, trigger_number: int | None = None) -> list[str]:
         pulls.sort(key=lambda pull: pull.get("created_at", ""))
 
     actions: list[str] = []
+    queue_enabled = api.merge_queue_enabled("master") if pulls else False
     merged_this_sweep = False
-    for listed in pulls:
+    first_pass_size = len(pulls)
+    for position, listed in enumerate(pulls):
+        if position == first_pass_size:
+            # Revisit only the fixed first-pass pending set, once, after one
+            # shared short wait. Every proof below is read again; no prior
+            # mutation or refused API request is queued for retry.
+            wait(2)
         number = int(listed["number"])
         pull = api.pull(number)  # refresh head/base after any earlier merge in this sweep
         if not is_armed_candidate(pull, api.repo):
@@ -270,8 +392,12 @@ def sweep(api: MergeApi, trigger_number: int | None = None) -> list[str]:
             actions.append(f"#{number}: conflict")
             continue
         if pull.get("mergeable") is None:
-            actions.append(f"#{number}: mergeability pending")
+            if position < first_pass_size:
+                pulls.append(listed)
+            else:
+                actions.append(f"#{number}: mergeability pending")
             continue
+
 
         head_sha = str(pull["head"]["sha"])
         verdict = check_verdict(api.check_runs(head_sha))
@@ -293,6 +419,30 @@ def sweep(api: MergeApi, trigger_number: int | None = None) -> list[str]:
         # the CURRENT base branch, so the refresh-vs-merge decision reads that
         # field instead of comparing against the stale sha.
         mergeable_state = str(pull.get("mergeable_state") or "unknown")
+        if queue_enabled:
+            if mergeable_state not in {"clean", "behind"}:
+                actions.append(f"#{number}: waiting (mergeable_state={mergeable_state})")
+                continue
+            pull_request_id = str(pull.get("node_id") or "")
+            if not pull_request_id:
+                actions.append(f"#{number}: waiting (missing pull request node_id)")
+                continue
+            existing_entry = api.queue_entry(pull_request_id)
+            if existing_entry is not None:
+                actions.append(f"#{number}: already queued ({existing_entry})")
+                continue
+            try:
+                entry_id = api.enqueue(pull_request_id, head_sha)
+            except ApiError as error:
+                if not (400 <= error.status < 500):
+                    raise
+                actions.append(f"#{number}: declined: {error}")
+                continue
+            actions.append(f"#{number}: enqueued in merge queue ({entry_id})")
+            # Enqueueing does not advance master. Keep evaluating other green
+            # candidates so GitHub can build up to the queue's configured
+            # concurrent-candidate limit in this same sweep.
+            continue
         if mergeable_state == "behind":
             branch = str(pull["head"]["ref"])
             api.update_branch(number, head_sha)

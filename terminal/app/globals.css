@@ -382,6 +382,9 @@ svg{display:block}
 .pf-board-empty{display:flex;flex-direction:column;align-items:center;gap:8px;padding:26px 14px;text-align:center;color:var(--muted);font-size:12px;line-height:1.55}
 .pf-board-cta{color:var(--brand-2);font-weight:600;text-decoration:none}
 .pf-board-cta:hover{text-decoration:underline}
+.pf-board-retry{appearance:none;background:none;border:0;padding:0;font:inherit;font-weight:600;color:var(--brand-2);cursor:pointer}
+.pf-board-retry:disabled{color:var(--muted);cursor:default;text-decoration:none}
+.pf-board-note{display:flex;align-items:baseline;justify-content:space-between;gap:10px;padding:7px 11px;border-bottom:1px solid var(--line-2);color:var(--muted);font-size:11.5px;line-height:1.45}
 .wl-select{display:inline-flex;align-items:center;gap:7px;height:28px;padding:0 9px;border-radius:var(--r-md);color:var(--text);font:650 13px/1 var(--font-ui)}
 .wl-select:hover{background:var(--panel-2)}.wl-select svg{width:12px;height:12px;stroke:var(--muted);fill:none;stroke-width:2.2}
 .wl-selection-summary{display:flex;align-items:center;gap:5px;min-width:0;height:28px;padding:0 5px 0 9px;border:1px solid color-mix(in srgb,var(--brand-2) 38%,var(--line));border-radius:var(--r-pill);background:color-mix(in srgb,var(--brand) 12%,transparent);color:var(--brand-2);font:650 11px/1 var(--font-ui);white-space:nowrap}
@@ -2871,6 +2874,8 @@ body.col-resizing .wl-rz::after{background:var(--brand)}
 /* Options Hub sector sparkline card */
 .hub-sector-card{border:1px solid var(--line);border-radius:var(--r-lg);background:var(--panel);padding:10px 12px;text-align:left;cursor:pointer;transition:background var(--t),border-color var(--t)}
 .hub-sector-card:hover{background:var(--panel-2)}
+/* Load-error Retry (a failed read is re-read in place — Volatility, GEX desk, Levels, Heatmap): the touch floor every coarse-pointer control meets. */
+@media (pointer:coarse){.vol-retry,.load-retry{min-height:44px}}
 /* Options Hub placeholder tabs */
 .hub-placeholder{flex:1;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:12px;color:var(--muted)}
 @media(max-width:640px){

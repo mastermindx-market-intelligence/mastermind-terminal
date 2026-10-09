@@ -156,7 +156,7 @@ describe("dislocations route", () => {
     expect(res.status).toBe(200);
     const body = await res.json();
     expect(body.state).toBe("ok");
-    expect(body.count).toBe(4);
+    expect(body.count).toBe(9);
     assertPrivateNoStore(res);
   });
 

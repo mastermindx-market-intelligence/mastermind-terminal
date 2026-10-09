@@ -57,6 +57,8 @@ interface Conn {
   refs: number;
   snap: Snapshot;
   subs: Set<Listener>;
+  generation: number;
+  pollBusy: boolean;
 }
 
 /** One entry per live feed key. Deleted when its last subscriber leaves. */
@@ -72,9 +74,20 @@ function publish(c: Conn, next: Partial<Snapshot>): void {
 function startPolling(f: string, c: Conn): void {
   if (c.pollTimer) return;
   const tick = async () => {
-    const d = await flowGet(f);
-    if (CONNS.get(f) !== c) return; // connection was torn down mid-flight
-    if (d != null) publish(c, { data: d, error: false });
+    // Keep one request per connection, including across SSE recovery and a
+    // second outage. Joining the retired request again would give its response
+    // a new generation and make it appear current.
+    if (c.pollBusy) return;
+    c.pollBusy = true;
+    const generation = c.generation;
+    try {
+      // The existing cache still owns deduplication. A fallback must await a
+      // refresh rather than publish a cached preimage from an earlier outage.
+      const d = await flowGet(f, { refresh: true });
+      if (CONNS.get(f) !== c || c.generation !== generation) return;
+      if (d != null) publish(c, { data: d, error: false });
+    } catch { /* Keep the last good frame when the fallback cannot read. */ }
+    finally { c.pollBusy = false; }
   };
   void tick();
   c.pollTimer = setInterval(tick, c.pollMs);
@@ -91,13 +104,20 @@ function openConn(f: string, c: Conn): void {
     es.onopen = () => {
       if (CONNS.get(f) !== c) return;
       c.errCount = 0;
+      c.generation++;
       stopPolling(c); // SSE recovered — drop the fallback poll
       publish(c, { connected: true, error: false });
     };
     es.onmessage = (ev) => {
       if (CONNS.get(f) !== c) return;
       try {
-        publish(c, { data: JSON.parse(ev.data), error: false });
+        const data = JSON.parse(ev.data);
+        // A received frame is positive transport evidence, even if an open
+        // notification was missed. Do not compare producer timestamps here.
+        c.generation++;
+        c.errCount = 0;
+        stopPolling(c);
+        publish(c, { data, connected: true, error: false });
       } catch { /* keep last good data on a malformed frame */ }
     };
     es.onerror = () => {
@@ -123,6 +143,7 @@ function subscribeFlow(f: string, pollMs: number, fn: Listener): () => void {
   if (!c) {
     c = {
       es: null, pollTimer: null, pollMs, errCount: 0, refs: 0,
+      generation: 0, pollBusy: false,
       snap: { data: null, connected: false, error: false },
       subs: new Set<Listener>(),
     };

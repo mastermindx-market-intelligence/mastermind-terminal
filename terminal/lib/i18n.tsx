@@ -17,6 +17,18 @@ export type Lang = "en" | "zh";
 // Exported for tests that hold a feature's new strings to EN+ZH parity by key (see
 // lib/__tests__/feedFreshness.test.ts). Runtime call sites use `useT`/`tPlain`, never LEX directly.
 export const LEX: Record<string, [string, string]> = {
+  contextSeasonality: ["Seasonality view context", "季节性视图上下文"],
+  contextLinking: ["Linking for this view", "此视图的关联方式"],
+  contextFollow: ["Follow chart", "跟随图表"],
+  contextPin: ["Pin this view", "固定此视图"],
+  contextUnlink: ["Unlink", "取消关联"],
+  contextUnavailable: ["Context is unavailable.", "上下文暂不可用。"],
+  contextFollowing: ["Following chart: {symbol}", "跟随图表：{symbol}"],
+  contextPinned: ["This view is pinned to {symbol}; chart is {active}", "此视图固定为 {symbol}；图表为 {active}"],
+  contextUnlinked: ["This view is unlinked at {symbol}; chart is {active}", "此视图已取消关联，保留 {symbol}；图表为 {active}"],
+  contextRefused: ["This view's context could not be changed.", "无法更改此视图的上下文。"],
+  contextSessionOnly: ["Linking applies to this session only.", "关联方式仅用于当前会话。"],
+  contextOpenResearch: ["Open {symbol} company research", "打开 {symbol} 公司研究"],
   // settings
   settings: ["Settings", "设置"],
   updownColors: ["Up / Down colors", "涨跌颜色"],
@@ -31,6 +43,7 @@ export const LEX: Record<string, [string, string]> = {
   chart: ["Chart", "图表"],
   analysis: ["Analysis", "分析"],
   discover: ["Discover", "发现"],
+  dislocations: ["Dislocations", "错位"],
   options: ["Options", "期权"],
   research: ["Research", "研究"],
   automate: ["Automate", "自动化"],
@@ -236,7 +249,11 @@ export const LEX: Record<string, [string, string]> = {
   mtfTip: ["Multi-timeframe — the active symbol at D / 3D / W / 1M", "多周期 — 当前标的的 日/3日/周/月 图"],
   syncTip: ["Sync crosshair & time-axis across panes", "跨窗格同步十字光标与时间轴"],
   syncMixedTip: ["Sync needs matching timeframes across panes", "同步需要各窗格使用相同周期"],
-  replayMixedTip: ["Replay needs matching timeframes across panes", "回放需要各窗格使用相同周期"],
+  // Replay is single-chart only: one bar index cannot name one instant across symbols, because
+  // each symbol has its own first bar and its own missing sessions. Matching timeframes do not
+  // fix that, so the reason names the layout, not the timeframe.
+  replayMultiChartTip: ["Replay works on a single chart — switch to the 1-chart layout", "回放仅支持单图 — 请切换到单图布局"],
+  replayNoDataTip: ["Replay needs loaded history", "回放需要已加载的历史数据"],
   replayReset: ["Reset replay", "重置回放"],
   replayPrev: ["Previous bar", "上一根K线"],
   replayNext: ["Next bar", "下一根K线"],
@@ -245,6 +262,10 @@ export const LEX: Record<string, [string, string]> = {
   replayBtn: ["Replay", "回放"],
   replayTip: ["Bar Replay — step through history bar by bar", "K线回放 — 逐根回放历史"],
   replayExitTip: ["Exit Bar Replay", "退出K线回放"],
+  // A timeframe change keeps the replay DATE; when the new timeframe cannot show that date, Replay
+  // ends and says why instead of quietly moving to a different date.
+  replayEndedClock: ["Replay ended — daily and intraday charts can't share one replay date", "回放已结束 — 日线与分时图表无法共用同一回放日期"],
+  replayEndedRange: ["Replay ended — this timeframe has too little history before the replay date", "回放已结束 — 该周期在回放日期之前的历史数据不足"],
   moreTimeframes: ["More timeframes", "更多周期"],
   magnetTip: ["Magnet — snap to OHLC", "磁吸 — 吸附到OHLC"],
   clearDrawings: ["Clear drawings", "清除图形"],
@@ -754,6 +775,8 @@ export const LEX: Record<string, [string, string]> = {
   sgBodyPortfolio: ["Keep your holdings and watchlists in one place and watch how they move — stored on your account, on every device you sign in from.", "集中管理持仓与自选列表并跟踪其表现 —— 保存在账户中，任何登录设备均可查看。"],
   sgTitleAlerts: ["Sign up to set alerts", "注册后设置提醒"],
   sgBodyAlerts: ["Price and signal alerts on any symbol, evaluated on our servers every five minutes — they keep watching after you close the tab.", "对任意标的设置价格与信号提醒，服务器每 5 分钟评估一次 —— 关闭页面后仍在盯盘。"],
+  sgTitleDislocations: ["Sign up to watch dislocations", "注册后观察错位"],
+  sgBodyDislocations: ["Intraday washouts on your watchlist and whether the turn is holding, re-read every five minutes on delayed bars — windows, not certainties.", "你自选股的日内洗盘与转向是否站稳，基于延迟行情每 5 分钟重读 —— 是窗口，不是确定性。"],
   sgF1: ["Watchlists synced across your devices", "自选列表多设备同步"],
   sgF2: ["The full per-stock analysis desk", "完整的个股分析终端"],
   sgF3: ["Screener, heatmap and market movers", "选股器、热力图与涨跌榜"],
@@ -945,6 +968,7 @@ export const LEX: Record<string, [string, string]> = {
   // what you HOLD, never what you watch, so the ranked-watchlist copy (suggested tilt, bullish
   // signals, avg win rate, "this watchlist is empty") went with the surface that used it.
   pagePortfolio: ["Portfolio", "投资组合"],
+  pageDislocations: ["Dislocations", "日内错位"],
   pageAdmin: ["Admin", "管理"],
   names: ["Names", "标的数"],
   positions: ["Positions", "持仓"],
@@ -1598,6 +1622,8 @@ export const LEX: Record<string, [string, string]> = {
   olUnavail: ["levels unavailable", "关键位暂不可用"],
   olNoDate: ["undated snapshot", "无日期快照"],
   olLoading: ["loading…", "加载中…"],
+  // Bar Replay rewound the chart to before the snapshot's newest input existed
+  olReplay: ["hidden: data is newer than the replay date", "已隐藏：数据晚于回放日期"],
   // ─── R3.2 screener msc_* positioning columns ─────────────────────────────
   colMscRegime: ["γ regime", "γ 状态"],
   colMscNetGex: ["Net GEX", "净GEX"],

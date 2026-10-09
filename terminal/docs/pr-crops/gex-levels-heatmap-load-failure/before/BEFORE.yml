@@ -1,0 +1,44 @@
+# GEX desk, Levels and Heatmap failure-state truth: the defect, captured before the fix
+# Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
+# These are Playwright failure screenshots, not crops from capture_gex_levels_heatmap_load_failure.cjs.
+# This PR's e2e specs ran against the product files at base 5503f970 (GexDeskView.tsx,
+# HeatSeekerCard.tsx, MarketStateCard.tsx, ExposureMatrix.tsx, MatrixConfluence.tsx,
+# StrikeLadder.tsx, GexHistory.tsx, matrixDoc.ts, LevelsView.tsx and HeatmapView.tsx reverted
+# to that commit). 12 of 15 runs failed on the defect; the 3 that passed are the
+# absence-preserving test (both manifest sources 404 -> "No data available"), which must hold
+# before and after.
+base: 5503f970757454bcff5eb44d8d24b1bc4e25f97d
+specs:
+  - terminal/e2e/options-gex-load-failure.spec.ts
+  - terminal/e2e/options-levels-load-failure.spec.ts
+  - terminal/e2e/discover-heatmap-load-failure.spec.ts
+projects:
+  - { name: desktop, width: 1440, height: 900, lang: en }
+  - { name: tablet, width: 820, height: 1180, lang: zh }
+  - { name: mobile, width: 390, height: 844, lang: en }
+theme: dark
+files:
+  gex-ladder-unavailable-desktop.png: &gexLadder
+    test: "a failed GEX snapshot read is a load error with an in-place Retry, never a coverage gap"
+    injected: { "gex:SPY": 503, "/api/flow/stream": aborted }
+    shows: "\"No strike snapshot for this name yet\" and \"SPY isn't in this nightly build\" for a read that did not land; the strip says LOADING forever"
+  gex-ladder-unavailable-tablet.png: *gexLadder
+  gex-ladder-unavailable-mobile.png: *gexLadder
+  gex-state-pick-unavailable-desktop.png: &gexRail
+    test: "a failed market-state or matrix read stays in its card and never takes the ladder down"
+    injected: { "gexstate:SPY": 503, "matrix:SPY": 503, "/api/flow/stream": aborted }
+    shows: "Market State reads \"State computing — nightly\" and the HeatSeeker card says \"No standout pick — load is shared across levels\" for reads that did not land; neither offers a Retry"
+  gex-state-pick-unavailable-tablet.png: *gexRail
+  gex-state-pick-unavailable-mobile.png: *gexRail
+  levels-unavailable-desktop.png: &levels
+    test: "a failed levels read is a load error with an in-place Retry, never an empty root"
+    injected: { "levels:SPY": 503 }
+    shows: "\"No levels for this root yet\" and \"No dealer-gamma levels to map for SPY\" for a read that did not land"
+  levels-unavailable-tablet.png: *levels
+  levels-unavailable-mobile.png: *levels
+  heatmap-unavailable-desktop.png: &heatmap
+    test: "a failed manifest read is a load error with an in-place Retry, never an empty market"
+    injected: { "flow:manifest": 503, "/data/manifest.json": aborted }
+    shows: "\"No data available\" and a breadth reading of \"0 / 0 (0%)\" for a universe that was never read"
+  heatmap-unavailable-tablet.png: *heatmap
+  heatmap-unavailable-mobile.png: *heatmap

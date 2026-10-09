@@ -34,6 +34,7 @@ import { parseGlanceState } from "@/lib/mscGlance";
 import { DEFAULT_START_TF, TF_CANONICAL_ORDER, mobileTimeframeOptions, readStartTf, resolveStartTf } from "@/lib/startTf";
 import { useMarketPrefs } from "@/lib/useMarketPrefs";
 import { accountIdentity } from "@/lib/accountIdentity";
+import { portfolioRailOwner, usePortfolioRailRead } from "@/lib/usePortfolioRailRead";
 // Import the page ids from the import-free leaf, NOT from MegaPane: MegaPane is mounted
 // through next/dynamic below, and a value import out of it here would statically pull its
 // entire graph (14 fundamentals pages + statement/intelligence/transcript libs, ~709 KB of
@@ -87,7 +88,7 @@ import { normalizeDevTierOverride } from "@/lib/subscriptionTier";
 import { useChartBus } from "@/lib/useChartBus";
 import { isV2Envelope, type IndicatorSpec } from "@/lib/chartBus";
 import { describeNativeSuiteCapabilities } from "@/lib/chartIndicatorParams";
-import SeasonalityCard from "@/components/SeasonalityCard";
+import LinkedSeasonalityCard from "@/components/LinkedSeasonalityCard";
 // Code-split the conditionally-mounted heavies out of the /terminal first-paint bundle (task 9).
 // TerminalShell is a Client Component, so ssr:false is allowed — none of these render on any SSR
 // path (each mounts only when opened: paneOpen / signalsOpen / copilot toggle).
@@ -100,6 +101,7 @@ const GuidePanel = dynamic(() => import("@/components/GuidePanel"), { ssr: false
 const IndicatorSource = dynamic(() => import("@/components/IndicatorSource"), { ssr: false });
 const CompareSettings = dynamic(() => import("@/components/CompareSettings"), { ssr: false });
 const ChartObjectTree = dynamic(() => import("@/components/ChartObjectTree"), { ssr: false });
+const TickerNewsPanel = dynamic(() => import("@/components/news/TickerNewsPanel"), { ssr: false });
 // Phone-only chart chrome (R2): the bottom roller strip and the two sheets it raises. Never
 // server-rendered — the phone breakpoint is a client media query, and shell mode brings its own.
 const RollerStrip = dynamic(() => import("@/components/mobile/RollerStrip"), { ssr: false });
@@ -119,6 +121,8 @@ import { oracleVerdict, deskVerdict } from "@/lib/signalVerdict";
 import { computeTrendState } from "@/lib/trend";
 import { useLive } from "@/lib/live";
 import { setPaneSync, subscribePaneVisibleWindow } from "@/lib/paneSync";
+import { REPLAY_MIN_IDX, replayIsAvailable, replayChartKey, resolveReplayTotal, replayHasSpan, clampReplayIdx, initialReplayIdx,
+  replayIdxAt, replayCutoffAt, stepReplayCutoff, replayExitOnScreen, recordReplayAxis, type ReplayAxis, type ReplayCutoff, type ReplayExit } from "@/lib/replayContract";
 import {
   MAX_DRAWINGS_PER_SYMBOL,
   type Dash,
@@ -146,7 +150,7 @@ import { isComposite, parseComposite, compositeQuote as calcCompositeQuote } fro
 import { planQuoteBatch, type QuoteDemandGroup } from "@/lib/quoteDemand";
 import { pushRecentlyViewed } from "@/lib/recentlyViewed";
 import { writeActiveSymbol } from "@/lib/activeSymbol";
-import { listScripts, deleteScript as delScript, renameScript as renScript, enabledScriptIds, setEnabledScriptIds, pineParamStore, setPineParamStore, mergedParams, type UserScript } from "@/lib/userScripts";
+import { listScripts, deleteScript as delScript, runRenameScriptClick, enabledScriptIds, setEnabledScriptIds, pineParamStore, setPineParamStore, mergedParams, type UserScript } from "@/lib/userScripts";
 import LayoutMenu, { type LayoutFeedback, type LayoutStatus, type SavedWorkspace } from "@/components/LayoutMenu";
 import WorkspaceTile from "@/components/WorkspaceTile";
 import { nextLayoutName, type SavedLayout } from "@/lib/layouts";
@@ -227,6 +231,14 @@ function quoteEq(a: any, b: any): boolean {
 // Overlay a live quote's price fields onto the EOD manifest row (live wins when present; a missing
 // live field — e.g. a US placeholder that has no volume yet — keeps the manifest value). Used so the
 // watchlist rows + movers tape render the SAME live prices the header already shows.
+// F08-RAIL: the one sentence the Portfolio rail adds, shown above rows kept from the last good read
+// after a later read failed. Component-local EN/ZH, the idiom AlertsView's re-arm copy uses, rather
+// than a lib/i18n.tsx key: evidence packets pin that file byte-for-byte.
+const PF_RAIL_STALE = {
+  en: "Couldn't refresh. Showing your last read.",
+  zh: "未能刷新，显示的是上次读取的持仓。",
+} as const;
+
 function mergeLive(r: Row | undefined, q: any): Row | undefined {
   if (!q) return r;
   const base: any = { ...(r || {}) };
@@ -928,7 +940,7 @@ function btMark(name: string) {
   console.log(`[boottrace] ${name} +${(now - _btStart).toFixed(1)}ms`);
 }
 
-export default function TerminalShell({ symbols, email, userId, initialSymbol, shellMode = false, shellTray = false, shellDossier = false, secondBarsEnabled = false }: { symbols: { symbol: string; section: string }[]; email: string; userId?: string; initialSymbol?: string; shellMode?: boolean; shellTray?: boolean; shellDossier?: boolean; secondBarsEnabled?: boolean }) {
+export default function TerminalShell({ symbols, email, userId, initialSymbol, initialEpisode, shellMode = false, shellTray = false, shellDossier = false, secondBarsEnabled = false, newsRailEnabled = false }: { symbols: { symbol: string; section: string }[]; email: string; userId?: string; initialSymbol?: string; initialEpisode?: string; shellMode?: boolean; shellTray?: boolean; shellDossier?: boolean; secondBarsEnabled?: boolean; newsRailEnabled?: boolean }) {
   const [man, setMan] = useState<Manifest | null>(null);
   // A1: which identity the LOCAL watchlist state on this browser belongs to. `guest` when signed
   // out, `account:<auth uuid>` otherwise — the immutable id, never the email (see
@@ -1018,32 +1030,9 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, s
   // mm.wls". These rows come from `portfolio_positions` through /api/portfolio and are NEVER
   // folded into `lists`, written to `mm.wls`, or touched by the watchlist sync chain. Holding a
   // name and watching a name are different facts; the rail shows both without mixing them.
-  const [railTab, setRailTab] = useState<"watchlists" | "portfolio">("watchlists");
-  const [pfRows, setPfRows] = useState<{ id: string; ticker: string; status: string }[]>([]);
-  const [pfLoaded, setPfLoaded] = useState(false);
+  const [railTab, setRailTab] = useState<"watchlists" | "portfolio" | "news">("watchlists");
   /** Symbol queued for the "Add to → Portfolio" modal; `null` = closed. */
   const [pfAddSymbol, setPfAddSymbol] = useState<string | null>(null);
-  const loadPortfolioRows = useCallback(async () => {
-    try {
-      const response = await fetch("/api/portfolio", { headers: { Accept: "application/json" } });
-      if (!response.ok) return;
-      const payload = await response.json();
-      if (!Array.isArray(payload?.positions)) return;
-      const rows = (payload.positions as { id: string; ticker: string; status: string }[])
-        .filter((row) => row && typeof row.ticker === "string")
-        .map((row) => ({ id: row.id, ticker: row.ticker, status: row.status }));
-      // Identity-stable: an unchanged book must not re-render the rail (and with it the chart
-      // workspace) every time this runs.
-      setPfRows((current) => (current.length === rows.length
-        && current.every((row, index) => row.id === rows[index].id && row.ticker === rows[index].ticker && row.status === rows[index].status)
-        ? current
-        : rows));
-    } catch {
-      // UWP-R6: an unreachable store leaves the rail on its last good read; no error chrome here.
-    } finally {
-      setPfLoaded(true);
-    }
-  }, []);
   // Live mirror of `lists` for the async migration: reading it from a ref keeps the effect keyed
   // on `loggedIn` alone, so a symbol edit mid-migration cannot restart the whole run.
   const listsRef = useRef(lists);
@@ -1207,7 +1196,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, s
   const [symbolNotes, setSymbolNotes] = useState<Record<string, string>>({});
 
   // ── A1: the owner boundary, adjusted DURING RENDER ──────────────────────────────────────────
-  // Same idiom as `pfEmail` further down, and for the same reason: an effect runs AFTER paint, so
+  // Adjusted during render, not in an effect: an effect runs AFTER paint, so
   // for one frame the rail would render the OUTGOING owner's watchlists under the INCOMING
   // owner's session — and the persist effects, keyed on the state itself, could write them into
   // the incoming owner's namespace. React re-invokes this component before committing, so
@@ -1259,7 +1248,58 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, s
   const [wlSetOpen, setWlSetOpen] = useState(false); const [tfOpen, setTfOpen] = useState(false); const [ctOpen, setCtOpen] = useState(false); const [snapOpen, setSnapOpen] = useState(false);
   const [toolbarMoreOpen, setToolbarMoreOpen] = useState(false);
   const [toolbarMoreView, setToolbarMoreView] = useState<"main" | "detect" | "layouts" | "snapshot">("main");
-  const [replayOn, setReplayOn] = useState(false); const [replayIdx, setReplayIdx] = useState<number | null>(null); const [total, setTotal] = useState(0); const [playing, setPlaying] = useState(false); const [speed, setSpeed] = useState(1);
+  // ── REPLAY CONTRACT: Bar Replay is SINGLE-CHART ONLY (lib/replayContract.ts) ──
+  // `replayArmed` is the user's INTENT; `replayOn` is the EFFECTIVE state and the only
+  // thing any consumer may read. Deriving it — instead of resetting the flag in every
+  // layout transition — means there is no render, transient ones included, in which the
+  // workspace claims Replay while a second chart sits at present time.
+  const [replayArmed, setReplayArmed] = useState(false);
+  // The replay POSITION is an instant — the moment the replay has reached — not a bar number.
+  // A bar number belongs to one bar array, so a timeframe change used to carry "daily bar 1175"
+  // onto the weekly array and show weeks after the replay date under the REPLAY badge. The bar
+  // index the rail displays is derived from the cutoff for whichever chart is on screen.
+  const [replayCutoff, setReplayCutoff] = useState<ReplayCutoff | null>(null);
+  // One object per exit, so the toast effect below fires once per exit and never needs clearing.
+  const [replayNotice, setReplayNotice] = useState<{ reason: Exclude<ReplayExit, null> } | null>(null);
+  const [playing, setPlaying] = useState(false); const [speed, setSpeed] = useState(1);
+  // Bar availability keyed by (symbol|timeframe), not "whatever pane reported last": a bare
+  // total goes stale the moment the chart it described leaves the screen, and the
+  // transport would then scrub one symbol against another symbol's length.
+  const [paneAxes, setPaneAxes] = useState<Record<string, ReplayAxis>>({});
+  const paneTotals = useMemo(() => {
+    const out: Record<string, number> = {};
+    for (const key of Object.keys(paneAxes)) out[key] = paneAxes[key].at.length;
+    return out;
+  }, [paneAxes]);
+  const replayAvailable = replayIsAvailable(panes.length);
+  const replayOn = replayArmed && replayAvailable;
+  const replayChart = replayChartKey(panes[0], paneTfs[0]);
+  const total = resolveReplayTotal(paneTotals, panes, paneTfs);
+  const replaySpan = replayHasSpan(total);
+  const replayAxis: ReplayAxis | undefined = replayAvailable ? paneAxes[replayChart] : undefined;
+  // The charts on screen now, so the axes of charts that left the screen can be dropped.
+  const paneKeysRef = useRef<Set<string>>(new Set());
+  paneKeysRef.current = new Set(panes.map((sym, i) => replayChartKey(sym, paneTfs[i])));
+  const onPaneMeta = useCallback((m: { symbol: string; timeframe: string; axis: ReplayAxis }) => {
+    setPaneAxes((prev) => recordReplayAxis(prev, replayChartKey(m.symbol, m.timeframe), m.axis, paneKeysRef.current));
+  }, []);
+  // Losing single-chart availability retires the INTENT too, so collapsing back to one chart
+  // offers Replay afresh rather than silently resuming at an index measured on another symbol.
+  // Adjusted DURING RENDER, like the `pfEmail` owner transition below: `replayOn` is already false
+  // by derivation, and clearing the residue here means no committed frame ever holds a replay
+  // position belonging to a layout that no longer exists.
+  if (!replayAvailable && (replayArmed || replayCutoff !== null || playing)) {
+    setReplayArmed(false); setReplayCutoff(null); setPlaying(false);
+  }
+  // A timeframe change keeps the cutoff — or ends Replay out loud. Decided during render for the
+  // same reason: a timeframe on the other clock (daily ↔ intraday) has no exact instant to keep, so
+  // it exits before any frame slices it; a timeframe with too little history before the cutoff
+  // exits as soon as its bars are measured, instead of padding the chart with later bars.
+  const replayExit = replayOn ? replayExitOnScreen(replayCutoff, paneTfs[0] ?? "D", replayAxis) : null;
+  if (replayExit) {
+    setReplayArmed(false); setReplayCutoff(null); setPlaying(false); setReplayNotice({ reason: replayExit });
+  }
+  const replayIdx = replayOn && replaySpan && replayCutoff ? replayIdxAt(replayAxis, replayCutoff) : null;
   const playRef = useRef<any>(null);
   // §7 state
   // Tool identity and activation travel together. The epoch makes one-shot
@@ -1810,7 +1850,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, s
     // rail's other view preferences rather than in an effect of its own; a lazy `useState`
     // initializer cannot read localStorage without a hydration mismatch (the server always renders
     // the default), so a mount read is the only correct shape and this is where the file does them.
-    { const savedTab = localStorage.getItem("mm.railTab"); if (savedTab === "portfolio" || savedTab === "watchlists") setRailTab(savedTab); }
+    { const savedTab = localStorage.getItem("mm.railTab"); if (savedTab === "portfolio" || savedTab === "watchlists" || (newsRailEnabled && savedTab === "news")) setRailTab(savedTab); }
     // restore the saved multi-pane workspace — but a deep-link (?sym=) always wins
     if (!initialSymbol) {
       try {
@@ -1842,8 +1882,12 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, s
       if (initialSymbol) setTimeout(() => setTf("5m"), 0);
       setTimeout(() => setDtm(true), 0);
     }
+    // ?sym=&episode= deep links land on 5m: a dislocation episode is built from 5-minute bars and the daily
+    // default would collapse every transition onto one bar. The DTM branch above already set 5m when the
+    // mode is on, so this fires only for the swing workspace (no double setTf).
+    if (initialSymbol && initialEpisode && !load("mm.dtm", false)) setTimeout(() => setTf("5m"), 0);
     setWorkspaceRestored(true);
-  }, []);
+  }, [newsRailEnabled]);
   // Legacy workspaces stored one hidden bit per suite. Expand that bit to the suite's currently
   // enabled qualified module ids so new module-level eyes preserve the old all-hidden appearance.
   useEffect(() => {
@@ -2246,21 +2290,14 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, s
   // work in that window can beat the restore commit it depends on. A user who never opens the
   // Portfolio tab issues no request at all, and one who has it persisted issues it strictly after
   // the restore has landed — the interactive path stays as clear as it is on master.
-  useEffect(() => {
-    if (railTab !== "portfolio" || !loggedIn || !wlsRestored) return;
-    void loadPortfolioRows();
-  }, [loggedIn, railTab, wlsRestored, loadPortfolioRows]);
-  // A different account must not inherit the previous one's book, the same way `serverListIds`
-  // resets on an email change (W1b F7). Adjusted DURING RENDER rather than in an effect: React
-  // re-runs this component before committing, so the rail can never paint one account's holdings
-  // under another's session — which an effect, running after paint, would allow for one frame.
-  // A sign-out clears it too: `loggedIn` is `!!email`, so "" is just another email change.
-  const [pfEmail, setPfEmail] = useState(email);
-  if (pfEmail !== email) {
-    setPfEmail(email);
-    setPfRows([]);
-    setPfLoaded(false);
-  }
+  //
+  // F08-RAIL (macro#6819 C4 5995397563): the read state, its owner/generation/mount fence and this
+  // lazy trigger live in `usePortfolioRailRead`. A different account must not inherit the previous
+  // one's book, so the owner (`portfolioRailOwner`) is the immutable account key AND the address:
+  // a new uuid behind the same email is a new owner, and so is a sign-out (`loggedIn` is `!!email`).
+  // The hook reads its state only while the owner tag matches, so the rail cannot paint one
+  // account's holdings under another's session, even for the frame an effect would take.
+  const pfRail = usePortfolioRailRead(portfolioRailOwner(email, userId), loggedIn && railTab === "portfolio" && wlsRestored);
 
   // ── TRAP 1 (guest → signed-in reconciliation) now lives in the render-time owner transition
   //    above, together with sign-out and account→account. It used to be an `email`-keyed effect
@@ -2955,17 +2992,20 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, s
   // one-click multi-timeframe: the active symbol across D / 3D / W / 1M (drawings are shared per-symbol).
   // Clicking again while already in the MTF layout collapses back to a single pane on the active symbol.
   const isMtf = panes.length === 4 && panes.every((s) => s === active) && paneTfs.slice(0, 4).join(",") === "D,3D,W,1M";
-  // paneSync only mirrors same-timeframe peers, and the single replay slider assumes one bar count: with
-  // heterogeneous per-pane timeframes both are incoherent, so we disable Sync + replay in that case.
+  // paneSync only mirrors same-timeframe peers, so heterogeneous per-pane timeframes make it
+  // incoherent. Replay no longer consults this: it is unavailable in ANY multi-pane layout,
+  // matching timeframes included — equal bar indexes still name different dates per symbol.
   const mixedTfs = panes.length > 1 && new Set(paneTfs.slice(0, panes.length)).size > 1;
   function mtfLayout() {
     if (isMtf) { setSplit(1); setPanes([active]); setPaneTfs([tf]); setActivePane(0); return; }
     const sym = active; setSplit(4); setPanes([sym, sym, sym, sym]); setPaneTfs(["D", "3D", "W", "1M"]); setActivePane(0);
   }
   function toggleReplay() {
-    setReplayOn((on) => {
+    setReplayArmed((on) => {
       const next = !on;
-      if (next) setReplayIdx(Math.max(20, total - 80));
+      const start = next && replayAvailable && replaySpan ? replayCutoffAt(replayAxis, initialReplayIdx(total)) : null;
+      if (next && !start) return on;   // never arm what cannot be honored
+      setReplayCutoff(start);
       setPlaying(false);
       return next;
     });
@@ -3004,11 +3044,16 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, s
 
   useEffect(() => {
     clearInterval(playRef.current);
-    if (replayOn && playing && total) {
-      playRef.current = setInterval(() => setReplayIdx((i) => { const n = (i ?? 0) + 1; if (n >= total - 1) { setPlaying(false); return total - 1; } return n; }), 700 / speed);
+    if (replayOn && playing && replaySpan && replayAxis) {
+      const axis = replayAxis, last = axis.at.length - 1;
+      playRef.current = setInterval(() => setReplayCutoff((c) => {
+        const n = replayIdxAt(axis, c) + 1;
+        if (n >= last) { setPlaying(false); return replayCutoffAt(axis, last) ?? c; }
+        return replayCutoffAt(axis, n) ?? c;
+      }), 700 / speed);
     }
     return () => clearInterval(playRef.current);
-  }, [replayOn, playing, total, speed]);
+  }, [replayOn, playing, replaySpan, replayAxis, speed]);
 
   const closeAll = () => {
     setWlSetOpen(false); setTfOpen(false); setCtOpen(false); setDetectOpen(false); setLayoutOpen(false); setWlMenuOpen(false); setSnapOpen(false); setToolbarMoreOpen(false); setToolbarMoreView("main"); setWlContext(null); setWlSectionContext(null);
@@ -4023,6 +4068,14 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, s
     setDtmToast(msg);
     dtmToastTimer.current = setTimeout(() => setDtmToast(null), 2500);
   }, []);
+  // Replay ended by a timeframe change (see `replayExit`): say so, rather than leaving the user
+  // to notice the rail vanished.
+  const replayNoticeShownRef = useRef<typeof replayNotice>(null);
+  useEffect(() => {
+    if (!replayNotice || replayNoticeShownRef.current === replayNotice) return;
+    replayNoticeShownRef.current = replayNotice;
+    showDtmToast(t(replayNotice.reason === "clock" ? "replayEndedClock" : "replayEndedRange"));
+  }, [replayNotice, showDtmToast, t]);
 
   const toggleDtm = useCallback(() => {
     // Guard: don't toggle while an undo-inds op is pending (spec gotcha)
@@ -4187,15 +4240,8 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, s
 
   const toggleScript = useCallback((id: string) => setEnabledIds((ids) => (ids.includes(id) ? ids.filter((x) => x !== id) : [...ids, id])), []);
   const handleRenameScript = useCallback((id: string, name: string) => {
-    const s = scriptById[id]; if (!s || !name.trim() || name.trim() === s.name) return;
-    const nm = name.trim(); const prev = s.name;
-    setScripts((list) => list.map((x) => (x.id === id ? { ...x, name: nm } : x)));   // optimistic
-    // roll back on server failure (a logged-in non-Pro user hits the save 403 → renScript returns false),
-    // otherwise the legend/modal keep an optimistic name that silently reverts on the next reload. Only
-    // revert if the name is still the one we set (don't clobber a newer concurrent rename).
-    renScript(loggedIn, { id, name: nm, source: s.source, params: s.params }).then((ok) => {
-      if (!ok) setScripts((list) => list.map((x) => (x.id === id && x.name === nm ? { ...x, name: prev } : x)));
-    });
+    const s = scriptById[id];
+    void runRenameScriptClick(loggedIn, s, name, setScripts);
   }, [scriptById, loggedIn]);
   const handleDeleteScript = useCallback((id: string) => {
     setScripts((list) => list.filter((x) => x.id !== id));
@@ -4225,7 +4271,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, s
     const existing = panes[activePane] === sym ? activePane : panes.findIndex((s) => s === sym);
     if (existing >= 0 && existing !== activePane) setActivePane(existing);          // shown in a different pane → focus it (don't duplicate)
     else if (panes[activePane] !== sym) setPanes((p) => p.map((s, i) => (i === activePane ? sym : s)));
-    setReplayOn(false); setReplayIdx(null); setPlaying(false); setCompare([]);
+    setReplayArmed(false); setReplayCutoff(null); setPlaying(false); setCompare([]);
   }, [activePane, panes]);
   const selectWlRow = useCallback((symbol: string, event: Pick<React.MouseEvent, "shiftKey" | "metaKey" | "ctrlKey">) => {
     const toggle = event.metaKey || event.ctrlKey;
@@ -5239,8 +5285,9 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, s
               className={`tbtn tool-adv toolbar-overflow-item${replayOn ? " on" : ""}`}
               data-toolbar-item
               data-toolbar-action="replay"
-              title={mixedTfs && !replayOn ? t("replayMixedTip") : (replayOn ? t("replayExitTip") : t("replayTip"))}
-              disabled={mixedTfs && !replayOn}
+              data-replay-blocked={replayOn ? undefined : (!replayAvailable ? "multi-chart" : !replaySpan ? "no-data" : undefined)}
+              title={replayOn ? t("replayExitTip") : !replayAvailable ? t("replayMultiChartTip") : !replaySpan ? t("replayNoDataTip") : t("replayTip")}
+              disabled={!replayOn && !(replayAvailable && replaySpan)}
               onClick={toggleReplay}
             ><svg viewBox="0 0 24 24"><path d="M3 3v18M8 6l10 6-10 6V6z" /></svg>{t("replayBtn")}</button>
             <div className="pophost tool-adv toolbar-overflow-item" data-toolbar-item data-toolbar-action="detect">
@@ -5333,7 +5380,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, s
                   {panes.length > 1 && <button type="button" role="menuitem" className={`menu-row${sync && !mixedTfs ? " on" : ""}`} data-toolbar-menu-action="sync" disabled={mixedTfs} onClick={() => { setSync((s) => !s); setToolbarMoreOpen(false); }}>
                     <svg viewBox="0 0 24 24"><path d="M4 7h11M4 7l3-3M4 7l3 3M20 17H9M20 17l-3-3M20 17l-3 3" /></svg>{t("sync")}
                   </button>}
-                  <button type="button" role="menuitem" className={`menu-row${replayOn ? " on" : ""}`} data-toolbar-menu-action="replay" disabled={mixedTfs && !replayOn} onClick={() => { toggleReplay(); setToolbarMoreOpen(false); }}>
+                  <button type="button" role="menuitem" className={`menu-row${replayOn ? " on" : ""}`} data-toolbar-menu-action="replay" title={replayOn ? t("replayExitTip") : !replayAvailable ? t("replayMultiChartTip") : !replaySpan ? t("replayNoDataTip") : t("replayTip")} disabled={!replayOn && !(replayAvailable && replaySpan)} onClick={() => { toggleReplay(); setToolbarMoreOpen(false); }}>
                     <svg viewBox="0 0 24 24"><path d="M3 3v18M8 6l10 6-10 6V6z" /></svg>{t("replayBtn")}
                   </button>
                   <button type="button" role="menuitem" className="menu-row drill" data-toolbar-menu-action="detect" onClick={() => setToolbarMoreView("detect")}>
@@ -5371,15 +5418,21 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, s
           </div>
         </div>
 
+        {/* Replay transport. Every control below — reset, step, play, scrub — addresses the SAME
+            authority: the cutoff instant, placed on the bars of the one chart named by
+            `replayChartKey`. `replayIdx` and `total` are both read from that chart's own axis, so
+            the rail cannot report a length or a position that belongs to another chart. */}
         {replayOn && (
-          <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "7px 14px", borderBottom: "1px solid var(--line)", background: "var(--bg)" }}>
-            <button className="icbtn" title={t("replayReset")} aria-label={t("replayReset")} onClick={() => { setReplayIdx(Math.max(20, total - 80)); setPlaying(false); }}><svg viewBox="0 0 24 24"><path d="M11 19l-7-7 7-7M20 19l-7-7 7-7" /></svg></button>
-            <button className="icbtn" disabled={mixedTfs} aria-label={t("replayPrev")} title={t("replayPrev")} onClick={() => setReplayIdx((i) => Math.max(20, (i ?? 0) - 1))}><svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6" /></svg></button>
-            <button className="icbtn" disabled={mixedTfs} aria-label={playing ? t("replayPause") : t("replayPlay")} title={mixedTfs ? t("replayMixedTip") : (playing ? t("replayPause") : t("replayPlay"))} onClick={() => setPlaying((p) => !p)}>{playing ? <svg viewBox="0 0 24 24"><path d="M6 4h4v16H6zM14 4h4v16h-4z" /></svg> : <svg viewBox="0 0 24 24" style={{ fill: "var(--signal)", stroke: "none" }}><path d="M6 4l14 8-14 8V4z" /></svg>}</button>
-            <button className="icbtn" disabled={mixedTfs} aria-label={t("replayNext")} title={t("replayNext")} onClick={() => setReplayIdx((i) => Math.min(total - 1, (i ?? 0) + 1))}><svg viewBox="0 0 24 24"><path d="M9 6l6 6-6 6" /></svg></button>
+          <div data-replay-rail="1" data-replay-chart={replayChart} data-replay-total={total} data-replay-idx={replayIdx ?? ""} style={{ display: "flex", alignItems: "center", gap: 10, padding: "7px 14px", borderBottom: "1px solid var(--line)", background: "var(--bg)" }}>
+            <button className="icbtn" disabled={!replaySpan} title={t("replayReset")} aria-label={t("replayReset")} onClick={() => { setReplayCutoff((c) => replayCutoffAt(replayAxis, initialReplayIdx(total)) ?? c); setPlaying(false); }}><svg viewBox="0 0 24 24"><path d="M11 19l-7-7 7-7M20 19l-7-7 7-7" /></svg></button>
+            <button className="icbtn" disabled={!replaySpan} aria-label={t("replayPrev")} title={t("replayPrev")} onClick={() => setReplayCutoff((c) => stepReplayCutoff(replayAxis, c, -1) ?? c)}><svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6" /></svg></button>
+            <button className="icbtn" disabled={!replaySpan} aria-label={playing ? t("replayPause") : t("replayPlay")} title={playing ? t("replayPause") : t("replayPlay")} onClick={() => setPlaying((p) => !p)}>{playing ? <svg viewBox="0 0 24 24"><path d="M6 4h4v16H6zM14 4h4v16h-4z" /></svg> : <svg viewBox="0 0 24 24" style={{ fill: "var(--signal)", stroke: "none" }}><path d="M6 4l14 8-14 8V4z" /></svg>}</button>
+            <button className="icbtn" disabled={!replaySpan} aria-label={t("replayNext")} title={t("replayNext")} onClick={() => setReplayCutoff((c) => stepReplayCutoff(replayAxis, c, 1) ?? c)}><svg viewBox="0 0 24 24"><path d="M9 6l6 6-6 6" /></svg></button>
             <div className="seg" style={{ height: 26 }}>{[1, 2, 4].map((s) => <button key={s} className={speed === s ? "on" : ""} onClick={() => setSpeed(s)}>{s}x</button>)}</div>
-            <input type="range" min={20} max={Math.max(21, total - 1)} value={replayIdx ?? total - 1} disabled={mixedTfs} title={mixedTfs ? t("replayMixedTip") : undefined} onChange={(e) => setReplayIdx(parseInt(e.target.value))} style={{ flex: 1, accentColor: "var(--brand)" }} />
-            <span className="num" style={{ color: "var(--muted)", fontSize: 11.5, minWidth: 70, textAlign: "right" }}>{(replayIdx ?? total - 1) + 1} / {total}</span>
+            <input type="range" min={REPLAY_MIN_IDX} max={Math.max(REPLAY_MIN_IDX + 1, total - 1)} value={clampReplayIdx(replayIdx ?? total - 1, total)} disabled={!replaySpan} onChange={(e) => { const v = parseInt(e.target.value); setReplayCutoff((c) => replayCutoffAt(replayAxis, v) ?? c); }} style={{ flex: 1, accentColor: "var(--brand)" }} />
+            {/* while the chart's own bar count is still unknown the counter says so rather than
+                printing a number the visible chart would not agree with */}
+            <span className="num" style={{ color: "var(--muted)", fontSize: 11.5, minWidth: 70, textAlign: "right" }}>{replaySpan ? `${clampReplayIdx(replayIdx ?? total - 1, total) + 1} / ${total}` : t("replayNoDataTip")}</span>
           </div>
         )}
 
@@ -5466,7 +5519,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, s
             />
             <div className="pane-grid" data-n={panes.length}>
               {panes.map((sym, i) => (
-                <ChartPane key={i} idx={i} symbol={sym} drawingOwnerKey={currentDrawingOwnerKey} isActive={i === activePane} onActivate={setActivePane} row={paneRows[i]} tf={paneTfs[i] ?? "D"} chartType={chartType} inds={inds} tool={drawingsReadyFor(sym) ? activeDrawingTool : null} toolActivation={toolState.activation} drawingSticky={drawingCreationDisabledReason ? false : drawingKeepsActive} drawingCreationDisabled={drawingCreationDisabledReason !== null} drawStyle={drawStyle} detectCmd={detectCmd} compare={compare} compareCfg={compareCfg} magnet={magnet} replayIdx={replayOn ? replayIdx : null} onMeta={(mm) => setTotal(mm.total)} drawings={[...(drawingOwnerMatches ? (drawStore[sym] ?? []) : []), ...chartBus.aiDrawingsFor(sym)]} drawingsVisible={drawingsVisible} onDrawingsChange={(d) => setSymbolDrawings(sym, d)} onDetectedDrawingCount={i === activePane ? setActivePaneDetectedDrawingCount : undefined} liveQuote={quotes[sym] ?? null} dataReady={prefsHydrated} initialTimeframe={startTfRef.current} indParams={indParams} hidden={hidden} onToggleHidden={toggleHidden} onRemoveInd={removeInd} onOpenSettings={openSettings} onOpenSource={openSource} pineScripts={pineScripts} dayMode={dtm} userTier={userTier}
+                <ChartPane key={i} idx={i} symbol={sym} drawingOwnerKey={currentDrawingOwnerKey} isActive={i === activePane} onActivate={setActivePane} row={paneRows[i]} tf={paneTfs[i] ?? "D"} episodeId={initialEpisode && initialSymbol && sym.toUpperCase() === initialSymbol.toUpperCase() ? initialEpisode : null} chartType={chartType} inds={inds} tool={drawingsReadyFor(sym) ? activeDrawingTool : null} toolActivation={toolState.activation} drawingSticky={drawingCreationDisabledReason ? false : drawingKeepsActive} drawingCreationDisabled={drawingCreationDisabledReason !== null} drawStyle={drawStyle} detectCmd={detectCmd} compare={compare} compareCfg={compareCfg} magnet={magnet} replayCutoff={replayOn && i === 0 ? replayCutoff : null} onMeta={onPaneMeta} drawings={[...(drawingOwnerMatches ? (drawStore[sym] ?? []) : []), ...chartBus.aiDrawingsFor(sym)]} drawingsVisible={drawingsVisible} onDrawingsChange={(d) => setSymbolDrawings(sym, d)} onDetectedDrawingCount={i === activePane ? setActivePaneDetectedDrawingCount : undefined} liveQuote={quotes[sym] ?? null} dataReady={prefsHydrated} initialTimeframe={startTfRef.current} indParams={indParams} hidden={hidden} onToggleHidden={toggleHidden} onRemoveInd={removeInd} onOpenSettings={openSettings} onOpenSource={openSource} pineScripts={pineScripts} dayMode={dtm} userTier={userTier}
                   onAddAlert={(price) => { window.location.href = `/alerts?sym=${encodeURIComponent(active)}&price=${encodeURIComponent(price.toFixed(4))}&type=price_above`; }}
                   onTableView={() => setTableViewOpen(true)}
                   onObjectTree={() => setObjectTreeOpen((o) => !o)}
@@ -5631,10 +5684,10 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, s
       {(!shellMode || dossierMode) && (<>
       <aside className="rail">
         <div className="rail-body">
-          {/* W5 — the rail's two SOURCES (packet section 6). Signed-in only: a guest has no book,
-              so the guest rail is byte-for-byte what it was. The watchlist board below is HIDDEN,
-              never unmounted, when Portfolio is showing — unmounting it would throw away drag
-              state, scroll position and selection every time the user glanced at their holdings. */}
+          {/* The authenticated rail has three distinct sources: Portfolio, Watchlists and News.
+              A guest has no book/news entitlement, so the guest rail is byte-for-byte what it was.
+              The watchlist board below is HIDDEN, never unmounted, when another source is showing —
+              unmounting it would throw away drag state, scroll position and selection. */}
           {loggedIn && (
             <div className="rail-tabs" role="tablist" aria-label={t("railSourceLabel")} data-testid="rail-source-tabs">
               <button type="button" role="tab" id="rail-tab-portfolio" aria-selected={railTab === "portfolio"}
@@ -5645,6 +5698,12 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, s
                 aria-controls="rail-panel-watchlists" tabIndex={railTab === "watchlists" ? 0 : -1}
                 className={`rail-tab${railTab === "watchlists" ? " on" : ""}`}
                 onClick={() => setRailTab("watchlists")}>{t("watchlists")}</button>
+              {newsRailEnabled && (
+              <button type="button" role="tab" id="rail-tab-news" aria-selected={railTab === "news"}
+                aria-controls="rail-panel-news" tabIndex={railTab === "news" ? 0 : -1}
+                className={`rail-tab${railTab === "news" ? " on" : ""}`}
+                onClick={() => setRailTab("news")}>{lang === "zh" ? "新闻" : "News"}</button>
+              )}
             </div>
           )}
           {loggedIn && railTab === "portfolio" && (
@@ -5655,20 +5714,45 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, s
               </div>
               <div className="wl-scroll">
                 {(() => {
-                  const held = pfRows.filter((row) => row.status !== "closed");
+                  const retry = (
+                    <button type="button" className="pf-board-cta pf-board-retry" onClick={() => void pfRail.retry()} disabled={pfRail.busy}>
+                      {pfRail.busy ? t("portfolioUnreadableRetrying") : t("portfolioUnreadableRetry")}
+                    </button>
+                  );
+                  // No answered read yet: loading, or an honest "could not read". Never the empty
+                  // book — a store that did not answer has not said the user holds nothing.
+                  if (!pfRail.rows) {
+                    return pfRail.failed ? (
+                      <div className="pf-board-empty" role="status" data-testid="rail-portfolio-unavailable">
+                        <span>{t("portfolioUnreadableTitle")}</span>
+                        {retry}
+                      </div>
+                    ) : (
+                      <div className="pf-board-empty"><span>{t("railPortfolioLoading")}</span></div>
+                    );
+                  }
+                  // A later read failed: keep the last good answer, but say it is the last good one.
+                  const stale = pfRail.failed && (
+                    <div className="pf-board-note" role="status" data-testid="rail-portfolio-stale">
+                      <span>{lang === "zh" ? PF_RAIL_STALE.zh : PF_RAIL_STALE.en}</span>
+                      {retry}
+                    </div>
+                  );
+                  const held = pfRail.rows.filter((row) => row.status !== "closed");
                   if (!held.length) {
                     return (
-                      <div className="pf-board-empty">
-                        {pfLoaded ? (
-                          <>
-                            <span>{t("railPortfolioEmpty")}</span>
-                            <Link className="pf-board-cta" href="/portfolio">{t("addPosition")}</Link>
-                          </>
-                        ) : <span>{t("railPortfolioLoading")}</span>}
-                      </div>
+                      <>
+                        {stale}
+                        <div className="pf-board-empty">
+                          <span>{t("railPortfolioEmpty")}</span>
+                          <Link className="pf-board-cta" href="/portfolio">{t("addPosition")}</Link>
+                        </div>
+                      </>
                     );
                   }
                   return (
+                    <>
+                    {stale}
                     <div className="pf-board-list" role="listbox" aria-label={t("myPortfolio")}>
                       {held.map((row) => {
                         const quote = mergeLive(man?.symbols?.[row.ticker], quotes[row.ticker]);
@@ -5688,12 +5772,14 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, s
                         );
                       })}
                     </div>
+                    </>
                   );
                 })()}
               </div>
             </div>
           )}
-          <div className={`board wl-board${loggedIn && railTab === "portfolio" ? " rail-hidden" : ""}`}
+          {loggedIn && newsRailEnabled && railTab === "news" && <TickerNewsPanel symbol={active} lang={lang} />}
+          <div className={`board wl-board${loggedIn && railTab !== "watchlists" ? " rail-hidden" : ""}`}
             id="rail-panel-watchlists" {...(loggedIn ? { role: "tabpanel", "aria-labelledby": "rail-tab-watchlists" } : {})}>
             <div className="wl-bar pophost">
               <button className="wl-select" onClick={(e) => { e.stopPropagation(); const willOpen = !wlMenuOpen; closeAll(); setWlMenuOpen(willOpen); }}>{activeList} <svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6" /></svg></button>
@@ -6002,7 +6088,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, s
               {/* Seasonality is injected via beforeIv so it renders BETWEEN the Analyst gauge and Implied
                   Volatility (order: analysis → Seasonality → IV) rather than after the whole card. */}
               <StockAnalysis intel={intel} row={m} fund={fund} opts={opts} bars={bars} glance={parseGlanceState(railGex, active)} onOpenPane={(p) => setPaneOpen(p)} onOpenSignals={() => setSignalsOpen(true)}
-                beforeIv={<div style={{ padding: 12 }}><SeasonalityCard symbol={active} onOpenPane={() => setPaneOpen("seasonals")} /></div>} />
+                beforeIv={<div key="linked-seasonality" style={{ padding: 12 }}><LinkedSeasonalityCard context={chartBus.context} activeSymbol={active} onOpenCurrent={() => setPaneOpen("seasonals")} /></div>} />
               {/* ── bottom button group (after Seasonality): full analysis + Ask AI ── */}
               <div className="sa-btn-group">
                 <button className="btn btn-primary" style={{ width: "100%", height: 38 }} onClick={() => setPaneOpen("overview")}>{t("openFullAnalysis")}</button>
@@ -6075,7 +6161,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, s
             setPfAddSymbol(null);
             // The rail only holds a book while the Portfolio tab is open; refresh it there so the
             // new row appears without a reload, and leave it alone otherwise.
-            if (railTab === "portfolio") void loadPortfolioRows();
+            if (railTab === "portfolio") void pfRail.load();
             return true;
           }}
         />

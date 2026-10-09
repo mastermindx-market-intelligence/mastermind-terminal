@@ -14,10 +14,13 @@
  *     negative) is ASSUMED, not measured — the ribbon and the source line say so.
  *   - Open interest updates once a day, so the map is a snapshot, not a live tape.
  *   - Absent levels render honestly as "not present" — never a fabricated strike.
+ *   - A read that did not land is not an absence: only a 404/410 (or a published payload
+ *     with no map for the root) shows the empty-root copy (lvNoLevels). A failed first read is
+ *     a load error with a Retry; a failed refresh keeps the map and says it is the last read.
  *
  * Data:
  *   /api/flow?f=levels:<ROOT>  →  levels.v1 payload (see schema below).
- *   Fetched via the shared flowGet client; polled ~60s while the tab is visible.
+ *   Read via the shared flowGetResult client; polled ~60s while the tab is visible.
  *   In dev (FLOW_FIXTURE=1) the route serves public/data/levels_fixture.json.
  */
 
@@ -28,15 +31,18 @@ import React, {
   useRef,
   useState,
 } from "react";
-import { flowGet } from "@/lib/flowClientCache";
+import { flowGetResult, flowInvalidate, type FlowOutcome } from "@/lib/flowClientCache";
+import { isValidRoot } from "@/lib/flowRoot";
 import { useLang, useT } from "@/lib/i18n";
 import { trackSearch } from "@/lib/searchTrack";
 import {
   ROLE_GLYPH,
   STACK_GLYPH,
+  levelsReadLabel,
   notPresentLabel,
   roleLabel,
   stackLabel,
+  type LevelsReadKey,
   type Role,
 } from "./levelsLabels";
 
@@ -141,13 +147,28 @@ const AUTOCOMPLETE_ROOTS = [
 
 const POLL_MS = 60_000;
 
-async function safeFetch<T>(f: string): Promise<T | null> {
+async function readFlow(f: string): Promise<FlowOutcome> {
   try {
-    const data = await flowGet(f);
-    return (data as T) ?? null;
+    return await flowGetResult(f);
   } catch {
-    return null;
+    return { status: "unavailable", reason: "network" };
   }
+}
+
+/** What the latest read for the current root established. `loading` until it settles. */
+type LevelsRead = "loading" | "data" | "absent" | "unavailable";
+
+/**
+ * The map for `root` in a /api/flow answer. A published object that carries no map for
+ * the root is the honest empty (FLOW_FIXTURE serves `{}` for a root it has none for);
+ * anything that is not an object at all is a read that did not land.
+ */
+function levelsFor(data: unknown, root: string): LevelsPayload | null | "malformed" {
+  if (!data || typeof data !== "object" || Array.isArray(data)) return "malformed";
+  const rec = data as Record<string, unknown>;
+  if ("nodes" in rec && String(rec.root ?? "").toUpperCase() === root) return rec as unknown as LevelsPayload;
+  if (rec[root] && typeof rec[root] === "object") return rec[root] as LevelsPayload;
+  return null;
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -222,40 +243,54 @@ function priceBand(payload: LevelsPayload | null): [number, number] | null {
 export function LevelsView() {
   const { lang } = useLang();
   const t = useT();
+  const tRead = (key: LevelsReadKey) => levelsReadLabel(key, lang);
 
   const [ticker, setTicker]     = useState("SPY");
   const [inputVal, setInputVal] = useState("SPY");
   const [payload, setPayload]   = useState<LevelsPayload | null>(null);
-  const [loading, setLoading]   = useState(false);
-  const [error, setError]       = useState(false);
+  const [read, setRead]         = useState<LevelsRead>("loading");
   const [colorblind, setColorblind] = useState(false);
   const [selected, setSelected] = useState<{ key: string; label: string; note: string } | null>(null);
 
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const colorHintAppliedRef = useRef(false);
+  // Every read takes a sequence number; only the latest may paint. A root the user has
+  // left, or a poll a newer read overtook, never lands on the board.
+  const readSeqRef = useRef(0);
 
-  const fetchLevels = useCallback(async (root: string) => {
-    if (typeof document !== "undefined" && document.visibilityState === "hidden") return;
-    const data = await safeFetch<Record<string, unknown>>(`levels:${root}`);
-    if (data && typeof data === "object" && "nodes" in data && String(data.root ?? "").toUpperCase() === root) {
-      setPayload(data as unknown as LevelsPayload);
-      setError(false);
-    } else if (data && typeof data === "object" && (data as Record<string, unknown>)[root]) {
-      setPayload((data as Record<string, unknown>)[root] as LevelsPayload);
-      setError(false);
+  const fetchLevels = useCallback(async (root: string, force = false) => {
+    if (!force && typeof document !== "undefined" && document.visibilityState === "hidden") return;
+    const seq = ++readSeqRef.current;
+    const outcome = await readFlow(`levels:${root}`);
+    if (readSeqRef.current !== seq) return;
+    const levels = outcome.status === "data" ? levelsFor(outcome.data, root) : null;
+    if (outcome.status === "unavailable" || levels === "malformed") {
+      // Keep whatever map is on screen — it is the last read, and the board says so.
+      if (levels === "malformed") flowInvalidate(`levels:${root}`);
+      setRead("unavailable");
+    } else if (outcome.status === "absent" || levels === null) {
+      setPayload(null);
+      setRead("absent");
     } else {
-      setError(true);
+      setPayload(levels);
+      setRead("data");
     }
   }, []);
 
   const loadTicker = useCallback(async (root: string) => {
-    setLoading(true);
+    setRead("loading");
     setPayload(null);
     setSelected(null);
-    setError(false);
-    await fetchLevels(root);
-    setLoading(false);
+    await fetchLevels(root, true);
   }, [fetchLevels]);
+
+  // Retry re-reads in place. With no map held the column returns to its reading state;
+  // with one held the map stays up until the new read lands.
+  const retryLevels = useCallback(() => {
+    flowInvalidate(`levels:${ticker}`);
+    if (!payload) setRead("loading");
+    void fetchLevels(ticker, true);
+  }, [fetchLevels, payload, ticker]);
 
   useEffect(() => {
     void loadTicker(ticker);
@@ -268,6 +303,13 @@ export function LevelsView() {
     };
   }, [fetchLevels, loadTicker, ticker]);
 
+  const loading = read === "loading";
+  const loadFailed = read === "unavailable" && !payload;
+  const refreshFailed = read === "unavailable" && payload != null;
+  // The rail may call a level "not present" only when a map was read (it lacks the role)
+  // or the store proved it has no map. Unread is "—", never an absence.
+  const absenceKnown = payload != null || read === "absent";
+
   // Honor the payload's own colorblind hint the first time it loads.
   useEffect(() => {
     if (!colorHintAppliedRef.current && payload?.palette_hint?.colorblind) {
@@ -278,7 +320,8 @@ export function LevelsView() {
 
   const commitTicker = useCallback(() => {
     const root = inputVal.trim().toUpperCase();
-    if (/^[A-Z0-9]{1,10}(?:[.-][A-Z0-9]{1,4})?$/.test(root) && root !== ticker) {
+    // The route's own root rule: a root /api/flow would refuse is never committed.
+    if (isValidRoot(root) && root !== ticker) {
       trackSearch(root, "levels-board", inputVal.trim() || undefined);
       setTicker(root);
     }
@@ -426,7 +469,15 @@ export function LevelsView() {
             ◑ {colorblind ? t("lvColorblindOn") : t("lvColorblindOff")}
           </button>
           {loading && <span style={LOADING_BADGE}>{t("lvLoading")}</span>}
-          {error && !loading && <span style={ERROR_BADGE}>{t("lvNoLevels")}</span>}
+          {read === "absent" && <span style={ERROR_BADGE}>{t("lvNoLevels")}</span>}
+          {refreshFailed && (
+            <span style={REFRESH_FAILED_BADGE} data-testid="levels-refresh-failed" role="status">
+              {tRead("lvRefreshFailed")}
+              <button type="button" className="btn btn-ghost load-retry" style={RETRY_INLINE} onClick={retryLevels}>
+                {tRead("lvRetry")}
+              </button>
+            </span>
+          )}
         </div>
       </div>
 
@@ -451,6 +502,14 @@ export function LevelsView() {
         <div style={COLUMN_PANE} className="levels-column">
           {loading && !payload ? (
             <div style={COLUMN_LOADING}>{t("lvReadingMap")}</div>
+          ) : loadFailed ? (
+            <div style={COLUMN_ERROR} data-testid="levels-load-error" role="alert">
+              <div style={COLUMN_ERROR_TITLE}>{tRead("lvLoadError").replace("{ticker}", ticker)}</div>
+              <div>{tRead("lvLoadErrorWhy")}</div>
+              <button type="button" className="btn btn-ghost load-retry" onClick={retryLevels}>
+                {tRead("lvRetry")}
+              </button>
+            </div>
           ) : !payload || terrainNodes.length === 0 ? (
             <div style={COLUMN_LOADING}>
               {t("lvEmptyMap").replace("{ticker}", ticker)}
@@ -593,7 +652,7 @@ export function LevelsView() {
                   <span style={{ ...RAIL_GLYPH, color: c }}>{ROLE_GLYPH[role]}</span>
                   <span style={RAIL_LABEL}>{roleLabel(role, lang)}</span>
                   <span style={{ ...RAIL_STRIKE, color: present ? "var(--text)" : "var(--text-dim)" }}>
-                    {present ? fmtStrike(node!.strike) : notPresentLabel(lang)}
+                    {present ? fmtStrike(node!.strike) : absenceKnown ? notPresentLabel(lang) : fmtStrike(null)}
                   </span>
                 </button>
               );
@@ -678,6 +737,10 @@ const CONTROLS_RIGHT: React.CSSProperties = {
 const ASOF_BADGE: React.CSSProperties = { fontSize: 10, color: "var(--muted)", fontVariantNumeric: "tabular-nums" };
 const LOADING_BADGE: React.CSSProperties = { fontSize: 10, color: "var(--brand-2)" };
 const ERROR_BADGE: React.CSSProperties = { fontSize: 10, color: "var(--muted)" };
+const REFRESH_FAILED_BADGE: React.CSSProperties = {
+  display: "inline-flex", alignItems: "center", gap: 6, fontSize: 10, color: "var(--warn)",
+};
+const RETRY_INLINE: React.CSSProperties = { padding: "2px 10px", fontSize: 11 };
 
 const RIBBON: React.CSSProperties = {
   display: "flex", alignItems: "center", gap: 10, padding: "9px 14px",
@@ -707,6 +770,8 @@ const COLUMN_LOADING: React.CSSProperties = {
   flex: 1, display: "flex", alignItems: "center", justifyContent: "center",
   fontSize: 12.5, color: "var(--muted)", textAlign: "center", padding: "0 32px", lineHeight: 1.6, maxWidth: 460, margin: "0 auto",
 };
+const COLUMN_ERROR: React.CSSProperties = { ...COLUMN_LOADING, flexDirection: "column", gap: 8 };
+const COLUMN_ERROR_TITLE: React.CSSProperties = { fontSize: 13, fontWeight: 600, color: "var(--text)" };
 
 const RUNG: React.CSSProperties = {
   position: "absolute", left: 0, height: 22, transform: "translateY(-50%)", zIndex: 3,

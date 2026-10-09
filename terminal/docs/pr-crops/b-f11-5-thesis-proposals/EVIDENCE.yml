@@ -4,8 +4,9 @@
 # capturedAtHead: f207382291015629e8ec5e68dde8a7797305daca
 # capturedAt: 2026-10-04T18:17:50.503Z
 # capturedAtHead is informational. The lock is layoutFiles.
+# 2026-10-05 F11-PROPOSALS (macro#6819, C4 5988747810): hash-only restamp of terminal/components/workspaces/ThesisWorkspace.tsx — the Suggested changes section now binds proposal rows to the selected thesis and adds loading/unavailable states; the settled ready markup (count + rows, or count 0 + empty statement) is byte-identical and no captured frame shows a pending or failed proposal read, so crops NOT recaptured and capturedAtHead unchanged. Not acceptance.
 layoutFiles:
-  terminal/components/workspaces/ThesisWorkspace.tsx: "a951862e7424db3a74fcebbaa6712b1f7e97ec89d0969b95274a0be133de142c"
+  terminal/components/workspaces/ThesisWorkspace.tsx: "2a1d1d3a8d9f1226b8b61bdf1f87ac209092c05156ac599fd415bf511381fbf3"
   terminal/components/workspaces/ThesisWorkspace.module.css: "3afaa5c0a5794f3fc2cdfb5c9b65257f703e7a3105e08009e602363d40690891"
   terminal/lib/thesisAmendmentProposals.ts: "f82b472f87e9c098fd1752ed357447e1462be5e5dee26bc4a0c110c15ada0d9b"
 theme: dark
