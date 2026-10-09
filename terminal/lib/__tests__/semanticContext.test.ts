@@ -766,3 +766,135 @@ describe("semantic context per-port reference support", () => {
     expect(coordinator.snapshot().revision).toBe(0);
   });
 });
+
+describe("semantic context reference-support routing and non-authority", () => {
+  it("allows explicitly declared theme owners on theme-aware emitters and consumers", () => {
+    const group: SemanticContextGroup = {
+      ...baseGroup(),
+      value: {
+        kind: "entity_selection",
+        ref: { owner: "macro.theme_registry", kind: "theme", object_id: "theme.ai" },
+      },
+      ports: baseGroup().ports.map(port => ({
+        ...port,
+        ref_accepts: [
+          { owner: "terminal.analysis_symbol", kinds: ["security"] },
+          { owner: "macro.theme_registry", kinds: ["theme"] },
+        ],
+      })),
+    };
+    const coordinator = createSemanticContextCoordinator(group, [wrapSelection]);
+    const result = coordinator.apply(delta({
+      mutation_id: "theme-selection",
+      patch: {
+        kind: "entity_selection",
+        ref: { owner: "macro.theme_registry", kind: "theme", object_id: "theme.energy" },
+      },
+    }));
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.snapshot.revision).toBe(1);
+    expect(result.receipt.applied_ports).toEqual(["brain.scope", "set.consumer"]);
+    expect(result.deliveries[1]).toEqual({
+      port_id: "set.consumer",
+      value: {
+        kind: "entity_set",
+        refs: [{ owner: "macro.theme_registry", kind: "theme", object_id: "theme.energy" }],
+      },
+    });
+  });
+
+  it("accepts a mutation but explicitly refuses a direct consumer that cannot interpret its owner", () => {
+    const group: SemanticContextGroup = {
+      ...baseGroup(),
+      ports: baseGroup().ports.map(port =>
+        port.port_id === "chart.primary"
+          ? {
+              ...port,
+              ref_accepts: [
+                { owner: "terminal.analysis_symbol", kinds: ["security"] },
+                { owner: "macro.theme_registry", kinds: ["theme"] },
+              ],
+            }
+          : port),
+    };
+    const result = createSemanticContextCoordinator(group).apply(delta({
+      patch: {
+        kind: "entity_selection",
+        ref: { owner: "macro.theme_registry", kind: "theme", object_id: "theme.ai" },
+      },
+    }));
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.receipt.applied_ports).toEqual([]);
+    expect(result.receipt.rejected_ports).toContainEqual({
+      port_id: "brain.scope",
+      reason: "reference_incompatible",
+    });
+    expect(result.deliveries).toEqual([]);
+    expect(result.snapshot.revision).toBe(1);
+  });
+
+  it("refuses a transformed reference outside the target port's declared owner/kind support", () => {
+    const transform: SemanticContextTransformAdapter = {
+      adapter_id: "selection_to_set",
+      from_kind: "entity_selection",
+      to_kind: "entity_set",
+      project() {
+        return {
+          ok: true,
+          value: {
+            kind: "entity_set",
+            refs: [{ owner: "macro.theme_registry", kind: "theme", object_id: "theme.ai" }],
+          },
+        };
+      },
+    };
+    const result = createSemanticContextCoordinator(baseGroup(), [transform]).apply(delta());
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.receipt.applied_ports).toEqual(["brain.scope"]);
+    expect(result.receipt.rejected_ports).toContainEqual({
+      port_id: "set.consumer",
+      reason: "reference_incompatible",
+    });
+    expect(result.deliveries).toEqual([
+      { port_id: "brain.scope", value: delta().patch },
+    ]);
+  });
+
+  it("refuses spoofed/duplicate owner declarations before coordination", () => {
+    const group = baseGroup();
+    group.ports[0] = {
+      ...group.ports[0],
+      ref_accepts: [
+        { owner: "terminal.analysis_symbol", kinds: ["security"] },
+        { owner: "terminal.analysis_symbol", kinds: ["theme"] },
+      ],
+    };
+    expect(validateSemanticContextGroup(group).ok).toBe(false);
+    group.ports[0] = {
+      ...group.ports[0],
+      ref_accepts: [{ owner: "bad/owner", kinds: ["security"] }],
+    };
+    expect(validateSemanticContextGroup(group).ok).toBe(false);
+  });
+
+  it("does not require entity-owner metadata on non-reference temporal ports", () => {
+    const base: SemanticContextGroup = {
+      ...baseGroup(),
+      kind: "historical_cutoff",
+      value: {
+        kind: "historical_cutoff",
+        policy: "as_known",
+        cutoff: "2026-10-09T14:00:00.000Z",
+      },
+      ports: baseGroup().ports.map(port => ({
+        ...withoutReferenceSupport(port),
+        accepts: ["historical_cutoff"],
+        temporal_capabilities: ["as_known"],
+      })),
+    };
+    expect(validateSemanticContextGroup(base).ok).toBe(true);
+  });
+});
