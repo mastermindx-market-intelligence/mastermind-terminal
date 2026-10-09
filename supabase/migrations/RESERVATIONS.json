@@ -300,6 +300,26 @@
       "applied_date": "2026-10-04T06:17:18Z",
       "note": "Single Investigation aggregate on existing #777. All 39 DDL statements applied; independent read-only catalog reconciled the incomplete initial readback and verified all 19 objects, RLS and grants. Receipt: https://github.com/mastermindx-market-intelligence/mastermind-terminal/pull/777#issuecomment-5977275494. Application save/reopen acceptance remains pending deployment."
     },
+    "0029": {
+      "state": "taken",
+      "file": "0029_investigation_thesis_refs.sql",
+      "packet": "IW2-G5-THESIS-REFERENCES",
+      "pr": 804,
+      "pr_state": "open",
+      "applied_in_production": true,
+      "applied_date": "2026-10-05T06:31:03Z",
+      "note": "Canonical Thesis version references; all 8 migration statements applied and both function definitions, grants and four RLS tables read back. Receipt: https://github.com/mastermindx-market-intelligence/mastermind-terminal/pull/804#issuecomment-5989351431. Application acceptance awaits merged-code deployment."
+    },
+    "0030": {
+      "state": "taken",
+      "file": "0030_investigation_kernel.sql",
+      "packet": "IW2-G1-KERNEL-REPAIR",
+      "pr": 804,
+      "pr_state": "open",
+      "applied_in_production": false,
+      "applied_date": null,
+      "note": "Forward repair on the incumbent #804 carrier following integration review 5989604142. 0028/0029 remain byte-identical; 0030 is not applied. Applied date is not recorded because no application has occurred."
+    },
     "0031": {
       "state": "taken",
       "file": "0031_drawings_atomic_replace.sql",
