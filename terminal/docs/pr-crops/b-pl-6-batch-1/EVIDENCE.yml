@@ -1,12 +1,11 @@
-# 2026-10-05 #802/#808 source hash reconciliation: preserves captured PNG bytes/provenance; added Dislocations-only labels are not rendered by these capture surfaces.
 # B-PL-6 batch 1 — capture evidence
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
 # Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
-# capturedAtHead: 2846101a95c9f9c4e1b3f21d0005c356cc41ba8f
-# capturedAt: 2026-10-05T11:01:50.962Z
+# capturedAtHead: 37a221a8161fa1e21a777026018da715500980f3
+# capturedAt: 2026-10-08T21:27:31.244Z
 # capturedAtHead is informational. The lock is layoutFiles.
 layoutFiles:
-  terminal/components/OptionsHubView.tsx: "bc6201d94f709956b4ee70f52900db4431433c5f3dcef1606628900babf73f2a"
+  terminal/components/OptionsHubView.tsx: "dd8e4e9d5234aae8fb41b597fe1a262bd54dfd8abebb2e46361bde50354c9f08"
   terminal/components/SearchModal.tsx: "51b7b514f169a40db9644b502ddd0d933100a305aea55ea0f6a1fb028dbe69ad"
   terminal/components/StockAnalysis.tsx: "376a907d0d8ea3dc5819e0092f02e19ce56fa1f4b71a3489551adf52fddb35c0"
   terminal/components/workspaces/AnalysisWorkspace.tsx: "f98764b71e4e1301d6149aef0d3e47615455801f95a9691b4d8807febe92226e"
@@ -20,7 +19,7 @@ languages: [en, zh]
 viewports:
   - { name: desktop, width: 1440, height: 900 }
   - { name: mobile, width: 390, height: 844 }
-surfaces: [OptionsHubView, SearchModal, StockAnalysis, AnalysisWorkspace, ChartChrome]
+surfaces: [OptionsHubView, DiscoverLeaders, SearchModal, StockAnalysis, AnalysisWorkspace, ChartChrome]
 capture_flag: TERMINAL_E2E_FIXTURE
 capture_flag_law: next.config.ts sets devIndicators: false when TERMINAL_E2E_FIXTURE is set; this script starts next dev with the same flag.
 command: |
@@ -35,6 +34,10 @@ files:
   - ChartChrome-1440.png
   - ChartChrome-390-zh.png
   - ChartChrome-390.png
+  - DiscoverLeaders-1440-zh.png
+  - DiscoverLeaders-1440.png
+  - DiscoverLeaders-390-zh.png
+  - DiscoverLeaders-390.png
   - OptionsHubView-1440-zh.png
   - OptionsHubView-1440.png
   - OptionsHubView-390-zh.png
@@ -53,3 +56,4 @@ recaptureScope:
   preserved: [OptionsHubView, SearchModal, StockAnalysis, AnalysisWorkspace]
   priorPacketHead: fb6f5cc39e592e7f9967835a85617b4fef427b09
   note: Only ChartPanel changed among the eight layout sources; the other seven source hashes and sixteen non-ChartChrome crops are byte-identical to the prior packet.
+[executed on device: m2studio (3f5ce987-e3eb-40a3-af9f-4b0ae54919cc)]
