@@ -468,6 +468,7 @@ function MarketRiskChip({ zh }: { zh: boolean }) {
 
 export default function OracleDash({ sym, row, slice, intel, bars, zh = false, onClose, onJump, onOpenFull }: OracleDashProps) {
   const dockRef = useRef<HTMLDivElement>(null)
+  const [activeTab, setActiveTab] = useState<"summary" | "oracle" | "research" | "activity">("summary")
 
   // Rail-left measurement for web positioning
   const [railLeft, setRailLeft] = useState<number | null>(null)
@@ -611,12 +612,62 @@ export default function OracleDash({ sym, row, slice, intel, bars, zh = false, o
       aria-modal="true"
       aria-label={pick(zh, "Research Desk and Golden Oracle", "研究台与黄金神谕")}
     >
-      <div className="sd-dock" ref={dockRef} style={dockStyle}>
-
-        {/* ── Research Desk container (LEFT on web, TOP on mobile) ── */}
+      <div className="sd-dock sd-intelligence" data-active-tab={activeTab} ref={dockRef} style={dockStyle}>
+        <header className="sd-intel-header">
+          <div><span className="sd-intel-kicker">{pick(zh, "TERMINAL / INTELLIGENCE", "终端 / 情报")}</span>
+            <div className="sd-intel-heading"><strong>{pick(zh, "Intelligence", "情报")}</strong><span>{sym}</span></div>
+          </div>
+          <button className="sd-intel-close" type="button" onClick={onClose} aria-label={pick(zh, "Close intelligence", "关闭情报")}>×</button>
+        </header>
+        <nav className="sd-intel-tabs" aria-label={pick(zh, "Intelligence views", "情报视图")}>
+          {(["summary", "oracle", "research", "activity"] as const).map((tab) => (
+            <button type="button" key={tab} className={activeTab === tab ? "active" : ""}
+              aria-current={activeTab === tab ? "page" : undefined} onClick={() => setActiveTab(tab)}>
+              {tab === "summary" ? pick(zh, "Summary", "概览") : tab === "oracle" ? pick(zh, "Oracle", "神谕") : tab === "research" ? pick(zh, "Research", "研究") : pick(zh, "Activity", "记录")}
+            </button>
+          ))}
+        </nav>
+        {activeTab === "summary" && (
+          <div className="sd-intel-summary">
+            <div className="sd-intel-hero">
+              <div className="sd-intel-meta"><span className="sd-intel-dot oracle" />{pick(zh, "GOLDEN ORACLE", "黄金神谕")}</div>
+              <div className="sd-intel-verdict" style={{ color: ov.color }}>{ov.label !== "—" ? ov.label : (row?.verdict ?? "—")}</div>
+              {ov.sub && <div className="sd-intel-sub">{ov.sub}</div>}
+              {ov.line2 && <div className="sd-intel-warning-inline">{ov.line2}</div>}
+              <div className="sd-intel-stats">
+                <div><span>{pick(zh, "WIN RATE", "胜率")}</span><strong>{fmtPctLocal(wr, true)}</strong></div>
+                <div><span>{pick(zh, "PROFIT FACTOR", "盈亏比")}</span><strong>{fmt2(pf)}</strong></div>
+                <div><span>{pick(zh, "HIST. TRADES", "历史交易")}</span><strong>{nTrades ?? "—"}</strong></div>
+              </div>
+            </div>
+            {freshWarn && <button className="sd-intel-alert" type="button" onClick={() => setActiveTab("oracle")}>
+              <span>{freshWarn.kind === "confirm" ? pick(zh, "Structure break confirmed", "结构破位已确认") : pick(zh, "Structure-break warning", "结构破位预警")}</span>
+              <span>{signalHistoryDate(freshWarn.ts, zh)} ›</span>
+            </button>}
+            <div className="sd-intel-research">
+              <div className="sd-intel-meta"><span className="sd-intel-dot research" />{pick(zh, "RESEARCH DESK", "研究台")}</div>
+              <div className="sd-intel-research-main">
+                <strong>{finalScore == null ? "—" : Math.round(finalScore)}<small>/100</small></strong>
+                <div><b>{aj?.verdict || dv.label}</b>{convBand && <span>{convBand}</span>}</div>
+              </div>
+              <button type="button" onClick={() => setActiveTab("research")}>{pick(zh, "View research", "查看研究")} ↗</button>
+            </div>
+            <div className="sd-intel-recent"><span>{pick(zh, "LATEST SIGNAL", "最新信号")}</span>
+              <button type="button" onClick={() => setActiveTab("activity")}>{pick(zh, "History", "历史")} ({sigs.length}) ↗</button>
+            </div>
+            {latestSig ? <button className="sd-intel-latest" type="button" onClick={() => handleJump(latestSig.ts)}>
+              <b style={{ color: isBlockedSignal(latestSig) ? "var(--muted)" : isStructureStop({ type: latestSig.type, basis: sliceSignalBasis(latestSig) }) ? "var(--down)" : "var(--up)", background: isBlockedSignal(latestSig) ? "var(--panel-3)" : isStructureStop({ type: latestSig.type, basis: sliceSignalBasis(latestSig) }) ? "color-mix(in srgb,var(--down) 12%,transparent)" : "color-mix(in srgb,var(--up) 12%,transparent)" }}>{isBlockedSignal(latestSig) ? pick(zh, "BLOCKED", "已拦截") : isStructureStop({ type: latestSig.type, basis: sliceSignalBasis(latestSig) }) ? pick(zh, "STOP", "止损") : latestSig.type}</b><span>{signalHistoryDate(signalKnownTs(latestSig) ?? latestSig.ts, zh)}</span>
+              <strong>{latestSig.price == null ? "—" : latestSig.price.toFixed(2)}</strong>
+            </button> : <p className="sd-intel-empty">{pick(zh, "No recorded signals", "暂无信号记录")}</p>}
+            <p className="sd-intel-provenance">{pick(zh, "Research signals, not trade orders", "研究信号并非交易指令")}</p>
+          </div>
+        )}
+        {/* Detailed tabs reuse the real research and Oracle panels, including all source context. */}
+        {/* ── Research Desk detail ── */}
         <section
           className="sd-cont sd-rd"
-          style={{ borderTopColor: dv.color, ["--vc" as any]: dv.color }}
+          hidden={activeTab !== "research"}
+          style={{ ["--vc" as any]: dv.color }}
         >
           <div className="sd-head">
             <span className="sd-ic">{DeskGlyph}</span>
@@ -726,7 +777,8 @@ export default function OracleDash({ sym, row, slice, intel, bars, zh = false, o
         {/* ── Golden Oracle container (RIGHT on web, BOTTOM on mobile) ── */}
         <section
           className="sd-cont sd-go"
-          style={{ borderTopColor: ov.color, ["--vc" as any]: ov.color }}
+          hidden={activeTab !== "oracle" && activeTab !== "activity"}
+          style={{ ["--vc" as any]: ov.color }}
         >
           <div className="sd-head">
             <span className="sd-ic">{OracleStar}</span>
