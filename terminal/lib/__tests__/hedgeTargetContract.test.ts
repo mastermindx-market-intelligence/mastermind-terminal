@@ -75,6 +75,8 @@ describe("hedge-target scenario consumer", () => {
     ["wrong cohort sum", [["by_cohort.0.target_change", 0]]],
     ["wrong attribution", [["attribution.inventory", fixture.attribution.inventory + 10]]],
     ["unknown inventory model", [["inventory_assumptions.method", "actual_dealer_positions"]]],
+    ["mixed IV models", [["assumptions.vol_map", "supplied_contract_endpoint_iv"]]],
+    ["false parallel IV shift", [["contracts.0.target_iv", .35]]],
     ["wrong fixing date", [["contracts.0.fixing_at", "2026-10-09T20:00:00Z"], ["by_expiry.0.fixing_at", "2026-10-09T20:00:00Z"]]],
     ["wrong cohort membership", [["contracts.0.anchor_cohort", "unknown"], ["by_cohort.0.contracts", 0]]],
     ["one-microsecond late receipt", [["source_receipt.consumer_available_at", "2026-10-08T18:00:02.000001+00:00"]]],

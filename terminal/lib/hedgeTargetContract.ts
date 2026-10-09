@@ -130,6 +130,7 @@ export function parseHedgeTargetChange(value: unknown): HedgeTargetView | null {
       a.cohort_convention !== "anchor_calendar_days_America/New_York" ||
       !["sticky_strike_parallel_shift", "supplied_contract_endpoint_iv"].includes(String(a.vol_map)) ||
       !finite(a.iv_shift) || !finite(a.r) || !finite(a.q) || !positive(a.max_source_age_seconds)) return null;
+  if (a.vol_map === "supplied_contract_endpoint_iv" && a.iv_shift !== 0) return null;
   if (!record(inv) || !text(inv.method) || (inv.method !== "supplied_signed_positions" && !flowMethods.includes(inv.method))) return null;
   if (flowMethods.includes(inv.method) && (!finite(inv.dealer_fraction) || inv.dealer_fraction < 0 || inv.dealer_fraction > 1 ||
       !["supplied", "assumed_zero"].includes(String(inv.nontrade_assumption)))) return null;
@@ -154,6 +155,10 @@ export function parseHedgeTargetChange(value: unknown): HedgeTargetView | null {
         !["C", "P"].includes(String(row.right))) return null;
     const key = [row.option_root, row.expiry, row.right, row.strike].join(":");
     if (economics.has(key)) return null;
+    if (a.vol_map === "sticky_strike_parallel_shift") {
+      const shifted = positive(row.iv) ? row.iv + a.iv_shift : null;
+      if (positive(shifted) ? !positive(row.target_iv) || !close(row.target_iv, shifted) : row.target_iv !== null) return null;
+    }
     ids.add(row.contract_id); economics.add(key);
   }
   if (flowMethods.includes(inv.method)) {
