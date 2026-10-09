@@ -1,0 +1,25 @@
+{
+  "changed_at": "2026-10-09T00:42:12.568291+00:00",
+  "source_head_before": "2de6d793326a6d8e340c08b0db342283984db820",
+  "finding": "45 real forward-only plain-language guard findings in new copy module",
+  "repair": "Use existing pure pick(lang,en,zh) copy convention; keep language hook in existing client component; unchanged wording and55keypairs; no globali18n or guard edit",
+  "files": [
+    {
+      "path": "terminal/lib/sovereignAuctionCopy.ts",
+      "before_sha256": "cf2784b31eb09dd3c89626922b50106f3ec2952467eb357c5faf6107e137b6e5",
+      "after_sha256": "68e796dca0f8406a1b4001ecd1f372a9244a4e8db2874700a9fec02c94d1540e"
+    },
+    {
+      "path": "terminal/components/SovereignAuctionContext.tsx",
+      "before_sha256": "b2cbcc4807342678b46b5ebf5321bc48f9c1307fea8591be29cb6cea67d42665",
+      "after_sha256": "5c4a4fe7a7953502b3bcbcad51354c25d8e02fb7bbdb19e5daac14d178a0e1f7"
+    },
+    {
+      "path": "terminal/lib/__tests__/sovereignAuctionComponent.test.tsx",
+      "before_sha256": "ab45200e06acc3e1b347314f0e466d07e2181e6112c5494b4b5723c5426a210c",
+      "after_sha256": "65ae671a04db339778cd5702b95f890873789da4089d8c71239a8dcc506cd028"
+    }
+  ],
+  "copy_pairs": 55,
+  "original_copy_pairs_sha256": "1b0b8b8f363e6f22d1c7dbe77f9176ed67424213cf0897dcfe0cd3807f586764"
+}

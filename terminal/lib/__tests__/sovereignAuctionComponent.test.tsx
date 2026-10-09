@@ -6,7 +6,7 @@ import { join } from "node:path";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import SovereignAuctionContext, { formatAuctionDollars } from "@/components/SovereignAuctionContext";
 import { LangProvider } from "@/lib/i18n";
-import { AUCTION_LEX as LEX } from "@/lib/sovereignAuctionCopy";
+import { AUCTION_COPY as COPY } from "@/lib/sovereignAuctionCopy";
 import { validateSovereignAuctionContext } from "@/lib/sovereignAuctionContext";
 const auth = vi.hoisted(() => ({ listener: null as null | ((event: string, session: { user: { id: string }; access_token: string } | null) => void), unsubscribe: vi.fn() }));
 vi.mock("@/lib/supabase/client", () => ({ createClient: () => ({ auth: { onAuthStateChange: (listener: typeof auth.listener) => { auth.listener = listener; return { data: { subscription: { unsubscribe: auth.unsubscribe } } }; } } }) }));
@@ -46,8 +46,8 @@ describe("independent sovereign auction display", () => {
     context.episodes = context.events;
     vi.mocked(fetch).mockResolvedValue(new Response(JSON.stringify(context), { status: 200 })); await mount();
     const row = host.querySelector(`[data-episode-id="${context.events[0].episode_id}"]`)!;
-    expect(row.querySelector('[data-testid="sa-offering"]')!.textContent).toBe(LEX.saUnknown[0]);
-    expect(row.querySelector('[data-testid="sa-deadline"]')!.textContent).toContain(LEX.saUnknown[0]);
+    expect(row.querySelector('[data-testid="sa-offering"]')!.textContent).toBe(COPY.saUnknown("en"));
+    expect(row.querySelector('[data-testid="sa-deadline"]')!.textContent).toContain(COPY.saUnknown("en"));
   });
   it("renders readable exact amounts and retains identity, clocks and raw states in closed source disclosures", async () => {
     vi.mocked(fetch).mockResolvedValue(new Response(JSON.stringify(PAYLOAD), { status: 200 })); await mount();
@@ -55,7 +55,7 @@ describe("independent sovereign auction display", () => {
     const bill = host.querySelector('[data-episode-id="auction:912797SU2:2026-10-13"]')!;
     const primary = bill.querySelector('[data-testid="sa-event-summary"]')!;
     expect(primary.textContent).toContain("6-week Treasury bill");
-    expect(primary.textContent).toContain(LEX.saAnnounced[0]);
+    expect(primary.textContent).toContain(COPY.saAnnounced("en"));
     expect(primary.textContent).toContain("2026-10-13 17:00:00 UTC");
     expect(primary.textContent).not.toContain("auction:");
     expect(primary.textContent).not.toContain("ANNOUNCED");
@@ -72,7 +72,7 @@ describe("independent sovereign auction display", () => {
     await act(async () => { source.querySelector("summary")!.click(); evidence.querySelector("summary")!.click(); });
     expect(source.open).toBe(true); expect(evidence.open).toBe(true);
     expect(body()).toContain(PAYLOAD.decision_cutoff_utc); expect(body()).toContain(PAYLOAD.source_observed_at);
-    expect(body()).toContain(LEX.saResultsNotObserved[0]); expect(body()).toContain(LEX.saFreshnessUnassessed[0]);
+    expect(body()).toContain(COPY.saResultsNotObserved("en")); expect(body()).toContain(COPY.saFreshnessUnassessed("en"));
     expect(host.querySelector("a a")).toBeNull(); expect(host.querySelectorAll("li")).toHaveLength(3);
     expect(host.querySelector("details")?.style.maxWidth).toBe("100%");
   });
@@ -83,13 +83,13 @@ describe("independent sovereign auction display", () => {
   });
   it("EN/ZH readable labels remain separated and theme attributes preserve existing foreground tokens", async () => {
     vi.mocked(fetch).mockResolvedValue(new Response(JSON.stringify(PAYLOAD), { status: 200 })); await mount();
-    expect(body()).toContain(LEX.saTitle[0]); expect(body()).not.toContain(LEX.saTitle[1]);
+    expect(body()).toContain(COPY.saTitle("en")); expect(body()).not.toContain(COPY.saTitle("zh"));
     await act(async () => { document.documentElement.setAttribute("data-lang", "zh"); window.dispatchEvent(new CustomEvent("mm:lang")); });
-    expect(body()).toContain(LEX.saTitle[1]); expect(body()).not.toContain(LEX.saTitle[0]);
+    expect(body()).toContain(COPY.saTitle("zh")); expect(body()).not.toContain(COPY.saTitle("en"));
     const primary = host.querySelector('[data-testid="sa-event-summary"]')!.textContent!;
-    expect(primary).toContain(LEX.saClassBill[1]); expect(primary).not.toContain(LEX.saClassBill[0]);
-    expect(primary).toContain(LEX.saAnnounced[1]); expect(primary).not.toContain(LEX.saAnnounced[0]);
-    expect(primary).toContain(LEX.saIssueDateNotPassed[1]);
+    expect(primary).toContain(COPY.saClassBill("zh")); expect(primary).not.toContain(COPY.saClassBill("en"));
+    expect(primary).toContain(COPY.saAnnounced("zh")); expect(primary).not.toContain(COPY.saAnnounced("en"));
+    expect(primary).toContain(COPY.saIssueDateNotPassed("zh"));
     for (const theme of ["light", "dark"]) { document.documentElement.setAttribute("data-theme", theme); expect(host.querySelector("details")?.getAttribute("style")).toContain("var(--text)"); }
     // DOM/style assertions do not claim responsive browser layout verification.
   });
@@ -98,7 +98,7 @@ describe("independent sovereign auction display", () => {
     await mount(); expect(body()).toContain("912797SU2");
     await act(async () => { await vi.advanceTimersByTimeAsync(300_000); }); await settle();
     expect(body()).not.toContain("912797SU2"); expect(host.querySelectorAll("li")).toHaveLength(0);
-    expect(body()).toContain(LEX[status === 401 ? "saSignIn" : status === 403 ? "saNotEntitled" : "saUnavailable"][0]);
+    expect(body()).toContain(COPY[status === 401 ? "saSignIn" : status === 403 ? "saNotEntitled" : "saUnavailable"]("en"));
   });
   it("clears prior caller bytes synchronously on a session storage change", async () => {
     vi.mocked(fetch).mockResolvedValueOnce(new Response(JSON.stringify(PAYLOAD), { status: 200 })).mockImplementationOnce(() => new Promise(() => {}));
@@ -110,7 +110,7 @@ describe("independent sovereign auction display", () => {
     vi.mocked(fetch).mockResolvedValue(new Response(JSON.stringify(PAYLOAD), { status: 200 }));
     await mount(); expect(body()).toContain("912797SU2");
     await act(async () => auth.listener?.("SIGNED_OUT", null));
-    expect(body()).not.toContain("912797SU2"); expect(body()).toContain(LEX.saSignIn[0]);
+    expect(body()).not.toContain("912797SU2"); expect(body()).toContain(COPY.saSignIn("en"));
     const calls = vi.mocked(fetch).mock.calls.length;
     await act(async () => { await vi.advanceTimersByTimeAsync(300_000); });
     expect(fetch).toHaveBeenCalledTimes(calls);
@@ -118,7 +118,7 @@ describe("independent sovereign auction display", () => {
   it("rejects malformed refreshed context instead of retaining old data", async () => {
     vi.mocked(fetch).mockResolvedValueOnce(new Response(JSON.stringify(PAYLOAD), { status: 200 })).mockResolvedValueOnce(new Response(JSON.stringify({ ...PAYLOAD, probabilities: .5 }), { status: 200 }));
     await mount(); await act(async () => { await vi.advanceTimersByTimeAsync(300_000); }); await settle();
-    expect(body()).not.toContain("912797SU2"); expect(body()).toContain(LEX.saUnavailable[0]);
+    expect(body()).not.toContain("912797SU2"); expect(body()).toContain(COPY.saUnavailable("en"));
   });
   it("aborts an in-flight old response and cannot restore it after same-tab sign-out", async () => {
     let finishOld: (value: Response) => void = () => {};
@@ -130,7 +130,7 @@ describe("independent sovereign auction display", () => {
     await act(async () => auth.listener?.("SIGNED_OUT", null));
     expect(oldSignal?.aborted).toBe(true); expect(body()).not.toContain("912797SU2");
     await act(async () => finishOld(new Response(JSON.stringify(PAYLOAD), { status: 200 }))); await settle();
-    expect(body()).not.toContain("912797SU2"); expect(body()).toContain(LEX.saSignIn[0]);
+    expect(body()).not.toContain("912797SU2"); expect(body()).toContain(COPY.saSignIn("en"));
   });
   it("a new principal cannot inherit an older principal's overlapping response", async () => {
     let finishOld: (value: Response) => void = () => {};
@@ -142,8 +142,8 @@ describe("independent sovereign auction display", () => {
     expect(body()).not.toContain("912797SU2");
     const oldSignal = vi.mocked(fetch).mock.calls[1][1]?.signal;
     await act(async () => auth.listener?.("SIGNED_IN", { user: { id: "new-principal" }, access_token: "new-session" })); await settle();
-    expect(oldSignal?.aborted).toBe(true); expect(body()).toContain(LEX.saNotEntitled[0]);
+    expect(oldSignal?.aborted).toBe(true); expect(body()).toContain(COPY.saNotEntitled("en"));
     await act(async () => finishOld(new Response(JSON.stringify(PAYLOAD), { status: 200 }))); await settle();
-    expect(body()).not.toContain("912797SU2"); expect(body()).toContain(LEX.saNotEntitled[0]);
+    expect(body()).not.toContain("912797SU2"); expect(body()).toContain(COPY.saNotEntitled("en"));
   });
 });

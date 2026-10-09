@@ -1,6 +1,6 @@
 {
-  "persisted_at": "2026-10-09T00:28:14.109882+00:00",
-  "source_output": "/tmp/sovereign-auction-terminal-ui-proof-03",
+  "persisted_at": "2026-10-09T00:47:59.602629+00:00",
+  "source_output": "/tmp/sovereign-auction-terminal-ui-proof-04",
   "complete_receipts": [
     "browser_results.json",
     "execution_receipt.json",
@@ -10,12 +10,12 @@
   "retained_screenshots": [
     {
       "name": "desktop-en-dark-shared-fixture.png",
-      "sha256": "3b9ead28978b0b24669b0564b9109de620c85d9d8693a9a855b7bfc56dda2637",
+      "sha256": "311564e63d013aeb40384d6c38337d5792eeebafbc1e7a9fc414c926313791b3",
       "byte_identical_to_prior_inspected": false
     },
     {
-      "name": "tablet-zh-dark-shared-fixture.png",
-      "sha256": "8c6ab1904e57ef62ee9299992d8fb2aa1b205c41fd24bc87dbdf99520edbfd5a",
+      "name": "mobile-en-source-degraded.png",
+      "sha256": "e19571c571a7d11af0f2565e42804857602f2db9ca6289d99074f86aa93e5830",
       "byte_identical_to_prior_inspected": true
     },
     {
@@ -24,14 +24,14 @@
       "byte_identical_to_prior_inspected": true
     },
     {
-      "name": "mobile-en-source-degraded.png",
-      "sha256": "e19571c571a7d11af0f2565e42804857602f2db9ca6289d99074f86aa93e5830",
+      "name": "tablet-zh-dark-shared-fixture.png",
+      "sha256": "8c6ab1904e57ef62ee9299992d8fb2aa1b205c41fd24bc87dbdf99520edbfd5a",
       "byte_identical_to_prior_inspected": true
     }
   ],
   "screenshot_count": 192,
-  "unretained_screenshots": "All screenshot hashes are retained in SCREENSHOT_MANIFEST.json; representative PNGs are persisted. Other reproduction output remains transient.",
-  "visual_review": "Root inspected the final run03 desktop EN screenshot after copy isolation; card layout, amounts, deadlines, disclosure and containing detail panel are readable. Three other retained tablet/mobile images are byte-identical to the previously inspected run02 images. Full18-case geometry and language assertions pass.",
+  "unretained_screenshots": "All screenshot hashes retained; representative PNGs persisted; other reproduction output remains transient.",
+  "visual_review": "Root inspected final run04 desktop EN screenshot: amounts, auction/issue dates, deadline, disclosure and containing detail layout are readable. Three retained tablet/mobile screenshots are byte-identical to previously inspected run03. Full18-case geometry and language assertions pass.",
   "scope": "Isolated fixture-based actual-page browser proof; not production auth, CSP, deployment or predictive validity.",
-  "visual_review_recorded_at": "2026-10-09T00:28:51.986438+00:00"
+  "visual_review_recorded_at": "2026-10-09T00:48:42.970209+00:00"
 }

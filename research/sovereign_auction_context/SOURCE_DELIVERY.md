@@ -45,3 +45,7 @@ The shared-Shell census and final main-drift record preserve other open writers.
 Macro's calendar path has the existing registration and staged `site_full` gate. A real anonymous 401 confirms that refusal only. The source bridge and simulated identical-file checks do not establish a deployed artifact or a successful entitled HTTP read. Keep this PR held for independent source/CI review and separately authorized release-time verification of actual origin, caller entitlement, production CSP, feed revision/hash, source age and session transitions.
 
 The substantive program, research design, source limitations and prior NO-GO/FAIL/KILL evidence are retained in Macro's existing Rates & Inflation owner. This component is a context surface; it cannot promote an auction hypothesis into a portfolio decision.
+
+## Final copy-routing acceptance
+
+The final feature copy follows the existing pure `pick(lang, en, zh)` convention. All55 EN/ZH pairs remain exact; the language hook stays in the existing client component. The full-source plain-language guard reports0blocking/0waived, and129native tests, TypeScript, scoped lint and18actual-route browser cases pass on run04. See `verification/copy_routing/ACCEPTANCE.json`, `verification/browser_final/`, and the updated `VERIFIED_SOURCE_MANIFEST.json`. Shared i18n remains byte-identical to base; no other evidence owner is restamped. Earlier copy-isolation and run03 receipts remain historical.

@@ -1,8 +1,14 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
-import { useSovereignAuctionT as useT } from "@/lib/sovereignAuctionCopy";
+import { auctionText } from "@/lib/sovereignAuctionCopy";
+import { useLang } from "@/lib/i18n";
 import { auctionDisplayRows, validateSovereignAuctionContext, type AuctionContext, type AuctionAmount, type AuctionEvent } from "@/lib/sovereignAuctionContext";
+
+function useT() {
+  const { lang } = useLang();
+  return useCallback((key: string, fallback?: string) => auctionText(key, lang, fallback), [lang]);
+}
 
 const POLL_MS = 300_000; // Attempt cadence only; never a freshness guarantee.
 type State = { context: AuctionContext | null; notice: "saLoading" | "saUnavailable" | "saSignIn" | "saNotEntitled" };

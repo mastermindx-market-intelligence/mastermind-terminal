@@ -6,7 +6,7 @@
       "test",
       "--config=playwright.sovereign-auctions.config.ts",
       "--reporter=line,json",
-      "--output=/tmp/sovereign-auction-terminal-ui-proof-04/test-results"
+      "--output=/tmp/sovereign-auction-terminal-ui-proof-03/test-results"
     ],
     "configFile": "/Volumes/Mastermind/agent-workspaces/terminal/web/sovereign-auction-context-20261008-sol-terminal-001/terminal/playwright.sovereign-auctions.config.ts",
     "rootDir": "/Volumes/Mastermind/agent-workspaces/terminal/web/sovereign-auction-context-20261008-sol-terminal-001/terminal/e2e",
@@ -25,7 +25,7 @@
     "preserveOutput": "always",
     "projects": [
       {
-        "outputDir": "/tmp/sovereign-auction-terminal-ui-proof-04/test-results",
+        "outputDir": "/tmp/sovereign-auction-terminal-ui-proof-03/test-results",
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
@@ -45,7 +45,7 @@
         "timeout": 30000
       },
       {
-        "outputDir": "/tmp/sovereign-auction-terminal-ui-proof-04/test-results",
+        "outputDir": "/tmp/sovereign-auction-terminal-ui-proof-03/test-results",
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
@@ -65,7 +65,7 @@
         "timeout": 30000
       },
       {
-        "outputDir": "/tmp/sovereign-auction-terminal-ui-proof-04/test-results",
+        "outputDir": "/tmp/sovereign-auction-terminal-ui-proof-03/test-results",
         "repeatEach": 1,
         "retries": 0,
         "metadata": {
@@ -105,8 +105,8 @@
     "version": "1.61.1",
     "workers": 1,
     "webServer": {
-      "command": "npm run dev -- --hostname 127.0.0.1 --port 60453",
-      "url": "http://127.0.0.1:60453/terminal?symbol=NVDA",
+      "command": "npm run dev -- --hostname 127.0.0.1 --port 62374",
+      "url": "http://127.0.0.1:62374/terminal?symbol=NVDA",
       "reuseExistingServer": false,
       "timeout": 120000,
       "env": {
@@ -154,18 +154,18 @@
                       "workerIndex": 0,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 4008,
+                      "duration": 4016,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-10-09T00:43:50.908Z",
+                      "startTime": "2026-10-09T00:24:50.342Z",
                       "annotations": [],
                       "attachments": [
                         {
                           "name": "desktop-en-dark-shared-fixture-screenshot",
                           "contentType": "image/png",
-                          "path": "/tmp/sovereign-auction-terminal-ui-proof-04/test-results/sovereign-auction-context--405be-out-and-invariant-incumbent-desktop/attachments/desktop-en-dark-shared-fixture-screenshot-0c54fd2642798e562e8824b8d5c36c796593b681.png"
+                          "path": "/tmp/sovereign-auction-terminal-ui-proof-03/test-results/sovereign-auction-context--405be-out-and-invariant-incumbent-desktop/attachments/desktop-en-dark-shared-fixture-screenshot-84c15008039c784eb12e6024a46c41d001f66bea.png"
                         },
                         {
                           "name": "desktop-en-dark-shared-fixture-measurements",
@@ -175,7 +175,7 @@
                         {
                           "name": "desktop-en-dark-bill-amount-deadline-screenshot",
                           "contentType": "image/png",
-                          "path": "/tmp/sovereign-auction-terminal-ui-proof-04/test-results/sovereign-auction-context--405be-out-and-invariant-incumbent-desktop/attachments/desktop-en-dark-bill-amount-deadline-screenshot-2c3e1670a45633bce727269c35c6a6e229c0039a.png"
+                          "path": "/tmp/sovereign-auction-terminal-ui-proof-03/test-results/sovereign-auction-context--405be-out-and-invariant-incumbent-desktop/attachments/desktop-en-dark-bill-amount-deadline-screenshot-fba0a270762bf51cb281562e982766df342128d9.png"
                         },
                         {
                           "name": "desktop-en-dark-bill-amount-deadline-measurements",
@@ -185,7 +185,7 @@
                         {
                           "name": "desktop-en-dark-event-source-details-screenshot",
                           "contentType": "image/png",
-                          "path": "/tmp/sovereign-auction-terminal-ui-proof-04/test-results/sovereign-auction-context--405be-out-and-invariant-incumbent-desktop/attachments/desktop-en-dark-event-source-details-screenshot-d3f691acd1efd823bbc67988d6f3055998c0f5dd.png"
+                          "path": "/tmp/sovereign-auction-terminal-ui-proof-03/test-results/sovereign-auction-context--405be-out-and-invariant-incumbent-desktop/attachments/desktop-en-dark-event-source-details-screenshot-30ba23fb28ab6ce4c87cd208d47ec01667043538.png"
                         },
                         {
                           "name": "desktop-en-dark-event-source-details-measurements",
@@ -195,7 +195,7 @@
                         {
                           "name": "desktop-en-dark-context-source-details-screenshot",
                           "contentType": "image/png",
-                          "path": "/tmp/sovereign-auction-terminal-ui-proof-04/test-results/sovereign-auction-context--405be-out-and-invariant-incumbent-desktop/attachments/desktop-en-dark-context-source-details-screenshot-4169f72394bd9661ad2d76054917a3533c45c9b9.png"
+                          "path": "/tmp/sovereign-auction-terminal-ui-proof-03/test-results/sovereign-auction-context--405be-out-and-invariant-incumbent-desktop/attachments/desktop-en-dark-context-source-details-screenshot-28b19dc3064a8cfcbf7aa429b0ceb20647d169b3.png"
                         },
                         {
                           "name": "desktop-en-dark-context-source-details-measurements",
@@ -234,12 +234,12 @@
                       "workerIndex": 0,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 3995,
+                      "duration": 3977,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-10-09T00:43:55.077Z",
+                      "startTime": "2026-10-09T00:24:54.643Z",
                       "annotations": [
                         {
                           "type": "diagnostic",
@@ -250,7 +250,7 @@
                         {
                           "name": "desktop-en-light-attribute-diagnostic-shared-fixture-screenshot",
                           "contentType": "image/png",
-                          "path": "/tmp/sovereign-auction-terminal-ui-proof-04/test-results/sovereign-auction-context--1345f-out-and-invariant-incumbent-desktop/attachments/desktop-en-light-attribute-diagnostic-shared-fixture-screenshot-3ef71d6d673e40cfc45779bff72857593e40d34c.png"
+                          "path": "/tmp/sovereign-auction-terminal-ui-proof-03/test-results/sovereign-auction-context--1345f-out-and-invariant-incumbent-desktop/attachments/desktop-en-light-attribute-diagnostic-shared-fixture-screenshot-50a644e85c32879cf63b08a3813be014b3dca72e.png"
                         },
                         {
                           "name": "desktop-en-light-attribute-diagnostic-shared-fixture-measurements",
@@ -260,7 +260,7 @@
                         {
                           "name": "desktop-en-light-attribute-diagnostic-bill-amount-deadline-screenshot",
                           "contentType": "image/png",
-                          "path": "/tmp/sovereign-auction-terminal-ui-proof-04/test-results/sovereign-auction-context--1345f-out-and-invariant-incumbent-desktop/attachments/desktop-en-light-attribute-diagnostic-bill-amount-deadline-screenshot-390f1e1c3621aa4d299fa8540f9b9b32a39e6292.png"
+                          "path": "/tmp/sovereign-auction-terminal-ui-proof-03/test-results/sovereign-auction-context--1345f-out-and-invariant-incumbent-desktop/attachments/desktop-en-light-attribute-diagnostic-bill-amount-deadline-screenshot-b6890dbf754f12f155677fb4c8ca89a9e09d03e0.png"
                         },
                         {
                           "name": "desktop-en-light-attribute-diagnostic-bill-amount-deadline-measurements",
@@ -270,7 +270,7 @@
                         {
                           "name": "desktop-en-light-attribute-diagnostic-event-source-details-screenshot",
                           "contentType": "image/png",
-                          "path": "/tmp/sovereign-auction-terminal-ui-proof-04/test-results/sovereign-auction-context--1345f-out-and-invariant-incumbent-desktop/attachments/desktop-en-light-attribute-diagnostic-event-source-details-screenshot-e8853f339e7342fb84a60d7e9cabb67423607f9a.png"
+                          "path": "/tmp/sovereign-auction-terminal-ui-proof-03/test-results/sovereign-auction-context--1345f-out-and-invariant-incumbent-desktop/attachments/desktop-en-light-attribute-diagnostic-event-source-details-screenshot-3f10bd6f559e82a7c44133b32c582610bcf1367d.png"
                         },
                         {
                           "name": "desktop-en-light-attribute-diagnostic-event-source-details-measurements",
@@ -280,7 +280,7 @@
                         {
                           "name": "desktop-en-light-attribute-diagnostic-context-source-details-screenshot",
                           "contentType": "image/png",
-                          "path": "/tmp/sovereign-auction-terminal-ui-proof-04/test-results/sovereign-auction-context--1345f-out-and-invariant-incumbent-desktop/attachments/desktop-en-light-attribute-diagnostic-context-source-details-screenshot-154465e7137672e03d58204a43e5c1117149215c.png"
+                          "path": "/tmp/sovereign-auction-terminal-ui-proof-03/test-results/sovereign-auction-context--1345f-out-and-invariant-incumbent-desktop/attachments/desktop-en-light-attribute-diagnostic-context-source-details-screenshot-47fc8831531a39f21b24851d2b9799f6a6c94bb1.png"
                         },
                         {
                           "name": "desktop-en-light-attribute-diagnostic-context-source-details-measurements",
@@ -314,18 +314,18 @@
                       "workerIndex": 0,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 5052,
+                      "duration": 5074,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-10-09T00:43:59.077Z",
+                      "startTime": "2026-10-09T00:24:58.626Z",
                       "annotations": [],
                       "attachments": [
                         {
                           "name": "desktop-en-expanded-24-of-74-screenshot",
                           "contentType": "image/png",
-                          "path": "/tmp/sovereign-auction-terminal-ui-proof-04/test-results/sovereign-auction-context--7ff1c-ilable-and-entitlement-loss-desktop/attachments/desktop-en-expanded-24-of-74-screenshot-1685a1e117ecc7baff0e13b2a593f0b56dd752b7.png"
+                          "path": "/tmp/sovereign-auction-terminal-ui-proof-03/test-results/sovereign-auction-context--7ff1c-ilable-and-entitlement-loss-desktop/attachments/desktop-en-expanded-24-of-74-screenshot-1b1446b993f8cde165d4874844f50449e0f3544c.png"
                         },
                         {
                           "name": "desktop-en-expanded-24-of-74-measurements",
@@ -335,7 +335,7 @@
                         {
                           "name": "desktop-en-observed-result-source-details-screenshot",
                           "contentType": "image/png",
-                          "path": "/tmp/sovereign-auction-terminal-ui-proof-04/test-results/sovereign-auction-context--7ff1c-ilable-and-entitlement-loss-desktop/attachments/desktop-en-observed-result-source-details-screenshot-1734d3947687cd96cd9ec2b549254bd4d150398f.png"
+                          "path": "/tmp/sovereign-auction-terminal-ui-proof-03/test-results/sovereign-auction-context--7ff1c-ilable-and-entitlement-loss-desktop/attachments/desktop-en-observed-result-source-details-screenshot-6f9107ad06434f58bb72d96c8e1c2ce23af5a223.png"
                         },
                         {
                           "name": "desktop-en-observed-result-source-details-measurements",
@@ -345,7 +345,7 @@
                         {
                           "name": "desktop-en-source-degraded-screenshot",
                           "contentType": "image/png",
-                          "path": "/tmp/sovereign-auction-terminal-ui-proof-04/test-results/sovereign-auction-context--7ff1c-ilable-and-entitlement-loss-desktop/attachments/desktop-en-source-degraded-screenshot-58fa9d083f9da1115abe015d9253f402a92ce834.png"
+                          "path": "/tmp/sovereign-auction-terminal-ui-proof-03/test-results/sovereign-auction-context--7ff1c-ilable-and-entitlement-loss-desktop/attachments/desktop-en-source-degraded-screenshot-99125f974ce775cb2f20ca644836bd0a60f47264.png"
                         },
                         {
                           "name": "desktop-en-source-degraded-measurements",
@@ -355,7 +355,7 @@
                         {
                           "name": "desktop-en-status-503-screenshot",
                           "contentType": "image/png",
-                          "path": "/tmp/sovereign-auction-terminal-ui-proof-04/test-results/sovereign-auction-context--7ff1c-ilable-and-entitlement-loss-desktop/attachments/desktop-en-status-503-screenshot-c32b39c3ccda40d84a8d4c435e8a86d2b92e43a7.png"
+                          "path": "/tmp/sovereign-auction-terminal-ui-proof-03/test-results/sovereign-auction-context--7ff1c-ilable-and-entitlement-loss-desktop/attachments/desktop-en-status-503-screenshot-524bcdcd41bbfa916c78641818dc1bb7c6c52ab5.png"
                         },
                         {
                           "name": "desktop-en-status-503-measurements",
@@ -365,7 +365,7 @@
                         {
                           "name": "desktop-en-status-401-screenshot",
                           "contentType": "image/png",
-                          "path": "/tmp/sovereign-auction-terminal-ui-proof-04/test-results/sovereign-auction-context--7ff1c-ilable-and-entitlement-loss-desktop/attachments/desktop-en-status-401-screenshot-d8e04cdf8b38d485456305fd5689025e02db91fe.png"
+                          "path": "/tmp/sovereign-auction-terminal-ui-proof-03/test-results/sovereign-auction-context--7ff1c-ilable-and-entitlement-loss-desktop/attachments/desktop-en-status-401-screenshot-353ebd15be429df043c63150b97f2bdf9e0c8f80.png"
                         },
                         {
                           "name": "desktop-en-status-401-measurements",
@@ -375,7 +375,7 @@
                         {
                           "name": "desktop-en-status-403-screenshot",
                           "contentType": "image/png",
-                          "path": "/tmp/sovereign-auction-terminal-ui-proof-04/test-results/sovereign-auction-context--7ff1c-ilable-and-entitlement-loss-desktop/attachments/desktop-en-status-403-screenshot-df1c402972d95a11e4194965984c10dda31b7517.png"
+                          "path": "/tmp/sovereign-auction-terminal-ui-proof-03/test-results/sovereign-auction-context--7ff1c-ilable-and-entitlement-loss-desktop/attachments/desktop-en-status-403-screenshot-1eb656dd2a9ba6523d629f810122ae9f2dfa2484.png"
                         },
                         {
                           "name": "desktop-en-status-403-measurements",
@@ -385,7 +385,7 @@
                         {
                           "name": "desktop-en-invalid-authority-screenshot",
                           "contentType": "image/png",
-                          "path": "/tmp/sovereign-auction-terminal-ui-proof-04/test-results/sovereign-auction-context--7ff1c-ilable-and-entitlement-loss-desktop/attachments/desktop-en-invalid-authority-screenshot-971e6ba7ff52630cf26bccd3e128421476dd75d6.png"
+                          "path": "/tmp/sovereign-auction-terminal-ui-proof-03/test-results/sovereign-auction-context--7ff1c-ilable-and-entitlement-loss-desktop/attachments/desktop-en-invalid-authority-screenshot-2baef97bbec522bb36a92fb3994f2780fd8f6081.png"
                         },
                         {
                           "name": "desktop-en-invalid-authority-measurements",
@@ -395,7 +395,7 @@
                         {
                           "name": "desktop-en-valid-observed-empty-screenshot",
                           "contentType": "image/png",
-                          "path": "/tmp/sovereign-auction-terminal-ui-proof-04/test-results/sovereign-auction-context--7ff1c-ilable-and-entitlement-loss-desktop/attachments/desktop-en-valid-observed-empty-screenshot-fb0f6013aaa7399eeb2653d8a7bc3d132d68825a.png"
+                          "path": "/tmp/sovereign-auction-terminal-ui-proof-03/test-results/sovereign-auction-context--7ff1c-ilable-and-entitlement-loss-desktop/attachments/desktop-en-valid-observed-empty-screenshot-0e1940ee7bd40e10c7fbbe40dd216b1a416bed82.png"
                         },
                         {
                           "name": "desktop-en-valid-observed-empty-measurements",
@@ -429,18 +429,18 @@
                       "workerIndex": 0,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 4321,
+                      "duration": 4857,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-10-09T00:44:04.134Z",
+                      "startTime": "2026-10-09T00:25:03.705Z",
                       "annotations": [],
                       "attachments": [
                         {
                           "name": "desktop-zh-dark-shared-fixture-screenshot",
                           "contentType": "image/png",
-                          "path": "/tmp/sovereign-auction-terminal-ui-proof-04/test-results/sovereign-auction-context--0624d-out-and-invariant-incumbent-desktop/attachments/desktop-zh-dark-shared-fixture-screenshot-1cff2208a89f2715ce4d5e641a8892bd761c189c.png"
+                          "path": "/tmp/sovereign-auction-terminal-ui-proof-03/test-results/sovereign-auction-context--0624d-out-and-invariant-incumbent-desktop/attachments/desktop-zh-dark-shared-fixture-screenshot-2437463da61d338c606f5c5835084e005aa1c99f.png"
                         },
                         {
                           "name": "desktop-zh-dark-shared-fixture-measurements",
@@ -450,7 +450,7 @@
                         {
                           "name": "desktop-zh-dark-bill-amount-deadline-screenshot",
                           "contentType": "image/png",
-                          "path": "/tmp/sovereign-auction-terminal-ui-proof-04/test-results/sovereign-auction-context--0624d-out-and-invariant-incumbent-desktop/attachments/desktop-zh-dark-bill-amount-deadline-screenshot-44a1405db1cc127e979651758084d9f7b21ecf16.png"
+                          "path": "/tmp/sovereign-auction-terminal-ui-proof-03/test-results/sovereign-auction-context--0624d-out-and-invariant-incumbent-desktop/attachments/desktop-zh-dark-bill-amount-deadline-screenshot-208d83b5bf46eebe56d123ec56007535bb2e771d.png"
                         },
                         {
                           "name": "desktop-zh-dark-bill-amount-deadline-measurements",
@@ -460,7 +460,7 @@
                         {
                           "name": "desktop-zh-dark-event-source-details-screenshot",
                           "contentType": "image/png",
-                          "path": "/tmp/sovereign-auction-terminal-ui-proof-04/test-results/sovereign-auction-context--0624d-out-and-invariant-incumbent-desktop/attachments/desktop-zh-dark-event-source-details-screenshot-af3e646c352c22ac1e62eb7b18547084a52b67ad.png"
+                          "path": "/tmp/sovereign-auction-terminal-ui-proof-03/test-results/sovereign-auction-context--0624d-out-and-invariant-incumbent-desktop/attachments/desktop-zh-dark-event-source-details-screenshot-abc73cfaf47e4279f34bcc827ddf264bf0bd0945.png"
                         },
                         {
                           "name": "desktop-zh-dark-event-source-details-measurements",
@@ -470,7 +470,7 @@
                         {
                           "name": "desktop-zh-dark-context-source-details-screenshot",
                           "contentType": "image/png",
-                          "path": "/tmp/sovereign-auction-terminal-ui-proof-04/test-results/sovereign-auction-context--0624d-out-and-invariant-incumbent-desktop/attachments/desktop-zh-dark-context-source-details-screenshot-1cba14226f23c8970dc6cfba014281480a86600c.png"
+                          "path": "/tmp/sovereign-auction-terminal-ui-proof-03/test-results/sovereign-auction-context--0624d-out-and-invariant-incumbent-desktop/attachments/desktop-zh-dark-context-source-details-screenshot-7c5f2fabab7428f2968d7c6b1c0adb78f593611c.png"
                         },
                         {
                           "name": "desktop-zh-dark-context-source-details-measurements",
@@ -509,12 +509,12 @@
                       "workerIndex": 0,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 4475,
+                      "duration": 4183,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-10-09T00:44:08.460Z",
+                      "startTime": "2026-10-09T00:25:08.569Z",
                       "annotations": [
                         {
                           "type": "diagnostic",
@@ -525,7 +525,7 @@
                         {
                           "name": "desktop-zh-light-attribute-diagnostic-shared-fixture-screenshot",
                           "contentType": "image/png",
-                          "path": "/tmp/sovereign-auction-terminal-ui-proof-04/test-results/sovereign-auction-context--d4f75-out-and-invariant-incumbent-desktop/attachments/desktop-zh-light-attribute-diagnostic-shared-fixture-screenshot-748852e526e94e7ec6b5c2c56edfc62728b83517.png"
+                          "path": "/tmp/sovereign-auction-terminal-ui-proof-03/test-results/sovereign-auction-context--d4f75-out-and-invariant-incumbent-desktop/attachments/desktop-zh-light-attribute-diagnostic-shared-fixture-screenshot-a4d0c77f54646b59403a5bc22ae0a55fb5f4f46c.png"
                         },
                         {
                           "name": "desktop-zh-light-attribute-diagnostic-shared-fixture-measurements",
@@ -535,7 +535,7 @@
                         {
                           "name": "desktop-zh-light-attribute-diagnostic-bill-amount-deadline-screenshot",
                           "contentType": "image/png",
-                          "path": "/tmp/sovereign-auction-terminal-ui-proof-04/test-results/sovereign-auction-context--d4f75-out-and-invariant-incumbent-desktop/attachments/desktop-zh-light-attribute-diagnostic-bill-amount-deadline-screenshot-70f3e44a0136f0dc5075b9b1f27aba7184973f8c.png"
+                          "path": "/tmp/sovereign-auction-terminal-ui-proof-03/test-results/sovereign-auction-context--d4f75-out-and-invariant-incumbent-desktop/attachments/desktop-zh-light-attribute-diagnostic-bill-amount-deadline-screenshot-c42f1166b350ca266f4827d8f1e7f8cab5a39df0.png"
                         },
                         {
                           "name": "desktop-zh-light-attribute-diagnostic-bill-amount-deadline-measurements",
@@ -545,7 +545,7 @@
                         {
                           "name": "desktop-zh-light-attribute-diagnostic-event-source-details-screenshot",
                           "contentType": "image/png",
-                          "path": "/tmp/sovereign-auction-terminal-ui-proof-04/test-results/sovereign-auction-context--d4f75-out-and-invariant-incumbent-desktop/attachments/desktop-zh-light-attribute-diagnostic-event-source-details-screenshot-84523a13e7c4ace629f29ed2309d5cdede97aad6.png"
+                          "path": "/tmp/sovereign-auction-terminal-ui-proof-03/test-results/sovereign-auction-context--d4f75-out-and-invariant-incumbent-desktop/attachments/desktop-zh-light-attribute-diagnostic-event-source-details-screenshot-e6db053b5040fe7e9e0d230c5e277bf693f0ab68.png"
                         },
                         {
                           "name": "desktop-zh-light-attribute-diagnostic-event-source-details-measurements",
@@ -555,7 +555,7 @@
                         {
                           "name": "desktop-zh-light-attribute-diagnostic-context-source-details-screenshot",
                           "contentType": "image/png",
-                          "path": "/tmp/sovereign-auction-terminal-ui-proof-04/test-results/sovereign-auction-context--d4f75-out-and-invariant-incumbent-desktop/attachments/desktop-zh-light-attribute-diagnostic-context-source-details-screenshot-ebea58f4f78a865190a330d657f88481607d2dbe.png"
+                          "path": "/tmp/sovereign-auction-terminal-ui-proof-03/test-results/sovereign-auction-context--d4f75-out-and-invariant-incumbent-desktop/attachments/desktop-zh-light-attribute-diagnostic-context-source-details-screenshot-92b55d253929b769520a98a0783a3bc3897eab89.png"
                         },
                         {
                           "name": "desktop-zh-light-attribute-diagnostic-context-source-details-measurements",
@@ -589,18 +589,18 @@
                       "workerIndex": 0,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 5541,
+                      "duration": 5868,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-10-09T00:44:12.940Z",
+                      "startTime": "2026-10-09T00:25:12.759Z",
                       "annotations": [],
                       "attachments": [
                         {
                           "name": "desktop-zh-expanded-24-of-74-screenshot",
                           "contentType": "image/png",
-                          "path": "/tmp/sovereign-auction-terminal-ui-proof-04/test-results/sovereign-auction-context--26484-ilable-and-entitlement-loss-desktop/attachments/desktop-zh-expanded-24-of-74-screenshot-21b01b111fe7499f3295d6d8c8aa91b416d27af3.png"
+                          "path": "/tmp/sovereign-auction-terminal-ui-proof-03/test-results/sovereign-auction-context--26484-ilable-and-entitlement-loss-desktop/attachments/desktop-zh-expanded-24-of-74-screenshot-80ea6aed9b149a387c00d0bc359162c3ad0f28b0.png"
                         },
                         {
                           "name": "desktop-zh-expanded-24-of-74-measurements",
@@ -610,7 +610,7 @@
                         {
                           "name": "desktop-zh-observed-result-source-details-screenshot",
                           "contentType": "image/png",
-                          "path": "/tmp/sovereign-auction-terminal-ui-proof-04/test-results/sovereign-auction-context--26484-ilable-and-entitlement-loss-desktop/attachments/desktop-zh-observed-result-source-details-screenshot-9dde46cc5e4710e72a16693b2531bc97668364bb.png"
+                          "path": "/tmp/sovereign-auction-terminal-ui-proof-03/test-results/sovereign-auction-context--26484-ilable-and-entitlement-loss-desktop/attachments/desktop-zh-observed-result-source-details-screenshot-472e13ad88f22c85d1e3f2c8d469ea278d420754.png"
                         },
                         {
                           "name": "desktop-zh-observed-result-source-details-measurements",
@@ -620,7 +620,7 @@
                         {
                           "name": "desktop-zh-source-degraded-screenshot",
                           "contentType": "image/png",
-                          "path": "/tmp/sovereign-auction-terminal-ui-proof-04/test-results/sovereign-auction-context--26484-ilable-and-entitlement-loss-desktop/attachments/desktop-zh-source-degraded-screenshot-f09fa0522465109327a3eebc9dd6184174c7f036.png"
+                          "path": "/tmp/sovereign-auction-terminal-ui-proof-03/test-results/sovereign-auction-context--26484-ilable-and-entitlement-loss-desktop/attachments/desktop-zh-source-degraded-screenshot-bebf2c0dc0f9198616d019a012af0d9d3e1795a1.png"
                         },
                         {
                           "name": "desktop-zh-source-degraded-measurements",
@@ -630,7 +630,7 @@
                         {
                           "name": "desktop-zh-status-503-screenshot",
                           "contentType": "image/png",
-                          "path": "/tmp/sovereign-auction-terminal-ui-proof-04/test-results/sovereign-auction-context--26484-ilable-and-entitlement-loss-desktop/attachments/desktop-zh-status-503-screenshot-304c5a986a89dcfab7fb4701ca5916763e46379d.png"
+                          "path": "/tmp/sovereign-auction-terminal-ui-proof-03/test-results/sovereign-auction-context--26484-ilable-and-entitlement-loss-desktop/attachments/desktop-zh-status-503-screenshot-d625fa803f45897c867344ee454370db04e2de0b.png"
                         },
                         {
                           "name": "desktop-zh-status-503-measurements",
@@ -640,7 +640,7 @@
                         {
                           "name": "desktop-zh-status-401-screenshot",
                           "contentType": "image/png",
-                          "path": "/tmp/sovereign-auction-terminal-ui-proof-04/test-results/sovereign-auction-context--26484-ilable-and-entitlement-loss-desktop/attachments/desktop-zh-status-401-screenshot-9bd07ac609466645f21307ac7971b6b008770739.png"
+                          "path": "/tmp/sovereign-auction-terminal-ui-proof-03/test-results/sovereign-auction-context--26484-ilable-and-entitlement-loss-desktop/attachments/desktop-zh-status-401-screenshot-38a78c574b6a4d1f52f8b7fb8f2fcd6725506173.png"
                         },
                         {
                           "name": "desktop-zh-status-401-measurements",
@@ -650,7 +650,7 @@
                         {
                           "name": "desktop-zh-status-403-screenshot",
                           "contentType": "image/png",
-                          "path": "/tmp/sovereign-auction-terminal-ui-proof-04/test-results/sovereign-auction-context--26484-ilable-and-entitlement-loss-desktop/attachments/desktop-zh-status-403-screenshot-f1026eccbd19cbee6d9d16043b27dbc61f746700.png"
+                          "path": "/tmp/sovereign-auction-terminal-ui-proof-03/test-results/sovereign-auction-context--26484-ilable-and-entitlement-loss-desktop/attachments/desktop-zh-status-403-screenshot-ed830e532333f7757e8f86997326a402cf51a322.png"
                         },
                         {
                           "name": "desktop-zh-status-403-measurements",
@@ -660,7 +660,7 @@
                         {
                           "name": "desktop-zh-invalid-authority-screenshot",
                           "contentType": "image/png",
-                          "path": "/tmp/sovereign-auction-terminal-ui-proof-04/test-results/sovereign-auction-context--26484-ilable-and-entitlement-loss-desktop/attachments/desktop-zh-invalid-authority-screenshot-ffc5c81fe869d91fcb66166cd45dbe13a3de59d2.png"
+                          "path": "/tmp/sovereign-auction-terminal-ui-proof-03/test-results/sovereign-auction-context--26484-ilable-and-entitlement-loss-desktop/attachments/desktop-zh-invalid-authority-screenshot-c6fff519ebee4bf28713a4530db6fc9c32821eee.png"
                         },
                         {
                           "name": "desktop-zh-invalid-authority-measurements",
@@ -670,7 +670,7 @@
                         {
                           "name": "desktop-zh-valid-observed-empty-screenshot",
                           "contentType": "image/png",
-                          "path": "/tmp/sovereign-auction-terminal-ui-proof-04/test-results/sovereign-auction-context--26484-ilable-and-entitlement-loss-desktop/attachments/desktop-zh-valid-observed-empty-screenshot-0f69566ad4af3eb447faf355b70883000aa4af21.png"
+                          "path": "/tmp/sovereign-auction-terminal-ui-proof-03/test-results/sovereign-auction-context--26484-ilable-and-entitlement-loss-desktop/attachments/desktop-zh-valid-observed-empty-screenshot-f28ebf1b5f3e10c0715225596ce2a033b708e47a.png"
                         },
                         {
                           "name": "desktop-zh-valid-observed-empty-measurements",
@@ -704,18 +704,18 @@
                       "workerIndex": 1,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 3736,
+                      "duration": 3826,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-10-09T00:44:18.890Z",
+                      "startTime": "2026-10-09T00:25:19.072Z",
                       "annotations": [],
                       "attachments": [
                         {
                           "name": "tablet-en-dark-shared-fixture-screenshot",
                           "contentType": "image/png",
-                          "path": "/tmp/sovereign-auction-terminal-ui-proof-04/test-results/sovereign-auction-context--405be-out-and-invariant-incumbent-tablet/attachments/tablet-en-dark-shared-fixture-screenshot-3992fd955e0cd56a08ba4e7ded4c463feede0278.png"
+                          "path": "/tmp/sovereign-auction-terminal-ui-proof-03/test-results/sovereign-auction-context--405be-out-and-invariant-incumbent-tablet/attachments/tablet-en-dark-shared-fixture-screenshot-6a434861011cb8d6a6b3885920198da3f1c2e6e4.png"
                         },
                         {
                           "name": "tablet-en-dark-shared-fixture-measurements",
@@ -725,7 +725,7 @@
                         {
                           "name": "tablet-en-dark-bill-amount-deadline-screenshot",
                           "contentType": "image/png",
-                          "path": "/tmp/sovereign-auction-terminal-ui-proof-04/test-results/sovereign-auction-context--405be-out-and-invariant-incumbent-tablet/attachments/tablet-en-dark-bill-amount-deadline-screenshot-d073d0f1f576ad001f7361be1b032481208972d9.png"
+                          "path": "/tmp/sovereign-auction-terminal-ui-proof-03/test-results/sovereign-auction-context--405be-out-and-invariant-incumbent-tablet/attachments/tablet-en-dark-bill-amount-deadline-screenshot-c27211d0385e811ed5d7c7a2b490b76de787deb9.png"
                         },
                         {
                           "name": "tablet-en-dark-bill-amount-deadline-measurements",
@@ -735,7 +735,7 @@
                         {
                           "name": "tablet-en-dark-event-source-details-screenshot",
                           "contentType": "image/png",
-                          "path": "/tmp/sovereign-auction-terminal-ui-proof-04/test-results/sovereign-auction-context--405be-out-and-invariant-incumbent-tablet/attachments/tablet-en-dark-event-source-details-screenshot-edebbc1ce74c8281cf366045e182d738813a34af.png"
+                          "path": "/tmp/sovereign-auction-terminal-ui-proof-03/test-results/sovereign-auction-context--405be-out-and-invariant-incumbent-tablet/attachments/tablet-en-dark-event-source-details-screenshot-c8a6de10bd8409f4e67e70e6b422c01e427a5679.png"
                         },
                         {
                           "name": "tablet-en-dark-event-source-details-measurements",
@@ -745,7 +745,7 @@
                         {
                           "name": "tablet-en-dark-context-source-details-screenshot",
                           "contentType": "image/png",
-                          "path": "/tmp/sovereign-auction-terminal-ui-proof-04/test-results/sovereign-auction-context--405be-out-and-invariant-incumbent-tablet/attachments/tablet-en-dark-context-source-details-screenshot-57ee6547cc8dd65d597ec33767bdb2151d18bec2.png"
+                          "path": "/tmp/sovereign-auction-terminal-ui-proof-03/test-results/sovereign-auction-context--405be-out-and-invariant-incumbent-tablet/attachments/tablet-en-dark-context-source-details-screenshot-9f6bd23809c39f0b2ab4b4e0262622a9aa32ba04.png"
                         },
                         {
                           "name": "tablet-en-dark-context-source-details-measurements",
@@ -784,12 +784,12 @@
                       "workerIndex": 1,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 3664,
+                      "duration": 4016,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-10-09T00:44:22.762Z",
+                      "startTime": "2026-10-09T00:25:23.049Z",
                       "annotations": [
                         {
                           "type": "diagnostic",
@@ -800,7 +800,7 @@
                         {
                           "name": "tablet-en-light-attribute-diagnostic-shared-fixture-screenshot",
                           "contentType": "image/png",
-                          "path": "/tmp/sovereign-auction-terminal-ui-proof-04/test-results/sovereign-auction-context--1345f-out-and-invariant-incumbent-tablet/attachments/tablet-en-light-attribute-diagnostic-shared-fixture-screenshot-a479bf63121c34cdaf46386cd6d2be2773073191.png"
+                          "path": "/tmp/sovereign-auction-terminal-ui-proof-03/test-results/sovereign-auction-context--1345f-out-and-invariant-incumbent-tablet/attachments/tablet-en-light-attribute-diagnostic-shared-fixture-screenshot-70ffc4a588fac2788752df303ce9606247c2d848.png"
                         },
                         {
                           "name": "tablet-en-light-attribute-diagnostic-shared-fixture-measurements",
@@ -810,7 +810,7 @@
                         {
                           "name": "tablet-en-light-attribute-diagnostic-bill-amount-deadline-screenshot",
                           "contentType": "image/png",
-                          "path": "/tmp/sovereign-auction-terminal-ui-proof-04/test-results/sovereign-auction-context--1345f-out-and-invariant-incumbent-tablet/attachments/tablet-en-light-attribute-diagnostic-bill-amount-deadline-screenshot-96199cd4d7e39d3955b799dfc09f969fa31a40d2.png"
+                          "path": "/tmp/sovereign-auction-terminal-ui-proof-03/test-results/sovereign-auction-context--1345f-out-and-invariant-incumbent-tablet/attachments/tablet-en-light-attribute-diagnostic-bill-amount-deadline-screenshot-da27a8fe864cb7bdd353b64e62aa81de328369fa.png"
                         },
                         {
                           "name": "tablet-en-light-attribute-diagnostic-bill-amount-deadline-measurements",
@@ -820,7 +820,7 @@
                         {
                           "name": "tablet-en-light-attribute-diagnostic-event-source-details-screenshot",
                           "contentType": "image/png",
-                          "path": "/tmp/sovereign-auction-terminal-ui-proof-04/test-results/sovereign-auction-context--1345f-out-and-invariant-incumbent-tablet/attachments/tablet-en-light-attribute-diagnostic-event-source-details-screenshot-4b8cf6d6ac2886d7a63e1e62b77a1f5f61c11a5d.png"
+                          "path": "/tmp/sovereign-auction-terminal-ui-proof-03/test-results/sovereign-auction-context--1345f-out-and-invariant-incumbent-tablet/attachments/tablet-en-light-attribute-diagnostic-event-source-details-screenshot-310672f7da4c4f0d20cf51d318e37db3987dcc0d.png"
                         },
                         {
                           "name": "tablet-en-light-attribute-diagnostic-event-source-details-measurements",
@@ -830,7 +830,7 @@
                         {
                           "name": "tablet-en-light-attribute-diagnostic-context-source-details-screenshot",
                           "contentType": "image/png",
-                          "path": "/tmp/sovereign-auction-terminal-ui-proof-04/test-results/sovereign-auction-context--1345f-out-and-invariant-incumbent-tablet/attachments/tablet-en-light-attribute-diagnostic-context-source-details-screenshot-cf0cd82e0a1c63009a1058f9f8ac72325b386f7c.png"
+                          "path": "/tmp/sovereign-auction-terminal-ui-proof-03/test-results/sovereign-auction-context--1345f-out-and-invariant-incumbent-tablet/attachments/tablet-en-light-attribute-diagnostic-context-source-details-screenshot-c34ff34c45351f59dcaf65bc96fd2a163382e1a5.png"
                         },
                         {
                           "name": "tablet-en-light-attribute-diagnostic-context-source-details-measurements",
@@ -864,18 +864,18 @@
                       "workerIndex": 1,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 4568,
+                      "duration": 5515,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-10-09T00:44:26.431Z",
+                      "startTime": "2026-10-09T00:25:27.074Z",
                       "annotations": [],
                       "attachments": [
                         {
                           "name": "tablet-en-expanded-24-of-74-screenshot",
                           "contentType": "image/png",
-                          "path": "/tmp/sovereign-auction-terminal-ui-proof-04/test-results/sovereign-auction-context--7ff1c-ilable-and-entitlement-loss-tablet/attachments/tablet-en-expanded-24-of-74-screenshot-378cc388a275072999c63acfcfc4e7ae0fb85e8c.png"
+                          "path": "/tmp/sovereign-auction-terminal-ui-proof-03/test-results/sovereign-auction-context--7ff1c-ilable-and-entitlement-loss-tablet/attachments/tablet-en-expanded-24-of-74-screenshot-fceaccf9d670a89ecb93aced774920b90cf4f1b8.png"
                         },
                         {
                           "name": "tablet-en-expanded-24-of-74-measurements",
@@ -885,7 +885,7 @@
                         {
                           "name": "tablet-en-observed-result-source-details-screenshot",
                           "contentType": "image/png",
-                          "path": "/tmp/sovereign-auction-terminal-ui-proof-04/test-results/sovereign-auction-context--7ff1c-ilable-and-entitlement-loss-tablet/attachments/tablet-en-observed-result-source-details-screenshot-e37e6b235e9c37239989cdb8828123388fcbb832.png"
+                          "path": "/tmp/sovereign-auction-terminal-ui-proof-03/test-results/sovereign-auction-context--7ff1c-ilable-and-entitlement-loss-tablet/attachments/tablet-en-observed-result-source-details-screenshot-93d8650ecc2de048a261e6a3b7a23e13aa0d9055.png"
                         },
                         {
                           "name": "tablet-en-observed-result-source-details-measurements",
@@ -895,7 +895,7 @@
                         {
                           "name": "tablet-en-source-degraded-screenshot",
                           "contentType": "image/png",
-                          "path": "/tmp/sovereign-auction-terminal-ui-proof-04/test-results/sovereign-auction-context--7ff1c-ilable-and-entitlement-loss-tablet/attachments/tablet-en-source-degraded-screenshot-df3d8f1cd4dcd4b8672e211db7b2fe0f674c2577.png"
+                          "path": "/tmp/sovereign-auction-terminal-ui-proof-03/test-results/sovereign-auction-context--7ff1c-ilable-and-entitlement-loss-tablet/attachments/tablet-en-source-degraded-screenshot-cfc26f91bb0f7e97f27e8d9a1cff6a11a5696f7c.png"
                         },
                         {
                           "name": "tablet-en-source-degraded-measurements",
@@ -905,7 +905,7 @@
                         {
                           "name": "tablet-en-status-503-screenshot",
                           "contentType": "image/png",
-                          "path": "/tmp/sovereign-auction-terminal-ui-proof-04/test-results/sovereign-auction-context--7ff1c-ilable-and-entitlement-loss-tablet/attachments/tablet-en-status-503-screenshot-0991f4ef49b8c98cbb2451f710445e935584f9c1.png"
+                          "path": "/tmp/sovereign-auction-terminal-ui-proof-03/test-results/sovereign-auction-context--7ff1c-ilable-and-entitlement-loss-tablet/attachments/tablet-en-status-503-screenshot-d3c48b61ad03423b6fd1b4563b5f2b880116e004.png"
                         },
                         {
                           "name": "tablet-en-status-503-measurements",
@@ -915,7 +915,7 @@
                         {
                           "name": "tablet-en-status-401-screenshot",
                           "contentType": "image/png",
-                          "path": "/tmp/sovereign-auction-terminal-ui-proof-04/test-results/sovereign-auction-context--7ff1c-ilable-and-entitlement-loss-tablet/attachments/tablet-en-status-401-screenshot-6a1caf2b4049bd1652cabec8018f80281f916246.png"
+                          "path": "/tmp/sovereign-auction-terminal-ui-proof-03/test-results/sovereign-auction-context--7ff1c-ilable-and-entitlement-loss-tablet/attachments/tablet-en-status-401-screenshot-0231166086bd6c1ed96eeb599f6c31fae9209c5f.png"
                         },
                         {
                           "name": "tablet-en-status-401-measurements",
@@ -925,7 +925,7 @@
                         {
                           "name": "tablet-en-status-403-screenshot",
                           "contentType": "image/png",
-                          "path": "/tmp/sovereign-auction-terminal-ui-proof-04/test-results/sovereign-auction-context--7ff1c-ilable-and-entitlement-loss-tablet/attachments/tablet-en-status-403-screenshot-e47242a2824606e85760e15eae2f4ce0a21a865f.png"
+                          "path": "/tmp/sovereign-auction-terminal-ui-proof-03/test-results/sovereign-auction-context--7ff1c-ilable-and-entitlement-loss-tablet/attachments/tablet-en-status-403-screenshot-0f734fb8a124643da01028668188244050bc2e82.png"
                         },
                         {
                           "name": "tablet-en-status-403-measurements",
@@ -935,7 +935,7 @@
                         {
                           "name": "tablet-en-invalid-authority-screenshot",
                           "contentType": "image/png",
-                          "path": "/tmp/sovereign-auction-terminal-ui-proof-04/test-results/sovereign-auction-context--7ff1c-ilable-and-entitlement-loss-tablet/attachments/tablet-en-invalid-authority-screenshot-8a36972bb2547c29265964704a66ce840e4d683f.png"
+                          "path": "/tmp/sovereign-auction-terminal-ui-proof-03/test-results/sovereign-auction-context--7ff1c-ilable-and-entitlement-loss-tablet/attachments/tablet-en-invalid-authority-screenshot-a7f9bf6f4e1dd011a93389056323b43765481261.png"
                         },
                         {
                           "name": "tablet-en-invalid-authority-measurements",
@@ -945,7 +945,7 @@
                         {
                           "name": "tablet-en-valid-observed-empty-screenshot",
                           "contentType": "image/png",
-                          "path": "/tmp/sovereign-auction-terminal-ui-proof-04/test-results/sovereign-auction-context--7ff1c-ilable-and-entitlement-loss-tablet/attachments/tablet-en-valid-observed-empty-screenshot-2cffa6a8c3c8f0ba14481741b7a526c3d8c726ae.png"
+                          "path": "/tmp/sovereign-auction-terminal-ui-proof-03/test-results/sovereign-auction-context--7ff1c-ilable-and-entitlement-loss-tablet/attachments/tablet-en-valid-observed-empty-screenshot-79acde97a599c53f067bf456b046bd73353c242d.png"
                         },
                         {
                           "name": "tablet-en-valid-observed-empty-measurements",
@@ -979,18 +979,18 @@
                       "workerIndex": 1,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 3783,
+                      "duration": 5178,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-10-09T00:44:31.004Z",
+                      "startTime": "2026-10-09T00:25:32.595Z",
                       "annotations": [],
                       "attachments": [
                         {
                           "name": "tablet-zh-dark-shared-fixture-screenshot",
                           "contentType": "image/png",
-                          "path": "/tmp/sovereign-auction-terminal-ui-proof-04/test-results/sovereign-auction-context--0624d-out-and-invariant-incumbent-tablet/attachments/tablet-zh-dark-shared-fixture-screenshot-ceefeaac4a83acb4108eec1bddc535d07b1baf01.png"
+                          "path": "/tmp/sovereign-auction-terminal-ui-proof-03/test-results/sovereign-auction-context--0624d-out-and-invariant-incumbent-tablet/attachments/tablet-zh-dark-shared-fixture-screenshot-f66f7ff4c71cdfa8662a6d34006628dc5fc7d1ea.png"
                         },
                         {
                           "name": "tablet-zh-dark-shared-fixture-measurements",
@@ -1000,7 +1000,7 @@
                         {
                           "name": "tablet-zh-dark-bill-amount-deadline-screenshot",
                           "contentType": "image/png",
-                          "path": "/tmp/sovereign-auction-terminal-ui-proof-04/test-results/sovereign-auction-context--0624d-out-and-invariant-incumbent-tablet/attachments/tablet-zh-dark-bill-amount-deadline-screenshot-f93a18dc8a46edf342bb181d6c359d6706f94a17.png"
+                          "path": "/tmp/sovereign-auction-terminal-ui-proof-03/test-results/sovereign-auction-context--0624d-out-and-invariant-incumbent-tablet/attachments/tablet-zh-dark-bill-amount-deadline-screenshot-82d262aa2325c706eb84e9a796b4294ad71fd348.png"
                         },
                         {
                           "name": "tablet-zh-dark-bill-amount-deadline-measurements",
@@ -1010,7 +1010,7 @@
                         {
                           "name": "tablet-zh-dark-event-source-details-screenshot",
                           "contentType": "image/png",
-                          "path": "/tmp/sovereign-auction-terminal-ui-proof-04/test-results/sovereign-auction-context--0624d-out-and-invariant-incumbent-tablet/attachments/tablet-zh-dark-event-source-details-screenshot-b83866c7d55a14429b6a33529f3a9a2867cca31c.png"
+                          "path": "/tmp/sovereign-auction-terminal-ui-proof-03/test-results/sovereign-auction-context--0624d-out-and-invariant-incumbent-tablet/attachments/tablet-zh-dark-event-source-details-screenshot-b0f14a19f20b24c80e755a11269c145d475d5ec5.png"
                         },
                         {
                           "name": "tablet-zh-dark-event-source-details-measurements",
@@ -1020,7 +1020,7 @@
                         {
                           "name": "tablet-zh-dark-context-source-details-screenshot",
                           "contentType": "image/png",
-                          "path": "/tmp/sovereign-auction-terminal-ui-proof-04/test-results/sovereign-auction-context--0624d-out-and-invariant-incumbent-tablet/attachments/tablet-zh-dark-context-source-details-screenshot-83714b20176bbffb25ee800b876ffa33c7e202be.png"
+                          "path": "/tmp/sovereign-auction-terminal-ui-proof-03/test-results/sovereign-auction-context--0624d-out-and-invariant-incumbent-tablet/attachments/tablet-zh-dark-context-source-details-screenshot-beab5a7eb36c1d8122dae8e6f0ed25d91a41d20c.png"
                         },
                         {
                           "name": "tablet-zh-dark-context-source-details-measurements",
@@ -1059,12 +1059,12 @@
                       "workerIndex": 1,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 4068,
+                      "duration": 3796,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-10-09T00:44:34.792Z",
+                      "startTime": "2026-10-09T00:25:37.777Z",
                       "annotations": [
                         {
                           "type": "diagnostic",
@@ -1075,7 +1075,7 @@
                         {
                           "name": "tablet-zh-light-attribute-diagnostic-shared-fixture-screenshot",
                           "contentType": "image/png",
-                          "path": "/tmp/sovereign-auction-terminal-ui-proof-04/test-results/sovereign-auction-context--d4f75-out-and-invariant-incumbent-tablet/attachments/tablet-zh-light-attribute-diagnostic-shared-fixture-screenshot-20ed2faccadda38dd1c1ddee19ca3cc4566c78a5.png"
+                          "path": "/tmp/sovereign-auction-terminal-ui-proof-03/test-results/sovereign-auction-context--d4f75-out-and-invariant-incumbent-tablet/attachments/tablet-zh-light-attribute-diagnostic-shared-fixture-screenshot-5adb41974b90ae0eb869305541fec94908296f53.png"
                         },
                         {
                           "name": "tablet-zh-light-attribute-diagnostic-shared-fixture-measurements",
@@ -1085,7 +1085,7 @@
                         {
                           "name": "tablet-zh-light-attribute-diagnostic-bill-amount-deadline-screenshot",
                           "contentType": "image/png",
-                          "path": "/tmp/sovereign-auction-terminal-ui-proof-04/test-results/sovereign-auction-context--d4f75-out-and-invariant-incumbent-tablet/attachments/tablet-zh-light-attribute-diagnostic-bill-amount-deadline-screenshot-57dc94747deb46da728c70d9dcffc6f918779622.png"
+                          "path": "/tmp/sovereign-auction-terminal-ui-proof-03/test-results/sovereign-auction-context--d4f75-out-and-invariant-incumbent-tablet/attachments/tablet-zh-light-attribute-diagnostic-bill-amount-deadline-screenshot-a2199d97f87d72dfa105041a89444c3f369bd1a4.png"
                         },
                         {
                           "name": "tablet-zh-light-attribute-diagnostic-bill-amount-deadline-measurements",
@@ -1095,7 +1095,7 @@
                         {
                           "name": "tablet-zh-light-attribute-diagnostic-event-source-details-screenshot",
                           "contentType": "image/png",
-                          "path": "/tmp/sovereign-auction-terminal-ui-proof-04/test-results/sovereign-auction-context--d4f75-out-and-invariant-incumbent-tablet/attachments/tablet-zh-light-attribute-diagnostic-event-source-details-screenshot-e8906d55cf21c92face294a5c3b817505cc2f0d0.png"
+                          "path": "/tmp/sovereign-auction-terminal-ui-proof-03/test-results/sovereign-auction-context--d4f75-out-and-invariant-incumbent-tablet/attachments/tablet-zh-light-attribute-diagnostic-event-source-details-screenshot-460c5d70d2f9ad4deb858d7b80b6b5a662a4418a.png"
                         },
                         {
                           "name": "tablet-zh-light-attribute-diagnostic-event-source-details-measurements",
@@ -1105,7 +1105,7 @@
                         {
                           "name": "tablet-zh-light-attribute-diagnostic-context-source-details-screenshot",
                           "contentType": "image/png",
-                          "path": "/tmp/sovereign-auction-terminal-ui-proof-04/test-results/sovereign-auction-context--d4f75-out-and-invariant-incumbent-tablet/attachments/tablet-zh-light-attribute-diagnostic-context-source-details-screenshot-9d6606a99de20f160a9e77260cfc8a35209a19c8.png"
+                          "path": "/tmp/sovereign-auction-terminal-ui-proof-03/test-results/sovereign-auction-context--d4f75-out-and-invariant-incumbent-tablet/attachments/tablet-zh-light-attribute-diagnostic-context-source-details-screenshot-13bb1f56af8a1f2a19fc88a766bbcffcc2aa771f.png"
                         },
                         {
                           "name": "tablet-zh-light-attribute-diagnostic-context-source-details-measurements",
@@ -1139,18 +1139,18 @@
                       "workerIndex": 1,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 5304,
+                      "duration": 5452,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-10-09T00:44:38.865Z",
+                      "startTime": "2026-10-09T00:25:41.579Z",
                       "annotations": [],
                       "attachments": [
                         {
                           "name": "tablet-zh-expanded-24-of-74-screenshot",
                           "contentType": "image/png",
-                          "path": "/tmp/sovereign-auction-terminal-ui-proof-04/test-results/sovereign-auction-context--26484-ilable-and-entitlement-loss-tablet/attachments/tablet-zh-expanded-24-of-74-screenshot-a81cbdc051a55beae29d41501f1404ab639d5978.png"
+                          "path": "/tmp/sovereign-auction-terminal-ui-proof-03/test-results/sovereign-auction-context--26484-ilable-and-entitlement-loss-tablet/attachments/tablet-zh-expanded-24-of-74-screenshot-75e8faa5d02bc83d98f0e788cee05f3b3c8730d6.png"
                         },
                         {
                           "name": "tablet-zh-expanded-24-of-74-measurements",
@@ -1160,7 +1160,7 @@
                         {
                           "name": "tablet-zh-observed-result-source-details-screenshot",
                           "contentType": "image/png",
-                          "path": "/tmp/sovereign-auction-terminal-ui-proof-04/test-results/sovereign-auction-context--26484-ilable-and-entitlement-loss-tablet/attachments/tablet-zh-observed-result-source-details-screenshot-5ebffddb0874f4f278f027503e99b706b8a080ce.png"
+                          "path": "/tmp/sovereign-auction-terminal-ui-proof-03/test-results/sovereign-auction-context--26484-ilable-and-entitlement-loss-tablet/attachments/tablet-zh-observed-result-source-details-screenshot-c7f3038944c487411e2bb075c0584cf4bd36f45d.png"
                         },
                         {
                           "name": "tablet-zh-observed-result-source-details-measurements",
@@ -1170,7 +1170,7 @@
                         {
                           "name": "tablet-zh-source-degraded-screenshot",
                           "contentType": "image/png",
-                          "path": "/tmp/sovereign-auction-terminal-ui-proof-04/test-results/sovereign-auction-context--26484-ilable-and-entitlement-loss-tablet/attachments/tablet-zh-source-degraded-screenshot-cf9404eb00ee64f75bd956f0f5a579d1eacad81c.png"
+                          "path": "/tmp/sovereign-auction-terminal-ui-proof-03/test-results/sovereign-auction-context--26484-ilable-and-entitlement-loss-tablet/attachments/tablet-zh-source-degraded-screenshot-58ae2c122dce3516af069a2206a0dbac5041c583.png"
                         },
                         {
                           "name": "tablet-zh-source-degraded-measurements",
@@ -1180,7 +1180,7 @@
                         {
                           "name": "tablet-zh-status-503-screenshot",
                           "contentType": "image/png",
-                          "path": "/tmp/sovereign-auction-terminal-ui-proof-04/test-results/sovereign-auction-context--26484-ilable-and-entitlement-loss-tablet/attachments/tablet-zh-status-503-screenshot-4ff14686281a0fd4b0f08d5695a5588e07a01a36.png"
+                          "path": "/tmp/sovereign-auction-terminal-ui-proof-03/test-results/sovereign-auction-context--26484-ilable-and-entitlement-loss-tablet/attachments/tablet-zh-status-503-screenshot-54d4315be3cd9747051d933ca728c91321c6e697.png"
                         },
                         {
                           "name": "tablet-zh-status-503-measurements",
@@ -1190,7 +1190,7 @@
                         {
                           "name": "tablet-zh-status-401-screenshot",
                           "contentType": "image/png",
-                          "path": "/tmp/sovereign-auction-terminal-ui-proof-04/test-results/sovereign-auction-context--26484-ilable-and-entitlement-loss-tablet/attachments/tablet-zh-status-401-screenshot-3fa747e6b082003dc258687369b626e1cc13fd03.png"
+                          "path": "/tmp/sovereign-auction-terminal-ui-proof-03/test-results/sovereign-auction-context--26484-ilable-and-entitlement-loss-tablet/attachments/tablet-zh-status-401-screenshot-5a74decc83134851e56e379784d63a9b0023873e.png"
                         },
                         {
                           "name": "tablet-zh-status-401-measurements",
@@ -1200,7 +1200,7 @@
                         {
                           "name": "tablet-zh-status-403-screenshot",
                           "contentType": "image/png",
-                          "path": "/tmp/sovereign-auction-terminal-ui-proof-04/test-results/sovereign-auction-context--26484-ilable-and-entitlement-loss-tablet/attachments/tablet-zh-status-403-screenshot-0564e49046950d39363a98c0ab4e6f2957138cf2.png"
+                          "path": "/tmp/sovereign-auction-terminal-ui-proof-03/test-results/sovereign-auction-context--26484-ilable-and-entitlement-loss-tablet/attachments/tablet-zh-status-403-screenshot-d322283fa983efb79263785035514728c22bde50.png"
                         },
                         {
                           "name": "tablet-zh-status-403-measurements",
@@ -1210,7 +1210,7 @@
                         {
                           "name": "tablet-zh-invalid-authority-screenshot",
                           "contentType": "image/png",
-                          "path": "/tmp/sovereign-auction-terminal-ui-proof-04/test-results/sovereign-auction-context--26484-ilable-and-entitlement-loss-tablet/attachments/tablet-zh-invalid-authority-screenshot-b0a6a59b49c4511f7f80f0e84826039689fc606f.png"
+                          "path": "/tmp/sovereign-auction-terminal-ui-proof-03/test-results/sovereign-auction-context--26484-ilable-and-entitlement-loss-tablet/attachments/tablet-zh-invalid-authority-screenshot-d729a6ae5066a2850218daf52cd26aa10dd02462.png"
                         },
                         {
                           "name": "tablet-zh-invalid-authority-measurements",
@@ -1220,7 +1220,7 @@
                         {
                           "name": "tablet-zh-valid-observed-empty-screenshot",
                           "contentType": "image/png",
-                          "path": "/tmp/sovereign-auction-terminal-ui-proof-04/test-results/sovereign-auction-context--26484-ilable-and-entitlement-loss-tablet/attachments/tablet-zh-valid-observed-empty-screenshot-6e34113497bb4a8420fa534180609cfe8af1e3db.png"
+                          "path": "/tmp/sovereign-auction-terminal-ui-proof-03/test-results/sovereign-auction-context--26484-ilable-and-entitlement-loss-tablet/attachments/tablet-zh-valid-observed-empty-screenshot-d9b82bcce4d63c572e03039e080c4d4addaf6763.png"
                         },
                         {
                           "name": "tablet-zh-valid-observed-empty-measurements",
@@ -1254,18 +1254,18 @@
                       "workerIndex": 2,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 3347,
+                      "duration": 3798,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-10-09T00:44:44.509Z",
+                      "startTime": "2026-10-09T00:25:47.440Z",
                       "annotations": [],
                       "attachments": [
                         {
                           "name": "mobile-en-dark-shared-fixture-screenshot",
                           "contentType": "image/png",
-                          "path": "/tmp/sovereign-auction-terminal-ui-proof-04/test-results/sovereign-auction-context--405be-out-and-invariant-incumbent-mobile/attachments/mobile-en-dark-shared-fixture-screenshot-84ecde1951aa89271a614392d2dc0e1fac2fbb09.png"
+                          "path": "/tmp/sovereign-auction-terminal-ui-proof-03/test-results/sovereign-auction-context--405be-out-and-invariant-incumbent-mobile/attachments/mobile-en-dark-shared-fixture-screenshot-e57b386904152b2af344073f94031c13fd22ff18.png"
                         },
                         {
                           "name": "mobile-en-dark-shared-fixture-measurements",
@@ -1275,7 +1275,7 @@
                         {
                           "name": "mobile-en-dark-bill-amount-deadline-screenshot",
                           "contentType": "image/png",
-                          "path": "/tmp/sovereign-auction-terminal-ui-proof-04/test-results/sovereign-auction-context--405be-out-and-invariant-incumbent-mobile/attachments/mobile-en-dark-bill-amount-deadline-screenshot-a1903eb539d45049367e8e3488d50d3192d429bb.png"
+                          "path": "/tmp/sovereign-auction-terminal-ui-proof-03/test-results/sovereign-auction-context--405be-out-and-invariant-incumbent-mobile/attachments/mobile-en-dark-bill-amount-deadline-screenshot-85d62ed6ab496ce81d315af886a5b244a9322193.png"
                         },
                         {
                           "name": "mobile-en-dark-bill-amount-deadline-measurements",
@@ -1285,7 +1285,7 @@
                         {
                           "name": "mobile-en-dark-event-source-details-screenshot",
                           "contentType": "image/png",
-                          "path": "/tmp/sovereign-auction-terminal-ui-proof-04/test-results/sovereign-auction-context--405be-out-and-invariant-incumbent-mobile/attachments/mobile-en-dark-event-source-details-screenshot-ee52d1da4f027091520d5c5a3f23eed3baac1fd4.png"
+                          "path": "/tmp/sovereign-auction-terminal-ui-proof-03/test-results/sovereign-auction-context--405be-out-and-invariant-incumbent-mobile/attachments/mobile-en-dark-event-source-details-screenshot-2ba10ac12f94b41f94d71a0fefe5ca1a9fec2c52.png"
                         },
                         {
                           "name": "mobile-en-dark-event-source-details-measurements",
@@ -1295,7 +1295,7 @@
                         {
                           "name": "mobile-en-dark-context-source-details-screenshot",
                           "contentType": "image/png",
-                          "path": "/tmp/sovereign-auction-terminal-ui-proof-04/test-results/sovereign-auction-context--405be-out-and-invariant-incumbent-mobile/attachments/mobile-en-dark-context-source-details-screenshot-daaf239d28241aa57b9f905b4e556e54e9c23ec3.png"
+                          "path": "/tmp/sovereign-auction-terminal-ui-proof-03/test-results/sovereign-auction-context--405be-out-and-invariant-incumbent-mobile/attachments/mobile-en-dark-context-source-details-screenshot-9eaab6fbe79a4101d796f2a1d92a5b663c151ef9.png"
                         },
                         {
                           "name": "mobile-en-dark-context-source-details-measurements",
@@ -1334,12 +1334,12 @@
                       "workerIndex": 2,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 4693,
+                      "duration": 3754,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-10-09T00:44:47.979Z",
+                      "startTime": "2026-10-09T00:25:51.429Z",
                       "annotations": [
                         {
                           "type": "diagnostic",
@@ -1350,7 +1350,7 @@
                         {
                           "name": "mobile-en-light-attribute-diagnostic-shared-fixture-screenshot",
                           "contentType": "image/png",
-                          "path": "/tmp/sovereign-auction-terminal-ui-proof-04/test-results/sovereign-auction-context--1345f-out-and-invariant-incumbent-mobile/attachments/mobile-en-light-attribute-diagnostic-shared-fixture-screenshot-8bdca0b54570e519529fc048f183abbeee7a9ef7.png"
+                          "path": "/tmp/sovereign-auction-terminal-ui-proof-03/test-results/sovereign-auction-context--1345f-out-and-invariant-incumbent-mobile/attachments/mobile-en-light-attribute-diagnostic-shared-fixture-screenshot-93582262ecdad3d2101b4ad614d9e4de62500773.png"
                         },
                         {
                           "name": "mobile-en-light-attribute-diagnostic-shared-fixture-measurements",
@@ -1360,7 +1360,7 @@
                         {
                           "name": "mobile-en-light-attribute-diagnostic-bill-amount-deadline-screenshot",
                           "contentType": "image/png",
-                          "path": "/tmp/sovereign-auction-terminal-ui-proof-04/test-results/sovereign-auction-context--1345f-out-and-invariant-incumbent-mobile/attachments/mobile-en-light-attribute-diagnostic-bill-amount-deadline-screenshot-d27b2caa3c305e6255742a0b91755a3e9eb9ed53.png"
+                          "path": "/tmp/sovereign-auction-terminal-ui-proof-03/test-results/sovereign-auction-context--1345f-out-and-invariant-incumbent-mobile/attachments/mobile-en-light-attribute-diagnostic-bill-amount-deadline-screenshot-e3fb25ed1c24938b15301697cb2f5e780b85d471.png"
                         },
                         {
                           "name": "mobile-en-light-attribute-diagnostic-bill-amount-deadline-measurements",
@@ -1370,7 +1370,7 @@
                         {
                           "name": "mobile-en-light-attribute-diagnostic-event-source-details-screenshot",
                           "contentType": "image/png",
-                          "path": "/tmp/sovereign-auction-terminal-ui-proof-04/test-results/sovereign-auction-context--1345f-out-and-invariant-incumbent-mobile/attachments/mobile-en-light-attribute-diagnostic-event-source-details-screenshot-40e646965f0889413a213e890c5cc24cccd509e5.png"
+                          "path": "/tmp/sovereign-auction-terminal-ui-proof-03/test-results/sovereign-auction-context--1345f-out-and-invariant-incumbent-mobile/attachments/mobile-en-light-attribute-diagnostic-event-source-details-screenshot-99530e030fc233a654c0265bb907edebc1c304fd.png"
                         },
                         {
                           "name": "mobile-en-light-attribute-diagnostic-event-source-details-measurements",
@@ -1380,7 +1380,7 @@
                         {
                           "name": "mobile-en-light-attribute-diagnostic-context-source-details-screenshot",
                           "contentType": "image/png",
-                          "path": "/tmp/sovereign-auction-terminal-ui-proof-04/test-results/sovereign-auction-context--1345f-out-and-invariant-incumbent-mobile/attachments/mobile-en-light-attribute-diagnostic-context-source-details-screenshot-800099ddac69e9a787ac3e2145de7e9cf1afa6c3.png"
+                          "path": "/tmp/sovereign-auction-terminal-ui-proof-03/test-results/sovereign-auction-context--1345f-out-and-invariant-incumbent-mobile/attachments/mobile-en-light-attribute-diagnostic-context-source-details-screenshot-7a0d2e69b4d1480eb826995dd50ff3128bc88e46.png"
                         },
                         {
                           "name": "mobile-en-light-attribute-diagnostic-context-source-details-measurements",
@@ -1414,18 +1414,18 @@
                       "workerIndex": 2,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 3857,
+                      "duration": 4754,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-10-09T00:44:52.677Z",
+                      "startTime": "2026-10-09T00:25:55.189Z",
                       "annotations": [],
                       "attachments": [
                         {
                           "name": "mobile-en-expanded-24-of-74-screenshot",
                           "contentType": "image/png",
-                          "path": "/tmp/sovereign-auction-terminal-ui-proof-04/test-results/sovereign-auction-context--7ff1c-ilable-and-entitlement-loss-mobile/attachments/mobile-en-expanded-24-of-74-screenshot-47b1f2067a195ce8e3726216175c191e7aaf4ba1.png"
+                          "path": "/tmp/sovereign-auction-terminal-ui-proof-03/test-results/sovereign-auction-context--7ff1c-ilable-and-entitlement-loss-mobile/attachments/mobile-en-expanded-24-of-74-screenshot-c790373ff332e47bf953671e6cdc8892cd4bb789.png"
                         },
                         {
                           "name": "mobile-en-expanded-24-of-74-measurements",
@@ -1435,7 +1435,7 @@
                         {
                           "name": "mobile-en-observed-result-source-details-screenshot",
                           "contentType": "image/png",
-                          "path": "/tmp/sovereign-auction-terminal-ui-proof-04/test-results/sovereign-auction-context--7ff1c-ilable-and-entitlement-loss-mobile/attachments/mobile-en-observed-result-source-details-screenshot-162d236af3a1ae1aa4bf47c55b35fc613874977a.png"
+                          "path": "/tmp/sovereign-auction-terminal-ui-proof-03/test-results/sovereign-auction-context--7ff1c-ilable-and-entitlement-loss-mobile/attachments/mobile-en-observed-result-source-details-screenshot-1bd627815a5f91fd2de4706c52e415e948fd9149.png"
                         },
                         {
                           "name": "mobile-en-observed-result-source-details-measurements",
@@ -1445,7 +1445,7 @@
                         {
                           "name": "mobile-en-source-degraded-screenshot",
                           "contentType": "image/png",
-                          "path": "/tmp/sovereign-auction-terminal-ui-proof-04/test-results/sovereign-auction-context--7ff1c-ilable-and-entitlement-loss-mobile/attachments/mobile-en-source-degraded-screenshot-5335497c1c4a850a5b99b187f69638030516af5e.png"
+                          "path": "/tmp/sovereign-auction-terminal-ui-proof-03/test-results/sovereign-auction-context--7ff1c-ilable-and-entitlement-loss-mobile/attachments/mobile-en-source-degraded-screenshot-8ce978f2631be1e5cae580c26477927805dca0f7.png"
                         },
                         {
                           "name": "mobile-en-source-degraded-measurements",
@@ -1455,7 +1455,7 @@
                         {
                           "name": "mobile-en-status-503-screenshot",
                           "contentType": "image/png",
-                          "path": "/tmp/sovereign-auction-terminal-ui-proof-04/test-results/sovereign-auction-context--7ff1c-ilable-and-entitlement-loss-mobile/attachments/mobile-en-status-503-screenshot-ff2377d1f554852dc20589aa07c1df751701294b.png"
+                          "path": "/tmp/sovereign-auction-terminal-ui-proof-03/test-results/sovereign-auction-context--7ff1c-ilable-and-entitlement-loss-mobile/attachments/mobile-en-status-503-screenshot-e79571d31550133eac67c900446fc5d02de50ddc.png"
                         },
                         {
                           "name": "mobile-en-status-503-measurements",
@@ -1465,7 +1465,7 @@
                         {
                           "name": "mobile-en-status-401-screenshot",
                           "contentType": "image/png",
-                          "path": "/tmp/sovereign-auction-terminal-ui-proof-04/test-results/sovereign-auction-context--7ff1c-ilable-and-entitlement-loss-mobile/attachments/mobile-en-status-401-screenshot-dae1810e27e30830454005cd9d577482abc8a75d.png"
+                          "path": "/tmp/sovereign-auction-terminal-ui-proof-03/test-results/sovereign-auction-context--7ff1c-ilable-and-entitlement-loss-mobile/attachments/mobile-en-status-401-screenshot-8596485b749489c6abc24ee4b793caf7021f44d4.png"
                         },
                         {
                           "name": "mobile-en-status-401-measurements",
@@ -1475,7 +1475,7 @@
                         {
                           "name": "mobile-en-status-403-screenshot",
                           "contentType": "image/png",
-                          "path": "/tmp/sovereign-auction-terminal-ui-proof-04/test-results/sovereign-auction-context--7ff1c-ilable-and-entitlement-loss-mobile/attachments/mobile-en-status-403-screenshot-50dbdd3ba9e25095ab9d1c51f533e34e6c6de244.png"
+                          "path": "/tmp/sovereign-auction-terminal-ui-proof-03/test-results/sovereign-auction-context--7ff1c-ilable-and-entitlement-loss-mobile/attachments/mobile-en-status-403-screenshot-902b693e9b1159dda0883c97f766ecc96a1e60de.png"
                         },
                         {
                           "name": "mobile-en-status-403-measurements",
@@ -1485,7 +1485,7 @@
                         {
                           "name": "mobile-en-invalid-authority-screenshot",
                           "contentType": "image/png",
-                          "path": "/tmp/sovereign-auction-terminal-ui-proof-04/test-results/sovereign-auction-context--7ff1c-ilable-and-entitlement-loss-mobile/attachments/mobile-en-invalid-authority-screenshot-912da7d4ea32d78acf8fa91ea0047365f7ae4ebc.png"
+                          "path": "/tmp/sovereign-auction-terminal-ui-proof-03/test-results/sovereign-auction-context--7ff1c-ilable-and-entitlement-loss-mobile/attachments/mobile-en-invalid-authority-screenshot-745d4895655abb0ef03cb005925efea1e0405ca1.png"
                         },
                         {
                           "name": "mobile-en-invalid-authority-measurements",
@@ -1495,7 +1495,7 @@
                         {
                           "name": "mobile-en-valid-observed-empty-screenshot",
                           "contentType": "image/png",
-                          "path": "/tmp/sovereign-auction-terminal-ui-proof-04/test-results/sovereign-auction-context--7ff1c-ilable-and-entitlement-loss-mobile/attachments/mobile-en-valid-observed-empty-screenshot-4aa32498d80bcb5e71ad4d0176a3d5f3584a3efd.png"
+                          "path": "/tmp/sovereign-auction-terminal-ui-proof-03/test-results/sovereign-auction-context--7ff1c-ilable-and-entitlement-loss-mobile/attachments/mobile-en-valid-observed-empty-screenshot-30212c211a00e45acc54f0601187937ec65ed90c.png"
                         },
                         {
                           "name": "mobile-en-valid-observed-empty-measurements",
@@ -1529,18 +1529,18 @@
                       "workerIndex": 2,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 3666,
+                      "duration": 5078,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-10-09T00:44:56.539Z",
+                      "startTime": "2026-10-09T00:25:59.948Z",
                       "annotations": [],
                       "attachments": [
                         {
                           "name": "mobile-zh-dark-shared-fixture-screenshot",
                           "contentType": "image/png",
-                          "path": "/tmp/sovereign-auction-terminal-ui-proof-04/test-results/sovereign-auction-context--0624d-out-and-invariant-incumbent-mobile/attachments/mobile-zh-dark-shared-fixture-screenshot-5981f891d1a8b7708eee40eccd272ee83fba4bf1.png"
+                          "path": "/tmp/sovereign-auction-terminal-ui-proof-03/test-results/sovereign-auction-context--0624d-out-and-invariant-incumbent-mobile/attachments/mobile-zh-dark-shared-fixture-screenshot-3fb26370cbf00cd6ac86105e6088ae641f08e695.png"
                         },
                         {
                           "name": "mobile-zh-dark-shared-fixture-measurements",
@@ -1550,7 +1550,7 @@
                         {
                           "name": "mobile-zh-dark-bill-amount-deadline-screenshot",
                           "contentType": "image/png",
-                          "path": "/tmp/sovereign-auction-terminal-ui-proof-04/test-results/sovereign-auction-context--0624d-out-and-invariant-incumbent-mobile/attachments/mobile-zh-dark-bill-amount-deadline-screenshot-785f94292d9d35fe621298d973e32d5700b4e6a5.png"
+                          "path": "/tmp/sovereign-auction-terminal-ui-proof-03/test-results/sovereign-auction-context--0624d-out-and-invariant-incumbent-mobile/attachments/mobile-zh-dark-bill-amount-deadline-screenshot-ca9c17de1a318e2153971f88d073c95232782e42.png"
                         },
                         {
                           "name": "mobile-zh-dark-bill-amount-deadline-measurements",
@@ -1560,7 +1560,7 @@
                         {
                           "name": "mobile-zh-dark-event-source-details-screenshot",
                           "contentType": "image/png",
-                          "path": "/tmp/sovereign-auction-terminal-ui-proof-04/test-results/sovereign-auction-context--0624d-out-and-invariant-incumbent-mobile/attachments/mobile-zh-dark-event-source-details-screenshot-a0dcde26240d9fa84e968d05d2d8a220f1cb2c9b.png"
+                          "path": "/tmp/sovereign-auction-terminal-ui-proof-03/test-results/sovereign-auction-context--0624d-out-and-invariant-incumbent-mobile/attachments/mobile-zh-dark-event-source-details-screenshot-8e67919e35f7aedb1469cd45d90db9337478176e.png"
                         },
                         {
                           "name": "mobile-zh-dark-event-source-details-measurements",
@@ -1570,7 +1570,7 @@
                         {
                           "name": "mobile-zh-dark-context-source-details-screenshot",
                           "contentType": "image/png",
-                          "path": "/tmp/sovereign-auction-terminal-ui-proof-04/test-results/sovereign-auction-context--0624d-out-and-invariant-incumbent-mobile/attachments/mobile-zh-dark-context-source-details-screenshot-daa4ec893ebbf1046baf59f6e8583f33faaf85b5.png"
+                          "path": "/tmp/sovereign-auction-terminal-ui-proof-03/test-results/sovereign-auction-context--0624d-out-and-invariant-incumbent-mobile/attachments/mobile-zh-dark-context-source-details-screenshot-06319d586d32d85db34f566a599078cce317abc5.png"
                         },
                         {
                           "name": "mobile-zh-dark-context-source-details-measurements",
@@ -1609,12 +1609,12 @@
                       "workerIndex": 2,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 3624,
+                      "duration": 3738,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-10-09T00:45:00.210Z",
+                      "startTime": "2026-10-09T00:26:05.031Z",
                       "annotations": [
                         {
                           "type": "diagnostic",
@@ -1625,7 +1625,7 @@
                         {
                           "name": "mobile-zh-light-attribute-diagnostic-shared-fixture-screenshot",
                           "contentType": "image/png",
-                          "path": "/tmp/sovereign-auction-terminal-ui-proof-04/test-results/sovereign-auction-context--d4f75-out-and-invariant-incumbent-mobile/attachments/mobile-zh-light-attribute-diagnostic-shared-fixture-screenshot-8b1a44cf886044703547f97d99c0757d8654a15c.png"
+                          "path": "/tmp/sovereign-auction-terminal-ui-proof-03/test-results/sovereign-auction-context--d4f75-out-and-invariant-incumbent-mobile/attachments/mobile-zh-light-attribute-diagnostic-shared-fixture-screenshot-eefb118a60ba2cfa25d7a230aa7f50a1a3531cf2.png"
                         },
                         {
                           "name": "mobile-zh-light-attribute-diagnostic-shared-fixture-measurements",
@@ -1635,7 +1635,7 @@
                         {
                           "name": "mobile-zh-light-attribute-diagnostic-bill-amount-deadline-screenshot",
                           "contentType": "image/png",
-                          "path": "/tmp/sovereign-auction-terminal-ui-proof-04/test-results/sovereign-auction-context--d4f75-out-and-invariant-incumbent-mobile/attachments/mobile-zh-light-attribute-diagnostic-bill-amount-deadline-screenshot-31b358070cac5e7d79b3bdbb88dac1448ac56378.png"
+                          "path": "/tmp/sovereign-auction-terminal-ui-proof-03/test-results/sovereign-auction-context--d4f75-out-and-invariant-incumbent-mobile/attachments/mobile-zh-light-attribute-diagnostic-bill-amount-deadline-screenshot-1790801a2ffd86a960a06de87308a2c1e5ca3929.png"
                         },
                         {
                           "name": "mobile-zh-light-attribute-diagnostic-bill-amount-deadline-measurements",
@@ -1645,7 +1645,7 @@
                         {
                           "name": "mobile-zh-light-attribute-diagnostic-event-source-details-screenshot",
                           "contentType": "image/png",
-                          "path": "/tmp/sovereign-auction-terminal-ui-proof-04/test-results/sovereign-auction-context--d4f75-out-and-invariant-incumbent-mobile/attachments/mobile-zh-light-attribute-diagnostic-event-source-details-screenshot-71b33a4a738be47eb7b553ba1cbe8d3ada66c5bf.png"
+                          "path": "/tmp/sovereign-auction-terminal-ui-proof-03/test-results/sovereign-auction-context--d4f75-out-and-invariant-incumbent-mobile/attachments/mobile-zh-light-attribute-diagnostic-event-source-details-screenshot-3e762b39a379732cdcd23613abe7ac1545ca5a24.png"
                         },
                         {
                           "name": "mobile-zh-light-attribute-diagnostic-event-source-details-measurements",
@@ -1655,7 +1655,7 @@
                         {
                           "name": "mobile-zh-light-attribute-diagnostic-context-source-details-screenshot",
                           "contentType": "image/png",
-                          "path": "/tmp/sovereign-auction-terminal-ui-proof-04/test-results/sovereign-auction-context--d4f75-out-and-invariant-incumbent-mobile/attachments/mobile-zh-light-attribute-diagnostic-context-source-details-screenshot-5c51504872275f26a27c279bdcf4abf049fa3118.png"
+                          "path": "/tmp/sovereign-auction-terminal-ui-proof-03/test-results/sovereign-auction-context--d4f75-out-and-invariant-incumbent-mobile/attachments/mobile-zh-light-attribute-diagnostic-context-source-details-screenshot-1492b6add46f91f9f35c627aafb9f0bd029a92eb.png"
                         },
                         {
                           "name": "mobile-zh-light-attribute-diagnostic-context-source-details-measurements",
@@ -1689,18 +1689,18 @@
                       "workerIndex": 2,
                       "parallelIndex": 0,
                       "status": "passed",
-                      "duration": 3936,
+                      "duration": 5424,
                       "errors": [],
                       "stdout": [],
                       "stderr": [],
                       "retry": 0,
-                      "startTime": "2026-10-09T00:45:03.840Z",
+                      "startTime": "2026-10-09T00:26:08.773Z",
                       "annotations": [],
                       "attachments": [
                         {
                           "name": "mobile-zh-expanded-24-of-74-screenshot",
                           "contentType": "image/png",
-                          "path": "/tmp/sovereign-auction-terminal-ui-proof-04/test-results/sovereign-auction-context--26484-ilable-and-entitlement-loss-mobile/attachments/mobile-zh-expanded-24-of-74-screenshot-f2913b90bd837b1d7ef067b37ea8b20188d7ffa7.png"
+                          "path": "/tmp/sovereign-auction-terminal-ui-proof-03/test-results/sovereign-auction-context--26484-ilable-and-entitlement-loss-mobile/attachments/mobile-zh-expanded-24-of-74-screenshot-fbb537f8f01243bb0af167c4e5178cf4c7c00f65.png"
                         },
                         {
                           "name": "mobile-zh-expanded-24-of-74-measurements",
@@ -1710,7 +1710,7 @@
                         {
                           "name": "mobile-zh-observed-result-source-details-screenshot",
                           "contentType": "image/png",
-                          "path": "/tmp/sovereign-auction-terminal-ui-proof-04/test-results/sovereign-auction-context--26484-ilable-and-entitlement-loss-mobile/attachments/mobile-zh-observed-result-source-details-screenshot-b77779dc4c54c000adefdb22613e3bdc8a754921.png"
+                          "path": "/tmp/sovereign-auction-terminal-ui-proof-03/test-results/sovereign-auction-context--26484-ilable-and-entitlement-loss-mobile/attachments/mobile-zh-observed-result-source-details-screenshot-3bcfd847e8ead3dc1ac111cdd795f7d761c1f413.png"
                         },
                         {
                           "name": "mobile-zh-observed-result-source-details-measurements",
@@ -1720,7 +1720,7 @@
                         {
                           "name": "mobile-zh-source-degraded-screenshot",
                           "contentType": "image/png",
-                          "path": "/tmp/sovereign-auction-terminal-ui-proof-04/test-results/sovereign-auction-context--26484-ilable-and-entitlement-loss-mobile/attachments/mobile-zh-source-degraded-screenshot-e48beafd75cdbf0db7be618a10c795d1f003437b.png"
+                          "path": "/tmp/sovereign-auction-terminal-ui-proof-03/test-results/sovereign-auction-context--26484-ilable-and-entitlement-loss-mobile/attachments/mobile-zh-source-degraded-screenshot-19fcd8eccb60849fb4d2ff8107908c0b50803604.png"
                         },
                         {
                           "name": "mobile-zh-source-degraded-measurements",
@@ -1730,7 +1730,7 @@
                         {
                           "name": "mobile-zh-status-503-screenshot",
                           "contentType": "image/png",
-                          "path": "/tmp/sovereign-auction-terminal-ui-proof-04/test-results/sovereign-auction-context--26484-ilable-and-entitlement-loss-mobile/attachments/mobile-zh-status-503-screenshot-c6dd383ee181e6b0c031a1923bc0f8afaceeaf08.png"
+                          "path": "/tmp/sovereign-auction-terminal-ui-proof-03/test-results/sovereign-auction-context--26484-ilable-and-entitlement-loss-mobile/attachments/mobile-zh-status-503-screenshot-f37525c93303196939f53e85a45429dbb6956324.png"
                         },
                         {
                           "name": "mobile-zh-status-503-measurements",
@@ -1740,7 +1740,7 @@
                         {
                           "name": "mobile-zh-status-401-screenshot",
                           "contentType": "image/png",
-                          "path": "/tmp/sovereign-auction-terminal-ui-proof-04/test-results/sovereign-auction-context--26484-ilable-and-entitlement-loss-mobile/attachments/mobile-zh-status-401-screenshot-14fe25f913f8453632bf84cb217ef66985ebeb9e.png"
+                          "path": "/tmp/sovereign-auction-terminal-ui-proof-03/test-results/sovereign-auction-context--26484-ilable-and-entitlement-loss-mobile/attachments/mobile-zh-status-401-screenshot-bc635f89b922b7f4b984269e2e78391566df9fb3.png"
                         },
                         {
                           "name": "mobile-zh-status-401-measurements",
@@ -1750,7 +1750,7 @@
                         {
                           "name": "mobile-zh-status-403-screenshot",
                           "contentType": "image/png",
-                          "path": "/tmp/sovereign-auction-terminal-ui-proof-04/test-results/sovereign-auction-context--26484-ilable-and-entitlement-loss-mobile/attachments/mobile-zh-status-403-screenshot-c082109c4171019e319974b4bebec346f1444f0a.png"
+                          "path": "/tmp/sovereign-auction-terminal-ui-proof-03/test-results/sovereign-auction-context--26484-ilable-and-entitlement-loss-mobile/attachments/mobile-zh-status-403-screenshot-87ea34f70f1ef4d699e0946ed8176d29849c5d08.png"
                         },
                         {
                           "name": "mobile-zh-status-403-measurements",
@@ -1760,7 +1760,7 @@
                         {
                           "name": "mobile-zh-invalid-authority-screenshot",
                           "contentType": "image/png",
-                          "path": "/tmp/sovereign-auction-terminal-ui-proof-04/test-results/sovereign-auction-context--26484-ilable-and-entitlement-loss-mobile/attachments/mobile-zh-invalid-authority-screenshot-c3556eda7d4eeda9760a27f176e27b2efb49a607.png"
+                          "path": "/tmp/sovereign-auction-terminal-ui-proof-03/test-results/sovereign-auction-context--26484-ilable-and-entitlement-loss-mobile/attachments/mobile-zh-invalid-authority-screenshot-e15a70efbf7b7e7e79a47c087e13d6e4d439175f.png"
                         },
                         {
                           "name": "mobile-zh-invalid-authority-measurements",
@@ -1770,7 +1770,7 @@
                         {
                           "name": "mobile-zh-valid-observed-empty-screenshot",
                           "contentType": "image/png",
-                          "path": "/tmp/sovereign-auction-terminal-ui-proof-04/test-results/sovereign-auction-context--26484-ilable-and-entitlement-loss-mobile/attachments/mobile-zh-valid-observed-empty-screenshot-971f8aeadf955c86923473d2c9578e4482f692b4.png"
+                          "path": "/tmp/sovereign-auction-terminal-ui-proof-03/test-results/sovereign-auction-context--26484-ilable-and-entitlement-loss-mobile/attachments/mobile-zh-valid-observed-empty-screenshot-2a73bb58bfe784465b8fc20bc4008dfcc1e4c18b.png"
                         },
                         {
                           "name": "mobile-zh-valid-observed-empty-measurements",
@@ -1795,8 +1795,8 @@
   ],
   "errors": [],
   "stats": {
-    "startTime": "2026-10-09T00:43:40.712Z",
-    "duration": 87192.077,
+    "startTime": "2026-10-09T00:24:39.779Z",
+    "duration": 94636.72399999999,
     "expected": 18,
     "skipped": 0,
     "unexpected": 0,

@@ -1,6 +1,6 @@
 {
   "schema": "sovereign_auction_verified_source_v1",
-  "verified_at": "2026-10-09T00:28:14.110897+00:00",
+  "verified_at": "2026-10-09T00:47:59.602629+00:00",
   "base_commit": "d660d98b1ebc0bdf0d1b16d66202b1760f6cc94a",
   "branch": "sol/web-sovereign-auction-context-20261008-sol-terminal-001",
   "source_binding": "Exact file hashes; the enclosing Git commit is the final revision identity.",
@@ -15,7 +15,10 @@
     "incumbent_evidence_tests": 47,
     "plain_language_fixture_control_tests": 40,
     "affected_evidence_suites": 8,
-    "shared_i18n": "Restored exact base858306597ebbfc2d912cefc997ad88e4805cafb08794b5cd4d3dfeacb109371f; no final delta and no foreign manifest recapture."
+    "shared_i18n": "Restored exact base858306597ebbfc2d912cefc997ad88e4805cafb08794b5cd4d3dfeacb109371f; no final delta and no foreign manifest recapture.",
+    "plain_language_real_diff": "0blocking,0waived; actual full Terminal diff from original base;6inherited findings visible",
+    "copy_pair_replay": "All55original English/Chinese pairs and missing-key fallbacks identical",
+    "browser_run": "04 after purepick copy routing repair"
   },
   "files": [
     {
@@ -30,8 +33,8 @@
     },
     {
       "path": "terminal/components/SovereignAuctionContext.tsx",
-      "sha256": "b2cbcc4807342678b46b5ebf5321bc48f9c1307fea8591be29cb6cea67d42665",
-      "bytes": 11190
+      "sha256": "5c4a4fe7a7953502b3bcbcad51354c25d8e02fb7bbdb19e5daac14d178a0e1f7",
+      "bytes": 11375
     },
     {
       "path": "terminal/lib/sovereignAuctionContext.ts",
@@ -60,8 +63,8 @@
     },
     {
       "path": "terminal/lib/__tests__/sovereignAuctionComponent.test.tsx",
-      "sha256": "ab45200e06acc3e1b347314f0e466d07e2181e6112c5494b4b5723c5426a210c",
-      "bytes": 11297
+      "sha256": "65ae671a04db339778cd5702b95f890873789da4089d8c71239a8dcc506cd028",
+      "bytes": 11379
     },
     {
       "path": "terminal/lib/__tests__/fixtures/sovereign_auction_context_w1.json",
@@ -85,8 +88,8 @@
     },
     {
       "path": "terminal/lib/sovereignAuctionCopy.ts",
-      "sha256": "cf2784b31eb09dd3c89626922b50106f3ec2952467eb357c5faf6107e137b6e5",
-      "bytes": 4143
+      "sha256": "68e796dca0f8406a1b4001ecd1f372a9244a4e8db2874700a9fec02c94d1540e",
+      "bytes": 5446
     }
   ],
   "production_deployed": false,
