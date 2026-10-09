@@ -21,7 +21,7 @@ import { sealAccountExport } from "@/lib/accountExportIntegrity";
 
 // Owner-scoped account-data export (B-F12-4 / MO-PAID-086).
 //
-// Terminal-owned tables (watchlists, portfolio_positions, saved_scripts, chart_layouts, chart_drawings, alerts) — reusing
+// Terminal-owned tables (watchlists, portfolio_positions, saved_scripts, chart_layouts, drawings, alerts) — reusing
 // the same anon-key, cookie-session, RLS-scoped server client `portfolio/route.ts` and
 // `watchlist/route.ts` already use. No service-role key, no second auth plane (F12 do_not_redo).
 // Scripts/layouts are a per-collection point-in-time page on that client; they are not a

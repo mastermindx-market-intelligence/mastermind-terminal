@@ -72,7 +72,7 @@ function makeOwnerDb(tables: Record<string, MockTable>): {
 
   const db = {
     from(table: string) {
-      const config = tables[table] ?? { rows: [] };
+      const config = tables[table] ?? { rows: [], failMessage: `Unknown mocked relation ${table}` };
       const predicates: Array<(row: DbRow) => boolean> = [];
       let orderKey: string | null = null;
       let ascending = true;
@@ -700,7 +700,7 @@ describe("owned drawings and alert definition archive", () => {
   it("preserves collection geometry, legacy rows, stored condition and real revision without normalization", async () => {
     const collection = drawingRow(); const legacy = drawingRow({ id: "legacy", kind: "future_kind", data: { points: [1, 2], revision: "not-a-collection-revision" } });
     const alert = alertRow();
-    const { db, eqCalls, rangeCalls, selectCalls } = makeOwnerDb({ chart_drawings: { rows: [collection, legacy] }, alerts: { rows: [alert] } });
+    const { db, eqCalls, rangeCalls, selectCalls } = makeOwnerDb({ drawings: { rows: [collection, legacy] }, alerts: { rows: [alert] } });
     const drawings = await readChartDrawingsForExport(db, OWNED_USER, { pageSize: 1 });
     const alerts = await readAlertsForExport(db, OWNED_USER, { pageSize: 1 });
     expect(drawings.ok && drawings.complete).toBe(true); expect(alerts.ok && alerts.complete).toBe(true);
@@ -712,12 +712,12 @@ describe("owned drawings and alert definition archive", () => {
       active: false, created_at: alert.created_at, version: null });
     expect(eqCalls).toHaveLength(rangeCalls.length);
     expect(eqCalls.every(c => c.column === "user_id" && c.value === OWNED_USER)).toBe(true);
-    expect(selectCalls.filter(c => c.table === "chart_drawings").every(c => c.fields === "id,user_id,symbol,kind,data,created_at")).toBe(true);
+    expect(selectCalls.filter(c => c.table === "drawings").every(c => c.fields === "id,user_id,symbol,kind,data,created_at")).toBe(true);
     expect(selectCalls.filter(c => c.table === "alerts").every(c => c.fields === "id,user_id,symbol,condition,active,created_at")).toBe(true);
     expect(JSON.stringify(drawings.rows) + JSON.stringify(alerts.rows)).not.toContain("user_id");
   });
 
-  it.each(["chart_drawings", "alerts"])("rejects foreign, missing-owner and malformed %s rows without a complete-count claim", async (table) => {
+  it.each(["drawings", "alerts"])("rejects foreign, missing-owner and malformed %s rows without a complete-count claim", async (table) => {
     const row = table === "alerts" ? alertRow : drawingRow;
     const { db } = makeOwnerDb({ [table]: { leakEq: true, rows: [row({ id: "a-owned" }), row({ id: "b-foreign", user_id: "other" }), row({ id: "c-no-owner", user_id: undefined }), row({ id: "d-invalid", created_at: undefined })] } });
     const read = await (table === "alerts" ? readAlertsForExport : readChartDrawingsForExport)(db, OWNED_USER);
@@ -725,7 +725,7 @@ describe("owned drawings and alert definition archive", () => {
     expect(read.rows.map(r => r.id)).toEqual(["a-owned"]); expect(read.complete).toBe(false);
   });
 
-  it.each(["chart_drawings", "alerts"])("bounds %s retained rows, physical pages and unpageable reads", async (table) => {
+  it.each(["drawings", "alerts"])("bounds %s retained rows, physical pages and unpageable reads", async (table) => {
     const row = table === "alerts" ? alertRow : drawingRow;
     const reader = table === "alerts" ? readAlertsForExport : readChartDrawingsForExport;
     const rows = Array.from({ length: 8 }, (_, i) => row({ id: `row-${i}` }));
@@ -741,14 +741,14 @@ describe("owned drawings and alert definition archive", () => {
   });
 
   it("keeps unknown or null JSON payloads verbatim and never uses creation clocks as revisions", async () => {
-    const drawings = await readChartDrawingsForExport(makeOwnerDb({ chart_drawings: { rows: [drawingRow({ data: null })] } }).db, OWNED_USER);
+    const drawings = await readChartDrawingsForExport(makeOwnerDb({ drawings: { rows: [drawingRow({ data: null })] } }).db, OWNED_USER);
     const alerts = await readAlertsForExport(makeOwnerDb({ alerts: { rows: [alertRow({ condition: null })] } }).db, OWNED_USER);
     expect(drawings.ok && drawings.rows[0].data).toBeNull(); expect(drawings.ok && drawings.rows[0].version).toBeNull();
     expect(alerts.ok && alerts.rows[0].condition).toBeNull(); expect(alerts.ok && alerts.rows[0].version).toBeNull();
   });
 
   it("counts physical persisted drawing rows and discloses partial, failed and remaining archive categories", async () => {
-    const drawings = await readChartDrawingsForExport(makeOwnerDb({ chart_drawings: { rows: [drawingRow()] } }).db, OWNED_USER);
+    const drawings = await readChartDrawingsForExport(makeOwnerDb({ drawings: { rows: [drawingRow()] } }).db, OWNED_USER);
     const doc = buildAccountExport(baseSources({ saved_scripts: { ok: true, rows: [], complete: true }, chart_layouts: { ok: true, rows: [], complete: true },
       chart_drawings: drawings, alerts: { ok: false, error: "unavailable" } }));
     expect(doc.coverage.included.find(e => e.key === "chart_drawings")?.row_count).toBe(1);
@@ -762,7 +762,7 @@ describe("owned drawings and alert definition archive", () => {
   });
 
   it("retains raw nested JSON and formula defenses in both download representations", async () => {
-    const drawings = await readChartDrawingsForExport(makeOwnerDb({ chart_drawings: { rows: [drawingRow({ symbol: "=formula" })] } }).db, OWNED_USER);
+    const drawings = await readChartDrawingsForExport(makeOwnerDb({ drawings: { rows: [drawingRow({ symbol: "=formula" })] } }).db, OWNED_USER);
     const alerts = await readAlertsForExport(makeOwnerDb({ alerts: { rows: [alertRow()] } }).db, OWNED_USER);
     const doc = buildAccountExport(baseSources({ chart_drawings: drawings, alerts })); const csv = serializeCsv(doc);
     expect(csv).toContain("data,chart_drawings,drawing-1,symbol,'=formula");

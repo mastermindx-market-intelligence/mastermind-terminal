@@ -107,7 +107,7 @@ const ownedAlert = () => ({ id: "alert-owned", user_id: H.user!.id, symbol: "NVD
 describe("normal-session owned archive route", () => {
   it("downloads owner-filtered raw drawings and inactive alert definitions with six-entry integrity", async () => {
     const drawing = ownedDrawing(); const alert = ownedAlert();
-    const selects = withOwnedTables({ chart_drawings: [drawing, { ...drawing, id: "foreign", user_id: "other" }],
+    const selects = withOwnedTables({ drawings: [drawing, { ...drawing, id: "foreign", user_id: "other" }],
       alerts: [{ ...alert, delivery_secret: "must-not-be-projected" }, { ...alert, id: "foreign", user_id: "other" }] });
     const response = await GET(request()); expect(response.status).toBe(200); const doc = await response.json();
     expect(doc.chart_drawings).toHaveLength(1); expect(doc.chart_drawings[0].data).toEqual(drawing.data);
@@ -115,21 +115,21 @@ describe("normal-session owned archive route", () => {
     expect(doc.chart_drawings[0].version).toBe("actual-r4"); expect(doc.alerts[0].version).toBeNull();
     expect(doc.integrity.schema).toBe("mm.terminal_account_export.integrity.v2"); expect(Object.keys(doc.integrity.collections)).toHaveLength(6);
     expect(verifyAccountExportIntegrity(doc, sha256)).toBe(true);
-    expect(selects).toEqual([{ table: "chart_drawings", fields: "id,user_id,symbol,kind,data,created_at" }, { table: "alerts", fields: "id,user_id,symbol,condition,active,created_at" }]);
+    expect(selects).toEqual([{ table: "drawings", fields: "id,user_id,symbol,kind,data,created_at" }, { table: "alerts", fields: "id,user_id,symbol,condition,active,created_at" }]);
     expect(JSON.stringify(doc)).not.toContain("must-not-be-projected");
     const csvResponse = await GET(request("csv")); expect(csvResponse.status).toBe(200);
     const csv = Buffer.from(await csvResponse.arrayBuffer()).toString("utf8"); expect(verifyAccountExportCsvChecksum(csv, sha256)).toBe(true);
     expect(csv).toContain("data,chart_drawings,drawing-owned,data,"); expect(csv).toContain("data,alerts,alert-owned,active,false");
   });
   it("does not return all-source 503 when the new drawing source is the only readable collection", async () => {
-    withOwnedTables({ chart_drawings: [ownedDrawing()] }, true);
+    withOwnedTables({ drawings: [ownedDrawing()] }, true);
     const response = await GET(request()); expect(response.status).toBe(200); const doc = await response.json();
     expect(doc.coverage.included.map((e: { key: string }) => e.key)).toEqual(["chart_drawings"]);
     expect(doc.coverage.unavailable).toHaveLength(5); expect(doc.integrity.collections.alerts.state).toBe("unavailable");
     expect(verifyAccountExportIntegrity(doc, sha256)).toBe(true);
   });
   it.each(["json", "csv"])("withholds %s when raw owned alert text contains a credential-shaped value", async format => {
-    withOwnedTables({ chart_drawings: [], alerts: [{ ...ownedAlert(), condition: { note: "password=fictional-private-content" } }] });
+    withOwnedTables({ drawings: [], alerts: [{ ...ownedAlert(), condition: { note: "password=fictional-private-content" } }] });
     vi.spyOn(console, "error").mockImplementation(() => undefined);
     const response = await GET(request(format)); expect(response.status).toBe(500);
     expect(response.headers.get("content-disposition")).toBeNull(); expect(await response.json()).toEqual({ error: "export_withheld" });

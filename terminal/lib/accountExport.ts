@@ -1,7 +1,7 @@
 // accountExport.ts — pure builder for the self-serve "download my data" artifact (B-F12-4).
 //
 // Terminal-owned tables in this file: watchlists, portfolio positions, saved_scripts, and
-// chart_layouts, chart_drawings and alerts. It is deliberately NOT a whole-account export: chat
+// chart_layouts, drawings (export key chart_drawings) and alerts. It is deliberately NOT a whole-account export: chat
 // history, usage records, profile/plan, payment records and the download allowance live elsewhere
 // and are disclosed by name in `coverage.not_included` rather than silently omitted (F12
 // incompleteness danger). A source read that fails is disclosed in `coverage.unavailable` and its
@@ -933,7 +933,7 @@ export async function readChartLayoutsForExport(
 
 /** Raw persisted rows on the existing authenticated client, including legacy drawing kinds. */
 export async function readChartDrawingsForExport(db: WatchlistDb, userId: string, opts?: ExportPageOpts): Promise<CollectionRead<ChartDrawingExport>> {
-  return readBoundedCollection(db, "chart_drawings", userId, DRAWING_FIELDS, mapDrawing, opts);
+  return readBoundedCollection(db, "drawings", userId, DRAWING_FIELDS, mapDrawing, opts);
 }
 
 /** Saved alert definitions only, preserving condition payloads and inactive/triggered rows. */

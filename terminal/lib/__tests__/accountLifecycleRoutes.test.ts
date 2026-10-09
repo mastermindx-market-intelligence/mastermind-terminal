@@ -103,7 +103,7 @@ vi.mock("@/lib/supabase/server", () => ({
                   ? collectionResult(H.scriptTable, H.scriptResult)
                 : table === "chart_layouts"
                   ? collectionResult(H.layoutTable, H.layoutResult)
-                : table === "chart_drawings"
+                : table === "drawings"
                   ? collectionResult(H.drawingTable, H.drawingResult)
                 : table === "alerts"
                   ? collectionResult(H.alertTable, H.alertResult)
