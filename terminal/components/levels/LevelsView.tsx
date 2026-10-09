@@ -29,6 +29,7 @@ import React, {
   useState,
 } from "react";
 import { flowGet } from "@/lib/flowClientCache";
+import { isValidRoot } from "@/lib/flowRoot";
 import { useLang, useT } from "@/lib/i18n";
 import { trackSearch } from "@/lib/searchTrack";
 import {
@@ -278,7 +279,8 @@ export function LevelsView() {
 
   const commitTicker = useCallback(() => {
     const root = inputVal.trim().toUpperCase();
-    if (/^[A-Z0-9]{1,10}(?:[.-][A-Z0-9]{1,4})?$/.test(root) && root !== ticker) {
+    // The route's own root rule: a root /api/flow would refuse is never committed.
+    if (isValidRoot(root) && root !== ticker) {
       trackSearch(root, "levels-board", inputVal.trim() || undefined);
       setTicker(root);
     }
