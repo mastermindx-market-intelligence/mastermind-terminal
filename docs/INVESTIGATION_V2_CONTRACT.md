@@ -94,8 +94,13 @@ a new operation UUID and retained draft. The at-cap `not_applied` ends the uncer
 a limit message, keeps the draft and permits neither the original nor a replacement; a
 later new save receives `limit_reached`. An unknown reason stays uncertain.
 Local storage is a principal-partitioned draft buffer, not an
-outcome authority; reloading a stored no-effect claim rechecks the owner. Logout/account
-changes abort in-flight reads and clear the mounted private state.
+outcome authority. On reload, a stored plain `not_applied` claim is not trusted: it
+returns as uncertain, and the page reads the original receipt from the owner once,
+read-only, without resending. A stored `limit_reached` rejection stays local: it shows
+the limit message, keeps the draft, is not retryable and grants nothing. Other stored
+definitive rejections (for example `version_conflict`) also stay local and show the
+conflict message. Logout/account changes abort in-flight reads and clear the mounted
+private state.
 
 ## Selected Earnings evidence and current rights
 

@@ -183,9 +183,20 @@ and reconcile returns the conclusive `not_applied` with `reason: "limit_reached"
 neither writes a row. Receipts are monotone (authenticated callers cannot delete
 them, no migration deletes them, the only cascade is account deletion), so the
 original can never commit later. A service-role receipt deletion voids this.
-Replays and changed-reuse conflicts over the cap, other principals, the cap-1
-fence and reconcile waiting for an in-flight apply are covered by PostgreSQL tests
-that fail on 76e22c3d.
+Four new PostgreSQL tests fail when run against the 0030 bytes of 76e22c3d:
+
+- `test_receipt_cap_reconcile_is_conclusive_and_the_delayed_original_cannot_commit`
+  (the cap-1 fence, the conclusive answer at the cap, and the delayed original);
+- `test_receipt_cap_keeps_existing_outcomes_replayable_and_is_per_principal`
+  (replays and changed-reuse conflicts over the cap, and other principals);
+- `test_receipt_cap_has_one_definition_shared_by_apply_and_reconcile`
+  (one cap definition shared by apply and reconcile);
+- `test_receipt_capacity_refuses_a_stale_snapshot_without_writing`
+  (a REPEATABLE READ caller is refused and nothing is written).
+
+Reconcile waiting for an in-flight apply is older coverage,
+`test_reconcile_waits_for_original_transaction_and_returns_exact_commit`. It
+already existed on 76e22c3d, passes there, and this round did not change it.
 
 The client treats the at-cap answer as final: the uncertain state ends with a
 limit message, the draft stays, and neither the original nor a replacement is

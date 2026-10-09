@@ -196,7 +196,7 @@ export default function InvestigationWorkspace({ownerKey,initialSymbol,initialIn
  }
  function save(action:InvestigationCommand["action"]=detail?"revise":"create") {
   if(editLocked())return;
-  if(!detail&&saveState.phase==="rejected"&&saveState.command.expected_revision>0){setMessage(c.conflict);return;}
+  if(!detail&&saveState.phase==="rejected"&&saveState.command.expected_revision>0){setMessage(saveState.reason==="limit_reached"?c.limit:c.conflict);return;}
   let manifest:InvestigationManifest;
   if((action==="remove"||action==="restore")&&detail)manifest=detail.manifest;
   else {
