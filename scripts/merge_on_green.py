@@ -23,6 +23,7 @@ from __future__ import annotations
 import json
 import os
 import sys
+import time
 import urllib.error
 import urllib.parse
 import urllib.request
@@ -357,7 +358,7 @@ def mark_blocked(api: MergeApi, pull: dict[str, Any], reason: str) -> None:
     )
 
 
-def sweep(api: MergeApi, trigger_number: int | None = None) -> list[str]:
+def sweep(api: MergeApi, trigger_number: int | None = None, *, wait=time.sleep) -> list[str]:
     pulls = [pull for pull in api.list_pulls() if is_armed_candidate(pull, api.repo)]
     if trigger_number is not None:
         pulls.sort(key=lambda pull: (int(pull["number"]) != trigger_number, pull.get("created_at", "")))
@@ -367,7 +368,13 @@ def sweep(api: MergeApi, trigger_number: int | None = None) -> list[str]:
     actions: list[str] = []
     queue_enabled = api.merge_queue_enabled("master") if pulls else False
     merged_this_sweep = False
-    for listed in pulls:
+    first_pass_size = len(pulls)
+    for position, listed in enumerate(pulls):
+        if position == first_pass_size:
+            # Revisit only the fixed first-pass pending set, once, after one
+            # shared short wait. Every proof below is read again; no prior
+            # mutation or refused API request is queued for retry.
+            wait(2)
         number = int(listed["number"])
         pull = api.pull(number)  # refresh head/base after any earlier merge in this sweep
         if not is_armed_candidate(pull, api.repo):
@@ -378,8 +385,12 @@ def sweep(api: MergeApi, trigger_number: int | None = None) -> list[str]:
             actions.append(f"#{number}: conflict")
             continue
         if pull.get("mergeable") is None:
-            actions.append(f"#{number}: mergeability pending")
+            if position < first_pass_size:
+                pulls.append(listed)
+            else:
+                actions.append(f"#{number}: mergeability pending")
             continue
+
 
         head_sha = str(pull["head"]["sha"])
         verdict = check_verdict(api.check_runs(head_sha))
