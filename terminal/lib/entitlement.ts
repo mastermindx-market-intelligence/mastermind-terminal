@@ -1,6 +1,7 @@
 import { cache } from "react";
 import { createHash } from "node:crypto";
 import { billingAuth, BILLING_BASE } from "@/app/api/billing/gateway";
+import { verifyAccessToken } from "@/lib/supabase/accessToken";
 import { isPaidSubscriptionTier, normalizeSubscriptionTier } from "@/lib/subscriptionTier";
 
 /**
@@ -160,17 +161,44 @@ const LIVE_OPTIONS = {
 };
 
 /** Live-options surface — customer feature entitlement plus the private unlimited operator tier. */
-export async function hasLiveOptions(options: { fresh?: boolean } = {}): Promise<boolean> {
-  // A long-lived connection must renew authority rather than reading a cached
-  // positive or joining an older page gate's in-flight request.
-  let e: Entitlement | null;
-  if (options.fresh) {
-    const auth = await billingAuth();
-    e = auth ? await fetchEntitlementFor(auth.token) : null;
-  } else {
-    e = await fetchEntitlementCached(LIVE_OPTIONS);
-  }
+export async function hasLiveOptions(): Promise<boolean> {
+  const e = await fetchEntitlementCached(LIVE_OPTIONS);
   return !!e && LIVE_OPTIONS.ok(e);
+}
+
+/** Authority held by one long-lived live-options connection. */
+export type LiveOptionsGrant = { renew: () => Promise<boolean> };
+
+/**
+ * Open a live-options connection grant from a fresh authority read.
+ *
+ * The open never reads the positive cache or joins another gate's in-flight
+ * read, so a nearly expired page answer cannot start a new connection lifetime.
+ *
+ * `renew` re-checks the SAME access token the connection opened with: Supabase
+ * Auth verifies it through a client with no stored session, and `/api/me`
+ * re-reads the feature authority for it. It deliberately does not go back
+ * through the cookie session: inside a response that is already streaming,
+ * loading a near-expiry cookie session would spend the browser's refresh token
+ * on the server, and the rotated cookie could never reach the browser. When the
+ * opening token stops verifying, renewal fails closed and the client reconnects
+ * with its own current session.
+ */
+export async function openLiveOptionsGrant(): Promise<LiveOptionsGrant | null> {
+  const auth = await billingAuth();
+  if (!auth) return null;
+  const opened = await fetchEntitlementFor(auth.token);
+  if (!opened || !LIVE_OPTIONS.ok(opened)) return null;
+  const token = auth.token;
+  return {
+    renew: async () => {
+      const [owner, next] = await Promise.all([
+        verifyAccessToken(token),
+        fetchEntitlementFor(token),
+      ]);
+      return owner && !!next && LIVE_OPTIONS.ok(next);
+    },
+  };
 }
 
 /**

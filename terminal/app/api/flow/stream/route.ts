@@ -14,7 +14,7 @@
 import { rateLimit, tooMany } from "@/lib/rateLimit";
 import { isValidF } from "@/lib/flowSource";
 import { subscribe } from "@/lib/flowBroadcast";
-import { hasLiveOptions, LIVE_OPTIONS_CACHE_TTL_MS } from "@/lib/entitlement";
+import { LIVE_OPTIONS_CACHE_TTL_MS, openLiveOptionsGrant, type LiveOptionsGrant } from "@/lib/entitlement";
 
 // SSE must never be statically cached, and flowSource reads fixtures via fs → node runtime.
 export const dynamic = "force-dynamic";
@@ -62,9 +62,12 @@ export async function GET(req: Request): Promise<Response> {
   // must not gain another complete lifetime interval by opening a stream.
   // Options data is a PAID feature — gate the stream at connection open against
   // the macro-api entitlement (terminal_live_options via /api/me), not
-  // profiles.is_pro. Fixture mode (dev/CI) is exempt.
-  if (process.env.FLOW_FIXTURE !== "1" && !(await hasLiveOptions({ fresh: true }))) {
-    return new Response("pro_required", { status: 403 });
+  // profiles.is_pro. The grant renews that same opening token for the life of
+  // the connection, never the cookie session. Fixture mode (dev/CI) is exempt.
+  let grant: LiveOptionsGrant | null = null;
+  if (process.env.FLOW_FIXTURE !== "1") {
+    grant = await openLiveOptionsGrant();
+    if (!grant) return new Response("pro_required", { status: 403 });
   }
 
   // Keep the existing post-entitlement parse/validation flow for every
@@ -130,7 +133,7 @@ export async function GET(req: Request): Promise<Response> {
       req.signal.addEventListener("abort", onAbort, { once: true });
 
       // A signal that is ALREADY aborted never fires its listener, and start() runs after the
-      // `await hasLiveOptions()` above — so a client that gives up during that entitlement
+      // `await openLiveOptionsGrant()` above — so a client that gives up during that entitlement
       // round-trip would otherwise subscribe here and never detach, stranding a producer and
       // its timers with no connection behind them. Bail before attaching.
       if (req.signal.aborted) {
@@ -149,12 +152,13 @@ export async function GET(req: Request): Promise<Response> {
       // disposer. Settle that same subscription rather than losing the handle.
       if (closed) { release(); return; }
       detach = release;
-      if (process.env.FLOW_FIXTURE !== "1") {
+      if (grant !== null) {
+        const renew = grant.renew;
         recheckTimer = setInterval(() => {
           if (closed || checking) return;
           checking = true;
           recheckDeadline = setTimeout(() => teardown(true), RECHECK_TIMEOUT_MS);
-          void hasLiveOptions({ fresh: true }).then((allowed) => {
+          void renew().then((allowed) => {
             if (closed) return;
             if (!allowed) { teardown(true); return; }
             if (recheckDeadline !== null) clearTimeout(recheckDeadline);

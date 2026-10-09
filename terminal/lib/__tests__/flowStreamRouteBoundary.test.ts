@@ -4,6 +4,7 @@ const mocks = vi.hoisted(() => ({
   rateLimit: vi.fn(() => ({ ok: true })),
   tooMany: vi.fn(() => new Response("rate limited", { status: 429 })),
   hasLiveOptions: vi.fn(async () => true),
+  openLiveOptionsGrant: vi.fn(async () => ({ renew: async () => true })),
   isValidF: vi.fn(() => true),
   // Typed to the real `loadFlowFresh` signature (Promise<Record<string, unknown> | null>)
   // so each test can hand back whatever fixture shape it needs — the default payload
@@ -21,6 +22,7 @@ vi.mock("@/lib/rateLimit", () => ({
 vi.mock("@/lib/entitlement", async (importOriginal) => ({
   ...await importOriginal<typeof import("../entitlement")>(),
   hasLiveOptions: mocks.hasLiveOptions,
+  openLiveOptionsGrant: mocks.openLiveOptionsGrant,
 }));
 
 vi.mock("@/lib/flowSource", () => ({
@@ -130,6 +132,7 @@ describe("Prophet full-plan transport boundary", () => {
 
       expect(mocks.rateLimit).toHaveBeenCalledTimes(1);
       expect(mocks.hasLiveOptions).not.toHaveBeenCalled();
+      expect(mocks.openLiveOptionsGrant).not.toHaveBeenCalled();
       expect(mocks.isValidF).not.toHaveBeenCalled();
       expect(mocks.loadFlowFresh).not.toHaveBeenCalled();
     },
@@ -181,6 +184,7 @@ describe("Options Alpha candidate-feed transport boundary", () => {
       // entitlement / parse, so no upstream or producer can be touched.
       expect(mocks.rateLimit).toHaveBeenCalledTimes(1);
       expect(mocks.hasLiveOptions).not.toHaveBeenCalled();
+      expect(mocks.openLiveOptionsGrant).not.toHaveBeenCalled();
       expect(mocks.isValidF).not.toHaveBeenCalled();
       expect(mocks.loadFlowFresh).not.toHaveBeenCalled();
     },

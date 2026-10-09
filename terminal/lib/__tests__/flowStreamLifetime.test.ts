@@ -9,6 +9,11 @@ vi.mock("@/lib/supabase/server", () => ({ createClient: async () => ({ auth: {
   getSession: async () => ({ data: { session: state.session } }),
   getUser: async () => ({ data: { user: state.session ? { id: "fixture-owner" } : null } }),
 } }) }));
+// Renewal verifies the connection's opening token without the cookie session;
+// the owner-scoped session stand-in answers that the same way.
+vi.mock("@/lib/supabase/accessToken", () => ({
+  verifyAccessToken: async (token: string) => state.session?.access_token === token,
+}));
 vi.mock("@/lib/rateLimit", () => ({ rateLimit: () => ({ ok: true }), tooMany: vi.fn() }));
 vi.mock("@/lib/flowSource", () => ({ isValidF: () => true }));
 vi.mock("@/lib/flowBroadcast", () => ({ subscribe: (_f: string, sink: (payload: string) => void) => {
