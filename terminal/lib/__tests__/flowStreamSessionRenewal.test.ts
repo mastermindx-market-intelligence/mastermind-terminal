@@ -13,6 +13,10 @@ const state = vi.hoisted(() => ({
   valid: new Set<string>(),
   refreshes: [] as string[],
   meTokens: [] as string[],
+  // Tokens macro /api/me still answers for from its positive identity cache
+  // (paywall._resolve_identity, PAYWALL_AUTH_CACHE_SECONDS, 45 s by default).
+  meCached: new Set<string>(),
+  publish: null as ((payload: string) => void) | null,
   answer: { tier: "pro", features: ["terminal_live_options"] } as unknown,
   detach: null as ReturnType<typeof vi.fn> | null,
   seq: 0,
@@ -23,7 +27,9 @@ vi.mock("next/headers", () => ({ cookies: async () => ({
 }) }));
 vi.mock("@/lib/rateLimit", () => ({ rateLimit: () => ({ ok: true }), tooMany: vi.fn() }));
 vi.mock("@/lib/flowSource", () => ({ isValidF: () => true }));
-vi.mock("@/lib/flowBroadcast", () => ({ subscribe: () => state.detach! }));
+vi.mock("@/lib/flowBroadcast", () => ({
+  subscribe: (_f: string, send: (payload: string) => void) => { state.publish = send; return state.detach!; },
+}));
 
 const SUPABASE = "http://127.0.0.1:54321";
 const NOW = 1_800_000_000_000;
@@ -50,7 +56,8 @@ beforeEach(() => {
   vi.stubEnv("NEXT_PUBLIC_SUPABASE_URL", SUPABASE);
   vi.stubEnv("NEXT_PUBLIC_SUPABASE_ANON_KEY", "anon-test");
   vi.stubEnv("BILLING_GATEWAY_BASE", "http://billing.test");
-  state.jar.clear(); state.valid.clear(); state.refreshes = []; state.meTokens = []; state.seq = 0;
+  state.jar.clear(); state.valid.clear(); state.meCached.clear(); state.refreshes = []; state.meTokens = []; state.seq = 0;
+  state.publish = null;
   state.answer = { tier: "pro", features: ["terminal_live_options"] };
   state.detach = vi.fn(); response = undefined;
   vi.stubGlobal("fetch", vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
@@ -67,7 +74,7 @@ beforeEach(() => {
     }
     if (url.origin === "http://billing.test" && url.pathname === "/api/me") {
       state.meTokens.push(token);
-      return state.valid.has(token) ? json(200, state.answer) : json(401, { error: "unauthorized" });
+      return state.valid.has(token) || state.meCached.has(token) ? json(200, state.answer) : json(401, { error: "unauthorized" });
     }
     throw new Error(`unexpected request ${url.href}`);
   }));
@@ -109,6 +116,27 @@ describe("SSE lifetime renewal through the real Supabase session path", () => {
     expect(state.refreshes).toEqual(["rt-open"]);
     expect(state.meTokens).toEqual(["tok-r1", "tok-r1", "tok-r1"]);
     expect(state.detach).not.toHaveBeenCalled();
+  });
+
+  it("ends the stream when Supabase Auth rejects the opening token even while /api/me still answers entitled", async () => {
+    // After a global signout, Auth rejects the token at once, but macro /api/me
+    // can keep answering from its identity cache for up to 45 s. Only the
+    // ownership check can end the stream at this recheck.
+    storeSession("tok-open", "rt-open", 3600);
+    const r = await open();
+    const reader = r.body!.getReader();
+    const decoder = new TextDecoder();
+    expect(decoder.decode((await reader.read()).value)).toBe("retry: 10000\n\n");
+    state.publish!("data: before\n\n");
+    expect(decoder.decode((await reader.read()).value)).toBe("data: before\n\n");
+    state.meCached.add("tok-open"); state.valid.delete("tok-open");
+    await vi.advanceTimersByTimeAsync(45_000);
+    expect(state.meTokens).toEqual(["tok-open", "tok-open"]); // /api/me did answer entitled
+    expect(state.refreshes).toEqual([]);
+    expect(state.detach).toHaveBeenCalledTimes(1); expect(vi.getTimerCount()).toBe(0);
+    state.publish!("data: after\n\n");
+    await expect(reader.read(), "no frame after the recheck reaches the reader").rejects.toThrow();
+    reader.releaseLock();
   });
 
   it("revokes on a lost feature at renewal through the real owner", async () => {
