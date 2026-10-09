@@ -4,6 +4,10 @@ import projection from "../lib/usEquitySessionProjection.json";
 import { renderAsGuest } from "./layoutStore";
 import type { Bar6 } from "../lib/intradayShared";
 
+test.beforeEach(async ({page,baseURL}) => {
+  await page.context().addCookies([{name:"mm_e2e_rs30",value:"1",url:baseURL!}]);
+});
+
 // Synthetic, nominal geometry fixtures. Never treated as a production/PIT data receipt.
 function input(symbol: string): Bar6[] {
   const days=Object.entries(projection.sessions).filter(([d])=>d>="2026-08-03"&&d<="2026-10-01").slice(0,36);
