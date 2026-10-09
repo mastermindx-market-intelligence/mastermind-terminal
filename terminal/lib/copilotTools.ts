@@ -107,9 +107,13 @@ const IDENTITY_KEYS = new Set([
   "trade_authority",
   "presentable_as_fresh",
   "status",
+  "source",
+  "unavailable",
 ]);
 
-const QUALIFIER_KEYS = new Set(["coverage", "limitations"]);
+/** Caveats that travel with identity: a reader must never keep a verdict while losing why it
+ *  is stale, what was withheld, or what the cap omitted. */
+const QUALIFIER_KEYS = new Set(["coverage", "limitations", "withheld", "stale_reasons", "omitted"]);
 const NESTED_EVIDENCE_KEYS = new Set(["state", "ladder", "facts", "gex", "market_risk"]);
 
 function asRecord(v: unknown): Record<string, unknown> | null {
@@ -178,6 +182,10 @@ function identityStub(v: unknown): Record<string, unknown> {
     if (k in rec) stub[k] = rec[k];
   }
   if (rec.reason != null && stub.reason == null) stub.reason = rec.reason;
+  // Nested subrecords (a separate state / ladder) keep their own identity and clock.
+  for (const k of NESTED_EVIDENCE_KEYS) {
+    if (asRecord(rec[k])) stub[k] = identityStub(rec[k]);
+  }
   return stub;
 }
 
@@ -245,6 +253,11 @@ function oversizeRefusal(src: Record<string, unknown>, cap: number): Record<stri
     const v = src[k];
     if (typeof v === "string" || typeof v === "boolean" || (typeof v === "number" && isFinite(v))) out[k] = v;
   }
+  if (out.stale === true && Array.isArray(src.stale_reasons)) {
+    out.stale_reasons = src.stale_reasons.filter((r) => typeof r === "string").slice(0, 6);
+  }
+  const omitted = Object.keys(src).filter((k) => NESTED_EVIDENCE_KEYS.has(k) || isEvidenceShaped(src[k]));
+  if (omitted.length) out.omitted = omitted;
   out.limitations =
     typeof src.limitations === "string" && src.limitations.trim()
       ? src.limitations
@@ -271,6 +284,7 @@ function oversizeRefusal(src: Record<string, unknown>, cap: number): Record<stri
   };
   if (typeof src.symbol === "string") minimal.symbol = src.symbol.slice(0, 15);
   if (typeof src.root === "string") minimal.root = src.root.slice(0, 15);
+  if (omitted.length && jsonUtf8Bytes({ ...minimal, omitted }) <= cap) minimal.omitted = omitted;
   return minimal;
 }
 
@@ -298,7 +312,9 @@ export function capJson(obj: Record<string, unknown>, cap = CAP_CHARS): Record<s
   compactNestedEvidence(out);
   if (jsonUtf8Bytes(out) <= cap) return out;
 
-  dropKeys(out, cap, (k) => IDENTITY_KEYS.has(k) || QUALIFIER_KEYS.has(k));
+  // Compacted evidence (identity stubs) is never dropped silently: if it still cannot fit,
+  // the typed refusal below names what was omitted instead.
+  dropKeys(out, cap, (k, v) => IDENTITY_KEYS.has(k) || QUALIFIER_KEYS.has(k) || NESTED_EVIDENCE_KEYS.has(k) || isEvidenceShaped(v));
   if (jsonUtf8Bytes(out) <= cap) return out;
 
   compactQualifiersToFit(out, cap);
@@ -688,19 +704,56 @@ function asIdentityString(v: unknown): string | null {
   return typeof v === "string" && v.trim() ? v.trim() : null;
 }
 
-function gexSession(o: Record<string, unknown>): string | null {
-  const explicit = asIdentityString(o.session);
-  if (explicit) {
-    const day = explicit.slice(0, 10);
-    return /^\d{4}-\d{2}-\d{2}$/.test(day) ? day : null;
-  }
-  const asof = asIdentityString(o.asof);
-  if (!asof || !Number.isFinite(Date.parse(asof))) return null;
-  const day = asof.slice(0, 10);
-  return /^\d{4}-\d{2}-\d{2}$/.test(day) ? day : null;
+const GEX_DAY = /^\d{4}-\d{2}-\d{2}$/;
+const GEX_ZONED = /(?:Z|[+-]\d{2}:?\d{2})$/i;
+const GEX_CLOSE_MINUTES = 16 * 60;
+const GEX_ET = new Intl.DateTimeFormat("en-US", {
+  timeZone: "America/New_York",
+  year: "numeric",
+  month: "2-digit",
+  day: "2-digit",
+  hour: "2-digit",
+  minute: "2-digit",
+  hourCycle: "h23",
+});
+
+function gexEtClock(ms: number): { date: string; minutes: number; hhmm: string } {
+  const p: Record<string, string> = {};
+  for (const part of GEX_ET.formatToParts(new Date(ms))) p[part.type] = part.value;
+  const hour = Number(p.hour) % 24;
+  const minute = Number(p.minute);
+  return {
+    date: `${p.year}-${p.month}-${p.day}`,
+    minutes: hour * 60 + minute,
+    hhmm: `${String(hour).padStart(2, "0")}:${p.minute}`,
+  };
 }
 
-/** Identity slots reused from owner GEX envelopes (root, session date, basis, correction revision).
+/** Session receipt per the producers (Macro origin/main): options_hub.gex/v1 stamps the bare
+ *  reference session date; options_structure.gex_state/v1 stamps the session's 16:00 New York
+ *  close with an explicit offset (a UTC build time when no session was passed). So a session is
+ *  the New York trading date of a close receipt. A stamp before that date's 16:00 ET close is an
+ *  intraday observation keyed to its minute — it never equals an end-of-day session. A timestamp
+ *  without a zone, or an explicit session the clock contradicts, stays unknown (null). */
+function gexSession(o: Record<string, unknown>): string | null {
+  const explicitRaw = asIdentityString(o.session);
+  const explicit = explicitRaw && GEX_DAY.test(explicitRaw.slice(0, 10)) ? explicitRaw.slice(0, 10) : null;
+  if (explicitRaw && !explicit) return null;
+  const asof = asIdentityString(o.asof);
+  if (!asof) return explicit;
+  if (GEX_DAY.test(asof)) return explicit && explicit !== asof ? null : asof;
+  const ms = Date.parse(asof);
+  if (!GEX_ZONED.test(asof) || !Number.isFinite(ms)) return null;
+  const et = gexEtClock(ms);
+  const intraday = `${et.date} intraday ${et.hhmm} ET`;
+  if (explicit) {
+    if (et.date < explicit) return null;
+    return et.date === explicit && et.minutes < GEX_CLOSE_MINUTES ? intraday : explicit;
+  }
+  return et.minutes >= GEX_CLOSE_MINUTES ? et.date : intraday;
+}
+
+/** Identity slots reused from owner GEX envelopes (root, session, basis, correction revision).
  *  Missing or malformed clocks stay unknown — they are never inferred from the other envelope
  *  or from a URL-bound symbol. */
 function gexIdentity(o: Record<string, unknown> | null | undefined): GexIdentity {
@@ -720,16 +773,18 @@ function identitySlotConflict(a: string | null, b: string | null): boolean {
   return a !== b;
 }
 
-function gexIdentitiesConflict(ladder: GexIdentity, state: GexIdentity, ownerRoot?: string): boolean {
-  if (identitySlotConflict(ladder.root, state.root)) return true;
-  if (identitySlotConflict(ladder.session, state.session)) return true;
-  if (identitySlotConflict(ladder.basis, state.basis)) return true;
-  if (identitySlotConflict(ladder.revision, state.revision)) return true;
-  if (ownerRoot) {
-    const owner = ownerRoot.trim().toUpperCase();
-    if (owner && (ladder.root !== owner || state.root !== owner)) return true;
-  }
-  return false;
+function gexIdentitiesConflict(ladder: GexIdentity, state: GexIdentity): boolean {
+  return (
+    identitySlotConflict(ladder.root, state.root) ||
+    identitySlotConflict(ladder.session, state.session) ||
+    identitySlotConflict(ladder.basis, state.basis) ||
+    identitySlotConflict(ladder.revision, state.revision)
+  );
+}
+
+function gexClockValid(v: unknown): v is string {
+  const s = asIdentityString(v);
+  return !!s && (GEX_DAY.test(s) || Number.isFinite(Date.parse(s)));
 }
 
 function gexWalls(g: Record<string, unknown> | null, ok: boolean) {
@@ -750,70 +805,157 @@ function gexWalls(g: Record<string, unknown> | null, ok: boolean) {
   };
 }
 
+type GexSide = "ladder" | "state";
+type GexSource =
+  | { kind: "absent" }
+  | { kind: "withheld"; record: Record<string, unknown> }
+  | { kind: "bound"; payload: Record<string, unknown>; id: GexIdentity; clocked: boolean };
+
+/** A source is bound to the requested symbol only when it is a measured payload whose own
+ *  producer root equals that symbol. Anything else is withheld with its identity and a reason —
+ *  never folded into, or shown as, the symbol's GEX. */
+function bindGexSource(side: GexSide, raw: unknown, owner: string | undefined): GexSource {
+  const o = asRecord(raw);
+  if (!o) return { kind: "absent" };
+  const id = gexIdentity(o);
+  const withheld = (reason: string): GexSource => ({
+    kind: "withheld",
+    record: {
+      root: id.root,
+      asof: typeof o.asof === "string" ? o.asof : null,
+      ...(typeof o.schema === "string" ? { schema: o.schema } : {}),
+      reason,
+    },
+  });
+  if (!id.root) return withheld(`${side} payload carries no producer root, so it cannot be bound to ${owner ?? "a symbol"}`);
+  if (owner && id.root !== owner) return withheld(`${side} payload is for root ${id.root}, not ${owner}`);
+  const measured =
+    side === "state"
+      ? num(o.net_gex_bn) != null
+      : num(o.net_gex_bn) != null ||
+        (Array.isArray(o.by_strike) &&
+          (o.by_strike as unknown[]).some((r) => {
+            const row = asRecord(r);
+            return !!row && num(row.strike) != null && (num(row.gamma_call) != null || num(row.gamma_put) != null);
+          }));
+  if (!measured) return withheld(`${side} for ${id.root} was published without measured gamma (empty producer shell)`);
+  return { kind: "bound", payload: o, id, clocked: gexClockValid(o.asof) };
+}
+
+function gexStateFields(s: Record<string, unknown>): Record<string, unknown> {
+  return {
+    spot: rnd(s.spot, 4),
+    net_gex_bn: rnd(s.net_gex_bn),
+    gamma_flip: rnd(s.gamma_flip),
+    call_wall: rnd(s.call_wall),
+    put_wall: rnd(s.put_wall),
+    gamma_regime: s.gamma_regime ?? null,
+    pin_probability: rnd(s.pin_probability),
+    magnet: rnd(s.magnet),
+    max_pain: rnd(s.max_pain),
+    dist_to_flip_pct: rnd(s.dist_to_flip_pct),
+  };
+}
+
+function gexLadderFields(g: Record<string, unknown>): Record<string, unknown> {
+  return {
+    spot: rnd(g.spot_ref, 4),
+    net_gex_bn: rnd(g.net_gex_bn),
+    gamma_flip: rnd(g.gamma_flip),
+    call_wall: rnd(g.call_wall),
+    put_wall: rnd(g.put_wall),
+    ...gexWalls(g, true),
+  };
+}
+
+/** Curate the ladder (options_hub.gex) and state (options_structure.gex_state) for one root.
+ *  Result is exactly one of:
+ *    matched     — both bound and identical in root, session, basis and revision: one fused read
+ *                  dated by its shared session, with both producer clocks exposed;
+ *    separate    — both bound but not identical (mixed_source): two subrecords, each with its own
+ *                  identity and clock, never fused (a subrecord without a valid clock keeps only
+ *                  its identity);
+ *    partial     — one bound source with its own clock; the other half named as absent/withheld;
+ *    unavailable — no_data, with every withheld source's identity and reason. */
 export function curateGex(gex: unknown, state: unknown, ownerRoot?: string): Record<string, unknown> {
-  const g = gex as Record<string, unknown> | null;
-  const s = state as Record<string, unknown> | null;
-  const gOk = !!(g && typeof g === "object" && (num(g.net_gex_bn) != null || Array.isArray(g.by_strike)));
-  const sOk = !!(s && typeof s === "object" && num(s.net_gex_bn) != null);
-  if (!gOk && !sOk) return { no_data: true, reason: "no GEX coverage for this root (options-hub covers liquid names only)" };
-
-  const ladderId = gOk ? gexIdentity(g) : gexIdentity(null);
-  const stateId = sOk ? gexIdentity(s) : gexIdentity(null);
-  const walls = gexWalls(g, gOk);
   const owner = typeof ownerRoot === "string" && ownerRoot.trim() ? ownerRoot.trim().toUpperCase() : undefined;
+  const ladder = bindGexSource("ladder", gex, owner);
+  const st = bindGexSource("state", state, owner);
+  const withheld: Record<string, unknown> = {};
+  if (ladder.kind === "withheld") withheld.ladder = ladder.record;
+  if (st.kind === "withheld") withheld.state = st.record;
 
-  if (gOk && sOk && gexIdentitiesConflict(ladderId, stateId, owner)) {
+  if (ladder.kind === "bound" && st.kind === "bound" && (ladder.clocked || st.clocked)) {
+    const g = ladder.payload;
+    const s = st.payload;
+    if (ladder.clocked && st.clocked && !gexIdentitiesConflict(ladder.id, st.id)) {
+      const session = st.id.session as string;
+      return {
+        status: "matched",
+        ...st.id,
+        asof: GEX_DAY.test(session) ? session : (s.asof as string),
+        asof_state: s.asof,
+        asof_ladder: g.asof,
+        ...gexStateFields(s),
+        spot: rnd(s.spot ?? g.spot_ref, 4),
+        net_gex_bn: rnd(s.net_gex_bn ?? g.net_gex_bn),
+        gamma_flip: rnd(s.gamma_flip ?? g.gamma_flip),
+        call_wall: rnd(s.call_wall ?? g.call_wall),
+        put_wall: rnd(s.put_wall ?? g.put_wall),
+        ...gexWalls(g, true),
+      };
+    }
+    const sub = (src: Extract<GexSource, { kind: "bound" }>, fields: Record<string, unknown>) =>
+      src.clocked
+        ? { ...src.id, asof: src.payload.asof, ...fields }
+        : { ...src.id, asof: src.payload.asof ?? null, unavailable: "no valid producer clock; numbers withheld" };
     return {
+      status: "separate",
       mixed_source: true,
       reason: "GEX state and ladder disagree on root, session, basis or revision, or identity is unknown",
       limitations: "state and ladder are separate evidence; one clock does not certify the other",
-      state: {
-        ...stateId,
-        asof: s!.asof ?? null,
-        spot: rnd(s!.spot, 4),
-        net_gex_bn: rnd(s!.net_gex_bn),
-        gamma_flip: rnd(s!.gamma_flip),
-        call_wall: rnd(s!.call_wall),
-        put_wall: rnd(s!.put_wall),
-        gamma_regime: s!.gamma_regime ?? null,
-        pin_probability: rnd(s!.pin_probability),
-        magnet: rnd(s!.magnet),
-        max_pain: rnd(s!.max_pain),
-        dist_to_flip_pct: rnd(s!.dist_to_flip_pct),
-      },
-      ladder: {
-        ...ladderId,
-        asof: g!.asof ?? null,
-        spot: rnd(g!.spot_ref, 4),
-        net_gex_bn: rnd(g!.net_gex_bn),
-        gamma_flip: rnd(g!.gamma_flip),
-        call_wall: rnd(g!.call_wall),
-        put_wall: rnd(g!.put_wall),
-        ...walls,
-      },
+      state: sub(st, gexStateFields(s)),
+      ladder: sub(ladder, gexLadderFields(g)),
     };
   }
 
+  const one = st.kind === "bound" && st.clocked ? { side: "state" as const, src: st } : ladder.kind === "bound" && ladder.clocked ? { side: "ladder" as const, src: ladder } : null;
+  if (one) {
+    const other: GexSide = one.side === "state" ? "ladder" : "state";
+    const otherSrc = other === "state" ? st : ladder;
+    const otherNote =
+      otherSrc.kind === "withheld"
+        ? `the ${other} is withheld (${String(otherSrc.record.reason)})`
+        : otherSrc.kind === "bound"
+          ? `the ${other} has no valid producer clock and is withheld`
+          : `no ${other} was published for this root`;
+    if (otherSrc.kind === "bound") withheld[other] = { root: otherSrc.id.root, asof: otherSrc.payload.asof ?? null, reason: "no valid producer clock" };
+    const p = one.src.payload;
+    return {
+      status: "partial",
+      source: one.side,
+      ...one.src.id,
+      asof: p.asof,
+      asof_state: one.side === "state" ? p.asof : null,
+      asof_ladder: one.side === "ladder" ? p.asof : null,
+      ...(one.side === "state" ? gexStateFields(p) : gexLadderFields(p)),
+      limitations: `${one.side}-only GEX read on the ${one.side}'s own clock; ${otherNote}; nothing from the ${other} is included`,
+      ...(Object.keys(withheld).length ? { withheld } : {}),
+    };
+  }
+
+  for (const [side, src] of [["ladder", ladder], ["state", st]] as const) {
+    if (src.kind === "bound") withheld[side] = { root: src.id.root, asof: src.payload.asof ?? null, reason: "no valid producer clock" };
+  }
+  if (!Object.keys(withheld).length) {
+    return { status: "unavailable", no_data: true, reason: "no GEX coverage for this root (options-hub covers liquid names only)" };
+  }
+  const reasons = Object.values(withheld).map((r) => String((r as Record<string, unknown>).reason));
   return {
-    ...(!gOk ? stateId : ladderId.root ? ladderId : stateId),
-    asof: (s?.asof as string) ?? (g?.asof as string) ?? null,
-    asof_state: sOk ? (s!.asof ?? null) : null,
-    asof_ladder: gOk ? (g!.asof ?? null) : null,
-    spot: rnd(s?.spot ?? g?.spot_ref, 4),
-    net_gex_bn: rnd(s?.net_gex_bn ?? g?.net_gex_bn),
-    gamma_flip: rnd(s?.gamma_flip ?? g?.gamma_flip),
-    call_wall: rnd(s?.call_wall ?? g?.call_wall),
-    put_wall: rnd(s?.put_wall ?? g?.put_wall),
-    ...walls,
-    ...(sOk
-      ? {
-          gamma_regime: s!.gamma_regime ?? null,
-          pin_probability: rnd(s!.pin_probability),
-          magnet: rnd(s!.magnet),
-          max_pain: rnd(s!.max_pain),
-          dist_to_flip_pct: rnd(s!.dist_to_flip_pct),
-        }
-      : {}),
+    status: "unavailable",
+    no_data: true,
+    reason: `no GEX source could be bound to ${owner ?? "the requested root"}: ${reasons.join("; ")}`,
+    withheld,
   };
 }
 

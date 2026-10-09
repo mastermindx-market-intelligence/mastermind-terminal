@@ -215,7 +215,9 @@ describe("curateOpts / curateGex", () => {
     const gex = {
       root: "SPY",
       session: "2026-07-10",
-      asof: "2026-07-10T16:00:00Z",
+      // Producer shapes (T06): the hub ladder stamps the bare session date; the state stamps the
+      // 16:00 New York close. A pre-close ladder stamp is intraday and no longer fuses.
+      asof: "2026-07-10",
       basis: "dealer-sign",
       revision: "r1",
       spot_ref: 135.7, net_gex_bn: -1.24, gamma_flip: 130, call_wall: 150, put_wall: 120,
@@ -230,7 +232,7 @@ describe("curateOpts / curateGex", () => {
     const state = {
       root: "SPY",
       session: "2026-07-10",
-      asof: "2026-07-10T20:00:00Z",
+      asof: "2026-07-10T16:00:00-04:00",
       basis: "dealer-sign",
       revision: "r1",
       spot: 136, net_gex_bn: -1.1, gamma_regime: "SLIDE", pin_probability: 0.41, magnet: 135, max_pain: 132, dist_to_flip_pct: 0.4, gamma_flip: 131, call_wall: 150, put_wall: 120,
