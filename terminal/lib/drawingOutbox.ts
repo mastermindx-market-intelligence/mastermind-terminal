@@ -6,6 +6,10 @@ import {
 import { parsePersistedDrawings, validDrawingRevision, validDrawingOperationId, type DrawingJournal } from "@/lib/drawingPersistence";
 
 const DRAWING_OUTBOX_KEY = "mm.drawing.account-outbox.v1";
+// An already-open legacy client replaces the entire v1 owner without Web Locks.
+// Keep this generation's recovery bytes outside its write authority. v1 remains
+// an import source, never a second cloud store and never rewritten by this client.
+export const DRAWING_JOURNAL_KEY = "mm.drawing.account-outbox.v2";
 
 export type DrawingOutbox = Record<string, Drawing[]>;
 type StoragePort = Pick<Storage, "getItem" | "setItem" | "removeItem">;
@@ -121,15 +125,60 @@ function readCopies(value: unknown): Copies {
   return entry ? { legacy: entry } : {};
 }
 
+type JournalRecord = { format: 2; copies: Copies; legacySeen: Record<string, string> };
+type JournalNamespace = Record<string, JournalRecord>;
+type LegacyImports = Record<string, Copies>;
+function strictEnvelope(storage: StoragePort, key: string): StoredEnvelope {
+  const raw = JSON.parse(storage.getItem(key) || "{}");
+  if (!raw || typeof raw !== "object" || Array.isArray(raw)) throw new Error("Invalid recovery envelope");
+  return raw as StoredEnvelope;
+}
+function ownerNamespace(envelope: StoredEnvelope, owner: string): Record<string, unknown> {
+  const raw = envelope[owner];
+  if (raw && (typeof raw !== "object" || Array.isArray(raw))) throw new Error("Invalid recovery owner");
+  return raw ?? {};
+}
+function journalState(storage: StoragePort, owner: string): { envelope: StoredEnvelope; namespace: JournalNamespace; imports: LegacyImports } {
+  const envelope = strictEnvelope(storage, DRAWING_JOURNAL_KEY);
+  const namespace: JournalNamespace = {};
+  for (const [symbol, raw] of Object.entries(ownerNamespace(envelope, owner))) {
+    if (!raw || typeof raw !== "object" || Array.isArray(raw)) throw new Error("Invalid recovery record");
+    const record = raw as { format?: number; copies?: unknown; legacySeen?: unknown };
+    if (record.format !== 2 || !record.copies || typeof record.copies !== "object" || Array.isArray(record.copies)) throw new Error("Invalid recovery copies");
+    const copies = readCopies(raw);
+    if (Object.keys(record.copies).length !== Object.keys(copies).length) throw new Error("Invalid recovery copy; preserve stored bytes");
+    const seen = record.legacySeen ?? {};
+    if (!seen || typeof seen !== "object" || Array.isArray(seen)
+      || Object.values(seen).some((token) => typeof token !== "string" || !token.length)) throw new Error("Invalid legacy import receipt");
+    namespace[symbol] = { format: 2, copies, legacySeen: { ...seen as Record<string, string> } };
+  }
+  const imports: LegacyImports = {};
+  const legacy = ownerNamespace(strictEnvelope(storage, DRAWING_OUTBOX_KEY), owner);
+  for (const [symbol, raw] of Object.entries(legacy)) {
+    const copies = readCopies(raw);
+    const container = raw as { format?: number; copies?: Record<string, unknown> } | undefined;
+    if (!Object.keys(copies).length || (container?.format === 2
+      && Object.keys(container.copies ?? {}).length !== Object.keys(copies).length)) throw new Error("Invalid legacy copy; preserve stored bytes");
+    for (const [sourceId, entry] of Object.entries(copies)) {
+      // Compare exact semantic content, not a lossy hash. A receipt suppresses
+      // only the unchanged legacy snapshot the user already acknowledged.
+      if (namespace[symbol]?.legacySeen[sourceId] !== fingerprint(entry)) {
+        (imports[symbol] ??= {})[`legacy:${sourceId}`] = entry;
+      }
+    }
+  }
+  return { envelope, namespace, imports };
+}
+
 /** Read competing copies independently; no GET can silently choose or rebase one. */
 export function readDrawingJournal(storage: StoragePort, owner: string): DrawingJournal {
   const journal: DrawingJournal = {};
   const baseline: JournalBaseline = {};
   if (accountOwner(owner)) {
-    const stored = readEnvelope(storage)[owner];
-    if (stored && typeof stored === "object" && !Array.isArray(stored)) {
-      for (const [symbol, value] of Object.entries(stored)) {
-        const copies = readCopies(value);
+    try {
+      const { namespace, imports } = journalState(storage, owner);
+      for (const symbol of new Set([...Object.keys(namespace), ...Object.keys(imports)])) {
+        const copies = { ...namespace[symbol]?.copies, ...imports[symbol] };
         const ids = Object.keys(copies).sort();
         if (!ids.length) continue;
         const entries = ids.map((id) => ({ ...copies[id], recoveryId: id }));
@@ -137,14 +186,14 @@ export function readDrawingJournal(storage: StoragePort, owner: string): Drawing
         if (entries.length > 1) journal[symbol].alternatives = entries.slice(1);
         baseline[symbol] = { active: ids[0], hashes: Object.fromEntries(ids.map((id) => [id, fingerprint(copies[id])])) };
       }
-    }
+    } catch { /* Unreadable bytes stay intact; writes also fail closed. */ }
   }
   baselines.set(journal, baseline);
   return journal;
 }
 
 /**
- * Web Locks serialize the entire existing envelope across tabs and accounts.
+ * Web Locks serialize this versioned envelope across tabs and accounts.
  * A stale writer forks its selected copy; an acknowledgement removes only the
  * selected unchanged copy. Browser-storage failure never reports durability.
  */
@@ -154,41 +203,51 @@ export async function writeDrawingJournal(
 ): Promise<boolean> {
   if (!accountOwner(owner) || !locks) return false;
   try {
-    return await locks.request(DRAWING_OUTBOX_KEY, () => {
-      const raw = JSON.parse(storage.getItem(DRAWING_OUTBOX_KEY) || "{}");
-      if (!raw || typeof raw !== "object" || Array.isArray(raw)) throw new Error("Invalid recovery envelope");
-      const envelope = raw as StoredEnvelope;
-      if (envelope[owner] && (typeof envelope[owner] !== "object" || Array.isArray(envelope[owner]))) throw new Error("Invalid recovery owner");
-      const namespace = { ...(envelope[owner] ?? {}) };
+    return await locks.request(DRAWING_JOURNAL_KEY, () => {
+      const { envelope, namespace, imports } = journalState(storage, owner);
       const previous = baselines.get(journal) ?? {};
       const next: JournalBaseline = {};
       const updates: Array<[Entry, string]> = [];
-      for (const symbol of new Set([...Object.keys(previous), ...Object.keys(journal)])) {
-        const copies = readCopies(namespace[symbol]);
-        const stored = namespace[symbol] as { format?: number; copies?: Record<string, unknown> } | undefined;
-        if (stored !== undefined && (!Object.keys(copies).length
-          || (stored?.format === 2 && Object.keys(stored.copies ?? {}).length !== Object.keys(copies).length))) {
-          throw new Error("Invalid recovery copy; preserve the stored bytes");
+      for (const symbol of new Set([...Object.keys(namespace), ...Object.keys(imports), ...Object.keys(previous), ...Object.keys(journal)])) {
+        const record = namespace[symbol] ?? { format: 2 as const, copies: {}, legacySeen: {} };
+        const copies = record.copies;
+        const imported: Record<string, { id: string; token: string }> = {};
+        for (const [sourceId, importedEntry] of Object.entries(imports[symbol] ?? {})) {
+          const id = crypto.randomUUID(), token = fingerprint(importedEntry);
+          copies[id] = storedEntry(importedEntry);
+          record.legacySeen[sourceId.slice("legacy:".length)] = token;
+          imported[sourceId] = { id, token };
         }
         const entry = journal[symbol];
         const base = previous[symbol];
+        const resolve = (id: string | undefined): string | undefined => {
+          if (id && imported[id]) return base?.hashes[id] === imported[id].token ? imported[id].id : undefined;
+          return id;
+        };
         if (!entry) {
-          if (base && copies[base.active] && fingerprint(copies[base.active]) === base.hashes[base.active]) delete copies[base.active];
+          const id = resolve(base?.active);
+          if (base && id && copies[id] && fingerprint(copies[id]) === base.hashes[base.active]) delete copies[id];
         } else {
-          let id = entry.recoveryId;
-          const unchanged = id && copies[id] && base?.hashes[id] === fingerprint(copies[id]);
+          let id = resolve(entry.recoveryId);
+          const unchanged = id && copies[id] && base?.hashes[entry.recoveryId!] === fingerprint(copies[id]);
           if (!unchanged) id = crypto.randomUUID();
           copies[id!] = storedEntry(entry);
           updates.push([entry, id!]);
-          next[symbol] = { active: id!, hashes: { ...base?.hashes, [id!]: fingerprint(entry) } };
+          for (const alternative of entry.alternatives ?? []) {
+            const importedCopy = imported[alternative.recoveryId ?? ""];
+            if (importedCopy && base?.hashes[alternative.recoveryId!] === importedCopy.token) updates.push([alternative, importedCopy.id]);
+          }
+          next[symbol] = { active: id!, hashes: Object.fromEntries(Object.entries(copies).map(([copyId, copy]) => [copyId, fingerprint(copy)])) };
         }
-        if (Object.keys(copies).length) namespace[symbol] = { format: 2, copies };
+        // Keep an import receipt after the last copy is acknowledged: clearing
+        // it would resurrect the unchanged v1 tombstone on the next reload.
+        if (Object.keys(copies).length || Object.keys(record.legacySeen).length) namespace[symbol] = record;
         else delete namespace[symbol];
       }
       if (Object.keys(namespace).length) envelope[owner] = namespace;
       else delete envelope[owner];
-      if (Object.keys(envelope).length) storage.setItem(DRAWING_OUTBOX_KEY, JSON.stringify(envelope));
-      else storage.removeItem(DRAWING_OUTBOX_KEY);
+      if (Object.keys(envelope).length) storage.setItem(DRAWING_JOURNAL_KEY, JSON.stringify(envelope));
+      else storage.removeItem(DRAWING_JOURNAL_KEY);
       // Change the in-memory baseline only after the actual durable write.
       updates.forEach(([entry, id]) => { entry.recoveryId = id; });
       baselines.set(journal, next);
@@ -209,6 +268,38 @@ export function refreshDrawingJournalSymbol(storage: StoragePort, owner: string,
   }
   baselines.set(journal, baseline);
   return journal[symbol];
+}
+
+/** Refresh an owner on re-entry while retaining unsaved memory and exact retries. */
+export function reconcileDrawingJournal(storage: StoragePort, owner: string, journal?: DrawingJournal): DrawingJournal {
+  const fresh = readDrawingJournal(storage, owner);
+  if (!journal) return fresh;
+  const baseline = baselines.get(journal) ?? {};
+  const freshBaseline = baselines.get(fresh) ?? {};
+  for (const [symbol, stored] of Object.entries(fresh)) {
+    const current = journal[symbol];
+    if (!current) { journal[symbol] = stored; baseline[symbol] = freshBaseline[symbol]; continue; }
+    const memoryCopies = [current, ...(current.alternatives ?? [])];
+    const storedCopies = [stored, ...(stored.alternatives ?? [])];
+    const hashes = { ...baseline[symbol]?.hashes, ...freshBaseline[symbol]?.hashes };
+    for (const copy of memoryCopies) {
+      const sameId = storedCopies.find((candidate) => candidate.recoveryId === copy.recoveryId);
+      if (sameId && fingerprint(sameId) !== fingerprint(copy)) {
+        // A memory-only fork is not a durable receipt. The next locked write
+        // allocates its actual stored ID without changing the retry operation.
+        copy.recoveryId = `memory:${crypto.randomUUID()}`;
+        hashes[copy.recoveryId] = fingerprint(copy);
+      }
+    }
+    const combined = [...memoryCopies];
+    for (const copy of storedCopies) {
+      if (!combined.some((candidate) => candidate.recoveryId === copy.recoveryId && fingerprint(candidate) === fingerprint(copy))) combined.push(copy);
+    }
+    if (combined.length > 1) current.alternatives = combined.slice(1).map(({ alternatives: _nested, ...copy }) => copy);
+    baseline[symbol] = { active: current.recoveryId!, hashes };
+  }
+  baselines.set(journal, baseline);
+  return journal;
 }
 
 export function selectDrawingRecoveryCopy(journal: DrawingJournal, symbol: string, id: string): Entry | undefined {

@@ -23,10 +23,30 @@ first=None
 try:
  r=subprocess.run([str(bin/'initdb'),'-D',str(data),'-U','postgres','-A','trust','--no-locale','--encoding=UTF8'],capture_output=True,text=True,check=True)
  (base/'a04-native-initdb-20261008.log').write_text(r.stdout+r.stderr)
- subprocess.run([str(bin/'pg_ctl'),'-D',str(data),'-l',str(work/'postgres.log'),'-o',f"-c listen_addresses='' -c unix_socket_directories='{socket}' -c shared_buffers=32MB -c max_connections=12",'-w','start'],capture_output=True,text=True,check=True)
+ launch=subprocess.run([str(bin/'pg_ctl'),'-D',str(data),'-l',str(work/'postgres.log'),'-o',f"-c listen_addresses='' -c unix_socket_directories='{socket}' -c shared_buffers=32MB -c max_connections=12",'-w','start'],capture_output=True,text=True)
+ (base/'a04-native-start.log').write_text(launch.stdout+launch.stderr)
+ if launch.returncode:raise RuntimeError('PostgreSQL fixture start failed; see a04-native-start.log and a04-native-server-20261008.log')
  started=True
- sql='\n'.join((source/n).read_text() for n in ['fixture-setup.sql','fixture-ddl.sql'])+'\n'+migration.read_text()+'\n'+'\n'.join((source/n).read_text() for n in ['fixture-role.sql','validator-regressions.sql','transaction-regressions.sql','bootstrap-regressions.sql'])
  cmd=[str(bin/'psql'),'-h',str(socket),'-U','postgres','-d','postgres','-v','ON_ERROR_STOP=1']
+ setup='\n'.join((source/n).read_text() for n in ['fixture-setup.sql','fixture-ddl.sql'])
+ r=subprocess.run(cmd,input=setup,capture_output=True,text=True)
+ if r.returncode:raise RuntimeError(r.stderr[-2000:])
+ # Missing prerequisites reject before any RPC is published.
+ prerequisite_log=[]
+ for remove,restore,message in [
+  ('REVOKE UPDATE ON public.drawings FROM authenticated;','GRANT UPDATE ON public.drawings TO authenticated;','lacks UPDATE privilege'),
+  ('ALTER TABLE public.drawings DISABLE ROW LEVEL SECURITY;','ALTER TABLE public.drawings ENABLE ROW LEVEL SECURITY;','row level security must be enabled'),
+ ]:
+  subprocess.run(cmd,input=remove,capture_output=True,text=True,check=True)
+  rejected=subprocess.run(cmd,input=migration.read_text(),capture_output=True,text=True)
+  prerequisite_log.append(rejected.stdout+rejected.stderr)
+  if rejected.returncode==0 or message not in rejected.stderr:raise RuntimeError('Missing prerequisite did not reject the migration')
+  count=subprocess.check_output(cmd+['-Atqc',"SELECT count(*) FROM pg_proc p JOIN pg_namespace n ON n.oid=p.pronamespace WHERE n.nspname='public' AND p.proname IN ('validate_drawing_replace_input','read_drawings_collection','replace_drawings_collection');"],text=True).strip()
+  if count!='0':raise RuntimeError('Rejected migration published partial RPCs')
+  subprocess.run(cmd,input=restore,capture_output=True,text=True,check=True)
+ receipt['prerequisite_cases_pass']=2
+ (base/'a04-prerequisite-guard.log').write_text('\n'.join(prerequisite_log))
+ sql=migration.read_text()+'\n'+'\n'.join((source/n).read_text() for n in ['fixture-role.sql','validator-regressions.sql','transaction-regressions.sql','bootstrap-regressions.sql'])
  r=subprocess.run(cmd,input=sql,capture_output=True,text=True)
  (base/'a04-native-psql-20261008.log').write_text(r.stdout+r.stderr)
  receipt['psql_exit']=r.returncode
@@ -90,6 +110,7 @@ try:
 except Exception as exc:
  receipt['error']=str(exc)
 finally:
+ if (work/'postgres.log').exists():shutil.copy2(work/'postgres.log',base/'a04-native-server-20261008.log')
  if first is not None and first.poll() is None:
   first.terminate();first.wait(timeout=5)
  if started:

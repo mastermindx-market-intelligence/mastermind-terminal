@@ -7,7 +7,12 @@ async function seed(page:Page,entry:unknown){
  await page.addInitScript((value)=>{
   if(sessionStorage.getItem("drawing-recovery-seeded"))return;
   sessionStorage.setItem("drawing-recovery-seeded","1");
-  localStorage.setItem("mm.drawing.account-outbox.v1",JSON.stringify({"account:responsive@example.com":{NVDA:value}}));
+  if(Array.isArray(value)){
+   localStorage.setItem("mm.drawing.account-outbox.v1",JSON.stringify({"account:responsive@example.com":{NVDA:value}}));
+  }else{
+   const record=(value as any)?.format===2?value:{format:2,copies:{"44444444-4444-4444-8444-444444444444":value}};
+   localStorage.setItem("mm.drawing.account-outbox.v2",JSON.stringify({"account:responsive@example.com":{NVDA:record}}));
+  }
  },entry);
 }
 const open=async(page:Page)=>{await page.goto("/terminal?symbol=NVDA");await expect(page.locator(".chart-wrap canvas").first()).toBeVisible();};
@@ -61,7 +66,7 @@ test("superseded replay parks queued edits and use-cloud clears the recovered sy
  });
  await open(page);await expect(page.getByTestId("drawing-save-recovery")).toContainText("Cloud drawings (1)");expect(calls).toBe(1);
  await page.getByRole("button",{name:"Use cloud copy",exact:true}).click();await expect(page.getByTestId("drawing-save-recovery")).toHaveCount(0);expect(calls).toBe(1);
- expect(await page.evaluate(()=>localStorage.getItem("mm.drawing.account-outbox.v1"))).toBeNull();
+ expect(await page.evaluate(()=>localStorage.getItem("mm.drawing.account-outbox.v2"))).toBeNull();
 });
 
 test("old local clear-all is not silently replayed against a fresh cloud read",async({page})=>{
@@ -76,7 +81,7 @@ test("old local clear-all is not silently replayed against a fresh cloud read",a
 
 // Preserve the actual durable fixture state when a recovery assertion fails.
 test.afterEach(async({page},info)=>{
- if(info.status!==info.expectedStatus) console.log("A04_RECOVERY_FAILURE_STORAGE",await page.evaluate(()=>localStorage.getItem("mm.drawing.account-outbox.v1")));
+ if(info.status!==info.expectedStatus) console.log("A04_RECOVERY_FAILURE_STORAGE",await page.evaluate(()=>({legacy:localStorage.getItem("mm.drawing.account-outbox.v1"),current:localStorage.getItem("mm.drawing.account-outbox.v2")})));
 });
 
 test("competing local copies require explicit selection and are discarded individually",async({page})=>{
@@ -95,7 +100,7 @@ test("competing local copies require explicit selection and are discarded indivi
  await expect(page.getByTestId("drawing-save-recovery")).toContainText("Cloud drawings (1)");
  await page.getByRole("button",{name:"Use cloud copy",exact:true}).click();
  await expect(page.getByTestId("drawing-save-recovery")).toHaveCount(0);expect(puts).toBe(1);
- expect(await page.evaluate(()=>localStorage.getItem("mm.drawing.account-outbox.v1"))).toBeNull();
+ expect(await page.evaluate(()=>localStorage.getItem("mm.drawing.account-outbox.v2"))).toBeNull();
 });
 
 test("unavailable durable serialization warns to keep the tab open and never starts a save",async({page})=>{
@@ -106,5 +111,5 @@ test("unavailable durable serialization warns to keep the tab open and never sta
   await route.fulfill(json({drawings:[],revision:null,schemaVersion:1}));
  });
  await open(page);await expect(page.getByTestId("drawing-save-recovery")).toContainText("Keep this tab open");expect(puts).toBe(0);
- expect(await page.evaluate(()=>JSON.parse(localStorage.getItem("mm.drawing.account-outbox.v1")!)["account:responsive@example.com"].NVDA.drawings[0].id)).toBe("memory-only");
+ expect(await page.evaluate(()=>Object.values(JSON.parse(localStorage.getItem("mm.drawing.account-outbox.v2")!)["account:responsive@example.com"].NVDA.copies as Record<string,any>)[0].drawings[0].id)).toBe("memory-only");
 });

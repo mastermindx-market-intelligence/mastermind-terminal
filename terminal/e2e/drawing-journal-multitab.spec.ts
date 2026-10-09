@@ -61,3 +61,24 @@ test("real same-origin tabs retain distinct same-symbol copies including a clear
       .toEqual(expect.arrayContaining([["A"], []]));
   } finally { await second.close(); }
 });
+
+test("an already-open legacy writer cannot erase a modern exact retry or resurrect an acknowledged clear",async({page,context})=>{
+ const old=await context.newPage();
+ try{
+  await load(page);await load(old);
+  const owner="account:legacy-tab",operationId="11111111-1111-4111-8111-111111111111";
+  const saved=await page.evaluate(async({owner,operationId,drawing})=>(window as any).A04Journal.writeDrawingJournal(localStorage,owner,{NVDA:{drawings:[drawing],revision:null,attempt:{operationId,expectedRevision:null,drawings:[drawing]}}}),{owner,operationId,drawing:line("modern")});
+  expect(saved).toBe(true);
+  expect(await old.evaluate(owner=>(window as any).A04Journal.writeDrawingOutbox(localStorage,owner,{AAPL:[]}),owner)).toBe(true);
+  const recovered=await page.evaluate(owner=>(window as any).A04Journal.readDrawingJournal(localStorage,owner),owner);
+  expect(recovered.NVDA.attempt.operationId).toBe(operationId);expect(recovered.NVDA.drawings[0].id).toBe("modern");
+  expect(recovered.AAPL).toMatchObject({drawings:[],blocked:"legacy"});
+  expect(await page.evaluate(async owner=>{
+   const journal=(window as any).A04Journal.readDrawingJournal(localStorage,owner);
+   delete journal.AAPL;return (window as any).A04Journal.writeDrawingJournal(localStorage,owner,journal);
+  },owner)).toBe(true);
+  await page.reload();await page.addScriptTag({content:bundle});
+  const reloaded=await page.evaluate(owner=>(window as any).A04Journal.readDrawingJournal(localStorage,owner),owner);
+  expect(reloaded.AAPL).toBeUndefined();expect(reloaded.NVDA.attempt.operationId).toBe(operationId);
+ }finally{await old.close();}
+});

@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { parseDrawingSaveReceipt, parseDrawingSnapshot, parsePersistedDrawings, prepareDrawingAttempt, settleDrawingAttempt, type DrawingJournalEntry } from "@/lib/drawingPersistence";
-import { readDrawingJournal, writeDrawingJournal, writeDrawingOutbox, refreshDrawingJournalSymbol, selectDrawingRecoveryCopy, type DrawingJournalLocks } from "@/lib/drawingOutbox";
+import { readDrawingJournal, writeDrawingJournal, writeDrawingOutbox, refreshDrawingJournalSymbol, reconcileDrawingJournal, selectDrawingRecoveryCopy, DRAWING_JOURNAL_KEY, type DrawingJournalLocks } from "@/lib/drawingOutbox";
 let lockTail=Promise.resolve();
 const locks={request:(_name:string, fn:()=>unknown)=>{const task=lockTail.then(fn);lockTail=task.then(()=>{},()=>{});return task;}} as DrawingJournalLocks;
 const persist=(storage:MemoryStorage,journal:import("@/lib/drawingPersistence").DrawingJournal,owner="account:a")=>writeDrawingJournal(storage,owner,journal,locks);
@@ -132,4 +132,82 @@ it("preserves malformed recovery bytes instead of overwriting an unreadable copy
   expect(await persist(storage,{NVDA:{drawings:[],revision:null}})).toBe(false);
   expect(storage.getItem("mm.drawing.account-outbox.v1")).toBe(stored);
  }
+});
+
+describe("recovery across already-open legacy clients",()=>{
+ it("refreshes other-tab copies on account re-entry without losing an in-memory exact retry",async()=>{
+  const storage=new MemoryStorage();
+  await persist(storage,{NVDA:{drawings:[line("pending-A")],revision:null,attempt:{operationId:op,expectedRevision:null,drawings:[line("sent-A")]}}});
+  const memory=readDrawingJournal(storage,"account:a");
+  await persist(storage,{NVDA:{drawings:[line("pending-B")],revision:null},AAPL:{drawings:[],revision:null}});
+  const reconciled=reconcileDrawingJournal(storage,"account:a",memory);
+  expect(reconciled.NVDA.attempt?.operationId).toBe(op);
+  expect(reconciled.NVDA.alternatives?.map(entry=>entry.drawings[0].id)).toContain("pending-B");
+  expect(reconciled.AAPL.drawings).toEqual([]);expect(prepareDrawingAttempt(reconciled.NVDA,()=>revision)).toBeNull();
+ });
+ it("forks stale memory when another tab changed the same stored copy ID",async()=>{
+  const storage=new MemoryStorage();await persist(storage,{NVDA:{drawings:[line("memory-old")],revision:null}});
+  const memory=readDrawingJournal(storage,"account:a"),other=readDrawingJournal(storage,"account:a");
+  other.NVDA.drawings=[line("stored-new")];await persist(storage,other);
+  const reconciled=reconcileDrawingJournal(storage,"account:a",memory);
+  expect(reconciled.NVDA.recoveryId).not.toBe(reconciled.NVDA.alternatives![0].recoveryId);
+  expect(await persist(storage,reconciled)).toBe(true);
+  const recovered=readDrawingJournal(storage,"account:a").NVDA;
+  expect([recovered,...recovered.alternatives!].map(entry=>entry.drawings[0].id)).toEqual(expect.arrayContaining(["memory-old","stored-new"]));
+ });
+ it("keeps an exact unknown operation when the old writer replaces or deletes its owner",async()=>{
+  const storage=new MemoryStorage();
+  const entry={drawings:[line("queued")],revision:null,attempt:{operationId:op,expectedRevision:null,drawings:[line("sent")]}};
+  expect(await persist(storage,{NVDA:entry})).toBe(true);
+  const durable=storage.getItem(DRAWING_JOURNAL_KEY);
+  writeDrawingOutbox(storage,"account:a",{AAPL:[]});
+  let recovered=readDrawingJournal(storage,"account:a");
+  expect(recovered.NVDA.attempt).toEqual(entry.attempt);
+  expect(recovered.AAPL).toMatchObject({drawings:[],blocked:"legacy"});
+  expect(storage.getItem(DRAWING_JOURNAL_KEY)).toBe(durable);
+  writeDrawingOutbox(storage,"account:a",{});
+  recovered=readDrawingJournal(storage,"account:a");expect(recovered.NVDA.attempt).toEqual(entry.attempt);
+ });
+ it("durably imports legacy bytes without rewriting v1 and does not resurrect an acknowledged clear",async()=>{
+  const storage=new MemoryStorage();writeDrawingOutbox(storage,"account:a",{NVDA:[]});
+  const preimage=storage.getItem("mm.drawing.account-outbox.v1");
+  const journal=readDrawingJournal(storage,"account:a");
+  expect(await persist(storage,journal)).toBe(true);
+  delete journal.NVDA;expect(await persist(storage,journal)).toBe(true);
+  expect(storage.getItem("mm.drawing.account-outbox.v1")).toBe(preimage);
+  expect(readDrawingJournal(storage,"account:a")).toEqual({});
+  writeDrawingOutbox(storage,"account:a",{NVDA:[line("later-old-tab-edit")]});
+  expect(readDrawingJournal(storage,"account:a").NVDA).toMatchObject({drawings:[{id:"later-old-tab-edit"}],blocked:"legacy"});
+ });
+ it("preserves a newly changed legacy copy while acknowledging an older observed import",async()=>{
+  const storage=new MemoryStorage();writeDrawingOutbox(storage,"account:a",{NVDA:[line("old")]});
+  const journal=readDrawingJournal(storage,"account:a");
+  writeDrawingOutbox(storage,"account:a",{NVDA:[line("new-old-tab-edit")]});
+  delete journal.NVDA;expect(await persist(storage,journal)).toBe(true);
+  const recovered=readDrawingJournal(storage,"account:a").NVDA;
+  expect(recovered.drawings[0].id).toBe("new-old-tab-edit");expect(recovered.blocked).toBe("legacy");
+ });
+ it("retains both old and newly changed legacy copies when saving a stale import",async()=>{
+  const storage=new MemoryStorage();writeDrawingOutbox(storage,"account:a",{NVDA:[line("old")]});
+  const journal=readDrawingJournal(storage,"account:a");
+  writeDrawingOutbox(storage,"account:a",{NVDA:[line("new-old-tab-edit")]});
+  expect(await persist(storage,journal)).toBe(true);
+  const recovered=readDrawingJournal(storage,"account:a").NVDA;
+  expect([recovered,...recovered.alternatives!].map(entry=>entry.drawings[0].id)).toEqual(expect.arrayContaining(["old","new-old-tab-edit"]));
+ });
+ it("keeps both versioned and legacy bytes on an import storage failure",async()=>{
+  const storage=new MemoryStorage();await persist(storage,{NVDA:{drawings:[line("modern")],revision:null}});
+  writeDrawingOutbox(storage,"account:a",{AAPL:[]});const before=Array.from(storage.values);
+  const failing={getItem:storage.getItem.bind(storage),setItem:()=>{throw Error("quota")},removeItem:()=>{throw Error("quota")}};
+  expect(await writeDrawingJournal(failing,"account:a",readDrawingJournal(storage,"account:a"),locks)).toBe(false);
+  expect(Array.from(storage.values)).toEqual(before);
+ });
+ it("preserves a legacy account switch without exposing the other owner's pending copy",async()=>{
+  const storage=new MemoryStorage();await persist(storage,{NVDA:{drawings:[line("modern-A")],revision:null}});
+  writeDrawingOutbox(storage,"account:b",{NVDA:[]});
+  expect(readDrawingJournal(storage,"account:a").NVDA.drawings[0].id).toBe("modern-A");
+  expect(readDrawingJournal(storage,"account:b").NVDA).toMatchObject({drawings:[],blocked:"legacy"});
+  const journalB=readDrawingJournal(storage,"account:b");await persist(storage,journalB,"account:b");
+  expect(readDrawingJournal(storage,"account:a").NVDA.drawings[0].id).toBe("modern-A");
+ });
 });

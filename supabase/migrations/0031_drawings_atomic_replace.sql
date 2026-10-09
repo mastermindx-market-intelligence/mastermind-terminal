@@ -6,6 +6,18 @@
 -- Tradeoff: collection writes serialize across this table; ordinary SELECT/GET remains readable.
 -- Source ships unapplied. Apply out of band after source review, with pre/post catalog receipts.
 BEGIN;
+-- Fail before publishing RPCs if this environment cannot enforce the reviewed
+-- invoker fence. This migration does not broaden table grants or bypass RLS.
+DO $prerequisites$
+BEGIN
+  IF NOT has_table_privilege('authenticated','public.drawings','UPDATE') THEN
+    RAISE EXCEPTION 'authenticated lacks UPDATE privilege required for the drawing table-write fence' USING ERRCODE='42501';
+  END IF;
+  IF NOT (SELECT relrowsecurity FROM pg_catalog.pg_class WHERE oid='public.drawings'::regclass) THEN
+    RAISE EXCEPTION 'drawing row level security must be enabled' USING ERRCODE='42501';
+  END IF;
+END;
+$prerequisites$;
 -- Direct RPC input guard.
 -- Source64c1; point bounds derived from actual DRAWING_TOOLS export. No table writes.
 CREATE OR REPLACE FUNCTION public.validate_drawing_replace_input(p_symbol text, p_drawings jsonb, p_operation_id uuid)
@@ -462,3 +474,4 @@ COMMIT;
 -- FROM pg_proc p JOIN pg_namespace n ON n.oid=p.pronamespace
 -- WHERE n.nspname='public' AND p.proname IN ('validate_drawing_replace_input','read_drawings_collection','replace_drawings_collection');
 -- SELECT relrowsecurity FROM pg_class WHERE oid='public.drawings'::regclass;
+-- SELECT has_table_privilege('authenticated','public.drawings','UPDATE') AS authenticated_fence_privilege;

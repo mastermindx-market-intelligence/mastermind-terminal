@@ -130,7 +130,7 @@ import {
   normalizeDrawings,
   uid,
 } from "@/lib/drawings";
-import { readDrawingJournal, writeDrawingJournal, refreshDrawingJournalSymbol, selectDrawingRecoveryCopy } from "@/lib/drawingOutbox";
+import { reconcileDrawingJournal, writeDrawingJournal, refreshDrawingJournalSymbol, selectDrawingRecoveryCopy } from "@/lib/drawingOutbox";
 import { parseDrawingSnapshot, parseDrawingSaveReceipt, prepareDrawingAttempt, settleDrawingAttempt, type DrawingJournal, type DrawingSnapshot, type DrawingRevision } from "@/lib/drawingPersistence";
 import { FREEHAND_DRAWING_KINDS, getDrawingTool, isDrawingToolId } from "@/lib/drawingTools";
 import { SHELL_DRAW_TOOLS } from "@/lib/drawingTaxonomy";
@@ -2360,7 +2360,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
     drawOwner.current = nextOwner;
     setDrawingOwnerKey(nextOwner);
     const recovered: DrawingJournal = nextOwner === "guest" ? {} :
-      drawRecovery.current[nextOwner] ?? readDrawingJournal(localStorage, nextOwner);
+      reconcileDrawingJournal(localStorage, nextOwner, drawRecovery.current[nextOwner]);
     if (nextOwner !== "guest") drawRecovery.current[nextOwner] = recovered;
     const pending = Object.fromEntries(Object.entries(recovered).map(([sym, entry]) => [sym, entry.drawings]));
     drawPending.current = pending;

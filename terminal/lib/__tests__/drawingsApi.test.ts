@@ -25,6 +25,11 @@ describe("transactional drawing API",()=>{
   expect((await PUT(request({symbol:"NVDA",drawings:[drawing]}))).status).toBe(400);
   expect(db.rpc).not.toHaveBeenCalled();
  });
+ it("rejects the actual unupgraded client body without an injected owner key",async()=>{
+  const old=new Request("https://example.test/api/drawings",{method:"PUT",body:JSON.stringify({symbol:"NVDA",drawings:[]})});
+  const response=await PUT(old);expect(response.status).toBe(409);
+  expect(await response.json()).toEqual({ok:false,code:"owner_conflict"});expect(db.rpc).not.toHaveBeenCalled();
+ });
  it("rejects malformed points and generated data rather than normalizing them into another operation",async()=>{
   for(const value of [{...drawing,points:[{t:"today",p:100},{t:"today",p:null}]},{...drawing,source:"ai"}]){
    expect((await PUT(request({symbol:"NVDA",drawings:[value],expectedRevision:null,operationId}))).status).toBe(422);
