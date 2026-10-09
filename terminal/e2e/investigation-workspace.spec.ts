@@ -271,6 +271,42 @@ test("a rejected revision keeps its draft across reload and cannot become a new 
  await expect(page.getByRole("button",{name:"Open latest revision"})).toBeVisible();
 });
 
+test("an edited legacy calendar as-of date is saved only after a deliberate exact time",async({page},testInfo)=>{
+ await setup(page);const commands:Array<{action:string;expected_revision:number;manifest:{argument_relations?:unknown;intent:{research_as_of?:string;question:string}}}>=[];
+ // A record saved before exact instants: no argument_relations, and a calendar date as its as-of.
+ const legacy={schema:content.schema,intent:{...content.intent,research_as_of:"2026-10-04"},layout_refs:[],thesis_refs:[],evidence_refs:[reference],continuation:{},review_baseline_ref:reference};
+ let head=1,second:unknown=null;
+ await page.route("**/api/investigations{,?*}",async route=>{
+  const request=route.request(),query=new URL(request.url()).searchParams;
+  if(request.method()==="POST"){const command=request.postDataJSON();commands.push(command);head=2;second=command.manifest;await route.fulfill({json:committed(id,command.manifest,command.operation_id,2)});return;}
+  if(query.has("id")){const revision=Number(query.get("revision")||head);await route.fulfill({json:revision===1?{status:"found",id,revision:1,current_revision:head,lifecycle:"active",manifest:legacy,committed_at:"2026-10-04T00:00:00Z",layouts:[]}:{...committed(id,second,undefined,2),status:"found",current_revision:head,layouts:[]}});return;}
+  await route.fulfill({json:{status:"listed",items:[]}});
+ });
+ await page.goto(`/analysis?view=investigations&investigation=${id}&revision=1`);
+ await page.getByRole("button",{name:"Edit saved question"}).click();
+ const fix=page.getByRole("group",{name:"The retained as-of date 2026-10-04 has no time of day"});
+ await expect(fix).toBeVisible();
+ await expect(fix.getByLabel("Date (UTC, YYYY-MM-DD)",{exact:true})).toHaveValue("");
+ await expect(fix.getByLabel("Time (UTC, 24-hour HH:MM or HH:MM:SS)",{exact:true})).toHaveValue("");
+ await page.getByRole("button",{name:"Save research",exact:true}).click();
+ await expect(page.getByText("Not saved: the as-of date 2026-10-04 has no time of day",{exact:false})).toBeVisible();
+ await expect(page.getByLabel("Research question",{exact:true})).toHaveValue(question);
+ expect(commands).toHaveLength(0);
+ await fix.getByLabel("Date (UTC, YYYY-MM-DD)",{exact:true}).fill("2026-10-04");
+ await fix.getByLabel("Time (UTC, 24-hour HH:MM or HH:MM:SS)",{exact:true}).fill("16:30:15");
+ expect(await page.evaluate(()=>document.documentElement.scrollWidth<=window.innerWidth+1)).toBe(true);
+ await page.screenshot({path:testInfo.outputPath("legacy-as-of-exact-time.png"),fullPage:true});
+ // Keyboard activation: the chosen instant is applied to the draft only; nothing is sent.
+ await fix.getByRole("button",{name:"Use this exact time",exact:true}).focus();await page.keyboard.press("Enter");
+ await expect(page.getByText("As-of time set to 2026-10-04T16:30:15.000Z. Choose Save research to save it.",{exact:true})).toBeVisible();
+ await expect(fix).toHaveCount(0);
+ expect(commands).toHaveLength(0);
+ await page.getByRole("button",{name:"Save research",exact:true}).click();
+ await expect(page).toHaveURL(new RegExp(`investigation=${id}&revision=2$`));
+ expect(commands).toHaveLength(1);
+ expect(commands[0]).toMatchObject({action:"revise",expected_revision:1,manifest:{argument_relations:[],intent:{research_as_of:"2026-10-04T16:30:15.000Z",question}}});
+});
+
 test("a committed save preserves its exact revision URL when readback fails",async({page})=>{
  await setup(page);let writes=0;
  await page.route("**/api/investigations{,?*}",async route=>{

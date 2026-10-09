@@ -121,6 +121,22 @@ describe("confirmed-fenced legacy draft transition", () => {
   expect(retryInvestigationSave(fenced, "alice")).toBeNull();
   expect(JSON.stringify(original)).toBe(before);
  });
+ it.each(["create", "revise"])("refuses a %s retry whose retained layout capture is in the older revision_id format", action => {
+  const capture = { layout_id: "50000000-0000-4000-8000-000000000001", expected_revision: 2, revision_id: "60000000-0000-4000-8000-000000000001" };
+  const original = { ...legacy(), action, expected_revision: action === "create" ? 0 : 3, layout_capture: capture };
+  const before = JSON.stringify(original);
+  const recovered = recoverInvestigationSave("alice", { owner: "alice", command: original })!;
+  // Recovery still reads the older capture, so the draft is retained rather than lost.
+  expect(recovered).not.toBeNull();
+  expect(investigationCommandToReconcile(recovered, "alice")!.layout_capture).toEqual(capture);
+  const fenced = settleInvestigationSave(recovered, "alice", { status: "not_applied", id: original.id, operation_id: original.operation_id });
+  expect(fenced).toMatchObject({ phase: "rejected", reason: "not_applied" });
+  const fencedBefore = JSON.stringify(fenced);
+  // The strict shape has no revision_id; the retry must neither resend it nor drop it silently.
+  expect(retryInvestigationSave(fenced, "alice")).toBeNull();
+  expect(JSON.stringify(fenced)).toBe(fencedBefore);
+  expect(JSON.stringify(original)).toBe(before);
+ });
  it.each(["remove", "restore"])("keeps the exact retained legacy manifest for %s", action => {
   const original = { ...legacy(), action, expected_revision: 3 };
   const recovered = recoverInvestigationSave("alice", { owner: "alice", command: original })!;
