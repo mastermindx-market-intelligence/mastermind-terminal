@@ -338,3 +338,96 @@ describe("a fenced request that cannot be sent again unchanged says why", () => 
     expect(sessionStorage.getItem(key)).toBe(retained);
   });
 });
+
+// T03h FIX 3: a recovered create keeps every retained field on ordinary Save. The retained command is the
+// base for a recovered create the way the saved record is for a revise; only a new operation is sent.
+const EVIDENCE = { owner: "earnings.workspace_generation", object_type: "event_workspace", object_id: "evt-aapl-2026q3", mode: "pinned", version_ref: "gen-7", fingerprint: "a".repeat(64) } as const;
+const THESIS = { thesis_id: "40000000-0000-4000-8000-000000000001", version_id: "40000000-0000-4000-8000-000000000002", role: "primary" } as const;
+const CAPTURE = { layout_id: "30000000-0000-4000-8000-000000000001", expected_revision: 3 };
+const LAYOUT_REF = { layout_id: "30000000-0000-4000-8000-000000000003", layout_revision_id: "30000000-0000-4000-8000-000000000004", digest: "b".repeat(64), role: "supporting" } as const;
+function richCreate(): InvestigationCommand {
+  const endpoint = { owner: EVIDENCE.owner, object_type: EVIDENCE.object_type, object_id: EVIDENCE.object_id, mode: EVIDENCE.mode, version_ref: EVIDENCE.version_ref };
+  return {
+    id: "10000000-0000-4000-8000-000000000002", operation_id: "20000000-0000-4000-8000-000000000002", action: "create", expected_revision: 0, layout_capture: { ...CAPTURE },
+    manifest: {
+      schema: "investigation_manifest.v2",
+      argument_relations: [{ source: { kind: "thesis", thesis_id: THESIS.thesis_id, version_id: THESIS.version_id }, target: { kind: "evidence", ...endpoint }, relation: "supports", rationale: "Guidance raised on services" }],
+      intent: { title: "Retained question", question: "Keep my exact draft", subjects: [{ kind: "security", owner: "terminal.analysis_symbol", object_id: "AAPL" }, { kind: "issuer", owner: "data_os.security_master", object_id: "issuer-aapl" }], horizon: "Two quarters", research_as_of: "2026-10-04T16:00:00.000Z" },
+      layout_refs: [], thesis_refs: [{ ...THESIS }], evidence_refs: [{ ...EVIDENCE }],
+      continuation: { next_question: "What changes next quarter?", next_observation: "Gross margin held above guidance" },
+      review_baseline_ref: { ...EVIDENCE },
+    },
+  };
+}
+function fenceCreate(command: InvestigationCommand) {
+  sessionStorage.setItem(key, JSON.stringify({ owner, command }));
+  receiptReply = { status: 200, body: { status: "not_applied", id: command.id, operation_id: command.operation_id } };
+}
+type Field = (command: InvestigationCommand) => unknown;
+const FIELDS: [string, Field][] = [
+  ["intent.research_as_of", c => c.manifest.intent.research_as_of],
+  ["intent.subjects", c => c.manifest.intent.subjects],
+  ["evidence_refs", c => c.manifest.evidence_refs],
+  ["review_baseline_ref", c => c.manifest.review_baseline_ref],
+  ["continuation (next_question and next_observation)", c => c.manifest.continuation],
+  ["layout_capture", c => c.layout_capture],
+  ["thesis_refs", c => c.manifest.thesis_refs],
+  ["argument_relations", c => c.manifest.argument_relations],
+  ["intent.horizon", c => c.manifest.intent.horizon],
+];
+
+describe("a recovered create keeps its retained context on ordinary Save", () => {
+  it.each(FIELDS)("keeps %s exactly", async (_name, field) => {
+    const retained = richCreate();
+    fenceCreate(retained);
+    await mount();
+    expect(host.textContent).toContain(CONFLICT);
+    expect(JSON.parse(sessionStorage.getItem(key)!)).toMatchObject({ phase: "rejected", reason: "not_applied" });
+    await click("Save research");
+    expect(posts).toHaveLength(1);
+    expect(field(posts[0])).toBeDefined();
+    expect(field(posts[0])).toEqual(field(retained));
+    expect(posts[0].operation_id).not.toBe(retained.operation_id);
+    expect(receiptReads).toEqual([retained.operation_id]);
+  });
+
+  it("keeps non-empty layout_refs when the retained create had no layout capture", async () => {
+    const retained = richCreate();
+    delete retained.layout_capture;
+    retained.manifest.layout_refs = [{ ...LAYOUT_REF }];
+    fenceCreate(retained);
+    await mount();
+    await click("Save research");
+    expect(posts).toHaveLength(1);
+    expect(posts[0].manifest.layout_refs).toEqual([LAYOUT_REF]);
+    expect(Object.hasOwn(posts[0], "layout_capture")).toBe(false);
+  });
+
+  it("shows the retained layout as the selected choice and keeps the symbol of the retained subjects", async () => {
+    fenceCreate(richCreate());
+    await mount();
+    const select = [...host.querySelectorAll("label")].find(l => l.firstChild?.textContent === "Retain a named layout (optional)")?.querySelector("select");
+    expect(select?.selectedOptions[0]?.textContent).toBe("Retained layout · Revision 3");
+    expect([...host.querySelectorAll("label")].find(l => l.firstChild?.textContent === "Security symbol")?.querySelector("input")?.disabled).toBe(true);
+  });
+
+  it("refuses a retained layout in the older format visibly, then saves after a deliberate layout choice", async () => {
+    const retained = richCreate();
+    (retained as { layout_capture?: unknown }).layout_capture = { ...CAPTURE, revision_id: "30000000-0000-4000-8000-000000000002" };
+    fenceCreate(retained);
+    await mount();
+    const stored = sessionStorage.getItem(key);
+    await click("Save research");
+    expect(posts).toHaveLength(0);
+    expect(host.textContent).toContain("Not saved: the retained layout was recorded in an older format.");
+    expect(host.textContent).not.toContain(TITLE_REQUIRED);
+    expect(sessionStorage.getItem(key)).toBe(stored);
+    const select = [...host.querySelectorAll("label")].find(l => l.firstChild?.textContent === "Retain a named layout (optional)")?.querySelector("select");
+    await act(async () => { select!.value = ""; select!.dispatchEvent(new Event("change", { bubbles: true })); });
+    await click("Save research");
+    expect(posts).toHaveLength(1);
+    expect(Object.hasOwn(posts[0], "layout_capture")).toBe(false);
+    expect(posts[0].manifest.evidence_refs).toEqual(retained.manifest.evidence_refs);
+    expect(posts[0].operation_id).not.toBe(retained.operation_id);
+  });
+});
