@@ -1,3 +1,8 @@
+// The Next server runtime loads this baseline first. On Node 20 (CI and the VPS)
+// it supplies the global WebSocket that supabase-js needs to construct its
+// Realtime client. Vitest does not load it, so the real client threw
+// "Node.js 20 detected without native WebSocket support" here.
+import "next/dist/server/node-environment-baseline";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 // Drives the SSE route through the REAL Supabase server client (@supabase/ssr +
