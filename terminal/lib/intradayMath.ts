@@ -89,22 +89,23 @@ function popStdev(vals: number[]): number {
   return Math.sqrt(vals.reduce((a, v) => a + (v - m) ** 2, 0) / vals.length);
 }
 
-/** Wilder RMA (matching indicatorMath.ts rma — same Wilder smoothing). */
+/** Wilder RMA (matching indicatorMath.ts rma — same Wilder smoothing).
+ *  Seed from exactly `len` finite observations, not merely the first `len` array slots:
+ *  DMI inputs intentionally begin with a null because bar 0 has no predecessor. */
 function rmaArr(src: (number | null)[], len: number): (number | null)[] {
   const out: (number | null)[] = Array(src.length).fill(null);
   const a = 1 / len;
   let prev: number | null = null;
+  let finiteCount = 0;
+  let seedSum = 0;
   for (let i = 0; i < src.length; i++) {
     const v = src[i];
     if (v == null || !isFinite(v)) { out[i] = prev; continue; }
     if (prev == null) {
-      if (i >= len - 1) {
-        let s = 0, cnt = 0;
-        for (let j = i - len + 1; j <= i; j++) {
-          const x = src[j];
-          if (x != null && isFinite(x)) { s += x; cnt++; }
-        }
-        prev = cnt ? s / cnt : null;
+      seedSum += v;
+      finiteCount++;
+      if (finiteCount === len) {
+        prev = seedSum / len;
         out[i] = prev;
       }
     } else {

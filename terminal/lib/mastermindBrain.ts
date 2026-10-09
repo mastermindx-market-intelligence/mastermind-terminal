@@ -10,8 +10,9 @@ import type { CompanySourceContextRef } from "./companySourceContext";
  */
 
 export interface MastermindBrainHost {
-  MMBrain?: { open?: () => void; mounted?: boolean };
+  MMBrain?: { open?: () => void; mounted?: boolean; setPrincipal?: (id: string | null) => void };
   MM_BRAIN_CFG?: {
+    principal?: string | null;
     symbol?: () => string;
     getCompanySourceSpan?: () => CompanySourceContextRef | null | undefined;
     [key: string]: unknown;

@@ -1,24 +1,25 @@
 # B-PL-6 batch 1 — capture evidence
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
 # Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
-# capturedAtHead: 1276a9cd1460807a56fee327403b3efd7580d284
-# capturedAt: 2026-10-04T02:46:57.868Z
+# capturedAtHead: 37a221a8161fa1e21a777026018da715500980f3
+# capturedAt: 2026-10-08T21:27:31.244Z
 # capturedAtHead is informational. The lock is layoutFiles.
 layoutFiles:
-  terminal/components/OptionsHubView.tsx: "4d10a010bf79a9c9bce466d8fe25a9d1559827086458eb44fb131cc4261a84bb"
-  terminal/components/SearchModal.tsx: "ed4545abe5d31c5f79e7eab96bad45b76b06694bf4d1994901dd6defd195bbc0"
-  terminal/components/StockAnalysis.tsx: "7657d401a22f79d2b9649ce561545cb0a703e8c95d37a8b5d4e9388e0bda65f8"
-  terminal/components/workspaces/AnalysisWorkspace.tsx: "a7a4a5d28373cade10361fe806d4a261bdaa7a6feb61c4f6a3d7ef9155e40624"
-  terminal/components/ChartPanel.tsx: "06f59b1c67ee3661dd361f72b23f16f1cddb26a8020490463ea18f941a44361f"
+  terminal/components/OptionsHubView.tsx: "dd8e4e9d5234aae8fb41b597fe1a262bd54dfd8abebb2e46361bde50354c9f08"
+  terminal/components/SearchModal.tsx: "51b7b514f169a40db9644b502ddd0d933100a305aea55ea0f6a1fb028dbe69ad"
+  terminal/components/StockAnalysis.tsx: "376a907d0d8ea3dc5819e0092f02e19ce56fa1f4b71a3489551adf52fddb35c0"
+  terminal/components/workspaces/AnalysisWorkspace.tsx: "f98764b71e4e1301d6149aef0d3e47615455801f95a9691b4d8807febe92226e"
+  terminal/components/ChartPanel.tsx: "5d5d73aa589e349e7e4d9dfd9ba82c3cd9443278103c216ef9bfa595b12f8684"
   terminal/components/DayRange.tsx: "c84724652783da1897ab4eeb98550eaf3dbd7942eefe3ce127b6ada2b16dd672"
-  terminal/lib/plainLabels.ts: "711f94db978d842b8051e9a975ef772308dab45ba08b3f1859537b5747d372d1"
-  terminal/lib/i18n.tsx: "51276ecc8db6956c6c4e5cc67c55eab029c0b468ccb61e34f8bb92f25e42b9f8"
+  terminal/lib/plainLabels.ts: "8f57e32a21abcae530075b7c4da72f170afff8ea38084026995887b4a18fe29a"
+  terminal/lib/i18n.tsx: "858306597ebbfc2d912cefc997ad88e4805cafb08794b5cd4d3dfeacb109371f"
+  terminal/app/company-intelligence.css: "16ca4e131ad1f2973b6346e7f051af802dbfa27227d6c33615af87578e73f885"
 theme: dark
 languages: [en, zh]
 viewports:
   - { name: desktop, width: 1440, height: 900 }
   - { name: mobile, width: 390, height: 844 }
-surfaces: [OptionsHubView, SearchModal, StockAnalysis, AnalysisWorkspace, ChartChrome]
+surfaces: [OptionsHubView, DiscoverLeaders, SearchModal, StockAnalysis, AnalysisWorkspace, ChartChrome]
 capture_flag: TERMINAL_E2E_FIXTURE
 capture_flag_law: next.config.ts sets devIndicators: false when TERMINAL_E2E_FIXTURE is set; this script starts next dev with the same flag.
 command: |
@@ -33,6 +34,10 @@ files:
   - ChartChrome-1440.png
   - ChartChrome-390-zh.png
   - ChartChrome-390.png
+  - DiscoverLeaders-1440-zh.png
+  - DiscoverLeaders-1440.png
+  - DiscoverLeaders-390-zh.png
+  - DiscoverLeaders-390.png
   - OptionsHubView-1440-zh.png
   - OptionsHubView-1440.png
   - OptionsHubView-390-zh.png
@@ -45,3 +50,5 @@ files:
   - StockAnalysis-1440.png
   - StockAnalysis-390-zh.png
   - StockAnalysis-390.png
+
+[executed on device: m2studio (3f5ce987-e3eb-40a3-af9f-4b0ae54919cc)]
