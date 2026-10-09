@@ -4,6 +4,8 @@
 # This PR's e2e spec ran against the product files at base 9cfd30493b8ff03ddbbf151825b360125a03112d
 # (route.ts, flowSource.ts, flowClientCache.ts, VolView.tsx, VolVrpPanel.tsx, volShared.tsx,
 # volStrings.ts and globals.css reverted to that commit). Both tests failed on the defect.
+# refused-400-1440.png is the exception: it ran against this branch at 8e8dd351, the load-error
+# fix before the refused-name guard (392f563b), and shows the state that fix alone would ship.
 base: 9cfd30493b8ff03ddbbf151825b360125a03112d
 spec: terminal/e2e/options-vol-load-failure.spec.ts
 project: { name: desktop, width: 1440, height: 900 }
@@ -18,3 +20,8 @@ files:
     test: "a failed spread-history read keeps the snapshot and never calls the history unpublished"
     injected: { "agg:SPY": 503 }
     shows: "\"has not been published for this root\" and \"Not enough history\" for a read that did not land"
+  refused-400-1440.png:
+    test: "a failed volatility read is a load error with an in-place Retry, never a coverage gap"
+    against: 8e8dd3513bbe1a3b425103a2271063060e2f4237
+    typed: "^VIX, a name the route refuses with a 400"
+    shows: "a load error whose Retry can never land, for a name no build can hold"
