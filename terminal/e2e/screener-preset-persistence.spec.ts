@@ -38,6 +38,9 @@ async function installFixture(page: Page, lang: "en" | "zh", denyRead = false) {
 
 const saved = (page: Page) => page.locator(".scr2-preset-wrap .fin-tab");
 const editor = (page: Page) => page.locator(".scr2-preset-name");
+// Next.js has a permanent page-level role=alert route announcer. Only this feature's
+// inline error is dismissed by Cancel/Escape; the app announcer must remain intact.
+const presetError = (page: Page) => page.locator(".screener-main").getByRole("alert");
 async function saveB(page: Page) {
   await page.locator(".scr2-presets-tail button").click();
   await editor(page).fill("B");
@@ -53,7 +56,7 @@ for (const lang of ["en", "zh"] as const) {
     await saveB(page);
     await expect(saved(page)).toHaveText(["A"]);
     await expect(editor(page)).toHaveValue("B");
-    const error = page.locator('[role="alert"]').filter({ hasText: lang === "zh" ? "未保存" : "not saved" });
+    const error = presetError(page).filter({ hasText: lang === "zh" ? "未保存" : "not saved" });
     await expect(error).toBeVisible();
     const retry = error.getByRole("button", { name: lang === "zh" ? "重试保存: B" : "Retry saving: B", exact: true });
     const cancel = error.getByRole("button", { name: lang === "zh" ? "取消保存: B" : "Cancel saving: B", exact: true });
@@ -69,7 +72,9 @@ for (const lang of ["en", "zh"] as const) {
       expect(box!.x).toBeGreaterThanOrEqual(0);
       expect(box!.x + box!.width).toBeLessThanOrEqual(page.viewportSize()!.width);
       expect(await page.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
-      await testInfo.attach(`preset-save-failure-${lang}-${theme}`, { body: await page.screenshot({ fullPage: true }), contentType: "image/png" });
+      const screenshot = testInfo.outputPath(`preset-save-failure-${lang}-${theme}.png`);
+      await page.screenshot({ path: screenshot, fullPage: true });
+      await testInfo.attach(`preset-save-failure-${lang}-${theme}`, { path: screenshot, contentType: "image/png" });
     }
     await page.evaluate(() => { window.__presetFixture.denyWrite = false; });
     await retry.press("Enter");
@@ -93,14 +98,18 @@ for (const lang of ["en", "zh"] as const) {
     await expect(saved(page)).toHaveText(["A", "B"]);
     expect(await page.evaluate(() => window.__presetFixture.writes)).toBe(1);
     await saved(page).filter({ hasText: /^A$/ }).click();
+    const acknowledged = await page.evaluate(() => window.__presetFixture.raw());
     await page.evaluate(() => { window.__presetFixture.denyWrite = true; });
     await page.getByRole("button", { name: lang === "zh" ? "删除预设: A" : "Delete preset: A", exact: true }).click();
     await expect(saved(page).filter({ hasText: /^A$/ })).toHaveClass(/\bon\b/);
     const dayMove = page.getByRole("combobox", { name: lang === "zh" ? "当日波动" : "Day move", exact: true });
     await expect(dayMove).toHaveValue("up3");
     await page.getByRole("button", { name: lang === "zh" ? "重试删除: A" : "Retry deleting: A", exact: true }).press("Escape");
-    await expect(page.locator('[role="alert"]')).toHaveCount(0);
+    await expect(presetError(page)).toHaveCount(0);
     expect(await page.evaluate(() => window.__presetFixture.writes)).toBe(2);
+    expect(await page.evaluate(() => window.__presetFixture.raw())).toBe(acknowledged);
     await expect(saved(page)).toHaveText(["A", "B"]);
+    await expect(saved(page).filter({ hasText: /^A$/ })).toHaveClass(/\bon\b/);
+    await expect(dayMove).toHaveValue("up3");
   });
 }
