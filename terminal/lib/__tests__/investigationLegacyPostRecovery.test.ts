@@ -62,3 +62,22 @@ describe("legacy POST retry uses the original request's reconciliation owner",()
   const input={...legacy(),padding:"x".repeat(133*1024)};expect((await POST(req(input))).status).toBe(413);expect(rpc).not.toHaveBeenCalled();
  });
 });
+// T03j review point (b): the request names no principal. The owner takes the account from the session, so a
+// retry cannot point the lookup at another account's receipt, and a body that tries to is refused before any RPC.
+describe("a legacy POST retry is bound to the signed-in account, never to the body (T03j)",()=>{
+ it.each(["principal","user_id","owner","author_ref","actor"])("refuses a body that names a %s at zero RPCs",async field=>{
+  for(const input of [{...legacy(),[field]:principal},{...legacy(),manifest:{...legacy().manifest,[field]:principal}}]){
+   const response=await POST(req(input));expect(response.status).toBe(400);expect(await response.json()).toEqual({status:"invalid_payload"});
+  }
+  expect(rpc).not.toHaveBeenCalled();
+ });
+ it("sends byte-identical owner arguments for two accounts, carrying neither account's id",async()=>{
+  const other="40000000-0000-4000-8000-000000000002";rpc.mockResolvedValue({data:{status:"not_applied",id,operation_id:operation},error:null});
+  expect((await POST(req(legacy()))).status).toBe(200);
+  getUser.mockResolvedValue({data:{user:{id:other}},error:null});
+  expect((await POST(req(legacy()))).status).toBe(200);
+  expect(rpc.mock.calls).toHaveLength(2);
+  expect(JSON.stringify(rpc.mock.calls[0])).toBe(JSON.stringify(rpc.mock.calls[1]));
+  expect(JSON.stringify(rpc.mock.calls)).not.toContain(principal);expect(JSON.stringify(rpc.mock.calls)).not.toContain(other);
+ });
+});
