@@ -2,7 +2,9 @@
 import { matchesInvestigationCommand, parseInvestigationCommand, type InvestigationCommand, type InvestigationCommitted } from "./investigations";
 export type InvestigationSaveState =
   | { phase: "idle" }
-  | { phase: "pending" | "uncertain"; principal: string; command: InvestigationCommand }
+  | { phase: "pending"; principal: string; command: InvestigationCommand }
+  // ownerRecheck: a receipt read alone may not settle this state; the full-request owner must answer first.
+  | { phase: "uncertain"; principal: string; command: InvestigationCommand; ownerRecheck?: true }
   | { phase: "committed"; principal: string; result: InvestigationCommitted }
   | { phase: "rejected"; principal: string; command: InvestigationCommand; reason: string };
 const definitive = new Set(["invalid_payload", "version_conflict", "idempotency_conflict", "invalid_transition", "reference_unavailable", "layout_conflict", "limit_reached"]);
@@ -13,6 +15,9 @@ export function recoverInvestigationSave(principal: string, raw: unknown): Inves
   if (saved.owner !== principal) return null;
   const command = parseInvestigationCommand(saved.command, true);
   if (!command) return null;
+  // Before the legacy POST cutover the route refused a retried legacy request with invalid_payload before it
+  // asked the owner, so that stored refusal never proved the original failed: it may already have committed.
+  if (saved.phase === "rejected" && saved.reason === "invalid_payload") return { phase: "uncertain", principal, command, ownerRecheck: true };
   if (saved.phase === "rejected" && typeof saved.reason === "string" && definitive.has(saved.reason)) {
     return { phase: "rejected", principal, command, reason: saved.reason };
   }
@@ -39,7 +44,15 @@ export function settleInvestigationSave(state: InvestigationSaveState, principal
   }
   if (state.phase === "pending" && typeof status === "string" && definitive.has(status)) return { phase: "rejected", principal, command: state.command, reason: status };
   // not_found on receipt lookup, auth expiry, timeout and malformed replies are all inconclusive.
-  return { phase: "uncertain", principal, command: state.command };
+  return state.phase === "uncertain" && state.ownerRecheck ? { phase: "uncertain", principal, command: state.command, ownerRecheck: true } : { phase: "uncertain", principal, command: state.command };
+}
+/**
+ * True when a result-only receipt read would settle an owner recheck. The receipt does not carry the action or
+ * the layout capture, so only the full-request owner may confirm that it answers this exact request.
+ */
+export function receiptRequiresOwnerCheck(state: InvestigationSaveState, principal: string, response: unknown): boolean {
+  return state.phase === "uncertain" && state.ownerRecheck === true && state.principal === principal
+    && settleInvestigationSave(state, principal, response).phase !== "uncertain";
 }
 export function retryInvestigationSave(state: InvestigationSaveState, principal: string): InvestigationCommand | null {
   // A persisted local rejection is never proof of a fence; recovery rechecks the owner.

@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { beginInvestigationSave, settleInvestigationSave, retryInvestigationSave, partitionInvestigationSave, recoverInvestigationSave, investigationCommandToReconcile, resendsRefusedReferences } from "../investigationSave";
+import { beginInvestigationSave, settleInvestigationSave, retryInvestigationSave, partitionInvestigationSave, recoverInvestigationSave, investigationCommandToReconcile, resendsRefusedReferences, receiptRequiresOwnerCheck } from "../investigationSave";
+import { parseInvestigationCommand } from "../investigations";
 const command=()=>({id:"10000000-0000-4000-8000-000000000001",operation_id:"20000000-0000-4000-8000-000000000001",action:"create",expected_revision:0,manifest:{schema:"investigation_manifest.v2",argument_relations:[],intent:{title:"Research",question:"Exact draft",subjects:[]},layout_refs:[],thesis_refs:[],evidence_refs:[],continuation:{}}});
 const identity={investigation_id:"10000000-0000-4000-8000-000000000001",revision_id:"30000000-0000-4000-8000-000000000001",sequence:1,parent_revision_id:null,operation_id:"20000000-0000-4000-8000-000000000001",author_ref:"40000000-0000-4000-8000-000000000001",recorded_at:"2026-10-04T00:00:00Z",manifest_digest:"a".repeat(64)};
 describe("lost Investigation save response",()=>{
@@ -213,5 +214,93 @@ describe("a refused reference set is not sent again unchanged", () => {
    expect(resendsRefusedReferences(refused(plainRevise, "reference_unavailable"), "alice", next({ ...plainRevise, action }) as never), action).toBe(false);
    expect(resendsRefusedReferences(refused({ ...plainRevise, action }, "reference_unavailable"), "alice", next(plainRevise) as never), `${action} refusal`).toBe(false);
   }
+ });
+});
+
+// T03j: before the legacy POST cutover, the route refused a retried legacy request with invalid_payload
+// before it ever asked the owner, so an older client may have stored that refusal for an original that
+// had already committed. Only the owner's full-request answer may settle such a draft.
+describe("a stored invalid_payload refusal is rechecked with the owner (T03j)", () => {
+ const legacyCreate = () => { const { argument_relations: _relations, ...manifest } = command().manifest; return { ...command(), manifest }; };
+ const shapes: Record<string, () => ReturnType<typeof command>> = { current: command, legacy: legacyCreate as () => ReturnType<typeof command> };
+ const fence = (c: { id: string; operation_id: string }) => ({ status: "not_applied", id: c.id, operation_id: c.operation_id });
+ const receipt = (c: ReturnType<typeof command>) => ({ ...identity, status: "committed", id: c.id, operation_id: c.operation_id, revision: 1, lifecycle: "active", manifest: c.manifest, committed_at: identity.recorded_at });
+ it.each(Object.keys(shapes))("recovers a stored %s invalid_payload as unconfirmed with an owner recheck, never as a final refusal", shape => {
+  const original = shapes[shape]();
+  const stored = { owner: "alice", command: original, phase: "rejected", reason: "invalid_payload" };
+  const before = JSON.stringify(stored);
+  const recovered = recoverInvestigationSave("alice", stored)!;
+  expect(recovered).toEqual({ phase: "uncertain", principal: "alice", command: original, ownerRecheck: true });
+  expect(JSON.stringify(stored)).toBe(before);
+  // The exact original stays the only request the owner is asked about; nothing new is admitted.
+  expect(investigationCommandToReconcile(recovered, "alice")).toEqual(original);
+  expect(retryInvestigationSave(recovered, "alice")).toBeNull();
+  expect(beginInvestigationSave("alice", { ...command(), id: "10000000-0000-4000-8000-000000000009", operation_id: "20000000-0000-4000-8000-000000000009" }, recovered)).toBe(recovered);
+  expect(recoverInvestigationSave("bob", stored)).toBeNull();
+ });
+ it.each(["version_conflict", "idempotency_conflict", "invalid_transition", "reference_unavailable", "layout_conflict", "limit_reached"])("keeps trusting a stored %s refusal", reason => {
+  const original = command();
+  expect(recoverInvestigationSave("alice", { owner: "alice", command: original, phase: "rejected", reason })).toEqual({ phase: "rejected", principal: "alice", command: original, reason });
+ });
+ it.each(Object.keys(shapes))("asks the full-request owner before a %s receipt read may settle the recheck", shape => {
+  const original = shapes[shape]();
+  const recheck = recoverInvestigationSave("alice", { owner: "alice", command: original, phase: "rejected", reason: "invalid_payload" })!;
+  // A receipt read that would end the uncertainty is result-only: the owner must confirm it.
+  expect(receiptRequiresOwnerCheck(recheck, "alice", receipt(original))).toBe(true);
+  expect(receiptRequiresOwnerCheck(recheck, "alice", fence(original))).toBe(true);
+  expect(receiptRequiresOwnerCheck(recheck, "alice", { ...fence(original), reason: "limit_reached" })).toBe(true);
+  // A miss, an unavailable owner, a lapsed session, a network loss or another operation's answer settles nothing.
+  for (const response of [{ status: "not_found" }, { status: "unavailable" }, { status: "unauthenticated" }, null, { status: "invalid_payload" }, fence({ ...original, operation_id: "20000000-0000-4000-8000-000000000009" })]) {
+   expect(receiptRequiresOwnerCheck(recheck, "alice", response), JSON.stringify(response)).toBe(false);
+  }
+  // Another principal, or an ordinary unconfirmed save, keeps the existing receipt-read settle.
+  expect(receiptRequiresOwnerCheck(recheck, "bob", receipt(original))).toBe(false);
+  const ordinary = recoverInvestigationSave("alice", { owner: "alice", command: original })!;
+  expect(ordinary).toEqual({ phase: "uncertain", principal: "alice", command: original });
+  expect(receiptRequiresOwnerCheck(ordinary, "alice", receipt(original))).toBe(false);
+  expect(receiptRequiresOwnerCheck(beginInvestigationSave("alice", command(), { phase: "idle" }), "alice", receipt(command()))).toBe(false);
+ });
+ it("(i) settles a fresh operation refused with invalid_payload as rejected", () => {
+  const pending = beginInvestigationSave("alice", command(), { phase: "idle" });
+  expect(settleInvestigationSave(pending, "alice", { status: "invalid_payload" })).toEqual({ phase: "rejected", principal: "alice", command: command(), reason: "invalid_payload" });
+ });
+ it.each(["invalid_payload", "idempotency_conflict", "version_conflict", "not_found", "unavailable"])("(ii) keeps the owner recheck unconfirmed when Check original outcome answers %s", status => {
+  const recheck = recoverInvestigationSave("alice", { owner: "alice", command: command(), phase: "rejected", reason: "invalid_payload" })!;
+  expect(settleInvestigationSave(recheck, "alice", { status })).toEqual({ phase: "uncertain", principal: "alice", command: command(), ownerRecheck: true });
+  expect(settleInvestigationSave(recheck, "alice", receipt(command()))).toMatchObject({ phase: "committed" });
+  expect(settleInvestigationSave(recheck, "alice", fence(command()))).toMatchObject({ phase: "rejected", reason: "not_applied" });
+ });
+ it("(a) shows a recovery-path answer to a fresh POST as committed, fenced, conflicting or unconfirmed", () => {
+  const sent = command(), pending = beginInvestigationSave("alice", sent, { phase: "idle" });
+  expect(settleInvestigationSave(pending, "alice", receipt(sent))).toMatchObject({ phase: "committed" });
+  expect(settleInvestigationSave(pending, "alice", fence(sent))).toMatchObject({ phase: "rejected", reason: "not_applied" });
+  expect(settleInvestigationSave(pending, "alice", { ...fence(sent), reason: "limit_reached" })).toMatchObject({ phase: "rejected", reason: "limit_reached" });
+  expect(settleInvestigationSave(pending, "alice", { status: "idempotency_conflict" })).toMatchObject({ phase: "rejected", reason: "idempotency_conflict" });
+  expect(settleInvestigationSave(pending, "alice", { status: "unavailable" })).toEqual({ phase: "uncertain", principal: "alice", command: sent });
+ });
+ // (iii) Every client POST goes through beginInvestigationSave (Save) or retryInvestigationSave (Try save again).
+ // Neither may produce a body that the strict write contract refuses but legacy reconciliation would accept.
+ const evidence = { owner: "earnings.workspace_generation", object_type: "event_workspace", object_id: "evt-aapl-2026q3", mode: "pinned", version_ref: "gen-7", fingerprint: "a".repeat(64) };
+ const recoveryOnly: Record<string, () => Record<string, unknown>> = {
+  "no argument_relations": legacyCreate,
+  "a calendar as-of date": () => { const c = legacyCreate(); return { ...c, manifest: { ...c.manifest, intent: { ...c.manifest.intent, research_as_of: "2026-10-04" } } }; },
+  "a review baseline outside the evidence": () => { const c = legacyCreate(); return { ...c, manifest: { ...c.manifest, evidence_refs: [], review_baseline_ref: evidence } }; },
+  "a capture with revision_id": () => ({ ...command(), layout_capture: { layout_id: "50000000-0000-4000-8000-000000000001", expected_revision: 2, revision_id: "60000000-0000-4000-8000-000000000001" } }),
+ };
+ it.each(Object.keys(recoveryOnly))("(iii) never sends a request with %s that only legacy reconciliation would accept", name => {
+  const variant = recoveryOnly[name]();
+  expect(parseInvestigationCommand(variant), "strict").toBeNull();
+  expect(parseInvestigationCommand(variant, true), "recovery").not.toBeNull();
+  // Save: the strict parse refuses it, so nothing is pending and nothing is sent.
+  expect(beginInvestigationSave("alice", variant, { phase: "idle" })).toEqual({ phase: "idle" });
+  // Try save again after an owner fence: either nothing, or a new operation the strict contract accepts.
+  const fenced = settleInvestigationSave(recoverInvestigationSave("alice", { owner: "alice", command: variant })!, "alice", fence(variant as { id: string; operation_id: string }));
+  expect(fenced).toMatchObject({ phase: "rejected", reason: "not_applied" });
+  const next = retryInvestigationSave(fenced, "alice");
+  if (next) {
+   expect(parseInvestigationCommand(next), "a retry is strict-valid").not.toBeNull();
+   expect(next.operation_id).not.toBe(variant.operation_id);
+  }
+  expect(next === null, "only the missing-relations draft can be carried into the current shape").toBe(name !== "no argument_relations");
  });
 });

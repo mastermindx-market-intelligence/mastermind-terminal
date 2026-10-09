@@ -6,7 +6,7 @@ import { useLang } from "@/lib/i18n";
 import { createClient } from "@/lib/supabase/client";
 import { INVESTIGATION_MANIFEST_SCHEMA_V2, validateInvestigationManifest, validateStoredInvestigationManifest, canonicalInvestigationJson, type InvestigationManifest, type InvestigationEvidenceRef, type InvestigationThesisRef } from "@/lib/investigationContracts";
 import { INVESTIGATION_ADMISSION, type InvestigationCommand, type InvestigationSummary } from "@/lib/investigations";
-import { beginInvestigationSave, settleInvestigationSave, retryInvestigationSave, investigationCommandToReconcile, recoverInvestigationSave, resendsRefusedReferences, type InvestigationSaveState } from "@/lib/investigationSave";
+import { beginInvestigationSave, settleInvestigationSave, retryInvestigationSave, investigationCommandToReconcile, recoverInvestigationSave, receiptRequiresOwnerCheck, resendsRefusedReferences, type InvestigationSaveState } from "@/lib/investigationSave";
 import type { EventWorkspace, RetainedEventWorkspaceReceipt } from "@/lib/eventWorkspace";
 import styles from "./InvestigationWorkspace.module.css";
 import InvestigationEvidenceReview from "./InvestigationEvidenceReview";
@@ -186,8 +186,13 @@ export default function InvestigationWorkspace({ownerKey,initialSymbol,initialIn
  async function readOriginalOutcome() {
   const command=investigationCommandToReconcile(stateRef.current,ownerKey);if(!command)return;
   // Reopen may observe an existing receipt, but only the explicit button fences a miss.
-  try {await settle(command,await json(`/api/investigations?operation_id=${command.operation_id}`));}
-  catch {if(!scope.current?.signal.aborted)await settle(command,null);}
+  let response:unknown=null;
+  try {response=await json(`/api/investigations?operation_id=${command.operation_id}`);}
+  catch {if(scope.current?.signal.aborted)return;}
+  // A stored invalid_payload refusal may hide a committed original. The receipt omits the action and the layout
+  // capture, so a receipt that would settle it is confirmed by the full-request owner before anything is shown.
+  if(receiptRequiresOwnerCheck(stateRef.current,ownerKey,response)){await checkOutcome();return;}
+  await settle(command,response);
  }
  useEffect(()=>{
   const controller=new AbortController();scope.current=controller;

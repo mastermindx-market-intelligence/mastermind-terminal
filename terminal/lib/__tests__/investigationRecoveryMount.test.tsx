@@ -3,7 +3,7 @@ import React, { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import InvestigationWorkspace from "@/components/workspaces/InvestigationWorkspace";
-import type { InvestigationCommand } from "../investigations";
+import { parseInvestigationCommand, type InvestigationCommand } from "../investigations";
 import { canonicalInvestigationJson } from "../investigationContracts";
 
 const i18n = vi.hoisted(() => ({ lang: "en" as "en" | "zh" }));
@@ -923,5 +923,141 @@ describe("a layout chosen before Try save again is refused stays chosen", () => 
     expect(posts[1].layout_capture).toEqual({ layout_id: OTHER_LAYOUT, expected_revision: 2 });
     expect(posts[1].operation_id).not.toBe(posts[0].operation_id);
     expectCarried(posts[1], retained);
+  });
+});
+
+// T03j: before the legacy POST cutover the route refused a retried legacy request with invalid_payload before it
+// asked the owner, so an older client may have stored that refusal for an original that had already committed.
+// Every reopen reads the receipt once; a result-only receipt is confirmed by the full-request owner (PUT) before
+// any outcome is shown; a miss or a failed read stays unconfirmed, and nothing new is sent until the owner answers.
+describe("a stored invalid_payload refusal is rechecked with the owner before anything new (T03j)", () => {
+  const OWNER_REF = { layout_id: CAPTURE.layout_id, layout_revision_id: "60000000-0000-4000-8000-000000000001", digest: "c".repeat(64), role: "primary" as const };
+  const SHAPES: Record<string, () => InvestigationCommand> = {
+    current: () => structuredClone(original),
+    legacy: () => { const command = structuredClone(original); delete (command.manifest as Partial<typeof command.manifest>).argument_relations; return command; },
+    "rich with a layout capture": richCreate,
+  };
+  const SAVED = "Edit saved question", NOT_APPLIED = "Save failure confirmed. No records were created.";
+  const savedManifest = (c: InvestigationCommand) => c.layout_capture ? { ...c.manifest, layout_refs: [{ ...OWNER_REF }] } : c.manifest;
+  const committed = (c: InvestigationCommand) => ({
+    status: "committed", id: c.id, operation_id: c.operation_id, revision: 1, lifecycle: "active", manifest: savedManifest(c), committed_at: "2026-10-09T00:00:00.000Z",
+    investigation_id: c.id, revision_id: "70000000-0000-4000-8000-000000000001", sequence: 1, parent_revision_id: null, author_ref: "80000000-0000-4000-8000-000000000001", recorded_at: "2026-10-09T00:00:00.000Z", manifest_digest: "d".repeat(64),
+  });
+  const fence = (c: InvestigationCommand) => ({ status: "not_applied", id: c.id, operation_id: c.operation_id });
+  const MISSES: Record<string, Reply | "network"> = {
+    not_found: { status: 404, body: { status: "not_found" } },
+    unavailable: { status: 503, body: { status: "unavailable" } },
+    unauthenticated: { status: 401, body: { status: "unauthenticated" } },
+    network: "network",
+  };
+  let sent: InvestigationCommand, stored: string, receipt: Reply | "network";
+  /** Stores what an older client wrote for a refused legacy retry, and serves the owner's saved record on readback. */
+  function storeRefusal(shape: string) {
+    sent = SHAPES[shape](); receipt = MISSES.not_found;
+    stored = JSON.stringify({ owner, command: sent, phase: "rejected", reason: "invalid_payload" });
+    sessionStorage.setItem(key, stored);
+    const baseFetch = fetch;
+    vi.stubGlobal("fetch", vi.fn((url: string, options?: RequestInit) => {
+      if (!options?.method && url.startsWith("/api/investigations?operation_id=")) {
+        if (receipt !== "network") { receiptReply = receipt; return baseFetch(url, options); }
+        const query = new URL(url, "https://terminal.test").searchParams;
+        receiptKeys.push([...query.keys()]); receiptReads.push(query.get("operation_id")!);
+        return Promise.reject(new TypeError("Failed to fetch"));
+      }
+      if (!options?.method && url.startsWith("/api/investigations?id=")) return reply({ status: 200, body: { status: "found", id: sent.id, revision: 1, current_revision: 1, lifecycle: "active", manifest: savedManifest(sent), committed_at: "2026-10-09T00:00:00.000Z", layouts: [] } });
+      return baseFetch(url, options);
+    }));
+  }
+  async function reopen() { act(() => root.unmount()); root = createRoot(host); await mount(); await flush(); }
+  /** Unconfirmed: the exact request and draft are retained, and neither Save nor Try save again can send anything. */
+  async function expectUnconfirmed(draft: string[]) {
+    expect(host.textContent).toContain(UNCERTAIN);
+    expect(host.textContent).not.toContain(CONFLICT);
+    expect(button(SAVED)).toBeUndefined();
+    expect(button("Check original outcome")).toBeDefined();
+    expect(button("Start new research")?.disabled).toBe(true);
+    expect(button("Try save again")).toBeUndefined();
+    const before = posts.length;
+    await click("Save research"); await flush();
+    expect(posts).toHaveLength(before);
+    expect(sessionStorage.getItem(key)).toBe(stored);
+    expect(question()).toBe("Keep my exact draft");
+    expect(draftValues()).toEqual(draft);
+  }
+
+  it.each(Object.keys(SHAPES).flatMap(shape => Object.keys(MISSES).map(miss => [shape, miss])))("a %s refusal whose receipt read is %s stays unconfirmed; only Check original outcome asks the owner", async (shape, miss) => {
+    storeRefusal(shape); receipt = MISSES[miss];
+    await mount(); await flush();
+    expect(receiptReads).toEqual([sent.operation_id]);
+    expect(receiptKeys).toEqual([["operation_id"]]);
+    expect(reconciles).toHaveLength(0); expect(posts).toHaveLength(0);
+    const draft = draftValues();
+    await expectUnconfirmed(draft);
+    // The deliberate check sends the exact original request to the full-request owner, once.
+    await click("Check original outcome"); await flush();
+    expect(reconciles).toEqual([sent]); expect(posts).toHaveLength(0);
+    await expectUnconfirmed(draft);
+    // Reopening reads the receipt once more and never sends a POST.
+    await reopen();
+    expect(receiptReads).toEqual([sent.operation_id, sent.operation_id]);
+    expect(reconciles).toHaveLength(1); expect(posts).toHaveLength(0);
+    await expectUnconfirmed(draft);
+  });
+
+  it.each(Object.keys(SHAPES).flatMap(shape => (["committed", "not_applied"] as const).map(answer => [shape, answer] as const)))("after a receipt miss, Check original outcome settles a %s refusal when the owner answers %s", async (shape, answer) => {
+    storeRefusal(shape);
+    await mount(); await flush();
+    reconcileReply = { status: 200, body: answer === "committed" ? committed(sent) : fence(sent) };
+    await click("Check original outcome"); await flush();
+    expect(reconciles).toEqual([sent]); expect(receiptReads).toEqual([sent.operation_id]);
+    expect(host.textContent).not.toContain(UNCERTAIN);
+    if (answer === "committed") {
+      expect(sessionStorage.getItem(key)).toBeNull();
+      expect(button(SAVED)).toBeDefined();
+      expect(posts).toHaveLength(0);
+      return;
+    }
+    expect(host.textContent).toContain(NOT_APPLIED);
+    expect(JSON.parse(sessionStorage.getItem(key)!)).toEqual({ owner, command: sent, phase: "rejected", reason: "not_applied" });
+    expect(posts).toHaveLength(0);
+    // Only now may a new operation be sent, and only in the strict current shape.
+    await click("Try save again"); await flush();
+    expect(posts).toHaveLength(1);
+    expect(posts[0].operation_id).not.toBe(sent.operation_id);
+    expect(parseInvestigationCommand(posts[0]), "a new operation passes the strict write contract").not.toBeNull();
+    expect(posts[0].manifest.intent).toEqual(sent.manifest.intent);
+  });
+
+  it.each(Object.keys(SHAPES).flatMap(shape => (["committed", "not_applied"] as const).flatMap(found => (["matching", "unavailable", "idempotency_conflict"] as const).map(owns => [shape, found, owns] as const))))("a %s refusal whose receipt read finds %s asks the full-request owner first, which answers %s", async (shape, found, owns) => {
+    storeRefusal(shape);
+    const answer = found === "committed" ? committed(sent) : fence(sent);
+    receipt = { status: 200, body: answer };
+    reconcileReply = owns === "matching" ? { status: 200, body: answer } : owns === "unavailable" ? { status: 503, body: { status: "unavailable" } } : { status: 409, body: { status: "idempotency_conflict" } };
+    await mount(); await flush();
+    expect(receiptReads).toEqual([sent.operation_id]);
+    // One full-request owner check with the exact original request; never a POST.
+    expect(reconciles).toEqual([sent]); expect(posts).toHaveLength(0);
+    if (owns === "matching") {
+      expect(host.textContent).not.toContain(UNCERTAIN);
+      if (found === "committed") { expect(sessionStorage.getItem(key)).toBeNull(); expect(button(SAVED)).toBeDefined(); }
+      else { expect(host.textContent).toContain(NOT_APPLIED); expect(JSON.parse(sessionStorage.getItem(key)!)).toEqual({ owner, command: sent, phase: "rejected", reason: "not_applied" }); }
+      expect(posts).toHaveLength(0);
+      return;
+    }
+    // The result-only receipt is not accepted without the owner: nothing is shown as saved or fenced.
+    const draft = draftValues();
+    await expectUnconfirmed(draft);
+    expect(host.textContent).not.toContain(NOT_APPLIED);
+    await reopen();
+    expect(receiptReads).toEqual([sent.operation_id, sent.operation_id]);
+    expect(reconciles).toEqual([sent, sent]); expect(posts).toHaveLength(0);
+    await expectUnconfirmed(draft);
+    // When the owner can answer, Check original outcome settles it.
+    reconcileReply = { status: 200, body: answer };
+    await click("Check original outcome"); await flush();
+    expect(reconciles).toEqual([sent, sent, sent]); expect(posts).toHaveLength(0);
+    expect(host.textContent).not.toContain(UNCERTAIN);
+    if (found === "committed") { expect(sessionStorage.getItem(key)).toBeNull(); expect(button(SAVED)).toBeDefined(); }
+    else expect(host.textContent).toContain(NOT_APPLIED);
   });
 });
