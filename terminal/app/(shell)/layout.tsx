@@ -1,3 +1,4 @@
+import { cookies } from "next/headers";
 import { createClient } from "@/lib/supabase/server";
 import AppShell from "@/components/chrome/AppShell";
 
@@ -28,6 +29,13 @@ export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
 export default async function ShellLayout({ children }: { children: React.ReactNode }) {
+  // Extend the existing responsive fixture identity to shell consumers. Fail closed in production.
+  if (process.env.NODE_ENV === "development" && process.env.TERMINAL_E2E_FIXTURE === "1") {
+    const jar = await cookies();
+    const guest = jar.get("mm_e2e_guest")?.value === "1";
+    return <AppShell email={guest ? "" : process.env.TERMINAL_E2E_EMAIL ?? "responsive@example.com"}
+      userId={guest ? "" : "terminal-responsive-fixture"}>{children}</AppShell>;
+  }
   const supabase = await createClient();
   const { data } = await supabase.auth.getClaims();
   const email = typeof data?.claims?.email === "string" ? data.claims.email : "";

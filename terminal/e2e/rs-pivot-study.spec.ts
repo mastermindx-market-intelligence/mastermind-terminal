@@ -1,7 +1,7 @@
 import { test, expect } from "@playwright/test";
 import { readFile } from "node:fs/promises";
 import projection from "../lib/usEquitySessionProjection.json";
-import { renderAsGuest, useLang } from "./layoutStore";
+import { renderAsGuest } from "./layoutStore";
 import type { Bar6 } from "../lib/intradayShared";
 
 // Synthetic, nominal geometry fixtures. Never treated as a production/PIT data receipt.
@@ -51,7 +51,7 @@ test("research lab source → comparison → chart/replay → frozen export and 
   await page.getByLabel("Equity ticker").fill("MISSING"); await page.getByRole("button",{name:"Run local study"}).click();
   await expect(page.getByTestId("rs-pivot-error")).toContainText("unavailable"); await expect(page.getByTestId("rs-pivot-chart")).toHaveCount(0);
   await page.getByLabel("Equity ticker").fill("NVDA"); await page.getByRole("button",{name:"Run local study"}).click(); await expect(page.getByTestId("rs-pivot-chart")).toBeVisible();
-  await useLang(page,"zh"); await page.goto("/discover?tab=rs-pivot");
+  await page.addInitScript(() => localStorage.setItem("mm.lang", "zh")); await page.goto("/discover?tab=rs-pivot");
   await expect(page.getByRole("heading",{name:"相对强度 × 30分钟枢轴研究"})).toBeVisible();
   await page.getByRole("button",{name:"运行本地研究"}).click(); await expect(page.getByTestId("rs-pivot-chart")).toBeVisible();
   await expect(page.getByRole("heading",{name:"历史图表与交易重放"})).toBeVisible();
