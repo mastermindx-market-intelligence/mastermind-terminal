@@ -3,7 +3,7 @@ import React, { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { VolVrpPanel } from "@/components/vol/VolVrpPanel";
-import type { AggTrendPayload } from "@/lib/aggTrend";
+import type { AggPoint, AggTrendPayload } from "@/lib/aggTrend";
 
 let host: HTMLDivElement;
 let root: Root;
@@ -62,5 +62,33 @@ describe("IV-realized-vol historical session alignment", () => {
     await render(null, agg);
     expect(host.textContent).toContain(`Derived history through ${historyDay}`);
     expect(host.textContent).toContain("Withheld · sessions differ");
+  });
+  it("breaks the derived spread line at a missing source session instead of reconnecting it", async () => {
+    const agg = history(130);
+    // A missing close at session 50 removes every derived session whose 20-return window spans it.
+    agg.series![50] = { d: agg.series![50].d, iv: 0.20 } as AggPoint;
+    await render(agg.series!.at(-1)!.d, agg);
+    const svg = host.querySelector("svg")!;
+    expect(svg).toBeTruthy();
+    const lines = [...svg.querySelectorAll("polyline, path")];
+    expect(lines).toHaveLength(2);
+    // the second run starts strictly to the right of where the first ends: a visible gap, not a bridge
+    const xs = lines.map(line => (line.getAttribute("points") ?? line.getAttribute("d") ?? "").match(/-?\d+(?:\.\d+)?(?=,)/g)!.map(Number));
+    const firstEnd = Math.max(...xs[0]); const secondStart = Math.min(...xs[1]);
+    expect(secondStart - firstEnd).toBeGreaterThan(5);
+    expect(svg.innerHTML).not.toMatch(/NaN|Infinity/);
+  });
+
+  it("withholds the 1-session change when the previous derived session is missing", async () => {
+    const agg = history();
+    const n = agg.series!.length;
+    // Missing IV only on the session before the last: the last two derived points are not adjacent sessions.
+    agg.series![n - 2] = { d: agg.series![n - 2].d, s: agg.series![n - 2].s } as AggPoint;
+    await render(agg.series!.at(-1)!.d, agg);
+    expect(host.textContent).toContain(`Derived history reaches the current source session · ${agg.series!.at(-1)!.d}`);
+    const tile = (label: string) => [...host.querySelectorAll(".fin-kpi")].find(node => node.textContent?.includes(label));
+    expect(tile("1-session change")?.querySelector(".v")?.textContent).toBe("—");
+    // the 5-session trend still has an exact session five back, so it remains available
+    expect(tile("5-session trend")?.querySelector(".v")?.textContent).not.toBe("—");
   });
 });

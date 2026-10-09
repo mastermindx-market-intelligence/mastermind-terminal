@@ -43,6 +43,19 @@ const isNum = (v: unknown): v is number => typeof v === "number" && Number.isFin
 interface VrpPoint {
   d: string;
   v: number;
+  /** Source session position in agg.series; non-consecutive values mark missing sessions. */
+  i: number;
+}
+
+/** Consecutive-session runs: a missing derived session breaks the line, never bridges it. */
+function sessionRuns(pts: VrpPoint[]): VrpPoint[][] {
+  const runs: VrpPoint[][] = [];
+  for (const p of pts) {
+    const run = runs[runs.length - 1];
+    if (run && run[run.length - 1].i === p.i - 1) run.push(p);
+    else runs.push([p]);
+  }
+  return runs;
 }
 
 /** Derive the trailing VRP series (vol points) from the agg store's spot+IV columns. */
@@ -64,7 +77,7 @@ export function deriveVrpSeries(agg: AggTrendPayload | null | undefined): VrpPoi
     const mean = win.reduce((x, y) => x + y, 0) / win.length;
     const varSum = win.reduce((x, y) => x + (y - mean) ** 2, 0) / (win.length - 1);
     const rv20 = Math.sqrt(varSum * 252) * 100;
-    out.push({ d: String(b.d ?? ""), v: iv * 100 - rv20 });
+    out.push({ d: String(b.d ?? ""), v: iv * 100 - rv20, i });
   }
   return out.slice(-WINDOW);
 }
@@ -104,16 +117,19 @@ export function VolVrpPanel({
 
   const stats = useMemo(() => {
     if (!enough) return null;
-    const vals = pts.map((p) => p.v).filter(Number.isFinite);
+    const vals = pts.map((p) => p.v);
     const sorted = [...vals].sort((a, b) => a - b);
-    const last = vals[vals.length - 1];
+    const lastPt = pts[pts.length - 1];
+    const last = lastPt.v;
     const lo = pctileOf(sorted, P_LO);
     const hi = pctileOf(sorted, P_HI);
     const less = vals.filter((x) => x < last).length;
     const equal = vals.filter((x) => x === last).length;
     const pct = ((less + equal / 2) / vals.length) * 100;
-    const prev1 = vals.length >= 2 ? vals[vals.length - 2] : null;
-    const prev5 = vals.length >= 6 ? vals[vals.length - 6] : null;
+    // Changes are quoted only against the exact earlier SESSION, never the nearest emitted point.
+    const atSession = (i: number) => pts.find((p) => p.i === i)?.v ?? null;
+    const prev1 = atSession(lastPt.i - 1);
+    const prev5 = atSession(lastPt.i - 5);
     const regime: "compressed" | "normal" | "elevated" =
       last <= lo ? "compressed" : last >= hi ? "elevated" : "normal";
     return {
@@ -135,15 +151,18 @@ export function VolVrpPanel({
     y1 = Math.max(y1, 0);
     const innerW = Math.max(40, w - PAD.l - PAD.r);
     const innerH = H - PAD.t - PAD.b;
-    const sx = (i: number) => PAD.l + (pts.length <= 1 ? 0 : (i / (pts.length - 1)) * innerW);
+    // x is the source session position, so a missing session stays a visible gap.
+    const i0 = pts[0].i;
+    const span = pts[pts.length - 1].i - i0;
+    const sx = (i: number) => PAD.l + (span <= 0 ? 0 : ((i - i0) / span) * innerW);
     const sy = (v: number) => PAD.t + innerH - ((v - y0) / (y1 - y0 || 1)) * innerH;
     // Calendar-boundary month labels, pixel-thinned (chart law R6).
     const bounds: { x: number; label: string }[] = [];
     let prevYm = "";
-    pts.forEach((p, i) => {
+    pts.forEach((p) => {
       const ym = p.d.slice(0, 7);
       if (ym && ym !== prevYm) {
-        bounds.push({ x: sx(i), label: prevYm === "" || ym.slice(5) === "01" ? ym : ym.slice(5) });
+        bounds.push({ x: sx(p.i), label: prevYm === "" || ym.slice(5) === "01" ? ym : ym.slice(5) });
         prevYm = ym;
       }
     });
@@ -154,6 +173,7 @@ export function VolVrpPanel({
       innerH,
       ticks: niceTicks(y0, y1, 3),
       labels: thinLabels(bounds, (l) => l.x, 60),
+      runs: sessionRuns(pts),
     };
   }, [pts, enough, w]);
 
@@ -239,15 +259,18 @@ export function VolVrpPanel({
                 </text>
               </g>
             ))}
-            <polyline
-              fill="none"
-              stroke="var(--brand-2)"
-              strokeWidth={1.4}
-              strokeLinejoin="round"
-              points={pts.map((p, i) => `${geom.sx(i)},${geom.sy(p.v)}`).join(" ")}
-            />
+            {geom.runs.map((run) => (
+              <polyline
+                key={run[0].i}
+                fill="none"
+                stroke="var(--brand-2)"
+                strokeWidth={1.4}
+                strokeLinejoin="round"
+                points={run.map((p) => `${geom.sx(p.i)},${geom.sy(p.v)}`).join(" ")}
+              />
+            ))}
             <circle
-              cx={geom.sx(pts.length - 1)}
+              cx={geom.sx(pts[pts.length - 1].i)}
               cy={geom.sy(stats.last)}
               r={2.5}
               fill={!sessionsAligned || regimeTone === "var(--text)" ? "var(--brand)" : regimeTone}
