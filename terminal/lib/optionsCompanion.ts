@@ -6,6 +6,7 @@ import { isMatrixDocForRoot, type MatrixDoc } from "@/components/gexdesk/matrixD
 import type { GexPayload } from "@/components/gexdesk/GexDeskView";
 import type { MatrixHeatCell, StrikeExpiryDoc } from "@/components/shared/StrikeExpiryMatrix";
 import { isGexDates } from "@/lib/gexSessions";
+import { isoSession } from "@/lib/dte";
 
 export type OptionsPerspective = "gamma" | "vanna" | "oi" | "flow";
 export interface OptionsChartLevel {
@@ -57,11 +58,8 @@ export function optionsRoot(symbol: string): string | null {
   return value.length <= 12 && /^[A-Z][A-Z0-9]*(?:\.[A-Z0-9]+)?$/.test(value) ? value : null;
 }
 
-export function isoSession(value: unknown): string | null {
-  if (typeof value !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(value)) return null;
-  const ms = Date.parse(`${value}T00:00:00Z`);
-  return Number.isFinite(ms) && new Date(ms).toISOString().slice(0, 10) === value ? value : null;
-}
+/** One strict session validator, owned by lib/dte and re-exported for existing callers. */
+export { isoSession };
 
 /** UTC is used only to reject impossible future source sessions, not to infer 0DTE. */
 function validSession(value: unknown, nowMs: number): string | null {

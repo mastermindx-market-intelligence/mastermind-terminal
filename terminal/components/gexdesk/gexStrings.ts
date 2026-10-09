@@ -105,8 +105,14 @@ const GEX_LEX = {
     "按到期日拆分仅支持伽马 — 切换到 GEX 使用该视角",
   ],
   expiryDashNote: [
-    "— = strike outside the per-expiration snapshot, not a zero",
-    "— 表示该行权价不在按到期日快照范围内，并非零值",
+    "— = this strike has no complete value for the selected expirations, not a zero",
+    "— 表示该行权价在所选到期日中没有完整数值，并非零值",
+  ],
+  // Shown when a narrow expiry lens has a gap: the full total is withheld (never shown as
+  // zero or as the known part), and the known part is disclosed as a labelled subtotal.
+  lensPartialNote: [
+    "Total withheld — {k} strike × expiration cells in this selection have no value. Known cells sum to {v}.",
+    "合计暂不显示 — 本次选择中有 {k} 个行权价 × 到期日格没有数值。已知格合计 {v}。",
   ],
 
   // ── Net | Call/Put ladder side toggle ──────────────────────────────────────
@@ -353,6 +359,11 @@ const GEX_LEX = {
     "Vanna 与 Charm 暂未提供按到期日数据 — 仅伽马与德尔塔。",
   ],
   xdrawerEmpty:    ["No expiration breakdown for this ticker yet.", "该品种暂无按到期日数据。"],
+  // The expiration count stays the same across greeks; rows with no value are named here.
+  xdrawerUnresolved: [
+    "{n} of {m} expirations have no value for this greek — shown as —, not counted as zero.",
+    "{m} 个到期日中有 {n} 个没有该希腊值 — 显示为 —，不按零计算。",
+  ],
 
   // ── GEX history strip (net-GEX trend over recent sessions, from the EOD surface) ──
   gexHistTitle:    ["Net GEX — history", "净GEX — 历史"],

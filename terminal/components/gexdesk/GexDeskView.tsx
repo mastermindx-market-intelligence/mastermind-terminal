@@ -57,9 +57,11 @@ import { EodContextBelt } from "@/components/eodcontext/EodContextBelt";
 import { isGexDates, gexSessionOf } from "@/lib/gexSessions";
 import {
   LENS_ALL,
+  fmtMn,
+  matrixDescribedSessionsMatch,
   matrixExpiryCoverage,
   matrixLensByStrike,
-  matrixSessionsAgree,
+  matrixSourceSession,
   type ExpiryLens,
 } from "@/lib/gexLadder";
 
@@ -414,8 +416,9 @@ export function GexDeskView() {
   // the matrix carries the two axes crossed. So: All reads by_strike; every narrower lens
   // is summed out of the matrix here, once, and handed to both consumers below.
   //
-  // Both matrix reads are anchored to the GEX payload's own as-of, never the wall clock —
-  // an EOD snapshot's "0DTE" is a property of the snapshot's session, not of today.
+  // Both matrix reads are anchored to the matrix's own source session (`_build_meta.asof_date`),
+  // never its build clock or the wall clock, and are used only when that session matches the
+  // GEX payload's — an EOD snapshot's "0DTE" is a property of the snapshot's session, not today.
   // Render-time identity fence: React effects clear the prior ticker's matrix only after
   // the ticker-change commit. Gate every consumer synchronously so an already-resolved
   // SPY document can never flash under a newly selected QQQ header for even one render.
@@ -434,12 +437,13 @@ export function GexDeskView() {
     [activePayload?.by_strike]
   );
 
-  // Honesty gate: the matrix and the gex payload disagree on which session they describe
-  // by more than a routine cadence gap — the documented "two weeks behind" drift (see
-  // lib/gexLadder.ts). Treat the matrix as covering nothing so every narrow-lens control
-  // goes dark (existing honest-unavailable state) instead of letting the user select a
-  // lens that would sum — or mislabel 0DTE — across two different sessions.
-  const matrixSessionOk = matrixSessionsAgree(visibleMatrix?.asof, asof);
+  // Honesty gate: the matrix's SOURCE session (`_build_meta.asof_date`, never its build
+  // clock) must be the session the gex payload describes — the coupled view puts both on
+  // one ladder. Otherwise the matrix covers nothing so every narrow-lens control goes dark
+  // (existing honest-unavailable state) instead of letting the user select a lens that
+  // would sum — or mislabel 0DTE — across two different sessions (see lib/gexLadder.ts).
+  const matrixSourceDay = matrixSourceSession(visibleMatrix);
+  const matrixSessionOk = matrixDescribedSessionsMatch(matrixSourceDay, asof);
 
   // Which expiries the matrix can actually answer for THIS ladder (see lib/gexLadder.ts —
   // it demands a real strike overlap, so two stores on different sessions read as "no
@@ -449,10 +453,18 @@ export function GexDeskView() {
     [visibleMatrix, ladderStrikes, matrixSessionOk]
   );
 
+  // The matrix is gamma-only: under DEX/VEX/CHEX no narrow lens exists, so the ladder and
+  // summary read the all-expiry aggregate and a gamma expiry split is never shown under a
+  // non-gamma label. (The greek chips also reset the lens; this guards every other path.)
+  const effectiveLens = greek === "gamma" ? lens : LENS_ALL;
+
   const lensValues = useMemo(
-    () => matrixLensByStrike(visibleMatrix, lens, asof),
-    [visibleMatrix, lens, asof]
+    () => matrixLensByStrike(visibleMatrix, effectiveLens, asof),
+    [visibleMatrix, effectiveLens, asof]
   );
+  // One unknown selected cell withholds the total; the known part is disclosed, labelled.
+  const lensPartial =
+    effectiveLens.kind !== "all" && lensValues.totalMn == null && lensValues.knownTotalMn != null;
 
   // Strike-window disclosure for the summary bar's scoped Net GEX (bug: the hero used to
   // swap strike universe under a narrow lens while naming only the expiry scope). N of the
@@ -573,7 +585,10 @@ export function GexDeskView() {
               style={GREEK_CHIP}
               aria-pressed={greek === g.key}
               aria-label={t(g.fullKey)}
-              onClick={() => setGreek(g.key)}
+              onClick={() => {
+                setGreek(g.key);
+                if (g.key !== "gamma") setLens(LENS_ALL);
+              }}
             >
               {t(g.labelKey)}
             </button>
@@ -620,12 +635,20 @@ export function GexDeskView() {
         /* gexstate OI describes the CURRENT session — never dress an archived bar in it. */
         callOI={isArchived ? null : (visibleStatePayload as unknown as Record<string, number | null | undefined>)?.call_oi ?? null}
         putOI={isArchived ? null : (visibleStatePayload as unknown as Record<string, number | null | undefined>)?.put_oi ?? null}
-        lens={lens}
-        lensNetMn={lensValues.cellCount > 0 ? lensValues.totalMn : null}
+        lens={effectiveLens}
+        lensNetMn={lensValues.totalMn}
         lensCoveredStrikes={lensCoveredStrikeCount}
         lensTotalStrikes={ladderStrikes.length}
         lang={lang}
       />
+      )}
+      {!(isArchived && archivedMissing) && lensPartial && (
+        <div style={LENS_PARTIAL} data-testid="gex-lens-partial" role="note">
+          {t("lensPartialNote")
+            .replace("{k}", String(lensValues.unresolvedPairCount))
+            .replace("{v}", fmtMn(lensValues.knownTotalMn))}
+          {matrixSourceDay && <span style={{ opacity: 0.75 }}> · {matrixSourceDay}</span>}
+        </div>
       )}
 
       {/* ── GEX history strip — the session scrubber, now also the date picker for the
@@ -757,12 +780,12 @@ export function GexDeskView() {
                 levels={ladderLevels}
                 greek={greek}
                 byExpiry={activePayload?.by_expiry ?? null}
-                lens={lens}
+                lens={effectiveLens}
                 onLens={setLens}
                 lensValues={lensValues}
                 lensCoverage={lensCoverage}
                 asOf={asof}
-                matrixAsOf={visibleMatrix?.asof ?? null}
+                matrixAsOf={matrixSourceDay}
                 lang={lang}
                 netGexBn={activePayload?.net_gex_bn ?? null}
                 matrixCells={matrixCells}
@@ -930,6 +953,12 @@ const LENS_NOTE: React.CSSProperties = {
   fontSize: 10,
   color: "var(--muted)",
   fontStyle: "italic",
+};
+
+const LENS_PARTIAL: React.CSSProperties = {
+  fontSize: 11,
+  color: "var(--muted)",
+  padding: "2px 2px 0",
 };
 
 const VIEW_TOGGLE_ROW: React.CSSProperties = {

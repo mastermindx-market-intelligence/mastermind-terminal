@@ -135,13 +135,21 @@ export function findSpotRowIndex(
   return -1;
 }
 
-/** Signed net exposure for a strike row under the active greek lens (all-expiry, $mn). */
-function rowNet(s: StrikeRow, greek: GreekLens): number {
+/** A producer value, or null when it is missing or not a finite number. */
+function finiteOrNull(v: number | null | undefined): number | null {
+  return typeof v === "number" && Number.isFinite(v) ? v : null;
+}
+
+/**
+ * Signed net exposure for a strike row under the active greek lens (all-expiry, $mn).
+ * A greek the producer did not supply for this strike is null (the honest dash), never 0.
+ */
+function rowNet(s: StrikeRow, greek: GreekLens): number | null {
   switch (greek) {
-    case "delta": return s.delta_net ?? 0;
-    case "vanna": return s.vanna_net ?? 0;
-    case "charm": return s.charm_net ?? 0;
-    default:      return s.gamma_net;
+    case "delta": return finiteOrNull(s.delta_net);
+    case "vanna": return finiteOrNull(s.vanna_net);
+    case "charm": return finiteOrNull(s.charm_net);
+    default:      return finiteOrNull(s.gamma_net);
   }
 }
 
@@ -564,10 +572,13 @@ export function StrikeLadder({
   // B8: order-independent — the 0DTE expiry is whichever row lands on the snapshot's
   // session day, not `expiryOptions[0]`. (The old check also used the wall clock, so any
   // already-expired first row read as 0DTE.)
+  // The per-expiration split is gamma-only: under DEX/VEX/CHEX no narrow option can be
+  // selected, so a gamma split is never shown under a non-gamma label.
+  const lensGreekOk = greek === "gamma";
   const zeroOpt = expiryOptions.find((o) => o.isZero) ?? null;
   const has0Dte = zeroOpt != null;
-  const zeroSelectable = has0Dte && zeroOpt.covered;
-  const exZeroSelectable = expiryOptions.some((o) => o.covered && !o.isZero);
+  const zeroSelectable = has0Dte && zeroOpt.covered && lensGreekOk;
+  const exZeroSelectable = lensGreekOk && expiryOptions.some((o) => o.covered && !o.isZero);
   const anyCovered = expiryOptions.some((o) => o.covered);
 
   const lensLabel =
@@ -712,13 +723,13 @@ export function StrikeLadder({
                     style={{
                       ...DD_OPT,
                       ...(lens.kind === "one" && lens.exp === o.exp ? DD_OPT_ACTIVE : {}),
-                      ...(o.covered ? {} : DD_OPT_OFF),
+                      ...(o.covered && lensGreekOk ? {} : DD_OPT_OFF),
                     }}
                     role="option"
                     aria-selected={lens.kind === "one" && lens.exp === o.exp}
-                    aria-disabled={!o.covered}
+                    aria-disabled={!(o.covered && lensGreekOk)}
                     onClick={() => {
-                      if (!o.covered) return;
+                      if (!(o.covered && lensGreekOk)) return;
                       onLens({ kind: "one", exp: o.exp });
                       setDropdownOpen(false);
                     }}
@@ -796,8 +807,8 @@ export function StrikeLadder({
             <WallChip
               label={lens.kind === "all" ? t("ladderWallsNet") : `${t("ladderWallsNet")} · ${lensTag}`}
               value={lens.kind === "all" ? fmtBn(netGexBn) : fmtMn(lensValues.totalMn)}
-              color={(lens.kind === "all" ? (netGexBn ?? 0) : lensValues.totalMn) >= 0 ? "var(--up)" : "var(--down)"}
-              show={lens.kind === "all" ? netGexBn != null : lensValues.cellCount > 0} />
+              color={(lens.kind === "all" ? (netGexBn ?? 0) : (lensValues.totalMn ?? 0)) >= 0 ? "var(--up)" : "var(--down)"}
+              show={lens.kind === "all" ? netGexBn != null : lensValues.totalMn != null} />
             <WallChip label={t("ladderWallsFlip")} value={levels.gammaFlip != null ? fmtStrike(levels.gammaFlip) : "—"}
               color={FLIP_VIOLET} show={levels.gammaFlip != null} />
             <WallChip label={t("ladderWallsCall")} value={levels.callWall != null ? fmtStrike(levels.callWall) : "—"}
