@@ -2921,8 +2921,9 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
             ? verdictLabel("RECLAIM", chipLang)
             : verdictLabel(v, chipLang);
       // An unsettled slice is stated as such, in muted ink — never as "—" (no signal) or a verdict.
-      const sliceNote = sliceStateRef.current === "pending" ? tPlain("cpSignalsPending")
-        : sliceStateRef.current === "unavailable" ? tPlain("cpSignalsUnavailable") : null;
+      // (Inline EN/ZH like the chip's other words: lib/i18n.tsx is pinned by several evidence locks.)
+      const sliceNote = sliceStateRef.current === "pending" ? (chipLang === "zh" ? "信号加载中" : "Signals loading")
+        : sliceStateRef.current === "unavailable" ? (chipLang === "zh" ? "信号暂不可用" : "Signals unavailable") : null;
       const inkColor = sliceNote ? t.mut : chipColor;
       verdictRef.current.textContent = `${tPlain("goldenOracleLbl")} · ${sliceNote ?? vLabel}`;
       verdictRef.current.style.color = inkColor;
