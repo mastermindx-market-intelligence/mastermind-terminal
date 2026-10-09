@@ -2864,7 +2864,8 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
             ? `${name} · ${currentSymbol}`
             : name;
         const identity = [title, timeframeRef.current, instrumentMarketRef.current].filter(Boolean).map(escH).join(" · ");
-        const basis = liveQuoteRef.current?.basis;
+        // The dot names the quote feed. A replayed chart takes no quote, so it claims no feed.
+        const basis = replayIdxRef.current == null ? liveQuoteRef.current?.basis : undefined;
         identityHtml += `<b class="status-symbol-name">${identity}</b><i class="status-market-dot ${basis === "LIVE" ? "is-live" : basis === "DELAYED_15M" ? "is-delayed" : ""}"></i>`;
       }
       if (identityHtml) html += `<span class="status-identity">${identityHtml}</span>`;

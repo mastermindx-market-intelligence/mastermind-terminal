@@ -849,3 +849,35 @@ test("the Golden Oracle chip under Replay waits for its verdict to be known", as
   await expect(oracleChip(page)).toHaveText("Golden Oracle · Stop", ACT);
 });
 
+// The status dot names the quote feed (delayed / live). A replayed chart takes no quote, so the
+// dot must not claim a feed for it; the feed's dot returns with the live chart.
+test("a replayed chart's status dot claims no quote feed", async ({ page }) => {
+  skipWithoutReplayEntry(page);
+  test.slow();
+  const rowsDoc = await (await page.request.get("/data/NVDA.json")).json() as { bars: DailyRow[] };
+  const last = rowsDoc.bars[rowsDoc.bars.length - 1];
+  await page.route("**/api/quote?**", async (route) => {
+    const syms = (new URL(route.request().url()).searchParams.get("syms") || "NVDA").split(",").filter(Boolean);
+    await route.fulfill({ json: { quotes: Object.fromEntries(syms.map((sym) => [sym, sym === "NVDA" ? {
+      sym, last: last[4], prevClose: last[4], chg: 0, open: last[1], high: last[2], low: last[3], vol: last[5],
+      ts: rthAt(last[0], 19, 0), asOfMs: rthAt(last[0], 19, 0) * 1000, lagMs: 900_000, live: true, basis: "DELAYED_15M",
+      market: "us", marketSession: "rth", regularSessionDate: last[0], regularSession: "rth", regularPrice: last[4], regularChg: 0,
+    } : null])) } });
+  });
+  await gotoTerminal(page);
+  await onDailyChart(page);
+  const dot = page.locator(".statusline .status-market-dot").first();
+  // Live: the delayed feed is named — else the replay assertion below holds vacuously.
+  await expect(dot).toHaveClass(/\bis-delayed\b/, ACT);
+
+  await toggleToolbarReplay(page);
+  await expect(replayRail(page)).toBeVisible(ACT);
+  await expect(replayChips(page)).toHaveCount(1, ACT);
+  await expect(dot).not.toHaveClass(/\bis-(delayed|live)\b/, ACT);
+  await replayRail(page).getByRole("button", { name: "Next bar", exact: true }).click(ACT);
+  await expect(dot).not.toHaveClass(/\bis-(delayed|live)\b/, ACT);
+
+  await toggleToolbarReplay(page);
+  await expect(replayRail(page)).toHaveCount(0, ACT);
+  await expect(dot).toHaveClass(/\bis-delayed\b/, ACT);
+});
