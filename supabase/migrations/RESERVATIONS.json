@@ -331,14 +331,14 @@
       "note": "Audit20 parent takeover 01a10f92: read-only legacy snapshot tokens and transactional drawing CAS/replay on the existing RLS table. Open-PR namespace census 2026-10-08 preserves 0029/0030 for #804. Source only; no production application. Applied date is not recorded because source ships unapplied; owning PR #858 retains application and catalog receipts."
     },
     "0032": {
-      "state": "reserved",
-      "file": null,
+      "state": "taken",
+      "file": "0032_portfolio_entry_currency.sql",
       "packet": "TERMINAL-AUDIT20-A09-MONEY",
-      "pr": null,
-      "pr_state": null,
+      "pr": 866,
+      "pr_state": "open",
       "applied_in_production": false,
       "applied_date": null,
-      "note": "Original Audit20 A09: nullable explicit historical entry currency with a receipt bound to ticker and entry price. Legacy units remain unknown; no FX/source/entitlement authority is created. Prefix0031 remains owned by drawings PR858;0029/0030 remain incumbent804 reservations. Production DDL unapplied."
+      "note": "Audit20 A09 native entry currency receipt on own draft #866. Source qualification and consumer adoption in progress; production UNAPPLIED. Preserves incumbent0029/0030 #804 and0031 #858."
     }
   }
 }
