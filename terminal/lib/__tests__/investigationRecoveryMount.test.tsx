@@ -4,6 +4,7 @@ import { createRoot, type Root } from "react-dom/client";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import InvestigationWorkspace from "@/components/workspaces/InvestigationWorkspace";
 import type { InvestigationCommand } from "../investigations";
+import { canonicalInvestigationJson } from "../investigationContracts";
 
 const i18n = vi.hoisted(() => ({ lang: "en" as "en" | "zh" }));
 vi.mock("@/lib/i18n", () => ({ useLang: () => ({ lang: i18n.lang }) }));
@@ -774,5 +775,153 @@ describe("the as-of control is inert while the save outcome is unconfirmed", () 
     await click("Check original outcome");
     expect(reconciles).toEqual([legacy]);
     expect(posts).toHaveLength(0);
+  });
+});
+
+// T03i-r2 (IW2 F1): saved layout references have their own visible choice. "Keep the saved layout" keeps them
+// exactly; No layout selected is a deliberate correction that sends none. A select value is never a request field.
+const SAVED_REF = { layout_id: CAPTURE.layout_id, layout_revision_id: "60000000-0000-4000-8000-000000000001", digest: "a".repeat(64), role: "primary" } as const;
+const KEEP = { en: "Keep the saved layout", zh: "保留已保存的布局" } as const;
+const NO_LAYOUT = "No layout selected";
+const LISTS = { empty: [], available: [layoutRow(4), layoutRow(2, OTHER_LAYOUT, "Margins layout")] };
+function expectNoSelectValues(sent: InvestigationCommand[]) {
+  for (const body of sent) for (const value of ["kept", "retained"]) expect(JSON.stringify(body), `the select value ${value} was sent`).not.toContain(`"${value}"`);
+}
+/** The saved references, entry for entry in order, in the canonical bytes the record digest is computed over. */
+function expectSameRefs(sent: InvestigationCommand, retained: InvestigationCommand) {
+  expect(sent.manifest.layout_refs).toEqual(retained.manifest.layout_refs);
+  expect(canonicalInvestigationJson(sent.manifest.layout_refs)).toBe(canonicalInvestigationJson(retained.manifest.layout_refs));
+}
+/** The rich retained create without a capture, naming saved layout references instead; or that record as a revise. */
+function withSavedRefs(action: "create" | "revise", refs: InvestigationCommand["manifest"]["layout_refs"] = [{ ...SAVED_REF }]): InvestigationCommand {
+  const command = richCreate(); delete command.layout_capture;
+  command.manifest.layout_refs = refs;
+  return action === "create" ? command : { ...command, action: "revise", expected_revision: 1 };
+}
+/** Serves `record` as revision 1 of its own saved research, and `layouts` as the owner's layout list. */
+function serveRecord(record: InvestigationCommand, postReplies: Reply[], layouts: unknown[]) {
+  serve(postReplies, () => ({ status: 200, body: { layouts } }), url => url.startsWith("/api/investigations?id=") ? reply({ status: 200, body: { status: "found", id: record.id, revision: 1, current_revision: 1, lifecycle: "active", manifest: record.manifest, committed_at: "2026-10-09T00:00:00.000Z", layouts: [] } }) : undefined);
+}
+async function typeNext(value: string) {
+  const target = host.querySelector<HTMLTextAreaElement>('textarea[aria-label="Next question (optional)"]');
+  expect(target, "next question").not.toBeNull();
+  await act(async () => {
+    Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, "value")!.set!.call(target, value);
+    target!.dispatchEvent(new Event("input", { bubbles: true }));
+  });
+}
+
+describe("saved layout references have their own keep choice (IW2 F1)", () => {
+  it.each((["create", "revise"] as const).flatMap(action => (["empty", "available"] as const).map(list => [action, list] as const)))("a recovered %s refused for reference_unavailable (%s layout list) keeps them visibly, blocks them unchanged, and No layout selected sends once without them", async (action, list) => {
+    const retained = withSavedRefs(action);
+    sessionStorage.setItem(key, JSON.stringify({ owner, command: retained, phase: "rejected", reason: "reference_unavailable" }));
+    serveRecord(retained, [], LISTS[list]);
+    await mount(); await flush();
+    if (action === "revise") { await click("Open latest revision"); await flush(); await click("Edit saved question"); await flush(); }
+    // The saved references are the selected choice, shown apart from No layout selected.
+    expect(layoutSelect()?.value).toBe("kept");
+    expect(layoutSelect()?.selectedOptions[0]?.textContent).toBe(KEEP.en);
+    expect(layoutOptions()).toEqual([NO_LAYOUT, KEEP.en, ...LISTS[list].map(l => `${l.name} · Revision ${l.config.revision}`)]);
+    const stored = sessionStorage.getItem(key), draft = draftValues();
+    await save();
+    expect(posts, "ordinary Save resent the refused saved layout references").toHaveLength(0);
+    expectBlocked(REFERENCE_UNAVAILABLE, stored, draft);
+    // The deliberate correction, through the actual control.
+    if (list === "available") { await chooseLayout(OTHER_LAYOUT); expect(layoutSelect()?.value).toBe(OTHER_LAYOUT); }
+    await chooseLayout("");
+    expect(layoutSelect()?.selectedOptions[0]?.textContent).toBe(NO_LAYOUT);
+    await save();
+    expect(posts, "a deliberate No layout selected must allow one save without the saved references").toHaveLength(1);
+    expect(posts[0]).toMatchObject({ action, expected_revision: action === "create" ? 0 : 1, ...(action === "revise" ? { id: retained.id } : {}) });
+    expect(posts[0].manifest.layout_refs).toEqual([]);
+    expect(Object.hasOwn(posts[0], "layout_capture")).toBe(false);
+    expect(posts[0].manifest.intent).toEqual(retained.manifest.intent);
+    expect(posts[0].manifest.thesis_refs).toEqual(retained.manifest.thesis_refs);
+    expectCarried(posts[0], retained);
+    expect(posts[0].operation_id).not.toBe(retained.operation_id);
+    expectNoSelectValues(posts);
+  });
+
+  it("shows the keep choice in Chinese", async () => {
+    i18n.lang = "zh";
+    fenceCreate(withSavedRefs("create"));
+    await mount(); await flush();
+    expect(layoutSelect("zh")?.value).toBe("kept");
+    expect(layoutSelect("zh")?.selectedOptions[0]?.textContent).toBe(KEEP.zh);
+    expect(layoutOptions()).toEqual(["未选择布局", KEEP.zh]);
+  });
+
+  it("choosing another layout and then Keep the saved layout again sends the exact saved references and never the choice itself", async () => {
+    const retained = withSavedRefs("create", [{ ...SAVED_REF }, { ...LAYOUT_REF }]);
+    fenceCreate(retained);
+    serveRecord(retained, [], LISTS.available);
+    await mount(); await flush();
+    await chooseLayout(OTHER_LAYOUT);
+    await chooseLayout("kept");
+    expect(layoutSelect()?.selectedOptions[0]?.textContent).toBe(KEEP.en);
+    await save();
+    expect(posts).toHaveLength(1);
+    expectSameRefs(posts[0], retained);
+    expect(Object.hasOwn(posts[0], "layout_capture")).toBe(false);
+    expectNoSelectValues(posts);
+  });
+
+  // Pins: these held before the keep choice existed and must keep holding with it.
+  it.each(["create", "revise"] as const)("an unrelated edit of a %s keeps untouched saved layout references byte for byte", async action => {
+    const retained = withSavedRefs(action, [{ ...SAVED_REF }, { ...LAYOUT_REF }]);
+    serveRecord(retained, [], LISTS.available);
+    if (action === "create") { fenceCreate(retained); await mount(); await flush(); }
+    else {
+      sessionStorage.clear();
+      await act(async () => { root.render(<InvestigationWorkspace ownerKey={owner} initialInvestigationId={retained.id} initialRevision={1}/>); }); await flush();
+      await click("Edit saved question"); await flush();
+    }
+    await typeNext("Does the margin hold next quarter?");
+    await save();
+    expect(posts).toHaveLength(1);
+    expect(posts[0]).toMatchObject({ action, expected_revision: action === "create" ? 0 : 1, ...(action === "revise" ? { id: retained.id } : {}) });
+    expectSameRefs(posts[0], retained);
+    expect(Object.hasOwn(posts[0], "layout_capture")).toBe(false);
+    expect(posts[0].manifest.continuation.next_question).toBe("Does the margin hold next quarter?");
+    expectNoSelectValues(posts);
+  });
+
+  it("in session, an unchanged refused set of saved layout references is never sent again", async () => {
+    const retained = withSavedRefs("create");
+    fenceCreate(retained);
+    serve([REFERENCE_REPLY], () => ({ status: 200, body: { layouts: LISTS.available } }));
+    await mount(); await flush();
+    await click("Try save again"); await flush();
+    expect(posts).toHaveLength(1);
+    expect(posts[0].manifest.layout_refs).toEqual([SAVED_REF]);
+    expect(Object.hasOwn(posts[0], "layout_capture")).toBe(false);
+    expect(notices()).toContain(REFERENCE_UNAVAILABLE);
+    const stored = sessionStorage.getItem(key), draft = draftValues();
+    await save();
+    expect(posts, "ordinary Save resent the refused saved layout references").toHaveLength(1);
+    expectBlocked(REFERENCE_UNAVAILABLE, stored, draft);
+    expect(question()).toBe("Keep my exact draft");
+  });
+});
+
+// T03i-r2 (review P2, mutant M2d): Try save again sends the retained request exactly, so the draft can name a layout
+// the user chose meanwhile. A layout_conflict on that retry must leave that newer choice selected and sendable.
+describe("a layout chosen before Try save again is refused stays chosen", () => {
+  it("keeps the newer choice selected after layout_conflict, and the next Save sends it", async () => {
+    const retained = richCreate(); // capture {L, 3}
+    fenceCreate(retained);
+    serve([LAYOUT_CONFLICT_REPLY], () => ({ status: 200, body: { layouts: [layoutRow(4), layoutRow(2, OTHER_LAYOUT, "Margins layout")] } }));
+    await mount(); await flush();
+    await chooseLayout(OTHER_LAYOUT);
+    await click("Try save again"); await flush();
+    expect(posts).toHaveLength(1);
+    expect(posts[0].layout_capture).toEqual(CAPTURE);
+    expect(notices()).toContain(LAYOUT_CONFLICT);
+    expect(layoutSelect()?.value, "the refusal replaced the layout the user chose").toBe(OTHER_LAYOUT);
+    await save();
+    expect(posts).toHaveLength(2);
+    expect(posts[1].layout_capture).toEqual({ layout_id: OTHER_LAYOUT, expected_revision: 2 });
+    expect(posts[1].operation_id).not.toBe(posts[0].operation_id);
+    expectCarried(posts[1], retained);
   });
 });

@@ -504,3 +504,61 @@ test("a refused Thesis version set is never sent again unchanged, across reload,
  expect(commands[1].manifest.thesis_refs).toEqual([primary]);
  expect(commands[1].operation_id).not.toBe(commands[0].operation_id);
 });
+
+// T03i-r2 (IW2 F1): saved layout references have their own visible choice, apart from No layout selected.
+test("saved layout references stay a visible kept choice while refused, and No layout selected saves once without them",async({page},testInfo)=>{
+ await setup(page);
+ const savedRef={layout_id:"50000000-0000-4000-8000-000000000011",layout_revision_id:"50000000-0000-4000-8000-000000000012",digest:"d".repeat(64),role:"primary"};
+ const retained={id:"10000000-0000-4000-8000-000000000081",operation_id:"20000000-0000-4000-8000-000000000081",action:"create",expected_revision:0,
+  manifest:{schema:"investigation_manifest.v2",argument_relations:[],intent:{title:"Kept layout research",question:"Keep this layout reference",subjects:[{kind:"security",owner:"terminal.analysis_symbol",object_id:"AAPL"}]},layout_refs:[savedRef],thesis_refs:[],evidence_refs:[],continuation:{}}};
+ // A previous page left this create without a confirmed outcome. Seed once, so a reload keeps what the page stored.
+ await page.addInitScript(([k,v])=>{if(!sessionStorage.getItem(k))sessionStorage.setItem(k,v);},[pendingKey,JSON.stringify({owner:"local-preview",command:retained})] as const);
+ type SentRefs=Sent&{manifest:Sent["manifest"]&{layout_refs:unknown[]}};
+ const commands:SentRefs[]=[],bodies:string[]=[];
+ await page.route("**/api/investigations{,?*}",async route=>{
+  const request=route.request(),query=new URL(request.url()).searchParams;
+  if(request.method()==="POST"){bodies.push(request.postData()??"");const command=request.postDataJSON();commands.push(command);
+   if(commands.length===1){await route.fulfill({status:422,json:{status:"reference_unavailable"}});return;}
+   await route.fulfill({json:committed(command.id,command.manifest,command.operation_id)});return;}
+  if(query.has("operation_id")){await route.fulfill({json:{status:"not_applied",id:retained.id,operation_id:retained.operation_id}});return;}
+  if(query.has("id")){const last=commands.at(-1)!;await route.fulfill({json:{...committed(last.id,last.manifest,last.operation_id),status:"found",current_revision:1,layouts:[]}});return;}
+  await route.fulfill({json:{status:"listed",items:[]}});
+ });
+ await page.goto("/analysis?view=investigations");
+ await expect(page.getByText("Save failure confirmed. No records were created.",{exact:true})).toBeVisible({timeout:20_000});
+ const layoutSelect=page.locator("label",{hasText:"Retain a named layout (optional)"}).locator("select");
+ await expect(layoutSelect).toHaveValue("kept",{timeout:20_000});
+ await expect(layoutSelect.locator("option:checked")).toHaveText("Keep the saved layout",{timeout:20_000});
+ await page.getByRole("button",{name:"Try save again"}).click({timeout:20_000});
+ await expect(page.getByText(REFERENCE_UNAVAILABLE_COPY,{exact:true})).toBeVisible({timeout:20_000});
+ expect(commands).toHaveLength(1);
+ expect(commands[0].manifest.layout_refs).toEqual([savedRef]);
+ expect(commands[0].layout_capture).toBeUndefined();
+ const refused=await stored(page);
+ expect(JSON.parse(refused!)).toMatchObject({phase:"rejected",reason:"reference_unavailable",command:{operation_id:commands[0].operation_id}});
+ // The kept references are the refused set: ordinary Save sends nothing, before and after a reload.
+ await page.getByRole("button",{name:"Save research",exact:true}).click({timeout:20_000});
+ expect(await stored(page)).toBe(refused);
+ await page.reload();
+ await expect(page.getByText(REFERENCE_UNAVAILABLE_COPY,{exact:true})).toBeVisible({timeout:20_000});
+ await expect(layoutSelect).toHaveValue("kept",{timeout:20_000});
+ await expect(layoutSelect.locator("option:checked")).toHaveText("Keep the saved layout",{timeout:20_000});
+ await page.getByRole("button",{name:"Save research",exact:true}).click({timeout:20_000});
+ expect(await stored(page)).toBe(refused);
+ expect(commands).toHaveLength(1);
+ expect(await noOverflow(page)).toBe(true);
+ await layoutSelect.scrollIntoViewIfNeeded({timeout:20_000});
+ await page.screenshot({path:testInfo.outputPath("kept-layout-refused.png")});
+ // The deliberate correction, through the visible control: No layout selected, then one save.
+ await layoutSelect.selectOption({label:"No layout selected"},{timeout:20_000});
+ await expect(layoutSelect.locator("option:checked")).toHaveText("No layout selected",{timeout:20_000});
+ await page.screenshot({path:testInfo.outputPath("kept-layout-cleared.png")});
+ await page.getByRole("button",{name:"Save research",exact:true}).click({timeout:20_000});
+ await expect(page.getByRole("heading",{name:"Kept layout research",exact:true})).toBeVisible({timeout:20_000});
+ expect(commands).toHaveLength(2);
+ expect(commands[1].manifest.layout_refs).toEqual([]);
+ expect(commands[1].layout_capture).toBeUndefined();
+ expect(commands[1].manifest.intent).toEqual(retained.manifest.intent);
+ expect(commands[1].operation_id).not.toBe(commands[0].operation_id);
+ for(const body of bodies)expect(body).not.toContain('"kept"');
+});

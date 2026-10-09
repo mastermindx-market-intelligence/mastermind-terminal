@@ -1,5 +1,53 @@
 # Investigation kernel repair — source verification
 
+## Saved layout references have their own choice (repair round 2, 2026-10-09)
+
+Base `36e5c5d7`. Two review findings on #804.
+
+Saved layout references. When a draft started from a saved record or from a
+retained create already named layout references, the layout list showed No
+layout selected, and that choice meant "keep them". So after a
+`reference_unavailable` refusal of those references, choosing No layout
+selected changed nothing: Save stayed blocked and there was no way to send the
+draft without them. Now:
+
+1. The layout list has its own choice, Keep the saved layout (保留已保存的布局),
+   whenever the saved record or the retained create names layout references. It
+   is the selected choice when such a draft opens. It keeps those references
+   exactly as saved and sends no layout capture.
+2. No layout selected now means no layout: Save sends no layout references and
+   no capture. After a refusal it is a deliberate change, so it allows exactly
+   one send. The question, Thesis versions, evidence, baseline and next steps
+   are sent as they were.
+3. Keep the saved layout with references that were just refused still sends
+   nothing, keeps the draft and session storage the same byte for byte, and
+   shows the same guidance. The check in Save is unchanged.
+4. An unrelated edit, such as the next question, keeps saved references entry
+   for entry.
+
+Review finding on the relabel survivor. The earlier record said the unchecked
+relabel had no reachable effect. It does have one. After a save is confirmed
+not applied, the form is open again, and Try save again sends the retained
+request exactly. So the draft can name another layout while that retry sends
+the old one. If the retry is refused for `layout_conflict`, the unchecked
+relabel replaced the user's newer choice with the refused layout. A new mount
+test, "keeps the newer choice selected after layout_conflict, and the next
+Save sends it", fails under that change and passes with the current code.
+
+Evidence. With only the new tests added, the six keep-choice tests fail against
+the `36e5c5d7` product files; the two unrelated-edit checks, the blocked-again
+check and the relabel test pass there. The unchecked relabel turns the relabel
+test red there and on the repair. Eight more changes that undo part of the
+repair were run on it, and every one turns tests red. The new browser journey fails against the `36e5c5d7` component and
+passes all three sizes, 1440×900, 820×1180 and 390×844, from a cold start, with
+screenshots of the kept choice while refused and after No layout selected. The
+Investigation browser file passes all 45 cases. Full Vitest: 499 files, 8,325
+pass, four existing TODOs. TypeScript passes. The component keeps its one
+existing lint error and three warnings, identical by rule to `36e5c5d7`. These
+are fixture-based receipts, not authenticated production proof. 0030 bytes are
+unchanged. This round does not qualify the stale-tab, API and SQL cutover for
+0030, and every #804 hold remains in force.
+
 ## Refused layout and Thesis references are not sent again unchanged (repair round 1 follow-up, 2026-10-09)
 
 Base `da8cb09f`. 0030 refuses a save for good when a named layout no longer
@@ -42,9 +90,9 @@ generic conflict text. Now:
 Evidence. Against the `da8cb09f` product files with the final tests, 25 tests
 fail and 54 pass; the as-of check and the create-copy check pass there by
 design. Eighteen reverted-fix runs were made; 17 turn tests red. The survivor
-relabels the draft without checking its layout. While a save is pending, every
-draft edit is locked, so at settle time the draft still names the sent layout,
-and that change has no reachable effect. Removing `disabled={frozen}` on the
+relabels the draft without checking its layout. This round recorded it as
+having no reachable effect; that was wrong, and repair round 2 below corrects
+it with a test that fails under it. Removing `disabled={frozen}` on the
 form, or the edit lock in exact-time apply or as-of removal, turns the as-of
 check red. With the check in Save removed, both new browser journeys fail at
 1440×900. Focused Vitest: 5 files, 114 tests pass. Full Vitest: 499 files,
