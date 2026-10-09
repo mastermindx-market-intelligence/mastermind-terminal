@@ -15,6 +15,11 @@ vi.mock("@/lib/flowSource", () => ({
   fixtureFor: async () => ({}),
   attachFlowScores: () => {},
   tryFetchUpstream: upstream,
+  // The uncached first read takes the outcome-typed path; it counts against the same mock.
+  tryFetchUpstreamResult: async (f: string) => {
+    const data = await upstream(f);
+    return data ? { status: "data", data } : { status: "unavailable" };
+  },
 }));
 vi.mock("@/lib/optionsAlphaCandidatePair", () => ({
   fetchOptionsAlphaCandidatePair: async () => ({}),
