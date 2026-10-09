@@ -108,10 +108,10 @@ _MARKET_WIDE_OPT = {"opt_premium_burst", "opt_0dte_spike"}
 
 
 def normalize_opt_alert_root(value) -> str | None:
-    """Byte-for-byte port of terminal/lib/optionsAlerts.ts:635-639
-    (normalizeOptAlertRoot). Accepts exactly what Flow._root evaluates: strip+upper,
-    total length ≤ 12, then FLOW_ROOT_RE. A root the engine will refuse is refused
-    here too — F08 freeze §13 C12."""
+    """Byte-for-byte port of normalizeOptAlertRoot (terminal/lib/optionsAlerts.ts),
+    which applies isValidRoot (terminal/lib/flowRoot.ts). Accepts exactly what
+    Flow._root evaluates: strip+upper, total length ≤ 12, then FLOW_ROOT_RE. A root
+    the engine will refuse is refused here too — F08 freeze §13 C12."""
     if not isinstance(value, str):
         return None
     root = value.strip().upper()
