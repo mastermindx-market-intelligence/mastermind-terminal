@@ -226,9 +226,9 @@ describe("capJson — budget pressure keeps GEX identity and caveats or refuses 
 });
 
 // Review round 1 (head 8ff5ad35): a read that did not land is not an empty result
-// (failure-state-truth law). The hub read falls back to the R2 mirror; only a 404 from every
-// store that was asked is an absence. 5xx, network errors, timeouts and unparseable bodies are
-// failed reads: the half is unknown, never "not published" and never "no coverage".
+// (failure-state-truth law). The hub read falls back to the R2 mirror; a mirror 404 is an
+// absence (round 2: the mirror is the store of record). A mirror 5xx, network error, timeout or
+// unparseable body is a failed read: the half is unknown, never "not published" or "no coverage".
 describe("execTool get_options_summary — failed GEX reads are unavailable, not absent", () => {
   const prev = process.env.FLOW_FIXTURE;
   afterEach(() => {
@@ -282,12 +282,18 @@ describe("execTool get_options_summary — failed GEX reads are unavailable, not
     expect(JSON.stringify(down.read_failures)).toMatch(/HTTP 503/);
     expect(JSON.stringify(thrown.read_failures)).toMatch(/network/);
   });
-  it("a mirror 404 behind a failed hub read does not turn the failure into an absence", async () => {
+  // Review round 2 inverted this case. Macro app/hub.py `_hub_fetch` is a read-through cache of
+  // the same R2 object and turns an R2 404 into its own 503 ("unavailable and no cached copy"),
+  // so the hub cannot know more than the mirror. The R2 mirror is the store of record for
+  // absence: a mirror 404 behind a failed hub read is a published absence, not a failed read.
+  it("a mirror 404 behind a failed hub read is an absence, because the hub proxies that same object", async () => {
     stub(async (_side, url) => (url.includes("/api/hub/") ? json(502) : json(404)));
     const gex = await gexOf();
     expect(gex.status).toBe("unavailable");
-    expect(String(gex.reason)).not.toMatch(/coverage/);
-    expect(String(gex.reason)).toMatch(/read failed/);
+    expect(gex.no_data).toBe(true);
+    expect(String(gex.reason)).toMatch(/no GEX coverage/);
+    expect(String(gex.reason)).not.toMatch(/read failed/);
+    expect(gex.read_failures).toBeUndefined();
   });
   it("an unparseable body is a failed read, not an absence", async () => {
     stub(async (side) =>
@@ -433,5 +439,156 @@ describe("execTool get_options_summary — an IV file that could not be read is 
       expect(String(failed.reason)).not.toMatch(/no options IV file/);
       expect(String(failed.reason)).toMatch(/could not be read/);
     }
+  });
+});
+
+// Review round 2 (head 978b6f2f). Production topology, Macro origin/main app/hub.py:
+//   - /api/hub/gex/{root} is a 30s read-through cache of R2 options_hub/gex/{root}.json. Any R2
+//     error, a 404 included, becomes HTTP 503 when no copy is cached; with a cached copy it
+//     returns that copy with {"stale": true} merged (no age).
+//   - there is no /api/hub/gexstate route, so the hub answers 404 for every state read.
+// The R2 mirror is therefore the store of record for absence; the hub only adds a faster path.
+describe("execTool get_options_summary — the R2 mirror decides absence (production hub topology)", () => {
+  const prev = process.env.FLOW_FIXTURE;
+  afterEach(() => {
+    vi.unstubAllGlobals();
+    vi.useRealTimers();
+    if (prev === undefined) delete process.env.FLOW_FIXTURE;
+    else process.env.FLOW_FIXTURE = prev;
+  });
+  type Side = "state" | "ladder";
+  type Store = "hub" | "r2";
+  const json = (status: number, body?: unknown) =>
+    new Response(body === undefined ? "{}" : JSON.stringify(body), { status, headers: { "content-type": "application/json" } });
+  const stub = (handler: (side: Side, store: Store, init?: RequestInit) => Promise<Response>) => {
+    delete process.env.FLOW_FIXTURE;
+    vi.stubGlobal("fetch", vi.fn((input: unknown, init?: RequestInit) => {
+      const url = String(input);
+      return handler(/gexstate|gex_state/.test(url) ? "state" : "ladder", url.includes("/api/hub/") ? "hub" : "r2", init);
+    }));
+  };
+  const aaplLadder = ladder({ root: "AAPL" });
+  const aaplState = state({ root: "AAPL" });
+  const gexOf = async (symbol = "AAPL") => (await execTool("get_options_summary", { symbol })).gex as Obj;
+
+  it("an uncovered root (hub gex 503, no hub state route, R2 404 for both) is no coverage, not a failed read", async () => {
+    stub(async (side, store) => (store === "hub" ? json(side === "ladder" ? 503 : 404) : json(404)));
+    const gex = await gexOf("ABBV");
+    expect(gex.status).toBe("unavailable");
+    expect(gex.no_data).toBe(true);
+    expect(String(gex.reason)).toMatch(/no GEX coverage for this root/);
+    expect(String(gex.reason)).not.toMatch(/read failed|unknown/);
+    expect(gex.read_failures).toBeUndefined();
+  });
+  it("a covered root whose mirror also fails (hub 503, R2 503 or timeout) stays a failed read", async () => {
+    stub(async () => json(503));
+    const down = await gexOf();
+    expect(down.status).toBe("unavailable");
+    expect(String(down.reason)).toMatch(/read failed/);
+    expect((down.read_failures as Obj).ladder).toMatch(/hub HTTP 503.*R2 mirror HTTP 503/);
+    expect((down.read_failures as Obj).state).toMatch(/R2 mirror HTTP 503/);
+  });
+  it("(K4) hub 404 then R2 503 for the state is a failed state read, each store named", async () => {
+    stub(async (side, store) => (side === "ladder" ? json(200, aaplLadder) : store === "hub" ? json(404) : json(503)));
+    const gex = await gexOf();
+    expect(gex.status).toBe("partial");
+    expect(gex.source).toBe("ladder");
+    expect(String(gex.limitations)).toMatch(/state read failed/);
+    expect(String(gex.limitations)).not.toMatch(/no state was published/);
+    const reason = String((gex.read_failures as Obj).state);
+    expect(reason).toMatch(/hub not found/);
+    expect(reason).toMatch(/R2 mirror HTTP 503/);
+  });
+  it("(K4) hub 404 then an R2 timeout for the ladder is a failed ladder read", async () => {
+    vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout"] });
+    stub((side, store, init) => {
+      if (side === "state") return Promise.resolve(store === "hub" ? json(404) : json(200, aaplState));
+      if (store === "hub") return Promise.resolve(json(404));
+      return new Promise<Response>((_resolve, reject) => {
+        init?.signal?.addEventListener("abort", () => reject(new DOMException("aborted", "AbortError")));
+      });
+    });
+    const pending = gexOf();
+    await vi.advanceTimersByTimeAsync(3_100);
+    await vi.advanceTimersByTimeAsync(3_100);
+    const gex = await pending;
+    expect(gex.status).toBe("partial");
+    expect(gex.source).toBe("state");
+    expect(String(gex.limitations)).toMatch(/ladder read failed/);
+    expect(String((gex.read_failures as Obj).ladder)).toMatch(/R2 mirror timed out/);
+  });
+  it("(K1) a 200 whose body is an array or a string is a failed read, not an absence", async () => {
+    for (const body of [[], "x"]) {
+      stub(async (side, store) => (side === "ladder" ? json(200, aaplLadder) : store === "hub" ? json(404) : json(200, body)));
+      const gex = await gexOf();
+      expect(gex.status).toBe("partial");
+      expect(String(gex.limitations)).toMatch(/state read failed/);
+      expect(String((gex.read_failures as Obj).state)).toMatch(/R2 mirror returned a non-object body/);
+    }
+  });
+  it("a hub cached copy served with stale:true is flagged stale, not presented as current", async () => {
+    stub(async (side, store) =>
+      side === "ladder"
+        ? store === "hub" ? json(200, { ...aaplLadder, stale: true }) : json(503)
+        : store === "hub" ? json(404) : json(200, aaplState),
+    );
+    const matched = await gexOf();
+    expect(matched.status).toBe("matched");
+    expect(matched.stale).toBe(true);
+    expect(JSON.stringify(matched.stale_reasons)).toMatch(/ladder.*cached copy/);
+
+    stub(async (side, store) => (side === "ladder" ? (store === "hub" ? json(200, { ...aaplLadder, stale: true }) : json(503)) : json(404)));
+    const partial = await gexOf();
+    expect(partial.status).toBe("partial");
+    expect(partial.stale).toBe(true);
+    expect(JSON.stringify(partial.stale_reasons)).toMatch(/ladder.*cached copy/);
+
+    stub(async (side, store) =>
+      side === "ladder"
+        ? store === "hub" ? json(200, { ...aaplLadder, stale: true }) : json(503)
+        : store === "hub" ? json(404) : json(200, { ...aaplState, revision: "r2" }),
+    );
+    const separate = await gexOf();
+    expect(separate.status).toBe("separate");
+    expect((separate.ladder as Obj).stale).toBe(true);
+    expect((separate.state as Obj).stale).toBeUndefined();
+
+    stub(async (side, store) => (store === "hub" ? json(side === "ladder" ? 200 : 404, aaplLadder) : json(200, aaplState)));
+    const fresh = await gexOf();
+    expect(fresh.status).toBe("matched");
+    expect(fresh.stale).toBeUndefined();
+    expect(fresh.stale_reasons).toBeUndefined();
+  });
+});
+
+describe("capJson — the refusal floor and the omitted record are exercised, not just bounded", () => {
+  it("(K6) a requested cap below the floor still keeps a compact GEX identity and read failures verbatim", () => {
+    const rec: Obj = {
+      status: "partial", source: "ladder", root: "AAPL", session: "2026-10-02", basis: "dealer-sign",
+      revision: "r1", read_failures: { state: "R2 mirror HTTP 503" }, net_gex_bn: 2, note: "n".repeat(400),
+    };
+    for (const cap of [1, 60, 150, MIN_CAP_BYTES - 1]) {
+      const out = capJson(rec, cap);
+      expect(out.oversize).toBeUndefined();
+      for (const k of ["status", "source", "root", "session", "basis", "revision"]) expect(out[k]).toEqual(rec[k]);
+      expect(out.read_failures).toEqual(rec.read_failures);
+      expect(out.omitted).toEqual(expect.arrayContaining(["note"]));
+      expect(Buffer.byteLength(JSON.stringify(out), "utf8")).toBeLessThanOrEqual(MIN_CAP_BYTES);
+    }
+  });
+  it("(K3) a refusal after earlier drops still names the keys dropped before it", () => {
+    const out = capJson({
+      symbol: "SPY",
+      stale: true,
+      stale_reasons: ["missing_or_invalid_asof"],
+      story: "s".repeat(700),
+      market_risk: {
+        status: "partial",
+        asof: "2026-10-02",
+        withheld: Object.fromEntries(Array.from({ length: 30 }, (_, i) => [`k${i}`, "w".repeat(40)])),
+      },
+    }, 600);
+    expect(out.oversize).toBe(true);
+    expect(out.omitted).toEqual(expect.arrayContaining(["story", "market_risk"]));
   });
 });

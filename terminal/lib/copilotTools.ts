@@ -74,7 +74,8 @@ export function scalarize(o: unknown, maxKeys = 12): Record<string, unknown> | n
 
 const CAP_CHARS = 2000;
 /** Budget floor: the smallest typed oversize refusal (with a 15-char symbol and root) is ~256
- *  bytes, so a smaller requested cap is raised to this floor rather than broken. The production
+ *  bytes, so a smaller requested cap is raised to this floor rather than broken, and a compact
+ *  identity + qualifier set that fits the floor is kept instead of being refused. The production
  *  cap (CAP_CHARS) is far above it. */
 export const MIN_CAP_BYTES = 320;
 /** Explicit budget unit for capJson. JS string length is UTF-16 code units and
@@ -443,8 +444,9 @@ async function fetchPlane(): Promise<MarketPlane | null> {
   }
 }
 
-/** A GEX read that did not land: 5xx, network error, timeout or an unparseable body. Distinct
- *  from an absent payload (null), which means every store asked answered 404. A failed read
+/** A GEX read that did not land: the R2 mirror answered 5xx, a network error, a timeout or an
+ *  unparseable / non-object body (and the hub had no copy). Distinct from an absent payload
+ *  (null), which means the R2 mirror, the store of record, answered 404. A failed read
  *  leaves that half unknown; it is never reported as "not published" or "no coverage". */
 export class GexReadFailure {
   constructor(readonly reason: string) {}
@@ -487,20 +489,19 @@ async function fetchGexPayloads(root: string): Promise<{ gex: unknown; state: un
     const state = await readDataJson("gexstate_fixture.json");
     return { gex: all?.[root.toUpperCase()] ?? null, state };
   }
-  // The hub is primary and R2 the mirror. Absent only when both answer 404; any other miss is a
-  // failed read (a mirror 404 behind a failed hub read cannot prove the hub had nothing).
+  // The hub is tried first and the R2 mirror decides. Producer contract (Macro app/hub.py):
+  // /api/hub/gex/{root} is a read-through cache of this same R2 object that turns any R2 error,
+  // a 404 included, into HTTP 503 when it holds no copy, and serves its cached copy with
+  // {"stale": true} when it does; there is no hub route for gexstate (always 404). The hub can
+  // never know more than the mirror, so only the mirror's answer separates absent from failed:
+  // a mirror 404 is absent whatever the hub said; any other mirror miss is a failed read.
   const grab = async (backendPath: string, r2Key: string): Promise<unknown> => {
     const hub = await readStore(`${FLOW_BACKEND}${backendPath}`, "hub");
     if (hub.kind === "data") return hub.payload;
     const r2 = await readStore(`${R2_BASE}/${r2Key}`, "R2 mirror");
     if (r2.kind === "data") return r2.payload;
-    if (hub.kind === "absent" && r2.kind === "absent") return null;
-    return new GexReadFailure(
-      [hub, r2]
-        .map((r) => (r.kind === "failed" ? r.reason : r.kind === "absent" ? "not found" : ""))
-        .filter(Boolean)
-        .join("; "),
-    );
+    if (r2.kind === "absent") return null;
+    return new GexReadFailure(`${hub.kind === "failed" ? hub.reason : "hub not found"}; ${r2.reason}`);
   };
   const [gex, state] = await Promise.all([
     grab(`/api/hub/gex/${root}`, `options_hub/gex/${root}.json`),
@@ -917,6 +918,19 @@ function bindGexSource(side: GexSide, raw: unknown, owner: string | undefined): 
   return { kind: "bound", payload: o, id, clocked: gexClockValid(o.asof) };
 }
 
+/** The hub serves its last cached copy with {"stale": true} when its R2 read fails. Producers
+ *  never write a `stale` key, so the flag marks an older observation of unknown age: it is
+ *  carried as a qualifier and never presented as the current read. */
+function gexStaleReasons(...sides: [GexSide, Extract<GexSource, { kind: "bound" }>][]): string[] {
+  return sides
+    .filter(([, src]) => src.payload.stale === true)
+    .map(([side]) => `${side} is the hub's cached copy served after a failed R2 read; its age is unknown`);
+}
+
+function withStale(rec: Record<string, unknown>, reasons: string[]): Record<string, unknown> {
+  return reasons.length ? { ...rec, stale: true, stale_reasons: reasons } : rec;
+}
+
 function gexStateFields(s: Record<string, unknown>): Record<string, unknown> {
   return {
     spot: rnd(s.spot, 4),
@@ -971,7 +985,7 @@ export function curateGex(gex: unknown, state: unknown, ownerRoot?: string): Rec
     const s = st.payload;
     if (ladder.clocked && st.clocked && !gexIdentitiesConflict(ladder.id, st.id)) {
       const session = st.id.session as string;
-      return {
+      return withStale({
         status: "matched",
         ...st.id,
         asof: GEX_DAY.test(session) ? session : (s.asof as string),
@@ -984,19 +998,22 @@ export function curateGex(gex: unknown, state: unknown, ownerRoot?: string): Rec
         call_wall: rnd(s.call_wall ?? g.call_wall),
         put_wall: rnd(s.put_wall ?? g.put_wall),
         ...gexWalls(g, true),
-      };
+      }, gexStaleReasons(["state", st], ["ladder", ladder]));
     }
-    const sub = (src: Extract<GexSource, { kind: "bound" }>, fields: Record<string, unknown>) =>
-      src.clocked
-        ? { ...src.id, asof: src.payload.asof, ...fields }
-        : { ...src.id, asof: src.payload.asof ?? null, unavailable: "no valid producer clock; numbers withheld" };
+    const sub = (side: GexSide, src: Extract<GexSource, { kind: "bound" }>, fields: Record<string, unknown>) =>
+      withStale(
+        src.clocked
+          ? { ...src.id, asof: src.payload.asof, ...fields }
+          : { ...src.id, asof: src.payload.asof ?? null, unavailable: "no valid producer clock; numbers withheld" },
+        gexStaleReasons([side, src]),
+      );
     return {
       status: "separate",
       mixed_source: true,
       reason: "GEX state and ladder disagree on root, session, basis or revision, or identity is unknown",
       limitations: "state and ladder are separate evidence; one clock does not certify the other",
-      state: sub(st, gexStateFields(s)),
-      ladder: sub(ladder, gexLadderFields(g)),
+      state: sub("state", st, gexStateFields(s)),
+      ladder: sub("ladder", ladder, gexLadderFields(g)),
     };
   }
 
@@ -1012,7 +1029,7 @@ export function curateGex(gex: unknown, state: unknown, ownerRoot?: string): Rec
           ? `the ${failedNote(other)}`
           : `no ${other} was published for this root`;
     const p = one.src.payload;
-    return {
+    return withStale({
       status: "partial",
       source: one.side,
       ...one.src.id,
@@ -1023,7 +1040,7 @@ export function curateGex(gex: unknown, state: unknown, ownerRoot?: string): Rec
       limitations: `${one.side}-only GEX read on the ${one.side}'s own clock; ${otherNote}; nothing from the ${other} is included`,
       ...(Object.keys(withheld).length ? { withheld } : {}),
       ...(Object.keys(readFailures).length ? { read_failures: readFailures } : {}),
-    };
+    }, gexStaleReasons([one.side, one.src]));
   }
 
   for (const [side, src] of [["ladder", ladder], ["state", st]] as const) {
@@ -1035,7 +1052,7 @@ export function curateGex(gex: unknown, state: unknown, ownerRoot?: string): Rec
         ? failedNote(side)
         : withheld[side]
           ? `${side} withheld (${String((withheld[side] as Record<string, unknown>).reason)})`
-          : `${side} not found in the hub or R2 mirror`,
+          : `no ${side} was published for this root`,
     );
     return {
       status: "unavailable",
