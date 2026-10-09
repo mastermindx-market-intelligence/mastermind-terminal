@@ -202,7 +202,8 @@ test("an already-open legacy writer cannot erase a modern exact retry or resurre
 
 // Clearing site data removes the journal without acknowledging anything. The
 // next write from a tab that still holds unsaved work must keep it, together
-// with the exact operation of a save whose response was lost.
+// with the exact operation of a save whose response was lost, for an explicit
+// choice: without a receipt it cannot prove an explicit discard did not remove it.
 type StorageLossCopy={drawings:{id:string}[];revision?:string|null;blocked?:string;attempt?:{operationId:string}};
 type StorageLossWindow=Window&{
  journal:Record<string,StorageLossCopy>;
@@ -232,8 +233,8 @@ test("a site-data clear is not an acknowledgement for an open tab or an already-
    const durable=await api.writeDrawingJournal(localStorage,owner,journal);
    const stored=api.readDrawingJournal(localStorage,owner);
    return {durable,memory:journal.NVDA?.attempt?.operationId??null,stored:stored.NVDA?.attempt?.operationId??null,
-    drawing:stored.NVDA?.drawings?.[0]?.id??null,legacy:stored.AAPL?{blocked:stored.AAPL.blocked,ids:stored.AAPL.drawings.map(d=>d.id)}:null};
+    drawing:stored.NVDA?.drawings?.[0]?.id??null,review:[journal.NVDA?.blocked??null,stored.NVDA?.blocked??null],legacy:stored.AAPL?{blocked:stored.AAPL.blocked,ids:stored.AAPL.drawings.map(d=>d.id)}:null};
   },owner);
-  expect(result).toEqual({durable:true,memory:operationId,stored:operationId,drawing:"unsaved",legacy:{blocked:"legacy",ids:["old-tab"]}});
+  expect(result).toEqual({durable:true,memory:operationId,stored:operationId,drawing:"unsaved",review:["conflict","conflict"],legacy:{blocked:"legacy",ids:["old-tab"]}});
  }finally{await old.close();}
 });

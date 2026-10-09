@@ -1,7 +1,11 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 const db = vi.hoisted(() => ({rpc:vi.fn(),auth:{getUser:vi.fn()}}));
+const jar = vi.hoisted(() => new Map<string,string>());
 vi.mock("@/lib/supabase/server",()=>({createClient:async()=>db}));
+vi.mock("next/headers",()=>({cookies:async()=>({get:(name:string)=>jar.has(name)?{name,value:jar.get(name)}:undefined})}));
 import { GET, PUT } from "@/app/api/drawings/route";
+import { parseDrawingSaveReceipt, parseDrawingSnapshot } from "@/lib/drawingPersistence";
+import { GUEST_COOKIE } from "@/lib/layoutsFixtureDb";
 const operationId="11111111-1111-4111-8111-111111111111";
 const revision="22222222-2222-4222-8222-222222222222";
 const drawing={id:"user-line",schemaVersion:1,source:"user",kind:"hline",points:[{t:"2026-01-01",p:100}]};
@@ -62,5 +66,48 @@ describe("transactional drawing API",()=>{
  it("does not expose an account snapshot to a guest",async()=>{
   db.auth.getUser.mockResolvedValue({data:{user:null}});expect((await GET(new Request("https://example.test/api/drawings?symbol=NVDA"))).status).toBe(401);
   expect(db.rpc).not.toHaveBeenCalled();
+ });
+});
+
+// The Playwright server signs the page in without a Supabase session. Its
+// drawings identity must match the page so the readiness gate opens, while
+// every validation and the guest refusal stay exactly as in production.
+describe("e2e fixture drawings account",()=>{
+ const env={fixture:process.env.TERMINAL_E2E_FIXTURE,email:process.env.TERMINAL_E2E_EMAIL};
+ const fixtureRequest=(body:Record<string,unknown>)=>new Request("https://example.test/api/drawings",{method:"PUT",body:JSON.stringify({ownerKey:"account:responsive@example.com",...body})});
+ beforeEach(()=>{process.env.TERMINAL_E2E_FIXTURE="1";process.env.TERMINAL_E2E_EMAIL="responsive@example.com";jar.clear();});
+ afterEach(()=>{
+  if(env.fixture===undefined) delete process.env.TERMINAL_E2E_FIXTURE; else process.env.TERMINAL_E2E_FIXTURE=env.fixture;
+  if(env.email===undefined) delete process.env.TERMINAL_E2E_EMAIL; else process.env.TERMINAL_E2E_EMAIL=env.email;
+  jar.clear();
+ });
+ it("reads a valid empty snapshot for the signed-in fixture account without storage",async()=>{
+  const response=await GET(new Request("https://example.test/api/drawings?symbol=NVDA&ownerKey=account:responsive@example.com"));
+  expect(response.status).toBe(200);expect(response.headers.get("Cache-Control")).toBe("private, no-store");
+  expect(parseDrawingSnapshot(await response.json())).toEqual({drawings:[],revision:null,schemaVersion:1});
+  expect(db.rpc).not.toHaveBeenCalled();expect(db.auth.getUser).not.toHaveBeenCalled();
+ });
+ it("keeps the guest refusal, account check and symbol check",async()=>{
+  expect((await GET(new Request("https://example.test/api/drawings?symbol=NVDA&ownerKey=account:other@example.com"))).status).toBe(409);
+  expect((await GET(new Request("https://example.test/api/drawings?ownerKey=account:responsive@example.com"))).status).toBe(400);
+  jar.set(GUEST_COOKIE,"1");
+  expect((await GET(new Request("https://example.test/api/drawings?symbol=NVDA"))).status).toBe(401);
+  expect((await PUT(fixtureRequest({symbol:"NVDA",drawings:[],expectedRevision:null,operationId}))).status).toBe(401);
+  expect(db.rpc).not.toHaveBeenCalled();
+ });
+ it("acknowledges a valid save with a receipt the client accepts and still rejects invalid saves",async()=>{
+  const attempt={operationId,expectedRevision:null,drawings:[drawing]};
+  const response=await PUT(fixtureRequest({symbol:"NVDA",...attempt}));
+  expect(response.status).toBe(200);
+  expect(parseDrawingSaveReceipt(await response.json(),attempt as Parameters<typeof parseDrawingSaveReceipt>[1])).toMatchObject({operationId,idempotentReplay:false,superseded:false});
+  expect((await PUT(fixtureRequest({symbol:"NVDA",drawings:[drawing]}))).status).toBe(400);
+  expect((await PUT(fixtureRequest({symbol:"NVDA",drawings:[{...drawing,source:"ai"}],expectedRevision:null,operationId}))).status).toBe(422);
+  expect((await PUT(fixtureRequest({ownerKey:"account:other@example.com",symbol:"NVDA",drawings:[],expectedRevision:null,operationId}))).status).toBe(409);
+  expect(db.rpc).not.toHaveBeenCalled();
+ });
+ it("is off unless the fixture variable is exactly set",async()=>{
+  process.env.TERMINAL_E2E_FIXTURE="0";db.auth.getUser.mockResolvedValue({data:{user:null}});
+  expect((await GET(new Request("https://example.test/api/drawings?symbol=NVDA&ownerKey=account:responsive@example.com"))).status).toBe(401);
+  expect((await PUT(fixtureRequest({symbol:"NVDA",drawings:[],expectedRevision:null,operationId}))).status).toBe(401);
  });
 });

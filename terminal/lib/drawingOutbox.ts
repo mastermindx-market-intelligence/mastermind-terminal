@@ -16,10 +16,13 @@ export const DRAWING_JOURNAL_KEY = "mm.drawing.account-outbox.v2";
 export const DRAWING_RECEIPTS_KEY = "mm.drawing.retired-copies.v1";
 /**
  * Acknowledged copy IDs kept per owner, matching the server's 32 prior
- * operations. An older acknowledgement is forgotten: its stale copy is kept
- * again and its next save meets the server's replay or revision conflict.
+ * operations. An older acknowledgement is forgotten: a stale tab's copy is
+ * then kept again, but only for review. It never saves by itself, because the
+ * missing receipt cannot prove whether an explicit discard removed it.
  */
 export const DRAWING_RECEIPT_HISTORY = 32;
+/** Account namespaces kept in the receipt store; the least recent is dropped first. */
+export const DRAWING_RECEIPT_OWNERS = 8;
 
 export type DrawingOutbox = Record<string, Drawing[]>;
 type StoragePort = Pick<Storage, "getItem" | "setItem" | "removeItem">;
@@ -148,13 +151,23 @@ function readRetiredCopies(storage: StoragePort, owner: string): string[] {
     return Array.isArray(ids) ? ids.filter(validDrawingOperationId).slice(-DRAWING_RECEIPT_HISTORY) : [];
   } catch { return []; }
 }
+/** Unreadable receipt bytes are set aside here once, never silently overwritten. */
+export const DRAWING_RECEIPTS_UNREADABLE_KEY = `${DRAWING_RECEIPTS_KEY}.unreadable`;
 function writeRetiredCopies(storage: StoragePort, owner: string, ids: string[]): void {
   let envelope: Record<string, unknown> = {};
+  const stored = storage.getItem(DRAWING_RECEIPTS_KEY);
+  let readable = false;
   try {
-    const raw: unknown = JSON.parse(storage.getItem(DRAWING_RECEIPTS_KEY) || "{}");
-    if (raw && typeof raw === "object" && !Array.isArray(raw)) envelope = raw as Record<string, unknown>;
-  } catch { /* Rebuilding loses only receipts, which keeps copies rather than dropping them. */ }
+    const raw: unknown = JSON.parse(stored || "{}");
+    if (raw && typeof raw === "object" && !Array.isArray(raw)) { envelope = raw as Record<string, unknown>; readable = true; }
+  } catch { /* Kept below for inspection; rebuilding keeps copies rather than dropping them. */ }
+  // Keep other accounts' unreadable receipts recoverable instead of erasing them.
+  if (!readable && stored !== null && storage.getItem(DRAWING_RECEIPTS_UNREADABLE_KEY) === null) storage.setItem(DRAWING_RECEIPTS_UNREADABLE_KEY, stored);
+  // Re-insert this owner last so the bound drops the least recently used account.
+  delete envelope[owner];
   envelope[owner] = ids.slice(-DRAWING_RECEIPT_HISTORY);
+  const owners = Object.keys(envelope);
+  for (const stale of owners.slice(0, Math.max(0, owners.length - DRAWING_RECEIPT_OWNERS))) delete envelope[stale];
   storage.setItem(DRAWING_RECEIPTS_KEY, JSON.stringify(envelope));
 }
 function resolveLegacyAlias(record: JournalRecord, alias: string | undefined, token: string | undefined, retired: ReadonlySet<string>): { id: string; retired: boolean } | undefined {
@@ -273,6 +286,7 @@ export async function writeDrawingJournal(
       const previous = baselines.get(journal) ?? {};
       const next: JournalBaseline = {};
       const updates: Array<[Entry, string]> = [];
+      const restored: Entry[] = [];
       const retiredSymbols: string[] = [];
       for (const symbol of new Set([...Object.keys(namespace), ...Object.keys(imports), ...Object.keys(previous), ...Object.keys(journal)])) {
         const record = namespace[symbol] ?? { format: 2 as const, copies: {}, legacySeen: {}, legacyLinks: {} };
@@ -309,11 +323,15 @@ export async function writeDrawingJournal(
           }
           let id = resolve(entry.recoveryId);
           const unchanged = id && copies[id] && base?.hashes[entry.recoveryId!] === fingerprint(copies[id]);
-          // An observed copy missing without a receipt was lost with browser
-          // storage, not acknowledged: restore it under its own ID.
+          // An observed copy missing without a receipt was either lost with
+          // browser storage or removed by an explicit discard whose receipt has
+          // aged out or been cleared. Keep it under its own ID, with its exact
+          // operation as evidence, for an explicit choice: never as an attempt
+          // that saves by itself over the cloud.
           const lost = !alias && id && id === entry.recoveryId && base?.hashes[id] && !copies[id] && validDrawingOperationId(id);
           if (!unchanged && !lost) id = crypto.randomUUID();
-          copies[id!] = storedEntry(entry);
+          copies[id!] = lost ? { ...storedEntry(entry), blocked: entry.blocked ?? "conflict" } : storedEntry(entry);
+          if (lost) restored.push(entry);
           updates.push([entry, id!]);
           for (const alternative of entry.alternatives ?? []) {
             const importedCopy = imported[alternative.recoveryId ?? ""];
@@ -335,6 +353,7 @@ export async function writeDrawingJournal(
       else storage.removeItem(DRAWING_JOURNAL_KEY);
       // Change the in-memory baseline only after the actual durable write.
       updates.forEach(([entry, id]) => { entry.recoveryId = id; });
+      restored.forEach((entry) => { entry.blocked ??= "conflict"; });
       retiredSymbols.forEach((symbol) => { delete journal[symbol]; });
       baselines.set(journal, next);
       return true;

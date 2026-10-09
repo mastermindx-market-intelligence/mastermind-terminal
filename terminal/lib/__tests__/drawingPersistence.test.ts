@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { parseDrawingSaveReceipt, parseDrawingSnapshot, parsePersistedDrawings, prepareDrawingAttempt, settleDrawingAttempt, type DrawingJournalEntry } from "@/lib/drawingPersistence";
-import { readDrawingJournal, writeDrawingJournal, writeDrawingOutbox, refreshDrawingJournalSymbol, reconcileDrawingJournal, selectDrawingRecoveryCopy, DRAWING_JOURNAL_KEY, DRAWING_RECEIPTS_KEY, DRAWING_RECEIPT_HISTORY, type DrawingJournalLocks } from "@/lib/drawingOutbox";
+import { readDrawingJournal, writeDrawingJournal, writeDrawingOutbox, refreshDrawingJournalSymbol, reconcileDrawingJournal, selectDrawingRecoveryCopy, DRAWING_JOURNAL_KEY, DRAWING_RECEIPTS_KEY, DRAWING_RECEIPTS_UNREADABLE_KEY, DRAWING_RECEIPT_HISTORY, DRAWING_RECEIPT_OWNERS, type DrawingJournalLocks } from "@/lib/drawingOutbox";
 let lockTail=Promise.resolve();
 const locks={request:(_name:string, fn:()=>unknown)=>{const task=lockTail.then(fn);lockTail=task.then(()=>{},()=>{});return task;}} as DrawingJournalLocks;
 const persist=(storage:MemoryStorage,journal:import("@/lib/drawingPersistence").DrawingJournal,owner="account:a")=>writeDrawingJournal(storage,owner,journal,locks);
@@ -292,7 +292,8 @@ describe("concurrent legacy import ownership",()=>{
 });
 
 // Clearing site data or browser eviction removes the journal without any
-// acknowledgement. A missing copy alone must never retire unsaved memory.
+// acknowledgement. A missing copy alone must never retire unsaved memory, and
+// it cannot prove the copy was not discarded, so it is kept for review.
 describe("lost browser storage is not an acknowledgement",()=>{
  const loseSiteData=(storage:MemoryStorage)=>storage.values.clear();
  it("keeps an unchanged pending copy when the next write follows lost site data",async()=>{
@@ -304,8 +305,9 @@ describe("lost browser storage is not an acknowledgement",()=>{
   expect(await persist(storage,journal)).toBe(true);
   expect(journal.NVDA?.drawings[0].id).toBe("unsaved");
   expect(readDrawingJournal(storage,"account:a").NVDA?.drawings[0].id).toBe("unsaved");
+  expect(journal.NVDA?.blocked).toBe("conflict");
  });
- it("keeps the exact lost-response operation when the retry write follows lost site data",async()=>{
+ it("keeps the exact lost-response operation for review when the retry write follows lost site data",async()=>{
   const storage=new MemoryStorage();const journal=readDrawingJournal(storage,"account:a");
   journal.NVDA={drawings:[line("queued")],revision:null,attempt:{operationId:op,expectedRevision:null,drawings:[line("sent")]}};
   expect(await persist(storage,journal)).toBe(true);
@@ -314,7 +316,11 @@ describe("lost browser storage is not an acknowledgement",()=>{
   expect(journal.NVDA?.attempt?.operationId).toBe(op);
   const recovered=readDrawingJournal(storage,"account:a").NVDA;
   expect(recovered?.attempt).toEqual({operationId:op,expectedRevision:null,drawings:[line("sent")]});
-  expect(prepareDrawingAttempt(recovered!,()=>{throw new Error("must not mint another operation");})?.operationId).toBe(op);
+  // Lost storage and a discard whose receipt was cleared look the same, so
+  // the exact operation waits for an explicit choice instead of resending.
+  expect(journal.NVDA?.blocked).toBe("conflict");
+  expect(recovered?.blocked).toBe("conflict");
+  expect(prepareDrawingAttempt(recovered!,()=>{throw new Error("must not mint another operation");})).toBeNull();
  });
  it("keeps unsaved memory on account re-entry after site data was lost",async()=>{
   const storage=new MemoryStorage();const journal=readDrawingJournal(storage,"account:a");
@@ -342,8 +348,8 @@ describe("lost browser storage is not an acknowledgement",()=>{
 });
 
 // Acknowledgement receipts are positive evidence and bounded per owner. When a
-// receipt ages out or is lost, a stale copy is kept again (fail-safe): its next
-// save meets the server's exact replay or revision conflict, never a silent loss.
+// receipt ages out or is lost, a stale copy is kept again (fail-safe), but only
+// for review: it is never a silent loss and never a save that runs by itself.
 describe("bounded acknowledgement receipts",()=>{
  const receiptsOf=(storage:MemoryStorage,owner="account:a")=>JSON.parse(storage.getItem(DRAWING_RECEIPTS_KEY)??"{}")[owner];
  const acknowledge=async(storage:MemoryStorage,symbol:string,owner="account:a")=>{
@@ -365,7 +371,7 @@ describe("bounded acknowledgement receipts",()=>{
   expect(receiptsOf(storage,"account:b")).toEqual([other]);
   expect(storage.getItem(DRAWING_JOURNAL_KEY)).toBeNull();
  });
- it("retires a stale tab's receipted copy but keeps one whose receipt aged out",async()=>{
+ it("retires a stale tab's receipted copy but keeps one whose receipt aged out for review",async()=>{
   const storage=new MemoryStorage(),owner=readDrawingJournal(storage,"account:a");
   owner.NVDA={drawings:[line("seen")],revision};
   expect(await persist(storage,owner)).toBe(true);
@@ -379,10 +385,11 @@ describe("bounded acknowledgement receipts",()=>{
   for(let index=0;index<DRAWING_RECEIPT_HISTORY;index++) await acknowledge(storage,`S${index}`);
   expect(receiptsOf(storage)).not.toContain(id);
   expect(await persist(storage,aged)).toBe(true);
-  expect(aged.NVDA).toMatchObject({drawings:[{id:"seen"}],revision,recoveryId:id});
-  expect(readDrawingJournal(storage,"account:a").NVDA).toMatchObject({drawings:[{id:"seen"}],revision,recoveryId:id});
+  expect(aged.NVDA).toMatchObject({drawings:[{id:"seen"}],revision,recoveryId:id,blocked:"conflict"});
+  expect(readDrawingJournal(storage,"account:a").NVDA).toMatchObject({drawings:[{id:"seen"}],revision,recoveryId:id,blocked:"conflict"});
+  expect(prepareDrawingAttempt(aged.NVDA,()=>op)).toBeNull();
  });
- it("keeps a stale tab's copy when site data was lost after its acknowledgement",async()=>{
+ it("keeps a stale tab's copy for review when site data was lost after its acknowledgement",async()=>{
   const storage=new MemoryStorage(),owner=readDrawingJournal(storage,"account:a");
   owner.NVDA={drawings:[line("seen")],revision};
   expect(await persist(storage,owner)).toBe(true);
@@ -392,6 +399,7 @@ describe("bounded acknowledgement receipts",()=>{
   storage.values.clear();
   expect(await persist(storage,stale)).toBe(true);
   expect(readDrawingJournal(storage,"account:a").NVDA?.drawings[0].id).toBe("seen");
+  expect(readDrawingJournal(storage,"account:a").NVDA?.blocked).toBe("conflict");
  });
  it("reads unreadable receipts as none and rebuilds them on the next acknowledgement",async()=>{
   const storage=new MemoryStorage(),owner=readDrawingJournal(storage,"account:a");
@@ -407,5 +415,102 @@ describe("bounded acknowledgement receipts",()=>{
   delete stale.NVDA;
   expect(await persist(storage,stale)).toBe(true);
   expect(receiptsOf(storage)).toEqual([id]);
+  expect(storage.getItem(DRAWING_RECEIPTS_UNREADABLE_KEY)).toBe("{broken");
+ });
+ it("sets unreadable receipt bytes aside instead of erasing other accounts' receipts",async()=>{
+  const storage=new MemoryStorage(),other=`{"account:b":["${op}"]`;
+  storage.setItem(DRAWING_RECEIPTS_KEY,other);
+  const id=await acknowledge(storage,"NVDA");
+  expect(receiptsOf(storage)).toEqual([id]);
+  expect(storage.getItem(DRAWING_RECEIPTS_UNREADABLE_KEY)).toBe(other);
+  // A later unreadable value never replaces the first one set aside.
+  storage.setItem(DRAWING_RECEIPTS_KEY,"[]");
+  await acknowledge(storage,"AAPL");
+  expect(storage.getItem(DRAWING_RECEIPTS_UNREADABLE_KEY)).toBe(other);
+ });
+ it("keeps receipts for the most recently used accounts only",async()=>{
+  expect(DRAWING_RECEIPT_OWNERS).toBe(8);
+  const storage=new MemoryStorage(),owners=Array.from({length:DRAWING_RECEIPT_OWNERS},(_,index)=>`account:o${index}`);
+  for(const owner of owners) await acknowledge(storage,"NVDA",owner);
+  const kept=await acknowledge(storage,"AAPL","account:o0");
+  await acknowledge(storage,"NVDA","account:new");
+  const envelope=JSON.parse(storage.getItem(DRAWING_RECEIPTS_KEY)!);
+  expect(Object.keys(envelope)).toEqual([...owners.slice(2),"account:o0","account:new"]);
+  expect(envelope["account:o0"]).toContain(kept);
+ });
+});
+
+// "Use cloud" discards a local copy without any cloud write, so the server's
+// revision still matches that copy's attempt. A stale tab that later finds the
+// copy missing with no receipt (aged out of the bounded history, or site data
+// cleared) cannot tell a discard from lost storage. It keeps the copy for an
+// explicit choice; it never restores it as an attempt that saves on its own.
+describe("an explicit discard is never resurrected as a sendable attempt",()=>{
+ const opX="33333333-3333-4333-8333-333333333333",opY="44444444-4444-4444-8444-444444444444";
+ const ackOther=async(storage:MemoryStorage,symbol:string)=>{
+  const journal=readDrawingJournal(storage,"account:a");
+  journal[symbol]={drawings:[line(symbol)],revision};
+  expect(await persist(storage,journal)).toBe(true);
+  delete journal[symbol];
+  expect(await persist(storage,journal)).toBe(true);
+ };
+ // Two tabs keep exact attempts through a save outage; a new tab offers both
+ // copies and the user discards each one with "Use cloud" (no PUT is sent).
+ const discardBothCopies=async(storage:MemoryStorage)=>{
+  const tabA=readDrawingJournal(storage,"account:a"),tabB=readDrawingJournal(storage,"account:a");
+  tabA.NVDA={drawings:[line("X")],revision};prepareDrawingAttempt(tabA.NVDA,()=>opX);
+  expect(await persist(storage,tabA)).toBe(true);
+  tabB.NVDA={drawings:[line("Y")],revision};prepareDrawingAttempt(tabB.NVDA,()=>opY);
+  expect(await persist(storage,tabB)).toBe(true);
+  const tabC=readDrawingJournal(storage,"account:a");
+  expect(tabC.NVDA.alternatives).toHaveLength(1);
+  delete tabC.NVDA;expect(await persist(storage,tabC)).toBe(true);
+  const remaining=refreshDrawingJournalSymbol(storage,"account:a",tabC,"NVDA");
+  expect(remaining).toBeDefined();remaining!.blocked??="conflict";
+  delete tabC.NVDA;expect(await persist(storage,tabC)).toBe(true);
+  expect(readDrawingJournal(storage,"account:a").NVDA).toBeUndefined();
+  return tabA;
+ };
+ const expectReviewOnly=(entry:DrawingJournalEntry|undefined)=>{
+  // The exact operation stays as evidence; only an explicit choice can send.
+  expect(entry).toMatchObject({drawings:[{id:"X"}],blocked:"conflict",attempt:{operationId:opX,expectedRevision:revision}});
+  expect(prepareDrawingAttempt(entry!,()=>{throw new Error("must not mint an operation");})).toBeNull();
+ };
+ it("drops the discarded copy while its receipt is still held",async()=>{
+  const storage=new MemoryStorage(),tabA=await discardBothCopies(storage);
+  for(let index=0;index<DRAWING_RECEIPT_HISTORY-3;index++) await ackOther(storage,`S${index}`);
+  expect(await persist(storage,tabA)).toBe(true);
+  expect(tabA.NVDA).toBeUndefined();
+  expect(readDrawingJournal(storage,"account:a").NVDA).toBeUndefined();
+ });
+ it("keeps the copy for review after 32 other acknowledgements age its receipt out",async()=>{
+  const storage=new MemoryStorage(),tabA=await discardBothCopies(storage);
+  for(let index=0;index<DRAWING_RECEIPT_HISTORY;index++) await ackOther(storage,`S${index}`);
+  expect(await persist(storage,tabA)).toBe(true);
+  expectReviewOnly(tabA.NVDA);
+  expectReviewOnly(readDrawingJournal(storage,"account:a").NVDA);
+ });
+ it("keeps the copy for review when site data is cleared after the discard",async()=>{
+  const storage=new MemoryStorage(),tabA=await discardBothCopies(storage);
+  storage.values.clear();
+  expect(await persist(storage,tabA)).toBe(true);
+  expectReviewOnly(tabA.NVDA);
+  expectReviewOnly(readDrawingJournal(storage,"account:a").NVDA);
+ });
+ it("gives a newly opened tab a review, not an automatic save",async()=>{
+  const storage=new MemoryStorage(),tabA=await discardBothCopies(storage);
+  for(let index=0;index<DRAWING_RECEIPT_HISTORY;index++) await ackOther(storage,`S${index}`);
+  expect(await persist(storage,tabA)).toBe(true);
+  // TerminalShell's owner hydration flushes every recovered symbol it reads.
+  const tabD=reconcileDrawingJournal(storage,"account:a",undefined);
+  expectReviewOnly(tabD.NVDA);
+ });
+ it("still needs a choice after the stale tab edits the restored copy",async()=>{
+  const storage=new MemoryStorage(),tabA=await discardBothCopies(storage);
+  storage.values.clear();
+  tabA.NVDA.drawings=[line("X"),line("X2")];
+  expect(await persist(storage,tabA)).toBe(true);
+  expect(tabA.NVDA).toMatchObject({blocked:"conflict",attempt:{operationId:opX}});
+  expect(prepareDrawingAttempt(tabA.NVDA,()=>"new")).toBeNull();
  });
 });

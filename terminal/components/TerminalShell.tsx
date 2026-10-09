@@ -1670,6 +1670,13 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
           return;
         }
         if (drawOwnerEpoch.current !== ownerEpoch || recovery[sym] !== entry) return;
+        // The durable write keeps a copy it cannot prove was never discarded
+        // for an explicit choice; the attempt prepared before it is not sent.
+        if (entry.blocked) {
+          setDrawingSaveIssues((issues) => ({ ...issues, [sym]: entry.blocked! }));
+          void loadDrawingCloudCopy(sym);
+          return;
+        }
         const response = await fetch("/api/drawings", {
           method: "PUT", headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ ownerKey, symbol: sym, drawings: attempt.drawings, expectedRevision: attempt.expectedRevision, operationId: attempt.operationId }),

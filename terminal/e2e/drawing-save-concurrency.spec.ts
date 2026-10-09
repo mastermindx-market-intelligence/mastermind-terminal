@@ -36,32 +36,60 @@ test("lost response retries the exact operation after reload before sending newe
  await expect(page.getByTestId("drawing-save-recovery")).toHaveCount(0);
 });
 
-// A site-data clear is not an acknowledgement: the retry must write the exact
-// lost-response operation ahead again and resend it, not reload the cloud.
-test("site-data loss before a retry keeps the unsaved drawing and resends the exact lost-response operation",async({page,context})=>{
+// A site-data clear is not an acknowledgement, but it also erases the receipt
+// that would prove an explicit "Use cloud" discard. The retry keeps the
+// unsaved drawing and the exact lost-response operation, then waits for an
+// explicit choice instead of resending it over the cloud.
+test("site-data loss before a retry keeps the unsaved drawing and its exact operation for an explicit choice",async({page,context})=>{
  await seed(page,{drawings:[line("first")],revision:null,attempt:{operationId:original,expectedRevision:null,drawings:[line("first")]}});
- const puts:{operationId:string}[]=[];const storedAtPut:(string|null)[]=[];
+ const puts:{operationId:string;expectedRevision:string|null;drawings:{id:string}[]}[]=[];
  await page.route("**/api/drawings**",async(route)=>{
   if(route.request().method()==="GET"){await route.fulfill(json({drawings:[],revision:null,schemaVersion:1}));return;}
   const value=route.request().postDataJSON();puts.push(value);
-  storedAtPut.push(await page.evaluate(()=>localStorage.getItem("mm.drawing.account-outbox.v2")));
   if(puts.length===1){await route.abort("failed");return;}
-  await route.fulfill(json({ok:true,operationId:value.operationId,revision:committed,idempotentReplay:true,superseded:false}));
+  await route.fulfill(json({ok:true,operationId:value.operationId,revision:committed,idempotentReplay:false,superseded:false}));
  });
  await open(page);
  const recovery=page.getByTestId("drawing-save-recovery");
  await expect(recovery).toContainText("Retry saving",{timeout:20_000});
+ await expect.poll(()=>puts.length,{timeout:20_000}).toBe(1);
  const cdp=await context.newCDPSession(page);
  await cdp.send("Storage.clearDataForOrigin",{origin:new URL(page.url()).origin,storageTypes:"local_storage"});
  await expect.poll(()=>page.evaluate(()=>localStorage.getItem("mm.drawing.account-outbox.v2")),{timeout:20_000}).toBeNull();
  await recovery.getByRole("button",{name:"Retry save",exact:true}).click({timeout:20_000});
+ await expect(recovery).toContainText("The cloud copy changed, or local recovery needs review",{timeout:20_000});
+ await expect(recovery.getByRole("button",{name:"Replace cloud with local copy",exact:true})).toBeVisible({timeout:20_000});
+ await expect(recovery.getByRole("button",{name:"Use cloud copy",exact:true})).toBeVisible({timeout:20_000});
+ const stored=async()=>Object.values(JSON.parse(await page.evaluate(()=>localStorage.getItem("mm.drawing.account-outbox.v2"))??"{}")["account:responsive@example.com"]?.NVDA?.copies??{}) as {blocked?:string;drawings:{id:string}[];attempt?:{operationId?:string}}[];
+ await expect.poll(async()=>(await stored()).map((copy)=>[copy.drawings[0]?.id,copy.attempt?.operationId,copy.blocked]),{timeout:20_000}).toEqual([["first",original,"conflict"]]);
+ expect(puts).toHaveLength(1);
+ // Only the explicit choice sends, as a new operation against the cloud read.
+ await recovery.getByRole("button",{name:"Replace cloud with local copy",exact:true}).click({timeout:20_000});
  await expect.poll(()=>puts.length,{timeout:20_000}).toBe(2);
- expect(puts[1]).toEqual(puts[0]);expect(puts[1].operationId).toBe(original);
- // The handler records storage after the request is counted; wait for it.
- await expect.poll(()=>storedAtPut.length,{timeout:20_000}).toBe(2);
- const copies=JSON.parse(storedAtPut[1]??"{}")["account:responsive@example.com"]?.NVDA?.copies??{};
- expect(Object.values(copies).map((copy)=>(copy as {attempt?:{operationId?:string}}).attempt?.operationId)).toEqual([original]);
+ expect(puts[1].operationId).not.toBe(original);expect(puts[1].expectedRevision).toBeNull();expect(puts[1].drawings.map((drawing)=>drawing.id)).toEqual(["first"]);
  await expect(recovery).toHaveCount(0,{timeout:20_000});
+});
+
+// A failed authoritative read is not an empty account: the chart says so and
+// keeps every drawing tool disarmed, so nothing can replace an unseen collection.
+test("a failed drawings read is shown and keeps drawing disabled",async({page})=>{
+ let puts=0;
+ await page.route("**/api/drawings**",async(route)=>{
+  if(route.request().method()==="PUT"){puts++;await route.fulfill(json({ok:false}));return;}
+  await route.fulfill({status:503,contentType:"application/json",body:JSON.stringify({error:"Could not load drawings"})});
+ });
+ await open(page);
+ await expect(page.getByRole("alert").filter({hasText:"Saved drawings could not be loaded"})).toBeVisible({timeout:20_000});
+ const lines=page.getByTestId("drawing-group-lines-main");
+ if((page.viewportSize()?.width??1440)<=640){
+  await page.getByTestId("roller-draw").click({timeout:20_000});
+  await page.getByTestId("drawings-cat-trendlines").click({timeout:20_000});
+  await page.getByTestId("drawings-tile-trendline").click({timeout:20_000});
+ }else{
+  await lines.click({timeout:20_000});
+ }
+ await expect(lines).toHaveAttribute("aria-pressed","false",{timeout:20_000});
+ expect(puts).toBe(0);
 });
 
 test("two devices conflict and cloud survives until an explicit recovery choice",async({page,browser,baseURL})=>{

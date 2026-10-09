@@ -2,7 +2,7 @@ import { normalizeDrawings } from "../lib/drawings";
 import { expect, test, type Locator, type Page } from "@playwright/test";
 import { chooseToolbarSplit, runToolbarDetector, toggleToolbarReplay } from "./terminalToolbar";
 
-type SavePayload = { drawings?: Array<{ id?: string; kind?: string; locked?: boolean; color?: string; meta?: Record<string, unknown> }> };
+type SavePayload = { drawings?: Array<{ id?: string; kind?: string; source?: string; locked?: boolean; color?: string; meta?: Record<string, unknown> }> };
 
 async function openTerminal(page: Page, options: { drawings?: unknown[]; onPut?: (payload: SavePayload) => void } = {}) {
   await page.route("**/api/drawings**", async (route) => {
@@ -311,14 +311,24 @@ test("bulk drawing controls preserve source scopes and lock only user-authored o
   // Account storage contains hand-authored drawings; generate the detector object
   // through its real chart command instead of fabricating it in a cloud GET.
   await runToolbarDetector(page, "Auto Fibonacci");
+  // The detector object exists only on the chart; its lock state is read from
+  // the rendered drawing, because detector objects are never part of a save.
+  const userDrawing = page.locator('.chart-wrap g[data-drawing-id="bulk-user"]').first();
+  const detectorDrawing = page.locator('.chart-wrap g[data-drawing-kind="fib"]').first();
+  await expect(detectorDrawing).toHaveAttribute("data-locked", "false", { timeout: 20_000 });
+  await expect(userDrawing).toHaveAttribute("data-locked", "false", { timeout: 20_000 });
   const lockAll = page.getByTestId("drawing-lock-all");
   await expect(lockAll).toHaveAttribute("data-user-drawing-count", "1");
   await lockAll.click();
-  await expect.poll(() => saves.some((payload) => {
-    const user = payload.drawings?.find((drawing) => drawing.id === "bulk-user");
-    const detector = payload.drawings?.find((drawing) => drawing.id === "bulk-detector");
-    return user?.locked === true && detector?.locked !== true;
-  }), { timeout: 5_000 }).toBe(true);
+  await expect(userDrawing).toHaveAttribute("data-locked", "true", { timeout: 20_000 });
+  await expect(detectorDrawing).toHaveAttribute("data-locked", "false", { timeout: 20_000 });
+  await expect.poll(() => saves.some((payload) => (
+    payload.drawings?.find((drawing) => drawing.id === "bulk-user")?.locked === true
+  )), { timeout: 5_000 }).toBe(true);
+  expect(saves.length).toBeGreaterThan(0);
+  expect(saves.every((payload) => (payload.drawings ?? []).every((drawing) => (
+    drawing.id === "bulk-user" && drawing.source === "user" && drawing.kind !== "fib"
+  )))).toBe(true);
 
   await page.getByTestId("drawing-clear-trigger").click();
   const clearDetected = page.getByTestId("drawing-clear-detected");

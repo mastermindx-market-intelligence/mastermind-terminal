@@ -1,9 +1,26 @@
 import { NextResponse } from "next/server";
+import { cookies } from "next/headers";
 import { createClient } from "@/lib/supabase/server";
 import { MAX_DRAWING_PAYLOAD_BYTES, MAX_DRAWINGS_PER_SYMBOL } from "@/lib/drawings";
 import { parseDrawingSnapshot, parsePersistedDrawings, validDrawingOperationId, validDrawingRevision } from "@/lib/drawingPersistence";
+import { GUEST_COOKIE } from "@/lib/layoutsFixtureDb";
 
-async function ctx() {
+const isE2eFixture = () => process.env.TERMINAL_E2E_FIXTURE === "1";
+type DrawingSession = { supabase: Awaited<ReturnType<typeof createClient>> | null; user: { email?: string } | null };
+
+/**
+ * The Playwright dev server signs the page in as TERMINAL_E2E_EMAIL without a
+ * Supabase session. Give that same identity a stateless empty account so the
+ * page's readiness gate opens exactly as it does for a real account. This is
+ * never reachable in production (the variable is unset there); specs that test
+ * cloud saves, conflicts or load failures mock this route in the browser.
+ */
+async function ctx(): Promise<DrawingSession> {
+  if (isE2eFixture()) {
+    const guest = (await cookies()).get(GUEST_COOKIE)?.value === "1";
+    const email = process.env.TERMINAL_E2E_EMAIL;
+    return { supabase: null, user: !guest && email ? { email } : null };
+  }
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   return { supabase, user };
@@ -19,6 +36,7 @@ export async function GET(req: Request) {
   }
   const symbol = query.get("symbol")?.trim();
   if (!symbol || symbol.length > 64) return NextResponse.json({ error: "A symbol is required" }, { status: 400 });
+  if (!supabase) return NextResponse.json({ drawings: [], revision: null, schemaVersion: 1 }, { headers: { "Cache-Control": "private, no-store" } });
   // SECURITY INVOKER RPC uses auth.uid(), explicit owner/symbol filters, and existing RLS.
   // One aggregate reads one snapshot; GET creates no legacy operation receipt.
   const { data, error } = await supabase.rpc("read_drawings_collection", { p_symbol: symbol });
@@ -52,6 +70,10 @@ export async function PUT(req: Request) {
   if (raw.drawings.length > MAX_DRAWINGS_PER_SYMBOL) return NextResponse.json({ ok: false }, { status: 413 });
   const drawings = parsePersistedDrawings(raw.drawings);
   if (!drawings) return NextResponse.json({ ok: false, error: "Invalid user drawing geometry" }, { status: 422 });
+  if (!supabase) {
+    return NextResponse.json({ ok: true, operationId: raw.operationId, revision: crypto.randomUUID(),
+      idempotentReplay: false, superseded: false, count: drawings.length, schemaVersion: 1 });
+  }
   // One transaction performs CAS, delete+insert, and bounded operation replay.
   // Missing RPC/migration is unavailable; there is no destructive legacy fallback.
   const { data, error } = await supabase.rpc("replace_drawings_collection", {
