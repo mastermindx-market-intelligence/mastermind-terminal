@@ -1,0 +1,111 @@
+.strip {
+  position: absolute;
+  inset: 0 0 auto 0;
+  z-index: 8;
+  height: 58px;
+  display: flex;
+  min-width: 0;
+  overflow: hidden;
+  border-bottom: 1px solid var(--line);
+  background: color-mix(in srgb, var(--bg) 94%, var(--brand) 6%);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.02);
+}
+
+.brand {
+  width: 122px;
+  min-width: 122px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 5px;
+  padding: 0 11px;
+  border-right: 1px solid var(--line);
+}
+
+.brand strong {
+  color: var(--text);
+  font: 750 10px/1 var(--font-ui);
+  letter-spacing: 0.08em;
+}
+
+.brand span {
+  color: var(--muted);
+  font: 600 9px/1.15 var(--font-ui);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.cells {
+  flex: 1;
+  min-width: 0;
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(138px, 1fr);
+  overflow-x: auto;
+  overflow-y: hidden;
+  scrollbar-width: none;
+  overscroll-behavior-x: contain;
+}
+
+.cells::-webkit-scrollbar {
+  display: none;
+}
+
+.cell {
+  min-width: 0;
+  padding: 6px 10px 5px;
+  border-right: 1px solid var(--line);
+  background: linear-gradient(180deg, rgba(255,255,255,0.018), transparent);
+}
+
+.cellHead {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin-bottom: 4px;
+  color: var(--muted);
+  font: 700 8.5px/1 var(--font-ui);
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+}
+
+.cellHead b {
+  margin-left: auto;
+  padding: 2px 4px;
+  border: 1px solid var(--line);
+  border-radius: var(--r);
+  color: var(--text-2);
+  background: var(--panel-3);
+  font: 750 8px/1 var(--font-ui);
+  letter-spacing: 0.04em;
+}
+
+.value {
+  color: var(--text);
+  font: 650 10.5px/1.15 var(--font-ui);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.meta {
+  margin-top: 3px;
+  color: var(--muted);
+  font: 500 8.5px/1.1 var(--font-ui);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+@media (max-width: 860px) {
+  .brand {
+    width: 104px;
+    min-width: 104px;
+    padding-inline: 9px;
+  }
+
+  .cells {
+    grid-auto-columns: minmax(132px, 1fr);
+  }
+}
