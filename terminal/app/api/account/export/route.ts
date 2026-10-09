@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { createHash } from "node:crypto";
 import { cookies } from "next/headers";
 import { createClient } from "@/lib/supabase/server";
 import { createFixtureDb, fixtureUserId, FIXTURE_STORE_COOKIE } from "@/lib/watchlistsFixtureDb";
@@ -14,6 +15,7 @@ import {
   serializeJson,
   type ExportFormat,
 } from "@/lib/accountExport";
+import { sealAccountExport } from "@/lib/accountExportIntegrity";
 
 // Owner-scoped account-data export (B-F12-4 / MO-PAID-086).
 //
@@ -102,7 +104,15 @@ export async function GET(req: Request): Promise<Response> {
     chart_layouts: chartLayouts,
   });
 
-  const body = format === "csv" ? serializeCsv(doc) : serializeJson(doc);
+  const sha256 = (text: string) => createHash("sha256").update(text, "utf8").digest("hex");
+  let body: string;
+  let sealed;
+  try {
+    sealed = sealAccountExport(doc, { started_at: new Date(now).toISOString(), finished_at: new Date().toISOString() }, sha256);
+    body = format === "csv" ? serializeCsv(sealed, sha256) : serializeJson(sealed);
+  } catch {
+    return NextResponse.json({ error: "export_withheld" }, { status: 500 });
+  }
   const secretCheck = assertNoSecrets(body);
   if (!secretCheck.ok) {
     console.error("account export withheld: secret-shaped content detected", secretCheck.hit);
@@ -113,7 +123,7 @@ export async function GET(req: Request): Promise<Response> {
     status: 200,
     headers: {
       "Content-Type": format === "csv" ? "text/csv; charset=utf-8" : "application/json; charset=utf-8",
-      "Content-Disposition": `attachment; filename="${exportFilename(doc, format)}"`,
+      "Content-Disposition": `attachment; filename="${exportFilename(sealed, format)}"`,
       "Cache-Control": "no-store",
       "X-Content-Type-Options": "nosniff",
     },
