@@ -28,7 +28,7 @@
 //   - Calls after dispose never invoke synchronous compile/run; both hosts return typed cancellation.
 //   - Late message/error callbacks from terminated worker generations cannot settle newer requests.
 //   - Worker startup / postMessage throws settle the promise instead of stranding it.
-import { compilePine, runPine, type PineError, type RunResult, type Bar } from "./index";
+import { compilePine, runPine, type PineError, type RunResult, type Bar, type RunOpts } from "./index";
 import { hashSource, barsToColumns } from "./host-shared";
 
 export type { Bar } from "./runtime";
@@ -58,7 +58,7 @@ export interface RunRequest {
   astId?: string;               // if known (from a prior compile()), lets the worker skip re-parsing
   bars: Bar[];
   inputs?: Record<string, any>; // param overrides (keyed on the input's assignment var — see pineRender test)
-  opts?: { timeframe?: string; symbol?: string };
+  opts?: { timeframe?: string; symbol?: string; sessionAnchor?: RunOpts["sessionAnchor"] };   // sessionAnchor phases nD requests (RunOpts)
   budgetMs?: number;            // per-run wall budget (default DEFAULT_RUN_BUDGET_MS)
 }
 

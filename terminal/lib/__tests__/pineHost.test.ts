@@ -600,8 +600,9 @@ function tradingDays(from: string, to: string): Bar[] {
   }
   return out;
 }
-type CalUnit = "W" | "M" | "Q";
+type CalUnit = "W" | "M" | "Q" | "Y";
 function calKey(time: string, unit: CalUnit): string {
+  if (unit === "Y") return time.slice(0, 4);
   if (unit === "M") return time.slice(0, 7);
   if (unit === "Q") return time.slice(0, 4) + "Q" + Math.floor((Number(time.slice(5, 7)) - 1) / 3);
   const d = new Date(time + "T00:00:00Z");
@@ -729,6 +730,22 @@ describe("request.security refuses periods it cannot rebuild honestly", () => {
     refused(secPlot(bars, "48H", "close"), "48H");
   });
 
+  it("a period of the same length in a different unit is not the chart's own timeframe and is refused", () => {
+    // 7 sessions are not one calendar week, 30 sessions are not one month, and 1440 minutes or
+    // 24 hours are not one trading session, even though each pair has the same nominal seconds.
+    const weekly = refHtfBars(bars, calGroups(bars, "W"));
+    const longer = tradingDays("2024-01-02", "2025-04-15");
+    const monthly = refHtfBars(longer, calGroups(longer, "M"));
+    refused(secPlot(weekly, "7D", "close", "", "W"), "7D");
+    refused(secPlot(monthly, "30D", "close", "", "M"), "30D");
+    refused(secPlot(bars, "1440", "close"), "1440");
+    refused(secPlot(bars, "24H", "close"), "24H");
+    // the same unit and count is the chart's own timeframe and is answered in place
+    expectSeries(secPlot(weekly, "1W", "close", "", "W").x, weekly.map((b) => b.c), "W chart, 1W");
+    expectSeries(secPlot(monthly, "1M", "close", "", "M").x, monthly.map((b) => b.c), "M chart, 1M");
+    expectSeries(secPlot(bars, "1D", "close").x, bars.map((b) => b.c), "D chart, 1D");
+  });
+
   it("bar times that are not ascending calendar dates refuse a calendar request", () => {
     const b = bars.map((r) => ({ ...r }));
     [b[5], b[6]] = [{ ...b[6] }, { ...b[5] }];
@@ -747,6 +764,39 @@ describe("request.security 2D / 3D use the canonical session grid", () => {
       noBucketFallback(got.warnings);
     });
   }
+
+  // Reference grid at a nonzero phase: global index of row i is i + a; a group closes on a global
+  // index ≡ 0 (mod m) and the next one opens on the following session (lib/sessionBars law).
+  const anchoredGroups = (n: number, m: number, a: number): RefGroups => {
+    const of: number[] = [], last: number[] = [];
+    let g = -1;
+    for (let i = 0; i < n; i++) { if (i === 0 || (i - 1 + a) % m === 0) g++; of.push(g); last[g] = i; }
+    return { of, last, closed: last.map((l) => (l + a) % m === 0) };
+  };
+  const anchoredRun = (m: number, anchor: { v: number; date: string; index: number; basis: string }) => {
+    const out = runPine(`//@version=6\nindicator("anchored")\nplot(request.security(syminfo.tickerid, "${m}D", close), "x")\n`, bars, { timeframe: "D", symbol: "TEST", sessionAnchor: anchor });
+    expect(out.ok, JSON.stringify(out.errors)).toBe(true);
+    return { x: out.result!.plots[0].data.map((p) => p.value), warnings: out.result!.warnings };
+  };
+  for (const [m, a] of [[3, 1], [3, 2], [2, 1]]) {
+    it(`daily → ${m}D follows a published session anchor at phase ${a}, not the feed's first session`, () => {
+      // The anchor names a session that is in the loaded bars and its global index; row 0 is then
+      // global index a, exactly as ChartPanel.resampleTf builds the chart's own ${m}D bars.
+      const anchor = { v: 1, date: bars[10].time, index: 10 + a, basis: "ipo" };
+      const G = anchoredGroups(bars.length, m, a), H = refHtfBars(bars, G);
+      const got = anchoredRun(m, anchor);
+      expectSeries(got.x, bars.map((_, i) => { const p = publishedGroup(G, i); return p >= 0 ? H[p].c : undefined; }), `${m}D anchored at ${a}`);
+      expect(got.x, "the anchor must change the grid").not.toEqual(secPlot(bars, `${m}D`, "close").x);
+      expect(got.warnings.filter((w) => w.includes("session anchor") || w.includes("feed-phase")), JSON.stringify(got.warnings)).toEqual([]);
+      noBucketFallback(got.warnings);
+    });
+  }
+  it("a session anchor whose date is not among the loaded sessions falls back to the first loaded session and says so", () => {
+    const G = sessGroups(bars.length, 3), H = refHtfBars(bars, G);
+    const got = anchoredRun(3, { v: 1, date: "2019-01-02", index: 40, basis: "ipo" });
+    expectSeries(got.x, bars.map((_, i) => { const p = publishedGroup(G, i); return p >= 0 ? H[p].c : undefined; }), "3D unresolved anchor");
+    expect(got.warnings.some((w) => w.includes("'3D'") && w.includes("2019-01-02") && w.includes("not among the loaded sessions")), JSON.stringify(got.warnings)).toBe(true);
+  });
 });
 
 describe("request.security prefix vs full history at every cutoff", () => {
@@ -850,7 +900,139 @@ plot(sec(up, close), "fn")
     expect(direct.warnings.some((w) => w.includes("'W'") && w.includes("for loop")), JSON.stringify(direct.warnings)).toBe(true);
     const viaFn = run(`acc := acc + sec(close)`);
     expect(viaFn.x.every((v) => v === undefined), JSON.stringify(viaFn.x.slice(0, 8))).toBe(true);
-    expect(viaFn.warnings.some((w) => w.includes("'W'") && w.includes("not evaluated once")), JSON.stringify(viaFn.warnings)).toBe(true);
+    // A function called from a loop is still inside the loop, so it gets the loop's own reason.
+    expect(viaFn.warnings.some((w) => w.includes("'W'") && w.includes("for loop")), JSON.stringify(viaFn.warnings)).toBe(true);
     noBucketFallback(viaFn.warnings);
   });
+
+  it("a request in a function called from a for loop is refused even when the loop runs once on the requested timeframe", () => {
+    // The loop runs twice on the daily chart but once inside the weekly pass, so the weekly pass
+    // records one value per weekly bar; the chart must not add that one value up twice.
+    const out = runPine(`//@version=6
+indicator("loop fn")
+sec(_src) => request.security(syminfo.tickerid, "W", _src)
+n = timeframe.isdaily ? 1 : 0
+acc = 0.0
+for j = 0 to n
+    acc := acc + sec(close + j * 1000)
+plot(acc, "acc")
+plot(request.security(syminfo.tickerid, "W", close), "w")
+`, bars, { timeframe: "D", symbol: "TEST" });
+    expect(out.ok, JSON.stringify(out.errors)).toBe(true);
+    const p = (t: string) => out.result!.plots.find((q) => q.title === t)!.data.map((d) => d.value);
+    expect(p("acc").every((v) => v === undefined), JSON.stringify(p("acc").slice(0, 12))).toBe(true);
+    expect(out.result!.warnings.some((w) => w.includes("'W'") && w.includes("for loop")), JSON.stringify(out.result!.warnings)).toBe(true);
+    expectSeries(p("w"), shown(W, WH.map((b) => b.c)), "weekly close outside the loop");
+  });
+});
+
+describe("request.security call sites reached on only some higher-timeframe bars", () => {
+  // The call site sits under `if close > 200`, which holds only in even months. Inside the monthly
+  // pass it is therefore skipped on every odd month, so its ta.sma would run over a thinned monthly
+  // history. Such a value is not the requested series: it is refused with a reason.
+  const bars: Bar[] = [];
+  for (let t = Date.parse("2025-01-02T00:00:00Z"); bars.length < 160; t += 86400000) {
+    const d = new Date(t);
+    if (d.getUTCDay() % 6 === 0) continue;
+    const i = bars.length; const mo = d.getUTCMonth() + 1;
+    const c = (mo % 2 === 0 ? 300 : 100) + i * 0.5;
+    bars.push({ time: d.toISOString().slice(0, 10), o: c - 0.5, h: c + 1, l: c - 1, c, v: 1000 + i });
+  }
+  const M = calGroups(bars, "M"), MH = refHtfBars(bars, M);
+  const sma2 = refSma(MH.map((b) => b.c), 2);
+  const run = (cond: string, la: string) => {
+    const out = runPine(`//@version=6
+indicator("x")
+v = 0.0
+if ${cond}
+    v := request.security(syminfo.tickerid, "M", ta.sma(close, 2), lookahead = barmerge.${la})
+u = request.security(syminfo.tickerid, "M", ta.sma(close, 2), lookahead = barmerge.${la})
+plot(v, "cond")
+plot(u, "uncond")
+`, bars, { timeframe: "D", symbol: "T" });
+    expect(out.ok, JSON.stringify(out.errors)).toBe(true);
+    const p = (t: string) => out.result!.plots.find((q) => q.title === t)!.data.map((d) => d.value);
+    return { cond: p("cond"), uncond: p("uncond"), warnings: out.result!.warnings };
+  };
+  const expectedUncond = (la: string) => bars.map((_, i) => { const g = la === "lookahead_on" ? M.of[i] : publishedGroup(M, i); return g >= 0 ? sma2[g] : undefined; });
+
+  for (const la of ["lookahead_on", "lookahead_off"]) {
+    it(`a monthly request under a condition that skips some months (${la}) returns na with a reason`, () => {
+      const got = run("close > 200", la);
+      const reached = bars.map((b) => b.c > 200);
+      expect(reached.filter(Boolean).length).toBeGreaterThan(40);
+      const shownValues = bars.flatMap((b, i) => (reached[i] && got.cond[i] !== undefined ? [`${b.time}=${got.cond[i]}`] : []));
+      expect(shownValues.slice(0, 5), `${shownValues.length} values from a thinned monthly history`).toEqual([]);
+      bars.forEach((b, i) => { if (!reached[i]) expect(got.cond[i], b.time).toBe(0); });
+      expect(got.warnings.some((w) => w.includes("not reached on every 'M' bar")), JSON.stringify(got.warnings)).toBe(true);
+      expectSeries(got.uncond, expectedUncond(la), `unconditional ${la}`);
+    });
+
+    it(`a monthly request under a condition that holds on every monthly bar is still answered (${la})`, () => {
+      // Skipped on half the daily bars, but reached on every monthly bar inside the monthly pass.
+      const got = run("timeframe.isdaily ? bar_index % 2 == 0 : true", la);
+      const exp = expectedUncond(la);
+      expectSeries(got.uncond, exp, `unconditional ${la}`);
+      expectSeries(got.cond, bars.map((_, i) => (i % 2 === 0 ? exp[i] : 0)), `conditional ${la}`);
+      expect(got.warnings.filter((w) => w.includes("not reached")), JSON.stringify(got.warnings)).toEqual([]);
+    });
+  }
+});
+
+describe("request.security prefix vs full history across a year rollover, 12M, a 7-day calendar and a mid-period start", () => {
+  // Same observation-cutoff check as above, plus the full run against the reference model, on
+  // calendars the first loop does not cover: a start in the middle of a week, month and quarter
+  // that runs across a year boundary (W, M, 3M, 12M, 3D), and a seven-session week such as a
+  // crypto feed (W, M, 7D, 2D), where seven sessions and one week are different periods.
+  const calendarDays = (from: string, to: string): Bar[] => {
+    const out: Bar[] = [];
+    for (let t = Date.parse(from + "T00:00:00Z"); t <= Date.parse(to + "T00:00:00Z"); t += 86400000) {
+      const i = out.length; const c = 100 + ((i * 7) % 13) + i * 0.1;
+      out.push({ time: new Date(t).toISOString().slice(0, 10), o: c - 0.5, h: c + 1, l: c - 1, c, v: 1000 + i });
+    }
+    return out;
+  };
+  const rollover = tradingDays("2024-11-13", "2025-02-12");   // starts on a Wednesday mid-month, mid-quarter
+  const sevenDay = calendarDays("2025-01-01", "2025-03-05");  // Wednesday start, weekends included
+  const kinds: [string, string][] = [["c", "close"], ["p", "close[1]"], ["s", "ta.sma(close, 2)"], ["g", "close, gaps=barmerge.gaps_on"]];
+  const src = (tf: string) => `//@version=6\nindicator("cut")\n` + kinds.map(([t, e]) => `plot(request.security(syminfo.tickerid, "${tf}", ${e}), "${t}")`).join("\n") + "\n";
+  const series = (b: Bar[], tf: string) => {
+    const out = runPine(src(tf), b, { timeframe: "D", symbol: "TEST" });
+    expect(out.ok, JSON.stringify(out.errors)).toBe(true);
+    return Object.fromEntries(out.result!.plots.map((p) => [p.title, p.data.map((d) => d.value)])) as Record<string, (number | undefined)[]>;
+  };
+  const cases: [string, Bar[], string, RefGroups, boolean][] = [
+    ["rollover", rollover, "W", calGroups(rollover, "W"), true],
+    ["rollover", rollover, "M", calGroups(rollover, "M"), true],
+    ["rollover", rollover, "3M", calGroups(rollover, "Q"), true],
+    ["rollover", rollover, "12M", calGroups(rollover, "Y"), true],
+    ["rollover", rollover, "3D", sessGroups(rollover.length, 3), false],
+    ["7-day", sevenDay, "W", calGroups(sevenDay, "W"), true],
+    ["7-day", sevenDay, "M", calGroups(sevenDay, "M"), true],
+    ["7-day", sevenDay, "7D", sessGroups(sevenDay.length, 7), false],
+    ["7-day", sevenDay, "2D", sessGroups(sevenDay.length, 2), false],
+  ];
+  for (const [cal, bars, tf, G, calendar] of cases) {
+    it(`${cal} calendar, ${tf}: the full run matches the reference model and every prefix agrees except the period-close correction`, () => {
+      const H = refHtfBars(bars, G);
+      const full = series(bars, tf);
+      expectSeries(full.c, bars.map((_, i) => { const p = publishedGroup(G, i); return p >= 0 ? H[p].c : undefined; }), `${cal} ${tf} close`);
+      expectSeries(full.g, bars.map((_, i) => { const g = G.of[i]; return G.closed[g] && i === G.last[g] ? H[g].c : undefined; }), `${cal} ${tf} gaps_on`);
+      const closing = new Set<number>(calendar ? G.last.filter((_, g) => G.closed[g]) : []);
+      const diffs: string[] = [];
+      for (let k = 1; k <= bars.length; k++) {
+        const pre = series(bars.slice(0, k), tf);
+        for (const [t] of kinds) {
+          for (let j = 0; j < k; j++) {
+            if (Object.is(pre[t][j], full[t][j])) continue;
+            const documented = calendar && j === k - 1 && closing.has(j)
+              && Object.is(pre[t][j], t === "g" ? undefined : (j > 0 ? full[t][j - 1] : undefined));
+            if (!documented) diffs.push(`${t} cutoff=${k} bar=${j} prefix=${pre[t][j]} full=${full[t][j]}`);
+          }
+        }
+      }
+      expect(diffs.slice(0, 20), `${diffs.length} undocumented differences`).toEqual([]);
+      if (tf === "7D") expect(full.c, "seven sessions are not one calendar week here").not.toEqual(series(bars, "W").c);
+    });
+  }
 });

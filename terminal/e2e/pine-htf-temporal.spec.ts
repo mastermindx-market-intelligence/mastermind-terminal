@@ -47,7 +47,8 @@ const SOURCE = [
 ].join("\n") + "\n";
 
 const T = { c: "htf close", p: "htf prior close", q: "htf inline prior", w: "multiweek" } as const;
-const NOT_ONCE = "was not evaluated once";
+// The engine's refusal when a request call site was not evaluated exactly once on every requested bar.
+const NOT_ONCE = /call site (not reached on every|reached more than once)/;
 
 type Point = { time: string; value: number | null };
 type Plot = { title: string; data: Point[] };
@@ -414,7 +415,7 @@ test.describe("T01 — Pine higher-timeframe values are published only after the
     const fullN = full.run.n;
     expect(full.run.reply.warnings).toContain("request.security() unsupported timeframe '2W' on chart 'D': multi-week periods have no known calendar phase in the loaded bars — returning na");
     expect(full.run.reply.warnings.some((w) => w.startsWith("request.security() 'M' calendar period not confirmed"))).toBe(true);
-    expect(full.run.reply.warnings.some((w) => w.includes(NOT_ONCE)), "function and inline history share one evaluation per bar").toBe(false);
+    expect(full.run.reply.warnings.some((w) => NOT_ONCE.test(w)), "function and inline history share one evaluation per bar").toBe(false);
     await expect.poll(() => pineOwned(page), { timeout: 20_000 }).toBe(3);
     const fullOf = (title: string) => values(full.run.reply, title);
     const cutoffs: Array<{ label: string; k: number; time: string; monthEnd: boolean }> = [];
@@ -486,7 +487,7 @@ test.describe("T01 — Pine higher-timeframe values are published only after the
     expect(weekly.run.bars).toEqual(fullBars);
     expectCalendarCausal(weekly.run.reply, weekly.run.bars, isoWeekKey, "C");
     expect(weekly.run.reply.warnings.some((w) => w.startsWith("request.security() weekly 1W period not confirmed"))).toBe(true);
-    expect(weekly.run.reply.warnings.some((w) => w.includes(NOT_ONCE))).toBe(false);
+    expect(weekly.run.reply.warnings.some((w) => NOT_ONCE.test(w))).toBe(false);
     await expect.poll(() => pineOwned(page), { timeout: 20_000 }).toBe(3);
 
     // ── D. Chart timeframe W: the same timeframe evaluates in place; 2W is refused ──────────

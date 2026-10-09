@@ -22,8 +22,9 @@
 //     functions all run on the HTF timeline) and the chart pass only reads the recorded HTF values.
 //     Admitted contexts, each with an explicit publication rule (runtime.ts planHtf/resampleBars):
 //       daily → 1W (ISO week), daily → 1M/3M/12M (calendar month/quarter/year), monthly chart →
-//       a coarser 1M/3M/12M multiple, daily → nD (lib/sessionBars grid at its feed-phase fallback,
-//       disclosed by a warning because no session anchor reaches the engine).
+//       a coarser 1M/3M/12M multiple, daily → nD (lib/sessionBars grid phased by RunOpts.sessionAnchor,
+//       the published session_anchor; without a usable one, the feed-phase fallback, disclosed by a
+//       warning that names why).
 //     Historical (isrealtime=false) default lookahead_off shows a period's value from the session
 //     that confirms it — a calendar period's last session when a later session in a later period
 //     exists; a session group's mult-th session — and otherwise carries the previous confirmed value
@@ -34,8 +35,10 @@
 //     the only difference at an observation cutoff is that one documented correction (the session
 //     that closes a calendar period is known to close it only once a later session loads).
 //     Everything else coarser — multi-week (2W, 3W…), 2M/5M…, intraday units, W/2W/nD charts,
-//     unsorted or non-date bar times, a call inside a for loop, a call reached twice on one bar —
-//     returns na with a warning naming the reason. Nothing falls back to bucket mapping.
+//     unsorted or non-date bar times, a call inside a for loop (also through a user function), a
+//     call site the requested pass did not reach on every HTF bar up to the one shown (conditional
+//     scope: its history would be thinned), a different unit of equal length (7D on W, 30D on M,
+//     1440/24H on D) — returns na with a warning naming the reason. Nothing falls back to bucket mapping.
 //     Conflict named: flagship secScalar uses `_src[1]` + lookahead_off intending “confirmed on every
 //     intra-period bar”; that matched the old leaky bucket mapping. Vendor historical lookahead_off
 //     publishes unshifted `close` at period end; `[1]` is then one published HTF bar earlier.
@@ -60,6 +63,7 @@
 import { parse, type ParseResult } from "./parser";
 import { PineSyntaxError } from "./lexer";
 import { run, type Bar, type RunResult } from "./runtime";
+import type { SessionAnchor } from "../sessionBars";
 
 export type { Bar, RunResult, PinePlot, PinePlotPoint, PineShape, PineHline, PineInput, PineMeta } from "./runtime";
 export { PineRuntimeError } from "./runtime";
@@ -72,7 +76,9 @@ export interface PineRunOutput { ok: boolean; errors: PineError[]; result: RunRe
 // consumes without re-parsing; callCount/histCount are exposed so a host can cheaply key/inspect it.
 export interface CompiledScript extends CompileResult { ast: ParseResult | null; callCount: number; histCount: number; }
 
-export type RunOpts = { timeframe?: string; symbol?: string; params?: Record<string, any>; budgetMs?: number };
+// sessionAnchor: the symbol's published session_anchor ({ v, date, index, basis }, lib/sessionBars),
+// which phases nD requests the way the chart's own nD bars are phased. Validated by the engine.
+export type RunOpts = { timeframe?: string; symbol?: string; params?: Record<string, any>; budgetMs?: number; sessionAnchor?: SessionAnchor | null };
 
 // Parse ONCE and hand back the AST for reuse. This is the compile half of the split: the editor and
 // the worker call it, cache the AST by source hash, and feed it to runCompiled() for every data change.

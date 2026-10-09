@@ -122,11 +122,15 @@ Admitted contexts — each has an explicit grouping and confirmation rule:
 | daily | `W` | ISO week (keyed by its last session) | its last session, once a session in a later week is loaded |
 | daily | `M`, `3M`, `12M` | calendar month / quarter / year | its last session, once a session in a later period is loaded |
 | `1M`/`3M`/`12M` | a coarser `1M`/`3M`/`12M` multiple | calendar quarter / year of whole monthly bars | same as above |
-| daily | `nD` (n ≥ 2) | `lib/sessionBars` session grid from the first loaded session | its n-th session |
+| daily | `nD` (n ≥ 2) | `lib/sessionBars` session grid at the chart's session anchor | the session whose global index is a multiple of n |
 
-The `nD` grid uses the canonical owner's documented feed-phase fallback because no session anchor
-reaches the engine; every run that uses it says so in a warning (the group boundaries can differ
-from the chart's own `nD` bars).
+The `nD` grid is phased by `RunOpts.sessionAnchor`, the symbol's published `session_anchor`
+(`{ v, date, index, basis }`, see `lib/sessionBars`): the anchor's session is located in the chart
+rows and gives row 0's global session index, the same way `ChartPanel.resampleTf` builds the
+chart's own `nD` bars. Without an anchor, or when its session is not among the loaded rows or it is
+malformed, the grid falls back to the canonical owner's feed phase (the first loaded session) and
+every run that uses it says which of those happened in a warning — the group boundaries can then
+differ from the chart's own `nD` bars. ChartPanel does not pass the anchor yet.
 
 Publication (historical bars, `isrealtime=false`): default `lookahead_off` shows a period's value
 from its confirming session on and carries the previous confirmed value before that (`gaps_off`);
@@ -144,7 +148,11 @@ Refused with `na` and a warning that names the reason (never an approximate valu
 multi-week periods (`2W`, `3W`, … — no calendar phase is known in the loaded bars), other month
 counts (`2M`, `5M`, …), minute/second/hour units, any coarser request from a `W`, `2W` or `nD`
 chart (its bars cannot be regrouped without splitting a chart bar), bar times that are not
-ascending `YYYY-MM-DD` dates, a request inside a `for` loop, a call site reached twice on one bar,
+ascending `YYYY-MM-DD` dates, a request inside a `for` loop,
+a request inside a function called from a `for` loop, a call site that the requested timeframe's
+re-run did not reach on every requested bar up to the one shown (for example under an `if`: its
+`ta.*` and `[n]` history would run over a thinned series), a request in a different unit of the same
+length as the chart (`7D` on a `W` chart, `30D` on an `M` chart, `1440` or `24H` on a daily chart),
 and a request nested inside another coarser request. Finer-than-chart requests are refused the
 same way.
 
