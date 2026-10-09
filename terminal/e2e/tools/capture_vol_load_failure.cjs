@@ -1,4 +1,5 @@
 #!/usr/bin/env node
+/* eslint-disable @typescript-eslint/no-require-imports -- This capture tool is intentionally CommonJS. */
 /**
  * Volatility tab failure-state truth — dark evidence crops.
  *
