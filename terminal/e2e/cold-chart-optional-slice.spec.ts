@@ -142,6 +142,36 @@ test("unavailable OHLC is not announced as ready and is not reported as missing 
   expect(await readyFor(page, "NVDA")).toEqual([]);
 });
 
+test("unavailable slice over painted bars: stated as unavailable, and no signals are invented", async ({ page }, testInfo) => {
+  // zh rides the tablet project (the suite-wide one-language-per-project convention).
+  const zh = testInfo.project.name === "tablet";
+  await page.addInitScript((lang) => {
+    localStorage.setItem("mm.inds", JSON.stringify(["_oracle"]));
+    localStorage.setItem("mm.startTf", JSON.stringify("D"));
+    if (lang) localStorage.setItem("mm.lang", "zh");
+  }, zh);
+  await recordReady(page);
+  await page.route("**/data/NVDA.slice.json", (route) => route.fulfill({ status: 503, body: "" }));
+  await page.goto("/terminal?sym=NVDA");
+  if (zh) await expect(page.locator("html")).toHaveAttribute("data-lang", "zh", { timeout: 20_000 });
+
+  // The bars still paint and announce, exactly once.
+  await expect.poll(async () => (await readyFor(page, "NVDA")).filter((d) => d.state === "data").length, {
+    message: "the chart should announce data-ready on its OHLC even though the slice failed",
+    timeout: 60_000,
+  }).toBeGreaterThan(0);
+  // A failed slice is UNAVAILABLE — not absent, not "no signals for this symbol".
+  await expect.poll(() => sliceState(page), { timeout: 20_000 }).toEqual({ state: "unavailable", symbol: "NVDA" });
+  const chip = page.locator(".statusline > .mm").first().locator(":scope > span");
+  await expect(chip).toContainText(zh ? "信号暂不可用" : "Signals unavailable", { timeout: 20_000 });
+  // Nothing stands in for the engine's stream: with the Oracle study on, the unscored client
+  // fallback would draw markers off these bars. A failed read must not.
+  await expect(page.locator("[data-sig-layer] g")).toHaveCount(0, { timeout: 20_000 });
+  await page.waitForTimeout(1_000);
+  await expect(page.locator("[data-sig-layer] g")).toHaveCount(0, { timeout: 20_000 });
+  expect((await readyFor(page, "NVDA")).filter((d) => d.state === "data")).toHaveLength(1);
+});
+
 test("a late slice for the previous symbol cannot paint into the current chart", async ({ page }, testInfo) => {
   const nvdaSlice = hold();
   await recordReady(page);
