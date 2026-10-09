@@ -115,6 +115,65 @@ describe("parseSelectionCohort", () => {
     });
   });
 
+  // Source-contract reproduction, not a live-feed or rights-admission fixture.
+  // Macro's committed refusal is blob 533ad2e21f2154d49efda7196504dc64e88511b8.
+  // Keep the incumbent unavailable fixture and replace only its typed reason.
+  const captureRefusal = {
+    ...UNAVAILABLE,
+    unavailable_reason: "SOURCE_UNAVAILABLE:CAPTURE_RIGHTS_UNAVAILABLE",
+  };
+
+  it("capture-rights refusal is distinct from a source matching failure", () => {
+    const before = JSON.stringify(captureRefusal);
+    expect(parseSelectionCohort(captureRefusal)).toEqual({
+      kind: "unavailable", reason: "capture_rights", asOf: null,
+    });
+    expect(JSON.stringify(captureRefusal)).toBe(before);
+    expect(captureRefusal.generation_id).toBeNull();
+  });
+
+  it.each([
+    "SOURCE_UNAVAILABLE:ROW_MISSING",
+    "SOURCE_UNAVAILABLE:CAPTURE_RIGHTS_UNAVAILABLE:DETAIL",
+    "SOURCE_UNAVAILABLE:CAPTURE_RIGHTS_UNAVAILABLE ",
+    "WRAPPER_MISSING",
+  ])("does not infer capture rights from another or near-match reason: %s", (why) => {
+    expect(parseSelectionCohort({ ...captureRefusal, unavailable_reason: why }))
+      .toEqual({ kind: "unavailable", reason: "source", asOf: null });
+  });
+
+  it.each(SELECTION_COHORT_FLAGS)("checks %s before trusting the capture-rights reason", (flag) => {
+    for (const value of [true, "false", null, 0, 1, undefined]) {
+      const doc: Record<string, unknown> = { ...captureRefusal, [flag]: value };
+      if (value === undefined) delete doc[flag];
+      expect(parseSelectionCohort(doc)).toEqual({ kind: "unavailable", reason: "checks", asOf: null });
+    }
+  });
+
+  it.each([
+    { schema: "other.schema.v1" },
+    { authority_ceiling: "public" },
+    { availability: null },
+    { availability: { status: "UNKNOWN", overlap: "UNAVAILABLE" } },
+    { unavailable_reason: "CAPTURE_RIGHTS_UNAVAILABLE" },
+    { unavailable_reason: null },
+  ])("does not let the refusal label waive envelope/status checks: %j", (override) => {
+    expect(parseSelectionCohort({ ...captureRefusal, ...override }))
+      .toEqual({ kind: "unavailable", reason: "checks", asOf: null });
+  });
+
+  it("network error still takes precedence over a claimed capture-rights reason", () => {
+    expect(parseSelectionCohort({ ...captureRefusal, error: "unavailable" }))
+      .toEqual({ kind: "unavailable", reason: "feed", asOf: null });
+  });
+
+  it("reads a reason only for UNAVAILABLE, preserving ready and empty behavior", () => {
+    expect(parseSelectionCohort({ ...READY, unavailable_reason: captureRefusal.unavailable_reason }))
+      .toEqual(parseSelectionCohort(READY));
+    expect(parseSelectionCohort({ ...EMPTY, unavailable_reason: captureRefusal.unavailable_reason }))
+      .toEqual(parseSelectionCohort(EMPTY));
+  });
+
   it("R7 status WEIRD -> checks", () => {
     const doc = cloneReady();
     doc.availability = { status: "WEIRD", overlap: "OBSERVED_SHARED_CONCEPTS" };

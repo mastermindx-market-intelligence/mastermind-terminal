@@ -16,7 +16,7 @@
 
 import { useCallback, useEffect, useId, useRef, useState } from "react";
 import type { Lang } from "@/lib/i18n";
-import { parseSelectionCohort, type SelectionCohortView } from "@/lib/selectionCohort";
+import { parseSelectionCohort, type CohortUnavailableReason, type SelectionCohortView } from "@/lib/selectionCohort";
 import { makeProphetT, type ProphetKey } from "./prophetStrings";
 import styles from "./SelectionCohortCard.module.css";
 
@@ -39,9 +39,10 @@ function fetchCohortProjection(): Promise<SelectionCohortView> {
   return initialCohortFetch;
 }
 
-const UNAVAILABLE_WHY: Record<"feed" | "source" | "checks", ProphetKey> = {
+const UNAVAILABLE_WHY: Record<CohortUnavailableReason, ProphetKey> = {
   feed: "cohortWhyFeed",
   source: "cohortWhySource",
+  capture_rights: "cohortWhyCaptureRights",
   checks: "cohortWhyChecks",
 };
 
