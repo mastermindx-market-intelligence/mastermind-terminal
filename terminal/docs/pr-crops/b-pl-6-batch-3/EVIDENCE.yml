@@ -1,3 +1,4 @@
+# 2026-10-05 #802/#808 source hash reconciliation: preserves captured PNG bytes/provenance; added Dislocations-only labels are not rendered by these capture surfaces.
 # 2026-09-19 #669 plain-language debt: hash-only restamp of heatmapStrings.ts, flowdeskStrings.ts, plainLabels.ts, i18n.tsx — copy-only change, crops unchanged
 # 2026-09-19 m_f119_detail: hash-only restamp of AlertDetail.tsx (adds kind prop; gates Symbol/What-changed rows for thesis detail), alerts.module.css (detailClose flows to its own row) — crops unchanged
 # B-PL-6 batch 3 — capture evidence
@@ -15,6 +16,7 @@
 # 2026-09-19 seat merge of origin/master 4c7a2eeb6f58 (#587 B-F13-9 team rollup + #659 + #660, merge commit) into #588 (B-F12-17 invite-link honesty): hash-only restamp of terminal/lib/i18n.tsx to the merged-tree bytes; crops NOT recaptured by this merge commit. MERGE THIS PR WITH A MERGE COMMIT (branch-only pointers).
 # 2026-09-19 seat merge of origin/master dafc016e (#588 B-F12-17 invite-link honesty, #664, #666) into #586 (W9T/B-F08-13 targets readout): hash-only restamp to the merged working-tree bytes; crops NOT recaptured. Files: terminal/lib/i18n.tsx
 # 2026-09-19 seat recapture at master 62f2782f (#670 AlertDetail follow-on merged + live): AlertDetail-1440/390 EN+ZH crops regenerated with CAPTURE_ONLY=AlertDetail; layoutFiles hashes unchanged (already restamped in 05de3537); capturedAtHead informational
+# 2026-10-04 #808 dislocations screen: hash-only restamp of plainLabels.ts — +18 added lines (EPISODE_STATE_WORDS / episodeStateLabel) imported only by components/dislocations/DislocationsView.tsx, which no surface in this capture renders; crops unchanged
 layoutFiles:
   terminal/components/options/OptionsFlowBoardView.tsx: "96e0d1d0a4e7eaed7f2d2bbec6722725afacc093e205defa280a483bc6e14b8e"
   terminal/components/flowdesk/FiltersPanel.tsx: "57ac663475b95a569f62d4c08e83a111f6137c920c78f13f1c9dfad1aa61708b"
@@ -25,8 +27,8 @@ layoutFiles:
   terminal/components/heatmap/Treemap.tsx: "0c5a7f2fd990c41f725d96b9aecb83f5f73eb6a42fbc66c811b43cd722947a0d"
   terminal/lib/heatmapStrings.ts: "201e49991d2b47daaa3e5b490352c61137e020868855959087d67af82e5f346d"
   terminal/lib/flowdeskStrings.ts: "18bd244dee82bdc01c865ec8fd3cf5a95fa258d1fd175f2001dbf3dcfb9e9888"
-  terminal/lib/plainLabels.ts: "711f94db978d842b8051e9a975ef772308dab45ba08b3f1859537b5747d372d1"
-  terminal/lib/i18n.tsx: "51276ecc8db6956c6c4e5cc67c55eab029c0b468ccb61e34f8bb92f25e42b9f8"
+  terminal/lib/plainLabels.ts: "8f57e32a21abcae530075b7c4da72f170afff8ea38084026995887b4a18fe29a"
+  terminal/lib/i18n.tsx: "858306597ebbfc2d912cefc997ad88e4805cafb08794b5cd4d3dfeacb109371f"
   terminal/components/PineEditor.tsx: "e48a009b44f32f9501d2890602cd5096257ad57b83bac59147d691e221a69f63"
 theme: dark
 languages: [en, zh]

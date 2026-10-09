@@ -286,9 +286,9 @@
 
 @media (max-width:640px){
   /* One full-width tap target, ≥44px tall: on the phone this bar IS the symbol switcher. */
-  .analysis-context-bar{min-height:52px;padding:7px 10px;gap:8px}.analysis-context-freshness{display:none}
+  .analysis-context-bar{min-height:52px;padding:7px 10px;gap:8px;flex-wrap:wrap}.analysis-context-freshness{display:none}
   .analysis-context-back{width:44px;min-width:44px;padding:0;justify-content:center;font-size:0}.analysis-context-back svg{width:15px;height:15px}
-  .sym-pick{flex:1;min-width:0;min-height:44px;border-color:var(--line-3);background:var(--panel-2)}
+  .sym-pick{flex:1 1 150px;min-width:0;min-height:44px;border-color:var(--line-3);background:var(--panel-2)}
   .sym-pick-mark{width:34px;height:34px}
   .sym-pick-id small{display:none}
   .sym-pick-id strong{font-size:15px}

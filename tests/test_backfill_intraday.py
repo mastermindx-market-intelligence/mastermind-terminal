@@ -563,6 +563,7 @@ def test_backfill_existing_only_in_nightly_once():
 def test_intraday_refresh_prints_status_line_and_never_aborts():
     body = NIGHTLY.read_text()
     assert "INTRADAY_REFRESH status=OK" in body
+    assert "INTRADAY_REFRESH status=SKIPPED_HOLIDAY" in body
     assert "INTRADAY_REFRESH status=FAILED rc=" in body
     assert body.count(INTRADAY_CMD) == 1
 
@@ -599,8 +600,17 @@ def test_backfill_existing_only_weekday_gated():
 def test_backfill_existing_only_step_has_a_time_limit():
     """A stalled vendor must not hold the nightly lock: the step is killed after 90 minutes."""
     lines = NIGHTLY.read_text().splitlines()
-    steps = [line.strip() for line in lines if INTRADAY_CMD in line]
-    assert steps == ["if timeout -k 60 90m " + INTRADAY_CMD + "; then"]
+    steps = [line.strip() for line in lines if INTRADAY_CMD in line and "timeout" in line]
+    assert steps == [
+        "timeout -k 60 90m " + INTRADAY_CMD + ' 2>&1 | tee "$INTRADAY_LOG"'
+    ]
+    assert any("rc=${PIPESTATUS[0]}" in ln for ln in lines)
+
+
+def test_intraday_log_in_trap_cleanup():
+    body = NIGHTLY.read_text()
+    assert 'rm -f "$LOCKFILE" "${INTRADAY_LOG:-}"' in body
+    assert 'export INTRADAY_RUN_DATE_ET="$(TZ=America/New_York date +%F)"' in body
 
 
 def test_backfill_existing_only_not_in_manifest_dependency():
@@ -872,12 +882,37 @@ def test_main_dedupes_duplicate_jobs(intraday_env, monkeypatch):
 def test_delayed_pages_are_counted_in_summary(intraday_env, monkeypatch, capsys):
     make_store(intraday_env / "DEL.5m.json", "DEL", "5m", n=30)
     monkeypatch.setattr(mod, "INTRADAY", intraday_env)
-    monkeypatch.setattr(mod, "_get", lambda _url: {
-        "status": "DELAYED",
-        "results": [{"t": 1_700_000_000_000, "o": 1.0, "h": 2.0, "l": 0.5, "c": 1.0, "v": 1}],
-    })
-    mod.main(["--existing-only", "--tf", "5m", "--workers", "1"])
-    assert "delayed_pages=1" in capsys.readouterr().out
+    monkeypatch.setattr(mod, "_disp_epoch", lambda ms: ms // 1000)
+    store, asof = mod.load_store("DEL", "5m")
+    tail = store[-6:]
+    last = asof
+
+    def polygon_bar(row):
+        disp_epoch = row[0]
+        ms = int(disp_epoch * 1000)
+        return {
+            "t": ms,
+            "o": row[1],
+            "h": row[2],
+            "l": row[3],
+            "c": row[4],
+            "v": row[5],
+        }
+
+    def fake_get(_url):
+        extra_row = [last + 300, 10.0, 11.0, 9.0, 10.5, 100]
+        return {
+            "status": "DELAYED",
+            "results": [polygon_bar(r) for r in tail] + [polygon_bar(extra_row)],
+        }
+
+    monkeypatch.setattr(mod, "_get", fake_get)
+    rc = mod.main(["--existing-only", "--tf", "5m", "--workers", "1"])
+    out = capsys.readouterr().out
+    assert rc == 0
+    m = re.search(r"delayed_pages=(\d+)", out)
+    assert m and int(m.group(1)) >= 1
+    assert "1/1 stored" in out
 
 
 def test_summary_line_has_all_counters(intraday_env, monkeypatch, capsys):
@@ -1300,3 +1335,297 @@ def test_redact_fails_closed_when_a_pattern_raises(monkeypatch):
     assert isinstance(out, str)
     assert "SECRET123" not in out
     assert "withheld" in out
+
+
+def _fu_rows(n=30, start=1_700_000_000, step=3600, scale=1.0):
+    return [
+        [start + i * step, (100 + i) * scale, (105 + i) * scale, (99 + i) * scale,
+         (101 + i) * scale, 1000]
+        for i in range(n)
+    ]
+
+
+def _fu_moved(bars, k):
+    return [[r[0], r[1] * k, r[2] * k, r[3] * k, r[4] * k, r[5]] for r in bars]
+
+
+def _fu_refresh_tail(store, k, n_shared=6):
+    tail = _fu_moved(store[-n_shared:], k)
+    last = store[-1][0]
+    i = len(store)
+    nb = [last + 3600, (100 + i) * k, (105 + i) * k, (99 + i) * k, (101 + i) * k, 1000]
+    return tail + [nb]
+
+
+def _fu_refresh_tail_scales(store, scales):
+    """Shared tail with per-bar close multipliers (same length as scales)."""
+    n = len(scales)
+    tail = []
+    for i, k in enumerate(scales):
+        r = store[-(n - i)]
+        tail.append([r[0], r[1] * k, r[2] * k, r[3] * k, r[4] * k, r[5]])
+    last = store[-1][0]
+    j = len(store)
+    k_last = scales[-1]
+    tail.append(
+        [last + 3600, (100 + j) * k_last, (105 + j) * k_last, (99 + j) * k_last,
+         (101 + j) * k_last, 1000])
+    return tail
+
+
+_NYSE_PINNED_HOLIDAYS = (
+    "2026-01-01",
+    "2026-01-19",
+    "2026-02-16",
+    "2026-04-03",
+    "2026-05-25",
+    "2026-06-19",
+    "2026-07-03",
+    "2026-09-07",
+    "2026-11-26",
+    "2026-12-25",
+    "2027-01-01",
+    "2027-01-18",
+    "2027-02-15",
+    "2027-03-26",
+    "2027-05-31",
+    "2027-06-18",
+    "2027-07-05",
+    "2027-09-06",
+    "2027-11-25",
+    "2027-12-24",
+)
+
+
+@pytest.mark.parametrize("iso", _NYSE_PINNED_HOLIDAYS)
+def test_is_nyse_holiday_pinned_calendar(iso):
+    assert mod.is_nyse_holiday(dt.date.fromisoformat(iso))
+
+
+@pytest.mark.parametrize("iso", ("2026-11-27", "2026-12-24", "2026-07-04"))
+def test_is_nyse_holiday_pinned_non_holidays(iso):
+    assert not mod.is_nyse_holiday(dt.date.fromisoformat(iso))
+
+
+def test_nyse_holiday_calendar_expiry_warns_once(capsys):
+    mod._NYSE_HOLIDAY_WARNED = False
+    assert not mod.is_nyse_holiday(dt.date(2028, 1, 2))
+    assert not mod.is_nyse_holiday(dt.date(2028, 1, 3))
+    out = capsys.readouterr().out
+    assert out.count(
+        "WARNING: NYSE holiday calendar ends 2027-12-31 — extend _NYSE_HOLIDAYS"
+    ) == 1
+
+
+def test_fu_m1_expect_advance_on_nyse_holiday_exits_ok(intraday_env, monkeypatch, capsys):
+    from test_backfill_intraday_breaker import _DETAIL_RE, detail
+
+    make_store(intraday_env / "HOL.1h.json", "HOL", "1h", n=30)
+    monkeypatch.setattr(mod, "INTRADAY", intraday_env)
+    monkeypatch.setenv("INTRADAY_RUN_DATE_ET", "2026-11-26")
+    called = {"n": 0}
+
+    def fake(sym, tf, frm=None, **kwargs):
+        called["n"] += 1
+        return mod.load_store(sym, tf)[0][-6:]
+
+    with patch.object(mod, "fetch_polygon_intraday", fake):
+        rc = mod.main(["--existing-only", "--expect-advance", "--tf", "1h", "--workers", "1"])
+    out = capsys.readouterr().out
+    assert rc == 0
+    assert called["n"] == 0
+    assert "holiday=1" in out
+    assert _DETAIL_RE.search(out)
+    d = detail(out)
+    assert d["skipped"] == 1
+    assert d["not_advanced"] == 0
+    assert "STALE:" not in out
+    assert "intraday backfill complete:" in out
+
+
+def test_fu_m1_expect_advance_weekday_none_advanced_rc4(intraday_env, monkeypatch, capsys):
+    make_store(intraday_env / "WKD.1h.json", "WKD", "1h", n=30)
+    monkeypatch.setattr(mod, "INTRADAY", intraday_env)
+    monkeypatch.setenv("INTRADAY_RUN_DATE_ET", "2026-11-27")
+
+    def fake(sym, tf, frm=None, **kwargs):
+        return mod.load_store(sym, tf)[0][-6:]
+
+    with patch.object(mod, "fetch_polygon_intraday", _with_overlap(fake)):
+        rc = mod.main(["--existing-only", "--expect-advance", "--tf", "1h", "--workers", "1"])
+    out = capsys.readouterr().out
+    assert rc == mod.EXIT_STALE_VENDOR == 4
+    assert "STALE: no store advanced on a run that expected new bars" in out
+
+
+def test_fu_m2_thin_overlap_exact_gross_band_1_25_rebuilds(intraday_env, capsys):
+    sym = "M2A"
+    store = _fu_rows(30)
+    path = intraday_env / f"{sym}.1h.json"
+    _write_store_rows(path, sym, "1h", store)
+    full = []
+
+    def fake(s, tf, frm=None, **kwargs):
+        if frm is None:
+            full.append(1)
+            return _fu_moved(_fu_rows(40), 1.25)
+        return _fu_refresh_tail(store, 1.25, n_shared=1)
+
+    with patch.object(mod, "fetch_polygon_intraday", fake):
+        rc = mod.main(["--existing-only", "--tf", "1h", "--workers", "1"])
+    out = capsys.readouterr().out
+    assert rc == 0
+    assert len(full) == 1
+    assert "agreeing bars" not in out
+    assert "rebuilt=1" in out
+
+
+def test_fu_m2_thin_overlap_gross_band_1_2499_merges_basis_unverified(intraday_env, capsys):
+    sym = "M2C"
+    store = _fu_rows(30)
+    path = intraday_env / f"{sym}.1h.json"
+    _write_store_rows(path, sym, "1h", store)
+    k = 1.2499
+
+    def fake(s, tf, frm=None, **kwargs):
+        if frm is None:
+            raise AssertionError("full rebuild should not run")
+        return _fu_refresh_tail(store, k, n_shared=1)
+
+    with patch.object(mod, "fetch_polygon_intraday", fake):
+        rc = mod.main(["--existing-only", "--tf", "1h", "--workers", "1"])
+    out = capsys.readouterr().out
+    assert rc == 0
+    assert "rebuilt=0" in out
+    assert "basis_unverified=1" in out
+
+
+def test_fu_m2_thin_overlap_ratio_1_01_one_bar_merges_basis_unverified(intraday_env, capsys):
+    sym = "M2D"
+    store = _fu_rows(30)
+    path = intraday_env / f"{sym}.1h.json"
+    _write_store_rows(path, sym, "1h", store)
+
+    def fake(s, tf, frm=None, **kwargs):
+        if frm is None:
+            raise AssertionError("full rebuild should not run")
+        return _fu_refresh_tail(store, 1.01, n_shared=1)
+
+    with patch.object(mod, "fetch_polygon_intraday", fake):
+        rc = mod.main(["--existing-only", "--tf", "1h", "--workers", "1"])
+    out = capsys.readouterr().out
+    assert rc == 0
+    assert "rebuilt=0" in out
+    assert "basis_unverified=1" in out
+
+
+def test_fu_m2_thin_overlap_two_agreeing_bars_thin_rebuilds(intraday_env, capsys):
+    sym = "M2E"
+    store = _fu_rows(30)
+    path = intraday_env / f"{sym}.1h.json"
+    _write_store_rows(path, sym, "1h", store)
+    full = []
+
+    def fake(s, tf, frm=None, **kwargs):
+        if frm is None:
+            full.append(1)
+            return _fu_moved(_fu_rows(40), 1.0105)
+        return _fu_refresh_tail_scales(store, [1.01, 1.011])
+
+    with patch.object(mod, "fetch_polygon_intraday", fake):
+        rc = mod.main(["--existing-only", "--tf", "1h", "--workers", "1"])
+    out = capsys.readouterr().out
+    assert rc == 0
+    assert len(full) == 1
+    assert "2 agreeing bars" in out
+    assert "rebuilt=1" in out
+
+
+def test_fu_m2_thin_overlap_two_disagreeing_bars_merges_basis_unverified(intraday_env, capsys):
+    sym = "M2F"
+    store = _fu_rows(30)
+    path = intraday_env / f"{sym}.1h.json"
+    _write_store_rows(path, sym, "1h", store)
+
+    def fake(s, tf, frm=None, **kwargs):
+        if frm is None:
+            raise AssertionError("full rebuild should not run")
+        return _fu_refresh_tail_scales(store, [1.0, 1.02])
+
+    with patch.object(mod, "fetch_polygon_intraday", fake):
+        rc = mod.main(["--existing-only", "--tf", "1h", "--workers", "1"])
+    out = capsys.readouterr().out
+    assert rc == 0
+    assert "rebuilt=0" in out
+    assert "basis_unverified=1" in out
+    assert "intraday thin rebuild budget spent:" not in out
+
+
+def test_fu_m2_thin_budget_spent_merges_second_candidate(intraday_env, monkeypatch, capsys):
+    sym_a, sym_b = "M2G", "M2H"
+    for sym in (sym_a, sym_b):
+        store = _fu_rows(30)
+        _write_store_rows(intraday_env / f"{sym}.1h.json", sym, "1h", store)
+    monkeypatch.setattr(mod, "MAX_THIN_REBUILDS", 1)
+    full = []
+
+    def fake(s, tf, frm=None, **kwargs):
+        store = mod.load_store(s, tf)[0]
+        if frm is None:
+            full.append(s)
+            return _fu_moved(_fu_rows(40), 1.0105)
+        return _fu_refresh_tail_scales(store, [1.01, 1.011])
+
+    with patch.object(mod, "fetch_polygon_intraday", fake):
+        rc = mod.main(["--existing-only", "--tf", "1h", "--workers", "1"])
+    out = capsys.readouterr().out
+    assert rc == 0
+    assert len(full) == 1
+    assert "rebuilt=1" in out
+    assert "basis_unverified=1" in out
+    assert "intraday thin rebuild budget spent: 1" in out
+
+
+def test_fu_m2_thin_overlap_six_five_ratio_on_four_bars_rebuilds(intraday_env, capsys):
+    sym = "M2B"
+    store = _fu_rows(30)
+    path = intraday_env / f"{sym}.1h.json"
+    _write_store_rows(path, sym, "1h", store)
+    k = 6 / 5
+    full = []
+
+    def fake(s, tf, frm=None, **kwargs):
+        if frm is None:
+            full.append(1)
+            return _fu_moved(_fu_rows(40), k)
+        return _fu_refresh_tail(store, k, n_shared=4)
+
+    with patch.object(mod, "fetch_polygon_intraday", fake):
+        rc = mod.main(["--existing-only", "--tf", "1h", "--workers", "1"])
+    out = capsys.readouterr().out
+    assert rc == 0
+    assert len(full) == 1
+    assert "4 agreeing bars" in out
+    assert "rebuilt=1" in out
+
+
+def test_fu_n5_rebuild_ninety_percent_coverage_passes(intraday_env, monkeypatch, capsys):
+    sym = "N5OK"
+    store = _fu_rows(240)
+    path = intraday_env / f"{sym}.1h.json"
+    _write_store_rows(path, sym, "1h", store)
+    monkeypatch.setattr(mod, "INTRADAY", intraday_env)
+    need = int(0.9 * len(store))
+
+    def fake(s, tf, frm=None, **kwargs):
+        if frm is None:
+            return _fu_moved(store[-need:], 0.5)
+        return _fu_refresh_tail(store, 0.5, n_shared=4)
+
+    with patch.object(mod, "fetch_polygon_intraday", fake):
+        rc = mod.main(["--existing-only", "--tf", "1h", "--workers", "1"])
+    out = capsys.readouterr().out
+    assert rc == 0
+    assert "rebuilt=1" in out
+    assert "retention_dropped=0" in out
+    assert "shrunk=24" in out

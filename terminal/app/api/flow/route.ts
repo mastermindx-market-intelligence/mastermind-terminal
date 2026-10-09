@@ -18,7 +18,27 @@ const TTL_MS = 30_000;
 
 // Inflight dedup: a single background revalidation promise per cache key.
 // Without this, N concurrent stale requests each fire a separate upstream fetch.
-const INFLIGHT: Record<string, Promise<Record<string, unknown> | null>> = {};
+const INFLIGHT: Record<string, Promise<Record<string, unknown> | null> | undefined> = {};
+
+function revalidateFlow(f: string): Promise<Record<string, unknown> | null> {
+  if (INFLIGHT[f]) return INFLIGHT[f];
+  // The same in-flight owner serves ordinary SWR and explicit Leaders refresh,
+  // so two users cannot create competing source-check workers for one key.
+  const request = tryFetchUpstream(f).then(
+    (data) => {
+      if (data) {
+        attachFlowScores(f, data);
+        CACHE[f] = { data, ts: Date.now() };
+      }
+      return data;
+    },
+    () => null,
+  ).finally(() => {
+    if (INFLIGHT[f] === request) delete INFLIGHT[f];
+  });
+  INFLIGHT[f] = request;
+  return request;
+}
 
 export async function GET(req: Request): Promise<Response> {
   const rl = rateLimit(req, { name: "flow" });
@@ -84,6 +104,25 @@ export async function GET(req: Request): Promise<Response> {
     }
   }
 
+  // Only a user-explicit Leaders check can bypass the server's 30-second
+  // display cache. Keep entitlement/rate limits and the existing in-flight
+  // owner intact; other flow families preserve their established TTL.
+  if (f === "leaders" && url.searchParams.get("refresh") === "1") {
+    const previous = CACHE[f];
+    const refreshed = await revalidateFlow(f);
+    if (refreshed) {
+      return NextResponse.json(refreshed, { headers: { "Cache-Control": "no-store" } });
+    }
+    if (previous) {
+      return NextResponse.json({ ...previous.data, stale: true }, {
+        headers: { "Cache-Control": "no-store" },
+      });
+    }
+    return NextResponse.json({ error: "feed unavailable" }, {
+      status: 503, headers: { "Cache-Control": "no-store" },
+    });
+  }
+
   const now = Date.now();
   const cached = CACHE[f];
 
@@ -107,22 +146,15 @@ export async function GET(req: Request): Promise<Response> {
   }
 
   const stale = { ...cached.data, stale: true };
-  // Inflight dedup: only start one background revalidation per cache key.
-  if (!INFLIGHT[f]) {
-    INFLIGHT[f] = tryFetchUpstream(f).then(
-      (data) => {
-        delete INFLIGHT[f];
-        if (data) {
-          attachFlowScores(f, data);
-          CACHE[f] = { data, ts: Date.now() };
-        }
-        return data;
-      },
-      () => {
-        delete INFLIGHT[f];
-        return null;
-      }
-    );
+  const refresh = revalidateFlow(f);
+  // Leaders is a nightly-derived source with a source-session admission gate.
+  // The generic background SWR response reports stale:true immediately, even if
+  // the new Macro artifact is already current. Wait for this one coalesced check
+  // so an explicit Leaders refresh actually consumes the newly published source.
+  // On upstream failure the historical cached snapshot stays explicitly stale.
+  if (f === "leaders") {
+    const refreshed = await refresh;
+    return NextResponse.json(refreshed ?? stale, { headers: { "Cache-Control": "no-store" } });
   }
   return NextResponse.json(stale, { headers: { "Cache-Control": "no-store" } });
 }

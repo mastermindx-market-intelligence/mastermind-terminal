@@ -739,7 +739,7 @@ export function StrikeLadder({
           {/* 0DTE quick chip — shown whenever the snapshot HAS a same-day expiry */}
           {has0Dte && (
             <button
-              className={`obs-chip${lens.kind === "zero" ? " on" : ""}`}
+              className={`obs-chip obs-gex-mobile-target${lens.kind === "zero" ? " on" : ""}`}
               style={{ ...QUICK_CHIP, opacity: zeroSelectable ? 1 : 0.45 }}
               aria-pressed={lens.kind === "zero"}
               aria-disabled={!zeroSelectable}

@@ -243,7 +243,7 @@ test("an unavailable calendar and a delayed outgoing symbol never become fabrica
     // This is the same user journey on desktop, tablet, and phone and preserves the transition we
     // are proving: the old symbol's calendar must disappear while the new symbol is still loading.
     await page.keyboard.press("Control+K");
-    const symbolSearch = page.getByRole("combobox");
+    const symbolSearch = page.locator('input[role="combobox"]');
     await expect(symbolSearch).toBeVisible();
     await symbolSearch.fill("AAPL");
     await expect(page.getByRole("option").filter({ hasText: "AAPL" }).first()).toBeVisible();

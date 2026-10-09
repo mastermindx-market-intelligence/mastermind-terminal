@@ -1078,6 +1078,9 @@
 .fin-ro-tick-lbl-year{fill:var(--text-2);font:600 8.5px/1 var(--font-num);font-variant-numeric:tabular-nums}
 .fin-ro-now{stroke:var(--brand-2);stroke-width:1.5;vector-effect:non-scaling-stroke}
 .fin-ro-now-lbl{fill:var(--brand-2);font:700 8px/1 var(--font-ui)}
+/* Non-interactive guide lines/labels overlay the data-band SVG. They must not
+   steal hover/touch hit tests from the bars beneath them (mobile regression). */
+.fin-ro-axis-line,.fin-ro-tick,.fin-ro-tick-year,.fin-ro-tick-lbl,.fin-ro-tick-lbl-year,.fin-ro-now,.fin-ro-now-lbl{pointer-events:none}
 
 /* window cards — outcome, range and strength replace the old prose block */
 .fin-ro-windows{margin-bottom:12px}
