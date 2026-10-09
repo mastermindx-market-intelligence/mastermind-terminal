@@ -122,7 +122,7 @@ import { computeTrendState } from "@/lib/trend";
 import { useLive } from "@/lib/live";
 import { setPaneSync, subscribePaneVisibleWindow } from "@/lib/paneSync";
 import { REPLAY_MIN_IDX, replayIsAvailable, replayChartKey, resolveReplayTotal, replayHasSpan, clampReplayIdx, initialReplayIdx,
-  replayIdxAt, replayCutoffAt, stepReplayCutoff, replayExitFor, sameReplayAxis, type ReplayAxis, type ReplayCutoff, type ReplayExit } from "@/lib/replayContract";
+  replayIdxAt, replayCutoffAt, stepReplayCutoff, replayExitOnScreen, recordReplayAxis, type ReplayAxis, type ReplayCutoff, type ReplayExit } from "@/lib/replayContract";
 import {
   MAX_DRAWINGS_PER_SYMBOL,
   type Dash,
@@ -1277,11 +1277,11 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
   const total = resolveReplayTotal(paneTotals, panes, paneTfs);
   const replaySpan = replayHasSpan(total);
   const replayAxis: ReplayAxis | undefined = replayAvailable ? paneAxes[replayChart] : undefined;
+  // The charts on screen now, so the axes of charts that left the screen can be dropped.
+  const paneKeysRef = useRef<Set<string>>(new Set());
+  paneKeysRef.current = new Set(panes.map((sym, i) => replayChartKey(sym, paneTfs[i])));
   const onPaneMeta = useCallback((m: { symbol: string; timeframe: string; axis: ReplayAxis }) => {
-    setPaneAxes((prev) => {
-      const key = replayChartKey(m.symbol, m.timeframe);
-      return sameReplayAxis(prev[key], m.axis) ? prev : { ...prev, [key]: m.axis };
-    });
+    setPaneAxes((prev) => recordReplayAxis(prev, replayChartKey(m.symbol, m.timeframe), m.axis, paneKeysRef.current));
   }, []);
   // Losing single-chart availability retires the INTENT too, so collapsing back to one chart
   // offers Replay afresh rather than silently resuming at an index measured on another symbol.
@@ -1295,7 +1295,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
   // same reason: a timeframe on the other clock (daily ↔ intraday) has no exact instant to keep, so
   // it exits before any frame slices it; a timeframe with too little history before the cutoff
   // exits as soon as its bars are measured, instead of padding the chart with later bars.
-  const replayExit = replayOn ? replayExitFor(replayCutoff, paneTfs[0] ?? "D", replayAxis) : null;
+  const replayExit = replayOn ? replayExitOnScreen(replayCutoff, paneTfs[0] ?? "D", replayAxis) : null;
   if (replayExit) {
     setReplayArmed(false); setReplayCutoff(null); setPlaying(false); setReplayNotice({ reason: replayExit });
   }

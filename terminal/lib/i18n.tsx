@@ -1622,6 +1622,8 @@ export const LEX: Record<string, [string, string]> = {
   olUnavail: ["levels unavailable", "关键位暂不可用"],
   olNoDate: ["undated snapshot", "无日期快照"],
   olLoading: ["loading…", "加载中…"],
+  // Bar Replay rewound the chart to before the snapshot's newest input existed
+  olReplay: ["hidden: data is newer than the replay date", "已隐藏：数据晚于回放日期"],
   // ─── R3.2 screener msc_* positioning columns ─────────────────────────────
   colMscRegime: ["γ regime", "γ 状态"],
   colMscNetGex: ["Net GEX", "净GEX"],

@@ -43,6 +43,7 @@
 
 import { timeToMs } from "@/lib/timeWindow";
 import { isIntradayTf, tfSeconds } from "@/lib/intradayShared";
+import { RETRO_RULE_DATE, isRetroOverride, signalKnownTs } from "@/lib/signalVerdict";
 
 /** Replay never rewinds past this bar — the indicator stack needs a warmup window. */
 export const REPLAY_MIN_IDX = 20;
@@ -202,9 +203,78 @@ export function replayExitFor(cutoff: ReplayCutoff | null | undefined, tf: strin
   return replayIdxAt(axis, cutoff) < REPLAY_MIN_IDX ? "range" : null;
 }
 
+/**
+ * What the SHELL does with the chart on screen. Same as `replayExitFor`, except that a chart
+ * measured EMPTY on the replay's own clock ends Replay ("range"). The pure contract cannot tell
+ * "reloading" from "empty", but the chart only ever reports an empty axis from its dead-end path
+ * (no history for this symbol/timeframe, a composite whose legs share no dates): a measurement,
+ * not a transient. Leaving Replay armed there kept the badge and the rail over a chart that holds
+ * nothing and can never reach the cutoff.
+ */
+export function replayExitOnScreen(cutoff: ReplayCutoff | null | undefined, tf: string, axis: ReplayAxis | null | undefined): ReplayExit {
+  const exit = replayExitFor(cutoff, tf, axis);
+  if (exit || !cutoff || !axis) return exit;
+  return axis.clock === cutoff.clock && axis.at.length === 0 ? "range" : null;
+}
+
+/**
+ * Was an end-of-day snapshot dated `asof` (its NEWEST input's date) published by the cutoff?
+ * A live chart (no cutoff) shows it as before. On the session clock a snapshot for a date is
+ * knowable on that date's bar; on the intraday clock only once that session is over (the next
+ * calendar day is the conservative bound — the feed carries no publish time). An undated
+ * snapshot cannot be placed before any cutoff, so Replay never draws it.
+ */
+export function eodSnapshotKnown(asof: string | null | undefined, cutoff: ReplayCutoff | null | undefined): boolean {
+  if (!cutoff) return true;
+  if (!asof) return false;
+  const day = timeToMs(asof);
+  if (!Number.isFinite(day)) return false;
+  return cutoff.clock === "intraday" ? day + 86_400_000 <= cutoff.at : day <= cutoff.at;
+}
+
+/**
+ * Which slice signals a chart may mark, given the last session it shows. Live charts keep the
+ * chart-coordinate horizon (`ts`) they always had. A REPLAYED chart also needs the signal to have
+ * been OBSERVABLE by then (`known_ts`, legacy slices fall back to `ts`), and paints a RETRO
+ * projection — "the rule in force since RETRO_RULE_DATE would have entered" — only once that
+ * rule existed: before it, the counterfactual names a rule nobody could have run.
+ */
+export function replaySignalAdmission(
+  s: { ts?: unknown; known_ts?: unknown; retro_override?: unknown } | null | undefined,
+  lastSession: string,
+  replaying: boolean,
+): { show: boolean; retro: boolean } {
+  const ts = s?.ts;
+  if (typeof ts !== "string" || ts > lastSession) return { show: false, retro: false };
+  if (replaying && (signalKnownTs(s) ?? ts).slice(0, 10) > lastSession) return { show: false, retro: false };
+  return { show: true, retro: isRetroOverride(s) && (!replaying || lastSession >= RETRO_RULE_DATE) };
+}
+
 /** Equal axes — lets the shell keep one object per chart instead of re-rendering per load. */
 export function sameReplayAxis(a: ReplayAxis | undefined, b: ReplayAxis): boolean {
   if (!a || a.clock !== b.clock || a.at.length !== b.at.length) return false;
   for (let i = 0; i < a.at.length; i++) if (a.at[i] !== b.at[i]) return false;
   return true;
+}
+
+/**
+ * Records one chart's measured axis in the per-chart map, dropping the axes of charts no longer
+ * on screen once more than `slack` of them have piled up. Without the bound every symbol and
+ * timeframe visited kept its axis (one number per bar) for the life of the page. The reporting
+ * chart's own axis is always kept, so a report that lands before the layout names its chart is
+ * never lost. Returns `axes` itself when nothing changed.
+ */
+export function recordReplayAxis(
+  axes: Record<string, ReplayAxis>,
+  key: string,
+  axis: ReplayAxis,
+  onScreen: ReadonlySet<string>,
+  slack = 4,
+): Record<string, ReplayAxis> {
+  if (sameReplayAxis(axes[key], axis)) return axes;
+  const next: Record<string, ReplayAxis> = { ...axes, [key]: axis };
+  if (Object.keys(next).length > onScreen.size + slack) {
+    for (const k of Object.keys(next)) if (k !== key && !onScreen.has(k)) delete next[k];
+  }
+  return next;
 }
