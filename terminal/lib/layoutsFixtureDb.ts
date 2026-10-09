@@ -9,8 +9,8 @@
 //     taken name answers `{code:"23505"}` and `upsert(onConflict:"user_id,name")` updates in place.
 //     So "two concurrent saves leave exactly one row" is proved against a store that behaves like
 //     the post-`0008` schema, not against UI debouncing. (The fixture therefore always models the
-//     APPLIED world; the unapplied-DDL fallback path in lib/layouts.ts is covered by unit tests,
-//     which can return 42P10 on demand.)
+//     APPLIED world; the best-effort pre-insert name check without that DDL is covered by
+//     scripted unit tests, without claiming concurrent uniqueness in that state.)
 //
 //  2. FAULT INJECTION. Production Supabase must never be broken to prove an error state, so the
 //     store fails on request instead: the `mm_e2e_layout_fault` cookie makes the matching operation
@@ -20,9 +20,12 @@
 // falls through to the RLS'd Supabase server client.
 
 import type { LayoutDb, LayoutDbResult, LayoutQuery, LayoutRow } from "@/lib/layouts";
+import { canonicalJson } from "@/lib/workspaceLayout";
 
 /** Per-test store key, so the three parallel viewport projects cannot see each other's writes. */
 export const LAYOUT_STORE_COOKIE = "mm_e2e_layouts";
+/** Optional identity within one store, used by the two-context team-sharing proof. */
+export const LAYOUT_USER_COOKIE = "mm_e2e_layout_user";
 /** Operation class that should fail: `list` | `save` | `delete` | `all`. */
 export const LAYOUT_FAULT_COOKIE = "mm_e2e_layout_fault";
 /** Renders the workspace as a signed-out visitor (page prop + API auth), for the guest-gate spec. */
@@ -51,9 +54,12 @@ type FixtureGlobal = typeof globalThis & {
 const stores: Map<string, Store> = ((globalThis as FixtureGlobal)[GLOBAL_KEY] ??= new Map<string, Store>());
 const teamStores: Map<string, Store> = ((globalThis as FixtureGlobal)[TEAM_GLOBAL_KEY] ??= new Map<string, Store>());
 
-/** Stable synthetic owner id per store key — the service still filters on it everywhere. */
-export function fixtureLayoutUserId(key: string): string {
-  return `e2e-layout-user-${key}`;
+/** Stable synthetic identity per store key — the service still filters on it everywhere. */
+export function fixtureLayoutUserId(key: string, identity = "owner"): string {
+  const safeIdentity = identity.replace(/[^a-zA-Z0-9_-]/g, "_") || "owner";
+  // Keep the long-standing default principal stable for every existing fixture test. Only an
+  // explicitly selected second identity receives a suffix.
+  return safeIdentity === "owner" ? `e2e-layout-user-${key}` : `e2e-layout-user-${key}-${safeIdentity}`;
 }
 
 function storeFor(key: string): Store {
@@ -74,32 +80,42 @@ type Op =
 /** Which fault class an operation belongs to, so one cookie can target reads or writes. */
 const faultClassOf = (op: Op): LayoutFault => (op.kind === "select" ? "list" : op.kind === "delete" ? "delete" : "save");
 
-/** `column` is either a plain row column ("user_id", "name", "id") or a PostgREST JSON-path
- *  reference ("config->>revision"). The `->>` operator always yields TEXT, so a path read is
- *  stringified (never a raw number/boolean) and a missing key or non-object base reads as `null` —
- *  the same "NULL never satisfies eq/neq" semantics real Postgres gives a still-legacy row that has
- *  no `config.schema` key at all (see the `LayoutQuery` doc-comment in `lib/layouts.ts`). */
+/** SQL NULL and JSON null differ for a `->` path. Only missing keys/non-object
+ * bases produce SQL NULL; `->>` also maps JSON null to SQL NULL and yields text. */
+const SQL_NULL = Symbol("layout-fixture-sql-null");
 function readPath(row: LayoutRow, column: string): unknown {
-  const idx = column.indexOf("->>");
-  if (idx === -1) return row[column];
-  const base = row[column.slice(0, idx)];
-  if (typeof base !== "object" || base === null || Array.isArray(base)) return null;
-  const val = (base as Record<string, unknown>)[column.slice(idx + 3)];
-  return val === undefined || val === null ? null : String(val);
+  const parts = column.split(/(->>|->)/);
+  if (parts.length === 1) return row[column] ?? SQL_NULL;
+  let value: unknown = row[parts[0]];
+  for (let i = 1; i < parts.length; i += 2) {
+    if (typeof value !== "object" || value === null || Array.isArray(value)) return SQL_NULL;
+    value = (value as Record<string, unknown>)[parts[i + 1]];
+    if (value === undefined) return SQL_NULL;
+    if (parts[i] === "->>") {
+      if (value === null) return SQL_NULL;
+      value = typeof value === "object" ? JSON.stringify(value) : String(value);
+    }
+  }
+  return value;
 }
 
 type Filter = { column: string; op: "eq" | "neq" | "is"; value: unknown };
 
 function filterMatches(row: LayoutRow, filter: Filter): boolean {
   const actual = readPath(row, filter.column);
-  switch (filter.op) {
-    case "eq": return actual !== null && actual === filter.value;
-    // SQL `<>` semantics: NULL is never distinct-or-equal to anything under `neq`/`eq` — it simply
-    // never satisfies either. Callers that need "no value OR a different value" use `is`+`neq` as
-    // two disjoint attempts (see `saveWorkspace`'s migrate-on-write guard).
-    case "neq": return actual !== null && actual !== filter.value;
-    case "is": return filter.value === null ? actual === null : actual === filter.value;
-  }
+  if (filter.op === "is") return filter.value === null ? actual === SQL_NULL : actual === filter.value;
+  if (actual === SQL_NULL) return false;
+  // PostgREST passes JSON filter values as encoded text; PostgreSQL compares jsonb
+  // structurally, preserving number/string/null types and ignoring object key order.
+  const path = filter.column.split(/(->>|->)/);
+  let equal: boolean;
+  if (path.length > 1 && path[path.length - 2] === "->") {
+    try {
+      const expected = typeof filter.value === "string" ? JSON.parse(filter.value) : filter.value;
+      equal = canonicalJson(actual) === canonicalJson(expected);
+    } catch { return false; }
+  } else equal = actual === filter.value;
+  return filter.op === "eq" ? equal : !equal;
 }
 
 function teamStoreFor(teamId: string): Store {
@@ -109,12 +125,18 @@ function teamStoreFor(teamId: string): Store {
 }
 
 export function fixtureTeamName(teamId: string): string {
+  void teamId; // Every fixture team deliberately uses the same stable display name.
   return "Desk";
 }
 
-export function createLayoutFixtureDb(key: string, fault: LayoutFault = "", team?: LayoutTeamContext | null): LayoutDb {
+export function createLayoutFixtureDb(
+  key: string,
+  fault: LayoutFault = "",
+  team?: LayoutTeamContext | null,
+  actingUserId = fixtureLayoutUserId(key),
+): LayoutDb {
   const store = storeFor(key);
-  const userId = fixtureLayoutUserId(key);
+  const userId = actingUserId;
   const teamId = team?.teamId ?? "";
   const role: LayoutTeamRole = team?.role ?? "member";
   const teamName = team?.teamName || (teamId ? fixtureTeamName(teamId) : "");
@@ -133,7 +155,9 @@ export function createLayoutFixtureDb(key: string, fault: LayoutFault = "", team
       if (row.user_id === userId) return true;
       return !!teamId && row.team_id === teamId;
     }
-    return true;
+    // Production RLS hides another principal's private row even from an id-only query. This
+    // matters now that one fixture store can model several identities in separate browser contexts.
+    return row.user_id === userId;
   };
 
   const canTouchTeamRow = (row: LayoutRow): boolean => {
@@ -211,7 +235,10 @@ export function createLayoutFixtureDb(key: string, fault: LayoutFault = "", team
           return { data: [{ ...row }] };
         }
         case "update": {
-          const hit = allLayoutRows().filter(matches);
+          // Mirror the production RLS target set before applying write-policy checks. In
+          // particular, an id-only UPDATE from another synthetic principal must affect zero
+          // private rows rather than discovering and mutating a process-global fixture row.
+          const hit = allLayoutRows().filter(matches).filter(visibleOnSelect);
           const updateValues = op.values;
           const becomingTeam = updateValues.visibility === "team";
           if (becomingTeam) {
@@ -247,7 +274,10 @@ export function createLayoutFixtureDb(key: string, fault: LayoutFault = "", team
           return { data: [{ ...row }] };
         }
         case "delete": {
-          const hit = allLayoutRows().filter(matches);
+          // DELETE is subject to the same row visibility boundary as SELECT/UPDATE. Keeping
+          // the fixture's raw query path honest matters because application helpers normally
+          // perform a read first and would otherwise hide an unsafe low-level implementation.
+          const hit = allLayoutRows().filter(matches).filter(visibleOnSelect);
           if (hit.some((r) => r.visibility === "team" && !canTouchTeamRow(r))) {
             return { error: { code: "42501", message: "insufficient privilege" } };
           }

@@ -47,15 +47,18 @@ export function readOwnerSlot(storage: StoragePort, key: string, owner: string):
 }
 
 /** Replace one owner's slot. `undefined` deletes it; an emptied envelope removes the key. */
-export function writeOwnerSlot(storage: StoragePort, key: string, owner: string, value: unknown): void {
+export function writeOwnerSlot(storage: StoragePort, key: string, owner: string, value: unknown): boolean {
   try {
     const envelope = readEnvelope(storage, key);
     if (value === undefined) delete envelope[owner];
     else envelope[owner] = value;
     if (Object.keys(envelope).length) storage.setItem(key, JSON.stringify(envelope));
     else storage.removeItem(key);
+    return true;
   } catch {
-    // A full/blocked store degrades to in-memory state for the session.
+    // A full/blocked store degrades to in-memory state for the session; the false return lets a
+    // legacy-migration caller keep the only durable copy instead of deleting it.
+    return false;
   }
 }
 
@@ -81,7 +84,8 @@ export function adoptLegacySlotIntoGuest(
       let parsed: unknown = null;
       try { parsed = JSON.parse(raw); } catch { parsed = null; }
       if (parsed !== null && parsed !== undefined) {
-        writeOwnerSlot(storage, scopedKey, GUEST_OWNER, parsed);
+        // Keep the legacy source retryable until the guest copy is stored.
+        if (!writeOwnerSlot(storage, scopedKey, GUEST_OWNER, parsed)) return false;
         adopted = true;
       }
     }

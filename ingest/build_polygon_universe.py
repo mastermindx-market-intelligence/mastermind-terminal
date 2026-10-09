@@ -22,6 +22,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
 from ingest.polygon_bars import fetch_daily, ohlc_json   # noqa: E402
+from ingest.session_anchor import stamp as stamp_session_anchor  # noqa: E402
 from ingest.slice_document import write_slice_preserving_siblings  # noqa: E402
 from signal_layer import confluence, contracts, backtest  # noqa: E402
 from signal_layer.confluence_v2 import reclaim_eligible  # noqa: E402
@@ -223,6 +224,12 @@ def main(syms: list[str]) -> None:
         ohlc_bars, ohlc_src = _deep_ohlc(sym, bars)
         _doc = ohlc_json(sym, ohlc_bars)
         _doc["src"] = ohlc_src
+        # The chart buckets these sessions into 2D/3D bars in the BROWSER, which cannot derive
+        # the grid's phase from a truncated feed. Publish the anchor with the bars it describes.
+        # Stamped here as well as in the nightly's stamp_session_anchors pass because this
+        # builder rebuilds the document from scratch in Phase 1 and would otherwise drop the
+        # field for the hours until the marathon reaches that pass (ingest/session_anchor.py).
+        stamp_session_anchor(_doc, sym)
         (OUT / f"{sym}.json").write_text(json.dumps(_doc, separators=(",", ":")))
 
         df = pd.DataFrame(bars, columns=["date", "o", "h", "l", "c", "v"])

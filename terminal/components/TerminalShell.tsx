@@ -1,6 +1,6 @@
 "use client";
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
-import { useIsMobile, useIsPhone } from "@/lib/useMediaQuery";
+import { PHONE_QUERY, useIsMobile, useIsPhone } from "@/lib/useMediaQuery";
 import MobileSheet from "@/components/ui/MobileSheet";
 import { DndContext, DragOverlay, PointerSensor, KeyboardSensor, useDroppable, useSensor, useSensors, closestCenter, type CollisionDetection, type DragEndEvent, type DragStartEvent, type Modifier } from "@dnd-kit/core";
 import { SortableContext, sortableKeyboardCoordinates, useSortable, verticalListSortingStrategy } from "@dnd-kit/sortable";
@@ -34,6 +34,7 @@ import { parseGlanceState } from "@/lib/mscGlance";
 import { DEFAULT_START_TF, TF_CANONICAL_ORDER, mobileTimeframeOptions, readStartTf, resolveStartTf } from "@/lib/startTf";
 import { useMarketPrefs } from "@/lib/useMarketPrefs";
 import { accountIdentity } from "@/lib/accountIdentity";
+import { portfolioRailOwner, usePortfolioRailRead } from "@/lib/usePortfolioRailRead";
 // Import the page ids from the import-free leaf, NOT from MegaPane: MegaPane is mounted
 // through next/dynamic below, and a value import out of it here would statically pull its
 // entire graph (14 fundamentals pages + statement/intelligence/transcript libs, ~709 KB of
@@ -41,7 +42,7 @@ import { accountIdentity } from "@/lib/accountIdentity";
 import { FIN_PAGES, type FinPage } from "@/components/fin/finPages";
 import { getFund, getOpts, getBars, type Fund, type Bar } from "@/lib/fund";
 import { allDefaults, indDefaults, withDefaults, IND_ORDER, IND_DEFS, isIndKey } from "@/lib/indicators";
-import { isSuiteKey, suiteDefaults } from "@/lib/suites/registry";
+import { isSuiteKey, suiteDefaults, SUITE_ORDER } from "@/lib/suites/registry";
 import { isAmbientCandleSuite, migrateMastermindCandlesDefault, MASTERMIND_CANDLES_MIGRATION_KEY, MASTERMIND_CANDLES_MODULE_ID, MASTERMIND_CANDLES_SUITE_KEY } from "@/lib/mastermindCandlesDefault";
 import {
   enabledModulesForSuite,
@@ -86,7 +87,8 @@ import { useGateEntitlement } from "@/lib/entitlementStore";
 import { normalizeDevTierOverride } from "@/lib/subscriptionTier";
 import { useChartBus } from "@/lib/useChartBus";
 import { isV2Envelope, type IndicatorSpec } from "@/lib/chartBus";
-import SeasonalityCard from "@/components/SeasonalityCard";
+import { describeNativeSuiteCapabilities } from "@/lib/chartIndicatorParams";
+import LinkedSeasonalityCard from "@/components/LinkedSeasonalityCard";
 // Code-split the conditionally-mounted heavies out of the /terminal first-paint bundle (task 9).
 // TerminalShell is a Client Component, so ssr:false is allowed — none of these render on any SSR
 // path (each mounts only when opened: paneOpen / signalsOpen / copilot toggle).
@@ -99,6 +101,7 @@ const GuidePanel = dynamic(() => import("@/components/GuidePanel"), { ssr: false
 const IndicatorSource = dynamic(() => import("@/components/IndicatorSource"), { ssr: false });
 const CompareSettings = dynamic(() => import("@/components/CompareSettings"), { ssr: false });
 const ChartObjectTree = dynamic(() => import("@/components/ChartObjectTree"), { ssr: false });
+const TickerNewsPanel = dynamic(() => import("@/components/news/TickerNewsPanel"), { ssr: false });
 // Phone-only chart chrome (R2): the bottom roller strip and the two sheets it raises. Never
 // server-rendered — the phone breakpoint is a client media query, and shell mode brings its own.
 const RollerStrip = dynamic(() => import("@/components/mobile/RollerStrip"), { ssr: false });
@@ -117,7 +120,7 @@ import WashoutTurnRow from "@/components/WashoutTurnRow";
 import { oracleVerdict, deskVerdict } from "@/lib/signalVerdict";
 import { computeTrendState } from "@/lib/trend";
 import { useLive } from "@/lib/live";
-import { setPaneSync } from "@/lib/paneSync";
+import { setPaneSync, subscribePaneVisibleWindow } from "@/lib/paneSync";
 import { REPLAY_MIN_IDX, replayIsAvailable, replayChartKey, resolveReplayTotal, replayHasSpan, clampReplayIdx, initialReplayIdx } from "@/lib/replayContract";
 import {
   MAX_DRAWINGS_PER_SYMBOL,
@@ -146,12 +149,13 @@ import { isComposite, parseComposite, compositeQuote as calcCompositeQuote } fro
 import { planQuoteBatch, type QuoteDemandGroup } from "@/lib/quoteDemand";
 import { pushRecentlyViewed } from "@/lib/recentlyViewed";
 import { writeActiveSymbol } from "@/lib/activeSymbol";
-import { listScripts, deleteScript as delScript, renameScript as renScript, enabledScriptIds, setEnabledScriptIds, pineParamStore, setPineParamStore, mergedParams, type UserScript } from "@/lib/userScripts";
+import { listScripts, deleteScript as delScript, runRenameScriptClick, enabledScriptIds, setEnabledScriptIds, pineParamStore, setPineParamStore, mergedParams, type UserScript } from "@/lib/userScripts";
 import LayoutMenu, { type LayoutFeedback, type LayoutStatus, type SavedWorkspace } from "@/components/LayoutMenu";
 import WorkspaceTile from "@/components/WorkspaceTile";
 import { nextLayoutName, type SavedLayout } from "@/lib/layouts";
 import { applyLayoutConfig, captureLayoutConfig, type LayoutWorkspace } from "@/lib/layoutConfig";
 import { migrateLegacy, workspaceToLayout, captureWorkspace } from "@/lib/workspaceMigrate";
+import RetainedInvestigationLayout from "@/components/RetainedInvestigationLayout";
 import { SCHEMA as WORKSPACE_SCHEMA, validateEnvelope, type WorkspaceEnvelope, type Widget as WorkspaceWidget } from "@/lib/workspaceLayout";
 import { workspaceRowState, migrationUnclaimed, migrationUnsupportedWidgets, parseWorkspaceOutcome, absoluteLocalTime, safeWorkspaceFilename, importFailureKey, brainIncludedFromEnvelope, openBrainReincluding, type WorkspaceOpOutcome } from "@/lib/workspaceMenuOps";
 import { type PineScript } from "@/components/ChartPanel";
@@ -226,6 +230,14 @@ function quoteEq(a: any, b: any): boolean {
 // Overlay a live quote's price fields onto the EOD manifest row (live wins when present; a missing
 // live field — e.g. a US placeholder that has no volume yet — keeps the manifest value). Used so the
 // watchlist rows + movers tape render the SAME live prices the header already shows.
+// F08-RAIL: the one sentence the Portfolio rail adds, shown above rows kept from the last good read
+// after a later read failed. Component-local EN/ZH, the idiom AlertsView's re-arm copy uses, rather
+// than a lib/i18n.tsx key: evidence packets pin that file byte-for-byte.
+const PF_RAIL_STALE = {
+  en: "Couldn't refresh. Showing your last read.",
+  zh: "未能刷新，显示的是上次读取的持仓。",
+} as const;
+
 function mergeLive(r: Row | undefined, q: any): Row | undefined {
   if (!q) return r;
   const base: any = { ...(r || {}) };
@@ -927,7 +939,7 @@ function btMark(name: string) {
   console.log(`[boottrace] ${name} +${(now - _btStart).toFixed(1)}ms`);
 }
 
-export default function TerminalShell({ symbols, email, userId, initialSymbol, shellMode = false, shellTray = false, shellDossier = false, secondBarsEnabled = false }: { symbols: { symbol: string; section: string }[]; email: string; userId?: string; initialSymbol?: string; shellMode?: boolean; shellTray?: boolean; shellDossier?: boolean; secondBarsEnabled?: boolean }) {
+export default function TerminalShell({ symbols, email, userId, initialSymbol, initialEpisode, shellMode = false, shellTray = false, shellDossier = false, secondBarsEnabled = false, newsRailEnabled = false }: { symbols: { symbol: string; section: string }[]; email: string; userId?: string; initialSymbol?: string; initialEpisode?: string; shellMode?: boolean; shellTray?: boolean; shellDossier?: boolean; secondBarsEnabled?: boolean; newsRailEnabled?: boolean }) {
   const [man, setMan] = useState<Manifest | null>(null);
   // A1: which identity the LOCAL watchlist state on this browser belongs to. `guest` when signed
   // out, `account:<auth uuid>` otherwise — the immutable id, never the email (see
@@ -1017,32 +1029,9 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, s
   // mm.wls". These rows come from `portfolio_positions` through /api/portfolio and are NEVER
   // folded into `lists`, written to `mm.wls`, or touched by the watchlist sync chain. Holding a
   // name and watching a name are different facts; the rail shows both without mixing them.
-  const [railTab, setRailTab] = useState<"watchlists" | "portfolio">("watchlists");
-  const [pfRows, setPfRows] = useState<{ id: string; ticker: string; status: string }[]>([]);
-  const [pfLoaded, setPfLoaded] = useState(false);
+  const [railTab, setRailTab] = useState<"watchlists" | "portfolio" | "news">("watchlists");
   /** Symbol queued for the "Add to → Portfolio" modal; `null` = closed. */
   const [pfAddSymbol, setPfAddSymbol] = useState<string | null>(null);
-  const loadPortfolioRows = useCallback(async () => {
-    try {
-      const response = await fetch("/api/portfolio", { headers: { Accept: "application/json" } });
-      if (!response.ok) return;
-      const payload = await response.json();
-      if (!Array.isArray(payload?.positions)) return;
-      const rows = (payload.positions as { id: string; ticker: string; status: string }[])
-        .filter((row) => row && typeof row.ticker === "string")
-        .map((row) => ({ id: row.id, ticker: row.ticker, status: row.status }));
-      // Identity-stable: an unchanged book must not re-render the rail (and with it the chart
-      // workspace) every time this runs.
-      setPfRows((current) => (current.length === rows.length
-        && current.every((row, index) => row.id === rows[index].id && row.ticker === rows[index].ticker && row.status === rows[index].status)
-        ? current
-        : rows));
-    } catch {
-      // UWP-R6: an unreachable store leaves the rail on its last good read; no error chrome here.
-    } finally {
-      setPfLoaded(true);
-    }
-  }, []);
   // Live mirror of `lists` for the async migration: reading it from a ref keeps the effect keyed
   // on `loggedIn` alone, so a symbol edit mid-migration cannot restart the whole run.
   const listsRef = useRef(lists);
@@ -1206,7 +1195,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, s
   const [symbolNotes, setSymbolNotes] = useState<Record<string, string>>({});
 
   // ── A1: the owner boundary, adjusted DURING RENDER ──────────────────────────────────────────
-  // Same idiom as `pfEmail` further down, and for the same reason: an effect runs AFTER paint, so
+  // Adjusted during render, not in an effect: an effect runs AFTER paint, so
   // for one frame the rail would render the OUTGOING owner's watchlists under the INCOMING
   // owner's session — and the persist effects, keyed on the state itself, could write them into
   // the incoming owner's namespace. React re-invokes this component before committing, so
@@ -1580,6 +1569,18 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, s
   // ── phone chart chrome (R2): the roller strip's two sheets ──
   const [drawSheetOpen, setDrawSheetOpen] = useState(false);
   const [hubOpen, setHubOpen] = useState(false);
+  const [phoneWorkspacesOpen, setPhoneWorkspacesOpen] = useState(false);
+  // A phone-only sheet must not survive a breakpoint transition in component state. Without
+  // clearing it here, rotating to tablet/landscape unmounts the sheet while leaving `open=true`,
+  // so returning to the phone breakpoint unexpectedly reopens it.
+  useEffect(() => {
+    const query = window.matchMedia(PHONE_QUERY);
+    const closeOutsidePhone = (event: MediaQueryListEvent) => {
+      if (!event.matches) setPhoneWorkspacesOpen(false);
+    };
+    query.addEventListener("change", closeOutsidePhone);
+    return () => query.removeEventListener("change", closeOutsidePhone);
+  }, []);
   // Optimistic "seen" so the ••• badge cannot flash before localStorage is read on mount.
   const [hubSeen, setHubSeen] = useState(true);
   useEffect(() => { try { setHubSeen(localStorage.getItem("mm.hubSeen") === "1"); } catch {} }, []);
@@ -1827,7 +1828,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, s
     // rail's other view preferences rather than in an effect of its own; a lazy `useState`
     // initializer cannot read localStorage without a hydration mismatch (the server always renders
     // the default), so a mount read is the only correct shape and this is where the file does them.
-    { const savedTab = localStorage.getItem("mm.railTab"); if (savedTab === "portfolio" || savedTab === "watchlists") setRailTab(savedTab); }
+    { const savedTab = localStorage.getItem("mm.railTab"); if (savedTab === "portfolio" || savedTab === "watchlists" || (newsRailEnabled && savedTab === "news")) setRailTab(savedTab); }
     // restore the saved multi-pane workspace — but a deep-link (?sym=) always wins
     if (!initialSymbol) {
       try {
@@ -1859,8 +1860,12 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, s
       if (initialSymbol) setTimeout(() => setTf("5m"), 0);
       setTimeout(() => setDtm(true), 0);
     }
+    // ?sym=&episode= deep links land on 5m: a dislocation episode is built from 5-minute bars and the daily
+    // default would collapse every transition onto one bar. The DTM branch above already set 5m when the
+    // mode is on, so this fires only for the swing workspace (no double setTf).
+    if (initialSymbol && initialEpisode && !load("mm.dtm", false)) setTimeout(() => setTf("5m"), 0);
     setWorkspaceRestored(true);
-  }, []);
+  }, [newsRailEnabled]);
   // Legacy workspaces stored one hidden bit per suite. Expand that bit to the suite's currently
   // enabled qualified module ids so new module-level eyes preserve the old all-hidden appearance.
   useEffect(() => {
@@ -2263,21 +2268,14 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, s
   // work in that window can beat the restore commit it depends on. A user who never opens the
   // Portfolio tab issues no request at all, and one who has it persisted issues it strictly after
   // the restore has landed — the interactive path stays as clear as it is on master.
-  useEffect(() => {
-    if (railTab !== "portfolio" || !loggedIn || !wlsRestored) return;
-    void loadPortfolioRows();
-  }, [loggedIn, railTab, wlsRestored, loadPortfolioRows]);
-  // A different account must not inherit the previous one's book, the same way `serverListIds`
-  // resets on an email change (W1b F7). Adjusted DURING RENDER rather than in an effect: React
-  // re-runs this component before committing, so the rail can never paint one account's holdings
-  // under another's session — which an effect, running after paint, would allow for one frame.
-  // A sign-out clears it too: `loggedIn` is `!!email`, so "" is just another email change.
-  const [pfEmail, setPfEmail] = useState(email);
-  if (pfEmail !== email) {
-    setPfEmail(email);
-    setPfRows([]);
-    setPfLoaded(false);
-  }
+  //
+  // F08-RAIL (macro#6819 C4 5995397563): the read state, its owner/generation/mount fence and this
+  // lazy trigger live in `usePortfolioRailRead`. A different account must not inherit the previous
+  // one's book, so the owner (`portfolioRailOwner`) is the immutable account key AND the address:
+  // a new uuid behind the same email is a new owner, and so is a sign-out (`loggedIn` is `!!email`).
+  // The hook reads its state only while the owner tag matches, so the rail cannot paint one
+  // account's holdings under another's session, even for the frame an effect would take.
+  const pfRail = usePortfolioRailRead(portfolioRailOwner(email, userId), loggedIn && railTab === "portfolio" && wlsRestored);
 
   // ── TRAP 1 (guest → signed-in reconciliation) now lives in the render-time owner transition
   //    above, together with sign-out and account→account. It used to be an `email`-keyed effect
@@ -2640,10 +2638,23 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, s
   const chartQuoteSymsKeyRef = useRef(chartQuoteSymsKey);
   chartQuoteSymsKeyRef.current = chartQuoteSymsKey;
   const chartQuoteAliveRef = useRef(true);
+  // A one-second cadence must never mean multiple simultaneous requests. If the local quote
+  // route stalls past one tick, remember that a refresh was requested and run exactly one
+  // trailing catch-up as soon as the current flight settles. This preserves freshness without
+  // letting a degraded upstream turn into an ever-growing fetch/JSON/React workload on the same
+  // main thread that owns pan, zoom, crosshair and pane-resize interactions.
+  const chartQuoteInFlightRef = useRef(false);
+  const chartQuoteTrailingRef = useRef(false);
+  const chartQuoteTrailingTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const pollChartQuotes = useCallback(() => {
     if (typeof document !== "undefined" && document.hidden) return;
     const key = chartQuoteSymsKeyRef.current;
     if (!key) return;
+    if (chartQuoteInFlightRef.current) {
+      chartQuoteTrailingRef.current = true;
+      return;
+    }
+    chartQuoteInFlightRef.current = true;
     fetch(`/api/quote?view=regular&cadence=chart&syms=${encodeURIComponent(key)}`, { cache: "no-store" })
       .then((r) => (r.ok ? r.json() : null))
       .then((d) => {
@@ -2658,7 +2669,17 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, s
           return changed ? next : prev;
         });
       })
-      .catch(() => {});
+      .catch(() => {})
+      .finally(() => {
+        chartQuoteInFlightRef.current = false;
+        if (!chartQuoteAliveRef.current || !chartQuoteTrailingRef.current) return;
+        chartQuoteTrailingRef.current = false;
+        if (chartQuoteTrailingTimerRef.current != null) clearTimeout(chartQuoteTrailingTimerRef.current);
+        chartQuoteTrailingTimerRef.current = setTimeout(() => {
+          chartQuoteTrailingTimerRef.current = null;
+          pollChartQuotes();
+        }, 0);
+      });
   }, []);
   useEffect(() => {
     chartQuoteAliveRef.current = true;
@@ -2667,6 +2688,11 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, s
     document.addEventListener("visibilitychange", onVis);
     return () => {
       chartQuoteAliveRef.current = false;
+      chartQuoteTrailingRef.current = false;
+      if (chartQuoteTrailingTimerRef.current != null) {
+        clearTimeout(chartQuoteTrailingTimerRef.current);
+        chartQuoteTrailingTimerRef.current = null;
+      }
       clearInterval(id);
       document.removeEventListener("visibilitychange", onVis);
     };
@@ -4178,15 +4204,8 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, s
 
   const toggleScript = useCallback((id: string) => setEnabledIds((ids) => (ids.includes(id) ? ids.filter((x) => x !== id) : [...ids, id])), []);
   const handleRenameScript = useCallback((id: string, name: string) => {
-    const s = scriptById[id]; if (!s || !name.trim() || name.trim() === s.name) return;
-    const nm = name.trim(); const prev = s.name;
-    setScripts((list) => list.map((x) => (x.id === id ? { ...x, name: nm } : x)));   // optimistic
-    // roll back on server failure (a logged-in non-Pro user hits the save 403 → renScript returns false),
-    // otherwise the legend/modal keep an optimistic name that silently reverts on the next reload. Only
-    // revert if the name is still the one we set (don't clobber a newer concurrent rename).
-    renScript(loggedIn, { id, name: nm, source: s.source, params: s.params }).then((ok) => {
-      if (!ok) setScripts((list) => list.map((x) => (x.id === id && x.name === nm ? { ...x, name: prev } : x)));
-    });
+    const s = scriptById[id];
+    void runRenameScriptClick(loggedIn, s, name, setScripts);
   }, [scriptById, loggedIn]);
   const handleDeleteScript = useCallback((id: string) => {
     setScripts((list) => list.filter((x) => x.id !== id));
@@ -4289,30 +4308,52 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, s
     if (shellMode) postToShell({ type: "stateChanged", tf, favTimeframes: favTfOrder, drawTools: [...SHELL_DRAW_TOOLS] });
   }, [shellMode, tf, favTfOrder]);
 
+  // ── DeepVue W1-C: typed ai-context provider ────────────────────────────────────────────────
+  // One provider per TerminalShell mount. Commit the active symbol/timeframe in a layout effect
+  // before useChartBus' passive initial mirror can run, so chat context and chart state share
+  // the same origin_id/context_revision from the first observable snapshot onward.
+  const aiContextProviderRef = useRef<ReturnType<typeof createAiContextProvider> | null>(null);
+  if (!aiContextProviderRef.current) aiContextProviderRef.current = createAiContextProvider();
+  useLayoutEffect(() => {
+    aiContextProviderRef.current?.noteContextChange({ symbol: active, timeframe: tf });
+  }, [active, tf]);
+
   // ── Chart Bus v2 (CMX W1) ──────────────────────────────────────────────────────────────────
   // The v2 typed drawing/command vocabulary. v1 envelopes stay on handleBrainCommand below; a v:2
   // envelope routes here. The bus owns the in-memory per-symbol AI drawing layer, acks, and the
   // debounced state-mirror POST. capabilities report the REAL enums (kills hallucinated names).
   const sessionIndicators: IndicatorSpec[] = useMemo(
-    () => [...inds].map((k) => ({ name: k, params: indParams[k] as Record<string, number> | undefined })),
+    () => [...inds].map((k) => ({ name: k, params: indParams[k] as IndicatorSpec["params"] })),
     [inds, indParams],
   );
+  // Metadata only; the existing mirror forwards this exact object to Brain.
+  // Memoize off settings, not live price ticks. No second indicator catalog/compute.
+  const chartCapabilities = useMemo(() => ({
+    tfs: TF_CANONICAL_ORDER,
+    indicators: [...IND_ORDER, ...SUITE_ORDER],
+    native_parameters: describeNativeSuiteCapabilities([...inds], indParams),
+  }), [inds, indParams]);
   const chartBus = useChartBus({
     activeSymbol: active,
     bars,
-    capabilities: { tfs: TF_CANONICAL_ORDER, indicators: [...IND_ORDER] },
+    capabilities: chartCapabilities,
     sessionIndicators,
     currentTf: tf,
+    activePaneId: activePane,
     // AI objects live in the bus's own store. Detector drawings do share the
     // durable drawing collection, so keep them out of the bus's user-authored
     // context rather than reporting generated levels as operator marks.
     userDrawings: (drawStore[active] ?? []).filter(isUserDrawing),
+    getContextIdentity: () => {
+      const ctx = aiContextProviderRef.current!.getAiContext();
+      return { origin_id: ctx.origin_id, context_revision: ctx.context_revision };
+    },
     setSymbol: (s) => pick(s),
     setTf: (t2) => setTf(t2),
     setIndicators: (specs) => {
-      const keys = specs.map((s) => s.name).filter((k) => isIndKey(k) || scriptById[k]);
+      const keys = specs.map((s) => s.name).filter((k) => isIndKey(k) || isSuiteKey(k) || scriptById[k]);
       setInds(new Set(keys));
-      const withParams = specs.filter((s) => s.params && isIndKey(s.name));
+      const withParams = specs.filter((s) => s.params && (isIndKey(s.name) || isSuiteKey(s.name)));
       if (withParams.length) setIndParams((p) => { const n = { ...p }; for (const s of withParams) n[s.name] = { ...(n[s.name] || {}), ...s.params }; return n; });
     },
     // MVP: jump the chart to the range start via the existing mm:chart-jump consumer. A precise
@@ -4320,17 +4361,12 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, s
     setRange: (from) => { try { window.dispatchEvent(new CustomEvent("mm:chart-jump", { detail: { ts: from } })); } catch {} },
   });
 
-  // ── DeepVue W1-C: typed ai-context provider ────────────────────────────────────────────────
-  // One provider instance per TerminalShell mount (mints origin_id once). Observe-only: the
-  // effect below is the ONLY writer into it, keyed on the exact same [active, tf] values fed to
-  // useChartBus above, so one symbol/timeframe transition produces exactly one
-  // noteContextChange call. Nothing from the widget (acks, receipts) may call it — that would
-  // create a context loop, which the contract forbids.
-  const aiContextProviderRef = useRef<ReturnType<typeof createAiContextProvider> | null>(null);
-  if (!aiContextProviderRef.current) aiContextProviderRef.current = createAiContextProvider();
-  useEffect(() => {
-    aiContextProviderRef.current?.noteContextChange({ symbol: active, timeframe: tf });
-  }, [active, tf]);
+  // Observe the already-registered active pane's calendar viewport. paneSync remains the
+  // single logical-range→calendar owner; Chart Bus only mirrors the result into Brain state.
+  useEffect(() => subscribePaneVisibleWindow(
+    activePane,
+    (window) => chartBus.noteViewport(activePane, window),
+  ), [activePane, chartBus.noteViewport]);
 
   // Brain widget → chart command executor. Mirrors the retired CopilotPanel's FLAT single-command
   // contract EXACTLY ({action, symbol|tf|indicator+on|kind} at top level): every field is
@@ -5009,6 +5045,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, s
   };
   const openAnalysisHub = () => {
     setDrawSheetOpen(false);
+    setPhoneWorkspacesOpen(false);
     setHubOpen(true);
     if (!hubSeen) { setHubSeen(true); try { localStorage.setItem("mm.hubSeen", "1"); } catch {} }
   };
@@ -5040,6 +5077,12 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, s
         below are children of it, which is what matters. */}
     <SettingsProvider identity={identity} defaultSection="terminal">
     <div className={`app${fullChart ? " fs" : ""}${shellMode ? " shell-app" : ""}`} data-shell={shellMode ? "app" : undefined} data-tray={shellMode && shellTray ? "1" : undefined} data-dossier={dossierMode ? "1" : undefined} style={{ ["--rail-w" as any]: `${railW}px` }}>
+      {!shellMode && <RetainedInvestigationLayout search={urlSearch} owner={wlOwner} onOpen={(config,name)=>{
+        loadLayout({id:"",name,config,updated_at:null,rowState:"ok"});
+        // A historical read is an unnamed local working copy. It must never target the
+        // current named row (which may already be N+1) when the user next chooses Save.
+        setWorkspaceName(null);setWorkspaceRevision(null);setWorkspaceId(null);
+      }}/>}
       {!shellMode && (
       <header className="topbar">
         {fromMacro ? <DashboardBackButton onClick={onBack} /> : <BrandLockup />}
@@ -5440,7 +5483,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, s
             />
             <div className="pane-grid" data-n={panes.length}>
               {panes.map((sym, i) => (
-                <ChartPane key={i} idx={i} symbol={sym} drawingOwnerKey={currentDrawingOwnerKey} isActive={i === activePane} onActivate={setActivePane} row={paneRows[i]} tf={paneTfs[i] ?? "D"} chartType={chartType} inds={inds} tool={drawingsReadyFor(sym) ? activeDrawingTool : null} toolActivation={toolState.activation} drawingSticky={drawingCreationDisabledReason ? false : drawingKeepsActive} drawingCreationDisabled={drawingCreationDisabledReason !== null} drawStyle={drawStyle} detectCmd={detectCmd} compare={compare} compareCfg={compareCfg} magnet={magnet} replayIdx={replayOn && i === 0 ? replayIdx : null} onMeta={onPaneMeta} drawings={[...(drawingOwnerMatches ? (drawStore[sym] ?? []) : []), ...chartBus.aiDrawingsFor(sym)]} drawingsVisible={drawingsVisible} onDrawingsChange={(d) => setSymbolDrawings(sym, d)} onDetectedDrawingCount={i === activePane ? setActivePaneDetectedDrawingCount : undefined} liveQuote={quotes[sym] ?? null} dataReady={prefsHydrated} initialTimeframe={startTfRef.current} indParams={indParams} hidden={hidden} onToggleHidden={toggleHidden} onRemoveInd={removeInd} onOpenSettings={openSettings} onOpenSource={openSource} pineScripts={pineScripts} dayMode={dtm} userTier={userTier}
+                <ChartPane key={i} idx={i} symbol={sym} drawingOwnerKey={currentDrawingOwnerKey} isActive={i === activePane} onActivate={setActivePane} row={paneRows[i]} tf={paneTfs[i] ?? "D"} episodeId={initialEpisode && initialSymbol && sym.toUpperCase() === initialSymbol.toUpperCase() ? initialEpisode : null} chartType={chartType} inds={inds} tool={drawingsReadyFor(sym) ? activeDrawingTool : null} toolActivation={toolState.activation} drawingSticky={drawingCreationDisabledReason ? false : drawingKeepsActive} drawingCreationDisabled={drawingCreationDisabledReason !== null} drawStyle={drawStyle} detectCmd={detectCmd} compare={compare} compareCfg={compareCfg} magnet={magnet} replayIdx={replayOn && i === 0 ? replayIdx : null} onMeta={onPaneMeta} drawings={[...(drawingOwnerMatches ? (drawStore[sym] ?? []) : []), ...chartBus.aiDrawingsFor(sym)]} drawingsVisible={drawingsVisible} onDrawingsChange={(d) => setSymbolDrawings(sym, d)} onDetectedDrawingCount={i === activePane ? setActivePaneDetectedDrawingCount : undefined} liveQuote={quotes[sym] ?? null} dataReady={prefsHydrated} initialTimeframe={startTfRef.current} indParams={indParams} hidden={hidden} onToggleHidden={toggleHidden} onRemoveInd={removeInd} onOpenSettings={openSettings} onOpenSource={openSource} pineScripts={pineScripts} dayMode={dtm} userTier={userTier}
                   onAddAlert={(price) => { window.location.href = `/alerts?sym=${encodeURIComponent(active)}&price=${encodeURIComponent(price.toFixed(4))}&type=price_above`; }}
                   onTableView={() => setTableViewOpen(true)}
                   onObjectTree={() => setObjectTreeOpen((o) => !o)}
@@ -5570,6 +5613,8 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, s
             setHubOpen(false);
             if (action === "indicators") setIndOpen(true);
             else if (action === "compare") { setSearchMode("compare"); setSeed(""); setSearchOpen(true); }
+            else if (action === "chartType") setCtOpen(true);
+            else if (action === "workspaces") setPhoneWorkspacesOpen(true);
             else if (action === "alerts") window.location.assign(`/alerts?sym=${encodeURIComponent(active)}`);
             else if (action === "symbolDetails") {
               setFullChart(false);
@@ -5579,6 +5624,19 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, s
             }
           }}
         />
+        <MobileSheet
+          open={phoneWorkspacesOpen}
+          onClose={() => setPhoneWorkspacesOpen(false)}
+          title={t("layouts")}
+          className="phone-workspaces-sheet"
+          detents={[60, 96]}
+        >
+          <LayoutMenu
+            {...layoutMenuProps}
+            onPicked={() => setPhoneWorkspacesOpen(false)}
+            isOpen={phoneWorkspacesOpen}
+          />
+        </MobileSheet>
       </>)}
 
       {/* The rail and the chart workspace are INDEPENDENT surfaces (the rail's intel/fund/opts
@@ -5590,10 +5648,10 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, s
       {(!shellMode || dossierMode) && (<>
       <aside className="rail">
         <div className="rail-body">
-          {/* W5 — the rail's two SOURCES (packet section 6). Signed-in only: a guest has no book,
-              so the guest rail is byte-for-byte what it was. The watchlist board below is HIDDEN,
-              never unmounted, when Portfolio is showing — unmounting it would throw away drag
-              state, scroll position and selection every time the user glanced at their holdings. */}
+          {/* The authenticated rail has three distinct sources: Portfolio, Watchlists and News.
+              A guest has no book/news entitlement, so the guest rail is byte-for-byte what it was.
+              The watchlist board below is HIDDEN, never unmounted, when another source is showing —
+              unmounting it would throw away drag state, scroll position and selection. */}
           {loggedIn && (
             <div className="rail-tabs" role="tablist" aria-label={t("railSourceLabel")} data-testid="rail-source-tabs">
               <button type="button" role="tab" id="rail-tab-portfolio" aria-selected={railTab === "portfolio"}
@@ -5604,6 +5662,12 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, s
                 aria-controls="rail-panel-watchlists" tabIndex={railTab === "watchlists" ? 0 : -1}
                 className={`rail-tab${railTab === "watchlists" ? " on" : ""}`}
                 onClick={() => setRailTab("watchlists")}>{t("watchlists")}</button>
+              {newsRailEnabled && (
+              <button type="button" role="tab" id="rail-tab-news" aria-selected={railTab === "news"}
+                aria-controls="rail-panel-news" tabIndex={railTab === "news" ? 0 : -1}
+                className={`rail-tab${railTab === "news" ? " on" : ""}`}
+                onClick={() => setRailTab("news")}>{lang === "zh" ? "新闻" : "News"}</button>
+              )}
             </div>
           )}
           {loggedIn && railTab === "portfolio" && (
@@ -5614,20 +5678,45 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, s
               </div>
               <div className="wl-scroll">
                 {(() => {
-                  const held = pfRows.filter((row) => row.status !== "closed");
+                  const retry = (
+                    <button type="button" className="pf-board-cta pf-board-retry" onClick={() => void pfRail.retry()} disabled={pfRail.busy}>
+                      {pfRail.busy ? t("portfolioUnreadableRetrying") : t("portfolioUnreadableRetry")}
+                    </button>
+                  );
+                  // No answered read yet: loading, or an honest "could not read". Never the empty
+                  // book — a store that did not answer has not said the user holds nothing.
+                  if (!pfRail.rows) {
+                    return pfRail.failed ? (
+                      <div className="pf-board-empty" role="status" data-testid="rail-portfolio-unavailable">
+                        <span>{t("portfolioUnreadableTitle")}</span>
+                        {retry}
+                      </div>
+                    ) : (
+                      <div className="pf-board-empty"><span>{t("railPortfolioLoading")}</span></div>
+                    );
+                  }
+                  // A later read failed: keep the last good answer, but say it is the last good one.
+                  const stale = pfRail.failed && (
+                    <div className="pf-board-note" role="status" data-testid="rail-portfolio-stale">
+                      <span>{lang === "zh" ? PF_RAIL_STALE.zh : PF_RAIL_STALE.en}</span>
+                      {retry}
+                    </div>
+                  );
+                  const held = pfRail.rows.filter((row) => row.status !== "closed");
                   if (!held.length) {
                     return (
-                      <div className="pf-board-empty">
-                        {pfLoaded ? (
-                          <>
-                            <span>{t("railPortfolioEmpty")}</span>
-                            <Link className="pf-board-cta" href="/portfolio">{t("addPosition")}</Link>
-                          </>
-                        ) : <span>{t("railPortfolioLoading")}</span>}
-                      </div>
+                      <>
+                        {stale}
+                        <div className="pf-board-empty">
+                          <span>{t("railPortfolioEmpty")}</span>
+                          <Link className="pf-board-cta" href="/portfolio">{t("addPosition")}</Link>
+                        </div>
+                      </>
                     );
                   }
                   return (
+                    <>
+                    {stale}
                     <div className="pf-board-list" role="listbox" aria-label={t("myPortfolio")}>
                       {held.map((row) => {
                         const quote = mergeLive(man?.symbols?.[row.ticker], quotes[row.ticker]);
@@ -5647,12 +5736,14 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, s
                         );
                       })}
                     </div>
+                    </>
                   );
                 })()}
               </div>
             </div>
           )}
-          <div className={`board wl-board${loggedIn && railTab === "portfolio" ? " rail-hidden" : ""}`}
+          {loggedIn && newsRailEnabled && railTab === "news" && <TickerNewsPanel symbol={active} lang={lang} />}
+          <div className={`board wl-board${loggedIn && railTab !== "watchlists" ? " rail-hidden" : ""}`}
             id="rail-panel-watchlists" {...(loggedIn ? { role: "tabpanel", "aria-labelledby": "rail-tab-watchlists" } : {})}>
             <div className="wl-bar pophost">
               <button className="wl-select" onClick={(e) => { e.stopPropagation(); const willOpen = !wlMenuOpen; closeAll(); setWlMenuOpen(willOpen); }}>{activeList} <svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6" /></svg></button>
@@ -5961,7 +6052,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, s
               {/* Seasonality is injected via beforeIv so it renders BETWEEN the Analyst gauge and Implied
                   Volatility (order: analysis → Seasonality → IV) rather than after the whole card. */}
               <StockAnalysis intel={intel} row={m} fund={fund} opts={opts} bars={bars} glance={parseGlanceState(railGex, active)} onOpenPane={(p) => setPaneOpen(p)} onOpenSignals={() => setSignalsOpen(true)}
-                beforeIv={<div style={{ padding: 12 }}><SeasonalityCard symbol={active} onOpenPane={() => setPaneOpen("seasonals")} /></div>} />
+                beforeIv={<div key="linked-seasonality" style={{ padding: 12 }}><LinkedSeasonalityCard context={chartBus.context} activeSymbol={active} onOpenCurrent={() => setPaneOpen("seasonals")} /></div>} />
               {/* ── bottom button group (after Seasonality): full analysis + Ask AI ── */}
               <div className="sa-btn-group">
                 <button className="btn btn-primary" style={{ width: "100%", height: 38 }} onClick={() => setPaneOpen("overview")}>{t("openFullAnalysis")}</button>
@@ -5970,7 +6061,6 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, s
             </div>
           </div>
         </div>
-        <a className="logo-attribution" href="https://logo.dev" target="_blank" rel="noopener">{t("shLogoCredit")}</a>
       </aside>
       </>)}
 
@@ -6035,7 +6125,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, s
             setPfAddSymbol(null);
             // The rail only holds a book while the Portfolio tab is open; refresh it there so the
             // new row appears without a reload, and leave it alone otherwise.
-            if (railTab === "portfolio") void loadPortfolioRows();
+            if (railTab === "portfolio") void pfRail.load();
             return true;
           }}
         />

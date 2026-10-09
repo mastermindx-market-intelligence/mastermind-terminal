@@ -1,0 +1,36 @@
+# 2026-10-05 #802/#808 source hash reconciliation: preserves captured PNG bytes/provenance; added Dislocations-only labels are not rendered by these capture surfaces.
+# B-F11-10a Analysis context-bar theses entry — capture evidence
+# Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
+# Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
+# capturedAtHead: 2846101a95c9f9c4e1b3f21d0005c356cc41ba8f
+# capturedAt: 2026-10-05T10:58:46.160Z
+# capturedAtHead is informational. The lock is layoutFiles.
+layoutFiles:
+  terminal/components/workspaces/AnalysisWorkspace.tsx: "f98764b71e4e1301d6149aef0d3e47615455801f95a9691b4d8807febe92226e"
+  terminal/app/company-intelligence.css: "16ca4e131ad1f2973b6346e7f051af802dbfa27227d6c33615af87578e73f885"
+  terminal/lib/i18n.tsx: "858306597ebbfc2d912cefc997ad88e4805cafb08794b5cd4d3dfeacb109371f"
+theme: dark
+languages: [en, zh]
+viewports:
+  - { name: desktop, width: 1440, height: 900 }
+  - { name: tablet, width: 820, height: 1180 }
+  - { name: mobile, width: 390, height: 844 }
+harness:
+  desktop-en.png: { url: "/analysis?symbol=NVDA&lang=en", state: context-bar-with-theses-control }
+  desktop-zh.png: { url: "/analysis?symbol=NVDA&lang=zh", state: context-bar-with-theses-control }
+  tablet-en.png: { url: "/analysis?symbol=NVDA&lang=en", state: context-bar-with-theses-control }
+  tablet-zh.png: { url: "/analysis?symbol=NVDA&lang=zh", state: context-bar-with-theses-control }
+  mobile-en.png: { url: "/analysis?symbol=NVDA&lang=en", state: context-bar-with-theses-control }
+  mobile-zh.png: { url: "/analysis?symbol=NVDA&lang=zh", state: context-bar-with-theses-control }
+capture_flag: TERMINAL_E2E_FIXTURE
+capture_flag_law: next.config.ts sets devIndicators: false when TERMINAL_E2E_FIXTURE is set; playwright.config.ts already sets that flag on the e2e dev server. This script starts next dev with the same flag.
+command: |
+  cd terminal
+  node e2e/tools/capture_b_f11_10_analysis_theses_entry.cjs
+files:
+  - desktop-en.png
+  - desktop-zh.png
+  - tablet-en.png
+  - tablet-zh.png
+  - mobile-en.png
+  - mobile-zh.png

@@ -6,7 +6,7 @@
 import { useMemo } from "react";
 import type React from "react";
 import { pick, fmtNum } from "../../lib/finFormat";
-import type { Lang } from "../../lib/i18n";
+import { useT, type Lang } from "../../lib/i18n";
 import type { FlowScore } from "./FeedPane";
 import { FD } from "../../lib/flowdeskStrings";
 import { RingGauge } from "../ui/RingGauge";
@@ -64,6 +64,7 @@ function fmtPct(v: number): string {
 
 export function WatchlistRail({ feed, tide, lang, watchlist, onToggleTicker, onPickTicker, onOpenTutorial }: WatchlistRailProps) {
   const zh = lang === "zh";
+  const t = useT();
 
   // Session overview
   const overview = useMemo(() => {
@@ -115,9 +116,9 @@ export function WatchlistRail({ feed, tide, lang, watchlist, onToggleTicker, onP
             {onOpenTutorial && (
               <button
                 onClick={onOpenTutorial}
-                aria-label={zh ? "打开教程" : "Open tutorial"}
+                aria-label={t("openTutorial")}
                 style={TUT_ICON_BTN}
-                title={zh ? "教程" : "Tutorial"}
+                title={t("openTutorial")}
               >
                 ?
               </button>

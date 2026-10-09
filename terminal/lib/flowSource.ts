@@ -3,8 +3,9 @@
  *
  * Extracted from app/api/flow/route.ts so BOTH the polling GET endpoint and the
  * SSE streaming endpoint (app/api/flow/stream) resolve a payload through one code
- * path: fixture in dev (FLOW_FIXTURE=1), else Python backend → R2 CDN fallback (the
- * Options Prophet published index is R2-first), with
+ * path: fixture in dev (FLOW_FIXTURE=1); in production Flow Leaders may read the
+ * co-located canonical Macro artifact first, then the normal Python backend → R2
+ * CDN fallback (the Options Prophet published index is R2-first), with
  * the proprietary server-side flowScore attached to the main feed.
  *
  * SERVER-ONLY. Imports fs + the server-only flowScore model — never import from a
@@ -59,6 +60,35 @@ const MOVES_FIXTURE_FILE = path.join(process.cwd(), "public", "data", "moves_fix
 const OI_TIME_FIXTURE_FILE = path.join(process.cwd(), "public", "data", "oi_time_fixture.json");
 const MAX_PAIN_FIXTURE_FILE = path.join(process.cwd(), "public", "data", "max_pain_fixture.json");
 const OI_CHANGE_FIXTURE_FILE = path.join(process.cwd(), "public", "data", "oi_change_fixture.json");
+
+/**
+ * Flow Leaders is produced on the same VPS by Macro and the Terminal server is already
+ * trusted to read that estate for other server-side data jobs.  Prefer the exact local
+ * published artifact when it exists: this removes an unnecessary dependency on the
+ * public R2 mirror without adding a writer or a second truth store.  Non-VPS/dev hosts
+ * simply miss this path and continue through the existing backend -> R2 chain.
+ *
+ * The env override is intentionally file-specific so tests and future topology changes
+ * do not need to mutate the broader MACRO_REPO contract.
+ */
+export function localFlowArtifactPath(f: string): string | null {
+  if (f !== "leaders") return null;
+  if (process.env.FLOW_LEADERS_LOCAL_PATH) return process.env.FLOW_LEADERS_LOCAL_PATH;
+  const macroRoot = process.env.MACRO_REPO || "/opt/macro";
+  return path.join(macroRoot, "site", "flowleaders", "leaders.json");
+}
+
+async function tryReadLocalFlowArtifact(f: string): Promise<Record<string, unknown> | null> {
+  const localPath = localFlowArtifactPath(f);
+  if (!localPath) return null;
+  try {
+    const raw = await fs.readFile(localPath, "utf8");
+    const data = JSON.parse(raw) as Record<string, unknown>;
+    return data && typeof data === "object" ? data : null;
+  } catch {
+    return null;
+  }
+}
 
 
 /**
@@ -162,6 +192,13 @@ export function isValidF(f: string): boolean {
   if (f === "prophet_idx") return true;
   if (f === "prophet_marks") return true;
   if (f === "options_prophet_idx") return true;
+  // Options Alpha — candidate evidence transport (WIP). The publisher
+  // (MACRO PR #8310, options.alpha_candidate_feed/v1) does not yet
+  // publish formed candidates, so this key is wired into the gate BEFORE
+  // there is anything to fetch. Routing only: GET-only for now, no
+  // backend, no SSE producer — see upstreamSourceOrder() and the explicit
+  // /api/flow/stream rejection that mirrors the prophet_idx one.
+  if (f === "options_alpha_candidate_feed") return true;
   if (f === "enrich") return true;
   if (f === "leaders") return true;
   if (f === "radar") return true;
@@ -305,11 +342,18 @@ export function r2Key(f: string): string {
   // omitted rather than left as a live landmine for a future caller to find.
   if (f === "prophet_marks") return "live_flow/prophet_marks.json";
   if (f === "options_prophet_idx") return "options_prophet/index.json";
+  // Options Alpha — single canonical R2 object. The publisher (MACRO PR #8310) lands
+  // at this exact key; upstreamSourceOrder() pins the read to R2-only so a missing
+  // object resolves to "feed unavailable" rather than being served from another feed.
+  if (f === "options_alpha_candidate_feed") return "options_alpha/candidate_feed.json";
   if (f === "enrich") return "live_flow/enrich_current.json";
   if (f === "leaders") return "flowleaders/leaders.json";
   if (f === "radar") return "leaderradar/radar.json";
   return `live_flow/${f}_current.json`;
 }
+
+/** The receipt is deliberately not a generic f-param: it can only be read with its payload. */
+export const OPTIONS_ALPHA_CANDIDATE_RECEIPT_R2_KEY = "options_alpha/candidate_feed.receipt.json";
 
 async function fetchWithUA(url: string): Promise<Record<string, unknown>> {
   const ctrl = new AbortController();
@@ -840,6 +884,22 @@ export async function fixtureFor(f: string): Promise<Record<string, unknown>> {
       };
     }
   }
+  // Options Alpha — explicit unavailable in fixture mode. The publisher
+  // (MACRO PR #8310, options.alpha_candidate_feed/v1) has not yet shipped formed
+  // candidates, so the fixture seam returns the honest inactive shape rather than
+  // reading the legacy flow_fixture.json (which would be a misleading fallback —
+  // no other feed family's data can stand in for candidate evidence). The shape
+  // is what the forthcoming consumer's validator will gate on; consumers that
+  // read `active` see "no candidates today" instead of an empty object.
+  if (f === "options_alpha_candidate_feed") {
+    return {
+      schema: "options.alpha_candidate_feed/v1",
+      active: false,
+      as_of: "",
+      candidates: [],
+      source: "fixture-empty",
+    };
+  }
   const raw = await fs.readFile(FIXTURE_FILE, "utf8");
   const all = JSON.parse(raw) as Record<string, Record<string, unknown>>;
   return all[f] ?? {};
@@ -946,10 +1006,139 @@ export async function intradayFixture(sym: string, tf: string): Promise<Bar6[] |
 export type FlowUpstreamSource = "backend" | "r2";
 
 export function upstreamSourceOrder(f: string): FlowUpstreamSource[] {
+  // Options Alpha candidate evidence: the publisher is R2-only (MACRO PR #8310). The
+  // backend has no route for this key and must NEVER be probed for it — probing would
+  // produce a misleading 503/404 attribution on the backend instead of the truth
+  // ("publisher hasn't shipped the artifact yet"). tryFetchUpstream() loops over this
+  // order, so a single-element array means "fail closed on the R2 read".
+  if (f === "options_alpha_candidate_feed") return ["r2"];
+  // Flow Leaders is an artifact-native Macro publication. If the co-located
+  // file is stale, favor the newly published R2 object before a backend timeout.
+  if (f === "leaders") return ["r2", "backend"];
   return f === "options_prophet_idx" ? ["r2", "backend"] : ["backend", "r2"];
 }
 
+/** Flow Leaders artifact integrity and downstream admission boundary. */
+export function isLeadersArtifact(data: Record<string, unknown> | null): boolean {
+  if (!data || data.schema !== "flow_leaders.v1" ||
+      typeof data.session_date !== "string" ||
+      !/^\d{4}-\d{2}-\d{2}$/.test(data.session_date) ||
+      !Array.isArray(data.board_a) || !Array.isArray(data.board_b)) return false;
+  const coverage = data.coverage;
+  if (!coverage || typeof coverage !== "object") return false;
+  const c = coverage as Record<string, unknown>;
+  if (typeof c.n_universe !== "number" || !Number.isInteger(c.n_universe) ||
+      c.n_universe < 0) return false;
+  return [...data.board_a, ...data.board_b].every((row) =>
+    row !== null && typeof row === "object" &&
+    typeof (row as Record<string, unknown>).ticker === "string");
+}
+
+export function isQualifiedLeadersArtifact(data: Record<string, unknown> | null): boolean {
+  if (!isLeadersArtifact(data) || !data || data.stale !== false ||
+      data.source_family !== "thetadata_t2a_tape" ||
+      data.signal_policy !== "research_only") return false;
+  // Theta tape's licensed quote-rule evidence is NOT a validated live entry
+  // signal. A future publisher cannot silently promote fire flags by merely
+  // supplying a recent market timestamp and sufficient raw coverage.
+  const rows = [...(data.board_a as Record<string, unknown>[]),
+    ...(data.board_b as Record<string, unknown>[])];
+  if (rows.some((row) => row.fire_a !== false || row.fire_b !== false)) return false;
+  const coverage = data.coverage;
+  if (!coverage || typeof coverage !== "object") return false;
+  const c = coverage as Record<string, unknown>;
+  const current = c.n_current_roots, expected = c.n_expected_roots;
+  if (typeof current !== "number" || typeof expected !== "number" ||
+      !Number.isInteger(current) || !Number.isInteger(expected) ||
+      expected <= 0 || current < 0 || current > expected ||
+      current / expected < 0.9) return false;
+  // Backstop only: producer owns NYSE-session freshness and exact 2-session SLA.
+  // Never accept a years-old object stamped stale=false due to a producer fault.
+  const session = String(data.session_date);
+  const t = Date.parse(session + "T00:00:00Z");
+  const ageDays = (Date.now() - t) / 86_400_000;
+  return Number.isFinite(t) && new Date(t).toISOString().slice(0, 10) === session &&
+    ageDays >= 0 && ageDays <= 7;
+}
+
+function chooseMoreRecentLeaders(
+  oldData: Record<string, unknown> | null,
+  newData: Record<string, unknown> | null,
+): Record<string, unknown> | null {
+  if (!isLeadersArtifact(newData)) return oldData;
+  if (!isLeadersArtifact(oldData)) return newData;
+  const a = String(oldData?.session_date), b = String(newData?.session_date);
+  if (b > a) return newData;
+  if (a > b) return oldData;
+  // Same session: prefer signed-tape provenance, then the newest build.
+  if (newData?.source_family === "thetadata_t2a_tape" &&
+      oldData?.source_family !== "thetadata_t2a_tape") return newData;
+  if (oldData?.source_family === "thetadata_t2a_tape" &&
+      newData?.source_family !== "thetadata_t2a_tape") return oldData;
+  return String(newData?.as_of ?? "") > String(oldData?.as_of ?? "") ? newData : oldData;
+}
+
+/** No unqualified leaders payload can leave this server marked live. The API
+ * is also consumed by machine clients, not just by the React display gate.
+ * Treat a missing/misleading producer stale flag as a false-green input. */
+export function sanitizeLeadersArtifact(
+  data: Record<string, unknown> | null,
+): Record<string, unknown> | null {
+  if (!isLeadersArtifact(data)) return null;
+  if (isQualifiedLeadersArtifact(data)) return data;
+  if (!data) return null;
+  // An unqualified historical or malformed source must never continue
+  // advertising a FIRE flag through the machine-readable API, even when a
+  // user deliberately opens its research/history view. Preserve observed
+  // evidence; refuse only the signal authority the source has not earned.
+  const suppressFire = (row: Record<string, unknown>) => ({
+    ...row, fire_a: false, fire_b: false,
+  });
+  return {
+    ...data,
+    stale: true,
+    stale_reason: typeof data.stale_reason === "string" && data.stale_reason
+      ? data.stale_reason
+      : "unqualified_source_or_session",
+    board_a: (data.board_a as Record<string, unknown>[]).map(suppressFire),
+    board_b: (data.board_b as Record<string, unknown>[]).map(suppressFire),
+  };
+}
+
 export async function tryFetchUpstream(f: string): Promise<Record<string, unknown> | null> {
+  // Do not let a co-located historical JSON shadow a new R2 session. Retain
+  // the old snapshot for explicit historical viewing when all fresh sources fail.
+  if (f === "leaders") {
+    const local = await tryReadLocalFlowArtifact(f);
+    const localQualified = isQualifiedLeadersArtifact(local);
+    let best = isLeadersArtifact(local) ? local : null;
+    // A locally QUALIFIED but lagging session can still shadow a newer R2
+    // publication for up to the full freshness window. Make one bounded R2
+    // comparison; when the local proof is valid, there is no reason to wait
+    // for the slower backend after a failed/missing R2 read.
+    const sources: FlowUpstreamSource[] = localQualified
+      ? ["r2"] : upstreamSourceOrder(f);
+    for (const source of sources) {
+      try {
+        const url = source === "r2"
+          ? R2_BASE + "/" + r2Key(f)
+          : BACKEND + backendPath(f);
+        const remote = await fetchWithUA(url);
+        if (isQualifiedLeadersArtifact(remote)) {
+          if (localQualified && local &&
+              String(local.session_date) >= String(remote.session_date)) {
+            return local;
+          }
+          return remote;
+        }
+        if (!localQualified) best = chooseMoreRecentLeaders(best, remote);
+      } catch {
+        // Missing/blocked remote evidence never displaces a qualified local
+        // session; otherwise keep searching the documented backend fallback.
+      }
+    }
+    return localQualified ? local : sanitizeLeadersArtifact(best);
+  }
   if (f === "manifest") {
     try {
       const raw = await fs.readFile(MANIFEST_FIXTURE_FILE, "utf8");

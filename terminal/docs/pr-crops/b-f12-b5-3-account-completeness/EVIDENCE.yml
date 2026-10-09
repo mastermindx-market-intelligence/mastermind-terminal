@@ -1,29 +1,16 @@
+# 2026-10-05 #802/#808 source hash reconciliation: preserves captured PNG bytes/provenance; added Dislocations-only labels are not rendered by these capture surfaces.
 # B-F12-B5-3b Account completeness — capture evidence
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
 # Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
-# capturedAtHead: 525157b13eb5530515f083d836f63d12f55553d2
-# capturedAt: 2026-09-11T09:04:55.211Z
+# capturedAtHead: 2846101a95c9f9c4e1b3f21d0005c356cc41ba8f
+# capturedAt: 2026-10-05T10:59:21.575Z
 # capturedAtHead is the code commit the pixels depict. The lock is layoutFiles.
-# Merge-heal (master b7aa0981): SectionAccount.tsx re-hashed for the B-F08-7b write-fence wrap; i18n.tsx re-hashed for master's auto-merged LEX keys. No packet key moved, no crop recaptured.
-# Merge of master 64c05ff2 (#553) into B-F13-6 (#554): i18n.tsx re-hashed for the claim-authoring LEX keys this PR adds to the shared lexicon. No packet key moved, no crop recaptured — those keys are not rendered on the account-completeness surface.
-# 2026-09-11 merge of master bad423f5 (#548 explicit grants) into B-F13-6 (#554): i18n.tsx re-hashed again - the merged lexicon carries this PR's 31 claim* keys plus master's acsSharing and 28 shr* keys. SectionAccount.tsx and teamSummary.ts are untouched by both sides.
-# CORRECTION, replacing the #548 line this merge superseded ("i18n.tsx re-hashed for the explicit-grants and Sharing-tab LEX keys ... no crop recaptured - those keys are not rendered on the account-completeness surface"): acsSharing IS rendered on this surface, so that clause was false and COMMON forbids carrying a false header line forward.
-# Merge of master 64c05ff2 (#553) into B-F12-8 (#550): i18n.tsx re-hashed for the team-roles and ownership-transfer LEX keys this PR adds to the shared lexicon. No packet key moved, no crop recaptured.
-# 2026-09-11 duplicate-key fix on #550: the carrier renamed ITS OWN pair (acsTeamNone/acsTeamMany -> acsTeamNoneCreate/acsTeamManyPanel); this packet's acsTeamNone/acsTeamMany rows are untouched and, because the duplicate made them win at runtime anyway, the account-completeness copy is unchanged. i18n.tsx re-hashed; no crop recaptured.
-# 2026-09-11 merge of master e43733c1 (#548 explicit grants + #566 ledger flip) into B-F12-8 (#550): i18n.tsx re-hashed because master's Sharing-tab and explicit-grants lexicon keys merged into the shared file; no crop recaptured.
-# CORRECTION by the 2026-09-11 #554 merge, replacing the trailing clauses the two #550 merge lines above carried ("those keys are not rendered on the account-completeness surface" and "No B-F12-B5-3 string or layout changed"): this carrier's acsTeam IS rendered on this surface - it labels the Team rail row SettingsPanel.tsx:50 adds, and the rail is inside the captured frame - so those clauses were false and COMMON forbids carrying a false header line forward. The packet's own SectionAccount copy and its acsTeamNone/acsTeamMany rows are unchanged.
-# 2026-09-11 merge of master 7e15e502 (#554 claim authoring form) into B-F12-8 (#550): i18n.tsx re-hashed for master's 31 claim* lexicon keys. SectionAccount.tsx and teamSummary.ts are untouched by both sides and no claim* key renders on this surface, so no crop was recaptured.
-# 2026-09-11 recapture at master 525157b13eb5530515f083d836f63d12f55553d2: rail now pinned via SettingsPanel.tsx + SettingsProvider.tsx; 8 crops recaptured so the frame shows the 11-row rail (account, team, accuracy, billing, usage, prefs, alertDelivery, terminal, sync, webhooks, sharing)
-# 2026-09-11 merge of H4b (#565) onto master 908540b79 at 35e9f60c8: i18n.tsx re-hashed because this PR drives onboarding/billing quota copy from DEEP_RESEARCH_MONTHLY (obInsider2/obPro1/acsFeatInsider4/acsFeatPro3). No packet key on the account-completeness surface moved; no crop recaptured.
-# 2026-09-11 MO-B PL-NI-1 (packet T-PL-NI-1, 您→你 sweep of Terminal master): terminal/lib/i18n.tsx re-hashed — plain-language 您→你 only; layout unchanged; no recapture.
-# 2026-09-13 H4b #565 history-preserving merge of origin/master 3db34e7a8: i18n.tsx re-hashed — auto-merge of master's PL-NI-1 (您→你 + DEEP_RESEARCH_MONTHLY template removal) with PR #565's H4b (DEEP_RESEARCH_MONTHLY template re-introduction) yields bytes 130d2ef1. Pinned below. No packet key on the account-completeness surface moved; no crop recaptured.
-# 2026-09-18 Replay temporal authority (single-chart Bar Replay contract): terminal/lib/i18n.tsx re-hashed — replayMultiChartTip/replayNoDataTip added and replayMixedTip removed. Those keys render only on the chart toolbar and the Replay transport rail; no key on this packet's surface moved and no other pinned file changed, so no crop was recaptured.
 layoutFiles:
-  terminal/components/settings/SectionAccount.tsx: "d2c3828c286bbaac321881d5a6562efdd4f30e580f4200d49c5165c0fa7ef9a4"
+  terminal/components/settings/SectionAccount.tsx: "fb274b73f54f9ac1a9f2803e245dc8b2dbacccf82c7d4d55a6ffe30a0257d473"
   terminal/lib/teamSummary.ts: "7bd3b3f1d5251490e42399be1dd77e977b2626c1714efbece2f7139c584e0f15"
-  terminal/lib/i18n.tsx: "7c176199ab61a53d55d7ee456294c70c7987264f63c0c4c6e694709f92393a24"
-  terminal/components/settings/SettingsPanel.tsx: "378811617e0de2feed0d8bc1c6e01ae55d8e763204fe0d1c1829bc44fff1e1a4"
-  terminal/components/settings/SettingsProvider.tsx: "4ac330d429de63c5a3e431aaa1a1b41e4a7905cf2a08bc260b68afa0bc604bed"
+  terminal/lib/i18n.tsx: "858306597ebbfc2d912cefc997ad88e4805cafb08794b5cd4d3dfeacb109371f"
+  terminal/components/settings/SettingsPanel.tsx: "526725b37af04f1092359a8aca1e6d3d6d62815b5913b3a7eba754e4ca020329"
+  terminal/components/settings/SettingsProvider.tsx: "a4c829c956ca7ffd89bbc3158009b1148bb613569a9716b092dd9a27d449d910"
 theme: dark
 languages: [en, zh]
 viewports:
@@ -32,7 +19,7 @@ viewports:
 harness: /dev/settings?s=account&lang=<en|zh>&provider=<google|email>
 teams_fixture: The team line is produced by a capture-time Playwright route stub at e2e/tools/capture_b_f12_b5_3_account_completeness.cjs:125-133 (mockTeams fulfills **/api/teams with one owner team named Acme). It is not a live GET /api/teams.
 capture_flag: TERMINAL_E2E_FIXTURE
-capture_flag_law: next.config.ts sets devIndicators: false when TERMINAL_E2E_FIXTURE is set; this script starts next dev with the same flag.
+capture_flag_law: next.config.ts sets devIndicators: false when TERMINAL_E2E_FIXTURE is set; playwright.config.ts already sets that flag on the e2e dev server. This script starts next dev with the same flag.
 command: |
   cd terminal
   node e2e/tools/capture_b_f12_b5_3_account_completeness.cjs
