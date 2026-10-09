@@ -81,3 +81,87 @@ describe("account export route integrity through the normal session client", () 
     expect(await response.json()).toEqual({ error: "export_withheld" });
   });
 });
+
+
+function withOwnedTables(rows: Record<string, Record<string, unknown>[]>, failOthers = false) {
+  const base = H.db as { from: (table: string) => unknown };
+  const selects: Array<{ table: string; fields: string }> = [];
+  H.db = { from(table: string) {
+    if (!(table in rows)) { if (failOthers) throw new Error("unavailable fixture source"); return base.from(table); }
+    let fields: string[] = []; let owner: unknown;
+    const result = (from = 0, to = 99) => ({ data: rows[table].filter(row => row.user_id === owner).sort((a, b) => String(a.id).localeCompare(String(b.id)))
+      .slice(from, to + 1).map(row => Object.fromEntries(fields.map(key => [key, row[key]]))), error: null });
+    const q = { select(value: string) { selects.push({ table, fields: value }); fields = value.split(","); return q; },
+      eq(column: string, value: unknown) { expect(column).toBe("user_id"); owner = value; return q; },
+      order(column: string, opts: { ascending: boolean }) { expect(column).toBe("id"); expect(opts.ascending).toBe(true); return q; },
+      range(from: number, to: number) { return Promise.resolve(result(from, to)); },
+      limit(n: number) { return Promise.resolve(result(0, n - 1)); } };
+    return q;
+  } };
+  return selects;
+}
+const ownedDrawing = () => ({ id: "drawing-owned", user_id: H.user!.id, symbol: "NVDA", kind: "__collection_v1",
+  data: { revision: "actual-r4", drawings: [{ id: "geometry", points: [1, 2], future: "kept" }] }, created_at: "2026-09-01T00:00:00.000Z" });
+const ownedAlert = () => ({ id: "alert-owned", user_id: H.user!.id, symbol: "NVDA", condition: { value: 120, nested: [1, 2] }, active: false, created_at: "2026-09-01T00:00:00.000Z" });
+
+describe("normal-session owned archive route", () => {
+  it("downloads owner-filtered raw drawings and inactive alert definitions with six-entry integrity", async () => {
+    const drawing = ownedDrawing(); const alert = ownedAlert();
+    const selects = withOwnedTables({ drawings: [drawing, { ...drawing, id: "foreign", user_id: "other" }],
+      alerts: [{ ...alert, delivery_secret: "must-not-be-projected" }, { ...alert, id: "foreign", user_id: "other" }] });
+    const response = await GET(request()); expect(response.status).toBe(200); const doc = await response.json();
+    expect(doc.chart_drawings).toHaveLength(1); expect(doc.chart_drawings[0].data).toEqual(drawing.data);
+    expect(doc.alerts).toHaveLength(1); expect(doc.alerts[0].condition).toEqual(alert.condition); expect(doc.alerts[0].active).toBe(false);
+    expect(doc.chart_drawings[0].version).toBe("actual-r4"); expect(doc.alerts[0].version).toBeNull();
+    expect(doc.integrity.schema).toBe("mm.terminal_account_export.integrity.v2"); expect(Object.keys(doc.integrity.collections)).toHaveLength(6);
+    expect(verifyAccountExportIntegrity(doc, sha256)).toBe(true);
+    expect(selects).toEqual([{ table: "drawings", fields: "id,user_id,symbol,kind,data,created_at" }, { table: "alerts", fields: "id,user_id,symbol,condition,active,created_at" }]);
+    expect(JSON.stringify(doc)).not.toContain("must-not-be-projected");
+    const csvResponse = await GET(request("csv")); expect(csvResponse.status).toBe(200);
+    const csv = Buffer.from(await csvResponse.arrayBuffer()).toString("utf8"); expect(verifyAccountExportCsvChecksum(csv, sha256)).toBe(true);
+    expect(csv).toContain("data,chart_drawings,drawing-owned,data,"); expect(csv).toContain("data,alerts,alert-owned,active,false");
+  });
+  it("does not return all-source 503 when the new drawing source is the only readable collection", async () => {
+    withOwnedTables({ drawings: [ownedDrawing()] }, true);
+    const response = await GET(request()); expect(response.status).toBe(200); const doc = await response.json();
+    expect(doc.coverage.included.map((e: { key: string }) => e.key)).toEqual(["chart_drawings"]);
+    expect(doc.coverage.unavailable).toHaveLength(5); expect(doc.integrity.collections.alerts.state).toBe("unavailable");
+    expect(verifyAccountExportIntegrity(doc, sha256)).toBe(true);
+  });
+  it.each(["json", "csv"])("withholds %s when raw owned alert text contains a credential-shaped value", async format => {
+    withOwnedTables({ drawings: [], alerts: [{ ...ownedAlert(), condition: { note: "password=fictional-private-content" } }] });
+    vi.spyOn(console, "error").mockImplementation(() => undefined);
+    const response = await GET(request(format)); expect(response.status).toBe(500);
+    expect(response.headers.get("content-disposition")).toBeNull(); expect(await response.json()).toEqual({ error: "export_withheld" });
+  });
+});
+
+
+describe("raw archive JSON credential withholding", () => {
+  it.each(["json", "csv"])("withholds %s for a credential-shaped key in raw nested alert JSON", async format => {
+    withOwnedTables({ drawings: [], alerts: [{ ...ownedAlert(), condition: { metadata: { api_key: "fictional-test-value" } } }] });
+    vi.spyOn(console, "error").mockImplementation(() => undefined);
+    const response = await GET(request(format)); expect(response.status).toBe(500);
+    expect(response.headers.get("content-disposition")).toBeNull();
+    expect(await response.json()).toEqual({ error: "export_withheld" });
+  });
+  it("keeps benign null/empty credential fields and ordinary prose exportable", async () => {
+    withOwnedTables({ drawings: [], alerts: [{ ...ownedAlert(), condition: { metadata: { api_key: null, password: "", note: "changed password; Secret picks" } } }] });
+    expect((await GET(request())).status).toBe(200);
+  });
+  it.each([
+    ["json", { api_key: ["fictional-container-value"] }],
+    ["csv", { api_key: ["fictional-container-value"] }],
+    ["json", { api_key: { value: "fictional-container-value" } }],
+    ["csv", { api_key: { value: "fictional-container-value" } }],
+    ["json", { note: JSON.stringify({ api_key: "fictional-container-value" }) }],
+    ["csv", { note: JSON.stringify({ api_key: "fictional-container-value" }) }],
+  ])("withholds %s when a credential is held in a container or encoded JSON", async (format, metadata) => {
+    withOwnedTables({ drawings: [], alerts: [{ ...ownedAlert(), condition: { metadata } }] });
+    const logger = vi.spyOn(console, "error").mockImplementation(() => undefined);
+    const response = await GET(request(String(format)));
+    expect(response.status).toBe(500); expect(response.headers.get("content-disposition")).toBeNull();
+    expect(await response.json()).toEqual({ error: "export_withheld" });
+    expect(JSON.stringify(logger.mock.calls)).not.toContain("fictional-container-value");
+  });
+});
