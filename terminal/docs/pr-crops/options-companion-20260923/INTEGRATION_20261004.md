@@ -6,7 +6,7 @@ Status: **DRAFT / PROOF REQUIRED**. This receipt preserves progress on Terminal 
 
 Integration parent `4ecd157013124a97d1df9c00853b2e294b9ffb77` merges incumbent `c8705d6eacb6fcc706881dbf92e079e1c8ca01c4` into master `fb6f5cc39e592e7f9967835a85617b4fef427b09`. The incumbent remote branch is retained. All 19 historical evidence files are preserved byte-identical under `incumbent-c8705d6e/`; original checkout and its six untracked workspace PNGs were untouched.
 
-Both `flowGet(f, { refresh })` and `flowGetFresh(f, force)` use the existing shared cache and in-flight owner. External Grok review [5403914090](https://github.com/mastermindx-market-intelligence/mastermind-terminal/pull/723#pullrequestreview-5403914090) approved the bounded ChartPanel/cache composition. No application source changed after that review.
+Both `flowGet(f, { refresh })` and `flowGetFresh(f, force)` use the existing shared cache and in-flight owner. External Grok review [5403914090](https://github.com/mastermindx-market-intelligence/mastermind-terminal/pull/723#pullrequestreview-5403914090) approved the bounded ChartPanel/cache composition. Application source remained unchanged through `5f9b182e`; the October 6 composition below requires fresh integration checks.
 
 ## Verification and evidence refresh
 
@@ -25,3 +25,40 @@ The next local run observed four failures (including readiness timeouts) and thr
 ## Release boundary
 
 Macro #8383 fixed the false stock-spot fallback and merged as `2c9122681ab44f1a2f928b4dbec90c68f91e99ae`. The existing runtime owner installed the matrix source and supplied verified receipts, still `installed_awaiting_natural_cycle`. This does not prove a populated, correctly rooted published matrix reaches this consumer. Supported-root producer/API/cache acceptance, final-head CI, and authenticated live verification remain required. Terminal #599 retains sole deployment custody. Auto-merge remains off while the PR is a draft.
+
+## October 6 composition and authenticated readback
+
+The unchanged incumbent `5f9b182e06b9ac854ddb530ef59bb0f0b8030507` completed all checks in run `37173802174`, but conflicted with master `1ed3edc810966e20589fcdae35f801a7ba256bb4`. The retained worktree and PR are used for this merge. External fabric run `rs_20261006T085523Z_23706` returned an artifact-only resolution for ChartPane, ChartPanel and TerminalShell: preserve both the companion `optionsLevel` prop and master's matching-symbol `episodeId` prop. No cache, entitlement or producer contract was changed by the resolution. Parent verification checks the exact returned file hashes and both prop paths.
+
+Current-master screenshot and manifest versions win the six evidence conflicts. The previous October 4 evidence remains recoverable byte-for-byte from immutable parent `5f9b182e`; the separate `incumbent-c8705d6e/` archive remains unchanged. Historical capture claims do not qualify the newly composed source. Fresh current-head checks are required.
+
+Authorized production sign-in succeeded on October 6 and the Account UI verified the intended test identity. A manual Close was needed after authentication, so a clean login journey is not claimed. The Options tape loaded 2,000 records with a September 25 source snapshot; EOD levels showed October 5, while exposure showed September 30. Authenticated SPY and QQQ matrix requests returned HTTP 200, schema `options_structure.matrix/v1`, October 2 as-of, null spot and empty cells, with explicit `spot unavailable on 2026-10-02`. This closes the authentication-access uncertainty, not the matrix-data gate.
+
+Read-only M1 inspection found the installed matrix source at `2c912268`. Its October 5 16:00 scheduled run was still in the freshness helper after roughly ten hours: Python PID 58641 was blocked in Arrow's file-open path for the SPY OI shard. The resolved store volume had 31 GiB free (97% used). No runtime process was stopped, schedule changed, or manual publication performed. Existing producer/storage owners must reconcile that run and restore natural publication before matrix acceptance. This PR remains Draft with release and scientific gates open.
+
+
+## October 8 source recovery
+
+The October6 merge was retained without reset, abort, replacement branch or new
+worktree. The three-file Fabric composition preserves both the companion
+`optionsLevel` path and master's matching-symbol `episodeId` path. No unmerged
+index entries remain. Both supplied prop paths were read back in the composed
+source. TypeScript (`tsc --noEmit --incremental false`) exits0 on this tree.
+
+The two focused companion suites now pass30/30 with Vitest's result cache
+disabled. This replaces the prior cache-write-EPERM partial command result with
+an actual exit0 for those suites. Four additional Options-level/episode suites
+pass60/60, for90 focused assertions across six suites. Scoped integration diff
+checks pass; the full incoming merge check also identifies intentionally malformed
+`terminal/fixtures/dislocations/malformed.json` whitespace, which is preserved.
+The source is being committed and pushed to
+the existing draft carrier so the recovered merge is no longer local-only.
+Historical screenshots and prior CI remain historical; no current-browser,
+real-data, current-head full-CI or release acceptance is claimed by this save.
+
+Macro producer PR7861 now has frozen retained-byte candidate
+`c2219f4251658438314b4563bd5d1bbbaaa3e5ae` with170 focused tests and independently
+qualified A/B fixtures, but no real object-store publication or installed
+producer acceptance. Theta underlying identity and current source-use rights
+remain separate unresolved gates. Terminal599 retains sole deployment custody;
+this companion PR remains draft and auto-merge remains off.

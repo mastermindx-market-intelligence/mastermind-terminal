@@ -15,7 +15,7 @@ capturedAt: 2026-10-04T02:49:31.248865+00:00
 # The external census inspected the two logs and supplied hash inventory; it did not inspect pixels.
 hashSource: Fable current-file SHA256 verification; external log and inventory census
 layoutFiles:
-  terminal/components/ChartPanel.tsx: "5b4413b0cfa571683de1a36902bb437891b59981fffe3220542fb921afc29ab0"
+  terminal/components/ChartPanel.tsx: "5d5d73aa589e349e7e4d9dfd9ba82c3cd9443278103c216ef9bfa595b12f8684"
   terminal/components/ChartSettingsModal.tsx: "f26bd7dcbb9bd23e96546e835dec4c62c593b9c4d7412c411511005e7418146e"
   terminal/components/ChartSettingsModal.module.css: "a1685d103511e11882f8d379b22570f018e47aed88266db5ca6fec8808100b0a"
   terminal/components/DrawingSidebar.tsx: "95910121c08efa2a41bcaac02ec626a48bc98021bbbf9e611ff0b61f7baaf6d9"
