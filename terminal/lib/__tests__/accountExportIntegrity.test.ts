@@ -112,3 +112,48 @@ describe("account export integrity", () => {
     expect(serializeCsv(buildAccountExport(sources()))).not.toContain("csv_bytes");
   });
 });
+
+
+describe("six-collection integrity compatibility", () => {
+  function ownedDoc() {
+    const src = sources();
+    src.chart_drawings = { ok: true, complete: true, rows: [{ id: "drawing-1", symbol: "NVDA", kind: "__collection_v1", data: { revision: "r1", drawings: [{ points: [1, 2] }] }, created_at: window.started_at, version: "r1" }] };
+    src.alerts = { ok: true, complete: true, rows: [{ id: "alert-1", symbol: "NVDA", condition: { value: 150, nested: { keep: true } }, active: false, created_at: window.started_at, version: null }] };
+    return sealAccountExport(buildAccountExport(src), window, sha256);
+  }
+  it("retains the exact legacy v1 four-collection receipt and verifies it after the upgrade", () => {
+    const doc = sealed(); expect(doc.integrity.schema).toBe("mm.terminal_account_export.integrity.v1");
+    expect(Object.keys(doc.integrity.collections)).toEqual(["watchlists", "portfolio_positions", "saved_scripts", "chart_layouts"]);
+    expect(verifyAccountExportIntegrity(JSON.parse(serializeJson(doc)), sha256)).toBe(true);
+  });
+  it("seals and verifies six collections with a new receipt schema", () => {
+    const doc = ownedDoc(); expect(doc.integrity.schema).toBe("mm.terminal_account_export.integrity.v2");
+    expect(doc.integrity.collections.chart_drawings).toMatchObject({ state: "complete", item_count: 1 });
+    expect(doc.integrity.collections.alerts).toMatchObject({ state: "complete", item_count: 1 });
+    expect(verifyAccountExportIntegrity(doc, sha256)).toBe(true); expect(verifyAccountExportCsvChecksum(serializeCsv(doc, sha256), sha256)).toBe(true);
+  });
+  it.each(["geometry", "revision", "condition", "active", "state", "count", "schema", "missing_collection", "extra_collection"])("rejects new %s tampering", kind => {
+    const doc = clone(ownedDoc());
+    if (kind === "geometry") (doc.chart_drawings![0].data as { drawings: { points: number[] }[] }).drawings[0].points.reverse();
+    if (kind === "revision") doc.chart_drawings![0].version = "wrong";
+    if (kind === "condition") (doc.alerts![0].condition as { value: number }).value++;
+    if (kind === "active") doc.alerts![0].active = true;
+    if (kind === "state") doc.integrity.collections.alerts!.state = "unavailable";
+    if (kind === "count") doc.integrity.collections.chart_drawings!.item_count = 4;
+    if (kind === "schema") doc.integrity.schema = "mm.terminal_account_export.integrity.v1";
+    if (kind === "missing_collection") delete doc.integrity.collections.alerts;
+    if (kind === "extra_collection") Object.assign(doc.integrity.collections, { invented: doc.integrity.collections.alerts });
+    expect(verifyAccountExportIntegrity(doc, sha256)).toBe(false);
+  });
+  it("does not accept a v1 receipt with new collections grafted onto its payload", () => {
+    const doc = clone(sealed()); Object.assign(doc, { chart_drawings: [], alerts: [] });
+    expect(verifyAccountExportIntegrity(doc, sha256)).toBe(false);
+  });
+  it("distinguishes failed new sources from complete emptiness and partial reads", () => {
+    const src = sources(); src.chart_drawings = { ok: false, error: "outage" }; src.alerts = { ok: true, rows: [], complete: false };
+    const doc = sealAccountExport(buildAccountExport(src), window, sha256);
+    expect(doc.integrity.collections.chart_drawings).toEqual({ state: "unavailable", item_count: null, coverage_row_count: null, sha256: null });
+    expect(doc.integrity.collections.alerts).toMatchObject({ state: "partial", item_count: 0, sha256: sha256("[]") });
+    expect(verifyAccountExportIntegrity(doc, sha256)).toBe(true);
+  });
+});
