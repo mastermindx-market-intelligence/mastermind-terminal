@@ -1,4 +1,6 @@
 "use client";
+import { readCompanionMatrix } from "@/lib/optionsCompanion";
+import { isoSession } from "@/lib/dte";
 /**
  * GexDeskView — GEX desk surface (Wave 2, MomoEdge parity).
  *
@@ -59,7 +61,9 @@ import {
   LENS_ALL,
   matrixExpiryCoverage,
   matrixLensByStrike,
-  matrixSessionsAgree,
+  matrixDescribedSessionsMatch,
+  matrixSourceSession,
+  fmtMn,
   type ExpiryLens,
 } from "@/lib/gexLadder";
 
@@ -276,7 +280,13 @@ export function GexDeskView() {
     // A cells-less, wrong-schema, or wrong-root payload — the fixture's honest {} for
     // an unknown root, a malformed upstream doc, or a substituted cache object — resolves
     // to null. A matrix must never wear a different selected ticker's header.
-    return isMatrixDocForRoot(doc, root) ? doc : null;
+    if (!isMatrixDocForRoot(doc, root)) return null;
+    const admitted = readCompanionMatrix(doc, root);
+    if (!admitted.ok) return null;
+    // Companion admission sanitizes its consumed fields. Preserve the existing desk's
+    // other per-cell analytics; this reader also feeds the full ExposureMatrix.
+    return { ...doc, spot: admitted.value.doc.spot,
+      cells: doc.cells!.map((cell, index) => ({ ...cell, ...admitted.value.doc.cells![index] })) };
   }, []);
 
   const fetchMatrix = useCallback(async (root: string) => {
@@ -439,7 +449,7 @@ export function GexDeskView() {
   // lib/gexLadder.ts). Treat the matrix as covering nothing so every narrow-lens control
   // goes dark (existing honest-unavailable state) instead of letting the user select a
   // lens that would sum — or mislabel 0DTE — across two different sessions.
-  const matrixSessionOk = matrixSessionsAgree(visibleMatrix?.asof, asof);
+  const matrixSessionOk = matrixDescribedSessionsMatch(matrixSourceSession(visibleMatrix), asof);
 
   // Which expiries the matrix can actually answer for THIS ladder (see lib/gexLadder.ts —
   // it demands a real strike overlap, so two stores on different sessions read as "no
@@ -493,7 +503,18 @@ export function GexDeskView() {
   let asofStr = "";
   let asofStale = false;
   let asofAgeStr = "";
-  if (asof) {
+  if (asof && isoSession(asof)) {
+    // A date-only source session is not UTC midnight converted to Eastern time.
+    asofStr = new Date(asof + "T00:00:00Z").toLocaleDateString(lang === "zh" ? "zh-CN" : "en-US", {
+      weekday: "short", month: "short", day: "numeric", timeZone: "UTC",
+    }) + " · " + t("sourceSessionLabel");
+    const today = new Date().toLocaleDateString("en-CA", { timeZone: "America/New_York" });
+    const ageDays = Math.round((Date.parse(today) - Date.parse(asof)) / 86_400_000);
+    if (ageDays > 0) {
+      asofStale = true;
+      asofAgeStr = ageDays <= 1 ? t("lastSession") : t("daysOld").replace("{n}", String(ageDays));
+    }
+  } else if (asof) {
     try {
       const d = new Date(asof);
       asofStr = d.toLocaleString("en-US", {
@@ -621,11 +642,24 @@ export function GexDeskView() {
         callOI={isArchived ? null : (visibleStatePayload as unknown as Record<string, number | null | undefined>)?.call_oi ?? null}
         putOI={isArchived ? null : (visibleStatePayload as unknown as Record<string, number | null | undefined>)?.put_oi ?? null}
         lens={lens}
+        lensReportedOnly
         lensNetMn={lensValues.cellCount > 0 ? lensValues.totalMn : null}
         lensCoveredStrikes={lensCoveredStrikeCount}
         lensTotalStrikes={ladderStrikes.length}
         lang={lang}
       />
+      )}
+
+      {lens.kind !== "all" && lensValues.sourceSession && (
+        <div role="status" data-testid="gex-lens-source"
+          style={{ padding: "8px 12px", color: "var(--muted)", fontSize: 12 }}>
+          {t("lensReportedBasis").replace("{date}", lensValues.sourceSession)}
+          {!lensValues.complete && lensValues.knownTotalMn != null && (
+            <span data-testid="gex-lens-partial"> {t("lensKnownPartial")
+              .replace("{value}", fmtMn(lensValues.knownTotalMn))
+              .replace("{count}", String(lensValues.unresolvedPairCount))}</span>
+          )}
+        </div>
       )}
 
       {/* ── GEX history strip — the session scrubber, now also the date picker for the
@@ -762,7 +796,7 @@ export function GexDeskView() {
                 lensValues={lensValues}
                 lensCoverage={lensCoverage}
                 asOf={asof}
-                matrixAsOf={visibleMatrix?.asof ?? null}
+                matrixAsOf={matrixSourceSession(visibleMatrix)}
                 lang={lang}
                 netGexBn={activePayload?.net_gex_bn ?? null}
                 matrixCells={matrixCells}

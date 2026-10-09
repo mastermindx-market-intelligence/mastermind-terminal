@@ -794,10 +794,10 @@ export function StrikeLadder({
                 lens's own sum ($mn) when scoped — with the lens named on the label so the
                 two can never be mistaken for each other. */}
             <WallChip
-              label={lens.kind === "all" ? t("ladderWallsNet") : `${t("ladderWallsNet")} · ${lensTag}`}
+              label={lens.kind === "all" ? t("ladderWallsNet") : `${t("sumReportedGex")} · ${lensTag}`}
               value={lens.kind === "all" ? fmtBn(netGexBn) : fmtMn(lensValues.totalMn)}
-              color={(lens.kind === "all" ? (netGexBn ?? 0) : lensValues.totalMn) >= 0 ? "var(--up)" : "var(--down)"}
-              show={lens.kind === "all" ? netGexBn != null : lensValues.cellCount > 0} />
+              color={(lens.kind === "all" ? (netGexBn ?? 0) : (lensValues.totalMn ?? 0)) >= 0 ? "var(--up)" : "var(--down)"}
+              show={lens.kind === "all" ? netGexBn != null : lensValues.totalMn != null} />
             <WallChip label={t("ladderWallsFlip")} value={levels.gammaFlip != null ? fmtStrike(levels.gammaFlip) : "—"}
               color={FLIP_VIOLET} show={levels.gammaFlip != null} />
             <WallChip label={t("ladderWallsCall")} value={levels.callWall != null ? fmtStrike(levels.callWall) : "—"}
