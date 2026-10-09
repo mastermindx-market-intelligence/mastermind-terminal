@@ -562,3 +562,48 @@ test("saved layout references stay a visible kept choice while refused, and No l
  expect(commands[1].operation_id).not.toBe(commands[0].operation_id);
  for(const body of bodies)expect(body).not.toContain('"kept"');
 });
+
+// T03j (IW2 legacy POST recovery): before the legacy POST cutover a retried legacy request was refused with
+// invalid_payload before the owner was asked, so that stored refusal never proved the original failed. A reload
+// reads the receipt once; only the full-request owner (PUT) may settle it, and nothing is ever posted again.
+for(const receipt of ["missing","committed"] as const) test(`a stored invalid_payload refusal is rechecked with the owner and never sent again (receipt ${receipt})`,async({page},testInfo)=>{
+ await setup(page);
+ const retained={id:"10000000-0000-4000-8000-000000000091",operation_id:"20000000-0000-4000-8000-000000000091",action:"create",expected_revision:0,
+  manifest:{schema:"investigation_manifest.v2",argument_relations:[],intent:{title:"Legacy retry research",question:"Was this already saved? 🧠",subjects:[{kind:"security",owner:"terminal.analysis_symbol",object_id:"AAPL"}]},layout_refs:[],thesis_refs:[],evidence_refs:[],continuation:{}}};
+ await page.addInitScript(([k,v])=>{if(!sessionStorage.getItem(k))sessionStorage.setItem(k,v);},[pendingKey,JSON.stringify({owner:"local-preview",command:retained,phase:"rejected",reason:"invalid_payload"})] as const);
+ const posts:unknown[]=[],reconciles:unknown[]=[],receiptReads:string[]=[];let saved=false;
+ await page.route("**/api/investigations{,?*}",async route=>{
+  const request=route.request(),query=new URL(request.url()).searchParams;
+  if(request.method()==="POST"){posts.push(request.postDataJSON());await route.fulfill({json:committed(retained.id,retained.manifest,"20000000-0000-4000-8000-000000000092")});return;}
+  if(request.method()==="PUT"){const command=request.postDataJSON();reconciles.push(command);saved=true;await route.fulfill({json:committed(command.id,command.manifest,command.operation_id)});return;}
+  if(query.has("operation_id")){receiptReads.push(query.get("operation_id")!);
+   await route.fulfill(receipt==="committed"?{json:committed(retained.id,retained.manifest,retained.operation_id)}:{status:404,json:{status:"not_found"}});return;}
+  if(query.has("id")&&saved){await route.fulfill({json:{...committed(retained.id,retained.manifest,retained.operation_id),status:"found",current_revision:1,layouts:[]}});return;}
+  await route.fulfill({json:{status:"listed",items:[]}});
+ });
+ await page.goto("/analysis?view=investigations");
+ await expect.poll(()=>receiptReads,{timeout:20_000}).toEqual([retained.operation_id]);
+ if(receipt==="missing"){
+  // A receipt miss is not a fence: the save stays unconfirmed, the original is retained and nothing is sent.
+  await expect(page.getByText("The save outcome is not confirmed.",{exact:false})).toBeVisible({timeout:20_000});
+  await expect(page.getByLabel("Research question",{exact:true})).toHaveValue("Was this already saved? 🧠",{timeout:20_000});
+  await expect(page.getByRole("button",{name:"Start new research"})).toBeDisabled({timeout:20_000});
+  await expect(page.getByRole("button",{name:"Retry original save"})).toHaveCount(0,{timeout:20_000});
+  expect(reconciles).toEqual([]);
+  expect(JSON.parse((await stored(page))!)).toMatchObject({phase:"rejected",reason:"invalid_payload",command:{operation_id:retained.operation_id}});
+  expect(await noOverflow(page)).toBe(true);
+  await page.getByText("The save outcome is not confirmed.",{exact:false}).scrollIntoViewIfNeeded({timeout:20_000});
+  await page.screenshot({path:testInfo.outputPath("stored-invalid-payload-unconfirmed.png")});
+  await page.getByRole("button",{name:"Check original outcome"}).click({timeout:20_000});
+ }
+ // The full-request owner answers for this exact request; only that answer settles it.
+ await expect.poll(()=>reconciles.length,{timeout:20_000}).toBe(1);
+ expect(reconciles[0]).toEqual(retained);
+ await expect(page.getByRole("heading",{name:"Legacy retry research",exact:true})).toBeVisible({timeout:20_000});
+ await expect(page.getByRole("button",{name:"Edit saved question"})).toBeVisible({timeout:20_000});
+ await expect.poll(()=>stored(page),{timeout:20_000}).toBeNull();
+ expect(posts).toEqual([]);
+ expect(receiptReads).toEqual([retained.operation_id]);
+ expect(await noOverflow(page)).toBe(true);
+ await page.screenshot({path:testInfo.outputPath(`stored-invalid-payload-owner-${receipt}.png`),fullPage:true});
+});
