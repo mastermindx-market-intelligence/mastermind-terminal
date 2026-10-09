@@ -118,5 +118,7 @@
       "sha256": "f53722d00c3024521d73e960df05e6ce1cc0806d034e47695d7e664b11ab1b77",
       "kind": "appearance"
     }
-  ]
+  ],
+  "browser_source_provenance": "SUPERSEDED_PENDING_FRESH_SERVER_PROOF",
+  "provenance_note": "A later listener inspection found port3197 owned by a different rotation-risk-confluence worktree. Previous reuse-enabled browser results are historical observations only, not exact-source acceptance. Unit/source tests remain separately valid. Fresh CI=1/reuse-disabled replacement is required."
 }

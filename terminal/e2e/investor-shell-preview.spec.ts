@@ -1,5 +1,11 @@
 import { expect, test } from "@playwright/test";
 
+// The inherited harness disables reuseExistingServer when CI is set.
+// Refuse preview proof from a server another worktree could already own.
+if (process.env.MMX_INVESTOR_SHELL_PREVIEW === "1" && !process.env.CI) {
+  throw new Error("Run shell qualification with CI=1 and --retries=0 so the harness starts a fresh server.");
+}
+
 // Uses the repository's existing local fixture server and real route bodies.
 // This opt-in file also runs in the ordinary suite as an explicit skip, rather
 // than changing the normal customer shell or creating another browser harness.

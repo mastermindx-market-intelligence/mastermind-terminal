@@ -29,11 +29,6 @@
     display: block;
   }
 }
-/* Masthead clips overflow; lift stacking while the cohort popover is open (D2). */
-:global(.obs-prophet-masthead.cohortPopoverOpen) {
-  overflow: visible;
-  z-index: 4;
-}
 .tileBtn {
   cursor: pointer;
   font: inherit;

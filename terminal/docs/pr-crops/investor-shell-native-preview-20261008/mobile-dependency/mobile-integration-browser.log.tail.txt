@@ -1,0 +1,45 @@
+  -  16 [desktop] › e2e/mobile-nav-upgrade.spec.ts:392:5 › from-Macro header remains non-overlapping and actionable at 320px
+  -  17 [desktop] › e2e/mobile-nav-upgrade.spec.ts:424:5 › drawer labels and modal controls render in EN and ZH
+  ✓  18 [desktop] › e2e/mobile-nav-upgrade.spec.ts:448:5 › desktop keeps the mobile header hidden and never mounts the drawer (3.8s)
+  ✓  19 [tablet] › e2e/investor-shell-preview.spec.ts:9:7 › existing /analysis?symbol=NVDA uses the preview without losing its page or mobile owner (940ms)
+  ✓  20 [tablet] › e2e/investor-shell-preview.spec.ts:9:7 › existing /discover uses the preview without losing its page or mobile owner (1.2s)
+  -  21 [tablet] › e2e/investor-shell-preview.spec.ts:49:5 › native navigation preserves the same shell and the chart route stays excluded
+  ✓  22 [tablet] › e2e/investor-shell-preview.spec.ts:65:7 › preview navigation labels remain readable in en (737ms)
+  ✓  23 [tablet] › e2e/investor-shell-preview.spec.ts:65:7 › preview navigation labels remain readable in zh (746ms)
+[WebServer] [analyticsEvents] SUPABASE_SERVICE_ROLE_KEY absent — events held in memory only (dev mode)
+  ✓  24 [tablet] › e2e/mobile-nav-upgrade.spec.ts:86:5 › MM-001 closed drawer has no focus stops; open drawer focuses nav and wraps both ways (8.5s)
+  ✓  25 [tablet] › e2e/mobile-nav-upgrade.spec.ts:148:5 › MM-002 Escape and scrim tap dismiss and restore the actual Menu opener (5.1s)
+  ✓  26 [tablet] › e2e/mobile-nav-upgrade.spec.ts:165:5 › MM-003 real scrim swipe freezes nonzero scroll and dismissal restores exact inline styles (5.1s)
+  -  27 [tablet] › e2e/mobile-nav-upgrade.spec.ts:209:5 › MM-004 header and drawer account targets cover their complete centered 44px squares
+  ✓  28 [tablet] › e2e/mobile-nav-upgrade.spec.ts:251:5 › crossing above 860px releases once, restores styles, and permits a clean reopen (6.4s)
+  -  29 [tablet] › e2e/mobile-nav-upgrade.spec.ts:270:5 › short viewport keeps header and footer fixed while only the nav scrolls
+  -  30 [tablet] › e2e/mobile-nav-upgrade.spec.ts:327:5 › signed-in drawer account hands focus to Settings without late Menu refocus
+  -  31 [tablet] › e2e/mobile-nav-upgrade.spec.ts:341:5 › guest drawer account hands focus to onboarding without late Menu refocus
+  ✓  32 [tablet] › e2e/mobile-nav-upgrade.spec.ts:356:5 › Analysis navigation carries NVDA and does not steal destination focus (5.4s)
+  -  33 [tablet] › e2e/mobile-nav-upgrade.spec.ts:373:5 › shared non-chart shell uses the same modal and marks its active route
+  -  34 [tablet] › e2e/mobile-nav-upgrade.spec.ts:392:5 › from-Macro header remains non-overlapping and actionable at 320px
+  -  35 [tablet] › e2e/mobile-nav-upgrade.spec.ts:424:5 › drawer labels and modal controls render in EN and ZH
+  -  36 [tablet] › e2e/mobile-nav-upgrade.spec.ts:448:5 › desktop keeps the mobile header hidden and never mounts the drawer
+  ✓  37 [mobile] › e2e/investor-shell-preview.spec.ts:9:7 › existing /analysis?symbol=NVDA uses the preview without losing its page or mobile owner (763ms)
+  ✓  38 [mobile] › e2e/investor-shell-preview.spec.ts:9:7 › existing /discover uses the preview without losing its page or mobile owner (997ms)
+  -  39 [mobile] › e2e/investor-shell-preview.spec.ts:49:5 › native navigation preserves the same shell and the chart route stays excluded
+  ✓  40 [mobile] › e2e/investor-shell-preview.spec.ts:65:7 › preview navigation labels remain readable in en (691ms)
+  ✓  41 [mobile] › e2e/investor-shell-preview.spec.ts:65:7 › preview navigation labels remain readable in zh (694ms)
+  ✓  42 [mobile] › e2e/mobile-nav-upgrade.spec.ts:86:5 › MM-001 closed drawer has no focus stops; open drawer focuses nav and wraps both ways (5.6s)
+  ✓  43 [mobile] › e2e/mobile-nav-upgrade.spec.ts:148:5 › MM-002 Escape and scrim tap dismiss and restore the actual Menu opener (4.0s)
+  ✓  44 [mobile] › e2e/mobile-nav-upgrade.spec.ts:165:5 › MM-003 real scrim swipe freezes nonzero scroll and dismissal restores exact inline styles (5.9s)
+  ✓  45 [mobile] › e2e/mobile-nav-upgrade.spec.ts:209:5 › MM-004 header and drawer account targets cover their complete centered 44px squares (4.6s)
+  ✓  46 [mobile] › e2e/mobile-nav-upgrade.spec.ts:251:5 › crossing above 860px releases once, restores styles, and permits a clean reopen (6.0s)
+  ✓  47 [mobile] › e2e/mobile-nav-upgrade.spec.ts:270:5 › short viewport keeps header and footer fixed while only the nav scrolls (4.6s)
+  ✓  48 [mobile] › e2e/mobile-nav-upgrade.spec.ts:327:5 › signed-in drawer account hands focus to Settings without late Menu refocus (3.9s)
+[WebServer] [browser] Error: Failed to load Stripe.js
+  ✓  49 [mobile] › e2e/mobile-nav-upgrade.spec.ts:341:5 › guest drawer account hands focus to onboarding without late Menu refocus (3.7s)
+  ✓  50 [mobile] › e2e/mobile-nav-upgrade.spec.ts:356:5 › Analysis navigation carries NVDA and does not steal destination focus (3.5s)
+[WebServer] [browser] Error: Failed to load Stripe.js
+  ✓  51 [mobile] › e2e/mobile-nav-upgrade.spec.ts:373:5 › shared non-chart shell uses the same modal and marks its active route (2.1s)
+  ✓  52 [mobile] › e2e/mobile-nav-upgrade.spec.ts:392:5 › from-Macro header remains non-overlapping and actionable at 320px (3.5s)
+  ✓  53 [mobile] › e2e/mobile-nav-upgrade.spec.ts:424:5 › drawer labels and modal controls render in EN and ZH (7.0s)
+  -  54 [mobile] › e2e/mobile-nav-upgrade.spec.ts:448:5 › desktop keeps the mobile header hidden and never mounts the drawer
+
+  23 skipped
+  31 passed (2.0m)

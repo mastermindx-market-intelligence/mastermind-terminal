@@ -11,7 +11,10 @@ vi.mock("next/navigation", () => ({
   useRouter: () => ({ push: vi.fn(), prefetch: vi.fn() }),
 }));
 vi.mock("next/link", () => ({
-  default: ({ children, href, prefetch: _p, ...props }: any) => <a href={href} {...props}>{children}</a>,
+  default: ({ children, href, prefetch, ...props }: React.ComponentProps<"a"> & { prefetch?: boolean }) => {
+    void prefetch;
+    return <a href={href} {...props}>{children}</a>;
+  },
 }));
 vi.mock("@/lib/i18n", async (original) => {
   const actual = await original<typeof import("@/lib/i18n")>();
@@ -24,18 +27,18 @@ vi.mock("@/lib/originNav", () => ({
   backToMacro: (href: string) => state.back(href),
 }));
 vi.mock("@/lib/shellBrainSymbol", () => ({ useShellBrainSymbol: () => "AAPL" }));
-vi.mock("@/components/ui/Tip", () => ({ Tip: ({ children }: any) => <span>{children}</span> }));
+vi.mock("@/components/ui/Tip", () => ({ Tip: ({ children }: React.PropsWithChildren) => <span>{children}</span> }));
 vi.mock("@/components/BrandMark", () => ({ BrandLockup: () => <span>Mastermind</span> }));
 vi.mock("@/components/DashboardBackButton", () => ({
-  default: ({ onClick }: any) => <button onClick={onClick} data-back="existing">Back to Macro</button>,
+  default: ({ onClick }: React.ComponentProps<"button">) => <button onClick={onClick} data-back="existing">Back to Macro</button>,
 }));
 vi.mock("@/components/MobileNav", () => ({ default: () => <div data-mobile-owner="existing" /> }));
 vi.mock("@/components/settings/SettingsButton", () => ({ default: () => <button>Settings</button> }));
 vi.mock("@/components/settings/SettingsProvider", () => ({
-  SettingsProvider: ({ children }: any) => <>{children}</>,
+  SettingsProvider: ({ children }: React.PropsWithChildren) => <>{children}</>,
 }));
 vi.mock("@/components/onboarding/OnboardingProvider", () => ({
-  OnboardingProvider: ({ children }: any) => <>{children}</>,
+  OnboardingProvider: ({ children }: React.PropsWithChildren) => <>{children}</>,
 }));
 vi.mock("@/components/chrome/AnalysisBrainHost", () => ({
   default: () => <div data-brain-owner="existing" />,
@@ -71,7 +74,7 @@ beforeEach(() => {
   state.path = "/analysis";
   state.lang = "en";
   state.back.mockClear();
-  (globalThis as any).IS_REACT_ACT_ENVIRONMENT = true;
+  (globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 });
 afterEach(() => {
   if (root) act(() => root!.unmount());

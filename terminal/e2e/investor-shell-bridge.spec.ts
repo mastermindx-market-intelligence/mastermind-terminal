@@ -1,5 +1,11 @@
 import { expect, test } from "@playwright/test";
 
+// The inherited harness disables reuseExistingServer when CI is set.
+// Refuse preview proof from a server another worktree could already own.
+if (process.env.MMX_INVESTOR_SHELL_PREVIEW === "1" && !process.env.CI) {
+  throw new Error("Run shell qualification with CI=1 and --retries=0 so the harness starts a fresh server.");
+}
+
 const macroOrigin = process.env.MMX_MACRO_FIXTURE_ORIGIN;
 test.skip(!macroOrigin || process.env.MMX_INVESTOR_SHELL_PREVIEW !== "1", "Requires the explicit read-only Macro source fixture");
 
@@ -61,6 +67,11 @@ test("retained Macro controller opens native Analysis and returns to the same mo
     await testInfo.attach("bridge-navigation-observation", { body: JSON.stringify({ analysisHref, pages: context.pages().map(p => ({ url: p.url(), frames: p.frames().map(f => f.url()) })), failedRequests }, null, 2), contentType: "application/json" });
     throw error;
   }
+  // Route chrome can arrive before its streamed page body. A shell-only capture
+  // is navigation evidence, not proof that the retained research page is ready.
+  await expect(frame.locator(".main2").first()).toBeVisible({ timeout: 15_000 });
+  await expect(frame.locator(".main2").first()).not.toHaveText("");
+  await expect(frame.locator(".main2").getByText("Overview", { exact: true }).first()).toBeVisible();
   await page.screenshot({ path: testInfo.outputPath("macro-native-analysis.png") });
   await frame.locator("header.topbar .brand-back").click();
   await expect(iframe).toBeHidden({ timeout: 10_000 });

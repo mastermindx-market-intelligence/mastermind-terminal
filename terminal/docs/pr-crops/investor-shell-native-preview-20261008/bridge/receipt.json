@@ -2,9 +2,9 @@
   "status": "LOCAL_COMPATIBILITY_PROVEN_NOT_PRODUCTION_ACCEPTED",
   "macro_source_commit": "9b54c2d7f1f19a7371a7ee2102fb706f46e1b7ac",
   "native_product_commit": "0b3c2bedcef2552eb7391e53965138ae4cc34ede",
-  "test_sha256": "ffd621ed82ba746ca9dd23bcc7180c699e8e848c31daa5819c5e9ba8da77d959",
+  "test_sha256": "0f52853f02fe6c8b23ee1775fbd0aeb1c133c9dfd228a5ce700f4b14ff88ca4e",
   "macro_manifest_sha256": "93cab79d07fe72799d5a8ac1916c846b62a754fef038f1400a276eea81801065",
-  "process": 66303,
+  "process": 12424,
   "exit_code": 0,
   "passed": 1,
   "observed": [
@@ -12,6 +12,7 @@
     "Existing Terminal CTA opens the existing portal controller",
     "from=macro, exact ret URL/hash and embed=dashboard are preserved",
     "Hydrated native navigation opens the new Analysis preview",
+    "Streamed page body and its Overview content are visible before capture",
     "Existing back action hides the portal",
     "Original Macro document remains mounted at its original URL",
     "Focus returns to the invoking Macro CTA"
@@ -26,11 +27,14 @@
   "images": [
     {
       "path": "terminal/docs/pr-crops/investor-shell-native-preview-20261008/bridge/macro-native-analysis.png",
-      "sha256": "8fce21e6ba6219c50dfb615ba2e5b007daa2051133eefbe1e9cdffa75b515397"
+      "sha256": "526b4b90154cfb5af8b243049dbe7a1150138c2e8e7f08ecdaf3a30e62b37d8e"
     },
     {
       "path": "terminal/docs/pr-crops/investor-shell-native-preview-20261008/bridge/macro-retained-return.png",
-      "sha256": "4a9c44b0985444794382149660f33af027127e03469cec3e586f6341d3047df2"
+      "sha256": "59e3ea609684c80f0c487db912d6cc84dc0c355b1b8c573ad1fb43f403a2fc99"
     }
-  ]
+  ],
+  "supersedes": "Earlier shell-only capture at 02aebe793115f00e0b1690434c5c7133ef39ef0c remains navigation-only historical evidence.",
+  "browser_source_provenance": "SUPERSEDED_PENDING_FRESH_SERVER_PROOF",
+  "provenance_note": "A later listener inspection found port3197 owned by a different rotation-risk-confluence worktree. Previous reuse-enabled browser results are historical observations only, not exact-source acceptance. Unit/source tests remain separately valid. Fresh CI=1/reuse-disabled replacement is required."
 }
