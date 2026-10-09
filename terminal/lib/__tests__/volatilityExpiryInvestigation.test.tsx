@@ -4,7 +4,13 @@ import { createRoot, type Root } from "react-dom/client";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const { flowGetMock } = vi.hoisted(() => ({ flowGetMock: vi.fn() }));
-vi.mock("@/lib/flowClientCache", () => ({ flowGet: flowGetMock }));
+vi.mock("@/lib/flowClientCache", () => ({
+  // VolView reads through flowGetResult: a payload is data, a null is a published absence (404).
+  flowGetResult: async (key: string) => {
+    const data = await flowGetMock(key);
+    return data == null ? { status: "absent", httpStatus: 404 } : { status: "data", data };
+  },
+}));
 vi.mock("@/lib/i18n", () => ({ useLang: () => ({ lang: "en", setLang: () => undefined }) }));
 vi.mock("@/lib/searchTrack", () => ({ trackSearch: () => undefined }));
 vi.mock("@/components/ui/Tip", () => ({ Tip: ({children}: {children: React.ReactNode}) => <>{children}</> }));
