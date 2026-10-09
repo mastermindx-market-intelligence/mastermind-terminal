@@ -27,7 +27,10 @@ import { GEX_AUTOCOMPLETE_ROOTS } from "@/lib/optionsRoots";
 import { trackSearch } from "@/lib/searchTrack";
 import { makeVolT } from "./volStrings";
 import type { VolPayload } from "./volTypes";
-import { ProvenanceLine, fmtPct, fmtRank } from "./volShared";
+import {
+  ProvenanceLine, fmtPct, fmtRank, reportedVolNumber, volIsoDay,
+  admitVolTermRows, admitVolSmileExpiries,
+} from "./volShared";
 import { VolHistoryPanel } from "./VolHistoryPanel";
 import { VolVrpPanel } from "./VolVrpPanel";
 import type { AggTrendPayload } from "@/lib/aggTrend";
@@ -71,6 +74,7 @@ export function VolView() {
   const [agg, setAgg] = useState<AggTrendPayload | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
+  const [expiryChoice, setExpiryChoice] = useState<{ root: string; exp: string } | null>(null);
   const reqRef = useRef(0);
 
   // One-shot fetch per committed root (nightly store — no polling). The
@@ -171,6 +175,55 @@ export function VolView() {
       ? `${vrp >= 0 ? "+" : "−"}${Math.abs(vrp).toFixed(1)}`
       : "—";
 
+  // One shared admission layer feeds BOTH the panels and this context strip.
+  // A context summary must never re-admit source rows that a panel quarantined.
+  const termAdmission = useMemo(() => admitVolTermRows(payload?.term), [payload?.term]);
+  const smileAdmission = useMemo(() => admitVolSmileExpiries(payload?.smile), [payload?.smile]);
+
+  // Selection is root-keyed so a root switch cannot leak the old contract context.
+  // Conflict identities remain selectable as unavailable evidence; we know the expiry
+  // identity even when we intentionally refuse to choose a conflicting source revision.
+  const expiryInventory = useMemo(() => {
+    const term = [...new Set([
+      ...termAdmission.rows.map((row) => row.exp),
+      ...termAdmission.conflictExpiries,
+    ])].sort();
+    const smile = [...new Set([
+      ...smileAdmission.expiries.map((row) => row.exp),
+      ...smileAdmission.conflictExpiries,
+    ])].sort();
+    const smileSet = new Set(smile);
+    const first = term.find((exp) => smileSet.has(exp)) ?? term[0] ?? smile[0] ?? null;
+    return { term, smile, all: new Set([...term, ...smile]), first };
+  }, [smileAdmission, termAdmission]);
+
+  const selectedExpiry = useMemo(() => {
+    if (expiryChoice?.root === root && expiryInventory.all.has(expiryChoice.exp)) return expiryChoice.exp;
+    return expiryInventory.first;
+  }, [expiryChoice, expiryInventory, root]);
+
+  const selectExpiry = useCallback((exp: string) => {
+    if (!volIsoDay(exp)) return;
+    setExpiryChoice({ root, exp });
+  }, [root]);
+
+  const selectedTermRow = useMemo(() =>
+    selectedExpiry ? termAdmission.rows.find((row) => row.exp === selectedExpiry) ?? null : null,
+  [selectedExpiry, termAdmission.rows]);
+  const selectedTermConflict = selectedExpiry != null && termAdmission.conflictExpiries.has(selectedExpiry);
+  const selectedTermDte = reportedVolNumber(selectedTermRow?.dte);
+  const selectedTermIv = reportedVolNumber(selectedTermRow?.v);
+
+  const selectedSmile = useMemo(() =>
+    selectedExpiry ? smileAdmission.expiries.find((row) => row.exp === selectedExpiry) ?? null : null,
+  [selectedExpiry, smileAdmission.expiries]);
+  const selectedSmileExpiryConflict = selectedExpiry != null && smileAdmission.conflictExpiries.has(selectedExpiry);
+  const selectedSmileConflictCount = selectedSmile?.conflictStrikes.size ?? 0;
+  const selectedSmileUsable = !!selectedSmile?.points.some((point) =>
+    Number.isFinite(reportedVolNumber(point.call_iv)) || Number.isFinite(reportedVolNumber(point.put_iv)),
+  );
+  const selectedSmileConflict = selectedSmileExpiryConflict || (selectedSmileConflictCount > 0 && !selectedSmileUsable);
+
   return (
     <div style={OUTER}>
       {/* ── Controls bar ──────────────────────────────────────────────────── */}
@@ -231,6 +284,7 @@ export function VolView() {
                 <div className="fin-kpi">
                   <span className="k">{t("statAtmIv")}</span>
                   <span className="v">{fmtPct(atmIv)}</span>
+                  <span className="s">{t("statAtmIvCaption")}</span>
                 </div>
                 <div className="fin-kpi">
                   <span className="k">{t("statIvRank252")}</span>
@@ -279,14 +333,38 @@ export function VolView() {
             />
 
             {/* ═══ Panel B2 — VRP regime (R2.3) ═══════════════════════════ */}
-            <VolVrpPanel vrp={payload.vrp} agg={agg} lang={lang} />
+            <VolVrpPanel vrp={payload.vrp} agg={agg} sourceAsOf={payload.asof} lang={lang} />
+
+            {selectedExpiry && (
+              <section className="fin-card" data-testid="vol-expiry-context" style={EXPIRY_CONTEXT}>
+                <span style={EXPIRY_CONTEXT_LABEL}>{t("expiryContextLabel")}</span>
+                <strong style={EXPIRY_CONTEXT_EXP}>{selectedExpiry}</strong>
+                {Number.isFinite(selectedTermDte) && (
+                  <span style={EXPIRY_CONTEXT_META}>{t("expiryContextDte").replace("{n}", String(selectedTermDte))}</span>
+                )}
+                <span style={selectedTermConflict ? EXPIRY_CONTEXT_WARN : EXPIRY_CONTEXT_META}>
+                  {selectedTermConflict
+                    ? t("expiryContextAtmConflict")
+                    : Number.isFinite(selectedTermIv)
+                      ? t("expiryContextAtm").replace("{v}", selectedTermIv.toFixed(1))
+                      : t("expiryContextAtmMissing")}
+                </span>
+                <span style={selectedSmileUsable && !selectedSmileConflict ? EXPIRY_CONTEXT_OK : EXPIRY_CONTEXT_WARN}>
+                  {selectedSmileConflict
+                    ? t("expiryContextSmileConflict")
+                    : selectedSmileUsable && selectedSmileConflictCount > 0
+                      ? t("expiryContextSmilePartial").replace("{n}", String(selectedSmileConflictCount))
+                      : t(selectedSmileUsable ? "expiryContextSmile" : "expiryContextSmileMissing")}
+                </span>
+              </section>
+            )}
 
             {/* ═══ Panel C — term structure ═══════════════════════════════ */}
-            <VolTermPanel term={payload.term} lang={lang} />
+            <VolTermPanel term={payload.term} lang={lang} selectedExp={selectedExpiry} onSelectExp={selectExpiry} />
 
             {/* ═══ Panel D — smile / skew ═════════════════════════════════ */}
             <div style={{ gridColumn: "1 / -1", minWidth: 0, display: "flex", flexDirection: "column" }}>
-              <VolSkewPanel smile={payload.smile} lang={lang} />
+              <VolSkewPanel smile={payload.smile} lang={lang} selectedExp={selectedExpiry} onSelectExp={selectExpiry} />
             </div>
           </div>
         )}
@@ -426,4 +504,46 @@ const RANGE_MARK: React.CSSProperties = {
   height: 10,
   borderRadius: 2,
   background: "var(--brand-2)",
+};
+
+const EXPIRY_CONTEXT: React.CSSProperties = {
+  gridColumn: "1 / -1",
+  minWidth: 0,
+  display: "flex",
+  alignItems: "center",
+  flexWrap: "wrap",
+  gap: 9,
+  padding: "10px 12px",
+};
+
+const EXPIRY_CONTEXT_LABEL: React.CSSProperties = {
+  fontSize: 10,
+  fontWeight: 700,
+  letterSpacing: "0.06em",
+  color: "var(--muted)",
+  textTransform: "uppercase",
+};
+
+const EXPIRY_CONTEXT_EXP: React.CSSProperties = {
+  fontSize: 12.5,
+  color: "var(--text)",
+  fontVariantNumeric: "tabular-nums",
+};
+
+const EXPIRY_CONTEXT_META: React.CSSProperties = {
+  fontSize: 11,
+  color: "var(--text-2)",
+  fontVariantNumeric: "tabular-nums",
+};
+
+const EXPIRY_CONTEXT_OK: React.CSSProperties = {
+  marginLeft: "auto",
+  fontSize: 10.5,
+  color: "var(--brand-2)",
+};
+
+const EXPIRY_CONTEXT_WARN: React.CSSProperties = {
+  marginLeft: "auto",
+  fontSize: 10.5,
+  color: "var(--warn)",
 };
