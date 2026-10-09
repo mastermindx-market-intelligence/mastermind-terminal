@@ -1,3 +1,4 @@
+# 2026-10-09 #643 (T04 replay date) source hash reconciliation: preserves captured PNG bytes/provenance; the changed i18n keys are Replay-only (TerminalShell replay controls and exit notice) and are not rendered by these capture surfaces.
 # 2026-10-05 #802/#808 source hash reconciliation: preserves captured PNG bytes/provenance; added Dislocations-only labels are not rendered by these capture surfaces.
 # B-F11-10a Analysis context-bar theses entry — capture evidence
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
@@ -8,7 +9,7 @@
 layoutFiles:
   terminal/components/workspaces/AnalysisWorkspace.tsx: "f98764b71e4e1301d6149aef0d3e47615455801f95a9691b4d8807febe92226e"
   terminal/app/company-intelligence.css: "16ca4e131ad1f2973b6346e7f051af802dbfa27227d6c33615af87578e73f885"
-  terminal/lib/i18n.tsx: "858306597ebbfc2d912cefc997ad88e4805cafb08794b5cd4d3dfeacb109371f"
+  terminal/lib/i18n.tsx: "8b65974eec4701e443402a3bf92b4cbf63cf7edec8e83730e125099a43d360d1"
 theme: dark
 languages: [en, zh]
 viewports:
