@@ -29,8 +29,9 @@ The retained as-of value is shown in the rejected-save details and while
 editing. IW2's retry rule is kept; a unit test pins that a layout recorded in
 the older format makes the retry return nothing.
 
-IW2's eight counterexamples are ported with stronger assertions and fail two of
-eight on both `a156f6be` and `f7d55f23`. Each fix has a run that fails before it
+IW2's four counterexamples are ported with stronger assertions. With them, the
+mounted recovery file fails two of eight tests (the calendar edit and the
+recovered date) and passes six, on both `a156f6be` and `f7d55f23`. Each fix has a run that fails before it
 and at least one reverted-fix run that turns its tests red. The mounted recovery
 file has 37 tests, and the save state file has 15. Full Vitest: 499 files, 8,288
 pass, four existing TODOs. TypeScript passes. The browser journey for a calendar
