@@ -138,6 +138,15 @@ html[data-research-appearance="lab"][data-theme="light"][data-red-up="true"] {
   --up:#bd2847; --down:#1e6d47; --buy:#bd2847; --sell:#1e6d47; --regime-up:#bd2847;
   --up-rgb:189,40,71; --down-rgb:30,109,71;
 }
+/* Settings follows the Lab root material treatment while mounted. */
+html[data-research-appearance="lab"][data-theme="light"] .acs-card-surface {
+  background:var(--panel); border-color:var(--line-3); box-shadow:var(--shadow-3);
+  -webkit-backdrop-filter:none; backdrop-filter:none;
+}
+html[data-research-appearance="lab"][data-theme="light"] .acs-aurora { display:none; }
+html[data-research-appearance="lab"][data-theme="light"] .acs-overlay {
+  -webkit-backdrop-filter:none; backdrop-filter:none;
+}
 /* East-Asian convention: red = up / green = down (CN/HK/TW/MO). Flips the up/down semantics only;
    accent colors (brand/signal/warn) are unchanged. Set on <html data-updown="east"> pre-paint. */
 html[data-updown="east"]{
