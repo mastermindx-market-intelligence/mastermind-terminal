@@ -134,6 +134,10 @@ const HM_LEX = {
   loading:          ["Loading…", "加载中…"],
   loadingHeatmap:   ["Loading heatmap…", "加载热力图中…"],
   noData:           ["No data available", "暂无数据"],
+  loadErrorTitle:   ["Could not load the heatmap", "无法加载热力图"],
+  loadErrorWhy:     ["The price snapshot could not be read just now. This is a failed read, not an empty market.", "暂时无法读取价格快照。这是读取失败，并非市场无数据。"],
+  refreshFailed:    ["Could not refresh — showing the last read.", "无法刷新 — 显示上次读取的数据。"],
+  retry:            ["Retry", "重试"],
   noFlowData:       ["Flow data unavailable — showing price layer", "资金流数据不可用 — 显示价格层"],
   priceOnly:        ["Price data only (34 names, nightly)", "仅价格数据（34个标的，每日更新）"],
 
