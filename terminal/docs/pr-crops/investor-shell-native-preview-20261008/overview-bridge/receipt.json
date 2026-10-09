@@ -1,0 +1,38 @@
+{
+  "schema": "mastermind.investor_shell_overview_bridge.evidence.v1",
+  "status": "LOCAL_PRODUCT_SLICE_BUILT_NOT_PROVEN",
+  "based_on": "Terminal shell head fce063f49ce775ed8b205e1ba73d0f80fb60230a",
+  "effect": "New preview-only, desktop Macro Dashboard shortcut; existing Macro back/identity/data unchanged; contained scrolling on short desktop nav",
+  "native_destination": "https://www.mastermind-x.com/macro.html",
+  "user_path": "direct native Analysis/Discover -> existing public Macro overview (normal document navigation)",
+  "evidence": {
+    "unit_cases_passed": 36,
+    "desktop_browser_cases_passed": 7,
+    "mobile_locale_browser_cases_passed": 2,
+    "local_red_green": "short desktop overflow initially visible; containment test now passing; no hosted CI requalification"
+  },
+  "tests": {
+    "unit": "lib/__tests__/investorShellPreview.test.tsx",
+    "browser": "e2e/investor-shell-preview.spec.ts"
+  },
+  "known_gates": [
+    "Four pre-existing Next generated-route export errors block full production typecheck/build",
+    "Existing mobile PR #697 remains independent owner/unmerged",
+    "Mobile Macro dashboard shortcut is not yet part of existing MobileNav drawer",
+    "No live Macro data/auth/entitlement/browser release proof, staging site, rollout or rollback"
+  ],
+  "screenshots": {
+    "overview-analysis-desktop.png": {
+      "sha256": "1ef69ba99827afd0f44e8112104e3709fb26bbde1961e8d64ad8329d00d6a0d6",
+      "bytes": 57899
+    },
+    "overview-discover-desktop.png": {
+      "sha256": "0a772b8200c35999d9d94427b0ac3f5a6299da77dd9a79785c33bf5beaf6b055",
+      "bytes": 173800
+    },
+    "overview-mobile-zh-320.png": {
+      "sha256": "895beb7bb67efa59a0299d53bcc802e3058e8cf25363997206308a3f422f3191",
+      "bytes": 25643
+    }
+  }
+}

@@ -168,7 +168,7 @@ export default function AppShell({
               shell must render its own (review P1: dropped desktop sign-out). */}
           <SettingsButton email={email} />
         </header>
-        <AppNav labelled={preview && !compactNavigation} id={preview ? "investor-primary-navigation" : undefined} />
+        <AppNav labelled={preview && !compactNavigation} id={preview ? "investor-primary-navigation" : undefined} overviewBridge={preview && !fromMacro} />
         {/* /analysis owns exact-source attachment UI but previously had no Brain host.
             Reuse the existing document singleton here; chart routes do not compose
             AppShell and keep their sole TerminalShell -> BrainWidget mount.

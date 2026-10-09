@@ -5,7 +5,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 // Framework/runtime boundaries only. The production AppShell, AppNav, TOP,
 // navHref and LEX are real; no alternative navigation implementation is tested.
-const state = vi.hoisted(() => ({ path: "/analysis", lang: "en", back: vi.fn() }));
+const state = vi.hoisted(() => ({ path: "/analysis", lang: "en", fromMacro: true, back: vi.fn() }));
 vi.mock("next/navigation", () => ({
   usePathname: () => state.path,
   useRouter: () => ({ push: vi.fn(), prefetch: vi.fn() }),
@@ -23,7 +23,7 @@ vi.mock("@/lib/i18n", async (original) => {
 });
 vi.mock("@/lib/activeSymbol", () => ({ useActiveSymbol: () => "AAPL" }));
 vi.mock("@/lib/originNav", () => ({
-  useFromMacro: () => ({ fromMacro: true, macroHref: "https://www.mastermind-x.com/macro.html" }),
+  useFromMacro: () => ({ fromMacro: state.fromMacro, macroHref: "https://www.mastermind-x.com/macro.html" }),
   backToMacro: (href: string) => state.back(href),
 }));
 vi.mock("@/lib/shellBrainSymbol", () => ({ useShellBrainSymbol: () => "AAPL" }));
@@ -73,6 +73,7 @@ function renderShell(preview?: boolean) {
 beforeEach(() => {
   state.path = "/analysis";
   state.lang = "en";
+  state.fromMacro = true;
   state.back.mockClear();
   (globalThis as typeof globalThis & { IS_REACT_ACT_ENVIRONMENT: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 });
@@ -155,6 +156,48 @@ describe("investor shell preview — existing shell, explicit presentation opt-i
   it("does not add an Analysis Brain host to Discover", () => {
     state.path = "/discover";
     expect(renderShell(true).querySelectorAll("[data-brain-owner=existing]")).toHaveLength(0);
+  });
+});
+
+describe("first cross-product investor destination — source-owned Macro overview", () => {
+  it("offers the existing Macro dashboard as one labelled same-tab destination on direct native entry", () => {
+    state.fromMacro = false;
+    const dom = renderShell(true);
+    const nav = dom.querySelector("#investor-primary-navigation")!;
+    const bridge = nav.querySelector<HTMLAnchorElement>("[data-investor-overview-bridge]");
+    expect(bridge).not.toBeNull();
+    expect(bridge!.href).toBe("https://www.mastermind-x.com/macro.html");
+    expect(bridge!.getAttribute("target")).toBeNull();
+    expect(bridge!.getAttribute("aria-label")).toBe(LEX.dashboard[0]);
+    expect(bridge!.querySelector(".investor-nav-label")?.textContent).toBe(LEX.dashboard[0]);
+    expect(nav.querySelector("a")).toBe(bridge);
+    expect(nav.querySelectorAll("a")).toHaveLength(TOP.length + 1);
+    expect(dom.querySelectorAll("[data-brain-owner=existing]")).toHaveLength(1);
+  });
+
+  it("does not duplicate the existing Macro return control or extend the default shell", () => {
+    const fromMacro = renderShell(true);
+    expect(fromMacro.querySelector("[data-investor-overview-bridge]")).toBeNull();
+    expect(fromMacro.querySelectorAll("[data-back=existing]")).toHaveLength(1);
+  });
+
+  it("remains absent from ordinary routes when the preview switch is not enabled", () => {
+    state.fromMacro = false;
+    const dom = renderShell();
+    expect(dom.querySelector("[data-investor-overview-bridge]")).toBeNull();
+    expect(dom.querySelectorAll("nav.appnav a")).toHaveLength(TOP.length);
+  });
+
+  it.each(["en", "zh"])("uses the existing %s dashboard label and retains an accessible compact shortcut", lang => {
+    state.fromMacro = false;
+    state.lang = lang;
+    const dom = renderShell(true);
+    const link = dom.querySelector<HTMLAnchorElement>("[data-investor-overview-bridge]")!;
+    expect(link.getAttribute("aria-label")).toBe(LEX.dashboard[lang === "zh" ? 1 : 0]);
+    const toggle = dom.querySelector<HTMLButtonElement>("[data-investor-compact-toggle]")!;
+    act(() => toggle.click());
+    expect(link.getAttribute("aria-label")).toBe(LEX.dashboard[lang === "zh" ? 1 : 0]);
+    expect(link.querySelector(".investor-nav-label")).toBeNull();
   });
 });
 

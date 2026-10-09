@@ -57,9 +57,21 @@
     align-items: stretch;
     gap: 6px;
     padding: 20px 12px;
+    min-height: 0;
+    overflow-y: auto;
+    overscroll-behavior-y: contain;
+    scrollbar-width: thin;
     background: var(--panel);
   }
   .investor-shell-preview > .appnav > :not(.gap) { width: 100%; }
+  .investor-shell-preview > .appnav .investor-nav-divider {
+    height: 1px;
+    width: calc(100% - 16px);
+    margin: 8px;
+    flex: 0 0 1px;
+    background: var(--line);
+  }
+
   .investor-shell-preview > .appnav .navbtn {
     display: flex;
     align-items: center;

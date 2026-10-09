@@ -18,3 +18,23 @@ Use the locked dependencies and existing Playwright harness. Opt-in commands mus
 For the bridge test, materialize each path in bridge/macro-source-manifest.json from the exact Macro Git commit and validate its SHA-256, serve that read-only snapshot on a separate loopback port, and set MMX_MACRO_FIXTURE_ORIGIN accordingly. The test blocks every external/non-GET-or-HEAD request and maps only the existing Terminal endpoint for local transport.
 
 The detached mobile test tree is reproducible with git merge-tree of the two exact parent commits in isolated/receipt.json; its four added/changed dependency blobs must match original #697 byte-for-byte. The local test-only merge commit was not published or accepted. Keep the API, mobile, independent review, CI and deployment gates intact.
+
+## Later product slice: direct Macro overview handoff
+
+The default-off investor preview now exposes the existing Macro dashboard route as one
+desktop pinned destination when entered directly. If already returning from Macro,
+the incumbent Back control remains the only Macro return action. This does not install
+another route catalogue, modify Macro HTML or add a search/session/state plane.
+
+The **new local** proof is [overview-bridge/receipt.json](overview-bridge/receipt.json):
+36 focused component tests, seven desktop browser tests, and two narrow-screen EN/ZH
+mobile-locale checks passed. A short desktop-height regression failed before scroll
+containment and passed afterward. Native-to-Macro navigation was proved using a
+read-only route stub at the exact existing public URL; it is not live Macro payload proof.
+
+The previous `isolated/receipt.json` remains historical source-bound evidence for
+the earlier shell/candidate. The new slice has changed AppShell/AppNav/preview-only CSS,
+so do **not** promote those older image digests to the new source. The mobile drawer,
+the four blocked Next route exports, and the independent mobile #697 adoption gate
+remain unmodified. New hosted CI was intentionally not the acceptance focus of this
+product-development phase; any naturally started workflow is separately classified.
