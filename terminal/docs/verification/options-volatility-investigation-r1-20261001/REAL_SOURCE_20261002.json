@@ -1,0 +1,94 @@
+{
+  "schema": "options.volatility.real_source_acceptance/v1",
+  "observed_at": "2026-10-02T04:44:47.874673+00:00",
+  "source": "public canonical R2 mirror; read-only GETs, no provider collection or mutation",
+  "reads": [
+    {
+      "name": "spy-vol",
+      "key": "options_hub/vol/SPY.json",
+      "bytes": 25954,
+      "sha256": "a3139a7df017eb6cc77cf2bf36a1f914bcd688ee7f36267bb34136dd7fc8e8ef",
+      "status": 200,
+      "etag": "\"3582b2d1cffcd6dcf3876d8a2bad1430\"",
+      "last_modified": "Thu, 01 Oct 2026 23:49:22 GMT",
+      "content_type": "application/json",
+      "summary": {
+        "schema": "options_hub.vol/v1",
+        "root": "SPY",
+        "asof": "2026-09-30",
+        "atm_iv": 13.915,
+        "rv20": 12.6953,
+        "vrp": 1.2197,
+        "term_rows": 33,
+        "smile_expiries": 2,
+        "history_rows": 90
+      }
+    },
+    {
+      "name": "spy-agg",
+      "key": "options_hub/aggtrend/SPY.json",
+      "bytes": 252489,
+      "sha256": "2954accf08843c1c7d6b600161784fe13c229a986c037ca35e71ac6afa0a9bb9",
+      "status": 200,
+      "etag": "\"a37ebe5933091788589b2af158666498\"",
+      "last_modified": "Sat, 01 Aug 2026 18:32:59 GMT",
+      "content_type": "application/json",
+      "summary": {
+        "schema": "options_hub.aggtrend/v1",
+        "root": "SPY",
+        "asof": "2026-07-30",
+        "series_rows": 2407,
+        "last_date": "2026-07-30"
+      }
+    }
+  ],
+  "browser": {
+    "cases": 6,
+    "assertions_passed": 78,
+    "failed": 0,
+    "matrix": "1440/820/390 \u00d7 EN/ZH",
+    "source": "exact captured SPY vol + agg payload bytes",
+    "expiry_selector_heights_px": [
+      {
+        "width": 1440,
+        "lang": "en",
+        "height": 75
+      },
+      {
+        "width": 1440,
+        "lang": "zh",
+        "height": 81
+      },
+      {
+        "width": 820,
+        "lang": "en",
+        "height": 75
+      },
+      {
+        "width": 820,
+        "lang": "zh",
+        "height": 81
+      },
+      {
+        "width": 390,
+        "lang": "en",
+        "height": 75
+      },
+      {
+        "width": 390,
+        "lang": "zh",
+        "height": 81
+      }
+    ],
+    "scope": "actual branch components with exact captured public source bytes; flow transport/i18n/Tip substituted, not native Next route or entitlement proof"
+  },
+  "observed_fact": {
+    "vol_source_session": "2026-09-30",
+    "agg_history_end": "2026-07-30",
+    "term_rows": 33,
+    "smile_expiries": 2,
+    "history_rows": 90,
+    "ui_disposition": "show current source-reported IV-minus-RV spread; retain historical chart; withhold current historical-range/trend/change until source sessions align"
+  },
+  "raw_payloads_committed": false
+}
