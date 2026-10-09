@@ -24,7 +24,7 @@ attribution, expiry or cohort totals. It performs no Greek calculation or trade
 signing. `cancellation_ratio` means abs(net)/gross: label it net/gross, where zero
 is maximal cancellation and one is no cancellation.
 
-The three fixtures under `terminal/lib/__tests__/fixtures/hedgeTarget*.synthetic.json`
+The fixtures under `terminal/lib/__tests__/fixtures/hedgeTarget*.synthetic.json`
 are generated from the actual incumbent Macro function at
 `4e7e44bfcce3bf1292978266b813633bd6bbe5db`. The main fixture is the output of
 `scripts/build_options_scenario_surface.py --mode hedge-target` using
@@ -43,3 +43,19 @@ neither a parser test nor a fixture is source-to-browser acceptance. Source
 admission, lawful derived-panel use, natural production transport, dual-theme
 EN/ZH responsive UI proof and release remain separate gates. Programme state
 continues in Macro's existing `WS:ADVANCED-DATA-OPTIONS` records, not here.
+
+
+Independent review identified and the candidate repaired an overflow comparison,
+microsecond causal ordering, JavaScript calendar normalization, internally
+consistent but false cohort labels, and missing/contradictory Flow adjustment
+assumptions. Microsecond comparisons use integer timestamps, calendar days are
+validated before Date construction, cohort tags are checked against the declared
+New York anchor/endpoint dates, and Flow/trade/adjustment maps must retain their
+explicit contract denominator and arithmetic. Extra unvalidated numeric fields
+are omitted from the projection. This boundary validation is not a client repricer.
+
+`hedgeTargetControls.synthetic.json` preserves six further independent-review
+controls, each with its exact Macro-owner input/output: fractional clocks, Flow
+with assumed-zero or supplied adjustments, selected scope with unknown excluded
+inputs, unknown selected inventory, and fixing-boundary unavailability. Together
+these ensure strict rejection does not silently remove legitimate upstream states.

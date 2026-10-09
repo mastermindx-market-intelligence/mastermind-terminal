@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import fixture from "./fixtures/hedgeTargetChange.synthetic.json";
 import zero from "./fixtures/hedgeTargetZero.synthetic.json";
 import unavailable from "./fixtures/hedgeTargetUnavailable.synthetic.json";
+import controls from "./fixtures/hedgeTargetControls.synthetic.json";
 import { parseHedgeTargetChange } from "../hedgeTargetContract";
 
 // Actual Macro CLI output at 4e7e44b, from its explicitly synthetic input.
@@ -9,6 +10,12 @@ import { parseHedgeTargetChange } from "../hedgeTargetContract";
 const fresh = () => structuredClone(fixture);
 
 describe("hedge-target scenario consumer", () => {
+  it.each(controls)("preserves actual Macro control $name", ({ output }) => {
+    const parsed = parseHedgeTargetChange(output);
+    expect(parsed).not.toBeNull();
+    expect(parsed?.status).toBe(output.status);
+    expect(parsed?.hedge?.target_change ?? null).toBe(output.hedge?.target_change ?? null);
+  });
   it("consumes the actual Macro output without converting its units or authority", () => {
     const parsed = parseHedgeTargetChange(fresh());
     expect(parsed).toMatchObject({
@@ -70,6 +77,19 @@ describe("hedge-target scenario consumer", () => {
     ["unknown inventory model", [["inventory_assumptions.method", "actual_dealer_positions"]]],
     ["wrong fixing date", [["contracts.0.fixing_at", "2026-10-09T20:00:00Z"], ["by_expiry.0.fixing_at", "2026-10-09T20:00:00Z"]]],
     ["wrong cohort membership", [["contracts.0.anchor_cohort", "unknown"], ["by_cohort.0.contracts", 0]]],
+    ["one-microsecond late receipt", [["source_receipt.consumer_available_at", "2026-10-08T18:00:02.000001+00:00"]]],
+    ["impossible clock date", ["observed_at", "as_of", "target_at", "source_receipt.source_observed_at", "source_receipt.received_at", "source_receipt.consumer_available_at"].map(path => {
+      const raw = path.startsWith("source_receipt.") ? fixture.source_receipt[path.split(".")[1] as keyof typeof fixture.source_receipt] : fixture[path as "observed_at" | "as_of" | "target_at"];
+      return [path, raw.replace("2026-10-08", "2026-02-30")];
+    })],
+    ["coherent but false cohort label", [["contracts.0.anchor_cohort", "1-7D"], ["by_cohort", [
+      { ...fixture.by_cohort[1], cohort: "0DTE" },
+      { ...fixture.by_cohort[0], cohort: "1-7D" }, fixture.by_cohort[2],
+    ]]]],
+    ["Flow claim without maps", [["inventory_assumptions", {
+      method: "supplied_prior_minus_participation_times_signed_flow_plus_adjustments/v1",
+      dealer_fraction: .5, nontrade_assumption: "assumed_zero",
+    }]]],
   ];
   it.each(bad)("rejects %s", (_name, changes) => {
     const raw = fresh();

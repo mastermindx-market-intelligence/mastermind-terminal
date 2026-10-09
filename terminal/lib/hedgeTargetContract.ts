@@ -72,9 +72,19 @@ const finite = (x: unknown): x is number => typeof x === "number" && Number.isFi
 const positive = (x: unknown): x is number => finite(x) && x > 0;
 const text = (x: unknown): x is string => typeof x === "string" && x.trim().length > 0;
 const nullableText = (x: unknown): x is string | null => x === null || text(x);
-const instant = (x: unknown): x is string => text(x) && /T.*(?:Z|[+-]\d{2}:\d{2})$/.test(x) && Number.isFinite(Date.parse(x));
 const day = (x: unknown): x is string => text(x) && /^\d{4}-\d{2}-\d{2}$/.test(x) &&
   Number.isFinite(Date.parse(x)) && new Date(x).toISOString().slice(0, 10) === x;
+// The upstream Python owner retains microseconds. Date.parse alone silently
+// normalizes impossible dates and discards the last three fractional digits.
+function instantMicros(x: unknown): bigint | null {
+  if (!text(x)) return null;
+  const m = /^(\d{4}-\d{2}-\d{2})T([01]\d|2[0-3]):([0-5]\d):([0-5]\d)(?:\.(\d{1,6}))?(Z|[+-](?:[01]\d|2[0-3]):[0-5]\d)$/.exec(x);
+  if (!m || !day(m[1])) return null;
+  const seconds = Date.parse(`${m[1]}T${m[2]}:${m[3]}:${m[4]}${m[6]}`);
+  if (!Number.isFinite(seconds)) return null;
+  return BigInt(seconds) * BigInt(1000) + BigInt((m[5] ?? "").padEnd(6, "0"));
+}
+const instant = (x: unknown): x is string => instantMicros(x) !== null;
 const integer = (x: unknown): x is number => finite(x) && Number.isSafeInteger(x) && x >= 0;
 const strings = (x: unknown): x is string[] => Array.isArray(x) && x.every(text);
 const unique = (xs: string[]) => new Set(xs).size === xs.length;
@@ -92,6 +102,10 @@ function etDay(instant: string): string {
   const parts = etDateFormat.formatToParts(new Date(instant));
   return ["year", "month", "day"].map(k => parts.find(p => p.type === k)?.value).join("-");
 }
+function cohort(expiry: string, instant: string): string {
+  const days = (Date.parse(expiry) - Date.parse(etDay(instant))) / 86400000;
+  return days < 0 ? "past_expiry" : days === 0 ? "0DTE" : days <= 7 ? "1-7D" : "8+D";
+}
 function pick<T extends object, K extends keyof T>(value: T, keys: readonly K[]): Pick<T, K> {
   return Object.fromEntries(keys.map(key => [key, value[key]])) as Pick<T, K>;
 }
@@ -103,14 +117,14 @@ export function parseHedgeTargetChange(value: unknown): HedgeTargetView | null {
       !text(v.content_id) || !/^hedge-target:[a-f0-9]{64}$/.test(v.content_id) ||
       !instant(v.observed_at) || !instant(v.as_of) || !instant(v.target_at) ||
       !positive(v.spot) || !positive(v.target_spot) || !text(v.inventory_scenario_id)) return null;
-  const observed = Date.parse(v.observed_at), cutoff = Date.parse(v.as_of), target = Date.parse(v.target_at);
+  const observed = instantMicros(v.observed_at)!, cutoff = instantMicros(v.as_of)!, target = instantMicros(v.target_at)!;
   if (observed > cutoff || target < observed) return null;
   const s = v.source_receipt, c = v.coverage, a = v.assumptions, inv = v.inventory_assumptions;
   if (!record(s) || !text(s.source_ref) || !nullableText(s.source_revision) || !nullableText(s.contract_reference_revision) ||
       !instant(s.source_observed_at) || !instant(s.received_at) || !instant(s.consumer_available_at)) return null;
-  const source = Date.parse(s.source_observed_at), received = Date.parse(s.received_at), available = Date.parse(s.consumer_available_at);
+  const source = instantMicros(s.source_observed_at)!, received = instantMicros(s.received_at)!, available = instantMicros(s.consumer_available_at)!;
   if (source > observed || source > received || received > available || available > cutoff ||
-      !finite(v.source_age_seconds) || v.source_age_seconds < 0 || !close(v.source_age_seconds, (cutoff - source) / 1000)) return null;
+      !finite(v.source_age_seconds) || v.source_age_seconds < 0 || !close(v.source_age_seconds, Number(cutoff - source) / 1e6)) return null;
   if (!record(a) || a.pricing !== "engine.intraday_greeks.bs_greeks_vec" ||
       a.pricing_convention !== "European_constant_carry_pricing_delta" || a.year_days !== 365 ||
       a.cohort_convention !== "anchor_calendar_days_America/New_York" ||
@@ -128,18 +142,37 @@ export function parseHedgeTargetChange(value: unknown): HedgeTargetView | null {
       !strings(c.missing_contract_ids) || !unique(c.missing_contract_ids) || !integer(c.received) || !integer(c.selected) ||
       !(c.expiry_scope === null || (strings(c.expiry_scope) && c.expiry_scope.length > 0 && unique(c.expiry_scope) && c.expiry_scope.every(day))) ||
       !rows(v.contracts) || v.contracts.length !== c.received) return null;
+  const expected = c.expected_contract_ids;
   const ids = new Set<string>(), economics = new Set<string>();
   for (const row of v.contracts) {
     if (!text(row.contract_id) || ids.has(row.contract_id) || !c.expected_contract_ids.includes(row.contract_id) ||
         !((row.option_root === "SPX" && row.settlement === "AM") || (row.option_root === "SPXW" && row.settlement === "PM")) ||
         !day(row.expiry) || !instant(row.fixing_at) || etDay(row.fixing_at) !== row.expiry ||
-        !["0DTE", "1-7D", "8+D", "past_expiry"].includes(String(row.anchor_cohort)) ||
-        !["0DTE", "1-7D", "8+D", "past_expiry"].includes(String(row.endpoint_cohort)) ||
+        row.anchor_cohort !== cohort(row.expiry, v.observed_at) ||
+        row.endpoint_cohort !== cohort(row.expiry, v.target_at) ||
         !positive(row.strike) || row.multiplier !== 100 ||
         !["C", "P"].includes(String(row.right))) return null;
     const key = [row.option_root, row.expiry, row.right, row.strike].join(":");
     if (economics.has(key)) return null;
     ids.add(row.contract_id); economics.add(key);
+  }
+  if (flowMethods.includes(inv.method)) {
+    const flow = inv.signed_flow, trade = inv.trade_increment, adjustments = inv.nontrade_adjustments;
+    const fraction = inv.dealer_fraction;
+    const adjusted = inv.method === flowMethods[1];
+    if (!record(flow) || !record(trade) || !record(adjustments) || !finite(fraction) ||
+        inv.nontrade_assumption !== (adjusted ? "supplied" : "assumed_zero")) return null;
+    const keys = Object.keys(flow);
+    if (!keys.length || Object.keys(trade).length !== keys.length || Object.keys(adjustments).length !== keys.length ||
+        !keys.every(key => expected.includes(key) && finite(flow[key]) && finite(trade[key]) && finite(adjustments[key]) &&
+          close(trade[key], -fraction * flow[key]) && (adjusted || adjustments[key] === 0))) return null;
+    for (const row of v.contracts) {
+      const key = String(row.contract_id);
+      if (!Object.hasOwn(flow, key)) {
+        if (row.n0 !== null || row.n1 !== null) return null;
+      } else if (!finite(row.n0) || !finite(row.n1) ||
+          !close(row.n1, row.n0 + Number(trade[key]) + Number(adjustments[key]), row.n0, Number(trade[key]), Number(adjustments[key]))) return null;
+    }
   }
   const missing = c.expected_contract_ids.filter(id => !ids.has(id));
   const declaredMissing = c.missing_contract_ids;
@@ -153,7 +186,7 @@ export function parseHedgeTargetChange(value: unknown): HedgeTargetView | null {
   } else if (v.status === "complete_for_supplied_universe") {
     if (v.unavailable_reasons.length || missing.length || !selected.length || v.source_age_seconds > a.max_source_age_seconds ||
         (scope !== null && scope.some(expiry => !selected.some(row => row.expiry === expiry))) ||
-        selected.some(row => !finite(row.n0) || !finite(row.n1) || !positive(row.iv) || !positive(row.target_iv) || Date.parse(String(row.fixing_at)) <= target)) return null;
+        selected.some(row => !finite(row.n0) || !finite(row.n1) || !positive(row.iv) || !positive(row.target_iv) || instantMicros(row.fixing_at)! <= target)) return null;
     const h = v.hedge, attr = v.attribution;
     if (!numeric(h, ["anchor_target", "endpoint_target", "target_change", "reference_notional_usd", "gross_contract_target_changes"] as const) ||
         h.gross_contract_target_changes < 0 || !record(h) ||
