@@ -107,6 +107,8 @@ interface StrikeLadderProps {
   netGexBn?: number | null;
   /** Per-strike-per-expiry cells for the hover top-3 expiry breakdown (optional). */
   matrixCells?: MatrixCell[] | null;
+  /** The matrix read did not land — a failed read, never "not available for this ticker". */
+  matrixUnread?: boolean;
 }
 
 /**
@@ -296,6 +298,7 @@ export function StrikeLadder({
   lang,
   netGexBn = null,
   matrixCells = null,
+  matrixUnread = false,
 }: StrikeLadderProps) {
   const t = makeGexT(lang);
   const [tooltip, setTooltip] = useState<TooltipData | null>(null);
@@ -772,6 +775,8 @@ export function StrikeLadder({
           <span style={LENS_NOTE}>
             {greek !== "gamma" && lens.kind === "all"
               ? t("expiryGammaOnlyNote")
+              : !anyCovered && lens.kind === "all" && matrixUnread
+              ? t("expiryLensUnread")
               : !anyCovered && lens.kind === "all"
               ? t("expiryNoMatrixNote")
               : lens.kind === "all"
