@@ -203,27 +203,36 @@ test("an already-open legacy writer cannot erase a modern exact retry or resurre
 // Clearing site data removes the journal without acknowledging anything. The
 // next write from a tab that still holds unsaved work must keep it, together
 // with the exact operation of a save whose response was lost.
+type StorageLossCopy={drawings:{id:string}[];revision?:string|null;blocked?:string;attempt?:{operationId:string}};
+type StorageLossWindow=Window&{
+ journal:Record<string,StorageLossCopy>;
+ A04Journal:{
+  writeDrawingJournal(storage:Storage,owner:string,journal:Record<string,StorageLossCopy>):Promise<boolean>;
+  readDrawingJournal(storage:Storage,owner:string):Record<string,StorageLossCopy|undefined>;
+ };
+ A04Legacy:{writeDrawingOutbox(storage:Storage,owner:string,outbox:Record<string,unknown[]>):boolean};
+};
 test("a site-data clear is not an acknowledgement for an open tab or an already-open production legacy tab",async({page,context})=>{
  const old=await context.newPage();
  try{
   await load(page);await load(old);await old.addScriptTag({content:legacyBundle});
   const owner="account:storage-loss",operationId="11111111-1111-4111-8111-111111111111";
   expect(await page.evaluate(async({owner,operationId,drawing})=>{
-   const api=(window as any).A04Journal;
-   (window as any).journal={NVDA:{drawings:[drawing],revision:null,attempt:{operationId,expectedRevision:null,drawings:[drawing]}}};
-   return api.writeDrawingJournal(localStorage,owner,(window as any).journal);
+   const w=window as unknown as StorageLossWindow;
+   w.journal={NVDA:{drawings:[drawing],revision:null,attempt:{operationId,expectedRevision:null,drawings:[drawing]} as StorageLossCopy["attempt"]}};
+   return w.A04Journal.writeDrawingJournal(localStorage,owner,w.journal);
   },{owner,operationId,drawing:line("unsaved")})).toBe(true);
   const cdp=await context.newCDPSession(old);
   await cdp.send("Storage.clearDataForOrigin",{origin:new URL(page.url()).origin,storageTypes:"local_storage"});
   await expect.poll(()=>page.evaluate(()=>localStorage.getItem("mm.drawing.account-outbox.v2")),{timeout:20_000}).toBeNull();
   await expect.poll(()=>old.evaluate(()=>localStorage.getItem("mm.drawing.account-outbox.v2")),{timeout:20_000}).toBeNull();
-  expect(await old.evaluate(({owner,drawing})=>(window as any).A04Legacy.writeDrawingOutbox(localStorage,owner,{AAPL:[drawing]}),{owner,drawing:line("old-tab")})).toBe(true);
+  expect(await old.evaluate(({owner,drawing})=>(window as unknown as StorageLossWindow).A04Legacy.writeDrawingOutbox(localStorage,owner,{AAPL:[drawing]}),{owner,drawing:line("old-tab")})).toBe(true);
   const result=await page.evaluate(async owner=>{
-   const api=(window as any).A04Journal,journal=(window as any).journal;
+   const w=window as unknown as StorageLossWindow,api=w.A04Journal,journal=w.journal;
    const durable=await api.writeDrawingJournal(localStorage,owner,journal);
    const stored=api.readDrawingJournal(localStorage,owner);
    return {durable,memory:journal.NVDA?.attempt?.operationId??null,stored:stored.NVDA?.attempt?.operationId??null,
-    drawing:stored.NVDA?.drawings?.[0]?.id??null,legacy:stored.AAPL?{blocked:stored.AAPL.blocked,ids:stored.AAPL.drawings.map((d:any)=>d.id)}:null};
+    drawing:stored.NVDA?.drawings?.[0]?.id??null,legacy:stored.AAPL?{blocked:stored.AAPL.blocked,ids:stored.AAPL.drawings.map(d=>d.id)}:null};
   },owner);
   expect(result).toEqual({durable:true,memory:operationId,stored:operationId,drawing:"unsaved",legacy:{blocked:"legacy",ids:["old-tab"]}});
  }finally{await old.close();}

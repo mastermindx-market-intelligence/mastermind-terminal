@@ -35,6 +35,9 @@ DECLARE
   response_revision uuid;
   response_revision_text text;
   operation_index integer;
+  ring_operation uuid;
+  ring_operations uuid[] := '{}';
+  ring_expected text[] := '{}';
   before_preimage jsonb;
   after_preimage jsonb;
   rollback_preimage jsonb;
@@ -410,7 +413,8 @@ BEGIN
   pass_count := pass_count + 1;
   RAISE NOTICE 'PASS: subtransaction rollback exact whole object';
 
-  -- Case 8: the prior-operation ring reaches and remains bounded at 32.
+  -- Case 8: the prior-operation ring reaches and remains bounded at 32, the
+  -- oldest retained operation still replays, and one more commit evicts it.
   FOR operation_index IN 0..32 LOOP
     SELECT count(*),
            count(*) FILTER (WHERE kind = '__collection_v1')
@@ -427,10 +431,13 @@ BEGIN
     WHERE d.symbol = 'TESTA'
       AND d.kind = '__collection_v1';
     revision := response_revision_text::uuid;
+    ring_operation := gen_random_uuid();
+    ring_operations := array_append(ring_operations, ring_operation);
+    ring_expected := array_append(ring_expected, revision::text);
     result := public.replace_drawings_collection(
       'TESTA',
       drawing_one, revision::text,
-      gen_random_uuid()
+      ring_operation
     );
     IF result->>'ok' IS DISTINCT FROM 'true'
       OR result->>'idempotentReplay' IS DISTINCT FROM 'false'
@@ -458,8 +465,56 @@ BEGIN
   THEN
     RAISE EXCEPTION 'FAIL: ring bound/row shape';
   END IF;
+  -- 33 commits: the live operation is the last one; the oldest of the 32
+  -- prior receipts is the first loop operation, which still replays.
+  result := public.replace_drawings_collection(
+    'TESTA', drawing_one, ring_expected[1], ring_operations[1]
+  );
+  IF result->>'ok' IS DISTINCT FROM 'true'
+    OR result->>'idempotentReplay' IS DISTINCT FROM 'true'
+    OR result->>'superseded' IS DISTINCT FROM 'true'
+    OR (result->>'revision')::uuid IS DISTINCT FROM response_revision_text::uuid
+  THEN
+    RAISE EXCEPTION 'FAIL: oldest retained operation did not replay: %', result;
+  END IF;
+  result := public.replace_drawings_collection(
+    'TESTA', drawing_one, response_revision_text, gen_random_uuid()
+  );
+  IF result->>'ok' IS DISTINCT FROM 'true'
+    OR result->>'idempotentReplay' IS DISTINCT FROM 'false'
+  THEN
+    RAISE EXCEPTION 'FAIL: evicting commit: %', result;
+  END IF;
+  response_revision_text := result->>'revision';
+  -- The evicted operation is no longer recognized: its stale expected
+  -- revision meets an explicit conflict, never a second silent commit.
+  result := public.replace_drawings_collection(
+    'TESTA', drawing_one, ring_expected[1], ring_operations[1]
+  );
+  IF result->>'ok' IS DISTINCT FROM 'false'
+    OR result->>'code' IS DISTINCT FROM 'revision_conflict'
+    OR result->>'operationUnknownPossible' IS DISTINCT FROM 'true'
+  THEN
+    RAISE EXCEPTION 'FAIL: evicted operation was recognized: %', result;
+  END IF;
+  result := public.replace_drawings_collection(
+    'TESTA', drawing_one, ring_expected[2], ring_operations[2]
+  );
+  IF result->>'ok' IS DISTINCT FROM 'true'
+    OR result->>'idempotentReplay' IS DISTINCT FROM 'true'
+    OR result->>'superseded' IS DISTINCT FROM 'true'
+    OR (result->>'revision')::uuid IS DISTINCT FROM response_revision_text::uuid
+  THEN
+    RAISE EXCEPTION 'FAIL: retained operation after eviction did not replay: %', result;
+  END IF;
+  IF jsonb_array_length((SELECT d.data->'prior_operations' FROM public.drawings d
+                          WHERE d.symbol = 'TESTA')) <> 32
+    OR (SELECT count(*) FROM public.drawings d WHERE d.symbol = 'TESTA') <> 1
+  THEN
+    RAISE EXCEPTION 'FAIL: ring bound after eviction';
+  END IF;
   pass_count := pass_count + 1;
-  RAISE NOTICE 'PASS: ring bound 32';
+  RAISE NOTICE 'PASS: ring bound 32 with oldest replay and eviction';
 
   -- Case 9: malformed live collection metadata raises 22000 and preserves it.
   DELETE FROM public.drawings WHERE symbol = 'TESTA';

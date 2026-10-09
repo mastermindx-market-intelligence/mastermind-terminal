@@ -10,6 +10,16 @@ const DRAWING_OUTBOX_KEY = "mm.drawing.account-outbox.v1";
 // Keep this generation's recovery bytes outside its write authority. v1 remains
 // an import source, never a second cloud store and never rewritten by this client.
 export const DRAWING_JOURNAL_KEY = "mm.drawing.account-outbox.v2";
+// A copy is retired only by a positive acknowledgement recorded here. A cleared
+// or evicted journal removes copies without acknowledging them, so a missing
+// copy alone never discards another tab's unsaved memory or exact retry.
+export const DRAWING_RECEIPTS_KEY = "mm.drawing.retired-copies.v1";
+/**
+ * Acknowledged copy IDs kept per owner, matching the server's 32 prior
+ * operations. An older acknowledgement is forgotten: its stale copy is kept
+ * again and its next save meets the server's replay or revision conflict.
+ */
+export const DRAWING_RECEIPT_HISTORY = 32;
 
 export type DrawingOutbox = Record<string, Drawing[]>;
 type StoragePort = Pick<Storage, "getItem" | "setItem" | "removeItem">;
@@ -130,13 +140,32 @@ type JournalRecord = { format: 2; copies: Copies; legacySeen: Record<string, str
 type JournalNamespace = Record<string, JournalRecord>;
 type LegacyImports = Record<string, Copies>;
 const journalNamespaces = new WeakMap<DrawingJournal, JournalNamespace>();
-function resolveLegacyAlias(record: JournalRecord, alias: string | undefined, token: string | undefined): { id: string; retired: boolean } | undefined {
+/** Unreadable receipts read as none: the fail-safe direction keeps copies. */
+function readRetiredCopies(storage: StoragePort, owner: string): string[] {
+  try {
+    const raw: unknown = JSON.parse(storage.getItem(DRAWING_RECEIPTS_KEY) || "{}");
+    const ids = raw && typeof raw === "object" && !Array.isArray(raw) ? (raw as Record<string, unknown>)[owner] : undefined;
+    return Array.isArray(ids) ? ids.filter(validDrawingOperationId).slice(-DRAWING_RECEIPT_HISTORY) : [];
+  } catch { return []; }
+}
+function writeRetiredCopies(storage: StoragePort, owner: string, ids: string[]): void {
+  let envelope: Record<string, unknown> = {};
+  try {
+    const raw: unknown = JSON.parse(storage.getItem(DRAWING_RECEIPTS_KEY) || "{}");
+    if (raw && typeof raw === "object" && !Array.isArray(raw)) envelope = raw as Record<string, unknown>;
+  } catch { /* Rebuilding loses only receipts, which keeps copies rather than dropping them. */ }
+  envelope[owner] = ids.slice(-DRAWING_RECEIPT_HISTORY);
+  storage.setItem(DRAWING_RECEIPTS_KEY, JSON.stringify(envelope));
+}
+function resolveLegacyAlias(record: JournalRecord, alias: string | undefined, token: string | undefined, retired: ReadonlySet<string>): { id: string; retired: boolean } | undefined {
   if (!alias || !token) return;
   // A UUID with a local observed preimage was genuinely durable, whether
-  // imported or created here. Its absence retires unchanged memory even when
-  // the last acknowledgement removed the namespace; memory forks are not UUIDs.
+  // imported or created here. Its absence retires unchanged memory only with
+  // a receipt (or import link) that an acknowledgement removed it, even when
+  // that acknowledgement removed the namespace; memory forks are not UUIDs.
   if (!alias.startsWith("legacy:")) {
-    if (validDrawingOperationId(alias) && !record.copies[alias]) return { id: alias, retired: true };
+    if (validDrawingOperationId(alias) && !record.copies[alias]
+      && (retired.has(alias) || Object.hasOwn(record.legacyLinks, alias))) return { id: alias, retired: true };
     return;
   }
   const sourceId = alias.slice("legacy:".length);
@@ -240,6 +269,7 @@ export async function writeDrawingJournal(
   try {
     return await locks.request(DRAWING_JOURNAL_KEY, () => {
       const { envelope, namespace, imports } = journalState(storage, owner);
+      const receipts = readRetiredCopies(storage, owner), retired = new Set(receipts), acknowledged: string[] = [];
       const previous = baselines.get(journal) ?? {};
       const next: JournalBaseline = {};
       const updates: Array<[Entry, string]> = [];
@@ -259,15 +289,18 @@ export async function writeDrawingJournal(
         const base = previous[symbol];
         const resolve = (id: string | undefined): string | undefined => {
           if (id && imported[id]) return base?.hashes[id] === imported[id].token ? imported[id].id : undefined;
-          const alias = resolveLegacyAlias(record, id, id ? base?.hashes[id] : undefined);
+          const alias = resolveLegacyAlias(record, id, id ? base?.hashes[id] : undefined, retired);
           if (alias) return alias.id;
           return id;
         };
         if (!entry) {
           const id = resolve(base?.active);
-          if (base && id && copies[id] && fingerprint(copies[id]) === base.hashes[base.active]) delete copies[id];
+          if (base && id && copies[id] && fingerprint(copies[id]) === base.hashes[base.active]) {
+            delete copies[id];
+            acknowledged.push(id);
+          }
         } else {
-          const alias = resolveLegacyAlias(record, entry.recoveryId, entry.recoveryId ? base?.hashes[entry.recoveryId] : undefined);
+          const alias = resolveLegacyAlias(record, entry.recoveryId, entry.recoveryId ? base?.hashes[entry.recoveryId] : undefined, retired);
           if (alias?.retired && fingerprint(entry) === base?.hashes[entry.recoveryId!]) {
             // Another tab acknowledged this exact observed copy. A stale hydration
             // is not a new edit and must not manufacture a replacement copy.
@@ -276,7 +309,10 @@ export async function writeDrawingJournal(
           }
           let id = resolve(entry.recoveryId);
           const unchanged = id && copies[id] && base?.hashes[entry.recoveryId!] === fingerprint(copies[id]);
-          if (!unchanged) id = crypto.randomUUID();
+          // An observed copy missing without a receipt was lost with browser
+          // storage, not acknowledged: restore it under its own ID.
+          const lost = !alias && id && id === entry.recoveryId && base?.hashes[id] && !copies[id] && validDrawingOperationId(id);
+          if (!unchanged && !lost) id = crypto.randomUUID();
           copies[id!] = storedEntry(entry);
           updates.push([entry, id!]);
           for (const alternative of entry.alternatives ?? []) {
@@ -292,6 +328,9 @@ export async function writeDrawingJournal(
       }
       if (Object.keys(namespace).length) envelope[owner] = namespace;
       else delete envelope[owner];
+      // Receipts first: a failure between the two writes leaves a receipt for a
+      // copy that is still stored, which retires nothing.
+      if (acknowledged.length) writeRetiredCopies(storage, owner, [...receipts.filter((id) => !acknowledged.includes(id)), ...acknowledged]);
       if (Object.keys(envelope).length) storage.setItem(DRAWING_JOURNAL_KEY, JSON.stringify(envelope));
       else storage.removeItem(DRAWING_JOURNAL_KEY);
       // Change the in-memory baseline only after the actual durable write.
@@ -324,6 +363,7 @@ export function reconcileDrawingJournal(storage: StoragePort, owner: string, jou
   const baseline = baselines.get(journal) ?? {};
   const freshBaseline = baselines.get(fresh) ?? {};
   const namespace = journalNamespaces.get(fresh) ?? {};
+  const retired = new Set(readRetiredCopies(storage, owner));
   for (const symbol of new Set([...Object.keys(journal), ...Object.keys(fresh)])) {
     const stored = fresh[symbol];
     const current = journal[symbol];
@@ -331,7 +371,7 @@ export function reconcileDrawingJournal(storage: StoragePort, owner: string, jou
     const memoryCopies = [current, ...(current.alternatives ?? [])].filter((copy) => {
       const token = copy.recoveryId ? baseline[symbol]?.hashes[copy.recoveryId] : undefined;
       const record = namespace[symbol] ?? { format: 2 as const, copies: {}, legacySeen: {}, legacyLinks: {} };
-      const alias = resolveLegacyAlias(record, copy.recoveryId, token);
+      const alias = resolveLegacyAlias(record, copy.recoveryId, token, retired);
       if (alias?.retired && fingerprint(copy) === token) return false;
       if (alias && !alias.retired && fingerprint(record.copies[alias.id]) === token) {
         baseline[symbol].hashes[alias.id] = token!;

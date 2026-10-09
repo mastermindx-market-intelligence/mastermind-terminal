@@ -40,7 +40,7 @@ test("lost response retries the exact operation after reload before sending newe
 // lost-response operation ahead again and resend it, not reload the cloud.
 test("site-data loss before a retry keeps the unsaved drawing and resends the exact lost-response operation",async({page,context})=>{
  await seed(page,{drawings:[line("first")],revision:null,attempt:{operationId:original,expectedRevision:null,drawings:[line("first")]}});
- const puts:any[]=[];const storedAtPut:(string|null)[]=[];
+ const puts:{operationId:string}[]=[];const storedAtPut:(string|null)[]=[];
  await page.route("**/api/drawings**",async(route)=>{
   if(route.request().method()==="GET"){await route.fulfill(json({drawings:[],revision:null,schemaVersion:1}));return;}
   const value=route.request().postDataJSON();puts.push(value);
@@ -57,8 +57,10 @@ test("site-data loss before a retry keeps the unsaved drawing and resends the ex
  await recovery.getByRole("button",{name:"Retry save",exact:true}).click({timeout:20_000});
  await expect.poll(()=>puts.length,{timeout:20_000}).toBe(2);
  expect(puts[1]).toEqual(puts[0]);expect(puts[1].operationId).toBe(original);
+ // The handler records storage after the request is counted; wait for it.
+ await expect.poll(()=>storedAtPut.length,{timeout:20_000}).toBe(2);
  const copies=JSON.parse(storedAtPut[1]??"{}")["account:responsive@example.com"]?.NVDA?.copies??{};
- expect(Object.values(copies).map((copy:any)=>copy.attempt?.operationId)).toEqual([original]);
+ expect(Object.values(copies).map((copy)=>(copy as {attempt?:{operationId?:string}}).attempt?.operationId)).toEqual([original]);
  await expect(recovery).toHaveCount(0,{timeout:20_000});
 });
 

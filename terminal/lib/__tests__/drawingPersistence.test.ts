@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { parseDrawingSaveReceipt, parseDrawingSnapshot, parsePersistedDrawings, prepareDrawingAttempt, settleDrawingAttempt, type DrawingJournalEntry } from "@/lib/drawingPersistence";
-import { readDrawingJournal, writeDrawingJournal, writeDrawingOutbox, refreshDrawingJournalSymbol, reconcileDrawingJournal, selectDrawingRecoveryCopy, DRAWING_JOURNAL_KEY, type DrawingJournalLocks } from "@/lib/drawingOutbox";
+import { readDrawingJournal, writeDrawingJournal, writeDrawingOutbox, refreshDrawingJournalSymbol, reconcileDrawingJournal, selectDrawingRecoveryCopy, DRAWING_JOURNAL_KEY, DRAWING_RECEIPTS_KEY, DRAWING_RECEIPT_HISTORY, type DrawingJournalLocks } from "@/lib/drawingOutbox";
 let lockTail=Promise.resolve();
 const locks={request:(_name:string, fn:()=>unknown)=>{const task=lockTail.then(fn);lockTail=task.then(()=>{},()=>{});return task;}} as DrawingJournalLocks;
 const persist=(storage:MemoryStorage,journal:import("@/lib/drawingPersistence").DrawingJournal,owner="account:a")=>writeDrawingJournal(storage,owner,journal,locks);
@@ -338,5 +338,74 @@ describe("lost browser storage is not an acknowledgement",()=>{
   expect(journal.NVDA).toMatchObject({drawings:[],revision});
   expect(recovered.NVDA).toMatchObject({drawings:[],revision});
   expect(recovered.AAPL).toMatchObject({drawings:[{id:"old-tab"}],blocked:"legacy"});
+ });
+});
+
+// Acknowledgement receipts are positive evidence and bounded per owner. When a
+// receipt ages out or is lost, a stale copy is kept again (fail-safe): its next
+// save meets the server's exact replay or revision conflict, never a silent loss.
+describe("bounded acknowledgement receipts",()=>{
+ const receiptsOf=(storage:MemoryStorage,owner="account:a")=>JSON.parse(storage.getItem(DRAWING_RECEIPTS_KEY)??"{}")[owner];
+ const acknowledge=async(storage:MemoryStorage,symbol:string,owner="account:a")=>{
+  const journal=readDrawingJournal(storage,owner);
+  journal[symbol]={drawings:[line(symbol)],revision};
+  expect(await persist(storage,journal,owner)).toBe(true);
+  const id=journal[symbol].recoveryId!;
+  delete journal[symbol];
+  expect(await persist(storage,journal,owner)).toBe(true);
+  return id;
+ };
+ it("keeps exactly the newest 32 acknowledgements per owner",async()=>{
+  expect(DRAWING_RECEIPT_HISTORY).toBe(32);
+  const storage=new MemoryStorage();
+  const other=await acknowledge(storage,"OTHER","account:b");
+  const ids:string[]=[];
+  for(let index=0;index<=DRAWING_RECEIPT_HISTORY;index++) ids.push(await acknowledge(storage,`S${index}`));
+  expect(receiptsOf(storage)).toEqual(ids.slice(1));
+  expect(receiptsOf(storage,"account:b")).toEqual([other]);
+  expect(storage.getItem(DRAWING_JOURNAL_KEY)).toBeNull();
+ });
+ it("retires a stale tab's receipted copy but keeps one whose receipt aged out",async()=>{
+  const storage=new MemoryStorage(),owner=readDrawingJournal(storage,"account:a");
+  owner.NVDA={drawings:[line("seen")],revision};
+  expect(await persist(storage,owner)).toBe(true);
+  const id=owner.NVDA.recoveryId;
+  const recent=readDrawingJournal(storage,"account:a"),aged=readDrawingJournal(storage,"account:a");
+  delete owner.NVDA;
+  expect(await persist(storage,owner)).toBe(true);
+  expect(receiptsOf(storage)).toEqual([id]);
+  expect(await persist(storage,recent)).toBe(true);
+  expect(recent.NVDA).toBeUndefined();
+  for(let index=0;index<DRAWING_RECEIPT_HISTORY;index++) await acknowledge(storage,`S${index}`);
+  expect(receiptsOf(storage)).not.toContain(id);
+  expect(await persist(storage,aged)).toBe(true);
+  expect(aged.NVDA).toMatchObject({drawings:[{id:"seen"}],revision,recoveryId:id});
+  expect(readDrawingJournal(storage,"account:a").NVDA).toMatchObject({drawings:[{id:"seen"}],revision,recoveryId:id});
+ });
+ it("keeps a stale tab's copy when site data was lost after its acknowledgement",async()=>{
+  const storage=new MemoryStorage(),owner=readDrawingJournal(storage,"account:a");
+  owner.NVDA={drawings:[line("seen")],revision};
+  expect(await persist(storage,owner)).toBe(true);
+  const stale=readDrawingJournal(storage,"account:a");
+  delete owner.NVDA;
+  expect(await persist(storage,owner)).toBe(true);
+  storage.values.clear();
+  expect(await persist(storage,stale)).toBe(true);
+  expect(readDrawingJournal(storage,"account:a").NVDA?.drawings[0].id).toBe("seen");
+ });
+ it("reads unreadable receipts as none and rebuilds them on the next acknowledgement",async()=>{
+  const storage=new MemoryStorage(),owner=readDrawingJournal(storage,"account:a");
+  owner.NVDA={drawings:[line("seen")],revision};
+  expect(await persist(storage,owner)).toBe(true);
+  const stale=readDrawingJournal(storage,"account:a");
+  delete owner.NVDA;
+  expect(await persist(storage,owner)).toBe(true);
+  storage.setItem(DRAWING_RECEIPTS_KEY,"{broken");
+  expect(await persist(storage,stale)).toBe(true);
+  expect(stale.NVDA?.drawings[0].id).toBe("seen");
+  const id=stale.NVDA!.recoveryId;
+  delete stale.NVDA;
+  expect(await persist(storage,stale)).toBe(true);
+  expect(receiptsOf(storage)).toEqual([id]);
  });
 });

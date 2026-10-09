@@ -84,6 +84,8 @@ AS $snapshot$
 DECLARE
   trim_chars CONSTANT text := chr(9)||chr(10)||chr(11)||chr(12)||chr(13)||chr(32)||chr(160)||chr(5760)||chr(8192)||chr(8193)||chr(8194)||chr(8195)||chr(8196)||chr(8197)||chr(8198)||chr(8199)||chr(8200)||chr(8201)||chr(8202)||chr(8232)||chr(8233)||chr(8239)||chr(8287)||chr(12288)||chr(65279);
   normalized_symbol text := btrim(p_symbol,trim_chars);
+  -- Bounded receipt history: the live operation plus this many prior ones replay.
+  prior_operation_limit CONSTANT integer := 32;
   owner_id uuid := auth.uid();
   rows_snapshot jsonb;
   selected_row jsonb;
@@ -130,7 +132,7 @@ BEGIN
         OR jsonb_typeof(metadata->'payload_hash') IS DISTINCT FROM 'string'
         OR metadata->>'payload_hash' !~ '^[0-9a-f]{64}$'
         OR jsonb_typeof(metadata->'prior_operations') IS DISTINCT FROM 'array'
-        OR jsonb_array_length(metadata->'prior_operations')>32 THEN
+        OR jsonb_array_length(metadata->'prior_operations')>prior_operation_limit THEN
         RAISE EXCEPTION 'Malformed versioned drawing metadata' USING ERRCODE='22000';
       END IF;
       BEGIN
@@ -223,6 +225,9 @@ SET search_path = pg_catalog
 AS $replace_drawings_collection$
 DECLARE
   trim_chars CONSTANT text := chr(9)||chr(10)||chr(11)||chr(12)||chr(13)||chr(32)||chr(160)||chr(5760)||chr(8192)||chr(8193)||chr(8194)||chr(8195)||chr(8196)||chr(8197)||chr(8198)||chr(8199)||chr(8200)||chr(8201)||chr(8202)||chr(8232)||chr(8233)||chr(8239)||chr(8287)||chr(12288)||chr(65279);
+  -- Bounded receipt history: the live operation plus this many prior ones replay.
+  -- An older operation is no longer recognized and meets revision_conflict.
+  prior_operation_limit CONSTANT integer := 32;
   owner_id uuid;
   normalized_symbol text;
   payload_hash text;
@@ -291,7 +296,7 @@ BEGIN
       OR live_data->'schemaVersion' IS DISTINCT FROM '1'::jsonb
       OR jsonb_typeof(live_data->'drawings') IS DISTINCT FROM 'array'
       OR jsonb_typeof(live_data->'prior_operations') IS DISTINCT FROM 'array'
-      OR jsonb_array_length(live_data->'prior_operations') > 32
+      OR jsonb_array_length(live_data->'prior_operations') > prior_operation_limit
       OR jsonb_typeof(live_data->'revision') IS DISTINCT FROM 'string'
       OR jsonb_typeof(live_data->'operation_id') IS DISTINCT FROM 'string'
       OR jsonb_typeof(live_data->'payload_hash') IS DISTINCT FROM 'string'
@@ -414,7 +419,7 @@ BEGIN
       SELECT value
       FROM jsonb_array_elements(live_prior_operations)
     LOOP
-      EXIT WHEN jsonb_array_length(new_ring) = 32;
+      EXIT WHEN jsonb_array_length(new_ring) = prior_operation_limit;
       new_ring := new_ring || receipt;
     END LOOP;
   END IF;
