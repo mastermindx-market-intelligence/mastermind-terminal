@@ -7,6 +7,8 @@ import { resolve } from "node:path";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { normalizeOptionsAlphaMeasuredFeed as parse } from "@/components/prophet/optionsAlphaMeasuredEvidence";
 import { OptionsAlphaView } from "@/components/prophet/OptionsAlphaView";
+import candidateFeedJson from "@/lib/__tests__/fixtures/candidate_feed.json";
+import candidateReceiptJson from "@/lib/__tests__/fixtures/candidate_feed.receipt.json";
 const transport = vi.hoisted(() => ({ shadow: null as unknown, feed: null as unknown, failed: false, lang: "en" as "en" | "zh" }));
 vi.mock("@/lib/flowClientCache", () => ({
   flowGet: vi.fn(async () => transport.shadow),
@@ -136,5 +138,87 @@ describe("last-known measured evidence after refresh failure", () => {
     expect(node.querySelectorAll('[data-testid="options-alpha-measured-event"]')).toHaveLength(0);
     expect(node.querySelector('[data-testid="options-alpha-measured-evidence"]')?.textContent).toContain("Measured-flow source is unavailable");
     expect(node.querySelector('[data-testid="options-alpha-fires-section"]')).not.toBeNull();
+  });
+});
+
+const CANDIDATE_FEED_URL = "/api/flow?f=options_alpha_candidate_feed";
+const CANDIDATE_A_ID = "oacnd_82923f78ab4fef535efedb64";
+
+function boundCandidatePair() {
+  return {
+    feed: candidateFeedJson,
+    receipt: candidateReceiptJson,
+    metadata: {
+      payload_etag: "synthetic-test-only",
+      payload_last_modified: "Thu, 13 Aug 2026 14:30:02 GMT",
+      receipt_etag: "synthetic-test-only",
+      receipt_last_modified: "Thu, 13 Aug 2026 14:30:02 GMT",
+      served_at: "2026-08-13T14:30:05Z",
+    },
+  };
+}
+
+function candidateHttp(status: number, body: unknown): Response {
+  return new Response(JSON.stringify(body), {
+    status,
+    headers: { "Content-Type": "application/json" },
+    statusText: status < 300 ? "OK" : "ERR",
+  });
+}
+
+describe("candidate panel identity across shadow recovery", () => {
+  it("keeps candidate A when shadow Retry recovers, then the 60s cadence retains it as stale and the next poll purges it", async () => {
+    const recoveredShadow = transport.shadow;
+    transport.shadow = null;
+    transport.failed = false;
+    const queued = [
+      candidateHttp(200, boundCandidatePair()),
+      candidateHttp(503, { error: "feed unavailable" }),
+      candidateHttp(403, { error: "pro_required" }),
+    ];
+    const candidateCalls: string[] = [];
+    const originalFetch = globalThis.fetch;
+    globalThis.fetch = (async (input: RequestInfo | URL, init?: RequestInit) => {
+      const url = typeof input === "string" ? input : input instanceof URL ? input.toString() : input.url;
+      if (!url.includes("f=options_alpha_candidate_feed")) return originalFetch(input, init);
+      candidateCalls.push(url);
+      const next = queued.shift();
+      if (!next) throw new Error(`unexpected candidate fetch: ${url}`);
+      return next;
+    }) as typeof fetch;
+    try {
+      await act(async () => root.render(<OptionsAlphaView />));
+      expect(node.querySelectorAll('[data-testid="options-alpha-measured-event"]')).toHaveLength(1);
+      expect(node.querySelector('[data-testid="options-alpha-fires-section"]')).toBeNull();
+      const retry = node.querySelector('[data-testid="options-alpha-shadow-unavailable"] button');
+      expect(retry?.textContent).toBe("Retry");
+      const candidateA = node.querySelector('[data-testid="options-alpha-candidate-item"]');
+      expect(candidateA?.textContent).toContain(CANDIDATE_A_ID);
+      expect(candidateA?.querySelector('[data-testid="options-alpha-candidate-heading"]')?.textContent).toBe("Contract details unavailable");
+      expect(candidateCalls).toEqual([CANDIDATE_FEED_URL]);
+
+      transport.shadow = recoveredShadow;
+      await act(async () => { (retry as HTMLButtonElement).click(); });
+
+      expect(node.querySelector('[data-testid="options-alpha-shadow-unavailable"]')).toBeNull();
+      expect(node.querySelector('[data-testid="options-alpha-fires-section"]')).not.toBeNull();
+      expect(node.querySelector('[data-testid="options-alpha-measured-event"]')).not.toBeNull();
+      expect(node.querySelector('[data-testid="options-alpha-candidate-item"]')).toBe(candidateA);
+      expect(candidateA?.isConnected).toBe(true);
+      expect(candidateCalls).toHaveLength(1);
+
+      await act(async () => { await vi.advanceTimersByTimeAsync(60_000); });
+      expect(candidateCalls).toHaveLength(2);
+      expect(node.querySelector('[data-testid="options-alpha-candidate-item"]')).toBe(candidateA);
+      expect(node.querySelector('[data-testid="options-alpha-candidate-stale"]')?.textContent).toMatch(/last verified pair/i);
+
+      await act(async () => { await vi.advanceTimersByTimeAsync(60_000); });
+      expect(candidateCalls).toHaveLength(3);
+      expect(node.querySelector('[data-testid="options-alpha-candidate-item"]')).toBeNull();
+      expect(node.querySelector('[data-testid="options-alpha-candidate-purge"]')).not.toBeNull();
+      expect(candidateA?.isConnected).toBe(false);
+    } finally {
+      globalThis.fetch = originalFetch;
+    }
   });
 });

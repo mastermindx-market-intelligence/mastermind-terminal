@@ -186,7 +186,14 @@ class GitHubApi:
         return str(entry["id"])
 
     def list_pulls(self) -> list[dict[str, Any]]:
-        return self.request("GET", "/pulls?state=open&per_page=100&sort=created&direction=asc")
+        pulls: list[dict[str, Any]] = []
+        page = 1
+        while True:
+            batch = self.request("GET", f"/pulls?state=open&per_page=100&sort=created&direction=asc&page={page}")
+            pulls.extend(batch)
+            if len(batch) < 100:
+                return pulls
+            page += 1
 
     def pull(self, number: int) -> dict[str, Any]:
         return self.request("GET", f"/pulls/{number}")

@@ -977,6 +977,11 @@ cleanup_deploy_attempt(){
   local rc=$? live_marker restored_head dirty
   trap - EXIT
   set +e
+  # A failed stage can exhaust the filesystem. Release this attempt's staging
+  # bytes before Git needs space for the canonical recovery index.
+  if [ -n "${STAGE_ROOT:-}" ] && [ -d "$STAGE_ROOT" ]; then
+    rm -rf "$STAGE_ROOT" || log "WARN: could not remove staging directory $STAGE_ROOT"
+  fi
   if [ "$rc" -ne 0 ] && [ "${CANONICAL_RECOVERY_ARMED:-0}" = 1 ]; then
     if live_marker=$(read_live_deployment_marker "$DEPLOYMENT_MARKER") \
       && [ -n "${CANONICAL_RECOVERY_SHA:-}" ] \
@@ -1001,9 +1006,6 @@ cleanup_deploy_attempt(){
       log "FATAL: pre-swap recovery refused because live identity changed or became unreadable"
       rc=74
     fi
-  fi
-  if [ -n "${STAGE_ROOT:-}" ] && [ -d "$STAGE_ROOT" ]; then
-    rm -rf "$STAGE_ROOT" || log "WARN: could not remove staging directory $STAGE_ROOT"
   fi
   exit "$rc"
 }
@@ -1236,6 +1238,7 @@ rsync -a --delete \
   --exclude='node_modules' --exclude='.env' --exclude='.env.*' --exclude='public/data' \
   --exclude='.deployment-id' --exclude='.deployment-id.bak' --exclude='.deployment-id.absent' \
   --exclude='.deployment-id.new' \
+  --exclude='scripts/dist' \
   "$TSRC/" "$APP/"
 
 # 10) suite-alerts sidecar bundle: ingest/suite_alerts.ts imports terminal/lib (the real suite
@@ -1250,6 +1253,22 @@ if ( cd "$APP" && npx esbuild ../ingest/suite_alerts.ts --bundle --platform=node
   log "installed ingest/dist/suite_alerts.mjs (suite_event alerts cron)"
 else
   log "WARN: suite_alerts bundle FAILED — cron keeps the previous bundle"
+fi
+
+# personal-accuracy nightly worker: terminal-data invokes the generated artifact after the
+# US-equity OHLC refresh. Stage atomically so a failed bundle leaves the prior artifact in
+# place; scripts/dist is excluded above because the app-source rsync would otherwise delete
+# the known-good untracked artifact before this rebuild.
+log "bundling terminal/scripts/score_personal_accuracy_entry.ts -> terminal/scripts/dist/score_personal_accuracy.mjs"
+if ( cd "$APP" && npx esbuild scripts/score_personal_accuracy_entry.ts --bundle --platform=node --format=esm \
+      --packages=external --outfile=scripts/dist/score_personal_accuracy.mjs.new \
+      "--alias:@=." --log-level=warning ); then
+  mv -f "$APP/scripts/dist/score_personal_accuracy.mjs.new" \
+    "$APP/scripts/dist/score_personal_accuracy.mjs"
+  log "installed terminal/scripts/dist/score_personal_accuracy.mjs (personal accuracy nightly)"
+else
+  rm -f "$APP/scripts/dist/score_personal_accuracy.mjs.new"
+  log "WARN: personal_accuracy bundle FAILED — nightly keeps the previous bundle"
 fi
 
 log "DONE — live = origin/$BRANCH @ $SHA (app + runtime code, git-gated, healthy)"

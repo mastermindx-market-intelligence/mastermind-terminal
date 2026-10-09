@@ -308,8 +308,8 @@ describe("curateInsiders / curateIntel", () => {
 });
 
 describe("curateMarketRisk / curatePlane", () => {
-  it("market risk: verdict + 48h staleness", () => {
-    const fresh = curateMarketRisk({ built: "2026-07-13T06:00:00Z", display: { verdict: "RISK_ON", score: 71.4, label_en: "Risk on" } }, NOW);
+  it("market risk: verdict and actual source-session freshness", () => {
+    const fresh = curateMarketRisk({ nightly_asof: "2026-07-13", built: "2026-07-13T06:00:00Z", display: { verdict: "RISK_ON", score: 71.4, label_en: "Risk on" } }, NOW);
     expect(fresh).toMatchObject({ verdict: "RISK_ON", score: 71, label: "Risk on", stale: false });
     const old = curateMarketRisk({ built: "2026-07-10T06:00:00Z", display: { verdict: "RISK_ON", score: 71 } }, NOW);
     expect(old.stale).toBe(true);

@@ -49,6 +49,10 @@ const SEARCH_DETENTS = [62, 96] as const;
 // and its own group header above the watchlists, so the old 190 under-measured it and the menu
 // could open downward into a space that could not hold it.
 const PICKER_H = 250;
+// SearchModal's add picker is portalled to <body>. On phones its owning MobileSheet is also
+// body-portalled at z-index 221, so the picker must sit above that sheet rather than inheriting
+// the desktop-only .s-pick layer (70) and becoming visible-but-untappable behind the drawer.
+const MOBILE_PICKER_Z = 230;
 
 // Category tab order + their i18n keys (bilingual labels — no hardcoded English in JSX).
 const CATS: { id: string; key: string }[] = [
@@ -560,7 +564,10 @@ export default function SearchModal({
         {picker === s && portal(
           <div className={`s-pick${pickerPos?.up ? " s-pick-up" : ""}`}
             style={pickerPos
-              ? { position: "fixed", right: pickerPos.right, top: pickerPos.top, bottom: pickerPos.bottom, left: "auto" }
+              ? {
+                  position: "fixed", right: pickerPos.right, top: pickerPos.top, bottom: pickerPos.bottom, left: "auto",
+                  zIndex: phoneDrawer ? MOBILE_PICKER_Z : undefined,
+                }
               : undefined}
             onClick={(e) => e.stopPropagation()}>
             {/* Two destinations, visually separated, never mixed into one list of names (packet

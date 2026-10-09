@@ -1,8 +1,8 @@
 {
   "schema": "mastermind.options_level_axis_evidence/v1",
-  "capturedAt": "2026-09-29T19:36:15.485Z",
-  "sourceHead": "4b358bbcf8b5783adcde1a00bb079511b25121e5",
-  "baseURL": "http://127.0.0.1:39000",
+  "capturedAt": "2026-10-09T06:26:16.671Z",
+  "sourceHead": "b55e8b58509103fe274838e0a7f085565a766647",
+  "baseURL": "http://127.0.0.1:3308",
   "classification": "LOCAL_BROWSER_WITH_INTERCEPTED_OPTIONS_CONTRACT_PAYLOADS_NOT_PRODUCTION_DATA",
   "expectedLinePrices": [
     192.42,
@@ -13,7 +13,7 @@
     192.6
   ],
   "sourceFiles": {
-    "components/ChartPanel.tsx": "06f59b1c67ee3661dd361f72b23f16f1cddb26a8020490463ea18f941a44361f",
+    "components/ChartPanel.tsx": "fc3bc708796403b1ef1cfe4002a198c95d41124134b13d73dee11487bc549cd8",
     "lib/optionsLevels.ts": "ba5268ff0097eca172ae2192c4ad1659e597acdb5934e27f165f022754a93efd",
     "lib/priceTagPlacement.ts": "75798f32a3b1cf6432c38e076b4a9fac580e2ef402cb862596525a86a09465ff"
   },
@@ -23,7 +23,7 @@
       "width": 1440,
       "height": 900,
       "screenshot": "desktop.png",
-      "sha256": "ca666f49ce74ab0e5891ba6dd65ebfd0a8b58c05f5313f6ade6183d7848606cb",
+      "sha256": "4652868af453bb175c9d4e894226fb91be2e597dc87f20faa7f91d641088e2cb",
       "proof": {
         "labels": {
           "primaryTop": 106,
@@ -132,7 +132,7 @@
       "width": 820,
       "height": 1180,
       "screenshot": "tablet.png",
-      "sha256": "aebf830970eeec07bcae733dabc4d1b2a9be2a939b3e789731b7fa4f921bd029",
+      "sha256": "90d5e8727c9c16289e02c36366a9b2d48a943878fcac7fdfc0fb51a67121f1ef",
       "proof": {
         "labels": {
           "primaryTop": 87,
@@ -241,7 +241,7 @@
       "width": 390,
       "height": 844,
       "screenshot": "mobile.png",
-      "sha256": "d621c5ec2c7c13e8f01d79ff644f91815a50a326871f7073682ea85f19a769e3",
+      "sha256": "5942dd439b24750c4afe8ba09d5bff61d8dd8988a88abd281ed452368248a230",
       "proof": {
         "labels": {
           "primaryTop": 43,
@@ -352,7 +352,7 @@
       "left": true,
       "percentage": true,
       "screenshot": "desktop-left-percentage.png",
-      "sha256": "6e946abd096b16401f9a04fbe1cb12469175a5901c18ee914b51248f3c1a585f",
+      "sha256": "84cc9321c605a386ef71aa92a5371b17a28feeef20987952adc39157b7725c39",
       "proof": {
         "labels": {
           "primaryTop": 106,
@@ -461,26 +461,26 @@
       "width": 1440,
       "height": 430,
       "screenshot": "desktop-compact.png",
-      "sha256": "a14949f7d45e32c8217974fac81822dadc83308ad2d4d63577d8abcccbb029a8",
+      "sha256": "377767a77592658b5f09155e71b6926dae059a8374db6877bb13c5ea7de0a4e6",
       "proof": {
         "labels": {
-          "primaryTop": 36,
-          "primaryNaturalTop": 72,
-          "primaryAnchorY": 79.5550372510263,
+          "primaryTop": 48,
+          "primaryNaturalTop": 84,
+          "primaryAnchorY": 92.00268207389385,
           "primaryDocked": true,
           "pricePaneTop": 0,
-          "extendedTop": 72,
-          "extendedNaturalTop": 72,
-          "extendedAnchorY": 79.59004409305152,
+          "extendedTop": 84,
+          "extendedNaturalTop": 84,
+          "extendedAnchorY": 92.0431746997111,
           "extendedDocked": false,
           "timerOwner": "extended",
           "optionTags": [
             {
               "key": "call_wall",
               "price": 192.6,
-              "top": 0,
-              "naturalTop": 71,
-              "anchorY": 79.47335461963405,
+              "top": 12,
+              "naturalTop": 84,
+              "anchorY": 91.9081992803203,
               "docked": true,
               "lane": 0,
               "text": "CW 192.60"
@@ -488,9 +488,9 @@
             {
               "key": "put_wall",
               "price": 192.42,
-              "top": 140,
-              "naturalTop": 72,
-              "anchorY": 79.68339567178549,
+              "top": 152,
+              "naturalTop": 84,
+              "anchorY": 92.15115503522375,
               "docked": true,
               "lane": 0,
               "text": "PW 192.42"
@@ -498,9 +498,9 @@
             {
               "key": "gamma_flip",
               "price": 192.52,
-              "top": 54,
-              "naturalTop": 72,
-              "anchorY": 79.566706198368,
+              "top": 66,
+              "naturalTop": 84,
+              "anchorY": 92.01617961583293,
               "docked": true,
               "lane": 0,
               "text": "FLIP 192.52"
@@ -508,9 +508,9 @@
             {
               "key": "abs_gamma",
               "price": 192.46,
-              "top": 104,
-              "naturalTop": 72,
-              "anchorY": 79.6367198824185,
+              "top": 116,
+              "naturalTop": 84,
+              "anchorY": 92.09716486746743,
               "docked": true,
               "lane": 0,
               "text": "ABS γ 192.46"
@@ -518,9 +518,9 @@
             {
               "key": "em_lo",
               "price": 192.44,
-              "top": 122,
-              "naturalTop": 72,
-              "anchorY": 79.660057777102,
+              "top": 134,
+              "naturalTop": 84,
+              "anchorY": 92.12415995134558,
               "docked": true,
               "lane": 0,
               "text": "EM− 192.44"
@@ -528,9 +528,9 @@
             {
               "key": "em_hi",
               "price": 192.58,
-              "top": 18,
-              "naturalTop": 71,
-              "anchorY": 79.49669251431754,
+              "top": 30,
+              "naturalTop": 84,
+              "anchorY": 91.93519436419842,
               "docked": true,
               "lane": 0,
               "text": "EM+ 192.58"
@@ -556,9 +556,9 @@
           "left": 112,
           "right": 1079,
           "top": 98,
-          "bottom": 408,
+          "bottom": 453,
           "width": 967,
-          "height": 310
+          "height": 355
         }
       },
       "consoleErrors": [],

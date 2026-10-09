@@ -21,7 +21,7 @@ import { createRoot, type Root } from "react-dom/client";
 import SectionPortfolioTargets from "@/components/settings/SectionPortfolioTargets";
 import { LEX } from "@/lib/i18n";
 import type { SectionProps } from "@/components/settings/types";
-import type { PortfolioTargetsSummary } from "@/lib/portfolioTargets";
+import { T_ARIA_TARGET, type PortfolioTargetsSummary } from "@/lib/portfolioTargets";
 
 (globalThis as unknown as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 
@@ -278,5 +278,301 @@ describe("SectionPortfolioTargets (B-F08-13 / MO-DELTA-003)", () => {
     expect(text()).toContain("按你的建仓成本加权。");
     // LONG (ZH) must NOT appear in Settings — it cross-references "the shape readout above" which is not there
     expect(text()).not.toContain("按你的建仓成本加权，与上方的持仓构成保持一致。");
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Readback ordering (macro#6819 C2 5979608991 / 5979715088).
+//
+// The section used to fire a whole-book GET after every POST with no fence,
+// so whichever readback resolved LAST painted — an older target could replace
+// a newer save, and a cleared target could come back. These cases drive the
+// REAL readout (typed input + 500 ms debounce + Clear button) against a
+// scripted server that separates WRITE-EFFECT order from RESPONSE order: a
+// POST's effect lands when the request ARRIVES, a GET snapshots the book when
+// it ARRIVES, and the test releases each response in whatever order it likes.
+// They fail RED against the unfenced source (the second POST left before the
+// first readback settled, and the stale readback painted), and GREEN against
+// the chained, fenced section.
+// ---------------------------------------------------------------------------
+
+type ServerPending = {
+  method: "GET" | "POST";
+  snapshot: PortfolioTargetsSummary | null;
+  forcedStatus: number | null;
+  resolve: (r: Response) => void;
+  reject: (e: unknown) => void;
+};
+
+function installServer(targeted: Record<string, number>, holdings: string[]) {
+  const realFetch = globalThis.fetch;
+  const stored = new Map(Object.entries(targeted).map(([k, v]) => [k, { target: v, band: 5 }]));
+  const pending: ServerPending[] = [];
+  const arrivals: string[] = [];
+  const failNext: number[] = [];
+  const book = (): PortfolioTargetsSummary => summary(
+    holdings.filter((tk) => stored.has(tk)).map((tk) => ({
+      ticker: tk,
+      currentWeightPct: 10,
+      targetWeightPct: stored.get(tk)!.target,
+      bandPct: stored.get(tk)!.band,
+      driftPct: 10 - stored.get(tk)!.target,
+      status: "within_band" as const,
+    })),
+    holdings.filter((tk) => !stored.has(tk)).map((tk) => ({ ticker: tk, currentWeightPct: 10 })),
+  );
+  globalThis.fetch = vi.fn(async (_input: RequestInfo | URL, init?: RequestInit) => {
+    const method = ((init?.method ?? "GET").toUpperCase()) as "GET" | "POST";
+    let forcedStatus: number | null = null;
+    let label = "GET";
+    if (method === "POST") {
+      const body = JSON.parse(String(init?.body)) as { action: string; ticker: string; targetWeightPct?: number; bandPct?: number };
+      forcedStatus = failNext.shift() ?? null;
+      // The write effect lands on arrival — unless this request is scripted to
+      // fail, in which case the server never applied it.
+      if (forcedStatus === null) {
+        if (body.action === "set") stored.set(body.ticker, { target: body.targetWeightPct!, band: body.bandPct ?? 5 });
+        else if (body.action === "clear") stored.delete(body.ticker);
+      }
+      label = `POST ${body.action} ${body.ticker}${body.action === "set" ? ` ${body.targetWeightPct}` : ""}`;
+    }
+    arrivals.push(label);
+    const snapshot = method === "GET" ? book() : null;
+    return new Promise<Response>((resolve, reject) => {
+      pending.push({ method, snapshot, forcedStatus, resolve, reject });
+    });
+  }) as typeof fetch;
+
+  return {
+    arrivals,
+    /** The next POST to ARRIVE fails with this status and its write is not applied. */
+    failNextPost(status: number) { failNext.push(status); },
+    /** Release the n-th arrival (1-based). GETs answer with the book as it was on arrival. */
+    async release(n: number, opts: { networkError?: boolean; status?: number } = {}) {
+      const p = pending[n - 1];
+      if (!p) throw new Error(`no arrival #${n} (have ${pending.length})`);
+      await act(async () => {
+        if (opts.networkError) p.reject(new TypeError("network down"));
+        else if (p.method === "GET") p.resolve(jsonRes(opts.status ?? 200, opts.status && opts.status >= 400 ? { error: "boom" } : { summary: p.snapshot }));
+        else p.resolve(jsonRes(opts.status ?? p.forcedStatus ?? 200, { ok: true }));
+      });
+      await settle();
+    },
+    restore() { globalThis.fetch = realFetch; },
+  };
+}
+
+/** Macrotask-based flush: lets the fetch → json → setState chain run to rest. */
+async function settle() {
+  for (let i = 0; i < 4; i++) {
+    await act(async () => { await new Promise<void>((r) => setImmediate(r)); });
+  }
+}
+
+function targetInput(ticker: string): HTMLInputElement {
+  const label = T_ARIA_TARGET.en.split("{ticker}").join(ticker);
+  const el = container?.querySelector<HTMLInputElement>(`input[aria-label="${label}"]`);
+  if (!el) throw new Error(`no target input for ${ticker}`);
+  return el;
+}
+
+function typeInto(input: HTMLInputElement, value: string) {
+  const setter = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value")!.set!;
+  act(() => {
+    setter.call(input, value);
+    input.dispatchEvent(new Event("input", { bubbles: true }));
+  });
+}
+
+/** Run the readout's 500 ms debounce and let the resulting POST arrive. */
+async function debounce() {
+  await act(async () => { await vi.advanceTimersByTimeAsync(500); });
+  await settle();
+}
+
+function card(ticker: string) {
+  return container?.querySelector(`article[data-ticker="${ticker}"]`) ?? null;
+}
+
+function untargetedRow(ticker: string) {
+  return container?.querySelector(`[data-ticker="${ticker}"][data-status="untargeted"]`) ?? null;
+}
+
+function rerender(props: SectionProps) {
+  act(() => { root!.render(<SectionPortfolioTargets {...props} />); });
+}
+
+describe("SectionPortfolioTargets readback ordering (macro#6819 C2)", () => {
+  let server: ReturnType<typeof installServer> | null = null;
+
+  beforeEach(() => {
+    vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout"] });
+  });
+
+  afterEach(() => {
+    server?.restore();
+    server = null;
+    vi.useRealTimers();
+  });
+
+  async function mountBook(targeted: Record<string, number>, holdings: string[], props = baseProps("en")) {
+    server = installServer(targeted, holdings);
+    mount(props);
+    await server.release(1); // the mount GET
+    expect(server.arrivals).toEqual(["GET"]);
+    return server;
+  }
+
+  it("Save → Save: the older readback released last never paints, and the second POST waits for the first readback", async () => {
+    const s = await mountBook({ AAPL: 10 }, ["AAPL"]);
+    typeInto(targetInput("AAPL"), "20");
+    await debounce();
+    expect(s.arrivals).toEqual(["GET", "POST set AAPL 20"]);
+    await s.release(2);                       // POST 20 ok → readback #3 leaves
+    expect(s.arrivals).toEqual(["GET", "POST set AAPL 20", "GET"]);
+
+    typeInto(targetInput("AAPL"), "30");
+    await debounce();
+    // Constraint 1: no second POST until the first mutation's readback settles.
+    expect(s.arrivals).toEqual(["GET", "POST set AAPL 20", "GET"]);
+
+    await s.release(3);                       // the OLDER readback (book = 20) lands last-but-one
+    // Constraint 2: a readback older than the newest intent is never painted.
+    expect(targetInput("AAPL").value).toBe("30");
+    expect(s.arrivals).toEqual(["GET", "POST set AAPL 20", "GET", "POST set AAPL 30"]);
+
+    await s.release(4);                       // POST 30 ok → readback #5
+    expect(s.arrivals).toEqual(["GET", "POST set AAPL 20", "GET", "POST set AAPL 30", "GET"]);
+    await s.release(5);
+    expect(targetInput("AAPL").value).toBe("30");
+    expect(card("AAPL")).not.toBeNull();
+  });
+
+  it("Save → Clear: the save's late readback cannot bring the cleared target back", async () => {
+    const s = await mountBook({ AAPL: 10 }, ["AAPL"]);
+    typeInto(targetInput("AAPL"), "20");
+    await debounce();
+    await s.release(2);                       // POST 20 ok → readback #3 in flight (book = 20)
+    expect(s.arrivals).toEqual(["GET", "POST set AAPL 20", "GET"]);
+
+    const clear = card("AAPL")!.querySelector("button")!;
+    await act(async () => { clear.click(); });
+    await settle();
+    // The clear's POST is queued behind the save's readback, not raced against it.
+    expect(s.arrivals).toEqual(["GET", "POST set AAPL 20", "GET"]);
+
+    await s.release(3);                       // stale readback: AAPL still 20 — must not repaint later
+    expect(s.arrivals).toEqual(["GET", "POST set AAPL 20", "GET", "POST clear AAPL"]);
+    await s.release(4);                       // clear ok → readback #5 (book: AAPL untargeted)
+    await s.release(5);
+    expect(card("AAPL")).toBeNull();
+    expect(untargetedRow("AAPL")).not.toBeNull();
+  });
+
+  it("Clear → Save on the same row: the save is written after the clear and the row ends targeted", async () => {
+    const s = await mountBook({ AAPL: 10 }, ["AAPL"]);
+    const clear = card("AAPL")!.querySelector("button")!;
+    await act(async () => { clear.click(); });
+    await settle();
+    expect(s.arrivals).toEqual(["GET", "POST clear AAPL"]);
+
+    typeInto(targetInput("AAPL"), "25");       // the card is still mounted: the clear has not read back yet
+    await debounce();
+    expect(s.arrivals).toEqual(["GET", "POST clear AAPL"]);   // queued behind the clear
+
+    await s.release(2);                       // clear ok; its readback is skipped — a newer intent exists
+    expect(s.arrivals).toEqual(["GET", "POST clear AAPL", "POST set AAPL 25"]);
+    await s.release(3);                       // set ok → the one readback
+    expect(s.arrivals).toEqual(["GET", "POST clear AAPL", "POST set AAPL 25", "GET"]);
+    await s.release(4);
+    expect(card("AAPL")).not.toBeNull();
+    expect(untargetedRow("AAPL")).toBeNull();
+    expect(targetInput("AAPL").value).toBe("25");
+  });
+
+  it("two tickers overlapping: both saves land in order and neither reverts", async () => {
+    const s = await mountBook({ AAPL: 10, MSFT: 10 }, ["AAPL", "MSFT"]);
+    typeInto(targetInput("AAPL"), "20");
+    await debounce();
+    typeInto(targetInput("MSFT"), "30");
+    await debounce();
+    // One chain per SECTION: MSFT's POST waits for AAPL's, so a whole-book
+    // readback taken for AAPL can never carry a pre-save MSFT.
+    expect(s.arrivals).toEqual(["GET", "POST set AAPL 20"]);
+    await s.release(2);
+    expect(s.arrivals).toEqual(["GET", "POST set AAPL 20", "POST set MSFT 30"]);
+    await s.release(3);
+    expect(s.arrivals).toEqual(["GET", "POST set AAPL 20", "POST set MSFT 30", "GET"]);
+    await s.release(4);
+    expect(targetInput("AAPL").value).toBe("20");
+    expect(targetInput("MSFT").value).toBe("30");
+  });
+
+  it("a later POST failure keeps the prior successful write on screen (readback still runs)", async () => {
+    const s = await mountBook({ AAPL: 10 }, ["AAPL"]);
+    typeInto(targetInput("AAPL"), "20");
+    await debounce();
+    await s.release(2);                       // 20 written; readback #3 in flight
+    typeInto(targetInput("AAPL"), "30");
+    s.failNextPost(503);
+    await debounce();
+    await s.release(3);                       // readback of 20 — older than the 30 intent, not painted
+    expect(s.arrivals).toEqual(["GET", "POST set AAPL 20", "GET", "POST set AAPL 30"]);
+    await s.release(4);                       // 503: the server never applied 30
+    // The failed mutation is still the newest intent, so it reads back — and the
+    // book says 20, the last write that succeeded.
+    expect(s.arrivals).toEqual(["GET", "POST set AAPL 20", "GET", "POST set AAPL 30", "GET"]);
+    await s.release(5);
+    expect(targetInput("AAPL").value).toBe("20");
+    expect(card("AAPL")).not.toBeNull();
+    expect(text()).toContain("Could not save");
+  });
+
+  it("a readback that fails after a successful POST hands the section to its own loader (loading → loaded)", async () => {
+    const s = await mountBook({ AAPL: 10 }, ["AAPL"]);
+    typeInto(targetInput("AAPL"), "20");
+    await debounce();
+    await s.release(2);                       // POST ok → readback #3
+    await s.release(3, { networkError: true });
+    // Not a silent stale summary: the owned loader re-runs with its existing states.
+    expect(container?.querySelector('[data-testid="portfolio-targets-loading"]')).not.toBeNull();
+    expect(s.arrivals).toEqual(["GET", "POST set AAPL 20", "GET", "GET"]);
+    await s.release(4);
+    expect(container?.querySelector('[data-testid="portfolio-targets-loaded"]')).not.toBeNull();
+    expect(targetInput("AAPL").value).toBe("20");
+  });
+
+  it("a readback that answers 5xx after a successful POST also re-reads through the loader", async () => {
+    const s = await mountBook({ AAPL: 10 }, ["AAPL"]);
+    typeInto(targetInput("AAPL"), "20");
+    await debounce();
+    await s.release(2);
+    await s.release(3, { status: 500 });
+    expect(s.arrivals).toEqual(["GET", "POST set AAPL 20", "GET", "GET"]);
+    await s.release(4);
+    expect(targetInput("AAPL").value).toBe("20");
+  });
+
+  it("owner transition: an in-flight mutation never reads back into, or writes as, the new owner", async () => {
+    const s = await mountBook({ AAPL: 10 }, ["AAPL"]);
+    typeInto(targetInput("AAPL"), "20");
+    await debounce();                          // POST #2 in flight under user-1
+    typeInto(targetInput("AAPL"), "30");
+    await debounce();                          // queued behind #2 (owner captured = user-1)
+    expect(s.arrivals).toEqual(["GET", "POST set AAPL 20"]);
+
+    const next = baseProps("en");
+    next.email = "b@example.com";
+    next.identity = { kind: "account", userId: "user-2", email: "b@example.com" };
+    next.user = { ...next.user!, id: "user-2", email: "b@example.com" };
+    rerender(next);
+    await settle();
+    // The owner change re-runs the loader for user-2 (arrival #3).
+    expect(s.arrivals).toEqual(["GET", "POST set AAPL 20", "GET"]);
+    await s.release(2);                        // user-1's POST resolves after the switch
+    await s.release(3);                        // user-2's book
+    // No readback for the old owner, and the queued "30" never left as user-2.
+    expect(s.arrivals).toEqual(["GET", "POST set AAPL 20", "GET"]);
+    expect(container?.querySelector('[data-testid="portfolio-targets-loaded"]')).not.toBeNull();
   });
 });

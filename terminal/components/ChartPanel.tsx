@@ -55,10 +55,13 @@ import {
 } from "@/lib/priceTagPlacement";
 import { hoverTagPaint } from "@/lib/hoverTagPaint";
 import { setActivePaneCoords, getActivePaneCoords } from "@/lib/paneCoords";
-import { getJSON, getSliceAndOhlc, getCompositeOhlc, getOhlc } from "@/lib/dataCache";
+import { getJSON, getSliceAndOhlc, getCompositeOhlc, getOhlc, type CacheOutcome } from "@/lib/dataCache";
 import { parseComposite, alignAndSum } from "@/lib/composite";
 import { CMP_PALETTE, type CmpCfg, defaultCmpCfg, cmpKey } from "@/lib/compare";
 import { isIntradayTf, isSecondTf, classify, tfMinutes, type Market } from "@/lib/intradaySources";
+import { episodeMarks, type MarkTone } from "@/lib/dislocations/episodeMarks";
+import { chartMarkerSpecs, toChartMarks } from "@/lib/dislocations/episodeChartTimes";
+import type { LiveEntryEpisode } from "@/lib/dislocations/types";
 import { liveDisplayEpoch, mutateLiveCandle } from "@/lib/liveCandle";
 import { isMacroSymbol, macroOnEtAxis } from "@/lib/macroSymbols";
 import { sessionVwap, openingRange, sessionLevels, pivotLevels, rvolSeries, ttmSqueeze, adx as calcAdx, cvdApprox, type Bar as IMBar, type DailyBar } from "@/lib/intradayMath";
@@ -569,7 +572,7 @@ import { buildVisualSeries, participationColor, visualOverlayBundle, visualReado
 import { candleVolumeRank } from "@/lib/suites/trend/candlePainter";
 
 export default function ChartPanel({ symbol, chartType = "candles", indicators, timeframe = "D", replayIdx = null, onMeta, tool = null, toolActivation = 0, drawingSticky = false, drawingCreationDisabled = false, drawStyle, drawings = [], onDrawingsChange, detectCmd = null, magnet = "off", compare = [], compareCfg = EMPTY_OBJ, isActive = true, syncId = null, liveQuote = null,
-  indParams = EMPTY_OBJ, hidden = EMPTY_SET, onToggleHidden, onRemoveInd, onOpenSettings, onOpenSource, pineScripts = EMPTY_PINE, chartSettings, onVisualSettings, onChartApi, extHours = false,
+  indParams = EMPTY_OBJ, hidden = EMPTY_SET, onToggleHidden, onRemoveInd, onOpenSettings, onOpenSource, pineScripts = EMPTY_PINE, chartSettings, onVisualSettings, onChartApi, extHours = false, episodeId = null,
   instrumentName, instrumentMarket, instrumentColor, onAddAlert, onTableView, onObjectTree, onOpenSettingsModal, lockedVLine = null, onSetLockedVLine, onIndRowsAt, dayMode = false, onPaneCount, companyName = "", userTier = "free", dataReady = true, initialTimeframe = null }:
   { symbol: string; companyName?: string; chartType?: string; indicators: Set<string>; timeframe?: string; replayIdx?: number | null; onMeta?: (m: { total: number }) => void;
     /** False until the shell has COMMITTED its persisted prefs. See `effectiveTimeframe`. */
@@ -583,7 +586,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
     instrumentName?: string;
     instrumentMarket?: string;
     instrumentColor?: string;
-    onChartApi?: (api: IChartApi | null) => void; extHours?: boolean;
+    onChartApi?: (api: IChartApi | null) => void; extHours?: boolean; episodeId?: string | null;
     onAddAlert?: (price: number) => void;
     onTableView?: () => void;
     onObjectTree?: () => void;
@@ -632,6 +635,10 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
   const pineMarkersRef = useRef<Map<string, ISeriesMarkersPluginApi<any>>>(new Map()); // scriptId → its markers plugin
   const ttmsqMarkersRef = useRef<ISeriesMarkersPluginApi<any> | null>(null); // ttmsq squeeze-tier dots plugin
   const macdMarkersRef = useRef<ISeriesMarkersPluginApi<any> | null>(null);  // TH_RSIMACD+ crossover dots plugin (on the MACD-RSI line series)
+  const episodeMarkersRef = useRef<ISeriesMarkersPluginApi<any> | null>(null); // dislocation episode transition marks (spec §4.3)
+  const episodeRef = useRef<LiveEntryEpisode | null>(null);
+  const renderEpisodeMarksRef = useRef<() => void>(() => {});
+  const episodeSpecsRef = useRef<Array<{ time: unknown }>>([]); // what the pane currently draws for ?episode= (witness)
   const pinePaneMapRef = useRef<Map<string, number>>(new Map());             // sub-pane scriptId → pane index (overlay scripts absent)
   const pineErrRef = useRef<Map<string, string>>(new Map());                 // scriptId → error text (surfaced in the legend)
   const pineCacheRef = useRef<Map<string, { key: string; result: RunResult | null; error: string | null }>>(new Map()); // memo: scriptId → last run
@@ -797,6 +804,20 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
   const visualReadyRef = useRef<TerminalVisualReadyAnnouncement | null>(null);
   const cmpGenRef = useRef(0);              // compare-specific generation token (epoch doesn't bump on compare change)
   const sliceRef = useRef<any>(null);       // latest slice, so replay re-resolves sig marks without a refetch
+  // The slice is OPTIONAL: bars paint without it. Its state is stated, never inferred from a null
+  // sliceRef — "pending"/"unavailable" must not read as "this symbol has no signals" (which would
+  // run the unscored client fallback). "none" = this view has no daily slice (composite, intraday).
+  // Mirrored on the chart wrapper as data-slice-state / data-slice-symbol.
+  const sliceStateRef = useRef<"none" | "pending" | "data" | "absent" | "unavailable">("none");
+  const setSliceState = (state: "none" | "pending" | "data" | "absent" | "unavailable", sym: string) => {
+    sliceStateRef.current = state;
+    const wrap = wrapElRef.current;
+    if (!wrap) return;
+    if (state === "none") { delete wrap.dataset.sliceState; delete wrap.dataset.sliceSymbol; return; }
+    wrap.dataset.sliceState = state;
+    wrap.dataset.sliceSymbol = sym;
+  };
+  const sliceUnsettled = () => sliceStateRef.current === "pending" || sliceStateRef.current === "unavailable";
   const viewSavedRef = useRef<{ from: number; to: number } | null>(null);
   // SSR-safe: seed with empty tokens (this client component still renders on the server for initial
   // HTML, where getComputedStyle/document are unavailable). Effect 1 populates real tokens on mount.
@@ -2717,7 +2738,10 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
         if (m.retro) { m.overrideGroup = s.retro_ctx?.name ?? s.retro_ctx?.group_id ?? null; m.retroCtx = s.retro_ctx ?? null; }
         marks.push(m);
       }
-    } else {
+    } else if (!sliceUnsettled()) {
+      // Only a slice that ANSWERED without signals reaches the fallback. A slice still in flight or
+      // one that failed says nothing about this symbol's signals: painting unscored marks then
+      // swapping them for the scored stream would show signals the engine never issued.
       const daily = dailyBarsRef.current.length ? dailyBarsRef.current : rows;
       marks.push(...oracleSignals(daily)
         .filter((s) => s.ts <= lastSession)
@@ -2896,14 +2920,19 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
           : isStopSweepReclaim({ type: v, quality: vQuality })
             ? verdictLabel("RECLAIM", chipLang)
             : verdictLabel(v, chipLang);
-      verdictRef.current.textContent = `${tPlain("goldenOracleLbl")} · ${vLabel}`;
-      verdictRef.current.style.color = chipColor;
+      // An unsettled slice is stated as such, in muted ink — never as "—" (no signal) or a verdict.
+      // (Inline EN/ZH like the chip's other words: lib/i18n.tsx is pinned by several evidence locks.)
+      const sliceNote = sliceStateRef.current === "pending" ? (chipLang === "zh" ? "信号加载中" : "Signals loading")
+        : sliceStateRef.current === "unavailable" ? (chipLang === "zh" ? "信号暂不可用" : "Signals unavailable") : null;
+      const inkColor = sliceNote ? t.mut : chipColor;
+      verdictRef.current.textContent = `${tPlain("goldenOracleLbl")} · ${sliceNote ?? vLabel}`;
+      verdictRef.current.style.color = inkColor;
       const w = verdictRef.current.parentElement as HTMLElement;
       // Token-derived so the chip tracks the shell palette (byte-identical output on web, where
       // --buy/--sell still resolve to the locked v5 hexes).
       if (w) {
-        w.style.background = `color-mix(in srgb, ${chipColor} 12%, transparent)`;
-        w.style.borderColor = `color-mix(in srgb, ${chipColor} 30%, transparent)`;
+        w.style.background = `color-mix(in srgb, ${inkColor} 12%, transparent)`;
+        w.style.borderColor = `color-mix(in srgb, ${inkColor} 30%, transparent)`;
       }
     }
   };
@@ -2924,9 +2953,12 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
    * symbol-guarded consumer (splice, options levels, drawings) that this pane is unpainted.
    */
   const clearChartData = () => {
+    try { episodeMarkersRef.current?.detach(); } catch {}
+    episodeMarkersRef.current = null;
     barsRef.current = []; fullBarsRef.current = []; dailyBarsRef.current = []; closesRef.current = [];
     barIdxRef.current = { src: null, map: new Map() };
     sliceRef.current = null; sigMarksRef.current = []; earlyDotsRef.current = []; warnMarksRef.current = [];
+    setSliceState("none", "");
     chartDataSymRef.current = "";
     clearExtendedPriceLine();
     clearAllIndicators();
@@ -3764,6 +3796,9 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
       // still hold a handle the renderer already dropped (a stale owner). Zero heap bytes are
       // involved — this counts owners, so it cannot be fooled by GC timing.
       (window as any).__mmChartOwnership = () => chartOwnershipCensus();
+      // Dislocation episode marks witness (product spec §4.3 e2e): the episode the pane drew and the exact bar
+      // times of its marks — a canvas screenshot cannot show that the marks sit on the knowable-at bars.
+      (window as any).__mmEpisodeMarks = () => ({ episodeId: episodeRef.current?.episode_id ?? null, count: episodeSpecsRef.current.length, times: episodeSpecsRef.current.map((s) => s.time) });
       // Live-bar coherence test hook. Every witness below is read in ONE synchronous pass off the
       // REAL canvas series / readout maps / sync peer, so a spec can prove that a single accepted
       // quote left them all describing the same generation of the developing candle — the thing a
@@ -8451,6 +8486,8 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
       // Nulled unconditionally: the plugin is already gone with the chart, so there is nothing
       // to detach, only a reference to drop.
       ttmsqMarkersRef.current = null; macdMarkersRef.current = null;
+      try { episodeMarkersRef.current?.detach(); } catch {}
+      episodeMarkersRef.current = null;
       priceSeriesRef.current = null; priceFamilyRef.current = null;
       futureAxisRef.current = null;   // the engine disposes every series with the chart
       watermarkPluginRef.current = null;   // plugin is attached to a pane; engine.destroy() tears it down
@@ -8500,12 +8537,13 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
     builtIndicatorRef.current = null;
     let cancelled = false;
     let generationReady: TerminalVisualReadyAnnouncement | null = null;
+    const releaseVisualOwners = () => {
+      visualSourceRef.current = null; visualSeriesRef.current = null; indDataMapRef.current.clear();
+      visualPanelRef.current?.reset("empty");
+      onIndRowsAtRef.current?.(() => ({}), { symbol, timeframe: effectiveTimeframe, bars: [] });
+    };
     const announceVisualReady = (state: "data" | "empty") => {
-      if (state === "empty") {
-        visualSourceRef.current = null; visualSeriesRef.current = null; indDataMapRef.current.clear();
-        visualPanelRef.current?.reset("empty");
-        onIndRowsAtRef.current?.(() => ({}), { symbol, timeframe: effectiveTimeframe, bars: [] });
-      }
+      if (state === "empty") releaseVisualOwners();
       generationReady?.cancel();
       generationReady = announceTerminalVisualReady(symbol, state, {
         timeframe: effectiveTimeframe,
@@ -8541,6 +8579,21 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
       });
       visualReadyRef.current = generationReady;
     };
+    // ── optional slice (daily, non-composite): adopted by this generation whenever it settles ──
+    let sliceOutcome: CacheOutcome | null = null;
+    let sliceOwned = false;    // this generation's bars own sliceRef (set once its OHLC painted)
+    let barsPainted = false;   // the tail resolved marks; a later slice must re-resolve them itself
+    const adoptSlice = (outcome: CacheOutcome) => {
+      sliceRef.current = outcome.status === "data" ? outcome.data : null;
+      setSliceState(outcome.status, symbol);
+      if (!barsPainted) return;   // the tail of this generation reads sliceRef itself
+      const rows = barsRef.current;
+      if (!rows.length) return;
+      sigMarksRef.current = resolveSigMarks(sliceRef.current, rows);
+      { const sc = resolveSideChannels(sliceRef.current, rows); earlyDotsRef.current = sc.dots; warnMarksRef.current = sc.warns; }
+      paintStatus(rows, sliceRef.current);
+      renderSignalsRef.current();
+    };
     const intraday = isIntradayTf(effectiveTimeframe);
     // crossing the intraday↔daily boundary changes the TIME TYPE of every series (numeric epoch vs
     // 'YYYY-MM-DD') — in-place setData updates across it are unsound (LWC one-time-type law) and the
@@ -8564,6 +8617,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
         } catch (e: any) { feedErr = e?.message || "network error"; }
         if (cancelled || epochRef.current !== epoch) return;
         sliceRef.current = null;                 // no daily slice on intraday → no sig marks
+        setSliceState("none", symbol);
         sessionAnchorRef.current = null; ohlcSrcRef.current = null;   // daily-multiple grid does not apply here
         sigMarksRef.current = [];
         earlyDotsRef.current = []; warnMarksRef.current = [];   // GC v2 side channels: daily-only too
@@ -8628,6 +8682,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
         } else { priceS.applyOptions({ priceFormat: priceFmt() }); }
         if (chartType === "baseline" && onChart.length) priceS!.applyOptions({ baseValue: { type: "price", price: onChart[0].c } });
         priceS!.setData(priceData(onChart) as any);
+        renderEpisodeMarksRef.current();
       suitePaintKeyRef.current = "";
         applyFutureAxis();   // future dates on the time axis follow the loaded bars
         cpMark(`chart-painted[${symbol}@${effectiveTimeframe}:intraday]`);
@@ -8683,16 +8738,38 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
         }
         daily = summed;
         sliceRef.current = null;
+        setSliceState("none", symbol);
         // A basket has no published session calendar of its own — the legs' anchors do not
         // combine into one. It falls back to the documented feed-phased default, which is also
         // what the signal engine would do, and no Oracle signal is claimed on a composite.
         sessionAnchorRef.current = null;
         ohlcSrcRef.current = summed;
       } else {
-        const { ohlc, slice } = await getSliceAndOhlc(symbol);
+        // The bars are REQUIRED, the slice OPTIONAL: both requests start together (and reuse the
+        // route preload / any shell read in flight), but only the OHLC gates this paint. The slice
+        // lands whenever it lands — before the bars, during the tail, or after ready — and is
+        // adopted only by THIS generation (a superseded symbol's late slice changes nothing).
+        const reads = getSliceAndOhlc(symbol);
+        reads.slice
+          .catch((): CacheOutcome => ({ status: "unavailable", reason: "network" }))
+          .then((outcome) => {
+            if (cancelled || epochRef.current !== epoch) return;
+            sliceOutcome = outcome;
+            if (sliceOwned) adoptSlice(outcome);
+          });
+        const ohlcRead = await reads.ohlc;
         cpMark(`ohlc-fetch-done[${symbol}]`);
         if (cancelled || epochRef.current !== epoch) return;
-        sliceRef.current = slice;   // authoritative slice for replay sig-mark re-resolution (Effect 4)
+        if (ohlcRead.status === "unavailable") {
+          // A failed read is not an empty history (failure-state law): say the bars could not be
+          // loaded, and announce nothing — no ready edge, data or empty, was earned.
+          clearChartData();
+          releaseVisualOwners();
+          if (statusRef.current) statusRef.current.textContent = "Chart data unavailable.";
+          showEmptyRef.current(`Could not load ${symbol} price history. Try again shortly.`, null);
+          return;
+        }
+        const ohlc = ohlcRead.status === "data" ? ohlcRead.data : null;
         if (!ohlc?.bars?.length) {
           clearChartData();
           if (statusRef.current) statusRef.current.textContent = "No data for this symbol.";
@@ -8708,6 +8785,10 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
         sessionAnchorRef.current = parseSessionAnchor(ohlc.session_anchor);
         // …and the document's own bars array is the aggregation memo's generation token.
         ohlcSrcRef.current = ohlc.bars;
+        // From here this generation owns the slice refs (Effect 4's replay re-resolves from them).
+        sliceOwned = true;
+        if (sliceOutcome) adoptSlice(sliceOutcome);
+        else { sliceRef.current = null; setSliceState("pending", symbol); }
       }
       dailyBarsRef.current = daily;         // raw daily source — the R11 splice operates on THIS
       // ── PERF-FIX (b): use cached resample; same-symbol TF switches skip the O(N) bucketing pass ──
@@ -8772,6 +8853,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
       }
       if (chartType === "baseline" && onChart.length) priceS!.applyOptions({ baseValue: { type: "price", price: onChart[0].c } });
       priceS!.setData(priceData(onChart) as any);
+      renderEpisodeMarksRef.current();
       suitePaintKeyRef.current = "";
       applyFutureAxis();   // future dates on the time axis follow the loaded bars
       cpMark(`chart-painted[${symbol}@${effectiveTimeframe}:daily]`);   // first candle on canvas
@@ -8807,6 +8889,8 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
 
       // ── signal marks, status, verdict, view ──
       // sliceRef.current is null for composites (no Oracle signal) — functions guard on null slice.
+      // A slice landing after this point re-resolves through adoptSlice.
+      barsPainted = true;
       sigMarksRef.current = resolveSigMarks(sliceRef.current, onChart);
       { const sc = resolveSideChannels(sliceRef.current, onChart); earlyDotsRef.current = sc.dots; warnMarksRef.current = sc.warns; }
       paintStatus(onChart, sliceRef.current);
@@ -9138,6 +9222,50 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
     return () => { alive = false; };
     // eslint-disable-next-line
   }, [hasLab, symbol]);
+
+  // ── Dislocation episode marks (product spec §4.3) — transition markers at knowable-at bars; NO levels (G7). ──
+  const renderEpisodeMarks = () => {
+    try { episodeMarkersRef.current?.detach(); } catch {}
+    episodeMarkersRef.current = null;
+    episodeSpecsRef.current = [];
+    const ep = episodeRef.current; const priceS = priceSeriesRef.current; const bars = barsRef.current;
+    if (!ep || !priceS || !bars.length) return;
+    if (ep.ticker.toUpperCase() !== symbolRef.current.toUpperCase()) return;
+    const marks = toChartMarks(episodeMarks(ep), bars.map((b) => b.time as unknown as number | string), isIntradayRef.current);
+    if (!marks.length) return;
+    const t = tokensRef.current;
+    const palette: Record<MarkTone, string> = {
+      flagged: t.warn || "#f5a524", confirmed: t.up || "#26c281", observed: t.mut || "#8a94a6",
+      failed: t.down || "#f0566b", expired: t.mut || "#8a94a6", resolved: t.link || "#5b8def",
+    };
+    const lang = typeof document !== "undefined" && document.documentElement.getAttribute("data-lang") === "zh" ? "zh" as const : "en" as const;
+    const specs = chartMarkerSpecs(marks, palette, lang);
+    try { episodeMarkersRef.current = createSeriesMarkers(priceS, specs as any); episodeSpecsRef.current = specs; } catch { episodeSpecsRef.current = []; }
+  };
+  renderEpisodeMarksRef.current = renderEpisodeMarks;
+  // ── EFFECT 3-episode — [episodeId, symbol]: fetch the deep-linked episode; the chart draws nothing on 401/403/absent (the screen owns the honest state). ──
+  useEffect(() => {
+    episodeRef.current = null;
+    renderEpisodeMarksRef.current();
+    if (!episodeId) return;
+    const sym = symbolRef.current; if (!sym) return;
+    let alive = true;
+    const url = (view: "my" | "market") => `/api/v1/dislocations?view=${view}&sym=${encodeURIComponent(sym.toUpperCase())}`;
+    const pick = (j: any): LiveEntryEpisode | null => { const eps = Array.isArray(j?.episodes) ? j.episodes : []; return eps.find((e: any) => e?.episode_id === episodeId) ?? null; };
+    (async () => {
+      try {
+        let r = await fetch(url("my"), { cache: "no-store", credentials: "same-origin" });
+        if (r.status === 401) return;
+        let ep = r.ok ? pick(await r.json().catch(() => null)) : null;
+        if (!ep) { r = await fetch(url("market"), { cache: "no-store", credentials: "same-origin" }); ep = r.ok ? pick(await r.json().catch(() => null)) : null; }
+        if (!alive || symbolRef.current !== sym) return;
+        episodeRef.current = ep;
+        renderEpisodeMarksRef.current();
+      } catch { /* feed unavailable — no marks */ }
+    })();
+    return () => { alive = false; };
+    // eslint-disable-next-line
+  }, [episodeId, symbol]);
 
   // ── EFFECT 3-optlevels — fetch ladder + moves + current state when Options Levels is ON ──
   // The strike-resolved gex ladder remains authoritative. gex_state is a current root-scoped

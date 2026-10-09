@@ -7,7 +7,11 @@
  *     the stale value is returned IMMEDIATELY and a background re-fetch fires.
  *   - In-flight deduplication: concurrent callers waiting on the same URL collapse
  *     onto one Promise.
- *   - Never pins null — on error the key is evicted so the next call retries.
+ *   - Only payloads are kept: a 404 absence and a failed read both evict the key, so
+ *     the next call asks again.
+ *   - flowGet / flowGetFresh resolve null for every non-data outcome. flowGetResult
+ *     keeps the outcome — data, a 404/410 absence, or a read that did not land — for
+ *     surfaces that must not show a failure as "nothing published".
  *   - SSR-safe: works server-side (no window APIs).
  *
  * Usage (one-line swap in any component):
@@ -20,12 +24,24 @@
  *   const data = await flowGet("gex:NVDA");
  */
 
+import type { UnavailableReason } from "@/lib/dataCache";
+
 const TTL_MS = 25_000;
+
+/**
+ * What one /api/flow read established — dataCache's contract. Only a 404/410 is a
+ * published absence; a refused fetch, any other non-2xx and an unparseable or null
+ * body say nothing about whether the payload exists.
+ */
+export type FlowOutcome =
+  | { status: "data"; data: unknown }
+  | { status: "absent"; httpStatus: number }
+  | { status: "unavailable"; reason: UnavailableReason; httpStatus?: number };
 
 type CacheEntry = {
   data: unknown;
   ts: number;
-  inflight: Promise<unknown> | null;
+  inflight: Promise<FlowOutcome> | null;
 };
 
 const store = new Map<string, CacheEntry>();
@@ -34,20 +50,41 @@ function buildUrl(f: string): string {
   return `/api/flow?f=${encodeURIComponent(f)}`;
 }
 
-function doFetch(url: string, entry: CacheEntry): Promise<unknown> {
-  const inflight: Promise<unknown> = fetch(url, { cache: "no-store" })
-    .then((r) => (r.ok ? r.json() : null))
-    .catch(() => null)
-    .then((data: unknown) => {
+async function readOutcome(requestUrl: string): Promise<FlowOutcome> {
+  let r: Response;
+  try {
+    r = await fetch(requestUrl, { cache: "no-store" });
+  } catch {
+    return { status: "unavailable", reason: "network" };
+  }
+  if (!r.ok) {
+    if (r.status === 404 || r.status === 410) return { status: "absent", httpStatus: r.status };
+    return { status: "unavailable", reason: "server", httpStatus: r.status };
+  }
+  let data: unknown;
+  try {
+    data = await r.json();
+  } catch {
+    return { status: "unavailable", reason: "malformed", httpStatus: r.status };
+  }
+  if (data == null) return { status: "unavailable", reason: "malformed", httpStatus: r.status };
+  return { status: "data", data };
+}
+
+function doFetch(url: string, entry: CacheEntry, requestUrl = url): Promise<FlowOutcome> {
+  const inflight: Promise<FlowOutcome> = readOutcome(requestUrl)
+    // Never rejects: anything the classifier did not anticipate is a read that did not land.
+    .catch((): FlowOutcome => ({ status: "unavailable", reason: "network" }))
+    .then((outcome) => {
       const current = store.get(url);
       if (current && current.inflight === inflight) {
-        if (data == null) {
-          store.delete(url);
+        if (outcome.status === "data") {
+          store.set(url, { data: outcome.data, ts: Date.now(), inflight: null });
         } else {
-          store.set(url, { data, ts: Date.now(), inflight: null });
+          store.delete(url);
         }
       }
-      return data;
+      return outcome;
     });
 
   entry.inflight = inflight;
@@ -55,9 +92,11 @@ function doFetch(url: string, entry: CacheEntry): Promise<unknown> {
   return inflight;
 }
 
+const dataOrNull = (outcome: FlowOutcome): unknown => (outcome.status === "data" ? outcome.data : null);
+
 /**
  * flowGet — fetch /api/flow?f=<f> with stale-while-revalidate.
- * Returns null on a hard error (network failure or non-ok status).
+ * Returns null on a hard error (network failure or non-ok status) and on a 404.
  */
 export async function flowGet(f: string, options: { refresh?: boolean } = {}): Promise<unknown> {
   const url = buildUrl(f);
@@ -66,10 +105,10 @@ export async function flowGet(f: string, options: { refresh?: boolean } = {}): P
 
   if (entry) {
     // Deduplicate in-flight
-    if (entry.inflight !== null) return entry.inflight;
+    if (entry.inflight !== null) return entry.inflight.then(dataOrNull);
 
     // An index refresh must await new bytes; ordinary consumers keep SWR.
-    if (options.refresh) return doFetch(url, { data: entry.data, ts: entry.ts, inflight: null });
+    if (options.refresh) return doFetch(url, { data: entry.data, ts: entry.ts, inflight: null }).then(dataOrNull);
 
     const age = now - entry.ts;
 
@@ -83,6 +122,25 @@ export async function flowGet(f: string, options: { refresh?: boolean } = {}): P
   }
 
   // Cache miss — blocking fetch
+  return doFetch(url, { data: null, ts: 0, inflight: null }).then(dataOrNull);
+}
+
+/**
+ * flowGetResult — flowGet's read with the outcome kept. The same store, SWR and
+ * in-flight dedupe as flowGet, so mixing the two never opens a second request.
+ * Never re-collapse the outcome into null at the call site.
+ */
+export async function flowGetResult(f: string): Promise<FlowOutcome> {
+  const url = buildUrl(f);
+  const entry = store.get(url);
+
+  if (entry) {
+    if (entry.inflight !== null) return entry.inflight;
+    // Stale — return stale immediately + kick background revalidation
+    if (Date.now() - entry.ts >= TTL_MS) doFetch(url, { data: entry.data, ts: entry.ts, inflight: null });
+    return { status: "data", data: entry.data };
+  }
+
   return doFetch(url, { data: null, ts: 0, inflight: null });
 }
 
@@ -92,18 +150,35 @@ export async function flowGet(f: string, options: { refresh?: boolean } = {}): P
  * actually consume a nightly artifact after it advances rather than merely
  * trigger SWR in the background and keep rendering the previous value.
  */
-export async function flowGetFresh(f: string): Promise<unknown> {
+export async function flowGetFresh(
+  f: string,
+  options: { forceUpstream?: boolean } = {},
+): Promise<unknown> {
   const url = buildUrl(f);
   const now = Date.now();
   const entry = store.get(url);
 
-  if (entry) {
-    if (entry.inflight !== null) return entry.inflight;
-    if (now - entry.ts < TTL_MS) return Promise.resolve(entry.data);
-    return doFetch(url, { data: entry.data, ts: entry.ts, inflight: null });
+  // A user-explicit Leaders refresh is not just a client-cache invalidation:
+  // it asks the SAME entitlement-gated API to recheck the publisher even when
+  // the server's 30s TTL has not expired. Preserve this cache's single key,
+  // dedup ownership and post-fetch value for the next ordinary read.
+  if (f === "leaders" && options.forceUpstream) {
+    if (entry?.inflight) await entry.inflight;
+    const current = store.get(url);
+    return doFetch(
+      url,
+      { data: current?.data ?? null, ts: current?.ts ?? 0, inflight: null },
+      url + "&refresh=1",
+    ).then(dataOrNull);
   }
 
-  return doFetch(url, { data: null, ts: 0, inflight: null });
+  if (entry) {
+    if (entry.inflight !== null) return entry.inflight.then(dataOrNull);
+    if (now - entry.ts < TTL_MS) return Promise.resolve(entry.data);
+    return doFetch(url, { data: entry.data, ts: entry.ts, inflight: null }).then(dataOrNull);
+  }
+
+  return doFetch(url, { data: null, ts: 0, inflight: null }).then(dataOrNull);
 }
 
 /**

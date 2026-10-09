@@ -142,8 +142,8 @@ export function readOwnerWatchlists(storage: StoragePort, owner: string): LocalW
   return normalizeState(readSlot(storage, WLS_KEY, owner));
 }
 
-export function writeOwnerWatchlists(storage: StoragePort, owner: string, state: LocalWatchlistState): void {
-  writeSlot(storage, WLS_KEY, owner, { lists: state.lists, active: state.active, meta: state.meta });
+export function writeOwnerWatchlists(storage: StoragePort, owner: string, state: LocalWatchlistState): boolean {
+  return writeSlot(storage, WLS_KEY, owner, { lists: state.lists, active: state.active, meta: state.meta });
 }
 
 // ───────────────────────────── flags / notes ─────────────────────────────
@@ -159,8 +159,8 @@ export function readOwnerStringMap(storage: StoragePort, key: string, owner: str
   return map;
 }
 
-export function writeOwnerStringMap(storage: StoragePort, key: string, owner: string, map: Record<string, string>): void {
-  writeSlot(storage, key, owner, Object.keys(map).length ? map : undefined);
+export function writeOwnerStringMap(storage: StoragePort, key: string, owner: string, map: Record<string, string>): boolean {
+  return writeSlot(storage, key, owner, Object.keys(map).length ? map : undefined);
 }
 
 // ───────────────────────────── migration receipt ─────────────────────────────
@@ -273,7 +273,7 @@ export function adoptLegacyWatchlistState(storage: StoragePort): boolean {
       try { return JSON.parse(storage.getItem(LEGACY_KEYS.lists) || "null"); } catch { return null; }
     })());
     if (legacyState && !guestHasLists) {
-      writeOwnerWatchlists(storage, GUEST_OWNER, legacyState);
+      if (!writeOwnerWatchlists(storage, GUEST_OWNER, legacyState)) return adopted;
       adopted = true;
     }
     for (const [legacyKey, scopedKey] of [[LEGACY_KEYS.flags, WL_FLAGS_KEY], [LEGACY_KEYS.notes, WL_NOTES_KEY]] as const) {
@@ -287,7 +287,7 @@ export function adoptLegacyWatchlistState(storage: StoragePort): boolean {
         if (symbol && typeof value === "string") map[symbol] = value;
       }
       if (!Object.keys(map).length) continue;
-      writeOwnerStringMap(storage, scopedKey, GUEST_OWNER, map);
+      if (!writeOwnerStringMap(storage, scopedKey, GUEST_OWNER, map)) return adopted;
       adopted = true;
     }
     // The receipt is DISCARDED, never adopted — see the policy note at the top of this file.
