@@ -72,6 +72,32 @@ test("direct native entry hands off to the existing Macro overview without inven
   await expect(page.locator("#macro-return-target")).toHaveText("Retained Macro route fixture");
 });
 
+test("direct mobile entry exposes the same public Macro overview without replacing the drawer", async ({ page }, testInfo) => {
+  test.skip(testInfo.project.name !== "mobile", "Mobile-specific contextual link and existing drawer owner");
+  const target = "https://www.mastermind-x.com/macro.html";
+  await page.route(target, route => route.fulfill({
+    status: 200, contentType: "text/html",
+    body: "<!doctype html><html><body><main id='macro-mobile-target'>Retained Macro route fixture</main></body></html>",
+  }));
+  for (const width of [390, 320]) {
+    await page.setViewportSize({ width, height: 844 });
+    await page.goto("/analysis?symbol=NVDA");
+    const bridge = page.locator("[data-investor-mobile-overview-bridge]");
+    await expect(bridge).toBeVisible();
+    await expect(bridge).toHaveAttribute("href", target);
+    await expect(bridge).toHaveAttribute("aria-label", "Dashboard");
+    const rect = await bridge.boundingBox();
+    expect(rect!.height).toBeGreaterThanOrEqual(44);
+    await expect(page.getByRole("button", { name: "Menu", exact: true })).toBeVisible();
+    await expect(page.locator(".main2")).toBeVisible();
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1)).toBe(true);
+    await page.screenshot({ path: testInfo.outputPath(`mobile-market-overview-${width}.png`) });
+  }
+  await page.locator("[data-investor-mobile-overview-bridge]").click();
+  await expect(page).toHaveURL(target);
+  await expect(page.locator("#macro-mobile-target")).toHaveText("Retained Macro route fixture");
+});
+
 test("a short desktop viewport keeps every investor navigation destination keyboard-reachable", async ({ page }, testInfo) => {
   test.skip(testInfo.project.name !== "desktop", "Desktop short-height scroll contract");
   await page.setViewportSize({ width: 1024, height: 520 });

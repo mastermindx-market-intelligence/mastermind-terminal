@@ -7,3 +7,6 @@ export function isInvestorShellPreviewEnabled(value: unknown): boolean {
 export function isInvestorShellPreviewPath(pathname: string): boolean {
   return pathname === "/analysis" || pathname === "/discover";
 }
+
+/** Existing public Macro dashboard destination; presentation-only cross-product handoff. */
+export const MACRO_OVERVIEW_HREF = "https://www.mastermind-x.com/macro.html";

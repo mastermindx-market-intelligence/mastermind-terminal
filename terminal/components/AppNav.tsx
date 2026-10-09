@@ -4,6 +4,7 @@ import { Suspense } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { useT } from "@/lib/i18n";
 import { useActiveSymbol } from "@/lib/activeSymbol";
+import { MACRO_OVERVIEW_HREF } from "@/lib/investorShellPreview";
 // The nav-decoration policy is a leaf module so both nav surfaces share one rule and it can be
 // unit-tested without mounting a nav.
 import { navHref } from "@/lib/navSymbol";
@@ -94,7 +95,7 @@ function AppNavInner({ labelled = false, id, overviewBridge = false }: AppNavPre
           {/* Existing published Macro overview, not a new source of route or user state.
               A normal document navigation hands control back to Macro's current owner. */}
           <a
-            href="https://www.mastermind-x.com/macro.html"
+            href={MACRO_OVERVIEW_HREF}
             className="navbtn investor-overview-link"
             data-investor-overview-bridge=""
             aria-label={t("dashboard")}

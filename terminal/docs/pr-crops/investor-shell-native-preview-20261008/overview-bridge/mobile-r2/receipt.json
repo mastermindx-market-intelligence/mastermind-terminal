@@ -1,0 +1,50 @@
+{
+  "schema": "mastermind.investor_shell_overview_mobile_r2.evidence.v1",
+  "state": "LOCAL_PRODUCT_SLICE_BUILT_NOT_PROVEN",
+  "parent_head": "699304729a122b4abd5b6b0c263e1e06f500daa3",
+  "source_sha256": {
+    "components/AppNav.tsx": "31c47aec68bb52d0fd1169c53d50fa7c447a054d5870cae07cd3f39ed3d75b29",
+    "components/chrome/AppShell.tsx": "a5deea5893db834cdfd25060002e80b0fd8299fff16953154dfe84c3db5fb5ee",
+    "components/chrome/investor-shell-preview.css": "83d1842b9b057014f698d5e62627c3e492a1061d0e8713b7a2bdc3ca8753650e",
+    "lib/investorShellPreview.ts": "d0e7797ffba0bfdda2fdabc1312abe07e631b5060ed9c58bbb320ed4b50624e9",
+    "lib/__tests__/investorShellPreview.test.tsx": "5e5870ae6dddd3a2f08de1140c6b2bf4a0dd593d101ec33946e53793b594c445",
+    "e2e/investor-shell-preview.spec.ts": "ae445cb8c15d241513bbef24b9dd44e15c7455bde7391c26e3d597fcf13504fa"
+  },
+  "new_feature": "Existing public Macro dashboard as a mobile in-flow contextual link at 320/390px, without modifying or cloning MobileNav",
+  "deduplication": "From-Macro sessions still use the incumbent Back action; ordinary/default-off routes unchanged",
+  "local_tests": {
+    "component_pass": 38,
+    "component_fail": 0,
+    "desktop_browser_pass": 7,
+    "desktop_browser_intentional_skip": 1,
+    "mobile_browser_selected_pass": 3,
+    "mobile_browser_selected_fail": 0,
+    "environment": "CI=1 to force fresh-server local Playwright; dedicated port32092; no hosted CI invoked manually"
+  },
+  "full_typecheck": "NOT_REQUALIFIED this source; prior four production-generated Next API route-export errors remain",
+  "browser_scope": "Local fixture data with precise simulated Macro URL response, not live Macro auth/data proof",
+  "screenshots": {
+    "analysis-desktop.png": {
+      "sha256": "1ef69ba99827afd0f44e8112104e3709fb26bbde1961e8d64ad8329d00d6a0d6",
+      "bytes": 57899
+    },
+    "mobile-direct-390.png": {
+      "sha256": "adea828a78cc21701d01e0021bd0292d6c6f83ec2ff25ba707b3a47003d9b631",
+      "bytes": 27343
+    },
+    "mobile-direct-320.png": {
+      "sha256": "a31ad799133f171bbdd566af363d18457c9a74b61fb6a8109a93903eac5157d6",
+      "bytes": 27434
+    },
+    "mobile-zh-320.png": {
+      "sha256": "6e672417f9dc2a89b86dd89a0c0e4b248906368991a9c4f043a559b37a9d432d",
+      "bytes": 27354
+    }
+  },
+  "holds": [
+    "#697 mobile modal current-authority review and integration",
+    "Full six-job investor IA, market scope and search remain incomplete",
+    "Macro #7949 remains a conflicting independent source branch",
+    "No production build, preview host, live data or rollback proof"
+  ]
+}

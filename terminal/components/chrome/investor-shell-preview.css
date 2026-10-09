@@ -115,3 +115,38 @@
   .investor-shell-preview > .appnav .navbtn,
   .investor-shell-preview .investor-nav-toggle { transition: none; }
 }
+
+
+/* The mobile drawer is a separate, incumbent owner. This is one contextual
+ * cross-product route, not an additional global menu or a second mobile drawer. */
+.investor-shell-preview > .investor-mobile-overview-shortcut { display: none; }
+@media (max-width: 860px) {
+  .investor-shell-preview > .investor-mobile-overview-shortcut {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    min-height: 44px;
+    width: 100%;
+    padding: 0 18px;
+    border-bottom: 1px solid var(--line);
+    background: var(--panel);
+    color: var(--text-2);
+    font: 600 13px/1.4 var(--font-ui);
+    text-decoration: none;
+  }
+  .investor-shell-preview > .investor-mobile-overview-shortcut svg {
+    width: 18px;
+    height: 18px;
+    flex: 0 0 18px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.5;
+  }
+  .investor-shell-preview > .investor-mobile-overview-shortcut .investor-overview-chevron {
+    margin-inline-start: auto;
+  }
+  .investor-shell-preview > .investor-mobile-overview-shortcut:focus-visible {
+    outline: 2px solid var(--brand-2, var(--brand));
+    outline-offset: -3px;
+  }
+}

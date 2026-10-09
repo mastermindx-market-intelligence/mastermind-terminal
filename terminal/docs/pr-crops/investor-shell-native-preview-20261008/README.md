@@ -38,3 +38,21 @@ so do **not** promote those older image digests to the new source. The mobile dr
 the four blocked Next route exports, and the independent mobile #697 adoption gate
 remain unmodified. New hosted CI was intentionally not the acceptance focus of this
 product-development phase; any naturally started workflow is separately classified.
+
+
+## Mobile contextual Macro handoff — later R2 evidence
+
+The first overview bridge receipt and three original captures remain historical
+evidence for source head `699304729a122b4abd5b6b0c263e1e06f500daa3`.
+The subsequent **mobile-r2** implementation adds the same public Macro destination
+as a 44px minimum-height contextual link at 320/390 widths, scoped to the
+server-enabled Analysis/Discover preview and absent on from-Macro entries.
+MobileNav stays the sole drawer owner; this is not a competing destination tree.
+
+Current local source/capture digests and exact test scope:
+[overview-bridge/mobile-r2/receipt.json](overview-bridge/mobile-r2/receipt.json).
+38 focused component cases passed, including EN/ZH; seven desktop browser
+cases passed (one intentional mobile-only skip); three selected mobile browser
+cases passed at narrow widths without page-level horizontal overflow.
+All browser tests used local fixtures and read-only route interception, not
+live Macro data/auth; hosted CI and full Next production typecheck remain held.

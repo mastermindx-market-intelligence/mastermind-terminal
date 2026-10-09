@@ -1,6 +1,6 @@
 "use client";
 import { createContext, useCallback, useContext, useMemo, useState } from "react";
-import { isInvestorShellPreviewPath } from "@/lib/investorShellPreview";
+import { isInvestorShellPreviewPath, MACRO_OVERVIEW_HREF } from "@/lib/investorShellPreview";
 import "./investor-shell-preview.css";
 import { usePathname } from "next/navigation";
 import { BrandLockup } from "@/components/BrandMark";
@@ -140,6 +140,24 @@ export default function AppShell({
         data-investor-compact={preview ? String(compactNavigation) : undefined}
       >
         <MobileNav email={email} fromMacro={fromMacro} onBack={onBack} />
+        {preview && !fromMacro && (
+          // A contextual return to the existing market overview. The incumbent
+          // MobileNav remains the only mobile primary destination drawer.
+          <a
+            href={MACRO_OVERVIEW_HREF}
+            className="investor-mobile-overview-shortcut"
+            data-investor-mobile-overview-bridge=""
+            aria-label={t("dashboard")}
+          >
+            <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+              <path d="M3 11.5 12 4l9 7.5" />
+              <path d="M5.5 10.5V20h13V10.5" />
+              <path d="M9 20v-6h6v6" />
+            </svg>
+            <span>{t("dashboard")}</span>
+            <span aria-hidden="true" className="investor-overview-chevron">↗</span>
+          </a>
+        )}
         <header className="topbar">
           {preview && (
             <button

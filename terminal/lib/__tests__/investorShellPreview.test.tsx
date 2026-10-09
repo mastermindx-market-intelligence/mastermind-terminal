@@ -175,9 +175,22 @@ describe("first cross-product investor destination — source-owned Macro overvi
     expect(dom.querySelectorAll("[data-brain-owner=existing]")).toHaveLength(1);
   });
 
+  it.each(["en", "zh"])("offers the same %s mobile Macro shortcut without changing MobileNav", lang => {
+    state.fromMacro = false;
+    state.lang = lang;
+    const dom = renderShell(true);
+    const shortcut = dom.querySelector<HTMLAnchorElement>("[data-investor-mobile-overview-bridge]");
+    expect(shortcut).not.toBeNull();
+    expect(shortcut!.getAttribute("href")).toBe("https://www.mastermind-x.com/macro.html");
+    expect(shortcut!.getAttribute("aria-label")).toBe(LEX.dashboard[lang === "zh" ? 1 : 0]);
+    expect(dom.querySelectorAll("[data-mobile-owner=existing]")).toHaveLength(1);
+    expect(dom.querySelectorAll("nav.appnav a")).toHaveLength(TOP.length + 1);
+  });
+
   it("does not duplicate the existing Macro return control or extend the default shell", () => {
     const fromMacro = renderShell(true);
     expect(fromMacro.querySelector("[data-investor-overview-bridge]")).toBeNull();
+    expect(fromMacro.querySelector("[data-investor-mobile-overview-bridge]")).toBeNull();
     expect(fromMacro.querySelectorAll("[data-back=existing]")).toHaveLength(1);
   });
 
@@ -185,6 +198,7 @@ describe("first cross-product investor destination — source-owned Macro overvi
     state.fromMacro = false;
     const dom = renderShell();
     expect(dom.querySelector("[data-investor-overview-bridge]")).toBeNull();
+    expect(dom.querySelector("[data-investor-mobile-overview-bridge]")).toBeNull();
     expect(dom.querySelectorAll("nav.appnav a")).toHaveLength(TOP.length);
   });
 
