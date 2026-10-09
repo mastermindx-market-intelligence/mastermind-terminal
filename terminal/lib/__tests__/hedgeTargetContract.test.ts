@@ -99,6 +99,24 @@ describe("hedge-target scenario consumer", () => {
     expect(parsed.scope.expectedContracts).toBe(1);
   });
 
+  it("rejects overflowing arithmetic instead of accepting Infinity <= Infinity", () => {
+    const raw = structuredClone(zero);
+    raw.hedge.anchor_target = -1e308;
+    raw.hedge.endpoint_target = 1e308;
+    raw.by_cohort[0].anchor_target = -1e308;
+    raw.by_cohort[0].endpoint_target = 1e308;
+    expect(parseHedgeTargetChange(raw)).toBeNull();
+  });
+
+  it("does not project unvalidated extra numeric claims", () => {
+    const raw = fresh();
+    Object.assign(raw.hedge, { probability: 0.99 });
+    Object.assign(raw.by_expiry[0], { dealer_ownership: "observed" });
+    const parsed = parseHedgeTargetChange(raw)!;
+    expect(parsed.hedge).not.toHaveProperty("probability");
+    expect(parsed.byExpiry[0]).not.toHaveProperty("dealer_ownership");
+  });
+
   it.each([null, [], "", 0, true, {}])("fails closed on non-contract input %j", (raw) => {
     expect(parseHedgeTargetChange(raw)).toBeNull();
   });

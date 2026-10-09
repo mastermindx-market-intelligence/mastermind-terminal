@@ -78,7 +78,8 @@ const day = (x: unknown): x is string => text(x) && /^\d{4}-\d{2}-\d{2}$/.test(x
 const integer = (x: unknown): x is number => finite(x) && Number.isSafeInteger(x) && x >= 0;
 const strings = (x: unknown): x is string[] => Array.isArray(x) && x.every(text);
 const unique = (xs: string[]) => new Set(xs).size === xs.length;
-const close = (a: number, b: number, ...scale: number[]) => Math.abs(a - b) <= 1e-9 * Math.max(1, Math.abs(a), Math.abs(b), ...scale.map(Math.abs));
+const close = (a: number, b: number, ...scale: number[]) => [a, b, ...scale].every(Number.isFinite) &&
+  Math.abs(a - b) <= 1e-9 * Math.max(1, Math.abs(a), Math.abs(b), ...scale.map(Math.abs));
 const numeric = <K extends string>(x: unknown, keys: readonly K[]): x is Obj & Record<K, number> =>
   record(x) && keys.every(k => finite(x[k]));
 const rows = (x: unknown): x is Obj[] => Array.isArray(x) && x.every(record);
@@ -90,6 +91,9 @@ const etDateFormat = new Intl.DateTimeFormat("en-CA", {
 function etDay(instant: string): string {
   const parts = etDateFormat.formatToParts(new Date(instant));
   return ["year", "month", "day"].map(k => parts.find(p => p.type === k)?.value).join("-");
+}
+function pick<T extends object, K extends keyof T>(value: T, keys: readonly K[]): Pick<T, K> {
+  return Object.fromEntries(keys.map(key => [key, value[key]])) as Pick<T, K>;
 }
 
 export function parseHedgeTargetChange(value: unknown): HedgeTargetView | null {
@@ -196,10 +200,14 @@ export function parseHedgeTargetChange(value: unknown): HedgeTargetView | null {
     assumptions: { pricing: a.pricing, volMap: String(a.vol_map), ivShift: a.iv_shift, rate: a.r, dividendYield: a.q, maxSourceAgeSeconds: a.max_source_age_seconds },
     units: { target_change: "SPX_index_equivalent_units", reference_notional_usd: "target_SPX_times_change_in_hedge_units" },
     authority: Object.fromEntries(authorityKeys.map(k => [k, false])) as Authority,
-    hedge: v.hedge === null ? null : { ...(v.hedge as unknown as HedgeTargets) },
-    attribution: v.attribution === null ? null : { ...(v.attribution as unknown as HedgeAttribution) },
-    byExpiry: v.by_expiry.map(row => ({ ...row } as unknown as HedgeExpiry)),
-    byCohort: v.by_cohort.map(row => ({ ...row } as unknown as HedgeCohort)),
+    hedge: v.hedge === null ? null : pick(v.hedge as unknown as HedgeTargets,
+      ["anchor_target", "endpoint_target", "target_change", "reference_notional_usd", "gross_contract_target_changes", "cancellation_ratio"]),
+    attribution: v.attribution === null ? null : pick(v.attribution as unknown as HedgeAttribution,
+      ["method", "repricing", "inventory", "linear_approximation", "linear_residual", "identity_residual"]),
+    byExpiry: v.by_expiry.map(row => pick(row as unknown as HedgeExpiry,
+      ["option_root", "expiry", "fixing_at", "target_change"])),
+    byCohort: v.by_cohort.map(row => pick(row as unknown as HedgeCohort,
+      ["cohort", "contracts", "anchor_target", "endpoint_target", "target_change"])),
     unavailableReasons: [...v.unavailable_reasons],
   };
 }
