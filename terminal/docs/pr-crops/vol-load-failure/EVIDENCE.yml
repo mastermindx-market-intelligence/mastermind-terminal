@@ -1,0 +1,122 @@
+# Volatility tab failure-state truth — capture evidence
+# Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
+# Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
+# capturedAtHead: 392f563bbe894356c761007d13a1207e45ae0422
+# capturedAt: 2026-10-09T08:25:16.208Z
+# capturedAtHead is informational. The lock is layoutFiles.
+layoutFiles:
+  terminal/components/vol/VolView.tsx: "b5a9338761847fd1596d65140c30e6b2e7c3de848f5fde5f180fdec4e250e925"
+  terminal/components/vol/VolVrpPanel.tsx: "8361849dfc7ad7a45f801b8aa66022c618e667a6ff113ef9e36064fa330a8cf5"
+  terminal/components/vol/volShared.tsx: "e77a4159b46c9670201a03ab22e0408ec5eeb03725dc9e7dad54b49a07cfdd50"
+  terminal/components/vol/volStrings.ts: "2342dcd4dfc5015539315798b36901ccf60980e1e3acdf5389e820189be5a2a7"
+theme: dark
+languages: [en, zh]
+viewports:
+  - { name: desktop, width: 1440, height: 900 }
+  - { name: tablet, width: 820, height: 1180 }
+  - { name: mobile, width: 390, height: 844 }
+harness:
+  snapshot-absent-1440-zh.png: { url: "/options?tab=volatility", state: snapshot-absent, injected: { "vol:SPY": 404 } }
+  snapshot-absent-1440.png: { url: "/options?tab=volatility", state: snapshot-absent, injected: { "vol:SPY": 404 } }
+  snapshot-absent-390-zh.png: { url: "/options?tab=volatility", state: snapshot-absent, injected: { "vol:SPY": 404 } }
+  snapshot-absent-390.png: { url: "/options?tab=volatility", state: snapshot-absent, injected: { "vol:SPY": 404 } }
+  snapshot-absent-820-zh.png: { url: "/options?tab=volatility", state: snapshot-absent, injected: { "vol:SPY": 404 } }
+  snapshot-absent-820.png: { url: "/options?tab=volatility", state: snapshot-absent, injected: { "vol:SPY": 404 } }
+  snapshot-refused-1440-zh.png: { url: "/options?tab=volatility", state: snapshot-refused, injected: {  }, then: "typed ^VIX; no /api/flow read sent for it" }
+  snapshot-refused-1440.png: { url: "/options?tab=volatility", state: snapshot-refused, injected: {  }, then: "typed ^VIX; no /api/flow read sent for it" }
+  snapshot-refused-390-zh.png: { url: "/options?tab=volatility", state: snapshot-refused, injected: {  }, then: "typed ^VIX; no /api/flow read sent for it" }
+  snapshot-refused-390.png: { url: "/options?tab=volatility", state: snapshot-refused, injected: {  }, then: "typed ^VIX; no /api/flow read sent for it" }
+  snapshot-refused-820-zh.png: { url: "/options?tab=volatility", state: snapshot-refused, injected: {  }, then: "typed ^VIX; no /api/flow read sent for it" }
+  snapshot-refused-820.png: { url: "/options?tab=volatility", state: snapshot-refused, injected: {  }, then: "typed ^VIX; no /api/flow read sent for it" }
+  snapshot-retried-1440-zh.png: { url: "/options?tab=volatility", state: snapshot-retried, injected: { "vol:SPY": 503 }, then: "vol:SPY healed, Retry clicked" }
+  snapshot-retried-1440.png: { url: "/options?tab=volatility", state: snapshot-retried, injected: { "vol:SPY": 503 }, then: "vol:SPY healed, Retry clicked" }
+  snapshot-retried-390-zh.png: { url: "/options?tab=volatility", state: snapshot-retried, injected: { "vol:SPY": 503 }, then: "vol:SPY healed, Retry clicked" }
+  snapshot-retried-390.png: { url: "/options?tab=volatility", state: snapshot-retried, injected: { "vol:SPY": 503 }, then: "vol:SPY healed, Retry clicked" }
+  snapshot-retried-820-zh.png: { url: "/options?tab=volatility", state: snapshot-retried, injected: { "vol:SPY": 503 }, then: "vol:SPY healed, Retry clicked" }
+  snapshot-retried-820.png: { url: "/options?tab=volatility", state: snapshot-retried, injected: { "vol:SPY": 503 }, then: "vol:SPY healed, Retry clicked" }
+  snapshot-unavailable-1440-zh.png: { url: "/options?tab=volatility", state: snapshot-unavailable, injected: { "vol:SPY": 503 } }
+  snapshot-unavailable-1440.png: { url: "/options?tab=volatility", state: snapshot-unavailable, injected: { "vol:SPY": 503 } }
+  snapshot-unavailable-390-zh.png: { url: "/options?tab=volatility", state: snapshot-unavailable, injected: { "vol:SPY": 503 } }
+  snapshot-unavailable-390.png: { url: "/options?tab=volatility", state: snapshot-unavailable, injected: { "vol:SPY": 503 } }
+  snapshot-unavailable-820-zh.png: { url: "/options?tab=volatility", state: snapshot-unavailable, injected: { "vol:SPY": 503 } }
+  snapshot-unavailable-820.png: { url: "/options?tab=volatility", state: snapshot-unavailable, injected: { "vol:SPY": 503 } }
+  spread-absent-1440-zh.png: { url: "/options?tab=volatility", state: spread-absent, injected: { "agg:SPY": 404 } }
+  spread-absent-1440.png: { url: "/options?tab=volatility", state: spread-absent, injected: { "agg:SPY": 404 } }
+  spread-absent-390-zh.png: { url: "/options?tab=volatility", state: spread-absent, injected: { "agg:SPY": 404 } }
+  spread-absent-390.png: { url: "/options?tab=volatility", state: spread-absent, injected: { "agg:SPY": 404 } }
+  spread-absent-820-zh.png: { url: "/options?tab=volatility", state: spread-absent, injected: { "agg:SPY": 404 } }
+  spread-absent-820.png: { url: "/options?tab=volatility", state: spread-absent, injected: { "agg:SPY": 404 } }
+  spread-loading-1440-zh.png: { url: "/options?tab=volatility", state: spread-loading, injected: { "agg:SPY": pending } }
+  spread-loading-1440.png: { url: "/options?tab=volatility", state: spread-loading, injected: { "agg:SPY": pending } }
+  spread-loading-390-zh.png: { url: "/options?tab=volatility", state: spread-loading, injected: { "agg:SPY": pending } }
+  spread-loading-390.png: { url: "/options?tab=volatility", state: spread-loading, injected: { "agg:SPY": pending } }
+  spread-loading-820-zh.png: { url: "/options?tab=volatility", state: spread-loading, injected: { "agg:SPY": pending } }
+  spread-loading-820.png: { url: "/options?tab=volatility", state: spread-loading, injected: { "agg:SPY": pending } }
+  spread-retried-1440-zh.png: { url: "/options?tab=volatility", state: spread-retried, injected: { "agg:SPY": 503 }, then: "agg:SPY healed, Retry clicked" }
+  spread-retried-1440.png: { url: "/options?tab=volatility", state: spread-retried, injected: { "agg:SPY": 503 }, then: "agg:SPY healed, Retry clicked" }
+  spread-retried-390-zh.png: { url: "/options?tab=volatility", state: spread-retried, injected: { "agg:SPY": 503 }, then: "agg:SPY healed, Retry clicked" }
+  spread-retried-390.png: { url: "/options?tab=volatility", state: spread-retried, injected: { "agg:SPY": 503 }, then: "agg:SPY healed, Retry clicked" }
+  spread-retried-820-zh.png: { url: "/options?tab=volatility", state: spread-retried, injected: { "agg:SPY": 503 }, then: "agg:SPY healed, Retry clicked" }
+  spread-retried-820.png: { url: "/options?tab=volatility", state: spread-retried, injected: { "agg:SPY": 503 }, then: "agg:SPY healed, Retry clicked" }
+  spread-unavailable-1440-zh.png: { url: "/options?tab=volatility", state: spread-unavailable, injected: { "agg:SPY": 503 } }
+  spread-unavailable-1440.png: { url: "/options?tab=volatility", state: spread-unavailable, injected: { "agg:SPY": 503 } }
+  spread-unavailable-390-zh.png: { url: "/options?tab=volatility", state: spread-unavailable, injected: { "agg:SPY": 503 } }
+  spread-unavailable-390.png: { url: "/options?tab=volatility", state: spread-unavailable, injected: { "agg:SPY": 503 } }
+  spread-unavailable-820-zh.png: { url: "/options?tab=volatility", state: spread-unavailable, injected: { "agg:SPY": 503 } }
+  spread-unavailable-820.png: { url: "/options?tab=volatility", state: spread-unavailable, injected: { "agg:SPY": 503 } }
+surfaces: [VolView, VolVrpPanel]
+injection: page.route on /api/flow answers 503 / 404 / never; every other read is the FLOW_FIXTURE server
+capture_flag: TERMINAL_E2E_FIXTURE
+capture_flag_law: next.config.ts sets devIndicators: false when TERMINAL_E2E_FIXTURE is set; this script starts next dev with the same flag.
+command: |
+  cd terminal
+  node e2e/tools/capture_vol_load_failure.cjs
+files:
+  - snapshot-absent-1440-zh.png
+  - snapshot-absent-1440.png
+  - snapshot-absent-390-zh.png
+  - snapshot-absent-390.png
+  - snapshot-absent-820-zh.png
+  - snapshot-absent-820.png
+  - snapshot-refused-1440-zh.png
+  - snapshot-refused-1440.png
+  - snapshot-refused-390-zh.png
+  - snapshot-refused-390.png
+  - snapshot-refused-820-zh.png
+  - snapshot-refused-820.png
+  - snapshot-retried-1440-zh.png
+  - snapshot-retried-1440.png
+  - snapshot-retried-390-zh.png
+  - snapshot-retried-390.png
+  - snapshot-retried-820-zh.png
+  - snapshot-retried-820.png
+  - snapshot-unavailable-1440-zh.png
+  - snapshot-unavailable-1440.png
+  - snapshot-unavailable-390-zh.png
+  - snapshot-unavailable-390.png
+  - snapshot-unavailable-820-zh.png
+  - snapshot-unavailable-820.png
+  - spread-absent-1440-zh.png
+  - spread-absent-1440.png
+  - spread-absent-390-zh.png
+  - spread-absent-390.png
+  - spread-absent-820-zh.png
+  - spread-absent-820.png
+  - spread-loading-1440-zh.png
+  - spread-loading-1440.png
+  - spread-loading-390-zh.png
+  - spread-loading-390.png
+  - spread-loading-820-zh.png
+  - spread-loading-820.png
+  - spread-retried-1440-zh.png
+  - spread-retried-1440.png
+  - spread-retried-390-zh.png
+  - spread-retried-390.png
+  - spread-retried-820-zh.png
+  - spread-retried-820.png
+  - spread-unavailable-1440-zh.png
+  - spread-unavailable-1440.png
+  - spread-unavailable-390-zh.png
+  - spread-unavailable-390.png
+  - spread-unavailable-820-zh.png
+  - spread-unavailable-820.png
