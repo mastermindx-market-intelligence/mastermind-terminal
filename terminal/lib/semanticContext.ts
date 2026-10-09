@@ -604,7 +604,8 @@ export function decodeNativeSemanticValue(raw: unknown): SemanticContextValidati
 }
 
 /** Existing #802 Chart Bus value shape is {kind:'security', id, timeframe, pane_id}. */
-function readNativeActiveSecurity(value: unknown): SemanticContextValidationResult<SemanticContextValue> {
+/** Read #802's existing active-security value without minting a second session. */
+export function decodeNativeChartSecurity(value: unknown): SemanticContextValidationResult<SemanticContextValue> {
   const fail = (): SemanticContextValidationResult<SemanticContextValue> => ({
     ok:false, errors:[{path:"$",code:"native_chart_context_invalid"}],
   });
@@ -626,7 +627,7 @@ function writeNativeActiveSecurity(
   semantic: SemanticContextValue,
   prior: ContextValue,
 ): NativeSemanticResult<ContextValue> {
-  if (!readNativeActiveSecurity(prior).ok
+  if (!decodeNativeChartSecurity(prior).ok
       || semantic.kind !== "entity_selection"
       || semantic.ref.owner !== "terminal.analysis_symbol"
       || semantic.ref.kind !== "security"
@@ -767,7 +768,7 @@ export function projectNativeSemanticPort(
   const port = g.value.ports.find(p => p.port_id === portId);
   if (!port) return { status: "unsupported", reason: "port_unavailable" };
   const source = native.value.kind === "security"
-    ? readNativeActiveSecurity(native.value)
+    ? decodeNativeChartSecurity(native.value)
     : decodeNativeSemanticValue(native.value);
   if (!source.ok || source.value.kind !== g.value.kind) {
     return { status: "unsupported", reason: "native_value_unavailable" };

@@ -9,7 +9,8 @@ import { normalizeAnalysisSymbol } from "./analysisSymbol";
 import type { InvestigationSubject } from "./investigationContracts";
 import type { MarketOntologyContext } from "./marketOntologyContext";
 import type { SemanticContextRef, SemanticContextValue } from "./semanticContext";
-import { validateSemanticContextValue } from "./semanticContext";
+import { decodeNativeChartSecurity, validateSemanticContextValue } from "./semanticContext";
+import type { ContextSnapshot } from "./workspaceContextSession";
 import type { WorkspaceReplay } from "../components/surface/replayBus";
 
 export type SemanticAdapterResult =
@@ -23,6 +24,17 @@ export type SemanticSubjectAdmission = readonly {
   owner: string;
   kinds: readonly string[];
 }[];
+
+/** Typed, read-only projection from the existing #802 mounted Chart Bus owner. */
+export function semanticSecurityFromNativeChartSnapshot(snapshot: ContextSnapshot | null): SemanticAdapterResult {
+  if (!snapshot || snapshot.group !== "active_security") {
+    return { status: "unsupported", reason: "chart_session_unavailable" };
+  }
+  const decoded = decodeNativeChartSecurity(snapshot.value);
+  return decoded.ok
+    ? { status: "qualified", value: decoded.value }
+    : { status: "unsupported", reason: "chart_context_invalid" };
+}
 
 function asEntityRef(subject: InvestigationSubject): SemanticContextRef | null {
   const candidate = {

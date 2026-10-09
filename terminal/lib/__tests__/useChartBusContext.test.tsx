@@ -29,3 +29,46 @@ describe("context session belongs to the mounted Chart Bus",()=>{
   await act(async()=>{root.render(null);});expect(context.isCurrent(token)).toBe(false);expect(bus.context).toBeNull();
  });
 });
+
+
+describe("P2 typed read model from the existing Chart Bus owner",()=>{
+ it("derives current typed security from the mounted session across symbol/timeframe changes",async()=>{
+  await render("AAPL");
+  const owner=bus.context;
+  expect(bus.readSemanticSecurity()).toEqual({
+   status:"qualified",
+   value:{kind:"entity_selection",ref:{owner:"terminal.analysis_symbol",kind:"security",object_id:"AAPL"}},
+  });
+  await render("NVDA","1W",1);
+  expect(bus.context).toBe(owner);
+  expect(bus.context?.snapshot("active-chart")?.value).toEqual({
+   kind:"security",id:"NVDA",timeframe:"1W",pane_id:1,
+  });
+  expect(bus.readSemanticSecurity()).toEqual({
+   status:"qualified",
+   value:{kind:"entity_selection",ref:{owner:"terminal.analysis_symbol",kind:"security",object_id:"NVDA"}},
+  });
+ });
+
+ it("repeated semantic reads never advance native revision or send a Brain state mirror",async()=>{
+  await render("AAPL");
+  const session=bus.context!;
+  const start=session.snapshot("active-chart")!;
+  const receiptCount=session.receipts().length;
+  await act(async()=>{await vi.advanceTimersByTimeAsync(250);});
+  const writes=fetcher.mock.calls.length;
+  for(let i=0;i<30;i++)expect(bus.readSemanticSecurity().status).toBe("qualified");
+  expect(session.snapshot("active-chart")?.group_revision).toBe(start.group_revision);
+  expect(session.snapshot("active-chart")?.revision).toBe(start.revision);
+  expect(session.receipts()).toHaveLength(receiptCount);
+  await act(async()=>{await vi.advanceTimersByTimeAsync(1000);});
+  expect(fetcher.mock.calls.length).toBe(writes);
+ });
+ it("returns unavailable after native Chart Bus unmount rather than keeping stale security",async()=>{
+  await render("AAPL");
+  const read=()=> bus.readSemanticSecurity();
+  expect(read()).toMatchObject({status:"qualified"});
+  await act(async()=>{root.render(null);});
+  expect(read()).toEqual({status:"unsupported",reason:"chart_session_unavailable"});
+ });
+});
