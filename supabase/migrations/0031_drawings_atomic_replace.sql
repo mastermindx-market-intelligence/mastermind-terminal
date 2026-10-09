@@ -74,7 +74,7 @@ BEGIN
  END LOOP;
 END;
 $guard$;
-REVOKE ALL ON FUNCTION public.validate_drawing_replace_input(text,jsonb,uuid) FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.validate_drawing_replace_input(text,jsonb,uuid) FROM PUBLIC, anon, authenticated;
 GRANT EXECUTE ON FUNCTION public.validate_drawing_replace_input(text,jsonb,uuid) TO authenticated;
 
 -- Existing-table read/CAS snapshot. GET creates no historical operation receipt.
@@ -207,7 +207,7 @@ BEGIN
     'collectionId',selected_row->>'id','metadata',metadata);
 END;
 $snapshot$;
-REVOKE ALL ON FUNCTION public.read_drawings_collection(text) FROM PUBLIC;
+REVOKE ALL ON FUNCTION public.read_drawings_collection(text) FROM PUBLIC, anon, authenticated;
 GRANT EXECUTE ON FUNCTION public.read_drawings_collection(text) TO authenticated;
 
 -- Atomic existing-table replacement and operation replay.
@@ -461,7 +461,7 @@ END;
 $replace_drawings_collection$;
 
 REVOKE ALL ON FUNCTION public.replace_drawings_collection(text, jsonb, text, uuid)
-  FROM PUBLIC;
+  FROM PUBLIC, anon, authenticated;
 GRANT EXECUTE ON FUNCTION public.replace_drawings_collection(text, jsonb, text, uuid)
   TO authenticated;
 
@@ -472,7 +472,7 @@ COMMIT;
 -- DROP FUNCTION IF EXISTS public.replace_drawings_collection(text,jsonb,text,uuid);
 -- DROP FUNCTION IF EXISTS public.read_drawings_collection(text);
 -- DROP FUNCTION IF EXISTS public.validate_drawing_replace_input(text,jsonb,uuid);
--- readback:
+-- readback (expected for each function: authenticated_execute=true, anonymous_execute=false):
 -- SELECT p.oid::regprocedure AS function_signature, p.prosecdef, p.proconfig,
 --   has_function_privilege('authenticated',p.oid,'EXECUTE') AS authenticated_execute,
 --   has_function_privilege('anon',p.oid,'EXECUTE') AS anonymous_execute

@@ -5,14 +5,14 @@ import { MAX_DRAWING_PAYLOAD_BYTES, MAX_DRAWINGS_PER_SYMBOL } from "@/lib/drawin
 import { parseDrawingSnapshot, parsePersistedDrawings, validDrawingOperationId, validDrawingRevision } from "@/lib/drawingPersistence";
 import { GUEST_COOKIE } from "@/lib/layoutsFixtureDb";
 
-const isE2eFixture = () => process.env.TERMINAL_E2E_FIXTURE === "1";
+const isE2eFixture = () => process.env.NODE_ENV !== "production" && process.env.TERMINAL_E2E_FIXTURE === "1";
 type DrawingSession = { supabase: Awaited<ReturnType<typeof createClient>> | null; user: { email?: string } | null };
 
 /**
  * The Playwright dev server signs the page in as TERMINAL_E2E_EMAIL without a
  * Supabase session. Give that same identity a stateless empty account so the
  * page's readiness gate opens exactly as it does for a real account. This is
- * never reachable in production (the variable is unset there); specs that test
+ * never reachable in a production build, even if the variable is set; specs that test
  * cloud saves, conflicts or load failures mock this route in the browser.
  */
 async function ctx(): Promise<DrawingSession> {

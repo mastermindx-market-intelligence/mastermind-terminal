@@ -17,7 +17,7 @@ if base==repo or repo in base.parents:raise SystemExit('Evidence output must sta
 migration=repo/'supabase/migrations/0031_drawings_atomic_replace.sql'
 work=Path(tempfile.mkdtemp(prefix='a04-snapshot-r7-',dir=base))
 data=work/'data';socket=work/'socket';socket.mkdir(mode=0o700)
-receipt={'proof_class':'isolated_actual_postgres','production_effects':False,'guard_cases_pass':0,'transaction_cases_pass':0,'bootstrap_cases_pass':0,'fixture_cleanup':False,'fixture_path':str(work)}
+receipt={'proof_class':'isolated_actual_postgres','production_effects':False,'guard_cases_pass':0,'transaction_cases_pass':0,'bootstrap_cases_pass':0,'privilege_cases_pass':0,'fixture_cleanup':False,'fixture_path':str(work)}
 started=False
 first=None
 try:
@@ -58,6 +58,12 @@ try:
  if r.returncode:raise RuntimeError(r.stderr[-2000:])
 
  if (receipt['guard_cases_pass'],receipt['transaction_cases_pass'],receipt['bootstrap_cases_pass'])!=(33,11,15):raise RuntimeError('Causal case counts differ')
+ # Least privilege under production's default function grants: a fresh session, no JWT subject.
+ r=subprocess.run(cmd,input=(source/'privilege-regressions.sql').read_text(),capture_output=True,text=True)
+ (base/'a04-privilege-psql.log').write_text(r.stdout+r.stderr)
+ receipt['privilege_cases_pass']=len(re.findall(r'NOTICE:\s+PRIVILEGE_PASS:',r.stderr))
+ if r.returncode:raise RuntimeError(r.stderr[-2000:])
+ if receipt['privilege_cases_pass']!=6:raise RuntimeError('Privilege case count differs')
  prefix="SET ROLE authenticated; SET request.jwt.claim.sub='11111111-1111-4111-8111-111111111111';"
  def query(sql):
   result=subprocess.run(cmd+['-Atq'],input=sql,capture_output=True,text=True,timeout=30)

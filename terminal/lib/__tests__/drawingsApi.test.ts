@@ -110,4 +110,13 @@ describe("e2e fixture drawings account",()=>{
   expect((await GET(new Request("https://example.test/api/drawings?symbol=NVDA&ownerKey=account:responsive@example.com"))).status).toBe(401);
   expect((await PUT(fixtureRequest({symbol:"NVDA",drawings:[],expectedRevision:null,operationId}))).status).toBe(401);
  });
+ it("is off in a production build even when the fixture variable is set",async()=>{
+  vi.stubEnv("NODE_ENV","production");vi.stubEnv("TERMINAL_E2E_FIXTURE","1");
+  try{
+   db.auth.getUser.mockResolvedValue({data:{user:null}});
+   expect((await GET(new Request("https://example.test/api/drawings?symbol=NVDA&ownerKey=account:responsive@example.com"))).status).toBe(401);
+   expect((await PUT(fixtureRequest({symbol:"NVDA",drawings:[drawing],expectedRevision:null,operationId}))).status).toBe(401);
+   expect(db.auth.getUser).toHaveBeenCalledTimes(2);expect(db.rpc).not.toHaveBeenCalled();
+  }finally{vi.unstubAllEnvs();}
+ });
 });
