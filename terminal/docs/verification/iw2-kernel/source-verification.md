@@ -1,5 +1,47 @@
 # Investigation kernel repair — source verification
 
+## Legacy as-of dates and recovered drafts (repair round 1, 2026-10-09)
+
+Base `a156f6be`. IW2's retry proposal is applied unchanged as `f7d55f23`; its
+commit diff has the same SHA-256 as the proposed patch (`3c96c021…600ee7`).
+Four client defects dropped or silently refused saved context:
+
+1. Editing a saved record dropped its `research_as_of`. An exact instant is now
+   carried byte for byte, and an absent value stays absent. A calendar date
+   blocks Save: nothing is sent, the draft and any retained request stay
+   unchanged, and the message names the date and the way to fix it.
+2. After an owner-confirmed `not_applied`, "Try save again" did nothing visible
+   when the retained request could not be sent unchanged. It now says why (a
+   calendar as-of date or a layout recorded in the older format), and session
+   storage stays unchanged.
+3. Ordinary Save of a recovered create rebuilt the record from the visible form,
+   dropping subjects, evidence, the review baseline, argument relations,
+   continuation and the layout capture. The retained request is now the base, as
+   the saved record already is for an edit. A layout recorded with the older
+   `revision_id` cannot be sent (0030 accepts only `layout_id` and
+   `expected_revision`) and is not dropped: Save asks the user to choose the
+   layout again. The symbol is locked, as it is for an edit.
+4. A calendar as-of date has one deliberate path: an exact UTC date and time the
+   user types, checked by the strict parser, or removal. Nothing is filled in
+   for the user. English and Chinese copy; keyboard operable.
+
+The retained as-of value is shown in the rejected-save details and while
+editing. IW2's retry rule is kept; a unit test pins that a layout recorded in
+the older format makes the retry return nothing.
+
+IW2's eight counterexamples are ported with stronger assertions and fail two of
+eight on both `a156f6be` and `f7d55f23`. Each fix has a run that fails before it
+and at least one reverted-fix run that turns its tests red. The mounted recovery
+file has 37 tests, and the save state file has 15. Full Vitest: 499 files, 8,288
+pass, four existing TODOs. TypeScript passes. The browser journey for a calendar
+as-of date fails against the `f7d55f23` component and passes from a cold start at
+1440×900, 820×1180 and 390×844. The whole Investigation browser file passes all
+36 cases. These are fixture-based receipts, not authenticated production proof.
+The component keeps its existing one lint error and three warnings, which are
+identical by rule and message to the baseline. 0030 bytes are unchanged
+(SHA-256 `b840b111…471f4e`). This round does not qualify the stale-tab, API and
+SQL cutover for 0030, and every #804 hold remains in force.
+
 ## Saved Research inventory ordering repair (2026-10-09)
 
 Over exact source `95bfaf62845b777001f8ceeccb1a3e8de1e30b6e`, a delayed
