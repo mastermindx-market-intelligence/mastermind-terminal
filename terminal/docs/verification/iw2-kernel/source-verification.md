@@ -1,5 +1,114 @@
 # Investigation kernel repair — source verification
 
+## Legacy save retries and stored invalid_payload refusals (T03j, 2026-10-09)
+
+Base `9a17b8d8`. Two review findings on #804. Both concern a browser tab that was
+opened before the current write contract and then lost a save response.
+
+Legacy save retry (`app/api/investigations/route.ts`). Such a tab retries the lost
+save with the same POST. The current write contract refuses that older request
+shape, so the route answered `invalid_payload` (400) without asking the database,
+even when the original had already committed. Now a POST that the current
+contract refuses but the recovery parser accepts goes only to the reconciliation
+owner, `reconcile_investigation_operation_v2`, with the full original request. The
+owner returns the original receipt, a matching no-effect fence, or
+`idempotency_conflict`. The request is never rewritten and never applied as a new
+write. This is IW2's proposal patch `iw2-legacy-post-api-proposal-20261009.patch`
+(SHA256 `c4f1d78cde88e9c03a8952035266b2c90e9e76a68dd693eb85ef86f5e2fbce55`),
+applied unchanged in commit `8bebc87f`. `route.ts` is byte-identical to IW2's
+proposed route (SHA256 `e48e5bbb93a8196c04c62e512976eeedfca2e0587cfa8f06346bcc8442a44fdf`).
+
+1. Only recovery-shaped requests take this path. Current writes still go to apply,
+   and PUT still goes to reconciliation. The current client cannot send a
+   recovery-only shape: Save refuses it before sending, and Try save again sends
+   either nothing or a new operation that the current contract accepts. Tests:
+   "keeps strict current writes on apply and the PUT recovery path on
+   reconcile" and the four "(iii) never sends a request with …" cases (no
+   `argument_relations`, a calendar as-of date, a review baseline outside the
+   evidence, a capture with `revision_id`).
+2. The request names no account. The owner takes the account from the session.
+   A body that names a `principal`, `user_id`, `owner`, `author_ref` or `actor`, at
+   the top level or in the manifest, is refused with zero database calls. Two
+   accounts send byte-identical owner arguments that contain neither account ID.
+   Signed-out callers get 401, rate limiting runs before the session check, and the
+   size limit runs before any database call.
+3. A delayed original cannot commit after the fence. Against real SQL, the
+   delayed original returns the fence and adds nothing, and a current POST that
+   reuses the fenced operation is refused as `idempotency_conflict`.
+4. A missing reconciliation function (before 0030 is applied, PostgREST
+   `PGRST202`), a throw, a fence for another operation or a receipt for another
+   operation each return 503. An owner miss returns 404. In every one of these
+   cases the client keeps the save unconfirmed.
+
+Stored `invalid_payload` refusal (`lib/investigationSave.ts`,
+`InvestigationWorkspace.tsx`). An older tab that got that 400 stored the save as
+refused. That refusal never proved the original failed. A reopened tab now
+recovers it as unconfirmed with an owner recheck. The exact stored request is the
+only request the owner is asked about. Save, Start new research and Try save
+again send nothing new while it is unconfirmed. Other stored refusals
+(`version_conflict`, `idempotency_conflict`, `invalid_transition`,
+`reference_unavailable`, `layout_conflict`, `limit_reached`) are still trusted.
+
+On reopen the tab makes the read it already made before this change: one receipt
+read by operation ID. A receipt read returns only the result, not the action or the
+layout capture, so it cannot confirm that the receipt answers this exact request.
+When that read would end the uncertainty, the tab first sends the stored request,
+unchanged, to the full-request owner. Only the owner's answer is shown. When the
+read misses (404, 503, 401 or a network failure), nothing is sent and the save
+stays unconfirmed: a receipt miss is not a fence. Check original outcome sends the
+same full request to the owner, which fences a miss.
+
+Full-request path: PUT `/api/investigations` → `mutate(request, true)` →
+`parseInvestigationCommand(body, true)` → `reconcileInvestigationOperation` →
+`reconcile_investigation_operation_v2`. The legacy POST branch above ends at the
+same owner. The parsed manifest differs from the stored one only in key order,
+and the database compares `jsonb` values regardless of key order.
+
+IW2's first persisted-refusal test required a receipt-only read
+(`iw2-persisted-invalid-payload-counterexample.test.tsx`, SHA256 `42810993…`).
+IW2 withdrew that requirement as a transport assumption. That test is kept only as
+the historical failure. This repair adds no read to satisfy it. Its acceptance
+target is IW2's adapted owner test (`iw2-persisted-invalid-payload-owner.test.tsx`,
+SHA256 `8450686a…1b42`; config `3f2defd8…3184`).
+
+Evidence (fixture and local-database receipts, not authenticated production
+proof):
+
+- Route tests 25/25: IW2's 19 proposal cases and the six account checks. Helper
+  tests 41/41 and mount tests 105/105, including 36 new owner recheck mounts
+  across three request shapes.
+- IW2 harness copies, run against committed source at the head and at `9a17b8d8`
+  (copies differ only in the head constant, evidence directory and output path):
+  owner test 2/2 (1 pass, 1 fail at `9a17b8d8`), account binding 4/4 (0/4), API
+  proposal 19/19 (8 pass, 11 fail), route regression 25/25, saved-layout clear 3/3.
+- Local PostgreSQL 17.11 with 0028–0030 from the head. API proposal qualifier:
+  before 0030 4/4, with 0030 10/10, account and delayed-original checks 9/9; it
+  fails at `9a17b8d8`. Cutover qualifier: 11/11, one record for one lost response
+  (1 head, 1 revision, 1 receipt). At `9a17b8d8` its baseline reproduces the false
+  refusal, and the repaired checks fail there (7 of 11 false). Unlike the harness
+  copies above, these SQL qualifier copies add checks for this round: the account
+  and delayed-original checks, the route read from git at the tested head, and a
+  repaired mode for the cutover. A diff against each IW2 original is kept with the
+  copies.
+- Browser: the two new journeys pass at 1440×900, 820×1180 and 390×844 from a cold
+  start, with screenshots of the unconfirmed state and of the saved record. A
+  receipt miss sends nothing until Check original outcome; a found receipt is
+  confirmed by the owner first. Neither journey sends a POST. The whole
+  Investigation browser file passes all 51 cases at the three sizes from a cold
+  start.
+- Changes that undo the repair turn tests red, and none was committed. Removing
+  the recovery rule fails 45 unit tests and both new browser journeys. Removing
+  the owner check fails 18 mount tests and the found-receipt browser journey.
+- Full Vitest: 500 files, 8,407 pass, four existing TODOs. TypeScript passes. The
+  component's lint result is unchanged from `9a17b8d8`.
+
+Status. 0030 is not applied and its bytes are unchanged. This round does not
+qualify or accept the stale-tab, API and SQL cutover for 0030. Production
+backup/restore is already accepted (scoped) under Macro #7532: 520 rows across 13
+tables, readback of the exact references, and cleanup of the scratch project and
+temporary credential. It is not a remaining prerequisite and was not rerun. Every
+other #804 hold remains in force.
+
 ## Saved layout references have their own choice (repair round 2, 2026-10-09)
 
 Base `36e5c5d7`. Two review findings on #804.
