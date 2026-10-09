@@ -23,6 +23,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { useT, useLang } from "@/lib/i18n";
 import { getJSON } from "@/lib/dataCache";
+import { nativePrice, moneyCopy } from "@/lib/portfolioMoney";
 import { groupsFromSymbols, planQuoteBatch } from "@/lib/quoteDemand";
 import PortfolioBriefPanel from "@/components/PortfolioBriefPanel";
 import EventImpactPanel from "@/components/EventImpactPanel";
@@ -67,15 +68,15 @@ import s from "@/components/PortfolioRisk.module.css";
 import tg from "@/components/PortfolioTargets.module.css";
 import rh from "@/components/PortfolioRiskHistory.module.css";
 
-type Quote = { last?: number; chg?: number } | null | undefined;
-type ManifestRow = { name?: string; zh?: string; col?: string; last?: number; chg?: number };
+type Quote = { last?: number; chg?: number; currency?: unknown } | null | undefined;
+type ManifestRow = { name?: string; zh?: string; col?: string; last?: number; chg?: number; currency?: unknown };
 
 const fmt = (n: number | null | undefined, d = 2) =>
   (n == null || !isFinite(n) ? "—" : n.toLocaleString("en-US", { minimumFractionDigits: d, maximumFractionDigits: d }));
-const money = (n: number | null | undefined) =>
-  (n == null || !isFinite(n) ? "—" : n.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 }));
-const signed = (n: number | null | undefined) =>
-  (n == null || !isFinite(n) ? "—" : `${n >= 0 ? "+" : ""}${money(n)}`);
+const money = (n: number | null | undefined, currency?: string | null) =>
+  (n == null || !isFinite(n) ? "—" : `${currency ? currency + " " : ""}${n.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`);
+const signed = (n: number | null | undefined, currency?: string | null) =>
+  (n == null || !isFinite(n) ? "—" : `${n >= 0 ? "+" : ""}${money(n, currency)}`);
 const signedPct = (n: number | null | undefined) =>
   (n == null || !isFinite(n) ? "—" : `${n >= 0 ? "+" : ""}${n.toFixed(2)}%`);
 
@@ -108,6 +109,7 @@ function mutationPostcondition(
   return reread.ticker === written.ticker
     && reread.shares === written.shares
     && reread.entryPrice === written.entryPrice
+    && (reread.entryCurrency ?? null) === (written.entryCurrency ?? null)
     && reread.entryDate === written.entryDate
     && reread.notes === written.notes
     && reread.status === written.status
@@ -374,7 +376,7 @@ export default function PortfolioView(
             const next: Record<string, Quote> = { ...prev };
             for (const [symbol, quote] of Object.entries(payload.quotes as Record<string, Quote>)) {
               if (!quote) continue;
-              if (prev[symbol]?.last !== quote.last || prev[symbol]?.chg !== quote.chg) {
+              if (prev[symbol]?.last !== quote.last || prev[symbol]?.chg !== quote.chg || prev[symbol]?.currency !== quote.currency) {
                 next[symbol] = quote;
                 changed = true;
               }
@@ -417,6 +419,8 @@ export default function PortfolioView(
   const rowProps = (position: Position) => ({
     position,
     last: resolveLast(position.ticker, quotes, man),
+    quoteCurrency: nativePrice(quotes[position.ticker], man[position.ticker])?.currency ?? null,
+    unknownCurrency: moneyCopy.unknownCurrency[lang],
     name: nameFor(position.ticker),
     colour: man[position.ticker]?.col,
     busy: busyId === position.id,
@@ -488,18 +492,18 @@ export default function PortfolioView(
         <div className="kpis">
           <div className="kpi">
             <small>{t("bookValue")}</small>
-            <b className="num">{money(totals.marketValue)}</b>
+            <b className="num">{money(totals.marketValue, totals.marketValueCurrency)}</b>
           </div>
           <div className="kpi">
             <small>{t("dayPnl")}</small>
             <b className={`num${totals.dayChange == null ? "" : totals.dayChange >= 0 ? " up" : " down"}`}>
-              {signed(totals.dayChange)}
+              {signed(totals.dayChange, totals.dayChangeCurrency)}
             </b>
           </div>
           <div className="kpi">
             <small>{t("sinceEntry")}</small>
             <b className={`num${totals.sinceEntry == null ? "" : totals.sinceEntry >= 0 ? " up" : " down"}`}>
-              {signed(totals.sinceEntry)}
+              {signed(totals.sinceEntry, totals.sinceEntryCurrency)}
               {totals.sinceEntryPct != null && <span className="kpi-sub">{signedPct(totals.sinceEntryPct)}</span>}
             </b>
           </div>
@@ -508,6 +512,12 @@ export default function PortfolioView(
             <b className="num">{totals.openCount}</b>
           </div>
         </div>
+
+        {!!totals.monetaryGaps.length && (
+          <div className="pf-coverage" data-testid="portfolio-currency-coverage">
+            <p>{moneyCopy.unavailableTotals[lang]} ({totals.monetaryGaps.join(", ")})</p>
+          </div>
+        )}
 
         {/* Coverage honesty, stated WHERE the totals are — never a silent exclusion.
             Two DIFFERENT silences, so two lines: a name with no price is missing from "what it is
@@ -1214,11 +1224,13 @@ function UntargetedRow({
 }
 
 function PositionRow({
-  position, last, name, colour, busy, confirming, t,
+  position, last, quoteCurrency, unknownCurrency, name, colour, busy, confirming, t,
   onEdit, onToggleStatus, onDeleteRequest, onDeleteCancel, onDeleteConfirm,
 }: {
   position: Position;
   last: number | null;
+  quoteCurrency: string | null;
+  unknownCurrency: string;
   name: string;
   colour?: string;
   busy: boolean;
@@ -1230,9 +1242,9 @@ function PositionRow({
   onDeleteCancel: () => void;
   onDeleteConfirm: () => void;
 }) {
-  const value = marketValue(position, last);
-  const pct = sinceEntryPct(position, last);
-  const delta = sinceEntryValue(position, last);
+  const value = marketValue(position, last, quoteCurrency);
+  const pct = sinceEntryPct(position, last, quoteCurrency);
+  const delta = sinceEntryValue(position, last, quoteCurrency);
   const isClosed = position.status === "closed";
 
   return (
@@ -1254,15 +1266,15 @@ function PositionRow({
         </div>
       </td>
       <td className="num">{position.shares == null ? "—" : fmt(position.shares, position.shares % 1 === 0 ? 0 : 4)}</td>
-      <td className="num">{position.entryPrice == null ? "—" : fmt(position.entryPrice, position.entryPrice < 10 ? 4 : 2)}</td>
+      <td className="num">{position.entryPrice == null ? "—" : <>{fmt(position.entryPrice, position.entryPrice < 10 ? 4 : 2)}<span className="pf-delta">{position.entryCurrency ?? unknownCurrency}</span></>}</td>
       <td className="num">{position.entryDate || "—"}</td>
-      <td className="num">{last == null ? "—" : fmt(last, last < 10 ? 4 : 2)}</td>
-      <td className="num">{value == null ? "—" : money(value)}</td>
+      <td className="num">{last == null ? "—" : <>{fmt(last, last < 10 ? 4 : 2)}<span className="pf-delta">{quoteCurrency ?? unknownCurrency}</span></>}</td>
+      <td className="num">{value == null ? "—" : money(value, quoteCurrency)}</td>
       <td className={`num${pct == null ? "" : pct >= 0 ? " up" : " down"}`}>
         {pct == null ? "—" : (
           <>
             {signedPct(pct)}
-            {delta != null && <span className="pf-delta">{signed(delta)}</span>}
+            {delta != null && <span className="pf-delta">{signed(delta, quoteCurrency)}</span>}
           </>
         )}
       </td>

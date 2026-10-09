@@ -15,13 +15,15 @@
 // validators drifting apart is how a field starts being rejected for a reason the UI cannot explain.
 
 import { useCallback, useEffect, useId, useRef, useState } from "react";
-import { useT } from "@/lib/i18n";
+import { useT, useLang } from "@/lib/i18n";
+import { moneyCopy } from "@/lib/portfolioMoney";
 import type { Position } from "@/lib/portfolio";
 
 export type PositionDraft = {
   ticker: string;
   shares: string;
   entryPrice: string;
+  entryCurrency: string;
   entryDate: string;
   notes: string;
 };
@@ -30,6 +32,7 @@ const draftFrom = (position: Position | null, initialTicker?: string): PositionD
   ticker: position?.ticker ?? (initialTicker ? initialTicker.toUpperCase() : ""),
   shares: position?.shares == null ? "" : String(position.shares),
   entryPrice: position?.entryPrice == null ? "" : String(position.entryPrice),
+  entryCurrency: position?.entryCurrency ?? "",
   entryDate: position?.entryDate ?? "",
   notes: position?.notes ?? "",
 });
@@ -48,6 +51,7 @@ export default function PositionModal({
   onSubmit: (draft: PositionDraft) => Promise<boolean>;
 }) {
   const t = useT();
+  const { lang } = useLang();
   const titleId = useId();
   const [draft, setDraft] = useState<PositionDraft>(() => draftFrom(position, initialTicker));
   const [saving, setSaving] = useState(false);
@@ -142,6 +146,14 @@ export default function PositionModal({
                 />
               </label>
             </div>
+
+            <label className="pf-field">
+              <span>{moneyCopy.entryCurrency[lang]}</span>
+              <input name="entryCurrency" value={draft.entryCurrency} autoComplete="off"
+                spellCheck={false} placeholder="USD / HKD" maxLength={3}
+                onChange={(event) => set("entryCurrency", event.target.value)} />
+              <small>{moneyCopy.entryCurrencyHint[lang]}</small>
+            </label>
 
             <label className="pf-field">
               <span>{t("entryDate")}</span>

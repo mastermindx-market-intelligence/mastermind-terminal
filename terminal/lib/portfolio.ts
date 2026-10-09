@@ -9,7 +9,8 @@
 // verified against live PostgREST introspection): id, user_id, ticker, shares, entry_price,
 // entry_date, notes, status, created_at, updated_at. `shares`/`entry_price` are numeric-or-null,
 // `entry_date` is a date-or-null, `status` is text the WRITER constrains to 'open' | 'closed'
-// (no live CHECK is asserted, so this module coerces rather than trusting). NO new columns and no
+// (no live CHECK is asserted, so this module coerces rather than trusting). Migration0032 adds
+// nullable entry_currency plus its entry_currency_basis receipt, preserving legacy unknown units. No
 // `portfolio_id` — a `portfolios` schema is explicitly out of scope (packet section 3).
 //
 // OWNER SCOPING: RLS is the authority — `portfolio_select_own` / `_insert_own` / `_update_own` /
@@ -21,6 +22,7 @@
 // Web or alerts authority. Everything this module produces is display tier, joined client-side.
 
 import type { DbResult, DbRow, WatchlistDb, WatchlistQuery } from "@/lib/watchlists";
+import { commonMoney, finite, finiteProduct, nativePrice, priceCurrency, type MoneyPart, type PriceObservation } from "@/lib/portfolioMoney";
 
 /** Structural view of the Supabase client — the same subset `lib/watchlists.ts` narrows, so the
  *  e2e fixture transport and the unit tests satisfy one shape for both tables. */
@@ -28,7 +30,7 @@ export type PortfolioDb = WatchlistDb;
 export type { WatchlistQuery as PortfolioQuery };
 
 export const POSITIONS_TABLE = "portfolio_positions";
-const POSITION_FIELDS = "id,ticker,shares,entry_price,entry_date,notes,status,created_at";
+const POSITION_FIELDS = "id,ticker,shares,entry_price,entry_currency,entry_currency_basis,entry_date,notes,status,created_at";
 
 export type PositionStatus = "open" | "closed";
 
@@ -39,6 +41,8 @@ export type Position = {
   ticker: string;
   shares: number | null;
   entryPrice: number | null;
+  /** Legacy/older HTTP rows remain unknown; this is not the current quote currency. */
+  entryCurrency?: string | null;
   entryDate: string | null;
   notes: string | null;
   status: PositionStatus;
@@ -87,6 +91,14 @@ export type NumericField =
   | { kind: "absent" }
   | { kind: "value"; value: number | null }
   | { kind: "invalid" };
+
+/** An absent unit leaves it alone; explicit blank clears it; codes stay case-sensitive. */
+export function normalizeEntryCurrency(value: unknown): TextField {
+  if (value === undefined) return { kind: "absent" };
+  if (value === null || typeof value === "string" && !value.trim()) return { kind: "value", value: null };
+  const currency = typeof value === "string" ? priceCurrency(value.trim()) : null;
+  return currency ? { kind: "value", value: currency } : { kind: "invalid" };
+}
 
 export function normalizeNumeric(value: unknown): NumericField {
   if (value === undefined) return { kind: "absent" };
@@ -156,11 +168,20 @@ export function rowToPosition(row: DbRow): Position | null {
     const field = normalizeNumeric(value);
     return field.kind === "value" ? field.value : null;
   };
+  const rawBasis = row.entry_currency_basis;
+  const basis = rawBasis && typeof rawBasis === "object" && !Array.isArray(rawBasis)
+    ? rawBasis as Record<string, unknown> : null;
   return {
     id,
     ticker,
     shares: numeric(row.shares),
     entryPrice: numeric(row.entry_price),
+    // The receipt is tied to the price that the user actually denominated.
+    // An older writer changing only the price cannot silently retag that number.
+    entryCurrency: basis && Object.keys(basis).length === 2
+      && basis.ticker === row.ticker
+      && (basis.price === null || finite(basis.price))
+      && basis.price === numeric(row.entry_price) ? priceCurrency(row.entry_currency) : null,
     entryDate: text(row.entry_date),
     notes: text(row.notes),
     status: normalizeStatus(row.status),
@@ -261,6 +282,7 @@ export type PositionInput = {
   ticker?: unknown;
   shares?: unknown;
   entryPrice?: unknown;
+  entryCurrency?: unknown;
   entryDate?: unknown;
   notes?: unknown;
   status?: unknown;
@@ -293,6 +315,8 @@ export async function createPosition(
   if (shares.kind === "invalid") return { ok: false, error: "invalid shares", status: 400 };
   const entryPrice = normalizeNumeric(input.entryPrice);
   if (entryPrice.kind === "invalid") return { ok: false, error: "invalid entry price", status: 400 };
+  const entryCurrency = normalizeEntryCurrency(input.entryCurrency);
+  if (entryCurrency.kind === "invalid") return { ok: false, error: "invalid entry currency", status: 400 };
   const entryDate = normalizeEntryDate(input.entryDate);
   if (entryDate.kind === "invalid") return { ok: false, error: "invalid entry date", status: 400 };
   const notes = normalizeNotes(input.notes);
@@ -304,6 +328,8 @@ export async function createPosition(
     ticker,
     shares: shares.kind === "value" ? shares.value : null,
     entry_price: entryPrice.kind === "value" ? entryPrice.value : null,
+    entry_currency: entryCurrency.kind === "value" ? entryCurrency.value : null,
+    entry_currency_basis: entryCurrency.kind === "value" && entryCurrency.value ? { ticker, price: entryPrice.kind === "value" ? entryPrice.value : null } : null,
     entry_date: entryDate.kind === "value" ? entryDate.value : null,
     notes: notes.kind === "value" ? notes.value : null,
     status: normalizeStatus(input.status),
@@ -313,6 +339,9 @@ export async function createPosition(
   const row = one(inserted);
   const position = row ? rowToPosition(row) : null;
   if (inserted.error || !position) return { ok: false, error: "position create failed", status: 500 };
+  if (entryCurrency.kind === "value" && (position.entryCurrency ?? null) !== entryCurrency.value) {
+    return { ok: false, error: "entry price or identity changed; currency not recorded", status: 409 };
+  }
   return { ok: true, position };
 }
 
@@ -345,6 +374,14 @@ export async function updatePosition(
   const entryPrice = normalizeNumeric(patch.entryPrice);
   if (entryPrice.kind === "invalid") return { ok: false, error: "invalid entry price", status: 400 };
   if (entryPrice.kind === "value") values.entry_price = entryPrice.value;
+  const entryCurrency = normalizeEntryCurrency(patch.entryCurrency);
+  if (entryCurrency.kind === "invalid") return { ok: false, error: "invalid entry currency", status: 400 };
+  if (entryCurrency.kind === "value") {
+    values.entry_currency = entryCurrency.value;
+    values.entry_currency_basis = entryCurrency.value ? { ticker: values.ticker ?? owned.ticker, price: entryPrice.kind === "value" ? entryPrice.value : owned.entryPrice } : null;
+  } else if (entryPrice.kind === "value" && entryPrice.value !== owned.entryPrice || values.ticker !== undefined && values.ticker !== owned.ticker) {
+    values.entry_currency = null; values.entry_currency_basis = null;
+  }
 
   const entryDate = normalizeEntryDate(patch.entryDate);
   if (entryDate.kind === "invalid") return { ok: false, error: "invalid entry date", status: 400 };
@@ -375,6 +412,9 @@ export async function updatePosition(
   const position = row ? rowToPosition(row) : null;
   if (!position || position.id !== owned.id) {
     return { ok: false, error: "position mutation not confirmed", status: 500 };
+  }
+  if (entryCurrency.kind === "value" && (position.entryCurrency ?? null) !== entryCurrency.value) {
+    return { ok: false, error: "entry price or identity changed; currency not recorded", status: 409 };
   }
   return { ok: true, position };
 }
@@ -421,132 +461,93 @@ export function resolveLast(
   return pick(quotes[ticker]?.last) ?? pick(manifest[ticker]?.last);
 }
 
-export function marketValue(position: Position, last: number | null): number | null {
-  if (position.shares == null || last == null) return null;
-  return position.shares * last;
+export function marketValue(position: Position, last: number | null, quoteCurrency?: unknown): number | null {
+  return priceCurrency(quoteCurrency) ? finiteProduct(position.shares, last) : null;
 }
 
 export function costBasis(position: Position): number | null {
-  if (position.shares == null || position.entryPrice == null) return null;
-  return position.shares * position.entryPrice;
+  return priceCurrency(position.entryCurrency) ? finiteProduct(position.shares, position.entryPrice) : null;
 }
 
-/** Since-entry move in percent. Needs an entry price and a live price; a zero entry price has no
- *  defined percentage and returns `null` rather than Infinity. */
-export function sinceEntryPct(position: Position, last: number | null): number | null {
-  if (position.entryPrice == null || !position.entryPrice || last == null) return null;
-  return ((last - position.entryPrice) / position.entryPrice) * 100;
+/** A native price ratio needs compatible entry/quote units, independently of shares/report settings. */
+export function sinceEntryPct(position: Position, last: number | null, quoteCurrency?: unknown): number | null {
+  const unit = priceCurrency(position.entryCurrency);
+  if (!unit || unit !== priceCurrency(quoteCurrency) || !finite(position.entryPrice) || !position.entryPrice || !finite(last)) return null;
+  const result = ((last - position.entryPrice) / position.entryPrice) * 100;
+  return finite(result) ? result : null;
 }
 
-/** Since-entry money. Needs shares AND an entry price AND a live price. */
-export function sinceEntryValue(position: Position, last: number | null): number | null {
-  const basis = costBasis(position);
-  const value = marketValue(position, last);
+export function sinceEntryValue(position: Position, last: number | null, quoteCurrency?: unknown): number | null {
+  if (priceCurrency(position.entryCurrency) !== priceCurrency(quoteCurrency)) return null;
+  const basis = costBasis(position), value = marketValue(position, last, quoteCurrency);
   if (basis == null || value == null) return null;
-  return value - basis;
+  const result = value - basis;
+  return finite(result) ? result : null;
 }
 
 export type BookTotals = {
-  /** Open positions counted, and how many of them could actually be valued. */
-  openCount: number;
-  closedCount: number;
-  valued: number;
-  /** Market value over every VALUED position; `null` when nothing could be valued. */
-  marketValue: number | null;
-  /** Cost basis, and the P&L derived from it, over the NARROWER priced-AND-based subset. */
-  costBasis: number | null;
-  sinceEntry: number | null;
-  sinceEntryPct: number | null;
-  /** How many valued positions carry a cost basis — the population `sinceEntry` describes. */
-  based: number;
-  dayChange: number | null;
-  /** Open tickers with no resolvable price — surfaced, never silently dropped from the count. */
-  unpriced: string[];
-  /** Priced tickers with no ENTRY PRICE — excluded from P&L, and named for the same reason. */
-  noBasis: string[];
+  openCount: number; closedCount: number; valued: number; based: number;
+  marketValue: number | null; marketValueCurrency: string | null;
+  /** All sized historical costs; does not require a current price. P&L has its own paired cohort. */
+  costBasis: number | null; costBasisCurrency: string | null;
+  sinceEntry: number | null; sinceEntryPct: number | null; sinceEntryCurrency: string | null;
+  dayChange: number | null; dayChangeCurrency: string | null;
+  unpriced: string[]; noBasis: string[]; monetaryGaps: string[];
 };
 
-/**
- * Book-level totals over OPEN positions.
- *
- * The `valued` / `unpriced` split is the honesty contract: a total is reported for the subset that
- * could be valued and the rest are NAMED, so a book whose HK names have no store never shows a
- * confident number that quietly excludes them. When nothing can be valued every total is `null` —
- * not `0`, which reads as "your book is worth nothing".
- *
- * TWO POPULATIONS, NEVER MIXED (round-2 review). `marketValue` answers "what is this worth" and
- * covers every valued position. `sinceEntry` answers "what has it made" and can only cover
- * positions that carry BOTH a live value and a cost basis. The first version of this function summed
- * `value` over the wide population and `basis` over the narrow one and then subtracted them, which
- * booked an entry-price-less position's ENTIRE market value as profit:
- *
- *   100 AAA @ entry 200, last 220   ->  value 22,000   basis 20,000
- *   100 BBB, no entry price, last 500 -> value 50,000   basis      0
- *   reported: +52,000 / +260%        truth: +2,000 / +10%
- *
- * Nothing disclosed it either — `unpriced` names missing PRICES, and BBB had a price. So the fix is
- * both halves: restrict the subset, and name what the restriction excluded (`noBasis`), the same
- * way a missing price is named.
- */
+/** Common totals require the whole eligible cohort to share an explicit unit. No FX is guessed. */
 export function bookTotals(
   positions: readonly Position[],
-  quotes: Readonly<Record<string, { last?: unknown; chg?: unknown } | null | undefined>>,
-  manifest: Readonly<Record<string, { last?: unknown; chg?: unknown } | null | undefined>>,
+  quotes: Readonly<Record<string, PriceObservation>>,
+  manifest: Readonly<Record<string, PriceObservation>>,
 ): BookTotals {
-  const open = positions.filter((position) => position.status === "open");
-  let value = 0;
-  let day = 0;
-  let valued = 0;
-  let dayValued = 0;
-  // The P&L accumulators are deliberately SEPARATE from `value`: both sides of the subtraction must
-  // come from the same population, or the difference is not a profit.
-  let basedValue = 0;
-  let basis = 0;
+  const open = positions.filter(position => position.status === "open");
+  const values: MoneyPart[] = [], costs: MoneyPart[] = [], pnlValues: MoneyPart[] = [], pnlCosts: MoneyPart[] = [], days: MoneyPart[] = [];
+  const unpriced: string[] = [], noBasis: string[] = [], monetaryGaps: string[] = [];
+  const gap = (list: string[], ticker: string) => { if (!list.includes(ticker)) list.push(ticker); };
   let based = 0;
-  const unpriced: string[] = [];
-  const noBasis: string[] = [];
-
   for (const position of open) {
-    const last = resolveLast(position.ticker, quotes, manifest);
-    const positionValue = marketValue(position, last);
-    if (positionValue == null) {
-      if (last == null && !unpriced.includes(position.ticker)) unpriced.push(position.ticker);
-      continue;
+    const historicalCost = finiteProduct(position.shares, position.entryPrice);
+    const entryUnit = priceCurrency(position.entryCurrency);
+    if (historicalCost !== null) {
+      costs.push({ amount: historicalCost, currency: entryUnit });
+      if (!entryUnit) gap(monetaryGaps, position.ticker);
     }
-    valued += 1;
-    value += positionValue;
-    const positionBasis = costBasis(position);
-    if (positionBasis == null) {
-      // Priced and sized, but no entry price — it has a value and no knowable P&L.
-      if (!noBasis.includes(position.ticker)) noBasis.push(position.ticker);
-    } else {
-      based += 1;
-      basis += positionBasis;
-      basedValue += positionValue;
+    const quote = nativePrice(quotes[position.ticker], manifest[position.ticker]);
+    const value = quote ? finiteProduct(position.shares, quote.last) : null;
+    if (value === null || !quote) { if (!quote) gap(unpriced, position.ticker); continue; }
+    values.push({ amount: value, currency: quote.currency });
+    if (!quote.currency) gap(monetaryGaps, position.ticker);
+    if (historicalCost === null) gap(noBasis, position.ticker);
+    else {
+      // Retain every priced/based lot in the cohort, even when its units are unknown.
+      // Dropping it and renormalizing the known subset would manufacture a common P&L.
+      const unit = entryUnit && entryUnit === quote.currency ? entryUnit : null;
+      if (!unit) gap(monetaryGaps, position.ticker); else based += 1;
+      pnlCosts.push({ amount: historicalCost, currency: unit });
+      pnlValues.push({ amount: value, currency: unit });
     }
-    // Day move is a percent on the CURRENT value; a name without one contributes nothing rather
-    // than dragging the book toward zero.
-    const chg = quotes[position.ticker]?.chg ?? manifest[position.ticker]?.chg;
-    if (typeof chg === "number" && Number.isFinite(chg)) {
-      const previous = positionValue / (1 + chg / 100);
-      if (Number.isFinite(previous)) { day += positionValue - previous; dayValued += 1; }
+    if (quote.chg !== null) {
+      const previous = value / (1 + quote.chg / 100), day = value - previous;
+      if (finite(previous) && finite(day)) days.push({ amount: day, currency: quote.currency });
     }
   }
-
-  // A zero total basis has no defined percentage, so the pair reports nothing rather than Infinity.
-  const hasBasis = based > 0 && basis !== 0;
+  const value = commonMoney(values), cost = commonMoney(costs), pv = commonMoney(pnlValues), pc = commonMoney(pnlCosts), day = commonMoney(days);
+  const pnl = pv && pc ? pv.amount - pc.amount : null;
+  const pct = pnl !== null && pc && pc.amount !== 0 ? pnl / pc.amount * 100 : null;
+  if (values.length && !value || costs.length && !cost || pnlCosts.length && (!pv || !pc)) {
+    for (const position of open) gap(monetaryGaps, position.ticker);
+  }
   return {
-    openCount: open.length,
-    closedCount: positions.length - open.length,
-    valued,
-    marketValue: valued ? value : null,
-    costBasis: hasBasis ? basis : null,
-    sinceEntry: hasBasis ? basedValue - basis : null,
-    sinceEntryPct: hasBasis ? ((basedValue - basis) / basis) * 100 : null,
-    based,
-    dayChange: dayValued ? day : null,
-    unpriced,
-    noBasis,
+    openCount: open.length, closedCount: positions.length - open.length,
+    // Priced/sized coverage is separate from common-unit availability.
+    valued: values.length, based,
+    marketValue: value?.amount ?? null, marketValueCurrency: value?.currency ?? null,
+    costBasis: cost?.amount ?? null, costBasisCurrency: cost?.currency ?? null,
+    sinceEntry: finite(pnl) ? pnl : null, sinceEntryPct: finite(pct) ? pct : null,
+    sinceEntryCurrency: finite(pnl) ? pc?.currency ?? null : null,
+    dayChange: day?.amount ?? null, dayChangeCurrency: day?.currency ?? null,
+    unpriced, noBasis, monetaryGaps,
   };
 }
 
