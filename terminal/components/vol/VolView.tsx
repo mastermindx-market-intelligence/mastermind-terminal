@@ -15,13 +15,14 @@
  * the only freshness truth, and every panel carries an options_hub provenance
  * footer. Vol is NON-DIRECTIONAL: neutral brand accents only, never --up/--down.
  *
- * Fetch: ONE flowGet(`vol:{ROOT}`) per committed root (the store publishes once
- * a night — polling would only re-download the same snapshot). A request counter
+ * Fetch: ONE flowGetResult(`vol:{ROOT}`) per committed root (the store publishes once
+ * a night — polling would only re-download the same snapshot). Only a 404 is the
+ * coverage-gap empty; a read that did not land is the load error. A request counter
  * drops stale responses so a slow root can't clobber a newer pick.
  */
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { flowGet } from "@/lib/flowClientCache";
+import { flowGetResult, type FlowOutcome } from "@/lib/flowClientCache";
 import { useLang } from "@/lib/i18n";
 import { GEX_AUTOCOMPLETE_ROOTS } from "@/lib/optionsRoots";
 import { trackSearch } from "@/lib/searchTrack";
@@ -32,7 +33,7 @@ import {
   admitVolTermRows, admitVolSmileExpiries,
 } from "./volShared";
 import { VolHistoryPanel } from "./VolHistoryPanel";
-import { VolVrpPanel } from "./VolVrpPanel";
+import { VolVrpPanel, type AggRead } from "./VolVrpPanel";
 import type { AggTrendPayload } from "@/lib/aggTrend";
 import { VolTermPanel } from "./VolTermPanel";
 import { VolSkewPanel } from "./VolSkewPanel";
@@ -70,64 +71,104 @@ export function VolView() {
   const [inputVal, setInputVal] = useState(DEFAULT_ROOT);
   const [payload, setPayload] = useState<VolPayload | null>(null);
   // `agg:{ROOT}` — the aggregate-trend store, fetched non-gating for the VRP
-  // regime band. Optional: its absence hides one panel, never the tab.
+  // regime band. Optional: its absence hides one panel, never the tab — and a
+  // pending or failed read is never shown as that absence.
   const [agg, setAgg] = useState<AggTrendPayload | null>(null);
+  const [aggRead, setAggRead] = useState<AggRead>("loading");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
+  // Bumped by Retry: re-runs the snapshot read for the same root.
+  const [attempt, setAttempt] = useState(0);
   const [expiryChoice, setExpiryChoice] = useState<{ root: string; exp: string } | null>(null);
   const reqRef = useRef(0);
 
+  // VRP regime context for `forRoot`, fenced by the snapshot request that owns it:
+  // a newer root or retry drops a late answer for the old one.
+  const readAgg = useCallback((forRoot: string, req: number) => {
+    void (async () => {
+      let aggOutcome: FlowOutcome;
+      try {
+        aggOutcome = await flowGetResult(`agg:${forRoot}`);
+      } catch {
+        aggOutcome = { status: "unavailable", reason: "network" };
+      }
+      if (reqRef.current !== req) return;
+      if (aggOutcome.status !== "data") {
+        // Only a 404 lets the panel say the history was never published.
+        setAgg(null);
+        setAggRead(aggOutcome.status === "absent" ? "resolved" : "unavailable");
+        return;
+      }
+      const a = aggOutcome.data as
+        | (AggTrendPayload & { root?: string })
+        | Record<string, unknown>;
+      const inner = (a && typeof a === "object" && !("series" in a) && (a as Record<string, unknown>)[forRoot]
+        ? (a as Record<string, unknown>)[forRoot]
+        : a) as (AggTrendPayload & { root?: string }) | null;
+      const okA =
+        inner != null &&
+        Array.isArray(inner.series) &&
+        (typeof inner.root !== "string" || inner.root.toUpperCase() === forRoot);
+      setAgg(okA ? inner : null);
+      setAggRead("resolved");
+    })();
+  }, []);
+
   // One-shot fetch per committed root (nightly store — no polling). The
-  // loading/error/payload RESETS live in commitRoot (the event that changes the
-  // root) — the effect body itself only starts the async load and resolves its
-  // states in the awaited callback, so a slow root can never clobber a newer
-  // pick (request counter) and the effect never sets state synchronously.
+  // loading/error/payload RESETS live in commitRoot and retrySnapshot (the events
+  // that start a read) — the effect body itself only starts the async load and
+  // resolves its states in the awaited callback, so a slow root can never clobber
+  // a newer pick (request counter) and the effect never sets state synchronously.
   useEffect(() => {
     const req = ++reqRef.current;
     void (async () => {
-      let data: unknown = null;
+      let read: FlowOutcome;
       try {
-        data = await flowGet(`vol:${root}`);
+        read = await flowGetResult(`vol:${root}`);
       } catch {
-        data = null;
+        read = { status: "unavailable", reason: "network" };
       }
       if (reqRef.current !== req) return;
-      if (data == null) {
-        // A null here is almost always an UNCOVERED root (the nightly build's R2 key
-        // does not exist → /api/flow 5xx → flowGet null), not a broken desk. On prod
-        // this rendered "Could not load" for every name outside the build — the
-        // honest state is the coverage-gap empty, which also tells the reader what
-        // to do about it.
+      if (read.status !== "data") {
+        // /api/flow answers 404 only when the nightly build has no object for this
+        // root: that is the coverage-gap empty, which tells the reader what to do
+        // about it. A 5xx, a refused fetch or an unreadable body is a read that did
+        // not land — the load error, never "{sym} isn't in this nightly build".
         setPayload(null);
-        setError(false);
+        setError(read.status === "unavailable");
         setLoading(false);
         return;
       }
-      const rec = data as VolPayload;
+      const rec = read.data as VolPayload;
       // Root-match guard (fixture convention): {} or another root's payload is
       // the honest empty, never data wearing the wrong header.
       const ok = typeof rec.root === "string" && rec.root.toUpperCase() === root;
       setPayload(ok ? rec : null);
+      setError(false);
       setLoading(false);
 
       // VRP regime context, after first paint (the series is ~250KB for SPY).
-      void (async () => {
-        const a = (await flowGet(`agg:${root}`).catch(() => null)) as
-          | (AggTrendPayload & { root?: string })
-          | Record<string, unknown>
-          | null;
-        if (reqRef.current !== req) return;
-        const inner = (a && typeof a === "object" && !("series" in a) && (a as Record<string, unknown>)[root]
-          ? (a as Record<string, unknown>)[root]
-          : a) as (AggTrendPayload & { root?: string }) | null;
-        const okA =
-          inner != null &&
-          Array.isArray(inner.series) &&
-          (typeof inner.root !== "string" || inner.root.toUpperCase() === root);
-        setAgg(okA ? inner : null);
-      })();
+      readAgg(root, req);
     })();
-  }, [root]);
+  }, [root, attempt, readAgg]);
+
+  // A read that did not land is retried in place, never by reloading the page. The
+  // client cache keeps payloads only, so each retry is a real re-read.
+  const retrySnapshot = useCallback(() => {
+    setLoading(true);
+    setError(false);
+    setPayload(null);
+    setAgg(null);
+    setAggRead("loading");
+    setAttempt((n) => n + 1);
+  }, []);
+
+  // The spread panel re-reads only its own store; the snapshot on screen stays.
+  const retryAgg = useCallback(() => {
+    setAgg(null);
+    setAggRead("loading");
+    readAgg(root, reqRef.current);
+  }, [readAgg, root]);
 
   const commitRoot = useCallback(() => {
     const next = inputVal.trim().toUpperCase();
@@ -137,6 +178,7 @@ export function VolView() {
       setError(false);
       setPayload(null);
       setAgg(null);
+      setAggRead("loading");
       setRoot(next);
     }
   }, [inputVal, root]);
@@ -273,7 +315,10 @@ export function VolView() {
           /* Honest empty / error: name WHICH emptiness this is. */
           <div style={CENTER_STATE}>
             <div style={EMPTY_TITLE}>{error ? t("errorLoad") : t("emptyTitle")}</div>
-            {!error && <div style={EMPTY_WHY}>{t("emptyWhy").replace("{sym}", root)}</div>}
+            <div style={EMPTY_WHY}>{error ? t("errorWhy") : t("emptyWhy").replace("{sym}", root)}</div>
+            {error && (
+              <button type="button" className="btn btn-ghost vol-retry" onClick={retrySnapshot}>{t("retry")}</button>
+            )}
           </div>
         ) : (
           <div style={GRID}>
@@ -333,7 +378,7 @@ export function VolView() {
             />
 
             {/* ═══ Panel B2 — VRP regime (R2.3) ═══════════════════════════ */}
-            <VolVrpPanel vrp={payload.vrp} agg={agg} sourceAsOf={payload.asof} lang={lang} />
+            <VolVrpPanel vrp={payload.vrp} agg={agg} aggRead={aggRead} onRetry={retryAgg} sourceAsOf={payload.asof} lang={lang} />
 
             {selectedExpiry && (
               <section className="fin-card" data-testid="vol-expiry-context" style={EXPIRY_CONTEXT}>

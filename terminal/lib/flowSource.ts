@@ -372,6 +372,47 @@ async function fetchWithUA(url: string): Promise<Record<string, unknown>> {
 }
 
 /**
+ * Availability of one upstream payload. Only a 404/410 is absence; a refused connection, a
+ * timeout, any other non-2xx and an unparseable or null body are "unavailable" — a read that
+ * did not land says nothing about whether the payload exists.
+ */
+export type UpstreamOutcome =
+  | { status: "data"; data: Record<string, unknown> }
+  | { status: "absent" }
+  | { status: "unavailable" };
+
+/** One classified upstream read — the same timeout, UA and no-store policy as fetchWithUA. */
+async function readUpstream(url: string): Promise<UpstreamOutcome> {
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), 3_000);
+  try {
+    let res: Response;
+    try {
+      res = await fetch(url, {
+        signal: ctrl.signal,
+        headers: { "User-Agent": "mastermind-feed/1.0" },
+        cache: "no-store",
+      });
+    } catch {
+      return { status: "unavailable" };
+    }
+    if (res.status === 404 || res.status === 410) return { status: "absent" };
+    if (!res.ok) return { status: "unavailable" };
+    let data: unknown;
+    try {
+      data = await res.json();
+    } catch {
+      return { status: "unavailable" };
+    }
+    return data == null
+      ? { status: "unavailable" }
+      : { status: "data", data: data as Record<string, unknown> };
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+/**
  * Attach the proprietary flow_score_v1 result to each event of the main feed
  * payload, SERVER-SIDE, so the browser receives only the computed
  * {score, tier, components:[{key,label,value}]} — never the model weights/curves.
@@ -1000,8 +1041,9 @@ export async function intradayFixture(sym: string, tf: string): Promise<Bar6[] |
  * Options Prophet is an artifact-native feed, so it deliberately probes its
  * published R2 index before the backend route. This avoids paying the backend's
  * timeout on every first load when that optional route is absent or deploying.
- * `manifest` is a local static file on this box. Returns null when every source
- * fails. (No scoring, no cache — callers own that.)
+ * `manifest` is a local static file on this box. tryFetchUpstream returns null when
+ * no source yields a payload; tryFetchUpstreamResult says whether that is a proven
+ * absence or a failed read. (No scoring, no cache — callers own that.)
  */
 export type FlowUpstreamSource = "backend" | "r2";
 
@@ -1147,20 +1189,57 @@ export async function tryFetchUpstream(f: string): Promise<Record<string, unknow
       return null;
     }
   }
+  const outcome = await readGenericUpstream(f);
+  return outcome.status === "data" ? outcome.data : null;
+}
+
+/**
+ * tryFetchUpstream with the failure kept apart from the absence, for the route's
+ * status code. Leaders and the manifest have their own admission rules and never
+ * claim absence: no payload from them is a failed read.
+ */
+export async function tryFetchUpstreamResult(f: string): Promise<UpstreamOutcome> {
+  if (f === "leaders" || f === "manifest") {
+    const data = await tryFetchUpstream(f);
+    return data ? { status: "data", data } : { status: "unavailable" };
+  }
+  return readGenericUpstream(f);
+}
+
+/**
+ * Keys whose only store is the public R2 object, so R2's 404 proves the payload is
+ * unpublished whatever the backend answered. The macro hub backend (app/hub.py
+ * `_hub_fetch`) reads these same objects through from the same public bucket and answers
+ * 503, not 404, for one it has never read; `agg:` has no backend route at all. Live-flow
+ * keys (ticker:, tide, …) stay out: the backend can hold tape the R2 mirror lacks. Check
+ * macro origin/main before extending this list.
+ */
+function r2IsStoreOfRecord(f: string): boolean {
+  return f.startsWith("vol:") || f.startsWith("gex:") || f.startsWith("tctx:") ||
+    f.startsWith("agg:") || f === "oi" || f === "hot" || f === "ctx" || f === "oiconf";
+}
+
+async function readGenericUpstream(f: string): Promise<UpstreamOutcome> {
+  // Absence needs R2's own 404, and no source failure that R2's answer cannot explain.
+  let r2Absent = false;
+  let unexplained = false;
   for (const source of upstreamSourceOrder(f)) {
     // DEC:B1-PROPHET-PUBLIC-SPLIT (Sol Day-5, 2026-08-21): the full US Prophet
     // plan book is premium/private. prophet_idx must never fall through to the
     // anonymous public R2 object — when the backend is unavailable the caller
     // fails closed (503 / stale in-memory cache), never anonymous fallthrough.
     if (source === "r2" && f === "prophet_idx") continue;
-    try {
-      const url = source === "r2"
-        ? `${R2_BASE}/${r2Key(f)}`
-        : `${BACKEND}${backendPath(f)}`;
-      return await fetchWithUA(url);
-    } catch {
-      // Continue to the next configured source.
+    const read = await readUpstream(source === "r2"
+      ? `${R2_BASE}/${r2Key(f)}`
+      : `${BACKEND}${backendPath(f)}`);
+    if (read.status === "data") return read;
+    if (source === "r2") {
+      if (read.status === "absent") r2Absent = true;
+      else unexplained = true;
+    } else if (read.status !== "absent" && !r2IsStoreOfRecord(f)) {
+      unexplained = true;
     }
+    // Continue to the next configured source.
   }
   // DEC:B1-MACRO-PRIVATE-CUTOVER: the canonical Macro repo is now private and its
   // GitHub Pages mirror is retired, so `flow_idx` no longer has an anonymous public
@@ -1168,7 +1247,7 @@ export async function tryFetchUpstream(f: string): Promise<Record<string, unknow
   // refreshed nightly by the macro repo's `scripts/mirror_flow_idx.py`); when both
   // of those fail this path fails closed (null -> caller's 503 / stale cache)
   // rather than reading an anonymous public copy.
-  return null;
+  return r2Absent && !unexplained ? { status: "absent" } : { status: "unavailable" };
 }
 
 /**
