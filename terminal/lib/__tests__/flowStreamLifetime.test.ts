@@ -32,6 +32,17 @@ afterEach(async () => {
   vi.useRealTimers(); vi.unstubAllGlobals(); vi.unstubAllEnvs();
 });
 describe("actual SSE route lifetime and entitlement owner", () => {
+  it("does not extend a nearly expired page positive into a new stream lifetime", async () => {
+    const entitlement = await import("../entitlement");
+    expect(await entitlement.hasLiveOptions()).toBe(true);
+    await vi.advanceTimersByTimeAsync(44_000);
+    answer = { tier: "essential", features: [] };
+    const route = await import("../../app/api/flow/stream/route");
+    response = await route.GET(new Request("http://localhost/api/flow/stream?f=feed"));
+    expect(response.status).toBe(403);
+    expect(fetcher).toHaveBeenCalledTimes(2);
+    expect(state.sink).toBeNull(); expect(vi.getTimerCount()).toBe(0);
+  });
   it("a delayed positive check cannot satisfy the next lifetime authority check", async () => {
     await open();
     const positive = JSON.stringify(answer);

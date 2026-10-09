@@ -58,10 +58,12 @@ export async function GET(req: Request): Promise<Response> {
     });
   }
 
+  // A connection starts with fresh authority; a nearly expired page positive
+  // must not gain another complete lifetime interval by opening a stream.
   // Options data is a PAID feature — gate the stream at connection open against
   // the macro-api entitlement (terminal_live_options via /api/me), not
   // profiles.is_pro. Fixture mode (dev/CI) is exempt.
-  if (process.env.FLOW_FIXTURE !== "1" && !(await hasLiveOptions())) {
+  if (process.env.FLOW_FIXTURE !== "1" && !(await hasLiveOptions({ fresh: true }))) {
     return new Response("pro_required", { status: 403 });
   }
 
