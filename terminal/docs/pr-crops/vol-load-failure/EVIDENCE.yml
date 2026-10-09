@@ -1,8 +1,8 @@
 # Volatility tab failure-state truth — capture evidence
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
 # Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
-# capturedAtHead: c329669ec8614922f61a1269d3d8492884d39477
-# capturedAt: 2026-10-09T08:05:08.200Z
+# capturedAtHead: 54b98c177c58d7814f32dcbfe896d072f9a4caef
+# capturedAt: 2026-10-09T08:11:29.460Z
 # capturedAtHead is informational. The lock is layoutFiles.
 layoutFiles:
   terminal/components/vol/VolView.tsx: "9b8dc93ffa34306cf6d8f919c9d33ab113ce616721ba33e26ef5f1bcc1e9d85a"
@@ -13,28 +13,51 @@ theme: dark
 languages: [en, zh]
 viewports:
   - { name: desktop, width: 1440, height: 900 }
+  - { name: tablet, width: 820, height: 1180 }
   - { name: mobile, width: 390, height: 844 }
 harness:
   snapshot-absent-1440-zh.png: { url: "/options?tab=volatility", state: snapshot-absent, injected: { "vol:SPY": 404 } }
   snapshot-absent-1440.png: { url: "/options?tab=volatility", state: snapshot-absent, injected: { "vol:SPY": 404 } }
   snapshot-absent-390-zh.png: { url: "/options?tab=volatility", state: snapshot-absent, injected: { "vol:SPY": 404 } }
   snapshot-absent-390.png: { url: "/options?tab=volatility", state: snapshot-absent, injected: { "vol:SPY": 404 } }
+  snapshot-absent-820-zh.png: { url: "/options?tab=volatility", state: snapshot-absent, injected: { "vol:SPY": 404 } }
+  snapshot-absent-820.png: { url: "/options?tab=volatility", state: snapshot-absent, injected: { "vol:SPY": 404 } }
+  snapshot-retried-1440-zh.png: { url: "/options?tab=volatility", state: snapshot-retried, injected: { "vol:SPY": 503 }, then: "vol:SPY healed, Retry clicked" }
+  snapshot-retried-1440.png: { url: "/options?tab=volatility", state: snapshot-retried, injected: { "vol:SPY": 503 }, then: "vol:SPY healed, Retry clicked" }
+  snapshot-retried-390-zh.png: { url: "/options?tab=volatility", state: snapshot-retried, injected: { "vol:SPY": 503 }, then: "vol:SPY healed, Retry clicked" }
+  snapshot-retried-390.png: { url: "/options?tab=volatility", state: snapshot-retried, injected: { "vol:SPY": 503 }, then: "vol:SPY healed, Retry clicked" }
+  snapshot-retried-820-zh.png: { url: "/options?tab=volatility", state: snapshot-retried, injected: { "vol:SPY": 503 }, then: "vol:SPY healed, Retry clicked" }
+  snapshot-retried-820.png: { url: "/options?tab=volatility", state: snapshot-retried, injected: { "vol:SPY": 503 }, then: "vol:SPY healed, Retry clicked" }
   snapshot-unavailable-1440-zh.png: { url: "/options?tab=volatility", state: snapshot-unavailable, injected: { "vol:SPY": 503 } }
   snapshot-unavailable-1440.png: { url: "/options?tab=volatility", state: snapshot-unavailable, injected: { "vol:SPY": 503 } }
   snapshot-unavailable-390-zh.png: { url: "/options?tab=volatility", state: snapshot-unavailable, injected: { "vol:SPY": 503 } }
   snapshot-unavailable-390.png: { url: "/options?tab=volatility", state: snapshot-unavailable, injected: { "vol:SPY": 503 } }
+  snapshot-unavailable-820-zh.png: { url: "/options?tab=volatility", state: snapshot-unavailable, injected: { "vol:SPY": 503 } }
+  snapshot-unavailable-820.png: { url: "/options?tab=volatility", state: snapshot-unavailable, injected: { "vol:SPY": 503 } }
   spread-absent-1440-zh.png: { url: "/options?tab=volatility", state: spread-absent, injected: { "agg:SPY": 404 } }
   spread-absent-1440.png: { url: "/options?tab=volatility", state: spread-absent, injected: { "agg:SPY": 404 } }
   spread-absent-390-zh.png: { url: "/options?tab=volatility", state: spread-absent, injected: { "agg:SPY": 404 } }
   spread-absent-390.png: { url: "/options?tab=volatility", state: spread-absent, injected: { "agg:SPY": 404 } }
+  spread-absent-820-zh.png: { url: "/options?tab=volatility", state: spread-absent, injected: { "agg:SPY": 404 } }
+  spread-absent-820.png: { url: "/options?tab=volatility", state: spread-absent, injected: { "agg:SPY": 404 } }
   spread-loading-1440-zh.png: { url: "/options?tab=volatility", state: spread-loading, injected: { "agg:SPY": pending } }
   spread-loading-1440.png: { url: "/options?tab=volatility", state: spread-loading, injected: { "agg:SPY": pending } }
   spread-loading-390-zh.png: { url: "/options?tab=volatility", state: spread-loading, injected: { "agg:SPY": pending } }
   spread-loading-390.png: { url: "/options?tab=volatility", state: spread-loading, injected: { "agg:SPY": pending } }
+  spread-loading-820-zh.png: { url: "/options?tab=volatility", state: spread-loading, injected: { "agg:SPY": pending } }
+  spread-loading-820.png: { url: "/options?tab=volatility", state: spread-loading, injected: { "agg:SPY": pending } }
+  spread-retried-1440-zh.png: { url: "/options?tab=volatility", state: spread-retried, injected: { "agg:SPY": 503 }, then: "agg:SPY healed, Retry clicked" }
+  spread-retried-1440.png: { url: "/options?tab=volatility", state: spread-retried, injected: { "agg:SPY": 503 }, then: "agg:SPY healed, Retry clicked" }
+  spread-retried-390-zh.png: { url: "/options?tab=volatility", state: spread-retried, injected: { "agg:SPY": 503 }, then: "agg:SPY healed, Retry clicked" }
+  spread-retried-390.png: { url: "/options?tab=volatility", state: spread-retried, injected: { "agg:SPY": 503 }, then: "agg:SPY healed, Retry clicked" }
+  spread-retried-820-zh.png: { url: "/options?tab=volatility", state: spread-retried, injected: { "agg:SPY": 503 }, then: "agg:SPY healed, Retry clicked" }
+  spread-retried-820.png: { url: "/options?tab=volatility", state: spread-retried, injected: { "agg:SPY": 503 }, then: "agg:SPY healed, Retry clicked" }
   spread-unavailable-1440-zh.png: { url: "/options?tab=volatility", state: spread-unavailable, injected: { "agg:SPY": 503 } }
   spread-unavailable-1440.png: { url: "/options?tab=volatility", state: spread-unavailable, injected: { "agg:SPY": 503 } }
   spread-unavailable-390-zh.png: { url: "/options?tab=volatility", state: spread-unavailable, injected: { "agg:SPY": 503 } }
   spread-unavailable-390.png: { url: "/options?tab=volatility", state: spread-unavailable, injected: { "agg:SPY": 503 } }
+  spread-unavailable-820-zh.png: { url: "/options?tab=volatility", state: spread-unavailable, injected: { "agg:SPY": 503 } }
+  spread-unavailable-820.png: { url: "/options?tab=volatility", state: spread-unavailable, injected: { "agg:SPY": 503 } }
 surfaces: [VolView, VolVrpPanel]
 injection: page.route on /api/flow answers 503 / 404 / never; every other read is the FLOW_FIXTURE server
 capture_flag: TERMINAL_E2E_FIXTURE
@@ -47,19 +70,41 @@ files:
   - snapshot-absent-1440.png
   - snapshot-absent-390-zh.png
   - snapshot-absent-390.png
+  - snapshot-absent-820-zh.png
+  - snapshot-absent-820.png
+  - snapshot-retried-1440-zh.png
+  - snapshot-retried-1440.png
+  - snapshot-retried-390-zh.png
+  - snapshot-retried-390.png
+  - snapshot-retried-820-zh.png
+  - snapshot-retried-820.png
   - snapshot-unavailable-1440-zh.png
   - snapshot-unavailable-1440.png
   - snapshot-unavailable-390-zh.png
   - snapshot-unavailable-390.png
+  - snapshot-unavailable-820-zh.png
+  - snapshot-unavailable-820.png
   - spread-absent-1440-zh.png
   - spread-absent-1440.png
   - spread-absent-390-zh.png
   - spread-absent-390.png
+  - spread-absent-820-zh.png
+  - spread-absent-820.png
   - spread-loading-1440-zh.png
   - spread-loading-1440.png
   - spread-loading-390-zh.png
   - spread-loading-390.png
+  - spread-loading-820-zh.png
+  - spread-loading-820.png
+  - spread-retried-1440-zh.png
+  - spread-retried-1440.png
+  - spread-retried-390-zh.png
+  - spread-retried-390.png
+  - spread-retried-820-zh.png
+  - spread-retried-820.png
   - spread-unavailable-1440-zh.png
   - spread-unavailable-1440.png
   - spread-unavailable-390-zh.png
   - spread-unavailable-390.png
+  - spread-unavailable-820-zh.png
+  - spread-unavailable-820.png

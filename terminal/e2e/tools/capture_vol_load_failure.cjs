@@ -6,7 +6,8 @@
  * A read that did not land is not an absence: a 5xx / refused /api/flow read renders the load
  * error with an in-place Retry, and only a 404 renders the coverage gap. The same holds one read
  * lower, for the aggregate-trend store behind the spread panel. Each state is produced by the
- * real failure injected at /api/flow (page.route), never by a component prop.
+ * real failure injected at /api/flow (page.route), never by a component prop. The *-retried
+ * states click Retry after the store heals and crop what the same document recovers to.
  *
  * Dark only (DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06).
  * TERMINAL_E2E_FIXTURE suppresses the Next.js N indicator; FLOW_FIXTURE serves the healthy reads.
@@ -38,14 +39,20 @@ const BASE = `http://127.0.0.1:${PORT}`;
 const URL_PATH = "/options?tab=volatility";
 const VIEWPORTS = {
   1440: { width: 1440, height: 900 },
+  820: { width: 820, height: 1180 },
   390: { width: 390, height: 844 },
 };
 
-/** Injected /api/flow answer per f-param; anything unlisted reaches the fixture server. */
+/**
+ * Injected /api/flow answer per f-param; anything unlisted reaches the fixture server.
+ * `healAfter`: that injection is lifted and Retry clicked before the crop.
+ */
 const STATES = {
   "snapshot-unavailable": { replies: { "vol:SPY": "503" }, surface: "snapshot" },
+  "snapshot-retried": { replies: { "vol:SPY": "503" }, surface: "snapshot", healAfter: "vol:SPY" },
   "snapshot-absent": { replies: { "vol:SPY": "404" }, surface: "snapshot" },
   "spread-unavailable": { replies: { "agg:SPY": "503" }, surface: "spread" },
+  "spread-retried": { replies: { "agg:SPY": "503" }, surface: "spread", healAfter: "agg:SPY" },
   "spread-loading": { replies: { "agg:SPY": "pending" }, surface: "spread" },
   "spread-absent": { replies: { "agg:SPY": "404" }, surface: "spread" },
 };
@@ -142,7 +149,7 @@ async function waitForServer(timeoutMs) {
 async function newPage(browser, width, lang, replies) {
   const context = await browser.newContext({
     viewport: VIEWPORTS[width],
-    hasTouch: width === 390,
+    hasTouch: width !== 1440,
     locale: lang === "zh" ? "zh-CN" : "en-US",
     colorScheme: "dark",
   });
@@ -201,19 +208,26 @@ async function cropBoxes(page, boxes, outPath, pad) {
   await page.screenshot({ path: outPath, clip: { x, y, width, height } });
 }
 
-async function captureState(page, width, lang, state, outPath) {
+async function captureState(page, width, lang, state, replies, outPath) {
   const copy = COPY[lang];
-  const { surface } = STATES[state];
+  const { surface, healAfter } = STATES[state];
   await page.goto(`${BASE}${URL_PATH}`, { waitUntil: "domcontentloaded", timeout: 90_000 });
   const pad = width === 390 ? 10 : 16;
 
   if (surface === "snapshot") {
     // The tab's whole shell: controls bar (with its status badge) above the centered body state.
     const view = page.locator('input[list="vol-roots"]').locator("xpath=../../..");
-    if (state === "snapshot-unavailable") {
+    if (state === "snapshot-unavailable" || healAfter) {
       await view.getByText(copy.errorLoad).nth(1).waitFor({ state: "visible" });
       await view.getByRole("button", { name: copy.retry, exact: true }).waitFor({ state: "visible" });
-    } else {
+    }
+    if (healAfter) {
+      // The store answers again; Retry re-reads in place and the snapshot renders.
+      delete replies[healAfter];
+      await view.getByRole("button", { name: copy.retry, exact: true }).click();
+      await page.getByTestId("term-expiry-select").waitFor({ state: "visible" });
+      if (await view.getByText(copy.errorLoad).count()) throw new Error(`${state}: the load error outlived the re-read`);
+    } else if (state !== "snapshot-unavailable") {
       await view.getByText(copy.emptyTitle).waitFor({ state: "visible" });
       if (await view.getByRole("button", { name: copy.retry, exact: true }).count()) {
         throw new Error(`${state}: a published absence must offer nothing to retry`);
@@ -226,10 +240,22 @@ async function captureState(page, width, lang, state, outPath) {
   }
 
   const spread = page.locator(".fin-card").filter({ hasText: copy.spreadTitle }).first();
-  const expected = { "spread-unavailable": copy.spreadError, "spread-loading": copy.spreadLoading, "spread-absent": copy.spreadAbsent }[state];
+  const expected = {
+    "spread-unavailable": copy.spreadError,
+    "spread-retried": copy.spreadError,
+    "spread-loading": copy.spreadLoading,
+    "spread-absent": copy.spreadAbsent,
+  }[state];
   await spread.getByText(expected).waitFor({ state: "visible" });
-  if (state === "spread-unavailable") {
+  if (state === "spread-unavailable" || healAfter) {
     await spread.getByRole("button", { name: copy.retry, exact: true }).waitFor({ state: "visible" });
+  }
+  if (healAfter) {
+    // Only the spread store is re-read; the band chart replaces the error in the same card.
+    delete replies[healAfter];
+    await spread.getByRole("button", { name: copy.retry, exact: true }).click();
+    await spread.locator('svg[role="img"]').waitFor({ state: "visible" });
+    if (await spread.getByText(copy.spreadError).count()) throw new Error(`${state}: the load error outlived the re-read`);
   }
   // The snapshot read landed: its card stays up while the spread store failed or is still read.
   const stats = page.locator("section.fin-card").filter({ hasText: copy.statsTitle }).first();
@@ -258,14 +284,15 @@ async function main() {
     await waitForServer(180_000);
     const browser = await chromium.launch({ headless: true });
     try {
-      for (const width of [1440, 390]) {
+      for (const width of [1440, 820, 390]) {
         for (const lang of ["en", "zh"]) {
           for (const state of Object.keys(STATES)) {
             const file = cropName(state, width, lang);
             process.stdout.write(`capture ${file} … `);
-            const { context, page, held } = await newPage(browser, width, lang, STATES[state].replies);
+            const replies = { ...STATES[state].replies };
+            const { context, page, held } = await newPage(browser, width, lang, replies);
             try {
-              await captureState(page, width, lang, state, join(OUT, file));
+              await captureState(page, width, lang, state, replies, join(OUT, file));
               await assertNoNextIndicator(page, file);
               files.push(file);
               console.log("ok");
@@ -304,12 +331,15 @@ async function main() {
     "languages: [en, zh]",
     "viewports:",
     "  - { name: desktop, width: 1440, height: 900 }",
+    "  - { name: tablet, width: 820, height: 1180 }",
     "  - { name: mobile, width: 390, height: 844 }",
     "harness:",
     ...files.map((name) => {
       const state = Object.keys(STATES).find((s) => name.startsWith(`${s}-`));
-      const replies = Object.entries(STATES[state].replies).map(([f, r]) => `"${f}": ${r}`).join(", ");
-      return `  ${name}: { url: "${URL_PATH}", state: ${state}, injected: { ${replies} } }`;
+      const { replies, healAfter } = STATES[state];
+      const injected = Object.entries(replies).map(([f, r]) => `"${f}": ${r}`).join(", ");
+      const heal = healAfter ? `, then: "${healAfter} healed, Retry clicked"` : "";
+      return `  ${name}: { url: "${URL_PATH}", state: ${state}, injected: { ${injected} }${heal} }`;
     }),
     "surfaces: [VolView, VolVrpPanel]",
     "injection: page.route on /api/flow answers 503 / 404 / never; every other read is the FLOW_FIXTURE server",
