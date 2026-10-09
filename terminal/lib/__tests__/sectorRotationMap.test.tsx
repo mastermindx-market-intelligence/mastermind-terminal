@@ -4,7 +4,9 @@ import { createRoot, type Root } from "react-dom/client";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import SectorRotationMap, { filterRotationPoints, rotationDomain, rotationQuadrant, rotationReceipt, rotationSynthesis, sectorRotationPoints, type SectorRotationMapProps } from "@/components/sector-intelligence/SectorRotationMap";
 import { LangProvider, applyLang } from "../i18n";
-import { sectorRotationHistory, type Row } from "../sectorIntelligence";
+import { sectorRotationHistory, type Row, type FeedPayload } from "../sectorIntelligence";
+import { MARKET_RISK_NOW, riskEnvelopeFixture } from "./marketRiskFixture";
+
 
 (globalThis as unknown as { IS_REACT_ACT_ENVIRONMENT: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 const rows: Row[] = [
@@ -209,6 +211,26 @@ describe("SectorRotationMap", () => {
     expect(host.querySelectorAll("[data-sector-rotation-point]")).toHaveLength(5);
     expect(host.querySelector('[data-testid="rotation-history"]')?.textContent).toContain("Historical trail unavailable");
     expect(host.textContent).not.toContain("Reconstructed from sector/SPY price history");
+  });
+  it("keeps early risk context independent of map coordinates and uses its own source date", async () => {
+    vi.spyOn(Date, "now").mockReturnValue(MARKET_RISK_NOW);
+    await render();
+    const positions = Array.from(host.querySelectorAll("[data-sector-rotation-point]")).map(point => point.getAttribute("style"));
+    const risk: FeedPayload = { data: riskEnvelopeFixture(), receipt: { source: "risk", status: "ready",
+      path: "/riskdata/risk_envelope.json", asOf: "2026-10-07", observedAt: "2026-10-08T12:00:00Z", stale: false, contentHash: "fixture" } };
+    await render({ risk });
+    expect(host.querySelector('[data-testid="rotation-risk-context"]')?.textContent).toContain("Mixed · Early rotation: Defensive relative strength · 2026-10-07");
+    expect(host.querySelector('[data-testid="rotation-receipt"]')?.textContent).toBe("Sep 25 · 6 sectors");
+    expect(Array.from(host.querySelectorAll("[data-sector-rotation-point]")).map(point => point.getAttribute("style"))).toEqual(positions);
+    expect(host.querySelector('[data-testid="rotation-risk-detail"]')?.textContent).toContain("Statistical independence is unproven");
+    expect(host.querySelector('[data-testid="rotation-risk-detail"]')?.textContent).toContain("2026-09-29 → 2026-09-30");
+    await act(async () => applyLang("zh"));
+    expect(host.querySelector('[data-testid="rotation-risk-context"]')?.textContent).toContain("防御板块相对走强");
+    expect(host.querySelector('[data-testid="rotation-risk-detail"]')?.textContent).toContain("无法给出剔除重复后的总数");
+    await render({ risk: { ...risk, data: null, receipt: { ...risk.receipt, stale: true } } });
+    expect(host.querySelector('[data-testid="rotation-risk-context"]')?.textContent).toContain("不可用");
+    expect(host.querySelector('[data-testid="rotation-risk-detail"]')?.textContent).toContain("2026-10-07");
+    expect(Array.from(host.querySelectorAll("[data-sector-rotation-point]")).map(point => point.getAttribute("style"))).toEqual(positions);
   });
 
   it("uses the shared language provider for answer, map, tactical state and method copy", async () => {

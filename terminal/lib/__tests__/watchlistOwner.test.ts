@@ -230,7 +230,7 @@ describe("A2 — membership uniqueness is enforced by the database, not by appli
     // Both writers — the batched add and the first-login seed — go through the one helper.
     expect(service).toContain("async function writeMembership(");
     expect(route).toContain("seedMembership(supabase as never,");
-    // An unknown count is not an empty count: a failed read must not read as permission to seed.
-    expect(route).toContain("if (!countError && !count)");
+    // Exact-zero, failed, missing, and nonempty count behavior is exercised through
+    // the actual page and Supabase transport in terminalServerStartup.test.tsx.
   });
 });

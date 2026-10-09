@@ -2,7 +2,8 @@
  * This module neither emits a dossier nor creates rankings/entry permission.
  * Missing numbers stay null. Every feed keeps its own clock and cohort.
  */
-export const SECTOR_FEEDS = ["sector", "confluence", "themes", "heatmap", "history"] as const;
+export const SECTOR_FEEDS = ["sector", "confluence", "themes", "heatmap", "risk", "history"] as const;
+
 export type SectorFeed = typeof SECTOR_FEEDS[number];
 export type FeedStatus = "loading" | "ready" | "access" | "unavailable" | "invalid" | "error";
 export interface FeedReceipt {
@@ -13,6 +14,7 @@ export interface FeedReceipt {
   observedAt: string | null;
   stale: boolean;
   contentHash: string | null;
+  qualificationReasons?: string[];
 }
 export interface FeedPayload { data: unknown; receipt: FeedReceipt }
 export type FeedMap = Partial<Record<SectorFeed, FeedPayload>>;
@@ -121,7 +123,11 @@ export function readableOwnerEnvelope(source: SectorFeed, data: unknown): boolea
   if (source === "sector") return bounded(root.sectors);
   if (source === "confluence") return root.ok === true && bounded(root.subsectors) && bounded(root.sectors);
   if (source === "themes") return root.schema === "neuralweb.theme_state.v1" && bounded(root.themes);
+  if (source === "risk") return root.schema === "mastermind.risk_envelope/v1"
+    && ["measured_state", "hazard_summary", "policy_summary", "authority"].every(key =>
+      root[key] !== null && typeof root[key] === "object" && !Array.isArray(root[key]));
   if (source === "history") return sectorRotationHistory(data) !== null;
+
   return root.size_basis === "marketcap" && bounded(root.tiles) && root.n_tiles === (root.tiles as unknown[]).length;
 }
 function uniqueRows(found: Row[], key: string): Row[] {
