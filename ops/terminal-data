@@ -31,17 +31,26 @@ count(){ "$PY" -c "import json,sys;print(len(json.load(open(sys.argv[1]))['symbo
 LOCKFILE=/tmp/terminal-data.lock
 exec 9>"$LOCKFILE" || exit 1
 flock -n 9 || { echo "[$(ts)] another terminal-data holds the lock — exit"; exit 0; }
-trap 'rm -f "$LOCKFILE"' EXIT
+INTRADAY_LOG=""
+trap 'rm -f "$LOCKFILE" "${INTRADAY_LOG:-}"' EXIT
+# The UTC weekday this run STARTED on. The run begins 21:30 UTC and reaches its last steps
+# after midnight, so a weekday test made there reads the next day — and skips every Friday.
+RUN_DOW="$(date -u +%u)"
+export INTRADAY_RUN_DATE_ET="$(TZ=America/New_York date +%F)"
 
 echo "[$(ts)] === terminal refresh start (staging) ==="
 
 rm -f "$STAGE"
-run(){ echo "[$(ts)] -> $*"; "$@" || echo "[$(ts)] WARN: '$*' exited $?"; }
+run(){ echo "[$(ts)] -> $*"; "$@" || { local rc=$?; echo "[$(ts)] WARN: '$*' exited $rc"; }; }
 
 # Snapshot the live manifest at run start: recovery artifact + shrink-guard baseline.
 BAK="$D/manifest.json.bak-nightly"
 START_N=$(count "$LIVE")
 [ "$START_N" -gt 0 ] && cp -f "$LIVE" "$BAK"
+
+# Source-owned market context belongs to this existing refresh lane. It is
+# independent of per-name signal emission and cannot gate the universe refresh.
+run "$PY" ingest/pull_macro_risk.py
 
 # ── PHASE 1: flagship + fast price refresh (~5 min) ──
 # flagship 37 -> staging manifest + fresh real-OHLC/slices/verdicts (OHLC/slices go to live dir)
@@ -75,6 +84,7 @@ fi
 # OHLC (and watchlist LAST/CHG) freezes at file-creation date. Runs before hydrate so the
 # fresh close flows into the manifest same night (--days 7 self-corrects any missed day).
 run "$PY" ingest/refresh_ohlc.py --days 7 --write
+run node /opt/terminal/terminal/scripts/dist/score_personal_accuracy.mjs
 # Note: the quote hub resolves prevClose from the per-symbol OHLC daily file (anchor.js
 # resolution order: daily_file → polygon_prev → manifest fallback). refresh_ohlc.py above
 # writes today's close into each SYM.json in the live data dir, so the hub sees the correct
@@ -116,6 +126,14 @@ run "$PY" ingest/fetch_fred_daily.py
 # MUST run after build_macro_symbols, which writes the crypto manifest rows this pass reads, and
 # before the final hydrate, so a newly listed pair's LAST/CHG lands in the manifest the same night.
 run "$PY" ingest/refresh_crypto_ohlc.py --write
+# Publish the canonical 2D/3D session anchor onto every OHLC document. MUST run after the LAST
+# OHLC writer above (every one of them either rebuilds a document from scratch or mutates bars
+# in place preserving unknown keys), and it is what lets the BROWSER bucket daily sessions into
+# the same 3D bars the Golden Oracle computed on: the phase is counted from the symbol's IPO
+# session and is not derivable from the truncated feed the chart holds. Contract + rationale:
+# ingest/session_anchor.py. Seam pinned by tests/test_session_anchor.py::
+# test_the_nightly_runs_the_stamping_pass_after_the_last_ohlc_writer.
+run "$PY" ingest/stamp_session_anchors.py
 # basket-washout state (display-tier): per-name thematic-basket peer drawdown from 252d highs,
 # the artifact gen_slices_all stamps the "washout override candidate" ⊘ class from. MUST run
 # BEFORE gen_slices_all — a missing/stale artifact is not an error, it just means every blocked
@@ -193,6 +211,32 @@ if [ "${NEW:-0}" -ge "$MIN" ]; then
 else
   echo "[$(ts)] GUARD: staged $NEW < min $MIN (live $LIVEN) — keeping live, discarding staging"
   rm -f "$STAGE"
+fi
+
+# ── INTRADAY NIGHTLY REFRESH ──
+# Refresh existing 1h/5m intraday stores in place (incremental, no new symbols).
+# Must run BEFORE coverage index so refreshed files are indexed same night.
+# Runs on UTC weekdays (RUN_DOW); on NYSE holidays the backfill exits 0 with holiday=1 and does
+# not treat "no advance" as a stale vendor failure (--expect-advance).
+# Bounded: a hung vendor must not hold the nightly lock into the next night's run, which would
+# then skip itself. On timeout the step reports FAILED rc=124; every store file is written
+# atomically, so a killed run leaves each store either old or complete.
+if [ "$RUN_DOW" -le "5" ]; then
+  echo "[$(ts)] -> ingest.backfill_intraday --existing-only"
+  INTRADAY_LOG=$(mktemp "${TMPDIR:-/tmp}/intraday-refresh.XXXXXX")
+  timeout -k 60 90m "$PY" -m ingest.backfill_intraday --existing-only --expect-advance --tf 1h,5m --workers 8 2>&1 | tee "$INTRADAY_LOG"
+  rc=${PIPESTATUS[0]}
+  if [ "$rc" -eq 0 ]; then
+    if grep -q 'holiday=1' "$INTRADAY_LOG"; then
+      echo "[$(ts)] INTRADAY_REFRESH status=SKIPPED_HOLIDAY"
+    else
+      echo "[$(ts)] INTRADAY_REFRESH status=OK"
+    fi
+  else
+    echo "[$(ts)] INTRADAY_REFRESH status=FAILED rc=$rc"
+  fi
+else
+  echo "[$(ts)] -> skip ingest/backfill_intraday --existing-only (run did not start on a UTC weekday)"
 fi
 
 # ── COVERAGE INDEX (must be LAST: it describes what is published) ──

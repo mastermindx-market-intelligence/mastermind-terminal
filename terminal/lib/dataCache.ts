@@ -58,6 +58,40 @@ type Entry = { data: any; ts: number; inflight: Promise<CacheOutcome> | null };
 const store = new Map<string, Entry>();
 
 /**
+ * Invalidation generations — the boundary an older completion may not cross.
+ *
+ * `invalidate()` clears memory and deletes the IndexedDB record, but work that STARTED before it
+ * keeps running: a read-back already awaiting `idbGet`, a prefetch, a network request, a coverage
+ * load. IndexedDB itself serves a read transaction created before the delete the record the
+ * delete is about to remove. Without a fence that late answer re-seeded memory and was handed to
+ * the caller, so a Retry, a same-symbol correction or a whole-cache clear could be undone by a
+ * read that began a moment earlier (e2e/cache-invalidation-epoch.spec.ts).
+ *
+ * Every disk or network completion captures a generation when it starts and may populate memory,
+ * IndexedDB or the absence cache, or publish to an `onRevalidate` subscriber, only if no
+ * invalidation of its key (or of the whole cache) happened since. One monotonic counter serves
+ * both scopes: `invalidate(url)` stamps that key, `invalidate()` stamps everything.
+ *
+ * What the fence does NOT change: a caller still receives its own network request's outcome
+ * (dataCacheRequestOwnership.test.ts). An outdated DISK read is neither stored nor answered — the
+ * read-back simply runs again under the current generation, so it goes to the network (or joins
+ * the request already registered there).
+ */
+let generation = 0;
+let clearedAt = 0;                                  // generation of the last whole-cache clear
+const invalidatedAt = new Map<string, number>();    // url -> generation of its last invalidation
+const MAX_KEY_GENERATIONS = 1_000;
+
+function currentGeneration(): number {
+  return generation;
+}
+
+/** Was nothing invalidated for `url` (or globally) since `started` was captured? */
+function stillCurrent(url: string, started: number): boolean {
+  return started >= clearedAt && started >= (invalidatedAt.get(url) ?? 0);
+}
+
+/**
  * Negative cache — a URL that answered 404/410 is not re-fetched for a while. This is what
  * eliminates the "KRUS.intel.json fetched dozens of times" pattern, where dataCache evicts the
  * null entry on each !r.ok response so the next symbol switch or watchlist hover re-requests it.
@@ -194,13 +228,19 @@ async function fetchOutcome(url: string): Promise<CacheOutcome> {
 // onRevalidate (optional) is invoked with the committed payload — the hook that lets a
 // background SWR refresh reach the caller that was already handed the stale value.
 function doFetch(url: string, entry: Entry, onRevalidate?: (data: any) => void): Promise<CacheOutcome> {
+  const started = currentGeneration();
   const inflight: Promise<CacheOutcome> = fetchOutcome(url).then((outcome) => {
-    // Only permanently suppress on true 404/410 (resource does not exist).
-    // 5xx / 429 / network errors are transient — the entry evicts so the next call retries.
-    if (outcome.status === "absent") rememberAbsence(url);
-    // Only commit if this specific inflight is still the one registered.
+    // Both positive and negative cache writes belong to the currently registered request of the
+    // current generation. A late 404 from an invalidated/evicted request must not hide a newer
+    // successful read, and a late success must not overwrite memory, disk or a subscriber.
     const current = store.get(url);
-    if (current && current.inflight === inflight) {
+    if (current && current.inflight === inflight && !stillCurrent(url, started)) {
+      // Still registered but from an older generation (only reachable when the per-key map
+      // overflowed into a whole-cache stamp): release the key so the next read asks again.
+      store.delete(url);
+    } else if (current && current.inflight === inflight) {
+      // Only 404/410 are absence; transient errors remain retryable.
+      if (outcome.status === "absent") rememberAbsence(url);
       if (outcome.status !== "data") {
         // Never pin null — clear the key so the next call retries.
         // (the bounded absence cache prevents a 404/410 URL from being refetched for a while.)
@@ -309,7 +349,11 @@ export async function getJSONResult(url: string, opts?: GetOpts): Promise<CacheO
     // 3b. FULL memory miss only: short read-back from IndexedDB before hitting
     // the network. A broken/absent IDB (guarded + try/caught in idbGet) just
     // returns null and we fall through to the network exactly as before.
+    const started = currentGeneration();
     const rec = await idbGet(url);
+    // Invalidated while the disk read was pending: the record it returned is the one the caller
+    // threw away. Neither seed nor answer it — run the read again under the current generation.
+    if (!stillCurrent(url, started)) return getJSONResult(url, opts);
     // Re-check the memory store: another concurrent getJSON for the same url may
     // have populated it while we awaited the IDB read. If so, defer to it.
     const raced = store.get(url);
@@ -392,9 +436,12 @@ export function prefetch(url: string, opts?: GetOpts): void {
   // Full memory miss.
   if (idbAvailable()) {
     // Async read-back; prefetch returns immediately (fire-and-forget internally).
+    const started = currentGeneration();
     void (async () => {
       try {
         const rec = await idbGet(url);
+        // A prefetch is only a warm-up: invalidated while the disk read was pending → drop it.
+        if (!stillCurrent(url, started)) return;
         // Bail if another call populated memory or the url was marked absent meanwhile.
         if (store.get(url) || absenceActive(url)) return;
         if (rec) {
@@ -413,7 +460,7 @@ export function prefetch(url: string, opts?: GetOpts): void {
         doFetch(url, fresh);
       } catch {
         // Any failure → fall back to a plain network prefetch.
-        if (!store.get(url) && !absenceActive(url)) {
+        if (stillCurrent(url, started) && !store.get(url) && !absenceActive(url)) {
           const fresh: Entry = { data: null, ts: 0, inflight: null };
           doFetch(url, fresh);
         }
@@ -439,8 +486,19 @@ export function peek(url: string): any | undefined {
  * Also clears the 404 negative-cache entry so the URL can be re-requested, and
  * removes the corresponding IndexedDB record(s) (fire-and-forget; guarded so it
  * is a no-op when IDB is unavailable). The absence cache itself is never persisted.
+ *
+ * It also opens a new generation, so no disk read, prefetch, network request or coverage load
+ * that started before this call can repopulate what it removed (see "Invalidation generations").
  */
 export function invalidate(url?: string): void {
+  generation += 1;
+  if (url === undefined || invalidatedAt.size >= MAX_KEY_GENERATIONS) {
+    // A whole-cache stamp also bounds the per-key map; it fences every older completion, which
+    // is always safe (an outdated read runs again, an outdated warm-up is dropped).
+    clearedAt = generation;
+    invalidatedAt.clear();
+  }
+  if (url !== undefined) invalidatedAt.set(url, generation);
   if (url === undefined) {
     store.clear();
     absent.clear();
@@ -522,6 +580,7 @@ export function loadCoverage(manifestSymbols: string[]): void {
   // protection — it is the backstop for a publisher that has stopped running.
   const COVERAGE_MAX_AGE_MS = 36 * 60 * 60 * 1000;
 
+  const started = currentGeneration();
   coverageInflight = fetch("/data/coverage.json")
     .then((r) => (r.ok ? r.json() : null))
     .catch(() => null)
@@ -540,8 +599,10 @@ export function loadCoverage(manifestSymbols: string[]): void {
         const covered = new Set<string>(Array.isArray(cov[key]) ? cov[key] : []);
         // Pre-seed a BOUNDED absence for every manifest symbol NOT in this coverage list.
         for (const sym of manifestSymbols) {
-          if (!covered.has(sym)) {
-            rememberAbsence(`/data/${sym}${suffix}`, COVERAGE_ABSENCE_TTL);
+          const url = `/data/${sym}${suffix}`;
+          // An invalidation while the index was loading outranks what the index asserted.
+          if (!covered.has(sym) && stillCurrent(url, started)) {
+            rememberAbsence(url, COVERAGE_ABSENCE_TTL);
           }
         }
       }

@@ -1,4 +1,4 @@
-import { expect, test, type Page, type TestInfo } from "@playwright/test";
+import { expect, test, type Page, type Route, type TestInfo } from "@playwright/test";
 import { mkdirSync } from "node:fs";
 import path from "node:path";
 import { isolateWatchlistStore } from "./watchlistStore";
@@ -51,6 +51,118 @@ async function createThesis(page: Page, title: string, requestId: string, symbol
   return (await response.json()).thesisId as string;
 }
 
+type PendingSeed = {
+  schema: "mastermind.thesis-pending/v2";
+  ownerKey: string;
+  action: "create";
+  clientRequestId: string;
+  serializedBody: string;
+};
+
+function pendingSeed(requestId: string): { key: string; raw: string; seed: PendingSeed } {
+  const seed: PendingSeed = {
+    schema: "mastermind.thesis-pending/v2",
+    ownerKey: "local-preview",
+    action: "create",
+    clientRequestId: requestId,
+    serializedBody: JSON.stringify({
+      action: "create",
+      clientRequestId: requestId,
+      subject: {
+        schema: "mastermind.thesis-subject-ref/v1", kind: "issuer", owner: "terminal.analysis_symbol",
+        key: "NVDA", identityState: "listing_scoped", listing: { symbol: "NVDA", mic: null, securityId: null },
+        companyId: null, display: "NVDA · listing scoped",
+      },
+      content: {
+        schema: "mastermind.thesis-content/v1", title: "NVDA operating leverage",
+        statement: "Demand will outrun supply through the next platform cycle.",
+        catalysts: [], falsifiers: [], risks: [], horizon: "unspecified", effectiveAt: null, revisionNote: null,
+      },
+    }),
+  };
+  return {
+    key: `mm.thesis.pending.v2:local-preview:${requestId}`,
+    raw: JSON.stringify(seed),
+    seed,
+  };
+}
+
+async function seedPending(page: Page, requestId: string, savedSubjectKey?: string) {
+  const { key, raw, seed } = pendingSeed(requestId);
+  const value = savedSubjectKey === undefined
+    ? raw
+    : JSON.stringify({ ...seed, savedSubjectKey });
+  await page.addInitScript(([storageKey, storageValue]) => {
+    localStorage.setItem(storageKey as string, storageValue as string);
+  }, [key, value] as const);
+  return { key, raw: value };
+}
+
+const FAKE_CREATED_THESIS_ID = "11111111-1111-4111-8111-111111111111";
+
+async function fulfillCreatedThesis(route: Route) {
+  await route.fulfill({
+    status: 201,
+    contentType: "application/json",
+    body: JSON.stringify({
+      thesisId: FAKE_CREATED_THESIS_ID,
+      version: 1,
+      lifecycleState: "active",
+      replayed: false,
+    }),
+  });
+}
+
+type FakeCreateMutation = {
+  clientRequestId: string;
+  subject: Record<string, unknown>;
+  content: { title: string } & Record<string, unknown>;
+};
+
+// `**/api/theses` stops before a query string, so the detail GET missed the
+// fake create and the real server returned 404. The trailing ** keeps list
+// and detail on this handler. Any other method or path continues.
+async function routeCreatedThesisReads(page: Page, serializedBody: string, writes: string[]) {
+  const mutation = JSON.parse(serializedBody) as FakeCreateMutation;
+  const thesisId = FAKE_CREATED_THESIS_ID;
+  const current = {
+    id: "22222222-2222-4222-8222-222222222222", thesisId, version: 1, previousVersion: null,
+    transition: "create", lifecycleState: "active", subject: mutation.subject, content: mutation.content,
+    clientRequestId: mutation.clientRequestId, systemRecordedAt: "2026-10-03T15:00:00.000Z", effectiveAt: null,
+  };
+  const thesis = {
+    id: thesisId, currentVersion: 1, lifecycleState: "active", subject: mutation.subject,
+    title: mutation.content.title, updatedAt: "2026-10-03T15:00:00.000Z", createdAt: "2026-10-03T15:00:00.000Z",
+    current, history: [current], historyTruncated: false,
+  };
+  let created = false;
+  await page.route("**/api/theses**", async (route) => {
+    const request = route.request();
+    const url = new URL(request.url());
+    if (url.pathname !== "/api/theses") return route.continue();
+    if (request.method() === "POST") {
+      writes.push(request.postData() ?? "");
+      created = true;
+      return fulfillCreatedThesis(route);
+    }
+    if (request.method() === "GET") {
+      const id = url.searchParams.get("id");
+      return route.fulfill({
+        status: 200,
+        contentType: "application/json",
+        body: JSON.stringify(id === thesisId ? { thesis } : {
+          theses: created ? [{
+            id: thesis.id, currentVersion: thesis.currentVersion, lifecycleState: thesis.lifecycleState,
+            subject: thesis.subject, title: thesis.title, updatedAt: thesis.updatedAt,
+          }] : [],
+          truncated: false,
+        }),
+      });
+    }
+    return route.continue();
+  });
+}
+
 test("create → deep link → reload → revise → conflict → archive/invalidate/reopen keeps immutable history", async ({ page, baseURL }, testInfo) => {
   await prepare(page, testInfo, baseURL);
   const proofDir = path.join(process.cwd(), "e2e/proof/f11-theses");
@@ -78,6 +190,7 @@ test("create → deep link → reload → revise → conflict → archive/invali
   await page.reload();
   await expect(page.getByLabel("Thesis statement")).toHaveValue("Demand will outrun supply through the next platform cycle.");
   await page.getByLabel("Thesis statement").fill("Software mix expands pricing power through the next platform cycle.");
+  await page.getByLabel("Catalysts").fill("A brand-new catalyst\nSoftware mix expands");
   await page.getByLabel("Revision note").fill("Refined the operating leverage mechanism.");
   await page.getByRole("button", { name: "Save", exact: true }).click();
   await expect(page.getByText("Version 2 · Current")).toBeVisible();
@@ -130,7 +243,36 @@ test("create → deep link → reload → revise → conflict → archive/invali
   await expect(historical).toContainText("Recorded by");
   await expect(historical).toContainText("You");
   await expect(historical).toContainText("Software mix expands pricing power through the next platform cycle.");
-  await expect(historical).toContainText("Data-center revenue compounds");
+  // R4-1: scope snapshot catalyst assertions to the snapshot grid, not the whole inspector
+  // Version 2 snapshot catalysts: "A brand-new catalyst" and "Software mix expands"
+  // Version 2 delta says "Catalysts removed: Data-center revenue compounds." — that text lives in the delta, not the snapshot
+  // snapshotGrid is a CSS Module class (mangled at runtime), so locate by heading text instead
+  const v2Catalysts = historical.getByRole("heading", { name: "Catalysts" }).locator("..").locator("ul").getByRole("listitem");
+  await expect(v2Catalysts).toHaveCount(2);
+  const v2Texts = await v2Catalysts.allTextContents();
+  expect(v2Texts).toContain("A brand-new catalyst");
+  expect(v2Texts).toContain("Software mix expands");
+  expect(v2Texts).not.toContain("Data-center revenue compounds");
+  // B-F11-11a: What changed — version 2 has revised statement and title vs version 1
+  const delta2 = page.getByTestId("thesis-version-delta");
+  await expect(delta2).toBeVisible();
+  await expect(delta2).toContainText("Thesis statement changed.");
+  await expect(delta2).toContainText("Catalysts added: A brand-new catalyst.");
+  await expect(delta2).toContainText("Catalysts removed: Data-center revenue compounds.");
+  await expect(delta2).toContainText("Revision note changed.");
+  // Version 1 snapshot contains "Data-center revenue compounds" and "Software mix expands" (the original catalysts)
+  await page.getByRole("button", { name: "Inspect version 1" }).click();
+  const v1Catalysts = historical.getByRole("heading", { name: "Catalysts" }).locator("..").locator("ul").getByRole("listitem");
+  await expect(v1Catalysts).toHaveCount(2);
+  const v1Texts = await v1Catalysts.allTextContents();
+  expect(v1Texts).toContain("Data-center revenue compounds");
+  expect(v1Texts).toContain("Software mix expands");
+  // Version 1 delta shows the origin sentence (inspector is already on version 1)
+  const delta1 = page.getByTestId("thesis-version-delta");
+  await expect(delta1).toBeVisible();
+  await expect(delta1).toContainText("This is the first version; nothing before this.");
+  await page.getByRole("button", { name: "Inspect version 4" }).click();
+  await expect(page.getByTestId("thesis-version-delta")).toContainText("Status changed: Active → Archived.");
   await page.getByRole("button", { name: "Inspect version 7" }).click();
   await expect(historical).toHaveAttribute("data-posture", "current");
   await expect(historical).toContainText("Current snapshot");
@@ -834,6 +976,88 @@ test("corrupt owner-bound recovery storage fails closed without deleting or send
   expect(writes).toEqual([]);
 });
 
+test("a five-key version two recovery envelope hydrates without locking the carrier", async ({ page, baseURL }, testInfo) => {
+  await prepare(page, testInfo, baseURL);
+  const stored = await seedPending(page, "c2100000-0000-4000-8000-000000000001");
+  const writes: string[] = [];
+  await routeCreatedThesisReads(page, JSON.parse(stored.raw).serializedBody as string, writes);
+
+  await page.goto("/analysis?view=theses&symbol=NVDA");
+  await expect(page.getByText("response was interrupted")).toBeVisible();
+  await expect(page.getByTestId("thesis-pending-recovery-item")).toHaveCount(1);
+  await expect(page.getByText("browser could not safely preserve the request")).toHaveCount(0);
+  expect(await page.evaluate((storageKey) => localStorage.getItem(storageKey), stored.key)).toBe(stored.raw);
+  await expect(page.getByRole("button", { name: "Retry same request" })).toBeEnabled();
+  await page.getByRole("button", { name: "Retry same request" }).click();
+  await expect(page.getByText("Saved as version 1")).toBeVisible();
+  expect(writes).toEqual([JSON.parse(stored.raw).serializedBody]);
+  await expect(page.getByTestId("thesis-pending-recovery-item")).toHaveCount(0);
+  await expect.poll(() => page.evaluate((storageKey) => localStorage.getItem(storageKey), stored.key)).toBeNull();
+});
+
+test("a historical six-key recovery envelope retries and clears its original bytes", async ({ page, baseURL }, testInfo) => {
+  await prepare(page, testInfo, baseURL);
+  const stored = await seedPending(page, "c2200000-0000-4000-8000-000000000001", "NVDA");
+  const writes: string[] = [];
+  await routeCreatedThesisReads(page, JSON.parse(stored.raw).serializedBody as string, writes);
+
+  await page.goto("/analysis?view=theses&symbol=NVDA");
+  await expect(page.getByTestId("thesis-pending-recovery-item")).toHaveCount(1);
+  expect(await page.evaluate((storageKey) => localStorage.getItem(storageKey), stored.key)).toBe(stored.raw);
+  await page.getByRole("button", { name: "Retry same request" }).click();
+  await expect(page.getByText("Saved as version 1")).toBeVisible();
+  expect(writes).toEqual([JSON.parse(stored.raw).serializedBody]);
+  await expect(page.getByTestId("thesis-pending-recovery-item")).toHaveCount(0);
+  await expect.poll(() => page.evaluate((storageKey) => localStorage.getItem(storageKey), stored.key)).toBeNull();
+});
+
+test("a mismatched historical sixth field fails closed and retains its exact bytes", async ({ page, baseURL }, testInfo) => {
+  await prepare(page, testInfo, baseURL);
+  const stored = await seedPending(page, "c2300000-0000-4000-8000-000000000001", "AAPL");
+  const writes: string[] = [];
+  page.on("request", (request) => {
+    if (request.method() === "POST" && request.url().includes("/api/theses")) writes.push(request.postData() ?? "");
+  });
+
+  await page.goto("/analysis?view=theses&symbol=NVDA");
+  await expect(page.getByTestId("thesis-pending-recovery-item")).toHaveCount(0);
+  await expect(page.getByText("browser could not safely preserve the request")).toBeVisible();
+  await expect(page.getByRole("button", { name: "Save", exact: true })).toBeDisabled();
+  expect(await page.evaluate((storageKey) => localStorage.getItem(storageKey), stored.key)).toBe(stored.raw);
+  expect(writes).toEqual([]);
+});
+
+test("a five-key recovery envelope survives reloads and two live mounts with exact retry bytes", async ({ page, context, baseURL }, testInfo) => {
+  await prepare(page, testInfo, baseURL);
+  const stored = await seedPending(page, "c2400000-0000-4000-8000-000000000001");
+  const second = await context.newPage();
+  await prepare(second, testInfo, baseURL);
+  const writes: string[] = [];
+  const serializedBody = JSON.parse(stored.raw).serializedBody as string;
+  for (const target of [page, second]) {
+    await routeCreatedThesisReads(target, serializedBody, writes);
+  }
+
+  await page.goto("/analysis?view=theses&symbol=NVDA");
+  await expect(page.getByTestId("thesis-pending-recovery-item")).toHaveCount(1);
+  expect(await page.evaluate((storageKey) => localStorage.getItem(storageKey), stored.key)).toBe(stored.raw);
+  await page.reload();
+  await expect(page.getByTestId("thesis-pending-recovery-item")).toHaveCount(1);
+  expect(await page.evaluate((storageKey) => localStorage.getItem(storageKey), stored.key)).toBe(stored.raw);
+
+  await second.goto("/analysis?view=theses&symbol=NVDA");
+  await expect(second.getByTestId("thesis-pending-recovery-item")).toHaveCount(1);
+  expect(await second.evaluate((storageKey) => localStorage.getItem(storageKey), stored.key)).toBe(stored.raw);
+  await second.getByRole("button", { name: "Retry same request" }).click();
+  await expect(second.getByTestId("thesis-pending-recovery-item")).toHaveCount(0);
+
+  await page.getByRole("button", { name: "Retry same request" }).click();
+  await expect(page.getByTestId("thesis-pending-recovery-item")).toHaveCount(0);
+  const expected = JSON.parse(stored.raw).serializedBody;
+  await expect.poll(() => writes).toEqual([expected, expected]);
+  await expect.poll(() => page.evaluate((storageKey) => localStorage.getItem(storageKey), stored.key)).toBeNull();
+});
+
 test("browser storage refusal preserves the draft and sends no mutation", async ({ page, baseURL }, testInfo) => {
   await prepare(page, testInfo, baseURL);
   await page.addInitScript(() => {
@@ -949,6 +1173,74 @@ test("unavailable is not empty, and the Chinese mobile/tablet surface keeps hist
   await expect(page.locator("[aria-label='版本历史'] article").first()).toContainText("创建");
   await expect(page.getByTestId("thesis-detail-pane")).not.toContainText("listing scoped");
 
+  // R4-3b: zh assertion on thesis-version-delta after inspecting a historical version
+  // Create a thesis via API, save version 2 via API, then inspect version 1
+  const zhThesis = await page.request.post("/api/theses", {
+    data: {
+      action: "create",
+      clientRequestId: "f0000000-0000-4000-8000-000000000100",
+      subject: {
+        schema: "mastermind.thesis-subject-ref/v1", kind: "issuer", owner: "terminal.analysis_symbol",
+        key: "AAPL", identityState: "listing_scoped", listing: { symbol: "AAPL", mic: null, securityId: null },
+        companyId: null, display: "AAPL · listing scoped",
+      },
+      content: {
+        schema: "mastermind.thesis-content/v1", title: "ZH历史测试",
+        statement: "原始论点陈述。", catalysts: [], falsifiers: [], risks: [],
+        horizon: "unspecified", effectiveAt: null, revisionNote: null,
+      },
+    },
+  });
+  expect(zhThesis.status()).toBe(201);
+  const zhThesisId = (await zhThesis.json()).thesisId as string;
+  // Save version 2 with a changed statement
+  const zhDetail = await page.request.get(`/api/theses?id=${zhThesisId}`);
+  const zhThesisData = (await zhDetail.json()).thesis;
+  const zhRevise = await page.request.post("/api/theses", {
+    data: {
+      action: "revise", id: zhThesisId, expectedVersion: 1,
+      clientRequestId: "f0000000-0000-4000-8000-000000000101",
+      subject: zhThesisData.subject,
+      content: { ...zhThesisData.current.content, statement: "已修正的论点陈述。" },
+    },
+  });
+  expect(zhRevise.status()).toBe(200);
+  await page.goto(`/analysis?view=theses&thesis=${zhThesisId}`);
+  // Verify version 2 was written before inspecting it
+  await expect(page.getByText("版本 2 · 当前")).toBeVisible();
+  // R4-3b: assert a changed-field zh delta sentence (not just the origin sentence)
+  // Inspect version 2 — its delta vs version 1 is the statement change: "论点陈述已更改。"
+  await page.getByRole("button", { name: "查看版本 2" }).click();
+  const zhDelta = page.getByTestId("thesis-version-delta");
+  await expect(zhDelta).toContainText("论点陈述已更改。");
+  // Also verify the origin sentence when inspecting version 1
+  await page.getByRole("button", { name: "查看版本 1" }).click();
+  await expect(page.getByTestId("thesis-version-delta")).toContainText("这是第一版；此前没有版本。");
+
   await page.goto("/analysis?view=unknown");
   await expect(page.getByRole("heading", { name: "不支持此分析视图" })).toBeVisible();
+});
+
+test("the context-bar theses link opens the thesis workspace with the symbol pre-filled", async ({ page, baseURL }, testInfo) => {
+  // EN
+  await prepare(page, testInfo, baseURL);
+  await page.goto("/analysis?symbol=NVDA");
+  await expect(page.getByTestId("thesis-workspace")).toBeHidden();
+  await expect(page.getByRole("link", { name: "Your theses on NVDA" })).toBeVisible();
+  await page.getByLabel("Your theses on NVDA").click();
+  await expect(page).toHaveURL(/\/analysis\?view=theses&symbol=NVDA$/);
+  await expect(page.getByTestId("thesis-workspace").locator("header")).toContainText("NVDA");
+  await page.getByRole("button", { name: "New thesis" }).click();
+  await expect(page.getByLabel("Subject")).toHaveValue("NVDA");
+
+  // ZH
+  await prepare(page, testInfo, baseURL, true);
+  await page.goto("/analysis?symbol=NVDA");
+  await expect(page.getByTestId("thesis-workspace")).toBeHidden();
+  await expect(page.getByRole("link", { name: "你的研究论点：NVDA" })).toBeVisible();
+  await page.getByLabel("你的研究论点：NVDA").click();
+  await expect(page).toHaveURL(/\/analysis\?view=theses&symbol=NVDA$/);
+  await expect(page.getByTestId("thesis-workspace").locator("header")).toContainText("NVDA");
+  await page.getByRole("button", { name: "新建论点" }).click();
+  await expect(page.getByLabel("标的")).toHaveValue("NVDA");
 });

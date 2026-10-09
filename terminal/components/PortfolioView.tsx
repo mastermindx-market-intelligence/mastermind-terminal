@@ -38,6 +38,12 @@ import {
 } from "@/lib/portfolio";
 import { riskCopy, riskAvailability, failedRereadDisposition, T_RISK_UNAVAILABLE, type PortfolioRisk, type Lang } from "@/lib/portfolioRisk";
 import {
+  historyCopy,
+  historyAvailability,
+  T_HISTORY_UNAVAILABLE,
+  type PortfolioRiskHistory,
+} from "@/lib/portfolioRiskHistory";
+import {
   targetsCopy,
   targetsAvailability,
   apiErrorCopy,
@@ -59,6 +65,7 @@ import {
 } from "@/lib/portfolioTargets";
 import s from "@/components/PortfolioRisk.module.css";
 import tg from "@/components/PortfolioTargets.module.css";
+import rh from "@/components/PortfolioRiskHistory.module.css";
 
 type Quote = { last?: number; chg?: number } | null | undefined;
 type ManifestRow = { name?: string; zh?: string; col?: string; last?: number; chg?: number };
@@ -122,6 +129,8 @@ export default function PortfolioView(
   const [riskAttempted, setRiskAttempted] = useState(false);
   const [targets, setTargets] = useState<PortfolioTargetsSummary | null>(null);
   const [targetsAttempted, setTargetsAttempted] = useState(false);
+  const [history, setHistory] = useState<PortfolioRiskHistory | null>(null);
+  const [historyAttempted, setHistoryAttempted] = useState(false);
   // The server could not read the book. `positions` is [] here because there is nothing to show
   // — NOT because the user holds nothing. Everything that would assert a count or a total is
   // suppressed while this is true, and it clears the moment a read lands.
@@ -162,12 +171,23 @@ export default function PortfolioView(
   // must never be reported as a successful empty read. If a book is already painted, only the
   // risk section prints its cannot-read state — raising `unread` here unmounts the table
   // (`{!unread && <>…</>}`) and is what blanked the B4 "failed re-read" spec at tablet width.
+  // Every read takes a sequence number and only the NEWEST read in flight may write state.
+  // reload() is shared by the mount read, the Retry button and every chained mutation, so without
+  // this an earlier read whose response lands LAST repaints pre-write state over a change the user
+  // has already seen — the same exposure B-F08-13 closed in Settings (macro#6819 5979873599). A
+  // superseded read still returns what it fetched: a chained mutation's postcondition is judged
+  // against its own readback, not against whichever response happened to paint. The `*Attempted`
+  // latches stay unconditional — a read WAS attempted, whichever one painted.
+  const readSeqRef = useRef(0);
   const reload = useCallback(async (): Promise<Position[] | null> => {
+    const seq = ++readSeqRef.current;
+    const newest = () => readSeqRef.current === seq;
     // finally, not one setter per branch: MAJOR 2 needs `riskAttempted` set on EVERY exit path
     // (ok, non-ok, malformed payload, thrown) so a degrade (`risk: null` in an otherwise-ok
     // response) and an outright failed read both let `riskAvailability` render its notice
     // instead of silently staying "hidden" forever.
     const onFailedReread = () => {
+      if (!newest()) return;
       if (failedRereadDisposition(displayedBookRef.current) === "keep-book-risk-unavailable") {
         setRisk(null);
       } else {
@@ -183,9 +203,11 @@ export default function PortfolioView(
         if (!Array.isArray(payload?.positions)) { onFailedReread(); }
         else {
           authoritative = payload.positions as Position[];
-          setPositions(authoritative);
-          setRisk((payload?.risk ?? null) as PortfolioRisk | null);
-          setUnread(false);
+          if (newest()) {
+            setPositions(authoritative);
+            setRisk((payload?.risk ?? null) as PortfolioRisk | null);
+            setUnread(false);
+          }
         }
       }
     } catch { onFailedReread(); }
@@ -193,13 +215,25 @@ export default function PortfolioView(
 
     try {
       const targetResponse = await fetch("/api/portfolio/targets", { headers: { Accept: "application/json" } });
-      if (!targetResponse.ok) setTargets(null);
+      if (!targetResponse.ok) { if (newest()) setTargets(null); }
       else {
         const payload = await targetResponse.json();
-        setTargets((payload?.summary ?? null) as PortfolioTargetsSummary | null);
+        if (newest()) setTargets((payload?.summary ?? null) as PortfolioTargetsSummary | null);
       }
-    } catch { setTargets(null); }
+    } catch { if (newest()) setTargets(null); }
     finally { setTargetsAttempted(true); }
+
+    void (async () => {
+      try {
+        const historyResponse = await fetch("/api/portfolio/risk-history", { headers: { Accept: "application/json" } });
+        if (!historyResponse.ok) { if (newest()) setHistory(null); }
+        else {
+          const payload = await historyResponse.json();
+          if (newest()) setHistory((payload?.history ?? null) as PortfolioRiskHistory | null);
+        }
+      } catch { if (newest()) setHistory(null); }
+      finally { setHistoryAttempted(true); }
+    })();
 
     return authoritative;
   }, []);
@@ -215,14 +249,23 @@ export default function PortfolioView(
   // readout would silently stay absent until the user's first mutation of the session.
   useEffect(() => { reload(); }, [reload]);
 
-  /** One serialized write + re-read. Serialization matters for the same reason the rail's watchlist
-   *  chain is serialized: two mutations in flight can land out of order, and the second re-read
-   *  then paints pre-first-write state over a change the user already saw. */
+  /** ONE serialized write + re-read for the whole page — position mutations AND target saves and
+   *  clears. Serialization matters for the same reason the rail's watchlist chain is serialized:
+   *  two mutations in flight can land out of order, and the second re-read then paints
+   *  pre-first-write state over a change the user already saw. Target writes used to bypass this
+   *  chain (macro#6819 5979873599). A link that throws — a refused target write — rejects only its
+   *  own caller, so the readout's rollback still fires, and still settles the chain so the next
+   *  write runs. */
   const chainRef = useRef<Promise<unknown>>(Promise.resolve());
+  const enqueue = useCallback(<T,>(work: () => Promise<T>): Promise<T> => {
+    const run = chainRef.current.then(work, work);
+    chainRef.current = run.then(() => undefined, () => undefined);
+    return run;
+  }, []);
   const mutate = useCallback((body: Record<string, unknown>, id?: string) => {
     setFailure(null);
     if (id) setBusyId(id);
-    const request = chainRef.current.then(async () => {
+    return enqueue(async () => {
       try {
         const response = await fetch("/api/portfolio", {
           method: "POST",
@@ -249,11 +292,9 @@ export default function PortfolioView(
         if (id) setBusyId(null);
       }
     });
-    chainRef.current = request;
-    return request;
-  }, [reload, t]);
+  }, [enqueue, reload, t]);
 
-  const saveTarget = useCallback(async (ticker: string, targetWeightPct: number, bandPct?: number) => {
+  const saveTarget = useCallback((ticker: string, targetWeightPct: number, bandPct?: number) => enqueue(async () => {
     const response = await fetch("/api/portfolio/targets", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -270,9 +311,9 @@ export default function PortfolioView(
       throw Object.assign(new Error(code), { code });
     }
     await reload();
-  }, [reload]);
+  }), [enqueue, reload]);
 
-  const clearTarget = useCallback(async (ticker: string) => {
+  const clearTarget = useCallback((ticker: string) => enqueue(async () => {
     const response = await fetch("/api/portfolio/targets", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -284,7 +325,7 @@ export default function PortfolioView(
       throw Object.assign(new Error(code), { code });
     }
     await reload();
-  }, [reload]);
+  }), [enqueue, reload]);
 
   // ── live values ────────────────────────────────────────────────────────────
   // The same hub the rail uses: the nightly manifest for names/colours/EOD, the batched
@@ -506,6 +547,14 @@ export default function PortfolioView(
         })()}
 
         {(() => {
+          switch (historyAvailability(historyAttempted, history)) {
+            case "ready": return <PortfolioRiskHistoryReadout history={history!} lang={lang as Lang} />;
+            case "unavailable": return <HistoryUnavailableNotice lang={lang as Lang} />;
+            default: return null;
+          }
+        })()}
+
+        {(() => {
           // R1 (BLOCKER): the targets section used `riskAvailability`, which returns "hidden" the
           // moment the open book is empty — so closing the last holding hid every saved target on
           // a closed position with no disclosure at all. `targetsAvailability` is this section's
@@ -651,6 +700,96 @@ function RiskUnavailableNotice({ lang }: { lang: Lang }) {
   return (
     <section className={s.shape} data-testid="portfolio-shape-unavailable">
       <p className={s.unread}>{lang === "zh" ? T_RISK_UNAVAILABLE.zh : T_RISK_UNAVAILABLE.en}</p>
+    </section>
+  );
+}
+
+function HistoryUnavailableNotice({ lang }: { lang: Lang }) {
+  return (
+    <section className={rh.section} data-testid="portfolio-risk-history-unavailable">
+      <p className={rh.notice}>{lang === "zh" ? T_HISTORY_UNAVAILABLE.zh : T_HISTORY_UNAVAILABLE.en}</p>
+    </section>
+  );
+}
+
+export function PortfolioRiskHistoryReadout({ history, lang }: { history: PortfolioRiskHistory; lang: Lang }) {
+  const c = historyCopy(history);
+  const pick = (b: { en: string; zh: string } | null | undefined) => (b ? (lang === "zh" ? b.zh : b.en) : null);
+  const metric = (
+    key: "sharpe" | "sortino" | "beta",
+    card: { label: { en: string; zh: string }; value: { en: string; zh: string } | null; unread: { en: string; zh: string } | null },
+  ) => (
+    <article className={rh.card} data-card={key}>
+      <span className={rh.lbl}>{pick(card.label)}</span>
+      {card.value
+        ? <b className={rh.hero}>{pick(card.value)}</b>
+        : <p className={rh.unread}>{pick(card.unread) ?? "—"}</p>}
+    </article>
+  );
+  return (
+    <section
+      className={rh.section}
+      data-testid="portfolio-risk-history"
+      data-coverage-status={history.coverageStatus}
+      data-coverage-source={history.coverageSource}
+      data-history-n={history.window.n}
+      aria-labelledby="pf-risk-history-h"
+    >
+      <header className={rh.head}>
+        <h3 id="pf-risk-history-h" className={rh.title}>{pick(c.title)}</h3>
+        <p className={rh.standing}>{pick(c.standing)}</p>
+        <p className={rh.basis}>{pick(c.basis)}</p>
+        <p className={rh.metaLine}>{pick(c.window)}</p>
+        <p className={rh.metaLine}>{pick(c.benchmark)}</p>
+        <p className={rh.metaLine}>{pick(c.riskFree)}</p>
+        <p className={rh.metaLine}>{pick(c.asOf)}</p>
+      </header>
+      {c.empty && <p className={rh.empty} data-testid="risk-history-empty">{pick(c.empty)}</p>}
+      {c.unreadBook && <p className={rh.empty} data-testid="risk-history-unread-book">{pick(c.unreadBook)}</p>}
+      <div className={rh.metrics}>
+        {metric("sharpe", c.sharpe)}
+        {metric("sortino", c.sortino)}
+        {metric("beta", c.beta)}
+      </div>
+      {!!c.included.length && (
+        <>
+          <p className={rh.listHead}>{pick(c.includedHeader)}</p>
+          <ul className={rh.list} data-testid="risk-history-included">
+            {c.included.map((row) => (
+              <li key={row.ticker} className={rh.row}>
+                <span className={rh.tk}>{row.ticker}</span>
+                <span className={rh.why}>{pick(row.text)}</span>
+              </li>
+            ))}
+          </ul>
+        </>
+      )}
+      {!!c.excluded.length && (
+        <>
+          <p className={rh.listHead}>{pick(c.excludedHeader)}</p>
+          <ul className={rh.list} data-testid="risk-history-excluded">
+            {c.excluded.map((row) => (
+              <li key={`${row.ticker}-${row.text.en}`} className={rh.row}>
+                <span className={rh.tk}>{row.ticker}</span>
+                <span className={rh.why}>{pick(row.text)}</span>
+              </li>
+            ))}
+          </ul>
+        </>
+      )}
+      {!!c.gapLines.length && (
+        <details className={rh.gaps} data-testid="risk-history-gaps" open={c.gapLines.length <= 8}>
+          <summary className={rh.gapsSummary}>{pick(c.gapsSummary)}</summary>
+          <ul className={rh.list}>
+            {c.gapLines.map((g, i) => (
+              <li key={`${g.ticker ?? "book"}-${g.text.en}-${i}`} className={rh.row}>
+                {g.ticker && <span className={rh.tk}>{g.ticker}</span>}
+                <span className={rh.why}>{pick(g.text)}</span>
+              </li>
+            ))}
+          </ul>
+        </details>
+      )}
     </section>
   );
 }

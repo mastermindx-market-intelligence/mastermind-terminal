@@ -166,6 +166,24 @@ describe("entitlement — authorization outcomes are unchanged by caching", () =
     expect(meCalls).toEqual(["tok-paid", "tok-free"]); // own key, own round trip
   });
 
+  it("the private unlimited operator tier carries live-options read access without synthetic feature keys", async () => {
+    const { hasLiveOptions } = await loadEntitlement();
+
+    // Macro /api/me can overlay tier=unlimited from the verified operator
+    // allowlist while leaving the underlying billing row's features sparse.
+    signIn("tok-operator");
+    nextAnswer = () => ({ tier: "unlimited", features: [] });
+    expect(await hasLiveOptions()).toBe(true);
+
+    // This is intentionally NOT a generic tier bypass: a customer Pro row with
+    // the feature removed remains denied by the feature authority.
+    signIn("tok-pro-without-feature");
+    nextAnswer = () => ({ tier: "pro", features: [] });
+    expect(await hasLiveOptions()).toBe(false);
+
+    expect(meCalls).toEqual(["tok-operator", "tok-pro-without-feature"]);
+  });
+
   it("the tier gate still reads tier, not the live-options feature", async () => {
     const { isPaidTier } = await loadEntitlement();
     signIn("tok-a");

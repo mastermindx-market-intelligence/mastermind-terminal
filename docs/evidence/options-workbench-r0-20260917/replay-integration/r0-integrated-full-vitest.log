@@ -1,0 +1,783 @@
+The CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.
+
+ RUN  v2.1.9 /Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/options-workbench-r0-replay-20260917-sol-001/terminal
+
+ ✓ lib/__tests__/plainLabelsCallSites.test.ts (60 tests) 65ms
+ ✓ lib/__tests__/optionsAlerts.test.ts (78 tests) 25ms
+ ✓ lib/__tests__/surfaceContract.test.ts (93 tests) 15ms
+ ✓ lib/__tests__/alertsView.test.ts (76 tests) 12ms
+ ✓ lib/__tests__/signalVerdict.test.ts (107 tests) 48ms
+ ✓ lib/__tests__/workspaceLayout.test.ts (97 tests) 29ms
+ ✓ lib/__tests__/lwcAdapter.test.ts (50 tests) 62ms
+ ✓ lib/__tests__/portfolioTargets.test.ts (54 tests) 23ms
+ ✓ lib/__tests__/teamSharedWorkflow.test.ts (28 tests) 21ms
+ ✓ lib/__tests__/eventWorkspace.test.ts (39 tests) 144ms
+ ✓ lib/__tests__/teams.test.ts (56 tests) 178ms
+ ✓ lib/__tests__/theses.test.ts (27 tests) 375ms
+   ✓ privacy and failure honesty > reads 200 near-max theses through a bounded minimal projection and fails closed on one corrupt summary 306ms
+ ✓ lib/__tests__/eodContext.test.ts (69 tests) 58ms
+ ✓ lib/__tests__/intradayMath.test.ts (75 tests) 395ms
+ ✓ lib/__tests__/optionsAlpha.test.ts (17 tests) 20ms
+ ✓ lib/__tests__/eventImpact.test.ts (28 tests) 14ms
+ ✓ lib/__tests__/marketPrefsOwner.test.ts (32 tests) 114ms
+stderr | lib/__tests__/watchlists.test.ts > A2 — concurrent adds converge on ONE row per symbol > still adds the symbol on a database where migration 0008 has not landed yet
+[watchlists] unique (watchlist_id, symbol) is MISSING from this database — supabase/migrations/0009_watchlist_symbol_unique.sql has not been applied. Falling back to a plain insert; concurrent adds can duplicate until it lands.
+
+ ✓ lib/__tests__/watchlists.test.ts (30 tests) 10ms
+ ✓ lib/__tests__/rmsViews.test.ts (29 tests) 14ms
+ ✓ lib/__tests__/brainProxy.test.ts (46 tests) 19ms
+ ✓ lib/__tests__/workspacePersistence.test.ts (21 tests) 22ms
+ ✓ lib/__tests__/plainLabels.test.ts (70 tests) 282ms
+ ✓ lib/__tests__/dataCachePersist.test.ts (28 tests) 792ms
+ ✓ lib/__tests__/marketStructure.test.ts (55 tests) 10ms
+ ✓ lib/__tests__/portfolio.test.ts (30 tests) 31ms
+ ✓ lib/__tests__/markets.test.ts (59 tests) 13ms
+ ✓ lib/__tests__/gexLadder.test.ts (42 tests) 31ms
+ ✓ lib/__tests__/workspaceMigrate.test.ts (26 tests) 14ms
+ ✓ lib/__tests__/aggTrend.test.ts (36 tests) 42ms
+ ✓ lib/__tests__/personalAccuracyScoring.test.ts (22 tests) 11ms
+ ✓ lib/__tests__/indicatorMathFixes.test.ts (16 tests) 15ms
+ ✓ lib/__tests__/macroIntraday.test.ts (26 tests) 53ms
+ ✓ lib/__tests__/replayEngine.test.ts (49 tests) 39ms
+ ✓ lib/__tests__/copilotTools.test.ts (31 tests) 30ms
+ ✓ lib/__tests__/companyIntelligenceRoute.test.ts (17 tests) 54ms
+ ✓ lib/__tests__/strikeExpiryMatrix.test.ts (36 tests) 13ms
+ ✓ lib/__tests__/chartBus.test.ts (32 tests) 23ms
+stderr | lib/__tests__/portfolioTargetsRoute.test.ts > GET /api/portfolio/targets > is 503 with 'portfolio unavailable', never a fabricated empty summary, when the positions read fails
+portfolio targets GET positions failed: database unavailable
+
+stderr | lib/__tests__/portfolioTargetsRoute.test.ts > GET /api/portfolio/targets > is 503 with 'targets unavailable', never a fabricated empty summary, when the targets read fails
+portfolio targets GET failed: database unavailable
+
+stderr | lib/__tests__/portfolioTargetsRoute.test.ts > POST /api/portfolio/targets — error ordering and driver faults (R6 i) > is 503, never a 500, when the targets driver THROWS on the set path's read
+portfolio targets POST read failed: Error: driver exploded
+    at Proxy.<anonymous> (/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/options-workbench-r0-replay-20260917-sol-001/terminal/lib/__tests__/portfolioTargetsRoute.test.ts:42:21)
+    at Module.POST (/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/options-workbench-r0-replay-20260917-sol-001/terminal/app/api/portfolio/targets/route.ts:143:10)
+    at processTicksAndRejections (node:internal/process/task_queues:104:5)
+    at /Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/options-workbench-r0-replay-20260917-sol-001/terminal/lib/__tests__/portfolioTargetsRoute.test.ts:346:22
+    at file:///Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/options-workbench-r0-replay-20260917-sol-001/terminal/node_modules/@vitest/runner/dist/index.js:533:5
+    at runTest (file:///Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/options-workbench-r0-replay-20260917-sol-001/terminal/node_modules/@vitest/runner/dist/index.js:1056:11)
+    at runSuite (file:///Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/options-workbench-r0-replay-20260917-sol-001/terminal/node_modules/@vitest/runner/dist/index.js:1205:15)
+    at runSuite (file:///Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/options-workbench-r0-replay-20260917-sol-001/terminal/node_modules/@vitest/runner/dist/index.js:1205:15)
+    at runFiles (file:///Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/options-workbench-r0-replay-20260917-sol-001/terminal/node_modules/@vitest/runner/dist/index.js:1262:5)
+    at startTests (file:///Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/options-workbench-r0-replay-20260917-sol-001/terminal/node_modules/@vitest/runner/dist/index.js:1271:3)
+
+stderr | lib/__tests__/portfolioTargetsRoute.test.ts > POST /api/portfolio/targets — error ordering and driver faults (R6 i) > is 503, never a 500, when the targets driver THROWS on update
+portfolio targets POST update failed: Error: driver exploded
+    at Proxy.<anonymous> (/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/options-workbench-r0-replay-20260917-sol-001/terminal/lib/__tests__/portfolioTargetsRoute.test.ts:47:21)
+    at Module.POST (/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/options-workbench-r0-replay-20260917-sol-001/terminal/app/api/portfolio/targets/route.ts:163:12)
+    at processTicksAndRejections (node:internal/process/task_queues:104:5)
+    at /Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/options-workbench-r0-replay-20260917-sol-001/terminal/lib/__tests__/portfolioTargetsRoute.test.ts:357:22
+    at file:///Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/options-workbench-r0-replay-20260917-sol-001/terminal/node_modules/@vitest/runner/dist/index.js:533:5
+    at runTest (file:///Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/options-workbench-r0-replay-20260917-sol-001/terminal/node_modules/@vitest/runner/dist/index.js:1056:11)
+    at runSuite (file:///Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/options-workbench-r0-replay-20260917-sol-001/terminal/node_modules/@vitest/runner/dist/index.js:1205:15)
+    at runSuite (file:///Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/options-workbench-r0-replay-20260917-sol-001/terminal/node_modules/@vitest/runner/dist/index.js:1205:15)
+    at runFiles (file:///Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/options-workbench-r0-replay-20260917-sol-001/terminal/node_modules/@vitest/runner/dist/index.js:1262:5)
+    at startTests (file:///Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/options-workbench-r0-replay-20260917-sol-001/terminal/node_modules/@vitest/runner/dist/index.js:1271:3)
+
+stderr | lib/__tests__/portfolioTargetsRoute.test.ts > POST /api/portfolio/targets — error ordering and driver faults (R6 i) > is 503, never a 500, when the targets driver THROWS on insert
+portfolio targets POST insert failed: Error: driver exploded
+    at Proxy.<anonymous> (/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/options-workbench-r0-replay-20260917-sol-001/terminal/lib/__tests__/portfolioTargetsRoute.test.ts:52:21)
+    at Module.POST (/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/options-workbench-r0-replay-20260917-sol-001/terminal/app/api/portfolio/targets/route.ts:182:10)
+    at processTicksAndRejections (node:internal/process/task_queues:104:5)
+    at /Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/options-workbench-r0-replay-20260917-sol-001/terminal/lib/__tests__/portfolioTargetsRoute.test.ts:365:22
+    at file:///Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/options-workbench-r0-replay-20260917-sol-001/terminal/node_modules/@vitest/runner/dist/index.js:533:5
+    at runTest (file:///Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/options-workbench-r0-replay-20260917-sol-001/terminal/node_modules/@vitest/runner/dist/index.js:1056:11)
+    at runSuite (file:///Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/options-workbench-r0-replay-20260917-sol-001/terminal/node_modules/@vitest/runner/dist/index.js:1205:15)
+    at runSuite (file:///Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/options-workbench-r0-replay-20260917-sol-001/terminal/node_modules/@vitest/runner/dist/index.js:1205:15)
+    at runFiles (file:///Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/options-workbench-r0-replay-20260917-sol-001/terminal/node_modules/@vitest/runner/dist/index.js:1262:5)
+    at startTests (file:///Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/options-workbench-r0-replay-20260917-sol-001/terminal/node_modules/@vitest/runner/dist/index.js:1271:3)
+
+stderr | lib/__tests__/portfolioTargetsRoute.test.ts > POST /api/portfolio/targets — error ordering and driver faults (R6 i) > is 503, never a 500, when the targets driver THROWS on delete
+portfolio targets POST delete failed: Error: driver exploded
+    at Proxy.<anonymous> (/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/options-workbench-r0-replay-20260917-sol-001/terminal/lib/__tests__/portfolioTargetsRoute.test.ts:57:21)
+    at Module.POST (/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/options-workbench-r0-replay-20260917-sol-001/terminal/app/api/portfolio/targets/route.ts:207:10)
+    at processTicksAndRejections (node:internal/process/task_queues:104:5)
+    at /Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/options-workbench-r0-replay-20260917-sol-001/terminal/lib/__tests__/portfolioTargetsRoute.test.ts:375:22
+    at file:///Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/options-workbench-r0-replay-20260917-sol-001/terminal/node_modules/@vitest/runner/dist/index.js:533:5
+    at runTest (file:///Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/options-workbench-r0-replay-20260917-sol-001/terminal/node_modules/@vitest/runner/dist/index.js:1056:11)
+    at runSuite (file:///Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/options-workbench-r0-replay-20260917-sol-001/terminal/node_modules/@vitest/runner/dist/index.js:1205:15)
+    at runSuite (file:///Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/options-workbench-r0-replay-20260917-sol-001/terminal/node_modules/@vitest/runner/dist/index.js:1205:15)
+    at runFiles (file:///Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/options-workbench-r0-replay-20260917-sol-001/terminal/node_modules/@vitest/runner/dist/index.js:1262:5)
+    at startTests (file:///Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/options-workbench-r0-replay-20260917-sol-001/terminal/node_modules/@vitest/runner/dist/index.js:1271:3)
+
+ ✓ lib/__tests__/portfolioTargetsRoute.test.ts (23 tests) 46ms
+ ✓ lib/__tests__/finStatementMath.test.ts (71 tests) 160ms
+ ✓ lib/__tests__/accountWriteScope.test.ts (21 tests) 371ms
+ ✓ lib/__tests__/subpaneAssign.test.ts (7 tests) 3ms
+ ✓ lib/__tests__/prophetOriginationDisclosure.test.ts (27 tests) 181ms
+ ✓ lib/__tests__/terminalBoot.test.ts (19 tests) 17ms
+ ✓ lib/__tests__/indicatorParity.test.ts (20 tests | 4 skipped) 288ms
+stderr | lib/__tests__/thesesRoute.test.ts > GET /api/theses > keeps a genuine empty list distinct from an unavailable store
+thesis GET list failed: fixture: thesis store unavailable
+
+stderr | lib/__tests__/thesesRoute.test.ts > GET /api/theses?ids= > returns 503 with no partial theses array when one id in the batch faults
+thesis GET batch failed: fixture: thesis store unavailable
+
+ ✓ lib/__tests__/portfolioBrief.test.ts (32 tests) 8ms
+ ✓ lib/__tests__/thesesRoute.test.ts (16 tests) 47ms
+ ✓ lib/__tests__/accountPrefs.test.ts (35 tests) 11ms
+ ✓ lib/__tests__/indicatorMath.test.ts (28 tests) 83ms
+stderr | lib/__tests__/resourceGrants.test.ts > /api/grants — explicit watchlist shares > a failed watchlists read is unavailable, not an empty share list
+grants GET failed: watchlists fault
+
+ ✓ lib/__tests__/drawingTools.test.ts (16 tests) 23ms
+ ✓ lib/__tests__/layoutsRoute.test.ts (33 tests) 66ms
+stderr | lib/__tests__/resourceGrants.test.ts > /api/grants — explicit watchlist shares > a failed watchlists read is failed, not an empty share list
+grants GET failed: watchlists fault
+
+ ✓ lib/__tests__/personalAccuracyCopy.test.ts (24 tests) 12ms
+stderr | lib/__tests__/resourceGrants.test.ts > /api/grants — explicit watchlist shares > a failed symbols read is failed, not a fabricated zero-symbol share
+grants GET failed: symbols fault
+
+ ✓ lib/__tests__/resourceGrants.test.ts (18 tests) 848ms
+stderr | lib/__tests__/teamRoles.test.ts > B-F12-8 policy matrix (§2.1) > a write error that is not a permission denial is still a 500
+team members PATCH failed: fault
+
+ ✓ lib/__tests__/portfolioRisk.test.ts (23 tests) 106ms
+ ✓ lib/__tests__/hkCumulativeReporting.test.ts (14 tests) 119ms
+ ✓ lib/__tests__/suiteAlerts.test.ts (77 tests) 47ms
+ ✓ lib/__tests__/billingReceipt.test.ts (44 tests) 92ms
+ ✓ lib/__tests__/personalAccuracyResolverLastClose.test.ts (28 tests) 12ms
+ ✓ lib/__tests__/savedViews.test.ts (10 tests) 30ms
+ ✓ lib/__tests__/washoutTurn.test.ts (25 tests) 17ms
+stderr | lib/__tests__/watchlistGrantRead.test.ts > GET /api/watchlist — grant-fed sharedWithMe > a failed grant-fed read reports sharedWithMe null and the failed state, not an empty array
+watchlist GET grant-fed read failed: symbols fault
+
+stderr | lib/__tests__/watchlistGrantRead.test.ts > GET /api/watchlist — grant-fed sharedWithMe > an unavailable grant-fed read reports sharedWithMe null and the unavailable state
+watchlist GET grant-fed read failed: relation does not exist
+
+ ✓ lib/__tests__/watchlistGrantRead.test.ts (13 tests) 701ms
+ ✓ lib/__tests__/surfaceTheme.test.ts (35 tests) 14ms
+ ✓ lib/__tests__/eventImpactRoute.test.ts (16 tests) 651ms
+ ✓ lib/__tests__/intradayEvidence.test.ts (29 tests) 80ms
+ ✓ lib/__tests__/portfolioRouteRisk.test.ts (10 tests) 172ms
+ ✓ lib/__tests__/hubFixtures.test.ts (10 tests) 190ms
+ ✓ lib/__tests__/entitlementStore.test.ts (22 tests) 63ms
+ ✓ lib/__tests__/thesisMigrationContract.test.ts (10 tests) 7ms
+ ✓ lib/__tests__/terminalBootRenderLiveness.test.ts (11 tests) 12ms
+stderr | lib/__tests__/teamsRoute.test.ts > /api/teams and /api/teams/[id]/members > member GET -> 200 with callerRole
+team member names unreadable, roster falls back to no names: failed
+
+ ✓ lib/__tests__/pineHost.test.ts (15 tests) 199ms
+ ✓ lib/__tests__/prefDelivery.test.ts (16 tests) 143ms
+ ✓ lib/__tests__/companyInstitutionalContext.test.ts (9 tests) 74ms
+ ✓ lib/__tests__/watchlistOwner.test.ts (15 tests) 6ms
+ ✓ lib/__tests__/teamOwnershipTransfer.test.ts (15 tests) 6ms
+ ✓ lib/__tests__/flowBroadcast.test.ts (12 tests) 78ms
+ ✓ lib/__tests__/layouts.test.ts (24 tests) 19ms
+ ✓ lib/__tests__/appShellAnalysisZIndex.test.ts (14 tests) 902ms
+   ✓ AppShell's outer .app2 route class does not share a selector with company-intelligence.css's own single-class rules > real getComputedStyle: .app2.analysis-route keeps display:grid — company-intelligence.css's .analysis-shell{display:flex} rule does not match it 559ms
+ ✓ lib/__tests__/teamSharedWorkflowRoute.test.ts (15 tests) 999ms
+ ✓ lib/__tests__/conductor.test.ts (21 tests) 70ms
+stderr | lib/__tests__/teamsRoute.test.ts > /api/teams and /api/teams/[id]/members > fault: absent tables -> 503 READ_UNAVAILABLE everywhere, never 500, never empty 200
+teams GET failed: fault
+team members GET failed: fault
+
+ ✓ lib/__tests__/alertPrefsProxy.test.ts (17 tests) 14ms
+stderr | lib/__tests__/teamsRoute.test.ts > /api/teams and /api/teams/[id]/members > fault: non-absence error -> 503 READ_FAILED, distinct from READ_UNAVAILABLE
+teams GET failed: fault
+
+ ✓ lib/__tests__/teamsRoute.test.ts (16 tests) 790ms
+ ✓ lib/__tests__/transcriptSearch.test.ts (12 tests) 134ms
+ ✓ lib/__tests__/companyThemeExposure.test.ts (10 tests) 57ms
+ ✓ lib/__tests__/plainLanguageGuardCi.test.ts (10 tests) 2072ms
+   ✓ plain-language guard — self-check is a real gate > B1. --self-check exits 0 and reports every rule as detected on an intact guard 468ms
+   ✓ plain-language guard — self-check is a real gate > B2. --self-check exits 2 (the fail-closed infrastructure-fault code) when a rule stops detecting its own violation 382ms
+   ✓ plain-language guard — exit codes the CI step depends on > C1. a raw state enum added on an added line exits 1 437ms
+   ✓ plain-language guard — exit codes the CI step depends on > C2. an untranslated stat token added on an added line exits 1 468ms
+   ✓ plain-language guard — exit codes the CI step depends on > C3. the SAME violation on a pre-existing line exits 0 and prints the legacy census 313ms
+ ✓ lib/__tests__/onboardingPrefsOutbox.test.ts (16 tests) 24ms
+ ✓ lib/__tests__/watchlistRoute.test.ts (14 tests) 71ms
+ ✓ lib/__tests__/companyIntelligence.test.ts (11 tests) 18ms
+ ✓ lib/__tests__/workspaceVectors.test.ts (74 tests) 43ms
+ ✓ lib/__tests__/optionsIssueDeskLabels.test.ts (11 tests) 13ms
+ ✓ lib/__tests__/adminSearchesAuthority.test.ts (18 tests) 22ms
+ ✓ lib/__tests__/companySourceSearchServer.test.ts (10 tests) 412ms
+ ✓ lib/__tests__/f12_8TeamRolesEvidence.test.ts (10 tests) 27ms
+ ✓ lib/__tests__/surfaceSessions.test.ts (22 tests) 134ms
+ ✓ lib/__tests__/matrixUnusual.test.ts (13 tests) 85ms
+ ✓ lib/__tests__/f12_5AccountPolishEvidence.test.ts (9 tests) 46ms
+
+--- plain-language guard receipt: flagged fixture ---
+plain-language guard — vocabulary overlay ABSENT: terminal/lib/plainLabels.ts not present on this tree; using the 78 declared terms only.
+  ::error title=plain-language::1 blocking plain-language finding(s) on newly added lines
+  ::error title=plain-language::terminal/components/Bad.tsx:2: raw_state_enum: "BOTTOM_WATCH" — say "Watching for a bottom" / "关注筑底" (route via regimeLabel(t, value, lang) from @/lib/plainLabels)
+blocking (added lines)
+terminal/components/Bad.tsx:2: raw_state_enum: "BOTTOM_WATCH" — raw state enum in a user-visible position
+  say "Watching for a bottom" / "关注筑底" (route via regimeLabel(t, value, lang) from @/lib/plainLabels)
+
+--- end receipt ---
+ ✓ lib/__tests__/f12_9TeamOwnershipTransferEvidence.test.ts (5 tests) 243ms
+ ✓ lib/__tests__/teamRoles.test.ts (61 tests) 4005ms
+   ✓ B-F12-8 policy matrix (§2.1) > GET roster: owner, administrator and member all see the people on the team 766ms
+ ✓ lib/__tests__/dayStats.test.ts (25 tests) 7ms
+ ✓ lib/__tests__/visualIntelligence.test.ts (19 tests) 245ms
+ ✓ lib/__tests__/macroQuoteRouting.test.ts (12 tests) 10ms
+ ✓ lib/__tests__/teamRoleChangesMigration.test.ts (16 tests) 5ms
+ ✓ lib/__tests__/portfolioRoute.test.ts (23 tests) 1989ms
+   ✓ GET /api/portfolio > answers the owner's whole book, open and closed, oldest first 1963ms
+ ✓ lib/__tests__/resourceGrantsMigrationContract.test.ts (14 tests) 12ms
+ ✓ lib/__tests__/accountExport.test.ts (32 tests) 21ms
+ ✓ lib/__tests__/snapshotIngress.test.ts (17 tests) 57ms
+ ✓ lib/__tests__/markerTooltipCopy.test.ts (17 tests) 4ms
+ ✓ lib/__tests__/workspaceMenuOps.test.ts (29 tests) 102ms
+ ✓ lib/__tests__/quadBoard.test.ts (22 tests) 5ms
+ ✓ lib/__tests__/intradayStoreEvidence.test.ts (16 tests) 788ms
+ ✓ lib/__tests__/gexSessions.test.ts (23 tests) 86ms
+
+--- plain-language guard receipt: legacy fixture ---
+plain-language guard — vocabulary overlay ABSENT: terminal/lib/plainLabels.ts not present on this tree; using the 78 declared terms only.
+legacy (pre-existing, not blocking)
+terminal/components/Bad.tsx:2: raw_state_enum: "BOTTOM_WATCH" — raw state enum in a user-visible position
+  say "Watching for a bottom" / "关注筑底" (route via regimeLabel(t, value, lang) from @/lib/plainLabels)
+terminal/components/Legacy2.tsx:2: raw_state_enum: "BOTTOM_WATCH" — raw state enum in a user-visible position
+  say "Watching for a bottom" / "关注筑底" (route via regimeLabel(t, value, lang) from @/lib/plainLabels)
+
+--- end receipt ---
+ ✓ lib/__tests__/entitlementCache.test.ts (12 tests) 670ms
+ ✓ lib/__tests__/oiStructureFixtures.test.ts (7 tests) 213ms
+ ✓ lib/__tests__/teamsInvitationsRoute.test.ts (8 tests) 51ms
+ ✓ lib/__tests__/dataCacheAvailability.test.ts (16 tests) 54ms
+ ✓ lib/__tests__/quoteDemand.test.ts (16 tests) 33ms
+ ✓ lib/__tests__/heatSeries.test.ts (31 tests) 14ms
+ ✓ lib/__tests__/suiteRegistrySplit.test.ts (29 tests) 97ms
+stderr | lib/__tests__/accountLifecycleRoutes.test.ts > POST /api/account/deletion > 23505 re-read never returns a cancelled prior receipt as already_open — falls through to request_not_recorded instead
+account deletion POST failed: duplicate
+
+stderr | lib/__tests__/accountLifecycleRoutes.test.ts > POST /api/account/deletion > table missing (42P01) returns 503 request_not_recorded with no receipt in the body
+account deletion POST failed: relation does not exist
+
+stderr | lib/__tests__/accountLifecycleRoutes.test.ts > GET /api/account/deletion > 503s on a read error, never {requests:[]}
+account deletion GET failed: down
+
+ ✓ lib/__tests__/accountLifecycleRoutes.test.ts (23 tests) 3673ms
+   ✓ password path stays singular > auth.updateUser({ password occurs exactly once, in SectionAccount.tsx 386ms
+   ✓ password path stays singular > current_password hit set equals the pinned files (separate all-extension walker) 2975ms
+ ✓ lib/__tests__/prophetPhaseVocabulary.test.ts (18 tests) 233ms
+ ✓ lib/__tests__/personalAccuracyMigrationContract.test.ts (11 tests) 10ms
+ ✓ lib/__tests__/optionsLevels.test.ts (22 tests) 22ms
+ ✓ lib/__tests__/claimAuthoringValidation.test.ts (17 tests) 10ms
+ ✓ lib/__tests__/companySourceSearch.test.ts (5 tests) 9ms
+ ✓ lib/__tests__/tenantScope.test.ts (13 tests) 17ms
+ ✓ lib/__tests__/webhookLabels.test.ts (21 tests) 15ms
+ ✓ lib/__tests__/layoutConfig.test.ts (13 tests) 6ms
+ ✓ lib/__tests__/f12_7WebhooksEvidence.test.ts (8 tests) 12ms
+ ✓ lib/__tests__/thesisFireStatusRoute.test.ts (9 tests) 13ms
+ ✓ lib/__tests__/webhooksRoute.test.ts (4 tests) 518ms
+   ✓ /api/webhooks routes > 401 UNAUTHENTICATED on every verb when signed out 353ms
+ ✓ lib/__tests__/embedChartData.test.ts (25 tests) 43ms
+ ✓ lib/__tests__/suiteCatalog.test.ts (12 tests) 16ms
+ ✓ lib/__tests__/optionsIssueDesk.test.ts (7 tests) 172ms
+stderr | lib/__tests__/claimAuthoringRoute.test.ts > POST /api/accuracy/claims > returns 503 with the honest not-recorded message when the store write fails, no partial body
+claim POST failed
+
+ ✓ lib/__tests__/claimAuthoringRoute.test.ts (10 tests) 9ms
+stdout | lib/__tests__/webhookNotSentStatus.test.ts > a delivery abandoned without exhausting the retry table is never `failed` > a turned-off endpoint writes not_sent_disabled, not failed
+[2026-09-17T23:25:11+00:00] delivery=d1 SKIP endpoint disabled
+
+stdout | lib/__tests__/webhookNotSentStatus.test.ts > a delivery abandoned without exhausting the retry table is never `failed` > a saved address that no longer validates writes not_sent_invalid_url, not failed
+[2026-09-17T23:25:11+00:00] delivery=d1 SKIP not_https
+
+stdout | lib/__tests__/webhookNotSentStatus.test.ts > a delivery abandoned without exhausting the retry table is never `failed` > a private address in the saved URL also writes not_sent_invalid_url
+[2026-09-17T23:25:11+00:00] delivery=d1 SKIP private_address
+
+stdout | lib/__tests__/webhookNotSentStatus.test.ts > a delivery abandoned without exhausting the retry table is never `failed` > neither non-exhaustion path writes delivering or POSTs
+[2026-09-17T23:25:11+00:00] delivery=d1 SKIP endpoint disabled
+
+stdout | lib/__tests__/webhookNotSentStatus.test.ts > not-sent writes honour a concurrent claim (zero-row PATCH) > not_sent_disabled carries the claim filter and skips a zero-row result
+[2026-09-17T23:25:11+00:00] delivery=d1 SKIP already claimed
+
+stdout | lib/__tests__/webhookNotSentStatus.test.ts > not-sent writes honour a concurrent claim (zero-row PATCH) > not_sent_invalid_url carries the claim filter and skips a zero-row result
+[2026-09-17T23:25:11+00:00] delivery=d1 SKIP already claimed
+
+ ✓ lib/__tests__/webhookNotSentStatus.test.ts (14 tests) 11ms
+ ✓ lib/__tests__/seasonal.test.ts (16 tests) 5ms
+ ✓ lib/__tests__/claimAuthoringCopy.test.ts (9 tests) 30ms
+ ✓ lib/__tests__/aiContext.test.ts (13 tests) 10ms
+ ✓ lib/__tests__/webhookDueSelect.test.ts (7 tests) 3ms
+ ✓ lib/__tests__/feedFreshness.test.ts (16 tests) 5ms
+ ✓ lib/__tests__/guestBundleBoundary.test.ts (23 tests) 128ms
+ ✓ lib/__tests__/watchlistSelection.test.ts (12 tests) 17ms
+ ✓ lib/__tests__/rmsSavedViews.test.ts (11 tests) 8ms
+ ✓ lib/__tests__/alertsRouteAuthority.test.ts (14 tests) 11ms
+ ✓ lib/__tests__/marketsManifest.test.ts (13 tests) 8ms
+ ✓ lib/__tests__/companyThemeExposureRoute.test.ts (6 tests) 52ms
+ ✓ lib/__tests__/optionsScreener.test.ts (6 tests) 10ms
+ ✓ lib/__tests__/adminPageStatusContract.test.ts (7 tests) 4ms
+ ✓ lib/__tests__/teamMigrationContract.test.ts (12 tests) 4ms
+ ✓ lib/__tests__/activeSymbol.test.ts (11 tests) 4ms
+ ✓ lib/__tests__/intradayEvidenceRoute.test.ts (6 tests) 19ms
+ ✓ lib/__tests__/flowFreshness.test.ts (19 tests) 31ms
+ ✓ lib/__tests__/indicatorSearch.test.ts (15 tests) 8ms
+ ✓ lib/__tests__/intradayRouteGates.test.ts (6 tests) 19ms
+ ✓ lib/__tests__/portfolioBriefProxy.test.ts (7 tests) 7ms
+ ✓ lib/__tests__/markerTooltip.test.ts (16 tests) 8ms
+ ✓ lib/__tests__/companyIntelligenceLabels.test.ts (9 tests) 6ms
+ ✓ lib/__tests__/finStatements.test.ts (14 tests) 9ms
+ ✓ lib/__tests__/personalAccuracyWorker.test.ts (3 tests) 3ms
+ ✓ lib/__tests__/heatSeeker.test.ts (9 tests) 60ms
+ ✓ lib/__tests__/artifactCache.test.ts (7 tests) 250ms
+ ✓ lib/__tests__/accountTeamFields.test.ts (9 tests) 11ms
+stderr | lib/__tests__/searchEvents.test.ts > dev ring: record → list > lists newest first
+[searchEvents] SUPABASE_SERVICE_ROLE_KEY absent — events held in memory only (dev mode)
+
+ ✓ lib/__tests__/searchEvents.test.ts (7 tests) 37ms
+ ✓ lib/__tests__/chartSnapshotTables.test.ts (4 tests) 5ms
+ ✓ lib/__tests__/trend.test.ts (15 tests) 8ms
+ ✓ lib/__tests__/f11_4ResearchViewsEvidence.test.ts (6 tests) 19ms
+ ✓ lib/__tests__/accountPasswordChange.test.ts (10 tests) 25ms
+ ✓ lib/__tests__/macroSymbols.test.ts (12 tests) 52ms
+stderr | lib/__tests__/personalAccuracyRoute.test.ts > GET /api/accuracy > returns 503 with no partial payload when the store is unavailable
+accuracy GET failed: connection reset
+
+ ✓ lib/__tests__/teamOwnershipTransferRoute.test.ts (9 tests) 334ms
+ ✓ lib/__tests__/personalAccuracyRoute.test.ts (9 tests) 10ms
+ ✓ lib/__tests__/onboardingStash.test.ts (14 tests) 5ms
+ ✓ lib/__tests__/usageStore.test.ts (9 tests) 31ms
+ ✓ lib/__tests__/auditFixes.test.ts (11 tests) 9ms
+ ✓ lib/__tests__/suiteModules.test.ts (264 tests) 3529ms
+   ✓ W2 contract hygiene > keeps every drawn value inside its suite's declared pane range 750ms
+ ✓ lib/__tests__/searchCategory.test.ts (13 tests) 16ms
+ ✓ lib/__tests__/webhookMigrationContract.test.ts (9 tests) 26ms
+ ✓ lib/__tests__/portfolioReadAuthority.test.ts (12 tests) 8ms
+ ✓ lib/__tests__/companyInstitutionalContextRoute.test.ts (6 tests) 18ms
+ ✓ lib/__tests__/indicatorUpDownColors.test.ts (10 tests) 6ms
+ ✓ lib/__tests__/heatSeriesGeometry.test.ts (6 tests) 5ms
+ ✓ lib/__tests__/teamSharedWorkspacesLedgerContract.test.ts (6 tests) 4ms
+ ✓ lib/__tests__/workspaceIsolation.test.ts (2 tests) 16ms
+ ✓ lib/__tests__/drawingAnalytics.test.ts (7 tests) 10ms
+ ✓ lib/__tests__/suitePresets.test.ts (5 tests) 10ms
+ ✓ lib/__tests__/noMacroPagesFallback.test.ts (2 tests) 43ms
+ ✓ lib/__tests__/intradayFixture.test.ts (7 tests) 39ms
+ ✓ lib/__tests__/pinProbability.test.ts (10 tests) 10ms
+ ✓ lib/__tests__/flowStreamRouteBoundary.test.ts (5 tests) 7ms
+ ✓ lib/__tests__/settingsTier.test.ts (8 tests) 3ms
+ ✓ lib/__tests__/transcripts.test.ts (8 tests) 24ms
+ ✓ lib/__tests__/mastermindCandlesDefault.test.ts (12 tests) 4ms
+ ✓ lib/__tests__/keyStats.test.ts (8 tests) 19ms
+ ✓ lib/__tests__/liveSplice.test.ts (18 tests) 10ms
+ ✓ lib/__tests__/expiryTermStructure.test.ts (15 tests) 4ms
+ ✓ lib/__tests__/searchStatsExact.test.ts (12 tests) 3632ms
+   ✓ email cache is bounded and expires > HIGH CARDINALITY: stays bounded across 50,000 distinct user ids 3392ms
+ ✓ lib/__tests__/liveCandle.test.ts (8 tests) 23ms
+ ✓ lib/__tests__/axisZoom.test.ts (15 tests) 8ms
+ ✓ lib/__tests__/crossSignals.test.ts (15 tests) 3ms
+ ✓ lib/__tests__/fundStatementFamily.test.ts (11 tests) 3ms
+ ✓ lib/__tests__/alertsIdentityState.test.ts (4 tests) 4ms
+ ✓ lib/__tests__/portfolioTargetsLedgerContract.test.ts (5 tests) 4ms
+ ✓ lib/__tests__/primaryPriceSeriesScale.test.ts (2 tests) 230ms
+ ✓ lib/__tests__/quoteDisplay.test.ts (10 tests) 7ms
+ ✓ lib/__tests__/teamSharedWorkflowMigration.test.ts (9 tests) 5ms
+ ✓ lib/__tests__/companySourceSearchRoute.test.ts (5 tests) 52ms
+ ✓ lib/__tests__/usEquitySessionClock.test.ts (25 tests) 639ms
+   ✓ regular candles obey the actual close > conserves admitted volume across every projected session 633ms
+ ✓ lib/__tests__/secondBars.test.ts (10 tests) 68ms
+ ✓ lib/__tests__/thesisSavedViewsRoute.test.ts (6 tests) 102ms
+ ✓ lib/__tests__/accountIdentity.test.ts (11 tests) 3ms
+ ✓ lib/__tests__/webhookDeliveryLedgerContract.test.ts (6 tests) 4ms
+ ✓ lib/__tests__/intradaySession.test.ts (9 tests) 4ms
+ ✓ lib/__tests__/tickerFixture.test.ts (3 tests) 232ms
+ ✓ lib/__tests__/personalAccuracyEvidence.test.ts (5 tests) 5ms
+ ✓ lib/__tests__/alertsSuiteEvaluatorPresence.test.ts (4 tests) 3ms
+ ✓ lib/__tests__/b_f12_b5_3AccountCompletenessEvidence.test.ts (5 tests) 4ms
+ ✓ lib/__tests__/extQuoteRoute.test.ts (7 tests) 15ms
+ ✓ lib/__tests__/guideExperience.test.ts (3 tests) 1373ms
+   ✓ indicator guide experience > loads complete English and Chinese documents with stable section ids 1362ms
+ ✓ lib/__tests__/issueDeskRoutes.test.ts (6 tests) 7ms
+ ✓ lib/__tests__/startTf.test.ts (11 tests) 56ms
+ ✓ lib/__tests__/eventWorkspaceRoute.test.ts (2 tests) 51ms
+stderr | lib/__tests__/scriptsLibrary.test.ts > C7 — a storage failure is not an empty library > answers 503 with a reason instead of 200 []
+scripts/list GET failed: { message: 'connection reset' }
+
+ ✓ lib/__tests__/scriptsLibrary.test.ts (6 tests) 9ms
+ ✓ lib/__tests__/dte.test.ts (19 tests) 5ms
+ ✓ lib/__tests__/workspaceOwnership.test.ts (4 tests) 4ms
+ ✓ lib/__tests__/uiPrimitives.test.ts (9 tests) 4ms
+ ✓ lib/__tests__/personalAccuracyStore.test.ts (6 tests) 5ms
+ ✓ lib/__tests__/quoteRouteTruncation.test.ts (5 tests) 39ms
+ ✓ lib/__tests__/nextEarningsSurfaces.test.ts (5 tests) 52ms
+ ✓ lib/__tests__/teamOwnershipTransferMigration.test.ts (9 tests) 3ms
+ ✓ lib/__tests__/mscGlance.test.ts (10 tests) 12ms
+ ✓ lib/__tests__/capStruct.test.ts (9 tests) 3ms
+ ✓ lib/__tests__/alertsRoute.test.ts (3 tests) 10ms
+ ✓ lib/__tests__/optionsCsv.test.ts (5 tests) 16ms
+ ✓ lib/__tests__/subscriptionTier.test.ts (9 tests) 5ms
+ ✓ lib/__tests__/drawingI18n.test.ts (4 tests) 46ms
+ ✓ lib/__tests__/teamOwnershipTransferLedgerContract.test.ts (5 tests) 3ms
+ ✓ lib/__tests__/workspaceMenuLex.test.ts (49 tests) 24ms
+ ✓ lib/__tests__/futureTime.test.ts (13 tests) 4ms
+ ✓ lib/__tests__/priceTagPlacement.test.ts (11 tests) 3ms
+ ✓ lib/__tests__/claimAuthoringEvidence.test.ts (4 tests) 8ms
+ ✓ lib/__tests__/visualIntelligenceEvidence.test.ts (3 tests) 10ms
+ ✓ lib/__tests__/tenantScopeConformance.test.ts (7 tests) 41ms
+ ✓ lib/__tests__/teamRoleChangesLedgerContract.test.ts (5 tests) 7ms
+ ✓ lib/__tests__/companyIntelligenceCallSites.test.ts (6 tests) 4ms
+stdout | lib/__tests__/webhookRetryStall.test.ts > the worker records the bad timestamp instead of stalling in silence > writes last_error bad_retry_timestamp on the claim
+[2026-09-17T23:25:15+00:00] delivery=d1 bad next_retry_at — treated as due now
+[2026-09-17T23:25:15+00:00] delivery=d1 delivered http=200 attempt=2
+
+stdout | lib/__tests__/webhookRetryStall.test.ts > the worker records the bad timestamp instead of stalling in silence > says nothing extra when the timestamp is readable
+[2026-09-17T23:25:15+00:00] delivery=d1 delivered http=200 attempt=2
+
+ ✓ lib/__tests__/flowScoreBoundary.test.ts (4 tests) 2257ms
+   ✓ flowScore is unreachable from the client bundle > no 'use client' module reaches lib/flowScore.ts, directly or transitively 2134ms
+ ✓ lib/__tests__/searchIdentifierPromise.test.ts (7 tests) 7ms
+ ✓ lib/__tests__/webhookRetryStall.test.ts (5 tests) 10ms
+ ✓ lib/__tests__/chartViewReset.test.ts (11 tests) 6ms
+ ✓ lib/__tests__/optionsFlowBoards.test.ts (4 tests) 12ms
+ ✓ lib/__tests__/workspaceMmWsUntouched.test.ts (2 tests) 11ms
+ ✓ lib/__tests__/fixtureStockdataServer.test.ts (6 tests) 50ms
+ ✓ lib/__tests__/analysisRoute.test.ts (5 tests) 16ms
+ ✓ lib/__tests__/plainAbbrev.test.ts (5 tests) 4ms
+ ✓ lib/__tests__/prophetGeometry.test.ts (6 tests) 9ms
+ ✓ lib/__tests__/barSnap.test.ts (6 tests) 972ms
+   ✓ makeNearestBarIndex — parity with the old linear near() > matches on AAPL daily + weekly for a dense synthetic date sweep (incl. out-of-range) 963ms
+ ✓ lib/__tests__/webhookSigning.test.ts (6 tests) 9ms
+ ✓ lib/__tests__/nwPlane.test.ts (9 tests) 5ms
+ ✓ lib/__tests__/syntheticTouchHoverGuard.test.ts (3 tests) 2ms
+ ✓ lib/__tests__/mastermindBrainCompanySource.test.ts (2 tests) 2ms
+ ✓ lib/__tests__/userScriptsClient.test.ts (6 tests) 4ms
+ ✓ lib/__tests__/webhookEventTypeLabels.test.ts (4 tests) 6ms
+ ✓ lib/__tests__/watchlistSettings.test.ts (6 tests) 6ms
+stdout | lib/__tests__/flagshipPine.test.ts > FLAGSHIP_PINE (v1 Golden Oracle confluence) > runs on daily bars without a runtime error and emits signal shapes
+[flagship] plots=9 shapes=40 hlines=3 warnings=["bgcolor() is not supported yet — its output is suppressed","fill() is not supported yet — its output is suppressed","table.new() is not supported yet — its output is suppressed","alertcondition() is not supported yet — its output is suppressed","table.cell() is not supported yet — its output is suppressed","table.merge_cells() is not supported yet — its output is suppressed"]
+[flagship] shape texts: [ 'S2', 'B1', 'B2', 'S1', 'TOP', '★' ]
+
+stdout | lib/__tests__/flagshipPine.test.ts > ORACLE_V1_PINE (overlay-only Golden Oracle derived from the flagship) > is overlay=true, drops the oscillator pane, and still emits the price signal markers
+[oracle-v1] overlay=true plots=1 shapes=40 texts=["S2","B1","B2","S1","TOP","★"]
+
+ ✓ lib/__tests__/flagshipPine.test.ts (4 tests) 501ms
+ ✓ lib/__tests__/webhookRetrySchedule.test.ts (6 tests) 2ms
+stdout | lib/__tests__/suiteAlertsReceipt.test.ts > suite_alerts fire PATCH failure is unevaluable, never a clean success > a 500 fire PATCH: fired_n 0, unevaluable_n 1, outcome not success
+[2026-09-17T23:25:15+00:00] FIRE  NVDA {"type":"suite_event","suite":"structure","event":"bos"} — Break of structure (BOS) (bullish) on 2026-09-12 — structure suite, daily bars, module defaults
+[2026-09-17T23:25:15+00:00] PATCH ERROR NVDA a-fire: PATCH alerts id=a-fire -> 500
+[2026-09-17T23:25:15+00:00] DEFER NVDA {"type":"suite_event","suite":"structure","event":"bos"} — fire PATCH failed; alert remains armed for re-evaluation
+[2026-09-17T23:25:15+00:00] done: 1 armed, 0 fired, 1 unevaluable
+
+ ✓ lib/__tests__/suiteAlertsReceipt.test.ts (1 test) 8ms
+ ✓ lib/__tests__/optionsPutCallHistory.test.ts (4 tests) 8ms
+ ✓ lib/__tests__/drawingSettings.test.ts (3 tests) 4ms
+stdout | lib/__tests__/webhookDeliveryClaim.test.ts > stale-lease claim does not double-send (spec §4.5) > skips POST when the claim PATCH matches zero rows (original attempt succeeded out-of-band)
+[2026-09-17T23:25:15+00:00] delivery=del-1 SKIP already claimed
+
+stdout | lib/__tests__/webhookDeliveryClaim.test.ts > stale-lease claim does not double-send (spec §4.5) > POSTs once when the claim PATCH wins
+[2026-09-17T23:25:15+00:00] delivery=del-1 delivered http=200 attempt=2
+
+ ✓ lib/__tests__/webhookDeliveryClaim.test.ts (2 tests) 8ms
+ ✓ lib/__tests__/flowClientCacheRefresh.test.ts (4 tests) 10ms
+ ✓ lib/__tests__/sheetDetent.test.ts (6 tests) 10ms
+ ✓ lib/__tests__/thesisWorkspaceTokens.test.ts (6 tests) 3ms
+ ✓ lib/__tests__/settledPanSample.test.ts (8 tests) 4ms
+ ✓ lib/__tests__/rateLimitCardinality.test.ts (6 tests) 3569ms
+   ✓ cardinality is bounded > stays under the ceiling across 30,000 distinct source IPs in one window 2829ms
+ ✓ lib/__tests__/levelsLabels.test.ts (6 tests) 4ms
+ ✓ lib/__tests__/spotRowIndex.test.ts (6 tests) 2ms
+ ✓ lib/__tests__/supabaseCookies.test.ts (4 tests) 4ms
+ ✓ lib/__tests__/drawingOwnerLifecycle.test.ts (3 tests) 20ms
+ ✓ lib/__tests__/optionsIa.test.ts (3 tests) 2ms
+ ✓ lib/__tests__/webhookUrl.test.ts (5 tests) 3ms
+ ✓ lib/__tests__/drawingOutbox.test.ts (3 tests) 4ms
+ ✓ lib/__tests__/navSymbol.test.ts (6 tests) 4ms
+ ✓ lib/__tests__/workspaceTileDisplayType.test.ts (5 tests) 2ms
+ ✓ lib/__tests__/chartTimeAxis.test.ts (9 tests) 21ms
+ ✓ lib/__tests__/companySourceContext.test.ts (2 tests) 2ms
+ ✓ lib/__tests__/recentlyViewed.test.ts (4 tests) 9ms
+ ✓ lib/__tests__/vrpDerive.test.ts (3 tests) 8ms
+ ✓ lib/__tests__/drawingGeometry.test.ts (3 tests) 3ms
+ ✓ lib/__tests__/chartOverlaysI18nKeys.test.ts (3 tests) 13ms
+ ✓ lib/__tests__/replayIndexIdentity.test.ts (5 tests) 2ms
+ ✓ lib/__tests__/aiDivesQuotaCopy.test.ts (5 tests) 3ms
+ ✓ lib/__tests__/nextConfigDevIndicator.test.ts (2 tests) 124ms
+ ✓ lib/__tests__/watchlistQuote.test.ts (4 tests) 39ms
+ ✓ lib/__tests__/drawingInteraction.test.ts (3 tests) 2ms
+stderr | lib/__tests__/analyticsEvents.test.ts > analyticsEvents write plane (dev ring) > stores a batch in memory when no service key is present
+[analyticsEvents] SUPABASE_SERVICE_ROLE_KEY absent — events held in memory only (dev mode)
+
+ ✓ lib/__tests__/analyticsEvents.test.ts (2 tests) 161ms
+ ✓ lib/__tests__/forwardSeasonalTooltip.test.ts (2 tests) 2ms
+ ✓ lib/__tests__/webhookDedupe.test.ts (3 tests) 2ms
+ ✓ lib/__tests__/sectionAccountDeletionStatus.test.ts (3 tests) 1ms
+ ✓ lib/__tests__/hoverTagPaint.test.ts (6 tests) 3ms
+ ✓ lib/__tests__/watchlistsFixtureDb.targets.test.ts (1 test) 12ms
+ ✓ lib/__tests__/intradaySources.test.ts (4 tests) 21ms
+ ✓ lib/__tests__/indicatorSettingsModuleScope.test.ts (2 tests) 2ms
+ ✓ lib/__tests__/embeddedTerminal.test.ts (2 tests) 2ms
+ ✓ lib/__tests__/mastermindBrain.test.ts (2 tests) 2ms
+ ✓ lib/__tests__/indicatorCanvasPaneClip.test.ts (1 test) 2ms
+ ✓ lib/__tests__/indicatorPaneSeries.test.ts (2 tests) 7ms
+ ✓ lib/__tests__/suiteTierRefresh.test.ts (1 test) 1ms
+ ✓ lib/__tests__/featureManifest.test.ts (2 tests) 4ms
+ ✓ lib/__tests__/levelsSource.test.ts (3 tests) 22ms
+ ✓ lib/__tests__/settledHoverLabel.test.ts (7 tests) 7ms
+ ✓ lib/__tests__/analysisSymbol.test.ts (2 tests) 2ms
+ ✓ lib/__tests__/personalAccuracySection.test.ts (34 tests) 166ms
+(node:30598) ExperimentalWarning: localStorage is not available because --localstorage-file was not provided.
+(Use `node --trace-warnings ...` to show where the warning was created)
+ ✓ lib/__tests__/brainWidgetColdSymbol.test.ts (7 tests) 25ms
+(node:30612) ExperimentalWarning: localStorage is not available because --localstorage-file was not provided.
+(Use `node --trace-warnings ...` to show where the warning was created)
+ ✓ lib/__tests__/shellBrainSymbol.test.ts (18 tests) 20ms
+ ✓ lib/__tests__/indicatorCanvasTooltip.test.ts (17 tests) 89ms
+ ✓ lib/__tests__/sectionSharingViewList.test.ts (14 tests) 239ms
+stderr | lib/__tests__/eventImpactPanelRender.test.ts > EventImpactPanel render (acceptance 2) > renders 'not stated' text for a direction the source never carried
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+
+stderr | lib/__tests__/eventImpactPanelRender.test.ts > EventImpactPanel render (acceptance 2) > renders 'not stated' text for a direction the source never carried
+The current testing environment is not configured to support act(...)
+
+stderr | lib/__tests__/eventImpactPanelRender.test.ts > EventImpactPanel render (acceptance 2) > renders the carried verbatim text when the source states it
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+
+stderr | lib/__tests__/eventImpactPanelRender.test.ts > EventImpactPanel render (acceptance 2) > renders the carried verbatim text when the source states it
+The current testing environment is not configured to support act(...)
+
+stderr | lib/__tests__/eventImpactPanelRender.test.ts > EventImpactPanel render (acceptance 2) > renders a plain typed sentence, not a blank panel, when the calendar is unreadable
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+
+stderr | lib/__tests__/eventImpactPanelRender.test.ts > EventImpactPanel render (acceptance 2) > renders a plain typed sentence, not a blank panel, when the calendar is unreadable
+The current testing environment is not configured to support act(...)
+
+stderr | lib/__tests__/eventImpactPanelRender.test.ts > EventImpactPanel render (acceptance 2) > renders upstream-locked, never a fine/unaffected claim, on a 429 rate limit
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+
+(node:30631) ExperimentalWarning: localStorage is not available because --localstorage-file was not provided.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:30628) ExperimentalWarning: localStorage is not available because --localstorage-file was not provided.
+(Use `node --trace-warnings ...` to show where the warning was created)
+stderr | lib/__tests__/eventImpactPanelRender.test.ts > EventImpactPanel render (acceptance 2) > renders upstream-locked, never a fine/unaffected claim, on a 429 rate limit
+The current testing environment is not configured to support act(...)
+
+stderr | lib/__tests__/eventImpactPanelRender.test.ts > EventImpactPanel render (acceptance 2) > renders upstream-locked, never a fine/unaffected claim, on a fetch/network failure
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+
+stderr | lib/__tests__/eventImpactPanelRender.test.ts > EventImpactPanel render (acceptance 2) > renders upstream-locked, never a fine/unaffected claim, on a fetch/network failure
+The current testing environment is not configured to support act(...)
+
+stderr | lib/__tests__/eventImpactPanelRender.test.ts > EventImpactPanel render (acceptance 2) > renders a stale disclosure when the route served a cached-past-outage copy
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+
+stderr | lib/__tests__/eventImpactPanelRender.test.ts > EventImpactPanel render (acceptance 2) > renders a stale disclosure when the route served a cached-past-outage copy
+The current testing environment is not configured to support act(...)
+
+stderr | lib/__tests__/eventImpactPanelRender.test.ts > EventImpactPanel render (acceptance 2) > renders a typed sentence, not a blank panel, on a 401 from the route
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+
+stderr | lib/__tests__/eventImpactPanelRender.test.ts > EventImpactPanel render (acceptance 2) > renders the upstream-locked disclosure, never the no-events claim nor a fine/unaffected claim, when the source is locked out
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+
+stderr | lib/__tests__/eventImpactPanelRender.test.ts > EventImpactPanel render (acceptance 2) > renders the upstream-locked disclosure, never the no-events claim nor a fine/unaffected claim, when the source is locked out
+The current testing environment is not configured to support act(...)
+
+(node:30577) ExperimentalWarning: localStorage is not available because --localstorage-file was not provided.
+(Use `node --trace-warnings ...` to show where the warning was created)
+ ✓ lib/__tests__/brainWidgetRebinding.test.ts (1 test) 36ms
+stderr | lib/__tests__/eventImpactPanelRender.test.ts > EventImpactPanel render (acceptance 2) > renders the holdings-unreadable state when holdingsUnreadable is true, never a fetch
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+
+stderr | lib/__tests__/eventImpactPanelRender.test.ts > EventImpactPanel render (acceptance 2) > ZH-lang render of the three unreadable/locked states > holdings_unreadable renders its ZH sentence
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+
+stderr | lib/__tests__/eventImpactPanelRender.test.ts > EventImpactPanel render (acceptance 2) > ZH-lang render of the three unreadable/locked states > holdings_unreadable renders its ZH sentence
+The current testing environment is not configured to support act(...)
+
+stderr | lib/__tests__/eventImpactPanelRender.test.ts > EventImpactPanel render (acceptance 2) > ZH-lang render of the three unreadable/locked states > calendar_unreadable renders its ZH sentence
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+
+stderr | lib/__tests__/eventImpactPanelRender.test.ts > EventImpactPanel render (acceptance 2) > ZH-lang render of the three unreadable/locked states > calendar_unreadable renders its ZH sentence
+The current testing environment is not configured to support act(...)
+
+stderr | lib/__tests__/eventImpactPanelRender.test.ts > EventImpactPanel render (acceptance 2) > ZH-lang render of the three unreadable/locked states > upstream_locked renders its ZH sentence, never the ZH 'unaffected' claim
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+
+stderr | lib/__tests__/eventImpactPanelRender.test.ts > EventImpactPanel render (acceptance 2) > ZH-lang render of the three unreadable/locked states > upstream_locked renders its ZH sentence, never the ZH 'unaffected' claim
+The current testing environment is not configured to support act(...)
+
+stderr | lib/__tests__/eventImpactPanelRender.test.ts > EventImpactPanel render (acceptance 2) > renders a neutral checking state before the fetch resolves, never the no-holdings claim
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+
+stderr | lib/__tests__/eventImpactPanelRender.test.ts > EventImpactPanel render (acceptance 2) > renders a neutral checking state before the fetch resolves, never the no-holdings claim
+The current testing environment is not configured to support act(...)
+
+stderr | lib/__tests__/eventImpactPanelRender.test.ts > EventImpactPanel render (acceptance 2) > pluralizes the no-events count by open positions, not distinct tickers
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+
+stderr | lib/__tests__/eventImpactPanelRender.test.ts > EventImpactPanel render (acceptance 2) > pluralizes the no-events count by open positions, not distinct tickers
+The current testing environment is not configured to support act(...)
+
+stderr | lib/__tests__/eventImpactPanelRender.test.ts > EventImpactPanel render (acceptance 2) > uses singular phrasing for exactly one open position, never 'your 1 open positions'
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+
+stderr | lib/__tests__/eventImpactPanelRender.test.ts > EventImpactPanel render (acceptance 2) > uses singular phrasing for exactly one open position, never 'your 1 open positions'
+The current testing environment is not configured to support act(...)
+
+stderr | lib/__tests__/eventImpactPanelRender.test.ts > EventImpactPanel render (acceptance 2) > pluralizes the held-shares chip text ('1 share', never '1 shares')
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+
+ ✓ lib/__tests__/brainWidgetCfgOnlyAppend.test.ts (2 tests) 41ms
+stderr | lib/__tests__/eventImpactPanelRender.test.ts > EventImpactPanel render (acceptance 2) > pluralizes the held-shares chip text ('1 share', never '1 shares')
+The current testing environment is not configured to support act(...)
+
+stderr | lib/__tests__/eventImpactPanelRender.test.ts > EventImpactPanel render (acceptance 2) > labels the 5-day highlight as a display convention, not a source claim
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+
+stderr | lib/__tests__/eventImpactPanelRender.test.ts > EventImpactPanel render (acceptance 2) > labels the 5-day highlight as a display convention, not a source claim
+The current testing environment is not configured to support act(...)
+
+stderr | lib/__tests__/eventImpactPanelRender.test.ts > EventImpactPanel render (acceptance 2) > renders the earnings invalidation line in EN under the carry slots
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+
+stderr | lib/__tests__/eventImpactPanelRender.test.ts > EventImpactPanel render (acceptance 2) > renders the earnings invalidation line in EN under the carry slots
+The current testing environment is not configured to support act(...)
+
+stderr | lib/__tests__/eventImpactPanelRender.test.ts > EventImpactPanel render (acceptance 2) > renders the earnings invalidation line in ZH
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+
+stderr | lib/__tests__/eventImpactPanelRender.test.ts > EventImpactPanel render (acceptance 2) > renders the earnings invalidation line in ZH
+The current testing environment is not configured to support act(...)
+
+stderr | lib/__tests__/eventImpactPanelRender.test.ts > EventImpactPanel render (acceptance 2) > renders the typed-null invalidation in the same slot in EN
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+
+stderr | lib/__tests__/eventImpactPanelRender.test.ts > EventImpactPanel render (acceptance 2) > renders the typed-null invalidation in the same slot in EN
+The current testing environment is not configured to support act(...)
+
+stderr | lib/__tests__/eventImpactPanelRender.test.ts > EventImpactPanel render (acceptance 2) > renders the typed-null invalidation in the same slot in ZH
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+
+stderr | lib/__tests__/eventImpactPanelRender.test.ts > EventImpactPanel render (acceptance 2) > renders the typed-null invalidation in the same slot in ZH
+The current testing environment is not configured to support act(...)
+
+stderr | lib/__tests__/eventImpactPanelRender.test.ts > EventImpactPanel render (acceptance 2) > typed-null slot with unjoinable sources does not claim the ticker is named on those calendars
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+The current testing environment is not configured to support act(...)
+
+stderr | lib/__tests__/eventImpactPanelRender.test.ts > EventImpactPanel render (acceptance 2) > typed-null slot with unjoinable sources does not claim the ticker is named on those calendars
+The current testing environment is not configured to support act(...)
+
+ ✓ lib/__tests__/eventImpactPanelRender.test.ts (22 tests) 267ms
+ ✓ components/settings/__tests__/SectionWebhooks.test.tsx (21 tests) 332ms
+stderr | lib/__tests__/sectionAccountWriteFence.test.ts > SectionAccount — a foreign-only save through the real fence never shows the developer text > EN: the pane shows the acsErrGen sentence and never the developer text
+[accountPrefs] dropped keys the Terminal does not own [ 'alert_email_optin', 'tz' ]
+[accountPrefs] no owned key in patch [ 'alert_email_optin', 'tz' ]
+
+stderr | lib/__tests__/sectionAccountWriteFence.test.ts > SectionAccount — a foreign-only save through the real fence never shows the developer text > ZH: the pane shows the acsErrGen sentence and never the developer text
+[accountPrefs] dropped keys the Terminal does not own [ 'alert_email_optin', 'tz' ]
+[accountPrefs] no owned key in patch [ 'alert_email_optin', 'tz' ]
+
+ ✓ lib/__tests__/dataCacheAbsenceTtl.test.ts (12 tests) 299ms
+ ✓ lib/__tests__/sectionAccountWriteFence.test.ts (4 tests) 138ms
+ ✓ lib/__tests__/sectionAccountCompleteness.test.ts (6 tests) 200ms
+ ✓ lib/__tests__/sectionTeam.test.tsx (49 tests) 812ms
+ ✓ lib/__tests__/sectionAccountDeleteButtonLabel.test.ts (10 tests) 309ms
+ ✓ lib/__tests__/companySourceManifestRender.test.tsx (6 tests) 47ms
+ ✓ lib/__tests__/portfolioTargetsView.test.tsx (20 tests) 169ms
+ ✓ lib/__tests__/alertTimelineEmptyGuard.test.ts (3 tests) 28ms
+ ✓ lib/__tests__/watchingListEmptyGuard.test.ts (3 tests) 13ms
+ ✓ lib/__tests__/layoutMenuTeamRead.test.ts (3 tests) 44ms
+ ✓ lib/__tests__/portfolioViewFailedReread.test.ts (1 test) 63ms
+ ✓ lib/__tests__/heatmapTreemapPriceBadge.test.tsx (2 tests) 63ms
+ ✓ lib/__tests__/onboardingSheetPrefsPending.test.ts (1 test) 41ms
+(node:30585) ExperimentalWarning: localStorage is not available because --localstorage-file was not provided.
+(Use `node --trace-warnings ...` to show where the warning was created)
+(node:30597) ExperimentalWarning: localStorage is not available because --localstorage-file was not provided.
+(Use `node --trace-warnings ...` to show where the warning was created)
+ ✓ lib/__tests__/alertsCockpitNoCoverageActivity.test.ts (5 tests) 128ms
+ ✓ lib/__tests__/alertsCockpitZhParity.test.ts (13 tests) 395ms
+ ✓ lib/__tests__/chartSettingsHydration.test.ts (4 tests) 1174ms
+ ✓ lib/__tests__/surfaceReplayMounted.test.tsx (21 tests) 1025ms
+ ✓ lib/__tests__/plainLanguageGuard.test.ts (30 tests) 14415ms
+   ✓ check_plain_language.mjs > 2. passes a synthetic good string 538ms
+   ✓ check_plain_language.mjs > 3. reports a legacy (untouched) offending line without failing the run 414ms
+   ✓ check_plain_language.mjs > 4. EN/ZH parity: missing zh in LEX entry and unrouted English literal both block 796ms
+   ✓ check_plain_language.mjs > 5. --self-check proves each rule detects its own violation 467ms
+   ✓ check_plain_language.mjs > 6. unreadable --diff-file fails CLOSED 465ms
+   ✓ check_plain_language.mjs > 7. unresolvable base fails OPEN and discloses it 309ms
+   ✓ check_plain_language.mjs > 8. receipt printer: prints the checker's full human block for bad + legacy fixtures 987ms
+   ✓ check_plain_language.mjs > 10. a bare substring match on a helper name (.sort(/useEffect() does not defeat R3/R5b 976ms
+   ✓ check_plain_language.mjs > 11. AST visibility: `=>`, `<=`, and an enum comparison in code never fire raw_state_enum 378ms
+   ✓ check_plain_language.mjs > 12. AST visibility: a true positive in JsxText still blocks raw_state_enum 381ms
+   ✓ check_plain_language.mjs > 9. --json contract shape is stable 533ms
+   ✓ check_plain_language.mjs > 13. overlay-harvested bare label KEYS are whole-word matches, not substrings (PR #530 review BLOCKER 1) 322ms
+   ✓ check_plain_language.mjs > 14. R2 internal_study_slug matches whole words only, not English words containing a slug (PR #530 review MAJOR) 476ms
+   ✓ check_plain_language.mjs > 15. LEX arity check is comma-in-string-safe and multi-line-safe (PR #530 review BLOCKER 2) 611ms
+   ✓ check_plain_language.mjs > 16. copy-dict spans cover VALUES, never object KEYS or import specifiers (PR #530 round-2 review BLOCKER 1) 590ms
+   ✓ check_plain_language.mjs > 17. a .ts (not .tsx) file under terminal/lib/ matching *copy* is actually scanned (PR #530 round-2 review BLOCKER 2) 346ms
+   ✓ check_plain_language.mjs > 18. ternary idiom: a string literal behind `cond ? a : b` as a JSX child is flagged 405ms
+   ✓ check_plain_language.mjs > 19. logical-and idiom: a string literal behind `cond && value` as a JSX child is flagged 341ms
+   ✓ check_plain_language.mjs > 20. attribute-literal idiom: a ternary behind title={...} is flagged 420ms
+   ✓ check_plain_language.mjs > 21. NOT flagged: className is not a visible attribute, even behind the same ternary 509ms
+   ✓ check_plain_language.mjs > 22. NOT flagged: a bare property access (`trade.dte`) as a JSX child is never rendered TEXT 565ms
+   ✓ check_plain_language.mjs > 23. NOT flagged: a template literal inside a `throw` is not a JSX position at all 321ms
+   ✓ check_plain_language.mjs > 25. R3 fires on the interpolation's OWN span, never on a sibling span sharing the line (PR #530 round-3 review MAJOR) 1088ms
+   ✓ check_plain_language.mjs > 28. R3 examines EVERY `{...field}` match on a line, not just the first (PR #530 round-4 review MAJOR) 528ms
+ ✓ components/settings/__tests__/SectionAlertDelivery.test.tsx (53 tests) 2716ms
+ ✓ lib/__tests__/ThesisWorkspaceLensRail.test.tsx (77 tests) 3900ms
+
+ Test Files  336 passed (336)
+      Tests  5546 passed | 4 todo (5550)
+   Start at  16:25:05
+   Duration  17.32s (transform 40.84s, setup 0ms, collect 90.82s, tests 74.72s, environment 20.65s, prepare 28.34s)

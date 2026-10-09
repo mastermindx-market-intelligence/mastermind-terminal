@@ -3,8 +3,9 @@
  *
  * Extracted from app/api/flow/route.ts so BOTH the polling GET endpoint and the
  * SSE streaming endpoint (app/api/flow/stream) resolve a payload through one code
- * path: fixture in dev (FLOW_FIXTURE=1), else Python backend → R2 CDN fallback (the
- * Options Prophet published index is R2-first), with
+ * path: fixture in dev (FLOW_FIXTURE=1); in production Flow Leaders may read the
+ * co-located canonical Macro artifact first, then the normal Python backend → R2
+ * CDN fallback (the Options Prophet published index is R2-first), with
  * the proprietary server-side flowScore attached to the main feed.
  *
  * SERVER-ONLY. Imports fs + the server-only flowScore model — never import from a
@@ -15,6 +16,7 @@ import { promises as fs } from "fs";
 import path from "path";
 import { computeFlowScore, type ScorerInput } from "@/lib/flowScore";
 import { FLOW_BACKEND as BACKEND, R2_BASE } from "@/lib/upstreams";
+import { isValidRoot } from "@/lib/flowRoot";
 import { type Bar6, tfMinutes, resample, sessionEpoch } from "@/lib/intradayShared";
 
 const FIXTURE_FILE = path.join(process.cwd(), "public", "data", "flow_fixture.json");
@@ -60,28 +62,40 @@ const OI_TIME_FIXTURE_FILE = path.join(process.cwd(), "public", "data", "oi_time
 const MAX_PAIN_FIXTURE_FILE = path.join(process.cwd(), "public", "data", "max_pain_fixture.json");
 const OI_CHANGE_FIXTURE_FILE = path.join(process.cwd(), "public", "data", "oi_change_fixture.json");
 
-
 /**
- * A syntactically valid option root, for f-params whose tail is interpolated into a
- * backend path or an R2 object key.
+ * Flow Leaders is produced on the same VPS by Macro and the Terminal server is already
+ * trusted to read that estate for other server-side data jobs.  Prefer the exact local
+ * published artifact when it exists: this removes an unnecessary dependency on the
+ * public R2 mirror without adding a writer or a second truth store.  Non-VPS/dev hosts
+ * simply miss this path and continue through the existing backend -> R2 chain.
  *
- * ⚠️ SECURITY, not tidiness. Before this existed, `isValidF` accepted ANY non-empty
- * string after `gex:` / `vol:` / `matrix:` / `agg:` / … and `backendPath` / `r2Key`
- * interpolated it raw. `gex:../../admin/secrets` normalises away the `..` segments at
- * fetch time and reads an arbitrary backend endpoint or R2 object — and because the
- * route caches by the f-param string, the result is then served from the shared
- * server-side CACHE under the attacker's key. Path traversal plus cache poisoning from
- * one query parameter.
- *
- * Roots are uppercase alphanumerics with an optional dot or hyphen inside (BRK.B,
- * RDS-A) — never a slash, a dot-dot, a space or a percent escape. 12 chars matches the
- * ticker input's own maxLength.
+ * The env override is intentionally file-specific so tests and future topology changes
+ * do not need to mutate the broader MACRO_REPO contract.
  */
-const ROOT_RE = /^[A-Z0-9]{1,10}(?:[.-][A-Z0-9]{1,4})?$/;
-
-export function isValidRoot(root: string): boolean {
-  return root.length > 0 && root.length <= 12 && ROOT_RE.test(root);
+export function localFlowArtifactPath(f: string): string | null {
+  if (f !== "leaders") return null;
+  if (process.env.FLOW_LEADERS_LOCAL_PATH) return process.env.FLOW_LEADERS_LOCAL_PATH;
+  const macroRoot = process.env.MACRO_REPO || "/opt/macro";
+  return path.join(macroRoot, "site", "flowleaders", "leaders.json");
 }
+
+async function tryReadLocalFlowArtifact(f: string): Promise<Record<string, unknown> | null> {
+  const localPath = localFlowArtifactPath(f);
+  if (!localPath) return null;
+  try {
+    const raw = await fs.readFile(localPath, "utf8");
+    const data = JSON.parse(raw) as Record<string, unknown>;
+    return data && typeof data === "object" ? data : null;
+  } catch {
+    return null;
+  }
+}
+
+
+// The option-root rule (and its ⚠️ SECURITY rationale) lives in lib/flowRoot, which is
+// client-safe, so a per-root view applies the very rule this route enforces before it
+// asks. Re-exported for the server-side callers that import it from here.
+export { isValidRoot };
 
 /** A date segment in a dated f-param. Same reasoning as isValidRoot. */
 const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
@@ -162,10 +176,30 @@ export function isValidF(f: string): boolean {
   if (f === "prophet_idx") return true;
   if (f === "prophet_marks") return true;
   if (f === "options_prophet_idx") return true;
+  // Options Alpha — candidate evidence transport (WIP). The publisher
+  // (MACRO PR #8310, options.alpha_candidate_feed/v1) does not yet
+  // publish formed candidates, so this key is wired into the gate BEFORE
+  // there is anything to fetch. Routing only: GET-only for now, no
+  // backend, no SSE producer — see upstreamSourceOrder() and the explicit
+  // /api/flow/stream rejection that mirrors the prophet_idx one.
+  if (f === "options_alpha_candidate_feed") return true;
   if (f === "enrich") return true;
   if (f === "leaders") return true;
   if (f === "radar") return true;
   return false;
+}
+
+/**
+ * One f-param piece as a URL path segment. isValidF admits only roots, dates, stamps and
+ * literal names, all made of unreserved characters, so for every admitted piece this is the
+ * identity. It is the second layer, applied where the upstream URL is built: "/", "?", "#"
+ * and "%" become inert text, so a looser rule or a new family can never let a piece add a
+ * path step, a query or an escape to the request this server makes (CodeQL
+ * js/request-forgery). A piece made only of dots would still be a step up; no root, date or
+ * stamp rule admits one.
+ */
+function seg(piece: string): string {
+  return encodeURIComponent(piece);
 }
 
 /**
@@ -177,20 +211,20 @@ export function isValidF(f: string): boolean {
 export function backendPath(f: string): string {
   if (f === "tide") return "/api/flow/tide";
   if (f === "dte") return "/api/flow/dte";
-  if (f.startsWith("ticker:")) return `/api/flow/ticker/${f.slice(7)}`;
-  if (f.startsWith("vol:")) return `/api/hub/vol/${f.slice(4)}`;
+  if (f.startsWith("ticker:")) return `/api/flow/ticker/${seg(f.slice(7))}`;
+  if (f.startsWith("vol:")) return `/api/hub/vol/${seg(f.slice(4))}`;
   // Dated GEX history first (surface convention): the prefixes are disjoint from `gex:`,
   // but matching them ahead keeps that independent of prefix arithmetic.
-  if (f.startsWith("gex_dates:")) return `/api/hub/gex_history/${f.slice(10)}/dates`;
+  if (f.startsWith("gex_dates:")) return `/api/hub/gex_history/${seg(f.slice(10))}/dates`;
   if (f.startsWith("gex_at:")) {
     const [, root, date] = f.split(":");
-    return `/api/hub/gex_history/${root}/${date}`;
+    return `/api/hub/gex_history/${seg(root)}/${seg(date)}`;
   }
-  if (f.startsWith("gex:")) return `/api/hub/gex/${f.slice(4)}`;
-  if (f.startsWith("levels:")) return `/api/hub/levels/${f.slice(7)}`;
-  if (f.startsWith("agg:")) return `/api/hub/aggtrend/${f.slice(4)}`;
+  if (f.startsWith("gex:")) return `/api/hub/gex/${seg(f.slice(4))}`;
+  if (f.startsWith("levels:")) return `/api/hub/levels/${seg(f.slice(7))}`;
+  if (f.startsWith("agg:")) return `/api/hub/aggtrend/${seg(f.slice(4))}`;
   if (f === "quad") return "/api/hub/quad";
-  if (f.startsWith("grades:")) return `/api/hub/level_grades/${f.slice(7)}`;
+  if (f.startsWith("grades:")) return `/api/hub/level_grades/${seg(f.slice(7))}`;
   if (f === "grades_universe") return "/api/hub/level_grades/_universe";
   if (f === "oi") return "/api/hub/oi";
   if (f === "hot") return "/api/hub/hot";
@@ -199,33 +233,33 @@ export function backendPath(f: string): string {
   if (f === "oiconf") return "/api/hub/oiconf";
   if (f === "darkpool") return "/api/hub/darkpool";
   if (f === "volregime") return "/api/hub/volregime";
-  if (f.startsWith("moves:")) return `/api/hub/moves/${f.slice(6)}`;
+  if (f.startsWith("moves:")) return `/api/hub/moves/${seg(f.slice(6))}`;
   // R3 OI suite
-  if (f.startsWith("oi_time:")) return `/api/hub/oi_time/${f.slice(8)}`;
-  if (f.startsWith("max_pain:")) return `/api/hub/max_pain/${f.slice(9)}`;
+  if (f.startsWith("oi_time:")) return `/api/hub/oi_time/${seg(f.slice(8))}`;
+  if (f.startsWith("max_pain:")) return `/api/hub/max_pain/${seg(f.slice(9))}`;
   if (f === "oi_change") return "/api/hub/oi_change";
-  if (f.startsWith("oi_change:")) return `/api/hub/oi_change/${f.slice(10)}`;
-  if (f.startsWith("tctx:")) return `/api/hub/tctx/${f.slice(5)}`;
+  if (f.startsWith("oi_change:")) return `/api/hub/oi_change/${seg(f.slice(10))}`;
+  if (f.startsWith("tctx:")) return `/api/hub/tctx/${seg(f.slice(5))}`;
   if (f === "chainheat") return "/api/flow/chainheat";
-  if (f.startsWith("gexstate:")) return `/api/hub/gexstate/${f.slice(9)}`;
+  if (f.startsWith("gexstate:")) return `/api/hub/gexstate/${seg(f.slice(9))}`;
   if (f === "gexstate_index") return "/api/hub/gexstate/_index";
-  if (f.startsWith("matrix:")) return `/api/hub/matrix/${f.slice(7)}`;
+  if (f.startsWith("matrix:")) return `/api/hub/matrix/${seg(f.slice(7))}`;
   // Surface store: /api/flow/surface/{ROOT}/idx  and  /api/flow/surface/{ROOT}/{STAMP}
   // Dated variants first — the longer prefixes are disjoint from the today-paths, but
   // matching them ahead of the shorter ones keeps that independent of prefix arithmetic.
-  if (f.startsWith("surface_dates:")) return `/api/flow/surface/${f.slice(14)}/dates`;
+  if (f.startsWith("surface_dates:")) return `/api/flow/surface/${seg(f.slice(14))}/dates`;
   if (f.startsWith("surface_idx_at:")) {
     const [, root, date] = f.split(":");
-    return `/api/flow/surface/${root}/${date}/idx`;
+    return `/api/flow/surface/${seg(root)}/${seg(date)}/idx`;
   }
   if (f.startsWith("surface_at:")) {
     const [, root, date, stamp] = f.split(":");
-    return `/api/flow/surface/${root}/${date}/${stamp}`;
+    return `/api/flow/surface/${seg(root)}/${seg(date)}/${seg(stamp)}`;
   }
-  if (f.startsWith("surface_idx:")) return `/api/flow/surface/${f.slice(12)}/idx`;
+  if (f.startsWith("surface_idx:")) return `/api/flow/surface/${seg(f.slice(12))}/idx`;
   if (f.startsWith("surface:")) {
     const [, root, stamp] = f.split(":");
-    return `/api/flow/surface/${root}/${stamp}`;
+    return `/api/flow/surface/${seg(root)}/${seg(stamp)}`;
   }
   if (f === "manifest") return "/api/flow/manifest";
   if (f === "flow_idx") return "/api/flow/flow_idx";
@@ -235,7 +269,7 @@ export function backendPath(f: string): string {
   if (f === "enrich") return "/api/flow/enrich";
   if (f === "leaders") return "/api/flow/leaders";
   if (f === "radar") return "/api/flow/radar";
-  return `/api/flow/${f}`;
+  return `/api/flow/${seg(f)}`;
 }
 
 /** f-param → R2 object key. Exported for tests — see backendPath. */
@@ -243,21 +277,21 @@ export function r2Key(f: string): string {
   if (f === "meta") return "live_flow/meta.json";
   if (f === "tide") return "live_flow/tide_current.json";
   if (f === "dte") return "live_flow/dte_tide_current.json";
-  if (f.startsWith("ticker:")) return `live_flow/tickers/${f.slice(7)}.json`;
-  if (f.startsWith("vol:")) return `options_hub/vol/${f.slice(4)}.json`;
+  if (f.startsWith("ticker:")) return `live_flow/tickers/${seg(f.slice(7))}.json`;
+  if (f.startsWith("vol:")) return `options_hub/vol/${seg(f.slice(4))}.json`;
   // Dated GEX-ladder history on R2: options_hub/gex_history/{ROOT}/{DATE}.json (the full
   // options_hub.gex/v1 payload, keyed by the payload's own asof) + the dates.json index
   // the macro hub maintains beside it. Matched ahead of `gex:` per the surface convention.
-  if (f.startsWith("gex_dates:")) return `options_hub/gex_history/${f.slice(10)}/dates.json`;
+  if (f.startsWith("gex_dates:")) return `options_hub/gex_history/${seg(f.slice(10))}/dates.json`;
   if (f.startsWith("gex_at:")) {
     const [, root, date] = f.split(":");
-    return `options_hub/gex_history/${root}/${date}.json`;
+    return `options_hub/gex_history/${seg(root)}/${seg(date)}.json`;
   }
-  if (f.startsWith("gex:")) return `options_hub/gex/${f.slice(4)}.json`;
-  if (f.startsWith("levels:")) return `levels/${f.slice(7)}.json`;
-  if (f.startsWith("agg:")) return `options_hub/aggtrend/${f.slice(4)}.json`;
+  if (f.startsWith("gex:")) return `options_hub/gex/${seg(f.slice(4))}.json`;
+  if (f.startsWith("levels:")) return `levels/${seg(f.slice(7))}.json`;
+  if (f.startsWith("agg:")) return `options_hub/aggtrend/${seg(f.slice(4))}.json`;
   if (f === "quad") return "options_hub/quad.json";
-  if (f.startsWith("grades:")) return `options_hub/level_grades/${f.slice(7)}.json`;
+  if (f.startsWith("grades:")) return `options_hub/level_grades/${seg(f.slice(7))}.json`;
   if (f === "grades_universe") return "options_hub/level_grades/_universe.json";
   if (f === "oi") return "options_hub/oi_movers.json";
   if (f === "hot") return "options_hub/hot_contracts.json";
@@ -267,35 +301,35 @@ export function r2Key(f: string): string {
   // files under their own names, not under options_hub/) — see mirror_terminal_context_r2.
   if (f === "darkpool") return "darkpool/eod.json";
   if (f === "volregime") return "vol/regime.json";
-  if (f.startsWith("moves:")) return `options_hub/moves/${f.slice(6)}.json`;
+  if (f.startsWith("moves:")) return `options_hub/moves/${seg(f.slice(6))}.json`;
   // R3 OI suite: per-root payloads beside vol/gex/moves in the options_hub
   // plane; the bare oi_change is the cross-root board (also the options_hub_oi
   // dead-man beacon on the macro side).
-  if (f.startsWith("oi_time:")) return `options_hub/oi_time/${f.slice(8)}.json`;
-  if (f.startsWith("max_pain:")) return `options_hub/max_pain/${f.slice(9)}.json`;
+  if (f.startsWith("oi_time:")) return `options_hub/oi_time/${seg(f.slice(8))}.json`;
+  if (f.startsWith("max_pain:")) return `options_hub/max_pain/${seg(f.slice(9))}.json`;
   if (f === "oi_change") return "options_hub/oi_change.json";
-  if (f.startsWith("oi_change:")) return `options_hub/oi_change/${f.slice(10)}.json`;
-  if (f.startsWith("tctx:")) return `options_hub/tickers_ctx/${f.slice(5)}.json`;
+  if (f.startsWith("oi_change:")) return `options_hub/oi_change/${seg(f.slice(10))}.json`;
+  if (f.startsWith("tctx:")) return `options_hub/tickers_ctx/${seg(f.slice(5))}.json`;
   if (f === "chainheat") return "live_flow/chain_heat_current.json";
-  if (f.startsWith("gexstate:")) return `options_structure/gex_state/${f.slice(9)}.json`;
+  if (f.startsWith("gexstate:")) return `options_structure/gex_state/${seg(f.slice(9))}.json`;
   if (f === "gexstate_index") return "options_structure/gex_state/_index.json";
-  if (f.startsWith("matrix:")) return `options_structure/matrix/${f.slice(7)}.json`;
+  if (f.startsWith("matrix:")) return `options_structure/matrix/${seg(f.slice(7))}.json`;
   // Surface store on R2: live_flow/surface/{ROOT}/idx.json + live_flow/surface/{ROOT}/{STAMP}.json
   // plus the date-keyed copies the poller writes beside them (macro build_flow_surface.py):
   // live_flow/surface/{ROOT}/dates.json, {ROOT}/{DATE}/idx.json, {ROOT}/{DATE}/{STAMP}.json.
-  if (f.startsWith("surface_dates:")) return `live_flow/surface/${f.slice(14)}/dates.json`;
+  if (f.startsWith("surface_dates:")) return `live_flow/surface/${seg(f.slice(14))}/dates.json`;
   if (f.startsWith("surface_idx_at:")) {
     const [, root, date] = f.split(":");
-    return `live_flow/surface/${root}/${date}/idx.json`;
+    return `live_flow/surface/${seg(root)}/${seg(date)}/idx.json`;
   }
   if (f.startsWith("surface_at:")) {
     const [, root, date, stamp] = f.split(":");
-    return `live_flow/surface/${root}/${date}/${stamp}.json`;
+    return `live_flow/surface/${seg(root)}/${seg(date)}/${seg(stamp)}.json`;
   }
-  if (f.startsWith("surface_idx:")) return `live_flow/surface/${f.slice(12)}/idx.json`;
+  if (f.startsWith("surface_idx:")) return `live_flow/surface/${seg(f.slice(12))}/idx.json`;
   if (f.startsWith("surface:")) {
     const [, root, stamp] = f.split(":");
-    return `live_flow/surface/${root}/${stamp}.json`;
+    return `live_flow/surface/${seg(root)}/${seg(stamp)}.json`;
   }
   if (f === "manifest") return "live_flow/manifest.json";
   if (f === "flow_idx") return "live_flow/flow_idx.json";
@@ -305,11 +339,18 @@ export function r2Key(f: string): string {
   // omitted rather than left as a live landmine for a future caller to find.
   if (f === "prophet_marks") return "live_flow/prophet_marks.json";
   if (f === "options_prophet_idx") return "options_prophet/index.json";
+  // Options Alpha — single canonical R2 object. The publisher (MACRO PR #8310) lands
+  // at this exact key; upstreamSourceOrder() pins the read to R2-only so a missing
+  // object resolves to "feed unavailable" rather than being served from another feed.
+  if (f === "options_alpha_candidate_feed") return "options_alpha/candidate_feed.json";
   if (f === "enrich") return "live_flow/enrich_current.json";
   if (f === "leaders") return "flowleaders/leaders.json";
   if (f === "radar") return "leaderradar/radar.json";
-  return `live_flow/${f}_current.json`;
+  return `live_flow/${seg(f)}_current.json`;
 }
+
+/** The receipt is deliberately not a generic f-param: it can only be read with its payload. */
+export const OPTIONS_ALPHA_CANDIDATE_RECEIPT_R2_KEY = "options_alpha/candidate_feed.receipt.json";
 
 async function fetchWithUA(url: string): Promise<Record<string, unknown>> {
   const ctrl = new AbortController();
@@ -322,6 +363,47 @@ async function fetchWithUA(url: string): Promise<Record<string, unknown>> {
     });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     return (await res.json()) as Record<string, unknown>;
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+/**
+ * Availability of one upstream payload. Only a 404/410 is absence; a refused connection, a
+ * timeout, any other non-2xx and an unparseable or null body are "unavailable" — a read that
+ * did not land says nothing about whether the payload exists.
+ */
+export type UpstreamOutcome =
+  | { status: "data"; data: Record<string, unknown> }
+  | { status: "absent" }
+  | { status: "unavailable" };
+
+/** One classified upstream read — the same timeout, UA and no-store policy as fetchWithUA. */
+async function readUpstream(url: string): Promise<UpstreamOutcome> {
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), 3_000);
+  try {
+    let res: Response;
+    try {
+      res = await fetch(url, {
+        signal: ctrl.signal,
+        headers: { "User-Agent": "mastermind-feed/1.0" },
+        cache: "no-store",
+      });
+    } catch {
+      return { status: "unavailable" };
+    }
+    if (res.status === 404 || res.status === 410) return { status: "absent" };
+    if (!res.ok) return { status: "unavailable" };
+    let data: unknown;
+    try {
+      data = await res.json();
+    } catch {
+      return { status: "unavailable" };
+    }
+    return data == null
+      ? { status: "unavailable" }
+      : { status: "data", data: data as Record<string, unknown> };
   } finally {
     clearTimeout(timer);
   }
@@ -840,6 +922,22 @@ export async function fixtureFor(f: string): Promise<Record<string, unknown>> {
       };
     }
   }
+  // Options Alpha — explicit unavailable in fixture mode. The publisher
+  // (MACRO PR #8310, options.alpha_candidate_feed/v1) has not yet shipped formed
+  // candidates, so the fixture seam returns the honest inactive shape rather than
+  // reading the legacy flow_fixture.json (which would be a misleading fallback —
+  // no other feed family's data can stand in for candidate evidence). The shape
+  // is what the forthcoming consumer's validator will gate on; consumers that
+  // read `active` see "no candidates today" instead of an empty object.
+  if (f === "options_alpha_candidate_feed") {
+    return {
+      schema: "options.alpha_candidate_feed/v1",
+      active: false,
+      as_of: "",
+      candidates: [],
+      source: "fixture-empty",
+    };
+  }
   const raw = await fs.readFile(FIXTURE_FILE, "utf8");
   const all = JSON.parse(raw) as Record<string, Record<string, unknown>>;
   return all[f] ?? {};
@@ -940,16 +1038,146 @@ export async function intradayFixture(sym: string, tf: string): Promise<Bar6[] |
  * Options Prophet is an artifact-native feed, so it deliberately probes its
  * published R2 index before the backend route. This avoids paying the backend's
  * timeout on every first load when that optional route is absent or deploying.
- * `manifest` is a local static file on this box. Returns null when every source
- * fails. (No scoring, no cache — callers own that.)
+ * `manifest` is a local static file on this box. tryFetchUpstream returns null when
+ * no source yields a payload; tryFetchUpstreamResult says whether that is a proven
+ * absence or a failed read. (No scoring, no cache — callers own that.)
  */
 export type FlowUpstreamSource = "backend" | "r2";
 
 export function upstreamSourceOrder(f: string): FlowUpstreamSource[] {
+  // Options Alpha candidate evidence: the publisher is R2-only (MACRO PR #8310). The
+  // backend has no route for this key and must NEVER be probed for it — probing would
+  // produce a misleading 503/404 attribution on the backend instead of the truth
+  // ("publisher hasn't shipped the artifact yet"). tryFetchUpstream() loops over this
+  // order, so a single-element array means "fail closed on the R2 read".
+  if (f === "options_alpha_candidate_feed") return ["r2"];
+  // Flow Leaders is an artifact-native Macro publication. If the co-located
+  // file is stale, favor the newly published R2 object before a backend timeout.
+  if (f === "leaders") return ["r2", "backend"];
   return f === "options_prophet_idx" ? ["r2", "backend"] : ["backend", "r2"];
 }
 
+/** Flow Leaders artifact integrity and downstream admission boundary. */
+export function isLeadersArtifact(data: Record<string, unknown> | null): boolean {
+  if (!data || data.schema !== "flow_leaders.v1" ||
+      typeof data.session_date !== "string" ||
+      !/^\d{4}-\d{2}-\d{2}$/.test(data.session_date) ||
+      !Array.isArray(data.board_a) || !Array.isArray(data.board_b)) return false;
+  const coverage = data.coverage;
+  if (!coverage || typeof coverage !== "object") return false;
+  const c = coverage as Record<string, unknown>;
+  if (typeof c.n_universe !== "number" || !Number.isInteger(c.n_universe) ||
+      c.n_universe < 0) return false;
+  return [...data.board_a, ...data.board_b].every((row) =>
+    row !== null && typeof row === "object" &&
+    typeof (row as Record<string, unknown>).ticker === "string");
+}
+
+export function isQualifiedLeadersArtifact(data: Record<string, unknown> | null): boolean {
+  if (!isLeadersArtifact(data) || !data || data.stale !== false ||
+      data.source_family !== "thetadata_t2a_tape" ||
+      data.signal_policy !== "research_only") return false;
+  // Theta tape's licensed quote-rule evidence is NOT a validated live entry
+  // signal. A future publisher cannot silently promote fire flags by merely
+  // supplying a recent market timestamp and sufficient raw coverage.
+  const rows = [...(data.board_a as Record<string, unknown>[]),
+    ...(data.board_b as Record<string, unknown>[])];
+  if (rows.some((row) => row.fire_a !== false || row.fire_b !== false)) return false;
+  const coverage = data.coverage;
+  if (!coverage || typeof coverage !== "object") return false;
+  const c = coverage as Record<string, unknown>;
+  const current = c.n_current_roots, expected = c.n_expected_roots;
+  if (typeof current !== "number" || typeof expected !== "number" ||
+      !Number.isInteger(current) || !Number.isInteger(expected) ||
+      expected <= 0 || current < 0 || current > expected ||
+      current / expected < 0.9) return false;
+  // Backstop only: producer owns NYSE-session freshness and exact 2-session SLA.
+  // Never accept a years-old object stamped stale=false due to a producer fault.
+  const session = String(data.session_date);
+  const t = Date.parse(session + "T00:00:00Z");
+  const ageDays = (Date.now() - t) / 86_400_000;
+  return Number.isFinite(t) && new Date(t).toISOString().slice(0, 10) === session &&
+    ageDays >= 0 && ageDays <= 7;
+}
+
+function chooseMoreRecentLeaders(
+  oldData: Record<string, unknown> | null,
+  newData: Record<string, unknown> | null,
+): Record<string, unknown> | null {
+  if (!isLeadersArtifact(newData)) return oldData;
+  if (!isLeadersArtifact(oldData)) return newData;
+  const a = String(oldData?.session_date), b = String(newData?.session_date);
+  if (b > a) return newData;
+  if (a > b) return oldData;
+  // Same session: prefer signed-tape provenance, then the newest build.
+  if (newData?.source_family === "thetadata_t2a_tape" &&
+      oldData?.source_family !== "thetadata_t2a_tape") return newData;
+  if (oldData?.source_family === "thetadata_t2a_tape" &&
+      newData?.source_family !== "thetadata_t2a_tape") return oldData;
+  return String(newData?.as_of ?? "") > String(oldData?.as_of ?? "") ? newData : oldData;
+}
+
+/** No unqualified leaders payload can leave this server marked live. The API
+ * is also consumed by machine clients, not just by the React display gate.
+ * Treat a missing/misleading producer stale flag as a false-green input. */
+export function sanitizeLeadersArtifact(
+  data: Record<string, unknown> | null,
+): Record<string, unknown> | null {
+  if (!isLeadersArtifact(data)) return null;
+  if (isQualifiedLeadersArtifact(data)) return data;
+  if (!data) return null;
+  // An unqualified historical or malformed source must never continue
+  // advertising a FIRE flag through the machine-readable API, even when a
+  // user deliberately opens its research/history view. Preserve observed
+  // evidence; refuse only the signal authority the source has not earned.
+  const suppressFire = (row: Record<string, unknown>) => ({
+    ...row, fire_a: false, fire_b: false,
+  });
+  return {
+    ...data,
+    stale: true,
+    stale_reason: typeof data.stale_reason === "string" && data.stale_reason
+      ? data.stale_reason
+      : "unqualified_source_or_session",
+    board_a: (data.board_a as Record<string, unknown>[]).map(suppressFire),
+    board_b: (data.board_b as Record<string, unknown>[]).map(suppressFire),
+  };
+}
+
 export async function tryFetchUpstream(f: string): Promise<Record<string, unknown> | null> {
+  // Do not let a co-located historical JSON shadow a new R2 session. Retain
+  // the old snapshot for explicit historical viewing when all fresh sources fail.
+  if (f === "leaders") {
+    const local = await tryReadLocalFlowArtifact(f);
+    const localQualified = isQualifiedLeadersArtifact(local);
+    let best = isLeadersArtifact(local) ? local : null;
+    // A locally QUALIFIED but lagging session can still shadow a newer R2
+    // publication for up to the full freshness window. Make one bounded R2
+    // comparison; when the local proof is valid, there is no reason to wait
+    // for the slower backend after a failed/missing R2 read.
+    const sources: FlowUpstreamSource[] = localQualified
+      ? ["r2"] : upstreamSourceOrder(f);
+    for (const source of sources) {
+      try {
+        const url = source === "r2"
+          ? R2_BASE + "/" + r2Key(f)
+          : BACKEND + backendPath(f);
+        const remote = await fetchWithUA(url);
+        if (isQualifiedLeadersArtifact(remote)) {
+          if (localQualified && local &&
+              String(local.session_date) >= String(remote.session_date)) {
+            return local;
+          }
+          return remote;
+        }
+        if (!localQualified) best = chooseMoreRecentLeaders(best, remote);
+      } catch {
+        // Missing/blocked remote evidence never displaces a qualified local
+        // session; otherwise keep searching the documented backend fallback.
+      }
+    }
+    return localQualified ? local : sanitizeLeadersArtifact(best);
+  }
   if (f === "manifest") {
     try {
       const raw = await fs.readFile(MANIFEST_FIXTURE_FILE, "utf8");
@@ -958,20 +1186,57 @@ export async function tryFetchUpstream(f: string): Promise<Record<string, unknow
       return null;
     }
   }
+  const outcome = await readGenericUpstream(f);
+  return outcome.status === "data" ? outcome.data : null;
+}
+
+/**
+ * tryFetchUpstream with the failure kept apart from the absence, for the route's
+ * status code. Leaders and the manifest have their own admission rules and never
+ * claim absence: no payload from them is a failed read.
+ */
+export async function tryFetchUpstreamResult(f: string): Promise<UpstreamOutcome> {
+  if (f === "leaders" || f === "manifest") {
+    const data = await tryFetchUpstream(f);
+    return data ? { status: "data", data } : { status: "unavailable" };
+  }
+  return readGenericUpstream(f);
+}
+
+/**
+ * Keys whose only store is the public R2 object, so R2's 404 proves the payload is
+ * unpublished whatever the backend answered. The macro hub backend (app/hub.py
+ * `_hub_fetch`) reads these same objects through from the same public bucket and answers
+ * 503, not 404, for one it has never read; `agg:` has no backend route at all. Live-flow
+ * keys (ticker:, tide, …) stay out: the backend can hold tape the R2 mirror lacks. Check
+ * macro origin/main before extending this list.
+ */
+function r2IsStoreOfRecord(f: string): boolean {
+  return f.startsWith("vol:") || f.startsWith("gex:") || f.startsWith("tctx:") ||
+    f.startsWith("agg:") || f === "oi" || f === "hot" || f === "ctx" || f === "oiconf";
+}
+
+async function readGenericUpstream(f: string): Promise<UpstreamOutcome> {
+  // Absence needs R2's own 404, and no source failure that R2's answer cannot explain.
+  let r2Absent = false;
+  let unexplained = false;
   for (const source of upstreamSourceOrder(f)) {
     // DEC:B1-PROPHET-PUBLIC-SPLIT (Sol Day-5, 2026-08-21): the full US Prophet
     // plan book is premium/private. prophet_idx must never fall through to the
     // anonymous public R2 object — when the backend is unavailable the caller
     // fails closed (503 / stale in-memory cache), never anonymous fallthrough.
     if (source === "r2" && f === "prophet_idx") continue;
-    try {
-      const url = source === "r2"
-        ? `${R2_BASE}/${r2Key(f)}`
-        : `${BACKEND}${backendPath(f)}`;
-      return await fetchWithUA(url);
-    } catch {
-      // Continue to the next configured source.
+    const read = await readUpstream(source === "r2"
+      ? `${R2_BASE}/${r2Key(f)}`
+      : `${BACKEND}${backendPath(f)}`);
+    if (read.status === "data") return read;
+    if (source === "r2") {
+      if (read.status === "absent") r2Absent = true;
+      else unexplained = true;
+    } else if (read.status !== "absent" && !r2IsStoreOfRecord(f)) {
+      unexplained = true;
     }
+    // Continue to the next configured source.
   }
   // DEC:B1-MACRO-PRIVATE-CUTOVER: the canonical Macro repo is now private and its
   // GitHub Pages mirror is retired, so `flow_idx` no longer has an anonymous public
@@ -979,7 +1244,7 @@ export async function tryFetchUpstream(f: string): Promise<Record<string, unknow
   // refreshed nightly by the macro repo's `scripts/mirror_flow_idx.py`); when both
   // of those fail this path fails closed (null -> caller's 503 / stale cache)
   // rather than reading an anonymous public copy.
-  return null;
+  return r2Absent && !unexplained ? { status: "absent" } : { status: "unavailable" };
 }
 
 /**

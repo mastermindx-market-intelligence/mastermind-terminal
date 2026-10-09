@@ -12,7 +12,7 @@ import { CoachProvider, useCoach } from "@/lib/tutorial/coach";
 import { getTutStr } from "@/lib/tutorial/tutorialStrings";
 import { abbrevSector } from "@/lib/sectorAbbrev";
 import { windowGexRows } from "@/lib/windowGexRows.mjs";
-import { flowGet, flowInvalidate, flowPrefetch } from "@/lib/flowClientCache";
+import { flowGet, flowGetFresh, flowInvalidate, flowPrefetch } from "@/lib/flowClientCache";
 import { useFlowStream } from "@/lib/flowStream";
 import { usOptionsSessionState } from "@/lib/flowFreshness";
 import { trackSearch } from "@/lib/searchTrack";
@@ -361,12 +361,20 @@ interface LeadersColdStart {
 interface LeadersPayload {
   schema: string;
   as_of: string;
+  session_date?: string;
   stale: boolean;
+  stale_reason?: string | null;
+  source_age_stale?: boolean;
+  source_family?: string;
+  signal_policy?: string;
   cold_start: boolean;
   cold_start_detail?: LeadersColdStart;
   direction_note?: string;
   coverage: {
     n_universe: number;
+    n_expected_roots?: number;
+    n_current_roots?: number;
+    same_session_coverage_ratio?: number;
     n_flow_sessions: number;
     flow_z_live: boolean;
     tape_names: string[];
@@ -557,6 +565,13 @@ function fmtAsof(iso: string): string {
     const d = new Date(iso);
     return d.toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: false, timeZone: "America/New_York" });
   } catch { return iso; }
+}
+
+/** Local bilingual copy helper for this large legacy hub.
+ * Keeps failure-state copy out of the global i18n layout evidence lock while
+ * still making EN/ZH routing explicit to the plain-language CI guard. */
+function pick(lang: Lang, en: string, zh: string): string {
+  return lang === "zh" ? zh : en;
 }
 
 function isStale(iso: string): boolean {
@@ -2131,20 +2146,34 @@ export default function OptionsHubView({
   const [leadersLoading, setLeadersLoading] = useState(false);
   const [leadersError, setLeadersError] = useState(false);
   const [leadersBoard, setLeadersBoard] = useState<"a" | "b">("a");
+  const [showHistoricalLeaders, setShowHistoricalLeaders] = useState(false);
 
-  const fetchLeaders = useCallback(async () => {
-    if (leadersData) return;
+  // The nightly data can advance while this workspace stays mounted. The ordinary
+  // flowGet SWR path returns yesterday's cache and only refreshes it in the background;
+  // the previous "if (leadersData) return" then held that first payload indefinitely.
+  // Wait for revalidation on each Leaders entry or explicit retry.
+  const fetchLeaders = useCallback(async (force = false) => {
     setLeadersLoading(true); setLeadersError(false);
     try {
-      const d = await flowGet("leaders");
-      if (d) setLeadersData(d as unknown as LeadersPayload);
-      else setLeadersError(true);
+      // A manual check explicitly revalidates the publisher through the
+      // existing client/server cache owners, even inside the normal TTL.
+      const d = await flowGetFresh("leaders", { forceUpstream: force });
+      if (d && typeof d === "object" &&
+          Array.isArray((d as LeadersPayload).board_a) &&
+          Array.isArray((d as LeadersPayload).board_b) &&
+          (d as LeadersPayload).coverage) {
+        const payload = d as LeadersPayload;
+        setLeadersData(payload);
+        if (!payload.stale) setShowHistoricalLeaders(false);
+      } else {
+        setLeadersError(true);
+      }
     } catch { setLeadersError(true); }
     setLeadersLoading(false);
-  }, [leadersData]);
+  }, []);
 
   useEffect(() => {
-    if (activeTab === "leaders") fetchLeaders();
+    if (activeTab === "leaders") void fetchLeaders();
   }, [activeTab, fetchLeaders]);
 
   // ── Leader Radar fetch ────────────────────────────────────────────────────
@@ -3919,15 +3948,26 @@ export default function OptionsHubView({
                 </div>
               )}
 
-              {/* Error / absent */}
+              {/* Fetch failure. This is not a cold-start signal: 403/429/503/network
+                  failures used to be mislabeled as "publishes tonight", which hid both
+                  entitlement regressions and real upstream outages. */}
               {leadersError && !leadersData && (
-                <div style={{ padding: "40px 20px", textAlign: "center" }}>
+                <div role="status" style={{ padding: "40px 20px", textAlign: "center" }}>
                   <div style={{ fontSize: 14, color: "var(--text-2)", marginBottom: 8 }}>
-                    {t("leadersAbsent", "Flow Leaders publishes after tonight's build")}
+                    {pick(lang, "Couldn't load Flow Leaders", "暂时无法加载资金流领涨榜")}
                   </div>
                   <div style={{ fontSize: 12, color: "var(--muted)" }}>
-                    {t("ohNightlyBuild")}
+                    {pick(lang, "This panel couldn't reach its data. Retry in a moment.", "此面板暂时无法获取数据，请稍后重试。")}
                   </div>
+                  <button
+                    type="button"
+                    className="btn btn-ghost"
+                    style={{ height: 28, marginTop: 14 }}
+                    onClick={() => void fetchLeaders(true)}
+                    disabled={leadersLoading}
+                  >
+                    {leadersLoading ? t("loading", "Loading…") : pick(lang, "Retry", "重试")}
+                  </button>
                 </div>
               )}
 
@@ -3940,12 +3980,62 @@ export default function OptionsHubView({
                 const boardBRows = [...leadersData.board_b].sort((a, b) => b.K_b - a.K_b);
                 const displayRows = leadersBoard === "a" ? boardARows : boardBRows;
 
+                // A recent build stamp is NOT a recent source session. Keep historical
+                // tables out of the active discovery surface by default: legacy
+                // options summaries froze on 2026-08-12 and can still be republished.
+                const insufficientCoverage = leadersData.stale_reason === "insufficient_same_session_coverage";
+                if (leadersData.stale && !showHistoricalLeaders) {
+                  return (
+                    <div role="status" style={{ padding: "24px 20px", border: "1px solid var(--border)", borderRadius: "var(--r-md)" }}>
+                      <div style={{ fontSize: 14, fontWeight: 600, color: "var(--warn)", marginBottom: 8 }}>
+                        {pick(lang, "Current Flow Leaders unavailable", "当前资金流领涨榜不可用")}
+                      </div>
+                      <div style={{ fontSize: 12, color: "var(--text-2)", lineHeight: 1.6 }}>
+                        {insufficientCoverage
+                          ? pick(lang,
+                              `Partial ThetaData coverage for ${leadersData.session_date ?? "unknown session"}: ${cov.n_current_roots ?? 0} of ${cov.n_expected_roots ?? "?"} configured roots. Full-universe rankings are not qualified.`,
+                              `${leadersData.session_date ?? "未知交易日"} 的 ThetaData 覆盖不足：${cov.n_current_roots ?? 0}/${cov.n_expected_roots ?? "?"} 个股票。尚不足以形成全市场排名。`)
+                          : leadersData.session_date
+                            ? pick(lang,
+                                `Last verified source session: ${leadersData.session_date}. This is a historical snapshot, not today's options activity.`,
+                                `最后验证的数据会话：${leadersData.session_date}。这是历史快照，并非今日的期权活动。`)
+                            : pick(lang, "The latest market session cannot be verified.", "无法核实最新市场交易日。")}
+                        {" "}
+                        {pick(lang, "Rankings and signal flags are withheld until current-session evidence is available.",
+                          "在取得当前交易日证据之前，暂不展示排名和信号标记。")}
+                      </div>
+                      {leadersError && (
+                        <div style={{ fontSize: 12, color: "var(--warn)", marginTop: 8 }}>
+                          {pick(lang, "The latest refresh failed; the historical snapshot remains unchanged.",
+                            "最新刷新失败；历史快照未更改。")}
+                        </div>
+                      )}
+                      <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginTop: 16 }}>
+                        <button type="button" className="btn btn-ghost" disabled={leadersLoading}
+                          onClick={() => void fetchLeaders(true)}>
+                          {leadersLoading ? t("loading", "Loading…") : pick(lang, "Check for new data", "检查新数据")}
+                        </button>
+                        <button type="button" className="btn btn-ghost"
+                          onClick={() => setShowHistoricalLeaders(true)}>
+                          {insufficientCoverage
+                            ? pick(lang, "Inspect incomplete snapshot", "查看不完整快照")
+                            : pick(lang, "Inspect historical snapshot", "查看历史快照")}
+                        </button>
+                      </div>
+                    </div>
+                  );
+                }
+
                 return (
                   <>
                     {/* ── Header strip ── */}
                     <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 10, marginBottom: 10 }}>
                       <span style={{ fontSize: 11, color: "var(--text-dim)", fontVariantNumeric: "tabular-nums" }}>
-                        {t("asOf", "as of")} {fmtAsof(leadersData.as_of)}
+                        {leadersData.session_date
+                          ? (lang === "zh"
+                            ? `数据会话 ${leadersData.session_date} · 构建 ${fmtAsof(leadersData.as_of)}`
+                            : `data session ${leadersData.session_date} · built ${fmtAsof(leadersData.as_of)}`)
+                          : `${t("asOf", "as of")} ${fmtAsof(leadersData.as_of)}`}
                       </span>
                       <span style={{ fontSize: 11, color: "var(--muted)" }}>
                         {lang === "zh"
@@ -3961,8 +4051,21 @@ export default function OptionsHubView({
                       </span>
                       {leadersData.stale && (
                         <span style={{ fontSize: 11, color: "var(--warn)", fontWeight: 600 }}>
-                          {t("leadersStale", "Snapshot from prior session")}
+                          {leadersData.stale_reason === "insufficient_same_session_coverage"
+                            ? pick(lang,
+                                `Incomplete ThetaData coverage · ${cov.n_current_roots ?? 0}/${cov.n_expected_roots ?? "?"} roots`,
+                                `ThetaData 覆盖不足 · ${cov.n_current_roots ?? 0}/${cov.n_expected_roots ?? "?"} 个股票`)
+                            : leadersData.session_date
+                              ? pick(lang, `Historical snapshot · source session ${leadersData.session_date}`, `历史快照 · 数据会话 ${leadersData.session_date}`)
+                              : t("leadersStale", "Snapshot from prior session")}
                         </span>
+                      )}
+                      {leadersData.stale && showHistoricalLeaders && (
+                        <button type="button" className="btn btn-ghost"
+                          style={{ height: 26, fontSize: 11 }}
+                          onClick={() => setShowHistoricalLeaders(false)}>
+                          {pick(lang, "Hide historical snapshot", "收起历史快照")}
+                        </button>
                       )}
                     </div>
 
@@ -4261,15 +4364,24 @@ export default function OptionsHubView({
                 </div>
               )}
 
-              {/* Error / absent */}
+              {/* Fetch failure is distinct from a successful cold-start payload below. */}
               {radarError && !radarData && (
-                <div style={{ padding: "40px 20px", textAlign: "center" }}>
+                <div role="status" style={{ padding: "40px 20px", textAlign: "center" }}>
                   <div style={{ fontSize: 14, color: "var(--text-2)", marginBottom: 8 }}>
-                    {t("radarAbsent", "Leader Radar publishes after tonight's build")}
+                    {pick(lang, "Couldn't load Leader Radar", "暂时无法加载领涨雷达")}
                   </div>
                   <div style={{ fontSize: 12, color: "var(--muted)" }}>
-                    {t("radarAbsentSub", "Data builds nightly after market close")}
+                    {pick(lang, "This panel couldn't reach its data. Retry in a moment.", "此面板暂时无法获取数据，请稍后重试。")}
                   </div>
+                  <button
+                    type="button"
+                    className="btn btn-ghost"
+                    style={{ height: 28, marginTop: 14 }}
+                    onClick={() => void fetchRadar()}
+                    disabled={radarLoading}
+                  >
+                    {radarLoading ? t("radarLoading", "Loading Leader Radar…") : pick(lang, "Retry", "重试")}
+                  </button>
                 </div>
               )}
 

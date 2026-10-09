@@ -172,7 +172,7 @@ test("context can be restored through the existing chart settings without a new 
   await expect(page.locator("[data-visual-context]")).toHaveCount(0);
   await openChartMenu(page, "settings");
   const settings = page.getByRole("dialog", { name: "Chart Settings", exact: true });
-  await settings.getByRole("button", { name: "Canvas", exact: true }).click();
+  await settings.getByRole("tab", { name: "Canvas", exact: true }).click();
   await settings.getByRole("checkbox", { name: "Show chart context", exact: true }).check();
   await settings.locator(".sm-ok").click();
   await expect(page.getByRole("button", { name: "Chart context", exact: true })).toBeVisible();
@@ -243,7 +243,7 @@ test("an unavailable calendar and a delayed outgoing symbol never become fabrica
     // This is the same user journey on desktop, tablet, and phone and preserves the transition we
     // are proving: the old symbol's calendar must disappear while the new symbol is still loading.
     await page.keyboard.press("Control+K");
-    const symbolSearch = page.getByRole("combobox");
+    const symbolSearch = page.locator('input[role="combobox"]');
     await expect(symbolSearch).toBeVisible();
     await symbolSearch.fill("AAPL");
     await expect(page.getByRole("option").filter({ hasText: "AAPL" }).first()).toBeVisible();

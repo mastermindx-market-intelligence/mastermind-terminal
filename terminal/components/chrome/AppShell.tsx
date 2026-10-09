@@ -6,7 +6,7 @@ import DashboardBackButton from "@/components/DashboardBackButton";
 import { AppNav } from "@/components/AppNav";
 import MobileNav from "@/components/MobileNav";
 import SettingsButton from "@/components/settings/SettingsButton";
-import BrainWidget from "@/components/BrainWidget";
+import AnalysisBrainHost from "@/components/chrome/AnalysisBrainHost";
 import { SettingsProvider } from "@/components/settings/SettingsProvider";
 import { OnboardingProvider } from "@/components/onboarding/OnboardingProvider";
 import { useShellBrainSymbol } from "@/lib/shellBrainSymbol";
@@ -59,6 +59,7 @@ export function useShellEmail(): string {
 const TITLE_MAP: Array<[string, string, string]> = [
   ["/analysis", "analysis", "Analysis"],
   ["/discover", "discover", "Discover"],
+  ["/dislocations", "pageDislocations", "Dislocations"],
   ["/options", "options", "Options"],
   ["/scripts", "scripts", "Scripts"],
   ["/alerts", "alerts", "Alerts"],
@@ -86,6 +87,7 @@ export default function AppShell({
   const path = usePathname();
   const hit = TITLE_MAP.find(([p]) => path.startsWith(p));
   const title = hit ? t(hit[1], hit[2]) : t("flow", "Options");
+  const analysisRoute = path.startsWith("/analysis");
   const { fromMacro, macroHref } = useFromMacro();
   const onBack = useCallback(() => backToMacro(macroHref), [macroHref]);
   // Resolved on /analysis entry — never "" — so a cold load through the external floating
@@ -129,8 +131,10 @@ export default function AppShell({
         <MobileNav email={email} fromMacro={fromMacro} onBack={onBack} />
         <header className="topbar">
           {fromMacro ? <DashboardBackButton onClick={onBack} /> : <BrandLockup />}
-          <div className="tdiv" />
-          <span className="page-title">{title}</span>
+          {!analysisRoute && (<>
+            <div className="tdiv" />
+            <span className="page-title">{title}</span>
+          </>)}
           <div className="spacer" />
           {/* Desktop settings/sign-out — the old per-view topbars each carried an avatar
               sign-out form; MobileNav's settings button is display:none on desktop, so the
@@ -141,12 +145,19 @@ export default function AppShell({
         {/* /analysis owns exact-source attachment UI but previously had no Brain host.
             Reuse the existing document singleton here; chart routes do not compose
             AppShell and keep their sole TerminalShell -> BrainWidget mount.
-            Rendered BEFORE {children}: BrainWidget returns null (no DOM/layout effect),
-            but mounting it first means MM_BRAIN_CFG exists on window before any sibling
-            child's effects run, so a child that reads the singleton on mount never races
-            its own creation. */}
+            AnalysisBrainHost (F11-6) wraps that same BrainWidget with the one ai-context
+            provider that reports ambient page "analysis" + panel company|theses|null from
+            the parsed ?view= route, so the Macro compiler can tell a Thesis turn from an
+            ordinary Analysis turn. It is the only AppShell child that reads useSearchParams;
+            the whole (shell) group is dynamic = "force-dynamic" (app/(shell)/layout.tsx), so
+            nothing here is statically prerendered and the host needs NO Suspense boundary.
+            Rendered BEFORE {children} and deliberately unsuspended: BrainWidget returns null
+            (no DOM/layout effect), and mounting it first in the SAME hydration lane means
+            MM_BRAIN_CFG exists on window before any sibling child's effects run, so a child
+            that reads the singleton on mount never races its own creation (a Suspense
+            boundary would hydrate its children in a later lane and void that order). */}
         {path.startsWith("/analysis") && (
-          <BrainWidget
+          <AnalysisBrainHost
             active={brainSymbol}
             onCommand={ignoreBrainShellEvent}
             onAnnotate={ignoreBrainShellEvent}

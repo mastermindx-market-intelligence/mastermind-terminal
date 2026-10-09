@@ -32,6 +32,7 @@ const LAYOUT_FILES = [
   "terminal/components/DayRange.tsx",
   "terminal/lib/plainLabels.ts",
   "terminal/lib/i18n.tsx",
+  "terminal/app/company-intelligence.css",
 ];
 const ONLY = (process.env.CAPTURE_ONLY || "")
   .split(",")
@@ -184,6 +185,37 @@ async function cropLocator(page, locator, outPath, pad = 18) {
   await cropBox(page, box, outPath, pad);
 }
 
+async function captureDiscoverLeaders(page, width, lang, outPath) {
+  // The changed Leaders state is itself the capture subject. Preserve the old
+  // Options Screener crops untouched; this adds four explicit stale-state
+  // desktop/mobile × EN/ZH receipts instead of silently re-labeling a spinner.
+  const fixture = JSON.parse(readFileSync(join(ROOT, "public", "data", "flow_leaders_fixture.json"), "utf8"));
+  const historical = {
+    ...fixture,
+    as_of: "2026-10-07T21:00:00Z",
+    session_date: "2026-08-12",
+    stale: true,
+    cold_start: false,
+    board_a: fixture.board_a.slice(0, 1),
+    board_b: [],
+  };
+  await page.route("**/api/flow?f=leaders", async (route) => {
+    await route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify(historical),
+      headers: { "cache-control": "no-store" },
+    });
+  });
+  await gotoReady(page, "/discover?tab=leaders", lang);
+  const headline = lang === "zh" ? "当前资金流领涨榜不可用" : "Current Flow Leaders unavailable";
+  const warning = page.getByRole("status").filter({ hasText: headline }).first();
+  await warning.waitFor({ state: "visible", timeout: 45_000 });
+  const row = page.locator("table.scr").getByText("AAL", { exact: true });
+  if (await row.count()) throw new Error(`${outPath}: historical ticker rendered as a live candidate`);
+  await cropLocator(page, warning, outPath, 24);
+}
+
 async function captureOptionsHub(page, width, lang, outPath) {
   await gotoReady(page, "/options?tab=screener", lang);
   const workspace = page.locator(".options-workspace, .main2.options-workspace, main").first();
@@ -279,6 +311,7 @@ async function captureChartChrome(page, width, lang, outPath) {
 }
 
 const SURFACES = [
+  { name: "DiscoverLeaders", run: captureDiscoverLeaders },
   { name: "OptionsHubView", run: captureOptionsHub },
   { name: "SearchModal", run: captureSearchModal },
   { name: "StockAnalysis", run: captureStockAnalysis },
@@ -346,7 +379,7 @@ async function main() {
     "viewports:",
     "  - { name: desktop, width: 1440, height: 900 }",
     "  - { name: mobile, width: 390, height: 844 }",
-    "surfaces: [OptionsHubView, SearchModal, StockAnalysis, AnalysisWorkspace, ChartChrome]",
+    "surfaces: [OptionsHubView, DiscoverLeaders, SearchModal, StockAnalysis, AnalysisWorkspace, ChartChrome]",
     "capture_flag: TERMINAL_E2E_FIXTURE",
     "capture_flag_law: next.config.ts sets devIndicators: false when TERMINAL_E2E_FIXTURE is set; this script starts next dev with the same flag.",
     "command: |",

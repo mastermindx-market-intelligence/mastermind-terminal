@@ -17,6 +17,10 @@ const H = vi.hoisted(() => ({
   // `.eq("user_id", …)` predicate rather than ignoring it.
   watchlistTable: [] as Array<Record<string, unknown>>,
   positionTable: [] as Array<Record<string, unknown>>,
+  scriptTable: [] as Array<Record<string, unknown>>,
+  layoutTable: [] as Array<Record<string, unknown>>,
+  scriptResult: null as StoreResult | null,
+  layoutResult: null as StoreResult | null,
   watchlistRows: { data: [] as unknown[], error: null } as StoreResult,
   positionRows: { data: [] as unknown[], error: null } as StoreResult,
   probeResult: { data: [{ id: "w1" }], error: null } as StoreResult,
@@ -48,6 +52,7 @@ vi.mock("@/lib/supabase/server", () => ({
       let mode: "read" | "insert" = "read";
       const localEq: Array<[string, unknown]> = [];
       const localIn: Array<[string, unknown[]]> = [];
+      let pageRange: [number, number] | null = null;
       const q: Record<string, unknown> = {};
       q.select = vi.fn(() => q);
       q.eq = vi.fn((col: string, val: unknown) => {
@@ -61,6 +66,10 @@ vi.mock("@/lib/supabase/server", () => ({
         return q;
       });
       q.order = vi.fn(() => q);
+      q.range = vi.fn((from: number, to: number) => {
+        pageRange = [from, to];
+        return q;
+      });
       q.insert = vi.fn(() => {
         mode = "insert";
         H.insertCalled = true;
@@ -70,6 +79,11 @@ vi.mock("@/lib/supabase/server", () => ({
       // the caller `await`s it — whatever the chain length, by that point `mode`/`table` are
       // already settled by the synchronous calls that ran before the await.
       q.then = (resolve: (v: unknown) => unknown, reject?: (e: unknown) => unknown) => {
+        const collectionResult = (rows: Array<Record<string, unknown>>, fault: StoreResult | null): StoreResult => {
+          if (fault) return fault;
+          const owned = filterByEq(rows, localEq).sort((a, b) => String(a.id).localeCompare(String(b.id)));
+          return { data: pageRange ? owned.slice(pageRange[0], pageRange[1] + 1) : owned, error: null };
+        };
         const result =
           mode === "insert"
             ? H.lifecycleInsertResult
@@ -81,6 +95,10 @@ vi.mock("@/lib/supabase/server", () => ({
                 ? H.positionRows.error
                   ? H.positionRows
                   : { data: filterByEq(H.positionTable, localEq), error: null }
+                : table === "saved_scripts"
+                  ? collectionResult(H.scriptTable, H.scriptResult)
+                : table === "chart_layouts"
+                  ? collectionResult(H.layoutTable, H.layoutResult)
                 : table === "account_lifecycle_requests"
                   ? H.lifecycleSelectResult.error
                     ? H.lifecycleSelectResult
@@ -132,6 +150,16 @@ beforeEach(() => {
     { id: "p-mine", user_id: H.user.id, ticker: "AAPL", shares: 1, entry_price: 1, entry_date: "2026-01-01", notes: "mine", status: "open", created_at: "2026-01-01T00:00:00Z" },
     { id: "p-b", user_id: "user-B-fixed", ticker: "ZZZZ", shares: 1, entry_price: 1, entry_date: "2026-01-01", notes: "user-B secret note", status: "open", created_at: "2026-01-01T00:00:00Z" },
   ];
+  H.scriptTable = [
+    { id: "s-mine", user_id: H.user.id, name: "", lang: "pine", source: "//@version=6\nplot(close)\n", params: { len: 14 }, is_public: false, updated_at: "2026-10-06T10:00:00.123456Z", created_at: "2026-10-01T00:00:00Z" },
+    { id: "s-b", user_id: "user-B-fixed", name: "user-B private script", lang: "pine", source: "user-B private source", params: {}, is_public: false, updated_at: "2026-10-06T10:00:00Z", created_at: "2026-10-01T00:00:00Z" },
+  ];
+  H.layoutTable = [
+    { id: "l-mine", user_id: H.user.id, name: "  My layout  ", config: { scriptIds: ["s-mine"], interval: "1D" }, updated_at: "2026-10-06T10:00:00.654321Z", created_at: "2026-10-01T00:00:00Z" },
+    { id: "l-b", user_id: "user-B-fixed", name: "user-B private layout", config: { note: "user-B private config" }, updated_at: "2026-10-06T10:00:00Z", created_at: "2026-10-01T00:00:00Z" },
+  ];
+  H.scriptResult = null;
+  H.layoutResult = null;
   H.watchlistRows = { data: [], error: null };
   H.positionRows = { data: [], error: null };
   H.probeResult = { data: [{ id: "w1" }], error: null };
@@ -150,7 +178,7 @@ describe("GET /api/account/export", () => {
     // "user-B-fixed" row in both tables (see beforeEach), and every single `.eq("user_id", …)`
     // call this request makes must scope to the caller — `.every`, not `.some` — or the mock
     // above would actually hand the user-B row back and the assertions below would fail.
-    const res = await exportGET(req("https://x.test/api/account/export"));
+    const res = await exportGET(req("https://x.test/api/account/export?user_id=user-B-fixed"));
     expect(res.status).toBe(200);
     const bodyText = await res.text();
     expect(bodyText).not.toContain("user-B");
@@ -159,6 +187,14 @@ describe("GET /api/account/export", () => {
     const body = JSON.parse(bodyText);
     expect(body.watchlists.map((w: { id: string }) => w.id)).toEqual(["w-mine"]);
     expect(body.portfolio_positions.map((p: { id: string }) => p.id)).toEqual(["p-mine"]);
+    expect(body.saved_scripts).toEqual([{
+      id: "s-mine", name: "", lang: "pine", source: "//@version=6\nplot(close)\n", params: { len: 14 }, is_public: false,
+      updated_at: "2026-10-06T10:00:00.123456Z", created_at: "2026-10-01T00:00:00Z", version: "2026-10-06T10:00:00.123456Z",
+    }]);
+    expect(body.chart_layouts).toEqual([{
+      id: "l-mine", name: "  My layout  ", config: { scriptIds: ["s-mine"], interval: "1D" },
+      updated_at: "2026-10-06T10:00:00.654321Z", created_at: "2026-10-01T00:00:00Z", version: "2026-10-06T10:00:00.654321Z",
+    }]);
   });
 
   it("401s when signed out and makes no store call", async () => {
@@ -169,11 +205,59 @@ describe("GET /api/account/export", () => {
     expect(H.eqCalls.length).toBe(before);
   });
 
-  it("503s only when BOTH reads fail", async () => {
+  it("503s when all four collection reads fail", async () => {
+    H.probeResult = { data: null, error: { message: "down" } };
+    H.positionRows = { data: null, error: { message: "down" } };
+    H.scriptResult = { data: null, error: { message: "down" } };
+    H.layoutResult = { data: null, error: { message: "down" } };
+    const res = await exportGET(req("https://x.test/api/account/export"));
+    expect(res.status).toBe(503);
+  });
+
+  it("keeps the two legacy failures unavailable while exporting readable scripts and layouts", async () => {
     H.probeResult = { data: null, error: { message: "down" } };
     H.positionRows = { data: null, error: { message: "down" } };
     const res = await exportGET(req("https://x.test/api/account/export"));
-    expect(res.status).toBe(503);
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body.coverage.unavailable.map((e: { key: string }) => e.key).sort()).toEqual(["portfolio_positions", "watchlists"]);
+    expect(body.saved_scripts.map((s: { id: string }) => s.id)).toEqual(["s-mine"]);
+    expect(body.chart_layouts.map((l: { id: string }) => l.id)).toEqual(["l-mine"]);
+    expect(body.coverage.included.map((e: { key: string; row_count: number }) => [e.key, e.row_count])).toEqual([["saved_scripts", 1], ["chart_layouts", 1]]);
+  });
+
+  it.each(["scripts", "layouts"] as const)("discloses an unavailable %s read without treating it as empty success", async (source) => {
+    const fault = { data: null, error: { message: "down" } };
+    if (source === "scripts") H.scriptResult = fault;
+    else H.layoutResult = fault;
+    const res = await exportGET(req("https://x.test/api/account/export"));
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    const key = source === "scripts" ? "saved_scripts" : "chart_layouts";
+    expect(body.coverage.unavailable.map((e: { key: string }) => e.key)).toEqual([key]);
+    expect(body.coverage.included.map((e: { key: string }) => e.key)).not.toContain(key);
+  });
+
+  it("a malformed script row set is unavailable rather than a successful zero count", async () => {
+    H.scriptResult = { data: null, error: null };
+    const res = await exportGET(req("https://x.test/api/account/export"));
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body.coverage.unavailable.map((e: { key: string }) => e.key)).toEqual(["saved_scripts"]);
+    expect(body.coverage.included.map((e: { key: string }) => e.key)).not.toContain("saved_scripts");
+  });
+
+  it("pages the actual owned script collection and retains its complete count", async () => {
+    const own = H.scriptTable[0];
+    H.scriptTable = [H.scriptTable[1], ...Array.from({ length: 101 }, (_, i) => ({ ...own, id: `s-${String(i).padStart(3, "0")}` }))];
+    const res = await exportGET(req("https://x.test/api/account/export"));
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body.saved_scripts.map((s: { id: string }) => s.id)).toEqual(Array.from({ length: 101 }, (_, i) => `s-${String(i).padStart(3, "0")}`));
+    expect(body.coverage.included.find((e: { key: string }) => e.key === "saved_scripts").row_count).toBe(101);
+    expect(body.coverage.partial).toBeUndefined();
+    expect(H.eqCalls.every(([col, val]) => col !== "user_id" || val === H.user!.id)).toBe(true);
+    expect(JSON.stringify(body)).not.toContain("user-B");
   });
 
   it("200s with coverage.unavailable populated when only one read fails", async () => {
@@ -395,10 +479,6 @@ describe("lifecycle step copy", () => {
 });
 
 describe("password path stays singular", () => {
-  const terminalRoot = join(process.cwd(), "app.tsconfig.json").includes("nonexistent")
-    ? process.cwd()
-    : process.cwd();
-
   function walk(dir: string, out: string[] = []): string[] {
     for (const entry of readdirSync(dir)) {
       if (entry === "node_modules" || entry === ".next" || entry === "__tests__") continue;
@@ -410,15 +490,19 @@ describe("password path stays singular", () => {
     return out;
   }
 
-  it("auth.updateUser({ password occurs exactly once, in SectionAccount.tsx", () => {
+  it("the password mutation boundary occurs exactly once, in passwordAuth.ts", () => {
     const root = join(process.cwd());
     const files = walk(root);
-    const hits = files.filter((f) => {
-      const text = readFileSync(f, "utf8");
-      return text.includes("auth.updateUser({ password");
-    });
-    expect(hits).toHaveLength(1);
-    expect(hits[0]).toContain("components/settings/SectionAccount.tsx");
+    const directLiteralWrites = files.filter((f) =>
+      readFileSync(f, "utf8").includes("auth.updateUser({ password"),
+    );
+    expect(directLiteralWrites).toHaveLength(0);
+
+    const boundaryWrites = files.filter((f) =>
+      readFileSync(f, "utf8").includes("auth.updateUser(attributes)"),
+    );
+    expect(boundaryWrites).toHaveLength(1);
+    expect(boundaryWrites[0]).toContain("lib/passwordAuth.ts");
   });
 
   it("no file under app/api/account/ references a service-role or admin credential", () => {
@@ -430,12 +514,12 @@ describe("password path stays singular", () => {
     }
   });
 
-  it("current_password appears in exactly the same one file as the password write", () => {
+  it("current_password appears only in the singular password boundary", () => {
     const root = join(process.cwd());
     const files = walk(root);
     const hits = files.filter((f) => readFileSync(f, "utf8").includes("current_password"));
     expect(hits).toHaveLength(1);
-    expect(hits[0]).toContain("components/settings/SectionAccount.tsx");
+    expect(hits[0]).toContain("lib/passwordAuth.ts");
   });
 
   // Absence lock: a separate walker (all extensions, __tests__ included) pins
@@ -461,8 +545,8 @@ describe("password path stays singular", () => {
     });
     const rel = hits.map((f) => f.slice(root.length + 1)).sort();
     expect(rel).toEqual([
-      "components/settings/SectionAccount.tsx",
       "lib/__tests__/accountLifecycleRoutes.test.ts",
+      "lib/passwordAuth.ts",
     ]);
   });
 
