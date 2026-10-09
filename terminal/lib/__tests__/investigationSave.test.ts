@@ -221,7 +221,11 @@ describe("a refused reference set is not sent again unchanged", () => {
 // before it ever asked the owner, so an older client may have stored that refusal for an original that
 // had already committed. Only the owner's full-request answer may settle such a draft.
 describe("a stored invalid_payload refusal is rechecked with the owner (T03j)", () => {
- const legacyCreate = () => { const { argument_relations: _relations, ...manifest } = command().manifest; return { ...command(), manifest }; };
+ const legacyCreate = () => {
+  const original = command(), manifest: Partial<typeof original.manifest> = { ...original.manifest };
+  delete manifest.argument_relations;
+  return { ...original, manifest: manifest as Omit<typeof original.manifest, "argument_relations"> };
+ };
  const shapes: Record<string, () => ReturnType<typeof command>> = { current: command, legacy: legacyCreate as () => ReturnType<typeof command> };
  const fence = (c: { id: string; operation_id: string }) => ({ status: "not_applied", id: c.id, operation_id: c.operation_id });
  const receipt = (c: ReturnType<typeof command>) => ({ ...identity, status: "committed", id: c.id, operation_id: c.operation_id, revision: 1, lifecycle: "active", manifest: c.manifest, committed_at: identity.recorded_at });
