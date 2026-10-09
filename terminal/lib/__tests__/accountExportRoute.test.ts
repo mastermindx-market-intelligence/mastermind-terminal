@@ -149,4 +149,19 @@ describe("raw archive JSON credential withholding", () => {
     withOwnedTables({ drawings: [], alerts: [{ ...ownedAlert(), condition: { metadata: { api_key: null, password: "", note: "changed password; Secret picks" } } }] });
     expect((await GET(request())).status).toBe(200);
   });
+  it.each([
+    ["json", { api_key: ["fictional-container-value"] }],
+    ["csv", { api_key: ["fictional-container-value"] }],
+    ["json", { api_key: { value: "fictional-container-value" } }],
+    ["csv", { api_key: { value: "fictional-container-value" } }],
+    ["json", { note: JSON.stringify({ api_key: "fictional-container-value" }) }],
+    ["csv", { note: JSON.stringify({ api_key: "fictional-container-value" }) }],
+  ])("withholds %s when a credential is held in a container or encoded JSON", async (format, metadata) => {
+    withOwnedTables({ drawings: [], alerts: [{ ...ownedAlert(), condition: { metadata } }] });
+    const logger = vi.spyOn(console, "error").mockImplementation(() => undefined);
+    const response = await GET(request(String(format)));
+    expect(response.status).toBe(500); expect(response.headers.get("content-disposition")).toBeNull();
+    expect(await response.json()).toEqual({ error: "export_withheld" });
+    expect(JSON.stringify(logger.mock.calls)).not.toContain("fictional-container-value");
+  });
 });

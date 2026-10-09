@@ -582,16 +582,26 @@ const SECRET_PATTERNS: Array<{ label: string; test: (raw: string) => boolean }> 
 export function assertNoSecrets(serialized: string): { ok: true } | { ok: false; hit: string } {
   // JSON keys are quoted, so text key=value patterns alone miss raw nested user
   // content such as a condition/params object containing an api_key string.
-  // Null/empty values and prose mentioning credentials are not secret-shaped.
+  // Credential containers keep their key context; JSON encoded inside a string
+  // is inspected too. Null/empty values and ordinary prose remain exportable.
   const secretKey = /^(password|secret|access_token|refresh_token|service_role|api[_-]?key|authorization)$/i;
   function hasStructuredSecret(value: unknown): boolean {
-    const pending: unknown[] = [value];
+    const pending: Array<{ value: unknown; credential: boolean }> = [{ value, credential: false }];
     while (pending.length) {
-      const item = pending.pop();
+      const { value: item, credential } = pending.pop()!;
+      if (typeof item === "string") {
+        const text = item.trim();
+        if (credential && text.length >= 4) return true;
+        if (text.startsWith("{") || text.startsWith("[")) {
+          try {
+            pending.push({ value: JSON.parse(text), credential });
+          } catch { /* Malformed JSON prose still gets the text checks below. */ }
+        }
+        continue;
+      }
       if (item === null || typeof item !== "object") continue;
       for (const [key, entry] of Object.entries(item)) {
-        if (secretKey.test(key) && typeof entry === "string" && entry.trim().length >= 4) return true;
-        if (entry !== null && typeof entry === "object") pending.push(entry);
+        pending.push({ value: entry, credential: credential || secretKey.test(key) });
       }
     }
     return false;

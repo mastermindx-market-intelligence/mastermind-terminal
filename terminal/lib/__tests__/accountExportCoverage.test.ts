@@ -773,6 +773,16 @@ describe("owned drawings and alert definition archive", () => {
 
 
 describe("structured JSON credential guard", () => {
+  it.each([
+    { api_key: ["fictional-container-value"] },
+    { api_key: { value: "fictional-container-value" } },
+    { note: JSON.stringify({ api_key: "fictional-container-value" }) },
+  ])("withholds credential containers and encoded JSON", value => {
+    expect(assertNoSecrets(JSON.stringify(value)).ok).toBe(false);
+  });
+  it("keeps null, empty and non-string credential containers exportable", () => {
+    expect(assertNoSecrets(JSON.stringify({ api_key: [null, "", false, 0, { value: "" }], note: JSON.stringify({ password: null }) })).ok).toBe(true);
+  });
   it("detects escaped credential strings nested in arrays without treating null, empty or prose as a credential", () => {
     expect(assertNoSecrets(JSON.stringify({ metadata: [{ API_Key: 'ab"cd' }] })).ok).toBe(false);
     expect(assertNoSecrets(JSON.stringify({ secret: null, password: "", note: "changed password; Secret picks" })).ok).toBe(true);
