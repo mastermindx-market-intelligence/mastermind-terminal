@@ -139,7 +139,8 @@ interface OBlock {
   id: number;
   dir: Dir;
   anchor: number; // origin candle (the last opposing candle before the impulse)
-  impulse: number; // confirmed impulse bar
+  impulse: number; // actual expansion/impulse bar
+  confirmedAt: number; // first bar where the block is knowable/live
   lo: number;
   hi: number;
   buyV: number;
@@ -248,7 +249,7 @@ const compute: ModuleCompute = (ctx) => {
       // ---- 1. lifecycle for blocks that already existed BEFORE this bar
       for (let k = live.length - 1; k >= 0; k--) {
         const b = live[k];
-        if (b.impulse >= i) continue;
+        if (b.confirmedAt >= i) continue;
         const mid = (b.lo + b.hi) / 2;
         const overlaps = bar.l <= b.hi && bar.h >= b.lo;
 
@@ -292,10 +293,20 @@ const compute: ModuleCompute = (ctx) => {
         }
       }
 
-      // ---- 2. impulse detection on this (closed) bar
-      const a = atr[i];
+      // ---- 2. impulse detection. Most methods are knowable on this closed bar.
+      // Peak/exhaustion is different: bar j needs j+1 volume to prove a local maximum, so on
+      // confirmation bar i we evaluate candidate j=i-1 and never backdate the resulting block/event.
+      let impulseIdx = i;
+      const confirmedAt = i;
+      if (method === "peak") impulseIdx = i - 1;
+      const impulseBar = src[impulseIdx];
+      const validImpulse = Number.isFinite(impulseBar.o) && Number.isFinite(impulseBar.h)
+        && Number.isFinite(impulseBar.l) && Number.isFinite(impulseBar.c)
+        && !(impulseBar.o === 0 && impulseBar.h === 0 && impulseBar.l === 0 && impulseBar.c === 0);
+      if (!validImpulse) continue;
+      const a = atr[impulseIdx];
       if (!Number.isFinite(a) || a <= 0) continue;
-      const body = src[i].c - src[i].o;
+      const body = impulseBar.c - impulseBar.o;
       const expanded = Math.abs(body) > kImpulse * a;
 
       let dir: Dir | null = null;
@@ -305,15 +316,15 @@ const compute: ModuleCompute = (ctx) => {
         if (Number.isFinite(ph) && bar.c > ph && src[i - 1].c <= ph) dir = "bull";
         else if (Number.isFinite(pl) && bar.c < pl && src[i - 1].c >= pl) dir = "bear";
       } else if (method === "peak") {
-        // Exhaustion flavor: an expansion bar that is the local volume maximum of j-1..j+1 and closes
-        // in the outer quarter of its own range. Needs j+1 → confirms one bar late, by design.
-        if (expanded && i + 1 < m) {
-          const v0 = src[i - 1].v;
-          const v1 = src[i].v;
-          const v2 = src[i + 1].v;
+        // Candidate j=i-1 is now fully confirmed because current bar i is j+1.
+        const j = impulseIdx;
+        if (expanded && j > 0) {
+          const v0 = src[j - 1].v;
+          const v1 = src[j].v;
+          const v2 = src[i].v;
           const isPeak = v1 >= v0 && v1 >= v2;
-          const rng = bar.h - bar.l;
-          const cp = rng > 0 ? (bar.c - bar.l) / rng : 0.5;
+          const rng = impulseBar.h - impulseBar.l;
+          const cp = rng > 0 ? (impulseBar.c - impulseBar.l) / rng : 0.5;
           if (isPeak && (cp >= 0.75 || cp <= 0.25)) dir = body > 0 ? "bull" : "bear";
         }
       } else {
@@ -325,9 +336,9 @@ const compute: ModuleCompute = (ctx) => {
       }
       if (!dir) continue;
 
-      // ---- 3. anchor = LAST opposing candle in the 1..5 bars before the impulse
+      // ---- 3. anchor = LAST opposing candle in the 1..5 bars before the actual impulse
       let anchor = -1;
-      for (let k = i - 1; k >= Math.max(0, i - ANCHOR_SCAN); k--) {
+      for (let k = impulseIdx - 1; k >= Math.max(0, impulseIdx - ANCHOR_SCAN); k--) {
         const ob = src[k];
         const opposing = dir === "bull" ? ob.c < ob.o : ob.c > ob.o;
         if (opposing) {
@@ -343,17 +354,19 @@ const compute: ModuleCompute = (ctx) => {
       const hi = boundsMode === "body" ? Math.max(ab.o, ab.c) : ab.h;
       if (!(hi > lo)) continue;
 
-      // ---- 4. volume internals over the formation window [anchor-2 .. impulse]
+      // ---- 4. volume internals over the formation window [anchor-2 .. actual impulse]
       const w0 = Math.max(0, anchor - 2);
-      const W = i - w0 + 1;
-      const total = winVol(w0, i);
-      const buyV = winBuy(w0, i);
+      const W = impulseIdx - w0 + 1;
+      const total = winVol(w0, impulseIdx);
+      const buyV = winBuy(w0, impulseIdx);
       const sellV = Math.max(0, total - buyV);
       const delta = buyV - sellV;
 
       // ---- 5. grade = blended trailing percentile of (window volume, |delta| share, impulse size)
-      const from = Math.max(W - 1, i - VOL_WINDOW);
-      const pTotal = pctRank(total, (k) => winVol(k - W + 1, k), from, i - 1);
+      // Grade only against history that existed before the actual impulse; peak's confirmation bar
+      // proves the local maximum but does not get smuggled into the block's formation statistics.
+      const from = Math.max(W - 1, impulseIdx - VOL_WINDOW);
+      const pTotal = pctRank(total, (k) => winVol(k - W + 1, k), from, impulseIdx - 1);
       const dRatio = total > 0 ? Math.abs(delta) / total : 0;
       const pDelta = pctRank(
         dRatio,
@@ -362,13 +375,13 @@ const compute: ModuleCompute = (ctx) => {
           return t > 0 ? Math.abs(2 * winBuy(k - W + 1, k) - t) / t : NaN;
         },
         from,
-        i - 1,
+        impulseIdx - 1,
       );
       const pImp = pctRank(
         Math.abs(body) / a,
         (k) => (atr[k] > 0 ? Math.abs(src[k].c - src[k].o) / atr[k] : NaN),
-        Math.max(ATR_LEN, i - VOL_WINDOW),
-        i - 1,
+        Math.max(ATR_LEN, impulseIdx - VOL_WINDOW),
+        impulseIdx - 1,
       );
       const gradePct = (pTotal + pDelta + pImp) / 3;
 
@@ -376,7 +389,8 @@ const compute: ModuleCompute = (ctx) => {
         id: nextId++,
         dir,
         anchor,
-        impulse: i,
+        impulse: impulseIdx,
+        confirmedAt,
         lo,
         hi,
         buyV,
@@ -395,7 +409,7 @@ const compute: ModuleCompute = (ctx) => {
       pushEvent({
         type: "ob_created",
         dir,
-        i,
+        i: confirmedAt,
         p: (lo + hi) / 2,
         strength: Math.round(gradePct),
         label:
@@ -723,7 +737,7 @@ const compute: ModuleCompute = (ctx) => {
           color: colors.flowSell,
         },
         { k: zh ? "评级" : "Grade", v: `${TIER_LEX[b.grade][zh ? 1 : 0]} · ${Math.round(b.gradePct)}%` },
-        { k: zh ? "存续（根）" : "Age (bars)", v: `${lastIdx - b.impulse}` },
+        { k: zh ? "存续（根）" : "Age (bars)", v: `${lastIdx - b.confirmedAt}` },
       ],
     });
   }

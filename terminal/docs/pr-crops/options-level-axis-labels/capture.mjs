@@ -127,6 +127,25 @@ async function readProof(page) {
   }, expectedLinePrices);
 }
 
+// The phone chart height comes from the sub-pane count the chart last reported (`--subpanes`
+// on .chart-body), and that report can land after the option tags are already on screen. A
+// screenshot taken in that gap shows the shorter box before the chart has redrawn into it, so
+// the time axis is cut off (the 463px vs 345px mobile frame). Shoot only once the reported count
+// matches the panes the chart actually draws and the drawn rows reach the bottom of the box.
+async function waitForSettledChart(page) {
+  await page.waitForFunction(() => {
+    const body = document.querySelector(".chart-body");
+    const wrap = document.querySelector(".chart-wrap");
+    const rows = [...(wrap?.querySelectorAll("table tr") ?? [])].map((row) => row.getBoundingClientRect());
+    if (!body || !wrap || rows.length < 2) return false;
+    const drawnSubPanes = rows.filter((box) => box.height > 1).length - 2;
+    const reportedSubPanes = Number(getComputedStyle(body).getPropertyValue("--subpanes") || 0);
+    return reportedSubPanes === drawnSubPanes
+      && Math.abs(rows[rows.length - 1].bottom - wrap.getBoundingClientRect().bottom) <= 1;
+  }, null, { timeout: 45_000 });
+  await page.evaluate(() => new Promise((done) => requestAnimationFrame(() => requestAnimationFrame(done))));
+}
+
 async function capture(browser, config) {
   const context = await browser.newContext({ viewport: { width: config.width, height: config.height } });
   const page = await context.newPage();
@@ -146,6 +165,7 @@ async function capture(browser, config) {
   await page.evaluate(() => window.dispatchEvent(new CustomEvent("mm:set-eth", { detail: { on: true } })));
   await page.locator(".mm-optlevel-tag").first().waitFor({ state: "visible", timeout: 45_000 });
   await page.waitForFunction(() => [...document.querySelectorAll(".mm-optlevel-tag")].filter((element) => getComputedStyle(element).display !== "none").length === 6, null, { timeout: 45_000 });
+  await waitForSettledChart(page);
   const proof = await readProof(page);
   if (!proof.exactLines || !proof.nativeAxisLabelsSuppressed || proof.visibleOptionTagCount !== 6 || proof.overlaps.length) {
     throw new Error(`${config.name} proof failed: ${JSON.stringify(proof)}`);
