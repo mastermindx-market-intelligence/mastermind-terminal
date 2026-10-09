@@ -268,6 +268,19 @@ jobs:
         if: steps.pwcache.outputs.cache-hit == 'true'
         run: npx playwright install chromium
       - run: npm run test:e2e:responsive -- ${{ matrix.projects }}
+      # This feature is default-off; the ordinary matrix skips its browser tests.
+      # Exercise it with the SAME harness, without altering production flags.
+      - name: Qualify investor shell opt-in
+        if: matrix.shard == 'serial'
+        env:
+          MMX_INVESTOR_SHELL_PREVIEW: '1'
+          CI: '1'
+          TERMINAL_E2E_PORT: '31991'
+        run: >-
+          npm run test:e2e:responsive -- e2e/investor-shell-preview.spec.ts
+          --project=desktop --project=tablet --project=mobile
+          --workers=1 --retries=0
+          --output=test-results/investor-shell-preview
       - name: Upload responsive QA screenshots
         if: always()
         uses: actions/upload-artifact@v4
