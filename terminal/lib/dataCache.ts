@@ -642,13 +642,24 @@ export function getSlice(sym: string): Promise<any> {
 }
 
 /**
- * getSliceAndOhlc — parallel fetch with shared inflight deduplication.
- * ChartPanel calls this; if TerminalShell already triggered getSlice,
- * the slice request collapses onto the same inflight Promise.
+ * getSliceAndOhlc — start a symbol's chart reads together, let them settle APART.
+ *
+ * The OHLC is required (no bars, no chart); the slice is optional (signals, dots, verdict). Both
+ * requests start here, synchronously, and each still collapses onto the cache's single in-flight
+ * request — so the route's preload and TerminalShell's own `getSlice` are reused, never repeated.
+ * What changed is that they are no longer joined: this used to `await Promise.all`, and a slow slice
+ * then held back bars that had already arrived (#842 measured an 8 s slice delaying ready to 8.2 s).
+ *
+ * Each read is a `CacheOutcome`, so a caller can tell "this file does not exist" from "this file
+ * could not be read" — the chart must not report missing history when it only saw a failure.
  */
-export async function getSliceAndOhlc(sym: string): Promise<{ ohlc: any; slice: any }> {
-  const [ohlc, slice] = await Promise.all([getOhlc(sym), getSlice(sym)]);
-  return { ohlc, slice };
+export type ChartDataReads = { ohlc: Promise<CacheOutcome>; slice: Promise<CacheOutcome> };
+export function getSliceAndOhlc(sym: string): ChartDataReads {
+  const read = (suffix: ".json" | ".slice.json"): Promise<CacheOutcome> => {
+    const url = dataFileUrl(sym, suffix);
+    return url ? getJSONResult(url) : Promise.resolve({ status: "absent" });
+  };
+  return { ohlc: read(".json"), slice: read(".slice.json") };
 }
 
 /**
