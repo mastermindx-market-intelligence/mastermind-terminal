@@ -450,3 +450,15 @@ GRANT EXECUTE ON FUNCTION public.replace_drawings_collection(text, jsonb, text, 
 
 NOTIFY pgrst, 'reload schema';
 COMMIT;
+
+-- down:
+-- DROP FUNCTION IF EXISTS public.replace_drawings_collection(text,jsonb,text,uuid);
+-- DROP FUNCTION IF EXISTS public.read_drawings_collection(text);
+-- DROP FUNCTION IF EXISTS public.validate_drawing_replace_input(text,jsonb,uuid);
+-- readback:
+-- SELECT p.oid::regprocedure AS function_signature, p.prosecdef, p.proconfig,
+--   has_function_privilege('authenticated',p.oid,'EXECUTE') AS authenticated_execute,
+--   has_function_privilege('anon',p.oid,'EXECUTE') AS anonymous_execute
+-- FROM pg_proc p JOIN pg_namespace n ON n.oid=p.pronamespace
+-- WHERE n.nspname='public' AND p.proname IN ('validate_drawing_replace_input','read_drawings_collection','replace_drawings_collection');
+-- SELECT relrowsecurity FROM pg_class WHERE oid='public.drawings'::regclass;
