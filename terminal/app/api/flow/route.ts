@@ -8,6 +8,7 @@ import {
   fixtureFor,
   attachFlowScores,
   tryFetchUpstream,
+  tryFetchUpstreamResult,
 } from "@/lib/flowSource";
 import { fetchOptionsAlphaCandidatePair } from "@/lib/optionsAlphaCandidatePair";
 
@@ -127,13 +128,23 @@ export async function GET(req: Request): Promise<Response> {
   const cached = CACHE[f];
 
   if (!cached) {
-    const data = await tryFetchUpstream(f);
-    if (!data) {
+    const outcome = await tryFetchUpstreamResult(f);
+    if (outcome.status === "absent") {
+      // A proven absence (the store of record answered 404), not an outage: clients
+      // render "not published" for a 404 and a load error for a 503. Never cached here,
+      // and no-store matters doubly — EdgeOne caches /api/* 404s without the auth cookie.
+      return NextResponse.json(
+        { error: "not published" },
+        { status: 404, headers: { "Cache-Control": "no-store" } }
+      );
+    }
+    if (outcome.status === "unavailable") {
       return NextResponse.json(
         { error: "feed unavailable" },
         { status: 503, headers: { "Cache-Control": "no-store" } }
       );
     }
+    const data = outcome.data;
     // Score once here (before caching) so cache hits reuse the scored payload.
     attachFlowScores(f, data);
     CACHE[f] = { data, ts: now };
