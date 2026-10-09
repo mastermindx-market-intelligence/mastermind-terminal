@@ -289,6 +289,8 @@ plot(x, "x")
   });
 
   it("separate coarser monthly request still resamples alongside a weekly request", () => {
+    // A February session closes January, so the monthly request has a confirmed period to
+    // publish. Without it, January is the uncertified final period and stays na (no lookahead).
     const out = runSrc(`//@version=6
 indicator("separate coarser")
 w = request.security(syminfo.tickerid, "W", close)
@@ -296,7 +298,7 @@ m = request.security(syminfo.tickerid, "M", close)
 plot(w, "w")
 plot(m, "m")
 plot(close, "c")
-`);
+`, barsOn([...dates, "2025-01-20", "2025-02-03"]));
     expect(plot(out, "w")[4]).toBe(105);
     const m = plot(out, "m");
     expect(m.some((v) => typeof v === "number" && !Number.isNaN(v))).toBe(true);

@@ -32,9 +32,11 @@ source ──▶ lexer.ts ──▶ parser.ts ──▶ runtime.ts ──▶ { p
   caller's series so `_src[1]` inside a function reads the argument's real history. `ta.*` keep
   per-call-site state. Tolerant by design: unimplemented calls (tables, labels, fill, bgcolor…)
   are no-ops returning `na` so a large real-world script still runs and plots what it can. A
-  request.security call to a **coarser** timeframe resamples the chart bars up to that TF, re-runs
-  the whole script on the higher-TF series (one re-run per distinct TF, cached), and reads the
-  requested expression off it — so MTF gates use real higher-TF values, not the chart TF.
+  request.security call to an **admitted coarser** timeframe resamples the chart bars up to that
+  TF, re-runs the whole script on the higher-TF series (one re-run per distinct TF, cached),
+  evaluates the requested expression there and publishes it to the chart only once the period is
+  confirmed — so MTF gates use real higher-TF values without seeing the future. Unadmitted
+  timeframes return `na` with a warning.
 - **builtins.ts** — constant namespaces (`color.*`, `shape.*`, `plot.style_*`, …), color→CSS
   conversion, `str.tostring` formatting, timeframe-seconds.
 - **index.ts** — the split public surface: `compile(source) → { ok, errors, ast }` parses **once**
@@ -101,31 +103,57 @@ constructed with `new Worker(new URL("./worker.ts", import.meta.url), { type: "m
 
 ### request.security — higher-timeframe resampling
 
-A `request.security(sym, tf, expr, …)` call to a **coarser** `tf` than the chart now resamples for
-real instead of collapsing to the chart TF:
+A `request.security(sym, tf, expr, …)` call to a **coarser** `tf` than the chart resamples for real:
 
 1. the chart bars (already at the chart TF — the engine never sees finer data) are grouped up to
-   `tf` — ISO-week for `W`, calendar buckets for `M`/`3M`/`12M`, an epoch-aligned N-day grid for
-   `nD` — producing HTF bars plus a `chart-bar → HTF-bar` index;
-2. the **whole script re-runs** on those HTF bars (one cached re-run per distinct coarser TF), so
-   every series the expression depends on (`ta.*`, `calc()`, …) is recomputed on the HTF timeline;
-3. each chart bar reads `expr` off its HTF bar. Because the expression keeps its own `[n]` offset,
-   `request.security(sym, tf, _src[1], lookahead=barmerge.lookahead_off)` returns the **confirmed
-   (closed) HTF bar** — non-repainting — while `_src` (no `[1]`) returns the **developing** HTF bar.
-   This is exactly the flagship's `secScalar` (confirmed, `rep=false`) vs `secDev` (developing) split.
+   `tf`, producing HTF bars, a `chart-bar → HTF-bar` index, and for every HTF bar the chart bar
+   that **confirms** it (or none);
+2. the **whole script re-runs** on those HTF bars (one cached re-run per distinct coarser TF). The
+   requested expression is evaluated there, at its own call site, once per HTF bar — so `ta.*`,
+   `barstate.*`, `ta.tr`, `[n]` history, user functions and `timeframe.*` all describe the HTF bar
+   — and its value is recorded per HTF bar;
+3. each chart bar shows the recorded value of the HTF bar it may see. The chart pass never
+   evaluates the expression itself, so chart-bar state cannot leak into the requested context.
 
-Same-timeframe or finer requests evaluate the expression in place (a finer TF can't be rebuilt from
-chart bars). Validated on the flagship over a 3D chart (confirm→1W resampled): the confirm-gate
-sign flips on ~20% of bars vs the old chart-TF passthrough, and the gated BUY★/SELL★/CUT/RE-BUY
-signals differ on 19 of 34 symbols.
+Admitted contexts — each has an explicit grouping and confirmation rule:
+
+| chart | requested | grouping | confirmed at |
+| --- | --- | --- | --- |
+| daily | `W` | ISO week (keyed by its last session) | its last session, once a session in a later week is loaded |
+| daily | `M`, `3M`, `12M` | calendar month / quarter / year | its last session, once a session in a later period is loaded |
+| `1M`/`3M`/`12M` | a coarser `1M`/`3M`/`12M` multiple | calendar quarter / year of whole monthly bars | same as above |
+| daily | `nD` (n ≥ 2) | `lib/sessionBars` session grid from the first loaded session | its n-th session |
+
+The `nD` grid uses the canonical owner's documented feed-phase fallback because no session anchor
+reaches the engine; every run that uses it says so in a warning (the group boundaries can differ
+from the chart's own `nD` bars).
+
+Publication (historical bars, `isrealtime=false`): default `lookahead_off` shows a period's value
+from its confirming session on and carries the previous confirmed value before that (`gaps_off`);
+`gaps_on` shows it only on the confirming session. The expression's `[n]` counts HTF bars, so
+`_src[1]` is one published period earlier. `lookahead_on` is the documented future read
+(`expr[1]` with it projects the previous period from the period's first session). A final period
+with no later session is never treated as closed just because it is the last loaded bar.
+
+Prefix vs full history: a run on `bars[0..k-1]` matches the full-history run on every bar before the
+cutoff, except one documented correction — the session that closes a calendar period is only known
+to close it once a later session loads, so at the cutoff itself the prefix still shows the previous
+period. Session-count periods (`nD`) have no correction.
+
+Refused with `na` and a warning that names the reason (never an approximate value):
+multi-week periods (`2W`, `3W`, … — no calendar phase is known in the loaded bars), other month
+counts (`2M`, `5M`, …), minute/second/hour units, any coarser request from a `W`, `2W` or `nD`
+chart (its bars cannot be regrouped without splitting a chart bar), bar times that are not
+ascending `YYYY-MM-DD` dates, a request inside a `for` loop, a call site reached twice on one bar,
+and a request nested inside another coarser request. Finer-than-chart requests are refused the
+same way.
 
 Deferred / no-op (clearly reported, never throws):
 - Tables, labels, lines, boxes, `fill`, `bgcolor`, `alertcondition` are parsed but draw nothing
   (they aren't chart series). The flagship's MTF dashboard table is therefore not rendered here.
-- A finer-than-chart `request.security` (e.g. the flagship's 1D *lead* TF under a 3D chart) falls
-  back to the chart value — the engine only receives chart-TF bars, so sub-chart bars can't be
-  reconstructed. A fresh `ta.*` computed *inside* a security expression isn't recomputed on the HTF
-  timeline (the flagship passes plain series refs, so this doesn't affect it).
+- A finer-than-chart `request.security` (e.g. the flagship's 1D *lead* TF under a 3D chart) returns
+  `na` with a warning — the engine only receives chart-TF bars, so sub-chart bars can't be
+  reconstructed.
 
 ## Audit & known limitations
 
@@ -166,8 +194,6 @@ Remaining known limitations (low blast radius, documented on purpose):
 - **Pine is skipped on intraday timeframes** (the engine's date math assumes `YYYY-MM-DD`); the
   chart guards the build so an added script simply doesn't run on intraday TFs. Normalizing time
   handling to epoch-ms is future work.
-- A fresh `ta.*` computed **inside** a `request.security` expression isn't recomputed on the HTF
-  timeline (pre-computed series refs — the flagship's pattern — resample correctly).
 - `ta.*`/`expr[n]` inside an `if`-block branch only advance on bars where the branch runs — Pine
   itself documents this as unsupported; hoist `ta.*` to top level (the flagship does).
 - Per-bar `plot()` colors render as a single color on **line/area/circle** series (Lightweight-Charts

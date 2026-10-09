@@ -2,8 +2,8 @@
 // actually runs. Series live as per-bar arrays; `var` persists across bars; `expr[n]` reads
 // history; `ta.*` calls keep per-call-site state. User functions bind their params as ALIASES
 // to the caller's series (so `_src[1]` inside a function reads the real history of the argument).
-// Non-identifier `expr[n]` history is isolated per effective request context (chart vs each
-// requested TF) AND per function-call frame, so a shared function-body AST cannot mix daily /
+// Non-identifier `expr[n]` history is isolated per execution pass (chart vs each requested TF,
+// each its own exec()) AND per function-call frame, so a shared function-body AST cannot mix daily /
 // weekly / monthly timelines or two call sites with different args.
 //
 // Deliberately tolerant: any unimplemented namespace call (table.*, label.*, fill, bgcolor, …)
@@ -11,15 +11,29 @@
 // plots whatever it can. See index.ts for the public surface and what's deferred (tables).
 //
 // request.security: a coarser timeframe is RESAMPLED for real — the chart bars are grouped up to
-// the requested timeframe, the whole script is re-run on those higher-timeframe bars, and the
-// requested expression reads that higher-timeframe series. The expression keeps its own `[n]` indexing
-// off the *published* HTF bar. Daily→1W historical (barstate.isrealtime=false) default lookahead_off
-// releases the current HTF value at the last actual session of a *closed* ISO-week group (ChartPanel
-// resampleTf keys each W group by that last session; there is no universal Friday rule) and otherwise
-// carries the previous confirmed value (gaps_off); gaps_on returns na except at that confirmation.
-// lookahead_on + expr[1] projects the prior confirmed bar at period start. An uncertified final tail
-// (no successor bar in a later ISO week; RunOpts has no period-closed/calendar witness) is not
-// confirmed merely because it is Friday, a weekday, or the last array item. See callNs() below.
+// the requested timeframe and the whole script is re-run on those higher-timeframe bars. The
+// requested expression is evaluated INSIDE that re-run, at its own call site, once per HTF bar
+// (so ta.*, barstate, ta.tr, `[n]` history and user-function state all live on the HTF timeline),
+// and the chart pass only reads those recorded per-HTF-bar values. The chart pass never evaluates
+// the expression itself, so chart-bar state cannot leak into the requested context.
+//
+// Admitted contexts and their publication rule (planHtf / resampleBars below):
+//   daily chart → 1W        ISO week (Mon-anchored, keyed by its last session like ChartPanel)
+//   daily chart → 1M/3M/12M calendar month / quarter / year
+//   monthly chart → coarser 1M/3M/12M that is a whole multiple of the chart's months
+//   daily chart → nD (n≥2)  lib/sessionBars grid (the canonical 2D/3D owner) at its documented
+//                           feed-phase fallback (no session anchor reaches the engine) — disclosed
+//                           with a warning on every run that uses it
+// A calendar period is CONFIRMED at its last loaded session only when a later session in a later
+// period exists; a session group is confirmed at its mult-th session. Default lookahead_off shows a
+// period's value from its confirming session on and carries the previous confirmed value before
+// that (gaps_off); gaps_on is na except at the confirming session. lookahead_on is the documented
+// future read (expr[1] then projects the prior period at period start). An unconfirmed final
+// period is not confirmed merely because it is the last array item (RunOpts carries no
+// period-closed / calendar witness) — it carries the previous value and says so in a warning.
+// Every other coarser request (multi-week, 2M/5M…, intraday units, W/2W/nD charts, unsorted or
+// non-date bar times, a call inside a for loop) is refused with na and a warning naming the reason;
+// nothing falls back to approximate bucket mapping or to chart-context evaluation.
 //
 // request.security refusal boundary (A01 r2/r3/r4/r9 — unsupported symbol / finer TF / empty-string symbol
 // / requested-context timeframe metadata):
@@ -30,20 +44,18 @@
 // (no cross-symbol data plane, no alias guessing). Unsupported/unresolved symbol-producing members
 // and functions (unknown syminfo.*, unimplemented str.*) return na, never an empty-string stub that
 // would be accepted as current-context. A timeframe FINER than the *effective current context*
-// (chart TF outside a request; the requested TF inside an inline HTF expression or whole-script HTF
-// pass) cannot be rebuilt: it returns na with a deduplicated unsupported-finer-TF warning — never
+// (chart TF on the chart pass; the requested TF inside the HTF re-run that evaluates a request
+// expression) cannot be rebuilt: it returns na with a deduplicated unsupported-finer-TF warning — never
 // chart-TF / same-context substituted values. Nested coarser requests from an HTF context are
 // likewise na + diagnostic (admitted depth is a single hop; no extra producer). Empty timeframe
 // preserves the Pine same-chart convention (named assumption: "" ≡ effective current context;
 // on the chart pass that is the chart TF). Unknown/unparseable/zero-second timeframes refuse.
-// Valid same/coarser arithmetic on the chart pass is unchanged. Daily→1W historical lookahead/gaps
-// publication is applied in callNs() using closed-group last-actual-session availability (not a
-// UTC-Friday constant). Other calendar/session/intraday units keep bucket mapping and do not claim
-// those merge flags supported. timeframe.period/multiplier/isdaily/isweekly/ismonthly/isintraday
-// inside a request expression read the requested TF carried on HtfBinding (not lexical chartTf).
+// timeframe.period/multiplier/isdaily/isweekly/ismonthly/isintraday inside a request expression
+// read the requested TF, because the expression runs in the exec() pass whose chartTf IS that TF.
 import { Node, Stmt, Arg, parse, type ParseResult } from "./parser";
 import { PineSyntaxError } from "./lexer";
 import { NA, NS_CONST, toCss, fmtNum, tfSeconds } from "./builtins";
+import { groupSessionBars } from "../sessionBars";
 
 export interface Bar { time: string; o: number; h: number; l: number; c: number; v: number; }
 
@@ -103,54 +115,91 @@ function builtinSeriesAt(name: string, B: Bar[], NB: number, j: number): any {
 // Group already-resampled chart bars UP to a coarser timeframe (we only ever have chart-TF bars,
 // so a finer TF can't be reconstructed — callNs() refuses finer-than-chart requests with na +
 // an unsupported-finer-timeframe warning rather than silently substituting chart-TF values).
-// Returns the HTF bars plus, for each chart bar, the index of the HTF bar it belongs to (groupOf[i]).
-function htfBucketKey(time: string, n: number, unit: string): string {
-  if (unit === "W") { const dt = new Date(time + "T00:00:00Z"); const day = (dt.getUTCDay() + 6) % 7; dt.setUTCDate(dt.getUTCDate() - day); return "W" + dt.toISOString().slice(0, 10); }   // ISO week (Mon-anchored) — matches ChartPanel.resampleTf
-  if (unit === "M") { const y = parseInt(time.slice(0, 4), 10), mo = parseInt(time.slice(5, 7), 10); return "M" + Math.floor((y * 12 + (mo - 1)) / n); }  // 1M→month, 3M→quarter, 12M→year
-  if (unit === "D") { const days = Math.floor(Date.parse(time + "T00:00:00Z") / 86400000); return "D" + Math.floor(days / n); }                          // N-day grid aligned to the epoch
-  const secs = tfSeconds(`${n}${unit}`) || 86400; return "S" + Math.floor(Date.parse(time + "T00:00:00Z") / 1000 / secs);                                // intraday fallback (unused on daily data)
-}
-// Daily→1W confirmation is the last actual session of a historically closed ISO-week group
-// (a later chart bar belongs to a later ISO week), matching ChartPanel.resampleTf (Mon-anchored
-// ISO key; group timestamp = last session). No UTC-Friday constant, no market inferred from
-// symbol/weekdays-only/wallclock/array-end. The final ISO-week group stays uncertified:
-// RunOpts has no period-closed/calendar witness, so array end is not HTF period close.
-function isOneWeekTf(tf: string): boolean {
-  const m = tf.trim().toUpperCase().match(/^(\d*)W$/);
-  if (!m) return false;
+// Returns the HTF bars plus, for each chart bar, the index of the HTF bar it belongs to (groupOf[i])
+// and, for each HTF bar, the chart index that CONFIRMS it (confirmChartIdx[g], -1 = not confirmed).
+//
+// A plan is the explicit publication rule for one admitted (chart TF → requested TF) pair; a string
+// is the reason the pair is refused. There is no third outcome: nothing is bucket-mapped "close
+// enough". Calendar plans (week / month) confirm a period at its last loaded session only when a
+// later session belongs to a later period — array end is not a period close, and no weekday,
+// month-end date or exchange calendar is inferred. Session plans (nD) use the canonical
+// lib/sessionBars grid and confirm a group at its mult-th session.
+type HtfPlan = { kind: "week" } | { kind: "month"; n: number } | { kind: "session"; mult: number };
+const CALENDAR_MONTHS = new Set([1, 3, 12]);
+function tfParts(tf: string): { n: number; unit: string } | null {
+  const m = String(tf).trim().toUpperCase().match(/^(\d*)([A-Z]*)$/);
+  if (!m) return null;
   const n = m[1] === "" ? 1 : parseInt(m[1], 10);
-  return n === 1;
+  return Number.isFinite(n) && n > 0 ? { n, unit: m[2] } : null;
 }
-function resampleBars(src: Bar[], tf: string): { bars: Bar[]; groupOf: number[]; confirmChartIdx: number[] } {
-  const m = tf.trim().toUpperCase().match(/^(\d*)([A-Z]*)$/);
-  const n = m && m[1] ? parseInt(m[1], 10) : 1;
-  const unit = m ? m[2] : "D";
-  const weeklyClose = unit === "W" && n === 1;
-  const out: Bar[] = []; const groupOf = new Array<number>(src.length).fill(-1);
+function planHtf(chartTf: string, tf: string, bars: Bar[]): HtfPlan | string {
+  const req = tfParts(tf), chart = tfParts(chartTf);
+  if (!req || !chart) return "timeframe is not recognised";
+  let plan: HtfPlan | string;
+  if (isDailyTf(chartTf)) {
+    if (req.unit === "W") plan = req.n === 1 ? { kind: "week" } : "multi-week periods have no known calendar phase in the loaded bars";
+    else if (req.unit === "M") plan = CALENDAR_MONTHS.has(req.n) ? { kind: "month", n: req.n } : "only 1M, 3M and 12M calendar periods are supported";
+    else if (req.unit === "D") plan = { kind: "session", mult: req.n };
+    else plan = "minute, second and hour periods cannot be built from daily sessions";
+  } else if (chart.unit === "M" && CALENDAR_MONTHS.has(chart.n) && req.unit === "M" && CALENDAR_MONTHS.has(req.n) && req.n % chart.n === 0) {
+    plan = { kind: "month", n: req.n };
+  } else {
+    plan = `chart '${chartTf}' bars cannot be regrouped into '${tf}' without splitting a chart bar`;
+  }
+  if (typeof plan !== "string" && plan.kind !== "session") {
+    for (let i = 0; i < bars.length; i++) {
+      if (!/^\d{4}-\d{2}-\d{2}$/.test(bars[i].time) || (i > 0 && bars[i].time <= bars[i - 1].time)) return "bar times are not ascending calendar dates";
+    }
+  }
+  return plan;
+}
+function periodKey(time: string, plan: { kind: "week" } | { kind: "month"; n: number }): string {
+  if (plan.kind === "week") { const dt = new Date(time + "T00:00:00Z"); const day = (dt.getUTCDay() + 6) % 7; dt.setUTCDate(dt.getUTCDate() - day); return dt.toISOString().slice(0, 10); }   // ISO week (Mon-anchored) — matches ChartPanel.resampleTf
+  const mo = parseInt(time.slice(5, 7), 10);
+  return plan.n === 1 ? time.slice(0, 7) : plan.n === 3 ? time.slice(0, 4) + "Q" + Math.ceil(mo / 3) : time.slice(0, 4);
+}
+function resampleBars(src: Bar[], plan: HtfPlan): { bars: Bar[]; groupOf: number[]; confirmChartIdx: number[] } {
+  const groupOf = new Array<number>(src.length).fill(-1);
   const confirmChartIdx: number[] = [];
+  if (plan.kind === "session") {
+    // Canonical session grid at barAnchor 0: [0], [1..m], [m+1..2m], … — a group is complete on the
+    // session whose index ≡ 0 (mod m). The final group is confirmed only if it has reached that session.
+    const m = plan.mult;
+    const grouped = groupSessionBars(src, m, 0, (from, to) => {
+      const g = confirmChartIdx.length;
+      let h = -Infinity, l = Infinity, v = 0;
+      for (let i = from; i <= to; i++) { h = Math.max(h, src[i].h); l = Math.min(l, src[i].l); v += src[i].v; groupOf[i] = g; }
+      confirmChartIdx.push(to % m === 0 ? to : -1);
+      return { o: src[from].o, h, l, c: src[to].c, v };
+    });
+    return { bars: grouped.map(({ time, o, h, l, c, v }) => ({ time, o, h, l, c, v })), groupOf, confirmChartIdx };
+  }
+  const out: Bar[] = [];
   let cur: Bar | null = null; let key: string | null = null; let gi = -1;
   let groupLast = -1;
   for (let i = 0; i < src.length; i++) {
-    const r = src[i]; const k = htfBucketKey(r.time, n, unit);
+    const r = src[i]; const k = periodKey(r.time, plan);
     if (k !== key) {
       if (cur) {
         out.push(cur);
-        // Successor ISO-week bar exists → previous group's membership is complete in this series.
-        if (weeklyClose) confirmChartIdx[gi] = groupLast;
+        // A session of a later period exists → the previous period's membership is complete.
+        confirmChartIdx[gi] = groupLast;
       }
       key = k; gi++; cur = { ...r };
-      groupLast = i;
-      confirmChartIdx[gi] = -1; // uncertified until a later group appears
+      confirmChartIdx[gi] = -1; // not confirmed until a later period appears
     } else {
       cur!.h = Math.max(cur!.h, r.h); cur!.l = Math.min(cur!.l, r.l); cur!.c = r.c; cur!.time = r.time; cur!.v += r.v;
-      groupLast = i;
     }
+    groupLast = i;
     groupOf[i] = gi;
   }
   if (cur) out.push(cur);
   // Final group remains confirmChartIdx=-1 (array end ≠ period close).
   return { bars: out, groupOf, confirmChartIdx };
 }
+// Marks a request.security call site evaluated more than once on one HTF bar (e.g. inside a user
+// function called from a loop): its per-bar value is ambiguous, so the chart pass returns na.
+const SEC_AMBIGUOUS = Symbol("request.security ambiguous");
 
 // seconds-per-bar for a Pine timeframe string — STRICT parse for the request.security refusal
 // boundary. Returns null for empty input and for anything unknown/unparseable/zero-second
@@ -180,14 +229,10 @@ interface Frame { path: string; params: Map<string, ParamBinding>; localNames: S
 // a param binds to either an alias of the caller's series (bare-id arg) or a per-call history
 // buffer (expression arg, so `_src[1]` still reads real history)
 interface ParamBinding { alias?: { name: string; frame: Frame | null }; buf?: string; }
-// When `htf` is set, series reads come from a higher-timeframe execution instead of this run's
-// stores, indexed by the HTF bar (so the same AST expression resolves on the resampled timeline).
-// `timeframe` is the requested TF for this binding — evalMember/callNs use it as the effective
-// current context so inline expressions agree with the whole-script HTF pass (no extra data plane).
-interface HtfBinding { globals: Map<string, any[]>; localStore: Map<string, any[]>; bars: Bar[]; N: number; barIdx: number; timeframe: string; }
-interface Ctx { i: number; frame: Frame | null; scalars: Map<string, number> | null; depth: number; htf?: HtfBinding | null; }
-// what an exec() pass exposes to a parent run so request.security can read its resampled series
-interface ExecOut { result: RunResult; globals: Map<string, any[]>; localStore: Map<string, any[]>; }
+interface Ctx { i: number; frame: Frame | null; scalars: Map<string, number> | null; depth: number; }
+// What an exec() pass exposes to a parent run: for every request.security call site it evaluated as
+// same-timeframe (key = call frame path + "#" + node id), the value it produced on each of its bars.
+interface ExecOut { result: RunResult; secRecord: Map<string, any[]>; }
 
 // run() executes an already-parsed program. Pass a `ParseResult` (from parse()/compile()) to skip
 // re-parsing — the ONLY caller that still hands a raw string is the back-compat runPine() in index.ts,
@@ -223,8 +268,8 @@ export function run(source: string | ParseResult, bars: Bar[], opts: { timeframe
 
   // One full bar-by-bar execution over `bars` at `chartTf`. htfDepth>0 marks a re-run spawned by a
   // request.security() call (such runs don't resample again — a single HTF hop is enough and avoids
-  // recursion; nested coarser from that pass is na + diagnostic). Returns the result plus the raw
-  // series stores so the parent can read resampled values.
+  // recursion; nested coarser from that pass is na + diagnostic). Returns the result plus the
+  // per-bar values of every request.security expression it evaluated at its own timeframe.
   function exec(bars: Bar[], chartTf: string, symbol: string, params: Record<string, any>, htfDepth: number): ExecOut {
     const N = bars.length;
 
@@ -235,23 +280,21 @@ export function run(source: string | ParseResult, bars: Bar[], opts: { timeframe
     const localVarInit = new Set<string>();
     const localVarKeys = new Set<string>();        // storage keys of function-local `var`s — carried forward each bar
     const taState = new Map<string, any>();        // per-call-site state for ta.* and friends
-    // Non-identifier `[n]` history. Keyed by effective TF + function-call frame + AST hid so a
-    // shared user-function body (one hid) cannot mix chart/HTF timelines or separate call sites.
-    // ctxBaseI still selects the slot on that isolated buffer (chart i vs published HTF barIdx).
+    // Non-identifier `[n]` history. Each timeframe runs in its own exec() pass (own store), and
+    // within a pass it is keyed by function-call frame + AST hid so a shared user-function body
+    // (one hid) cannot mix separate call sites.
     const histStore = new Map<string, any[]>();
-    type HtfBuilt = { globals: Map<string, any[]>; localStore: Map<string, any[]>; bars: Bar[]; groupOf: number[]; confirmChartIdx: number[]; timeframe: string };
-    const htfCache = new Map<string, HtfBuilt | null>();  // one resampled re-run per coarser timeframe (shared budget)
-    // Effective TF of the current evaluation context: requested TF inside an HTF binding,
-    // otherwise this exec() pass's chartTf. Nested request.security compares against this,
-    // not lexical chartTf, so an inline weekly expression does not fall through to daily.
-    const contextTf = (ctx: Ctx): string => (ctx.htf && ctx.htf.timeframe ? ctx.htf.timeframe : chartTf);
-    const ctxBaseI = (ctx: Ctx): number => (ctx.htf ? ctx.htf.barIdx : ctx.i);
-    const ctxLS = (ctx: Ctx) => (ctx.htf ? ctx.htf.localStore : localStore);
+    // request.security expressions this pass evaluated at its own timeframe, per call site, per bar
+    // (only meaningful on an HTF re-run, where the parent reads them at the published HTF bar).
+    const secRecord = new Map<string, any[]>();
+    type HtfBuilt = { recs: Map<string, any[]>; groupOf: number[]; confirmChartIdx: number[]; plan: HtfPlan };
+    const htfCache = new Map<string, HtfBuilt | string>();  // one resampled re-run per coarser timeframe (shared budget), or the refusal reason
     const histBuf = (ctx: Ctx, hid: number): any[] => {
-      const key = contextTf(ctx) + "\0" + (ctx.frame ? ctx.frame.path : "") + "\0" + hid;
+      const key = (ctx.frame ? ctx.frame.path : "") + "\0" + hid;
       let h = histStore.get(key); if (!h) { h = []; histStore.set(key, h); }
       return h;
     };
+    const secKey = (ctx: Ctx, n: Node) => (ctx.frame ? ctx.frame.path : "") + "#" + (n as any).id;
 
     const meta: PineMeta = { title: "Script", overlay: false };
     const plotAcc = new Map<number, PinePlot & { lastColor: string }>();
@@ -270,22 +313,19 @@ export function run(source: string | ParseResult, bars: Bar[], opts: { timeframe
 
     // ── name resolution ──
     function resolveGet(ctx: Ctx, name: string, offset: number): any {
-      const htf = ctx.htf || null;
-      const baseI = htf ? htf.barIdx : ctx.i;       // HTF reads index the resampled timeline instead
-      const G = htf ? htf.globals : globals;
-      const LS = htf ? htf.localStore : localStore;
+      const baseI = ctx.i;
       if (ctx.scalars && ctx.scalars.has(name)) return offset > 0 ? NA : ctx.scalars.get(name); // loop var
       if (ctx.frame) {
         const pb = ctx.frame.params.get(name);
         if (pb) {
-          if (pb.alias) { const sub: Ctx = { i: ctx.i, frame: pb.alias.frame, scalars: null, depth: ctx.depth, htf }; return resolveGet(sub, pb.alias.name, offset); }
-          const arr = LS.get(pb.buf!); const idx = baseI - offset; return arr && idx >= 0 && arr[idx] !== undefined ? arr[idx] : NA;
+          if (pb.alias) { const sub: Ctx = { i: ctx.i, frame: pb.alias.frame, scalars: null, depth: ctx.depth }; return resolveGet(sub, pb.alias.name, offset); }
+          const arr = localStore.get(pb.buf!); const idx = baseI - offset; return arr && idx >= 0 && arr[idx] !== undefined ? arr[idx] : NA;
         }
-        if (ctx.frame.localNames.has(name)) { const arr = LS.get(ctx.frame.path + "|" + name); if (arr) { const idx = baseI - offset; return idx >= 0 ? (arr[idx] !== undefined ? arr[idx] : NA) : NA; } return NA; }
+        if (ctx.frame.localNames.has(name)) { const arr = localStore.get(ctx.frame.path + "|" + name); if (arr) { const idx = baseI - offset; return idx >= 0 ? (arr[idx] !== undefined ? arr[idx] : NA) : NA; } return NA; }
       }
-      const g = G.get(name);
+      const g = globals.get(name);
       if (g) { const idx = baseI - offset; return idx >= 0 ? (g[idx] !== undefined ? g[idx] : NA) : NA; }
-      if (BUILTIN_SERIES.has(name)) return htf ? builtinSeriesAt(name, htf.bars, htf.N, baseI - offset) : builtinSeries(name, ctx.i - offset);
+      if (BUILTIN_SERIES.has(name)) return builtinSeries(name, ctx.i - offset);
       if (NAMESPACES.has(name)) return name;   // bare namespace ref (member access reads it)
       warn(`undefined variable '${name}' (treated as na)`);
       return NA;
@@ -294,9 +334,8 @@ export function run(source: string | ParseResult, bars: Bar[], opts: { timeframe
     function assignName(ctx: Ctx, name: string, value: any, isVar: boolean, declare: boolean) {
       if (ctx.frame && (declare ? true : ctx.frame.localNames.has(name) || ctx.frame.params.has(name))) {
         const key = ctx.frame.path + "|" + name;
-        const LS = ctxLS(ctx);
-        let arr = LS.get(key); if (!arr) { arr = []; LS.set(key, arr); }
-        ctx.frame.localNames.add(name); arr[ctxBaseI(ctx)] = value; return;
+        let arr = localStore.get(key); if (!arr) { arr = []; localStore.set(key, arr); }
+        ctx.frame.localNames.add(name); arr[ctx.i] = value; return;
       }
       let arr = globals.get(name); if (!arr) { arr = []; globals.set(name, arr); }
       if (isVar) globalVars.add(name);
@@ -318,7 +357,7 @@ export function run(source: string | ParseResult, bars: Bar[], opts: { timeframe
           if (n.base.t === "id") return resolveGet(ctx, n.base.name, off);
           const hid = (n.base as any).hid;
           const val = evalNode(n.base, ctx);
-          if (hid != null) { const h = histBuf(ctx, hid); const at = ctxBaseI(ctx); h[at] = val; const idx = at - off; return idx >= 0 && h[idx] !== undefined ? h[idx] : NA; }
+          if (hid != null) { const h = histBuf(ctx, hid); const at = ctx.i; h[at] = val; const idx = at - off; return idx >= 0 && h[idx] !== undefined ? h[idx] : NA; }
           return off === 0 ? val : NA;
         }
         case "unary": {
@@ -361,7 +400,7 @@ export function run(source: string | ParseResult, bars: Bar[], opts: { timeframe
     function evalMember(n: Extract<Node, { t: "member" }>, ctx: Ctx): any {
       if (n.obj.t === "id") {
         const ns = n.obj.name, prop = n.prop;
-        if (ns === "timeframe") { const tf = contextTf(ctx); if (prop === "period") return tf; if (prop === "multiplier") return parseInt(tf) || 1; if (prop === "isdaily") return /D$/.test(tf); if (prop === "isweekly") return /W$/.test(tf); if (prop === "ismonthly") return /M$/.test(tf); if (prop === "isintraday") return tfSeconds(tf) < 86400; return NA; }
+        if (ns === "timeframe") { const tf = chartTf; if (prop === "period") return tf; if (prop === "multiplier") return parseInt(tf) || 1; if (prop === "isdaily") return /D$/.test(tf); if (prop === "isweekly") return /W$/.test(tf); if (prop === "ismonthly") return /M$/.test(tf); if (prop === "isintraday") return tfSeconds(tf) < 86400; return NA; }
         if (ns === "barstate") { if (prop === "islast" || prop === "islastconfirmedhistory") return ctx.i === N - 1; if (prop === "isfirst") return ctx.i === 0; if (prop === "ishistory") return ctx.i < N - 1; if (prop === "isrealtime") return false; if (prop === "isnew" || prop === "isconfirmed") return true; return false; }
         // Unknown members return na (not ""). An empty-string stub here would be accepted by
         // request.security as current-context and silently substitute chart bars.
@@ -395,34 +434,40 @@ export function run(source: string | ParseResult, bars: Bar[], opts: { timeframe
       const fn = funcs.get(name)!;
       const childPath = ctx.frame ? ctx.frame.path + "/" + n.id : "/" + n.id;
       const frame: Frame = { path: childPath, params: new Map(), localNames: new Set(fn.localNames), };
-      const LS = ctxLS(ctx);
-      const at = ctxBaseI(ctx);
       fn.params.forEach((pn, idx) => {
         const argNode = n.args[idx]?.value;
         if (argNode && argNode.t === "id") frame.params.set(pn, { alias: { name: argNode.name, frame: ctx.frame } });
         else {
           // expression arg: append its value to a per-call-site history buffer so `_src[1]`/`_src[i]` work
-          const bk = childPath + "|@arg|" + pn; let buf = LS.get(bk); if (!buf) { buf = []; LS.set(bk, buf); }
-          buf[at] = argNode ? evalNode(argNode, ctx) : NA; frame.params.set(pn, { buf: bk });
+          const bk = childPath + "|@arg|" + pn; let buf = localStore.get(bk); if (!buf) { buf = []; localStore.set(bk, buf); }
+          buf[ctx.i] = argNode ? evalNode(argNode, ctx) : NA; frame.params.set(pn, { buf: bk });
         }
       });
-      const sub: Ctx = { i: ctx.i, frame, scalars: null, depth: ctx.depth + 1, htf: ctx.htf };
+      const sub: Ctx = { i: ctx.i, frame, scalars: null, depth: ctx.depth + 1 };
       return execBlock(fn.body, sub);
     }
 
-    // resample-and-rerun for one coarser timeframe (cached); null if it can't be built
-    function getHtfCtx(tf: string) {
+    // resample-and-rerun for one coarser timeframe (cached); a string is the reason it is refused
+    function getHtfCtx(tf: string): HtfBuilt | string {
       const key = tf.trim().toUpperCase();
-      if (htfCache.has(key)) return htfCache.get(key)!;
-      let built: HtfBuilt | null = null;
-      try {
-        const { bars: htfBars, groupOf, confirmChartIdx } = resampleBars(bars, tf);
-        if (htfBars.length >= 1) {
-          const child = exec(htfBars, tf, symbol, params, htfDepth + 1);
-          child.result.warnings.forEach(warn);   // HTF-pass warnings must reach the parent run's result
-          built = { globals: child.globals, localStore: child.localStore, bars: htfBars, groupOf, confirmChartIdx, timeframe: tf };
+      const hit = htfCache.get(key);
+      if (hit !== undefined) return hit;
+      let built: HtfBuilt | string;
+      const plan = planHtf(chartTf, tf, bars);
+      if (typeof plan === "string") built = plan;
+      else {
+        try {
+          const { bars: htfBars, groupOf, confirmChartIdx } = resampleBars(bars, plan);
+          if (htfBars.length >= 1) {
+            const child = exec(htfBars, tf, symbol, params, htfDepth + 1);
+            child.result.warnings.forEach(warn);   // HTF-pass warnings must reach the parent run's result
+            built = { recs: child.secRecord, groupOf, confirmChartIdx, plan };
+          } else built = "no bars are loaded";
+        } catch (e) {
+          if (e instanceof PineRuntimeError) throw e;   // budget aborts must not degrade into a silent fallback
+          built = `the higher-timeframe pass failed (${e instanceof Error ? e.message : String(e)})`;
         }
-      } catch (e) { if (e instanceof PineRuntimeError) throw e; built = null; }   // budget aborts must not degrade into a silent fallback
+      }
       htfCache.set(key, built);
       return built;
     }
@@ -471,11 +516,9 @@ export function run(source: string | ParseResult, bars: Bar[], opts: { timeframe
         }
 
         // 2) Timeframe — read the arg node before any expression evaluation.
-        // Effective current context is the requested TF when evaluating inside an HTF binding
-        // (inline expression) and this exec() pass's chartTf otherwise (chart pass / whole-script
-        // HTF re-run). Nested TF checks compare against that, never lexical chart daily while
-        // the expression is bound to weekly bars.
-        const evalTf = contextTf(ctx);
+        // Effective current context is this exec() pass's chartTf: the chart TF on the chart pass,
+        // the requested TF inside the HTF re-run where request expressions are evaluated.
+        const evalTf = chartTf;
         let tf: string;
         if (!tfArg) tf = evalTf;                       // missing timeframe arg → current context
         else {
@@ -486,6 +529,21 @@ export function run(source: string | ParseResult, bars: Bar[], opts: { timeframe
         // ("" ≡ effective current context; on the chart pass that is the chart TF).
         // The engine only ever receives chart-TF bars, so "" cannot mean finer-than-chart here.
         if (tf.trim() === "") tf = evalTf;
+
+        // On an HTF re-run every request call site answers the parent's question "what is this
+        // expression on these bars?", so its value is recorded per HTF bar whatever timeframe this
+        // pass computes for the call. The parent reads the record only for call sites it requested
+        // at this pass's timeframe, and the timeframe argument can itself depend on
+        // timeframe.period (the flagship's oneUp(timeframe.period)), so it differs between passes.
+        // A call site reached twice on one bar (a function called from a loop) is ambiguous.
+        let inPlace: { v: any } | null = null;
+        if (htfDepth > 0 && !ctx.scalars) {
+          const v = evalNode(exprNode, ctx);
+          const key = secKey(ctx, n);
+          let rec = secRecord.get(key); if (!rec) { rec = []; secRecord.set(key, rec); }
+          rec[ctx.i] = rec[ctx.i] === undefined ? (v === undefined ? NA : v) : SEC_AMBIGUOUS;
+          inPlace = { v };
+        }
         const reqSec = parseTfSecStrict(tf);
         if (reqSec == null) {
           // Unknown/unparseable/zero-second — refuse; do NOT treat as a valid TF (builtins.tfSeconds
@@ -497,31 +555,43 @@ export function run(source: string | ParseResult, bars: Bar[], opts: { timeframe
 
         // 3) Finer-than-current-context cannot be reconstructed from the supplied bars — refuse
         // with na + an explicit unsupported-finer-TF warning. Never chart-TF / same-context
-        // substituted values (including an inline weekly expression whose lexical chartTf is D).
+        // substituted values (including inside the weekly re-run, whose chartTf is W).
         if (reqSec < contextSec) {
           warn(`request.security() unsupported timeframe '${tf}' finer than chart '${evalTf}' — returning na`);
           return NA;
         }
 
-        // Same as the effective current context: in-place arithmetic (chart same-TF, whole-script
-        // HTF pass at the requested TF, nested same-TF inside an HTF expression). The expression's
-        // own `[1]` still yields the prior-bar (non-repaint) value. Binding is preserved.
-        if (reqSec <= contextSec) return evalNode(exprNode, ctx);
+        // Same as the effective current context: in-place arithmetic (chart same-TF, or the HTF
+        // re-run at the requested TF). The expression's own `[1]` still yields the prior-bar
+        // (non-repaint) value.
+        if (reqSec <= contextSec) return inPlace ? inPlace.v : evalNode(exprNode, ctx);
 
         // Coarser than current context. Admitted depth is a single HTF hop from the chart pass.
-        // Nested coarser (inline HTF expression or whole-script HTF re-run) has no second producer
-        // and must not silently substitute the current-context series.
-        if (htfDepth > 0 || ctx.htf) {
+        // Nested coarser (inside an HTF re-run) has no second producer and must not silently
+        // substitute the current-context series.
+        if (htfDepth > 0) {
           warn(`request.security() unsupported timeframe '${tf}' coarser than current context '${evalTf}' — returning na`);
+          return NA;
+        }
+        // A loop iterator has no value on the requested timeframe's bars, so the call cannot be
+        // evaluated there honestly.
+        if (ctx.scalars) {
+          warn(`request.security() for timeframe '${tf}' inside a for loop is not supported — returning na`);
           return NA;
         }
 
         const htfc = getHtfCtx(tf);
-        if (!htfc) return evalNode(exprNode, ctx);
+        if (typeof htfc === "string") {
+          warn(`request.security() unsupported timeframe '${tf}' on chart '${chartTf}': ${htfc} — returning na`);
+          return NA;
+        }
+        if (htfc.plan.kind === "session") {
+          warn(`request.security() '${tf}' groups sessions from the first loaded session (no session anchor supplied; feed-phase fallback) — group boundaries may differ from the chart's ${tf} bars`);
+        }
 
         // Merge flags: omitted → Pine defaults (gaps_off, lookahead_off). Unknown values refuse.
-        // Daily→1W is the supported historical publication vertical (closed ISO-week last session);
-        // other units keep bucket mapping.
+        // Every admitted plan publishes with the same rule (see the header): confirmChartIdx[g] is
+        // the chart bar that confirms HTF bar g, or -1 when the loaded bars cannot confirm it.
         const readMerge = (arg: Arg | undefined, label: string): "on" | "off" | null => {
           if (!arg) return "off";
           const v = evalNode(arg.value, ctx);
@@ -534,39 +604,38 @@ export function run(source: string | ParseResult, bars: Bar[], opts: { timeframe
         if (gaps == null || lookahead == null) return NA;
         const gapsOn = gaps === "on";
         const lookaheadOn = lookahead === "on";
-        const weeklyMerge = isOneWeekTf(tf) && isDailyTf(chartTf);
-        const explicitMerge = !!(gapsArg || lookaheadArg);
         const g = htfc.groupOf[ctx.i];
         if (g == null || g < 0) return NA;
 
-        let barIdx = g;
-        if (!weeklyMerge) {
-          if (explicitMerge) {
-            warn(`request.security() lookahead/gaps merge flags are not implemented for timeframe '${tf}' (daily→1W historical only) — using HTF bucket mapping; flags are not claimed supported`);
-          }
-        } else {
-          const conf = htfc.confirmChartIdx[g] ?? -1;
-          if (!lookaheadOn && conf < 0) {
-            warn(`request.security() weekly 1W period not confirmed: ISO-week final tail has no successor session in a later ISO week (array end is not HTF period close; missing calendar/session evidence) — previous confirmed or na`);
-          }
-          if (gapsOn) {
-            if (lookaheadOn) {
-              const isStart = ctx.i === 0 || htfc.groupOf[ctx.i - 1] !== g;
-              if (!isStart) return NA;
-            } else if (ctx.i !== conf || conf < 0) {
-              return NA;
-            }
-          }
-          barIdx = lookaheadOn ? g : (conf >= 0 && ctx.i >= conf ? g : g - 1);
-          if (barIdx < 0) return NA;
+        const conf = htfc.confirmChartIdx[g] ?? -1;
+        if (!lookaheadOn && conf < 0) {
+          const plan = htfc.plan;
+          warn(plan.kind === "week"
+            ? `request.security() weekly 1W period not confirmed: ISO-week final tail has no successor session in a later ISO week (array end is not HTF period close; missing calendar/session evidence) — previous confirmed or na`
+            : plan.kind === "month"
+              ? `request.security() '${tf}' calendar period not confirmed: final period has no successor session in a later period (array end is not HTF period close; missing calendar/session evidence) — previous confirmed or na`
+              : `request.security() '${tf}' session group not confirmed: final group has fewer than ${plan.mult} sessions (array end is not HTF period close) — previous confirmed or na`);
         }
+        if (gapsOn) {
+          if (lookaheadOn) {
+            const isStart = ctx.i === 0 || htfc.groupOf[ctx.i - 1] !== g;
+            if (!isStart) return NA;
+          } else if (ctx.i !== conf || conf < 0) {
+            return NA;
+          }
+        }
+        const barIdx = lookaheadOn ? g : (conf >= 0 && ctx.i >= conf ? g : g - 1);
+        if (barIdx < 0) return NA;
 
-        // Evaluate the SAME expression on the resampled timeline at the published HTF bar.
-        // `[n]` is an HTF-series offset from that published bar. Expression history is isolated
-        // per requested TF + call frame (histBuf), so this write cannot clobber chart-context
-        // slots of the same AST hid.
-        const sub: Ctx = { i: ctx.i, frame: ctx.frame, scalars: ctx.scalars, depth: ctx.depth, htf: { globals: htfc.globals, localStore: htfc.localStore, bars: htfc.bars, N: htfc.bars.length, barIdx, timeframe: htfc.timeframe } };
-        return evalNode(exprNode, sub);
+        // Read the value the HTF re-run computed for this call site on the published HTF bar.
+        // `[n]` inside the expression was already an HTF-series offset there.
+        const rec = htfc.recs.get(secKey(ctx, n));
+        const v = rec ? rec[barIdx] : undefined;
+        if (v === undefined || v === SEC_AMBIGUOUS) {
+          warn(`request.security() expression for '${tf}' was not evaluated once on the requested timeframe at this bar (conditional or loop scope) — returning na`);
+          return NA;
+        }
+        return v;
       }
       const { pos, named } = evalArgs(n.args, ctx);
       switch (ns) {
@@ -589,7 +658,7 @@ export function run(source: string | ParseResult, bars: Bar[], opts: { timeframe
           warn(`unsupported str.${method}() (na)`); return NA;
         case "input": return inputDispatch(method, pos, named);
         case "timeframe":
-          if (method === "in_seconds") return tfSeconds(pos[0] != null ? String(pos[0]) : contextTf(ctx));
+          if (method === "in_seconds") return tfSeconds(pos[0] != null ? String(pos[0]) : chartTf);
           if (method === "change") return false;
           warn(`unsupported timeframe.${method}() (na)`); return NA;
         case "plot": return NA;
@@ -775,7 +844,7 @@ export function run(source: string | ParseResult, bars: Bar[], opts: { timeframe
       const from = Math.round(num(evalNode(n.from, ctx))), to = Math.round(num(evalNode(n.to, ctx)));
       const step = n.step ? Math.round(num(evalNode(n.step, ctx))) : (to >= from ? 1 : -1);
       const scalars = ctx.scalars ? new Map(ctx.scalars) : new Map<string, number>();
-      const sub: Ctx = { i: ctx.i, frame: ctx.frame, scalars, depth: ctx.depth, htf: ctx.htf };
+      const sub: Ctx = { i: ctx.i, frame: ctx.frame, scalars, depth: ctx.depth };
       let last: any = NA;
       if (step === 0) return NA;
       for (let v = from; step > 0 ? v <= to : v >= to; v += step) {
@@ -802,6 +871,6 @@ export function run(source: string | ParseResult, bars: Bar[], opts: { timeframe
     }
 
     const plots = [...plotAcc.values()].map(({ lastColor, ...p }) => p);
-    return { result: { meta, plots, shapes, hlines: [...hlineAcc.values()], inputs, warnings, barCount: N }, globals, localStore };
+    return { result: { meta, plots, shapes, hlines: [...hlineAcc.values()], inputs, warnings, barCount: N }, secRecord };
   }
 }
