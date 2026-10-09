@@ -44,6 +44,8 @@ type Entitlement = { tier: string; features: string[] };
  *     Write paths keep resolving fresh.
  */
 const ENT_TTL_MS = 45_000;
+/** Live read connections revalidate on this same owner's positive-cache bound. */
+export const LIVE_OPTIONS_CACHE_TTL_MS = ENT_TTL_MS;
 /** Bound the map so a long-lived process with many signed-in users cannot grow it forever. */
 const ENT_MAX_KEYS = 512;
 
