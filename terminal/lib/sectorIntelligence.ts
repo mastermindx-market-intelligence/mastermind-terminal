@@ -51,10 +51,19 @@ export interface SectorRotationHistoryPoint {
   rs21: number;
   rs63: number;
 }
+export interface SectorRotationHistoryCycleTurn {
+  date: string;
+  kind: "peak" | "trough";
+  major: boolean;
+  provisional: boolean;
+  magnitudePct: number | null;
+}
 export interface SectorRotationHistorySeries {
   id: string;
   ticker: string;
   points: SectorRotationHistoryPoint[];
+  /** Price-cycle swing markers, retrospectively reconstructed by the existing owner. Not RC migration episodes. */
+  cycleTurns: SectorRotationHistoryCycleTurn[];
 }
 export interface SectorRotationHistory {
   schema: "sector_cycles.rs_history.v1";
@@ -97,7 +106,21 @@ export function sectorRotationHistory(data: unknown): SectorRotationHistory | nu
       prior = date;
       points.push({ date, rs21, rs63 });
     }
-    series[id] = { id, ticker, points };
+    const rawTurns = row.turns === undefined ? [] : row.turns;
+    if (!Array.isArray(rawTurns) || rawTurns.length > 256) return null;
+    const cycleTurns: SectorRotationHistoryCycleTurn[] = [];
+    let previousTurn = "";
+    for (const turnValue of rawTurns) {
+      const turn = object(turnValue), date = strictDay(turn.date);
+      const mag = turn.mag_pct === null || turn.mag_pct === undefined ? null : number(turn.mag_pct);
+      if (!date || date > asOf || date <= previousTurn
+        || (turn.k !== "peak" && turn.k !== "trough")
+        || typeof turn.major !== "boolean" || typeof turn.provisional !== "boolean"
+        || (mag !== null && mag < 0) || (turn.mag_pct !== null && turn.mag_pct !== undefined && mag === null)) return null;
+      previousTurn = date;
+      cycleTurns.push({ date, kind: turn.k, major: turn.major, provisional: turn.provisional, magnitudePct: mag });
+    }
+    series[id] = { id, ticker, points, cycleTurns };
   }
   return {
     schema: "sector_cycles.rs_history.v1", asOf, mode: "reconstructed_price_history",

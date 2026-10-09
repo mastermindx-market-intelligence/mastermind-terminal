@@ -135,6 +135,38 @@ describe("sector rotation historical owner contract", () => {
     expect(parsed?.series.xlk.points.at(-1)).toEqual({ date: "2026-09-25", rs21: 7, rs63: 5 });
   });
 
+  it("preserves native retrospective price-cycle turn markers without calling them migration episodes", () => {
+    const withTurns = {
+      ...historyPayload,
+      sectors: [
+        {
+          ...historyPayload.sectors[0],
+          turns: [
+            { date: "2026-09-22", k: "trough", major: false, provisional: false, mag_pct: 9.2 },
+            { date: "2026-09-24", k: "peak", major: true, provisional: true, mag_pct: null },
+          ],
+        },
+        { ...historyPayload.sectors[1], turns: [] as Array<{ date: string; k: string; major: boolean; provisional: boolean; mag_pct: number | null }> },
+      ],
+    };
+    const parsed = sectorRotationHistory(withTurns);
+    expect(parsed?.series.xlk.cycleTurns).toEqual([
+      { date: "2026-09-22", kind: "trough", major: false, provisional: false, magnitudePct: 9.2 },
+      { date: "2026-09-24", kind: "peak", major: true, provisional: true, magnitudePct: null },
+    ]);
+    expect(parsed?.series.xlf.cycleTurns).toEqual([]);
+
+    const falseFuture = structuredClone(withTurns);
+    falseFuture.sectors[0].turns[1].date = "2026-09-26";
+    expect(sectorRotationHistory(falseFuture)).toBeNull();
+    const backwards = structuredClone(withTurns);
+    backwards.sectors[0].turns.reverse();
+    expect(sectorRotationHistory(backwards)).toBeNull();
+    const invalidKind = structuredClone(withTurns);
+    invalidKind.sectors[0].turns[0].k = "migration";
+    expect(sectorRotationHistory(invalidKind)).toBeNull();
+  });
+
   it("fails the whole history population on duplicate, unordered, or nonfinite points", () => {
     const mutations: Array<(data: typeof historyPayload) => void> = [
       data => { data.sectors[0].rs_history.push({ ...data.sectors[0].rs_history[1] }); },
@@ -310,6 +342,39 @@ describe("SectorRotationMap", () => {
     );
     expect(host.querySelector('[data-testid="rotation-history"]')?.textContent).toContain("+500.0%");
     expect(host.querySelector('[data-sector-rotation-point="xlk"]')?.getAttribute("data-quadrant")).toBe("leading");
+  });
+
+  it("displays date-bound native cycle turns as retrospective evidence, not live migration calls", async () => {
+    const withTurns = {
+      ...historyPayload,
+      sectors: [
+        {
+          ...historyPayload.sectors[0],
+          turns: [
+            { date: "2026-09-22", k: "trough", major: false, provisional: false, mag_pct: 9.2 },
+            { date: "2026-09-24", k: "peak", major: true, provisional: true, mag_pct: null },
+          ],
+        },
+        historyPayload.sectors[1],
+      ],
+    };
+    await render({ history: sectorRotationHistory(withTurns) });
+    const evidence = host.querySelector('[data-testid="rotation-cycle-evidence"]');
+    expect(evidence?.textContent).toContain("Retrospective price-cycle turns");
+    expect(evidence?.textContent).toContain("not a migration episode or a live-time confirmation");
+    expect(evidence?.textContent).toContain("Sep 22");
+    expect(evidence?.textContent).toContain("Sep 24");
+    expect(evidence?.textContent).toContain("currently provisional");
+    const live = host.querySelector('[data-sector-rotation-point="xlk"]')?.getAttribute("style");
+
+    const slider = host.querySelector<HTMLInputElement>('[data-testid="rotation-history"] input[type="range"]')!;
+    await act(async () => {
+      slider.value = "0";
+      slider.dispatchEvent(new Event("input", { bubbles: true }));
+    });
+    expect(evidence?.textContent).toContain("Sep 22");
+    expect(evidence?.textContent).not.toContain("Sep 24");
+    expect(host.querySelector('[data-sector-rotation-point="xlk"]')?.getAttribute("style")).toBe(live);
   });
 
   it("keeps the current snapshot usable when historical owner data is unavailable", async () => {

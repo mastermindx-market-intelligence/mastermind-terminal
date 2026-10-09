@@ -90,6 +90,13 @@ const COPY = {
   historyCount: ["daily reconstructed points", "个每日重建点"],
   historyTrail: ["Selected sector · trailing 21 sessions on the current map scale", "所选板块 · 当前图表刻度上的近21个交易日轨迹"],
   historyClipped: ["Historical positions outside the current map scale are clipped; exact values remain in the date readout.", "超出当前图表刻度的历史位置已裁切；日期读数保留精确数值。"],
+  cycleTurnsTitle: ["Retrospective price-cycle turns", "回溯重建的价格周期转折"],
+  cycleTurnsCaveat: ["Current owner reconstruction — not a migration episode or a live-time confirmation. Marker status may change in later revisions.", "当前来源的回溯重建结果——并非资金轮动交棒事件，也非历史当时确认的信号；后续修订可能改变标记状态。"],
+  cycleTurnsEmpty: ["No native price-cycle turns dated through the selected observation.", "截至所选观察日期，无来源提供的价格周期转折。"],
+  cyclePeak: ["Price peak", "价格高点"], cycleTrough: ["Price trough", "价格低点"],
+  cycleProvisional: ["currently provisional", "当前仍属暂定"],
+  cycleMajor: ["owner-marked major swing", "来源标记的大幅波动"],
+  cycleMagnitude: ["price-leg move", "价格区间变动"],
   method: ["Method and source", "方法与来源"],
   methodCopy: ["Horizontal: 63-session change in the sector/SPY relative-strength ratio. Vertical: 21-session change in the same ratio. Quadrants are sign-based and descriptive, not entry permission.", "横轴：板块/SPY相对强度比率的63个交易日变化；纵轴：同一比率的21个交易日变化。象限按正负划分，仅作描述，不授予入场资格。"],
   sector: ["Sector", "板块"], quadrant: ["Quadrant", "象限"],
@@ -266,6 +273,9 @@ export default function SectorRotationMap(props: SectorRotationMapProps) {
   const historical = historyIndex >= 0 ? historyPoints[historyIndex] : null;
   const historyConnected = props.historyStatus === "ready" && props.history !== null && !!historical;
   const historyTrail = historyConnected ? rotationHistoryTrail(historyPoints, historyIndex, domain) : null;
+  const recentCycleTurns = historyConnected && historical && historySeries
+    ? historySeries.cycleTurns.filter(turn => turn.date <= historical.date).slice(-3)
+    : [];
 
   const refs = useRef<Record<string, HTMLButtonElement | null>>({});
   const name = (point: SectorRotationPoint) => lang === "zh" ? point.nameZh || point.name : point.name;
@@ -369,6 +379,18 @@ export default function SectorRotationMap(props: SectorRotationMapProps) {
         </div>
         <p className={styles.historyFoot}>{historyPoints.length} {t("historyCount")} · {t("historyTrail")}</p>
         {historyTrail?.clipped && <p className={styles.historyFoot}>{t("historyClipped")}</p>}
+        <aside className={styles.cycleEvidence} role="note" data-testid="rotation-cycle-evidence">
+          <h4>{t("cycleTurnsTitle")}</h4>
+          <p>{t("cycleTurnsCaveat")}</p>
+          {recentCycleTurns.length ? <ol>{recentCycleTurns.map(turn =>
+            <li key={`${turn.date}:${turn.kind}`}>
+              <time dateTime={turn.date}>{rotationHistoryDate(turn.date, language)}</time>
+              <span>{t(turn.kind === "peak" ? "cyclePeak" : "cycleTrough")}</span>
+              {turn.magnitudePct !== null && <small>{t("cycleMagnitude")}: {formatValue(turn.magnitudePct, 1, "%")}</small>}
+              {turn.major && <small>{t("cycleMajor")}</small>}
+              {turn.provisional && <small>{t("cycleProvisional")}</small>}
+            </li>)}</ol> : <p>{t("cycleTurnsEmpty")}</p>}
+        </aside>
       </> : <p className={styles.historyUnavailable}>{props.historyStatus === "loading" ? t("historyLoading") : props.historyStatus === "ready" && historySeries && !historyPoints.length ? t("historyThin") : `${t("noTrail")} · ${t("noTrailCopy")}`}</p>}
     </section>
 

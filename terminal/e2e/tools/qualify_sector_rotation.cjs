@@ -89,7 +89,17 @@ let browser;
   const historyText = await historical.innerText();
   check(label + ": historical owner date is visible", historyText.includes(shortDate(history.meta.asOf, lang)), historyText);
   check(label + ": reconstructed provenance is visible at point of use", historyText.includes(lang === "zh" ? "并非Mastermind当时实时观察的记录" : "not a record of what Mastermind observed then"), historyText);
-  const selectedHistory = history.sectors.find(row => row.id === "xlk").rs_history;
+  const nativeHistory = history.sectors.find(row => row.id === "xlk");
+  const selectedHistory = nativeHistory.rs_history;
+  const evidence = rotation.getByTestId("rotation-cycle-evidence");
+  await expect(evidence).toBeVisible();
+  const cycleText = await evidence.innerText();
+  check(label + ": native price-cycle markers remain explicitly retrospective",
+    cycleText.includes(lang === "zh" ? "回溯重建的价格周期转折" : "Retrospective price-cycle turns")
+    && cycleText.includes(lang === "zh" ? "并非资金轮动交棒事件" : "not a migration episode or a live-time confirmation"));
+  const newestNativeTurn = nativeHistory.turns.at(-1);
+  check(label + ": latest native owner swing is date-bound and visible",
+    newestNativeTurn && cycleText.includes(shortDate(newestNativeTurn.date, lang)));
   const sourceDotBefore = await techPoint.getAttribute("style");
   const trail = rotation.getByTestId("rotation-history-trail");
   await expect(trail).toBeVisible();
@@ -100,6 +110,9 @@ let browser;
   const historySlider = historical.getByRole("slider", { name: lang === "zh" ? "历史日期" : "Historical date" });
   await historySlider.fill("0");
   const firstHistory = await historical.innerText();
+  check(label + ": future owner swings disappear from the selected historical view",
+    newestNativeTurn && newestNativeTurn.date > selectedHistory[0].date
+      ? !(await evidence.innerText()).includes(shortDate(newestNativeTurn.date, lang)) : true);
   check(label + ": historical trail follows the selected date",
     await trail.getAttribute("data-selected-date") === selectedHistory[0].date
     && (await trail.locator("polyline").getAttribute("points")).split(" ").length === 1);
