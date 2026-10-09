@@ -78,7 +78,11 @@ const VOL_LEX = {
   termConflictCount: ["Partial IV data · {n} conflicting expiry unavailable", "IV数据不完整 · {n} 个冲突到期日不可用"],
   termConflictAmbiguous: ["Term-curve lines withheld · {n} conflicting expiry has inconsistent DTE", "期限曲线连线暂不显示 · {n} 个冲突到期日的DTE不一致"],
   termUnplaceable:   ["Term-curve lines withheld · {n} supplied row has no valid days-to-expiry value", "期限曲线连线暂不显示 · {n} 个已提供行缺少有效的到期天数"],
-  termInvalidExpiry: ["Curve breaks at {n} supplied row with an invalid expiry date", "曲线在 {n} 个到期日无效的已提供行处断开"],
+  // A break is claimed only where the drawn curve actually breaks; other invalid-expiry rows are "excluded".
+  termInvalidExpiryBreakOne: ["Curve breaks at 1 supplied row with an invalid expiry date", "曲线在 1 个到期日无效的已提供行处断开"],
+  termInvalidExpiryBreak:    ["Curve breaks at {n} supplied rows with an invalid expiry date", "曲线在 {n} 个到期日无效的已提供行处断开"],
+  termInvalidExpiryExcludedOne: ["1 supplied row with an invalid expiry date excluded", "1 个到期日无效的已提供行已排除"],
+  termInvalidExpiryExcluded:    ["{n} supplied rows with an invalid expiry date excluded", "{n} 个到期日无效的已提供行已排除"],
   termExpSelectAria: ["Select {exp}, {dte} days, reported ATM IV {iv}%", "选择 {exp}，{dte} 天，报告平值IV {iv}%"],
   termExpMissingAria:["Select {exp}, {dte} days, ATM IV unavailable", "选择 {exp}，{dte} 天，平值IV不可用"],
   termContango:      ["Contango", "正向期限结构"],
@@ -156,11 +160,25 @@ const VOL_LEX = {
     "The historical band needs the aggregate-trend store (spot + IV per session); it has not been published for this root.",
     "历史区间需要聚合趋势数据（每日现价与IV）；该标的尚未发布。",
   ],
-  vrpOrderRejected:  ["Partial spread history · {n} supplied row rejected for a duplicate or out-of-order date", "差值历史不完整 · {n} 个已提供行因日期重复或顺序错乱被排除"],
+  // "Partial" only when a rejected row lies inside the drawn window's source span.
+  vrpOrderRejectedWindowOne: ["Partial spread history · 1 supplied row rejected for a duplicate or out-of-order date", "差值历史不完整 · 1 个已提供行因日期重复或顺序错乱被排除"],
+  vrpOrderRejectedWindow:    ["Partial spread history · {n} supplied rows rejected for a duplicate or out-of-order date", "差值历史不完整 · {n} 个已提供行因日期重复或顺序错乱被排除"],
+  vrpOrderRejectedOutsideOne: ["1 supplied row outside the displayed window rejected for a duplicate or out-of-order date", "显示区间之外有 1 个已提供行因日期重复或顺序错乱被排除"],
+  vrpOrderRejectedOutside:    ["{n} supplied rows outside the displayed window rejected for a duplicate or out-of-order date", "显示区间之外有 {n} 个已提供行因日期重复或顺序错乱被排除"],
+  vrpOrderRejectedOne: ["1 supplied row rejected for a duplicate or out-of-order date", "1 个已提供行因日期重复或顺序错乱被排除"],
+  vrpOrderRejected:    ["{n} supplied rows rejected for a duplicate or out-of-order date", "{n} 个已提供行因日期重复或顺序错乱被排除"],
   vrpEmptyRejectedTitle: ["Supplied spread history could not be put in session order", "已提供的差值历史无法按交易日排序"],
   vrpEmptyWhyRejected: [
     "Aggregate-trend rows were supplied for this root, but {n} were rejected for duplicate or out-of-order dates, leaving too few sessions in an established order to derive the band.",
     "该标的已提供聚合趋势数据，但其中 {n} 行因日期重复或顺序错乱被排除，顺序确定的交易日不足以推导历史区间。",
+  ],
+  vrpEmptyWhyMalformedOne: [
+    "Aggregate-trend rows were supplied for this root, but 1 supplied row has no valid session date, and fewer than {n} sessions have the dates, closes and IV needed to derive the band.",
+    "该标的已提供聚合趋势数据，但其中 1 个已提供行没有有效的交易日日期，具备推导历史区间所需日期、收盘价与IV的交易日少于 {n} 个。",
+  ],
+  vrpEmptyWhyMalformed: [
+    "Aggregate-trend rows were supplied for this root, but {m} supplied rows have no valid session date, and fewer than {n} sessions have the dates, closes and IV needed to derive the band.",
+    "该标的已提供聚合趋势数据，但其中 {m} 个已提供行没有有效的交易日日期，具备推导历史区间所需日期、收盘价与IV的交易日少于 {n} 个。",
   ],
   vrpEmptyWhyShort: [
     "Aggregate-trend rows were supplied for this root, but fewer than {n} sessions have the closes and IV needed to derive the band.",

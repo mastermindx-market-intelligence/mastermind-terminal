@@ -64,6 +64,21 @@ export function VolTermPanel({
     [continuityWithheld, finite, curve],
   );
   const drawable = finite.length >= 1;
+  // Disclosure counts only (geometry above is unchanged). An invalid-expiry row is claimed as a
+  // break only when its gap placeholder sits strictly inside the drawn line span; a row at an
+  // observed DTE, beyond the drawn span, or under withheld continuity is disclosed as excluded.
+  const invalidExpiryCounts = useMemo(() => {
+    const gapDtes = new Set(admission.invalidExpiryGapDtes);
+    const lo = finite.length ? finite[0].dte : Number.NaN;
+    const hi = finite.length ? finite[finite.length - 1].dte : Number.NaN;
+    let breaks = 0;
+    for (const dte of admission.invalidExpiryDtes) {
+      if (!continuityWithheld && gapDtes.has(dte) && dte > lo && dte < hi) breaks += 1;
+    }
+    return { breaks, excluded: admission.invalidExpiryDtes.length - breaks };
+  }, [admission.invalidExpiryDtes, admission.invalidExpiryGapDtes, continuityWithheld, finite]);
+  const countNote = (n: number, one: Parameters<typeof t>[0], many: Parameters<typeof t>[0]) =>
+    n <= 0 ? null : n === 1 ? t(one) : t(many).replace("{n}", String(n));
   const conflictNotes = [
     admission.ambiguousCoordinateExpiries.size > 0
       ? t("termConflictAmbiguous").replace("{n}", String(admission.ambiguousCoordinateExpiries.size))
@@ -71,7 +86,8 @@ export function VolTermPanel({
         ? t("termConflictCount").replace("{n}", String(admission.conflictExpiries.size))
         : null,
     admission.unplaceableRows > 0 ? t("termUnplaceable").replace("{n}", String(admission.unplaceableRows)) : null,
-    admission.invalidExpiryDtes.length > 0 ? t("termInvalidExpiry").replace("{n}", String(admission.invalidExpiryDtes.length)) : null,
+    countNote(invalidExpiryCounts.breaks, "termInvalidExpiryBreakOne", "termInvalidExpiryBreak"),
+    countNote(invalidExpiryCounts.excluded, "termInvalidExpiryExcludedOne", "termInvalidExpiryExcluded"),
   ].filter((note): note is string => note != null);
   const conflictSummary = conflictNotes.length ? conflictNotes.join(" · ") : null;
 

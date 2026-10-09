@@ -65,7 +65,13 @@ function sessionRuns(pts: VrpPoint[]): VrpPoint[][] {
  * gap: the client never picks a winning revision or a "correct" position, and no return is
  * computed across a pair of rows whose session order is not established.
  */
-function admitSessionDays(raw: unknown[]): { days: (string | null)[]; orderRejected: number } {
+function admitSessionDays(raw: unknown[]): {
+  days: (string | null)[];
+  isoDays: (string | null)[];
+  orderRejected: number;
+  orderRejectedIdx: number[];
+  malformedDates: number;
+} {
   const days = raw.map((d) => volIsoDay(d));
   const suffixMin: (string | null)[] = new Array(days.length).fill(null);
   let min: string | null = null;
@@ -75,15 +81,16 @@ function admitSessionDays(raw: unknown[]): { days: (string | null)[]; orderRejec
     if (d != null && (min == null || d < min)) min = d;
   }
   let max: string | null = null;
-  let orderRejected = 0;
+  const orderRejectedIdx: number[] = [];
   const admittedDays = days.map((d, i) => {
     const admitted = d != null && (max == null || d > max) && (suffixMin[i] == null || d < (suffixMin[i] as string));
     if (d != null && (max == null || d > max)) max = d;
     // A valid ISO day that is not admitted was rejected only for duplicate/out-of-order identity.
-    if (d != null && !admitted) orderRejected += 1;
+    if (d != null && !admitted) orderRejectedIdx.push(i);
     return admitted ? d : null;
   });
-  return { days: admittedDays, orderRejected };
+  const malformedDates = days.reduce((n, d) => (d == null ? n + 1 : n), 0);
+  return { days: admittedDays, isoDays: days, orderRejected: orderRejectedIdx.length, orderRejectedIdx, malformedDates };
 }
 
 export interface VrpHistory {
@@ -92,6 +99,15 @@ export interface VrpHistory {
   supplied: boolean;
   /** Supplied rows with a valid date rejected for a duplicate or out-of-order date. */
   orderRejected: number;
+  /** Source positions (agg.series index) of those order-rejected rows. */
+  orderRejectedIdx: number[];
+  /** Supplied rows whose session date is missing or not a valid ISO day. */
+  malformedDates: number;
+  /**
+   * Wording only, never rendered as data: true when the order rejections alone kept the
+   * series below MIN_SESSIONS (the same rows with their ISO dates taken as given would reach it).
+   */
+  orderCausedShortfall: boolean;
 }
 
 /** Derive the trailing VRP series (vol points) from the agg store's spot+IV columns. */
@@ -102,9 +118,20 @@ export function deriveVrpSeries(agg: AggTrendPayload | null | undefined): VrpPoi
 /** The derived series plus what was supplied and what admission rejected, for honest empty/partial states. */
 export function deriveVrpHistory(agg: AggTrendPayload | null | undefined): VrpHistory {
   const series = agg?.series;
-  if (!Array.isArray(series) || series.length === 0) return { points: [], supplied: false, orderRejected: 0 };
-  const { days, orderRejected } = admitSessionDays(series.map((row) => row?.d));
-  if (series.length < 22) return { points: [], supplied: true, orderRejected };
+  if (!Array.isArray(series) || series.length === 0) {
+    return { points: [], supplied: false, orderRejected: 0, orderRejectedIdx: [], malformedDates: 0, orderCausedShortfall: false };
+  }
+  const { days, isoDays, orderRejected, orderRejectedIdx, malformedDates } = admitSessionDays(series.map((row) => row?.d));
+  const base = { supplied: true, orderRejected, orderRejectedIdx, malformedDates };
+  if (series.length < 22) return { ...base, points: [], orderCausedShortfall: false };
+  const all = derivePoints(series, days);
+  const orderCausedShortfall = orderRejected > 0 && all.length < MIN_SESSIONS
+    && derivePoints(series, isoDays).length >= MIN_SESSIONS;
+  return { ...base, points: all.slice(-WINDOW), orderCausedShortfall };
+}
+
+/** rv20-based spread points for every session whose 20-return window is fully established by `days`. */
+function derivePoints(series: NonNullable<AggTrendPayload["series"]>, days: (string | null)[]): VrpPoint[] {
   const out: VrpPoint[] = [];
   // log returns over published closes; rv20 = stdev(last 20) × √252, in percent.
   const rets: number[] = [];
@@ -123,7 +150,19 @@ export function deriveVrpHistory(agg: AggTrendPayload | null | undefined): VrpHi
     const rv20 = Math.sqrt(varSum * 252) * 100;
     out.push({ d: days[i] as string, v: iv * 100 - rv20, i });
   }
-  return { points: out.slice(-WINDOW), supplied: true, orderRejected };
+  return out;
+}
+
+/** Order-rejection note: "Partial" only when a rejected row lies inside the drawn window's source span. */
+export function vrpOrderNote(lang: Lang, n: number, scope: "window" | "outside" | "undrawn"): string | null {
+  if (n <= 0) return null;
+  const t = makeVolT(lang);
+  const [one, many] = scope === "window"
+    ? (["vrpOrderRejectedWindowOne", "vrpOrderRejectedWindow"] as const)
+    : scope === "outside"
+      ? (["vrpOrderRejectedOutsideOne", "vrpOrderRejectedOutside"] as const)
+      : (["vrpOrderRejectedOne", "vrpOrderRejected"] as const);
+  return n === 1 ? t(one) : t(many).replace("{n}", String(n));
 }
 
 function pctileOf(sorted: number[], p: number): number {
@@ -229,15 +268,21 @@ export function VolVrpPanel({
     currentStats?.regime === "elevated" ? "var(--warn)" : currentStats?.regime === "compressed" ? "var(--signal)" : "var(--text)";
 
   // A supplied store is never described as unpublished; rejected rows are counted, not hidden.
-  const orderNote = derived.orderRejected > 0
-    ? t("vrpOrderRejected").replace("{n}", String(derived.orderRejected))
-    : null;
-  const emptyTitle = derived.supplied && derived.orderRejected > 0 ? t("vrpEmptyRejectedTitle") : t("vrpEmptyTitle");
+  const drawn = enough && pts.length > 0;
+  const rejectedInWindow = drawn
+    && derived.orderRejectedIdx.some((r) => r >= pts[0].i && r <= pts[pts.length - 1].i);
+  const orderNote = vrpOrderNote(lang, derived.orderRejected, rejectedInWindow ? "window" : drawn ? "outside" : "undrawn");
+  // Name the cause that actually emptied a supplied store: ordering only when it alone kept the
+  // series short, then malformed dates, else too few sessions with closes and IV.
+  const emptyTitle = derived.supplied && derived.orderCausedShortfall ? t("vrpEmptyRejectedTitle") : t("vrpEmptyTitle");
   const emptyWhy = !derived.supplied
     ? t("vrpEmptyWhy")
-    : derived.orderRejected > 0
+    : derived.orderCausedShortfall
       ? t("vrpEmptyWhyRejected").replace("{n}", String(derived.orderRejected))
-      : t("vrpEmptyWhyShort").replace("{n}", String(MIN_SESSIONS));
+      : derived.malformedDates > 0
+        ? (derived.malformedDates === 1 ? t("vrpEmptyWhyMalformedOne") : t("vrpEmptyWhyMalformed").replace("{m}", String(derived.malformedDates)))
+          .replace("{n}", String(MIN_SESSIONS))
+        : t("vrpEmptyWhyShort").replace("{n}", String(MIN_SESSIONS));
 
   const fmtPts = (v: number | null | undefined, signed = false) =>
     v == null || !Number.isFinite(v)
