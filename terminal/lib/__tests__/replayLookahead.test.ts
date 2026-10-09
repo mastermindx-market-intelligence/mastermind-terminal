@@ -378,7 +378,8 @@ describe("Golden Oracle replay chip knowledge admission", () => {
     expect(replayChipAnchor(legacy, ...day("2026-03-02")).anchor?.type).toBe("BUY");
   });
   it("does not change blocked-anchor semantics or mutate the source", () => {
-    const copy = [...signals, { ts: "2026-03-03", known_ts: "2026-03-03", type: "BUY", quality: "regime_blocked" }];
+    const copy: { ts: string; known_ts: string; type: string; quality?: string }[] =
+      [...signals, { ts: "2026-03-03", known_ts: "2026-03-03", type: "BUY", quality: "regime_blocked" }];
     const before = JSON.stringify(copy);
     expect(replayChipAnchor(copy, ...day("2026-03-03")).anchor?.type).toBe("SELL");
     expect(replayChipAnchor(copy, ...day("2026-03-03")).blockedTail?.quality).toBe("regime_blocked");
