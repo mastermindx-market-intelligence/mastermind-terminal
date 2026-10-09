@@ -43,7 +43,7 @@
 
 import { timeToMs } from "@/lib/timeWindow";
 import { isIntradayTf, tfSeconds } from "@/lib/intradayShared";
-import { RETRO_RULE_DATE, isRetroOverride, signalKnownTs } from "@/lib/signalVerdict";
+import { RETRO_RULE_DATE, anchorSignal, isRetroOverride, signalKnownTs } from "@/lib/signalVerdict";
 
 /** Replay never rewinds past this bar — the indicator stack needs a warmup window. */
 export const REPLAY_MIN_IDX = 20;
@@ -248,6 +248,22 @@ export function replaySignalAdmission(
   if (typeof ts !== "string" || ts > lastSession) return { show: false, retro: false };
   if (replaying && (signalKnownTs(s) ?? ts).slice(0, 10) > lastSession) return { show: false, retro: false };
   return { show: true, retro: isRetroOverride(s) && (!replaying || lastSession >= RETRO_RULE_DATE) };
+}
+
+
+/** The replay chip uses the marker knowledge horizon before the shared live anchor rule. */
+export function replayChipAnchor<S extends {
+  ts?: unknown; type?: unknown; quality?: unknown; blocked?: unknown;
+  known_ts?: unknown; retro_override?: unknown;
+}>(
+  signals: readonly (S | null | undefined)[] | null | undefined,
+  lastSession: string | null,
+  replaying: boolean,
+): { anchor: S | null; blockedTail: S | null } {
+  const admitted = replaying
+    ? signals?.filter(s => lastSession != null && replaySignalAdmission(s, lastSession, true).show)
+    : signals;
+  return anchorSignal(admitted, lastSession);
 }
 
 const dateOf = (v: unknown): string | null => (typeof v === "string" && v.length >= 10 ? v.slice(0, 10) : null);

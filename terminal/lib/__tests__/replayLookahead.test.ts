@@ -2,6 +2,7 @@ import { describe, it, expect } from "vitest";
 import { detectGapZones, gapZonesAsOf, type GapBar } from "@/lib/gapZones";
 import {
   eodSnapshotKnown,
+  replayChipAnchor,
   replayDayChangePct,
   replayEarlyDotAdmission,
   replayReceiptAdmission,
@@ -345,5 +346,33 @@ describe("the per-chart axis map stays bounded", () => {
     m = recordReplayAxis(m, "NEW|W", axis(25), new Set(["S39|D"]));
     expect(m["S39|D"]).toBeDefined();
     expect(m["NEW|W"]).toBeDefined();
+  });
+});
+
+
+describe("Golden Oracle replay chip knowledge admission", () => {
+  const signals = [
+    { ts: "2026-03-01", known_ts: "2026-03-01", type: "SELL" },
+    { ts: "2026-03-02", known_ts: "2026-03-04", type: "BUY" },
+  ];
+  it("keeps the prior admitted verdict until the new signal is knowable", () => {
+    expect(replayChipAnchor(signals, "2026-03-03", true).anchor?.type).toBe("SELL");
+    expect(replayChipAnchor(signals, "2026-03-04", true).anchor?.type).toBe("BUY");
+  });
+  it("withholds a lone not-yet-known signal, while retaining live semantics", () => {
+    expect(replayChipAnchor(signals.slice(1), "2026-03-03", true).anchor).toBeNull();
+    expect(replayChipAnchor(signals, "2026-03-03", false).anchor?.type).toBe("BUY");
+  });
+  it("preserves coordinate and legacy known-date fallback rules", () => {
+    const legacy = [{ ts: "2026-03-02", type: "BUY" }];
+    expect(replayChipAnchor(legacy, "2026-03-01", true).anchor).toBeNull();
+    expect(replayChipAnchor(legacy, "2026-03-02", true).anchor?.type).toBe("BUY");
+  });
+  it("does not change blocked-anchor semantics or mutate the source", () => {
+    const copy = [...signals, { ts: "2026-03-03", known_ts: "2026-03-03", type: "BUY", quality: "regime_blocked" }];
+    const before = JSON.stringify(copy);
+    expect(replayChipAnchor(copy, "2026-03-03", true).anchor?.type).toBe("SELL");
+    expect(replayChipAnchor(copy, "2026-03-03", true).blockedTail?.quality).toBe("regime_blocked");
+    expect(JSON.stringify(copy)).toBe(before);
   });
 });

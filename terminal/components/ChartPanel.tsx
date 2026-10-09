@@ -570,7 +570,7 @@ import { buildVisualSeries, participationColor, visualOverlayBundle, visualReado
   EMPTY_VISUAL_CALENDAR, type ChartReadoutMeta, type VisualCalendar, type VisualIntelligenceSettings,
   type VisualSeries } from "@/lib/visualIntelligence";
 import { candleVolumeRank } from "@/lib/suites/trend/candlePainter";
-import { eodSnapshotKnown, replayAxisOf, replayDayChangePct, replayEarlyDotAdmission, replayReceiptAdmission, replaySignalAdmission, replayVisibleCount, replayWarningAdmission, type ReplayAxis, type ReplayCutoff } from "@/lib/replayContract";
+import { eodSnapshotKnown, replayAxisOf, replayChipAnchor, replayDayChangePct, replayEarlyDotAdmission, replayReceiptAdmission, replaySignalAdmission, replayVisibleCount, replayWarningAdmission, type ReplayAxis, type ReplayCutoff } from "@/lib/replayContract";
 import { detectGapZones, gapZonesAsOf, type GapZone } from "@/lib/gapZones";
 
 export default function ChartPanel({ symbol, chartType = "candles", indicators, timeframe = "D", replayCutoff = null, onMeta, tool = null, toolActivation = 0, drawingSticky = false, drawingCreationDisabled = false, drawStyle, drawings = [], onDrawingsChange, detectCmd = null, magnet = "off", compare = [], compareCfg = EMPTY_OBJ, isActive = true, syncId = null, liveQuote = null,
@@ -2907,7 +2907,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
       let vBasis: string | undefined;
       let vQuality: string | undefined;
       if (Array.isArray(sigs) && sigs.length) {
-        const { anchor } = anchorSignal(sigs, lastDate);
+        const { anchor } = replayChipAnchor(sigs, lastDate, replayIdxRef.current != null);
         if (anchor) { v = String(anchor.type).toUpperCase(); vBasis = sliceSignalBasis(anchor); vQuality = anchor.quality; }
       } else {
         const sm = sigMarksRef.current.filter((m) => m.type !== "PROPHET");
