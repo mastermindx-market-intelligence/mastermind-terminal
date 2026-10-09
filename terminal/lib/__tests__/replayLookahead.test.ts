@@ -131,9 +131,9 @@ describe("signal marks under replay", () => {
 
   it("live: unchanged — date horizon only, retro projection shown", () => {
     expect(replaySignalAdmission(retro, "2026-08-12", false)).toEqual({ show: true, retro: true });
-    expect(replaySignalAdmission({ ts: "2026-08-13", type: "BUY" }, "2026-08-12", false)).toEqual({ show: false, retro: false });
+    expect(replaySignalAdmission({ ts: "2026-08-13" }, "2026-08-12", false)).toEqual({ show: false, retro: false });
     // live keeps the chart-coordinate horizon it always had
-    expect(replaySignalAdmission({ ts: "2026-03-03", known_ts: "2026-03-06", type: "BUY" }, "2026-03-04", false).show).toBe(true);
+    expect(replaySignalAdmission({ ts: "2026-03-03", known_ts: "2026-03-06" }, "2026-03-04", false).show).toBe(true);
   });
 
   it("a retro projection is not painted on a chart rewound to before its rule existed", () => {
@@ -146,8 +146,8 @@ describe("signal marks under replay", () => {
     const late = { ts: "2026-03-03", known_ts: "2026-03-06", type: "BUY" };
     expect(replaySignalAdmission(late, "2026-03-04", true).show).toBe(false);
     expect(replaySignalAdmission(late, "2026-03-06", true).show).toBe(true);
-    expect(replaySignalAdmission({ ts: "2026-03-05", type: "SELL" }, "2026-03-04", true).show).toBe(false);
-    expect(replaySignalAdmission({ ts: 7 as unknown as string, type: "SELL" }, "2026-03-04", true).show).toBe(false);
+    expect(replaySignalAdmission({ ts: "2026-03-05" }, "2026-03-04", true).show).toBe(false);
+    expect(replaySignalAdmission({ ts: 7 }, "2026-03-04", true).show).toBe(false);
   });
 
   it("the client-Pine fallback is prefix-stable: later bars never move or add an earlier mark", () => {
