@@ -18,7 +18,8 @@ vi.mock("@/lib/rateLimit", () => ({
   tooMany: mocks.tooMany,
 }));
 
-vi.mock("@/lib/entitlement", () => ({
+vi.mock("@/lib/entitlement", async (importOriginal) => ({
+  ...await importOriginal<typeof import("../entitlement")>(),
   hasLiveOptions: mocks.hasLiveOptions,
 }));
 
