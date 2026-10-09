@@ -611,6 +611,30 @@ const PROPHET_LEX = {
   error:      ["Could not load prophet data.", "无法加载预言台数据。"],
   retry:      ["Retry", "重试"],
   asOf:       ["as of", "更新于"],
+
+  // ── Shared themes · latest U.S. picks (gate #8; SelectionCohortCard) ───────
+  // Counts only: theme names stay withheld until plain-language labels publish.
+  cohortTitle:              ["Shared themes · latest U.S. picks", "共同主题 · 最新美股入选"],
+  cohortAuthority:          ["context only — not a signal", "仅供背景参考 — 非信号"],
+  cohortUnavailable:        ["Theme context isn't available for these picks right now.", "暂时无法提供这批入选标的的主题背景。"],
+  cohortWhyFeed:            ["It hasn't been published yet — it's built after the nightly U.S. run.", "尚未发布——它在每晚美股运行之后生成。"],
+  cohortWhySource:          ["These picks couldn't be matched to their recorded source, so nothing is shown rather than a guess.", "这批入选未能与其记录来源对上，因此不显示，而不是给出猜测。"],
+  cohortWhyChecks:          ["The theme read for these picks didn't pass its checks, so nothing is shown.", "这批入选的主题读取未通过校验，因此不显示。"],
+  cohortEmpty:              ["No U.S. picks were finalized for this run.", "本次运行没有确定的美股入选。"],
+  cohortEmptyWhy:           ["With no picks there are no shared themes to show.", "没有入选标的，也就没有可显示的共同主题。"],
+  cohortOverlapShared:      ["Some of these picks share at least one theme.", "部分入选标的至少共享一个主题。"],
+  cohortOverlapNone:        ["These picks don't share a theme — they come from different stories.", "这批入选没有共同主题——它们来自不同的故事线。"],
+  cohortOverlapUnknown:     ["Not enough is known yet to say whether these picks share themes.", "目前信息不足，无法判断这批入选是否有共同主题。"],
+  cohortPartialWhy:         ["Theme data is incomplete for some picks in this run.", "本次运行中部分入选的主题数据不完整。"],
+  cohortStale:              ["Showing the last copy we received — the latest one couldn't be fetched.", "显示的是上次收到的版本——最新版本未能获取。"],
+  cohortStatPicks:          ["Picks", "入选"],
+  cohortStatThemes:         ["Themes found", "发现主题"],
+  cohortStatShared:         ["Shared by 2+", "2只以上共享"],
+  cohortStatShown:          ["Shown", "可显示"],
+  cohortWithheld:           ["themes withheld from display", "个主题不予显示"],
+  cohortWithheldInternal:   ["licensed for internal use only", "仅限内部使用授权"],
+  cohortWithheldUnresolved: ["display rights not yet confirmed", "展示权限尚未确认"],
+  cohortNamesPending:       ["Theme names appear here once plain-language labels are published.", "通俗主题名称发布后将在此显示。"],
 } as const;
 
 type ProphetKey = keyof typeof PROPHET_LEX;

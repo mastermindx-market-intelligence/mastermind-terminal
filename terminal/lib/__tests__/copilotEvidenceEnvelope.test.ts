@@ -151,24 +151,22 @@ describe("curator consumer statuses", () => {
     );
     const unavailable = { no_data: true, reason: "no fundamentals file for symbol" };
 
-    expect(unknownRisk.freshness).toBe("unknown");
-    expect(unknownRisk.stale).not.toBe(false);
-    expect(staleRisk.freshness).toBe("stale");
+    // #856 market_risk contract: stale boolean plus named stale_reasons.
+    expect(unknownRisk.stale).toBe(true);
+    expect(unknownRisk.stale_reasons).toContain("missing_or_invalid_asof");
     expect(staleRisk.stale).toBe(true);
     expect(mixedGex.mixed_source).toBe(true);
     expect(unavailable.no_data).toBe(true);
 
     const cappedUnknown = capJson({
       symbol: "MKT",
-      freshness: unknownRisk.freshness,
       stale: unknownRisk.stale,
-      clock_status: unknownRisk.clock_status,
+      stale_reasons: unknownRisk.stale_reasons,
       limitations: "unknown clock is not a fresh verdict",
       story: "s".repeat(8000),
     });
-    expect(cappedUnknown.freshness).toBe("unknown");
-    expect(cappedUnknown.stale).not.toBe(false);
-    expect(cappedUnknown.clock_status).toBe("missing");
+    expect(cappedUnknown.stale).toBe(true);
+    expect(cappedUnknown.stale_reasons).toEqual(unknownRisk.stale_reasons);
 
     const cappedMixed = capJson({
       symbol: "SPY",

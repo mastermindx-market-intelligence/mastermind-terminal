@@ -446,8 +446,8 @@ describe("curateInsiders / curateIntel", () => {
 });
 
 describe("curateMarketRisk / curatePlane", () => {
-  it("market risk: verdict + 48h staleness", () => {
-    const fresh = curateMarketRisk({ built: "2026-07-13T06:00:00Z", display: { verdict: "RISK_ON", score: 71.4, label_en: "Risk on" } }, NOW);
+  it("market risk: verdict and actual source-session freshness", () => {
+    const fresh = curateMarketRisk({ nightly_asof: "2026-07-13", built: "2026-07-13T06:00:00Z", display: { verdict: "RISK_ON", score: 71.4, label_en: "Risk on" } }, NOW);
     expect(fresh).toMatchObject({ verdict: "RISK_ON", score: 71, label: "Risk on", stale: false });
     const old = curateMarketRisk({ built: "2026-07-10T06:00:00Z", display: { verdict: "RISK_ON", score: 71 } }, NOW);
     expect(old.stale).toBe(true);
@@ -459,16 +459,19 @@ describe("curateMarketRisk / curatePlane", () => {
     const missing = curateMarketRisk({ display }, NOW);
     const malformed = curateMarketRisk({ built: "not-a-clock", display }, NOW);
     const future = curateMarketRisk({ built: "2026-07-15T00:00:00Z", display }, NOW);
+    // #856 market_risk contract: staleness is a boolean plus named stale_reasons.
     for (const out of [missing, malformed, future]) {
       expect(out.stale).not.toBe(false);
-      expect(out.freshness === "unknown" || out.no_data === true).toBe(true);
+      expect(out.stale === true || out.no_data === true).toBe(true);
     }
+    expect(malformed.stale_reasons).toContain("invalid_built");
+    expect(future.stale_reasons).toContain("future_built");
   });
-  it("compares unrounded elapsed age against the 48h threshold", () => {
+  it("an aged build clock without a source session is never a fresh verdict", () => {
     const built = new Date(NOW - 48.4 * 3_600_000).toISOString();
     const out = curateMarketRisk({ built, display: { verdict: "RISK_ON", score: 71 } }, NOW);
     expect(out.stale).toBe(true);
-    expect(out.freshness).toBe("stale");
+    expect(out.stale_reasons).toContain("missing_or_invalid_asof");
   });
   it("plane: headline regime fields + producer staleness contract", () => {
     const out = curatePlane({ asof: "2026-07-13", verdict: { verdict: "RISK_ON", score: 0.6, label_en: "Risk on" }, regime: { quad: "Q2", quad_name: "Reflation", confidence: 0.8, cycle_tag: "mid", transition_state: "stable" }, vol: { regime: "calm", risk_score: 22 }, liquidity_plumbing: { state: "ample", netliq_bn: 6210 }, contradiction_count: 1 }, NOW);

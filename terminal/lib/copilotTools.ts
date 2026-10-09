@@ -20,6 +20,7 @@ import { computeRatings, type Row as RatingRow } from "@/lib/techRating";
 import { ema, atr, supertrend, bollingerBands, type Bar } from "@/lib/indicatorMath";
 import { verdictIsStale, ORACLE_STALE_DAYS, anchorSignal, signalKnownTs, isBlockedSignal, sliceSignalBasis } from "@/lib/signalVerdict";
 import { isStalePlane, type MarketPlane } from "@/lib/nwPlane";
+import { normalizeMarketRisk } from "@/lib/marketRisk";
 import { nextDateCountdown } from "@/lib/finFormat";
 // Same upstream topology as app/api/flow/route.ts (Python hub first, R2 mirror second) and
 // app/api/nw/route.ts — the shared endpoint constants live in lib/upstreams (the routes
@@ -918,57 +919,46 @@ export function curateIntel(intel: unknown): Record<string, unknown> {
   return out;
 }
 
-const MARKET_RISK_STALE_MS = 48 * 3_600_000;
-
-export type ClockFreshness = "fresh" | "stale" | "unknown";
-
-/** Missing, malformed and future clocks are unknown — never a supported fresh verdict.
- *  Age is compared as unrounded elapsed milliseconds against the 48h threshold. */
-export function classifyBuildClock(builtRaw: unknown, nowMs: number): {
-  freshness: ClockFreshness;
-  stale: boolean | null;
-  age_hours: number | null;
-  built: string | null;
-  clock_status: "ok" | "missing" | "malformed" | "future";
-} {
-  if (builtRaw == null || builtRaw === "") {
-    return { freshness: "unknown", stale: null, age_hours: null, built: null, clock_status: "missing" };
-  }
-  if (typeof builtRaw !== "string") {
-    return { freshness: "unknown", stale: null, age_hours: null, built: null, clock_status: "malformed" };
-  }
-  const builtMs = Date.parse(builtRaw);
-  if (!Number.isFinite(builtMs)) {
-    return { freshness: "unknown", stale: null, age_hours: null, built: builtRaw, clock_status: "malformed" };
-  }
-  const elapsedMs = nowMs - builtMs;
-  if (elapsedMs < 0) {
-    return { freshness: "unknown", stale: null, age_hours: elapsedMs / 3_600_000, built: builtRaw, clock_status: "future" };
-  }
-  const stale = elapsedMs > MARKET_RISK_STALE_MS;
-  return {
-    freshness: stale ? "stale" : "fresh",
-    stale,
-    age_hours: elapsedMs / 3_600_000,
-    built: builtRaw,
-    clock_status: "ok",
-  };
-}
-
 export function curateMarketRisk(mr: unknown, nowMs: number = Date.now()): Record<string, unknown> {
-  const m = mr as Record<string, unknown> | null;
-  const disp = m?.display as Record<string, unknown> | undefined;
-  if (!disp?.verdict) return { no_data: true, reason: "market_risk.json unavailable on this box" };
-  const clock = classifyBuildClock(m!.built, nowMs);
+  const read = normalizeMarketRisk(mr, nowMs);
+  if (!read) return { no_data: true, reason: "market_risk.json unavailable or invalid" };
+  const obj = (value: unknown): Record<string, unknown> =>
+    value !== null && typeof value === "object" && !Array.isArray(value) ? value as Record<string, unknown> : {};
+  const fields = (value: unknown, keys: string[]) => {
+    const input = obj(value);
+    return Object.fromEntries(keys.map(key => [key, typeof input[key] === "string" ? trimStr(input[key], 96) : input[key] ?? null]));
+  };
+  const env = read.risk_envelope, transition = obj(env?.market_transition);
+  const change = obj(transition.latest_recorded_change);
+  const envelope = env ? {
+    ...fields(env, ["bundle_id", "source_session", "revision", "data_state", "observed_at", "produced_at", "stale_after"]),
+    measured_state: fields(env.measured_state, ["verdict", "score", "usable"]),
+    hazard_summary: fields(env.hazard_summary, ["stage"]),
+    policy_summary: fields(env.policy_summary, ["posture", "basis"]),
+    rotation_context: fields(env.rotation_context, ["state", "as_of", "usable", "coverage"]),
+    confluence: fields(env.confluence, ["state", "lineage_status", "nonredundant_component_count",
+      "statistical_independence_established", "changes_hazard_stage", "changes_policy"]),
+    market_transition: {
+      current_matches_latest_record: transition.current_matches_latest_record ?? null,
+      latest_recorded_change: Object.keys(change).length ? {
+        before: fields(change.before, ["asof", "verdict"]), after: fields(change.after, ["asof", "verdict"]),
+        verdict_changed: change.verdict_changed ?? null,
+      } : null,
+    },
+    authority: fields(env.authority, ["envelope_may_rank", "envelope_may_gate", "envelope_may_size", "envelope_may_execute"]),
+  } : null;
   return {
-    verdict: disp.verdict,
-    score: rnd(disp.score, 0),
-    label: disp.label_en ?? disp.verdict,
-    built: clock.built ?? m!.built ?? null,
-    age_hours: clock.age_hours,
-    stale: clock.stale,
-    freshness: clock.freshness,
-    clock_status: clock.clock_status,
+    verdict: read.verdict, score: rnd(read.score, 0), label: trimStr(read.label_en ?? read.verdict, 48),
+    asof: read.asof, built: read.built, source_event_time: read.source_event_time, stale_after: read.stale_after,
+    source_basis: read.source_basis, cause_basis: read.cause_basis,
+    ...(read.display_pending || (read.source_verdict && read.source_verdict !== read.verdict)
+      ? { source_verdict: read.source_verdict, display_pending: fields(read.display_pending, ["verdict", "ticks", "needs"]) } : {}),
+    score_source: read.score_source, raw_score: read.raw_score, capped: read.capped,
+    score_caps: read.score_caps.slice(0, 2).map(cap => scalarize(cap, 4)),
+    stale: read.stale, stale_reasons: read.stale_reasons, age_hours: read.age_hours,
+    risk_envelope: envelope,
+    ...(envelope ? {} : { risk_envelope_freshness: read.risk_envelope_freshness }),
+    is_display_only: true,
   };
 }
 
@@ -1043,7 +1033,20 @@ async function runScreen(args: Record<string, unknown> | null): Promise<Record<s
 
 async function runMarketState(): Promise<Record<string, unknown>> {
   const [mr, plane] = await Promise.all([readDataJson("market_risk.json"), fetchPlane()]);
-  return { market_risk: curateMarketRisk(mr), neural_web_plane: curatePlane(plane) };
+  const marketRisk = curateMarketRisk(mr);
+  const result: Record<string, unknown> = { market_risk: marketRisk, neural_web_plane: curatePlane(plane) };
+  // The generic cap may drop its largest root key. Preserve the actual market and
+  // rotation reader by trimming verbose detail before that fallback can erase it.
+  if (JSON.stringify(result).length > CAP_CHARS) {
+    result.truncated = true;
+    delete marketRisk.label;
+    delete marketRisk.age_hours;
+    if (Array.isArray(marketRisk.score_caps)) marketRisk.score_caps_omitted = marketRisk.score_caps.length;
+    delete marketRisk.score_caps;
+    const planeBudget = Math.max(100, CAP_CHARS - JSON.stringify(marketRisk).length - 70);
+    result.neural_web_plane = capJson(result.neural_web_plane as Record<string, unknown>, planeBudget);
+  }
+  return result;
 }
 
 /**
