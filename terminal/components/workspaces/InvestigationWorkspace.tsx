@@ -49,7 +49,7 @@ export default function InvestigationWorkspace({ownerKey,initialSymbol,initialIn
  const [layouts,setLayouts]=useState<Layout[]>([]),[layoutError,setLayoutError]=useState(false);
  const [saveState,setSaveState]=useState<InvestigationSaveState>({phase:"idle"}),[message,setMessage]=useState("");
  const [storageBlocked,setStorageBlockedState]=useState(false),[authEnded,setAuthEnded]=useState(false),[filter,setFilter]=useState<"active"|"removed">("active");
- const scope=useRef<AbortController|null>(null),detailSeq=useRef(0),baselineSeq=useRef(0),stateRef=useRef<InvestigationSaveState>({phase:"idle"});
+ const scope=useRef<AbortController|null>(null),inventorySeq=useRef(0),detailSeq=useRef(0),baselineSeq=useRef(0),stateRef=useRef<InvestigationSaveState>({phase:"idle"});
  const storageBlockedRef=useRef(false);
  const setStorageBlocked=(blocked:boolean)=>{storageBlockedRef.current=blocked;setStorageBlockedState(blocked);};
  const editLocked=()=>stateRef.current.phase==="pending"||stateRef.current.phase==="uncertain"||storageBlockedRef.current||!!scope.current?.signal.aborted;
@@ -66,8 +66,12 @@ export default function InvestigationWorkspace({ownerKey,initialSymbol,initialIn
   return value;
  }
  async function inventory() {
-  try {const value=await json("/api/investigations");if(!record(value)||value.status!=="listed"||!Array.isArray(value.items)) throw Error("unavailable");setItems(value.items as InvestigationSummary[]);setListError(false);}
-  catch {if(!scope.current?.signal.aborted)setListError(true);}
+  const ticket=++inventorySeq.current,controller=scope.current;
+  const current=()=>ticket===inventorySeq.current&&controller===scope.current&&!!controller&&!controller.signal.aborted;
+  // The mount read may finish after a committed save has refreshed the library.
+  // Only the newest request in this authenticated scope may install data or errors.
+  try {const value=await json("/api/investigations");if(!current())return;if(!record(value)||value.status!=="listed"||!Array.isArray(value.items)) throw Error("unavailable");setItems(value.items as InvestigationSummary[]);setListError(false);}
+  catch {if(current())setListError(true);}
  }
  async function resolveBaseline(url:string) {
   const ticket=++baselineSeq.current;setBaseline(null);setSeenAt(null);setBaselineState("loading");
@@ -142,7 +146,7 @@ export default function InvestigationWorkspace({ownerKey,initialSymbol,initialIn
  }
  useEffect(()=>{
   const controller=new AbortController();scope.current=controller;
-  setAuthEnded(false);setItems(null);setDetail(null);setBaseline(null);setSave({phase:"idle"});setStorageBlocked(false);
+  setAuthEnded(false);setItems(null);setListError(false);setDetail(null);setBaseline(null);setSave({phase:"idle"});setStorageBlocked(false);
   void inventory();
   void json("/api/layouts").then(value=>{
    if(!record(value)||!Array.isArray(value.layouts))throw Error("unavailable");

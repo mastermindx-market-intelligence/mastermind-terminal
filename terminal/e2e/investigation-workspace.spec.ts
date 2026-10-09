@@ -20,6 +20,33 @@ async function setup(page:Page) {
  await page.route("**/api/investigations/baseline?*",route=>route.fulfill({json:fixtureBaseline}));
 }
 
+test("late mount inventory cannot hide a saved question",async({page},testInfo)=>{
+ await setup(page);let saved:ReturnType<typeof committed>|null=null,reads=0;
+ let finishInitial:(()=>Promise<void>)|undefined;
+ await page.route("**/api/investigations{,?*}",async route=>{
+  const request=route.request(),query=new URL(request.url()).searchParams;
+  if(request.method()==="POST"){const command=request.postDataJSON();saved=committed(command.id,command.manifest,command.operation_id);await route.fulfill({json:saved});return;}
+  if(query.has("id")){await route.fulfill({json:{...saved,status:"found",current_revision:1,layouts:[]}});return;}
+  if(++reads===1){finishInitial=()=>route.fulfill({json:{status:"listed",items:[]}});return;}
+  await route.fulfill({json:{status:"listed",items:saved?[{id:saved.id,revision:1,lifecycle:"active",title:"Inventory race research",question,updated_at:saved.committed_at}]:[]}});
+ });
+ await page.goto("/analysis?view=investigations&symbol=AAPL");
+ await expect.poll(()=>!!finishInitial).toBe(true);
+ await page.getByRole("button",{name:"Start new research"}).click();
+ await page.getByLabel("Title",{exact:true}).fill("Inventory race research");
+ await page.getByLabel("Research question",{exact:true}).fill(question);
+ await page.getByRole("button",{name:"Save research",exact:true}).click();
+ const library=page.getByRole("complementary",{name:"Saved questions"});
+ await expect(library.getByRole("button",{name:/Inventory race research/})).toBeVisible();
+ const oldResponse=page.waitForResponse(response=>response.url().endsWith("/api/investigations")&&response.request().method()==="GET");
+ await finishInitial!();await oldResponse;
+ // A later user-visible action gives React time to process the delayed response.
+ await page.getByRole("button",{name:"Removed",exact:true}).click();
+ await page.getByRole("button",{name:"Active",exact:true}).click();
+ await expect(library.getByRole("button",{name:/Inventory race research/})).toBeVisible();
+ await page.screenshot({path:testInfo.outputPath("inventory-after-late-response.png"),fullPage:true});
+});
+
 test("exact save/readback/reopen and responsive retained evidence are read-only on reopen",async({page},testInfo)=>{
  await setup(page);const writes:unknown[]=[];let saved:ReturnType<typeof committed>|null=null;
  await page.route("**/api/investigations{,?*}",async route=>{

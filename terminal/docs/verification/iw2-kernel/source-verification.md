@@ -1,5 +1,31 @@
 # Investigation kernel repair — source verification
 
+## Saved Research inventory ordering repair (2026-10-09)
+
+Over exact source `95bfaf62845b777001f8ceeccb1a3e8de1e30b6e`, a delayed
+mount-time library read could replace the post-save list, or a delayed failure
+could hide the healthy list. Inventory installation now requires both the newest
+request ticket and the original active authentication scope. An account scope
+reset also clears the old library error. This changes neither RPCs nor persistence.
+
+The nine component regressions use the actual save/readback flow with deferred
+external responses. The unchanged source fails seven and passes two; the repair
+passes all nine. Combined selection/save/recovery suites: 41 pass. Full Vitest:
+466 files, 7,673 pass, four existing TODOs. TypeScript no-emit/non-incremental passes.
+The affected responsive suite passes all 27 cases across 1440×900, 820×1180 and
+390×844, including EN/ZH, 320px doubled text and the new delayed-response journey.
+These are fixture-based browser receipts, not authenticated production proof.
+
+The new component test and affected browser test pass ESLint with zero warnings.
+The component itself has the same pre-existing one set-state-in-effect error and
+three exhaustive-deps warnings on both the baseline and candidate; their rule,
+severity and message identities were compared. Component lint is not claimed green.
+Evidence and screenshots are retained under the original external evidence root
+with prefix `inventory-race-`. Fabric request `iw2-inventory-race-20261009`
+returned `NONE reason=no_pool_available`, then `NOT_FOUND`: no worker started.
+The parent performed this bounded repair in the sole integration checkout.
+All #804 review, rights, ingress, migration, CI and release gates remain in force.
+
 Carrier: Terminal #804, original root `01a104c8-6e11-7e52-93c1-6b8dbc45bb9c`.
 Base: current master `df7a4da3892655f242f626e78ff063d47c6a32ec`, integrated as
 `b265bbdb322c068725e438d72417c2f36772c44c`. The release hold remains in force.
