@@ -430,3 +430,15 @@ describe("P2 uses the *existing* Chart Bus active_security group", () => {
     expect(s.snapshot("active-chart")?.group_revision).toBe(0);
   });
 });
+
+
+describe("existing active-security source cannot be redeclared", () => {
+  it("refuses a second native declaration for Chart Bus's already-owned active_security group", () => {
+    const duplicate = { ...group(), group_id: "active_security" };
+    expect(validateSemanticContextGroup(duplicate).ok).toBe(true);
+    expect(nativeGroupFromSemanticDeclaration(duplicate)).toEqual({
+      ok: false,
+      reason: "native_existing_group_owner",
+    });
+  });
+});

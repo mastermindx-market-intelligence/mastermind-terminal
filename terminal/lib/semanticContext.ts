@@ -657,6 +657,12 @@ export function nativeGroupFromSemanticDeclaration(raw: unknown): NativeSemantic
   const parsed = validateSemanticContextGroup(raw);
   if (!parsed.ok) return { ok: false, reason: "invalid_semantic_declaration" };
   const group = parsed.value;
+  // #802/useChartBus already mounts this group; a parallel declaration could
+  // overwrite or contradict its symbol/timeframe/pane context. Bridge it using
+  // prepareNativeSemanticFrame/projectNativeSemanticPort instead.
+  if (group.group_id === "active_security") {
+    return { ok: false, reason: "native_existing_group_owner" };
+  }
   if (!nativeSafeId(group.session_epoch) || !nativeSafeId(group.group_id)
       || group.ports.some(port => !nativeSafeId(port.port_id))) {
     return { ok: false, reason: "native_identifier_unsupported" };
