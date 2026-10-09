@@ -219,7 +219,8 @@ async function captureState(page, width, lang, state, outPath) {
       }
     }
     await page.waitForTimeout(250);
-    await cropBoxes(page, [await view.boundingBox()], outPath, pad);
+    // No margin: the tab's shell is edge-to-edge, so any pad pulls in slivers of the page chrome.
+    await cropBoxes(page, [await view.boundingBox()], outPath, 0);
     return;
   }
 
