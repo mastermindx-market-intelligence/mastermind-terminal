@@ -2,8 +2,9 @@
 
 ## Legacy as-of dates and recovered drafts (repair round 1, 2026-10-09)
 
-Base `a156f6be`. IW2's retry proposal is applied unchanged as `f7d55f23`; its
-commit diff has the same SHA-256 as the proposed patch (`3c96c021…600ee7`).
+Base `a156f6be`. IW2's retry proposal is applied unchanged as `f7d55f23`: its
+changes are byte-identical, file by file, to the proposed patch (SHA-256
+`3c96c021…600ee7`), and it changes no other file.
 Four client defects dropped or silently refused saved context:
 
 1. Editing a saved record dropped its `research_as_of`. An exact instant is now
