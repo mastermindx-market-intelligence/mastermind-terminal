@@ -89,6 +89,7 @@ describe("term rows with a half-valid coordinate break the curve instead of brid
     expect(host.innerHTML).not.toMatch(/NaN|Infinity/);
     // the gap position is disclosed, and never offered as a selectable expiry identity
     expect(host.querySelector('[data-testid="term-conflict-status"]')?.textContent).toContain("invalid expiry date");
+    expect(host.querySelector('[data-testid="term-conflict-status"]')?.textContent).toContain("Curve breaks at 1 supplied row");
     const options = [...host.querySelectorAll<HTMLOptionElement>('[data-testid="term-expiry-select"] option')].map((o) => o.value);
     expect(options).toEqual(["2026-10-08", "2026-11-30"]);
   });
