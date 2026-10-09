@@ -1,0 +1,162 @@
+{
+  "capability_state": "BUILT_NOT_PROVEN",
+  "source_commit": "d1d09f374f9cb5dbbcf562a366db43ee3cce8819",
+  "base_commit": "f03aa5d019f1894210a7c6e40b8825ae28015198",
+  "source_sha256": {
+    "terminal/app/(shell)/layout.tsx": "f4ecaac71e4dd4a736330d3e4c39e5bafd6a812e6e802b7ccec5f058b400d419",
+    "terminal/components/AppNav.tsx": "ab6d60f0d7f042afbbf187b258565356751b9bed0bcb8dc2cb1f8507f43e6d57",
+    "terminal/components/chrome/AppShell.tsx": "cb59610eea7ac030b32c83914c37056ca9c298fe805ed64016d302ca160515bc",
+    "terminal/components/chrome/investor-shell-preview.css": "d5ed7a1bf2398a11aa3c6ca9edac858bc981448c4006459c7bece6f7740c081c",
+    "terminal/components/prophet/SelectionCohortCard.global.css": "3b30065deec77b3193737648b3059a53134a5190f3e144fa2aa0edf43a6dc9b4",
+    "terminal/components/prophet/SelectionCohortCard.module.css": "9dcf3eb272a684a63728e79c5a94ca7efd4ae7474979fcdfdd11be35be86f2ff",
+    "terminal/components/prophet/SelectionCohortCard.tsx": "b2d4517b7706b9bdc61d15e4ab031a0bfc9b012bf5353f54954b8ccb2c08efb5",
+    "terminal/e2e/investor-shell-bridge.spec.ts": "7624e0da47b5af33cfd54bbe2da33a5e3e29862f6d0c83fa3d98dcf89039cdd2",
+    "terminal/e2e/investor-shell-preview.spec.ts": "a9f898b4ca465e926be65e6d16e937875fb290d685051022b1c654fb779accab",
+    "terminal/lib/__tests__/investorShellPreview.test.tsx": "8bfd13632105d9854113ef18b2dc1cbffd83cb6ecd9519e9502fe73302171c4f",
+    "terminal/lib/__tests__/selectionCohortCssBoundary.test.ts": "b6423c744487a61a82bdf4a1cddd76cfc30aa53605657d9a3a9147045d1a7791",
+    "terminal/lib/investorShellPreview.ts": "07f7f94e2df5b7a23fb717edff466da7673c17d82257bc7e0f94e911b44b6a93"
+  },
+  "primary_browser": {
+    "process": 63369,
+    "exit": 1,
+    "passed": 10,
+    "failed": 4,
+    "skipped": 4,
+    "CI": "1",
+    "retries": 0,
+    "server_reuse": false,
+    "port": 31991,
+    "cwd": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/investor-shell-native-20261008-c1/terminal",
+    "scope": "Analysis/Discover preview, native navigation, EN/ZH, 320px layout and Macro return. Four failures are the unchanged inherited mobile Escape defect."
+  },
+  "mobile_dependency": {
+    "purpose": "LOCAL_TEST_ONLY_NOT_ACCEPTED_OR_RELEASED",
+    "commit": "77ccc547ab4f3ce91b5782d9d485b684b8ba63d9",
+    "tree": "d77bf90017784cf78d785f3b32fb4cb599162fd2",
+    "parents": [
+      "d1d09f374f9cb5dbbcf562a366db43ee3cce8819",
+      "0023bffa7c6c0370f15ec1e3a16398d82fe2cf33"
+    ],
+    "no_source_branch_move": true,
+    "supersedes_local_test_commit": "7fa9126511da7c0f3be3f1058c6f4380454b7eed",
+    "reason": "New CSS compile repair and refusal of reuse-enabled browser proof; requires fresh-server requalification.",
+    "browser": {
+      "process": 64021,
+      "exit": 0,
+      "passed": 31,
+      "skipped": 23,
+      "failed": 0,
+      "CI": "1",
+      "retries": 0,
+      "server_reuse": false,
+      "port": 31993
+    },
+    "unit": {
+      "process": 67588,
+      "exit": 0,
+      "files": 480,
+      "passed": 7863,
+      "todo": 4
+    },
+    "live_listener_evidence": [
+      {
+        "port": 31993,
+        "pid": 64093,
+        "cwd": [
+          "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/investor-shell-mobile-qualification-20261008-c1/terminal"
+        ],
+        "expected_cwd_matches": true
+      }
+    ],
+    "limits": "Fixture Stripe.js loads failed; no payment behavior is qualified. Desktop-only and mobile-only cases intentionally skip other projects."
+  },
+  "unit": {
+    "process": 39074,
+    "exit": 0,
+    "files": 480,
+    "passed": 7863,
+    "todo": 4
+  },
+  "optimized_compilation": {
+    "process": 37055,
+    "compiled": true,
+    "full_build_exit": 1,
+    "failure": "LIFECYCLE_TABLE is not a valid Next Route export"
+  },
+  "generated_route_typecheck": {
+    "process": 49555,
+    "exit": 2,
+    "invalid_exports": {
+      "app/api/account/deletion/route.ts": "LIFECYCLE_TABLE",
+      "app/api/alerts/route.ts": "normalizeStoredAlert",
+      "app/api/sector-intelligence/route.ts": "filteredSupabaseCookieHeader",
+      "app/api/v1/dislocations/route.ts": "MAX_EPISODES"
+    }
+  },
+  "provenance": "Supersedes every earlier reuse-enabled browser receipt. Specs now reject opt-in qualification without CI; CI forces the inherited harness to launch a new server rather than reuse an existing listener. Product and test bytes are bound above.",
+  "limits": [
+    "No complete production build, hosted preview, production authentication, populated-data parity or release acceptance",
+    "Existing #697 source is tested as an exact detached dependency; it is not merged into #859 or any protected branch",
+    "The API-owner/test-consumer inspection required for safe build repair was refused before dispatch; no API source was changed",
+    "Framework route checks were not disabled or weakened",
+    "No production, DNS, auth, engines, saved-state or user-data changes"
+  ],
+  "images": [
+    {
+      "path": "terminal/docs/pr-crops/investor-shell-native-preview-20261008/isolated/native--investor-shell-bridge-reta-594d9-ns-to-the-same-mounted-page-desktop--macro-native-analysis.png",
+      "sha256": "9bbd01858f7bc940183f60fa95b77316d110efe2552e1b2cd19928b89e3e3443"
+    },
+    {
+      "path": "terminal/docs/pr-crops/investor-shell-native-preview-20261008/isolated/native--investor-shell-bridge-reta-594d9-ns-to-the-same-mounted-page-desktop--macro-retained-return.png",
+      "sha256": "1d5465d65c2af7ff2739d6ae4066da0ca3d92a25e6493c1fdb2001eec1022cca"
+    },
+    {
+      "path": "terminal/docs/pr-crops/investor-shell-native-preview-20261008/isolated/native--investor-shell-preview-exi-a0646-ng-its-page-or-mobile-owner-desktop--analysis-compact.png",
+      "sha256": "a1f143a08f6816d9bedabf9c2cd69fc1caea6e8fe2fd83718012d869c77b58e7"
+    },
+    {
+      "path": "terminal/docs/pr-crops/investor-shell-native-preview-20261008/isolated/native--investor-shell-preview-exi-a0646-ng-its-page-or-mobile-owner-desktop--analysis-desktop.png",
+      "sha256": "bf9e4f82735ccdac9c7779ae523cf7ab50367e0dc0db85b45ae6448a44e6633e"
+    },
+    {
+      "path": "terminal/docs/pr-crops/investor-shell-native-preview-20261008/isolated/native--investor-shell-preview-exi-a0646-ng-its-page-or-mobile-owner-mobile--test-failed-1.png",
+      "sha256": "2caa19bfe12845cd51f1471beae7de5af710e6e4c76f42d317c6fb92c062e0ab"
+    },
+    {
+      "path": "terminal/docs/pr-crops/investor-shell-native-preview-20261008/isolated/native--investor-shell-preview-exi-a0646-ng-its-page-or-mobile-owner-tablet--test-failed-1.png",
+      "sha256": "f79ca8ffe3fd0f8b252f9f53224433690b7f42b0c79c2a77c38e3fbf64da16fe"
+    },
+    {
+      "path": "terminal/docs/pr-crops/investor-shell-native-preview-20261008/isolated/native--investor-shell-preview-exi-ce479-ng-its-page-or-mobile-owner-mobile--test-failed-1.png",
+      "sha256": "87af1d36684db73e6ff724d1b5bc63446b72fce634f55f5e8bb829566910b07d"
+    },
+    {
+      "path": "terminal/docs/pr-crops/investor-shell-native-preview-20261008/isolated/native--investor-shell-preview-exi-ce479-ng-its-page-or-mobile-owner-tablet--test-failed-1.png",
+      "sha256": "f1ff4069b256c31ede5233c792a248c09d1ba6895791a64b3bef9171c6baf75a"
+    },
+    {
+      "path": "terminal/docs/pr-crops/investor-shell-native-preview-20261008/isolated/mobile--investor-shell-preview-exi-a0646-ng-its-page-or-mobile-owner-mobile--analysis-mobile.png",
+      "sha256": "8f3639e759f8fd7e3228e46f9e2c105ae1c3beede0590dec9da300c615f0e426"
+    },
+    {
+      "path": "terminal/docs/pr-crops/investor-shell-native-preview-20261008/isolated/mobile--investor-shell-preview-exi-a0646-ng-its-page-or-mobile-owner-tablet--analysis-tablet.png",
+      "sha256": "a588a936e64c6ac0a852968b0ed178ba219f2e51cc41edf90f62623bc7a91274"
+    },
+    {
+      "path": "terminal/docs/pr-crops/investor-shell-native-preview-20261008/isolated/mobile--investor-shell-preview-exi-ce479-ng-its-page-or-mobile-owner-mobile--discover-mobile.png",
+      "sha256": "2de1ab8da3adffe7682b26b993f6cc99a221b376ea3bd821ac34b2c5b6a4aecf"
+    },
+    {
+      "path": "terminal/docs/pr-crops/investor-shell-native-preview-20261008/isolated/mobile--investor-shell-preview-exi-ce479-ng-its-page-or-mobile-owner-tablet--discover-tablet.png",
+      "sha256": "666ccf1d44e4eb26bf739c6967e7041f10663855497d4a5fe4f57a6623f1af5c"
+    }
+  ],
+  "scoped_eslint": {
+    "process": 72061,
+    "exit": 0,
+    "scope": "All changed TS/TSX product and test files"
+  },
+  "live_application_changed": false,
+  "hosted_preview_created": false,
+  "active_owned_test_processes": []
+}
