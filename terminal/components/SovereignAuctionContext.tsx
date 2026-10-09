@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
-import { useT } from "@/lib/i18n";
+import { useSovereignAuctionT as useT } from "@/lib/sovereignAuctionCopy";
 import { auctionDisplayRows, validateSovereignAuctionContext, type AuctionContext, type AuctionAmount, type AuctionEvent } from "@/lib/sovereignAuctionContext";
 
 const POLL_MS = 300_000; // Attempt cadence only; never a freshness guarantee.

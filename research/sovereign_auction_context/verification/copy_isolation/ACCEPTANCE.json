@@ -1,0 +1,29 @@
+{
+  "schema": "terminal_copy_isolation_acceptance_v1",
+  "verified_at": "2026-10-09T00:28:14.110897+00:00",
+  "prior_head": "9292c7ca1e19e07ee70514b9a3cfb598ba5dd5b9",
+  "source_binding": "Enclosing commit and VERIFIED_SOURCE_MANIFEST.json",
+  "native_tests": 129,
+  "native_breakdown": {
+    "auction": 42,
+    "incumbent_evidence": 47,
+    "negative_fixture_controls": 40
+  },
+  "browser_stats": {
+    "startTime": "2026-10-09T00:24:39.779Z",
+    "duration": 94636.72399999999,
+    "expected": 18,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0
+  },
+  "component_only_changes_translation_import": true,
+  "shared_i18n_equals_base": true,
+  "other_owners_evidence_manifests_changed": false,
+  "native_receipt": "verification/copy_isolation/receipt.json",
+  "browser_receipt": "verification/browser_final/browser_results.json",
+  "source_manifest_sha256": "083410be07954b1f4cac96e8484de8c60f433603e87e09143a198fd355ae8cd7",
+  "ci_gate_cleared": false,
+  "production_deployed": false,
+  "scope": "Introduced i18n evidence-lock failure repaired; exact-head broader CI remains separately sampled."
+}

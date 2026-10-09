@@ -1,16 +1,21 @@
 {
   "schema": "sovereign_auction_verified_source_v1",
-  "verified_at": "2026-10-08T23:48:59.338759+00:00",
+  "verified_at": "2026-10-09T00:28:14.110897+00:00",
   "base_commit": "d660d98b1ebc0bdf0d1b16d66202b1760f6cc94a",
   "branch": "sol/web-sovereign-auction-context-20261008-sol-terminal-001",
   "source_binding": "Exact file hashes; the enclosing Git commit is the final revision identity.",
   "accepted_gates": {
-    "native_tests": 42,
+    "native_tests": 129,
     "tsc": "passed",
     "changed_leaf_lint": "passed",
     "browser_cases": 18,
     "browser_passed": 18,
-    "whole_shell_lint": "54 existing errors and 14 existing warnings; exact diagnostic equivalence, no new diagnostic"
+    "whole_shell_lint": "54 existing errors and 14 existing warnings; exact diagnostic equivalence, no new diagnostic",
+    "auction_native_tests": 42,
+    "incumbent_evidence_tests": 47,
+    "plain_language_fixture_control_tests": 40,
+    "affected_evidence_suites": 8,
+    "shared_i18n": "Restored exact base858306597ebbfc2d912cefc997ad88e4805cafb08794b5cd4d3dfeacb109371f; no final delta and no foreign manifest recapture."
   },
   "files": [
     {
@@ -25,8 +30,8 @@
     },
     {
       "path": "terminal/components/SovereignAuctionContext.tsx",
-      "sha256": "2b8cb70a8d0b43ce650e48868f3d5471a3b3b5e178bec089b3c3b7bf03946086",
-      "bytes": 11150
+      "sha256": "b2cbcc4807342678b46b5ebf5321bc48f9c1307fea8591be29cb6cea67d42665",
+      "bytes": 11190
     },
     {
       "path": "terminal/lib/sovereignAuctionContext.ts",
@@ -40,8 +45,8 @@
     },
     {
       "path": "terminal/lib/i18n.tsx",
-      "sha256": "cc6b9efb57ea38a9f2b22c6daa993e5766008e2e1c08ddae276fb11314ec9a9c",
-      "bytes": 206042
+      "sha256": "858306597ebbfc2d912cefc997ad88e4805cafb08794b5cd4d3dfeacb109371f",
+      "bytes": 202478
     },
     {
       "path": "terminal/lib/__tests__/nwRoute.test.ts",
@@ -55,8 +60,8 @@
     },
     {
       "path": "terminal/lib/__tests__/sovereignAuctionComponent.test.tsx",
-      "sha256": "1c568ed8ca406f8d4def37eaf4c753ba7a620d5b7b0463471d645a0a14780657",
-      "bytes": 11237
+      "sha256": "ab45200e06acc3e1b347314f0e466d07e2181e6112c5494b4b5723c5426a210c",
+      "bytes": 11297
     },
     {
       "path": "terminal/lib/__tests__/fixtures/sovereign_auction_context_w1.json",
@@ -77,6 +82,11 @@
       "path": "terminal/playwright.sovereign-auctions.config.ts",
       "sha256": "fb10c1fcbf6d4ed0bc44aec32dd2ae4500441427dba5a2e46f427c804468667b",
       "bytes": 1047
+    },
+    {
+      "path": "terminal/lib/sovereignAuctionCopy.ts",
+      "sha256": "cf2784b31eb09dd3c89626922b50106f3ec2952467eb357c5faf6107e137b6e5",
+      "bytes": 4143
     }
   ],
   "production_deployed": false,

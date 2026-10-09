@@ -10,13 +10,13 @@ The existing `/api/nw` allowlist adds one fixed auction-context selector. It rel
 
 The strict reader validates the nested Macro object, microsecond point-in-time clocks, raw instrument flags, lifecycle dates, nulls and context/research authority. Session changes and sign-out clear the leaf and invalidate older in-flight responses. Poll cadence never represents source freshness.
 
-The UI shows readable EN/ZH instrument and lifecycle text, exact grouped decimal dollars, normalized UTC deadlines and explicit unknowns. Raw IDs, enum values, result keys, null reasons, original decimal/timestamp strings and source health are available in native disclosures. Six events are initially listed; expansion is capped at 24 with explicit total counts. Importance remains unscored, probabilities null and source freshness unassessed.
+Auction-only copy lives in `lib/sovereignAuctionCopy.ts` and subscribes to the existing `useLang` context. The shared `lib/i18n.tsx` is restored to its exact base bytes and has no final delta. The UI shows readable EN/ZH instrument and lifecycle text, exact grouped decimal dollars, normalized UTC deadlines and explicit unknowns. Raw IDs, enum values, result keys, null reasons, original decimal/timestamp strings and source health are available in native disclosures. Six events are initially listed; expansion is capped at 24 with explicit total counts. Importance remains unscored, probabilities null and source freshness unassessed.
 
 ## Verification accepted
 
 | Gate | Result and evidence |
 |---|---|
-| Vitest | 42 passed: 8 model, 17 proxy and 17 React component tests. `verification/native_final/`. |
+| Vitest after copy isolation | 129 passed: 42 auction model/proxy/component tests, 47 tests in eight affected incumbent evidence suites, and 40 plain-language negative-fixture controls. `verification/copy_isolation/`. |
 | TypeScript | `npx tsc --noEmit` passed in the canonical workspace. |
 | Changed presentation/E2E lint | Passed with zero errors/warnings. Earlier leaf route/model lint also passed. |
 | Existing shared Shell lint | 54 errors and 14 warnings already exist. All 68 diagnostics match the original source after exact source-location, embedded code-frame and suggestion-range normalization; no introduced diagnostic. `lint_final/`. This is not a whole-file lint pass. |
@@ -30,9 +30,17 @@ The native test run found and repaired a projection bug: `auctionDisplayRows` ne
 
 `VERIFIED_SOURCE_MANIFEST.json` binds final source, tests and fixtures. Earlier `README_SOVEREIGN_AUCTION_SOURCE_CANDIDATE.md`, the original root source-candidate manifest, and initial review snapshots are historical records, not final hashes or current mount descriptions. Shared fixture SHA-256 is `c3019af2c6439d954886744a4261b8ec84b98f33ebb32ee8aecfa6dcfa98c268`; the actual 74-event context fixture is `e363d46c7082b8c997d3385af3faf5ebab0eb9c07be9a89912c4d215a8cb32b3`.
 
+## Shared-language CI repair
+
+The broader CI run at `9292c7ca1e19e07ee70514b9a3cfb598ba5dd5b9` exposed an introduced ownership problem: adding auction translations to the shared language file changed a hash bound by eight existing evidence suites. Nine assertions failed while the original auction tests and typecheck passed. That failure was caused by this candidate, not classified as an inherited or provider issue.
+
+The repair isolates all 55 auction translation entries in a feature-owned module using the existing language context, preserves the actual strings and language reactivity, and restores global i18n SHA-256 `858306597ebbfc2d912cefc997ad88e4805cafb08794b5cd4d3dfeacb109371f`. No other owner's evidence manifest is edited or recaptured. The eight affected suites pass on those baseline bytes. The two `Bad.tsx` plain-language annotations are emitted by an intentional flagged-fixture test; both corresponding suites also pass in the 129-test rerun.
+
+The final source then received the same 18-case actual-route browser matrix in run03. Prior run02 receipts and images remain historical; the current manifest binds the corrected copy module, component and shared-language dependency. Auth/effect, model, upstream, mount, precision formatting and browser assertions are unchanged. No CI gate, scanner setting, provider setting or deployment retry was used to clear the issue.
+
 ## Ownership and release boundary
 
-The shared-Shell census and final main-drift record preserve other open writers. The leaf follows existing actions rather than competing with the held returns-calendar insertion. The final observed main change replaces the script-rename import and handler; preserve those two upstream edits together during integration. No Oracle, copilot, replay, ARM/CONFIRM, risk bridge, exit, chart or analysis authority is changed by this leaf.
+The shared-Shell census and final main-drift record preserve other open writers. The leaf follows existing actions rather than competing with the held returns-calendar insertion. The observed main changes replace the script-rename import and handler and make malformed held-ticker calendars unreadable rather than no-events; preserve both incumbent corrections during integration. No Oracle, copilot, replay, ARM/CONFIRM, risk bridge, exit, chart or analysis authority is changed by this leaf.
 
 Macro's calendar path has the existing registration and staged `site_full` gate. A real anonymous 401 confirms that refusal only. The source bridge and simulated identical-file checks do not establish a deployed artifact or a successful entitled HTTP read. Keep this PR held for independent source/CI review and separately authorized release-time verification of actual origin, caller entitlement, production CSP, feed revision/hash, source age and session transitions.
 

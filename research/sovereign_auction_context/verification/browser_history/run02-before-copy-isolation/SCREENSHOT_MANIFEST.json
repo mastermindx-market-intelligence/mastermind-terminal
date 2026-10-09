@@ -1,63 +1,63 @@
 {
-  "source": "Actual successful18-case browser run03 after copy isolation",
+  "source": "actual successful 18-case browser run",
   "files": [
     {
-      "path": "sovereign-auction-context--0624d-out-and-invariant-incumbent-desktop/attachments/desktop-zh-dark-bill-amount-deadline-screenshot-208d83b5bf46eebe56d123ec56007535bb2e771d.png",
-      "sha256": "12200739063477848a30fe67496408bb334f9ef1b6e77748ae11d89ec1e43f11",
-      "bytes": 259187
+      "path": "sovereign-auction-context--0624d-out-and-invariant-incumbent-desktop/attachments/desktop-zh-dark-bill-amount-deadline-screenshot-ab2af6c752274759c51f2d31a10b5158712de452.png",
+      "sha256": "bd97f176d4923d676f50b7d028b7a31b29ee49d0c3909d4c4483f25cac61ca3e",
+      "bytes": 259249
     },
     {
-      "path": "sovereign-auction-context--0624d-out-and-invariant-incumbent-desktop/attachments/desktop-zh-dark-context-source-details-screenshot-7c5f2fabab7428f2968d7c6b1c0adb78f593611c.png",
-      "sha256": "24d955fce131de519d55f96c7c0c1603e23e0075b80b1629521544e603e08915",
-      "bytes": 252440
+      "path": "sovereign-auction-context--0624d-out-and-invariant-incumbent-desktop/attachments/desktop-zh-dark-context-source-details-screenshot-903f63a20ff323bf4ae16a33f8b491126518348d.png",
+      "sha256": "e201daac4c0e05a880aeac3042015aa3142b19725827bfc47d7707480e31c382",
+      "bytes": 252667
     },
     {
-      "path": "sovereign-auction-context--0624d-out-and-invariant-incumbent-desktop/attachments/desktop-zh-dark-event-source-details-screenshot-abc73cfaf47e4279f34bcc827ddf264bf0bd0945.png",
-      "sha256": "20b9efd87cf406bb984a72ecb2d938a3a653fdd1ee724004052e5ddd172b98ce",
-      "bytes": 260873
+      "path": "sovereign-auction-context--0624d-out-and-invariant-incumbent-desktop/attachments/desktop-zh-dark-event-source-details-screenshot-33b40176d810970c63d6b0872b2e0322718d80f0.png",
+      "sha256": "7c1f2664cf08991f74677b6fd3f12c756b3229a3a8cf8ffc7a4548ae5ee4c14d",
+      "bytes": 261466
     },
     {
-      "path": "sovereign-auction-context--0624d-out-and-invariant-incumbent-desktop/attachments/desktop-zh-dark-shared-fixture-screenshot-2437463da61d338c606f5c5835084e005aa1c99f.png",
-      "sha256": "6b5f9f810aa0cc69b9cb55179b27c019ba644535afc65bf9f08b0604522eb52d",
-      "bytes": 258083
+      "path": "sovereign-auction-context--0624d-out-and-invariant-incumbent-desktop/attachments/desktop-zh-dark-shared-fixture-screenshot-5ed51f8727fd5b25eeff4b097b478ad1ce96c3e7.png",
+      "sha256": "ffbef1ee33b0dc9dc1d5acbccf15f995d9ac32d484b898bd703836b671b7788f",
+      "bytes": 259811
     },
     {
       "path": "sovereign-auction-context--0624d-out-and-invariant-incumbent-desktop/desktop-zh-dark-bill-amount-deadline.png",
-      "sha256": "12200739063477848a30fe67496408bb334f9ef1b6e77748ae11d89ec1e43f11",
-      "bytes": 259187
+      "sha256": "bd97f176d4923d676f50b7d028b7a31b29ee49d0c3909d4c4483f25cac61ca3e",
+      "bytes": 259249
     },
     {
       "path": "sovereign-auction-context--0624d-out-and-invariant-incumbent-desktop/desktop-zh-dark-context-source-details.png",
-      "sha256": "24d955fce131de519d55f96c7c0c1603e23e0075b80b1629521544e603e08915",
-      "bytes": 252440
+      "sha256": "e201daac4c0e05a880aeac3042015aa3142b19725827bfc47d7707480e31c382",
+      "bytes": 252667
     },
     {
       "path": "sovereign-auction-context--0624d-out-and-invariant-incumbent-desktop/desktop-zh-dark-event-source-details.png",
-      "sha256": "20b9efd87cf406bb984a72ecb2d938a3a653fdd1ee724004052e5ddd172b98ce",
-      "bytes": 260873
+      "sha256": "7c1f2664cf08991f74677b6fd3f12c756b3229a3a8cf8ffc7a4548ae5ee4c14d",
+      "bytes": 261466
     },
     {
       "path": "sovereign-auction-context--0624d-out-and-invariant-incumbent-desktop/desktop-zh-dark-shared-fixture.png",
-      "sha256": "6b5f9f810aa0cc69b9cb55179b27c019ba644535afc65bf9f08b0604522eb52d",
-      "bytes": 258083
+      "sha256": "ffbef1ee33b0dc9dc1d5acbccf15f995d9ac32d484b898bd703836b671b7788f",
+      "bytes": 259811
     },
     {
-      "path": "sovereign-auction-context--0624d-out-and-invariant-incumbent-mobile/attachments/mobile-zh-dark-bill-amount-deadline-screenshot-ca9c17de1a318e2153971f88d073c95232782e42.png",
+      "path": "sovereign-auction-context--0624d-out-and-invariant-incumbent-mobile/attachments/mobile-zh-dark-bill-amount-deadline-screenshot-4d4051551dc3690e717de542f2dcb992e8ee2d8d.png",
       "sha256": "1aaf7324803215fd38f745246b66ed78437d99ea138d48ba72764eda54799523",
       "bytes": 78309
     },
     {
-      "path": "sovereign-auction-context--0624d-out-and-invariant-incumbent-mobile/attachments/mobile-zh-dark-context-source-details-screenshot-06319d586d32d85db34f566a599078cce317abc5.png",
+      "path": "sovereign-auction-context--0624d-out-and-invariant-incumbent-mobile/attachments/mobile-zh-dark-context-source-details-screenshot-30ee686fe1e3c806a6acd344bfcf362e23c92202.png",
       "sha256": "d674c4bd096e616038ef0306dd5a9ad4d4551f12f54b8aff834b9b1a4f55c71d",
       "bytes": 74938
     },
     {
-      "path": "sovereign-auction-context--0624d-out-and-invariant-incumbent-mobile/attachments/mobile-zh-dark-event-source-details-screenshot-8e67919e35f7aedb1469cd45d90db9337478176e.png",
+      "path": "sovereign-auction-context--0624d-out-and-invariant-incumbent-mobile/attachments/mobile-zh-dark-event-source-details-screenshot-40c5419b33ede2ff153b6805e0a3645326ce903c.png",
       "sha256": "e47c1a72a2a4e9bd82fce9e804a51c4811e6d94fef42a29d2600b7c5945e49a6",
       "bytes": 80080
     },
     {
-      "path": "sovereign-auction-context--0624d-out-and-invariant-incumbent-mobile/attachments/mobile-zh-dark-shared-fixture-screenshot-3fb26370cbf00cd6ac86105e6088ae641f08e695.png",
+      "path": "sovereign-auction-context--0624d-out-and-invariant-incumbent-mobile/attachments/mobile-zh-dark-shared-fixture-screenshot-125a32e160c8d7f4d06f5082681bebe21b2b5025.png",
       "sha256": "60026552f9a17707a77f9caa3305a233ecad59b1ac4e5827f1fc5e6a2e42c1fb",
       "bytes": 78673
     },
@@ -82,22 +82,22 @@
       "bytes": 78673
     },
     {
-      "path": "sovereign-auction-context--0624d-out-and-invariant-incumbent-tablet/attachments/tablet-zh-dark-bill-amount-deadline-screenshot-82d262aa2325c706eb84e9a796b4294ad71fd348.png",
+      "path": "sovereign-auction-context--0624d-out-and-invariant-incumbent-tablet/attachments/tablet-zh-dark-bill-amount-deadline-screenshot-e48aed2591cfacc75524e0f7326fb87f2a5549de.png",
       "sha256": "8c6ab1904e57ef62ee9299992d8fb2aa1b205c41fd24bc87dbdf99520edbfd5a",
       "bytes": 114887
     },
     {
-      "path": "sovereign-auction-context--0624d-out-and-invariant-incumbent-tablet/attachments/tablet-zh-dark-context-source-details-screenshot-beab5a7eb36c1d8122dae8e6f0ed25d91a41d20c.png",
+      "path": "sovereign-auction-context--0624d-out-and-invariant-incumbent-tablet/attachments/tablet-zh-dark-context-source-details-screenshot-5f7dbcbff68a73382ed4a6ade7b7d55d0553c01c.png",
       "sha256": "31a3c146e536882b5ab42875274de8250bb1fa939fab24bd0f136722c176aa1f",
       "bytes": 114901
     },
     {
-      "path": "sovereign-auction-context--0624d-out-and-invariant-incumbent-tablet/attachments/tablet-zh-dark-event-source-details-screenshot-b0f14a19f20b24c80e755a11269c145d475d5ec5.png",
+      "path": "sovereign-auction-context--0624d-out-and-invariant-incumbent-tablet/attachments/tablet-zh-dark-event-source-details-screenshot-c8db9472519e3506a3d4c3c4fc9493062e8cf0d1.png",
       "sha256": "e211696976b2436b3d470c2c4b45465bedc87b1c9b4b3f91b5989bc1162a2782",
       "bytes": 125142
     },
     {
-      "path": "sovereign-auction-context--0624d-out-and-invariant-incumbent-tablet/attachments/tablet-zh-dark-shared-fixture-screenshot-f66f7ff4c71cdfa8662a6d34006628dc5fc7d1ea.png",
+      "path": "sovereign-auction-context--0624d-out-and-invariant-incumbent-tablet/attachments/tablet-zh-dark-shared-fixture-screenshot-2028ab00fd66d6c429ebbfd185f2c159c0765829.png",
       "sha256": "8c6ab1904e57ef62ee9299992d8fb2aa1b205c41fd24bc87dbdf99520edbfd5a",
       "bytes": 114887
     },
@@ -122,62 +122,62 @@
       "bytes": 114887
     },
     {
-      "path": "sovereign-auction-context--1345f-out-and-invariant-incumbent-desktop/attachments/desktop-en-light-attribute-diagnostic-bill-amount-deadline-screenshot-b6890dbf754f12f155677fb4c8ca89a9e09d03e0.png",
-      "sha256": "7e918991f332b428d03b1d180d69a589188414a17da17ad5cb99594e8bb05cda",
-      "bytes": 246130
+      "path": "sovereign-auction-context--1345f-out-and-invariant-incumbent-desktop/attachments/desktop-en-light-attribute-diagnostic-bill-amount-deadline-screenshot-fb7c53eb852e180aead4e1c8e27cd801f6786e47.png",
+      "sha256": "db36d77fef1ac2cb27a740caa90c98aec341b32acd2f0463d37a4c6bad049bd4",
+      "bytes": 246063
     },
     {
-      "path": "sovereign-auction-context--1345f-out-and-invariant-incumbent-desktop/attachments/desktop-en-light-attribute-diagnostic-context-source-details-screenshot-47fc8831531a39f21b24851d2b9799f6a6c94bb1.png",
-      "sha256": "f0887f6f9a088e5776f5a5d426b21dd24bed7622df8b4e11a688da43e67e4f75",
-      "bytes": 243795
+      "path": "sovereign-auction-context--1345f-out-and-invariant-incumbent-desktop/attachments/desktop-en-light-attribute-diagnostic-context-source-details-screenshot-b315f48e155b824e5e55717a467284d39cb0205e.png",
+      "sha256": "7b3a14739c3d3e41c5172668ddb5d9fcbf20d6b3c61c513756916c982e076e48",
+      "bytes": 244123
     },
     {
-      "path": "sovereign-auction-context--1345f-out-and-invariant-incumbent-desktop/attachments/desktop-en-light-attribute-diagnostic-event-source-details-screenshot-3f10bd6f559e82a7c44133b32c582610bcf1367d.png",
-      "sha256": "cc23969a13ec058950748bd9c86afa54e3b51e0136b24e61ccfce53f140493a0",
-      "bytes": 248084
+      "path": "sovereign-auction-context--1345f-out-and-invariant-incumbent-desktop/attachments/desktop-en-light-attribute-diagnostic-event-source-details-screenshot-0497ee729ad301a441458c0197f0a0d4da837943.png",
+      "sha256": "8de2f081f4b1f8ed72e02857499f6a5b6b3f0bf402f8cf49956bcd6946cc0e0e",
+      "bytes": 248207
     },
     {
-      "path": "sovereign-auction-context--1345f-out-and-invariant-incumbent-desktop/attachments/desktop-en-light-attribute-diagnostic-shared-fixture-screenshot-50a644e85c32879cf63b08a3813be014b3dca72e.png",
-      "sha256": "53f524299510479b4f1593f58d407df03440e6fb69ce14d72d464037ad8d0a06",
-      "bytes": 249819
+      "path": "sovereign-auction-context--1345f-out-and-invariant-incumbent-desktop/attachments/desktop-en-light-attribute-diagnostic-shared-fixture-screenshot-3ea0a5d8d8c726b159bf66f30ceede40cf7a838d.png",
+      "sha256": "25897f1f088a10d56526e5c0d6ba7574d23a990d95d30163730c2ab1173083fa",
+      "bytes": 249499
     },
     {
       "path": "sovereign-auction-context--1345f-out-and-invariant-incumbent-desktop/desktop-en-light-attribute-diagnostic-bill-amount-deadline.png",
-      "sha256": "7e918991f332b428d03b1d180d69a589188414a17da17ad5cb99594e8bb05cda",
-      "bytes": 246130
+      "sha256": "db36d77fef1ac2cb27a740caa90c98aec341b32acd2f0463d37a4c6bad049bd4",
+      "bytes": 246063
     },
     {
       "path": "sovereign-auction-context--1345f-out-and-invariant-incumbent-desktop/desktop-en-light-attribute-diagnostic-context-source-details.png",
-      "sha256": "f0887f6f9a088e5776f5a5d426b21dd24bed7622df8b4e11a688da43e67e4f75",
-      "bytes": 243795
+      "sha256": "7b3a14739c3d3e41c5172668ddb5d9fcbf20d6b3c61c513756916c982e076e48",
+      "bytes": 244123
     },
     {
       "path": "sovereign-auction-context--1345f-out-and-invariant-incumbent-desktop/desktop-en-light-attribute-diagnostic-event-source-details.png",
-      "sha256": "cc23969a13ec058950748bd9c86afa54e3b51e0136b24e61ccfce53f140493a0",
-      "bytes": 248084
+      "sha256": "8de2f081f4b1f8ed72e02857499f6a5b6b3f0bf402f8cf49956bcd6946cc0e0e",
+      "bytes": 248207
     },
     {
       "path": "sovereign-auction-context--1345f-out-and-invariant-incumbent-desktop/desktop-en-light-attribute-diagnostic-shared-fixture.png",
-      "sha256": "53f524299510479b4f1593f58d407df03440e6fb69ce14d72d464037ad8d0a06",
-      "bytes": 249819
+      "sha256": "25897f1f088a10d56526e5c0d6ba7574d23a990d95d30163730c2ab1173083fa",
+      "bytes": 249499
     },
     {
-      "path": "sovereign-auction-context--1345f-out-and-invariant-incumbent-mobile/attachments/mobile-en-light-attribute-diagnostic-bill-amount-deadline-screenshot-e3fb25ed1c24938b15301697cb2f5e780b85d471.png",
+      "path": "sovereign-auction-context--1345f-out-and-invariant-incumbent-mobile/attachments/mobile-en-light-attribute-diagnostic-bill-amount-deadline-screenshot-6975cb96d10c49553795c28b0ac1a35c5e2a9043.png",
       "sha256": "ef7cc3435177266b3e2a40517689c6f5113043304e845ca3ccb7ec131f313e8e",
       "bytes": 70607
     },
     {
-      "path": "sovereign-auction-context--1345f-out-and-invariant-incumbent-mobile/attachments/mobile-en-light-attribute-diagnostic-context-source-details-screenshot-7a0d2e69b4d1480eb826995dd50ff3128bc88e46.png",
+      "path": "sovereign-auction-context--1345f-out-and-invariant-incumbent-mobile/attachments/mobile-en-light-attribute-diagnostic-context-source-details-screenshot-7473153216973c21e636a2009e1006619b06e86d.png",
       "sha256": "7540df799c1acc1bb62dd96eab5ba4ac01850dd0978cd761af0036b08b6a6982",
       "bytes": 69522
     },
     {
-      "path": "sovereign-auction-context--1345f-out-and-invariant-incumbent-mobile/attachments/mobile-en-light-attribute-diagnostic-event-source-details-screenshot-99530e030fc233a654c0265bb907edebc1c304fd.png",
+      "path": "sovereign-auction-context--1345f-out-and-invariant-incumbent-mobile/attachments/mobile-en-light-attribute-diagnostic-event-source-details-screenshot-a2eba3a4f9660667776e9e5894f46b0d096cdb14.png",
       "sha256": "a82de54aa657010c47f70f161eb9d8c7389e7bcf794406acebd09cbcf3a66a66",
       "bytes": 72945
     },
     {
-      "path": "sovereign-auction-context--1345f-out-and-invariant-incumbent-mobile/attachments/mobile-en-light-attribute-diagnostic-shared-fixture-screenshot-93582262ecdad3d2101b4ad614d9e4de62500773.png",
+      "path": "sovereign-auction-context--1345f-out-and-invariant-incumbent-mobile/attachments/mobile-en-light-attribute-diagnostic-shared-fixture-screenshot-77f8fe1472f91f986536e3b9495b42a69f77dd67.png",
       "sha256": "6ee84632f4e7ab608345f16bb522cf7e17cbcaad86082698e9c00871c5c6aa64",
       "bytes": 72028
     },
@@ -202,22 +202,22 @@
       "bytes": 72028
     },
     {
-      "path": "sovereign-auction-context--1345f-out-and-invariant-incumbent-tablet/attachments/tablet-en-light-attribute-diagnostic-bill-amount-deadline-screenshot-da27a8fe864cb7bdd353b64e62aa81de328369fa.png",
+      "path": "sovereign-auction-context--1345f-out-and-invariant-incumbent-tablet/attachments/tablet-en-light-attribute-diagnostic-bill-amount-deadline-screenshot-71bed335250b4488c1b5877e984c4ec3b1003915.png",
       "sha256": "986baa3e88aa60a1390a81893a92d9cf9c77ae52ee1551b7cea582a4a43c47b2",
       "bytes": 112362
     },
     {
-      "path": "sovereign-auction-context--1345f-out-and-invariant-incumbent-tablet/attachments/tablet-en-light-attribute-diagnostic-context-source-details-screenshot-c34ff34c45351f59dcaf65bc96fd2a163382e1a5.png",
+      "path": "sovereign-auction-context--1345f-out-and-invariant-incumbent-tablet/attachments/tablet-en-light-attribute-diagnostic-context-source-details-screenshot-014ef0f557b9fc0cf33bd70a31995ca29ba11b48.png",
       "sha256": "145045fcd8c63ffa61114524641d96fbf71555e2e2a072ae1b7c77e771a4f7dd",
       "bytes": 112383
     },
     {
-      "path": "sovereign-auction-context--1345f-out-and-invariant-incumbent-tablet/attachments/tablet-en-light-attribute-diagnostic-event-source-details-screenshot-310672f7da4c4f0d20cf51d318e37db3987dcc0d.png",
+      "path": "sovereign-auction-context--1345f-out-and-invariant-incumbent-tablet/attachments/tablet-en-light-attribute-diagnostic-event-source-details-screenshot-cf7ba4c266bfeffadc949fe62d99b14b6574e8f9.png",
       "sha256": "d315a9127d5b862e3c876dab76245fdc166aee66dcd8eafc714996c67c1811f7",
       "bytes": 121345
     },
     {
-      "path": "sovereign-auction-context--1345f-out-and-invariant-incumbent-tablet/attachments/tablet-en-light-attribute-diagnostic-shared-fixture-screenshot-70ffc4a588fac2788752df303ce9606247c2d848.png",
+      "path": "sovereign-auction-context--1345f-out-and-invariant-incumbent-tablet/attachments/tablet-en-light-attribute-diagnostic-shared-fixture-screenshot-bbe73e0fb88da2e7d9b67c0778bf205ec99bbcee.png",
       "sha256": "986baa3e88aa60a1390a81893a92d9cf9c77ae52ee1551b7cea582a4a43c47b2",
       "bytes": 112362
     },
@@ -242,122 +242,122 @@
       "bytes": 112362
     },
     {
-      "path": "sovereign-auction-context--26484-ilable-and-entitlement-loss-desktop/attachments/desktop-zh-expanded-24-of-74-screenshot-80ea6aed9b149a387c00d0bc359162c3ad0f28b0.png",
-      "sha256": "4303f66098c760d3fbd1f4b277806aeeb8109f145fe9a25d302f4236db89dd46",
-      "bytes": 251717
+      "path": "sovereign-auction-context--26484-ilable-and-entitlement-loss-desktop/attachments/desktop-zh-expanded-24-of-74-screenshot-c2d73313bd25dae28a217f9d6e92f2df3b3dd06e.png",
+      "sha256": "da77df1df8a3ec5f5fa944e9a5329497eef071612a7e64427033c9ca765a8974",
+      "bytes": 250712
     },
     {
-      "path": "sovereign-auction-context--26484-ilable-and-entitlement-loss-desktop/attachments/desktop-zh-invalid-authority-screenshot-c6fff519ebee4bf28713a4530db6fc9c32821eee.png",
-      "sha256": "fb0b3169f94419b53fbe8313ce706495aeba34412fdc0a46a9553be84f850c09",
-      "bytes": 245086
+      "path": "sovereign-auction-context--26484-ilable-and-entitlement-loss-desktop/attachments/desktop-zh-invalid-authority-screenshot-a1dc2065006e01998d8919d4c93c240e22c970f1.png",
+      "sha256": "897a57d422eda574590d5e6a36ee6adda05dcc0ecbf139f9527f8ebc50d214b6",
+      "bytes": 244965
     },
     {
-      "path": "sovereign-auction-context--26484-ilable-and-entitlement-loss-desktop/attachments/desktop-zh-observed-result-source-details-screenshot-472e13ad88f22c85d1e3f2c8d469ea278d420754.png",
-      "sha256": "6f620d2bc825b8fda103230c0d23837aeb8539a59ff8042928e48e4fc807c4d9",
-      "bytes": 268294
+      "path": "sovereign-auction-context--26484-ilable-and-entitlement-loss-desktop/attachments/desktop-zh-observed-result-source-details-screenshot-75a8a3b2df8b8c66538ef588f743285ec462e909.png",
+      "sha256": "d6adcca90a5080208bbed9356851f6b937f609a87e61c1e53bd22eaa86b49d9e",
+      "bytes": 268017
     },
     {
-      "path": "sovereign-auction-context--26484-ilable-and-entitlement-loss-desktop/attachments/desktop-zh-source-degraded-screenshot-bebf2c0dc0f9198616d019a012af0d9d3e1795a1.png",
-      "sha256": "8e7be5b2cdb1435c6f41de3116a508f183580f94f73afb02cf334e59080589cc",
-      "bytes": 253149
+      "path": "sovereign-auction-context--26484-ilable-and-entitlement-loss-desktop/attachments/desktop-zh-source-degraded-screenshot-dae4494c03a0bd338c23e79ebde5690849205230.png",
+      "sha256": "efbd0d86f8d8d4c2af17da0e47943ccfb7dce16deb7081e77e4122b1435ce3b8",
+      "bytes": 252804
     },
     {
-      "path": "sovereign-auction-context--26484-ilable-and-entitlement-loss-desktop/attachments/desktop-zh-status-401-screenshot-38a78c574b6a4d1f52f8b7fb8f2fcd6725506173.png",
-      "sha256": "0be50d1d1bdf9167e474cbbd71c367aaf97683e51554402cedb6de4014963e07",
-      "bytes": 243943
+      "path": "sovereign-auction-context--26484-ilable-and-entitlement-loss-desktop/attachments/desktop-zh-status-401-screenshot-3265a01b5d0f23df9d97e1ade3f749f88f7b81c3.png",
+      "sha256": "082f40833df3f7f3c2e892b4bbf9b73129538d168831685e5170ce3e55d6e959",
+      "bytes": 243870
     },
     {
-      "path": "sovereign-auction-context--26484-ilable-and-entitlement-loss-desktop/attachments/desktop-zh-status-403-screenshot-ed830e532333f7757e8f86997326a402cf51a322.png",
-      "sha256": "909463312779fb90abf02a51833ad480c8f66ab02f4fab8315dc505851b93fd9",
-      "bytes": 244886
+      "path": "sovereign-auction-context--26484-ilable-and-entitlement-loss-desktop/attachments/desktop-zh-status-403-screenshot-9d415973ed565a83520a98cd3c4893267b192ff0.png",
+      "sha256": "01b3e037ff274f767d610a5b711149137245c51901fb5693e26e68ce9f42ad85",
+      "bytes": 244906
     },
     {
-      "path": "sovereign-auction-context--26484-ilable-and-entitlement-loss-desktop/attachments/desktop-zh-status-503-screenshot-d625fa803f45897c867344ee454370db04e2de0b.png",
-      "sha256": "a13393f9408cb3d672425428b022cde80ea0ec1e5f2d16716bc6375170a0e86f",
-      "bytes": 244833
+      "path": "sovereign-auction-context--26484-ilable-and-entitlement-loss-desktop/attachments/desktop-zh-status-503-screenshot-8f1a96770a14897cd18132cbb28a3eb750e180c7.png",
+      "sha256": "13d1a7cacb457d2ed7be573af966e65335ef2a71664a7fa1d3bf2ecf23336887",
+      "bytes": 244406
     },
     {
-      "path": "sovereign-auction-context--26484-ilable-and-entitlement-loss-desktop/attachments/desktop-zh-valid-observed-empty-screenshot-f28ebf1b5f3e10c0715225596ce2a033b708e47a.png",
-      "sha256": "b19c7ebffea905cd794256da428eaa3b26eae23905237e91b1c04ebb471a7f97",
-      "bytes": 247531
+      "path": "sovereign-auction-context--26484-ilable-and-entitlement-loss-desktop/attachments/desktop-zh-valid-observed-empty-screenshot-b3b6e12629992922db343a82f1be3c4a9fcbd093.png",
+      "sha256": "fd1ab5f0591930840edd999b3c5d1b9cdba6c1cd65530179431e11ff05a5d437",
+      "bytes": 246328
     },
     {
       "path": "sovereign-auction-context--26484-ilable-and-entitlement-loss-desktop/desktop-zh-expanded-24-of-74.png",
-      "sha256": "4303f66098c760d3fbd1f4b277806aeeb8109f145fe9a25d302f4236db89dd46",
-      "bytes": 251717
+      "sha256": "da77df1df8a3ec5f5fa944e9a5329497eef071612a7e64427033c9ca765a8974",
+      "bytes": 250712
     },
     {
       "path": "sovereign-auction-context--26484-ilable-and-entitlement-loss-desktop/desktop-zh-invalid-authority.png",
-      "sha256": "fb0b3169f94419b53fbe8313ce706495aeba34412fdc0a46a9553be84f850c09",
-      "bytes": 245086
+      "sha256": "897a57d422eda574590d5e6a36ee6adda05dcc0ecbf139f9527f8ebc50d214b6",
+      "bytes": 244965
     },
     {
       "path": "sovereign-auction-context--26484-ilable-and-entitlement-loss-desktop/desktop-zh-observed-result-source-details.png",
-      "sha256": "6f620d2bc825b8fda103230c0d23837aeb8539a59ff8042928e48e4fc807c4d9",
-      "bytes": 268294
+      "sha256": "d6adcca90a5080208bbed9356851f6b937f609a87e61c1e53bd22eaa86b49d9e",
+      "bytes": 268017
     },
     {
       "path": "sovereign-auction-context--26484-ilable-and-entitlement-loss-desktop/desktop-zh-source-degraded.png",
-      "sha256": "8e7be5b2cdb1435c6f41de3116a508f183580f94f73afb02cf334e59080589cc",
-      "bytes": 253149
+      "sha256": "efbd0d86f8d8d4c2af17da0e47943ccfb7dce16deb7081e77e4122b1435ce3b8",
+      "bytes": 252804
     },
     {
       "path": "sovereign-auction-context--26484-ilable-and-entitlement-loss-desktop/desktop-zh-status-401.png",
-      "sha256": "0be50d1d1bdf9167e474cbbd71c367aaf97683e51554402cedb6de4014963e07",
-      "bytes": 243943
+      "sha256": "082f40833df3f7f3c2e892b4bbf9b73129538d168831685e5170ce3e55d6e959",
+      "bytes": 243870
     },
     {
       "path": "sovereign-auction-context--26484-ilable-and-entitlement-loss-desktop/desktop-zh-status-403.png",
-      "sha256": "909463312779fb90abf02a51833ad480c8f66ab02f4fab8315dc505851b93fd9",
-      "bytes": 244886
+      "sha256": "01b3e037ff274f767d610a5b711149137245c51901fb5693e26e68ce9f42ad85",
+      "bytes": 244906
     },
     {
       "path": "sovereign-auction-context--26484-ilable-and-entitlement-loss-desktop/desktop-zh-status-503.png",
-      "sha256": "a13393f9408cb3d672425428b022cde80ea0ec1e5f2d16716bc6375170a0e86f",
-      "bytes": 244833
+      "sha256": "13d1a7cacb457d2ed7be573af966e65335ef2a71664a7fa1d3bf2ecf23336887",
+      "bytes": 244406
     },
     {
       "path": "sovereign-auction-context--26484-ilable-and-entitlement-loss-desktop/desktop-zh-valid-observed-empty.png",
-      "sha256": "b19c7ebffea905cd794256da428eaa3b26eae23905237e91b1c04ebb471a7f97",
-      "bytes": 247531
+      "sha256": "fd1ab5f0591930840edd999b3c5d1b9cdba6c1cd65530179431e11ff05a5d437",
+      "bytes": 246328
     },
     {
-      "path": "sovereign-auction-context--26484-ilable-and-entitlement-loss-mobile/attachments/mobile-zh-expanded-24-of-74-screenshot-fbb537f8f01243bb0af167c4e5178cf4c7c00f65.png",
+      "path": "sovereign-auction-context--26484-ilable-and-entitlement-loss-mobile/attachments/mobile-zh-expanded-24-of-74-screenshot-b18d3ed126eab7e45fd3d4553f8478d58df0045b.png",
       "sha256": "0d289c888fe00ef1af919b20c62c98c4692700cf8c50e0d8abb7ae9f312d86fb",
       "bytes": 73662
     },
     {
-      "path": "sovereign-auction-context--26484-ilable-and-entitlement-loss-mobile/attachments/mobile-zh-invalid-authority-screenshot-e15a70efbf7b7e7e79a47c087e13d6e4d439175f.png",
+      "path": "sovereign-auction-context--26484-ilable-and-entitlement-loss-mobile/attachments/mobile-zh-invalid-authority-screenshot-8b9a681082e6c4988d19bc4744ea9c0d89156607.png",
       "sha256": "5918ee22df471d39f1d2b9deae69c88786406abad32bc7b76b179d7f10527a75",
       "bytes": 54586
     },
     {
-      "path": "sovereign-auction-context--26484-ilable-and-entitlement-loss-mobile/attachments/mobile-zh-observed-result-source-details-screenshot-3bcfd847e8ead3dc1ac111cdd795f7d761c1f413.png",
+      "path": "sovereign-auction-context--26484-ilable-and-entitlement-loss-mobile/attachments/mobile-zh-observed-result-source-details-screenshot-ecdefb0a6af89394a3bb93273b8c51f77522f428.png",
       "sha256": "f2ae5d0a621e48b15572f4ec7e571a201cd7a86596e0489554289fb4c1c31121",
       "bytes": 86030
     },
     {
-      "path": "sovereign-auction-context--26484-ilable-and-entitlement-loss-mobile/attachments/mobile-zh-source-degraded-screenshot-19fcd8eccb60849fb4d2ff8107908c0b50803604.png",
+      "path": "sovereign-auction-context--26484-ilable-and-entitlement-loss-mobile/attachments/mobile-zh-source-degraded-screenshot-32bede73e675235306396e3c914e0bd6e11cc4d0.png",
       "sha256": "5b2aea91a81f82da023473f43dce2a1c1d61e1ddd2ed992e03a82273767f8080",
       "bytes": 73812
     },
     {
-      "path": "sovereign-auction-context--26484-ilable-and-entitlement-loss-mobile/attachments/mobile-zh-status-401-screenshot-bc635f89b922b7f4b984269e2e78391566df9fb3.png",
+      "path": "sovereign-auction-context--26484-ilable-and-entitlement-loss-mobile/attachments/mobile-zh-status-401-screenshot-5ff4b9d93aa364d6953749477f5a2576931f01c9.png",
       "sha256": "e3222b7153c2c671c718f0a5d58aae224d291afd13d05103d978e661259da579",
       "bytes": 53605
     },
     {
-      "path": "sovereign-auction-context--26484-ilable-and-entitlement-loss-mobile/attachments/mobile-zh-status-403-screenshot-87ea34f70f1ef4d699e0946ed8176d29849c5d08.png",
+      "path": "sovereign-auction-context--26484-ilable-and-entitlement-loss-mobile/attachments/mobile-zh-status-403-screenshot-e3a6ed6ab63bfa92f09ffcb8181085c7ec150ae5.png",
       "sha256": "7294a9d45276e61a17fcaa3439424f8b7a6724000ef5cb46fe2886f8859629e6",
       "bytes": 54598
     },
     {
-      "path": "sovereign-auction-context--26484-ilable-and-entitlement-loss-mobile/attachments/mobile-zh-status-503-screenshot-f37525c93303196939f53e85a45429dbb6956324.png",
+      "path": "sovereign-auction-context--26484-ilable-and-entitlement-loss-mobile/attachments/mobile-zh-status-503-screenshot-9d39f49c039d79b1c26c8aac98e3a77988f92780.png",
       "sha256": "5918ee22df471d39f1d2b9deae69c88786406abad32bc7b76b179d7f10527a75",
       "bytes": 54586
     },
     {
-      "path": "sovereign-auction-context--26484-ilable-and-entitlement-loss-mobile/attachments/mobile-zh-valid-observed-empty-screenshot-2a73bb58bfe784465b8fc20bc4008dfcc1e4c18b.png",
+      "path": "sovereign-auction-context--26484-ilable-and-entitlement-loss-mobile/attachments/mobile-zh-valid-observed-empty-screenshot-ceb0fd8474d59482a5fc675cfb3c5c3b0fa8d7ab.png",
       "sha256": "035e3f5a2899ef1af0974a75296e2f1bf1ab4eb98a201e59a6181c46eab2be7d",
       "bytes": 58635
     },
@@ -402,42 +402,42 @@
       "bytes": 58635
     },
     {
-      "path": "sovereign-auction-context--26484-ilable-and-entitlement-loss-tablet/attachments/tablet-zh-expanded-24-of-74-screenshot-75e8faa5d02bc83d98f0e788cee05f3b3c8730d6.png",
+      "path": "sovereign-auction-context--26484-ilable-and-entitlement-loss-tablet/attachments/tablet-zh-expanded-24-of-74-screenshot-66fe0e0c17f40ee469894414b8a6a668466b76cd.png",
       "sha256": "969856a6cd84ff25073e97e67e36a5b16f923bf20e2b9d42a980a379fcc33f6a",
       "bytes": 108615
     },
     {
-      "path": "sovereign-auction-context--26484-ilable-and-entitlement-loss-tablet/attachments/tablet-zh-invalid-authority-screenshot-d729a6ae5066a2850218daf52cd26aa10dd02462.png",
+      "path": "sovereign-auction-context--26484-ilable-and-entitlement-loss-tablet/attachments/tablet-zh-invalid-authority-screenshot-147e0c93f06821b2e5e660ce0ec56a69347004dd.png",
       "sha256": "34ed2f2e899d5768330b2e2a25845cb10ee81338b397fea9f4585aedc890b0b5",
       "bytes": 80379
     },
     {
-      "path": "sovereign-auction-context--26484-ilable-and-entitlement-loss-tablet/attachments/tablet-zh-observed-result-source-details-screenshot-c7f3038944c487411e2bb075c0584cf4bd36f45d.png",
+      "path": "sovereign-auction-context--26484-ilable-and-entitlement-loss-tablet/attachments/tablet-zh-observed-result-source-details-screenshot-bfe1b2e939ce9fe29ee8ea90ca7f2907b794de9f.png",
       "sha256": "7d6cea366dbf67e37a5221fc0c6873de822da59b9dfbf02a9a79ef70c7ec4378",
       "bytes": 126734
     },
     {
-      "path": "sovereign-auction-context--26484-ilable-and-entitlement-loss-tablet/attachments/tablet-zh-source-degraded-screenshot-58ae2c122dce3516af069a2206a0dbac5041c583.png",
+      "path": "sovereign-auction-context--26484-ilable-and-entitlement-loss-tablet/attachments/tablet-zh-source-degraded-screenshot-b9cb904d4610e6b55cb2cd1d093e8443966dd73d.png",
       "sha256": "079a27e0e0b6f0223bf73a7cde553627199d4d158319bdaccc25ccd859192e66",
       "bytes": 112591
     },
     {
-      "path": "sovereign-auction-context--26484-ilable-and-entitlement-loss-tablet/attachments/tablet-zh-status-401-screenshot-5a74decc83134851e56e379784d63a9b0023873e.png",
+      "path": "sovereign-auction-context--26484-ilable-and-entitlement-loss-tablet/attachments/tablet-zh-status-401-screenshot-c0c2d9e1e17c632caab1211b2f70a0bc1d4f5df0.png",
       "sha256": "ffdd85d273af853c62b948b29b90224c1fb48935558684cceba6675f054b3998",
       "bytes": 79332
     },
     {
-      "path": "sovereign-auction-context--26484-ilable-and-entitlement-loss-tablet/attachments/tablet-zh-status-403-screenshot-d322283fa983efb79263785035514728c22bde50.png",
+      "path": "sovereign-auction-context--26484-ilable-and-entitlement-loss-tablet/attachments/tablet-zh-status-403-screenshot-f7502892e66f8398396e52db6a22feb4ed9ca052.png",
       "sha256": "c185f40c34b6400e1b3e3d4f85fed8458a0fae19b178ab306d4180bea80fd0ff",
       "bytes": 80380
     },
     {
-      "path": "sovereign-auction-context--26484-ilable-and-entitlement-loss-tablet/attachments/tablet-zh-status-503-screenshot-54d4315be3cd9747051d933ca728c91321c6e697.png",
+      "path": "sovereign-auction-context--26484-ilable-and-entitlement-loss-tablet/attachments/tablet-zh-status-503-screenshot-8f91fec30b1c9d29f72a7def984256aa2a527cd3.png",
       "sha256": "34ed2f2e899d5768330b2e2a25845cb10ee81338b397fea9f4585aedc890b0b5",
       "bytes": 80379
     },
     {
-      "path": "sovereign-auction-context--26484-ilable-and-entitlement-loss-tablet/attachments/tablet-zh-valid-observed-empty-screenshot-d9b82bcce4d63c572e03039e080c4d4addaf6763.png",
+      "path": "sovereign-auction-context--26484-ilable-and-entitlement-loss-tablet/attachments/tablet-zh-valid-observed-empty-screenshot-16d13673c2d5c21f468024865f3d26e82a8f2925.png",
       "sha256": "ddff6bd1ec05d01450f962497e1b70adf65e1ce15830ffd51a5e694526724ee5",
       "bytes": 85984
     },
@@ -482,62 +482,62 @@
       "bytes": 85984
     },
     {
-      "path": "sovereign-auction-context--405be-out-and-invariant-incumbent-desktop/attachments/desktop-en-dark-bill-amount-deadline-screenshot-fba0a270762bf51cb281562e982766df342128d9.png",
-      "sha256": "7cd164e2ec35595fc02d7f1b3d913f7da434dee2249566fba27af0a830fdede2",
-      "bytes": 246426
+      "path": "sovereign-auction-context--405be-out-and-invariant-incumbent-desktop/attachments/desktop-en-dark-bill-amount-deadline-screenshot-399063ddafdb9d5ec55a52284a5dc8ccf6ee0212.png",
+      "sha256": "8966db3a0adc2a497556d496fe0ed6d293adc7d1acdab10c1abb70fb63d15d70",
+      "bytes": 247244
     },
     {
-      "path": "sovereign-auction-context--405be-out-and-invariant-incumbent-desktop/attachments/desktop-en-dark-context-source-details-screenshot-28b19dc3064a8cfcbf7aa429b0ceb20647d169b3.png",
-      "sha256": "633d9faf3a9272be340046ea9f3aeb08b5724a04d3abef87d8922deeff5de090",
-      "bytes": 243892
+      "path": "sovereign-auction-context--405be-out-and-invariant-incumbent-desktop/attachments/desktop-en-dark-context-source-details-screenshot-f2cbd9e5a767b37087fc64b412e48c53aafd438d.png",
+      "sha256": "456b94a7a4b383397e5f4deebb5ffb7fc51e669954280a0f2d04e9fdc8560384",
+      "bytes": 244528
     },
     {
-      "path": "sovereign-auction-context--405be-out-and-invariant-incumbent-desktop/attachments/desktop-en-dark-event-source-details-screenshot-30ba23fb28ab6ce4c87cd208d47ec01667043538.png",
-      "sha256": "94959d3f00c8c39c57ed6bf9b90b10fb83749fa588667a48d7c991ab9788d5c0",
-      "bytes": 246070
+      "path": "sovereign-auction-context--405be-out-and-invariant-incumbent-desktop/attachments/desktop-en-dark-event-source-details-screenshot-3bf5f1fad76bbc116ed1cfec2552ddea5da200c8.png",
+      "sha256": "d5de58d830203ad2cbd8fa65e7a2fa117712f080a77d9edb2795c7b4b52ca8ce",
+      "bytes": 249301
     },
     {
-      "path": "sovereign-auction-context--405be-out-and-invariant-incumbent-desktop/attachments/desktop-en-dark-shared-fixture-screenshot-84c15008039c784eb12e6024a46c41d001f66bea.png",
-      "sha256": "3b9ead28978b0b24669b0564b9109de620c85d9d8693a9a855b7bfc56dda2637",
-      "bytes": 249787
+      "path": "sovereign-auction-context--405be-out-and-invariant-incumbent-desktop/attachments/desktop-en-dark-shared-fixture-screenshot-b783fad628bc06fa55d0cb4bdaf76a031c01f17f.png",
+      "sha256": "e3ce39342ee2ca5bd816e5751aec3f93b62056c663a7252486e5acb7e6ff788a",
+      "bytes": 250780
     },
     {
       "path": "sovereign-auction-context--405be-out-and-invariant-incumbent-desktop/desktop-en-dark-bill-amount-deadline.png",
-      "sha256": "7cd164e2ec35595fc02d7f1b3d913f7da434dee2249566fba27af0a830fdede2",
-      "bytes": 246426
+      "sha256": "8966db3a0adc2a497556d496fe0ed6d293adc7d1acdab10c1abb70fb63d15d70",
+      "bytes": 247244
     },
     {
       "path": "sovereign-auction-context--405be-out-and-invariant-incumbent-desktop/desktop-en-dark-context-source-details.png",
-      "sha256": "633d9faf3a9272be340046ea9f3aeb08b5724a04d3abef87d8922deeff5de090",
-      "bytes": 243892
+      "sha256": "456b94a7a4b383397e5f4deebb5ffb7fc51e669954280a0f2d04e9fdc8560384",
+      "bytes": 244528
     },
     {
       "path": "sovereign-auction-context--405be-out-and-invariant-incumbent-desktop/desktop-en-dark-event-source-details.png",
-      "sha256": "94959d3f00c8c39c57ed6bf9b90b10fb83749fa588667a48d7c991ab9788d5c0",
-      "bytes": 246070
+      "sha256": "d5de58d830203ad2cbd8fa65e7a2fa117712f080a77d9edb2795c7b4b52ca8ce",
+      "bytes": 249301
     },
     {
       "path": "sovereign-auction-context--405be-out-and-invariant-incumbent-desktop/desktop-en-dark-shared-fixture.png",
-      "sha256": "3b9ead28978b0b24669b0564b9109de620c85d9d8693a9a855b7bfc56dda2637",
-      "bytes": 249787
+      "sha256": "e3ce39342ee2ca5bd816e5751aec3f93b62056c663a7252486e5acb7e6ff788a",
+      "bytes": 250780
     },
     {
-      "path": "sovereign-auction-context--405be-out-and-invariant-incumbent-mobile/attachments/mobile-en-dark-bill-amount-deadline-screenshot-85d62ed6ab496ce81d315af886a5b244a9322193.png",
+      "path": "sovereign-auction-context--405be-out-and-invariant-incumbent-mobile/attachments/mobile-en-dark-bill-amount-deadline-screenshot-27c46b2e31a157c5e7cff44969e51649fa084c4e.png",
       "sha256": "ef7cc3435177266b3e2a40517689c6f5113043304e845ca3ccb7ec131f313e8e",
       "bytes": 70607
     },
     {
-      "path": "sovereign-auction-context--405be-out-and-invariant-incumbent-mobile/attachments/mobile-en-dark-context-source-details-screenshot-9eaab6fbe79a4101d796f2a1d92a5b663c151ef9.png",
+      "path": "sovereign-auction-context--405be-out-and-invariant-incumbent-mobile/attachments/mobile-en-dark-context-source-details-screenshot-162f90226c390718c6e09b4dc6c42f838560e01d.png",
       "sha256": "7540df799c1acc1bb62dd96eab5ba4ac01850dd0978cd761af0036b08b6a6982",
       "bytes": 69522
     },
     {
-      "path": "sovereign-auction-context--405be-out-and-invariant-incumbent-mobile/attachments/mobile-en-dark-event-source-details-screenshot-2ba10ac12f94b41f94d71a0fefe5ca1a9fec2c52.png",
+      "path": "sovereign-auction-context--405be-out-and-invariant-incumbent-mobile/attachments/mobile-en-dark-event-source-details-screenshot-60e824641f249e05a7843fdcf9cff96d44daf40a.png",
       "sha256": "a82de54aa657010c47f70f161eb9d8c7389e7bcf794406acebd09cbcf3a66a66",
       "bytes": 72945
     },
     {
-      "path": "sovereign-auction-context--405be-out-and-invariant-incumbent-mobile/attachments/mobile-en-dark-shared-fixture-screenshot-e57b386904152b2af344073f94031c13fd22ff18.png",
+      "path": "sovereign-auction-context--405be-out-and-invariant-incumbent-mobile/attachments/mobile-en-dark-shared-fixture-screenshot-dd7d4b7f82231b0d152d0d76b0112bee7c926971.png",
       "sha256": "6ee84632f4e7ab608345f16bb522cf7e17cbcaad86082698e9c00871c5c6aa64",
       "bytes": 72028
     },
@@ -562,22 +562,22 @@
       "bytes": 72028
     },
     {
-      "path": "sovereign-auction-context--405be-out-and-invariant-incumbent-tablet/attachments/tablet-en-dark-bill-amount-deadline-screenshot-c27211d0385e811ed5d7c7a2b490b76de787deb9.png",
+      "path": "sovereign-auction-context--405be-out-and-invariant-incumbent-tablet/attachments/tablet-en-dark-bill-amount-deadline-screenshot-a492f00920a55bef281e4115ce37b6343d9b229b.png",
       "sha256": "986baa3e88aa60a1390a81893a92d9cf9c77ae52ee1551b7cea582a4a43c47b2",
       "bytes": 112362
     },
     {
-      "path": "sovereign-auction-context--405be-out-and-invariant-incumbent-tablet/attachments/tablet-en-dark-context-source-details-screenshot-9f6bd23809c39f0b2ab4b4e0262622a9aa32ba04.png",
+      "path": "sovereign-auction-context--405be-out-and-invariant-incumbent-tablet/attachments/tablet-en-dark-context-source-details-screenshot-f053ded097e7512a6805a8c8ec11d639c920b03d.png",
       "sha256": "145045fcd8c63ffa61114524641d96fbf71555e2e2a072ae1b7c77e771a4f7dd",
       "bytes": 112383
     },
     {
-      "path": "sovereign-auction-context--405be-out-and-invariant-incumbent-tablet/attachments/tablet-en-dark-event-source-details-screenshot-c8a6de10bd8409f4e67e70e6b422c01e427a5679.png",
+      "path": "sovereign-auction-context--405be-out-and-invariant-incumbent-tablet/attachments/tablet-en-dark-event-source-details-screenshot-34ae6d1c4c2267d62a27507f5f8e93e074e77cf2.png",
       "sha256": "d315a9127d5b862e3c876dab76245fdc166aee66dcd8eafc714996c67c1811f7",
       "bytes": 121345
     },
     {
-      "path": "sovereign-auction-context--405be-out-and-invariant-incumbent-tablet/attachments/tablet-en-dark-shared-fixture-screenshot-6a434861011cb8d6a6b3885920198da3f1c2e6e4.png",
+      "path": "sovereign-auction-context--405be-out-and-invariant-incumbent-tablet/attachments/tablet-en-dark-shared-fixture-screenshot-a44ca3bc800da79db948ad6a587a2d7aad63a49f.png",
       "sha256": "986baa3e88aa60a1390a81893a92d9cf9c77ae52ee1551b7cea582a4a43c47b2",
       "bytes": 112362
     },
@@ -602,122 +602,122 @@
       "bytes": 112362
     },
     {
-      "path": "sovereign-auction-context--7ff1c-ilable-and-entitlement-loss-desktop/attachments/desktop-en-expanded-24-of-74-screenshot-1b1446b993f8cde165d4874844f50449e0f3544c.png",
-      "sha256": "a78378a9630bf113bc4f043b6666e42f8ff5e2ff317e44699027ff9d50a1ac74",
-      "bytes": 248359
+      "path": "sovereign-auction-context--7ff1c-ilable-and-entitlement-loss-desktop/attachments/desktop-en-expanded-24-of-74-screenshot-fae300eaf6cbe9c0b11ebbc935ceba22c40980fa.png",
+      "sha256": "36f08e993750d3da6d066e1a573f2013716117ce2a3a52f4b406dcdfa965ef8a",
+      "bytes": 248686
     },
     {
-      "path": "sovereign-auction-context--7ff1c-ilable-and-entitlement-loss-desktop/attachments/desktop-en-invalid-authority-screenshot-2baef97bbec522bb36a92fb3994f2780fd8f6081.png",
-      "sha256": "2c5bf2f043bd4e0a1945748e43ba42028ccc1198970720f4f7a666e29944f58e",
-      "bytes": 236483
+      "path": "sovereign-auction-context--7ff1c-ilable-and-entitlement-loss-desktop/attachments/desktop-en-invalid-authority-screenshot-76284f90d23eed352403c8d5edca51ea20c7392b.png",
+      "sha256": "06e5b5a0c4e4c66fd217a06b1380bd661290537577666019ede28493fee9cf5e",
+      "bytes": 236641
     },
     {
-      "path": "sovereign-auction-context--7ff1c-ilable-and-entitlement-loss-desktop/attachments/desktop-en-observed-result-source-details-screenshot-6f9107ad06434f58bb72d96c8e1c2ce23af5a223.png",
-      "sha256": "97fefebfdc46dcfa861bdb1dc5f25003727b2677c3948fc469fffac7768c6ae6",
-      "bytes": 257590
+      "path": "sovereign-auction-context--7ff1c-ilable-and-entitlement-loss-desktop/attachments/desktop-en-observed-result-source-details-screenshot-ca7aee1e00162f9e435584a39324875fc74e4a1c.png",
+      "sha256": "e89d490d1dc80ac19492a27582b01494acccffc8125db24ac982f382a2cca198",
+      "bytes": 257603
     },
     {
-      "path": "sovereign-auction-context--7ff1c-ilable-and-entitlement-loss-desktop/attachments/desktop-en-source-degraded-screenshot-99125f974ce775cb2f20ca644836bd0a60f47264.png",
-      "sha256": "e75c8b4f50c170821c6e94adfa5d9f82bd12f45513f46fa5997a9eaec69d3256",
-      "bytes": 244440
+      "path": "sovereign-auction-context--7ff1c-ilable-and-entitlement-loss-desktop/attachments/desktop-en-source-degraded-screenshot-7cfc9acad72cc57ebe99790dddb2a7016fe62854.png",
+      "sha256": "71daf6e7f90b70f5a0d1614d2fa8763c3b1d88506e58b24a896809372c4bbfd0",
+      "bytes": 244257
     },
     {
-      "path": "sovereign-auction-context--7ff1c-ilable-and-entitlement-loss-desktop/attachments/desktop-en-status-401-screenshot-353ebd15be429df043c63150b97f2bdf9e0c8f80.png",
-      "sha256": "bd5f68e3bc31e2f0bcb9684930cbde4c63ae963aef0e01f288b4366511211b42",
-      "bytes": 235358
+      "path": "sovereign-auction-context--7ff1c-ilable-and-entitlement-loss-desktop/attachments/desktop-en-status-401-screenshot-640f881c040f8e49493efbae5143cc0b9ec3beae.png",
+      "sha256": "429370a7938095a02d3b3c1daf7725fd7bd09949aae1cccbab88bea8444a811c",
+      "bytes": 234588
     },
     {
-      "path": "sovereign-auction-context--7ff1c-ilable-and-entitlement-loss-desktop/attachments/desktop-en-status-403-screenshot-1eb656dd2a9ba6523d629f810122ae9f2dfa2484.png",
-      "sha256": "9ef0a65d9aeccf457f018c86785b8e8a88114af32316c0bda93ff0f86e490048",
-      "bytes": 237381
+      "path": "sovereign-auction-context--7ff1c-ilable-and-entitlement-loss-desktop/attachments/desktop-en-status-403-screenshot-a7f4010e4e7194569dc0e43f9fdd875118f3e71a.png",
+      "sha256": "4b92dbc8da6c09f69e1ba86322698193e4f2950bebb05337249fcd82d5181739",
+      "bytes": 237613
     },
     {
-      "path": "sovereign-auction-context--7ff1c-ilable-and-entitlement-loss-desktop/attachments/desktop-en-status-503-screenshot-524bcdcd41bbfa916c78641818dc1bb7c6c52ab5.png",
-      "sha256": "8a8ef259af2a6013a2ac6e87deba29bea5a826d72959486fd8e58e93dac42251",
-      "bytes": 236231
+      "path": "sovereign-auction-context--7ff1c-ilable-and-entitlement-loss-desktop/attachments/desktop-en-status-503-screenshot-68891f8be85247cc5d9b01932e8ce78ff57538a9.png",
+      "sha256": "cb8c82e615133a736c4fa69b471897b5904c03aa86f4990e2e6bbb28d6cd7add",
+      "bytes": 236715
     },
     {
-      "path": "sovereign-auction-context--7ff1c-ilable-and-entitlement-loss-desktop/attachments/desktop-en-valid-observed-empty-screenshot-0e1940ee7bd40e10c7fbbe40dd216b1a416bed82.png",
-      "sha256": "66ae952a06be307ab11fc838523dff2d63e99e2aa88f16917d755d016be7f8b3",
-      "bytes": 236456
+      "path": "sovereign-auction-context--7ff1c-ilable-and-entitlement-loss-desktop/attachments/desktop-en-valid-observed-empty-screenshot-42711aa10cc2ef987766f65b258be4c0e3a560ec.png",
+      "sha256": "0dff03c13def6388340cd2f2eddbfd4f928a959afad2dc6f6b0548476aa77798",
+      "bytes": 235711
     },
     {
       "path": "sovereign-auction-context--7ff1c-ilable-and-entitlement-loss-desktop/desktop-en-expanded-24-of-74.png",
-      "sha256": "a78378a9630bf113bc4f043b6666e42f8ff5e2ff317e44699027ff9d50a1ac74",
-      "bytes": 248359
+      "sha256": "36f08e993750d3da6d066e1a573f2013716117ce2a3a52f4b406dcdfa965ef8a",
+      "bytes": 248686
     },
     {
       "path": "sovereign-auction-context--7ff1c-ilable-and-entitlement-loss-desktop/desktop-en-invalid-authority.png",
-      "sha256": "2c5bf2f043bd4e0a1945748e43ba42028ccc1198970720f4f7a666e29944f58e",
-      "bytes": 236483
+      "sha256": "06e5b5a0c4e4c66fd217a06b1380bd661290537577666019ede28493fee9cf5e",
+      "bytes": 236641
     },
     {
       "path": "sovereign-auction-context--7ff1c-ilable-and-entitlement-loss-desktop/desktop-en-observed-result-source-details.png",
-      "sha256": "97fefebfdc46dcfa861bdb1dc5f25003727b2677c3948fc469fffac7768c6ae6",
-      "bytes": 257590
+      "sha256": "e89d490d1dc80ac19492a27582b01494acccffc8125db24ac982f382a2cca198",
+      "bytes": 257603
     },
     {
       "path": "sovereign-auction-context--7ff1c-ilable-and-entitlement-loss-desktop/desktop-en-source-degraded.png",
-      "sha256": "e75c8b4f50c170821c6e94adfa5d9f82bd12f45513f46fa5997a9eaec69d3256",
-      "bytes": 244440
+      "sha256": "71daf6e7f90b70f5a0d1614d2fa8763c3b1d88506e58b24a896809372c4bbfd0",
+      "bytes": 244257
     },
     {
       "path": "sovereign-auction-context--7ff1c-ilable-and-entitlement-loss-desktop/desktop-en-status-401.png",
-      "sha256": "bd5f68e3bc31e2f0bcb9684930cbde4c63ae963aef0e01f288b4366511211b42",
-      "bytes": 235358
+      "sha256": "429370a7938095a02d3b3c1daf7725fd7bd09949aae1cccbab88bea8444a811c",
+      "bytes": 234588
     },
     {
       "path": "sovereign-auction-context--7ff1c-ilable-and-entitlement-loss-desktop/desktop-en-status-403.png",
-      "sha256": "9ef0a65d9aeccf457f018c86785b8e8a88114af32316c0bda93ff0f86e490048",
-      "bytes": 237381
+      "sha256": "4b92dbc8da6c09f69e1ba86322698193e4f2950bebb05337249fcd82d5181739",
+      "bytes": 237613
     },
     {
       "path": "sovereign-auction-context--7ff1c-ilable-and-entitlement-loss-desktop/desktop-en-status-503.png",
-      "sha256": "8a8ef259af2a6013a2ac6e87deba29bea5a826d72959486fd8e58e93dac42251",
-      "bytes": 236231
+      "sha256": "cb8c82e615133a736c4fa69b471897b5904c03aa86f4990e2e6bbb28d6cd7add",
+      "bytes": 236715
     },
     {
       "path": "sovereign-auction-context--7ff1c-ilable-and-entitlement-loss-desktop/desktop-en-valid-observed-empty.png",
-      "sha256": "66ae952a06be307ab11fc838523dff2d63e99e2aa88f16917d755d016be7f8b3",
-      "bytes": 236456
+      "sha256": "0dff03c13def6388340cd2f2eddbfd4f928a959afad2dc6f6b0548476aa77798",
+      "bytes": 235711
     },
     {
-      "path": "sovereign-auction-context--7ff1c-ilable-and-entitlement-loss-mobile/attachments/mobile-en-expanded-24-of-74-screenshot-c790373ff332e47bf953671e6cdc8892cd4bb789.png",
+      "path": "sovereign-auction-context--7ff1c-ilable-and-entitlement-loss-mobile/attachments/mobile-en-expanded-24-of-74-screenshot-c6e33054f293cdb3221791c5ac68669c22e7170c.png",
       "sha256": "77bb47f33b0bdf94e5889c64e0b10108cdf56ad79333d4f98d1222f269e3ba23",
       "bytes": 70470
     },
     {
-      "path": "sovereign-auction-context--7ff1c-ilable-and-entitlement-loss-mobile/attachments/mobile-en-invalid-authority-screenshot-745d4895655abb0ef03cb005925efea1e0405ca1.png",
+      "path": "sovereign-auction-context--7ff1c-ilable-and-entitlement-loss-mobile/attachments/mobile-en-invalid-authority-screenshot-d7dce2fa4feb88b89df0570f658956ccf84ada8b.png",
       "sha256": "a73ff05063fcab3a37535fe6674c5127cc994618695df7570e86857033973275",
       "bytes": 51902
     },
     {
-      "path": "sovereign-auction-context--7ff1c-ilable-and-entitlement-loss-mobile/attachments/mobile-en-observed-result-source-details-screenshot-1bd627815a5f91fd2de4706c52e415e948fd9149.png",
+      "path": "sovereign-auction-context--7ff1c-ilable-and-entitlement-loss-mobile/attachments/mobile-en-observed-result-source-details-screenshot-8819dbfc959927568f919fb2ca1e1f75a9207be7.png",
       "sha256": "eeb4496eecced199660764b7a9a7a46b3dab2e3029f6bea581502bd1044a8fb1",
       "bytes": 79724
     },
     {
-      "path": "sovereign-auction-context--7ff1c-ilable-and-entitlement-loss-mobile/attachments/mobile-en-source-degraded-screenshot-8ce978f2631be1e5cae580c26477927805dca0f7.png",
+      "path": "sovereign-auction-context--7ff1c-ilable-and-entitlement-loss-mobile/attachments/mobile-en-source-degraded-screenshot-51f66daa8e3c18f09b1d13a3774d4b78ad2df296.png",
       "sha256": "e19571c571a7d11af0f2565e42804857602f2db9ca6289d99074f86aa93e5830",
       "bytes": 69264
     },
     {
-      "path": "sovereign-auction-context--7ff1c-ilable-and-entitlement-loss-mobile/attachments/mobile-en-status-401-screenshot-8596485b749489c6abc24ee4b793caf7021f44d4.png",
+      "path": "sovereign-auction-context--7ff1c-ilable-and-entitlement-loss-mobile/attachments/mobile-en-status-401-screenshot-97c78b6e5a652b96275cc433a113dbe7504ac789.png",
       "sha256": "5999ec19ded555e8cad8785e243d6fdf8bb808d79d0d99d088078dbcaf0da793",
       "bytes": 51209
     },
     {
-      "path": "sovereign-auction-context--7ff1c-ilable-and-entitlement-loss-mobile/attachments/mobile-en-status-403-screenshot-902b693e9b1159dda0883c97f766ecc96a1e60de.png",
+      "path": "sovereign-auction-context--7ff1c-ilable-and-entitlement-loss-mobile/attachments/mobile-en-status-403-screenshot-84a29fe527f0f3d6a48350164eb111bbd330ca16.png",
       "sha256": "0f6b8f7f0f432696f4823529b32b3ffedffd853a2b2c280aa63cb7910cdf5001",
       "bytes": 52628
     },
     {
-      "path": "sovereign-auction-context--7ff1c-ilable-and-entitlement-loss-mobile/attachments/mobile-en-status-503-screenshot-e79571d31550133eac67c900446fc5d02de50ddc.png",
+      "path": "sovereign-auction-context--7ff1c-ilable-and-entitlement-loss-mobile/attachments/mobile-en-status-503-screenshot-6c88596877c4a0126e8acf934d109ddecf2e1982.png",
       "sha256": "a73ff05063fcab3a37535fe6674c5127cc994618695df7570e86857033973275",
       "bytes": 51902
     },
     {
-      "path": "sovereign-auction-context--7ff1c-ilable-and-entitlement-loss-mobile/attachments/mobile-en-valid-observed-empty-screenshot-30212c211a00e45acc54f0601187937ec65ed90c.png",
+      "path": "sovereign-auction-context--7ff1c-ilable-and-entitlement-loss-mobile/attachments/mobile-en-valid-observed-empty-screenshot-601ce14ef978240a5af7f5eaaec316987bf0f198.png",
       "sha256": "dae5516aba5a625fb0be4435011bfae7fcd1f5485ab3ac70dd59d762c3a0d291",
       "bytes": 53961
     },
@@ -762,42 +762,42 @@
       "bytes": 53961
     },
     {
-      "path": "sovereign-auction-context--7ff1c-ilable-and-entitlement-loss-tablet/attachments/tablet-en-expanded-24-of-74-screenshot-fceaccf9d670a89ecb93aced774920b90cf4f1b8.png",
+      "path": "sovereign-auction-context--7ff1c-ilable-and-entitlement-loss-tablet/attachments/tablet-en-expanded-24-of-74-screenshot-2d9f3007ab5f06533120b48468abd7af68fdfff2.png",
       "sha256": "f7fedd2f5a77621d77de1bf1c1b3f15290ab0bd4feb3bdd41b418007e012f994",
       "bytes": 109516
     },
     {
-      "path": "sovereign-auction-context--7ff1c-ilable-and-entitlement-loss-tablet/attachments/tablet-en-invalid-authority-screenshot-a7f9bf6f4e1dd011a93389056323b43765481261.png",
+      "path": "sovereign-auction-context--7ff1c-ilable-and-entitlement-loss-tablet/attachments/tablet-en-invalid-authority-screenshot-be3b23667c65c4b444ec6447a38fa471c0062bdc.png",
       "sha256": "1ea9ad92ab52bdf632335616c7c3a3806ce3509ab168f723f3f5393e91d832a5",
       "bytes": 78029
     },
     {
-      "path": "sovereign-auction-context--7ff1c-ilable-and-entitlement-loss-tablet/attachments/tablet-en-observed-result-source-details-screenshot-93d8650ecc2de048a261e6a3b7a23e13aa0d9055.png",
+      "path": "sovereign-auction-context--7ff1c-ilable-and-entitlement-loss-tablet/attachments/tablet-en-observed-result-source-details-screenshot-26e351969d3a772ad0dec5bee3608c3f47adac15.png",
       "sha256": "8b0ea81f6fbf880575097e56955e9df21042c7edb262dcb0466679769e23c43d",
       "bytes": 122929
     },
     {
-      "path": "sovereign-auction-context--7ff1c-ilable-and-entitlement-loss-tablet/attachments/tablet-en-source-degraded-screenshot-cfc26f91bb0f7e97f27e8d9a1cff6a11a5696f7c.png",
+      "path": "sovereign-auction-context--7ff1c-ilable-and-entitlement-loss-tablet/attachments/tablet-en-source-degraded-screenshot-ef7da2ce2503d86a1b83dc06181db365c319d4be.png",
       "sha256": "21283db51173f36e5687ed9ca495e65f11801347a403919c40e217d5959ff33d",
       "bytes": 111289
     },
     {
-      "path": "sovereign-auction-context--7ff1c-ilable-and-entitlement-loss-tablet/attachments/tablet-en-status-401-screenshot-0231166086bd6c1ed96eeb599f6c31fae9209c5f.png",
+      "path": "sovereign-auction-context--7ff1c-ilable-and-entitlement-loss-tablet/attachments/tablet-en-status-401-screenshot-485d874c97790301630693f924dfc288cfaa8848.png",
       "sha256": "71326a932786a38a262eff098cdf7c4f823dcdecb46271490cbc925a87b19584",
       "bytes": 76792
     },
     {
-      "path": "sovereign-auction-context--7ff1c-ilable-and-entitlement-loss-tablet/attachments/tablet-en-status-403-screenshot-0f734fb8a124643da01028668188244050bc2e82.png",
+      "path": "sovereign-auction-context--7ff1c-ilable-and-entitlement-loss-tablet/attachments/tablet-en-status-403-screenshot-6530a6f94837f1ef4a405d65affef146faedb0e9.png",
       "sha256": "48cc06c4a87f8a2bde0f93b45eb6d6843ae17fc95e59e3f21a7b6b1ae1f8e803",
       "bytes": 78791
     },
     {
-      "path": "sovereign-auction-context--7ff1c-ilable-and-entitlement-loss-tablet/attachments/tablet-en-status-503-screenshot-d3c48b61ad03423b6fd1b4563b5f2b880116e004.png",
+      "path": "sovereign-auction-context--7ff1c-ilable-and-entitlement-loss-tablet/attachments/tablet-en-status-503-screenshot-cf4473e4ae7d80eecb67a7d5da91d67bc0d1394f.png",
       "sha256": "1ea9ad92ab52bdf632335616c7c3a3806ce3509ab168f723f3f5393e91d832a5",
       "bytes": 78029
     },
     {
-      "path": "sovereign-auction-context--7ff1c-ilable-and-entitlement-loss-tablet/attachments/tablet-en-valid-observed-empty-screenshot-79acde97a599c53f067bf456b046bd73353c242d.png",
+      "path": "sovereign-auction-context--7ff1c-ilable-and-entitlement-loss-tablet/attachments/tablet-en-valid-observed-empty-screenshot-ebcef1e198c43d91b6d2416603336f7ceaf9144b.png",
       "sha256": "e6dbcd3de37f58808983d0369df63554f39eeb3c908a14060df12a822222b90f",
       "bytes": 81830
     },
@@ -842,62 +842,62 @@
       "bytes": 81830
     },
     {
-      "path": "sovereign-auction-context--d4f75-out-and-invariant-incumbent-desktop/attachments/desktop-zh-light-attribute-diagnostic-bill-amount-deadline-screenshot-c42f1166b350ca266f4827d8f1e7f8cab5a39df0.png",
-      "sha256": "268db5cedd58cdc8286069fb0fc6b8ff12db6c2a0d80fb46c5516a3365f2b537",
-      "bytes": 259791
+      "path": "sovereign-auction-context--d4f75-out-and-invariant-incumbent-desktop/attachments/desktop-zh-light-attribute-diagnostic-bill-amount-deadline-screenshot-8bc4f0086d833b0b665c0f8b506264c3258d91cb.png",
+      "sha256": "6dbf7eb6b0499aa811b75e1aa66cf8b577b5169c3ad00e24a8a35e824b1cd318",
+      "bytes": 259012
     },
     {
-      "path": "sovereign-auction-context--d4f75-out-and-invariant-incumbent-desktop/attachments/desktop-zh-light-attribute-diagnostic-context-source-details-screenshot-92b55d253929b769520a98a0783a3bc3897eab89.png",
-      "sha256": "4ec0da37a193331932702f0a8cc3ce10d0c9d8a306e383edfef59c6ff606e0e6",
-      "bytes": 253417
+      "path": "sovereign-auction-context--d4f75-out-and-invariant-incumbent-desktop/attachments/desktop-zh-light-attribute-diagnostic-context-source-details-screenshot-77ea4ccfa3b119169dcdbd8e344519f9f761dc95.png",
+      "sha256": "14a6dd774f8a65cb089d5f2d91711dbd5702e362df6ee03da9582bebd49d163a",
+      "bytes": 252598
     },
     {
-      "path": "sovereign-auction-context--d4f75-out-and-invariant-incumbent-desktop/attachments/desktop-zh-light-attribute-diagnostic-event-source-details-screenshot-e6db053b5040fe7e9e0d230c5e277bf693f0ab68.png",
-      "sha256": "2b71b50ef6157901e512be1a29c857a321f09811d645c29a60b41c196cc2229a",
-      "bytes": 261773
+      "path": "sovereign-auction-context--d4f75-out-and-invariant-incumbent-desktop/attachments/desktop-zh-light-attribute-diagnostic-event-source-details-screenshot-d819c73c183a8fe860f272ab35902e307df60ab9.png",
+      "sha256": "92b7f514906a9de38ebdee439f332278faf970c002a60c300da5b01d6e6548b9",
+      "bytes": 260272
     },
     {
-      "path": "sovereign-auction-context--d4f75-out-and-invariant-incumbent-desktop/attachments/desktop-zh-light-attribute-diagnostic-shared-fixture-screenshot-a4d0c77f54646b59403a5bc22ae0a55fb5f4f46c.png",
-      "sha256": "c5f4506c250553ec7997a65088e776f48262689bc84c2fd34259c3ad433b1847",
-      "bytes": 260987
+      "path": "sovereign-auction-context--d4f75-out-and-invariant-incumbent-desktop/attachments/desktop-zh-light-attribute-diagnostic-shared-fixture-screenshot-d664ec2f7605faba71979eee880ca71873c63620.png",
+      "sha256": "c92d397240eb0337656ed4aab320d18c80fec820ccca42bb79dfae8c344ecd75",
+      "bytes": 259586
     },
     {
       "path": "sovereign-auction-context--d4f75-out-and-invariant-incumbent-desktop/desktop-zh-light-attribute-diagnostic-bill-amount-deadline.png",
-      "sha256": "268db5cedd58cdc8286069fb0fc6b8ff12db6c2a0d80fb46c5516a3365f2b537",
-      "bytes": 259791
+      "sha256": "6dbf7eb6b0499aa811b75e1aa66cf8b577b5169c3ad00e24a8a35e824b1cd318",
+      "bytes": 259012
     },
     {
       "path": "sovereign-auction-context--d4f75-out-and-invariant-incumbent-desktop/desktop-zh-light-attribute-diagnostic-context-source-details.png",
-      "sha256": "4ec0da37a193331932702f0a8cc3ce10d0c9d8a306e383edfef59c6ff606e0e6",
-      "bytes": 253417
+      "sha256": "14a6dd774f8a65cb089d5f2d91711dbd5702e362df6ee03da9582bebd49d163a",
+      "bytes": 252598
     },
     {
       "path": "sovereign-auction-context--d4f75-out-and-invariant-incumbent-desktop/desktop-zh-light-attribute-diagnostic-event-source-details.png",
-      "sha256": "2b71b50ef6157901e512be1a29c857a321f09811d645c29a60b41c196cc2229a",
-      "bytes": 261773
+      "sha256": "92b7f514906a9de38ebdee439f332278faf970c002a60c300da5b01d6e6548b9",
+      "bytes": 260272
     },
     {
       "path": "sovereign-auction-context--d4f75-out-and-invariant-incumbent-desktop/desktop-zh-light-attribute-diagnostic-shared-fixture.png",
-      "sha256": "c5f4506c250553ec7997a65088e776f48262689bc84c2fd34259c3ad433b1847",
-      "bytes": 260987
+      "sha256": "c92d397240eb0337656ed4aab320d18c80fec820ccca42bb79dfae8c344ecd75",
+      "bytes": 259586
     },
     {
-      "path": "sovereign-auction-context--d4f75-out-and-invariant-incumbent-mobile/attachments/mobile-zh-light-attribute-diagnostic-bill-amount-deadline-screenshot-1790801a2ffd86a960a06de87308a2c1e5ca3929.png",
+      "path": "sovereign-auction-context--d4f75-out-and-invariant-incumbent-mobile/attachments/mobile-zh-light-attribute-diagnostic-bill-amount-deadline-screenshot-6c64493f5b776b000d8b503301f0719cc6895645.png",
       "sha256": "1aaf7324803215fd38f745246b66ed78437d99ea138d48ba72764eda54799523",
       "bytes": 78309
     },
     {
-      "path": "sovereign-auction-context--d4f75-out-and-invariant-incumbent-mobile/attachments/mobile-zh-light-attribute-diagnostic-context-source-details-screenshot-1492b6add46f91f9f35c627aafb9f0bd029a92eb.png",
+      "path": "sovereign-auction-context--d4f75-out-and-invariant-incumbent-mobile/attachments/mobile-zh-light-attribute-diagnostic-context-source-details-screenshot-79f1e97271c0ceaec4098642e5799e1151aef698.png",
       "sha256": "d674c4bd096e616038ef0306dd5a9ad4d4551f12f54b8aff834b9b1a4f55c71d",
       "bytes": 74938
     },
     {
-      "path": "sovereign-auction-context--d4f75-out-and-invariant-incumbent-mobile/attachments/mobile-zh-light-attribute-diagnostic-event-source-details-screenshot-3e762b39a379732cdcd23613abe7ac1545ca5a24.png",
+      "path": "sovereign-auction-context--d4f75-out-and-invariant-incumbent-mobile/attachments/mobile-zh-light-attribute-diagnostic-event-source-details-screenshot-8c0e44356733dc3a9cff9c76cfd62a6f45cd5525.png",
       "sha256": "e47c1a72a2a4e9bd82fce9e804a51c4811e6d94fef42a29d2600b7c5945e49a6",
       "bytes": 80080
     },
     {
-      "path": "sovereign-auction-context--d4f75-out-and-invariant-incumbent-mobile/attachments/mobile-zh-light-attribute-diagnostic-shared-fixture-screenshot-eefb118a60ba2cfa25d7a230aa7f50a1a3531cf2.png",
+      "path": "sovereign-auction-context--d4f75-out-and-invariant-incumbent-mobile/attachments/mobile-zh-light-attribute-diagnostic-shared-fixture-screenshot-a84d509788352c9dba0e32a6f9c69ec022f29ba9.png",
       "sha256": "60026552f9a17707a77f9caa3305a233ecad59b1ac4e5827f1fc5e6a2e42c1fb",
       "bytes": 78673
     },
@@ -922,22 +922,22 @@
       "bytes": 78673
     },
     {
-      "path": "sovereign-auction-context--d4f75-out-and-invariant-incumbent-tablet/attachments/tablet-zh-light-attribute-diagnostic-bill-amount-deadline-screenshot-a2199d97f87d72dfa105041a89444c3f369bd1a4.png",
+      "path": "sovereign-auction-context--d4f75-out-and-invariant-incumbent-tablet/attachments/tablet-zh-light-attribute-diagnostic-bill-amount-deadline-screenshot-ed863e893301ff80721fe82cc8939ed5344b9ca3.png",
       "sha256": "8c6ab1904e57ef62ee9299992d8fb2aa1b205c41fd24bc87dbdf99520edbfd5a",
       "bytes": 114887
     },
     {
-      "path": "sovereign-auction-context--d4f75-out-and-invariant-incumbent-tablet/attachments/tablet-zh-light-attribute-diagnostic-context-source-details-screenshot-13bb1f56af8a1f2a19fc88a766bbcffcc2aa771f.png",
+      "path": "sovereign-auction-context--d4f75-out-and-invariant-incumbent-tablet/attachments/tablet-zh-light-attribute-diagnostic-context-source-details-screenshot-293f297821f80c86061b9ed7b110dd58805971da.png",
       "sha256": "31a3c146e536882b5ab42875274de8250bb1fa939fab24bd0f136722c176aa1f",
       "bytes": 114901
     },
     {
-      "path": "sovereign-auction-context--d4f75-out-and-invariant-incumbent-tablet/attachments/tablet-zh-light-attribute-diagnostic-event-source-details-screenshot-460c5d70d2f9ad4deb858d7b80b6b5a662a4418a.png",
+      "path": "sovereign-auction-context--d4f75-out-and-invariant-incumbent-tablet/attachments/tablet-zh-light-attribute-diagnostic-event-source-details-screenshot-5d6f40e8714146354a8f8992fe06d8573d3dd693.png",
       "sha256": "e211696976b2436b3d470c2c4b45465bedc87b1c9b4b3f91b5989bc1162a2782",
       "bytes": 125142
     },
     {
-      "path": "sovereign-auction-context--d4f75-out-and-invariant-incumbent-tablet/attachments/tablet-zh-light-attribute-diagnostic-shared-fixture-screenshot-5adb41974b90ae0eb869305541fec94908296f53.png",
+      "path": "sovereign-auction-context--d4f75-out-and-invariant-incumbent-tablet/attachments/tablet-zh-light-attribute-diagnostic-shared-fixture-screenshot-ff1480a080aec33f5d86b8702372e08bb85df0a8.png",
       "sha256": "8c6ab1904e57ef62ee9299992d8fb2aa1b205c41fd24bc87dbdf99520edbfd5a",
       "bytes": 114887
     },

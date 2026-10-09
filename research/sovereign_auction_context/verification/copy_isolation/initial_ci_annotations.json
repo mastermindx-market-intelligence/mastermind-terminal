@@ -1,0 +1,151 @@
+{
+  "head": "9292c7ca1e19e07ee70514b9a3cfb598ba5dd5b9",
+  "job_id": 113599240786,
+  "retrieved_at": "2026-10-09T00:23:31.207288+00:00",
+  "annotations": [
+    {
+      "path": ".github",
+      "blob_href": "https://github.com/mastermindx-market-intelligence/mastermind-terminal/blob/9292c7ca1e19e07ee70514b9a3cfb598ba5dd5b9/.github",
+      "start_line": 2,
+      "start_column": null,
+      "end_line": 2,
+      "end_column": null,
+      "annotation_level": "warning",
+      "title": "",
+      "message": "Node.js 20 is deprecated. The following actions target Node.js 20 but are being forced to run on Node.js 24: actions/checkout@v4, actions/setup-node@v4. For more information see: https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/",
+      "raw_details": ""
+    },
+    {
+      "path": "terminal/lib/__tests__/f12_9TeamOwnershipTransferEvidence.test.ts",
+      "blob_href": "https://github.com/mastermindx-market-intelligence/mastermind-terminal/blob/9292c7ca1e19e07ee70514b9a3cfb598ba5dd5b9/terminal/lib/__tests__/f12_9TeamOwnershipTransferEvidence.test.ts",
+      "start_line": 189,
+      "start_column": null,
+      "end_line": 189,
+      "end_column": null,
+      "annotation_level": "failure",
+      "title": "lib/__tests__/f12_9TeamOwnershipTransferEvidence.test.ts > B-F12-9 evidence lock is the sha256 of the layout sources > layout file sha256 matches EVIDENCE.yml (RED when a layout file changes without a recapture)",
+      "message": "AssertionError: terminal/lib/i18n.tsx changed without a recapture: expected 'cc6b9efb57ea38a9f2b22c6daa993e5766008\u2026' to be '858306597ebbfc2d912cefc997ad88e4805ca\u2026' // Object.is equality\n\nExpected: \"858306597ebbfc2d912cefc997ad88e4805cafb08794b5cd4d3dfeacb109371f\"\nReceived: \"cc6b9efb57ea38a9f2b22c6daa993e5766008e2e1c08ddae276fb11314ec9a9c\"\n\n \u276f lib/__tests__/f12_9TeamOwnershipTransferEvidence.test.ts:189:67\n\n",
+      "raw_details": ""
+    },
+    {
+      "path": "terminal/lib/__tests__/f12_9TeamOwnershipTransferEvidence.test.ts",
+      "blob_href": "https://github.com/mastermindx-market-intelligence/mastermind-terminal/blob/9292c7ca1e19e07ee70514b9a3cfb598ba5dd5b9/terminal/lib/__tests__/f12_9TeamOwnershipTransferEvidence.test.ts",
+      "start_line": 177,
+      "start_column": null,
+      "end_line": 177,
+      "end_column": null,
+      "annotation_level": "failure",
+      "title": "lib/__tests__/f12_9TeamOwnershipTransferEvidence.test.ts > B-F12-9 evidence lock is the sha256 of the layout sources > capturedAtHead is an ancestor-or-equal of HEAD and layoutFiles hashes match the bytes at that commit",
+      "message": "AssertionError: terminal/lib/i18n.tsx changed without a recapture: expected 'cc6b9efb57ea38a9f2b22c6daa993e5766008\u2026' to be '858306597ebbfc2d912cefc997ad88e4805ca\u2026' // Object.is equality\n\nExpected: \"858306597ebbfc2d912cefc997ad88e4805cafb08794b5cd4d3dfeacb109371f\"\nReceived: \"cc6b9efb57ea38a9f2b22c6daa993e5766008e2e1c08ddae276fb11314ec9a9c\"\n\n \u276f lib/__tests__/f12_9TeamOwnershipTransferEvidence.test.ts:177:67\n\n",
+      "raw_details": ""
+    },
+    {
+      "path": "terminal/lib/__tests__/f12_8TeamRolesEvidence.test.ts",
+      "blob_href": "https://github.com/mastermindx-market-intelligence/mastermind-terminal/blob/9292c7ca1e19e07ee70514b9a3cfb598ba5dd5b9/terminal/lib/__tests__/f12_8TeamRolesEvidence.test.ts",
+      "start_line": 116,
+      "start_column": null,
+      "end_line": 116,
+      "end_column": null,
+      "annotation_level": "failure",
+      "title": "lib/__tests__/f12_8TeamRolesEvidence.test.ts > B-F12-8 evidence lock is the sha256 of the layout sources > layout file sha256 matches EVIDENCE.yml (RED when a layout file changes without a recapture)",
+      "message": "AssertionError: terminal/lib/i18n.tsx changed without a recapture: expected 'cc6b9efb57ea38a9f2b22c6daa993e5766008\u2026' to be '858306597ebbfc2d912cefc997ad88e4805ca\u2026' // Object.is equality\n\nExpected: \"858306597ebbfc2d912cefc997ad88e4805cafb08794b5cd4d3dfeacb109371f\"\nReceived: \"cc6b9efb57ea38a9f2b22c6daa993e5766008e2e1c08ddae276fb11314ec9a9c\"\n\n \u276f lib/__tests__/f12_8TeamRolesEvidence.test.ts:116:67\n\n",
+      "raw_details": ""
+    },
+    {
+      "path": "terminal/lib/__tests__/f12_17InviteLinkEvidence.test.ts",
+      "blob_href": "https://github.com/mastermindx-market-intelligence/mastermind-terminal/blob/9292c7ca1e19e07ee70514b9a3cfb598ba5dd5b9/terminal/lib/__tests__/f12_17InviteLinkEvidence.test.ts",
+      "start_line": 106,
+      "start_column": null,
+      "end_line": 106,
+      "end_column": null,
+      "annotation_level": "failure",
+      "title": "lib/__tests__/f12_17InviteLinkEvidence.test.ts > W9T_F12_17 evidence lock is the sha256 of the invitation layout sources > layout file sha256 matches EVIDENCE.yml (RED when a layout file changes without a recapture)",
+      "message": "AssertionError: terminal/lib/i18n.tsx changed without a recapture: expected 'cc6b9efb57ea38a9f2b22c6daa993e5766008\u2026' to be '858306597ebbfc2d912cefc997ad88e4805ca\u2026' // Object.is equality\n\nExpected: \"858306597ebbfc2d912cefc997ad88e4805cafb08794b5cd4d3dfeacb109371f\"\nReceived: \"cc6b9efb57ea38a9f2b22c6daa993e5766008e2e1c08ddae276fb11314ec9a9c\"\n\n \u276f lib/__tests__/f12_17InviteLinkEvidence.test.ts:106:67\n\n",
+      "raw_details": ""
+    },
+    {
+      "path": "terminal/lib/__tests__/f11_4ResearchViewsEvidence.test.ts",
+      "blob_href": "https://github.com/mastermindx-market-intelligence/mastermind-terminal/blob/9292c7ca1e19e07ee70514b9a3cfb598ba5dd5b9/terminal/lib/__tests__/f11_4ResearchViewsEvidence.test.ts",
+      "start_line": 117,
+      "start_column": null,
+      "end_line": 117,
+      "end_column": null,
+      "annotation_level": "failure",
+      "title": "lib/__tests__/f11_4ResearchViewsEvidence.test.ts > B-F11-4 evidence lock is the sha256 of the layout sources > layout file sha256 matches EVIDENCE.yml (RED when a layout file changes without a recapture)",
+      "message": "AssertionError: terminal/lib/i18n.tsx changed without a recapture: expected 'cc6b9efb57ea38a9f2b22c6daa993e5766008\u2026' to be '858306597ebbfc2d912cefc997ad88e4805ca\u2026' // Object.is equality\n\nExpected: \"858306597ebbfc2d912cefc997ad88e4805cafb08794b5cd4d3dfeacb109371f\"\nReceived: \"cc6b9efb57ea38a9f2b22c6daa993e5766008e2e1c08ddae276fb11314ec9a9c\"\n\n \u276f lib/__tests__/f11_4ResearchViewsEvidence.test.ts:117:67\n\n",
+      "raw_details": ""
+    },
+    {
+      "path": "terminal/lib/__tests__/b_pl_6Batch1Evidence.test.ts",
+      "blob_href": "https://github.com/mastermindx-market-intelligence/mastermind-terminal/blob/9292c7ca1e19e07ee70514b9a3cfb598ba5dd5b9/terminal/lib/__tests__/b_pl_6Batch1Evidence.test.ts",
+      "start_line": 69,
+      "start_column": null,
+      "end_line": 69,
+      "end_column": null,
+      "annotation_level": "failure",
+      "title": "lib/__tests__/b_pl_6Batch1Evidence.test.ts > B-PL-6 batch 1 evidence lock is the sha256 of the layout sources > each layoutFiles sha256 matches the file on disk",
+      "message": "AssertionError: terminal/lib/i18n.tsx changed without a recapture: expected 'cc6b9efb57ea38a9f2b22c6daa993e5766008\u2026' to be '858306597ebbfc2d912cefc997ad88e4805ca\u2026' // Object.is equality\n\nExpected: \"858306597ebbfc2d912cefc997ad88e4805cafb08794b5cd4d3dfeacb109371f\"\nReceived: \"cc6b9efb57ea38a9f2b22c6daa993e5766008e2e1c08ddae276fb11314ec9a9c\"\n\n \u276f lib/__tests__/b_pl_6Batch1Evidence.test.ts:69:67\n\n",
+      "raw_details": ""
+    },
+    {
+      "path": "terminal/lib/__tests__/b_f12_b5_3AccountCompletenessEvidence.test.ts",
+      "blob_href": "https://github.com/mastermindx-market-intelligence/mastermind-terminal/blob/9292c7ca1e19e07ee70514b9a3cfb598ba5dd5b9/terminal/lib/__tests__/b_f12_b5_3AccountCompletenessEvidence.test.ts",
+      "start_line": 89,
+      "start_column": null,
+      "end_line": 89,
+      "end_column": null,
+      "annotation_level": "failure",
+      "title": "lib/__tests__/b_f12_b5_3AccountCompletenessEvidence.test.ts > B-F12-B5-3b evidence lock > layout file sha256 matches EVIDENCE.yml (RED when a layout file changes without a recapture)",
+      "message": "AssertionError: terminal/lib/i18n.tsx changed without a recapture: expected 'cc6b9efb57ea38a9f2b22c6daa993e5766008\u2026' to be '858306597ebbfc2d912cefc997ad88e4805ca\u2026' // Object.is equality\n\nExpected: \"858306597ebbfc2d912cefc997ad88e4805cafb08794b5cd4d3dfeacb109371f\"\nReceived: \"cc6b9efb57ea38a9f2b22c6daa993e5766008e2e1c08ddae276fb11314ec9a9c\"\n\n \u276f lib/__tests__/b_f12_b5_3AccountCompletenessEvidence.test.ts:89:67\n\n",
+      "raw_details": ""
+    },
+    {
+      "path": "terminal/lib/__tests__/b_f11_10AnalysisThesesEntryEvidence.test.ts",
+      "blob_href": "https://github.com/mastermindx-market-intelligence/mastermind-terminal/blob/9292c7ca1e19e07ee70514b9a3cfb598ba5dd5b9/terminal/lib/__tests__/b_f11_10AnalysisThesesEntryEvidence.test.ts",
+      "start_line": 55,
+      "start_column": null,
+      "end_line": 55,
+      "end_column": null,
+      "annotation_level": "failure",
+      "title": "lib/__tests__/b_f11_10AnalysisThesesEntryEvidence.test.ts > B-F11-10a evidence lock is the sha256 of the layout sources > each layoutFiles sha256 matches the file on disk",
+      "message": "AssertionError: terminal/lib/i18n.tsx changed without a recapture: expected 'cc6b9efb57ea38a9f2b22c6daa993e5766008\u2026' to be '858306597ebbfc2d912cefc997ad88e4805ca\u2026' // Object.is equality\n\nExpected: \"858306597ebbfc2d912cefc997ad88e4805cafb08794b5cd4d3dfeacb109371f\"\nReceived: \"cc6b9efb57ea38a9f2b22c6daa993e5766008e2e1c08ddae276fb11314ec9a9c\"\n\n \u276f lib/__tests__/b_f11_10AnalysisThesesEntryEvidence.test.ts:55:67\n\n",
+      "raw_details": ""
+    },
+    {
+      "path": ".github",
+      "blob_href": "https://github.com/mastermindx-market-intelligence/mastermind-terminal/blob/9292c7ca1e19e07ee70514b9a3cfb598ba5dd5b9/.github",
+      "start_line": 38,
+      "start_column": null,
+      "end_line": 38,
+      "end_column": null,
+      "annotation_level": "failure",
+      "title": "plain-language",
+      "message": "terminal/components/Bad.tsx:2: raw_state_enum: \"BOTTOM_WATCH\" \u2014 say \"Watching for a bottom\" / \"\u5173\u6ce8\u7b51\u5e95\" (route via regimeLabel(t, value, lang) from @/lib/plainLabels)",
+      "raw_details": ""
+    },
+    {
+      "path": ".github",
+      "blob_href": "https://github.com/mastermindx-market-intelligence/mastermind-terminal/blob/9292c7ca1e19e07ee70514b9a3cfb598ba5dd5b9/.github",
+      "start_line": 37,
+      "start_column": null,
+      "end_line": 37,
+      "end_column": null,
+      "annotation_level": "failure",
+      "title": "plain-language",
+      "message": "1 blocking plain-language finding(s) on newly added lines",
+      "raw_details": ""
+    },
+    {
+      "path": ".github",
+      "blob_href": "https://github.com/mastermindx-market-intelligence/mastermind-terminal/blob/9292c7ca1e19e07ee70514b9a3cfb598ba5dd5b9/.github",
+      "start_line": 1,
+      "start_column": null,
+      "end_line": 1,
+      "end_column": null,
+      "annotation_level": "notice",
+      "title": "",
+      "message": "\"The ubuntu-latest label will migrate to Ubuntu 26 beginning October 19, 2026. For more information, see https://github.com/actions/runner-images/issues/14748\"",
+      "raw_details": ""
+    }
+  ]
+}
