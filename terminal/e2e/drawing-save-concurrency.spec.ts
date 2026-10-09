@@ -73,3 +73,38 @@ test("old local clear-all is not silently replayed against a fresh cloud read",a
  await open(page);await expect(page.getByTestId("drawing-save-recovery")).toContainText("Local drawings (0)");
  await expect(page.getByTestId("drawing-save-recovery")).toContainText("Cloud drawings (1)");expect(puts).toBe(0);
 });
+
+// Preserve the actual durable fixture state when a recovery assertion fails.
+test.afterEach(async({page},info)=>{
+ if(info.status!==info.expectedStatus) console.log("A04_RECOVERY_FAILURE_STORAGE",await page.evaluate(()=>localStorage.getItem("mm.drawing.account-outbox.v1")));
+});
+
+test("competing local copies require explicit selection and are discarded individually",async({page})=>{
+ await seed(page,{format:2,copies:{[original]:{drawings:[line("local-a")],revision:null},[committed]:{drawings:[line("local-b")],revision:null}}});
+ let puts=0;let cloud:any={drawings:[line("cloud")],revision:nextRevision,schemaVersion:1};
+ await page.route("**/api/drawings**",async route=>{
+  if(route.request().method()==="GET"){await route.fulfill(json(cloud));return;}
+  puts++;const body=route.request().postDataJSON();expect(body.expectedRevision).toBe(nextRevision);
+  cloud={drawings:body.drawings,revision:committed,schemaVersion:1};
+  await route.fulfill(json({ok:true,operationId:body.operationId,revision:committed,idempotentReplay:false,superseded:false}));
+ });
+ await open(page);await expect(page.getByTestId("drawing-save-recovery")).toContainText("Cloud drawings (1)");expect(puts).toBe(0);
+ await page.getByRole("button",{name:/Review another local copy/}).click();
+ await page.getByRole("button",{name:"Replace cloud with local copy",exact:true}).click();
+ await expect.poll(()=>puts).toBe(1);expect(cloud.drawings[0].id).toBe("local-b");
+ await expect(page.getByTestId("drawing-save-recovery")).toContainText("Cloud drawings (1)");
+ await page.getByRole("button",{name:"Use cloud copy",exact:true}).click();
+ await expect(page.getByTestId("drawing-save-recovery")).toHaveCount(0);expect(puts).toBe(1);
+ expect(await page.evaluate(()=>localStorage.getItem("mm.drawing.account-outbox.v1"))).toBeNull();
+});
+
+test("unavailable durable serialization warns to keep the tab open and never starts a save",async({page})=>{
+ await page.addInitScript(()=>Object.defineProperty(navigator,"locks",{value:undefined,configurable:true}));
+ await seed(page,{drawings:[line("memory-only")],revision:null});let puts=0;
+ await page.route("**/api/drawings**",async route=>{
+  if(route.request().method()==="PUT")puts++;
+  await route.fulfill(json({drawings:[],revision:null,schemaVersion:1}));
+ });
+ await open(page);await expect(page.getByTestId("drawing-save-recovery")).toContainText("Keep this tab open");expect(puts).toBe(0);
+ expect(await page.evaluate(()=>JSON.parse(localStorage.getItem("mm.drawing.account-outbox.v1")!)["account:responsive@example.com"].NVDA.drawings[0].id)).toBe("memory-only");
+});

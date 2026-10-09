@@ -458,6 +458,8 @@ export const LEX: Record<string, [string, string]> = {
   drawingHideFavoriteStrip: ["Hide favorite tools", "隐藏收藏工具栏"],
   drawingLoadFailed: ["Saved drawings could not be loaded. Drawing changes are paused while we retry.", "无法载入已保存的图形。重试期间已暂停绘图更改。"],
   drawingSaveRetry: ["Your drawing changes are kept on this device. Retry saving when connected.", "绘图更改已保留在此设备上。连接恢复后请重试保存。"],
+  drawingStorageUnavailable: ["Browser recovery storage is unavailable. Keep this tab open and retry; your pending edits are only in this tab.", "浏览器恢复存储暂不可用。请保持此标签页打开并重试；待保存修改仅保留在此标签页中。"],
+  drawingOtherLocalCopy: ["Review another local copy", "查看另一个本地副本"],
   drawingSaveConflict: ["The cloud copy changed, or local recovery needs review. Your local drawings are kept. Choose which copy to use.", "云端图形已更改，或本地恢复需要检查。本地图形已保留。请选择要使用的副本。"],
   drawingRetrySave: ["Retry save", "重试保存"],
   drawingReviewCloud: ["Review cloud copy", "检查云端副本"],

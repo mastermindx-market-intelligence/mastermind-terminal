@@ -6,6 +6,8 @@ export type DrawingSnapshot = { drawings: Drawing[]; revision: DrawingRevision; 
 export type DrawingAttempt = { operationId: string; expectedRevision: DrawingRevision; drawings: Drawing[] };
 export type DrawingJournalEntry = {
   drawings: Drawing[];
+  recoveryId?: string;
+  alternatives?: DrawingJournalEntry[];
   // Absence means that the old outbox never observed a cloud revision.
   revision?: DrawingRevision;
   attempt?: DrawingAttempt;
@@ -65,7 +67,7 @@ export function parseDrawingSaveReceipt(value: unknown, attempt: DrawingAttempt)
 
 /** Retrying an unknown outcome always returns the same operation and exact snapshot. */
 export function prepareDrawingAttempt(entry: DrawingJournalEntry, operationId: () => string): DrawingAttempt | null {
-  if (entry.blocked) return null;
+  if (entry.blocked || entry.alternatives?.length) return null;
   if (entry.attempt) return entry.attempt;
   if (!Object.hasOwn(entry, "revision") || !validDrawingRevision(entry.revision)) {
     entry.blocked = "legacy";

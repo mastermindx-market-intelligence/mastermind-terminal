@@ -130,7 +130,7 @@ import {
   normalizeDrawings,
   uid,
 } from "@/lib/drawings";
-import { readDrawingJournal, writeDrawingJournal } from "@/lib/drawingOutbox";
+import { readDrawingJournal, writeDrawingJournal, refreshDrawingJournalSymbol, selectDrawingRecoveryCopy } from "@/lib/drawingOutbox";
 import { parseDrawingSnapshot, parseDrawingSaveReceipt, prepareDrawingAttempt, settleDrawingAttempt, type DrawingJournal, type DrawingSnapshot, type DrawingRevision } from "@/lib/drawingPersistence";
 import { FREEHAND_DRAWING_KINDS, getDrawingTool, isDrawingToolId } from "@/lib/drawingTools";
 import { SHELL_DRAW_TOOLS } from "@/lib/drawingTaxonomy";
@@ -1586,6 +1586,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
   const drawRecovery = useRef<Record<string, DrawingJournal>>({});
   const drawRevisions = useRef<Record<string, DrawingRevision>>({});
   const drawOwnerHydrated = useRef(false);
+  const [drawingSavesActive, setDrawingSavesActive] = useState<Set<string>>(new Set());
   const [drawingSaveIssues, setDrawingSaveIssues] = useState<Record<string, string>>({});
   const [drawingCloudCopies, setDrawingCloudCopies] = useState<Record<string, DrawingSnapshot>>({});
   const loadDrawingCloudCopy = useCallback(async (sym: string) => {
@@ -1596,6 +1597,24 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
       if (snapshot && drawOwnerEpoch.current === epoch) setDrawingCloudCopies((copies) => ({ ...copies, [sym]: snapshot }));
     } catch { /* Keep the local recovery copy until a valid cloud read succeeds. */ }
   }, []);
+  const [drawingStorageUnavailable, setDrawingStorageUnavailable] = useState(false);
+  const persistDrawingRecovery = useCallback(async (owner: string, journal: DrawingJournal) => {
+    const durable = await writeDrawingJournal(localStorage, owner, journal);
+    if (drawOwner.current === owner) setDrawingStorageUnavailable(!durable);
+    return durable;
+  }, []);
+  const restoreOtherDrawingCopies = useCallback((sym: string, owner: string, journal: DrawingJournal) => {
+    if (drawOwner.current !== owner || drawPending.current[sym] !== undefined) return;
+    const remaining = refreshDrawingJournalSymbol(localStorage, owner, journal, sym);
+    if (!remaining) return;
+    // A remaining copy can belong to a still-open tab. Review it explicitly;
+    // recovering it is never authority to replay or overwrite the cloud.
+    remaining.blocked ??= "conflict";
+    drawPending.current[sym] = remaining.drawings;
+    setDrawStore((store) => ({ ...store, [sym]: normalizeDrawings(remaining.drawings) }));
+    setDrawingSaveIssues((issues) => ({ ...issues, [sym]: "multiple" }));
+    void loadDrawingCloudCopy(sym);
+  }, [loadDrawingCloudCopy]);
   const [drawingLimitWarning, setDrawingLimitWarning] = useState(false);
   const drawingLimitTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const showDrawingLimitWarning = useCallback(() => {
@@ -1614,15 +1633,21 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
     const recovery = drawRecovery.current[ownerKey] ?? (drawRecovery.current[ownerKey] = {});
     const entry = recovery[sym] ?? (recovery[sym] = { drawings, ...(Object.hasOwn(drawRevisions.current, sym) ? { revision: drawRevisions.current[sym] } : {}) });
     const attempt = prepareDrawingAttempt(entry, () => crypto.randomUUID());
-    writeDrawingJournal(localStorage, ownerKey, recovery);
     if (!attempt) {
-      setDrawingSaveIssues((issues) => ({ ...issues, [sym]: entry.blocked ?? "legacy" }));
+      void persistDrawingRecovery(ownerKey, recovery);
+      setDrawingSaveIssues((issues) => ({ ...issues, [sym]: entry.alternatives?.length ? "multiple" : entry.blocked ?? "legacy" }));
       void loadDrawingCloudCopy(sym);
       return;
     }
     let queued = false;
+    setDrawingSavesActive((active) => new Set(active).add(sym));
     const save = (async () => {
       try {
+        if (!await persistDrawingRecovery(ownerKey, recovery)) {
+          if (drawOwnerEpoch.current === ownerEpoch) setDrawingSaveIssues((issues) => ({ ...issues, [sym]: "storage" }));
+          return;
+        }
+        if (drawOwnerEpoch.current !== ownerEpoch) return;
         const response = await fetch("/api/drawings", {
           method: "PUT", headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ ownerKey, symbol: sym, drawings: attempt.drawings, expectedRevision: attempt.expectedRevision, operationId: attempt.operationId }),
@@ -1653,8 +1678,11 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
         if (entry.blocked) void loadDrawingCloudCopy(sym);
       } finally {
         if (drawOwnerEpoch.current !== ownerEpoch) return;
-        writeDrawingJournal(localStorage, ownerKey, recovery);
+        const durable = await persistDrawingRecovery(ownerKey, recovery);
+        if (drawOwnerEpoch.current !== ownerEpoch) return;
         delete drawSaving.current[sym];
+        setDrawingSavesActive((active) => { const next = new Set(active); next.delete(sym); return next; });
+        if (durable && !recovery[sym]) restoreOtherDrawingCopies(sym, ownerKey, recovery);
         if (queued) drawTimers.current[sym] = setTimeout(() => flushDrawings(sym), 0);
         else if (!drawPending.current[sym] && !prevPaneSyms.current.has(sym)) {
           drawLoaded.current.delete(sym);
@@ -1665,7 +1693,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
       }
     })();
     drawSaving.current[sym] = save;
-  }, [loggedIn, loadDrawingCloudCopy]);
+  }, [loggedIn, loadDrawingCloudCopy, persistDrawingRecovery, restoreOtherDrawingCopies]);
   useEffect(() => { flushDrawingsRef.current = flushDrawings; }, [flushDrawings]);
   const setSymbolDrawings = useCallback((sym: string, d: Drawing[], recordHistory = true) => {
     if (drawOwner.current !== (email ? `account:${email}` : "guest")) return;
@@ -1694,12 +1722,12 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
       const entry = recovery[sym];
       if (entry) entry.drawings = normalized;
       else recovery[sym] = { drawings: normalized, ...(Object.hasOwn(drawRevisions.current, sym) ? { revision: drawRevisions.current[sym] } : {}) };
-      writeDrawingJournal(localStorage, ownerKey, recovery);
+      void persistDrawingRecovery(ownerKey, recovery);
     }
     clearTimeout(drawTimers.current[sym]);
     drawTimers.current[sym] = setTimeout(() => flushDrawings(sym), 600);
     setDrawingHistoryVersion((v) => v + 1);
-  }, [email, flushDrawings, loggedIn, showDrawingLimitWarning]);
+  }, [email, flushDrawings, loggedIn, showDrawingLimitWarning, persistDrawingRecovery]);
   const travelDrawingHistory = useCallback((sym: string, dir: "undo" | "redo") => {
     const history = drawHistory.current[sym]; if (!history) return;
     const from = dir === "undo" ? history.undo : history.redo, to = dir === "undo" ? history.redo : history.undo;
@@ -2326,14 +2354,13 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
     if (previousOwner === "guest") {
       for (const [sym, drawings] of Object.entries(drawPending.current)) writeGuestDraw(sym, drawings);
     } else if (drawRecovery.current[previousOwner]) {
-      writeDrawingJournal(localStorage, previousOwner, drawRecovery.current[previousOwner]);
+      void persistDrawingRecovery(previousOwner, drawRecovery.current[previousOwner]);
     }
     drawOwnerEpoch.current += 1;
     drawOwner.current = nextOwner;
     setDrawingOwnerKey(nextOwner);
-    const recovered: DrawingJournal = nextOwner === "guest" ? {} : {
-      ...readDrawingJournal(localStorage, nextOwner), ...(drawRecovery.current[nextOwner] ?? {}),
-    };
+    const recovered: DrawingJournal = nextOwner === "guest" ? {} :
+      drawRecovery.current[nextOwner] ?? readDrawingJournal(localStorage, nextOwner);
     if (nextOwner !== "guest") drawRecovery.current[nextOwner] = recovered;
     const pending = Object.fromEntries(Object.entries(recovered).map(([sym, entry]) => [sym, entry.drawings]));
     drawPending.current = pending;
@@ -2349,9 +2376,11 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
     setDrawingLoadFailures(new Set());
     setDrawingSaveIssues(Object.fromEntries(Object.entries(recovered).filter(([, entry]) => entry.blocked).map(([sym, entry]) => [sym, entry.blocked!])));
     setDrawingCloudCopies({});
+    setDrawingSavesActive(new Set());
+    setDrawingStorageUnavailable(false);
     setDrawingHistoryVersion((version) => version + 1);
     for (const sym of Object.keys(recovered)) drawTimers.current[sym] = setTimeout(() => flushDrawings(sym), 0);
-  }, [email, flushDrawings]);
+  }, [email, flushDrawings, persistDrawingRecovery]);
   // load drawings once per symbol that appears in a pane; don't clobber an in-flight local edit
   useEffect(() => {
     const now = new Set(panes);
@@ -2426,7 +2455,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
     if (drawingLimitTimer.current !== null) clearTimeout(drawingLimitTimer.current);
   }, []);
 
-  const resolveDrawingRecovery = useCallback((sym: string, choice: "cloud" | "local") => {
+  const resolveDrawingRecovery = useCallback(async (sym: string, choice: "cloud" | "local") => {
     if (drawSaving.current[sym] || drawOwner.current !== (email ? `account:${email}` : "guest")) return;
     const cloud = drawingCloudCopies[sym];
     const recovery = drawRecovery.current[drawOwner.current];
@@ -2440,15 +2469,30 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
     } else {
       // This click is a new replacement intent against the displayed cloud copy.
       // Neither a background GET nor a superseded replay can take this action.
-      delete entry.attempt; delete entry.blocked; entry.revision = cloud.revision;
+      delete entry.attempt; delete entry.blocked; delete entry.alternatives; entry.revision = cloud.revision;
       drawPending.current[sym] = entry.drawings;
-      drawTimers.current[sym] = setTimeout(() => flushDrawings(sym), 0);
     }
-    writeDrawingJournal(localStorage, drawOwner.current, recovery);
+    const owner = drawOwner.current;
+    const durable = await persistDrawingRecovery(owner, recovery);
+    if (drawOwner.current !== owner) return;
     setDrawingSaveIssues((issues) => { const next = { ...issues }; delete next[sym]; return next; });
     setDrawingCloudCopies((copies) => { const next = { ...copies }; delete next[sym]; return next; });
     setDrawingHistoryVersion((version) => version + 1);
-  }, [drawingCloudCopies, email, flushDrawings]);
+    if (durable && choice === "cloud") restoreOtherDrawingCopies(sym, owner, recovery);
+    if (choice === "local") {
+      if (durable) drawTimers.current[sym] = setTimeout(() => flushDrawings(sym), 0);
+      else setDrawingSaveIssues((issues) => ({ ...issues, [sym]: "storage" }));
+    }
+  }, [drawingCloudCopies, email, flushDrawings, persistDrawingRecovery, restoreOtherDrawingCopies]);
+  const chooseDrawingRecoveryCopy = useCallback((sym: string, id: string) => {
+    const journal = drawRecovery.current[drawOwner.current];
+    if (!journal || drawSaving.current[sym]) return;
+    const entry = selectDrawingRecoveryCopy(journal, sym, id);
+    if (!entry) return;
+    drawPending.current[sym] = entry.drawings;
+    setDrawStore((store) => ({ ...store, [sym]: normalizeDrawings(entry.drawings) }));
+    setDrawingSaveIssues((issues) => ({ ...issues, [sym]: "multiple" }));
+  }, []);
 
   // per-symbol data for the rail.  Priority split:
   //   IMMEDIATE  — ohlc + slice share the chart's inflight fetch (dataCache dedup); getBars re-uses
@@ -6303,17 +6347,24 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
 
       {drawingOwnerMatches && drawingSaveIssues[active] && (
         <div className="undo-toast" role="alert" data-testid="drawing-save-recovery" style={{ position: "fixed", bottom: 176, left: "50%", transform: "translateX(-50%)", background: "var(--panel-3)", border: "1px solid var(--warn)", borderRadius: "var(--r-md)", padding: "12px 16px", fontSize: 12.5, color: "var(--text)", boxShadow: "0 8px 24px -8px rgba(0,0,0,.7)", zIndex: 53, width: "min(92vw, 560px)", display: "flex", flexWrap: "wrap", gap: 10 }}>
-          <span style={{ width: "100%" }}>{t(drawingSaveIssues[active] === "retry" ? "drawingSaveRetry" : "drawingSaveConflict")}</span>
-          {drawingSaveIssues[active] === "retry" ? (
-            <button type="button" style={{ minHeight: 44 }} onClick={() => flushDrawings(active)}>{t("drawingRetrySave")}</button>
+          <span style={{ width: "100%" }}>{t(drawingSaveIssues[active] === "storage" ? "drawingStorageUnavailable" : drawingSaveIssues[active] === "retry" ? "drawingSaveRetry" : "drawingSaveConflict")}</span>
+          {["retry", "storage"].includes(drawingSaveIssues[active]) ? (
+            <button type="button" style={{ minHeight: 44 }} disabled={drawingSavesActive.has(active)} onClick={() => flushDrawings(active)}>{t("drawingRetrySave")}</button>
           ) : drawingCloudCopies[active] ? (
             <>
               <span style={{ width: "100%" }}>{t("drawingLocalCopy")} ({drawPending.current[active]?.length ?? 0}) · {t("drawingCloudCopy")} ({drawingCloudCopies[active].drawings.length})</span>
-              <button type="button" style={{ minHeight: 44 }} onClick={() => resolveDrawingRecovery(active, "cloud")}>{t("drawingUseCloud")}</button>
-              <button type="button" style={{ minHeight: 44 }} onClick={() => resolveDrawingRecovery(active, "local")}>{t("drawingKeepLocal")}</button>
+              {[...(drawRecovery.current[drawOwner.current]?.[active]?.alternatives ?? [])].map((copy, index) => (
+                <button key={copy.recoveryId} type="button" style={{ minHeight: 44 }} disabled={drawingSavesActive.has(active)} onClick={() => chooseDrawingRecoveryCopy(active, copy.recoveryId!)}>{t("drawingOtherLocalCopy")} {index + 1} ({copy.drawings.length})</button>
+              ))}
+              <button type="button" style={{ minHeight: 44 }} disabled={drawingSavesActive.has(active)} onClick={() => resolveDrawingRecovery(active, "cloud")}>{t("drawingUseCloud")}</button>
+              <button type="button" style={{ minHeight: 44 }} disabled={drawingSavesActive.has(active)} onClick={() => resolveDrawingRecovery(active, "local")}>{t("drawingKeepLocal")}</button>
             </>
           ) : <button type="button" style={{ minHeight: 44 }} onClick={() => void loadDrawingCloudCopy(active)}>{t("drawingReviewCloud")}</button>}
         </div>
+      )}
+
+      {drawingOwnerMatches && drawingStorageUnavailable && !drawingSaveIssues[active] && (
+        <div className="undo-toast" role="alert" data-testid="drawing-storage-unavailable">{t("drawingStorageUnavailable")}</div>
       )}
 
       {drawingLimitWarning && (
