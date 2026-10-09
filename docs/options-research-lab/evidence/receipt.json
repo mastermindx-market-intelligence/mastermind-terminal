@@ -1,0 +1,129 @@
+{
+  "schema": "options-research-lab.browser-evidence.v1",
+  "source_head": "6b8e0855b96f2aeff5d202d73170e45a382ba9a4",
+  "source_note": "Browser ran against these source bytes immediately before the source commit. Evidence-only commit follows.",
+  "route": "/options?tab=gex&view=research",
+  "data_mode": "synthetic fixture; not production evidence",
+  "entitlement_mode": "development fixture unlimited; production-negative unit tested",
+  "matrix_source_session": "2026-10-05",
+  "vol_source_session": "2026-10-05",
+  "languages": [
+    "en",
+    "zh"
+  ],
+  "viewports": [
+    [
+      1440,
+      900
+    ],
+    [
+      820,
+      1180
+    ],
+    [
+      390,
+      844
+    ],
+    [
+      320,
+      844
+    ]
+  ],
+  "theme": "dark only; live light theme unavailable",
+  "body_text_test": "26px body font and reduced motion; not full-browser 200 percent zoom",
+  "browser_cases": {
+    "passed": 12,
+    "viewport_inapplicable_skipped": 12,
+    "seconds": 20.2
+  },
+  "console_errors": [],
+  "network_owner_assertions": {
+    "matrix_requests_per_lens_journey": 1,
+    "vol_requests_per_lens_journey": 1
+  },
+  "picking_callback_ms": {
+    "1000": 0.5,
+    "5000": 1.100000023841858,
+    "20000": 2.399999976158142
+  },
+  "picking_samples": {
+    "1000": 1,
+    "5000": 1,
+    "20000": 20
+  },
+  "picking_stress": "20K case alternates all/call filter, proves same canvas remains connected, then picks; retained source identity is used.",
+  "performance_probe_head": "d32500930b8acb6bc1a29fd417cb1ca1aa9bb66c",
+  "performance_probe_scope": "Prior density-cap source, before stable renderer repair. SwiftShader software renderer, not native GPU. Draw-call rate is not presentation FPS; CPU and heap are whole-page; one-second idle is not long-run leak proof. Before/after also changed competing browser load, so no single-cause improvement attribution.",
+  "native_gpu_presentation_fps": "unmeasured",
+  "production_parity": "not observed",
+  "files": [
+    {
+      "file": "desktop-en-chain.png",
+      "sha256": "ff1567f2f287294ed079539f8d3519e6dfe8204f3c8b21da63d68b33e2791fd5"
+    },
+    {
+      "file": "desktop-en-fallback.png",
+      "sha256": "0923bd82f695bffd0451b6b3d7463665b73173ec760b3b7075795ac82cf7aa86"
+    },
+    {
+      "file": "desktop-zh-chain.png",
+      "sha256": "c3e2f2cbef02721b361ed9e7316abdabf916abfad374f15031cea01fdc5f3769"
+    },
+    {
+      "file": "desktop-zh-fallback.png",
+      "sha256": "3f481c15f8cdcc64a481cb5a8babbad154fe31f0f49bd7622e99682965b9ce75"
+    },
+    {
+      "file": "mobile-en-chain.png",
+      "sha256": "438595d06c5669ebf161996b6c3a8ebe157e2c5b10394d20b7da4088c1289264"
+    },
+    {
+      "file": "mobile-en-fallback.png",
+      "sha256": "2c57af59660da07974e6db2b6a7ac2740ba9e409441fd6c8b73077b123cab201"
+    },
+    {
+      "file": "mobile-zh-chain.png",
+      "sha256": "8f67dd7c181e28613cbc2a76606dc8cf611c9b44fba590dd2bffcc4c47311628"
+    },
+    {
+      "file": "mobile-zh-fallback.png",
+      "sha256": "72e922a7367b866af76f2f28dae5e1cb5ed2f69fd2c06ceb7e75a488d14d88cd"
+    },
+    {
+      "file": "narrow-zoom.png",
+      "sha256": "b7489a3297369d5482f14617a49536ca956259b4af1a4004f00732dbe298b76f"
+    },
+    {
+      "file": "tablet-en-chain.png",
+      "sha256": "15cb568a8b307fb26477759e36bee5086a3e9d735d1a28a0621865582adf4385"
+    },
+    {
+      "file": "tablet-en-fallback.png",
+      "sha256": "2f50bbf9cb3b25da9d4105bd8525df7eb07dc818ecc74969b19f1374b586e296"
+    },
+    {
+      "file": "tablet-zh-chain.png",
+      "sha256": "15f3b3e713a12632ed677d37ddf7aa49dae2a5019dc00662dfdff1b2a5247f3e"
+    },
+    {
+      "file": "tablet-zh-fallback.png",
+      "sha256": "18f376d6c85eddbde38b45f5de6ad64009bce06aedcf12e59e4f2ff959c7a364"
+    }
+  ],
+  "native_gpu": "ANGLE Metal Renderer: Apple M2 Ultra; installed Google Chrome headed",
+  "native_probe_source_head": "6b8e0855b96f2aeff5d202d73170e45a382ba9a4",
+  "native_probe_files": [
+    {
+      "file": "native-render-probe.json",
+      "sha256": "7ec82a650bbdd6b3b2219f4046311b48dbba1984b46c1130ec1c4cd374771635"
+    },
+    {
+      "file": "native-render-stability.json",
+      "sha256": "5cd9cbea95052501da7494f6c7dc66dcd8021fd4631f334f68c8063c5b1cadda"
+    }
+  ],
+  "native_probe_scope": "20K: 360 filter updates retain canvas; tracked buffers/programs remain 7/2 and 721248 buffer bytes at checkpoints; all return to zero at unmount. Three-second idle windows draw zero scene frames. Native picking <=2.9ms in sampled runs. Scripted interaction submits about35-38 scene draws/sec. RAF cadence is not compositor presentation FPS. Whole-page heap after explicit GC fluctuates and drifts from about22.6 to23.4MB during the 360-cycle sample; no claim of zero long-session growth or total VRAM measurement.",
+  "native_zoom_file": "native-zoom.json",
+  "native_zoom_sha256": "b95a8ace6265e98ebc5d5b9cdddb5665898768e11a133dfc4a70b77bc712f72a",
+  "native_zoom_scope": "English selection/dismissal at native200%; CSS953x602; document overflow0; separate FLOW_FIXTURE dataset from2026-07-10. See native-zoom.json. The automated26px body-text case remains a separate, narrower check."
+}

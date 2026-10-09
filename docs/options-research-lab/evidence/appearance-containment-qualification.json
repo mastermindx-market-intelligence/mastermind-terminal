@@ -1,0 +1,193 @@
+{
+  "scope": "parent-scoped appearance containment repair; no full independent or production acceptance",
+  "parent_head": "b19d87519adf1a904754dafbf6eace02037b85fd",
+  "root": "01a118f3-fc4e-7941-b432-03703dccd19b",
+  "recorded_at": "2026-10-09T00:50:23.962058+00:00",
+  "source_files": {
+    "terminal/app/globals.css": {
+      "path": "/Volumes/Mastermind/agent-workspaces/claude/5600d31ffa29643a/options-3d-research-lab-20261007-fd4fcda98840d206/terminal/app/globals.css",
+      "sha256": "8e0326103a289890f77b01e322f5d7864c2becf5b7488a07e94674d11e67429c",
+      "bytes": 446203
+    },
+    "terminal/app/settings.css": {
+      "path": "/Volumes/Mastermind/agent-workspaces/claude/5600d31ffa29643a/options-3d-research-lab-20261007-fd4fcda98840d206/terminal/app/settings.css",
+      "sha256": "d17ceff6469db97d3d4bcfb800503ee3c22e89b0770a1c0a88c9d39eb5a72837",
+      "bytes": 34891
+    },
+    "terminal/lib/i18n.tsx": {
+      "path": "/Volumes/Mastermind/agent-workspaces/claude/5600d31ffa29643a/options-3d-research-lab-20261007-fd4fcda98840d206/terminal/lib/i18n.tsx",
+      "sha256": "858306597ebbfc2d912cefc997ad88e4805cafb08794b5cd4d3dfeacb109371f",
+      "bytes": 202478
+    },
+    "terminal/components/settings/SectionPreferences.tsx": {
+      "path": "/Volumes/Mastermind/agent-workspaces/claude/5600d31ffa29643a/options-3d-research-lab-20261007-fd4fcda98840d206/terminal/components/settings/SectionPreferences.tsx",
+      "sha256": "ced45a10fd8d7b03b95797c0872e3f910628fe9dc7a605beb176594b11a4f934",
+      "bytes": 10221
+    }
+  },
+  "cause": {
+    "ci_run": 37860273913,
+    "failed_job": 113594183109,
+    "failure_count": 11,
+    "failure_files": [
+      "^[[27m^[[22m^[[39m lib/__tests__/b_f11_10AnalysisThesesEntryEvidence.test.ts^[[2m",
+      "^[[27m^[[22m^[[39m lib/__tests__/b_f12_b5_3AccountCompletenessEvidence.test.ts^[[2m",
+      "^[[27m^[[22m^[[39m lib/__tests__/b_pl_6Batch1Evidence.test.ts^[[2m",
+      "^[[27m^[[22m^[[39m lib/__tests__/f11_4ResearchViewsEvidence.test.ts^[[2m",
+      "^[[27m^[[22m^[[39m lib/__tests__/f12_16TeamSettingsEvidence.test.ts^[[2m",
+      "^[[27m^[[22m^[[39m lib/__tests__/f12_17InviteLinkEvidence.test.ts^[[2m",
+      "^[[27m^[[22m^[[39m lib/__tests__/f12_5AccountPolishEvidence.test.ts^[[2m",
+      "^[[27m^[[22m^[[39m lib/__tests__/f12_8TeamRolesEvidence.test.ts^[[2m",
+      "^[[27m^[[22m^[[39m lib/__tests__/f12_9TeamOwnershipTransferEvidence.test.ts^[[2m",
+      "^[[27m^[[22m^[[39m lib/__tests__/f12_9TeamOwnershipTransferEvidence.test.ts^[[2m",
+      "^[[27m^[[22m^[[39m lib/__tests__/personalAccuracyEvidence.test.ts^[[2m"
+    ],
+    "kind": "unchanged screenshot locks detect edits to shared settings.css and i18n.tsx",
+    "ci_tests": "11 failed, 7962 passed, 4 todo; 486 files; PR merge checkout / Node20",
+    "local_red": "11 failed, 7905 passed, 4 todo; 481 files; branch tip / Node26.5.0"
+  },
+  "repair": "Move the same Lab-scoped light Settings rules alongside existing root appearance CSS; co-locate the same bilingual Preferences note with its consumer; restore the two shared files to qualified bytes. No historical evidence hashes or tests rewritten.",
+  "validation": {
+    "full_unit": "7916 passed, 4 todo, 481 files, exit0",
+    "typecheck": "pass; production build also includes TypeScript check",
+    "production_build": "exit0",
+    "eslint": "five pre-existing react-hooks/refs findings at lines88-90 in SectionPreferences; no changed-line findings",
+    "native": [
+      {
+        "theme": "dark",
+        "language": "zh",
+        "stylesEqual": true,
+        "sameAppearanceNote": true,
+        "scopeEqual": true,
+        "viewportEqual": true
+      },
+      {
+        "theme": "light",
+        "language": "zh",
+        "stylesEqual": true,
+        "sameAppearanceNote": true,
+        "scopeEqual": true,
+        "viewportEqual": true
+      },
+      {
+        "theme": "light",
+        "language": "en",
+        "stylesEqual": true,
+        "sameAppearanceNote": true,
+        "scopeEqual": true,
+        "viewportEqual": true
+      },
+      {
+        "theme": "dark",
+        "language": "en",
+        "stylesEqual": true,
+        "sameAppearanceNote": true,
+        "scopeEqual": true,
+        "viewportEqual": true
+      }
+    ],
+    "appearance_note": {
+      "en": "Applies to the Macro Dashboard and 3D Research Lab. Other Terminal views remain dark. Auto uses local time: light from 07:00 to 19:00.",
+      "zh": "应用于宏观仪表盘与 3D 研究室。终端其他视图保持深色。自动模式按本地时间在 07:00–19:00 使用浅色。"
+    },
+    "viewport": [
+      1387,
+      803
+    ],
+    "chrome_zoom": "existing150%; unchanged",
+    "fixture_only": true,
+    "account_warning": "Local fixture cannot reach account; retained, not account synchronization proof"
+  },
+  "cleanup": {
+    "tab": "1925913201",
+    "closed_and_absent": true,
+    "preferences": "dark / EN restored",
+    "viewport_override": "none this phase",
+    "server_session": 29000,
+    "server_exit": 0,
+    "fixture": {
+      "path": "/Volumes/Mastermind/agent-workspaces/claude/5600d31ffa29643a/options-3d-research-lab-20261007-fd4fcda98840d206/terminal/public/data/matrix_fixture.json",
+      "sha256": "aec8db52ee2b47d38a67f6f1165466a4c432894b4b81783135eb2ac80e70bbc2",
+      "bytes": 140004
+    }
+  },
+  "logs": {
+    "ci-37860273913-failed-unit-job.log": {
+      "path": "/Volumes/Mastermind/evidence/options-3d-research-lab-01a118f3/ci-37860273913-failed-unit-job.log",
+      "sha256": "24de6421f88a88c85c2d8a2cc33bb05b3edc3f2ed7615aced9ecfa3bdf307a01",
+      "bytes": 326639
+    },
+    "unit-ci-reproduction-b19d8751.log": {
+      "path": "/Volumes/Mastermind/evidence/options-3d-research-lab-01a118f3/unit-ci-reproduction-b19d8751.log",
+      "sha256": "61ef945ddbf328c3e527b3bc162a4ca0b43ec841291dfa2c56fba8496c10e82a",
+      "bytes": 103052
+    },
+    "unit-ci-containment-green.log": {
+      "path": "/Volumes/Mastermind/evidence/options-3d-research-lab-01a118f3/unit-ci-containment-green.log",
+      "sha256": "29182ce903f97d51cddd228cd021fdbe043d0bd6c2b0aa9a3ade66d6d43767ba",
+      "bytes": 81939
+    },
+    "containment-typecheck.log": {
+      "path": "/Volumes/Mastermind/evidence/options-3d-research-lab-01a118f3/containment-typecheck.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    "containment-eslint.log": {
+      "path": "/Volumes/Mastermind/evidence/options-3d-research-lab-01a118f3/containment-eslint.log",
+      "sha256": "67ab95a42c2c7893afc0c3bd9f7f1494402130cfd9626d89dba70f37a982ffef",
+      "bytes": 5454
+    },
+    "containment-production-build.log": {
+      "path": "/Volumes/Mastermind/evidence/options-3d-research-lab-01a118f3/containment-production-build.log",
+      "sha256": "8097b2827e3d9133c8f8886d9aba678f05e15c4c681804eb0fc322606a8243a3",
+      "bytes": 4580
+    },
+    "appearance-containment-native-samples.json": {
+      "path": "/Volumes/Mastermind/evidence/options-3d-research-lab-01a118f3/appearance-containment-native-samples.json",
+      "sha256": "532d0a06e3a4d6992aaa3610bd3e884ab2f59ebaf3c96a1311b42056281fcfd5",
+      "bytes": 15864
+    }
+  },
+  "screenshots": [
+    {
+      "path": "/Volumes/Mastermind/evidence/options-3d-research-lab-01a118f3/containment-before-dark-en.png",
+      "sha256": "7d6003d078dc41c9f6605989f27d09186369c7ef003a1d325866f3e35f305803",
+      "bytes": 62159
+    },
+    {
+      "path": "/Volumes/Mastermind/evidence/options-3d-research-lab-01a118f3/containment-before-light-en.png",
+      "sha256": "d443bc014f27f371365db350951ffb8037ae330e6ab275c33f053da169de31d0",
+      "bytes": 83832
+    },
+    {
+      "path": "/Volumes/Mastermind/evidence/options-3d-research-lab-01a118f3/containment-before-light-zh.png",
+      "sha256": "a9a5ddeee055a3439505e7863dc290e5cc21e1070d6057bb888bf2d598ecc369",
+      "bytes": 71737
+    },
+    {
+      "path": "/Volumes/Mastermind/evidence/options-3d-research-lab-01a118f3/containment-before-dark-zh.png",
+      "sha256": "af0db72abd418022f7150248d13f78b94be7fb6243f2eb2db0707c4426301502",
+      "bytes": 53923
+    },
+    {
+      "path": "/Volumes/Mastermind/evidence/options-3d-research-lab-01a118f3/containment-after-dark-zh.png",
+      "sha256": "8bfb6ce8fc2481bd771fa673cf65fae67f88c86bf75c66bc5b3ab4b7876256b7",
+      "bytes": 52039
+    },
+    {
+      "path": "/Volumes/Mastermind/evidence/options-3d-research-lab-01a118f3/containment-after-light-zh.png",
+      "sha256": "a9a5ddeee055a3439505e7863dc290e5cc21e1070d6057bb888bf2d598ecc369",
+      "bytes": 71737
+    },
+    {
+      "path": "/Volumes/Mastermind/evidence/options-3d-research-lab-01a118f3/containment-after-light-en.png",
+      "sha256": "d443bc014f27f371365db350951ffb8037ae330e6ab275c33f053da169de31d0",
+      "bytes": 83832
+    },
+    {
+      "path": "/Volumes/Mastermind/evidence/options-3d-research-lab-01a118f3/containment-after-dark-en.png",
+      "sha256": "54a19f36f12c54596c81ee7817599aafd58b12695f7db2304bff3486f92fd29f",
+      "bytes": 64366
+    }
+  ]
+}

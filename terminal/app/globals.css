@@ -114,6 +114,39 @@
      direction, and never use --up/--down for aggressor volume. */
   --flow-buy:#22b8d5; --flow-sell:#a92cce;
 }
+/* Research workspace light direction: Paper Terminal 199N-0. Applied only while
+   the Lab owns root appearance; the account preference and canonical tokens stay shared.
+   White material and ink replace luminous surfaces; structural CSS removes ambient glow. */
+html[data-research-appearance="lab"][data-theme="light"] {
+  color-scheme:light;
+  --bg:#f7f8fa; --panel:#ffffff; --panel-2:#eef1f6; --panel-3:#e7edf7; --inset:#f7f8fa;
+  --line:#d9dde4; --line-2:#e7eaf0; --line-3:#c9ccd1; --grid:rgba(28,36,48,.10);
+  --text:#1c2430; --text-2:#5d6b7e; --muted:#5d6b7e; --text-dim:#69778b;
+  --brand:#285fff; --brand-2:#285fff; --brand-hov:#1d4ed8; --link:#285fff;
+  --warn:#7d5922; --signal:#7d5922; --danger:#bd2847; --state-accepted:#1e6d47;
+  --up:#1e6d47; --down:#bd2847; --buy:#1e6d47; --sell:#bd2847; --regime-up:#1e6d47;
+  --up-rgb:30,109,71; --down-rgb:189,40,71;
+  --hairline:rgba(28,36,48,.12); --hairline-strong:rgba(28,36,48,.20);
+  --shadow-card:0 1px 2px rgba(28,36,48,.04),0 8px 24px -18px rgba(28,36,48,.22);
+  --shadow-2:0 8px 24px rgba(28,36,48,.12); --shadow-3:0 18px 44px -14px rgba(28,36,48,.22);
+  --pop-bg:#ffffff; --pop-bg-modal:#ffffff; --pop-blur:none; --pop-edge:var(--line-3);
+  --pop-sheen:inset 0 0 0 transparent; --pop-shadow:var(--shadow-3); --pop-hover:var(--panel-2);
+  --pop-scrim:rgba(28,36,48,.24);
+}
+html[data-research-appearance="lab"][data-theme="light"][data-updown="east"],
+html[data-research-appearance="lab"][data-theme="light"][data-red-up="true"] {
+  --up:#bd2847; --down:#1e6d47; --buy:#bd2847; --sell:#1e6d47; --regime-up:#bd2847;
+  --up-rgb:189,40,71; --down-rgb:30,109,71;
+}
+/* Settings follows the Lab root material treatment while mounted. */
+html[data-research-appearance="lab"][data-theme="light"] .acs-card-surface {
+  background:var(--panel); border-color:var(--line-3); box-shadow:var(--shadow-3);
+  -webkit-backdrop-filter:none; backdrop-filter:none;
+}
+html[data-research-appearance="lab"][data-theme="light"] .acs-aurora { display:none; }
+html[data-research-appearance="lab"][data-theme="light"] .acs-overlay {
+  -webkit-backdrop-filter:none; backdrop-filter:none;
+}
 /* East-Asian convention: red = up / green = down (CN/HK/TW/MO). Flips the up/down semantics only;
    accent colors (brand/signal/warn) are unchanged. Set on <html data-updown="east"> pre-paint. */
 html[data-updown="east"]{

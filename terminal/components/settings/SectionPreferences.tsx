@@ -130,7 +130,7 @@ export default function SectionPreferences({ t, identity, user, onClose, onPatch
   function pickTheme(choice: ThemeChoice) {
     // Matches the macro semantics: `auto` records the flag and lets the dashboard
     // compute the theme from local time; an explicit pick records the theme and
-    // clears the flag. Nothing is applied to the Terminal — it has no light mode.
+    // clears the flag. The mounted 3D Research Lab also consumes this preference.
     setTouched((s) => ({ ...s, theme: true }));
     if (choice === "auto") persistMetaPrefs({ themeAuto: "1" });
     else persistMetaPrefs({ theme: choice, themeAuto: "0" });
@@ -185,7 +185,9 @@ export default function SectionPreferences({ t, identity, user, onClose, onPatch
         <Group title={t("acsThemeLang")}>
           <Row
             label={t("acsAppearance")}
-            desc={t("acsAppearNote")}
+            desc={lang === "zh"
+              ? "应用于宏观仪表盘与 3D 研究室。终端其他视图保持深色。自动模式按本地时间在 07:00–19:00 使用浅色。"
+              : "Applies to the Macro Dashboard and 3D Research Lab. Other Terminal views remain dark. Auto uses local time: light from 07:00 to 19:00."}
             control={
               <span className="acs-seg" role="group" aria-label={t("acsAppearance")}>
                 {(["light", "auto", "dark"] as ThemeChoice[]).map((c) => (

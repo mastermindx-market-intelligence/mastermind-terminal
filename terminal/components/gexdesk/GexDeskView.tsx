@@ -35,6 +35,7 @@ import React, {
   useRef,
   useState,
 } from "react";
+import dynamic from "next/dynamic";
 import { flowGet } from "@/lib/flowClientCache";
 import { useFlowStream } from "@/lib/flowStream";
 import { useLang } from "@/lib/i18n";
@@ -54,6 +55,7 @@ import { ExposureMatrix } from "./ExposureMatrix";
 import { HeatSeekerCard } from "./HeatSeekerCard";
 import { isMatrixDocForRoot, readGexStateForRoot, mergeMatrixLevels, type MatrixDoc } from "./matrixDoc";
 import { EodContextBelt } from "@/components/eodcontext/EodContextBelt";
+import { useEodContext } from "@/components/eodcontext/useEodContext";
 import { isGexDates, gexSessionOf } from "@/lib/gexSessions";
 import {
   LENS_ALL,
@@ -62,6 +64,8 @@ import {
   matrixSessionsAgree,
   type ExpiryLens,
 } from "@/lib/gexLadder";
+
+const OptionsResearchLab = dynamic(() => import("@/components/researchlab/AdmittedOptionsResearchLab").then(m => m.AdmittedOptionsResearchLab), { ssr: false });
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -183,9 +187,34 @@ async function safeFetch<T>(url: string): Promise<T | null> {
 export function GexDeskView() {
   const { lang } = useLang();
   const t = makeGexT(lang);
+  const pick = (en: string, zh: string) => lang === "zh" ? zh : en;
 
   // ── State ────────────────────────────────────────────────────────────────────
   const [ticker, setTicker]           = useState("SPY");
+  const [researchOpen, setResearchOpen] = useState(() => {
+    if (typeof window === "undefined") return false;
+    const q = new URLSearchParams(window.location.search);
+    return q.get("research") === "1" || q.get("view") === "research";
+  });
+  const researchEntryRef = useRef<HTMLButtonElement>(null);
+  const returnFromResearch = useRef(false);
+  const openResearch = (open: boolean) => {
+    const url = new URL(window.location.href);
+    if (open) {
+      // Keep the Exposure axis in the URL even if the page reloads inside the lab.
+      url.searchParams.set("view", view);
+      url.searchParams.set("research", "1");
+    } else {
+      url.searchParams.delete("research");
+      // Legacy lab links remain supported, but are cleared on dismissal.
+      if (url.searchParams.get("view") === "research") url.searchParams.delete("view");
+    }
+    window.history.replaceState(window.history.state, "", url);
+    setResearchOpen(open);
+  };
+  useEffect(() => {
+    if (!researchOpen && returnFromResearch.current) { researchEntryRef.current?.focus(); returnFromResearch.current = false; }
+  }, [researchOpen]);
   const [inputVal, setInputVal]       = useState("SPY");
   const [greek, setGreek]             = useState<GreekLens>("gamma");
   // Exposure axis. §5.3 added "matrix" — the strike × expiry grid merged in from the
@@ -199,7 +228,9 @@ export function GexDeskView() {
     // effect would flash the ladder first and could race the workspace's URL rewrite.
     if (typeof window === "undefined") return "strike";
     const q = new URLSearchParams(window.location.search);
-    return q.get("tab") === "prism" || q.get("view") === "matrix" ? "matrix" : "strike";
+    const axis = q.get("view");
+    if (axis === "strike" || axis === "expiry" || axis === "matrix") return axis;
+    return q.get("tab") === "prism" ? "matrix" : "strike";
   });
   const [statePayload, setStatePayload] = useState<GexStatePayload | null>(null);
   // Selection changes render before passive effects clear state: do not let that
@@ -389,6 +420,7 @@ export function GexDeskView() {
   // the LIVE payload (it is the navigation, and an archived payload's history is cut to
   // that session's past by construction).
   const isArchived = sessionDate != null;
+  const eodContext = useEodContext(ticker, !isArchived);
   const activePayload = isArchived ? archivedPayload : gexPayload;
 
   const spot = activePayload?.spot_ref ?? null;
@@ -514,11 +546,18 @@ export function GexDeskView() {
 
   // ── Render ────────────────────────────────────────────────────────────────────
 
+  if (researchOpen) return <OptionsResearchLab key={ticker} root={ticker}
+    matrix={isArchived ? null : matrix} volatility={eodContext.vol} lang={lang}
+    onClose={() => { returnFromResearch.current = true; openResearch(false); }} />;
+
   return (
     <div style={DESK_OUTER} className="obs obs-ambient">
 
       {/* ── Controls bar ──────────────────────────────────────────────────── */}
       <div style={CONTROLS_BAR}>
+        <button ref={researchEntryRef} className="chip" onClick={() => openResearch(true)}>
+          {pick("3D Research Lab", "3D 研究室")}
+        </button>
         <div style={TICKER_GROUP}>
           <div style={{ position: "relative", display: "flex", alignItems: "center" }}>
             <svg viewBox="0 0 24 24" width="13" height="13" fill="none" stroke="var(--muted)" strokeWidth="2"
@@ -652,6 +691,7 @@ export function GexDeskView() {
       {!isArchived && (
         <EodContextBelt
           root={ticker}
+          context={eodContext}
           gexState={visibleStatePayload}
           gex={gexPayload}
           lang={lang}
