@@ -106,6 +106,16 @@ describe("sector rotation historical owner contract", () => {
     expect(sectorRotationHistory(malformed)).toBeNull();
   });
 
+  it("admits one thin sector as unavailable without discarding valid peer history", () => {
+    const partiallyCovered = structuredClone(historyPayload);
+    partiallyCovered.sectors[1].rs_history = [];
+    const parsed = sectorRotationHistory(partiallyCovered);
+    expect(parsed).not.toBeNull();
+    expect(parsed?.series.xlf.points).toEqual([]);
+    expect(parsed?.series.xlk.points).toHaveLength(3);
+    expect(parsed?.series.xlk.points.at(-1)).toEqual({ date: "2026-09-25", rs21: 7, rs63: 5 });
+  });
+
   it("fails the whole history population on duplicate, unordered, or nonfinite points", () => {
     const mutations: Array<(data: typeof historyPayload) => void> = [
       data => { data.sectors[0].rs_history.push({ ...data.sectors[0].rs_history[1] }); },
@@ -203,6 +213,18 @@ describe("SectorRotationMap", () => {
     expect(history?.textContent).toContain("Sep 23");
     expect(history?.textContent).toContain("+2.0%");
     expect(history?.textContent).toContain("+4.0%");
+    expect(host.querySelector('[data-testid="rotation-receipt"]')?.textContent).toBe("Sep 25 · 6 sectors");
+  });
+
+  it("preserves the live map while a selected thin sector has no reconstructed history", async () => {
+    const partial = structuredClone(historyPayload);
+    partial.sectors[1].rs_history = [];
+    const parsed = sectorRotationHistory(partial);
+    expect(parsed).not.toBeNull();
+    await render({ selected: "xlf", history: parsed, historyStatus: "ready" });
+    expect(host.querySelector('[data-testid="rotation-history"]')?.textContent).toContain("Insufficient sector price history (fewer than 210 sessions)");
+    expect(host.querySelector('[data-testid="rotation-history"]')?.querySelector("input[type=range]")).toBeNull();
+    expect(host.querySelector('[data-sector-rotation-point="xlf"]')).not.toBeNull();
     expect(host.querySelector('[data-testid="rotation-receipt"]')?.textContent).toBe("Sep 25 · 6 sectors");
   });
 

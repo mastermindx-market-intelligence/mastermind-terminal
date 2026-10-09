@@ -88,7 +88,7 @@ export function sectorRotationHistory(data: unknown): SectorRotationHistory | nu
   for (const value of root.sectors) {
     const row = object(value), id = text(row.id), ticker = text(row.ticker), raw = row.rs_history;
     if (!KEY.test(id) || !SYMBOL.test(ticker) || row.kind !== "sector"
-      || !Array.isArray(raw) || raw.length === 0 || raw.length > 252 || Object.hasOwn(series, id)) return null;
+      || !Array.isArray(raw) || raw.length > 252 || Object.hasOwn(series, id)) return null;
     const points: SectorRotationHistoryPoint[] = [];
     let prior = "";
     for (const pointValue of raw) {

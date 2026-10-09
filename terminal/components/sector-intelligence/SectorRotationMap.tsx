@@ -86,6 +86,7 @@ const COPY = {
   historyDate: ["Historical date", "历史日期"],
   historyPoint: ["Historical coordinate", "历史坐标"],
   historyLoading: ["Historical trail is loading; the current snapshot remains available.", "历史轨迹正在加载；当前快照仍可使用。"],
+  historyThin: ["Insufficient sector price history (fewer than 210 sessions); the current map remains available.", "板块历史价格不足（少于210个交易日）；当前图表仍可使用。"],
   historyCount: ["daily reconstructed points", "个每日重建点"],
   method: ["Method and source", "方法与来源"],
   methodCopy: ["Horizontal: 63-session change in the sector/SPY relative-strength ratio. Vertical: 21-session change in the same ratio. Quadrants are sign-based and descriptive, not entry permission.", "横轴：板块/SPY相对强度比率的63个交易日变化；纵轴：同一比率的21个交易日变化。象限按正负划分，仅作描述，不授予入场资格。"],
@@ -334,7 +335,7 @@ export default function SectorRotationMap(props: SectorRotationMapProps) {
             <div><dt>{t("quadrant")}</dt><dd>{t(rotationQuadrant(historical.rs63, historical.rs21) || "unavailable")}</dd></div></dl>
         </div>
         <p className={styles.historyFoot}>{historyPoints.length} {t("historyCount")} · {t("displayOnly")}</p>
-      </> : <p className={styles.historyUnavailable}>{props.historyStatus === "loading" ? t("historyLoading") : `${t("noTrail")} · ${t("noTrailCopy")}`}</p>}
+      </> : <p className={styles.historyUnavailable}>{props.historyStatus === "loading" ? t("historyLoading") : props.historyStatus === "ready" && historySeries && !historyPoints.length ? t("historyThin") : `${t("noTrail")} · ${t("noTrailCopy")}`}</p>}
     </section>
 
     <div className={styles.disclosures}>
