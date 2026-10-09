@@ -1,42 +1,44 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { tPlain } from "@/lib/i18n";
 
 // Auto-recovery for the workspace-provisioning fallback in app/terminal/page.tsx.
-//
-// Right after signup, two concurrent requests (router.refresh + the page load)
-// can race the default-watchlist seed: one inserts, the other re-selects before
-// that insert commits and lands on the fallback branch. The data is fine within
-// a second — the old static fallback just never looked again, stranding brand-new
-// users on a dead "Setting up your workspace…" screen (operator-reported).
-//
-// This component re-runs the server component on a short backoff, bounded so a
-// genuinely broken backend degrades to an honest manual Retry instead of a
-// reload loop. sessionStorage (per-tab) carries the attempt count across the
-// full server re-renders.
+// A refresh preserves mounted client state when the server returns this fallback
+// again. Keep the attempt budget in React as well as sessionStorage, and wait for
+// each refresh transition to settle before scheduling another bounded attempt.
 const SS_KEY = "mm.provRetry";
 const MAX_AUTO = 4;
 const DELAY_MS = 1200;
 
 export default function ProvisioningRetry() {
   const router = useRouter();
-  const [exhausted, setExhausted] = useState(false);
+  const [attempts, setAttempts] = useState<number | null>(null);
+  const [pending, startTransition] = useTransition();
 
   useEffect(() => {
     let n = 0;
-    try { n = parseInt(sessionStorage.getItem(SS_KEY) || "0", 10) || 0; } catch { /* ignore */ }
-    if (n >= MAX_AUTO) { setExhausted(true); return; }
+    try {
+      const stored = parseInt(sessionStorage.getItem(SS_KEY) || "0", 10);
+      if (Number.isFinite(stored)) n = Math.max(0, Math.min(MAX_AUTO, stored));
+    } catch { /* keep an in-memory budget when storage is unavailable */ }
+    setAttempts(n);
+  }, []);
+
+  useEffect(() => {
+    if (attempts === null || attempts >= MAX_AUTO || pending) return;
     const id = setTimeout(() => {
-      try { sessionStorage.setItem(SS_KEY, String(n + 1)); } catch { /* ignore */ }
-      router.refresh();
+      const next = attempts + 1;
+      try { sessionStorage.setItem(SS_KEY, String(next)); } catch { /* ignore */ }
+      setAttempts(next);
+      startTransition(() => router.refresh());
     }, DELAY_MS);
     return () => clearTimeout(id);
-  }, [router]);
+  }, [router, attempts, pending]);
 
-  // Reached the real workspace on a later mount? The page unmounts this component,
-  // so the counter only needs clearing when the user retries manually.
-  if (!exhausted) return null;
+  // Success unmounts this component. Persistent unavailability exposes a manual
+  // retry after the final response, without overlapping a slow refresh request.
+  if (attempts === null || attempts < MAX_AUTO || pending) return null;
   return (
     <button
       className="ob-btn"
