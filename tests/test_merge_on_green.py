@@ -4,6 +4,7 @@ import re
 from copy import deepcopy
 from pathlib import Path
 from typing import Any
+from urllib.parse import parse_qs, urlsplit
 
 import pytest
 import yaml
@@ -146,6 +147,56 @@ class FakeApi:
 
     def delete_branch(self, branch):
         self.actions.append(("delete", branch))
+
+
+def paged_pull_reader(monkeypatch, pages):
+    """Exercise the real REST reader while controlling only HTTP responses."""
+    api = mog.GitHubApi("owner/repo", "fictional-test-token")
+    visited = []
+
+    def request(method, path, payload=None):
+        assert method == "GET" and urlsplit(path).path == "/pulls"
+        page = int(parse_qs(urlsplit(path).query).get("page", ["1"])[0])
+        visited.append(page)
+        result = pages[page]
+        if isinstance(result, Exception):
+            raise result
+        return deepcopy(result)
+
+    monkeypatch.setattr(api, "request", request)
+    return api, visited
+
+
+def test_trigger_after_first_hundred_open_pulls_reaches_the_existing_sweep(monkeypatch):
+    older = [pull(number, labels=[]) for number in range(1, 101)]
+    target = pull(861)
+    reader, visited = paged_pull_reader(monkeypatch, {1: older, 2: [target]})
+    api = FakeApi(older + [target])
+    monkeypatch.setattr(api, "list_pulls", reader.list_pulls)
+    sweep(api, trigger_number=861)
+    assert ("merge", 861, "head-861") in api.actions
+    assert visited == [1, 2]
+
+
+def test_exact_full_pull_page_reads_empty_end_before_reporting_complete(monkeypatch):
+    page = [pull(number, labels=[]) for number in range(1, 101)]
+    reader, visited = paged_pull_reader(monkeypatch, {1: page, 2: []})
+    assert len(reader.list_pulls()) == 100
+    assert visited == [1, 2]
+
+
+def test_short_open_pull_page_needs_no_further_request(monkeypatch):
+    reader, visited = paged_pull_reader(monkeypatch, {1: [pull(7)]})
+    assert [item["number"] for item in reader.list_pulls()] == [7]
+    assert visited == [1]
+
+
+def test_later_pull_page_failure_does_not_return_a_partial_census(monkeypatch):
+    page = [pull(number, labels=[]) for number in range(1, 101)]
+    reader, visited = paged_pull_reader(monkeypatch, {1: page, 2: ApiError(503, "unavailable")})
+    with pytest.raises(ApiError, match="unavailable"):
+        reader.list_pulls()
+    assert visited == [1, 2]
 
 
 def test_latest_rerun_wins_over_an_older_green_check():
