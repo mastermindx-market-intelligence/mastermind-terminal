@@ -24,6 +24,7 @@ import type { DbResult, DbRow, WatchlistDb, WatchlistQuery } from "@/lib/watchli
 import type { ServerWatchlist } from "@/lib/watchlists";
 import { listWatchlists } from "@/lib/watchlists";
 import type { Position } from "@/lib/portfolio";
+import { accountExportPayload, canonicalExportJson, type ExportIntegrityManifest, type ExportSha256 } from "@/lib/accountExportIntegrity";
 
 export const EXPORT_SCHEMA = "mm.terminal_account_export.v1";
 export type ExportFormat = "json" | "csv";
@@ -122,6 +123,7 @@ export type AccountExportDoc = {
   portfolio_positions: Position[];
   saved_scripts?: SavedScriptExport[];
   chart_layouts?: ChartLayoutExport[];
+  integrity?: ExportIntegrityManifest;
 };
 
 export type ExportSources = {
@@ -394,7 +396,7 @@ function jsonCell(value: unknown): string {
   }
 }
 
-export function serializeCsv(doc: AccountExportDoc): string {
+export function serializeCsv(doc: AccountExportDoc, sha256?: ExportSha256): string {
   const BOM = "\ufeff";
   let out = BOM + csvRow(["section", "dataset", "row_id", "field", "value"]);
 
@@ -475,6 +477,17 @@ export function serializeCsv(doc: AccountExportDoc): string {
     out += csvRow(["data", "chart_layouts", layout.id, "version", layout.version]);
   }
 
+  if (doc.integrity) {
+    if (!sha256) throw new Error("sealed CSV requires SHA256");
+    // The legacy row view is useful in spreadsheets but cannot reconstruct all JSON
+    // relationships or distinguish null from empty strings. Include the exact logical
+    // payload and receipt as JSON cells, then bind all preceding CSV bytes too.
+    out += csvRow(["artifact", "logical_json", "", "canonical_json", canonicalExportJson(accountExportPayload(doc))]);
+    out += csvRow(["integrity", "manifest", "", "canonical_json", canonicalExportJson(doc.integrity)]);
+    const checksum = sha256(out);
+    if (!/^[a-f0-9]{64}$/.test(checksum)) throw new Error("invalid CSV SHA256 result");
+    out += csvRow(["integrity", "csv_bytes", "", "sha256", checksum]);
+  }
   return out;
 }
 
