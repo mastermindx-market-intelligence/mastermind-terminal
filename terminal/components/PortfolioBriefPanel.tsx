@@ -21,7 +21,7 @@
 // Descriptive only: this panel shows the desk's sentences and never adds a buy/sell/
 // rebalance CTA or any per-user recommendation.
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useLang, useT } from "@/lib/i18n";
 import {
   type BriefState,
@@ -45,31 +45,43 @@ export default function PortfolioBriefPanel({ population }: { population: PagePo
   const t = useT();
   const { lang } = useLang();
   const [phase, setPhase] = useState<Phase>({ kind: "loading" });
+  const requestRef = useRef<AbortController | null>(null);
+
+  const load = useCallback(async () => {
+    // Lock synchronously so repeated clicks cannot start overlapping reads.
+    if (requestRef.current) return;
+    const controller = new AbortController();
+    requestRef.current = controller;
+    setPhase({ kind: "loading" });
+    try {
+      const res = await fetch("/api/portfolio-brief", {
+        headers: { Accept: "application/json" },
+        signal: controller.signal,
+      });
+      // Body may be empty/non-JSON on some error statuses; tolerate that.
+      let body: unknown = null;
+      try {
+        body = await res.json();
+      } catch {
+        body = null;
+      }
+      if (!controller.signal.aborted) setPhase(stateForResponse(res.status, body));
+    } catch {
+      // Network failure — same quiet branch as a 503.
+      if (!controller.signal.aborted) setPhase({ kind: "unavailable" });
+    } finally {
+      // A cancelled predecessor must not release its StrictMode replacement's lock.
+      if (requestRef.current === controller) requestRef.current = null;
+    }
+  }, []);
 
   useEffect(() => {
-    let alive = true;
-    (async () => {
-      try {
-        const res = await fetch("/api/portfolio-brief", {
-          headers: { Accept: "application/json" },
-        });
-        // Body may be empty/non-JSON on some error statuses; tolerate that.
-        let body: unknown = null;
-        try {
-          body = await res.json();
-        } catch {
-          body = null;
-        }
-        if (alive) setPhase(stateForResponse(res.status, body));
-      } catch {
-        // Network failure — same quiet branch as a 503.
-        if (alive) setPhase({ kind: "unavailable" });
-      }
-    })();
+    void load();
     return () => {
-      alive = false;
+      requestRef.current?.abort();
+      requestRef.current = null;
     };
-  }, []);
+  }, [load]);
 
   if (phase.kind === "hidden") return null;
   if (phase.kind === "loading") return <BriefSkeleton t={t} />;
@@ -77,6 +89,9 @@ export default function PortfolioBriefPanel({ population }: { population: PagePo
     return (
       <div className="pbrief" role="status">
         <div className="pbrief-unavailable">{t("briefUnavailable")}</div>
+        <button type="button" className="btn btn-ghost" onClick={() => void load()}>
+          {t("errTryAgain")}
+        </button>
       </div>
     );
   }
