@@ -55,8 +55,13 @@ async function mutate(request: Request, reconcile: boolean) {
     let body: unknown;
     try { body = JSON.parse(raw); } catch { return respond({ status: "invalid_payload" }, 400); }
     const command = parseInvestigationCommand(body, reconcile);
-    if (!command) return respond({ status: "invalid_payload" }, 400);
-    const result = await (reconcile ? reconcileInvestigationOperation(db, command) : applyInvestigationRevision(db, command));
+    // A legacy POST retry may already have committed. Only the reconciliation
+    // owner can compare the full original request and return its receipt or fence.
+    // Never normalize or apply a request that fails the current write contract.
+    const recovery = !command && !reconcile ? parseInvestigationCommand(body, true) : null;
+    if (!command && !recovery) return respond({ status: "invalid_payload" }, 400);
+    const result = recovery ? await reconcileInvestigationOperation(db, recovery)
+      : await (reconcile ? reconcileInvestigationOperation(db, command!) : applyInvestigationRevision(db, command!));
     return respond(result, statuses[result.status] ?? 503);
   } catch { return respond({ status: "unavailable" }, 503); }
 }
