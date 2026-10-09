@@ -4,8 +4,11 @@
 # capturedAtHead: 37a221a8161fa1e21a777026018da715500980f3
 # capturedAt: 2026-10-08T21:27:31.244Z
 # capturedAtHead is informational. The lock is layoutFiles.
+# Scoped OptionsHubView recapture: 165bf02c685f5bb5b81c9d1ec83ff2f9982dd12f; 2026-10-09; EN/ZH at 1440x900 and 390x844.
+# Scoped command: CAPTURE_ONLY=OptionsHubView TERMINAL_CROP_PORT=3631 node e2e/tools/capture_pl6_batch1.cjs
+# All other capture identities, source locks, and PNGs are retained from the merged master manifest.
 layoutFiles:
-  terminal/components/OptionsHubView.tsx: "dd8e4e9d5234aae8fb41b597fe1a262bd54dfd8abebb2e46361bde50354c9f08"
+  terminal/components/OptionsHubView.tsx: "7170485d20c5e17c7c97d6cf76ab18bbd031f8750efaab17fda2258e0b26d8f5"
   terminal/components/SearchModal.tsx: "51b7b514f169a40db9644b502ddd0d933100a305aea55ea0f6a1fb028dbe69ad"
   terminal/components/StockAnalysis.tsx: "376a907d0d8ea3dc5819e0092f02e19ce56fa1f4b71a3489551adf52fddb35c0"
   terminal/components/workspaces/AnalysisWorkspace.tsx: "f98764b71e4e1301d6149aef0d3e47615455801f95a9691b4d8807febe92226e"

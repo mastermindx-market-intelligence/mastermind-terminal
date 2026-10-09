@@ -42,6 +42,18 @@ test.describe("Options Payoff Lab", () => {
     expect(geometry.bad).toBe(false);
     expect(geometry.width).toBeGreaterThan(200);
     expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth + 1)).toBe(true);
+
+    const quantity = page.getByLabel("Qty 1");
+    await quantity.fill("100001");
+    await expect(quantity).toHaveAttribute("aria-invalid", "true");
+    await expect(lab.getByRole("alert")).toContainText("quantity must be a positive safe integer");
+    await expect(lab.locator('svg[role="img"]')).toHaveCount(0);
+    await quantity.fill("100000");
+    await expect(quantity).toHaveAttribute("aria-invalid", "false");
+    await expect(lab.getByRole("alert")).toHaveCount(0);
+    await expect(lab.locator('svg[role="img"]')).toBeVisible();
+    await quantity.fill("1");
+    await expect(page.getByTestId("payoff-scenario-result")).toContainText("+$740");
   });
 
   test("Workflow Plan stop opens Payoff Lab, then the native language switch keeps the planner intact", async ({ page }) => {
