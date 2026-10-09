@@ -8,7 +8,8 @@ import { expectTapTarget } from "./tapTarget";
  * 5xx or a refused request rendered the coverage gap ("{sym} isn't in this nightly build").
  * Only a 404 may say that now. A read that did not land renders the load error with a Retry
  * that re-reads in place, and the spread panel's own aggregate-trend read follows the same
- * law without taking the snapshot down with it.
+ * law without taking the snapshot down with it. A name the route would refuse is never
+ * asked for: it is the coverage gap, with no Retry.
  */
 
 test.setTimeout(90_000);
@@ -116,6 +117,22 @@ test("a failed volatility read is a load error with an in-place Retry, never a c
   await expect(page.getByText(copy.errorLoad)).toHaveCount(0, { timeout: 20_000 });
   await expect(retry).toHaveCount(0, { timeout: 20_000 });
   await expectNoPageOverflow(page);
+
+  // A name the route refuses with a 400 is never asked for. No build can hold it, so it
+  // is the coverage gap, not a failed read whose Retry could never land.
+  const refusedReads: string[] = [];
+  page.on("request", (req) => {
+    const url = new URL(req.url());
+    if (url.pathname === "/api/flow" && (url.searchParams.get("f") ?? "").endsWith(":^VIX")) refusedReads.push(req.url());
+  });
+  await commitRoot(page, "^VIX");
+  await expect(page.getByText(copy.notInBuild("^VIX"))).toBeVisible({ timeout: 20_000 });
+  await expect(page.getByText(copy.errorLoad)).toHaveCount(0);
+  await expect(retry).toHaveCount(0);
+  // The next pick's read lands after any read ^VIX would have sent, so this is a real barrier.
+  await commitRoot(page, "SPY");
+  await expect(page.getByTestId("term-expiry-select")).toBeVisible({ timeout: 20_000 });
+  expect(refusedReads).toEqual([]);
 });
 
 test("a failed spread-history read keeps the snapshot and never calls the history unpublished", async ({ page }, testInfo) => {

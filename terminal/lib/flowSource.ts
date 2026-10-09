@@ -16,6 +16,7 @@ import { promises as fs } from "fs";
 import path from "path";
 import { computeFlowScore, type ScorerInput } from "@/lib/flowScore";
 import { FLOW_BACKEND as BACKEND, R2_BASE } from "@/lib/upstreams";
+import { isValidRoot } from "@/lib/flowRoot";
 import { type Bar6, tfMinutes, resample, sessionEpoch } from "@/lib/intradayShared";
 
 const FIXTURE_FILE = path.join(process.cwd(), "public", "data", "flow_fixture.json");
@@ -91,27 +92,10 @@ async function tryReadLocalFlowArtifact(f: string): Promise<Record<string, unkno
 }
 
 
-/**
- * A syntactically valid option root, for f-params whose tail is interpolated into a
- * backend path or an R2 object key.
- *
- * ⚠️ SECURITY, not tidiness. Before this existed, `isValidF` accepted ANY non-empty
- * string after `gex:` / `vol:` / `matrix:` / `agg:` / … and `backendPath` / `r2Key`
- * interpolated it raw. `gex:../../admin/secrets` normalises away the `..` segments at
- * fetch time and reads an arbitrary backend endpoint or R2 object — and because the
- * route caches by the f-param string, the result is then served from the shared
- * server-side CACHE under the attacker's key. Path traversal plus cache poisoning from
- * one query parameter.
- *
- * Roots are uppercase alphanumerics with an optional dot or hyphen inside (BRK.B,
- * RDS-A) — never a slash, a dot-dot, a space or a percent escape. 12 chars matches the
- * ticker input's own maxLength.
- */
-const ROOT_RE = /^[A-Z0-9]{1,10}(?:[.-][A-Z0-9]{1,4})?$/;
-
-export function isValidRoot(root: string): boolean {
-  return root.length > 0 && root.length <= 12 && ROOT_RE.test(root);
-}
+// The option-root rule (and its ⚠️ SECURITY rationale) lives in lib/flowRoot, which is
+// client-safe, so a per-root view applies the very rule this route enforces before it
+// asks. Re-exported for the server-side callers that import it from here.
+export { isValidRoot };
 
 /** A date segment in a dated f-param. Same reasoning as isValidRoot. */
 const DATE_RE = /^\d{4}-\d{2}-\d{2}$/;

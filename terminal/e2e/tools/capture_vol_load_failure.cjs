@@ -8,6 +8,8 @@
  * lower, for the aggregate-trend store behind the spread panel. Each state is produced by the
  * real failure injected at /api/flow (page.route), never by a component prop. The *-retried
  * states click Retry after the store heals and crop what the same document recovers to.
+ * snapshot-refused types a name the route refuses (^VIX) over the healthy snapshot: it is
+ * never asked for, so it is the coverage gap with nothing to retry.
  *
  * Dark only (DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06).
  * TERMINAL_E2E_FIXTURE suppresses the Next.js N indicator; FLOW_FIXTURE serves the healthy reads.
@@ -46,11 +48,13 @@ const VIEWPORTS = {
 /**
  * Injected /api/flow answer per f-param; anything unlisted reaches the fixture server.
  * `healAfter`: that injection is lifted and Retry clicked before the crop.
+ * `commit`: typed into the root input once the healthy snapshot is up.
  */
 const STATES = {
   "snapshot-unavailable": { replies: { "vol:SPY": "503" }, surface: "snapshot" },
   "snapshot-retried": { replies: { "vol:SPY": "503" }, surface: "snapshot", healAfter: "vol:SPY" },
   "snapshot-absent": { replies: { "vol:SPY": "404" }, surface: "snapshot" },
+  "snapshot-refused": { replies: {}, surface: "snapshot", commit: "^VIX" },
   "spread-unavailable": { replies: { "agg:SPY": "503" }, surface: "spread" },
   "spread-retried": { replies: { "agg:SPY": "503" }, surface: "spread", healAfter: "agg:SPY" },
   "spread-loading": { replies: { "agg:SPY": "pending" }, surface: "spread" },
@@ -61,6 +65,7 @@ const COPY = {
   en: {
     errorLoad: "Could not load volatility data",
     emptyTitle: "No volatility snapshot for this name yet",
+    notInBuild: (sym) => `${sym} isn't in this nightly build`,
     retry: "Retry",
     statsTitle: "Volatility snapshot",
     spreadTitle: "IV − realized-vol spread · history",
@@ -71,6 +76,7 @@ const COPY = {
   zh: {
     errorLoad: "无法加载波动率数据",
     emptyTitle: "该品种暂无波动率快照",
+    notInBuild: (sym) => `本次夜间构建中没有 ${sym}`,
     retry: "重试",
     statsTitle: "波动率概览",
     spreadTitle: "IV − 已实现波动率差值 · 历史",
@@ -210,7 +216,7 @@ async function cropBoxes(page, boxes, outPath, pad) {
 
 async function captureState(page, width, lang, state, replies, outPath) {
   const copy = COPY[lang];
-  const { surface, healAfter } = STATES[state];
+  const { surface, healAfter, commit } = STATES[state];
   await page.goto(`${BASE}${URL_PATH}`, { waitUntil: "domcontentloaded", timeout: 90_000 });
   const pad = width === 390 ? 10 : 16;
 
@@ -220,6 +226,20 @@ async function captureState(page, width, lang, state, replies, outPath) {
     if (state === "snapshot-unavailable" || healAfter) {
       await view.getByText(copy.errorLoad).nth(1).waitFor({ state: "visible" });
       await view.getByRole("button", { name: copy.retry, exact: true }).waitFor({ state: "visible" });
+    }
+    let asked = null;
+    if (commit) {
+      // The healthy snapshot first, then a name the route would refuse with a 400.
+      await page.getByTestId("term-expiry-select").waitFor({ state: "visible" });
+      asked = [];
+      page.on("request", (req) => {
+        const u = new URL(req.url());
+        if (u.pathname === "/api/flow" && (u.searchParams.get("f") ?? "").endsWith(`:${commit}`)) asked.push(u.search);
+      });
+      const input = page.locator('input[list="vol-roots"]');
+      await input.fill(commit);
+      await input.press("Enter");
+      await view.getByText(copy.notInBuild(commit)).waitFor({ state: "visible" });
     }
     if (healAfter) {
       // The store answers again; Retry re-reads in place and the snapshot renders.
@@ -234,6 +254,8 @@ async function captureState(page, width, lang, state, replies, outPath) {
       }
     }
     await page.waitForTimeout(250);
+    if (asked && asked.length) throw new Error(`${state}: ${commit} was asked for (${asked.join(", ")})`);
+    if (commit && (await view.getByText(copy.errorLoad).count())) throw new Error(`${state}: a refused name shown as a failed read`);
     // No margin: the tab's shell is edge-to-edge, so any pad pulls in slivers of the page chrome.
     await cropBoxes(page, [await view.boundingBox()], outPath, 0);
     return;
@@ -336,10 +358,11 @@ async function main() {
     "harness:",
     ...files.map((name) => {
       const state = Object.keys(STATES).find((s) => name.startsWith(`${s}-`));
-      const { replies, healAfter } = STATES[state];
+      const { replies, healAfter, commit } = STATES[state];
       const injected = Object.entries(replies).map(([f, r]) => `"${f}": ${r}`).join(", ");
       const heal = healAfter ? `, then: "${healAfter} healed, Retry clicked"` : "";
-      return `  ${name}: { url: "${URL_PATH}", state: ${state}, injected: { ${injected} }${heal} }`;
+      const typed = commit ? `, then: "typed ${commit}; no /api/flow read sent for it"` : "";
+      return `  ${name}: { url: "${URL_PATH}", state: ${state}, injected: { ${injected} }${heal}${typed} }`;
     }),
     "surfaces: [VolView, VolVrpPanel]",
     "injection: page.route on /api/flow answers 503 / 404 / never; every other read is the FLOW_FIXTURE server",

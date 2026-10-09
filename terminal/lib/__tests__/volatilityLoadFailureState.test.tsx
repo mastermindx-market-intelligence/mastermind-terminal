@@ -51,16 +51,23 @@ function volPayload(root: string, asof: string, base: number) {
 }
 
 // One injected transport answer per f-param. Anything unlisted is a published absence.
-type Reply = { status: number; body: string } | "reject" | "pending";
-const json = (status: number, body: unknown): Reply => ({ status, body: JSON.stringify(body) });
+// `gated` holds its answer until openGate() — a read that lands after the user moved on.
+type Answer = { status: number; body: string };
+type Reply = Answer | "reject" | "pending" | { gated: Answer };
+const json = (status: number, body: unknown): Answer => ({ status, body: JSON.stringify(body) });
 const SPY_OK = json(200, volPayload("SPY", "2026-09-25", 12));
+// What the real route answers for a name isValidF refuses.
+const REFUSED = json(400, { error: "bad f param" });
 let replies: Record<string, Reply>;
+let openGate: () => void = () => undefined;
 const fetchMock = vi.fn(async (input: RequestInfo | URL): Promise<Response> => {
   const f = new URL(String(input), "http://terminal.test").searchParams.get("f") ?? "";
   const reply = replies[f] ?? json(404, { error: "not published" });
   if (reply === "reject") throw new TypeError("Failed to fetch");
   if (reply === "pending") return new Promise<Response>(() => undefined);
-  return new Response(reply.body, { status: reply.status, headers: { "content-type": "application/json" } });
+  const answer = "gated" in reply ? reply.gated : reply;
+  if ("gated" in reply) await new Promise<void>((resolve) => { openGate = resolve; });
+  return new Response(answer.body, { status: answer.status, headers: { "content-type": "application/json" } });
 });
 
 let host: HTMLDivElement;
@@ -146,6 +153,36 @@ describe("Volatility tab: a failed snapshot read is not a coverage gap", () => {
     expect(text()).toContain("2026-09-25");
     expect(text()).not.toContain(LOAD_ERROR);
     expect(retryButton()).toBeNull();
+  });
+
+  it.each([["^VIX"], ["$SPX"], ["BRK/B"]])(
+    "never asks for %s, a name no store can hold: the coverage gap, with nothing to retry",
+    async (name) => {
+      replies["vol:SPY"] = SPY_OK;
+      replies[`vol:${name}`] = REFUSED;
+      replies[`agg:${name}`] = REFUSED;
+      await mount();
+      await commitRoot(name);
+      expect(requested(`vol:${name}`)).toBe(0);
+      expect(requested(`agg:${name}`)).toBe(0);
+      expect(text()).toContain(EMPTY_TITLE);
+      expect(text()).toContain(`${name} isn't in this nightly build`);
+      expect(text()).not.toContain(LOAD_ERROR);
+      expect(retryButton()).toBeNull();
+    },
+  );
+
+  it("a refused name still fences the read it replaced", async () => {
+    replies["vol:SPY"] = SPY_OK;
+    replies["vol:QQQ"] = { gated: json(200, volPayload("QQQ", "2026-09-26", 18)) };
+    await mount();
+    await commitRoot("QQQ");
+    expect(requested("vol:QQQ")).toBe(1);
+    await commitRoot("^VIX");
+    await act(async () => openGate()); // QQQ's read lands after the user moved on
+    await settle();
+    expect(text()).toContain("^VIX isn't in this nightly build");
+    expect(text()).not.toContain("2026-09-26");
   });
 
   it("does not remember a failed read: the next visit to the root reads again", async () => {

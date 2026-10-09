@@ -17,12 +17,14 @@
  *
  * Fetch: ONE flowGetResult(`vol:{ROOT}`) per committed root (the store publishes once
  * a night — polling would only re-download the same snapshot). Only a 404 is the
- * coverage-gap empty; a read that did not land is the load error. A request counter
- * drops stale responses so a slow root can't clobber a newer pick.
+ * coverage-gap empty, along with a name the route would refuse (never asked for); a
+ * read that did not land is the load error. A request counter drops stale responses
+ * so a slow root can't clobber a newer pick.
  */
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { flowGetResult, type FlowOutcome } from "@/lib/flowClientCache";
+import { isValidRoot } from "@/lib/flowRoot";
 import { useLang } from "@/lib/i18n";
 import { GEX_AUTOCOMPLETE_ROOTS } from "@/lib/optionsRoots";
 import { trackSearch } from "@/lib/searchTrack";
@@ -121,6 +123,11 @@ export function VolView() {
   // a newer pick (request counter) and the effect never sets state synchronously.
   useEffect(() => {
     const req = ++reqRef.current;
+    // A name no published object can carry (^VIX, $SPX, BRK/B) is never asked for: the
+    // route refuses it with a 400, and that refusal shown as a failed read would offer a
+    // Retry that can never land. No build holds such a name — it is the coverage gap.
+    // The counter bump above still drops any read in flight for the previous root.
+    if (!isValidRoot(root)) return;
     void (async () => {
       let read: FlowOutcome;
       try {
@@ -174,7 +181,8 @@ export function VolView() {
     const next = inputVal.trim().toUpperCase();
     if (next && next !== root) {
       trackSearch(next, "vol-tab", inputVal.trim() || undefined);
-      setLoading(true);
+      // A name the route refuses settles as the coverage gap without a read (the effect).
+      setLoading(isValidRoot(next));
       setError(false);
       setPayload(null);
       setAgg(null);
