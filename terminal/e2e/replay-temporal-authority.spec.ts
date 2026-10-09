@@ -780,3 +780,72 @@ test("a live quote cannot advance a replayed chart, and is there on the return t
   // …and the Day change is the quote's again.
   await expect(dayChange(page)).toHaveText("+25.00%", ACT);
 });
+
+// The Golden Oracle chip names one verdict for the chart, and under Replay it may name only a
+// verdict the chart's own markers could show by then. A signal is dated by the session it fired on
+// but becomes known on `known_ts`; the chip used to bound the scan by the replayed bar's date
+// alone, so it printed a verdict two sessions before anyone could have known it.
+const ORACLE_SIGNAL = { ts: "2026-06-03", known: "2026-06-05" } as const;
+const oracleChip = (page: Page) => page.locator(".statusline .mm", { hasText: "Golden Oracle" });
+
+test("the Golden Oracle chip under Replay waits for its verdict to be known", async ({ page }) => {
+  skipWithoutReplayEntry(page);
+  test.slow();
+  await page.addInitScript(() => {
+    localStorage.setItem("mm.inds", JSON.stringify(["_oracle"]));
+    localStorage.setItem("mm.indHidden", JSON.stringify([]));
+    localStorage.setItem("mm.mastermindCandles.v1", "1");
+  });
+  await page.route("**/data/NVDA.slice.json", async (route) => {
+    const res = await route.fetch();
+    const doc = await res.json();
+    const signals = doc.indicator.signals as Array<{ ts: string; known_ts?: string }>;
+    const last = signals[signals.length - 1];
+    // The case needs the fixture's newest signal to be the one moved, or the chip proves nothing.
+    expect(last.ts).toBe(ORACLE_SIGNAL.ts);
+    last.known_ts = ORACLE_SIGNAL.known;
+    await route.fulfill({ json: doc });
+  });
+  await quietQuotes(page);
+  await gotoTerminal(page);
+  await onDailyChart(page);
+  const rows = await fixtureRows(page, "NVDA");
+  const at = rows.findIndex((r) => r[0] === ORACLE_SIGNAL.ts);
+  expect(at).toBeGreaterThan(20);
+  expect(rows[at + 2][0]).toBe(ORACLE_SIGNAL.known);
+
+  // Live: the newest signal is the verdict (a SELL with no basis reads as a structure Stop).
+  await expect(oracleChip(page)).toHaveText("Golden Oracle · Stop", ACT);
+
+  await toggleToolbarReplay(page);
+  const rail = replayRail(page);
+  await expect(rail).toBeVisible(ACT);
+  const slider = rail.locator('input[type="range"]');
+  await slider.focus(ACT);
+  await page.keyboard.press("End");
+  await expect(rail).toHaveAttribute("data-replay-idx", String(rows.length - 1), ACT);
+  for (let i = rows.length - 1; i > at; i--) await page.keyboard.press("ArrowLeft");
+  await expect(rail).toHaveAttribute("data-replay-idx", String(at), ACT);
+  await expect.poll(async () => sessionDate((await witness(page))?.lastBar?.time), ACT).toBe(ORACLE_SIGNAL.ts);
+
+  // On the session the signal fired it is not yet known: the chip keeps the verdict before it.
+  await expect(oracleChip(page)).toHaveText("Golden Oracle · Buy", ACT);
+  const next = rail.getByRole("button", { name: "Next bar", exact: true });
+  await next.click(ACT);
+  await expect(rail).toHaveAttribute("data-replay-idx", String(at + 1), ACT);
+  await expect(oracleChip(page)).toHaveText("Golden Oracle · Buy", ACT);
+  // The session it became known on, the chip names it.
+  await next.click(ACT);
+  await expect(rail).toHaveAttribute("data-replay-idx", String(at + 2), ACT);
+  await expect.poll(async () => sessionDate((await witness(page))?.lastBar?.time), ACT).toBe(ORACLE_SIGNAL.known);
+  await expect(oracleChip(page)).toHaveText("Golden Oracle · Stop", ACT);
+
+  // Back to live: the live verdict is unchanged.
+  await slider.focus(ACT);
+  await page.keyboard.press("Home");
+  await expect(rail).toHaveAttribute("data-replay-idx", "20", ACT);
+  await toggleToolbarReplay(page);
+  await expect(replayRail(page)).toHaveCount(0, ACT);
+  await expect(oracleChip(page)).toHaveText("Golden Oracle · Stop", ACT);
+});
+
