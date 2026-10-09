@@ -127,6 +127,24 @@ test("a real stale importer cannot resurrect the snapshot another tab acknowledg
   } finally { await second.close(); }
 });
 
+test("two hydrated real tabs keep a physical import retired after one acknowledges it", async ({ page, context }) => {
+  const second = await context.newPage(), owner = "account:hydrated-retirement";
+  try {
+    await readLegacyInBothTabs(page, second, owner);
+    expect(await page.evaluate(async owner => (window as any).A04Journal.writeDrawingJournal(localStorage, owner, (window as any).journal), owner)).toBe(true);
+    expect(await second.evaluate(async owner => {
+      const api = (window as any).A04Journal, journal = (window as any).journal;
+      if (!await api.writeDrawingJournal(localStorage, owner, journal)) return false;
+      delete journal.NVDA; return api.writeDrawingJournal(localStorage, owner, journal);
+    }, owner)).toBe(true);
+    expect(await page.evaluate(async owner => (window as any).A04Journal.writeDrawingJournal(localStorage, owner, (window as any).journal), owner)).toBe(true);
+    expect(await page.evaluate(owner => ({
+      memory: (window as any).journal.NVDA,
+      durable: (window as any).A04Journal.readDrawingJournal(localStorage, owner).NVDA,
+    }), owner)).toEqual({ memory: undefined, durable: undefined });
+  } finally { await second.close(); }
+});
+
 test("real same-origin tabs retain distinct same-symbol copies including a clear tombstone", async ({ page, context }) => {
   const second = await context.newPage();
   try {

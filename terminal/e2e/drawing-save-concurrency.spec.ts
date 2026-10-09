@@ -103,6 +103,24 @@ test("competing local copies require explicit selection and are discarded indivi
  expect(await page.evaluate(()=>localStorage.getItem("mm.drawing.account-outbox.v2"))).toBeNull();
 });
 
+test("selecting another copy then using cloud discards that copy without an intervening save",async({page})=>{
+ await seed(page,{format:2,copies:{[original]:{drawings:[line("local-a")],revision:null},[committed]:{drawings:[line("local-b")],revision:null}}});
+ let puts=0;
+ await page.route("**/api/drawings**",async route=>{
+  if(route.request().method()==="PUT")puts++;
+  await route.fulfill(json({drawings:[line("cloud")],revision:nextRevision,schemaVersion:1}));
+ });
+ await open(page);await expect(page.getByTestId("drawing-save-recovery")).toContainText("Cloud drawings (1)");
+ await page.getByRole("button",{name:/Review another local copy/}).click();
+ await page.getByRole("button",{name:"Use cloud copy",exact:true}).click();
+ await expect(page.getByTestId("drawing-save-recovery")).toContainText("Local drawings (1)");
+ const remaining=await page.evaluate(()=>JSON.parse(localStorage.getItem("mm.drawing.account-outbox.v2")!)["account:responsive@example.com"].NVDA.copies);
+ expect(Object.keys(remaining)).toEqual([original]);expect(remaining[original].drawings[0].id).toBe("local-a");expect(puts).toBe(0);
+ await page.getByRole("button",{name:"Use cloud copy",exact:true}).click();
+ await expect(page.getByTestId("drawing-save-recovery")).toHaveCount(0);expect(puts).toBe(0);
+ expect(await page.evaluate(()=>localStorage.getItem("mm.drawing.account-outbox.v2"))).toBeNull();
+});
+
 test("unavailable durable serialization warns to keep the tab open and never starts a save",async({page})=>{
  await page.addInitScript(()=>Object.defineProperty(navigator,"locks",{value:undefined,configurable:true}));
  await seed(page,{drawings:[line("memory-only")],revision:null});let puts=0;

@@ -131,7 +131,14 @@ type JournalNamespace = Record<string, JournalRecord>;
 type LegacyImports = Record<string, Copies>;
 const journalNamespaces = new WeakMap<DrawingJournal, JournalNamespace>();
 function resolveLegacyAlias(record: JournalRecord, alias: string | undefined, token: string | undefined): { id: string; retired: boolean } | undefined {
-  if (!alias?.startsWith("legacy:") || !token) return;
+  if (!alias || !token) return;
+  // Hydration persists an import before the recovery choice, replacing the
+  // virtual alias with its physical UUID. Keep that same identity retired
+  // after another tab acknowledges it; unchanged memory is not a new edit.
+  if (!alias.startsWith("legacy:")) {
+    if (record.legacyLinks[alias] && !record.copies[alias]) return { id: alias, retired: true };
+    return;
+  }
   const sourceId = alias.slice("legacy:".length);
   const matches = Object.entries(record.legacyLinks).filter(([, link]) => link.sourceId === sourceId && link.token === token);
   const retained = matches.find(([id]) => record.copies[id]);
@@ -366,5 +373,9 @@ export function selectDrawingRecoveryCopy(journal: DrawingJournal, symbol: strin
   const entry = { ...selected };
   entry.alternatives = copies.filter((copy) => copy.recoveryId !== id).map(({ alternatives: _alternatives, ...copy }) => copy);
   journal[symbol] = entry;
+  // Selection changes which observed copy an explicit discard acknowledges.
+  // Keep the original preimage hashes so concurrent edits remain protected.
+  const baseline = baselines.get(journal)?.[symbol];
+  if (baseline?.hashes[id]) baseline.active = id;
   return entry;
 }

@@ -213,6 +213,35 @@ describe("recovery across already-open legacy clients",()=>{
 });
 
 describe("concurrent legacy import ownership",()=>{
+  it("discards the explicitly selected copy without requiring an intervening save", async () => {
+    const storage = new MemoryStorage();
+    await persist(storage, { NVDA: { drawings: [line("one")], revision: null } });
+    await persist(storage, { NVDA: { drawings: [line("two")], revision: null } });
+    const journal = readDrawingJournal(storage, "account:a");
+    const originalId = journal.NVDA.recoveryId!;
+    const selectedId = journal.NVDA.alternatives![0].recoveryId!;
+    expect(selectDrawingRecoveryCopy(journal, "NVDA", selectedId)?.recoveryId).toBe(selectedId);
+    delete journal.NVDA; expect(await persist(storage, journal)).toBe(true);
+    expect(readDrawingJournal(storage, "account:a").NVDA.recoveryId).toBe(originalId);
+  });
+  for (const reconcile of [false, true]) {
+    for (const edited of [false, true]) {
+      it(`retires the hydrated physical import after another tab acknowledges it (reconcile=${reconcile}, edited=${edited})`, async () => {
+        const storage = new MemoryStorage();
+        writeDrawingOutbox(storage, "account:a", { NVDA: [line("legacy")] });
+        const a = readDrawingJournal(storage, "account:a"), b = readDrawingJournal(storage, "account:a");
+        expect(await persist(storage, a)).toBe(true); expect(await persist(storage, b)).toBe(true);
+        expect(a.NVDA.recoveryId).toBe(b.NVDA.recoveryId);
+        delete b.NVDA; expect(await persist(storage, b)).toBe(true);
+        if (edited) a.NVDA.drawings = [line("unsaved-edit")];
+        if (reconcile) reconcileDrawingJournal(storage, "account:a", a);
+        expect(await persist(storage, a)).toBe(true);
+        const remaining = readDrawingJournal(storage, "account:a").NVDA;
+        if (edited) expect(remaining.drawings[0].id).toBe("unsaved-edit");
+        else { expect(remaining).toBeUndefined(); expect(a.NVDA).toBeUndefined(); }
+      });
+    }
+  }
  it("reconciles two importers to the same physical legacy copy",async()=>{
   const storage=new MemoryStorage();writeDrawingOutbox(storage,"account:a",{NVDA:[line("legacy-copy")]});
   const a=readDrawingJournal(storage,"account:a"),b=readDrawingJournal(storage,"account:a");
