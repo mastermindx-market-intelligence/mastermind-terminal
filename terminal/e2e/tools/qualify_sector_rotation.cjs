@@ -11,13 +11,18 @@ assert(!fs.existsSync(out), "Retain earlier proof runs"); fs.mkdirSync(out, { re
 const provenance = JSON.parse(fs.readFileSync(path.join(input, "provenance.json"), "utf8"));
 const bytes = fs.readFileSync(path.join(input, "sector.json")), source = JSON.parse(bytes);
 const historyBytes = fs.readFileSync(path.join(input, "history.json")), history = JSON.parse(historyBytes);
+const eventsBytes = fs.readFileSync(path.join(input, "events.json")), events = JSON.parse(eventsBytes);
 assert.equal(crypto.createHash("sha256").update(bytes).digest("hex"), provenance.files.sector.sha256);
 assert.equal(crypto.createHash("sha256").update(historyBytes).digest("hex"), provenance.files.history.sha256);
+assert.equal(crypto.createHash("sha256").update(eventsBytes).digest("hex"), provenance.files.events.sha256);
+assert.equal(events.schema, "rotation_events.v1");
+assert.equal(events.authority?.may_rank, false);
 assert.equal(history.meta?.rs_history?.schema, "sector_cycles.rs_history.v1");
 assert.equal(history.meta?.rs_history?.mode, "reconstructed_price_history");
 assert.equal(history.meta?.rs_history?.naturally_observed, false);
 const report = { sourceRevision: provenance.ref, sourcePath: provenance.source, sourceSha256: provenance.files.sector.sha256,
   historyRevision: provenance.historyRef, historyPath: provenance.historySource, historySha256: provenance.files.history.sha256,
+  eventRevision: provenance.eventRef, eventPath: provenance.eventSource, eventSha256: provenance.files.events.sha256,
   sourceBodiesChanged: false, transport: "local interception", productionProof: false, independentDesignAcceptance: false,
   checks: [], screenshots: [], errors: [] };
 function check(name, ok, details) { report.checks.push({ name, passed: !!ok, details }); assert(ok, name); }
@@ -50,6 +55,10 @@ let browser;
       receipt: { source: "history", path: "/sectordata/sector_cycles.json", status: access ? "ready" : "access",
         asOf: access ? history.meta.asOf : null, contentHash: access ? provenance.files.history.sha256 : null,
         observedAt: access ? "2026-10-05T08:30:00Z" : null, stale: false } } });
+    if (key === "events") return route.fulfill({ status: access ? 200 : 401, json: { data: access ? events : null,
+      receipt: { source: "events", path: "/marketdata/rotation_events.json", status: access ? "ready" : "access",
+        asOf: access ? events.as_of : null, contentHash: access ? provenance.files.events.sha256 : null,
+        observedAt: access ? "2026-10-09T14:00:00Z" : null, stale: false } } });
     return route.fulfill({ status: 401, json: { data: null, receipt: { source: key, path: null, status: "access", asOf: null, contentHash: null, observedAt: null, stale: false } } });
    }
    if (url.pathname.startsWith("/api/")) return route.fulfill({ status: 200, json: {} });
@@ -89,6 +98,20 @@ let browser;
   const historyText = await historical.innerText();
   check(label + ": historical owner date is visible", historyText.includes(shortDate(history.meta.asOf, lang)), historyText);
   check(label + ": reconstructed provenance is visible at point of use", historyText.includes(lang === "zh" ? "并非Mastermind当时实时观察的记录" : "not a record of what Mastermind observed then"), historyText);
+  const native = rotation.getByTestId("rotation-native-episodes");
+  await expect(native).toBeVisible();
+  const nativeText = await native.innerText();
+  const lastNativeClosed = events.closed_recent.filter(row => row.sector === "xlk").at(-1);
+  check(label + ": native RC closure remains separately sourced and provenance-bounded",
+    nativeText.includes(lang === "zh" ? "轮动命令原生已结束交棒事件" : "Native RC closed episodes")
+    && nativeText.includes(lang === "zh" ? "并非历史当时可知的信号" : "not an as-known historical signal")
+    && nativeText.includes(lang === "zh" ? lastNativeClosed.to_name_zh : lastNativeClosed.to_name_en)
+    && nativeText.includes(shortDate(lastNativeClosed.closed_asof, lang)));
+  check(label + ": native source date and actual freshness are faithfully represented",
+    nativeText.includes(shortDate(events.as_of, lang))
+    && (events.as_of < source.as_of
+      ? nativeText.includes(lang === "zh" ? "早于当前板块中心快照" : "older than the current Sector Central snapshot")
+      : !nativeText.includes(lang === "zh" ? "早于当前板块中心快照" : "older than the current Sector Central snapshot")));
   const nativeHistory = history.sectors.find(row => row.id === "xlk");
   const selectedHistory = nativeHistory.rs_history;
   const evidence = rotation.getByTestId("rotation-cycle-evidence");
@@ -131,6 +154,8 @@ let browser;
   await expect(rotation.locator("[data-sector-rotation-row]")).toHaveCount(source.sectors.length);
   check(label + ": list shares the exact source population", new URL(page.url()).searchParams.get("sectorRotationMode") === "list");
   await rotation.locator('[data-sector-rotation-row="xle"]').click(); await expect(page).toHaveURL(/sector=xle/);
+  check(label + ": native source empty-sector view does not fabricate an all clear",
+    (await native.innerText()).includes(lang === "zh" ? "没有此板块的已结束交棒事件" : "No closed episodes for this sector"));
   check(label + ": selection remains one URL-bound object", (await inspector.innerText()).includes(lang === "zh" ? "能源" : "Energy"));
   const detailReturn = page.url();
   await rotation.getByRole("button", { name: new RegExp(lang === "zh" ? "打开板块研究" : "Open sector research") }).click();

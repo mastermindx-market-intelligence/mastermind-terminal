@@ -1,0 +1,826 @@
+{
+  "sourceRevision": "b29ba7102d35bebf6f322c1d6fadf8309726bf4e",
+  "sourcePath": "site/sectordata/sector_central.json",
+  "sourceSha256": "106726b1c4a52749d0c7360b6e08907625dc66f6b446d9da580f3f0ecac2c532",
+  "historyRevision": "7d343dc5efc0353e7a0090acdf664f1f663946ed",
+  "historyPath": "site/sectordata/sector_cycles.json candidate schema",
+  "historySha256": "39e43742c0ffcc5f6a6fc7b3d8ed9a7136e79ab01d8958a94d4c28dca83b2c16",
+  "eventRevision": "7bf322e8925b90e7986b0b2b0a4e14e6a43f8b90",
+  "eventPath": "site/marketdata/rotation_events.json",
+  "eventSha256": "9eb9993be7db6dec2b07669d300b35bb16f7e7ca98d54ab5695fa9baec07a916",
+  "sourceBodiesChanged": false,
+  "transport": "local interception",
+  "productionProof": false,
+  "independentDesignAcceptance": false,
+  "checks": [
+    {
+      "name": "chromium-1440-en-light: exact sector population plotted",
+      "passed": true
+    },
+    {
+      "name": "chromium-1440-en-light: compact dated receipt",
+      "passed": true,
+      "details": "Oct 8 · 11 sectors"
+    },
+    {
+      "name": "chromium-1440-en-light: answer is derived from the owner coordinates",
+      "passed": true,
+      "details": "MARKET READ\n\nTechnology is the only sector positive on both 21D and 63D relative strength. Energy has the strongest 63D relative strength, but its 21D trend is negative.\n\nMarket backdrop and early rotation context unavailable."
+    },
+    {
+      "name": "chromium-1440-en-light: only three outer jobs",
+      "passed": true
+    },
+    {
+      "name": "chromium-1440-en-light: exact 21-session coordinate",
+      "passed": true,
+      "details": "Technology (XLK), Leading, 21-session RS vs SPY: +3.6%, 63-session RS vs SPY: +3.7%"
+    },
+    {
+      "name": "chromium-1440-en-light: exact 63-session coordinate",
+      "passed": true,
+      "details": "Technology (XLK), Leading, 21-session RS vs SPY: +3.6%, 63-session RS vs SPY: +3.7%"
+    },
+    {
+      "name": "chromium-1440-en-light: selected source record",
+      "passed": true,
+      "details": "SELECTED SECTOR\nTechnology\n\nXLK · Leading\n\nTACTICAL STATE\nmoney moving in\n\n21-session RS vs SPY\n+3.6%\n63-session RS vs SPY\n+3.7%\nLeadership ranks\n#1 / #2\n21-session / 63-session\n200-day trend\nAbove\n1M sector return\n+5.33%\nAdvancing participation\n67%\n53 / 26\nOpen sector research →"
+    },
+    {
+      "name": "chromium-1440-en-light: tactical state is separately labeled",
+      "passed": true,
+      "details": "SELECTED SECTOR\nTechnology\n\nXLK · Leading\n\nTACTICAL STATE\nmoney moving in\n\n21-session RS vs SPY\n+3.6%\n63-session RS vs SPY\n+3.7%\nLeadership ranks\n#1 / #2\n21-session / 63-session\n200-day trend\nAbove\n1M sector return\n+5.33%\nAdvancing participation\n67%\n53 / 26\nOpen sector research →"
+    },
+    {
+      "name": "chromium-1440-en-light: history is explicitly reconstructed, never presented as observed",
+      "passed": true,
+      "details": "Method and source\n\nHorizontal: 63-session change in the sector/SPY relative-strength ratio. Vertical: 21-session change in the same ratio. Quadrants are sign-based and descriptive, not entry permission.\n\nMissing, expired or unqualified data does not imply calm conditions.\n\nThis is a focus lens, not a forecast or ranking mandate.\n\nCurrent map remains the dated Sector Central snapshot; history selection never changes the current source population or axis scale. Display filtering never changes the source population or axis scale.\n\nHistorical trail · Reconstructed from sector/SPY price history — not a record of what Mastermind observed then.\n\n11 / 11 coordinates available."
+    },
+    {
+      "name": "chromium-1440-en-light: historical owner date is visible",
+      "passed": true,
+      "details": "SECTOR RS HISTORY\nHistorical trail\nOct 8\n\nReconstructed from sector/SPY price history — not a record of what Mastermind observed then.\n\nHistorical date\nOct 8\n21-session RS vs SPY\n+3.6%\n63-session RS vs SPY\n+3.7%\nQuadrant\nLeading\n\n252 daily reconstructed points · Selected sector · trailing 21 sessions on the current map scale\n\nRetrospective price-cycle turns\n\nCurrent owner reconstruction — not a migration episode or a live-time confirmation. Marker status may change in later revisions.\n\nJun 2\nPrice peak\nprice-leg move: 55.5%\nowner-marked major swing\nJul 29\nPrice trough\nprice-leg move: 16.0%\nOct 6\nPrice peak\nprice-leg move: 21.3%\nowner-marked major swing\ncurrently provisional"
+    },
+    {
+      "name": "chromium-1440-en-light: reconstructed provenance is visible at point of use",
+      "passed": true,
+      "details": "SECTOR RS HISTORY\nHistorical trail\nOct 8\n\nReconstructed from sector/SPY price history — not a record of what Mastermind observed then.\n\nHistorical date\nOct 8\n21-session RS vs SPY\n+3.6%\n63-session RS vs SPY\n+3.7%\nQuadrant\nLeading\n\n252 daily reconstructed points · Selected sector · trailing 21 sessions on the current map scale\n\nRetrospective price-cycle turns\n\nCurrent owner reconstruction — not a migration episode or a live-time confirmation. Marker status may change in later revisions.\n\nJun 2\nPrice peak\nprice-leg move: 55.5%\nowner-marked major swing\nJul 29\nPrice trough\nprice-leg move: 16.0%\nOct 6\nPrice peak\nprice-leg move: 21.3%\nowner-marked major swing\ncurrently provisional"
+    },
+    {
+      "name": "chromium-1440-en-light: native RC closure remains separately sourced and provenance-bounded",
+      "passed": true
+    },
+    {
+      "name": "chromium-1440-en-light: native source date and actual freshness are faithfully represented",
+      "passed": true
+    },
+    {
+      "name": "chromium-1440-en-light: native price-cycle markers remain explicitly retrospective",
+      "passed": true
+    },
+    {
+      "name": "chromium-1440-en-light: latest native owner swing is date-bound and visible",
+      "passed": true
+    },
+    {
+      "name": "chromium-1440-en-light: history trail is bound to the selected source date",
+      "passed": true
+    },
+    {
+      "name": "chromium-1440-en-light: history trail uses at most 21 source sessions without an invented point",
+      "passed": true
+    },
+    {
+      "name": "chromium-1440-en-light: future owner swings disappear from the selected historical view",
+      "passed": true
+    },
+    {
+      "name": "chromium-1440-en-light: historical trail follows the selected date",
+      "passed": true
+    },
+    {
+      "name": "chromium-1440-en-light: date navigation does not move live sector coordinates",
+      "passed": true
+    },
+    {
+      "name": "chromium-1440-en-light: history date navigation reaches the first retained point",
+      "passed": true,
+      "details": "SECTOR RS HISTORY\nHistorical trail\nOct 8\n\nReconstructed from sector/SPY price history — not a record of what Mastermind observed then.\n\nHistorical date\nOct 8\n21-session RS vs SPY\n+5.7%\n63-session RS vs SPY\n+5.0%\nQuadrant\nLeading\n\n252 daily reconstructed points · Selected sector · trailing 21 sessions on the current map scale\n\nRetrospective price-cycle turns\n\nCurrent owner reconstruction — not a migration episode or a live-time confirmation. Marker status may change in later revisions.\n\nAug 7\nPrice trough\nprice-leg move: 17.0%\nFeb 19\nPrice peak\nprice-leg move: 22.7%\nowner-marked major swing\nApr 8\nPrice trough\nprice-leg move: 25.8%\nowner-marked major swing"
+    },
+    {
+      "name": "chromium-1440-en-light: historical coordinate is source-exact",
+      "passed": true,
+      "details": "SECTOR RS HISTORY\nHistorical trail\nOct 8\n\nReconstructed from sector/SPY price history — not a record of what Mastermind observed then.\n\nHistorical date\nOct 8\n21-session RS vs SPY\n+5.7%\n63-session RS vs SPY\n+5.0%\nQuadrant\nLeading\n\n252 daily reconstructed points · Selected sector · trailing 21 sessions on the current map scale\n\nRetrospective price-cycle turns\n\nCurrent owner reconstruction — not a migration episode or a live-time confirmation. Marker status may change in later revisions.\n\nAug 7\nPrice trough\nprice-leg move: 17.0%\nFeb 19\nPrice peak\nprice-leg move: 22.7%\nowner-marked major swing\nApr 8\nPrice trough\nprice-leg move: 25.8%\nowner-marked major swing"
+    },
+    {
+      "name": "chromium-1440-en-light: display filter preserves coordinates",
+      "passed": true
+    },
+    {
+      "name": "chromium-1440-en-light: list shares the exact source population",
+      "passed": true
+    },
+    {
+      "name": "chromium-1440-en-light: native source empty-sector view does not fabricate an all clear",
+      "passed": true
+    },
+    {
+      "name": "chromium-1440-en-light: selection remains one URL-bound object",
+      "passed": true
+    },
+    {
+      "name": "chromium-1440-en-light: research opens without a fabricated group join",
+      "passed": true
+    },
+    {
+      "name": "chromium-1440-en-light: detail exposes an explicit return path",
+      "passed": true
+    },
+    {
+      "name": "chromium-1440-en-light: explicit return restores rotation selection and list mode",
+      "passed": true
+    },
+    {
+      "name": "chromium-1440-en-light: browser Back also restores rotation state",
+      "passed": true
+    },
+    {
+      "name": "chromium-1440-en-light: keyboard anchor belongs to the observed plotted population",
+      "passed": true
+    },
+    {
+      "name": "chromium-1440-en-light: keyboard navigation advances exact source order",
+      "passed": true,
+      "details": "xlv"
+    },
+    {
+      "name": "chromium-1440-en-light: Sources belongs to rotation",
+      "passed": true
+    },
+    {
+      "name": "chromium-1440-en-light: no horizontal overflow",
+      "passed": true,
+      "details": {
+        "inner": 0,
+        "document": 0
+      }
+    },
+    {
+      "name": "chromium-1440-en-light: access loss removes retained rotation coordinates",
+      "passed": true
+    },
+    {
+      "name": "chromium-820-en-dark: exact sector population plotted",
+      "passed": true
+    },
+    {
+      "name": "chromium-820-en-dark: compact dated receipt",
+      "passed": true,
+      "details": "Oct 8 · 11 sectors"
+    },
+    {
+      "name": "chromium-820-en-dark: answer is derived from the owner coordinates",
+      "passed": true,
+      "details": "MARKET READ\n\nTechnology is the only sector positive on both 21D and 63D relative strength. Energy has the strongest 63D relative strength, but its 21D trend is negative.\n\nMarket backdrop and early rotation context unavailable."
+    },
+    {
+      "name": "chromium-820-en-dark: only three outer jobs",
+      "passed": true
+    },
+    {
+      "name": "chromium-820-en-dark: exact 21-session coordinate",
+      "passed": true,
+      "details": "Technology (XLK), Leading, 21-session RS vs SPY: +3.6%, 63-session RS vs SPY: +3.7%"
+    },
+    {
+      "name": "chromium-820-en-dark: exact 63-session coordinate",
+      "passed": true,
+      "details": "Technology (XLK), Leading, 21-session RS vs SPY: +3.6%, 63-session RS vs SPY: +3.7%"
+    },
+    {
+      "name": "chromium-820-en-dark: selected source record",
+      "passed": true,
+      "details": "SELECTED SECTOR\nTechnology\n\nXLK · Leading\n\nTACTICAL STATE\nmoney moving in\n\n21-session RS vs SPY\n+3.6%\n63-session RS vs SPY\n+3.7%\nLeadership ranks\n#1 / #2\n21-session / 63-session\n200-day trend\nAbove\n1M sector return\n+5.33%\nAdvancing participation\n67%\n53 / 26\nOpen sector research →"
+    },
+    {
+      "name": "chromium-820-en-dark: tactical state is separately labeled",
+      "passed": true,
+      "details": "SELECTED SECTOR\nTechnology\n\nXLK · Leading\n\nTACTICAL STATE\nmoney moving in\n\n21-session RS vs SPY\n+3.6%\n63-session RS vs SPY\n+3.7%\nLeadership ranks\n#1 / #2\n21-session / 63-session\n200-day trend\nAbove\n1M sector return\n+5.33%\nAdvancing participation\n67%\n53 / 26\nOpen sector research →"
+    },
+    {
+      "name": "chromium-820-en-dark: history is explicitly reconstructed, never presented as observed",
+      "passed": true,
+      "details": "Method and source\n\nHorizontal: 63-session change in the sector/SPY relative-strength ratio. Vertical: 21-session change in the same ratio. Quadrants are sign-based and descriptive, not entry permission.\n\nMissing, expired or unqualified data does not imply calm conditions.\n\nThis is a focus lens, not a forecast or ranking mandate.\n\nCurrent map remains the dated Sector Central snapshot; history selection never changes the current source population or axis scale. Display filtering never changes the source population or axis scale.\n\nHistorical trail · Reconstructed from sector/SPY price history — not a record of what Mastermind observed then.\n\n11 / 11 coordinates available."
+    },
+    {
+      "name": "chromium-820-en-dark: historical owner date is visible",
+      "passed": true,
+      "details": "SECTOR RS HISTORY\nHistorical trail\nOct 8\n\nReconstructed from sector/SPY price history — not a record of what Mastermind observed then.\n\nHistorical date\nOct 8\n21-session RS vs SPY\n+3.6%\n63-session RS vs SPY\n+3.7%\nQuadrant\nLeading\n\n252 daily reconstructed points · Selected sector · trailing 21 sessions on the current map scale\n\nRetrospective price-cycle turns\n\nCurrent owner reconstruction — not a migration episode or a live-time confirmation. Marker status may change in later revisions.\n\nJun 2\nPrice peak\nprice-leg move: 55.5%\nowner-marked major swing\nJul 29\nPrice trough\nprice-leg move: 16.0%\nOct 6\nPrice peak\nprice-leg move: 21.3%\nowner-marked major swing\ncurrently provisional"
+    },
+    {
+      "name": "chromium-820-en-dark: reconstructed provenance is visible at point of use",
+      "passed": true,
+      "details": "SECTOR RS HISTORY\nHistorical trail\nOct 8\n\nReconstructed from sector/SPY price history — not a record of what Mastermind observed then.\n\nHistorical date\nOct 8\n21-session RS vs SPY\n+3.6%\n63-session RS vs SPY\n+3.7%\nQuadrant\nLeading\n\n252 daily reconstructed points · Selected sector · trailing 21 sessions on the current map scale\n\nRetrospective price-cycle turns\n\nCurrent owner reconstruction — not a migration episode or a live-time confirmation. Marker status may change in later revisions.\n\nJun 2\nPrice peak\nprice-leg move: 55.5%\nowner-marked major swing\nJul 29\nPrice trough\nprice-leg move: 16.0%\nOct 6\nPrice peak\nprice-leg move: 21.3%\nowner-marked major swing\ncurrently provisional"
+    },
+    {
+      "name": "chromium-820-en-dark: native RC closure remains separately sourced and provenance-bounded",
+      "passed": true
+    },
+    {
+      "name": "chromium-820-en-dark: native source date and actual freshness are faithfully represented",
+      "passed": true
+    },
+    {
+      "name": "chromium-820-en-dark: native price-cycle markers remain explicitly retrospective",
+      "passed": true
+    },
+    {
+      "name": "chromium-820-en-dark: latest native owner swing is date-bound and visible",
+      "passed": true
+    },
+    {
+      "name": "chromium-820-en-dark: history trail is bound to the selected source date",
+      "passed": true
+    },
+    {
+      "name": "chromium-820-en-dark: history trail uses at most 21 source sessions without an invented point",
+      "passed": true
+    },
+    {
+      "name": "chromium-820-en-dark: future owner swings disappear from the selected historical view",
+      "passed": true
+    },
+    {
+      "name": "chromium-820-en-dark: historical trail follows the selected date",
+      "passed": true
+    },
+    {
+      "name": "chromium-820-en-dark: date navigation does not move live sector coordinates",
+      "passed": true
+    },
+    {
+      "name": "chromium-820-en-dark: history date navigation reaches the first retained point",
+      "passed": true,
+      "details": "SECTOR RS HISTORY\nHistorical trail\nOct 8\n\nReconstructed from sector/SPY price history — not a record of what Mastermind observed then.\n\nHistorical date\nOct 8\n21-session RS vs SPY\n+5.7%\n63-session RS vs SPY\n+5.0%\nQuadrant\nLeading\n\n252 daily reconstructed points · Selected sector · trailing 21 sessions on the current map scale\n\nRetrospective price-cycle turns\n\nCurrent owner reconstruction — not a migration episode or a live-time confirmation. Marker status may change in later revisions.\n\nAug 7\nPrice trough\nprice-leg move: 17.0%\nFeb 19\nPrice peak\nprice-leg move: 22.7%\nowner-marked major swing\nApr 8\nPrice trough\nprice-leg move: 25.8%\nowner-marked major swing"
+    },
+    {
+      "name": "chromium-820-en-dark: historical coordinate is source-exact",
+      "passed": true,
+      "details": "SECTOR RS HISTORY\nHistorical trail\nOct 8\n\nReconstructed from sector/SPY price history — not a record of what Mastermind observed then.\n\nHistorical date\nOct 8\n21-session RS vs SPY\n+5.7%\n63-session RS vs SPY\n+5.0%\nQuadrant\nLeading\n\n252 daily reconstructed points · Selected sector · trailing 21 sessions on the current map scale\n\nRetrospective price-cycle turns\n\nCurrent owner reconstruction — not a migration episode or a live-time confirmation. Marker status may change in later revisions.\n\nAug 7\nPrice trough\nprice-leg move: 17.0%\nFeb 19\nPrice peak\nprice-leg move: 22.7%\nowner-marked major swing\nApr 8\nPrice trough\nprice-leg move: 25.8%\nowner-marked major swing"
+    },
+    {
+      "name": "chromium-820-en-dark: display filter preserves coordinates",
+      "passed": true
+    },
+    {
+      "name": "chromium-820-en-dark: list shares the exact source population",
+      "passed": true
+    },
+    {
+      "name": "chromium-820-en-dark: native source empty-sector view does not fabricate an all clear",
+      "passed": true
+    },
+    {
+      "name": "chromium-820-en-dark: selection remains one URL-bound object",
+      "passed": true
+    },
+    {
+      "name": "chromium-820-en-dark: research opens without a fabricated group join",
+      "passed": true
+    },
+    {
+      "name": "chromium-820-en-dark: detail exposes an explicit return path",
+      "passed": true
+    },
+    {
+      "name": "chromium-820-en-dark: explicit return restores rotation selection and list mode",
+      "passed": true
+    },
+    {
+      "name": "chromium-820-en-dark: browser Back also restores rotation state",
+      "passed": true
+    },
+    {
+      "name": "chromium-820-en-dark: keyboard anchor belongs to the observed plotted population",
+      "passed": true
+    },
+    {
+      "name": "chromium-820-en-dark: keyboard navigation advances exact source order",
+      "passed": true,
+      "details": "xlv"
+    },
+    {
+      "name": "chromium-820-en-dark: Sources belongs to rotation",
+      "passed": true
+    },
+    {
+      "name": "chromium-820-en-dark: no horizontal overflow",
+      "passed": true,
+      "details": {
+        "inner": 0,
+        "document": 0
+      }
+    },
+    {
+      "name": "chromium-820-en-dark: access loss removes retained rotation coordinates",
+      "passed": true
+    },
+    {
+      "name": "chromium-390-en-light: exact sector population plotted",
+      "passed": true
+    },
+    {
+      "name": "chromium-390-en-light: compact dated receipt",
+      "passed": true,
+      "details": "Oct 8 · 11 sectors"
+    },
+    {
+      "name": "chromium-390-en-light: answer is derived from the owner coordinates",
+      "passed": true,
+      "details": "MARKET READ\n\nTechnology is the only sector positive on both 21D and 63D relative strength. Energy has the strongest 63D relative strength, but its 21D trend is negative.\n\nMarket backdrop and early rotation context unavailable."
+    },
+    {
+      "name": "chromium-390-en-light: only three outer jobs",
+      "passed": true
+    },
+    {
+      "name": "chromium-390-en-light: exact 21-session coordinate",
+      "passed": true,
+      "details": "Technology (XLK), Leading, 21-session RS vs SPY: +3.6%, 63-session RS vs SPY: +3.7%"
+    },
+    {
+      "name": "chromium-390-en-light: exact 63-session coordinate",
+      "passed": true,
+      "details": "Technology (XLK), Leading, 21-session RS vs SPY: +3.6%, 63-session RS vs SPY: +3.7%"
+    },
+    {
+      "name": "chromium-390-en-light: selected source record",
+      "passed": true,
+      "details": "SELECTED SECTOR\nTechnology\n\nXLK · Leading\n\nTACTICAL STATE\nmoney moving in\n\n21-session RS vs SPY\n+3.6%\n63-session RS vs SPY\n+3.7%\nLeadership ranks\n#1 / #2\n21-session / 63-session\n200-day trend\nAbove\n1M sector return\n+5.33%\nAdvancing participation\n67%\n53 / 26\nOpen sector research →"
+    },
+    {
+      "name": "chromium-390-en-light: tactical state is separately labeled",
+      "passed": true,
+      "details": "SELECTED SECTOR\nTechnology\n\nXLK · Leading\n\nTACTICAL STATE\nmoney moving in\n\n21-session RS vs SPY\n+3.6%\n63-session RS vs SPY\n+3.7%\nLeadership ranks\n#1 / #2\n21-session / 63-session\n200-day trend\nAbove\n1M sector return\n+5.33%\nAdvancing participation\n67%\n53 / 26\nOpen sector research →"
+    },
+    {
+      "name": "chromium-390-en-light: history is explicitly reconstructed, never presented as observed",
+      "passed": true,
+      "details": "Method and source\n\nHorizontal: 63-session change in the sector/SPY relative-strength ratio. Vertical: 21-session change in the same ratio. Quadrants are sign-based and descriptive, not entry permission.\n\nMissing, expired or unqualified data does not imply calm conditions.\n\nThis is a focus lens, not a forecast or ranking mandate.\n\nCurrent map remains the dated Sector Central snapshot; history selection never changes the current source population or axis scale. Display filtering never changes the source population or axis scale.\n\nHistorical trail · Reconstructed from sector/SPY price history — not a record of what Mastermind observed then.\n\n11 / 11 coordinates available."
+    },
+    {
+      "name": "chromium-390-en-light: historical owner date is visible",
+      "passed": true,
+      "details": "SECTOR RS HISTORY\nHistorical trail\nOct 8\n\nReconstructed from sector/SPY price history — not a record of what Mastermind observed then.\n\nHistorical date\nOct 8\n21-session RS vs SPY\n+3.6%\n63-session RS vs SPY\n+3.7%\nQuadrant\nLeading\n\n252 daily reconstructed points · Selected sector · trailing 21 sessions on the current map scale\n\nRetrospective price-cycle turns\n\nCurrent owner reconstruction — not a migration episode or a live-time confirmation. Marker status may change in later revisions.\n\nJun 2\nPrice peak\nprice-leg move: 55.5%\nowner-marked major swing\nJul 29\nPrice trough\nprice-leg move: 16.0%\nOct 6\nPrice peak\nprice-leg move: 21.3%\nowner-marked major swing\ncurrently provisional"
+    },
+    {
+      "name": "chromium-390-en-light: reconstructed provenance is visible at point of use",
+      "passed": true,
+      "details": "SECTOR RS HISTORY\nHistorical trail\nOct 8\n\nReconstructed from sector/SPY price history — not a record of what Mastermind observed then.\n\nHistorical date\nOct 8\n21-session RS vs SPY\n+3.6%\n63-session RS vs SPY\n+3.7%\nQuadrant\nLeading\n\n252 daily reconstructed points · Selected sector · trailing 21 sessions on the current map scale\n\nRetrospective price-cycle turns\n\nCurrent owner reconstruction — not a migration episode or a live-time confirmation. Marker status may change in later revisions.\n\nJun 2\nPrice peak\nprice-leg move: 55.5%\nowner-marked major swing\nJul 29\nPrice trough\nprice-leg move: 16.0%\nOct 6\nPrice peak\nprice-leg move: 21.3%\nowner-marked major swing\ncurrently provisional"
+    },
+    {
+      "name": "chromium-390-en-light: native RC closure remains separately sourced and provenance-bounded",
+      "passed": true
+    },
+    {
+      "name": "chromium-390-en-light: native source date and actual freshness are faithfully represented",
+      "passed": true
+    },
+    {
+      "name": "chromium-390-en-light: native price-cycle markers remain explicitly retrospective",
+      "passed": true
+    },
+    {
+      "name": "chromium-390-en-light: latest native owner swing is date-bound and visible",
+      "passed": true
+    },
+    {
+      "name": "chromium-390-en-light: history trail is bound to the selected source date",
+      "passed": true
+    },
+    {
+      "name": "chromium-390-en-light: history trail uses at most 21 source sessions without an invented point",
+      "passed": true
+    },
+    {
+      "name": "chromium-390-en-light: future owner swings disappear from the selected historical view",
+      "passed": true
+    },
+    {
+      "name": "chromium-390-en-light: historical trail follows the selected date",
+      "passed": true
+    },
+    {
+      "name": "chromium-390-en-light: date navigation does not move live sector coordinates",
+      "passed": true
+    },
+    {
+      "name": "chromium-390-en-light: history date navigation reaches the first retained point",
+      "passed": true,
+      "details": "SECTOR RS HISTORY\nHistorical trail\nOct 8\n\nReconstructed from sector/SPY price history — not a record of what Mastermind observed then.\n\nHistorical date\nOct 8\n21-session RS vs SPY\n+5.7%\n63-session RS vs SPY\n+5.0%\nQuadrant\nLeading\n\n252 daily reconstructed points · Selected sector · trailing 21 sessions on the current map scale\n\nRetrospective price-cycle turns\n\nCurrent owner reconstruction — not a migration episode or a live-time confirmation. Marker status may change in later revisions.\n\nAug 7\nPrice trough\nprice-leg move: 17.0%\nFeb 19\nPrice peak\nprice-leg move: 22.7%\nowner-marked major swing\nApr 8\nPrice trough\nprice-leg move: 25.8%\nowner-marked major swing"
+    },
+    {
+      "name": "chromium-390-en-light: historical coordinate is source-exact",
+      "passed": true,
+      "details": "SECTOR RS HISTORY\nHistorical trail\nOct 8\n\nReconstructed from sector/SPY price history — not a record of what Mastermind observed then.\n\nHistorical date\nOct 8\n21-session RS vs SPY\n+5.7%\n63-session RS vs SPY\n+5.0%\nQuadrant\nLeading\n\n252 daily reconstructed points · Selected sector · trailing 21 sessions on the current map scale\n\nRetrospective price-cycle turns\n\nCurrent owner reconstruction — not a migration episode or a live-time confirmation. Marker status may change in later revisions.\n\nAug 7\nPrice trough\nprice-leg move: 17.0%\nFeb 19\nPrice peak\nprice-leg move: 22.7%\nowner-marked major swing\nApr 8\nPrice trough\nprice-leg move: 25.8%\nowner-marked major swing"
+    },
+    {
+      "name": "chromium-390-en-light: display filter preserves coordinates",
+      "passed": true
+    },
+    {
+      "name": "chromium-390-en-light: list shares the exact source population",
+      "passed": true
+    },
+    {
+      "name": "chromium-390-en-light: native source empty-sector view does not fabricate an all clear",
+      "passed": true
+    },
+    {
+      "name": "chromium-390-en-light: selection remains one URL-bound object",
+      "passed": true
+    },
+    {
+      "name": "chromium-390-en-light: research opens without a fabricated group join",
+      "passed": true
+    },
+    {
+      "name": "chromium-390-en-light: detail exposes an explicit return path",
+      "passed": true
+    },
+    {
+      "name": "chromium-390-en-light: explicit return restores rotation selection and list mode",
+      "passed": true
+    },
+    {
+      "name": "chromium-390-en-light: browser Back also restores rotation state",
+      "passed": true
+    },
+    {
+      "name": "chromium-390-en-light: keyboard anchor belongs to the observed plotted population",
+      "passed": true
+    },
+    {
+      "name": "chromium-390-en-light: keyboard navigation advances exact source order",
+      "passed": true,
+      "details": "xlv"
+    },
+    {
+      "name": "chromium-390-en-light: Sources belongs to rotation",
+      "passed": true
+    },
+    {
+      "name": "chromium-390-en-light: no horizontal overflow",
+      "passed": true,
+      "details": {
+        "inner": 0,
+        "document": 0
+      }
+    },
+    {
+      "name": "chromium-390-en-light: access loss removes retained rotation coordinates",
+      "passed": true
+    },
+    {
+      "name": "webkit-1440-en-dark: exact sector population plotted",
+      "passed": true
+    },
+    {
+      "name": "webkit-1440-en-dark: compact dated receipt",
+      "passed": true,
+      "details": "Oct 8 · 11 sectors"
+    },
+    {
+      "name": "webkit-1440-en-dark: answer is derived from the owner coordinates",
+      "passed": true,
+      "details": "MARKET READ\n\nTechnology is the only sector positive on both 21D and 63D relative strength. Energy has the strongest 63D relative strength, but its 21D trend is negative.\n\nMarket backdrop and early rotation context unavailable."
+    },
+    {
+      "name": "webkit-1440-en-dark: only three outer jobs",
+      "passed": true
+    },
+    {
+      "name": "webkit-1440-en-dark: exact 21-session coordinate",
+      "passed": true,
+      "details": "Technology (XLK), Leading, 21-session RS vs SPY: +3.6%, 63-session RS vs SPY: +3.7%"
+    },
+    {
+      "name": "webkit-1440-en-dark: exact 63-session coordinate",
+      "passed": true,
+      "details": "Technology (XLK), Leading, 21-session RS vs SPY: +3.6%, 63-session RS vs SPY: +3.7%"
+    },
+    {
+      "name": "webkit-1440-en-dark: selected source record",
+      "passed": true,
+      "details": "SELECTED SECTOR\nTechnology\n\nXLK · Leading\n\nTACTICAL STATE\nmoney moving in\n\n21-session RS vs SPY\n+3.6%\n63-session RS vs SPY\n+3.7%\nLeadership ranks\n#1 / #2\n21-session / 63-session\n200-day trend\nAbove\n1M sector return\n+5.33%\nAdvancing participation\n67%\n53 / 26\nOpen sector research →"
+    },
+    {
+      "name": "webkit-1440-en-dark: tactical state is separately labeled",
+      "passed": true,
+      "details": "SELECTED SECTOR\nTechnology\n\nXLK · Leading\n\nTACTICAL STATE\nmoney moving in\n\n21-session RS vs SPY\n+3.6%\n63-session RS vs SPY\n+3.7%\nLeadership ranks\n#1 / #2\n21-session / 63-session\n200-day trend\nAbove\n1M sector return\n+5.33%\nAdvancing participation\n67%\n53 / 26\nOpen sector research →"
+    },
+    {
+      "name": "webkit-1440-en-dark: history is explicitly reconstructed, never presented as observed",
+      "passed": true,
+      "details": "Method and source\n\nHorizontal: 63-session change in the sector/SPY relative-strength ratio. Vertical: 21-session change in the same ratio. Quadrants are sign-based and descriptive, not entry permission.\n\nMissing, expired or unqualified data does not imply calm conditions.\n\nThis is a focus lens, not a forecast or ranking mandate.\n\nCurrent map remains the dated Sector Central snapshot; history selection never changes the current source population or axis scale. Display filtering never changes the source population or axis scale.\n\nHistorical trail · Reconstructed from sector/SPY price history — not a record of what Mastermind observed then.\n\n11 / 11 coordinates available."
+    },
+    {
+      "name": "webkit-1440-en-dark: historical owner date is visible",
+      "passed": true,
+      "details": "SECTOR RS HISTORY\nHistorical trail\nOct 8\n\nReconstructed from sector/SPY price history — not a record of what Mastermind observed then.\n\nHistorical date\nOct 8\n21-session RS vs SPY\n+3.6%\n63-session RS vs SPY\n+3.7%\nQuadrant\nLeading\n\n252 daily reconstructed points · Selected sector · trailing 21 sessions on the current map scale\n\nRetrospective price-cycle turns\n\nCurrent owner reconstruction — not a migration episode or a live-time confirmation. Marker status may change in later revisions.\n\nJun 2\nPrice peak\nprice-leg move: 55.5%\nowner-marked major swing\nJul 29\nPrice trough\nprice-leg move: 16.0%\nOct 6\nPrice peak\nprice-leg move: 21.3%\nowner-marked major swing\ncurrently provisional"
+    },
+    {
+      "name": "webkit-1440-en-dark: reconstructed provenance is visible at point of use",
+      "passed": true,
+      "details": "SECTOR RS HISTORY\nHistorical trail\nOct 8\n\nReconstructed from sector/SPY price history — not a record of what Mastermind observed then.\n\nHistorical date\nOct 8\n21-session RS vs SPY\n+3.6%\n63-session RS vs SPY\n+3.7%\nQuadrant\nLeading\n\n252 daily reconstructed points · Selected sector · trailing 21 sessions on the current map scale\n\nRetrospective price-cycle turns\n\nCurrent owner reconstruction — not a migration episode or a live-time confirmation. Marker status may change in later revisions.\n\nJun 2\nPrice peak\nprice-leg move: 55.5%\nowner-marked major swing\nJul 29\nPrice trough\nprice-leg move: 16.0%\nOct 6\nPrice peak\nprice-leg move: 21.3%\nowner-marked major swing\ncurrently provisional"
+    },
+    {
+      "name": "webkit-1440-en-dark: native RC closure remains separately sourced and provenance-bounded",
+      "passed": true
+    },
+    {
+      "name": "webkit-1440-en-dark: native source date and actual freshness are faithfully represented",
+      "passed": true
+    },
+    {
+      "name": "webkit-1440-en-dark: native price-cycle markers remain explicitly retrospective",
+      "passed": true
+    },
+    {
+      "name": "webkit-1440-en-dark: latest native owner swing is date-bound and visible",
+      "passed": true
+    },
+    {
+      "name": "webkit-1440-en-dark: history trail is bound to the selected source date",
+      "passed": true
+    },
+    {
+      "name": "webkit-1440-en-dark: history trail uses at most 21 source sessions without an invented point",
+      "passed": true
+    },
+    {
+      "name": "webkit-1440-en-dark: future owner swings disappear from the selected historical view",
+      "passed": true
+    },
+    {
+      "name": "webkit-1440-en-dark: historical trail follows the selected date",
+      "passed": true
+    },
+    {
+      "name": "webkit-1440-en-dark: date navigation does not move live sector coordinates",
+      "passed": true
+    },
+    {
+      "name": "webkit-1440-en-dark: history date navigation reaches the first retained point",
+      "passed": true,
+      "details": "SECTOR RS HISTORY\nHistorical trail\nOct 8\n\nReconstructed from sector/SPY price history — not a record of what Mastermind observed then.\n\nHistorical date\nOct 8\n21-session RS vs SPY\n+5.7%\n63-session RS vs SPY\n+5.0%\nQuadrant\nLeading\n\n252 daily reconstructed points · Selected sector · trailing 21 sessions on the current map scale\n\nRetrospective price-cycle turns\n\nCurrent owner reconstruction — not a migration episode or a live-time confirmation. Marker status may change in later revisions.\n\nAug 7\nPrice trough\nprice-leg move: 17.0%\nFeb 19\nPrice peak\nprice-leg move: 22.7%\nowner-marked major swing\nApr 8\nPrice trough\nprice-leg move: 25.8%\nowner-marked major swing"
+    },
+    {
+      "name": "webkit-1440-en-dark: historical coordinate is source-exact",
+      "passed": true,
+      "details": "SECTOR RS HISTORY\nHistorical trail\nOct 8\n\nReconstructed from sector/SPY price history — not a record of what Mastermind observed then.\n\nHistorical date\nOct 8\n21-session RS vs SPY\n+5.7%\n63-session RS vs SPY\n+5.0%\nQuadrant\nLeading\n\n252 daily reconstructed points · Selected sector · trailing 21 sessions on the current map scale\n\nRetrospective price-cycle turns\n\nCurrent owner reconstruction — not a migration episode or a live-time confirmation. Marker status may change in later revisions.\n\nAug 7\nPrice trough\nprice-leg move: 17.0%\nFeb 19\nPrice peak\nprice-leg move: 22.7%\nowner-marked major swing\nApr 8\nPrice trough\nprice-leg move: 25.8%\nowner-marked major swing"
+    },
+    {
+      "name": "webkit-1440-en-dark: display filter preserves coordinates",
+      "passed": true
+    },
+    {
+      "name": "webkit-1440-en-dark: list shares the exact source population",
+      "passed": true
+    },
+    {
+      "name": "webkit-1440-en-dark: native source empty-sector view does not fabricate an all clear",
+      "passed": true
+    },
+    {
+      "name": "webkit-1440-en-dark: selection remains one URL-bound object",
+      "passed": true
+    },
+    {
+      "name": "webkit-1440-en-dark: research opens without a fabricated group join",
+      "passed": true
+    },
+    {
+      "name": "webkit-1440-en-dark: detail exposes an explicit return path",
+      "passed": true
+    },
+    {
+      "name": "webkit-1440-en-dark: explicit return restores rotation selection and list mode",
+      "passed": true
+    },
+    {
+      "name": "webkit-1440-en-dark: browser Back also restores rotation state",
+      "passed": true
+    },
+    {
+      "name": "webkit-1440-en-dark: keyboard anchor belongs to the observed plotted population",
+      "passed": true
+    },
+    {
+      "name": "webkit-1440-en-dark: keyboard navigation advances exact source order",
+      "passed": true,
+      "details": "xlv"
+    },
+    {
+      "name": "webkit-1440-en-dark: Sources belongs to rotation",
+      "passed": true
+    },
+    {
+      "name": "webkit-1440-en-dark: no horizontal overflow",
+      "passed": true,
+      "details": {
+        "inner": 0,
+        "document": 0
+      }
+    },
+    {
+      "name": "webkit-1440-en-dark: access loss removes retained rotation coordinates",
+      "passed": true
+    },
+    {
+      "name": "webkit-390-zh-light: exact sector population plotted",
+      "passed": true
+    },
+    {
+      "name": "webkit-390-zh-light: compact dated receipt",
+      "passed": true,
+      "details": "10月8日 · 11个板块"
+    },
+    {
+      "name": "webkit-390-zh-light: answer is derived from the owner coordinates",
+      "passed": true,
+      "details": "市场解读\n\n科技是唯一在21日和63日相对强度均为正的板块。 能源的63日相对强度最强，但其21日趋势为负。\n\n市场背景与短期轮动信息不可用。"
+    },
+    {
+      "name": "webkit-390-zh-light: only three outer jobs",
+      "passed": true
+    },
+    {
+      "name": "webkit-390-zh-light: exact 21-session coordinate",
+      "passed": true,
+      "details": "科技 (XLK), 领先, 相对SPY的21个交易日强度: +3.6%, 相对SPY的63个交易日强度: +3.7%"
+    },
+    {
+      "name": "webkit-390-zh-light: exact 63-session coordinate",
+      "passed": true,
+      "details": "科技 (XLK), 领先, 相对SPY的21个交易日强度: +3.6%, 相对SPY的63个交易日强度: +3.7%"
+    },
+    {
+      "name": "webkit-390-zh-light: selected source record",
+      "passed": true,
+      "details": "所选板块\n科技\n\nXLK · 领先\n\n战术状态\n资金流入\n\n相对SPY的21个交易日强度\n+3.6%\n相对SPY的63个交易日强度\n+3.7%\n领涨排名\n#1 / #2\n21个交易日 / 63个交易日\n200日趋势\n上方\n板块1个月收益\n+5.33%\n上涨参与度\n67%\n53 / 26\n打开板块研究 →"
+    },
+    {
+      "name": "webkit-390-zh-light: tactical state is separately labeled",
+      "passed": true,
+      "details": "所选板块\n科技\n\nXLK · 领先\n\n战术状态\n资金流入\n\n相对SPY的21个交易日强度\n+3.6%\n相对SPY的63个交易日强度\n+3.7%\n领涨排名\n#1 / #2\n21个交易日 / 63个交易日\n200日趋势\n上方\n板块1个月收益\n+5.33%\n上涨参与度\n67%\n53 / 26\n打开板块研究 →"
+    },
+    {
+      "name": "webkit-390-zh-light: history is explicitly reconstructed, never presented as observed",
+      "passed": true,
+      "details": "方法与来源\n\n横轴：板块/SPY相对强度比率的63个交易日变化；纵轴：同一比率的21个交易日变化。象限按正负划分，仅作描述，不授予入场资格。\n\n缺失、过期或无法核实的数据不会被视为平静市场。\n\n这是聚焦视角，不是预测或排名指令。\n\n当前图表仍为带日期的板块中心快照；历史选择不会改变当前来源样本或坐标尺度。 显示筛选不会改变来源样本或坐标尺度。\n\n历史轨迹 · 由板块/SPY历史价格重建——并非Mastermind当时实时观察的记录。\n\n11 / 11 个坐标可用."
+    },
+    {
+      "name": "webkit-390-zh-light: historical owner date is visible",
+      "passed": true,
+      "details": "板块相对强度历史\n历史轨迹\n10月8日\n\n由板块/SPY历史价格重建——并非Mastermind当时实时观察的记录。\n\n历史日期\n10月8日\n相对SPY的21个交易日强度\n+3.6%\n相对SPY的63个交易日强度\n+3.7%\n象限\n领先\n\n252 个每日重建点 · 所选板块 · 当前图表刻度上的近21个交易日轨迹\n\n回溯重建的价格周期转折\n\n当前来源的回溯重建结果——并非资金轮动交棒事件，也非历史当时确认的信号；后续修订可能改变标记状态。\n\n6月2日\n价格高点\n价格区间变动: 55.5%\n来源标记的大幅波动\n7月29日\n价格低点\n价格区间变动: 16.0%\n10月6日\n价格高点\n价格区间变动: 21.3%\n来源标记的大幅波动\n当前仍属暂定"
+    },
+    {
+      "name": "webkit-390-zh-light: reconstructed provenance is visible at point of use",
+      "passed": true,
+      "details": "板块相对强度历史\n历史轨迹\n10月8日\n\n由板块/SPY历史价格重建——并非Mastermind当时实时观察的记录。\n\n历史日期\n10月8日\n相对SPY的21个交易日强度\n+3.6%\n相对SPY的63个交易日强度\n+3.7%\n象限\n领先\n\n252 个每日重建点 · 所选板块 · 当前图表刻度上的近21个交易日轨迹\n\n回溯重建的价格周期转折\n\n当前来源的回溯重建结果——并非资金轮动交棒事件，也非历史当时确认的信号；后续修订可能改变标记状态。\n\n6月2日\n价格高点\n价格区间变动: 55.5%\n来源标记的大幅波动\n7月29日\n价格低点\n价格区间变动: 16.0%\n10月6日\n价格高点\n价格区间变动: 21.3%\n来源标记的大幅波动\n当前仍属暂定"
+    },
+    {
+      "name": "webkit-390-zh-light: native RC closure remains separately sourced and provenance-bounded",
+      "passed": true
+    },
+    {
+      "name": "webkit-390-zh-light: native source date and actual freshness are faithfully represented",
+      "passed": true
+    },
+    {
+      "name": "webkit-390-zh-light: native price-cycle markers remain explicitly retrospective",
+      "passed": true
+    },
+    {
+      "name": "webkit-390-zh-light: latest native owner swing is date-bound and visible",
+      "passed": true
+    },
+    {
+      "name": "webkit-390-zh-light: history trail is bound to the selected source date",
+      "passed": true
+    },
+    {
+      "name": "webkit-390-zh-light: history trail uses at most 21 source sessions without an invented point",
+      "passed": true
+    },
+    {
+      "name": "webkit-390-zh-light: future owner swings disappear from the selected historical view",
+      "passed": true
+    },
+    {
+      "name": "webkit-390-zh-light: historical trail follows the selected date",
+      "passed": true
+    },
+    {
+      "name": "webkit-390-zh-light: date navigation does not move live sector coordinates",
+      "passed": true
+    },
+    {
+      "name": "webkit-390-zh-light: history date navigation reaches the first retained point",
+      "passed": true,
+      "details": "板块相对强度历史\n历史轨迹\n10月8日\n\n由板块/SPY历史价格重建——并非Mastermind当时实时观察的记录。\n\n历史日期\n10月8日\n相对SPY的21个交易日强度\n+5.7%\n相对SPY的63个交易日强度\n+5.0%\n象限\n领先\n\n252 个每日重建点 · 所选板块 · 当前图表刻度上的近21个交易日轨迹\n\n回溯重建的价格周期转折\n\n当前来源的回溯重建结果——并非资金轮动交棒事件，也非历史当时确认的信号；后续修订可能改变标记状态。\n\n8月7日\n价格低点\n价格区间变动: 17.0%\n2月19日\n价格高点\n价格区间变动: 22.7%\n来源标记的大幅波动\n4月8日\n价格低点\n价格区间变动: 25.8%\n来源标记的大幅波动"
+    },
+    {
+      "name": "webkit-390-zh-light: historical coordinate is source-exact",
+      "passed": true,
+      "details": "板块相对强度历史\n历史轨迹\n10月8日\n\n由板块/SPY历史价格重建——并非Mastermind当时实时观察的记录。\n\n历史日期\n10月8日\n相对SPY的21个交易日强度\n+5.7%\n相对SPY的63个交易日强度\n+5.0%\n象限\n领先\n\n252 个每日重建点 · 所选板块 · 当前图表刻度上的近21个交易日轨迹\n\n回溯重建的价格周期转折\n\n当前来源的回溯重建结果——并非资金轮动交棒事件，也非历史当时确认的信号；后续修订可能改变标记状态。\n\n8月7日\n价格低点\n价格区间变动: 17.0%\n2月19日\n价格高点\n价格区间变动: 22.7%\n来源标记的大幅波动\n4月8日\n价格低点\n价格区间变动: 25.8%\n来源标记的大幅波动"
+    },
+    {
+      "name": "webkit-390-zh-light: display filter preserves coordinates",
+      "passed": true
+    },
+    {
+      "name": "webkit-390-zh-light: list shares the exact source population",
+      "passed": true
+    },
+    {
+      "name": "webkit-390-zh-light: native source empty-sector view does not fabricate an all clear",
+      "passed": true
+    },
+    {
+      "name": "webkit-390-zh-light: selection remains one URL-bound object",
+      "passed": true
+    },
+    {
+      "name": "webkit-390-zh-light: research opens without a fabricated group join",
+      "passed": true
+    },
+    {
+      "name": "webkit-390-zh-light: detail exposes an explicit return path",
+      "passed": true
+    },
+    {
+      "name": "webkit-390-zh-light: explicit return restores rotation selection and list mode",
+      "passed": true
+    },
+    {
+      "name": "webkit-390-zh-light: browser Back also restores rotation state",
+      "passed": true
+    },
+    {
+      "name": "webkit-390-zh-light: keyboard anchor belongs to the observed plotted population",
+      "passed": true
+    },
+    {
+      "name": "webkit-390-zh-light: keyboard navigation advances exact source order",
+      "passed": true,
+      "details": "xlv"
+    },
+    {
+      "name": "webkit-390-zh-light: Sources belongs to rotation",
+      "passed": true
+    },
+    {
+      "name": "webkit-390-zh-light: no horizontal overflow",
+      "passed": true,
+      "details": {
+        "inner": 0,
+        "document": 0
+      }
+    },
+    {
+      "name": "webkit-390-zh-light: access loss removes retained rotation coordinates",
+      "passed": true
+    },
+    {
+      "name": "zero page exceptions",
+      "passed": true,
+      "details": []
+    }
+  ],
+  "screenshots": [
+    {
+      "name": "chromium-1440-en-light-rotation.png",
+      "sha256": "ad2839b2ddbd0feca99c5547a5a660eec77a10f9aa7702fe0ec80baa14d8a3fd"
+    },
+    {
+      "name": "chromium-820-en-dark-rotation.png",
+      "sha256": "f0204fa102fbba126a6d6bca994de58a86830e13b63bd47cd405d6aa71f22d58"
+    },
+    {
+      "name": "chromium-390-en-light-rotation.png",
+      "sha256": "239e171a58713aa52f7d01309bc5dda0c0302ec5397f6e2552eaee787ac697bc"
+    },
+    {
+      "name": "webkit-1440-en-dark-rotation.png",
+      "sha256": "f935a633d111e53af7ea3ad8e3de3749cb360a8e0dc4a3794b18ddaf6d03883c"
+    },
+    {
+      "name": "webkit-390-zh-light-rotation.png",
+      "sha256": "3bb9236831d47814ff475ac649ca7406114af15bf7485eac6199d72ad9223916"
+    }
+  ],
+  "errors": [],
+  "passed": true
+}

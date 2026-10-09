@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState, type CSSProperties, type KeyboardEvent } from "react";
 import { useLang } from "@/lib/i18n";
-import { formatValue, number, object, text, type FeedPayload, type FeedStatus, type Row, type SectorRotationHistory, type SectorRotationMode } from "@/lib/sectorIntelligence";
+import { formatValue, number, object, text, type FeedPayload, type FeedStatus, type Row, type SectorRotationHistory, type SectorRotationEpisodes, type SectorRotationMode } from "@/lib/sectorIntelligence";
 import { qualifyRiskEnvelope, riskEnvelopeCopy } from "@/lib/marketRisk";
 
 import styles from "./SectorRotationMap.module.css";
@@ -41,6 +41,8 @@ export interface SectorRotationMapProps {
   historyStatus?: FeedStatus;
   /** Existing gateway content digest; invalidate date cursor on a corrected source version. */
   historyRevision?: string | null;
+  episodes?: SectorRotationEpisodes | null;
+  episodesStatus?: FeedStatus;
   onMode: (mode: SectorRotationMode) => void;
   onQuery: (query: string) => void;
   onSelect: (id: string) => void;
@@ -97,6 +99,17 @@ const COPY = {
   cycleProvisional: ["currently provisional", "当前仍属暂定"],
   cycleMajor: ["owner-marked major swing", "来源标记的大幅波动"],
   cycleMagnitude: ["price-leg move", "价格区间变动"],
+  nativeEpisodeTitle: ["Native RC closed episodes", "轮动命令原生已结束交棒事件"],
+  nativeEpisodeCaveat: ["Owner's bounded recent closure ledger, not an as-known historical signal. These are not price-cycle turns or active trading calls; missing rows are not an all-clear.", "来源提供的近期已结束事件台账；并非历史当时可知的信号。它们不是价格周期转折或当前交易指令，缺失记录不等于安全无事。"],
+  nativeEpisodeAsOf: ["RC source as of", "轮动来源截至"],
+  nativeEpisodeLag: ["This source is older than the current Sector Central snapshot; a missing recent episode is not proof of no change.", "该来源早于当前板块中心快照；缺少近期事件不代表没有变化。"],
+  nativeEpisodeEmpty: ["No closed episodes for this sector in this bounded source window; not an all-clear.", "该来源限定窗口内没有此板块的已结束交棒事件；不代表风险解除。"],
+  nativeEpisodeUnavailable: ["Native episode source unavailable; no episode state can be inferred.", "原生事件来源不可用；不得推断事件状态。"],
+  nativeEpisodeFrom: ["From", "原方向"], nativeEpisodeTo: ["To", "目标方向"],
+  nativeEpisodeClosed: ["Closed", "结束"], nativeEpisodeRecorded: ["Receipt", "记录时间"],
+  nativeEpisodeReason: ["Owner reason", "来源原因"],
+  nativeEpisodeUnmarked: ["Retained ledger, natural first-seen unverified", "保留台账，未核验自然首次记录"],
+  nativeEpisodeReplay: ["Reconstructed replay", "回溯重放"],
   method: ["Method and source", "方法与来源"],
   methodCopy: ["Horizontal: 63-session change in the sector/SPY relative-strength ratio. Vertical: 21-session change in the same ratio. Quadrants are sign-based and descriptive, not entry permission.", "横轴：板块/SPY相对强度比率的63个交易日变化；纵轴：同一比率的21个交易日变化。象限按正负划分，仅作描述，不授予入场资格。"],
   sector: ["Sector", "板块"], quadrant: ["Quadrant", "象限"],
@@ -276,6 +289,8 @@ export default function SectorRotationMap(props: SectorRotationMapProps) {
   const recentCycleTurns = historyConnected && historical && historySeries
     ? historySeries.cycleTurns.filter(turn => turn.date <= historical.date).slice(-3)
     : [];
+  const nativeEpisodes = props.episodesStatus === "ready" ? props.episodes : null;
+  const recentClosures = nativeEpisodes?.closedRecent.filter(event => event.sector === props.selected).slice(-3) || [];
 
   const refs = useRef<Record<string, HTMLButtonElement | null>>({});
   const name = (point: SectorRotationPoint) => lang === "zh" ? point.nameZh || point.name : point.name;
@@ -392,6 +407,30 @@ export default function SectorRotationMap(props: SectorRotationMapProps) {
             </li>)}</ol> : <p>{t("cycleTurnsEmpty")}</p>}
         </aside>
       </> : <p className={styles.historyUnavailable}>{props.historyStatus === "loading" ? t("historyLoading") : props.historyStatus === "ready" && historySeries && !historyPoints.length ? t("historyThin") : `${t("noTrail")} · ${t("noTrailCopy")}`}</p>}
+    </section>
+
+
+    <section className={styles.nativeEpisodes} data-testid="rotation-native-episodes" aria-label={t("nativeEpisodeTitle")}>
+      <h3>{t("nativeEpisodeTitle")}</h3>
+      {nativeEpisodes ? <>
+        <p>{t("nativeEpisodeCaveat")}</p>
+        <p className={styles.nativeSourceClock}>{t("nativeEpisodeAsOf")}: <time dateTime={nativeEpisodes.sourceAsOf}>{rotationHistoryDate(nativeEpisodes.sourceAsOf, language)}</time></p>
+        {props.asOf && nativeEpisodes.sourceAsOf < props.asOf && <p>{t("nativeEpisodeLag")}</p>}
+        {recentClosures.length ? <ol>{recentClosures.map(event =>
+          <li key={event.pairId + ":" + event.started + ":" + event.recordedAt}>
+            <div className={styles.nativeEpisodePair}>
+              <strong>{lang === "zh" ? event.fromNameZh : event.fromNameEn}</strong>
+              <span aria-hidden="true">→</span>
+              <strong>{lang === "zh" ? event.toNameZh : event.toNameEn}</strong>
+            </div>
+            <dl>
+              <div><dt>{t("nativeEpisodeClosed")}</dt><dd><time dateTime={event.closedAsOf}>{rotationHistoryDate(event.closedAsOf, language)}</time></dd></div>
+              <div><dt>{t("nativeEpisodeRecorded")}</dt><dd>{event.recordedAt}</dd></div>
+              <div><dt>{t("nativeEpisodeReason")}</dt><dd>{event.reason.replaceAll("_", " ")}</dd></div>
+            </dl>
+            <small>{event.provenance === "RECONSTRUCTED_REPLAY" ? t("nativeEpisodeReplay") : t("nativeEpisodeUnmarked")}</small>
+          </li>)}</ol> : <p>{t("nativeEpisodeEmpty")}</p>}
+      </> : <p>{t("nativeEpisodeUnavailable")}</p>}
     </section>
 
     <div className={styles.disclosures}>

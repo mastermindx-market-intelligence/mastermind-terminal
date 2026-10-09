@@ -4,7 +4,7 @@ import { createRoot, type Root } from "react-dom/client";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import SectorRotationMap, { filterRotationPoints, rotationDomain, rotationHistoryTrail, rotationQuadrant, rotationReceipt, rotationSynthesis, sectorRotationPoints, type SectorRotationMapProps } from "@/components/sector-intelligence/SectorRotationMap";
 import { LangProvider, applyLang } from "../i18n";
-import { sectorRotationHistory, type Row, type FeedPayload } from "../sectorIntelligence";
+import { sectorRotationHistory, sectorRotationEpisodes, type Row, type FeedPayload } from "../sectorIntelligence";
 import { MARKET_RISK_NOW, riskEnvelopeFixture } from "./marketRiskFixture";
 
 
@@ -88,6 +88,57 @@ const historyPayload = {
     },
   ],
 };
+
+
+const nativeEpisodePayload = {
+  schema: "rotation_events.v1",
+  ok: true,
+  as_of: "2026-09-25",
+  generated_utc: "2026-09-26 08:00 UTC",
+  coldstart: false,
+  authority: { tier: "display", may_rank: false, may_gate: false, may_size: false, may_escalate: false },
+  active: [], created_tonight: [], closed_tonight: [],
+  closed_recent: [{
+    event: "closed", sector: "xlk",
+    pair_id: "xlk:memory->ai_semis",
+    from_leg: "memory", to_leg: "ai_semis",
+    from_name_en: "Memory and storage", to_name_en: "AI semiconductors",
+    from_name_zh: "存储芯片", to_name_zh: "AI半导体",
+    started: "2026-09-12", closed_asof: "2026-09-20",
+    ts: "2026-09-21 03:18 UTC", reason: "conditions_lapsed", day_n: 5,
+  }],
+};
+
+describe("native Rotation Command closed-episode read-only boundary", () => {
+  it("admits display-tier owner events with record and observation clocks without claiming natural first-seen", () => {
+    const parsed = sectorRotationEpisodes(nativeEpisodePayload);
+    expect(parsed?.sourceAsOf).toBe("2026-09-25");
+    expect(parsed?.closedRecent).toEqual([{
+      sector: "xlk", pairId: "xlk:memory->ai_semis",
+      fromKey: "memory", toKey: "ai_semis",
+      fromNameEn: "Memory and storage", toNameEn: "AI semiconductors",
+      fromNameZh: "存储芯片", toNameZh: "AI半导体",
+      started: "2026-09-12", closedAsOf: "2026-09-20",
+      recordedAt: "2026-09-21 03:18 UTC", reason: "conditions_lapsed", dayN: 5,
+      provenance: "RETAINED_LEDGER_UNMARKED",
+    }]);
+    const empty = structuredClone(nativeEpisodePayload);
+    empty.closed_recent = [];
+    expect(sectorRotationEpisodes(empty)?.closedRecent).toEqual([]);
+  });
+
+  it("rejects false authority, malformed chronology and forged migration identities", () => {
+    const unsafe = structuredClone(nativeEpisodePayload);
+    unsafe.authority.may_rank = true;
+    expect(sectorRotationEpisodes(unsafe)).toBeNull();
+    unsafe.authority.may_rank = false;
+    unsafe.closed_recent[0].pair_id = "xlk:memory->software";
+    expect(sectorRotationEpisodes(unsafe)).toBeNull();
+    unsafe.closed_recent[0].pair_id = "xlk:memory->ai_semis";
+    unsafe.closed_recent[0].closed_asof = "2026-09-27";
+    expect(sectorRotationEpisodes(unsafe)).toBeNull();
+  });
+});
 
 describe("sector rotation historical owner contract", () => {
   it("renders a 21-session trailing path without looking beyond the selected observation or changing axes", () => {
@@ -375,6 +426,28 @@ describe("SectorRotationMap", () => {
     expect(evidence?.textContent).toContain("Sep 22");
     expect(evidence?.textContent).not.toContain("Sep 24");
     expect(host.querySelector('[data-sector-rotation-point="xlk"]')?.getAttribute("style")).toBe(live);
+  });
+
+
+  it("shows owner-native closed handoffs separately from retrospective price-cycle turns", async () => {
+    const episodes = sectorRotationEpisodes(nativeEpisodePayload);
+    expect(episodes).not.toBeNull();
+    await render({ episodes, episodesStatus: "ready" });
+    const native = host.querySelector('[data-testid="rotation-native-episodes"]');
+    expect(native?.textContent).toContain("Native RC closed episodes");
+    expect(native?.textContent).toContain("Sep 25");
+    expect(native?.textContent).toContain("Memory and storage");
+    expect(native?.textContent).toContain("AI semiconductors");
+    expect(native?.textContent).toContain("Sep 20");
+    expect(native?.textContent).toContain("not an as-known historical signal");
+    expect(native?.textContent).toContain("not an all-clear");
+    expect(host.querySelector('[data-sector-rotation-point="xlk"]')?.getAttribute("data-quadrant")).toBe("leading");
+
+    await render({ selected: "xlf", episodes, episodesStatus: "ready" });
+    expect(native?.textContent).toContain("No closed episodes for this sector");
+    expect(native?.textContent).not.toContain("Memory and storage");
+    await render({ episodes: null, episodesStatus: "unavailable" });
+    expect(native?.textContent).toContain("Native episode source unavailable");
   });
 
   it("keeps the current snapshot usable when historical owner data is unavailable", async () => {

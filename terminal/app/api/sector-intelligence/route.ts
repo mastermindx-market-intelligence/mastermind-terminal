@@ -18,6 +18,7 @@ const PATHS: Record<SectorFeed, string> = {
   heatmap: "/marketdata/sp500_heatmap.json",
   risk: "/riskdata/risk_envelope.json",
   history: "/sectordata/sector_cycles.json",
+  events: "/marketdata/rotation_events.json",
 
 };
 const MAX_BYTES = 4 * 1024 * 1024;

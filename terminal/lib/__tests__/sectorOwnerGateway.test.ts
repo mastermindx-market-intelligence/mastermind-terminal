@@ -132,6 +132,36 @@ describe("sector gateway owner-envelope admission", () => {
     expect(response.status).toBe(502); expect(result.data).toBeNull(); expect(result.receipt.status).toBe("invalid");
   });
 
+
+  it("proxies the fixed native RC episode owner through the same authenticated gateway", async () => {
+    const data = {
+      schema: "rotation_events.v1", ok: true, as_of: "2026-10-06",
+      generated_utc: "2026-10-07 08:08 UTC", coldstart: false,
+      authority: { tier: "display", may_rank: false, may_gate: false, may_size: false, may_escalate: false },
+      active: [], created_tonight: [], closed_tonight: [], closed_recent: [],
+    };
+    upstream.mockResolvedValue(Response.json(data));
+    const response = await GET(request("events")), result = await response.json();
+    expect(response.status).toBe(200);
+    expect(result.receipt.source).toBe("events");
+    expect(result.receipt.asOf).toBe("2026-10-06");
+    expect(result.data.closed_recent).toEqual([]);
+    expect(String(upstream.mock.calls[0][0])).toBe("https://www.mastermind-x.com/marketdata/rotation_events.json");
+  });
+
+  it("rejects an RC episode feed that forges ranking permission", async () => {
+    upstream.mockResolvedValue(Response.json({
+      schema: "rotation_events.v1", ok: true, as_of: "2026-10-06",
+      generated_utc: "2026-10-07 08:08 UTC", coldstart: false,
+      authority: { tier: "display", may_rank: true, may_gate: false, may_size: false, may_escalate: false },
+      active: [], created_tonight: [], closed_tonight: [], closed_recent: [],
+    }));
+    const response = await GET(request("events")), result = await response.json();
+    expect(response.status).toBe(502);
+    expect(result.data).toBeNull();
+    expect(result.receipt.status).toBe("invalid");
+  });
+
   it("proxies the fixed sector-cycle history owner through the same authenticated gateway", async () => {
     const data = {
       meta: {

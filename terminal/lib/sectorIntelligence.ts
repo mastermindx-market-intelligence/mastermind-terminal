@@ -2,7 +2,7 @@
  * This module neither emits a dossier nor creates rankings/entry permission.
  * Missing numbers stay null. Every feed keeps its own clock and cohort.
  */
-export const SECTOR_FEEDS = ["sector", "confluence", "themes", "heatmap", "risk", "history"] as const;
+export const SECTOR_FEEDS = ["sector", "confluence", "themes", "heatmap", "risk", "history", "events"] as const;
 
 export type SectorFeed = typeof SECTOR_FEEDS[number];
 export type FeedStatus = "loading" | "ready" | "access" | "unavailable" | "invalid" | "error";
@@ -128,6 +128,75 @@ export function sectorRotationHistory(data: unknown): SectorRotationHistory | nu
     maxPoints: 252, series,
   };
 }
+
+export interface NativeRotationClosedEpisode {
+  sector: string;
+  pairId: string;
+  fromKey: string;
+  toKey: string;
+  fromNameEn: string;
+  toNameEn: string;
+  fromNameZh: string;
+  toNameZh: string;
+  started: string;
+  closedAsOf: string;
+  recordedAt: string;
+  reason: string;
+  dayN: number;
+  provenance: "RECONSTRUCTED_REPLAY" | "RETAINED_LEDGER_UNMARKED";
+}
+export interface SectorRotationEpisodes {
+  sourceAsOf: string;
+  generatedUtc: string;
+  coldstart: boolean;
+  closedRecent: NativeRotationClosedEpisode[];
+}
+/** Existing RC published closures only. Does not infer active calls, PIT origin or authority. */
+export function sectorRotationEpisodes(data: unknown): SectorRotationEpisodes | null {
+  const root = object(data), authority = object(root.authority);
+  const sourceAsOf = strictDay(root.as_of);
+  const generatedUtc = text(root.generated_utc);
+  const generated = /^(\d{4}-\d{2}-\d{2}) ([01]\d|2[0-3]):[0-5]\d UTC$/.exec(generatedUtc);
+  if (root.schema !== "rotation_events.v1" || root.ok !== true || !sourceAsOf
+    || !generated || !strictDay(generated[1]) || generated[1] < sourceAsOf
+    || root.coldstart !== false && root.coldstart !== true
+    || authority.tier !== "display"
+    || ["may_rank", "may_gate", "may_size", "may_escalate"].some(flag => authority[flag] !== false)
+    || !Array.isArray(root.active) || !Array.isArray(root.created_tonight)
+    || !Array.isArray(root.closed_tonight)
+    || !Array.isArray(root.closed_recent) || root.closed_recent.length > 128) return null;
+  const closedRecent: NativeRotationClosedEpisode[] = [];
+  for (const value of root.closed_recent) {
+    const row = object(value);
+    const sector = text(row.sector), fromKey = text(row.from_leg), toKey = text(row.to_leg);
+    const pairId = text(row.pair_id), started = strictDay(row.started), closedAsOf = strictDay(row.closed_asof);
+    const recordedAt = text(row.ts);
+    const receipt = /^(\d{4}-\d{2}-\d{2}) ([01]\d|2[0-3]):[0-5]\d UTC$/.exec(recordedAt);
+    const dayN = number(row.day_n);
+    const reason = text(row.reason);
+    if (row.event !== "closed" || !KEY.test(sector) || !KEY.test(fromKey) || !KEY.test(toKey)
+      || pairId !== `${sector}:${fromKey}->${toKey}`
+      || !started || !closedAsOf || started > closedAsOf || closedAsOf > sourceAsOf
+      || !receipt || !strictDay(receipt[1]) || receipt[1] < closedAsOf || receipt[1] > generated[1]
+      || dayN === null || !Number.isInteger(dayN) || dayN < 0
+      || !reason || reason.length > 160
+      || (row.replayed !== undefined && typeof row.replayed !== "boolean")) return null;
+    const field = (name: string, fallback: string) => {
+      const value = row[name];
+      return value === undefined ? fallback
+        : typeof value === "string" && value.length <= 160 ? value : null;
+    };
+    const fromNameEn = field("from_name_en", fromKey), toNameEn = field("to_name_en", toKey);
+    const fromNameZh = field("from_name_zh", fromKey), toNameZh = field("to_name_zh", toKey);
+    if (fromNameEn === null || toNameEn === null || fromNameZh === null || toNameZh === null) return null;
+    closedRecent.push({
+      sector, pairId, fromKey, toKey, fromNameEn, toNameEn, fromNameZh, toNameZh,
+      started, closedAsOf, recordedAt, reason, dayN,
+      provenance: row.replayed === true ? "RECONSTRUCTED_REPLAY" : "RETAINED_LEDGER_UNMARKED",
+    });
+  }
+  return { sourceAsOf, generatedUtc, coldstart: root.coldstart as boolean, closedRecent };
+}
 export function sourceDate(data: unknown): string | null {
   const row = object(data), meta = object(row.meta);
   // These are source-date aliases, not generated/fetched-time substitutes.
@@ -150,6 +219,7 @@ export function readableOwnerEnvelope(source: SectorFeed, data: unknown): boolea
     && ["measured_state", "hazard_summary", "policy_summary", "authority"].every(key =>
       root[key] !== null && typeof root[key] === "object" && !Array.isArray(root[key]));
   if (source === "history") return sectorRotationHistory(data) !== null;
+  if (source === "events") return sectorRotationEpisodes(data) !== null;
 
   return root.size_basis === "marketcap" && bounded(root.tiles) && root.n_tiles === (root.tiles as unknown[]).length;
 }
