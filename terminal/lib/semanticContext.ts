@@ -103,63 +103,6 @@ export type SemanticContextValidationResult<T> =
   | { ok: true; value: T }
   | { ok: false; errors: SemanticContextValidationError[] };
 
-export type SemanticContextReceipt = {
-  mutation_id: string;
-  accepted_revision: number;
-  applied_ports: string[];
-  pinned_ports: string[];
-  rejected_ports: Array<{ port_id: string; reason: string }>;
-  collisions: Array<
-    | { code: "stale_base"; expected: number; received: number }
-    | { code: "epoch_mismatch" }
-    | { code: "mutation_conflict" }
-  >;
-  missing_adapters: Array<{
-    port_id: string;
-    from_kind: SemanticContextKind;
-    to_kinds: SemanticContextKind[];
-    adapter_id?: string;
-  }>;
-  temporal_mismatches: Array<{
-    port_id: string;
-    requested: SemanticTemporalCapability;
-    supported: SemanticTemporalCapability[];
-  }>;
-};
-
-export type SemanticContextDelivery = {
-  port_id: string;
-  value: SemanticContextValue;
-};
-
-export type SemanticContextApplyResult =
-  | {
-      ok: true;
-      replayed: boolean;
-      changed: boolean;
-      snapshot: SemanticContextGroup;
-      receipt: SemanticContextReceipt;
-      deliveries: SemanticContextDelivery[];
-    }
-  | {
-      ok: false;
-      code:
-        | "invalid_delta"
-        | "epoch_mismatch"
-        | "group_mismatch"
-        | "stale_base"
-        | "mutation_conflict"
-        | "origin_not_emitter"
-        | "origin_kind_unsupported"
-        | "origin_reference_incompatible"
-        | "kind_mismatch"
-        | "revision_exhausted"
-        | "mutation_history_exhausted"
-        | "coordinator_closed";
-      snapshot: SemanticContextGroup;
-      receipt: SemanticContextReceipt;
-    };
-
 const KIND_SET = new Set<string>(SEMANTIC_CONTEXT_KINDS);
 const TEMPORAL_SET = new Set<string>(SEMANTIC_TEMPORAL_CAPABILITIES);
 const SUBJECT_KINDS = new Set([
@@ -178,8 +121,6 @@ const CONTROL = /[\u0000-\u001f\u007f]/;
 const MAX_REVISION = 2_147_483_646;
 const MAX_PORTS = 64;
 const MAX_SET_REFS = 16;
-/** Never evict exact operation receipts: the mounted owner must renew its epoch after saturation. */
-export const MAX_SEMANTIC_CONTEXT_MUTATIONS = 1024;
 
 type Obj = Record<string, unknown>;
 
@@ -230,20 +171,6 @@ function text(value: unknown, max: number, singleLine = false): value is string 
 
 function cloneJson<T>(value: T): T {
   return JSON.parse(JSON.stringify(value)) as T;
-}
-
-function deepEqual(left: unknown, right: unknown): boolean {
-  if (Object.is(left, right)) return true;
-  if (Array.isArray(left) || Array.isArray(right)) {
-    return Array.isArray(left) && Array.isArray(right)
-      && left.length === right.length
-      && left.every((value, index) => deepEqual(value, right[index]));
-  }
-  if (!isPlainRecord(left) || !isPlainRecord(right)) return false;
-  const leftKeys = Object.keys(left);
-  const rightKeys = Object.keys(right);
-  return leftKeys.length === rightKeys.length
-    && leftKeys.every(key => Object.hasOwn(right, key) && deepEqual(left[key], right[key]));
 }
 
 function validOwner(value: unknown): value is string {
@@ -567,229 +494,303 @@ export function validateSemanticContextDelta(
   }
 }
 
-function blankReceipt(mutationId: string, revision: number): SemanticContextReceipt {
-  return {
-    mutation_id: mutationId,
-    accepted_revision: revision,
-    applied_ports: [],
-    pinned_ports: [],
-    rejected_ports: [],
-    collisions: [],
-    missing_adapters: [],
-    temporal_mismatches: [],
-  };
-}
-
 function requestedTemporal(value: SemanticContextValue): SemanticTemporalCapability | null {
   if (value.kind === "historical_cutoff") return value.policy;
   if (value.kind === "scenario_selection") return "scenario";
   return null;
 }
 
-export function matchesSemanticContextGeneration(
-  group: SemanticContextGroup,
-  generation: { session_epoch: string; group_id: string; revision: number },
-): boolean {
-  return group.session_epoch === generation.session_epoch
-    && group.group_id === generation.group_id
-    && group.revision === generation.revision;
+/**
+ * P2 / #802 integration: these functions are pure adapters for the existing mounted
+ * WorkspaceContextSession. They DO NOT create a session, own revisions, retain
+ * mutation IDs, notify listeners, or confer evidence/identity/rights authority.
+ */
+import type {
+  ContextFrame,
+  ContextGroup,
+  ContextValue,
+  WorkspaceContextSession,
+} from "./workspaceContextSession";
+import { normalizeAnalysisSymbol } from "./analysisSymbol";
+
+type NativeSemanticResult<T> = { ok: true; value: T } | { ok: false; reason: string };
+
+function nativeScalarValue(value: Record<string, unknown>): value is ContextValue {
+  const keys = Object.keys(value);
+  return keys.length > 0 && keys.length <= 16 &&
+    keys.every((key) => /^[A-Za-z0-9_-]{1,64}$/.test(key) && (
+      value[key] === null || typeof value[key] === "boolean" ||
+      (typeof value[key] === "string" && (value[key] as string).length <= 512) ||
+      (typeof value[key] === "number" && Number.isSafeInteger(value[key]))
+    ));
 }
 
-export function createSemanticContextCoordinator(
-  initial: SemanticContextGroup,
-  transformAdapters: readonly SemanticContextTransformAdapter[] = [],
-) {
-  const validated = validateSemanticContextGroup(initial);
-  if (!validated.ok) throw new TypeError("invalid semantic context group");
-  let group = cloneJson(validated.value);
-  const adapters = new Map<string, SemanticContextTransformAdapter>();
-  for (const adapter of transformAdapters) {
-    if (!OPAQUE_128.test(adapter.adapter_id) || adapters.has(adapter.adapter_id)
-        || !KIND_SET.has(adapter.from_kind) || !KIND_SET.has(adapter.to_kind)) {
-      throw new TypeError("invalid semantic context adapter");
-    }
-    adapters.set(adapter.adapter_id, adapter);
+export function encodeNativeSemanticValue(raw: unknown): NativeSemanticResult<ContextValue> {
+  const checked = validateSemanticContextValue(raw);
+  if (!checked.ok) return { ok: false, reason: "invalid_semantic_value" };
+  const value = checked.value;
+  let flat: Record<string, unknown>;
+  switch (value.kind) {
+    case "entity_selection":
+      flat = { kind: value.kind, owner: value.ref.owner, object_id: value.ref.object_id };
+      if (value.ref.kind !== undefined) flat.ref_kind = value.ref.kind;
+      if (value.ref.version_ref !== undefined) flat.version_ref = value.ref.version_ref;
+      break;
+    case "entity_set":
+      flat = { kind: value.kind, refs_json: JSON.stringify(value.refs) };
+      break;
+    case "time_horizon":
+      flat = { kind: value.kind, horizon: value.horizon };
+      break;
+    case "historical_cutoff":
+      flat = { kind: value.kind, policy: value.policy, cutoff: value.cutoff };
+      break;
+    case "scenario_selection":
+      flat = { kind: value.kind, owner: value.ref.owner, object_id: value.ref.object_id, version_ref: value.ref.version_ref };
+      break;
+    default:
+      return { ok: false, reason: "native_kind_unsupported" };
   }
-  const seen = new Map<string, { delta: SemanticContextDelta; receipt: SemanticContextReceipt }>();
-  let closed = false;
+  if (!nativeScalarValue(flat)) return { ok: false, reason: "native_capacity_exceeded" };
+  return { ok: true, value: flat };
+}
 
-  const snapshot = () => cloneJson(group);
-
-  function fail(
-    code: Extract<SemanticContextApplyResult, { ok: false }>["code"],
-    mutationId = "",
-    collisions: SemanticContextReceipt["collisions"] = [],
-  ): SemanticContextApplyResult {
-    const receipt = blankReceipt(mutationId, group.revision);
-    receipt.collisions = collisions;
-    return { ok: false, code, snapshot: snapshot(), receipt };
+export function decodeNativeSemanticValue(raw: unknown): SemanticContextValidationResult<SemanticContextValue> {
+  const fail = (): SemanticContextValidationResult<SemanticContextValue> => ({
+    ok: false, errors: [{ path: "$", code: "invalid_native_semantic_value" }],
+  });
+  try {
+    if (!isPlainRecord(raw) || typeof raw.kind !== "string") return fail();
+    const hasKeys = (required: string[], optional: string[] = []) => exactKeys(raw, required, optional);
+    let value: unknown;
+    switch (raw.kind) {
+      case "entity_selection":
+        if (!hasKeys(["kind", "owner", "object_id"], ["ref_kind", "version_ref"])) return fail();
+        value = { kind: "entity_selection",
+          ref: { owner: raw.owner, object_id: raw.object_id,
+            ...(Object.hasOwn(raw, "ref_kind") ? { kind: raw.ref_kind } : {}),
+            ...(Object.hasOwn(raw, "version_ref") ? { version_ref: raw.version_ref } : {}),
+          },
+        };
+        break;
+      case "entity_set": {
+        if (!hasKeys(["kind", "refs_json"]) || typeof raw.refs_json !== "string") return fail();
+        const refs: unknown = JSON.parse(raw.refs_json);
+        if (JSON.stringify(refs) !== raw.refs_json) return fail();
+        value = { kind: "entity_set", refs };
+        break;
+      }
+      case "time_horizon":
+        if (!hasKeys(["kind", "horizon"])) return fail();
+        value = { kind: "time_horizon", horizon: raw.horizon };
+        break;
+      case "historical_cutoff":
+        if (!hasKeys(["kind", "policy", "cutoff"])) return fail();
+        value = { kind: "historical_cutoff", policy: raw.policy, cutoff: raw.cutoff };
+        break;
+      case "scenario_selection":
+        if (!hasKeys(["kind", "owner", "object_id", "version_ref"])) return fail();
+        value = { kind: "scenario_selection",
+          ref: { owner: raw.owner, object_id: raw.object_id, version_ref: raw.version_ref },
+        };
+        break;
+      default:
+        return fail();
+    }
+    return validateSemanticContextValue(value);
+  } catch {
+    return fail();
   }
+}
 
-  function apply(raw: unknown): SemanticContextApplyResult {
-    if (closed) return fail("coordinator_closed");
-    const parsed = validateSemanticContextDelta(raw);
-    if (!parsed.ok) return fail("invalid_delta");
-    const delta = parsed.value;
+/** Existing #802 Chart Bus value shape is {kind:'security', id, timeframe, pane_id}. */
+function readNativeActiveSecurity(value: unknown): SemanticContextValidationResult<SemanticContextValue> {
+  const fail = (): SemanticContextValidationResult<SemanticContextValue> => ({
+    ok:false, errors:[{path:"$",code:"native_chart_context_invalid"}],
+  });
+  try {
+    if (!isPlainRecord(value) || !exactKeys(value,["kind","id","timeframe","pane_id"])
+        || value.kind !== "security"
+        || typeof value.id !== "string"
+        || normalizeAnalysisSymbol(value.id) !== value.id
+        || !text(value.timeframe, 32, true)
+        || !Number.isSafeInteger(value.pane_id) || Number(value.pane_id) < 0) return fail();
+    return validateSemanticContextValue({
+      kind:"entity_selection",
+      ref:{owner:"terminal.analysis_symbol",kind:"security",object_id:value.id},
+    });
+  } catch { return fail(); }
+}
 
-    const seenKey = delta.session_epoch + ":" + delta.mutation_id;
-    const prior = seen.get(seenKey);
-    if (prior) {
-      if (!deepEqual(prior.delta, delta)) {
-        return fail("mutation_conflict", delta.mutation_id, [{ code: "mutation_conflict" }]);
-      }
-      return {
-        ok: true,
-        replayed: true,
-        changed: false,
-        snapshot: snapshot(),
-        receipt: cloneJson(prior.receipt),
-        deliveries: [],
-      };
-    }
-
-    if (delta.session_epoch !== group.session_epoch) {
-      return fail("epoch_mismatch", delta.mutation_id, [{ code: "epoch_mismatch" }]);
-    }
-    if (delta.group_id !== group.group_id) return fail("group_mismatch", delta.mutation_id);
-    // Exact old retries/conflicts resolve above. A new identity never evicts an old one.
-    if (seen.size >= MAX_SEMANTIC_CONTEXT_MUTATIONS) {
-      return fail("mutation_history_exhausted", delta.mutation_id);
-    }
-    if (delta.base_revision !== group.revision) {
-      return fail("stale_base", delta.mutation_id, [{
-        code: "stale_base",
-        expected: group.revision,
-        received: delta.base_revision,
-      }]);
-    }
-
-    const origin = group.ports.find(port =>
-      port.origin_id === delta.origin_id
-      && port.mode === "linked"
-      && (port.direction === "emit" || port.direction === "both")
-    );
-    if (!origin) return fail("origin_not_emitter", delta.mutation_id);
-    if (delta.patch.kind !== group.kind) return fail("kind_mismatch", delta.mutation_id);
-    if (!origin.accepts.includes(delta.patch.kind)) return fail("origin_kind_unsupported", delta.mutation_id);
-    if (!portSupportsValue(origin, delta.patch)) return fail("origin_reference_incompatible", delta.mutation_id);
-
-    const receipt = blankReceipt(delta.mutation_id, group.revision);
-    if (deepEqual(delta.patch, group.value)) {
-      seen.set(seenKey, { delta: cloneJson(delta), receipt: cloneJson(receipt) });
-      return {
-        ok: true,
-        replayed: false,
-        changed: false,
-        snapshot: snapshot(),
-        receipt,
-        deliveries: [],
-      };
-    }
-
-    if (group.revision >= MAX_REVISION) {
-      return fail("revision_exhausted", delta.mutation_id);
-    }
-
-    const deliveries: SemanticContextDelivery[] = [];
-    const temporal = requestedTemporal(delta.patch);
-
-    for (const port of group.ports) {
-      if (port.port_id === origin.port_id) continue;
-      if (port.mode === "pinned") {
-        receipt.pinned_ports.push(port.port_id);
-        continue;
-      }
-      if (port.mode === "local") {
-        receipt.rejected_ports.push({ port_id: port.port_id, reason: "local" });
-        continue;
-      }
-      if (port.direction === "emit") {
-        receipt.rejected_ports.push({ port_id: port.port_id, reason: "output_only" });
-        continue;
-      }
-      if (temporal && !port.temporal_capabilities.includes(temporal)) {
-        receipt.temporal_mismatches.push({
-          port_id: port.port_id,
-          requested: temporal,
-          supported: [...port.temporal_capabilities],
-        });
-        continue;
-      }
-      if (port.accepts.includes(delta.patch.kind) && portSupportsValue(port, delta.patch)) {
-        receipt.applied_ports.push(port.port_id);
-        deliveries.push({ port_id: port.port_id, value: cloneJson(delta.patch) });
-        continue;
-      }
-
-      const adapter = port.adapter_id ? adapters.get(port.adapter_id) : undefined;
-      if (!adapter || adapter.from_kind !== delta.patch.kind || !port.accepts.includes(adapter.to_kind)) {
-        if (port.accepts.includes(delta.patch.kind)) {
-          receipt.rejected_ports.push({ port_id: port.port_id, reason: "reference_incompatible" });
-        } else {
-          receipt.missing_adapters.push({
-            port_id: port.port_id,
-            from_kind: delta.patch.kind,
-            to_kinds: [...port.accepts],
-            ...(port.adapter_id ? { adapter_id: port.adapter_id } : {}),
-          });
-        }
-        continue;
-      }
-
-      let projected:
-        | { ok: true; value: SemanticContextValue }
-        | { ok: false; reason: string };
-      try {
-        projected = adapter.project(cloneJson(delta.patch));
-      } catch {
-        projected = { ok: false, reason: "adapter_error" };
-      }
-      if (!projected.ok) {
-        receipt.rejected_ports.push({ port_id: port.port_id, reason: projected.reason || "adapter_refused" });
-        continue;
-      }
-      const checked = validateSemanticContextValue(projected.value, "$.adapter");
-      if (!checked.ok || checked.value.kind !== adapter.to_kind) {
-        receipt.rejected_ports.push({ port_id: port.port_id, reason: "adapter_invalid_output" });
-        continue;
-      }
-      if (!portSupportsValue(port, checked.value)) {
-        receipt.rejected_ports.push({ port_id: port.port_id, reason: "reference_incompatible" });
-        continue;
-      }
-      // A transformation may change temporal authority even when the input is LIVE.
-      const projectedTemporal = requestedTemporal(checked.value);
-      if (projectedTemporal && !port.temporal_capabilities.includes(projectedTemporal)) {
-        receipt.temporal_mismatches.push({
-          port_id: port.port_id,
-          requested: projectedTemporal,
-          supported: [...port.temporal_capabilities],
-        });
-        continue;
-      }
-      receipt.applied_ports.push(port.port_id);
-      deliveries.push({ port_id: port.port_id, value: checked.value });
-    }
-
-    group = { ...group, revision: group.revision + 1, value: cloneJson(delta.patch) };
-    receipt.accepted_revision = group.revision;
-    seen.set(seenKey, { delta: cloneJson(delta), receipt: cloneJson(receipt) });
-    return {
-      ok: true,
-      replayed: false,
-      changed: true,
-      snapshot: snapshot(),
-      receipt,
-      deliveries,
-    };
+function writeNativeActiveSecurity(
+  semantic: SemanticContextValue,
+  prior: ContextValue,
+): NativeSemanticResult<ContextValue> {
+  if (!readNativeActiveSecurity(prior).ok
+      || semantic.kind !== "entity_selection"
+      || semantic.ref.owner !== "terminal.analysis_symbol"
+      || semantic.ref.kind !== "security"
+      || normalizeAnalysisSymbol(semantic.ref.object_id) !== semantic.ref.object_id) {
+    return {ok:false,reason:"native_chart_context_invalid"};
   }
+  // The chart's existing timeframe and pane are native owner values. Never
+  // default, normalize, or replace them as a side effect of changing a symbol.
+  return {ok:true,value:{
+    kind:"security",
+    id:semantic.ref.object_id,
+    timeframe:prior.timeframe!,
+    pane_id:prior.pane_id!,
+  }};
+}
 
-  function close(): void {
-    if (closed) return;
-    closed = true;
-    seen.clear();
-    adapters.clear();
+function nativeSafeId(value: string): boolean {
+  return /^[A-Za-z0-9_-]{1,64}$/.test(value)
+    && value !== "constructor" && value !== "prototype" && value !== "__proto__";
+}
+
+/**
+ * A typed declaration for a NEW dimension within #802's existing session.
+ * Do not use it to mount a second "active_security": that group is already
+ * native-owned by useChartBus, and must be adapted via prepare/project below.
+ */
+export function nativeGroupFromSemanticDeclaration(raw: unknown): NativeSemanticResult<ContextGroup> {
+  const parsed = validateSemanticContextGroup(raw);
+  if (!parsed.ok) return { ok: false, reason: "invalid_semantic_declaration" };
+  const group = parsed.value;
+  if (!nativeSafeId(group.session_epoch) || !nativeSafeId(group.group_id)
+      || group.ports.some(port => !nativeSafeId(port.port_id))) {
+    return { ok: false, reason: "native_identifier_unsupported" };
   }
+  if (group.revision !== 0) return { ok: false, reason: "native_history_not_importable" };
+  const first = encodeNativeSemanticValue(group.value);
+  if (!first.ok) return first;
+  const emitters = group.ports.filter(
+    p => p.mode === "linked" && (p.direction === "emit" || p.direction === "both")
+  );
+  // #802's native accepts(value) knows the group, not the emitting port.
+  // Mixed emitter permissions would let one origin publish another origin's
+  // reference or temporal capability. Refuse until the native owner can
+  // enforce per-origin validation; do not create a second permission plane.
+  if (emitters.length === 0) return { ok: false, reason: "native_no_emitter" };
+  const supportIdentity = (p: SemanticContextPort) => JSON.stringify({
+    kinds: [...p.accepts].sort(),
+    temporal: [...p.temporal_capabilities].sort(),
+    refs: (p.ref_accepts ?? []).map(r => ({
+      owner: r.owner, kinds: [...r.kinds].sort(),
+    })).sort((a, b) => a.owner.localeCompare(b.owner)),
+  });
+  if (emitters.some(p => supportIdentity(p) !== supportIdentity(emitters[0]))) {
+    return { ok: false, reason: "native_emitter_support_conflict" };
+  }
+  return { ok: true, value: {
+    id: group.group_id,
+    initial: first.value,
+    accepts(nativeValue: ContextValue) {
+      const decoded = decodeNativeSemanticValue(nativeValue);
+      if (!decoded.ok || decoded.value.kind !== group.kind) return false;
+      return emitters.some(p => p.accepts.includes(decoded.value.kind)
+        && portSupportsValue(p, decoded.value)
+        && (!requestedTemporal(decoded.value) || p.temporal_capabilities.includes(requestedTemporal(decoded.value)!)));
+    },
+  } };
+}
 
-  return { snapshot, apply, close };
+export function prepareNativeSemanticFrame(
+  session: WorkspaceContextSession,
+  rawGroup: unknown,
+  portId: string,
+  rawDelta: unknown,
+  sequence: number,
+): NativeSemanticResult<ContextFrame> {
+  const groupResult = validateSemanticContextGroup(rawGroup);
+  const deltaResult = validateSemanticContextDelta(rawDelta);
+  if (!groupResult.ok || !deltaResult.ok) return { ok: false, reason: "invalid_semantic_delta" };
+  const group = groupResult.value, delta = deltaResult.value;
+  const port = group.ports.find(p => p.port_id === portId);
+  const native = session.snapshot(portId);
+  if (!native || !port) return { ok: false, reason: "port_unavailable" };
+  if (native.epoch !== group.session_epoch || delta.session_epoch !== native.epoch ||
+      native.group !== group.group_id || delta.group_id !== native.group) {
+    return { ok: false, reason: "session_group_mismatch" };
+  }
+  if (native.group_revision !== delta.base_revision) return { ok: false, reason: "stale_group_revision" };
+  if (native.mode !== "follow" || port.mode !== "linked"
+      || (port.direction !== "both" && port.direction !== "emit")
+      || port.origin_id !== delta.origin_id) {
+    return { ok: false, reason: "origin_not_emitter" };
+  }
+  if (delta.patch.kind !== group.kind || !port.accepts.includes(delta.patch.kind)
+      || !portSupportsValue(port, delta.patch)) {
+    return { ok: false, reason: "reference_incompatible" };
+  }
+  const temporal = requestedTemporal(delta.patch);
+  if (temporal && !port.temporal_capabilities.includes(temporal)) {
+    return { ok: false, reason: "temporal_incompatible" };
+  }
+  if (!Number.isSafeInteger(sequence) || sequence < 1) {
+    return { ok: false, reason: "invalid_native_sequence" };
+  }
+  const encoded = native.value.kind === "security"
+    ? writeNativeActiveSecurity(delta.patch, native.value)
+    : encodeNativeSemanticValue(delta.patch);
+  if (!encoded.ok) return encoded;
+  return { ok: true, value: {
+    epoch: native.epoch,
+    origin: native.consumer,
+    origin_generation: native.incarnation,
+    sequence,
+    value: encoded.value,
+  } };
+}
+
+type SemanticPortRead =
+  | { status: "qualified"; value: SemanticContextValue }
+  | { status: "unsupported"; reason: string };
+
+export function projectNativeSemanticPort(
+  session: WorkspaceContextSession,
+  rawGroup: unknown,
+  portId: string,
+  adapters: readonly SemanticContextTransformAdapter[] = [],
+): SemanticPortRead {
+  const g = validateSemanticContextGroup(rawGroup);
+  const native = session.snapshot(portId);
+  if (!g.ok || !native || g.value.group_id !== native.group || g.value.session_epoch !== native.epoch) {
+    return { status: "unsupported", reason: "port_unavailable" };
+  }
+  const port = g.value.ports.find(p => p.port_id === portId);
+  if (!port) return { status: "unsupported", reason: "port_unavailable" };
+  const source = native.value.kind === "security"
+    ? readNativeActiveSecurity(native.value)
+    : decodeNativeSemanticValue(native.value);
+  if (!source.ok || source.value.kind !== g.value.kind) {
+    return { status: "unsupported", reason: "native_value_unavailable" };
+  }
+  let projected: SemanticContextValue = source.value;
+  if (!port.accepts.includes(projected.kind) || !portSupportsValue(port, projected)) {
+    const adapter = port.adapter_id ? adapters.find(a => a.adapter_id === port.adapter_id) : undefined;
+    if (!adapter || adapter.from_kind !== source.value.kind || !port.accepts.includes(adapter.to_kind)) {
+      return { status: "unsupported", reason: "reference_incompatible" };
+    }
+    let candidate: ReturnType<SemanticContextTransformAdapter["project"]>;
+    try {
+      candidate = adapter.project(source.value);
+    } catch {
+      return { status: "unsupported", reason: "adapter_error" };
+    }
+    if (!candidate.ok) return { status: "unsupported", reason: candidate.reason };
+    const checked = validateSemanticContextValue(candidate.value);
+    if (!checked.ok || checked.value.kind !== adapter.to_kind) {
+      return { status: "unsupported", reason: "invalid_adapter_output" };
+    }
+    projected = checked.value;
+  }
+  if (!port.accepts.includes(projected.kind) || !portSupportsValue(port, projected)) {
+    return { status: "unsupported", reason: "reference_incompatible" };
+  }
+  const temporal = requestedTemporal(projected);
+  if (temporal && !port.temporal_capabilities.includes(temporal)) {
+    return { status: "unsupported", reason: "temporal_incompatible" };
+  }
+  return { status: "qualified", value: projected };
 }
