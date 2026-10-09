@@ -355,14 +355,33 @@ function tencentCode(sym: string, market: Market): string | null {
   return null;
 }
 
+// One Tencent code (or kline scale) as inert URL text. tencentCode only returns letters and
+// digits, so for every real code this is the identity and the upstream request is unchanged. It
+// is the second layer, applied where the URL is built: "&", "?", "#" and "/" become inert text,
+// so a looser code rule could never let a code add a query parameter, a fragment or a path step
+// to the request this server makes (CodeQL js/request-forgery). The "," separators stay literal.
+function seg(piece: string): string {
+  return encodeURIComponent(piece);
+}
+
+// Batch quote snapshot: the codes go comma-joined into the PATH (q=…). Exported for tests.
+export function tencentQuoteUrl(codes: string[]): string {
+  return `https://qt.gtimg.cn/q=${codes.map(seg).join(",")}`;
+}
+
+// CN minute klines: code, scale, an empty field and the 640-bar depth, comma-joined into one
+// param. Exported for tests.
+export function tencentKlineUrl(code: string, scale: string): string {
+  return `https://ifzq.gtimg.cn/appstock/app/kline/mkline?param=${seg(code)},${seg(scale)},,640`;
+}
+
 async function fetchTencent(sym: string, market: Market, tf: string): Promise<Bar6[]> {
   const code = tencentCode(sym, market);
   if (!code) return [];
   const minutes = tfMinutes(tf);
   const base = [60, 30, 15, 5, 1].find((b) => b <= minutes && minutes % b === 0) || 1;
   const scale = "m" + base;
-  const url = `https://ifzq.gtimg.cn/appstock/app/kline/mkline?param=${code},${scale},,640`;
-  const r = await fetch(url, { cache: "no-store" });
+  const r = await fetch(tencentKlineUrl(code, scale), { cache: "no-store" });
   if (!r.ok) throw new Error("tencent " + r.status);
   const j: any = await r.json();
   const node = j?.data?.[code] || {};
@@ -634,7 +653,7 @@ async function fetchTencentQuotes(syms: string[]): Promise<Record<string, Quote>
   // mid-body stall must retry too); each try needs a fresh signal. A non-200 is thrown as-is and
   // NOT retried — no point hammering an upstream that answered with an error.
   const attempt = async (): Promise<ArrayBuffer> => {
-    const r = await fetch(`https://qt.gtimg.cn/q=${codes.join(",")}`, {
+    const r = await fetch(tencentQuoteUrl(codes), {
       headers: { "User-Agent": "Mozilla/5.0", Referer: "https://gu.qq.com/" },
       cache: "no-store", signal: AbortSignal.timeout(2500),
     });
