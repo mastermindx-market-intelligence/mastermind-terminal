@@ -218,6 +218,20 @@ describe("Prophet candidate receipts under replay", () => {
     expect(replayReceiptAdmission({ ...undated, entry_basis: undefined }, "2026-08-12", true).entryPrice).toBeNull();
   });
 
+  it("the surfacing session never carries the fill, even when entry_date names that day", () => {
+    // The review's counterexample: entry_date written as the surfacing day, entry_price the
+    // next-open fill. Every ledger basis fills on a LATER session (US next_session_close,
+    // CN t1_*), so a chart replayed to the surfacing day has not seen that fill yet.
+    const sameDay = { ...receipt, entry_date: "2025-03-03" };
+    expect(replayReceiptAdmission(sameDay, "2025-03-03", true))
+      .toEqual({ show: true, ts: "2025-03-03", entryPrice: null, returnPct: null });
+    expect(replayReceiptAdmission({ ...sameDay, entry_basis: undefined }, "2025-03-03", true).entryPrice).toBeNull();
+    // one session later the fill is on the chart
+    expect(replayReceiptAdmission(sameDay, "2025-03-04", true).entryPrice).toBe(201.25);
+    // a live chart shows the entry as recorded
+    expect(replayReceiptAdmission(sameDay, "2025-03-03", false).entryPrice).toBe(201.25);
+  });
+
   it("both are shown once the replay date reaches the pricing date", () => {
     expect(replayReceiptAdmission(receipt, "2026-06-26", true))
       .toEqual({ show: true, ts: "2025-03-03", entryPrice: 201.25, returnPct: 37.5 });

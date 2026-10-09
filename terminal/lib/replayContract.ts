@@ -263,7 +263,9 @@ const finiteOrNull = (v: unknown): number | null => (typeof v === "number" && Nu
  * entry only once its fill session is on the chart (an undated next-session fill: the session
  * after surfacing; any other basis cannot be placed) and the return only once its pricing date
  * is — before that the mark sits on the bar and carries no return. The ledger keeps no record of
- * the return as it stood on earlier dates, so nothing is shown in its place.
+ * the return as it stood on earlier dates, so nothing is shown in its place. No ledger basis
+ * fills on the surfacing session itself (US next_session_close, CN t1_*), so a chart replayed to
+ * that day never shows the entry, even when `entry_date` names it.
  */
 export function replayReceiptAdmission(
   o: {
@@ -280,9 +282,10 @@ export function replayReceiptAdmission(
   let returnPct = finiteOrNull(o.return_pct);
   if (replaying) {
     const entryDate = dateOf(o.entry_date);
-    const filled = entryDate != null
+    const surfaced = dateOf(o.surfaced_at);
+    const filled = (surfaced == null || surfaced < lastSession) && (entryDate != null
       ? entryDate <= lastSession
-      : typeof o.entry_basis === "string" && o.entry_basis.startsWith("next_") && ts.slice(0, 10) < lastSession;
+      : typeof o.entry_basis === "string" && o.entry_basis.startsWith("next_") && ts.slice(0, 10) < lastSession);
     if (!filled) entryPrice = null;
     const pricedThrough = dateOf(o.priced_through) ?? dateOf(o.source_as_of);
     if (pricedThrough == null || pricedThrough > lastSession) returnPct = null;
