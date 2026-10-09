@@ -9,6 +9,7 @@ import type { StudyReport, StudyTrade } from "@/lib/rsPivotStudy";
 export default function RSPivotChart({ bars, report, trade }: { bars: Bar6[]; report: StudyReport; trade: StudyTrade | null }) {
   const host = useRef<HTMLDivElement>(null);
   const { lang } = useLang(); const zh = lang === "zh";
+  const pick = (en: string, cn: string) => zh ? cn : en;
   const frame = useMemo(() => {
     const end = trade ? bars.findIndex(b => b[0] === trade.exitBarAt) : bars.length - 1;
     const entry = trade ? bars.findIndex(b => b[0] === trade.entryAt) : end;
@@ -54,12 +55,12 @@ export default function RSPivotChart({ bars, report, trade }: { bars: Bar6[]; re
     return () => { observer.disconnect(); resize.disconnect(); engine.destroy(); };
   }, [bars, frame, shownCursor, report, trade, zh]);
   return <section style={{minWidth:0}}>
-    <div ref={host} data-testid="rs-pivot-chart" role="img" aria-label={zh?"30分钟历史K线、模拟交易与超额收益路径":"Historical 30m candles, hypothetical trade and excess return paths"} style={{height:430,width:"100%"}} />
+    <div ref={host} data-testid="rs-pivot-chart" role="img" aria-label={pick("Historical 30m candles, hypothetical trade and excess return paths", "30分钟历史K线、模拟交易与超额收益路径")} style={{height:430,width:"100%"}} />
     <label style={{display:"grid",gap:6,fontSize:12,color:"var(--muted)",marginTop:12}}>
-      {zh?"逐根重放（收盘观察，美东显示时钟）":"Replay completed candles (close observations, ET display clock)"}
-      <input aria-label={zh?"逐根重放":"Replay candle"} type="range" min="0" max={Math.max(0,frame.length-1)} value={Math.max(0,shownCursor)} onChange={e=>setCursor(Number(e.target.value))} style={{width:"100%",minHeight:32}} />
+      {pick("Replay completed candles (close observations, ET display clock)", "逐根重放（收盘观察，美东显示时钟）")}
+      <input aria-label={pick("Replay candle", "逐根重放")} type="range" min="0" max={Math.max(0,frame.length-1)} value={Math.max(0,shownCursor)} onChange={e=>setCursor(Number(e.target.value))} style={{width:"100%",minHeight:32}} />
       {frame[shownCursor] ? new Date((frame[shownCursor][0]+1800)*1000).toISOString().slice(0,16).replace("T"," ") : "—"}
     </label>
-    <p style={{fontSize:12,color:"var(--muted)"}}>{zh?"标记绘于所属K线；确认与收复仅在该根收盘可知。蓝色/紫色为短期/长期相对基准的超额收益代理。":"Markers attach to their candle; confirmation and reclaim become known at its close. Blue/purple: short/long benchmark excess return proxies."}</p>
+    <p style={{fontSize:12,color:"var(--muted)"}}>{pick("Markers attach to their candle; confirmation and reclaim become known at its close. Blue/purple: short/long benchmark excess return proxies.", "标记绘于所属K线；确认与收复仅在该根收盘可知。蓝色/紫色为短期/长期相对基准的超额收益代理。")}</p>
   </section>;
 }

@@ -104,7 +104,7 @@ export default function RSPivotStudy() {
   const identity = useShellIdentity();
   const t = L[lang];
   const zh = lang === "zh";
-  const c = (en: string, cn: string) => zh ? cn : en;
+  const pick = (en: string, cn: string) => zh ? cn : en;
   const request = useRef<AbortController | null>(null);
   const generation = useRef(0);
   useEffect(() => () => { generation.current++; request.current?.abort(); request.current = null; }, []);
@@ -130,7 +130,7 @@ export default function RSPivotStudy() {
     const sym = symbol.trim().toUpperCase(), bm = benchmark.trim().toUpperCase();
     invalidate(); setError(""); setSelectedTrade("");
     if (!/^[A-Z][A-Z0-9.-]{0,14}$/.test(sym) || !/^[A-Z][A-Z0-9.-]{0,14}$/.test(bm) || sym === bm) {
-      setError(c("Select a valid US equity and a different benchmark.", "请选择有效美股代码与不同的比较基准。")); return;
+      setError(pick("Select a valid US equity and a different benchmark.", "请选择有效美股代码与不同的比较基准。")); return;
     }
     const controller = new AbortController(); request.current = controller;
     const id = ++generation.current;
@@ -167,7 +167,7 @@ export default function RSPivotStudy() {
       if (current()) {
         const message = e instanceof Error ? e.message : String(e);
         const status = message.match(/HTTP \d+/)?.[0];
-        setError(status ? c("Source request unavailable: ", "来源请求不可用：") + status : /Insufficient/.test(message) ? c("Insufficient complete aligned history. At least 22 sessions and the RS lookback are required.", "完整对齐历史不足。需要至少22个交易日与相对强度回看窗口。") : /no historical|STORED_5M/.test(message) ? c("Stored 5m source or benchmark is unavailable; no results were simulated.", "已存储5分钟来源或基准不可用；未模拟任何结果。") : c("Input validation failed or the source could not be loaded. No results were simulated.", "输入验证失败或来源无法加载。未模拟任何结果。"));
+        setError(status ? pick("Source request unavailable: ", "来源请求不可用：") + status : /Insufficient/.test(message) ? pick("Insufficient complete aligned history. At least 22 sessions and the RS lookback are required.", "完整对齐历史不足。需要至少22个交易日与相对强度回看窗口。") : /no historical|STORED_5M/.test(message) ? pick("Stored 5m source or benchmark is unavailable; no results were simulated.", "已存储5分钟来源或基准不可用；未模拟任何结果。") : pick("Input validation failed or the source could not be loaded. No results were simulated.", "输入验证失败或来源无法加载。未模拟任何结果。"));
       }
     }
     finally { if (generation.current === id && request.current === controller) { request.current = null; setBusy(false); } }
@@ -188,16 +188,16 @@ export default function RSPivotStudy() {
     <main data-testid="rs-pivot-lab" className="main2" style={{ overflowY: "auto", padding: "clamp(12px, 2vw, 26px)", color: "var(--text)", height: "100%", width: "100%", minWidth: 0 }}>
       <div style={{ maxWidth: 1280, width: "100%", minWidth: 0, margin: "0 auto", display: "grid", gridTemplateColumns: "minmax(0, 1fr)", gap: 16, paddingBottom: 40 }}>
         <header>
-          <div style={{ fontSize: 11, fontWeight: 700, color: "var(--warn)", letterSpacing: 1 }}>{c("SHADOW RESEARCH / 30M", "模拟研究 / 30分钟")}</div>
+          <div style={{ fontSize: 11, fontWeight: 700, color: "var(--warn)", letterSpacing: 1 }}>{pick("SHADOW RESEARCH / 30M", "模拟研究 / 30分钟")}</div>
           <h1 style={{ fontSize: "clamp(20px, 2vw, 28px)", margin: "7px 0" }}>{t.title}</h1>
           <p style={{ fontSize: 13, color: "var(--muted)", maxWidth: 880 }}>{t.subtitle}</p>
         </header>
-        {identity.kind !== "account" && <div role="note" style={{...container,borderColor:"var(--warn)"}}>{c("Sign in to load historical research inputs through your existing Terminal access.", "请登录，通过您现有的Terminal访问权限加载历史研究输入。") } <a href="/login" style={{color:"var(--brand-2)"}}>{c("Sign in", "登录")}</a></div>}
+        {identity.kind !== "account" && <div role="note" style={{...container,borderColor:"var(--warn)"}}>{pick("Sign in to load historical research inputs through your existing Terminal access.", "请登录，通过您现有的Terminal访问权限加载历史研究输入。") } <a href="/login" style={{color:"var(--brand-2)"}}>{pick("Sign in", "登录")}</a></div>}
         <section style={container}>
           <div style={{ display: "flex", gap: 12, flexWrap: "wrap", alignItems: "end" }}>
             <label style={label}>{t.symbol}<input aria-label={t.symbol} style={field} value={symbol} maxLength={15} disabled={busy} onChange={e => { setSymbol(e.target.value.toUpperCase()); invalidate(); }} /></label>
             <label style={label}>{t.bench}<select aria-label={t.bench} style={field} value={benchmark} disabled={busy} onChange={e => { setBenchmark(e.target.value); invalidate(); }}>
-              <option value="SPY">SPY · S&P 500</option><option value="QQQ">QQQ · Nasdaq 100</option><option value="IWM">IWM · Russell 2000</option>
+              <option value="SPY">{pick("SPY · S&P 500", "SPY · 标普500")}</option><option value="QQQ">{pick("QQQ · Nasdaq 100", "QQQ · 纳斯达克100")}</option><option value="IWM">{pick("IWM · Russell 2000", "IWM · 罗素2000")}</option>
             </select></label>
             <label style={label}>{t.hold}<select aria-label={t.hold} style={field} value={hold} disabled={busy} onChange={e => { setHold(Number(e.target.value) as 13 | 26 | 39); invalidate(); }}>
               <option value="13">13 × 30m</option><option value="26">26 × 30m</option><option value="39">39 × 30m</option>
@@ -213,10 +213,10 @@ export default function RSPivotStudy() {
         {!report && !error && !busy && <section style={{ ...container, color: "var(--muted)", fontSize: 13 }}>{t.no}</section>}
         {report && identity.kind === "account" && <>
           <div role="status" style={{...container, borderColor: "var(--warn)", fontSize: 12}}>
-            <strong>{runMeta?.symbol} / {runMeta?.benchmark} · {c("Historical research snapshot", "历史研究快照")} · {report.coverage.firstDate} → {report.coverage.lastDate}</strong>
-            <p>{runMeta?.stale ? c("DEGRADED — latest expected session or cache freshness is missing. This is archived evidence, not a current setup.", "降级：缺少最近应有交易日或缓存已过期。此为存档证据，并非当前形态。") : c("Completed historical bars only. Market data delay and per-observation availability are not certified.", "仅使用已完成历史K线。未认证行情延迟或逐条历史可用时间。")}</p>
-            <p>{c("Excluded nominal buckets / future buckets (stock, benchmark):", "剔除不完整区间 / 未完成区间（股票、基准）：")} {runMeta?.geometry.map(g=>`${g.incompleteBuckets} / ${g.futureBuckets}`).join(" · ")}</p>
-            <p>{c("Missing exchange sessions / continuity segments / ambiguous price gaps:", "缺失交易日 / 连续片段 / 不明价格跳变：")} {report.coverage.missingExchangeSessions} / {report.coverage.segments} / {report.coverage.discontinuities}. {c("Six 5m timestamps establish nominal geometry, not feed completeness or PIT qualification.", "六个5分钟时间戳仅证明标称区间，并非行情完整性或历史时点资格。")}</p>
+            <strong>{runMeta?.symbol} / {runMeta?.benchmark} · {pick("Historical research snapshot", "历史研究快照")} · {report.coverage.firstDate} → {report.coverage.lastDate}</strong>
+            <p>{runMeta?.stale ? pick("DEGRADED — latest expected session or cache freshness is missing. This is archived evidence, not a current setup.", "降级：缺少最近应有交易日或缓存已过期。此为存档证据，并非当前形态。") : pick("Completed historical bars only. Market data delay and per-observation availability are not certified.", "仅使用已完成历史K线。未认证行情延迟或逐条历史可用时间。")}</p>
+            <p>{pick("Excluded nominal buckets / future buckets (stock, benchmark):", "剔除不完整区间 / 未完成区间（股票、基准）：")} {runMeta?.geometry.map(g=>`${g.incompleteBuckets} / ${g.futureBuckets}`).join(" · ")}</p>
+            <p>{pick("Missing exchange sessions / continuity segments / ambiguous price gaps:", "缺失交易日 / 连续片段 / 不明价格跳变：")} {report.coverage.missingExchangeSessions} / {report.coverage.segments} / {report.coverage.discontinuities}. {pick("Six 5m timestamps establish nominal geometry, not feed completeness or PIT qualification.", "六个5分钟时间戳仅证明标称区间，并非行情完整性或历史时点资格。")}</p>
           </div>
           <section style={{ ...container, display: "flex", gap: 22, flexWrap: "wrap", alignItems: "center" }}>
             <div><div style={label}>{t.scope}</div><strong>{report.coverage.alignedBars.toLocaleString()}</strong></div>
@@ -229,7 +229,7 @@ export default function RSPivotStudy() {
             <p style={{ fontSize: 12, color: "var(--muted)", marginBottom: 12 }}>{t.explain}</p>
             <div style={{ overflowX: "auto", maxWidth: "100%" }}><table style={{ width: "100%", borderCollapse: "collapse" }}>
               <thead><tr><th style={th}>{t.arm}</th><th style={th}>{t.n}</th><th style={th}>{t.wr}</th>
-                <th style={th}>{t.avg}</th><th style={th}>{t.pf}</th><th style={th}>{t.earlier}</th><th style={th}>{t.recent}</th><th style={th}>{t.censored}</th><th style={th}>{c("Gap unresolved", "缺口未结")}</th></tr></thead>
+                <th style={th}>{t.avg}</th><th style={th}>{t.pf}</th><th style={th}>{t.earlier}</th><th style={th}>{t.recent}</th><th style={th}>{t.censored}</th><th style={th}>{pick("Gap unresolved", "缺口未结")}</th></tr></thead>
               <tbody>{STUDY_ARMS.map(arm => {
                 const row = report.results.find(r => r.arm === arm);
                 if (!row) return null;
@@ -241,45 +241,45 @@ export default function RSPivotStudy() {
             <p style={{ fontSize: 12, color: "var(--warn)", marginTop: 10 }}>{t.sparse}</p>
           </section>
           <section style={container}>
-            <h2 style={{fontSize:14,fontWeight:700}}>{c("Candidate accounting", "候选记账")}</h2>
+            <h2 style={{fontSize:14,fontWeight:700}}>{pick("Candidate accounting", "候选记账")}</h2>
             <div style={{overflowX:"auto",maxWidth:"100%"}}><table style={{width:"100%",borderCollapse:"collapse"}}>
-              <thead><tr>{[t.arm,c("Candidates","候选"),c("RS excluded","相对强度剔除"),c("Risk rejected","风险拒绝"),c("Missed entry","错过入场"),c("Overlap excluded","重叠剔除"),c("Unresolved gaps","缺口未结"),c("Right censored","右删失")].map(h=><th key={h} style={th}>{h}</th>)}</tr></thead>
+              <thead><tr>{[t.arm,pick("Candidates","候选"),pick("RS excluded","相对强度剔除"),pick("Risk rejected","风险拒绝"),pick("Missed entry","错过入场"),pick("Overlap excluded","重叠剔除"),pick("Unresolved gaps","缺口未结"),pick("Right censored","右删失")].map(h=><th key={h} style={th}>{h}</th>)}</tr></thead>
               <tbody>{report.results.map(r=><tr key={r.arm}><th scope="row" style={td}>{ARM_LABELS[r.arm][zh?1:0]}</th>{[r.candidates,r.filteredRS,r.rejectedRisk,r.missedEntry,r.overlapping,r.unresolved,r.censored].map((n,i)=><td key={i} style={td}>{n}</td>)}</tr>)}</tbody>
             </table></div>
-            <p style={{fontSize:12,color:"var(--warn)"}}>{c("Metrics describe resolved trades only; excluded and unresolved candidates remain in the denominator disclosure. These controls are exploratory, not sector/regime matched scientific controls.", "指标仅描述已结模拟交易；剔除与未结候选保留于分母披露。这些对照仅供探索，并非行业或市场状态匹配的科学对照。")}</p>
+            <p style={{fontSize:12,color:"var(--warn)"}}>{pick("Metrics describe resolved trades only; excluded and unresolved candidates remain in the denominator disclosure. These controls are exploratory, not sector/regime matched scientific controls.", "指标仅描述已结模拟交易；剔除与未结候选保留于分母披露。这些对照仅供探索，并非行业或市场状态匹配的科学对照。")}</p>
           </section>
           <section style={{...container,minWidth:0}}>
-            <h2 style={{fontSize:14,fontWeight:700}}>{c("Historical chart and trade replay", "历史图表与交易重放")}</h2>
+            <h2 style={{fontSize:14,fontWeight:700}}>{pick("Historical chart and trade replay", "历史图表与交易重放")}</h2>
             <div style={{display:"flex",flexWrap:"wrap",gap:12,margin:"12px 0"}}>
               <label style={label}>{t.arm}<select aria-label={t.arm} style={field} value={selectedArm} onChange={e=>{setSelectedArm(e.target.value);setSelectedTrade("");}}>{STUDY_ARMS.map(a=><option key={a} value={a}>{ARM_LABELS[a][zh?1:0]}</option>)}</select></label>
-              <label style={label}>{c("Historical trade", "历史交易")}<select aria-label={c("Historical trade", "历史交易")} style={field} value={trade?String(trade.signalBarAt):""} onChange={e=>setSelectedTrade(e.target.value)}>{recent.length?recent.map(x=><option key={x.signalBarAt} value={String(x.signalBarAt)}>{dt(x.signalAt)} · {fmt(x.rNet)}R</option>):<option value="">{t.insufficient}</option>}</select></label>
+              <label style={label}>{pick("Historical trade", "历史交易")}<select aria-label={pick("Historical trade", "历史交易")} style={field} value={trade?String(trade.signalBarAt):""} onChange={e=>setSelectedTrade(e.target.value)}>{recent.length?recent.map(x=><option key={x.signalBarAt} value={String(x.signalBarAt)}>{dt(x.signalAt)} · {fmt(x.rNet)}R</option>):<option value="">{t.insufficient}</option>}</select></label>
             </div>
             <RSPivotChart key={`${selectedArm}-${trade?.signalBarAt ?? "latest"}`} bars={chartBars} report={report} trade={trade} />
             {trade && <div style={{fontSize:12,color:"var(--muted)",display:"grid",gap:6,marginTop:12}}>
-              <div>{c("Pivot confirmation close", "枢轴确认收盘")} {trade.confirmedAt?dt(trade.confirmedAt):"—"} → {c("Reclaim close", "收复收盘")} {dt(trade.signalAt)}</div>
-              <div>{c("Next permitted open", "下个允许开盘")} {dt(trade.entryAt)} · {fmt(trade.entry)} → {c("Exit observed", "离场观察")} {dt(trade.exitAt)} · {fmt(trade.exit)}</div>
-              <div>{c("Intrabar exit time unknown unless filled at the open; charts attach that observation to the exit candle.", "除开盘成交外，根内离场时刻未知；图表将该观察附于离场K线。")}</div>
-              <div>{c("Gross / assumed costs / net R; conservative MFE / MAE", "毛收益 / 假设成本 / 净R；保守最大有利 / 不利波动")} {fmt(trade.grossR)} / {fmt(trade.costsR)} / {fmt(trade.rNet)}R · {fmt(trade.mfeR)} / {fmt(trade.maeR)}R</div>
+              <div>{pick("Pivot confirmation close", "枢轴确认收盘")} {trade.confirmedAt?dt(trade.confirmedAt):"—"} → {pick("Reclaim close", "收复收盘")} {dt(trade.signalAt)}</div>
+              <div>{pick("Next permitted open", "下个允许开盘")} {dt(trade.entryAt)} · {fmt(trade.entry)} → {pick("Exit observed", "离场观察")} {dt(trade.exitAt)} · {fmt(trade.exit)}</div>
+              <div>{pick("Intrabar exit time unknown unless filled at the open; charts attach that observation to the exit candle.", "除开盘成交外，根内离场时刻未知；图表将该观察附于离场K线。")}</div>
+              <div>{pick("Gross / assumed costs / net R; conservative MFE / MAE", "毛收益 / 假设成本 / 净R；保守最大有利 / 不利波动")} {fmt(trade.grossR)} / {fmt(trade.costsR)} / {fmt(trade.rNet)}R · {fmt(trade.mfeR)} / {fmt(trade.maeR)}R</div>
             </div>}
             {!trade && <p style={{fontSize:12,color:"var(--muted)"}}>{t.insufficient}</p>}
-            <p style={{fontSize:12,color:"var(--muted)"}}>{c("Latest completed historical close / confirmed swing level:", "最近已完成历史收盘 / 已确认摆动价位：")} {report.lastCompleted?dt(report.lastCompleted.closeAt):"—"} · {fmt(report.lastCompleted?.close??null)} / {fmt(report.lastCompleted?.pivotPrice??null)}. {c("A historical level, not a live entry recommendation.", "历史价位，不是实时入场建议。")}</p>
+            <p style={{fontSize:12,color:"var(--muted)"}}>{pick("Latest completed historical close / confirmed swing level:", "最近已完成历史收盘 / 已确认摆动价位：")} {report.lastCompleted?dt(report.lastCompleted.closeAt):"—"} · {fmt(report.lastCompleted?.close??null)} / {fmt(report.lastCompleted?.pivotPrice??null)}. {pick("A historical level, not a live entry recommendation.", "历史价位，不是实时入场建议。")}</p>
           </section>
           <section style={container}>
-            <h2 style={{ fontSize: 14, fontWeight: 700, marginBottom: 8 }}>{c("Historical trades for selected arm", "所选组别的历史交易")}</h2>
+            <h2 style={{ fontSize: 14, fontWeight: 700, marginBottom: 8 }}>{pick("Historical trades for selected arm", "所选组别的历史交易")}</h2>
             {recent.length ? <div style={{ overflowX: "auto", maxWidth: "100%" }}><table style={{ width: "100%", borderCollapse: "collapse" }}>
               <thead><tr><th style={th}>{t.at}</th><th style={th}>{t.entry}</th><th style={th}>{t.stop}</th><th style={th}>{t.exit}</th><th style={th}>{t.reason}</th><th style={th}>{t.result}</th></tr></thead>
               <tbody>{recent.map(x => <tr key={String(x.signalAt)}><td style={td}>{dt(x.signalAt)}</td>
                 <td style={td}>{fmt(x.entry)}</td><td style={td}>{fmt(x.stop)}</td>
-                <td style={td}>{fmt(x.exit)}</td><td style={td}>{x.exitReason === "stop" ? c("Stop", "止损") : x.exitReason === "target" ? c("Target", "目标") : c("Max hold", "最长持有")}</td><td style={td}>{fmt(x.rNet)}R</td></tr>)}</tbody>
+                <td style={td}>{fmt(x.exit)}</td><td style={td}>{x.exitReason === "stop" ? pick("Stop", "止损") : x.exitReason === "target" ? pick("Target", "目标") : pick("Max hold", "最长持有")}</td><td style={td}>{fmt(x.rNet)}R</td></tr>)}</tbody>
             </table></div> : <p style={{ fontSize: 12, color: "var(--muted)" }}>{t.insufficient}</p>}
           </section>
           <section style={{ ...container, fontSize: 12, color: "var(--muted)" }}>
             <strong style={{ color: "var(--text)" }}>{t.source}</strong>
-            <p>{c("Equity / benchmark construction", "股票 / 基准构造")}：{sources?.symbol.source_evidence?.construction ?? "unknown"} / {sources?.benchmark.source_evidence?.construction ?? "unknown"}</p>
-            <p>{c("Instrument identity, corporate actions, rights and PIT availability: unqualified. Historical corrections and ticker reuse may invalidate results.", "证券身份、公司行动、权利及历史时点可用性：未合格。历史修正与代码复用可能使结果失效。")}</p>
-            <p>{c("Returned-input SHA-256 (stock / benchmark)", "返回输入SHA-256（股票 / 基准）")}：<span style={{overflowWrap:"anywhere"}}>{runMeta?.inputHashes.join(" / ")}</span></p>
+            <p>{pick("Equity / benchmark construction", "股票 / 基准构造")}：{sources?.symbol.source_evidence?.construction ?? "unknown"} / {sources?.benchmark.source_evidence?.construction ?? "unknown"}</p>
+            <p>{pick("Instrument identity, corporate actions, rights and PIT availability: unqualified. Historical corrections and ticker reuse may invalidate results.", "证券身份、公司行动、权利及历史时点可用性：未合格。历史修正与代码复用可能使结果失效。")}</p>
+            <p>{pick("Returned-input SHA-256 (stock / benchmark)", "返回输入SHA-256（股票 / 基准）")}：<span style={{overflowWrap:"anywhere"}}>{runMeta?.inputHashes.join(" / ")}</span></p>
             <p>{t.disclaimer}</p>
-            <p>{c("Interactive parameter choices contaminate any holdout; no scientific edge verdict exists. Export preserves the engine revision, cutoff, parameters, source evidence and input hashes for the existing Macro evaluator.", "交互式参数选择会污染留出样本；尚无科学优势结论。导出保留引擎版本、截点、参数、来源证据与输入哈希，供现有Macro评估所有者复现。")}</p>
+            <p>{pick("Interactive parameter choices contaminate any holdout; no scientific edge verdict exists. Export preserves the engine revision, cutoff, parameters, source evidence and input hashes for the existing Macro evaluator.", "交互式参数选择会污染留出样本；尚无科学优势结论。导出保留引擎版本、截点、参数、来源证据与输入哈希，供现有Macro评估所有者复现。")}</p>
           </section>
         </>}
       </div>
