@@ -100,6 +100,26 @@ describe("Payoff Lab — manual expiration plan", () => {
     expect(host.querySelector('svg[aria-label="Expiration payoff by underlying price"]')).toBeNull();
   });
 
+  it.each(["", "0", "-1", "1.5", "100001", "10000000000000000"])("highlights invalid quantity %s and removes the calculated payoff", async (value) => {
+    await render();
+    const quantity = field("Qty 1");
+    await type(quantity, value);
+    expect(quantity.getAttribute("aria-invalid")).toBe("true");
+    expect(host.querySelector('[role="alert"]')?.textContent).toContain("quantity must be a positive safe integer");
+    expect(host.querySelector('svg[aria-label="Expiration payoff by underlying price"]')).toBeNull();
+  });
+
+  it("accepts the maximum supported quantity and clears its invalid state after correction", async () => {
+    await render();
+    const quantity = field("Qty 1");
+    await type(quantity, "100001");
+    await type(quantity, "100000");
+    expect(quantity.max).toBe("100000");
+    expect(quantity.getAttribute("aria-invalid")).toBe("false");
+    expect(host.querySelector('[role="alert"]')).toBeNull();
+    expect(host.querySelector('svg[aria-label="Expiration payoff by underlying price"]')).not.toBeNull();
+  });
+
   it("adds and removes a leg without an external write", async () => {
     await render();
     const add = [...host.querySelectorAll<HTMLButtonElement>("button")].find((button) => button.textContent === "Add leg")!;

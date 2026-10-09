@@ -267,7 +267,7 @@ export function PayoffLab() {
                 {legs.map((leg, index) => {
                   const strikeBad = !Number.isFinite(leg.strike) || leg.strike <= 0;
                   const premiumBad = !Number.isFinite(leg.premium) || leg.premium < 0;
-                  const qtyBad = !Number.isSafeInteger(leg.quantity) || leg.quantity < 1;
+                  const qtyBad = !Number.isSafeInteger(leg.quantity) || leg.quantity < 1 || leg.quantity > 100_000;
                   return (
                     <tr key={leg.id} data-leg={leg.id}>
                       <td>
@@ -284,7 +284,7 @@ export function PayoffLab() {
                       </td>
                       <td><input className={`${s.input}${strikeBad ? ` ${s.inputInvalid}` : ""}`} aria-label={`${c.strike} ${index + 1}`} type="number" min="0" step="0.5" value={editableValue(leg.strike)} onChange={(event) => update(leg.id, { strike: parseNumber(event.target.value) })} /></td>
                       <td><input className={`${s.input}${premiumBad ? ` ${s.inputInvalid}` : ""}`} aria-label={`${c.premium} ${index + 1}`} type="number" min="0" step="0.05" value={editableValue(leg.premium)} onChange={(event) => update(leg.id, { premium: parseNumber(event.target.value) })} /></td>
-                      <td><input className={`${s.input}${qtyBad ? ` ${s.inputInvalid}` : ""}`} aria-label={`${c.qty} ${index + 1}`} type="number" min="1" step="1" value={editableValue(leg.quantity)} onChange={(event) => update(leg.id, { quantity: parseNumber(event.target.value) })} /></td>
+                      <td><input className={`${s.input}${qtyBad ? ` ${s.inputInvalid}` : ""}`} aria-label={`${c.qty} ${index + 1}`} aria-invalid={qtyBad} type="number" min="1" max="100000" step="1" value={editableValue(leg.quantity)} onChange={(event) => update(leg.id, { quantity: parseNumber(event.target.value) })} /></td>
                       <td><button type="button" className={s.iconButton} aria-label={`${c.remove} ${index + 1}`} onClick={() => remove(leg.id)}>×</button></td>
                     </tr>
                   );
