@@ -1,0 +1,423 @@
+import { describe, it, expect } from "vitest";
+import { detectGapZones, gapZonesAsOf, type GapBar } from "@/lib/gapZones";
+import {
+  eodSnapshotKnown,
+  replayChipAnchor,
+  replayDayChangePct,
+  replayEarlyDotAdmission,
+  replayReceiptAdmission,
+  replaySignalAdmission,
+  replayWarningAdmission,
+  replayExitFor,
+  replayExitOnScreen,
+  recordReplayAxis,
+  replayAxisOf,
+  replayVisibleCount,
+  type ReplayCutoff,
+} from "@/lib/replayContract";
+import { anchorSignal } from "@/lib/signalVerdict";
+import { deriveOptLevels } from "@/lib/optionsLevels";
+import { runPine } from "@/lib/pine-engine";
+import { ORACLE_V1_PINE } from "@/lib/pine";
+import nvdaDoc from "@/public/data/NVDA.json";
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Replay lookahead: everything drawn over a replayed chart must be knowable at the
+// replay date. The candles and studies were already sliced; these are the consumers
+// that read their OWN data instead of the sliced bars, and so painted the future
+// over a historical chart:
+//
+//   • Gap Zones scanned the FULL daily history for fills, so a gap still open at the
+//     replay date was drawn faded ("filled") because of a bar months later;
+//   • Options Levels drew today's dealer walls on a chart rewound to a past date;
+//   • a RETRO projection — "the rule in force since 2026-08-10 would have entered" —
+//     was painted on charts rewound to before that rule existed.
+// ─────────────────────────────────────────────────────────────────────────────
+
+type Row = [string, number, number, number, number, number];
+const NVDA: GapBar[] = (nvdaDoc as unknown as { bars: Row[] }).bars.map((b) => ({ time: b[0], h: b[2], l: b[3] }));
+const THR = 0.003;   // the Gap Zones default minGapPct (0.3%)
+const knownAt = (date: string) => NVDA.filter((b) => (b.time as string) <= date).length;
+
+describe("Gap Zones as of a replay date", () => {
+  const all = detectGapZones(NVDA, THR);
+
+  it("a gap still open at the replay date is not drawn as filled by a later bar", () => {
+    // NVDA fixture: 2025-11-04 gapped down (high 203.97 under the prior low 205.56). Nothing
+    // traded back up into that band until 2026-04-24. Replayed to 2026-03-04 it was OPEN.
+    const known = knownAt("2026-03-04");
+    expect(known).toBe(1176);
+    const gap = all.find((g) => g.date === "2025-11-04")!;
+    expect(gap).toMatchObject({ type: "down", lo: 203.9699, hi: 205.56, fillDate: "2026-04-24" });
+    expect(gapZonesAsOf(all, known).find((g) => g.date === "2025-11-04")?.fill).toBeNull();
+    expect(gapZonesAsOf(all, NVDA.length).find((g) => g.date === "2025-11-04")?.fill).toBe("2026-04-24");
+  });
+
+  it("a gap that forms after the replay date does not exist yet", () => {
+    const known = knownAt("2026-03-04");
+    const late = all.filter((g) => g.date > "2026-03-04");
+    expect(late.length).toBeGreaterThan(0);
+    const view = gapZonesAsOf(all, known);
+    expect(view.some((g) => g.date > "2026-03-04")).toBe(false);
+    for (const g of view) if (g.fill) expect(g.fill <= "2026-03-04").toBe(true);
+  });
+
+  it("matches, at every cutoff, what a chart holding only the known bars computes", () => {
+    // The property that rules out lookahead: knowing more history cannot change what was
+    // knowable. Mid-week, month-end and warmup-floor cutoffs included.
+    for (const known of [21, 200, 511, 777, 1000, 1176, 1212, 1254, NVDA.length]) {
+      const prefix = NVDA.slice(0, known);
+      expect(gapZonesAsOf(all, known), `cutoff ${known}`).toEqual(gapZonesAsOf(detectGapZones(prefix, THR), known));
+    }
+  });
+
+  it("the open/filled split differs between the replay date and today on this fixture", () => {
+    const open = (k: number) => gapZonesAsOf(all, k).filter((g) => !g.fill).length;
+    expect(open(NVDA.length)).toBe(19);
+    expect(open(knownAt("2026-03-04"))).toBe(17);
+  });
+
+  it("detects gaps up and down, honours the size floor and finds the first fill", () => {
+    const bars: GapBar[] = [
+      { time: "2024-01-02", h: 10, l: 9 },
+      { time: "2024-01-03", h: 12, l: 11 },     // up gap [10, 11]
+      { time: "2024-01-04", h: 13, l: 11.5 },
+      { time: "2024-01-05", h: 11.8, l: 9.5 },  // fills the up gap (low ≤ 10)
+      { time: "2024-01-08", h: 9.4, l: 8.8 },   // down gap [9.4, 9.5] — 1.05%
+    ];
+    const gaps = detectGapZones(bars, 0);
+    expect(gaps.map((g) => [g.date, g.type, g.lo, g.hi, g.fillDate])).toEqual([
+      ["2024-01-03", "up", 10, 11, "2024-01-05"],
+      ["2024-01-08", "down", 9.4, 9.5, null],
+    ]);
+    expect(detectGapZones(bars, 0.05).map((g) => g.date)).toEqual(["2024-01-03"]);
+    expect(gapZonesAsOf(gaps, 4).map((g) => g.fill)).toEqual(["2024-01-05"]);
+    expect(gapZonesAsOf(gaps, 3)).toEqual([{ date: "2024-01-03", type: "up", lo: 10, hi: 11, fill: null }]);
+  });
+});
+
+describe("Options Levels are an end-of-day snapshot dated by their newest input", () => {
+  const session = (date: string): ReplayCutoff => ({ clock: "session", at: Date.parse(`${date}T00:00:00Z`) });
+
+  it("live charts are unaffected", () => {
+    expect(eodSnapshotKnown("2026-06-26", null)).toBe(true);
+    expect(eodSnapshotKnown(null, null)).toBe(true);
+  });
+
+  it("a snapshot after the replay date is not knowable; one on or before it is", () => {
+    const cut = session("2026-03-04");
+    expect(eodSnapshotKnown("2026-06-26", cut)).toBe(false);
+    expect(eodSnapshotKnown("2026-06-26T16:00:00-04:00", cut)).toBe(false);
+    expect(eodSnapshotKnown("2026-03-04", cut)).toBe(true);
+    expect(eodSnapshotKnown("2026-03-03", cut)).toBe(true);
+    // an undated snapshot cannot be placed before anything
+    expect(eodSnapshotKnown(null, cut)).toBe(false);
+  });
+
+  it("on the intraday clock a session's EOD snapshot is known only after that session", () => {
+    const at = (iso: string): ReplayCutoff => ({ clock: "intraday", at: Date.parse(iso) });
+    expect(eodSnapshotKnown("2026-03-04", at("2026-03-04T15:00:00Z"))).toBe(false);
+    expect(eodSnapshotKnown("2026-03-04", at("2026-03-05T14:30:00Z"))).toBe(true);
+  });
+
+  it("the derivation reports the NEWEST contributing date beside the oldest", () => {
+    const gex = { root: "NVDA", asof: "2026-06-26T16:00:00-04:00", spot_ref: 150, call_wall: 160, put_wall: 140 };
+    const moves = { root: "NVDA", asof: "2026-06-24", expected_move: { lo: 145, hi: 155 } };
+    const r = deriveOptLevels(gex, moves, "NVDA");
+    expect(r.asofDate).toBe("2026-06-24");
+    expect(r.newestDate).toBe("2026-06-26");
+    expect(deriveOptLevels(null, null, "NVDA").newestDate).toBeNull();
+    // an undated contributor leaves the snapshot undated at both ends
+    expect(deriveOptLevels({ ...gex, asof: "n/a" }, moves, "NVDA").newestDate).toBeNull();
+  });
+});
+
+describe("signal marks under replay", () => {
+  const retro = { ts: "2026-03-02", type: "BUY", retro_override: true, retro_ctx: { name: "Semis" } };
+
+  it("live: unchanged — date horizon only, retro projection shown", () => {
+    expect(replaySignalAdmission(retro, "2026-08-12", false)).toEqual({ show: true, retro: true });
+    expect(replaySignalAdmission({ ts: "2026-08-13" }, "2026-08-12", false)).toEqual({ show: false, retro: false });
+    // live keeps the chart-coordinate horizon it always had
+    expect(replaySignalAdmission({ ts: "2026-03-03", known_ts: "2026-03-06" }, "2026-03-04", false).show).toBe(true);
+  });
+
+  it("a retro projection is not painted on a chart rewound to before its rule existed", () => {
+    expect(replaySignalAdmission(retro, "2026-03-04", true)).toEqual({ show: true, retro: false });
+    // after the rule date the projection was knowable
+    expect(replaySignalAdmission(retro, "2026-08-12", true)).toEqual({ show: true, retro: true });
+  });
+
+  it("a signal only observable after the replay date is not shown", () => {
+    const late = { ts: "2026-03-03", known_ts: "2026-03-06", type: "BUY" };
+    expect(replaySignalAdmission(late, "2026-03-04", true).show).toBe(false);
+    expect(replaySignalAdmission(late, "2026-03-06", true).show).toBe(true);
+    expect(replaySignalAdmission({ ts: "2026-03-05" }, "2026-03-04", true).show).toBe(false);
+    expect(replaySignalAdmission({ ts: 7 }, "2026-03-04", true).show).toBe(false);
+  });
+
+  it("the client-Pine fallback is prefix-stable: later bars never move or add an earlier mark", () => {
+    // The fallback runs once on the full daily history and is filtered to the replay date.
+    // That is only lookahead-free if what it marks on or before any date does not depend on
+    // bars after it — checked here on the shipped fixture at mid-week and month-end cutoffs.
+    const bars = (nvdaDoc as unknown as { bars: Row[] }).bars.map((b) => ({ time: b[0], o: b[1], h: b[2], l: b[3], c: b[4], v: b[5] }));
+    const marks = (rows: typeof bars) => {
+      const out = runPine(ORACLE_V1_PINE, rows as never, { timeframe: "D", symbol: "NVDA" });
+      expect(out.ok).toBe(true);
+      return out.result!.shapes
+        .filter((s) => s.text === "★" || s.text === "CUT" || s.text === "RE-BUY")
+        .map((s) => `${String(s.time)}|${s.text}|${s.position}`);
+    };
+    const full = marks(bars);
+    expect(full.length).toBeGreaterThan(10);
+    for (const end of ["2023-05-24", "2024-07-31", "2025-04-09", "2026-03-04"]) {
+      const k = bars.filter((b) => b.time <= end).length;
+      const prefix = marks(bars.slice(0, k));
+      expect(prefix, `cutoff ${end}`).toEqual(full.filter((m) => m.slice(0, 10) <= end));
+    }
+  }, 60_000);
+});
+
+describe("Prophet candidate receipts under replay", () => {
+  // The receipt is dated by the day the board surfaced it; its entry fills on the next open and
+  // its return is marked to market through the ledger's latest pricing date — here, long after.
+  const receipt = {
+    surfaced_at: "2025-03-03", entry_date: "2025-03-04", entry_basis: "next_open", entry_price: 201.25,
+    return_pct: 37.5, source_as_of: "2026-06-26", priced_through: "2026-06-26",
+  };
+
+  it("live: unchanged — surfacing-date horizon, recorded entry and return", () => {
+    expect(replayReceiptAdmission(receipt, "2026-08-12", false))
+      .toEqual({ show: true, ts: "2025-03-03", entryPrice: 201.25, returnPct: 37.5 });
+    expect(replayReceiptAdmission(receipt, "2025-03-02", false).show).toBe(false);
+    // a live chart shows the ledger's figures whatever its last session is
+    expect(replayReceiptAdmission(receipt, "2025-03-03", false))
+      .toEqual({ show: true, ts: "2025-03-03", entryPrice: 201.25, returnPct: 37.5 });
+  });
+
+  it("a return priced after the replay date is withheld; the receipt itself is not", () => {
+    expect(replayReceiptAdmission(receipt, "2025-07-15", true))
+      .toEqual({ show: true, ts: "2025-03-03", entryPrice: 201.25, returnPct: null });
+    expect(replayReceiptAdmission(receipt, "2026-06-25", true).returnPct).toBeNull();
+    // without a pricing frontier the ledger's as-of stands in; with neither, it cannot be placed
+    const asOfOnly = { ...receipt, priced_through: undefined };
+    expect(replayReceiptAdmission(asOfOnly, "2026-06-25", true).returnPct).toBeNull();
+    expect(replayReceiptAdmission(asOfOnly, "2026-06-26", true).returnPct).toBe(37.5);
+    expect(replayReceiptAdmission({ ...asOfOnly, source_as_of: undefined }, "2026-08-12", true).returnPct).toBeNull();
+  });
+
+  it("an entry filled after the replay date is withheld, so the mark sits on the bar instead", () => {
+    // replayed to the surfacing day: the next-open fill has not happened yet
+    expect(replayReceiptAdmission(receipt, "2025-03-03", true))
+      .toEqual({ show: true, ts: "2025-03-03", entryPrice: null, returnPct: null });
+    expect(replayReceiptAdmission(receipt, "2025-03-04", true).entryPrice).toBe(201.25);
+    // older ledgers carry no entry date: a next-session basis fills on the session after surfacing…
+    const undated = { ...receipt, entry_date: null };
+    expect(replayReceiptAdmission(undated, "2025-03-03", true).entryPrice).toBeNull();
+    expect(replayReceiptAdmission(undated, "2025-03-04", true).entryPrice).toBe(201.25);
+    expect(replayReceiptAdmission({ ...undated, entry_basis: "next_session_close" }, "2025-03-04", true).entryPrice).toBe(201.25);
+    // …and an unknown basis cannot be placed before any replay date
+    expect(replayReceiptAdmission({ ...undated, entry_basis: undefined }, "2026-08-12", true).entryPrice).toBeNull();
+  });
+
+  it("the surfacing session never carries the fill, even when entry_date names that day", () => {
+    // The review's counterexample: entry_date written as the surfacing day, entry_price the
+    // next-open fill. Every ledger basis fills on a LATER session (US next_session_close,
+    // CN t1_*), so a chart replayed to the surfacing day has not seen that fill yet.
+    const sameDay = { ...receipt, entry_date: "2025-03-03" };
+    expect(replayReceiptAdmission(sameDay, "2025-03-03", true))
+      .toEqual({ show: true, ts: "2025-03-03", entryPrice: null, returnPct: null });
+    expect(replayReceiptAdmission({ ...sameDay, entry_basis: undefined }, "2025-03-03", true).entryPrice).toBeNull();
+    // one session later the fill is on the chart
+    expect(replayReceiptAdmission(sameDay, "2025-03-04", true).entryPrice).toBe(201.25);
+    // a live chart shows the entry as recorded
+    expect(replayReceiptAdmission(sameDay, "2025-03-03", false).entryPrice).toBe(201.25);
+  });
+
+  it("both are shown once the replay date reaches the pricing date", () => {
+    expect(replayReceiptAdmission(receipt, "2026-06-26", true))
+      .toEqual({ show: true, ts: "2025-03-03", entryPrice: 201.25, returnPct: 37.5 });
+  });
+
+  it("an unsurfaced, undated or malformed receipt shows nothing it cannot back", () => {
+    expect(replayReceiptAdmission(receipt, "2025-02-28", true).show).toBe(false);
+    expect(replayReceiptAdmission({}, "2026-08-12", false).show).toBe(false);
+    expect(replayReceiptAdmission(null, "2026-08-12", false).show).toBe(false);
+    // the entry date stands in for a missing surfacing date, as it always has
+    expect(replayReceiptAdmission({ ...receipt, surfaced_at: undefined }, "2025-03-04", true))
+      .toEqual({ show: true, ts: "2025-03-04", entryPrice: 201.25, returnPct: null });
+    const junk = { ...receipt, entry_price: "201.25", return_pct: Number.NaN };
+    expect(replayReceiptAdmission(junk, "2026-08-12", false)).toEqual({ show: true, ts: "2025-03-03", entryPrice: null, returnPct: null });
+  });
+});
+
+describe("GC v2 side channels under replay", () => {
+  const sessions = ["2026-03-02", "2026-03-03", "2026-03-04", "2026-03-05", "2026-03-06", "2026-03-09"];
+
+  it("an early dot is dated by its 3D bar's open and known only when that bar closes", () => {
+    // live: the date horizon it always had
+    expect(replayEarlyDotAdmission("2026-03-03", sessions, "2026-03-03", false)).toBe(true);
+    expect(replayEarlyDotAdmission("2026-03-04", sessions, "2026-03-03", false)).toBe(false);
+    // replay: the bar that opened on 03-03 closes on its third session, 03-05
+    expect(replayEarlyDotAdmission("2026-03-03", sessions, "2026-03-03", true)).toBe(false);
+    expect(replayEarlyDotAdmission("2026-03-03", sessions, "2026-03-04", true)).toBe(false);
+    expect(replayEarlyDotAdmission("2026-03-03", sessions, "2026-03-05", true)).toBe(true);
+    // a bar still developing at the end of the history is known on the last session there is
+    expect(replayEarlyDotAdmission("2026-03-06", sessions, "2026-03-06", true)).toBe(false);
+    expect(replayEarlyDotAdmission("2026-03-06", sessions, "2026-03-09", true)).toBe(true);
+    // a dot that is not a session of the chart cannot be placed before any replay date
+    expect(replayEarlyDotAdmission("2026-03-07", sessions, "2026-03-09", true)).toBe(false);
+    expect(replayEarlyDotAdmission(7, sessions, "2026-03-09", false)).toBe(false);
+  });
+
+  it("a warning only observable after the replay date is withheld", () => {
+    const late = { ts: "2026-03-03", kind: "confirm", known_ts: "2026-03-06" };
+    expect(replayWarningAdmission(late, "2026-03-04", false)).toBe(true);
+    expect(replayWarningAdmission(late, "2026-03-04", true)).toBe(false);
+    expect(replayWarningAdmission(late, "2026-03-06", true)).toBe(true);
+    // the emitter's rows are decided on the daily close they are dated by
+    expect(replayWarningAdmission({ ts: "2026-03-03", kind: "arm" }, "2026-03-03", true)).toBe(true);
+    expect(replayWarningAdmission({ ts: "2026-03-05", kind: "arm" }, "2026-03-04", true)).toBe(false);
+    expect(replayWarningAdmission(null, "2026-03-04", false)).toBe(false);
+  });
+});
+
+describe("the status line's Day change under replay", () => {
+  const daily = [
+    { time: "2026-03-02", c: 100 }, { time: "2026-03-03", c: 102 },
+    { time: "2026-03-04", c: 99.96 }, { time: "2026-03-05", c: 150 },
+  ];
+
+  it("is the replayed session against the one before it, from the chart's own bars", () => {
+    expect(replayDayChangePct(daily, "2026-03-03")).toBeCloseTo(2, 10);
+    expect(replayDayChangePct(daily, "2026-03-04")).toBeCloseTo(-2, 10);
+    // never a later session's move: the +50% day is after this replay date
+    expect(replayDayChangePct(daily, "2026-03-04")).toBeLessThan(0);
+    expect(replayDayChangePct(daily, "2026-03-05")).toBeCloseTo(50.06, 2);
+  });
+
+  it("has no answer without a session before it, or without a usable close", () => {
+    expect(replayDayChangePct(daily, "2026-03-02")).toBeNull();
+    expect(replayDayChangePct(daily, "2026-03-01")).toBeNull();
+    expect(replayDayChangePct([], "2026-03-04")).toBeNull();
+    expect(replayDayChangePct([{ time: "2026-03-02", c: 0 }, { time: "2026-03-03", c: 1 }], "2026-03-03")).toBeNull();
+    expect(replayDayChangePct([{ time: 1, c: 1 }, { time: 2, c: 2 }], "2026-03-03")).toBeNull();
+  });
+});
+
+describe("an empty chart cannot keep Replay armed", () => {
+  const cut: ReplayCutoff = { clock: "session", at: Date.parse("2026-03-04T00:00:00Z") };
+
+  it("a chart measured empty on the replay's clock ends Replay", () => {
+    expect(replayExitOnScreen(cut, "D", replayAxisOf([], "D"))).toBe("range");
+    expect(replayExitOnScreen(cut, "W", replayAxisOf([], "W"))).toBe("range");
+  });
+
+  it("an unmeasured chart still decides nothing; clocks and ranges are unchanged", () => {
+    expect(replayExitOnScreen(cut, "D", undefined)).toBeNull();
+    expect(replayExitOnScreen(cut, "1h", undefined)).toBe("clock");
+    expect(replayExitOnScreen(null, "D", replayAxisOf([], "D"))).toBeNull();
+    const rows = NVDA.map((b) => ({ time: b.time }));
+    expect(replayExitOnScreen(cut, "D", replayAxisOf(rows, "D"))).toBeNull();
+    expect(replayExitOnScreen(cut, "D", replayAxisOf(rows.slice(1170), "D"))).toBe("range");
+    // the pure contract keeps its documented reading of an empty axis
+    expect(replayExitFor(cut, "W", replayAxisOf([], "W"))).toBeNull();
+    expect(replayVisibleCount(rows, "D", cut)).toBe(1176);
+  });
+});
+
+describe("the per-chart axis map stays bounded", () => {
+  const axis = (n: number) => replayAxisOf(NVDA.slice(0, n).map((b) => ({ time: b.time })), "D");
+
+  it("an unchanged report keeps the same map, so the shell does not re-render", () => {
+    const m = recordReplayAxis({}, "NVDA|D", axis(30), new Set(["NVDA|D"]));
+    expect(recordReplayAxis(m, "NVDA|D", axis(30), new Set(["NVDA|D"]))).toBe(m);
+    expect(recordReplayAxis(m, "NVDA|D", axis(31), new Set(["NVDA|D"]))).not.toBe(m);
+  });
+
+  it("visiting many symbols does not keep every one's axis for the life of the page", () => {
+    let m: ReturnType<typeof recordReplayAxis> = {};
+    for (let i = 0; i < 40; i++) {
+      const key = `S${i}|D`;
+      m = recordReplayAxis(m, key, axis(30 + i), new Set([key]));
+      expect(Object.keys(m).length).toBeLessThanOrEqual(1 + 4 + 1);
+      expect(m[key]).toBeDefined();
+    }
+    // a chart on screen is never dropped, and the reporter is kept even before the layout names it
+    m = recordReplayAxis(m, "NEW|W", axis(25), new Set(["S39|D"]));
+    expect(m["S39|D"]).toBeDefined();
+    expect(m["NEW|W"]).toBeDefined();
+  });
+});
+
+
+// The Golden Oracle chip names ONE verdict for a chart. Under Replay it must admit exactly the
+// signals the chart's markers may show, on the markers' own horizon — else the chip and the marks
+// on the same replayed chart disagree about what was knowable.
+describe("Golden Oracle replay chip knowledge admission", () => {
+  const signals = [
+    { ts: "2026-03-01", known_ts: "2026-03-01", type: "SELL" },
+    { ts: "2026-03-02", known_ts: "2026-03-04", type: "BUY" },
+  ];
+  const session = (date: string): ReplayCutoff => ({ clock: "session", at: Date.parse(`${date}T00:00:00Z`) });
+  /** A daily bar replayed to its own session. */
+  const day = (date: string) => [{ time: date }, session(date)] as const;
+
+  it("keeps the prior admitted verdict until the new signal is knowable", () => {
+    expect(replayChipAnchor(signals, ...day("2026-03-03")).anchor?.type).toBe("SELL");
+    expect(replayChipAnchor(signals, ...day("2026-03-04")).anchor?.type).toBe("BUY");
+  });
+  it("withholds a lone not-yet-known signal, while retaining live semantics", () => {
+    expect(replayChipAnchor(signals.slice(1), ...day("2026-03-03")).anchor).toBeNull();
+    // a live chart does not use the replay rule: ChartPanel keeps anchorSignal(sigs, lastDate)
+    expect(anchorSignal(signals, "2026-03-03").anchor?.type).toBe("BUY");
+  });
+  it("preserves coordinate and legacy known-date fallback rules", () => {
+    const legacy = [{ ts: "2026-03-02", type: "BUY" }];
+    expect(replayChipAnchor(legacy, ...day("2026-03-01")).anchor).toBeNull();
+    expect(replayChipAnchor(legacy, ...day("2026-03-02")).anchor?.type).toBe("BUY");
+  });
+  it("does not change blocked-anchor semantics or mutate the source", () => {
+    const copy: { ts: string; known_ts: string; type: string; quality?: string }[] =
+      [...signals, { ts: "2026-03-03", known_ts: "2026-03-03", type: "BUY", quality: "regime_blocked" }];
+    const before = JSON.stringify(copy);
+    expect(replayChipAnchor(copy, ...day("2026-03-03")).anchor?.type).toBe("SELL");
+    expect(replayChipAnchor(copy, ...day("2026-03-03")).blockedTail?.quality).toBe("regime_blocked");
+    expect(JSON.stringify(copy)).toBe(before);
+  });
+
+  it("on a daily multiple the horizon is the last bar's close session, the one its markers use", () => {
+    // A 3D bar keyed by its opening session 03-02 that closed on 03-04. Its BUY became known on
+    // 03-04, so the marker is drawn; bounding the chip by the bar KEY (03-02) hid that verdict.
+    const bar = { time: "2026-03-02", closeTime: "2026-03-04" };
+    const buy = { ts: "2026-03-02", known_ts: "2026-03-04", type: "BUY" };
+    expect(replaySignalAdmission(buy, bar.closeTime, true).show).toBe(true);
+    expect(replayChipAnchor([buy], bar, session("2026-03-04")).anchor).toBe(buy);
+    // …and while that bar had closed only through 03-03, neither the marker nor the chip has it.
+    const early = { time: "2026-03-02", closeTime: "2026-03-03" };
+    expect(replaySignalAdmission(buy, early.closeTime, true).show).toBe(false);
+    expect(replayChipAnchor([buy], early, session("2026-03-03")).anchor).toBeNull();
+  });
+  it("on a daily multiple the anchor bound is that same session, not the bar key", () => {
+    // A signal dated on a later session inside the bar (03-03) is marked once that bar closes;
+    // the anchor scan must not then drop it for being dated after the bar's opening session.
+    const bar = { time: "2026-03-02", closeTime: "2026-03-04" };
+    const inside = [{ ts: "2026-03-01", type: "SELL" }, { ts: "2026-03-03", known_ts: "2026-03-03", type: "BUY" }];
+    expect(replaySignalAdmission(inside[1], bar.closeTime, true).show).toBe(true);
+    expect(replayChipAnchor(inside, bar, session("2026-03-04")).anchor?.type).toBe("BUY");
+  });
+  it("on the intraday clock a daily signal counts only once its session has closed", () => {
+    const intraday = (barIso: string, cutIso: string) => [
+      { time: Date.parse(barIso) / 1000 }, { clock: "intraday", at: Date.parse(cutIso) } as ReplayCutoff,
+    ] as const;
+    const sameDay = [{ ts: "2026-03-01", known_ts: "2026-03-01", type: "SELL" }, { ts: "2026-03-04", known_ts: "2026-03-04", type: "BUY" }];
+    // 15:00Z on 03-04: the session that decides the BUY is still trading
+    expect(replayChipAnchor(sameDay, ...intraday("2026-03-04T14:00:00Z", "2026-03-04T15:00:00Z")).anchor?.type).toBe("SELL");
+    // the next morning it is known
+    expect(replayChipAnchor(sameDay, ...intraday("2026-03-05T14:00:00Z", "2026-03-05T14:30:00Z")).anchor?.type).toBe("BUY");
+    // a signal known only on a later session than its date waits for THAT session to close
+    const late = [sameDay[0], { ts: "2026-03-04", known_ts: "2026-03-06", type: "BUY" }];
+    expect(replayChipAnchor(late, ...intraday("2026-03-05T14:00:00Z", "2026-03-05T14:30:00Z")).anchor?.type).toBe("SELL");
+    expect(replayChipAnchor(late, ...intraday("2026-03-09T14:00:00Z", "2026-03-09T14:30:00Z")).anchor?.type).toBe("BUY");
+  });
+});
