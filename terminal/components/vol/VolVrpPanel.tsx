@@ -10,6 +10,8 @@
  * rv20 recomputed from published closes with the standard annualisation, VRP(t) =
  * iv(t) − rv20(t). Derivation is disclosed in the ⓘ; when the agg store is absent the
  * panel declines the historical-range classification rather than asserting one from a single point.
+ * Only a resolved agg read (a payload, or a 404) may be described as published or not; a read
+ * still in flight or one that did not land has its own state and contributes no history.
  *
  * Vol is NON-DIRECTIONAL: neutral accents; upper/lower-range tones use
  * --warn/--signal (severity/attention), never --up/--down (which flip in zh).
@@ -39,6 +41,9 @@ const P_HI = 75;
 const MIN_SESSIONS = 60;
 
 const isNum = (v: unknown): v is number => typeof v === "number" && Number.isFinite(v);
+
+/** Where the `agg:{ROOT}` read stands: in flight, answered (payload or 404), or failed. */
+export type AggRead = "loading" | "resolved" | "unavailable";
 
 interface VrpPoint {
   d: string;
@@ -176,12 +181,17 @@ function pctileOf(sorted: number[], p: number): number {
 export function VolVrpPanel({
   vrp,
   agg,
+  aggRead = "resolved",
+  onRetry,
   sourceAsOf,
   lang,
 }: {
   /** The PUBLISHED headline (atm_iv − rv20 upstream) — never recomputed. */
   vrp: number | null | undefined;
   agg: AggTrendPayload | null;
+  aggRead?: AggRead;
+  /** Re-reads the aggregate-trend store after a read that did not land. */
+  onRetry?: () => void;
   /** Source session of the headline options_hub.vol snapshot. */
   sourceAsOf: string | null | undefined;
   lang: Lang;
@@ -190,7 +200,7 @@ export function VolVrpPanel({
   const boxRef = useRef<HTMLDivElement | null>(null);
   const w = useChartWidth(boxRef, 460);
 
-  const derived = useMemo(() => deriveVrpHistory(agg), [agg]);
+  const derived = useMemo(() => deriveVrpHistory(aggRead === "resolved" ? agg : null), [agg, aggRead]);
   const pts = derived.points;
   const enough = pts.length >= MIN_SESSIONS;
   const sourceDay = volIsoDay(typeof sourceAsOf === "string" ? sourceAsOf.slice(0, 10) : null);
@@ -325,7 +335,7 @@ export function VolVrpPanel({
         <div className="fin-kpi">
           <span className="k">{t("vrpRegime")}</span>
           <span className="v" style={{ color: regimeTone }}>
-            {currentStats ? t(regimeKey) : enough ? t("vrpUnaligned") : t("vrpUnknown")}
+            {currentStats ? t(regimeKey) : enough ? t("vrpUnaligned") : aggRead === "resolved" ? t("vrpUnknown") : "—"}
           </span>
           {currentStats && <span className="s">{t("vrpPctile").replace("{p}", currentStats.pct.toFixed(0))}</span>}
         </div>
@@ -342,7 +352,18 @@ export function VolVrpPanel({
       </div>
 
       <div ref={boxRef} style={{ width: "100%", minWidth: 0 }}>
-        {!enough || !geom || !stats ? (
+        {aggRead === "loading" ? (
+          <PanelEmpty title={t("vrpLoading")} minHeight={120} />
+        ) : aggRead === "unavailable" ? (
+          <PanelEmpty
+            title={t("vrpErrorTitle")}
+            why={t("vrpErrorWhy")}
+            minHeight={120}
+            action={onRetry && (
+              <button type="button" className="btn btn-ghost vol-retry" onClick={onRetry}>{t("retry")}</button>
+            )}
+          />
+        ) : !enough || !geom || !stats ? (
           <PanelEmpty title={emptyTitle} why={emptyWhy} minHeight={120} />
         ) : (
           <svg viewBox={`0 0 ${w} ${H}`} width={w} height={H} role="img" aria-label={orderNote ? `${t("vrpTitle")}. ${orderNote}` : t("vrpTitle")}>
