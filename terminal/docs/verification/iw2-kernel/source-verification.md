@@ -1,5 +1,62 @@
 # Investigation kernel repair — source verification
 
+## Refused layout and Thesis references are not sent again unchanged (repair round 1 follow-up, 2026-10-09)
+
+Base `da8cb09f`. 0030 refuses a save for good when a named layout no longer
+matches its saved revision (`layout_conflict`, 0030 lines 251 and 255) or when a
+layout or Thesis version named in the draft is no longer available to the account
+(`reference_unavailable`, lines 231–233, 237–241 and 250). Before this change, ordinary Save sent
+the same refused references again under a new operation, and the message was the
+generic conflict text. Now:
+
+1. A pure check, `resendsRefusedReferences` in `lib/investigationSave.ts`, runs in
+   Save after the request is built and before anything is stored or sent. Within
+   the refused request's own line (any create after a refused create, or a revise
+   of the same record), it blocks the same layout capture after
+   `layout_conflict`, and the same capture, layout references and Thesis versions
+   after `reference_unavailable`. Order and Thesis role do not count as a change,
+   because the server does not judge them. Other refusal reasons, other accounts
+   and other records are never blocked. A deliberate change of layout, No layout
+   selected, Remove reference, or another Thesis version allows exactly one send;
+   a new refusal blocks again. Start new research resets the state.
+2. A blocked Save sends nothing: the draft and session storage stay byte for
+   byte the same. The message says what was refused and which control fixes it,
+   in English and Chinese. It never says Title is required. A create is never
+   told to reopen a latest revision. A reopened revise, which has no record to
+   reopen from the page, is directed to Open latest revision. The copy never
+   promises that choosing the same revision again will help.
+3. After an in-session refusal, the refused capture stays the retained choice.
+   The draft is relabelled only if it still names the refused layout, and the
+   layout list is read again with the same owner filter and nothing selected
+   for the user. A failed read shows the layout-unavailable message and keeps
+   Save blocked. A chosen layout that the list no longer shows is listed as
+   Chosen layout (not in the current list), and Save names it instead of
+   sending.
+4. "Try save again" appears only after `not_applied`, so it was already absent
+   after these two refusals on `da8cb09f`; tests pin that it stays absent. For a
+   reopened revise, its three "cannot retry unchanged" messages now direct the
+   user to Open latest revision. Creates keep their copy.
+5. A test-only check pins that the as-of controls stay inert while the save
+   outcome is unconfirmed.
+
+Evidence. Against the `da8cb09f` product files with the final tests, 25 tests
+fail and 54 pass; the as-of check and the create-copy check pass there by
+design. Eighteen reverted-fix runs were made; 17 turn tests red. The survivor
+relabels the draft without checking its layout. While a save is pending, every
+draft edit is locked, so at settle time the draft still names the sent layout,
+and that change has no reachable effect. Removing `disabled={frozen}` on the
+form, or the edit lock in exact-time apply or as-of removal, turns the as-of
+check red. With the check in Save removed, both new browser journeys fail at
+1440×900. Focused Vitest: 5 files, 114 tests pass. Full Vitest: 499 files,
+8,315 pass, four existing TODOs. TypeScript passes. The component keeps its
+one existing lint error and three warnings, identical by rule to `da8cb09f`.
+The Investigation browser file passes all 42 cases from a cold start at
+1440×900, 820×1180 and 390×844, with screenshots of the reopened
+`layout_conflict` and `reference_unavailable` states. These are fixture-based
+receipts, not authenticated production proof. 0030 bytes are unchanged
+(SHA-256 `b840b111…471f4e`). This round does not qualify the stale-tab, API and
+SQL cutover for 0030, and every #804 hold remains in force.
+
 ## Legacy as-of dates and recovered drafts (repair round 1, 2026-10-09)
 
 Base `a156f6be`. IW2's retry proposal is applied unchanged as `f7d55f23`: its

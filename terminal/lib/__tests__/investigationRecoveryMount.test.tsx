@@ -431,3 +431,348 @@ describe("a recovered create keeps its retained context on ordinary Save", () =>
     expect(posts[0].operation_id).not.toBe(retained.operation_id);
   });
 });
+
+// T03i (IW2 items 1-4): a definitive layout_conflict or reference_unavailable refusal is final for that
+// exact reference set. Ordinary Save never sends it again unchanged; a deliberate change sends exactly once.
+const LAYOUT_CONFLICT = "Not saved: the layout chosen in this draft no longer matches that layout as saved, so sending it unchanged would be refused again. Save that layout again in the Terminal and choose its new revision here, or choose another layout or No layout selected, then choose Save research. Your draft is unchanged.";
+const LAYOUT_CONFLICT_ZH = "未保存：此草稿所选布局与该布局当前保存的内容不再一致，原样发送仍会被拒绝。请先在终端中重新保存该布局，然后在此选择其新修订；或选择其他布局或“未选择布局”，然后选择“保存研究”。草稿保持不变。";
+const LAYOUT_CONFLICT_LATEST = "Not saved: the layout chosen in this draft no longer matches that layout as saved, so sending it unchanged would be refused again. Your draft is retained. Choose Open latest revision and edit it. Then save that layout again in the Terminal and choose its new revision, or choose another layout or No layout selected.";
+const LAYOUT_CONFLICT_LATEST_ZH = "未保存：此草稿所选布局与该布局当前保存的内容不再一致，原样发送仍会被拒绝。草稿已保留。请选择“打开最新修订”并编辑，然后在终端中重新保存该布局并选择其新修订，或选择其他布局或“未选择布局”。";
+const REFERENCE_UNAVAILABLE = "Not saved: a layout or Thesis version named in this draft is no longer available to your account, so sending it unchanged would be refused again. Choose another layout or No layout selected, or under Retained Theses use Remove reference or retain another version, then choose Save research. Your draft is unchanged.";
+const REFERENCE_UNAVAILABLE_ZH = "未保存：此草稿引用的某个布局或论点版本已无法供你的账户使用，原样发送仍会被拒绝。请选择其他布局或“未选择布局”，或在“保留论点”中使用“移除引用”或保留其他版本，然后选择“保存研究”。草稿保持不变。";
+const REFERENCE_UNAVAILABLE_LATEST = "Not saved: a layout or Thesis version named in this draft is no longer available to your account, so sending it unchanged would be refused again. Your draft is retained. Choose Open latest revision and edit it, then change the layout or the Thesis versions before you save.";
+const REFERENCE_UNAVAILABLE_LATEST_ZH = "未保存：此草稿引用的某个布局或论点版本已无法供你的账户使用，原样发送仍会被拒绝。草稿已保留。请选择“打开最新修订”并编辑，然后更改布局或论点版本再保存。";
+const LAYOUT_MISSING = "Not saved: the chosen layout is not in the layout list shown here, so its current revision cannot be confirmed. Choose another layout or No layout selected, then choose Save research. Your draft is unchanged.";
+const LAYOUT_UNAVAILABLE = "Named layouts are unavailable.";
+const LAYOUT_LABEL = { en: "Retain a named layout (optional)", zh: "保留已命名布局（可选）" } as const;
+const THESIS_B = { thesis_id: "40000000-0000-4000-8000-000000000003", version_id: "40000000-0000-4000-8000-000000000004", role: "context" } as const;
+const OTHER_LAYOUT = "30000000-0000-4000-8000-000000000009";
+const layoutRow = (revision: number, id = CAPTURE.layout_id, name = "Earnings layout") => ({ id, name, mine: true, config: { schema: "workspace_layout.v1", revision } });
+const LAYOUT_CONFLICT_REPLY: Reply = { status: 409, body: { status: "layout_conflict" } };
+const REFERENCE_REPLY: Reply = { status: 422, body: { status: "reference_unavailable" } };
+let layoutReads = 0;
+/** Answers POSTs from a queue (then the default limit refusal) and every layout read from `layouts`. */
+function serve(postReplies: Reply[], layouts: (read: number) => Reply | Promise<Reply>, extra?: (url: string) => Promise<Response> | undefined) {
+  const baseFetch = fetch; layoutReads = 0;
+  vi.stubGlobal("fetch", vi.fn((url: string, options?: RequestInit) => {
+    if (options?.method === "POST") { posts.push(JSON.parse(String(options.body))); return reply(postReplies.shift() ?? { status: 429, body: { status: "limit_reached" } }); }
+    if (url === "/api/layouts") return Promise.resolve(layouts(++layoutReads)).then(reply);
+    return (!options?.method && extra?.(url)) || baseFetch(url, options);
+  }));
+}
+const flush = () => act(async () => { for (let i = 0; i < 8; i++) await new Promise(resolve => setTimeout(resolve, 0)); });
+const notices = () => [...host.querySelectorAll('p[role="status"]')].map(p => p.textContent);
+const layoutSelect = (lang: "en" | "zh" = "en") => [...host.querySelectorAll("label")].find(l => l.firstChild?.textContent === LAYOUT_LABEL[lang])?.querySelector("select") ?? undefined;
+const layoutOptions = () => [...(layoutSelect(i18n.lang)?.options ?? [])].map(o => o.textContent);
+async function chooseLayout(value: string) {
+  const select = layoutSelect(i18n.lang);
+  expect(select, "layout select").toBeDefined();
+  expect([...select!.options].map(o => o.value), "the chosen layout is offered").toContain(value);
+  await act(async () => { select!.value = value; select!.dispatchEvent(new Event("change", { bubbles: true })); });
+}
+/** Every visible draft value: inputs, text areas, the layout select and the retained Thesis list. */
+const draftValues = () => [
+  ...[...host.querySelectorAll<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>("form input, form textarea, form select")].map(e => `${e.closest("label")?.firstChild?.textContent ?? ""}=${e.value}`),
+  ...[...host.querySelectorAll("form li")].map(li => li.textContent ?? ""),
+  `asOf=${formAsOf()}`,
+];
+async function save() { await click(i18n.lang === "zh" ? "保存研究" : "Save research"); await flush(); }
+/** Fields a deliberate correction must carry over unchanged. */
+const CARRIED: [string, Field][] = FIELDS.filter(([name]) => !["layout_capture", "thesis_refs"].includes(name));
+function expectCarried(sent: InvestigationCommand, retained: InvestigationCommand) {
+  for (const [name, field] of CARRIED) expect(field(sent), name).toEqual(field(retained));
+}
+function expectBlocked(messageText: string, stored: string | null, draft: string[]) {
+  expect(notices()).toContain(messageText);
+  expect(host.textContent).not.toContain(TITLE_REQUIRED);
+  expect(host.textContent).not.toContain("Reopen the latest revision");
+  expect(sessionStorage.getItem(key)).toBe(stored);
+  expect(draftValues()).toEqual(draft);
+}
+
+describe("a definitive layout refusal is never sent again unchanged", () => {
+  it("after Try save again is refused, ordinary Save sends nothing until the layout's current revision is chosen", async () => {
+    const retained = richCreate(); // capture {L, 3}; the owner's list now shows L at revision 4
+    sessionStorage.setItem(key, JSON.stringify({ owner, command: retained }));
+    serve([LAYOUT_CONFLICT_REPLY], () => ({ status: 200, body: { layouts: [layoutRow(4)] } }));
+    await mount(); await flush();
+    expect(host.textContent).toContain(UNCERTAIN);
+    reconcileReply = { status: 200, body: { status: "not_applied", id: retained.id, operation_id: retained.operation_id } };
+    await click("Check original outcome");
+    expect(reconciles).toEqual([retained]);
+    await click("Try save again"); await flush();
+    expect(posts).toHaveLength(1);
+    expect(posts[0]).toMatchObject({ id: retained.id, action: "create", layout_capture: CAPTURE });
+    expect(posts[0].operation_id).not.toBe(retained.operation_id);
+    // The refusal is final for that request: no retry control, no resend.
+    expect(button("Try save again")).toBeUndefined();
+    const stored = sessionStorage.getItem(key);
+    expect(JSON.parse(stored!)).toEqual({ owner, command: posts[0], phase: "rejected", reason: "layout_conflict" });
+    expect(layoutSelect()?.selectedOptions[0]?.textContent).toBe("Earnings layout · Revision 3");
+    const draft = draftValues();
+    await save();
+    expect(posts, "ordinary Save resent the refused layout capture").toHaveLength(1);
+    expectBlocked(LAYOUT_CONFLICT, stored, draft);
+    expect(question()).toBe("Keep my exact draft");
+    // The deliberate choice: the layout's current revision, sent once under a new operation.
+    await chooseLayout(CAPTURE.layout_id);
+    await save();
+    expect(posts).toHaveLength(2);
+    expect(posts[1].layout_capture).toEqual({ layout_id: CAPTURE.layout_id, expected_revision: 4 });
+    expect(posts[1].operation_id).not.toBe(posts[0].operation_id);
+    expect(posts[1].manifest.thesis_refs).toEqual(retained.manifest.thesis_refs);
+    expectCarried(posts[1], retained);
+  });
+
+  it.each([["layout_conflict", "en"], ["layout_conflict", "zh"], ["reference_unavailable", "en"], ["reference_unavailable", "zh"]] as const)("reopened after %s (%s), Save sends nothing until No layout selected is chosen", async (reason, lang) => {
+    i18n.lang = lang;
+    const retained = richCreate();
+    sessionStorage.setItem(key, JSON.stringify({ owner, command: retained, phase: "rejected", reason }));
+    serve([], () => ({ status: 200, body: { layouts: [layoutRow(4)] } }));
+    await mount(); await flush();
+    const text = { layout_conflict: { en: LAYOUT_CONFLICT, zh: LAYOUT_CONFLICT_ZH }, reference_unavailable: { en: REFERENCE_UNAVAILABLE, zh: REFERENCE_UNAVAILABLE_ZH } }[reason][lang];
+    expect(notices()).toContain(text);
+    expect(receiptReads).toHaveLength(0);
+    const stored = sessionStorage.getItem(key), draft = draftValues();
+    expect(layoutSelect(lang)?.value).toBe("retained");
+    await save();
+    expect(posts).toHaveLength(0);
+    expectBlocked(text, stored, draft);
+    await chooseLayout("");
+    await save();
+    expect(posts).toHaveLength(1);
+    expect(Object.hasOwn(posts[0], "layout_capture")).toBe(false);
+    expect(posts[0].manifest.thesis_refs).toEqual(retained.manifest.thesis_refs);
+    expectCarried(posts[0], retained);
+  });
+
+  it.each([["layout_conflict", "en"], ["layout_conflict", "zh"], ["reference_unavailable", "en"], ["reference_unavailable", "zh"]] as const)("a reopened revise refused for %s (%s) is directed to Open latest revision", async (reason, lang) => {
+    i18n.lang = lang;
+    const revise: InvestigationCommand = { ...richCreate(), action: "revise", expected_revision: 3 };
+    sessionStorage.setItem(key, JSON.stringify({ owner, command: revise, phase: "rejected", reason }));
+    serve([], () => ({ status: 200, body: { layouts: [layoutRow(4)] } }));
+    await mount(); await flush();
+    const text = { layout_conflict: { en: LAYOUT_CONFLICT_LATEST, zh: LAYOUT_CONFLICT_LATEST_ZH }, reference_unavailable: { en: REFERENCE_UNAVAILABLE_LATEST, zh: REFERENCE_UNAVAILABLE_LATEST_ZH } }[reason][lang];
+    expect(notices()).toContain(text);
+    const stored = sessionStorage.getItem(key);
+    await save();
+    expect(posts).toHaveLength(0);
+    expect(notices()).toContain(text);
+    expect(text).not.toContain(lang === "zh" ? "保存研究" : "Save research");
+    expect(button(lang === "zh" ? "打开最新修订" : "Open latest revision")).toBeDefined();
+    expect(sessionStorage.getItem(key)).toBe(stored);
+  });
+
+  it("in session, keeps the refused revision as the retained choice, refreshes the list and never bumps it silently", async () => {
+    const retained = richCreate(); delete retained.layout_capture;
+    fenceCreate(retained);
+    serve([LAYOUT_CONFLICT_REPLY], read => ({ status: 200, body: { layouts: [layoutRow(read === 1 ? 3 : 4)] } }));
+    await mount(); await flush();
+    expect(layoutOptions()).toEqual(["No layout selected", "Earnings layout · Revision 3"]);
+    await chooseLayout(CAPTURE.layout_id);
+    await save();
+    expect(posts).toHaveLength(1);
+    expect(posts[0].layout_capture).toEqual(CAPTURE);
+    expect(notices()).toContain(LAYOUT_CONFLICT);
+    // The refused capture stays selected as it was sent; the refreshed list offers the new revision beside it.
+    expect(layoutReads).toBe(2);
+    expect(layoutSelect()?.value).toBe("retained");
+    expect(layoutOptions()).toEqual(["No layout selected", "Earnings layout · Revision 3", "Earnings layout · Revision 4"]);
+    const stored = sessionStorage.getItem(key), draft = draftValues();
+    await save();
+    expect(posts, "ordinary Save resent the refused layout capture").toHaveLength(1);
+    expectBlocked(LAYOUT_CONFLICT, stored, draft);
+    await chooseLayout(CAPTURE.layout_id);
+    await save();
+    expect(posts).toHaveLength(2);
+    expect(posts[1].layout_capture).toEqual({ layout_id: CAPTURE.layout_id, expected_revision: 4 });
+    expectCarried(posts[1], retained);
+  });
+
+  it("in session, a failed list refresh is shown and the refused capture stays blocked", async () => {
+    const retained = richCreate(); delete retained.layout_capture;
+    fenceCreate(retained);
+    serve([LAYOUT_CONFLICT_REPLY], read => read === 1 ? { status: 200, body: { layouts: [layoutRow(3)] } } : { status: 503, body: { status: "unavailable" } });
+    await mount(); await flush();
+    await chooseLayout(CAPTURE.layout_id);
+    await save();
+    expect(posts).toHaveLength(1);
+    expect(layoutReads).toBe(2);
+    expect(notices()).toContain(LAYOUT_UNAVAILABLE);
+    expect(layoutSelect()?.selectedOptions[0]?.textContent).toBe("Retained layout · Revision 3");
+    const stored = sessionStorage.getItem(key), draft = draftValues();
+    await save();
+    expect(posts).toHaveLength(1);
+    expectBlocked(LAYOUT_CONFLICT, stored, draft);
+    await chooseLayout("");
+    await save();
+    expect(posts).toHaveLength(2);
+    expect(Object.hasOwn(posts[1], "layout_capture")).toBe(false);
+  });
+
+  it("blocks a chosen layout that the refreshed list no longer shows", async () => {
+    const retained = richCreate(); delete retained.layout_capture;
+    fenceCreate(retained);
+    let release!: (value: Reply) => void;
+    const refreshed = new Promise<Reply>(resolve => { release = resolve; });
+    serve([LAYOUT_CONFLICT_REPLY], read => read === 1 ? { status: 200, body: { layouts: [layoutRow(3), layoutRow(2, OTHER_LAYOUT, "Margins layout")] } } : refreshed);
+    await mount(); await flush();
+    await chooseLayout(CAPTURE.layout_id);
+    await save();
+    expect(posts).toHaveLength(1);
+    // Before the refresh answers, the other layout is still offered and the user chooses it.
+    await chooseLayout(OTHER_LAYOUT);
+    await act(async () => { release({ status: 200, body: { layouts: [layoutRow(4)] } }); }); await flush();
+    expect(layoutSelect()?.selectedOptions[0]?.textContent).toBe("Chosen layout (not in the current list)");
+    const stored = sessionStorage.getItem(key), draft = draftValues();
+    await save();
+    expect(posts, "a layout absent from the list was sent with a revision the list no longer confirms").toHaveLength(1);
+    expectBlocked(LAYOUT_MISSING, stored, draft);
+    await chooseLayout("");
+    await save();
+    expect(posts).toHaveLength(2);
+    expect(Object.hasOwn(posts[1], "layout_capture")).toBe(false);
+  });
+});
+
+describe("a definitive reference refusal is never sent again unchanged", () => {
+  it("after Try save again is refused, Remove reference sends once and a second refusal blocks again", async () => {
+    const retained = richCreate();
+    retained.manifest.thesis_refs = [{ ...THESIS }, { ...THESIS_B }];
+    fenceCreate(retained);
+    serve([REFERENCE_REPLY, REFERENCE_REPLY], () => ({ status: 200, body: { layouts: [layoutRow(3)] } }));
+    await mount(); await flush();
+    await click("Try save again"); await flush();
+    expect(posts).toHaveLength(1);
+    expect(posts[0]).toMatchObject({ id: retained.id, layout_capture: CAPTURE });
+    expect(posts[0].manifest.thesis_refs).toEqual([THESIS, THESIS_B]);
+    expect(button("Try save again")).toBeUndefined();
+    const stored = sessionStorage.getItem(key), draft = draftValues();
+    expect(notices()).toContain(REFERENCE_UNAVAILABLE);
+    await save();
+    expect(posts, "ordinary Save resent the refused reference set").toHaveLength(1);
+    expectBlocked(REFERENCE_UNAVAILABLE, stored, draft);
+    for (const word of ["evidence", "Earnings", "baseline"]) expect(REFERENCE_UNAVAILABLE).not.toContain(word);
+    // The deliberate correction: remove the context Thesis version.
+    const removeB = [...host.querySelectorAll("form li")].find(li => li.textContent?.startsWith("Context"))?.querySelector("button");
+    expect(removeB?.textContent).toBe("Remove reference");
+    await act(async () => { removeB!.click(); });
+    await save();
+    expect(posts).toHaveLength(2);
+    expect(posts[1].manifest.thesis_refs).toEqual([THESIS]);
+    expect(posts[1].layout_capture).toEqual(CAPTURE);
+    expect(posts[1].operation_id).not.toBe(posts[0].operation_id);
+    expectCarried(posts[1], retained);
+    // That set was refused as well; the block re-arms for it.
+    expect(notices()).toContain(REFERENCE_UNAVAILABLE);
+    const again = sessionStorage.getItem(key);
+    expect(JSON.parse(again!)).toMatchObject({ phase: "rejected", reason: "reference_unavailable", command: { operation_id: posts[1].operation_id } });
+    await save();
+    expect(posts, "the re-refused set was sent again").toHaveLength(2);
+    expect(sessionStorage.getItem(key)).toBe(again);
+  });
+
+  it("a refusal on one saved record never blocks an edit of another", async () => {
+    sessionStorage.clear();
+    const B = "10000000-0000-4000-8000-000000000005";
+    const manifest = (title: string) => ({ schema: "investigation_manifest.v2", argument_relations: [], intent: { title, question: "Keep my exact draft", subjects: [{ kind: "security", owner: "terminal.analysis_symbol", object_id: "AAPL" }] }, layout_refs: [], thesis_refs: [{ ...THESIS }], evidence_refs: [], continuation: {} });
+    const records: Record<string, string> = { [original.id]: "Record A", [B]: "Record B" };
+    serve([REFERENCE_REPLY], () => ({ status: 200, body: { layouts: [] } }), url => {
+      if (url === "/api/investigations") return reply({ status: 200, body: { status: "listed", items: Object.entries(records).map(([id, title]) => ({ id, revision: 1, lifecycle: "active", title, question: "Keep my exact draft", updated_at: "2026-10-09T00:00:00.000Z" })) } });
+      if (url.startsWith("/api/investigations?id=")) {
+        const id = new URL(url, "https://terminal.test").searchParams.get("id")!;
+        return reply({ status: 200, body: { status: "found", id, revision: 1, current_revision: 1, lifecycle: "active", manifest: manifest(records[id]), committed_at: "2026-10-09T00:00:00.000Z", layouts: [] } });
+      }
+      return undefined;
+    });
+    await act(async () => { root.render(<InvestigationWorkspace ownerKey={owner} initialInvestigationId={original.id} initialRevision={1}/>); }); await flush();
+    await click("Edit saved question");
+    await save();
+    expect(posts).toHaveLength(1);
+    expect(posts[0]).toMatchObject({ id: original.id, action: "revise", expected_revision: 1 });
+    expect(notices()).toContain(REFERENCE_UNAVAILABLE);
+    await save();
+    expect(posts, "record A's refused set was sent again").toHaveLength(1);
+    // Record B is another lineage with the same references: its edit is never blocked by A's refusal.
+    const recordB = [...host.querySelectorAll<HTMLButtonElement>("aside button")].find(b => b.querySelector("strong")?.textContent === "Record B");
+    expect(recordB).toBeDefined();
+    await act(async () => { recordB!.click(); }); await flush();
+    await click("Edit saved question");
+    await save();
+    expect(posts).toHaveLength(2);
+    expect(posts[1]).toMatchObject({ id: B, action: "revise", expected_revision: 1 });
+    expect(posts[1].manifest.thesis_refs).toEqual([THESIS]);
+  });
+});
+
+// T03i (IW2 item 3): a reopened revise has no saved record in view, so its retry copy names Open latest revision.
+const RETRY_LATEST = {
+  asOf: { en: `Not sent: the retained request's as-of date ${LEGACY_DATE} has no time of day, so it cannot be sent again unchanged. Your draft is retained. Choose Open latest revision and edit it, then set the as-of date before you save.`, zh: `未发送：保留请求的截至日期 ${LEGACY_DATE} 没有具体时间，无法原样重新发送。草稿已保留。请选择“打开最新修订”并编辑，然后设置截至日期再保存。` },
+  layout: { en: "Not sent: the retained request's layout was recorded in an older format, so it cannot be sent again unchanged. Your draft is retained. Choose Open latest revision and edit it, then choose the layout again before you save.", zh: "未发送：保留请求中的布局以旧格式记录，无法原样重新发送。草稿已保留。请选择“打开最新修订”并编辑，然后重新选择布局再保存。" },
+  refused: { en: "This draft cannot be sent again unchanged. It is retained. Choose Open latest revision and edit it before you save.", zh: "此草稿无法原样重新发送，已保留。请选择“打开最新修订”并编辑后再保存。" },
+} as const;
+const reviseScenario: Record<keyof typeof RETRY_LATEST, (command: InvestigationCommand) => void> = {
+  asOf: () => {},
+  layout: command => {
+    command.manifest.intent.research_as_of = "2026-10-04T16:00:00.000Z"; command.manifest.argument_relations = [];
+    (command as { layout_capture?: unknown }).layout_capture = { ...CAPTURE, revision_id: "30000000-0000-4000-8000-000000000002" };
+  },
+  // A legacy record may name a baseline outside its evidence; the current contract refuses that unchanged.
+  refused: command => { delete command.manifest.intent.research_as_of; command.manifest.review_baseline_ref = { ...EVIDENCE }; },
+};
+
+describe("a reopened revise that cannot be retried unchanged is directed to its latest revision", () => {
+  it.each((Object.keys(RETRY_LATEST) as (keyof typeof RETRY_LATEST)[]).flatMap(kind => (["en", "zh"] as const).map(lang => [kind, lang] as const)))("%s (%s)", async (kind, lang) => {
+    i18n.lang = lang;
+    fenceLegacyCreate(command => { command.action = "revise"; command.expected_revision = 3; reviseScenario[kind](command); });
+    await mount(); await flush();
+    const retained = sessionStorage.getItem(key);
+    expect(JSON.parse(retained!)).toMatchObject({ phase: "rejected", reason: "not_applied" });
+    await click(lang === "zh" ? "重新保存" : "Try save again");
+    expect(posts).toHaveLength(0);
+    expect(notices()).toContain(RETRY_LATEST[kind][lang]);
+    expect(RETRY_LATEST[kind][lang]).not.toContain(lang === "zh" ? "保存研究" : "Save research");
+    expect(button(lang === "zh" ? "打开最新修订" : "Open latest revision")).toBeDefined();
+    expect(sessionStorage.getItem(key)).toBe(retained);
+  });
+
+  it("keeps the create copy for a reopened create", async () => {
+    fenceLegacyCreate();
+    await mount(); await flush();
+    await click("Try save again");
+    expect(notices()).toContain(`Not sent: the retained request's as-of date ${LEGACY_DATE} has no time of day, so it cannot be sent again unchanged. Fix the as-of date in the draft below, then choose Save research. Your draft is unchanged.`);
+  });
+});
+
+// T03i (IW2 item 4): while the original outcome is unconfirmed, the as-of control is inert even to a
+// scripted click that bypasses the disabled fieldset. The editLocked guards are what stop that click.
+describe("the as-of control is inert while the save outcome is unconfirmed", () => {
+  it("ignores typed values and scripted clicks, then reconciles exactly the original request", async () => {
+    const legacy = structuredClone(original);
+    delete (legacy.manifest as Partial<typeof legacy.manifest>).argument_relations;
+    legacy.manifest.intent.research_as_of = LEGACY_DATE;
+    sessionStorage.setItem(key, JSON.stringify({ owner, command: legacy })); // the receipt read answers 404
+    await mount(); await flush();
+    expect(receiptReads).toEqual([legacy.operation_id]);
+    expect(host.textContent).toContain(UNCERTAIN);
+    const stored = sessionStorage.getItem(key), shown = notices();
+    for (const label of [DATE_LABEL, TIME_LABEL]) expect(input(label)?.matches(":disabled"), label).toBe(true);
+    for (const label of ["Use this exact time", "Remove the as-of date"]) expect(button(label)?.matches(":disabled"), label).toBe(true);
+    await type(DATE_LABEL, "2026-10-04"); await type(TIME_LABEL, "16:30");
+    for (const label of ["Use this exact time", "Remove the as-of date"]) {
+      const target = button(label);
+      expect(target, label).toBeDefined();
+      await act(async () => { target!.click(); });
+      await act(async () => { target!.dispatchEvent(new MouseEvent("click", { bubbles: true })); });
+    }
+    expect(formAsOf()).toBe(LEGACY_DATE);
+    expect(control()).not.toBeNull();
+    expect(control()?.querySelector('[role="alert"]')).toBeNull();
+    expect(notices()).toEqual(shown);
+    expect(sessionStorage.getItem(key)).toBe(stored);
+    expect(posts).toHaveLength(0);
+    await click("Check original outcome");
+    expect(reconciles).toEqual([legacy]);
+    expect(posts).toHaveLength(0);
+  });
+});

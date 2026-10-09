@@ -55,6 +55,30 @@ export function retryInvestigationSave(state: InvestigationSaveState, principal:
   const command = parseInvestigationCommand({ ...retained, manifest });
   return command ? { ...command, operation_id: crypto.randomUUID() } : null;
 }
+/** The server judges only these identities: a role or an order change is not a correction. */
+const referenceRefusals = new Set(["layout_conflict", "reference_unavailable"]);
+const captureKey = (capture?: { layout_id: string; expected_revision: number }) => capture ? `${capture.layout_id}:${capture.expected_revision}` : "";
+const identities = <T>(items: readonly T[], key: (item: T) => string) => items.map(key).sort().join("\n");
+const drafted = (command: InvestigationCommand) => command.action === "create" || command.action === "revise";
+/**
+ * A definitive layout_conflict or reference_unavailable refusal is final for that exact reference set:
+ * sending it again unchanged can only be refused again. True when `command` would do exactly that in the
+ * refused command's own lineage (any create after a refused create, or a revise of the same record).
+ * A deliberate change of the layout or the Thesis versions allows one send; a new refusal re-arms this.
+ */
+export function resendsRefusedReferences(state: InvestigationSaveState, principal: string, command: InvestigationCommand): boolean {
+  if (state.phase !== "rejected" || state.principal !== principal || !referenceRefusals.has(state.reason)) return false;
+  const refused = state.command;
+  if (!drafted(refused) || !drafted(command)) return false;
+  // A create has a new id on every ordinary Save, so its lineage is the create action itself.
+  const sameLineage = refused.action === "create" ? command.action === "create" : command.action === "revise" && command.id === refused.id;
+  if (!sameLineage || captureKey(refused.layout_capture) !== captureKey(command.layout_capture)) return false;
+  if (state.reason === "layout_conflict") return !!refused.layout_capture;
+  const layoutRef = (ref: InvestigationCommand["manifest"]["layout_refs"][number]) => `${ref.layout_id}|${ref.layout_revision_id}|${ref.digest}`;
+  const thesisRef = (ref: InvestigationCommand["manifest"]["thesis_refs"][number]) => `${ref.thesis_id}|${ref.version_id}`;
+  return identities(refused.manifest.layout_refs, layoutRef) === identities(command.manifest.layout_refs, layoutRef)
+    && identities(refused.manifest.thesis_refs, thesisRef) === identities(command.manifest.thesis_refs, thesisRef);
+}
 export function investigationCommandToReconcile(state: InvestigationSaveState, principal: string): InvestigationCommand | null {
   return (state.phase === "pending" || state.phase === "uncertain") && state.principal === principal ? JSON.parse(JSON.stringify(state.command)) : null;
 }

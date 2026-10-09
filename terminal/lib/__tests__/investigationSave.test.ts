@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { beginInvestigationSave, settleInvestigationSave, retryInvestigationSave, partitionInvestigationSave, recoverInvestigationSave, investigationCommandToReconcile } from "../investigationSave";
+import { beginInvestigationSave, settleInvestigationSave, retryInvestigationSave, partitionInvestigationSave, recoverInvestigationSave, investigationCommandToReconcile, resendsRefusedReferences } from "../investigationSave";
 const command=()=>({id:"10000000-0000-4000-8000-000000000001",operation_id:"20000000-0000-4000-8000-000000000001",action:"create",expected_revision:0,manifest:{schema:"investigation_manifest.v2",argument_relations:[],intent:{title:"Research",question:"Exact draft",subjects:[]},layout_refs:[],thesis_refs:[],evidence_refs:[],continuation:{}}});
 const identity={investigation_id:"10000000-0000-4000-8000-000000000001",revision_id:"30000000-0000-4000-8000-000000000001",sequence:1,parent_revision_id:null,operation_id:"20000000-0000-4000-8000-000000000001",author_ref:"40000000-0000-4000-8000-000000000001",recorded_at:"2026-10-04T00:00:00Z",manifest_digest:"a".repeat(64)};
 describe("lost Investigation save response",()=>{
@@ -145,5 +145,73 @@ describe("confirmed-fenced legacy draft transition", () => {
   expect(replacement).not.toBeNull();
   expect(replacement.manifest).toEqual(original.manifest);
   expect(Object.hasOwn(replacement.manifest, "argument_relations")).toBe(false);
+ });
+});
+
+// T03i (IW2 items 1 and 2): after a definitive layout_conflict or reference_unavailable refusal, the
+// same lineage must never send the identical refused reference set again. Any deliberate change to that
+// set allows one send; another lineage, another account and every other reason are never blocked here.
+describe("a refused reference set is not sent again unchanged", () => {
+ const L = "50000000-0000-4000-8000-000000000001", M = "50000000-0000-4000-8000-000000000002";
+ const T1 = { thesis_id: "70000000-0000-4000-8000-000000000001", version_id: "70000000-0000-4000-8000-000000000002", role: "primary" as const };
+ const T2 = { thesis_id: "70000000-0000-4000-8000-000000000003", version_id: "70000000-0000-4000-8000-000000000004", role: "context" as const };
+ const REF = { layout_id: "50000000-0000-4000-8000-000000000003", layout_revision_id: "50000000-0000-4000-8000-000000000004", digest: "b".repeat(64), role: "supporting" as const };
+ type Cmd = ReturnType<typeof command> & { layout_capture?: { layout_id: string; expected_revision: number }; manifest: ReturnType<typeof command>["manifest"] & { thesis_refs: unknown[]; layout_refs: unknown[] } };
+ const create = (patch: Partial<Cmd> = {}): Cmd => ({ ...command(), layout_capture: { layout_id: L, expected_revision: 3 }, ...patch } as Cmd);
+ const withRefs = (base: Cmd, thesis_refs: unknown[], layout_refs: unknown[] = []): Cmd => ({ ...base, manifest: { ...base.manifest, thesis_refs, layout_refs } } as Cmd);
+ const refused = (cmd: Cmd, reason: string, principal = "alice") => ({ phase: "rejected" as const, principal, command: cmd as never, reason });
+ const next = (cmd: Cmd): Cmd => ({ ...cmd, operation_id: "20000000-0000-4000-8000-0000000000ff" });
+ /** The same command with No layout selected. */
+ const uncaptured = (cmd: Cmd): Cmd => { const copy = { ...cmd }; delete copy.layout_capture; return copy; };
+ it("blocks the identical layout capture after layout_conflict, in the same create lineage, under a new id and operation", () => {
+  const sent = create();
+  expect(resendsRefusedReferences(refused(sent, "layout_conflict"), "alice", next({ ...sent, id: "10000000-0000-4000-8000-0000000000aa" }) as never)).toBe(true);
+ });
+ it("allows a deliberate layout change after layout_conflict exactly as the server will judge it", () => {
+  const state = refused(create(), "layout_conflict");
+  expect(resendsRefusedReferences(state, "alice", next(create({ layout_capture: { layout_id: L, expected_revision: 4 } })) as never)).toBe(false);
+  expect(resendsRefusedReferences(state, "alice", next(create({ layout_capture: { layout_id: M, expected_revision: 3 } })) as never)).toBe(false);
+  expect(resendsRefusedReferences(state, "alice", next(uncaptured(create())) as never)).toBe(false);
+ });
+ it("blocks the identical capture, layout_refs and Thesis versions after reference_unavailable, regardless of order or role", () => {
+  const sent = withRefs(create(), [T1, T2]);
+  const state = refused(sent, "reference_unavailable");
+  expect(resendsRefusedReferences(state, "alice", next(sent) as never)).toBe(true);
+  expect(resendsRefusedReferences(state, "alice", next(withRefs(sent, [T2, { ...T1, role: "alternative" }])) as never)).toBe(true);
+  const refsOnly = withRefs(uncaptured(sent), [T1], [REF]);
+  expect(resendsRefusedReferences(refused(refsOnly, "reference_unavailable"), "alice", next(withRefs(refsOnly, [T1], [{ ...REF, role: "context" }])) as never)).toBe(true);
+ });
+ it("allows each deliberate correction after reference_unavailable", () => {
+  const sent = withRefs(create(), [T1, T2]);
+  const state = refused(sent, "reference_unavailable");
+  expect(resendsRefusedReferences(state, "alice", next(withRefs(sent, [T1])) as never), "Thesis removed").toBe(false);
+  expect(resendsRefusedReferences(state, "alice", next(withRefs(sent, [T1, { ...T2, version_id: "70000000-0000-4000-8000-000000000005" }])) as never), "another version").toBe(false);
+  expect(resendsRefusedReferences(state, "alice", next({ ...sent, layout_capture: { layout_id: M, expected_revision: 1 } }) as never), "another layout").toBe(false);
+  expect(resendsRefusedReferences(state, "alice", next(uncaptured(sent)) as never), "No layout selected").toBe(false);
+  const refsOnly = withRefs(uncaptured(sent), [T1], [REF]);
+  expect(resendsRefusedReferences(refused(refsOnly, "reference_unavailable"), "alice", next(withRefs(refsOnly, [T1], [{ ...REF, digest: "c".repeat(64) }])) as never), "another layout ref").toBe(false);
+  expect(resendsRefusedReferences(refused(refsOnly, "reference_unavailable"), "alice", next(withRefs(refsOnly, [T1], [])) as never), "layout ref removed").toBe(false);
+ });
+ it("never blocks another lineage, another account, or a refusal for any other reason", () => {
+  const revise = create({ action: "revise", expected_revision: 3 } as Partial<Cmd>);
+  const otherRecord = { ...revise, id: "10000000-0000-4000-8000-0000000000bb" };
+  expect(resendsRefusedReferences(refused(revise, "reference_unavailable"), "alice", next(revise) as never), "same record").toBe(true);
+  expect(resendsRefusedReferences(refused(revise, "reference_unavailable"), "alice", next(otherRecord) as never), "record B").toBe(false);
+  expect(resendsRefusedReferences(refused(revise, "layout_conflict"), "alice", next(otherRecord) as never), "record B").toBe(false);
+  expect(resendsRefusedReferences(refused(create(), "layout_conflict"), "alice", next(revise) as never), "create refusal, revise edit").toBe(false);
+  expect(resendsRefusedReferences(refused(revise, "layout_conflict"), "alice", next(create()) as never), "revise refusal, create").toBe(false);
+  expect(resendsRefusedReferences(refused(create(), "layout_conflict", "bob"), "alice", next(create()) as never), "other account").toBe(false);
+  for (const reason of ["not_applied", "limit_reached", "version_conflict", "invalid_payload", "idempotency_conflict", "invalid_transition"])
+   expect(resendsRefusedReferences(refused(create(), reason), "alice", next(create()) as never), reason).toBe(false);
+  for (const state of [{ phase: "idle" as const }, beginInvestigationSave("alice", create(), { phase: "idle" })])
+   expect(resendsRefusedReferences(state, "alice", next(create()) as never)).toBe(false);
+  // A layout_conflict needs a captured layout to conflict with; a set without one is not that refusal.
+  expect(resendsRefusedReferences(refused(uncaptured(create()), "layout_conflict"), "alice", next(uncaptured(create())) as never)).toBe(false);
+  // Remove and restore send the saved record unchanged; they are not a draft's reference set.
+  const plainRevise = uncaptured(revise);
+  for (const action of ["remove", "restore"]) {
+   expect(resendsRefusedReferences(refused(plainRevise, "reference_unavailable"), "alice", next({ ...plainRevise, action }) as never), action).toBe(false);
+   expect(resendsRefusedReferences(refused({ ...plainRevise, action }, "reference_unavailable"), "alice", next(plainRevise) as never), `${action} refusal`).toBe(false);
+  }
  });
 });

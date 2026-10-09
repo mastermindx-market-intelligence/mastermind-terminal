@@ -384,3 +384,123 @@ test("Analysis research entries retain their responsive bilingual source evidenc
  expect(hashes()).toEqual(before);
  writeFileSync(testInfo.outputPath("analysis-source-captures.json"),JSON.stringify({capturedAtHead:execFileSync("git",["rev-parse","HEAD"],{cwd:repo,encoding:"utf8"}).trim(),capturedAt:new Date().toISOString(),layoutFiles:before,viewport,project,captures},null,2));
 });
+
+// T03i (IW2 items 1-2): a definitive layout_conflict or reference_unavailable refusal is final for that exact
+// reference set. Every send writes the pending request to sessionStorage before its fetch, so an unchanged
+// sessionStorage value after Save is direct proof that nothing was sent.
+const pendingKey="mm.investigation.pending.v2:local-preview";
+const stored=(page:Page)=>page.evaluate(k=>sessionStorage.getItem(k),pendingKey);
+const noOverflow=(page:Page)=>page.evaluate(()=>document.documentElement.scrollWidth<=window.innerWidth+1);
+type Sent={id:string;operation_id:string;action:string;layout_capture?:{layout_id:string;expected_revision:number};manifest:{thesis_refs:unknown[];intent:{question:string}}};
+const LAYOUT_CONFLICT_COPY="Not saved: the layout chosen in this draft no longer matches that layout as saved, so sending it unchanged would be refused again. Save that layout again in the Terminal and choose its new revision here, or choose another layout or No layout selected, then choose Save research. Your draft is unchanged.";
+const REFERENCE_UNAVAILABLE_COPY="Not saved: a layout or Thesis version named in this draft is no longer available to your account, so sending it unchanged would be refused again. Choose another layout or No layout selected, or under Retained Theses use Remove reference or retain another version, then choose Save research. Your draft is unchanged.";
+
+test("a refused layout revision is never sent again unchanged, across reload, until the current revision is chosen",async({page},testInfo)=>{
+ await setup(page);
+ const layoutId="50000000-0000-4000-8000-000000000001";let layoutRevision=3;
+ // Registered after setup(), so this list answers before the empty default.
+ await page.route("**/api/layouts",route=>route.fulfill({json:{layouts:[{id:layoutId,name:"Earnings layout",mine:true,config:{schema:"workspace_layout.v1",revision:layoutRevision}}],teams:[],teamRead:{ok:true}}}));
+ const commands:Sent[]=[];let saved:unknown=null;
+ await page.route("**/api/investigations{,?*}",async route=>{
+  const request=route.request(),query=new URL(request.url()).searchParams;
+  if(request.method()==="POST"){const command=request.postDataJSON();commands.push(command);
+   // The layout was saved again elsewhere, so the captured revision 3 is no longer current.
+   if(commands.length===1){layoutRevision=4;await route.fulfill({status:409,json:{status:"layout_conflict"}});return;}
+   // The owner stores the captured revision as the one primary layout reference.
+   saved={...command.manifest,layout_refs:[{layout_id:command.layout_capture!.layout_id,layout_revision_id:"50000000-0000-4000-8000-000000000004",digest:"c".repeat(64),role:"primary"}]};
+   await route.fulfill({json:committed(command.id,saved,command.operation_id)});return;}
+  if(query.has("id")){const last=commands.at(-1)!;await route.fulfill({json:{...committed(last.id,saved,last.operation_id),status:"found",current_revision:1,layouts:[]}});return;}
+  if(query.has("operation_id")){await route.fulfill({status:404,json:{status:"not_found"}});return;}
+  await route.fulfill({json:{status:"listed",items:[]}});
+ });
+ await page.goto("/analysis?view=investigations");
+ await page.getByRole("button",{name:"Start new research"}).click({timeout:20_000});
+ await page.getByLabel("Title",{exact:true}).fill("Layout conflict research",{timeout:20_000});
+ await page.getByLabel("Research question",{exact:true}).fill("Keep this layout draft",{timeout:20_000});
+ const layoutSelect=page.locator("label",{hasText:"Retain a named layout (optional)"}).locator("select");
+ await layoutSelect.selectOption({label:"Earnings layout · Revision 3"},{timeout:20_000});
+ await page.getByRole("button",{name:"Save research",exact:true}).click({timeout:20_000});
+ await expect(page.getByText(LAYOUT_CONFLICT_COPY,{exact:true})).toBeVisible({timeout:20_000});
+ expect(commands).toHaveLength(1);expect(commands[0].layout_capture).toEqual({layout_id:layoutId,expected_revision:3});
+ // The refused revision stays the selected choice; the refreshed list (read again after the refusal) offers the current one beside it.
+ await expect(layoutSelect).toHaveValue("retained",{timeout:20_000});
+ await expect(layoutSelect.locator("option",{hasText:"Earnings layout · Revision 4"})).toHaveCount(1,{timeout:20_000});
+ const refused=await stored(page);
+ expect(JSON.parse(refused!)).toMatchObject({phase:"rejected",reason:"layout_conflict",command:{operation_id:commands[0].operation_id}});
+ await page.getByRole("button",{name:"Save research",exact:true}).click({timeout:20_000});
+ expect(await stored(page)).toBe(refused);
+ await expect(page.getByText(LAYOUT_CONFLICT_COPY,{exact:true})).toBeVisible({timeout:20_000});
+ await expect(page.getByText("Reopen the latest revision",{exact:false})).toHaveCount(0,{timeout:20_000});
+ await page.reload();
+ await expect(page.getByText(LAYOUT_CONFLICT_COPY,{exact:true})).toBeVisible({timeout:20_000});
+ await expect(page.getByLabel("Research question",{exact:true})).toHaveValue("Keep this layout draft",{timeout:20_000});
+ await expect(layoutSelect).toHaveValue("retained",{timeout:20_000});
+ await expect(layoutSelect.locator("option:checked")).toHaveText("Earnings layout · Revision 3",{timeout:20_000});
+ await expect(page.getByRole("button",{name:"Try save again"})).toHaveCount(0,{timeout:20_000});
+ await page.getByRole("button",{name:"Save research",exact:true}).click({timeout:20_000});
+ expect(await stored(page)).toBe(refused);
+ expect(commands).toHaveLength(1);
+ expect(await noOverflow(page)).toBe(true);
+ // The shell scrolls inside its own region, so capture the guidance and the retained choice in view.
+ await page.getByText(LAYOUT_CONFLICT_COPY,{exact:true}).scrollIntoViewIfNeeded({timeout:20_000});
+ await page.screenshot({path:testInfo.outputPath("recovered-layout-conflict-message.png")});
+ await page.getByRole("button",{name:"Save research",exact:true}).scrollIntoViewIfNeeded({timeout:20_000});
+ await page.screenshot({path:testInfo.outputPath("recovered-layout-conflict.png"),fullPage:true});
+ // The deliberate choice: the layout's current revision, sent once under a new operation.
+ await layoutSelect.selectOption({label:"Earnings layout · Revision 4"},{timeout:20_000});
+ await page.getByRole("button",{name:"Save research",exact:true}).click({timeout:20_000});
+ await expect(page.getByRole("heading",{name:"Layout conflict research",exact:true})).toBeVisible({timeout:20_000});
+ expect(commands).toHaveLength(2);
+ expect(commands[1].layout_capture).toEqual({layout_id:layoutId,expected_revision:4});
+ expect(commands[1].operation_id).not.toBe(commands[0].operation_id);
+});
+
+test("a refused Thesis version set is never sent again unchanged, across reload, until a reference is removed",async({page},testInfo)=>{
+ await setup(page);
+ const primary={thesis_id:"60000000-0000-4000-8000-000000000001",version_id:"60000000-0000-4000-8000-000000000002",role:"primary"};
+ const context={thesis_id:"60000000-0000-4000-8000-000000000003",version_id:"60000000-0000-4000-8000-000000000004",role:"context"};
+ const retained={id:"10000000-0000-4000-8000-000000000071",operation_id:"20000000-0000-4000-8000-000000000071",action:"create",expected_revision:0,
+  manifest:{schema:"investigation_manifest.v2",argument_relations:[],intent:{title:"Thesis reference research",question:"Keep this Thesis draft",subjects:[{kind:"security",owner:"terminal.analysis_symbol",object_id:"AAPL"}]},layout_refs:[],thesis_refs:[primary,context],evidence_refs:[],continuation:{}}};
+ // A previous page left this create without a confirmed outcome. Seed once, so a reload keeps what the page stored.
+ await page.addInitScript(([k,v])=>{if(!sessionStorage.getItem(k))sessionStorage.setItem(k,v);},[pendingKey,JSON.stringify({owner:"local-preview",command:retained})] as const);
+ const commands:Sent[]=[];
+ await page.route("**/api/investigations{,?*}",async route=>{
+  const request=route.request(),query=new URL(request.url()).searchParams;
+  if(request.method()==="POST"){const command=request.postDataJSON();commands.push(command);
+   if(commands.length===1){await route.fulfill({status:422,json:{status:"reference_unavailable"}});return;}
+   await route.fulfill({json:committed(command.id,command.manifest,command.operation_id)});return;}
+  if(query.has("operation_id")){await route.fulfill({json:{status:"not_applied",id:retained.id,operation_id:retained.operation_id}});return;}
+  if(query.has("id")){const last=commands.at(-1)!;await route.fulfill({json:{...committed(last.id,last.manifest,last.operation_id),status:"found",current_revision:1,layouts:[]}});return;}
+  await route.fulfill({json:{status:"listed",items:[]}});
+ });
+ await page.goto("/analysis?view=investigations");
+ await expect(page.getByText("Save failure confirmed. No records were created.",{exact:true})).toBeVisible({timeout:20_000});
+ await page.getByRole("button",{name:"Try save again"}).click({timeout:20_000});
+ await expect(page.getByText(REFERENCE_UNAVAILABLE_COPY,{exact:true})).toBeVisible({timeout:20_000});
+ expect(commands).toHaveLength(1);
+ expect(commands[0]).toMatchObject({id:retained.id,manifest:{thesis_refs:[primary,context]}});
+ await expect(page.getByRole("button",{name:"Try save again"})).toHaveCount(0,{timeout:20_000});
+ const refused=await stored(page);
+ expect(JSON.parse(refused!)).toMatchObject({phase:"rejected",reason:"reference_unavailable",command:{operation_id:commands[0].operation_id}});
+ await page.getByRole("button",{name:"Save research",exact:true}).click({timeout:20_000});
+ expect(await stored(page)).toBe(refused);
+ await page.reload();
+ await expect(page.getByText(REFERENCE_UNAVAILABLE_COPY,{exact:true})).toBeVisible({timeout:20_000});
+ await expect(page.getByLabel("Research question",{exact:true})).toHaveValue("Keep this Thesis draft",{timeout:20_000});
+ await page.getByRole("button",{name:"Save research",exact:true}).click({timeout:20_000});
+ expect(await stored(page)).toBe(refused);
+ expect(commands).toHaveLength(1);
+ expect(await noOverflow(page)).toBe(true);
+ // The shell scrolls inside its own region, so capture the guidance and the retained choice in view.
+ await page.getByText(REFERENCE_UNAVAILABLE_COPY,{exact:true}).scrollIntoViewIfNeeded({timeout:20_000});
+ await page.screenshot({path:testInfo.outputPath("recovered-reference-unavailable-message.png")});
+ await page.getByRole("button",{name:"Save research",exact:true}).scrollIntoViewIfNeeded({timeout:20_000});
+ await page.screenshot({path:testInfo.outputPath("recovered-reference-unavailable.png"),fullPage:true});
+ // The deliberate correction: remove the context Thesis version, then save once.
+ await page.getByRole("listitem").filter({hasText:"Context ·"}).getByRole("button",{name:"Remove reference"}).click({timeout:20_000});
+ await page.getByRole("button",{name:"Save research",exact:true}).click({timeout:20_000});
+ await expect(page.getByRole("heading",{name:"Thesis reference research",exact:true})).toBeVisible({timeout:20_000});
+ expect(commands).toHaveLength(2);
+ expect(commands[1].manifest.thesis_refs).toEqual([primary]);
+ expect(commands[1].operation_id).not.toBe(commands[0].operation_id);
+});
