@@ -35,7 +35,8 @@ import React, {
   useRef,
   useState,
 } from "react";
-import { flowGet } from "@/lib/flowClientCache";
+import { flowGetResult, flowInvalidate, type FlowOutcome } from "@/lib/flowClientCache";
+import { isValidRoot } from "@/lib/flowRoot";
 import { useFlowStream } from "@/lib/flowStream";
 import { useLang } from "@/lib/i18n";
 import { GEX_QUICK_ROOTS, GEX_AUTOCOMPLETE_ROOTS } from "@/lib/optionsRoots";
@@ -48,11 +49,17 @@ import { ExpiryBars } from "./ExpiryBars";
 import { GexHistory } from "./GexHistory";
 import { ExposureExpiryDrawer } from "./ExposureExpiryDrawer";
 import { MarketStateCard } from "./MarketStateCard";
-import type { GexStatePayload } from "./MarketStateCard";
+import type { GexStatePayload, StateReadStatus } from "./MarketStateCard";
 import { GexGuide } from "./GexGuide";
 import { ExposureMatrix } from "./ExposureMatrix";
 import { HeatSeekerCard } from "./HeatSeekerCard";
-import { isMatrixDocForRoot, readGexStateForRoot, mergeMatrixLevels, type MatrixDoc } from "./matrixDoc";
+import {
+  isMatrixDocForRoot,
+  readGexStateForRoot,
+  mergeMatrixLevels,
+  type MatrixDoc,
+  type MatrixRead,
+} from "./matrixDoc";
 import { EodContextBelt } from "@/components/eodcontext/EodContextBelt";
 import { isGexDates, gexSessionOf } from "@/lib/gexSessions";
 import {
@@ -168,15 +175,19 @@ function isIndexProduct(root: string): boolean {
 
 const GEX_POLL_MS = 60_000;
 
-async function safeFetch<T>(url: string): Promise<T | null> {
+// Every desk read keeps its outcome (failure-state truth law): only a 404/410 is a
+// published absence; a 5xx, a refused fetch or an unparseable body is a read that did
+// not land, and it renders as a load error with a Retry — never as a coverage gap.
+async function readFlow(f: string): Promise<FlowOutcome> {
   try {
-    const f = new URL(url, "http://x").searchParams.get("f") ?? url;
-    const data = await flowGet(f);
-    return (data as T) ?? null;
+    return await flowGetResult(f);
   } catch {
-    return null;
+    return { status: "unavailable", reason: "network" };
   }
 }
+
+/** Where one per-root read stands, tagged with the root it answers for. */
+type ReadStatus = "loading" | "data" | "absent" | "unavailable";
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
@@ -201,7 +212,12 @@ export function GexDeskView() {
     const q = new URLSearchParams(window.location.search);
     return q.get("tab") === "prism" || q.get("view") === "matrix" ? "matrix" : "strike";
   });
+  // A name no store can hold (^VIX, $SPX, BRK/B) is never asked for: the route would
+  // refuse it with a 400, and a refusal is not a read that can be retried. It renders the
+  // coverage gap it really is.
+  const rootOk = isValidRoot(ticker);
   const [statePayload, setStatePayload] = useState<GexStatePayload | null>(null);
+  const [stateRead, setStateRead] = useState<{ root: string; status: StateReadStatus }>({ root: "", status: "loading" });
   // Selection changes render before passive effects clear state: do not let that
   // interim render put another root's state, OI or levels under this ticker.
   const visibleStatePayload = statePayload?.root === ticker ? statePayload : null;
@@ -213,6 +229,7 @@ export function GexDeskView() {
   // what makes the lens real. Best-effort: it exists only for some roots (and can run a
   // different session than the gex payload) — absent → the lens reports itself unavailable.
   const [matrix, setMatrix] = useState<MatrixDoc | null>(null);
+  const [matrixRead, setMatrixRead] = useState<{ root: string; status: MatrixRead["status"] }>({ root: "", status: "data" });
   // Drops a slow old-root matrix response after the ticker has changed. Envelope root
   // validation stops substitution, but without request ordering an internally valid SPY
   // response can still arrive after a newer QQQ request and clobber QQQ's state.
@@ -229,6 +246,9 @@ export function GexDeskView() {
   // True when the picked session has no published snapshot (accrual hole / pre-plane
   // date): its own named empty state, never today's ladder wearing an archived label.
   const [archivedMissing, setArchivedMissing] = useState(false);
+  // The picked session's read did not land: a load error with a Retry, never the
+  // "never published" archive gap above.
+  const [archivedError, setArchivedError] = useState(false);
   const sessionReqRef = useRef(0);
   // One retry of the dates-index fetch per ticker (see the payload-arrival effect below).
   const datesRetryRef = useRef(false);
@@ -238,15 +258,54 @@ export function GexDeskView() {
   // worse than before. NOTE: gex data is EOD-nightly — the live connection is a
   // transport upgrade, not live data, so there is deliberately NO "LIVE" badge here;
   // the asof staleness chip remains the honest source of truth on freshness.
-  const { data: gexRaw, error: gexErr } =
-    useFlowStream<Record<string, unknown>>(`gex:${ticker}`);
+  const stream = useFlowStream<Record<string, unknown>>(rootOk ? `gex:${ticker}` : null);
+  const streamRaw = rootOk ? stream.data : null;
+
+  // The stream says nothing about WHY it has no frame: an SSE error is a transport
+  // fact, a silent stream may never send one, and its polling fallback drops every
+  // failure. So the desk makes its own classified read of the same key. Declared after
+  // the hook on purpose — the polling fallback's request is already in flight, and the
+  // shared cache joins this read onto it instead of opening a second one.
+  const [live, setLive] = useState<{ root: string; status: ReadStatus; data: Record<string, unknown> | null }>(
+    { root: "", status: "loading", data: null },
+  );
+  const [liveAttempt, setLiveAttempt] = useState(0);
+  useEffect(() => {
+    if (!rootOk) return;
+    let current = true;
+    const root = ticker;
+    void readFlow(`gex:${root}`).then((outcome) => {
+      if (!current) return;
+      setLive(
+        outcome.status === "data"
+          ? { root, status: "data", data: outcome.data as Record<string, unknown> }
+          : { root, status: outcome.status, data: null },
+      );
+    });
+    return () => { current = false; };
+  }, [ticker, rootOk, liveAttempt]);
+
+  const retryLive = useCallback(() => {
+    flowInvalidate(`gex:${ticker}`);
+    setLiveAttempt((n) => n + 1);
+  }, [ticker]);
+
+  // A pushed frame always wins: the stream is the fresher source once it speaks.
+  const gexRaw = streamRaw ?? (live.root === ticker && live.status === "data" ? live.data : null);
   // Fixture returns the payload directly; prod may key it by root — unwrap either shape.
   const gexPayload: GexPayload | null = gexRaw
     ? (((gexRaw as Record<string, unknown>)[ticker] as GexPayload | undefined) ??
        (gexRaw as unknown as GexPayload))
     : null;
-  const loading = gexRaw === null && !gexErr;
-  const error = gexErr && gexRaw === null;
+  // Four states, one per read: still reading, a payload, a published absence (404/410,
+  // or a name no store can hold), and a read that did not land.
+  const liveStatus: ReadStatus = !rootOk
+    ? "absent"
+    : gexRaw != null
+    ? "data"
+    : live.root === ticker
+    ? live.status
+    : "loading";
 
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
@@ -254,10 +313,20 @@ export function GexDeskView() {
 
   const fetchGexState = useCallback(async (root: string) => {
     const request = ++stateReqRef.current;
-    const data = await safeFetch<unknown>(`/api/flow?f=gexstate:${root}`);
+    const outcome = await readFlow(`gexstate:${root}`);
     // A later ticker/poll owns the result. An old completion, even an error,
     // cannot overwrite newer state; absent or wrong-root current data is null.
-    if (request === stateReqRef.current) setStatePayload(readGexStateForRoot(data, root));
+    if (request !== stateReqRef.current) return;
+    if (outcome.status === "unavailable") {
+      // A refresh that did not land keeps the card already on screen, labelled as the
+      // last read; a first read that did not land has nothing to keep.
+      setStatePayload((prev) => (prev?.root === root ? prev : null));
+      setStateRead({ root, status: "unavailable" });
+      return;
+    }
+    const payload = outcome.status === "data" ? readGexStateForRoot(outcome.data, root) : null;
+    setStatePayload(payload);
+    setStateRead({ root, status: payload ? "data" : "absent" });
   }, []);
 
   // ── GEX-state feed (market-state card) ─────────────────────────────────────────
@@ -269,27 +338,48 @@ export function GexDeskView() {
   // absent → the lens goes dark with a reason and the breakdown is simply omitted.
   // Returns the doc as well as storing it: the matrix view's CONFLUENCE mode refetches
   // SPY/QQQ/IWM through this same reader, so there is one matrix fetch path on the desk.
-  const readMatrix = useCallback(async (root: string): Promise<MatrixDoc | null> => {
+  // Stable identity on purpose: CONFLUENCE re-reads whenever this function changes.
+  const readMatrix = useCallback(async (root: string): Promise<MatrixRead> => {
     // `matrix:{ROOT}` is published FLAT — the desk's pre-§5.3 reader never unwrapped a
     // by-root envelope and its expiry lens works in prod, so no `data[root]` step here.
-    const doc = await safeFetch<unknown>(`/api/flow?f=matrix:${root}`);
+    const outcome = await readFlow(`matrix:${root}`);
+    if (outcome.status !== "data") return { status: outcome.status };
     // A cells-less, wrong-schema, or wrong-root payload — the fixture's honest {} for
     // an unknown root, a malformed upstream doc, or a substituted cache object — resolves
     // to null. A matrix must never wear a different selected ticker's header.
-    return isMatrixDocForRoot(doc, root) ? doc : null;
+    return { status: "data", doc: isMatrixDocForRoot(outcome.data, root) ? outcome.data : null };
   }, []);
 
   const fetchMatrix = useCallback(async (root: string) => {
     const req = ++matrixReqRef.current;
-    const doc = await readMatrix(root);
-    if (matrixReqRef.current === req) setMatrix(doc);
+    const read = await readMatrix(root);
+    if (matrixReqRef.current !== req) return;
+    setMatrixRead({ root, status: read.status });
+    if (read.status === "unavailable") {
+      setMatrix((prev) => (isMatrixDocForRoot(prev, root) ? prev : null));
+    } else {
+      setMatrix(read.status === "data" ? read.doc : null);
+    }
   }, [readMatrix]);
+
+  const retryState = useCallback(() => {
+    flowInvalidate(`gexstate:${ticker}`);
+    void fetchGexState(ticker);
+  }, [fetchGexState, ticker]);
+
+  const retryMatrix = useCallback(() => {
+    flowInvalidate(`matrix:${ticker}`);
+    void fetchMatrix(ticker);
+  }, [fetchMatrix, ticker]);
 
   // Sessions index for the dated-ladder plane. Validated (isGexDates) before it drives
   // the dropdown: a malformed index degrades to no-dropdown, never a coerced list.
+  // The index is an enumeration aid, not a claim: an index that was not read and one
+  // that is not published both mean "no dropdown", and the copy says nothing either way.
   const fetchSessionDates = useCallback(async (root: string) => {
-    const data = await safeFetch<Record<string, unknown>>(`/api/flow?f=gex_dates:${root}`);
-    setSessionDates(data && isGexDates(data) && data.dates.length > 0 ? data.dates : null);
+    const outcome = await readFlow(`gex_dates:${root}`);
+    const data = outcome.status === "data" ? outcome.data : null;
+    setSessionDates(isGexDates(data) && data.dates.length > 0 ? data.dates : null);
   }, []);
 
   // Load one archived session's FULL ladder — or return to live (date = null). The
@@ -302,19 +392,24 @@ export function GexDeskView() {
         setSessionDate(null);
         setArchivedPayload(null);
         setArchivedMissing(false);
+        setArchivedError(false);
         setArchivedLoading(false);
         return;
       }
       setSessionDate(date);
       setArchivedLoading(true);
       setArchivedMissing(false);
+      setArchivedError(false);
       setArchivedPayload(null);
       void (async () => {
-        const data = await safeFetch<GexPayload>(`/api/flow?f=gex_at:${ticker}:${date}`);
+        const outcome = await readFlow(`gex_at:${ticker}:${date}`);
         if (sessionReqRef.current !== req) return;
+        const data = outcome.status === "data" ? (outcome.data as GexPayload) : null;
         const ok = !!data && Array.isArray(data.by_strike) && data.by_strike.length > 0;
         setArchivedPayload(ok ? data : null);
-        setArchivedMissing(!ok);
+        // A session the store never published is a gap; a read that did not land is not.
+        setArchivedError(outcome.status === "unavailable");
+        setArchivedMissing(!ok && outcome.status !== "unavailable");
         setArchivedLoading(false);
       })();
     },
@@ -332,7 +427,13 @@ export function GexDeskView() {
     setSessionDate(null);
     setArchivedPayload(null);
     setArchivedMissing(false);
+    setArchivedError(false);
     setArchivedLoading(false);
+    // Fence whatever the previous root still has in flight, then ask nothing at all
+    // for a name the route would refuse.
+    stateReqRef.current++;
+    matrixReqRef.current++;
+    if (!rootOk) return;
     void fetchGexState(ticker);
     void fetchMatrix(ticker);
     void fetchSessionDates(ticker);
@@ -358,7 +459,7 @@ export function GexDeskView() {
   // live payload proves the desk's data path is up, give the index exactly one more
   // chance per ticker; a root with no index still resolves to null and stays quiet.
   useEffect(() => {
-    if (gexPayload && sessionDates === null && !datesRetryRef.current) {
+    if (rootOk && gexPayload && sessionDates === null && !datesRetryRef.current) {
       datesRetryRef.current = true;
       void fetchSessionDates(ticker);
     }
@@ -420,6 +521,20 @@ export function GexDeskView() {
   // the ticker-change commit. Gate every consumer synchronously so an already-resolved
   // SPY document can never flash under a newly selected QQQ header for even one render.
   const visibleMatrix = isMatrixDocForRoot(matrix, ticker) ? matrix : null;
+  // The same render-time fence for each read's outcome: a status answers only for the
+  // root it was read for, and until this root's read lands it is still being read.
+  const matrixStatus: ReadStatus = !rootOk
+    ? "absent"
+    : matrixRead.root === ticker
+    ? matrixRead.status
+    : "loading";
+  // Nothing on screen to keep, and the read did not land.
+  const matrixUnread = matrixStatus === "unavailable" && !visibleMatrix;
+  const stateStatus: StateReadStatus = !rootOk
+    ? "absent"
+    : stateRead.root === ticker
+    ? stateRead.status
+    : "loading";
 
   const matrixCells = useMemo(
     () => (Array.isArray(visibleMatrix?.cells)
@@ -600,21 +715,20 @@ export function GexDeskView() {
               {asofStale && <span style={{ marginLeft: 5, fontWeight: 600 }}>· {asofAgeStr}</span>}
             </span>
           )}
-          {loading && (
+          {liveStatus === "loading" && !isArchived && (
             <span style={LOADING_BADGE}>{t("loading")}</span>
-          )}
-          {error && !loading && (
-            <span style={ERROR_BADGE}>
-              {t("errorGex")}
-            </span>
           )}
         </div>
       </div>
 
       {/* ── Summary bar ──────────────────────────────────────────────────── */}
-      {/* Withdrawn in the missing-session state: the bar's only null-payload render is a
-          "Loading…" skeleton, and nothing is loading — the ladder region names the gap. */}
-      {!(isArchived && archivedMissing) && (
+      {/* Withdrawn whenever nothing is being read: the bar's only null-payload render is
+          a "Loading…" skeleton, so an absent, unread or missing-session payload would
+          leave it claiming a read that is not happening — the ladder region names which
+          of those it is. */}
+      {!(isArchived
+        ? archivedMissing || archivedError
+        : liveStatus === "absent" || liveStatus === "unavailable") && (
       <GexSummaryBar
         payload={activePayload}
         /* gexstate OI describes the CURRENT session — never dress an archived bar in it. */
@@ -638,6 +752,9 @@ export function GexDeskView() {
         activeSession={sessionDate}
         liveDate={gexSessionOf(gexPayload?.asof)}
         onLoadSession={loadSession}
+        historyState={
+          liveStatus === "loading" ? "pending" : liveStatus === "unavailable" ? "unavailable" : undefined
+        }
       />
 
       {/* ── EOD context belt (OEU T-E) ───────────────────────────────────────
@@ -710,6 +827,26 @@ export function GexDeskView() {
           <div style={LADDER_REGION} className="obs-gexdesk-ladder-region">
             {isArchived && archivedLoading ? (
               <div style={LADDER_LOADING}>{t("archivedLoading")}</div>
+            ) : isArchived && archivedError ? (
+              /* The picked session's read did not land. Not the archive gap below: the
+                 session may well be published, so the reader gets a way to ask again. */
+              <div style={LADDER_EMPTY} data-testid="gex-archived-error" role="alert">
+                <div style={LADDER_EMPTY_TITLE}>
+                  {t("archivedErrorTitle").replace("{date}", sessionDate ?? "")}
+                </div>
+                <div style={LADDER_EMPTY_WHY}>{t("archivedErrorWhy")}</div>
+                <button
+                  type="button"
+                  className="btn btn-ghost load-retry"
+                  onClick={() => {
+                    if (!sessionDate) return;
+                    flowInvalidate(`gex_at:${ticker}:${sessionDate}`);
+                    loadSession(sessionDate);
+                  }}
+                >
+                  {t("errorRetry")}
+                </button>
+              </div>
             ) : isArchived && archivedMissing ? (
               /* Honest missing-session state: the picked date has no published snapshot
                  (accrual hole / pre-plane session). Named as an archive gap — never the
@@ -720,12 +857,24 @@ export function GexDeskView() {
                 </div>
                 <div style={LADDER_EMPTY_WHY}>{t("archivedMissingWhy")}</div>
               </div>
-            ) : loading && !activePayload && !isArchived ? (
+            ) : !isArchived && liveStatus === "loading" ? (
               <div style={LADDER_LOADING}>{t("loadingGex")}</div>
-            ) : error && !gexPayload && !isArchived ? (
+            ) : !isArchived && liveStatus === "unavailable" ? (
+              /* The snapshot read did not land (5xx, refused fetch, unparseable body). It
+                 says nothing about coverage, so it is never dressed as the gap below. */
+              <div style={LADDER_EMPTY} data-testid="gex-load-error" role="alert">
+                <div style={LADDER_EMPTY_TITLE}>{t("errorGex")}</div>
+                <div style={LADDER_EMPTY_WHY}>
+                  {t("gexLoadErrorWhy").replace("{sym}", ticker)}
+                </div>
+                <button type="button" className="btn btn-ghost load-retry" onClick={retryLive}>
+                  {t("errorRetry")}
+                </button>
+              </div>
+            ) : !isArchived && liveStatus === "absent" ? (
               /* Honest empty: the nightly options build re-pulls index anchors first, so a
-                 missing single name is a COVERAGE gap, not a broken desk. Name which one it
-                 is instead of leaving a bare "could not load". */
+                 missing single name is a COVERAGE gap, not a broken desk. Only a proven
+                 absence (404/410, or a name no store can hold) reaches this branch. */
               <div style={LADDER_EMPTY}>
                 <div style={LADDER_EMPTY_TITLE}>{t("gexNoSnapshot")}</div>
                 <div style={LADDER_EMPTY_WHY}>
@@ -749,6 +898,9 @@ export function GexDeskView() {
                 spot={spot}
                 fetchMatrix={readMatrix}
                 lang={lang}
+                matrixUnread={matrixUnread}
+                onRetry={retryMatrix}
+                sym={ticker}
               />
             ) : view === "strike" ? (
               <StrikeLadder
@@ -766,6 +918,7 @@ export function GexDeskView() {
                 lang={lang}
                 netGexBn={activePayload?.net_gex_bn ?? null}
                 matrixCells={matrixCells}
+                matrixUnread={matrixUnread}
               />
             ) : (
               <ExpiryBars
@@ -836,6 +989,9 @@ export function GexDeskView() {
                 spot={visibleMatrix?.spot ?? spot ?? null}
                 sessionAnchor={visibleMatrix?._build_meta?.asof_date ?? null}
                 lang={lang}
+                reading={matrixStatus === "loading"}
+                readFailed={matrixUnread}
+                onRetry={retryMatrix}
               />
             </div>
             <MarketStateCard
@@ -843,6 +999,8 @@ export function GexDeskView() {
               gexPayload={gexPayload}
               isIndexProduct={isIndex}
               lang={lang}
+              stateRead={stateStatus}
+              onRetry={retryState}
             />
           </div>
         )}
@@ -1070,11 +1228,6 @@ const RIGHT_RAIL: React.CSSProperties = {
 const LOADING_BADGE: React.CSSProperties = {
   fontSize: 10,
   color: "var(--brand-2)",
-};
-
-const ERROR_BADGE: React.CSSProperties = {
-  fontSize: 10,
-  color: "var(--down)",
 };
 
 const BODY_ROW: React.CSSProperties = {
