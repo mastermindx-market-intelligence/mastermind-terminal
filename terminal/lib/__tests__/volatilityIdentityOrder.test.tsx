@@ -82,11 +82,15 @@ describe("term rows with a half-valid coordinate break the curve instead of brid
       { dte: 30, exp: "2026/10/31", atm_iv: 99 },
       { dte: 60, exp: "2026-11-30", atm_iv: 16 },
     ] as VolTermRow[];
-    await render(<VolTermPanel term={rows} lang="en" />);
+    await render(<VolTermPanel term={rows} lang="en" selectedExp="2026-10-08" onSelectExp={() => undefined} />);
     expect(termPaths()).toHaveLength(2);
     expect(termPaths().every((p) => !(p.getAttribute("d") ?? "").includes("L"))).toBe(true);
     expect(host.textContent).not.toContain("99");
     expect(host.innerHTML).not.toMatch(/NaN|Infinity/);
+    // the gap position is disclosed, and never offered as a selectable expiry identity
+    expect(host.querySelector('[data-testid="term-conflict-status"]')?.textContent).toContain("invalid expiry date");
+    const options = [...host.querySelectorAll<HTMLOptionElement>('[data-testid="term-expiry-select"] option')].map((o) => o.value);
+    expect(options).toEqual(["2026-10-08", "2026-11-30"]);
   });
 
   it("a valid expiry date with an unplaceable DTE withholds line continuity", async () => {
@@ -99,6 +103,8 @@ describe("term rows with a half-valid coordinate break the curve instead of brid
     expect(termPaths()).toHaveLength(2);
     expect(termPaths().every((p) => !(p.getAttribute("d") ?? "").includes("L"))).toBe(true);
     expect(host.textContent).not.toContain("99");
+    expect(host.querySelector('[data-testid="term-conflict-status"]')?.textContent).toContain("Term-curve lines withheld");
+    expect(host.textContent).not.toMatch(/Contango|Inverted/);
   });
 });
 

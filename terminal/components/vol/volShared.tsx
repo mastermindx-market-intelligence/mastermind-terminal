@@ -48,6 +48,10 @@ export interface VolTermAdmission {
   conflictExpiries: Set<string>;
   /** Duplicate expiry rows whose DTE coordinates disagree; no gap coordinate can be invented safely. */
   ambiguousCoordinateExpiries: Set<string>;
+  /** DTE positions of rows whose expiry identity is invalid: curve gaps only, never selectable expiries. */
+  invalidExpiryDtes: number[];
+  /** Supplied rows with no valid DTE: their curve position is unknown, so line continuity is withheld. */
+  unplaceableRows: number;
 }
 
 /**
@@ -55,14 +59,27 @@ export interface VolTermAdmission {
  * Duplicate expiry identities never pick a client-side winner. When every duplicate
  * agrees on DTE, keep one NaN placeholder so finiteSegments preserves that source
  * position as a gap. If DTE itself conflicts, report the ambiguity and omit a fake
- * coordinate; the panel then suppresses line continuity for the curve.
+ * coordinate; the panel then suppresses line continuity for the curve. A row with a valid
+ * DTE but an invalid expiry keeps only its DTE as a gap position (never a selectable
+ * identity); a row with no valid DTE cannot be placed, so continuity is withheld.
  */
 export function admitVolTermRows(term: VolTermRow[] | undefined): VolTermAdmission {
   const valid: AdmittedVolTermPoint[] = [];
+  const invalidExpiryDtes: number[] = [];
+  let unplaceableRows = 0;
   for (const row of term ?? []) {
     const dte = reportedVolNumber(row?.dte);
     const exp = volIsoDay(row?.exp);
-    if (!Number.isFinite(dte) || !exp) continue;
+    // A malformed coordinate is a gap, not "no observation": dropping the row would let the
+    // curve bridge straight across the tenor the source said it was reporting.
+    if (!Number.isFinite(dte)) {
+      unplaceableRows += 1;
+      continue;
+    }
+    if (!exp) {
+      invalidExpiryDtes.push(dte);
+      continue;
+    }
     valid.push({ dte, exp, v: reportedVolNumber(row?.atm_iv), conflict: false });
   }
   const groups = new Map<string, AdmittedVolTermPoint[]>();
@@ -81,7 +98,8 @@ export function admitVolTermRows(term: VolTermRow[] | undefined): VolTermAdmissi
     else ambiguousCoordinateExpiries.add(exp);
   }
   rows.sort((a, b) => a.dte - b.dte || a.exp.localeCompare(b.exp));
-  return { rows, conflictExpiries, ambiguousCoordinateExpiries };
+  invalidExpiryDtes.sort((a, b) => a - b);
+  return { rows, conflictExpiries, ambiguousCoordinateExpiries, invalidExpiryDtes, unplaceableRows };
 }
 
 export interface AdmittedVolSmilePoint {

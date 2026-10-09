@@ -109,7 +109,8 @@ export function VolHistoryPanel({
           <span style={{ marginLeft: "auto", fontSize: 10, color: "var(--text-dim)", fontVariantNumeric: "tabular-nums" }}>
             {t("histCoverage")
               .replace("{n}", String(finite.length))
-              .replace("{d}", finite[0].date.slice(0, 10))}
+              .replace("{d}", finite[0].date.slice(0, 10))
+              .replace("{last}", finite[finite.length - 1].date.slice(0, 10))}
           </span>
         )}
       </div>

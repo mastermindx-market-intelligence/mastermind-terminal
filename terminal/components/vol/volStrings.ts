@@ -52,7 +52,7 @@ const VOL_LEX = {
   histTitle:         ["ATM IV history", "平值IV历史"],
   // Coverage is disclosed from the data (the old title asserted "90-day" over
   // whatever history[] actually held).
-  histCoverage:      ["{n} sessions · since {d}", "{n} 个交易日 · 自 {d}"],
+  histCoverage:      ["{n} sessions · since {d} through {last}", "{n} 个交易日 · 自 {d} 至 {last}"],
   histConflictCount: ["Partial IV history · {n} conflicting date unavailable", "IV历史不完整 · {n} 个冲突日期不可用"],
   histEmptyTitle:    ["Not enough IV history to draw yet", "IV历史数据不足，暂无法绘制"],
   histEmptyWhy: [
@@ -77,6 +77,8 @@ const VOL_LEX = {
   termExpUnavailable:["ATM IV unavailable", "平值IV不可用"],
   termConflictCount: ["Partial IV data · {n} conflicting expiry unavailable", "IV数据不完整 · {n} 个冲突到期日不可用"],
   termConflictAmbiguous: ["Term-curve lines withheld · {n} conflicting expiry has inconsistent DTE", "期限曲线连线暂不显示 · {n} 个冲突到期日的DTE不一致"],
+  termUnplaceable:   ["Term-curve lines withheld · {n} supplied row has no valid days-to-expiry value", "期限曲线连线暂不显示 · {n} 个已提供行缺少有效的到期天数"],
+  termInvalidExpiry: ["Curve breaks at {n} supplied row with an invalid expiry date", "曲线在 {n} 个到期日无效的已提供行处断开"],
   termExpSelectAria: ["Select {exp}, {dte} days, reported ATM IV {iv}%", "选择 {exp}，{dte} 天，报告平值IV {iv}%"],
   termExpMissingAria:["Select {exp}, {dte} days, ATM IV unavailable", "选择 {exp}，{dte} 天，平值IV不可用"],
   termContango:      ["Contango", "正向期限结构"],

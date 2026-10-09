@@ -58,17 +58,43 @@ function sessionRuns(pts: VrpPoint[]): VrpPoint[][] {
   return runs;
 }
 
+/**
+ * Session identity admission for agg.series. A row keeps its date only when that exact ISO
+ * day is strictly later than every earlier dated row AND strictly earlier than every later
+ * one. A duplicate date or an ordering inversion therefore turns EVERY row involved into a
+ * gap: the client never picks a winning revision or a "correct" position, and no return is
+ * computed across a pair of rows whose session order is not established.
+ */
+function admitSessionDays(raw: unknown[]): (string | null)[] {
+  const days = raw.map((d) => volIsoDay(d));
+  const suffixMin: (string | null)[] = new Array(days.length).fill(null);
+  let min: string | null = null;
+  for (let i = days.length - 1; i >= 0; i--) {
+    suffixMin[i] = min;
+    const d = days[i];
+    if (d != null && (min == null || d < min)) min = d;
+  }
+  let max: string | null = null;
+  return days.map((d, i) => {
+    const admitted = d != null && (max == null || d > max) && (suffixMin[i] == null || d < (suffixMin[i] as string));
+    if (d != null && (max == null || d > max)) max = d;
+    return admitted ? d : null;
+  });
+}
+
 /** Derive the trailing VRP series (vol points) from the agg store's spot+IV columns. */
 export function deriveVrpSeries(agg: AggTrendPayload | null | undefined): VrpPoint[] {
   const series = agg?.series;
   if (!Array.isArray(series) || series.length < 22) return [];
+  const days = admitSessionDays(series.map((row) => row?.d));
   const out: VrpPoint[] = [];
   // log returns over published closes; rv20 = stdev(last 20) × √252, in percent.
   const rets: number[] = [];
   for (let i = 1; i < series.length; i++) {
     const a = series[i - 1];
     const b = series[i];
-    const ok = isNum(a?.s) && isNum(b?.s) && (a.s as number) > 0 && (b.s as number) > 0;
+    const ok = days[i - 1] != null && days[i] != null
+      && isNum(a?.s) && isNum(b?.s) && (a.s as number) > 0 && (b.s as number) > 0;
     rets.push(ok ? Math.log((b.s as number) / (a.s as number)) : NaN);
     const iv = b?.iv;
     if (!isNum(iv) || i < 20) continue;
@@ -77,7 +103,7 @@ export function deriveVrpSeries(agg: AggTrendPayload | null | undefined): VrpPoi
     const mean = win.reduce((x, y) => x + y, 0) / win.length;
     const varSum = win.reduce((x, y) => x + (y - mean) ** 2, 0) / (win.length - 1);
     const rv20 = Math.sqrt(varSum * 252) * 100;
-    out.push({ d: String(b.d ?? ""), v: iv * 100 - rv20, i });
+    out.push({ d: days[i] as string, v: iv * 100 - rv20, i });
   }
   return out.slice(-WINDOW);
 }

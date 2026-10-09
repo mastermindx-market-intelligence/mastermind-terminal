@@ -4,9 +4,10 @@
  *
  * Finite-filtered per R7. Markers only on the near curve (dte ≤ 60) — the long
  * tail stays a clean line. The structure chip compares the FRONT expiration to
- * the row nearest 90 DTE: front below → Contango, front above → Inverted — a
- * geometric description in neutral tones (vol is non-directional), suppressed
- * whenever either point is missing (or they are the same row).
+ * the row nearest 90 DTE, and only when that row lies within 45 days of 90 DTE:
+ * front below → Contango, front above → Inverted — a geometric description in
+ * neutral tones (vol is non-directional), suppressed whenever either point is
+ * missing, out of range, or they are the same row.
  */
 
 import React, { useMemo, useRef } from "react";
@@ -49,30 +50,43 @@ export function VolTermPanel({
   const selectedExpiry = volIsoDay(selectedExp) ? selectedExp : null;
   const selectedUnavailable = selectedExpiry != null && !pts.some((p) => p.exp === selectedExpiry);
   const finite = useMemo(() => pts.filter((p) => Number.isFinite(p.v)), [pts]);
+  // Curve positions = admitted rows + invalid-expiry gap placeholders (NaN, never selectable).
+  const curve = useMemo<AdmittedVolTermPoint[]>(() => [
+    ...pts,
+    ...admission.invalidExpiryDtes.map((dte) => ({ dte, exp: "", v: Number.NaN, conflict: false })),
+  ].sort((a, b) => a.dte - b.dte), [admission.invalidExpiryDtes, pts]);
+  const continuityWithheld = admission.ambiguousCoordinateExpiries.size > 0 || admission.unplaceableRows > 0;
   const segments = useMemo(
-    () => admission.ambiguousCoordinateExpiries.size > 0
+    () => continuityWithheld
       ? finite.map((point) => [point])
-      : finiteSegments(pts, (point) => point.v),
-    [admission.ambiguousCoordinateExpiries, finite, pts],
+      : finiteSegments(curve, (point) => point.v),
+    [continuityWithheld, finite, curve],
   );
   const drawable = finite.length >= 1;
-  const conflictSummary = admission.ambiguousCoordinateExpiries.size > 0
-    ? t("termConflictAmbiguous").replace("{n}", String(admission.ambiguousCoordinateExpiries.size))
-    : admission.conflictExpiries.size > 0
-      ? t("termConflictCount").replace("{n}", String(admission.conflictExpiries.size))
-      : null;
+  const conflictNotes = [
+    admission.ambiguousCoordinateExpiries.size > 0
+      ? t("termConflictAmbiguous").replace("{n}", String(admission.ambiguousCoordinateExpiries.size))
+      : admission.conflictExpiries.size > 0
+        ? t("termConflictCount").replace("{n}", String(admission.conflictExpiries.size))
+        : null,
+    admission.unplaceableRows > 0 ? t("termUnplaceable").replace("{n}", String(admission.unplaceableRows)) : null,
+    admission.invalidExpiryDtes.length > 0 ? t("termInvalidExpiry").replace("{n}", String(admission.invalidExpiryDtes.length)) : null,
+  ].filter((note): note is string => note != null);
+  const conflictSummary = conflictNotes.length ? conflictNotes.join(" · ") : null;
 
-  // Structure chip: front vs nearest-to-90d. Suppressed unless both exist and differ.
+  // Structure chip: front vs nearest-to-90d, bounded to 90 ± 45 days like the slope
+  // chips. Suppressed unless both exist, differ, and the far tenor is in range.
   const structure = useMemo<{ key: "termContango" | "termInverted"; front: AdmittedVolTermPoint; far: AdmittedVolTermPoint } | null>(() => {
-    if (admission.conflictExpiries.size > 0 || pts.length < 2) return null;
-    const front = pts[0];
-    let far = pts[0];
-    for (const p of pts) {
+    if (admission.conflictExpiries.size > 0 || admission.unplaceableRows > 0 || curve.length < 2) return null;
+    const front = curve[0];
+    let far = curve[0];
+    for (const p of curve) {
       if (Math.abs(p.dte - 90) < Math.abs(far.dte - 90)) far = p;
     }
-    if (far === front || !Number.isFinite(front.v) || !Number.isFinite(far.v) || far.v === front.v) return null;
+    if (far === front || Math.abs(far.dte - 90) > 45) return null;
+    if (!Number.isFinite(front.v) || !Number.isFinite(far.v) || far.v === front.v) return null;
     return { key: front.v < far.v ? "termContango" : "termInverted", front, far };
-  }, [admission.conflictExpiries, pts]);
+  }, [admission.conflictExpiries, admission.unplaceableRows, curve]);
 
   const [x0, x1] = useMemo(() => {
     if (!drawable) return [0, 1] as [number, number];
@@ -105,17 +119,17 @@ export function VolTermPanel({
   // Slope chips (R2.3): the two segments a desk actually quotes — front→~30d and
   // ~30d→~90d, in vol points. Suppressed when the curve lacks the anchor tenors.
   const slopes = useMemo(() => {
-    if (admission.conflictExpiries.size > 0 || pts.length < 2) return [] as { key: "termSlopeFront" | "termSlopeBack"; v: number; from: number; to: number }[];
+    if (admission.conflictExpiries.size > 0 || admission.unplaceableRows > 0 || curve.length < 2) return [] as { key: "termSlopeFront" | "termSlopeBack"; v: number; from: number; to: number }[];
     const nearest = (target: number) =>
-      pts.reduce((a, b) => (Math.abs(b.dte - target) < Math.abs(a.dte - target) ? b : a));
-    const front = pts[0];
+      curve.reduce((a, b) => (Math.abs(b.dte - target) < Math.abs(a.dte - target) ? b : a));
+    const front = curve[0];
     const d30 = nearest(30);
     const d90 = nearest(90);
     const out: { key: "termSlopeFront" | "termSlopeBack"; v: number; from: number; to: number }[] = [];
     if (d30 !== front && Math.abs(d30.dte - 30) <= 15 && Number.isFinite(front.v) && Number.isFinite(d30.v)) out.push({ key: "termSlopeFront", v: d30.v - front.v, from: front.dte, to: d30.dte });
     if (d90 !== d30 && Math.abs(d90.dte - 90) <= 45 && Number.isFinite(d30.v) && Number.isFinite(d90.v)) out.push({ key: "termSlopeBack", v: d90.v - d30.v, from: d30.dte, to: d90.dte });
     return out;
-  }, [admission.conflictExpiries, pts]);
+  }, [admission.conflictExpiries, admission.unplaceableRows, curve]);
 
   const fmtSlope = (v: number) => `${v > 0 ? "+" : v < 0 ? "−" : ""}${Math.abs(v).toFixed(1)}`;
 
