@@ -34,6 +34,8 @@ type Alert = { id: string; symbol: string; condition: any; active: boolean; crea
  *   unconfirmed   that read answered: the row shows the LATEST OBSERVATION, still qualified — a read is
  *                 not proof the unacknowledged write finished. A further re-arm is a new, informed write.
  *   check-failed  the read failed too: nothing is known, so no re-arm is offered — only a GET-only check
+ * Apart from the phase, a row whose re-arm outcome was never learned says so for as long as it is on
+ * screen: a later attempt's acknowledgement or refusal answers only that attempt (C4 5991393156).
  */
 type RearmPhase = "sending" | "checking" | "unconfirmed" | "check-failed";
 
@@ -45,7 +47,22 @@ const REARM_COPY = {
   unconfirmed: { en: "Re-arm not confirmed — showing the latest saved state.", zh: "重新启用未获确认——以下为最新保存的状态。" },
   "check-failed": { en: "Re-arm not confirmed, and the alert's current state could not be checked.", zh: "重新启用未获确认，且无法核对提醒的当前状态。" },
   checkStatus: { en: "Check status", zh: "核对状态" },
+  earlier: { en: "An earlier re-arm of this alert was never confirmed — it may still take effect.", zh: "此提醒先前的一次重新启用从未获得确认——它仍可能生效。" },
 } as const;
+
+/**
+ * A PATCH reply that acknowledges THIS re-arm and can stand in for the row on screen: the expected
+ * id, armed, a symbol and creation time, a plain-object condition, and no trigger stamp (route.ts
+ * PATCH deletes it). Anything less is not an acknowledgement — the row is reconciled by reading.
+ */
+function isRearmAck(x: unknown, id: string): x is Alert {
+  if (!x || typeof x !== "object" || Array.isArray(x)) return false;
+  const a = x as Record<string, unknown>;
+  const c = a.condition;
+  return a.id === id && a.active === true && typeof a.symbol === "string" && typeof a.created_at === "string"
+    && !!c && typeof c === "object" && !Array.isArray(c)
+    && !Object.prototype.hasOwnProperty.call(c, "triggered");
+}
 
 // ── suite-event catalog (lib/suiteAlerts.ts is the authority for events + tiers) ──
 type Tier = "free" | "essential" | "pro";
@@ -289,6 +306,9 @@ export default function AlertsView({ email, panelOnly, listOnly }: { email: stri
   // A re-arm acknowledged while reads were in flight is newer than what those reads saw for that
   // row: until a read that STARTED after the acknowledgement lands, the acknowledged row stands.
   const ackedRows = useRef(new Map<string, { floor: number; row: Alert }>());
+  // Rows with a re-arm whose outcome was never learned. Kept apart from the current attempt's phase:
+  // a later attempt settling does not settle the earlier one.
+  const [earlierUnknown, setEarlierUnknown] = useState<Record<string, true>>({});
 
   /**
    * Read the inventory. FOUR outcomes, none of them allowed to wear another's clothes:
@@ -503,8 +523,7 @@ export default function AlertsView({ email, panelOnly, listOnly }: { email: stri
       r = await fetch("/api/alerts", { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ id }) });
     } catch { /* lost: the write may have landed */ }
     const d = r ? await r.json().catch(() => null) : null;
-    // An acknowledgement of THIS re-arm: this row, armed, its trigger stamp gone (route.ts PATCH).
-    if (r?.ok && d?.alert?.id === id && d.alert.active === true && !d.alert.condition?.triggered) {
+    if (r?.ok && isRearmAck(d?.alert, id)) {
       ackedRows.current.set(id, { floor: readSeq.current, row: d.alert });
       setAlerts((a) => a.map((x) => (x.id === id ? d.alert : x)));
       dropRearm(id);
@@ -516,6 +535,9 @@ export default function AlertsView({ email, panelOnly, listOnly }: { email: stri
       setErr(t("couldNotRearm")); // localized — the route's {error} is a code, not user copy
       return;
     }
+    // This write's outcome is unknown for the rest of the row's life on screen: a later attempt's
+    // acknowledgement or refusal settles only that later attempt, never this one.
+    setEarlierUnknown((u) => (u[id] ? u : { ...u, [id]: true }));
     await checkRearm(id);
   }
 
@@ -856,14 +878,18 @@ export default function AlertsView({ email, panelOnly, listOnly }: { email: stri
                 {/* Re-arm not confirmed: say so, beside the latest observation. Rides the delete
                     confirm's full-width track (appended after child 6, so the 390px grid's
                     nth-child placement is untouched). */}
-                {phase && phase !== "sending" && (
+                {phase && phase !== "sending" ? (
                   <span className="arow-confirm arow-rearm" role="status" data-rearm-state={phase}>
                     <span className="arow-confirm-q">{REARM_COPY[phase][L]}</span>
                     {phase === "check-failed" && (
                       <button type="button" className="btn" onClick={() => checkRearm(a.id)}>{REARM_COPY.checkStatus[L]}</button>
                     )}
                   </span>
-                )}
+                ) : earlierUnknown[a.id] ? (
+                  <span className="arow-confirm arow-rearm" role="status" data-rearm-state="earlier-unconfirmed">
+                    <span className="arow-confirm-q">{REARM_COPY.earlier[L]}</span>
+                  </span>
+                ) : null}
                 {confirmDel === a.id && (
                   <span className="arow-confirm" role="group" aria-label={t("deleteAlertQ")}>
                     <span className="arow-confirm-q">{t("deleteAlertQ")}</span>
