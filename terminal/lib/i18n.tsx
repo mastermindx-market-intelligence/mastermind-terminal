@@ -262,6 +262,10 @@ export const LEX: Record<string, [string, string]> = {
   replayBtn: ["Replay", "回放"],
   replayTip: ["Bar Replay — step through history bar by bar", "K线回放 — 逐根回放历史"],
   replayExitTip: ["Exit Bar Replay", "退出K线回放"],
+  // A timeframe change keeps the replay DATE; when the new timeframe cannot show that date, Replay
+  // ends and says why instead of quietly moving to a different date.
+  replayEndedClock: ["Replay ended — daily and intraday charts can't share one replay date", "回放已结束 — 日线与分时图表无法共用同一回放日期"],
+  replayEndedRange: ["Replay ended — this timeframe has too little history before the replay date", "回放已结束 — 该周期在回放日期之前的历史数据不足"],
   moreTimeframes: ["More timeframes", "更多周期"],
   magnetTip: ["Magnet — snap to OHLC", "磁吸 — 吸附到OHLC"],
   clearDrawings: ["Clear drawings", "清除图形"],

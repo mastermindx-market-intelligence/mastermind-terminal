@@ -570,11 +570,12 @@ import { buildVisualSeries, participationColor, visualOverlayBundle, visualReado
   EMPTY_VISUAL_CALENDAR, type ChartReadoutMeta, type VisualCalendar, type VisualIntelligenceSettings,
   type VisualSeries } from "@/lib/visualIntelligence";
 import { candleVolumeRank } from "@/lib/suites/trend/candlePainter";
+import { replayAxisOf, replayVisibleCount, type ReplayAxis, type ReplayCutoff } from "@/lib/replayContract";
 
-export default function ChartPanel({ symbol, chartType = "candles", indicators, timeframe = "D", replayIdx = null, onMeta, tool = null, toolActivation = 0, drawingSticky = false, drawingCreationDisabled = false, drawStyle, drawings = [], onDrawingsChange, detectCmd = null, magnet = "off", compare = [], compareCfg = EMPTY_OBJ, isActive = true, syncId = null, liveQuote = null,
+export default function ChartPanel({ symbol, chartType = "candles", indicators, timeframe = "D", replayCutoff = null, onMeta, tool = null, toolActivation = 0, drawingSticky = false, drawingCreationDisabled = false, drawStyle, drawings = [], onDrawingsChange, detectCmd = null, magnet = "off", compare = [], compareCfg = EMPTY_OBJ, isActive = true, syncId = null, liveQuote = null,
   indParams = EMPTY_OBJ, hidden = EMPTY_SET, onToggleHidden, onRemoveInd, onOpenSettings, onOpenSource, pineScripts = EMPTY_PINE, chartSettings, onVisualSettings, onChartApi, extHours = false, episodeId = null,
   instrumentName, instrumentMarket, instrumentColor, onAddAlert, onTableView, onObjectTree, onOpenSettingsModal, lockedVLine = null, onSetLockedVLine, onIndRowsAt, dayMode = false, onPaneCount, companyName = "", userTier = "free", dataReady = true, initialTimeframe = null }:
-  { symbol: string; companyName?: string; chartType?: string; indicators: Set<string>; timeframe?: string; replayIdx?: number | null; onMeta?: (m: { total: number; symbol: string; timeframe: string }) => void;
+  { symbol: string; companyName?: string; chartType?: string; indicators: Set<string>; timeframe?: string; replayCutoff?: ReplayCutoff | null; onMeta?: (m: { symbol: string; timeframe: string; axis: ReplayAxis }) => void;
     /** False until the shell has COMMITTED its persisted prefs. See `effectiveTimeframe`. */
     dataReady?: boolean;
     /** The shell's already-resolved startup timeframe, handed over before it can be rendered. */
@@ -815,7 +816,9 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
   const indicatorsRef = useRef<Set<string>>(indicators);
   const indicatorSetKey = (set: ReadonlySet<string>) => Array.from(set).sort().join(",");
   const syncIdRef = useRef<number | null>(syncId);
-  const replayIdxRef = useRef<number | null>(replayIdx);   // live replayIdx so Effect 2 doesn't build against a stale closure if replay starts mid-fetch
+  // The live replay CUTOFF (an instant, lib/replayContract.ts), so Effect 2 doesn't build against a
+  // stale closure if replay starts mid-fetch. Non-null ⇔ this chart is replaying.
+  const replayIdxRef = useRef<ReplayCutoff | null>(replayCutoff);
   const liveQuoteRef = useRef<LiveQuote>(liveQuote);       // latest live quote, so Effect 2's tail can re-apply the splice after setData
   const extHoursRef = useRef(extHours);
   const liveTickKeyRef = useRef("");                        // rejects a repeated one-second packet without repainting
@@ -1162,6 +1165,8 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
   // change and no second load is issued. Standalone callers (embed, dev theater, ChartConductor)
   // pass neither prop and are unaffected.
   const effectiveTimeframe = dataReady ? timeframe : (initialTimeframe ?? timeframe);
+  // The cutoff as a stable effect key: a new object for the same instant must not re-slice.
+  const replayKey = replayCutoff ? `${replayCutoff.clock}:${replayCutoff.at}` : null;
   useLayoutEffect(() => {
     visualSourceRef.current = null;
     visualSeriesRef.current = null;
@@ -1173,8 +1178,8 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
     visualSeriesRef.current = null;
     visualSelectedTimeRef.current = null;
     visualPanelRef.current?.reset();
-  }, [replayIdx]);
-  chartTypeRef.current = chartType; timeframeRef.current = effectiveTimeframe; compareRef.current = compare || []; compareCfgRef.current = compareCfg; indicatorsRef.current = indicators; dataReadyRef.current = dataReady; syncIdRef.current = syncId; replayIdxRef.current = replayIdx; liveQuoteRef.current = liveQuote; extHoursRef.current = extHours; symbolRef.current = symbol; companyNameRef.current = companyName;
+  }, [replayKey]);
+  chartTypeRef.current = chartType; timeframeRef.current = effectiveTimeframe; compareRef.current = compare || []; compareCfgRef.current = compareCfg; indicatorsRef.current = indicators; dataReadyRef.current = dataReady; syncIdRef.current = syncId; replayIdxRef.current = replayCutoff; liveQuoteRef.current = liveQuote; extHoursRef.current = extHours; symbolRef.current = symbol; companyNameRef.current = companyName;
   lastValueVisibleRef.current = chartSettings?.lastValueVisible !== false;
   countdownVisibleRef.current = chartSettings?.countdownVisible !== false;
   chartSettingsRef.current = chartSettings ?? {};
@@ -2967,7 +2972,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
       liveWrap.style.removeProperty("--mm-live-color");
     }
     rebuildPaneMeta();             // the legend must not advertise studies that are no longer drawn
-    if (onMeta) onMeta({ total: 0, symbol: symbolRef.current, timeframe: timeframeRef.current });
+    if (onMeta) onMeta({ symbol: symbolRef.current, timeframe: timeframeRef.current, axis: replayAxisOf([], timeframeRef.current) });
     renderTagRef.current?.();      // no bars → the last-price badge hides itself
     renderSignalsRef.current();    // drop the previous symbol's markers / gap zones
     renderRef.current();
@@ -3055,7 +3060,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
     barIdxRef.current = { src: null, map: new Map() };
     const closes = closesRef.current;
     // 0. a grown bar set moves the future-anchor gutter and the parent's row count with it
-    if (appended) { applyFutureAxis(); onMeta?.({ total: rows.length, symbol: symbolRef.current, timeframe: timeframeRef.current }); }
+    if (appended) { applyFutureAxis(); onMeta?.({ symbol: symbolRef.current, timeframe: timeframeRef.current, axis: replayAxisOf(rows, timeframeRef.current) }); }
     // 1. series that own a cached derivation of the bars
     updateAllIndicators(rows, closes);
     refreshLiveStudies(rows, closes);
@@ -3227,7 +3232,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
   };
 
   // Apply the default view (recent ~240 window in normal mode; fit the slice in replay).
-  const applyView = (rows: Bar[], replay: number | null) => {
+  const applyView = (rows: Bar[], replay: ReplayCutoff | null) => {
     const chart = chartRef.current; if (!chart) return;
     let plotWidth: number | undefined;
     try { plotWidth = chart.timeScale().width(); } catch {}
@@ -8599,10 +8604,10 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
         chart.applyOptions({ timeScale: { timeVisible: true, secondsVisible: isSecondTf(effectiveTimeframe) } });
         // epoch-second Bar6 [t,o,h,l,c,v] → Bar with a NUMERIC time (lightweight-charts accepts UTCTimestamp)
         const rows: Bar[] = bars.map((b: any[]) => ({ time: b[0] as any, o: b[1], h: b[2], l: b[3], c: b[4], v: b[5] }));
-        if (onMeta) onMeta({ total: rows.length, symbol, timeframe: effectiveTimeframe });
+        if (onMeta) onMeta({ symbol, timeframe: effectiveTimeframe, axis: replayAxisOf(rows, effectiveTimeframe) });
         fullBarsRef.current = rows;
         const ri = replayIdxRef.current;
-        const onChart = ri != null ? rows.slice(0, Math.max(20, ri + 1)) : rows;
+        const onChart = ri != null ? rows.slice(0, replayVisibleCount(rows, effectiveTimeframe, ri)) : rows;
         barsRef.current = onChart;
         const closes = onChart.map((r) => r.c);
         closesRef.current = closes;
@@ -8728,13 +8733,15 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
       // ── PERF-FIX (b): use cached resample; same-symbol TF switches skip the O(N) bucketing pass ──
       let rows: Bar[] = resampleTfCached(daily, effectiveTimeframe, symbol,
         ohlcSrcRef.current, sessionAnchorRef.current);
-      if (onMeta) onMeta({ total: rows.length, symbol, timeframe: effectiveTimeframe });
+      if (onMeta) onMeta({ symbol, timeframe: effectiveTimeframe, axis: replayAxisOf(rows, effectiveTimeframe) });
       fullBarsRef.current = rows;
-      // Read the LIVE replayIdx (not the effect's closure): if the user started replay while this
+      // Read the LIVE replay cutoff (not the effect's closure): if the user started replay while this
       // fetch was in flight, Effect 4 bailed (fullBarsRef was empty) and would NOT re-slice — so we
-      // must honor the current replayIdx here or the chart stays stuck on the full series.
+      // must honor the current cutoff here or the chart stays stuck on the full series. The cutoff is
+      // an INSTANT: a timeframe change re-slices this timeframe's bars at the same moment, never at
+      // the previous timeframe's bar number, and never pads past it.
       const ri = replayIdxRef.current;
-      const onChart = ri != null ? rows.slice(0, Math.max(20, ri + 1)) : rows;
+      const onChart = ri != null ? rows.slice(0, replayVisibleCount(rows, effectiveTimeframe, ri)) : rows;
       barsRef.current = onChart;
       const closes = onChart.map((r) => r.c);
       closesRef.current = closes;
@@ -9321,12 +9328,12 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
   }, [hidden]); // eslint-disable-line
 
   // ────────────────────────────────────────────────────────────────────────────
-  // EFFECT 4 — replay [replayIdx]. Slice from fullBarsRef; recompute indicators+sigMarks on the slice.
+  // EFFECT 4 — replay [replayKey]. Slice from fullBarsRef at the cutoff instant; recompute indicators+sigMarks on the slice.
   // ────────────────────────────────────────────────────────────────────────────
   useEffect(() => {
     const chart = chartRef.current, priceS = priceSeriesRef.current; if (!chart || !priceS) return;
-    if (!fullBarsRef.current.length) return;   // no data yet — Effect 2 already honors replayIdx on first load
-    if (replayIdx == null) {
+    if (!fullBarsRef.current.length) return;   // no data yet — Effect 2 already honors the cutoff on first load
+    if (replayCutoff == null) {
       // exit replay → restore the FULL series (price + indicators + compare) + default view
       const full = fullBarsRef.current; barsRef.current = full; const closes = full.map((r) => r.c); closesRef.current = closes;
       precRef.current = closes.length && closes[closes.length - 1] < 10 ? 4 : 2;   // parity: prec from the visible last close
@@ -9341,7 +9348,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
       paintStatus(full, sliceRef.current);
       applyView(full, null);
     } else {
-      const rows = fullBarsRef.current.slice(0, Math.max(20, replayIdx + 1));
+      const rows = fullBarsRef.current.slice(0, replayVisibleCount(fullBarsRef.current, timeframeRef.current, replayCutoff));
       barsRef.current = rows;                          // replicate the base's snap-sees-visible-bars behavior
       const closes = rows.map((r) => r.c); closesRef.current = closes;
       precRef.current = closes.length && closes[closes.length - 1] < 10 ? 4 : 2;   // parity: prec from the visible last close
@@ -9367,7 +9374,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
     applyLiveSplice();
     applyExtendedPriceLine();
     // eslint-disable-next-line
-  }, [replayIdx]);
+  }, [replayKey]);
 
   // ────────────────────────────────────────────────────────────────────────────
   // EFFECT 7 — live-bar splice [liveQuote]. Daily-derived bars take the regular quote; intraday
@@ -9739,15 +9746,15 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
     if (!tool && creationPaletteRef.current) creationPaletteRef.current.style.display = "none";
   }, [tool, toolActivation]);
   useLayoutEffect(() => {
-    if (!drawingCreationDisabled && replayIdx == null) return;
+    if (!drawingCreationDisabled && replayKey == null) return;
     cancelPendingDrawingRef.current();
     cancelMediaToolRef.current(null);
     if (creationPaletteRef.current) creationPaletteRef.current.style.display = "none";
     // Replay is a read-only historical lens: its first committed frame must
     // retire any live selection so no inspector, handle, keyboard edit, or
     // direct-dispatched pointer event can mutate the document behind it.
-    if (replayIdx != null) clearDrawingSelectionRef.current();
-  }, [drawingCreationDisabled, replayIdx]);
+    if (replayKey != null) clearDrawingSelectionRef.current();
+  }, [drawingCreationDisabled, replayKey]);
   useEffect(() => { renderRef.current?.(); }, [drawings]);
 
   // ── unchanged: detection commands → append auto-drawings (or clear) ──
@@ -9795,7 +9802,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
       <div className="statusline">
         <span ref={statusRef} />
         <span className="mm" style={{ display: oracleVisible ? undefined : "none" }}><i style={{ background: "currentColor" }} /><span ref={verdictRef}>{t("goldenOracleLbl")}</span></span>
-        {replayIdx != null && <span className="mm" style={{ background: "rgba(232,179,57,.14)", borderColor: "rgba(232,179,57,.35)", color: "var(--signal)" }}><i style={{ background: "var(--signal)" }} />REPLAY</span>}
+        {replayCutoff != null && <span className="mm" style={{ background: "rgba(232,179,57,.14)", borderColor: "rgba(232,179,57,.35)", color: "var(--signal)" }}><i style={{ background: "var(--signal)" }} />REPLAY</span>}
         {/* GC v2: toggle the early-dots + arm/confirm warning overlay (side channels) */}
         {oracleVisible && <span className="mm" role="button" tabIndex={0} onClick={() => setShowDetail((v) => !v)}
           onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setShowDetail((v) => !v); } }}
@@ -9808,7 +9815,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
       <ChartTables tables={suiteTables} />
       <VisualIntelligencePanel ref={visualPanelRef} symbol={symbol} timeframe={timeframe}
         visible={isActive && !!onVisualSettings && !paneLayout.some((pane) => pane.maximized && !pane.isPrice)}
-        replay={replayIdx !== null} settings={visualSettings(chartSettings)}
+        replay={replayCutoff !== null} settings={visualSettings(chartSettings)}
         availableHeight={Math.max(160, (wrapElRef.current?.clientHeight ?? 480) - 90)}
         onSettings={(patch) => onVisualSettings?.(patch)}
         onInspectTime={inspectVisualTime}

@@ -121,7 +121,8 @@ import { oracleVerdict, deskVerdict } from "@/lib/signalVerdict";
 import { computeTrendState } from "@/lib/trend";
 import { useLive } from "@/lib/live";
 import { setPaneSync, subscribePaneVisibleWindow } from "@/lib/paneSync";
-import { REPLAY_MIN_IDX, replayIsAvailable, replayChartKey, resolveReplayTotal, replayHasSpan, clampReplayIdx, initialReplayIdx } from "@/lib/replayContract";
+import { REPLAY_MIN_IDX, replayIsAvailable, replayChartKey, resolveReplayTotal, replayHasSpan, clampReplayIdx, initialReplayIdx,
+  replayIdxAt, replayCutoffAt, stepReplayCutoff, replayExitFor, sameReplayAxis, type ReplayAxis, type ReplayCutoff, type ReplayExit } from "@/lib/replayContract";
 import {
   MAX_DRAWINGS_PER_SYMBOL,
   type Dash,
@@ -1253,21 +1254,33 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
   // layout transition — means there is no render, transient ones included, in which the
   // workspace claims Replay while a second chart sits at present time.
   const [replayArmed, setReplayArmed] = useState(false);
-  const [replayIdx, setReplayIdx] = useState<number | null>(null);
+  // The replay POSITION is an instant — the moment the replay has reached — not a bar number.
+  // A bar number belongs to one bar array, so a timeframe change used to carry "daily bar 1175"
+  // onto the weekly array and show weeks after the replay date under the REPLAY badge. The bar
+  // index the rail displays is derived from the cutoff for whichever chart is on screen.
+  const [replayCutoff, setReplayCutoff] = useState<ReplayCutoff | null>(null);
+  // One object per exit, so the toast effect below fires once per exit and never needs clearing.
+  const [replayNotice, setReplayNotice] = useState<{ reason: Exclude<ReplayExit, null> } | null>(null);
   const [playing, setPlaying] = useState(false); const [speed, setSpeed] = useState(1);
-  // Bar counts keyed by (symbol|timeframe), not "whatever pane reported last": a bare
+  // Bar availability keyed by (symbol|timeframe), not "whatever pane reported last": a bare
   // total goes stale the moment the chart it described leaves the screen, and the
   // transport would then scrub one symbol against another symbol's length.
-  const [paneTotals, setPaneTotals] = useState<Record<string, number>>({});
+  const [paneAxes, setPaneAxes] = useState<Record<string, ReplayAxis>>({});
+  const paneTotals = useMemo(() => {
+    const out: Record<string, number> = {};
+    for (const key of Object.keys(paneAxes)) out[key] = paneAxes[key].at.length;
+    return out;
+  }, [paneAxes]);
   const replayAvailable = replayIsAvailable(panes.length);
   const replayOn = replayArmed && replayAvailable;
   const replayChart = replayChartKey(panes[0], paneTfs[0]);
   const total = resolveReplayTotal(paneTotals, panes, paneTfs);
   const replaySpan = replayHasSpan(total);
-  const onPaneMeta = useCallback((m: { total: number; symbol: string; timeframe: string }) => {
-    setPaneTotals((prev) => {
+  const replayAxis: ReplayAxis | undefined = replayAvailable ? paneAxes[replayChart] : undefined;
+  const onPaneMeta = useCallback((m: { symbol: string; timeframe: string; axis: ReplayAxis }) => {
+    setPaneAxes((prev) => {
       const key = replayChartKey(m.symbol, m.timeframe);
-      return prev[key] === m.total ? prev : { ...prev, [key]: m.total };
+      return sameReplayAxis(prev[key], m.axis) ? prev : { ...prev, [key]: m.axis };
     });
   }, []);
   // Losing single-chart availability retires the INTENT too, so collapsing back to one chart
@@ -1275,9 +1288,18 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
   // Adjusted DURING RENDER, like the `pfEmail` owner transition below: `replayOn` is already false
   // by derivation, and clearing the residue here means no committed frame ever holds a replay
   // position belonging to a layout that no longer exists.
-  if (!replayAvailable && (replayArmed || replayIdx !== null || playing)) {
-    setReplayArmed(false); setReplayIdx(null); setPlaying(false);
+  if (!replayAvailable && (replayArmed || replayCutoff !== null || playing)) {
+    setReplayArmed(false); setReplayCutoff(null); setPlaying(false);
   }
+  // A timeframe change keeps the cutoff — or ends Replay out loud. Decided during render for the
+  // same reason: a timeframe on the other clock (daily ↔ intraday) has no exact instant to keep, so
+  // it exits before any frame slices it; a timeframe with too little history before the cutoff
+  // exits as soon as its bars are measured, instead of padding the chart with later bars.
+  const replayExit = replayOn ? replayExitFor(replayCutoff, paneTfs[0] ?? "D", replayAxis) : null;
+  if (replayExit) {
+    setReplayArmed(false); setReplayCutoff(null); setPlaying(false); setReplayNotice({ reason: replayExit });
+  }
+  const replayIdx = replayOn && replaySpan && replayCutoff ? replayIdxAt(replayAxis, replayCutoff) : null;
   const playRef = useRef<any>(null);
   // §7 state
   // Tool identity and activation travel together. The epoch makes one-shot
@@ -2981,8 +3003,9 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
   function toggleReplay() {
     setReplayArmed((on) => {
       const next = !on;
-      if (next && !(replayAvailable && replaySpan)) return on;   // never arm what cannot be honored
-      if (next) setReplayIdx(initialReplayIdx(total));
+      const start = next && replayAvailable && replaySpan ? replayCutoffAt(replayAxis, initialReplayIdx(total)) : null;
+      if (next && !start) return on;   // never arm what cannot be honored
+      setReplayCutoff(start);
       setPlaying(false);
       return next;
     });
@@ -3021,11 +3044,16 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
 
   useEffect(() => {
     clearInterval(playRef.current);
-    if (replayOn && playing && total) {
-      playRef.current = setInterval(() => setReplayIdx((i) => { const n = (i ?? 0) + 1; if (n >= total - 1) { setPlaying(false); return total - 1; } return n; }), 700 / speed);
+    if (replayOn && playing && replaySpan && replayAxis) {
+      const axis = replayAxis, last = axis.at.length - 1;
+      playRef.current = setInterval(() => setReplayCutoff((c) => {
+        const n = replayIdxAt(axis, c) + 1;
+        if (n >= last) { setPlaying(false); return replayCutoffAt(axis, last) ?? c; }
+        return replayCutoffAt(axis, n) ?? c;
+      }), 700 / speed);
     }
     return () => clearInterval(playRef.current);
-  }, [replayOn, playing, total, speed]);
+  }, [replayOn, playing, replaySpan, replayAxis, speed]);
 
   const closeAll = () => {
     setWlSetOpen(false); setTfOpen(false); setCtOpen(false); setDetectOpen(false); setLayoutOpen(false); setWlMenuOpen(false); setSnapOpen(false); setToolbarMoreOpen(false); setToolbarMoreView("main"); setWlContext(null); setWlSectionContext(null);
@@ -4040,6 +4068,14 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
     setDtmToast(msg);
     dtmToastTimer.current = setTimeout(() => setDtmToast(null), 2500);
   }, []);
+  // Replay ended by a timeframe change (see `replayExit`): say so, rather than leaving the user
+  // to notice the rail vanished.
+  const replayNoticeShownRef = useRef<typeof replayNotice>(null);
+  useEffect(() => {
+    if (!replayNotice || replayNoticeShownRef.current === replayNotice) return;
+    replayNoticeShownRef.current = replayNotice;
+    showDtmToast(t(replayNotice.reason === "clock" ? "replayEndedClock" : "replayEndedRange"));
+  }, [replayNotice, showDtmToast, t]);
 
   const toggleDtm = useCallback(() => {
     // Guard: don't toggle while an undo-inds op is pending (spec gotcha)
@@ -4235,7 +4271,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
     const existing = panes[activePane] === sym ? activePane : panes.findIndex((s) => s === sym);
     if (existing >= 0 && existing !== activePane) setActivePane(existing);          // shown in a different pane → focus it (don't duplicate)
     else if (panes[activePane] !== sym) setPanes((p) => p.map((s, i) => (i === activePane ? sym : s)));
-    setReplayArmed(false); setReplayIdx(null); setPlaying(false); setCompare([]);
+    setReplayArmed(false); setReplayCutoff(null); setPlaying(false); setCompare([]);
   }, [activePane, panes]);
   const selectWlRow = useCallback((symbol: string, event: Pick<React.MouseEvent, "shiftKey" | "metaKey" | "ctrlKey">) => {
     const toggle = event.metaKey || event.ctrlKey;
@@ -5383,17 +5419,17 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
         </div>
 
         {/* Replay transport. Every control below — reset, step, play, scrub — addresses the SAME
-            authority: `replayIdx` against `total`, and `total` is the bar count of the one chart
-            named by `replayChartKey`. There is no second source for the span, so the rail cannot
-            report a length that belongs to a symbol other than the one on screen. */}
+            authority: the cutoff instant, placed on the bars of the one chart named by
+            `replayChartKey`. `replayIdx` and `total` are both read from that chart's own axis, so
+            the rail cannot report a length or a position that belongs to another chart. */}
         {replayOn && (
           <div data-replay-rail="1" data-replay-chart={replayChart} data-replay-total={total} data-replay-idx={replayIdx ?? ""} style={{ display: "flex", alignItems: "center", gap: 10, padding: "7px 14px", borderBottom: "1px solid var(--line)", background: "var(--bg)" }}>
-            <button className="icbtn" disabled={!replaySpan} title={t("replayReset")} aria-label={t("replayReset")} onClick={() => { setReplayIdx(initialReplayIdx(total)); setPlaying(false); }}><svg viewBox="0 0 24 24"><path d="M11 19l-7-7 7-7M20 19l-7-7 7-7" /></svg></button>
-            <button className="icbtn" disabled={!replaySpan} aria-label={t("replayPrev")} title={t("replayPrev")} onClick={() => setReplayIdx((i) => clampReplayIdx((i ?? total - 1) - 1, total))}><svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6" /></svg></button>
+            <button className="icbtn" disabled={!replaySpan} title={t("replayReset")} aria-label={t("replayReset")} onClick={() => { setReplayCutoff((c) => replayCutoffAt(replayAxis, initialReplayIdx(total)) ?? c); setPlaying(false); }}><svg viewBox="0 0 24 24"><path d="M11 19l-7-7 7-7M20 19l-7-7 7-7" /></svg></button>
+            <button className="icbtn" disabled={!replaySpan} aria-label={t("replayPrev")} title={t("replayPrev")} onClick={() => setReplayCutoff((c) => stepReplayCutoff(replayAxis, c, -1) ?? c)}><svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6" /></svg></button>
             <button className="icbtn" disabled={!replaySpan} aria-label={playing ? t("replayPause") : t("replayPlay")} title={playing ? t("replayPause") : t("replayPlay")} onClick={() => setPlaying((p) => !p)}>{playing ? <svg viewBox="0 0 24 24"><path d="M6 4h4v16H6zM14 4h4v16h-4z" /></svg> : <svg viewBox="0 0 24 24" style={{ fill: "var(--signal)", stroke: "none" }}><path d="M6 4l14 8-14 8V4z" /></svg>}</button>
-            <button className="icbtn" disabled={!replaySpan} aria-label={t("replayNext")} title={t("replayNext")} onClick={() => setReplayIdx((i) => clampReplayIdx((i ?? total - 1) + 1, total))}><svg viewBox="0 0 24 24"><path d="M9 6l6 6-6 6" /></svg></button>
+            <button className="icbtn" disabled={!replaySpan} aria-label={t("replayNext")} title={t("replayNext")} onClick={() => setReplayCutoff((c) => stepReplayCutoff(replayAxis, c, 1) ?? c)}><svg viewBox="0 0 24 24"><path d="M9 6l6 6-6 6" /></svg></button>
             <div className="seg" style={{ height: 26 }}>{[1, 2, 4].map((s) => <button key={s} className={speed === s ? "on" : ""} onClick={() => setSpeed(s)}>{s}x</button>)}</div>
-            <input type="range" min={REPLAY_MIN_IDX} max={Math.max(REPLAY_MIN_IDX + 1, total - 1)} value={clampReplayIdx(replayIdx ?? total - 1, total)} disabled={!replaySpan} onChange={(e) => setReplayIdx(clampReplayIdx(parseInt(e.target.value), total))} style={{ flex: 1, accentColor: "var(--brand)" }} />
+            <input type="range" min={REPLAY_MIN_IDX} max={Math.max(REPLAY_MIN_IDX + 1, total - 1)} value={clampReplayIdx(replayIdx ?? total - 1, total)} disabled={!replaySpan} onChange={(e) => { const v = parseInt(e.target.value); setReplayCutoff((c) => replayCutoffAt(replayAxis, v) ?? c); }} style={{ flex: 1, accentColor: "var(--brand)" }} />
             {/* while the chart's own bar count is still unknown the counter says so rather than
                 printing a number the visible chart would not agree with */}
             <span className="num" style={{ color: "var(--muted)", fontSize: 11.5, minWidth: 70, textAlign: "right" }}>{replaySpan ? `${clampReplayIdx(replayIdx ?? total - 1, total) + 1} / ${total}` : t("replayNoDataTip")}</span>
@@ -5483,7 +5519,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
             />
             <div className="pane-grid" data-n={panes.length}>
               {panes.map((sym, i) => (
-                <ChartPane key={i} idx={i} symbol={sym} drawingOwnerKey={currentDrawingOwnerKey} isActive={i === activePane} onActivate={setActivePane} row={paneRows[i]} tf={paneTfs[i] ?? "D"} episodeId={initialEpisode && initialSymbol && sym.toUpperCase() === initialSymbol.toUpperCase() ? initialEpisode : null} chartType={chartType} inds={inds} tool={drawingsReadyFor(sym) ? activeDrawingTool : null} toolActivation={toolState.activation} drawingSticky={drawingCreationDisabledReason ? false : drawingKeepsActive} drawingCreationDisabled={drawingCreationDisabledReason !== null} drawStyle={drawStyle} detectCmd={detectCmd} compare={compare} compareCfg={compareCfg} magnet={magnet} replayIdx={replayOn && i === 0 ? replayIdx : null} onMeta={onPaneMeta} drawings={[...(drawingOwnerMatches ? (drawStore[sym] ?? []) : []), ...chartBus.aiDrawingsFor(sym)]} drawingsVisible={drawingsVisible} onDrawingsChange={(d) => setSymbolDrawings(sym, d)} onDetectedDrawingCount={i === activePane ? setActivePaneDetectedDrawingCount : undefined} liveQuote={quotes[sym] ?? null} dataReady={prefsHydrated} initialTimeframe={startTfRef.current} indParams={indParams} hidden={hidden} onToggleHidden={toggleHidden} onRemoveInd={removeInd} onOpenSettings={openSettings} onOpenSource={openSource} pineScripts={pineScripts} dayMode={dtm} userTier={userTier}
+                <ChartPane key={i} idx={i} symbol={sym} drawingOwnerKey={currentDrawingOwnerKey} isActive={i === activePane} onActivate={setActivePane} row={paneRows[i]} tf={paneTfs[i] ?? "D"} episodeId={initialEpisode && initialSymbol && sym.toUpperCase() === initialSymbol.toUpperCase() ? initialEpisode : null} chartType={chartType} inds={inds} tool={drawingsReadyFor(sym) ? activeDrawingTool : null} toolActivation={toolState.activation} drawingSticky={drawingCreationDisabledReason ? false : drawingKeepsActive} drawingCreationDisabled={drawingCreationDisabledReason !== null} drawStyle={drawStyle} detectCmd={detectCmd} compare={compare} compareCfg={compareCfg} magnet={magnet} replayCutoff={replayOn && i === 0 ? replayCutoff : null} onMeta={onPaneMeta} drawings={[...(drawingOwnerMatches ? (drawStore[sym] ?? []) : []), ...chartBus.aiDrawingsFor(sym)]} drawingsVisible={drawingsVisible} onDrawingsChange={(d) => setSymbolDrawings(sym, d)} onDetectedDrawingCount={i === activePane ? setActivePaneDetectedDrawingCount : undefined} liveQuote={quotes[sym] ?? null} dataReady={prefsHydrated} initialTimeframe={startTfRef.current} indParams={indParams} hidden={hidden} onToggleHidden={toggleHidden} onRemoveInd={removeInd} onOpenSettings={openSettings} onOpenSource={openSource} pineScripts={pineScripts} dayMode={dtm} userTier={userTier}
                   onAddAlert={(price) => { window.location.href = `/alerts?sym=${encodeURIComponent(active)}&price=${encodeURIComponent(price.toFixed(4))}&type=price_above`; }}
                   onTableView={() => setTableViewOpen(true)}
                   onObjectTree={() => setObjectTreeOpen((o) => !o)}

@@ -8,7 +8,19 @@ import {
   replayHasSpan,
   clampReplayIdx,
   initialReplayIdx,
+  replayClockOf,
+  barAvailableAt,
+  replayAxisOf,
+  replayVisibleCount,
+  replayIdxAt,
+  replayCutoffAt,
+  stepReplayCutoff,
+  replayExitFor,
+  sameReplayAxis,
+  type ReplayCutoff,
 } from "@/lib/replayContract";
+import { groupSessionBars } from "@/lib/sessionBars";
+import aaplDoc from "@/public/data/AAPL.json";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Bar Replay temporal authority. The defect this locks: a workspace presented one
@@ -120,5 +132,178 @@ describe("chart identity", () => {
     expect(replayChartKey("AAPL", "D")).toBe("AAPL|D");
     expect(replayChartKey("ARM", "D")).toBe("ARM|D");
     expect(replayChartKey(undefined, undefined)).toBe("|");
+  });
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// The replay position is an INSTANT. The residual defect: a timeframe change kept the
+// integer, so daily bar N became weekly bar N — on NVDA, 2026-03-04 under a REPLAY badge
+// turned into the whole weekly history through 2026-06-26. The cutoff is now the moment
+// the replay has reached, read through the canonical bar identity (time = which bar,
+// closeTime / interval end = when it was knowable), and the integer is derived per chart.
+// ─────────────────────────────────────────────────────────────────────────────
+type Row = { time: string };
+const DAILY: Row[] = aaplDoc.bars.map((b) => ({ time: String(b[0]) }));
+
+/** ISO-week bucket keyed by its LAST session — the calendar rule ChartPanel's resampler uses. */
+function weekly(rows: Row[]): Row[] {
+  const out: Row[] = [];
+  let key = "";
+  for (const r of rows) {
+    const d = new Date(`${r.time}T00:00:00Z`);
+    const monday = new Date(d.getTime() - ((d.getUTCDay() + 6) % 7) * 86_400_000).toISOString().slice(0, 10);
+    if (monday !== key) { out.push({ time: r.time }); key = monday; } else out[out.length - 1] = { time: r.time };
+  }
+  return out;
+}
+const WEEKLY = weekly(DAILY);
+const THREE_DAY = groupSessionBars(DAILY, 3, 0, (from, to) => ({ from, to }));
+const day = (iso: string) => Date.parse(`${iso}T00:00:00Z`);
+
+describe("replay cutoff — one instant across timeframes", () => {
+  it("fixture sanity: the shipped AAPL daily series and its weekly bucketing", () => {
+    expect(DAILY.length).toBe(AAPL_TOTAL);
+    expect(DAILY[300].time).toBe("2022-09-06");
+    expect(WEEKLY.length).toBeGreaterThan(200);
+    expect(WEEKLY.length).toBeLessThan(DAILY.length / 4);
+  });
+
+  it("keeps the replay date through D → W → D instead of keeping the bar number", () => {
+    const dAxis = replayAxisOf(DAILY, "D");
+    const wAxis = replayAxisOf(WEEKLY, "W");
+    const cutoff = replayCutoffAt(dAxis, 300)!;
+    expect(cutoff).toEqual({ clock: "session", at: day("2022-09-06") });
+
+    // The defect, stated: carried as an integer onto the shorter weekly array, bar 300
+    // clamps to the LAST weekly bar — the present, under a REPLAY badge.
+    expect(WEEKLY[clampReplayIdx(300, WEEKLY.length)].time).toBe(DAILY[AAPL_TOTAL - 1].time);
+
+    const w = replayIdxAt(wAxis, cutoff);
+    expect(w).toBeGreaterThanOrEqual(REPLAY_MIN_IDX);
+    expect(WEEKLY[w].time <= "2022-09-06").toBe(true);           // nothing past the cutoff
+    expect(WEEKLY[w + 1].time > "2022-09-06").toBe(true);         // …and nothing knowable withheld
+    expect(replayVisibleCount(WEEKLY, "W", cutoff)).toBe(w + 1);
+
+    // Back on daily the cutoff — not a re-derived index — puts the chart where it was.
+    expect(replayIdxAt(dAxis, cutoff)).toBe(300);
+    expect(replayVisibleCount(DAILY, "D", cutoff)).toBe(301);
+  });
+
+  it("withholds the week still in progress at the cutoff", () => {
+    // 2022-09-07 is a Wednesday; that week's bar is keyed by its last session (Friday
+    // 2022-09-09) and is not knowable until then. The last visible weekly bar is the week
+    // before, even though its key is two sessions behind the cutoff.
+    const cutoff: ReplayCutoff = { clock: "session", at: day("2022-09-07") };
+    const n = replayVisibleCount(WEEKLY, "W", cutoff);
+    expect(WEEKLY[n - 1].time).toBe("2022-09-02");
+    expect(WEEKLY[n].time).toBe("2022-09-09");
+    // At Friday's close the week is complete and appears.
+    expect(WEEKLY[replayVisibleCount(WEEKLY, "W", { clock: "session", at: day("2022-09-09") }) - 1].time).toBe("2022-09-09");
+  });
+
+  it("reads a 3D bar's availability from closeTime, never from its opening-session key", () => {
+    const b = THREE_DAY[100];
+    expect(b.closeTime > b.time).toBe(true);
+    expect(barAvailableAt(b, "3D")).toBe(day(b.closeTime));
+    // At the bar's own key (its opening session) it is not complete — it must not show.
+    expect(replayVisibleCount(THREE_DAY, "3D", { clock: "session", at: day(b.time) })).toBe(100);
+    expect(replayVisibleCount(THREE_DAY, "3D", { clock: "session", at: day(b.closeTime) })).toBe(101);
+    // And the transport on 3D lands on that bar's completion instant.
+    expect(replayCutoffAt(replayAxisOf(THREE_DAY, "3D"), 100)).toEqual({ clock: "session", at: day(b.closeTime) });
+  });
+
+  it("dates an intraday bar by the end of its interval", () => {
+    const t0 = 1_700_000_000;                                      // display-epoch seconds
+    const rows = Array.from({ length: 40 }, (_, i) => ({ time: t0 + i * 3600 }));
+    expect(barAvailableAt(rows[0], "1h")).toBe((t0 + 3600) * 1000);
+    expect(barAvailableAt(rows[0], "30s")).toBe((t0 + 30) * 1000);
+    const end25 = (t0 + 25 * 3600 + 3600) * 1000;
+    expect(replayVisibleCount(rows, "1h", { clock: "intraday", at: end25 })).toBe(26);
+    expect(replayVisibleCount(rows, "1h", { clock: "intraday", at: end25 - 1 })).toBe(25);
+    // 4h over the same instant: a 4h bar opening 3h before the cutoff is still forming.
+    const four = Array.from({ length: 10 }, (_, i) => ({ time: t0 + i * 14_400 }));
+    expect(replayVisibleCount(four, "4h", { clock: "intraday", at: (t0 + 14_400 + 3 * 3600) * 1000 })).toBe(1);
+  });
+
+  it("never pads a chart that has too little history before the cutoff", () => {
+    const early: ReplayCutoff = { clock: "session", at: day(DAILY[30].time) };
+    const n = replayVisibleCount(WEEKLY, "W", early);
+    expect(n).toBeLessThan(REPLAY_MIN_TOTAL);
+    expect(WEEKLY[n - 1].time <= DAILY[30].time).toBe(true);
+  });
+});
+
+describe("replay cutoff — two clocks never mix", () => {
+  const session: ReplayCutoff = { clock: "session", at: day("2022-09-06") };
+  const hourly = replayAxisOf(Array.from({ length: 50 }, (_, i) => ({ time: 1_660_000_000 + i * 3600 })), "1h");
+
+  it("classifies every timeframe onto one clock", () => {
+    for (const tf of ["D", "2D", "3D", "W", "2W", "1M", "3M"]) expect(replayClockOf(tf)).toBe("session");
+    for (const tf of ["1s", "30s", "1m", "15m", "1h", "4h"]) expect(replayClockOf(tf)).toBe("intraday");
+  });
+
+  it("places no bar of one clock against a cutoff on the other", () => {
+    expect(replayIdxAt(hourly, session)).toBe(-1);
+    expect(replayVisibleCount([{ time: 1_660_000_000 }], "1h", session)).toBe(0);
+    expect(replayVisibleCount(DAILY, "D", null)).toBe(0);
+    expect(replayIdxAt(replayAxisOf(DAILY, "D"), null)).toBe(-1);
+  });
+});
+
+describe("replay exit — a timeframe that cannot honour the cutoff ends Replay", () => {
+  const dAxis = replayAxisOf(DAILY, "D");
+  const wAxis = replayAxisOf(WEEKLY, "W");
+
+  it("ends on a change of clock, before the new chart has even measured itself", () => {
+    const cutoff = replayCutoffAt(dAxis, 300)!;
+    expect(replayExitFor(cutoff, "1h", undefined)).toBe("clock");
+    expect(replayExitFor(cutoff, "1h", dAxis)).toBe("clock");
+  });
+
+  it("ends when fewer than the warmup floor of bars are knowable at the cutoff", () => {
+    const floor = replayCutoffAt(dAxis, REPLAY_MIN_IDX)!;
+    expect(replayExitFor(floor, "D", dAxis)).toBeNull();
+    expect(replayExitFor(floor, "W", wAxis)).toBe("range");
+  });
+
+  it("keeps Replay when the new timeframe reaches the cutoff", () => {
+    expect(replayExitFor(replayCutoffAt(dAxis, 300)!, "W", wAxis)).toBeNull();
+    expect(replayExitFor(replayCutoffAt(dAxis, 300)!, "D", dAxis)).toBeNull();
+  });
+
+  it("decides nothing from a chart that has not measured itself yet", () => {
+    const cutoff = replayCutoffAt(dAxis, REPLAY_MIN_IDX)!;
+    expect(replayExitFor(cutoff, "W", undefined)).toBeNull();
+    expect(replayExitFor(cutoff, "W", replayAxisOf([], "W"))).toBeNull();     // reload in flight
+    expect(replayExitFor(null, "1h", hourlyAxis())).toBeNull();
+  });
+
+  function hourlyAxis() { return replayAxisOf([{ time: 1 }], "1h"); }
+});
+
+describe("replay transport over the cutoff", () => {
+  const dAxis = replayAxisOf(DAILY, "D");
+
+  it("clamps like every other control and refuses a chart with no span", () => {
+    expect(replayCutoffAt(dAxis, 0)).toEqual({ clock: "session", at: day(DAILY[REPLAY_MIN_IDX].time) });
+    expect(replayCutoffAt(dAxis, 99_999)).toEqual({ clock: "session", at: day(DAILY[AAPL_TOTAL - 1].time) });
+    expect(replayCutoffAt(replayAxisOf(DAILY.slice(0, REPLAY_MIN_TOTAL - 1), "D"), 5)).toBeNull();
+    expect(replayCutoffAt(undefined, 300)).toBeNull();
+  });
+
+  it("steps one bar of the chart on screen", () => {
+    const c = replayCutoffAt(dAxis, 300);
+    expect(replayIdxAt(dAxis, stepReplayCutoff(dAxis, c, 1))).toBe(301);
+    expect(replayIdxAt(dAxis, stepReplayCutoff(dAxis, c, -1))).toBe(299);
+    expect(replayIdxAt(dAxis, stepReplayCutoff(dAxis, replayCutoffAt(dAxis, AAPL_TOTAL - 1), 1))).toBe(AAPL_TOTAL - 1);
+    expect(replayIdxAt(dAxis, stepReplayCutoff(dAxis, replayCutoffAt(dAxis, REPLAY_MIN_IDX), -1))).toBe(REPLAY_MIN_IDX);
+  });
+
+  it("compares axes by value so a reload of the same bars changes nothing", () => {
+    expect(sameReplayAxis(replayAxisOf(DAILY, "D"), dAxis)).toBe(true);
+    expect(sameReplayAxis(undefined, dAxis)).toBe(false);
+    expect(sameReplayAxis(replayAxisOf(DAILY.slice(1), "D"), dAxis)).toBe(false);
+    expect(sameReplayAxis(replayAxisOf(WEEKLY, "W"), replayAxisOf(WEEKLY, "2W"))).toBe(true);
+    expect(sameReplayAxis(replayAxisOf([{ time: 1 }], "1h"), replayAxisOf([{ time: 1 }], "D"))).toBe(false);
   });
 });
