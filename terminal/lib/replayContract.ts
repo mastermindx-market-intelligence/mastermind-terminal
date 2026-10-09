@@ -250,20 +250,41 @@ export function replaySignalAdmission(
   return { show: true, retro: isRetroOverride(s) && (!replaying || lastSession >= RETRO_RULE_DATE) };
 }
 
-
-/** The replay chip uses the marker knowledge horizon before the shared live anchor rule. */
+/**
+ * The Golden Oracle chip's verdict on a REPLAYED chart: the shared scored-lane anchor rule
+ * (anchorSignal) over only the signals that chart's markers may show. The chip prints the
+ * anchor's type, basis and quality and nothing else — no retro copy — so the marker rule's
+ * `show` is its whole admission rule. A live chart does not come here: it keeps
+ * `anchorSignal(signals, lastDate)` exactly as before.
+ *
+ * Session clock: the horizon is the one the markers use, the last SESSION on the chart
+ * (a daily multiple's `closeTime`, else its `time`), never the last bar's key. A 3D bar is keyed
+ * by its opening session, so bounding by the key would hide a signal its marker already shows.
+ *
+ * Intraday clock: the bars are clock times, so there is no session key to compare a date with.
+ * A slice signal is decided on a daily close, so it counts only once the session it became
+ * known on is over at the cutoff (`eodSnapshotKnown`, next calendar day — the slice carries no
+ * publish time), and never past the last bar's day.
+ */
 export function replayChipAnchor<S extends {
   ts?: unknown; type?: unknown; quality?: unknown; blocked?: unknown;
   known_ts?: unknown; retro_override?: unknown;
 }>(
   signals: readonly (S | null | undefined)[] | null | undefined,
-  lastSession: string | null,
-  replaying: boolean,
+  lastBar: { time?: unknown; closeTime?: unknown } | null | undefined,
+  cutoff: ReplayCutoff,
 ): { anchor: S | null; blockedTail: S | null } {
-  const admitted = replaying
-    ? signals?.filter(s => lastSession != null && replaySignalAdmission(s, lastSession, true).show)
-    : signals;
-  return anchorSignal(admitted, lastSession);
+  const t = lastBar?.time;
+  const lastDate = typeof t === "string" && t ? t
+    : typeof t === "number" && Number.isFinite(t) ? new Date(t * 1000).toISOString().slice(0, 10) : null;
+  if (!Array.isArray(signals) || lastDate == null) return { anchor: null, blockedTail: null };
+  if (cutoff.clock === "intraday") {
+    const known = signals.filter((s) => typeof s?.ts === "string" && eodSnapshotKnown(signalKnownTs(s) ?? s.ts, cutoff));
+    return anchorSignal(known, lastDate);
+  }
+  const close = lastBar?.closeTime;
+  const lastSession = typeof close === "string" && close ? close : lastDate;
+  return anchorSignal(signals.filter((s) => replaySignalAdmission(s, lastSession, true).show), lastSession);
 }
 
 const dateOf = (v: unknown): string | null => (typeof v === "string" && v.length >= 10 ? v.slice(0, 10) : null);

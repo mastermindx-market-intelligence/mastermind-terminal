@@ -2897,8 +2897,11 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
       // Chip verdict = the scored lane's anchor: signalVerdict.anchorSignal — the SAME helper the
       // rail card (oracleVerdict) runs, so chip and panel can't contradict. regime_blocked markers
       // are vetoed displays and never anchor (contracts.py).
-      // Bounded by the last visible bar's DATE so replay (and stale bar caches) can't future-leak a
-      // verdict the on-chart marks don't show; intraday bars carry epoch times → convert to the day.
+      // Live: bounded by the last visible bar's DATE so a stale bar cache can't future-leak a
+      // verdict; intraday bars carry epoch times → convert to the day. Under Replay the chip admits
+      // exactly the signals the markers may show, on the markers' own horizon — the last SESSION,
+      // not the last bar key — and on the intraday clock only signals whose session had closed by
+      // the cutoff (lib/replayContract.ts replayChipAnchor).
       // Client-Pine fallback (no slice signals): the latest computed mark stands in, as before.
       const sigs = slice?.indicator?.signals;
       const lastT = rows[rows.length - 1]?.time;
@@ -2907,7 +2910,8 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
       let vBasis: string | undefined;
       let vQuality: string | undefined;
       if (Array.isArray(sigs) && sigs.length) {
-        const { anchor } = replayChipAnchor(sigs, lastDate, replayIdxRef.current != null);
+        const replay = replayIdxRef.current;
+        const { anchor } = replay == null ? anchorSignal(sigs, lastDate) : replayChipAnchor(sigs, rows[rows.length - 1], replay);
         if (anchor) { v = String(anchor.type).toUpperCase(); vBasis = sliceSignalBasis(anchor); vQuality = anchor.quality; }
       } else {
         const sm = sigMarksRef.current.filter((m) => m.type !== "PROPHET");

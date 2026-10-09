@@ -15,6 +15,7 @@ import {
   replayVisibleCount,
   type ReplayCutoff,
 } from "@/lib/replayContract";
+import { anchorSignal } from "@/lib/signalVerdict";
 import { deriveOptLevels } from "@/lib/optionsLevels";
 import { runPine } from "@/lib/pine-engine";
 import { ORACLE_V1_PINE } from "@/lib/pine";
@@ -350,29 +351,72 @@ describe("the per-chart axis map stays bounded", () => {
 });
 
 
+// The Golden Oracle chip names ONE verdict for a chart. Under Replay it must admit exactly the
+// signals the chart's markers may show, on the markers' own horizon — else the chip and the marks
+// on the same replayed chart disagree about what was knowable.
 describe("Golden Oracle replay chip knowledge admission", () => {
   const signals = [
     { ts: "2026-03-01", known_ts: "2026-03-01", type: "SELL" },
     { ts: "2026-03-02", known_ts: "2026-03-04", type: "BUY" },
   ];
+  const session = (date: string): ReplayCutoff => ({ clock: "session", at: Date.parse(`${date}T00:00:00Z`) });
+  /** A daily bar replayed to its own session. */
+  const day = (date: string) => [{ time: date }, session(date)] as const;
+
   it("keeps the prior admitted verdict until the new signal is knowable", () => {
-    expect(replayChipAnchor(signals, "2026-03-03", true).anchor?.type).toBe("SELL");
-    expect(replayChipAnchor(signals, "2026-03-04", true).anchor?.type).toBe("BUY");
+    expect(replayChipAnchor(signals, ...day("2026-03-03")).anchor?.type).toBe("SELL");
+    expect(replayChipAnchor(signals, ...day("2026-03-04")).anchor?.type).toBe("BUY");
   });
   it("withholds a lone not-yet-known signal, while retaining live semantics", () => {
-    expect(replayChipAnchor(signals.slice(1), "2026-03-03", true).anchor).toBeNull();
-    expect(replayChipAnchor(signals, "2026-03-03", false).anchor?.type).toBe("BUY");
+    expect(replayChipAnchor(signals.slice(1), ...day("2026-03-03")).anchor).toBeNull();
+    // a live chart does not use the replay rule: ChartPanel keeps anchorSignal(sigs, lastDate)
+    expect(anchorSignal(signals, "2026-03-03").anchor?.type).toBe("BUY");
   });
   it("preserves coordinate and legacy known-date fallback rules", () => {
     const legacy = [{ ts: "2026-03-02", type: "BUY" }];
-    expect(replayChipAnchor(legacy, "2026-03-01", true).anchor).toBeNull();
-    expect(replayChipAnchor(legacy, "2026-03-02", true).anchor?.type).toBe("BUY");
+    expect(replayChipAnchor(legacy, ...day("2026-03-01")).anchor).toBeNull();
+    expect(replayChipAnchor(legacy, ...day("2026-03-02")).anchor?.type).toBe("BUY");
   });
   it("does not change blocked-anchor semantics or mutate the source", () => {
     const copy = [...signals, { ts: "2026-03-03", known_ts: "2026-03-03", type: "BUY", quality: "regime_blocked" }];
     const before = JSON.stringify(copy);
-    expect(replayChipAnchor(copy, "2026-03-03", true).anchor?.type).toBe("SELL");
-    expect(replayChipAnchor(copy, "2026-03-03", true).blockedTail?.quality).toBe("regime_blocked");
+    expect(replayChipAnchor(copy, ...day("2026-03-03")).anchor?.type).toBe("SELL");
+    expect(replayChipAnchor(copy, ...day("2026-03-03")).blockedTail?.quality).toBe("regime_blocked");
     expect(JSON.stringify(copy)).toBe(before);
+  });
+
+  it("on a daily multiple the horizon is the last bar's close session, the one its markers use", () => {
+    // A 3D bar keyed by its opening session 03-02 that closed on 03-04. Its BUY became known on
+    // 03-04, so the marker is drawn; bounding the chip by the bar KEY (03-02) hid that verdict.
+    const bar = { time: "2026-03-02", closeTime: "2026-03-04" };
+    const buy = { ts: "2026-03-02", known_ts: "2026-03-04", type: "BUY" };
+    expect(replaySignalAdmission(buy, bar.closeTime, true).show).toBe(true);
+    expect(replayChipAnchor([buy], bar, session("2026-03-04")).anchor).toBe(buy);
+    // …and while that bar had closed only through 03-03, neither the marker nor the chip has it.
+    const early = { time: "2026-03-02", closeTime: "2026-03-03" };
+    expect(replaySignalAdmission(buy, early.closeTime, true).show).toBe(false);
+    expect(replayChipAnchor([buy], early, session("2026-03-03")).anchor).toBeNull();
+  });
+  it("on a daily multiple the anchor bound is that same session, not the bar key", () => {
+    // A signal dated on a later session inside the bar (03-03) is marked once that bar closes;
+    // the anchor scan must not then drop it for being dated after the bar's opening session.
+    const bar = { time: "2026-03-02", closeTime: "2026-03-04" };
+    const inside = [{ ts: "2026-03-01", type: "SELL" }, { ts: "2026-03-03", known_ts: "2026-03-03", type: "BUY" }];
+    expect(replaySignalAdmission(inside[1], bar.closeTime, true).show).toBe(true);
+    expect(replayChipAnchor(inside, bar, session("2026-03-04")).anchor?.type).toBe("BUY");
+  });
+  it("on the intraday clock a daily signal counts only once its session has closed", () => {
+    const intraday = (barIso: string, cutIso: string) => [
+      { time: Date.parse(barIso) / 1000 }, { clock: "intraday", at: Date.parse(cutIso) } as ReplayCutoff,
+    ] as const;
+    const sameDay = [{ ts: "2026-03-01", known_ts: "2026-03-01", type: "SELL" }, { ts: "2026-03-04", known_ts: "2026-03-04", type: "BUY" }];
+    // 15:00Z on 03-04: the session that decides the BUY is still trading
+    expect(replayChipAnchor(sameDay, ...intraday("2026-03-04T14:00:00Z", "2026-03-04T15:00:00Z")).anchor?.type).toBe("SELL");
+    // the next morning it is known
+    expect(replayChipAnchor(sameDay, ...intraday("2026-03-05T14:00:00Z", "2026-03-05T14:30:00Z")).anchor?.type).toBe("BUY");
+    // a signal known only on a later session than its date waits for THAT session to close
+    const late = [sameDay[0], { ts: "2026-03-04", known_ts: "2026-03-06", type: "BUY" }];
+    expect(replayChipAnchor(late, ...intraday("2026-03-05T14:00:00Z", "2026-03-05T14:30:00Z")).anchor?.type).toBe("SELL");
+    expect(replayChipAnchor(late, ...intraday("2026-03-09T14:00:00Z", "2026-03-09T14:30:00Z")).anchor?.type).toBe("BUY");
   });
 });
