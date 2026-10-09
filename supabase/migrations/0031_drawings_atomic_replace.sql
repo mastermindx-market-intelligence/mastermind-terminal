@@ -472,7 +472,8 @@ COMMIT;
 -- DROP FUNCTION IF EXISTS public.replace_drawings_collection(text,jsonb,text,uuid);
 -- DROP FUNCTION IF EXISTS public.read_drawings_collection(text);
 -- DROP FUNCTION IF EXISTS public.validate_drawing_replace_input(text,jsonb,uuid);
--- readback (expected for each function: authenticated_execute=true, anonymous_execute=false):
+-- readback:
+-- -- expected for each function: authenticated_execute=true, anonymous_execute=false
 -- SELECT p.oid::regprocedure AS function_signature, p.prosecdef, p.proconfig,
 --   has_function_privilege('authenticated',p.oid,'EXECUTE') AS authenticated_execute,
 --   has_function_privilege('anon',p.oid,'EXECUTE') AS anonymous_execute
