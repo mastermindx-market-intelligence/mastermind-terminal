@@ -250,6 +250,8 @@ def test_optional_envelope_is_carried_verbatim_without_signal_arithmetic():
     ("data_state", "STALE", "unusable_data_state"),
     ("produced_at", "2026-07-01T20:00:00Z", "future_produced_at"),
     ("observed_at", None, "missing_or_invalid_observed_at"),
+    ("observed_at", "9999-12-31T23:00:00-02:00", "missing_or_invalid_observed_at"),
+    ("produced_at", "0001-01-01T00:00:00+02:00", "missing_or_invalid_produced_at"),
     ("stale_after", "2026-07-01T18:59:00Z", "invalid_or_expired_envelope"),
 ])
 def test_bad_envelope_does_not_rewrite_native_market_state(field, value, reason):
@@ -269,7 +271,7 @@ def test_existing_refresh_owners_invoke_context_bridge_without_signal_gate():
 
 
 def test_main_atomically_publishes_existing_output_with_native_dates(tmp_path, monkeypatch):
-    source = _market_state(asof=datetime.now(timezone.utc).date().isoformat())
+    source = _market_state(asof=datetime.now(timezone.utc).astimezone(bridge.MARKET_TZ).date().isoformat())
     out = tmp_path / "market_risk.json"
     monkeypatch.setattr(bridge, "OUT", out)
     monkeypatch.setattr(bridge, "resolve_source", lambda **kw: (source, "test:source"))
@@ -311,3 +313,26 @@ def test_a_fresh_legacy_build_does_not_refresh_an_unknown_observation():
     assert result["source_basis"] == "legacy_display"
     assert result["asof"] is None and result["stale"] is True
     assert "missing_or_invalid_asof" in result["freshness"]["reasons"]
+
+
+def test_new_york_session_remains_prior_day_across_utc_midnight():
+    now = datetime(2026, 7, 2, 1, tzinfo=timezone.utc)
+    # An explicit instant wins over a caller's UTC calendar date.
+    current = build_market_risk(_market_state(), today=now.date(), now=now, risk_envelope=_envelope())
+    assert current["stale"] is False
+    assert current["risk_envelope_freshness"]["qualified"] is True
+    future_envelope = {**_envelope(), "source_session": "2026-07-02", "as_of": "2026-07-02"}
+    future = build_market_risk(_market_state(asof="2026-07-02"), today=now.date(),
+                               now=now, risk_envelope=future_envelope)
+    assert "future_asof" in future["freshness"]["reasons"]
+    assert "invalid_future_or_expired_session" in future["risk_envelope_freshness"]["reasons"]
+    assert future["risk_envelope"] is None
+    _, direct = bridge.qualify_risk_envelope(future_envelope, "2026-07-02", today=now.date(), now=now)
+    assert "invalid_future_or_expired_session" in direct["reasons"]
+    live = _risk_state()
+    live.update(live_active=True, realtime=True, built="2026-07-02T00:59:00Z",
+                stale_after="2026-07-02T01:05:00Z")
+    live["live"]["source_event_time"] = "2026-07-02T00:59:00Z"
+    read = build_market_risk(live, now=now)
+    assert read["stale"] is False and read["realtime"] is True
+    assert read["asof"] == "2026-07-01"

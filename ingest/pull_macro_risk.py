@@ -15,6 +15,7 @@ import tempfile
 import urllib.request
 from datetime import date, datetime, timezone
 from pathlib import Path
+from zoneinfo import ZoneInfo
 
 ROOT = Path(__file__).resolve().parents[1]
 log = logging.getLogger(__name__)
@@ -24,6 +25,7 @@ MAX_STALE_DAYS = int(os.environ.get("RISK_MAX_STALE_DAYS", "5"))
 _UA = "mastermind-feed/1.0"
 _TIMEOUT = 30
 _LOCAL_SOURCES = ("site/live/risk_state.json", "data/market_state/latest.json")
+MARKET_TZ = ZoneInfo("America/New_York")
 _VERDICTS = {"RISK_ON", "MIXED", "RISK_OFF"}
 _CAUSE_FIELDS = ("raw_score", "score_source", "capped", "score_ceiling", "score_caps", "score_gap")
 _RADAR_FIELDS = ("state", "label_en", "label_zh", "top_score", "can_force", "binding",
@@ -49,7 +51,7 @@ def _timestamp(value) -> datetime | None:
         if parsed.tzinfo is None:
             return None
         return parsed.astimezone(timezone.utc)
-    except (ValueError, TypeError):
+    except (ValueError, TypeError, OverflowError):
         return None
 
 
@@ -97,7 +99,7 @@ def build_market_risk(src: dict, today: date | None = None, *,
         now = datetime.now(timezone.utc)
     if now is not None:
         now = now.replace(tzinfo=timezone.utc) if now.tzinfo is None else now.astimezone(timezone.utc)
-    today = today or now.date()
+    today = now.astimezone(MARKET_TZ).date() if now is not None else today
     schema = str(src.get("schema") or "")
     wrapped = schema == "risk_state.v1" or (not schema and isinstance(src.get("display"), dict))
     reasons = []
@@ -124,8 +126,12 @@ def build_market_risk(src: dict, today: date | None = None, *,
         event_time = (live.get("source_event_time") or src.get("source_event_time")) if live_active else None
         event_dt = _timestamp(event_time)
         if live_active and event_dt is not None:
-            # US RTH source quote dates are the selected live session.
-            asof = event_dt.date().isoformat()
+            # The quote belongs to its New York calendar date, including after
+            # UTC midnight. Unsupported local dates remain an unknown session.
+            try:
+                asof = event_dt.astimezone(MARKET_TZ).date().isoformat()
+            except OverflowError:
+                asof = None
         source_fresh = _dict(native.get("freshness")) or source_fresh
         components = None
     else:
@@ -236,6 +242,8 @@ _AUTHORITY_FLAGS = ("envelope_may_execute", "envelope_may_gate", "envelope_may_r
 
 def qualify_risk_envelope(raw, asof, *, today: date, now: datetime | None = None) -> tuple[dict | None, dict]:
     """Carry a matching native envelope; transport clocks never refresh its evidence."""
+    if now is not None:
+        today = now.astimezone(MARKET_TZ).date()
     envelope = _dict(raw)
     reasons = []
     if not envelope:
@@ -362,7 +370,7 @@ def main() -> int:
         return 1
     src, provenance = got
     risk = build_market_risk(src, now=now, provenance=provenance)
-    envelope = resolve_risk_envelope(risk["asof"], today=now.date(), now=now)
+    envelope = resolve_risk_envelope(risk["asof"], today=now.astimezone(MARKET_TZ).date(), now=now)
     risk = build_market_risk(src, now=now, provenance=provenance, risk_envelope=envelope)
     OUT.parent.mkdir(parents=True, exist_ok=True)
     payload = json.dumps(risk, separators=(",", ":"), ensure_ascii=False, allow_nan=False)

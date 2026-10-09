@@ -46,10 +46,21 @@ const numeric = (value: unknown): number | null =>
 
 function sessionDate(value: unknown): number | null {
   const day = text(value)?.slice(0, 10);
-  if (!day || !/^\d{4}-\d{2}-\d{2}$/.test(day)) return null;
+  if (!day || !/^\d{4}-\d{2}-\d{2}$/.test(day) || Number(day.slice(0, 4)) < 1) return null;
   const parsed = Date.parse(day + "T00:00:00Z");
   return Number.isFinite(parsed) && new Date(parsed).toISOString().slice(0, 10) === day
     ? parsed : null;
+}
+
+const MARKET_DATE = new Intl.DateTimeFormat("en-US", {
+  timeZone: "America/New_York", year: "numeric", month: "2-digit", day: "2-digit",
+});
+function marketSession(clock: number): string | null {
+  if (!Number.isFinite(clock)) return null;
+  const parts = MARKET_DATE.formatToParts(new Date(clock));
+  const part = (name: string) => parts.find(item => item.type === name)?.value ?? "";
+  const day = part("year").padStart(4, "0") + "-" + part("month") + "-" + part("day");
+  return sessionDate(day) === null ? null : day;
 }
 
 function timestamp(value: unknown): number | null {
@@ -57,7 +68,10 @@ function timestamp(value: unknown): number | null {
   if (!valueText || sessionDate(valueText) === null || !/[T ]\d{2}:\d{2}:\d{2}/.test(valueText)
     || !/(?:Z|[+-]\d{2}:\d{2}|UTC)$/.test(valueText)) return null;
   const parsed = Date.parse(valueText);
-  return Number.isFinite(parsed) ? parsed : null;
+  if (!Number.isFinite(parsed)) return null;
+  const year = new Date(parsed).getUTCFullYear();
+  // Match Python datetime: timezone conversion must stay inside years 1..9999.
+  return year >= 1 && year <= 9999 ? parsed : null;
 }
 
 export function normalizeMarketRisk(raw: unknown, nowMs = Date.now()): MarketRiskRead | null {
@@ -89,7 +103,7 @@ export function normalizeMarketRisk(raw: unknown, nowMs = Date.now()): MarketRis
     reasons.add("unknown_source_schema");
   }
   if (!Number.isFinite(nowMs)) reasons.add("invalid_now");
-  const currentDay = Number.isFinite(nowMs) ? Math.floor(nowMs / DAY) * DAY : NaN;
+  const currentDay = sessionDate(marketSession(nowMs)) ?? NaN;
   let asof = text(wrapped ? source.nightly_asof ?? (legacy ? source.asof : null) : source.asof);
   const built = text(source.built ?? source.produced_at);
   const eventTime = text(source.source_event_time ?? (active ? live.source_event_time : null));
@@ -105,7 +119,7 @@ export function normalizeMarketRisk(raw: unknown, nowMs = Date.now()): MarketRis
 
   const buildClock = timestamp(built);
   const eventClock = timestamp(eventTime);
-  if (active && eventClock !== null) asof = new Date(eventClock).toISOString().slice(0, 10);
+  if (active && eventClock !== null) asof = marketSession(eventClock);
   const session = sessionDate(asof);
   const expiryClock = timestamp(expiry);
   const maxDays = numeric(ownFreshness.max_stale_days) ?? 5;
@@ -201,7 +215,7 @@ export function qualifyRiskEnvelope(
   if (!Object.keys(source).length) return { envelope: null, qualified: false, reasons: ["missing_envelope"] };
   if (source.schema !== "mastermind.risk_envelope/v1") reasons.add("invalid_schema");
   const session = text(source.source_session), sessionMs = sessionDate(session);
-  const currentDay = Math.floor(nowMs / DAY) * DAY;
+  const currentDay = sessionDate(marketSession(nowMs)) ?? NaN;
   if (!Number.isFinite(nowMs)) reasons.add("invalid_now");
   if (sessionMs === null || session !== new Date(sessionMs).toISOString().slice(0, 10)
     || sessionMs > currentDay || currentDay - sessionMs >= 5 * DAY) {

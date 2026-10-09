@@ -7,16 +7,16 @@ import { curateMarketRisk, execTool } from "../copilotTools";
 import { MARKET_RISK_NOW as NOW, marketRiskSourceFixture, riskEnvelopeFixture } from "./marketRiskFixture";
 import composedEnvelope from "./rotationRiskEnvelope.fixture.json";
 
-function pythonBridge(source: unknown, envelope: unknown = riskEnvelopeFixture()) {
+function pythonBridge(source: unknown, envelope: unknown = riskEnvelopeFixture(), nowMs = NOW) {
   const code = [
     "import json,sys",
     "from datetime import datetime, timezone",
     "from ingest.pull_macro_risk import build_market_risk",
     "data=json.load(sys.stdin)",
-    "print(json.dumps(build_market_risk(data['source'], now=datetime(2026,10,8,12,tzinfo=timezone.utc), risk_envelope=data['envelope'])))",
+    "print(json.dumps(build_market_risk(data['source'], now=datetime.fromisoformat(data['now'].replace('Z', '+00:00')), risk_envelope=data['envelope'])))",
   ].join("\n");
   return JSON.parse(execFileSync("python3", ["-c", code], {
-    cwd: path.resolve(process.cwd(), ".."), input: JSON.stringify({ source, envelope }), encoding: "utf8",
+    cwd: path.resolve(process.cwd(), ".."), input: JSON.stringify({ source, envelope, now: new Date(nowMs).toISOString() }), encoding: "utf8",
   })) as Record<string, unknown>;
 }
 afterEach(() => { vi.restoreAllMocks(); vi.unstubAllEnvs(); });
@@ -139,6 +139,8 @@ describe("optional canonical envelope qualification", () => {
     ["freshly built old source", { source_session: "2026-10-01", as_of: "2026-10-01" }, "invalid_future_or_expired_session"],
     ["future production", { produced_at: "2026-10-08T13:00:00Z" }, "future_produced_at"],
     ["missing observation", { observed_at: null }, "missing_or_invalid_observed_at"],
+    ["UTC conversion past year 9999", { observed_at: "9999-12-31T23:00:00-02:00" }, "missing_or_invalid_observed_at"],
+    ["UTC conversion before year 1", { produced_at: "0001-01-01T00:00:00+02:00" }, "missing_or_invalid_produced_at"],
     ["incoherent clocks", { observed_at: "2026-10-08T07:00:00Z" }, "incoherent_publication_clocks"],
     ["expired", { stale_after: "2026-10-08T11:59:00Z" }, "invalid_or_expired_envelope"],
     ["live without expiry", { revision: "live_provisional" }, "missing_live_expiry"],
@@ -196,3 +198,40 @@ it("keeps the current live score/caps under a held display word in both real ada
   source.display.raw_score = 79;
   expect(normalizeMarketRisk(source, NOW)?.raw_score).toBe(79);
 });
+
+it.each(["2026-10-09T01:00:00Z", "2026-12-09T04:30:00Z"])(
+  "uses the same New York session in both adapters across UTC midnight (%s)", instant => {
+    const nowMs = Date.parse(instant), utcDay = instant.slice(0, 10);
+    const session = utcDay.slice(0, 8) + "08";
+    const source = { ...marketRiskSourceFixture(), asof: session, built: session + "T20:00:00Z" };
+    const base = riskEnvelopeFixture();
+    const envelope = { ...base, source_session: session, as_of: session,
+      observed_at: source.built, produced_at: source.built,
+      measured_state: { ...base.measured_state, as_of: session },
+      freshness: { ...base.freshness, source_session: session } };
+    for (const raw of [{ ...source, risk_envelope: envelope }, pythonBridge(source, envelope, nowMs)]) {
+      expect(normalizeMarketRisk(raw, nowMs)).toMatchObject({ stale: false, asof: session,
+        risk_envelope_freshness: { qualified: true } });
+    }
+    const futureEnvelope = { ...envelope, source_session: utcDay, as_of: utcDay,
+      measured_state: { ...envelope.measured_state, as_of: utcDay },
+      freshness: { ...envelope.freshness, source_session: utcDay } };
+    for (const raw of [
+      { ...source, asof: utcDay, risk_envelope: futureEnvelope },
+      pythonBridge({ ...source, asof: utcDay }, futureEnvelope, nowMs),
+    ]) {
+      const read = normalizeMarketRisk(raw, nowMs)!;
+      expect(read.stale_reasons).toContain("future_asof");
+      expect(read.risk_envelope).toBeNull();
+      expect(read.risk_envelope_freshness.reasons).toContain("invalid_future_or_expired_session");
+    }
+    const live = { schema: "risk_state.v1", nightly_asof: session, nightly: source,
+      live_active: true, realtime: true, built: instant,
+      stale_after: new Date(nowMs + 300000).toISOString(),
+      live: { verdict: "MIXED", score: 51, source_event_time: instant },
+      display: { verdict: "MIXED", score: 51 } };
+    for (const raw of [live, pythonBridge(live, envelope, nowMs)]) {
+      expect(normalizeMarketRisk(raw, nowMs)).toMatchObject({ stale: false, asof: session, realtime: true });
+    }
+  },
+);
