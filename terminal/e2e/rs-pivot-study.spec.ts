@@ -59,6 +59,7 @@ test("research lab source → comparison → chart/replay → frozen export and 
   expect(report.schema).toBe("terminal.rs_pivot_study.v2"); expect(report.requested_symbol).toBe("NVDA");
   expect(report.input_hashes_sha256).toHaveLength(2); expect(report.input_hashes_sha256.every((h:string)=>/^[a-f0-9]{64}$/.test(h))).toBe(true);
   expect(report.authority).toBe("exploratory_display_only"); expect(report.engine_compute_ms).toBeLessThan(1000);
+  expect(report.history_stale).toBe(true); expect(report.snapshot_state).toBe("degraded_archived");
   const trades=report.results.flatMap((r:{trades:{signalAt:number;signalBarAt:number;entryAt:number}[]})=>r.trades);
   expect(trades.length).toBeGreaterThan(0); expect(trades.every((t:{signalAt:number;signalBarAt:number;entryAt:number})=>t.signalAt===t.signalBarAt+1800&&t.entryAt>=t.signalAt)).toBe(true);
   await page.screenshot({path:`e2e/proof/rs30/${info.project.name}-en-research.png`,fullPage:true});

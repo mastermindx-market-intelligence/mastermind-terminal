@@ -58,6 +58,17 @@ describe("RS 30-minute causal research lab", () => {
     const r=run(stock.filter(keep),benchmark.filter(keep)); expect(r.coverage.segments).toBe(2); expect(r.coverage.missingExchangeSessions).toBe(1); expect(arm(r).unresolved).toBeGreaterThan(0); expect(arm(r).trades.some(t=>t.signalBarAt===stock[63][0])).toBe(false);
   });
   it("excludes a live candle despite a full set of final-day timestamps",()=>{const s=history(); const r=runRSPivotStudy(s,bench(s),"SPY",settings,s.at(-1)![0]+900); expect(r.coverage.excludedFutureBars).toBe(1); expect(r.coverage.alignedBars).toBe(s.length-13); expect(r.results.flatMap(x=>x.trades).every(t=>t.exitAt<=r.asOfDisplayEpoch)).toBe(true);});
+  it("discloses a partial interior session separately from wholly missing sessions",()=>{
+    const stock=history().filter((_,i)=>i!==100); const r=run(stock);
+    expect(r.coverage.incompleteSessions).toBe(1); expect(r.coverage.missingExchangeSessions).toBe(0);
+    expect(r.coverage.segments).toBe(2);
+  });
+  it("shows a pivot confirmed by the latest completed candle without making an earlier trade",()=>{
+    const stock=history(), i=stock.length-3; stock[i]=[stock[i][0],113,114,98,113.5,10000];
+    const r=run(stock); expect(r.lastCompleted?.pivotPrice).toBe(98);
+    expect(r.lastCompleted?.confirmedAt).toBe(stock.at(-1)![0]+1800);
+    expect(r.results.flatMap(x=>x.trades).some(t=>t.pivotAt===stock[i][0])).toBe(false);
+  });
   it("split-like ambiguous gaps reset state and cannot produce a bridged P&L",()=>{
     const {stock,benchmark}=panel(); for(let i=100;i<stock.length;i++) for(let j=1;j<=4;j++) stock[i][j]/=2;
     const r=run(stock,benchmark); expect(r.coverage.discontinuities).toBe(1); expect(r.coverage.segments).toBe(2); expect(r.results.flatMap(x=>x.trades).every(t=>!(t.entryAt<stock[100][0]&&t.exitAt>=stock[100][0]))).toBe(true);

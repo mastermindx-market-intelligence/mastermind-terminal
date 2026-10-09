@@ -262,7 +262,7 @@ export function runRSPivotStudy(
   segments.push({ start: begin, end: bars.length - 1 });
   let missingExchangeSessions = 0;
   for (let t = Math.floor(bars[0][0] / 86400) * 86400; t <= bars.at(-1)![0]; t += 86400) {
-    if (usRegularSessionWindow(t) && !good.has(day(t))) missingExchangeSessions++;
+    if (usRegularSessionWindow(t) && !counts.has(day(t))) missingExchangeSessions++;
   }
   type Candidate = { i: number; stop: number; pivotAt: number | null; confirmedAt: number | null; shortR: number; longR: number };
   const pools: Record<"pivot" | "ema", Candidate[]> = { pivot: [], ema: [] };
@@ -274,7 +274,7 @@ export function runRSPivotStudy(
     const ema = ema20(local), atr = atr14(local);
     const pv = findPivotsHL(local.map(b => ({ t: b[0], o: b[1], h: b[2], l: b[3], c: b[4], v: b[5] })), 2, 2)
       .filter(p => p.kind === "low") as Level[];
-    const lastPivot = pv.filter(p => p.confirmedAt < local.length - 1).at(-1);
+    const lastPivot = pv.at(-1); // All returned pivots are confirmed by this completed close.
     lastCompleted = { closeAt: local.at(-1)![0] + 1800, close: local.at(-1)![4],
       pivotPrice: lastPivot?.p ?? null, confirmedAt: lastPivot ? local[lastPivot.confirmedAt][0] + 1800 : null };
     let pi = 0, latest: Level | null = null;

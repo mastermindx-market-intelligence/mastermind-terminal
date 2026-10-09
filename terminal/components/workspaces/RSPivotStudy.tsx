@@ -39,7 +39,7 @@ const L = {
     source: "Input source evidence (descriptive only)",
     scope: "Aligned 30m bars", dates: "Sessions", cut: "Descriptive 70/30 split",
     arm: "Test arm", n: "Trades", wr: "Win rate", avg: "Mean net R", pf: "Profit factor",
-    earlier: "Earlier mean R", recent: "Recent mean R", censored: "Censored",
+    earlier: "Earlier mean R", recent: "Recent mean R", censored: "Right censored",
     table: "Recent RS + pivot hypothetical trades",
     at: "Signal (ET)", entry: "Next-open entry", exit: "Exit", stop: "Stop", reason: "Exit reason", result: "Net R",
     sparse: "Small samples and single-name comparisons are NOT evidence of a high-probability edge. Compare across an ex-ante universe with matched controls in Evaluation OS.",
@@ -60,7 +60,7 @@ const L = {
     source: "输入来源证据（仅描述性）",
     scope: "对齐30分钟K线", dates: "完整交易日", cut: "描述性70/30切分",
     arm: "研究组别", n: "交易次数", wr: "胜率", avg: "平均净R", pf: "盈利因子",
-    earlier: "早期平均R", recent: "近期平均R", censored: "删失",
+    earlier: "早期平均R", recent: "近期平均R", censored: "右删失",
     table: "最近的相对强度+枢轴模拟交易",
     at: "信号（美东）", entry: "次根开盘价", exit: "离场价", stop: "止损价", reason: "离场原因", result: "净R",
     sparse: "单只股票或少量交易不能证明高胜率。正式评估须由评估系统使用事前股票池和匹配对照。",
@@ -106,7 +106,8 @@ export default function RSPivotStudy() {
   const zh = lang === "zh";
   const c = (en: string, cn: string) => zh ? cn : en;
   const request = useRef<AbortController | null>(null);
-  useEffect(() => () => request.current?.abort(), []);
+  const generation = useRef(0);
+  useEffect(() => () => { generation.current++; request.current?.abort(); request.current = null; }, []);
   const [symbol, setSymbol] = useState("NVDA");
   const [benchmark, setBenchmark] = useState("SPY");
   const [hold, setHold] = useState<13 | 26 | 39>(26);
@@ -119,16 +120,21 @@ export default function RSPivotStudy() {
   const [selectedArm, setSelectedArm] = useState("rs_pivot");
   const [selectedTrade, setSelectedTrade] = useState("");
   const [runMeta, setRunMeta] = useState<{ symbol: string; benchmark: string; inputHashes: string[]; elapsedMs: number; engineMs: number; geometry: ReturnType<typeof prepareStudyBarsFrom5m>[]; stale: boolean } | null>(null);
-  const invalidate = () => { setReport(null); setRunMeta(null); setSources(null); };
+  const invalidate = () => {
+    generation.current++; request.current?.abort(); request.current = null;
+    setBusy(false); setError(""); setReport(null); setRunMeta(null); setSources(null); setChartBars([]);
+  };
   const run = async () => {
-    if (identity.kind !== "account") return;
+    // Synchronous ownership also covers two clicks before the disabled render.
+    if (identity.kind !== "account" || request.current) return;
     const sym = symbol.trim().toUpperCase(), bm = benchmark.trim().toUpperCase();
-    request.current?.abort();
-    const controller = new AbortController(); request.current = controller;
     invalidate(); setError(""); setSelectedTrade("");
     if (!/^[A-Z][A-Z0-9.-]{0,14}$/.test(sym) || !/^[A-Z][A-Z0-9.-]{0,14}$/.test(bm) || sym === bm) {
       setError(c("Select a valid US equity and a different benchmark.", "请选择有效美股代码与不同的比较基准。")); return;
     }
+    const controller = new AbortController(); request.current = controller;
+    const id = ++generation.current;
+    const current = () => generation.current === id && request.current === controller && !controller.signal.aborted;
     setBusy(true);
     try {
       const started = performance.now();
@@ -146,7 +152,7 @@ export default function RSPivotStudy() {
         const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(JSON.stringify(bars)));
         return Array.from(new Uint8Array(digest), byte => byte.toString(16).padStart(2, "0")).join("");
       }));
-      if (controller.signal.aborted) return;
+      if (!current()) return;
       let expected = Math.floor(asOf / 86400) * 86400;
       for (let n = 0; n < 10; n++, expected -= 86400) {
         const w = usRegularSessionWindow(expected);
@@ -158,17 +164,18 @@ export default function RSPivotStudy() {
       setRunMeta({ symbol: sym, benchmark: bm, inputHashes, geometry: geometry.map(g => ({ ...g, bars: [] })), elapsedMs: performance.now() - started, engineMs, stale });
       setReport(out);
     } catch (e) {
-      if (!controller.signal.aborted) {
+      if (current()) {
         const message = e instanceof Error ? e.message : String(e);
         const status = message.match(/HTTP \d+/)?.[0];
         setError(status ? c("Source request unavailable: ", "来源请求不可用：") + status : /Insufficient/.test(message) ? c("Insufficient complete aligned history. At least 22 sessions and the RS lookback are required.", "完整对齐历史不足。需要至少22个交易日与相对强度回看窗口。") : /no historical|STORED_5M/.test(message) ? c("Stored 5m source or benchmark is unavailable; no results were simulated.", "已存储5分钟来源或基准不可用；未模拟任何结果。") : c("Input validation failed or the source could not be loaded. No results were simulated.", "输入验证失败或来源无法加载。未模拟任何结果。"));
       }
     }
-    finally { setBusy(false); }
+    finally { if (generation.current === id && request.current === controller) { request.current = null; setBusy(false); } }
   };
   const exportJson = () => {
-    if (!report || !runMeta) return;
+    if (!report || !runMeta || identity.kind !== "account") return;
     const payload = JSON.stringify({ ...report, requested_symbol: runMeta.symbol, input_hashes_sha256: runMeta.inputHashes, input_hash_basis: "JSON_serialized_returned_5m_bars", nominal_geometry: runMeta.geometry, engine_compute_ms: runMeta.engineMs,
+      history_stale: runMeta.stale, snapshot_state: runMeta.stale ? "degraded_archived" : "completed_history_availability_unverified",
       sources: { symbol: sources?.symbol.source_evidence ?? null, benchmark: sources?.benchmark.source_evidence ?? null } }, null, 2);
     const url = URL.createObjectURL(new Blob([payload], { type: "application/json" }));
     const a = document.createElement("a"); a.href = url; a.download = "rs-pivot-" + runMeta.symbol + ".json";
@@ -204,7 +211,7 @@ export default function RSPivotStudy() {
         <div role="note" style={{ padding: "12px 14px", borderLeft: "3px solid var(--warn)", background: "var(--panel)", fontSize: 12 }}>{t.warning}</div>
         {error && <div data-testid="rs-pivot-error" role="alert" style={{ ...container, borderColor: "var(--down)" }}>{error}</div>}
         {!report && !error && !busy && <section style={{ ...container, color: "var(--muted)", fontSize: 13 }}>{t.no}</section>}
-        {report && <>
+        {report && identity.kind === "account" && <>
           <div role="status" style={{...container, borderColor: "var(--warn)", fontSize: 12}}>
             <strong>{runMeta?.symbol} / {runMeta?.benchmark} · {c("Historical research snapshot", "历史研究快照")} · {report.coverage.firstDate} → {report.coverage.lastDate}</strong>
             <p>{runMeta?.stale ? c("DEGRADED — latest expected session or cache freshness is missing. This is archived evidence, not a current setup.", "降级：缺少最近应有交易日或缓存已过期。此为存档证据，并非当前形态。") : c("Completed historical bars only. Market data delay and per-observation availability are not certified.", "仅使用已完成历史K线。未认证行情延迟或逐条历史可用时间。")}</p>
@@ -222,13 +229,13 @@ export default function RSPivotStudy() {
             <p style={{ fontSize: 12, color: "var(--muted)", marginBottom: 12 }}>{t.explain}</p>
             <div style={{ overflowX: "auto", maxWidth: "100%" }}><table style={{ width: "100%", borderCollapse: "collapse" }}>
               <thead><tr><th style={th}>{t.arm}</th><th style={th}>{t.n}</th><th style={th}>{t.wr}</th>
-                <th style={th}>{t.avg}</th><th style={th}>{t.pf}</th><th style={th}>{t.earlier}</th><th style={th}>{t.recent}</th><th style={th}>{t.censored}</th></tr></thead>
+                <th style={th}>{t.avg}</th><th style={th}>{t.pf}</th><th style={th}>{t.earlier}</th><th style={th}>{t.recent}</th><th style={th}>{t.censored}</th><th style={th}>{c("Gap unresolved", "缺口未结")}</th></tr></thead>
               <tbody>{STUDY_ARMS.map(arm => {
                 const row = report.results.find(r => r.arm === arm);
                 if (!row) return null;
                 return <tr key={arm}><th scope="row" style={{ ...td, textAlign: "left" }}>{ARM_LABELS[arm][lang === "en" ? 0 : 1]}</th>
                   <SummaryRow row={row.summary} />
-                  <td style={td}>{rMetric(row.earlier.expectancyR)}</td><td style={td}>{rMetric(row.recent.expectancyR)}</td><td style={td}>{row.censored + row.unresolved}</td></tr>;
+                  <td style={td}>{rMetric(row.earlier.expectancyR)}</td><td style={td}>{rMetric(row.recent.expectancyR)}</td><td style={td}>{row.censored}</td><td style={td}>{row.unresolved}</td></tr>;
               })}</tbody>
             </table></div>
             <p style={{ fontSize: 12, color: "var(--warn)", marginTop: 10 }}>{t.sparse}</p>

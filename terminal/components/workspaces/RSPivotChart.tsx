@@ -42,7 +42,7 @@ export default function RSPivotChart({ bars, report, trade }: { bars: Bar6[]; re
         marks.push({time:trade.entryAt,position:"belowBar",shape:"arrowUp",color:"#37b99a",text:zh?"模拟开盘入场":"Hypothetical open entry"});
         for (const [price,color,title] of [[trade.entry,"#6a9fea",zh?"入场":"Entry"],[trade.stop,"#e46c7b",zh?"止损":"Stop"],[trade.target,"#37b99a",zh?"2R目标":"2R target"]] as const) candles.createPriceLine({price,color,title,lineStyle:2});
       }
-      if (trade.exitAt <= cutoff && trade.exitBarAt >= shown[0][0]) marks.push({time:trade.exitBarAt,position:"aboveBar",shape:"arrowDown",color:"#e46c7b",text:zh?"模拟离场":"Hypothetical exit"});
+      if (trade.exitAt <= cutoff && trade.exitBarAt >= shown[0][0] && trade.exitBarAt <= shown.at(-1)![0]) marks.push({time:trade.exitBarAt,position:"aboveBar",shape:"arrowDown",color:"#e46c7b",text:zh?"模拟离场":"Hypothetical exit"});
     } else if (report.lastCompleted?.pivotPrice != null && report.lastCompleted.confirmedAt! <= cutoff) {
       candles.createPriceLine({price:report.lastCompleted.pivotPrice,color:"#ce9be9",title:zh?"历史已确认枢轴":"Historical confirmed pivot",lineStyle:2});
     }
