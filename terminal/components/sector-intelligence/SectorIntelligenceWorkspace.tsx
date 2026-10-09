@@ -276,6 +276,7 @@ export default function SectorIntelligenceWorkspace() {
       {state.workspace === "rotation" ? <SectorRotationMap rows={sectors} status={status} risk={feeds.risk}
         asOf={feeds.sector?.receipt.asOf || null} selected={state.sector} mode={state.rotationMode} query={state.rotationQuery}
         history={rotationHistory} historyStatus={feeds.history?.receipt.status || "loading"}
+        historyRevision={feeds.history?.receipt.contentHash || null}
         onMode={rotationMode => change({ rotationMode })} onQuery={rotationQuery => change({ rotationQuery })}
         onSources={() => openSources()} onSelect={sector => change({ sector }, true)}
         onOpenResearch={openSectorResearch} />

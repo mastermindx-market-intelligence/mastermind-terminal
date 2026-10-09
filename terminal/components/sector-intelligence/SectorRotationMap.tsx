@@ -39,6 +39,8 @@ export interface SectorRotationMapProps {
   query: string;
   history?: SectorRotationHistory | null;
   historyStatus?: FeedStatus;
+  /** Existing gateway content digest; invalidate date cursor on a corrected source version. */
+  historyRevision?: string | null;
   onMode: (mode: SectorRotationMode) => void;
   onQuery: (query: string) => void;
   onSelect: (id: string) => void;
@@ -225,7 +227,7 @@ export default function SectorRotationMap(props: SectorRotationMapProps) {
   const riskRead = props.risk?.receipt.status === "ready" && !props.risk.receipt.stale
     ? qualifyRiskEnvelope(props.risk.data, undefined, qualificationTime) : null;
   const riskCopy = riskEnvelopeCopy(riskRead?.envelope ?? null, lang === "zh");
-  const historyKey = `${props.selected}|${props.history?.asOf || ""}`;
+  const historyKey = `${props.selected}|${props.history?.asOf || ""}|${props.historyRevision || ""}`;
   const [historySelection, setHistorySelection] = useState<{ key: string; index: number | null }>({ key: "", index: null });
   const historyCursor = historySelection.key === historyKey ? historySelection.index : null;
   const historySeries = props.history?.series[props.selected] || null;

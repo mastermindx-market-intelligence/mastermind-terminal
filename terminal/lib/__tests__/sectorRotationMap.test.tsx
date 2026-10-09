@@ -206,6 +206,33 @@ describe("SectorRotationMap", () => {
     expect(host.querySelector('[data-testid="rotation-receipt"]')?.textContent).toBe("Sep 25 · 6 sectors");
   });
 
+  it("invalidates selected history index on same-date owner content correction", async () => {
+    const first = sectorRotationHistory(historyPayload);
+    expect(first).not.toBeNull();
+    await render({ history: first, historyRevision: "source-hash-before" });
+    let section = host.querySelector('[data-testid="rotation-history"]')!;
+    let slider = section.querySelector('input[type="range"]') as HTMLInputElement;
+    await act(async () => {
+      slider.value = "0";
+      slider.dispatchEvent(new Event("input", { bubbles: true }));
+    });
+    expect(section.textContent).toContain("Sep 23");
+
+    const corrected = structuredClone(historyPayload);
+    corrected.sectors[0].rs_history.unshift({
+      date: "2026-09-22", rs_21d: -1, rs_63d: 3,
+    });
+    const next = sectorRotationHistory(corrected);
+    expect(next).not.toBeNull();
+    await render({ history: next, historyRevision: "source-hash-after" });
+    section = host.querySelector('[data-testid="rotation-history"]')!;
+    slider = section.querySelector('input[type="range"]') as HTMLInputElement;
+    expect(slider.value).toBe("3");
+    expect(section.textContent).toContain("Sep 25");
+    expect(section.textContent).toContain("+7.0%");
+    expect(host.querySelector('[data-testid="rotation-receipt"]')?.textContent).toBe("Sep 25 · 6 sectors");
+  });
+
   it("keeps the current snapshot usable when historical owner data is unavailable", async () => {
     await render({ history: null, historyStatus: "unavailable" });
     expect(host.querySelectorAll("[data-sector-rotation-point]")).toHaveLength(5);
