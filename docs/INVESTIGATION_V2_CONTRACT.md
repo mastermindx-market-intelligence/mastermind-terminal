@@ -75,9 +75,25 @@ Direct table writes remain revoked and owner-only RLS protects all reads.
 lock as apply. It returns an existing receipt or atomically records terminal `not_applied`.
 A delayed original apply then returns that fence without creating any record or capture.
 
+Receipt cap (I1): once reconcile returns a no-effect status for (principal, operation),
+no later apply of that operation can commit. Apply and reconcile share one cap
+definition (`investigation_receipt_capacity_reached_v2`, checked under the capacity lock
+after the receipt lookup). At the cap, apply of a new operation returns `limit_reached`
+and writes nothing; reconcile of a new operation returns the conclusive
+`not_applied` with `reason: "limit_reached"` and writes nothing, distinct from
+`unavailable`. A delayed original then also returns `limit_reached`, because receipts are
+monotone: authenticated callers cannot delete them, no migration deletes them and the
+only cascade is account deletion. A service-role receipt deletion voids I1. Existing
+receipts still replay at the cap, changed reuse still conflicts, and each principal has
+its own cap. Because no receipt is stored, a later receipt GET stays inconclusive; the
+client keeps the conclusive answer locally.
+
 Pending/uncertain UI offers only **Check original outcome**. It never resends a mutation.
-Only an exact owner `not_applied` result permits **Try save again** with a new operation
-UUID and retained draft. Local storage is a principal-partitioned draft buffer, not an
+Only an exact owner `not_applied` result without a reason permits **Try save again** with
+a new operation UUID and retained draft. The at-cap `not_applied` ends the uncertainty with
+a limit message, keeps the draft and permits neither the original nor a replacement; a
+later new save receives `limit_reached`. An unknown reason stays uncertain.
+Local storage is a principal-partitioned draft buffer, not an
 outcome authority; reloading a stored no-effect claim rechecks the owner. Logout/account
 changes abort in-flight reads and clear the mounted private state.
 

@@ -80,8 +80,10 @@ test("exact save/readback/reopen and responsive retained evidence are read-only 
  await page.screenshot({path:testInfo.outputPath("saved-research-retained-zh.png"),fullPage:true});
 });
 
+// Every mocked answer below is one the real route can return: reconcile never answers not_found,
+// and the read-only receipt GET answers not_found only when no receipt exists.
 test("lost response and receipt miss preserve one operation across reload",async({page})=>{
- await setup(page);let fence=false,reconciliations=0;const commands:Array<{id:string;operation_id:string;manifest:unknown}>=[];
+ await setup(page);let fence=false,reconciliations=0;const commands:Array<{id:string;operation_id:string;manifest:unknown}>=[],receiptReads:string[]=[];
  await page.route("**/api/investigations{,?*}",async route=>{
   const request=route.request(),query=new URL(request.url()).searchParams;
   if(request.method()==="POST"){
@@ -89,7 +91,8 @@ test("lost response and receipt miss preserve one operation across reload",async
    if(commands.length===1){await route.abort("failed");return;}
    await route.fulfill({json:committed(command.id,command.manifest,command.operation_id)});return;
   }
-  if(request.method()==="PUT"){reconciliations++;const command=request.postDataJSON();expect(command).toEqual(commands[0]);await route.fulfill(fence?{json:{status:"not_applied",id:command.id,operation_id:command.operation_id}}:{status:404,json:{status:"not_found"}});return;}
+  if(request.method()==="PUT"){reconciliations++;const command=request.postDataJSON();expect(command).toEqual(commands[0]);await route.fulfill(fence?{json:{status:"not_applied",id:command.id,operation_id:command.operation_id}}:{status:503,json:{status:"unavailable"}});return;}
+  if(query.has("operation_id")){receiptReads.push(query.get("operation_id")!);await route.fulfill({status:404,json:{status:"not_found"}});return;}
   if(query.has("id")){await route.fulfill({json:{...committed(commands[0].id,commands[0].manifest),status:"found",current_revision:1,layouts:[]}});return;}
   await route.fulfill({json:{status:"listed",items:[]}});
  });
@@ -100,7 +103,12 @@ test("lost response and receipt miss preserve one operation across reload",async
  await page.getByRole("button",{name:"Save research",exact:true}).click();
  await expect(page.getByText("The save outcome is not confirmed.",{exact:false})).toBeVisible();
  await page.getByRole("button",{name:"Check original outcome"}).click();
+ await expect.poll(()=>reconciliations,{timeout:20_000}).toBe(1);
+ expect(receiptReads).toEqual([]);
  await page.reload();
+ // Reopening reads the original receipt once, read-only, and its miss keeps the save unconfirmed.
+ await expect.poll(()=>receiptReads,{timeout:20_000}).toEqual([commands[0].operation_id]);
+ await expect(page.getByText("The save outcome is not confirmed.",{exact:false})).toBeVisible({timeout:20_000});
  await expect(page.getByLabel("Research question",{exact:true})).toHaveValue("My exact draft 🧠");
  await expect(page.getByRole("button",{name:"Start new research"})).toBeDisabled();
  expect(commands).toHaveLength(1);expect(reconciliations).toBe(1);
@@ -110,6 +118,73 @@ test("lost response and receipt miss preserve one operation across reload",async
  await page.getByRole("button",{name:"Try save again"}).click();
  await expect(page.getByRole("heading",{name:"Uncertain question",exact:true})).toBeVisible();
  expect(commands).toHaveLength(2);expect(commands[1].operation_id).not.toBe(commands[0].operation_id);expect({...commands[1],operation_id:commands[0].operation_id}).toEqual(commands[0]);
+ expect(receiptReads).toEqual([commands[0].operation_id]);
+});
+
+test("a reload recovers a committed original from its receipt without sending it again",async({page})=>{
+ await setup(page);const commands:Array<{id:string;operation_id:string;manifest:unknown}>=[],receiptReads:string[]=[];let reconciliations=0;
+ await page.route("**/api/investigations{,?*}",async route=>{
+  const request=route.request(),query=new URL(request.url()).searchParams;
+  if(request.method()==="POST"){commands.push(request.postDataJSON());await route.abort("failed");return;}
+  if(request.method()==="PUT"){reconciliations++;await route.fulfill({status:503,json:{status:"unavailable"}});return;}
+  // The original committed, but its response was lost in transport.
+  if(query.has("operation_id")){receiptReads.push(query.get("operation_id")!);const original=commands[0];await route.fulfill({json:committed(original.id,original.manifest,original.operation_id)});return;}
+  if(query.has("id")){await route.fulfill({json:{...committed(commands[0].id,commands[0].manifest,commands[0].operation_id),status:"found",current_revision:1,layouts:[]}});return;}
+  await route.fulfill({json:{status:"listed",items:[]}});
+ });
+ await page.goto("/analysis?view=investigations");
+ await page.getByRole("button",{name:"Start new research"}).click();
+ await page.getByLabel("Title",{exact:true}).fill("Committed in transit");
+ await page.getByLabel("Research question",{exact:true}).fill("Was my save kept?");
+ await page.getByRole("button",{name:"Save research",exact:true}).click();
+ await expect(page.getByText("The save outcome is not confirmed.",{exact:false})).toBeVisible();
+ expect(receiptReads).toEqual([]);
+ await page.reload();
+ await expect(page.getByRole("heading",{name:"Committed in transit",exact:true})).toBeVisible({timeout:20_000});
+ await expect(page).toHaveURL(new RegExp(`investigation=${commands[0].id}&revision=1$`),{timeout:20_000});
+ await expect(page.getByText("The save outcome is not confirmed.",{exact:false})).toHaveCount(0);
+ expect(receiptReads).toEqual([commands[0].operation_id]);
+ expect(commands).toHaveLength(1);expect(reconciliations).toBe(0);
+});
+
+test("at the saved-research limit the original is never sent again and the draft is kept",async({page})=>{
+ await setup(page);const commands:Array<{id:string;operation_id:string;manifest:unknown}>=[],receiptReads:string[]=[];let reconciliations=0;
+ await page.route("**/api/investigations{,?*}",async route=>{
+  const request=route.request(),query=new URL(request.url()).searchParams;
+  if(request.method()==="POST"){
+   commands.push(request.postDataJSON());
+   if(commands.length===1){await route.abort("failed");return;}
+   await route.fulfill({status:429,json:{status:"limit_reached"}});return;
+  }
+  // At the receipt cap the owner stores nothing and answers the original as finally not applied.
+  if(request.method()==="PUT"){reconciliations++;const command=request.postDataJSON();expect(command).toEqual(commands[0]);await route.fulfill({json:{status:"not_applied",id:command.id,operation_id:command.operation_id,reason:"limit_reached"}});return;}
+  if(query.has("operation_id")){receiptReads.push(query.get("operation_id")!);await route.fulfill({status:404,json:{status:"not_found"}});return;}
+  await route.fulfill({json:{status:"listed",items:[]}});
+ });
+ const limit="Save not completed: this account has reached its saved-research limit. No records were created. Your draft is retained.";
+ await page.goto("/analysis?view=investigations");
+ await page.getByRole("button",{name:"Start new research"}).click();
+ await page.getByLabel("Title",{exact:true}).fill("Limit question");
+ await page.getByLabel("Research question",{exact:true}).fill("Keep this draft at the limit");
+ await page.getByRole("button",{name:"Save research",exact:true}).click();
+ await expect(page.getByText("The save outcome is not confirmed.",{exact:false})).toBeVisible();
+ await page.getByRole("button",{name:"Check original outcome"}).click();
+ await expect(page.getByText(limit,{exact:true})).toBeVisible({timeout:20_000});
+ await expect(page.getByText("The save outcome is not confirmed.",{exact:false})).toHaveCount(0);
+ await expect(page.getByRole("button",{name:"Try save again"})).toHaveCount(0);
+ await expect(page.getByLabel("Research question",{exact:true})).toHaveValue("Keep this draft at the limit");
+ expect(commands).toHaveLength(1);expect(reconciliations).toBe(1);
+ await page.reload();
+ await expect(page.getByText(limit,{exact:true})).toBeVisible({timeout:20_000});
+ await expect(page.getByLabel("Research question",{exact:true})).toHaveValue("Keep this draft at the limit");
+ expect(receiptReads).toEqual([]);expect(commands).toHaveLength(1);
+ // A new save is a new operation, and the limit refuses it too.
+ await page.getByRole("button",{name:"Save research",exact:true}).click({timeout:20_000});
+ await expect.poll(()=>commands.length,{timeout:20_000}).toBe(2);
+ expect(commands[1].operation_id).not.toBe(commands[0].operation_id);
+ await expect(page.getByText(limit,{exact:true})).toBeVisible({timeout:20_000});
+ expect(commands.filter(c=>c.operation_id===commands[0].operation_id)).toHaveLength(1);
+ expect(reconciliations).toBe(1);
 });
 
 for(const lang of ["en","zh"] as const) test(`evidence review advances only through an explicit saved revision (${lang}, Terminal dark theme)`,async({page},testInfo)=>{

@@ -154,6 +154,30 @@ do $$begin
  end if;
 end $$;
 
+-- Receipt capacity and invariant I1: once reconcile answers that an operation had no effect,
+-- no later apply of that operation can commit. Below the cap that answer is a stored no-effect
+-- receipt, and the (user_id,operation_id) key then returns it to the delayed original. At the cap
+-- reconcile stores nothing, so I1 rests on this principal's receipt count never going down:
+-- apply refuses every new operation while the count is at or over the cap. The count only grows:
+--  * authenticated has SELECT only on investigation_mutation_receipts, and its one policy is
+--    owner read (0028). Writes happen only inside these postgres-owned functions, which insert.
+--  * No migration deletes, truncates or updates receipts. The only cascade is deleting the
+--    auth.users row, which removes the principal itself.
+--  * No Terminal or Macro code deletes receipts (repository search, PR #804 lane T03f).
+-- Caveat: a service-role or superuser deletion of receipts outside these functions voids I1
+-- for that principal. Treat receipts as append-only, and revoke apply/reconcile before any purge.
+-- Both callers hold the capacity lock, and every receipt insert happens under that lock. This
+-- function is volatile, so its count uses a snapshot taken after the lock. A REPEATABLE READ or
+-- SERIALIZABLE snapshot can be older than the lock and undercount, so it fails closed instead.
+create or replace function public.investigation_receipt_capacity_reached_v2(p_actor uuid)
+returns boolean language plpgsql set search_path=pg_catalog,public as $$
+begin
+ if current_setting('transaction_isolation')<>'read committed' then raise exception 'investigation_capacity_requires_read_committed'; end if;
+ return (select count(*) from public.investigation_mutation_receipts where user_id=p_actor)>=4000;
+end $$;
+alter function public.investigation_receipt_capacity_reached_v2(uuid) owner to postgres;
+revoke all on function public.investigation_receipt_capacity_reached_v2(uuid) from public,anon,authenticated;
+
 create or replace function public.apply_investigation_revision_v2(
  p_id uuid,p_expected_revision integer,p_action text,p_operation_id uuid,p_manifest jsonb,p_layout_capture jsonb default null
 ) returns jsonb language plpgsql security definer set search_path=pg_catalog,public,auth,extensions as $$
@@ -178,6 +202,9 @@ begin
  -- Serialize this principal's capacity check with every new mutation. Receipt replay above
  -- remains available at capacity. These limits include removed records and retained history.
  perform pg_advisory_xact_lock(hashtextextended('investigation.capacity:'||actor::text,0));
+ -- A new operation is refused at the receipt cap, so an at-cap no-effect answer from
+ -- reconcile stays true for good. Nothing is written on this path.
+ if public.investigation_receipt_capacity_reached_v2(actor) then return jsonb_build_object('status','limit_reached'); end if;
  -- Lock globally by target, including create, so foreign target collisions cannot race INSERT.
  perform pg_advisory_xact_lock(hashtextextended('investigation.target:'||p_id::text,0));
  select * into head from public.investigations where id=p_id for update;
@@ -281,7 +308,9 @@ begin
  if p_expected_revision<0 or p_action not in ('create','revise','remove','restore') or octet_length(public.investigation_json_v2(p_manifest))>131072
   or jsonb_typeof(p_manifest)<>'object' or (p_layout_capture is not null and octet_length(p_layout_capture::text)>512) then return jsonb_build_object('status','invalid_payload'); end if;
  perform pg_advisory_xact_lock(hashtextextended('investigation.capacity:'||actor::text,0));
- if (select count(*) from public.investigation_mutation_receipts where user_id=actor)>=4000 then return jsonb_build_object('status','unavailable'); end if;
+ -- At the cap no receipt is stored, but apply refuses this operation for good under the same
+ -- lock, so the missing effect is final. The reason tells clients not to send it again.
+ if public.investigation_receipt_capacity_reached_v2(actor) then return jsonb_build_object('status','not_applied','id',p_id,'operation_id',p_operation_id,'reason','limit_reached'); end if;
  output:=jsonb_build_object('status','not_applied','id',p_id,'operation_id',p_operation_id);
  insert into public.investigation_mutation_receipts values(actor,p_operation_id,request,output);
  return output;
@@ -306,8 +335,8 @@ end $migration$;
 -- Disable Investigation writes, preserve retained rows and use a reviewed forward repair.
 -- revoke execute on function public.apply_investigation_revision_v2(uuid,integer,text,uuid,jsonb,jsonb),public.reconcile_investigation_operation_v2(uuid,integer,text,uuid,jsonb,jsonb) from authenticated;
 -- readback:
--- select proname,prosecdef from pg_proc p join pg_namespace n on n.oid=p.pronamespace where n.nspname='public' and proname in ('valid_investigation_manifest_v2','apply_investigation_revision_v2','reconcile_investigation_operation_v2','read_investigation_v2') order by proname;
+-- select proname,prosecdef from pg_proc p join pg_namespace n on n.oid=p.pronamespace where n.nspname='public' and proname in ('valid_investigation_manifest_v2','investigation_receipt_capacity_reached_v2','apply_investigation_revision_v2','reconcile_investigation_operation_v2','read_investigation_v2') order by proname;
 -- select column_name,data_type,is_nullable from information_schema.columns where table_schema='public' and table_name='investigation_revisions' and column_name in ('id','parent_revision_id','parent_sequence','operation_id','manifest_digest') order by column_name;
 -- select conname,condeferrable,condeferred from pg_constraint where conrelid in ('public.investigations'::regclass,'public.investigation_revisions'::regclass) and conname in ('investigation_revision_lineage','investigation_revision_parent','investigation_revision_receipt','investigation_revision_digest','investigation_head_revision') order by conname;
 -- select indexname from pg_indexes where schemaname='public' and indexname in ('investigation_revision_identity','investigation_revision_uuid','investigation_revision_operation','chart_layout_revision_source') order by indexname;
--- select has_function_privilege('authenticated','public.reconcile_investigation_operation_v2(uuid,integer,text,uuid,jsonb,jsonb)','EXECUTE') as authenticated_reconcile,has_function_privilege('anon','public.reconcile_investigation_operation_v2(uuid,integer,text,uuid,jsonb,jsonb)','EXECUTE') as anon_reconcile;
+-- select has_function_privilege('authenticated','public.reconcile_investigation_operation_v2(uuid,integer,text,uuid,jsonb,jsonb)','EXECUTE') as authenticated_reconcile,has_function_privilege('anon','public.reconcile_investigation_operation_v2(uuid,integer,text,uuid,jsonb,jsonb)','EXECUTE') as anon_reconcile,has_function_privilege('authenticated','public.investigation_receipt_capacity_reached_v2(uuid)','EXECUTE') as authenticated_capacity;

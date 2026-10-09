@@ -30,7 +30,13 @@ export function settleInvestigationSave(state: InvestigationSaveState, principal
   if (state.principal !== principal) return { phase: "idle" };
   if (matchesInvestigationCommand(response,state.command)) return { phase: "committed", principal, result: response };
   const status = response !== null && typeof response === "object" ? (response as { status?: unknown }).status : null;
-  if (status === "not_applied" && (response as {id?:unknown}).id === state.command.id && (response as {operation_id?:unknown}).operation_id === state.command.operation_id) return {phase:"rejected",principal,command:state.command,reason:"not_applied"};
+  if (status === "not_applied" && (response as {id?:unknown}).id === state.command.id && (response as {operation_id?:unknown}).operation_id === state.command.operation_id) {
+    // A stored fence permits a new operation. The receipt-cap answer is just as final for the
+    // original, but it permits nothing new, so it keeps its own reason. Unknown reasons stay uncertain.
+    const reason = (response as {reason?:unknown}).reason;
+    if (reason === undefined) return {phase:"rejected",principal,command:state.command,reason:"not_applied"};
+    if (reason === "limit_reached") return {phase:"rejected",principal,command:state.command,reason:"limit_reached"};
+  }
   if (state.phase === "pending" && typeof status === "string" && definitive.has(status)) return { phase: "rejected", principal, command: state.command, reason: status };
   // not_found on receipt lookup, auth expiry, timeout and malformed replies are all inconclusive.
   return { phase: "uncertain", principal, command: state.command };

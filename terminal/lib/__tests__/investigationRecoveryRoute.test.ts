@@ -129,6 +129,34 @@ describe("Investigation API operation recovery", () => {
     expect({ ...replacement, operation_id: operation }).toEqual(command());
   });
 
+  it("returns the at-cap no-effect answer as final and never sends the original again", async () => {
+    const uncertain = settleInvestigationSave(beginInvestigationSave(principal, command(), { phase: "idle" }), principal, null);
+    const atCap = { status: "not_applied", id, operation_id: operation, reason: "limit_reached" };
+    rpc.mockResolvedValueOnce({ data: { ...atCap, reason: "quota" }, error: null })
+      .mockResolvedValueOnce({ data: atCap, error: null })
+      .mockResolvedValueOnce({ data: { status: "limit_reached" }, error: null });
+    // A reason this route does not know is not a fence.
+    const unknown = await PUT(request("PUT", command()));
+    expect(unknown.status).toBe(503);
+    expect(await unknown.json()).toEqual({ status: "unavailable" });
+    const final = await PUT(request("PUT", command()));
+    expect(final.status).toBe(200);
+    expect(await final.json()).toEqual(atCap);
+    const limited = settleInvestigationSave(uncertain, principal, atCap);
+    expect(limited).toEqual({ phase: "rejected", principal, command: command(), reason: "limit_reached" });
+    expect(retryInvestigationSave(limited, principal)).toBeNull();
+    // A new save is a new operation, and the cap refuses it too.
+    const next = beginInvestigationSave(principal, { ...command(), operation_id: otherOperation }, limited);
+    expect(next.phase).toBe("pending");
+    const refused = await POST(request("POST", { ...command(), operation_id: otherOperation }));
+    expect(refused.status).toBe(429);
+    expect(settleInvestigationSave(next, principal, await refused.json())).toMatchObject({ phase: "rejected", reason: "limit_reached" });
+    expect(rpc.mock.calls.map(([name, args]) => [name, args.p_operation_id])).toEqual([
+      ["reconcile_investigation_operation_v2", operation], ["reconcile_investigation_operation_v2", operation],
+      ["apply_investigation_revision_v2", otherOperation],
+    ]);
+  });
+
   it("reads and reconciles a pre-kernel receipt without fabricating wrapper identity", async () => {
     const manifest = command().manifest;
     delete manifest.argument_relations;

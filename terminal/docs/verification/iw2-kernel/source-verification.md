@@ -171,3 +171,26 @@ parent's RED test. Its lease 726e02d55d18 is released with residual-zero cleanup
 its verdict is not accepted as approval of the final repaired source. Independent
 review of this bounded delta, exact-head CI, B5, current rights, 0030 apply,
 deployment and renewed authenticated G1 proof remain separate requirements.
+
+## Receipt-cap no-effect fence and reload recovery
+
+On 76e22c3d, reconcile of a new operation at the 4,000-receipt cap returned
+`unavailable` and wrote no fence, so a delayed original could still commit after
+the client had been told nothing. Apply and reconcile now share
+`investigation_receipt_capacity_reached_v2`, checked under the capacity lock after
+the receipt lookup. At the cap, apply of a new operation returns `limit_reached`
+and reconcile returns the conclusive `not_applied` with `reason: "limit_reached"`;
+neither writes a row. Receipts are monotone (authenticated callers cannot delete
+them, no migration deletes them, the only cascade is account deletion), so the
+original can never commit later. A service-role receipt deletion voids this.
+Replays and changed-reuse conflicts over the cap, other principals, the cap-1
+fence and reconcile waiting for an in-flight apply are covered by PostgreSQL tests
+that fail on 76e22c3d.
+
+The client treats the at-cap answer as final: the uncertain state ends with a
+limit message, the draft stays, and neither the original nor a replacement is
+offered. A new save receives `limit_reached`. An unknown reason stays uncertain.
+A reopened page with an uncertain save reads the original receipt exactly once
+and never posts; browser and mounted tests record that read and fail when the
+mount read is removed. Every mocked browser answer is a status the real route can
+return. 0030 remains unapplied in production.

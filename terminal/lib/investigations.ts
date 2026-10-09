@@ -35,7 +35,7 @@ export type InvestigationCommitted = {
   recorded_at?: string;
   manifest_digest?: string;
 };
-export type InvestigationFailure = { status: "invalid_payload" | "unauthenticated" | "not_found" | "version_conflict" | "idempotency_conflict" | "invalid_transition" | "reference_unavailable" | "layout_conflict" | "limit_reached" | "unavailable" | "not_applied"; current_revision?: number; id?: string; operation_id?: string };
+export type InvestigationFailure = { status: "invalid_payload" | "unauthenticated" | "not_found" | "version_conflict" | "idempotency_conflict" | "invalid_transition" | "reference_unavailable" | "layout_conflict" | "limit_reached" | "unavailable" | "not_applied"; current_revision?: number; id?: string; operation_id?: string; reason?: "limit_reached" };
 export type InvestigationDb = { rpc(name: string, args: Record<string, unknown>): PromiseLike<{ data: unknown; error: unknown }> };
 export type InvestigationSummary = {id:string;revision:number;lifecycle:"active"|"removed";title:string;question:string;updated_at:string};
 export async function listInvestigations(db:InvestigationDb):Promise<{status:"listed";items:InvestigationSummary[]}|InvestigationFailure> {
@@ -105,6 +105,14 @@ export function matchesInvestigationCommand(result: unknown, command: Investigat
     && refs[0].role === "primary"
     && sameJson({...result.manifest,layout_refs:[]},command.manifest);
 }
+/** An owner no-effect answer for exactly this operation. At the receipt cap it carries
+ * reason "limit_reached": nothing was stored, and the owner refuses the operation for good.
+ * Any other reason is not a known fence, so it is treated as unavailable. */
+function noEffect(data: unknown, id: string, operationId: string): InvestigationFailure | null {
+  if (!record(data) || data.status !== "not_applied" || data.id !== id || data.operation_id !== operationId) return null;
+  if (data.reason === undefined) return { status: "not_applied", id, operation_id: operationId };
+  return data.reason === "limit_reached" ? { status: "not_applied", id, operation_id: operationId, reason: "limit_reached" } : { status: "unavailable" };
+}
 const failureCodes = new Set(["invalid_payload", "unauthenticated", "not_found", "version_conflict", "idempotency_conflict", "invalid_transition", "reference_unavailable", "layout_conflict", "limit_reached"]);
 export async function applyInvestigationRevision(db: InvestigationDb, command: InvestigationCommand): Promise<InvestigationCommitted | InvestigationFailure> {
   const valid = parseInvestigationCommand(command);
@@ -116,7 +124,8 @@ export async function applyInvestigationRevision(db: InvestigationDb, command: I
     });
     if (error) return { status: "unavailable" };
     if (matchesInvestigationCommand(data, valid)) return data;
-    if (record(data) && data.status === "not_applied" && data.id === valid.id && data.operation_id === valid.operation_id) return data as InvestigationFailure;
+    const fenced = noEffect(data, valid.id, valid.operation_id);
+    if (fenced) return fenced;
     if (record(data) && failureCodes.has(String(data.status))) {
       if (data.status === "version_conflict" && (!Number.isSafeInteger(data.current_revision) || Number(data.current_revision) < 1)) return { status: "unavailable" };
       return data as InvestigationFailure;
@@ -133,7 +142,8 @@ export async function readInvestigationOperation(db: InvestigationDb, operationI
     if (error) return { status: "unavailable" };
     // Pre-kernel receipts lack this field; never fabricate it or ignore a present mismatch.
     if (isInvestigationCommitted(data) && (data.operation_id === undefined || data.operation_id === operationId)) return data;
-    if (record(data) && data.status === "not_applied" && data.operation_id === operationId && isInvestigationId(data.id)) return data as InvestigationFailure;
+    const fenced = record(data) && isInvestigationId(data.id) ? noEffect(data, data.id, operationId) : null;
+    if (fenced) return fenced;
     return record(data) && data.status === "not_found" ? { status: "not_found" } : { status: "unavailable" };
   } catch { return { status: "unavailable" }; }
 }
@@ -149,7 +159,8 @@ export async function reconcileInvestigationOperation(db: InvestigationDb, raw: 
     });
     if (error) return {status:"unavailable"};
     if (matchesInvestigationCommand(data, command)) return data;
-    if (record(data) && data.status==="not_applied" && data.id===command.id && data.operation_id===command.operation_id) return data as InvestigationFailure;
+    const fenced = noEffect(data, command.id, command.operation_id);
+    if (fenced) return fenced;
     if (record(data) && failureCodes.has(String(data.status))) return data as InvestigationFailure;
     return {status:"unavailable"};
   } catch {return {status:"unavailable"};}

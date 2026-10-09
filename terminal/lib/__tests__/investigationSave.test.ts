@@ -67,3 +67,18 @@ it("recovers a rejected exact draft without inventing a commit or automatic retr
  expect(recoverInvestigationSave("alice",{owner:"alice",command:original,phase:"committed"})?.phase).toBe("uncertain");
  expect(recoverInvestigationSave("alice",{owner:"alice",command:original})?.phase).toBe("uncertain");
 });
+
+it("treats the at-cap no-effect answer as final without permitting the original or a replacement",()=>{
+ const original=command();
+ const uncertain=settleInvestigationSave(beginInvestigationSave("alice",original,{phase:"idle"}),"alice",null);
+ const limited=settleInvestigationSave(uncertain,"alice",{status:"not_applied",id:original.id,operation_id:original.operation_id,reason:"limit_reached"});
+ expect(limited).toEqual({phase:"rejected",principal:"alice",command:original,reason:"limit_reached"});
+ expect(retryInvestigationSave(limited,"alice")).toBeNull();
+ expect(investigationCommandToReconcile(limited,"alice")).toBeNull();
+ // The cap keeps refusing this operation, so a reload keeps the conclusive answer and the draft.
+ expect(recoverInvestigationSave("alice",{owner:"alice",command:original,phase:"rejected",reason:"limit_reached"})).toEqual(limited);
+ // A reason this client does not know is not a fence and grants nothing.
+ const unknown=settleInvestigationSave(uncertain,"alice",{status:"not_applied",id:original.id,operation_id:original.operation_id,reason:"quota"});
+ expect(unknown.phase).toBe("uncertain");expect(retryInvestigationSave(unknown,"alice")).toBeNull();
+ expect(settleInvestigationSave(uncertain,"alice",{status:"not_applied",id:original.id,operation_id:original.id,reason:"limit_reached"}).phase).toBe("uncertain");
+});

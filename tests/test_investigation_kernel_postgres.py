@@ -200,3 +200,113 @@ def test_kernel_backup_restore_preserves_uuid_lineage_digest_and_no_effect_fence
     assert json.loads(kernel(query,B,database="kernel_restore"))["status"]=="not_found"
     denied=kernel(reconcile_sql(str(uuid4()),str(uuid4()),draft()),A,check=False,database="kernel_restore")
     assert denied.returncode and "permission denied" in denied.stderr
+
+
+# Receipt capacity (lane T03f). Each test uses fresh principals so the module-scoped
+# cluster's other tests never observe a principal at the cap.
+RECEIPT_CAP = 4000
+
+
+def principal(kernel):
+    user = str(uuid4())
+    kernel("insert into auth.users values (" + quote(user) + ")")
+    return user
+
+
+def seed_fences(kernel, actor, count, body):
+    # Real owner fences through the authenticated reconcile function, not direct inserts.
+    sql = ("select count(*) from (select reconcile_investigation_operation_v2(" + quote(str(uuid4())) + ",0,'create',gen_random_uuid(),"
+           + quote(json.dumps(body)) + "::jsonb) as outcome from generate_series(1," + str(count) + ")) as seeded where outcome->>'status'='not_applied'")
+    assert kernel(sql, actor) == str(count)
+
+
+def receipts(kernel, actor):
+    return int(kernel("select count(*) from investigation_mutation_receipts where user_id=" + quote(actor)))
+
+
+def test_receipt_cap_reconcile_is_conclusive_and_the_delayed_original_cannot_commit(kernel):
+    actor, target, control_op, missing_op, layout = principal(kernel), str(uuid4()), str(uuid4()), str(uuid4()), str(uuid4())
+    config = json.loads((ROOT / "terminal/lib/__tests__/fixtures/workspace/chart_layout_v2_real_capture.json").read_text())["expected"]
+    kernel("insert into chart_layouts values ("+quote(layout)+","+quote(actor)+",'Layout',"+quote(json.dumps(config))+",now())")
+    capture = {"layout_id": layout, "expected_revision": 1}
+    body = draft("Receipt capacity")
+    seed_fences(kernel, actor, RECEIPT_CAP - 1, body)
+    # At cap-1 reconcile still records a durable fence, and that operation's delayed original replays it.
+    control = json.loads(kernel(reconcile_sql(target, control_op, body), actor))
+    assert control == {"status": "not_applied", "id": target, "operation_id": control_op}
+    assert receipts(kernel, actor) == RECEIPT_CAP
+    assert apply(kernel, control_op, content=body, target=target, actor=actor) == control
+    assert json.loads(kernel("select read_investigation_operation_v2(" + quote(control_op) + ")", actor)) == control
+    # At the cap a never-committed operation gets a conclusive no-effect answer, not transport 'unavailable'.
+    reconcile_capture = reconcile_sql(target, missing_op, body).replace("::jsonb);", "::jsonb," + quote(json.dumps(capture)) + "::jsonb);")
+    at_cap = json.loads(kernel(reconcile_capture, actor))
+    assert at_cap == {"status": "not_applied", "id": target, "operation_id": missing_op, "reason": "limit_reached"}
+    assert receipts(kernel, actor) == RECEIPT_CAP
+    assert json.loads(kernel("select read_investigation_operation_v2(" + quote(missing_op) + ")", actor))["status"] == "not_found"
+    # The delayed original of that operation can never commit afterwards (invariant I1).
+    delayed = apply(kernel, missing_op, content=body, target=target, actor=actor, capture=capture)
+    assert delayed == {"status": "limit_reached"}
+    assert receipts(kernel, actor) == RECEIPT_CAP
+    assert kernel("select count(*) from investigations where id=" + quote(target)) == "0"
+    assert kernel("select count(*) from investigation_revisions where investigation_id=" + quote(target)) == "0"
+    assert kernel("select count(*) from chart_layout_revisions where layout_id=" + quote(layout)) == "0"
+    assert json.loads(kernel(reconcile_capture, actor)) == at_cap
+    # A new save is refused the same way and writes nothing.
+    assert apply(kernel, str(uuid4()), content=body, target=str(uuid4()), actor=actor) == {"status": "limit_reached"}
+    assert receipts(kernel, actor) == RECEIPT_CAP
+
+
+def test_receipt_cap_keeps_existing_outcomes_replayable_and_is_per_principal(kernel):
+    actor, other = principal(kernel), principal(kernel)
+    target, committed_op, fence_op = str(uuid4()), str(uuid4()), str(uuid4())
+    body = draft("Capacity replay")
+    committed = apply(kernel, committed_op, content=body, target=target, actor=actor)
+    assert committed["status"] == "committed"
+    seed_fences(kernel, actor, RECEIPT_CAP - 2, body)
+    fenced = json.loads(kernel(reconcile_sql(str(uuid4()), fence_op, body), actor))
+    assert fenced["status"] == "not_applied" and "reason" not in fenced
+    assert receipts(kernel, actor) == RECEIPT_CAP
+    # Existing committed and not_applied receipts replay exactly at and over the cap.
+    assert apply(kernel, committed_op, content=body, target=target, actor=actor) == committed
+    assert json.loads(kernel(reconcile_sql(target, committed_op, body), actor)) == committed
+    assert apply(kernel, fence_op, content=body, target=fenced["id"], actor=actor) == fenced
+    assert json.loads(kernel(reconcile_sql(fenced["id"], fence_op, body), actor)) == fenced
+    # A different body for an existing operation is still an idempotency conflict, not a limit.
+    assert apply(kernel, committed_op, content=draft("Changed"), target=target, actor=actor) == {"status": "idempotency_conflict"}
+    assert json.loads(kernel(reconcile_sql(fenced["id"], fence_op, draft("Changed")), actor)) == {"status": "idempotency_conflict"}
+    assert apply(kernel, str(uuid4()), "revise", 1, draft("Next"), target, actor) == {"status": "limit_reached"}
+    assert receipts(kernel, actor) == RECEIPT_CAP
+    # Another principal's capacity is independent.
+    assert apply(kernel, str(uuid4()), content=body, target=str(uuid4()), actor=other)["status"] == "committed"
+    other_target, other_op = str(uuid4()), str(uuid4())
+    assert json.loads(kernel(reconcile_sql(other_target, other_op, body), other)) == {"status": "not_applied", "id": other_target, "operation_id": other_op}
+    assert receipts(kernel, other) == 2
+
+
+def test_receipt_cap_has_one_definition_shared_by_apply_and_reconcile(kernel):
+    helper = "investigation_receipt_capacity_reached_v2"
+    sources = dict(line.split("|", 1) for line in kernel("select proname,replace(prosrc,E'\\n',' ') from pg_proc p join pg_namespace n on n.oid=p.pronamespace where n.nspname='public' and proname in ('apply_investigation_revision_v2','reconcile_investigation_operation_v2'," + quote(helper) + ")").splitlines())
+    assert set(sources) == {"apply_investigation_revision_v2", "reconcile_investigation_operation_v2", helper}
+    for name in ("apply_investigation_revision_v2", "reconcile_investigation_operation_v2"):
+        assert sources[name].count("public." + helper + "(actor)") == 1, name
+        # Neither caller may count receipts or restate the cap itself.
+        assert "from public.investigation_mutation_receipts where user_id=actor)" not in sources[name], name
+        assert str(RECEIPT_CAP) not in sources[name], name
+    assert sources[helper].count(">=" + str(RECEIPT_CAP)) == 1
+    for role in ("authenticated", "anon"):
+        assert kernel("select has_function_privilege(" + quote(role) + ",'public." + helper + "(uuid)','EXECUTE')") == "f"
+    denied = kernel("select public." + helper + "(" + quote(A) + ")", A, check=False)
+    assert denied.returncode and "permission denied" in denied.stderr
+
+
+def test_receipt_capacity_refuses_a_stale_snapshot_without_writing(kernel):
+    # The count is exact only when taken after the capacity lock with a fresh statement snapshot.
+    actor, target, op = principal(kernel), str(uuid4()), str(uuid4())
+    body = json.dumps(draft("Snapshot"))
+    for call in ("apply_investigation_revision_v2", "reconcile_investigation_operation_v2"):
+        sql = ("begin isolation level repeatable read; set role authenticated; set request.jwt.claim.sub=" + quote(actor) + "; select public." + call
+               + "(" + quote(target) + ",0,'create'," + quote(op) + "," + quote(body) + "::jsonb); commit;")
+        refused = kernel(sql, check=False)
+        assert refused.returncode and "investigation_capacity_requires_read_committed" in refused.stderr, call
+    assert receipts(kernel, actor) == 0
+    assert kernel("select count(*) from investigations where id=" + quote(target)) == "0"
