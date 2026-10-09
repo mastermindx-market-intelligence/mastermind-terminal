@@ -1,0 +1,54 @@
+{
+  "observed_at": "2026-09-23T11:22:35.827448+00:00",
+  "source": "Existing canonical Terminal R2 fallback, production host, documented UA; not UI acceptance",
+  "results": [
+    {
+      "root": "MU",
+      "error": "HTTP Error 404: Not Found"
+    },
+    {
+      "root": "NVDA",
+      "status": 200,
+      "identity": "NVDA",
+      "schema": "options_structure.matrix/v1",
+      "session": null,
+      "asof": "2026-09-22T23:00:56.146547+00:00",
+      "cells": 0,
+      "spot": null,
+      "fields": [],
+      "sha256": "a7314a170771f55864ed6623f85d7ce42e011c51a3e95ee3d8daf763b61354e9"
+    },
+    {
+      "root": "SPY",
+      "status": 200,
+      "identity": "SPY",
+      "schema": "options_structure.matrix/v1",
+      "session": null,
+      "asof": "2026-09-22T23:00:09.357929+00:00",
+      "cells": 0,
+      "spot": null,
+      "fields": [],
+      "sha256": "4542134cb8c915fdef9d2734ccb901ab416cdd8c73b1715b0f35102a7271518f"
+    },
+    {
+      "root": "AMD",
+      "status": 200,
+      "identity": "AMD",
+      "schema": "options_structure.matrix/v1",
+      "session": null,
+      "asof": "2026-09-22T23:01:30.956732+00:00",
+      "cells": 0,
+      "spot": null,
+      "fields": [],
+      "sha256": "52a1856a6e0fc2ed255710babb031d6db6c6bd431faddd249c51373eaab8786a"
+    },
+    {
+      "root": "ARM",
+      "error": "HTTP Error 404: Not Found"
+    },
+    {
+      "root": "INTC",
+      "error": "HTTP Error 404: Not Found"
+    }
+  ]
+}

@@ -113,6 +113,8 @@
      so a CN/HK viewer must read the same hues here as a US viewer. Never use these for price
      direction, and never use --up/--down for aggressor volume. */
   --flow-buy:#22b8d5; --flow-sell:#a92cce;
+  /* Signed exposure, NOT a hedge transaction or a price direction. Locale-invariant. */
+  --exposure-positive:#4cc6cc; --exposure-negative:#d896f0;
 }
 /* East-Asian convention: red = up / green = down (CN/HK/TW/MO). Flips the up/down semantics only;
    accent colors (brand/signal/warn) are unchanged. Set on <html data-updown="east"> pre-paint. */

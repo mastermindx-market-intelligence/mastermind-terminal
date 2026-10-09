@@ -26,6 +26,8 @@ export interface MobileSheetProps {
    * opening the drawer is navigation rather than a request to type.
    */
   initialFocus?: "first" | "sheet";
+  /** Opt-in: a child inspector may consume Escape to clear its selection before the sheet closes. */
+  escapeKey?: "close" | "bubble";
 }
 
 const FOCUSABLE_SELECTOR = [
@@ -95,6 +97,7 @@ export default function MobileSheet({
   className,
   detents,
   initialFocus = "first",
+  escapeKey = "close",
 }: MobileSheetProps) {
   // Track mount so createPortal only fires client-side.
   const [mounted, setMounted] = useState(false);
@@ -187,6 +190,7 @@ export default function MobileSheet({
 
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.key === "Escape") {
+        if (escapeKey === "bubble") return;
         event.preventDefault();
         onCloseRef.current();
         return;
@@ -217,15 +221,22 @@ export default function MobileSheet({
       }
     };
 
+    const onBubbledEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape" && !event.defaultPrevented) {
+        event.preventDefault(); onCloseRef.current();
+      }
+    };
     document.addEventListener("keydown", onKeyDown, true);
+    if (escapeKey === "bubble") document.addEventListener("keydown", onBubbledEscape);
     return () => {
       window.cancelAnimationFrame(focusFrame);
       document.removeEventListener("keydown", onKeyDown, true);
+      document.removeEventListener("keydown", onBubbledEscape);
       const previousFocus = previousFocusRef.current;
       previousFocusRef.current = null;
       if (previousFocus?.isConnected) previousFocus.focus({ preventScroll: true });
     };
-  }, [mounted, open, initialFocus]);
+  }, [mounted, open, initialFocus, escapeKey]);
 
   function clearCloseTimer() {
     if (closeTimerRef.current === null) return;

@@ -1,4 +1,5 @@
 "use client";
+import { optionsReadAccess } from "./optionsAccess";
 import { useCallback, useEffect, useSyncExternalStore } from "react";
 import {
   GUEST_IDENTITY, GUEST_OWNER, identityOwnerKey, isAccountOwner, type AccountIdentity,
@@ -202,6 +203,8 @@ export function displayEntitlement(s: EntitlementSnapshot = snapshot): DisplayEn
 
 export type GateEntitlement = {
   tier: SubscriptionTier;
+  /** Verified live-options feature (including the exact private unlimited overlay). */
+  optionsRead: boolean;
   features: string[];
   /** True while the answer is still being established — callers may show a skeleton, not a gate. */
   loading: boolean;
@@ -217,12 +220,15 @@ export type GateEntitlement = {
  * This is the client-side hint lane. The server authority (lib/entitlement.ts → macro-api) is
  * unchanged and still decides; this only stops the UI from offering what the server will refuse.
  */
-export function gateEntitlement(s: EntitlementSnapshot = snapshot): GateEntitlement {
-  const verified = s.state === "VERIFIED_FREE" || s.state === "VERIFIED_PAID";
+export function gateEntitlement(s: EntitlementSnapshot = snapshot, expectedOwner?: string): GateEntitlement {
+  // The hook adopts in an effect. The render before that effect must not reuse another owner's grant.
+  const ownerMatches = expectedOwner === undefined || s.owner === expectedOwner;
+  const verified = ownerMatches && (s.state === "VERIFIED_FREE" || s.state === "VERIFIED_PAID");
   return {
     tier: verified ? normalizeSubscriptionTier(s.plan?.tier) : "free",
+    optionsRead: verified && optionsReadAccess(s.plan),
     features: verified ? (s.plan?.features ?? []) : [],
-    loading: s.state === "LOADING",
+    loading: !ownerMatches || s.state === "LOADING",
     unverified: s.state === "UNAVAILABLE" || s.state === "STALE_LAST_GOOD",
   };
 }
@@ -241,7 +247,7 @@ export function useEntitlementSnapshot(identity?: AccountIdentity | null): Entit
 
 /** The GATE selector, bound to the shell identity. Fails closed on an unverified answer. */
 export function useGateEntitlement(identity?: AccountIdentity | null): GateEntitlement {
-  return gateEntitlement(useEntitlementSnapshot(identity));
+  return gateEntitlement(useEntitlementSnapshot(identity), identityOwnerKey(identity ?? GUEST_IDENTITY));
 }
 
 /** The DISPLAY selector, bound to the shell identity. May report a same-owner stale plan. */

@@ -70,12 +70,12 @@ const GEX_LEX = {
   // Tag on the summary bar's LEVEL cells while a narrower expiry lens is active: walls,
   // flip and magnet are all-expiry constructs and do not re-derive per expiration.
   sumAllExpTag:   ["all exp", "全到期"],
-  // Hover disclosure on the scoped Net GEX tag: a narrower expiry lens sums over the
-  // per-expiration snapshot's own (narrower) strike window, not the full ladder — this
-  // states that second swap explicitly instead of leaving it implied by the expiry word.
+  // Hover disclosure on the scoped Net GEX tag: a narrower expiry lens sums the ladder's
+  // own strikes (the rows shown) for the selected expirations, and says how many of them the
+  // per-expiration snapshot carries — a missing strike or expiration withholds the total.
   sumLensScopeTip: [
-    "Net GEX for this expiration, summed over the {n} of {m} ladder strikes the per-expiration snapshot covers — a narrower strike window than the full ladder, not just a narrower expiration.",
-    "本到期日的净GEX，基于按到期日快照覆盖的梯图 {n}/{m} 个行权价汇总——行权价范围比完整梯图更窄，不仅是到期日范围更窄。",
+    "Net GEX for this expiration selection over the ladder's {m} strikes; {n} of them are in the per-expiration snapshot. Any missing strike or expiration withholds the total.",
+    "本次到期日选择在梯图 {m} 个行权价上的净GEX；其中 {n} 个在按到期日快照中。任何缺失的行权价或到期日都会使合计暂不显示。",
   ],
 
   // ── Expiry lens (dropdown + 0DTE chip) ─────────────────────────────────────
@@ -85,6 +85,12 @@ const GEX_LEX = {
   expiryLensZero:      ["0DTE only", "仅当日到期"],
   expiryLensExZero:    ["All except 0DTE", "除当日到期外"],
   expiryLensGroupOne:  ["Single expiration", "单一到期日"],
+  // Heads the lens menu: the badges are the chain's whole-expiration totals (gex
+  // `by_expiry`), across every strike, so they need not equal the ladder-scoped headline.
+  expiryBadgeChainNote: [
+    "Badges: whole-chain net GEX per expiration, all strikes",
+    "标记：每个到期日的全链净GEX，含全部行权价",
+  ],
   // Shown against an expiry the per-strike store cannot answer for.
   expiryLensNoRows:    ["no per-strike data", "无逐行权价数据"],
   // Honest footers under the lens bar — one per state, never a silent fallback.
@@ -105,8 +111,20 @@ const GEX_LEX = {
     "按到期日拆分仅支持伽马 — 切换到 GEX 使用该视角",
   ],
   expiryDashNote: [
-    "— = strike outside the per-expiration snapshot, not a zero",
-    "— 表示该行权价不在按到期日快照范围内，并非零值",
+    "— = this strike has no complete value for the selected expirations, not a zero",
+    "— 表示该行权价在所选到期日中没有完整数值，并非零值",
+  ],
+  // Shown when a narrow expiry lens has a gap: the full total is withheld (never shown as
+  // zero or as the known part), and the known part is disclosed as a labelled subtotal.
+  lensPartialNote: [
+    "Total withheld — {k} strike × expiration cells in this selection have no value. Known cells sum to {v}.",
+    "合计暂不显示 — 本次选择中有 {k} 个行权价 × 到期日格没有数值。已知格合计 {v}。",
+  ],
+  // Companion to lensPartialNote: the part of the required population (ladder strikes ×
+  // chain expirations) that the per-expiration snapshot's window does not carry at all.
+  lensOutsideNote: [
+    "{s} ladder strikes and {e} expirations are outside the per-expiration snapshot.",
+    "有 {s} 个梯图行权价和 {e} 个到期日不在按到期日快照范围内。",
   ],
 
   // ── Net | Call/Put ladder side toggle ──────────────────────────────────────
@@ -353,6 +371,11 @@ const GEX_LEX = {
     "Vanna 与 Charm 暂未提供按到期日数据 — 仅伽马与德尔塔。",
   ],
   xdrawerEmpty:    ["No expiration breakdown for this ticker yet.", "该品种暂无按到期日数据。"],
+  // The expiration count stays the same across greeks; rows with no value are named here.
+  xdrawerUnresolved: [
+    "{n} of {m} expirations have no value for this greek — shown as —, not counted as zero.",
+    "{m} 个到期日中有 {n} 个没有该希腊值 — 显示为 —，不按零计算。",
+  ],
 
   // ── GEX history strip (net-GEX trend over recent sessions, from the EOD surface) ──
   gexHistTitle:    ["Net GEX — history", "净GEX — 历史"],

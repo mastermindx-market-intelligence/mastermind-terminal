@@ -1,0 +1,303 @@
+import { expect, test, type Locator, type Page } from "@playwright/test";
+import { mkdirSync } from "node:fs";
+import matrixFixture from "../public/data/matrix_fixture.json";
+type ChartDebugWindow = Window & {
+  __mmChartAxisOpts?: () => { rowCount: number; optionsPin: { price: number; lineStyle: number } | null };
+  __mmChartOwnership?: () => { orphanPricePaneLines: number };
+};
+const crops = process.env.OPTIONS_COMPANION_CROPS || "docs/pr-crops/options-companion-20260923";
+const spy = matrixFixture.SPY;
+test.setTimeout(90_000);
+
+async function prepare(page: Page, lang = "en", symbol = "SPY") {
+  await page.addInitScript((locale) => {
+    localStorage.setItem("mm.lang", locale); localStorage.removeItem("mm.optionsCompanion.v1");
+    document.documentElement?.setAttribute("data-lang", locale);
+  }, lang);
+  await page.goto(`/terminal?symbol=${symbol}`);
+  await expect(page.locator(".chart-wrap canvas").first()).toBeVisible({ timeout: 30_000 });
+  await expect.poll(() => page.evaluate(() => (window as ChartDebugWindow).__mmChartAxisOpts?.()?.rowCount ?? 0), { timeout: 30_000 }).toBeGreaterThan(0);
+}
+async function openPanel(page: Page) {
+  if (page.viewportSize()!.width <= 640) {
+    await page.getByTestId("roller-more").click();
+    await page.getByTestId("hub-tile-options").click();
+  } else if (page.viewportSize()!.width <= 860) {
+    await page.getByTestId("toolbar-more").click();
+    await page.locator('[data-toolbar-menu-action="options"]').click();
+  } else await page.getByTestId("options-rail-toggle").click();
+  const panel = page.locator("[data-options-companion]");
+  await expect(panel).toBeVisible(); return panel;
+}
+const chartPin = (page: Page) => page.evaluate(() => (window as ChartDebugWindow).__mmChartAxisOpts?.()?.optionsPin ?? null);
+async function editScope(panel: Locator, lang: "en" | "zh", change: { expiries?: string; norm?: "global" | "column"; window?: string }, apply = true) {
+  await panel.getByTestId("options-scope-toggle").click();
+  const editor = panel.getByTestId("options-scope-editor"); await expect(editor).toBeVisible();
+  if (change.expiries) await editor.getByLabel(lang === "zh" ? "到期日" : "Expiries", { exact: true }).selectOption(change.expiries);
+  if (change.norm) await editor.getByLabel(lang === "zh" ? "颜色尺度" : "Color scale").selectOption(change.norm);
+  if (change.window) await editor.getByLabel(lang === "zh" ? "行权价范围" : "Strike window").selectOption(change.window);
+  await editor.getByTestId(apply ? "options-scope-apply" : "options-scope-cancel").click();
+  await expect(editor).toHaveCount(0);
+  await expect(panel.getByTestId("options-scope-toggle")).toBeFocused();
+}
+
+for (const lang of ["en", "zh"] as const) {
+  test(`[${lang}] real chart + options companion, controls, native pins and restoration`, async ({ page }, info) => {
+    const errors: string[] = []; page.on("pageerror", (e) => errors.push(e.message));
+    await prepare(page, lang);
+    const originalCanvas = await page.locator(".chart-wrap canvas").first().elementHandle();
+    const panel = await openPanel(page);
+    await expect(panel.locator("[data-options-grid] table")).toBeVisible({ timeout: 20_000 });
+    await expect(panel.locator("[data-options-session]")).toHaveAttribute("data-options-session", "2026-07-10");
+    if (info.project.name === "desktop") {
+      const chart = await page.locator(".chart-wrap").first().boundingBox(); const side = await panel.boundingBox();
+      expect(side!.x).toBeGreaterThanOrEqual(chart!.x + chart!.width - 2);
+    }
+    expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+    const laterExpiry = panel.locator('[data-options-grid] button[aria-label*="2026-07-13"][data-value]:not([data-value="missing"]):not([data-value="0"])').first();
+    await expect(laterExpiry).toBeVisible(); await laterExpiry.click();
+    await expect(panel.locator("[data-options-inspector]")).toContainText("2026-07-10");
+    await expect(panel.getByTestId("options-node-context")).toContainText(lang === "zh" ? "行权价合计" : "Strike Σ");
+    await expect(panel.getByTestId("options-node-context")).toContainText(lang === "zh" ? "范围排名" : "Scope rank");
+    await panel.getByRole("button", { name: lang === "zh" ? "在图表标记行权价" : "Pin strike on chart", exact: true }).click();
+    await expect.poll(async () => !!(await chartPin(page))).toBe(true);
+    const pinned = await chartPin(page); if (!pinned) throw new Error("Missing native price pin"); expect(pinned.price).toBeGreaterThan(0); expect(pinned.lineStyle).toBe(2);
+    expect(await page.evaluate(() => (window as ChartDebugWindow).__mmChartOwnership?.()?.orphanPricePaneLines)).toBe(0);
+    expect(await originalCanvas!.evaluate((canvas) => canvas.isConnected)).toBe(true);
+    mkdirSync(crops, { recursive: true });
+    await page.screenshot({ path: `${crops}/${info.project.name}-${lang}-gamma-pin.png`, fullPage: false });
+    // The companion's scoped light treatment; this is not a new Terminal-wide theme switch.
+    await page.evaluate(() => document.documentElement.setAttribute("data-theme", "light"));
+    await panel.screenshot({ path: `${crops}/${info.project.name}-${lang}-panel-light.png` });
+    await page.evaluate(() => document.documentElement.setAttribute("data-theme", "dark"));
+    await editScope(panel, lang, { norm: "column" });
+    await expect(panel).toContainText(lang === "zh" ? "各列独立归一化" : "Per-expiry scale");
+    await expect.poll(async () => !!(await chartPin(page))).toBe(true);
+    await editScope(panel, lang, { expiries: "0dte", norm: "global" });
+    await expect(panel.getByTestId("options-selection-outside")).toBeVisible();
+    await expect(panel.locator('[data-options-inspector]')).toContainText("2026-07-13");
+    await expect.poll(async () => !!(await chartPin(page))).toBe(true);
+    await editScope(panel, lang, { expiries: "6" });
+    await expect(panel.locator("thead th")).toHaveCount(7);
+    await expect(panel.locator('[data-options-grid] button[aria-label*="2026-07-13"][aria-pressed="true"]')).toHaveCount(1);
+    await panel.getByRole("tab", { name: lang === "zh" ? "持仓量" : "OI", exact: true }).click();
+    await expect(panel).toContainText(lang === "zh" ? "所选范围持仓量" : "Selected-scope open interest");
+    await panel.getByRole("button", { name: "ΔOI", exact: true }).click();
+    await expect(panel).toContainText(lang === "zh" ? "所选范围持仓变化" : "Selected-scope OI change");
+    await panel.getByRole("tab", { name: "Vanna", exact: true }).click();
+    await expect(panel).toContainText(lang === "zh" ? "全部到期日行权价分布" : "All-expiry strike profile", { timeout: 20_000 });
+    await expect(panel).toContainText(lang === "zh" ? "不同符号约定" : "different sign convention");
+    await page.screenshot({ path: `${crops}/${info.project.name}-${lang}-vanna.png`, fullPage: false });
+    await panel.getByRole("tab", { name: lang === "zh" ? "资金流" : "Flow", exact: true }).click();
+    await expect(panel.locator("[data-options-tape]")).toBeVisible({ timeout: 20_000 });
+    await panel.getByRole("button", { name: lang === "zh" ? "时段成交量" : "Session volume", exact: true }).click();
+    await expect(panel).toContainText(lang === "zh" ? "所选范围时段成交量" : "Selected-scope session volume");
+    await page.getByRole("button", { name: lang === "zh" ? "关闭期权面板" : "Close options panel", exact: true }).click();
+    await expect(panel).toHaveCount(0);
+    await expect.poll(() => chartPin(page)).toBeNull();
+    expect(await originalCanvas!.evaluate((canvas) => canvas.isConnected)).toBe(true);
+    expect(errors).toEqual([]);
+  });
+}
+
+test("wrong-root source is refused; explicit refresh recovers without a page reload", async ({ page }) => {
+  let corrected = false, calls = 0;
+  await page.route(/\/api\/flow\?f=matrix(?::|%3A)SPY(?:&|$)/, async (route) => {
+    calls++; await route.fulfill({ json: corrected ? spy : { ...spy, root: "QQQ" } });
+  });
+  await prepare(page); const panel = await openPanel(page);
+  await expect(panel).toContainText("Source identity does not match this chart");
+  await expect(panel.locator("[data-options-grid]")).toHaveCount(0);
+  corrected = true; await panel.getByRole("button", { name: "Refresh snapshot", exact: true }).click();
+  await expect(panel.locator("[data-options-grid] table")).toBeVisible(); expect(calls).toBe(2);
+});
+
+test("0DTE never silently becomes the nearest later expiry", async ({ page }) => {
+  await page.route(/\/api\/flow\?f=matrix(?::|%3A)SPY(?:&|$)/, route => route.fulfill({ json: { ...spy, expiries: spy.expiries.filter(expiry => expiry !== spy._build_meta.asof_date), cells: spy.cells.filter(cell => cell.expiry !== spy._build_meta.asof_date) } }));
+  await prepare(page); const panel = await openPanel(page);
+  await expect(panel.locator("[data-options-grid] table")).toBeVisible();
+  await editScope(panel, "en", { expiries: "0dte" });
+  await expect(panel).toContainText("The front expiry is not 0DTE");
+  await expect(panel.locator("[data-options-grid]")).toHaveCount(0);
+});
+
+test("R9 structure brief opens its exact dominant contract for inspection", async ({ page }) => {
+  await prepare(page); const panel = await openPanel(page);
+  const brief = panel.getByTestId("options-scope-structure"); await expect(brief).toBeVisible();
+  const dominant = panel.getByTestId("options-dominant-node");
+  const strike = await dominant.getAttribute("data-strike"), expiry = await dominant.getAttribute("data-expiry");
+  expect(strike).toBeTruthy(); expect(expiry).toBeTruthy();
+  await dominant.click(); await expect(dominant).toHaveAttribute("aria-pressed", "true");
+  await expect(panel.locator("[data-options-inspector]")).toContainText(`${strike} · ${expiry}`);
+  await expect(panel.getByTestId("options-node-context")).toBeVisible();
+});
+
+test("R7 scope edits stay pending until Apply and Cancel preserves the selected node", async ({ page }) => {
+  await prepare(page); const panel = await openPanel(page);
+  const later = panel.locator('[data-options-grid] button[aria-label*="2026-07-13"][data-value]:not([data-value="missing"])').first();
+  await expect(later).toBeVisible(); await later.click();
+  const initialHeaders = await panel.locator("thead th").count();
+  await panel.getByTestId("options-scope-toggle").click();
+  const editor = panel.getByTestId("options-scope-editor");
+  await editor.getByLabel("Expiries", { exact: true }).selectOption("6");
+  await expect(panel.locator("thead th")).toHaveCount(initialHeaders);
+  await editor.getByTestId("options-scope-cancel").click();
+  await expect(panel.locator("thead th")).toHaveCount(initialHeaders);
+  await expect(later).toHaveAttribute("aria-pressed", "true");
+  await editScope(panel, "en", { expiries: "0dte" });
+  await expect(panel.getByTestId("options-selection-outside")).toBeVisible();
+  await expect(panel.locator("[data-options-inspector]")).toContainText("2026-07-13");
+});
+
+test("R7 one-strike sparse matrix remains a real renderable scope", async ({ page }) => {
+  const spot = Number(spy.spot); const strikes = [...new Set(spy.cells.map(cell => cell.strike))];
+  const sparseStrike = strikes.sort((a, b) => Math.abs(a - spot) - Math.abs(b - spot))[0];
+  await page.route(/\/api\/flow\?f=matrix(?::|%3A)SPY(?:&|$)/, route =>
+    route.fulfill({ json: { ...spy, strikes: [sparseStrike], cells: spy.cells.filter(cell => cell.strike === sparseStrike) } }));
+  await prepare(page); const panel = await openPanel(page);
+  await expect(panel.locator("[data-options-grid] table")).toBeVisible();
+  await expect(panel.locator("[data-options-grid] tbody tr")).toHaveCount(1);
+  await expect(panel.locator("[data-options-grid] tbody th")).toContainText(String(sparseStrike));
+  await expect(panel.locator("[data-options-total]")).not.toHaveText("—");
+});
+
+test("uncovered symbol does not inherit an index heatmap", async ({ page }) => {
+  await prepare(page, "en", "NVDA"); const panel = await openPanel(page);
+  await expect(panel).toContainText("No covered snapshot");
+  await expect(panel).toContainText("No other symbol is substituted");
+  await expect(panel.locator("[data-options-grid]")).toHaveCount(0);
+  await panel.getByRole("tab", { name: "Vanna", exact: true }).click();
+  await expect(panel).toContainText("All-expiry strike profile");
+});
+
+test("unentitled account never mounts an options data consumer", async ({ page }) => {
+  const requested: string[] = [];
+  await page.route("**/api/me", route => route.fulfill({ json: { tier: "free", features: [], status: "none" } }));
+  page.on("request", request => { if (/f=(matrix|gex):|f=(matrix|gex)%3A/.test(request.url())) requested.push(request.url()); });
+  await prepare(page); const panel = await openPanel(page);
+  await expect(panel.getByRole("button").last()).toBeVisible();
+  await expect(panel.locator("[data-options-grid]")).toHaveCount(0);
+  expect(requested).toEqual([]);
+});
+
+
+test("keyboard grid inspection clears without closing, then Escape restores the opener", async ({ page }) => {
+  await prepare(page); const panel = await openPanel(page);
+  const initial = panel.locator('[data-options-grid] button[tabindex="0"]');
+  await expect(initial).toBeVisible(); await initial.focus();
+  const oldColumn = await initial.getAttribute("data-col");
+  await page.keyboard.press("ArrowRight");
+  const focused = panel.locator('[data-options-grid] button:focus');
+  expect(await focused.getAttribute("data-col")).not.toBe(oldColumn);
+  await page.keyboard.press("Enter");
+  await expect(panel.locator('[data-options-grid] button[aria-pressed="true"]')).toHaveCount(1);
+  await page.keyboard.press("Escape");
+  await expect(panel).toBeVisible();
+  await expect(panel.locator('[data-options-grid] button[aria-pressed="true"]')).toHaveCount(0);
+  await panel.getByRole("tab", { name: "Gamma", exact: true }).focus();
+  await page.keyboard.press("Escape"); await expect(panel).toHaveCount(0);
+  await expect(page.getByTestId(page.viewportSize()!.width <= 640 ? "roller-more" : page.viewportSize()!.width <= 860 ? "toolbar-more" : "options-rail-toggle")).toBeFocused();
+});
+
+test("switching the real chart symbol resets the pin and binds the new heatmap", async ({ page }, info) => {
+  test.skip(info.project.name !== "desktop", "Desktop picker route; mobile snapshot race is separately component-tested.");
+  await prepare(page); const canvas = await page.locator(".chart-wrap canvas").first().elementHandle();
+  const panel = await openPanel(page);
+  await panel.locator('[data-options-grid] button[data-value]:not([data-value="missing"])').first().click();
+  await panel.getByRole("button", { name: "Pin strike on chart", exact: true }).click();
+  await expect.poll(async () => !!(await chartPin(page))).toBe(true);
+  await page.locator(".pair").click();
+  await page.locator('input[role="combobox"]').fill("QQQ");
+  await expect(page.getByRole("option").filter({ hasText: "QQQ" }).first()).toBeVisible();
+  await page.locator('input[role="combobox"]').press("Enter");
+  await expect(panel).toHaveAttribute("data-options-root", "QQQ");
+  await expect(panel.locator("[data-options-grid] table")).toBeVisible();
+  await expect.poll(() => chartPin(page)).toBeNull();
+  expect(await canvas!.evaluate(el => el.isConnected)).toBe(true);
+});
+
+const reviewSession = "2026-07-10", reviewLater = "2026-07-13", reviewLast = "2026-07-14";
+const reviewCell = (strike: number, expiry: string, gex: number | null) => ({ strike, expiry, gex, call_oi: 0, put_oi: 0, call_vol: 0, put_vol: 0 });
+const reviewMatrix = (cells: ReturnType<typeof reviewCell>[], strikes: number[], expiries: string[], spot = 770) => ({
+  schema: "options_structure.matrix/v1", root: "SPY", spot, asof: "2026-07-11T00:05:00Z", _build_meta: { asof_date: reviewSession }, cells, strikes, expiries,
+});
+async function serveReviewMatrix(page: Page, matrix: ReturnType<typeof reviewMatrix>) {
+  await page.route(/\/api\/flow\?f=matrix(?::|%3A)SPY(?:&|$)/, route => route.fulfill({ json: matrix }));
+}
+
+for (const lang of ["en", "zh"] as const) {
+  test(`[${lang}] R6 partial totals retain known values on the Terminal route`, async ({ page }, info) => {
+    await serveReviewMatrix(page, reviewMatrix([reviewCell(770, reviewSession, 8e6), reviewCell(770, reviewLater, 2e6), reviewCell(770, reviewLast, null)], [770], [reviewSession, reviewLater, reviewLast]));
+    await prepare(page, lang); const panel = await openPanel(page);
+    await expect(panel.locator("[data-options-total]")).toHaveText("—");
+    await expect(panel.locator("[data-options-total]")).not.toHaveClass(/positive|negative/);
+    await expect(panel.getByTestId("options-scope-partial")).toContainText("+10M · 2/3");
+    await panel.getByTestId("options-dominant-node").click();
+    await expect(panel.getByTestId("options-node-partial")).toContainText("+10M · 2/3");
+    await expect(panel.getByTestId("options-node-ex0dte-partial")).toContainText("+2M · 1/2");
+    await expect(panel.getByTestId("options-domain-basis")).toContainText(lang === "en" ? "Source collection coverage unknown" : "源采集覆盖范围未知");
+    mkdirSync(crops, { recursive: true });
+    for (const theme of ["dark", "light"]) {
+      await page.evaluate(theme => document.documentElement.setAttribute("data-theme", theme), theme);
+      await panel.screenshot({ path: `${crops}/${info.project.name}-${lang}-r6-partial-${theme}.png` });
+    }
+  });
+
+  test(`[${lang}] R6 declared missing expiry and R7 scope focus preserve transaction semantics`, async ({ page }) => {
+    await serveReviewMatrix(page, reviewMatrix([reviewCell(770, reviewSession, 8e6), reviewCell(771, reviewSession, 2e6)], [770, 771], [reviewSession, reviewLater]));
+    await prepare(page, lang); const panel = await openPanel(page);
+    await expect(panel.getByTestId("options-scope-partial")).toContainText("+10M · 2/4");
+    await expect(panel.locator('[data-options-grid] button[data-value="missing"]')).toHaveCount(2);
+    const opener = panel.getByTestId("options-scope-toggle");
+    for (const action of ["cancel", "escape", "apply"]) {
+      await opener.click(); const editor = panel.getByTestId("options-scope-editor");
+      const select = editor.getByTestId("options-scope-expiries"); await select.selectOption("0dte");
+      await expect(panel.locator("[data-options-total]")).toHaveText("—");
+      if (action === "escape") { await select.focus(); await page.keyboard.press("Escape"); }
+      else await editor.getByTestId(`options-scope-${action}`).click();
+      await expect(editor).toHaveCount(0); await expect(opener).toBeFocused(); await expect(panel).toBeVisible();
+      await expect(panel.locator("[data-options-total]")).toHaveText(action === "apply" ? "+10M" : "—");
+    }
+    await expect(panel.locator('[data-options-grid] button[data-value="missing"]')).toHaveCount(0);
+  });
+
+  test(`[${lang}] R6 off-screen exact node reveal preserves scope and native chart`, async ({ page }, info) => {
+    const strikes = Array.from({ length: 161 }, (_, i) => 160 + i * .5);
+    await serveReviewMatrix(page, reviewMatrix(strikes.map((strike, i) => reviewCell(strike, reviewSession, i === 0 ? 1e9 : 1e6)), strikes, [reviewSession], 200));
+    await page.emulateMedia({ reducedMotion: "reduce" });
+    await prepare(page, lang); const canvas = await page.locator(".chart-wrap canvas").first().elementHandle();
+    const panel = await openPanel(page); await editScope(panel, lang, { window: "25" });
+    const total = await panel.locator("[data-options-total]").textContent(); const scope = await panel.locator("[data-options-scope]").textContent();
+    await expect(panel.locator("tbody tr")).toHaveCount(101); await panel.getByTestId("options-dominant-node").click();
+    await expect(panel.getByTestId("options-selection-outside")).toHaveCount(0);
+    await expect(panel.getByTestId("options-selection-offscreen")).toBeVisible();
+    await panel.getByTestId("options-reveal-selection").click();
+    const selected = panel.locator('[data-options-grid] button[aria-pressed="true"]');
+    await expect(selected).toHaveAttribute("aria-label", /^160, 2026-07-10:/); await expect(selected).toBeFocused();
+    await expect(selected).toBeInViewport();
+    await expect(panel.locator("[data-options-total]")).toHaveText(total!); await expect(panel.locator("[data-options-scope]")).toHaveText(scope!);
+    expect(await canvas!.evaluate(el => el.isConnected)).toBe(true);
+    mkdirSync(crops, { recursive: true }); await page.screenshot({ path: `${crops}/${info.project.name}-${lang}-r6-reveal.png` });
+  });
+}
+
+test("Market Memory on Terminal uses the dated archive and fails closed after a missing archive", async ({ page }) => {
+  const prior = "2026-07-08"; let missing = false;
+  await page.route(/\/api\/flow\?f=(?:gex|gex_dates|gex_at)(?::|%3A)SPY/, async route => {
+    const key = new URL(route.request().url()).searchParams.get("f")!;
+    if (key.startsWith("gex_dates:")) return route.fulfill({ json: { root: "SPY", latest: reviewSession, dates: [reviewSession, prior] } });
+    if (missing && key.startsWith("gex_at:")) return route.fulfill({ status: 404, json: {} });
+    return route.fulfill({ json: { schema: "options_hub.gex/v1", root: "SPY", asof: key.startsWith("gex_at:") ? prior : reviewSession, spot_ref: 751,
+      net_gex_bn: key.startsWith("gex_at:") ? 1 : 1.2, by_strike: [{ strike: 750, gamma_net: 8 }] } });
+  });
+  await prepare(page); let panel = await openPanel(page);
+  await expect(panel.getByTestId("options-market-memory")).toHaveAttribute("data-memory-status", "ready");
+  await expect(panel.getByTestId("options-market-memory")).toContainText("+1B → +1.2B");
+  await expect(panel.getByTestId("options-market-memory")).toContainText("ALL EXPIRIES");
+  missing = true;
+  await page.reload(); await expect(page.locator(".chart-wrap canvas").first()).toBeVisible();
+  // Panel openness may persist in route state; either way the same real route is exercised.
+  panel = page.locator("[data-options-companion]"); if (!(await panel.isVisible())) panel = await openPanel(page);
+  await expect(panel.getByTestId("options-market-memory")).toHaveAttribute("data-memory-status", "archive-missing");
+  await expect(panel.getByTestId("options-market-memory")).not.toContainText("+1B");
+});
