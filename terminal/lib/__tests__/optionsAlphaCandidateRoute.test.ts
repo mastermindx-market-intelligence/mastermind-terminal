@@ -5,7 +5,7 @@ vi.mock("next/server", () => ({ NextResponse: { json: (body: unknown, init?: Res
 vi.mock("@/lib/rateLimit", () => ({ rateLimit: () => ({ ok: true }), tooMany: () => new Response("limited", { status: 429 }) }));
 vi.mock("@/lib/entitlement", () => ({ hasLiveOptions }));
 vi.mock("@/lib/optionsAlphaCandidatePair", () => ({ fetchOptionsAlphaCandidatePair: pair }));
-vi.mock("@/lib/flowSource", () => ({ isValidF: () => true, fixtureFor: vi.fn(), attachFlowScores: vi.fn(), tryFetchUpstream: upstream }));
+vi.mock("@/lib/flowSource", () => ({ isValidF: () => true, fixtureFor: vi.fn(), attachFlowScores: vi.fn(), tryFetchUpstream: upstream, tryFetchUpstreamResult: upstream }));
 const { GET } = await import("@/app/api/flow/route");
 
 beforeEach(() => { vi.clearAllMocks(); delete process.env.FLOW_FIXTURE; });
