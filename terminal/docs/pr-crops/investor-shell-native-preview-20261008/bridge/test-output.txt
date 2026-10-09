@@ -1,0 +1,7 @@
+[warmup] 13 routes compiled in 1s
+
+Running 1 test using 1 worker
+
+  ✓  1 [desktop] › e2e/investor-shell-bridge.spec.ts:6:5 › retained Macro controller opens native Analysis and returns to the same mounted page (6.2s)
+
+  1 passed (7.9s)

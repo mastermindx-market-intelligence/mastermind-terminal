@@ -1,0 +1,127 @@
+{
+  "source_commit": "9b54c2d7f1f19a7371a7ee2102fb706f46e1b7ac",
+  "scope": "Unmodified baked Macro HTML and directly referenced local presentation assets only; no engines or data stores copied. Fixture only.",
+  "files": {
+    "macro.html": {
+      "bytes": 610287,
+      "sha256": "45630927a534d62f573663273ae0ee000e376f9864c7b48149a34f62b5e3cd1c"
+    },
+    "assets/css/01f8336e.css": {
+      "bytes": 27950,
+      "sha256": "01f8336e375b6c2ea1269a253af6db5286e7a2e2ee7a80dad8db9e8c61e8c0ba"
+    },
+    "assets/css/0d0d9dc5.css": {
+      "bytes": 20187,
+      "sha256": "0d0d9dc57980d424e3a3a2f3bb2de45415816d871eb74049b1f3ab83f4b28d9c"
+    },
+    "assets/css/4e822d03.css": {
+      "bytes": 21173,
+      "sha256": "4e822d03cdc78bc96b00aa23cc9c0500f3c0b11d68f82f76f27b4f3adff6314a"
+    },
+    "assets/css/5b12dcfe.css": {
+      "bytes": 4709,
+      "sha256": "5b12dcfe6144a6cae08b096767e135ace314aef8334be2fc8377fe128501f9a3"
+    },
+    "assets/css/7689f0db.css": {
+      "bytes": 7577,
+      "sha256": "7689f0dbdf0be248b083bb8bafd2817d7d8b3189c89f88838f069d7bfc099838"
+    },
+    "assets/css/8d75ce3f.css": {
+      "bytes": 17611,
+      "sha256": "8d75ce3fdac3f45ccbf021c2c4ab623c9f8735b42c31491527363172ab71ece3"
+    },
+    "assets/css/abe9c747.css": {
+      "bytes": 183971,
+      "sha256": "abe9c747d2b87ee23031d16fe358d92aa2bed320378840dc1dba102b1982cb78"
+    },
+    "assets/css/ac31abdd.css": {
+      "bytes": 59355,
+      "sha256": "ac31abdd2ee0813ec337e3070df02ce96d0518dad176f3a35191f1198045bc84"
+    },
+    "assets/css/b2bc0843.css": {
+      "bytes": 1103,
+      "sha256": "b2bc08430f71be9ca2ec3b060e931d1761688194b9d06885bb50e01f1bff59df"
+    },
+    "assets/css/c2d11012.css": {
+      "bytes": 186610,
+      "sha256": "c2d110128f9b78bc67ec0292781606de2ba9fe35d983669aec3a4842fc53e8ce"
+    },
+    "chart_i18n.js": {
+      "bytes": 3473,
+      "sha256": "23272c482c2b27f294f6e35f45a76dfe8e61bdd6cdc61e88e83a3cde47174315"
+    },
+    "charts.js": {
+      "bytes": 3858,
+      "sha256": "5372d2a229f4d2b16319a2d02c9fb2bfba19ad65c680d415796b12103aeff6ff"
+    },
+    "favicon.ico": {
+      "bytes": 6597,
+      "sha256": "36e823310b67e3c0e12c189e613b31e96b04c4e2ef19fcae8e79810fd3b37c24"
+    },
+    "favicon.svg": {
+      "bytes": 2043,
+      "sha256": "a717b918f423c0c3f7c4988cfbf70d4b3c21fc03614800bfb423762cc0fb9aa9"
+    },
+    "live.js": {
+      "bytes": 29564,
+      "sha256": "4c6fe392850ea770bc43fb8cb3f44b4e9d00d15666db41d4375117f188d3cac6"
+    },
+    "live_config.js": {
+      "bytes": 367,
+      "sha256": "52943e92422103557d94066ceb65f4402816322281f95e8bd376293fe14d9c10"
+    },
+    "logo_config.js": {
+      "bytes": 202,
+      "sha256": "b37d33d3194c191b1bb64db3f5c33d17c7dc06a74892e4aa8ea4d50320aae215"
+    },
+    "navigation-refresh.css": {
+      "bytes": 104548,
+      "sha256": "edfd821b3a6267c762fe452f7da74c0517d2f4435705f3148d5ab2be89105fae"
+    },
+    "product-nav-icons.css": {
+      "bytes": 40320,
+      "sha256": "093ad1ea5ed74b16894c3939d971db3e957aba3476a7bf8aab2ccd7b3d044d93"
+    },
+    "release_publications_live.js": {
+      "bytes": 52693,
+      "sha256": "d9a19340843ef489606a3cd19f24a16e68ef33ff9966f71a814c6e4871646767"
+    },
+    "risk_envelope_live.js": {
+      "bytes": 15392,
+      "sha256": "47a6eb04c763621586810accfc35777113ccaa982be3a520716f97f989428abd"
+    },
+    "risk_state_live.js": {
+      "bytes": 25134,
+      "sha256": "2b9d32d5ca0be24808c7fd9691c1224575cf2904d0fa8c582c5ed4466bca96dd"
+    },
+    "stock-logos.js": {
+      "bytes": 16539,
+      "sha256": "cc29be531bc08e655464b6c0d384e1a46041aeb31caf7d982e926681fda7cb49"
+    },
+    "tablesort.js": {
+      "bytes": 5662,
+      "sha256": "484d93337c0288b95b920d82d893600c97d7e4313c715d6bd9263222c9e4cc78"
+    },
+    "theme.css": {
+      "bytes": 218393,
+      "sha256": "4a7e32977b2ccfe6776748d2b4c680b46727a156514de9da428e00c76449911f"
+    },
+    "theme.js": {
+      "bytes": 401201,
+      "sha256": "95af7596e558f4373ec17276328bdea4738ec17b7da41511e0f035584695d354"
+    },
+    "tier_preview.css": {
+      "bytes": 4074,
+      "sha256": "d390f5999f642821569c8ddd0a14516d699e01b589365692faf40cb32f0aa592"
+    },
+    "tier_preview.js": {
+      "bytes": 15633,
+      "sha256": "d80100db5f8212a2260ef3493872ed58aeac1a6a35df2f177a323f75540edd7e"
+    },
+    "timemachine.js": {
+      "bytes": 13982,
+      "sha256": "92798ed78db8b33f238975e693b481137e33d4095aa3aa6bc81a45c9cf8bab9f"
+    }
+  },
+  "missing": []
+}

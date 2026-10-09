@@ -1,0 +1,36 @@
+{
+  "status": "LOCAL_COMPATIBILITY_PROVEN_NOT_PRODUCTION_ACCEPTED",
+  "macro_source_commit": "9b54c2d7f1f19a7371a7ee2102fb706f46e1b7ac",
+  "native_product_commit": "0b3c2bedcef2552eb7391e53965138ae4cc34ede",
+  "test_sha256": "ffd621ed82ba746ca9dd23bcc7180c699e8e848c31daa5819c5e9ba8da77d959",
+  "macro_manifest_sha256": "93cab79d07fe72799d5a8ac1916c846b62a754fef038f1400a276eea81801065",
+  "process": 66303,
+  "exit_code": 0,
+  "passed": 1,
+  "observed": [
+    "Retained Macro HTML returns HTTP 200",
+    "Existing Terminal CTA opens the existing portal controller",
+    "from=macro, exact ret URL/hash and embed=dashboard are preserved",
+    "Hydrated native navigation opens the new Analysis preview",
+    "Existing back action hides the portal",
+    "Original Macro document remains mounted at its original URL",
+    "Focus returns to the invoking Macro CTA"
+  ],
+  "fixture_limits": [
+    "Existing loopback MM_TERMINAL_BASE override and CTA endpoint mapping only",
+    "Browser permits only GET/HEAD to loopback ports 3197 and 3198",
+    "Data may be missing; no production authentication, populated-data parity or hosted-preview proof",
+    "Reuse of the existing portal is a compatibility test, not adoption of an iframe-first migration architecture"
+  ],
+  "first_failure": "The first bridge test clicked the server-rendered native link before hydration. Waiting for the existing mm:terminal-visual-ready event corrected test readiness; product source was unchanged.",
+  "images": [
+    {
+      "path": "terminal/docs/pr-crops/investor-shell-native-preview-20261008/bridge/macro-native-analysis.png",
+      "sha256": "8fce21e6ba6219c50dfb615ba2e5b007daa2051133eefbe1e9cdffa75b515397"
+    },
+    {
+      "path": "terminal/docs/pr-crops/investor-shell-native-preview-20261008/bridge/macro-retained-return.png",
+      "sha256": "4a9c44b0985444794382149660f33af027127e03469cec3e586f6341d3047df2"
+    }
+  ]
+}
