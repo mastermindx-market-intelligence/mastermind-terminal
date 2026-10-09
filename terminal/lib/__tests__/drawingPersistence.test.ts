@@ -211,3 +211,50 @@ describe("recovery across already-open legacy clients",()=>{
   expect(readDrawingJournal(storage,"account:a").NVDA.drawings[0].id).toBe("modern-A");
  });
 });
+
+describe("concurrent legacy import ownership",()=>{
+ it("reconciles two importers to the same physical legacy copy",async()=>{
+  const storage=new MemoryStorage();writeDrawingOutbox(storage,"account:a",{NVDA:[line("legacy-copy")]});
+  const a=readDrawingJournal(storage,"account:a"),b=readDrawingJournal(storage,"account:a");
+  await persist(storage,b);const id=b.NVDA.recoveryId;
+  reconcileDrawingJournal(storage,"account:a",a);await persist(storage,a);
+  expect(a.NVDA.recoveryId).toBe(id);expect(a.NVDA.alternatives).toBeUndefined();
+  expect(Object.keys(JSON.parse(storage.getItem(DRAWING_JOURNAL_KEY)!)["account:a"].NVDA.copies)).toHaveLength(1);
+ });
+ it("reuses an import persisted by another tab without requiring account reentry",async()=>{
+  const storage=new MemoryStorage();writeDrawingOutbox(storage,"account:a",{NVDA:[]});
+  const a=readDrawingJournal(storage,"account:a"),b=readDrawingJournal(storage,"account:a");
+  await persist(storage,b);await persist(storage,a);
+  expect(a.NVDA.recoveryId).toBe(b.NVDA.recoveryId);
+  expect(readDrawingJournal(storage,"account:a").NVDA.alternatives).toBeUndefined();
+ });
+ it("acknowledges the unchanged physical import another tab persisted",async()=>{
+  const storage=new MemoryStorage();writeDrawingOutbox(storage,"account:a",{NVDA:[line("legacy-copy")]});
+  const oldBytes=storage.getItem("mm.drawing.account-outbox.v1");
+  const a=readDrawingJournal(storage,"account:a"),b=readDrawingJournal(storage,"account:a");
+  await persist(storage,b);delete a.NVDA;await persist(storage,a);
+  expect(readDrawingJournal(storage,"account:a")).toEqual({});
+  expect(storage.getItem("mm.drawing.account-outbox.v1")).toBe(oldBytes);
+ });
+ it("does not erase a newer edit while acknowledging a stale import alias",async()=>{
+  const storage=new MemoryStorage();writeDrawingOutbox(storage,"account:a",{NVDA:[line("legacy-copy")]});
+  const a=readDrawingJournal(storage,"account:a"),b=readDrawingJournal(storage,"account:a");
+  await persist(storage,b);b.NVDA.drawings=[line("new-B")];await persist(storage,b);
+  delete a.NVDA;await persist(storage,a);
+  expect(readDrawingJournal(storage,"account:a").NVDA.drawings[0].id).toBe("new-B");
+ });
+ it("does not resurrect an unchanged import already acknowledged by another tab",async()=>{
+  const storage=new MemoryStorage();writeDrawingOutbox(storage,"account:a",{NVDA:[]});
+  const a=readDrawingJournal(storage,"account:a"),b=readDrawingJournal(storage,"account:a");
+  await persist(storage,b);delete b.NVDA;await persist(storage,b);
+  await persist(storage,a);expect(a.NVDA).toBeUndefined();
+  expect(readDrawingJournal(storage,"account:a")).toEqual({});
+ });
+ it("still exposes valid modern recovery when legacy bytes are corrupt, without permitting a write",async()=>{
+  const storage=new MemoryStorage();await persist(storage,{NVDA:{drawings:[line("modern")],revision:null,attempt:{operationId:op,expectedRevision:null,drawings:[line("sent")]}}});
+  const modern=storage.getItem(DRAWING_JOURNAL_KEY);storage.setItem("mm.drawing.account-outbox.v1","{broken");
+  const journal=readDrawingJournal(storage,"account:a");expect(journal.NVDA.attempt?.operationId).toBe(op);
+  expect(await persist(storage,journal)).toBe(false);
+  expect(storage.getItem(DRAWING_JOURNAL_KEY)).toBe(modern);expect(storage.getItem("mm.drawing.account-outbox.v1")).toBe("{broken");
+ });
+});

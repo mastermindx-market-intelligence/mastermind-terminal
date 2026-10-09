@@ -46,6 +46,87 @@ test("real browser locks preserve simultaneous tabs and another tab's acknowledg
   } finally { await second.close(); }
 });
 
+async function readLegacyInBothTabs(first: Page, second: Page, owner: string) {
+  await load(first); await load(second);
+  await first.evaluate(({ owner, drawing }) => {
+    const api = (window as any).A04Journal;
+    api.writeDrawingOutbox(localStorage, owner, { NVDA: [drawing] });
+    (window as any).journal = api.readDrawingJournal(localStorage, owner);
+  }, { owner, drawing: line("legacy") });
+  await second.evaluate(owner => {
+    (window as any).journal = (window as any).A04Journal.readDrawingJournal(localStorage, owner);
+  }, owner);
+}
+
+test("two real tabs adopt the same physical legacy import instead of duplicating it", async ({ page, context }) => {
+  const second = await context.newPage(), owner = "account:two-importers";
+  try {
+    await readLegacyInBothTabs(page, second, owner);
+    const importedId = await second.evaluate(async owner => {
+      const api = (window as any).A04Journal, journal = (window as any).journal;
+      if (!await api.writeDrawingJournal(localStorage, owner, journal)) throw new Error("Import was not durable");
+      return journal.NVDA.recoveryId;
+    }, owner);
+    const reconciled = await page.evaluate(async owner => {
+      const api = (window as any).A04Journal;
+      const journal = api.reconcileDrawingJournal(localStorage, owner, (window as any).journal);
+      const durable = await api.writeDrawingJournal(localStorage, owner, journal);
+      const recovered = api.readDrawingJournal(localStorage, owner).NVDA;
+      return { durable, id: recovered.recoveryId, alternatives: recovered.alternatives ?? [] };
+    }, owner);
+    expect(reconciled).toEqual({ durable: true, id: importedId, alternatives: [] });
+  } finally { await second.close(); }
+});
+
+test("a real stale importer acknowledges only its physical preimage and preserves a newer edit", async ({ page, context }) => {
+  const second = await context.newPage(), owner = "account:import-ack";
+  try {
+    await readLegacyInBothTabs(page, second, owner);
+    const legacyBytes = await page.evaluate(() => localStorage.getItem("mm.drawing.account-outbox.v1"));
+    expect(await second.evaluate(async owner => (window as any).A04Journal.writeDrawingJournal(localStorage, owner, (window as any).journal), owner)).toBe(true);
+    expect(await page.evaluate(async owner => {
+      delete (window as any).journal.NVDA;
+      return (window as any).A04Journal.writeDrawingJournal(localStorage, owner, (window as any).journal);
+    }, owner)).toBe(true);
+    expect(await page.evaluate(owner => (window as any).A04Journal.readDrawingJournal(localStorage, owner).NVDA, owner)).toBeUndefined();
+    expect(await page.evaluate(() => localStorage.getItem("mm.drawing.account-outbox.v1"))).toBe(legacyBytes);
+
+    const editedOwner = "account:import-ack-edited";
+    await readLegacyInBothTabs(page, second, editedOwner);
+    expect(await second.evaluate(async ({ owner, drawing }) => {
+      const api = (window as any).A04Journal, journal = (window as any).journal;
+      if (!await api.writeDrawingJournal(localStorage, owner, journal)) return false;
+      journal.NVDA.drawings = [drawing];
+      return api.writeDrawingJournal(localStorage, owner, journal);
+    }, { owner: editedOwner, drawing: line("newer-edit") })).toBe(true);
+    expect(await page.evaluate(async owner => {
+      delete (window as any).journal.NVDA;
+      return (window as any).A04Journal.writeDrawingJournal(localStorage, owner, (window as any).journal);
+    }, editedOwner)).toBe(true);
+    const remaining = await page.evaluate(owner => (window as any).A04Journal.readDrawingJournal(localStorage, owner).NVDA, editedOwner);
+    expect(remaining.drawings[0].id).toBe("newer-edit");
+  } finally { await second.close(); }
+});
+
+test("a real stale importer cannot resurrect the snapshot another tab acknowledged", async ({ page, context }) => {
+  const second = await context.newPage(), owner = "account:retired-import";
+  try {
+    await readLegacyInBothTabs(page, second, owner);
+    expect(await second.evaluate(async owner => {
+      const api = (window as any).A04Journal, journal = (window as any).journal;
+      if (!await api.writeDrawingJournal(localStorage, owner, journal)) return false;
+      delete journal.NVDA;
+      return api.writeDrawingJournal(localStorage, owner, journal);
+    }, owner)).toBe(true);
+    expect(await page.evaluate(async owner => (window as any).A04Journal.writeDrawingJournal(localStorage, owner, (window as any).journal), owner)).toBe(true);
+    const result = await page.evaluate(owner => ({
+      memory: (window as any).journal.NVDA,
+      durable: (window as any).A04Journal.readDrawingJournal(localStorage, owner).NVDA,
+    }), owner);
+    expect(result).toEqual({ memory: undefined, durable: undefined });
+  } finally { await second.close(); }
+});
+
 test("real same-origin tabs retain distinct same-symbol copies including a clear tombstone", async ({ page, context }) => {
   const second = await context.newPage();
   try {

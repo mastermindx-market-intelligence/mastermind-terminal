@@ -1599,10 +1599,32 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
   }, []);
   const [drawingStorageUnavailable, setDrawingStorageUnavailable] = useState(false);
   const persistDrawingRecovery = useCallback(async (owner: string, journal: DrawingJournal) => {
+    const before = Object.entries(journal).map(([sym, entry]) => ({ sym, drawings: entry.drawings }));
     const durable = await writeDrawingJournal(localStorage, owner, journal);
-    if (drawOwner.current === owner) setDrawingStorageUnavailable(!durable);
+    if (drawOwner.current === owner) {
+      setDrawingStorageUnavailable(!durable);
+      if (durable) for (const { sym, drawings } of before) {
+        if (journal[sym] || drawPending.current[sym] !== drawings) continue;
+        // Another tab acknowledged this unchanged legacy import while our
+        // handle was stale. Re-read remaining copies before accepting cloud.
+        delete drawPending.current[sym];
+        const remaining = refreshDrawingJournalSymbol(localStorage, owner, journal, sym);
+        if (remaining) {
+          remaining.blocked ??= "conflict";
+          drawPending.current[sym] = remaining.drawings;
+          setDrawStore((store) => ({ ...store, [sym]: normalizeDrawings(remaining.drawings) }));
+          setDrawingSaveIssues((issues) => ({ ...issues, [sym]: "multiple" }));
+          void loadDrawingCloudCopy(sym);
+        } else {
+          drawLoaded.current.delete(sym);
+          setDrawStore((store) => { const next = { ...store }; delete next[sym]; return next; });
+          setDrawingSaveIssues((issues) => { const next = { ...issues }; delete next[sym]; return next; });
+          setDrawingLoadRetryVersion((version) => version + 1);
+        }
+      }
+    }
     return durable;
-  }, []);
+  }, [loadDrawingCloudCopy]);
   const restoreOtherDrawingCopies = useCallback((sym: string, owner: string, journal: DrawingJournal) => {
     if (drawOwner.current !== owner || drawPending.current[sym] !== undefined) return;
     const remaining = refreshDrawingJournalSymbol(localStorage, owner, journal, sym);
@@ -1647,7 +1669,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
           if (drawOwnerEpoch.current === ownerEpoch) setDrawingSaveIssues((issues) => ({ ...issues, [sym]: "storage" }));
           return;
         }
-        if (drawOwnerEpoch.current !== ownerEpoch) return;
+        if (drawOwnerEpoch.current !== ownerEpoch || recovery[sym] !== entry) return;
         const response = await fetch("/api/drawings", {
           method: "PUT", headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ ownerKey, symbol: sym, drawings: attempt.drawings, expectedRevision: attempt.expectedRevision, operationId: attempt.operationId }),

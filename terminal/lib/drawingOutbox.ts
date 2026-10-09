@@ -125,9 +125,25 @@ function readCopies(value: unknown): Copies {
   return entry ? { legacy: entry } : {};
 }
 
-type JournalRecord = { format: 2; copies: Copies; legacySeen: Record<string, string> };
+type LegacyLink = { sourceId: string; token: string };
+type JournalRecord = { format: 2; copies: Copies; legacySeen: Record<string, string>; legacyLinks: Record<string, LegacyLink> };
 type JournalNamespace = Record<string, JournalRecord>;
 type LegacyImports = Record<string, Copies>;
+const journalNamespaces = new WeakMap<DrawingJournal, JournalNamespace>();
+function resolveLegacyAlias(record: JournalRecord, alias: string | undefined, token: string | undefined): { id: string; retired: boolean } | undefined {
+  if (!alias?.startsWith("legacy:") || !token) return;
+  const sourceId = alias.slice("legacy:".length);
+  const matches = Object.entries(record.legacyLinks).filter(([, link]) => link.sourceId === sourceId && link.token === token);
+  const retained = matches.find(([id]) => record.copies[id]);
+  if (retained) return { id: retained[0], retired: false };
+  if (matches.length) return { id: matches[0][0], retired: true };
+  // Compatibility with the earlier, never-released v2 candidate: adopt only
+  // one exact physical preimage, never choose among ambiguous copies.
+  if (record.legacySeen[sourceId] === token) {
+    const exact = Object.entries(record.copies).filter(([, copy]) => fingerprint(copy) === token);
+    if (exact.length === 1) return { id: exact[0][0], retired: false };
+  }
+}
 function strictEnvelope(storage: StoragePort, key: string): StoredEnvelope {
   const raw = JSON.parse(storage.getItem(key) || "{}");
   if (!raw || typeof raw !== "object" || Array.isArray(raw)) throw new Error("Invalid recovery envelope");
@@ -138,21 +154,26 @@ function ownerNamespace(envelope: StoredEnvelope, owner: string): Record<string,
   if (raw && (typeof raw !== "object" || Array.isArray(raw))) throw new Error("Invalid recovery owner");
   return raw ?? {};
 }
-function journalState(storage: StoragePort, owner: string): { envelope: StoredEnvelope; namespace: JournalNamespace; imports: LegacyImports } {
+function journalState(storage: StoragePort, owner: string, allowUnreadableLegacy = false): { envelope: StoredEnvelope; namespace: JournalNamespace; imports: LegacyImports } {
   const envelope = strictEnvelope(storage, DRAWING_JOURNAL_KEY);
   const namespace: JournalNamespace = {};
   for (const [symbol, raw] of Object.entries(ownerNamespace(envelope, owner))) {
     if (!raw || typeof raw !== "object" || Array.isArray(raw)) throw new Error("Invalid recovery record");
-    const record = raw as { format?: number; copies?: unknown; legacySeen?: unknown };
+    const record = raw as { format?: number; copies?: unknown; legacySeen?: unknown; legacyLinks?: unknown };
     if (record.format !== 2 || !record.copies || typeof record.copies !== "object" || Array.isArray(record.copies)) throw new Error("Invalid recovery copies");
     const copies = readCopies(raw);
     if (Object.keys(record.copies).length !== Object.keys(copies).length) throw new Error("Invalid recovery copy; preserve stored bytes");
     const seen = record.legacySeen ?? {};
     if (!seen || typeof seen !== "object" || Array.isArray(seen)
       || Object.values(seen).some((token) => typeof token !== "string" || !token.length)) throw new Error("Invalid legacy import receipt");
-    namespace[symbol] = { format: 2, copies, legacySeen: { ...seen as Record<string, string> } };
+    const links = record.legacyLinks ?? {};
+    if (!links || typeof links !== "object" || Array.isArray(links)
+      || Object.entries(links).some(([id, value]) => !validDrawingOperationId(id) || !value || typeof value !== "object"
+        || typeof (value as LegacyLink).sourceId !== "string" || typeof (value as LegacyLink).token !== "string")) throw new Error("Invalid legacy import link");
+    namespace[symbol] = { format: 2, copies, legacySeen: { ...seen as Record<string, string> }, legacyLinks: { ...links as Record<string, LegacyLink> } };
   }
   const imports: LegacyImports = {};
+  try {
   const legacy = ownerNamespace(strictEnvelope(storage, DRAWING_OUTBOX_KEY), owner);
   for (const [symbol, raw] of Object.entries(legacy)) {
     const copies = readCopies(raw);
@@ -167,6 +188,12 @@ function journalState(storage: StoragePort, owner: string): { envelope: StoredEn
       }
     }
   }
+  } catch (error) {
+    if (!allowUnreadableLegacy) throw error;
+    // Valid v2 pending work remains visible. Every write still reads strictly
+    // and fails closed, retaining both stores and preventing a cloud PUT.
+    return { envelope, namespace, imports: {} };
+  }
   return { envelope, namespace, imports };
 }
 
@@ -176,7 +203,8 @@ export function readDrawingJournal(storage: StoragePort, owner: string): Drawing
   const baseline: JournalBaseline = {};
   if (accountOwner(owner)) {
     try {
-      const { namespace, imports } = journalState(storage, owner);
+      const { namespace, imports } = journalState(storage, owner, true);
+      journalNamespaces.set(journal, namespace);
       for (const symbol of new Set([...Object.keys(namespace), ...Object.keys(imports)])) {
         const copies = { ...namespace[symbol]?.copies, ...imports[symbol] };
         const ids = Object.keys(copies).sort();
@@ -208,26 +236,37 @@ export async function writeDrawingJournal(
       const previous = baselines.get(journal) ?? {};
       const next: JournalBaseline = {};
       const updates: Array<[Entry, string]> = [];
+      const retiredSymbols: string[] = [];
       for (const symbol of new Set([...Object.keys(namespace), ...Object.keys(imports), ...Object.keys(previous), ...Object.keys(journal)])) {
-        const record = namespace[symbol] ?? { format: 2 as const, copies: {}, legacySeen: {} };
+        const record = namespace[symbol] ?? { format: 2 as const, copies: {}, legacySeen: {}, legacyLinks: {} };
         const copies = record.copies;
         const imported: Record<string, { id: string; token: string }> = {};
         for (const [sourceId, importedEntry] of Object.entries(imports[symbol] ?? {})) {
           const id = crypto.randomUUID(), token = fingerprint(importedEntry);
           copies[id] = storedEntry(importedEntry);
           record.legacySeen[sourceId.slice("legacy:".length)] = token;
+          record.legacyLinks[id] = { sourceId: sourceId.slice("legacy:".length), token };
           imported[sourceId] = { id, token };
         }
         const entry = journal[symbol];
         const base = previous[symbol];
         const resolve = (id: string | undefined): string | undefined => {
           if (id && imported[id]) return base?.hashes[id] === imported[id].token ? imported[id].id : undefined;
+          const alias = resolveLegacyAlias(record, id, id ? base?.hashes[id] : undefined);
+          if (alias) return alias.id;
           return id;
         };
         if (!entry) {
           const id = resolve(base?.active);
           if (base && id && copies[id] && fingerprint(copies[id]) === base.hashes[base.active]) delete copies[id];
         } else {
+          const alias = resolveLegacyAlias(record, entry.recoveryId, entry.recoveryId ? base?.hashes[entry.recoveryId] : undefined);
+          if (alias?.retired && fingerprint(entry) === base?.hashes[entry.recoveryId!]) {
+            // Another tab acknowledged this exact import. A stale hydration
+            // is not a new edit and must not manufacture a replacement copy.
+            retiredSymbols.push(symbol);
+            continue;
+          }
           let id = resolve(entry.recoveryId);
           const unchanged = id && copies[id] && base?.hashes[entry.recoveryId!] === fingerprint(copies[id]);
           if (!unchanged) id = crypto.randomUUID();
@@ -241,7 +280,7 @@ export async function writeDrawingJournal(
         }
         // Keep an import receipt after the last copy is acknowledged: clearing
         // it would resurrect the unchanged v1 tombstone on the next reload.
-        if (Object.keys(copies).length || Object.keys(record.legacySeen).length) namespace[symbol] = record;
+        if (Object.keys(copies).length || Object.keys(record.legacySeen).length || Object.keys(record.legacyLinks).length) namespace[symbol] = record;
         else delete namespace[symbol];
       }
       if (Object.keys(namespace).length) envelope[owner] = namespace;
@@ -250,6 +289,7 @@ export async function writeDrawingJournal(
       else storage.removeItem(DRAWING_JOURNAL_KEY);
       // Change the in-memory baseline only after the actual durable write.
       updates.forEach(([entry, id]) => { entry.recoveryId = id; });
+      retiredSymbols.forEach((symbol) => { delete journal[symbol]; });
       baselines.set(journal, next);
       return true;
     });
@@ -276,11 +316,22 @@ export function reconcileDrawingJournal(storage: StoragePort, owner: string, jou
   if (!journal) return fresh;
   const baseline = baselines.get(journal) ?? {};
   const freshBaseline = baselines.get(fresh) ?? {};
-  for (const [symbol, stored] of Object.entries(fresh)) {
+  const namespace = journalNamespaces.get(fresh) ?? {};
+  for (const symbol of new Set([...Object.keys(journal), ...Object.keys(fresh)])) {
+    const stored = fresh[symbol];
     const current = journal[symbol];
-    if (!current) { journal[symbol] = stored; baseline[symbol] = freshBaseline[symbol]; continue; }
-    const memoryCopies = [current, ...(current.alternatives ?? [])];
-    const storedCopies = [stored, ...(stored.alternatives ?? [])];
+    if (!current) { if (stored) { journal[symbol] = stored; baseline[symbol] = freshBaseline[symbol]; } continue; }
+    const memoryCopies = [current, ...(current.alternatives ?? [])].filter((copy) => {
+      const token = copy.recoveryId ? baseline[symbol]?.hashes[copy.recoveryId] : undefined;
+      const alias = namespace[symbol] && resolveLegacyAlias(namespace[symbol], copy.recoveryId, token);
+      if (alias?.retired && fingerprint(copy) === token) return false;
+      if (alias && !alias.retired && fingerprint(namespace[symbol].copies[alias.id]) === token) {
+        baseline[symbol].hashes[alias.id] = token!;
+        copy.recoveryId = alias.id;
+      }
+      return true;
+    });
+    const storedCopies = stored ? [stored, ...(stored.alternatives ?? [])] : [];
     const hashes = { ...baseline[symbol]?.hashes, ...freshBaseline[symbol]?.hashes };
     for (const copy of memoryCopies) {
       const sameId = storedCopies.find((candidate) => candidate.recoveryId === copy.recoveryId);
@@ -295,8 +346,12 @@ export function reconcileDrawingJournal(storage: StoragePort, owner: string, jou
     for (const copy of storedCopies) {
       if (!combined.some((candidate) => candidate.recoveryId === copy.recoveryId && fingerprint(candidate) === fingerprint(copy))) combined.push(copy);
     }
-    if (combined.length > 1) current.alternatives = combined.slice(1).map(({ alternatives: _nested, ...copy }) => copy);
-    baseline[symbol] = { active: current.recoveryId!, hashes };
+    if (!combined.length) { delete journal[symbol]; delete baseline[symbol]; continue; }
+    const active = combined[0];
+    journal[symbol] = active;
+    if (combined.length > 1) active.alternatives = combined.slice(1).map(({ alternatives: _nested, ...copy }) => copy);
+    else delete active.alternatives;
+    baseline[symbol] = { active: active.recoveryId!, hashes };
   }
   baselines.set(journal, baseline);
   return journal;
