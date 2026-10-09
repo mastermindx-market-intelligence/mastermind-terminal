@@ -8,8 +8,9 @@
 // So a session is the New York trading date of a close receipt; a stamp before that day's
 // 16:00 ET close is an intraday / pre-close observation and is never the same session read
 // as an end-of-day ladder for that date.
-import { afterEach, describe, expect, it } from "vitest";
-import { capJson, curateGex, execTool } from "../copilotTools";
+import { promises as fsp } from "fs";
+import { afterEach, describe, expect, it, vi } from "vitest";
+import { capJson, curateGex, execTool, MIN_CAP_BYTES } from "../copilotTools";
 
 type Obj = Record<string, unknown>;
 
@@ -221,5 +222,216 @@ describe("capJson — budget pressure keeps GEX identity and caveats or refuses 
       if (out.stale === true && !Array.isArray(out.stale_reasons)) bad.push(cap);
     }
     expect(bad).toEqual([]);
+  });
+});
+
+// Review round 1 (head 8ff5ad35): a read that did not land is not an empty result
+// (failure-state-truth law). The hub read falls back to the R2 mirror; only a 404 from every
+// store that was asked is an absence. 5xx, network errors, timeouts and unparseable bodies are
+// failed reads: the half is unknown, never "not published" and never "no coverage".
+describe("execTool get_options_summary — failed GEX reads are unavailable, not absent", () => {
+  const prev = process.env.FLOW_FIXTURE;
+  afterEach(() => {
+    vi.unstubAllGlobals();
+    vi.useRealTimers();
+    if (prev === undefined) delete process.env.FLOW_FIXTURE;
+    else process.env.FLOW_FIXTURE = prev;
+  });
+  type Side = "state" | "ladder";
+  const json = (status: number, body?: unknown) =>
+    new Response(body === undefined ? "{}" : JSON.stringify(body), { status, headers: { "content-type": "application/json" } });
+  const stub = (handler: (side: Side, url: string, init?: RequestInit) => Promise<Response>) => {
+    delete process.env.FLOW_FIXTURE;
+    vi.stubGlobal("fetch", vi.fn((input: unknown, init?: RequestInit) => {
+      const url = String(input);
+      return handler(/gexstate|gex_state/.test(url) ? "state" : "ladder", url, init);
+    }));
+  };
+  const aaplLadder = ladder({ root: "AAPL" });
+  const aaplState = state({ root: "AAPL" });
+  const gexOf = async () => (await execTool("get_options_summary", { symbol: "AAPL" })).gex as Obj;
+
+  it("a state read that returned HTTP 503 is not reported as an unpublished state", async () => {
+    stub(async (side) => (side === "state" ? json(503) : json(200, aaplLadder)));
+    const gex = await gexOf();
+    expect(gex.status).toBe("partial");
+    expect(gex.source).toBe("ladder");
+    expect(String(gex.limitations)).not.toMatch(/no state was published/);
+    expect(String(gex.limitations)).toMatch(/state read failed/);
+    expect(String(gex.limitations)).toMatch(/unknown/);
+    expect(JSON.stringify(gex.read_failures)).toMatch(/HTTP 503/);
+  });
+  it("both reads 404 is no coverage; both 503 or a network error is a failed read with a different reason", async () => {
+    stub(async () => json(404));
+    const absent = await gexOf();
+    stub(async () => json(503));
+    const down = await gexOf();
+    stub(async () => {
+      throw new TypeError("fetch failed");
+    });
+    const thrown = await gexOf();
+    expect(absent.no_data).toBe(true);
+    expect(String(absent.reason)).toMatch(/no GEX coverage/);
+    for (const failed of [down, thrown]) {
+      expect(failed.status).toBe("unavailable");
+      expect(failed.no_data).toBe(true);
+      expect(failed.reason).not.toBe(absent.reason);
+      expect(String(failed.reason)).not.toMatch(/coverage|published/);
+      expect(String(failed.reason)).toMatch(/read failed/);
+    }
+    expect(JSON.stringify(down.read_failures)).toMatch(/HTTP 503/);
+    expect(JSON.stringify(thrown.read_failures)).toMatch(/network/);
+  });
+  it("a mirror 404 behind a failed hub read does not turn the failure into an absence", async () => {
+    stub(async (_side, url) => (url.includes("/api/hub/") ? json(502) : json(404)));
+    const gex = await gexOf();
+    expect(gex.status).toBe("unavailable");
+    expect(String(gex.reason)).not.toMatch(/coverage/);
+    expect(String(gex.reason)).toMatch(/read failed/);
+  });
+  it("an unparseable body is a failed read, not an absence", async () => {
+    stub(async (side) =>
+      side === "state" ? new Response("<html>bad gateway</html>", { status: 200 }) : json(200, aaplLadder),
+    );
+    const gex = await gexOf();
+    expect(gex.status).toBe("partial");
+    expect(String(gex.limitations)).toMatch(/state read failed/);
+    expect(String(gex.limitations)).not.toMatch(/no state was published/);
+  });
+  it("a ladder read that times out is described as unavailable, not absent", async () => {
+    vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout"] });
+    stub((side, _url, init) => {
+      if (side === "state") return Promise.resolve(json(200, aaplState));
+      return new Promise<Response>((_resolve, reject) => {
+        init?.signal?.addEventListener("abort", () => reject(new DOMException("aborted", "AbortError")));
+      });
+    });
+    const pending = gexOf();
+    await vi.advanceTimersByTimeAsync(3_100);
+    await vi.advanceTimersByTimeAsync(3_100);
+    const gex = await pending;
+    expect(gex.status).toBe("partial");
+    expect(gex.source).toBe("state");
+    expect(String(gex.limitations)).not.toMatch(/no ladder was published/);
+    expect(String(gex.limitations)).toMatch(/ladder read failed/);
+    expect(JSON.stringify(gex.read_failures)).toMatch(/timed out/);
+  });
+});
+
+// Review round 1: each test below kills one surviving single-point mutant of head 8ff5ad35.
+describe("curateGex — identity invariants each guarded by a test", () => {
+  it("(M2) a rootless source is withheld even when no owner root is given", () => {
+    for (const out of [curateGex(ladder({ root: undefined }), null), curateGex(null, state({ root: undefined }))]) {
+      expect(out.no_data).toBe(true);
+      expect(carriesNumbers(out)).toBe(false);
+      expect(String(out.reason)).toMatch(/root/);
+    }
+  });
+  it("(M11) the unclocked half of a separate read carries no numbers", () => {
+    for (const bad of [undefined, "not a clock"]) {
+      const out = curateGex(ladder(), state({ asof: bad }), "SPY");
+      expect(out.status).toBe("separate");
+      expect(carriesNumbers(out.state)).toBe(false);
+      expect(String((out.state as Obj).unavailable)).toMatch(/clock/);
+      expect(carriesNumbers(out.ladder)).toBe(true);
+      const flipped = curateGex(ladder({ asof: bad }), state(), "SPY");
+      expect(flipped.status).toBe("separate");
+      expect(carriesNumbers(flipped.ladder)).toBe(false);
+    }
+  });
+  it("(M12) a basis mismatch alone is never one matched read", () => {
+    const out = curateGex(ladder({ basis: "customer-sign" }), state(), "SPY");
+    expect(out.status).not.toBe("matched");
+    expect(out.mixed_source).toBe(true);
+  });
+  it("(M13) two unknown revisions are not an identical revision", () => {
+    const out = curateGex(ladder({ revision: undefined }), state({ revision: undefined }), "SPY");
+    expect(out.status).not.toBe("matched");
+    expect(out.mixed_source).toBe(true);
+  });
+  it("(M15) an explicit session later than the producer clock leaves the session unknown", () => {
+    const out = curateGex(
+      ladder({ asof: "2026-10-09" }),
+      state({ session: "2026-10-09", asof: "2026-10-08T16:00:00-04:00" }),
+      "SPY",
+    );
+    expect(out.status).not.toBe("matched");
+    expect(out.mixed_source).toBe(true);
+    expect((out.state as Obj).session).toBeNull();
+  });
+});
+
+describe("capJson — last-resort refusal and dropped keys stay truthful", () => {
+  const staleEnvelope = (): Obj => ({
+    symbol: "SPY",
+    stale: true,
+    stale_reasons: ["missing_or_invalid_asof", "future_built"],
+    market_risk: {
+      status: "partial",
+      asof: "2026-10-02",
+      limitations: "risk read is partial",
+      withheld: Object.fromEntries(Array.from({ length: 30 }, (_, i) => [`k${i}`, "w".repeat(40)])),
+    },
+  });
+  it("(M7) the oversize refusal keeps stale_reasons beside stale", () => {
+    const out = capJson(staleEnvelope(), 600);
+    expect(out.oversize).toBe(true);
+    expect(out.stale).toBe(true);
+    expect(out.stale_reasons).toEqual(["missing_or_invalid_asof", "future_built"]);
+  });
+  it("no output exceeds the requested budget or the documented refusal floor", () => {
+    const bad: string[] = [];
+    const inputs: Obj[] = [
+      staleEnvelope(),
+      { symbol: "SPY", gex: curateGex(ladder(), state({ asof: "2026-10-02T11:30:00-04:00" }), "SPY") },
+      { symbol: "LONGSYMBOL.HK", root: "LONGSYMBOL.HK", story: "y".repeat(5000) },
+    ];
+    for (const [i, input] of inputs.entries()) {
+      for (let cap = 1; cap <= 2000; cap += 13) {
+        const bytes = Buffer.byteLength(JSON.stringify(capJson(input, cap)), "utf8");
+        if (bytes > Math.max(cap, MIN_CAP_BYTES ?? 0)) bad.push(`${i}@${cap}: ${bytes}`);
+      }
+    }
+    expect(bad).toEqual([]);
+  });
+  it("a top-level key dropped for budget is named in omitted", () => {
+    const out = capJson({
+      symbol: "SPY",
+      iv: { spot: 600, term_slope: "x".repeat(900), extra: "z".repeat(900) },
+      gex: curateGex(ladder(), null, "SPY"),
+    }, 500);
+    expect(out.iv).toBeUndefined();
+    expect(out.omitted).toEqual(expect.arrayContaining(["iv"]));
+  });
+});
+
+describe("execTool get_options_summary — an IV file that could not be read is not a missing file", () => {
+  const prev = process.env.FLOW_FIXTURE;
+  afterEach(() => {
+    vi.restoreAllMocks();
+    if (prev === undefined) delete process.env.FLOW_FIXTURE;
+    else process.env.FLOW_FIXTURE = prev;
+  });
+  const withOptsRead = (fail: () => Promise<string>) => {
+    process.env.FLOW_FIXTURE = "1";
+    const real = fsp.readFile.bind(fsp);
+    vi.spyOn(fsp, "readFile").mockImplementation(((file: unknown, ...rest: unknown[]) =>
+      String(file).endsWith("AAPL.opts.json") ? fail() : (real as (...a: unknown[]) => Promise<string>)(file, ...rest)) as typeof fsp.readFile);
+  };
+  it("a missing IV file is no coverage; an unreadable or corrupt one is a failed read", async () => {
+    withOptsRead(() => Promise.reject(Object.assign(new Error("ENOENT"), { code: "ENOENT" })));
+    const missing = (await execTool("get_options_summary", { symbol: "AAPL" })).iv as Obj;
+    withOptsRead(() => Promise.reject(Object.assign(new Error("EIO"), { code: "EIO" })));
+    const io = (await execTool("get_options_summary", { symbol: "AAPL" })).iv as Obj;
+    withOptsRead(() => Promise.resolve("{not json"));
+    const corrupt = (await execTool("get_options_summary", { symbol: "AAPL" })).iv as Obj;
+    expect(missing.no_data).toBe(true);
+    expect(String(missing.reason)).toMatch(/no options IV file/);
+    for (const failed of [io, corrupt]) {
+      expect(failed.no_data).toBe(true);
+      expect(failed.status).toBe("unavailable");
+      expect(String(failed.reason)).not.toMatch(/no options IV file/);
+      expect(String(failed.reason)).toMatch(/could not be read/);
+    }
   });
 });

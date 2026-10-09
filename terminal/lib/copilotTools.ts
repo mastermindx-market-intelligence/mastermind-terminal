@@ -73,6 +73,10 @@ export function scalarize(o: unknown, maxKeys = 12): Record<string, unknown> | n
 /* ── payload size cap ──────────────────────────────────────────────────────── */
 
 const CAP_CHARS = 2000;
+/** Budget floor: the smallest typed oversize refusal (with a 15-char symbol and root) is ~256
+ *  bytes, so a smaller requested cap is raised to this floor rather than broken. The production
+ *  cap (CAP_CHARS) is far above it. */
+export const MIN_CAP_BYTES = 320;
 /** Explicit budget unit for capJson. JS string length is UTF-16 code units and
  *  would silently under-count multibyte payloads relative to JSON/network size. */
 export const CAP_UNIT = "utf8_bytes" as const;
@@ -113,7 +117,7 @@ const IDENTITY_KEYS = new Set([
 
 /** Caveats that travel with identity: a reader must never keep a verdict while losing why it
  *  is stale, what was withheld, or what the cap omitted. */
-const QUALIFIER_KEYS = new Set(["coverage", "limitations", "withheld", "stale_reasons", "omitted"]);
+const QUALIFIER_KEYS = new Set(["coverage", "limitations", "withheld", "stale_reasons", "omitted", "read_failures"]);
 const NESTED_EVIDENCE_KEYS = new Set(["state", "ladder", "facts", "gex", "market_risk"]);
 
 function asRecord(v: unknown): Record<string, unknown> | null {
@@ -166,8 +170,15 @@ function dropKeys(
     .sort((a, b) => jsonUtf8Bytes(b[1] ?? null) - jsonUtf8Bytes(a[1] ?? null));
   for (const [k] of droppable) {
     delete out[k];
+    noteOmitted(out, k);
     if (jsonUtf8Bytes(out) <= cap) return;
   }
+}
+
+/** A key removed for budget is named, so a reader can tell "dropped" from "never present". */
+function noteOmitted(out: Record<string, unknown>, key: string): void {
+  const prev = Array.isArray(out.omitted) ? (out.omitted as unknown[]).filter((x): x is string => typeof x === "string") : [];
+  if (!prev.includes(key)) out.omitted = [...prev, key];
 }
 
 function identityStub(v: unknown): Record<string, unknown> {
@@ -256,7 +267,10 @@ function oversizeRefusal(src: Record<string, unknown>, cap: number): Record<stri
   if (out.stale === true && Array.isArray(src.stale_reasons)) {
     out.stale_reasons = src.stale_reasons.filter((r) => typeof r === "string").slice(0, 6);
   }
-  const omitted = Object.keys(src).filter((k) => NESTED_EVIDENCE_KEYS.has(k) || isEvidenceShaped(src[k]));
+  const dropped = Array.isArray(src.omitted) ? (src.omitted as unknown[]).filter((x): x is string => typeof x === "string") : [];
+  const omitted = [
+    ...new Set([...dropped, ...Object.keys(src).filter((k) => NESTED_EVIDENCE_KEYS.has(k) || isEvidenceShaped(src[k]))]),
+  ];
   if (omitted.length) out.omitted = omitted;
   out.limitations =
     typeof src.limitations === "string" && src.limitations.trim()
@@ -293,7 +307,8 @@ function oversizeRefusal(src: Record<string, unknown>, cap: number): Record<stri
  *  state/ladder/facts are compacted to identity/clock/limitations rather than
  *  emitted unbounded. If the remainder still cannot fit, a typed oversize
  *  refusal is returned — never sliced JSON, never financials without limitations. */
-export function capJson(obj: Record<string, unknown>, cap = CAP_CHARS): Record<string, unknown> {
+export function capJson(obj: Record<string, unknown>, requestedCap = CAP_CHARS): Record<string, unknown> {
+  const cap = Math.max(requestedCap, MIN_CAP_BYTES);
   try {
     if (jsonUtf8Bytes(obj) <= cap) return obj;
   } catch {
@@ -330,6 +345,24 @@ async function readDataJson(file: string): Promise<unknown | null> {
     return JSON.parse(await fs.readFile(path.join(DATA, file), "utf8"));
   } catch {
     return null;
+  }
+}
+
+/** Like readDataJson, but a file that exists and could not be read or parsed is a failed read,
+ *  not a missing file (only ENOENT is absence). */
+async function readDataFile(file: string): Promise<{ kind: "data"; payload: unknown } | { kind: "absent" } | { kind: "failed"; reason: string }> {
+  let text: string;
+  try {
+    text = await fs.readFile(path.join(DATA, file), "utf8");
+  } catch (e) {
+    const code = (e as { code?: unknown } | null)?.code;
+    if (code === "ENOENT") return { kind: "absent" };
+    return { kind: "failed", reason: `file read error${typeof code === "string" ? ` ${code}` : ""}` };
+  }
+  try {
+    return { kind: "data", payload: JSON.parse(text) };
+  } catch {
+    return { kind: "failed", reason: "unparseable file" };
   }
 }
 
@@ -410,7 +443,43 @@ async function fetchPlane(): Promise<MarketPlane | null> {
   }
 }
 
-async function fetchGexPayloads(root: string): Promise<{ gex: unknown | null; state: unknown | null }> {
+/** A GEX read that did not land: 5xx, network error, timeout or an unparseable body. Distinct
+ *  from an absent payload (null), which means every store asked answered 404. A failed read
+ *  leaves that half unknown; it is never reported as "not published" or "no coverage". */
+export class GexReadFailure {
+  constructor(readonly reason: string) {}
+}
+
+type StoreRead = { kind: "data"; payload: Record<string, unknown> } | { kind: "absent" } | { kind: "failed"; reason: string };
+
+async function readStore(url: string, label: string, timeoutMs = 3000): Promise<StoreRead> {
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), timeoutMs);
+  const timedOut = (e: unknown) => ctrl.signal.aborted || (e as { name?: unknown } | null)?.name === "AbortError";
+  const timeoutReason = `${label} timed out after ${timeoutMs / 1000}s`;
+  try {
+    let res: Response;
+    try {
+      res = await fetch(url, { signal: ctrl.signal, headers: { "User-Agent": "mastermind-copilot/1.0" }, cache: "no-store" });
+    } catch (e) {
+      return { kind: "failed", reason: timedOut(e) ? timeoutReason : `${label} network error` };
+    }
+    if (res.status === 404) return { kind: "absent" };
+    if (!res.ok) return { kind: "failed", reason: `${label} HTTP ${res.status}` };
+    let body: unknown;
+    try {
+      body = await res.json();
+    } catch (e) {
+      return { kind: "failed", reason: timedOut(e) ? timeoutReason : `${label} returned an unparseable body` };
+    }
+    const rec = asRecord(body);
+    return rec ? { kind: "data", payload: rec } : { kind: "failed", reason: `${label} returned a non-object body` };
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+async function fetchGexPayloads(root: string): Promise<{ gex: unknown; state: unknown }> {
   // FLOW_FIXTURE parity with /api/flow (f=gex:/gexstate:): fixture dev boxes must not hit
   // the live hub or R2. Same files, same keying (gex by root; gexstate single-root sample).
   if (process.env.FLOW_FIXTURE === "1") {
@@ -418,16 +487,20 @@ async function fetchGexPayloads(root: string): Promise<{ gex: unknown | null; st
     const state = await readDataJson("gexstate_fixture.json");
     return { gex: all?.[root.toUpperCase()] ?? null, state };
   }
-  const grab = async (backendPath: string, r2Key: string): Promise<unknown | null> => {
-    try {
-      return await fetchJson(`${FLOW_BACKEND}${backendPath}`);
-    } catch {
-      try {
-        return await fetchJson(`${R2_BASE}/${r2Key}`);
-      } catch {
-        return null;
-      }
-    }
+  // The hub is primary and R2 the mirror. Absent only when both answer 404; any other miss is a
+  // failed read (a mirror 404 behind a failed hub read cannot prove the hub had nothing).
+  const grab = async (backendPath: string, r2Key: string): Promise<unknown> => {
+    const hub = await readStore(`${FLOW_BACKEND}${backendPath}`, "hub");
+    if (hub.kind === "data") return hub.payload;
+    const r2 = await readStore(`${R2_BASE}/${r2Key}`, "R2 mirror");
+    if (r2.kind === "data") return r2.payload;
+    if (hub.kind === "absent" && r2.kind === "absent") return null;
+    return new GexReadFailure(
+      [hub, r2]
+        .map((r) => (r.kind === "failed" ? r.reason : r.kind === "absent" ? "not found" : ""))
+        .filter(Boolean)
+        .join("; "),
+    );
   };
   const [gex, state] = await Promise.all([
     grab(`/api/hub/gex/${root}`, `options_hub/gex/${root}.json`),
@@ -808,6 +881,7 @@ function gexWalls(g: Record<string, unknown> | null, ok: boolean) {
 type GexSide = "ladder" | "state";
 type GexSource =
   | { kind: "absent" }
+  | { kind: "failed"; reason: string }
   | { kind: "withheld"; record: Record<string, unknown> }
   | { kind: "bound"; payload: Record<string, unknown>; id: GexIdentity; clocked: boolean };
 
@@ -815,6 +889,7 @@ type GexSource =
  *  producer root equals that symbol. Anything else is withheld with its identity and a reason —
  *  never folded into, or shown as, the symbol's GEX. */
 function bindGexSource(side: GexSide, raw: unknown, owner: string | undefined): GexSource {
+  if (raw instanceof GexReadFailure) return { kind: "failed", reason: raw.reason };
   const o = asRecord(raw);
   if (!o) return { kind: "absent" };
   const id = gexIdentity(o);
@@ -876,7 +951,9 @@ function gexLadderFields(g: Record<string, unknown>): Record<string, unknown> {
  *                  identity and clock, never fused (a subrecord without a valid clock keeps only
  *                  its identity);
  *    partial     — one bound source with its own clock; the other half named as absent/withheld;
- *    unavailable — no_data, with every withheld source's identity and reason. */
+ *    unavailable — no_data, with every withheld source's identity and reason.
+ *  A GexReadFailure input (the read did not land) is named in read_failures and worded as a
+ *  failed read with the half unknown — never as "not published" or "no coverage". */
 export function curateGex(gex: unknown, state: unknown, ownerRoot?: string): Record<string, unknown> {
   const owner = typeof ownerRoot === "string" && ownerRoot.trim() ? ownerRoot.trim().toUpperCase() : undefined;
   const ladder = bindGexSource("ladder", gex, owner);
@@ -884,6 +961,10 @@ export function curateGex(gex: unknown, state: unknown, ownerRoot?: string): Rec
   const withheld: Record<string, unknown> = {};
   if (ladder.kind === "withheld") withheld.ladder = ladder.record;
   if (st.kind === "withheld") withheld.state = st.record;
+  const readFailures: Record<string, string> = {};
+  if (ladder.kind === "failed") readFailures.ladder = ladder.reason;
+  if (st.kind === "failed") readFailures.state = st.reason;
+  const failedNote = (side: GexSide) => `${side} read failed (${readFailures[side]}), so the ${side} is unknown`;
 
   if (ladder.kind === "bound" && st.kind === "bound" && (ladder.clocked || st.clocked)) {
     const g = ladder.payload;
@@ -923,13 +1004,13 @@ export function curateGex(gex: unknown, state: unknown, ownerRoot?: string): Rec
   if (one) {
     const other: GexSide = one.side === "state" ? "ladder" : "state";
     const otherSrc = other === "state" ? st : ladder;
+    // The other half cannot be bound here: a bound other half would have taken the pair path.
     const otherNote =
       otherSrc.kind === "withheld"
         ? `the ${other} is withheld (${String(otherSrc.record.reason)})`
-        : otherSrc.kind === "bound"
-          ? `the ${other} has no valid producer clock and is withheld`
+        : otherSrc.kind === "failed"
+          ? `the ${failedNote(other)}`
           : `no ${other} was published for this root`;
-    if (otherSrc.kind === "bound") withheld[other] = { root: otherSrc.id.root, asof: otherSrc.payload.asof ?? null, reason: "no valid producer clock" };
     const p = one.src.payload;
     return {
       status: "partial",
@@ -941,11 +1022,28 @@ export function curateGex(gex: unknown, state: unknown, ownerRoot?: string): Rec
       ...(one.side === "state" ? gexStateFields(p) : gexLadderFields(p)),
       limitations: `${one.side}-only GEX read on the ${one.side}'s own clock; ${otherNote}; nothing from the ${other} is included`,
       ...(Object.keys(withheld).length ? { withheld } : {}),
+      ...(Object.keys(readFailures).length ? { read_failures: readFailures } : {}),
     };
   }
 
   for (const [side, src] of [["ladder", ladder], ["state", st]] as const) {
     if (src.kind === "bound") withheld[side] = { root: src.id.root, asof: src.payload.asof ?? null, reason: "no valid producer clock" };
+  }
+  if (Object.keys(readFailures).length) {
+    const parts = (["state", "ladder"] as const).map((side) =>
+      readFailures[side]
+        ? failedNote(side)
+        : withheld[side]
+          ? `${side} withheld (${String((withheld[side] as Record<string, unknown>).reason)})`
+          : `${side} not found in the hub or R2 mirror`,
+    );
+    return {
+      status: "unavailable",
+      no_data: true,
+      reason: `GEX read failed, so GEX for ${owner ?? "the requested root"} is unknown, not absent: ${parts.join("; ")}`,
+      read_failures: readFailures,
+      ...(Object.keys(withheld).length ? { withheld } : {}),
+    };
   }
   if (!Object.keys(withheld).length) {
     return { status: "unavailable", no_data: true, reason: "no GEX coverage for this root (options-hub covers liquid names only)" };
@@ -1224,8 +1322,12 @@ export async function execTool(name: string, args: Record<string, unknown> | nul
         return capJson({ symbol: sym, ...curateSignals(slice) });
       }
       case "get_options_summary": {
-        const [opts, gexPair] = await Promise.all([readDataJson(`${sym}.opts.json`), fetchGexPayloads(sym)]);
-        return capJson({ symbol: sym, iv: curateOpts(opts), gex: curateGex(gexPair.gex, gexPair.state, sym) });
+        const [opts, gexPair] = await Promise.all([readDataFile(`${sym}.opts.json`), fetchGexPayloads(sym)]);
+        const iv =
+          opts.kind === "failed"
+            ? { status: "unavailable", no_data: true, reason: `options IV file could not be read (${opts.reason}), so IV is unknown, not absent` }
+            : curateOpts(opts.kind === "data" ? opts.payload : null);
+        return capJson({ symbol: sym, iv, gex: curateGex(gexPair.gex, gexPair.state, sym) });
       }
       case "get_fundamentals": {
         const fund = await readDataJson(`${sym}.fund.json`);
