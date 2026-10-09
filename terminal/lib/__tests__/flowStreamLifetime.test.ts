@@ -21,7 +21,7 @@ async function open(signal?: AbortSignal) {
   expect(response.status).toBe(200); return response;
 }
 beforeEach(() => {
-  vi.resetModules(); vi.useFakeTimers(); vi.setSystemTime(0); process.env.FLOW_FIXTURE = "0";
+  vi.resetModules(); vi.useFakeTimers(); vi.setSystemTime(0); vi.stubEnv("FLOW_FIXTURE", "0");
   state.session = { access_token: "fixture-access" }; state.sink = null; state.warm = null; state.detach.mockReset(); response = undefined;
   answer = { tier: "pro", features: ["terminal_live_options"] };
   fetcher = vi.fn(async () => new Response(JSON.stringify(answer), { headers: { "Content-Type": "application/json" } }));
@@ -29,9 +29,34 @@ beforeEach(() => {
 });
 afterEach(async () => {
   if (response?.body && !response.body.locked) await response.body.cancel().catch(() => {});
-  vi.useRealTimers(); vi.unstubAllGlobals(); delete process.env.FLOW_FIXTURE;
+  vi.useRealTimers(); vi.unstubAllGlobals(); vi.unstubAllEnvs();
 });
 describe("actual SSE route lifetime and entitlement owner", () => {
+  it("a delayed positive check cannot satisfy the next lifetime authority check", async () => {
+    await open();
+    const positive = JSON.stringify(answer);
+    fetcher.mockImplementationOnce(() => new Promise<Response>(resolve => setTimeout(() => resolve(new Response(positive)), 500)));
+    await vi.advanceTimersByTimeAsync(45_500);
+    expect(fetcher).toHaveBeenCalledTimes(2);
+    answer = { tier: "essential", features: [] };
+    await vi.advanceTimersByTimeAsync(44_500);
+    expect(fetcher).toHaveBeenCalledTimes(3); expect(state.detach).toHaveBeenCalledTimes(1);
+    expect(vi.getTimerCount()).toBe(0);
+  });
+  it("a lifetime recheck does not join an ordinary gate's unresolved positive read", async () => {
+    await open(); const entitlement = await import("../entitlement");
+    await vi.advanceTimersByTimeAsync(44_999); vi.setSystemTime(45_000);
+    let release!: (response: Response) => void;
+    const positive = JSON.stringify(answer);
+    fetcher.mockImplementationOnce(() => new Promise<Response>(resolve => { release = resolve; }));
+    const ordinary = entitlement.hasLiveOptions(); await vi.advanceTimersByTimeAsync(0);
+    expect(fetcher).toHaveBeenCalledTimes(2);
+    answer = { tier: "essential", features: [] };
+    await vi.advanceTimersByTimeAsync(1);
+    expect(fetcher).toHaveBeenCalledTimes(3); expect(state.detach).toHaveBeenCalledTimes(1);
+    release(new Response(positive)); await ordinary; await vi.advanceTimersByTimeAsync(0);
+    expect(state.detach).toHaveBeenCalledTimes(1); expect(vi.getTimerCount()).toBe(0);
+  });
   it("rechecks actual feature authority and drops queued bytes on revocation", async () => {
     const r = await open(); state.sink!('data: {"paid":true}\n\n');
     answer = { tier: "essential", features: [] };
@@ -78,7 +103,7 @@ describe("actual SSE route lifetime and entitlement owner", () => {
     await open(); expect(state.detach).toHaveBeenCalledTimes(1); expect(vi.getTimerCount()).toBe(0);
   });
   it("cleans abort and fixture mode without creating a second entitlement reader", async () => {
-    process.env.FLOW_FIXTURE = "1"; const controller = new AbortController(); const r = await open(controller.signal);
+    vi.stubEnv("FLOW_FIXTURE", "1"); const controller = new AbortController(); const r = await open(controller.signal);
     expect(fetcher).not.toHaveBeenCalled(); expect(vi.getTimerCount()).toBe(0);
     controller.abort(); expect(state.detach).toHaveBeenCalledTimes(1);
     const reader = r.body!.getReader(); await reader.read(); expect((await reader.read()).done).toBe(true); reader.releaseLock();

@@ -160,8 +160,16 @@ const LIVE_OPTIONS = {
 };
 
 /** Live-options surface — customer feature entitlement plus the private unlimited operator tier. */
-export async function hasLiveOptions(): Promise<boolean> {
-  const e = await fetchEntitlementCached(LIVE_OPTIONS);
+export async function hasLiveOptions(options: { fresh?: boolean } = {}): Promise<boolean> {
+  // A long-lived connection must renew authority rather than reading a cached
+  // positive or joining an older page gate's in-flight request.
+  let e: Entitlement | null;
+  if (options.fresh) {
+    const auth = await billingAuth();
+    e = auth ? await fetchEntitlementFor(auth.token) : null;
+  } else {
+    e = await fetchEntitlementCached(LIVE_OPTIONS);
+  }
   return !!e && LIVE_OPTIONS.ok(e);
 }
 

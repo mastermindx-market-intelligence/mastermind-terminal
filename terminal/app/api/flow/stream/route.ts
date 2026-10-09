@@ -73,7 +73,7 @@ export async function GET(req: Request): Promise<Response> {
     return new Response("bad f param", { status: 400 });
   }
 
-  // This connection owns no timer and no upstream read. It attaches to the process-level
+  // This connection owns only its authority-revalidation timers. It attaches to the process-level
   // producer for `f` (lib/flowBroadcast), which polls once per cadence and serializes each
   // changed frame once, however many clients are attached. Frames arrive here already
   // formatted as SSE text; the only per-connection work left is UTF-8 encoding them into
@@ -152,7 +152,7 @@ export async function GET(req: Request): Promise<Response> {
           if (closed || checking) return;
           checking = true;
           recheckDeadline = setTimeout(() => teardown(true), RECHECK_TIMEOUT_MS);
-          void hasLiveOptions().then((allowed) => {
+          void hasLiveOptions({ fresh: true }).then((allowed) => {
             if (closed) return;
             if (!allowed) { teardown(true); return; }
             if (recheckDeadline !== null) clearTimeout(recheckDeadline);
