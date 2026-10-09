@@ -2,7 +2,7 @@
 import React, { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import SectorRotationMap, { filterRotationPoints, rotationDomain, rotationQuadrant, rotationReceipt, rotationSynthesis, sectorRotationPoints, type SectorRotationMapProps } from "@/components/sector-intelligence/SectorRotationMap";
+import SectorRotationMap, { filterRotationPoints, rotationDomain, rotationHistoryTrail, rotationQuadrant, rotationReceipt, rotationSynthesis, sectorRotationPoints, type SectorRotationMapProps } from "@/components/sector-intelligence/SectorRotationMap";
 import { LangProvider, applyLang } from "../i18n";
 import { sectorRotationHistory, type Row, type FeedPayload } from "../sectorIntelligence";
 import { MARKET_RISK_NOW, riskEnvelopeFixture } from "./marketRiskFixture";
@@ -90,6 +90,25 @@ const historyPayload = {
 };
 
 describe("sector rotation historical owner contract", () => {
+  it("renders a 21-session trailing path without looking beyond the selected observation or changing axes", () => {
+    const series = Array.from({ length: 25 }, (_, i) => ({
+      date: "2026-09-" + String(i + 1).padStart(2, "0"), rs21: 2, rs63: 5,
+    }));
+    const viewed = rotationHistoryTrail(series, 23, 10);
+    expect(viewed.points).toHaveLength(21);
+    expect(viewed.points[0]).toEqual({ date: "2026-09-04", x: 71.5, y: 41.4 });
+    expect(viewed.points.at(-1)?.date).toBe("2026-09-24");
+    expect(viewed.points.some(point => point.date === "2026-09-25")).toBe(false);
+    expect(viewed.clipped).toBe(false);
+
+    const clipped = rotationHistoryTrail([
+      { date: "2026-09-23", rs21: 0, rs63: 0 },
+      { date: "2026-09-24", rs21: -30, rs63: 20 },
+    ], 1, 10);
+    expect(clipped.points.at(-1)).toEqual({ date: "2026-09-24", x: 93, y: 93 });
+    expect(clipped.clipped).toBe(true);
+  });
+
   it("admits only the exact reconstructed-price history envelope without relabeling it observed", () => {
     const parsed = sectorRotationHistory(historyPayload);
     expect(parsed).not.toBeNull();
@@ -253,6 +272,44 @@ describe("SectorRotationMap", () => {
     expect(section.textContent).toContain("Sep 25");
     expect(section.textContent).toContain("+7.0%");
     expect(host.querySelector('[data-testid="rotation-receipt"]')?.textContent).toBe("Sep 25 · 6 sectors");
+  });
+
+  it("shows a selected-sector price-reconstructed position trail behind unchanged live points", async () => {
+    await render();
+    const live = host.querySelector('[data-sector-rotation-point="xlk"]')?.getAttribute("style");
+    const trail = host.querySelector('[data-testid="rotation-history-trail"]');
+    expect(trail).not.toBeNull();
+    expect(trail?.getAttribute("data-selected-date")).toBe("2026-09-25");
+    expect(trail?.querySelector("polyline")?.getAttribute("points")?.split(" ")).toHaveLength(3);
+    const slider = host.querySelector<HTMLInputElement>('[data-testid="rotation-history"] input[type="range"]')!;
+    await act(async () => {
+      slider.value = "0";
+      slider.dispatchEvent(new Event("input", { bubbles: true }));
+    });
+    expect(host.querySelector('[data-testid="rotation-history-trail"]')?.getAttribute("data-selected-date")).toBe("2026-09-23");
+    expect(host.querySelector('[data-testid="rotation-history-trail"] polyline')?.getAttribute("points")?.split(" ")).toHaveLength(1);
+    expect(host.querySelector('[data-sector-rotation-point="xlk"]')?.getAttribute("style")).toBe(live);
+    await render({ history: null, historyStatus: "unavailable" });
+    expect(host.querySelector('[data-testid="rotation-history-trail"]')).toBeNull();
+  });
+
+  it("discloses a clipped historical path while keeping the exact readout and live axis", async () => {
+    const extreme = structuredClone(historyPayload);
+    extreme.sectors[0].rs_history[0].rs_63d = 500;
+    const parsed = sectorRotationHistory(extreme);
+    expect(parsed).not.toBeNull();
+    await render({ history: parsed, historyStatus: "ready" });
+    const slider = host.querySelector<HTMLInputElement>('[data-testid="rotation-history"] input[type="range"]')!;
+    await act(async () => {
+      slider.value = "0";
+      slider.dispatchEvent(new Event("input", { bubbles: true }));
+    });
+    expect(host.querySelector('[data-testid="rotation-history-trail"]')?.getAttribute("data-clipped")).toBe("true");
+    expect(host.querySelector('[data-testid="rotation-history"]')?.textContent).toContain(
+      "Historical positions outside the current map scale are clipped"
+    );
+    expect(host.querySelector('[data-testid="rotation-history"]')?.textContent).toContain("+500.0%");
+    expect(host.querySelector('[data-sector-rotation-point="xlk"]')?.getAttribute("data-quadrant")).toBe("leading");
   });
 
   it("keeps the current snapshot usable when historical owner data is unavailable", async () => {

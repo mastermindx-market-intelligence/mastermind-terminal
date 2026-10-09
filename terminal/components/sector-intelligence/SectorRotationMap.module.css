@@ -48,6 +48,9 @@
 .point[data-label-side="right"] .pointLabel { left: 31px; top: 13px; text-align: left; }
 .point[data-label-side="bottom"] .pointLabel { left: 50%; top: 34px; transform: translateX(-50%); text-align: center; }
 .point[data-label-side="left"] .pointLabel { right: 31px; top: 13px; text-align: right; }
+.historyTrail { position: absolute; inset: 0; z-index: 1; width: 100%; height: 100%; overflow: visible; pointer-events: none; }
+.historyTrailLine { fill: none; stroke: var(--brand); stroke-width: .32; stroke-dasharray: .8 .55; opacity: .65; stroke-linecap: round; stroke-linejoin: round; }
+.historyTrailPoint { fill: var(--panel); stroke: var(--brand); stroke-width: .55; }
 .scale { display: flex; justify-content: space-between; padding: 9px 7% 0; color: var(--text-2); font: 11px var(--font-num); }
 .inspector { min-width: 0; padding: 20px; border: 1px solid var(--line); border-radius: var(--r-card); background: var(--panel); }
 .inspector > span { color: var(--text-2); font-size: 11px; text-transform: uppercase; letter-spacing: .06em; }

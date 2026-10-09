@@ -88,6 +88,8 @@ const COPY = {
   historyLoading: ["Historical trail is loading; the current snapshot remains available.", "历史轨迹正在加载；当前快照仍可使用。"],
   historyThin: ["Insufficient sector price history (fewer than 210 sessions); the current map remains available.", "板块历史价格不足（少于210个交易日）；当前图表仍可使用。"],
   historyCount: ["daily reconstructed points", "个每日重建点"],
+  historyTrail: ["Selected sector · trailing 21 sessions on the current map scale", "所选板块 · 当前图表刻度上的近21个交易日轨迹"],
+  historyClipped: ["Historical positions outside the current map scale are clipped; exact values remain in the date readout.", "超出当前图表刻度的历史位置已裁切；日期读数保留精确数值。"],
   method: ["Method and source", "方法与来源"],
   methodCopy: ["Horizontal: 63-session change in the sector/SPY relative-strength ratio. Vertical: 21-session change in the same ratio. Quadrants are sign-based and descriptive, not entry permission.", "横轴：板块/SPY相对强度比率的63个交易日变化；纵轴：同一比率的21个交易日变化。象限按正负划分，仅作描述，不授予入场资格。"],
   sector: ["Sector", "板块"], quadrant: ["Quadrant", "象限"],
@@ -142,6 +144,33 @@ export function rotationDomain(points: readonly SectorRotationPoint[]): number {
   const values = points.flatMap(point => [point.rs21, point.rs63]).filter((value): value is number => value !== null);
   const maximum = values.length ? Math.max(...values.map(Math.abs)) : 0;
   return Math.max(1, Math.ceil(maximum * 1.15 * 10) / 10);
+}
+
+/** Use the SAME snapshot-anchored axes for current dots and historical overlays. */
+export function rotationPlotPercent(value: number, domain: number, invert = false): number {
+  const normalized = Math.max(-domain, Math.min(domain, value));
+  const percent = 7 + ((normalized + domain) / (domain * 2)) * 86;
+  return invert ? 100 - percent : percent;
+}
+
+export function rotationHistoryTrail(
+  points: readonly { date: string; rs21: number; rs63: number }[],
+  selectedIndex: number,
+  domain: number,
+  maxSessions = 21,
+): { points: { date: string; x: number; y: number }[]; clipped: boolean } {
+  if (!Number.isFinite(domain) || domain <= 0 || selectedIndex < 0 || selectedIndex >= points.length) {
+    return { points: [], clipped: false };
+  }
+  const selected = points.slice(Math.max(0, selectedIndex - maxSessions + 1), selectedIndex + 1);
+  return {
+    points: selected.map(point => ({
+      date: point.date,
+      x: Number(rotationPlotPercent(point.rs63, domain).toFixed(3)),
+      y: Number(rotationPlotPercent(point.rs21, domain, true).toFixed(3)),
+    })),
+    clipped: selected.some(point => Math.abs(point.rs21) > domain || Math.abs(point.rs63) > domain),
+  };
 }
 
 export function filterRotationPoints(points: readonly SectorRotationPoint[], query: string): SectorRotationPoint[] {
@@ -236,15 +265,12 @@ export default function SectorRotationMap(props: SectorRotationMapProps) {
   const historyIndex = historyPoints.length ? Math.min(historyCursor ?? historyPoints.length - 1, historyPoints.length - 1) : -1;
   const historical = historyIndex >= 0 ? historyPoints[historyIndex] : null;
   const historyConnected = props.historyStatus === "ready" && props.history !== null && !!historical;
+  const historyTrail = historyConnected ? rotationHistoryTrail(historyPoints, historyIndex, domain) : null;
 
   const refs = useRef<Record<string, HTMLButtonElement | null>>({});
   const name = (point: SectorRotationPoint) => lang === "zh" ? point.nameZh || point.name : point.name;
   const quadrantName = (point: SectorRotationPoint) => point.quadrant ? t(point.quadrant) : t("unavailable");
-  const position = (value: number, invert = false) => {
-    const normalized = Math.max(-domain, Math.min(domain, value));
-    const percent = 7 + ((normalized + domain) / (domain * 2)) * 86;
-    return `${invert ? 100 - percent : percent}%`;
-  };
+  const position = (value: number, invert = false) => `${rotationPlotPercent(value, domain, invert)}%`;
   const moveFocus = (event: KeyboardEvent<HTMLButtonElement>, id: string) => {
     const keys = plotted.map(point => point.id), index = keys.indexOf(id);
     const delta = event.key === "ArrowRight" || event.key === "ArrowDown" ? 1 : event.key === "ArrowLeft" || event.key === "ArrowUp" ? -1 : 0;
@@ -295,6 +321,13 @@ export default function SectorRotationMap(props: SectorRotationMapProps) {
             <span className={styles.axisX} aria-hidden="true" /><span className={styles.axisY} aria-hidden="true" />
             <span className={styles.axisTop}>{t("fasterUp")}</span><span className={styles.axisBottom}>{t("fasterDown")}</span>
             <span className={styles.axisLeft}>{t("weaker")}</span><span className={styles.axisRight}>{t("stronger")}</span>
+            {historyTrail && historyTrail.points.length > 0 && <svg className={styles.historyTrail} data-testid="rotation-history-trail"
+              data-selected-date={historical?.date} data-clipped={historyTrail.clipped ? "true" : "false"}
+              viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+              <polyline className={styles.historyTrailLine} points={historyTrail.points.map(point => `${point.x},${point.y}`).join(" ")} />
+              <circle className={styles.historyTrailPoint} cx={historyTrail.points[historyTrail.points.length - 1].x}
+                cy={historyTrail.points[historyTrail.points.length - 1].y} r="1.2" />
+            </svg>}
             {plotted.map((point, index) => <button type="button" key={point.id} ref={node => { refs.current[point.id] = node; }}
               className={styles.point} data-sector-choice={point.id} data-sector-rotation-point={point.id} data-quadrant={point.quadrant || undefined}
               data-label-side={(["top", "right", "bottom", "left"] as const)[index % 4]} aria-pressed={props.selected === point.id}
@@ -334,7 +367,8 @@ export default function SectorRotationMap(props: SectorRotationMapProps) {
             <div><dt>{t("quarter")}</dt><dd>{sign(historical.rs63)}</dd></div>
             <div><dt>{t("quadrant")}</dt><dd>{t(rotationQuadrant(historical.rs63, historical.rs21) || "unavailable")}</dd></div></dl>
         </div>
-        <p className={styles.historyFoot}>{historyPoints.length} {t("historyCount")} · {t("displayOnly")}</p>
+        <p className={styles.historyFoot}>{historyPoints.length} {t("historyCount")} · {t("historyTrail")}</p>
+        {historyTrail?.clipped && <p className={styles.historyFoot}>{t("historyClipped")}</p>}
       </> : <p className={styles.historyUnavailable}>{props.historyStatus === "loading" ? t("historyLoading") : props.historyStatus === "ready" && historySeries && !historyPoints.length ? t("historyThin") : `${t("noTrail")} · ${t("noTrailCopy")}`}</p>}
     </section>
 

@@ -90,9 +90,21 @@ let browser;
   check(label + ": historical owner date is visible", historyText.includes(shortDate(history.meta.asOf, lang)), historyText);
   check(label + ": reconstructed provenance is visible at point of use", historyText.includes(lang === "zh" ? "并非Mastermind当时实时观察的记录" : "not a record of what Mastermind observed then"), historyText);
   const selectedHistory = history.sectors.find(row => row.id === "xlk").rs_history;
+  const sourceDotBefore = await techPoint.getAttribute("style");
+  const trail = rotation.getByTestId("rotation-history-trail");
+  await expect(trail).toBeVisible();
+  check(label + ": history trail is bound to the selected source date",
+    await trail.getAttribute("data-selected-date") === selectedHistory.at(-1).date);
+  check(label + ": history trail uses at most 21 source sessions without an invented point",
+    (await trail.locator("polyline").getAttribute("points")).split(" ").length === Math.min(21, selectedHistory.length));
   const historySlider = historical.getByRole("slider", { name: lang === "zh" ? "历史日期" : "Historical date" });
   await historySlider.fill("0");
   const firstHistory = await historical.innerText();
+  check(label + ": historical trail follows the selected date",
+    await trail.getAttribute("data-selected-date") === selectedHistory[0].date
+    && (await trail.locator("polyline").getAttribute("points")).split(" ").length === 1);
+  check(label + ": date navigation does not move live sector coordinates",
+    await techPoint.getAttribute("style") === sourceDotBefore);
   check(label + ": history date navigation reaches the first retained point", firstHistory.includes(shortDate(selectedHistory[0].date, lang)), firstHistory);
   check(label + ": historical coordinate is source-exact", firstHistory.includes((selectedHistory[0].rs_21d >= 0 ? "+" : "") + selectedHistory[0].rs_21d.toFixed(1) + "%")
     && firstHistory.includes((selectedHistory[0].rs_63d >= 0 ? "+" : "") + selectedHistory[0].rs_63d.toFixed(1) + "%"), firstHistory);
