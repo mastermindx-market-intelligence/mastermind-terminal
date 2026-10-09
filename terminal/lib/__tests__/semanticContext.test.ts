@@ -898,3 +898,128 @@ describe("semantic context reference-support routing and non-authority", () => {
     expect(validateSemanticContextGroup(base).ok).toBe(true);
   });
 });
+
+
+describe("P2 review repair — temporal projections and bounded receipts", () => {
+  function horizonGroup(supported: Array<"live" | "as_known" | "scenario"> = ["live"]): SemanticContextGroup {
+    return {
+      schema: "semantic_context_group.v1", session_epoch: "temporal-epoch", group_id: "horizon",
+      revision: 0, kind: "time_horizon", label: "Horizon",
+      value: {kind: "time_horizon", horizon: "1Y"},
+      ports: [
+        {port_id: "source", origin_id: "picker-origin", direction: "emit", mode: "linked",
+          accepts: ["time_horizon"], temporal_capabilities: ["live"]},
+        {port_id: "sink", origin_id: "sink-origin", direction: "consume", mode: "linked",
+          accepts: ["historical_cutoff"], adapter_id: "horizon_to_as_known", temporal_capabilities: supported},
+      ],
+    };
+  }
+  const temporalDelta = (id: string, revision = 0, horizon = "3Y") => ({
+    schema: "semantic_context_delta.v1", session_epoch: "temporal-epoch", group_id: "horizon",
+    mutation_id: id, base_revision: revision, origin_id: "picker-origin",
+    patch: {kind: "time_horizon", horizon}, cause: "user_action" as const,
+  });
+  const historicalAdapter: SemanticContextTransformAdapter = {
+    adapter_id: "horizon_to_as_known", from_kind: "time_horizon", to_kind: "historical_cutoff",
+    project: () => ({ok:true, value:{kind:"historical_cutoff",policy:"as_known",cutoff:"2026-01-01T00:00:00.000Z"}}),
+  };
+
+  it("blocks a transformed historical cutoff from a LIVE-only port", () => {
+    const result = createSemanticContextCoordinator(horizonGroup(), [historicalAdapter]).apply(temporalDelta("one"));
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.snapshot.revision).toBe(1);
+    expect(result.deliveries).toEqual([]);
+    expect(result.receipt.temporal_mismatches).toEqual([
+      {port_id:"sink",requested:"as_known",supported:["live"]},
+    ]);
+  });
+  it("permits the same transformed value through an explicitly AS_KNOWN capable port", () => {
+    const result = createSemanticContextCoordinator(horizonGroup(["as_known"]), [historicalAdapter]).apply(temporalDelta("one"));
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.receipt.applied_ports).toEqual(["sink"]);
+    expect(result.receipt.temporal_mismatches).toEqual([]);
+    expect(result.deliveries[0].value).toEqual(
+      {kind:"historical_cutoff",policy:"as_known",cutoff:"2026-01-01T00:00:00.000Z"},
+    );
+  });
+  it("also gates a projected scenario, even with correct owner-kind routing", () => {
+    const group = horizonGroup();
+    group.ports[1] = {...group.ports[1], accepts:["scenario_selection"],
+      adapter_id:"horizon_to_scenario",ref_accepts:[{owner:"macro.scenario_recipe",kinds:["scenario"]}]};
+    const adapter: SemanticContextTransformAdapter = {
+      adapter_id:"horizon_to_scenario",from_kind:"time_horizon",to_kind:"scenario_selection",
+      project:()=>({ok:true,value:{kind:"scenario_selection",
+        ref:{owner:"macro.scenario_recipe",object_id:"recipe-1",version_ref:"v1"}}}),
+    };
+    const refused = createSemanticContextCoordinator(group,[adapter]).apply(temporalDelta("one"));
+    expect(refused.ok).toBe(true);
+    if (!refused.ok) return;
+    expect(refused.deliveries).toEqual([]);
+    expect(refused.receipt.temporal_mismatches).toEqual([
+      {port_id:"sink",requested:"scenario",supported:["live"]},
+    ]);
+    group.ports[1].temporal_capabilities = ["scenario"];
+    const admitted = createSemanticContextCoordinator(group,[adapter]).apply(temporalDelta("one"));
+    expect(admitted.ok).toBe(true);
+    if (admitted.ok) expect(admitted.receipt.applied_ports).toEqual(["sink"]);
+  });
+  it("caps no-op receipts at 1024 without forgetting exact prior identities", () => {
+    const c = createSemanticContextCoordinator(baseGroup());
+    for(let i=0;i<1024;i++){
+      const result=c.apply(delta({mutation_id:"noop-"+i,patch:securityAapl}));
+      expect(result.ok).toBe(true);
+      if(result.ok) expect(result.changed).toBe(false);
+    }
+    const before=c.snapshot();
+    const exhausted=c.apply(delta({mutation_id:"new-after-cap"}));
+    expect(exhausted.ok).toBe(false);
+    if(!exhausted.ok)expect(exhausted.code).toBe("mutation_history_exhausted");
+    expect(c.snapshot()).toEqual(before);
+    for(const i of [0,1023]){
+      const replay=c.apply(delta({mutation_id:"noop-"+i,patch:securityAapl}));
+      expect(replay.ok).toBe(true);
+      if(replay.ok) expect(replay.replayed).toBe(true);
+    }
+    const conflict=c.apply(delta({mutation_id:"noop-0"}));
+    expect(conflict.ok).toBe(false);
+    if(!conflict.ok)expect(conflict.code).toBe("mutation_conflict");
+  });
+  it("caps changing receipts without losing the first immutable response", () => {
+    const c = createSemanticContextCoordinator(horizonGroup());
+    for(let i=0;i<1024;i++){
+      const result=c.apply(temporalDelta("changed-"+i,i,i%2===0?"3Y":"1Y"));
+      expect(result.ok).toBe(true);
+      if(result.ok)expect(result.snapshot.revision).toBe(i+1);
+    }
+    const before=c.snapshot();
+    const refused=c.apply(temporalDelta("overflow",1024));
+    expect(refused.ok).toBe(false);
+    if(!refused.ok)expect(refused.code).toBe("mutation_history_exhausted");
+    expect(c.snapshot()).toEqual(before);
+    const replay=c.apply(temporalDelta("changed-0",0,"3Y"));
+    expect(replay.ok).toBe(true);
+    if(replay.ok){
+      expect(replay.replayed).toBe(true);
+      expect(replay.receipt.accepted_revision).toBe(1);
+      expect(replay.deliveries).toEqual([]);
+    }
+  });
+  it("close is idempotent and permanently refuses old, new, and malformed actions", () => {
+    const c = createSemanticContextCoordinator(baseGroup());
+    expect(c.apply(delta()).ok).toBe(true);
+    const before=c.snapshot();
+    c.close();
+    c.close();
+    for(const input of [delta(),delta({mutation_id:"later",base_revision:1}),null]){
+      const refused=c.apply(input);
+      expect(refused.ok).toBe(false);
+      if(!refused.ok) expect(refused.code).toBe("coordinator_closed");
+      expect(refused.snapshot).toEqual(before);
+    }
+    const external=c.snapshot();
+    external.label="changed externally";
+    expect(c.snapshot()).toEqual(before);
+  });
+});

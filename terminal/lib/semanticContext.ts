@@ -153,7 +153,9 @@ export type SemanticContextApplyResult =
         | "origin_kind_unsupported"
         | "origin_reference_incompatible"
         | "kind_mismatch"
-        | "revision_exhausted";
+        | "revision_exhausted"
+        | "mutation_history_exhausted"
+        | "coordinator_closed";
       snapshot: SemanticContextGroup;
       receipt: SemanticContextReceipt;
     };
@@ -176,6 +178,8 @@ const CONTROL = /[\u0000-\u001f\u007f]/;
 const MAX_REVISION = 2_147_483_646;
 const MAX_PORTS = 64;
 const MAX_SET_REFS = 16;
+/** Never evict exact operation receipts: the mounted owner must renew its epoch after saturation. */
+export const MAX_SEMANTIC_CONTEXT_MUTATIONS = 1024;
 
 type Obj = Record<string, unknown>;
 
@@ -607,6 +611,7 @@ export function createSemanticContextCoordinator(
     adapters.set(adapter.adapter_id, adapter);
   }
   const seen = new Map<string, { delta: SemanticContextDelta; receipt: SemanticContextReceipt }>();
+  let closed = false;
 
   const snapshot = () => cloneJson(group);
 
@@ -621,6 +626,7 @@ export function createSemanticContextCoordinator(
   }
 
   function apply(raw: unknown): SemanticContextApplyResult {
+    if (closed) return fail("coordinator_closed");
     const parsed = validateSemanticContextDelta(raw);
     if (!parsed.ok) return fail("invalid_delta");
     const delta = parsed.value;
@@ -645,6 +651,10 @@ export function createSemanticContextCoordinator(
       return fail("epoch_mismatch", delta.mutation_id, [{ code: "epoch_mismatch" }]);
     }
     if (delta.group_id !== group.group_id) return fail("group_mismatch", delta.mutation_id);
+    // Exact old retries/conflicts resolve above. A new identity never evicts an old one.
+    if (seen.size >= MAX_SEMANTIC_CONTEXT_MUTATIONS) {
+      return fail("mutation_history_exhausted", delta.mutation_id);
+    }
     if (delta.base_revision !== group.revision) {
       return fail("stale_base", delta.mutation_id, [{
         code: "stale_base",
@@ -747,6 +757,16 @@ export function createSemanticContextCoordinator(
         receipt.rejected_ports.push({ port_id: port.port_id, reason: "reference_incompatible" });
         continue;
       }
+      // A transformation may change temporal authority even when the input is LIVE.
+      const projectedTemporal = requestedTemporal(checked.value);
+      if (projectedTemporal && !port.temporal_capabilities.includes(projectedTemporal)) {
+        receipt.temporal_mismatches.push({
+          port_id: port.port_id,
+          requested: projectedTemporal,
+          supported: [...port.temporal_capabilities],
+        });
+        continue;
+      }
       receipt.applied_ports.push(port.port_id);
       deliveries.push({ port_id: port.port_id, value: checked.value });
     }
@@ -764,5 +784,12 @@ export function createSemanticContextCoordinator(
     };
   }
 
-  return { snapshot, apply };
+  function close(): void {
+    if (closed) return;
+    closed = true;
+    seen.clear();
+    adapters.clear();
+  }
+
+  return { snapshot, apply, close };
 }
