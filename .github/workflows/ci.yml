@@ -368,3 +368,5 @@ jobs:
           command -v psql
       - name: Exercise migration, replay, CAS and owner isolation
         run: python -m pytest tests/test_investigation_postgres.py -q
+      - name: Exercise drawing snapshots, replacement and actual competing sessions
+        run: python tests/sql/audit04/run_native_fixture.py --out-dir "$RUNNER_TEMP/audit04-evidence"

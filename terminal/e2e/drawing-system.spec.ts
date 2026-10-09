@@ -1,3 +1,4 @@
+import { normalizeDrawings } from "../lib/drawings";
 import { expect, test, type Locator, type Page } from "@playwright/test";
 import { DRAWING_TOOL_REGISTRY } from "../lib/drawingTools";
 import { PHONE_MAX } from "./phoneChrome";
@@ -130,7 +131,7 @@ async function openTerminal(
       await route.fulfill({
         status: 200,
         contentType: "application/json",
-        body: JSON.stringify({ drawings: options.drawings ?? [] }),
+        body: JSON.stringify({ drawings: normalizeDrawings(options.drawings ?? []), revision: options.drawings?.length ? "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa" : null, schemaVersion: 1 }),
       });
       return;
     }
@@ -138,7 +139,7 @@ async function openTerminal(
     await route.fulfill({
       status: 200,
       contentType: "application/json",
-      body: JSON.stringify({ ok: true }),
+      body: JSON.stringify({ ok: true, operationId: route.request().postDataJSON().operationId, revision: "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb", idempotentReplay: false, superseded: false }),
     });
   });
   await page.addInitScript(() => {
@@ -1458,7 +1459,7 @@ test("account drawing loads fail closed and retry without issuing a destructive 
     await route.fulfill({
       status: 200,
       contentType: "application/json",
-      body: JSON.stringify({ ok: true }),
+      body: JSON.stringify({ ok: true, operationId: route.request().postDataJSON().operationId, revision: "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb", idempotentReplay: false, superseded: false }),
     });
   });
   await page.addInitScript(() => {

@@ -1,3 +1,4 @@
+# 2026-10-09 PR858: hash-only reconciliation for ten Drawing recovery LEX keys. Existing keys/layout/crop bytes unchanged; no recapture or provenance-date change claimed.
 # 2026-10-05 #802/#808 source hash reconciliation: preserves captured PNG bytes/provenance; added Dislocations-only labels are not rendered by these capture surfaces.
 # 2026-09-19 #669 plain-language debt: hash-only restamp of heatmapStrings.ts, flowdeskStrings.ts, plainLabels.ts, i18n.tsx — copy-only change, crops unchanged
 # 2026-09-19 m_f119_detail: hash-only restamp of AlertDetail.tsx (adds kind prop; gates Symbol/What-changed rows for thesis detail), alerts.module.css (detailClose flows to its own row) — crops unchanged
@@ -28,7 +29,7 @@ layoutFiles:
   terminal/lib/heatmapStrings.ts: "201e49991d2b47daaa3e5b490352c61137e020868855959087d67af82e5f346d"
   terminal/lib/flowdeskStrings.ts: "18bd244dee82bdc01c865ec8fd3cf5a95fa258d1fd175f2001dbf3dcfb9e9888"
   terminal/lib/plainLabels.ts: "8f57e32a21abcae530075b7c4da72f170afff8ea38084026995887b4a18fe29a"
-  terminal/lib/i18n.tsx: "858306597ebbfc2d912cefc997ad88e4805cafb08794b5cd4d3dfeacb109371f"
+  terminal/lib/i18n.tsx: "c801f095af26ce80e0f39826c2fec057f4247640deb446fcc9fd959a1e6fdb01"
   terminal/components/PineEditor.tsx: "e48a009b44f32f9501d2890602cd5096257ad57b83bac59147d691e221a69f63"
 theme: dark
 languages: [en, zh]

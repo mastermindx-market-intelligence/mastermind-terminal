@@ -1,3 +1,4 @@
+# 2026-10-09 PR858: hash-only reconciliation for ten Drawing recovery LEX keys. Existing keys/layout/crop bytes unchanged; no recapture or provenance-date change claimed.
 # 2026-10-05 #802/#808 source hash reconciliation: preserves captured PNG bytes/provenance; added Dislocations-only labels are not rendered by these capture surfaces.
 # W9T_F13_9 / MO-DELTA-007 — your team sees its own calls scored together, never a ranking against other teams
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
@@ -13,7 +14,7 @@ layoutFiles:
   terminal/components/settings/SectionAccuracy.tsx: "c15b4a28962cf39ba7783c1bc71647a5677ddb4c957e9b70da3ab44a0b36327d"
   terminal/components/settings/SectionAccuracy.module.css: "461d6510094319f0dfcffff7a99aa4dd3cd3440f66445f9489613dc56775bf03"
   terminal/components/settings/SettingsPanel.tsx: "526725b37af04f1092359a8aca1e6d3d6d62815b5913b3a7eba754e4ca020329"
-  terminal/lib/i18n.tsx: "858306597ebbfc2d912cefc997ad88e4805cafb08794b5cd4d3dfeacb109371f"
+  terminal/lib/i18n.tsx: "c801f095af26ce80e0f39826c2fec057f4247640deb446fcc9fd959a1e6fdb01"
   terminal/lib/personalAccuracyStore.ts: "9d7911a2ed8a307335a8244659ad1f981c5b4268f4bfbdb173eaa0d54cb2f3c5"
   terminal/lib/teamRollup.ts: "80123be06c55db182aeeead19ea6ce737f517268887a4b1dfff71cac02f28b4d"
   terminal/lib/__tests__/teamRollup.test.ts: "d99fc2ed65b1f3b243f1ef87e16a25512f53ab2565995b9089674fdb3ce2c50c"

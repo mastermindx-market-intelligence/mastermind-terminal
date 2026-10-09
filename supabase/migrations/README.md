@@ -208,6 +208,7 @@ amendment, only a README edit.
 | `0026` | — | Reserved for packet B-F12-10 (seat ruling h_t581 2026-09-18) | reserved — not applied |
 | `0027` | `api_keys` | PR #581 (merged as `c9381593` on 2026-09-19, packet B-F12-10, personal read-only API keys) | merged + applied 2026-09-19 (readback receipt held in the seat's handoff kit at `ddl/receipt_0027.json`; the project ref is never written) |
 | `0028` | `0028_investigations.sql` | `IW2-G1-INVESTIGATION`, converged from `INTL-R10-SAVED-RESEARCH`, #777 | applied 2026-10-04; [catalog receipt](https://github.com/mastermindx-market-intelligence/mastermind-terminal/pull/777#issuecomment-5977275494) |
+| `0031` | `0031_drawings_atomic_replace.sql` | `TERMINAL-AUDIT20-A04`, #858 | open; not applied; source ships unapplied and #858 keeps the application and catalog receipts |
 
 `0001`–`0007` and `0010` are **historical**: they predate this ledger, their creating pull
 requests were never recorded in-repo, and so their `pr` and `pr_state` fields in
@@ -354,3 +355,11 @@ receipts are in `terminal/docs/verification/iw2-g1/`. Application deployment and
 real authenticated acceptance are separate gates. Rollback revokes the mutation
 RPC grant and retains heads, revisions, receipts and captures. Current layouts
 are not changed by the migration.
+
+### 0031 — Audit20 drawing snapshot and atomic replacement
+
+Reserved for `TERMINAL-AUDIT20-A04`, root `01a10f92`. Prefixes 0029 and 0030 remain with #804. Source qualification and any production application have separate receipts.
+
+`0031_drawings_atomic_replace.sql` adds three invoker functions on the existing `drawings` table, with no table or RLS changes. GET returns an opaque revision for one coherent owner/symbol snapshot. PUT compares that revision inside the replacement transaction and keeps at most 32 prior operation receipts. Legacy rows are never assigned invented receipts. A table write fence covers old direct INSERTs; this serializes drawing writes across accounts while reads remain available.
+
+Readback: `SELECT p.oid::regprocedure, p.prosecdef, p.proconfig FROM pg_proc p JOIN pg_namespace n ON n.oid=p.pronamespace WHERE n.nspname='public' AND p.proname IN ('validate_drawing_replace_input','read_drawings_collection','replace_drawings_collection');` Verify all three are invoker (`prosecdef=false`), with `search_path=pg_catalog`, execute only for the authenticated role, and `public.drawings` still has RLS enabled. Application status remains **unapplied** until the owning PR receives apply and catalog receipts. Rollback drops only these functions after rolling back the API; drawing rows are preserved.
