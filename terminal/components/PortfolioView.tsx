@@ -74,9 +74,9 @@ type ManifestRow = { name?: string; zh?: string; col?: string; last?: number; ch
 const fmt = (n: number | null | undefined, d = 2) =>
   (n == null || !isFinite(n) ? "—" : n.toLocaleString("en-US", { minimumFractionDigits: d, maximumFractionDigits: d }));
 const money = (n: number | null | undefined, currency?: string | null) =>
-  (n == null || !isFinite(n) ? "—" : `${currency ? currency + " " : ""}${n.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`);
+  (n == null || !isFinite(n) || !currency ? "—" : `${currency} ${n.toLocaleString("en-US", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`);
 const signed = (n: number | null | undefined, currency?: string | null) =>
-  (n == null || !isFinite(n) ? "—" : `${n >= 0 ? "+" : ""}${money(n, currency)}`);
+  (n == null || !isFinite(n) || !currency ? "—" : `${currency} ${n >= 0 ? "+" : ""}${fmt(n)}`);
 const signedPct = (n: number | null | undefined) =>
   (n == null || !isFinite(n) ? "—" : `${n >= 0 ? "+" : ""}${n.toFixed(2)}%`);
 

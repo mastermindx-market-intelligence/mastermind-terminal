@@ -20,9 +20,17 @@ DO $$ BEGIN
     OR (SELECT atttypid FROM pg_attribute WHERE attrelid='public.portfolio_positions'::regclass AND attname='entry_currency_basis' AND NOT attisdropped) <> 'jsonb'::regtype THEN
     RAISE EXCEPTION 'portfolio entry-unit column type mismatch';
   END IF;
+  IF EXISTS (SELECT 1 FROM pg_attribute WHERE attrelid='public.portfolio_positions'::regclass
+      AND attname IN ('entry_currency','entry_currency_basis') AND NOT attisdropped AND (attnotnull OR atthasdef)) THEN
+    RAISE EXCEPTION 'portfolio entry-unit columns must be nullable without defaults';
+  END IF;
   IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conrelid='public.portfolio_positions'::regclass AND conname='portfolio_entry_currency_shape') THEN
     ALTER TABLE public.portfolio_positions ADD CONSTRAINT portfolio_entry_currency_shape
       CHECK (entry_currency IS NULL OR (entry_currency ~ '^[A-Z]{3}$' AND entry_currency NOT IN ('XXX','XTS')));
+  ELSIF (SELECT regexp_replace(pg_get_constraintdef(oid),'[[:space:]]','','g')
+      FROM pg_constraint WHERE conrelid='public.portfolio_positions'::regclass AND conname='portfolio_entry_currency_shape')
+      <> regexp_replace($shape$CHECK (((entry_currency IS NULL) OR ((entry_currency ~ '^[A-Z]{3}$'::text) AND (entry_currency <> ALL (ARRAY['XXX'::text, 'XTS'::text])))))$shape$,'[[:space:]]','','g') THEN
+    RAISE EXCEPTION 'portfolio entry-unit constraint shape mismatch';
   END IF;
 END $$;
 
@@ -48,3 +56,15 @@ FOR EACH ROW EXECUTE FUNCTION public.portfolio_entry_currency_receipt();
 COMMENT ON COLUMN public.portfolio_positions.entry_currency IS 'Explicit user-recorded entry price currency; NULL means unknown, including legacy rows.';
 COMMENT ON COLUMN public.portfolio_positions.entry_currency_basis IS 'Exact ticker/price receipt for the entry currency. Older writers changing either invalidate it; not an FX or quote source.';
 COMMIT;
+
+-- down:
+-- Roll back the application only. Retain recorded units and the compatibility
+-- fence rather than dropping user data or reviving stale declarations.
+-- SELECT 'retain additive entry-unit columns and receipt fence' AS rollback;
+
+-- readback:
+-- SELECT a.attname, format_type(a.atttypid,a.atttypmod) AS type, a.attnotnull, a.atthasdef FROM pg_attribute a WHERE a.attrelid='public.portfolio_positions'::regclass AND a.attname IN ('entry_currency','entry_currency_basis') AND NOT a.attisdropped ORDER BY a.attname;
+-- SELECT pg_get_constraintdef(oid), convalidated FROM pg_constraint WHERE conrelid='public.portfolio_positions'::regclass AND conname='portfolio_entry_currency_shape';
+-- SELECT p.oid::regprocedure, p.prosecdef, p.proconfig FROM pg_proc p JOIN pg_namespace n ON n.oid=p.pronamespace WHERE n.nspname='public' AND p.proname='portfolio_entry_currency_receipt';
+-- SELECT t.tgname, t.tgenabled, pg_get_triggerdef(t.oid) FROM pg_trigger t WHERE t.tgrelid='public.portfolio_positions'::regclass AND t.tgname='portfolio_entry_currency_receipt' AND NOT t.tgisinternal;
+-- SELECT c.relrowsecurity, c.relforcerowsecurity FROM pg_class c WHERE c.oid='public.portfolio_positions'::regclass;

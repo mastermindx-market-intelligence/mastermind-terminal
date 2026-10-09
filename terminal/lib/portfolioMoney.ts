@@ -61,5 +61,5 @@ export const moneyCopy = {
   entryCurrency: { en: "Currency of entry price", zh: "入场价格币种" },
   entryCurrencyHint: { en: "Use a currency code such as USD or HKD. Leave blank if unknown.", zh: "使用 USD、HKD 等币种代码。未知时留空。" },
   unknownCurrency: { en: "Currency not recorded", zh: "未记录币种" },
-  unavailableTotals: { en: "Some monetary totals are unavailable because units are missing or differ. No currency conversion has been applied.", zh: "部分金额汇总因币种缺失或不同而不可用，未进行货币换算。" },
+  unavailableTotals: { en: "Some totals are unavailable because price data or units are missing, incompatible or outside the supported numeric range. No currency conversion has been applied.", zh: "部分汇总因价格数据或币种缺失、不兼容或超出支持的数值范围而不可用，未进行货币换算。" },
 } as const;

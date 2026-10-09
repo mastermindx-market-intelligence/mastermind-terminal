@@ -450,6 +450,7 @@ export function serializeCsv(doc: AccountExportDoc): string {
     out += csvRow(["data", "portfolio_positions", pos.id, "ticker", pos.ticker]);
     out += csvRow(["data", "portfolio_positions", pos.id, "shares", pos.shares]);
     out += csvRow(["data", "portfolio_positions", pos.id, "entry_price", pos.entryPrice]);
+    out += csvRow(["data", "portfolio_positions", pos.id, "entry_currency", pos.entryCurrency ?? null]);
     out += csvRow(["data", "portfolio_positions", pos.id, "entry_date", pos.entryDate]);
     out += csvRow(["data", "portfolio_positions", pos.id, "notes", pos.notes]);
     out += csvRow(["data", "portfolio_positions", pos.id, "status", pos.status]);

@@ -64,6 +64,21 @@ describe("actual portfolio monetary boundaries", () => {
     expect(marketValue({ ...lot(), shares: 2 }, 1e308, "USD")).toBeNull();
     expect(costBasis({ ...lot(), shares: 2, entryPrice: 1e308 })).toBeNull();
   });
+  it("does not drop an overflowing eligible lot and total the smaller lot", () => {
+    const result = bookTotals([lot("AAA"), { ...lot("BBB"), shares: 2, entryPrice: 1e308 }], {
+      AAA: { last: 110, chg: 10, currency: "USD" }, BBB: { last: 1e308, chg: 10, currency: "USD" },
+    }, {});
+    expect(result.marketValue).toBeNull(); expect(result.costBasis).toBeNull();
+    expect(result.sinceEntry).toBeNull(); expect(result.dayChange).toBeNull();
+    expect(result.monetaryGaps).toContain("BBB");
+  });
+  it("does not total daily movement when one priced lot has no daily observation", () => {
+    const result = bookTotals([lot("AAA"), lot("BBB")], {
+      AAA: { last: 110, chg: 10, currency: "USD" }, BBB: { last: 110, currency: "USD" },
+    }, {});
+    expect(result.marketValue).toBe(220); expect(result.sinceEntry).toBe(20);
+    expect(result.dayChange).toBeNull();
+  });
   it("reads explicit entry currency and preserves unknown legacy rows", () => {
     expect(rowToPosition({ id: "p", ticker: "AAPL", entry_price: 100, entry_currency: "USD", entry_currency_basis: { ticker: "AAPL", price: 100 } }))
       .toMatchObject({ entryCurrency: "USD" });

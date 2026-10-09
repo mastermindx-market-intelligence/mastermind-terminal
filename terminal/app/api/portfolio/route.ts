@@ -220,7 +220,7 @@ async function buildRisk(positions: readonly Position[], cookieHeader: string | 
     artifacts = {};
   }
   return computePortfolioRisk(
-    positions.map((p) => ({ ticker: p.ticker, shares: p.shares, entryPrice: p.entryPrice, status: p.status })),
+    positions.map((p) => ({ ticker: p.ticker, shares: p.shares, entryPrice: p.entryPrice, entryCurrency: p.entryCurrency, status: p.status })),
     artifacts,
     // MAJOR 2: `coverageSource` reports whether the caller's OWN session cookie was present for
     // this fan-out, never whether any individual read happened to succeed — an anonymous caller

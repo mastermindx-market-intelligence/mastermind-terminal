@@ -210,6 +210,7 @@ export async function GET() {
     ticker: p.ticker,
     shares: p.shares,
     entryPrice: p.entryPrice,
+    entryCurrency: p.entryCurrency,
     status: p.status,
   }));
 

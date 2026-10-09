@@ -508,40 +508,41 @@ export function bookTotals(
   let based = 0;
   for (const position of open) {
     const historicalCost = finiteProduct(position.shares, position.entryPrice);
+    const historicalEligible = finite(position.shares) && finite(position.entryPrice);
     const entryUnit = priceCurrency(position.entryCurrency);
-    if (historicalCost !== null) {
-      costs.push({ amount: historicalCost, currency: entryUnit });
-      if (!entryUnit) gap(monetaryGaps, position.ticker);
+    if (historicalEligible) {
+      costs.push({ amount: historicalCost ?? NaN, currency: entryUnit });
+      if (!entryUnit || historicalCost === null) gap(monetaryGaps, position.ticker);
     }
     const quote = nativePrice(quotes[position.ticker], manifest[position.ticker]);
     const value = quote ? finiteProduct(position.shares, quote.last) : null;
-    if (value === null || !quote) { if (!quote) gap(unpriced, position.ticker); continue; }
-    values.push({ amount: value, currency: quote.currency });
-    if (!quote.currency) gap(monetaryGaps, position.ticker);
-    if (historicalCost === null) gap(noBasis, position.ticker);
+    if (!quote || !finite(position.shares)) { if (!quote) gap(unpriced, position.ticker); continue; }
+    values.push({ amount: value ?? NaN, currency: quote.currency });
+    if (!quote.currency || value === null) gap(monetaryGaps, position.ticker);
+    if (!historicalEligible) gap(noBasis, position.ticker);
     else {
       // Retain every priced/based lot in the cohort, even when its units are unknown.
       // Dropping it and renormalizing the known subset would manufacture a common P&L.
       const unit = entryUnit && entryUnit === quote.currency ? entryUnit : null;
-      if (!unit) gap(monetaryGaps, position.ticker); else based += 1;
-      pnlCosts.push({ amount: historicalCost, currency: unit });
-      pnlValues.push({ amount: value, currency: unit });
+      if (!unit || historicalCost === null || value === null) gap(monetaryGaps, position.ticker); else based += 1;
+      pnlCosts.push({ amount: historicalCost ?? NaN, currency: unit });
+      pnlValues.push({ amount: value ?? NaN, currency: unit });
     }
-    if (quote.chg !== null) {
+    if (quote.chg !== null && value !== null) {
       const previous = value / (1 + quote.chg / 100), day = value - previous;
-      if (finite(previous) && finite(day)) days.push({ amount: day, currency: quote.currency });
-    }
+      days.push({ amount: finite(previous) && finite(day) ? day : NaN, currency: quote.currency });
+    } else days.push({ amount: NaN, currency: quote.currency });
   }
   const value = commonMoney(values), cost = commonMoney(costs), pv = commonMoney(pnlValues), pc = commonMoney(pnlCosts), day = commonMoney(days);
   const pnl = pv && pc ? pv.amount - pc.amount : null;
   const pct = pnl !== null && pc && pc.amount !== 0 ? pnl / pc.amount * 100 : null;
-  if (values.length && !value || costs.length && !cost || pnlCosts.length && (!pv || !pc)) {
+  if (values.length && !value || costs.length && !cost || pnlCosts.length && (!pv || !pc) || days.length && !day) {
     for (const position of open) gap(monetaryGaps, position.ticker);
   }
   return {
     openCount: open.length, closedCount: positions.length - open.length,
     // Priced/sized coverage is separate from common-unit availability.
-    valued: values.length, based,
+    valued: values.filter(part => finite(part.amount)).length, based,
     marketValue: value?.amount ?? null, marketValueCurrency: value?.currency ?? null,
     costBasis: cost?.amount ?? null, costBasisCurrency: cost?.currency ?? null,
     sinceEntry: finite(pnl) ? pnl : null, sinceEntryPct: finite(pct) ? pct : null,

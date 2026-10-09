@@ -23,12 +23,13 @@ vi.mock("@/components/PortfolioTargets.module.css", () => ({
 
 (globalThis as unknown as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 
+// Mathematical controls declare a fictional shared USD entry unit.
 const pos = (
   ticker: string,
   shares: number | null,
   entryPrice: number | null,
   status: "open" | "closed" = "open",
-): HistoryInputPosition => ({ ticker, shares, entryPrice, status });
+): HistoryInputPosition => ({ ticker, shares, entryPrice, entryCurrency: "USD", status });
 
 const DATES = ["2024-01-02", "2024-01-03", "2024-01-04", "2024-01-05", "2024-01-08", "2024-01-09"];
 const series = (closes: number[]): CloseSeries => DATES.map((date, i) => ({ date, close: closes[i] }));
