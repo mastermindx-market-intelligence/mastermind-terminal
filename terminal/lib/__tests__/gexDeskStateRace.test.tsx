@@ -9,11 +9,16 @@ const transport = vi.hoisted(() => ({
   frames: [] as Array<{ selected: string; received: string | null }>,
   pending: [] as Array<{ key: string; resolve: (value: unknown) => void; reject: (error: Error) => void }>,
 }));
-vi.mock("@/lib/flowClientCache", () => ({
-  flowGet: (key: string) => key.startsWith("gexstate:")
+vi.mock("@/lib/flowClientCache", () => {
+  const read = (key: string): Promise<unknown> => key.startsWith("gexstate:")
     ? new Promise((resolve, reject) => transport.pending.push({ key, resolve, reject }))
-    : Promise.resolve(null),
-}));
+    : Promise.resolve(null);
+  return {
+    flowGetResult: (key: string) => read(key).then((data) =>
+      data == null ? { status: "absent", httpStatus: 404 } : { status: "data", data }),
+    flowInvalidate: () => undefined,
+  };
+});
 vi.mock("@/lib/flowStream", () => ({ useFlowStream: () => ({ data: null, error: null }) }));
 vi.mock("@/lib/i18n", () => ({ useLang: () => ({ lang: "en" }) }));
 vi.mock("@/lib/searchTrack", () => ({ trackSearch: vi.fn() }));
