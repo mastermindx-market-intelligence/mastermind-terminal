@@ -21,3 +21,19 @@ Missing replay inputs remain an explicit unavailable panel in both themes, with 
 `evidence/appearance-qualification.json` binds source hashes, ten inspected native Chrome screenshots and logs. The required dark/light × EN/ZH × desktop/mobile matrix covers CSS1440×1100 and390×844, at the user's existing150% Chrome zoom. These are desktop viewport overrides, not physical phones or pinch gestures. Additional dark-English and light-Chinese desktop images cover unavailable Replay. The 13/76/267 selection values survive theme/language/lens changes with no horizontal document overflow. Actual Auto at local16:00 renders light; 07:00/19:00 boundaries, account mismatch, permission withdrawal, exact root restoration and StrictMode cleanup are component-test evidence.
 
 Parent visual inspection qualifies the implemented matrix. Independent design/source review, authenticated account persistence, all-control/device coverage and production acceptance remain open. Earlier graphics/resource measurements keep their original source identity. This document is not full-project acceptance.
+
+## Legend composition follow-up
+
+The call/put, metric, sign and area-law legend now precedes the canvas. The text,
+colors and marker meaning are unchanged. This makes the encoding readable before
+the landscape at desktop entry, while retaining the same reading order when the
+layout stacks on narrow screens. The inspector continues to use the Lab's single
+scroll container; Compare, Dismiss and the disabled Save explanation remain
+reachable below the fold.
+
+`evidence/legend-composition-qualification.json` records 16 local Chromium layout
+and control cases: dark/light × EN/ZH × CSS1440×1100,1440×900,820×1180,390×844.
+The smaller viewports were reached by resizing after setting the existing shared
+appearance control. These headless fixture captures are separate from the prior
+native Chrome150% appearance matrix; they do not replace its source identity or
+establish physical-mobile, account-sync, performance or production acceptance.

@@ -109,12 +109,13 @@ export function OptionsResearchLab({ root, matrix, volatility = null, lang, onCl
             <label><span className={styles.sr}>{t("expiry")}</span><select value={expiry} onChange={e => { setExpiry(e.target.value); setPage(0); }}><option value="all">{t("expiry")}</option>{[...new Set(data.rows.map(r => r.expiry))].map(exp => <option key={exp}>{exp}</option>)}</select></label>
             <button aria-pressed={mode === "3d"} onClick={() => setMode(mode === "3d" ? "table" : "3d")}>{mode === "3d" ? t("table") : t("chart")}</button>
           </div>
+          <p className={styles.legend}><i className={styles.call} />{t("call")} <i className={styles.put} />{t("put")} · {t(metric)} · {t("renderLaw")}</p>
+          <p className={styles.legend}>{t("areaLaw").replace("{cap}", String(domain.maxDiameter))}</p>
           {mode === "3d" && !failed && marks.length > 0 && <SceneBoundary fallback={unavailable}><ResearchScene marks={marks} domain={domain} selected={safeSelection.selected}
             onSelect={(key, origin) => { focusOrigin.current = origin; pin(key); }} onFailure={() => setFailed(true)} lang={lang} /></SceneBoundary>}
           {failed && unavailable}
           {marks.length === 0 && <p className={styles.notice}>{t("noValues")}</p>}
-          <p className={styles.legend}><i className={styles.call} />{t("call")} <i className={styles.put} />{t("put")} · {t(metric)} · {t("renderLaw")}</p>
-          <p className={styles.legend}>{t("areaLaw").replace("{cap}", String(domain.maxDiameter))}</p>{marks.length > 20000 && <p className={styles.notice}>{t("markCap")}</p>}
+          {marks.length > 20000 && <p className={styles.notice}>{t("markCap")}</p>}
         </div> : lens === "volatility" ? <ResearchVolatilitySlice data={vol} lang={lang} side={side} expiry={expiry}
           selected={sameVolSession ? safeSelection.selected : null} canPin={key => sameVolSession && data.rows.some(r => r.key === key)}
           onSelect={(key, origin) => { focusOrigin.current = origin; pin(key); }} />

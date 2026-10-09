@@ -1,5 +1,51 @@
 # Independent source-review disposition
 
+## Design review r1 and legend composition repair — 2026-10-09
+
+The original `options3d-01a118f3-design-review-r1` completed through the admitted
+Grok/ubuntu0 route after the installed support repair and a genuine capacity
+change. Actual START, complete 9,060-byte output and zero-residual cleanup are
+verified; lease `c6a4e8bb2caf` is released. The useful report was accepted through
+the canonical adapter and `accepted_by=reviewer` was read back. Output SHA256:
+`27d32442b9293929d915c2175f161d28337427995e66a786005cf83f33061f40`.
+Its verdict remains `NEEDS_REPAIR`; acceptance of the report is not acceptance of
+every suggested fix or the full design gate.
+
+The reviewer reports viewing all ten original appearance captures at frozen d035,
+with their hashes and actual pixel/crop mechanism. Dark and light material
+treatments, bilingual semantics and unavailable Replay honesty passed within that
+image scope. The report cannot prove interaction, native performance or production.
+
+The two desktop findings were adjudicated against current6369 source and actual
+local browser behavior before editing:
+
+- Inspector actions were below the original viewport crop, not permanently
+  clipped. Four before-repair cases (dark/light × EN/ZH, CSS1440×1100) scrolled the
+  existing Lab container, hit-tested all targets, executed Compare and Dismiss,
+  and reached disabled Save plus its explanation. Nested inspector scrolling and
+  a pinned action footer were therefore not adopted.
+- The legend was also reachable; its panel's client and scroll heights were both
+  631px. Its position after the scene nevertheless hid the encoding on initial
+  desktop entry. The accepted composition repair moves the existing two legend
+  paragraphs before `ResearchScene`, without changing copy, colors, geometry,
+  data admission, inspector layout or Save.
+
+The old narrow English crop did not establish an unreachable-value defect. The
+affected layout is covered by the new 16-case fixture matrix, including narrow
+English and Chinese. The initial harness mistakes (keyed fixture envelope,
+desktop-only Settings selector, hydration and closing-overlay timing) are retained
+in the external raw proofs as harness errors, not source failures. Seven existing
+view tests, typecheck, changed-file lint and production build pass. Independent
+delta review and exact-head hosted CI remain separate gates.
+
+Parent adjudication SHA256:
+`f22beb4eab8ce6e4c83c99d55acd2381b1a12fd284c38b892879fd801c65cb5b`.
+External evidence base: `/Volumes/Mastermind/evidence/options-3d-research-lab-01a118f3/`.
+Saved recovery, rights, independent performance and authenticated release remain
+separate; PR846 remains draft and Save disabled.
+
+## Original source review r1
+
 Retained Fabric run: `options3d-01a118f3-source-review-r1`, original root `01a118f3-fc4e-7941-b432-03703dccd19b`. Reviewed head `1f7eed536be8f4593b99b188094ec1984afe410e`, base `d660d98b1ebc0bdf0d1b16d66202b1760f6cc94a`. The report returned rc=0 with 8,616 bytes, was consumed through the same adapter, and was accepted as a useful review report after parent adjudication. No browser or production run was performed by that reviewer. This is not independent approval of later source.
 
 | Finding | Parent disposition and evidence |

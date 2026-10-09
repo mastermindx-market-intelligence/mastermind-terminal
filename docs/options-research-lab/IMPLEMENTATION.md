@@ -197,3 +197,30 @@ Since the prior frontier, the Chrome conflict and old temporary-tab cleanup were
 IW2 independently accepted fixture/reference/session interoperability for b19d8751 (external `iw2-interop-acceptance-b19d8751.json`); this is not immutable retention, arbitrary precision, current rights, saved recovery, full Lab review or release admission. Producer01a10340 remains the live writer on Macro7861, with actual test-source-generated A/B fixtures but no frozen retention/current-rights return yet. Its last git-apply action completed successfully; an unchanged waitingOnApproval marker is not itself a refusal. Read-only native Codex app access was explicitly denied at00:19Z; do not route around it or transfer writer custody. IW2 owns future matching application/versioned-manifest/additive-SQL admission. Save stays disabled,0028 untouched, no new store or head-for-history substitution.
 
 Next: publish this repair on the same draft846, attach one new exact-head CI observer to the existing heartbeat, then consume concrete producer/admission returns and any genuinely changed review capacity. All previous observers are closed. Last Minimax placement00:31Z was NO_HOST_ELIGIBLE; r3 remains terminal/consumed without review, Sol routing declined. Keep original root01a118f3-fc4e-7941-b432-03703dccd19b and the heartbeat ACTIVE. Full delivery still requires immutable saved recovery, independent source/design/performance acceptance and authenticated production release.
+
+## Legend composition repair — 2026-10-09
+
+On the same PR846 and original root, the admitted design reviewer returned a useful
+report against the original appearance matrix. Parent actual-browser diagnosis
+refuted permanent inspector/legend clipping: existing Lab scrolling reaches all
+actions, and Compare/Dismiss execute. The accepted desktop composition finding
+was narrower: the encoding key followed the chart and sat below the entry viewport.
+The two existing legend paragraphs now precede ResearchScene. All text, colors,
+renderer/material bytes, inspector behavior, data rules and disabled Save remain.
+
+Validation: 16 unique actual-browser fixture cases cover dark/light, EN/ZH and
+CSS1440x1100,1440x900,820x1180,390x844. Seven existing view tests, TypeScript,
+changed-file lint, production build and diff whitespace check pass. Twelve new
+images and compact exact-source qualification are in
+`evidence/legend-composition-qualification.json`. Browser setup corrections remain
+recorded as harness errors. These headless CSS layout captures do not replace the
+prior native150percent appearance/performance evidence or prove authenticated
+production. All temporary browser contexts and the local fixture server are closed.
+
+The prior6369CI/CodeQL acceptance remains bound to6369; the published legend
+repair requires its own hosted checks and independent visual delta review. Source
+r4 and prior design material observations retain their original scopes. Save
+remains off, PR846 draft, mission incomplete. Producer147c numeric/observed-side
+proof is closed scoped; a new hosted curated-exclusive-set mismatch was returned
+once to its existing7861 owner. Store/identity/current-rights/recovery and release
+gates remain with the existing owners.
