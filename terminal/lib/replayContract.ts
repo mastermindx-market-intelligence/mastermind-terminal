@@ -354,6 +354,9 @@ export function replayEarlyDotAdmission(
     if (sessions[mid].slice(0, 10) < day) lo = mid + 1; else hi = mid;
   }
   if (lo >= sessions.length || sessions[lo].slice(0, 10) !== day) return false;
+  // Assumes the chart's daily sessions are the engine's: the dot's date opens its 3D bar, so that
+  // bar closes two chart sessions later. A session the engine had but the chart lacks (or the
+  // reverse) would shift this by one session; the dot carries no close date to check against.
   const known = sessions[Math.min(lo + 2, sessions.length - 1)].slice(0, 10);
   return known <= lastSession;
 }
