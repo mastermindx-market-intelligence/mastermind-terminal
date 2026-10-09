@@ -44,8 +44,16 @@ export function settleInvestigationSave(state: InvestigationSaveState, principal
 export function retryInvestigationSave(state: InvestigationSaveState, principal: string): InvestigationCommand | null {
   // A persisted local rejection is never proof of a fence; recovery rechecks the owner.
   if (state.phase !== "rejected" || state.reason !== "not_applied" || state.principal !== principal) return null;
-  const command = parseInvestigationCommand({...state.command,operation_id:crypto.randomUUID()});
-  return command;
+  const retained = parseInvestigationCommand(state.command, true);
+  if (!retained) return null;
+  // The original operation is already fenced. Only this new draft may adopt
+  // the current shape; never rewrite an uncertain request or invent a clock.
+  const manifest = (retained.action === "create" || retained.action === "revise")
+    && !Object.hasOwn(retained.manifest, "argument_relations")
+    ? { ...retained.manifest, argument_relations: [] }
+    : retained.manifest;
+  const command = parseInvestigationCommand({ ...retained, manifest });
+  return command ? { ...command, operation_id: crypto.randomUUID() } : null;
 }
 export function investigationCommandToReconcile(state: InvestigationSaveState, principal: string): InvestigationCommand | null {
   return (state.phase === "pending" || state.phase === "uncertain") && state.principal === principal ? JSON.parse(JSON.stringify(state.command)) : null;

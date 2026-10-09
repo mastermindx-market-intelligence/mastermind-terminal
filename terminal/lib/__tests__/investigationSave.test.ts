@@ -82,3 +82,52 @@ it("treats the at-cap no-effect answer as final without permitting the original 
  expect(unknown.phase).toBe("uncertain");expect(retryInvestigationSave(unknown,"alice")).toBeNull();
  expect(settleInvestigationSave(uncertain,"alice",{status:"not_applied",id:original.id,operation_id:original.id,reason:"limit_reached"}).phase).toBe("uncertain");
 });
+
+
+describe("confirmed-fenced legacy draft transition", () => {
+ const legacy = () => {
+  const original = command();
+  const { argument_relations: _relations, ...manifest } = original.manifest;
+  return { ...original, manifest };
+ };
+ it.each(["create", "revise"])("preserves the legacy %s draft until an owner fence admits its new shape", action => {
+  const original = { ...legacy(), action, expected_revision: action === "create" ? 0 : 3,
+   layout_capture: { layout_id: "50000000-0000-4000-8000-000000000001", expected_revision: 2 } };
+  const before = JSON.stringify(original);
+  const recovered = recoverInvestigationSave("alice", { owner: "alice", command: original })!;
+  expect(recovered.phase).toBe("uncertain");
+  expect(investigationCommandToReconcile(recovered, "alice")).toEqual(original);
+  expect(retryInvestigationSave(recovered, "alice")).toBeNull();
+  const miss = settleInvestigationSave(recovered, "alice", { status: "not_found" });
+  expect(retryInvestigationSave(miss, "alice")).toBeNull();
+  const fenced = settleInvestigationSave(miss, "alice", { status: "not_applied", id: original.id, operation_id: original.operation_id });
+  expect(retryInvestigationSave(fenced, "bob")).toBeNull();
+  const replacement = retryInvestigationSave(fenced, "alice")!;
+  expect(replacement).not.toBeNull();
+  expect(replacement.operation_id).not.toBe(original.operation_id);
+  expect({ ...replacement, operation_id: original.operation_id }).toEqual({
+   ...original, manifest: { ...original.manifest, argument_relations: [] },
+  });
+  expect(JSON.stringify(original)).toBe(before);
+  expect(beginInvestigationSave("alice", replacement, { phase: "idle" }).phase).toBe("pending");
+ });
+ it("does not invent a timestamp or erase an old calendar date to make a retry fit", () => {
+  const old = legacy();
+  const original = { ...old, manifest: { ...old.manifest, intent: { ...old.manifest.intent, research_as_of: "2026-10-08" } } };
+  const before = JSON.stringify(original);
+  const recovered = recoverInvestigationSave("alice", { owner: "alice", command: original })!;
+  expect(recovered.phase).toBe("uncertain");
+  const fenced = settleInvestigationSave(recovered, "alice", { status: "not_applied", id: original.id, operation_id: original.operation_id });
+  expect(retryInvestigationSave(fenced, "alice")).toBeNull();
+  expect(JSON.stringify(original)).toBe(before);
+ });
+ it.each(["remove", "restore"])("keeps the exact retained legacy manifest for %s", action => {
+  const original = { ...legacy(), action, expected_revision: 3 };
+  const recovered = recoverInvestigationSave("alice", { owner: "alice", command: original })!;
+  const fenced = settleInvestigationSave(recovered, "alice", { status: "not_applied", id: original.id, operation_id: original.operation_id });
+  const replacement = retryInvestigationSave(fenced, "alice")!;
+  expect(replacement).not.toBeNull();
+  expect(replacement.manifest).toEqual(original.manifest);
+  expect(Object.hasOwn(replacement.manifest, "argument_relations")).toBe(false);
+ });
+});
