@@ -570,7 +570,7 @@ import { buildVisualSeries, participationColor, visualOverlayBundle, visualReado
   EMPTY_VISUAL_CALENDAR, type ChartReadoutMeta, type VisualCalendar, type VisualIntelligenceSettings,
   type VisualSeries } from "@/lib/visualIntelligence";
 import { candleVolumeRank } from "@/lib/suites/trend/candlePainter";
-import { eodSnapshotKnown, replayAxisOf, replaySignalAdmission, replayVisibleCount, type ReplayAxis, type ReplayCutoff } from "@/lib/replayContract";
+import { eodSnapshotKnown, replayAxisOf, replayDayChangePct, replayEarlyDotAdmission, replayReceiptAdmission, replaySignalAdmission, replayVisibleCount, replayWarningAdmission, type ReplayAxis, type ReplayCutoff } from "@/lib/replayContract";
 import { detectGapZones, gapZonesAsOf, type GapZone } from "@/lib/gapZones";
 
 export default function ChartPanel({ symbol, chartType = "candles", indicators, timeframe = "D", replayCutoff = null, onMeta, tool = null, toolActivation = 0, drawingSticky = false, drawingCreationDisabled = false, drawStyle, drawings = [], onDrawingsChange, detectCmd = null, magnet = "off", compare = [], compareCfg = EMPTY_OBJ, isActive = true, syncId = null, liveQuote = null,
@@ -2756,18 +2756,19 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
     // Prophet board/reversal admissions are a distinct, append-only source receipt. They
     // share the slice for delivery efficiency, but never enter indicator.signals and never
     // become Oracle BUYs. Place them at their recorded entry when available, else the bar low.
+    // Under Replay the entry and the marked-to-market return wait for the sessions that produced
+    // them (replayReceiptAdmission) — the ledger prices every receipt through its own as-of date.
     const opps = slice?.opportunities?.events;
     if (Array.isArray(opps)) {
       for (const o of opps) {
-        const ts = typeof o?.surfaced_at === "string" ? o.surfaced_at
-          : typeof o?.entry_date === "string" ? o.entry_date : null;
-        if (!ts || ts > lastSession) continue;
-        const m = snap(ts, "PROPHET"); if (!m) continue;
-        if (typeof o.entry_price === "number" && Number.isFinite(o.entry_price)) m.price = o.entry_price;
+        const adm = replayReceiptAdmission(o, lastSession, replaying);
+        if (!adm.show || !adm.ts) continue;
+        const m = snap(adm.ts, "PROPHET"); if (!m) continue;
+        if (adm.entryPrice != null) m.price = adm.entryPrice;
         m.source = String(o.system || "prophet");
         m.definition = typeof o.definition === "string" ? o.definition : null;
         m.rank = typeof o.rank === "number" ? o.rank : null;
-        m.returnPct = typeof o.return_pct === "number" ? o.return_pct : null;
+        m.returnPct = adm.returnPct;
         m.authority = typeof o.authority === "string" ? o.authority : "candidate";
         marks.push(m);
       }
@@ -2793,12 +2794,16 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
     // resolves through the grid, and the calendar units binary-search the precomputed epoch array
     // (replay re-resolves per tick; the old linear scan cost ~100ms/step here).
     const snapT = (iso: string) => { if (tset.has(iso)) return iso; if (barOf) { const k = barOf.get(iso); return k && tset.has(k) ? k : null; } const i = nearIdx(iso); return i >= 0 ? (times[i] as string) : null; };
+    // Under Replay a dot waits for the close of the 3D bar it is dated by, and a warning for its
+    // known_ts when it ships one (lib/replayContract.ts).
+    const replaying = replayIdxRef.current != null;
+    const sessions = replaying ? (dailyBarsRef.current.length ? dailyBarsRef.current : rows).map((r) => r.time) : [];
     const dots = ((slice?.indicator?.early_dots || []) as string[])
-      .filter((ts) => ts <= lastSession)
+      .filter((ts) => replayEarlyDotAdmission(ts, sessions, lastSession, replaying))
       .map((ts) => ({ t: snapT(ts) as string | null }))
       .filter((m) => m.t) as { t: string }[];
     const warns = ((slice?.indicator?.warnings || []) as { ts: string; kind: string }[])
-      .filter((w) => w?.ts <= lastSession)
+      .filter((w) => replayWarningAdmission(w, lastSession, replaying))
       .map((w) => ({ t: snapT(w.ts) as string | null, kind: w.kind }))
       .filter((m) => m.t) as { t: string; kind: string }[];
     return { dots, warns };
@@ -2872,7 +2877,10 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
       if (showBarChange) valuesHtml += `<b class="status-change ${u ? "up" : "down"}">${u ? "+" : ""}${f(ch)} (${u ? "+" : ""}${cp.toFixed(2)}%)</b>`;
       if (showVolumeRef.current) valuesHtml += `<span class="status-vol"><span class="mut">Vol</span><b>${last.v.toLocaleString("en-US", { notation: "compact", maximumFractionDigits: 2 })}</b></span>`;
       if (showLastDayChangeRef.current) {
-        const dayChange = liveQuoteRef.current?.prevSessionChg ?? liveQuoteRef.current?.chg;
+        // A replayed chart reports its own last session's move; the quote's is today's.
+        const dayChange = replayIdxRef.current == null
+          ? liveQuoteRef.current?.prevSessionChg ?? liveQuoteRef.current?.chg
+          : isIntradayRef.current ? null : replayDayChangePct(dailyBarsRef.current.length ? dailyBarsRef.current : rows, lastSessionOf(rows));
         if (dayChange != null && Number.isFinite(dayChange)) {
           valuesHtml += `<span class="status-day"><span class="mut">Day</span><b class="${dayChange >= 0 ? "up" : "down"}">${dayChange >= 0 ? "+" : ""}${dayChange.toFixed(2)}%</b></span>`;
         }

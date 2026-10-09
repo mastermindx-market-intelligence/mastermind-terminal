@@ -574,6 +574,63 @@ test("Options Levels dated after the replay date are not drawn over it", async (
   expect(await page.evaluate(() => (window as unknown as { __replayDoc?: number }).__replayDoc)).toBe(1);
 });
 
+// A Prophet candidate receipt is dated by the day the board surfaced it, but it ships with a
+// return marked to market through the ledger's LATEST pricing date. Surfaced before the replay
+// date and priced long after it, the receipt used to print that later return on the replayed
+// chart's marker. The receipt itself is fair to show from its surfacing date; its return is not.
+const PROPHET_RECEIPT = {
+  id: "replay-e2e-1", market: "us", system: "prophet", definition: "us_prophet_v2", authority: "candidate",
+  surfaced_at: "2025-03-03", entry_date: "2025-03-04", entry_basis: "next_open", entry_price: 201.25,
+  rank: 7, tier: null, state: "matured", maturity: "matured", latest_price: 276.72, return_pct: 37.5,
+  excess_pct: 20.1, sessions: 160, source_artifact: "us_track_ledger.json", source_as_of: "2026-06-26",
+  priced_through: "2026-06-26",
+} as const;
+async function routeProphetReceipt(page: Page) {
+  await page.route("**/data/NVDA.slice.json", async (route) => {
+    const res = await route.fetch();
+    const doc = res.ok() ? await res.json() : {};
+    doc.opportunities = {
+      schema: "opportunity_timeline.v1", as_of: "2026-06-26", priced_through: { us: "2026-06-26" },
+      events: [PROPHET_RECEIPT],
+    };
+    await route.fulfill({ json: doc });
+  });
+}
+const prophetTitles = (page: Page) => page.evaluate(() =>
+  [...document.querySelectorAll('[data-signal-source="prophet_board"] title')].map((t) => t.textContent ?? ""));
+
+test("a Prophet receipt under Replay shows no return priced after the replay date", async ({ page }) => {
+  skipWithoutReplayEntry(page);
+  test.slow();
+  await routeProphetReceipt(page);
+  await quietQuotes(page);
+  await gotoTerminal(page);
+  await page.evaluate(() => { (window as unknown as { __replayDoc?: number }).__replayDoc = 1; });
+
+  // Live: the receipt is on the chart with its rank and the return measured through today.
+  await expect.poll(() => prophetTitles(page), { timeout: 45_000 }).toEqual([expect.stringContaining("rank #7")]);
+  expect((await prophetTitles(page))[0]).toContain("+37.5%");
+  const liveLast = sessionDate((await witness(page))?.lastBar?.time);
+
+  await toggleToolbarReplay(page);
+  await expect(replayRail(page)).toBeVisible(ACT);
+  await expect.poll(async () => sessionDate((await witness(page))?.lastBar?.time), ACT).not.toBe(liveLast);
+  const cutoff = sessionDate((await witness(page))?.lastBar?.time)!;
+  // The case under test needs the replay date between the receipt's surfacing and its pricing,
+  // or "no return shown" would hold vacuously (no receipt at all, or a return already known).
+  expect(cutoff >= PROPHET_RECEIPT.surfaced_at, `replay date ${cutoff} precedes the receipt`).toBe(true);
+  expect(cutoff < PROPHET_RECEIPT.priced_through, `replay date ${cutoff} is not before the pricing date`).toBe(true);
+  // The receipt stays — it was surfaced by then — but without a return from after the replay date.
+  await expect.poll(async () => (await prophetTitles(page)).map((t) => [t.includes("rank #7"), t.includes("%")]), ACT)
+    .toEqual([[true, false]]);
+
+  // Back to live without a reload: the return is there again.
+  await toggleToolbarReplay(page);
+  await expect(replayRail(page)).toHaveCount(0, ACT);
+  await expect.poll(() => prophetTitles(page), ACT).toEqual([expect.stringContaining("+37.5%")]);
+  expect(await page.evaluate(() => (window as unknown as { __replayDoc?: number }).__replayDoc)).toBe(1);
+});
+
 test("changing the symbol under Replay ends it on the new symbol's live chart", async ({ page }, testInfo) => {
   skipWithoutReplayEntry(page);
   test.slow();
@@ -634,6 +691,14 @@ const LIVE_PRICE = Number((LIVE_PREV_CLOSE * 1.25).toFixed(2));
 type LiveQuote = { basis: string; last: number; sessionDate: string; seconds: number };
 const rthAt = (date: string, hour: number, minute: number) =>
   Date.parse(`${date}T${String(hour).padStart(2, "0")}:${String(minute).padStart(2, "0")}:00Z`) / 1000;
+/** The status line's Day change for a session of LIVE_BARS, as the chart prints it. */
+function liveBarsDayText(session: string): string {
+  const i = LIVE_BARS.findIndex((r) => r[0] === session);
+  expect(i, `${session} is not a session of the fixture`).toBeGreaterThan(0);
+  const pct = ((LIVE_BARS[i][4] - LIVE_BARS[i - 1][4]) / LIVE_BARS[i - 1][4]) * 100;
+  return `${pct >= 0 ? "+" : ""}${pct.toFixed(2)}%`;
+}
+const dayChange = (page: Page) => page.locator(".statusline .status-day b").first();
 function liveQuoteBody(q: LiveQuote, syms: string[]) {
   return { quotes: Object.fromEntries(syms.map((sym) => [sym, sym === LIVE_SYMBOL ? {
     sym, last: q.last, prevClose: LIVE_PREV_CLOSE, chg: ((q.last - LIVE_PREV_CLOSE) / LIVE_PREV_CLOSE) * 100,
@@ -663,6 +728,8 @@ test("a live quote cannot advance a replayed chart, and is there on the return t
     localStorage.setItem("mm.inds", JSON.stringify(["ema"]));
     localStorage.setItem("mm.indHidden", JSON.stringify([]));
     localStorage.setItem("mm.mastermindCandles.v1", "1");
+    // The opt-in "Day" change on the status line reads the quote on a live chart.
+    localStorage.setItem("mm.chartSettings", JSON.stringify({ showLastDayChange: true }));
     localStorage.removeItem("mm.ws");
   });
   await gotoTerminal(page);
@@ -670,6 +737,8 @@ test("a live quote cannot advance a replayed chart, and is there on the return t
     const w = await witness(page);
     return w ? [w.barCount, sessionDate(w.lastBar?.time)] : null;
   }, { timeout: 60_000 }).toEqual([LIVE_BARS.length, LIVE_LAST_SESSION]);
+  // Live, the Day change is the quote's (flat on the last session's close).
+  await expect(dayChange(page)).toHaveText("+0.00%", ACT);
 
   await toggleToolbarReplay(page);
   const rail = replayRail(page);
@@ -678,6 +747,11 @@ test("a live quote cannot advance a replayed chart, and is there on the return t
   const frozen = (await witness(page))!;
   const idx = await rail.getAttribute("data-replay-idx");
   const total = await rail.getAttribute("data-replay-total");
+  // A replayed chart's Day change is its own last session against the one before — not the
+  // quote's day, which belongs to a session the replayed chart has not reached.
+  const frozenDay = liveBarsDayText(sessionDate(frozen.lastBar?.time)!);
+  expect(frozenDay, "the fixture must tell the replayed day from the quote's").not.toBe("+0.00%");
+  await expect(dayChange(page)).toHaveText(frozenDay, ACT);
 
   // A real-time quote for a NEW session — on a live chart this appends a bar (proved below).
   quote = { basis: "REALTIME", last: LIVE_PRICE, sessionDate: LIVE_NEXT_SESSION, seconds: rthAt(LIVE_NEXT_SESSION, 15, 30) };
@@ -688,6 +762,13 @@ test("a live quote cannot advance a replayed chart, and is there on the return t
   expect(after.priceTail).toEqual(frozen.priceTail);
   await expect(rail).toHaveAttribute("data-replay-idx", idx!, ACT);
   await expect(rail).toHaveAttribute("data-replay-total", total!, ACT);
+  await expect(dayChange(page)).toHaveText(frozenDay, ACT);
+  // Stepping repaints the status line while the quote says +25%: the step's own day, not that.
+  await rail.getByRole("button", { name: "Next bar", exact: true }).click(ACT);
+  await expect.poll(async () => (await witness(page))?.barCount ?? 0, ACT).toBe(frozen.barCount + 1);
+  const steppedDay = liveBarsDayText(sessionDate((await witness(page))?.lastBar?.time)!);
+  expect(steppedDay).not.toBe("+25.00%");
+  await expect(dayChange(page)).toHaveText(steppedDay, ACT);
 
   // Negative control: the same quote, once Replay ends, does append the new session.
   await toggleToolbarReplay(page);
@@ -696,4 +777,6 @@ test("a live quote cannot advance a replayed chart, and is there on the return t
     const w = await witness(page);
     return w ? [w.barCount, sessionDate(w.lastBar?.time), w.priceTail?.value] : null;
   }, { timeout: 45_000 }).toEqual([LIVE_BARS.length + 1, LIVE_NEXT_SESSION, LIVE_PRICE]);
+  // …and the Day change is the quote's again.
+  await expect(dayChange(page)).toHaveText("+25.00%", ACT);
 });

@@ -250,6 +250,109 @@ export function replaySignalAdmission(
   return { show: true, retro: isRetroOverride(s) && (!replaying || lastSession >= RETRO_RULE_DATE) };
 }
 
+const dateOf = (v: unknown): string | null => (typeof v === "string" && v.length >= 10 ? v.slice(0, 10) : null);
+const finiteOrNull = (v: unknown): number | null => (typeof v === "number" && Number.isFinite(v) ? v : null);
+
+/**
+ * What a Prophet candidate receipt (opportunity_timeline.v1) may show on a chart whose last
+ * session is `lastSession`. The receipt is dated by the day the board surfaced it (its entry date
+ * for older rows), and that horizon is unchanged. Its figures are not facts of that day: the entry
+ * fills on a LATER session (`entry_basis` "next_open"/"next_session_close") and `return_pct` is
+ * marked to market through the ledger's pricing date (`priced_through`, else `source_as_of`),
+ * which is normally long after. A live chart shows them as recorded. A REPLAYED chart shows the
+ * entry only once its fill session is on the chart (an undated next-session fill: the session
+ * after surfacing; any other basis cannot be placed) and the return only once its pricing date
+ * is — before that the mark sits on the bar and carries no return. The ledger keeps no record of
+ * the return as it stood on earlier dates, so nothing is shown in its place.
+ */
+export function replayReceiptAdmission(
+  o: {
+    surfaced_at?: unknown; entry_date?: unknown; entry_basis?: unknown; entry_price?: unknown;
+    return_pct?: unknown; priced_through?: unknown; source_as_of?: unknown;
+  } | null | undefined,
+  lastSession: string,
+  replaying: boolean,
+): { show: boolean; ts: string | null; entryPrice: number | null; returnPct: number | null } {
+  const ts = typeof o?.surfaced_at === "string" ? o.surfaced_at
+    : typeof o?.entry_date === "string" ? o.entry_date : null;
+  if (!o || !ts || ts > lastSession) return { show: false, ts: null, entryPrice: null, returnPct: null };
+  let entryPrice = finiteOrNull(o.entry_price);
+  let returnPct = finiteOrNull(o.return_pct);
+  if (replaying) {
+    const entryDate = dateOf(o.entry_date);
+    const filled = entryDate != null
+      ? entryDate <= lastSession
+      : typeof o.entry_basis === "string" && o.entry_basis.startsWith("next_") && ts.slice(0, 10) < lastSession;
+    if (!filled) entryPrice = null;
+    const pricedThrough = dateOf(o.priced_through) ?? dateOf(o.source_as_of);
+    if (pricedThrough == null || pricedThrough > lastSession) returnPct = null;
+  }
+  return { show: true, ts, entryPrice, returnPct };
+}
+
+/**
+ * An early dot (GC v2 `early_dots`) is dated by the OPENING session of the engine's 3D bar that
+ * fired it, but the engine evaluates it at that bar's close — its third session, or the newest
+ * session while the bar is still developing (signal_layer/confluence_v2.py `_early_dot_mask`).
+ * So the dot is not knowable on its own date: a daily chart replayed to the dot's date would
+ * otherwise show a signal one or two sessions early. `sessions` is the chart's ascending daily
+ * session list; a dot that is not one of them cannot be placed. Live charts keep the date
+ * horizon they always had.
+ */
+export function replayEarlyDotAdmission(
+  ts: unknown,
+  sessions: readonly string[],
+  lastSession: string,
+  replaying: boolean,
+): boolean {
+  if (typeof ts !== "string" || ts > lastSession) return false;
+  if (!replaying) return true;
+  const day = ts.slice(0, 10);
+  let lo = 0, hi = sessions.length;
+  while (lo < hi) {
+    const mid = (lo + hi) >>> 1;
+    if (sessions[mid].slice(0, 10) < day) lo = mid + 1; else hi = mid;
+  }
+  if (lo >= sessions.length || sessions[lo].slice(0, 10) !== day) return false;
+  const known = sessions[Math.min(lo + 2, sessions.length - 1)].slice(0, 10);
+  return known <= lastSession;
+}
+
+/**
+ * A structure-break warning (GC v2 `warnings`, {ts, kind}) is forward-walked on daily closes and
+ * dated by the session whose close decided it, so it is knowable at `ts`. Admission is the same
+ * as a signal's: a warning that ships a later `known_ts` is withheld from a replay until then.
+ */
+export function replayWarningAdmission(
+  w: { ts?: unknown; known_ts?: unknown; kind?: unknown } | null | undefined,
+  lastSession: string,
+  replaying: boolean,
+): boolean {
+  return replaySignalAdmission(w, lastSession, replaying).show;
+}
+
+/**
+ * The status line's Day change for a REPLAYED chart: the last session on the chart against the
+ * session before it, from the chart's own daily closes. The live quote's change is today's move,
+ * which a replay date in the past has not seen. Null when there is no earlier session or no
+ * usable close — the status line then shows no Day change rather than a later one.
+ */
+export function replayDayChangePct(
+  daily: readonly { time: unknown; c: number }[],
+  lastSession: string,
+): number | null {
+  let i = daily.length - 1;
+  while (i >= 0) {
+    const d = dateOf(daily[i]?.time);
+    if (d != null && d <= lastSession) break;
+    i--;
+  }
+  if (i < 1 || dateOf(daily[i - 1]?.time) == null) return null;
+  const c = daily[i].c, p = daily[i - 1].c;
+  if (!Number.isFinite(c) || !Number.isFinite(p) || p <= 0) return null;
+  return ((c - p) / p) * 100;
+}
+
 /** Equal axes — lets the shell keep one object per chart instead of re-rendering per load. */
 export function sameReplayAxis(a: ReplayAxis | undefined, b: ReplayAxis): boolean {
   if (!a || a.clock !== b.clock || a.at.length !== b.at.length) return false;
