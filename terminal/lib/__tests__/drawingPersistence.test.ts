@@ -290,3 +290,53 @@ describe("concurrent legacy import ownership",()=>{
   expect(storage.getItem(DRAWING_JOURNAL_KEY)).toBe(modern);expect(storage.getItem("mm.drawing.account-outbox.v1")).toBe("{broken");
  });
 });
+
+// Clearing site data or browser eviction removes the journal without any
+// acknowledgement. A missing copy alone must never retire unsaved memory.
+describe("lost browser storage is not an acknowledgement",()=>{
+ const loseSiteData=(storage:MemoryStorage)=>storage.values.clear();
+ it("keeps an unchanged pending copy when the next write follows lost site data",async()=>{
+  const storage=new MemoryStorage();const journal=readDrawingJournal(storage,"account:a");
+  journal.NVDA={drawings:[line("unsaved")],revision:null};
+  expect(await persist(storage,journal)).toBe(true);
+  loseSiteData(storage);
+  journal.AAPL={drawings:[line("other-symbol")],revision:null};
+  expect(await persist(storage,journal)).toBe(true);
+  expect(journal.NVDA?.drawings[0].id).toBe("unsaved");
+  expect(readDrawingJournal(storage,"account:a").NVDA?.drawings[0].id).toBe("unsaved");
+ });
+ it("keeps the exact lost-response operation when the retry write follows lost site data",async()=>{
+  const storage=new MemoryStorage();const journal=readDrawingJournal(storage,"account:a");
+  journal.NVDA={drawings:[line("queued")],revision:null,attempt:{operationId:op,expectedRevision:null,drawings:[line("sent")]}};
+  expect(await persist(storage,journal)).toBe(true);
+  loseSiteData(storage);
+  expect(await persist(storage,journal)).toBe(true);
+  expect(journal.NVDA?.attempt?.operationId).toBe(op);
+  const recovered=readDrawingJournal(storage,"account:a").NVDA;
+  expect(recovered?.attempt).toEqual({operationId:op,expectedRevision:null,drawings:[line("sent")]});
+  expect(prepareDrawingAttempt(recovered!,()=>{throw new Error("must not mint another operation");})?.operationId).toBe(op);
+ });
+ it("keeps unsaved memory on account re-entry after site data was lost",async()=>{
+  const storage=new MemoryStorage();const journal=readDrawingJournal(storage,"account:a");
+  journal.NVDA={drawings:[line("unsaved")],revision:revision};
+  expect(await persist(storage,journal)).toBe(true);
+  loseSiteData(storage);
+  reconcileDrawingJournal(storage,"account:a",journal);
+  expect(journal.NVDA?.drawings[0].id).toBe("unsaved");
+  expect(await persist(storage,journal)).toBe(true);
+  expect(readDrawingJournal(storage,"account:a").NVDA?.drawings[0].id).toBe("unsaved");
+ });
+ it("keeps a pending empty-collection tombstone and an old tab's legacy write after site data was lost",async()=>{
+  const storage=new MemoryStorage();const journal=readDrawingJournal(storage,"account:a");
+  journal.NVDA={drawings:[],revision:revision};
+  expect(await persist(storage,journal)).toBe(true);
+  loseSiteData(storage);
+  // The production v1 writer replaces its whole owner namespace without locks.
+  writeDrawingOutbox(storage,"account:a",{AAPL:[line("old-tab")]});
+  expect(await persist(storage,journal)).toBe(true);
+  const recovered=readDrawingJournal(storage,"account:a");
+  expect(journal.NVDA).toMatchObject({drawings:[],revision});
+  expect(recovered.NVDA).toMatchObject({drawings:[],revision});
+  expect(recovered.AAPL).toMatchObject({drawings:[{id:"old-tab"}],blocked:"legacy"});
+ });
+});

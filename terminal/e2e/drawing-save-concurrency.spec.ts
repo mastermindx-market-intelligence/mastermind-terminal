@@ -36,6 +36,32 @@ test("lost response retries the exact operation after reload before sending newe
  await expect(page.getByTestId("drawing-save-recovery")).toHaveCount(0);
 });
 
+// A site-data clear is not an acknowledgement: the retry must write the exact
+// lost-response operation ahead again and resend it, not reload the cloud.
+test("site-data loss before a retry keeps the unsaved drawing and resends the exact lost-response operation",async({page,context})=>{
+ await seed(page,{drawings:[line("first")],revision:null,attempt:{operationId:original,expectedRevision:null,drawings:[line("first")]}});
+ const puts:any[]=[];const storedAtPut:(string|null)[]=[];
+ await page.route("**/api/drawings**",async(route)=>{
+  if(route.request().method()==="GET"){await route.fulfill(json({drawings:[],revision:null,schemaVersion:1}));return;}
+  const value=route.request().postDataJSON();puts.push(value);
+  storedAtPut.push(await page.evaluate(()=>localStorage.getItem("mm.drawing.account-outbox.v2")));
+  if(puts.length===1){await route.abort("failed");return;}
+  await route.fulfill(json({ok:true,operationId:value.operationId,revision:committed,idempotentReplay:true,superseded:false}));
+ });
+ await open(page);
+ const recovery=page.getByTestId("drawing-save-recovery");
+ await expect(recovery).toContainText("Retry saving",{timeout:20_000});
+ const cdp=await context.newCDPSession(page);
+ await cdp.send("Storage.clearDataForOrigin",{origin:new URL(page.url()).origin,storageTypes:"local_storage"});
+ await expect.poll(()=>page.evaluate(()=>localStorage.getItem("mm.drawing.account-outbox.v2")),{timeout:20_000}).toBeNull();
+ await recovery.getByRole("button",{name:"Retry save",exact:true}).click({timeout:20_000});
+ await expect.poll(()=>puts.length,{timeout:20_000}).toBe(2);
+ expect(puts[1]).toEqual(puts[0]);expect(puts[1].operationId).toBe(original);
+ const copies=JSON.parse(storedAtPut[1]??"{}")["account:responsive@example.com"]?.NVDA?.copies??{};
+ expect(Object.values(copies).map((copy:any)=>copy.attempt?.operationId)).toEqual([original]);
+ await expect(recovery).toHaveCount(0,{timeout:20_000});
+});
+
 test("two devices conflict and cloud survives until an explicit recovery choice",async({page,browser,baseURL})=>{
  const secondContext=await browser.newContext({baseURL,viewport:page.viewportSize()!,hasTouch:(page.viewportSize()?.width ?? 1440)<=820});const second=await secondContext.newPage();
  let cloud:any={drawings:[],revision:null,schemaVersion:1};let commits=0;let calls=0;

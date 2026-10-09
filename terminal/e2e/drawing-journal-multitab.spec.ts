@@ -9,6 +9,13 @@ const bundle = buildSync({
   bundle: true, write: false, format: "iife", globalName: "A04Journal",
   platform: "browser", tsconfig: path.resolve(process.cwd(), "tsconfig.json"),
 }).outputFiles[0].text;
+// The legacy writer is origin/master 048e019c terminal/lib/drawingOutbox.ts
+// (blob 61f16fbd), vendored byte-for-byte: an already-open tab still runs it.
+const legacyBundle = buildSync({
+  entryPoints: [path.resolve(process.cwd(), "e2e/fixtures/productionDrawingOutboxV1.ts")],
+  bundle: true, write: false, format: "iife", globalName: "A04Legacy",
+  platform: "browser", tsconfig: path.resolve(process.cwd(), "tsconfig.json"),
+}).outputFiles[0].text;
 const line = (id: string) => ({ id, kind: "hline", source: "user", schemaVersion: 1, points: [{ t: "2026-01-01", p: 100 }] });
 async function load(page: Page) {
   await page.goto("/terminal?symbol=NVDA");
@@ -190,5 +197,34 @@ test("an already-open legacy writer cannot erase a modern exact retry or resurre
   await page.reload();await page.addScriptTag({content:bundle});
   const reloaded=await page.evaluate(owner=>(window as any).A04Journal.readDrawingJournal(localStorage,owner),owner);
   expect(reloaded.AAPL).toBeUndefined();expect(reloaded.NVDA.attempt.operationId).toBe(operationId);
+ }finally{await old.close();}
+});
+
+// Clearing site data removes the journal without acknowledging anything. The
+// next write from a tab that still holds unsaved work must keep it, together
+// with the exact operation of a save whose response was lost.
+test("a site-data clear is not an acknowledgement for an open tab or an already-open production legacy tab",async({page,context})=>{
+ const old=await context.newPage();
+ try{
+  await load(page);await load(old);await old.addScriptTag({content:legacyBundle});
+  const owner="account:storage-loss",operationId="11111111-1111-4111-8111-111111111111";
+  expect(await page.evaluate(async({owner,operationId,drawing})=>{
+   const api=(window as any).A04Journal;
+   (window as any).journal={NVDA:{drawings:[drawing],revision:null,attempt:{operationId,expectedRevision:null,drawings:[drawing]}}};
+   return api.writeDrawingJournal(localStorage,owner,(window as any).journal);
+  },{owner,operationId,drawing:line("unsaved")})).toBe(true);
+  const cdp=await context.newCDPSession(old);
+  await cdp.send("Storage.clearDataForOrigin",{origin:new URL(page.url()).origin,storageTypes:"local_storage"});
+  await expect.poll(()=>page.evaluate(()=>localStorage.getItem("mm.drawing.account-outbox.v2")),{timeout:20_000}).toBeNull();
+  await expect.poll(()=>old.evaluate(()=>localStorage.getItem("mm.drawing.account-outbox.v2")),{timeout:20_000}).toBeNull();
+  expect(await old.evaluate(({owner,drawing})=>(window as any).A04Legacy.writeDrawingOutbox(localStorage,owner,{AAPL:[drawing]}),{owner,drawing:line("old-tab")})).toBe(true);
+  const result=await page.evaluate(async owner=>{
+   const api=(window as any).A04Journal,journal=(window as any).journal;
+   const durable=await api.writeDrawingJournal(localStorage,owner,journal);
+   const stored=api.readDrawingJournal(localStorage,owner);
+   return {durable,memory:journal.NVDA?.attempt?.operationId??null,stored:stored.NVDA?.attempt?.operationId??null,
+    drawing:stored.NVDA?.drawings?.[0]?.id??null,legacy:stored.AAPL?{blocked:stored.AAPL.blocked,ids:stored.AAPL.drawings.map((d:any)=>d.id)}:null};
+  },owner);
+  expect(result).toEqual({durable:true,memory:operationId,stored:operationId,drawing:"unsaved",legacy:{blocked:"legacy",ids:["old-tab"]}});
  }finally{await old.close();}
 });
