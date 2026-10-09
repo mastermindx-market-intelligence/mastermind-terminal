@@ -299,6 +299,16 @@
       "applied_in_production": true,
       "applied_date": "2026-10-04T06:17:18Z",
       "note": "Single Investigation aggregate on existing #777. All 39 DDL statements applied; independent read-only catalog reconciled the incomplete initial readback and verified all 19 objects, RLS and grants. Receipt: https://github.com/mastermindx-market-intelligence/mastermind-terminal/pull/777#issuecomment-5977275494. Application save/reopen acceptance remains pending deployment."
+    },
+    "0032": {
+      "state": "reserved",
+      "file": "0032_portfolio_entry_currency.sql",
+      "packet": "TERMINAL-AUDIT20-A09-MONEY",
+      "pr": null,
+      "pr_state": "draft",
+      "applied_in_production": false,
+      "applied_date": null,
+      "note": "Original Audit20 A09: nullable explicit historical entry currency with a receipt bound to ticker and entry price. Legacy units remain unknown; no FX/source/entitlement authority is created. Prefix0031 remains owned by drawings PR858;0029/0030 remain incumbent804 reservations. Production DDL unapplied."
     }
   }
 }
