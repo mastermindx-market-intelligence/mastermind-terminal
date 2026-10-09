@@ -234,6 +234,10 @@ async function openTerminal(page: Page, opts: { zh: boolean; zhPreseed?: boolean
   await page.route(/\/data\/COST\.slice\.json(?:\?.*)?$/, async (route) => {
     await route.fulfill({ contentType: "application/json", body: JSON.stringify(slice) });
   });
+  // Market context is independent of these three signal states; keep its absence explicit.
+  await page.route(/\/data\/market_risk\.json(?:\?.*)?$/, async (route) => {
+    await route.fulfill({ status: 404, contentType: "application/json", body: "{}" });
+  });
   // Golden Oracle markers are an OPT-IN study (TerminalShell item-28) — seed the saved
   // indicator set so the marker geometry actually renders on the price series.
   await page.addInitScript(() => {
@@ -505,8 +509,13 @@ async function assertThreeStates(page: Page, zh: boolean, tag: string, testInfo:
     await expect(quality).toHaveText("Reclaim waived");
   }
   await expect(go.locator(".sig-dims .sig-dim-v").nth(1)).toHaveText(zh ? "优质" : "Quality");
+  // The independent market context shares this styling class, but is not a signal warning.
+  const marketRisk = go.getByTestId("market-risk-chip");
+  await expect(marketRisk).toBeVisible();
+  await expect(marketRisk.locator("summary"))
+    .toContainText(zh ? "市场风险不可用" : "Market risk unavailable");
   // the refusal's own "⃠ Entry blocked" strip belongs to a blocked LATEST signal — not here
-  await expect(go.locator(".sig-conflict")).toHaveCount(0);
+  await expect(go.locator('.sig-conflict:not([data-testid="market-risk-chip"])')).toHaveCount(0);
   await go.locator(".sig-card").screenshot({ path: out("card-reclaim-waived") });
 
   // ── the signal history: three rows, three different rows ────────────────────────────────
