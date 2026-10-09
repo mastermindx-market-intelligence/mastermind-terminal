@@ -1,3 +1,4 @@
+# 2026-10-09 #643 repair round 1 (T04 replay date) source hash reconciliation: preserves captured PNG bytes/provenance; the added i18n key olReplay renders only in the chart legend's Options Levels row under Bar Replay and is not rendered by these capture surfaces.
 # 2026-10-09 #643 (T04 replay date) source hash reconciliation: preserves captured PNG bytes/provenance; the changed i18n keys are Replay-only (TerminalShell replay controls and exit notice) and are not rendered by these capture surfaces.
 # 2026-10-05 #802/#808 source hash reconciliation: preserves captured PNG bytes/provenance; added Dislocations-only labels are not rendered by these capture surfaces.
 # W9T_F12_17 / MO-PAID-081 — copyable invitation link + the dated no-email-delivery line
@@ -11,7 +12,7 @@ capturedAt: 2026-10-05T11:03:37.140Z
 layoutFiles:
   terminal/components/settings/SectionTeam.tsx: "00f61441215f0cdb8c6b40536e66e243d0ae83ffa54d6f19ae8a67dd99d7a79d"
   terminal/components/settings/SectionTeam.module.css: "069056ff7ac4274a57ae9a835a0fdda178e9625a591b4374e855b9d41a3fd5bc"
-  terminal/lib/i18n.tsx: "8b65974eec4701e443402a3bf92b4cbf63cf7edec8e83730e125099a43d360d1"
+  terminal/lib/i18n.tsx: "63689cd6a07d538ff8cdbe03a4ffd5a4037b9ec1ec162ff2f39c6f90a6b29e80"
   terminal/lib/teams.ts: "e518afe4bc58b5f82638539f03b3063dc7ef35905c2807601eca9c71ac55e5b3"
   terminal/app/api/teams/invitations/route.ts: "d1daea2a77249e0b5246d5c1d6a3f0b40acecc1b5e1d1f3bfff51a4c2dba1618"
   terminal/app/invite/page.tsx: "1e9e766f3551978a9e0e7f4f4fdace0db07fbd4661e45426576d180d8db94716"
