@@ -47,12 +47,20 @@ export type SemanticContextValue =
       ref: { owner: string; object_id: string; version_ref: string };
     };
 
+/** Port-declared owner/kind routing support; never authentication or entitlement. */
+export type SemanticPortReferenceSupport = {
+  owner: string;
+  kinds: string[];
+};
+
 export type SemanticContextPort = {
   port_id: string;
   origin_id: string;
   direction: "emit" | "consume" | "both";
   mode: "linked" | "pinned" | "local";
   accepts: SemanticContextKind[];
+  /** Required for reference-bearing kinds; no implicit source→target coercion. */
+  ref_accepts?: SemanticPortReferenceSupport[];
   adapter_id?: string;
   temporal_capabilities: SemanticTemporalCapability[];
 };
@@ -142,6 +150,8 @@ export type SemanticContextApplyResult =
         | "stale_base"
         | "mutation_conflict"
         | "origin_not_emitter"
+        | "origin_kind_unsupported"
+        | "origin_reference_incompatible"
         | "kind_mismatch"
         | "revision_exhausted";
       snapshot: SemanticContextGroup;
@@ -154,6 +164,11 @@ const SUBJECT_KINDS = new Set([
   "security", "issuer", "industry", "subtheme", "theme", "regime", "economy",
   "event", "portfolio", "option_underlying", "option_contract", "policy_question",
 ]);
+const PORT_REF_KINDS = new Set([...SUBJECT_KINDS, "scenario"]);
+const REFERENCE_KINDS = new Set<SemanticContextKind>([
+  "entity_selection", "entity_set", "scenario_selection",
+]);
+const MAX_REFERENCE_SUPPORTS = 16;
 const OPAQUE_64 = /^[A-Za-z0-9][A-Za-z0-9_.:-]{0,63}$/;
 const OPAQUE_128 = /^[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}$/;
 const OWNER = /^[a-z][a-z0-9_.-]{0,63}$/;
@@ -371,9 +386,41 @@ export function validateSemanticContextValue(
   }
 }
 
+function validatePortReferenceSupport(raw: unknown): SemanticPortReferenceSupport[] | null {
+  if (!plainArray(raw, MAX_REFERENCE_SUPPORTS) || raw.length === 0) return null;
+  const owners = new Set<string>();
+  const supports: SemanticPortReferenceSupport[] = [];
+  for (const entry of raw) {
+    if (!isPlainRecord(entry) || !exactKeys(entry, ["owner", "kinds"])
+        || !validOwner(entry.owner)
+        || !plainArray(entry.kinds, PORT_REF_KINDS.size) || entry.kinds.length === 0
+        || entry.kinds.some(kind => typeof kind !== "string" || !PORT_REF_KINDS.has(kind))
+        || new Set(entry.kinds).size !== entry.kinds.length
+        || owners.has(entry.owner)) return null;
+    owners.add(entry.owner);
+    supports.push({ owner: entry.owner, kinds: [...entry.kinds] as string[] });
+  }
+  return supports;
+}
+
+/** Routing compatibility only. Rights/identity are always evaluated by existing owners. */
+function portSupportsValue(port: SemanticContextPort, value: SemanticContextValue): boolean {
+  if (value.kind === "time_horizon" || value.kind === "historical_cutoff") return true;
+  const refs = value.kind === "entity_selection"
+    ? [value.ref]
+    : value.kind === "entity_set"
+      ? value.refs
+      : [{ owner: value.ref.owner, kind: "scenario" }];
+  return refs.every(ref =>
+    !!ref.kind && (port.ref_accepts ?? []).some(
+      support => support.owner === ref.owner && support.kinds.includes(ref.kind!),
+    ),
+  );
+}
+
 function validatePort(raw: unknown, path: string): SemanticContextValidationResult<SemanticContextPort> {
   const required = ["port_id", "origin_id", "direction", "mode", "accepts", "temporal_capabilities"];
-  if (!isPlainRecord(raw) || !exactKeys(raw, required, ["adapter_id"])) {
+  if (!isPlainRecord(raw) || !exactKeys(raw, required, ["adapter_id", "ref_accepts"])) {
     return { ok: false, errors: [{ path, code: "invalid_port" }] };
   }
   const directions = new Set(["emit", "consume", "both"]);
@@ -391,6 +438,12 @@ function validatePort(raw: unknown, path: string): SemanticContextValidationResu
       || (Object.hasOwn(raw, "adapter_id") && (typeof raw.adapter_id !== "string" || !OPAQUE_128.test(raw.adapter_id)))) {
     return { ok: false, errors: [{ path, code: "invalid_port" }] };
   }
+  const needsReferenceSupport = (raw.accepts as SemanticContextKind[]).some(kind => REFERENCE_KINDS.has(kind));
+  const hasReferenceSupport = Object.hasOwn(raw, "ref_accepts");
+  const referenceSupport = hasReferenceSupport ? validatePortReferenceSupport(raw.ref_accepts) : undefined;
+  if (needsReferenceSupport !== hasReferenceSupport || (hasReferenceSupport && !referenceSupport)) {
+    return { ok: false, errors: [{ path, code: "invalid_reference_support" }] };
+  }
   return {
     ok: true,
     value: {
@@ -399,6 +452,7 @@ function validatePort(raw: unknown, path: string): SemanticContextValidationResu
       direction: raw.direction as SemanticContextPort["direction"],
       mode: raw.mode as SemanticContextPort["mode"],
       accepts: [...raw.accepts] as SemanticContextKind[],
+      ...(referenceSupport ? { ref_accepts: referenceSupport } : {}),
       ...(Object.hasOwn(raw, "adapter_id") ? { adapter_id: raw.adapter_id as string } : {}),
       temporal_capabilities: [...raw.temporal_capabilities] as SemanticTemporalCapability[],
     },
@@ -446,6 +500,14 @@ export function validateSemanticContextGroup(
         emittingOrigins.add(parsed.value.origin_id);
       }
       ports.push(parsed.value);
+    }
+    // At least one linked emitter must be able to represent an initial owner ref
+    // when the group actually declares an emitter for this dimension.
+    const emittingPorts = ports.filter(port => port.mode === "linked"
+      && (port.direction === "emit" || port.direction === "both")
+      && port.accepts.includes(value.value.kind));
+    if (emittingPorts.length && !emittingPorts.some(port => portSupportsValue(port, value.value))) {
+      return { ok: false, errors: [{ path: "$.value", code: "emitter_reference_incompatible" }] };
     }
 
     return {
@@ -598,6 +660,8 @@ export function createSemanticContextCoordinator(
     );
     if (!origin) return fail("origin_not_emitter", delta.mutation_id);
     if (delta.patch.kind !== group.kind) return fail("kind_mismatch", delta.mutation_id);
+    if (!origin.accepts.includes(delta.patch.kind)) return fail("origin_kind_unsupported", delta.mutation_id);
+    if (!portSupportsValue(origin, delta.patch)) return fail("origin_reference_incompatible", delta.mutation_id);
 
     const receipt = blankReceipt(delta.mutation_id, group.revision);
     if (deepEqual(delta.patch, group.value)) {
@@ -641,7 +705,7 @@ export function createSemanticContextCoordinator(
         });
         continue;
       }
-      if (port.accepts.includes(delta.patch.kind)) {
+      if (port.accepts.includes(delta.patch.kind) && portSupportsValue(port, delta.patch)) {
         receipt.applied_ports.push(port.port_id);
         deliveries.push({ port_id: port.port_id, value: cloneJson(delta.patch) });
         continue;
@@ -649,12 +713,16 @@ export function createSemanticContextCoordinator(
 
       const adapter = port.adapter_id ? adapters.get(port.adapter_id) : undefined;
       if (!adapter || adapter.from_kind !== delta.patch.kind || !port.accepts.includes(adapter.to_kind)) {
-        receipt.missing_adapters.push({
-          port_id: port.port_id,
-          from_kind: delta.patch.kind,
-          to_kinds: [...port.accepts],
-          ...(port.adapter_id ? { adapter_id: port.adapter_id } : {}),
-        });
+        if (port.accepts.includes(delta.patch.kind)) {
+          receipt.rejected_ports.push({ port_id: port.port_id, reason: "reference_incompatible" });
+        } else {
+          receipt.missing_adapters.push({
+            port_id: port.port_id,
+            from_kind: delta.patch.kind,
+            to_kinds: [...port.accepts],
+            ...(port.adapter_id ? { adapter_id: port.adapter_id } : {}),
+          });
+        }
         continue;
       }
 
@@ -673,6 +741,10 @@ export function createSemanticContextCoordinator(
       const checked = validateSemanticContextValue(projected.value, "$.adapter");
       if (!checked.ok || checked.value.kind !== adapter.to_kind) {
         receipt.rejected_ports.push({ port_id: port.port_id, reason: "adapter_invalid_output" });
+        continue;
+      }
+      if (!portSupportsValue(port, checked.value)) {
+        receipt.rejected_ports.push({ port_id: port.port_id, reason: "reference_incompatible" });
         continue;
       }
       receipt.applied_ports.push(port.port_id);

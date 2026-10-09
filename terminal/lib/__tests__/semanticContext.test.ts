@@ -35,6 +35,7 @@ const baseGroup = (): SemanticContextGroup => ({
       direction: "both",
       mode: "linked",
       accepts: ["entity_selection"],
+      ref_accepts: [{ owner: "terminal.analysis_symbol", kinds: ["security"] }],
       temporal_capabilities: ["live"],
     },
     {
@@ -43,6 +44,7 @@ const baseGroup = (): SemanticContextGroup => ({
       direction: "consume",
       mode: "linked",
       accepts: ["entity_selection"],
+      ref_accepts: [{ owner: "terminal.analysis_symbol", kinds: ["security"] }],
       temporal_capabilities: ["live"],
     },
     {
@@ -51,6 +53,7 @@ const baseGroup = (): SemanticContextGroup => ({
       direction: "both",
       mode: "pinned",
       accepts: ["entity_selection"],
+      ref_accepts: [{ owner: "terminal.analysis_symbol", kinds: ["security"] }],
       temporal_capabilities: ["live"],
     },
     {
@@ -59,6 +62,7 @@ const baseGroup = (): SemanticContextGroup => ({
       direction: "both",
       mode: "local",
       accepts: ["entity_selection"],
+      ref_accepts: [{ owner: "terminal.analysis_symbol", kinds: ["security"] }],
       temporal_capabilities: ["live"],
     },
     {
@@ -67,11 +71,18 @@ const baseGroup = (): SemanticContextGroup => ({
       direction: "consume",
       mode: "linked",
       accepts: ["entity_set"],
+      ref_accepts: [{ owner: "terminal.analysis_symbol", kinds: ["security"] }],
       adapter_id: "selection_to_set",
       temporal_capabilities: ["live"],
     },
   ],
 });
+
+function withoutReferenceSupport(port: SemanticContextGroup["ports"][number]) {
+  const copy = { ...port };
+  delete copy.ref_accepts;
+  return copy;
+}
 
 const delta = (overrides: Record<string, unknown> = {}) => ({
   schema: "semantic_context_delta.v1",
@@ -131,7 +142,14 @@ describe("semantic context contract — closed mounted-session state", () => {
           { owner: "macro.theme_registry", kind: "theme", object_id: "theme:ai" },
         ],
       },
-      ports: baseGroup().ports.map(port => ({ ...port, accepts: ["entity_set"] })),
+      ports: baseGroup().ports.map(port => ({
+        ...port,
+        accepts: ["entity_set"],
+        ref_accepts: [
+          { owner: "terminal.analysis_symbol", kinds: ["security"] },
+          { owner: "macro.theme_registry", kinds: ["theme"] },
+        ],
+      })),
     };
     expect(validateSemanticContextGroup(setGroup).ok).toBe(true);
     const duplicate = structuredClone(setGroup);
@@ -145,7 +163,7 @@ describe("semantic context contract — closed mounted-session state", () => {
       kind: "historical_cutoff",
       value: { kind: "historical_cutoff", policy: "as_known", cutoff: "2026-10-03T14:30:00.000Z" },
       ports: baseGroup().ports.map(port => ({
-        ...port,
+        ...withoutReferenceSupport(port),
         accepts: ["historical_cutoff"],
         temporal_capabilities: ["as_known"],
       })),
@@ -166,6 +184,7 @@ describe("semantic context contract — closed mounted-session state", () => {
       ports: baseGroup().ports.map(port => ({
         ...port,
         accepts: ["scenario_selection"],
+        ref_accepts: [{ owner: "macro.scenario_recipe", kinds: ["scenario"] }],
         temporal_capabilities: ["scenario"],
       })),
     }).ok).toBe(true);
@@ -392,6 +411,7 @@ describe("semantic context adversarial coordinator cases", () => {
           direction: "consume",
           mode: "linked",
           accepts: ["entity_selection"],
+          ref_accepts: [{ owner: "terminal.analysis_symbol", kinds: ["security"] }],
           temporal_capabilities: ["live"],
         },
         {
@@ -400,6 +420,7 @@ describe("semantic context adversarial coordinator cases", () => {
           direction: "emit",
           mode: "linked",
           accepts: ["entity_selection"],
+          ref_accepts: [{ owner: "terminal.analysis_symbol", kinds: ["security"] }],
           temporal_capabilities: ["live"],
         },
         ...baseGroup().ports.filter(port => port.port_id === "brain.scope"),
@@ -555,6 +576,7 @@ describe("semantic context emission identity and dense-container cases", () => {
           direction: "emit",
           mode: "linked",
           accepts: ["entity_selection"],
+          ref_accepts: [{ owner: "terminal.analysis_symbol", kinds: ["security"] }],
           temporal_capabilities: ["live"],
         },
         {
@@ -563,6 +585,7 @@ describe("semantic context emission identity and dense-container cases", () => {
           direction: "both",
           mode: "linked",
           accepts: ["entity_selection"],
+          ref_accepts: [{ owner: "terminal.analysis_symbol", kinds: ["security"] }],
           temporal_capabilities: ["live"],
         },
         ...baseGroup().ports.filter(port => port.port_id === "brain.scope"),
@@ -584,5 +607,162 @@ describe("semantic context emission identity and dense-container cases", () => {
       status: "unsupported",
       reason: "security_context_invalid",
     });
+  });
+});
+
+
+describe("semantic context owner/kind compatibility", () => {
+  it("does not permit a security chart emitter to silently reinterpret a theme as a security", () => {
+    const coordinator = createSemanticContextCoordinator(baseGroup());
+    const result = coordinator.apply(delta({
+      patch: {
+        kind: "entity_selection",
+        ref: { owner: "macro.theme_registry", kind: "theme", object_id: "theme.ai" },
+      },
+    }));
+    expect(result.ok).toBe(false);
+    expect(coordinator.snapshot().value).toEqual(securityAapl);
+  });
+});
+
+describe("semantic context per-port reference support", () => {
+  it("blocks incompatible direct destinations even when they accept the same value kind", () => {
+    const group = baseGroup();
+    group.ports[1] = {
+      ...group.ports[1],
+      ref_accepts: [{ owner: "macro.theme_registry", kinds: ["theme"] }],
+    };
+    const coordinator = createSemanticContextCoordinator(group, [wrapSelection]);
+    const result = coordinator.apply(delta());
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.receipt.applied_ports).toEqual(["set.consumer"]);
+    expect(result.receipt.rejected_ports).toContainEqual({
+      port_id: "brain.scope",
+      reason: "reference_incompatible",
+    });
+    expect(result.deliveries.some(delivery => delivery.port_id === "brain.scope")).toBe(false);
+  });
+
+  it("permits an owner/kind conversion only through an explicitly named compatible transform", () => {
+    const group = baseGroup();
+    group.ports[1] = {
+      ...group.ports[1],
+      ref_accepts: [{ owner: "macro.theme_registry", kinds: ["theme"] }],
+      adapter_id: "qualified_relationship",
+    };
+    const qualified: SemanticContextTransformAdapter = {
+      adapter_id: "qualified_relationship",
+      from_kind: "entity_selection",
+      to_kind: "entity_selection",
+      project(value) {
+        if (value.kind !== "entity_selection") return { ok: false, reason: "incompatible" };
+        return {
+          ok: true,
+          value: {
+            kind: "entity_selection",
+            ref: { owner: "macro.theme_registry", kind: "theme", object_id: "theme.ai" },
+          },
+        };
+      },
+    };
+    const result = createSemanticContextCoordinator(group, [qualified, wrapSelection]).apply(delta());
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.receipt.applied_ports).toEqual(["brain.scope", "set.consumer"]);
+    expect(result.deliveries[0]).toEqual({
+      port_id: "brain.scope",
+      value: {
+        kind: "entity_selection",
+        ref: { owner: "macro.theme_registry", kind: "theme", object_id: "theme.ai" },
+      },
+    });
+  });
+
+  it("rejects a named transform that emits a valid shape for an unadmitted owner", () => {
+    const group = baseGroup();
+    group.ports[1] = {
+      ...group.ports[1],
+      ref_accepts: [{ owner: "macro.theme_registry", kinds: ["theme"] }],
+      adapter_id: "bad_relationship",
+    };
+    const bad: SemanticContextTransformAdapter = {
+      adapter_id: "bad_relationship",
+      from_kind: "entity_selection",
+      to_kind: "entity_selection",
+      project() {
+        return {
+          ok: true,
+          value: {
+            kind: "entity_selection",
+            ref: { owner: "macro.issuer_registry", kind: "issuer", object_id: "issuer:1" },
+          },
+        };
+      },
+    };
+    const result = createSemanticContextCoordinator(group, [bad, wrapSelection]).apply(delta());
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.receipt.rejected_ports).toContainEqual({
+      port_id: "brain.scope",
+      reason: "reference_incompatible",
+    });
+    expect(result.deliveries.every(delivery => delivery.port_id !== "brain.scope")).toBe(true);
+  });
+
+  it("rejects undeclared reference-support and a group whose emitting source cannot represent its value", () => {
+    const missing = baseGroup();
+    delete missing.ports[1].ref_accepts;
+    expect(validateSemanticContextGroup(missing).ok).toBe(false);
+
+    const incompatible = baseGroup();
+    incompatible.ports[0] = {
+      ...incompatible.ports[0],
+      ref_accepts: [{ owner: "macro.theme_registry", kinds: ["theme"] }],
+    };
+    expect(validateSemanticContextGroup(incompatible).ok).toBe(false);
+
+    const unauthorized = baseGroup();
+    unauthorized.ports[0] = {
+      ...unauthorized.ports[0],
+      ref_accepts: [{ owner: "terminal.analysis_symbol", kinds: ["security"], rights_granted: true }] as unknown as SemanticContextGroup["ports"][number]["ref_accepts"],
+    };
+    expect(validateSemanticContextGroup(unauthorized).ok).toBe(false);
+  });
+
+  it("requires every member of an entity set to be admitted, not just its first member", () => {
+    const mixedGroup = {
+      ...baseGroup(),
+      kind: "entity_set",
+      value: {
+        kind: "entity_set",
+        refs: [
+          { owner: "terminal.analysis_symbol", kind: "security", object_id: "AAPL" },
+          { owner: "macro.theme_registry", kind: "theme", object_id: "theme.ai" },
+        ],
+      },
+      ports: baseGroup().ports.map(port => ({
+        ...port,
+        accepts: ["entity_set"],
+        ref_accepts: [
+          { owner: "terminal.analysis_symbol", kinds: ["security"] },
+          { owner: "macro.theme_registry", kinds: ["theme"] },
+        ],
+      })),
+    };
+    expect(validateSemanticContextGroup(mixedGroup).ok).toBe(true);
+    const coordinator = createSemanticContextCoordinator(mixedGroup as SemanticContextGroup);
+    const attempted = coordinator.apply({
+      ...delta(),
+      patch: {
+        kind: "entity_set",
+        refs: [
+          { owner: "terminal.analysis_symbol", kind: "security", object_id: "MSFT" },
+          { owner: "macro.economy_registry", kind: "economy", object_id: "economy.us" },
+        ],
+      },
+    });
+    expect(attempted.ok).toBe(false);
+    expect(coordinator.snapshot().revision).toBe(0);
   });
 });
