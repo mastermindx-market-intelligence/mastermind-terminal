@@ -190,6 +190,19 @@ export function isValidF(f: string): boolean {
 }
 
 /**
+ * One f-param piece as a URL path segment. isValidF admits only roots, dates, stamps and
+ * literal names, all made of unreserved characters, so for every admitted piece this is the
+ * identity. It is the second layer, applied where the upstream URL is built: "/", "?", "#"
+ * and "%" become inert text, so a looser rule or a new family can never let a piece add a
+ * path step, a query or an escape to the request this server makes (CodeQL
+ * js/request-forgery). A piece made only of dots would still be a step up; no root, date or
+ * stamp rule admits one.
+ */
+function seg(piece: string): string {
+  return encodeURIComponent(piece);
+}
+
+/**
  * f-param → Python-hub path. Exported for tests: the surface store now has six f-forms
  * (today + dated × index/frame/sessions) whose prefixes differ by one character, and a
  * mis-resolved key fails silently by falling through to R2 and then to null — it would not
@@ -198,20 +211,20 @@ export function isValidF(f: string): boolean {
 export function backendPath(f: string): string {
   if (f === "tide") return "/api/flow/tide";
   if (f === "dte") return "/api/flow/dte";
-  if (f.startsWith("ticker:")) return `/api/flow/ticker/${f.slice(7)}`;
-  if (f.startsWith("vol:")) return `/api/hub/vol/${f.slice(4)}`;
+  if (f.startsWith("ticker:")) return `/api/flow/ticker/${seg(f.slice(7))}`;
+  if (f.startsWith("vol:")) return `/api/hub/vol/${seg(f.slice(4))}`;
   // Dated GEX history first (surface convention): the prefixes are disjoint from `gex:`,
   // but matching them ahead keeps that independent of prefix arithmetic.
-  if (f.startsWith("gex_dates:")) return `/api/hub/gex_history/${f.slice(10)}/dates`;
+  if (f.startsWith("gex_dates:")) return `/api/hub/gex_history/${seg(f.slice(10))}/dates`;
   if (f.startsWith("gex_at:")) {
     const [, root, date] = f.split(":");
-    return `/api/hub/gex_history/${root}/${date}`;
+    return `/api/hub/gex_history/${seg(root)}/${seg(date)}`;
   }
-  if (f.startsWith("gex:")) return `/api/hub/gex/${f.slice(4)}`;
-  if (f.startsWith("levels:")) return `/api/hub/levels/${f.slice(7)}`;
-  if (f.startsWith("agg:")) return `/api/hub/aggtrend/${f.slice(4)}`;
+  if (f.startsWith("gex:")) return `/api/hub/gex/${seg(f.slice(4))}`;
+  if (f.startsWith("levels:")) return `/api/hub/levels/${seg(f.slice(7))}`;
+  if (f.startsWith("agg:")) return `/api/hub/aggtrend/${seg(f.slice(4))}`;
   if (f === "quad") return "/api/hub/quad";
-  if (f.startsWith("grades:")) return `/api/hub/level_grades/${f.slice(7)}`;
+  if (f.startsWith("grades:")) return `/api/hub/level_grades/${seg(f.slice(7))}`;
   if (f === "grades_universe") return "/api/hub/level_grades/_universe";
   if (f === "oi") return "/api/hub/oi";
   if (f === "hot") return "/api/hub/hot";
@@ -220,33 +233,33 @@ export function backendPath(f: string): string {
   if (f === "oiconf") return "/api/hub/oiconf";
   if (f === "darkpool") return "/api/hub/darkpool";
   if (f === "volregime") return "/api/hub/volregime";
-  if (f.startsWith("moves:")) return `/api/hub/moves/${f.slice(6)}`;
+  if (f.startsWith("moves:")) return `/api/hub/moves/${seg(f.slice(6))}`;
   // R3 OI suite
-  if (f.startsWith("oi_time:")) return `/api/hub/oi_time/${f.slice(8)}`;
-  if (f.startsWith("max_pain:")) return `/api/hub/max_pain/${f.slice(9)}`;
+  if (f.startsWith("oi_time:")) return `/api/hub/oi_time/${seg(f.slice(8))}`;
+  if (f.startsWith("max_pain:")) return `/api/hub/max_pain/${seg(f.slice(9))}`;
   if (f === "oi_change") return "/api/hub/oi_change";
-  if (f.startsWith("oi_change:")) return `/api/hub/oi_change/${f.slice(10)}`;
-  if (f.startsWith("tctx:")) return `/api/hub/tctx/${f.slice(5)}`;
+  if (f.startsWith("oi_change:")) return `/api/hub/oi_change/${seg(f.slice(10))}`;
+  if (f.startsWith("tctx:")) return `/api/hub/tctx/${seg(f.slice(5))}`;
   if (f === "chainheat") return "/api/flow/chainheat";
-  if (f.startsWith("gexstate:")) return `/api/hub/gexstate/${f.slice(9)}`;
+  if (f.startsWith("gexstate:")) return `/api/hub/gexstate/${seg(f.slice(9))}`;
   if (f === "gexstate_index") return "/api/hub/gexstate/_index";
-  if (f.startsWith("matrix:")) return `/api/hub/matrix/${f.slice(7)}`;
+  if (f.startsWith("matrix:")) return `/api/hub/matrix/${seg(f.slice(7))}`;
   // Surface store: /api/flow/surface/{ROOT}/idx  and  /api/flow/surface/{ROOT}/{STAMP}
   // Dated variants first — the longer prefixes are disjoint from the today-paths, but
   // matching them ahead of the shorter ones keeps that independent of prefix arithmetic.
-  if (f.startsWith("surface_dates:")) return `/api/flow/surface/${f.slice(14)}/dates`;
+  if (f.startsWith("surface_dates:")) return `/api/flow/surface/${seg(f.slice(14))}/dates`;
   if (f.startsWith("surface_idx_at:")) {
     const [, root, date] = f.split(":");
-    return `/api/flow/surface/${root}/${date}/idx`;
+    return `/api/flow/surface/${seg(root)}/${seg(date)}/idx`;
   }
   if (f.startsWith("surface_at:")) {
     const [, root, date, stamp] = f.split(":");
-    return `/api/flow/surface/${root}/${date}/${stamp}`;
+    return `/api/flow/surface/${seg(root)}/${seg(date)}/${seg(stamp)}`;
   }
-  if (f.startsWith("surface_idx:")) return `/api/flow/surface/${f.slice(12)}/idx`;
+  if (f.startsWith("surface_idx:")) return `/api/flow/surface/${seg(f.slice(12))}/idx`;
   if (f.startsWith("surface:")) {
     const [, root, stamp] = f.split(":");
-    return `/api/flow/surface/${root}/${stamp}`;
+    return `/api/flow/surface/${seg(root)}/${seg(stamp)}`;
   }
   if (f === "manifest") return "/api/flow/manifest";
   if (f === "flow_idx") return "/api/flow/flow_idx";
@@ -256,7 +269,7 @@ export function backendPath(f: string): string {
   if (f === "enrich") return "/api/flow/enrich";
   if (f === "leaders") return "/api/flow/leaders";
   if (f === "radar") return "/api/flow/radar";
-  return `/api/flow/${f}`;
+  return `/api/flow/${seg(f)}`;
 }
 
 /** f-param → R2 object key. Exported for tests — see backendPath. */
@@ -264,21 +277,21 @@ export function r2Key(f: string): string {
   if (f === "meta") return "live_flow/meta.json";
   if (f === "tide") return "live_flow/tide_current.json";
   if (f === "dte") return "live_flow/dte_tide_current.json";
-  if (f.startsWith("ticker:")) return `live_flow/tickers/${f.slice(7)}.json`;
-  if (f.startsWith("vol:")) return `options_hub/vol/${f.slice(4)}.json`;
+  if (f.startsWith("ticker:")) return `live_flow/tickers/${seg(f.slice(7))}.json`;
+  if (f.startsWith("vol:")) return `options_hub/vol/${seg(f.slice(4))}.json`;
   // Dated GEX-ladder history on R2: options_hub/gex_history/{ROOT}/{DATE}.json (the full
   // options_hub.gex/v1 payload, keyed by the payload's own asof) + the dates.json index
   // the macro hub maintains beside it. Matched ahead of `gex:` per the surface convention.
-  if (f.startsWith("gex_dates:")) return `options_hub/gex_history/${f.slice(10)}/dates.json`;
+  if (f.startsWith("gex_dates:")) return `options_hub/gex_history/${seg(f.slice(10))}/dates.json`;
   if (f.startsWith("gex_at:")) {
     const [, root, date] = f.split(":");
-    return `options_hub/gex_history/${root}/${date}.json`;
+    return `options_hub/gex_history/${seg(root)}/${seg(date)}.json`;
   }
-  if (f.startsWith("gex:")) return `options_hub/gex/${f.slice(4)}.json`;
-  if (f.startsWith("levels:")) return `levels/${f.slice(7)}.json`;
-  if (f.startsWith("agg:")) return `options_hub/aggtrend/${f.slice(4)}.json`;
+  if (f.startsWith("gex:")) return `options_hub/gex/${seg(f.slice(4))}.json`;
+  if (f.startsWith("levels:")) return `levels/${seg(f.slice(7))}.json`;
+  if (f.startsWith("agg:")) return `options_hub/aggtrend/${seg(f.slice(4))}.json`;
   if (f === "quad") return "options_hub/quad.json";
-  if (f.startsWith("grades:")) return `options_hub/level_grades/${f.slice(7)}.json`;
+  if (f.startsWith("grades:")) return `options_hub/level_grades/${seg(f.slice(7))}.json`;
   if (f === "grades_universe") return "options_hub/level_grades/_universe.json";
   if (f === "oi") return "options_hub/oi_movers.json";
   if (f === "hot") return "options_hub/hot_contracts.json";
@@ -288,35 +301,35 @@ export function r2Key(f: string): string {
   // files under their own names, not under options_hub/) — see mirror_terminal_context_r2.
   if (f === "darkpool") return "darkpool/eod.json";
   if (f === "volregime") return "vol/regime.json";
-  if (f.startsWith("moves:")) return `options_hub/moves/${f.slice(6)}.json`;
+  if (f.startsWith("moves:")) return `options_hub/moves/${seg(f.slice(6))}.json`;
   // R3 OI suite: per-root payloads beside vol/gex/moves in the options_hub
   // plane; the bare oi_change is the cross-root board (also the options_hub_oi
   // dead-man beacon on the macro side).
-  if (f.startsWith("oi_time:")) return `options_hub/oi_time/${f.slice(8)}.json`;
-  if (f.startsWith("max_pain:")) return `options_hub/max_pain/${f.slice(9)}.json`;
+  if (f.startsWith("oi_time:")) return `options_hub/oi_time/${seg(f.slice(8))}.json`;
+  if (f.startsWith("max_pain:")) return `options_hub/max_pain/${seg(f.slice(9))}.json`;
   if (f === "oi_change") return "options_hub/oi_change.json";
-  if (f.startsWith("oi_change:")) return `options_hub/oi_change/${f.slice(10)}.json`;
-  if (f.startsWith("tctx:")) return `options_hub/tickers_ctx/${f.slice(5)}.json`;
+  if (f.startsWith("oi_change:")) return `options_hub/oi_change/${seg(f.slice(10))}.json`;
+  if (f.startsWith("tctx:")) return `options_hub/tickers_ctx/${seg(f.slice(5))}.json`;
   if (f === "chainheat") return "live_flow/chain_heat_current.json";
-  if (f.startsWith("gexstate:")) return `options_structure/gex_state/${f.slice(9)}.json`;
+  if (f.startsWith("gexstate:")) return `options_structure/gex_state/${seg(f.slice(9))}.json`;
   if (f === "gexstate_index") return "options_structure/gex_state/_index.json";
-  if (f.startsWith("matrix:")) return `options_structure/matrix/${f.slice(7)}.json`;
+  if (f.startsWith("matrix:")) return `options_structure/matrix/${seg(f.slice(7))}.json`;
   // Surface store on R2: live_flow/surface/{ROOT}/idx.json + live_flow/surface/{ROOT}/{STAMP}.json
   // plus the date-keyed copies the poller writes beside them (macro build_flow_surface.py):
   // live_flow/surface/{ROOT}/dates.json, {ROOT}/{DATE}/idx.json, {ROOT}/{DATE}/{STAMP}.json.
-  if (f.startsWith("surface_dates:")) return `live_flow/surface/${f.slice(14)}/dates.json`;
+  if (f.startsWith("surface_dates:")) return `live_flow/surface/${seg(f.slice(14))}/dates.json`;
   if (f.startsWith("surface_idx_at:")) {
     const [, root, date] = f.split(":");
-    return `live_flow/surface/${root}/${date}/idx.json`;
+    return `live_flow/surface/${seg(root)}/${seg(date)}/idx.json`;
   }
   if (f.startsWith("surface_at:")) {
     const [, root, date, stamp] = f.split(":");
-    return `live_flow/surface/${root}/${date}/${stamp}.json`;
+    return `live_flow/surface/${seg(root)}/${seg(date)}/${seg(stamp)}.json`;
   }
-  if (f.startsWith("surface_idx:")) return `live_flow/surface/${f.slice(12)}/idx.json`;
+  if (f.startsWith("surface_idx:")) return `live_flow/surface/${seg(f.slice(12))}/idx.json`;
   if (f.startsWith("surface:")) {
     const [, root, stamp] = f.split(":");
-    return `live_flow/surface/${root}/${stamp}.json`;
+    return `live_flow/surface/${seg(root)}/${seg(stamp)}.json`;
   }
   if (f === "manifest") return "live_flow/manifest.json";
   if (f === "flow_idx") return "live_flow/flow_idx.json";
@@ -333,7 +346,7 @@ export function r2Key(f: string): string {
   if (f === "enrich") return "live_flow/enrich_current.json";
   if (f === "leaders") return "flowleaders/leaders.json";
   if (f === "radar") return "leaderradar/radar.json";
-  return `live_flow/${f}_current.json`;
+  return `live_flow/${seg(f)}_current.json`;
 }
 
 /** The receipt is deliberately not a generic f-param: it can only be read with its payload. */
