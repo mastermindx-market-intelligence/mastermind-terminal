@@ -1,0 +1,31 @@
+--- a/terminal/lib/copilotTools.ts
++++ b/terminal/lib/copilotTools.ts
+@@ -21,6 +21,7 @@
+ import { verdictIsStale, ORACLE_STALE_DAYS, anchorSignal, signalKnownTs, isBlockedSignal, sliceSignalBasis } from "@/lib/signalVerdict";
+ import { isStalePlane, type MarketPlane } from "@/lib/nwPlane";
+ import { nextDateCountdown } from "@/lib/finFormat";
++import { curateMarketRiskContext } from "@/lib/marketRiskContext";
+ // Same upstream topology as app/api/flow/route.ts (Python hub first, R2 mirror second) and
+ // app/api/nw/route.ts — the shared endpoint constants live in lib/upstreams (the routes
+ // themselves must not be imported from a lib).
+@@ -625,19 +626,7 @@
+ }
+ 
+ export function curateMarketRisk(mr: unknown, nowMs: number = Date.now()): Record<string, unknown> {
+-  const m = mr as Record<string, unknown> | null;
+-  const disp = m?.display as Record<string, unknown> | undefined;
+-  if (!disp?.verdict) return { no_data: true, reason: "market_risk.json unavailable on this box" };
+-  const built = typeof m!.built === "string" ? Date.parse(m!.built as string) : NaN;
+-  const ageH = Number.isFinite(built) ? Math.round((nowMs - built) / 3_600_000) : null;
+-  return {
+-    verdict: disp.verdict,
+-    score: rnd(disp.score, 0),
+-    label: disp.label_en ?? disp.verdict,
+-    built: m!.built ?? null,
+-    age_hours: ageH,
+-    stale: ageH != null && ageH > 48,
+-  };
++  return curateMarketRiskContext(mr, nowMs);
+ }
+ 
+ export function curatePlane(plane: MarketPlane | null, nowMs: number = Date.now()): Record<string, unknown> {
