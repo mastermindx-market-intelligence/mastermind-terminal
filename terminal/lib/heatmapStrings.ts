@@ -139,6 +139,19 @@ const HM_LEX = {
   refreshFailed:    ["Could not refresh — showing the last read.", "无法刷新 — 显示上次读取的数据。"],
   retry:            ["Retry", "重试"],
   noFlowData:       ["Flow data unavailable — showing price layer", "资金流数据不可用 — 显示价格层"],
+  // The flow layer's other three answers. A refused read is an access question, a read
+  // that did not land is a failure to retry — neither says flow is missing.
+  flowAuth:         ["Flow layer needs live options access — showing price layer", "资金流图层需要实时期权权限 — 显示价格层"],
+  flowLoadError:    ["Could not load the flow layer", "无法加载资金流图层"],
+  flowLoadErrorWhy: ["This is a failed read, not missing flow data — tiles show price only.", "这是读取失败，并非缺少资金流数据 — 图块仅显示价格。"],
+  flowRefreshFailed: ["Could not refresh the flow layer — showing the last read.", "无法刷新资金流图层 — 显示上次读取的数据。"],
+  // A search that matches nothing is not a market with no data.
+  noMatch:          ["No names match “{q}”", "没有与“{q}”匹配的名称"],
+  clearSearch:      ["Clear search", "清除搜索"],
+  // The live-quote overlay states what it refreshed, and stops saying "live" when it did not.
+  liveNote:         ["live (15m delayed) top {n} · rest EOD", "实时（延迟15分钟）前{n}支 · 其余为昨收"],
+  liveStale:        ["Quotes could not refresh — {n} from the last read · rest EOD", "报价无法刷新 — {n}支为上次读取 · 其余为昨收"],
+  liveFailed:       ["Live quotes could not load — all values EOD", "实时报价无法加载 — 全部为昨收"],
   priceOnly:        ["Price data only (34 names, nightly)", "仅价格数据（34个标的，每日更新）"],
 
   // ── Soft assertions (HONESTY DOCTRINE) ──────────────────────────────────────
