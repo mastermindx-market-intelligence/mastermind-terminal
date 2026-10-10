@@ -96,4 +96,14 @@ describe("B-PL-6 batch 2 evidence lock is the sha256 of the layout sources", () 
       expect(yml).toMatch(new RegExp(`name:\\s*${name},\\s*width:\\s*${width},\\s*height:\\s*${height}`));
     }
   });
+
+  it("EVIDENCE.yml states the conductor demo step, the guide capture mode and that animations and partial raster were disabled", () => {
+    const yml = evidenceText();
+    // Step 2 is the first trendline, the row that carries the fit chip.
+    expect(yml).toMatch(/^conductor_step:\s*2$/m);
+    expect(yml).toMatch(/^screenshot_animations:\s*disabled$/m);
+    expect(yml).toMatch(/^screenshot_raster:\s*full$/m);
+    expect(yml).toMatch(/^guide_motion:\s*reduced$/m);
+    expect(yml).toMatch(/^guide_backdrop:\s*hidden$/m);
+  });
 });
