@@ -139,6 +139,24 @@ const FAILURES: [string, Reply, Reply][] = [
 ];
 
 describe("Heatmap: a failed read is not an empty market", () => {
+
+  it("keeps capitalization coverage unknown after a failed first read, then shows it after Retry", async () => {
+    replies[PRIMARY] = UNAVAILABLE;
+    replies[STATIC] = UNAVAILABLE;
+    await mount();
+    const mode = host.querySelector<HTMLButtonElement>('button[aria-label="USD CAP"]');
+    expect(mode).not.toBeNull();
+    await act(async () => mode!.click());
+    expect(within('[data-testid="heatmap-load-error"]')).not.toBeNull();
+    expect(text()).not.toContain("usable 0/0");
+    expect(text()).not.toContain("original scoped universe of 0 symbols");
+    replies[PRIMARY] = MANIFEST;
+    await clickRetry(within('[data-testid="heatmap-load-error"]'));
+    expect(within('[data-testid="heatmap-load-error"]')).toBeNull();
+    expect(text()).toContain("usable 0/3");
+    expect(text()).toContain("original scoped universe of 3 symbols");
+    expect(mode!.getAttribute("aria-pressed")).toBe("true");
+  });
   it.each(FAILURES)("renders the load error for %s", async (_label, primary, fallback) => {
     replies[PRIMARY] = primary;
     replies[STATIC] = fallback;

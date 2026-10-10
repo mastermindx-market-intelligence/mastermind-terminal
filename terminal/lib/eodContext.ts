@@ -408,6 +408,41 @@ export type StructureCellKey =
 /** Which settled store a cell's number came from — printed on hover, not guessed. */
 export type StructureSource = "gexstate" | "gex" | "moves" | "vol" | "oiconf";
 
+/**
+ * What one settled read has established so far. Only "absent" (a 404/410) means the store
+ * has nothing; "unavailable" is a read that did not land and says nothing about the store.
+ */
+export type EodReadStatus = "loading" | "data" | "absent" | "unavailable";
+
+/** Why a cell with no value has none: the read failed, it is in flight, or it proved absence. */
+export type StructureGap = "failed" | "reading" | "absent";
+
+/** The stores each cell can be answered from. Levels read gex_state first, the ladder second. */
+const CELL_SOURCES: Record<StructureCellKey, StructureSource[]> = {
+  callWall: ["gexstate", "gex"],
+  putWall: ["gexstate", "gex"],
+  flip: ["gexstate", "gex"],
+  maxPain: ["gexstate", "gex"],
+  expMove: ["moves"],
+  ivPct: ["vol"],
+  oiConf: ["oiconf"],
+};
+
+/**
+ * The gap behind a valueless cell. A failure on ANY store that could have answered wins:
+ * that store might hold the value, so "not published" would be a claim nobody checked.
+ */
+export function structureCellGap(
+  cell: StructureCell,
+  reads: Record<StructureSource, EodReadStatus>
+): StructureGap | null {
+  if (cell.value !== null) return null;
+  const statuses = CELL_SOURCES[cell.key].map((s) => reads[s]);
+  if (statuses.includes("unavailable")) return "failed";
+  if (statuses.includes("loading")) return "reading";
+  return "absent";
+}
+
 export interface StructureCell {
   key: StructureCellKey;
   /** Preformatted display value, or null → the cell renders its absent state. */
