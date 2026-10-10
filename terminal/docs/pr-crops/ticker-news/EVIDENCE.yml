@@ -1,59 +1,73 @@
-capturedAtHead: 5a945e9f
+# Ticker News rail — capture evidence (gated by lib/__tests__/tickerNewsEvidence.test.ts)
+# Recaptured 2026-10-10 (capturedAt 2026-10-10T02:36:44Z) at master 5ad5212113a8ff11a5701f67ad3ea7317ca63dbf,
+# all 10 crops, with the producing spec run unmodified:
+#   cd terminal
+#   TERMINAL_CROPS=1 TERMINAL_E2E_PORT=3231 npm run test:e2e:responsive -- e2e/ticker-news.spec.ts --project=desktop --project=mobile --workers=1 --retries=0
+# The spec writes crops only when TERMINAL_CROPS=1, and then deletes this whole directory first
+# (rmSync), so restore this file with `git checkout HEAD -- docs/pr-crops/ticker-news/EVIDENCE.yml`
+# after a capture run and copy in only the rows for crops that run produced.
+# What changed against the 5a945e9f crops: text edges only. Dimensions, layout and glyph positions are
+# identical; the old crops used subpixel (coloured-fringe) text antialiasing and these use greyscale.
+# A second run at the same head matched byte-for-byte on 9 crops; desktop-en-dark differed by 6 pixels
+# (max channel delta 1) on the panel's top-left rounded corner. The first run's crops are kept.
+# The TerminalShell.tsx row moves from 870c21f4 (its #831 bytes) to its current bytes because every
+# crop was recaptured against those bytes; #854 and #643 changed that file after #831.
+capturedAtHead: 5ad5212113a8ff11a5701f67ad3ea7317ca63dbf
 layoutFiles:
   - path: terminal/components/news/TickerNewsPanel.tsx
     sha256: e855a84e0d60671028cd475c21e6c3578afa1f323643e71209017d5d65ffc7b4
   - path: terminal/components/news/TickerNewsPanel.module.css
     sha256: 57464a037b904a52c01c16cbcb0484fde288de0354d98b59901738c1a2f3bbac
   - path: terminal/components/TerminalShell.tsx
-    sha256: 870c21f4f8a45c5388feeac63bff920631ce8baabbe7b5392aad5968da652b64
+    sha256: 8183a2be2c8c9ba950f41b64d4e21016a3997585b0c78e36262a44152c264475
 crops:
   - file: desktop-en-dark.png
     viewport: 1440x900
     lang: en
     state: live-feed
-    sha256: 33069288d64956826dab063198eb6faa0f15553ececa1f31426f5dc4e17e9706
+    sha256: b86bb3830d8b169bae7eca754c5e01cc6d52d6416ebfb26bb3a021bd6bc568fa
   - file: desktop-zh-dark.png
     viewport: 1440x900
     lang: zh
     state: live-feed
-    sha256: 6dfec55b446961f5be12ac7c6201c9852fb4c1dd2ae87e62a660cfc405776d0b
+    sha256: 3578225684ed98543b87199ae3ad86bc1ec60907c6cd71adbec584c906763a60
   - file: tablet-en-dark.png
     viewport: 820x1180
     lang: en
     state: live-feed
-    sha256: 62e9fd0a4d0c153f0cf5575b547d5b889f165a1b042b16dd117037c1d92a349c
+    sha256: 4433d0c07737a03fb13133a3c193a7f5cb7d1a2f3dca47f809f9fb1bf9a85987
   - file: tablet-zh-dark.png
     viewport: 820x1180
     lang: zh
     state: live-feed
-    sha256: 899df5c8192a4041050c4d10ab206233fd4a0fc40eddabcb33659f722a23c558
+    sha256: 3538ee609c399bef896b1c44f304d8dd43b42ca35bdea0c7328f277d9300f088
   - file: mobile-en-dark.png
     viewport: 390x844
     lang: en
     state: live-feed
-    sha256: a4e9edffe0da69d68bdbdb44d744e4dfd4441ca41cbf0c02b3bc8baf25d5d30b
+    sha256: bcee5458d3d08cb2307f802f0fc71c455618423d3b730d857f059818a77c4372
   - file: mobile-zh-dark.png
     viewport: 390x844
     lang: zh
     state: live-feed
-    sha256: 86d70abddf0bd664639da4fbcef95a44a97479f16ac9ea967ab3fdcfff387e26
+    sha256: e4f1bb95666eb501408f4c7621952b8061bfe9c588dfed89209f2aeb60b14e52
   - file: unavailable-desktop-en-dark.png
     viewport: 1440x900
     lang: en
     state: unavailable
-    sha256: d4d30294183e96dab2fac4b70c4c29f60ecf094640139b8d5117b01179b1d36e
+    sha256: 566f5fba352b3e8b8da817d6dc0d5d817e5efdcfab13e9116cdfa5ab2bac335b
   - file: unavailable-desktop-zh-dark.png
     viewport: 1440x900
     lang: zh
     state: unavailable
-    sha256: 1a173ba4662d3fa869c7e7c76a5be853ad85186dcd9d5b3624a11f4ba11dc3ae
+    sha256: 99fe376e3f6276e09eecabcbc39e03a9742c37c2d1031a893f1c04cdfa478c18
   - file: unavailable-mobile-en-dark.png
     viewport: 390x844
     lang: en
     state: unavailable
-    sha256: b84227da6a330c5e89f9dfb4d486440f3e75b81c5c3be9048abbe0ffd021ce93
+    sha256: d88768b9a19a54b7d60b4999dea90dea2c6e6fd0cc5b76d4fccaffdad8b1dfb3
   - file: unavailable-mobile-zh-dark.png
     viewport: 390x844
     lang: zh
     state: unavailable
-    sha256: 3b66b0e473791b599073b74102a4bf7e2896609c0a6fe952e4bb8aefa1b32ebc
+    sha256: dbc52d2ecb74ddcd7c7974f4819b3bf53e2c0f8eac0995ce344ef4c5f5a2983f
