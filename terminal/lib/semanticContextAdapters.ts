@@ -111,3 +111,76 @@ export function semanticEntityFromMarketOntology(context: MarketOntologyContext)
   void context;
   return { status: "missing_adapter", reason: "navigation_context_is_not_canonical_identity" };
 }
+
+
+/**
+ * Read-only tuple comparison across two EXISTING owners.
+ *
+ * "compatible" means only that these two observed client snapshots agree on
+ * canonical security + timeframe. It is not authentication, a shared revision,
+ * a Brain send receipt, data qualification, a rights decision, or a write.
+ */
+export type SemanticChartBrainComparison =
+  | {
+      status: "compatible";
+      symbol: string;
+      timeframe: string;
+      chart: { epoch: string; group_revision: number; incarnation: number };
+      brain: { origin_id: string; context_revision: number };
+    }
+  | { status: "unsupported" | "incompatible"; reason: string };
+
+export function compareSemanticChartBrainContexts(
+  chart: ContextSnapshot | null,
+  brain: AiContextClientV1,
+): SemanticChartBrainComparison {
+  try {
+    if (!chart) {
+      return { status: "unsupported", reason: "chart_session_unavailable" };
+    }
+    const visual = semanticSecurityFromNativeChartSnapshot(chart);
+    if (visual.status !== "qualified") {
+      return { status: "unsupported", reason: visual.reason };
+    }
+    if (chart.mode !== "follow") {
+      return { status: "unsupported", reason: "chart_not_following" };
+    }
+    const context = semanticSecurityFromAiContextV1(brain);
+    if (context.status !== "qualified") {
+      return {
+        status: context.status === "incompatible" ? "incompatible" : "unsupported",
+        reason: context.status === "incompatible" ? "brain_context_inconsistent" : "brain_context_unavailable",
+      };
+    }
+    if (visual.value.kind !== "entity_selection" || context.value.kind !== "entity_selection") {
+      return { status: "unsupported", reason: "security_context_unavailable" };
+    }
+    const symbol = visual.value.ref.object_id;
+    if (symbol !== context.value.ref.object_id) {
+      return { status: "incompatible", reason: "symbol_mismatch" };
+    }
+    const timeframe = chart.value.timeframe;
+    if (typeof timeframe !== "string" || !timeframe || timeframe !== brain.ambient.timeframe) {
+      return { status: "incompatible", reason: "timeframe_mismatch" };
+    }
+    if (!brain.origin_id || !Number.isSafeInteger(brain.context_revision) || brain.context_revision < 0) {
+      return { status: "unsupported", reason: "brain_context_unavailable" };
+    }
+    return {
+      status: "compatible",
+      symbol,
+      timeframe,
+      chart: {
+        epoch: chart.epoch,
+        group_revision: chart.group_revision,
+        incarnation: chart.incarnation,
+      },
+      brain: {
+        origin_id: brain.origin_id,
+        context_revision: brain.context_revision,
+      },
+    };
+  } catch {
+    return { status: "unsupported", reason: "context_read_invalid" };
+  }
+}

@@ -15,7 +15,8 @@ import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } fr
 import type { Drawing } from "@/lib/drawings";
 import { timeToMs } from "@/lib/timeWindow";
 import {createWorkspaceContextSession,type WorkspaceContextSession} from "./workspaceContextSession";
-import { semanticSecurityFromNativeChartSnapshot, type SemanticAdapterResult } from "./semanticContextAdapters";
+import { compareSemanticChartBrainContexts, semanticSecurityFromNativeChartSnapshot, type SemanticAdapterResult, type SemanticChartBrainComparison } from "./semanticContextAdapters";
+import type { AiContextClientV1 } from "./aiContext";
 import {
   CommandQueue, applyToStore, isV2Envelope, translate, validateEnvelope,
   fitMetrics, type Ack, type AiObject, type Fit, type FitBar, type IndicatorSpec,
@@ -46,6 +47,8 @@ export type ChartBus = {
   readonly context: WorkspaceContextSession|null;
   /** Read-only typed security projection from this mount's existing context owner. */
   readSemanticSecurity: () => SemanticAdapterResult;
+  /** Compatibility-only receipt with the *current* Brain provider; no Brain state mutation. */
+  readSemanticBrainCompatibility: (readBrainContext: () => AiContextClientV1) => SemanticChartBrainComparison;
   dispatchV2: (cmd: unknown) => void;
   /** PaneSync calendar window in epoch ms; only active-pane changes trigger a mirror. */
   noteViewport: (paneId: number, windowMs: { from: number; to: number } | null) => void;
@@ -301,7 +304,25 @@ export function useChartBus(host: ChartBusHost): ChartBus {
     () => semanticSecurityFromNativeChartSnapshot(contextRef.current?.snapshot("active-chart") ?? null),
     [],
   );
-  return { get context(){return contextRef.current;}, readSemanticSecurity, dispatchV2, noteViewport, aiDrawingsFor, legend, queue };
+  const readSemanticBrainCompatibility = useCallback((readBrainContext: () => AiContextClientV1): SemanticChartBrainComparison => {
+    const session = contextRef.current;
+    if (!session) return { status: "unsupported", reason: "chart_session_unavailable" };
+    const generation = session.token("active-chart");
+    if (!generation) return { status: "unsupported", reason: "chart_session_unavailable" };
+    let brain: AiContextClientV1;
+    try {
+      // TerminalShell/BrainWidget owns this getter and its send-time value.
+      // Do not capture cached context or call Brain or mutate the mounted bus.
+      brain = readBrainContext();
+    } catch {
+      return { status: "unsupported", reason: "brain_context_unavailable" };
+    }
+    if (contextRef.current !== session || !session.isCurrent(generation)) {
+      return { status: "incompatible", reason: "chart_generation_changed" };
+    }
+    return compareSemanticChartBrainContexts(session.snapshot("active-chart"), brain);
+  }, []);
+  return { get context(){return contextRef.current;}, readSemanticSecurity, readSemanticBrainCompatibility, dispatchV2, noteViewport, aiDrawingsFor, legend, queue };
 }
 
 // ── shape helpers for the state mirror ──────────────────────────────────────────────────────────
