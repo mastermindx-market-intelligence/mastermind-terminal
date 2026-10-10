@@ -27,7 +27,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useLang } from "@/lib/i18n";
 import { flowGetResult, flowInvalidate, type FlowOutcome } from "@/lib/flowClientCache";
-import { getJSONResult, invalidate, type CacheOutcome } from "@/lib/dataCache";
+import { getJSONResult, invalidate, type CacheOutcome, type Revalidation } from "@/lib/dataCache";
 import { trackSearch } from "@/lib/searchTrack";
 import { makeHeatmapT, sectorChipLabel } from "@/lib/heatmapStrings";
 import { Tip } from "@/components/ui/Tip";
@@ -75,8 +75,10 @@ function isManifest(m: unknown): m is ManifestPayload {
 /** What the latest manifest read established. `loading` until the first read settles. */
 type ManifestRead = "loading" | "data" | "absent" | "unavailable";
 
+/** `refresh` is set when the manifest is an old copy (in practice the IndexedDB record of an
+ *  earlier visit) being refreshed in the background; it settles with how that refresh ended. */
 type ManifestOutcome =
-  | { status: "data"; manifest: ManifestPayload }
+  | { status: "data"; manifest: ManifestPayload; refresh?: Promise<Revalidation> }
   | { status: "absent" }
   | { status: "unavailable" };
 
@@ -85,6 +87,11 @@ type ManifestOutcome =
  * guest 403 and never claims the manifest is absent, so a missing static copy behind a
  * failed route read is still a read that did not land. Only when every source answered
  * 404/410 is the market honestly empty.
+ *
+ * The static copy is usually answered from disk: the shell, Screener and Alerts all read it,
+ * so a persisted copy exists and, being older than the cache TTL, is served stale while the
+ * network is asked again. That copy paints, and its refresh is handed back so a refresh that
+ * fails labels the tiles as the last read instead of passing them off as current.
  */
 async function readManifest(onRevalidate: (m: ManifestPayload) => void): Promise<ManifestOutcome> {
   let primary: FlowOutcome;
@@ -103,7 +110,9 @@ async function readManifest(onRevalidate: (m: ManifestPayload) => void): Promise
   } catch {
     fallback = { status: "unavailable", reason: "network" };
   }
-  if (fallback.status === "data" && isManifest(fallback.data)) return { status: "data", manifest: fallback.data };
+  if (fallback.status === "data" && isManifest(fallback.data)) {
+    return { status: "data", manifest: fallback.data, refresh: fallback.stale?.revalidation };
+  }
   if (primary.status === "absent" && fallback.status === "absent") return { status: "absent" };
   return { status: "unavailable" };
 }
@@ -119,7 +128,7 @@ function isFlowIdx(v: unknown): v is FlowIdxPayload {
 type FlowRead = "loading" | "data" | "absent" | "auth" | "unavailable";
 
 type FlowIdxOutcome =
-  | { status: "data"; flowIdx: FlowIdxPayload }
+  | { status: "data"; flowIdx: FlowIdxPayload; refresh?: Promise<Revalidation> }
   | { status: "absent" }
   | { status: "auth" }
   | { status: "unavailable" };
@@ -128,7 +137,7 @@ type FlowIdxOutcome =
  * Read the flow index: /api/flow first, the static copy second. Both 404/410 is published
  * absence. A route 401/403 with the static copy proven absent is the guest's real answer —
  * the layer needs access. Anything else that did not land says nothing about whether the
- * index exists.
+ * index exists. A static copy answered from disk hands back its refresh, as the manifest does.
  */
 async function readFlowIdx(onRevalidate: (f: FlowIdxPayload) => void): Promise<FlowIdxOutcome> {
   let primary: FlowOutcome;
@@ -147,7 +156,9 @@ async function readFlowIdx(onRevalidate: (f: FlowIdxPayload) => void): Promise<F
   } catch {
     fallback = { status: "unavailable", reason: "network" };
   }
-  if (fallback.status === "data" && isFlowIdx(fallback.data)) return { status: "data", flowIdx: fallback.data };
+  if (fallback.status === "data" && isFlowIdx(fallback.data)) {
+    return { status: "data", flowIdx: fallback.data, refresh: fallback.stale?.revalidation };
+  }
   if (primary.status === "absent" && fallback.status === "absent") return { status: "absent" };
   const refused = primary.status === "unavailable" && (primary.httpStatus === 401 || primary.httpStatus === 403);
   if (refused && fallback.status === "absent") return { status: "auth" };
@@ -405,6 +416,7 @@ export function HeatmapView() {
   // Primary: /api/flow?f=manifest; second source: /data/manifest.json (see readManifest).
   // A read that did not land keeps whatever is on screen — it is the last read, labelled
   // so — and only a proven absence withdraws it. The fence drops a read a newer one replaced.
+  // An old copy whose background refresh fails is the same: the tiles stay, labelled.
   const manifestReqRef = useRef(0);
   const fetchManifest = useCallback(async () => {
     const req = ++manifestReqRef.current;
@@ -416,6 +428,11 @@ export function HeatmapView() {
     if (read.status === "data") {
       setManifest(read.manifest);
       setManifestRead("data");
+      // A refresh that succeeds arrives through onRevalidate above; "superseded" means a newer
+      // read or a Retry owns the board.
+      void read.refresh?.then((result) => {
+        if (result === "failed" && current()) setManifestRead("unavailable");
+      });
     } else if (read.status === "absent") {
       setManifest(null);
       setManifestRead("absent");
@@ -437,6 +454,7 @@ export function HeatmapView() {
   // Primary: /api/flow?f=flow_idx; second source: /data/flow_idx.json (see readFlowIdx).
   // A read that did not land keeps the flow tiles on screen as the last read; a proven
   // absence or a refusal withdraws them. The fence drops a read a newer one replaced.
+  // An old copy whose background refresh fails is the same: the flow tiles stay, labelled.
   const flowReqRef = useRef(0);
   const fetchFlow = useCallback(async () => {
     const req = ++flowReqRef.current;
@@ -448,6 +466,9 @@ export function HeatmapView() {
     if (read.status === "data") {
       setFlowIdx(read.flowIdx);
       setFlowRead("data");
+      void read.refresh?.then((result) => {
+        if (result === "failed" && current()) setFlowRead("unavailable");
+      });
     } else if (read.status === "absent" || read.status === "auth") {
       setFlowIdx(null);
       setFlowRead(read.status);

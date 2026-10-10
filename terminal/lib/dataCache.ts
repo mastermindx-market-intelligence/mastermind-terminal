@@ -53,7 +53,15 @@ import {
 } from "./idbJsonStore";
 import { canonicalChartSymbol } from "./terminalBoot";
 
-type Entry = { data: any; ts: number; inflight: Promise<CacheOutcome> | null };
+// `refresh` marks an entry whose request is a background refresh of the copy it still holds
+// (`data`/`ts`), and where that copy came from — so a read that joins the request can fall back
+// to the same copy, labelled, when the refresh fails (see joinInflight).
+type Entry = {
+  data: any;
+  ts: number;
+  inflight: Promise<CacheOutcome> | null;
+  refresh?: { source: StaleServe["source"]; revalidation?: Promise<Revalidation> };
+};
 
 const store = new Map<string, Entry>();
 
@@ -148,7 +156,8 @@ export interface GetOpts {
    * production 2026-08-07: the app showed the 08-05 close while the network served 08-06).
    *
    * Fires at most once per getJSON call, and only when the revalidation actually returns
-   * data. Consumers must guard it with their own mounted flag.
+   * data. Consumers must guard it with their own mounted flag. A refresh that FAILS never
+   * calls it — `getJSONResult` reports that through the outcome's `stale.revalidation`.
    */
   onRevalidate?: (data: any) => void;
 }
@@ -174,12 +183,49 @@ const DEFAULT_TTL = 60_000;
  * `getJSON` is unchanged and remains correct for consumers that genuinely treat missing and
  * broken alike (a per-symbol intel file either paints or does not). Use `getJSONResult` where
  * the product needs different states — and never re-collapse them at the call site.
+ *
+ * A "data" outcome served from a copy older than the TTL says so: it carries `stale` (see
+ * StaleServe). A fresh serve and a live read stay exactly `{ status: "data", data }`.
  */
 export type UnavailableReason = "network" | "server" | "malformed";
 export type CacheOutcome =
-  | { status: "data"; data: any }
+  | { status: "data"; data: any; stale?: StaleServe }
   | { status: "absent"; httpStatus?: number }
   | { status: "unavailable"; reason: UnavailableReason; httpStatus?: number };
+
+/**
+ * How the background refresh behind a stale serve ended.
+ *
+ *   "ok"          the network answered with data; it is committed and was handed to
+ *                 `onRevalidate`.
+ *   "failed"      the network answered absent or unavailable. Memory is released, the IndexedDB
+ *                 record is KEPT, so the next read is answered with the same old copy again.
+ *   "superseded"  an invalidation (or a newer request for the key) replaced it; its answer was
+ *                 discarded and says nothing about the copy that was served.
+ */
+export type Revalidation = "ok" | "failed" | "superseded";
+
+/**
+ * StaleServe — what a caller handed an old copy needs to label it honestly.
+ *
+ * Every reload is a full memory miss, so a persisted record (always older than the 60s TTL) is
+ * served stale from IndexedDB and refreshed in the background. Before this field the outcome was
+ * a bare `{status:"data"}`: when that refresh failed the caller never learned it, kept painting a
+ * previous session's numbers as current, and a later read was answered from the same disk copy
+ * again. A surface that labels a failed refresh ("showing the last read") could never do so for
+ * the copy most browsers actually hold (HeatmapView, verified with a persisted manifest).
+ *
+ * `revalidation` never rejects. Chain on it AFTER applying `data`, so a refresh that already
+ * settled is still observed in order.
+ */
+export interface StaleServe {
+  /** Age of the served copy when it was served: ms since it was committed (its persisted ts). */
+  ageMs: number;
+  /** Where the served copy was held: this tab's memory, or the IndexedDB record of an earlier read. */
+  source: "memory" | "disk";
+  /** Settles when the background refresh does. */
+  revalidation: Promise<Revalidation>;
+}
 
 // ── LRU eviction: delete the oldest entry when the store exceeds 400 items ──
 function evictOldest(): void {
@@ -227,8 +273,13 @@ async function fetchOutcome(url: string): Promise<CacheOutcome> {
 // ── Core fetch: issues the request, writes/evicts on settle ──
 // onRevalidate (optional) is invoked with the committed payload — the hook that lets a
 // background SWR refresh reach the caller that was already handed the stale value.
-function doFetch(url: string, entry: Entry, onRevalidate?: (data: any) => void): Promise<CacheOutcome> {
+// `revalidation` settles with what became of the answer (see Revalidation); only a stale serve
+// hands it to its caller.
+type Fetch = { outcome: Promise<CacheOutcome>; revalidation: Promise<Revalidation> };
+function doFetch(url: string, entry: Entry, onRevalidate?: (data: any) => void): Fetch {
   const started = currentGeneration();
+  let settle: (result: Revalidation) => void = () => {};
+  const revalidation = new Promise<Revalidation>((resolve) => { settle = resolve; });
   const inflight: Promise<CacheOutcome> = fetchOutcome(url).then((outcome) => {
     // Both positive and negative cache writes belong to the currently registered request of the
     // current generation. A late 404 from an invalidated/evicted request must not hide a newer
@@ -238,6 +289,7 @@ function doFetch(url: string, entry: Entry, onRevalidate?: (data: any) => void):
       // Still registered but from an older generation (only reachable when the per-key map
       // overflowed into a whole-cache stamp): release the key so the next read asks again.
       store.delete(url);
+      settle("superseded");
     } else if (current && current.inflight === inflight) {
       // Only 404/410 are absence; transient errors remain retryable.
       if (outcome.status === "absent") rememberAbsence(url);
@@ -245,6 +297,7 @@ function doFetch(url: string, entry: Entry, onRevalidate?: (data: any) => void):
         // Never pin null — clear the key so the next call retries.
         // (the bounded absence cache prevents a 404/410 URL from being refetched for a while.)
         store.delete(url);
+        settle("failed");
       } else {
         const committed: Entry = { data: outcome.data, ts: Date.now(), inflight: null };
         touch(url, committed);
@@ -259,16 +312,43 @@ function doFetch(url: string, entry: Entry, onRevalidate?: (data: any) => void):
         if (onRevalidate) {
           try { onRevalidate(outcome.data); } catch { /* consumer's problem, not the cache's */ }
         }
+        settle("ok");
       }
+    } else {
+      // Invalidated or replaced while in flight: the cache discarded this answer.
+      settle("superseded");
     }
     return outcome;
   });
 
   entry.inflight = inflight;
+  if (entry.refresh) entry.refresh.revalidation = revalidation;
   store.delete(url);
   store.set(url, entry);
   evictOldest();
-  return inflight;
+  return { outcome: inflight, revalidation };
+}
+
+/**
+ * A read that finds a request already in flight shares it (dedup). When that request is a
+ * background refresh of an older copy — another reader was just served that copy stale — and
+ * it fails transiently, the joiner is answered with the SAME copy, labelled stale, rather than
+ * with `unavailable`: the copy is what the other reader is showing, and what the next read will
+ * be answered with, so "nothing could be read" would be untrue. A successful refresh, a proven
+ * absence (404/410 — remembered, so every later read says the same), and a refresh discarded by
+ * an invalidation all pass through unchanged. Readers that opted out of stale serves
+ * (`swr: false`) always get the request's own outcome.
+ */
+function joinInflight(entry: Entry, swr: boolean): Promise<CacheOutcome> {
+  const inflight = entry.inflight!;
+  const refresh = entry.refresh;
+  if (!swr || !refresh?.revalidation) return inflight;
+  const { data, ts } = entry;
+  const revalidation = refresh.revalidation;
+  return inflight.then(async (outcome): Promise<CacheOutcome> => {
+    if (outcome.status !== "unavailable" || (await revalidation) !== "failed") return outcome;
+    return { status: "data", data, stale: { ageMs: Date.now() - ts, source: refresh.source, revalidation } };
+  });
 }
 
 /**
@@ -300,15 +380,16 @@ export function _seedDecision(ts: number, now: number, ttl: number, swr: boolean
  *
  * Algorithm:
  *   0. In-session 404 → "absent" immediately (never refetch).
- *   1. Inflight request present → return it (deduplication).
+ *   1. Inflight request present → share it (deduplication; see joinInflight for a refresh).
  *   2. Fresh (now - ts < ttl) → return cached data immediately.
  *   3. Stale + swr=true → kick off background revalidate; return stale data.
  *   3b. Full memory miss → try IndexedDB read-back before the network (see below).
  *   4. Otherwise → fetch synchronously (caller awaits).
  *
- * Every cached/stale serve is `data` — a served-stale copy is still an answer. Only a live
- * request that failed produces `unavailable`, and only a 404/410 (live or remembered)
- * produces `absent`.
+ * Every cached/stale serve is `data` — a served-stale copy is still an answer, but it says so:
+ * steps 3 and 3b attach `stale` (age, memory|disk, and the background refresh's settlement), so a
+ * caller can label the copy when that refresh fails. Only a live request that failed produces
+ * `unavailable`, and only a 404/410 (live or remembered) produces `absent`.
  */
 export async function getJSONResult(url: string, opts?: GetOpts): Promise<CacheOutcome> {
   // 0. In-session 404 negative cache — never re-request a URL that answered 404/410.
@@ -323,7 +404,7 @@ export async function getJSONResult(url: string, opts?: GetOpts): Promise<CacheO
   if (entry) {
     // 1. Deduplicate in-flight requests.
     if (entry.inflight !== null) {
-      return entry.inflight;
+      return joinInflight(entry, swr);
     }
 
     const age = now - entry.ts;
@@ -339,9 +420,9 @@ export async function getJSONResult(url: string, opts?: GetOpts): Promise<CacheO
       // Schedule background revalidation (microtask so the stale data is
       // returned to the caller before the fetch starts).
       const staleData = entry.data;
-      const bgEntry: Entry = { data: staleData, ts: entry.ts, inflight: null };
-      doFetch(url, bgEntry, opts?.onRevalidate); // fire-and-forget
-      return { status: "data", data: staleData };
+      const bgEntry: Entry = { data: staleData, ts: entry.ts, inflight: null, refresh: { source: "memory" } };
+      const { revalidation } = doFetch(url, bgEntry, opts?.onRevalidate); // not awaited
+      return { status: "data", data: staleData, stale: { ageMs: age, source: "memory", revalidation } };
     }
 
     // 3.stale + swr=false with an existing memory entry → fall through to (4).
@@ -358,7 +439,7 @@ export async function getJSONResult(url: string, opts?: GetOpts): Promise<CacheO
     // have populated it while we awaited the IDB read. If so, defer to it.
     const raced = store.get(url);
     if (raced) {
-      if (raced.inflight !== null) return raced.inflight;
+      if (raced.inflight !== null) return joinInflight(raced, swr);
       if (Date.now() - raced.ts < ttl) {
         touch(url, raced);
         return { status: "data", data: raced.data };
@@ -377,9 +458,9 @@ export async function getJSONResult(url: string, opts?: GetOpts): Promise<CacheO
         touch(url, seeded);
         // Serve stale from disk immediately; revalidate in the background. This is THE
         // path every reload takes for the manifest, so the callback matters most here.
-        const bgEntry: Entry = { data: rec.data, ts: rec.ts, inflight: null };
-        doFetch(url, bgEntry, opts?.onRevalidate); // fire-and-forget
-        return { status: "data", data: rec.data };
+        const bgEntry: Entry = { data: rec.data, ts: rec.ts, inflight: null, refresh: { source: "disk" } };
+        const { revalidation } = doFetch(url, bgEntry, opts?.onRevalidate); // not awaited
+        return { status: "data", data: rec.data, stale: { ageMs: Date.now() - rec.ts, source: "disk", revalidation } };
       }
       // decision === "refetch" (stale + swr=false): fall through to blocking fetch.
     }
@@ -388,7 +469,7 @@ export async function getJSONResult(url: string, opts?: GetOpts): Promise<CacheO
   // 4. Miss or expired (swr=false): blocking fetch. No onRevalidate here — the caller is
   // awaiting THIS request, so a callback would just re-deliver what it is about to receive.
   const fresh: Entry = { data: null, ts: 0, inflight: null };
-  return doFetch(url, fresh);
+  return doFetch(url, fresh).outcome;
 }
 
 /**
@@ -428,7 +509,7 @@ export function prefetch(url: string, opts?: GetOpts): void {
     if (now - entry.ts < ttl) return;
     // Stale memory entry: revalidate (existing behaviour — no IDB detour needed
     // since memory already holds data at least as fresh as disk).
-    const fresh: Entry = { data: entry.data, ts: entry.ts, inflight: null };
+    const fresh: Entry = { data: entry.data, ts: entry.ts, inflight: null, refresh: { source: "memory" } };
     doFetch(url, fresh);
     return;
   }
@@ -451,7 +532,7 @@ export function prefetch(url: string, opts?: GetOpts): void {
           touch(url, seeded);
           if (decision === "fresh") return; // fresh on disk → skip the network
           // stale → revalidate in the background
-          const bgEntry: Entry = { data: rec.data, ts: rec.ts, inflight: null };
+          const bgEntry: Entry = { data: rec.data, ts: rec.ts, inflight: null, refresh: { source: "disk" } };
           doFetch(url, bgEntry);
           return;
         }

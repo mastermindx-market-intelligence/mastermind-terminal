@@ -1,9 +1,14 @@
 # EOD belt, Flow Desk chain heat and Heatmap flow layer failure-state truth — capture evidence
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
 # Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
-# capturedAtHead: 686c23f370f5492ebbf871804655add76e7d620b
-# capturedAt: 2026-10-10T06:04:53.957Z
+# capturedAtHead: 1783641e22da3f46ed7276c011a75419d1a10af1
+# capturedAt: 2026-10-10T07:18:46.240Z
 # capturedAtHead is informational. The lock is layoutFiles.
+# 2026-10-10 recapture (data-cache stale serve, #911): all 126 crops recaptured by e2e/tools/capture_eod_heatmap_flowdesk_load_failure.cjs, which this PR extends with three states, and compared with the 108 crops #903 committed (capturedAtHead 686c23f3).
+# The script ran at a local commit holding master 2ded42f3 (#903) plus this PR's lib/dataCache.ts, HeatmapView.tsx, tests and capture-script changes, so capturedAtHead above is that local commit.
+# New: the 18 heatmap-flow-persisted-* crops (3 states x 3 widths x en/zh). /data/flow_idx.json answers the fixture's flow_idx payload, the browser's own IndexedDB record of it is aged 6h, both flow index sources then 503 or refuse the connection, the page reloads and the FLOW layer is reopened.
+# lib/dataCache.ts joins layoutFiles because those states depend on its IndexedDB read-back. HeatmapView.tsx is re-stamped for the refresh-failed wiring of the manifest and the flow index.
+# 96 of #903's 108 crops are byte-identical. The other 12 (chainheat-refresh-failed-* and chainheat-retried-*) differ only in the wall-clock source-age label (94d 10h ago became 94d 11h ago): the fixture's source time is aged against the real clock. Not a product change.
 layoutFiles:
   terminal/app/globals.css: "d67894b84cb6968d6fc87ab379f95da3b7e887cd5dd38240c5db8a55e31408a2"
   terminal/components/eodcontext/DarkPoolMini.tsx: "1a32c139addae19531a4c9463e6f9b278e0c6b6626c59d0092bc2a0a45527420"
@@ -12,7 +17,8 @@ layoutFiles:
   terminal/components/eodcontext/eodStrings.ts: "ab2495bbe114389851a11550fe67ed94b9d2d46e43f05ddfd94a7752aa85fa2d"
   terminal/components/flowdesk/FlowDeskView.tsx: "7c4ee44e695dbf928ebe5f7991bf7d0a7e8745420852c6773a3aa51456bae021"
   terminal/components/gexdesk/GexDeskView.tsx: "f9e037eb90cb10ea0a943a9c16d11849c429b66f5b548f055b8860d83f938ef5"
-  terminal/components/heatmap/HeatmapView.tsx: "eb87905e5dce315db295913732202329a65c6c623b2a92676963c6d5554a7f24"
+  terminal/components/heatmap/HeatmapView.tsx: "814db62170e8377c8871e98c6804fe18e9f6b38b497c8820dd23af464c820d3e"
+  terminal/lib/dataCache.ts: "bdc57d88c8387223b2e1cf5b11bb47c88782c9ee2fbfb8a468aab52876b8f116"
   terminal/lib/eodContext.ts: "a942505fa38c3bb86242508d3c88cb75e13160054c4e8dbf79088d44a6ae9032"
   terminal/lib/flowdeskStrings.ts: "ef323513f39c37a55a152642bfc7c7ac5dfa0de50dde2c32244e7d171bf868fa"
   terminal/lib/heatmapStrings.ts: "26bb75eccce7429e5a37154f07f7f68faf9652da1f6f3560074cb558f0dda9c2"
@@ -101,6 +107,24 @@ harness:
   heatmap-flow-auth-390.png: { url: "/discover?tab=heatmap", state: heatmap-flow-auth, injected: { "flow_idx": 403, "/data/flow_idx.json": 404 } }
   heatmap-flow-auth-820-zh.png: { url: "/discover?tab=heatmap", state: heatmap-flow-auth, injected: { "flow_idx": 403, "/data/flow_idx.json": 404 } }
   heatmap-flow-auth-820.png: { url: "/discover?tab=heatmap", state: heatmap-flow-auth, injected: { "flow_idx": 403, "/data/flow_idx.json": 404 } }
+  heatmap-flow-persisted-refresh-failed-1440-zh.png: { url: "/discover?tab=heatmap", state: heatmap-flow-persisted-refresh-failed, injected: { "flow_idx": 503 }, then: "/data/flow_idx.json answered the fixture's flow_idx payload, written to IndexedDB and aged 6h; flow_idx + /data/flow_idx.json answer 503; page reloaded" }
+  heatmap-flow-persisted-refresh-failed-1440.png: { url: "/discover?tab=heatmap", state: heatmap-flow-persisted-refresh-failed, injected: { "flow_idx": 503 }, then: "/data/flow_idx.json answered the fixture's flow_idx payload, written to IndexedDB and aged 6h; flow_idx + /data/flow_idx.json answer 503; page reloaded" }
+  heatmap-flow-persisted-refresh-failed-390-zh.png: { url: "/discover?tab=heatmap", state: heatmap-flow-persisted-refresh-failed, injected: { "flow_idx": 503 }, then: "/data/flow_idx.json answered the fixture's flow_idx payload, written to IndexedDB and aged 6h; flow_idx + /data/flow_idx.json answer 503; page reloaded" }
+  heatmap-flow-persisted-refresh-failed-390.png: { url: "/discover?tab=heatmap", state: heatmap-flow-persisted-refresh-failed, injected: { "flow_idx": 503 }, then: "/data/flow_idx.json answered the fixture's flow_idx payload, written to IndexedDB and aged 6h; flow_idx + /data/flow_idx.json answer 503; page reloaded" }
+  heatmap-flow-persisted-refresh-failed-820-zh.png: { url: "/discover?tab=heatmap", state: heatmap-flow-persisted-refresh-failed, injected: { "flow_idx": 503 }, then: "/data/flow_idx.json answered the fixture's flow_idx payload, written to IndexedDB and aged 6h; flow_idx + /data/flow_idx.json answer 503; page reloaded" }
+  heatmap-flow-persisted-refresh-failed-820.png: { url: "/discover?tab=heatmap", state: heatmap-flow-persisted-refresh-failed, injected: { "flow_idx": 503 }, then: "/data/flow_idx.json answered the fixture's flow_idx payload, written to IndexedDB and aged 6h; flow_idx + /data/flow_idx.json answer 503; page reloaded" }
+  heatmap-flow-persisted-refresh-refused-1440-zh.png: { url: "/discover?tab=heatmap", state: heatmap-flow-persisted-refresh-refused, injected: { "flow_idx": 503 }, then: "/data/flow_idx.json answered the fixture's flow_idx payload, written to IndexedDB and aged 6h; flow_idx + /data/flow_idx.json refuse the connection; page reloaded" }
+  heatmap-flow-persisted-refresh-refused-1440.png: { url: "/discover?tab=heatmap", state: heatmap-flow-persisted-refresh-refused, injected: { "flow_idx": 503 }, then: "/data/flow_idx.json answered the fixture's flow_idx payload, written to IndexedDB and aged 6h; flow_idx + /data/flow_idx.json refuse the connection; page reloaded" }
+  heatmap-flow-persisted-refresh-refused-390-zh.png: { url: "/discover?tab=heatmap", state: heatmap-flow-persisted-refresh-refused, injected: { "flow_idx": 503 }, then: "/data/flow_idx.json answered the fixture's flow_idx payload, written to IndexedDB and aged 6h; flow_idx + /data/flow_idx.json refuse the connection; page reloaded" }
+  heatmap-flow-persisted-refresh-refused-390.png: { url: "/discover?tab=heatmap", state: heatmap-flow-persisted-refresh-refused, injected: { "flow_idx": 503 }, then: "/data/flow_idx.json answered the fixture's flow_idx payload, written to IndexedDB and aged 6h; flow_idx + /data/flow_idx.json refuse the connection; page reloaded" }
+  heatmap-flow-persisted-refresh-refused-820-zh.png: { url: "/discover?tab=heatmap", state: heatmap-flow-persisted-refresh-refused, injected: { "flow_idx": 503 }, then: "/data/flow_idx.json answered the fixture's flow_idx payload, written to IndexedDB and aged 6h; flow_idx + /data/flow_idx.json refuse the connection; page reloaded" }
+  heatmap-flow-persisted-refresh-refused-820.png: { url: "/discover?tab=heatmap", state: heatmap-flow-persisted-refresh-refused, injected: { "flow_idx": 503 }, then: "/data/flow_idx.json answered the fixture's flow_idx payload, written to IndexedDB and aged 6h; flow_idx + /data/flow_idx.json refuse the connection; page reloaded" }
+  heatmap-flow-persisted-retried-1440-zh.png: { url: "/discover?tab=heatmap", state: heatmap-flow-persisted-retried, injected: { "flow_idx": 503 }, then: "/data/flow_idx.json answered the fixture's flow_idx payload, written to IndexedDB and aged 6h; flow_idx + /data/flow_idx.json answer 503; page reloaded; then flow_idx + /data/flow_idx.json healed, Retry clicked" }
+  heatmap-flow-persisted-retried-1440.png: { url: "/discover?tab=heatmap", state: heatmap-flow-persisted-retried, injected: { "flow_idx": 503 }, then: "/data/flow_idx.json answered the fixture's flow_idx payload, written to IndexedDB and aged 6h; flow_idx + /data/flow_idx.json answer 503; page reloaded; then flow_idx + /data/flow_idx.json healed, Retry clicked" }
+  heatmap-flow-persisted-retried-390-zh.png: { url: "/discover?tab=heatmap", state: heatmap-flow-persisted-retried, injected: { "flow_idx": 503 }, then: "/data/flow_idx.json answered the fixture's flow_idx payload, written to IndexedDB and aged 6h; flow_idx + /data/flow_idx.json answer 503; page reloaded; then flow_idx + /data/flow_idx.json healed, Retry clicked" }
+  heatmap-flow-persisted-retried-390.png: { url: "/discover?tab=heatmap", state: heatmap-flow-persisted-retried, injected: { "flow_idx": 503 }, then: "/data/flow_idx.json answered the fixture's flow_idx payload, written to IndexedDB and aged 6h; flow_idx + /data/flow_idx.json answer 503; page reloaded; then flow_idx + /data/flow_idx.json healed, Retry clicked" }
+  heatmap-flow-persisted-retried-820-zh.png: { url: "/discover?tab=heatmap", state: heatmap-flow-persisted-retried, injected: { "flow_idx": 503 }, then: "/data/flow_idx.json answered the fixture's flow_idx payload, written to IndexedDB and aged 6h; flow_idx + /data/flow_idx.json answer 503; page reloaded; then flow_idx + /data/flow_idx.json healed, Retry clicked" }
+  heatmap-flow-persisted-retried-820.png: { url: "/discover?tab=heatmap", state: heatmap-flow-persisted-retried, injected: { "flow_idx": 503 }, then: "/data/flow_idx.json answered the fixture's flow_idx payload, written to IndexedDB and aged 6h; flow_idx + /data/flow_idx.json answer 503; page reloaded; then flow_idx + /data/flow_idx.json healed, Retry clicked" }
   heatmap-flow-refresh-failed-1440-zh.png: { url: "/discover?tab=heatmap", state: heatmap-flow-refresh-failed, injected: {  }, then: "healthy read landed; flow_idx + /data/flow_idx.json answer 503; page clock moved past two polls" }
   heatmap-flow-refresh-failed-1440.png: { url: "/discover?tab=heatmap", state: heatmap-flow-refresh-failed, injected: {  }, then: "healthy read landed; flow_idx + /data/flow_idx.json answer 503; page clock moved past two polls" }
   heatmap-flow-refresh-failed-390-zh.png: { url: "/discover?tab=heatmap", state: heatmap-flow-refresh-failed, injected: {  }, then: "healthy read landed; flow_idx + /data/flow_idx.json answer 503; page clock moved past two polls" }
@@ -133,6 +157,7 @@ harness:
   heatmap-no-match-820.png: { url: "/discover?tab=heatmap", state: heatmap-no-match, injected: {  }, then: "searched zzzzq" }
 surfaces: [EodContextBelt, StructureStrip, DarkPoolMini, FlowDeskView, HeatmapView]
 injection: page.route answers /api/flow (by f-param), /data/flow_idx.json and /api/quote with 503 / 403 / 404 or a refused request; /api/flow/stream is refused on the GEX desk; every other read is the FLOW_FIXTURE server
+persisted: the heatmap-flow-persisted-* states age the browser's own IndexedDB record of /data/flow_idx.json (dataCache write-through), never a mocked cache
 capture_flag: TERMINAL_E2E_FIXTURE
 capture_flag_law: next.config.ts sets devIndicators: false when TERMINAL_E2E_FIXTURE is set; this script starts next dev with the same flag.
 command: |
@@ -217,6 +242,24 @@ files:
   - heatmap-flow-auth-390.png
   - heatmap-flow-auth-820-zh.png
   - heatmap-flow-auth-820.png
+  - heatmap-flow-persisted-refresh-failed-1440-zh.png
+  - heatmap-flow-persisted-refresh-failed-1440.png
+  - heatmap-flow-persisted-refresh-failed-390-zh.png
+  - heatmap-flow-persisted-refresh-failed-390.png
+  - heatmap-flow-persisted-refresh-failed-820-zh.png
+  - heatmap-flow-persisted-refresh-failed-820.png
+  - heatmap-flow-persisted-refresh-refused-1440-zh.png
+  - heatmap-flow-persisted-refresh-refused-1440.png
+  - heatmap-flow-persisted-refresh-refused-390-zh.png
+  - heatmap-flow-persisted-refresh-refused-390.png
+  - heatmap-flow-persisted-refresh-refused-820-zh.png
+  - heatmap-flow-persisted-refresh-refused-820.png
+  - heatmap-flow-persisted-retried-1440-zh.png
+  - heatmap-flow-persisted-retried-1440.png
+  - heatmap-flow-persisted-retried-390-zh.png
+  - heatmap-flow-persisted-retried-390.png
+  - heatmap-flow-persisted-retried-820-zh.png
+  - heatmap-flow-persisted-retried-820.png
   - heatmap-flow-refresh-failed-1440-zh.png
   - heatmap-flow-refresh-failed-1440.png
   - heatmap-flow-refresh-failed-390-zh.png
