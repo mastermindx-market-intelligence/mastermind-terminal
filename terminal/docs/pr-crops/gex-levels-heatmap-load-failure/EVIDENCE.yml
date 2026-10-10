@@ -1,20 +1,21 @@
+# 2026-10-10 recapture after merging master through #901 (GexDeskView.tsx) and #907 (this packet, 96 crops, gated by lib/__tests__/gexLevelsHeatmapLoadFailureEvidence.test.ts) into branch claude/eod-heatmap-flowdesk-load-failure-state, which itself changes GexDeskView.tsx (passes the desk's own gexstate/gex reads to the EOD belt), HeatmapView.tsx and heatmapStrings.ts. All 96 crops were recaptured on the merged tree; only those three rows were re-stamped (globals.css, LevelsView.tsx and the rest equal master). Two full runs with --disable-partial-raster were byte-identical (96 of 96). Against master's packet, compared exactly in RGBA: 65 are byte-identical. 11 differ by at most 4/255 on at most 10 px, which is invisible raster noise. 12 (gex-live-refresh-failed-* and gex-live-retried-*) differ in the wall-clock source-age label (91d old became 92d old) plus anti-aliasing of at most 5/255 on the 1440 symbol chips. 3 are this branch's change: in gex-rail-unavailable-1440(-zh) and gex-rail-unavailable-390-zh the belt above now shows a load error for its level cells when gexstate fails, so the rail sits lower and is clipped at a different scroll offset (the English 1440 crop is 12 px shorter); the error text and Retry are fully visible. 5 (gex-rail-retried-1440-zh, gex-state-refresh-failed-1440(-zh), levels-retried-1440(-zh)) differ by at most 13/255 with at most 4 px above 5/255: anti-aliasing, because master's capture ran without --disable-partial-raster.
 # GEX desk, Levels and Heatmap failure-state truth — capture evidence
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
 # Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
-# capturedAtHead: 3c994c34f6798a29c93e63c65bd9b2e145501953
-# capturedAt: 2026-10-10T03:52:51.581Z
+# capturedAtHead: ab57d7b3bb400ea3b121fb2495d2d46e6460ee38
+# capturedAt: 2026-10-10T05:51:31.058Z
 # capturedAtHead is informational. The lock is layoutFiles.
 layoutFiles:
   terminal/app/globals.css: "d67894b84cb6968d6fc87ab379f95da3b7e887cd5dd38240c5db8a55e31408a2"
-  terminal/components/gexdesk/GexDeskView.tsx: "4ae5b9a848ab12a418795bc14a5cfa1cc4a6a16c9ddec8932b30ed7261b7939b"
+  terminal/components/gexdesk/GexDeskView.tsx: "f9e037eb90cb10ea0a943a9c16d11849c429b66f5b548f055b8860d83f938ef5"
   terminal/components/gexdesk/HeatSeekerCard.tsx: "308295e2b0143fe933948c97a14584e1e0d1eff9249a58104dd3587a2642c93a"
   terminal/components/gexdesk/MarketStateCard.tsx: "069c4a2f1a5f53e8f611e3231b78751948cc0264c8af6efd167f7b3e4902bbe2"
   terminal/components/gexdesk/StrikeLadder.tsx: "a8ff63f3e50b033828ce3b82ecd7b87e7e3bbd3f69f9a47716b3c276334d8934"
   terminal/components/gexdesk/gexStrings.ts: "7c60146790f218dc94c8f12f24bcda8657f15deb3664e5f666fbdc75416edc9b"
-  terminal/components/heatmap/HeatmapView.tsx: "a7160bf5eb6827ddc0c01e3b06db35c0f54b716c007f55576c60cd8f6dde7bb8"
+  terminal/components/heatmap/HeatmapView.tsx: "0986e9cc3452a506b1fff058826550c914cd52b54ec983307c32b66533bb150f"
   terminal/components/levels/LevelsView.tsx: "91a4d6fd86b12225e657c8a9c4b2b185e3940356af3cd11466ca30e04f05b0c9"
   terminal/components/levels/levelsLabels.ts: "361124ec9293623fefe69128212f5a25bfddf2c3d716252126d56ec5f356d0d9"
-  terminal/lib/heatmapStrings.ts: "d52cad056dbfe6fe1c4f8b23acdbfea68a0fac4a4ff6425c2b04c0a6a303e9c6"
+  terminal/lib/heatmapStrings.ts: "26bb75eccce7429e5a37154f07f7f68faf9652da1f6f3560074cb558f0dda9c2"
 theme: dark
 languages: [en, zh]
 viewports:
@@ -222,6 +223,7 @@ files:
   - levels-unavailable-390.png
   - levels-unavailable-820-zh.png
   - levels-unavailable-820.png
+
 scopedRecaptures:
   - surface: HeatmapView
     capturedAtHead: f55a4ceef84c4eda5f46d4b95500f4cc4af9bf48
@@ -238,6 +240,30 @@ scopedRecaptures:
       heatmap-retried-1440-zh.png: "8a205374994612cf4f8d3358c8d13089bbb205f8c45c3f087b5eba33ceb41812"
       heatmap-retried-1440.png: "654f7552dd81af02b20312efbdce04a9777b15648ba5b8e52146032297d75e3e"
       heatmap-retried-390-zh.png: "e260e7458dca8dcbfa8461f7d02f13aa6a89b4efac987051eafee8de9a833905"
+      heatmap-retried-390.png: "218370bb664fa3aa8524ca9e54ef8b69688abf42ae3eaba44c016da5c4fd5280"
+      heatmap-retried-820-zh.png: "2a62a410da21235e1003ecc564c540128a3399705eebf79fe725d53379e37c03"
+      heatmap-retried-820.png: "327650e37b6f861469916e4bf4fad03b3b5b87398fced3718ef3fe2499f86c08"
+      heatmap-unavailable-1440-zh.png: "dbac4df02d0922c6081ec3920280362ba1e68cb17ead9ec2719ba86d7d54c68a"
+      heatmap-unavailable-1440.png: "a2e896b564c6166937ba7ddbe545faa81145657c6b9572f0f9c3a5b9908a86e1"
+      heatmap-unavailable-390-zh.png: "000a5b6aaf61e9d2e124fc3b536de3dbd74f45e17180421826f083f0c61936af"
+      heatmap-unavailable-390.png: "0cfc83bbf1dbfc40081c3b429cac34eab58a5fd1f867e55484d7e974f904e2c9"
+      heatmap-unavailable-820-zh.png: "f7248994e9fb1d785df3b3a09e08272eaae1bc6c64cbb3977ccf27e46949e5c8"
+      heatmap-unavailable-820.png: "cd039b58c1e823924e5a0d8c1061f03c262cebb5ebdd7f8e6a0fcb142fe9d5ce"
+  - surface: HeatmapView
+    capturedAtHead: 3c3910577f41fb4f5ee41fea1a6af5d95df0ce58
+    capturedAt: 2026-10-10T07:02:39.170Z
+    command: CAPTURE_ONLY='^heatmap-' UPDATE_HEATMAP_EVIDENCE=1 node e2e/tools/capture_gex_levels_heatmap_load_failure.cjs
+    sourceSha256: "0986e9cc3452a506b1fff058826550c914cd52b54ec983307c32b66533bb150f"
+    cropSha256:
+      heatmap-absent-1440-zh.png: "6a3c43450ac299a8562c15fdecd289dd42a6cf75c473b817ec31555ad0cdda83"
+      heatmap-absent-1440.png: "51b8ed5591fbea455ecf84ba571a94c1617200e6121af9dff84b6df5d4ed9cc9"
+      heatmap-absent-390-zh.png: "cb197a569d504f266055e86b03d7bf27eea64a2cb87dcd44bfb84daeed8269dc"
+      heatmap-absent-390.png: "dc516974c51ebb734e0ef37c765164bb35cd711a5d4df48b01be87fe06bc263a"
+      heatmap-absent-820-zh.png: "b399a37a1f4c8e2523351c15c48d218c5a3f15fc273347efd6da02ba81243f65"
+      heatmap-absent-820.png: "4c486d29a5ac06722db31534b39a1dc30ce7319da8cb0c5cf19685480d5d6229"
+      heatmap-retried-1440-zh.png: "b14357af620670dae9409ee626a621eb0a8dcffabaf77cbfffaf57e0ec6f806c"
+      heatmap-retried-1440.png: "59c153ba4a1f381b10a89e667380a1a460a28f067ce0d9b4d3dadf608ee85283"
+      heatmap-retried-390-zh.png: "2c0892b280fb204d981c7f324e1a6aa79e6f5001d427e2b90ca94cfeaffc4618"
       heatmap-retried-390.png: "218370bb664fa3aa8524ca9e54ef8b69688abf42ae3eaba44c016da5c4fd5280"
       heatmap-retried-820-zh.png: "2a62a410da21235e1003ecc564c540128a3399705eebf79fe725d53379e37c03"
       heatmap-retried-820.png: "327650e37b6f861469916e4bf4fad03b3b5b87398fced3718ef3fe2499f86c08"
