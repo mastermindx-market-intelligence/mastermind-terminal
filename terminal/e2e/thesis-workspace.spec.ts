@@ -7,6 +7,12 @@ test.setTimeout(120_000);
 
 async function prepare(page: Page, testInfo: TestInfo, baseURL: string | undefined, zh = false) {
   const storeKey = await isolateWatchlistStore(page, testInfo, baseURL);
+  // This suite proves thesis persistence, not the external Brain usage authority.
+  // Scope the deterministic read to the context so the stale second tab shares it.
+  // Keep the zero-browser-error assertion; never spend the production proxy rate bucket.
+  await page.context().route("**/api/brain/me", route => route.fulfill({
+    json: { tier: "guest", quotas: { fast: { remaining: 0, limit: 0, period: "day" }, pro: { remaining: 0, limit: 0, period: "day" } } },
+  }));
   await page.addInitScript((useZh) => {
     localStorage.setItem("mm.lang", useZh ? "zh" : "en");
     document.documentElement?.setAttribute("data-lang", useZh ? "zh" : "en");
