@@ -1,0 +1,10 @@
+{
+  "head": "7993cf052d861c455274e8fe79dffc83b72f1bcd",
+  "main": "f03aa5d019f1894210a7c6e40b8825ae28015198",
+  "exit_code": 0,
+  "merge_tree_output": "59c58649231a99bbbb0639133151c897ed43dfc7\n",
+  "stderr": "",
+  "actual_merge_performed": false,
+  "main_rename_helper_preserved": true,
+  "independent_leaf_once": true
+}

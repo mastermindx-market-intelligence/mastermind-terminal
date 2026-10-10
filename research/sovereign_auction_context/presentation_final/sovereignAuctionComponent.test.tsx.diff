@@ -1,0 +1,79 @@
+--- a/terminal_patch/terminal/lib/__tests__/sovereignAuctionComponent.test.tsx
++++ b/terminal_patch/terminal/lib/__tests__/sovereignAuctionComponent.test.tsx
+@@ -4,7 +4,7 @@
+ import { readFileSync } from "node:fs";
+ import { join } from "node:path";
+ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+-import SovereignAuctionContext from "@/components/SovereignAuctionContext";
++import SovereignAuctionContext, { formatAuctionDollars } from "@/components/SovereignAuctionContext";
+ import { LangProvider, LEX } from "@/lib/i18n";
+ import { validateSovereignAuctionContext } from "@/lib/sovereignAuctionContext";
+ const auth = vi.hoisted(() => ({ listener: null as null | ((event: string, session: { user: { id: string }; access_token: string } | null) => void), unsubscribe: vi.fn() }));
+@@ -30,9 +30,46 @@
+ });
+ afterEach(async () => { await act(async () => root.unmount()); host.remove(); vi.unstubAllGlobals(); vi.useRealTimers(); });
+ describe("independent sovereign auction display", () => {
+-  it("renders exact producer identity, clocks, amount and null result without nested anchors", async () => {
++  it.each([
++    ["95000000000", "95,000,000,000 USD"],
++    ["9007199254740993.0100", "9,007,199,254,740,993.0100 USD"],
++    ["0.000001", "0.000001 USD"],
++    ["0000001.2300", "0,000,001.2300 USD"],
++    [0, "0 USD"],
++  ])("groups %s without losing source decimal precision", (value, expected) => {
++    expect(formatAuctionDollars(value)).toBe(expected);
++  });
++  it("keeps unknown offering amounts and deadlines explicit in the primary view", async () => {
++    const context = structuredClone(PAYLOAD);
++    context.events[0].offering_amount_usd = null; context.events[0].competitive_deadline_utc = null;
++    context.episodes = context.events;
++    vi.mocked(fetch).mockResolvedValue(new Response(JSON.stringify(context), { status: 200 })); await mount();
++    const row = host.querySelector(`[data-episode-id="${context.events[0].episode_id}"]`)!;
++    expect(row.querySelector('[data-testid="sa-offering"]')!.textContent).toBe(LEX.saUnknown[0]);
++    expect(row.querySelector('[data-testid="sa-deadline"]')!.textContent).toContain(LEX.saUnknown[0]);
++  });
++  it("renders readable exact amounts and retains identity, clocks and raw states in closed source disclosures", async () => {
+     vi.mocked(fetch).mockResolvedValue(new Response(JSON.stringify(PAYLOAD), { status: 200 })); await mount();
+-    expect(body()).toContain("auction:912797SU2:2026-10-13"); expect(body()).toContain("95000000000 USD");
++    expect(body()).toContain("95,000,000,000 USD");
++    const bill = host.querySelector('[data-episode-id="auction:912797SU2:2026-10-13"]')!;
++    const primary = bill.querySelector('[data-testid="sa-event-summary"]')!;
++    expect(primary.textContent).toContain("6-week Treasury bill");
++    expect(primary.textContent).toContain(LEX.saAnnounced[0]);
++    expect(primary.textContent).toContain("2026-10-13 17:00:00 UTC");
++    expect(primary.textContent).not.toContain("auction:");
++    expect(primary.textContent).not.toContain("ANNOUNCED");
++    expect(primary.textContent).not.toContain("ISSUE_DATE_NOT_PASSED");
++    const source = bill.querySelector('[data-testid="sa-event-source"]') as HTMLDetailsElement;
++    expect(source.open).toBe(false);
++    expect(source.textContent).toContain("auction:912797SU2:2026-10-13");
++    expect(source.textContent).toContain("95000000000");
++    expect(source.textContent).toContain("ANNOUNCED");
++    const evidence = host.querySelector('[data-testid="sa-context-source"]') as HTMLDetailsElement;
++    expect(evidence.open).toBe(false);
++    expect(evidence.textContent).toContain(PAYLOAD.decision_cutoff_utc);
++    expect(evidence.textContent).toContain(PAYLOAD.source_observed_at);
++    await act(async () => { source.querySelector("summary")!.click(); evidence.querySelector("summary")!.click(); });
++    expect(source.open).toBe(true); expect(evidence.open).toBe(true);
+     expect(body()).toContain(PAYLOAD.decision_cutoff_utc); expect(body()).toContain(PAYLOAD.source_observed_at);
+     expect(body()).toContain(LEX.saResultsNotObserved[0]); expect(body()).toContain(LEX.saFreshnessUnassessed[0]);
+     expect(host.querySelector("a a")).toBeNull(); expect(host.querySelectorAll("li")).toHaveLength(3);
+@@ -43,12 +80,16 @@
+     await mount(); expect(host.querySelector('[data-testid="sovereign-auction-context"]')).not.toBeNull(); expect(body()).toContain("912797SU2");
+     expect(vi.mocked(fetch).mock.calls.every(([url]) => String(url).includes("f=sovereign_auction_context"))).toBe(true);
+   });
+-  it("EN/ZH copies remain separated and both themes use shared tokens", async () => {
++  it("EN/ZH readable labels remain separated and theme attributes preserve existing foreground tokens", async () => {
+     vi.mocked(fetch).mockResolvedValue(new Response(JSON.stringify(PAYLOAD), { status: 200 })); await mount();
+     expect(body()).toContain(LEX.saTitle[0]); expect(body()).not.toContain(LEX.saTitle[1]);
+     await act(async () => { document.documentElement.setAttribute("data-lang", "zh"); window.dispatchEvent(new CustomEvent("mm:lang")); });
+     expect(body()).toContain(LEX.saTitle[1]); expect(body()).not.toContain(LEX.saTitle[0]);
+-    for (const theme of ["light", "dark"]) { document.documentElement.setAttribute("data-theme", theme); expect(host.querySelector("details")?.getAttribute("style")).toContain("var(--muted)"); }
++    const primary = host.querySelector('[data-testid="sa-event-summary"]')!.textContent!;
++    expect(primary).toContain(LEX.saClassBill[1]); expect(primary).not.toContain(LEX.saClassBill[0]);
++    expect(primary).toContain(LEX.saAnnounced[1]); expect(primary).not.toContain(LEX.saAnnounced[0]);
++    expect(primary).toContain(LEX.saIssueDateNotPassed[1]);
++    for (const theme of ["light", "dark"]) { document.documentElement.setAttribute("data-theme", theme); expect(host.querySelector("details")?.getAttribute("style")).toContain("var(--text)"); }
+     // DOM/style assertions do not claim responsive browser layout verification.
+   });
+   it.each([401, 403, 503])("clears previous entitled state after status %s", async status => {

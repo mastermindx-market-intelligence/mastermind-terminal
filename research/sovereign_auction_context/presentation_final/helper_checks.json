@@ -1,0 +1,19 @@
+{
+  "status": "passed",
+  "source": "terminal_patch/terminal/components/SovereignAuctionContext.tsx",
+  "sha256": "2b8cb70a8d0b43ce650e48868f3d5471a3b3b5e178bec089b3c3b7bf03946086",
+  "amountCases": 6,
+  "localizedTitleChecks": 148,
+  "deadlineCases": 3,
+  "samples": [
+    {
+      "lang": "en",
+      "title": "6-week Treasury bill"
+    },
+    {
+      "lang": "zh",
+      "title": "6周 短期国债"
+    }
+  ],
+  "scope": "Exact authored helper execution through Node native TypeScript stripping; not TSX, React, Vitest, tsc, layout, browser or auth proof."
+}

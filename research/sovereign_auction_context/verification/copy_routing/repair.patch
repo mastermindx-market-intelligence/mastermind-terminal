@@ -1,0 +1,268 @@
+diff --git a/terminal/components/SovereignAuctionContext.tsx b/terminal/components/SovereignAuctionContext.tsx
+index ec0667bf..fde22d0a 100644
+--- a/terminal/components/SovereignAuctionContext.tsx
++++ b/terminal/components/SovereignAuctionContext.tsx
+@@ -1,9 +1,15 @@
+ "use client";
+-import { useEffect, useState } from "react";
++import { useCallback, useEffect, useState } from "react";
+ import { createClient } from "@/lib/supabase/client";
+-import { useSovereignAuctionT as useT } from "@/lib/sovereignAuctionCopy";
++import { auctionText } from "@/lib/sovereignAuctionCopy";
++import { useLang } from "@/lib/i18n";
+ import { auctionDisplayRows, validateSovereignAuctionContext, type AuctionContext, type AuctionAmount, type AuctionEvent } from "@/lib/sovereignAuctionContext";
+ 
++function useT() {
++  const { lang } = useLang();
++  return useCallback((key: string, fallback?: string) => auctionText(key, lang, fallback), [lang]);
++}
++
+ const POLL_MS = 300_000; // Attempt cadence only; never a freshness guarantee.
+ type State = { context: AuctionContext | null; notice: "saLoading" | "saUnavailable" | "saSignIn" | "saNotEntitled" };
+ const initial: State = { context: null, notice: "saLoading" };
+diff --git a/terminal/lib/__tests__/sovereignAuctionComponent.test.tsx b/terminal/lib/__tests__/sovereignAuctionComponent.test.tsx
+index 479bc80d..9baa6a71 100644
+--- a/terminal/lib/__tests__/sovereignAuctionComponent.test.tsx
++++ b/terminal/lib/__tests__/sovereignAuctionComponent.test.tsx
+@@ -6,7 +6,7 @@ import { join } from "node:path";
+ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+ import SovereignAuctionContext, { formatAuctionDollars } from "@/components/SovereignAuctionContext";
+ import { LangProvider } from "@/lib/i18n";
+-import { AUCTION_LEX as LEX } from "@/lib/sovereignAuctionCopy";
++import { AUCTION_COPY as COPY } from "@/lib/sovereignAuctionCopy";
+ import { validateSovereignAuctionContext } from "@/lib/sovereignAuctionContext";
+ const auth = vi.hoisted(() => ({ listener: null as null | ((event: string, session: { user: { id: string }; access_token: string } | null) => void), unsubscribe: vi.fn() }));
+ vi.mock("@/lib/supabase/client", () => ({ createClient: () => ({ auth: { onAuthStateChange: (listener: typeof auth.listener) => { auth.listener = listener; return { data: { subscription: { unsubscribe: auth.unsubscribe } } }; } } }) }));
+@@ -46,8 +46,8 @@ describe("independent sovereign auction display", () => {
+     context.episodes = context.events;
+     vi.mocked(fetch).mockResolvedValue(new Response(JSON.stringify(context), { status: 200 })); await mount();
+     const row = host.querySelector(`[data-episode-id="${context.events[0].episode_id}"]`)!;
+-    expect(row.querySelector('[data-testid="sa-offering"]')!.textContent).toBe(LEX.saUnknown[0]);
+-    expect(row.querySelector('[data-testid="sa-deadline"]')!.textContent).toContain(LEX.saUnknown[0]);
++    expect(row.querySelector('[data-testid="sa-offering"]')!.textContent).toBe(COPY.saUnknown("en"));
++    expect(row.querySelector('[data-testid="sa-deadline"]')!.textContent).toContain(COPY.saUnknown("en"));
+   });
+   it("renders readable exact amounts and retains identity, clocks and raw states in closed source disclosures", async () => {
+     vi.mocked(fetch).mockResolvedValue(new Response(JSON.stringify(PAYLOAD), { status: 200 })); await mount();
+@@ -55,7 +55,7 @@ describe("independent sovereign auction display", () => {
+     const bill = host.querySelector('[data-episode-id="auction:912797SU2:2026-10-13"]')!;
+     const primary = bill.querySelector('[data-testid="sa-event-summary"]')!;
+     expect(primary.textContent).toContain("6-week Treasury bill");
+-    expect(primary.textContent).toContain(LEX.saAnnounced[0]);
++    expect(primary.textContent).toContain(COPY.saAnnounced("en"));
+     expect(primary.textContent).toContain("2026-10-13 17:00:00 UTC");
+     expect(primary.textContent).not.toContain("auction:");
+     expect(primary.textContent).not.toContain("ANNOUNCED");
+@@ -72,7 +72,7 @@ describe("independent sovereign auction display", () => {
+     await act(async () => { source.querySelector("summary")!.click(); evidence.querySelector("summary")!.click(); });
+     expect(source.open).toBe(true); expect(evidence.open).toBe(true);
+     expect(body()).toContain(PAYLOAD.decision_cutoff_utc); expect(body()).toContain(PAYLOAD.source_observed_at);
+-    expect(body()).toContain(LEX.saResultsNotObserved[0]); expect(body()).toContain(LEX.saFreshnessUnassessed[0]);
++    expect(body()).toContain(COPY.saResultsNotObserved("en")); expect(body()).toContain(COPY.saFreshnessUnassessed("en"));
+     expect(host.querySelector("a a")).toBeNull(); expect(host.querySelectorAll("li")).toHaveLength(3);
+     expect(host.querySelector("details")?.style.maxWidth).toBe("100%");
+   });
+@@ -83,13 +83,13 @@ describe("independent sovereign auction display", () => {
+   });
+   it("EN/ZH readable labels remain separated and theme attributes preserve existing foreground tokens", async () => {
+     vi.mocked(fetch).mockResolvedValue(new Response(JSON.stringify(PAYLOAD), { status: 200 })); await mount();
+-    expect(body()).toContain(LEX.saTitle[0]); expect(body()).not.toContain(LEX.saTitle[1]);
++    expect(body()).toContain(COPY.saTitle("en")); expect(body()).not.toContain(COPY.saTitle("zh"));
+     await act(async () => { document.documentElement.setAttribute("data-lang", "zh"); window.dispatchEvent(new CustomEvent("mm:lang")); });
+-    expect(body()).toContain(LEX.saTitle[1]); expect(body()).not.toContain(LEX.saTitle[0]);
++    expect(body()).toContain(COPY.saTitle("zh")); expect(body()).not.toContain(COPY.saTitle("en"));
+     const primary = host.querySelector('[data-testid="sa-event-summary"]')!.textContent!;
+-    expect(primary).toContain(LEX.saClassBill[1]); expect(primary).not.toContain(LEX.saClassBill[0]);
+-    expect(primary).toContain(LEX.saAnnounced[1]); expect(primary).not.toContain(LEX.saAnnounced[0]);
+-    expect(primary).toContain(LEX.saIssueDateNotPassed[1]);
++    expect(primary).toContain(COPY.saClassBill("zh")); expect(primary).not.toContain(COPY.saClassBill("en"));
++    expect(primary).toContain(COPY.saAnnounced("zh")); expect(primary).not.toContain(COPY.saAnnounced("en"));
++    expect(primary).toContain(COPY.saIssueDateNotPassed("zh"));
+     for (const theme of ["light", "dark"]) { document.documentElement.setAttribute("data-theme", theme); expect(host.querySelector("details")?.getAttribute("style")).toContain("var(--text)"); }
+     // DOM/style assertions do not claim responsive browser layout verification.
+   });
+@@ -98,7 +98,7 @@ describe("independent sovereign auction display", () => {
+     await mount(); expect(body()).toContain("912797SU2");
+     await act(async () => { await vi.advanceTimersByTimeAsync(300_000); }); await settle();
+     expect(body()).not.toContain("912797SU2"); expect(host.querySelectorAll("li")).toHaveLength(0);
+-    expect(body()).toContain(LEX[status === 401 ? "saSignIn" : status === 403 ? "saNotEntitled" : "saUnavailable"][0]);
++    expect(body()).toContain(COPY[status === 401 ? "saSignIn" : status === 403 ? "saNotEntitled" : "saUnavailable"]("en"));
+   });
+   it("clears prior caller bytes synchronously on a session storage change", async () => {
+     vi.mocked(fetch).mockResolvedValueOnce(new Response(JSON.stringify(PAYLOAD), { status: 200 })).mockImplementationOnce(() => new Promise(() => {}));
+@@ -110,7 +110,7 @@ describe("independent sovereign auction display", () => {
+     vi.mocked(fetch).mockResolvedValue(new Response(JSON.stringify(PAYLOAD), { status: 200 }));
+     await mount(); expect(body()).toContain("912797SU2");
+     await act(async () => auth.listener?.("SIGNED_OUT", null));
+-    expect(body()).not.toContain("912797SU2"); expect(body()).toContain(LEX.saSignIn[0]);
++    expect(body()).not.toContain("912797SU2"); expect(body()).toContain(COPY.saSignIn("en"));
+     const calls = vi.mocked(fetch).mock.calls.length;
+     await act(async () => { await vi.advanceTimersByTimeAsync(300_000); });
+     expect(fetch).toHaveBeenCalledTimes(calls);
+@@ -118,7 +118,7 @@ describe("independent sovereign auction display", () => {
+   it("rejects malformed refreshed context instead of retaining old data", async () => {
+     vi.mocked(fetch).mockResolvedValueOnce(new Response(JSON.stringify(PAYLOAD), { status: 200 })).mockResolvedValueOnce(new Response(JSON.stringify({ ...PAYLOAD, probabilities: .5 }), { status: 200 }));
+     await mount(); await act(async () => { await vi.advanceTimersByTimeAsync(300_000); }); await settle();
+-    expect(body()).not.toContain("912797SU2"); expect(body()).toContain(LEX.saUnavailable[0]);
++    expect(body()).not.toContain("912797SU2"); expect(body()).toContain(COPY.saUnavailable("en"));
+   });
+   it("aborts an in-flight old response and cannot restore it after same-tab sign-out", async () => {
+     let finishOld: (value: Response) => void = () => {};
+@@ -130,7 +130,7 @@ describe("independent sovereign auction display", () => {
+     await act(async () => auth.listener?.("SIGNED_OUT", null));
+     expect(oldSignal?.aborted).toBe(true); expect(body()).not.toContain("912797SU2");
+     await act(async () => finishOld(new Response(JSON.stringify(PAYLOAD), { status: 200 }))); await settle();
+-    expect(body()).not.toContain("912797SU2"); expect(body()).toContain(LEX.saSignIn[0]);
++    expect(body()).not.toContain("912797SU2"); expect(body()).toContain(COPY.saSignIn("en"));
+   });
+   it("a new principal cannot inherit an older principal's overlapping response", async () => {
+     let finishOld: (value: Response) => void = () => {};
+@@ -142,8 +142,8 @@ describe("independent sovereign auction display", () => {
+     expect(body()).not.toContain("912797SU2");
+     const oldSignal = vi.mocked(fetch).mock.calls[1][1]?.signal;
+     await act(async () => auth.listener?.("SIGNED_IN", { user: { id: "new-principal" }, access_token: "new-session" })); await settle();
+-    expect(oldSignal?.aborted).toBe(true); expect(body()).toContain(LEX.saNotEntitled[0]);
++    expect(oldSignal?.aborted).toBe(true); expect(body()).toContain(COPY.saNotEntitled("en"));
+     await act(async () => finishOld(new Response(JSON.stringify(PAYLOAD), { status: 200 }))); await settle();
+-    expect(body()).not.toContain("912797SU2"); expect(body()).toContain(LEX.saNotEntitled[0]);
++    expect(body()).not.toContain("912797SU2"); expect(body()).toContain(COPY.saNotEntitled("en"));
+   });
+ });
+diff --git a/terminal/lib/sovereignAuctionCopy.ts b/terminal/lib/sovereignAuctionCopy.ts
+index ad884b35..d23ea04c 100644
+--- a/terminal/lib/sovereignAuctionCopy.ts
++++ b/terminal/lib/sovereignAuctionCopy.ts
+@@ -1,71 +1,66 @@
+-"use client";
+-import { useCallback } from "react";
+-import { useLang } from "@/lib/i18n";
++import type { Lang } from "@/lib/i18n";
+ 
+-// Feature-owned copy uses the incumbent [en, zh] tuple convention and language
+-// context. It never registers or mutates the shared LEX or creates locale state.
+-export const AUCTION_LEX: Record<string, [string, string]> = {
+-  saTitle: ["Sovereign auctions — observed context", "主权债拍卖 — 已观测背景"],
+-  saNotScored: ["Not scored", "未评分"],
+-  saLoading: ["Loading context", "正在加载背景"],
+-  saUnavailable: ["Auction context unavailable", "拍卖背景不可用"],
+-  saSignIn: ["Sign in required", "需要登录"],
+-  saNotEntitled: ["Subscription access required", "需要订阅权限"],
+-  saObservedEpisodes: ["observed episodes", "个已观测拍卖事件"],
+-  saResearchOnly: ["Research only · context only", "仅供研究 · 仅供背景参考"],
+-  saFreshnessUnassessed: ["Freshness unassessed", "时效性未评估"],
+-  saCutoff: ["Decision cutoff (UTC)", "决策截止时间（UTC）"],
+-  saObservedAt: ["Source observed at", "来源观测时间"],
+-  saUnknown: ["Unknown", "未知"],
+-  saClassBill: ["Treasury bill", "短期国债"],
+-  saClassCmb: ["Cash management bill", "现金管理国库券"],
+-  saClassNote: ["Treasury note", "中期国债"],
+-  saClassBond: ["Treasury bond", "长期国债"],
+-  saClassTips: ["Inflation-protected Treasury (TIPS)", "通胀保值国债（TIPS）"],
+-  saClassFrn: ["Floating-rate Treasury (FRN)", "浮动利率国债（FRN）"],
+-  saTermYear: ["{n}-year", "{n}年"],
+-  saTermMonth: ["{n}-month", "{n}个月"],
+-  saTermWeek: ["{n}-week", "{n}周"],
+-  saTermDay: ["{n}-day", "{n}天"],
+-  saAnnounced: ["Auction announced", "拍卖已公告"],
+-  saTentative: ["Tentative schedule", "暂定日程"],
+-  saAwaitingResult: ["Awaiting observed results", "等待观测结果"],
+-  saIssueDatePassed: ["Issue date has passed · settlement not observed", "发行日期已过 · 尚未观测到结算"],
+-  saIssueDateNotPassed: ["Issue date has not passed · settlement not observed", "发行日期尚未过 · 尚未观测到结算"],
+-  saSourceDetails: ["Source details", "来源详情"],
+-  saEpisodeId: ["Event identifier", "事件标识"],
+-  saSourceLabel: ["Source label and class", "来源名称与类别"],
+-  saSourceAmount: ["Exact source amount (USD)", "来源精确金额（美元）"],
+-  saDegraded: ["Source coverage degraded", "来源覆盖降级"],
+-  saEmpty: ["No episodes in the observed set; coverage is not a complete universe", "已观测集合中没有拍卖事件；覆盖不代表完整范围"],
+-  saAuctionDate: ["Auction date", "拍卖日期"],
+-  saIssueDate: ["Issue date", "发行日期"],
+-  saDeadline: ["Competitive deadline (UTC)", "竞争性投标截止时间（UTC）"],
+-  saKnownAt: ["Known at", "获知时间"],
+-  saSourceState: ["Source state", "来源状态"],
+-  saPhysicalState: ["Auction state", "拍卖状态"],
+-  saIssueState: ["Issue calendar state", "发行日历状态"],
+-  saOffering: ["Offering amount", "发行金额"],
+-  saResultsNotObserved: ["Results not observed", "尚未观测到结果"],
+-  saResultsObserved: ["Results observed", "已观测到结果"],
+-  saNullReasons: ["Null reasons", "空值原因"],
+-  saOfficialSource: ["Official source", "官方来源"],
+-  saShowing: ["Showing", "显示"],
+-  saBoundedList: ["Display list is bounded", "显示列表有数量上限"],
+-  saShowMore: ["Show up to 24 episodes", "显示最多 24 个拍卖事件"],
+-  saSources: ["Source observations", "来源观测"],
+-  saLatestAttempt: ["Latest attempt", "最近尝试"],
+-  saLastValid: ["Last valid observation", "最近有效观测"],
+-  saAgeAtCutoff: ["Observation age at cutoff", "截止时的观测年龄"],
+-  saSeconds: ["seconds", "秒"],
+-  saBodyReceipt: ["Last successful body receipt", "最近成功响应接收时间"],
+-  saLatestFailure: ["Latest failure", "最近失败"],
++// Pure feature copy follows the existing visualIntelligenceCopy pick convention.
++const pick = (lang: Lang, en: string, zh: string): string => lang === "zh" ? zh : en;
++export const AUCTION_COPY: Record<string, (lang: Lang) => string> = {
++  saTitle: (lang: Lang) => pick(lang, "Sovereign auctions — observed context", "主权债拍卖 — 已观测背景"),
++  saNotScored: (lang: Lang) => pick(lang, "Not scored", "未评分"),
++  saLoading: (lang: Lang) => pick(lang, "Loading context", "正在加载背景"),
++  saUnavailable: (lang: Lang) => pick(lang, "Auction context unavailable", "拍卖背景不可用"),
++  saSignIn: (lang: Lang) => pick(lang, "Sign in required", "需要登录"),
++  saNotEntitled: (lang: Lang) => pick(lang, "Subscription access required", "需要订阅权限"),
++  saObservedEpisodes: (lang: Lang) => pick(lang, "observed episodes", "个已观测拍卖事件"),
++  saResearchOnly: (lang: Lang) => pick(lang, "Research only · context only", "仅供研究 · 仅供背景参考"),
++  saFreshnessUnassessed: (lang: Lang) => pick(lang, "Freshness unassessed", "时效性未评估"),
++  saCutoff: (lang: Lang) => pick(lang, "Decision cutoff (UTC)", "决策截止时间（UTC）"),
++  saObservedAt: (lang: Lang) => pick(lang, "Source observed at", "来源观测时间"),
++  saUnknown: (lang: Lang) => pick(lang, "Unknown", "未知"),
++  saClassBill: (lang: Lang) => pick(lang, "Treasury bill", "短期国债"),
++  saClassCmb: (lang: Lang) => pick(lang, "Cash management bill", "现金管理国库券"),
++  saClassNote: (lang: Lang) => pick(lang, "Treasury note", "中期国债"),
++  saClassBond: (lang: Lang) => pick(lang, "Treasury bond", "长期国债"),
++  saClassTips: (lang: Lang) => pick(lang, "Inflation-protected Treasury (TIPS)", "通胀保值国债（TIPS）"),
++  saClassFrn: (lang: Lang) => pick(lang, "Floating-rate Treasury (FRN)", "浮动利率国债（FRN）"),
++  saTermYear: (lang: Lang) => pick(lang, "{n}-year", "{n}年"),
++  saTermMonth: (lang: Lang) => pick(lang, "{n}-month", "{n}个月"),
++  saTermWeek: (lang: Lang) => pick(lang, "{n}-week", "{n}周"),
++  saTermDay: (lang: Lang) => pick(lang, "{n}-day", "{n}天"),
++  saAnnounced: (lang: Lang) => pick(lang, "Auction announced", "拍卖已公告"),
++  saTentative: (lang: Lang) => pick(lang, "Tentative schedule", "暂定日程"),
++  saAwaitingResult: (lang: Lang) => pick(lang, "Awaiting observed results", "等待观测结果"),
++  saIssueDatePassed: (lang: Lang) => pick(lang, "Issue date has passed · settlement not observed", "发行日期已过 · 尚未观测到结算"),
++  saIssueDateNotPassed: (lang: Lang) => pick(lang, "Issue date has not passed · settlement not observed", "发行日期尚未过 · 尚未观测到结算"),
++  saSourceDetails: (lang: Lang) => pick(lang, "Source details", "来源详情"),
++  saEpisodeId: (lang: Lang) => pick(lang, "Event identifier", "事件标识"),
++  saSourceLabel: (lang: Lang) => pick(lang, "Source label and class", "来源名称与类别"),
++  saSourceAmount: (lang: Lang) => pick(lang, "Exact source amount (USD)", "来源精确金额（美元）"),
++  saDegraded: (lang: Lang) => pick(lang, "Source coverage degraded", "来源覆盖降级"),
++  saEmpty: (lang: Lang) => pick(lang, "No episodes in the observed set; coverage is not a complete universe", "已观测集合中没有拍卖事件；覆盖不代表完整范围"),
++  saAuctionDate: (lang: Lang) => pick(lang, "Auction date", "拍卖日期"),
++  saIssueDate: (lang: Lang) => pick(lang, "Issue date", "发行日期"),
++  saDeadline: (lang: Lang) => pick(lang, "Competitive deadline (UTC)", "竞争性投标截止时间（UTC）"),
++  saKnownAt: (lang: Lang) => pick(lang, "Known at", "获知时间"),
++  saSourceState: (lang: Lang) => pick(lang, "Source state", "来源状态"),
++  saPhysicalState: (lang: Lang) => pick(lang, "Auction state", "拍卖状态"),
++  saIssueState: (lang: Lang) => pick(lang, "Issue calendar state", "发行日历状态"),
++  saOffering: (lang: Lang) => pick(lang, "Offering amount", "发行金额"),
++  saResultsNotObserved: (lang: Lang) => pick(lang, "Results not observed", "尚未观测到结果"),
++  saResultsObserved: (lang: Lang) => pick(lang, "Results observed", "已观测到结果"),
++  saNullReasons: (lang: Lang) => pick(lang, "Null reasons", "空值原因"),
++  saOfficialSource: (lang: Lang) => pick(lang, "Official source", "官方来源"),
++  saShowing: (lang: Lang) => pick(lang, "Showing", "显示"),
++  saBoundedList: (lang: Lang) => pick(lang, "Display list is bounded", "显示列表有数量上限"),
++  saShowMore: (lang: Lang) => pick(lang, "Show up to 24 episodes", "显示最多 24 个拍卖事件"),
++  saSources: (lang: Lang) => pick(lang, "Source observations", "来源观测"),
++  saLatestAttempt: (lang: Lang) => pick(lang, "Latest attempt", "最近尝试"),
++  saLastValid: (lang: Lang) => pick(lang, "Last valid observation", "最近有效观测"),
++  saAgeAtCutoff: (lang: Lang) => pick(lang, "Observation age at cutoff", "截止时的观测年龄"),
++  saSeconds: (lang: Lang) => pick(lang, "seconds", "秒"),
++  saBodyReceipt: (lang: Lang) => pick(lang, "Last successful body receipt", "最近成功响应接收时间"),
++  saLatestFailure: (lang: Lang) => pick(lang, "Latest failure", "最近失败"),
+ };
+ 
+-export function useSovereignAuctionT() {
+-  const { lang } = useLang();
+-  return useCallback((key: string, fallback?: string) => {
+-    const entry = AUCTION_LEX[key];
+-    return entry ? (lang === "zh" ? entry[1] : entry[0]) : (fallback ?? key);
+-  }, [lang]);
++export function auctionText(key: string, lang: Lang, fallback?: string): string {
++  const entry = AUCTION_COPY[key];
++  return entry ? entry(lang) : (fallback ?? key);
+ }

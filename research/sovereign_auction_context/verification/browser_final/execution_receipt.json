@@ -1,0 +1,77 @@
+{
+  "schema": "terminal_copy_routing_verification_v1",
+  "started_at": "2026-10-09T00:43:22.328962+00:00",
+  "prior_head": "2de6d793326a6d8e340c08b0db342283984db820",
+  "runs": [
+    {
+      "command": [
+        "node",
+        "-e",
+        "<pure TypeScript copy module replay against retained55originalpairs; no React or runtime services>"
+      ],
+      "exit_code": 0,
+      "log": "research/sovereign_auction_context/verification/copy_routing/native-1.log",
+      "log_sha256": "76ef14cd7f0fcda03cc4d64f7b172d21a87ca2206b666b974bd59bbf8dc45945"
+    },
+    {
+      "command": [
+        "npx",
+        "vitest",
+        "run",
+        "lib/__tests__/b_f11_10AnalysisThesesEntryEvidence.test.ts",
+        "lib/__tests__/b_f12_b5_3AccountCompletenessEvidence.test.ts",
+        "lib/__tests__/b_pl_6Batch1Evidence.test.ts",
+        "lib/__tests__/f11_4ResearchViewsEvidence.test.ts",
+        "lib/__tests__/f12_17InviteLinkEvidence.test.ts",
+        "lib/__tests__/f12_8TeamRolesEvidence.test.ts",
+        "lib/__tests__/f12_9TeamOwnershipTransferEvidence.test.ts",
+        "lib/__tests__/personalAccuracyEvidence.test.ts",
+        "lib/__tests__/sovereignAuctionContext.test.ts",
+        "lib/__tests__/nwRoute.test.ts",
+        "lib/__tests__/sovereignAuctionComponent.test.tsx",
+        "lib/__tests__/plainLanguageGuardCi.test.ts",
+        "lib/__tests__/plainLanguageGuard.test.ts"
+      ],
+      "exit_code": 0,
+      "log": "research/sovereign_auction_context/verification/copy_routing/native-2.log",
+      "log_sha256": "061fac5a7c875988895b0898282cfb530cd91e97e4f2363c22c28548722acfb1"
+    },
+    {
+      "command": [
+        "npx",
+        "tsc",
+        "--noEmit"
+      ],
+      "exit_code": 0,
+      "log": "research/sovereign_auction_context/verification/copy_routing/native-3.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "command": [
+        "npx",
+        "eslint",
+        "components/SovereignAuctionContext.tsx",
+        "lib/sovereignAuctionCopy.ts",
+        "e2e/sovereign-auction-context.spec.ts"
+      ],
+      "exit_code": 0,
+      "log": "research/sovereign_auction_context/verification/copy_routing/native-4.log",
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ],
+  "browser": {
+    "command": [
+      "npx",
+      "playwright",
+      "test",
+      "--config=playwright.sovereign-auctions.config.ts",
+      "--reporter=line,json",
+      "--output=/tmp/sovereign-auction-terminal-ui-proof-04/test-results"
+    ],
+    "exit_code": 0,
+    "output_directory": "/tmp/sovereign-auction-terminal-ui-proof-04",
+    "port": 60453
+  },
+  "completed_at": "2026-10-09T00:45:07.939962+00:00",
+  "shared_i18n_sha256": "858306597ebbfc2d912cefc997ad88e4805cafb08794b5cd4d3dfeacb109371f"
+}

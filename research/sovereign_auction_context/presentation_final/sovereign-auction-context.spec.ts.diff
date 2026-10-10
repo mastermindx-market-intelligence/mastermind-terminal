@@ -1,0 +1,124 @@
+--- a/ui_verification/terminal/e2e/sovereign-auction-context.spec.ts
++++ b/ui_verification/terminal/e2e/sovereign-auction-context.spec.ts
+@@ -115,9 +115,9 @@
+   await expect(card).toHaveCount(1);
+   await card.scrollIntoViewIfNeeded();
+   await expect(card).toBeVisible();
+-  await expect(card.locator("summary")).toContainText(COPY[lang].title);
+-  await expect(card.locator("summary")).toContainText("3");
+-  await card.locator("summary").click();
++  await expect(card.locator(":scope > summary")).toContainText(COPY[lang].title);
++  await expect(card.locator(":scope > summary")).toContainText("3");
++  await card.locator(":scope > summary").click();
+   await expect(card).toHaveAttribute("open", "");
+   await expect(card.locator("li")).toHaveCount(3);
+   const signal = page.locator(".sig-btn");
+@@ -151,7 +151,8 @@
+       themeAttribute: document.documentElement.getAttribute("data-theme"),
+       bodyBackground: getComputedStyle(document.body).backgroundColor,
+       cardForeground: getComputedStyle(el).color, nestedAnchors: el.querySelectorAll("a a").length,
+-      visibleCodes: Array.from(el.querySelectorAll("li code")).map(code => code.textContent),
++      auditIdentifiersInDom: Array.from(el.querySelectorAll('[data-testid="sa-episode-id"]')).map(code => code.textContent),
++      visibleAuditIdentifiers: Array.from(el.querySelectorAll('[data-testid="sa-episode-id"]')).filter(code => code.getClientRects().length > 0).map(code => code.textContent),
+     };
+   });
+ }
+@@ -194,18 +195,23 @@
+           info.annotations.push({ type: "diagnostic", description: "Terminal is dark-only; data-theme=light is an attribute robustness probe, not an implemented light-theme claim" });
+           await page.evaluate(() => document.documentElement.setAttribute("data-theme", "light"));
+         }
+-        await expect(h.card).toContainText("auction:912797SU2:2026-10-13");
+-        await expect(h.card).toContainText("95000000000 USD");
+-        await expect(h.card).toContainText("2026-10-13T17:00:00+00:00");
+-        await expect(h.card).toContainText("2026-10-08T22:12:22.414829+00:00");
+-        await expect(h.card).toContainText("2026-10-08T22:15:00+00:00");
++        const bill = h.card.locator('[data-episode-id="auction:912797SU2:2026-10-13"]');
++        const primary = bill.getByTestId("sa-event-summary");
++        await expect(primary).toContainText("95,000,000,000 USD");
++        await expect(primary).toContainText("2026-10-13 17:00:00 UTC");
++        await expect(primary).toContainText(lang === "en" ? "6-week Treasury bill" : "6周 短期国债");
++        await expect(primary).toContainText(lang === "en" ? "Auction announced" : "拍卖已公告");
++        await expect(primary).not.toContainText("auction:");
++        await expect(primary).not.toContainText("ANNOUNCED");
++        await expect(primary).not.toContainText("ISSUE_DATE_NOT_PASSED");
++        await expect(bill.getByTestId("sa-episode-id")).not.toBeVisible();
++        await expect(h.card.getByTestId("sa-context-source")).not.toHaveAttribute("open", "");
+         await expect(h.card).toContainText(COPY[lang].notScored);
+         await expect(h.card).toContainText(COPY[lang].noResult);
+         await expect(h.card).toContainText(COPY[lang].unknownFreshness);
+         await expect(h.card).not.toContainText(COPY[lang === "en" ? "zh" : "en"].title);
+         await assertIncumbentUnchanged(page, h.existingSignalText, h.report);
+         await record(page, info, `${info.project.name}-${lang}-${theme}-shared-fixture`, h.report);
+-        const bill = h.card.locator("li").filter({ hasText: "auction:912797SU2:2026-10-13" });
+         await bill.scrollIntoViewIfNeeded(); await expect(bill).toBeVisible();
+         const reach = await bill.evaluate(el => {
+           const r = el.getBoundingClientRect();
+@@ -216,6 +222,25 @@
+         });
+         expect(reach.visibleHeight).toBeGreaterThanOrEqual(Math.min(reach.rowHeight, reach.regionHeight) - 2);
+         await record(page, info, `${info.project.name}-${lang}-${theme}-bill-amount-deadline`, h.report);
++        // Read the native disclosure, rather than treating hidden DOM text as visible proof.
++        const source = bill.getByTestId("sa-event-source");
++        await source.locator(":scope > summary").click();
++        await expect(source).toHaveAttribute("open", "");
++        await expect(source.getByTestId("sa-episode-id")).toBeVisible();
++        await expect(source).toContainText("auction:912797SU2:2026-10-13");
++        await expect(source).toContainText("95000000000");
++        await expect(source).toContainText("2026-10-13T17:00:00+00:00");
++        await expect(source).toContainText("ANNOUNCED");
++        await expect(source).toContainText("ISSUE_DATE_NOT_PASSED");
++        for (const reason of BASELINE.events.find(row => row.episode_id === "auction:912797SU2:2026-10-13")!.null_reasons) await expect(source).toContainText(reason);
++        await record(page, info, `${info.project.name}-${lang}-${theme}-event-source-details`, h.report);
++        await source.locator(":scope > summary").click();
++        const evidence = h.card.getByTestId("sa-context-source");
++        await evidence.locator(":scope > summary").click();
++        await expect(evidence).toHaveAttribute("open", "");
++        await expect(evidence).toContainText("2026-10-08T22:12:22.414829+00:00");
++        await expect(evidence).toContainText("2026-10-08T22:15:00+00:00");
++        await record(page, info, `${info.project.name}-${lang}-${theme}-context-source-details`, h.report);
+         expect(h.report.pageErrors).toEqual([]);
+       });
+     }
+@@ -227,7 +252,7 @@
+       await more.scrollIntoViewIfNeeded(); await more.click();
+       await expect(h.card.locator("li")).toHaveCount(24);
+       await expect(h.card).toContainText("24 / 74");
+-      const displayed = await h.card.locator("li code").allTextContents();
++      const displayed = await h.card.getByTestId("sa-episode-id").allTextContents();
+       const indexed = new Map(FULL.events.map(row => [row.episode_id, row]));
+       for (let i = 0; i < displayed.length; i++) {
+         const row = indexed.get(displayed[i]); expect(row).toBeDefined();
+@@ -248,17 +273,29 @@
+       const mixed = requireContext({ ...FULL, events: mixedRows, episodes: mixedRows });
+       await h.reply({ status: 200, body: mixed });
+       await expect(h.card.locator("li")).toHaveCount(mixedRows.length);
+-      await expect(h.card.locator("li code").last()).toHaveText(resultRow.episode_id);
++      await expect(h.card.getByTestId("sa-episode-id").last()).toHaveText(resultRow.episode_id);
+       await expect(h.card).toContainText(COPY[lang].observedResult);
+-      await record(page, info, `${info.project.name}-${lang}-observed-result-last`, h.report);
++      const resultAudit = h.card.locator("li").last().getByTestId("sa-event-source");
++      await expect(h.card.locator("li").last().getByTestId("sa-event-summary")).not.toContainText("competitive_accepted_usd");
++      await resultAudit.locator(":scope > summary").click();
++      await expect(resultAudit).toHaveAttribute("open", "");
++      for (const [key, value] of Object.entries(resultRow.result!)) {
++        await expect(resultAudit).toContainText(key);
++        if (value !== null) await expect(resultAudit).toContainText(String(value));
++      }
++      await record(page, info, `${info.project.name}-${lang}-observed-result-source-details`, h.report);
+ 
+       const degraded = structuredClone(BASELINE);
+       degraded.status = "degraded";
+       Object.assign(degraded.source_health[0], { latest_attempt_at: degraded.decision_cutoff_utc, latest_attempt_status: "unavailable", latest_attempt_states: ["unavailable"], latest_failure_at: degraded.decision_cutoff_utc, latest_failure_reasons: ["fixture_transport_failure"] });
+       await h.reply({ status: 200, body: requireContext(degraded) });
+       await expect(h.card).toContainText(COPY[lang].degraded);
+-      await expect(h.card).toContainText("fixture_transport_failure");
+-      await expect(h.card).toContainText(BASELINE.source_observed_at!);
++      const degradedEvidence = h.card.getByTestId("sa-context-source");
++      await expect(degradedEvidence).not.toHaveAttribute("open", "");
++      await degradedEvidence.locator(":scope > summary").click();
++      await expect(degradedEvidence).toHaveAttribute("open", "");
++      await expect(degradedEvidence).toContainText("fixture_transport_failure");
++      await expect(degradedEvidence).toContainText(BASELINE.source_observed_at!);
+       await expect(h.card).toContainText(COPY[lang].unknownFreshness);
+       await record(page, info, `${info.project.name}-${lang}-source-degraded`, h.report);
+ 

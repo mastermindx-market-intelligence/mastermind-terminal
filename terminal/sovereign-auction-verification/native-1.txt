@@ -1,0 +1,98 @@
+
+> terminal@0.1.0 test
+> vitest run lib/__tests__/sovereignAuctionContext.test.ts lib/__tests__/nwRoute.test.ts lib/__tests__/sovereignAuctionComponent.test.tsx
+
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+ RUN  v2.1.9 /Volumes/Mastermind/agent-workspaces/terminal/web/sovereign-auction-context-20261008-sol-terminal-001/terminal
+
+ ❯ lib/__tests__/sovereignAuctionContext.test.ts (8 tests | 1 failed) 38ms
+   × sovereign auction W1 display model > strips hostile extra risk aliases and orders groups chronologically without scoring 5ms
+     → expected [ undefined, undefined, undefined ] to deeply equal [ Array(3) ]
+ ✓ lib/__tests__/nwRoute.test.ts (17 tests) 146ms
+ ❯ lib/__tests__/sovereignAuctionComponent.test.tsx (11 tests | 11 failed) 64ms
+   × independent sovereign auction display > renders exact producer identity, clocks, amount and null result without nested anchors 26ms
+     → Cannot read properties of undefined (reading 'length')
+   × independent sovereign auction display > stays visible when incumbent market_plane is absent 6ms
+     → Cannot read properties of undefined (reading 'length')
+   × independent sovereign auction display > EN/ZH copies remain separated and both themes use shared tokens 4ms
+     → Cannot read properties of undefined (reading 'length')
+   × independent sovereign auction display > clears previous entitled state after status 401 3ms
+     → Cannot read properties of undefined (reading 'length')
+   × independent sovereign auction display > clears previous entitled state after status 403 4ms
+     → Cannot read properties of undefined (reading 'length')
+   × independent sovereign auction display > clears previous entitled state after status 503 3ms
+     → Cannot read properties of undefined (reading 'length')
+   × independent sovereign auction display > clears prior caller bytes synchronously on a session storage change 3ms
+     → Cannot read properties of undefined (reading 'length')
+   × independent sovereign auction display > same-tab sign-out clears state and prevents later polling from reusing previous caller bytes 4ms
+     → Cannot read properties of undefined (reading 'length')
+   × independent sovereign auction display > rejects malformed refreshed context instead of retaining old data 3ms
+     → Cannot read properties of undefined (reading 'length')
+   × independent sovereign auction display > aborts an in-flight old response and cannot restore it after same-tab sign-out 3ms
+     → Cannot read properties of undefined (reading 'length')
+   × independent sovereign auction display > a new principal cannot inherit an older principal's overlapping response 3ms
+     → Cannot read properties of undefined (reading 'length')
+
+⎯⎯⎯⎯⎯⎯ Failed Tests 12 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  lib/__tests__/sovereignAuctionComponent.test.tsx > independent sovereign auction display > renders exact producer identity, clocks, amount and null result without nested anchors
+ FAIL  lib/__tests__/sovereignAuctionComponent.test.tsx > independent sovereign auction display > stays visible when incumbent market_plane is absent
+ FAIL  lib/__tests__/sovereignAuctionComponent.test.tsx > independent sovereign auction display > EN/ZH copies remain separated and both themes use shared tokens
+ FAIL  lib/__tests__/sovereignAuctionComponent.test.tsx > independent sovereign auction display > clears previous entitled state after status 401
+ FAIL  lib/__tests__/sovereignAuctionComponent.test.tsx > independent sovereign auction display > clears previous entitled state after status 403
+ FAIL  lib/__tests__/sovereignAuctionComponent.test.tsx > independent sovereign auction display > clears previous entitled state after status 503
+ FAIL  lib/__tests__/sovereignAuctionComponent.test.tsx > independent sovereign auction display > clears prior caller bytes synchronously on a session storage change
+ FAIL  lib/__tests__/sovereignAuctionComponent.test.tsx > independent sovereign auction display > same-tab sign-out clears state and prevents later polling from reusing previous caller bytes
+ FAIL  lib/__tests__/sovereignAuctionComponent.test.tsx > independent sovereign auction display > rejects malformed refreshed context instead of retaining old data
+ FAIL  lib/__tests__/sovereignAuctionComponent.test.tsx > independent sovereign auction display > aborts an in-flight old response and cannot restore it after same-tab sign-out
+ FAIL  lib/__tests__/sovereignAuctionComponent.test.tsx > independent sovereign auction display > a new principal cannot inherit an older principal's overlapping response
+TypeError: Cannot read properties of undefined (reading 'length')
+ ❯ components/SovereignAuctionContext.tsx:96:37
+     94|               {event.result === null ? t("saResultsNotObserved") : t("…
+     95|               {event.result && <dl>{Object.entries(event.result).map((…
+     96|               {!!event.null_reasons.length && <p>{t("saNullReasons")}:…
+       |                                     ^
+     97|               <a href={event.source_url} target="_blank" rel="noopener…
+     98|             </li>)}
+ ❯ SovereignAuctionContext components/SovereignAuctionContext.tsx:85:28
+ ❯ Object.react_stack_bottom_frame node_modules/react-dom/cjs/react-dom-client.development.js:25904:20
+ ❯ renderWithHooks node_modules/react-dom/cjs/react-dom-client.development.js:7662:22
+ ❯ updateFunctionComponent node_modules/react-dom/cjs/react-dom-client.development.js:10166:19
+ ❯ beginWork node_modules/react-dom/cjs/react-dom-client.development.js:11778:18
+ ❯ runWithFiberInDEV node_modules/react-dom/cjs/react-dom-client.development.js:874:13
+ ❯ performUnitOfWork node_modules/react-dom/cjs/react-dom-client.development.js:17641:22
+ ❯ workLoopSync node_modules/react-dom/cjs/react-dom-client.development.js:17469:41
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/12]⎯
+
+ FAIL  lib/__tests__/sovereignAuctionContext.test.ts > sovereign auction W1 display model > strips hostile extra risk aliases and orders groups chronologically without scoring
+AssertionError: expected [ undefined, undefined, undefined ] to deeply equal [ Array(3) ]
+
+- Expected
++ Received
+
+  Array [
+-   "auction:912797UE5:2026-10-13",
+-   "auction:912797VT1:2026-10-13",
+-   "auction:912797SU2:2026-10-13",
++   undefined,
++   undefined,
++   undefined,
+  ]
+
+ ❯ lib/__tests__/sovereignAuctionContext.test.ts:113:80
+    111|     const mockRecent = { ...rows[0], episode_id: "recent", auction_dat…
+    112|     const display = auctionDisplayRows({ ...result.context, events: [m…
+    113|     expect(display.total).toBe(4); expect(display.rows.map(e => e.epis…
+       |                                                                                ^
+    114|     expect(auctionDisplayRows({ ...result.context, events: Array(100).…
+    115|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/12]⎯
+
+ Test Files  2 failed | 1 passed (3)
+      Tests  12 failed | 24 passed (36)
+   Start at  16:08:53
+   Duration  1.70s (transform 157ms, setup 0ms, collect 217ms, tests 248ms, environment 537ms, prepare 189ms)
+

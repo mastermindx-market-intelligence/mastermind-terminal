@@ -1,0 +1,133 @@
+--- a/terminal_patch/terminal/components/SovereignAuctionContext.tsx
++++ b/terminal_patch/terminal/components/SovereignAuctionContext.tsx
+@@ -2,11 +2,32 @@
+ import { useEffect, useState } from "react";
+ import { createClient } from "@/lib/supabase/client";
+ import { useT } from "@/lib/i18n";
+-import { auctionDisplayRows, validateSovereignAuctionContext, type AuctionContext } from "@/lib/sovereignAuctionContext";
++import { auctionDisplayRows, validateSovereignAuctionContext, type AuctionContext, type AuctionAmount, type AuctionEvent } from "@/lib/sovereignAuctionContext";
+ 
+ const POLL_MS = 300_000; // Attempt cadence only; never a freshness guarantee.
+ type State = { context: AuctionContext | null; notice: "saLoading" | "saUnavailable" | "saSignIn" | "saNotEntitled" };
+ const initial: State = { context: null, notice: "saLoading" };
++
++const CLASS_LABELS: Record<string, string> = { Bill: "saClassBill", CMB: "saClassCmb", Note: "saClassNote", Bond: "saClassBond", TIPS: "saClassTips", FRN: "saClassFrn" };
++const LIFECYCLE_LABELS: Record<string, string> = { ANNOUNCED: "saAnnounced", TENTATIVE: "saTentative", AWAITING_RESULT: "saAwaitingResult", RESULT_OBSERVED: "saResultsObserved" };
++
++/** Group source decimal strings lexically: never round or convert them to Number. */
++export function formatAuctionDollars(value: Exclude<AuctionAmount, null>): string {
++  const raw = String(value);
++  const match = raw.match(/^(-?)(\d+)(\.\d+)?$/);
++  return `${match ? `${match[1]}${match[2].replace(/\B(?=(\d{3})+(?!\d))/g, ",")}${match[3] ?? ""}` : raw} USD`;
++}
++function eventTitle(event: AuctionEvent, t: ReturnType<typeof useT>): string {
++  const term = event.label.match(/^(.*?) (?:Bill|CMB|Note|Bond|TIPS|FRN) auction$/)?.[1];
++  if (!term) return event.label;
++  const translated = term.replace(/(\d+)-(Year|Month|Week|Day)/g, (_match, count: string, unit: string) => t(`saTerm${unit}`).replace("{n}", count));
++  return `${translated} ${t(CLASS_LABELS[event.normalized_class] ?? "saUnknown")}`;
++}
++function readableDeadline(value: string): string {
++  // Normalize accepted offsets to the displayed UTC label while retaining source precision.
++  const fraction = value.match(/\.(\d{1,6})(?:Z|[+-]\d{2}:\d{2})$/)?.[1];
++  return `${new Date(value).toISOString().slice(0, 19).replace("T", " ")}${fraction ? `.${fraction}` : ""} UTC`;
++}
+ 
+ /** Independent authenticated display sibling; no decision, warning or Oracle dependencies. */
+ export default function SovereignAuctionContext() {
+@@ -67,49 +88,63 @@
+   const context = state.context;
+   const display = context ? auctionDisplayRows(context, expanded ? 24 : 6) : null;
+   return (
+-    <details className="nw-chip" style={{ display: "block", minWidth: 0, maxWidth: "100%", color: "var(--muted)", whiteSpace: "normal", overflowWrap: "anywhere" }} data-testid="sovereign-auction-context">
++    <details className="nw-chip" style={{ display: "block", minWidth: 0, maxWidth: "100%", color: "var(--text)", fontSize: 12.5, lineHeight: 1.55, whiteSpace: "normal", overflowWrap: "anywhere" }} data-testid="sovereign-auction-context">
+       <summary style={{ cursor: "pointer", minHeight: 36, display: "flex", flexWrap: "wrap", alignItems: "center", gap: 6 }}>
+-        <span>{t("saTitle")}</span>
+-        <span>{t("saNotScored")}</span>
+-        <span>{context ? `${context.events.length} ${t("saObservedEpisodes")}` : t(state.notice)}</span>
++        <strong>{t("saTitle")}</strong>
++        <span style={{ color: "var(--muted)" }}>· {t("saNotScored")}</span>
++        <span style={{ color: "var(--muted)" }}>· {context ? `${context.events.length} ${t("saObservedEpisodes")}` : t(state.notice)}</span>
+       </summary>
+-      <div style={{ padding: 8, maxWidth: 620, maxHeight: "60vh", overflowY: "auto" }}>
+-        <p>{t("saResearchOnly")} · {t("saFreshnessUnassessed")}</p>
++      <div style={{ padding: "4px 8px 10px", maxWidth: 620, maxHeight: "60vh", overflowY: "auto" }}>
++        <p style={{ margin: "4px 0 10px", color: "var(--muted)" }}>{t("saResearchOnly")} · {t("saFreshnessUnassessed")}</p>
+         {!context && <p role="status">{t(state.notice)}</p>}
+         {context && <>
+-          <p>{t("saCutoff")}: <time>{context.decision_cutoff_utc}</time><br />{t("saObservedAt")}: {context.source_observed_at ?? t("saUnknown")}</p>
+           {(context.status === "unavailable" || context.status === "unsupported") && <p role="status">{t("saUnavailable")}</p>}
+-          {context.status === "degraded" && <p>{t("saDegraded")}</p>}
++          {context.status === "degraded" && <p role="status">{t("saDegraded")}</p>}
+           {!context.events.length && <p>{context.status === "available" || context.status === "degraded" ? t("saEmpty") : t("saUnavailable")}</p>}
+-          <ol style={{ margin: 0, paddingInlineStart: 22 }}>
+-            {display?.rows.map(event => <li key={event.episode_id} style={{ paddingBlock: 8 }}>
+-              <b>{event.label}</b> · {event.normalized_class}<br />
+-              <code style={{ whiteSpace: "normal", overflowWrap: "anywhere" }}>{event.episode_id}</code><br />
+-              {t("saAuctionDate")}: {event.auction_date} · {t("saIssueDate")}: {event.issue_date}<br />
+-              {t("saDeadline")}: {event.competitive_deadline_utc ?? t("saUnknown")}<br />
+-              {t("saKnownAt")}: {event.known_at}<br />
+-              {t("saSourceState")}: {event.source_state} · {t("saPhysicalState")}: {event.physical_state}<br />
+-              {t("saIssueState")}: {event.issue_calendar_state}<br />
+-              {t("saOffering")}: {event.offering_amount_usd === null ? t("saUnknown") : `${event.offering_amount_usd} USD`}<br />
+-              {event.result === null ? t("saResultsNotObserved") : t("saResultsObserved")}
+-              {event.result && <dl>{Object.entries(event.result).map(([key,value]) => <div key={key}><dt>{key}</dt><dd>{value ?? t("saUnknown")}</dd></div>)}</dl>}
+-              {!!event.null_reasons.length && <p>{t("saNullReasons")}: {event.null_reasons.join("; ")}</p>}
+-              <a href={event.source_url} target="_blank" rel="noopener noreferrer">{t("saOfficialSource")}</a>
++          <ol style={{ margin: 0, padding: 0, listStyle: "none" }}>
++            {display?.rows.map(event => <li key={event.episode_id} data-episode-id={event.episode_id} style={{ paddingBlock: 12, borderTop: "1px solid var(--line)" }}>
++              <div data-testid="sa-event-summary">
++                <strong style={{ fontSize: 13 }}>{eventTitle(event, t)}</strong>
++                <div>{t(LIFECYCLE_LABELS[event.physical_state] ?? "saUnknown")}</div>
++                <div style={{ marginBlock: 5 }}>{t("saOffering")}: <strong data-testid="sa-offering">{event.offering_amount_usd === null ? t("saUnknown") : formatAuctionDollars(event.offering_amount_usd)}</strong></div>
++                <div>{t("saAuctionDate")}: <time>{event.auction_date}</time> · {t("saIssueDate")}: <time>{event.issue_date}</time></div>
++                <div data-testid="sa-deadline">{t("saDeadline")}: <time>{event.competitive_deadline_utc === null ? t("saUnknown") : readableDeadline(event.competitive_deadline_utc)}</time></div>
++                {event.result === null && <div>{t("saResultsNotObserved")}</div>}
++                <div>{t(event.issue_calendar_state === "ISSUE_DATE_PASSED" ? "saIssueDatePassed" : "saIssueDateNotPassed")}</div>
++              </div>
++              <details data-testid="sa-event-source" style={{ marginTop: 6 }}>
++                <summary style={{ cursor: "pointer", minHeight: 32 }}>{t("saSourceDetails")}</summary>
++                <div style={{ paddingBlock: 4, fontSize: 12 }}>
++                  <div>{t("saEpisodeId")}: <code data-testid="sa-episode-id">{event.episode_id}</code></div>
++                  <div>{t("saSourceLabel")}: {event.label} · <code>{event.normalized_class}</code></div>
++                  <div>{t("saKnownAt")}: <time>{event.known_at}</time></div>
++                  <div>{t("saDeadline")}: <time>{event.competitive_deadline_utc ?? t("saUnknown")}</time></div>
++                  <div>{t("saSourceState")}: <code>{event.source_state}</code> · {t("saPhysicalState")}: <code>{event.physical_state}</code></div>
++                  <div>{t("saIssueState")}: <code>{event.issue_calendar_state}</code></div>
++                  <div>{t("saSourceAmount")}: <code>{event.offering_amount_usd ?? t("saUnknown")}</code></div>
++                  {event.result && <dl style={{ marginBlock: 6 }}>{Object.entries(event.result).map(([key,value]) => <div key={key}><dt><code>{key}</code></dt><dd style={{ marginInlineStart: 12 }}>{value ?? t("saUnknown")}</dd></div>)}</dl>}
++                  {!!event.null_reasons.length && <p>{t("saNullReasons")}: {event.null_reasons.join("; ")}</p>}
++                  <a href={event.source_url} target="_blank" rel="noopener noreferrer">{t("saOfficialSource")}</a>
++                </div>
++              </details>
+             </li>)}
+           </ol>
+           {display && display.total > display.rows.length && <p>{t("saShowing")} {display.rows.length} / {display.total} · {t("saBoundedList")}</p>}
+           {display && display.total > 6 && !expanded && <button type="button" onClick={() => setExpanded(true)} style={{ minHeight: 44 }}>{t("saShowMore")}</button>}
+-          <h4>{t("saSources")}</h4>
+-          {context.source_health.map((health, index) => <p key={`${health.source_url}:${index}`}>
+-            <a href={health.source_url} target="_blank" rel="noopener noreferrer">{health.source_kind}</a><br />
+-            {t("saLatestAttempt")}: {health.latest_attempt_at} · {health.latest_attempt_status}<br />
+-            {t("saLastValid")}: {health.last_valid_observation_at ?? t("saUnknown")}<br />
+-            {t("saAgeAtCutoff")}: {health.last_valid_observation_age_seconds ?? t("saUnknown")} {t("saSeconds")}<br />
+-            {t("saBodyReceipt")}: {health.last_successful_body_receipt_at ?? t("saUnknown")}<br />
+-            {t("saLatestFailure")}: {health.latest_failure_at ?? t("saUnknown")}
+-            {!!health.latest_failure_reasons.length && <> · {health.latest_failure_reasons.join("; ")}</>}<br />
+-            {t("saFreshnessUnassessed")}
+-          </p>)}
++          <details data-testid="sa-context-source" style={{ marginTop: 10, borderTop: "1px solid var(--line)", paddingTop: 6 }}>
++            <summary style={{ cursor: "pointer", minHeight: 32 }}>{t("saSources")}</summary>
++            <p>{t("saCutoff")}: <time>{context.decision_cutoff_utc}</time><br />{t("saObservedAt")}: <time>{context.source_observed_at ?? t("saUnknown")}</time></p>
++            {context.source_health.map((health, index) => <p key={`${health.source_url}:${index}`}>
++              <a href={health.source_url} target="_blank" rel="noopener noreferrer">{health.source_kind}</a><br />
++              {t("saLatestAttempt")}: {health.latest_attempt_at} · {health.latest_attempt_status}<br />
++              {t("saLastValid")}: {health.last_valid_observation_at ?? t("saUnknown")}<br />
++              {t("saAgeAtCutoff")}: {health.last_valid_observation_age_seconds ?? t("saUnknown")} {t("saSeconds")}<br />
++              {t("saBodyReceipt")}: {health.last_successful_body_receipt_at ?? t("saUnknown")}<br />
++              {t("saLatestFailure")}: {health.latest_failure_at ?? t("saUnknown")}
++              {!!health.latest_failure_reasons.length && <> · {health.latest_failure_reasons.join("; ")}</>}<br />
++              {t("saFreshnessUnassessed")}
++            </p>)}
++          </details>
+         </>}
+       </div>
+     </details>

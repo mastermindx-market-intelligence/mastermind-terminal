@@ -1,0 +1,22 @@
+{
+  "command": [
+    "npx",
+    "playwright",
+    "test",
+    "--config=playwright.sovereign-auctions.config.ts",
+    "--reporter=line,json",
+    "--output=/tmp/sovereign-auction-terminal-ui-proof-02/test-results"
+  ],
+  "exit_code": 0,
+  "port": 62372,
+  "output_dir": "/tmp/sovereign-auction-terminal-ui-proof-02",
+  "stats": {
+    "startTime": "2026-10-08T23:41:46.388Z",
+    "duration": 93017.917,
+    "expected": 18,
+    "skipped": 0,
+    "unexpected": 0,
+    "flaky": 0
+  },
+  "error_count": 0
+}

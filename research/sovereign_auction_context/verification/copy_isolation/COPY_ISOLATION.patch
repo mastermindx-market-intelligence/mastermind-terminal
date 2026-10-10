@@ -1,0 +1,161 @@
+--- a/terminal/components/SovereignAuctionContext.tsx
++++ b/terminal/components/SovereignAuctionContext.tsx
+@@ -1,7 +1,7 @@
+ "use client";
+ import { useEffect, useState } from "react";
+ import { createClient } from "@/lib/supabase/client";
+-import { useT } from "@/lib/i18n";
++import { useSovereignAuctionT as useT } from "@/lib/sovereignAuctionCopy";
+ import { auctionDisplayRows, validateSovereignAuctionContext, type AuctionContext, type AuctionAmount, type AuctionEvent } from "@/lib/sovereignAuctionContext";
+ 
+ const POLL_MS = 300_000; // Attempt cadence only; never a freshness guarantee.
+--- a/terminal/lib/i18n.tsx
++++ b/terminal/lib/i18n.tsx
+@@ -1698,61 +1698,6 @@
+   nwTip: ["Neural Web macro read — display-only context, not advice. Click to open the Macro Dashboard.", "神经网宏观解读 —— 仅供参考，非投资建议。点击打开宏观仪表盘。"],
+   nwVol: ["Vol", "波动"],
+   nwLiq: ["Liq", "流动性"],
+-  saTitle: ["Sovereign auctions — observed context", "主权债拍卖 — 已观测背景"],
+-  saNotScored: ["Not scored", "未评分"],
+-  saLoading: ["Loading context", "正在加载背景"],
+-  saUnavailable: ["Auction context unavailable", "拍卖背景不可用"],
+-  saSignIn: ["Sign in required", "需要登录"],
+-  saNotEntitled: ["Subscription access required", "需要订阅权限"],
+-  saObservedEpisodes: ["observed episodes", "个已观测拍卖事件"],
+-  saResearchOnly: ["Research only · context only", "仅供研究 · 仅供背景参考"],
+-  saFreshnessUnassessed: ["Freshness unassessed", "时效性未评估"],
+-  saCutoff: ["Decision cutoff (UTC)", "决策截止时间（UTC）"],
+-  saObservedAt: ["Source observed at", "来源观测时间"],
+-  saUnknown: ["Unknown", "未知"],
+-  saClassBill: ["Treasury bill", "短期国债"],
+-  saClassCmb: ["Cash management bill", "现金管理国库券"],
+-  saClassNote: ["Treasury note", "中期国债"],
+-  saClassBond: ["Treasury bond", "长期国债"],
+-  saClassTips: ["Inflation-protected Treasury (TIPS)", "通胀保值国债（TIPS）"],
+-  saClassFrn: ["Floating-rate Treasury (FRN)", "浮动利率国债（FRN）"],
+-  saTermYear: ["{n}-year", "{n}年"],
+-  saTermMonth: ["{n}-month", "{n}个月"],
+-  saTermWeek: ["{n}-week", "{n}周"],
+-  saTermDay: ["{n}-day", "{n}天"],
+-  saAnnounced: ["Auction announced", "拍卖已公告"],
+-  saTentative: ["Tentative schedule", "暂定日程"],
+-  saAwaitingResult: ["Awaiting observed results", "等待观测结果"],
+-  saIssueDatePassed: ["Issue date has passed · settlement not observed", "发行日期已过 · 尚未观测到结算"],
+-  saIssueDateNotPassed: ["Issue date has not passed · settlement not observed", "发行日期尚未过 · 尚未观测到结算"],
+-  saSourceDetails: ["Source details", "来源详情"],
+-  saEpisodeId: ["Event identifier", "事件标识"],
+-  saSourceLabel: ["Source label and class", "来源名称与类别"],
+-  saSourceAmount: ["Exact source amount (USD)", "来源精确金额（美元）"],
+-  saDegraded: ["Source coverage degraded", "来源覆盖降级"],
+-  saEmpty: ["No episodes in the observed set; coverage is not a complete universe", "已观测集合中没有拍卖事件；覆盖不代表完整范围"],
+-  saAuctionDate: ["Auction date", "拍卖日期"],
+-  saIssueDate: ["Issue date", "发行日期"],
+-  saDeadline: ["Competitive deadline (UTC)", "竞争性投标截止时间（UTC）"],
+-  saKnownAt: ["Known at", "获知时间"],
+-  saSourceState: ["Source state", "来源状态"],
+-  saPhysicalState: ["Auction state", "拍卖状态"],
+-  saIssueState: ["Issue calendar state", "发行日历状态"],
+-  saOffering: ["Offering amount", "发行金额"],
+-  saResultsNotObserved: ["Results not observed", "尚未观测到结果"],
+-  saResultsObserved: ["Results observed", "已观测到结果"],
+-  saNullReasons: ["Null reasons", "空值原因"],
+-  saOfficialSource: ["Official source", "官方来源"],
+-  saShowing: ["Showing", "显示"],
+-  saBoundedList: ["Display list is bounded", "显示列表有数量上限"],
+-  saShowMore: ["Show up to 24 episodes", "显示最多 24 个拍卖事件"],
+-  saSources: ["Source observations", "来源观测"],
+-  saLatestAttempt: ["Latest attempt", "最近尝试"],
+-  saLastValid: ["Last valid observation", "最近有效观测"],
+-  saAgeAtCutoff: ["Observation age at cutoff", "截止时的观测年龄"],
+-  saSeconds: ["seconds", "秒"],
+-  saBodyReceipt: ["Last successful body receipt", "最近成功响应接收时间"],
+-  saLatestFailure: ["Latest failure", "最近失败"],
+   nwStale: ["Stale", "已过期"],
+   nwConfidence: ["confidence", "置信度"],
+   nwCycle: ["cycle", "周期"],
+--- a/terminal/lib/__tests__/sovereignAuctionComponent.test.tsx
++++ b/terminal/lib/__tests__/sovereignAuctionComponent.test.tsx
+@@ -5,7 +5,8 @@
+ import { join } from "node:path";
+ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+ import SovereignAuctionContext, { formatAuctionDollars } from "@/components/SovereignAuctionContext";
+-import { LangProvider, LEX } from "@/lib/i18n";
++import { LangProvider } from "@/lib/i18n";
++import { AUCTION_LEX as LEX } from "@/lib/sovereignAuctionCopy";
+ import { validateSovereignAuctionContext } from "@/lib/sovereignAuctionContext";
+ const auth = vi.hoisted(() => ({ listener: null as null | ((event: string, session: { user: { id: string }; access_token: string } | null) => void), unsubscribe: vi.fn() }));
+ vi.mock("@/lib/supabase/client", () => ({ createClient: () => ({ auth: { onAuthStateChange: (listener: typeof auth.listener) => { auth.listener = listener; return { data: { subscription: { unsubscribe: auth.unsubscribe } } }; } } }) }));
+--- /dev/null
++++ b/terminal/lib/sovereignAuctionCopy.ts
+@@ -0,0 +1,71 @@
++"use client";
++import { useCallback } from "react";
++import { useLang } from "@/lib/i18n";
++
++// Feature-owned copy uses the incumbent [en, zh] tuple convention and language
++// context. It never registers or mutates the shared LEX or creates locale state.
++export const AUCTION_LEX: Record<string, [string, string]> = {
++  saTitle: ["Sovereign auctions — observed context", "主权债拍卖 — 已观测背景"],
++  saNotScored: ["Not scored", "未评分"],
++  saLoading: ["Loading context", "正在加载背景"],
++  saUnavailable: ["Auction context unavailable", "拍卖背景不可用"],
++  saSignIn: ["Sign in required", "需要登录"],
++  saNotEntitled: ["Subscription access required", "需要订阅权限"],
++  saObservedEpisodes: ["observed episodes", "个已观测拍卖事件"],
++  saResearchOnly: ["Research only · context only", "仅供研究 · 仅供背景参考"],
++  saFreshnessUnassessed: ["Freshness unassessed", "时效性未评估"],
++  saCutoff: ["Decision cutoff (UTC)", "决策截止时间（UTC）"],
++  saObservedAt: ["Source observed at", "来源观测时间"],
++  saUnknown: ["Unknown", "未知"],
++  saClassBill: ["Treasury bill", "短期国债"],
++  saClassCmb: ["Cash management bill", "现金管理国库券"],
++  saClassNote: ["Treasury note", "中期国债"],
++  saClassBond: ["Treasury bond", "长期国债"],
++  saClassTips: ["Inflation-protected Treasury (TIPS)", "通胀保值国债（TIPS）"],
++  saClassFrn: ["Floating-rate Treasury (FRN)", "浮动利率国债（FRN）"],
++  saTermYear: ["{n}-year", "{n}年"],
++  saTermMonth: ["{n}-month", "{n}个月"],
++  saTermWeek: ["{n}-week", "{n}周"],
++  saTermDay: ["{n}-day", "{n}天"],
++  saAnnounced: ["Auction announced", "拍卖已公告"],
++  saTentative: ["Tentative schedule", "暂定日程"],
++  saAwaitingResult: ["Awaiting observed results", "等待观测结果"],
++  saIssueDatePassed: ["Issue date has passed · settlement not observed", "发行日期已过 · 尚未观测到结算"],
++  saIssueDateNotPassed: ["Issue date has not passed · settlement not observed", "发行日期尚未过 · 尚未观测到结算"],
++  saSourceDetails: ["Source details", "来源详情"],
++  saEpisodeId: ["Event identifier", "事件标识"],
++  saSourceLabel: ["Source label and class", "来源名称与类别"],
++  saSourceAmount: ["Exact source amount (USD)", "来源精确金额（美元）"],
++  saDegraded: ["Source coverage degraded", "来源覆盖降级"],
++  saEmpty: ["No episodes in the observed set; coverage is not a complete universe", "已观测集合中没有拍卖事件；覆盖不代表完整范围"],
++  saAuctionDate: ["Auction date", "拍卖日期"],
++  saIssueDate: ["Issue date", "发行日期"],
++  saDeadline: ["Competitive deadline (UTC)", "竞争性投标截止时间（UTC）"],
++  saKnownAt: ["Known at", "获知时间"],
++  saSourceState: ["Source state", "来源状态"],
++  saPhysicalState: ["Auction state", "拍卖状态"],
++  saIssueState: ["Issue calendar state", "发行日历状态"],
++  saOffering: ["Offering amount", "发行金额"],
++  saResultsNotObserved: ["Results not observed", "尚未观测到结果"],
++  saResultsObserved: ["Results observed", "已观测到结果"],
++  saNullReasons: ["Null reasons", "空值原因"],
++  saOfficialSource: ["Official source", "官方来源"],
++  saShowing: ["Showing", "显示"],
++  saBoundedList: ["Display list is bounded", "显示列表有数量上限"],
++  saShowMore: ["Show up to 24 episodes", "显示最多 24 个拍卖事件"],
++  saSources: ["Source observations", "来源观测"],
++  saLatestAttempt: ["Latest attempt", "最近尝试"],
++  saLastValid: ["Last valid observation", "最近有效观测"],
++  saAgeAtCutoff: ["Observation age at cutoff", "截止时的观测年龄"],
++  saSeconds: ["seconds", "秒"],
++  saBodyReceipt: ["Last successful body receipt", "最近成功响应接收时间"],
++  saLatestFailure: ["Latest failure", "最近失败"],
++};
++
++export function useSovereignAuctionT() {
++  const { lang } = useLang();
++  return useCallback((key: string, fallback?: string) => {
++    const entry = AUCTION_LEX[key];
++    return entry ? (lang === "zh" ? entry[1] : entry[0]) : (fallback ?? key);
++  }, [lang]);
++}

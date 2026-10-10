@@ -1,0 +1,48 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+ RUN  v2.1.9 /Volumes/Mastermind/agent-workspaces/terminal/web/sovereign-auction-context-20261008-sol-terminal-001/terminal
+
+ ✓ lib/__tests__/b_f11_10AnalysisThesesEntryEvidence.test.ts (5 tests) 10ms
+ ✓ lib/__tests__/f11_4ResearchViewsEvidence.test.ts (6 tests) 10ms
+ ✓ lib/__tests__/b_f12_b5_3AccountCompletenessEvidence.test.ts (5 tests) 12ms
+ ✓ lib/__tests__/b_pl_6Batch1Evidence.test.ts (4 tests) 9ms
+ ✓ lib/__tests__/f12_8TeamRolesEvidence.test.ts (10 tests) 17ms
+ ✓ lib/__tests__/f12_17InviteLinkEvidence.test.ts (7 tests) 18ms
+ ✓ lib/__tests__/personalAccuracyEvidence.test.ts (5 tests) 17ms
+ ✓ lib/__tests__/sovereignAuctionContext.test.ts (8 tests) 67ms
+ ✓ lib/__tests__/f12_9TeamOwnershipTransferEvidence.test.ts (5 tests) 205ms
+ ✓ lib/__tests__/nwRoute.test.ts (17 tests) 280ms
+ ✓ lib/__tests__/sovereignAuctionComponent.test.tsx (17 tests) 137ms
+ ✓ lib/__tests__/plainLanguageGuardCi.test.ts (10 tests) 1066ms
+
+--- plain-language guard receipt: flagged fixture ---
+plain-language guard — vocabulary overlay ABSENT: terminal/lib/plainLabels.ts not present on this tree; using the 83 declared terms only.
+  ::error title=plain-language::1 blocking plain-language finding(s) on newly added lines
+  ::error title=plain-language::terminal/components/Bad.tsx:2: raw_state_enum: "BOTTOM_WATCH" — say "Watching for a bottom" / "关注筑底" (route via regimeLabel(t, value, lang) from @/lib/plainLabels)
+blocking (added lines)
+terminal/components/Bad.tsx:2: raw_state_enum: "BOTTOM_WATCH" — raw state enum in a user-visible position
+  say "Watching for a bottom" / "关注筑底" (route via regimeLabel(t, value, lang) from @/lib/plainLabels)
+
+--- end receipt ---
+
+--- plain-language guard receipt: legacy fixture ---
+plain-language guard — vocabulary overlay ABSENT: terminal/lib/plainLabels.ts not present on this tree; using the 83 declared terms only.
+legacy (pre-existing, not blocking)
+terminal/components/Bad.tsx:2: raw_state_enum: "BOTTOM_WATCH" — raw state enum in a user-visible position
+  say "Watching for a bottom" / "关注筑底" (route via regimeLabel(t, value, lang) from @/lib/plainLabels)
+terminal/components/Legacy2.tsx:2: raw_state_enum: "BOTTOM_WATCH" — raw state enum in a user-visible position
+  say "Watching for a bottom" / "关注筑底" (route via regimeLabel(t, value, lang) from @/lib/plainLabels)
+
+--- end receipt ---
+ ✓ lib/__tests__/plainLanguageGuard.test.ts (30 tests) 7087ms
+   ✓ check_plain_language.mjs > 4. EN/ZH parity: missing zh in LEX entry and unrouted English literal both block 387ms
+   ✓ check_plain_language.mjs > 8. receipt printer: prints the checker's full human block for bad + legacy fixtures 400ms
+   ✓ check_plain_language.mjs > 10. a bare substring match on a helper name (.sort(/useEffect() does not defeat R3/R5b 393ms
+   ✓ check_plain_language.mjs > 25. R3 fires on the interpolation's OWN span, never on a sibling span sharing the line (PR #530 round-3 review MAJOR) 584ms
+   ✓ check_plain_language.mjs > 28. R3 examines EVERY `{...field}` match on a line, not just the first (PR #530 round-4 review MAJOR) 385ms
+
+ Test Files  13 passed (13)
+      Tests  129 passed (129)
+   Start at  17:43:23
+   Duration  7.63s (transform 653ms, setup 0ms, collect 1.02s, tests 8.94s, environment 683ms, prepare 990ms)
+

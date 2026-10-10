@@ -1,0 +1,44 @@
+[
+  {
+    "argv": [
+      "npm",
+      "test",
+      "--",
+      "lib/__tests__/sovereignAuctionContext.test.ts",
+      "lib/__tests__/nwRoute.test.ts",
+      "lib/__tests__/sovereignAuctionComponent.test.tsx"
+    ],
+    "started_at": "2026-10-08T23:15:50.815083+00:00",
+    "ended_at": "2026-10-08T23:15:52.536291+00:00",
+    "exit_code": 0,
+    "log": "sovereign-auction-verification/final-native-1.txt"
+  },
+  {
+    "argv": [
+      "npx",
+      "tsc",
+      "--noEmit"
+    ],
+    "started_at": "2026-10-08T23:15:52.536820+00:00",
+    "ended_at": "2026-10-08T23:15:58.648036+00:00",
+    "exit_code": 0,
+    "log": "sovereign-auction-verification/final-native-2.txt"
+  },
+  {
+    "argv": [
+      "npm",
+      "run",
+      "lint",
+      "--",
+      "app/api/nw/route.ts",
+      "lib/sovereignAuctionContext.ts",
+      "components/SovereignAuctionContext.tsx",
+      "components/TerminalShell.tsx",
+      "lib/i18n.tsx"
+    ],
+    "started_at": "2026-10-08T23:15:58.648471+00:00",
+    "ended_at": "2026-10-08T23:16:09.958511+00:00",
+    "exit_code": 1,
+    "log": "sovereign-auction-verification/final-native-3.txt"
+  }
+]

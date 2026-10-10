@@ -1,0 +1,67 @@
+{
+  "frozen_at": "2026-10-08T23:38:06.455831+00:00",
+  "files": [
+    {
+      "path": "terminal_patch/terminal/components/SovereignAuctionContext.tsx",
+      "preimage_sha256": "e2abc532c086efd384ab0647f51ba0a17da0467584a5b610ddd532f70847fdd6",
+      "sha256": "2b8cb70a8d0b43ce650e48868f3d5471a3b3b5e178bec089b3c3b7bf03946086",
+      "bytes": 11150
+    },
+    {
+      "path": "terminal_patch/terminal/lib/i18n.tsx",
+      "preimage_sha256": "03c8e6f16530acd425903602d6f16e3f040dff1280f38003ad223b2f632c6105",
+      "sha256": "cc6b9efb57ea38a9f2b22c6daa993e5766008e2e1c08ddae276fb11314ec9a9c",
+      "bytes": 206042
+    },
+    {
+      "path": "terminal_patch/terminal/lib/__tests__/sovereignAuctionComponent.test.tsx",
+      "preimage_sha256": "05afa3153f3174467133199c50db2a19b460818e1e3f4bf62f73885bf9400fa4",
+      "sha256": "1c568ed8ca406f8d4def37eaf4c753ba7a620d5b7b0463471d645a0a14780657",
+      "bytes": 11237
+    },
+    {
+      "path": "ui_verification/terminal/e2e/sovereign-auction-context.spec.ts",
+      "preimage_sha256": "7339021a076dc3d640d22aa0a903d6f4da09a96541f6b970d961dae36a3fefac",
+      "sha256": "ca3739d28066f123f57a49f6d7fe2d8d6cd9f024c3f2501ac516957e09570b81",
+      "bytes": 21924
+    }
+  ],
+  "auth_effect_state_projection_byte_identical": true,
+  "i18n_sa_only": true,
+  "unchanged_guards": {
+    "terminal_patch/terminal/lib/sovereignAuctionContext.ts": "d949fbcdb50cc720d2e7c373177761c315c1e0fdcf0219f44066cfdd159aab9f",
+    "terminal_patch/terminal/app/api/nw/route.ts": "d25e4086de89828470f6216532e638163de0940aa1479818b30ca12cc91b00f2",
+    "terminal_patch/terminal/lib/__tests__/fixtures/sovereign_auction_context_w1.json": "c3019af2c6439d954886744a4261b8ec84b98f33ebb32ee8aecfa6dcfa98c268",
+    "ui_verification/terminal/e2e/fixtures/sovereign_auction_context_full_capture.json": "e363d46c7082b8c997d3385af3faf5ebab0eb9c07be9a89912c4d215a8cb32b3",
+    "ui_verification/lint_final/MANIFEST.json": "25871dd1ac31a04684e7458c5a3a24dec2d9d3d3c4fc922c37d2da0d1020abd2"
+  },
+  "local_checks": {
+    "helpers": {
+      "status": "passed",
+      "source": "terminal_patch/terminal/components/SovereignAuctionContext.tsx",
+      "sha256": "2b8cb70a8d0b43ce650e48868f3d5471a3b3b5e178bec089b3c3b7bf03946086",
+      "amountCases": 6,
+      "localizedTitleChecks": 148,
+      "deadlineCases": 3,
+      "samples": [
+        {
+          "lang": "en",
+          "title": "6-week Treasury bill"
+        },
+        {
+          "lang": "zh",
+          "title": "6\u5468 \u77ed\u671f\u56fd\u503a"
+        }
+      ],
+      "scope": "Exact authored helper execution through Node native TypeScript stripping; not TSX, React, Vitest, tsc, layout, browser or auth proof."
+    },
+    "node_check_e2e": "passed"
+  },
+  "native_vitest_tsc_browser": "pending root execution in canonical workspace",
+  "review": {
+    "reviewer": "/root/mastermind_consumer_verification",
+    "scope": "read-only JSX/string review, no tests or browser",
+    "decision": "no concrete blocker found",
+    "followup": "Deadline formatter subsequently normalized accepted offsets to UTC and preserved source fractional precision; 3 exact helper cases pass."
+  }
+}

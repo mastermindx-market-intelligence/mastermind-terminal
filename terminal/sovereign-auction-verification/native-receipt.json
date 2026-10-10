@@ -1,0 +1,27 @@
+[
+  {
+    "argv": [
+      "npm",
+      "test",
+      "--",
+      "lib/__tests__/sovereignAuctionContext.test.ts",
+      "lib/__tests__/nwRoute.test.ts",
+      "lib/__tests__/sovereignAuctionComponent.test.tsx"
+    ],
+    "started_at": "2026-10-08T23:08:51.874501+00:00",
+    "ended_at": "2026-10-08T23:08:55.118051+00:00",
+    "exit_code": 1,
+    "log": "sovereign-auction-verification/native-1.txt"
+  },
+  {
+    "argv": [
+      "npx",
+      "tsc",
+      "--noEmit"
+    ],
+    "started_at": "2026-10-08T23:08:55.118494+00:00",
+    "ended_at": "2026-10-08T23:09:16.551289+00:00",
+    "exit_code": 2,
+    "log": "sovereign-auction-verification/native-2.txt"
+  }
+]

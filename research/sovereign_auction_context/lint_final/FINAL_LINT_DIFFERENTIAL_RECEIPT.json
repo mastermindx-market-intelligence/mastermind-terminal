@@ -1,0 +1,299 @@
+{
+  "scope": "Read-only analysis of the three existing logs; no lint rerun, source read/write, browser-process interaction, or production claim",
+  "log_directory": "/Volumes/Mastermind/agent-workspaces/terminal/web/sovereign-auction-context-20261008-sol-terminal-001/terminal/sovereign-auction-verification",
+  "inputs": [
+    {
+      "name": "lint-current.json",
+      "bytes": 451578,
+      "sha256": "ed09faa20b6614ada831719461db6690a3faa0d6acf9f921fd78ef3f73a06043"
+    },
+    {
+      "name": "lint-shell-baseline.json",
+      "bytes": 450157,
+      "sha256": "f8e0c07504585e0f6fcc8c51b14ba74ba68b23de8267c2d6e4bfca5fce4f8441"
+    },
+    {
+      "name": "lint-differential-receipt.json",
+      "bytes": 240,
+      "sha256": "d063d50e9b728a5d53cb1e841cb8da4040ee8fdd2c89ac84f2a0d57d429fa631"
+    }
+  ],
+  "original_receipt_preserved": {
+    "baseline_errors": 54,
+    "baseline_warnings": 14,
+    "current_shell_errors": 54,
+    "current_shell_warnings": 14,
+    "diagnostics_match_original_source_locations": false,
+    "non_shell_new_errors": 0,
+    "not_a_whole_file_lint_pass": true
+  },
+  "logged_source": {
+    "baseline": {
+      "bytes": 385604,
+      "sha256": "870c21f4f8a45c5388feeac63bff920631ce8baabbe7b5392aad5968da652b64",
+      "git_blob_sha1": "417cd453fcf1d4ea444d12321ea37ad8a4f25888"
+    },
+    "current": {
+      "bytes": 385770,
+      "sha256": "7e96d08385d921fd1ca624c3481271ac94ae297034f7126284836cd6429a1e5b",
+      "git_blob_sha1": "97e2a86012b23bd0ab6388f8cabda25f361bec00"
+    },
+    "diff": [
+      "--- logged-baseline-source\n",
+      "+++ logged-current-source\n",
+      "@@ -22,6 +22,7 @@\n",
+      " import { intradayCapable } from \"@/components/ChartPanel\";",
+      " import { classify, SECOND_TFS, isSecondTf } from \"@/lib/intradaySources\";",
+      " import { isMacroSymbol } from \"@/lib/macroSymbols\";",
+      "+import SovereignAuctionContext from \"@/components/SovereignAuctionContext\";",
+      " import { freshnessLabel } from \"@/lib/feedFreshness\";",
+      " import { flowGet } from \"@/lib/flowClientCache\";",
+      " // R3.2 glance layer: the rail block's per-root gexstate read. Entitlement-gated at",
+      "@@ -6025,6 +6026,7 @@\n",
+      "                 <button className=\"btn btn-primary\" style={{ width: \"100%\", height: 38 }} onClick={() => setPaneOpen(\"overview\")}>{t(\"openFullAnalysis\")}</button>",
+      "                 <button className=\"btn btn-ghost\" style={{ width: \"100%\", height: 36 }} onClick={() => openBrainReincluding(setBrainIncluded, () => (window as any).MMBrain?.open())}>{t(\"askAIabout\")} {active} →</button>",
+      "               </div>",
+      "+              <div style={{ padding: 12, minWidth: 0 }}><SovereignAuctionContext /></div>",
+      "             </div>",
+      "           </div>",
+      "         </div>"
+    ],
+    "line_opcodes": [
+      [
+        "equal",
+        0,
+        24,
+        0,
+        24
+      ],
+      [
+        "insert",
+        24,
+        24,
+        24,
+        25
+      ],
+      [
+        "equal",
+        24,
+        6027,
+        25,
+        6028
+      ],
+      [
+        "insert",
+        6027,
+        6027,
+        6028,
+        6029
+      ],
+      [
+        "equal",
+        6027,
+        6328,
+        6029,
+        6330
+      ]
+    ]
+  },
+  "counts": {
+    "baseline_errors": 54,
+    "baseline_warnings": 14,
+    "current_errors": 54,
+    "current_warnings": 14,
+    "baseline_diagnostics": 68,
+    "current_diagnostics": 68,
+    "raw_message_differences": 12,
+    "after_codeframe_location_mapping_unmatched": 1,
+    "after_all_explicit_source_location_mapping_unmatched": 0,
+    "full_normalized_diagnostics_unmatched": 0
+  },
+  "anchor_multisets_equal": true,
+  "raw_message_differences": [
+    {
+      "rule": "react-hooks/set-state-in-effect",
+      "severity": 2,
+      "base_line": 1079,
+      "current_line": 1080,
+      "column": 5,
+      "message_id": null,
+      "base_message_header": "Error: Calling setState synchronously within an effect can trigger cascading renders",
+      "current_message_header": "Error: Calling setState synchronously within an effect can trigger cascading renders",
+      "cause": "explicit source locations in code frame",
+      "contains_added_component_text": false
+    },
+    {
+      "rule": "react-hooks/set-state-in-effect",
+      "severity": 2,
+      "base_line": 1424,
+      "current_line": 1425,
+      "column": 5,
+      "message_id": null,
+      "base_message_header": "Error: Calling setState synchronously within an effect can trigger cascading renders",
+      "current_message_header": "Error: Calling setState synchronously within an effect can trigger cascading renders",
+      "cause": "explicit source locations in code frame",
+      "contains_added_component_text": false
+    },
+    {
+      "rule": "react-hooks/set-state-in-effect",
+      "severity": 2,
+      "base_line": 1531,
+      "current_line": 1532,
+      "column": 5,
+      "message_id": null,
+      "base_message_header": "Error: Calling setState synchronously within an effect can trigger cascading renders",
+      "current_message_header": "Error: Calling setState synchronously within an effect can trigger cascading renders",
+      "cause": "explicit source locations in code frame",
+      "contains_added_component_text": false
+    },
+    {
+      "rule": "react-hooks/set-state-in-effect",
+      "severity": 2,
+      "base_line": 1555,
+      "current_line": 1556,
+      "column": 27,
+      "message_id": null,
+      "base_message_header": "Error: Calling setState synchronously within an effect can trigger cascading renders",
+      "current_message_header": "Error: Calling setState synchronously within an effect can trigger cascading renders",
+      "cause": "explicit source locations in code frame",
+      "contains_added_component_text": false
+    },
+    {
+      "rule": "react-hooks/set-state-in-effect",
+      "severity": 2,
+      "base_line": 1841,
+      "current_line": 1842,
+      "column": 5,
+      "message_id": null,
+      "base_message_header": "Error: Calling setState synchronously within an effect can trigger cascading renders",
+      "current_message_header": "Error: Calling setState synchronously within an effect can trigger cascading renders",
+      "cause": "explicit source locations in code frame",
+      "contains_added_component_text": false
+    },
+    {
+      "rule": "react-hooks/set-state-in-effect",
+      "severity": 2,
+      "base_line": 2423,
+      "current_line": 2424,
+      "column": 5,
+      "message_id": null,
+      "base_message_header": "Error: Calling setState synchronously within an effect can trigger cascading renders",
+      "current_message_header": "Error: Calling setState synchronously within an effect can trigger cascading renders",
+      "cause": "explicit source locations in code frame",
+      "contains_added_component_text": false
+    },
+    {
+      "rule": "react-hooks/set-state-in-effect",
+      "severity": 2,
+      "base_line": 2763,
+      "current_line": 2764,
+      "column": 26,
+      "message_id": null,
+      "base_message_header": "Error: Calling setState synchronously within an effect can trigger cascading renders",
+      "current_message_header": "Error: Calling setState synchronously within an effect can trigger cascading renders",
+      "cause": "explicit source locations in code frame",
+      "contains_added_component_text": false
+    },
+    {
+      "rule": "react-hooks/set-state-in-effect",
+      "severity": 2,
+      "base_line": 2785,
+      "current_line": 2786,
+      "column": 104,
+      "message_id": null,
+      "base_message_header": "Error: Calling setState synchronously within an effect can trigger cascading renders",
+      "current_message_header": "Error: Calling setState synchronously within an effect can trigger cascading renders",
+      "cause": "explicit source locations in code frame",
+      "contains_added_component_text": false
+    },
+    {
+      "rule": "react-hooks/set-state-in-effect",
+      "severity": 2,
+      "base_line": 2869,
+      "current_line": 2870,
+      "column": 27,
+      "message_id": null,
+      "base_message_header": "Error: Calling setState synchronously within an effect can trigger cascading renders",
+      "current_message_header": "Error: Calling setState synchronously within an effect can trigger cascading renders",
+      "cause": "explicit source locations in code frame",
+      "contains_added_component_text": false
+    },
+    {
+      "rule": "react-hooks/exhaustive-deps",
+      "severity": 1,
+      "base_line": 3263,
+      "current_line": 3264,
+      "column": 9,
+      "message_id": null,
+      "base_message_header": "The 'activeLegs' conditional could make the dependencies of useMemo Hook (at line 3290) change on every render. Move it inside the useMemo callback. Alternatively, wrap the initialization of 'activeLegs' in its own useMemo() Hook.",
+      "current_message_header": "The 'activeLegs' conditional could make the dependencies of useMemo Hook (at line 3291) change on every render. Move it inside the useMemo callback. Alternatively, wrap the initialization of 'activeLegs' in its own useMemo() Hook.",
+      "cause": "prose source-line reference",
+      "contains_added_component_text": false
+    },
+    {
+      "rule": "react-hooks/set-state-in-effect",
+      "severity": 2,
+      "base_line": 4115,
+      "current_line": 4116,
+      "column": 5,
+      "message_id": null,
+      "base_message_header": "Error: Calling setState synchronously within an effect can trigger cascading renders",
+      "current_message_header": "Error: Calling setState synchronously within an effect can trigger cascading renders",
+      "cause": "explicit source locations in code frame",
+      "contains_added_component_text": false
+    },
+    {
+      "rule": "react-hooks/set-state-in-effect",
+      "severity": 2,
+      "base_line": 4147,
+      "current_line": 4148,
+      "column": 22,
+      "message_id": null,
+      "base_message_header": "Error: Calling setState synchronously within an effect can trigger cascading renders",
+      "current_message_header": "Error: Calling setState synchronously within an effect can trigger cascading renders",
+      "cause": "explicit source locations in code frame",
+      "contains_added_component_text": false
+    }
+  ],
+  "remaining_after_codeframe_mapping": [
+    {
+      "rule": "react-hooks/exhaustive-deps",
+      "severity": 1,
+      "base_line": 3263,
+      "current_line": 3264,
+      "column": 9,
+      "message_id": null,
+      "base_message_header": "The 'activeLegs' conditional could make the dependencies of useMemo Hook (at line 3290) change on every render. Move it inside the useMemo callback. Alternatively, wrap the initialization of 'activeLegs' in its own useMemo() Hook.",
+      "current_message_header": "The 'activeLegs' conditional could make the dependencies of useMemo Hook (at line 3291) change on every render. Move it inside the useMemo callback. Alternatively, wrap the initialization of 'activeLegs' in its own useMemo() Hook."
+    }
+  ],
+  "remaining_after_message_mapping": [],
+  "remaining_after_full_diagnostic_mapping": [],
+  "canonical_baseline_diagnostics_sha256": "d0bd60a8efaf68d8b8743c34506118d637414c9766a4cef3775d2e2e78a61d5f",
+  "canonical_current_diagnostics_sha256": "d0bd60a8efaf68d8b8743c34506118d637414c9766a4cef3775d2e2e78a61d5f",
+  "full_diagnostic_multisets_equal": true,
+  "diagnostics_on_inserted_lines": [],
+  "non_shell_results": [
+    {
+      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/sovereign-auction-context-20261008-sol-terminal-001/terminal/app/api/nw/route.ts",
+      "errorCount": 0,
+      "warningCount": 0
+    },
+    {
+      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/sovereign-auction-context-20261008-sol-terminal-001/terminal/components/SovereignAuctionContext.tsx",
+      "errorCount": 0,
+      "warningCount": 0
+    },
+    {
+      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/sovereign-auction-context-20261008-sol-terminal-001/terminal/lib/i18n.tsx",
+      "errorCount": 0,
+      "warningCount": 0
+    },
+    {
+      "path": "/Volumes/Mastermind/agent-workspaces/terminal/web/sovereign-auction-context-20261008-sol-terminal-001/terminal/lib/sovereignAuctionContext.ts",
+      "errorCount": 0,
+      "warningCount": 0
+    }
+  ],
+  "decision": "No introduced lint diagnostic in these exact logged snapshots; full-file lint remains red with 54 pre-existing errors and 14 warnings"
+}
