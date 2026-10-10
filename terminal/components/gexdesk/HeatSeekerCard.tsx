@@ -60,6 +60,11 @@ interface HeatSeekerCardProps {
   onRetry?: () => void;
   /** The matrix is still being read: nothing is known yet, so nothing is claimed. */
   reading?: boolean;
+  /**
+   * The matrix is not published for this name (404/410). Nothing was said about how its
+   * load is spread, so this is never "load is shared across levels".
+   */
+  absent?: boolean;
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -125,7 +130,7 @@ export function heatSeekerConfPct(confidence: unknown): number | null {
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
-export function HeatSeekerCard({ pick, spot, sessionAnchor = null, lang, readFailed = false, onRetry, reading = false }: HeatSeekerCardProps) {
+export function HeatSeekerCard({ pick, spot, sessionAnchor = null, lang, readFailed = false, onRetry, reading = false, absent = false }: HeatSeekerCardProps) {
   const t = makeGexT(lang);
 
   // Staleness is judged against the SNAPSHOT's session, not today: a Friday pick viewed
@@ -165,6 +170,15 @@ export function HeatSeekerCard({ pick, spot, sessionAnchor = null, lang, readFai
     return (
       <div className="obs-card" style={CARD_NULL} data-testid="gex-heatseeker-reading">
         <span style={NULL_TEXT}>{t("loading")}</span>
+      </div>
+    );
+  }
+
+  if (!usable && absent && !pick) {
+    return (
+      <div className="obs-card" style={CARD_NULL} data-testid="gex-heatseeker-absent">
+        <span style={NULL_STAR}>☆</span>
+        <span style={NULL_TEXT}>{t("heatSeekerAbsent")}</span>
       </div>
     );
   }
