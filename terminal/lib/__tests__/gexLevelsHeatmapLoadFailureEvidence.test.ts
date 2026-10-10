@@ -20,8 +20,10 @@ const LAYOUT_FILES = [
   "terminal/components/heatmap/HeatmapView.tsx",
   "terminal/components/levels/LevelsView.tsx",
   "terminal/components/levels/levelsLabels.ts",
+  "terminal/lib/dataCache.ts",
   "terminal/lib/heatmapStrings.ts",
 ];
+// The script's STATES; every state is cropped at each width, in English and Chinese.
 const STATES = [
   "gex-ladder-unavailable",
   "gex-ladder-retried",
@@ -39,9 +41,14 @@ const STATES = [
   "heatmap-unavailable",
   "heatmap-retried",
   "heatmap-absent",
+  "heatmap-persisted-refresh-failed",
+  "heatmap-persisted-refresh-refused",
+  "heatmap-persisted-retried",
 ];
+const PERSISTED_STATES = STATES.filter((state) => state.startsWith("heatmap-persisted-"));
+const WIDTHS = [1440, 820, 390];
 const CROPS = STATES.flatMap((state) =>
-  [1440, 820, 390].flatMap((width) => [`${state}-${width}.png`, `${state}-${width}-zh.png`]),
+  WIDTHS.flatMap((width) => [`${state}-${width}.png`, `${state}-${width}-zh.png`]),
 );
 
 function evidenceText(): string {
@@ -61,6 +68,10 @@ function layoutFileMap(yml: string): Record<string, string> {
   }
   if (Object.keys(map).length === 0) throw new Error("EVIDENCE.yml layoutFiles is empty");
   return map;
+}
+
+function harnessRow(yml: string, file: string): string | undefined {
+  return yml.split("\n").find((line) => line.startsWith(`  ${file}: `));
 }
 
 function sha256Of(abs: string): string {
@@ -84,14 +95,33 @@ describe("GEX, Levels and Heatmap load-failure evidence lock is the sha256 of th
     }
   });
 
-  it("all dark crops exist, are non-empty and are listed in EVIDENCE.yml files", () => {
-    expect(CROPS).toHaveLength(96);
+  it("all dark crops exist, are non-empty and are listed in EVIDENCE.yml files and harness", () => {
+    expect(CROPS).toHaveLength(114);
     const yml = evidenceText();
     for (const file of CROPS) {
       const abs = join(CROP_DIR, file);
       expect(existsSync(abs), file).toBe(true);
       expect(statSync(abs).size, file).toBeGreaterThan(0);
       expect(yml, `files is missing ${file}`).toContain(`\n  - ${file}\n`);
+      expect(harnessRow(yml, file), `harness is missing ${file}`).toBeDefined();
+    }
+  });
+
+  it("no harness row repeats a key (a flow mapping with two `then:` loses the first step)", () => {
+    const yml = evidenceText();
+    for (const file of CROPS) {
+      const row = harnessRow(yml, file) ?? "";
+      expect(row.match(/, then: /g)?.length ?? 0, `${file} has more than one then:`).toBeLessThanOrEqual(1);
+    }
+  });
+
+  it("the persisted heatmap crops record that the browser's own IndexedDB copy was aged, not mocked", () => {
+    const yml = evidenceText();
+    expect(yml).toMatch(/persisted: the heatmap-persisted-\* states age the browser's own IndexedDB record/);
+    for (const state of PERSISTED_STATES) {
+      for (const width of WIDTHS) {
+        expect(harnessRow(yml, `${state}-${width}.png`) ?? "").toMatch(/written to IndexedDB and aged 6h/);
+      }
     }
   });
 
