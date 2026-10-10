@@ -68,6 +68,9 @@ const VIEWPORTS = {
   390: { width: 390, height: 844 },
 };
 const POLL_MS = 60_000;
+// Chromium re-rasters only the invalidated rect of a tile by default, so the anti-aliased ring
+// and chip edges depend on the tile's raster history and drift between identical runs.
+const BROWSER_ARGS = ["--disable-partial-raster"];
 
 /**
  * Injected answer per read key ("<f-param>" for /api/flow, else the pathname); anything
@@ -506,7 +509,7 @@ async function main() {
   let failed = 0;
   try {
     await waitForServer(180_000);
-    const browser = await chromium.launch({ headless: true });
+    const browser = await chromium.launch({ headless: true, args: BROWSER_ARGS });
     try {
       for (const width of [1440, 820, 390]) {
         for (const lang of ["en", "zh"]) {

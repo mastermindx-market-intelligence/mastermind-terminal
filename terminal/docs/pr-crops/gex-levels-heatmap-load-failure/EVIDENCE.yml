@@ -1,20 +1,21 @@
+# 2026-10-10 recapture after merging master through #901 (GexDeskView.tsx) and #907 (this packet, 96 crops, gated by lib/__tests__/gexLevelsHeatmapLoadFailureEvidence.test.ts) into branch claude/eod-heatmap-flowdesk-load-failure-state, which itself changes GexDeskView.tsx (passes the desk's own gexstate/gex reads to the EOD belt), HeatmapView.tsx and heatmapStrings.ts. All 96 crops were recaptured on the merged tree; only those three rows were re-stamped (globals.css, LevelsView.tsx and the rest equal master). Two full runs with --disable-partial-raster were byte-identical (96 of 96). Against master's packet, compared exactly in RGBA: 65 are byte-identical. 11 differ by at most 4/255 on at most 10 px, which is invisible raster noise. 12 (gex-live-refresh-failed-* and gex-live-retried-*) differ in the wall-clock source-age label (91d old became 92d old) plus anti-aliasing of at most 5/255 on the 1440 symbol chips. 3 are this branch's change: in gex-rail-unavailable-1440(-zh) and gex-rail-unavailable-390-zh the belt above now shows a load error for its level cells when gexstate fails, so the rail sits lower and is clipped at a different scroll offset (the English 1440 crop is 12 px shorter); the error text and Retry are fully visible. 5 (gex-rail-retried-1440-zh, gex-state-refresh-failed-1440(-zh), levels-retried-1440(-zh)) differ by at most 13/255 with at most 4 px above 5/255: anti-aliasing, because master's capture ran without --disable-partial-raster.
 # GEX desk, Levels and Heatmap failure-state truth — capture evidence
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
 # Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
-# capturedAtHead: 3c994c34f6798a29c93e63c65bd9b2e145501953
-# capturedAt: 2026-10-10T03:52:51.581Z
+# capturedAtHead: ab57d7b3bb400ea3b121fb2495d2d46e6460ee38
+# capturedAt: 2026-10-10T05:51:31.058Z
 # capturedAtHead is informational. The lock is layoutFiles.
 layoutFiles:
   terminal/app/globals.css: "d67894b84cb6968d6fc87ab379f95da3b7e887cd5dd38240c5db8a55e31408a2"
-  terminal/components/gexdesk/GexDeskView.tsx: "4ae5b9a848ab12a418795bc14a5cfa1cc4a6a16c9ddec8932b30ed7261b7939b"
+  terminal/components/gexdesk/GexDeskView.tsx: "f9e037eb90cb10ea0a943a9c16d11849c429b66f5b548f055b8860d83f938ef5"
   terminal/components/gexdesk/HeatSeekerCard.tsx: "308295e2b0143fe933948c97a14584e1e0d1eff9249a58104dd3587a2642c93a"
   terminal/components/gexdesk/MarketStateCard.tsx: "069c4a2f1a5f53e8f611e3231b78751948cc0264c8af6efd167f7b3e4902bbe2"
   terminal/components/gexdesk/StrikeLadder.tsx: "a8ff63f3e50b033828ce3b82ecd7b87e7e3bbd3f69f9a47716b3c276334d8934"
   terminal/components/gexdesk/gexStrings.ts: "7c60146790f218dc94c8f12f24bcda8657f15deb3664e5f666fbdc75416edc9b"
-  terminal/components/heatmap/HeatmapView.tsx: "9fa62d5d3982f26e06fe7dd2523eeb8d088d0a7a356110df03501efa4434761f"
+  terminal/components/heatmap/HeatmapView.tsx: "eb87905e5dce315db295913732202329a65c6c623b2a92676963c6d5554a7f24"
   terminal/components/levels/LevelsView.tsx: "91a4d6fd86b12225e657c8a9c4b2b185e3940356af3cd11466ca30e04f05b0c9"
   terminal/components/levels/levelsLabels.ts: "361124ec9293623fefe69128212f5a25bfddf2c3d716252126d56ec5f356d0d9"
-  terminal/lib/heatmapStrings.ts: "d52cad056dbfe6fe1c4f8b23acdbfea68a0fac4a4ff6425c2b04c0a6a303e9c6"
+  terminal/lib/heatmapStrings.ts: "26bb75eccce7429e5a37154f07f7f68faf9652da1f6f3560074cb558f0dda9c2"
 theme: dark
 languages: [en, zh]
 viewports:
