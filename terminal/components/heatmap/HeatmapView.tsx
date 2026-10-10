@@ -107,6 +107,8 @@ async function readManifest(onRevalidate: (m: ManifestPayload) => void): Promise
   let fallback: CacheOutcome;
   try {
     fallback = await getJSONResult(STATIC_MANIFEST, {
+      ttl: 0,
+      swr: false,
       onRevalidate: (m: unknown) => { if (isManifest(m)) onRevalidate(m); },
     });
   } catch {
