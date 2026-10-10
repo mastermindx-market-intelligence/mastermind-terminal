@@ -212,11 +212,15 @@ describe("a post-invalidation network success beats every older completion", () 
       .mockResolvedValue(okJson(NEW)));        // post-invalidation read
     await getJSONResult(U);
     const onRevalidate = vi.fn();
-    expect(await getJSONResult(U, { ttl: 0, onRevalidate })).toEqual({ status: "data", data: OLD });
+    const served = await getJSONResult(U, { ttl: 0, onRevalidate });
+    expect(served).toMatchObject({ status: "data", data: OLD, stale: { source: "memory" } });
     invalidate(U);
     expect(await getJSONResult(U)).toEqual({ status: "data", data: NEW });
     old.resolve(okJson([{ close: 1 }])); await settle();
     expect(onRevalidate).not.toHaveBeenCalled();
+    // The discarded answer is reported as superseded — neither a success nor a failed refresh.
+    if (served.status !== "data") throw new Error("expected data");
+    await expect(served.stale!.revalidation).resolves.toBe("superseded");
     expect(peek(U)).toEqual(NEW);
   });
 
