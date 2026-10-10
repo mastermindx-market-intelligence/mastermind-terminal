@@ -239,7 +239,13 @@ export function GexDeskView() {
   // sessionDates = the gex_history dates.json index (null = absent/invalid → no dropdown;
   // the scrubber's explicit per-date probe still works — the index is an enumeration aid,
   // not a gate). sessionDate = the archived session being replayed (null = live).
-  const [sessionDates, setSessionDates] = useState<string[] | null>(null);
+  // Tagged with the root it was read for: a late answer for the previous root is never
+  // shown under the new one (datesReqRef drops it; the tag is the render-time fence).
+  const [sessionDatesRead, setSessionDatesRead] = useState<{ root: string; dates: string[] | null }>(
+    { root: "", dates: null },
+  );
+  const sessionDates = sessionDatesRead.root === ticker ? sessionDatesRead.dates : null;
+  const datesReqRef = useRef(0);
   const [sessionDate, setSessionDate] = useState<string | null>(null);
   const [archivedPayload, setArchivedPayload] = useState<GexPayload | null>(null);
   const [archivedLoading, setArchivedLoading] = useState(false);
@@ -377,9 +383,11 @@ export function GexDeskView() {
   // The index is an enumeration aid, not a claim: an index that was not read and one
   // that is not published both mean "no dropdown", and the copy says nothing either way.
   const fetchSessionDates = useCallback(async (root: string) => {
+    const request = ++datesReqRef.current;
     const outcome = await readFlow(`gex_dates:${root}`);
+    if (request !== datesReqRef.current) return;
     const data = outcome.status === "data" ? outcome.data : null;
-    setSessionDates(isGexDates(data) && data.dates.length > 0 ? data.dates : null);
+    setSessionDatesRead({ root, dates: isGexDates(data) && data.dates.length > 0 ? data.dates : null });
   }, []);
 
   // Load one archived session's FULL ladder — or return to live (date = null). The
@@ -423,7 +431,8 @@ export function GexDeskView() {
     // Ticker change always lands on the LIVE session; invalidate in-flight probes.
     sessionReqRef.current++;
     datesRetryRef.current = false;
-    setSessionDates(null);
+    datesReqRef.current++;
+    setSessionDatesRead({ root: "", dates: null });
     setSessionDate(null);
     setArchivedPayload(null);
     setArchivedMissing(false);
@@ -721,6 +730,17 @@ export function GexDeskView() {
         </div>
       </div>
 
+      {/* The stream's latest read of this root did not land: the ladder below is the last
+          one that did, and says so, with a Retry that re-reads now. */}
+      {!isArchived && gexPayload && stream.stale && (
+        <div style={LIVE_STALE_ROW} data-testid="gex-live-refresh-failed" role="alert">
+          <span>{t("liveRefreshFailed")}</span>
+          <button type="button" className="btn btn-ghost load-retry" onClick={stream.retry}>
+            {t("errorRetry")}
+          </button>
+        </div>
+      )}
+
       {/* ── Summary bar ──────────────────────────────────────────────────── */}
       {/* Withdrawn whenever nothing is being read: the bar's only null-payload render is
           a "Loading…" skeleton, so an absent, unread or missing-session payload would
@@ -992,6 +1012,7 @@ export function GexDeskView() {
                 reading={matrixStatus === "loading"}
                 readFailed={matrixUnread}
                 onRetry={retryMatrix}
+                absent={matrixStatus === "absent" && !visibleMatrix}
               />
             </div>
             <MarketStateCard
@@ -1103,6 +1124,18 @@ const VIEW_CHIP: React.CSSProperties = {
   fontSize: 11,
   fontWeight: 600,
   letterSpacing: "0.02em",
+};
+
+const LIVE_STALE_ROW: React.CSSProperties = {
+  display: "flex",
+  flexWrap: "wrap",
+  alignItems: "center",
+  gap: "var(--sp-2)",
+  padding: "var(--sp-1) var(--sp-4)",
+  borderBottom: "1px solid var(--line)",
+  fontSize: "var(--fs-label)",
+  color: "var(--warn)",
+  flexShrink: 0,
 };
 
 const CONTROLS_RIGHT: React.CSSProperties = {
