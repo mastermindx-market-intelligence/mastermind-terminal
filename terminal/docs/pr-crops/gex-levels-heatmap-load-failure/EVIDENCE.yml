@@ -1,11 +1,20 @@
 # GEX desk, Levels and Heatmap failure-state truth — capture evidence
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
 # Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
-# capturedAtHead: be9bae24a6b89d2d66c337b570e9d88761f797b3
-# capturedAt: 2026-10-10T00:33:07.656Z
+# capturedAtHead: 9a726b2bed91943b58c2959321373e8b16f76503
+# capturedAt: 2026-10-10T02:52:07.163Z
 # capturedAtHead is informational. The lock is layoutFiles.
+# 2026-10-10 recapture: all 78 crops recaptured by e2e/tools/capture_gex_levels_heatmap_load_failure.cjs, run unmodified, and compared with the crops #897 committed.
+# The script ran at a local commit holding master 9a726b2be (#897) plus only this PR's vol-load-failure EVIDENCE.yml and two test files, so the master head is recorded above.
+# #897 recaptured 19 of these crops at be9bae24, a head without #893. #893 added `@source not "../public/data";` to globals.css, so master's globals.css row
+# (4588d317...) no longer matched the file. Every crop is now recaptured at a head that contains #893, so the row is d67894b8..., the file's current hash.
+# 71 crops are byte-identical. levels-unavailable-390.png differs in 1 pixel, 3 channels, by 1 level (rasterisation noise; 0 px over threshold 8).
+# The 6 gex-rail-retried crops differ only at the leading tip of the RingGauge arcs (19-127 px per crop, all inside the ring bands). RingGauge sweeps in over 0.6s
+# (stroke-dashoffset transition) and the script crops 250ms after the retried errors detach, so these crops catch the ring before it settles. Capture-script race, not a product change.
+# gex-ladder-unavailable-1440.png raced in one of three runs: the region is flex 1 1 0px in the left column, so its box is whatever height its siblings leave when the script
+# measures it 250ms after scroll. That run cropped 1020x352 instead of 1020x286 (same message and button, placed lower). The committed crop is from the next run, byte-identical to #897's. Capture-script race, not a product change.
 layoutFiles:
-  terminal/app/globals.css: "4588d3172e522f2c2a5c9a7ed9a8ac8030af9c58a1af30c1f21d7503d7ce4609"
+  terminal/app/globals.css: "d67894b84cb6968d6fc87ab379f95da3b7e887cd5dd38240c5db8a55e31408a2"
   terminal/components/gexdesk/GexDeskView.tsx: "e93c40fd7834a28f1da76f9c4a86311362b1559c269a939de7474620eb8f29ac"
   terminal/components/gexdesk/HeatSeekerCard.tsx: "76239237d8848669437785020913c418fcaca699315caf23102e8cf7dcf6bfbf"
   terminal/components/gexdesk/MarketStateCard.tsx: "eaeb461a48a67fae54e6c697981d9bb23093fa1190a27e9c257826131afe2a27"
