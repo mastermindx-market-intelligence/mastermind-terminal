@@ -1,11 +1,17 @@
 # B-F08-B5-3 collisions — capture evidence
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
 # Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
-# capturedAtHead: a5c03b6a0b065e8da34624f1c70fe017ed2029be
-# capturedAt: 2026-10-03T04:34:50.997Z
+# capturedAtHead: b7a3357b06847f560022a829b8fd6c4fea3d4d47
+# capturedAt: 2026-10-10T00:13:13.413Z
 # capturedAtHead is informational. The lock is layoutFiles.
+# 2026-10-10 recapture: all 16 crops re-shot by the unmodified script; the AlertsCockpit.tsx row had
+# been stale since #762 (a7447db07). Pixel diff against the 2026-10-03 set: the left rail gained the
+# #808 Dislocations slot (AppNav.tsx, outside this lock set), the check times move with capture time,
+# and zh glyphs rasterize narrower in this capture environment, so some wrapped zh lines in the 390
+# crops break one character later. Every string is unchanged and no other pixel moved. A second run
+# on the same machine matched this set in every pixel except the check times.
 layoutFiles:
-  terminal/components/alerts/AlertsCockpit.tsx: "eefaa5b73f8f329fcffe84d9518fd859b42cec4aa3b6db03fc38cab8adcb7a45"
+  terminal/components/alerts/AlertsCockpit.tsx: "6f10a31635043273d4f77cb812aaca671af36a5732eca54e0f4ada1796ce9040"
   terminal/components/alerts/WatchingList.tsx: "642c8c76062fefb5ff06d8496bfea50f45de5af1aaf7a989e82e10f7b36d483b"
   terminal/components/alerts/AnswerLine.tsx: "f3bf1f587566c521b66d210b84ec316ed1e5809f2f5ce758c6c0c81f77e4dbdb"
   terminal/components/alerts/CouldNotWatch.tsx: "bedf3678d07a9c1f767df5b87a59648e69e8167df493d63412210a088d95d3a8"
