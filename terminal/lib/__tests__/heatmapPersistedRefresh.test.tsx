@@ -224,22 +224,25 @@ async function seedDisk(age: number) {
   expect((await idbGet(STATIC))?.data.symbols.AAPL).toBeTruthy();
 }
 async function failedPoll() {
-  logicalNow += 61_000;
+  // The retained default cache TTL is five minutes; age it before this one poll.
+  logicalNow += 600_001;
   await act(async () => { await vi.advanceTimersByTimeAsync(60_000); });
   await settle();
 }
-describe("Heatmap real persisted fallback failure — caller-only proposal", () => {
-  it.each([0, 600_000])("a %ims-old persisted snapshot cannot substitute for a failed cold source read", async (age) => {
+describe("Heatmap persisted fallback with classified background refresh", () => {
+  it.each([0, 6 * 60 * 60_000])("a %ims-old persisted snapshot stays visible, with failed refresh labelled only after expiry", async (age) => {
     replies[PRIMARY] = GUEST_REFUSED;
     replies[STATIC] = UNAVAILABLE;
     await seedDisk(age);
     await mount();
-    expect(within('[data-testid="heatmap-load-error"]')).not.toBeNull();
-    expect(text()).toContain(LOAD_ERROR);
+    expect(within('[data-testid="heatmap-load-error"]')).toBeNull();
+    expect(text()).not.toContain(LOAD_ERROR);
     expect(text()).not.toContain(NO_DATA);
-    expect(within('[data-testid="heatmap-tile"]')).toBeNull();
+    expect(within('[data-testid="heatmap-tile"]')).not.toBeNull();
     expect((await idbGet(STATIC))?.data.symbols.AAPL).toBeTruthy(); // no shared IDB delete
-    expect(requested(STATIC)).toBeGreaterThan(0);
+    expect(requested(STATIC)).toBe(age === 0 ? 0 : 1);
+    if (age === 0) expect(text()).not.toContain(REFRESH_FAILED);
+    else expect(text()).toContain(REFRESH_FAILED);
   });
   it("a failed persisted refresh keeps actual last-read tiles and labels them, then Retry fetches new bytes", async () => {
     replies[PRIMARY] = GUEST_REFUSED;
@@ -285,8 +288,10 @@ describe("Heatmap real persisted fallback failure — caller-only proposal", () 
     vi.stubGlobal("indexedDB", undefined); replies[PRIMARY] = UNAVAILABLE; replies[STATIC] = UNAVAILABLE;
     await mount(); expect(text()).toContain(LOAD_ERROR); expect(text()).not.toContain(NO_DATA);
   });
-  it("malformed live fallback is unavailable even when an older disk snapshot exists", async () => {
+  it("malformed refresh labels the retained disk snapshot as the last read", async () => {
     replies[PRIMARY] = GUEST_REFUSED; replies[STATIC] = UNPARSEABLE;
-    await seedDisk(600_000); await mount(); expect(text()).toContain(LOAD_ERROR); expect(text()).not.toContain(NO_DATA);
+    await seedDisk(6 * 60 * 60_000); await mount();
+    expect(text()).toContain("AAPL"); expect(text()).toContain(REFRESH_FAILED);
+    expect(text()).not.toContain(LOAD_ERROR); expect(text()).not.toContain(NO_DATA);
   });
 });

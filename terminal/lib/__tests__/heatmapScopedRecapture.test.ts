@@ -8,7 +8,7 @@ const other = "terminal/components/gexdesk/GexDeskView.tsx";
 const oldHash = "a".repeat(64);
 const newHash = "b".repeat(64);
 const otherHash = "c".repeat(64);
-const files = ["heatmap-unavailable", "heatmap-retried", "heatmap-absent"].flatMap((state) =>
+const files = ["heatmap-unavailable", "heatmap-retried", "heatmap-absent", "heatmap-persisted-refresh-failed", "heatmap-persisted-refresh-refused", "heatmap-persisted-retried"].flatMap((state) =>
   [1440, 820, 390].flatMap((width) => [`${state}-${width}.png`, `${state}-${width}-zh.png`]),
 );
 const previous = [
@@ -43,7 +43,7 @@ describe("Heatmap-only recapture preserves the evidence authority of other board
 
   it("refuses a missing capture, duplicate capture, or unrelated board capture", () => {
     for (const captured of [files.slice(1), [...files, files[0]], [...files, "gex-ladder-absent-1440.png"]]) {
-      expect(() => updateHeatmapEvidence(previous, { ...receipt(), files: captured })).toThrow(/all 18/);
+      expect(() => updateHeatmapEvidence(previous, { ...receipt(), files: captured })).toThrow(/all 36/);
     }
   });
 

@@ -8,7 +8,7 @@ const other = "terminal/components/gexdesk/GexDeskView.tsx";
 const oldHash = "a".repeat(64);
 const newHash = "b".repeat(64);
 const otherHash = "c".repeat(64);
-const files = ["heatmap-flow-unavailable", "heatmap-flow-retried", "heatmap-flow-absent", "heatmap-flow-auth", "heatmap-flow-refresh-failed", "heatmap-live-failed", "heatmap-no-match"].flatMap((state) =>
+const files = ["heatmap-flow-unavailable", "heatmap-flow-retried", "heatmap-flow-absent", "heatmap-flow-auth", "heatmap-flow-refresh-failed", "heatmap-flow-persisted-refresh-failed", "heatmap-flow-persisted-refresh-refused", "heatmap-flow-persisted-retried", "heatmap-live-failed", "heatmap-no-match"].flatMap((state) =>
   [1440, 820, 390].flatMap((width) => [`${state}-${width}.png`, `${state}-${width}-zh.png`]),
 );
 const previous = [
@@ -43,7 +43,7 @@ describe("Heatmap overlay recapture preserves the evidence authority of other bo
 
   it("refuses a missing capture, duplicate capture, or unrelated board capture", () => {
     for (const captured of [files.slice(1), [...files, files[0]], [...files, "gex-ladder-absent-1440.png"]]) {
-      expect(() => updateHeatmapEvidence(previous, { ...receipt(), files: captured })).toThrow(/all 42/);
+      expect(() => updateHeatmapEvidence(previous, { ...receipt(), files: captured })).toThrow(/all 60/);
     }
   });
 
