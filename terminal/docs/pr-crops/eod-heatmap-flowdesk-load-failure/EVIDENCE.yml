@@ -1,8 +1,8 @@
 # EOD belt, Flow Desk chain heat and Heatmap flow layer failure-state truth — capture evidence
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
 # Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
-# capturedAtHead: c97b3852e96e746aa67d90d14e56311f2c205d4b
-# capturedAt: 2026-10-10T02:55:33.658Z
+# capturedAtHead: ab57d7b3bb400ea3b121fb2495d2d46e6460ee38
+# capturedAt: 2026-10-10T05:54:15.577Z
 # capturedAtHead is informational. The lock is layoutFiles.
 layoutFiles:
   terminal/app/globals.css: "d67894b84cb6968d6fc87ab379f95da3b7e887cd5dd38240c5db8a55e31408a2"
@@ -11,7 +11,7 @@ layoutFiles:
   terminal/components/eodcontext/StructureStrip.tsx: "e4edc9df9e58a544a30930ac3369c77491e0d5323748b3c1ac600adfc7ee23d3"
   terminal/components/eodcontext/eodStrings.ts: "ab2495bbe114389851a11550fe67ed94b9d2d46e43f05ddfd94a7752aa85fa2d"
   terminal/components/flowdesk/FlowDeskView.tsx: "7c4ee44e695dbf928ebe5f7991bf7d0a7e8745420852c6773a3aa51456bae021"
-  terminal/components/gexdesk/GexDeskView.tsx: "6aec78a99ce0fa6fe25de4ef4ece3f7dfc4783027bfd12b60f7205c688bc5772"
+  terminal/components/gexdesk/GexDeskView.tsx: "f9e037eb90cb10ea0a943a9c16d11849c429b66f5b548f055b8860d83f938ef5"
   terminal/components/heatmap/HeatmapView.tsx: "eb87905e5dce315db295913732202329a65c6c623b2a92676963c6d5554a7f24"
   terminal/lib/eodContext.ts: "a942505fa38c3bb86242508d3c88cb75e13160054c4e8dbf79088d44a6ae9032"
   terminal/lib/flowdeskStrings.ts: "ef323513f39c37a55a152642bfc7c7ac5dfa0de50dde2c32244e7d171bf868fa"
