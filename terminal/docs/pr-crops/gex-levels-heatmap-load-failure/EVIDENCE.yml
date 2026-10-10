@@ -1,10 +1,27 @@
-# 2026-10-10 recapture after merging master through #901 (GexDeskView.tsx) and #907 (this packet, 96 crops, gated by lib/__tests__/gexLevelsHeatmapLoadFailureEvidence.test.ts) into branch claude/eod-heatmap-flowdesk-load-failure-state, which itself changes GexDeskView.tsx (passes the desk's own gexstate/gex reads to the EOD belt), HeatmapView.tsx and heatmapStrings.ts. All 96 crops were recaptured on the merged tree; only those three rows were re-stamped (globals.css, LevelsView.tsx and the rest equal master). Two full runs with --disable-partial-raster were byte-identical (96 of 96). Against master's packet, compared exactly in RGBA: 65 are byte-identical. 11 differ by at most 4/255 on at most 10 px, which is invisible raster noise. 12 (gex-live-refresh-failed-* and gex-live-retried-*) differ in the wall-clock source-age label (91d old became 92d old) plus anti-aliasing of at most 5/255 on the 1440 symbol chips. 3 are this branch's change: in gex-rail-unavailable-1440(-zh) and gex-rail-unavailable-390-zh the belt above now shows a load error for its level cells when gexstate fails, so the rail sits lower and is clipped at a different scroll offset (the English 1440 crop is 12 px shorter); the error text and Retry are fully visible. 5 (gex-rail-retried-1440-zh, gex-state-refresh-failed-1440(-zh), levels-retried-1440(-zh)) differ by at most 13/255 with at most 4 px above 5/255: anti-aliasing, because master's capture ran without --disable-partial-raster.
 # GEX desk, Levels and Heatmap failure-state truth — capture evidence
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
 # Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
-# capturedAtHead: ab57d7b3bb400ea3b121fb2495d2d46e6460ee38
-# capturedAt: 2026-10-10T05:51:31.058Z
+# capturedAtHead: 1783641e22da3f46ed7276c011a75419d1a10af1
+# capturedAt: 2026-10-10T06:54:43.767Z
 # capturedAtHead is informational. The lock is layoutFiles.
+# 2026-10-10 recapture (data-cache stale serve, #911): all 114 crops recaptured by e2e/tools/capture_gex_levels_heatmap_load_failure.cjs, run unmodified, and compared with the 96 crops #903 committed.
+# The script ran at a local commit holding master 2ded42f3 (#903) plus only this PR's lib/dataCache.ts, HeatmapView.tsx, tests and capture-script changes, so capturedAtHead above is that local commit.
+# New: the 18 heatmap-persisted-* crops (3 states x 3 widths x en/zh). A healthy visit writes /data/manifest.json to the browser's own IndexedDB, the record is aged 6h, both manifest sources then 503 or refuse the connection, and the page reloads.
+# lib/dataCache.ts joins layoutFiles because those states depend on its IndexedDB read-back. HeatmapView.tsx is re-stamped for the refresh-failed wiring of the manifest and the flow index.
+# All 96 crops #903 committed are byte-identical. The 12 heatmap-persisted refresh-failed/refused crops and the 1440 retried pair are pixel-identical (0 px over threshold 8) to the same states captured at fb1ccb24 before this rebase.
+# The 820 and 390 heatmap-persisted-retried pairs differ from that earlier capture only by a hover tooltip the Retry click left over a tile. #901's parkPointer now moves the pointer off the board after Retry, so these crops carry none. Capture-script change, not a product change.
+# --- #903's note, kept for provenance (its capturedAtHead was ab57d7b3bb400ea3b121fb2495d2d46e6460ee38) ---
+# 2026-10-10 recapture after merging master through #901 (GexDeskView.tsx) and #907 (this packet, 96 crops, gated by lib/__tests__/gexLevelsHeatmapLoadFailureEvidence.test.ts) into branch claude/eod-heatmap-flowdesk-load-failure-state, which itself changes GexDeskView.tsx (passes the desk's own gexstate/gex reads to the EOD belt), HeatmapView.tsx and heatmapStrings.ts. All 96 crops were recaptured on the merged tree; only those three rows were re-stamped (globals.css, LevelsView.tsx and the rest equal master). Two full runs with --disable-partial-raster were byte-identical (96 of 96). Against master's packet, compared exactly in RGBA: 65 are byte-identical. 11 differ by at most 4/255 on at most 10 px, which is invisible raster noise. 12 (gex-live-refresh-failed-* and gex-live-retried-*) differ in the wall-clock source-age label (91d old became 92d old) plus anti-aliasing of at most 5/255 on the 1440 symbol chips. 3 are this branch's change: in gex-rail-unavailable-1440(-zh) and gex-rail-unavailable-390-zh the belt above now shows a load error for its level cells when gexstate fails, so the rail sits lower and is clipped at a different scroll offset (the English 1440 crop is 12 px shorter); the error text and Retry are fully visible. 5 (gex-rail-retried-1440-zh, gex-state-refresh-failed-1440(-zh), levels-retried-1440(-zh)) differ by at most 13/255 with at most 4 px above 5/255: anti-aliasing, because master's capture ran without --disable-partial-raster.
+# --- #907's note, kept for provenance (its capturedAtHead was 9a726b2bed91943b58c2959321373e8b16f76503) ---
+# 2026-10-10 recapture: all 78 crops recaptured by e2e/tools/capture_gex_levels_heatmap_load_failure.cjs, run unmodified, and compared with the crops #897 committed.
+# The script ran at a local commit holding master 9a726b2be (#897) plus only this PR's vol-load-failure EVIDENCE.yml and two test files, so the master head is recorded above.
+# #897 recaptured 19 of these crops at be9bae24, a head without #893. #893 added `@source not "../public/data";` to globals.css, so master's globals.css row
+# (4588d317...) no longer matched the file. Every crop is now recaptured at a head that contains #893, so the row is d67894b8..., the file's current hash.
+# 71 crops are byte-identical. levels-unavailable-390.png differs in 1 pixel, 3 channels, by 1 level (rasterisation noise; 0 px over threshold 8).
+# The 6 gex-rail-retried crops differ only at the leading tip of the RingGauge arcs (19-127 px per crop, all inside the ring bands). RingGauge sweeps in over 0.6s
+# (stroke-dashoffset transition) and the script crops 250ms after the retried errors detach, so these crops catch the ring before it settles. Capture-script race, not a product change.
+# gex-ladder-unavailable-1440.png raced in one of three runs: the region is flex 1 1 0px in the left column, so its box is whatever height its siblings leave when the script
+# measures it 250ms after scroll. That run cropped 1020x352 instead of 1020x286 (same message and button, placed lower). The committed crop is from the next run, byte-identical to #897's. Capture-script race, not a product change.
 layoutFiles:
   terminal/app/globals.css: "d67894b84cb6968d6fc87ab379f95da3b7e887cd5dd38240c5db8a55e31408a2"
   terminal/components/gexdesk/GexDeskView.tsx: "f9e037eb90cb10ea0a943a9c16d11849c429b66f5b548f055b8860d83f938ef5"
@@ -12,7 +29,8 @@ layoutFiles:
   terminal/components/gexdesk/MarketStateCard.tsx: "069c4a2f1a5f53e8f611e3231b78751948cc0264c8af6efd167f7b3e4902bbe2"
   terminal/components/gexdesk/StrikeLadder.tsx: "a8ff63f3e50b033828ce3b82ecd7b87e7e3bbd3f69f9a47716b3c276334d8934"
   terminal/components/gexdesk/gexStrings.ts: "7c60146790f218dc94c8f12f24bcda8657f15deb3664e5f666fbdc75416edc9b"
-  terminal/components/heatmap/HeatmapView.tsx: "eb87905e5dce315db295913732202329a65c6c623b2a92676963c6d5554a7f24"
+  terminal/components/heatmap/HeatmapView.tsx: "814db62170e8377c8871e98c6804fe18e9f6b38b497c8820dd23af464c820d3e"
+  terminal/lib/dataCache.ts: "bdc57d88c8387223b2e1cf5b11bb47c88782c9ee2fbfb8a468aab52876b8f116"
   terminal/components/levels/LevelsView.tsx: "91a4d6fd86b12225e657c8a9c4b2b185e3940356af3cd11466ca30e04f05b0c9"
   terminal/components/levels/levelsLabels.ts: "361124ec9293623fefe69128212f5a25bfddf2c3d716252126d56ec5f356d0d9"
   terminal/lib/heatmapStrings.ts: "26bb75eccce7429e5a37154f07f7f68faf9652da1f6f3560074cb558f0dda9c2"
@@ -83,6 +101,24 @@ harness:
   heatmap-absent-390.png: { url: "/discover?tab=heatmap", state: heatmap-absent, injected: { "manifest": 404, "/data/manifest.json": 404 } }
   heatmap-absent-820-zh.png: { url: "/discover?tab=heatmap", state: heatmap-absent, injected: { "manifest": 404, "/data/manifest.json": 404 } }
   heatmap-absent-820.png: { url: "/discover?tab=heatmap", state: heatmap-absent, injected: { "manifest": 404, "/data/manifest.json": 404 } }
+  heatmap-persisted-refresh-failed-1440-zh.png: { url: "/discover?tab=heatmap", state: heatmap-persisted-refresh-failed, injected: { "manifest": 503 }, then: "healthy /data/manifest.json read written to IndexedDB and aged 6h; manifest + /data/manifest.json answer 503; page reloaded" }
+  heatmap-persisted-refresh-failed-1440.png: { url: "/discover?tab=heatmap", state: heatmap-persisted-refresh-failed, injected: { "manifest": 503 }, then: "healthy /data/manifest.json read written to IndexedDB and aged 6h; manifest + /data/manifest.json answer 503; page reloaded" }
+  heatmap-persisted-refresh-failed-390-zh.png: { url: "/discover?tab=heatmap", state: heatmap-persisted-refresh-failed, injected: { "manifest": 503 }, then: "healthy /data/manifest.json read written to IndexedDB and aged 6h; manifest + /data/manifest.json answer 503; page reloaded" }
+  heatmap-persisted-refresh-failed-390.png: { url: "/discover?tab=heatmap", state: heatmap-persisted-refresh-failed, injected: { "manifest": 503 }, then: "healthy /data/manifest.json read written to IndexedDB and aged 6h; manifest + /data/manifest.json answer 503; page reloaded" }
+  heatmap-persisted-refresh-failed-820-zh.png: { url: "/discover?tab=heatmap", state: heatmap-persisted-refresh-failed, injected: { "manifest": 503 }, then: "healthy /data/manifest.json read written to IndexedDB and aged 6h; manifest + /data/manifest.json answer 503; page reloaded" }
+  heatmap-persisted-refresh-failed-820.png: { url: "/discover?tab=heatmap", state: heatmap-persisted-refresh-failed, injected: { "manifest": 503 }, then: "healthy /data/manifest.json read written to IndexedDB and aged 6h; manifest + /data/manifest.json answer 503; page reloaded" }
+  heatmap-persisted-refresh-refused-1440-zh.png: { url: "/discover?tab=heatmap", state: heatmap-persisted-refresh-refused, injected: { "manifest": 503 }, then: "healthy /data/manifest.json read written to IndexedDB and aged 6h; manifest + /data/manifest.json refuse the connection; page reloaded" }
+  heatmap-persisted-refresh-refused-1440.png: { url: "/discover?tab=heatmap", state: heatmap-persisted-refresh-refused, injected: { "manifest": 503 }, then: "healthy /data/manifest.json read written to IndexedDB and aged 6h; manifest + /data/manifest.json refuse the connection; page reloaded" }
+  heatmap-persisted-refresh-refused-390-zh.png: { url: "/discover?tab=heatmap", state: heatmap-persisted-refresh-refused, injected: { "manifest": 503 }, then: "healthy /data/manifest.json read written to IndexedDB and aged 6h; manifest + /data/manifest.json refuse the connection; page reloaded" }
+  heatmap-persisted-refresh-refused-390.png: { url: "/discover?tab=heatmap", state: heatmap-persisted-refresh-refused, injected: { "manifest": 503 }, then: "healthy /data/manifest.json read written to IndexedDB and aged 6h; manifest + /data/manifest.json refuse the connection; page reloaded" }
+  heatmap-persisted-refresh-refused-820-zh.png: { url: "/discover?tab=heatmap", state: heatmap-persisted-refresh-refused, injected: { "manifest": 503 }, then: "healthy /data/manifest.json read written to IndexedDB and aged 6h; manifest + /data/manifest.json refuse the connection; page reloaded" }
+  heatmap-persisted-refresh-refused-820.png: { url: "/discover?tab=heatmap", state: heatmap-persisted-refresh-refused, injected: { "manifest": 503 }, then: "healthy /data/manifest.json read written to IndexedDB and aged 6h; manifest + /data/manifest.json refuse the connection; page reloaded" }
+  heatmap-persisted-retried-1440-zh.png: { url: "/discover?tab=heatmap", state: heatmap-persisted-retried, injected: { "manifest": 503 }, then: "healthy /data/manifest.json read written to IndexedDB and aged 6h; manifest + /data/manifest.json answer 503; page reloaded; then manifest + /data/manifest.json healed, Retry clicked" }
+  heatmap-persisted-retried-1440.png: { url: "/discover?tab=heatmap", state: heatmap-persisted-retried, injected: { "manifest": 503 }, then: "healthy /data/manifest.json read written to IndexedDB and aged 6h; manifest + /data/manifest.json answer 503; page reloaded; then manifest + /data/manifest.json healed, Retry clicked" }
+  heatmap-persisted-retried-390-zh.png: { url: "/discover?tab=heatmap", state: heatmap-persisted-retried, injected: { "manifest": 503 }, then: "healthy /data/manifest.json read written to IndexedDB and aged 6h; manifest + /data/manifest.json answer 503; page reloaded; then manifest + /data/manifest.json healed, Retry clicked" }
+  heatmap-persisted-retried-390.png: { url: "/discover?tab=heatmap", state: heatmap-persisted-retried, injected: { "manifest": 503 }, then: "healthy /data/manifest.json read written to IndexedDB and aged 6h; manifest + /data/manifest.json answer 503; page reloaded; then manifest + /data/manifest.json healed, Retry clicked" }
+  heatmap-persisted-retried-820-zh.png: { url: "/discover?tab=heatmap", state: heatmap-persisted-retried, injected: { "manifest": 503 }, then: "healthy /data/manifest.json read written to IndexedDB and aged 6h; manifest + /data/manifest.json answer 503; page reloaded; then manifest + /data/manifest.json healed, Retry clicked" }
+  heatmap-persisted-retried-820.png: { url: "/discover?tab=heatmap", state: heatmap-persisted-retried, injected: { "manifest": 503 }, then: "healthy /data/manifest.json read written to IndexedDB and aged 6h; manifest + /data/manifest.json answer 503; page reloaded; then manifest + /data/manifest.json healed, Retry clicked" }
   heatmap-retried-1440-zh.png: { url: "/discover?tab=heatmap", state: heatmap-retried, injected: { "manifest": 503, "/data/manifest.json": 503 }, then: "manifest + /data/manifest.json healed, Retry clicked" }
   heatmap-retried-1440.png: { url: "/discover?tab=heatmap", state: heatmap-retried, injected: { "manifest": 503, "/data/manifest.json": 503 }, then: "manifest + /data/manifest.json healed, Retry clicked" }
   heatmap-retried-390-zh.png: { url: "/discover?tab=heatmap", state: heatmap-retried, injected: { "manifest": 503, "/data/manifest.json": 503 }, then: "manifest + /data/manifest.json healed, Retry clicked" }
@@ -120,7 +156,8 @@ harness:
   levels-unavailable-820-zh.png: { url: "/options?tab=levels", state: levels-unavailable, injected: { "levels:SPY": 503 } }
   levels-unavailable-820.png: { url: "/options?tab=levels", state: levels-unavailable, injected: { "levels:SPY": 503 } }
 surfaces: [GexDeskView, HeatSeekerCard, MarketStateCard, LevelsView, HeatmapView]
-injection: page.route answers /api/flow (by f-param) and /data/manifest.json with 503 / 404; /api/flow/stream is refused on the GEX desk, or (gex-live-*) answers the last frame then its named status event; every other read is the FLOW_FIXTURE server
+injection: page.route answers /api/flow (by f-param) and /data/manifest.json with 503 / 404, or refuses the connection (abort); /api/flow/stream is refused on the GEX desk, or (gex-live-*) answers the last frame then its named status event; every other read is the FLOW_FIXTURE server
+persisted: the heatmap-persisted-* states age the browser's own IndexedDB record of /data/manifest.json (dataCache write-through), never a mocked cache
 capture_flag: TERMINAL_E2E_FIXTURE
 capture_flag_law: next.config.ts sets devIndicators: false when TERMINAL_E2E_FIXTURE is set; this script starts next dev with the same flag.
 command: |
@@ -187,6 +224,24 @@ files:
   - heatmap-absent-390.png
   - heatmap-absent-820-zh.png
   - heatmap-absent-820.png
+  - heatmap-persisted-refresh-failed-1440-zh.png
+  - heatmap-persisted-refresh-failed-1440.png
+  - heatmap-persisted-refresh-failed-390-zh.png
+  - heatmap-persisted-refresh-failed-390.png
+  - heatmap-persisted-refresh-failed-820-zh.png
+  - heatmap-persisted-refresh-failed-820.png
+  - heatmap-persisted-refresh-refused-1440-zh.png
+  - heatmap-persisted-refresh-refused-1440.png
+  - heatmap-persisted-refresh-refused-390-zh.png
+  - heatmap-persisted-refresh-refused-390.png
+  - heatmap-persisted-refresh-refused-820-zh.png
+  - heatmap-persisted-refresh-refused-820.png
+  - heatmap-persisted-retried-1440-zh.png
+  - heatmap-persisted-retried-1440.png
+  - heatmap-persisted-retried-390-zh.png
+  - heatmap-persisted-retried-390.png
+  - heatmap-persisted-retried-820-zh.png
+  - heatmap-persisted-retried-820.png
   - heatmap-retried-1440-zh.png
   - heatmap-retried-1440.png
   - heatmap-retried-390-zh.png
