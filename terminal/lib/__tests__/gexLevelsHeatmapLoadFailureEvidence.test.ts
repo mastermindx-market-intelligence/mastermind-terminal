@@ -27,8 +27,11 @@ const STATES = [
   "gex-ladder-retried",
   "gex-ladder-absent",
   "gex-rail-unavailable",
+  "gex-pick-absent",
   "gex-rail-retried",
   "gex-state-refresh-failed",
+  "gex-live-refresh-failed",
+  "gex-live-retried",
   "levels-unavailable",
   "levels-retried",
   "levels-absent",
@@ -82,7 +85,7 @@ describe("GEX, Levels and Heatmap load-failure evidence lock is the sha256 of th
   });
 
   it("all dark crops exist, are non-empty and are listed in EVIDENCE.yml files", () => {
-    expect(CROPS).toHaveLength(78);
+    expect(CROPS).toHaveLength(96);
     const yml = evidenceText();
     for (const file of CROPS) {
       const abs = join(CROP_DIR, file);

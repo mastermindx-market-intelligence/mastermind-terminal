@@ -279,7 +279,9 @@ async function cropBoxes(page, boxes, outPath, pad) {
   const y = Math.max(0, Math.floor(top - pad));
   const width = Math.max(8, Math.min(vp.width - x, Math.ceil(right - left + pad * 2)));
   const height = Math.max(8, Math.min(vp.height - y, Math.ceil(bottom - top + pad * 2)));
-  await page.screenshot({ path: outPath, clip: { x, y, width, height } });
+  // Finish CSS transitions (the RingGauge arc sweeps for 0.6 s) and reset infinite ones (the as-of
+  // pulse), so a crop never catches a frame mid-animation.
+  await page.screenshot({ path: outPath, clip: { x, y, width, height }, animations: "disabled" });
 }
 
 async function waitUntil(check, why, timeoutMs = 30_000) {
@@ -304,9 +306,15 @@ async function failThenPoll(page, replies, keys) {
   }
 }
 
+/** Park the pointer off the desk after a Retry, so a hover tooltip from the clicked spot never lands in a crop. */
+async function parkPointer(page) {
+  await page.mouse.move(0, 0);
+}
+
 async function heal(page, replies, keys, retries) {
   for (const key of keys) delete replies[key];
   for (const retry of retries) await retry.click();
+  await parkPointer(page);
 }
 
 async function captureGex(page, lang, state, replies, outPath) {
@@ -346,6 +354,7 @@ async function captureGex(page, lang, state, replies, outPath) {
     if (retryLive) {
       await ladder.evaluate((el) => el.setAttribute("data-capture-kept", "1"));
       await staleRow.getByRole("button", { name: copy.retry, exact: true }).click();
+      await parkPointer(page);
       await staleRow.waitFor({ state: "detached" });
       if (!(await page.locator('[data-capture-kept="1"]').count())) {
         throw new Error(`${state}: Retry replaced the ladder instead of re-reading under it`);
