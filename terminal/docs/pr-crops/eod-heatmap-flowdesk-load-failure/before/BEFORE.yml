@@ -56,7 +56,7 @@ files:
   heatmap-flow-403-desktop.png: &flow403
     test: "a refused flow route with no public copy is an access answer, not a failure"
     injected: { "flow:flow_idx": 403, "/data/flow_idx.json": 404 }
-    shows: "\"Flow data unavailable — showing price layer\" for a route that refused the session, which is what every guest sees on production"
+    shows: "\"Flow data unavailable — showing price layer\" for a route that refused the session, which is what production answers a session without live options access"
   heatmap-flow-403-tablet.png: *flow403
   heatmap-flow-403-mobile.png: *flow403
   heatmap-quotes-failed-desktop.png: &quotes
