@@ -224,6 +224,9 @@ export const LEX: Record<string, [string, string]> = {
   cmxToggleSteps: ["Show live steps", "显示实时步骤"],
   cmxHideSteps: ["Hide live steps", "隐藏实时步骤"],
   cmxDone: ["Done — {n} on chart", "完成 — 图上共 {n} 项"],
+  // the rail's fit chip on a line/zone ack (conductorState fitBadgeText); "ATR" stays an untranslated abbreviation
+  cmxFitOne: ["{n} touch · {atr} ATR", "触及 {n} 次 · {atr} ATR"],
+  cmxFitMany: ["{n} touches · {atr} ATR", "触及 {n} 次 · {atr} ATR"],
   // toolbar tooltips / drawing tools
   fullscreenChart: ["Fullscreen chart", "全屏图表"],
   exitFullscreen: ["Exit fullscreen", "退出全屏"],
