@@ -292,7 +292,7 @@ async function main() {
     "  mobile-en-revoked.png: { url: \"/dev/settings?s=developer&lang=en\", state: revoked }",
     "  mobile-zh-revoked.png: { url: \"/dev/settings?s=developer&lang=zh\", state: revoked }",
     "capture_flag: TERMINAL_E2E_FIXTURE",
-    "capture_flag_law: next.config.ts sets devIndicators: false when TERMINAL_E2E_FIXTURE is set; playwright.config.ts already sets that flag on the e2e dev server. This script starts next dev with the same flag.",
+    "capture_flag_law: next.config.ts sets devIndicators to false when TERMINAL_E2E_FIXTURE is set; playwright.config.ts already sets that flag on the e2e dev server. This script starts next dev with the same flag.",
     "command: |",
     "  cd terminal",
     "  node e2e/tools/capture_f12_10_api_keys.cjs",
