@@ -103,6 +103,7 @@ const COPY = {
   nativeEpisodeCaveat: ["Owner's bounded recent closure ledger, not an as-known historical signal. These are not price-cycle turns or active trading calls; missing rows are not an all-clear.", "来源提供的近期已结束事件台账；并非历史当时可知的信号。它们不是价格周期转折或当前交易指令，缺失记录不等于安全无事。"],
   nativeEpisodeAsOf: ["RC source as of", "轮动来源截至"],
   nativeEpisodeLag: ["This source is older than the current Sector Central snapshot; a missing recent episode is not proof of no change.", "该来源早于当前板块中心快照；缺少近期事件不代表没有变化。"],
+  nativeEpisodeCutoff: ["Historical view filters closure and source receipt dates through", "历史视图按事件结束日期和来源记录日期筛选截至"],
   nativeEpisodeEmpty: ["No closed episodes for this sector in this bounded source window; not an all-clear.", "该来源限定窗口内没有此板块的已结束交棒事件；不代表风险解除。"],
   nativeEpisodeUnavailable: ["Native episode source unavailable; no episode state can be inferred.", "原生事件来源不可用；不得推断事件状态。"],
   nativeEpisodeFrom: ["From", "原方向"], nativeEpisodeTo: ["To", "目标方向"],
@@ -290,7 +291,13 @@ export default function SectorRotationMap(props: SectorRotationMapProps) {
     ? historySeries.cycleTurns.filter(turn => turn.date <= historical.date).slice(-3)
     : [];
   const nativeEpisodes = props.episodesStatus === "ready" ? props.episodes : null;
-  const recentClosures = nativeEpisodes?.closedRecent.filter(event => event.sector === props.selected).slice(-3) || [];
+  // A historical selection cannot display closures observed or recorded after that date.
+  // These owner clocks are descriptive only, not verified natural first-seen evidence.
+  const episodeCutoff = historyConnected && historical ? historical.date : null;
+  const recentClosures = nativeEpisodes?.closedRecent.filter(event =>
+    event.sector === props.selected
+    && (!episodeCutoff || (event.closedAsOf <= episodeCutoff && event.recordedAt.slice(0, 10) <= episodeCutoff))
+  ).slice(-3) || [];
 
   const refs = useRef<Record<string, HTMLButtonElement | null>>({});
   const name = (point: SectorRotationPoint) => lang === "zh" ? point.nameZh || point.name : point.name;
@@ -415,6 +422,9 @@ export default function SectorRotationMap(props: SectorRotationMapProps) {
       {nativeEpisodes ? <>
         <p>{t("nativeEpisodeCaveat")}</p>
         <p className={styles.nativeSourceClock}>{t("nativeEpisodeAsOf")}: <time dateTime={nativeEpisodes.sourceAsOf}>{rotationHistoryDate(nativeEpisodes.sourceAsOf, language)}</time></p>
+        {episodeCutoff && episodeCutoff < nativeEpisodes.sourceAsOf && <p className={styles.nativeSourceClock}>
+          {t("nativeEpisodeCutoff")} <time dateTime={episodeCutoff}>{rotationHistoryDate(episodeCutoff, language)}</time>.
+        </p>}
         {props.asOf && nativeEpisodes.sourceAsOf < props.asOf && <p>{t("nativeEpisodeLag")}</p>}
         {recentClosures.length ? <ol>{recentClosures.map(event =>
           <li key={event.pairId + ":" + event.started + ":" + event.recordedAt}>

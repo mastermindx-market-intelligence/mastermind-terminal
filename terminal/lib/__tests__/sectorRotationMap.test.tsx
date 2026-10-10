@@ -450,6 +450,56 @@ describe("SectorRotationMap", () => {
     expect(native?.textContent).toContain("Native episode source unavailable");
   });
 
+  it("does not expose later RC closure or receipt when inspecting an earlier historical date", async () => {
+    const source = structuredClone(nativeEpisodePayload);
+    source.closed_recent.push({
+      ...source.closed_recent[0],
+      pair_id: "xlk:software->ai_semis",
+      from_leg: "software",
+      from_name_en: "Software",
+      from_name_zh: "软件",
+      started: "2026-09-23",
+      closed_asof: "2026-09-24",
+      ts: "2026-09-25 03:18 UTC",
+    });
+    source.closed_recent.push({
+      ...source.closed_recent[0],
+      pair_id: "xlk:memory->software",
+      to_leg: "software",
+      to_name_en: "Delayed receipt",
+      to_name_zh: "迟到记录",
+      started: "2026-09-18",
+      closed_asof: "2026-09-22",
+      ts: "2026-09-25 06:18 UTC",
+    });
+    const episodes = sectorRotationEpisodes(source);
+    expect(episodes?.closedRecent).toHaveLength(3);
+    await render({ episodes, episodesStatus: "ready" });
+    const section = host.querySelector('[data-testid="rotation-native-episodes"]')!;
+    const liveStyle = host.querySelector('[data-sector-rotation-point="xlk"]')?.getAttribute("style");
+    expect(section.textContent).toContain("Software");
+    expect(section.textContent).toContain("Delayed receipt");
+    expect(section.textContent).toContain("Memory and storage");
+
+    const slider = host.querySelector<HTMLInputElement>('[data-testid="rotation-history"] input[type="range"]')!;
+    await act(async () => {
+      slider.value = "0";
+      slider.dispatchEvent(new Event("input", { bubbles: true }));
+    });
+    expect(host.querySelector('[data-testid="rotation-history"] time')?.getAttribute("datetime")).toBe("2026-09-23");
+    expect(section.textContent).toContain("Memory and storage");
+    expect(section.textContent).not.toContain("Software");
+    expect(section.textContent).not.toContain("Delayed receipt");
+    expect(section.textContent).toContain("first-seen unverified");
+    expect(host.querySelector('[data-sector-rotation-point="xlk"]')?.getAttribute("style")).toBe(liveStyle);
+
+    await act(async () => {
+      slider.value = "2";
+      slider.dispatchEvent(new Event("input", { bubbles: true }));
+    });
+    expect(section.textContent).toContain("Software");
+  });
+
   it("keeps the current snapshot usable when historical owner data is unavailable", async () => {
     await render({ history: null, historyStatus: "unavailable" });
     expect(host.querySelectorAll("[data-sector-rotation-point]")).toHaveLength(5);
