@@ -73,7 +73,7 @@ export type SelectionCohortProjection = {
   stale?: boolean;
 };
 
-export type CohortUnavailableReason = "feed" | "source" | "checks";
+export type CohortUnavailableReason = "feed" | "source" | "capture_rights" | "checks";
 
 export type SelectionCohortView =
   | { kind: "unavailable"; reason: CohortUnavailableReason; asOf: string | null }
@@ -129,6 +129,10 @@ export function parseSelectionCohort(raw: unknown): SelectionCohortView {
   // 3. The producer's own honest UNAVAILABLE: say whether the source or the checks failed.
   if (status === "UNAVAILABLE") {
     const why = typeof raw.unavailable_reason === "string" ? raw.unavailable_reason : "";
+    // Match the typed producer refusal exactly; unknown details remain generic.
+    if (why === "SOURCE_UNAVAILABLE:CAPTURE_RIGHTS_UNAVAILABLE") {
+      return { kind: "unavailable", reason: "capture_rights", asOf };
+    }
     const source = why === "WRAPPER_MISSING" || why.startsWith("SOURCE_UNAVAILABLE");
     return { kind: "unavailable", reason: source ? "source" : "checks", asOf };
   }
