@@ -19,6 +19,7 @@ const LAYOUT_FILES = [
   "terminal/components/flowdesk/FlowDeskView.tsx",
   "terminal/components/gexdesk/GexDeskView.tsx",
   "terminal/components/heatmap/HeatmapView.tsx",
+  "terminal/lib/dataCache.ts",
   "terminal/lib/eodContext.ts",
   "terminal/lib/flowdeskStrings.ts",
   "terminal/lib/heatmapStrings.ts",
@@ -40,6 +41,9 @@ const STATES = [
   "heatmap-flow-absent",
   "heatmap-flow-auth",
   "heatmap-flow-refresh-failed",
+  "heatmap-flow-persisted-refresh-failed",
+  "heatmap-flow-persisted-refresh-refused",
+  "heatmap-flow-persisted-retried",
   "heatmap-live-failed",
   "heatmap-no-match",
 ];
@@ -92,7 +96,7 @@ describe("EOD / heatmap / flow desk load-failure evidence lock is the sha256 of 
 
   it("every state has a dark crop at 1440, 820 and 390 in en and zh, listed in EVIDENCE.yml", () => {
     const yml = evidenceText();
-    expect(CROPS).toHaveLength(108);
+    expect(CROPS).toHaveLength(126);
     for (const file of CROPS) {
       const abs = join(CROP_DIR, file);
       expect(existsSync(abs), file).toBe(true);
