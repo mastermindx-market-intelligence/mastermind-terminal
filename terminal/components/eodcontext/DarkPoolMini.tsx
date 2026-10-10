@@ -287,4 +287,3 @@ const ABSENT_LEAD: React.CSSProperties = {
   fontWeight: 600,
   color: "var(--text-2)",
 };
-
