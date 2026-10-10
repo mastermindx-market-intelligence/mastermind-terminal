@@ -1,5 +1,5 @@
 import {
-  INVESTIGATION_MANIFEST_SCHEMA_V2, validateInvestigationManifest,
+  INVESTIGATION_MANIFEST_SCHEMA_V2, validateInvestigationManifest, validateStoredInvestigationManifest,
   type InvestigationAdmission, type InvestigationManifest,
 } from "./investigationContracts";
 
@@ -17,7 +17,7 @@ export type InvestigationCommand = {
   expected_revision: number;
   action: "create" | "revise" | "remove" | "restore";
   manifest: InvestigationManifest;
-  layout_capture?: { layout_id: string; expected_revision: number; revision_id: string };
+  layout_capture?: { layout_id: string; expected_revision: number };
 };
 export type InvestigationCommitted = {
   status: "committed";
@@ -26,8 +26,16 @@ export type InvestigationCommitted = {
   lifecycle: "active" | "removed";
   manifest: InvestigationManifest;
   committed_at: string;
+  revision_id?: string;
+  investigation_id?: string;
+  sequence?: number;
+  parent_revision_id?: string | null;
+  operation_id?: string;
+  author_ref?: string;
+  recorded_at?: string;
+  manifest_digest?: string;
 };
-export type InvestigationFailure = { status: "invalid_payload" | "unauthenticated" | "not_found" | "version_conflict" | "idempotency_conflict" | "invalid_transition" | "reference_unavailable" | "layout_conflict" | "limit_reached" | "unavailable"; current_revision?: number };
+export type InvestigationFailure = { status: "invalid_payload" | "unauthenticated" | "not_found" | "version_conflict" | "idempotency_conflict" | "invalid_transition" | "reference_unavailable" | "layout_conflict" | "limit_reached" | "unavailable" | "not_applied"; current_revision?: number; id?: string; operation_id?: string; reason?: "limit_reached" };
 export type InvestigationDb = { rpc(name: string, args: Record<string, unknown>): PromiseLike<{ data: unknown; error: unknown }> };
 export type InvestigationSummary = {id:string;revision:number;lifecycle:"active"|"removed";title:string;question:string;updated_at:string};
 export async function listInvestigations(db:InvestigationDb):Promise<{status:"listed";items:InvestigationSummary[]}|InvestigationFailure> {
@@ -43,17 +51,18 @@ export const isInvestigationId = (v: unknown): v is string => typeof v === "stri
 const record = (v: unknown): v is Record<string, unknown> => v !== null && typeof v === "object" && !Array.isArray(v);
 const exact = (v: Record<string, unknown>, keys: string[]) => Object.keys(v).every(k => keys.includes(k));
 
-export function parseInvestigationCommand(raw: unknown): InvestigationCommand | null {
+export function parseInvestigationCommand(raw: unknown, recovery = false): InvestigationCommand | null {
   if (!record(raw) || !exact(raw, ["id", "operation_id", "expected_revision", "action", "manifest", "layout_capture"])
       || !isInvestigationId(raw.id) || !isInvestigationId(raw.operation_id)
       || !Number.isSafeInteger(raw.expected_revision) || Number(raw.expected_revision) < 0 || Number(raw.expected_revision) > 2147483646
       || typeof raw.action !== "string" || !["create", "revise", "remove", "restore"].includes(raw.action)) return null;
-  const checked = validateInvestigationManifest(raw.manifest, INVESTIGATION_ADMISSION);
-  if (!checked.ok || checked.value.schema !== INVESTIGATION_MANIFEST_SCHEMA_V2 || checked.value.thesis_refs.length) return null;
+  const stored = recovery || raw.action === "remove" || raw.action === "restore";
+  const checked = (stored ? validateStoredInvestigationManifest : validateInvestigationManifest)(raw.manifest, INVESTIGATION_ADMISSION);
+  if (!checked.ok || checked.value.schema !== INVESTIGATION_MANIFEST_SCHEMA_V2) return null;
   if (Object.hasOwn(raw, "layout_capture")) {
     const c = raw.layout_capture;
-    if (!record(c) || !exact(c, ["layout_id", "expected_revision", "revision_id"])
-        || !isInvestigationId(c.layout_id) || !isInvestigationId(c.revision_id)
+    if (!record(c) || !exact(c, ["layout_id", "expected_revision", ...(recovery ? ["revision_id"] : [])])
+        || !isInvestigationId(c.layout_id) || (Object.hasOwn(c,"revision_id") && !isInvestigationId(c.revision_id))
         || !Number.isSafeInteger(c.expected_revision) || Number(c.expected_revision) < 1 || Number(c.expected_revision) > 999999999
         || checked.value.layout_refs.length !== 0) return null;
   }
@@ -66,7 +75,43 @@ export function isInvestigationCommitted(raw: unknown): raw is InvestigationComm
     && (raw.lifecycle === "active" || raw.lifecycle === "removed")
     && typeof raw.committed_at === "string" && Number.isFinite(Date.parse(raw.committed_at))
     && record(raw.manifest) && raw.manifest.schema===INVESTIGATION_MANIFEST_SCHEMA_V2
-    && validateInvestigationManifest(raw.manifest, INVESTIGATION_ADMISSION).ok;
+    && validateStoredInvestigationManifest(raw.manifest, INVESTIGATION_ADMISSION).ok
+    && ((!Object.hasOwn(raw.manifest,"argument_relations") && !Object.hasOwn(raw,"revision_id")) || isRevisionIdentity(raw));
+}
+function isRevisionIdentity(raw: Record<string,unknown>): boolean {
+  return raw.investigation_id===raw.id && raw.sequence===raw.revision
+    && isInvestigationId(raw.revision_id) && isInvestigationId(raw.operation_id) && isInvestigationId(raw.author_ref)
+    && (raw.revision===1 ? raw.parent_revision_id===null : isInvestigationId(raw.parent_revision_id))
+    && raw.recorded_at===raw.committed_at && typeof raw.manifest_digest==="string" && /^[0-9a-f]{64}$/.test(raw.manifest_digest);
+}
+function sameJson(a: unknown, b: unknown): boolean {
+  if (a === b) return true;
+  if (Array.isArray(a) || Array.isArray(b)) return Array.isArray(a) && Array.isArray(b) && a.length === b.length && a.every((v,i) => sameJson(v,b[i]));
+  if (!a || !b || typeof a !== "object" || typeof b !== "object") return false;
+  const left = a as Record<string,unknown>, right = b as Record<string,unknown>;
+  return Object.keys(left).length === Object.keys(right).length && Object.keys(left).every(k => Object.hasOwn(right,k) && sameJson(left[k],right[k]));
+}
+/** A well-formed receipt proves this command only when its identity and saved body match. */
+export function matchesInvestigationCommand(result: unknown, command: InvestigationCommand): result is InvestigationCommitted {
+  if (!isInvestigationCommitted(result) || result.id !== command.id
+    || (result.operation_id !== undefined && result.operation_id !== command.operation_id)
+    || result.revision !== command.expected_revision + 1
+    || result.lifecycle !== (command.action === "remove" ? "removed" : "active")) return false;
+  if (!command.layout_capture) return sameJson(result.manifest,command.manifest);
+  const refs = result.manifest.layout_refs;
+  const legacyCaptureId = (command.layout_capture as {revision_id?:unknown}).revision_id;
+  return refs.length === 1 && refs[0].layout_id === command.layout_capture.layout_id
+    && (legacyCaptureId === undefined || refs[0].layout_revision_id === legacyCaptureId)
+    && refs[0].role === "primary"
+    && sameJson({...result.manifest,layout_refs:[]},command.manifest);
+}
+/** An owner no-effect answer for exactly this operation. At the receipt cap it carries
+ * reason "limit_reached": nothing was stored, and the owner refuses the operation for good.
+ * Any other reason is not a known fence, so it is treated as unavailable. */
+function noEffect(data: unknown, id: string, operationId: string): InvestigationFailure | null {
+  if (!record(data) || data.status !== "not_applied" || data.id !== id || data.operation_id !== operationId) return null;
+  if (data.reason === undefined) return { status: "not_applied", id, operation_id: operationId };
+  return data.reason === "limit_reached" ? { status: "not_applied", id, operation_id: operationId, reason: "limit_reached" } : { status: "unavailable" };
 }
 const failureCodes = new Set(["invalid_payload", "unauthenticated", "not_found", "version_conflict", "idempotency_conflict", "invalid_transition", "reference_unavailable", "layout_conflict", "limit_reached"]);
 export async function applyInvestigationRevision(db: InvestigationDb, command: InvestigationCommand): Promise<InvestigationCommitted | InvestigationFailure> {
@@ -78,7 +123,9 @@ export async function applyInvestigationRevision(db: InvestigationDb, command: I
       p_operation_id: valid.operation_id, p_manifest: valid.manifest, p_layout_capture: valid.layout_capture ?? null,
     });
     if (error) return { status: "unavailable" };
-    if (isInvestigationCommitted(data) && data.id === valid.id) return data;
+    if (matchesInvestigationCommand(data, valid)) return data;
+    const fenced = noEffect(data, valid.id, valid.operation_id);
+    if (fenced) return fenced;
     if (record(data) && failureCodes.has(String(data.status))) {
       if (data.status === "version_conflict" && (!Number.isSafeInteger(data.current_revision) || Number(data.current_revision) < 1)) return { status: "unavailable" };
       return data as InvestigationFailure;
@@ -93,9 +140,30 @@ export async function readInvestigationOperation(db: InvestigationDb, operationI
   try {
     const { data, error } = await db.rpc("read_investigation_operation_v2", { p_operation_id: operationId });
     if (error) return { status: "unavailable" };
-    if (isInvestigationCommitted(data)) return data;
+    // Pre-kernel receipts lack this field; never fabricate it or ignore a present mismatch.
+    if (isInvestigationCommitted(data) && (data.operation_id === undefined || data.operation_id === operationId)) return data;
+    const fenced = record(data) && isInvestigationId(data.id) ? noEffect(data, data.id, operationId) : null;
+    if (fenced) return fenced;
     return record(data) && data.status === "not_found" ? { status: "not_found" } : { status: "unavailable" };
   } catch { return { status: "unavailable" }; }
+}
+
+/** Same owner terminally fences a missing operation before any replacement is allowed. */
+export async function reconcileInvestigationOperation(db: InvestigationDb, raw: unknown): Promise<InvestigationCommitted | InvestigationFailure> {
+  const command = parseInvestigationCommand(raw, true);
+  if (!command) return {status:"invalid_payload"};
+  try {
+    const {data,error} = await db.rpc("reconcile_investigation_operation_v2", {
+      p_id:command.id,p_expected_revision:command.expected_revision,p_action:command.action,
+      p_operation_id:command.operation_id,p_manifest:command.manifest,p_layout_capture:command.layout_capture??null,
+    });
+    if (error) return {status:"unavailable"};
+    if (matchesInvestigationCommand(data, command)) return data;
+    const fenced = noEffect(data, command.id, command.operation_id);
+    if (fenced) return fenced;
+    if (record(data) && failureCodes.has(String(data.status))) return data as InvestigationFailure;
+    return {status:"unavailable"};
+  } catch {return {status:"unavailable"};}
 }
 
 export async function readInvestigation(db: InvestigationDb, id: string, revision: number | null = null): Promise<Record<string, unknown> | InvestigationFailure> {
@@ -109,7 +177,8 @@ export async function readInvestigation(db: InvestigationDb, id: string, revisio
       || (data.lifecycle!=="active" && data.lifecycle!=="removed")
       || typeof data.committed_at!=="string" || !Number.isFinite(Date.parse(data.committed_at))
       || (revision !== null && data.revision !== revision) || !Array.isArray(data.layouts)
-      || !validateInvestigationManifest(data.manifest, INVESTIGATION_ADMISSION).ok) return { status: "unavailable" };
+      || !validateStoredInvestigationManifest(data.manifest, INVESTIGATION_ADMISSION).ok
+      || (Object.hasOwn(data,"revision_id") && !isRevisionIdentity(data))) return { status: "unavailable" };
     return data;
   } catch { return { status: "unavailable" }; }
 }

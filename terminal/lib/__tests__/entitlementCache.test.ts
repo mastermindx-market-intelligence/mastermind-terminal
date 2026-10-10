@@ -38,13 +38,17 @@ vi.hoisted(() => {
 const H = vi.hoisted(() => ({
   session: null as null | { access_token: string },
   user: null as null | { id: string },
+  authUnavailable: false,
 }));
 
 vi.mock("@/lib/supabase/server", () => ({
   createClient: async () => ({
     auth: {
       getSession: async () => ({ data: { session: H.session } }),
-      getUser: async () => ({ data: { user: H.user } }),
+      getUser: async () => {
+        if (H.authUnavailable) throw new Error("auth unavailable");
+        return { data: { user: H.user } };
+      },
     },
   }),
 }));
@@ -73,6 +77,7 @@ async function loadEntitlement() {
 }
 
 beforeEach(() => {
+  H.authUnavailable = false;
   meCalls = [];
   nextAnswer = () => ({ tier: "pro", features: ["terminal_live_options"] });
   realFetch = globalThis.fetch;
@@ -225,6 +230,112 @@ describe("entitlement — authorization outcomes are unchanged by caching", () =
     nextAnswer = () => ({ tier: "free", features: [] });
     expect(await isPaidTier()).toBe(false);
   });
+});
+
+describe("entitlement — fresh live-options boundary", () => {
+  it("observes revocation even while the same principal has a positive TTL entry", async () => {
+    const { hasLiveOptions, hasLiveOptionsFresh } = await loadEntitlement();
+    signIn("tok-a");
+    expect(await hasLiveOptions()).toBe(true);
+    nextAnswer = () => ({ tier: "free", features: [] });
+
+    expect(await hasLiveOptionsFresh()).toBe(false);
+    expect(meCalls).toEqual(["tok-a", "tok-a"]);
+    expect(globalThis.fetch).toHaveBeenLastCalledWith("https://billing.test/api/me", {
+      headers: { Authorization: "Bearer tok-a", Accept: "application/json" },
+      cache: "no-store",
+    });
+  });
+
+  it("does not consume a cached gate's older in-flight grant", async () => {
+    const { hasLiveOptions, hasLiveOptionsFresh } = await loadEntitlement();
+    signIn("tok-a");
+    let release!: (response: Response) => void;
+    const olderResponse = new Promise<Response>(resolve => { release = resolve; });
+    let started!: () => void;
+    const olderStarted = new Promise<void>(resolve => { started = resolve; });
+    vi.mocked(globalThis.fetch).mockImplementationOnce(() => {
+      started();
+      return olderResponse;
+    });
+    const olderGate = hasLiveOptions();
+    await olderStarted;
+    nextAnswer = () => ({ tier: "free", features: [] });
+    let fresh: boolean;
+    try {
+      fresh = await hasLiveOptionsFresh();
+    } finally {
+      release(new Response(JSON.stringify({ tier: "pro", features: ["terminal_live_options"] })));
+    }
+    expect(await olderGate).toBe(true);
+    expect(fresh!).toBe(false);
+    expect(globalThis.fetch).toHaveBeenCalledTimes(2);
+  });
+
+  it("asks the authority on each invocation without seeding the TTL cache", async () => {
+    const { hasLiveOptions, hasLiveOptionsFresh } = await loadEntitlement();
+    signIn("tok-a");
+    expect(await hasLiveOptionsFresh()).toBe(true);
+    expect(await hasLiveOptionsFresh()).toBe(true);
+    nextAnswer = () => ({ tier: "free", features: [] });
+    expect(await hasLiveOptions()).toBe(false);
+    expect(meCalls).toEqual(["tok-a", "tok-a", "tok-a"]);
+  });
+
+  it.each([
+    ["free", [], false],
+    ["pro", [], false],
+    ["essential", ["terminal_live_options"], true],
+    [" unlimited ", [], true],
+  ] as const)("uses the existing product predicate for %s / %j", async (tier, features, allowed) => {
+    const { hasLiveOptionsFresh } = await loadEntitlement();
+    signIn("tok-a");
+    nextAnswer = () => ({ tier, features: [...features] });
+    expect(await hasLiveOptionsFresh()).toBe(allowed);
+  });
+
+  it("never reuses another principal's grant", async () => {
+    const { hasLiveOptionsFresh } = await loadEntitlement();
+    signIn("tok-a");
+    nextAnswer = token => ({ tier: "free", features: token === "tok-a" ? ["terminal_live_options"] : [] });
+    expect(await hasLiveOptionsFresh()).toBe(true);
+    signIn("tok-b");
+    expect(await hasLiveOptionsFresh()).toBe(false);
+    expect(meCalls).toEqual(["tok-a", "tok-b"]);
+  });
+
+  it("refuses missing or unverified authentication without contacting billing", async () => {
+    const { hasLiveOptionsFresh } = await loadEntitlement();
+    signOut();
+    expect(await hasLiveOptionsFresh()).toBe(false);
+    H.session = { access_token: "tok-revoked" };
+    expect(await hasLiveOptionsFresh()).toBe(false);
+    expect(meCalls).toEqual([]);
+  });
+
+  it("refuses an unavailable authentication authority", async () => {
+    const { hasLiveOptionsFresh } = await loadEntitlement();
+    signIn("tok-a");
+    H.authUnavailable = true;
+    expect(await hasLiveOptionsFresh()).toBe(false);
+    expect(meCalls).toEqual([]);
+  });
+
+  it.each(["non-2xx", "network", "invalid-json", "unknown-body"])(
+    "refuses %s after a previous grant, then permits a newly verified grant", async failure => {
+      const { hasLiveOptions, hasLiveOptionsFresh } = await loadEntitlement();
+      signIn("tok-a");
+      expect(await hasLiveOptions()).toBe(true);
+      if (failure === "network") vi.mocked(globalThis.fetch).mockRejectedValueOnce(new Error("offline"));
+      else vi.mocked(globalThis.fetch).mockResolvedValueOnce(
+        failure === "non-2xx" ? new Response("unavailable", { status: 503 })
+          : new Response(failure === "invalid-json" ? "not JSON" : "{}"),
+      );
+      expect(await hasLiveOptionsFresh()).toBe(false);
+      expect(await hasLiveOptionsFresh()).toBe(true);
+      expect(globalThis.fetch).toHaveBeenCalledTimes(3);
+    },
+  );
 });
 
 describe("entitlement — the latency win", () => {

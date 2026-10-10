@@ -99,3 +99,16 @@ def test_referenced_migration_filenames_exist():
         "code references migration files that do not exist:\n"
         + "\n".join(f"  {name} <- {', '.join(sources)}" for name, sources in sorted(missing.items()))
     )
+
+
+def test_application_table_has_one_row_per_version():
+    """The README application table answers "was it applied?" for each version.
+
+    Two rows for one version can disagree about that answer, and a reader can stop at either. PR #804
+    carried two `0029` rows after a later edit re-added the row instead of updating it.
+    """
+    readme = (MIGRATIONS / "README.md").read_text(encoding="utf-8")
+    versions = re.findall(r"^\| `(\d{4})` \|", readme, flags=re.MULTILINE)
+    assert versions, "no application-table rows found in supabase/migrations/README.md"
+    repeated = sorted({v for v in versions if versions.count(v) > 1})
+    assert not repeated, "README application table repeats version rows: " + ", ".join(repeated)

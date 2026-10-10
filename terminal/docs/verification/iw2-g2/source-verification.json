@@ -1,0 +1,78 @@
+{
+  "schema": "iw2.g2.verification.v1",
+  "recorded_at": "2026-10-04T08:12:34.013408+00:00",
+  "base": "525ccabb9fed1ba4cc862ed4b40a6e3915465c6c",
+  "files": {
+    "terminal/lib/investigationEvidenceDiff.ts": "c10f75678b5e1a5caf1004007b60bf70e946cb0fc6b1f5aba0d193364b121579",
+    "terminal/lib/investigationEarningsReview.ts": "021c5c1106e0175cb600ea5f6815d8e8d207f97c2c0278ff0be3ec3d341503af",
+    "terminal/app/api/investigations/review/route.ts": "bc497bff2a501a59006e31385c97dd8b057a04b1c3c0473661c089e61da69e0a",
+    "terminal/components/workspaces/InvestigationEvidenceReview.tsx": "9a8b6ee63867b1e80421e02ba004bc764c009da099756dc1806ebcd6560ab643",
+    "terminal/components/workspaces/InvestigationEvidenceReview.module.css": "1c1db497fe57ed0c9ce75d65d0e1fbfd215a12c00312a700b6ecdf3fe66f85fd",
+    "terminal/components/workspaces/InvestigationWorkspace.tsx": "4890b28e310f2c026fa876654b85b93086479f6a6dc01cc2bd86891447c608e8",
+    "terminal/lib/__tests__/investigationEvidenceDiff.test.ts": "531ffa84aaccffdd1efe38e6f0294d7afc596c43fb657ccf11170885cb1614e8",
+    "terminal/lib/__tests__/investigationEarningsReview.test.ts": "e5f3f940b6a2aa5be5849b2fe9540498daf255652d13f91de1059fc02c5a8094",
+    "terminal/lib/__tests__/investigationReviewRoute.test.ts": "81e1ac35a5a9f3601341e843292720006554c7e8e2b88d35f468d09c11e7fd43",
+    "terminal/lib/__tests__/investigationEvidenceReview.test.tsx": "865cce5da8d3e2d5af56bad2a88b403ae39da742b05f4bce61a1ea8feba3b960",
+    "terminal/e2e/investigation-workspace.spec.ts": "616a964482f976bb4fea7e2c663eb08698ac8d7eaa08c4ccee359af6cf5f6f58",
+    "terminal/lib/__tests__/investigationSelectionRace.test.tsx": "c3907e4e43508dd81fb4fa84d315cd57406dfd283481f2cf5a82f3df13f3d1b5"
+  },
+  "unit_tests": {
+    "passed": 34,
+    "log": "g2-repair-focused.log"
+  },
+  "typecheck": {
+    "returncode": 0,
+    "log": "g3-context-final-typecheck.log"
+  },
+  "backend_review": {
+    "run": "rs_20261004T065903Z_7672",
+    "verdict": "PASS_SCOPED",
+    "frozen_bundle_sha256": "b41d102087d144b2747e4998700dfdda737160ac612310d5f398336381b78d3e",
+    "transport_returncode": 124,
+    "cleanup_proven": true,
+    "residual_count": 0,
+    "lease_id": "c2224bc0ad6e",
+    "lease_state": "released",
+    "amendment": "The Earnings test now normalizes publisher JSON using the existing owner normalizer. The three reviewed production backend files remain unchanged. UI is outside this review."
+  },
+  "browser_test": {
+    "passed": 18,
+    "investigation_cases": 9,
+    "existing_brain_and_ambient_regressions": 9,
+    "log": "g2-g3-responsive-final.log",
+    "viewports": [
+      "1440x900",
+      "820x1180",
+      "390x844"
+    ],
+    "additional_mobile": "320px, doubled text, visible keyboard focus, no horizontal overflow",
+    "languages": [
+      "en",
+      "zh"
+    ],
+    "theme": "actual supported Terminal dark; data-theme asserted. Earlier light-labeled captures actually ran dark and are not light proof.",
+    "transport": "fixtures; real product components",
+    "reviewed_captures": [
+      "desktop EN",
+      "mobile ZH",
+      "mobile 320 doubled-text"
+    ]
+  },
+  "acceptance": "SOURCE_VERIFIED_PRODUCTION_PENDING",
+  "production_review": false,
+  "red_first_limit": "Initial backend test invocation loaded after implementation; no red-first pass is claimed.",
+  "ui_review": {
+    "initial_run": "rs_20261004T073547Z_80371",
+    "initial_verdict": "REQUEST_CHANGES",
+    "finding": "Concurrent Remove, storage failure or existing Edit could admit a late reviewed baseline or leave Save disabled. Reproduced and repaired with live admission refs and sequence cancellation.",
+    "repair_run": "rs_20261004T075748Z_23000",
+    "repair_verdict": "PASS_SCOPED",
+    "frozen_bundle_sha256": "ceabc4055c485829e6e896300bca2dc98c1bed3dcb91eb23113403421a40923c",
+    "transport_returncode": 0,
+    "cleanup_proven": true,
+    "residual_count": 0,
+    "lease_id": "a8c20fc970bf",
+    "lease_state": "released",
+    "scope": "r2 reviewed panel and host; r3 reviewed the corrected host and four regression tests only. Static review, not production acceptance."
+  }
+}

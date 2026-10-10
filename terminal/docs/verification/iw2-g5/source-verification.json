@@ -1,0 +1,75 @@
+{
+  "schema": "iw2.source_verification.v1",
+  "phase": "G5 canonical Thesis references only",
+  "status": "SOURCE_REVIEWED_LIVE_UNPROVEN",
+  "migration": {
+    "file": "0029_investigation_thesis_refs.sql",
+    "pr": 804,
+    "applied": true,
+    "0028_unchanged_from_base": "4af9824c",
+    "0028_sha256": "149e1a8ab0568430429e895031f8bd6314670879a647e75a30b8c103cb5187ea",
+    "applied_at": "2026-10-05T06:31:03Z",
+    "receipt": "https://github.com/mastermindx-market-intelligence/mastermind-terminal/pull/804#issuecomment-5989351431",
+    "sha256": "edd8c8eb854c19a3487eca5f75155eddf97e197112fb56d300111ebf6591864f"
+  },
+  "checks": {
+    "postgres": "Current integration: 68 passed plus 40 subtests, including 17 real PostgreSQL 17.11 cases. First attempt hit macOS socket-path length; identical tests passed in a shorter external evidence path.",
+    "vitest": "114 passed across 12 Investigation route, manifest, save, review, replay and Thesis suites.",
+    "typecheck": "tsc --noEmit passed on current integration and corrected accessibility addition.",
+    "migration_namespace": "PULL_REQUEST (#804): 0 findings; merged #777 dependency reconciled.",
+    "browser": "36 passed across desktop 1440x900, tablet 820x1180 and mobile 390x844; includes 320px/200% text EN/ZH retained-Thesis keyboard/open/no-write checks.",
+    "visual": "Desktop EN and mobile ZH final retained-version captures inspected; actual Terminal dark theme only",
+    "migration_apply_guard": "87 passed after restoring exact down/readback markers; no SQL execution change"
+  },
+  "review": {
+    "verdict": "PASS_SCOPED",
+    "run_id": "rs_20261004T085657Z_72237",
+    "bundle_sha256": "368124fb03ae501b69899232f17f8108c2b906acaded597116f3fa0dfad80a22",
+    "cleanup_proven": true,
+    "residual_count": 0,
+    "lease_released": true,
+    "post_bundle_changes": [
+      "Picker uses a Thesis title or localized retained-version label instead of raw UUID display; no mutation/read/identity changes",
+      "Added command ownership-delegation test and browser matrix",
+      "Ledger null-date explanation and documentation",
+      "Existing Analysis screenshot test reacquires a transiently detached hydration box within a bounded 5-second assertion; exact crop and source locks preserved",
+      "Migration comments now use exact down/readback block markers consumed by the apply guard; rollback remains revoke writes and preserve retained data"
+    ]
+  },
+  "limitations": [
+    "G5 merged-code deployment and authenticated Thesis-version acceptance pending",
+    "Additional G5 subjects, evidence relations and scenarios unfinished",
+    "G2/G4 foundations included; broader G0-G9 mission remains active"
+  ],
+  "evidence_sha256": {
+    "g5-postgres-r2.log": "76b59092c536574c78a7c8789864bfcffd9cb7882d98d6bdc2af9c78a4f3bd26",
+    "g5-focused-final.log": "d309584fbc2fbe013627048464a2d39d947ca1324095307130d062fff90e69be",
+    "g5-typecheck-r2.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "g5-migration-namespace-r2.log": "e2a8d2f52276d5040a23374e9b10f9c1f78dced0c602973ea2b0223e95791bc8",
+    "g5-responsive-r1.log": "258e43a94a0e8d8872e870ed7e39926fa27e4c5c29b68577520878b57680313d",
+    "g5-responsive-r2.log": "08f8b43d71a4eb603d7f338b5dac049baaf4cab95b86508d02e73d5e1467b65a",
+    "g5-ui-display-r2.log": "93f4e12d60d41d98e18070376ec66d1b149d33051e7d1b8a542c36b2ef252cdf",
+    "G5-THESIS-REVIEW-r1.md": "765feef5c54c22da0e8b6969cd1821897fd54cf635e59957f27c89897dd50fb3",
+    "g5-typecheck-final.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "g5-analysis-responsive-repaired.log": "8ccffea71efacdf51189ac99ce17a2066ca936bd8ea68239597dd2438a20a5bb",
+    "g5-analysis-responsive-cold.log": "7905de32540d65d3556f184ea2ffc8a961486e04712504a0a5a1f0bcf0b99004",
+    "g5-analysis-responsive-r2.log": "196655a910a41f67176c05b0f909a6f8cf9f615a6dc45df969cf3e56224641c1",
+    "g5-apply-guard-repair.log": "bda67e8074121420ec022ea808b3d567d20714301befb8e63a0da0a5d66b038e",
+    "g5-ci-ingest-job.log": "d0ebdb9df498de388e5e8e98a6d49af27ac744e9f8152f58cb71a77efafe9b67",
+    "g5-current-postgres-proof-short-path.log": "6d5e6bee0b671b8f85e3f49e761e6b7a36cdc3443d86ad0bac5985833cc720e7",
+    "g5-current-base-vitest.log": "5378aac2df6eae29bbaac33facf4c03f274c72d8906141a858f2289fa50f1cf7",
+    "g5-current-responsive.log": "ca5b72cb350b73a62a857cc02234e3fe29cb0d961b36ff8806920029faeeaa73",
+    "g5-a11y-mobile-proof.log": "67b14a9175cbf9fea581facc057bbe81614e26cae1f08ead44ff0c70cc68d1c3",
+    "g5-a11y-typecheck.log": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "g5-current-namespace.log": "682bc231b9c0fbd36e5196f4d41ee3684c799511c00ae75088f29ec8ee9f3815"
+  },
+  "worker": {
+    "run_id": "rs_20261005T062021Z_96774",
+    "requested_model": "deepseek-v4.1-flash",
+    "root": "01a104c8-6e11-7e52-93c1-6b8dbc45bb9c",
+    "first_pass": "rejected_partial_text_scaling",
+    "parent_repair": "Scale all main descendants, verify keyboard Tab/Enter and capture compact evidence",
+    "settled": true,
+    "residual_count": 0
+  }
+}
