@@ -249,7 +249,7 @@ function rotationHistoryDate(day: string, lang: "en" | "zh"): string {
   if (!match) return day;
   const month = Number(match[2]), date = Number(match[3]);
   const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
-  return lang === "zh" ? `${month}月${date}日` : `${months[month - 1]} ${date}`;
+  return lang === "zh" ? `${match[1]}年${month}月${date}日` : `${months[month - 1]} ${date}, ${match[1]}`;
 }
 
 function sign(value: number | null, digits = 1, suffix = "%"): string {

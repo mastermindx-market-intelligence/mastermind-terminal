@@ -500,6 +500,31 @@ describe("SectorRotationMap", () => {
     expect(section.textContent).toContain("Software");
   });
 
+  it("shows the full year on historical cycle and episode evidence spanning multiple years", async () => {
+    const source = structuredClone(historyPayload);
+    const turns = [
+      { date: "2024-09-16", k: "peak", major: false, provisional: false, mag_pct: 11.2 },
+      { date: "2025-05-14", k: "trough", major: false, provisional: false, mag_pct: 18.1 },
+      { date: "2026-09-24", k: "peak", major: true, provisional: true, mag_pct: 23.3 },
+    ];
+    const withTurns = {
+      ...source,
+      sectors: [{ ...source.sectors[0], turns }, source.sectors[1]],
+    };
+    await render({
+      history: sectorRotationHistory(withTurns),
+      episodes: sectorRotationEpisodes(nativeEpisodePayload),
+      episodesStatus: "ready",
+    });
+    const historical = host.querySelector('[data-testid="rotation-history"]')!;
+    expect(historical.textContent).toContain("Sep 25, 2026");
+    const dates = Array.from(historical.querySelectorAll('[data-testid="rotation-cycle-evidence"] li time'))
+      .map(node => node.textContent);
+    expect(dates).toEqual(["Sep 16, 2024", "May 14, 2025", "Sep 24, 2026"]);
+    const native = host.querySelector('[data-testid="rotation-native-episodes"]')!;
+    expect(native.textContent).toContain("Sep 20, 2026");
+  });
+
   it("keeps the current snapshot usable when historical owner data is unavailable", async () => {
     await render({ history: null, historyStatus: "unavailable" });
     expect(host.querySelectorAll("[data-sector-rotation-point]")).toHaveLength(5);
