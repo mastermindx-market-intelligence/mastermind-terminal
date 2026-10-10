@@ -55,6 +55,11 @@ interface HeatSeekerCardProps {
    */
   sessionAnchor?: string | null;
   lang: Lang;
+  /** The matrix read did not land: say so and offer a re-read, never "no standout pick". */
+  readFailed?: boolean;
+  onRetry?: () => void;
+  /** The matrix is still being read: nothing is known yet, so nothing is claimed. */
+  reading?: boolean;
 }
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -120,7 +125,7 @@ export function heatSeekerConfPct(confidence: unknown): number | null {
 
 // ─── Component ────────────────────────────────────────────────────────────────
 
-export function HeatSeekerCard({ pick, spot, sessionAnchor = null, lang }: HeatSeekerCardProps) {
+export function HeatSeekerCard({ pick, spot, sessionAnchor = null, lang, readFailed = false, onRetry, reading = false }: HeatSeekerCardProps) {
   const t = makeGexT(lang);
 
   // Staleness is judged against the SNAPSHOT's session, not today: a Friday pick viewed
@@ -141,6 +146,28 @@ export function HeatSeekerCard({ pick, spot, sessionAnchor = null, lang }: HeatS
     : NaN;
   const anchor = Number.isFinite(parsedAnchor) ? parsedAnchor : Date.now();
   const usable = !!pick && Number.isFinite(expiryMs) && expiryMs >= anchor;
+
+  if (!usable && readFailed) {
+    // A third fact: nothing is known about the pick, because the read did not land.
+    return (
+      <div className="obs-card" style={CARD_ERROR} data-testid="gex-heatseeker-error" role="alert">
+        <span style={NULL_TEXT}>{t("heatSeekerError")}</span>
+        {onRetry && (
+          <button type="button" className="btn btn-ghost load-retry" onClick={onRetry}>
+            {t("errorRetry")}
+          </button>
+        )}
+      </div>
+    );
+  }
+
+  if (!usable && reading) {
+    return (
+      <div className="obs-card" style={CARD_NULL} data-testid="gex-heatseeker-reading">
+        <span style={NULL_TEXT}>{t("loading")}</span>
+      </div>
+    );
+  }
 
   if (!usable) {
     // Two different facts, two different sentences: nothing was published vs something
@@ -243,6 +270,16 @@ const CARD_NULL: React.CSSProperties = {
   padding: "14px 12px",
   gap: 6,
   opacity: 0.6,
+  display: "flex",
+  flexDirection: "column",
+};
+
+// Not dimmed like CARD_NULL: a failed read is something the reader can act on.
+const CARD_ERROR: React.CSSProperties = {
+  alignItems: "center",
+  justifyContent: "center",
+  padding: "14px 12px",
+  gap: 8,
   display: "flex",
   flexDirection: "column",
 };

@@ -12,12 +12,15 @@ import { join, relative } from "node:path";
 import { createRoot, type Root } from "react-dom/client";
 import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 
-const { rule, flowGetMock } = vi.hoisted(() => ({
+const { rule, flowReadMock } = vi.hoisted(() => ({
   rule: vi.fn<(root: string) => boolean>(),
-  flowGetMock: vi.fn(),
+  flowReadMock: vi.fn(),
 }));
 vi.mock("@/lib/flowRoot", () => ({ isValidRoot: (root: string) => rule(root) }));
-vi.mock("@/lib/flowClientCache", () => ({ flowGet: (f: string) => flowGetMock(f) }));
+vi.mock("@/lib/flowClientCache", () => ({
+  flowGetResult: (f: string) => flowReadMock(f),
+  flowInvalidate: () => undefined,
+}));
 vi.mock("@/lib/searchTrack", () => ({ trackSearch: () => undefined }));
 
 import { LevelsView } from "@/components/levels/LevelsView";
@@ -44,8 +47,8 @@ beforeEach(() => {
   vi.stubGlobal("IS_REACT_ACT_ENVIRONMENT", true);
   rule.mockReset();
   rule.mockImplementation((r) => shipped(r));
-  flowGetMock.mockReset();
-  flowGetMock.mockResolvedValue(null);
+  flowReadMock.mockReset();
+  flowReadMock.mockResolvedValue({ status: "absent" });
   host = document.createElement("div");
   document.body.append(host);
   root = createRoot(host);
@@ -60,7 +63,7 @@ afterEach(async () => {
 async function settle() {
   for (let i = 0; i < 6; i++) await act(async () => { await new Promise((resolve) => setTimeout(resolve, 0)); });
 }
-const asked = () => flowGetMock.mock.calls.map(([f]) => f as string);
+const asked = () => flowReadMock.mock.calls.map(([f]) => f as string);
 
 async function renderLevels() {
   await act(async () => root.render(<LevelsView />));
