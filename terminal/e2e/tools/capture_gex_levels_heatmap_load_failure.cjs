@@ -29,6 +29,8 @@
  *
  * From terminal/:
  *   node e2e/tools/capture_gex_levels_heatmap_load_failure.cjs
+ * For a HeatmapView-only source change, preserve the other boards' evidence:
+ *   CAPTURE_ONLY='^heatmap-' UPDATE_HEATMAP_EVIDENCE=1 node e2e/tools/capture_gex_levels_heatmap_load_failure.cjs
  *
  * Writes PNGs + EVIDENCE.yml under docs/pr-crops/gex-levels-heatmap-load-failure/.
  */
@@ -498,9 +500,71 @@ async function captureHeatmap(page, lang, state, replies, outPath) {
 
 const CAPTURE = { gex: captureGex, levels: captureLevels, heatmap: captureHeatmap };
 
+const HEATMAP_SOURCE = "terminal/components/heatmap/HeatmapView.tsx";
+const HEATMAP_CROPS = Object.keys(STATES).filter((state) => STATES[state].board === "heatmap")
+  .flatMap((state) => [1440, 820, 390].flatMap((width) => ["en", "zh"].map((lang) => cropName(state, width, lang))))
+  .sort();
+
+/** Only actual complete Heatmap captures may replace its lock; other boards keep their provenance. */
+function updateHeatmapEvidence(previous, { files, layoutFiles, cropHashes, capturedAtHead, capturedAt }) {
+  if (JSON.stringify([...files].sort()) !== JSON.stringify(HEATMAP_CROPS)) {
+    throw new Error("scoped evidence requires all 18 Heatmap crops, with no duplicate or unrelated capture");
+  }
+  const recorded = {};
+  const layoutAt = previous.indexOf("\nlayoutFiles:\n");
+  const filesAt = previous.indexOf("\nfiles:\n");
+  if (layoutAt < 0 || filesAt < 0) throw new Error("inherited evidence is missing layoutFiles or files");
+  const layoutRows = previous.slice(layoutAt + "\nlayoutFiles:\n".length).split("\n");
+  for (const row of layoutRows) {
+    if (!row.startsWith("  ")) break;
+    const match = row.match(/^  (terminal\/[^:]+): "([a-f0-9]{64})"$/);
+    if (!match) throw new Error(`invalid inherited layout source row: ${row}`);
+    if (recorded[match[1]]) throw new Error(`duplicate layout source: ${match[1]}`);
+    recorded[match[1]] = match[2];
+  }
+  if (!recorded[HEATMAP_SOURCE] || JSON.stringify(Object.keys(recorded).sort()) !== JSON.stringify(Object.keys(layoutFiles).sort())) {
+    throw new Error("scoped evidence must preserve the complete layout source set");
+  }
+  for (const [rel, hash] of Object.entries(layoutFiles)) {
+    if (!/^[a-f0-9]{64}$/.test(hash)) throw new Error(`invalid layout source hash: ${rel}`);
+    if (rel !== HEATMAP_SOURCE && hash !== recorded[rel]) {
+      throw new Error(`source changed outside HeatmapView: ${rel}; recapture its owning surface`);
+    }
+  }
+  const fileList = previous.slice(filesAt + "\nfiles:\n".length).split("\n");
+  for (const file of HEATMAP_CROPS) {
+    if (!fileList.includes(`  - ${file}`) || !previous.includes(`\n  ${file}: {`)) {
+      throw new Error(`inherited evidence is missing the file list or harness for ${file}`);
+    }
+    if (!/^[a-f0-9]{64}$/.test(cropHashes[file] || "")) throw new Error(`missing or invalid crop hash: ${file}`);
+  }
+  if (!/^[a-f0-9]{40}$/.test(capturedAtHead) || !Number.isFinite(Date.parse(capturedAt))) {
+    throw new Error("scoped evidence requires a Git head and capture timestamp");
+  }
+  const updated = previous.replace(`  ${HEATMAP_SOURCE}: "${recorded[HEATMAP_SOURCE]}"`, `  ${HEATMAP_SOURCE}: "${layoutFiles[HEATMAP_SOURCE]}"`);
+  const entry = [
+    ...(previous.includes("\nscopedRecaptures:\n") ? [] : ["scopedRecaptures:"]),
+    "  - surface: HeatmapView",
+    `    capturedAtHead: ${capturedAtHead}`,
+    `    capturedAt: ${capturedAt}`,
+    "    command: CAPTURE_ONLY='^heatmap-' UPDATE_HEATMAP_EVIDENCE=1 node e2e/tools/capture_gex_levels_heatmap_load_failure.cjs",
+    `    sourceSha256: "${layoutFiles[HEATMAP_SOURCE]}"`,
+    "    cropSha256:",
+    ...HEATMAP_CROPS.map((file) => `      ${file}: "${cropHashes[file]}"`),
+    "",
+  ].join("\n");
+  return updated + entry;
+}
+
 async function main() {
   const only = process.env.CAPTURE_ONLY ? new RegExp(process.env.CAPTURE_ONLY) : null;
+  const updateHeatmap = process.env.UPDATE_HEATMAP_EVIDENCE === "1";
+  if (updateHeatmap && process.env.CAPTURE_ONLY !== "^heatmap-") {
+    throw new Error("UPDATE_HEATMAP_EVIDENCE requires CAPTURE_ONLY='^heatmap-'");
+  }
   const capturedAtHead = currentGitHead();
+  const capturedLayoutFiles = updateHeatmap
+    ? Object.fromEntries(LAYOUT_FILES.map((rel) => [rel, sha256File(rel)])) : null;
   const child = startServer();
   const files = [];
   let failed = 0;
@@ -544,7 +608,24 @@ async function main() {
 
   if (failed) process.exitCode = 1;
   if (only) {
-    console.log(`CAPTURE_ONLY run: ${files.length} crops, ${failed} failed; EVIDENCE.yml not written`);
+    if (updateHeatmap && failed === 0) {
+      const evidencePath = join(OUT, "EVIDENCE.yml");
+      const layoutFiles = Object.fromEntries(LAYOUT_FILES.map((rel) => [rel, sha256File(rel)]));
+      if (JSON.stringify(layoutFiles) !== JSON.stringify(capturedLayoutFiles) || currentGitHead() !== capturedAtHead) {
+        throw new Error("source changed during Heatmap capture; EVIDENCE.yml not written");
+      }
+      const evidence = updateHeatmapEvidence(readFileSync(evidencePath, "utf8"), {
+        files,
+        layoutFiles,
+        cropHashes: Object.fromEntries(files.map((file) => [file, createHash("sha256").update(readFileSync(join(OUT, file))).digest("hex")])),
+        capturedAtHead,
+        capturedAt: new Date().toISOString(),
+      });
+      writeFileSync(evidencePath, evidence);
+      console.log(`CAPTURE_ONLY run: ${files.length} crops, 0 failed; Heatmap evidence updated; other boards preserved`);
+    } else {
+      console.log(`CAPTURE_ONLY run: ${files.length} crops, ${failed} failed; EVIDENCE.yml not written`);
+    }
     return;
   }
   files.sort();
@@ -590,7 +671,11 @@ async function main() {
   console.log(`wrote ${files.length} crops + EVIDENCE.yml (head ${capturedAtHead})`);
 }
 
-main().catch((err) => {
-  console.error(err);
-  process.exit(1);
-});
+module.exports = { updateHeatmapEvidence };
+
+if (require.main === module) {
+  main().catch((err) => {
+    console.error(err);
+    process.exit(1);
+  });
+}
