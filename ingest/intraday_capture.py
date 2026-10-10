@@ -18,8 +18,12 @@ from contextlib import contextmanager
 from pathlib import Path
 
 SCHEMA_V1 = "mastermind.intraday_minute_capture.v1"
-SCHEMA = "mastermind.intraday_minute_capture.v2"
+SCHEMA_V2 = "mastermind.intraday_minute_capture.v2"
+SCHEMA = "mastermind.intraday_minute_capture.v3"
 PAYLOAD_SCHEMA_V2 = "mastermind.intraday_minute_capture_payload.v2"
+PAYLOAD_SCHEMA_V3 = "mastermind.intraday_minute_capture_payload.v3"
+CHART_ADJUSTED = "chart_adjusted"
+RESEARCH_UNADJUSTED = "research_unadjusted"
 ADJUSTED_STATES = frozenset({
     "TRUE", "FALSE", "MISSING", "NULL", "INVALID_TYPE", "UNPARSED", "AMBIGUOUS",
 })
@@ -196,34 +200,61 @@ def decode_response(raw: bytes, page: dict):
     return body
 
 
-def _v2(payload: dict) -> bool:
-    if "schema" not in payload:
-        return False
-    if payload["schema"] != PAYLOAD_SCHEMA_V2:
+def _version(payload: dict) -> int:
+    if not isinstance(payload, dict):
         raise CaptureError("capture_schema_invalid")
-    return True
+    if "schema" not in payload:
+        return 1
+    if payload["schema"] == PAYLOAD_SCHEMA_V2:
+        return 2
+    if payload["schema"] == PAYLOAD_SCHEMA_V3:
+        return 3
+    raise CaptureError("capture_schema_invalid")
+
+
+def acquisition_role(payload: dict) -> str:
+    """Legacy requests were chart-adjusted, including incompatible responses."""
+    return payload["acquisition_role"] if _version(payload) == 3 else CHART_ADJUSTED
+
+
+def _requested_adjusted(role: str) -> bool:
+    if role == CHART_ADJUSTED:
+        return True
+    if role == RESEARCH_UNADJUSTED:
+        return False
+    raise CaptureError("capture_acquisition_role_invalid")
+
+
+def request_compliant(payload: dict) -> bool:
+    """Response declarations support this acquisition request, never full basis."""
+    expected = _requested_adjusted(acquisition_role(payload))
+    state = "TRUE" if expected else "FALSE"
+    return (payload["request"]["adjusted"] is expected
+            and payload["status"] == "complete" and bool(payload["pages"])
+            and all(page["status"] in ("OK", "DELAYED")
+                    and page["response_adjusted"] == {"state": state}
+                    for page in payload["pages"]))
 
 
 def chart_eligible(payload: dict) -> bool:
-    """A returned TRUE declaration supports this request, not full basis admission."""
-    return (payload["status"] == "complete" and bool(payload["pages"])
-            and all(page["response_adjusted"] == {"state": "TRUE"}
-                    for page in payload["pages"]))
+    return acquisition_role(payload) == CHART_ADJUSTED and request_compliant(payload)
 
 
 def _observation_identity(payload: dict, observation: dict) -> bytes:
     declaration = (payload["pages"][observation["page_index"]]["response_adjusted"]
-                   if _v2(payload) else {"state": "UNRECORDED"})
+                   if _version(payload) >= 2 else {"state": "UNRECORDED"})
     return canonical_bytes({"raw": observation["raw"], "response_adjusted": declaration})
 
 
 def validate_payload(payload: dict, symbol: str) -> None:
-    v2 = _v2(payload)
+    version = _version(payload)
+    v2 = version >= 2
     _keys(payload, ("symbol", "timeframe", "source", "status", "failure_kind",
                     "started_at_utc_ns", "completed_at_utc_ns",
                     "finality_reference_utc_ns", "finality_lag_s",
                     "request", "pages", "observations", "counts")
-          + (("schema", "chart_eligible") if v2 else ()))
+          + (("schema", "chart_eligible") if v2 else ())
+          + (("acquisition_role",) if version == 3 else ()))
     if (payload["symbol"] != symbol or not valid_symbol(symbol)
             or payload["timeframe"] != "1m" or payload["source"] != "polygon"
             or payload["status"] not in ("complete", "partial", "failed")
@@ -239,6 +270,7 @@ def validate_payload(payload: dict, symbol: str) -> None:
     start, end = payload["started_at_utc_ns"], payload["completed_at_utc_ns"]
     if start > end or payload["finality_reference_utc_ns"] > end:
         raise CaptureError("clock_invalid")
+    expected_adjusted = _requested_adjusted(acquisition_role(payload))
     request = payload["request"]
     _keys(request, ("multiplier", "timespan", "from_date", "to_date", "adjusted", "sort", "limit"))
     from datetime import date
@@ -247,7 +279,7 @@ def validate_payload(payload: dict, symbol: str) -> None:
     except (ValueError, TypeError):
         raise CaptureError("capture_request_invalid") from None
     if (request["multiplier"] != 1 or isinstance(request["multiplier"], bool)
-            or request["timespan"] != "minute" or request["adjusted"] is not True
+            or request["timespan"] != "minute" or request["adjusted"] is not expected_adjusted
             or request["sort"] != "asc" or request["limit"] != 50000
             or isinstance(request["limit"], bool) or dates[0] > dates[1]
             or dates[0].isoformat() != request["from_date"]
@@ -323,7 +355,7 @@ def validate_payload(payload: dict, symbol: str) -> None:
 
 def validate_envelope(envelope: dict, symbol: str) -> dict:
     _keys(envelope, ("schema", "observer_id", "authority", "captures", "prefix_sha256"))
-    if (envelope["schema"] not in (SCHEMA_V1, SCHEMA) or envelope["observer_id"] != OBSERVER_ID
+    if (envelope["schema"] not in (SCHEMA_V1, SCHEMA_V2, SCHEMA) or envelope["observer_id"] != OBSERVER_ID
             or envelope["authority"] != AUTHORITY):
         raise CaptureError("capture_envelope_invalid")
     _keys(envelope["authority"], AUTHORITY)
@@ -334,7 +366,8 @@ def validate_envelope(envelope: dict, symbol: str) -> dict:
         raise CaptureError("capture_envelope_invalid")
     if len(records) > MAX_CAPTURES:
         raise CaptureCapacity("capture_count_capacity")
-    previous, ids, seen_v2 = GENESIS_SHA256, set(), False
+    previous, ids, last_version = GENESIS_SHA256, set(), 1
+    envelope_version = (SCHEMA_V1, SCHEMA_V2, SCHEMA).index(envelope["schema"]) + 1
     for sequence, record in enumerate(records, 1):
         _keys(record, ("sequence", "capture_id", "previous_capture_sha256",
                        "payload_sha256", "payload", "capture_sha256"))
@@ -344,10 +377,10 @@ def validate_envelope(envelope: dict, symbol: str) -> dict:
                 or cid in ids or record["previous_capture_sha256"] != previous):
             raise CaptureError("capture_sequence_invalid")
         ids.add(cid)
-        v2 = _v2(record["payload"])
-        if (v2 and envelope["schema"] == SCHEMA_V1) or (seen_v2 and not v2):
+        version = _version(record["payload"])
+        if version > envelope_version or version < last_version:
             raise CaptureError("capture_schema_order_invalid")
-        seen_v2 = seen_v2 or v2
+        last_version = version
         validate_payload(record["payload"], symbol)
         if digest(record["payload"]) != record["payload_sha256"]:
             raise CaptureError("capture_payload_seal_invalid")
@@ -376,8 +409,8 @@ def append_capture(envelope: dict, payload: dict, capture_id: str) -> dict:
               "payload_sha256": digest(payload), "payload": copy.deepcopy(payload)}
     record["capture_sha256"] = digest(record)
     result = copy.deepcopy(envelope)
-    if _v2(payload):
-        result["schema"] = SCHEMA
+    if _version(payload) > (SCHEMA_V1, SCHEMA_V2, SCHEMA).index(result["schema"]) + 1:
+        result["schema"] = (SCHEMA_V1, SCHEMA_V2, SCHEMA)[_version(payload) - 1]
     result["captures"].append(record)
     result["prefix_sha256"] = record["capture_sha256"]
     validate_envelope(result, payload["symbol"])
@@ -396,8 +429,8 @@ def append_sealed_capture(envelope: dict, record: dict) -> dict:
     if len(envelope["captures"]) >= MAX_CAPTURES:
         raise CaptureCapacity("capture_count_capacity")
     result = copy.deepcopy(envelope)
-    if _v2(record["payload"]):
-        result["schema"] = SCHEMA
+    if _version(record["payload"]) > (SCHEMA_V1, SCHEMA_V2, SCHEMA).index(result["schema"]) + 1:
+        result["schema"] = (SCHEMA_V1, SCHEMA_V2, SCHEMA)[_version(record["payload"]) - 1]
     result["captures"].append(copy.deepcopy(record))
     result["prefix_sha256"] = record["capture_sha256"]
     validate_envelope(result, symbol)
@@ -405,15 +438,24 @@ def append_sealed_capture(envelope: dict, record: dict) -> dict:
 
 
 def compact_complete(envelope: dict, payload: dict) -> dict:
-    """Only consecutive equal *complete* observations are suppressed."""
+    """Suppress equal complete observations only within one acquisition role.
+
+    Partial, failed, empty and fully suppressed attempts do not replace the
+    latest complete observation baseline. Other roles cannot affect that baseline.
+    """
     result = copy.deepcopy(payload)
     if result["status"] != "complete":
         return result
+    partition = (acquisition_role(result), result["request"]["adjusted"])
     latest = {}
     for record in envelope["captures"]:
-        if record["payload"]["status"] == "complete":
-            for observation in record["payload"]["observations"]:
-                latest[observation["event_start_utc_ms"]] = _observation_identity(record["payload"], observation)
+        previous = record["payload"]
+        if (acquisition_role(previous), previous["request"]["adjusted"]) != partition:
+            continue
+        if previous["status"] != "complete":
+            continue
+        for observation in previous["observations"]:
+            latest[observation["event_start_utc_ms"]] = _observation_identity(previous, observation)
     retained = []
     for observation in result["observations"]:
         key, raw = observation["event_start_utc_ms"], _observation_identity(result, observation)
@@ -429,12 +471,16 @@ def compact_complete(envelope: dict, payload: dict) -> dict:
 
 class CaptureAttempt:
     def __init__(self, symbol: str, request: dict, finality_reference_utc_ns: int,
-                 *, clock=time.time_ns, capture_id: str | None = None):
+                 *, clock=time.time_ns, capture_id: str | None = None,
+                 acquisition_role: str = CHART_ADJUSTED):
+        if request.get("adjusted") is not _requested_adjusted(acquisition_role):
+            raise CaptureError("capture_request_invalid")
         self.clock = clock
         self.capture_id = capture_id or uuid.uuid4().hex
         self.sealed_record = None
         self.source_payload_sha256 = None
-        self.data = {"schema": PAYLOAD_SCHEMA_V2, "chart_eligible": False,
+        self.data = {"schema": PAYLOAD_SCHEMA_V3, "acquisition_role": acquisition_role,
+                     "chart_eligible": False,
                      "symbol": symbol, "timeframe": "1m", "source": "polygon",
                      "status": "failed", "failure_kind": "source_failure",
                      "started_at_utc_ns": clock(), "completed_at_utc_ns": None,
