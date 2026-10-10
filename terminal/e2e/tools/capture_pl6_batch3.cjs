@@ -30,6 +30,7 @@ const LAYOUT_FILES = [
   "terminal/components/flowdesk/FiltersPanel.tsx",
   "terminal/components/flowdesk/FlowCard.tsx",
   "terminal/components/alerts/AlertDetail.tsx",
+  "terminal/components/alerts/alerts.module.css",
   "terminal/components/heatmap/HeatmapView.tsx",
   "terminal/components/heatmap/Treemap.tsx",
   "terminal/lib/heatmapStrings.ts",
@@ -264,6 +265,10 @@ async function captureFlowBoard(page, width, lang, outPath) {
   await board.waitFor({ state: "visible", timeout: 60_000 });
   const needle = lang === "zh" ? "0DTE 事件看板" : "0DTE Event Dashboard";
   await board.getByText(needle).first().waitFor({ state: "visible", timeout: 20_000 });
+  // The heading paints before the feed answers. On a cold dev server the first
+  // crop caught "Loading intraday flow…", so wait for a rendered event row
+  // (table at 1440, cards at 390).
+  await board.locator("[data-flow-event-row]:visible").first().waitFor({ state: "visible", timeout: 45_000 });
   await cropLocator(page, board, outPath, width === 390 ? 6 : 10);
 }
 
@@ -473,7 +478,7 @@ async function main() {
     "  - HeatmapTreemap-390-zh.png",
     "command: |",
     "  cd terminal",
-    "  CAPTURE_ONLY=HeatmapTreemap node e2e/tools/capture_pl6_batch3.cjs",
+    `  ${ONLY.length ? `CAPTURE_ONLY=${ONLY.join(",")} ` : ""}node e2e/tools/capture_pl6_batch3.cjs`,
     "files:",
     ...[...new Set([
       ...readdirSync(OUT).filter((f) => f.endsWith(".png") && !f.startsWith("FAIL-")).sort(),

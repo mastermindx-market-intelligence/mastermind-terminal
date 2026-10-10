@@ -1,36 +1,22 @@
-# 2026-10-09 #891 (GEX/Levels/Heatmap load-failure states) changes HeatmapView.tsx and heatmapStrings.ts: HeatmapTreemap-1440/390 EN+ZH recaptured with CAPTURE_ONLY=HeatmapTreemap at 4e9ab8e4, and only those two rows re-stamped from the script's output. The tile region is pixel-identical in EN; in ZH it differs only in CJK glyph rasterization of unchanged labels (legend 520 px at 1440, tile caption 8 px at 390). Every other diff is master drift since 62f2782f: the new 板块中心 Discover tab, one fewer rail icon, banner punctuation. The script's EVIDENCE.yml was discarded because it re-stamps every row (it would have hidden the stale AlertDetail.tsx, flowdeskStrings.ts, i18n.tsx and PineEditor.tsx rows and dropped alerts.module.css). Those rows are left as they were; their crops were not recaptured.
-# 2026-10-05 #802/#808 source hash reconciliation: preserves captured PNG bytes/provenance; added Dislocations-only labels are not rendered by these capture surfaces.
-# 2026-09-19 #669 plain-language debt: hash-only restamp of heatmapStrings.ts, flowdeskStrings.ts, plainLabels.ts, i18n.tsx — copy-only change, crops unchanged
-# 2026-09-19 m_f119_detail: hash-only restamp of AlertDetail.tsx (adds kind prop; gates Symbol/What-changed rows for thesis detail), alerts.module.css (detailClose flows to its own row) — crops unchanged
 # B-PL-6 batch 3 — capture evidence
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
 # Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
-# capturedAtHead: 62f2782f0c63607e3fdf4acfea4bd65e853e0b62
-# capturedAt: 2026-09-19T23:36:16.989Z
+# capturedAtHead: b7a3357b06847f560022a829b8fd6c4fea3d4d47
+# capturedAt: 2026-10-10T00:25:54.248Z
 # capturedAtHead is informational. The lock is layoutFiles.
-# 2026-09-19 seat merge of master 1c46b277 into #584 (B-F12-13): hash-only restamp of terminal/components/heatmap/HeatmapView.tsx, terminal/lib/i18n.tsx to the merged-tree bytes; crops NOT recaptured by this merge commit.
-# 2026-09-19 seat merge of origin/master dd7c6dec712a (#584 B-F12-13, merge commit) into #586 (W9T_F08_13 targets readout): hash-only restamp of terminal/lib/i18n.tsx to the merged-tree bytes; crops NOT recaptured by this merge commit. MERGE THIS PR WITH A MERGE COMMIT (branch-only pointers).
-# 2026-09-19 seat merge of origin/master dd7c6dec712a (#584 B-F12-13, merge commit) into #587 (W9T_F13_9 team rollup): hash-only restamp of terminal/lib/i18n.tsx to the merged-tree bytes; crops NOT recaptured by this merge commit. MERGE THIS PR WITH A MERGE COMMIT (branch-only pointers).
-# 2026-09-19 seat merge of origin/master 5a48b845 (13 commits incl. #587 B-F13-9 team rollup, merge commit) into #586 (W9T/B-F08-13 targets readout): hash-only restamp to the merged working-tree bytes; crops NOT recaptured. Files: terminal/lib/i18n.tsx
-# 2026-09-19 seat merge of origin/master dd7c6dec712a (#584 B-F12-13, merge commit) into #588 (W9T_F12_17 invite link): hash-only restamp of terminal/lib/i18n.tsx to the merged-tree bytes; crops NOT recaptured by this merge commit. MERGE THIS PR WITH A MERGE COMMIT (branch-only pointers).
-# 2026-09-19 seat merge of origin/master dd7c6dec712a (#584 B-F12-13, merge commit) into #587 (W9T_F13_9 team rollup): hash-only restamp of terminal/lib/i18n.tsx to the merged-tree bytes; crops NOT recaptured by this merge commit. MERGE THIS PR WITH A MERGE COMMIT (branch-only pointers).
-# 2026-09-19 seat merge of origin/master 4c7a2eeb6f58 (#587 B-F13-9 team rollup + #659 + #660, merge commit) into #588 (B-F12-17 invite-link honesty): hash-only restamp of terminal/lib/i18n.tsx to the merged-tree bytes; crops NOT recaptured by this merge commit. MERGE THIS PR WITH A MERGE COMMIT (branch-only pointers).
-# 2026-09-19 seat merge of origin/master dafc016e (#588 B-F12-17 invite-link honesty, #664, #666) into #586 (W9T/B-F08-13 targets readout): hash-only restamp to the merged working-tree bytes; crops NOT recaptured. Files: terminal/lib/i18n.tsx
-# 2026-09-19 seat recapture at master 62f2782f (#670 AlertDetail follow-on merged + live): AlertDetail-1440/390 EN+ZH crops regenerated with CAPTURE_ONLY=AlertDetail; layoutFiles hashes unchanged (already restamped in 05de3537); capturedAtHead informational
-# 2026-10-04 #808 dislocations screen: hash-only restamp of plainLabels.ts — +18 added lines (EPISODE_STATE_WORDS / episodeStateLabel) imported only by components/dislocations/DislocationsView.tsx, which no surface in this capture renders; crops unchanged
 layoutFiles:
   terminal/components/options/OptionsFlowBoardView.tsx: "96e0d1d0a4e7eaed7f2d2bbec6722725afacc093e205defa280a483bc6e14b8e"
   terminal/components/flowdesk/FiltersPanel.tsx: "57ac663475b95a569f62d4c08e83a111f6137c920c78f13f1c9dfad1aa61708b"
   terminal/components/flowdesk/FlowCard.tsx: "155aff67c1f2ec50fd396d2e7c2739d6400bad5ed37387df8a1b1d450f1b118d"
-  terminal/components/alerts/AlertDetail.tsx: "b628caa9aadcab4a9b161b69657cf9485fc4da7d345623b03079847e07e3bdcf"
+  terminal/components/alerts/AlertDetail.tsx: "bc780f85d33d567e0b0055824c6e390663a53776990abe06380c265431fd6a21"
   terminal/components/alerts/alerts.module.css: "20fcccdd05b6ff84a48402434176e1e565dff733b7033c3a436462333616be32"
   terminal/components/heatmap/HeatmapView.tsx: "9fa62d5d3982f26e06fe7dd2523eeb8d088d0a7a356110df03501efa4434761f"
   terminal/components/heatmap/Treemap.tsx: "0c5a7f2fd990c41f725d96b9aecb83f5f73eb6a42fbc66c811b43cd722947a0d"
   terminal/lib/heatmapStrings.ts: "d52cad056dbfe6fe1c4f8b23acdbfea68a0fac4a4ff6425c2b04c0a6a303e9c6"
-  terminal/lib/flowdeskStrings.ts: "18bd244dee82bdc01c865ec8fd3cf5a95fa258d1fd175f2001dbf3dcfb9e9888"
+  terminal/lib/flowdeskStrings.ts: "a268f22e0d157daf75e99973ce4ad35edfeeb9316d3c6686565fdf3b1ed83ab6"
   terminal/lib/plainLabels.ts: "8f57e32a21abcae530075b7c4da72f170afff8ea38084026995887b4a18fe29a"
-  terminal/lib/i18n.tsx: "858306597ebbfc2d912cefc997ad88e4805cafb08794b5cd4d3dfeacb109371f"
-  terminal/components/PineEditor.tsx: "e48a009b44f32f9501d2890602cd5096257ad57b83bac59147d691e221a69f63"
+  terminal/lib/i18n.tsx: "63689cd6a07d538ff8cdbe03a4ffd5a4037b9ec1ec162ff2f39c6f90a6b29e80"
+  terminal/components/PineEditor.tsx: "adb28728e7d95a49c992a41f3fb70cae7316ff2c42c9b4a5f238823c92a25055"
 theme: dark
 languages: [en, zh]
 viewports:
@@ -47,7 +33,7 @@ heatmap_crops:
   - HeatmapTreemap-390-zh.png
 command: |
   cd terminal
-  CAPTURE_ONLY=HeatmapTreemap node e2e/tools/capture_pl6_batch3.cjs
+  node e2e/tools/capture_pl6_batch3.cjs
 files:
   - AlertDetail-1440-zh.png
   - AlertDetail-1440.png
@@ -66,4 +52,6 @@ files:
   - OptionsFlowBoard-390-zh.png
   - OptionsFlowBoard-390.png
   - PineLibrary-1440-zh.png
+  - PineLibrary-1440.png
   - PineLibrary-390-zh.png
+  - PineLibrary-390.png
