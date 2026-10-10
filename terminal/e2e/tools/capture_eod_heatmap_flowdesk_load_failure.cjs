@@ -66,6 +66,9 @@ const VIEWPORTS = {
   390: { width: 390, height: 844 },
 };
 const POLL_MS = { desk: 45_000, heatmap: 60_000 };
+// Chromium re-rasters only the invalidated rect of a tile by default, so anti-aliased edges
+// depend on the tile's raster history and drift between identical runs.
+const BROWSER_ARGS = ["--disable-partial-raster"];
 
 /**
  * Injected answer per read key ("<f-param>" for /api/flow, else the pathname); anything
@@ -297,7 +300,7 @@ async function cropBoxes(page, boxes, outPath, pad) {
   const y = Math.max(0, Math.floor(top - pad));
   const width = Math.max(8, Math.min(vp.width - x, Math.ceil(right - left + pad * 2)));
   const height = Math.max(8, Math.min(vp.height - y, Math.ceil(bottom - top + pad * 2)));
-  await page.screenshot({ path: outPath, clip: { x, y, width, height } });
+  await page.screenshot({ path: outPath, clip: { x, y, width, height }, animations: "disabled" });
 }
 
 async function expectNone(locator, why) {
@@ -313,9 +316,15 @@ async function failThenPoll(page, replies, keys, pollMs) {
   }
 }
 
+/** Park the pointer off the surface after a Retry, so a hover tooltip from the clicked spot never lands in a crop. */
+async function parkPointer(page) {
+  await page.mouse.move(0, 0);
+}
+
 async function heal(page, replies, keys, retries) {
   for (const key of keys) delete replies[key];
   for (const retry of retries) await retry.click();
+  await parkPointer(page);
 }
 
 async function captureBelt(page, lang, state, replies, outPath) {
@@ -485,7 +494,7 @@ async function main() {
   let failed = 0;
   try {
     await waitForServer(180_000);
-    const browser = await chromium.launch({ headless: true });
+    const browser = await chromium.launch({ headless: true, args: BROWSER_ARGS });
     try {
       for (const width of [1440, 820, 390]) {
         for (const lang of ["en", "zh"]) {
