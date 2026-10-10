@@ -1,0 +1,165 @@
+.modal {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100dvh;
+  max-width: none;
+  max-height: none;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  border: 0;
+  background: transparent;
+  color: var(--text);
+}
+
+.modal::backdrop {
+  background: transparent;
+}
+
+.scrim:global(.m-drawer-scrim) {
+  touch-action: none;
+}
+
+/* Outrank the shared drawer rules regardless of production CSS chunk order. */
+.drawer:global(.m-drawer) {
+  min-height: 0;
+  max-height: 100dvh;
+  overflow: hidden;
+  padding: max(14px, env(safe-area-inset-top))
+    max(14px, env(safe-area-inset-right))
+    max(14px, env(safe-area-inset-bottom))
+    max(14px, env(safe-area-inset-left));
+  background: var(--panel);
+  border-right: 1px solid var(--line-3);
+}
+
+.drawer :global(.m-drawer-h),
+.drawer :global(.m-drawer-ft) {
+  flex-shrink: 0;
+}
+
+.drawer :global(.m-drawer-h) {
+  min-height: 52px;
+  padding-right: 52px;
+}
+
+.drawer :global(.m-nav) {
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior-y: contain;
+  touch-action: pan-y;
+}
+
+.close {
+  position: absolute;
+  z-index: 2;
+  top: max(14px, env(safe-area-inset-top));
+  right: max(14px, env(safe-area-inset-right));
+  display: grid;
+  width: 44px;
+  height: 44px;
+  place-items: center;
+  border-radius: var(--r-md);
+  color: var(--text-2);
+  cursor: pointer;
+}
+
+.close:hover,
+.close:active {
+  background: var(--panel-2);
+  color: var(--text);
+}
+
+.close svg {
+  width: 20px;
+  height: 20px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.9;
+}
+
+.close::after {
+  position: absolute;
+  inset: 0;
+  content: "";
+}
+
+.drawer :global(.m-drawer-ft) :global(button.avatar) {
+  position: relative;
+}
+
+.drawer :global(.m-drawer-ft) :global(button.avatar)::after {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 44px;
+  height: 44px;
+  transform: translate(-50%, -50%);
+  content: "";
+}
+
+@media (max-width: 860px) {
+  .header {
+    min-width: 0;
+  }
+
+  .header :global(.m-ic) {
+    position: relative;
+    width: 44px;
+    height: 44px;
+    flex: none;
+  }
+
+  /* Rounded paint should not cut the corners out of the touch target. */
+  .header :global(.m-ic)::after {
+    position: absolute;
+    inset: 0;
+    content: "";
+  }
+
+  .header :global(.m-brand) {
+    position: static;
+    min-width: 0;
+    margin-inline: auto;
+    transform: none;
+    white-space: nowrap;
+  }
+
+  .header :global(.m-right) {
+    flex: none;
+  }
+
+  .account {
+    display: flex;
+    width: 44px;
+    height: 44px;
+    flex: none;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .account :global(button.avatar) {
+    position: relative;
+    width: 30px;
+    height: 30px;
+    margin-left: 0;
+  }
+
+  .account :global(button.avatar)::after {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 44px;
+    height: 44px;
+    transform: translate(-50%, -50%);
+    content: "";
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .scrim:global(.m-drawer-scrim),
+  .drawer:global(.m-drawer) {
+    transition: none;
+  }
+}
