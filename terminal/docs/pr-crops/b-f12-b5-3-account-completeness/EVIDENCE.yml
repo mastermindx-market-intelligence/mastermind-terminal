@@ -1,16 +1,13 @@
-# 2026-10-09 #643 repair round 1 (T04 replay date) source hash reconciliation: preserves captured PNG bytes/provenance; the added i18n key olReplay renders only in the chart legend's Options Levels row under Bar Replay and is not rendered by these capture surfaces.
-# 2026-10-09 #643 (T04 replay date) source hash reconciliation: preserves captured PNG bytes/provenance; the changed i18n keys are Replay-only (TerminalShell replay controls and exit notice) and are not rendered by these capture surfaces.
-# 2026-10-05 #802/#808 source hash reconciliation: preserves captured PNG bytes/provenance; added Dislocations-only labels are not rendered by these capture surfaces.
 # B-F12-B5-3b Account completeness — capture evidence
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
 # Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
-# capturedAtHead: 2846101a95c9f9c4e1b3f21d0005c356cc41ba8f
-# capturedAt: 2026-10-05T10:59:21.575Z
+# capturedAtHead: 74a9a3b0d5786d0e216334b1c045e7b314d32a57
+# capturedAt: 2026-10-10T00:34:13.439Z
 # capturedAtHead is the code commit the pixels depict. The lock is layoutFiles.
 layoutFiles:
   terminal/components/settings/SectionAccount.tsx: "fb274b73f54f9ac1a9f2803e245dc8b2dbacccf82c7d4d55a6ffe30a0257d473"
   terminal/lib/teamSummary.ts: "7bd3b3f1d5251490e42399be1dd77e977b2626c1714efbece2f7139c584e0f15"
-  terminal/lib/i18n.tsx: "63689cd6a07d538ff8cdbe03a4ffd5a4037b9ec1ec162ff2f39c6f90a6b29e80"
+  terminal/lib/i18n.tsx: "cfad0a8290b9b872fe919b7b9855bbd3a4cee095eb26ebd902c399942196a65d"
   terminal/components/settings/SettingsPanel.tsx: "526725b37af04f1092359a8aca1e6d3d6d62815b5913b3a7eba754e4ca020329"
   terminal/components/settings/SettingsProvider.tsx: "a4c829c956ca7ffd89bbc3158009b1148bb613569a9716b092dd9a27d449d910"
 theme: dark
