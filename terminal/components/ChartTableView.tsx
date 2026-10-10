@@ -22,7 +22,10 @@ const fmtVol = (v: number | null | undefined): string => {
 const fmtDate = (t: string | number): string => {
   try {
     const ts = typeof t === "number" ? new Date(t * 1000) : new Date(String(t) + "T00:00:00Z");
-    return ts.toLocaleDateString("en-US", { weekday: "short", day: "2-digit", month: "short", year: "2-digit", timeZone: "UTC" }).replace(",", "");
+    const date = ts.toLocaleDateString("en-US", { weekday: "short", day: "2-digit", month: "short", year: "2-digit", timeZone: "UTC" }).replace(",", "");
+    // Intraday bars carry display-epoch seconds: the chart's market-local clock encoded as UTC.
+    // Read that clock without a timezone conversion or UTC label; retain second-bar identity.
+    return typeof t === "number" && Number.isFinite(ts.getTime()) ? `${date} ${ts.toISOString().slice(11, 19)}` : date;
   } catch { return String(t); }
 };
 
@@ -62,6 +65,9 @@ export default function ChartTableView({ symbol, timeframe, bars, indCols, indRo
     }
     return out;
   }, [bars]);
+
+  // Header and rows share the same width when the date also contains an intraday clock.
+  const dateColumnStyle = useMemo(() => bars.some((bar) => typeof bar.time === "number") ? { minWidth: 240 } : undefined, [bars]);
 
   const totalH = rows.length * ROW_H;
   const containerH = containerRef.current?.clientHeight ?? 600;
@@ -135,7 +141,7 @@ export default function ChartTableView({ symbol, timeframe, bars, indCols, indRo
       <div className="ctv-table-wrap" ref={containerRef} onScroll={onScroll}>
         <div className="ctv-col-group">
           <div className="ctv-thead">
-            <div className="ctv-th ctv-td-date">{t("ctvDate")} · {timeframe}</div>
+            <div className="ctv-th ctv-td-date" style={dateColumnStyle}>{t("ctvDate")} · {timeframe}</div>
             <div className="ctv-th ctv-td-ohlc">{t("open")}</div>
             <div className="ctv-th ctv-td-ohlc">{t("ctvHigh")}</div>
             <div className="ctv-th ctv-td-ohlc">{t("ctvLow")}</div>
@@ -155,7 +161,7 @@ export default function ChartTableView({ symbol, timeframe, bars, indCols, indRo
                 const indVals = indCols.map((c) => indRowsAt?.(r.time)?.[c.key] ?? null);
                 return (
                   <div key={r.time} className={`ctv-row${idx % 2 === 0 ? "" : " alt"}`}>
-                    <div className="ctv-td ctv-td-date">{fmtDate(r.time)}</div>
+                    <div className="ctv-td ctv-td-date" style={dateColumnStyle}>{fmtDate(r.time)}</div>
                     <div className="ctv-td ctv-td-ohlc num">{fmtNum(r.o, prec)}</div>
                     <div className="ctv-td ctv-td-ohlc num">{fmtNum(r.h, prec)}</div>
                     <div className="ctv-td ctv-td-ohlc num">{fmtNum(r.l, prec)}</div>
