@@ -17,6 +17,12 @@
  *
  * The GEX states refuse /api/flow/stream: its fixture producer would push the very payload the
  * injected /api/flow answer withholds, and the desk's classified read is what is captured.
+ * The gex-live-* states are the stream's own failure: the stream answers in the producer's
+ * wire format with the last frame it holds, then its named `status` event for a read that did
+ * not land. The ladder stays and says it is the last read; gex-live-retried clicks Retry.
+ *
+ * The rail's error is cropped WITHOUT scrolling the state card: on desktop that card is a short
+ * scroll box, and its Retry must sit above the card's fold. The capture fails if it does not.
  *
  * Dark only (DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06).
  * TERMINAL_E2E_FIXTURE suppresses the Next.js N indicator; FLOW_FIXTURE serves the healthy reads.
@@ -74,12 +80,15 @@ const STATES = {
   "gex-ladder-retried": { board: "gex", replies: { "gex:SPY": "503" }, heal: ["gex:SPY"] },
   "gex-ladder-absent": { board: "gex", replies: { "gex:SPY": "404" } },
   "gex-rail-unavailable": { board: "gex", replies: { "gexstate:SPY": "503", "matrix:SPY": "503" } },
+  "gex-pick-absent": { board: "gex", replies: { "matrix:SPY": "404" } },
   "gex-rail-retried": {
     board: "gex",
     replies: { "gexstate:SPY": "503", "matrix:SPY": "503" },
     heal: ["gexstate:SPY", "matrix:SPY"],
   },
   "gex-state-refresh-failed": { board: "gex", replies: {}, failAfter: ["gexstate:SPY"] },
+  "gex-live-refresh-failed": { board: "gex", replies: {}, stream: "unavailable" },
+  "gex-live-retried": { board: "gex", replies: {}, stream: "unavailable", retryLive: true },
   "levels-unavailable": { board: "levels", replies: { "levels:SPY": "503" } },
   "levels-retried": { board: "levels", replies: { "levels:SPY": "503" }, heal: ["levels:SPY"] },
   "levels-absent": { board: "levels", replies: { "levels:SPY": "404" } },
@@ -108,6 +117,7 @@ const COPY = {
     stateComputing: "State computing — nightly",
     pickError: "Could not read the published pick just now — a failed read, not an empty one.",
     pickNull: "No standout pick — load is shared across levels.",
+    pickAbsent: "No pick is published for this name — the nightly strike × expiry matrix does not cover it.",
     levelsError: (ticker) => `Could not load levels for ${ticker}`,
     noLevels: "No levels for this root yet",
     heatmapError: "Could not load the heatmap",
@@ -123,6 +133,7 @@ const COPY = {
     stateComputing: "状态计算中 — 每日更新",
     pickError: "暂时无法读取已发布的精选 — 这是读取失败，并非无精选。",
     pickNull: "无突出精选 — 仓位分布于多个价位。",
+    pickAbsent: "本标的未发布精选 — 每日行权价 × 到期矩阵未覆盖它。",
     levelsError: (ticker) => `无法加载 ${ticker} 的档位`,
     noLevels: "这个标的还没有档位",
     heatmapError: "无法加载热力图",
@@ -198,7 +209,7 @@ async function waitForServer(timeoutMs) {
 
 const keyOf = (url) => (url.pathname === "/api/flow" ? url.searchParams.get("f") ?? "" : url.pathname);
 
-async function newPage(browser, width, lang, board, replies, withClock) {
+async function newPage(browser, width, lang, board, replies, withClock, stream) {
   const context = await browser.newContext({
     viewport: VIEWPORTS[width],
     hasTouch: width !== 1440,
@@ -216,7 +227,18 @@ async function newPage(browser, width, lang, board, replies, withClock) {
   page.setDefaultTimeout(45_000);
   // Installed before the first script runs, so every poll interval is on the page clock.
   if (withClock) await page.clock.install();
-  if (board === "gex") await page.route((url) => url.pathname === "/api/flow/stream", (route) => route.abort("failed"));
+  if (board === "gex" && stream) {
+    // The producer's own wire format: the last frame it holds, then its named event for a
+    // read that did not land. `retry` keeps EventSource from reconnecting during the capture.
+    const frame = await (await page.request.get(`${BASE}/api/flow?f=gex%3ASPY`)).text();
+    await page.route((url) => url.pathname === "/api/flow/stream", (route) => route.fulfill({
+      status: 200,
+      headers: { "content-type": "text/event-stream", "cache-control": "no-store" },
+      body: `retry: 600000\ndata: ${frame}\n\nevent: status\ndata: ${JSON.stringify({ status: stream })}\n\n`,
+    }));
+  } else if (board === "gex") {
+    await page.route((url) => url.pathname === "/api/flow/stream", (route) => route.abort("failed"));
+  }
   await page.route(
     (url) => replies[keyOf(url)] != null,
     async (route) => {
@@ -289,7 +311,7 @@ async function heal(page, replies, keys, retries) {
 
 async function captureGex(page, lang, state, replies, outPath) {
   const copy = COPY[lang];
-  const { heal: healKeys, failAfter } = STATES[state];
+  const { heal: healKeys, failAfter, stream, retryLive } = STATES[state];
   const region = page.locator(".obs-gexdesk-ladder-region");
   const ladder = region.locator('[data-tut="gex-ladder"]');
   const loadError = region.getByTestId("gex-load-error");
@@ -315,10 +337,42 @@ async function captureGex(page, lang, state, replies, outPath) {
     return;
   }
 
+  if (stream) {
+    // The ladder the stream delivered, kept under the label that says it is the last read.
+    const staleRow = page.getByTestId("gex-live-refresh-failed");
+    await ladder.waitFor({ state: "visible" });
+    await staleRow.getByText(copy.refreshFailed).waitFor({ state: "visible" });
+    await expectNone(loadError, `${state}: a failed live refresh withdrew the ladder`);
+    if (retryLive) {
+      await ladder.evaluate((el) => el.setAttribute("data-capture-kept", "1"));
+      await staleRow.getByRole("button", { name: copy.retry, exact: true }).click();
+      await staleRow.waitFor({ state: "detached" });
+      if (!(await page.locator('[data-capture-kept="1"]').count())) {
+        throw new Error(`${state}: Retry replaced the ladder instead of re-reading under it`);
+      }
+    }
+    // The desk's control bar, the label under it (or where it was), and the kept summary below.
+    const controls = page.locator('input[list="gex-roots"]').locator("xpath=ancestor::div[3]");
+    await controls.evaluate((el) => el.scrollIntoView({ block: "start" }));
+    await page.waitForTimeout(250);
+    const controlsBox = await controls.boundingBox();
+    const labelBox = retryLive ? null : await staleRow.boundingBox();
+    if (!controlsBox || (!retryLive && !labelBox)) throw new Error(`${state}: desk not laid out`);
+    const above = labelBox ?? controlsBox;
+    await cropBoxes(page, [controlsBox, { ...above, height: above.height + 120 }], outPath, 0);
+    return;
+  }
+
   // The right rail: the pick card and the market-state card, below or beside the ladder.
   await ladder.waitFor({ state: "visible" });
   const stateCard = page.locator('[data-tut="gex-state-card"]');
-  if (failAfter) {
+  if (state === "gex-pick-absent") {
+    const absent = page.getByTestId("gex-heatseeker-absent");
+    await absent.getByText(copy.pickAbsent).waitFor({ state: "visible" });
+    await expectNone(page.getByText(copy.pickNull), `${state}: an unpublished matrix shown as "load is shared"`);
+    await expectNone(page.getByTestId("gex-heatseeker-error"), `${state}: a published absence shown as a failed read`);
+    await expectNone(absent.getByRole("button"), `${state}: a published absence must offer nothing to retry`);
+  } else if (failAfter) {
     // The card has a state once its placeholder (loading / computing) is gone.
     await waitUntil(async () => !(await stateCard.textContent())?.includes(copy.loading) && !(await stateCard.textContent())?.includes(copy.stateComputing), `${state}: the market state never landed`);
     await failThenPoll(page, replies, failAfter);
@@ -347,19 +401,28 @@ async function captureGex(page, lang, state, replies, outPath) {
   await page.waitForTimeout(250);
   const row = failAfter
     ? stateCard.getByTestId("gex-state-refresh-failed")
-    : healKeys ? stateCard.locator(".obs-card-hd").first() : stateCard.getByTestId("gex-state-error");
-  if (!failAfter && !healKeys) {
-    // The state card is its own scroll region; on a short desktop rail the error's Retry sits
-    // below the card's fold. Scroll the card (not the page) until the Retry is in view.
-    await row.getByRole("button", { name: copy.retry, exact: true }).evaluate((el) => el.scrollIntoView({ block: "nearest" }));
-    await page.waitForTimeout(150);
+    : healKeys || state === "gex-pick-absent"
+      ? stateCard.locator(".obs-card-hd").first()
+      : stateCard.getByTestId("gex-state-error");
+  if (!failAfter && !healKeys && state !== "gex-pick-absent") {
+    // The state card is its own scroll region on a short desktop rail. Its error's Retry must
+    // be reachable without scrolling the card: the crop is taken unscrolled, and fails if not.
+    const fold = await row.getByRole("button", { name: copy.retry, exact: true }).evaluate((el) => {
+      const card = el.closest(".obs-gex-state");
+      const r = el.getBoundingClientRect();
+      const c = card.getBoundingClientRect();
+      return { scrollTop: card.scrollTop, over: r.bottom - (c.top + card.clientHeight) };
+    });
+    if (fold.scrollTop !== 0 || fold.over > 0.5) {
+      throw new Error(`${state}: Retry sits ${fold.over.toFixed(1)}px below the state card's fold`);
+    }
   }
   const slotBox = await pickSlot.boundingBox();
   const cardBox = await stateCard.boundingBox();
   const rowBox = await row.boundingBox();
   if (!slotBox || !cardBox || !rowBox) throw new Error(`${state}: rail not laid out`);
   const cardBottom = cardBox.y + cardBox.height;
-  const through = Math.min(cardBottom, healKeys ? rowBox.y + 220 : rowBox.y + rowBox.height + 8);
+  const through = Math.min(cardBottom, healKeys || state === "gex-pick-absent" ? rowBox.y + 220 : rowBox.y + rowBox.height + 8);
   await cropBoxes(page, [slotBox, { ...cardBox, height: through - cardBox.y }], outPath, 0);
 }
 
@@ -442,9 +505,9 @@ async function main() {
             const file = cropName(state, width, lang);
             if (only && !only.test(file)) continue;
             process.stdout.write(`capture ${file} … `);
-            const { board, failAfter } = STATES[state];
+            const { board, failAfter, stream } = STATES[state];
             const replies = { ...STATES[state].replies };
-            const { context, page } = await newPage(browser, width, lang, board, replies, !!failAfter);
+            const { context, page } = await newPage(browser, width, lang, board, replies, !!failAfter, stream);
             try {
               await page.goto(`${BASE}${URLS[board]}`, { waitUntil: "domcontentloaded", timeout: 90_000 });
               await CAPTURE[board](page, lang, state, replies, join(OUT, file));
@@ -494,15 +557,17 @@ async function main() {
     "harness:",
     ...files.map((name) => {
       const state = Object.keys(STATES).find((s) => name.startsWith(`${s}-`));
-      const { board, replies, heal: healKeys, failAfter } = STATES[state];
+      const { board, replies, heal: healKeys, failAfter, stream: streamStatus, retryLive } = STATES[state];
       const injected = Object.entries(replies).map(([k, r]) => `"${k}": ${r}`).join(", ");
       const healed = healKeys ? `, then: "${healKeys.join(" + ")} healed, Retry clicked"` : "";
       const refresh = failAfter ? `, then: "healthy read landed; ${failAfter.join(" + ")} answer 503; page clock moved past two polls"` : "";
-      const stream = board === "gex" ? ", stream: aborted" : "";
+      const live = retryLive ? `, then: "Retry clicked; the same ladder element kept"` : "";
+      const stream = board !== "gex" ? ""
+        : streamStatus ? `, stream: "last frame, then event status ${streamStatus}"${live}` : ", stream: aborted";
       return `  ${name}: { url: "${URLS[board]}", state: ${state}, injected: { ${injected} }${stream}${healed}${refresh} }`;
     }),
     "surfaces: [GexDeskView, HeatSeekerCard, MarketStateCard, LevelsView, HeatmapView]",
-    "injection: page.route answers /api/flow (by f-param) and /data/manifest.json with 503 / 404; /api/flow/stream is refused on the GEX desk; every other read is the FLOW_FIXTURE server",
+    "injection: page.route answers /api/flow (by f-param) and /data/manifest.json with 503 / 404; /api/flow/stream is refused on the GEX desk, or (gex-live-*) answers the last frame then its named status event; every other read is the FLOW_FIXTURE server",
     "capture_flag: TERMINAL_E2E_FIXTURE",
     "capture_flag_law: next.config.ts sets devIndicators: false when TERMINAL_E2E_FIXTURE is set; this script starts next dev with the same flag.",
     "command: |",

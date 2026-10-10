@@ -129,13 +129,16 @@ export async function flowGet(f: string, options: { refresh?: boolean } = {}): P
  * flowGetResult — flowGet's read with the outcome kept. The same store, SWR and
  * in-flight dedupe as flowGet, so mixing the two never opens a second request.
  * Never re-collapse the outcome into null at the call site.
+ * `refresh` awaits a new read instead of answering from the cache, as flowGet's does:
+ * a refresh must be able to fail, or a failed one is indistinguishable from a cached hit.
  */
-export async function flowGetResult(f: string): Promise<FlowOutcome> {
+export async function flowGetResult(f: string, options: { refresh?: boolean } = {}): Promise<FlowOutcome> {
   const url = buildUrl(f);
   const entry = store.get(url);
 
   if (entry) {
     if (entry.inflight !== null) return entry.inflight;
+    if (options.refresh) return doFetch(url, { data: entry.data, ts: entry.ts, inflight: null });
     // Stale — return stale immediately + kick background revalidation
     if (Date.now() - entry.ts >= TTL_MS) doFetch(url, { data: entry.data, ts: entry.ts, inflight: null });
     return { status: "data", data: entry.data };

@@ -26,12 +26,22 @@
  * without waiting a cadence. lib/flowSource remains the only resolver of feed data; a producer
  * with no subscribers is destroyed, and the next subscriber starts a fresh read.
  *
- * SAFE TO RUN DETACHED. loadFlowFresh(f) is a pure function of the f-param — no cookies(),
+ * A KEY WITH NO PAYLOAD IS NAMED. A producer whose read lands no payload used to stay silent,
+ * so a client of the stream alone could not tell an unpublished key, or one whose upstream
+ * read failed, from one still loading. It now sends a named SSE event,
+ * `event: status` + `data: {"status":"absent"|"unavailable"}`, once per change of what the
+ * read established (the same classification /api/flow answers with 404 vs 503). A named event
+ * never reaches an EventSource's `onmessage`, so a client that does not listen for it is
+ * unaffected. A failed refresh after a frame keeps that frame — and the first frame after a
+ * failure is re-sent even with unchanged bytes, because it is what tells clients the frame
+ * they kept is current again.
+ *
+ * SAFE TO RUN DETACHED. loadFlowFreshResult(f) is a pure function of the f-param — no cookies(),
  * no headers(), no per-request Supabase client — so a shared timer outside any request scope
  * resolves exactly what a request-scoped call would. Entitlement and rate limiting stay in the
  * route, per connection, and are checked BEFORE subscribe() is ever reached.
  */
-import { loadFlowFresh } from "@/lib/flowSource";
+import { loadFlowFreshResult } from "@/lib/flowSource";
 
 // Server-side watch cadence. The underlying feed refreshes on the order of 30s–minutes, so a
 // 15s poll surfaces changes promptly without hammering the upstream. Heartbeat keeps
@@ -51,6 +61,10 @@ type Producer = {
   lastJson: string | null;
   /** Wire text for that frame, built ONCE and shared by every subscriber. */
   lastFrame: string | null;
+  /** What the last completed read established. Null until one completes. */
+  lastStatus: "data" | "absent" | "unavailable" | null;
+  /** The `status` event for the last read when it landed no payload, else null. */
+  lastStatusFrame: string | null;
   /** A refresh is awaiting upstream; the next tick skips rather than stacking a second read. */
   inFlight: boolean;
   /** Set at teardown so a refresh that resolves afterwards cannot resurrect a dead producer. */
@@ -71,15 +85,30 @@ async function refresh(f: string, p: Producer): Promise<void> {
   if (p.stopped || p.inFlight) return;
   p.inFlight = true;
   try {
-    const data = await loadFlowFresh(f);
-    if (p.stopped || !data) return;
-    const json = JSON.stringify(data);
-    if (json === p.lastJson) return;
+    let outcome: Awaited<ReturnType<typeof loadFlowFreshResult>>;
+    try {
+      outcome = await loadFlowFreshResult(f);
+    } catch {
+      outcome = { status: "unavailable" };
+    }
+    if (p.stopped) return;
+    if (outcome.status !== "data") {
+      // Hold the last good frame and retry on the next tick, but say the read did not
+      // land — once per change, not once per cadence.
+      if (p.lastStatus === outcome.status) return;
+      p.lastStatus = outcome.status;
+      p.lastStatusFrame = `event: status\ndata: ${JSON.stringify({ status: outcome.status })}\n\n`;
+      broadcast(p, p.lastStatusFrame);
+      return;
+    }
+    const recovered = p.lastStatus === "absent" || p.lastStatus === "unavailable";
+    p.lastStatus = "data";
+    p.lastStatusFrame = null;
+    const json = JSON.stringify(outcome.data);
+    if (json === p.lastJson && !recovered) return;
     p.lastJson = json;
     p.lastFrame = `data: ${json}\n\n`;
     broadcast(p, p.lastFrame);
-  } catch {
-    // Transient upstream error — hold the last good frame and retry on the next tick.
   } finally {
     p.inFlight = false;
   }
@@ -97,7 +126,8 @@ export function subscribe(f: string, sub: Subscriber): () => void {
   if (!p) {
     const created: Producer = {
       subs: new Set(), poll: null, beat: null,
-      lastJson: null, lastFrame: null, inFlight: false, stopped: false,
+      lastJson: null, lastFrame: null, lastStatus: null, lastStatusFrame: null,
+      inFlight: false, stopped: false,
     };
     PRODUCERS.set(f, created);
     created.poll = setInterval(() => { void refresh(f, created); }, POLL_MS);
@@ -111,9 +141,10 @@ export function subscribe(f: string, sub: Subscriber): () => void {
   // Late subscriber: hand over the frame we already hold so it renders at once — no
   // first-paint wait, and no upstream read of its own. This is the replay the old
   // per-connection `await loadFlowFresh(f)` was paying for on every single connection.
-  if (p.lastFrame) {
-    sub(p.lastFrame);
-  } else if (!p.inFlight) {
+  // A failed or absent read since that frame follows it, so the joiner knows what it holds.
+  if (p.lastFrame) sub(p.lastFrame);
+  if (p.lastStatusFrame) sub(p.lastStatusFrame);
+  if (!p.lastFrame && !p.inFlight) {
     // Cold or previously-failed producer: nothing to replay. Kick a read so THIS subscriber
     // still gets a first paint on recovery rather than waiting up to a full POLL_MS cadence —
     // the overlap guard in refresh() makes this free when a read is already in flight (e.g.

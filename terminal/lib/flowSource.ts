@@ -1248,21 +1248,28 @@ async function readGenericUpstream(f: string): Promise<UpstreamOutcome> {
 }
 
 /**
- * Resolve a fresh, scored payload for `f` — fixture in dev, else live upstream.
+ * Resolve a fresh, scored payload for `f` — fixture in dev, else live upstream — and say
+ * what the read established: data, a proven absence, or a read that did not land.
  * No caching: callers (GET's SWR cache, the SSE poll loop) decide freshness.
- * Returns null when unavailable.
  */
-export async function loadFlowFresh(f: string): Promise<Record<string, unknown> | null> {
+export async function loadFlowFreshResult(f: string): Promise<UpstreamOutcome> {
   if (process.env.FLOW_FIXTURE === "1") {
     try {
       const data = await fixtureFor(f);
       attachFlowScores(f, data);
-      return data;
+      return { status: "data", data };
     } catch {
-      return null;
+      // The route answers 503 for a fixture that throws; the stream says the same.
+      return { status: "unavailable" };
     }
   }
-  const data = await tryFetchUpstream(f);
-  if (data) attachFlowScores(f, data);
-  return data;
+  const outcome = await tryFetchUpstreamResult(f);
+  if (outcome.status === "data") attachFlowScores(f, outcome.data);
+  return outcome;
+}
+
+/** loadFlowFreshResult's payload, or null for an absent or unread key. */
+export async function loadFlowFresh(f: string): Promise<Record<string, unknown> | null> {
+  const outcome = await loadFlowFreshResult(f);
+  return outcome.status === "data" ? outcome.data : null;
 }
