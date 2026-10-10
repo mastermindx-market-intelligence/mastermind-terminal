@@ -29,7 +29,7 @@ layoutFiles:
   terminal/components/gexdesk/MarketStateCard.tsx: "069c4a2f1a5f53e8f611e3231b78751948cc0264c8af6efd167f7b3e4902bbe2"
   terminal/components/gexdesk/StrikeLadder.tsx: "a8ff63f3e50b033828ce3b82ecd7b87e7e3bbd3f69f9a47716b3c276334d8934"
   terminal/components/gexdesk/gexStrings.ts: "7c60146790f218dc94c8f12f24bcda8657f15deb3664e5f666fbdc75416edc9b"
-  terminal/components/heatmap/HeatmapView.tsx: "814db62170e8377c8871e98c6804fe18e9f6b38b497c8820dd23af464c820d3e"
+  terminal/components/heatmap/HeatmapView.tsx: "3b3ab5049715a33f167e344d3013b8f880356e8b96077b38c9a517c57b7a54cb"
   terminal/lib/dataCache.ts: "bdc57d88c8387223b2e1cf5b11bb47c88782c9ee2fbfb8a468aab52876b8f116"
   terminal/components/levels/LevelsView.tsx: "91a4d6fd86b12225e657c8a9c4b2b185e3940356af3cd11466ca30e04f05b0c9"
   terminal/components/levels/levelsLabels.ts: "361124ec9293623fefe69128212f5a25bfddf2c3d716252126d56ec5f356d0d9"
@@ -278,3 +278,95 @@ files:
   - levels-unavailable-390.png
   - levels-unavailable-820-zh.png
   - levels-unavailable-820.png
+
+scopedRecaptures:
+  - surface: HeatmapView
+    capturedAtHead: f55a4ceef84c4eda5f46d4b95500f4cc4af9bf48
+    capturedAt: 2026-10-10T06:39:15.909Z
+    command: CAPTURE_ONLY='^heatmap-' UPDATE_HEATMAP_EVIDENCE=1 node e2e/tools/capture_gex_levels_heatmap_load_failure.cjs
+    sourceSha256: "a7160bf5eb6827ddc0c01e3b06db35c0f54b716c007f55576c60cd8f6dde7bb8"
+    cropSha256:
+      heatmap-absent-1440-zh.png: "6a3c43450ac299a8562c15fdecd289dd42a6cf75c473b817ec31555ad0cdda83"
+      heatmap-absent-1440.png: "51b8ed5591fbea455ecf84ba571a94c1617200e6121af9dff84b6df5d4ed9cc9"
+      heatmap-absent-390-zh.png: "e38c18cdfee782efc5f76a0cc12f62dfa1649f6f495ad60b7cbcd68b5d66c492"
+      heatmap-absent-390.png: "74b76683e79db6c80658c561996f36cae4ca319b81894ed24aa7d615cae83ede"
+      heatmap-absent-820-zh.png: "fd56b720ea3ac3a764ddb6299a7e9b64dc629041189bff33cd83bc741e7cf545"
+      heatmap-absent-820.png: "4c486d29a5ac06722db31534b39a1dc30ce7319da8cb0c5cf19685480d5d6229"
+      heatmap-retried-1440-zh.png: "8a205374994612cf4f8d3358c8d13089bbb205f8c45c3f087b5eba33ceb41812"
+      heatmap-retried-1440.png: "654f7552dd81af02b20312efbdce04a9777b15648ba5b8e52146032297d75e3e"
+      heatmap-retried-390-zh.png: "e260e7458dca8dcbfa8461f7d02f13aa6a89b4efac987051eafee8de9a833905"
+      heatmap-retried-390.png: "218370bb664fa3aa8524ca9e54ef8b69688abf42ae3eaba44c016da5c4fd5280"
+      heatmap-retried-820-zh.png: "2a62a410da21235e1003ecc564c540128a3399705eebf79fe725d53379e37c03"
+      heatmap-retried-820.png: "327650e37b6f861469916e4bf4fad03b3b5b87398fced3718ef3fe2499f86c08"
+      heatmap-unavailable-1440-zh.png: "dbac4df02d0922c6081ec3920280362ba1e68cb17ead9ec2719ba86d7d54c68a"
+      heatmap-unavailable-1440.png: "a2e896b564c6166937ba7ddbe545faa81145657c6b9572f0f9c3a5b9908a86e1"
+      heatmap-unavailable-390-zh.png: "000a5b6aaf61e9d2e124fc3b536de3dbd74f45e17180421826f083f0c61936af"
+      heatmap-unavailable-390.png: "0cfc83bbf1dbfc40081c3b429cac34eab58a5fd1f867e55484d7e974f904e2c9"
+      heatmap-unavailable-820-zh.png: "f7248994e9fb1d785df3b3a09e08272eaae1bc6c64cbb3977ccf27e46949e5c8"
+      heatmap-unavailable-820.png: "cd039b58c1e823924e5a0d8c1061f03c262cebb5ebdd7f8e6a0fcb142fe9d5ce"
+  - surface: HeatmapView
+    capturedAtHead: 3c3910577f41fb4f5ee41fea1a6af5d95df0ce58
+    capturedAt: 2026-10-10T07:02:39.170Z
+    command: CAPTURE_ONLY='^heatmap-' UPDATE_HEATMAP_EVIDENCE=1 node e2e/tools/capture_gex_levels_heatmap_load_failure.cjs
+    sourceSha256: "0986e9cc3452a506b1fff058826550c914cd52b54ec983307c32b66533bb150f"
+    cropSha256:
+      heatmap-absent-1440-zh.png: "6a3c43450ac299a8562c15fdecd289dd42a6cf75c473b817ec31555ad0cdda83"
+      heatmap-absent-1440.png: "51b8ed5591fbea455ecf84ba571a94c1617200e6121af9dff84b6df5d4ed9cc9"
+      heatmap-absent-390-zh.png: "cb197a569d504f266055e86b03d7bf27eea64a2cb87dcd44bfb84daeed8269dc"
+      heatmap-absent-390.png: "dc516974c51ebb734e0ef37c765164bb35cd711a5d4df48b01be87fe06bc263a"
+      heatmap-absent-820-zh.png: "b399a37a1f4c8e2523351c15c48d218c5a3f15fc273347efd6da02ba81243f65"
+      heatmap-absent-820.png: "4c486d29a5ac06722db31534b39a1dc30ce7319da8cb0c5cf19685480d5d6229"
+      heatmap-retried-1440-zh.png: "b14357af620670dae9409ee626a621eb0a8dcffabaf77cbfffaf57e0ec6f806c"
+      heatmap-retried-1440.png: "59c153ba4a1f381b10a89e667380a1a460a28f067ce0d9b4d3dadf608ee85283"
+      heatmap-retried-390-zh.png: "2c0892b280fb204d981c7f324e1a6aa79e6f5001d427e2b90ca94cfeaffc4618"
+      heatmap-retried-390.png: "218370bb664fa3aa8524ca9e54ef8b69688abf42ae3eaba44c016da5c4fd5280"
+      heatmap-retried-820-zh.png: "2a62a410da21235e1003ecc564c540128a3399705eebf79fe725d53379e37c03"
+      heatmap-retried-820.png: "327650e37b6f861469916e4bf4fad03b3b5b87398fced3718ef3fe2499f86c08"
+      heatmap-unavailable-1440-zh.png: "dbac4df02d0922c6081ec3920280362ba1e68cb17ead9ec2719ba86d7d54c68a"
+      heatmap-unavailable-1440.png: "a2e896b564c6166937ba7ddbe545faa81145657c6b9572f0f9c3a5b9908a86e1"
+      heatmap-unavailable-390-zh.png: "000a5b6aaf61e9d2e124fc3b536de3dbd74f45e17180421826f083f0c61936af"
+      heatmap-unavailable-390.png: "0cfc83bbf1dbfc40081c3b429cac34eab58a5fd1f867e55484d7e974f904e2c9"
+      heatmap-unavailable-820-zh.png: "f7248994e9fb1d785df3b3a09e08272eaae1bc6c64cbb3977ccf27e46949e5c8"
+      heatmap-unavailable-820.png: "cd039b58c1e823924e5a0d8c1061f03c262cebb5ebdd7f8e6a0fcb142fe9d5ce"
+  - surface: HeatmapView
+    capturedAtHead: cbd4a86cfb5b40b72f4c0072643b5535fe7bbe20
+    capturedAt: 2026-10-10T09:20:37.937Z
+    command: CAPTURE_ONLY='^heatmap-' UPDATE_HEATMAP_EVIDENCE=1 node e2e/tools/capture_gex_levels_heatmap_load_failure.cjs
+    sourceSha256: "3b3ab5049715a33f167e344d3013b8f880356e8b96077b38c9a517c57b7a54cb"
+    cropSha256:
+      heatmap-absent-1440-zh.png: "6a3c43450ac299a8562c15fdecd289dd42a6cf75c473b817ec31555ad0cdda83"
+      heatmap-absent-1440.png: "51b8ed5591fbea455ecf84ba571a94c1617200e6121af9dff84b6df5d4ed9cc9"
+      heatmap-absent-390-zh.png: "cb197a569d504f266055e86b03d7bf27eea64a2cb87dcd44bfb84daeed8269dc"
+      heatmap-absent-390.png: "dc516974c51ebb734e0ef37c765164bb35cd711a5d4df48b01be87fe06bc263a"
+      heatmap-absent-820-zh.png: "b399a37a1f4c8e2523351c15c48d218c5a3f15fc273347efd6da02ba81243f65"
+      heatmap-absent-820.png: "4c486d29a5ac06722db31534b39a1dc30ce7319da8cb0c5cf19685480d5d6229"
+      heatmap-persisted-refresh-failed-1440-zh.png: "9f18425dc283dc1540978708b276bafd6dee80773c92179b707a3a1610264dfb"
+      heatmap-persisted-refresh-failed-1440.png: "c2208806519498f942f3281751d052918256ec225fa25fe29e7c3ba6c2486960"
+      heatmap-persisted-refresh-failed-390-zh.png: "723b14822a00dc194b73c7281a1150f36e082f4fec5574ef5998125462a65a59"
+      heatmap-persisted-refresh-failed-390.png: "6abc41e81954d3481f4784ef9441ae2166360f1f5383950c4655255a782b2673"
+      heatmap-persisted-refresh-failed-820-zh.png: "77fb6a20c0b13d9f714931ceac76249bb708f7b5eb286721cc84f1cc5846e8df"
+      heatmap-persisted-refresh-failed-820.png: "36f3b9bfbe224891d1fb839d3c623c4fc9f99cf6f232bd01c37c753977ab6f83"
+      heatmap-persisted-refresh-refused-1440-zh.png: "9f18425dc283dc1540978708b276bafd6dee80773c92179b707a3a1610264dfb"
+      heatmap-persisted-refresh-refused-1440.png: "c2208806519498f942f3281751d052918256ec225fa25fe29e7c3ba6c2486960"
+      heatmap-persisted-refresh-refused-390-zh.png: "723b14822a00dc194b73c7281a1150f36e082f4fec5574ef5998125462a65a59"
+      heatmap-persisted-refresh-refused-390.png: "6abc41e81954d3481f4784ef9441ae2166360f1f5383950c4655255a782b2673"
+      heatmap-persisted-refresh-refused-820-zh.png: "77fb6a20c0b13d9f714931ceac76249bb708f7b5eb286721cc84f1cc5846e8df"
+      heatmap-persisted-refresh-refused-820.png: "36f3b9bfbe224891d1fb839d3c623c4fc9f99cf6f232bd01c37c753977ab6f83"
+      heatmap-persisted-retried-1440-zh.png: "b14357af620670dae9409ee626a621eb0a8dcffabaf77cbfffaf57e0ec6f806c"
+      heatmap-persisted-retried-1440.png: "59c153ba4a1f381b10a89e667380a1a460a28f067ce0d9b4d3dadf608ee85283"
+      heatmap-persisted-retried-390-zh.png: "e07427eddd3322a8015f4e5fa9f3fc39318c5e28eaeb26632c5f8c175f8f91ec"
+      heatmap-persisted-retried-390.png: "495aeaae5cb23b5fcabd4fcc42a02767e999c946df8221abe277f46b0a932176"
+      heatmap-persisted-retried-820-zh.png: "2a62a410da21235e1003ecc564c540128a3399705eebf79fe725d53379e37c03"
+      heatmap-persisted-retried-820.png: "327650e37b6f861469916e4bf4fad03b3b5b87398fced3718ef3fe2499f86c08"
+      heatmap-retried-1440-zh.png: "b14357af620670dae9409ee626a621eb0a8dcffabaf77cbfffaf57e0ec6f806c"
+      heatmap-retried-1440.png: "59c153ba4a1f381b10a89e667380a1a460a28f067ce0d9b4d3dadf608ee85283"
+      heatmap-retried-390-zh.png: "2c0892b280fb204d981c7f324e1a6aa79e6f5001d427e2b90ca94cfeaffc4618"
+      heatmap-retried-390.png: "218370bb664fa3aa8524ca9e54ef8b69688abf42ae3eaba44c016da5c4fd5280"
+      heatmap-retried-820-zh.png: "2a62a410da21235e1003ecc564c540128a3399705eebf79fe725d53379e37c03"
+      heatmap-retried-820.png: "327650e37b6f861469916e4bf4fad03b3b5b87398fced3718ef3fe2499f86c08"
+      heatmap-unavailable-1440-zh.png: "dbac4df02d0922c6081ec3920280362ba1e68cb17ead9ec2719ba86d7d54c68a"
+      heatmap-unavailable-1440.png: "a2e896b564c6166937ba7ddbe545faa81145657c6b9572f0f9c3a5b9908a86e1"
+      heatmap-unavailable-390-zh.png: "000a5b6aaf61e9d2e124fc3b536de3dbd74f45e17180421826f083f0c61936af"
+      heatmap-unavailable-390.png: "0cfc83bbf1dbfc40081c3b429cac34eab58a5fd1f867e55484d7e974f904e2c9"
+      heatmap-unavailable-820-zh.png: "f7248994e9fb1d785df3b3a09e08272eaae1bc6c64cbb3977ccf27e46949e5c8"
+      heatmap-unavailable-820.png: "cd039b58c1e823924e5a0d8c1061f03c262cebb5ebdd7f8e6a0fcb142fe9d5ce"
