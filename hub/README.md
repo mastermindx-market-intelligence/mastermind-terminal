@@ -19,6 +19,7 @@ loopback proxy.
     polygon.js
     store.js
     extfeed.js              ← extended/overnight equity prints (alpaca / webull / yahoo)
+    overnightHistory.js     ← historical 20:00–04:00 Alpaca BOATS bars for dossier studies
     macrofeed.js            ← macro quotes: sina near-live + yahoo-spark delayed (new 2026-07-27)
     quotes.js               ← symbol routing + /quotes response assembly (new 2026-07-27)
     log.js
@@ -151,6 +152,25 @@ When the official session close is known (daily file has rolled):
 
 The UI should show `close` as the primary price with a CLOSED badge, and `afterHours` as
 a secondary subtle "AH <price>" line when present.
+
+## Historical overnight bars
+
+Quote Hub also owns the selected-day historical BOATS lane used by Terminal's returns calendar:
+
+```
+GET /overnight-bars?symbol=AAPL&date=2026-10-14&tf=1h
+```
+
+The endpoint is loopback-only under the same Host-header defense as `/quotes`. It reuses
+`ALPACA_API_KEY` / `ALPACA_API_SECRET`; Terminal never receives those credentials. Responses
+carry `source: "alpaca-boats"`, a closed `status` vocabulary
+(`available | empty | not_configured | unavailable`), and bars in Terminal's ET
+**display-epoch** convention. The adapter requests exactly one ET wall date, filters defense-in-depth
+to 20:00–04:00, uses split adjustment, caps current-day history 15 minutes behind now, and keeps a
+60-second singleton cache.
+
+This endpoint supplements only the disjoint true-overnight window. The Massive/store intraday owner
+remains canonical for 04:00–20:00 and wins any unexpected timestamp overlap.
 
 ## Extended-hours feed (ext fields)
 
