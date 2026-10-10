@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { spawnSync } from "node:child_process";
 import { createHash } from "node:crypto";
 import { existsSync, readFileSync } from "node:fs";
-import { join } from "node:path";
+import { join, resolve } from "node:path";
 
 const REPO = join(__dirname, "../../..");
 const CROP_DIR = join(__dirname, "../../docs/pr-crops/b-f12-9-team-ownership-transfer");
@@ -62,9 +62,13 @@ function sha256Buf(buf: Buffer): string {
   return createHash("sha256").update(buf).digest("hex");
 }
 
-function git(args: string[]): { ok: boolean; stdout: Buffer } {
+function git(args: string[]): { ok: boolean; status: number | null; stdout: Buffer; failure: string } {
   const r = spawnSync("git", args, { cwd: REPO, maxBuffer: 20_000_000, timeout: 30_000 });
-  return { ok: (r.status ?? 1) === 0, stdout: (r.stdout as Buffer) || Buffer.alloc(0) };
+  const ok = (r.status ?? 1) === 0;
+  const stderr = ((r.stderr as Buffer) || Buffer.alloc(0)).toString("utf8").trim().replace(/\s*\n\s*/g, " | ");
+  // r.error reads "spawnSync git ETIMEDOUT" when the 30s timeout kills git.
+  const failure = ok ? "" : r.error ? r.error.message : `exit ${r.status ?? r.signal}: ${stderr}`;
+  return { ok, status: r.status, stdout: (r.stdout as Buffer) || Buffer.alloc(0), failure };
 }
 
 function commitExists(sha: string): boolean {
@@ -87,8 +91,42 @@ function commitParents(sha: string): string[] {
   return parents;
 }
 
-function isAncestorOrEqual(sha: string): boolean {
-  if (git(["merge-base", "--is-ancestor", sha, "HEAD"]).ok) return true;
+function commitTime(sha: string): number | null {
+  const r = git(["show", "-s", "--format=%ct", sha]);
+  const t = Number(r.stdout.toString("utf8").trim());
+  return r.ok && Number.isSafeInteger(t) && t > 0 ? t : null;
+}
+
+type Cut = { sha: string; time: number };
+
+// Shallow boundaries that cut HEAD's own history. A full clone has none, even
+// after fetchCommitOnce grafts a commit that HEAD never reaches.
+function headCuts(): Cut[] | null {
+  const at = git(["rev-parse", "--git-path", "shallow"]);
+  if (!at.ok) return null;
+  const file = resolve(REPO, at.stdout.toString("utf8").trim());
+  if (!existsSync(file)) return [];
+  const cuts: Cut[] = [];
+  for (const sha of readFileSync(file, "utf8").split("\n")) {
+    if (!/^[0-9a-f]{40}$/.test(sha) || !git(["merge-base", "--is-ancestor", sha, "HEAD"]).ok) continue;
+    const time = commitTime(sha);
+    if (time === null) return null;
+    cuts.push({ sha, time });
+  }
+  return cuts;
+}
+
+const DAY = 86_400;
+
+function iso(t: number): string {
+  return new Date(t * 1000).toISOString();
+}
+
+type Ancestry = { verdict: "ancestor" | "not-ancestor" | "unknown"; detail: string };
+
+function ancestryOf(sha: string): Ancestry {
+  const first = git(["merge-base", "--is-ancestor", sha, "HEAD"]);
+  if (first.ok) return { verdict: "ancestor", detail: "merge-base" };
   // GitHub's pull_request checkout is fetch-depth 2 of the merge commit
   // (HEAD = merge, parents = base + PR tip). capturedAtHead is the PR
   // tip's parent by the B1 crops-follow-code flow, so it sits behind
@@ -98,9 +136,10 @@ function isAncestorOrEqual(sha: string): boolean {
   // still name that hop. Walk those headers (no second fetch). A sha
   // that is not on HEAD's parent chain still fails.
   const head = git(["rev-parse", "HEAD"]);
-  if (!head.ok) return false;
+  if (!head.ok) return { verdict: "unknown", detail: `git rev-parse HEAD: ${head.failure}` };
   const headSha = head.stdout.toString("utf8").trim();
-  if (headSha === sha) return true;
+  if (headSha === sha) return { verdict: "ancestor", detail: "HEAD itself" };
+  const walked: Ancestry = { verdict: "ancestor", detail: "a parent line in HEAD's commit headers" };
   const seen = new Set<string>();
   let frontier = [headSha];
   for (let hops = 0; hops < 6 && frontier.length > 0; hops += 1) {
@@ -108,20 +147,60 @@ function isAncestorOrEqual(sha: string): boolean {
     for (const c of frontier) {
       if (seen.has(c)) continue;
       seen.add(c);
-      if (c === sha) return true;
+      if (c === sha) return walked;
       for (const p of commitParents(c)) {
-        if (p === sha) return true;
+        if (p === sha) return walked;
         if (!seen.has(p) && commitExists(p)) next.push(p);
       }
     }
     frontier = next;
   }
+  if (first.status !== 1) return { verdict: "unknown", detail: `git merge-base: ${first.failure}` };
   // A squash merge lands the packet's bytes on a brand-new master commit, so
-  // capturedAtHead can sit more than two hops behind HEAD. CI checks out with
-  // fetch-depth 2, so neither merge-base nor the header walk above can reach
-  // it. Deepen the shallow history once, then re-ask merge-base before failing.
-  git(["fetch", "--deepen=64", "origin"]);
-  return git(["merge-base", "--is-ancestor", sha, "HEAD"]).ok;
+  // capturedAtHead can sit more than two hops behind HEAD, beyond a
+  // fetch-depth 2 checkout. An ancestor cannot hide behind a shallow cut more
+  // than a day older than itself (a day of committer clock skew), so
+  // merge-base's "no" stands when every cut under HEAD is that old; a full
+  // clone has none. Otherwise fetch HEAD's parents back to two days before
+  // capturedAtHead and ask again. Never a bare `git fetch --deepen=N origin`:
+  // in CI that follows the `+refs/heads/*` refspec into every remote branch
+  // (~385) and hit the 30s timeout. A fetch that fails is "unknown", never
+  // "not an ancestor".
+  const shaTime = commitTime(sha);
+  const cuts = headCuts();
+  if (shaTime === null || cuts === null) return { verdict: "unknown", detail: "git cannot date the shallow cuts under HEAD" };
+  if (cuts.every((c) => c.time < shaTime - DAY)) {
+    const local = cuts.length === 0 ? "HEAD's whole history is local" : `HEAD's history is unbroken back to ${iso(Math.max(...cuts.map((c) => c.time)))}`;
+    return { verdict: "not-ancestor", detail: local };
+  }
+  const since = shaTime - 2 * DAY;
+  const present = commitParents(headSha).filter(commitExists);
+  const wants = present.length > 0 ? present : [headSha];
+  // --shallow-since also cuts: every commit on its horizon becomes a shallow
+  // boundary. Fetch only if no local history under a want already reaches
+  // past that horizon, so the fetch can only add history. A want that is
+  // itself a cut (CI's fetch-depth 2) has no local history under it.
+  for (const w of wants) {
+    if (cuts.some((c) => c.sha === w)) continue;
+    const older = git(["rev-list", "-1", `--before=${since}`, w]);
+    if (!older.ok || older.stdout.length > 0) {
+      return { verdict: "unknown", detail: `local history under ${w} reaches past ${iso(since)}; a --shallow-since fetch would cut it` };
+    }
+  }
+  const fetched = git(["fetch", "--no-tags", `--shallow-since=${since}`, "origin", ...wants]);
+  if (!fetched.ok) {
+    return { verdict: "unknown", detail: `git fetch --shallow-since=${since} origin ${wants.join(" ")}: ${fetched.failure}` };
+  }
+  const again = git(["merge-base", "--is-ancestor", sha, "HEAD"]);
+  if (again.ok) return { verdict: "ancestor", detail: `merge-base after fetching back to ${iso(since)}` };
+  if (again.status !== 1) return { verdict: "unknown", detail: `git merge-base: ${again.failure}` };
+  // The horizon is not a clean line: a merge whose other parent predates it
+  // is cut whole, mainline parent included.
+  const after = headCuts();
+  if (after === null) return { verdict: "unknown", detail: "git cannot date the shallow cuts under HEAD" };
+  const hiding = after.find((c) => c.time >= shaTime - DAY);
+  if (hiding) return { verdict: "unknown", detail: `HEAD's history is still cut at ${hiding.sha} (${iso(hiding.time)})` };
+  return { verdict: "not-ancestor", detail: `not on HEAD's history back to ${iso(since)}` };
 }
 
 function blobAt(sha: string, rel: string): Buffer | null {
@@ -162,7 +241,13 @@ describe("B-F12-9 evidence lock is the sha256 of the layout sources", () => {
       commitExists(sha),
       `capturedAtHead ${sha} is not a commit reachable from origin — recapture and record the real code commit`,
     ).toBe(true);
-    expect(isAncestorOrEqual(sha), `capturedAtHead ${sha} is not an ancestor-or-equal of HEAD`).toBe(true);
+    const ancestry = ancestryOf(sha);
+    expect(
+      ancestry.verdict,
+      ancestry.verdict === "unknown"
+        ? `cannot tell whether capturedAtHead ${sha} is an ancestor-or-equal of HEAD: ${ancestry.detail}`
+        : `capturedAtHead ${sha} is not an ancestor-or-equal of HEAD (${ancestry.detail})`,
+    ).toBe("ancestor");
     for (const [rel, expected] of Object.entries(recorded)) {
       const blob = blobAt(sha, rel);
       expect(blob, `git cannot read ${rel} at capturedAtHead ${sha}`).not.toBeNull();
