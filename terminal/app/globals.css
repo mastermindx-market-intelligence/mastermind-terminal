@@ -1,4 +1,9 @@
 @import "tailwindcss";
+/* public/data is the generated market-data cache (~89k files, 6.1 GB on the VPS), not source.
+   Tailwind reads every file no ignore rule excludes, and no committed ignore file covers
+   public/data, so the deploy build scanned all of it inside this file's PostCSS step. That
+   step can then outlast Turbopack's 5-minute worker deadline and panic `next build`. */
+@source not "../public/data";
 
 /* ===== Mastermind Terminal design system (locked v5) ===== */
 :root{
