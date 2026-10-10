@@ -3,11 +3,18 @@ import { readFileSync } from "node:fs";
 import {
   buildProofTitle,
   checkStorageState,
+  admitOtherStorageState,
   detailFromResponse,
+  describeNegativeCaseReason,
   exitCodeFor,
+  negativeCaseExitRequired,
+  negativeCaseListExcludes,
+  negativeCaseOutcome,
+  notFoundHeadingMatches,
   redactReceipt,
   releaseFromHtml,
   thesisIdFromUrl,
+  validateNegativeCaseReceipt,
   validateReceipt,
   validateSignedInReceipt,
   validateVersions,
@@ -17,6 +24,8 @@ import {
 
 const root = "/terminal";
 const release = "a".repeat(40);
+const proverUrl = new URL("../../e2e/tools/prove-thesis-journey-live.mjs", import.meta.url);
+const proverSource = readFileSync(proverUrl, "utf8");
 
 function baseReceipt() {
   return {
@@ -48,6 +57,19 @@ describe("redactReceipt", () => {
     const input = receipt({
       thesisId: "123e4567-e89b-42d3-a456-426614174000",
       longStatement: "Ordinary evidence can be long without becoming a credential.",
+    });
+    expect(redactReceipt(input)).toEqual(input);
+  });
+
+  it("preserves every documented Phase C reason and result field", () => {
+    const phaseC = {
+      ran: false,
+      route: "none",
+      reason: "other_state_invalid",
+    };
+    const input = receipt({
+      phaseC,
+      reasons: ["no_other_state", "other_state_invalid", "phase_b_not_run", "phase_c_error"],
     });
     expect(redactReceipt(input)).toEqual(input);
   });
@@ -182,8 +204,7 @@ describe("exit codes", () => {
 });
 
 describe("archive failure safety", () => {
-  const proverUrl = new URL("../../e2e/tools/prove-thesis-journey-live.mjs", import.meta.url);
-  const source = readFileSync(proverUrl, "utf8");
+  const source = proverSource;
 
   it("archival takes the URL-derived thesis id directly instead of parsing it as a URL", async () => {
     expect(source).toContain("async function archiveBestEffort(request, thesisId)");
@@ -394,8 +415,278 @@ describe("signedReceiptFor", () => {
     expect(() => signedReceiptFor(phaseA, undefined, meta)).toThrow(TypeError);
   });
 
+  it("keeps accepting a Phase-B-only receipt and a receipt carrying a valid Phase C block", () => {
+    const phaseBOnly = signedReceiptFor(phaseA, phaseB, meta);
+    const withPhaseC = { ...phaseBOnly, phaseC: {
+      ran: true,
+      route: "operator_url",
+      read: 404,
+      revise: 404,
+      archive: 404,
+      listExcludes: true,
+      uiNotFound: true,
+      browserErrorCount: 0,
+      ok: true,
+      leak: false,
+    } };
+    expect(validateSignedInReceipt(phaseBOnly)).toBe(true);
+    expect(validateSignedInReceipt(withPhaseC)).toBe(true);
+  });
+
   it("produces a receipt validateSignedInReceipt accepts, and one it rejects when Phase B saw a browser error", () => {
     expect(validateSignedInReceipt(signedReceiptFor(phaseA, phaseB, meta))).toBe(true);
     expect(validateSignedInReceipt(signedReceiptFor(phaseA, { ...phaseB, browserErrorCount: 1 }, meta))).toBe(false);
+  });
+});
+
+describe("negative-case helpers", () => {
+  it("admits only a different, unblocked other-account state", () => {
+    expect(admitOtherStorageState({
+      path: "/terminal/e2e/.live-state/other.json",
+      blockedReason: null,
+      samePath: false,
+    })).toEqual({ run: true, reason: null });
+    expect(admitOtherStorageState({ path: "", blockedReason: null, samePath: false })).toEqual({
+      run: false,
+      reason: "no_other_state",
+    });
+    expect(admitOtherStorageState({
+      path: "/terminal/e2e/.live-state/other.json",
+      blockedReason: "The other account's storage state is malformed.",
+      samePath: false,
+    })).toEqual({ run: false, reason: "other_state_invalid" });
+    expect(admitOtherStorageState({
+      path: "/terminal/e2e/.live-state/other.json",
+      blockedReason: null,
+      samePath: true,
+    })).toEqual({ run: false, reason: "other_state_invalid" });
+  });
+
+  it("requires an assertion exit for the emitted internal-error shape and every failed run", () => {
+    expect(negativeCaseExitRequired({ ran: false, route: "none", reason: "phase_c_error" })).toBe(true);
+    expect(negativeCaseExitRequired({ ran: true, ok: false, browserErrorCount: 0 })).toBe(true);
+    expect(negativeCaseExitRequired({ ran: true, ok: true, browserErrorCount: 1 })).toBe(true);
+    for (const reason of ["no_other_state", "other_state_invalid", "phase_b_not_run"]) {
+      expect(negativeCaseExitRequired({ ran: false, reason })).toBe(false);
+    }
+  });
+
+  it("accepts both product not-found headings and no substitute text", () => {
+    expect(notFoundHeadingMatches("Thesis not found")).toBe(true);
+    expect(notFoundHeadingMatches("  未找到论点  ")).toBe(true);
+    expect(notFoundHeadingMatches("Not found")).toBe(false);
+  });
+
+  it("describes every documented reason with a plain sentence", () => {
+    const reasons = ["no_other_state", "other_state_invalid", "phase_b_not_run", "phase_c_error"] as const;
+    for (const reason of reasons) {
+      expect(describeNegativeCaseReason(reason)).toMatch(/[.]$/);
+    }
+  });
+});
+
+describe("negativeCaseOutcome", () => {
+  const all404 = { read: 404, revise: 404, archive: 404, listExcludes: true, uiNotFound: true };
+
+  it("ok when all five outcomes are correct (all-404, list excludes, UI not-found)", () => {
+    const result = negativeCaseOutcome(all404);
+    expect(result.ok).toBe(true);
+    expect(result.leak).toBe(false);
+  });
+
+  it("leak when revise returns 409 (existence leak)", () => {
+    const result = negativeCaseOutcome({ ...all404, revise: 409 });
+    expect(result.leak).toBe(true);
+    expect(result.ok).toBe(false);
+  });
+
+  it("leak when read returns 200 (existence confirmed)", () => {
+    const result = negativeCaseOutcome({ ...all404, read: 200 });
+    expect(result.leak).toBe(true);
+    expect(result.ok).toBe(false);
+  });
+
+  it("leak when archive returns 201 (accepted — existence confirmed)", () => {
+    const result = negativeCaseOutcome({ ...all404, archive: 201 });
+    expect(result.leak).toBe(true);
+    expect(result.ok).toBe(false);
+  });
+
+  it("not ok when list includes the thesisId (listExcludes = false)", () => {
+    const result = negativeCaseOutcome({ ...all404, listExcludes: false });
+    expect(result.ok).toBe(false);
+    expect(result.leak).toBe(false);
+  });
+
+  it("not ok when UI does not show the not-found state (uiNotFound = false)", () => {
+    const result = negativeCaseOutcome({ ...all404, uiNotFound: false });
+    expect(result.ok).toBe(false);
+    expect(result.leak).toBe(false);
+  });
+
+  it("not a leak when revise returns 400 (validation error, not existence)", () => {
+    const result = negativeCaseOutcome({ ...all404, revise: 400 });
+    expect(result.leak).toBe(false);
+    expect(result.ok).toBe(false);
+  });
+});
+
+describe("negative-case statuses", () => {
+  const all404 = { read: 404, revise: 404, archive: 404, listExcludes: true, uiNotFound: true };
+
+  it("marks 500 and 403 as not proven without calling them leaks", () => {
+    expect(negativeCaseOutcome({ ...all404, read: 500, revise: 403 })).toEqual({ ok: false, leak: false });
+  });
+
+  it("accepts an honest leak receipt as evidence and rejects a contradictory leak field", () => {
+    const phaseC = {
+      ran: true,
+      route: "operator_url",
+      read: 404,
+      revise: 409,
+      archive: 404,
+      listExcludes: true,
+      uiNotFound: true,
+      browserErrorCount: 0,
+      ok: false,
+      leak: true,
+    };
+    expect(validateNegativeCaseReceipt(receipt({ phaseC }))).toBe(true);
+    expect(validateNegativeCaseReceipt(receipt({ phaseC: { ...phaseC, leak: false } }))).toBe(false);
+  });
+});
+
+describe("validateNegativeCaseReceipt", () => {
+  const base = receipt();
+  const validPhaseC = {
+    ran: true,
+    route: "operator_url",
+    read: 404,
+    revise: 404,
+    archive: 404,
+    listExcludes: true,
+    uiNotFound: true,
+    browserErrorCount: 0,
+    ok: true,
+    leak: false,
+  };
+
+  it("accepts the documented internal-error reason", () => {
+    expect(validateNegativeCaseReceipt({
+      ...base,
+      phaseC: { ran: false, route: "none", reason: "phase_c_error" },
+    })).toBe(true);
+  });
+
+  it("rejects fractional, negative, NaN, and string status counts", () => {
+    for (const status of ["404", NaN, -1, 1.5]) {
+      expect(validateNegativeCaseReceipt({ ...base, phaseC: { ...validPhaseC, read: status } })).toBe(false);
+      expect(validateNegativeCaseReceipt({ ...base, phaseC: { ...validPhaseC, browserErrorCount: status } })).toBe(false);
+    }
+  });
+
+  it("accepts a receipt with no phaseC block (Phase-B-only receipt)", () => {
+    expect(validateNegativeCaseReceipt(base)).toBe(true);
+  });
+
+  it("accepts a receipt with phaseC.ran === false", () => {
+    expect(validateNegativeCaseReceipt({ ...base, phaseC: { ran: false, route: "none", reason: "no_other_state" } })).toBe(true);
+  });
+
+  it("accepts a valid ran:true block with all-404 outcomes", () => {
+    const valid = {
+      ...base,
+      phaseC: {
+        ran: true,
+        route: "operator_url",
+        read: 404,
+        revise: 404,
+        archive: 404,
+        listExcludes: true,
+        uiNotFound: true,
+        browserErrorCount: 0,
+        ok: true,
+        leak: false,
+      },
+    };
+    expect(validateNegativeCaseReceipt(valid)).toBe(true);
+  });
+
+  it("rejects when ok contradicts the statuses (ok:true but revise is 409 — a leak)", () => {
+    const bad = {
+      ...base,
+      phaseC: {
+        ran: true,
+        route: "operator_url",
+        read: 404,
+        revise: 409,
+        archive: 404,
+        listExcludes: true,
+        uiNotFound: true,
+        browserErrorCount: 0,
+        ok: true,
+        leak: false, // wrong: a 409 leak makes ok and leak false and true respectively
+      },
+    };
+    expect(validateNegativeCaseReceipt(bad)).toBe(false);
+  });
+
+  it("rejects when read is 200 but ok is claimed true", () => {
+    const bad = {
+      ...base,
+      phaseC: {
+        ran: true,
+        route: "operator_url",
+        read: 200,
+        revise: 404,
+        archive: 404,
+        listExcludes: true,
+        uiNotFound: true,
+        browserErrorCount: 0,
+        ok: true,
+        leak: false,
+      },
+    };
+    expect(validateNegativeCaseReceipt(bad)).toBe(false);
+  });
+
+  it("rejects when phaseC.ran is a non-boolean truthy value", () => {
+    const bad = { ...base, phaseC: { ran: "true" } };
+    expect(validateNegativeCaseReceipt(bad)).toBe(false);
+  });
+
+  it("rejects when browserErrorCount or listExcludes have wrong types", () => {
+    const bad = {
+      ...base,
+      phaseC: {
+        ran: true,
+        route: "operator_url",
+        read: 404,
+        revise: 404,
+        archive: 404,
+        listExcludes: "false",
+        uiNotFound: true,
+        browserErrorCount: "0",
+        ok: false,
+        leak: false,
+      },
+    };
+    expect(validateNegativeCaseReceipt(bad)).toBe(false);
+  });
+
+  it("fails closed for a successful list body that is not shaped like a thesis page", () => {
+    const thesisId = "123e4567-e89b-42d3-a456-426614174000";
+    expect(negativeCaseListExcludes({ theses: [] }, thesisId)).toBe(true);
+    expect(negativeCaseListExcludes({ theses: [{ id: thesisId }] }, thesisId)).toBe(false);
+    expect(negativeCaseListExcludes(null, thesisId)).toBe(false);
+    expect(negativeCaseListExcludes({ items: [] }, thesisId)).toBe(false);
+  });
+
+  it("keeps the prover exit decision after the signed receipt is written", () => {
+    const receiptWrite = proverSource.indexOf("writeFileSync(join(liveStateDir, \"receipt-signed-in.json\")");
+    const phaseCExit = proverSource.indexOf("negativeCaseExitRequired(signedReceipt.phaseC)");
+    expect(receiptWrite).toBeGreaterThanOrEqual(0);
+    expect(phaseCExit).toBeGreaterThan(receiptWrite);
+    expect(proverSource).not.toContain("if (phaseCBrowserErrorCount !== 0) assertion();");
   });
 });
