@@ -1,3 +1,5 @@
+import styles from "./fin/StockIntelligence.module.css"
+
 interface Half {
   label: string;
   color: string;
@@ -41,22 +43,16 @@ export default function SignalButton({ oracle, desk, oracleLabel, deskLabel, vie
     (oracle.stance ? " sig-btn-stance" : oracle.soft ? " sig-btn-soft" : oracle.dim ? " sig-btn-stale" : "") +
     (oracle.blocked ? " sig-btn-blocked" : "");
   return (
-    <button className="sig-btn" onClick={onView} title={title}>
+    <button type="button" className={`sig-btn ${styles.launcher}`} onClick={onView} title={title} aria-haspopup="dialog" aria-label={`${oracleLabel}: ${oracle.label}. ${deskLabel}: ${desk.label}. ${viewLabel}`}>
       <span className={oracleCls} style={{ ["--vc" as any]: oracle.color }}>
         <svg viewBox="0 0 24 24" aria-hidden="true">
           <path d="M12 2l2.2 5.8L20 10l-5.8 2.2L12 18l-2.2-5.8L4 10l5.8-2.2z" fill="var(--vc)" />
         </svg>
         <span className="sig-btn-lbl">{oracleLabel}</span>
-        {/* sub always renders (nbsp placeholder) for visual balance. NOTE: the seam span
-            below must stay BETWEEN the two halves — it is the zero-height anchor the View
-            pill centers on, so reordering children silently breaks its placement. */}
         <span className="sig-btn-vwrap">
           <span className="sig-btn-vd">{oracle.label}</span>
           <span className="sig-btn-sub">{oracle.sub || " "}</span>
         </span>
-      </span>
-      <span className="sig-btn-seam">
-        <span className="sig-btn-view">{viewLabel}</span>
       </span>
       <span className={"sig-btn-half sig-btn-rd" + (desk.dim ? " sig-btn-stale" : "")} style={{ ["--vc" as any]: desk.color }}>
         <svg viewBox="0 0 24 24" fill="none" stroke="var(--vc)" strokeWidth={2} aria-hidden="true">
@@ -68,6 +64,7 @@ export default function SignalButton({ oracle, desk, oracleLabel, deskLabel, vie
           <span className="sig-btn-sub">{desk.sub || " "}</span>
         </span>
       </span>
+      <span className={styles.launcherAction}>{viewLabel}<span aria-hidden="true">↗</span></span>
     </button>
   );
 }
