@@ -1,9 +1,10 @@
 # Volatility tab failure-state truth — capture evidence
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
 # Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
-# capturedAtHead: 392f563bbe894356c761007d13a1207e45ae0422
-# capturedAt: 2026-10-09T08:25:16.208Z
+# capturedAtHead: 59fc7ca283e40ec9ea9a224e9ee912753f788f98
+# capturedAt: 2026-10-10T01:48:50.578Z
 # capturedAtHead is informational. The lock is layoutFiles.
+# 2026-10-10 recapture: all 48 crops recaptured at the head above by e2e/tools/capture_vol_load_failure.cjs, run unmodified, and compared with the 2026-10-09 crops: all 48 are byte-identical. No layoutFiles row changed.
 layoutFiles:
   terminal/components/vol/VolView.tsx: "b5a9338761847fd1596d65140c30e6b2e7c3de848f5fde5f180fdec4e250e925"
   terminal/components/vol/VolVrpPanel.tsx: "8361849dfc7ad7a45f801b8aa66022c618e667a6ff113ef9e36064fa330a8cf5"
