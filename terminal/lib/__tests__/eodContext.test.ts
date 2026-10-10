@@ -5,11 +5,8 @@
 //     misses the backend, misses R2, returns null, and renders as an empty cell that is
 //     indistinguishable from "macro hasn't published this". So every new form's backend
 //     path and R2 key is pinned, and the near-miss pairs are asserted not to collide.
-//  2. LEAN PARITY. The dark-pool lean is a VERBATIM port of macro's published classifier
-//     (engine/darkpool_context.py) because the mirrored artifact ships the inputs but not
-//     the label. A drift here means the two estates call the same footprint different
-//     names, which is worse than no label — so every threshold is pinned on both sides of
-//     its boundary, including the precedence between "building" and "fading".
+//  2. SOURCE PARITY. Consume the versioned Macro fields and source-issued patterns.
+//     Never manufacture accumulation/distribution from short-marked volume.
 //  3. ABSENT-STATE COLLAPSE. "not covered by the panel", "the artifact is missing" and
 //     "covered but nothing unusual" are three different facts. The whole honesty case for
 //     this belt is that they never collapse into one empty box, so each is asserted to
@@ -18,6 +15,10 @@
 //     what makes it honest. Two stores can run different sessions, so cells must carry
 //     their OWN source's date, and a bare YYYY-MM-DD must not lose a day to a timezone.
 import { describe, it, expect } from "vitest";
+import { createHash } from "crypto";
+import { createElement } from "react";
+import { renderToStaticMarkup } from "react-dom/server";
+import { DarkPoolMini } from "@/components/eodcontext/DarkPoolMini";
 import { promises as fs } from "fs";
 import path from "path";
 import { isValidF, backendPath, r2Key, fixtureFor } from "@/lib/flowSource";
@@ -54,16 +55,16 @@ const dataFile = (n: string) => path.join(process.cwd(), "public", "data", n);
 const loadJson = async <T>(n: string): Promise<T> =>
   JSON.parse(await fs.readFile(dataFile(n), "utf8")) as T;
 
-/** A standout row that is neither building nor fading — the "unusual" baseline. */
+/** A dated v2 source observation, not a locally inferred direction. */
 const baseRow = (over: Partial<DarkPoolRow> = {}): DarkPoolRow => ({
-  ticker: "TEST",
-  asof: "2026-07-24",
-  oe_z: 2.0,
-  oe_share: 0.55,
-  trend_pp: 0,
-  ratio_z: 0,
-  n_days: 42,
+  ticker: "TEST", asof: "2026-10-08", session_status: "current",
+  participation_z: 2, participation: 0.55, short_trend_pp: 0, short_rate_z: 0,
+  price_change_pct: 0, pattern: "heavy_price_flat", n_usable: 42,
   ...over,
+});
+const v2Payload = (row: DarkPoolRow): DarkPoolEodPayload => ({
+  schema: "darkpool_eod.v2", tier: "eod", source: "finra_facilities",
+  asof: "2026-10-08", universe: [row],
 });
 
 // ─── 1. Routing ───────────────────────────────────────────────────────────────
@@ -137,21 +138,20 @@ describe("routing — R2 key", () => {
 describe("fixtures — the belt's dev data plane", () => {
   it("darkpool fixture parses as the mirrored schema", async () => {
     const dp = await loadJson<DarkPoolEodPayload>("darkpool_fixture.json");
-    expect(dp.schema).toBe("darkpool_eod.v1");
+    expect(dp.schema).toBe("darkpool_eod.v2");
     expect(dp.tier).toBe("eod");
     expect(Array.isArray(dp.universe)).toBe(true);
     expect(dp.universe!.length).toBeGreaterThan(0);
   });
 
-  it("darkpool fixture exercises EVERY lean branch plus the quiet one", async () => {
-    // A fixture that only ever produces one state cannot show a developer the branch they
-    // are about to break — the four states have to be reachable without a network.
+  it("darkpool fixture exercises source patterns and non-standouts", async () => {
     const dp = await loadJson<DarkPoolEodPayload>("darkpool_fixture.json");
-    const leans = new Set(dp.universe!.map((r) => darkPoolLean(r)));
-    expect(leans).toContain("accumulation");
-    expect(leans).toContain("distribution");
-    expect(leans).toContain("unusual");
-    expect(leans).toContain(null); // covered, but not a standout
+    const patterns = new Set(dp.universe!.map((r) => r.pattern));
+    expect(patterns).toContain("heavy_into_weakness");
+    expect(patterns).toContain("heavy_into_strength");
+    expect(patterns).toContain("heavy_price_flat");
+    const tags = new Set(dp.universe!.map((r) => darkPoolRead(dp, r.ticker).lean));
+    expect(tags).toEqual(new Set(["unusual", null]));
   });
 
   it("volregime fixture carries a renderable game_plan in BOTH languages", async () => {
@@ -172,7 +172,7 @@ describe("fixtures — the belt's dev data plane", () => {
   });
 
   it("fixtureFor serves each new form", async () => {
-    expect((await fixtureFor("darkpool")).schema).toBe("darkpool_eod.v1");
+    expect((await fixtureFor("darkpool")).schema).toBe("darkpool_eod.v2");
     expect((await fixtureFor("volregime")).schema).toBe("vol_regime.v1");
     expect((await fixtureFor("moves:SPY")).root).toBe("SPY");
   });
@@ -213,8 +213,8 @@ describe("fixtures — the belt's dev data plane", () => {
 
 // ─── 3. Dark-pool lean parity with macro's published classifier ───────────────
 
-describe("dark-pool lean — thresholds match macro's published rule", () => {
-  it("pins the constants to macro engine/darkpool_context.py", () => {
+describe("off-exchange v2 consumer — source observations, never inferred direction", () => {
+  it("retains Macro's existing display gates", () => {
     expect(DP_STANDOUT_Z).toBe(1.5);
     expect(DP_STANDOUT_OE).toBe(0.4);
     expect(DP_ACC_TREND).toBe(-2.0);
@@ -223,93 +223,212 @@ describe("dark-pool lean — thresholds match macro's published rule", () => {
     expect(DP_DIS_RZ).toBe(1.0);
   });
 
-  it("requires BOTH standout gates", () => {
-    expect(darkPoolLean(baseRow({ oe_z: 1.49 }))).toBeNull();          // z below
-    expect(darkPoolLean(baseRow({ oe_share: 0.399 }))).toBeNull();     // share below
-    expect(darkPoolLean(baseRow({ oe_z: 1.5, oe_share: 0.4 }))).toBe("unusual"); // both at
-  });
-
-  it("never tags a name without enough history to have a z", () => {
-    // Honest-null, not forced: macro refuses to classify these and so must the Terminal.
-    expect(darkPoolLean(baseRow({ oe_z: null }))).toBeNull();
-    expect(darkPoolLean(baseRow({ oe_share: null }))).toBeNull();
+  it("requires both gates and the source-issued price conjunction", () => {
+    expect(darkPoolLean(baseRow({ participation_z: 1.49 }))).toBeNull();
+    expect(darkPoolLean(baseRow({ participation: 0.399 }))).toBeNull();
+    expect(darkPoolLean(baseRow({ participation_z: 1.5, participation: 0.4 }))).toBe("unusual");
+    expect(darkPoolLean(baseRow({ pattern: null }))).toBeNull();
+    expect(darkPoolLean(baseRow({ pattern: "accumulation" }))).toBeNull();
+    expect(darkPoolLean(baseRow({ price_change_pct: null }))).toBeNull();
     expect(darkPoolLean(null)).toBeNull();
   });
 
-  it("reads short-marking BUILDING as distribution", () => {
-    expect(darkPoolLean(baseRow({ trend_pp: 4.0 }))).toBe("distribution");
-    expect(darkPoolLean(baseRow({ trend_pp: 3.9 }))).toBe("unusual");
-    expect(darkPoolLean(baseRow({ trend_pp: 0, ratio_z: 1.0 }))).toBe("distribution");
+  it.each([-99, 0, 99])("short-marking change %s never creates direction", (change) => {
+    const read = darkPoolRead(v2Payload(baseRow({
+      short_trend_pp: change, short_rate_z: change, trend_pp: change, ratio_z: change,
+    })), "TEST");
+    expect(read.lean).toBe("unusual");
+    expect(read.pattern).toBe("heavy_price_flat");
   });
 
-  it("reads short-marking FADING as accumulation", () => {
-    expect(darkPoolLean(baseRow({ trend_pp: -2.0 }))).toBe("accumulation");
-    expect(darkPoolLean(baseRow({ trend_pp: -1.9 }))).toBe("unusual");
-    expect(darkPoolLean(baseRow({ trend_pp: 0, ratio_z: -0.75 }))).toBe("accumulation");
+  it("matches the frozen full Macro artifact, including all 275 current rows", async () => {
+    // Exact public producer bytes: macro@7bf322e8925b90e7986b0b2b0a4e14e6a43f8b90
+    // site/darkpool_eod.json. This is a dated fixture, not a live feed assertion.
+    const raw = await fs.readFile(dataFile("darkpool_fixture.json"));
+    const digest = createHash("sha1").update(`blob ${raw.length}\0`).update(raw).digest("hex");
+    expect(digest).toBe("bec8d5310e640f4e6804d8743349de091ac455ff");
+    const dp = JSON.parse(raw.toString("utf8")) as DarkPoolEodPayload;
+    expect(dp.universe).toHaveLength(275);
+    expect(dp.historical_rows).toHaveLength(97);
+    const tagged: string[] = [];
+    for (const row of dp.universe!) {
+      const read = darkPoolRead(dp, row.ticker);
+      expect(read.state, row.ticker).toBe("available");
+      expect(read.oeSharePct, row.ticker).toBeCloseTo(row.participation! * 100, 8);
+      expect(read.oeZ, row.ticker).toBe(row.participation_z);
+      expect(read.nDays, row.ticker).toBe(row.n_usable);
+      expect(read.asof, row.ticker).toBe("2026-10-08");
+      expect([null, "unusual"]).toContain(read.lean);
+      if (read.lean) tagged.push(row.ticker);
+    }
+    expect(tagged.sort()).toEqual([
+      "AMGN", "ASO", "BBY", "BKNG", "CGNX", "CIEN", "CME", "COHR", "DDOG",
+      "DE", "DELL", "ETN", "GEV", "HL", "KEY", "MPC", "MRVL", "NOVT", "NVR",
+      "PHM", "PSX", "PTC", "ROK", "TDY", "VLO", "VRT", "VST",
+    ]);
   });
 
-  it("falls back to 'unusual' when both signals fire at once", () => {
-    // macro's precedence: contradictory evidence is unusual, never a coin-flip direction.
-    expect(darkPoolLean(baseRow({ trend_pp: 5, ratio_z: -1 }))).toBe("unusual");
-    expect(darkPoolLean(baseRow({ trend_pp: -5, ratio_z: 2 }))).toBe("unusual");
-  });
-});
-
-describe("dark-pool secondary reads", () => {
-  it("bands oe_z the way macro's _norm_label does", () => {
-    expect(darkPoolNorm(baseRow({ oe_z: 2.5 }))).toBe("far");
-    expect(darkPoolNorm(baseRow({ oe_z: 1.5 }))).toBe("well");
-    expect(darkPoolNorm(baseRow({ oe_z: 0.5 }))).toBe("above");
-    expect(darkPoolNorm(baseRow({ oe_z: 0.49 }))).toBe("at");
-    expect(darkPoolNorm(baseRow({ oe_z: null }))).toBeNull();
-  });
-
-  it("leans on the CHANGE before the level, as macro's _short_label does", () => {
-    expect(darkPoolShortRead(baseRow({ trend_pp: 6.05 }))).toEqual({ key: "building", pp: 6.05 });
-    expect(darkPoolShortRead(baseRow({ trend_pp: -6.63 }))).toEqual({ key: "fading", pp: 6.63 });
-    // The trend is inside its band, so the level-based read takes over.
-    expect(darkPoolShortRead(baseRow({ trend_pp: 1, ratio_z: -1 }))?.key).toBe("light");
-    expect(darkPoolShortRead(baseRow({ trend_pp: 1, ratio_z: 1.2 }))?.key).toBe("heavy");
-    expect(darkPoolShortRead(baseRow({ trend_pp: 1, ratio_z: 0 }))?.key).toBe("normal");
-    expect(darkPoolShortRead(baseRow({ trend_pp: null, ratio_z: null }))).toBeNull();
-  });
-});
-
-// ─── 4. Absent states never collapse ──────────────────────────────────────────
-
-describe("dark-pool absent states stay distinguishable", () => {
-  it("distinguishes an uncovered ticker from a missing artifact", async () => {
+  it("keeps comparable history, source patterns, and historical clocks distinct", async () => {
     const dp = await loadJson<DarkPoolEodPayload>("darkpool_fixture.json");
-    // Covered universe, ticker absent → row null but the payload is real.
-    const uncovered = darkPoolRead(dp, "NOSUCHTICKER");
-    expect(uncovered.row).toBeNull();
-    expect(dp.universe!.length).toBeGreaterThan(0);
-    // No artifact at all → also row null, but the CALLER can tell them apart because the
-    // payload itself is empty. The panel branches on exactly this.
-    const missing = darkPoolRead({ schema: "darkpool_eod.v1", universe: [] }, "NVDA");
-    expect(missing.row).toBeNull();
+    expect(darkPoolRead(dp, "BKNG")).toMatchObject({
+      nDays: 101, historyRebased: true, pattern: "heavy_price_flat",
+    });
+    expect(pickDarkPoolRow(dp, "BKNG")?.n_days).toBe(801);
+    expect(darkPoolRead(dp, "QQQ")).toMatchObject({
+      state: "unavailable", reason: "HISTORICAL_ONLY", row: null,
+      asof: null, historicalAsOf: "2026-08-04", lean: null,
+    });
+    expect(darkPoolRead(dp, "APH")).toMatchObject({
+      state: "available", oeSharePct: 39.34, oeZ: 6.43, lean: null,
+      pattern: "heavy_price_flat", norm: "far",
+    });
   });
 
-  it("a covered-but-quiet row is a populated read with a null lean", () => {
-    const read = darkPoolRead(
-      { universe: [baseRow({ ticker: "QUIET", oe_z: 0.4, oe_share: 0.42 })] },
-      "quiet"
-    );
-    expect(read.row).not.toBeNull();     // there IS an answer
-    expect(read.lean).toBeNull();        // …and the answer is "nothing unusual"
-    expect(read.oeSharePct).toBeCloseTo(42, 6);
+  it.each([
+    ["participation", null], ["participation", Number.NaN], ["participation", Infinity],
+    ["participation", -0.1], ["participation", 1.01], ["participation", "0.5"],
+    ["participation_z", null], ["participation_z", Number.NaN], ["participation_z", Infinity],
+    ["n_usable", null], ["n_usable", -1], ["n_usable", 2.5], ["n_usable", Infinity],
+  ])("keeps invalid %s=%s absent without hiding the other measurements", (field, value) => {
+    const row = baseRow({ [field]: value } as Partial<DarkPoolRow>);
+    const read = darkPoolRead(v2Payload(row), "TEST");
+    expect(read.state).toBe("partial");
+    expect(read.lean).toBeNull();
+    if (field === "participation") {
+      expect(read.oeSharePct).toBeNull();
+      expect(read.oeZ).toBe(2);
+    } else if (field === "participation_z") {
+      expect(read.oeZ).toBeNull();
+      expect(read.oeSharePct).toBeCloseTo(55);
+    } else expect(read.nDays).toBeNull();
   });
 
-  it("matches the root case-insensitively", () => {
-    const uni = { universe: [baseRow({ ticker: "NVDA" })] };
-    expect(pickDarkPoolRow(uni, "nvda")?.ticker).toBe("NVDA");
-    expect(pickDarkPoolRow(uni, " NVDA ")?.ticker).toBe("NVDA");
+  it("preserves real zero and never substitutes the total history count", () => {
+    expect(darkPoolRead(v2Payload(baseRow({
+      participation: 0, participation_z: 0, short_trend_pp: 0, short_rate_z: 0,
+      n_usable: 0, n_days: 801, pattern: null,
+    })), "TEST")).toMatchObject({
+      state: "available", oeSharePct: 0, oeZ: 0, nDays: 0, lean: null,
+      short: { key: "normal", pp: null },
+    });
   });
 
-  it("survives a malformed payload without throwing", () => {
-    expect(darkPoolRead(null, "NVDA").row).toBeNull();
-    expect(darkPoolRead(undefined, "NVDA").row).toBeNull();
-    expect(pickDarkPoolRow({ universe: undefined }, "NVDA")).toBeNull();
+  it("does not read legacy fields inside a declared v2 artifact", () => {
+    const row: DarkPoolRow = {
+      ticker: "TEST", asof: "2026-10-08", oe_share: 0.9, oe_z: 4,
+      trend_pp: -10, ratio_z: -3, n_days: 801,
+    };
+    expect(darkPoolRead(v2Payload(row), "TEST")).toMatchObject({
+      state: "partial", oeSharePct: null, oeZ: null, short: null, nDays: null, lean: null,
+    });
+  });
+
+  it("keeps explicit v1 observations compatible without accumulation/distribution", () => {
+    const dp: DarkPoolEodPayload = {
+      schema: "darkpool_eod.v1", tier: "eod", asof: "2026-10-08",
+      universe: [{ ticker: "TEST", oe_share: 0.55, oe_z: 2, trend_pp: -9, n_days: 42 }],
+    };
+    const read = darkPoolRead(dp, "TEST");
+    expect(read).toMatchObject({
+      state: "available", oeZ: 2, nDays: 42, lean: "unusual",
+      pattern: null, short: { key: "fading", pp: 9 },
+    });
+    expect(read.oeSharePct).toBeCloseTo(55, 8);
+  });
+
+  it.each([undefined, "darkpool_eod.v3", "equity.tick_plane.minute_observation/v0"])
+  ("rejects unsupported schema %s", (schema) => {
+    expect(darkPoolRead({ ...v2Payload(baseRow()), schema }, "TEST")).toMatchObject({
+      state: "unavailable", reason: "UNSUPPORTED_SCHEMA", row: null, lean: null,
+    });
+  });
+
+  it.each([
+    { asof: undefined }, { asof: "2026-10-07" }, { asof: "2026-10-09" },
+    { asof: "2026-02-30" }, { session_status: "stale" }, { session_status: null },
+  ])("refuses an unqualified row clock/status %j", (changes) => {
+    expect(darkPoolRead(v2Payload(baseRow(changes)), "TEST")).toMatchObject({
+      state: "unavailable", reason: "ROW_SESSION_MISMATCH", row: null, lean: null, asof: null,
+    });
+  });
+
+  it("does not turn a fresh build clock or a non-EOD tier into a source session", () => {
+    expect(darkPoolRead({ ...v2Payload(baseRow()), asof: undefined, built: "2026-10-09 14:14 UTC" }, "TEST").state)
+      .toBe("unavailable");
+    expect(darkPoolRead({ ...v2Payload(baseRow()), tier: "intraday" }, "TEST").state).toBe("unavailable");
+  });
+
+  it("keeps duplicate, malformed, empty, and uncovered rows separate", () => {
+    const dp = v2Payload(baseRow());
+    expect(darkPoolRead({ ...dp, universe: [baseRow(), baseRow()] }, "TEST").reason)
+      .toBe("DUPLICATE_CURRENT_ROW");
+    expect(darkPoolRead({ ...dp, universe: [] }, "TEST").state).toBe("unavailable");
+    expect(darkPoolRead(dp, "MISSING").state).toBe("not_covered");
+    expect(darkPoolRead(null, "TEST").state).toBe("unavailable");
+    expect(darkPoolRead(undefined, "TEST").state).toBe("unavailable");
+    expect(pickDarkPoolRow({ universe: [null, { ticker: 9 }, []] as never }, "TEST")).toBeNull();
+    expect(pickDarkPoolRow(dp, " test ")?.ticker).toBe("TEST");
+  });
+});
+
+describe("off-exchange observations — metric semantics", () => {
+  it("uses participation_z for the existing norm bands", () => {
+    expect(darkPoolNorm(baseRow({ participation_z: 2.5 }))).toBe("far");
+    expect(darkPoolNorm(baseRow({ participation_z: 1.5 }))).toBe("well");
+    expect(darkPoolNorm(baseRow({ participation_z: 0.5 }))).toBe("above");
+    expect(darkPoolNorm(baseRow({ participation_z: 0.49 }))).toBe("at");
+    expect(darkPoolNorm(baseRow({ participation_z: null, oe_z: 3 }))).toBeNull();
+  });
+
+  it("reads v2 short-marking fields, never the participation trend or legacy aliases", () => {
+    expect(darkPoolShortRead(baseRow({ short_trend_pp: 6.05 }))).toEqual({ key: "building", pp: 6.05 });
+    expect(darkPoolShortRead(baseRow({ short_trend_pp: -6.63 }))).toEqual({ key: "fading", pp: 6.63 });
+    expect(darkPoolShortRead(baseRow({ short_trend_pp: 1, short_rate_z: -1 }))?.key).toBe("light");
+    expect(darkPoolShortRead(baseRow({ short_trend_pp: 1, short_rate_z: 1.2 }))?.key).toBe("heavy");
+    expect(darkPoolShortRead(baseRow({
+      short_trend_pp: null, short_rate_z: null, participation_trend_pp: 9, trend_pp: 9, ratio_z: 2,
+    }))).toBeNull();
+  });
+});
+
+describe("off-exchange component — rendered copy and provenance", () => {
+  const render = (payload: DarkPoolEodPayload | null, root = "TEST", lang: "en" | "zh" = "en") =>
+    renderToStaticMarkup(createElement(DarkPoolMini, { payload, root, lang }));
+
+  it("renders available and partial measurements without a false quiet conclusion", () => {
+    for (const row of [
+      baseRow({ participation_z: 0.2, pattern: null }),
+      baseRow({ participation: 0.3934, participation_z: 6.43 }),
+      baseRow({ participation: null }),
+      baseRow({ short_trend_pp: null, short_rate_z: null }),
+    ]) {
+      const html = render(v2Payload(row));
+      expect(html).not.toMatch(/Nothing unusual|inside this name|Quiet accumulation|Distribution pressure|mixed short-marking/);
+      expect(html).toContain("Off-exchange");
+    }
+  });
+
+  it("does not invent a not-published explanation for an unsupported or historical source", () => {
+    const html = render({ ...v2Payload(baseRow()), schema: "unknown" });
+    expect(html).toContain("Off-exchange panel unavailable");
+    expect(html).not.toContain("hasn&#x27;t published");
+    expect(html).not.toContain("Nothing unusual");
+  });
+
+  it("renders the real v2 denominator and source provenance in both languages", async () => {
+    const dp = await loadJson<DarkPoolEodPayload>("darkpool_fixture.json");
+    const en = render(dp, "BKNG");
+    expect(en).toContain("101 matched days");
+    expect(en).not.toContain("801 matched days");
+    expect(en).toContain('data-history-rebased="true"');
+    expect(en).toContain('data-source-pattern="heavy_price_flat"');
+    expect(en).toContain('data-source-session="2026-10-08"');
+    expect(en).toContain("Unusual, unclear");
+    expect(en).not.toMatch(/accumulation|distribution|mixed short-marking/);
+    const zh = render(dp, "BKNG", "zh");
+    expect(zh).toContain("101 个匹配交易日");
+    expect(zh).toContain("场外占比");
+    expect(zh).not.toMatch(/悄然吸筹|派发压力|无异常/);
   });
 });
 
