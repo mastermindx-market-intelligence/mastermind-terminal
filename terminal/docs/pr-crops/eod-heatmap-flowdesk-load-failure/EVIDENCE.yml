@@ -1,0 +1,249 @@
+# EOD belt, Flow Desk chain heat and Heatmap flow layer failure-state truth — capture evidence
+# Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
+# Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
+# capturedAtHead: 5248e45962299548441a9b6a827601bf41d34b0b
+# capturedAt: 2026-10-10T01:19:30.701Z
+# capturedAtHead is informational. The lock is layoutFiles.
+layoutFiles:
+  terminal/app/globals.css: "4588d3172e522f2c2a5c9a7ed9a8ac8030af9c58a1af30c1f21d7503d7ce4609"
+  terminal/components/eodcontext/DarkPoolMini.tsx: "1a32c139addae19531a4c9463e6f9b278e0c6b6626c59d0092bc2a0a45527420"
+  terminal/components/eodcontext/EodContextBelt.tsx: "983b21e1a030ab66aada5d773a9d0ae9abccf0e796452e9cd6e3df62d6761013"
+  terminal/components/eodcontext/StructureStrip.tsx: "e4edc9df9e58a544a30930ac3369c77491e0d5323748b3c1ac600adfc7ee23d3"
+  terminal/components/eodcontext/eodStrings.ts: "ab2495bbe114389851a11550fe67ed94b9d2d46e43f05ddfd94a7752aa85fa2d"
+  terminal/components/flowdesk/FlowDeskView.tsx: "7c4ee44e695dbf928ebe5f7991bf7d0a7e8745420852c6773a3aa51456bae021"
+  terminal/components/gexdesk/GexDeskView.tsx: "6aec78a99ce0fa6fe25de4ef4ece3f7dfc4783027bfd12b60f7205c688bc5772"
+  terminal/components/heatmap/HeatmapView.tsx: "eb87905e5dce315db295913732202329a65c6c623b2a92676963c6d5554a7f24"
+  terminal/lib/eodContext.ts: "a942505fa38c3bb86242508d3c88cb75e13160054c4e8dbf79088d44a6ae9032"
+  terminal/lib/flowdeskStrings.ts: "ef323513f39c37a55a152642bfc7c7ac5dfa0de50dde2c32244e7d171bf868fa"
+  terminal/lib/heatmapStrings.ts: "26bb75eccce7429e5a37154f07f7f68faf9652da1f6f3560074cb558f0dda9c2"
+theme: dark
+languages: [en, zh]
+viewports:
+  - { name: desktop, width: 1440, height: 900 }
+  - { name: tablet, width: 820, height: 1180 }
+  - { name: mobile, width: 390, height: 844 }
+harness:
+  chainheat-absent-1440-zh.png: { url: "/options?tab=desk", state: chainheat-absent, injected: { "chainheat": 404 } }
+  chainheat-absent-1440.png: { url: "/options?tab=desk", state: chainheat-absent, injected: { "chainheat": 404 } }
+  chainheat-absent-390-zh.png: { url: "/options?tab=desk", state: chainheat-absent, injected: { "chainheat": 404 } }
+  chainheat-absent-390.png: { url: "/options?tab=desk", state: chainheat-absent, injected: { "chainheat": 404 } }
+  chainheat-absent-820-zh.png: { url: "/options?tab=desk", state: chainheat-absent, injected: { "chainheat": 404 } }
+  chainheat-absent-820.png: { url: "/options?tab=desk", state: chainheat-absent, injected: { "chainheat": 404 } }
+  chainheat-refresh-failed-1440-zh.png: { url: "/options?tab=desk", state: chainheat-refresh-failed, injected: {  }, then: "healthy read landed; chainheat answer 503; page clock moved past two polls" }
+  chainheat-refresh-failed-1440.png: { url: "/options?tab=desk", state: chainheat-refresh-failed, injected: {  }, then: "healthy read landed; chainheat answer 503; page clock moved past two polls" }
+  chainheat-refresh-failed-390-zh.png: { url: "/options?tab=desk", state: chainheat-refresh-failed, injected: {  }, then: "healthy read landed; chainheat answer 503; page clock moved past two polls" }
+  chainheat-refresh-failed-390.png: { url: "/options?tab=desk", state: chainheat-refresh-failed, injected: {  }, then: "healthy read landed; chainheat answer 503; page clock moved past two polls" }
+  chainheat-refresh-failed-820-zh.png: { url: "/options?tab=desk", state: chainheat-refresh-failed, injected: {  }, then: "healthy read landed; chainheat answer 503; page clock moved past two polls" }
+  chainheat-refresh-failed-820.png: { url: "/options?tab=desk", state: chainheat-refresh-failed, injected: {  }, then: "healthy read landed; chainheat answer 503; page clock moved past two polls" }
+  chainheat-retried-1440-zh.png: { url: "/options?tab=desk", state: chainheat-retried, injected: { "chainheat": 503 }, then: "chainheat healed, Retry clicked" }
+  chainheat-retried-1440.png: { url: "/options?tab=desk", state: chainheat-retried, injected: { "chainheat": 503 }, then: "chainheat healed, Retry clicked" }
+  chainheat-retried-390-zh.png: { url: "/options?tab=desk", state: chainheat-retried, injected: { "chainheat": 503 }, then: "chainheat healed, Retry clicked" }
+  chainheat-retried-390.png: { url: "/options?tab=desk", state: chainheat-retried, injected: { "chainheat": 503 }, then: "chainheat healed, Retry clicked" }
+  chainheat-retried-820-zh.png: { url: "/options?tab=desk", state: chainheat-retried, injected: { "chainheat": 503 }, then: "chainheat healed, Retry clicked" }
+  chainheat-retried-820.png: { url: "/options?tab=desk", state: chainheat-retried, injected: { "chainheat": 503 }, then: "chainheat healed, Retry clicked" }
+  chainheat-unavailable-1440-zh.png: { url: "/options?tab=desk", state: chainheat-unavailable, injected: { "chainheat": 503 } }
+  chainheat-unavailable-1440.png: { url: "/options?tab=desk", state: chainheat-unavailable, injected: { "chainheat": 503 } }
+  chainheat-unavailable-390-zh.png: { url: "/options?tab=desk", state: chainheat-unavailable, injected: { "chainheat": 503 } }
+  chainheat-unavailable-390.png: { url: "/options?tab=desk", state: chainheat-unavailable, injected: { "chainheat": 503 } }
+  chainheat-unavailable-820-zh.png: { url: "/options?tab=desk", state: chainheat-unavailable, injected: { "chainheat": 503 } }
+  chainheat-unavailable-820.png: { url: "/options?tab=desk", state: chainheat-unavailable, injected: { "chainheat": 503 } }
+  eod-darkpool-absent-1440-zh.png: { url: "/options?tab=gex", state: eod-darkpool-absent, injected: { "darkpool": 404 }, stream: aborted }
+  eod-darkpool-absent-1440.png: { url: "/options?tab=gex", state: eod-darkpool-absent, injected: { "darkpool": 404 }, stream: aborted }
+  eod-darkpool-absent-390-zh.png: { url: "/options?tab=gex", state: eod-darkpool-absent, injected: { "darkpool": 404 }, stream: aborted }
+  eod-darkpool-absent-390.png: { url: "/options?tab=gex", state: eod-darkpool-absent, injected: { "darkpool": 404 }, stream: aborted }
+  eod-darkpool-absent-820-zh.png: { url: "/options?tab=gex", state: eod-darkpool-absent, injected: { "darkpool": 404 }, stream: aborted }
+  eod-darkpool-absent-820.png: { url: "/options?tab=gex", state: eod-darkpool-absent, injected: { "darkpool": 404 }, stream: aborted }
+  eod-darkpool-retried-1440-zh.png: { url: "/options?tab=gex", state: eod-darkpool-retried, injected: { "darkpool": 503 }, stream: aborted, then: "darkpool healed, Retry clicked" }
+  eod-darkpool-retried-1440.png: { url: "/options?tab=gex", state: eod-darkpool-retried, injected: { "darkpool": 503 }, stream: aborted, then: "darkpool healed, Retry clicked" }
+  eod-darkpool-retried-390-zh.png: { url: "/options?tab=gex", state: eod-darkpool-retried, injected: { "darkpool": 503 }, stream: aborted, then: "darkpool healed, Retry clicked" }
+  eod-darkpool-retried-390.png: { url: "/options?tab=gex", state: eod-darkpool-retried, injected: { "darkpool": 503 }, stream: aborted, then: "darkpool healed, Retry clicked" }
+  eod-darkpool-retried-820-zh.png: { url: "/options?tab=gex", state: eod-darkpool-retried, injected: { "darkpool": 503 }, stream: aborted, then: "darkpool healed, Retry clicked" }
+  eod-darkpool-retried-820.png: { url: "/options?tab=gex", state: eod-darkpool-retried, injected: { "darkpool": 503 }, stream: aborted, then: "darkpool healed, Retry clicked" }
+  eod-darkpool-unavailable-1440-zh.png: { url: "/options?tab=gex", state: eod-darkpool-unavailable, injected: { "darkpool": 503 }, stream: aborted }
+  eod-darkpool-unavailable-1440.png: { url: "/options?tab=gex", state: eod-darkpool-unavailable, injected: { "darkpool": 503 }, stream: aborted }
+  eod-darkpool-unavailable-390-zh.png: { url: "/options?tab=gex", state: eod-darkpool-unavailable, injected: { "darkpool": 503 }, stream: aborted }
+  eod-darkpool-unavailable-390.png: { url: "/options?tab=gex", state: eod-darkpool-unavailable, injected: { "darkpool": 503 }, stream: aborted }
+  eod-darkpool-unavailable-820-zh.png: { url: "/options?tab=gex", state: eod-darkpool-unavailable, injected: { "darkpool": 503 }, stream: aborted }
+  eod-darkpool-unavailable-820.png: { url: "/options?tab=gex", state: eod-darkpool-unavailable, injected: { "darkpool": 503 }, stream: aborted }
+  eod-structure-absent-1440-zh.png: { url: "/options?tab=gex", state: eod-structure-absent, injected: { "oiconf": 404, "moves:SPY": 404, "vol:SPY": 404 }, stream: aborted }
+  eod-structure-absent-1440.png: { url: "/options?tab=gex", state: eod-structure-absent, injected: { "oiconf": 404, "moves:SPY": 404, "vol:SPY": 404 }, stream: aborted }
+  eod-structure-absent-390-zh.png: { url: "/options?tab=gex", state: eod-structure-absent, injected: { "oiconf": 404, "moves:SPY": 404, "vol:SPY": 404 }, stream: aborted }
+  eod-structure-absent-390.png: { url: "/options?tab=gex", state: eod-structure-absent, injected: { "oiconf": 404, "moves:SPY": 404, "vol:SPY": 404 }, stream: aborted }
+  eod-structure-absent-820-zh.png: { url: "/options?tab=gex", state: eod-structure-absent, injected: { "oiconf": 404, "moves:SPY": 404, "vol:SPY": 404 }, stream: aborted }
+  eod-structure-absent-820.png: { url: "/options?tab=gex", state: eod-structure-absent, injected: { "oiconf": 404, "moves:SPY": 404, "vol:SPY": 404 }, stream: aborted }
+  eod-structure-partial-1440-zh.png: { url: "/options?tab=gex", state: eod-structure-partial, injected: { "oiconf": 503, "moves:SPY": 503, "vol:SPY": abort }, stream: aborted }
+  eod-structure-partial-1440.png: { url: "/options?tab=gex", state: eod-structure-partial, injected: { "oiconf": 503, "moves:SPY": 503, "vol:SPY": abort }, stream: aborted }
+  eod-structure-partial-390-zh.png: { url: "/options?tab=gex", state: eod-structure-partial, injected: { "oiconf": 503, "moves:SPY": 503, "vol:SPY": abort }, stream: aborted }
+  eod-structure-partial-390.png: { url: "/options?tab=gex", state: eod-structure-partial, injected: { "oiconf": 503, "moves:SPY": 503, "vol:SPY": abort }, stream: aborted }
+  eod-structure-partial-820-zh.png: { url: "/options?tab=gex", state: eod-structure-partial, injected: { "oiconf": 503, "moves:SPY": 503, "vol:SPY": abort }, stream: aborted }
+  eod-structure-partial-820.png: { url: "/options?tab=gex", state: eod-structure-partial, injected: { "oiconf": 503, "moves:SPY": 503, "vol:SPY": abort }, stream: aborted }
+  eod-structure-retried-1440-zh.png: { url: "/options?tab=gex", state: eod-structure-retried, injected: { "oiconf": 503, "moves:SPY": 503, "vol:SPY": abort }, stream: aborted, then: "oiconf + moves:SPY + vol:SPY healed, Retry clicked" }
+  eod-structure-retried-1440.png: { url: "/options?tab=gex", state: eod-structure-retried, injected: { "oiconf": 503, "moves:SPY": 503, "vol:SPY": abort }, stream: aborted, then: "oiconf + moves:SPY + vol:SPY healed, Retry clicked" }
+  eod-structure-retried-390-zh.png: { url: "/options?tab=gex", state: eod-structure-retried, injected: { "oiconf": 503, "moves:SPY": 503, "vol:SPY": abort }, stream: aborted, then: "oiconf + moves:SPY + vol:SPY healed, Retry clicked" }
+  eod-structure-retried-390.png: { url: "/options?tab=gex", state: eod-structure-retried, injected: { "oiconf": 503, "moves:SPY": 503, "vol:SPY": abort }, stream: aborted, then: "oiconf + moves:SPY + vol:SPY healed, Retry clicked" }
+  eod-structure-retried-820-zh.png: { url: "/options?tab=gex", state: eod-structure-retried, injected: { "oiconf": 503, "moves:SPY": 503, "vol:SPY": abort }, stream: aborted, then: "oiconf + moves:SPY + vol:SPY healed, Retry clicked" }
+  eod-structure-retried-820.png: { url: "/options?tab=gex", state: eod-structure-retried, injected: { "oiconf": 503, "moves:SPY": 503, "vol:SPY": abort }, stream: aborted, then: "oiconf + moves:SPY + vol:SPY healed, Retry clicked" }
+  eod-structure-unavailable-1440-zh.png: { url: "/options?tab=gex", state: eod-structure-unavailable, injected: { "gexstate:SPY": 503, "gex:SPY": 503, "oiconf": 503, "moves:SPY": 503, "vol:SPY": 503 }, stream: aborted }
+  eod-structure-unavailable-1440.png: { url: "/options?tab=gex", state: eod-structure-unavailable, injected: { "gexstate:SPY": 503, "gex:SPY": 503, "oiconf": 503, "moves:SPY": 503, "vol:SPY": 503 }, stream: aborted }
+  eod-structure-unavailable-390-zh.png: { url: "/options?tab=gex", state: eod-structure-unavailable, injected: { "gexstate:SPY": 503, "gex:SPY": 503, "oiconf": 503, "moves:SPY": 503, "vol:SPY": 503 }, stream: aborted }
+  eod-structure-unavailable-390.png: { url: "/options?tab=gex", state: eod-structure-unavailable, injected: { "gexstate:SPY": 503, "gex:SPY": 503, "oiconf": 503, "moves:SPY": 503, "vol:SPY": 503 }, stream: aborted }
+  eod-structure-unavailable-820-zh.png: { url: "/options?tab=gex", state: eod-structure-unavailable, injected: { "gexstate:SPY": 503, "gex:SPY": 503, "oiconf": 503, "moves:SPY": 503, "vol:SPY": 503 }, stream: aborted }
+  eod-structure-unavailable-820.png: { url: "/options?tab=gex", state: eod-structure-unavailable, injected: { "gexstate:SPY": 503, "gex:SPY": 503, "oiconf": 503, "moves:SPY": 503, "vol:SPY": 503 }, stream: aborted }
+  heatmap-flow-absent-1440-zh.png: { url: "/discover?tab=heatmap", state: heatmap-flow-absent, injected: { "flow_idx": 404, "/data/flow_idx.json": 404 } }
+  heatmap-flow-absent-1440.png: { url: "/discover?tab=heatmap", state: heatmap-flow-absent, injected: { "flow_idx": 404, "/data/flow_idx.json": 404 } }
+  heatmap-flow-absent-390-zh.png: { url: "/discover?tab=heatmap", state: heatmap-flow-absent, injected: { "flow_idx": 404, "/data/flow_idx.json": 404 } }
+  heatmap-flow-absent-390.png: { url: "/discover?tab=heatmap", state: heatmap-flow-absent, injected: { "flow_idx": 404, "/data/flow_idx.json": 404 } }
+  heatmap-flow-absent-820-zh.png: { url: "/discover?tab=heatmap", state: heatmap-flow-absent, injected: { "flow_idx": 404, "/data/flow_idx.json": 404 } }
+  heatmap-flow-absent-820.png: { url: "/discover?tab=heatmap", state: heatmap-flow-absent, injected: { "flow_idx": 404, "/data/flow_idx.json": 404 } }
+  heatmap-flow-auth-1440-zh.png: { url: "/discover?tab=heatmap", state: heatmap-flow-auth, injected: { "flow_idx": 403, "/data/flow_idx.json": 404 } }
+  heatmap-flow-auth-1440.png: { url: "/discover?tab=heatmap", state: heatmap-flow-auth, injected: { "flow_idx": 403, "/data/flow_idx.json": 404 } }
+  heatmap-flow-auth-390-zh.png: { url: "/discover?tab=heatmap", state: heatmap-flow-auth, injected: { "flow_idx": 403, "/data/flow_idx.json": 404 } }
+  heatmap-flow-auth-390.png: { url: "/discover?tab=heatmap", state: heatmap-flow-auth, injected: { "flow_idx": 403, "/data/flow_idx.json": 404 } }
+  heatmap-flow-auth-820-zh.png: { url: "/discover?tab=heatmap", state: heatmap-flow-auth, injected: { "flow_idx": 403, "/data/flow_idx.json": 404 } }
+  heatmap-flow-auth-820.png: { url: "/discover?tab=heatmap", state: heatmap-flow-auth, injected: { "flow_idx": 403, "/data/flow_idx.json": 404 } }
+  heatmap-flow-refresh-failed-1440-zh.png: { url: "/discover?tab=heatmap", state: heatmap-flow-refresh-failed, injected: {  }, then: "healthy read landed; flow_idx + /data/flow_idx.json answer 503; page clock moved past two polls" }
+  heatmap-flow-refresh-failed-1440.png: { url: "/discover?tab=heatmap", state: heatmap-flow-refresh-failed, injected: {  }, then: "healthy read landed; flow_idx + /data/flow_idx.json answer 503; page clock moved past two polls" }
+  heatmap-flow-refresh-failed-390-zh.png: { url: "/discover?tab=heatmap", state: heatmap-flow-refresh-failed, injected: {  }, then: "healthy read landed; flow_idx + /data/flow_idx.json answer 503; page clock moved past two polls" }
+  heatmap-flow-refresh-failed-390.png: { url: "/discover?tab=heatmap", state: heatmap-flow-refresh-failed, injected: {  }, then: "healthy read landed; flow_idx + /data/flow_idx.json answer 503; page clock moved past two polls" }
+  heatmap-flow-refresh-failed-820-zh.png: { url: "/discover?tab=heatmap", state: heatmap-flow-refresh-failed, injected: {  }, then: "healthy read landed; flow_idx + /data/flow_idx.json answer 503; page clock moved past two polls" }
+  heatmap-flow-refresh-failed-820.png: { url: "/discover?tab=heatmap", state: heatmap-flow-refresh-failed, injected: {  }, then: "healthy read landed; flow_idx + /data/flow_idx.json answer 503; page clock moved past two polls" }
+  heatmap-flow-retried-1440-zh.png: { url: "/discover?tab=heatmap", state: heatmap-flow-retried, injected: { "flow_idx": 503, "/data/flow_idx.json": abort }, then: "flow_idx + /data/flow_idx.json healed, Retry clicked" }
+  heatmap-flow-retried-1440.png: { url: "/discover?tab=heatmap", state: heatmap-flow-retried, injected: { "flow_idx": 503, "/data/flow_idx.json": abort }, then: "flow_idx + /data/flow_idx.json healed, Retry clicked" }
+  heatmap-flow-retried-390-zh.png: { url: "/discover?tab=heatmap", state: heatmap-flow-retried, injected: { "flow_idx": 503, "/data/flow_idx.json": abort }, then: "flow_idx + /data/flow_idx.json healed, Retry clicked" }
+  heatmap-flow-retried-390.png: { url: "/discover?tab=heatmap", state: heatmap-flow-retried, injected: { "flow_idx": 503, "/data/flow_idx.json": abort }, then: "flow_idx + /data/flow_idx.json healed, Retry clicked" }
+  heatmap-flow-retried-820-zh.png: { url: "/discover?tab=heatmap", state: heatmap-flow-retried, injected: { "flow_idx": 503, "/data/flow_idx.json": abort }, then: "flow_idx + /data/flow_idx.json healed, Retry clicked" }
+  heatmap-flow-retried-820.png: { url: "/discover?tab=heatmap", state: heatmap-flow-retried, injected: { "flow_idx": 503, "/data/flow_idx.json": abort }, then: "flow_idx + /data/flow_idx.json healed, Retry clicked" }
+  heatmap-flow-unavailable-1440-zh.png: { url: "/discover?tab=heatmap", state: heatmap-flow-unavailable, injected: { "flow_idx": 503, "/data/flow_idx.json": abort } }
+  heatmap-flow-unavailable-1440.png: { url: "/discover?tab=heatmap", state: heatmap-flow-unavailable, injected: { "flow_idx": 503, "/data/flow_idx.json": abort } }
+  heatmap-flow-unavailable-390-zh.png: { url: "/discover?tab=heatmap", state: heatmap-flow-unavailable, injected: { "flow_idx": 503, "/data/flow_idx.json": abort } }
+  heatmap-flow-unavailable-390.png: { url: "/discover?tab=heatmap", state: heatmap-flow-unavailable, injected: { "flow_idx": 503, "/data/flow_idx.json": abort } }
+  heatmap-flow-unavailable-820-zh.png: { url: "/discover?tab=heatmap", state: heatmap-flow-unavailable, injected: { "flow_idx": 503, "/data/flow_idx.json": abort } }
+  heatmap-flow-unavailable-820.png: { url: "/discover?tab=heatmap", state: heatmap-flow-unavailable, injected: { "flow_idx": 503, "/data/flow_idx.json": abort } }
+  heatmap-live-failed-1440-zh.png: { url: "/discover?tab=heatmap", state: heatmap-live-failed, injected: { "/api/quote": 503 } }
+  heatmap-live-failed-1440.png: { url: "/discover?tab=heatmap", state: heatmap-live-failed, injected: { "/api/quote": 503 } }
+  heatmap-live-failed-390-zh.png: { url: "/discover?tab=heatmap", state: heatmap-live-failed, injected: { "/api/quote": 503 } }
+  heatmap-live-failed-390.png: { url: "/discover?tab=heatmap", state: heatmap-live-failed, injected: { "/api/quote": 503 } }
+  heatmap-live-failed-820-zh.png: { url: "/discover?tab=heatmap", state: heatmap-live-failed, injected: { "/api/quote": 503 } }
+  heatmap-live-failed-820.png: { url: "/discover?tab=heatmap", state: heatmap-live-failed, injected: { "/api/quote": 503 } }
+  heatmap-no-match-1440-zh.png: { url: "/discover?tab=heatmap", state: heatmap-no-match, injected: {  }, then: "searched zzzzq" }
+  heatmap-no-match-1440.png: { url: "/discover?tab=heatmap", state: heatmap-no-match, injected: {  }, then: "searched zzzzq" }
+  heatmap-no-match-390-zh.png: { url: "/discover?tab=heatmap", state: heatmap-no-match, injected: {  }, then: "searched zzzzq" }
+  heatmap-no-match-390.png: { url: "/discover?tab=heatmap", state: heatmap-no-match, injected: {  }, then: "searched zzzzq" }
+  heatmap-no-match-820-zh.png: { url: "/discover?tab=heatmap", state: heatmap-no-match, injected: {  }, then: "searched zzzzq" }
+  heatmap-no-match-820.png: { url: "/discover?tab=heatmap", state: heatmap-no-match, injected: {  }, then: "searched zzzzq" }
+surfaces: [EodContextBelt, StructureStrip, DarkPoolMini, FlowDeskView, HeatmapView]
+injection: page.route answers /api/flow (by f-param), /data/flow_idx.json and /api/quote with 503 / 403 / 404 or a refused request; /api/flow/stream is refused on the GEX desk; every other read is the FLOW_FIXTURE server
+capture_flag: TERMINAL_E2E_FIXTURE
+capture_flag_law: next.config.ts sets devIndicators: false when TERMINAL_E2E_FIXTURE is set; this script starts next dev with the same flag.
+command: |
+  cd terminal
+  node e2e/tools/capture_eod_heatmap_flowdesk_load_failure.cjs
+files:
+  - chainheat-absent-1440-zh.png
+  - chainheat-absent-1440.png
+  - chainheat-absent-390-zh.png
+  - chainheat-absent-390.png
+  - chainheat-absent-820-zh.png
+  - chainheat-absent-820.png
+  - chainheat-refresh-failed-1440-zh.png
+  - chainheat-refresh-failed-1440.png
+  - chainheat-refresh-failed-390-zh.png
+  - chainheat-refresh-failed-390.png
+  - chainheat-refresh-failed-820-zh.png
+  - chainheat-refresh-failed-820.png
+  - chainheat-retried-1440-zh.png
+  - chainheat-retried-1440.png
+  - chainheat-retried-390-zh.png
+  - chainheat-retried-390.png
+  - chainheat-retried-820-zh.png
+  - chainheat-retried-820.png
+  - chainheat-unavailable-1440-zh.png
+  - chainheat-unavailable-1440.png
+  - chainheat-unavailable-390-zh.png
+  - chainheat-unavailable-390.png
+  - chainheat-unavailable-820-zh.png
+  - chainheat-unavailable-820.png
+  - eod-darkpool-absent-1440-zh.png
+  - eod-darkpool-absent-1440.png
+  - eod-darkpool-absent-390-zh.png
+  - eod-darkpool-absent-390.png
+  - eod-darkpool-absent-820-zh.png
+  - eod-darkpool-absent-820.png
+  - eod-darkpool-retried-1440-zh.png
+  - eod-darkpool-retried-1440.png
+  - eod-darkpool-retried-390-zh.png
+  - eod-darkpool-retried-390.png
+  - eod-darkpool-retried-820-zh.png
+  - eod-darkpool-retried-820.png
+  - eod-darkpool-unavailable-1440-zh.png
+  - eod-darkpool-unavailable-1440.png
+  - eod-darkpool-unavailable-390-zh.png
+  - eod-darkpool-unavailable-390.png
+  - eod-darkpool-unavailable-820-zh.png
+  - eod-darkpool-unavailable-820.png
+  - eod-structure-absent-1440-zh.png
+  - eod-structure-absent-1440.png
+  - eod-structure-absent-390-zh.png
+  - eod-structure-absent-390.png
+  - eod-structure-absent-820-zh.png
+  - eod-structure-absent-820.png
+  - eod-structure-partial-1440-zh.png
+  - eod-structure-partial-1440.png
+  - eod-structure-partial-390-zh.png
+  - eod-structure-partial-390.png
+  - eod-structure-partial-820-zh.png
+  - eod-structure-partial-820.png
+  - eod-structure-retried-1440-zh.png
+  - eod-structure-retried-1440.png
+  - eod-structure-retried-390-zh.png
+  - eod-structure-retried-390.png
+  - eod-structure-retried-820-zh.png
+  - eod-structure-retried-820.png
+  - eod-structure-unavailable-1440-zh.png
+  - eod-structure-unavailable-1440.png
+  - eod-structure-unavailable-390-zh.png
+  - eod-structure-unavailable-390.png
+  - eod-structure-unavailable-820-zh.png
+  - eod-structure-unavailable-820.png
+  - heatmap-flow-absent-1440-zh.png
+  - heatmap-flow-absent-1440.png
+  - heatmap-flow-absent-390-zh.png
+  - heatmap-flow-absent-390.png
+  - heatmap-flow-absent-820-zh.png
+  - heatmap-flow-absent-820.png
+  - heatmap-flow-auth-1440-zh.png
+  - heatmap-flow-auth-1440.png
+  - heatmap-flow-auth-390-zh.png
+  - heatmap-flow-auth-390.png
+  - heatmap-flow-auth-820-zh.png
+  - heatmap-flow-auth-820.png
+  - heatmap-flow-refresh-failed-1440-zh.png
+  - heatmap-flow-refresh-failed-1440.png
+  - heatmap-flow-refresh-failed-390-zh.png
+  - heatmap-flow-refresh-failed-390.png
+  - heatmap-flow-refresh-failed-820-zh.png
+  - heatmap-flow-refresh-failed-820.png
+  - heatmap-flow-retried-1440-zh.png
+  - heatmap-flow-retried-1440.png
+  - heatmap-flow-retried-390-zh.png
+  - heatmap-flow-retried-390.png
+  - heatmap-flow-retried-820-zh.png
+  - heatmap-flow-retried-820.png
+  - heatmap-flow-unavailable-1440-zh.png
+  - heatmap-flow-unavailable-1440.png
+  - heatmap-flow-unavailable-390-zh.png
+  - heatmap-flow-unavailable-390.png
+  - heatmap-flow-unavailable-820-zh.png
+  - heatmap-flow-unavailable-820.png
+  - heatmap-live-failed-1440-zh.png
+  - heatmap-live-failed-1440.png
+  - heatmap-live-failed-390-zh.png
+  - heatmap-live-failed-390.png
+  - heatmap-live-failed-820-zh.png
+  - heatmap-live-failed-820.png
+  - heatmap-no-match-1440-zh.png
+  - heatmap-no-match-1440.png
+  - heatmap-no-match-390-zh.png
+  - heatmap-no-match-390.png
+  - heatmap-no-match-820-zh.png
+  - heatmap-no-match-820.png

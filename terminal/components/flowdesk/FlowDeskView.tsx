@@ -19,7 +19,7 @@
  */
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { flowGet } from "../../lib/flowClientCache";
+import { flowGet, flowGetResult, flowInvalidate } from "../../lib/flowClientCache";
 import { useFlowStream } from "../../lib/flowStream";
 import { useLang } from "../../lib/i18n";
 import { makeFlowT } from "../../lib/flowdeskStrings";
@@ -221,14 +221,39 @@ async function safeFetch<T>(url: string): Promise<T | null> {
   }
 }
 
+/**
+ * What the last chain-heat read established. "unavailable" with campaigns still held
+ * is a failed refresh: the rows stay, labelled as the last read.
+ */
+type ChainHeatStatus = "loading" | "data" | "absent" | "unavailable";
+
+/** A 200 whose body is not a chain-heat payload is a read that did not land. */
+function isChainHeatPayload(v: unknown): v is ChainHeatPayload {
+  return typeof v === "object" && v !== null && Array.isArray((v as { campaigns?: unknown }).campaigns);
+}
+
 // ─── ChainHeatRail ────────────────────────────────────────────────────────────
 
 interface ChainHeatRailProps {
   data: ChainHeatPayload | null;
+  status: ChainHeatStatus;
+  onRetry: () => void;
   lang: "en" | "zh";
 }
 
-function ChainHeatRail({ data, lang }: ChainHeatRailProps) {
+const CHAIN_LOAD_ERROR: React.CSSProperties = {
+  display: "flex", flexDirection: "column", alignItems: "center", gap: 6,
+  padding: 16, fontSize: 11, textAlign: "center", color: "var(--muted)",
+};
+const CHAIN_LOAD_ERROR_TITLE: React.CSSProperties = { color: "var(--text)", fontWeight: 600 };
+const CHAIN_REFRESH_FAILED: React.CSSProperties = {
+  display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8,
+  padding: "6px 16px", fontSize: 10, lineHeight: 1.4, color: "var(--warn)",
+  borderBottom: "1px solid var(--line-2)",
+};
+const RETRY_INLINE: React.CSSProperties = { padding: "2px 10px", fontSize: 11, flexShrink: 0 };
+
+function ChainHeatRail({ data, status, onRetry, lang }: ChainHeatRailProps) {
   const zh = lang === "zh";
   const t = makeFlowT(lang);
 
@@ -238,7 +263,19 @@ function ChainHeatRail({ data, lang }: ChainHeatRailProps) {
         <div className="obs-card-hd">
           <span className="obs-lbl">{t("chainHeatTitle")}</span>
         </div>
-        <div className="obs-fd-chain-empty">{t("chainHeatLoading")}</div>
+        {status === "unavailable" ? (
+          <div style={CHAIN_LOAD_ERROR} data-testid="chainheat-load-error" role="alert">
+            <span style={CHAIN_LOAD_ERROR_TITLE}>{t("chainHeatError")}</span>
+            <span>{t("chainHeatErrorWhy")}</span>
+            <button type="button" className="btn btn-ghost load-retry" style={RETRY_INLINE} onClick={onRetry}>
+              {t("errRetry")}
+            </button>
+          </div>
+        ) : status === "absent" ? (
+          <div className="obs-fd-chain-empty" data-testid="chainheat-absent">{t("chainHeatAbsent")}</div>
+        ) : (
+          <div className="obs-fd-chain-empty">{t("chainHeatLoading")}</div>
+        )}
       </div>
     );
   }
@@ -259,6 +296,15 @@ function ChainHeatRail({ data, lang }: ChainHeatRailProps) {
           {zh ? `≥$${threshold}M` : `≥$${threshold}M cumul`}
         </span>
       </div>
+
+      {status === "unavailable" && (
+        <div style={CHAIN_REFRESH_FAILED} data-testid="chainheat-refresh-failed" role="status">
+          <span>{t("chainHeatRefreshFailed")}</span>
+          <button type="button" className="btn btn-ghost load-retry" style={RETRY_INLINE} onClick={onRetry}>
+            {t("errRetry")}
+          </button>
+        </div>
+      )}
 
       {note && <div className="obs-fd-chain-note">{note}</div>}
 
@@ -439,6 +485,7 @@ export function FlowDeskView() {
   const { data: flowMeta } = useFlowStream<unknown>("meta", { pollMs: 60_000 });
   const [tide,      setTide]      = useState<TidePayload | null>(null);
   const [chainHeat, setChainHeat] = useState<ChainHeatPayload | null>(null);
+  const [chainHeatStatus, setChainHeatStatus] = useState<ChainHeatStatus>("loading");
   const [enrich,    setEnrich]    = useState<EnrichPayload | null>(null);
 
 
@@ -479,11 +526,36 @@ export function FlowDeskView() {
     if (data) setTide(data);
   }, []);
 
+  // Chain heat keeps the read's outcome: a 404 withdraws the campaigns, a read that
+  // did not land keeps whatever was last read and says so.
+  const mountedRef = useRef(true);
+  const readChainHeat = useCallback(async () => {
+    const outcome = await flowGetResult("chainheat");
+    if (!mountedRef.current) return;
+    if (outcome.status === "data" && isChainHeatPayload(outcome.data)) {
+      setChainHeat(outcome.data);
+      setChainHeatStatus("data");
+    } else if (outcome.status === "absent") {
+      setChainHeat(null);
+      setChainHeatStatus("absent");
+    } else {
+      // A payload that is not chain heat must not be served again as if it were.
+      if (outcome.status === "data") flowInvalidate("chainheat");
+      setChainHeatStatus("unavailable");
+    }
+  }, []);
+
   const fetchChainHeat = useCallback(async () => {
     if (document.visibilityState === "hidden") return;
-    const data = await safeFetch<ChainHeatPayload>("/api/flow?f=chainheat");
-    if (data) setChainHeat(data);
-  }, []);
+    await readChainHeat();
+  }, [readChainHeat]);
+
+  // Retry is the reader's own request, so it is not visibility-guarded.
+  const retryChainHeat = useCallback(() => {
+    flowInvalidate("chainheat");
+    setChainHeatStatus("loading");
+    void readChainHeat();
+  }, [readChainHeat]);
 
   /** Fetch enrich artifact — fail-soft (absent/stale → null → v1 fallback in UI)
    *
@@ -531,13 +603,13 @@ export function FlowDeskView() {
     // frame — i.e. the artifact nobody needs for the first cards delayed the one
     // that draws them. It now loads on the first idle slice after mount, once the
     // feed has had the pipe to itself.
+    mountedRef.current = true;
     void (async () => {
-      const [ti, ch] = await Promise.all([
+      const [ti] = await Promise.all([
         safeFetch<TidePayload>("/api/flow?f=tide"),
-        safeFetch<ChainHeatPayload>("/api/flow?f=chainheat"),
+        readChainHeat(),
       ]);
       if (ti) setTide(ti);
-      if (ch) setChainHeat(ch);
     })();
 
     // Deferred enrich bootstrap — same stale gate as the fetchEnrich poll, minus
@@ -572,6 +644,7 @@ export function FlowDeskView() {
     enrichTimerRef.current = setInterval(fetchEnrich, 5 * 60_000);
 
     return () => {
+      mountedRef.current = false;
       cancelIdle();
       if (tideTimerRef.current)   clearInterval(tideTimerRef.current);
       if (chainTimerRef.current)  clearInterval(chainTimerRef.current);
@@ -727,7 +800,7 @@ export function FlowDeskView() {
           selected (Chain Heat keeps the rail when nothing is). */}
       <div className={`obs-fd-right${selectedEvent ? " has-sel" : ""}`}>
         {/* Chain Heat Rail — top of right column, scrollable */}
-        <ChainHeatRail data={chainHeat} lang={lang} />
+        <ChainHeatRail data={chainHeat} status={chainHeatStatus} onRetry={retryChainHeat} lang={lang} />
 
         {/* Inspector — slim one-line hint when nothing selected; full view on click */}
         <InspectorPane

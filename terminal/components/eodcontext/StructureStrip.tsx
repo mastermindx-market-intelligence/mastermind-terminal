@@ -17,7 +17,9 @@
  *
  * HONESTY DOCTRINE
  *   - Every value stamped with its OWN source store's session date. Never the wall clock.
- *   - A cell with no value prints "not published", never a zero and never a borrowed number.
+ *   - A cell with no value prints "not published", never a zero and never a borrowed number —
+ *     and only when its stores proved absence. A read that did not land prints "could not
+ *     load" with a Retry; one still in flight prints "reading…".
  *   - When gex_state can't answer and the ladder payload can, the cell discloses the
  *     fallback on hover — a silent fallback across two sessions is a lie by omission.
  *   - No forecast language. Walls, flip and max pain are descriptive levels; the expected
@@ -32,14 +34,18 @@ import type { Lang } from "@/lib/i18n";
 import {
   buildStructureCells,
   fmtEodDay,
+  structureCellGap,
   structureIsEmpty,
+  type EodReadStatus,
   type StructureCell,
+  type StructureGap,
   type StructureCellKey,
   type StructureGex,
   type StructureGexState,
   type MovesPayload,
   type OiConfPayload,
   type OiConfRow,
+  type StructureSource,
   type VolPayload,
 } from "@/lib/eodContext";
 
@@ -50,8 +56,18 @@ interface StructureStripProps {
   moves: MovesPayload | null;
   vol: VolPayload | null;
   oiConf: OiConfPayload | OiConfRow[] | null;
+  /** How each store's read stands — what separates "not published" from "could not load". */
+  reads: Record<StructureSource, EodReadStatus>;
+  /** Re-reads the stores that failed. */
+  onRetry: () => void;
   lang: Lang;
 }
+
+const GAP_NOTE: Record<StructureGap, EodKey> = {
+  failed: "cellLoadFailedNote",
+  reading: "cellReadingNote",
+  absent: "cellAbsentNote",
+};
 
 const LABEL_KEY: Record<StructureCellKey, EodKey> = {
   callWall: "cellCallWall",
@@ -86,11 +102,18 @@ const TONE: Partial<Record<StructureCellKey, string>> = {
 };
 
 export function StructureStrip({
-  root, gexState, gex, moves, vol, oiConf, lang,
+  root, gexState, gex, moves, vol, oiConf, reads, onRetry, lang,
 }: StructureStripProps) {
   const t = makeEodT(lang);
   const cells = buildStructureCells({ gexState, gex, moves, vol, oiConf, root });
+  const gaps = cells.map((c) => structureCellGap(c, reads));
   const empty = structureIsEmpty(cells);
+  const failed = gaps.includes("failed");
+  const retryButton = (
+    <button type="button" className="btn btn-ghost load-retry" style={RETRY_INLINE} onClick={onRetry}>
+      {t("retry")}
+    </button>
+  );
 
   return (
     <section style={OUTER} aria-label={t("beltAria")}>
@@ -103,20 +126,37 @@ export function StructureStrip({
         </span>
       </div>
 
-      {empty ? (
+      {empty && failed ? (
+        /* Nothing landed and at least one read failed: that is not "nothing published". */
+        <div style={LOAD_ERROR} data-testid="eod-structure-load-error" role="alert">
+          <span style={LOAD_ERROR_TITLE}>{t("beltLoadError")}</span>
+          <span style={LOAD_ERROR_WHY}>{t("beltLoadErrorWhy").replace("{root}", root)}</span>
+          {retryButton}
+        </div>
+      ) : empty && gaps.includes("reading") ? (
+        <p style={EMPTY_NOTE}>{t("beltLoading")}</p>
+      ) : empty ? (
         <p style={EMPTY_NOTE}>{t("beltEmpty")}</p>
       ) : (
-        <div style={CELLS}>
-          {cells.map((c) => (
-            <Cell key={c.key} cell={c} lang={lang} />
-          ))}
+        <div style={CELLS_COL}>
+          <div style={CELLS}>
+            {cells.map((c, i) => (
+              <Cell key={c.key} cell={c} gap={gaps[i]} lang={lang} />
+            ))}
+          </div>
+          {failed && (
+            <div style={PARTIAL_ERROR} data-testid="eod-structure-partial-error" role="status">
+              <span>{t("beltPartialError")}</span>
+              {retryButton}
+            </div>
+          )}
         </div>
       )}
     </section>
   );
 }
 
-function Cell({ cell, lang }: { cell: StructureCell; lang: Lang }) {
+function Cell({ cell, gap, lang }: { cell: StructureCell; gap: StructureGap | null; lang: Lang }) {
   const t = makeEodT(lang);
   const day = fmtEodDay(cell.vintage, lang);
   const stamp = day
@@ -133,7 +173,7 @@ function Cell({ cell, lang }: { cell: StructureCell; lang: Lang }) {
 
   return (
     <Tip label={tipText} size="card">
-      <div style={CELL} tabIndex={0}>
+      <div style={CELL} tabIndex={0} data-testid={`eod-cell-${cell.key}`}>
         <span style={CELL_LABEL}>{t(LABEL_KEY[cell.key])}</span>
         <span
           style={{
@@ -148,8 +188,8 @@ function Cell({ cell, lang }: { cell: StructureCell; lang: Lang }) {
         </span>
         {/* The vintage stamp is not decoration: it is what makes a settled number honest
             beside a live one, and the stores it comes from do not always agree. */}
-        <span style={CELL_STAMP}>
-          {cell.value === null ? t("cellAbsentNote") : stamp}
+        <span style={gap === "failed" ? CELL_STAMP_FAILED : CELL_STAMP}>
+          {gap ? t(GAP_NOTE[gap]) : stamp}
         </span>
       </div>
     </Tip>
@@ -205,6 +245,13 @@ const ID_DOT: React.CSSProperties = {
   borderRadius: "50%",
   background: "var(--signal)",
   flexShrink: 0,
+};
+
+const CELLS_COL: React.CSSProperties = {
+  display: "flex",
+  flexDirection: "column",
+  flex: 1,
+  minWidth: 0,
 };
 
 const CELLS: React.CSSProperties = {
@@ -271,4 +318,49 @@ const EMPTY_NOTE: React.CSSProperties = {
   fontSize: 11,
   lineHeight: 1.5,
   color: "var(--muted)",
+};
+
+const CELL_STAMP_FAILED: React.CSSProperties = {
+  ...CELL_STAMP,
+  color: "var(--warn)",
+};
+
+const LOAD_ERROR: React.CSSProperties = {
+  display: "flex",
+  flexWrap: "wrap",
+  alignItems: "center",
+  gap: "4px 12px",
+  flex: 1,
+  minWidth: 0,
+  padding: "7px 14px",
+};
+
+const LOAD_ERROR_TITLE: React.CSSProperties = {
+  fontSize: 11,
+  fontWeight: 600,
+  color: "var(--text)",
+};
+
+const LOAD_ERROR_WHY: React.CSSProperties = {
+  flex: "1 1 260px",
+  fontSize: 10.5,
+  lineHeight: 1.5,
+  color: "var(--muted)",
+};
+
+const PARTIAL_ERROR: React.CSSProperties = {
+  display: "flex",
+  flexWrap: "wrap",
+  alignItems: "center",
+  gap: "4px 10px",
+  padding: "4px 13px",
+  borderTop: "1px solid var(--line-2)",
+  fontSize: 10.5,
+  lineHeight: 1.4,
+  color: "var(--warn)",
+};
+
+const RETRY_INLINE: React.CSSProperties = {
+  padding: "2px 10px",
+  fontSize: 11,
 };

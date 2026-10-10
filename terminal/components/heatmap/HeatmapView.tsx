@@ -7,7 +7,12 @@
  *     the static /data/manifest.json copy is the second source (guests get a 403 from
  *     the route). Only a 404/410 from EVERY source is an empty market — any read that
  *     did not land is a load error with a Retry, and a failed refresh keeps the last read.
- *   - Flow index:        /api/flow?f=flow_idx → flow_idx.json (EOD, ΔOI-based)
+ *   - Flow index:        /api/flow?f=flow_idx → flow_idx.json (EOD, ΔOI-based); the static
+ *     /data/flow_idx.json copy is the second source. Same rule: both 404/410 is published
+ *     absence, a route refusal with no public copy is an access answer, anything else that
+ *     did not land is a load error with a Retry, and a failed refresh keeps the flow tiles.
+ *   - Live quotes:       /api/quote over the top names; a refresh that did not land stops
+ *     calling the held values live.
  *
  * HONESTY DOCTRINE:
  *   - 1D timeframe is REAL (nightly Polygon manifest.chg).
@@ -55,17 +60,8 @@ const CALL_SHARE_DEAD = 0.08;
 
 // ─── Data fetching ────────────────────────────────────────────────────────────
 
-async function safeFetch<T>(url: string): Promise<T | null> {
-  try {
-    const r = await fetch(url, { cache: "no-store" });
-    if (!r.ok) return null;
-    return (await r.json()) as T;
-  } catch {
-    return null;
-  }
-}
-
 const STATIC_MANIFEST = "/data/manifest.json";
+const STATIC_FLOW_IDX = "/data/flow_idx.json";
 
 /** A manifest is an object carrying a `symbols` map. Anything else parsed fine but is not a
  *  price snapshot — painting it as zero tiles would print "No data available" over an
@@ -112,27 +108,87 @@ async function readManifest(onRevalidate: (m: ManifestPayload) => void): Promise
   return { status: "unavailable" };
 }
 
+/** A flow index is an object; when it carries `rows` they are an array. */
+function isFlowIdx(v: unknown): v is FlowIdxPayload {
+  if (!v || typeof v !== "object" || Array.isArray(v)) return false;
+  const rows = (v as { rows?: unknown }).rows;
+  return rows === undefined || Array.isArray(rows);
+}
+
+/** What the latest flow-index read established. `auth` = the route refused and no public copy exists. */
+type FlowRead = "loading" | "data" | "absent" | "auth" | "unavailable";
+
+type FlowIdxOutcome =
+  | { status: "data"; flowIdx: FlowIdxPayload }
+  | { status: "absent" }
+  | { status: "auth" }
+  | { status: "unavailable" };
+
+/**
+ * Read the flow index: /api/flow first, the static copy second. Both 404/410 is published
+ * absence. A route 401/403 with the static copy proven absent is the guest's real answer —
+ * the layer needs access. Anything else that did not land says nothing about whether the
+ * index exists.
+ */
+async function readFlowIdx(onRevalidate: (f: FlowIdxPayload) => void): Promise<FlowIdxOutcome> {
+  let primary: FlowOutcome;
+  try {
+    primary = await flowGetResult("flow_idx");
+  } catch {
+    primary = { status: "unavailable", reason: "network" };
+  }
+  if (primary.status === "data" && isFlowIdx(primary.data)) return { status: "data", flowIdx: primary.data };
+
+  let fallback: CacheOutcome;
+  try {
+    fallback = await getJSONResult(STATIC_FLOW_IDX, {
+      onRevalidate: (f: unknown) => { if (isFlowIdx(f)) onRevalidate(f); },
+    });
+  } catch {
+    fallback = { status: "unavailable", reason: "network" };
+  }
+  if (fallback.status === "data" && isFlowIdx(fallback.data)) return { status: "data", flowIdx: fallback.data };
+  if (primary.status === "absent" && fallback.status === "absent") return { status: "absent" };
+  const refused = primary.status === "unavailable" && (primary.httpStatus === 401 || primary.httpStatus === 403);
+  if (refused && fallback.status === "absent") return { status: "auth" };
+  return { status: "unavailable" };
+}
+
+/** What the latest live-quote read established. `idle` until a read has been asked for. */
+type LiveRead = "idle" | "live" | "stale" | "failed";
+
 /**
  * Fetch live quotes for up to INTRADAY_TOP_N US tiles via /api/quote.
- * Returns a map of ticker → live chg% (null entries are skipped so manifest values are kept).
- * Chunks the request into batches of QUOTE_CHUNK to respect the route's MAX_BATCH cap.
+ * Returns ticker → live chg% (null entries are skipped so manifest values are kept) and
+ * whether every chunk landed. Chunks the request into batches of QUOTE_CHUNK to respect
+ * the route's MAX_BATCH cap.
  */
-async function fetchLiveChg(tickers: string[]): Promise<Record<string, number>> {
-  const result: Record<string, number> = {};
+type QuoteMap = Record<string, { chg: number | null } | null>;
+
+async function fetchLiveChg(tickers: string[]): Promise<{ chg: Record<string, number>; complete: boolean }> {
+  const chg: Record<string, number> = {};
+  let complete = true;
   for (let i = 0; i < tickers.length; i += QUOTE_CHUNK) {
     const chunk = tickers.slice(i, i + QUOTE_CHUNK);
     const symsParam = chunk.join(",");
-    const data = await safeFetch<{ quotes: Record<string, { chg: number | null } | null> }>(
-      `/api/quote?view=regular&syms=${encodeURIComponent(symsParam)}`
-    );
-    if (!data?.quotes) continue;
-    for (const [sym, q] of Object.entries(data.quotes)) {
+    let quotes: QuoteMap | null = null;
+    try {
+      const r = await fetch(`/api/quote?view=regular&syms=${encodeURIComponent(symsParam)}`, { cache: "no-store" });
+      if (r.ok) {
+        const body = (await r.json()) as { quotes?: unknown } | null;
+        if (body?.quotes && typeof body.quotes === "object") quotes = body.quotes as QuoteMap;
+      }
+    } catch {
+      quotes = null;
+    }
+    if (!quotes) { complete = false; continue; }
+    for (const [sym, q] of Object.entries(quotes)) {
       if (q != null && typeof q.chg === "number" && isFinite(q.chg)) {
-        result[sym] = q.chg;
+        chg[sym] = q.chg;
       }
     }
   }
-  return result;
+  return { chg, complete };
 }
 
 // ─── Data join: manifest + flow_idx → HeatmapTile[] ──────────────────────────
@@ -321,10 +377,10 @@ export function HeatmapView() {
   const [manifest, setManifest] = useState<ManifestPayload | null>(null);
   const [flowIdx, setFlowIdx]   = useState<FlowIdxPayload | null>(null);
   const [manifestRead, setManifestRead] = useState<ManifestRead>("loading");
-  const [loadingFlow,     setLoadingFlow]     = useState(true);
-  const [flowError,       setFlowError]       = useState(false);
+  const [flowRead, setFlowRead] = useState<FlowRead>("loading");
   /** Live chg% values for top-N tiles; keyed by ticker. Null map = not yet loaded. */
   const [liveChg, setLiveChg] = useState<Record<string, number> | null>(null);
+  const [liveRead, setLiveRead] = useState<LiveRead>("idle");
   const intradayPollRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   // ── UI state ─────────────────────────────────────────────────────────────────
@@ -378,23 +434,35 @@ export function HeatmapView() {
   }, [fetchManifest]);
 
   // ── Fetch flow index ──────────────────────────────────────────────────────────
-  // Primary: /api/flow?f=flow_idx (integrator wires this in route.ts)
-  // Fallback: /data/flow_idx.json (VPS-mirrored from GitHub Pages via pull_macro_intel)
-  // Tertiary: direct GitHub Pages URL (may hit CORS in some environments)
+  // Primary: /api/flow?f=flow_idx; second source: /data/flow_idx.json (see readFlowIdx).
+  // A read that did not land keeps the flow tiles on screen as the last read; a proven
+  // absence or a refusal withdraws them. The fence drops a read a newer one replaced.
+  const flowReqRef = useRef(0);
   const fetchFlow = useCallback(async () => {
-    let data = await safeFetch<FlowIdxPayload>("/api/flow?f=flow_idx");
-    if (!data) {
-      data = await safeFetch<FlowIdxPayload>("/data/flow_idx.json");
-    }
-    if (data) {
-      setFlowIdx(data);
-      setFlowError(false);
+    const req = ++flowReqRef.current;
+    const current = () => flowReqRef.current === req;
+    const read = await readFlowIdx((fresh) => {
+      if (current()) { setFlowIdx(fresh); setFlowRead("data"); }
+    });
+    if (!current()) return;
+    if (read.status === "data") {
+      setFlowIdx(read.flowIdx);
+      setFlowRead("data");
+    } else if (read.status === "absent" || read.status === "auth") {
+      setFlowIdx(null);
+      setFlowRead(read.status);
     } else {
-      // Flow index unavailable — heatmap degrades gracefully to price-only
-      setFlowError(true);
+      setFlowRead("unavailable");
     }
-    setLoadingFlow(false);
   }, []);
+
+  // Retry asks both sources again, past the static copy's remembered 404.
+  const retryFlow = useCallback(() => {
+    flowInvalidate("flow_idx");
+    invalidate(STATIC_FLOW_IDX);
+    setFlowRead("loading");
+    void fetchFlow();
+  }, [fetchFlow]);
 
   // ── Mount ─────────────────────────────────────────────────────────────────────
   useEffect(() => {
@@ -417,6 +485,7 @@ export function HeatmapView() {
   // Only US plain-ticker names (no suffix) are passed to the quote hub. The top-N
   // is ranked by dollar-vol (price × vol) from the manifest — a reasonable mcap proxy.
   // On null quote → manifest value kept (guard: never blank a tile).
+  const liveChgRef = useRef<Record<string, number> | null>(null);
   const refreshIntraday = useCallback(async (tiles: HeatmapTile[]) => {
     const isUS = (t: HeatmapTile) => /^[A-Z]+(\.[AB])?$/.test(t.ticker) && !/^\d/.test(t.ticker);
     const dollarVol = (t: HeatmapTile) => (t.price ?? 0) * (t.vol ?? 0);
@@ -426,8 +495,13 @@ export function HeatmapView() {
       .slice(0, INTRADAY_TOP_N)
       .map((t) => t.ticker);
     if (topTickers.length === 0) return;
-    const fresh = await fetchLiveChg(topTickers);
-    setLiveChg((prev) => ({ ...(prev ?? {}), ...fresh }));
+    const { chg, complete } = await fetchLiveChg(topTickers);
+    // Only values this read refreshed are live. A read that did not fully land leaves the
+    // held values as the last read, and with nothing held the board is plain EOD.
+    const next = { ...(liveChgRef.current ?? {}), ...chg };
+    liveChgRef.current = next;
+    setLiveChg(next);
+    setLiveRead(complete ? "live" : Object.keys(next).length > 0 ? "stale" : "failed");
   }, []);
 
   // Kick off intraday refresh once the manifest is loaded (gives us dollar-vol ranks).
@@ -481,6 +555,13 @@ export function HeatmapView() {
   const isLoading = !manifest && manifestRead === "loading";
   const loadFailed = !manifest && manifestRead === "unavailable";
   const refreshFailed = manifest != null && manifestRead === "unavailable";
+  // Tiles exist but the filter hides every one: a search miss, never an empty market.
+  const noMatch = search !== "" && allTiles.length > 0 && tiles.length === 0;
+
+  // The flow layer's states, shown only on the flow layer. A held index is always painted.
+  const onFlow = layer === "flow";
+  const flowRefreshFailed = onFlow && flowIdx != null && flowRead === "unavailable";
+  const flowLoadFailed = onFlow && flowIdx == null && flowRead === "unavailable";
 
   // ── Render ────────────────────────────────────────────────────────────────────
 
@@ -578,14 +659,17 @@ export function HeatmapView() {
           {t("dataNote")}
         </div>
 
-        {/* Intraday overlay note — shown once live data has been loaded */}
-        {liveChg && liveSet.size > 0 && (
+        {/* Intraday overlay note — says "live" only for values the last read refreshed */}
+        {(liveRead === "failed" || (liveRead !== "idle" && liveSet.size > 0)) && (
           <>
             <div style={BREADTH_SEP} />
-            <div style={{ fontSize: 10, color: "var(--muted)", fontStyle: "italic", alignSelf: "center" }}>
-              {zh
-                ? `实时（延迟15分钟）前${liveSet.size}支 · 其余为昨收`
-                : `live (15m delayed) top ${liveSet.size} · rest EOD`}
+            <div
+              data-testid="heatmap-live-note"
+              data-state={liveRead}
+              style={{ fontSize: 10, color: liveRead === "live" ? "var(--muted)" : "var(--warn)", fontStyle: "italic", alignSelf: "center" }}
+            >
+              {(liveRead === "live" ? t("liveNote") : liveRead === "stale" ? t("liveStale") : t("liveFailed"))
+                .replace("{n}", String(liveSet.size))}
             </div>
           </>
         )}
@@ -702,15 +786,40 @@ export function HeatmapView() {
       </div>
 
       {/* ═══ FLOW SOFT DISCLAIMER (flow layer only) ══════════════════════════ */}
-      {layer === "flow" && !flowError && !loadingFlow && (
+      {onFlow && flowIdx != null && (
         <div className="obs-note" style={FLOW_NOTE_BAR}>
           {t("toneSoftNote")}
         </div>
       )}
 
-      {flowError && (
-        <div style={FLOW_ERR_BAR}>
+      {flowRefreshFailed && (
+        <div style={REFRESH_FAILED_BAR} data-testid="heatmap-flow-refresh-failed" role="status">
+          <span>{t("flowRefreshFailed")}</span>
+          <button type="button" className="btn btn-ghost load-retry" style={RETRY_INLINE} onClick={retryFlow}>
+            {t("retry")}
+          </button>
+        </div>
+      )}
+
+      {flowLoadFailed && (
+        <div style={FLOW_LOAD_ERROR_BAR} data-testid="heatmap-flow-load-error" role="alert">
+          <span style={{ color: "var(--text)", fontWeight: 600 }}>{t("flowLoadError")}</span>
+          <span style={{ color: "var(--muted)" }}>{t("flowLoadErrorWhy")}</span>
+          <button type="button" className="btn btn-ghost load-retry" style={RETRY_INLINE} onClick={retryFlow}>
+            {t("retry")}
+          </button>
+        </div>
+      )}
+
+      {onFlow && flowIdx == null && flowRead === "absent" && (
+        <div style={FLOW_ERR_BAR} data-testid="heatmap-flow-absent">
           {t("noFlowData")}
+        </div>
+      )}
+
+      {onFlow && flowIdx == null && flowRead === "auth" && (
+        <div style={FLOW_ERR_BAR} data-testid="heatmap-flow-auth">
+          {t("flowAuth")}
         </div>
       )}
 
@@ -729,6 +838,8 @@ export function HeatmapView() {
           <LoadingState t={t} />
         ) : loadFailed ? (
           <LoadErrorState t={t} onRetry={retryManifest} />
+        ) : noMatch ? (
+          <NoMatchState t={t} query={search.trim() || search} onClear={() => setSearch("")} />
         ) : tiles.length === 0 ? (
           <EmptyState t={t} />
         ) : view === "map" ? (
@@ -860,6 +971,20 @@ function LoadErrorState({ t, onRetry }: { t: (k: Parameters<ReturnType<typeof ma
   );
 }
 
+/** The board has tiles; the search hides all of them. Say that, and offer the way back. */
+function NoMatchState({ t, query, onClear }: {
+  t: (k: Parameters<ReturnType<typeof makeHeatmapT>>[0]) => string;
+  query: string;
+  onClear: () => void;
+}) {
+  return (
+    <div data-testid="heatmap-no-match" style={LOAD_ERROR_STATE}>
+      <div style={{ fontSize: 13, color: "var(--text)" }}>{t("noMatch").replace("{q}", query)}</div>
+      <button type="button" className="btn btn-ghost load-retry" onClick={onClear}>{t("clearSearch")}</button>
+    </div>
+  );
+}
+
 function EmptyState({ t }: { t: (k: Parameters<ReturnType<typeof makeHeatmapT>>[0]) => string }) {
   return (
     <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "100%", color: "var(--muted)", fontSize: 13 }}>
@@ -976,6 +1101,17 @@ const FLOW_ERR_BAR: React.CSSProperties = {
   padding: "4px 14px",
   fontSize: 10,
   color: "var(--warn)",
+  borderBottom: "1px solid rgba(255,255,255,0.06)",
+  flexShrink: 0,
+};
+
+const FLOW_LOAD_ERROR_BAR: React.CSSProperties = {
+  display: "flex",
+  alignItems: "center",
+  flexWrap: "wrap",
+  gap: "4px 8px",
+  padding: "4px 14px",
+  fontSize: 10,
   borderBottom: "1px solid rgba(255,255,255,0.06)",
   flexShrink: 0,
 };

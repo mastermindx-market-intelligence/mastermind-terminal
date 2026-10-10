@@ -535,6 +535,16 @@ export function GexDeskView() {
     : stateRead.root === ticker
     ? stateRead.status
     : "loading";
+  // The EOD belt prints its level cells from these two stores, so it is told how each
+  // read stands. A payload on screen is an answer, even when its latest refresh failed.
+  const beltLevelReads = {
+    gexstate: visibleStatePayload ? "data" : stateStatus,
+    gex: gexPayload ? "data" : liveStatus,
+  } as const;
+  const retryBeltLevels = useCallback(() => {
+    if (beltLevelReads.gexstate === "unavailable") retryState();
+    if (beltLevelReads.gex === "unavailable") retryLive();
+  }, [beltLevelReads.gexstate, beltLevelReads.gex, retryState, retryLive]);
 
   const matrixCells = useMemo(
     () => (Array.isArray(visibleMatrix?.cells)
@@ -772,6 +782,8 @@ export function GexDeskView() {
           gexState={visibleStatePayload}
           gex={gexPayload}
           lang={lang}
+          levelReads={beltLevelReads}
+          onRetryLevels={retryBeltLevels}
         />
       )}
 

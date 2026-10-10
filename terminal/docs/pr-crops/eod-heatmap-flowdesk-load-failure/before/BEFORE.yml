@@ -1,0 +1,73 @@
+# EOD belt, Flow Desk chain heat and Heatmap flow layer failure-state truth: the defect, captured before the fix
+# Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
+# These are Playwright failure screenshots, not crops from capture_eod_heatmap_flowdesk_load_failure.cjs.
+# This PR's e2e specs ran against the product files at base b7a3357b (EodContextBelt.tsx,
+# StructureStrip.tsx, DarkPoolMini.tsx, eodContext.ts, GexDeskView.tsx, FlowDeskView.tsx and
+# HeatmapView.tsx reverted to that commit; the new string tables stay, since the specs read them).
+# 24 of 30 runs failed on the defect. The 6 that passed are the two absence-preserving tests
+# (belt stores 404 -> "not published", both flow sources 404 -> "Flow data unavailable"), which
+# must hold before and after. The chain-heat 404 test failed too: base never left
+# "Loading chain heat…" for a 404 either.
+# Playwright's failure screenshot covers only the viewport, and at 820 and 390 the belt and the
+# Chain Heat rail sit below the fold. The 8 belt-503 and chainheat-* tablet and mobile frames are
+# therefore full-page re-shots from a second run of those 4 tests against the same base files
+# (screenshot: { mode: only-on-failure, fullPage: true }), where all 8 failed again.
+base: b7a3357b06847f560022a829b8fd6c4fea3d4d47
+specs:
+  - terminal/e2e/options-eod-belt-load-failure.spec.ts
+  - terminal/e2e/options-flowdesk-chainheat-load-failure.spec.ts
+  - terminal/e2e/discover-heatmap-flow-layer-load-failure.spec.ts
+projects:
+  - { name: desktop, width: 1440, height: 900, lang: en }
+  - { name: tablet, width: 820, height: 1180, lang: zh }
+  - { name: mobile, width: 390, height: 844, lang: en }
+theme: dark
+files:
+  belt-503-desktop.png: &belt
+    test: "failed belt reads are load errors with an in-place Retry, never unpublished stores"
+    injected: { "darkpool": 503, "oiconf": aborted, "moves:SPY": 503, "vol:SPY": aborted }
+    shows: "Expected Move, IV Percentile and OI Confirmed read \"not published\", and the dark-pool panel says \"The settled dark-pool artifact hasn't published yet\", for reads that did not land; nothing offers a Retry"
+  belt-503-tablet.png: *belt
+  belt-503-mobile.png: *belt
+  chainheat-503-desktop.png: &chain503
+    test: "a chain-heat read that answers 5xx is a load error with Retry, never \"loading\""
+    injected: { "chainheat": 503 }
+    shows: "the Chain Heat rail says \"Loading chain heat…\" for a read that already failed, and keeps saying it"
+  chainheat-503-tablet.png: *chain503
+  chainheat-503-mobile.png: *chain503
+  chainheat-refused-desktop.png: &chainRefused
+    test: "a chain-heat read that is refused is a load error with Retry, never \"loading\""
+    injected: { "chainheat": aborted }
+    shows: "the Chain Heat rail says \"Loading chain heat…\" for a request the network refused"
+  chainheat-refused-tablet.png: *chainRefused
+  chainheat-refused-mobile.png: *chainRefused
+  chainheat-404-desktop.png: &chain404
+    test: "nothing published for the session is shown only on a 404, with nothing to retry"
+    injected: { "chainheat": 404 }
+    shows: "the Chain Heat rail says \"Loading chain heat…\" for a session with nothing published"
+  chainheat-404-tablet.png: *chain404
+  chainheat-404-mobile.png: *chain404
+  heatmap-flow-503-desktop.png: &flow503
+    test: "a failed flow-index read is a load error with an in-place Retry, never missing flow data"
+    injected: { "flow:flow_idx": 503, "/data/flow_idx.json": aborted }
+    shows: "\"Flow data unavailable — showing price layer\", the same words as a published absence, for a read that did not land; no Retry"
+  heatmap-flow-503-tablet.png: *flow503
+  heatmap-flow-503-mobile.png: *flow503
+  heatmap-flow-403-desktop.png: &flow403
+    test: "a refused flow route with no public copy is an access answer, not a failure"
+    injected: { "flow:flow_idx": 403, "/data/flow_idx.json": 404 }
+    shows: "\"Flow data unavailable — showing price layer\" for a route that refused the session, which is what every guest sees on production"
+  heatmap-flow-403-tablet.png: *flow403
+  heatmap-flow-403-mobile.png: *flow403
+  heatmap-quotes-failed-desktop.png: &quotes
+    test: "live quotes that did not load are never called live"
+    injected: { "/api/quote": 503 }
+    shows: "the board falls back to EOD values with nothing saying the live-quote read failed"
+  heatmap-quotes-failed-tablet.png: *quotes
+  heatmap-quotes-failed-mobile.png: *quotes
+  heatmap-no-match-desktop.png: &noMatch
+    test: "a search that hides every tile says so and offers the way back"
+    injected: { search: "zzzzq" }
+    shows: "\"No data available\" for a search that matched no names, with no way to clear it"
+  heatmap-no-match-tablet.png: *noMatch
+  heatmap-no-match-mobile.png: *noMatch

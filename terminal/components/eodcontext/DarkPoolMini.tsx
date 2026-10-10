@@ -11,8 +11,10 @@
  *   2. quiet      — the row exists and is inside its normal range. A real answer, printed
  *                   as such, not as an empty panel.
  *   3. absent     — split further into "this ticker is not in the panel" (ETFs, thin names)
- *                   and "the artifact hasn't published" (feed missing). Different facts get
+ *                   and "the artifact hasn't published" (a 404). Different facts get
  *                   different sentences.
+ *   A read that did not land (5xx, refused fetch, unparseable body) is none of the three: it
+ *   says nothing about the panel, so it gets its own load error and a Retry.
  *
  * HONESTY DOCTRINE
  *   - The lean words, stances and reads are macro's published copy, carried verbatim; the
@@ -32,6 +34,7 @@ import type { Lang } from "@/lib/i18n";
 import {
   darkPoolRead,
   type DarkPoolEodPayload,
+  type EodReadStatus,
   type DarkPoolLean,
   type DarkPoolNorm,
   type DarkPoolShortKey,
@@ -41,10 +44,12 @@ import {
 
 interface DarkPoolMiniProps {
   root: string;
-  /** null → the fetch hasn't resolved or the artifact is missing (see `loading`). */
+  /** null → the read hasn't landed, failed, or proved the artifact missing (see `status`). */
   payload: DarkPoolEodPayload | null;
-  /** True while the first fetch is in flight — suppresses the "unavailable" claim. */
-  loading?: boolean;
+  /** How the read stands. Only "absent" may print "hasn't published". */
+  status: EodReadStatus;
+  /** Re-reads the artifact after a failed read. */
+  onRetry: () => void;
   lang: Lang;
 }
 
@@ -94,7 +99,7 @@ const SHORT_TONE: Partial<Record<DarkPoolShortKey, string>> = {
 /** Few matched days behind the z-scores → say so rather than quietly trusting them. */
 const FEW_DAYS = 30;
 
-export function DarkPoolMini({ root, payload, loading = false, lang }: DarkPoolMiniProps) {
+export function DarkPoolMini({ root, payload, status, onRetry, lang }: DarkPoolMiniProps) {
   const t = makeEodT(lang);
   const read = darkPoolRead(payload, root);
   const day = fmtEodDay(eodDate(read.asof), lang);
@@ -106,12 +111,28 @@ export function DarkPoolMini({ root, payload, loading = false, lang }: DarkPoolM
     </div>
   );
 
+  // ── The read did not land: not a fact about the panel, so never its absent copy. ──
+  if (status === "unavailable") {
+    return (
+      <section style={OUTER} aria-label={t("dpAria")}>
+        {header}
+        <div style={LOAD_ERROR} data-testid="eod-darkpool-load-error" role="alert">
+          <p style={ABSENT_LEAD}>{t("dpLoadError")}</p>
+          <p style={ABSENT_WHY}>{t("dpLoadErrorWhy")}</p>
+          <button type="button" className="btn btn-ghost load-retry" style={RETRY_INLINE} onClick={onRetry}>
+            {t("retry")}
+          </button>
+        </div>
+      </section>
+    );
+  }
+
   // ── Absent A: the artifact itself is missing (pre-first-nightly, or a 404). ──
   if (!payload || !Array.isArray(payload.universe) || payload.universe.length === 0) {
     return (
       <section style={OUTER} aria-label={t("dpAria")}>
         {header}
-        {loading ? (
+        {status === "loading" ? (
           <p style={ABSENT_LEAD}>&nbsp;</p>
         ) : (
           <>
@@ -349,4 +370,16 @@ const ABSENT_WHY: React.CSSProperties = {
   fontSize: 10,
   lineHeight: 1.5,
   color: "var(--muted)",
+};
+
+const LOAD_ERROR: React.CSSProperties = {
+  display: "flex",
+  flexDirection: "column",
+  alignItems: "flex-start",
+  gap: 6,
+};
+
+const RETRY_INLINE: React.CSSProperties = {
+  padding: "2px 10px",
+  fontSize: 11,
 };
