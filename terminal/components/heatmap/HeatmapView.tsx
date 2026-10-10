@@ -796,7 +796,7 @@ export function HeatmapView() {
       )}
 
       {/* Render-prune note when not in marketCap mode (breadth honesty). */}
-      {view === "map" && sizing !== "marketCap" && capCopy.pruneNote && !isLoading && (
+      {view === "map" && sizing !== "marketCap" && capCopy.pruneNote && manifest != null && (
         <div className="obs-note" style={CAP_NOTE_BAR}>
           {capCopy.pruneNote}
         </div>
