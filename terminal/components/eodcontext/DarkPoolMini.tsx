@@ -1,27 +1,9 @@
 "use client";
 /**
- * DarkPoolMini — settled off-exchange positioning context for one root (OEU T-E).
- *
- * The compact Terminal counterpart of the macro darkpool desk. It answers one question:
- * how much of this name traded away from the public tape yesterday, versus how much
- * normally does — and which way the short-marking moved while that happened.
- *
- * THREE STATES, NEVER COLLAPSED INTO ONE
- *   1. tagged     — the row is a standout and carries macro's own lean label + read.
- *   2. quiet      — the row exists and is inside its normal range. A real answer, printed
- *                   as such, not as an empty panel.
- *   3. absent     — split further into "this ticker is not in the panel" (ETFs, thin names)
- *                   and "the artifact hasn't published" (feed missing). Different facts get
- *                   different sentences.
- *
- * HONESTY DOCTRINE
- *   - The lean words, stances and reads are macro's published copy, carried verbatim; the
- *     classification thresholds are macro's constants (lib/eodContext.ts). One footprint,
- *     one vocabulary, across both estates.
- *   - The disclaimer ships WITH the panel, not in a footnote: off-exchange volume hides
- *     direction, so this is positioning context and never a trade call.
- *   - Small matched-day counts are disclosed on the panel, not buried.
- *   - EOD vintage stamped on the panel — this is yesterday's settled tape.
+ * Settled off-exchange observations from Macro's versioned EOD artifact.
+ * Keep source session, independent nulls, and comparable-history counts visible.
+ * A missing baseline or source pattern is not a quiet-market conclusion.
+ * The existing layout and vocabulary remain; source-specific prose awaits its owner.
  */
 
 import React from "react";
@@ -32,8 +14,6 @@ import type { Lang } from "@/lib/i18n";
 import {
   darkPoolRead,
   type DarkPoolEodPayload,
-  type DarkPoolLean,
-  type DarkPoolNorm,
   type DarkPoolShortKey,
   eodDate,
   fmtEodDay,
@@ -48,33 +28,6 @@ interface DarkPoolMiniProps {
   lang: Lang;
 }
 
-const LEAN_LABEL: Record<DarkPoolLean, EodKey> = {
-  accumulation: "dpLeanAccumulation",
-  distribution: "dpLeanDistribution",
-  unusual: "dpLeanUnusual",
-};
-const LEAN_STANCE: Record<DarkPoolLean, EodKey> = {
-  accumulation: "dpStanceAccumulation",
-  distribution: "dpStanceDistribution",
-  unusual: "dpStanceUnusual",
-};
-const LEAN_READ: Record<DarkPoolLean, EodKey> = {
-  accumulation: "dpReadAccumulation",
-  distribution: "dpReadDistribution",
-  unusual: "dpReadUnusual",
-};
-/** Direction tones are TOKENS, so zh 红涨绿跌 flips by theme, never by hardcoded colour. */
-const LEAN_TONE: Record<DarkPoolLean, string> = {
-  accumulation: "var(--up)",
-  distribution: "var(--down)",
-  unusual: "var(--signal)",
-};
-const NORM_LABEL: Record<DarkPoolNorm, EodKey> = {
-  far: "dpNormFar",
-  well: "dpNormWell",
-  above: "dpNormAbove",
-  at: "dpNormAt",
-};
 const SHORT_LABEL: Record<DarkPoolShortKey, EodKey> = {
   building: "dpShortBuilding",
   fading: "dpShortFading",
@@ -82,15 +35,6 @@ const SHORT_LABEL: Record<DarkPoolShortKey, EodKey> = {
   heavy: "dpShortHeavy",
   normal: "dpShortNormal",
 };
-/**
- * Short-marking tone. Short-marked selling BUILDING is the bearish read and FADING the
- * bullish one — so the tokens are deliberately crossed relative to the raw number's sign.
- */
-const SHORT_TONE: Partial<Record<DarkPoolShortKey, string>> = {
-  building: "var(--down)",
-  fading: "var(--up)",
-};
-
 /** Few matched days behind the z-scores → say so rather than quietly trusting them. */
 const FEW_DAYS = 30;
 
@@ -98,6 +42,15 @@ export function DarkPoolMini({ root, payload, loading = false, lang }: DarkPoolM
   const t = makeEodT(lang);
   const read = darkPoolRead(payload, root);
   const day = fmtEodDay(eodDate(read.asof), lang);
+  const sourceAttributes = {
+    "data-source-schema": read.schema ?? undefined,
+    "data-state": read.state,
+    "data-source-pattern": read.pattern ?? undefined,
+    "data-source-session": read.asof ?? undefined,
+    "data-history-rebased": read.historyRebased ?? undefined,
+    "data-comparable-observations": read.nDays ?? undefined,
+  };
+
 
   const header = (
     <div style={HEAD}>
@@ -106,36 +59,34 @@ export function DarkPoolMini({ root, payload, loading = false, lang }: DarkPoolM
     </div>
   );
 
-  // ── Absent A: the artifact itself is missing (pre-first-nightly, or a 404). ──
-  if (!payload || !Array.isArray(payload.universe) || payload.universe.length === 0) {
+  // Missing, unsupported, historical-only, or unqualified source session.
+  if (read.state === "unavailable") {
     return (
-      <section style={OUTER} aria-label={t("dpAria")}>
+      <section style={OUTER} aria-label={t("dpAria")} {...sourceAttributes}>
         {header}
         {loading ? (
           <p style={ABSENT_LEAD}>&nbsp;</p>
         ) : (
           <>
             <p style={ABSENT_LEAD}>{t("dpUnavailable")}</p>
-            <p style={ABSENT_WHY}>{t("dpUnavailableWhy")}</p>
           </>
         )}
       </section>
     );
   }
 
-  // ── Absent B: the panel published, but does not cover this ticker. ──
-  if (!read.row) {
+  // A qualified current cross-section exists, but has no current or historical row.
+  if (read.state === "not_covered") {
     return (
-      <section style={OUTER} aria-label={t("dpAria")}>
+      <section style={OUTER} aria-label={t("dpAria")} {...sourceAttributes}>
         {header}
         <p style={ABSENT_LEAD}>{t("dpNotCovered").replace("{root}", read.root)}</p>
-        <p style={ABSENT_WHY}>{t("dpNotCoveredWhy")}</p>
       </section>
     );
   }
 
   const lean = read.lean;
-  const leanTone = lean ? LEAN_TONE[lean] : "var(--muted)";
+  const leanTone = "var(--signal)";
   const shortKey = read.short?.key ?? null;
   const shortText = shortKey
     ? t(SHORT_LABEL[shortKey]).replace(
@@ -145,17 +96,19 @@ export function DarkPoolMini({ root, payload, loading = false, lang }: DarkPoolM
     : t("cellAbsent");
 
   return (
-    <section style={OUTER} aria-label={t("dpAria")}>
+    <section style={OUTER} aria-label={t("dpAria")} {...sourceAttributes}>
       {header}
 
-      {/* Glance tier: the plain-word lean (or the honest "nothing unusual"), + its stance. */}
-      <div style={LEAN_ROW}>
-        <span style={{ ...LEAN_CHIP, color: leanTone, borderColor: leanTone }}>
-          {lean ? t(LEAN_LABEL[lean]) : t("dpQuietLabel")}
-        </span>
-        {lean && <span style={STANCE}>{t(LEAN_STANCE[lean])}</span>}
-      </div>
-      <p style={READ_LINE}>{lean ? t(LEAN_READ[lean]) : t("dpQuietRead")}</p>
+      {/* Only a source-qualified standout earns the existing direction-unknown label.
+          Missing/partial context and non-standouts carry measurements, never a quiet claim. */}
+      {lean && (
+        <div style={LEAN_ROW}>
+          <span style={{ ...LEAN_CHIP, color: leanTone, borderColor: leanTone }}>
+            {t("dpLeanUnusual")}
+          </span>
+          <span style={STANCE}>{t("dpStanceUnusual")}</span>
+        </div>
+      )}
 
       {/* Numbers tier: share, its distance from the name's own norm, short-marking trend. */}
       <div style={METRICS}>
@@ -165,13 +118,11 @@ export function DarkPoolMini({ root, payload, loading = false, lang }: DarkPoolM
         />
         <Metric
           label={t("dpVsNorm")}
-          value={read.norm ? t(NORM_LABEL[read.norm]) : t("cellAbsent")}
-          sub={read.oeZ === null ? null : `${read.oeZ >= 0 ? "+" : ""}${read.oeZ.toFixed(1)}σ`}
+          value={read.oeZ === null ? t("cellAbsent") : `${read.oeZ >= 0 ? "+" : ""}${read.oeZ.toFixed(1)}σ`}
         />
         <Metric
           label={t("dpShortMark")}
           value={shortText}
-          tone={shortKey ? SHORT_TONE[shortKey] : undefined}
         />
       </div>
 
@@ -266,13 +217,6 @@ const STANCE: React.CSSProperties = {
   whiteSpace: "nowrap",
 };
 
-const READ_LINE: React.CSSProperties = {
-  margin: 0,
-  fontSize: 10.5,
-  lineHeight: 1.5,
-  color: "var(--muted)",
-};
-
 const METRICS: React.CSSProperties = {
   display: "flex",
   gap: 14,
@@ -344,9 +288,3 @@ const ABSENT_LEAD: React.CSSProperties = {
   color: "var(--text-2)",
 };
 
-const ABSENT_WHY: React.CSSProperties = {
-  margin: 0,
-  fontSize: 10,
-  lineHeight: 1.5,
-  color: "var(--muted)",
-};
