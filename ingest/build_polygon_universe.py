@@ -22,6 +22,7 @@ ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
 from ingest.polygon_bars import fetch_daily, ohlc_json   # noqa: E402
+from ingest.build_macro_symbols import write_atomic  # noqa: E402
 from ingest.session_anchor import stamp as stamp_session_anchor  # noqa: E402
 from ingest.slice_document import write_slice_preserving_siblings  # noqa: E402
 from signal_layer import confluence, contracts, backtest  # noqa: E402
@@ -208,7 +209,7 @@ def write_backtest_artifact(sym: str, bt: dict, btc: dict, out_dir: Path) -> boo
     # backtest_contract dict + "equity" key; strip raw _returns/_returns_index
     full_bt = {k: v for k, v in btc.items() if k not in ("_returns", "_returns_index")}
     full_bt["equity"] = equity_obj
-    (out_dir / f"{sym}.backtest.json").write_text(json.dumps(full_bt, separators=(",", ":")))
+    write_atomic(out_dir / f"{sym}.backtest.json", full_bt)
     return True
 
 
@@ -230,7 +231,7 @@ def main(syms: list[str]) -> None:
         # builder rebuilds the document from scratch in Phase 1 and would otherwise drop the
         # field for the hours until the marathon reaches that pass (ingest/session_anchor.py).
         stamp_session_anchor(_doc, sym)
-        (OUT / f"{sym}.json").write_text(json.dumps(_doc, separators=(",", ":")))
+        write_atomic(OUT / f"{sym}.json", _doc)
 
         df = pd.DataFrame(bars, columns=["date", "o", "h", "l", "c", "v"])
         df["date"] = pd.to_datetime(df["date"])
@@ -318,7 +319,7 @@ def main(syms: list[str]) -> None:
         manifest["symbols"][sym] = row
         manifest["as_of"] = bars[-1][0]
         time.sleep(0.2)
-    MANIFEST.write_text(json.dumps(manifest, indent=2))
+    write_atomic(MANIFEST, manifest)
     print(f"\nmanifest: {len(manifest['symbols'])} symbols, as_of {manifest['as_of']}")
 
 
