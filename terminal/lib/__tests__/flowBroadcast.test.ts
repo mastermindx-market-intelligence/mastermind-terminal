@@ -9,11 +9,25 @@
  */
 import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
 
-const { loadFlowFresh } = vi.hoisted(() => ({ loadFlowFresh: vi.fn() }));
+const { loadFlowFresh, loadFlowFreshResult } = vi.hoisted(() => ({
+  loadFlowFresh: vi.fn(),
+  loadFlowFreshResult: vi.fn(),
+}));
 vi.mock("@/lib/flowSource", () => ({
   loadFlowFresh,
+  loadFlowFreshResult,
   isValidF: () => true,
 }));
+
+/**
+ * The broadcaster reads the classified outcome. Most cases below script only the payload
+ * (`loadFlowFresh`): a payload is data and a null is a read that did not land. The status
+ * cases script the outcome itself.
+ */
+async function outcomeFromPayload(f: string) {
+  const data = await loadFlowFresh(f);
+  return data ? { status: "data", data } : { status: "unavailable" };
+}
 
 import { subscribe, activeProducerCount } from "@/lib/flowBroadcast";
 
@@ -30,18 +44,26 @@ function payload(content: Record<string, unknown>): Record<string, unknown> {
 /** Let the producer's in-flight read settle without moving the cadence clock. */
 const settle = () => vi.advanceTimersByTimeAsync(0);
 
-/** Collects one subscriber's frames, ignoring `:` comment heartbeats. */
+/** Collects one subscriber's data frames, `status` events and `:` comment heartbeats apart. */
 function collector() {
   const frames: string[] = [];
+  const statuses: string[] = [];
   const beats: string[] = [];
-  const sink = (c: string) => { (c.startsWith("data:") ? frames : beats).push(c); };
-  return { frames, beats, sink };
+  const order: string[] = [];
+  const sink = (c: string) => {
+    order.push(c);
+    (c.startsWith("data:") ? frames : c.startsWith("event: status\n") ? statuses : beats).push(c);
+  };
+  return { frames, statuses, beats, order, sink };
 }
+const statusFrame = (status: string) => `event: status\ndata: ${JSON.stringify({ status })}\n\n`;
 
 beforeEach(() => {
   vi.useFakeTimers();
   serializations = 0;
   loadFlowFresh.mockReset();
+  loadFlowFreshResult.mockReset();
+  loadFlowFreshResult.mockImplementation(outcomeFromPayload);
 });
 
 afterEach(() => {
@@ -319,5 +341,95 @@ describe("flow broadcaster — lifecycle", () => {
     expect(good.frames).toHaveLength(1);
 
     uBad(); uGood();
+  });
+});
+
+describe("flow broadcaster — a key with no payload is named, not left silent", () => {
+  it.each([
+    ["unpublished (the store of record's 404)", { status: "absent" }, "absent"],
+    ["unread (a 5xx, a refused connection or a timeout upstream)", { status: "unavailable" }, "unavailable"],
+  ])("tells subscribers the key is %s", async (_label, outcome, status) => {
+    loadFlowFreshResult.mockImplementation(async () => outcome);
+    const c = collector();
+    const u = subscribe("gex:ZZZ", c.sink);
+    await settle();
+    expect(c.frames).toHaveLength(0);
+    expect(c.statuses).toEqual([statusFrame(status)]);
+    u();
+  });
+
+  it("names a read that threw as unavailable", async () => {
+    loadFlowFreshResult.mockImplementation(async () => { throw new Error("upstream down"); });
+    const c = collector();
+    const u = subscribe("gex:SPY", c.sink);
+    await settle();
+    expect(c.statuses).toEqual([statusFrame("unavailable")]);
+    u();
+  });
+
+  it("sends a status once per change, not once per cadence", async () => {
+    loadFlowFreshResult.mockImplementation(async () => ({ status: "unavailable" }));
+    const c = collector();
+    const u = subscribe("gex:SPY", c.sink);
+    await settle();
+    await vi.advanceTimersByTimeAsync(45_000);
+    expect(loadFlowFreshResult).toHaveBeenCalledTimes(4);
+    expect(c.statuses).toEqual([statusFrame("unavailable")]);
+
+    loadFlowFreshResult.mockImplementation(async () => ({ status: "absent" }));
+    await vi.advanceTimersByTimeAsync(15_000);
+    expect(c.statuses).toEqual([statusFrame("unavailable"), statusFrame("absent")]);
+    u();
+  });
+
+  it("a failed refresh after a frame announces the failure and keeps the frame", async () => {
+    loadFlowFreshResult.mockImplementation(async () => ({ status: "data", data: payload({ asof: "T1", v: 1 }) }));
+    const c = collector();
+    const u = subscribe("gex:SPY", c.sink);
+    await settle();
+    expect(c.frames).toHaveLength(1);
+
+    loadFlowFreshResult.mockImplementation(async () => ({ status: "unavailable" }));
+    await vi.advanceTimersByTimeAsync(15_000);
+    expect(c.frames).toHaveLength(1);
+    expect(c.statuses).toEqual([statusFrame("unavailable")]);
+
+    // Recovery with byte-identical content must still reach the client: it is what tells
+    // the client its kept frame is current again.
+    loadFlowFreshResult.mockImplementation(async () => ({ status: "data", data: payload({ asof: "T1", v: 1 }) }));
+    await vi.advanceTimersByTimeAsync(15_000);
+    expect(c.frames).toHaveLength(2);
+    expect(c.frames[1]).toBe(c.frames[0]);
+
+    // And then dedupe resumes.
+    await vi.advanceTimersByTimeAsync(15_000);
+    expect(c.frames).toHaveLength(2);
+    u();
+  });
+
+  it("replays the failure after the frame to a late joiner", async () => {
+    loadFlowFreshResult.mockImplementation(async () => ({ status: "data", data: payload({ asof: "T1", v: 1 }) }));
+    const first = collector();
+    const u1 = subscribe("gex:SPY", first.sink);
+    await settle();
+    loadFlowFreshResult.mockImplementation(async () => ({ status: "unavailable" }));
+    await vi.advanceTimersByTimeAsync(15_000);
+
+    const late = collector();
+    const u2 = subscribe("gex:SPY", late.sink);
+    expect(late.order).toEqual([first.frames[0], statusFrame("unavailable")]);
+    u1(); u2();
+  });
+
+  it("replays an absence to a late joiner of a producer that never held a frame", async () => {
+    loadFlowFreshResult.mockImplementation(async () => ({ status: "absent" }));
+    const first = collector();
+    const u1 = subscribe("gex:ZZZ", first.sink);
+    await settle();
+
+    const late = collector();
+    const u2 = subscribe("gex:ZZZ", late.sink);
+    expect(late.statuses).toEqual([statusFrame("absent")]);
+    u1(); u2();
   });
 });
