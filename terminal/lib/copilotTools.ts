@@ -73,11 +73,85 @@ export function scalarize(o: unknown, maxKeys = 12): Record<string, unknown> | n
 /* ── payload size cap ──────────────────────────────────────────────────────── */
 
 const CAP_CHARS = 2000;
+/** Budget floor: the smallest typed oversize refusal (with a 15-char symbol and root) is ~256
+ *  bytes, so a smaller requested cap is raised to this floor rather than broken, and a compact
+ *  identity + qualifier set that fits the floor is kept instead of being refused. The production
+ *  cap (CAP_CHARS) is far above it. */
+export const MIN_CAP_BYTES = 320;
+/** Explicit budget unit for capJson. JS string length is UTF-16 code units and
+ *  would silently under-count multibyte payloads relative to JSON/network size. */
+export const CAP_UNIT = "utf8_bytes" as const;
+
+/** Compact identity / clock / status scalars. Nested payloads (state, ladder,
+ *  facts) are not in this set — they can exceed the budget and must compact. */
+const IDENTITY_KEYS = new Set([
+  "truncated",
+  "oversize",
+  "no_data",
+  "symbol",
+  "reason",
+  "error",
+  "root",
+  "schema",
+  "asof",
+  "built",
+  "age_hours",
+  "stale",
+  "freshness",
+  "clock_status",
+  "clock",
+  "basis",
+  "mixed_source",
+  "cap_unit",
+  "identity",
+  "asof_state",
+  "asof_ladder",
+  "session",
+  "revision",
+  "correction_revision",
+  "trade_authority",
+  "presentable_as_fresh",
+  "status",
+  "source",
+  "unavailable",
+]);
+
+/** Caveats that travel with identity: a reader must never keep a verdict while losing why it
+ *  is stale, what was withheld, or what the cap omitted. */
+const QUALIFIER_KEYS = new Set(["coverage", "limitations", "withheld", "stale_reasons", "omitted", "read_failures"]);
+const NESTED_EVIDENCE_KEYS = new Set(["state", "ladder", "facts", "gex", "market_risk"]);
+
+function asRecord(v: unknown): Record<string, unknown> | null {
+  return v && typeof v === "object" && !Array.isArray(v) ? (v as Record<string, unknown>) : null;
+}
+
+function jsonUtf8Bytes(value: unknown): number {
+  return Buffer.byteLength(JSON.stringify(value), "utf8");
+}
+
+function trimEllipsis(s: string, maxChars: number): string {
+  if (maxChars <= 1) return "…";
+  return s.length > maxChars ? s.slice(0, maxChars - 1) + "…" : s;
+}
+
+function isEvidenceShaped(v: unknown): v is Record<string, unknown> {
+  const rec = asRecord(v);
+  if (!rec) return false;
+  return (
+    rec.mixed_source === true ||
+    rec.freshness != null ||
+    rec.clock_status != null ||
+    rec.limitations != null ||
+    rec.coverage != null ||
+    rec.no_data === true
+  );
+}
 
 function shrinkInPlace(o: unknown): void {
   if (!o || typeof o !== "object") return;
   const rec = o as Record<string, unknown>;
   for (const k of Object.keys(rec)) {
+    if (IDENTITY_KEYS.has(k) || QUALIFIER_KEYS.has(k)) continue;
     const v = rec[k];
     if (typeof v === "string" && v.length > 200) rec[k] = v.slice(0, 197) + "…";
     else if (Array.isArray(v)) {
@@ -87,30 +161,182 @@ function shrinkInPlace(o: unknown): void {
   }
 }
 
-/** Enforce the ≤~2KB curated-payload contract. Over-cap objects get their arrays
- *  halved / long strings trimmed (and finally their largest keys dropped) until the
- *  serialized form fits, with truncated:true set so the model knows it saw a cut. */
-export function capJson(obj: Record<string, unknown>, cap = CAP_CHARS): Record<string, unknown> {
+function dropKeys(
+  out: Record<string, unknown>,
+  cap: number,
+  keep: (key: string, value: unknown) => boolean,
+): void {
+  const droppable = Object.entries(out)
+    .filter(([k, v]) => !keep(k, v))
+    .sort((a, b) => jsonUtf8Bytes(b[1] ?? null) - jsonUtf8Bytes(a[1] ?? null));
+  for (const [k] of droppable) {
+    delete out[k];
+    noteOmitted(out, k);
+    if (jsonUtf8Bytes(out) <= cap) return;
+  }
+}
+
+/** A key removed for budget is named, so a reader can tell "dropped" from "never present". */
+function noteOmitted(out: Record<string, unknown>, key: string): void {
+  const prev = Array.isArray(out.omitted) ? (out.omitted as unknown[]).filter((x): x is string => typeof x === "string") : [];
+  if (!prev.includes(key)) out.omitted = [...prev, key];
+}
+
+function identityStub(v: unknown): Record<string, unknown> {
+  if (Array.isArray(v)) return { omitted: true, n: v.length };
+  const rec = asRecord(v);
+  if (!rec) return {};
+  const stub: Record<string, unknown> = {};
+  for (const k of IDENTITY_KEYS) {
+    if (k in rec && k !== "truncated" && k !== "cap_unit" && k !== "oversize") stub[k] = rec[k];
+  }
+  for (const k of QUALIFIER_KEYS) {
+    if (k in rec) stub[k] = rec[k];
+  }
+  if (rec.reason != null && stub.reason == null) stub.reason = rec.reason;
+  // Nested subrecords (a separate state / ladder) keep their own identity and clock.
+  for (const k of NESTED_EVIDENCE_KEYS) {
+    if (asRecord(rec[k])) stub[k] = identityStub(rec[k]);
+  }
+  return stub;
+}
+
+function compactNestedEvidence(out: Record<string, unknown>): void {
+  for (const k of Object.keys(out)) {
+    if (!NESTED_EVIDENCE_KEYS.has(k) && !isEvidenceShaped(out[k]) && !Array.isArray(out[k])) continue;
+    if (IDENTITY_KEYS.has(k) || QUALIFIER_KEYS.has(k)) continue;
+    out[k] = identityStub(out[k]);
+  }
+}
+
+function compactQualifiersToFit(out: Record<string, unknown>, cap: number): void {
+  for (let guard = 0; guard < 24 && jsonUtf8Bytes(out) > cap; guard++) {
+    const lim = out.limitations;
+    if (typeof lim === "string" && lim.length > 48) {
+      out.limitations = trimEllipsis(lim, Math.max(24, Math.floor(lim.length / 2)));
+      continue;
+    }
+    const cov = out.coverage;
+    const covRec = asRecord(cov);
+    if (covRec) {
+      let trimmed = false;
+      for (const [k, v] of Object.entries(covRec)) {
+        if (typeof v === "string" && v.length > 24) {
+          covRec[k] = trimEllipsis(v, Math.max(12, Math.floor(v.length / 2)));
+          trimmed = true;
+        }
+      }
+      if (trimmed) {
+        out.coverage = covRec;
+        continue;
+      }
+    }
+    if (typeof cov === "string" && cov.length > 24) {
+      out.coverage = trimEllipsis(cov, Math.max(12, Math.floor(cov.length / 2)));
+      continue;
+    }
+    break;
+  }
+}
+
+function oversizeRefusal(src: Record<string, unknown>, cap: number): Record<string, unknown> {
+  const out: Record<string, unknown> = {
+    truncated: true,
+    oversize: true,
+    no_data: true,
+    cap_unit: CAP_UNIT,
+    reason: "protected evidence envelope exceeds utf8_bytes budget",
+    trade_authority: false,
+  };
+  for (const k of [
+    "symbol",
+    "root",
+    "schema",
+    "asof",
+    "built",
+    "session",
+    "basis",
+    "revision",
+    "freshness",
+    "stale",
+    "clock_status",
+    "mixed_source",
+  ]) {
+    const v = src[k];
+    if (typeof v === "string" || typeof v === "boolean" || (typeof v === "number" && isFinite(v))) out[k] = v;
+  }
+  if (out.stale === true && Array.isArray(src.stale_reasons)) {
+    out.stale_reasons = src.stale_reasons.filter((r) => typeof r === "string").slice(0, 6);
+  }
+  const dropped = Array.isArray(src.omitted) ? (src.omitted as unknown[]).filter((x): x is string => typeof x === "string") : [];
+  const omitted = [
+    ...new Set([...dropped, ...Object.keys(src).filter((k) => NESTED_EVIDENCE_KEYS.has(k) || isEvidenceShaped(src[k]))]),
+  ];
+  if (omitted.length) out.omitted = omitted;
+  out.limitations =
+    typeof src.limitations === "string" && src.limitations.trim()
+      ? src.limitations
+      : "protected evidence exceeded utf8_bytes budget; nested payload omitted";
+  const cov = asRecord(src.coverage);
+  if (cov) {
+    const compact: Record<string, unknown> = {};
+    for (const [k, v] of Object.entries(cov)) {
+      if (typeof v === "string" || typeof v === "number" || typeof v === "boolean" || v == null) compact[k] = v;
+      if (Object.keys(compact).length >= 6) break;
+    }
+    if (Object.keys(compact).length) out.coverage = compact;
+  }
+  compactQualifiersToFit(out, cap);
+  if (jsonUtf8Bytes(out) <= cap) return out;
+  const minimal: Record<string, unknown> = {
+    truncated: true,
+    oversize: true,
+    no_data: true,
+    cap_unit: CAP_UNIT,
+    reason: "protected evidence envelope exceeds utf8_bytes budget",
+    limitations: "oversize",
+    trade_authority: false,
+  };
+  if (typeof src.symbol === "string") minimal.symbol = src.symbol.slice(0, 15);
+  if (typeof src.root === "string") minimal.root = src.root.slice(0, 15);
+  if (omitted.length && jsonUtf8Bytes({ ...minimal, omitted }) <= cap) minimal.omitted = omitted;
+  return minimal;
+}
+
+/** Enforce the ≤~2KB curated-payload contract in utf8 bytes. Over-cap objects
+ *  shrink arrays / long strings, then drop optional fields. Nested protected
+ *  state/ladder/facts are compacted to identity/clock/limitations rather than
+ *  emitted unbounded. If the remainder still cannot fit, a typed oversize
+ *  refusal is returned — never sliced JSON, never financials without limitations. */
+export function capJson(obj: Record<string, unknown>, requestedCap = CAP_CHARS): Record<string, unknown> {
+  const cap = Math.max(requestedCap, MIN_CAP_BYTES);
   try {
-    if (JSON.stringify(obj).length <= cap) return obj;
+    if (jsonUtf8Bytes(obj) <= cap) return obj;
   } catch {
     return { no_data: true, reason: "unserializable tool payload" };
   }
   const out: Record<string, unknown> = structuredClone(obj);
   out.truncated = true;
+  out.cap_unit = CAP_UNIT;
   for (let pass = 0; pass < 12; pass++) {
     shrinkInPlace(out);
-    if (JSON.stringify(out).length <= cap) return out;
+    if (jsonUtf8Bytes(out) <= cap) return out;
   }
-  // Last resort: drop the biggest fields until under cap.
-  const droppable = Object.entries(out)
-    .filter(([k]) => !["truncated", "no_data", "symbol", "reason"].includes(k))
-    .sort((a, b) => JSON.stringify(b[1] ?? null).length - JSON.stringify(a[1] ?? null).length);
-  for (const [k] of droppable) {
-    delete out[k];
-    if (JSON.stringify(out).length <= cap) break;
-  }
-  return out;
+  dropKeys(out, cap, (k, v) => IDENTITY_KEYS.has(k) || QUALIFIER_KEYS.has(k) || NESTED_EVIDENCE_KEYS.has(k) || isEvidenceShaped(v));
+  if (jsonUtf8Bytes(out) <= cap) return out;
+
+  compactNestedEvidence(out);
+  if (jsonUtf8Bytes(out) <= cap) return out;
+
+  // Compacted evidence (identity stubs) is never dropped silently: if it still cannot fit,
+  // the typed refusal below names what was omitted instead.
+  dropKeys(out, cap, (k, v) => IDENTITY_KEYS.has(k) || QUALIFIER_KEYS.has(k) || NESTED_EVIDENCE_KEYS.has(k) || isEvidenceShaped(v));
+  if (jsonUtf8Bytes(out) <= cap) return out;
+
+  compactQualifiersToFit(out, cap);
+  if (jsonUtf8Bytes(out) <= cap) return out;
+
+  return oversizeRefusal(out, cap);
 }
 
 /* ── fs / fetch plumbing ───────────────────────────────────────────────────── */
@@ -120,6 +346,24 @@ async function readDataJson(file: string): Promise<unknown | null> {
     return JSON.parse(await fs.readFile(path.join(DATA, file), "utf8"));
   } catch {
     return null;
+  }
+}
+
+/** Like readDataJson, but a file that exists and could not be read or parsed is a failed read,
+ *  not a missing file (only ENOENT is absence). */
+async function readDataFile(file: string): Promise<{ kind: "data"; payload: unknown } | { kind: "absent" } | { kind: "failed"; reason: string }> {
+  let text: string;
+  try {
+    text = await fs.readFile(path.join(DATA, file), "utf8");
+  } catch (e) {
+    const code = (e as { code?: unknown } | null)?.code;
+    if (code === "ENOENT") return { kind: "absent" };
+    return { kind: "failed", reason: `file read error${typeof code === "string" ? ` ${code}` : ""}` };
+  }
+  try {
+    return { kind: "data", payload: JSON.parse(text) };
+  } catch {
+    return { kind: "failed", reason: "unparseable file" };
   }
 }
 
@@ -200,7 +444,44 @@ async function fetchPlane(): Promise<MarketPlane | null> {
   }
 }
 
-async function fetchGexPayloads(root: string): Promise<{ gex: unknown | null; state: unknown | null }> {
+/** A GEX read that did not land: the R2 mirror answered 5xx, a network error, a timeout or an
+ *  unparseable / non-object body (and the hub had no copy). Distinct from an absent payload
+ *  (null), which means the R2 mirror, the store of record, answered 404. A failed read
+ *  leaves that half unknown; it is never reported as "not published" or "no coverage". */
+export class GexReadFailure {
+  constructor(readonly reason: string) {}
+}
+
+type StoreRead = { kind: "data"; payload: Record<string, unknown> } | { kind: "absent" } | { kind: "failed"; reason: string };
+
+async function readStore(url: string, label: string, timeoutMs = 3000): Promise<StoreRead> {
+  const ctrl = new AbortController();
+  const timer = setTimeout(() => ctrl.abort(), timeoutMs);
+  const timedOut = (e: unknown) => ctrl.signal.aborted || (e as { name?: unknown } | null)?.name === "AbortError";
+  const timeoutReason = `${label} timed out after ${timeoutMs / 1000}s`;
+  try {
+    let res: Response;
+    try {
+      res = await fetch(url, { signal: ctrl.signal, headers: { "User-Agent": "mastermind-copilot/1.0" }, cache: "no-store" });
+    } catch (e) {
+      return { kind: "failed", reason: timedOut(e) ? timeoutReason : `${label} network error` };
+    }
+    if (res.status === 404) return { kind: "absent" };
+    if (!res.ok) return { kind: "failed", reason: `${label} HTTP ${res.status}` };
+    let body: unknown;
+    try {
+      body = await res.json();
+    } catch (e) {
+      return { kind: "failed", reason: timedOut(e) ? timeoutReason : `${label} returned an unparseable body` };
+    }
+    const rec = asRecord(body);
+    return rec ? { kind: "data", payload: rec } : { kind: "failed", reason: `${label} returned a non-object body` };
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+async function fetchGexPayloads(root: string): Promise<{ gex: unknown; state: unknown }> {
   // FLOW_FIXTURE parity with /api/flow (f=gex:/gexstate:): fixture dev boxes must not hit
   // the live hub or R2. Same files, same keying (gex by root; gexstate single-root sample).
   if (process.env.FLOW_FIXTURE === "1") {
@@ -208,16 +489,19 @@ async function fetchGexPayloads(root: string): Promise<{ gex: unknown | null; st
     const state = await readDataJson("gexstate_fixture.json");
     return { gex: all?.[root.toUpperCase()] ?? null, state };
   }
-  const grab = async (backendPath: string, r2Key: string): Promise<unknown | null> => {
-    try {
-      return await fetchJson(`${FLOW_BACKEND}${backendPath}`);
-    } catch {
-      try {
-        return await fetchJson(`${R2_BASE}/${r2Key}`);
-      } catch {
-        return null;
-      }
-    }
+  // The hub is tried first and the R2 mirror decides. Producer contract (Macro app/hub.py):
+  // /api/hub/gex/{root} is a read-through cache of this same R2 object that turns any R2 error,
+  // a 404 included, into HTTP 503 when it holds no copy, and serves its cached copy with
+  // {"stale": true} when it does; there is no hub route for gexstate (always 404). The hub can
+  // never know more than the mirror, so only the mirror's answer separates absent from failed:
+  // a mirror 404 is absent whatever the hub said; any other mirror miss is a failed read.
+  const grab = async (backendPath: string, r2Key: string): Promise<unknown> => {
+    const hub = await readStore(`${FLOW_BACKEND}${backendPath}`, "hub");
+    if (hub.kind === "data") return hub.payload;
+    const r2 = await readStore(`${R2_BASE}/${r2Key}`, "R2 mirror");
+    if (r2.kind === "data") return r2.payload;
+    if (r2.kind === "absent") return null;
+    return new GexReadFailure(`${hub.kind === "failed" ? hub.reason : "hub not found"}; ${r2.reason}`);
   };
   const [gex, state] = await Promise.all([
     grab(`/api/hub/gex/${root}`, `options_hub/gex/${root}.json`),
@@ -483,14 +767,102 @@ export function curateOpts(opts: unknown): Record<string, unknown> {
   return { spot: rnd(o.spot, 4), asof: o.asof ?? null, iv_term, term_slope, skew_summary };
 }
 
-export function curateGex(gex: unknown, state: unknown): Record<string, unknown> {
-  const g = gex as Record<string, unknown> | null;
-  const s = state as Record<string, unknown> | null;
-  const gOk = g && typeof g === "object" && (num(g.net_gex_bn) != null || Array.isArray(g.by_strike));
-  const sOk = s && typeof s === "object" && num(s.net_gex_bn) != null;
-  if (!gOk && !sOk) return { no_data: true, reason: "no GEX coverage for this root (options-hub covers liquid names only)" };
+type GexIdentity = {
+  root: string | null;
+  session: string | null;
+  basis: string | null;
+  revision: string | null;
+};
 
-  const strikes = gOk && Array.isArray(g!.by_strike) ? (g!.by_strike as Record<string, unknown>[]).filter((r) => r && num(r.strike) != null) : [];
+function asIdentityString(v: unknown): string | null {
+  return typeof v === "string" && v.trim() ? v.trim() : null;
+}
+
+const GEX_DAY = /^\d{4}-\d{2}-\d{2}$/;
+const GEX_ZONED = /(?:Z|[+-]\d{2}:?\d{2})$/i;
+const GEX_CLOSE_MINUTES = 16 * 60;
+const GEX_ET = new Intl.DateTimeFormat("en-US", {
+  timeZone: "America/New_York",
+  year: "numeric",
+  month: "2-digit",
+  day: "2-digit",
+  hour: "2-digit",
+  minute: "2-digit",
+  hourCycle: "h23",
+});
+
+function gexEtClock(ms: number): { date: string; minutes: number; hhmm: string } {
+  const p: Record<string, string> = {};
+  for (const part of GEX_ET.formatToParts(new Date(ms))) p[part.type] = part.value;
+  const hour = Number(p.hour) % 24;
+  const minute = Number(p.minute);
+  return {
+    date: `${p.year}-${p.month}-${p.day}`,
+    minutes: hour * 60 + minute,
+    hhmm: `${String(hour).padStart(2, "0")}:${p.minute}`,
+  };
+}
+
+/** Session receipt per the producers (Macro origin/main): options_hub.gex/v1 stamps the bare
+ *  reference session date; options_structure.gex_state/v1 stamps the session's 16:00 New York
+ *  close with an explicit offset (a UTC build time when no session was passed). So a session is
+ *  the New York trading date of a close receipt. A stamp before that date's 16:00 ET close is an
+ *  intraday observation keyed to its minute — it never equals an end-of-day session. A timestamp
+ *  without a zone, or an explicit session the clock contradicts, stays unknown (null). */
+function gexSession(o: Record<string, unknown>): string | null {
+  const explicitRaw = asIdentityString(o.session);
+  const explicit = explicitRaw && GEX_DAY.test(explicitRaw.slice(0, 10)) ? explicitRaw.slice(0, 10) : null;
+  if (explicitRaw && !explicit) return null;
+  const asof = asIdentityString(o.asof);
+  if (!asof) return explicit;
+  if (GEX_DAY.test(asof)) return explicit && explicit !== asof ? null : asof;
+  const ms = Date.parse(asof);
+  if (!GEX_ZONED.test(asof) || !Number.isFinite(ms)) return null;
+  const et = gexEtClock(ms);
+  const intraday = `${et.date} intraday ${et.hhmm} ET`;
+  if (explicit) {
+    if (et.date < explicit) return null;
+    return et.date === explicit && et.minutes < GEX_CLOSE_MINUTES ? intraday : explicit;
+  }
+  return et.minutes >= GEX_CLOSE_MINUTES ? et.date : intraday;
+}
+
+/** Identity slots reused from owner GEX envelopes (root, session, basis, correction revision).
+ *  Missing or malformed clocks stay unknown — they are never inferred from the other envelope
+ *  or from a URL-bound symbol. */
+function gexIdentity(o: Record<string, unknown> | null | undefined): GexIdentity {
+  if (!o || typeof o !== "object") return { root: null, session: null, basis: null, revision: null };
+  const rootRaw = asIdentityString(o.root);
+  const root = rootRaw ? rootRaw.toUpperCase() : null;
+  const session = gexSession(o);
+  const passport = o.regime_passport && typeof o.regime_passport === "object" ? (o.regime_passport as Record<string, unknown>) : null;
+  const profile = o.profile && typeof o.profile === "object" ? (o.profile as Record<string, unknown>) : null;
+  const basis = asIdentityString(o.basis) ?? asIdentityString(o.convention) ?? asIdentityString(passport?.basis) ?? asIdentityString(profile?.method);
+  const revision = asIdentityString(o.revision) ?? asIdentityString(o.correction_revision) ?? asIdentityString(o.source_revision);
+  return { root, session, basis, revision };
+}
+
+function identitySlotConflict(a: string | null, b: string | null): boolean {
+  if (!a || !b) return true;
+  return a !== b;
+}
+
+function gexIdentitiesConflict(ladder: GexIdentity, state: GexIdentity): boolean {
+  return (
+    identitySlotConflict(ladder.root, state.root) ||
+    identitySlotConflict(ladder.session, state.session) ||
+    identitySlotConflict(ladder.basis, state.basis) ||
+    identitySlotConflict(ladder.revision, state.revision)
+  );
+}
+
+function gexClockValid(v: unknown): v is string {
+  const s = asIdentityString(v);
+  return !!s && (GEX_DAY.test(s) || Number.isFinite(Date.parse(s)));
+}
+
+function gexWalls(g: Record<string, unknown> | null, ok: boolean) {
+  const strikes = ok && Array.isArray(g!.by_strike) ? (g!.by_strike as Record<string, unknown>[]).filter((r) => r && num(r.strike) != null) : [];
   const call_walls = strikes
     .filter((r) => num(r.gamma_call) != null)
     .sort((a, b) => (b.gamma_call as number) - (a.gamma_call as number))
@@ -501,25 +873,204 @@ export function curateGex(gex: unknown, state: unknown): Record<string, unknown>
     .sort((a, b) => (a.gamma_put as number) - (b.gamma_put as number))
     .slice(0, 3)
     .map((r) => ({ strike: r.strike, gamma: rnd(r.gamma_put, 3) }));
-
   return {
-    asof: (s?.asof as string) ?? (g?.asof as string) ?? null,
-    spot: rnd(s?.spot ?? g?.spot_ref, 4),
-    net_gex_bn: rnd(s?.net_gex_bn ?? g?.net_gex_bn),
-    gamma_flip: rnd(s?.gamma_flip ?? g?.gamma_flip),
-    call_wall: rnd(s?.call_wall ?? g?.call_wall),
-    put_wall: rnd(s?.put_wall ?? g?.put_wall),
     call_walls: call_walls.length ? call_walls : null,
     put_walls: put_walls.length ? put_walls : null,
-    ...(sOk
-      ? {
-          gamma_regime: s!.gamma_regime ?? null,
-          pin_probability: rnd(s!.pin_probability),
-          magnet: rnd(s!.magnet),
-          max_pain: rnd(s!.max_pain),
-          dist_to_flip_pct: rnd(s!.dist_to_flip_pct),
-        }
-      : {}),
+  };
+}
+
+type GexSide = "ladder" | "state";
+type GexSource =
+  | { kind: "absent" }
+  | { kind: "failed"; reason: string }
+  | { kind: "withheld"; record: Record<string, unknown> }
+  | { kind: "bound"; payload: Record<string, unknown>; id: GexIdentity; clocked: boolean };
+
+/** A source is bound to the requested symbol only when it is a measured payload whose own
+ *  producer root equals that symbol. Anything else is withheld with its identity and a reason —
+ *  never folded into, or shown as, the symbol's GEX. */
+function bindGexSource(side: GexSide, raw: unknown, owner: string | undefined): GexSource {
+  if (raw instanceof GexReadFailure) return { kind: "failed", reason: raw.reason };
+  const o = asRecord(raw);
+  if (!o) return { kind: "absent" };
+  const id = gexIdentity(o);
+  const withheld = (reason: string): GexSource => ({
+    kind: "withheld",
+    record: {
+      root: id.root,
+      asof: typeof o.asof === "string" ? o.asof : null,
+      ...(typeof o.schema === "string" ? { schema: o.schema } : {}),
+      reason,
+    },
+  });
+  if (!id.root) return withheld(`${side} payload carries no producer root, so it cannot be bound to ${owner ?? "a symbol"}`);
+  if (owner && id.root !== owner) return withheld(`${side} payload is for root ${id.root}, not ${owner}`);
+  const measured =
+    side === "state"
+      ? num(o.net_gex_bn) != null
+      : num(o.net_gex_bn) != null ||
+        (Array.isArray(o.by_strike) &&
+          (o.by_strike as unknown[]).some((r) => {
+            const row = asRecord(r);
+            return !!row && num(row.strike) != null && (num(row.gamma_call) != null || num(row.gamma_put) != null);
+          }));
+  if (!measured) return withheld(`${side} for ${id.root} was published without measured gamma (empty producer shell)`);
+  return { kind: "bound", payload: o, id, clocked: gexClockValid(o.asof) };
+}
+
+/** The hub serves its last cached copy with {"stale": true} when its R2 read fails. Producers
+ *  never write a `stale` key, so the flag marks an older observation of unknown age: it is
+ *  carried as a qualifier and never presented as the current read. */
+function gexStaleReasons(...sides: [GexSide, Extract<GexSource, { kind: "bound" }>][]): string[] {
+  return sides
+    .filter(([, src]) => src.payload.stale === true)
+    .map(([side]) => `${side} is the hub's cached copy served after a failed R2 read; its age is unknown`);
+}
+
+function withStale(rec: Record<string, unknown>, reasons: string[]): Record<string, unknown> {
+  return reasons.length ? { ...rec, stale: true, stale_reasons: reasons } : rec;
+}
+
+function gexStateFields(s: Record<string, unknown>): Record<string, unknown> {
+  return {
+    spot: rnd(s.spot, 4),
+    net_gex_bn: rnd(s.net_gex_bn),
+    gamma_flip: rnd(s.gamma_flip),
+    call_wall: rnd(s.call_wall),
+    put_wall: rnd(s.put_wall),
+    gamma_regime: s.gamma_regime ?? null,
+    pin_probability: rnd(s.pin_probability),
+    magnet: rnd(s.magnet),
+    max_pain: rnd(s.max_pain),
+    dist_to_flip_pct: rnd(s.dist_to_flip_pct),
+  };
+}
+
+function gexLadderFields(g: Record<string, unknown>): Record<string, unknown> {
+  return {
+    spot: rnd(g.spot_ref, 4),
+    net_gex_bn: rnd(g.net_gex_bn),
+    gamma_flip: rnd(g.gamma_flip),
+    call_wall: rnd(g.call_wall),
+    put_wall: rnd(g.put_wall),
+    ...gexWalls(g, true),
+  };
+}
+
+/** Curate the ladder (options_hub.gex) and state (options_structure.gex_state) for one root.
+ *  Result is exactly one of:
+ *    matched     — both bound and identical in root, session, basis and revision: one fused read
+ *                  dated by its shared session, with both producer clocks exposed;
+ *    separate    — both bound but not identical (mixed_source): two subrecords, each with its own
+ *                  identity and clock, never fused (a subrecord without a valid clock keeps only
+ *                  its identity);
+ *    partial     — one bound source with its own clock; the other half named as absent/withheld;
+ *    unavailable — no_data, with every withheld source's identity and reason.
+ *  A GexReadFailure input (the read did not land) is named in read_failures and worded as a
+ *  failed read with the half unknown — never as "not published" or "no coverage". */
+export function curateGex(gex: unknown, state: unknown, ownerRoot?: string): Record<string, unknown> {
+  const owner = typeof ownerRoot === "string" && ownerRoot.trim() ? ownerRoot.trim().toUpperCase() : undefined;
+  const ladder = bindGexSource("ladder", gex, owner);
+  const st = bindGexSource("state", state, owner);
+  const withheld: Record<string, unknown> = {};
+  if (ladder.kind === "withheld") withheld.ladder = ladder.record;
+  if (st.kind === "withheld") withheld.state = st.record;
+  const readFailures: Record<string, string> = {};
+  if (ladder.kind === "failed") readFailures.ladder = ladder.reason;
+  if (st.kind === "failed") readFailures.state = st.reason;
+  const failedNote = (side: GexSide) => `${side} read failed (${readFailures[side]}), so the ${side} is unknown`;
+
+  if (ladder.kind === "bound" && st.kind === "bound" && (ladder.clocked || st.clocked)) {
+    const g = ladder.payload;
+    const s = st.payload;
+    if (ladder.clocked && st.clocked && !gexIdentitiesConflict(ladder.id, st.id)) {
+      const session = st.id.session as string;
+      return withStale({
+        status: "matched",
+        ...st.id,
+        asof: GEX_DAY.test(session) ? session : (s.asof as string),
+        asof_state: s.asof,
+        asof_ladder: g.asof,
+        ...gexStateFields(s),
+        spot: rnd(s.spot ?? g.spot_ref, 4),
+        net_gex_bn: rnd(s.net_gex_bn ?? g.net_gex_bn),
+        gamma_flip: rnd(s.gamma_flip ?? g.gamma_flip),
+        call_wall: rnd(s.call_wall ?? g.call_wall),
+        put_wall: rnd(s.put_wall ?? g.put_wall),
+        ...gexWalls(g, true),
+      }, gexStaleReasons(["state", st], ["ladder", ladder]));
+    }
+    const sub = (side: GexSide, src: Extract<GexSource, { kind: "bound" }>, fields: Record<string, unknown>) =>
+      withStale(
+        src.clocked
+          ? { ...src.id, asof: src.payload.asof, ...fields }
+          : { ...src.id, asof: src.payload.asof ?? null, unavailable: "no valid producer clock; numbers withheld" },
+        gexStaleReasons([side, src]),
+      );
+    return {
+      status: "separate",
+      mixed_source: true,
+      reason: "GEX state and ladder disagree on root, session, basis or revision, or identity is unknown",
+      limitations: "state and ladder are separate evidence; one clock does not certify the other",
+      state: sub("state", st, gexStateFields(s)),
+      ladder: sub("ladder", ladder, gexLadderFields(g)),
+    };
+  }
+
+  const one = st.kind === "bound" && st.clocked ? { side: "state" as const, src: st } : ladder.kind === "bound" && ladder.clocked ? { side: "ladder" as const, src: ladder } : null;
+  if (one) {
+    const other: GexSide = one.side === "state" ? "ladder" : "state";
+    const otherSrc = other === "state" ? st : ladder;
+    // The other half cannot be bound here: a bound other half would have taken the pair path.
+    const otherNote =
+      otherSrc.kind === "withheld"
+        ? `the ${other} is withheld (${String(otherSrc.record.reason)})`
+        : otherSrc.kind === "failed"
+          ? `the ${failedNote(other)}`
+          : `no ${other} was published for this root`;
+    const p = one.src.payload;
+    return withStale({
+      status: "partial",
+      source: one.side,
+      ...one.src.id,
+      asof: p.asof,
+      asof_state: one.side === "state" ? p.asof : null,
+      asof_ladder: one.side === "ladder" ? p.asof : null,
+      ...(one.side === "state" ? gexStateFields(p) : gexLadderFields(p)),
+      limitations: `${one.side}-only GEX read on the ${one.side}'s own clock; ${otherNote}; nothing from the ${other} is included`,
+      ...(Object.keys(withheld).length ? { withheld } : {}),
+      ...(Object.keys(readFailures).length ? { read_failures: readFailures } : {}),
+    }, gexStaleReasons([one.side, one.src]));
+  }
+
+  for (const [side, src] of [["ladder", ladder], ["state", st]] as const) {
+    if (src.kind === "bound") withheld[side] = { root: src.id.root, asof: src.payload.asof ?? null, reason: "no valid producer clock" };
+  }
+  if (Object.keys(readFailures).length) {
+    const parts = (["state", "ladder"] as const).map((side) =>
+      readFailures[side]
+        ? failedNote(side)
+        : withheld[side]
+          ? `${side} withheld (${String((withheld[side] as Record<string, unknown>).reason)})`
+          : `no ${side} was published for this root`,
+    );
+    return {
+      status: "unavailable",
+      no_data: true,
+      reason: `GEX read failed, so GEX for ${owner ?? "the requested root"} is unknown, not absent: ${parts.join("; ")}`,
+      read_failures: readFailures,
+      ...(Object.keys(withheld).length ? { withheld } : {}),
+    };
+  }
+  if (!Object.keys(withheld).length) {
+    return { status: "unavailable", no_data: true, reason: "no GEX coverage for this root (options-hub covers liquid names only)" };
+  }
+  const reasons = Object.values(withheld).map((r) => String((r as Record<string, unknown>).reason));
+  return {
+    status: "unavailable",
+    no_data: true,
+    reason: `no GEX source could be bound to ${owner ?? "the requested root"}: ${reasons.join("; ")}`,
+    withheld,
   };
 }
 
@@ -756,9 +1307,13 @@ async function runMarketState(): Promise<Record<string, unknown>> {
 }
 
 /**
- * execTool — the single server-side dispatcher the copilot route delegates to.
+ * execTool — the single server-side dispatcher historically used by /api/copilot.
  * annotate_chart is NOT handled here: it is client-executed (the route streams the
  * levels to the browser via the {type:"annotate"} SSE event).
+ *
+ * The shipped Terminal UI now uses the Mastermind Brain widget via /api/brain/*.
+ * /api/copilot is a deprecated rollback proxy and is not the live consumer.
+ * Original live-tool integration remains owed through owning Brain/Macro contracts.
  */
 export async function execTool(name: string, args: Record<string, unknown> | null): Promise<Record<string, unknown>> {
   try {
@@ -784,8 +1339,12 @@ export async function execTool(name: string, args: Record<string, unknown> | nul
         return capJson({ symbol: sym, ...curateSignals(slice) });
       }
       case "get_options_summary": {
-        const [opts, gexPair] = await Promise.all([readDataJson(`${sym}.opts.json`), fetchGexPayloads(sym)]);
-        return capJson({ symbol: sym, iv: curateOpts(opts), gex: curateGex(gexPair.gex, gexPair.state) });
+        const [opts, gexPair] = await Promise.all([readDataFile(`${sym}.opts.json`), fetchGexPayloads(sym)]);
+        const iv =
+          opts.kind === "failed"
+            ? { status: "unavailable", no_data: true, reason: `options IV file could not be read (${opts.reason}), so IV is unknown, not absent` }
+            : curateOpts(opts.kind === "data" ? opts.payload : null);
+        return capJson({ symbol: sym, iv, gex: curateGex(gexPair.gex, gexPair.state, sym) });
       }
       case "get_fundamentals": {
         const fund = await readDataJson(`${sym}.fund.json`);
