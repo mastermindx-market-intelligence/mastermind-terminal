@@ -23,21 +23,37 @@
  * Flow Desk paints from the hub's already-received feed instead of waiting up to a
  * full push interval for the next one.
  *
- * Returns { data, connected, error }:
+ * Returns { data, connected, error, status, stale, retry }:
  *   - data:  latest payload (null until the first message)
  *   - connected: true while the SSE transport is open. This says nothing about
  *                producer cadence or source freshness.
  *   - error: true after the stream errored and before it recovered
+ *   - status: what the last read of the key established — "loading" until one
+ *             answers, then "data", "absent" (the key is not published) or
+ *             "unavailable" (the read did not land). Over SSE this is the server's
+ *             named `status` event; over the polling fallback it is the classified
+ *             /api/flow answer. A failed read keeps `data`.
+ *   - stale: `data` is held from an earlier read because the latest one did not land.
+ *   - retry: re-read the key now, outside the cadence. A failed retry keeps the payload.
+ *
+ * ONE KEY'S PAYLOAD NEVER RENDERS UNDER ANOTHER. The snapshot is tagged with the key
+ * it belongs to and discarded at render time when the key has moved on — resetting
+ * it in an effect let the old key's payload render for one commit first.
  *
  * SSR-safe: no EventSource touched on the server; the connection opens in useEffect.
  */
-import { useEffect, useState } from "react";
-import { flowGet } from "@/lib/flowClientCache";
+import { useCallback, useEffect, useState } from "react";
+import { flowGetResult, type FlowOutcome } from "@/lib/flowClientCache";
+
+export type FlowStreamStatus = "loading" | "data" | "absent" | "unavailable";
 
 export interface FlowStreamResult<T> {
   data: T | null;
   connected: boolean;
   error: boolean;
+  status: FlowStreamStatus;
+  stale: boolean;
+  retry: () => void;
 }
 
 /** What every subscriber of a key sees. Replaced wholesale on each change. */
@@ -45,6 +61,7 @@ interface Snapshot {
   data: unknown;
   connected: boolean;
   error: boolean;
+  status: FlowStreamStatus;
 }
 
 type Listener = (s: Snapshot) => void;
@@ -61,6 +78,8 @@ interface Conn {
   pollBusy: boolean;
 }
 
+const EMPTY: Snapshot = { data: null, connected: false, error: false, status: "loading" };
+
 /** One entry per live feed key. Deleted when its last subscriber leaves. */
 const CONNS = new Map<string, Conn>();
 
@@ -71,26 +90,46 @@ function publish(c: Conn, next: Partial<Snapshot>): void {
   for (const fn of Array.from(c.subs)) fn(c.snap);
 }
 
+/**
+ * One classified /api/flow read of `f`, published unless SSE has delivered since it
+ * started. Shared by the polling fallback and retry. A read that does not land keeps
+ * the last payload and says so; it never clears it.
+ */
+async function readOnce(f: string, c: Conn): Promise<void> {
+  // Keep one request per connection, including across SSE recovery and a
+  // second outage. Joining the retired request again would give its response
+  // a new generation and make it appear current.
+  if (c.pollBusy) return;
+  c.pollBusy = true;
+  const generation = c.generation;
+  try {
+    // The existing cache still owns deduplication. A fallback must await a
+    // refresh rather than publish a cached preimage from an earlier outage.
+    let outcome: FlowOutcome;
+    try {
+      outcome = await flowGetResult(f, { refresh: true });
+    } catch {
+      outcome = { status: "unavailable", reason: "network" };
+    }
+    if (CONNS.get(f) !== c || c.generation !== generation) return;
+    if (outcome.status === "data") publish(c, { data: outcome.data, status: "data", error: false });
+    else publish(c, { status: outcome.status });
+  } finally {
+    c.pollBusy = false;
+  }
+}
+
 function startPolling(f: string, c: Conn): void {
   if (c.pollTimer) return;
-  const tick = async () => {
-    // Keep one request per connection, including across SSE recovery and a
-    // second outage. Joining the retired request again would give its response
-    // a new generation and make it appear current.
-    if (c.pollBusy) return;
-    c.pollBusy = true;
-    const generation = c.generation;
-    try {
-      // The existing cache still owns deduplication. A fallback must await a
-      // refresh rather than publish a cached preimage from an earlier outage.
-      const d = await flowGet(f, { refresh: true });
-      if (CONNS.get(f) !== c || c.generation !== generation) return;
-      if (d != null) publish(c, { data: d, error: false });
-    } catch { /* Keep the last good frame when the fallback cannot read. */ }
-    finally { c.pollBusy = false; }
-  };
-  void tick();
+  const tick = () => { void readOnce(f, c); };
+  tick();
   c.pollTimer = setInterval(tick, c.pollMs);
+}
+
+/** Re-read `f` now. A no-op when no subscriber holds the key or a read is in flight. */
+function retryFlow(f: string): void {
+  const c = CONNS.get(f);
+  if (c) void readOnce(f, c);
 }
 
 function stopPolling(c: Conn): void {
@@ -117,9 +156,24 @@ function openConn(f: string, c: Conn): void {
         c.generation++;
         c.errCount = 0;
         stopPolling(c);
-        publish(c, { data, connected: true, error: false });
+        publish(c, { data, status: "data", connected: true, error: false });
       } catch { /* keep last good data on a malformed frame */ }
     };
+    // The producer's named event for a read that landed no payload. It keeps the
+    // frame this key already holds; the producer re-sends a frame when reads land again.
+    es.addEventListener("status", (ev) => {
+      if (CONNS.get(f) !== c) return;
+      let status: unknown;
+      try {
+        status = (JSON.parse((ev as MessageEvent<string>).data) as { status?: unknown } | null)?.status;
+      } catch { return; }
+      if (status !== "absent" && status !== "unavailable") return;
+      // Like a frame, a status event is positive transport evidence.
+      c.generation++;
+      c.errCount = 0;
+      stopPolling(c);
+      publish(c, { status, connected: true, error: false });
+    });
     es.onerror = () => {
       if (CONNS.get(f) !== c) return;
       publish(c, { connected: false, error: true });
@@ -144,7 +198,7 @@ function subscribeFlow(f: string, pollMs: number, fn: Listener): () => void {
     c = {
       es: null, pollTimer: null, pollMs, errCount: 0, refs: 0,
       generation: 0, pollBusy: false,
-      snap: { data: null, connected: false, error: false },
+      snap: EMPTY,
       subs: new Set<Listener>(),
     };
     CONNS.set(f, c);
@@ -172,31 +226,36 @@ function subscribeFlow(f: string, pollMs: number, fn: Listener): () => void {
   };
 }
 
-const EMPTY: Snapshot = { data: null, connected: false, error: false };
-
 export function useFlowStream<T = unknown>(
   f: string | null,
   opts?: { pollMs?: number },
 ): FlowStreamResult<T> {
   const pollMs = opts?.pollMs ?? 30_000;
-  const [snap, setSnap] = useState<Snapshot>(EMPTY);
+  const [held, setHeld] = useState<{ key: string | null; snap: Snapshot }>({ key: null, snap: EMPTY });
 
   useEffect(() => {
     if (!f) {
       // Key went null (e.g. left the tab). Keep the last payload so cross-tab
       // consumers still resolve, but stop claiming the transport is connected.
-      setSnap((s) => (s.connected ? { ...s, connected: false } : s));
+      setHeld((h) => (h.snap.connected ? { ...h, snap: { ...h.snap, connected: false } } : h));
       return;
     }
-    // New subscription key — clear the previous feed's data so a consumer never
-    // flashes stale content (e.g. the old ticker's ladder) while the first snapshot
-    // for the new key is in flight. If the shared connection already holds a frame
-    // for this key, subscribeFlow overwrites this in the same batch.
-    setSnap(EMPTY);
     let cancelled = false;
-    const unsub = subscribeFlow(f, pollMs, (s) => { if (!cancelled) setSnap(s); });
+    const unsub = subscribeFlow(f, pollMs, (s) => { if (!cancelled) setHeld({ key: f, snap: s }); });
     return () => { cancelled = true; unsub(); };
   }, [f, pollMs]);
 
-  return { data: snap.data as T | null, connected: snap.connected, error: snap.error };
+  const retry = useCallback(() => { if (f) retryFlow(f); }, [f]);
+  // The snapshot of a key this render is no longer subscribed to is never shown —
+  // not even for the render before the new subscription's first snapshot lands.
+  const snap = f && held.key !== f ? EMPTY : held.snap;
+  const failed = snap.status === "absent" || snap.status === "unavailable";
+  return {
+    data: snap.data as T | null,
+    connected: snap.connected,
+    error: snap.error,
+    status: snap.status,
+    stale: snap.data != null && failed,
+    retry,
+  };
 }

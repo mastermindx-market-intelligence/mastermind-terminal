@@ -14,14 +14,20 @@ import { R2_BASE } from "@/lib/upstreams";
 // HTTP status, "throw" a refused connection, an object a 200 JSON payload. The macro hub
 // backend answers 503 (not 404) for an object it has never read, so only R2's own 404 can
 // prove that a payload is unpublished.
-type Answer = number | "throw" | Record<string, unknown>;
+// "hang" never answers: it settles only when the reader aborts the request.
+type Answer = number | "throw" | "hang" | Record<string, unknown>;
 let realFetch: typeof globalThis.fetch;
 let transport: ReturnType<typeof vi.fn>;
 
 function upstreams(backend: Answer, r2: Answer) {
-  transport = vi.fn(async (input: RequestInfo | URL) => {
+  transport = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
     const answer = String(input).startsWith(R2_BASE) ? r2 : backend;
     if (answer === "throw") throw new TypeError("fetch failed");
+    if (answer === "hang") {
+      return new Promise<Response>((_resolve, reject) => {
+        init?.signal?.addEventListener("abort", () => reject(new DOMException("aborted", "AbortError")));
+      });
+    }
     if (typeof answer === "number") return new Response(JSON.stringify({ detail: "scripted" }), { status: answer });
     return new Response(JSON.stringify(answer), { status: 200, headers: { "content-type": "application/json" } });
   });
@@ -127,5 +133,50 @@ describe("GET /api/flow: a proven absence is a 404, an outage stays a 503", () =
     const res = await GET(request("vol:NEW"));
     expect(res.status).toBe(200);
     expect((await res.json()).root).toBe("NEW");
+  });
+});
+
+describe("a hung upstream is bounded and named a failed read, never an absence", () => {
+  // Sidecar reads were seen hanging ~3 s before failing: that is this bound working. These
+  // lock it — without the per-source abort a hung source never settles at all.
+  beforeEach(() => vi.useFakeTimers({ toFake: ["setTimeout", "clearTimeout"] }));
+  afterEach(() => vi.useRealTimers());
+
+  async function settleWithin<T>(read: Promise<T>, ms: number): Promise<T> {
+    let settled = false;
+    void read.then(() => { settled = true; }, () => { settled = true; });
+    await vi.advanceTimersByTimeAsync(ms);
+    expect(settled, `the read settles within ${ms} ms`).toBe(true);
+    return read;
+  }
+
+  it.each(["gexstate:SPY", "matrix:SPY", "gex_dates:SPY"])(
+    "%s: a hung backend plus R2's 404 is unavailable within one 3 s bound per source",
+    async (f) => {
+      upstreams("hang", 404);
+      expect(await settleWithin(tryFetchUpstreamResult(f), 3_000)).toEqual({ status: "unavailable" });
+    },
+  );
+
+  it("gex: both sources hung is unavailable within 6 s", async () => {
+    upstreams("hang", "hang");
+    expect(await settleWithin(tryFetchUpstreamResult("gex:SPY"), 6_000)).toEqual({ status: "unavailable" });
+  });
+
+  it("gex: a hung backend plus the store of record's 404 is a proven absence", async () => {
+    upstreams("hang", 404);
+    expect(await settleWithin(tryFetchUpstreamResult("gex:ZZZ"), 3_000)).toEqual({ status: "absent" });
+  });
+
+  it("GET answers 503 with no-store for a hung read, not 404", async () => {
+    vi.resetModules();
+    upstreams("hang", "hang");
+    const GET = (await import("@/app/api/flow/route")).GET;
+    const res = await settleWithin(
+      GET(new Request("http://localhost:3108/api/flow?f=gexstate%3ASPY")),
+      6_000,
+    );
+    expect(res.status).toBe(503);
+    expect(res.headers.get("cache-control")).toBe("no-store");
   });
 });
