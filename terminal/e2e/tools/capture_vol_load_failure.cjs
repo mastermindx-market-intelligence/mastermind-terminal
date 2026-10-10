@@ -367,7 +367,7 @@ async function main() {
     "surfaces: [VolView, VolVrpPanel]",
     "injection: page.route on /api/flow answers 503 / 404 / never; every other read is the FLOW_FIXTURE server",
     "capture_flag: TERMINAL_E2E_FIXTURE",
-    "capture_flag_law: next.config.ts sets devIndicators: false when TERMINAL_E2E_FIXTURE is set; this script starts next dev with the same flag.",
+    "capture_flag_law: next.config.ts sets devIndicators to false when TERMINAL_E2E_FIXTURE is set; this script starts next dev with the same flag.",
     "command: |",
     "  cd terminal",
     "  node e2e/tools/capture_vol_load_failure.cjs",
