@@ -17,6 +17,14 @@ async function main() {
     Object.assign(first.points[1], { index_level: null, return: null, reasons: ["MISSING_OR_INVALID_HELD_PRICE"] });
   }
   if (scenario === "retained") first.evidence_kind = "RETAINED_OWNER_INPUT";
+  if (scenario === "catalog") {
+    // Fabricated catalog scale case. Distinct references are NOT native receipts.
+    for (let i = 1; i <= 160; i++) {
+      const n = String(i).padStart(3, "0"), synthetic = structuredClone(original);
+      synthetic.basket_id = synthetic.request.basket_id = `fixture:cohort-${n}`;
+      items.push({ basketId: synthetic.basket_id, label: [`Cohort ${n}`, `合成样本${n}`], payload: synthetic });
+    }
+  }
   if (scenario === "compare" || scenario === "incompatible") {
     const other = structuredClone(original);
     other.basket_id = other.request.basket_id = "fixture:steady-control";

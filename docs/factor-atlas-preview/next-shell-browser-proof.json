@@ -1,0 +1,597 @@
+{
+  "schema": "factor_atlas.next_shell_dev_browser_proof.v1",
+  "sourceHashes": {
+    "terminal/app/(shell)/admin/factor-atlas-preview/page.tsx": "f505113bb77630759f0c34d63806ccf47860935f69361b3fa5d2db450bfcbbc7",
+    "terminal/components/factor-atlas/FactorHistoryShellPreview.tsx": "fc0c2c3a686e56853ef8a28349e74f31ccd76dcd86db96f966bd93a24e11db67",
+    "terminal/components/factor-atlas/FactorHistoryPreview.tsx": "a3d808aed5818e9a4d69849c958637ed3bafbf2ae2e2af8aed2773c9dbe922f8",
+    "terminal/components/factor-atlas/FactorHistoryPreview.module.css": "6b4aa0dd484410d7c47fe1d965cff7f48a5367d831aa044db40e6442ec83040d",
+    "terminal/lib/factorAtlasHistory.ts": "6273f12623563a96c508b4242410e78857e0397b97d99b1a1770c7e773f2e354",
+    "terminal/lib/__tests__/fixtures/factorAtlasNativeSynthetic.json": "6860786ee663c394e0d33b18e241592879501a6bc5335a09faed6d66b0b42626"
+  },
+  "observedAt": "2026-10-11T10:47:19.373Z",
+  "scope": "REAL_NEXT_SHELL_DEVELOPMENT_ONLY_SYNTHETIC_FIXTURE",
+  "productionAccess": false,
+  "admittedSource": false,
+  "authenticatedProduction": false,
+  "viewports": [
+    [
+      1440,
+      900
+    ],
+    [
+      820,
+      1180
+    ],
+    [
+      390,
+      844
+    ]
+  ],
+  "themes": [
+    "dark",
+    "light"
+  ],
+  "languages": [
+    "en",
+    "zh"
+  ],
+  "browsers": [
+    "chromium",
+    "webkit"
+  ],
+  "results": [
+    {
+      "label": "chromium-1440-dark-en",
+      "browser": "chromium",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "lang": "en",
+      "theme": "dark",
+      "checks": [
+        "real_next_shell",
+        "dev_owner_gate",
+        "localized_synthetic_label",
+        "source_return",
+        "search",
+        "svg",
+        "no_overflow",
+        "source_holdings_preserved",
+        "exact_anchor_no_fallback",
+        "zero_page_errors"
+      ],
+      "ok": true
+    },
+    {
+      "label": "chromium-1440-dark-zh",
+      "browser": "chromium",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "lang": "zh",
+      "theme": "dark",
+      "checks": [
+        "real_next_shell",
+        "dev_owner_gate",
+        "localized_synthetic_label",
+        "source_return",
+        "search",
+        "svg",
+        "no_overflow",
+        "source_holdings_preserved",
+        "exact_anchor_no_fallback",
+        "zero_page_errors"
+      ],
+      "ok": true
+    },
+    {
+      "label": "chromium-1440-light-en",
+      "browser": "chromium",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "lang": "en",
+      "theme": "light",
+      "checks": [
+        "real_next_shell",
+        "dev_owner_gate",
+        "localized_synthetic_label",
+        "source_return",
+        "search",
+        "svg",
+        "no_overflow",
+        "source_holdings_preserved",
+        "exact_anchor_no_fallback",
+        "zero_page_errors"
+      ],
+      "ok": true
+    },
+    {
+      "label": "chromium-1440-light-zh",
+      "browser": "chromium",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "lang": "zh",
+      "theme": "light",
+      "checks": [
+        "real_next_shell",
+        "dev_owner_gate",
+        "localized_synthetic_label",
+        "source_return",
+        "search",
+        "svg",
+        "no_overflow",
+        "source_holdings_preserved",
+        "exact_anchor_no_fallback",
+        "zero_page_errors"
+      ],
+      "ok": true
+    },
+    {
+      "label": "chromium-820-dark-en",
+      "browser": "chromium",
+      "viewport": {
+        "width": 820,
+        "height": 1180
+      },
+      "lang": "en",
+      "theme": "dark",
+      "checks": [
+        "real_next_shell",
+        "dev_owner_gate",
+        "localized_synthetic_label",
+        "source_return",
+        "search",
+        "svg",
+        "no_overflow",
+        "source_holdings_preserved",
+        "exact_anchor_no_fallback",
+        "zero_page_errors"
+      ],
+      "ok": true
+    },
+    {
+      "label": "chromium-820-dark-zh",
+      "browser": "chromium",
+      "viewport": {
+        "width": 820,
+        "height": 1180
+      },
+      "lang": "zh",
+      "theme": "dark",
+      "checks": [
+        "real_next_shell",
+        "dev_owner_gate",
+        "localized_synthetic_label",
+        "source_return",
+        "search",
+        "svg",
+        "no_overflow",
+        "source_holdings_preserved",
+        "exact_anchor_no_fallback",
+        "zero_page_errors"
+      ],
+      "ok": true
+    },
+    {
+      "label": "chromium-820-light-en",
+      "browser": "chromium",
+      "viewport": {
+        "width": 820,
+        "height": 1180
+      },
+      "lang": "en",
+      "theme": "light",
+      "checks": [
+        "real_next_shell",
+        "dev_owner_gate",
+        "localized_synthetic_label",
+        "source_return",
+        "search",
+        "svg",
+        "no_overflow",
+        "source_holdings_preserved",
+        "exact_anchor_no_fallback",
+        "zero_page_errors"
+      ],
+      "ok": true
+    },
+    {
+      "label": "chromium-820-light-zh",
+      "browser": "chromium",
+      "viewport": {
+        "width": 820,
+        "height": 1180
+      },
+      "lang": "zh",
+      "theme": "light",
+      "checks": [
+        "real_next_shell",
+        "dev_owner_gate",
+        "localized_synthetic_label",
+        "source_return",
+        "search",
+        "svg",
+        "no_overflow",
+        "source_holdings_preserved",
+        "exact_anchor_no_fallback",
+        "zero_page_errors"
+      ],
+      "ok": true
+    },
+    {
+      "label": "chromium-390-dark-en",
+      "browser": "chromium",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "lang": "en",
+      "theme": "dark",
+      "checks": [
+        "real_next_shell",
+        "dev_owner_gate",
+        "localized_synthetic_label",
+        "source_return",
+        "search",
+        "svg",
+        "no_overflow",
+        "source_holdings_preserved",
+        "exact_anchor_no_fallback",
+        "zero_page_errors"
+      ],
+      "ok": true
+    },
+    {
+      "label": "chromium-390-dark-zh",
+      "browser": "chromium",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "lang": "zh",
+      "theme": "dark",
+      "checks": [
+        "real_next_shell",
+        "dev_owner_gate",
+        "localized_synthetic_label",
+        "source_return",
+        "search",
+        "svg",
+        "no_overflow",
+        "source_holdings_preserved",
+        "exact_anchor_no_fallback",
+        "zero_page_errors"
+      ],
+      "ok": true
+    },
+    {
+      "label": "chromium-390-light-en",
+      "browser": "chromium",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "lang": "en",
+      "theme": "light",
+      "checks": [
+        "real_next_shell",
+        "dev_owner_gate",
+        "localized_synthetic_label",
+        "source_return",
+        "search",
+        "svg",
+        "no_overflow",
+        "source_holdings_preserved",
+        "exact_anchor_no_fallback",
+        "zero_page_errors"
+      ],
+      "ok": true
+    },
+    {
+      "label": "chromium-390-light-zh",
+      "browser": "chromium",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "lang": "zh",
+      "theme": "light",
+      "checks": [
+        "real_next_shell",
+        "dev_owner_gate",
+        "localized_synthetic_label",
+        "source_return",
+        "search",
+        "svg",
+        "no_overflow",
+        "source_holdings_preserved",
+        "exact_anchor_no_fallback",
+        "zero_page_errors"
+      ],
+      "ok": true
+    },
+    {
+      "label": "webkit-1440-dark-en",
+      "browser": "webkit",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "lang": "en",
+      "theme": "dark",
+      "checks": [
+        "real_next_shell",
+        "dev_owner_gate",
+        "localized_synthetic_label",
+        "source_return",
+        "search",
+        "svg",
+        "no_overflow",
+        "source_holdings_preserved",
+        "exact_anchor_no_fallback",
+        "zero_page_errors"
+      ],
+      "ok": true
+    },
+    {
+      "label": "webkit-1440-dark-zh",
+      "browser": "webkit",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "lang": "zh",
+      "theme": "dark",
+      "checks": [
+        "real_next_shell",
+        "dev_owner_gate",
+        "localized_synthetic_label",
+        "source_return",
+        "search",
+        "svg",
+        "no_overflow",
+        "source_holdings_preserved",
+        "exact_anchor_no_fallback",
+        "zero_page_errors"
+      ],
+      "ok": true
+    },
+    {
+      "label": "webkit-1440-light-en",
+      "browser": "webkit",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "lang": "en",
+      "theme": "light",
+      "checks": [
+        "real_next_shell",
+        "dev_owner_gate",
+        "localized_synthetic_label",
+        "source_return",
+        "search",
+        "svg",
+        "no_overflow",
+        "source_holdings_preserved",
+        "exact_anchor_no_fallback",
+        "zero_page_errors"
+      ],
+      "ok": true
+    },
+    {
+      "label": "webkit-1440-light-zh",
+      "browser": "webkit",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "lang": "zh",
+      "theme": "light",
+      "checks": [
+        "real_next_shell",
+        "dev_owner_gate",
+        "localized_synthetic_label",
+        "source_return",
+        "search",
+        "svg",
+        "no_overflow",
+        "source_holdings_preserved",
+        "exact_anchor_no_fallback",
+        "zero_page_errors"
+      ],
+      "ok": true
+    },
+    {
+      "label": "webkit-820-dark-en",
+      "browser": "webkit",
+      "viewport": {
+        "width": 820,
+        "height": 1180
+      },
+      "lang": "en",
+      "theme": "dark",
+      "checks": [
+        "real_next_shell",
+        "dev_owner_gate",
+        "localized_synthetic_label",
+        "source_return",
+        "search",
+        "svg",
+        "no_overflow",
+        "source_holdings_preserved",
+        "exact_anchor_no_fallback",
+        "zero_page_errors"
+      ],
+      "ok": true
+    },
+    {
+      "label": "webkit-820-dark-zh",
+      "browser": "webkit",
+      "viewport": {
+        "width": 820,
+        "height": 1180
+      },
+      "lang": "zh",
+      "theme": "dark",
+      "checks": [
+        "real_next_shell",
+        "dev_owner_gate",
+        "localized_synthetic_label",
+        "source_return",
+        "search",
+        "svg",
+        "no_overflow",
+        "source_holdings_preserved",
+        "exact_anchor_no_fallback",
+        "zero_page_errors"
+      ],
+      "ok": true
+    },
+    {
+      "label": "webkit-820-light-en",
+      "browser": "webkit",
+      "viewport": {
+        "width": 820,
+        "height": 1180
+      },
+      "lang": "en",
+      "theme": "light",
+      "checks": [
+        "real_next_shell",
+        "dev_owner_gate",
+        "localized_synthetic_label",
+        "source_return",
+        "search",
+        "svg",
+        "no_overflow",
+        "source_holdings_preserved",
+        "exact_anchor_no_fallback",
+        "zero_page_errors"
+      ],
+      "ok": true
+    },
+    {
+      "label": "webkit-820-light-zh",
+      "browser": "webkit",
+      "viewport": {
+        "width": 820,
+        "height": 1180
+      },
+      "lang": "zh",
+      "theme": "light",
+      "checks": [
+        "real_next_shell",
+        "dev_owner_gate",
+        "localized_synthetic_label",
+        "source_return",
+        "search",
+        "svg",
+        "no_overflow",
+        "source_holdings_preserved",
+        "exact_anchor_no_fallback",
+        "zero_page_errors"
+      ],
+      "ok": true
+    },
+    {
+      "label": "webkit-390-dark-en",
+      "browser": "webkit",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "lang": "en",
+      "theme": "dark",
+      "checks": [
+        "real_next_shell",
+        "dev_owner_gate",
+        "localized_synthetic_label",
+        "source_return",
+        "search",
+        "svg",
+        "no_overflow",
+        "source_holdings_preserved",
+        "exact_anchor_no_fallback",
+        "zero_page_errors"
+      ],
+      "ok": true
+    },
+    {
+      "label": "webkit-390-dark-zh",
+      "browser": "webkit",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "lang": "zh",
+      "theme": "dark",
+      "checks": [
+        "real_next_shell",
+        "dev_owner_gate",
+        "localized_synthetic_label",
+        "source_return",
+        "search",
+        "svg",
+        "no_overflow",
+        "source_holdings_preserved",
+        "exact_anchor_no_fallback",
+        "zero_page_errors"
+      ],
+      "ok": true
+    },
+    {
+      "label": "webkit-390-light-en",
+      "browser": "webkit",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "lang": "en",
+      "theme": "light",
+      "checks": [
+        "real_next_shell",
+        "dev_owner_gate",
+        "localized_synthetic_label",
+        "source_return",
+        "search",
+        "svg",
+        "no_overflow",
+        "source_holdings_preserved",
+        "exact_anchor_no_fallback",
+        "zero_page_errors"
+      ],
+      "ok": true
+    },
+    {
+      "label": "webkit-390-light-zh",
+      "browser": "webkit",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "lang": "zh",
+      "theme": "light",
+      "checks": [
+        "real_next_shell",
+        "dev_owner_gate",
+        "localized_synthetic_label",
+        "source_return",
+        "search",
+        "svg",
+        "no_overflow",
+        "source_holdings_preserved",
+        "exact_anchor_no_fallback",
+        "zero_page_errors"
+      ],
+      "ok": true
+    }
+  ],
+  "complete": true
+}

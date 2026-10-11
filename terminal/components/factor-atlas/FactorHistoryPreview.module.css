@@ -6,8 +6,14 @@
 .description { max-width:540px; margin:0; font-size:14px; color:var(--text-2,#9ba3b4); }
 .preview { max-width:100%; border:1px solid var(--line,#23262f); border-radius:30px; padding:8px 12px; color:var(--text-2,#9ba3b4); background:var(--panel,#0d0f13); font-size:11px; }
 .controls { display:flex; flex-direction:column; gap:20px; padding:20px 0; border-top:1px solid var(--line,#23262f); border-bottom:1px solid var(--line,#23262f); margin-bottom:24px; }
-.selection { border:0; padding:0; margin:0; display:flex; flex-wrap:wrap; gap:8px; }
+.selection { border:0; padding:0; margin:0; display:flex; flex-direction:column; gap:10px; min-width:0; }
 .selection legend { padding:0; margin-bottom:9px; color:var(--text-2,#9ba3b4); font-size:12px; }
+.catalogControls { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px; }
+.catalogList { display:flex; flex-wrap:wrap; align-content:flex-start; gap:8px; max-height:220px; overflow-y:auto; padding:2px; }
+.selectedCount { color:var(--text-2,#9ba3b4); font-size:12px; font-variant-numeric:tabular-nums; }
+.catalogHint { margin:0; color:var(--muted,#717a8e); font-size:11px; }
+.search { min-height:44px; width:min(100%,280px); padding:8px 12px; background:var(--panel,#0d0f13); color:var(--text,#d6dae3); border:1px solid var(--line,#23262f); border-radius:8px; font:inherit; font-size:13px; }
+.chip:has(input:disabled) { opacity:.45; cursor:not-allowed; }
 .chip { min-height:44px; display:inline-flex; align-items:center; gap:9px; padding:9px 13px; border:1px solid var(--line,#23262f); border-radius:9px; font-size:12px; cursor:pointer; background:var(--panel,#0d0f13); }
 .chip input { accent-color:var(--text,#d6dae3); width:16px; height:16px; }
 .chip:has(input:checked) { border-color:var(--text-2,#9ba3b4); }

@@ -103,4 +103,67 @@ describe("native Factor Atlas preview component", () => {
     expect(container.querySelector('a[href*="/stock/"]')).toBeNull();
     expect(container.textContent).toContain("construction");
   });
+
+  function catalog(count: number) {
+    return Array.from({ length: count }, (_, i) => {
+      const n = String(i + 1).padStart(2, "0"), payload = structuredClone(nativeFixture);
+      payload.basket_id = payload.request.basket_id = `fixture:cohort-${n}`;
+      // Synthetic-only fixture variations: the inherited digest is a reference, not an attestation.
+      return { basketId: payload.basket_id, label: [`Cohort ${n}`, `合成样本${n}`] as const, payload };
+    });
+  }
+  it("supports a catalog larger than eight without disabling the entire workspace", async () => {
+    await mount({ ...baseProps(), items: catalog(12) });
+    expect(container.textContent).not.toContain("Choose up to eight distinct factors");
+    expect(container.querySelectorAll('input[type="checkbox"]')).toHaveLength(12);
+    expect(container.textContent).toContain("Selected 3 of 8");
+    expect(container.querySelector('input[aria-label="Find factors"]')).not.toBeNull();
+  });
+  it("filters larger catalogs without changing already-selected basket histories", async () => {
+    await mount({ ...baseProps(), items: catalog(12) });
+    const query = container.querySelector('input[aria-label="Find factors"]') as HTMLInputElement;
+    await act(async () => {
+      Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value")!.set!.call(query, "Cohort 12");
+      query.dispatchEvent(new Event("input", { bubbles: true }));
+      query.dispatchEvent(new Event("change", { bubbles: true }));
+    });
+    expect(container.textContent).toContain("Cohort 12");
+    expect(container.textContent).not.toContain("Cohort 05");
+    expect(container.querySelectorAll('[data-metric="window-return"]')).toHaveLength(3);
+    expect(container.textContent).toContain("Selected 3 of 8");
+  });
+  it("enforces eight simultaneous selections, not eight catalog entries", async () => {
+    await mount({ ...baseProps(), items: catalog(12) });
+    const boxes = [...container.querySelectorAll('input[type="checkbox"]')] as HTMLInputElement[];
+    expect(boxes.slice(0, 3).every(b => b.checked)).toBe(true);
+    for (const box of boxes.slice(3, 8)) await act(async () => box.click());
+    expect(container.textContent).toContain("Selected 8 of 8");
+    expect((container.querySelectorAll('input[type="checkbox"]')[8] as HTMLInputElement).disabled).toBe(true);
+    await act(async () => (container.querySelectorAll('input[type="checkbox"]')[0] as HTMLInputElement).click());
+    expect((container.querySelectorAll('input[type="checkbox"]')[8] as HTMLInputElement).disabled).toBe(false);
+  });
+  it("renders localized catalog search without leaking English into Chinese", async () => {
+    await mount({ ...baseProps(), items: catalog(12), lang: "zh" });
+    expect(container.querySelector('input[aria-label="查找因子"]')).not.toBeNull();
+    expect(container.textContent).toContain("已选 3 / 8");
+    expect(container.textContent).not.toContain("Find factors");
+  });
+
+  it("locates a factor beyond the first rendered catalog page without dropping the original selection", async () => {
+    await mount({ ...baseProps(), items: catalog(160) });
+    expect(container.textContent).not.toContain("Factor catalog is unavailable");
+    expect(container.querySelectorAll('input[type="checkbox"]')).toHaveLength(64);
+    expect(container.textContent).toContain("Showing 64 of 160");
+    const query = container.querySelector('input[aria-label="Find factors"]') as HTMLInputElement;
+    await act(async () => {
+      Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value")!.set!.call(query, "Cohort 160");
+      query.dispatchEvent(new Event("input", { bubbles: true }));
+      query.dispatchEvent(new Event("change", { bubbles: true }));
+    });
+    expect(container.textContent).toContain("Cohort 160");
+    expect(container.querySelectorAll('input[type="checkbox"]')).toHaveLength(1);
+    await act(async () => (container.querySelector('input[type="checkbox"]') as HTMLInputElement).click());
+    expect(container.textContent).toContain("Selected 4 of 8");
+    expect(container.querySelectorAll('[data-metric="window-return"]')).toHaveLength(4);
+  });
 });

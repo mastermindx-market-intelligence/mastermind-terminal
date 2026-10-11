@@ -159,3 +159,82 @@ The client-side withheld view is not an access-control boundary. A future server
 consumer must validate authentication, product entitlement and purpose-specific
 source admission before serializing any retained or restricted payload. Never
 send unauthorized bytes to this component and rely on a blank customer view.
+
+## R3: catalog scaling and actual Next.js shell integration (development-only)
+
+The preview now accepts a bounded catalog of up to 4,096 entries; it renders at
+most 64 matching choices at once, with localized search to reach entries beyond
+the first page. **Eight remains the comparison-selection ceiling**, not a limit
+on total available factors. Existing selections and NAV source history are
+preserved while filtering. For any real catalog, source identities, entitlement
+and rights decisions still belong to their existing owners.
+
+An additional route lives at
+`terminal/app/(shell)/admin/factor-atlas-preview/page.tsx`. It is a
+**development-only, admin-gated** integration proof, not a customer route.
+Its first branch is `NODE_ENV !== "development" -> notFound()`, before
+any synthetic fixture or authorization query. In development it uses the
+incumbent `isAdminRequest()` and shared `AppShell`/language context. Unknown
+admin-authority state displays a localized refusal and no preview data. The
+fixture contains only the source-owner's fabricated AAA/BBB/CCC observations.
+
+For reproducible local browser proof, never bind an admin-dev server to a
+public interface. On an isolated, admitted Terminal workspace:
+
+```sh
+cd terminal
+ADMIN_DEV=1 TERMINAL_E2E_FIXTURE=1 NEXT_TELEMETRY_DISABLED=1 \
+  ./node_modules/.bin/next dev -H 127.0.0.1 -p 49281
+# in another shell, from the repository root:
+FACTOR_ATLAS_LOCAL_URL=http://127.0.0.1:49281 \
+  node docs/factor-atlas-preview/prove-shell.mjs
+```
+
+The browser script refuses a non-loopback URL, uses the existing development
+fixture cookie solely for the shared shell, checks the actual Next route in
+Chromium/WebKit at three viewports × two languages × two themes, and saves
+screenshots/receipt under the workspace-ignored
+`terminal/.next/factor-atlas-proof/` directory. This tests an actual Next.js
+route and its shell, **not real authenticated production**, source-use admission
+or authorization of a customer payload. Do not set `ADMIN_DEV=1` on a VPS or
+network listener. Stop the local server after proof.
+
+The original standalone component harness also has `?case=catalog`, with
+161 fabricated choices. Its browser proof validates finding and selecting
+`Cohort 160` without loading every checkbox into the DOM. Those clone receipts
+are local synthetic scenario identifiers, never authenticated native digests.
+
+### Missing for release
+
+The system still needs the incumbent source owner's admitted PIT membership,
+price/corporate-action vintages, dataset rights and clock-bearing receipts.
+A future authenticated server gateway must withhold unauthorized data **before
+serialization**, rather than relying on this client's blank customer state.
+Independent exact-head review, current protected-base integration, full
+application checks and true customer/browser/production proof remain separate
+release gates. No deployed Atlas product is claimed by these development tools.
+
+## R3 execution verification (local; before hosted CI)
+
+- Focused native unit/DOM suite: **87 passing cases** (the earlier 82 are an
+  immutable prior milestone). The final catalog-scaling test failed against
+  the 128-entry hard catalog refusal before the repair. The implementation
+  now bounds visible entries to 64 and comparisons to eight, without treating
+  a 160-entry catalog as invalid. A 4,096-input catalog ceiling remains a
+  defensive application limit, not a universe model or data-source restriction.
+- Standalone actual-component browser: **24/24 contexts and 433 assertion
+  groups** across Chromium/WebKit, 1440×900/820×1180/390×844, EN/ZH and
+  dark/light. Added scenario validates searching for `Cohort 160` in a
+  161-choice synthetic catalog, selecting it and retaining the original
+  three source histories. [Browser receipt](browser-proof.json).
+- Actual Next.js shell browser: **24/24 contexts and 240 assertion groups**
+  on `/admin/factor-atlas-preview` under explicit local developer fixture
+  authorization, with real AppShell and existing language context.
+  [Next shell browser receipt](next-shell-browser-proof.json).
+- All UI/browser passes are controlled synthetic evidence. No actual admin
+  account identity, genuine rights decision, live Macro feed, paid entitlements,
+  or production deployment was exercised. The development-only server was
+  bound to `127.0.0.1`, not a LAN interface, and stopped after proof.
+- [Verification receipt](verification.json) pins source digests and representative
+  screenshots. This source still requires independent review and exact-head
+  hosted checks on its own new Git commit before any accepted release.

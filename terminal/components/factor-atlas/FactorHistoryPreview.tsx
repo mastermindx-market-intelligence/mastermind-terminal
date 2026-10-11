@@ -34,7 +34,9 @@ const LEX = {
   basis: ["USD · total return · gross before costs", "美元 · 总收益 · 未扣成本"],
   difference: ["Return difference (percentage points)", "收益差值（百分点）"],
   noPnl: ["A comparison, not a funded long/short strategy.", "仅为比较，不代表有资金支持的多空策略。"],
-  selectionInvalid: ["Choose up to eight distinct factors", "请选择最多八个不同因子"],
+  selectionInvalid: ["Factor catalog is unavailable", "因子目录不可用"],
+  find: ["Find factors", "查找因子"], selected: ["Selected", "已选"], ofEight: ["of 8", "/ 8"],
+  showing: ["Showing", "显示"], of: ["of", "/"], refine: ["Refine search to see more", "缩小搜索范围可查看更多"],
 } satisfies Record<string, Copy>;
 function pick(key: keyof typeof LEX, lang: Lang): string { return LEX[key][lang === "zh" ? 1 : 0]; }
 
@@ -88,14 +90,21 @@ function HistoryPlot({ comparison, labels, window, lang }: {
 }
 
 export function FactorHistoryPreview({ items, initialWindow, audience, lang = "en" }: FactorHistoryPreviewProps) {
-  const [selected, setSelected] = useState(() => items.slice(0, 8).map(i => i.basketId));
+  const [selected, setSelected] = useState(() => items.slice(0, 3).map(i => i.basketId));
+  const [filter, setFilter] = useState("");
   const [window, setWindow] = useState(initialWindow);
   const reads = useMemo(() => items.filter(i => selected.includes(i.basketId)).map(item => ({ item,
     read: prepareFactorHistory(item.payload, { basketId: item.basketId, audience }) })), [items, selected, audience]);
   const histories = reads.flatMap(r => r.read.history ? [r.read.history] : []);
   const comparison = compareFactorHistories(histories, window);
   const labels = new Map(items.map(item => [item.basketId, item.label[lang === "zh" ? 1 : 0]]));
-  const selectionInvalid = items.length > 8 || new Set(items.map(i => i.basketId)).size !== items.length;
+  const selectionInvalid = !items.length || items.length > 4096 || new Set(items.map(i => i.basketId)).size !== items.length;
+  const needle = filter.trim().toLocaleLowerCase();
+  const matchingItems = items.filter(item => !needle ||
+    item.basketId.toLocaleLowerCase().includes(needle) ||
+    item.label[lang === "zh" ? 1 : 0].toLocaleLowerCase().includes(needle));
+  // Bound render work, not catalog size: search reaches items past this page.
+  const visibleItems = matchingItems.slice(0, 64);
   if (audience !== "synthetic-preview") return <section className={styles.shell} aria-label={pick("brand", lang)}>
     <h2>{pick("brand", lang)}</h2><p role="status">{pick("withheld", lang)}</p><p>{pick("withheldDetail", lang)}</p>
   </section>;
@@ -107,11 +116,24 @@ export function FactorHistoryPreview({ items, initialWindow, audience, lang = "e
     </header>
     <div className={styles.controls}>
       <fieldset className={styles.selection}><legend>{pick("select", lang)}</legend>
-        {items.slice(0, 8).map((item, i) => <label className={styles.chip} key={`${item.basketId}:${i}`}>
-          <input type="checkbox" checked={selected.includes(item.basketId)} onChange={event => setSelected(current =>
-            event.target.checked ? [...current, item.basketId] : current.filter(id => id !== item.basketId))} />
-          {labels.get(item.basketId)}
-        </label>)}
+        <div className={styles.catalogControls}>
+          <label className={styles.selectedCount}>{pick("selected", lang)} {selected.length} {pick("ofEight", lang)}</label>
+          <input type="search" className={styles.search} aria-label={pick("find", lang)}
+            placeholder={pick("find", lang)} value={filter} onChange={event => setFilter(event.currentTarget.value)} />
+        </div>
+        <div className={styles.catalogList}>
+          {visibleItems.map((item, i) => <label className={styles.chip} key={`${item.basketId}:${i}`}>
+            <input type="checkbox" checked={selected.includes(item.basketId)}
+              disabled={!selected.includes(item.basketId) && selected.length >= 8}
+              onChange={event => setSelected(current => event.target.checked
+                ? current.length < 8 ? [...current, item.basketId] : current
+                : current.filter(id => id !== item.basketId))} />
+            {labels.get(item.basketId)}
+          </label>)}
+        </div>
+        {matchingItems.length > visibleItems.length && <p className={styles.catalogHint} role="status">
+          {pick("showing",lang)} {visibleItems.length} {pick("of",lang)} {matchingItems.length}. {pick("refine",lang)}
+        </p>}
       </fieldset>
       <div className={styles.dates}>
         <label>{pick("anchor", lang)}<input type="date" aria-label={pick("anchor", lang)} value={window.anchorDate}

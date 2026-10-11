@@ -1,20 +1,23 @@
 {
   "schema": "factor_atlas.terminal_native_preview_verification.v1",
-  "observed_at": "2026-10-11T09:45:09.656909+00:00",
+  "observed_at": "2026-10-11T10:49:38.001178+00:00",
   "operation": "factor-atlas-terminal-preview-20261011-c1",
   "base_sha": "fc76cf495781e5f53254aa3c457411de0cb64654",
   "protected_procedure_sha": "8d62a8571d2a6ad9da9d50e5e4624de6eecaac4c",
   "source_binding": "file hashes; final commit binds this receipt without self-reference",
   "source_sha256": {
     "terminal/lib/factorAtlasHistory.ts": "6273f12623563a96c508b4242410e78857e0397b97d99b1a1770c7e773f2e354",
-    "terminal/components/factor-atlas/FactorHistoryPreview.tsx": "6cb258c3e591ae8f17f51101212c33d3dd220341175d814634795550753b997c",
-    "terminal/components/factor-atlas/FactorHistoryPreview.module.css": "01e0d66a9635bf9a614bd27ec7309eb6b2ae9a090ff12b78233004100f960615",
+    "terminal/components/factor-atlas/FactorHistoryPreview.tsx": "a3d808aed5818e9a4d69849c958637ed3bafbf2ae2e2af8aed2773c9dbe922f8",
+    "terminal/components/factor-atlas/FactorHistoryPreview.module.css": "6b4aa0dd484410d7c47fe1d965cff7f48a5367d831aa044db40e6442ec83040d",
     "terminal/lib/__tests__/factorAtlasHistory.test.ts": "d26edbef20d616ad7ecd004246d56c5538112cfb4708e46b37b01c3f6c6ad7da",
-    "terminal/lib/__tests__/factorAtlasPreview.test.tsx": "59787bb5f501a165d7388210d6417a2f983afd00d7710cccc45d0e43eaa913a3",
+    "terminal/lib/__tests__/factorAtlasPreview.test.tsx": "73ffc23380ac67a2938aa056b372547b83fd26449c0842fbc9aa1678ba333f33",
     "terminal/lib/__tests__/fixtures/factorAtlasNativeSynthetic.json": "6860786ee663c394e0d33b18e241592879501a6bc5335a09faed6d66b0b42626",
-    "docs/factor-atlas-preview/preview-entry.tsx": "9d3cbc9ebd7c692b5a7ade12249a0004dafded1e3e31e8417c07876dabd9de62",
+    "docs/factor-atlas-preview/preview-entry.tsx": "9e341a88d40eca61899ff190c5ddc375d74d3806320cf00714319745fb40a98e",
     "docs/factor-atlas-preview/serve.mjs": "a0bdb9bf28e8d764e82d4e320449c80edce39468f89ff99476dffaebf7588c9d",
-    "docs/factor-atlas-preview/prove.mjs": "7939c711c57236afa8349a6dde46c15fbf72d64854a99f85e1568a58488d03c6"
+    "docs/factor-atlas-preview/prove.mjs": "4313dd848eb242b4dc71c588ae0a11ee2b03f37969c59f8e6f3bee41fdb707b4",
+    "terminal/app/(shell)/admin/factor-atlas-preview/page.tsx": "f505113bb77630759f0c34d63806ccf47860935f69361b3fa5d2db450bfcbbc7",
+    "terminal/components/factor-atlas/FactorHistoryShellPreview.tsx": "fc0c2c3a686e56853ef8a28349e74f31ccd76dcd86db96f966bd93a24e11db67",
+    "docs/factor-atlas-preview/prove-shell.mjs": "70729f3850d2b7c36972a7648c6aa1db07e87e14ae022abf90295a062ea9b04e"
   },
   "source_native_fixture": {
     "repo": "mastermindx-market-intelligence/macro",
@@ -30,7 +33,7 @@
     "dom_initial_harness_error_skipped": 10,
     "dom_initial_error_is_not_red_proof": true,
     "dom_corrected_red_expected_failures": 10,
-    "combined_native_passed": 82,
+    "combined_native_passed": 87,
     "focused_eslint_errors": 0,
     "focused_eslint_warnings": 0,
     "application_typecheck_exit": 0,
@@ -38,11 +41,18 @@
     "initial_combined_native_passed": 74,
     "ci_repair_red_expected_failures": 8,
     "ci_repair_red_previous_tests_passed": 74,
-    "plain_language_enforce_added_exit": 0
+    "plain_language_enforce_added_exit": 0,
+    "catalog_more_than_eight_red_failures": 4,
+    "catalog_beyond_first_render_page_red_failures": 1,
+    "catalog_scale_upper_bound": 4096,
+    "catalog_visible_page_bound": 64,
+    "r3_focused_lint_exit": 0,
+    "r3_typescript_exit": 0,
+    "r3_plain_language_gate_exit": 0
   },
   "browser": {
     "contexts_passed": 24,
-    "assertion_groups_passed": 432,
+    "assertion_groups_passed": 433,
     "viewports": [
       [
         1440,
@@ -72,7 +82,7 @@
     "page_errors": 0,
     "external_requests": 0,
     "scope": "real native component bundled in loopback harness; shared theme variables supplied by harness, not full Next.js/auth route",
-    "receipt_sha256": "7c9d3893965d1bac0b7e048a2bbee4b51f1573baa8200f5f0f560ebca8359d97"
+    "receipt_sha256": "8cda7214fc26e3d70bc6313a2692e8da4727774807302d6ea08a95e24fb554ba"
   },
   "logs": {
     "baseline.log": {
@@ -142,14 +152,66 @@
     "hosted-codeql-annotations.json": {
       "bytes": 484,
       "sha256": "f86f0746c5dec3b1b5f405dbac08932505370114a1ee138331e4ec7e7311c94d"
+    },
+    "catalog-green.log": {
+      "bytes": 584,
+      "sha256": "b065339ebb9ac7c948f8b91ee98ebdf83665133319d5aa0f24fc001739b6fd28"
+    },
+    "catalog-scale-red.log": {
+      "bytes": 3527,
+      "sha256": "ed974f5f7e827720b1d35ad17a166763dcec72bdf0847b41880c6c221ceee162"
+    },
+    "catalog-scale-green.log": {
+      "bytes": 704,
+      "sha256": "4e4ae439b1afb5ad2c8dbaa3a693934d5a320c3a249e9e48f1383db956c9e108"
+    },
+    "catalog-route-unit.log": {
+      "bytes": 584,
+      "sha256": "6a3fcf07eeaa67d16af7ba7d08b9797e5e04720c9fe2f772cc9b6243a8cb3573"
+    },
+    "catalog-route-lint.log": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "catalog-route-types.log": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "catalog-route-plain-language-repaired.log": {
+      "bytes": 1683,
+      "sha256": "e51e81349279edd76463d3cc4b8116477177a43a6d41de6faab04b5507b03de7"
+    },
+    "catalog-harness-final.log": {
+      "bytes": 117,
+      "sha256": "caf7a0f9a19e799fb3bf83e006713ed4105f486fe8e4b64d6b147c56983ee69b"
+    },
+    "next-shell-final-r3.log": {
+      "bytes": 97,
+      "sha256": "63ec875e74bdae4e83020105f50c69c0fd5155bad034e8f61ae6ad7c48c9b326"
+    },
+    "r3-lint.log": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "r3-typescript.log": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "r3-plain.log": {
+      "bytes": 1683,
+      "sha256": "e51e81349279edd76463d3cc4b8116477177a43a6d41de6faab04b5507b03de7"
     }
   },
   "screenshots": {
-    "chromium-1440-dark-en-compare.png": "b626ebf2ac7a702c68c87f3e2cc11a2b0ae670397edf8d4b80a6d6f4dfa5bc1c",
-    "chromium-390-dark-en.png": "bf1a79e64108d9ea8c41a3f3a2b65aaf3d3dc75612508b6f560792401d909d97",
-    "chromium-1440-light-en.png": "4a67bc5bb554e68d6270f6cebe521ca3a5edcc812f0d4c676fbd1a879cbcfad9",
-    "webkit-820-light-zh.png": "e15bbb3aa92b6cc1577c9590ddfc685cf66989c986d8603d609af5543349e106",
-    "webkit-390-light-zh.png": "cdae2a729049099241528138a2e79ccd2fc9f2deadf434034cbcfd451cf39661"
+    "screenshots/chromium-1440-dark-en-compare.png": "b4e3248d79076a09c40957b0642c818b7782babb1e02f2a0c9d8b055a34d7d70",
+    "screenshots/chromium-1440-light-en.png": "1ce1ae53e1351b217dee158525710c7e77652e620784de94d8ef90753ea20044",
+    "screenshots/chromium-390-dark-en.png": "c5cdc92d0177b4164a3cf205ad1f8ae0528c45e2536dec277f17ff3a6de0aa55",
+    "screenshots/webkit-390-light-zh.png": "f071aea455a6f022df6d1144f04d95b3145c3a6834ae01c63acc040e625de0f4",
+    "screenshots/webkit-820-light-zh.png": "aed3aa261c3aaf3f36eabb25ee03d6083259023868dd800cdf584abe46dff0ee",
+    "screenshots/chromium-1440-dark-en-catalog.png": "56aa6f1cfb14b998c16d701778dcedc18b1d58e2a29bacf55ce011d94f3839f7",
+    "screenshots/next-shell/chromium-1440-dark-en.png": "5d51a8dff0ffcc61daad9ab0f9b47e9fa05de63c54c4a9f9f5fa206b520ff4eb",
+    "screenshots/next-shell/chromium-390-dark-en.png": "d2346c054121cefc7027b7d9154856e0454b63dcd3e965406c9852ad82c4d95a",
+    "screenshots/next-shell/chromium-390-light-zh.png": "6a7c075962d6633b21ef555578f7ebc0d0135ef1e6b85f7201b46bb285063eb2"
   },
   "source_admission": false,
   "authenticated_production": false,
@@ -160,7 +222,9 @@
   "notes": [
     "Final source has 82 native passes, clean lint/typecheck and enforce-added plain-language; refreshed browser proof binds the repaired source. Prior 74-test milestone is historical.",
     "No Macro source/custody refusal replay; no change to S1/S2/S4/S6 sources or leases.",
-    "Legacy typed Git status is bound to Mastermind-only source/remote. Read-only configuration evidence and separate Terminal mmx status establish a different resource target; no configuration changes or retry of that status."
+    "Legacy typed Git status is bound to Mastermind-only source/remote. Read-only configuration evidence and separate Terminal mmx status establish a different resource target; no configuration changes or retry of that status.",
+    "R3: actual Next route developer-admin-only; test auth fixture and Chromium/WebKit proof do not establish real authenticated production. The route returns notFound in non-development mode before querying rights or delivering any fixture.",
+    "R3: 160+ factor catalog works with 64-choice bounded rendering and eight simultaneous selections; every clone is synthetic, not a provider-sourced catalog or validated historical cohort."
   ],
   "hosted_predecessor": {
     "head_sha": "233a529c75e4a0215a5efa4cec1be9d8bfd011c2",
@@ -185,5 +249,53 @@
     "fresh_hosted_ci": "PENDING_NEW_HEAD",
     "fresh_codeql": "NOT_YET_PROVEN",
     "no_test_or_gate_waiver": true
-  }
+  },
+  "next_shell": {
+    "route": "/admin/factor-atlas-preview",
+    "deployment_exposure": "NODE_ENV_development_only",
+    "host": "127.0.0.1",
+    "authentication": "EXISTING_ADMIN_DEV_AND_E2E_FIXTURE_ONLY_NOT_REAL_IDENTITY",
+    "real_next_route_red_404": true,
+    "real_next_route_green_200": true,
+    "browser_contexts_passed": 24,
+    "assertion_groups_passed": 240,
+    "engines": [
+      "chromium",
+      "webkit"
+    ],
+    "locales": [
+      "en",
+      "zh"
+    ],
+    "viewports": [
+      [
+        1440,
+        900
+      ],
+      [
+        820,
+        1180
+      ],
+      [
+        390,
+        844
+      ]
+    ],
+    "themes": [
+      "dark",
+      "light"
+    ],
+    "source_sha256": {
+      "terminal/app/(shell)/admin/factor-atlas-preview/page.tsx": "f505113bb77630759f0c34d63806ccf47860935f69361b3fa5d2db450bfcbbc7",
+      "terminal/components/factor-atlas/FactorHistoryShellPreview.tsx": "fc0c2c3a686e56853ef8a28349e74f31ccd76dcd86db96f966bd93a24e11db67",
+      "terminal/components/factor-atlas/FactorHistoryPreview.tsx": "a3d808aed5818e9a4d69849c958637ed3bafbf2ae2e2af8aed2773c9dbe922f8",
+      "terminal/components/factor-atlas/FactorHistoryPreview.module.css": "6b4aa0dd484410d7c47fe1d965cff7f48a5367d831aa044db40e6442ec83040d",
+      "terminal/lib/factorAtlasHistory.ts": "6273f12623563a96c508b4242410e78857e0397b97d99b1a1770c7e773f2e354",
+      "terminal/lib/__tests__/fixtures/factorAtlasNativeSynthetic.json": "6860786ee663c394e0d33b18e241592879501a6bc5335a09faed6d66b0b42626"
+    },
+    "receipt_sha256": "d7c90b55faaef0fa603108460b4322072943d466564feb5b984fc0cb0fa342d9",
+    "production_not_proven": true
+  },
+  "production_proven": false,
+  "real_house_data_qualified": false
 }

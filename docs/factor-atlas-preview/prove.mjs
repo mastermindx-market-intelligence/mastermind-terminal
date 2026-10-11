@@ -65,6 +65,19 @@ try {
           await checkWidth();row.checks.push("two_factor_comparison","no_comparison_overflow");
           if(engineName==="chromium" && theme==="dark" && lang==="en") await page.screenshot({path:resolve(proofDirectory,"screenshots",id+"-compare.png"),fullPage:true});
           await go("&case=incompatible");await expect(page.locator("svg")).toHaveCount(0);row.checks.push("mixed_mode_comparison_withheld");
+          if (engineName==="chromium" && viewport.width===1440 && theme==="dark" && lang==="en") {
+            await go("&case=catalog");
+            await expect(page.getByText("Showing 64 of 161",{exact:false})).toBeVisible();
+            const search=page.getByLabel("Find factors",{exact:true});
+            await search.fill("Cohort 160");
+            await expect(page.locator('input[type="checkbox"]')).toHaveCount(1);
+            await page.locator('input[type="checkbox"]').check();
+            await expect(page.getByText("Selected 4 of 8",{exact:false})).toBeVisible();
+            await expect(page.locator('[data-metric="window-return"]')).toHaveCount(4);
+            await checkWidth();
+            await page.screenshot({path:resolve(proofDirectory,"screenshots",id+"-catalog.png"),fullPage:true});
+            row.checks.push("scalable_catalog_search_and_selection");
+          }
           await go("&case=retained");await expect(page.locator("svg")).toHaveCount(0);
           await expect(page.getByText(lang==="zh"?"仅支持合成测试数据":"Synthetic fixture required",{exact:false})).toBeVisible();
           row.checks.push("retained_owner_not_preview_admission");
