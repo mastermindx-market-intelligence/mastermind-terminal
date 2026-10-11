@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useMemo, useRef, useState, startTransition, useDeferredValue, useCallback } from "react";
 import { useRouter } from "next/navigation";
+import dynamic from "next/dynamic";
 import { useT, useLang } from "@/lib/i18n";
 import { displayName, marketOf, isSymbolVisible, ALL_MARKETS, type MarketId } from "@/lib/markets";
 import { useMarketPrefs } from "@/lib/useMarketPrefs";
@@ -17,6 +18,33 @@ import { parseGlanceIndex, REGIME_COLORS, REGIME_RANK, type GexRegime, type Glan
 import { makeGexT } from "@/components/gexdesk/gexStrings";
 import { notClassified, verdictLabel } from "@/lib/plainLabels";
 import AssetLogo from "@/components/AssetLogo";
+// E02 period-aware fundamental screen: one lazily-read scan (scan/fundamental.json), applied
+// AFTER every manifest filter so its tally explains exactly the rows the user would see.
+import { passes } from "@/lib/screenerScan";
+import {
+  FUNDAMENTAL_FIELD_IDS,
+  classifyFundamental,
+  createFundamentalTally,
+  evaluateFundamentalScreen,
+  summarizeFundamentalField,
+  type FundamentalClassification,
+  type FundamentalFieldId,
+  type FundamentalFieldSummary,
+  type FundamentalPredicate,
+  type FundamentalTally,
+} from "@/lib/fundamentalScan";
+import { fieldColumn, fieldName, useFundT } from "@/lib/fundamentalScanLex";
+import { useFundamentalScan } from "@/components/screener/useFundamentalScan";
+import {
+  FundamentalCell,
+  FundamentalScreenBar,
+  FundamentalStatusItems,
+  fundamentalTdClass,
+  fundamentalThClass,
+  type FundamentalEvidenceTarget,
+} from "@/components/screener/FundamentalScreen";
+// The evidence drawer (projector + statement math) loads only when a fundamental cell is opened.
+const FundamentalEvidence = dynamic(() => import("@/components/screener/FundamentalEvidence"), { ssr: false });
 
 /* ────────────────────────────────────────────────────────────────────────────
  * PHASE-2 DATA PLUMBING — deliberately NOT built in this component (D5-6).
@@ -34,9 +62,11 @@ import AssetLogo from "@/components/AssetLogo";
  *     take Bar[] per symbol; 9.5k OHLC fetches from the browser is infeasible.
  *     Needs a nightly scan artifact (compact rating in the manifest, or a
  *     screener_scan.json).
- *  3. Fundamental filters (P/E, dividend yield, margins, growth) — these live in
- *     per-symbol fund.json only; needs a merged scan file. fund.json units law:
- *     percents are 0..1 FRACTIONS.
+ *  3. Fundamental filters — BUILT (E02) on a merged nightly scan: scan/fundamental.json
+ *     (scripts/gen_fundamental_scan.ts → lib/fundamentalScan.ts) carries P/E TTM and
+ *     latest-fiscal-year margins / ROE / revenue growth with their period, currency and
+ *     per-field availability. fund.json units law: percents are 0..1 FRACTIONS, scaled
+ *     once at the display boundary. Dividend yield is not in the v1 field set.
  *  4. Sector for CN/HK names — the gics enrichment is US-only; CN would need
  *     SW-industry from Tushare. Hence scr2SectorNote.
  *  5. Fresh market caps — reference.parquet is frozen Jul-9 (open macro bug), so
@@ -107,7 +137,12 @@ const DEFAULT_FILTERS: FilterState = {
 type SortKey =
   | "sym" | "last" | "chg" | "dv" | "mcap" | "offHi" | "gics"
   | "verdict" | "regimeBull" | "wr" | "pf" | "cagr"
-  | "mscRank" | "mscNetGex" | "mscFlip";
+  | "mscRank" | "mscNetGex" | "mscFlip"
+  | `fund:${FundamentalFieldId}`;
+
+/** A fundamental column's sort key → its field (null for every manifest column). */
+const fundSortField = (k: SortKey): FundamentalFieldId | null =>
+  k.startsWith("fund:") ? (k.slice(5) as FundamentalFieldId) : null;
 
 // Column sets per view. The signal columns exist for the Oracle-tracked names only, so they
 // are shown ONLY while a signal-scoped filter is on — that is what keeps 5-of-9 columns from
@@ -292,6 +327,22 @@ export default function ScreenerView({ identity }: { identity: AccountIdentity }
   // signal view, where CAGR is the meaningful default.
   const [sort, setSort] = useState<{ k: SortKey; dir: 1 | -1 } | null>(null);
 
+  // ── fundamental screen (E02) ───────────────────────────────────────────
+  // The scan is read only once the user opens the controls (or holds a fundamental filter).
+  // Columns exist for the field being edited and for every active predicate — never for the
+  // whole field set, so the table does not grow "—" columns nobody asked for.
+  const ft = useFundT();
+  const [fundOpen, setFundOpen] = useState(false);
+  const [fundField, setFundField] = useState<FundamentalFieldId>("fund.net_margin_fy");
+  const [fundPreds, setFundPreds] = useState<FundamentalPredicate[]>([]);
+  const [evidence, setEvidence] = useState<FundamentalEvidenceTarget | null>(null);
+  const fund = useFundamentalScan(fundOpen || fundPreds.length > 0);
+  const fundCols = useMemo(
+    () => FUNDAMENTAL_FIELD_IDS.filter((id) => (fundOpen && id === fundField) || fundPreds.some((p) => p.field === id)),
+    [fundOpen, fundField, fundPreds],
+  );
+  const closeEvidence = useCallback(() => setEvidence(null), []);
+
   // ── scroll tracking for virtualization ────────────────────────────────
   const tableRef = useRef<HTMLDivElement>(null);
   const [scrollTop, setScrollTop] = useState(0);
@@ -432,13 +483,15 @@ export default function ScreenerView({ identity }: { identity: AccountIdentity }
   const effSort = useMemo(() => {
     const def = signalView ? DEF_SORT_S : DEF_SORT_U;
     if (!sort) return def;
+    const ff = fundSortField(sort.k);
+    if (ff) return fundCols.includes(ff) ? sort : def;
     return (signalView ? S_KEYS : U_KEYS).includes(sort.k) ? sort : def;
-  }, [signalView, sort]);
+  }, [signalView, sort, fundCols]);
 
   // ── filtered view (single pass) ────────────────────────────────────────
   // Aggregates are computed AFTER the predicates run, on the filtered array — the old
   // component accumulated them inside the predicate, so the counts never reacted to a filter.
-  const { view, nBuy, nSell, hiddenN, hiddenFrom } = useMemo(() => {
+  const { view, nBuy, nSell, hiddenN, hiddenFrom, fundCells, fundTally, fundSummary, fundWait } = useMemo(() => {
     const qRaw = search.trim();
     const q = qRaw.toLowerCase();
     const explicitMkt = f.market !== "all";
@@ -483,21 +536,64 @@ export default function ScreenerView({ identity }: { identity: AccountIdentity }
       return true;
     });
 
-    let b = 0, s = 0;
-    for (const r of base) { if (isBuy(r.verdict)) b++; else if (r.verdict) s++; }
+    // ── fundamental screen (E02) — after every other filter and the market gate ──
+    // A predicate is applied only against a settled scan. Until it answers, the table waits
+    // (skeleton) instead of showing the unfiltered rows as if the filter had run.
+    const fsrc = fund.source;
+    const fundWaiting = fundPreds.length > 0 && fsrc === null;
+    let kept = fundWaiting ? [] : base;
+    let cellsBy: Map<string, Partial<Record<FundamentalFieldId, FundamentalClassification>>> | null = null;
+    let tallyOut: FundamentalTally | null = null;
+    let summary: FundamentalFieldSummary | null = null;
+    if (fsrc && (fundCols.length > 0 || fundPreds.length > 0)) {
+      cellsBy = new Map();
+      const tally = fundPreds.length > 0 ? createFundamentalTally(fundPreds) : null;
+      const out: Row[] = [];
+      for (const r of base) {
+        const res = evaluateFundamentalScreen(fsrc, r.sym, fundPreds, fund.nowMs);
+        for (const id of fundCols) if (!res.cells[id]) res.cells[id] = classifyFundamental(fsrc, r.sym, id, fund.nowMs);
+        cellsBy.set(r.sym, res.cells);
+        tally?.record(r.sym, res);
+        if (fundPreds.length === 0 || passes(res.match)) out.push(r);
+      }
+      kept = out;
+      tallyOut = tally ? tally.result() : null;
+      // The edited field's coverage over the rows the OTHER filters left — the same population
+      // the tally's "of N" names — with the period span its known values belong to.
+      if (fundOpen) {
+        const by = cellsBy;
+        summary = summarizeFundamentalField(base.map((r) => r.sym), (id) => by.get(id)?.[fundField] ?? classifyFundamental(fsrc, id, fundField, fund.nowMs), fundField);
+      }
+    }
 
-    // sort — nulls always last regardless of direction
-    const sorted = [...base].sort((a, b2) => {
-      const x: any = a[effSort.k];
-      const y: any = b2[effSort.k];
+    let b = 0, s = 0;
+    for (const r of kept) { if (isBuy(r.verdict)) b++; else if (r.verdict) s++; }
+
+    // sort — nulls always last regardless of direction. A fundamental column sorts on
+    // EVALUATED values only: a stale or unknown cell is never ranked as if it were current.
+    const ff = fundSortField(effSort.k);
+    const keyOf = (r: Row): unknown => {
+      if (!ff) return r[effSort.k as keyof Row];
+      const c = cellsBy?.get(r.sym)?.[ff];
+      return c && c.coverage.status === "evaluated" ? c.value : null;
+    };
+    const sorted = [...kept].sort((a, b2) => {
+      const x: any = keyOf(a);
+      const y: any = keyOf(b2);
       if (x == null && y == null) return 0;
       if (x == null) return 1;
       if (y == null) return -1;
       return (x > y ? 1 : x < y ? -1 : 0) * effSort.dir;
     });
 
-    return { view: sorted, nBuy: b, nSell: s, hiddenN: hidden, hiddenFrom: Array.from(from) };
-  }, [rowsJoined, f, search, effSort, prefs, prefsReady, showAllMarkets]);
+    return {
+      view: sorted, nBuy: b, nSell: s, hiddenN: hidden, hiddenFrom: Array.from(from),
+      fundCells: cellsBy, fundTally: tallyOut, fundSummary: summary, fundWait: fundWaiting,
+    };
+  }, [rowsJoined, f, search, effSort, prefs, prefsReady, showAllMarkets, fund.source, fund.nowMs, fundPreds, fundCols, fundOpen, fundField]);
+  // Rows / counts / empty state render only over a settled result (manifest AND, when a
+  // fundamental filter is held, the scan).
+  const tableReady = loaded && !err && !fundWait;
 
   // ── virtualization window ──────────────────────────────────────────────
   const rowH = density === "k" ? ROW_H_COMPACT : ROW_H_COMFORT;
@@ -516,7 +612,7 @@ export default function ScreenerView({ identity }: { identity: AccountIdentity }
   }, []);
 
   const clearAll = useCallback(() => {
-    startTransition(() => { setActivePreset(null); setF(DEFAULT_FILTERS); });
+    startTransition(() => { setActivePreset(null); setF(DEFAULT_FILTERS); setFundPreds([]); });
   }, []);
 
   // Clicking a preset REPLACES the whole filter state; clicking the active one clears it.
@@ -567,7 +663,7 @@ export default function ScreenerView({ identity }: { identity: AccountIdentity }
   if (f.unpriced) tags.push({ id: "unpriced", label: t("scr2InclThin"), clear: { unpriced: false } });
 
   // ── column set for the active view ─────────────────────────────────────
-  const cols: { k: SortKey; label: string; w: string }[] = signalView
+  const viewCols: { k: SortKey; label: string; w: string; fund?: FundamentalFieldId }[] = signalView
     ? [
       { k: "sym", label: t("symbol"), w: "150px" },
       { k: "last", label: t("colLast"), w: "70px" },
@@ -596,6 +692,11 @@ export default function ScreenerView({ identity }: { identity: AccountIdentity }
       ] : []),
       { k: "verdict", label: t("signalCol"), w: "66px" },
     ];
+  // Fundamental columns ride at the END of either view (positional cells stay aligned).
+  const cols = [
+    ...viewCols,
+    ...fundCols.map((id) => ({ k: `fund:${id}` as SortKey, label: fieldColumn(ft, id), w: "60px", fund: id })),
+  ];
 
   // "{n} results" with the numeral in a <b> so it can carry tabular-nums
   const resultLine = (() => {
@@ -772,6 +873,16 @@ export default function ScreenerView({ identity }: { identity: AccountIdentity }
             onClick={() => patchF({ unpriced: !f.unpriced })}
           >{t("scr2InclThin")}</button>
 
+          <button
+            type="button"
+            className={`chip${fundOpen ? " on" : ""}`}
+            aria-pressed={fundOpen}
+            aria-expanded={fundOpen}
+            title={ft("fsToggleTitle")}
+            onClick={() => setFundOpen((o) => !o)}
+            data-fund-toggle=""
+          >{ft("fsToggle")}{fundPreds.length > 0 ? ` · ${fundPreds.length}` : ""}</button>
+
           {/* margin-left:auto rides the toggle itself, not a spacer element — an auto-margin
               spacer in a wrapping flex row eats the free space and strands the toggle left. */}
           <div className="fin-toggle" role="group" aria-label={t("scr2Density")} style={{ marginLeft: "auto" }}>
@@ -779,14 +890,26 @@ export default function ScreenerView({ identity }: { identity: AccountIdentity }
             <button type="button" className={density === "k" ? "on" : ""} onClick={() => pickDensity("k")}>{t("scr2DenCompact")}</button>
           </div>
         </div>
+
+        {/* ── fundamental row (E02): typed ranges / explicit unknown, basis + coverage ── */}
+        {fundOpen && (
+          <FundamentalScreenBar
+            scan={fund}
+            field={fundField}
+            onField={setFundField}
+            predicates={fundPreds}
+            onPredicates={setFundPreds}
+            summary={tableReady ? fundSummary : null}
+          />
+        )}
       </div>
 
       {/* ── status row: counts computed over the FILTERED set, plus scope honesty ── */}
       <div className="scr2-status">
         {/* no count before the manifest answers — "0 results" under a skeleton is a lie */}
-        {loaded && !err && <span>{resultLine}</span>}
+        {tableReady && <span>{resultLine}</span>}
 
-        {loaded && !err && signalView && (
+        {tableReady && signalView && (
           <>
             <span className="fin-tag" style={{ "--c": "var(--brand-2)" } as React.CSSProperties}>
               {t("scr2Coverage").replace("{n}", trackedCount.toLocaleString())}
@@ -806,7 +929,12 @@ export default function ScreenerView({ identity }: { identity: AccountIdentity }
             onClick={() => patchF(tg.clear)}
           >{tg.label} ×</button>
         ))}
-        {tags.length >= 2 && (
+        <FundamentalStatusItems
+          predicates={fundPreds}
+          tally={tableReady ? fundTally : null}
+          onRemove={(id) => setFundPreds((ps) => ps.filter((p) => p.field !== id))}
+        />
+        {tags.length + fundPreds.length >= 2 && (
           <button type="button" className="scr2-clear" onClick={clearAll}>{t("scr2ClearAll")}</button>
         )}
 
@@ -840,8 +968,10 @@ export default function ScreenerView({ identity }: { identity: AccountIdentity }
                 return (
                   <th
                     key={c.k}
-                    className={on ? "sorted" : ""}
+                    className={[on ? "sorted" : "", c.fund ? fundamentalThClass : ""].filter(Boolean).join(" ")}
                     aria-sort={on ? (effSort.dir === -1 ? "descending" : "ascending") : "none"}
+                    title={c.fund ? fieldName(ft, c.fund) : undefined}
+                    data-fund-col={c.fund}
                     onClick={() => setSort({ k: c.k, dir: on && effSort.dir === -1 ? 1 : -1 })}
                   >
                     {c.label}{on ? (effSort.dir === -1 ? " ↓" : " ↑") : ""}
@@ -852,10 +982,10 @@ export default function ScreenerView({ identity }: { identity: AccountIdentity }
           </thead>
           <tbody>
             {/* loading skeleton — .fin-skel, sized to the active density */}
-            {!loaded && Array.from({ length: SHIMMER_ROWS }).map((_, i) => (
+            {(!loaded || fundWait) && !err && Array.from({ length: SHIMMER_ROWS }).map((_, i) => (
               <tr key={`sk${i}`} className="scr2-skel-row" style={{ height: rowH }}>
                 {cols.map((c, j) => (
-                  <td key={c.k}>
+                  <td key={c.k} className={c.fund ? fundamentalTdClass : undefined}>
                     <div className="fin-skel" style={{ height: skelH, width: c.w, marginLeft: j === 0 ? 0 : "auto" }} />
                   </td>
                 ))}
@@ -877,7 +1007,7 @@ export default function ScreenerView({ identity }: { identity: AccountIdentity }
             )}
 
             {/* empty — the why line names WHICH reason */}
-            {loaded && !err && view.length === 0 && (
+            {tableReady && view.length === 0 && (
               <tr className="empty-row">
                 <td colSpan={cols.length}>
                   <div className="fin-empty fin-empty-lg">
@@ -888,7 +1018,7 @@ export default function ScreenerView({ identity }: { identity: AccountIdentity }
                         ? t("scr2EmptySigWhy").replace("{n}", trackedCount.toLocaleString())
                         : t("scr2EmptyWhy")}
                     </div>
-                    {tags.length > 0 && (
+                    {(tags.length > 0 || fundPreds.length > 0) && (
                       <button type="button" className="chip" onClick={clearAll}>{t("scr2ClearAll")}</button>
                     )}
                   </div>
@@ -897,12 +1027,12 @@ export default function ScreenerView({ identity }: { identity: AccountIdentity }
             )}
 
             {/* top spacer preserving scroll height */}
-            {loaded && !err && paddingTop > 0 && (
+            {tableReady && paddingTop > 0 && (
               <tr className="scr2-spacer" style={{ height: paddingTop }}><td colSpan={cols.length} /></tr>
             )}
 
             {/* windowed rows */}
-            {loaded && !err && windowedRows.map((r) => {
+            {tableReady && windowedRows.map((r) => {
               // chg coloring: neutral when chg is null (thin row or missing)
               const chgCls = r.chg == null ? "" : r.chg >= 0 ? "up" : "down";
               const buy = isBuy(r.verdict);
@@ -977,12 +1107,22 @@ export default function ScreenerView({ identity }: { identity: AccountIdentity }
                       {sigCell}
                     </>
                   )}
+                  {fundCols.map((id) => (
+                    <FundamentalCell
+                      key={id}
+                      field={id}
+                      c={fundCells?.get(r.sym)?.[id]}
+                      sym={r.sym}
+                      t={ft}
+                      onOpen={(sym, field, el) => setEvidence({ sym, name: displayName(r, lang), field, opener: el })}
+                    />
+                  ))}
                 </tr>
               );
             })}
 
             {/* bottom spacer preserving scroll height */}
-            {loaded && !err && paddingBottom > 0 && (
+            {tableReady && paddingBottom > 0 && (
               <tr className="scr2-spacer" style={{ height: paddingBottom }}><td colSpan={cols.length} /></tr>
             )}
           </tbody>
@@ -997,6 +1137,19 @@ export default function ScreenerView({ identity }: { identity: AccountIdentity }
           <span aria-hidden="true">·</span>
           <span>{t("scr2Prov2").replace("{n}", trackedCount.toLocaleString())}</span>
         </div>
+      )}
+
+      {evidence && (
+        <FundamentalEvidence
+          key={`${evidence.sym}|${evidence.field}`}
+          sym={evidence.sym}
+          name={evidence.name}
+          field={evidence.field}
+          source={fund.source}
+          nowMs={fund.nowMs}
+          onClose={closeEvidence}
+          returnFocus={evidence.opener}
+        />
       )}
     </main>
   );

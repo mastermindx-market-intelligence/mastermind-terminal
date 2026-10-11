@@ -1271,4 +1271,20 @@ else
   log "WARN: personal_accuracy bundle FAILED — nightly keeps the previous bundle"
 fi
 
+# fundamental scan nightly producer (E02): terminal-data runs this bundle to publish
+# public/data/scan/fundamental.json from the per-symbol fund.json files, through the SAME
+# projector the Screener's company evidence runs (terminal/lib/fundamentalScanProducer.ts).
+# Staged atomically like the worker above; a failed bundle keeps the previous one.
+log "bundling terminal/scripts/gen_fundamental_scan.ts -> terminal/scripts/dist/gen_fundamental_scan.mjs"
+if ( cd "$APP" && npx esbuild scripts/gen_fundamental_scan.ts --bundle --platform=node --format=esm \
+      --packages=external --outfile=scripts/dist/gen_fundamental_scan.mjs.new \
+      "--alias:@=." --log-level=warning ); then
+  mv -f "$APP/scripts/dist/gen_fundamental_scan.mjs.new" \
+    "$APP/scripts/dist/gen_fundamental_scan.mjs"
+  log "installed terminal/scripts/dist/gen_fundamental_scan.mjs (fundamental scan nightly)"
+else
+  rm -f "$APP/scripts/dist/gen_fundamental_scan.mjs.new"
+  log "WARN: gen_fundamental_scan bundle FAILED — nightly keeps the previous bundle"
+fi
+
 log "DONE — live = origin/$BRANCH @ $SHA (app + runtime code, git-gated, healthy)"
