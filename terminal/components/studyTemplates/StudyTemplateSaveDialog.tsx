@@ -46,6 +46,7 @@ export default function StudyTemplateSaveDialog({
   const [destination, setDestination] = useState<"account" | "device">(signedIn ? "account" : "device");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<SaveError | null>(null);
+  const errorCode = error?.code; // the data-error test hook only; the visible text is writeErrorText
 
   const close = () => {
     openRef.current = false;
@@ -175,7 +176,7 @@ export default function StudyTemplateSaveDialog({
             <p className={styles.hint}>{t("stplCaptureScope")}</p>
           </div>
           {error && (
-            <div id="study-template-save-error" className={styles.error} role="alert" data-error={error.code}>
+            <div id="study-template-save-error" className={styles.error} role="alert" data-error={errorCode}>
               <span>{writeErrorText(t, error.code)}</span>
               {error.overwrite && (
                 <button type="button" className="btn" disabled={busy} onClick={() => void submit(error.overwrite)}>

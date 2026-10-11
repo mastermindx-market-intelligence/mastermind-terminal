@@ -69,8 +69,8 @@ const SYMBOLS = ["AAPL", "MSFT", "NVDA", "AMD"];
 // clears the chart and so measures teardown rather than steady-state ownership.
 const TIMEFRAMES = ["D", "W", "3D"];
 
-// Two indicator sets applied through the product's own template seam (mm:apply-template,
-// fed from localStorage). BASE is the working set; WIDE adds a pane-0 overlay AND a sub-pane
+// Two indicator sets applied through the product's own template seam (mm:apply-template with an
+// explicit replace mode, fed from legacy v1 records in localStorage). BASE is the working set; WIDE adds a pane-0 overlay AND a sub-pane
 // that lands BETWEEN two existing ones in canonical order (SUBPANE_ORDER puts stochrsi
 // between rsi and macd), which is what forces ChartPanel down its bounded full-rebuild path
 // rather than the cheap tail-append. Both directions of that transition are exercised.
@@ -554,9 +554,23 @@ async function removeCompare(page: Page, symbol: string) {
     .toBe(0);
 }
 
-/** Apply a seeded indicator template through the shell's own event seam. */
+/**
+ * Apply a seeded indicator template through the shell's own event seam. E07: the chart menu opens
+ * a preview; automation names the mode explicitly and waits for the host's applied receipt (the
+ * planner loads on demand, so a fire-and-forget dispatch could be measured before it lands).
+ */
 const applyTemplate = (page: Page, id: string) =>
-  page.evaluate((templateId) => window.dispatchEvent(new CustomEvent("mm:apply-template", { detail: { id: templateId } })), id);
+  page.evaluate((templateId) => new Promise<void>((resolve, reject) => {
+    const timer = window.setTimeout(() => reject(new Error(`template ${templateId} was not applied`)), 15_000);
+    const onApplied = (event: Event) => {
+      if ((event as CustomEvent<{ id?: string }>).detail?.id !== templateId) return;
+      window.clearTimeout(timer);
+      window.removeEventListener("mm:study-template-applied", onApplied);
+      resolve();
+    };
+    window.addEventListener("mm:study-template-applied", onApplied);
+    window.dispatchEvent(new CustomEvent("mm:apply-template", { detail: { id: templateId, mode: "replace" } }));
+  }), id);
 
 async function setChartType(page: Page, label: string) {
   await page.locator(".pophost:has(.chart-type-pop) > button.tbtn").first().click(ACT);

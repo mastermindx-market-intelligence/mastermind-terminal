@@ -28,6 +28,16 @@ const LibraryDialog = dynamic(() => import("./StudyTemplateLibraryDialog"), { ss
 
 /** Opens the library (the Indicators dialog's "Study templates" entry dispatches this). */
 export const OPEN_STUDY_TEMPLATES_EVENT = "mm:open-study-templates";
+/**
+ * Receipt fired after a template's study triple was handed to the chart owner (or found to be a
+ * no-op). `detail.next` is exactly what was applied, so automation can compare it with the preview.
+ */
+export const STUDY_TEMPLATE_APPLIED_EVENT = "mm:study-template-applied";
+
+type AppliedReceipt = { source: TemplateRef["source"]; id: string; mode: StudyTemplateMode; noop: boolean; next: StudyTripleOut | null };
+const announceApplied = (receipt: AppliedReceipt) => {
+  window.dispatchEvent(new CustomEvent<AppliedReceipt>(STUDY_TEMPLATE_APPLIED_EVENT, { detail: receipt }));
+};
 
 const FIRST_READ_DELAY_MS = 800;
 const TOAST_MS = 4000;
@@ -150,6 +160,7 @@ export default function StudyTemplatesHost({
         if (!alive.current) return;
         const plan = planStudyTemplateApply(studyRef.current, body, mode, contextRef.current);
         if (!plan.noop) applyRef.current(plan.next);
+        announceApplied({ source: ref.source, id: ref.id, mode, noop: plan.noop, next: plan.noop ? null : plan.next });
         showToast(t("stplToastApplied"));
       });
     };
@@ -185,8 +196,9 @@ export default function StudyTemplatesHost({
     setAccount((prev) => (prev.status === "ok" ? { ...prev, templates: update(prev.templates) } : prev));
   }, []);
 
-  const applyFromLibrary = useCallback((next: StudyTripleOut) => {
+  const applyFromLibrary = useCallback((next: StudyTripleOut, receipt: { source: TemplateRef["source"]; id: string; mode: StudyTemplateMode }) => {
     applyRef.current(next);
+    announceApplied({ ...receipt, noop: false, next });
     setDialog(null);
     showToast(t("stplToastApplied"));
   }, [showToast, t]);

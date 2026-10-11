@@ -293,9 +293,10 @@ test("table, CSV and templates carry each instance under its own column and reco
   await openChartMenu(page);
   await page.locator('.ctx-menu [data-a="tplmenu"]').click();
   await page.locator('.ctx-menu [data-a="savetemplate"]').click();
-  const save = page.locator(".tmpl-modal");
+  const save = page.locator("[data-study-template-save]");
   await expect(save).toBeVisible();
-  await save.locator("input").fill("Two RSI");
+  await save.getByRole("radio", { name: /^This device/ }).check();   // E07: the account is the signed-in default
+  await save.locator("#study-template-name").fill("Two RSI");
   await save.getByRole("button", { name: "Save", exact: true }).click();
   await expect(save).toHaveCount(0);
   const saved = await page.evaluate(() => JSON.parse(localStorage.getItem("mm.chartTemplates") ?? "[]"));
@@ -317,6 +318,11 @@ test("table, CSV and templates carry each instance under its own column and reco
   await openChartMenu(page);
   await page.locator('.ctx-menu [data-a="tplmenu"]').click();
   await page.locator(`.ctx-menu [data-a="tpl:${saved[0].id}"]`).click();
+  // E07: the menu opens the template's preview; applying is an explicit choice (replace by default).
+  const library = page.locator("[data-study-template-library]");
+  await expect(library.locator("[data-apply-template]")).toBeEnabled();
+  await library.locator("[data-apply-template]").click();
+  await expect(library).toHaveCount(0);
   const restored = await settledRsi(page, 2, "the template should restore both instances");
   expect(near(tailOf(restored, "rsi"), RSI21)).toBe(true);
   expect(near(tailOf(restored, SIBLING_SEED), RSI7)).toBe(true);

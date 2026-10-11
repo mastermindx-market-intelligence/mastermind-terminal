@@ -49,7 +49,7 @@ type Props = {
   onClose: () => void;
   onReloadAccount: () => void;
   onAccountChanged: (update: (list: AccountStudyTemplate[]) => AccountStudyTemplate[]) => void;
-  onApply: (next: StudyTripleOut) => void;
+  onApply: (next: StudyTripleOut, receipt: { source: TemplateRef["source"]; id: string; mode: StudyTemplateMode }) => void;
   onSaveCurrent: () => void;
   onToast: (key: string) => void;
 };
@@ -96,6 +96,7 @@ export default function StudyTemplateLibraryDialog({
   const [confirmDelete, setConfirmDelete] = useState(false);
   const [busy, setBusy] = useState(false);
   const [actionError, setActionError] = useState<ActionError | null>(null);
+  const actionErrorCode = actionError?.code; // the data-error test hook only; the visible text is writeErrorText
   const mounted = useRef(true);
   useEffect(() => () => { mounted.current = false; }, []);
 
@@ -136,7 +137,8 @@ export default function StudyTemplateLibraryDialog({
       setPlanNonce((n) => n + 1);
       return;
     }
-    onApply(plan.next);
+    if (!selected) return;
+    onApply(plan.next, { source: selected.source, id: selected.template.id, mode });
   };
 
   // --- row actions ---------------------------------------------------------------------------
@@ -415,7 +417,7 @@ export default function StudyTemplateLibraryDialog({
             </div>
           )}
           {actionError && (
-            <div className={styles.error} role="alert" data-error={actionError.code}>
+            <div className={styles.error} role="alert" data-error={actionErrorCode}>
               <span>{writeErrorText(t, actionError.code, actionError.op)}</span>
               {actionError.reload && (
                 <button type="button" className="btn btn-ghost" onClick={() => { setActionError(null); onReloadAccount(); }}>{t("stplReload")}</button>
