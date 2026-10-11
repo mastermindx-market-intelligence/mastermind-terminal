@@ -103,6 +103,9 @@ const IndicatorSource = dynamic(() => import("@/components/IndicatorSource"), { 
 const CompareSettings = dynamic(() => import("@/components/CompareSettings"), { ssr: false });
 const ChartObjectTree = dynamic(() => import("@/components/ChartObjectTree"), { ssr: false });
 const TickerNewsPanel = dynamic(() => import("@/components/news/TickerNewsPanel"), { ssr: false });
+// Watchlist event planner (E14): mounts only when opened from the watchlist header / symbol bar.
+const WatchlistEventPlanner = dynamic(() => import("@/components/events/WatchlistEventPlanner"), { ssr: false });
+import WatchlistEventsButton from "@/components/events/WatchlistEventsButton";
 // Phone-only chart chrome (R2): the bottom roller strip and the two sheets it raises. Never
 // server-rendered — the phone breakpoint is a client media query, and shell mode brings its own.
 const RollerStrip = dynamic(() => import("@/components/mobile/RollerStrip"), { ssr: false });
@@ -1388,6 +1391,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
   const [bars, setBars] = useState<Bar[]>([]);
   // MegaPane (in-shell fundamentals overlay) + OracleDash (Golden Oracle history) overlays
   const [paneOpen, setPaneOpen] = useState<FinPage | null>(null);
+  const [eventPlannerOpen, setEventPlannerOpen] = useState(false);
   const [signalsOpen, setSignalsOpen] = useState(false);
   const [magnet, setMagnet] = useState<"off" | "weak" | "strong">("off");
   const [drawingSticky, setDrawingSticky] = useState(false);
@@ -5189,6 +5193,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
             </span>
           )}
         </span>
+        <WatchlistEventsButton variant="symbar" onOpen={() => setEventPlannerOpen(true)} />
       </div>
 
       <AppNav />
@@ -5680,6 +5685,19 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
         </MobileSheet>
       </>)}
 
+      {eventPlannerOpen && (
+        <WatchlistEventPlanner
+          lists={lists}
+          initialList={activeList}
+          symbolInfo={(symbol) => {
+            const row = man?.symbols?.[symbol];
+            return row ? { name: nameOf(row), mkt: row.mkt, sec: row.sec } : null;
+          }}
+          onClose={() => setEventPlannerOpen(false)}
+          onOpenCompany={(symbol) => { setEventPlannerOpen(false); pick(symbol); setPaneOpen("earnings"); }}
+        />
+      )}
+
       {/* The rail and the chart workspace are INDEPENDENT surfaces (the rail's intel/fund/opts
           fetches never touch ChartPanel), so shell mode drops the rail while dossier mode keeps
           it and drops the chart. The resizer is desktop-only chrome — never in a native shell. */}
@@ -5836,6 +5854,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
               </div>
               <div className={`wl-acts${selectedWlCount >= 2 ? " wl-acts-selection" : ""}`}>
                 <button title={t("addSymbol")} onClick={(e) => { e.stopPropagation(); addSymbolTargetRef.current = null; setSeed(""); setAddSymOpen(true); }}><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14" /></svg></button>
+                <WatchlistEventsButton variant="rail" onOpen={() => { closeAll(); setEventPlannerOpen(true); }} />
                 <button title={t("settings")} onClick={(e) => { e.stopPropagation(); const willOpen = !wlSetOpen; closeAll(); setWlSetOpen(willOpen); }}><svg viewBox="0 0 24 24"><circle cx="5" cy="12" r="1.5" /><circle cx="12" cy="12" r="1.5" /><circle cx="19" cy="12" r="1.5" /></svg></button>
               </div>
               <div className={`pop${wlSetOpen ? " show" : ""}`} style={{ top: 40, right: 6 }} onClick={(e) => e.stopPropagation()}>
