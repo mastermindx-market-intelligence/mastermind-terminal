@@ -213,6 +213,20 @@ else
   rm -f "$STAGE"
 fi
 
+# ── SCREENER SCAN GENERATION (E01) ──
+# One compact document, scan/technical.json, that the Screener reads INSTEAD of one OHLC file
+# per ticker. It projects the 3D indicator state every slice writer above already published
+# into <SYM>.slice.json, verbatim; it computes nothing. Order matters: AFTER the final swap so
+# the requested universe is the manifest readers actually get (and the live one when the swap
+# was guarded), AFTER every slice writer (regen_flagship_slices, gen_slices_all) so it sees
+# tonight's cutoffs, and BEFORE the coverage index. A name whose slice cannot state a qualified
+# completed-bar cutoff is published as unsupported, never guessed. Publication is guarded by
+# the client's own adoption rule: an incomplete run (budget hit) never replaces a complete
+# generation, and scan/technical.receipt.json records every decision. Atomic writes only
+# (tmp + os.replace) — this dir is the deploy's hardlink farm. Pinned by
+# tests/test_nightly_wiring.py.
+run "$PY" ingest/gen_technical_scan.py --data-dir "$D" --budget-seconds 900
+
 # ── INTRADAY NIGHTLY REFRESH ──
 # Refresh existing 1h/5m intraday stores in place (incremental, no new symbols).
 # Must run BEFORE coverage index so refreshed files are indexed same night.
