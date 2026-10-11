@@ -339,7 +339,12 @@ function Manager({ owner }: { owner: string }) {
           {r.plan.rows.map(({ row, applies }) => {
             const res = rowResult(row, applies);
             return (
-              <li key={row.id} className={s.resultRow} data-bulk-result-row={row.id} data-bulk-outcome={res.kind}>
+              <li
+                key={row.id}
+                className={s.resultRow}
+                data-bulk-result-row={row.id}
+                data-bulk-outcome={res.kind} // plain-language-ok: data attribute, not rendered text
+              >
                 <span className={s.sym}>{row.symbol}</span>
                 <span className={s.cond}>{describe(row.condition)}</span>
                 <span className={`${s.chip} ${res.tone}`}>{res.text}</span>
@@ -460,7 +465,7 @@ function Manager({ owner }: { owner: string }) {
                 <span className={s.fieldLabel}>{t("bkFilterState")}</span>
                 <select
                   className={s.input}
-                  value={filter.state}
+                  value={filter.state} // plain-language-ok: controlled select value, not rendered text (options render t() labels)
                   onChange={(e) => setFilter((f) => ({ ...f, state: e.target.value as BulkFilter["state"] }))}
                   data-bulk-filter="state"
                 >
@@ -472,7 +477,7 @@ function Manager({ owner }: { owner: string }) {
                 <span className={s.fieldLabel}>{t("bkFilterType")}</span>
                 <select
                   className={s.input}
-                  value={filter.type}
+                  value={filter.type} // plain-language-ok: controlled select value, not rendered text (options render t() labels)
                   onChange={(e) => setFilter((f) => ({ ...f, type: e.target.value as BulkFilter["type"] }))}
                   data-bulk-filter="type"
                 >
