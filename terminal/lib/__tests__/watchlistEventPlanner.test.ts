@@ -11,10 +11,12 @@ import {
   formatDayHeading,
   formatShortDay,
   interpretFundPayload,
+  isCurrentAnswer,
   outcomeToRead,
   parseNextDate,
   profileSymbol,
   runEventReads,
+  settleRead,
   summarizeCoverage,
   uniqueListSymbols,
   unknownCount,
@@ -188,7 +190,7 @@ describe("AC-E14-04 · coverage loss is visible and never reads as no events", (
     expect(outcomeToRead("X", { status: "data", data: { earnings: {} } }, US)).toEqual({ state: "unreadable" });
     expect(outcomeToRead("X", { status: "data", data: { asof: "2026-10-01" } }, US)).toEqual({ state: "unreadable" });
     expect(outcomeToRead("X", { status: "data", data: null }, US)).toEqual({ state: "unreadable" });
-    expect(outcomeToRead("X", { status: "data", data: fund(null) }, US)).toEqual({ state: "no-date", reason: "none", refreshFailed: false });
+    expect(outcomeToRead("X", { status: "data", data: fund(null) }, US)).toEqual({ state: "no-date", reason: "none", stale: false, refreshFailed: false });
   });
 
   it("only a fully and currently read list is complete", () => {
@@ -196,7 +198,7 @@ describe("AC-E14-04 · coverage loss is visible and never reads as no events", (
     const seen = new Map<string, SeenDay>();
     const reads: Record<string, SymbolRead> = {
       AAPL: interpretFundPayload("AAPL", fund("2026-10-29"), US, { seen }),
-      MSFT: { state: "no-date", reason: "none", refreshFailed: false },
+      MSFT: { state: "no-date", reason: "none", stale: false, refreshFailed: false },
       NVDA: { state: "unavailable" },
       XYZ: { state: "absent" },
       BAD: { state: "unreadable" },
@@ -206,18 +208,68 @@ describe("AC-E14-04 · coverage loss is visible and never reads as no events", (
     };
     const c = summarizeCoverage(symbols, reads);
     expect(c).toMatchObject({
-      symbols: 8, companies: 7, read: 2, withEvent: 1, noDate: 1, pending: 1,
+      symbols: 8, companies: 7, read: 2, current: 2, withEvent: 1, noDate: 1, pending: 1,
       unavailable: 1, absent: 1, unreadable: 1, notRead: 1, notCompany: 1, complete: false,
     });
     expect(unknownCount(c)).toBe(5);
   });
 
   it("a stale copy whose refresh failed keeps coverage incomplete", () => {
-    const reads: Record<string, SymbolRead> = { MSFT: { state: "no-date", reason: "none", refreshFailed: true } };
+    const reads: Record<string, SymbolRead> = { MSFT: { state: "no-date", reason: "none", stale: false, refreshFailed: true } };
     const c = summarizeCoverage(["MSFT"], reads);
     expect(c.complete).toBe(false);
     expect(unknownCount(c)).toBe(1);
-    expect(summarizeCoverage(["MSFT"], { MSFT: { state: "no-date", reason: "none", refreshFailed: false } }).complete).toBe(true);
+    expect(summarizeCoverage(["MSFT"], { MSFT: { state: "no-date", reason: "none", stale: false, refreshFailed: false } }).complete).toBe(true);
+  });
+
+  it("a copy served stale is marked stale and is not a current answer", () => {
+    const stale = { ageMs: 9e6, source: "disk" as const, revalidation: Promise.resolve("superseded" as const) };
+    const read = outcomeToRead("AAPL", { status: "data", data: fund("2026-10-29"), stale }, US, { seen: new Map() });
+    expect(read.state === "event" && [read.stale, read.refreshFailed]).toEqual([true, false]);
+    expect(isCurrentAnswer(read)).toBe(false);
+    const fresh = outcomeToRead("AAPL", { status: "data", data: fund("2026-10-29") }, US, { seen: new Map() });
+    expect(fresh.state === "event" && fresh.stale).toBe(false);
+    expect(isCurrentAnswer(fresh)).toBe(true);
+  });
+
+  it("only a fresh event or a fresh 'no date' is a current answer", () => {
+    expect(isCurrentAnswer({ state: "no-date", reason: "none", stale: false, refreshFailed: false })).toBe(true);
+    expect(isCurrentAnswer({ state: "no-date", reason: "past", stale: false, refreshFailed: false })).toBe(false);
+    expect(isCurrentAnswer({ state: "no-date", reason: "none", stale: true, refreshFailed: false })).toBe(false);
+    expect(isCurrentAnswer({ state: "no-date", reason: "none", stale: false, refreshFailed: true })).toBe(false);
+    for (const state of ["pending", "unavailable", "absent", "unreadable", "not-read", "not-company"] as const) {
+      expect(isCurrentAnswer({ state } as SymbolRead)).toBe(false);
+    }
+  });
+
+  it("a failed re-read keeps the answer already held, marked as an earlier copy", () => {
+    const held = interpretFundPayload("AAPL", fund("2026-10-29"), US, { seen: new Map() });
+    const kept = settleRead(held, { state: "unavailable" });
+    expect(kept.state).toBe("event");
+    expect(kept.state === "event" && [kept.event.when.day, kept.refreshFailed]).toEqual(["2026-10-29", true]);
+    const noDate: SymbolRead = { state: "no-date", reason: "none", stale: false, refreshFailed: false };
+    expect(settleRead(noDate, { state: "unavailable" })).toEqual({ ...noDate, refreshFailed: true });
+    // Nothing held, or the source answered: the new read replaces.
+    expect(settleRead(undefined, { state: "unavailable" })).toEqual({ state: "unavailable" });
+    expect(settleRead({ state: "pending" }, { state: "unavailable" })).toEqual({ state: "unavailable" });
+    expect(settleRead(held, { state: "absent" })).toEqual({ state: "absent" });
+    expect(settleRead(held, { state: "unreadable" })).toEqual({ state: "unreadable" });
+    expect(settleRead(kept, noDate)).toEqual(noDate);
+  });
+
+  it("a stale copy or a date that has passed keeps coverage incomplete and is counted once", () => {
+    const reads: Record<string, SymbolRead> = {
+      AAPL: { state: "no-date", reason: "none", stale: true, refreshFailed: false },
+      MSFT: { state: "no-date", reason: "past", stale: false, refreshFailed: false },
+      NVDA: { state: "no-date", reason: "past", stale: false, refreshFailed: true },
+      AMD: { state: "no-date", reason: "none", stale: false, refreshFailed: false },
+    };
+    const c = summarizeCoverage(["AAPL", "MSFT", "NVDA", "AMD"], reads);
+    expect(c).toMatchObject({ companies: 4, read: 4, current: 1, stale: 1, outdated: 2, refreshFailed: 1, complete: false });
+    expect(unknownCount(c)).toBe(3);
+    expect(summarizeCoverage(["AMD"], { AMD: reads.AMD }).complete).toBe(true);
+    expect(summarizeCoverage(["MSFT"], { MSFT: reads.MSFT }).complete).toBe(false);
+    expect(summarizeCoverage(["AAPL"], { AAPL: reads.AAPL }).complete).toBe(false);
   });
 
   it("a list of non-companies is never complete (nothing was read)", () => {
@@ -299,9 +351,24 @@ describe("bounded reader (AC-E14-05/06 support)", () => {
     await Promise.resolve(); await Promise.resolve();
     const aReads = out.filter(([s]) => s === "A").map(([, r]) => r);
     expect(aReads).toHaveLength(2);
+    expect(aReads[0].state === "event" && aReads[0].stale).toBe(true);
     const last = aReads[1];
-    expect(last.state === "event" && [last.event.when.day, last.event.previousDay]).toEqual(["2026-11-05", "2026-10-29"]);
+    expect(last.state === "event" && [last.event.when.day, last.event.previousDay, last.stale]).toEqual(["2026-11-05", "2026-10-29", false]);
+    expect(isCurrentAnswer(last)).toBe(true);
     expect(failed).toEqual(["B"]);
+  });
+
+  it("a refresh the cache superseded leaves the copy marked stale", async () => {
+    const out: SymbolRead[] = [];
+    const failed: string[] = [];
+    const read = async (): Promise<CacheOutcome> =>
+      ({ status: "data", data: fund("2026-10-29"), stale: { ageMs: 9e6, source: "disk", revalidation: Promise.resolve("superseded") } });
+    await runEventReads(jobs(["A"]), { read, isCurrent: () => true, onResult: (_s, r) => out.push(r), onRefreshFailed: (s) => failed.push(s), seen: new Map() });
+    await Promise.resolve(); await Promise.resolve();
+    expect(out).toHaveLength(1);
+    expect(out[0].state === "event" && out[0].stale).toBe(true);
+    expect(failed).toEqual([]);
+    expect(summarizeCoverage(["A"], { A: out[0] })).toMatchObject({ stale: 1, current: 0, complete: false });
   });
 
   it("a correction after a batch change still lands while the list is current", async () => {

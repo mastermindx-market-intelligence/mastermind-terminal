@@ -90,6 +90,7 @@ import { useChartBus } from "@/lib/useChartBus";
 import { isV2Envelope, type IndicatorSpec } from "@/lib/chartBus";
 import { describeNativeSuiteCapabilities } from "@/lib/chartIndicatorParams";
 import LinkedSeasonalityCard from "@/components/LinkedSeasonalityCard";
+import WatchlistEventsButton from "@/components/events/WatchlistEventsButton";
 // Code-split the conditionally-mounted heavies out of the /terminal first-paint bundle (task 9).
 // TerminalShell is a Client Component, so ssr:false is allowed — none of these render on any SSR
 // path (each mounts only when opened: paneOpen / signalsOpen / copilot toggle).
@@ -105,7 +106,6 @@ const ChartObjectTree = dynamic(() => import("@/components/ChartObjectTree"), { 
 const TickerNewsPanel = dynamic(() => import("@/components/news/TickerNewsPanel"), { ssr: false });
 // Watchlist event planner (E14): mounts only when opened from the watchlist header / symbol bar.
 const WatchlistEventPlanner = dynamic(() => import("@/components/events/WatchlistEventPlanner"), { ssr: false });
-import WatchlistEventsButton from "@/components/events/WatchlistEventsButton";
 // Phone-only chart chrome (R2): the bottom roller strip and the two sheets it raises. Never
 // server-rendered — the phone breakpoint is a client media query, and shell mode brings its own.
 const RollerStrip = dynamic(() => import("@/components/mobile/RollerStrip"), { ssr: false });
@@ -4998,6 +4998,11 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
   // other when a row carries only one. (This used to be `zh || name`, which showed every Chinese
   // name to English users.)
   const nameOf = (r?: Row) => displayName(r, lang);
+  // Stable between renders so the event planner's per-symbol profiles are not rebuilt every render.
+  const plannerSymbolInfo = useCallback((symbol: string) => {
+    const row = man?.symbols?.[symbol];
+    return row ? { name: displayName(row, lang), mkt: row.mkt, sec: row.sec } : null;
+  }, [man, lang]);
   const startResize = (key: string, e: React.MouseEvent) => {
     e.preventDefault(); e.stopPropagation();
     const startX = e.clientX, startW = colw(key);
@@ -5689,10 +5694,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
         <WatchlistEventPlanner
           lists={lists}
           initialList={activeList}
-          symbolInfo={(symbol) => {
-            const row = man?.symbols?.[symbol];
-            return row ? { name: nameOf(row), mkt: row.mkt, sec: row.sec } : null;
-          }}
+          symbolInfo={plannerSymbolInfo}
           onClose={() => setEventPlannerOpen(false)}
           onOpenCompany={(symbol) => { setEventPlannerOpen(false); pick(symbol); setPaneOpen("earnings"); }}
         />

@@ -9,6 +9,11 @@
  * Answers are stored in a bucket per key, a run stops dispatching once its generation is no longer
  * current, and the render opens ONLY the bucket of the current key, so a late answer for the
  * previous list can never paint a row — not even for the commit between the switch and the effect.
+ *
+ * READ AGAIN (failure-state truth). "Read again" re-reads every company of the batch from the
+ * network WITHOUT clearing the rows on screen: each row keeps its answer until the new one lands,
+ * and a re-read that cannot reach the source keeps the earlier answer, labelled as an earlier copy
+ * (`settleRead`). A refresh never turns a known date into "could not be read".
  */
 import { useCallback, useEffect, useEffectEvent, useId, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
@@ -23,13 +28,17 @@ import {
   dualTime,
   formatDayHeading,
   formatShortDay,
+  isCurrentAnswer,
   profileSymbol,
   runEventReads,
+  settleRead,
   summarizeCoverage,
   uniqueListSymbols,
+  unknownCount,
   type EventReadJob,
   type PlannerEvent,
   type PlannerLang,
+  type ReadCurrency,
   type SymbolProfile,
   type SymbolRead,
 } from "@/lib/watchlistEventPlanner";
@@ -59,6 +68,18 @@ interface Batch {
   /** Bumped by "Read again": that run asks the network instead of a cached copy. */
   refresh: number;
 }
+
+/** Progress of the "Read again" run for one batch refresh. */
+interface Rerun {
+  key: string;
+  refresh: number;
+  /** Companies whose re-read has answered. */
+  done: number;
+  /** The run finished while it was still the current one. */
+  finished: boolean;
+}
+
+const NO_RERUN: Rerun = { key: "", refresh: 0, done: 0, finished: true };
 
 function baseReads(symbols: readonly string[], profiles: Readonly<Record<string, SymbolProfile>>, limit: number): ReadMap {
   const reads: ReadMap = {};
@@ -113,10 +134,19 @@ export default function WatchlistEventPlanner({ lists, initialList, symbolInfo, 
 
   const genRef = useRef(0);
   const liveKeyRef = useRef<string | null>(null);
-  const lastRunRef = useRef<{ key: string; refresh: number }>({ key: "", refresh: 0 });
+
+  // A refresh is owed until its run FINISHES while current, so a re-read the view abandoned (a list
+  // switch mid-run, or the dev double-mount) is asked again rather than downgraded to cached reads.
+  const [rerun, setRerun] = useState<Rerun>(NO_RERUN);
+  const rerunNow = rerun.key === loadKey && rerun.refresh === batch.refresh ? rerun : null;
+  const refreshing = batch.refresh > 0 && !rerunNow?.finished;
 
   const applyRead = useCallback((key: string, symbol: string, read: SymbolRead) => {
     setResults((prev) => ({ ...prev, [key]: { ...prev[key], [symbol]: read } }));
+  }, []);
+  // A new answer over the one already held: a read that could not reach the source keeps it.
+  const settle = useCallback((key: string, symbol: string, read: SymbolRead) => {
+    setResults((prev) => ({ ...prev, [key]: { ...prev[key], [symbol]: settleRead(prev[key]?.[symbol], read) } }));
   }, []);
   const markRefreshFailed = useCallback((key: string, symbol: string) => {
     setResults((prev) => {
@@ -126,35 +156,49 @@ export default function WatchlistEventPlanner({ lists, initialList, symbolInfo, 
     });
   }, []);
 
-  // Picks the companies of the current batch that have no settled answer yet and reads them.
-  const startReads = useEffectEvent((key: string, forced: boolean, isCurrent: () => boolean) => {
+  // A normal run reads the companies of the current batch that have no answer yet. A "Read again"
+  // run (a refresh not yet finished) re-reads EVERY company of the batch from the network, and each
+  // row keeps its answer until the new one lands.
+  const startReads = useEffectEvent((key: string, refresh: number, isCurrent: () => boolean) => {
+    const forced = refresh > 0 && !(rerun.key === key && rerun.refresh === refresh && rerun.finished);
     const settled = results[key] ?? {};
     const jobs: EventReadJob[] = [];
     for (const symbol of symbols) {
       if (base[symbol]?.state !== "pending") continue;
       const kept = settled[symbol];
-      if (kept && kept.state !== "pending") continue;
+      if (!forced && kept && kept.state !== "pending") continue;
       jobs.push({ symbol, profile: profiles[symbol] });
     }
-    if (!jobs.length) return;
-    void runEventReads(jobs, {
+    if (!forced && !jobs.length) return;
+    const run = runEventReads(jobs, {
       read: getJSONResult,
       force: forced,
       concurrency: EVENT_READ_CONCURRENCY,
       isCurrent,
       // A correction that lands after a batch change still belongs to this list.
       isListCurrent: () => liveKeyRef.current === key,
-      onResult: (symbol, read) => applyRead(key, symbol, read),
+      onResult: (symbol, read) => {
+        settle(key, symbol, read);
+        if (forced) {
+          setRerun((prev) => (prev.key === key && prev.refresh === refresh
+            ? { ...prev, done: prev.done + 1 }
+            : { key, refresh, done: 1, finished: false }));
+        }
+      },
       onRefreshFailed: (symbol) => markRefreshFailed(key, symbol),
     });
+    if (forced) {
+      void run.then(() => {
+        if (!isCurrent()) return;
+        setRerun((prev) => ({ key, refresh, done: prev.key === key && prev.refresh === refresh ? prev.done : 0, finished: true }));
+      });
+    }
   });
 
   useEffect(() => {
     const gen = ++genRef.current;
     liveKeyRef.current = loadKey;
-    const forced = lastRunRef.current.key === loadKey && lastRunRef.current.refresh !== batch.refresh;
-    lastRunRef.current = { key: loadKey, refresh: batch.refresh };
-    startReads(loadKey, forced, () => genRef.current === gen);
+    startReads(loadKey, batch.refresh, () => genRef.current === gen);
     return () => {
       // Stops the queue of the previous run: a list switch also stops asking for the old list.
       genRef.current += 1;
@@ -177,15 +221,17 @@ export default function WatchlistEventPlanner({ lists, initialList, symbolInfo, 
     });
   };
 
+  // Never clears the rows: the forced run settles each company over the answer it already has.
   const readAgain = () => {
-    setResults((prev) => ({ ...prev, [loadKey]: {} }));
     setBatch({ key: loadKey, limit: batch.limit, refresh: batch.refresh + 1 });
   };
 
   const coverage = summarizeCoverage(symbols, reads);
   const agenda = useMemo(() => buildAgenda(reads), [reads]);
-  const refreshFailedById = new Map<string, boolean>();
-  for (const read of Object.values(reads)) if (read.state === "event") refreshFailedById.set(read.event.id, read.refreshFailed);
+  const currencyById = new Map<string, ReadCurrency>();
+  for (const read of Object.values(reads)) {
+    if (read.state === "event") currencyById.set(read.event.id, { stale: read.stale, refreshFailed: read.refreshFailed });
+  }
 
   // ── dialog lifecycle ──
   const dialogRef = useRef<HTMLDialogElement | null>(null);
@@ -219,6 +265,7 @@ export default function WatchlistEventPlanner({ lists, initialList, symbolInfo, 
   let headline: string;
   if (coverage.symbols === 0) headline = t("wepEmptyList");
   else if (coverage.companies === 0) headline = t("wepNoCompanies");
+  else if (refreshing) headline = fill(t("wepReadingAgain"), { done: rerunNow?.done ?? 0, total: readTotal });
   else if (coverage.pending > 0) headline = fill(t("wepReading"), { done: pendingDone, total: readTotal });
   else headline = fill(t("wepReadOf"), { read: coverage.read, total: coverage.companies });
 
@@ -228,11 +275,13 @@ export default function WatchlistEventPlanner({ lists, initialList, symbolInfo, 
   if (coverage.unreadable) chips.push({ key: "unreadable", text: fill(t("wepCatUnreadable"), { n: coverage.unreadable }), tone: "warn" });
   if (coverage.notRead) chips.push({ key: "not-read", text: fill(t("wepCatNotRead"), { n: coverage.notRead }), tone: "warn" });
   if (coverage.refreshFailed) chips.push({ key: "refresh-failed", text: fill(t("wepCatRefreshFailed"), { n: coverage.refreshFailed }), tone: "warn" });
+  if (coverage.stale) chips.push({ key: "stale", text: fill(t("wepCatStale"), { n: coverage.stale }), tone: "warn" });
+  if (coverage.outdated) chips.push({ key: "outdated", text: fill(t("wepCatOutdated"), { n: coverage.outdated }), tone: "warn" });
   if (coverage.notCompany) chips.push({ key: "not-company", text: fill(t("wepCatNotCompany"), { n: coverage.notCompany }), tone: "muted" });
 
   const settled = coverage.pending === 0;
   const incomplete = coverage.companies > 0 && !coverage.complete && settled;
-  const unknown = coverage.companies - coverage.read;
+  const unknown = unknownCount(coverage);
 
   const nameFor = (symbol: string): string | null => {
     const name = info.get(symbol)?.name;
@@ -263,7 +312,7 @@ export default function WatchlistEventPlanner({ lists, initialList, symbolInfo, 
 
   const eventRow = (event: PlannerEvent) => {
     const name = nameFor(event.symbol);
-    const refreshFailed = refreshFailedById.get(event.id) ?? false;
+    const currency = currencyById.get(event.id);
     const dual = event.when.precision === "instant" ? dualTime(event.when, L) : null;
     return (
       <li key={event.id}>
@@ -299,7 +348,11 @@ export default function WatchlistEventPlanner({ lists, initialList, symbolInfo, 
             {event.previousDay && (
               <span className={styles.moved} data-testid="wep-moved">{fill(t("wepMovedFrom"), { day: formatShortDay(event.previousDay, L) })}</span>
             )}
-            {refreshFailed && <span className={styles.stale}>{t("wepEarlierCopy")}</span>}
+            {currency?.refreshFailed ? (
+              <span className={styles.stale} data-testid="wep-earlier-copy">{t("wepEarlierCopy")}</span>
+            ) : currency?.stale ? (
+              <span className={styles.stale} data-testid="wep-saved-copy">{t("wepSavedCopy")}</span>
+            ) : null}
             {event.sourceAsOf && <span className={styles.source}>{fill(t("wepSourceAsOf"), { day: formatShortDay(event.sourceAsOf, L) })}</span>}
           </span>
           <svg className={styles.chev} viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6" /></svg>
@@ -340,7 +393,7 @@ export default function WatchlistEventPlanner({ lists, initialList, symbolInfo, 
           <button
             type="button"
             className={styles.ghost}
-            disabled={!settled || coverage.companies === 0}
+            disabled={!settled || refreshing || coverage.companies === 0}
             onClick={readAgain}
             data-testid="wep-read-again"
           >
@@ -355,6 +408,8 @@ export default function WatchlistEventPlanner({ lists, initialList, symbolInfo, 
           data-testid="wep-coverage"
           data-complete={coverage.complete ? "true" : "false"}
           data-unknown={String(unknown)}
+          data-refreshing={refreshing ? "true" : "false"}
+          aria-busy={refreshing || !settled}
         >
           <p className={styles.headline}>{headline}</p>
           {chips.length > 0 && (
@@ -365,7 +420,7 @@ export default function WatchlistEventPlanner({ lists, initialList, symbolInfo, 
             </ul>
           )}
           {incomplete && <p className={styles.incomplete} data-testid="wep-incomplete">{t("wepIncomplete")}</p>}
-          {coverage.notRead > 0 && settled && (
+          {coverage.notRead > 0 && settled && !refreshing && (
             <button
               type="button"
               className={styles.ghost}
@@ -407,7 +462,7 @@ export default function WatchlistEventPlanner({ lists, initialList, symbolInfo, 
             <p className={styles.empty} data-testid="wep-empty">
               {coverage.complete
                 ? fill(t("wepEmptyComplete"), { n: coverage.companies })
-                : fill(t("wepEmptyPartial"), { read: coverage.read, unread: unknown })}
+                : fill(t("wepEmptyPartial"), { read: coverage.current, unread: unknown })}
             </p>
           )}
 
@@ -419,7 +474,11 @@ export default function WatchlistEventPlanner({ lists, initialList, symbolInfo, 
                   const read = reads[symbol] ?? { state: "pending" as const };
                   const company = read.state !== "not-company";
                   const name = nameFor(symbol);
-                  const warn = read.state === "unavailable" || read.state === "absent" || read.state === "unreadable" || read.state === "not-read";
+                  // Anything a company shows that is not a current answer is a coverage gap.
+                  const warn = company && read.state !== "pending" && !isCurrentAnswer(read);
+                  const copyNote = read.state === "no-date"
+                    ? (read.refreshFailed ? t("wepEarlierCopy") : read.stale ? t("wepSavedCopy") : null)
+                    : null;
                   return (
                     <li key={symbol} className={styles.other} data-testid="wep-other" data-symbol={symbol}>
                       {company ? (
@@ -435,7 +494,7 @@ export default function WatchlistEventPlanner({ lists, initialList, symbolInfo, 
                       )}
                       <span className={warn ? styles.reasonWarn : styles.reason}>
                         {reasonText(read)}
-                        {(read.state === "no-date" && read.refreshFailed) ? ` · ${t("wepEarlierCopy")}` : ""}
+                        {copyNote ? ` · ${copyNote}` : ""}
                       </span>
                       {read.state === "unavailable" && (
                         <button type="button" className={styles.retry} onClick={() => retry(symbol)} data-testid="wep-retry">{t("wepRetry")}</button>

@@ -20,8 +20,10 @@
  *      the earlier one (a reschedule or correction), and the agenda dedupes by identity.
  *   4. Coverage is explicit. A company that was not read, could not be read, is not covered by the
  *      source, or carries a date the reader cannot interpret is UNKNOWN — never "no events".
- *      Only when every company in the list was read from a current copy may the planner say that
- *      none of them has an upcoming date, and even then it never calls a day "quiet".
+ *      So is a company whose answer is not current: a saved copy the network has not confirmed
+ *      yet, an earlier copy whose refresh failed, or a report date that has already passed with
+ *      no new one. Only when every company in the list has a current answer may the planner say
+ *      that none of them has an upcoming date, and even then it never calls a day "quiet".
  */
 import type { CacheOutcome, GetOpts } from "./dataCache";
 import { canonicalChartSymbol } from "./terminalBoot";
@@ -65,11 +67,25 @@ export interface PlannerEvent {
   previousDay: string | null;
 }
 
-/** What one list symbol contributed. Every state other than "event"/"no-date" is UNKNOWN coverage. */
+/**
+ * How current an "event"/"no-date" answer is. Both flags false is a current answer.
+ *   stale          served from a saved copy older than the cache TTL whose background refresh has
+ *                  not confirmed it (still running, or replaced before it answered).
+ *   refreshFailed  a later read of this company failed, so the answer on screen is an earlier copy.
+ */
+export interface ReadCurrency {
+  stale: boolean;
+  refreshFailed: boolean;
+}
+
+/**
+ * What one list symbol contributed. Every state other than "event"/"no-date" is UNKNOWN coverage,
+ * and an "event"/"no-date" answer counts as current only when `isCurrentAnswer` says so.
+ */
 export type SymbolRead =
   | { state: "pending" }
-  | { state: "event"; event: PlannerEvent; refreshFailed: boolean }
-  | { state: "no-date"; reason: "none" | "past"; refreshFailed: boolean }
+  | ({ state: "event"; event: PlannerEvent } & ReadCurrency)
+  | ({ state: "no-date"; reason: "none" | "past" } & ReadCurrency)
   | { state: "unreadable" }
   | { state: "absent" }
   | { state: "unavailable" }
@@ -222,17 +238,17 @@ export function interpretFundPayload(
   symbol: string,
   data: unknown,
   profile: SymbolProfile,
-  opts: { nowMs?: number; seen?: Map<string, SeenDay>; refreshFailed?: boolean } = {},
+  opts: { nowMs?: number; seen?: Map<string, SeenDay>; refreshFailed?: boolean; stale?: boolean } = {},
 ): SymbolRead {
-  const refreshFailed = !!opts.refreshFailed;
+  const currency: ReadCurrency = { stale: !!opts.stale, refreshFailed: !!opts.refreshFailed };
   if (!data || typeof data !== "object") return { state: "unreadable" };
   const earnings = (data as { earnings?: unknown }).earnings;
   if (!earnings || typeof earnings !== "object" || !("next_date" in earnings)) return { state: "unreadable" };
   const block = earnings as { next_date?: unknown; next_period?: unknown };
   const parsed = parseNextDate(block.next_date, profile.exchangeTz, opts.nowMs);
   if (parsed.kind === "unreadable") return { state: "unreadable" };
-  if (parsed.kind === "none") return { state: "no-date", reason: "none", refreshFailed };
-  if (parsed.kind === "past") return { state: "no-date", reason: "past", refreshFailed };
+  if (parsed.kind === "none") return { state: "no-date", reason: "none", ...currency };
+  if (parsed.kind === "past") return { state: "no-date", reason: "past", ...currency };
   const period = typeof block.next_period === "string" && block.next_period.trim() ? block.next_period.trim() : null;
   const asof = (data as { asof?: unknown }).asof;
   const event: PlannerEvent = {
@@ -245,10 +261,13 @@ export function interpretFundPayload(
     sourceAsOf: typeof asof === "string" && isCalendarDay(asof.slice(0, 10)) ? asof.slice(0, 10) : null,
     previousDay: null,
   };
-  return { state: "event", event: noteReschedule(event, opts.seen), refreshFailed };
+  return { state: "event", event: noteReschedule(event, opts.seen), ...currency };
 }
 
-/** Map a cache outcome to a read. A failed read is never an empty result. */
+/**
+ * Map a cache outcome to a read. A failed read is never an empty result, and a copy the cache
+ * served stale is marked stale until its refresh confirms or corrects it.
+ */
 export function outcomeToRead(
   symbol: string,
   outcome: CacheOutcome,
@@ -257,7 +276,31 @@ export function outcomeToRead(
 ): SymbolRead {
   if (outcome.status === "absent") return { state: "absent" };
   if (outcome.status === "unavailable") return { state: "unavailable" };
-  return interpretFundPayload(symbol, outcome.data, profile, opts);
+  return interpretFundPayload(symbol, outcome.data, profile, { ...opts, stale: !!outcome.stale });
+}
+
+/**
+ * Whether a read is a CURRENT answer: the file was read and interpreted, from a copy that is not
+ * stale and not an earlier copy whose refresh failed, and it does not rest on a date that has
+ * already passed. Only current answers may support a claim that a company has no upcoming date.
+ */
+export function isCurrentAnswer(read: SymbolRead): boolean {
+  if (read.state !== "event" && read.state !== "no-date") return false;
+  if (read.stale || read.refreshFailed) return false;
+  return !(read.state === "no-date" && read.reason === "past");
+}
+
+/**
+ * Settle a new read over the answer already held for that company. A read that could not reach
+ * the source never replaces an answer already on screen: the earlier answer stays, marked as an
+ * earlier copy whose latest read failed (failure-state truth). Every other read — fresh data, a
+ * proven absence, an uninterpretable file — replaces it.
+ */
+export function settleRead(before: SymbolRead | undefined, next: SymbolRead): SymbolRead {
+  if (next.state === "unavailable" && before && (before.state === "event" || before.state === "no-date")) {
+    return { ...before, refreshFailed: true };
+  }
+  return next;
 }
 
 // ── bounded reader ─────────────────────────────────────────────────────────────────────────
@@ -289,8 +332,10 @@ export interface EventReadOptions {
 
 /**
  * Read a batch of companies with at most `concurrency` requests in flight. No timer, no polling:
- * the only follow-up is the cache's own one-shot revalidation of a stale copy, which corrects the
- * row in place (same identity) or marks it as an earlier copy when the refresh fails.
+ * the only follow-up is the cache's own one-shot revalidation of a stale copy. A stale copy is
+ * reported with `stale: true`; its revalidation either corrects the row in place (same identity,
+ * `stale: false`), marks it as an earlier copy when the refresh fails, or — when the cache replaced
+ * that refresh before it answered — leaves it marked stale.
  */
 export async function runEventReads(jobs: readonly EventReadJob[], options: EventReadOptions): Promise<void> {
   const concurrency = Math.max(1, Math.min(options.concurrency ?? EVENT_READ_CONCURRENCY, jobs.length));
@@ -325,6 +370,8 @@ export async function runEventReads(jobs: readonly EventReadJob[], options: Even
       if (!options.isCurrent()) return;
       options.onResult(job.symbol, outcomeToRead(job.symbol, outcome, job.profile, { nowMs: now(), seen: options.seen }));
       if (outcome.status === "data" && outcome.stale) {
+        // "ok" already delivered the corrected payload through onRevalidate (the cache calls it
+        // before settling); "superseded" never answered, so the row stays marked stale.
         void outcome.stale.revalidation.then((result) => {
           if (result === "failed" && listIsCurrent()) options.onRefreshFailed?.(job.symbol);
         });
@@ -383,8 +430,10 @@ export interface EventCoverage {
   symbols: number;
   /** Symbols that can carry company report dates. */
   companies: number;
-  /** Companies whose file was read and interpreted (event or stated no-date). */
+  /** Companies whose file was read and interpreted (event or stated no-date), current or not. */
   read: number;
+  /** Companies with a CURRENT answer (see `isCurrentAnswer`). */
+  current: number;
   withEvent: number;
   noDate: number;
   pending: number;
@@ -392,24 +441,36 @@ export interface EventCoverage {
   absent: number;
   unreadable: number;
   notRead: number;
+  /** Answers shown from an earlier copy because the latest read failed. */
   refreshFailed: number;
+  /** Answers shown from a saved copy the network has not confirmed (and whose read did not fail). */
+  stale: number;
+  /** Companies whose last known report date has passed with no new date in the source. */
+  outdated: number;
   notCompany: number;
-  /** Every company was read from a current copy — the ONLY state that may support an empty claim. */
+  /** Every company has a current answer — the ONLY state that may support an empty claim. */
   complete: boolean;
 }
 
 export function summarizeCoverage(symbols: readonly string[], reads: Readonly<Record<string, SymbolRead>>): EventCoverage {
   const c: EventCoverage = {
-    symbols: symbols.length, companies: 0, read: 0, withEvent: 0, noDate: 0, pending: 0, unavailable: 0,
-    absent: 0, unreadable: 0, notRead: 0, refreshFailed: 0, notCompany: 0, complete: false,
+    symbols: symbols.length, companies: 0, read: 0, current: 0, withEvent: 0, noDate: 0, pending: 0, unavailable: 0,
+    absent: 0, unreadable: 0, notRead: 0, refreshFailed: 0, stale: 0, outdated: 0, notCompany: 0, complete: false,
   };
   for (const symbol of symbols) {
     const read = reads[symbol] ?? { state: "pending" };
     if (read.state === "not-company") { c.notCompany += 1; continue; }
     c.companies += 1;
+    if (read.state === "event" || read.state === "no-date") {
+      c.read += 1;
+      if (read.state === "event") c.withEvent += 1; else c.noDate += 1;
+      if (read.refreshFailed) c.refreshFailed += 1;
+      else if (read.stale) c.stale += 1;
+      if (read.state === "no-date" && read.reason === "past") c.outdated += 1;
+      if (isCurrentAnswer(read)) c.current += 1;
+      continue;
+    }
     switch (read.state) {
-      case "event": c.read += 1; c.withEvent += 1; if (read.refreshFailed) c.refreshFailed += 1; break;
-      case "no-date": c.read += 1; c.noDate += 1; if (read.refreshFailed) c.refreshFailed += 1; break;
       case "pending": c.pending += 1; break;
       case "unavailable": c.unavailable += 1; break;
       case "absent": c.absent += 1; break;
@@ -417,13 +478,13 @@ export function summarizeCoverage(symbols: readonly string[], reads: Readonly<Re
       case "not-read": c.notRead += 1; break;
     }
   }
-  c.complete = c.companies > 0 && c.read === c.companies && c.refreshFailed === 0;
+  c.complete = c.companies > 0 && c.current === c.companies;
   return c;
 }
 
-/** Companies whose events are UNKNOWN (everything but a current read). */
+/** Companies whose events are UNKNOWN (everything but a current answer). */
 export function unknownCount(c: EventCoverage): number {
-  return c.companies - c.read + c.refreshFailed;
+  return c.companies - c.current;
 }
 
 // ── formatting ─────────────────────────────────────────────────────────────────────────────

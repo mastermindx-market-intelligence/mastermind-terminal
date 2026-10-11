@@ -180,6 +180,27 @@ test("list → agenda → company evidence: honest coverage, bounded reads, iden
   await expect(eventRow(page, "AAPL").getByTestId("wep-moved")).toContainText(`Moved from ${fmtDate(AAPL_DAY)}`);
   expect(net.counts.get("AAPL"), "Read again asks the network, not the cached copy").toBe(aaplBefore + 1);
 
+  // ── AC-E14-04 (failure-state truth): a Read again that cannot reach the source never blanks a row.
+  // AAPL keeps its row and date while the forced read is in flight and after it fails, labelled. ──
+  plan.AAPL = { kind: "hold" };
+  await expect(page.getByTestId("wep-read-again")).toBeEnabled({ timeout: 20_000 });
+  await page.getByTestId("wep-read-again").click();
+  await expect.poll(() => net.parked.has("AAPL"), { timeout: 20_000 }).toBe(true);
+  await expect(coverage(page)).toHaveAttribute("data-refreshing", "true", { timeout: 20_000 });
+  await expect(page.getByTestId("wep-read-again")).toBeDisabled();
+  await expect(eventRow(page, "AAPL")).toHaveCount(1);
+  await expect(page.locator(`[data-day="${AAPL_MOVED}"]`)).toHaveCount(1);
+  await net.release("AAPL", { kind: "status", status: 503 });
+  await expect(coverage(page)).toHaveAttribute("data-refreshing", "false", { timeout: 20_000 });
+  await expect(eventRow(page, "AAPL")).toHaveCount(1);
+  await expect(page.locator(`[data-day="${AAPL_MOVED}"]`)).toHaveCount(1);
+  await expect(eventRow(page, "AAPL").getByTestId("wep-earlier-copy")).toHaveText("Earlier copy · latest read failed");
+  await expect(coverage(page)).toContainText("1 shown from an earlier copy");
+  await expect(coverage(page)).toHaveAttribute("data-complete", "false");
+  await expect(coverage(page)).toHaveAttribute("data-unknown", "2"); // AMD not covered + AAPL earlier copy
+  await expect(page.locator('[data-testid="wep-other"][data-symbol="AAPL"]')).toHaveCount(0);
+  plan.AAPL = { kind: "date", date: AAPL_MOVED };
+
   // ── AC-E14-06: the agenda row opens that company's own Earnings evidence ──
   await eventRow(page, "AAPL").click();
   await expect(dialog(page)).toHaveCount(0);
