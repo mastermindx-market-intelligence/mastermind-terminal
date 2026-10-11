@@ -13,7 +13,12 @@
 //                   futures have no traded value at all.
 //   reconcile       A market change keeps every filter that still has a population in the new
 //                   market and clears — by name, with the reason — every one that does not, so
-//                   a screen never silently turns into an empty table.
+//                   a screen never silently turns into an empty table. A floor is a number IN a
+//                   currency: when the scope currency changes it is cleared by name, never re-read
+//                   in the new unit. Nothing is cleared on the strength of a read that failed.
+//   not read        A listing whose owner record was not read (scan absent/unreadable, no row,
+//                   malformed row, record unreadable, not processed) has an UNKNOWN label: it is
+//                   counted as "not read", never as unclassified and never as a non-match.
 
 import {
   GICS_SECTORS,
@@ -23,7 +28,9 @@ import {
   classifyLabel,
   isTaxonomyId,
   labelCellOf,
+  labelNotRead,
   labelOf,
+  LABEL_NOT_READ_REASONS,
   matchClassification,
   type ClassLabelCell,
   type ClassificationPredicate,
@@ -72,8 +79,6 @@ export type SectorDisplay =
   | { kind: "not_applicable"; reason: string }
   | { kind: "unavailable"; reason: string };
 
-const UNAVAILABLE_REASONS: ReadonlySet<string> = new Set([...SCAN_MISS, "malformed_row"]);
-
 /**
  * The sector cell. With a taxonomy picked, that taxonomy's cell; otherwise the first CURRENT
  * label across the sector taxonomies (GICS, Yahoo, CN profile — in that order), then the first
@@ -95,10 +100,14 @@ export function sectorDisplay(
   for (const c of cs) if (c.coverage.status === "stale") { const d = asLabel(c, true); if (d) return d; }
   const reasons = cs.map((c) => c.coverage.reason);
   if (reasons.includes("asset_class_not_covered")) return { kind: "not_applicable", reason: "asset_class_not_covered" };
-  if (reasons.every((r) => UNAVAILABLE_REASONS.has(r))) return { kind: "unavailable", reason: reasons[0] };
-  const specific = reasons.find((r) => r !== "taxonomy_not_supplied" && !UNAVAILABLE_REASONS.has(r));
+  // Not read: every taxonomy that could have held a label (one that is not simply absent from
+  // this listing's source) failed to be read — its label is unknown, not missing.
+  const telling = reasons.filter((r) => r !== "taxonomy_not_supplied");
+  const unread = telling.length > 0 ? telling : reasons;
+  if (unread.every((r) => LABEL_NOT_READ_REASONS.has(r))) return { kind: "unavailable", reason: unread[0] };
+  const specific = reasons.find((r) => r !== "taxonomy_not_supplied" && !LABEL_NOT_READ_REASONS.has(r));
   const rawLabel = cs.map((c) => c.cell?.label ?? null).find((l) => l !== null) ?? null;
-  return { kind: "unclassified", taxonomy, reason: specific ?? reasons.find((r) => !UNAVAILABLE_REASONS.has(r)) ?? reasons[0], rawLabel };
+  return { kind: "unclassified", taxonomy, reason: specific ?? reasons.find((r) => !LABEL_NOT_READ_REASONS.has(r)) ?? reasons[0], rawLabel };
 }
 
 // ── Classification filter ───────────────────────────────────────────────────
@@ -110,6 +119,9 @@ export type CrossMarketFilters = {
   classStale?: boolean;        // explicit opt-in: stale labels may match
   ccy?: string;                // "auto" | a currency code
   liq: number;                 // traded-value floor in the scope currency; 0 = none
+  /** The currency the floor was set in. null = not yet bound (bound to the first scope it is
+   *  applied in). A floor never carries over into another currency. */
+  liqCcy?: string | null;
   mcap: number;                // USD market-cap floor (US reference data only); 0 = none
 };
 
@@ -125,13 +137,16 @@ export function classPredicateOf(f: Pick<CrossMarketFilters, "taxonomy" | "secto
   return { taxonomy, op: "in", labels: [f.sector], ...(f.classStale ? { includeStale: true } : {}) };
 }
 
-/** Why a row left a classification screen. Only the two counted outcomes are named: a row the
- *  label simply does not match is a plain "fail". */
-export type ClassOutcome = "pass" | "fail" | "stale_excluded" | "unclassified_excluded";
+/** Why a row left a classification screen. Only the counted outcomes are named: a row the
+ *  label simply does not match is a plain "fail". A row whose record was not read is
+ *  "unread_excluded" under EITHER op — its label is unknown, so it is neither a non-match nor
+ *  unclassified. */
+export type ClassOutcome = "pass" | "fail" | "stale_excluded" | "unclassified_excluded" | "unread_excluded";
 
 export function screenClassification(c: LabelClassification, p: ClassificationPredicate): ClassOutcome {
   const m = matchClassification(c, p);
   if (m === "pass") return "pass";
+  if (labelNotRead(c)) return "unread_excluded";
   if (m === "fail" || p.op === "unclassified") return "fail";
   // unknown: no evaluated label under this taxonomy
   if (c.coverage.status === "stale") {
@@ -141,11 +156,16 @@ export function screenClassification(c: LabelClassification, p: ClassificationPr
   return "unclassified_excluded";
 }
 
-/** A row's standing under one taxonomy — the three disjoint populations the coverage line
- *  counts and the label select offers (a label, "include stale", "Unclassified"). */
-export function labelStanding(c: LabelClassification): "current" | "stale" | "unclassified" {
+export type LabelStanding = "current" | "stale" | "unclassified" | "unavailable";
+
+/** A row's standing under one taxonomy — the four disjoint populations the coverage line
+ *  counts: a current label, a stale one ("include stale"), no label ("Unclassified"), and a
+ *  record that was not read ("unavailable" — its label is unknown, so it is in none of the
+ *  other three and no label pick or "Unclassified" can select it). */
+export function labelStanding(c: LabelClassification): LabelStanding {
   if (labelCellOf(c).known) return "current";
   if (c.coverage.status === "stale" && labelOf(c) !== null) return "stale";
+  if (labelNotRead(c)) return "unavailable";
   return "unclassified";
 }
 
@@ -251,12 +271,13 @@ export function formatFloor(n: number, code: string | null): string {
 
 export type ExclusionCounts = {
   stale: number;           // label matched, but only as a stale label
-  unclassified: number;    // no label at all under the screened taxonomy
+  unclassified: number;    // the read found no label under the screened taxonomy
+  unread: number;          // the listing's record was not read — its label is unknown
   otherCurrency: number;   // a money floor in another currency than the scope
   currencyUnknown: number; // a money floor, listing currency unknown
   notMoney: number;        // a money floor on an index / rate / FX / futures row
 };
-export const NO_EXCLUSIONS: ExclusionCounts = { stale: 0, unclassified: 0, otherCurrency: 0, currencyUnknown: 0, notMoney: 0 };
+export const NO_EXCLUSIONS: ExclusionCounts = { stale: 0, unclassified: 0, unread: 0, otherCurrency: 0, currencyUnknown: 0, notMoney: 0 };
 
 export type CrossMarketExclusion = keyof ExclusionCounts;
 
@@ -275,6 +296,7 @@ export function screenCrossMarket(
     const o = screenClassification(cls, pred);
     if (o === "stale_excluded") return "stale";
     if (o === "unclassified_excluded") return "unclassified";
+    if (o === "unread_excluded") return "unread";
     if (o === "fail") return "fail";
   }
   if (liq > 0 && money) {
@@ -291,9 +313,18 @@ export function screenCrossMarket(
 
 export type ClearedFilter = {
   field: "ccy" | "liq" | "mcap" | "taxonomy" | "sector";
-  /** What was set (a currency code, a floor, a taxonomy id or a label). */
+  /** What was set (a currency code, a floor as written in its currency, a taxonomy id or a label). */
   value: string;
-  reason: "currency_not_in_market" | "currency_unavailable" | "mcap_not_covered" | "taxonomy_not_covered" | "label_not_present";
+  reason:
+    | "currency_not_in_market"
+    | "currency_unavailable"
+    | "currency_changed"
+    | "mcap_not_covered"
+    | "taxonomy_not_covered"
+    | "label_not_present";
+  /** currency_changed only: the floor's currency and the scope currency it would have moved to. */
+  from?: string;
+  to?: string;
 };
 
 export type ReconcileProbe<L> = {
@@ -302,10 +333,27 @@ export type ReconcileProbe<L> = {
   label: (l: L, taxonomy: TaxonomyId) => LabelClassification;
 };
 
+export type ReconcileOptions = {
+  /** resolveCurrencyScope's `preferred` for the next screen (USD for all markets, else null). */
+  preferred: string | null;
+  /** false while the classification scan is absent or unreadable: listing currencies and labels
+   *  were NOT READ, so nothing may be cleared for lacking them — the filters are kept as set
+   *  (the caller leaves a floor inactive and names it). */
+  readable: boolean;
+};
+
+const READABLE: ReconcileOptions = { preferred: null, readable: true };
+
 /**
  * Validate a filter state against the population it is about to screen (the listings of
  * `next.market`, already scoped by the caller). Filters that still describe part of that
  * population are kept untouched; each one that describes none of it is reset and reported.
+ * A traded-value floor is a number in ONE currency: when the next screen's scope currency
+ * differs from the currency it was set in, it is cleared and reported (currency_changed) —
+ * never silently re-read as the same number in another unit. A floor not yet bound to a
+ * currency is bound to the next scope. Nothing is cleared for lacking a currency or a label
+ * that was not read: with `readable` false only the market-cap floor (manifest data) is
+ * checked, and a taxonomy or label is cleared only when every listing's record was read.
  * Language is not an input: labels and codes are stored canonically and only displayed
  * translated, so a language change never needs this.
  */
@@ -313,35 +361,56 @@ export function reconcileFilters<F extends CrossMarketFilters, L>(
   next: F,
   population: readonly L[],
   probe: ReconcileProbe<L>,
+  opts: ReconcileOptions = READABLE,
 ): { next: F; cleared: ClearedFilter[] } {
   const cleared: ClearedFilter[] = [];
   const out: F = { ...next };
+
+  if (out.mcap > 0 && !population.some((l) => probe.mcap(l) != null)) {
+    cleared.push({ field: "mcap", value: String(out.mcap), reason: "mcap_not_covered" });
+    out.mcap = 0;
+  }
+  if (!opts.readable) return { next: out, cleared };
+
+  const currencies = population.map((l) => probe.currency(l));
   const codes = new Set<string>();
-  for (const l of population) { const c = probe.currency(l); if (c.kind === "code") codes.add(c.code); }
+  for (const c of currencies) if (c.kind === "code") codes.add(c.code);
 
   if (out.ccy && out.ccy !== "auto" && !codes.has(out.ccy)) {
     cleared.push({ field: "ccy", value: out.ccy, reason: codes.size > 0 ? "currency_not_in_market" : "currency_unavailable" });
     out.ccy = "auto";
   }
-  if (out.liq > 0 && codes.size === 0) {
-    cleared.push({ field: "liq", value: String(out.liq), reason: "currency_unavailable" });
-    out.liq = 0;
+  if (out.liq > 0) {
+    const scopeCode = resolveCurrencyScope(out.ccy, currencies, opts.preferred).code;
+    const setIn = out.liqCcy ?? null;
+    if (codes.size === 0 || scopeCode === null) {
+      cleared.push({ field: "liq", value: formatFloor(out.liq, setIn), reason: "currency_unavailable" });
+      out.liq = 0; out.liqCcy = null;
+    } else if (setIn !== null && setIn !== scopeCode) {
+      cleared.push({ field: "liq", value: formatFloor(out.liq, setIn), reason: "currency_changed", from: setIn, to: scopeCode });
+      out.liq = 0; out.liqCcy = null;
+    } else {
+      out.liqCcy = scopeCode;
+    }
+  } else if (out.liqCcy != null) {
+    out.liqCcy = null;
   }
-  if (out.mcap > 0 && !population.some((l) => probe.mcap(l) != null)) {
-    cleared.push({ field: "mcap", value: String(out.mcap), reason: "mcap_not_covered" });
-    out.mcap = 0;
-  }
+
   const taxonomy = effectiveTaxonomy(out);
   if (taxonomy) {
     const present = new Set<string>();
+    let unread = 0;
     for (const l of population) {
       const c = probe.label(l, taxonomy);
-      if (labelStanding(c) !== "unclassified") present.add(labelOf(c) as string);
+      const st = labelStanding(c);
+      if (st === "current" || st === "stale") present.add(labelOf(c) as string);
+      else if (st === "unavailable") unread++;
     }
-    if (present.size === 0) {
+    // A label absent from what was read may still be on a listing that was not: say nothing.
+    if (unread === 0 && present.size === 0) {
       cleared.push({ field: "taxonomy", value: taxonomy, reason: "taxonomy_not_covered" });
       out.taxonomy = null; out.sector = "all"; out.classStale = false;
-    } else if (out.sector !== "all" && out.sector !== UNCLASSIFIED && !present.has(out.sector)) {
+    } else if (unread === 0 && out.sector !== "all" && out.sector !== UNCLASSIFIED && !present.has(out.sector)) {
       cleared.push({ field: "sector", value: out.sector, reason: "label_not_present" });
       out.sector = "all"; out.classStale = false;
     }
@@ -349,14 +418,46 @@ export function reconcileFilters<F extends CrossMarketFilters, L>(
   return { next: out, cleared };
 }
 
+/**
+ * Whether a traded-value floor is APPLIED on this screen, and if not, why. It applies only when
+ * listing currencies were read, the screen has a scope currency, and that is the currency the
+ * floor was set in (an unbound floor takes the scope). Otherwise it stays set — and named — but
+ * filters nothing: no row is excluded on the strength of a currency nobody read.
+ */
+export type FloorState =
+  | { kind: "none" }
+  | { kind: "applied"; code: string }
+  | { kind: "unread"; setIn: string | null }
+  | { kind: "no_scope"; setIn: string | null }
+  | { kind: "other_currency"; setIn: string; scope: string };
+
+export function floorState(liq: number, liqCcy: string | null | undefined, scopeCode: string | null, readable: boolean): FloorState {
+  if (!(liq > 0)) return { kind: "none" };
+  const setIn = liqCcy ?? null;
+  if (!readable) return { kind: "unread", setIn };
+  if (scopeCode === null) return { kind: "no_scope", setIn };
+  if (setIn !== null && setIn !== scopeCode) return { kind: "other_currency", setIn, scope: scopeCode };
+  return { kind: "applied", code: scopeCode };
+}
+
 /** Normalize the cross-market fields of a stored (device-local) preset. Unknown values fall
- *  back to their neutral setting; a legacy sector label keeps screening GICS. */
-export function sanitizeCrossMarketFields(raw: { sector?: unknown; taxonomy?: unknown; classStale?: unknown; ccy?: unknown }): {
-  sector: string; taxonomy: TaxonomyId | null; classStale: boolean; ccy: string;
+ *  back to their neutral setting; a legacy sector label keeps screening GICS. A legacy floor
+ *  (saved before floors carried a currency) was set and shown as US dollars, so it is read as
+ *  USD — and is cleared by name, not re-read, when the preset opens on another currency. */
+export function sanitizeCrossMarketFields(raw: {
+  sector?: unknown; taxonomy?: unknown; classStale?: unknown; ccy?: unknown; liq?: unknown; liqCcy?: unknown;
+}): {
+  sector: string; taxonomy: TaxonomyId | null; classStale: boolean; ccy: string; liqCcy: string | null;
 } {
   const sector = typeof raw.sector === "string" && raw.sector !== "" ? raw.sector : "all";
   let taxonomy: TaxonomyId | null = isTaxonomyId(raw.taxonomy) ? raw.taxonomy : null;
   if (!taxonomy && sector !== "all") taxonomy = "gics_sector";
   const ccy = typeof raw.ccy === "string" && (raw.ccy === "auto" || CURRENCY_RE.test(raw.ccy)) ? raw.ccy : "auto";
-  return { sector, taxonomy, classStale: raw.classStale === true, ccy };
+  const hasFloor = typeof raw.liq === "number" && Number.isFinite(raw.liq) && raw.liq > 0;
+  const liqCcy = !hasFloor
+    ? null
+    : typeof raw.liqCcy === "string" && CURRENCY_RE.test(raw.liqCcy)
+      ? raw.liqCcy
+      : raw.liqCcy === undefined ? "USD" : null;
+  return { sector, taxonomy, classStale: raw.classStale === true, ccy, liqCcy };
 }

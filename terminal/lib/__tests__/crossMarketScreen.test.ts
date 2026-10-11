@@ -10,6 +10,7 @@ import {
   classPredicateOf,
   compareMoney,
   effectiveTaxonomy,
+  floorState,
   formatFloor,
   formatMoney,
   labelStanding,
@@ -54,22 +55,25 @@ const probe = (s: ClassificationScanSource): ReconcileProbe<MRow> => ({
 });
 const BASE: CrossMarketFilters = { market: "all", sector: "all", taxonomy: null, classStale: false, ccy: "auto", liq: 0, mcap: 0 };
 
-/** Run a screen the way ScreenerView does and return the admitted symbols plus the counts. */
+/** Run a screen the way ScreenerView does and return the admitted symbols plus the counts.
+ *  The floor filters only when floorState says it is APPLIED (read, scoped, its own currency). */
 function screen(s: ClassificationScanSource, f: CrossMarketFilters) {
   const pop = inMarket(f.market);
   const tax = effectiveTaxonomy(f);
   const pred = classPredicateOf(f);
   const scope = resolveCurrencyScope(f.ccy, pop.map((r) => moneyCurrency(s, r.sym)), f.market === "all" ? "USD" : null);
+  const floor = floorState(f.liq, f.liqCcy, scope.code, s.kind === "ready");
+  const liq = floor.kind === "applied" ? f.liq : 0;
   const excl: ExclusionCounts = { ...NO_EXCLUSIONS };
   const out: string[] = [];
   for (const r of pop) {
     if (f.mcap > 0 && !(r.mcap != null && r.mcap >= f.mcap)) continue;
     const cls = tax ? resolveLabel(s, r, tax, NOW) : null;
-    const x = screenCrossMarket(cls, pred, { v: dv(r), cur: moneyCurrency(s, r.sym) }, f.liq, scope.code);
+    const x = screenCrossMarket(cls, pred, { v: dv(r), cur: moneyCurrency(s, r.sym) }, liq, scope.code);
     if (x === null) out.push(r.sym);
     else if (x !== "fail") excl[x] += 1;
   }
-  return { out, excl, scope };
+  return { out, excl, scope, floor };
 }
 
 describe("fixture markets", () => {
@@ -111,16 +115,43 @@ describe("AC-E03-02/03 — a displayed industry always names its taxonomy; stale
     expect(sectorDisplay({ kind: "error", error: "x" }, row("0700.HK"), null, NOW)).toEqual({ kind: "unavailable", reason: "scan_unavailable" });
   });
 
-  it("counts current / stale / unclassified as disjoint populations of a taxonomy", () => {
-    const tally = (t: TaxonomyId, m: string) => {
-      const c = { current: 0, stale: 0, unclassified: 0 };
-      for (const r of inMarket(m)) c[labelStanding(resolveLabel(S, r, t, NOW))] += 1;
+  it("counts current / stale / unclassified / not read as disjoint populations of a taxonomy", () => {
+    const tally = (t: TaxonomyId, m: string, s: ClassificationScanSource = S) => {
+      const c = { current: 0, stale: 0, unclassified: 0, unavailable: 0 };
+      for (const r of inMarket(m)) c[labelStanding(resolveLabel(s, r, t, NOW))] += 1;
       return c;
     };
-    expect(tally("gics_sector", "us")).toEqual({ current: 2, stale: 5, unclassified: 9 });
-    expect(tally("yahoo_sector", "hk")).toEqual({ current: 2, stale: 0, unclassified: 1 });
-    expect(tally("yahoo_sector", "intl")).toEqual({ current: 0, stale: 5, unclassified: 1 });
-    expect(tally("cn_profile_sector", "cn")).toEqual({ current: 2, stale: 0, unclassified: 1 });
+    expect(tally("gics_sector", "us")).toEqual({ current: 2, stale: 5, unclassified: 9, unavailable: 0 });
+    expect(tally("yahoo_sector", "hk")).toEqual({ current: 2, stale: 0, unclassified: 1, unavailable: 0 });
+    expect(tally("yahoo_sector", "intl")).toEqual({ current: 0, stale: 5, unclassified: 1, unavailable: 0 });
+    expect(tally("cn_profile_sector", "cn")).toEqual({ current: 2, stale: 0, unclassified: 1, unavailable: 0 });
+    // without a read nothing is "unclassified": every listing's label is unknown
+    expect(tally("yahoo_sector", "hk", { kind: "absent" })).toEqual({ current: 0, stale: 0, unclassified: 0, unavailable: 3 });
+    expect(tally("yahoo_sector", "hk", { kind: "error", error: "http_500" })).toEqual({ current: 0, stale: 0, unclassified: 0, unavailable: 3 });
+    // under GICS an absent scan still reads the manifest snapshot (stale); the rest are not read
+    const g = tally("gics_sector", "us", { kind: "absent" });
+    expect(g.current).toBe(0);
+    expect(g.unclassified).toBe(0);
+    expect(g.stale + g.unavailable).toBe(16);
+  });
+
+  it("a failed or absent read never answers the Unclassified predicate (failure-state truth)", () => {
+    const pred = { taxonomy: "yahoo_sector" as const, op: "unclassified" as const };
+    for (const src of [{ kind: "absent" } as ClassificationScanSource, { kind: "error", error: "network" } as ClassificationScanSource]) {
+      const c = resolveLabel(src, row("0700.HK"), "yahoo_sector", NOW);
+      expect(labelStanding(c), src.kind).toBe("unavailable");
+      expect(screenClassification(c, pred), src.kind).toBe("unread_excluded");
+      const r = screen(src, { ...BASE, market: "hk", taxonomy: "yahoo_sector", sector: UNCLASSIFIED });
+      expect(r.out, src.kind).toEqual([]);
+      expect(r.excl.unread, src.kind).toBe(3);
+      expect(r.excl.unclassified, src.kind).toBe(0);
+    }
+    // a listing a READY scan does not carry was not read either — unknown, not unclassified
+    const missing = resolveLabel(S, { sym: "ZZZZ.HK" }, "yahoo_sector", NOW);
+    expect(labelStanding(missing)).toBe("unavailable");
+    expect(screenClassification(missing, pred)).toBe("unread_excluded");
+    // while a read that found no label still is unclassified
+    expect(screen(S, { ...BASE, market: "hk", taxonomy: "yahoo_sector", sector: UNCLASSIFIED }).out).toEqual(["80700.HK"]);
   });
 
   it("screens a GICS label: current passes, a stale snapshot is counted out, a Yahoo label never answers", () => {
@@ -182,12 +213,28 @@ describe("AC-E03-04 — money is compared only within one listing currency", () 
     expect(hk.excl.otherCurrency).toBe(1);
   });
 
-  it("with no scan, a floor admits nothing and says why — never a silent USD comparison", () => {
+  it("with no scan, a floor is kept but not applied — never a silent USD comparison", () => {
     const absent: ClassificationScanSource = { kind: "absent" };
-    const r = screen(absent, { ...BASE, liq: 5e6 });
+    const r = screen(absent, { ...BASE, liq: 5e6, liqCcy: "USD" });
     expect(r.scope.code).toBeNull();
-    expect(r.out).toEqual([]);
-    expect(r.excl.currencyUnknown).toBe(31);
+    expect(r.floor).toEqual({ kind: "unread", setIn: "USD" });
+    expect(r.out.length).toBe(31); // nothing excluded on a currency nobody read
+    expect(r.excl).toEqual(NO_EXCLUSIONS);
+    // screenCrossMarket itself never compares against an unknown scope
+    expect(screenCrossMarket(null, null, { v: 1e9, cur: moneyCurrency(absent, "NVDA") }, 5e6, null)).toBe("currencyUnknown");
+  });
+
+  it("names why a floor is or is not applied", () => {
+    expect(floorState(0, "USD", "USD", true)).toEqual({ kind: "none" });
+    expect(floorState(5e6, "USD", "USD", true)).toEqual({ kind: "applied", code: "USD" });
+    expect(floorState(5e6, null, "HKD", true)).toEqual({ kind: "applied", code: "HKD" }); // unbound takes the scope
+    expect(floorState(5e6, "USD", "USD", false)).toEqual({ kind: "unread", setIn: "USD" });
+    expect(floorState(5e6, "USD", null, true)).toEqual({ kind: "no_scope", setIn: "USD" });
+    expect(floorState(5e6, "USD", "HKD", true)).toEqual({ kind: "other_currency", setIn: "USD", scope: "HKD" });
+    // a USD floor is never applied as HKD: the HK screen with a USD-set floor filters nothing
+    const r = screen(S, { ...BASE, market: "hk", liq: 5e6, liqCcy: "USD" });
+    expect(r.floor.kind).toBe("other_currency");
+    expect(r.out.length).toBe(3);
   });
 
   it("sorts the scope currency first, other currencies as their own blocks, unknown last", () => {
@@ -214,22 +261,62 @@ describe("AC-E03-04 — money is compared only within one listing currency", () 
 });
 
 describe("AC-E03-05 — a market change keeps valid filters and clears incompatible ones by name", () => {
-  const go = (f: CrossMarketFilters, m: string, s = S) => reconcileFilters({ ...f, market: m }, inMarket(m), probe(s));
+  // the options ScreenerView passes: USD preferred for all markets; currencies read only when ready
+  const go = (f: CrossMarketFilters, m: string, s = S) =>
+    reconcileFilters({ ...f, market: m }, inMarket(m), probe(s), { preferred: m === "all" ? "USD" : null, readable: s.kind === "ready" });
 
   it("keeps every filter that still has a population in the new market", () => {
-    const f = { ...BASE, taxonomy: "yahoo_sector" as const, sector: "Consumer Cyclical", liq: 5e6 };
+    const f = { ...BASE, taxonomy: "yahoo_sector" as const, sector: "Consumer Cyclical", ccy: "HKD", liq: 5e6, liqCcy: "HKD" };
     const r = go(f, "hk");
     expect(r.cleared).toEqual([]);
     expect(r.next).toEqual({ ...f, market: "hk" });
     expect(screen(S, r.next).out).toEqual(["9988.HK"]);
   });
 
+  it("clears a floor by name when the scope currency changes — USD 5M is never re-read as HKD 5M", () => {
+    const usd = { ...BASE, liq: 5e6, liqCcy: "USD" };
+    const r = go(usd, "hk");
+    expect(r.cleared).toEqual([{ field: "liq", value: "$5M", reason: "currency_changed", from: "USD", to: "HKD" }]);
+    expect(r.next).toMatchObject({ market: "hk", liq: 0, liqCcy: null });
+    // an explicit currency change inside one market is the same move
+    const hkd = { ...BASE, market: "hk", liq: 5e6, liqCcy: "HKD" };
+    const c = reconcileFilters({ ...hkd, ccy: "CNY" }, inMarket("hk"), probe(S), { preferred: null, readable: true });
+    expect(c.cleared).toEqual([{ field: "liq", value: "HKD 5M", reason: "currency_changed", from: "HKD", to: "CNY" }]);
+    expect(c.next).toMatchObject({ ccy: "CNY", liq: 0, liqCcy: null });
+    // a floor in the scope's own currency is kept (a fixed point)
+    expect(go(hkd, "hk")).toEqual({ next: hkd, cleared: [] });
+    // an unbound floor (set before any currency was read) binds to the scope it first applies in
+    const bound = go({ ...BASE, liq: 5e6 }, "hk");
+    expect(bound.cleared).toEqual([]);
+    expect(bound.next.liqCcy).toBe("HKD");
+  });
+
+  it("clears nothing it could not read: an absent or failed scan keeps currency, floor and label", () => {
+    const f = { ...BASE, ccy: "USD", liq: 5e6, liqCcy: "USD", taxonomy: "yahoo_sector" as const, sector: "Technology" };
+    for (const src of [{ kind: "absent" } as ClassificationScanSource, { kind: "error", error: "timeout" } as ClassificationScanSource]) {
+      const r = go(f, "hk", src);
+      expect(r.cleared, src.kind).toEqual([]);
+      expect(r.next, src.kind).toEqual({ ...f, market: "hk" });
+      expect(screen(src, r.next).floor, src.kind).toEqual({ kind: "unread", setIn: "USD" });
+    }
+    // the market-cap floor is manifest data, read either way
+    expect(go({ ...BASE, mcap: 1e10 }, "hk", { kind: "absent" }).cleared).toEqual([{ field: "mcap", value: "10000000000", reason: "mcap_not_covered" }]);
+  });
+
+  it("keeps a taxonomy and label while any listing's record was not read", () => {
+    const f = { ...BASE, market: "cn", taxonomy: "gics_sector" as const, sector: "Energy" };
+    const opts = { preferred: null, readable: true };
+    expect(reconcileFilters(f, inMarket("cn"), probe(S), opts).cleared.map((c) => c.field)).toEqual(["taxonomy"]);
+    // one CN listing the scan does not carry: GICS may yet be on it, so nothing is cleared
+    expect(reconcileFilters(f, [...inMarket("cn"), { sym: "ZZZZ.SS" }], probe(S), opts).cleared).toEqual([]);
+  });
+
   it("clears an explicit currency, a market-cap floor and an absent label — each named", () => {
     const f = { ...BASE, ccy: "USD", mcap: 1e10, taxonomy: "yahoo_sector" as const, sector: "Technology" };
     const r = go(f, "hk");
     expect(r.cleared).toEqual([
-      { field: "ccy", value: "USD", reason: "currency_not_in_market" },
       { field: "mcap", value: "10000000000", reason: "mcap_not_covered" },
+      { field: "ccy", value: "USD", reason: "currency_not_in_market" },
       { field: "sector", value: "Technology", reason: "label_not_present" },
     ]);
     expect(r.next).toMatchObject({ market: "hk", ccy: "auto", mcap: 0, taxonomy: "yahoo_sector", sector: "all" });
@@ -245,27 +332,35 @@ describe("AC-E03-05 — a market change keeps valid filters and clears incompati
     expect(go({ ...BASE, taxonomy: "yahoo_sector", sector: "Technology" }, "intl").cleared).toEqual([]);
   });
 
-  it("clears a traded-value floor only where no listing currency is known at all", () => {
-    expect(go({ ...BASE, liq: 5e6 }, "crypto").cleared).toEqual([]);
-    const absent: ClassificationScanSource = { kind: "absent" };
-    expect(go({ ...BASE, liq: 5e6 }, "hk", absent).cleared).toEqual([{ field: "liq", value: "5000000", reason: "currency_unavailable" }]);
+  it("clears a traded-value floor only where a read found no listing currency at all", () => {
+    expect(go({ ...BASE, liq: 5e6, liqCcy: "USD" }, "crypto").cleared).toEqual([]);
+    const none = reconcileFilters({ ...BASE, liq: 5e6, liqCcy: "USD" }, [{ sym: "ZZZZ" }], probe(S), { preferred: "USD", readable: true });
+    expect(none.cleared).toEqual([{ field: "liq", value: "$5M", reason: "currency_unavailable" }]);
   });
 
   it("is not an input to a language change: the stored state is canonical, so nothing clears", () => {
     // the same state reconciled against the same market is a fixed point
-    const f = { ...BASE, market: "hk", taxonomy: "yahoo_sector" as const, sector: "Communication Services", liq: 1e6 };
+    const f = { ...BASE, market: "hk", taxonomy: "yahoo_sector" as const, sector: "Communication Services", liq: 1e6, liqCcy: "HKD" };
     expect(go(f, "hk")).toEqual({ next: f, cleared: [] });
   });
 });
 
 describe("stored presets", () => {
   it("reads a legacy sector preset as GICS and drops unknown cross-market values to neutral", () => {
-    expect(sanitizeCrossMarketFields({ sector: "Energy" })).toEqual({ sector: "Energy", taxonomy: "gics_sector", classStale: false, ccy: "auto" });
-    expect(sanitizeCrossMarketFields({})).toEqual({ sector: "all", taxonomy: null, classStale: false, ccy: "auto" });
+    expect(sanitizeCrossMarketFields({ sector: "Energy" })).toEqual({ sector: "Energy", taxonomy: "gics_sector", classStale: false, ccy: "auto", liqCcy: null });
+    expect(sanitizeCrossMarketFields({})).toEqual({ sector: "all", taxonomy: null, classStale: false, ccy: "auto", liqCcy: null });
     expect(sanitizeCrossMarketFields({ sector: "all", taxonomy: "naics", ccy: "usd", classStale: "yes" }))
-      .toEqual({ sector: "all", taxonomy: null, classStale: false, ccy: "auto" });
+      .toEqual({ sector: "all", taxonomy: null, classStale: false, ccy: "auto", liqCcy: null });
     expect(sanitizeCrossMarketFields({ sector: "Technology", taxonomy: "yahoo_sector", ccy: "GBp", classStale: true }))
-      .toEqual({ sector: "Technology", taxonomy: "yahoo_sector", classStale: true, ccy: "GBp" });
+      .toEqual({ sector: "Technology", taxonomy: "yahoo_sector", classStale: true, ccy: "GBp", liqCcy: null });
+  });
+
+  it("remembers the currency a stored floor was set in; a legacy floor was set in USD", () => {
+    expect(sanitizeCrossMarketFields({ liq: 5e6 }).liqCcy).toBe("USD"); // saved before floors carried a currency
+    expect(sanitizeCrossMarketFields({ liq: 5e6, liqCcy: "HKD" }).liqCcy).toBe("HKD");
+    expect(sanitizeCrossMarketFields({ liq: 5e6, liqCcy: "hkd" }).liqCcy).toBeNull();
+    expect(sanitizeCrossMarketFields({ liq: 5e6, liqCcy: null }).liqCcy).toBeNull();
+    expect(sanitizeCrossMarketFields({ liq: 0, liqCcy: "HKD" }).liqCcy).toBeNull();
   });
 
   it("builds no predicate for an unset label, and the unclassified op for the sentinel", () => {

@@ -420,15 +420,35 @@ export function labelCellOf(c: LabelClassification): ScanCell<string> {
 /**
  * One native-taxonomy predicate. `labels` matches evaluated labels; `includeStale` ALSO
  * matches a stale label by its text (explicit opt-in, shown as such); `unclassified` selects
- * every listing that carries no label at all in this taxonomy — neither current nor stale — so
- * current, stale and unclassified are three disjoint, countable populations.
+ * every listing whose read found no label at all in this taxonomy — neither current nor stale.
+ * A listing whose record was not read (labelNotRead) matches neither: its label is unknown. So
+ * current, stale, unclassified and not-read are four disjoint, countable populations.
  */
 export type ClassificationPredicate =
   | { taxonomy: TaxonomyId; op: "in"; labels: string[]; includeStale?: boolean }
   | { taxonomy: TaxonomyId; op: "unclassified" };
 
+/**
+ * Reasons that mean a listing's owner record was NOT READ: the scan is absent or unreadable, the
+ * listing has no row in it, its row is malformed, or the producer could not read the record or
+ * never reached it. Such a listing's label is UNKNOWN — it is not "unclassified" (a read that
+ * found no label), so it can neither match a label nor be selected as unclassified.
+ * (`no_fund_record` is not here: the owner was read and holds nothing for the listing.)
+ */
+export const LABEL_NOT_READ_REASONS: ReadonlySet<string> = new Set<string>([
+  ...CLASSIFICATION_CONSUMER_REASONS.unavailable,
+  "record_unreadable",
+  "not_processed",
+]);
+
+/** True when this classification stands for a failed or absent read, not for a label's absence. */
+export const labelNotRead = (c: LabelClassification): boolean =>
+  c.coverage.status === "unavailable" && LABEL_NOT_READ_REASONS.has(c.coverage.reason);
+
 export function matchClassification(c: LabelClassification, p: ClassificationPredicate): ScanMatch {
   if (p.op === "unclassified") {
+    // A failed read is not an empty result: an unread label is unknown, never "has no label".
+    if (labelNotRead(c)) return "unknown";
     if (c.coverage.status === "stale" && labelOf(c) !== null) return "fail";
     return matchUnknown(labelCellOf(c));
   }

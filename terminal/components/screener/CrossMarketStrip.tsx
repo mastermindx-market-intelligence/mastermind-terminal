@@ -13,6 +13,7 @@ import {
   type ClearedFilter,
   type CurrencyScope,
   type ExclusionCounts,
+  type FloorState,
   type MoneyCurrency,
   type SectorDisplay,
 } from "@/lib/crossMarketScreen";
@@ -22,7 +23,9 @@ import { useLang } from "@/lib/i18n";
 const fill = (s: string, v: Record<string, string | number>): string =>
   s.replace(/\{(\w+)\}/g, (m, k: string) => (k in v ? String(v[k]) : m));
 
-export type LabelCoverage = { current: number; stale: number; unclassified: number };
+/** Four disjoint populations: read with a current label, read with a stale one, read with no
+ *  label (unclassified), and not read at all (unavailable — their label is unknown). */
+export type LabelCoverage = { current: number; stale: number; unclassified: number; unavailable: number };
 
 type StripProps = {
   source: ClassificationScanSource;
@@ -31,10 +34,14 @@ type StripProps = {
   taxonomy: TaxonomyId | null;
   sector: string;
   classStale: boolean;
-  /** current / stale / unclassified over the market population, under `taxonomy`. */
+  /** current / stale / unclassified / not read over the market population, under `taxonomy`. */
   coverage: LabelCoverage | null;
   excl: ExclusionCounts;
   liq: number;
+  /** Whether the traded-value floor is applied, and if not, why (named, never silent). */
+  floor: FloorState;
+  /** The floor as written in the currency it was set in (e.g. "$5M", "HKD 5M"). */
+  floorText: string;
   scope: CurrencyScope;
   cleared: { market: string; items: ClearedFilter[] } | null;
   marketName: (m: string) => string;
@@ -49,8 +56,9 @@ type StripProps = {
  * What the cross-market screen can and cannot say, stated where the screen is set:
  * the scan's state (absent / unreadable / refresh failed / old generation), the native
  * taxonomy being screened with its authority, version and the absence of any crosswalk, the
- * current/stale/unclassified split and how many listings each rule left out, the one currency a
- * traded-value floor is applied in, and every filter a market change cleared.
+ * current/stale/unclassified/not-read split and how many listings each rule left out, the one
+ * currency a traded-value floor is applied in (or why it is not applied), and every filter a
+ * market or currency change cleared.
  */
 export default function CrossMarketStrip(p: StripProps) {
   const ct = useCrossMarketT();
@@ -93,6 +101,9 @@ export default function CrossMarketStrip(p: StripProps) {
             <span className={styles.count} data-cm-count="current"><b>{cov.current.toLocaleString()}</b>{fill(ct("cmCovCurrent"), { n: "" })}</span>
             <span className={styles.count} data-cm-count="stale"><b>{cov.stale.toLocaleString()}</b>{fill(ct("cmCovStale"), { n: "" })}</span>
             <span className={styles.count} data-cm-count="unclassified"><b>{cov.unclassified.toLocaleString()}</b>{fill(ct("cmCovUnclassified"), { n: "" })}</span>
+            {cov.unavailable > 0 && (
+              <span className={`${styles.count} ${styles.warn}`} data-cm-count="unavailable"><b>{cov.unavailable.toLocaleString()}</b>{fill(ct("cmCovNotRead"), { n: "" })}</span>
+            )}
           </>
         )}
         {labelPicked && (cov?.stale || p.classStale) ? (
@@ -106,7 +117,11 @@ export default function CrossMarketStrip(p: StripProps) {
         {p.excl.unclassified > 0 && (
           <span className={styles.warn} data-cm-excluded="unclassified">{fill(ct("cmUnclassifiedExcluded"), { n: p.excl.unclassified.toLocaleString() })}</span>
         )}
-        {p.sector !== UNCLASSIFIED && (cov?.unclassified ?? 0) > 0 && (
+        {p.excl.unread > 0 && (
+          <span className={styles.warn} data-cm-excluded="unread">{fill(ct("cmUnreadExcluded"), { n: p.excl.unread.toLocaleString() })}</span>
+        )}
+        {/* Only a READ scan has an unclassified population to show; without one a label is unknown. */}
+        {p.source.kind === "ready" && p.sector !== UNCLASSIFIED && (cov?.unclassified ?? 0) > 0 && (
           <button type="button" className={styles.btn} data-cm-action="unclassified" onClick={p.onShowUnclassified}>
             {ct("cmShowUnclassified")}
           </button>
@@ -116,16 +131,25 @@ export default function CrossMarketStrip(p: StripProps) {
   }
 
   // ── money scope ──
-  if (p.liq > 0) {
+  if (p.liq > 0 && p.floor.kind !== "none") {
     const ex = p.excl;
+    const fl = p.floor;
     lines.push(
-      <div key="money" className={styles.line} data-cm="money" data-cm-scope={p.scope.code ?? ""}>
-        {p.scope.code
-          ? <span className={styles.name}>{fill(ct("cmMoneyLine"), { c: p.scope.code })}</span>
-          : <span className={styles.warn}>{ct("cmLiqOff")}</span>}
-        {ex.otherCurrency > 0 && <span data-cm-excluded="otherCurrency">{fill(ct("cmMoneyOther"), { n: ex.otherCurrency.toLocaleString() })}</span>}
-        {ex.currencyUnknown > 0 && <span className={styles.warn} data-cm-excluded="currencyUnknown">{fill(ct("cmMoneyUnknown"), { n: ex.currencyUnknown.toLocaleString() })}</span>}
-        {ex.notMoney > 0 && <span data-cm-excluded="notMoney">{fill(ct("cmMoneyNotMoney"), { n: ex.notMoney.toLocaleString() })}</span>}
+      <div key="money" className={styles.line} data-cm="money" data-cm-scope={p.scope.code ?? ""} data-cm-floor={fl.kind}>
+        {fl.kind === "applied" ? (
+          <>
+            <span className={styles.name}>{fill(ct("cmMoneyLine"), { c: fl.code })}</span>
+            {ex.otherCurrency > 0 && <span data-cm-excluded="otherCurrency">{fill(ct("cmMoneyOther"), { n: ex.otherCurrency.toLocaleString() })}</span>}
+            {ex.currencyUnknown > 0 && <span className={styles.warn} data-cm-excluded="currencyUnknown">{fill(ct("cmMoneyUnknown"), { n: ex.currencyUnknown.toLocaleString() })}</span>}
+            {ex.notMoney > 0 && <span data-cm-excluded="notMoney">{fill(ct("cmMoneyNotMoney"), { n: ex.notMoney.toLocaleString() })}</span>}
+          </>
+        ) : fl.kind === "unread" ? (
+          <span className={styles.warn}>{fill(ct("cmLiqUnread"), { v: p.floorText })}</span>
+        ) : fl.kind === "other_currency" ? (
+          <span className={styles.warn}>{fill(ct("cmLiqOtherCcy"), { v: p.floorText, a: fl.setIn, b: fl.scope })}</span>
+        ) : (
+          <span className={styles.warn}>{ct("cmLiqOff")}</span>
+        )}
       </div>,
     );
   }
@@ -135,7 +159,9 @@ export default function CrossMarketStrip(p: StripProps) {
     const text = (c: ClearedFilter): string => {
       switch (c.field) {
         case "ccy": return fill(ct("cmClrCcy"), { v: c.value });
-        case "liq": return ct("cmClrLiq");
+        case "liq": return c.reason === "currency_changed" && c.from && c.to
+          ? fill(ct("cmClrLiqCcy"), { v: c.value, a: c.from, b: c.to })
+          : ct("cmClrLiq");
         case "mcap": return ct("cmClrMcap");
         case "taxonomy": return fill(ct("cmClrTax"), { v: c.value in TAXONOMY_LEX ? TAXONOMY_LEX[c.value as TaxonomyId].name[zi] : c.value });
         case "sector": return fill(ct("cmClrLabel"), { v: p.taxonomy ? p.labelText(p.taxonomy, c.value) : c.value });
@@ -193,7 +219,7 @@ export function SectorCellContent({ d, labelText }: { d: SectorDisplay; labelTex
 }
 
 /** The empty-table line that keeps a screen from reading as an empty population: how many
- *  listings a cross-market rule (stale/missing label, other/unknown currency) left out. */
+ *  listings a cross-market rule (stale/missing/unread label, other/unknown currency) left out. */
 export function EmptyExclusionNote({ n }: { n: number }) {
   const ct = useCrossMarketT();
   if (n <= 0) return null;

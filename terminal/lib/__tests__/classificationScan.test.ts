@@ -290,6 +290,28 @@ describe("predicates", () => {
     }
   });
 
+  it("a record that was not read is a fourth population: unknown under every predicate, never 'unclassified'", () => {
+    const unclassified = (src: ClassificationScanSource, sym: string, t: TaxonomyId = "yahoo_sector") =>
+      matchClassification(classifyLabel(src, sym, t, NOW), { taxonomy: t, op: "unclassified" });
+    // a failed or absent read is not an empty result (failure-state truth)
+    expect(unclassified({ kind: "absent" }, "0700.HK")).toBe("unknown");
+    expect(unclassified({ kind: "error", error: "http_500" }, "0700.HK")).toBe("unknown");
+    expect(unclassified(ready(), "NOT.A.ROW")).toBe("unknown"); // not_in_scan
+    // the owner record could not be read, or the generation never reached the row
+    const d = raw();
+    rowOf(d, "80700.HK").class.yahoo_sector = { status: "unavailable", reason: "record_unreadable" };
+    rowOf(d, "9988.HK").class.yahoo_sector = { status: "unavailable", reason: "not_processed", label: null };
+    d.complete = false;
+    const s = ready(d);
+    expect(unclassified(s, "80700.HK")).toBe("unknown");
+    expect(unclassified(s, "9988.HK")).toBe("unknown");
+    // a READ that found no label is still the unclassified population
+    expect(unclassified(ready(), "80700.HK")).toBe("pass");
+    expect(unclassified(ready(), "0700.HK")).toBe("fail");
+    // and a not-read record never answers a label predicate either
+    expect(matchClassification(classifyLabel({ kind: "absent" }, "0700.HK", "yahoo_sector", NOW), { taxonomy: "yahoo_sector", op: "in", labels: ["Communication Services"] })).toBe("unknown");
+  });
+
   it("validates a stored predicate and never widens one", () => {
     expect(parseClassificationPredicate({ taxonomy: "gics_sector", op: "in", labels: ["Energy"] }))
       .toEqual({ ok: true, value: { taxonomy: "gics_sector", op: "in", labels: ["Energy"] } });

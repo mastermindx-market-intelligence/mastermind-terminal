@@ -24,7 +24,7 @@ import { useClassificationScan } from "@/lib/useClassificationScan";
 import { TAXONOMY_IDS, labelOf, listingHref, type TaxonomyId } from "@/lib/classificationScan";
 import {
   NO_EXCLUSIONS, UNCLASSIFIED, classPredicateOf, compareMoney, effectiveTaxonomy, formatFloor, formatMoney,
-  labelStanding, moneyCurrency, reconcileFilters, resolveCurrencyScope, resolveLabel, sanitizeCrossMarketFields,
+  floorState, labelStanding, moneyCurrency, reconcileFilters, resolveCurrencyScope, resolveLabel, sanitizeCrossMarketFields,
   screenCrossMarket, sectorDisplay, type ClearedFilter, type ExclusionCounts, type MoneyCurrency, type SectorDisplay,
 } from "@/lib/crossMarketScreen";
 import { TAXONOMY_LEX, YAHOO_SECTOR_ZH, useCrossMarketT } from "@/lib/crossMarketLex";
@@ -124,12 +124,13 @@ type FilterState = {
   taxonomy?: TaxonomyId | null; // the native taxonomy `sector` belongs to (E03)
   classStale?: boolean;         // a stale label may match — explicit opt-in (E03)
   ccy?: string;                 // "auto" | the currency a traded-value floor applies in (E03)
+  liqCcy?: string | null;       // the currency `liq` was set in; null = not yet bound (E03)
 };
 
 const DEFAULT_FILTERS: FilterState = {
   market: "all", asset: "all", sector: "all", signal: "any",
   uptrend: false, liq: 0, mcap: 0, w52: "any", move: "any", unpriced: false,
-  taxonomy: null, classStale: false, ccy: "auto",
+  taxonomy: null, classStale: false, ccy: "auto", liqCcy: null,
 };
 
 type SortKey =
@@ -216,12 +217,14 @@ const MOVE_OPTS: { v: Move; key: string }[] = [
 // ── presets ────────────────────────────────────────────────────────────────
 const BUILTIN_PRESETS: { id: string; key: string; f: Partial<FilterState> }[] = [
   { id: "psBuys", key: "scr2PsBuys", f: { signal: "buy" } },
-  { id: "psGainers", key: "scr2PsGainers", f: { move: "up3", liq: 5e6 } },
-  { id: "psDecliners", key: "scr2PsDecliners", f: { move: "down3", liq: 5e6 } },
-  { id: "psNearHigh", key: "scr2PsNearHigh", f: { w52: "nearHigh", liq: 5e6 } },
+  // A floor names its currency: the all-markets presets screen in USD (their auto scope), the
+  // single-market ones in that market's listing currency — never one number read in two units.
+  { id: "psGainers", key: "scr2PsGainers", f: { move: "up3", liq: 5e6, liqCcy: "USD" } },
+  { id: "psDecliners", key: "scr2PsDecliners", f: { move: "down3", liq: 5e6, liqCcy: "USD" } },
+  { id: "psNearHigh", key: "scr2PsNearHigh", f: { w52: "nearHigh", liq: 5e6, liqCcy: "USD" } },
   { id: "psDrawdown", key: "scr2PsDrawdown", f: { w52: "dd30" } },
-  { id: "psCn", key: "scr2PsCn", f: { market: "cn", liq: 20e6 } },
-  { id: "psHk", key: "scr2PsHk", f: { market: "hk", liq: 5e6 } },
+  { id: "psCn", key: "scr2PsCn", f: { market: "cn", liq: 20e6, liqCcy: "CNY" } },
+  { id: "psHk", key: "scr2PsHk", f: { market: "hk", liq: 5e6, liqCcy: "HKD" } },
 ];
 
 type SavedPreset = { id: string; name: string; f: FilterState };
@@ -522,7 +525,8 @@ export default function ScreenerView({ identity }: { identity: AccountIdentity }
     const s = new Set<string>();
     for (const r of marketPop) {
       const c = resolveLabel(scan, r, tax, now);
-      if (labelStanding(c) !== "unclassified") s.add(labelOf(c) as string);
+      const st = labelStanding(c);
+      if (st === "current" || st === "stale") s.add(labelOf(c) as string);
     }
     if (f.sector !== "all" && f.sector !== UNCLASSIFIED) s.add(f.sector);
     return Array.from(s).sort((a, b) => labelText(tax, a).localeCompare(labelText(tax, b)));
@@ -531,16 +535,34 @@ export default function ScreenerView({ identity }: { identity: AccountIdentity }
   // Filters a market change (or a preset) cleared because they describe nothing in the new
   // market — named in the strip until dismissed, never silently dropped.
   const [cleared, setCleared] = useState<{ market: string; items: ClearedFilter[] } | null>(null);
+  // Until the scan has been READ (pending, absent, unreadable) listing currencies and labels are
+  // unknown, so nothing is cleared for lacking them: the filters are kept as set, and a floor
+  // stays named but inactive (floorState) until a read can apply it.
+  const scanReady = scan?.kind === "ready";
   const reconcileTo = useCallback((next: FilterState): FilterState => {
-    if (!scan) { setCleared(null); return next; }
     const r = reconcileFilters(next, populationOf(next.market), {
       currency: (row: Row) => annot.get(row.sym)?.cur ?? { kind: "unknown", reason: "scan_pending" },
       mcap: (row: Row) => row.mcap,
-      label: (row: Row, t2: TaxonomyId) => resolveLabel(scan, row, t2, now),
-    });
+      label: (row: Row, t2: TaxonomyId) => (scan
+        ? resolveLabel(scan, row, t2, now)
+        : { taxonomy: t2, coverage: { status: "unavailable", reason: "scan_pending" }, cell: null }),
+    }, { preferred: next.market === "all" ? "USD" : null, readable: scanReady });
     setCleared(r.cleared.length > 0 ? { market: next.market, items: r.cleared } : null);
     return r.next;
-  }, [scan, populationOf, annot, now]);
+  }, [scan, scanReady, populationOf, annot, now]);
+
+  // Whether the traded-value floor is APPLIED here (one currency, read), or set but inactive —
+  // and then named in the strip and on its chip, never silently filtering on an unread unit.
+  const floorSt = floorState(f.liq, f.liqCcy, scope.code, scanReady);
+  const appliedLiq = floorSt.kind === "applied" ? f.liq : 0;
+  const floorText = formatFloor(f.liq, f.liqCcy ?? scope.code);
+  // A floor set before any currency was read (or by a legacy preset without one) is bound to
+  // the first scope it applies in — from then on a scope change clears it by name.
+  useEffect(() => {
+    if (!scanReady || scope.code === null || !(f.liq > 0) || f.liqCcy != null) return;
+    const code = scope.code;
+    setF((cur) => (cur.liq > 0 && cur.liqCcy == null ? { ...cur, liqCcy: code } : cur));
+  }, [scanReady, scope.code, f.liq, f.liqCcy]);
 
   // ── view mode: signal scope switches the whole column set ──────────────
   const signalView = f.signal !== "any" || f.uptrend;
@@ -567,7 +589,7 @@ export default function ScreenerView({ identity }: { identity: AccountIdentity }
     // current/stale/unclassified split describe rows that would OTHERWISE be results.
     const pred = classPredicateOf(f);
     const ex: ExclusionCounts = { ...NO_EXCLUSIONS };
-    const cov: LabelCoverage | null = scan && tax ? { current: 0, stale: 0, unclassified: 0 } : null;
+    const cov: LabelCoverage | null = scan && tax ? { current: 0, stale: 0, unclassified: 0, unavailable: 0 } : null;
     // E01: the technical screen's REQUESTED universe is every row the manifest filters admit
     // and the market gate shows; the coverage strip accounts for all of them (AC-E01-02).
     const techReq: string[] = [];
@@ -605,7 +627,7 @@ export default function ScreenerView({ identity }: { identity: AccountIdentity }
         const cls = pred || cov ? resolveLabel(scan, r, tax as TaxonomyId, now) : null;
         if (cov && cls && visible) cov[labelStanding(cls)]++;
         const cur = annot.get(r.sym)?.cur ?? { kind: "unknown" as const, reason: "not_in_scan" };
-        const x = screenCrossMarket(cls, pred, { v: r.dv, cur }, f.liq, scope.code);
+        const x = screenCrossMarket(cls, pred, { v: r.dv, cur }, appliedLiq, scope.code);
         if (x !== null) { if (x !== "fail" && visible) ex[x]++; return false; }
       } else if (f.liq > 0 || pred) {
         return false; // no read has settled: nothing is admitted on a rule it cannot evaluate
@@ -647,8 +669,8 @@ export default function ScreenerView({ identity }: { identity: AccountIdentity }
     });
 
     return { view: sorted, nBuy: b, nSell: s, hiddenN: hidden, hiddenFrom: Array.from(from), excl: ex, coverage: cov, techReq, techHidden };
-  }, [rowsJoined, f, search, effSort, prefs, gateByPrefs, scan, tax, now, annot, scope.code, techOnScreen, techGate, techSource, techScreen, techNow]);
-  const exclTotal = excl.stale + excl.unclassified + excl.otherCurrency + excl.currencyUnknown + excl.notMoney;
+  }, [rowsJoined, f, search, effSort, prefs, gateByPrefs, scan, tax, now, annot, scope.code, appliedLiq, techOnScreen, techGate, techSource, techScreen, techNow]);
+  const exclTotal = excl.stale + excl.unclassified + excl.unread + excl.otherCurrency + excl.currencyUnknown + excl.notMoney;
 
   const techSummary = useMemo(
     () => (techSource ? technicalCoverageSummary(techReq, techSource, techControls.tf, techNow) : null),
@@ -684,6 +706,13 @@ export default function ScreenerView({ identity }: { identity: AccountIdentity }
   // (by name, in the strip) each one that describes none of it — AC-E03-05.
   const changeMarket = useCallback((market: FilterState["market"]) => {
     const next = reconcileTo({ ...f, market });
+    startTransition(() => { setActivePreset(null); setF(next); });
+  }, [f, reconcileTo]);
+
+  // A currency-scope change moves the unit a floor is read in, so it is reconciled the same way:
+  // a floor set in another currency is cleared by name, never re-read as the same number.
+  const changeCcy = useCallback((ccy: string) => {
+    const next = reconcileTo({ ...f, ccy });
     startTransition(() => { setActivePreset(null); setF(next); });
   }, [f, reconcileTo]);
 
@@ -737,7 +766,13 @@ export default function ScreenerView({ identity }: { identity: AccountIdentity }
     });
   }
   if (f.uptrend) tags.push({ id: "uptrend", label: t("uptrendRegime"), clear: { uptrend: false } });
-  if (f.liq > 0) tags.push({ id: "liq", label: `${ct("cmMinTraded")} ≥ ${formatFloor(f.liq, scope.code)}`, clear: { liq: 0 } });
+  if (f.liq > 0) {
+    tags.push({
+      id: "liq",
+      label: `${ct("cmMinTraded")} ≥ ${floorText}${floorSt.kind === "applied" ? "" : ` · ${ct("cmNotApplied")}`}`,
+      clear: { liq: 0, liqCcy: null },
+    });
+  }
   if (f.ccy && f.ccy !== "auto") tags.push({ id: "ccy", label: `${ct("cmCcy")} · ${f.ccy}`, clear: { ccy: "auto" } });
   if (f.mcap > 0) tags.push({ id: "mcap", label: `${t("scr2Mcap")} ≥ ${floorUsd(f.mcap)}`, clear: { mcap: 0 } });
   if (f.w52 !== "any") tags.push({ id: "w52", label: t(W52_OPTS.find((o) => o.v === f.w52)!.key), clear: { w52: "any" } });
@@ -839,7 +874,11 @@ export default function ScreenerView({ identity }: { identity: AccountIdentity }
           >
             <option value="all">{ct("cmLabelAll")}</option>
             {tax && labelOptions.map((l) => <option key={l} value={l}>{labelText(tax, l)}</option>)}
-            {tax && <option value={UNCLASSIFIED}>{ct("cmUnclassified")}</option>}
+            {/* "Unclassified" is a population only of listings that were READ and carry no label;
+                without a read there is none to offer (an unread label is unknown, not absent). */}
+            {tax && (scanReady || f.sector === UNCLASSIFIED) && (
+              <option value={UNCLASSIFIED} disabled={!scanReady}>{ct("cmUnclassified")}</option>
+            )}
           </select>
 
           <input
@@ -926,10 +965,17 @@ export default function ScreenerView({ identity }: { identity: AccountIdentity }
             data-cm-control="liq"
             disabled={scope.code === null && f.liq === 0}
             value={String(f.liq)}
-            onChange={(e) => patchF({ liq: Number(e.target.value) })}
+            onChange={(e) => {
+              const v = Number(e.target.value);
+              // the floor is set IN the scope currency shown beside it, and remembers it
+              patchF({ liq: v, liqCcy: v > 0 && scanReady ? scope.code : null });
+            }}
           >
             <option value="0">{`${ct("cmMinTraded")} · ${t("scr2Any")}`}</option>
-            {LIQ_FLOORS.map((n) => <option key={n} value={String(n)}>{`≥ ${formatFloor(n, scope.code)}`}</option>)}
+            {/* the floor that is set reads in the currency it was set in; the others in the scope's */}
+            {LIQ_FLOORS.map((n) => (
+              <option key={n} value={String(n)}>{`≥ ${formatFloor(n, n === f.liq && f.liqCcy ? f.liqCcy : scope.code)}`}</option>
+            ))}
           </select>
 
           <select
@@ -939,7 +985,7 @@ export default function ScreenerView({ identity }: { identity: AccountIdentity }
             data-cm-control="ccy"
             disabled={scope.codes.length === 0 && (f.ccy ?? "auto") === "auto"}
             value={f.ccy ?? "auto"}
-            onChange={(e) => patchF({ ccy: e.target.value })}
+            onChange={(e) => changeCcy(e.target.value)}
           >
             <option value="auto">{autoCode ? ct("cmCcyAuto").replace("{c}", autoCode) : ct("cmCcyNone")}</option>
             {scope.codes.map(({ code, n }) => (
@@ -1020,6 +1066,8 @@ export default function ScreenerView({ identity }: { identity: AccountIdentity }
           coverage={coverage}
           excl={excl}
           liq={f.liq}
+          floor={floorSt}
+          floorText={floorText}
           scope={scope}
           cleared={cleared}
           marketName={(m) => (m === "all" ? t("scr2AllMarkets") : t(MARKET_TKEY[m as MarketId]))}
@@ -1053,7 +1101,7 @@ export default function ScreenerView({ identity }: { identity: AccountIdentity }
             className="fin-tag scr2-ftag"
             style={{ "--c": "var(--brand-2)" } as React.CSSProperties}
             aria-label={`${t("remove")}: ${tg.label}`}
-            onClick={() => patchF(tg.clear)}
+            onClick={() => (tg.id === "market" ? changeMarket("all") : tg.id === "ccy" ? changeCcy("auto") : patchF(tg.clear))}
           >{tg.label} ×</button>
         ))}
         {tags.length >= 2 && (

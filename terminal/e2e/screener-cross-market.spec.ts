@@ -22,6 +22,8 @@ test.setTimeout(90_000);
 const MANIFEST = JSON.parse(readFileSync(path.join(__dirname, "../../tests/fixtures/classification/manifest.json"), "utf8"));
 const SCAN = JSON.parse(readFileSync(path.join(__dirname, "../lib/__tests__/fixtures/screenerScan/classification.producer.json"), "utf8"));
 const NOW = new Date("2026-10-11T12:00:00Z");
+/** Every manifest listing — under a non-GICS taxonomy with no scan read, each one is "not read". */
+const MANIFEST_N = Object.keys(MANIFEST.symbols).length;
 
 type ScanMode = "ok" | "404" | "500";
 
@@ -149,6 +151,7 @@ test("a traded-value floor applies in one currency and counts what it could not 
 
   const money = page.locator('[data-cm="money"]');
   await expect(money).toHaveAttribute("data-cm-scope", "USD", { timeout: 20_000 });
+  await expect(money).toHaveAttribute("data-cm-floor", "applied");
   await expect(money.locator('[data-cm-excluded="otherCurrency"]')).toContainText("14 in other currencies");
   await expect(money.locator('[data-cm-excluded="notMoney"]')).toContainText("4 indices");
   await expect(money.locator('[data-cm-excluded="currencyUnknown"]')).toHaveCount(0);
@@ -157,20 +160,37 @@ test("a traded-value floor applies in one currency and counts what it could not 
   expect(units.length).toBeGreaterThan(0);
   expect(new Set(units)).toEqual(new Set(["USD"]));
 
-  // Hong Kong: the floor is KEPT and re-read in HKD; the CNY counter is counted, not compared.
+  // Hong Kong: a floor set in USD is never re-read as HKD 5M — it is cleared, and named with
+  // the currency it was set in and the one this screen is in.
   await marketSelect(page).selectOption("hk");
+  const cleared = page.locator('[data-cm="cleared"]');
+  await expect(cleared.locator('[data-cm-cleared="liq"]')).toContainText("$5M");
+  await expect(cleared.locator('[data-cm-cleared="liq"]')).toContainText("HKD");
+  await expect(control(page, "liq")).toHaveValue("0");
+  await expect(money).toHaveCount(0);
+  await expect(resultRows(page)).toHaveCount(3);
+
+  // Set again in Hong Kong it is an HKD floor; the CNY counter is counted, not compared.
+  await control(page, "liq").selectOption("5000000");
   await expect(money).toHaveAttribute("data-cm-scope", "HKD");
+  await expect(money).toHaveAttribute("data-cm-floor", "applied");
   await expect(money.locator('[data-cm-excluded="otherCurrency"]')).toContainText("1 in other currencies");
-  await expect(page.locator('[data-cm="cleared"]')).toHaveCount(0);
   await expect(resultRows(page)).toHaveCount(2);
   await expect(row(page, "0700.HK")).toHaveCount(1);
   await expect(row(page, "9988.HK")).toHaveCount(1);
   await expect(page.locator(".scr2-ftag", { hasText: "HKD 5M" })).toHaveCount(1);
 
-  // Scope switched to the counter's currency: below the floor there, so an EMPTY table — and the
-  // empty state says how many listings were left out by currency rather than reading as nothing.
+  // A currency-scope change moves the floor's unit too, so the HKD floor is cleared by name.
   await expectTapTarget(control(page, "ccy"), { height: selectFloor(testInfo) });
   await control(page, "ccy").selectOption("CNY");
+  await expect(money).toHaveCount(0);
+  await expect(cleared.locator('[data-cm-cleared="liq"]')).toContainText("HKD 5M");
+  await expect(cleared.locator('[data-cm-cleared="liq"]')).toContainText("CNY");
+  await expect(control(page, "liq")).toHaveValue("0");
+
+  // A CNY floor: the counter is below it, so an EMPTY table — and the empty state says how many
+  // listings were left out by currency rather than reading as nothing.
+  await control(page, "liq").selectOption("5000000");
   await expect(money).toHaveAttribute("data-cm-scope", "CNY");
   await expect(resultRows(page)).toHaveCount(0);
   await expect(page.locator("[data-cm-empty-excluded]")).toHaveAttribute("data-cm-empty-excluded", "2");
@@ -185,11 +205,12 @@ test("a market change keeps valid filters and clears incompatible ones by name (
   const cleared = page.locator('[data-cm="cleared"]');
   await expect(cleared).toBeVisible({ timeout: 20_000 });
   await expect(cleared.locator('[data-cm-cleared="mcap"]')).toHaveCount(1);
-  await expect(cleared.locator('[data-cm-cleared="liq"]')).toHaveCount(0);
+  // the USD floor has no meaning in HKD: cleared by name, never re-denominated
+  await expect(cleared.locator('[data-cm-cleared="liq"]')).toContainText("$5M");
   await expect(mcapSelect(page)).toHaveValue("0");
-  await expect(control(page, "liq")).toHaveValue("5000000");
-  // Not a false empty population: the Hong Kong listings above the HKD floor are listed.
-  await expect(resultRows(page)).toHaveCount(2);
+  await expect(control(page, "liq")).toHaveValue("0");
+  // Not a false empty population: every Hong Kong listing is listed.
+  await expect(resultRows(page)).toHaveCount(3);
 
   const dismiss = cleared.getByRole("button");
   await expectTapTarget(dismiss, { height: stripButtonFloor(testInfo) });
@@ -244,16 +265,57 @@ test("an absent or unreadable scan is a stated state with a working Retry (AC-E0
   await expect(apple.locator(".tk [data-ccy]")).toHaveCount(0);
   await expect(apple.locator("td[data-ccy]")).toHaveAttribute("data-ccy", "unknown");
 
+  await search(page, "");
+
+  // Failure-state truth: without a read no listing is "unclassified" — its label is unknown. The
+  // Unclassified choice and its shortcut are withheld, and the unread listings are counted.
+  const tax = page.locator('[data-cm="taxonomy"]');
+  const assertUnread = async () => {
+    await control(page, "taxonomy").selectOption("yahoo_sector");
+    await expect(control(page, "label").locator('option[value="__unclassified__"]')).toHaveCount(0);
+    await expect(tax.locator('[data-cm-action="unclassified"]')).toHaveCount(0);
+    await expect(tax.locator('[data-cm-count="unclassified"] b')).toHaveText("0");
+    await expect(tax.locator('[data-cm-count="unavailable"] b')).toHaveText(String(MANIFEST_N));
+    await control(page, "taxonomy").selectOption("");
+  };
+  await assertUnread();
+
+  // A preset's floor is kept, NAMED and inactive — not cleared for a currency nobody read, and
+  // never applied against one: every Hong Kong listing stays listed.
+  const hkPreset = page.locator(".scr2-presets button", { hasText: "HK liquid" });
+  await hkPreset.click();
+  const money = page.locator('[data-cm="money"]');
+  await expect(money).toHaveAttribute("data-cm-floor", "unread");
+  await expect(money).toContainText("HKD 5M not applied");
+  await expect(control(page, "liq")).toHaveValue("5000000");
+  await expect(page.locator(".scr2-ftag", { hasText: "not applied" })).toHaveCount(1);
+  await expect(resultRows(page)).toHaveCount(3);
+  await expect(page.locator('[data-cm="cleared"]')).toHaveCount(0);
+  // a market change while unread clears nothing it could not read
+  await marketSelect(page).selectOption("all");
+  await expect(page.locator('[data-cm-cleared="liq"]')).toHaveCount(0);
+  await expect(control(page, "liq")).toHaveValue("5000000");
+  await expect(money).toHaveAttribute("data-cm-floor", "unread");
+  await page.locator(".scr2-ftag", { hasText: "not applied" }).click();
+  await expect(money).toHaveCount(0);
+
   const retry = state.getByRole("button");
   await expectTapTarget(retry, { height: stripButtonFloor(testInfo) });
   mode = "500";
   await retry.click();
   await expect(state).toHaveAttribute("data-cm-state", "error");
+  await assertUnread();
 
   mode = "ok";
   await state.getByRole("button").click();
   await expect(state).toHaveCount(0);
+  await search(page, "Apple");
   await expect(apple.locator(".tk [data-ccy]")).toHaveText("USD");
+  await search(page, "");
+  // once read, the unclassified population is offered again and nothing is unread
+  await control(page, "taxonomy").selectOption("yahoo_sector");
+  await expect(control(page, "label").locator('option[value="__unclassified__"]')).toHaveCount(1);
+  await expect(tax.locator('[data-cm-count="unavailable"]')).toHaveCount(0);
 });
 
 test("a row opens its own listing by its exact, encoded id (AC-E03-01)", async ({ page }) => {
