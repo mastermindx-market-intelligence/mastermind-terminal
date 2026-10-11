@@ -41,7 +41,7 @@ describe("flowGetFresh call forms", () => {
   });
 
   it("forceUpstream request URL contains refresh=1", async () => {
-    const transport = vi.fn(async () => reply(JSON.stringify({ session_date: "2026-10-08" })));
+    const transport = vi.fn(async (_url: string) => reply(JSON.stringify({ session_date: "2026-10-08" })));
     vi.stubGlobal("fetch", transport);
     expect(await flowGetFresh("leaders", { forceUpstream: true })).toEqual({ session_date: "2026-10-08" });
     expect(String(transport.mock.calls[0]?.[0])).toContain("refresh=1");

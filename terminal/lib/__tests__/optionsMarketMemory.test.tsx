@@ -5,7 +5,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { GexMarketMemory } from "@/components/options-companion/GexMarketMemory";
 import { optionsT } from "@/components/options-companion/optionsStrings";
 import { buildCompanionGexMemory, previousAvailableGexSession, readCompanionGexSnapshot } from "@/lib/optionsCompanion";
-import { flowGetResult } from "@/lib/flowClientCache";
+import { flowGetResult, type FlowOutcome } from "@/lib/flowClientCache";
 vi.mock("@/lib/flowClientCache", () => ({ flowGetResult: vi.fn() }));
 const load = vi.mocked(flowGetResult);
 const asData = (data: unknown) => ({ status: "data" as const, data });
@@ -67,11 +67,11 @@ describe("Market Memory qualification", () => {
     expect(load.mock.calls.map(([key]) => key)).toEqual(["gex:SPY", "gex_dates:SPY", `gex_at:SPY:${prior}`]);
   });
   it("does not let an old root's delayed archive replace the new root", async () => {
-    let finish!: (value: unknown) => void;
-    const delayed = new Promise<unknown>(resolve => { finish = resolve; });
+    let finish!: (value: FlowOutcome) => void;
+    const delayed = new Promise<FlowOutcome>(resolve => { finish = resolve; });
     load.mockImplementation(async (key) => key === "gex:SPY" ? asData(snapshot()) : key === "gex_dates:SPY" ? asData(index()) : key.startsWith("gex_at:SPY:") ? delayed : asAbsent());
     await render(); expect(status()).toBe("loading");
     await render("QQQ"); expect(status()).toBe("absent");
-    await act(async () => finish(snapshot(prior))); expect(status()).toBe("absent"); expect(host.textContent).not.toContain(prior);
+    await act(async () => finish(asData(snapshot(prior)))); expect(status()).toBe("absent"); expect(host.textContent).not.toContain(prior);
   });
 });
