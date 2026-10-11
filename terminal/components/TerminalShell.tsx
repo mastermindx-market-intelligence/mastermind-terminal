@@ -2,6 +2,7 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { PHONE_QUERY, useIsMobile, useIsPhone } from "@/lib/useMediaQuery";
 import MobileSheet from "@/components/ui/MobileSheet";
+import replayStyles from "./ReplayTransport.module.css";
 import { DndContext, DragOverlay, PointerSensor, KeyboardSensor, useDroppable, useSensor, useSensors, closestCenter, type CollisionDetection, type DragEndEvent, type DragStartEvent, type Modifier } from "@dnd-kit/core";
 import { SortableContext, sortableKeyboardCoordinates, useSortable, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import { restrictToVerticalAxis } from "@dnd-kit/modifiers";
@@ -1276,6 +1277,8 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
   const replayChart = replayChartKey(panes[0], paneTfs[0]);
   const total = resolveReplayTotal(paneTotals, panes, paneTfs);
   const replaySpan = replayHasSpan(total);
+  const replayBlockedReason = replayOn ? undefined : !replayAvailable ? "multi-chart" : !replaySpan ? "no-data" : undefined;
+  const replayTitleKey = replayOn ? "replayExitTip" : !replayAvailable ? "replayMultiChartTip" : !replaySpan ? "replayNoDataTip" : "replayTip";
   const replayAxis: ReplayAxis | undefined = replayAvailable ? paneAxes[replayChart] : undefined;
   // The charts on screen now, so the axes of charts that left the screen can be dropped.
   const paneKeysRef = useRef<Set<string>>(new Set());
@@ -5285,9 +5288,9 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
               className={`tbtn tool-adv toolbar-overflow-item${replayOn ? " on" : ""}`}
               data-toolbar-item
               data-toolbar-action="replay"
-              data-replay-blocked={replayOn ? undefined : (!replayAvailable ? "multi-chart" : !replaySpan ? "no-data" : undefined)}
-              title={replayOn ? t("replayExitTip") : !replayAvailable ? t("replayMultiChartTip") : !replaySpan ? t("replayNoDataTip") : t("replayTip")}
-              disabled={!replayOn && !(replayAvailable && replaySpan)}
+              data-replay-blocked={replayBlockedReason}
+              title={t(replayTitleKey)}
+              disabled={Boolean(replayBlockedReason)}
               onClick={toggleReplay}
             ><svg viewBox="0 0 24 24"><path d="M3 3v18M8 6l10 6-10 6V6z" /></svg>{t("replayBtn")}</button>
             <div className="pophost tool-adv toolbar-overflow-item" data-toolbar-item data-toolbar-action="detect">
@@ -5380,7 +5383,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
                   {panes.length > 1 && <button type="button" role="menuitem" className={`menu-row${sync && !mixedTfs ? " on" : ""}`} data-toolbar-menu-action="sync" disabled={mixedTfs} onClick={() => { setSync((s) => !s); setToolbarMoreOpen(false); }}>
                     <svg viewBox="0 0 24 24"><path d="M4 7h11M4 7l3-3M4 7l3 3M20 17H9M20 17l-3-3M20 17l-3 3" /></svg>{t("sync")}
                   </button>}
-                  <button type="button" role="menuitem" className={`menu-row${replayOn ? " on" : ""}`} data-toolbar-menu-action="replay" title={replayOn ? t("replayExitTip") : !replayAvailable ? t("replayMultiChartTip") : !replaySpan ? t("replayNoDataTip") : t("replayTip")} disabled={!replayOn && !(replayAvailable && replaySpan)} onClick={() => { toggleReplay(); setToolbarMoreOpen(false); }}>
+                  <button type="button" role="menuitem" className={`menu-row${replayOn ? " on" : ""}`} data-toolbar-menu-action="replay" title={t(replayTitleKey)} disabled={Boolean(replayBlockedReason)} onClick={() => { toggleReplay(); setToolbarMoreOpen(false); }}>
                     <svg viewBox="0 0 24 24"><path d="M3 3v18M8 6l10 6-10 6V6z" /></svg>{t("replayBtn")}
                   </button>
                   <button type="button" role="menuitem" className="menu-row drill" data-toolbar-menu-action="detect" onClick={() => setToolbarMoreView("detect")}>
@@ -5423,7 +5426,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
             `replayChartKey`. `replayIdx` and `total` are both read from that chart's own axis, so
             the rail cannot report a length or a position that belongs to another chart. */}
         {replayOn && (
-          <div data-replay-rail="1" data-replay-chart={replayChart} data-replay-total={total} data-replay-idx={replayIdx ?? ""} style={{ display: "flex", alignItems: "center", gap: 10, padding: "7px 14px", borderBottom: "1px solid var(--line)", background: "var(--bg)" }}>
+          <div className={`replay-transport ${replayStyles.transport}`} data-replay-rail="1" data-replay-chart={replayChart} data-replay-total={total} data-replay-idx={replayIdx ?? ""}>
             <button className="icbtn" disabled={!replaySpan} title={t("replayReset")} aria-label={t("replayReset")} onClick={() => { setReplayCutoff((c) => replayCutoffAt(replayAxis, initialReplayIdx(total)) ?? c); setPlaying(false); }}><svg viewBox="0 0 24 24"><path d="M11 19l-7-7 7-7M20 19l-7-7 7-7" /></svg></button>
             <button className="icbtn" disabled={!replaySpan} aria-label={t("replayPrev")} title={t("replayPrev")} onClick={() => setReplayCutoff((c) => stepReplayCutoff(replayAxis, c, -1) ?? c)}><svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6" /></svg></button>
             <button className="icbtn" disabled={!replaySpan} aria-label={playing ? t("replayPause") : t("replayPlay")} title={playing ? t("replayPause") : t("replayPlay")} onClick={() => setPlaying((p) => !p)}>{playing ? <svg viewBox="0 0 24 24"><path d="M6 4h4v16H6zM14 4h4v16h-4z" /></svg> : <svg viewBox="0 0 24 24" style={{ fill: "var(--signal)", stroke: "none" }}><path d="M6 4l14 8-14 8V4z" /></svg>}</button>
@@ -5645,12 +5648,14 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
         <AnalysisHubSheet
           open={hubOpen}
           onClose={() => setHubOpen(false)}
+          replay={{ active: replayOn, blockedReason: replayBlockedReason, title: t(replayTitleKey) }}
           onAction={(action) => {
             setHubOpen(false);
             if (action === "indicators") setIndOpen(true);
             else if (action === "compare") { setSearchMode("compare"); setSeed(""); setSearchOpen(true); }
             else if (action === "chartType") setCtOpen(true);
             else if (action === "workspaces") setPhoneWorkspacesOpen(true);
+            else if (action === "replay") toggleReplay();
             else if (action === "alerts") window.location.assign(`/alerts?sym=${encodeURIComponent(active)}`);
             else if (action === "symbolDetails") {
               setFullChart(false);
