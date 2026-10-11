@@ -2,8 +2,9 @@
 
 import { useEffect, useMemo, useRef, useState, type CSSProperties, type KeyboardEvent } from "react";
 import { useLang } from "@/lib/i18n";
-import { formatValue, number, object, text, type FeedPayload, type FeedStatus, type Row, type SectorRotationMode } from "@/lib/sectorIntelligence";
+import { formatValue, number, object, text, type FeedPayload, type FeedStatus, type Row, type SectorRotationHistory, type SectorRotationEpisodes, type SectorRotationMode } from "@/lib/sectorIntelligence";
 import { qualifyRiskEnvelope, riskEnvelopeCopy } from "@/lib/marketRisk";
+
 import styles from "./SectorRotationMap.module.css";
 
 export type RotationQuadrant = "leading" | "improving" | "lagging" | "weakening";
@@ -36,6 +37,12 @@ export interface SectorRotationMapProps {
   selected: string;
   mode: SectorRotationMode;
   query: string;
+  history?: SectorRotationHistory | null;
+  historyStatus?: FeedStatus;
+  /** Existing gateway content digest; invalidate date cursor on a corrected source version. */
+  historyRevision?: string | null;
+  episodes?: SectorRotationEpisodes | null;
+  episodesStatus?: FeedStatus;
   onMode: (mode: SectorRotationMode) => void;
   onQuery: (query: string) => void;
   onSelect: (id: string) => void;
@@ -54,7 +61,7 @@ const COPY = {
   unavailableObservationDate: ["Unavailable source observation date:", "不可用来源的观测日期："],
   sectors: ["sectors", "个板块"], shown: ["shown", "已显示"],
   coordinates: ["coordinates available", "个坐标可用"],
-  currentOnly: ["Current source snapshot; no historical trail is inferred.", "当前来源快照；不推断历史轨迹。"],
+  currentOnly: ["Current map remains the dated Sector Central snapshot; history selection never changes the current source population or axis scale.", "当前图表仍为带日期的板块中心快照；历史选择不会改变当前来源样本或坐标尺度。"],
   displayOnly: ["Display filtering never changes the source population or axis scale.", "显示筛选不会改变来源样本或坐标尺度。"],
   faster: ["21-session RS vs SPY", "相对SPY的21个交易日强度"],
   quarter: ["63-session RS vs SPY", "相对SPY的63个交易日强度"],
@@ -73,8 +80,37 @@ const COPY = {
   participation: ["Advancing participation", "上涨参与度"],
   ranks: ["Leadership ranks", "领涨排名"],
   rankCopy: ["21-session / 63-session", "21个交易日 / 63个交易日"],
-  noTrail: ["Historical trail is not connected", "尚未连接历史轨迹"],
-  noTrailCopy: ["This surface plots one dated owner snapshot. It does not manufacture prior positions, turns or forecasts.", "此界面仅绘制一个带日期的来源快照，不生成历史位置、转折或预测。"],
+  noTrail: ["Historical trail unavailable", "历史轨迹不可用"],
+  noTrailCopy: ["The current snapshot remains usable; no prior coordinates are inferred while the history owner is unavailable.", "当前快照仍可使用；历史来源不可用时不推断任何过去坐标。"],
+  historyTitle: ["Historical trail", "历史轨迹"],
+  historySource: ["Sector RS history", "板块相对强度历史"],
+  historyProvenance: ["Reconstructed from sector/SPY price history — not a record of what Mastermind observed then.", "由板块/SPY历史价格重建——并非Mastermind当时实时观察的记录。"],
+  historyDate: ["Historical date", "历史日期"],
+  historyPoint: ["Historical coordinate", "历史坐标"],
+  historyLoading: ["Historical trail is loading; the current snapshot remains available.", "历史轨迹正在加载；当前快照仍可使用。"],
+  historyThin: ["Insufficient sector price history (fewer than 210 sessions); the current map remains available.", "板块历史价格不足（少于210个交易日）；当前图表仍可使用。"],
+  historyCount: ["daily reconstructed points", "个每日重建点"],
+  historyTrail: ["Selected sector · trailing 21 sessions on the current map scale", "所选板块 · 当前图表刻度上的近21个交易日轨迹"],
+  historyClipped: ["Historical positions outside the current map scale are clipped; exact values remain in the date readout.", "超出当前图表刻度的历史位置已裁切；日期读数保留精确数值。"],
+  cycleTurnsTitle: ["Retrospective price-cycle turns", "回溯重建的价格周期转折"],
+  cycleTurnsCaveat: ["Current owner reconstruction — not a migration episode or a live-time confirmation. Marker status may change in later revisions.", "当前来源的回溯重建结果——并非资金轮动交棒事件，也非历史当时确认的信号；后续修订可能改变标记状态。"],
+  cycleTurnsEmpty: ["No native price-cycle turns dated through the selected observation.", "截至所选观察日期，无来源提供的价格周期转折。"],
+  cyclePeak: ["Price peak", "价格高点"], cycleTrough: ["Price trough", "价格低点"],
+  cycleProvisional: ["currently provisional", "当前仍属暂定"],
+  cycleMajor: ["owner-marked major swing", "来源标记的大幅波动"],
+  cycleMagnitude: ["price-leg move", "价格区间变动"],
+  nativeEpisodeTitle: ["Native RC closed episodes", "轮动命令原生已结束交棒事件"],
+  nativeEpisodeCaveat: ["Owner's bounded recent closure ledger, not an as-known historical signal. These are not price-cycle turns or active trading calls; missing rows are not an all-clear.", "来源提供的近期已结束事件台账；并非历史当时可知的信号。它们不是价格周期转折或当前交易指令，缺失记录不等于安全无事。"],
+  nativeEpisodeAsOf: ["RC source as of", "轮动来源截至"],
+  nativeEpisodeLag: ["This source is older than the current Sector Central snapshot; a missing recent episode is not proof of no change.", "该来源早于当前板块中心快照；缺少近期事件不代表没有变化。"],
+  nativeEpisodeCutoff: ["Historical view filters closure and source receipt dates through", "历史视图按事件结束日期和来源记录日期筛选截至"],
+  nativeEpisodeEmpty: ["No closed episodes for this sector in this bounded source window; not an all-clear.", "该来源限定窗口内没有此板块的已结束交棒事件；不代表风险解除。"],
+  nativeEpisodeUnavailable: ["Native episode source unavailable; no episode state can be inferred.", "原生事件来源不可用；不得推断事件状态。"],
+  nativeEpisodeFrom: ["From", "原方向"], nativeEpisodeTo: ["To", "目标方向"],
+  nativeEpisodeClosed: ["Closed", "结束"], nativeEpisodeRecorded: ["Receipt", "记录时间"],
+  nativeEpisodeReason: ["Owner reason", "来源原因"],
+  nativeEpisodeUnmarked: ["Retained ledger, natural first-seen unverified", "保留台账，未核验自然首次记录"],
+  nativeEpisodeReplay: ["Reconstructed replay", "回溯重放"],
   method: ["Method and source", "方法与来源"],
   methodCopy: ["Horizontal: 63-session change in the sector/SPY relative-strength ratio. Vertical: 21-session change in the same ratio. Quadrants are sign-based and descriptive, not entry permission.", "横轴：板块/SPY相对强度比率的63个交易日变化；纵轴：同一比率的21个交易日变化。象限按正负划分，仅作描述，不授予入场资格。"],
   sector: ["Sector", "板块"], quadrant: ["Quadrant", "象限"],
@@ -131,6 +167,33 @@ export function rotationDomain(points: readonly SectorRotationPoint[]): number {
   return Math.max(1, Math.ceil(maximum * 1.15 * 10) / 10);
 }
 
+/** Use the SAME snapshot-anchored axes for current dots and historical overlays. */
+export function rotationPlotPercent(value: number, domain: number, invert = false): number {
+  const normalized = Math.max(-domain, Math.min(domain, value));
+  const percent = 7 + ((normalized + domain) / (domain * 2)) * 86;
+  return invert ? 100 - percent : percent;
+}
+
+export function rotationHistoryTrail(
+  points: readonly { date: string; rs21: number; rs63: number }[],
+  selectedIndex: number,
+  domain: number,
+  maxSessions = 21,
+): { points: { date: string; x: number; y: number }[]; clipped: boolean } {
+  if (!Number.isFinite(domain) || domain <= 0 || selectedIndex < 0 || selectedIndex >= points.length) {
+    return { points: [], clipped: false };
+  }
+  const selected = points.slice(Math.max(0, selectedIndex - maxSessions + 1), selectedIndex + 1);
+  return {
+    points: selected.map(point => ({
+      date: point.date,
+      x: Number(rotationPlotPercent(point.rs63, domain).toFixed(3)),
+      y: Number(rotationPlotPercent(point.rs21, domain, true).toFixed(3)),
+    })),
+    clipped: selected.some(point => Math.abs(point.rs21) > domain || Math.abs(point.rs63) > domain),
+  };
+}
+
 export function filterRotationPoints(points: readonly SectorRotationPoint[], query: string): SectorRotationPoint[] {
   const token = query.normalize("NFKC").trim().toLocaleLowerCase("en-US");
   if (!token) return [...points];
@@ -181,6 +244,14 @@ export function rotationReceipt(asOf: string | null, total: number, lang: "en" |
   return `${date} · ${count}`;
 }
 
+function rotationHistoryDate(day: string, lang: "en" | "zh"): string {
+  const match = day.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (!match) return day;
+  const month = Number(match[2]), date = Number(match[3]);
+  const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+  return lang === "zh" ? `${match[1]}年${month}月${date}日` : `${months[month - 1]} ${date}, ${match[1]}`;
+}
+
 function sign(value: number | null, digits = 1, suffix = "%"): string {
   return formatValue(value, digits, suffix, true);
 }
@@ -207,14 +278,31 @@ export default function SectorRotationMap(props: SectorRotationMapProps) {
   const riskRead = props.risk?.receipt.status === "ready" && !props.risk.receipt.stale
     ? qualifyRiskEnvelope(props.risk.data, undefined, qualificationTime) : null;
   const riskCopy = riskEnvelopeCopy(riskRead?.envelope ?? null, lang === "zh");
+  const historyKey = `${props.selected}|${props.history?.asOf || ""}|${props.historyRevision || ""}`;
+  const [historySelection, setHistorySelection] = useState<{ key: string; index: number | null }>({ key: "", index: null });
+  const historyCursor = historySelection.key === historyKey ? historySelection.index : null;
+  const historySeries = props.history?.series[props.selected] || null;
+  const historyPoints = historySeries?.points || [];
+  const historyIndex = historyPoints.length ? Math.min(historyCursor ?? historyPoints.length - 1, historyPoints.length - 1) : -1;
+  const historical = historyIndex >= 0 ? historyPoints[historyIndex] : null;
+  const historyConnected = props.historyStatus === "ready" && props.history !== null && !!historical;
+  const historyTrail = historyConnected ? rotationHistoryTrail(historyPoints, historyIndex, domain) : null;
+  const recentCycleTurns = historyConnected && historical && historySeries
+    ? historySeries.cycleTurns.filter(turn => turn.date <= historical.date).slice(-3)
+    : [];
+  const nativeEpisodes = props.episodesStatus === "ready" ? props.episodes : null;
+  // A historical selection cannot display closures observed or recorded after that date.
+  // These owner clocks are descriptive only, not verified natural first-seen evidence.
+  const episodeCutoff = historyConnected && historical ? historical.date : null;
+  const recentClosures = nativeEpisodes?.closedRecent.filter(event =>
+    event.sector === props.selected
+    && (!episodeCutoff || (event.closedAsOf <= episodeCutoff && event.recordedAt.slice(0, 10) <= episodeCutoff))
+  ).slice(-3) || [];
+
   const refs = useRef<Record<string, HTMLButtonElement | null>>({});
   const name = (point: SectorRotationPoint) => lang === "zh" ? point.nameZh || point.name : point.name;
   const quadrantName = (point: SectorRotationPoint) => point.quadrant ? t(point.quadrant) : t("unavailable");
-  const position = (value: number, invert = false) => {
-    const normalized = Math.max(-domain, Math.min(domain, value));
-    const percent = 7 + ((normalized + domain) / (domain * 2)) * 86;
-    return `${invert ? 100 - percent : percent}%`;
-  };
+  const position = (value: number, invert = false) => `${rotationPlotPercent(value, domain, invert)}%`;
   const moveFocus = (event: KeyboardEvent<HTMLButtonElement>, id: string) => {
     const keys = plotted.map(point => point.id), index = keys.indexOf(id);
     const delta = event.key === "ArrowRight" || event.key === "ArrowDown" ? 1 : event.key === "ArrowLeft" || event.key === "ArrowUp" ? -1 : 0;
@@ -265,6 +353,13 @@ export default function SectorRotationMap(props: SectorRotationMapProps) {
             <span className={styles.axisX} aria-hidden="true" /><span className={styles.axisY} aria-hidden="true" />
             <span className={styles.axisTop}>{t("fasterUp")}</span><span className={styles.axisBottom}>{t("fasterDown")}</span>
             <span className={styles.axisLeft}>{t("weaker")}</span><span className={styles.axisRight}>{t("stronger")}</span>
+            {historyTrail && historyTrail.points.length > 0 && <svg className={styles.historyTrail} data-testid="rotation-history-trail"
+              data-selected-date={historical?.date} data-clipped={historyTrail.clipped ? "true" : "false"}
+              viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+              <polyline className={styles.historyTrailLine} points={historyTrail.points.map(point => `${point.x},${point.y}`).join(" ")} />
+              <circle className={styles.historyTrailPoint} cx={historyTrail.points[historyTrail.points.length - 1].x}
+                cy={historyTrail.points[historyTrail.points.length - 1].y} r="1.2" />
+            </svg>}
             {plotted.map((point, index) => <button type="button" key={point.id} ref={node => { refs.current[point.id] = node; }}
               className={styles.point} data-sector-choice={point.id} data-sector-rotation-point={point.id} data-quadrant={point.quadrant || undefined}
               data-label-side={(["top", "right", "bottom", "left"] as const)[index % 4]} aria-pressed={props.selected === point.id}
@@ -289,6 +384,65 @@ export default function SectorRotationMap(props: SectorRotationMapProps) {
         <RotationInspector point={selected} name={name} quadrantName={quadrantName} t={t} lang={lang} onOpen={props.onOpenResearch} />
       </div>}
 
+    <section className={styles.history} data-testid="rotation-history" aria-label={t("historyTitle")}>
+      <header><div><span>{t("historySource")}</span><h3>{t("historyTitle")}</h3></div>
+        <small>{props.history?.asOf ? rotationHistoryDate(props.history.asOf, language) : t("unknownDate")}</small></header>
+      {historyConnected && historical ? <>
+        <p className={styles.historyProvenance}>{t("historyProvenance")}</p>
+        <label className={styles.historyControl}>{t("historyDate")}
+          <input type="range" min={0} max={Math.max(0, historyPoints.length - 1)} step={1} value={historyIndex}
+            aria-label={t("historyDate")} onInput={event => setHistorySelection({ key: historyKey, index: Number(event.currentTarget.value) })} />
+        </label>
+        <div className={styles.historyRead} aria-live="polite">
+          <time dateTime={historical.date}>{rotationHistoryDate(historical.date, language)}</time>
+          <dl><div><dt>{t("faster")}</dt><dd>{sign(historical.rs21)}</dd></div>
+            <div><dt>{t("quarter")}</dt><dd>{sign(historical.rs63)}</dd></div>
+            <div><dt>{t("quadrant")}</dt><dd>{t(rotationQuadrant(historical.rs63, historical.rs21) || "unavailable")}</dd></div></dl>
+        </div>
+        <p className={styles.historyFoot}>{historyPoints.length} {t("historyCount")} · {t("historyTrail")}</p>
+        {historyTrail?.clipped && <p className={styles.historyFoot}>{t("historyClipped")}</p>}
+        <aside className={styles.cycleEvidence} role="note" data-testid="rotation-cycle-evidence">
+          <h4>{t("cycleTurnsTitle")}</h4>
+          <p>{t("cycleTurnsCaveat")}</p>
+          {recentCycleTurns.length ? <ol>{recentCycleTurns.map(turn =>
+            <li key={turn.date}>
+              <time dateTime={turn.date}>{rotationHistoryDate(turn.date, language)}</time>
+              <span>{t(turn.kind === "peak" ? "cyclePeak" : "cycleTrough")}</span>
+              {turn.magnitudePct !== null && <small>{t("cycleMagnitude")}: {formatValue(turn.magnitudePct, 1, "%")}</small>}
+              {turn.major && <small>{t("cycleMajor")}</small>}
+              {turn.provisional && <small>{t("cycleProvisional")}</small>}
+            </li>)}</ol> : <p>{t("cycleTurnsEmpty")}</p>}
+        </aside>
+      </> : <p className={styles.historyUnavailable}>{props.historyStatus === "loading" ? t("historyLoading") : props.historyStatus === "ready" && historySeries && !historyPoints.length ? t("historyThin") : `${t("noTrail")} · ${t("noTrailCopy")}`}</p>}
+    </section>
+
+
+    <section className={styles.nativeEpisodes} data-testid="rotation-native-episodes" aria-label={t("nativeEpisodeTitle")}>
+      <h3>{t("nativeEpisodeTitle")}</h3>
+      {nativeEpisodes ? <>
+        <p>{t("nativeEpisodeCaveat")}</p>
+        <p className={styles.nativeSourceClock}>{t("nativeEpisodeAsOf")}: <time dateTime={nativeEpisodes.sourceAsOf}>{rotationHistoryDate(nativeEpisodes.sourceAsOf, language)}</time></p>
+        {episodeCutoff && episodeCutoff < nativeEpisodes.sourceAsOf && <p className={styles.nativeSourceClock}>
+          {t("nativeEpisodeCutoff")} <time dateTime={episodeCutoff}>{rotationHistoryDate(episodeCutoff, language)}</time>.
+        </p>}
+        {props.asOf && nativeEpisodes.sourceAsOf < props.asOf && <p>{t("nativeEpisodeLag")}</p>}
+        {recentClosures.length ? <ol>{recentClosures.map(event =>
+          <li key={event.pairId + ":" + event.started + ":" + event.recordedAt}>
+            <div className={styles.nativeEpisodePair}>
+              <strong>{lang === "zh" ? event.fromNameZh : event.fromNameEn}</strong>
+              <span aria-hidden="true">→</span>
+              <strong>{lang === "zh" ? event.toNameZh : event.toNameEn}</strong>
+            </div>
+            <dl>
+              <div><dt>{t("nativeEpisodeClosed")}</dt><dd><time dateTime={event.closedAsOf}>{rotationHistoryDate(event.closedAsOf, language)}</time></dd></div>
+              <div><dt>{t("nativeEpisodeRecorded")}</dt><dd>{event.recordedAt}</dd></div>
+              <div><dt>{t("nativeEpisodeReason")}</dt><dd>{event.reason.replaceAll("_", " ")}</dd></div>
+            </dl>
+            <small>{event.provenance === "RECONSTRUCTED_REPLAY" ? t("nativeEpisodeReplay") : t("nativeEpisodeUnmarked")}</small>
+          </li>)}</ol> : <p>{t("nativeEpisodeEmpty")}</p>}
+      </> : <p>{t("nativeEpisodeUnavailable")}</p>}
+    </section>
+
     <div className={styles.disclosures}>
       <details data-rotation-method><summary>{t("method")}</summary><div className={styles.methodBody}>
         <p>{t("methodCopy")}</p>
@@ -298,7 +452,8 @@ export default function SectorRotationMap(props: SectorRotationMapProps) {
             {t("unavailableObservationDate")} {props.risk.receipt.asOf}
           </p>}
         </div><p>{t("sourceBoundary")}</p><p>{t("currentOnly")} {t("displayOnly")}</p>
-        <p><strong>{t("noTrail")}</strong> · {t("noTrailCopy")}</p>
+        <p><strong>{historyConnected ? t("historyTitle") : t("noTrail")}</strong> · {historyConnected ? t("historyProvenance") : t("noTrailCopy")}</p>
+
         <p>{allPlotted.length} / {points.length} {t("coordinates")}{points.some(point => point.quadrant === null)
           ? ` · ${points.filter(point => point.quadrant === null).length} ${t("missingCoordinates")}` : ""}.</p>
       </div></details>
