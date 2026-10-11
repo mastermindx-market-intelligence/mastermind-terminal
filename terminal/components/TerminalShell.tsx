@@ -43,6 +43,8 @@ import { portfolioRailOwner, usePortfolioRailRead } from "@/lib/usePortfolioRail
 import { FIN_PAGES, type FinPage } from "@/components/fin/finPages";
 import { getFund, getOpts, getBars, type Fund, type Bar } from "@/lib/fund";
 import { allDefaults, indDefaults, withDefaults, IND_ORDER, IND_DEFS, isIndKey } from "@/lib/indicators";
+import { addStudyInstance, isAdditionalStudyId, studyParamsWithDefaults, studyTypeOf, supportsMultipleInstances } from "@/lib/studyInstances";
+import { isRenderableStudyInstance, studyInstanceMeta, withStudyInstanceParams } from "@/lib/studyInstanceView";
 import { isSuiteKey, suiteDefaults, SUITE_ORDER } from "@/lib/suites/registry";
 import { isAmbientCandleSuite, migrateMastermindCandlesDefault, MASTERMIND_CANDLES_MIGRATION_KEY, MASTERMIND_CANDLES_MODULE_ID, MASTERMIND_CANDLES_SUITE_KEY } from "@/lib/mastermindCandlesDefault";
 import {
@@ -1822,7 +1824,8 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
       for (const k of Object.keys(rollout.params)) {
         if (isSuiteKey(k)) base[k] = { ...suiteDefaults(k), ...rollout.params[k] };
       }
-      setIndParams(base);
+      // Additional study instances ("rsi__<token>", E06) keep THEIR OWN saved params.
+      setIndParams(withStudyInstanceParams(base, rollout.indicators, rollout.params));
       setHidden(new Set(rollout.hidden));
       // Commit the one-time rollout before the mount-skip persistence effects. The marker is written
       // last so an interrupted/blocked storage write retries rather than falsely claiming success.
@@ -2959,7 +2962,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
       const base = allDefaults();
       for (const k of IND_ORDER) { if (tmpl.indParams[k]) base[k] = withDefaults(k, tmpl.indParams[k]); }
       for (const k of Object.keys(tmpl.indParams || {})) { if (isSuiteKey(k)) base[k] = { ...suiteDefaults(k), ...tmpl.indParams[k] }; }
-      setIndParams(base);
+      setIndParams(withStudyInstanceParams(base, tmpl.indicators, tmpl.indParams));   // per-instance params (E06)
     };
     window.addEventListener("mm:apply-template", h);
     return () => window.removeEventListener("mm:apply-template", h);
@@ -3891,6 +3894,19 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
       });
     }
   };
+  // "Add another <study>" (E06): a NEW independent instance with its own id, params and pane. It is
+  // an indicator slot like any other, so the anonymous cap applies exactly as in toggleInd.
+  const addIndInstance = (type: string) => {
+    if (!isIndKey(type) || !supportsMultipleInstances(type)) return;
+    if (!loggedIn && inds.size - Number(isAmbientCandleSuite(inds, indParams)) >= MAX_ANON_IND) { showGateNudge(t("gateIndCap")); return; }
+    const added = addStudyInstance({ inds: [...inds], indParams, hidden: [...hidden] }, type);
+    if (!added) return;
+    const { id } = added;
+    const seeded = added.state.indParams[id];
+    setInds((s) => { if (s.has(id)) return s; const n = new Set(s); n.add(id); return n; });
+    if (seeded) setIndParams((p) => ({ ...p, [id]: seeded }));
+    setHidden((h) => { if (!h.has(id)) return h; const n = new Set(h); n.delete(id); return n; });
+  };
   const applySuitePreset = (k: string, presetId: SuitePresetId) => {
     if (!isSuiteKey(k)) return;
     const profile = resolveSuitePreset(k, presetId);
@@ -4025,6 +4041,9 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
       return;
     }
     setInds((s) => { if (!s.has(k)) return s; const n = new Set(s); n.delete(k); return n; });
+    // An additional study instance's id is never reused, so its params retire with it (E06); a
+    // primary keeps its params as the device preference, exactly as before.
+    if (isAdditionalStudyId(k)) setIndParams((p) => { if (!Object.prototype.hasOwnProperty.call(p, k)) return p; const n = { ...p }; delete n[k]; return n; });
     setHidden((s) => {
       const childIds = isSuiteKey(k) ? suiteModuleCatalogFor(k).map((entry) => entry.id) : [];
       if (!s.has(k) && !childIds.some((id) => s.has(id))) return s;
@@ -4040,7 +4059,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
     setIndParams((p) => ({
       ...p,
       [targetKey]: {
-        ...(isSuiteKey(targetKey) ? { ...suiteDefaults(targetKey), ...p[targetKey] } : withDefaults(targetKey, p[targetKey])),
+        ...(isSuiteKey(targetKey) ? { ...suiteDefaults(targetKey), ...p[targetKey] } : isAdditionalStudyId(targetKey) ? studyParamsWithDefaults(targetKey, p[targetKey]) : withDefaults(targetKey, p[targetKey])),
         ...patch,
       },
     }));
@@ -4048,7 +4067,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
   const resetIndParam = useCallback((k: string) => {
     const moduleTarget = parseSuiteModuleId(k);
     if (!moduleTarget) {
-      setIndParams((p) => ({ ...p, [k]: isSuiteKey(k) ? suiteDefaults(k) : indDefaults(k) }));
+      setIndParams((p) => ({ ...p, [k]: isSuiteKey(k) ? suiteDefaults(k) : indDefaults(studyTypeOf(k) ?? k) }));
       return;
     }
     const entry = getSuiteModuleCatalogEntry(k);
@@ -5463,9 +5482,10 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
             symbol={active}
             timeframe={tf}
             bars={chartReadoutMeta?.symbol === active && chartReadoutMeta.timeframe === tf ? chartReadoutMeta.bars : []}
-            indCols={[...[...inds].filter((k) => !isSuiteKey(k) && !hidden.has(k)).map((k) => {
+            indCols={[...[...inds].filter((k) => !isSuiteKey(k) && !hidden.has(k) && (!isAdditionalStudyId(k) || isRenderableStudyInstance(k, inds))).map((k) => {
               const def = (IND_DEFS as any)[k];
-              return { key: k, label: def?.label ?? k, tag: def?.tag ?? k };
+              const meta = studyInstanceMeta(k, inds, indParams[k]);   // one column per study instance (E06)
+              return { key: k, label: meta?.label ?? def?.label ?? k, tag: meta?.tag ?? def?.tag ?? k };
             }), ...visualReadoutColumns(lang)]}
             indRowsAt={indRowsAt ?? undefined}
             onBack={() => setTableViewOpen(false)}
@@ -5572,12 +5592,14 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
                     key: "pine:" + s.id, label: s.name, kind: "overlay", hidden: hidden.has("pine:" + s.id),
                   })),
                   // sub-pane indicators
+                  // sub-pane study INSTANCES (E06): each RSI instance is its own row under its own id
                   ...[...inds].filter((k) => {
                     const def = (IND_DEFS as any)[k];
-                    return def && def.kind === "pane";
+                    return (def && def.kind === "pane") || (isAdditionalStudyId(k) && studyInstanceMeta(k, inds)?.kind === "pane");
                   }).map((k): OTEntry => {
                     const def = (IND_DEFS as any)[k];
-                    return { key: k, label: def?.label ?? k, tag: def?.tag ?? k, kind: "pane", hidden: hidden.has(k) };
+                    const meta = studyInstanceMeta(k, inds, indParams[k]);
+                    return { key: k, label: meta?.label ?? def?.label ?? k, tag: meta?.tag ?? def?.tag ?? k, kind: "pane", hidden: hidden.has(k) };
                   }),
                   // Premium modules are first-class object-tree rows while their five runtime
                   // containers and three oscillator panes remain shared internally.
@@ -6195,7 +6217,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
           onToggleCompare={(s: string, mode?: CmpMode) => toggleCompare(s, mode)} />
       )}
       {indOpen && (
-        <IndicatorsModal open suspended={!!guide} active={inds} onClose={() => setIndOpen(false)} onToggle={toggleInd}
+        <IndicatorsModal open suspended={!!guide} active={inds} onClose={() => setIndOpen(false)} onToggle={toggleInd} onAddInstance={addIndInstance}
           onApplyPreset={applySuitePreset} suiteParams={indParams} userTier={userTier}
           activeModules={activeSuiteModuleIds} onToggleModule={toggleSuiteModule} onOpenModuleSettings={openSettings}
           onOpenGuide={(id) => {
@@ -6212,11 +6234,11 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
               pine={{ name: scriptById[settingsKey].name, params: mergedParams(scriptById[settingsKey], pineParams) }}
               onPineChange={(patch) => setPineParam(settingsKey, patch)}
               onClose={() => setSettingsKey(null)} />
-          : <IndicatorSettings key={settingsKey} indKey={settingsKey} params={indParams[parseSuiteModuleId(settingsKey)?.suiteKey ?? settingsKey] || {}} onChange={(patch) => setIndParam(settingsKey, patch)} onClose={() => setSettingsKey(null)} onReset={() => resetIndParam(settingsKey)} userTier={userTier} onOpenGuide={(sk, mk, ml) => {
+          : <IndicatorSettings key={settingsKey} indKey={settingsKey} title={studyInstanceMeta(settingsKey, inds, indParams[settingsKey])?.label} params={indParams[parseSuiteModuleId(settingsKey)?.suiteKey ?? settingsKey] || {}} onChange={(patch) => setIndParam(settingsKey, patch)} onClose={() => setSettingsKey(null)} onReset={() => resetIndParam(settingsKey)} userTier={userTier} onOpenGuide={(sk, mk, ml) => {
               setSettingsKey(null);
               setGuide({ suite: sk, mod: mk, label: ml });
             }} />)}
-      {sourceKey && <IndicatorSource indKey={sourceKey} onClose={() => setSourceKey(null)} />}
+      {sourceKey && <IndicatorSource indKey={studyTypeOf(sourceKey) ?? sourceKey} onClose={() => setSourceKey(null)} />}
       {guide && (
         <GuidePanel
           suiteKey={guide.suite}
