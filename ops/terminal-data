@@ -242,6 +242,17 @@ run "$PY" ingest/gen_technical_scan.py --data-dir "$D" --budget-seconds 900
 # (scan/classification.receipt.json) and atomic writes. Pinned by tests/test_nightly_wiring.py.
 run "$PY" ingest/gen_classification_scan.py --data-dir "$D" --budget-seconds 600
 
+# ── SCREENER FUNDAMENTAL SCAN (E02) ──
+# scan/fundamental.json: the Screener's period-aware fundamental fields (TTM P/E and the latest
+# fiscal-year margins, ROE and revenue growth) for every manifest key, projected from the
+# per-symbol <SYM>.fund.json by the SAME pure projector the company evidence panel runs
+# (terminal/lib/fundamentalScanProducer.ts, bundled by terminal-build.sh into scripts/dist).
+# A field the normalized statements cannot state honestly is withheld with a reason, never
+# substituted. Same placement and guards as the technical scan: after the final manifest swap,
+# before the coverage index, adoption-guarded publication with scan/fundamental.receipt.json,
+# atomic writes. Pinned by tests/test_nightly_wiring.py.
+run node /opt/terminal/terminal/scripts/dist/gen_fundamental_scan.mjs --data-dir "$D" --budget-seconds 600
+
 # ── INTRADAY NIGHTLY REFRESH ──
 # Refresh existing 1h/5m intraday stores in place (incremental, no new symbols).
 # Must run BEFORE coverage index so refreshed files are indexed same night.
