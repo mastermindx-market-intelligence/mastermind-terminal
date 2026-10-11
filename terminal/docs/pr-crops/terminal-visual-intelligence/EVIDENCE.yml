@@ -1,12 +1,12 @@
-# Terminal Visual Intelligence Layer — E08 merge (#924) source recapture
+# Terminal Visual Intelligence Layer — E20 landing train 3 merged-tree source recapture (E08 #924 + E19 #952 ChartPanel)
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
 # Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
-# capturedAtHead: 486836fef6bcea287dc2e63624ea19083461acf2
-# capturedAt: 2026-10-11T20:18:06.826Z
+# capturedAtHead: e6f4a64003f09bea43cd52fc893f76f99c223c1d
+# capturedAt: 2026-10-11T21:46:12Z
 # Actual fresh local fixture captures; source identity remains the capture commit when artifacts are committed later.
 # Content-addressed layoutFiles + cropFiles, not ancestry, identify this capture.
 layoutFiles:
-  terminal/components/ChartPanel.tsx: "baaa8caba3b164970c8a2912b20975b4ea4eaf716c6b3b54240a03ae6806b8ae"
+  terminal/components/ChartPanel.tsx: "62108c3656468348a227b3e1189b1af5f5bb58d11d6417d95698d8bfb5af882c"
   terminal/components/ChartSettingsModal.tsx: "f26bd7dcbb9bd23e96546e835dec4c62c593b9c4d7412c411511005e7418146e"
   terminal/components/ChartSettingsModal.module.css: "a1685d103511e11882f8d379b22570f018e47aed88266db5ca6fec8808100b0a"
   terminal/components/DrawingSidebar.tsx: "95910121c08efa2a41bcaac02ec626a48bc98021bbbf9e611ff0b61f7baaf6d9"
@@ -20,12 +20,12 @@ layoutFiles:
   terminal/lib/suites/trend/candlePainter.ts: "8384d2bce3af939a51e88584b1436ee2898a89f0fbf1aedc09ffee624a3e12e1"
   terminal/lib/indicator-canvas/host.ts: "4f2949efb22b8c378cab1ff9d176466c4857073c14a36ee4f0eeab4ec1015a25"
 cropFiles:
-  desktop-context.png: "6c6fe203084e355a20b18e46a946aaf0b415f40585379f55512cfa8ff8585592"
-  desktop-context-zh.png: "935fff93439fbf6bc20fe37ec4f5a3bd333ead0384287dfd5e9904963a1c79f0"
-  tablet-context.png: "7c1625f4c769aab8205955f288127810673f8db4cfc735a754edc72c43a9471e"
-  tablet-context-zh.png: "70399272c79d2f6bcbd8d1156273093463f547be8c3430674ebdf99638a672e8"
-  mobile-context.png: "f71dc745055801facdd32674ab3bf5e6c34bd6d69bef583fb052ca3e613913d8"
-  mobile-context-zh.png: "af0bc9b95312a49aea623b381f12acd0d6c3d575d0464bbc29e373728696009f"
+  desktop-context.png: "347506a1af28d47bda116c78e03baf50c9ff779c645a806c69172b2782e2efda"
+  desktop-context-zh.png: "740810d62070f531e8384e6ee41edff63e8739ef20a39eb3e85239bb93604a98"
+  tablet-context.png: "0a66c435ecb6b2d44cc2c0645b1abed1b43d100c7e05be14d6f95fcabfb7cc61"
+  tablet-context-zh.png: "09c7434f535b600ddd9d7e9b38adf71f62dc0be2e0b1c64244e0063575bc4e8d"
+  mobile-context.png: "03197b5e9025c9e63eaa502ac938667f6d587fdb03a61642ba0c2bb9377bab78"
+  mobile-context-zh.png: "991427a14ed136c24439829362c6333c39732b6226d2e4dcba941ea9ac92a797"
 
 theme: dark
 languages: [en, zh]
@@ -38,7 +38,7 @@ harness: /terminal?symbol=NVDA
 capture_flag: TERMINAL_E2E_FIXTURE
 capture_flag_law: Standard Playwright fixture also disables the Next.js dev indicator.
 commands:
-  - TERMINAL_E2E_PORT=47181 npm run test:e2e:responsive -- e2e/replay-statusline-responsive.spec.ts e2e/responsive.spec.ts e2e/shell-mode.spec.ts e2e/visual-intelligence.spec.ts e2e/chart-view-reset.spec.ts --grep "Replay status|canonical Terminal shell|D · identity|E · legend|saved startup timeframe|default context explains|classic candles retain|historical crosshair inspection|real candle colors|context can be restored|table and CSV|replay consumer excludes|unavailable calendar|Chinese context|New chart tickers reserve space" --project=desktop --project=tablet --project=mobile --workers=1 --retries=0 --reporter=list,json
+  - TERMINAL_E2E_PORT=47321 npm run test:e2e:responsive -- e2e/replay-statusline-responsive.spec.ts e2e/responsive.spec.ts e2e/shell-mode.spec.ts e2e/visual-intelligence.spec.ts e2e/chart-view-reset.spec.ts --grep "Replay status|canonical Terminal shell|D · identity|E · legend|saved startup timeframe|default context explains|classic candles retain|historical crosshair inspection|real candle colors|context can be restored|table and CSV|replay consumer excludes|unavailable calendar|Chinese context|New chart tickers reserve space" --project=desktop --project=tablet --project=mobile --workers=1 --retries=0 --reporter=list,json
 browserResults:
   desktop: 10/10 passed
   tablet: 10/10 passed
@@ -46,9 +46,16 @@ browserResults:
   mobileCrosshairRegression: 1/1 passed
   visualIntelligenceMatrix: 30 passed; zero failures
 browserReportHashes:
-  visualReport: "746674c6bc20279cea114fea07d43e5b44fbd019b32cfe75b637fef7ae212cf9"
-  mobileCrosshairReport: "746674c6bc20279cea114fea07d43e5b44fbd019b32cfe75b637fef7ae212cf9"
+  visualReport: "46b5c63c31e7f2ce4c35439da7530f9eb1de1cdbfe433c38bd77970b1da740bc"
+  mobileCrosshairReport: "46b5c63c31e7f2ce4c35439da7530f9eb1de1cdbfe433c38bd77970b1da740bc"
 currentLocalGates:
+  sourceHead: e6f4a64003f09bea43cd52fc893f76f99c223c1d
+  captureServer: own landing-train-3 fixture next dev on 127.0.0.1:47321; lsof-verified owner
+  typecheck: PASS; next typegen then tsc --noEmit on the merged train-3 tree
+  visualCompatibility: 48 passed (16 desktop, 16 tablet, 16 mobile); zero failures, skips or flaky cases
+  focusedEvidenceGuards: lib/__tests__ Evidence gates rerun after this recapture
+  baselineDisposition: train 3 merged E08 (#924) and E19 (#952) ChartPanel edits; ChartPanel-bound packets recaptured on the merged tree
+priorE08MergeLocalGates:
   sourceHead: 486836fef6bcea287dc2e63624ea19083461acf2
   captureServer: own merged-tree fixture next dev on 127.0.0.1:47181; lsof-verified owner; warmup /api/me, /api/watchlist, /api/layouts 200
   typecheck: PASS; next typegen then tsc --noEmit on actual capture source
