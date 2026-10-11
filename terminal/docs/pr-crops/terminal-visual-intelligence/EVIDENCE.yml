@@ -1,11 +1,11 @@
-# Terminal Visual Intelligence Layer — chart-settings candidate recapture
+# Terminal Visual Intelligence — actual Large Trades integration recapture
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
 # Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
-# capturedAtHead: 702bd7fbbb92f7f10eb2138fc29f78e3cd94ff7c (E06 independent RSI instances, merged with origin/master fc76cf495)
-# capturedAt: 2026-10-11T08:48:39.310034+00:00
-# Content-addressed layoutFiles + cropFiles, not ancestry, identify this capture.
+# capturedAtHead: 95a7cac298a99671eb392ff0050fb7b9223ead4e
+# capturedAt: 2026-10-11T12:41:44.189827+00:00
+# Current layout/crop hashes identify the actual complete browser run below.
 layoutFiles:
-  terminal/components/ChartPanel.tsx: "99821732c74fd5a179bc24de59ac4b87d6e0fd4a4ebce8873e4e694d30567ada"
+  terminal/components/ChartPanel.tsx: "2ac3f6b132f23ffe6c08237357cca7c8493b875bd946259f1064cfe5e350f7a5"
   terminal/components/ChartSettingsModal.tsx: "f26bd7dcbb9bd23e96546e835dec4c62c593b9c4d7412c411511005e7418146e"
   terminal/components/ChartSettingsModal.module.css: "a1685d103511e11882f8d379b22570f018e47aed88266db5ca6fec8808100b0a"
   terminal/components/DrawingSidebar.tsx: "95910121c08efa2a41bcaac02ec626a48bc98021bbbf9e611ff0b61f7baaf6d9"
@@ -19,12 +19,12 @@ layoutFiles:
   terminal/lib/suites/trend/candlePainter.ts: "8384d2bce3af939a51e88584b1436ee2898a89f0fbf1aedc09ffee624a3e12e1"
   terminal/lib/indicator-canvas/host.ts: "4f2949efb22b8c378cab1ff9d176466c4857073c14a36ee4f0eeab4ec1015a25"
 cropFiles:
-  desktop-context.png: "ee68cdcf4c361b0a177164cdbff5160ff851e16d123ba6f6251f00cdc3b6a742"
-  desktop-context-zh.png: "696408192da3094bb82949f23e7ce4067f1e5e6994568751386fe869f7bda0ef"
-  tablet-context.png: "0639a8cd91cfb2b907958914d34b8229009474963507c2082b3cf9dd8a5aea5f"
-  tablet-context-zh.png: "13767ea9782973f29607dd6d22be4100c9d4084300600bf1cdebb010b392690c"
-  mobile-context.png: "d5990be7364778afea754cdc667e679d440242df3f62dc4305ed0a000c6c782a"
-  mobile-context-zh.png: "8cf049fe8cd7f6b0947255cd44044be341eaaeeb38b113c63716bfd67237ceaf"
+  desktop-context.png: "b2e718e439a1584f8160de6552a4198a752d430c1f6af0d1b434fe4d7e3d9fd8"
+  desktop-context-zh.png: "d36699607c7f043007004fd337e75b04807685ca0a9abc71b6e4ca221efcb003"
+  tablet-context.png: "f3e5e8a557e3dd2a03fa2b3871b121315eb3572b6b3d57fac65d01135e824911"
+  tablet-context-zh.png: "df307fd23fa39b7db1f49267a909fb05b73fde003d1793b55c46ae0c92d7a364"
+  mobile-context.png: "518ec72e29248c2b2fbfc5c6a12531968d8a9538a85b557e4c90d6bb68b11a3a"
+  mobile-context-zh.png: "e7dc5ee34cdc18233527b5278f7212578d61e1e527c1d39014c09a3e0b244910"
 
 theme: dark
 languages: [en, zh]
@@ -37,19 +37,19 @@ harness: /terminal?symbol=NVDA
 capture_flag: TERMINAL_E2E_FIXTURE
 capture_flag_law: Standard Playwright fixture also disables the Next.js dev indicator.
 commands:
-  - TERMINAL_E2E_PORT=36947 npx playwright test e2e/visual-intelligence.spec.ts --project=desktop --project=tablet --project=mobile --workers=1 --retries=0 --reporter=list
-  - TERMINAL_E2E_PORT=36948 npx playwright test e2e/chart-view-reset.spec.ts --project=mobile --workers=1 --retries=0 --grep 'New chart tickers reserve space'
+  - TERMINAL_E2E_PORT=3117 ./node_modules/.bin/playwright test e2e/visual-intelligence.spec.ts --project=desktop --project=tablet --project=mobile --workers=1 --retries=0 --reporter=list,json
 browserResults:
   desktop: 10/10 passed
   tablet: 10/10 passed
   mobile: 10/10 passed
+  visualIntelligenceMatrix: 30 passed; zero failures; zero skips; zero retries
+historicalOriginalReceipt:
+  status: HISTORICAL_ONLY; the following counters are retained for the existing evidence contract and do not describe this candidate.
+  originalCaptureHead: 702bd7fbbb92f7f10eb2138fc29f78e3cd94ff7c
   mobileCrosshairRegression: 1/1 passed
-  visualIntelligenceMatrix: 30 passed; zero failures
-localGates:
-  typecheck: PASS
-  scopedLint: NOT_RERUN; evidence refresh does not claim a new lint receipt
-  plainLanguage: Existing localized copy retained; separate copy guard not rerun
   vitest: 379 files passed; 6093 tests passed; 4 todo
+currentLocalGates:
+  status: Recorded separately in the final candidate integration receipt; this browser capture does not restamp a previous unit run.
 files:
   - desktop-context.png
   - desktop-context-zh.png
