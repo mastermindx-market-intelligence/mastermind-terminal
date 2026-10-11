@@ -82,3 +82,42 @@
 /* border-top-color AFTER the border-color shorthand so the brand top bar
    survives the light outline. */
 .root[data-theme="light"] .resultPanel { border-color: var(--line-3); border-top-color: var(--brand); box-shadow: var(--shadow-card); }
+
+/* The HTML owner supplies the palette. This ancestor selector deliberately
+   outranks the local dataTheme material hint (including its default "dark"):
+   a component prop must not become a second theme owner. Existing local hint
+   rules remain for compatibility; they cannot create a supported light shell. */
+:global(html[data-theme="light"]) .root .panel,
+:global(html[data-theme="light"]) .root .limit {
+  background: var(--panel);
+  border-color: var(--line-2);
+  box-shadow: var(--shadow-card);
+}
+:global(html[data-theme="light"]) .root .limit { border-left-color: var(--warn); }
+:global(html[data-theme="light"]) .root .select,
+:global(html[data-theme="light"]) .root .input {
+  background: var(--inset);
+  border-color: var(--line-3);
+}
+:global(html[data-theme="light"]) .root .select[aria-invalid="true"],
+:global(html[data-theme="light"]) .root .input[aria-invalid="true"] { border-color: var(--danger); }
+:global(html[data-theme="light"]) .root .readonlyBox { border-color: var(--line-3); }
+:global(html[data-theme="light"]) .root .modeBtn { border-color: var(--line-3); }
+:global(html[data-theme="light"]) .root .modeBtn[aria-pressed="true"] {
+  background: var(--panel-2);
+  border-color: var(--brand);
+}
+:global(html[data-theme="light"]) .root .lensBox { background: var(--panel-2); border-color: var(--line-2); }
+:global(html[data-theme="light"]) .root .group,
+:global(html[data-theme="light"]) .root .table th,
+:global(html[data-theme="light"]) .root .table td { border-color: var(--line-2); }
+:global(html[data-theme="light"]) .root .resultPanel { border-top-color: var(--brand); }
+/* Existing Terminal white-on-brand primary idiom; body ink is dark in light. */
+:global(html[data-theme="light"]) .root .primary { color: #fff; }
+:global(html[data-theme="light"]) .root .btn:disabled {
+  opacity: 1;
+  color: var(--muted);
+  background: var(--inset);
+  border-color: var(--line-2);
+}
+:global(html[data-theme="light"]) .root .linkBtn:disabled { opacity: 1; color: var(--muted); }

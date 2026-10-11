@@ -646,3 +646,39 @@
     scroll-behavior: auto !important;
   }
 }
+
+/* Light research treatment at the existing HTML owner. White sheets replace
+   the dark nested/tinted planes; changed evidence and limitations keep their
+   recessed --panel-2 surfaces and original semantic left edges. */
+:global(html[data-theme="light"]) .root .card,
+:global(html[data-theme="light"]) .root .measureList,
+:global(html[data-theme="light"]) .root .read {
+  background: var(--panel);
+  box-shadow: var(--shadow-card);
+}
+/* Keep unavailable/denied labels readable; absence of a parent callback remains
+   disabled in the unchanged TSX, with no opacity wash over evidence text. */
+:global(html[data-theme="light"]) .root .measureBtn:disabled { opacity: 1; }
+:global(html[data-theme="light"]) .root .btn:disabled {
+  opacity: 1;
+  color: var(--muted);
+  background: var(--inset);
+  border-color: var(--line-2);
+}
+
+/* Base border/background shorthands follow the shared semantic utilities.
+   Reassert the intended state accents after those shorthands in light only. */
+:global(html[data-theme="light"]) .root .changeItem.bOk { border-left-color: var(--link); }
+:global(html[data-theme="light"]) .root .changeItem.bWarn { border-left-color: var(--warn); }
+:global(html[data-theme="light"]) .root .changeItem.bSignal { border-left-color: var(--signal); }
+:global(html[data-theme="light"]) .root .changeItem.bMuted { border-left-color: var(--muted); }
+:global(html[data-theme="light"]) .root .healthDot.dOk { background: var(--link); }
+:global(html[data-theme="light"]) .root .healthDot.dStale { background: var(--signal); }
+:global(html[data-theme="light"]) .root .healthDot.dExcluded,
+:global(html[data-theme="light"]) .root .healthDot.dDenied { background: var(--warn); }
+:global(html[data-theme="light"]) .root .healthDot.dMuted { background: var(--muted); }
+
+/* A light qualification chip uses a quieter wash: the dark 12% tint reduces
+   text contrast on a recessed research plane. The text keeps its semantic ink. */
+:global(html[data-theme="light"]) .root .chipOk { background: color-mix(in srgb, var(--link) 6%, transparent); }
+:global(html[data-theme="light"]) .root .readEyebrow { color: var(--link); }
