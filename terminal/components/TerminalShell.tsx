@@ -24,6 +24,7 @@ import { intradayCapable } from "@/components/ChartPanel";
 import { classify, SECOND_TFS, isSecondTf } from "@/lib/intradaySources";
 import { isMacroSymbol } from "@/lib/macroSymbols";
 import { freshnessLabel } from "@/lib/feedFreshness";
+import { boatsLatestTradeLabel } from "@/lib/extQuoteCopy";
 import { isExtQuoteCurrent, isPublicBoatsQuote, extQuotePollMs, type ExtProvenance } from "@/lib/extQuoteFreshness";
 import { flowGet } from "@/lib/flowClientCache";
 // R3.2 glance layer: the rail block's per-root gexstate read. Entitlement-gated at
@@ -5013,7 +5014,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
     const eq = extQuotes[sym];
     if (!eq || !isExtQuoteCurrent(eq) || eq.extPrice == null || !isFinite(eq.extPrice)) return undefined;
     const label = eq.extSource === "tiingo_boats"
-      ? `${t("boatsLatestTrade")} · ${Math.max(0, Math.floor(Math.max(extClockMs, Date.now()) / 1000 - eq.extTs))}${lang === "zh" ? "秒前" : "s ago"}`
+      ? `${boatsLatestTradeLabel(lang)} · ${Math.max(0, Math.floor(Math.max(extClockMs, Date.now()) / 1000 - eq.extTs))}${lang === "zh" ? "秒前" : "s ago"}`
       : extSessionLabel(eq.extSession);
     if (eq.extChg == null || !isFinite(eq.extChg)) return label;
     return `${label} · ${eq.extChg >= 0 ? "+" : ""}${fmt(eq.extChg)}%`;
@@ -6162,7 +6163,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
                     </div>
                     <div className="ah-meta">
                       <span>{activeExtData.source === "tiingo_boats"
-                        ? t("boatsLatestTrade")
+                        ? boatsLatestTradeLabel(lang)
                         : extSessionLabel(session)}</span>
                       {activeExtData.source === "tiingo_boats" && ts != null && <span> · {Math.max(0, Math.floor(Math.max(extClockMs, Date.now()) / 1000 - ts))}{lang === "zh" ? "秒前" : "s ago"}</span>}
                       {tsStr && <span> · {t("extLastUpdate").replace("{time}", tsStr)}</span>}
