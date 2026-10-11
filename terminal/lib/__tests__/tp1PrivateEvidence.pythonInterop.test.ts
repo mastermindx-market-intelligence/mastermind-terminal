@@ -4,10 +4,17 @@ import { describe,it,expect } from "vitest";
 import { decodePrivateEvidence } from "../tp1PrivateEvidence";
 
 const here=new URL("./fixtures/",import.meta.url);
+const IMMUTABLE_PYTHON_FIXTURES = {
+ minute: {sha256:"71bed6bb49ffce62735cc50c9f16a181d69b80393e6737f7899b911985f7f2c8", bytes:2362},
+ research: {sha256:"47fb5af5e6e7fb8b30c594725363d8d84d787e1879a8916362aa0b81016e9ad2", bytes:2219},
+} as const;
 function verified(kind:"minute"|"research",name:string){
  const bytes=readFileSync(new URL(name,here));
- return decodePrivateEvidence({kind,bytes,expectedLength:bytes.length,
- expectedSha256:createHash("sha256").update(bytes).digest("hex")});
+ const expected=IMMUTABLE_PYTHON_FIXTURES[kind];
+ expect(bytes.length).toBe(expected.bytes);
+ expect(createHash("sha256").update(bytes).digest("hex")).toBe(expected.sha256);
+ return decodePrivateEvidence({kind,bytes,expectedLength:expected.bytes,
+   expectedSha256:expected.sha256});
 }
 describe("actual Macro Python-generated synthetic-v0 private artifacts",()=>{
  it("preserves source native ns, original hash and private-only state",()=>{
