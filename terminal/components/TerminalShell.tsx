@@ -121,7 +121,7 @@ import WashoutTurnRow from "@/components/WashoutTurnRow";
 import { oracleVerdict, deskVerdict } from "@/lib/signalVerdict";
 import { computeTrendState } from "@/lib/trend";
 import { useLive } from "@/lib/live";
-import { setPaneSync, subscribePaneVisibleWindow } from "@/lib/paneSync";
+import { requestPaneFocus, setPaneSync, subscribePaneVisibleWindow } from "@/lib/paneSync";
 import { REPLAY_MIN_IDX, replayIsAvailable, replayChartKey, resolveReplayTotal, replayHasSpan, clampReplayIdx, initialReplayIdx,
   replayIdxAt, replayCutoffAt, stepReplayCutoff, replayExitOnScreen, recordReplayAxis, type ReplayAxis, type ReplayCutoff, type ReplayExit } from "@/lib/replayContract";
 import {
@@ -164,7 +164,8 @@ import { type PineScript } from "@/components/ChartPanel";
 
 type ShellDrawingStyle = { color: string; width: number; dash: Dash };
 import { visualReadoutColumns, type ChartReadoutMeta } from "@/lib/visualIntelligence";
-import ChartTableView from "@/components/ChartTableView";
+import DataInspector from "@/components/dataInspector/DataInspector";
+import { dataInspectorFocusMessage } from "@/lib/dataInspectorLex";
 import { type OTEntry } from "@/components/ChartObjectTree";
 import { listTemplates, saveTemplate } from "@/lib/chartTemplates";
 import { FLAG_DEFAULT, FLAG_COLORS } from "@/lib/flagPalette";
@@ -5197,7 +5198,9 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
       {/* Dossier mode renders NO chart workspace — the native sheet owns the chart above us. */}
       {!dossierMode && (
       <section className="workspace">
-        {!shellMode && (
+        {/* The table view replaces the chart, so its float would only cover the table's header;
+            it stays while fullscreen is on because it is also the way out. */}
+        {!shellMode && (!tableViewOpen || fullChart) && (
         <button className={`chart-fs-float${fullChart ? " on" : ""}`} title={fullChart ? t("exitFullscreen") : t("fullscreenChart")} onClick={() => setFullChart((f) => !f)}>
           {fullChart
             ? <svg viewBox="0 0 24 24"><path d="M9 4v5H4M20 9h-5V4M15 20v-5h5M4 15h5v5" /></svg>
@@ -5458,17 +5461,30 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
             intel={intel}
           />
         ) : tableViewOpen ? (
-          /* D3: Table view replaces the chart body */
-          <ChartTableView
+          /* D3 → E10: the time-aware Data Inspector replaces the chart body. It reads only what the
+             active pane published (bars + its own readout map) and returns to the chart through
+             paneSync's time-keyed focus, so no indicator is recomputed and no row number travels. */
+          <DataInspector
             symbol={active}
             timeframe={tf}
             bars={chartReadoutMeta?.symbol === active && chartReadoutMeta.timeframe === tf ? chartReadoutMeta.bars : []}
-            indCols={[...[...inds].filter((k) => !isSuiteKey(k) && !hidden.has(k)).map((k) => {
+            columns={[...[...inds].filter((k) => !isSuiteKey(k) && !hidden.has(k)).map((k) => {
               const def = (IND_DEFS as any)[k];
               return { key: k, label: def?.label ?? k, tag: def?.tag ?? k };
             }), ...visualReadoutColumns(lang)]}
-            indRowsAt={indRowsAt ?? undefined}
+            valuesAt={indRowsAt ?? undefined}
+            feedBasis={isSuspended ? t("suspended") : freshnessLabel(
+              { basis: liveQuote?.basis ?? (liveStatus === "live" ? "LIVE" : "EOD"), lagMs: liveQuote?.lagMs, asOfMs: liveQuote?.asOfMs, marketSession: liveQuote?.marketSession }, t).label}
+            replay={replayOn}
+            replayCursor={replayOn && replayCutoff ? `${replayCutoff.clock}:${replayCutoff.at}` : null}
             onBack={() => setTableViewOpen(false)}
+            onShowOnChart={(time, label) => {
+              void requestPaneFocus(activePane, { tf, time }).then((r) => {
+                const msg = dataInspectorFocusMessage(r.status, label, lang);
+                if (msg) showDtmToast(msg);
+              });
+              setTableViewOpen(false);
+            }}
           />
         ) : (
           <div className="chart-body" style={{ "--subpanes": subPanes } as React.CSSProperties}>
@@ -5656,6 +5672,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
             else if (action === "chartType") setCtOpen(true);
             else if (action === "workspaces") setPhoneWorkspacesOpen(true);
             else if (action === "replay") toggleReplay();
+            else if (action === "dataTable") setTableViewOpen(true);
             else if (action === "alerts") window.location.assign(`/alerts?sym=${encodeURIComponent(active)}`);
             else if (action === "symbolDetails") {
               setFullChart(false);
