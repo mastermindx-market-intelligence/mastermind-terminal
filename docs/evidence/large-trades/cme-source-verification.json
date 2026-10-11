@@ -156,8 +156,9 @@
     "failures": 0,
     "errors": 0,
     "skipped": 0,
-    "junitEntries": 405,
-    "junitInterpretation": "229 tests plus 176 separately recorded successful subtests; not 405 distinct test functions.",
+    "junitSuiteReportedTests": 405,
+    "junitTestcaseElements": 229,
+    "junitInterpretation": "229 passed test functions and 176 successful subtests. The JUnit testsuite tests attribute reports 405; the XML contains 229 testcase elements. 405 is not a distinct-test-function or testcase-element count.",
     "pytestSeconds": "0.36",
     "sourceUnchanged": true,
     "receipt": {
