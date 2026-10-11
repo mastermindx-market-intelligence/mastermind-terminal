@@ -130,7 +130,7 @@ describe("withStudyInstanceParams", () => {
 
   it("preserves an unsupported (future) instance verbatim and never reinterprets it", () => {
     const raw = { length: 5, futureField: { x: 1 } };
-    const out = withStudyInstanceParams({}, ["macd__aaaa1"], { "macd__aaaa1": raw });
+    const out = withStudyInstanceParams({} as Record<string, unknown>, ["macd__aaaa1"], { "macd__aaaa1": raw });
     expect(out["macd__aaaa1"]).toEqual(raw);
     expect(out["macd__aaaa1"]).not.toBe(raw);
   });
