@@ -1,5 +1,50 @@
 # Investigation kernel repair — source verification
 
+## Intl policy preview session, adopted as source only (IM10, 2026-10-10)
+
+Base `41d85a86`. `lib/intlPolicyPreviewSession.ts` is the accepted IM10 module,
+copied byte for byte (SHA256
+`f8a25b7f8146d5dff63079e2d85090beed01268c100c61acd72f72b051d2131f`). The source was
+accepted in `im10-preview-coherence-review-return-r1/PARENT_ADJUDICATION.json`
+(SHA256 `5004c70277728dd274a5990878cd8042f74136d65024b182c9559ff3597af83b`). The
+independent review differed from the accepted source by one final LF and had no
+findings. Credit comes from the parent's own checks: 16 Node tests passing and
+strict TSC. The reviewer's 20-test and TSC claims are not credited.
+
+The module is a pure, short-lived coherence helper. It does no IO, reads no clock
+and persists nothing. Its outputs are deep-frozen and detached from the inputs.
+
+- The caller must pass in a `PolicyValidation` that the policy owner has already
+  checked. The module invents no grammar, admission list or default comparator.
+  `settingsShapeOk` checks shape only, and passing it does not admit a policy.
+- Terminal has no accepted policy validator or projection. Nothing imports this
+  module:
+  - no mount, route or raw-draft wiring;
+  - no production wiring or persistence;
+  - no Saved write, schema or migration.
+- The `intlInvestigationContext` candidate is not accepted and is not imported.
+- Paper keeps the T3 fixture renderer/adapter and dependency resolution.
+
+The IM10 parent-r1 regression suites now run under vitest, and every assertion is
+unchanged. Each file changes only its runner import (`node:test` → `vitest`) and
+its module path:
+
+| File | Source suite | Tests |
+|---|---|---|
+| `lib/__tests__/intlPolicyPreviewSession.test.ts` | author `intlPolicyPreviewSession.test.mts`, SHA256 `b0a40653…b948707` | 11 |
+| `lib/__tests__/intlPolicyPreviewSessionParentCoherence.test.ts` | parent `parent_coherence.test.mts`, SHA256 `02f3bf65…e84e1` | 5 |
+
+Results: vitest 16/16 passed, and `npx tsc --noEmit` reported 0 errors.
+
+Not proven:
+
+- any IM10-T3 rendering or accessibility;
+- Paper parity;
+- owner grammar or source qualification;
+- Intl persistence or schema admission;
+- T4 revise or undo on the same record;
+- any integration or live product outcome.
+
 ## Legacy save retries and stored invalid_payload refusals (T03j, 2026-10-09)
 
 Base `9a17b8d8`. Two review findings on #804. Both concern a browser tab that was
