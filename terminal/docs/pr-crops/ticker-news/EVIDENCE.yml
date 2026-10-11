@@ -1,7 +1,7 @@
-capturedAtHead: d1de7b94
+capturedAtHead: c3420de0
 layoutFiles:
   - path: terminal/components/news/TickerNewsPanel.tsx
-    sha256: fde18ec4953705a540c576ef23714018a2e2cfa9f6d95a18245b9feb04d6831f
+    sha256: e176e7e3f1a4f1875ce80b779e25defee1b270ef5044262806e67c8696b9d753
   - path: terminal/components/news/TickerNewsPanel.module.css
     sha256: 57464a037b904a52c01c16cbcb0484fde288de0354d98b59901738c1a2f3bbac
   - path: terminal/components/TerminalShell.tsx
