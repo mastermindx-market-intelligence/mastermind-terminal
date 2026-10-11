@@ -1,8 +1,8 @@
 {
   "schema": "mastermind.options_level_axis_evidence/v1",
-  "capturedAt": "2026-10-11T09:00:48.312Z",
-  "sourceHead": "702bd7fbbb92f7f10eb2138fc29f78e3cd94ff7c",
-  "baseURL": "http://127.0.0.1:47161",
+  "capturedAt": "2026-10-11T09:53:42.902Z",
+  "sourceHead": "91ab51dc7fbb5814b15d9164a18cbfdcf294a566",
+  "baseURL": "http://localhost:47203",
   "classification": "LOCAL_BROWSER_WITH_INTERCEPTED_OPTIONS_CONTRACT_PAYLOADS_NOT_PRODUCTION_DATA",
   "expectedLinePrices": [
     192.42,
@@ -23,7 +23,7 @@
       "width": 1440,
       "height": 900,
       "screenshot": "desktop.png",
-      "sha256": "46f9b5d434ea47be3c5d5c4c362ae9324a2c5cd0811b25a7c5db5910c49ecba1",
+      "sha256": "c2e20b89fd5a9d69ecb97fc0795ef08f58cc0fdda079ac41d3af36acb2480b2e",
       "proof": {
         "labels": {
           "primaryTop": 106,
@@ -132,7 +132,7 @@
       "width": 820,
       "height": 1180,
       "screenshot": "tablet.png",
-      "sha256": "774223199b28dc5153ccd6b268af76de754cfa572ddb609bc96b316482b9bac2",
+      "sha256": "273d0edfb918ac09ab7c0676429526bfe17ba060eebf4b47a5b6308098e4837f",
       "proof": {
         "labels": {
           "primaryTop": 38,
@@ -352,7 +352,7 @@
       "left": true,
       "percentage": true,
       "screenshot": "desktop-left-percentage.png",
-      "sha256": "59060d630cb05745f27f6a4403afda91b3fd4f0ded15d6ab43a349deb4dd6d56",
+      "sha256": "19a9a79b8c777718c6ac7925331c4461145a1310b860c0814a693fcd15d1e33c",
       "proof": {
         "labels": {
           "primaryTop": 106,
