@@ -1,4 +1,5 @@
 import { expect, test } from "@playwright/test";
+import { MAX_NAME_CHARS } from "../lib/smartScreen/record";
 import { dataRows, moveSelect, openPanel, openScreener, panel, prepare, routeManifest, secondDevice } from "./smartScreensFixture";
 
 /**
@@ -28,6 +29,8 @@ test("a screen saved on one device reopens on another and explains what entered 
   await expect(a.locator("[data-ss-toggle]")).toContainText(zh ? "智能筛选" : "Smart screens");
   await expect(a).toHaveAttribute("data-ss-status", "ready");
   await expect(a.locator("[data-ss-empty]")).toBeVisible();
+  // The field stops typing at the same limit the record enforces, so a name is never refused after it is typed.
+  await expect(a.locator("[data-ss-name-input]")).toHaveAttribute("maxlength", String(MAX_NAME_CHARS));
   await a.locator("[data-ss-name-input]").fill("Momentum");
   await a.locator("[data-ss-save-button]").click();
   const screenA = a.locator("[data-ss-screen]");

@@ -24,7 +24,7 @@ import {
   type LeafTrace, type RowStatus, type ScreenDefinition, type ScreenNode, type ScreenRow, type ScreenerFilters,
 } from "@/lib/smartScreen/predicate";
 import { buildReview, diffScreen, type ChangeGroup, type ScreenChange } from "@/lib/smartScreen/review";
-import { MAX_SCREENS, normalizeScreenName, type ScreenRecord } from "@/lib/smartScreen/record";
+import { MAX_NAME_CHARS, MAX_SCREENS, normalizeScreenName, type ScreenRecord } from "@/lib/smartScreen/record";
 import { readDevicePresets, type DevicePreset } from "@/lib/smartScreen/devicePresets";
 import styles from "./SmartScreensPanel.module.css";
 
@@ -341,7 +341,7 @@ export default function SmartScreensPanel(props: Props) {
               <input
                 className={styles.input}
                 value={name}
-                maxLength={60}
+                maxLength={MAX_NAME_CHARS}
                 placeholder={t("ssNamePh")}
                 aria-label={t("ssNameLabel")}
                 onChange={(e) => setName(e.target.value)}
