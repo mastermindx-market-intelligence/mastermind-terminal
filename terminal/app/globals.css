@@ -2539,6 +2539,9 @@ table.scr2 tbody tr.empty-row:hover,table.scr2 tbody tr.scr2-skel-row:hover,tabl
      (legend mobile block further down). */
   /* pane ops icons (top-right strip — positioned clear of the legend, keeps its 40px floor) */
   .po-ic{min-width:40px;min-height:40px}
+  /* Keep pane Restore beside the workspace fullscreen button; both retain their pointer targets.
+     The phone rule below still hides the maximize strip and keeps its double-tap ownership. */
+  .app:not(.shell-app) .pane-ops{margin-right:48px}
   /* drawer nav links */
   .m-nav a,.m-nav button{min-height:44px}
   /* ── Fix 7: scripts / Pine editor — contain wide pre-formatted code inside viewport ── */

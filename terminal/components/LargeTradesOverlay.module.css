@@ -1,11 +1,12 @@
 .root { position: absolute; inset: 0; z-index: 9; pointer-events: none; color: var(--text); font-size: 12px; }
+.controlsLayer { position: absolute; visibility: hidden; overflow: hidden; pointer-events: none; }
 .markerLayer { position: absolute; inset: 0; overflow: hidden; pointer-events: none; }
 .marker { position: absolute; visibility: hidden; transform: translate(-50%, -50%); border-radius: 50%; border: 1px solid color-mix(in srgb, var(--muted) 82%, transparent); background: color-mix(in srgb, var(--muted) 28%, transparent); color: var(--text); display: grid; place-items: center; padding: 0; font: 600 10px/1.05 var(--font-mono, monospace); box-shadow: 0 0 0 1px color-mix(in srgb, var(--bg) 65%, transparent); cursor: pointer; }
 .marker[data-side="buy"] { border-color: var(--up); background: color-mix(in srgb, var(--up) 36%, transparent); }
 .marker[data-side="sell"] { border-color: var(--down); background: color-mix(in srgb, var(--down) 36%, transparent); }
 .marker span { background: color-mix(in srgb, var(--bg) 70%, transparent); border-radius: 3px; padding: 2px 3px; }
 .marker:hover, .marker:focus-visible { z-index: 3; outline: 2px solid var(--brand); outline-offset: 3px; }
-.dock { position: absolute; right: 66px; bottom: 34px; width: min(312px, calc(100% - 84px)); border: 1px solid var(--border); border-radius: 10px; background: color-mix(in srgb, var(--panel, var(--bg)) 94%, transparent); padding: 10px 12px; pointer-events: auto; box-shadow: 0 8px 28px #0002; backdrop-filter: blur(12px); }
+.dock { position: absolute; right: 8px; bottom: 8px; width: min(312px, calc(100% - 16px)); max-height: calc(100% - 16px); box-sizing: border-box; overflow: auto; overscroll-behavior: contain; border: 1px solid var(--border); border-radius: 10px; background: color-mix(in srgb, var(--panel, var(--bg)) 94%, transparent); padding: 10px 12px; pointer-events: auto; box-shadow: 0 8px 28px #0002; backdrop-filter: blur(12px); }
 .dockHeader { display: flex; gap: 8px; align-items: center; min-width: 0; }
 .dockHeader strong { font-size: 12px; flex: 1; }
 .mode { font-size: 10px; font-weight: 600; color: var(--up); white-space: nowrap; }
@@ -18,7 +19,7 @@
 .actions button { min-height: 32px; border: 1px solid var(--border); border-radius: 6px; background: transparent; color: var(--text); padding: 4px 9px; cursor: pointer; font-size: 11px; }
 .actions > span { margin-right: auto; color: var(--muted); font-size: 11px; font-variant-numeric: tabular-nums; }
 .actions b { margin-left: 5px; }
-.inspector { position: absolute; right: 66px; bottom: 34px; width: min(588px, calc(100% - 84px)); max-height: calc(100% - 78px); overflow: auto; overscroll-behavior: contain; border: 1px solid var(--border); border-radius: 12px; background: var(--panel, var(--bg)); box-shadow: 0 14px 60px #0005; pointer-events: auto; outline: none; }
+.inspector { position: absolute; right: 8px; bottom: 8px; width: min(588px, calc(100% - 16px)); max-height: calc(100% - 16px); box-sizing: border-box; overflow: auto; overscroll-behavior: contain; border: 1px solid var(--border); border-radius: 12px; background: var(--panel, var(--bg)); box-shadow: 0 14px 60px #0005; pointer-events: auto; outline: none; }
 .inspectorHeader { position: sticky; top: 0; z-index: 1; background: var(--panel, var(--bg)); display: flex; align-items: center; justify-content: space-between; padding: 14px 16px 10px; border-bottom: 1px solid var(--border); }
 .inspectorHeader strong { font-size: 14px; }
 .inspectorHeader p { margin: 5px 0 0; color: var(--muted); font-size: 11px; }
@@ -47,8 +48,8 @@
 .attribution a { color: var(--brand); text-underline-offset: 2px; }
 .root button:focus-visible, .root summary:focus-visible, .root a:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
 @media (max-width: 600px) {
-  .dock { right: 54px; bottom: 32px; width: min(280px, calc(100% - 64px)); padding: 8px 10px; }
-  .inspector { right: 8px; left: 8px; width: auto; bottom: 28px; max-height: calc(100% - 52px); }
+  .dock { width: min(280px, calc(100% - 16px)); padding: 8px 10px; }
+  .inspector { left: 8px; width: auto; }
   .inspectorHeader { padding: 10px 12px; }
   .inspectorBody { display: block; }
   .tradeList { display: flex; overflow-x: auto; max-height: 94px; border-right: 0; border-bottom: 1px solid var(--border); gap: 3px; }
@@ -74,8 +75,7 @@
 .reportList b { font-size: 11px; }
 .moreReports { min-height: 36px; border: 1px solid var(--border); border-radius: 6px; background: transparent; color: var(--text); padding: 5px 10px; cursor: pointer; }
 
-.root[data-open="true"] { z-index: 35; }
+.root[data-open="true"][data-owner-visible="true"] { z-index: 35; }
 
-/* The canonical chart body isolates stacking. While inspecting, its layer must clear
-   TerminalShell's mobile fullscreen control (z-index: 7), including scrolled evidence. */
-:global(.chart-body):has(.root[data-open="true"]) { z-index: 8; }
+/* Inspection stays inside the admitted price plot and below native header controls.
+   It does not raise the entire chart body above the workspace fullscreen affordance. */

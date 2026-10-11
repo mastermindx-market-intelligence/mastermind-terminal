@@ -52,6 +52,7 @@ export const LARGE_TRADES_LABELS: Record<string, [string, string]> = {
   ltCapturedQuantity: ["Eligible captured quantity at this cutoff","截至此时采集的有效成交量"],
   ltArtifactHash: ["Published snapshot SHA-256","已发布快照 SHA-256"],
   ltExecutionTime: ["Execution time (UTC)","成交时间（UTC）"],
+  ltReplayCutoff: ["Replay cutoff (UTC)","回放截止时点（UTC）"],
   ltAvailableAt: ["Available at (UTC)","可得时点（UTC）"],
   ltConditions: ["Reported conditions","报告成交条件"],
   ltNoConditions: ["None reported","未报告"],

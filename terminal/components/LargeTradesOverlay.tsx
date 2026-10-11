@@ -10,6 +10,9 @@ import { buildLargeTradesSnapshot, settingsFromParams } from "@/lib/largeTrades/
 import { fetchLargeTrades, type LargeTradesRead } from "@/lib/largeTrades/client";
 import { chartDisplayTimezone, largeTradesModeLabel, projectLargeTradeClusters, resolveLargeTradesClock, type ProjectionBar } from "@/lib/largeTrades/chartProjection";
 import type { LargeTradeCluster, SideMethod } from "@/lib/largeTrades/types";
+import { largeTradesClip, largeTradesControlBounds, largeTradesPlotBounds, largeTradesPoint, type LargeTradesPricePane } from "@/lib/largeTrades/visibility";
+import { freezeLargeTradesExportFrame, sameLargeTradesFrameOwner, snapshotRelativeRect,
+  type FrozenTradeMarker, type LargeTradesExportFrame, type LargeTradesFrameOwner } from "@/lib/largeTrades/snapshot";
 import styles from "./LargeTradesOverlay.module.css";
 
 export type LargeTradesChartContext = {
@@ -18,15 +21,24 @@ export type LargeTradesChartContext = {
   bars: readonly ProjectionBar[];
   sourceSymbol: string;
   timeframe: string;
-  pricePane: { top: number; height: number; collapsed?: boolean } | null;
+  replayCutoff: ReplayCutoff | null;
+  pricePane: LargeTradesPricePane | null;
 };
-export type LargeTradesOverlayHandle = { refresh(): void; sourceChanged(): void; reposition(): void; clear(): void };
+export type LargeTradesOverlayHandle = {
+  refresh(): void; sourceChanged(): void; reposition(): void; clear(): void;
+  captureSnapshot(root: HTMLElement, capturedAtMs: number): LargeTradesExportFrame | null;
+};
 type Props = {
   symbol: string; timeframe: string; params: Record<string, unknown>;
   replayCutoff: ReplayCutoff | null; interactive: boolean;
   getContext(): LargeTradesChartContext; onSettings?(): void;
 };
-type ReadState = { symbol: string; value: LargeTradesRead | null };
+type ReadState = { symbol: string; version: number; value: LargeTradesRead | null };
+function frameOwner(context: LargeTradesChartContext): LargeTradesFrameOwner {
+  return { chart: context.chart, series: context.series, bars: context.bars,
+    symbol: context.sourceSymbol, timeframe: context.timeframe,
+    replay: context.replayCutoff ? context.replayCutoff.clock + ":" + context.replayCutoff.at : "" };
+}
 const methodKeys: Record<SideMethod, string> = {
   exchange: "ltMethodExchange", resting_order: "ltMethodResting",
   quote_rule: "ltMethodQuote", unknown: "ltMethodUnknown",
@@ -47,30 +59,32 @@ const LargeTradesOverlay = forwardRef<LargeTradesOverlayHandle, Props>(function 
   const { lang } = useLang();
   const t = (key: string) => largeTradesText(lang, key);
   const locale = lang === "zh" ? "zh-CN" : "en-US";
-  const [read, setRead] = useState<ReadState>({ symbol, value: null });
+  const [read, setRead] = useState<ReadState>({ symbol, version: 0, value: null });
   const [revision, setRevision] = useState(0);
   const [requestVersion, setRequestVersion] = useState(0);
   const [open, setOpen] = useState(false);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [reportLimit, setReportLimit] = useState(25);
   const nodes = useRef(new Map<string, HTMLButtonElement>());
+  const markerLayer = useRef<HTMLDivElement>(null);
+  const controlsLayer = useRef<HTMLDivElement>(null);
   const openButton = useRef<HTMLButtonElement>(null);
   const inspector = useRef<HTMLElement>(null);
   const contextGetter = useRef(getContext); contextGetter.current = getContext;
   const ownerSymbol = useRef(symbol); ownerSymbol.current = symbol;
   const settings = useMemo(() => settingsFromParams(params), [params]);
-  const currentRead = read.symbol === symbol ? read.value : null;
+  const currentRead = read.symbol === symbol && read.version === requestVersion ? read.value : null;
   const displayTimezone = chartDisplayTimezone(symbol);
 
   useEffect(() => {
     const abort = new AbortController();
     let current = true;
-    setRead({ symbol, value: null }); setSelectedId(null);
+    setRead({ symbol, version: requestVersion, value: null }); setSelectedId(null);
     fetchLargeTrades(symbol, abort.signal).then((value) => {
-      if (current && !abort.signal.aborted && ownerSymbol.current === symbol) setRead({ symbol, value });
+      if (current && !abort.signal.aborted && ownerSymbol.current === symbol) setRead({ symbol, version: requestVersion, value });
     }).catch((error: unknown) => {
       if (current && !abort.signal.aborted && !(error instanceof DOMException && error.name === "AbortError")) {
-        setRead({ symbol, value: { state: "error", reason: "source_read_failed" } });
+        setRead({ symbol, version: requestVersion, value: { state: "error", reason: "source_read_failed" } });
       }
     });
     return () => { current = false; abort.abort(); };
@@ -92,52 +106,164 @@ const LargeTradesOverlay = forwardRef<LargeTradesOverlayHandle, Props>(function 
     const envelope = currentRead.envelope;
     try {
       const clock = resolveLargeTradesClock(envelope, replayCutoff, displayTimezone, Date.now());
-      if (clock.state !== "ready") return { envelope, snapshot: null, projection: [], clockState: clock.state };
+      if (clock.state !== "ready") return { envelope, owner: null, snapshot: null, projection: [], clockState: clock.state };
       const snapshot = buildLargeTradesSnapshot(envelope, settings, clock.clock);
       const context = contextGetter.current();
       const accepted = context.sourceSymbol === symbol && context.timeframe === timeframe;
       const projection = accepted ? projectLargeTradeClusters(snapshot.clusters, context.bars, timeframe, displayTimezone, settings.minQuantity) : [];
-      return { envelope, snapshot, projection, clockState: "ready" as const };
+      return { envelope, owner: accepted ? frameOwner(context) : null, snapshot, projection, clockState: "ready" as const };
     } catch {
       // A valid envelope can still exceed exact aggregate arithmetic; isolate it from the chart.
-      return { envelope, snapshot: null, projection: [], clockState: "invalid_evidence" as const };
+      return { envelope, owner: null, snapshot: null, projection: [], clockState: "invalid_evidence" as const };
     }
   }, [currentRead, replayCutoff?.at, replayCutoff?.clock, displayTimezone, settings, symbol, timeframe, revision]);
   const viewRef = useRef(view); viewRef.current = view;
+  const paintedView = useRef<typeof view>(null);
+  const invalidateFrame = useCallback(() => {
+    paintedView.current = null;
+    for (const node of nodes.current.values()) node.style.visibility = "hidden";
+    if (markerLayer.current) markerLayer.current.style.clipPath = "inset(100%)";
+    if (controlsLayer.current) {
+      controlsLayer.current.style.visibility = "hidden";
+      controlsLayer.current.setAttribute("aria-hidden", "true");
+      controlsLayer.current.parentElement!.dataset.ownerVisible = "false";
+    }
+  }, []);
 
   const reposition = useCallback(() => {
     const context = contextGetter.current();
     const projection = viewRef.current?.projection ?? [];
-    const eligible = context.sourceSymbol === ownerSymbol.current
-      && context.timeframe === timeframe && context.chart && context.series && !context.pricePane?.collapsed;
+    const owned = context.sourceSymbol === ownerSymbol.current && context.timeframe === timeframe;
     for (const node of nodes.current.values()) node.style.visibility = "hidden";
-    if (!eligible || !context.chart || !context.series) return;
+    if (markerLayer.current) markerLayer.current.style.clipPath = "inset(100%)";
+    const controls = controlsLayer.current, root = controls?.parentElement;
+    const hideControls = () => {
+      if (controls) { controls.style.visibility = "hidden"; controls.setAttribute("aria-hidden", "true"); }
+      if (root) root.dataset.ownerVisible = "false";
+    };
+    if (!owned || !context.chart || !context.series || !context.pricePane || !controls || !root) {
+      hideControls(); return;
+    }
     try {
-      const pane = context.pricePane;
-      const width = context.chart.paneSize(context.series.getPane().paneIndex()).width;
-      const height = pane?.height ?? context.chart.paneSize(context.series.getPane().paneIndex()).height;
-      const top = pane?.top ?? 0;
+      const nativePaneIndex = context.series.getPane().paneIndex();
+      if (context.pricePane.paneIndex !== nativePaneIndex) { hideControls(); return; }
+      const plot = largeTradesPlotBounds(context.pricePane, context.chart.priceScale("left").width(),
+        context.chart.paneSize(nativePaneIndex).width);
+      if (!plot) { hideControls(); return; }
+      const bounds = root.getBoundingClientRect();
+      if (!bounds.width || !bounds.height) { hideControls(); return; }
+      const sx = root.clientWidth / bounds.width, sy = root.clientHeight / bounds.height;
+      const viewport = window.visualViewport;
+      const visible = { x: ((viewport?.offsetLeft ?? 0) - bounds.left) * sx,
+        y: ((viewport?.offsetTop ?? 0) - bounds.top) * sy,
+        width: (viewport?.width ?? window.innerWidth) * sx,
+        height: (viewport?.height ?? window.innerHeight) * sy };
+      const controlBounds = largeTradesControlBounds(plot, root.clientWidth, root.clientHeight, visible);
+      if (!controlBounds) { hideControls(); return; } // Never leave quantities without reachable provenance.
+      controls.style.left = controlBounds.x + "px"; controls.style.top = controlBounds.y + "px";
+      controls.style.width = controlBounds.width + "px"; controls.style.height = controlBounds.height + "px";
+      controls.style.visibility = "visible"; controls.removeAttribute("aria-hidden");
+      root.dataset.ownerVisible = "true";
+      if (paintedView.current !== viewRef.current
+        || !sameLargeTradesFrameOwner(viewRef.current?.owner ?? null, frameOwner(context))) return;
+      if (markerLayer.current) markerLayer.current.style.clipPath = largeTradesClip(plot,
+        markerLayer.current.clientWidth, markerLayer.current.clientHeight);
       for (const mark of projection) {
         const node = nodes.current.get(mark.cluster.id);
         if (!node) continue;
         const x = context.chart.timeScale().timeToCoordinate(mark.chartTime as any);
         const y = context.series.priceToCoordinate(mark.price);
-        if (x == null || y == null || x < 0 || x > width || y < 0 || y > height) continue;
-        node.style.left = x + "px"; node.style.top = (y + top) + "px"; node.style.visibility = "visible";
+        const point = largeTradesPoint(plot, x, y);
+        if (!point) continue;
+        node.style.left = point.x + "px"; node.style.top = point.y + "px"; node.style.visibility = "visible";
       }
-    } catch { /* A retired renderer never keeps a marker at its previous owner's coordinates. */ }
-  }, [timeframe]);
-  useImperativeHandle(forwardedRef, () => ({
-    refresh() { setRevision((v) => v + 1); },
-    // Called only by ChartPanel's accepted-source owner; replay and pan never fetch.
-    sourceChanged() { setRevision((v) => v + 1); setRequestVersion((v) => v + 1); },
-    reposition,
-    clear() {
+    } catch {
+      hideControls();
       for (const node of nodes.current.values()) node.style.visibility = "hidden";
-      setRevision((v) => v + 1);
-    },
-  }), [reposition]);
-  useLayoutEffect(() => { reposition(); }, [view, reposition]);
+      if (markerLayer.current) markerLayer.current.style.clipPath = "inset(100%)";
+    }
+  }, [timeframe]);
+  const captureSnapshot = useCallback((root: HTMLElement, capturedAtMs: number): LargeTradesExportFrame | null => {
+    // Native takeScreenshot may flush coordinates. Reproject now, without changing its data/range.
+    reposition();
+    const current = viewRef.current, context = contextGetter.current();
+    if (!current?.snapshot || !current.owner || paintedView.current !== current
+      || !sameLargeTradesFrameOwner(current.owner, frameOwner(context))
+      || !context.pricePane || !context.chart || !context.series || current.clockState !== "ready"
+      || !isIntradayTf(context.timeframe) || controlsLayer.current?.style.visibility !== "visible") return null;
+    const mode = largeTradesModeLabel(current.envelope, capturedAtMs);
+    if (mode === "stale" || mode === "unavailable") return null;
+    try {
+      const plot = largeTradesPlotBounds(context.pricePane, context.chart.priceScale("left").width(),
+        context.chart.paneSize(context.pricePane.paneIndex).width);
+      if (!plot) return null;
+      const bounds = root.getBoundingClientRect();
+      const cssWidth = root.clientWidth, cssHeight = root.clientHeight;
+      if (!cssWidth || !cssHeight || !bounds.width || !bounds.height) return null;
+      const markers: FrozenTradeMarker[] = [];
+      for (const mark of current.projection) {
+        const node = nodes.current.get(mark.cluster.id);
+        if (!node?.isConnected || !root.contains(node)) continue;
+        const style = getComputedStyle(node);
+        if (style.visibility !== "visible" || style.display === "none") continue;
+        const rect = snapshotRelativeRect(node.getBoundingClientRect(), bounds, cssWidth, cssHeight);
+        if (!rect) continue;
+        const labelNode = settings.showLabels ? node.querySelector("span") : null;
+        const labelStyle = labelNode ? getComputedStyle(labelNode) : null;
+        const labelRect = labelNode ? snapshotRelativeRect(labelNode.getBoundingClientRect(), bounds, cssWidth, cssHeight) : null;
+        const ring = /^(.*?)\s+0px\s+0px\s+0px\s+([.\d]+)px$/.exec(style.boxShadow);
+        markers.push({ id: mark.cluster.id, quantity: mark.cluster.quantity, reports: mark.cluster.tradeCount,
+          side: mark.cluster.side, x: rect.x + rect.width / 2, y: rect.y + rect.height / 2,
+          width: rect.width, height: rect.height, fill: style.backgroundColor,
+          border: style.borderTopColor, borderWidth: parseFloat(style.borderTopWidth) || 0,
+          opacity: parseFloat(style.opacity), ringColor: ring?.[1] ?? "", ringWidth: Number(ring?.[2] ?? 0),
+          label: labelNode && labelStyle && labelRect ? { text: labelNode.textContent ?? "",
+            rect: labelRect, fill: labelStyle.backgroundColor, color: labelStyle.color,
+            font: `${labelStyle.fontStyle} ${labelStyle.fontWeight} ${labelStyle.fontSize} ${labelStyle.fontFamily}`,
+            radius: parseFloat(labelStyle.borderTopLeftRadius) || 0 } : null });
+      }
+      const e = current.envelope, p = e.provenance;
+      const translate = (key: string) => largeTradesText(lang, key);
+      const unitText = translate(e.instrument.quantityUnit === "contracts" ? "ltContracts" : "ltShares");
+      const footer = [
+        [translate("ltTitle"), translate("ltMode" + mode[0].toUpperCase() + mode.slice(1)), e.instrument.symbol,
+          p.venue, translate(p.scope === "venue" ? "ltVenueOnly" : "ltConsolidated"), unitText,
+          nsIso(e.range.startNs).slice(0, 10)].join(" · "),
+        translate("ltSettingMinQuantity") + ": " + settings.minQuantity.toLocaleString(locale)
+          + " " + unitText + " · " + translate("ltOrders") + ": " + translate("ltNotAvailable"),
+      ];
+      if (p.coverage !== "complete") footer.push(translate("ltPartialCoverage"));
+      if (mode === "fixture") footer.push(translate("ltFixtureNotice"));
+      if (p.evidenceMode === "HISTORICAL_REPLAY") footer.push(translate("ltHistoricalKnowledge"));
+      if (context.replayCutoff) footer.push(translate("ltReplayCutoff") + ": " + nsIso(current.snapshot.clock.marketCutoffNs));
+      if (p.attribution) footer.push(p.attribution);
+      if (p.termsUrl && /^https:\/\//i.test(p.termsUrl)) footer.push(p.termsUrl);
+      return freezeLargeTradesExportFrame({ symbol: e.instrument.symbol, timeframe: context.timeframe,
+        replay: current.owner.replay, sourceSha256: p.sourceSha256, capturedAtMs, cssWidth, cssHeight,
+        plot, markers, footer });
+    } catch { return null; }
+  }, [reposition, settings, lang, locale]);
+
+  useImperativeHandle(forwardedRef, () => ({
+    refresh() { invalidateFrame(); setRevision((v) => v + 1); },
+    // Called only by ChartPanel's accepted-source owner; replay and pan never fetch.
+    sourceChanged() { invalidateFrame(); setRevision((v) => v + 1); setRequestVersion((v) => v + 1); },
+    reposition, captureSnapshot,
+    clear() { invalidateFrame(); setRevision((v) => v + 1); },
+  }), [reposition, captureSnapshot, invalidateFrame]);
+  useLayoutEffect(() => { paintedView.current = view; reposition(); }, [view, reposition, open]);
+  useEffect(() => {
+    // Page/visual-viewport movement can change the visible part of an unchanged native pane.
+    const viewport = window.visualViewport;
+    window.addEventListener("scroll", reposition, { passive: true, capture: true });
+    viewport?.addEventListener("resize", reposition);
+    viewport?.addEventListener("scroll", reposition);
+    return () => {
+      window.removeEventListener("scroll", reposition, true);
+      viewport?.removeEventListener("resize", reposition);
+      viewport?.removeEventListener("scroll", reposition);
+    };
+  }, [reposition]);
 
   const clusters = view?.snapshot?.clusters ?? [];
   const selected = clusters.find((cluster) => cluster.id === selectedId) ?? clusters[0] ?? null;
@@ -169,7 +295,7 @@ const LargeTradesOverlay = forwardRef<LargeTradesOverlayHandle, Props>(function 
 
   return <section className={styles.root} data-testid="large-trades-overlay" data-state={state}
     data-mode={mode ?? "unavailable"} data-symbol={symbol} data-open={open} aria-label={t("ltTitle")}>
-    <div className={styles.markerLayer} aria-label={t("ltMarkers")}>
+    <div ref={markerLayer} className={styles.markerLayer} aria-label={t("ltMarkers")}>
       {(view?.projection ?? []).map((mark) => <button key={mark.cluster.id}
         ref={(node) => { if (node) nodes.current.set(mark.cluster.id, node); else nodes.current.delete(mark.cluster.id); }}
         type="button" data-testid="large-trade-marker" data-cluster-id={mark.cluster.id}
@@ -184,11 +310,12 @@ const LargeTradesOverlay = forwardRef<LargeTradesOverlayHandle, Props>(function 
         {settings.showLabels && <span>{qty(mark.cluster.quantity)}</span>}
       </button>)}
     </div>
+    <div ref={controlsLayer} className={styles.controlsLayer} data-testid="large-trades-controls">
     <div className={styles.dock} data-testid="large-trades-dock">
       <div className={styles.dockHeader}>
         <strong>{t("ltTitle")}</strong>
         <span className={styles.mode} data-warning={mode !== "live"}>{modeText}</span>
-        <button type="button" className={styles.iconButton} onClick={() => setRequestVersion((v) => v + 1)}
+        <button type="button" className={styles.iconButton} onClick={() => { invalidateFrame(); setRequestVersion((v) => v + 1); }}
           aria-label={t("ltRefresh")} title={t("ltRefresh")}>↻</button>
       </div>
       {state === "ready" && envelope ? <>
@@ -282,6 +409,7 @@ const LargeTradesOverlay = forwardRef<LargeTradesOverlayHandle, Props>(function 
         {safeTerms && <> <a href={safeTerms} target="_blank" rel="noopener noreferrer">{t("ltDataTerms")}</a></>}
       </footer>
     </aside>}
+    </div>
   </section>;
 });
 export default LargeTradesOverlay;
