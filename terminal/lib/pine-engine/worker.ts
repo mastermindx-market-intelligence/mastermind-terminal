@@ -13,7 +13,7 @@
 //
 // bars arrive columnar (Float64Array time/o/h/l/c/v + an ISO-time string[] for the engine's date
 // math) — transferable-friendly, so the host can hand ownership of the numeric columns to the worker.
-import { compile, runCompiled, type ParseResult, type Bar } from "./index";
+import { compile, runCompiled, type ParseResult, type Bar, type RunOpts } from "./index";
 import { hashSource, type ColumnarBars, columnsToBars } from "./host-shared";
 
 // AST cache keyed by source hash — a data-only re-run (replay tick, param edit, live splice) reuses
@@ -28,7 +28,7 @@ function cacheAst(id: string, ast: ParseResult) {
 
 type InMsg =
   | { kind: "compile"; reqId: number; source: string }
-  | { kind: "run"; reqId: number; astId?: string; source?: string; bars: ColumnarBars; inputs?: Record<string, any>; opts?: { timeframe?: string; symbol?: string; budgetMs?: number } }
+  | { kind: "run"; reqId: number; astId?: string; source?: string; bars: ColumnarBars; inputs?: Record<string, any>; opts?: { timeframe?: string; symbol?: string; budgetMs?: number; sessionAnchor?: RunOpts["sessionAnchor"] } }
   | { kind: "evict"; astId: string }
   | { kind: "clear" };
 
