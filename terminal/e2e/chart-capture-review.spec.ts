@@ -13,6 +13,7 @@ declare global {
   interface Window {
     __mmCaptureMidHook?: () => unknown;
     __mmCaptureReady?: boolean;
+    __e19FontsAtRequest?: boolean[];
   }
 }
 
@@ -45,6 +46,16 @@ async function openTerminal(page: Page): Promise<Uploads> {
     localStorage.setItem("mm.lang", "en");
     window.__mmCaptureReady = false;
     window.addEventListener("mm:terminal-visual-ready", () => { window.__mmCaptureReady = true; }, { once: true });
+    // Canvas text never waits for a web font. Record, at each review request, whether the faces the
+    // chart header and provenance strip are painted with had already loaded.
+    window.__e19FontsAtRequest = [];
+    window.addEventListener("mm:snapshot", (event) => {
+      if ((event as CustomEvent).detail?.action !== "review") return;
+      const root = getComputedStyle(document.documentElement);
+      const families = ["--font-ui", "--font-num"].map((name) => root.getPropertyValue(name).trim()).filter(Boolean);
+      window.__e19FontsAtRequest!.push(families.length > 0
+        && families.every((family) => ["400", "600", "700"].every((weight) => document.fonts.check(`${weight} 16px ${family}`))));
+    });
   });
   await page.goto("/terminal?symbol=NVDA");
   await expect(page.locator(".chart-wrap canvas").first()).toBeVisible();
@@ -130,6 +141,9 @@ test.describe("chart capture review", () => {
     await expect(dialog.getByText(`Include my drawings (${DRAWINGS.length})`)).toBeVisible();
 
     await expect(dialog.getByTestId("chart-capture-published")).toHaveText("Not provided by the data source");
+    const fontsAtRequest = await page.evaluate(() => window.__e19FontsAtRequest ?? []);
+    expect(fontsAtRequest.length, "the review asked the chart for at least one capture").toBeGreaterThan(0);
+    expect(fontsAtRequest, "every capture is painted only after its fonts have loaded").not.toContain(false);
 
     const saved = await saveAndRead(page, dialog);
     await expect(dialog.getByTestId("chart-capture-notice")).toHaveText("Image download started.");

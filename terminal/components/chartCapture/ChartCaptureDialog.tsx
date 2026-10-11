@@ -50,6 +50,26 @@ function cssToken(name: string, fallback: string): string {
   try { return getComputedStyle(document.documentElement).getPropertyValue(name).trim() || fallback; } catch { return fallback; }
 }
 
+/** Canvas text never waits for a web font: a face that is still loading paints in a fallback, so
+ * the chart header and the provenance strip would be drawn in the wrong glyphs. Load the faces both
+ * are painted with first. Bounded — a font that never arrives must not block the capture. */
+const CAPTURE_FONT_WAIT_MS = 2_000;
+async function fontsReady(): Promise<void> {
+  const fonts = typeof document !== "undefined" ? document.fonts : undefined;
+  if (!fonts) return;
+  const loads: Promise<unknown>[] = [fonts.ready];
+  for (const family of new Set([cssToken("--font-ui", ""), cssToken("--font-num", "")])) {
+    if (!family) continue;
+    for (const weight of ["400", "600", "700"]) loads.push(fonts.load(`${weight} 16px ${family}`).catch(() => null));
+  }
+  let timer = 0;
+  await Promise.race([
+    Promise.all(loads),
+    new Promise<void>((resolve) => { timer = window.setTimeout(resolve, CAPTURE_FONT_WAIT_MS); }),
+  ]);
+  window.clearTimeout(timer);
+}
+
 async function decodeImage(blob: Blob): Promise<CanvasImageSource & { width: number; height: number }> {
   if (typeof createImageBitmap === "function") return createImageBitmap(blob);
   const url = URL.createObjectURL(blob);
@@ -190,6 +210,8 @@ export default function ChartCaptureDialog({ open, onClose }: { open: boolean; o
     releaseUrl();
     setPhase({ kind: "capturing" });
     setNotice(null);
+    await fontsReady();
+    if (run !== runRef.current) return;
     for (let attempt = 0; attempt < CAPTURE_ATTEMPTS; attempt++) {
       const response = await requestCapture(include);
       if (run !== runRef.current) return;
