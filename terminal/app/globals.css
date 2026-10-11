@@ -5294,12 +5294,24 @@ html[data-shell="app"] .mm-brandbug{
   padding:10px 4px;border:0;border-radius:12px;background:rgba(255,255,255,.055);color:var(--text-2);cursor:pointer
 }
 .mhub-tile:active{background:rgba(255,255,255,.1)}
+.mhub-tile:disabled{cursor:default;opacity:.42}
+.mhub-tile[aria-pressed="true"]{background:rgba(41,98,255,.13);box-shadow:inset 0 0 0 1px var(--brand)}
 .mhub-tile svg{width:24px;height:24px;fill:none;stroke:var(--text);stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
 .mhub-tile span{font:600 11.5px/1.2 var(--font-ui);text-align:center}
 /* Ghosts are structure without a lie about what the alpha ships. */
 .mhub-tile.ghost{cursor:default;opacity:.42;padding-bottom:18px}
 .mhub-tile.ghost:active{background:rgba(255,255,255,.055)}
 .mhub-ghost-tag{position:absolute;left:0;right:0;bottom:5px;color:var(--text-dim);font:600 8px/1 var(--font-ui);font-style:normal;text-align:center}
+
+.replay-transport{display:flex;align-items:center;gap:10px;padding:7px 14px;border-bottom:1px solid var(--line);background:var(--bg)}
+@media(max-width:640px){
+  .replay-transport{flex-wrap:wrap;gap:6px;padding:8px 10px}
+  .replay-transport>.icbtn{flex:none;width:44px;height:44px}
+  .replay-transport>.seg{flex:none;height:44px!important}
+  .replay-transport>.seg button{min-width:44px;height:44px}
+  .replay-transport>input[type="range"]{order:1;flex:1 0 calc(100% - 86px)!important;min-width:80px}
+  .replay-transport>.num{order:2}
+}
 
 @media (prefers-reduced-motion:reduce){
   .mrs-wheel-track,.mhub,.mhub-scrim,.msheet-scrim.is-detent,.msheet.is-detent,.msheet.mdraw-sheet{transition:none!important;animation:none!important}
