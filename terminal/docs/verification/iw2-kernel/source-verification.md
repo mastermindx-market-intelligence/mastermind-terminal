@@ -1,5 +1,73 @@
 # Investigation kernel repair — source verification
 
+## Intl policy comparison renderer, adopted as source only (IM10, 2026-10-11)
+
+Base `8dfaa443`. `components/research/IntlPolicyComparison.tsx` and its CSS module
+are the IM10 controlled panel. The parent accepted it as repaired source only in
+`im10-controlled-panel-parent-r2/PARENT_ADJUDICATION.json` (SHA256
+`e124f4d7ba5690bb8a4c9fb428b83a32f3493d03fd8131a9e0a8a07b7fe663f6`).
+`lib/intlPolicyPreviewSession.ts` is unchanged (`f8a25b7f…`) and was not copied
+again.
+
+| Adopted path | Accepted original (SHA256) | Change |
+|---|---|---|
+| `components/research/IntlPolicyComparison.tsx` | `81ab1099…6733a` | `"use client"`, session type import from `@/lib`, receiver copy repair below |
+| `components/research/IntlPolicyComparison.module.css` | `cce06541…efe07` | none (byte for byte) |
+| `lib/__tests__/intlPolicyComparison.test.tsx` | author, `2f3f3d9d…f2f92`, 11 tests | the two module import paths only |
+| `lib/__tests__/intlPolicyComparisonParent.test.tsx` | parent, `df908bb3…f9159`, 8 tests | the two module import paths only |
+
+All 19 accepted assertions are unchanged. Neither the artifact's
+`vitest.config.ts` nor its `style-modules.d.ts` was copied. The CSS module typing
+comes from the generated `next-env.d.ts`.
+
+Test harness: Terminal had no React Testing Library, and both accepted suites
+need it. The real `@testing-library/react@16.3.3` and `@testing-library/dom@10.4.2`
+are now exact devDependencies, the same versions the IM10 evidence ran. The
+lockfile only gains 12 dev-only packages and drops none. The suites run on the
+existing Vitest 2 and jsdom 26. No production dependency changes.
+
+Receiver repair. When the owner supplies no `baselineComparison`, the renderer
+knows only that a saved-baseline comparison is unavailable. It does not know that
+saved data is absent. Only the two fallback strings changed, in both locales.
+Owner-supplied baseline labels and descriptions render exactly as supplied, and
+`baselineTag` is unchanged.
+
+| Key | Before | After |
+|---|---|---|
+| `baselineBody` (setup) | "No saved context for this pair and window; any change shown is across the selected dates, not since saving." / "无此组合与窗口的已保存情境；所示变化基于所选日期，非自保存以来。" | "Saved-baseline comparison is unavailable. Any change shown is across the selected dates, not since saving." / "与已保存基准的对比不可用。所示变化基于所选日期，并非自保存以来。" |
+| `reviewBaselineNote` (review) | "No matching saved baseline — unavailable, not zero changes." / "无匹配的已保存基准——不可用，并非零变化。" | "Saved-baseline comparison is unavailable; no conclusion about changes since saving is shown." / "与已保存基准的对比不可用；不显示关于自保存以来变化的结论。" |
+
+`lib/__tests__/intlPolicyComparisonBaselineFallback.test.tsx` has 6 tests. With no
+baseline projection, it checks EN and ZH, setup and review:
+
+- the truthful fallback renders;
+- no claim that saved context or a baseline is absent appears;
+- the selected-dates wording appears in setup only.
+
+It also checks that owner-supplied baseline text renders as supplied in both
+steps.
+
+Results:
+
+- **Red, on the candidate copy:** the 4 omitted-projection tests failed, each with
+  "Unable to find an element with the text" for the truthful copy. The other 21
+  passed.
+- **Green, after the copy repair:** 25/25.
+- **Typecheck:** `npx tsc --noEmit` reported 0 errors.
+
+Not proven:
+
+- Paper visual parity;
+- the light owner theme (`dataTheme` is only a styling variant);
+- 200% zoom and reflow in a real browser;
+- any page or route mount, or production wiring;
+- owner raw-draft validation or projection, and provider/source admission;
+- Saved persistence or write authority, and any schema or migration;
+- any merge, deploy or live outcome.
+
+Controlled props and callbacks stay owned by the parent. The projected reason,
+baseline and currency labels are presentation only.
+
 ## Intl policy preview session, adopted as source only (IM10, 2026-10-10)
 
 Base `41d85a86`. `lib/intlPolicyPreviewSession.ts` is the accepted IM10 module,
