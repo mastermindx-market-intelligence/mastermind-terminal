@@ -124,7 +124,7 @@ export async function PUT(request: Request) {
     if (result.status === "conflict") return jsonError("conflict", 409, { current: result.current });
     if (result.status === "not_found") return jsonError("not_found", 409);
     if (result.status === "invalid_id") return jsonError("invalid_id", 400);
-    console.error("study-templates PUT delete failed:", result.error);
+    console.error("study-templates PUT delete failed:", "error" in result ? result.error : result.status);
     return jsonError("study_templates_unavailable", 503);
   }
   return jsonError("unsupported_action", 400);

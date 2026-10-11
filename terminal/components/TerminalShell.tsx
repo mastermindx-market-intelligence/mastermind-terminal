@@ -34,7 +34,7 @@ import { flowGet } from "@/lib/flowClientCache";
 import { parseGlanceState } from "@/lib/mscGlance";
 import { DEFAULT_START_TF, TF_CANONICAL_ORDER, mobileTimeframeOptions, readStartTf, resolveStartTf } from "@/lib/startTf";
 import { useMarketPrefs } from "@/lib/useMarketPrefs";
-import { accountIdentity } from "@/lib/accountIdentity";
+import { accountIdentity, identityOwnerKey } from "@/lib/accountIdentity";
 import { portfolioRailOwner, usePortfolioRailRead } from "@/lib/usePortfolioRailRead";
 // Import the page ids from the import-free leaf, NOT from MegaPane: MegaPane is mounted
 // through next/dynamic below, and a value import out of it here would statically pull its
@@ -168,7 +168,8 @@ type ShellDrawingStyle = { color: string; width: number; dash: Dash };
 import { visualReadoutColumns, type ChartReadoutMeta } from "@/lib/visualIntelligence";
 import ChartTableView from "@/components/ChartTableView";
 import { type OTEntry } from "@/components/ChartObjectTree";
-import { listTemplates, saveTemplate } from "@/lib/chartTemplates";
+// E07: study templates — the host owns the save dialog, the library and the menu events.
+import StudyTemplatesHost from "@/components/studyTemplates/StudyTemplatesHost";
 import { FLAG_DEFAULT, FLAG_COLORS } from "@/lib/flagPalette";
 import { resolveTerminalLandingSymbol, TERMINAL_VISUAL_READY_EVENT } from "@/lib/terminalBoot";
 import AssetLogo from "@/components/AssetLogo";
@@ -1424,11 +1425,6 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
   // B3: sub-pane count for mobile chart-body height formula (--subpanes CSS var)
   const [subPanes, setSubPanes] = useState(0);
   const onPaneCount = useCallback((n: number) => setSubPanes(n), []);
-  // D2: chart templates — save-as modal
-  const [tmplSaveOpen, setTmplSaveOpen] = useState(false);
-  const [tmplSaveName, setTmplSaveName] = useState("");
-  const [tmplSaveErr, setTmplSaveErr] = useState<string | null>(null);
-  const [templates, setTemplates] = useState<import("@/lib/chartTemplates").ChartTemplate[]>([]);
   // D2: locked vertical line (bar time string | null); persists with the workspace save
   const [lockedVLine, setLockedVLine] = useState<string | null>(null);
   // D1: "remove all indicators" undo toast
@@ -2924,9 +2920,6 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
   useEffect(() => { window.dispatchEvent(new CustomEvent("mm:pane-state", { detail: paneOpen })); }, [paneOpen]);
 
   // ── D1-D4 event handlers (wired from context menu custom events) ─────────────
-  // Load chart templates on mount
-  useEffect(() => { try { setTemplates(listTemplates()); } catch {} }, []);
-
   // Remove-all-indicators event (from D1 context menu)
   useEffect(() => {
     const h = () => {
@@ -2952,27 +2945,13 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
     return () => window.removeEventListener("mm:remove-all-inds", h);
   }, [enabledIds, hidden, inds]);
 
-  // Apply template event (from D2 context menu)
-  useEffect(() => {
-    const h = (e: Event) => {
-      const id = (e as CustomEvent).detail?.id as string;
-      const tmpl = templates.find((t) => t.id === id);
-      if (!tmpl) return;
-      setInds(new Set(tmpl.indicators));
-      const base = allDefaults();
-      for (const k of IND_ORDER) { if (tmpl.indParams[k]) base[k] = withDefaults(k, tmpl.indParams[k]); }
-      for (const k of Object.keys(tmpl.indParams || {})) { if (isSuiteKey(k)) base[k] = { ...suiteDefaults(k), ...tmpl.indParams[k] }; }
-      setIndParams(withStudyInstanceParams(base, tmpl.indicators, tmpl.indParams));   // per-instance params (E06)
-    };
-    window.addEventListener("mm:apply-template", h);
-    return () => window.removeEventListener("mm:apply-template", h);
-  }, [templates]);
-
-  // Save-template event (from D2 context menu)
-  useEffect(() => {
-    const h = () => { setTmplSaveName(""); setTmplSaveErr(null); setTmplSaveOpen(true); };
-    window.addEventListener("mm:save-template", h);
-    return () => window.removeEventListener("mm:save-template", h);
+  // E07: study-template apply/save events are handled by <StudyTemplatesHost>. Its only chart effect
+  // is this study triple — never the symbol, drawings, watchlists, alerts, data policy or Day Trade Mode.
+  const studyTemplateState = useMemo(() => ({ inds: [...inds], indParams, hidden: [...hidden] }), [inds, indParams, hidden]);
+  const applyStudyTemplate = useCallback((next: { inds: string[]; indParams: Record<string, Record<string, unknown>>; hidden: string[] }) => {
+    setInds(new Set(next.inds));
+    setIndParams(next.indParams);
+    setHidden(new Set(next.hidden));
   }, []);
 
   const detect = (kind: NonNullable<DetectCmd>["kind"]) => {
@@ -6225,7 +6204,8 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
             if (entry) setGuide({ suite: entry.suiteKey, mod: entry.moduleKey, label: entry.label });
           }}
           scripts={scripts} scriptsUnavailable={scriptsUnavailable} onRetryScripts={loadScripts}
-          enabled={enabledSet} onToggleScript={toggleScript} onRenameScript={handleRenameScript} onDeleteScript={handleDeleteScript} />
+          enabled={enabledSet} onToggleScript={toggleScript} onRenameScript={handleRenameScript} onDeleteScript={handleDeleteScript}
+          onOpenTemplates={() => { window.requestAnimationFrame(() => window.dispatchEvent(new CustomEvent("mm:open-study-templates"))); }} />
       )}
       {settingsKey && (isCmpKey(settingsKey)
         ? <CompareSettings sym={cmpSymOf(settingsKey)} cfg={compareCfg[cmpSymOf(settingsKey)] || defaultCmpCfg(0)} onChange={(patch) => setCompareCfg((c) => ({ ...c, [cmpSymOf(settingsKey)]: { ...(c[cmpSymOf(settingsKey)] || defaultCmpCfg(0)), ...patch } }))} onClose={() => setSettingsKey(null)} />
@@ -6274,45 +6254,15 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
         <OracleDash sym={active} row={m} slice={slice} intel={intel} bars={bars} zh={lang === "zh"} onClose={() => setSignalsOpen(false)} onJump={(ts: string) => { window.dispatchEvent(new CustomEvent("mm:chart-jump", { detail: { ts } })); setSignalsOpen(false); }} onOpenFull={() => { setSignalsOpen(false); setPaneOpen("overview"); }} />
       )}
 
-      {/* ── D2 Save-template-as modal ─── */}
-      {tmplSaveOpen && (
-        <div className="tmpl-modal-bg" onClick={(e) => { if (e.target === e.currentTarget) setTmplSaveOpen(false); }}>
-          <div className="tmpl-modal">
-            <h3>{t("tmplSaveAs")}</h3>
-            <input
-              autoFocus
-              placeholder={t("tmplNamePlaceholder")}
-              value={tmplSaveName}
-              onChange={(e) => { setTmplSaveName(e.target.value); setTmplSaveErr(null); }}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") {
-                  e.preventDefault();
-                  if (!tmplSaveName.trim()) { setTmplSaveErr(t("tmplNameRequired")); return; }
-                  const existing = templates.find((x) => x.name === tmplSaveName.trim());
-                  if (existing && !window.confirm(t("tmplOverwriteConfirm"))) return;
-                  try {
-                    saveTemplate(tmplSaveName.trim(), [...inds], indParams);
-                    setTemplates(listTemplates());
-                  } catch {}
-                  setTmplSaveOpen(false);
-                } else if (e.key === "Escape") setTmplSaveOpen(false);
-              }}
-            />
-            {tmplSaveErr && <div style={{ color: "var(--danger)", fontSize: 12, marginBottom: 10 }}>{tmplSaveErr}</div>}
-            <div className="tmpl-btns">
-              <button className="btn" onClick={() => setTmplSaveOpen(false)}>{t("cancel")}</button>
-              <button className="btn btn-primary" onClick={() => {
-                if (!tmplSaveName.trim()) { setTmplSaveErr(t("tmplNameRequired")); return; }
-                try {
-                  saveTemplate(tmplSaveName.trim(), [...inds], indParams);
-                  setTemplates(listTemplates());
-                } catch {}
-                setTmplSaveOpen(false);
-              }}>{t("save")}</button>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* ── E07 study templates: save dialog, library with preview, menu events ─── */}
+      <StudyTemplatesHost
+        key={identityOwnerKey(identity)}
+        identity={identity}
+        studyState={studyTemplateState}
+        userTier={userTier}
+        guestLimit={loggedIn ? null : MAX_ANON_IND}
+        onApply={applyStudyTemplate}
+      />
 
       {/* ── D1 "remove all indicators" undo toast ─── */}
       {undoInds && (

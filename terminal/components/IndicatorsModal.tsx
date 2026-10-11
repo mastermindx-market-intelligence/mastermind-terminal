@@ -21,6 +21,7 @@ import { type UserScript } from "@/lib/userScripts";
 import { MAX_INSTANCES_PER_TYPE, supportsMultipleInstances } from "@/lib/studyInstances";
 import { renderableStudyIds } from "@/lib/studyInstanceView";
 import { useStudyInstancesT } from "@/lib/studyInstancesLex";
+import { useStudyTemplatesT } from "@/lib/studyTemplatesLex";
 import type { IndKey } from "@/lib/indicators";
 import StateSwitch, { LockMark } from "@/components/StateSwitch";
 import {
@@ -163,6 +164,8 @@ export interface IndicatorsModalProps {
   onRenameScript?: (id: string, name: string) => void;
   onDeleteScript?: (id: string) => void;
   userTier?: Tier;
+  /** Opens the study-template library (E07). The dialog closes first; the library owns focus next. */
+  onOpenTemplates?: () => void;
 }
 
 export default function IndicatorsModal({
@@ -186,10 +189,12 @@ export default function IndicatorsModal({
   onRenameScript,
   onDeleteScript,
   userTier = "free",
+  onOpenTemplates,
 }: IndicatorsModalProps) {
   const t = useT();
   const { lang } = useLang();
   const si = useStudyInstancesT();
+  const st = useStudyTemplatesT();
   const [cat, setCat] = useState<string>(ALL_INDICATORS);
   const [query, setQuery] = useState("");
   const [renaming, setRenaming] = useState<string | null>(null);
@@ -1033,6 +1038,19 @@ export default function IndicatorsModal({
               <div className="grp">{copy("Tools", "工具")}</div>
               {navButton(SYSTEM_PRESETS, copy("Systems & Presets", "系统与预设"), SUITE_ORDER.length)}
               {navButton(MY_SCRIPTS, t("myScripts"), scripts.length)}
+              {onOpenTemplates && (
+                <button
+                  type="button"
+                  className="im-nav-item"
+                  data-open-study-templates=""
+                  onClick={() => {
+                    closeModal(true);
+                    onOpenTemplates();
+                  }}
+                >
+                  <span>{st("stplNavLabel")}</span>
+                </button>
+              )}
             </div>
           </nav>
           <main
