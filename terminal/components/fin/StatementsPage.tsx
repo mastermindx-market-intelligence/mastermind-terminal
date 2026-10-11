@@ -40,22 +40,55 @@ function listJoin(items: string[], zh: boolean): string {
   return items.join(zh ? "、" : ", ");
 }
 
+export type StatementsStmt = "income" | "balance" | "cashflow";
+type Stmt = StatementsStmt;
+type AQ = "annual" | "quarterly";
+
+/**
+ * A deep link into one exact source cell (Financials · Compare). The page opens on this
+ * statement and basis and marks the column whose period END is `periodEnd` — the index is a
+ * hint, re-checked against the end date, so a refreshed file can never mark a different period.
+ */
+export interface StatementsSourceFocus {
+  stmt: StatementsStmt;
+  basis: AQ;
+  index: number;
+  periodEnd: string;
+  rowId: string | null;
+}
+
 export interface StatementsPageProps {
   sym: string;
   fund: Fund | null;
   name?: string | null;
-  /** Open the transcript drawer for a defeatbeta fiscal id. */
-  onOpenTx: (txId: string) => void;
+  /**
+   * Open the transcript drawer for a defeatbeta fiscal id. Omitted → no transcript strip (a
+   * peer's source view inside another company's pane, whose drawer belongs to that company).
+   */
+  onOpenTx?: (txId: string) => void;
+  /** Open on, and mark, one exact source period. */
+  focus?: StatementsSourceFocus | null;
 }
 
-type Stmt = "income" | "balance" | "cashflow";
-type AQ = "annual" | "quarterly";
+/** The column `focus` names in `set`, or null when that period is not (or no longer) there. */
+export function resolveStatementsFocus(
+  focus: StatementsSourceFocus | null | undefined,
+  set: StatementPeriodSet | null | undefined,
+  stmt: StatementsStmt,
+  aq: AQ,
+): number | null {
+  if (!focus || !set || focus.stmt !== stmt || focus.basis !== aq) return null;
+  const ends = set.period_end ?? [];
+  if (ends[focus.index] === focus.periodEnd) return focus.index;
+  const hits = ends.flatMap((end, i) => (end === focus.periodEnd ? [i] : []));
+  return hits.length === 1 ? hits[0] : null;
+}
 
-export default function StatementsPage({ sym, fund, onOpenTx }: StatementsPageProps) {
+export default function StatementsPage({ sym, fund, onOpenTx, focus = null }: StatementsPageProps) {
   const { lang } = useLang();
   const zh = lang === "zh";
-  const [stmt, setStmt] = useState<Stmt>("income");
-  const [requestedAQ, setAQ] = useState<AQ>("annual");
+  const [stmt, setStmt] = useState<Stmt>(focus?.stmt ?? "income");
+  const [requestedAQ, setAQ] = useState<AQ>(focus?.basis ?? "annual");
   const annualAvailable = statementBasisAvailable(fund?.statements?.annual);
   const interimAvailable = statementBasisAvailable(fund?.statements?.quarterly);
   const aq: AQ = resolveStatementBasis(requestedAQ, annualAvailable, interimAvailable);
@@ -143,6 +176,7 @@ export default function StatementsPage({ sym, fund, onOpenTx }: StatementsPagePr
 
   // ── table rows: TV taxonomy per statement ──
   const rows: MiniRow[] = buildRows(stmt, set, view, aq, zh);
+  const focusIndex = resolveStatementsFocus(focus, set, stmt, aq);
 
   // Deep-history provenance. `span` evidences the depth on the section header; `gapNotice`
   // names, in plain words, the rows the pre-2021 filings do not carry — so a dash in those
@@ -218,7 +252,7 @@ export default function StatementsPage({ sym, fund, onOpenTx }: StatementsPagePr
       </div>
 
       {/* ── documents row: doc-icon per period that has a transcript ── */}
-      {periods.length > 0 && (
+      {periods.length > 0 && onOpenTx && (
         <div className="fin-doc-strip" role="group" aria-label={pick(zh, "Earnings call transcripts", "财报电话会记录")}>
           <span className="fin-doc-strip-lbl">{pick(zh, "Transcripts", "记录")}</span>
           <div className="fin-doc-strip-cells" ref={docStripRef}>
@@ -295,6 +329,7 @@ export default function StatementsPage({ sym, fund, onOpenTx }: StatementsPagePr
           pageSize={aq === "annual" ? 6 : 6}
           zh={zh}
           cornerLabel={curLabel}
+          focus={focusIndex == null ? null : { index: focusIndex, rowId: focus?.rowId ?? null }}
         />
       </section>
 
@@ -373,11 +408,11 @@ function buildRows(
   });
 
   if (stmt === "income") {
-    const rows: MiniRow[] = [mk(incomeViewTopLineLabel(view, zh), inc.revenue, { bold: true })];
+    const rows: MiniRow[] = [mk(incomeViewTopLineLabel(view, zh), inc.revenue, { bold: true, id: "revenue" })];
     if (isIndustrialIncomeView(view)) {
       rows.push(
         mk(pick(zh, "Cost of goods sold", "营业成本"), inc.cogs),
-        mk(pick(zh, "Gross profit", "毛利"), inc.gross_profit, { bold: true }),
+        mk(pick(zh, "Gross profit", "毛利"), inc.gross_profit, { bold: true, id: "gross_profit" }),
       );
     }
     rows.push(
@@ -385,11 +420,11 @@ function buildRows(
         incomeViewOperatingExpenseLabel(view, zh),
         view.operatingExpenses,
       ),
-      mk(pick(zh, "Operating income", "营业利润"), inc.op_income, { bold: true }),
+      mk(pick(zh, "Operating income", "营业利润"), inc.op_income, { bold: true, id: "op_income" }),
       mk(pick(zh, "Non-operating income (total)", "营业外收入（合计）"), inc.nonop_income),
       mk(pick(zh, "Pretax income", "税前利润"), inc.pretax_income, { bold: true }),
       mk(pick(zh, "Taxes", "税项"), inc.taxes),
-      mk(pick(zh, "Net income", "净利润"), inc.net_income, { bold: true }),
+      mk(pick(zh, "Net income", "净利润"), inc.net_income, { bold: true, id: "net_income" }),
     );
     if (isIndustrialIncomeView(view)) {
       rows.push(mk(pick(zh, "EBITDA", "EBITDA"), inc.ebitda));
@@ -398,7 +433,7 @@ function buildRows(
       // EPS rows ride the same normalized block, so they stay internally consistent with
       // revenue / net income on a differenced cumulative-YTD statement.
       { label: pick(zh, "Basic EPS", "基本每股收益"), values: inc.eps_basic, fmt: epsFmt },
-      { label: pick(zh, "Diluted EPS", "稀释每股收益"), values: inc.eps_diluted, fmt: epsFmt },
+      { label: pick(zh, "Diluted EPS", "稀释每股收益"), values: inc.eps_diluted, fmt: epsFmt, id: "eps_diluted" },
     );
     return rows;
   }
@@ -407,6 +442,7 @@ function buildRows(
     return [
       mk(pick(zh, "Total assets", "总资产"), bal.assets, {
         bold: true,
+        id: "assets",
         children: [
           mk(pick(zh, "Current assets", "流动资产"), bal.assets_st, { depth: 1 }),
           mk(pick(zh, "Non-current assets", "非流动资产"), bal.assets_lt, { depth: 1 }),
@@ -419,17 +455,17 @@ function buildRows(
           mk(pick(zh, "Non-current liabilities", "非流动负债"), bal.liab_lt, { depth: 1 }),
         ],
       }),
-      mk(pick(zh, "Total equity", "股东权益"), bal.equity, { bold: true }),
+      mk(pick(zh, "Total equity", "股东权益"), bal.equity, { bold: true, id: "equity" }),
       { label: pick(zh, "Total debt", "总债务"), values: bal.debt },
       { label: pick(zh, "Net debt", "净债务"), values: bal.net_debt },
       { label: pick(zh, "Cash & equivalents", "现金及等价物"), values: bal.cash },
     ];
 
   return [
-    mk(pick(zh, "Cash flow from operating activities", "经营活动现金流"), cf.cfo, { bold: true }),
+    mk(pick(zh, "Cash flow from operating activities", "经营活动现金流"), cf.cfo, { bold: true, id: "cfo" }),
     mk(pick(zh, "Cash flow from investing activities", "投资活动现金流"), cf.cfi, { bold: true }),
     mk(pick(zh, "Cash flow from financing activities", "筹资活动现金流"), cf.cff, { bold: true }),
     { label: pick(zh, "Capital expenditure", "资本支出"), values: cf.capex },
-    { label: pick(zh, "Free cash flow", "自由现金流"), values: cf.fcf },
+    { label: pick(zh, "Free cash flow", "自由现金流"), values: cf.fcf, id: "fcf" },
   ];
 }
