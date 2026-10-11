@@ -1,9 +1,18 @@
 # GMI gate #8 — Shared themes · latest U.S. picks card — capture evidence
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
 # Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
-# capturedAtHead: c9d211fdcc7b370575af91868932a6764294df0d
-# capturedAt: 2026-10-06T12:58:20.448Z
+# capturedAtHead: 5ad5212113a8ff11a5701f67ad3ea7317ca63dbf
+# capturedAt: 2026-10-10T02:13:27.903Z
 # capturedAtHead is informational. The lock is layoutFiles.
+# 2026-10-10 recapture: the script ran unmodified at 5ad521211 (#893), twice, with byte-identical crops both times.
+#   The script hardcodes MASTER_HEAD c9d211fdc and prints it whatever is checked out; the head above is the real one.
+#   All 4 layoutFiles rows were already current and are unchanged. All 13 crops changed in glyph rasterisation only:
+#   --font-ui leads with -apple-system, which this macOS Chromium resolves to SF and PingFang. The #837 crops used wider
+#   Latin and CJK faces. No font CSS changed since c9d211fdc. The narrower CJK fits mobile-zh-unavailable's second
+#   paragraph on one line, so that crop is 386x115, not 386x133.
+#   desktop-en-page-open also differs in the date-driven "Nd active" counters. It shows the popover clipped: the script
+#   screenshots the frame the popover mounts, one frame before ProphetView adds cohortPopoverOpen and lifts the
+#   masthead's overflow:hidden. Once settled, the popover draws as desktop-en-open shows.
 layoutFiles:
   terminal/lib/selectionCohort.ts: "795de709d83958ebf9cb7022969037430203a6a1c9b6091ceade89cecc2c9795"
   terminal/components/prophet/SelectionCohortCard.tsx: "c88884dd550558e8fbb491ba2d1abc58987cf90a0981fbdcdb4af51402189d28"
