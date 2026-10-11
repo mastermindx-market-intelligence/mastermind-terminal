@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useInvestigationTheme } from "@/lib/useInvestigationTheme";
 import { useEffect, useId, useLayoutEffect, useRef, useState, type KeyboardEvent as ReactKeyboardEvent } from "react";
 import { useLang } from "@/lib/i18n";
 import { subscribeInvestigationAuthOwner } from "@/lib/supabase/investigationAuthOwner";
@@ -79,6 +80,7 @@ export default function InvestigationWorkspace({ownerKey,initialSymbol,initialIn
  const resetAsOf=()=>{setExactDate("");setExactTime("");setAsOfNote("");setAsOfCleared(false);};
  const [retainedCapture,setRetainedCapture]=useState<RetainedCapture|null>(null);
  const [storageBlocked,setStorageBlockedState]=useState(false),[authEnded,setAuthEnded]=useState(false),[filter,setFilter]=useState<"active"|"removed">("active");
+ const investigationTheme=useInvestigationTheme(ownerKey,authEnded);
  const scope=useRef<AbortController|null>(null),inventorySeq=useRef(0),layoutSeq=useRef(0),detailSeq=useRef(0),baselineSeq=useRef(0),stateRef=useRef<InvestigationSaveState>({phase:"idle"});
  const storageBlockedRef=useRef(false);
  const setStorageBlocked=(blocked:boolean)=>{storageBlockedRef.current=blocked;setStorageBlockedState(blocked);};
@@ -341,8 +343,8 @@ export default function InvestigationWorkspace({ownerKey,initialSymbol,initialIn
  const symbol=detail?.manifest.intent.subjects.find(s=>s.owner==="terminal.analysis_symbol")?.object_id??draft.symbol;
  const visible=items?.filter(i=>i.lifecycle===filter);
  const frozen=locked||storageBlocked;
- if(authEnded)return <InvestigationAuthContext.Provider value={authProjection}><main className={`main2 ws-shell ${styles.root}`}><h1>{c.title}</h1><p role="status">{c.auth}</p><Link href="/login">{c.signIn}</Link></main></InvestigationAuthContext.Provider>;
- return <InvestigationAuthContext.Provider value={authProjection}><main className={`main2 ws-shell ${styles.root}`}>
+ if(authEnded)return <InvestigationAuthContext.Provider value={authProjection}><main className={`main2 ws-shell ${styles.root}`} data-investigation-theme={investigationTheme}><h1>{c.title}</h1><p role="status">{c.auth}</p><Link href="/login">{c.signIn}</Link></main></InvestigationAuthContext.Provider>;
+ return <InvestigationAuthContext.Provider value={authProjection}><main className={`main2 ws-shell ${styles.root}`} data-investigation-theme={investigationTheme}>
   <Link className={styles.back} href={`/analysis${symbol?`?symbol=${encodeURIComponent(symbol)}`:""}`}>← {c.back}</Link>
   <header className={styles.heading}><div><h1>{c.title}</h1><p>{c.intro}</p></div><button disabled={frozen} onClick={()=>beginEdit(true)}>{c.start}</button></header>
   {storageBlocked&&<p className={styles.notice} role="alert">{c.storage}</p>}
