@@ -43,9 +43,16 @@ export default function SectionPortfolioTargets({ t, lang, onClose, email, user 
   // Fences for the mutation chain (see `mutate` below). `ownerRef` is read at
   // mutation start and again before any paint; `alive` stops paints after unmount.
   const ownerRef = useRef(ownerKey);
+  const ownerGeneration = useRef(0);
   // Layout effect, not passive: the owner must be current before any fetch
-  // continuation can run against the new render.
-  useLayoutEffect(() => { ownerRef.current = ownerKey; }, [ownerKey]);
+  // continuation can run against the new render. Returning A→B→A must not
+  // revive A's old readback; same-owner and locale renders keep valid work live.
+  useLayoutEffect(() => {
+    if (ownerRef.current !== ownerKey) {
+      ownerRef.current = ownerKey;
+      ownerGeneration.current += 1;
+    }
+  }, [ownerKey]);
   const alive = useRef(true);
   useEffect(() => { alive.current = true; return () => { alive.current = false; }; }, []);
 
@@ -115,6 +122,7 @@ export default function SectionPortfolioTargets({ t, lang, onClose, email, user 
   const mutate = useCallback((payload: Record<string, unknown>) => {
     const seq = ++mutationSeq.current;
     const owner = ownerRef.current;
+    const generation = ownerGeneration.current;
     const run = chain.current.then(async () => {
       if (ownerRef.current !== owner) throw new Error("owner changed");
       let failure: Error | null = null;
@@ -128,9 +136,10 @@ export default function SectionPortfolioTargets({ t, lang, onClose, email, user 
       } catch (cause) {
         failure = cause instanceof Error ? cause : new Error("save failed");
       }
-      // "Still the newest intent, same owner, still mounted" — re-asked at every
+      // "Still the newest intent, same owner generation, still mounted" — re-asked at every
       // step because each await is a window in which any of the three can change.
-      const live = () => alive.current && seq === mutationSeq.current && ownerRef.current === owner;
+      const live = () => alive.current && seq === mutationSeq.current
+        && ownerRef.current === owner && ownerGeneration.current === generation;
       if (live()) {
         let painted = false;
         try {
@@ -184,12 +193,19 @@ export default function SectionPortfolioTargets({ t, lang, onClose, email, user 
       />
       <div className="acs-body" data-testid="portfolio-targets-settings">
         {state.kind === "loading" || state.kind === "idle" ? (
-          <p className="acs-note" data-testid="portfolio-targets-loading">
+          <p className="acs-note" data-testid="portfolio-targets-loading" role="status">
             {t("acsPortfolioTargetsLoading")}
           </p>
         ) : state.kind === "unreadable" ? (
           <p className="acs-note" data-testid="portfolio-targets-unreadable" role="status">
-            {t("acsPortfolioTargetsUnreadable")}
+            {t("acsPortfolioTargetsUnreadable")}{" "}
+            <button
+              type="button"
+              className="acs-msg-retry"
+              onClick={() => setReloadKey((k) => k + 1)}
+            >
+              {t("portfolioUnreadableRetry")}
+            </button>
           </p>
         ) : empty ? (
           <div className="acs-empty-card" data-testid="portfolio-targets-empty">
