@@ -94,6 +94,7 @@ import { crossUps, crossDowns, crossUpsBelow, crossDownsAbove } from "@/lib/cros
 import { SOFT_Q, anchorSignal, isBlockedSignal, isOverrideCandidate, isReclaimOverrideTake, isStopSweepReclaim, isStructureStop, isWaivedEntry, markerTooltipCopy, opportunityMarkerGlyph, sliceSignalBasis } from "@/lib/signalVerdict";
 import { makeNearestBarIndex } from "@/lib/barSnap";
 import { LIVE_BAR_PROJECTION, LIVE_INPLACE_SERIES_KEYS, LIVE_REBUILD_KEYS, acceptsLiveTick, liveQuoteStamp, seriesReuseChart, type AcceptedLiveTick } from "@/lib/liveBarProjection";
+import { composeCaptureScene, isChartCaptureRequest, type CaptureDataCopy, type CapturePainted, type CaptureScene, type ChartCaptureRequest } from "@/lib/chartCapture";
 import { dailyMultipleOf, groupSessionBars, parseSessionAnchor, resolveBarAnchor,
   sessionToBarTime, type SessionAnchor } from "@/lib/sessionBars";
 import { ichimoku, supertrend, avwap as computeAvwap, rollingVwap, weekAnchoredVwap, vprofile, volbox, rsiStack, accumPct, trendRibbon, buyShare as mfBuyShare } from "@/lib/indicatorMath";
@@ -861,6 +862,9 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
   // everything derived from it, backwards; `acceptsLiveTick` refuses a strictly older one FROM THE
   // SAME LANE (a basis change is a different clock, so it restarts the ordering). Cleared with the bars.
   const liveTickRef = useRef<AcceptedLiveTick | null>(null);
+  // What this generation's bar read reported about its own freshness, for the capture review (E19):
+  // a saved copy carries its age and how its background refresh ended; null = not reported.
+  const ohlcCopyRef = useRef<CaptureDataCopy | null>(null);
   // Live-study rebuild failures, per key. `runStudyInPlace` cannot abort the pass — the other
   // studies still have to be carried — so a failure is recorded here instead of vanishing into a
   // bare `catch`. A key that throws does so on EVERY subsequent tick, which is exactly the
@@ -3037,6 +3041,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
     try { priceSeriesRef.current?.setData([]); suitePaintKeyRef.current = ""; } catch {}
     liveTickKeyRef.current = "";
     liveTickRef.current = null;    // a new bar set starts a new accepted-quote ordering
+    ohlcCopyRef.current = null;    // …and reports its own freshness once its read lands
     const liveWrap = wrapElRef.current;
     if (liveWrap) {
       delete liveWrap.dataset.liveDirection;
@@ -3452,9 +3457,47 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
         } catch { resolve(null); }
       });
     };
+    // ── review capture (E19) ── the scene a review capture describes, from the same refs the
+    // compositor paints from. It is read in the raster's own task and again after the composite;
+    // the review withholds an image whose two readings differ. Counts only — no drawing content.
+    const captureScene = (): CaptureScene => {
+      const wrapEl = wrapElRef.current;
+      let visibleRange: { from: unknown; to: unknown } | null = null;
+      try { visibleRange = chartRef.current?.timeScale().getVisibleRange() ?? null; } catch {}
+      const replaying = replayIdxRef.current != null;
+      return composeCaptureScene({
+        source: visualSourceRef.current,
+        requested: { symbol: symbolRef.current, timeframe: timeframeRef.current },
+        generation: epochRef.current,
+        bars: barsRef.current,
+        visibleRange,
+        viewport: { width: wrapEl?.clientWidth ?? 0, height: wrapEl?.clientHeight ?? 0, maximizedPane: paneCtl.current.maximized },
+        panes: paneLayoutRef.current,
+        drawings: drawRef.current,
+        liveTick: replaying ? null : liveTickRef.current,
+        replay: replaying,
+        copy: ohlcCopyRef.current,
+      });
+    };
+    const svgHasMarks = (el: SVGSVGElement | null) => !!el
+      && Array.from(el.querySelectorAll("path,line,rect,circle,ellipse,polyline,polygon,text,image")).some((node) => !node.closest("defs"));
+    const shownOnChart = (el: HTMLElement | null) => {
+      if (!el || !el.isConnected || !el.offsetWidth || !el.offsetHeight) return false;
+      const style = getComputedStyle(el);
+      return style.display !== "none" && style.visibility !== "hidden" && style.opacity !== "0";
+    };
     const snapshot = (ev?: Event) => {
       if (!activeRef.current) return;
-      const action: string = (ev as CustomEvent)?.detail?.action || "download";
+      const detail = (ev as CustomEvent)?.detail;
+      const review: ChartCaptureRequest | null = isChartCaptureRequest(detail) ? detail : null;
+      const action: string = review ? "review" : detail?.action || "download";
+      let responded = false;
+      const respond: ChartCaptureRequest["respond"] = (response) => {
+        if (!review || responded) return;
+        responded = true;
+        try { review.respond(response); } catch {}
+      };
+      if (review && !barsRef.current.length) { respond({ ok: false, reason: "no_data" }); return; }
       (async () => {
         try {
           // Repaint the DOM overlay layer immediately before capture so a just-added indicator,
@@ -3462,6 +3505,19 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
           renderSignalsRef.current?.();
           renderRef.current?.();
           const src = chartRef.current!.takeScreenshot();   // HTMLCanvasElement — all panes (lightweight-charts' own px ratio)
+          // One clock reading for this raster: every time stamped on the image is THIS instant, and a
+          // review reads the scene it describes in the same task, before anything below can await.
+          const rasterAt = new Date();
+          const before = review ? captureScene() : null;
+          const painted: CapturePainted = {
+            indicatorOverlay: false, signals: false, annotations: false, tables: 0, studyLabels: 0,
+            maximizedCrop: false,
+            notCaptured: review ? [
+              ...(shownOnChart(priceTagRef.current) ? ["price_tag"] : []),
+              ...(shownOnChart(extendedTagRef.current) ? ["extended_tag"] : []),
+              ...(shownOnChart(countdownChipRef.current) ? ["countdown"] : []),
+            ] : [],
+          };
           const wrap = wrapElRef.current;
           const cssW = wrap ? wrap.clientWidth : src.width;
           const cssH = wrap ? wrap.clientHeight : src.height;
@@ -3475,7 +3531,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
           const HDR = Math.round(52 * dpr);                        // header band height in output px
           const out = document.createElement("canvas");
           out.width = chartW; out.height = chartH + HDR;
-          const g = out.getContext("2d"); if (!g) return;
+          const g = out.getContext("2d"); if (!g) { respond({ ok: false, reason: "render_failed" }); return; }
           const bg = css("--bg") || "#0a0b0e";
           const text = css("--text") || "#d6dae3";
           const mut = tokensRef.current.mut || css("--muted") || "#5a616f";
@@ -3511,6 +3567,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
                 const axSrcY = Math.round(axTop * k);
                 g.drawImage(src, 0, axSrcY, src.width, src.height - axSrcY, 0, HDR + mHOut, chartW, chartH - Math.round(axTop * dpr));
                 srcDrawn = true;
+                painted.maximizedCrop = true;
               }
             } catch {}
           }
@@ -3520,7 +3577,12 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
           if (wrap) {
             const indicatorSvgEl = indSvgRef.current;
             const sigSvgEl = sigRef.current;
-            const drawSvgEl = svgRef.current;
+            // Drawings can hold private notes: a review capture leaves them out unless the viewer
+            // chose to include them. The one-click actions keep their existing behaviour.
+            const drawSvgEl = review && !review.includeAnnotations ? null : svgRef.current;
+            const marks = review
+              ? { indicators: svgHasMarks(indicatorSvgEl), signals: svgHasMarks(sigSvgEl), drawings: !!drawSvgEl && (before?.annotations ?? 0) > 0 }
+              : null;
             const [indicatorImg, sigImg, drawImg] = await Promise.all([
               indicatorSvgEl ? svgToImage(indicatorSvgEl, cssW, cssH) : Promise.resolve(null),
               sigSvgEl ? svgToImage(sigSvgEl, cssW, cssH) : Promise.resolve(null),
@@ -3529,11 +3591,21 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
             if (indicatorImg) g.drawImage(indicatorImg, 0, HDR, chartW, chartH);
             if (sigImg) g.drawImage(sigImg, 0, HDR, chartW, chartH);
             if (drawImg) g.drawImage(drawImg, 0, HDR, chartW, chartH);
+            if (marks) {
+              painted.indicatorOverlay = !!indicatorImg && marks.indicators;
+              painted.signals = !!sigImg && marks.signals;
+              painted.annotations = !!drawImg && marks.drawings;
+            }
+          }
+          // Dev/e2e seam: lets a test move the chart between the raster and the end of the
+          // composite, the exact window a review capture must refuse to describe.
+          if (review && process.env.NODE_ENV !== "production") {
+            await (window as unknown as { __mmCaptureMidHook?: () => unknown }).__mmCaptureMidHook?.();
           }
           // Premium Market/MTF dashboards are live DOM tables rather than chart/SVG primitives.
           // Repaint their current TableSpec data directly so every first-class indicator surface
           // participates in the export without depending on a lagging React commit or DOM rasterizer.
-          paintSnapshotTables(g, suiteTablesRef.current, {
+          painted.tables = paintSnapshotTables(g, suiteTablesRef.current, {
             outputWidth: out.width,
             outputHeight: out.height,
             scale: dpr,
@@ -3547,7 +3619,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
               muted: mut,
             },
             fonts: { ui: fam, numeric: numFam },
-          });
+          }).length;
           // ── header band ──
           const tf = timeframeRef.current;
           const pad = Math.round(14 * dpr);
@@ -3602,8 +3674,8 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
           if (process.env.NODE_ENV !== "production") {
             (window as unknown as { __mmSnapshotHeader?: { symbol: string; timeframe: string } }).__mmSnapshotHeader = { symbol: snapSym, timeframe: tf };
           }
-          // full timestamp in viewer's local timezone
-          const now = new Date();
+          // full timestamp in viewer's local timezone — the raster's instant, not the end of the composite
+          const now = rasterAt;
           const tzOffset = -now.getTimezoneOffset() / 60;
           const tzSign = tzOffset >= 0 ? "+" : "-";
           const tzStr = `UTC${tzSign}${Math.abs(tzOffset)}`;
@@ -3663,6 +3735,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
                   g.fillStyle = brand2;
                   g.fillText(lbl, lPad, lY);
                 }
+                painted.studyLabels += 1;
                 lY += lineH;
               }
             }
@@ -3693,6 +3766,16 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
             : code === "invalid_png" ? tPlain("snapInvalid", "Snapshot could not be shared")
             : tPlain("snapUploadFailed", "Sharing unavailable — try again shortly");
           const blob: Blob | null = await new Promise((res) => out.toBlob(res, "image/png"));
+          if (review) {
+            // The second reading. The review compares it with `before` and withholds on any change;
+            // the description it builds is always `before`, the raster's own scene.
+            if (!blob || !before) { respond({ ok: false, reason: "render_failed" }); return; }
+            respond({
+              ok: true, blob, width: out.width, height: out.height, capturedAtMs: rasterAt.getTime(),
+              includeAnnotations: review.includeAnnotations, before, after: captureScene(), painted,
+            });
+            return;
+          }
           if (!blob) return;
           if (action === "download") {
             const a = document.createElement("a"); a.href = URL.createObjectURL(blob); a.download = fname; a.click();
@@ -3717,7 +3800,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
             window.open(url, "_blank");
             setTimeout(() => { try { URL.revokeObjectURL(url); } catch {} }, 60_000);
           }
-        } catch {}
+        } catch { respond({ ok: false, reason: "render_failed" }); }
       })();
     };
     window.addEventListener("mm:snapshot", snapshot);
@@ -8587,6 +8670,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
     cpMark(`chart-effect2-start[${symbol}@${effectiveTimeframe}]`);
     liveTickKeyRef.current = "";
     liveTickRef.current = null;    // a new bar set starts a new accepted-quote ordering
+    ohlcCopyRef.current = null;    // …and reports its own freshness once its read lands
     const liveWrap = wrapElRef.current;
     if (liveWrap) {
       delete liveWrap.dataset.liveDirection;
@@ -8715,6 +8799,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
         const ri = replayIdxRef.current;
         const onChart = ri != null ? rows.slice(0, replayVisibleCount(rows, effectiveTimeframe, ri)) : rows;
         barsRef.current = onChart;
+        ohlcCopyRef.current = { kind: "current" };   // a no-store request, never a saved copy
         const closes = onChart.map((r) => r.c);
         closesRef.current = closes;
         precRef.current = closes.length && closes[closes.length - 1] < 10 ? 4 : 2;
@@ -8856,6 +8941,18 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
         sessionAnchorRef.current = parseSessionAnchor(ohlc.session_anchor);
         // …and the document's own bars array is the aggregation memo's generation token.
         ohlcSrcRef.current = ohlc.bars;
+        // A saved copy keeps its age and, once the background refresh settles, how it ended. The
+        // chart is not repainted by that refresh, so "ok" means newer data exists, not that it is shown.
+        const staleServe = ohlcRead.status === "data" ? ohlcRead.stale : undefined;
+        if (staleServe) {
+          const savedCopy: CaptureDataCopy = { kind: "saved", ageMs: staleServe.ageMs, servedAtMs: Date.now(), refresh: "pending" };
+          ohlcCopyRef.current = savedCopy;
+          void staleServe.revalidation.then((refresh) => {
+            if (epochRef.current === epoch && ohlcCopyRef.current === savedCopy) ohlcCopyRef.current = { ...savedCopy, refresh };
+          });
+        } else {
+          ohlcCopyRef.current = { kind: "current" };
+        }
         // From here this generation owns the slice refs (Effect 4's replay re-resolves from them).
         sliceOwned = true;
         if (sliceOutcome) adoptSlice(sliceOutcome);
