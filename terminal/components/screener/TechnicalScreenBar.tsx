@@ -65,6 +65,8 @@ export default function TechnicalScreenBar({ open, onToggle, scan, controls, onC
   const { lang } = useLang();
   const source = scan.phase === "settled" ? scan.source : null;
   const ready = source?.kind === "ready" ? source : null;
+  /** Read-failure class for the fault line's test hook (a data attribute, never shown). */
+  const faultKind = source && source.kind !== "ready" ? source.kind : null;
   const produced = ready ? ready.scan.timeframes : null;
 
   // The chart's daily timeframes are always offered (so an unproduced one can be CHOSEN and shown
@@ -190,9 +192,9 @@ export default function TechnicalScreenBar({ open, onToggle, scan, controls, onC
         <div className={styles.line} role="status" data-tech-state="loading">{tt("tsLoading")}</div>
       )}
 
-      {open && source && source.kind !== "ready" && (
-        <div className={styles.fault} role="alert" data-tech-fault={source.kind}>
-          <span>{tt(source.kind === "absent" ? "tsAbsent" : "tsError")}</span>
+      {open && faultKind && (
+        <div className={styles.fault} role="alert" data-tech-fault={faultKind}>
+          <span>{tt(faultKind === "absent" ? "tsAbsent" : "tsError")}</span>
           <button type="button" className="chip" onClick={scan.retry}>{tt("tsRetry")}</button>
         </div>
       )}
