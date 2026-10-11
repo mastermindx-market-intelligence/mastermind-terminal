@@ -358,3 +358,40 @@ describe("source missingness remains evidence, not a zero or an invented policy"
    },/invalid_reason/);
  });
 });
+
+describe("R0 exact high-precision derived decimal compatibility",()=>{
+ it("preserves more than 30 fractional digits on a valid bounded response",()=>{
+   const long="0."+"0".repeat(99)+"1";
+   const item=decodePrivateEvidence(input("research",r=>{
+     r.completed_window_midpoint_response_bps=long;
+     r.pressure_balance=long;
+   }));
+   expect(item.completedWindowResponseBps).toBe(long);
+   expect(item.pressureBalance).toBe(long);
+   expect(item.productionApproved).toBe(false);
+ });
+ it("accepts the exact 544-char derived width limit without float rounding",()=>{
+   const exact="0."+"0".repeat(541)+"1";
+   expect(exact.length).toBe(544);
+   const r=decodePrivateEvidence(input("research",v=>{
+     v.completed_window_midpoint_response_bps=exact;
+   }));
+   expect(r.completedWindowResponseBps).toBe(exact);
+ });
+ it("rejects over-width 545-char derived R0 decimals",()=>{
+   const tooLong="0."+"0".repeat(542)+"1";
+   expect(tooLong.length).toBe(545);
+   reject("research",r=>{
+     r.completed_window_midpoint_response_bps=tooLong;
+   },/bad_decimal/);
+ });
+ it("does not relax source-share or raw quote size 128-character budget",()=>{
+   const tooLong="1".repeat(129);
+   reject("minute",m=>{
+     (m.volume_shares as Record<string,string>).source_all_printed_shares=tooLong;
+   },/bad_decimal/);
+   reject("research",r=>{
+     (r.ask_size_recovery_proxy as Record<string,unknown>).original_shares=tooLong;
+   },/bad_decimal/);
+ });
+});
