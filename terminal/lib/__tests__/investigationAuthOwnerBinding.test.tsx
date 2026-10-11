@@ -3,7 +3,7 @@ import React, { act, StrictMode } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { AuthChangeEvent, Session } from "@supabase/supabase-js";
-import type { AuthLifecycleSnapshot, AuthObserver } from "@/lib/supabase/authLifecycle";
+import type { AuthObserver } from "@/lib/supabase/authLifecycle";
 import { subscribeInvestigationAuthOwner } from "@/lib/supabase/investigationAuthOwner";
 import { useInvestigationAuthLifecycle, type InvestigationAuthProjection } from "@/components/workspaces/InvestigationAuthContext";
 import InvestigationWorkspace from "@/components/workspaces/InvestigationWorkspace";
@@ -11,7 +11,8 @@ import InvestigationWorkspace from "@/components/workspaces/InvestigationWorkspa
 const mocks = vi.hoisted(() => ({ client: vi.fn(), recover: vi.fn() }));
 vi.mock("@/lib/supabase/client", () => ({ createClient: mocks.client }));
 vi.mock("@/lib/i18n", () => ({ useLang: () => ({ lang: "en" }) }));
-vi.mock("next/link", () => ({ default: ({ children, ...props }: React.ComponentProps<"a">) => { projections.push(useInvestigationAuthLifecycle()); return <a {...props}>{children}</a>; } }));
+function MockLink({ children, ...props }: React.ComponentProps<"a">) { projections.push(useInvestigationAuthLifecycle()); return <a {...props}>{children}</a>; }
+vi.mock("next/link", () => ({ default: MockLink }));
 vi.mock("@/lib/investigationContracts", () => ({ INVESTIGATION_MANIFEST_SCHEMA_V2: "investigation.manifest.v2", validateInvestigationManifest: () => ({ ok: true, errors: [] }), validateStoredInvestigationManifest: () => ({ ok: true }), canonicalInvestigationJson: () => "" }));
 vi.mock("@/lib/investigations", () => ({ INVESTIGATION_ADMISSION: {} }));
 vi.mock("@/lib/investigationSave", () => ({
@@ -166,9 +167,9 @@ describe("existing Workspace projection transport and unchanged Saved authority"
   expect(fetchMock.mock.calls.every(([, init]) => !(init as RequestInit).method)).toBe(true);
   await timers();
  });
- it("local-preview bypass stays absent without a client/subscriber", () => {
+ it("local-preview bypass stays absent without a client/subscriber", async () => {
   mocks.recover.mockReturnValue(retainedPending()); sessionStorage.setItem("mm.investigation.pending.v2:local-preview", pendingStorage);
-  mountPending("local-preview"); expect(latest()).toBeNull(); expect(mocks.client).not.toHaveBeenCalled();
+  mountPending("local-preview"); expect(latest()).toBeNull(); expect(mocks.client).not.toHaveBeenCalled(); await timers();
  });
  it("client/subscription setup failure preserves original scope abort/account-ended behavior", () => {
   mocks.client.mockImplementation(() => { throw new Error("synthetic setup failure"); }); seedPending(); mountPending();
@@ -176,9 +177,9 @@ describe("existing Workspace projection transport and unchanged Saved authority"
   expect(fetchMock.mock.calls.every(([, init]) => (init as RequestInit).signal?.aborted)).toBe(true);
   expect(sessionStorage.getItem("mm.investigation.pending.v2:account-A")).toBe(pendingStorage);
  });
- it("synchronous initial callback publishes the actual unverified module snapshot", () => {
+ it("synchronous initial callback publishes the actual unverified module snapshot", async () => {
   const h = harness(syntheticSession()); mocks.client.mockReturnValue({ auth: h.auth }); seedPending(); mountPending();
-  expect(latest()!.snapshot.availability).toBe("unverified"); expect(latest()!.getSnapshot()).toBe(latest()!.snapshot); expect(h.getClaims).not.toHaveBeenCalled();
+  expect(latest()!.snapshot.availability).toBe("unverified"); expect(latest()!.getSnapshot()).toBe(latest()!.snapshot); expect(h.getClaims).not.toHaveBeenCalled(); await timers();
  });
  it("StrictMode has one active listener; cleanup and old callbacks cannot control the new lifetime", async () => {
   const h = harness(); mocks.client.mockReturnValue({ auth: h.auth }); seedPending(); mountPending("account-A", undefined, true);
@@ -188,11 +189,11 @@ describe("existing Workspace projection transport and unchanged Saved authority"
   expect(old.getSnapshot()).toBeNull(); expect(h.active()).toBe(0);
   h.late(1, "SIGNED_IN", syntheticSession("account-B", "session-B")); await timers(); expect(old.getSnapshot()).toBeNull();
  });
- it("effect rebinding hides the prior projection and obtains the current client without stale callback influence", () => {
+ it("effect rebinding hides the prior projection and obtains the current client without stale callback influence", async () => {
   const first = harness(), second = harness(); mocks.client.mockReturnValueOnce({ auth: first.auth }).mockReturnValueOnce({ auth: second.auth }); seedPending(); mountPending();
   const old = latest()!; const offset = projections.length; mountPending("account-A", 2);
   expect(projections.slice(offset)).toContain(null); expect(old.getSnapshot()).toBeNull(); expect(first.active()).toBe(0); expect(second.active()).toBe(1);
   expect(latest()!.snapshot.auth_epoch).not.toBe(old.snapshot.auth_epoch);
-  act(() => first.late(0, "SIGNED_OUT", null)); expect(element.textContent).not.toContain("Your account changed");
+  act(() => first.late(0, "SIGNED_OUT", null)); expect(element.textContent).not.toContain("Your account changed"); await timers();
  });
 });
