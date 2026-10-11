@@ -34,9 +34,9 @@ export interface OptionsIaCategory {
 }
 
 /**
- * The categorized IA preserves every existing Options pane and adds one deterministic
- * Plan surface. Statistics still has no child view until its separately-gated publisher
- * exists; Payoff Lab owns no feed, pricing, probability, order, or signal authority.
+ * The categorized IA preserves every existing Options pane, adds deterministic Plan,
+ * and gives Statistics a read-only category home over existing moves / vol / agg owners.
+ * Neither surface creates pricing, probability, order, publisher, or signal authority.
  */
 export const OPTIONS_IA_CATEGORIES = [
   {
