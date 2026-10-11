@@ -12,11 +12,11 @@ import { useT, useLang } from "@/lib/i18n";
  * (router.replace, shallow). This component only paints + emits selection.
  *
  * Contract (for the FLOW-SPLIT lane):
- *   tabs     : { key: string; labelKey: string; zhLabel?: string }[]
+ *   tabs     : { key: string; labelKey: string; enLabel?: string; zhLabel?: string }[]
  *              key      — the ?tab= value (also the selection identity)
- *              labelKey — i18n dict key; resolved via t() for EN+ZH
- *              zhLabel  — optional zh override for labels not carried in the dict
- *                         (falls back to labelKey when the active lang is en)
+ *              labelKey — i18n dict key; canonical entries win when present
+ *              enLabel / zhLabel — optional local fallbacks for product-local tabs that do
+ *                         not belong in the global translation registry
  *   active   : string          — the currently-selected tab key
  *   onSelect : (key) => void   — fired on click / Enter / Space / arrow move
  *
@@ -27,6 +27,7 @@ import { useT, useLang } from "@/lib/i18n";
 export interface WorkspaceTab {
   key: string;
   labelKey: string;
+  enLabel?: string;
   zhLabel?: string;
 }
 export interface WorkspaceTabsProps {
@@ -71,13 +72,14 @@ export default function WorkspaceTabs({
     return () => window.cancelAnimationFrame(frame);
   }, [active, tabs, lang]);
 
-  // t(key) resolves the dict for the active lang and echoes `key` back when there's no
-  // entry. So a zhLabel override applies ONLY when in zh AND the dict has no entry
-  // (resolved === key) — real dict entries always win.
+  // Canonical dictionary entries always win. Product-local labels are used only when
+  // t() echoes an unknown key, keeping a small local surface from invalidating the
+  // global translation registry and its unrelated visual-evidence locks.
   const label = (tb: WorkspaceTab) => {
     const resolved = t(tb.labelKey);
-    if (lang === "zh" && tb.zhLabel && resolved === tb.labelKey) return tb.zhLabel;
-    return resolved;
+    if (resolved !== tb.labelKey) return resolved;
+    if (lang === "zh" && tb.zhLabel) return tb.zhLabel;
+    return tb.enLabel ?? tb.labelKey;
   };
 
   const move = (to: number) => {

@@ -89,8 +89,8 @@ test("the options workflow navigates tape, structure, plan, and alert setup with
 
   await launcher.click();
   await dialog.locator('[data-options-workflow-stage="plan"] button').click();
-  await expect(page).toHaveURL(/\/options\?tab=prophet$/);
-  await expect(page.locator("#prophet-lane-macro")).toHaveAttribute("aria-selected", "true", { timeout: 15_000 });
+  await expect(page).toHaveURL(/\/options\?tab=payoff$/);
+  await expect(page.locator("#wtab-cat-plan")).toHaveAttribute("aria-selected", "true", { timeout: 15_000 });
   await expect(launcher.locator(".options-workflow-progress")).toHaveText(progressText(3));
 
   await launcher.click();
@@ -110,7 +110,7 @@ test("the options workflow navigates tape, structure, plan, and alert setup with
   if (EVIDENCE) await page.screenshot({ path: path.join(EVIDENCE_DIR, alertShot), fullPage: false });
 
   await page.goBack();
-  await expect(page).toHaveURL(/\/options\?tab=prophet$/);
+  await expect(page).toHaveURL(/\/options\?tab=payoff$/);
   await expect(launcher.locator(".options-workflow-progress")).toHaveText(progressText(4));
 });
 

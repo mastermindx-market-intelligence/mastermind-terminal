@@ -47,7 +47,7 @@ const STAGES: readonly WorkflowStage[] = [
     bodyKey: "optionsWorkflowPlanBody",
     contextKey: "optionsWorkflowPlanReceipt",
     ctaKey: "optionsWorkflowPlanCta",
-    view: "prophet",
+    view: "payoff",
   },
   {
     id: "alert",
@@ -58,6 +58,21 @@ const STAGES: readonly WorkflowStage[] = [
     href: "/alerts?cat=options&root=SPY&kind=opt_gamma_flip",
   },
 ];
+
+const PLAN_COPY = {
+  en: {
+    title: "Shape the payoff",
+    body: "Enter the option legs and premiums you want to examine. Payoff Lab calculates expiration-only cashflow, break-even, and bounded or unlimited risk without inferring a quote, probability, or trade recommendation.",
+    receipt: "Payoff Lab · manual legs · expiration-only math",
+    cta: "Open Payoff Lab",
+  },
+  zh: {
+    title: "构建到期收益",
+    body: "输入你要检查的期权腿和权利金。到期收益实验室只计算到期现金流、盈亏平衡和有限或无限风险，不推断报价、概率或交易建议。",
+    receipt: "到期收益实验室 · 手动期权腿 · 仅到期计算",
+    cta: "打开到期收益",
+  },
+} as const;
 
 const STAGE_FOR_VIEW: Partial<Record<OptionsWorkspaceViewKey, StageId>> = {
   tape: "tape",
@@ -72,7 +87,7 @@ const STAGE_FOR_VIEW: Partial<Record<OptionsWorkspaceViewKey, StageId>> = {
   levels: "structure",
   structure: "structure",
   volatility: "structure",
-  prophet: "plan",
+  payoff: "plan",
 };
 
 function loadVisited(): StageId[] {
@@ -243,19 +258,21 @@ export default function OptionsWorkflowGuide({ activeView, onOpenView }: Options
                     </div>
                     <div className="options-workflow-step-copy">
                       <div className="options-workflow-step-title">
-                        <h3>{t(stage.titleKey)}</h3>
+                        <h3>{stage.id === "plan" ? PLAN_COPY[lang].title : t(stage.titleKey)}</h3>
                         {current && <span>{t("optionsWorkflowCurrent")}</span>}
                         {viewed && <span className="is-viewed-label">{t("optionsWorkflowViewedHere")}</span>}
                       </div>
-                      <p>{t(stage.bodyKey)}</p>
-                      <small>{t(stage.contextKey)}</small>
+                      <p>{stage.id === "plan" ? PLAN_COPY[lang].body : t(stage.bodyKey)}</p>
+                      <small>{stage.id === "plan" ? PLAN_COPY[lang].receipt : t(stage.contextKey)}</small>
                     </div>
                     <button
                       type="button"
                       className="options-workflow-step-cta"
                       onClick={() => openStage(stage)}
                     >
-                      {current && stage.id !== "alert" ? t("optionsWorkflowReopenCta") : t(stage.ctaKey)}
+                      {current && stage.id !== "alert"
+                        ? t("optionsWorkflowReopenCta")
+                        : stage.id === "plan" ? PLAN_COPY[lang].cta : t(stage.ctaKey)}
                       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 5 7 7-7 7" /></svg>
                     </button>
                   </article>

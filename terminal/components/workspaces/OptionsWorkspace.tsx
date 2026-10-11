@@ -4,7 +4,7 @@ import { useSearchParams } from "next/navigation";
 import WorkspaceTabs, { type WorkspaceTab } from "@/components/chrome/WorkspaceTabs";
 import OptionsHubView, { type TabKey } from "@/components/OptionsHubView";
 import OptionsWorkflowGuide from "@/components/options/OptionsWorkflowGuide";
-import { useLang, useT } from "@/lib/i18n";
+import { useT } from "@/lib/i18n";
 import s from "./OptionsWorkspace.module.css";
 import {
   OPTIONS_HUB_WORKSPACE_VIEWS,
@@ -20,10 +20,9 @@ import {
 /**
  * Options workspace composer — the `/options` body.
  *
- * R5 Stage A replaces the flat twelve-pill rail with the roadmap's seven
- * categories. The category row chooses a deterministic home; the view row keeps
- * every existing pane, component, fetch, and `?tab=` contract intact. This is an
- * IA layer only: OptionsHubView remains the one implementation of every live pane.
+ * The category row chooses a deterministic home and the view row keeps every existing
+ * pane, component, fetch, and `?tab=` contract intact. The Plan category adds one
+ * deterministic expiration-payoff surface inside the same OptionsHubView owner.
  *
  * Reads resolve synchronously from `?tab=` on first render. Writes stay shallow
  * through history.replaceState. `statistics` is a category home with an explicit
@@ -45,6 +44,7 @@ const ROUTE_VIEW: Record<string, OptionsWorkspaceViewKey> = {
   prism: "gex",
   structure: "structure",
   volatility: "volatility",
+  payoff: "payoff",
   positioning: "positioning",
   levels: "levels",
   prophet: "prophet",
@@ -54,6 +54,8 @@ const ROUTE_VIEW: Record<string, OptionsWorkspaceViewKey> = {
 const CATEGORY_TABS: WorkspaceTab[] = OPTIONS_IA_CATEGORIES.map((category) => ({
   key: `cat-${category.key}`,
   labelKey: category.labelKey,
+  enLabel: "enLabel" in category ? category.enLabel : undefined,
+  zhLabel: "zhLabel" in category ? category.zhLabel : undefined,
 }));
 
 const CATEGORY_BY_TAB = Object.fromEntries(
@@ -71,7 +73,6 @@ function writeTabToUrl(pageKey: string) {
 }
 
 export default function OptionsWorkspace() {
-  const { lang } = useLang();
   const t = useT();
   const searchParams = useSearchParams();
   const rawTab = searchParams.get("tab");
@@ -124,12 +125,15 @@ export default function OptionsWorkspace() {
   const viewTabs: WorkspaceTab[] = activeCategoryConfig.views.map((view) => ({
     key: view.pageKey,
     labelKey: view.labelKey,
+    enLabel: view.enLabel,
+    zhLabel: view.zhLabel,
   }));
 
   return (
     <main
       className="main2 options-workspace"
       data-options-ia="seven-category-stage-a"
+      data-options-ia-version="eight-category-plan-stage"
       style={{ overflow: "hidden", display: "flex", flexDirection: "column" }}
     >
       <header className={`options-ia-nav ${s.nav}`}>
