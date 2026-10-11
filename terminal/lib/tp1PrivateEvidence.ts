@@ -21,7 +21,9 @@ export type PrivateEvidence = {
   ticker: string;
   session: string;
   clocksNs: Readonly<Record<string, bigint>>;
-  sourceHashes: Readonly<Record<string, string>>;
+  sourceHashes: Readonly<Record<string, string | null>>;
+  unknownReasons: Readonly<Record<string, number>>;
+  litUnknownReasons: Readonly<Record<string, number>>;
   sourceCounts: Readonly<Record<string, number>>;
   notionalUsd: Readonly<Record<string, string>>;
   volumeShares: Readonly<Record<string, string>> | null;
@@ -297,7 +299,7 @@ export function decodePrivateEvidence(args: {
        clocksNs.source_watermark_available_ns>cutoff ||
        clocksNs.source_latest_print_available_ns>cutoff))
     throw new PrivateEvidenceRefusal("source:original_availability");
-  const hashes: Record<string,string>={};
+  const hashes: Record<string,string|null>={};
   for (const field of (kind==="minute"?
       ["source_manifest_sha256","source_watermark_receipt_sha256",
        "source_observation_sha256","condition_policy_sha256",
@@ -306,14 +308,30 @@ export function decodePrivateEvidence(args: {
        "source_watermark_receipt_sha256","minute_observations_sha256",
        "quote_observations_sha256","source_condition_rules_sha256",
        "source_exchange_rules_sha256","source_quote_condition_rules_sha256"])) {
-    hashes[field]=assertHash(obj[field],field);
+    if (kind==="minute" &&
+        ["condition_policy_sha256","exchange_policy_sha256","quote_policy_sha256"].includes(field)
+        && obj[field]===null) {
+      // A source-complete minute can contain only abstained prints.
+      // Missing original condition/venue policy is missingness, not a zero.
+      hashes[field]=null;
+    } else hashes[field]=assertHash(obj[field],field);
   }
   const counted=record(obj[kind==="minute"?"counts":"n_observations"],"counts");
   assertKeys(counted,COUNTS[kind],"counts");
   const counts: Record<string,number>={};
   for (const name of COUNTS[kind]) counts[name]=assertCount(counted[name],name);
   if (counts.n_sampled_prints<=0) throw new PrivateEvidenceRefusal("counts:no_source_sample");
+  const unknownReasons: Record<string,number> = kind==="minute"
+    ? { ...record(obj.unknown_reason_counts,"unknown_reason_counts") } as Record<string,number>
+    : {};
+  const litUnknownReasons: Record<string,number> = kind==="minute"
+    ? { ...record(obj.lit_unknown_reason_counts,"lit_unknown_reason_counts") } as Record<string,number>
+    : {};
   if (kind==="minute") {
+    if ((counts.n_buy_proxy+counts.n_sell_proxy+counts.n_midpoint)>0 &&
+        ["condition_policy_sha256","exchange_policy_sha256","quote_policy_sha256"]
+          .some(field=>hashes[field]===null))
+      throw new PrivateEvidenceRefusal("minute:measured_without_source_policy");
     if (counts.n_lit+counts.n_trf+counts.n_unknown_venue!==counts.n_sampled_prints ||
         counts.n_buy_proxy+counts.n_sell_proxy+counts.n_midpoint+
           counts.n_unclassified+counts.n_condition_ineligible!==counts.n_sampled_prints ||
@@ -366,6 +384,7 @@ export function decodePrivateEvidence(args: {
                    ask:parseRecovery(obj.ask_size_recovery_proxy,"ask")};
   }
   return {kind,ticker:obj.ticker,session:obj.session,clocksNs,sourceHashes:hashes,
+    unknownReasons,litUnknownReasons,
     sourceCounts:counts,notionalUsd:usd,volumeShares,pressureBalance,
     completedWindowResponseBps,quoteRecovery,originalByteSha256:rawHash,
     sourceAuthenticated:false,productionApproved:false,publicDeliveryAllowed:false};
@@ -411,7 +430,8 @@ export function pairPrivateEvidence(
     ["exchange_policy_sha256","source_exchange_rules_sha256"],
     ["quote_policy_sha256","source_quote_condition_rules_sha256"],
   ]) {
-    if (minute.sourceHashes[left]!==research.sourceHashes[right])
+    if (minute.sourceHashes[left]===null ||
+        minute.sourceHashes[left]!==research.sourceHashes[right])
       throw new PrivateEvidenceRefusal("pair:source_policy_or_receipt_mismatch");
   }
   for(const name of MONEY) {
@@ -423,13 +443,17 @@ export function pairPrivateEvidence(
     throw new PrivateEvidenceRefusal("pair:source_population_mismatch");
   const pairDigest=createHash("sha256").update(
     minute.originalByteSha256+":"+research.originalByteSha256).digest("hex");
+  const manifest=minute.sourceHashes.source_manifest_sha256;
+  const quotePolicy=minute.sourceHashes.quote_policy_sha256;
+  if (typeof manifest!=="string" || typeof quotePolicy!=="string")
+    throw new PrivateEvidenceRefusal("pair:missing_original_source_policy");
   return {
     pairingState:"PRIVATE_COMPATIBLE_ORIGINAL_SOURCE_UNPROVEN",
     ticker:minute.ticker,session:minute.session,
     decisionNs:minute.clocksNs.decision_ns,
     pairedArtifactsSha256:pairDigest,
-    sourceManifestSha256:minute.sourceHashes.source_manifest_sha256,
-    quotePolicySha256:minute.sourceHashes.quote_policy_sha256,
+    sourceManifestSha256:manifest,
+    quotePolicySha256:quotePolicy,
     sourceAuthenticated:false,productionApproved:false,
     publicDeliveryAllowed:false,
   };
