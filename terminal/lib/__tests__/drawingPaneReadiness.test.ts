@@ -8,6 +8,7 @@ function fixture() {
   let range: { from: number; to: number } | null = { from: 0, to: 0 };
   let epoch = 1;
   let primitive: ISeriesPrimitive | undefined;
+  let collapsed = false;
   const frames = new Map<number, FrameRequestCallback>();
   let nextFrame = 0;
   vi.stubGlobal("requestAnimationFrame", (callback: FrameRequestCallback) => {
@@ -17,6 +18,8 @@ function fixture() {
   const detach = vi.fn();
   const series = {
     priceScale: () => ({ getVisibleRange: () => range }),
+    priceToCoordinate: (price: number) => collapsed ? 0 : 200 - price * 5,
+    coordinateToPrice: (y: number) => collapsed ? 0 : (200 - y) / 5,
     attachPrimitive: (value: ISeriesPrimitive) => { primitive = value; },
     detachPrimitive: detach,
   } as unknown as ISeriesApi<SeriesType>;
@@ -26,6 +29,7 @@ function fixture() {
   return {
     series, watcher, ready, frames, detach,
     range: (value: typeof range) => { range = value; },
+    collapseMap: (value: boolean) => { collapsed = value; },
     nextGeneration: () => { epoch += 1; },
     paint: () => primitive?.updateAllViews?.(),
     flush: () => { const callbacks = [...frames.values()]; frames.clear(); callbacks.forEach((callback) => callback(0)); },
@@ -50,6 +54,39 @@ describe("legacy pane drawing readiness", () => {
     f.watcher.sync(new Set()); f.paint(); f.flush();
     expect(f.ready).toHaveBeenCalledTimes(1); expect(f.detach).toHaveBeenCalledTimes(1);
     f.watcher.dispose();
+  });
+  it("preserves a legacy document while a positive cached range still has a collapsed coordinate map", () => {
+    const f = fixture(); f.range({ from: -10, to: 11 }); f.collapseMap(true);
+    for (let paint = 0; paint < 20; paint += 1) f.paint();
+    expect(paneDrawingScaleReady(f.series)).toBe(false);
+    expect(f.frames.size).toBe(0); expect(f.ready).not.toHaveBeenCalled();
+    f.collapseMap(false); f.paint(); f.flush();
+    expect(f.ready).toHaveBeenCalledTimes(1); f.watcher.dispose();
+  });
+  it("allows a legitimate zero price on a usable inverted coordinate map", () => {
+    const f = fixture(); f.range({ from: 0, to: 11 });
+    expect(paneDrawingScaleReady(f.series)).toBe(true); f.watcher.dispose();
+  });
+  it("rejects a collapsed inverse map even when forward coordinates differ", () => {
+    const f = fixture(); f.range({ from: -10, to: 11 });
+    f.series.coordinateToPrice = () => 0 as never;
+    expect(paneDrawingScaleReady(f.series)).toBe(false); f.watcher.dispose();
+  });
+  it("accepts a usable logarithmic map without rejecting its zero pixel endpoint", () => {
+    const f = fixture(); f.range({ from: 1, to: 100 });
+    f.series.priceToCoordinate = (price) => Math.log(price) as never;
+    f.series.coordinateToPrice = (y) => Math.exp(y) as never;
+    expect(paneDrawingScaleReady(f.series)).toBe(true); f.watcher.dispose();
+  });
+  it.each([null, NaN, Infinity])("rejects an unavailable forward projection %j", (coordinate) => {
+    const f = fixture(); f.range({ from: -10, to: 11 });
+    f.series.priceToCoordinate = () => coordinate as never;
+    expect(paneDrawingScaleReady(f.series)).toBe(false); f.watcher.dispose();
+  });
+  it("rechecks the current range after public projections refresh the cached scale", () => {
+    const f = fixture(); f.range({ from: -10, to: 11 });
+    f.series.priceToCoordinate = (price) => { f.range({ from: 0, to: 0 }); return (200 - price * 5) as never; };
+    expect(paneDrawingScaleReady(f.series)).toBe(false); f.watcher.dispose();
   });
   it("ignores an already queued retry after the data generation changes", () => {
     const f = fixture(); f.range({ from: -10, to: 11 }); f.paint();

@@ -5,8 +5,22 @@ type PaneSeries = ISeriesApi<SeriesType>;
 export function paneDrawingScaleReady(series: PaneSeries): boolean {
   try {
     const range = series.priceScale().getVisibleRange();
-    return range != null && Number.isFinite(range.from) && Number.isFinite(range.to)
-      && range.to > range.from;
+    if (range == null || !Number.isFinite(range.from) || !Number.isFinite(range.to)
+      || !(range.to > range.from)) return false;
+    // getVisibleRange can return a cached range before LWC recalculates the
+    // coordinate map. Its public projections return finite zero while empty.
+    // Probe both directions before marking any legacy document as migrated.
+    const fromY = series.priceToCoordinate(range.from);
+    const toY = series.priceToCoordinate(range.to);
+    if (fromY == null || toY == null || !Number.isFinite(fromY)
+      || !Number.isFinite(toY) || fromY === toY) return false;
+    const fromPrice = series.coordinateToPrice(fromY);
+    const toPrice = series.coordinateToPrice(toY);
+    const currentRange = series.priceScale().getVisibleRange();
+    return fromPrice != null && toPrice != null && Number.isFinite(fromPrice)
+      && Number.isFinite(toPrice) && fromPrice !== toPrice
+      && currentRange != null && Number.isFinite(currentRange.from)
+      && Number.isFinite(currentRange.to) && currentRange.to > currentRange.from;
   } catch {
     return false; // A removed/rebuilt indicator cannot migrate its old document.
   }

@@ -1714,11 +1714,15 @@ test("legacy indicator-pane drawing coordinates migrate into pane value space", 
     .toHaveAttribute("clip-path", /drawing-pane-clip/);
 });
 
-test("legacy pane drawings wait for a usable scale and migrate automatically on its paint", async ({ page }) => {
+for (const initialRange of ["empty", "cached"] as const) {
+test(`legacy pane drawings wait for a usable scale and migrate automatically on its paint (${initialRange})`, async ({ page }) => {
   test.skip((page.viewportSize()?.width ?? 1440) <= 860, DESKTOP_ONLY);
   const saves: DrawingSavePayload[] = [];
   let instrumented = 0;
-  await page.addInitScript(() => { (window as any).__holdLegacyPaneScale = true; });
+  await page.addInitScript((mode) => {
+    (window as any).__holdLegacyPaneScale = true;
+    (window as any).__legacyRangeMode = mode;
+  }, initialRange);
   // Control only the public LWC scale input. Migration and its scheduling remain
   // the actual application code; releasing autoscale must be sufficient on its own.
   await page.route("**/*ChartPanel*js", async (route) => {
@@ -1737,7 +1741,8 @@ test("legacy pane drawings wait for a usable scale and migrate automatically on 
           const priceAt = series.coordinateToPrice.bind(series);
           series.priceScale = () => {
             const scale = scaleOf(); const rangeOf = scale.getVisibleRange.bind(scale);
-            scale.getVisibleRange = () => window.__holdLegacyPaneScale ? {from: 0, to: 0} : rangeOf();
+            scale.getVisibleRange = () => window.__holdLegacyPaneScale
+              ? (window.__legacyRangeMode === "cached" ? {from: -10, to: 11} : {from: 0, to: 0}) : rangeOf();
             return scale;
           };
           series.priceToCoordinate = (price) => window.__holdLegacyPaneScale ? 0 : yOf(price);
@@ -1755,7 +1760,8 @@ test("legacy pane drawings wait for a usable scale and migrate automatically on 
     onPut: (payload) => saves.push(payload),
   });
   expect(instrumented, "the real ChartPanel module should receive the controlled scale input").toBeGreaterThan(0);
-  await expect.poll(() => page.evaluate(() => (window as any).__legacyPaneScale?.getVisibleRange())).toEqual({ from: 0, to: 0 });
+  await expect.poll(() => page.evaluate(() => (window as any).__legacyPaneScale?.getVisibleRange()))
+    .toEqual(initialRange === "cached" ? { from: -10, to: 11 } : { from: 0, to: 0 });
   await page.waitForTimeout(250); // Hold the invalid scale through multiple actual canvas paints.
   expect(saves.flatMap((payload) => payload.drawings ?? []).filter((drawing) => drawing.id === "legacy-macd-pane")).toHaveLength(0);
   expect(await page.evaluate(() => (window as any).__legacyPaneDrawing())).toMatchObject({
@@ -1775,6 +1781,7 @@ test("legacy pane drawings wait for a usable scale and migrate automatically on 
   expect(points[0].p).not.toBe(0); expect(points[0].p).not.toBe(points[1].p);
   await expect(page.locator('.pane.on .drawing-layer g[data-id="legacy-macd-pane"]')).toHaveAttribute("clip-path", /drawing-pane-clip/);
 });
+}
 
 test("selecting a brush stroke shows its bounds, not a handle per sample", async ({ page }) => {
   test.skip((page.viewportSize()?.width ?? 1440) <= 860, DESKTOP_ONLY);
