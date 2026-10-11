@@ -5012,7 +5012,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
     const eq = extQuotes[sym];
     if (!eq || !isExtQuoteCurrent(eq) || eq.extPrice == null || !isFinite(eq.extPrice)) return undefined;
     const label = eq.extSource === "tiingo_boats"
-      ? `${lang === "zh" ? "BOATS 最新合格成交 · 单一场所" : "Latest qualifying BOATS trade · single venue"} · ${Math.max(0, Math.floor(Math.max(extClockMs, Date.now()) / 1000 - eq.extTs))}${lang === "zh" ? "秒前" : "s ago"}`
+      ? `${t("boatsLatestTrade")} · ${Math.max(0, Math.floor(Math.max(extClockMs, Date.now()) / 1000 - eq.extTs))}${lang === "zh" ? "秒前" : "s ago"}`
       : extSessionLabel(eq.extSession);
     if (eq.extChg == null || !isFinite(eq.extChg)) return label;
     return `${label} · ${eq.extChg >= 0 ? "+" : ""}${fmt(eq.extChg)}%`;
@@ -6145,7 +6145,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
                     </div>
                     <div className="ah-meta">
                       <span>{activeExtData.source === "tiingo_boats"
-                        ? (lang === "zh" ? "BOATS 最新合格成交 · 单一场所" : "Latest qualifying BOATS trade · single venue")
+                        ? t("boatsLatestTrade")
                         : extSessionLabel(session)}</span>
                       {activeExtData.source === "tiingo_boats" && ts != null && <span> · {Math.max(0, Math.floor(Math.max(extClockMs, Date.now()) / 1000 - ts))}{lang === "zh" ? "秒前" : "s ago"}</span>}
                       {tsStr && <span> · {t("extLastUpdate").replace("{time}", tsStr)}</span>}

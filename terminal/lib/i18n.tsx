@@ -1513,6 +1513,7 @@ export const LEX: Record<string, [string, string]> = {
   extSessionPre: ["Pre-market", "盘前"],
   extSessionPost: ["After hours", "盘后"],
   extLastUpdate: ["Last update at {time}", "最后更新于 {time}"],
+  boatsLatestTrade: ["Latest qualifying BOATS trade · single venue", "BOATS 最新合格成交 · 单一场所"],
   extNoData: ["—", "—"],
   // ─── F3 smart dialogs ─────────────────────────────────────────────────────
   searchTitle: ["Symbol search", "代码搜索"],
