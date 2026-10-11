@@ -370,3 +370,67 @@ export function decodePrivateEvidence(args: {
     completedWindowResponseBps,quoteRecovery,originalByteSha256:rawHash,
     sourceAuthenticated:false,productionApproved:false,publicDeliveryAllowed:false};
 }
+
+/**
+ * Align ONE TP-1 minute and ONE R0 completed minute from already decoded
+ * private originals. This is compatibility verification, not a new source
+ * generation, vendor receipt, cryptographic signature or consumer permission.
+ *
+ * R0's multi-minute source-minute digest cannot be re-derived from the
+ * intentionally reduced TP-1 private view; that needs original owner custody.
+ */
+export function pairPrivateEvidence(
+  minute: PrivateEvidence, research: PrivateEvidence,
+): {
+  pairingState: "PRIVATE_COMPATIBLE_ORIGINAL_SOURCE_UNPROVEN";
+  ticker: string; session: string; decisionNs: bigint;
+  pairedArtifactsSha256: string;
+  sourceManifestSha256: string; quotePolicySha256: string;
+  sourceAuthenticated: false; productionApproved: false;
+  publicDeliveryAllowed: false;
+} {
+  if (minute.kind!=="minute" || research.kind!=="research" ||
+      minute.volumeShares===null || research.volumeShares!==null ||
+      minute.publicDeliveryAllowed!==false || research.publicDeliveryAllowed!==false ||
+      minute.productionApproved!==false || research.productionApproved!==false)
+    throw new PrivateEvidenceRefusal("pair:wrong_private_artifact_types");
+  if (minute.ticker!==research.ticker || minute.session!==research.session)
+    throw new PrivateEvidenceRefusal("pair:symbol_session_mismatch");
+  for (const field of ["start_ns","end_ns","decision_ns"]) {
+    if (minute.clocksNs[field]!==research.clocksNs[field])
+      throw new PrivateEvidenceRefusal("pair:original_clock_mismatch");
+  }
+  if (minute.clocksNs.end_ns-minute.clocksNs.start_ns!==MINUTE_NS)
+    throw new PrivateEvidenceRefusal("pair:not_one_original_minute");
+  if (minute.clocksNs.max_quote_age_ns>research.clocksNs.source_quote_age_limit_ns)
+    throw new PrivateEvidenceRefusal("pair:research_age_policy_too_strict");
+  for (const [left,right] of [
+    ["source_manifest_sha256","source_manifest_sha256"],
+    ["source_watermark_receipt_sha256","source_watermark_receipt_sha256"],
+    ["condition_policy_sha256","source_condition_rules_sha256"],
+    ["exchange_policy_sha256","source_exchange_rules_sha256"],
+    ["quote_policy_sha256","source_quote_condition_rules_sha256"],
+  ]) {
+    if (minute.sourceHashes[left]!==research.sourceHashes[right])
+      throw new PrivateEvidenceRefusal("pair:source_policy_or_receipt_mismatch");
+  }
+  for(const name of MONEY) {
+    if(!sameSum([minute.notionalUsd[name]],research.notionalUsd[name]))
+      throw new PrivateEvidenceRefusal("pair:source_notional_mismatch");
+  }
+  if (minute.sourceCounts.n_sampled_prints!==research.sourceCounts.n_sampled_prints ||
+      minute.sourceCounts.n_unclassified!==research.sourceCounts.n_unclassified)
+    throw new PrivateEvidenceRefusal("pair:source_population_mismatch");
+  const pairDigest=createHash("sha256").update(
+    minute.originalByteSha256+":"+research.originalByteSha256).digest("hex");
+  return {
+    pairingState:"PRIVATE_COMPATIBLE_ORIGINAL_SOURCE_UNPROVEN",
+    ticker:minute.ticker,session:minute.session,
+    decisionNs:minute.clocksNs.decision_ns,
+    pairedArtifactsSha256:pairDigest,
+    sourceManifestSha256:minute.sourceHashes.source_manifest_sha256,
+    quotePolicySha256:minute.sourceHashes.quote_policy_sha256,
+    sourceAuthenticated:false,productionApproved:false,
+    publicDeliveryAllowed:false,
+  };
+}
