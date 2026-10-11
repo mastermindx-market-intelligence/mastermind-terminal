@@ -313,6 +313,27 @@ async function expectNoDocumentOverflow(page: Page) {
   expect(width.document).toBeLessThanOrEqual(width.viewport + 1);
 }
 
+async function expectNeutralCompanyVisual(page: Page, ticker: string) {
+  const visual = page.locator("[data-company-visual]");
+  await expect(visual).toBeVisible();
+  await expect(visual).toHaveAttribute("data-company-visual", "fallback");
+  await expect(visual).toHaveAttribute("data-company-visual-ticker", ticker);
+  await expect(visual.locator("img")).toHaveCount(0);
+  await expect(visual).not.toContainText("BLACKWELL");
+  const treatment = await visual.evaluate((element) => {
+    const style = getComputedStyle(element);
+    return {
+      maskImage: style.maskImage || style.getPropertyValue("-webkit-mask-image"),
+      minHeight: element.getBoundingClientRect().height,
+      borderLeftWidth: style.borderLeftWidth,
+      viewport: window.innerWidth,
+    };
+  });
+  expect(treatment.maskImage).toContain("linear-gradient");
+  expect(treatment.minHeight).toBeGreaterThanOrEqual(treatment.viewport <= 520 ? 103 : treatment.viewport <= 760 ? 117 : 183);
+  if (treatment.viewport <= 760) expect(treatment.borderLeftWidth).toBe("0px");
+}
+
 async function researchScrollState(page: Page) {
   return page.evaluate(() => {
     const body = document.querySelector<HTMLElement>(".fin-body");
@@ -349,6 +370,7 @@ test("Company Intelligence keeps its context and evidence workflow responsive", 
   const paperBrief = page.locator("[data-ci-paper-brief]");
   await expect(paperBrief).toBeVisible();
   await expect(paperBrief).toContainText("30-SECOND BRIEF · SOURCE-BACKED");
+  await expectNeutralCompanyVisual(page, "NVDA");
   await expect(paperBrief.locator(".ci-paper-brief-hero h3")).toContainText("Data-center demand remained broad");
   await expect(paperBrief.locator(".ci-paper-metrics > button")).toHaveCount(4);
   const whyItMatters = paperBrief.locator(".ci-paper-insight").filter({ hasText: "Why it matters" });
@@ -999,6 +1021,7 @@ test("AAPL intelligence opens the verified FY2026 Q3 event workspace", async ({ 
   const paperBrief = page.locator("[data-ci-paper-brief]");
   await expect(paperBrief).toBeVisible();
   await expect(paperBrief).toContainText("30-SECOND BRIEF · SOURCE-BACKED");
+  await expectNeutralCompanyVisual(page, "AAPL");
   await expect(paperBrief).toContainText("Q3 FY2026");
   await expect(page.locator(".ci-evidence")).toHaveAttribute("aria-hidden", "true");
   await expect(page.locator(".ci-brief")).toContainText("$109.4B");
