@@ -42,3 +42,15 @@ provider qualification or whole-programme acceptance.
 Programme source: Macro PR #8698. This Terminal carrier owns only the consumer
 metadata repair. Raw Tiingo data and capture remain with the existing Macro
 collector and external archive.
+
+The integrated-head hosted ingest job 114557307545 on run 38168953009
+failed one migration-namespace guard (1 failed, 1723 passed, 31 skipped):
+master's migration 0032 was present, but its #946 reservation still said open.
+GitHub confirms #946 merged at 2026-10-11T19:02:37Z as protected master
+2957bd64eec9ac3246a52789acb0f7de55400144. Only that row's pr_state
+was corrected to merged; SQL and all application-state metadata are unchanged.
+The SQL SHA256 is 819cd6f0228c3b3d3ed8ea6c9aac0ac0e7db5b233afbb82977c12636e9994411.
+The live merge proof and actual local red/green logs are retained here.
+The guard was reproduced in GITHUB_EVENT_NAME=pull_request / PR_NUMBER=945
+mode and the complete affected namespace suite then passed. This is source
+merge-state evidence, not a claim that #946's SQL was applied to production.

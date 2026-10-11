@@ -335,7 +335,7 @@
       "file": "0032_thesis_proposal_state_qualification.sql",
       "packet": "B-F11-PROPOSAL-STATE-SQL",
       "pr": 946,
-      "pr_state": "open",
+      "pr_state": "merged",
       "applied_in_production": false,
       "applied_date": null,
       "note": "Forward alias-only repair of installed proposal RPC42702 ambiguity, MarketOntology B. Original0025 and all grants/policies retained. Source only; not applied. PR946 owns the production catalog and real-path receipt. Applied date is not recorded because the repair has not been applied."
