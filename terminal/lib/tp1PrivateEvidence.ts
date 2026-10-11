@@ -10,10 +10,12 @@
  * top-level nanosecond tokens into decimal strings BEFORE JSON.parse, and
  * exposes exact bigint clocks. All other JSON integers must be safe.
  *
- * The upstream source owner may introduce /v1 string-clock projection later.
- * Until reviewed, this /v0 reader stays private, standalone and unshipped.
+ * Terminal also exposes a separately versioned, invertible private /v1
+ * projection with decimal-string clocks. The original Macro /v0 source
+ * schema, bytes and authority remain unchanged; this is not source /v1.
  */
 import { createHash } from "node:crypto";
+import { NanosecondContractError, parseUnsignedNanoseconds } from "./tp1Nanoseconds";
 
 export type EvidenceKind = "minute" | "research";
 export type PrivateEvidence = {
@@ -105,7 +107,6 @@ const SHARES: readonly string[] = [
 const SHA = /^[a-f0-9]{64}$/;
 const SYMBOL = /^[A-Z][A-Z0-9.-]{0,19}$/;
 const SESSION = /^\d{4}-\d{2}-\d{2}:RTH$/;
-const CLOCK = /^(0|[1-9]\d{0,18})$/;
 // Align exact private Decimal representation with Macro source limits:
 // native/quote values <= 128 fixed-point characters; R0 derived midpoint
 // response and normalized pressure may use 2*(2*128+16) = 544 chars.
@@ -113,7 +114,6 @@ const DECIMAL = /^-?(?:0|[1-9]\d*)(?:\.\d+)?$/;
 const MAX_SOURCE_DECIMAL_CHARS = 128;
 const MAX_R0_DERIVED_DECIMAL_CHARS = 544;
 const MINUTE_NS = BigInt("60000000000");
-const MAX_NS = BigInt("9223372036854775807"); // signed native 64-bit
 const MAX_LENGTH = { minute: 32 * 1024, research: 24 * 1024 };
 
 type RecordValue = Record<string, unknown>;
@@ -135,11 +135,12 @@ function assertHash(value: unknown, field: string): string {
   return value;
 }
 function assertClock(value: unknown, field: string): bigint {
-  if (typeof value !== "string" || !CLOCK.test(value))
-    throw new PrivateEvidenceRefusal(field + ":unsafe_ns");
-  const n = BigInt(value);
-  if (n > MAX_NS) throw new PrivateEvidenceRefusal(field + ":overflow");
-  return n;
+  try { return parseUnsignedNanoseconds(value, field); }
+  catch (error) {
+    if (error instanceof NanosecondContractError)
+      throw new PrivateEvidenceRefusal(error.message);
+    throw error;
+  }
 }
 function assertCount(value: unknown, field: string): number {
   if (typeof value !== "number" || !Number.isSafeInteger(value) || value < 0)
@@ -154,6 +155,35 @@ function assertDecimal(
       !DECIMAL.test(value) || (!signed && value.startsWith("-")))
     throw new PrivateEvidenceRefusal(field + ":bad_decimal");
   return value;
+}
+/**
+ * TP-1's actual Python projector uses Decimal.to_eng_string() for money and
+ * shares. Normalize only those fields for internal exact arithmetic. Keep
+ * original lexical text in source/projection bytes and their hashes.
+ *
+ * Check the expanded Python Decimal width BEFORE padding any zeroes.
+ * Exponent text is bounded before Number conversion; no monetary Number cast.
+ */
+function assertMinuteDecimal(value: unknown, field: string): string {
+  if (typeof value !== "string" || value.length > MAX_SOURCE_DECIMAL_CHARS)
+    throw new PrivateEvidenceRefusal(field + ":bad_decimal");
+  if (DECIMAL.test(value)) return assertDecimal(value, field);
+  const match = /^((?:0|[1-9][0-9]{0,2})(?:\.[0-9]+)?)E([+-](?:0|[1-9][0-9]{0,2}))$/.exec(value);
+  if (!match) throw new PrivateEvidenceRefusal(field + ":bad_decimal");
+  const exponent = Number(match[2]);
+  if (exponent % 3 !== 0) throw new PrivateEvidenceRefusal(field + ":bad_decimal");
+  const [whole, fraction = ""] = match[1].split(".");
+  const digits = (whole + fraction).replace(/^0+(?=[0-9])/, "");
+  const fixedExponent = exponent - fraction.length;
+  const left = digits.length + fixedExponent;
+  const width = fixedExponent >= 0 ? left
+    : left > 0 ? digits.length + 1 : 2 - left + digits.length;
+  if (width > MAX_SOURCE_DECIMAL_CHARS)
+    throw new PrivateEvidenceRefusal(field + ":bad_decimal");
+  const expanded = left <= 0 ? "0." + "0".repeat(-left) + digits
+    : left >= digits.length ? digits + "0".repeat(left - digits.length)
+    : digits.slice(0, left) + "." + digits.slice(left);
+  return assertDecimal(expanded.replace(/^0+(?=[0-9])/, ""), field);
 }
 type Fixed = { n: bigint; scale: number };
 function fixed(value: string): Fixed {
@@ -171,12 +201,13 @@ function atMostOne(value: string): boolean {
   const x=fixed(value);
   return x.n >= BigInt("0") && x.n <= BigInt("10") ** BigInt(x.scale);
 }
-function canonical(value: unknown): string {
+function canonical(value: unknown, depth = 0): string {
+  if (depth > 12) throw new PrivateEvidenceRefusal("source_bytes:max_depth");
   if (value && typeof value === "object" && !Array.isArray(value)) {
     const o=value as RecordValue;
-    return "{" + Object.keys(o).sort().map(k => JSON.stringify(k)+":"+canonical(o[k])).join(",") + "}";
+    return "{" + Object.keys(o).sort().map(k => JSON.stringify(k)+":"+canonical(o[k], depth + 1)).join(",") + "}";
   }
-  if (Array.isArray(value)) return "["+value.map(canonical).join(",")+"]";
+  if (Array.isArray(value)) return "["+value.map(x => canonical(x, depth + 1)).join(",")+"]";
   const rendered=JSON.stringify(value);
   if (rendered===undefined) throw new PrivateEvidenceRefusal("source_bytes:noncanonical_value");
   return rendered;
@@ -361,7 +392,8 @@ export function decodePrivateEvidence(args: {
   const money=record(obj.notional_usd,"notional_usd");
   assertKeys(money,MONEY,"notional_usd");
   const usd:Record<string,string>={};
-  for(const name of MONEY) usd[name]=assertDecimal(money[name],name);
+  for(const name of MONEY) usd[name]=kind==="minute"
+    ? assertMinuteDecimal(money[name],name) : assertDecimal(money[name],name);
   if(!sameSum(["buy_proxy_notional_usd","sell_proxy_notional_usd","midpoint_notional_usd",
                "unknown_notional_usd","ineligible_notional_usd"].map(x=>usd[x]),
               usd.gross_sampled_notional_usd))
@@ -373,7 +405,7 @@ export function decodePrivateEvidence(args: {
     const shares=record(obj.volume_shares,"volume_shares");
     assertKeys(shares,SHARES,"volume_shares");
     volumeShares={};
-    for(const name of SHARES) volumeShares[name]=assertDecimal(shares[name],name);
+    for(const name of SHARES) volumeShares[name]=assertMinuteDecimal(shares[name],name);
     if(!sameSum(SHARES.slice(1).map(x=>volumeShares![x]),volumeShares.source_all_printed_shares))
       throw new PrivateEvidenceRefusal("shares:volume_conservation");
     if(obj.lit_quoted_notional_coverage!==null &&
@@ -434,6 +466,9 @@ export function pairPrivateEvidence(
     throw new PrivateEvidenceRefusal("pair:not_one_original_minute");
   if (minute.clocksNs.max_quote_age_ns>research.clocksNs.source_quote_age_limit_ns)
     throw new PrivateEvidenceRefusal("pair:research_age_policy_too_strict");
+  // R0 records the original minutes' exact policy, not a new processing ceiling.
+  if (minute.clocksNs.max_quote_age_ns!==research.clocksNs.source_quote_age_limit_ns)
+    throw new PrivateEvidenceRefusal("pair:research_age_policy_mismatch");
   for (const [left,right] of [
     ["source_manifest_sha256","source_manifest_sha256"],
     ["source_watermark_receipt_sha256","source_watermark_receipt_sha256"],
@@ -467,5 +502,175 @@ export function pairPrivateEvidence(
     quotePolicySha256:quotePolicy,
     sourceAuthenticated:false,productionApproved:false,
     publicDeliveryAllowed:false,
+  };
+}
+
+/**
+ * Terminal-owned JSON transport contract. This is an invertible projection of
+ * the accepted Macro /v0 artifact, not a new Macro source schema or a service.
+ * Frozen means the original observation bytes; corrections remain provisional.
+ */
+export const PRIVATE_EVIDENCE_PROJECTION_SCHEMA =
+  "terminal.tp1.private_evidence_projection/v1" as const;
+const ORIGINAL_SCHEMAS: Record<EvidenceKind, string> = {
+  minute: "equity.tick_plane.private_minute_artifact/v0",
+  research: "equity.pressure_response.private_context_view/v0",
+};
+const PROJECTION_FIELDS = [
+  "schema", "kind", "timestamp_encoding", "temporal_role", "original_artifact",
+  "observation", "source_authenticated", "production_approved",
+  "public_delivery_allowed", "rank_trade_alert_authority",
+] as const;
+const PROJECTION_OVERHEAD_BYTES = 2048;
+
+export type PrivateEvidenceProjectionReceipt = Readonly<{
+  schema: typeof PRIVATE_EVIDENCE_PROJECTION_SCHEMA;
+  kind: EvidenceKind;
+  bytesPrivateOnly: Uint8Array;
+  sha256: string;
+  byteLength: number;
+  originalArtifactSha256: string;
+  originalArtifactByteLength: number;
+  sourceAuthenticated: false;
+  productionApproved: false;
+  publicDeliveryAllowed: false;
+}>;
+
+function validKind(kind: EvidenceKind): void {
+  if (kind !== "minute" && kind !== "research")
+    throw new PrivateEvidenceRefusal("kind:unknown");
+}
+function validByteLength(bytes: Uint8Array, expected: number, limit: number, name: string): void {
+  if (!(bytes instanceof Uint8Array) || bytes.byteLength < 2 ||
+      bytes.byteLength > limit || !Number.isSafeInteger(expected) ||
+      expected !== bytes.byteLength)
+    throw new PrivateEvidenceRefusal(name + ":invalid_length");
+}
+
+/**
+ * Take one stable snapshot of the caller's input. Verify it through the existing
+ * v0 semantic decoder before lifting the same snapshot into the v1 envelope.
+ * The projection preserves every original non-clock field's lexical value.
+ */
+export function projectPrivateEvidence(args: {
+  kind: EvidenceKind; bytes: Uint8Array; expectedSha256: string; expectedLength: number;
+}): PrivateEvidenceProjectionReceipt {
+  const { kind, bytes, expectedSha256, expectedLength } = args;
+  validKind(kind);
+  validByteLength(bytes, expectedLength, MAX_LENGTH[kind], "source_bytes");
+  const snapshot = Buffer.from(bytes);
+  decodePrivateEvidence({ kind, bytes: snapshot, expectedSha256, expectedLength });
+  const { schema, ...observation } = liftKnownTopLevelClocks(snapshot, kind);
+  const document = {
+    schema: PRIVATE_EVIDENCE_PROJECTION_SCHEMA,
+    kind,
+    timestamp_encoding: "UNSIGNED_DECIMAL_STRING_NS",
+    temporal_role: "ORIGINAL_FROZEN_OBSERVATION",
+    original_artifact: { schema, sha256: expectedSha256, byte_length: expectedLength },
+    observation,
+    source_authenticated: false,
+    production_approved: false,
+    public_delivery_allowed: false,
+    rank_trade_alert_authority: false,
+  };
+  const packed = Buffer.from(canonical(document) + "\n", "utf8");
+  validByteLength(packed, packed.byteLength, MAX_LENGTH[kind] + PROJECTION_OVERHEAD_BYTES,
+    "projection_bytes");
+  return Object.freeze({
+    schema: PRIVATE_EVIDENCE_PROJECTION_SCHEMA,
+    kind, bytesPrivateOnly: packed,
+    sha256: createHash("sha256").update(packed).digest("hex"),
+    byteLength: packed.byteLength,
+    originalArtifactSha256: expectedSha256,
+    originalArtifactByteLength: expectedLength,
+    sourceAuthenticated: false,
+    productionApproved: false,
+    publicDeliveryAllowed: false,
+  });
+}
+
+/**
+ * Both expected receipts MUST come from the caller's independently admitted
+ * private manifest/custody path. Never promote a digest declared by the
+ * envelope into its own trust anchor. SHA-256 integrity is not vendor identity,
+ * entitlement, live capture completeness, public delivery or trading authority.
+ */
+export function decodePrivateEvidenceProjection(args: {
+  kind: EvidenceKind;
+  bytes: Uint8Array;
+  expectedProjectionSha256: string;
+  expectedProjectionLength: number;
+  expectedOriginalSha256: string;
+  expectedOriginalLength: number;
+}): PrivateEvidence & {
+  projectionSchema: typeof PRIVATE_EVIDENCE_PROJECTION_SCHEMA;
+  projectionByteSha256: string;
+  originalByteLength: number;
+  temporalRole: "ORIGINAL_FROZEN_OBSERVATION";
+} {
+  const { kind, bytes, expectedProjectionSha256, expectedProjectionLength,
+    expectedOriginalSha256, expectedOriginalLength } = args;
+  validKind(kind);
+  validByteLength(bytes, expectedProjectionLength,
+    MAX_LENGTH[kind] + PROJECTION_OVERHEAD_BYTES, "projection_bytes");
+  assertHash(expectedProjectionSha256, "expectedProjectionSha256");
+  assertHash(expectedOriginalSha256, "expectedOriginalSha256");
+  if (!Number.isSafeInteger(expectedOriginalLength) || expectedOriginalLength < 2 ||
+      expectedOriginalLength > MAX_LENGTH[kind])
+    throw new PrivateEvidenceRefusal("original_artifact:invalid_length");
+  const snapshot = Buffer.from(bytes);
+  const projectionHash = createHash("sha256").update(snapshot).digest("hex");
+  if (projectionHash !== expectedProjectionSha256)
+    throw new PrivateEvidenceRefusal("projection_bytes:hash_mismatch");
+  const raw = snapshot.toString("utf8");
+  if (!Buffer.from(raw, "utf8").equals(snapshot) || /[^\x09\x0a\x0d\x20-\x7e]/.test(raw))
+    throw new PrivateEvidenceRefusal("projection_bytes:not_canonical_ascii");
+  if (!raw.startsWith("{") || !raw.endsWith("}\n"))
+    throw new PrivateEvidenceRefusal("projection_bytes:not_canonical_json");
+  let parsed: unknown;
+  try { parsed = JSON.parse(raw); }
+  catch { throw new PrivateEvidenceRefusal("projection_bytes:malformed_json"); }
+  const document = record(parsed, "projection_root");
+  if (canonical(document) + "\n" !== raw)
+    throw new PrivateEvidenceRefusal("projection_bytes:noncanonical");
+  assertKeys(document, PROJECTION_FIELDS, "projection");
+  if (document.schema !== PRIVATE_EVIDENCE_PROJECTION_SCHEMA ||
+      document.kind !== kind || document.timestamp_encoding !== "UNSIGNED_DECIMAL_STRING_NS" ||
+      document.temporal_role !== "ORIGINAL_FROZEN_OBSERVATION")
+    throw new PrivateEvidenceRefusal("projection:schema_or_temporal_role");
+  if (document.source_authenticated !== false || document.production_approved !== false ||
+      document.public_delivery_allowed !== false || document.rank_trade_alert_authority !== false)
+    throw new PrivateEvidenceRefusal("projection:false_authority");
+  const original = record(document.original_artifact, "original_artifact");
+  assertKeys(original, ["schema", "sha256", "byte_length"], "original_artifact");
+  if (original.schema !== ORIGINAL_SCHEMAS[kind] ||
+      original.sha256 !== expectedOriginalSha256 ||
+      original.byte_length !== expectedOriginalLength)
+    throw new PrivateEvidenceRefusal("original_artifact:receipt_mismatch");
+  const observation = record(document.observation, "observation");
+  assertKeys(observation, TOP_FIELDS[kind].filter(field => field !== "schema"), "observation");
+
+  // Structured restoration touches ONLY the static approved top-level clock
+  // fields. No global regex, arbitrary *_ns coercion or monetary reformatting.
+  const restored: RecordValue = { ...observation, schema: ORIGINAL_SCHEMAS[kind] };
+  const originalJson = "{" + Object.keys(restored).sort().map(field => {
+    const value = restored[field];
+    let encoded: string;
+    if (NS_FIELDS[kind].includes(field)) {
+      assertClock(value, field);
+      encoded = value as string;
+    } else encoded = canonical(value);
+    return JSON.stringify(field) + ":" + encoded;
+  }).join(",") + "}\n";
+  const evidence = decodePrivateEvidence({
+    kind, bytes: Buffer.from(originalJson, "utf8"),
+    expectedSha256: expectedOriginalSha256, expectedLength: expectedOriginalLength,
+  });
+  return {
+    ...evidence,
+    projectionSchema: PRIVATE_EVIDENCE_PROJECTION_SCHEMA,
+    projectionByteSha256: projectionHash,
+    originalByteLength: expectedOriginalLength,
+    temporalRole: "ORIGINAL_FROZEN_OBSERVATION",
   };
 }
