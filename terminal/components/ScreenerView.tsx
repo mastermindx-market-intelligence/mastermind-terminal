@@ -38,6 +38,7 @@ import { passes } from "@/lib/screenerScan";
 import { TECH_DEFAULT_CONTROLS, techControlsActive, technicalCoverageSummary, technicalScreenOf, type TechControls } from "@/lib/technicalScreenControls";
 import { DAILY_FUNCTIONAL_TIMEFRAMES } from "@/lib/startTf";
 import { useTechnicalT } from "@/lib/technicalScanLex";
+import SmartScreensPanel from "@/components/screener/SmartScreensPanel";
 
 /* ────────────────────────────────────────────────────────────────────────────
  * PHASE-2 DATA PLUMBING — deliberately NOT built in this component (D5-6).
@@ -1078,6 +1079,23 @@ export default function ScreenerView({ identity }: { identity: AccountIdentity }
           onDismissCleared={() => setCleared(null)}
         />
       )}
+      {/* E04 smart screens: account-saved, explainable screens with on-demand entered/left review. */}
+      <SmartScreensPanel
+        identity={identity}
+        rows={rows}
+        ready={loaded && !err}
+        asOf={asOf}
+        filters={f}
+        prefsEnabled={prefsReady ? prefs.enabled : null}
+        showAllMarkets={showAllMarkets}
+        labelGics={gicsLabel}
+        labelAsset={assetLabel}
+        onOpen={(next, o) => startTransition(() => {
+          setActivePreset(null);
+          setF(next);
+          if (o.showAllMarkets !== null) setShowAllMarkets(o.showAllMarkets);
+        })}
+      />
 
       {/* ── status row: counts computed over the FILTERED set, plus scope honesty ── */}
       <div className="scr2-status">
