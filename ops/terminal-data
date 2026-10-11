@@ -227,6 +227,16 @@ fi
 # tests/test_nightly_wiring.py.
 run "$PY" ingest/gen_technical_scan.py --data-dir "$D" --budget-seconds 900
 
+# ── SCREENER CLASSIFICATION GENERATION (E03) ──
+# scan/classification.json: each listing's NATIVE classifications (GICS / Yahoo sector and
+# industry / CN profile sector, one cell per taxonomy, never cross-mapped) and its trading
+# currency, copied verbatim from the owner <SYM>.fund.json records the fund lanes publish into
+# this dir. It infers nothing (no ticker-suffix currency, no crosswalk). Same placement rule as
+# the technical scan: AFTER the swap (screens the manifest readers get), outside the swap's
+# conditional, BEFORE the coverage index; same adoption guard, receipt
+# (scan/classification.receipt.json) and atomic writes. Pinned by tests/test_nightly_wiring.py.
+run "$PY" ingest/gen_classification_scan.py --data-dir "$D" --budget-seconds 600
+
 # ── INTRADAY NIGHTLY REFRESH ──
 # Refresh existing 1h/5m intraday stores in place (incremental, no new symbols).
 # Must run BEFORE coverage index so refreshed files are indexed same night.
