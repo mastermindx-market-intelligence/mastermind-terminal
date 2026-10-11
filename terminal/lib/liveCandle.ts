@@ -1,3 +1,4 @@
+import { isExtQuoteCurrent } from "@/lib/extQuoteFreshness";
 import { tfSeconds, type Market } from "@/lib/intradayShared";
 
 /**
@@ -15,6 +16,13 @@ export type LiveCandleQuote = {
   extPrice?: number | null;
   extTs?: number | null;
   extBasis?: string | null;
+  extSource?: string;
+  extSession?: string;
+  extVenue?: string;
+  extPriceKind?: string;
+  extReceivedTs?: number;
+  extPublishedTs?: number;
+  extExpiresTs?: number;
   tickOpen?: number | null;
   tickHigh?: number | null;
   tickLow?: number | null;
@@ -144,7 +152,7 @@ function quoteTick(q: LiveCandleQuote, market: Market, extHours: boolean): TickS
     if (!extHours) return null;
     const price = positive(q.extPrice);
     const sec = finiteNonNegative(q.extTs);
-    if (price == null || sec == null || q.extBasis !== "LIVE") return null;
+    if (price == null || sec == null || q.extBasis !== "LIVE" || !isExtQuoteCurrent(q)) return null;
     return { open: price, high: price, low: price, close: price, vol: 0, startMs: sec * 1000, endMs: sec * 1000 };
   }
 

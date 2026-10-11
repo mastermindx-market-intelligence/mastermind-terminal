@@ -522,6 +522,7 @@ class Store {
             delete copy.extSession;
             delete copy.extSource;
             delete copy.extBasis;
+            for (const field of ["extVenue", "extPriceKind", "extReceivedTs", "extPublishedTs", "extExpiresTs", "extCaptureId", "extGeneration"]) delete copy[field];
             out[sym] = copy;
           }
         }
