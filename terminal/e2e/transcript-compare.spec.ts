@@ -489,6 +489,38 @@ test.describe("E12 two-call transcript comparison", () => {
     expect(["txc", "txcq", "txcs", "txcsec", "txcm"].filter((key) => after.has(key))).toEqual([]);
   });
 
+  test("switching company away and back closes a linked comparison for good", async ({ page }) => {
+    // The page stays mounted across a picker switch. A comparison opened from a link must not
+    // come back on return to the original company once the address bar no longer names it.
+    await openTranscripts(page, "&txc=NVDA_2026Q1_2027Q1");
+    const panel = page.getByTestId("transcript-compare");
+    await expect(panel).toBeVisible({ timeout: 20_000 });
+    await expect(panel.getByLabel("Call A")).toHaveValue("2026Q1");
+    expect(new URL(page.url()).searchParams.get("txc")).toBe("NVDA_2026Q1_2027Q1");
+
+    const symbolChip = page.locator(".sym-pick strong");
+    const pickSymbol = async (symbol: string) => {
+      await page.locator("button.sym-pick").click({ timeout: 20_000 });
+      const dialog = page.locator(".smodal, .msheet-search").first();
+      await expect(dialog).toBeVisible({ timeout: 20_000 });
+      await dialog.locator("input[role=combobox]").fill(symbol, { timeout: 20_000 });
+      await dialog.locator(".r", { hasText: symbol }).first().click({ timeout: 20_000 });
+      await expect(symbolChip).toHaveText(symbol, { timeout: 20_000 });
+    };
+
+    await pickSymbol("AMD");
+    await expect(page.getByTestId("transcript-compare")).toHaveCount(0);
+    await pickSymbol("NVDA");
+    await expect(page).toHaveURL(/[?&]symbol=NVDA\b/, { timeout: 20_000 });
+    // Wait until NVDA's archive is back and the page has settled on one of its two states, then
+    // require the closed one: the entry is offered and no comparison panel exists.
+    await expect(page.getByTestId("transcript-compare").or(page.getByTestId("transcript-compare-entry"))).toBeVisible({ timeout: 20_000 });
+    await expect(page.getByTestId("transcript-compare")).toHaveCount(0);
+    await expect(page.getByTestId("transcript-compare-entry")).toBeVisible();
+    const after = new URL(page.url()).searchParams;
+    expect(["txc", "txcq", "txcs", "txcsec", "txcm"].filter((key) => after.has(key))).toEqual([]);
+  });
+
   test("the comparison reads in Chinese while transcript text stays labeled as untranslated source", async ({ page }) => {
     await page.addInitScript(() => window.localStorage.setItem("mm.lang", "zh"));
     await openTranscripts(page);

@@ -464,5 +464,10 @@ describe("AC-E12-05 share links carry references only", () => {
     }
     expect(TRANSCRIPT_COMPARE_LEX.tcRawLabel[0]).toMatch(/not translated/i);
     expect(TRANSCRIPT_COMPARE_LEX.tcRights[0]).toMatch(/never transcript text/i);
+    // A copied link keeps its route; on the chart route a guest can open it. The copy must not
+    // promise a member gate the link does not carry — it only re-checks what the opener can read.
+    expect(TRANSCRIPT_COMPARE_LEX.tcRights[0]).not.toMatch(/member/i);
+    expect(TRANSCRIPT_COMPARE_LEX.tcRights[1]).not.toMatch(/会员/u);
+    expect(TRANSCRIPT_COMPARE_LEX.tcRights[0]).toMatch(/only what the opener can already read/i);
   });
 });

@@ -97,7 +97,7 @@ export const TRANSCRIPT_COMPARE_LEX: Record<string, [string, string]> = {
   tcLinkInvalid: ["This comparison link names {ticker}, not {current}. It was not applied.", "此对比链接指向 {ticker}，而非 {current}，因此未予应用。"],
   // rights + sharing
   tcRightsTitle: ["Source and sharing", "来源与分享"],
-  tcRights: ["Text is the DefeatBeta transcript corpus as normalized and indexed by Mastermind, not an issuer-hosted original, and is shown untranslated. Comparison links and receipts carry call IDs, revision fingerprints and offsets only, never transcript text; opening one re-checks the archive and requires the same member access.", "正文来自 DefeatBeta 电话会语料库，经 Mastermind 标准化并建立索引，并非发行人托管的原始文件，且未经翻译。对比链接与凭证仅包含电话会 ID、版本指纹和偏移量，从不包含记录正文；打开时会重新核验档案，并需要相同的会员权限。"],
+  tcRights: ["Text is the DefeatBeta transcript corpus as normalized and indexed by Mastermind, not an issuer-hosted original, and is shown untranslated. Comparison links and receipts carry call IDs, revision fingerprints and offsets only, never transcript text. Opening a link re-checks the archive and shows only what the opener can already read in the transcript archive.", "正文来自 DefeatBeta 电话会语料库，经 Mastermind 标准化并建立索引，并非发行人托管的原始文件，且未经翻译。对比链接与凭证仅包含电话会 ID、版本指纹和偏移量，从不包含记录正文。打开链接时会重新核验档案，且只显示打开者本已可在电话会档案中阅读的内容。"],
   tcCopyLink: ["Copy comparison link", "复制对比链接"],
   tcCopyReceipt: ["Copy comparison receipt", "复制对比凭证"],
   tcVerify: ["Re-verify references", "重新核验引用"],

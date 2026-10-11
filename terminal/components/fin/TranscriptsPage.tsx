@@ -82,10 +82,14 @@ export default function TranscriptsPage({ sym, fund, onOpenTx }: TranscriptsPage
   }, []);
 
   // Calls belong to one ticker: a symbol change closes the comparison and its URL keys.
+  // The page stays mounted across a picker switch, so the state must close too — otherwise
+  // NVDA -> AMD -> NVDA would reopen the old comparison while the address bar no longer
+  // names it. Focus is not pulled back to the entry button: the user is in the picker.
   useEffect(() => {
     if (previousSym.current === sym) return;
     previousSym.current = sym;
     clearCompareParams();
+    setCompare(null);
   }, [sym]);
 
   useEffect(() => {
