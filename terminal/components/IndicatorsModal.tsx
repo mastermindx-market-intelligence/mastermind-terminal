@@ -1,6 +1,7 @@
 "use client";
 
 import {
+  Fragment,
   useDeferredValue,
   useEffect,
   useMemo,
@@ -18,6 +19,10 @@ import {
   type IndicatorSearchDocument,
 } from "@/lib/indicatorSearch";
 import { type UserScript } from "@/lib/userScripts";
+import { MAX_INSTANCES_PER_TYPE, supportsMultipleInstances } from "@/lib/studyInstances";
+import { renderableStudyIds } from "@/lib/studyInstanceView";
+import { useStudyInstancesT } from "@/lib/studyInstancesLex";
+import type { IndKey } from "@/lib/indicators";
 import StateSwitch, { LockMark } from "@/components/StateSwitch";
 import {
   MODULE_CATALOG,
@@ -142,6 +147,8 @@ export interface IndicatorsModalProps {
   onClose: () => void;
   /** Classic indicators and the five optional recommended suite presets. */
   onToggle: (key: string) => void;
+  /** Adds ANOTHER independent instance of a multi-instance study type (E06), e.g. a second RSI. */
+  onAddInstance?: (type: string) => void;
   /** Applies one progressive suite profile without replacing customized field values. */
   onApplyPreset?: (key: string, presetId: SuitePresetId) => void;
   suiteParams?: Readonly<Record<string, Readonly<Record<string, unknown>> | undefined>>;
@@ -167,6 +174,7 @@ export default function IndicatorsModal({
   activeModules,
   onClose,
   onToggle,
+  onAddInstance,
   onApplyPreset,
   suiteParams,
   onToggleModule,
@@ -183,6 +191,7 @@ export default function IndicatorsModal({
 }: IndicatorsModalProps) {
   const t = useT();
   const { lang } = useLang();
+  const si = useStudyInstancesT();
   const [cat, setCat] = useState<string>(ALL_INDICATORS);
   const [query, setQuery] = useState("");
   const [renaming, setRenaming] = useState<string | null>(null);
@@ -433,7 +442,10 @@ export default function IndicatorsModal({
   const renderClassic = (item: ClassicIndicator, category: string) => {
     const on = active.has(item.key);
     const label = lang === "zh" && item.labelZh ? item.labelZh : item.tkey ? t(item.tkey, item.label) : item.label;
-    return (
+    // A multi-instance type that is already on the chart offers "Add another" — a NEW independent
+    // instance with its own id/params/pane — next to its switch (the switch keeps toggling the primary).
+    const instanceCount = onAddInstance && supportsMultipleInstances(item.key) ? renderableStudyIds(item.key as IndKey, active).length : 0;
+    const row = (
       <button
         type="button"
         key={`classic:${item.key}`}
@@ -453,6 +465,34 @@ export default function IndicatorsModal({
         </span>
         <StateSwitch on={on} />
       </button>
+    );
+    if (instanceCount < 1 || !onAddInstance) return row;
+    const full = instanceCount >= MAX_INSTANCES_PER_TYPE;
+    const addLabel = si("sinstAddAnother", { label });
+    return (
+      <Fragment key={`classic:${item.key}`}>
+        {row}
+        <button
+          type="button"
+          className="li li-classic"
+          aria-label={addLabel}
+          data-study-add-instance={item.key}
+          data-im-search-result={searching ? "" : undefined}
+          disabled={full}
+          style={full ? { cursor: "not-allowed", opacity: 0.62 } : undefined}
+          onClick={() => onAddInstance(item.key)}
+        >
+          <span className="im-classic-mark" aria-hidden="true">+</span>
+          <span className="li-main-copy">
+            <span className="li-nm">{addLabel}</span>
+            <span className="li-sub">
+              {full
+                ? si("sinstLimit", { max: MAX_INSTANCES_PER_TYPE, label })
+                : si("sinstCount", { count: instanceCount, max: MAX_INSTANCES_PER_TYPE })}
+            </span>
+          </span>
+        </button>
+      </Fragment>
     );
   };
 

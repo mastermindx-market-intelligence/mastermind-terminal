@@ -1,11 +1,11 @@
-# Terminal Visual Intelligence Layer — large-trades integration regression recapture
+# Terminal Visual Intelligence Layer — chart-settings candidate recapture
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
 # Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
-# capturedAtHead: 28851b8d823ee38516c8902da3c9b3453a95ee7e (committed large-trades integration with retained upstream volume guard)
-# capturedAt: 2026-10-11T10:05:28.768945+00:00
+# capturedAtHead: 702bd7fbbb92f7f10eb2138fc29f78e3cd94ff7c (E06 independent RSI instances, merged with origin/master fc76cf495)
+# capturedAt: 2026-10-11T08:48:39.310034+00:00
 # Content-addressed layoutFiles + cropFiles, not ancestry, identify this capture.
 layoutFiles:
-  terminal/components/ChartPanel.tsx: "6210ada239f30556ff2ff2be1f1359b173a2d104e8c347d4615d267f6a740938"
+  terminal/components/ChartPanel.tsx: "99821732c74fd5a179bc24de59ac4b87d6e0fd4a4ebce8873e4e694d30567ada"
   terminal/components/ChartSettingsModal.tsx: "f26bd7dcbb9bd23e96546e835dec4c62c593b9c4d7412c411511005e7418146e"
   terminal/components/ChartSettingsModal.module.css: "a1685d103511e11882f8d379b22570f018e47aed88266db5ca6fec8808100b0a"
   terminal/components/DrawingSidebar.tsx: "95910121c08efa2a41bcaac02ec626a48bc98021bbbf9e611ff0b61f7baaf6d9"
@@ -19,12 +19,12 @@ layoutFiles:
   terminal/lib/suites/trend/candlePainter.ts: "8384d2bce3af939a51e88584b1436ee2898a89f0fbf1aedc09ffee624a3e12e1"
   terminal/lib/indicator-canvas/host.ts: "4f2949efb22b8c378cab1ff9d176466c4857073c14a36ee4f0eeab4ec1015a25"
 cropFiles:
-  desktop-context.png: "c05e1e13bf3f2b3c42c4a58329a9210605ea3aaa13e10f1867a4cec50a49c32d"
-  desktop-context-zh.png: "2b92ea4b037e0bdcdf03ddf5fe368caf5065c9d652139c399a8d0a670edb9dd2"
-  tablet-context.png: "a0fcb268c1d9757dc7f38c36905c5d566630eaa2dfdba13bf062eb27e269ba0d"
-  tablet-context-zh.png: "d6ef29dacaa70592355097ab903ef4eb3ce7e7a6979eb16593d909470e39f436"
-  mobile-context.png: "e6cbab869441c08658d1e61ec19874af6ecb5a1e606daa4ea75fb11feb32c83d"
-  mobile-context-zh.png: "84acbd407f436e1290d5e89cdd442ac3179545b1093db1ec417ea4890ed96ac7"
+  desktop-context.png: "ee68cdcf4c361b0a177164cdbff5160ff851e16d123ba6f6251f00cdc3b6a742"
+  desktop-context-zh.png: "696408192da3094bb82949f23e7ce4067f1e5e6994568751386fe869f7bda0ef"
+  tablet-context.png: "0639a8cd91cfb2b907958914d34b8229009474963507c2082b3cf9dd8a5aea5f"
+  tablet-context-zh.png: "13767ea9782973f29607dd6d22be4100c9d4084300600bf1cdebb010b392690c"
+  mobile-context.png: "d5990be7364778afea754cdc667e679d440242df3f62dc4305ed0a000c6c782a"
+  mobile-context-zh.png: "8cf049fe8cd7f6b0947255cd44044be341eaaeeb38b113c63716bfd67237ceaf"
 
 theme: dark
 languages: [en, zh]
@@ -36,9 +36,6 @@ surface: Terminal Chart context
 harness: /terminal?symbol=NVDA
 capture_flag: TERMINAL_E2E_FIXTURE
 capture_flag_law: Standard Playwright fixture also disables the Next.js dev indicator.
-# Current recapture: 2026-10-11; 30 passed (3.8m), exit 0; all six EN/ZH images inspected.
-# Current command: TERMINAL_E2E_PORT=3117 npx playwright test e2e/visual-intelligence.spec.ts --project=desktop --project=tablet --project=mobile --workers=1 --retries=0 --reporter=list --output ../.large-trades-evidence/playwright-legacy-recaptures
-# Historical command and local-gate receipts below are retained from the prior evidence; they are not new crosshair, full-suite, typecheck, or lint receipts.
 commands:
   - TERMINAL_E2E_PORT=36947 npx playwright test e2e/visual-intelligence.spec.ts --project=desktop --project=tablet --project=mobile --workers=1 --retries=0 --reporter=list
   - TERMINAL_E2E_PORT=36948 npx playwright test e2e/chart-view-reset.spec.ts --project=mobile --workers=1 --retries=0 --grep 'New chart tickers reserve space'

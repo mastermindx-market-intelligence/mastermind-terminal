@@ -224,8 +224,9 @@ async function captureOptionsHub(page, width, lang, outPath) {
   await heading.waitFor({ state: "visible", timeout: 45_000 }).catch(() => {});
   const needle = lang === "zh" ? "总权利金" : "Gross";
   const labeled = page.locator(".obs-card").filter({ hasText: needle }).first();
-  if (await labeled.count()) {
-    await labeled.waitFor({ state: "visible", timeout: 45_000 });
+  // The screener card mounts ~1 s after the category nav, so an instant count() races it and
+  // crops the "Loading…" placeholder. Wait for the card; fall back only if it never appears.
+  if (await labeled.waitFor({ state: "visible", timeout: 45_000 }).then(() => true, () => false)) {
     await cropLocator(page, labeled, outPath, 14);
     return;
   }

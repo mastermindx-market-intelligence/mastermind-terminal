@@ -1,44 +1,19 @@
 # B-PL-6 batch 1 — capture evidence
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
 # Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
-# capturedAtHead: 28851b8d823ee38516c8902da3c9b3453a95ee7e
-# capturedAt: 2026-10-11T10:15:53.066Z
+# capturedAtHead: 702bd7fbbb92f7f10eb2138fc29f78e3cd94ff7c
+# capturedAt: 2026-10-11T09:00:07.904Z
 # capturedAtHead is informational. The lock is layoutFiles.
 layoutFiles:
   terminal/components/OptionsHubView.tsx: "dd8e4e9d5234aae8fb41b597fe1a262bd54dfd8abebb2e46361bde50354c9f08"
   terminal/components/SearchModal.tsx: "51b7b514f169a40db9644b502ddd0d933100a305aea55ea0f6a1fb028dbe69ad"
   terminal/components/StockAnalysis.tsx: "376a907d0d8ea3dc5819e0092f02e19ce56fa1f4b71a3489551adf52fddb35c0"
   terminal/components/workspaces/AnalysisWorkspace.tsx: "f98764b71e4e1301d6149aef0d3e47615455801f95a9691b4d8807febe92226e"
-  terminal/components/ChartPanel.tsx: "6210ada239f30556ff2ff2be1f1359b173a2d104e8c347d4615d267f6a740938"
+  terminal/components/ChartPanel.tsx: "99821732c74fd5a179bc24de59ac4b87d6e0fd4a4ebce8873e4e694d30567ada"
   terminal/components/DayRange.tsx: "c84724652783da1897ab4eeb98550eaf3dbd7942eefe3ce127b6ada2b16dd672"
   terminal/lib/plainLabels.ts: "8f57e32a21abcae530075b7c4da72f170afff8ea38084026995887b4a18fe29a"
   terminal/lib/i18n.tsx: "cfad0a8290b9b872fe919b7b9855bbd3a4cee095eb26ebd902c399942196a65d"
   terminal/app/company-intelligence.css: "16ca4e131ad1f2973b6346e7f051af802dbfa27227d6c33615af87578e73f885"
-cropFiles:
-  AnalysisWorkspace-1440-zh.png: "c4922fcdad7b487c317cc9c2ea15c92df5f718579a4e2fafdd4206c2527601b1"
-  AnalysisWorkspace-1440.png: "7427faf26f49b141052e8912621d9aa8d25f110110980d168818cda38d7d7d5e"
-  AnalysisWorkspace-390-zh.png: "2396f566f9b55ea502c988666d613b38558cab181f8f55a58f225f9772328781"
-  AnalysisWorkspace-390.png: "b429558568562d6a65df28c27c2133b25728879d12e136045e4c046d1e8a0595"
-  ChartChrome-1440-zh.png: "7057542932a880efa04ce06975e6523312694e29505624d8504b19135a877ee4"
-  ChartChrome-1440.png: "accaa50d0bfd7812023cebf930f5354b8a41655c9b524bcd443183a8e12e8e78"
-  ChartChrome-390-zh.png: "964d2800de9bda339b039e5a77c13285b57a2f82f4b735a342c7740607c240cf"
-  ChartChrome-390.png: "ed2242ef2d78338939e92b67be1fe04f4aaf9532afc6cb928d14f2cd4c94131f"
-  DiscoverLeaders-1440-zh.png: "3d010a3289d4b2a41e3918ef1cbd92ca4b79a7b15eed52d5b4f1252b6d1fad97"
-  DiscoverLeaders-1440.png: "fafbc183e357b9745c03e4f19848dece8ea762822184e6ad3bfc597ed3ee45b9"
-  DiscoverLeaders-390-zh.png: "dfb05edcaf5b37f332e78a5cc3e48bad70ebdc6500cb5375c102be74e29875e7"
-  DiscoverLeaders-390.png: "0571bb8494f8a084c962adffbd61c98de40cd908b237c84fdc32fa812f6a6672"
-  OptionsHubView-1440-zh.png: "63148a21a922d3d1a118fca06b7981a57c86746567d5bb721b916cb8be7cff60"
-  OptionsHubView-1440.png: "9a6a08cfd970ed4c1c836f7049924caabb53d58d672a46ad6a346cf3ec957614"
-  OptionsHubView-390-zh.png: "16dbf093ed02ceffe534df093933c562e5caec3d4af9a4a37dc1dd17b1a32f94"
-  OptionsHubView-390.png: "8e0cd7440a003206f0d6a8296fb28515ea6d791fac91e8e570609f5a02ac20f1"
-  SearchModal-1440-zh.png: "e63b28dd4f3c8875b3d8eaa2115c9488aab94862a74836e07f6c3b67fb5bd82e"
-  SearchModal-1440.png: "1d936a6c65312d0bf26e1ba63aa83e1cf25bf27270a1033d45117f5a4adeaaa9"
-  SearchModal-390-zh.png: "68d740d8b74d25e9f549b1795559116c3a93bb2862dfa87743b84b60edd5f677"
-  SearchModal-390.png: "c157f465e83c1efd87d8efdf856dd96aa7f652d01f23df158995a8ff70182a19"
-  StockAnalysis-1440-zh.png: "ac77cc62601cbd85c1b4a7194172bb39778b116835538badd243a6f2ce808bc3"
-  StockAnalysis-1440.png: "73b9959ffe71bd2d55817ff65c84d9754388b77425ed90b60f33287b560914cc"
-  StockAnalysis-390-zh.png: "d956f9c665d04684bd487e88a169a851e7d2f67e575162bf96c5f349255dea2c"
-  StockAnalysis-390.png: "4fac7139dc4913cd46afd79efd1af1313745d065f2c4bf9a636069c24a20c061"
 theme: dark
 languages: [en, zh]
 viewports:
@@ -47,12 +22,9 @@ viewports:
 surfaces: [OptionsHubView, DiscoverLeaders, SearchModal, StockAnalysis, AnalysisWorkspace, ChartChrome]
 capture_flag: TERMINAL_E2E_FIXTURE
 capture_flag_law: next.config.ts sets devIndicators to false when TERMINAL_E2E_FIXTURE is set; this script starts next dev with the same flag.
-classification: LOCAL_BROWSER_WITH_EXISTING_FIXTURE_DATA_NOT_PRODUCTION_DATA
-capture_result: 24/24 crops passed; all 24 images inspected; exit 0
-capture_script_sha256: "f5b48e76adc406703f59889fd9733b66177fca703785d7ca4579f071b6c1a221"
 command: |
   cd terminal
-  TERMINAL_CROP_PORT=3117 node e2e/tools/capture_pl6_batch1.cjs
+  node e2e/tools/capture_pl6_batch1.cjs
 files:
   - AnalysisWorkspace-1440-zh.png
   - AnalysisWorkspace-1440.png
