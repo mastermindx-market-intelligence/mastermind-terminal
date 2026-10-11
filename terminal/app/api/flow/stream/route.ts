@@ -14,11 +14,15 @@
 import { rateLimit, tooMany } from "@/lib/rateLimit";
 import { isValidF } from "@/lib/flowSource";
 import { subscribe } from "@/lib/flowBroadcast";
-import { hasLiveOptions } from "@/lib/entitlement";
+import { LIVE_OPTIONS_CACHE_TTL_MS, openLiveOptionsGrant, type LiveOptionsGrant } from "@/lib/entitlement";
 
 // SSE must never be statically cached, and flowSource reads fixtures via fs → node runtime.
 export const dynamic = "force-dynamic";
 export const runtime = "nodejs";
+// Existing scored feed frames exceed 2 MiB. Bound queued bytes, rather than
+// rejecting those legitimate frames or allowing an unbounded slow consumer.
+const MAX_QUEUED_BYTES = 8 * 1024 * 1024;
+const RECHECK_TIMEOUT_MS = 15_000;
 
 export async function GET(req: Request): Promise<Response> {
   const rl = rateLimit(req, { name: "flow-stream" });
@@ -54,11 +58,16 @@ export async function GET(req: Request): Promise<Response> {
     });
   }
 
+  // A connection starts with fresh authority; a nearly expired page positive
+  // must not gain another complete lifetime interval by opening a stream.
   // Options data is a PAID feature — gate the stream at connection open against
   // the macro-api entitlement (terminal_live_options via /api/me), not
-  // profiles.is_pro. Fixture mode (dev/CI) is exempt.
-  if (process.env.FLOW_FIXTURE !== "1" && !(await hasLiveOptions())) {
-    return new Response("pro_required", { status: 403 });
+  // profiles.is_pro. The grant renews that same opening token for the life of
+  // the connection, never the cookie session. Fixture mode (dev/CI) is exempt.
+  let grant: LiveOptionsGrant | null = null;
+  if (process.env.FLOW_FIXTURE !== "1") {
+    grant = await openLiveOptionsGrant();
+    if (!grant) return new Response("pro_required", { status: 403 });
   }
 
   // Keep the existing post-entitlement parse/validation flow for every
@@ -69,7 +78,7 @@ export async function GET(req: Request): Promise<Response> {
     return new Response("bad f param", { status: 400 });
   }
 
-  // This connection owns no timer and no upstream read. It attaches to the process-level
+  // This connection owns only its authority-revalidation timers. It attaches to the process-level
   // producer for `f` (lib/flowBroadcast), which polls once per cadence and serializes each
   // changed frame once, however many clients are attached. Frames arrive here already
   // formatted as SSE text; the only per-connection work left is UTF-8 encoding them into
@@ -79,34 +88,56 @@ export async function GET(req: Request): Promise<Response> {
   const encoder = new TextEncoder();
   let closed = false;
   let detach: (() => void) | null = null;
+  let recheckTimer: ReturnType<typeof setInterval> | null = null;
+  let recheckDeadline: ReturnType<typeof setTimeout> | null = null;
+  let checking = false;
+  let pendingFrame: Uint8Array | null = null;
+  let finish: ((discardQueued: boolean) => void) | null = null;
+  const onAbort = () => teardown();
 
-  const teardown = () => {
+  const teardown = (discardQueued = false) => {
     if (closed) return;
     closed = true;
+    if (recheckTimer !== null) clearInterval(recheckTimer);
+    if (recheckDeadline !== null) clearTimeout(recheckDeadline);
+    recheckTimer = recheckDeadline = null;
+    req.signal.removeEventListener("abort", onAbort);
     detach?.();
     detach = null;
+    pendingFrame = null;
+    finish?.(discardQueued);
+    finish = null;
   };
 
   const stream = new ReadableStream<Uint8Array>({
     start(controller) {
+      finish = (discardQueued) => {
+        try {
+          if (discardQueued) controller.error(new Error("Flow stream lifetime ended"));
+          else controller.close();
+        } catch { /* The consumer already closed the stream. */ }
+      };
       const send = (payload: string) => {
         if (closed) return;
-        try { controller.enqueue(encoder.encode(payload)); } catch { /* stream torn down */ }
+        // A recheck pauses new delivery. Keep only the latest data frame, not
+        // heartbeats; pending + queued bytes share the same bounded budget.
+        if (checking && !payload.startsWith("data:")) return;
+        const chunk = encoder.encode(payload);
+        const available = controller.desiredSize;
+        if (available === null || chunk.byteLength > available) { teardown(true); return; }
+        if (checking) { pendingFrame = chunk; return; }
+        try { controller.enqueue(chunk); } catch { teardown(true); }
       };
 
       // Client navigated away / closed the tab.
-      req.signal.addEventListener("abort", () => {
-        teardown();
-        try { controller.close(); } catch { /* already closed */ }
-      });
+      req.signal.addEventListener("abort", onAbort, { once: true });
 
       // A signal that is ALREADY aborted never fires its listener, and start() runs after the
-      // `await hasLiveOptions()` above — so a client that gives up during that entitlement
+      // `await openLiveOptionsGrant()` above — so a client that gives up during that entitlement
       // round-trip would otherwise subscribe here and never detach, stranding a producer and
       // its timers with no connection behind them. Bail before attaching.
       if (req.signal.aborted) {
-        closed = true;
-        try { controller.close(); } catch { /* already closed */ }
+        teardown();
         return;
       }
 
@@ -116,12 +147,35 @@ export async function GET(req: Request): Promise<Response> {
       // Attach. If the producer already holds a frame, subscribe() delivers it synchronously
       // here, so a client joining a warm feed still renders with no first-paint wait — and
       // without the upstream read every connection used to perform for itself.
-      detach = subscribe(f, send);
+      const release = subscribe(f, send);
+      // A warm frame can overflow synchronously before subscribe returns its
+      // disposer. Settle that same subscription rather than losing the handle.
+      if (closed) { release(); return; }
+      detach = release;
+      if (grant !== null) {
+        const renew = grant.renew;
+        recheckTimer = setInterval(() => {
+          if (closed || checking) return;
+          checking = true;
+          recheckDeadline = setTimeout(() => teardown(true), RECHECK_TIMEOUT_MS);
+          void renew().then((allowed) => {
+            if (closed) return;
+            if (!allowed) { teardown(true); return; }
+            if (recheckDeadline !== null) clearTimeout(recheckDeadline);
+            recheckDeadline = null;
+            checking = false;
+            if (pendingFrame) {
+              const frame = pendingFrame; pendingFrame = null;
+              try { controller.enqueue(frame); } catch { teardown(true); }
+            }
+          }).catch(() => teardown(true));
+        }, LIVE_OPTIONS_CACHE_TTL_MS);
+      }
     },
     cancel() {
       teardown();
     },
-  });
+  }, { highWaterMark: MAX_QUEUED_BYTES, size: (chunk) => chunk.byteLength });
 
   return new Response(stream, {
     headers: {
