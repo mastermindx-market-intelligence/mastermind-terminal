@@ -9,7 +9,10 @@ import { makeGexT } from "@/components/gexdesk/gexStrings";
 
 const input = vi.hoisted(() => ({ lang: "en" as "en" | "zh", gex: {} as unknown, matrix: {} as unknown }));
 vi.mock("@/lib/flowClientCache", () => ({
-  flowGet: async (key: string) => (key.startsWith("matrix:") ? input.matrix : null),
+  flowGetResult: async (key: string) => (key.startsWith("matrix:")
+    ? { status: "data" as const, data: input.matrix }
+    : { status: "absent" as const, httpStatus: 404 }),
+  flowInvalidate: () => undefined,
 }));
 vi.mock("@/lib/flowStream", () => ({ useFlowStream: () => ({ data: input.gex, error: null }) }));
 vi.mock("@/lib/i18n", () => ({ useLang: () => ({ lang: input.lang }) }));
