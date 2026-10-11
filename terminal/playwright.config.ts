@@ -12,6 +12,8 @@ const terminalChromeIntermediateSpec = /terminal-chrome-responsive\.spec\.ts/;
 // project, or every named screenshot gets clobbered three times over by parallel projects racing
 // the same file paths.
 const w2aWorkspacesSpec = /w2a-workspaces\.spec\.ts/;
+// Settings owns an explicit desktop/tablet/mobile matrix; run it once in the desktop shard.
+const settingsRedesignSpec = /settings-redesign\.spec\.ts/;
 
 export default defineConfig({
   testDir: "./e2e",
@@ -63,8 +65,8 @@ export default defineConfig({
     // isolated below: twelve simultaneous cold starts have timed out locally
     // and in CI, while one viewport at a time is deterministic.
     { name: "desktop", testIgnore: [companyIntelligenceSpec, terminalChromeIntermediateSpec, w2aWorkspacesSpec], use: { viewport: { width: 1440, height: 900 } } },
-    { name: "tablet", testIgnore: [companyIntelligenceSpec, terminalChromeIntermediateSpec, w2aWorkspacesSpec], use: { viewport: { width: 820, height: 1180 }, hasTouch: true } },
-    { name: "mobile", testIgnore: [companyIntelligenceSpec, terminalChromeIntermediateSpec, w2aWorkspacesSpec], use: { viewport: { width: 390, height: 844 }, hasTouch: true } },
+    { name: "tablet", testIgnore: [companyIntelligenceSpec, terminalChromeIntermediateSpec, w2aWorkspacesSpec, settingsRedesignSpec], use: { viewport: { width: 820, height: 1180 }, hasTouch: true } },
+    { name: "mobile", testIgnore: [companyIntelligenceSpec, terminalChromeIntermediateSpec, w2aWorkspacesSpec, settingsRedesignSpec], use: { viewport: { width: 390, height: 844 }, hasTouch: true } },
     {
       name: "company-intelligence-desktop",
       testMatch: companyIntelligenceSpec,

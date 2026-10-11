@@ -6,7 +6,7 @@ export default defineConfig({
   testDir: "./e2e", testMatch: "settings-redesign.spec.ts",
   timeout: 45_000, expect: { timeout: 10_000 }, workers: 1,
   reporter: "list", outputDir: "test-results/settings-redesign",
-  use: { baseURL: `http://127.0.0.1:${port}`, browserName: "chromium", reducedMotion: "reduce", viewport: { width: 1440, height: 900 }, trace: "retain-on-failure" },
+  use: { baseURL: `http://127.0.0.1:${port}`, browserName: "chromium", contextOptions: { reducedMotion: "reduce" }, viewport: { width: 1440, height: 900 }, trace: "retain-on-failure" },
   webServer: {
     command: `npm run dev -- --hostname 127.0.0.1 --port ${port}`,
     url: `http://127.0.0.1:${port}/dev/settings?s=terminal&out=1`,

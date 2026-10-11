@@ -1,0 +1,65 @@
+{
+  "implementationHead": "fe1b5da159071050279ef2591ae18c98f81a3a76",
+  "base": "9bc8a12b8e869a699d9bd3f0f90b160323d212b6",
+  "paper": {
+    "fileId": "01M2WGNCX9475G79JRKJTCM08P",
+    "pageId": "p-1C-0",
+    "desktopNode": "61ON-0",
+    "mobileNode": "61TU-0"
+  },
+  "verification": {
+    "unitFiles": 543,
+    "unitPassed": 8914,
+    "unitTodo": 4,
+    "focusedBrowserPassed": 14,
+    "nativeResponsivePassed": 3,
+    "typecheck": "PASS",
+    "productionBuild": "PASS",
+    "recapturedSettingsScreenshots": 106,
+    "captureScripts": [
+      {
+        "script": "capture_f12_5_account_polish",
+        "exit": 0
+      },
+      {
+        "script": "capture_b_f12_b5_3_account_completeness",
+        "exit": 0
+      },
+      {
+        "script": "capture_f12_10_api_keys",
+        "exit": 0
+      },
+      {
+        "script": "capture_f12_16_team_settings",
+        "exit": 0
+      },
+      {
+        "script": "capture_f12_7_webhooks",
+        "exit": 0
+      },
+      {
+        "script": "capture_f12_8_team_roles",
+        "exit": 0
+      },
+      {
+        "script": "capture_f12_9_team_ownership_transfer",
+        "exit": 0
+      },
+      {
+        "script": "capture_w9t_f12_17_invite_link",
+        "exit": 0
+      },
+      {
+        "script": "capture_b_f13_5_accuracy",
+        "exit": 0
+      }
+    ]
+  },
+  "scope": "Native existing Terminal settings; no auth, billing, ownership, persistence, chart engine, API, dependency or production changes",
+  "caveats": [
+    "Local fixtures, not production acceptance",
+    "Existing SettingsPanel team-reader ESLint react-hooks/set-state-in-effect finding reproduces on base; owner logic unchanged",
+    "Five unrelated LEX-only evidence packs have an explicitly documented nonvisual dependency update, not recapture or renewed acceptance",
+    "No independent agent review is claimed"
+  ]
+}

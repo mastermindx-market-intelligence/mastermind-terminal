@@ -12,11 +12,11 @@ Solid source-token slate panel: max 1000 × 660px, 208px navigation, 12px shell 
 ## Implementation plan
 - [x] Inspect protected procedure, source, ownership and Paper; acquire isolated managed workspace.
 - [x] Design desktop and mobile; inspect screenshots and exact exported styles.
-- [ ] Add browser regression tests and observe expected red against the existing pane.
-- [ ] Update `terminal/components/settings/SettingsPanel.tsx` navigation, focus and chrome only; retain owner/data/refresh logic.
-- [ ] Update `terminal/components/settings/SectionTerminal.tsx` presentation only; retain `useAccountPrefs`, home lock, `DeliveryNote`, retry and canonical timeframe order.
-- [ ] Replace shell rules in `terminal/app/settings.css`, scope Terminal controls, preserve other sections and reduced motion. Add bilingual copy to `terminal/lib/i18n.tsx`.
-- [ ] Run focused and full unit tests, TypeScript/lint and actual-browser desktop/tablet/mobile checks, including keyboard, narrow/short viewports, EN/ZH and available themes.
+- [x] Add browser regression tests and observe expected red against the existing pane.
+- [x] Update `terminal/components/settings/SettingsPanel.tsx` navigation, focus and chrome only; retain owner/data/refresh logic.
+- [x] Update `terminal/components/settings/SectionTerminal.tsx` presentation only; retain `useAccountPrefs`, home lock, `DeliveryNote`, retry and canonical timeframe order.
+- [x] Replace shell rules in `terminal/app/settings.css`, scope Terminal controls, preserve other sections and reduced motion. Add bilingual copy to `terminal/lib/i18n.tsx`.
+- [x] Run focused and full unit tests, TypeScript/lint and actual-browser desktop/tablet/mobile checks, including keyboard, narrow/short viewports and EN/ZH in Terminal’s supported dark theme.
 - [ ] Publish own finished branch/PR and follow actual CI/release gates; no bypass or production claim without proof.
 
 ## Boundaries / review focus
@@ -24,8 +24,10 @@ No changes to auth, persistence, billing, chart engine or account ownership. No 
 
 ## Verified implementation frontier
 
-All 14 focused Chromium browser tests pass, including the actual Terminal dashboard consumer and every account section at a short desktop viewport. TypeScript passes. Full unit run: 8,843 pass; 15 assertions require refreshed source-bound screenshot evidence (14 packs), not functional behavior failures. One existing SettingsPanel team-reader `react-hooks/set-state-in-effect` lint finding reproduces on the untouched base; no owner logic changed.
+Rendered source: `fe1b5da159071050279ef2591ae18c98f81a3a76`, based on protected Terminal `9bc8a12b8e869a699d9bd3f0f90b160323d212b6`. All thirteen sections remain reachable. Full unit suite: 543 files and 8,914 tests pass (four existing todos). Fourteen focused browser tests, three existing native responsive journeys, TypeScript, and local production build pass. Nine source-bound capture tools refreshed 106 screenshots. Source, measurement and image evidence: `terminal/docs/pr-crops/terminal-settings-redesign/README.md`.
 
-The exposed typed publisher is the legacy Mastermind-only schema, with no repository parameter. Its read returned `TYPED_GIT_PRECHECK_REFUSED/NOT_APPLIED`: the default Mastermind registry has no such operation. The exact Terminal registry independently confirms this owned workspace/branch via `mmx-workspace status --repository terminal`. The protected multi-repository runbook explicitly distinguishes old non-opted-in profiles. No installation/configuration was changed and no denied Terminal write was retried. Ordinary source Git operations use this existing qualified Terminal workspace and canonical HTTPS origin, not the mismatched Mastermind publisher.
+One existing SettingsPanel team-reader ESLint finding reproduces on the untouched base; no owner logic changed. No independent agent review is claimed: the current Executive projection exposes no addressable Claude reviewer, and no Codex session or credits were started.
 
-Next: commit source candidate; recapture actual affected settings states with the existing local fixture scripts; reconcile additive-only unrelated LEX locks honestly; run final verification and publish. No merge, deployment or production acceptance has occurred.
+The exposed typed publisher is the legacy Mastermind-only schema, with no repository argument. Its status read returned `TYPED_GIT_PRECHECK_REFUSED/NOT_APPLIED` because the default Mastermind registry has no such operation. The Terminal registry independently confirms this owned workspace/branch with `mmx-workspace status --repository terminal`. Protected procedure explicitly distinguishes non-opted-in profiles. No gateway configuration, registration, or install was changed. Normal Git operations use this qualified Terminal workspace and its canonical HTTPS origin; the initial source commit is pushed and read back.
+
+Next: publish the verified evidence commit and ready PR; consume current protected CI; follow the existing merge-on-green and git-gated release path when gates clear. Preserve this one branch/carrier. No merge, deployment or production acceptance has occurred at this frontier.

@@ -1,5 +1,8 @@
 import { test, expect, type Page } from "@playwright/test";
 
+// Stabilize screenshots at the final rendered frame, not part-way through entry motion.
+test.use({ contextOptions: { reducedMotion: "reduce" } });
+
 const route = "/dev/settings?s=terminal&out=1";
 const timeframes = ["1s", "5s", "15s", "30s", "1m", "5m", "15m", "30m", "1h", "2h", "4h", "D", "2D", "3D", "W", "2W", "1M", "3M"];
 async function open(page: Page) {
@@ -10,6 +13,7 @@ async function open(page: Page) {
 
 test("compact native shell has all destinations without decorative aurora", async ({ page }) => {
   await open(page);
+  expect(await page.evaluate(() => matchMedia("(prefers-reduced-motion: reduce)").matches)).toBe(true);
   const box = await page.locator(".acs-card").boundingBox();
   expect(box!.width).toBeLessThanOrEqual(1000);
   expect(box!.height).toBeLessThanOrEqual(660);

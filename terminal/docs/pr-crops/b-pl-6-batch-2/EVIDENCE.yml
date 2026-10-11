@@ -1,3 +1,5 @@
+# 2026-10-11: dependency-hash update only for 11 settings-exclusive LEX additions. All 2435 existing entries are byte-identical to 9bc8a12b8e869a699d9bd3f0f90b160323d212b6.
+# Existing crops were NOT recaptured; original capturedAtHead is retained. No renewed visual acceptance. Proof: ../terminal-settings-redesign/lex-addition-proof.json
 # B-PL-6 batch 2 — capture evidence
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
 # Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
@@ -10,7 +12,7 @@ layoutFiles:
   terminal/components/levels/LevelsLearn.tsx: "ca8923e68f511cb525db2bac1b41e9e1d93c3c1492cb345162085de1412cee05"
   terminal/components/ChartConductor.tsx: "1ab2a57aafcdaf6f4cd5853de93179b1f387a3d8b68d9863ce4953921c372583"
   terminal/lib/plainLabels.ts: "8f57e32a21abcae530075b7c4da72f170afff8ea38084026995887b4a18fe29a"
-  terminal/lib/i18n.tsx: "cfad0a8290b9b872fe919b7b9855bbd3a4cee095eb26ebd902c399942196a65d"
+  terminal/lib/i18n.tsx: "db154cfb98dc8a15b62dadf59f599619c89c054bec3e40a2fbaeda6524054637"
 theme: dark
 languages: [en, zh]
 viewports:
