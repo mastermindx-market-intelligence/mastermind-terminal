@@ -1,4 +1,5 @@
 import { expect, test } from "@playwright/test";
+import { selectSettingsSection } from "./settingsNavigation";
 import { mkdir } from "node:fs/promises";
 import { join } from "node:path";
 import { isolateWatchlistStore } from "./watchlistStore";
@@ -28,9 +29,9 @@ for (const lang of ["en", "zh"] as const) {
     });
     await page.goto("/terminal?symbol=NVDA");
     await page.locator(`button[aria-label="${lang === "en" ? "Settings" : "设置"}"]:visible`).first().click();
-    await page.getByRole("tab", {
-      name: lang === "en" ? "Portfolio targets" : "组合目标权重", exact: true,
-    }).click();
+    await selectSettingsSection(
+      page, "portfolioTargets", lang === "en" ? "Portfolio targets" : "组合目标权重",
+    );
     const unavailable = page.getByTestId("portfolio-targets-unreadable");
     await expect(unavailable).toBeVisible();
     await expect(page.getByTestId("portfolio-targets-empty")).toHaveCount(0);

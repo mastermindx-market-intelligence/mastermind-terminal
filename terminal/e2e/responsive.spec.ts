@@ -1,4 +1,5 @@
 import { expect, test, type Page } from "@playwright/test";
+import { selectSettingsSection } from "./settingsNavigation";
 
 async function armTerminalVisualReady(page: Page) {
   await page.addInitScript(() => {
@@ -1223,7 +1224,7 @@ test("Golden Oracle shows the session a 3D signal became knowable", async ({ pag
     // preference take the same path they do for an operator.
     await page.locator(".mobilebar button.avatar").click();
     const settings = page.locator(".acs-card");
-    await settings.locator(".acs-section-select").selectOption("prefs");
+    await selectSettingsSection(page, "prefs", "Preferences");
     const zhButton = settings.getByRole("button", { name: "中文" });
     await zhButton.click();
     await expect(zhButton).toHaveAttribute("aria-pressed", "true");
@@ -1361,7 +1362,7 @@ test("HK-O1: a structure stop and a refused entry are labelled for what they are
   if (zh) {
     await page.locator(".mobilebar button.avatar").click();
     const settings = page.locator(".acs-card");
-    await settings.locator(".acs-section-select").selectOption("prefs");
+    await selectSettingsSection(page, "prefs", "Preferences");
     const zhButton = settings.getByRole("button", { name: "中文" });
     await zhButton.click();
     await expect(zhButton).toHaveAttribute("aria-pressed", "true");
