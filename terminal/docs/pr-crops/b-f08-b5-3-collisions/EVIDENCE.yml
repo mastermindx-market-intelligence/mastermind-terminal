@@ -1,8 +1,8 @@
 # B-F08-B5-3 collisions — capture evidence
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
 # Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
-# capturedAtHead: fc76cf495781e5f53254aa3c457411de0cb64654
-# capturedAt: 2026-10-11T10:10:24.103Z
+# capturedAtHead: ba55b451a2d47714f97d4690422758281ab74443
+# capturedAt: 2026-10-11T19:56:38.316Z
 # capturedAtHead is informational. The lock is layoutFiles.
 layoutFiles:
   terminal/components/alerts/AlertsCockpit.tsx: "6f10a31635043273d4f77cb812aaca671af36a5732eca54e0f4ada1796ce9040"
@@ -11,7 +11,7 @@ layoutFiles:
   terminal/components/alerts/CouldNotWatch.tsx: "bedf3678d07a9c1f767df5b87a59648e69e8167df493d63412210a088d95d3a8"
   terminal/lib/alertsView.ts: "7885c00404c3b09eaf188eac79ea48ff3845c3a55de2596e31bb98d0490c783f"
   terminal/app/api/alerts/receipts/route.ts: "e90838781925cd4035cf913a3f011ad0e79a2f2fb4528fa1518a392144f44d82"
-  terminal/app/api/alerts/route.ts: "02a846c642f0766b3ad98f11eb15b8d391b34e3653b626a3a0d9432afc5ece21"
+  terminal/app/api/alerts/route.ts: "6aaaeb5d946a5c750ccc86beaa7c3998088811fb626914971dcea636ab7e3e1b"
 theme: dark
 languages: [en, zh]
 viewports:
