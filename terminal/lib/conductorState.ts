@@ -29,7 +29,7 @@ export type RailRow = {
   op: ChartOp;
   family: OpFamily;
   caption: string;  // resolved caption (model caption, or the plain per-family fallback)
-  fit?: Fit;        // {touches, max_dev_atr} — shown as a mono chip, raw numbers only
+  fit?: Fit;        // {touches, max_dev_atr} — shown as a mono chip via fitBadgeText (LEX cmxFitOne/cmxFitMany)
   ok: boolean;
 };
 
@@ -103,6 +103,14 @@ export function captionFor(step: Pick<QueueStep, "op" | "caption">, lang: Lang):
   const fam = opFamily(step.op);
   const pair = FAMILY_FALLBACK[fam];
   return lang === "zh" ? pair[1] : pair[0];
+}
+
+// The rail's fit chip text. LEX cmxFitOne/cmxFitMany, picked like drawingCountOne/Many; the ack's
+// numbers print verbatim and "ATR" stays an untranslated abbreviation in zh. `t` is the view's useT().
+export function fitBadgeText(fit: Fit, t: (key: string, fallback?: string) => string): string {
+  return t(fit.touches === 1 ? "cmxFitOne" : "cmxFitMany")
+    .replace("{n}", String(fit.touches))
+    .replace("{atr}", String(fit.max_dev_atr));
 }
 
 // Whether an applied step counts toward the done "N on chart" tally + the acting pulse. Draw ops that

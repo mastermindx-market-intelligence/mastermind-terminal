@@ -1,5 +1,5 @@
 "use client";
-import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import type { ChartReadoutMeta } from "@/lib/visualIntelligence";
 import type { OptionsChartLevel } from "@/lib/optionsCompanion";
 import ChartPanel, { type DetectCmd, type LiveQuote, type PineScript } from "@/components/ChartPanel";
@@ -14,6 +14,7 @@ import { displayName } from "@/lib/markets";
 import AssetLogo from "@/components/AssetLogo";
 import { classify, isIntradayTf } from "@/lib/intradaySources";
 import { isMacroSymbol } from "@/lib/macroSymbols";
+import type { ReplayAxis, ReplayCutoff } from "@/lib/replayContract";
 
 const f = (n: number | null | undefined, d = 2) => (n == null || !isFinite(n) ? "—" : n.toLocaleString("en-US", { minimumFractionDigits: d, maximumFractionDigits: d }));
 
@@ -24,10 +25,10 @@ const load = (d: ChartSettings): ChartSettings => { try { const v = localStorage
 // store) so multiple panes on the same symbol (an MTF layout) share one set. Auto-DETECTED drawings,
 // by contrast, are computed against THIS pane's timeframe and are transient (never persisted), so they
 // stay pane-local and are merged in only for this pane's own render.
-export default function ChartPane({ idx, symbol, optionsLevel = null, drawingOwnerKey, isActive, onActivate, row, tf, chartType, dataReady = true, initialTimeframe = null, episodeId = null, inds, tool, toolActivation = 0, drawingSticky = false, drawingCreationDisabled = false, drawStyle, detectCmd, compare, compareCfg, magnet, replayIdx, onMeta, drawings, drawingsVisible = true, onDrawingsChange, liveQuote, indParams, hidden, onToggleHidden, onRemoveInd, onOpenSettings, onOpenSource, pineScripts,
+export default function ChartPane({ idx, symbol, optionsLevel = null, drawingOwnerKey, isActive, onActivate, row, tf, chartType, dataReady = true, initialTimeframe = null, episodeId = null, inds, tool, toolActivation = 0, drawingSticky = false, drawingCreationDisabled = false, drawStyle, detectCmd, compare, compareCfg, magnet, replayCutoff, onMeta, drawings, drawingsVisible = true, onDrawingsChange, liveQuote, indParams, hidden, onToggleHidden, onRemoveInd, onOpenSettings, onOpenSource, pineScripts,
   onDetectedDrawingCount,
-  onAddAlert, onTableView, onObjectTree, lockedVLine, onSetLockedVLine, onIndRowsAt, dayMode: _dayMode, onPaneCount, userTier }:
-  { idx: number; symbol: string; optionsLevel?: OptionsChartLevel | null; drawingOwnerKey: string; isActive: boolean; onActivate: (i: number) => void; dataReady?: boolean; initialTimeframe?: string | null; row?: { name?: string; zh?: string; sec?: string; mkt?: string; col?: string; last?: number; chg?: number } | null; tf: string; chartType: string; inds: Set<string>; tool: DrawKind | null; toolActivation?: number; drawingSticky?: boolean; drawingCreationDisabled?: boolean; drawStyle?: { color: string; width: number; dash: "solid" | "dashed" | "dotted" }; detectCmd: DetectCmd; compare: string[]; compareCfg?: Record<string, CmpCfg>; magnet: "off" | "weak" | "strong"; replayIdx: number | null; onMeta: (m: { total: number }) => void; drawings: Drawing[]; drawingsVisible?: boolean; onDrawingsChange: (d: Drawing[]) => void; onDetectedDrawingCount?: (count: number) => void; liveQuote?: LiveQuote; episodeId?: string | null;
+  onAddAlert, onTableView, onObjectTree, lockedVLine, onSetLockedVLine, onIndRowsAt, dayMode: _dayMode, onPaneCount, userTier, headerSlot }:
+  { idx: number; symbol: string; optionsLevel?: OptionsChartLevel | null; drawingOwnerKey: string; isActive: boolean; onActivate: (i: number) => void; dataReady?: boolean; initialTimeframe?: string | null; row?: { name?: string; zh?: string; sec?: string; mkt?: string; col?: string; last?: number; chg?: number } | null; tf: string; chartType: string; inds: Set<string>; tool: DrawKind | null; toolActivation?: number; drawingSticky?: boolean; drawingCreationDisabled?: boolean; drawStyle?: { color: string; width: number; dash: "solid" | "dashed" | "dotted" }; detectCmd: DetectCmd; compare: string[]; compareCfg?: Record<string, CmpCfg>; magnet: "off" | "weak" | "strong"; replayCutoff: ReplayCutoff | null; onMeta: (m: { symbol: string; timeframe: string; axis: ReplayAxis }) => void; drawings: Drawing[]; drawingsVisible?: boolean; onDrawingsChange: (d: Drawing[]) => void; onDetectedDrawingCount?: (count: number) => void; liveQuote?: LiveQuote; episodeId?: string | null;
     indParams?: Record<string, any>; hidden?: Set<string>; onToggleHidden?: (key: string) => void; onRemoveInd?: (key: string) => void; onOpenSettings?: (key: string) => void; onOpenSource?: (key: string) => void; pineScripts?: PineScript[];
     onAddAlert?: (price: number) => void; onTableView?: () => void; onObjectTree?: () => void;
     lockedVLine?: string | null; onSetLockedVLine?: (t: string | null) => void;
@@ -38,6 +39,8 @@ export default function ChartPane({ idx, symbol, optionsLevel = null, drawingOwn
     onPaneCount?: (n: number) => void;
     /** Entitlement tier — UI gate for premium suite modules. */
     userTier?: "free" | "essential" | "pro";
+    /** Optional header control after the timeframe badge (E09 chart link chip). Pointer-downs inside `[data-chart-link]` never activate the pane. */
+    headerSlot?: ReactNode;
   }) {
   const { lang } = useLang();
   const [auto, setAuto] = useState<Drawing[]>([]);
@@ -146,11 +149,12 @@ export default function ChartPane({ idx, symbol, optionsLevel = null, drawingOwn
       : displayLabel;
 
   return (
-    <div className={`pane${isActive ? " on" : ""}${swapping ? " is-swapping" : ""}`} data-swapping={swapping ? "1" : undefined} onPointerDownCapture={() => { if (!isActive) onActivate(idx); }}>
+    <div className={`pane${isActive ? " on" : ""}${swapping ? " is-swapping" : ""}`} data-swapping={swapping ? "1" : undefined} onPointerDownCapture={(e) => { if ((e.target as Element | null)?.closest?.("[data-chart-link]")) return; if (!isActive) onActivate(idx); }}>
       <div className="pane-hd">
         {chartSettings.showLogo && <AssetLogo className="pic" symbol={symbol} name={displayLabel} market={marketLabel} color={row?.col} size={18} />}
         {chartSettings.showSymbolName && <b>{title}</b>}
         <span className="pane-tf">{tf}</span>
+        {headerSlot}
         <span className="px num">{f(row?.last, (row?.last ?? 99) < 10 ? 4 : 2)}</span>
         {suspended
           ? <span className="cg pane-suspended">{lang === "zh" ? "停牌" : "Suspended"}</span>
@@ -161,10 +165,16 @@ export default function ChartPane({ idx, symbol, optionsLevel = null, drawingOwn
           drafts before a stale transaction can call the next owner's callback.
           The SYMBOL is deliberately not part of that identity — see
           lib/drawingOwnership.ts and the swap state above. */}
+      {/* Replay position is NOT re-decided here. The shell owns which chart replays (its contract
+          is single-chart only), so gating `replayCutoff` on `isActive` again could silently drop a
+          position the workspace is advertising — that second opinion is exactly what let one pane
+          sit in history while its neighbour stayed live. Meta is likewise reported unconditionally:
+          the shell keys bar counts by (symbol|timeframe), so a pane that is merely not focused still
+          contributes the span that becomes authoritative once the workspace collapses onto it. */}
       <ChartPanel
         optionsLevel={isActive ? optionsLevel : null}
         symbol={symbol} companyName={displayName(row, lang)} chartType={chartType} indicators={inds} timeframe={tf} dataReady={dataReady && chartSettingsReady} initialTimeframe={initialTimeframe}
-        replayIdx={isActive ? replayIdx : null} onMeta={isActive ? onMeta : undefined}
+        replayCutoff={replayCutoff} onMeta={onMeta}
         tool={isActive ? tool : null} toolActivation={toolActivation} drawingSticky={isActive && drawingSticky} drawingCreationDisabled={drawingCreationDisabled} drawStyle={drawStyle} drawings={merged}
         onDrawingsChange={handleChange} detectCmd={detectCmd?.targetPane === idx ? detectCmd : null}
         compare={isActive ? compare.filter((c) => c !== symbol) : []} compareCfg={compareCfg}

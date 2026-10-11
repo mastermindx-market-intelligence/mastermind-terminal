@@ -2,6 +2,7 @@
 import { useCallback, useEffect, useState } from "react";
 import dynamic from "next/dynamic";
 const SectorIntelligenceWorkspace = dynamic(() => import("@/components/sector-intelligence/SectorIntelligenceWorkspace"));
+const RSPivotStudy = dynamic(() => import("@/components/workspaces/RSPivotStudy"));
 import WorkspaceTabs, { type WorkspaceTab } from "@/components/chrome/WorkspaceTabs";
 import ScreenerView from "@/components/ScreenerView";
 import HeatmapPageRoot from "@/components/heatmap/HeatmapPageRoot";
@@ -37,9 +38,10 @@ const TABS: WorkspaceTab[] = [
   { key: "sectors", labelKey: SECTOR_INTELLIGENCE_LEX.siTab[0], zhLabel: SECTOR_INTELLIGENCE_LEX.siTab[1] },
   { key: "leaders", labelKey: "wtLeaders" },
   { key: "radar", labelKey: "wtRadar" },
+  { key: "rs-pivot", labelKey: "RS · 30m Pivot", zhLabel: "相对强度·30分钟枢轴" },
 ];
 
-const KEYS = new Set(["screener", "heatmap", "sectors", "leaders", "radar"]);
+const KEYS = new Set(["screener", "heatmap", "sectors", "leaders", "radar", "rs-pivot"]);
 const DEFAULT_TAB = "screener";
 
 export default function DiscoverWorkspace() {
@@ -85,6 +87,7 @@ export default function DiscoverWorkspace() {
         {tab === "sectors" && <SectorIntelligenceWorkspace />}
         {tab === "leaders" && <DiscoverLeadersMount key={`leaders-${nonce}`} />}
         {tab === "radar" && <DiscoverRadarMount key={`radar-${nonce}`} />}
+        {tab === "rs-pivot" && <RSPivotStudy />}
       </div>
     </div>
   );
