@@ -207,6 +207,11 @@ describe("private source consumer: original ns precision without a second source
     expect(()=>decodePrivateEvidence({...args,bytes:raw,expectedLength:raw.length,
       expectedSha256:digest})).toThrowError(/noncanonical/);
   });
+  it("rejects an impossible source receipt before its admitted minute begins",()=>{
+    reject("minute",m=>{
+      m.source_latest_print_available_ns="1791417599999999999";
+    },/original_availability/);
+  });
   it("rejects forged future source receipt and malformed session clock",()=>{
     reject("minute",m=>{m.source_watermark_available_ns="1791417663000000000";},/original_availability/);
     reject("minute",m=>{m.session="2026-10-08:POST";},/symbol_or_session/);
