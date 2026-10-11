@@ -1,10 +1,11 @@
 import { describe, expect, it } from "vitest";
 import {
-  ASOF_MAX_DAYS, CMP_GAP_COLOR, anchorSpecOf, basisOf, buildCompareStudy, comparabilityOf, currencyOf,
-  isAnchorDate, joinKey, resolveHostAnchor, visibleStartDate, withAnchor,
+  ASOF_MAX_DAYS, CMP_DIM_ALPHA, CMP_GAP_COLOR, CMP_LINE_CAVEAT, CMP_LINE_INCOMPARABLE, anchorSpecOf, basisOf,
+  buildCompareStudy, comparabilityOf, compareLineLook, currencyOf, isAnchorDate, joinKey, legComparabilityMark,
+  resolveHostAnchor, visibleStartDate, withAnchor,
   type CmpBar, type CompareStudyInput,
 } from "@/lib/compareAnchor";
-import { defaultCmpCfg, type CmpCfg } from "@/lib/compare";
+import { CMP_LINE_STYLES, defaultCmpCfg, type CmpCfg } from "@/lib/compare";
 import { applyLayoutConfig, captureLayoutConfig, normalizeLayoutConfig, type LayoutWorkspace } from "@/lib/layoutConfig";
 import { SCHEMA, validateEnvelope } from "@/lib/workspaceLayout";
 
@@ -341,6 +342,50 @@ describe("AC-E08-03 — comparability", () => {
     const us = legOf(b, "QQQ");
     expect(us.stat!.comparability).toBe("comparable");
     expect(us.stat!.spreadPp).toBeCloseTo((us.stat!.legRet - us.stat!.hostRet) * 100, 10);
+  });
+
+  it("a rebased leg that is not like-for-like carries an always-visible mark; a like-for-like one does not", () => {
+    const b = buildCompareStudy(input({ legs: [leg("0700.HK", pinned(0, "2024-01-02"), QQQ, "yahoo"), leg("QQQ", pinned(1, "2024-01-02"), QQQ)] }));
+    expect(legComparabilityMark(legOf(b, "0700.HK"))).toEqual({ state: "incomparable", reason: "currency_mismatch", currency: "HKD" });
+    expect(legComparabilityMark(legOf(b, "QQQ"))).toBeNull();
+    // Both adjusted closes (production US documents are src=yahoo): a caveat mark, not "comparable".
+    const adj = buildCompareStudy(input({ host: { symbol: "AAPL", rows: HOST, src: "yahoo" }, legs: [leg("SPY", pinned(0, "2024-01-02"), SPY, "yahoo")] }));
+    expect(legComparabilityMark(legOf(adj, "SPY"))).toEqual({ state: "caveat", reason: "basis_adjusted", currency: "USD" });
+    // Each incomparable reason reaches the mark.
+    const lvl = buildCompareStudy(input({ legs: [leg("QQQ", pinned(0, "2024-01-02"), QQQ, "fred")] }));
+    expect(legComparabilityMark(legOf(lvl, "QQQ"))).toMatchObject({ state: "incomparable", reason: "basis_level" });
+    const mix = buildCompareStudy(input({ legs: [leg("QQQ", pinned(0, "2024-01-02"), QQQ, "yahoo")] }));
+    expect(legComparabilityMark(legOf(mix, "QQQ"))).toMatchObject({ state: "incomparable", reason: "basis_mismatch" });
+  });
+
+  it("no mark where nothing is presented as relative performance: raw-price, withheld, absent", () => {
+    const raw = buildCompareStudy(input({ legs: [leg("0700.HK", { ...defaultCmpCfg(0, "price") }, QQQ, "yahoo")] }));
+    expect(legOf(raw, "0700.HK").status).toBe("drawn");
+    expect(legComparabilityMark(legOf(raw, "0700.HK"))).toBeNull();
+    const late = QQQ.filter((r) => r.time >= "2024-03-01");
+    const withheld = buildCompareStudy(input({ legs: [leg("0700.HK", pinned(0, "2024-01-02"), late, "yahoo")] }));
+    expect(legOf(withheld, "0700.HK").status).toBe("withheld");
+    expect(legComparabilityMark(legOf(withheld, "0700.HK"))).toBeNull();
+    const absent = buildCompareStudy(input({ legs: [{ symbol: "0700.HK", cfg: pinned(0, "2024-01-02"), load: { status: "absent" } }] }));
+    expect(legComparabilityMark(legOf(absent, "0700.HK"))).toBeNull();
+    expect(legComparabilityMark(null)).toBeNull();
+  });
+
+  it("the chart look follows the mark, with styles no user can pick, and never touches the cfg", () => {
+    const userStyles = CMP_LINE_STYLES.map((o) => o.v);
+    expect(userStyles).not.toContain(CMP_LINE_INCOMPARABLE);
+    expect(userStyles).not.toContain(CMP_LINE_CAVEAT);
+    expect(CMP_LINE_INCOMPARABLE).not.toBe(CMP_LINE_CAVEAT);
+    const hkCfg = pinned(0, "2024-01-02");
+    const b = buildCompareStudy(input({ legs: [leg("0700.HK", hkCfg, QQQ, "yahoo"), leg("QQQ", { ...pinned(1, "2024-01-02"), lineStyle: 1 }, QQQ)] }));
+    expect(compareLineLook(hkCfg.lineStyle, legOf(b, "0700.HK"))).toEqual({ lineStyle: CMP_LINE_INCOMPARABLE, dimAlpha: CMP_DIM_ALPHA });
+    expect(compareLineLook(1, legOf(b, "QQQ"))).toEqual({ lineStyle: 1, dimAlpha: null });   // like-for-like keeps its own style
+    const adj = buildCompareStudy(input({ host: { symbol: "AAPL", rows: HOST, src: "yahoo" }, legs: [leg("SPY", { ...pinned(0, "2024-01-02"), lineStyle: 2 }, SPY, "yahoo")] }));
+    expect(compareLineLook(2, legOf(adj, "SPY"))).toEqual({ lineStyle: CMP_LINE_CAVEAT, dimAlpha: null });
+    const raw = buildCompareStudy(input({ legs: [leg("0700.HK", { ...defaultCmpCfg(0, "price"), lineStyle: 2 }, QQQ, "yahoo")] }));
+    expect(compareLineLook(2, legOf(raw, "0700.HK"))).toEqual({ lineStyle: 2, dimAlpha: null });   // raw price keeps its style
+    expect(compareLineLook(0, undefined)).toEqual({ lineStyle: 0, dimAlpha: null });
+    expect(hkCfg).toEqual(pinned(0, "2024-01-02"));
   });
 
   it("the spread window ends on the last session both series observed", () => {

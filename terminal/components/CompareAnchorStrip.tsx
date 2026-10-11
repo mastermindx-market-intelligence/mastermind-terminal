@@ -8,7 +8,7 @@
 import { useEffect, useId, useMemo, useRef, useState, type Dispatch, type KeyboardEvent, type SetStateAction } from "react";
 import type { IChartApi } from "lightweight-charts";
 import { defaultCmpCfg, type CmpAnchorSrc, type CmpCfg } from "@/lib/compare";
-import { anchorSpecOf, isAnchorDate, visibleStartDate, withAnchor, type CmpLegReceipt, type CompareStudy } from "@/lib/compareAnchor";
+import { anchorSpecOf, isAnchorDate, legComparabilityMark, visibleStartDate, withAnchor, type CmpLegReceipt, type CompareStudy } from "@/lib/compareAnchor";
 import { useCompareT } from "@/lib/compareAnchorLex";
 import { isIntradayTf } from "@/lib/intradaySources";
 import styles from "./CompareAnchorStrip.module.css";
@@ -142,11 +142,33 @@ export default function CompareAnchorStrip({ host, timeframe, legs, compareCfg, 
               : r.status === "drawn"
                 ? (cfg.mode === "price" || !r.anchor ? t("cmpaChipRaw") : `${r.anchor.effective} · ${t(`cmpaBasisShort_${r.basis}`)}`)
                 : t("cmpaChipNotDrawn");
+            // AC-E08-03: a rebased line that is not like-for-like is marked here, in the layer that
+            // is always visible, not only inside the details panel.
+            const mark = intraday ? null : legComparabilityMark(r);
             return (
-              <li key={l.cs} className={styles.chip} data-cmp-leg={l.cs} data-cmp-status={r?.status ?? "pending"} data-cmp-anchor={r?.anchor?.effective ?? ""} data-cmp-basis={r?.basis ?? ""}>
+              <li
+                key={l.cs}
+                className={styles.chip}
+                data-cmp-leg={l.cs}
+                data-cmp-status={r?.status ?? "pending"}
+                data-cmp-anchor={r?.anchor?.effective ?? ""}
+                data-cmp-basis={r?.basis ?? ""}
+                data-cmp-comparability={!intraday && r?.stat ? r.stat.comparability : ""}
+                data-cmp-comparability-reason={mark?.reason ?? ""}
+              >
                 <i className={styles.dot} style={{ background: cfg.color }} aria-hidden="true" />
                 <b>{l.cs}</b>
                 {body && <span className={r?.status === "drawn" ? undefined : styles.warnText}>{body}</span>}
+                {mark && (
+                  <span
+                    className={mark.state === "incomparable" ? styles.markIncomparable : styles.markCaveat}
+                    // plain-language-ok: data attribute, not rendered text
+                    data-cmp-mark={mark.state}
+                  >
+                    <span aria-hidden="true">{mark.state === "incomparable" ? "≠" : "≈"}</span>
+                    {t(`cmpaMark_${mark.reason}`, { ccy: mark.currency ?? "?" })}
+                  </span>
+                )}
               </li>
             );
           })}
@@ -256,6 +278,11 @@ function LegDetail({ leg, cfg, r, host, hostCcy, t }: { leg: CompareAnchorLeg; c
       {s && (
         <span data-cmp-stat>
           {leg.cs} {pct(s.legRet)} · {host} {pct(s.hostRet)} · {t("cmpaSince", { date: a!.effective })} · {t("cmpaThrough", { date: s.end })}
+        </span>
+      )}
+      {s && s.comparability !== "comparable" && (
+        <span className={styles.dim} data-cmp-look={s.comparability}>
+          {t(s.comparability === "incomparable" ? "cmpaLook_incomparable" : "cmpaLook_caveat", { host })}
         </span>
       )}
       {s && (s.spreadPp == null

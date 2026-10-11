@@ -58,6 +58,14 @@
   font-variant-numeric: tabular-nums;
 }
 .chip b { color: var(--text); font-weight: 600; }
+/* AC-E08-03: the chip border echoes the line look the chart draws for a leg that is not
+   like-for-like (long-dashed for incomparable, dotted for a caveat). */
+.chip[data-cmp-comparability="incomparable"] { border-style: dashed; border-color: var(--warn); }
+.chip[data-cmp-comparability="caveat"] { border-style: dotted; border-color: var(--line-3); }
+.markIncomparable,
+.markCaveat { display: inline-flex; align-items: center; gap: 3px; font-weight: 600; }
+.markIncomparable { color: var(--warn); }
+.markCaveat { color: var(--text-2); }
 
 .dot {
   flex: none;
@@ -153,8 +161,9 @@
 .up { color: var(--up); }
 .down { color: var(--down); }
 
-/* Phone / coarse pointers: 44px tap floors, a taller bar. */
-@media (pointer: coarse), (max-width: 640px) {
+/* Phone / tablet / coarse pointers: 44px tap floors, a taller bar. The width arm covers the whole
+   <=860px touch layout (tablet included), so the floor never depends on pointer emulation. */
+@media (pointer: coarse), (max-width: 860px) {
   .bar { min-height: 44px; }
   .toggle,
   .btn,

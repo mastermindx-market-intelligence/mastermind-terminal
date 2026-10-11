@@ -58,7 +58,7 @@ import { setActivePaneCoords, getActivePaneCoords } from "@/lib/paneCoords";
 import { getJSON, getJSONResult, getSliceAndOhlc, getCompositeOhlc, getOhlc, type CacheOutcome } from "@/lib/dataCache";
 import { parseComposite, alignAndSum } from "@/lib/composite";
 import { CMP_PALETTE, type CmpCfg, defaultCmpCfg, cmpKey } from "@/lib/compare";
-import { buildCompareStudy, type CmpLegLoad, type CompareStudy } from "@/lib/compareAnchor";
+import { buildCompareStudy, compareLineLook, type CmpLegLoad, type CompareStudy } from "@/lib/compareAnchor";
 import { isIntradayTf, isSecondTf, classify, tfMinutes, type Market } from "@/lib/intradaySources";
 import { episodeMarks, type MarkTone } from "@/lib/dislocations/episodeMarks";
 import { chartMarkerSpecs, toChartMarks } from "@/lib/dislocations/episodeChartTimes";
@@ -122,6 +122,7 @@ type ChartDevPriceLine = {
 };
 type ChartDevWindow = Window & {
   __mmChartSeriesTitles?: unknown;
+  __mmCompareLines?: unknown;
   __mmIndicatorPriceLines?: () => Record<string, ChartDevPriceLine[]>;
   __mmChartAxisOpts?: unknown;
   __mmCrosshairDodge?: unknown;
@@ -2671,7 +2672,12 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
     });
     for (const s of series) {
       const cfg = legs.find((l) => l.symbol === s.symbol)!.cfg;
-      const ln = chart.addSeries(LineSeries, { color: cfg.color, lineWidth: cfg.lineWidth as any, lineStyle: cfg.lineStyle as any, priceLineVisible: false, lastValueVisible: false, crosshairMarkerVisible: false, title: s.symbol, ...(s.mode === "price" ? { priceScaleId: cmpKey(s.symbol) } : {}), visible: !hiddenRef.current.has(cmpKey(s.symbol)) }, 0);
+      // AC-E08-03: a rebased leg that is not like-for-like is drawn with a look no user style can
+      // produce (long-dashed + dimmed, or sparse-dotted for a caveat), from the same receipt the
+      // strip's chip marks. The saved cfg is not touched.
+      const look = compareLineLook(cfg.lineStyle, study.legs.find((l) => l.symbol === s.symbol));
+      const color = look.dimAlpha == null ? cfg.color : withAlpha(cfg.color, look.dimAlpha);
+      const ln = chart.addSeries(LineSeries, { color, lineWidth: cfg.lineWidth as any, lineStyle: look.lineStyle as any, priceLineVisible: false, lastValueVisible: false, crosshairMarkerVisible: false, title: s.symbol, ...(s.mode === "price" ? { priceScaleId: cmpKey(s.symbol) } : {}), visible: !hiddenRef.current.has(cmpKey(s.symbol)) }, 0);
       ln.setData(s.data as any); cmpSeriesRef.current.set(s.symbol, ln);
     }
     onCompareStudyRef.current?.(study);
@@ -3741,6 +3747,14 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
               if (o?.lastValueVisible) out.push(String(o.title ?? ""));
             } catch {}
           }
+        }
+        return out;
+      };
+      // E08 test hook — a compare line's style is canvas-rendered; expose the drawn options.
+      (window as ChartDevWindow).__mmCompareLines = () => {
+        const out: Record<string, { color: string; lineStyle: number }> = {};
+        for (const [sym, s] of cmpSeriesRef.current) {
+          try { const o = s.options() as any; out[sym] = { color: String(o.color), lineStyle: Number(o.lineStyle) }; } catch {}
         }
         return out;
       };
@@ -8486,6 +8500,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
         try {
           const devWindow = window as ChartDevWindow;
           delete devWindow.__mmChartSeriesTitles;
+          delete devWindow.__mmCompareLines;
           delete devWindow.__mmIndicatorPriceLines;
           delete devWindow.__mmChartAxisOpts;
           delete devWindow.__mmCrosshairDodge;

@@ -83,12 +83,16 @@ const STUDIES: Record<string, Study> = {
 
 type OwnershipWindow = Window & { __mmChartOwnership?: () => { owned: { compare: number } } };
 type AxisWindow = Window & { __mmChartAxisOpts?: () => { visibleRange: { from: number; to: number } | null } | null };
+type CompareLinesWindow = Window & { __mmCompareLines?: () => Record<string, { color: string; lineStyle: number }> };
 
 const strip = (page: Page) => page.locator("[data-cmp-study]");
 const chip = (page: Page, sym: string) => page.locator(`[data-cmp-leg="${sym}"]`);
 const detail = (page: Page, sym: string) => page.locator(`[data-cmp-leg-detail="${sym}"]`);
 const drawnCompare = (page: Page) =>
   page.evaluate(() => (window as unknown as OwnershipWindow).__mmChartOwnership?.().owned.compare ?? -1);
+/** The options each drawn compare series actually carries (dev-only hook beside __mmChartOwnership). */
+const compareLines = (page: Page) =>
+  page.evaluate(() => (window as unknown as CompareLinesWindow).__mmCompareLines?.() ?? null);
 const visibleFrom = (page: Page) =>
   page.evaluate(() => (window as unknown as AxisWindow).__mmChartAxisOpts?.()?.visibleRange?.from ?? null);
 
@@ -339,7 +343,24 @@ test.describe("anchored benchmark comparison (E08)", () => {
     await readyDigest(page);
     await expect(chip(page, "0700.HK")).toHaveAttribute("data-cmp-status", "drawn");
     await expect(chip(page, "0700.HK")).toHaveAttribute("data-cmp-basis", "adjusted");
+    // The always-visible layer (panel CLOSED) already says the HKD leg is not like-for-like —
+    // on the chip, and on the chart line itself — while the USD leg keeps its plain look.
+    await expect(page.locator("[data-cmp-toggle]")).toHaveAttribute("aria-expanded", "false");
+    await expect(chip(page, "0700.HK")).toHaveAttribute("data-cmp-comparability", "incomparable");
+    await expect(chip(page, "0700.HK")).toHaveAttribute("data-cmp-comparability-reason", "currency_mismatch");
+    await expect(chip(page, "0700.HK").locator("[data-cmp-mark]")).toHaveAttribute("data-cmp-mark", "incomparable");
+    await expect(chip(page, "0700.HK")).toContainText("not like-for-like · HKD");
+    await expect(chip(page, "0700.HK").locator("[data-cmp-mark]")).toBeVisible();
+    await expect(chip(page, "QQQ")).toHaveAttribute("data-cmp-comparability", "comparable");
+    await expect(chip(page, "QQQ").locator("[data-cmp-mark]")).toHaveCount(0);
+    await expect.poll(() => compareLines(page), ACT).toEqual({
+      "0700.HK": { color: "rgba(232,163,61,0.5)", lineStyle: 3 },   // long-dashed, dimmed
+      QQQ: { color: "#9d86ff", lineStyle: 0 },                     // the saved style, untouched
+    });
     const panel = await openDetails(page);
+    await expect(detail(page, "0700.HK").locator("[data-cmp-look]")).toHaveAttribute("data-cmp-look", "incomparable");
+    await expect(detail(page, "0700.HK")).toContainText("Line drawn long-dashed and dimmed: not like-for-like with AAPL");
+    await expect(detail(page, "QQQ").locator("[data-cmp-look]")).toHaveCount(0);
     await expect(detail(page, "0700.HK").locator("[data-cmp-spread]")).toHaveAttribute("data-cmp-spread", "withheld");
     await expect(detail(page, "0700.HK")).toContainText("No outperformance shown · HKD vs USD, no converted basis");
     await expect(detail(page, "0700.HK")).not.toContainText("Spread ");

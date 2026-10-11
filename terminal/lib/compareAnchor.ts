@@ -254,6 +254,51 @@ export function comparabilityOf(
   return { state: "comparable" };
 }
 
+// ── The always-visible mark (AC-E08-03) ─────────────────────────────────────────────────────────
+//   Withholding the spread in the details panel is not enough: a rebased line drawn from the same
+//   anchor as its neighbours reads as relative performance by itself. So every drawn REBASED leg
+//   that is not like-for-like is marked in the layer that is always on screen — its chip in the
+//   closed strip AND its line on the chart — and both marks come from this one receipt:
+//     incomparable  line long-dashed and dimmed to CMP_DIM_ALPHA · chip "not like-for-like · …"
+//     caveat        line sparse-dotted, full colour              · chip "caveat · both adj. close"
+//   LargeDashed (3) and SparseDotted (4) are lightweight-charts styles the compare settings never
+//   offer (they offer Solid 0 / Dashed 2 / Dotted 1), so the look cannot be mistaken for a style the
+//   user chose. It is a rendering of the receipt only: the saved CmpCfg is never rewritten. A raw-
+//   price leg sits on its own scale, is not rebased, presents no relative performance, and keeps
+//   exactly its configured style.
+
+/** lightweight-charts LineStyle.LargeDashed — never a user-selectable compare style. */
+export const CMP_LINE_INCOMPARABLE = 3;
+/** lightweight-charts LineStyle.SparseDotted — never a user-selectable compare style. */
+export const CMP_LINE_CAVEAT = 4;
+/** Opacity an incomparable line is drawn at, applied to the leg's own colour. */
+export const CMP_DIM_ALPHA = 0.5;
+
+export interface CmpComparabilityMark {
+  state: Exclude<Comparability, "comparable">;
+  reason: ComparabilityReason;
+  /** The leg's quote currency (named in the chip for a currency mismatch). */
+  currency: string | null;
+}
+
+/** The mark a drawn, rebased leg carries when it is not like-for-like with the host; null when it
+ *  is like-for-like, not drawn, or not rebased (raw price on its own scale). */
+export function legComparabilityMark(r: CmpLegReceipt | null | undefined): CmpComparabilityMark | null {
+  if (!r || r.status !== "drawn" || !r.anchor || !r.stat || r.stat.comparability === "comparable") return null;
+  const state = r.stat.comparability;
+  return { state, reason: r.stat.reason ?? (state === "caveat" ? "basis_adjusted" : "basis_unknown"), currency: r.currency };
+}
+
+/** The line style and dimming a compare series is drawn with: the leg's configured style unless
+ *  its receipt carries a comparability mark. */
+export function compareLineLook(lineStyle: number, r: CmpLegReceipt | null | undefined): { lineStyle: number; dimAlpha: number | null } {
+  const mark = legComparabilityMark(r);
+  if (!mark) return { lineStyle, dimAlpha: null };
+  return mark.state === "incomparable"
+    ? { lineStyle: CMP_LINE_INCOMPARABLE, dimAlpha: CMP_DIM_ALPHA }
+    : { lineStyle: CMP_LINE_CAVEAT, dimAlpha: null };
+}
+
 /** FNV-1a 32-bit, hex. Deterministic and dependency-free; a fingerprint, not a security hash. */
 export function fnv1a(text: string): string {
   let h = 0x811c9dc5;
