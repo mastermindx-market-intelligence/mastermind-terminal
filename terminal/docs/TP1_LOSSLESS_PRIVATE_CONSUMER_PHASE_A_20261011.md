@@ -18,9 +18,9 @@ It uses the frozen existing source schemas `equity.tick_plane.private_minute_art
 
 ## Reproducible proof at the exact implementation candidate
 
-M2 Studio used an isolated /tmp test directory, with dependencies symlinked *read-only* from the existing Terminal installation; no workspace checkout, producer, daemon or source-host state was modified. At tested Terminal source-and-test head `cae4ab3031f16035716308545f0c964a5d252cd3`:
+M2 Studio used an isolated /tmp test directory, with dependencies symlinked *read-only* from the existing Terminal installation; no workspace checkout, producer, daemon or source-host state was modified. At tested Terminal source-and-test head `2b839212acfad1052b2fd854726b4744985fb573`:
 
-- **27 Vitest cases passed**, including arbitrary nanosecond +1 difference, unsafe `Number` precision counterexample, hash/byte/canonical-source errors, spoofed authorization/public flags, invalid native counter/share/notional math and forged order-replenishment.
+- **31 Vitest cases passed**, including arbitrary nanosecond +1 difference, unsafe `Number` precision counterexample, hash/byte/canonical-source errors, spoofed authorization/public flags, invalid native counter/share/notional math and forged order-replenishment.
 - **Strict TypeScript compilation passed** (`tsc --noEmit --strict` with Node types).
 - A genuine **synthetic-only Python interop fixture** was generated against actual TP-1 head `a3879855b943e1007e43750b38aedd185d745cb9` and R0 head `f7c31402ab4ffc10c1ebe76aeb7929e2f8ab3526`; both source serializers produced byte-identical golden files under `lib/__tests__/fixtures/` (no licensed vendor tape). TP-1 golden SHA256 `71bed6bb49ffce62735cc50c9f16a181d69b80393e6737f7899b911985f7f2c8` (2362 bytes), R0 golden SHA256 `47fb5af5e6e7fb8b30c594725363d8d84d787e1879a8916362aa0b81016e9ad2` (2219 bytes). Original byte hashes, source watermark and quote-policy digests, native BigInt timestamps and private-only states verified together.
 
@@ -40,6 +40,12 @@ The tests exercise only private synthetic payload shapes. Their pass does **not*
 The original private TP-1 minute `source_observation_sha256` and R0's `minute_observations_sha256` are intentionally **different constructions**, so this server adapter does not falsely equate them. Only the incumbent TP-1/R0 source owner with original signed source receipts and stable episode/version lineage can prove the two source generations refer to exactly one original capture. The initial pairing supports **one fully matched minute**; longer future research windows need a separately reviewed per-minute cohort manifest rather than an inferred join.
 
 The immutable source R0 Python private serializer at subsequent head `57bcd2a47d30504bb48197998e0b5c47d636a15a` was independently rerun on the same synthetic actual TP-1 input: its source output was byte-identical to the pinned R0 golden (2219 bytes, same SHA-256). This verifies the subsequent Decimal accuracy repair did not silently change this frozen wire case; other market vintages still require their own independent checks.
+
+### Missing-source-policy behavior is explicit
+
+The existing Python private minute projector permits nullable sale, exchange and quote-policy SHA-256 references if the source minute contains **no measured directional print** and all evidence is unknown or source-excluded. The Terminal Phase-A reader now preserves that distinct valid state rather than rejecting the entire cohort or turning unavailable values into zero. It exposes exact typed `unknownReasons` and `litUnknownReasons` maps and a nullable `sourceHashes` entry only for those three source-reference fields. A source minute with **any** measured buy/sell/midpoint but a missing required reference fails closed as `measured_without_source_policy`. An unknown-policy minute cannot be paired into a source-qualified R0 context, and free-text/non-typed reason keys are refused.
+
+The associated native-JSON lossless decoder, Python-generated golden interop, cross-artifact pairing and negative missing-policy cases pass **31 focused Vitest tests** at exact source/test head `2b839212acfad1052b2fd854726b4744985fb573`, with targeted strict TypeScript compilation passing. This is still **only** a private, unauthenticated compatibility reader; it grants no live-source, customer delivery or publication status.
 
 ## Release gates and next in-scope phases
 
