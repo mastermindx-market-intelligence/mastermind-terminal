@@ -144,7 +144,7 @@ async function measureLayout(page) {
     const span = document.querySelector(".acs-span2");
     const grid = document.querySelector(".acs-grid");
     const confirm = document.querySelector(".acs-form button.acs-btn.btn-danger");
-    const signOut = document.querySelector("button.acs-signout-m");
+    const signOut = document.querySelector(".acs-rail button.acs-signout");
     const profile = document.querySelector(".acs-grid > .acs-group");
     const spanBox = span ? span.getBoundingClientRect() : null;
     const gridBox = grid ? grid.getBoundingClientRect() : null;
@@ -225,7 +225,7 @@ async function main() {
             await openDeleteForm(page, shot.lang);
             await page.locator(".acs-row.editing > .acs-form").scrollIntoViewIfNeeded();
             if (shot.viewport === "mobile") {
-              await page.locator("button.acs-signout-m").scrollIntoViewIfNeeded();
+              await page.locator(".acs-rail button.acs-signout").scrollIntoViewIfNeeded();
             }
             await page.waitForTimeout(200);
           }
@@ -244,8 +244,8 @@ async function main() {
               throw new Error(`${shot.file}: delete confirm still brand blue (${m.confirmBg})`);
             }
           }
-          if (shot.viewport === "mobile" && !/\bghost\b/.test(m.signOutClass)) {
-            throw new Error(`${shot.file}: Sign out class is ${m.signOutClass}, expected acs-btn ghost`);
+          if (shot.viewport === "mobile" && (m.signOutDisplay === "none" || !/\bacs-signout\b/.test(m.signOutClass) || /\bbtn-danger\b/.test(m.signOutClass))) {
+            throw new Error(`${shot.file}: the fixed-header Sign out must be visible and neutral (${m.signOutClass})`);
           }
           await shoot(page, shot.file);
           files.push(shot.file);

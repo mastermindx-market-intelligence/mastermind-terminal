@@ -238,7 +238,7 @@ async function main() {
             await openPasswordForm(page, shot.lang);
             await page.locator(".acs-row.editing > .acs-form").scrollIntoViewIfNeeded();
             if (shot.viewport === "mobile") {
-              await page.locator("button.acs-signout-m").scrollIntoViewIfNeeded();
+              await page.locator(".acs-rail button.acs-signout").scrollIntoViewIfNeeded();
             }
             await page.waitForTimeout(200);
           }

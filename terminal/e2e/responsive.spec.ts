@@ -91,23 +91,16 @@ test("the canonical Terminal shell works at its supported responsive widths", as
   await expect(settingsDialog).toBeVisible({ timeout: 10_000 });
   await expect(settingsDialog).toHaveAttribute("role", "dialog");
   await expect(settingsDialog).toHaveAttribute("aria-label", "Terminal");
-  await expect(settingsDialog.getByRole("tab", { name: "Terminal" })).toHaveAttribute("aria-selected", "true");
   if (testInfo.project.name === "mobile") {
-    const settingsTabs = settingsDialog.locator(".acs-nav");
-    const tabStrip = await settingsTabs.evaluate((el) => {
-      const css = getComputedStyle(el);
-      return {
-        clientWidth: el.clientWidth,
-        scrollWidth: el.scrollWidth,
-        overflowX: css.overflowX,
-        touchAction: css.touchAction,
-      };
-    });
-    expect(tabStrip.scrollWidth).toBeGreaterThan(tabStrip.clientWidth);
-    expect(tabStrip.overflowX).toBe("auto");
-    expect(tabStrip.touchAction).toBe("pan-x");
-    await settingsTabs.evaluate((el) => el.scrollTo({ left: el.scrollWidth }));
-    await expect.poll(() => settingsTabs.evaluate((el) => el.scrollLeft)).toBeGreaterThan(0);
+    const picker = settingsDialog.getByRole("combobox", { name: "Settings sections" });
+    await expect(picker).toBeVisible();
+    await expect(picker).toHaveValue("terminal");
+    await expect(picker.locator("option")).toHaveCount(13);
+    await picker.selectOption("sync");
+    await expect(settingsDialog.locator(".acs-sect")).toHaveAttribute("data-section", "sync");
+    await picker.selectOption("terminal");
+  } else {
+    await expect(settingsDialog.getByRole("tab", { name: "Terminal" })).toHaveAttribute("aria-selected", "true");
   }
   await page.screenshot({
     path: testInfo.outputPath(`${testInfo.project.name}-terminal-settings.png`),
@@ -1230,7 +1223,7 @@ test("Golden Oracle shows the session a 3D signal became knowable", async ({ pag
     // preference take the same path they do for an operator.
     await page.locator(".mobilebar button.avatar").click();
     const settings = page.locator(".acs-card");
-    await settings.getByRole("tab", { name: "Preferences" }).click();
+    await settings.locator(".acs-section-select").selectOption("prefs");
     const zhButton = settings.getByRole("button", { name: "中文" });
     await zhButton.click();
     await expect(zhButton).toHaveAttribute("aria-pressed", "true");
@@ -1368,7 +1361,7 @@ test("HK-O1: a structure stop and a refused entry are labelled for what they are
   if (zh) {
     await page.locator(".mobilebar button.avatar").click();
     const settings = page.locator(".acs-card");
-    await settings.getByRole("tab", { name: "Preferences" }).click();
+    await settings.locator(".acs-section-select").selectOption("prefs");
     const zhButton = settings.getByRole("button", { name: "中文" });
     await zhButton.click();
     await expect(zhButton).toHaveAttribute("aria-pressed", "true");
