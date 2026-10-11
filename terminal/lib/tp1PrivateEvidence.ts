@@ -221,21 +221,14 @@ function parseRecovery(value: unknown, side: string): QuoteRecovery {
   const initial=assertDecimal(obj.original_shares,side+".original_shares");
   const ending=assertDecimal(obj.final_shares,side+".final_shares");
   const price=assertDecimal(obj.source_best_price,side+".price");
-  if (fixed(depleted).n<=0n || fixed(initial).n<=0n || fixed(ending).n<=0n ||
-      fixed(price).n<=0n || !sameSum([initial,recovered],ending)) {
-    // Use a separate subtract check below; never infer order-level replenishment.
-    const match=sameSum([ending,depleted],[initial,recovered][0]);
-    if (!match) throw new PrivateEvidenceRefusal(side+":invalid_recovery");
-  }
-  // original - depleted + recovered = final, with exact fixed-point arithmetic.
-  if (!sameSum([initial,recovered],[ending,depleted][0])) {
-    // The three/four-term invariant is evaluated without floating-point:
-    const vals=[initial,recovered,ending,depleted].map(fixed);
-    const scale=Math.max(...vals.map(x=>x.scale));
-    const n=vals.map(x=>x.n*10n**BigInt(scale-x.scale));
-    if (n[0]-n[3]+n[1]!==n[2] || n[3]>n[0])
-      throw new PrivateEvidenceRefusal(side+":invalid_recovery");
-  }
+  // original - depletion + recovery = final; exact fixed-point arithmetic,
+  // never infer participant/order-level replenishment from BBO-size recovery.
+  const vals=[initial,depleted,recovered,ending].map(fixed);
+  const scale=Math.max(...vals.map(x=>x.scale));
+  const n=vals.map(x=>x.n*10n**BigInt(scale-x.scale));
+  if (n[0]<=0n || n[1]<=0n || n[3]<=0n || fixed(price).n<=0n ||
+      n[1]>n[0] || n[0]-n[1]+n[2]!==n[3])
+    throw new PrivateEvidenceRefusal(side+":invalid_recovery");
   if (typeof obj.source_best_exchange!=="string" || !/^[0-9]{1,5}$/.test(obj.source_best_exchange))
     throw new PrivateEvidenceRefusal(side+":exchange");
   return {state,depletionShares:depleted,recoveredShares:recovered,
