@@ -309,7 +309,7 @@ async function main() {
     ...VIEWPORTS.map((vp) => `  - { name: ${vp.name}, width: ${vp.width}, height: ${vp.height} }`),
     "surface: ChartConductor live-steps rail on /dev/theater; queue drained (7 rows), done plate up, step-2 row scrolled into view",
     "capture_flag: TERMINAL_E2E_FIXTURE",
-    "capture_flag_law: next.config.ts sets devIndicators: false when TERMINAL_E2E_FIXTURE is set; this script starts next dev with the same flag.",
+    "capture_flag_law: next.config.ts sets devIndicators to false when TERMINAL_E2E_FIXTURE is set; this script starts next dev with the same flag.",
     "command: |",
     "  cd terminal",
     "  node e2e/tools/capture_conductor_fit_badge_zh.cjs",

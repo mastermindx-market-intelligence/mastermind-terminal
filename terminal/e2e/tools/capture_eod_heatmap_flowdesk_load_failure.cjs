@@ -18,6 +18,13 @@
  * the page clock past two polls: the first poll serves the cached read and revalidates in the
  * background (the failure evicts it), the second asks the store and is refused.
  *
+ * The heatmap-flow-persisted-* states are the flow layer's refresh failure as a browser meets it.
+ * A first visit reads the flow index from its static copy (/data/flow_idx.json, which next dev
+ * does not publish, so it answers with the fixture route's flow_idx payload) and dataCache writes
+ * it through to IndexedDB. The record is then re-stamped as an earlier session's read, and the
+ * page reloads with both flow sources failing (503, or the connection refused). The layer paints
+ * the disk copy, its background refresh fails, and the tiles stay labelled as the last read.
+ *
  * The GEX desk refuses /api/flow/stream: its fixture producer would push the very payload the
  * injected /api/flow answer withholds, and the belt's classified reads are what is captured.
  *
@@ -26,6 +33,9 @@
  *
  * From terminal/:
  *   node e2e/tools/capture_eod_heatmap_flowdesk_load_failure.cjs
+ *
+ * For a Heatmap-only source change:
+ *   CAPTURE_ONLY='^heatmap-' UPDATE_HEATMAP_EVIDENCE=1 node e2e/tools/capture_eod_heatmap_flowdesk_load_failure.cjs
  *
  * Writes PNGs + EVIDENCE.yml under docs/pr-crops/eod-heatmap-flowdesk-load-failure/.
  */
@@ -49,6 +59,7 @@ const LAYOUT_FILES = [
   "terminal/components/flowdesk/FlowDeskView.tsx",
   "terminal/components/gexdesk/GexDeskView.tsx",
   "terminal/components/heatmap/HeatmapView.tsx",
+  "terminal/lib/dataCache.ts",
   "terminal/lib/eodContext.ts",
   "terminal/lib/flowdeskStrings.ts",
   "terminal/lib/heatmapStrings.ts",
@@ -66,6 +77,8 @@ const VIEWPORTS = {
   390: { width: 390, height: 844 },
 };
 const POLL_MS = { desk: 45_000, heatmap: 60_000 };
+const SIX_HOURS = 6 * 60 * 60_000;
+const STATIC_FLOW = "/data/flow_idx.json";
 // Chromium re-rasters only the invalidated rect of a tile by default, so anti-aliased edges
 // depend on the tile's raster history and drift between identical runs.
 const BROWSER_ARGS = ["--disable-partial-raster"];
@@ -75,6 +88,8 @@ const BROWSER_ARGS = ["--disable-partial-raster"];
  * unlisted reaches the fixture server.
  * `heal`: those injections are lifted and Retry clicked before the crop.
  * `failAfter`: a healthy read lands first, then these keys fail and the clock passes two polls.
+ * `persisted`: the static flow index answers with the fixture's payload, is written to IndexedDB
+ * and aged six hours, then both flow sources answer this way ("503" or "abort") and the page reloads.
  */
 const STATES = {
   "eod-darkpool-unavailable": { board: "belt", replies: { darkpool: "503" } },
@@ -110,6 +125,14 @@ const STATES = {
     board: "heatmap",
     replies: {},
     failAfter: ["flow_idx", "/data/flow_idx.json"],
+  },
+  "heatmap-flow-persisted-refresh-failed": { board: "heatmap", replies: { flow_idx: "503" }, persisted: "503" },
+  "heatmap-flow-persisted-refresh-refused": { board: "heatmap", replies: { flow_idx: "503" }, persisted: "abort" },
+  "heatmap-flow-persisted-retried": {
+    board: "heatmap",
+    replies: { flow_idx: "503" },
+    persisted: "503",
+    heal: ["flow_idx", STATIC_FLOW],
   },
   "heatmap-live-failed": { board: "heatmap", replies: { "/api/quote": "503" } },
   "heatmap-no-match": { board: "heatmap", replies: {}, search: "zzzzq" },
@@ -261,7 +284,10 @@ async function newPage(browser, width, lang, board, replies, withClock) {
   await page.route(
     (url) => replies[keyOf(url)] != null,
     async (route) => {
-      switch (replies[keyOf(new URL(route.request().url()))]) {
+      const reply = replies[keyOf(new URL(route.request().url()))];
+      // A JSON reply serves that body with a 200, so a source with no file in dev can still answer.
+      if (typeof reply === "object") return route.fulfill({ status: 200, json: reply.json });
+      switch (reply) {
         case "503": return route.fulfill({ status: 503, json: { error: "feed unavailable" } });
         case "404": return route.fulfill({ status: 404, json: { error: "not published" } });
         case "403": return route.fulfill({ status: 403, json: { error: "forbidden" } });
@@ -305,6 +331,58 @@ async function cropBoxes(page, boxes, outPath, pad) {
 
 async function expectNone(locator, why) {
   if (await locator.count()) throw new Error(why);
+}
+
+async function waitUntil(check, why, timeoutMs = 30_000) {
+  const deadline = Date.now() + timeoutMs;
+  while (Date.now() < deadline) {
+    if (await check()) return;
+    await new Promise((r) => setTimeout(r, 250));
+  }
+  throw new Error(why);
+}
+
+/** The fixture route's flow index, served as the static copy next dev does not publish. */
+let flowIdxPayload = null;
+async function staticFlowReply() {
+  if (!flowIdxPayload) {
+    const res = await fetch(`${BASE}/api/flow?f=flow_idx`);
+    if (!res.ok) throw new Error(`the fixture flow_idx read answered ${res.status}`);
+    flowIdxPayload = await res.json();
+  }
+  return { json: flowIdxPayload };
+}
+
+/** The persisted flow index record's timestamp in dataCache's IndexedDB, or null when there is none. */
+function persistedTs(page) {
+  return page.evaluate((url) => new Promise((resolve) => {
+    const open = indexedDB.open("mm-data-cache");
+    open.onerror = () => resolve(null);
+    open.onsuccess = () => {
+      const db = open.result;
+      if (!db.objectStoreNames.contains("json")) { db.close(); resolve(null); return; }
+      const get = db.transaction("json", "readonly").objectStore("json").get(url);
+      get.onsuccess = () => { db.close(); resolve(get.result ? get.result.ts : null); };
+      get.onerror = () => { db.close(); resolve(null); };
+    };
+  }), STATIC_FLOW);
+}
+
+/** Re-stamp the persisted flow index record as an earlier session's read, `ageMs` old. */
+function agePersisted(page, ageMs) {
+  return page.evaluate(({ url, ageMs }) => new Promise((resolve) => {
+    const open = indexedDB.open("mm-data-cache");
+    open.onerror = () => resolve(false);
+    open.onsuccess = () => {
+      const db = open.result;
+      const tx = db.transaction("json", "readwrite");
+      const store = tx.objectStore("json");
+      const get = store.get(url);
+      get.onsuccess = () => { if (get.result) store.put({ ...get.result, ts: Date.now() - ageMs }); };
+      tx.oncomplete = () => { db.close(); resolve(Boolean(get.result)); };
+      tx.onerror = () => { db.close(); resolve(false); };
+    };
+  }), { url: STATIC_FLOW, ageMs });
 }
 
 /** Pass two polls: the first serves the cached read and revalidates (the failure evicts it); the second is refused. */
@@ -415,7 +493,7 @@ async function captureDesk(page, lang, state, replies, outPath) {
 
 async function captureHeatmap(page, lang, state, replies, outPath) {
   const copy = COPY[lang];
-  const { heal: healKeys, failAfter, search } = STATES[state];
+  const { heal: healKeys, failAfter, search, persisted } = STATES[state];
   const breadth = page.getByTestId("heatmap-breadth");
   const controls = page.locator('[data-tut="heatmap-controls"]');
   const canvas = page.locator('[data-tut="heatmap-canvas"]');
@@ -443,10 +521,35 @@ async function captureHeatmap(page, lang, state, replies, outPath) {
     return;
   }
 
-  await controls.getByRole("button", { name: copy.layerFlow, exact: true }).click();
+  const flowButton = controls.getByRole("button", { name: copy.layerFlow, exact: true });
+  await flowButton.click();
   const note = page.getByText(copy.toneNote);
   let bar;
-  if (state === "heatmap-flow-absent") {
+  if (persisted) {
+    await note.waitFor({ state: "visible" });
+    await waitUntil(async () => (await persistedTs(page)) != null, `${state}: the flow index was never written through to IndexedDB`);
+    if (!(await agePersisted(page, SIX_HOURS))) throw new Error(`${state}: could not age the persisted flow index`);
+    replies.flow_idx = persisted;
+    replies[STATIC_FLOW] = persisted;
+    await page.reload({ waitUntil: "domcontentloaded", timeout: 90_000 });
+    await breadth.getByText(/\(\d+%\)/).waitFor({ state: "visible" });
+    // The layer is plain view state, so the reload is back on the price layer.
+    await flowButton.click();
+    bar = page.getByTestId("heatmap-flow-refresh-failed");
+    await bar.getByText(copy.flowRefreshFailed).waitFor({ state: "visible" });
+    await note.waitFor({ state: "visible" });
+    await expectNone(page.getByTestId("heatmap-flow-load-error"), `${state}: a failed refresh withdrew the persisted flow tiles`);
+    await expectNone(page.getByText(copy.noFlowData), `${state}: a failed refresh shown as missing flow data`);
+    await expectNone(page.getByTestId("heatmap-refresh-failed"), `${state}: the manifest was labelled for the flow layer's failure`);
+    if ((await persistedTs(page)) == null) throw new Error(`${state}: the failed refresh dropped the disk copy`);
+    if (healKeys) {
+      await heal(page, replies, healKeys, [bar.getByRole("button", { name: copy.retry, exact: true })]);
+      await bar.waitFor({ state: "detached" });
+      await note.waitFor({ state: "visible" });
+      await expectNone(page.getByTestId("heatmap-flow-load-error"), `${state}: the re-read failed`);
+      bar = note;
+    }
+  } else if (state === "heatmap-flow-absent") {
     bar = page.getByTestId("heatmap-flow-absent");
     await bar.getByText(copy.noFlowData).waitFor({ state: "visible" });
     await expectNone(page.getByRole("button", { name: copy.retry, exact: true }), `${state}: a published absence must offer nothing to retry`);
@@ -486,9 +589,71 @@ async function captureHeatmap(page, lang, state, replies, outPath) {
 
 const CAPTURE = { belt: captureBelt, desk: captureDesk, heatmap: captureHeatmap };
 
+const HEATMAP_SOURCE = "terminal/components/heatmap/HeatmapView.tsx";
+const HEATMAP_CROPS = Object.keys(STATES).filter((state) => STATES[state].board === "heatmap")
+  .flatMap((state) => [1440, 820, 390].flatMap((width) => ["en", "zh"].map((lang) => cropName(state, width, lang))))
+  .sort();
+
+/** Only actual complete Heatmap captures may replace its lock; other boards keep their provenance. */
+function updateHeatmapEvidence(previous, { files, layoutFiles, cropHashes, capturedAtHead, capturedAt }) {
+  if (JSON.stringify([...files].sort()) !== JSON.stringify(HEATMAP_CROPS)) {
+    throw new Error(`scoped evidence requires all ${HEATMAP_CROPS.length} Heatmap crops, with no duplicate or unrelated capture`);
+  }
+  const recorded = {};
+  const layoutAt = previous.indexOf("\nlayoutFiles:\n");
+  const filesAt = previous.indexOf("\nfiles:\n");
+  if (layoutAt < 0 || filesAt < 0) throw new Error("inherited evidence is missing layoutFiles or files");
+  const layoutRows = previous.slice(layoutAt + "\nlayoutFiles:\n".length).split("\n");
+  for (const row of layoutRows) {
+    if (!row.startsWith("  ")) break;
+    const match = row.match(/^  (terminal\/[^:]+): "([a-f0-9]{64})"$/);
+    if (!match) throw new Error(`invalid inherited layout source row: ${row}`);
+    if (recorded[match[1]]) throw new Error(`duplicate layout source: ${match[1]}`);
+    recorded[match[1]] = match[2];
+  }
+  if (!recorded[HEATMAP_SOURCE] || JSON.stringify(Object.keys(recorded).sort()) !== JSON.stringify(Object.keys(layoutFiles).sort())) {
+    throw new Error("scoped evidence must preserve the complete layout source set");
+  }
+  for (const [rel, hash] of Object.entries(layoutFiles)) {
+    if (!/^[a-f0-9]{64}$/.test(hash)) throw new Error(`invalid layout source hash: ${rel}`);
+    if (rel !== HEATMAP_SOURCE && hash !== recorded[rel]) {
+      throw new Error(`source changed outside HeatmapView: ${rel}; recapture its owning surface`);
+    }
+  }
+  const fileList = previous.slice(filesAt + "\nfiles:\n".length).split("\n");
+  for (const file of HEATMAP_CROPS) {
+    if (!fileList.includes(`  - ${file}`) || !previous.includes(`\n  ${file}: {`)) {
+      throw new Error(`inherited evidence is missing the file list or harness for ${file}`);
+    }
+    if (!/^[a-f0-9]{64}$/.test(cropHashes[file] || "")) throw new Error(`missing or invalid crop hash: ${file}`);
+  }
+  if (!/^[a-f0-9]{40}$/.test(capturedAtHead) || !Number.isFinite(Date.parse(capturedAt))) {
+    throw new Error("scoped evidence requires a Git head and capture timestamp");
+  }
+  const updated = previous.replace(`  ${HEATMAP_SOURCE}: "${recorded[HEATMAP_SOURCE]}"`, `  ${HEATMAP_SOURCE}: "${layoutFiles[HEATMAP_SOURCE]}"`);
+  const entry = [
+    ...(previous.includes("\nscopedRecaptures:\n") ? [] : ["scopedRecaptures:"]),
+    "  - surface: HeatmapView",
+    `    capturedAtHead: ${capturedAtHead}`,
+    `    capturedAt: ${capturedAt}`,
+    "    command: CAPTURE_ONLY='^heatmap-' UPDATE_HEATMAP_EVIDENCE=1 node e2e/tools/capture_eod_heatmap_flowdesk_load_failure.cjs",
+    `    sourceSha256: "${layoutFiles[HEATMAP_SOURCE]}"`,
+    "    cropSha256:",
+    ...HEATMAP_CROPS.map((file) => `      ${file}: "${cropHashes[file]}"`),
+    "",
+  ].join("\n");
+  return updated + entry;
+}
+
 async function main() {
   const only = process.env.CAPTURE_ONLY ? new RegExp(process.env.CAPTURE_ONLY) : null;
+  const updateHeatmap = process.env.UPDATE_HEATMAP_EVIDENCE === "1";
+  if (updateHeatmap && process.env.CAPTURE_ONLY !== "^heatmap-") {
+    throw new Error("UPDATE_HEATMAP_EVIDENCE requires CAPTURE_ONLY='^heatmap-'");
+  }
   const capturedAtHead = currentGitHead();
+  const capturedLayoutFiles = updateHeatmap
+    ? Object.fromEntries(LAYOUT_FILES.map((rel) => [rel, sha256File(rel)])) : null;
   const child = startServer();
   const files = [];
   let failed = 0;
@@ -502,8 +667,9 @@ async function main() {
             const file = cropName(state, width, lang);
             if (only && !only.test(file)) continue;
             process.stdout.write(`capture ${file} … `);
-            const { board, failAfter } = STATES[state];
+            const { board, failAfter, persisted } = STATES[state];
             const replies = { ...STATES[state].replies };
+            if (persisted) replies[STATIC_FLOW] = await staticFlowReply();
             const { context, page } = await newPage(browser, width, lang, board, replies, !!failAfter);
             try {
               await page.goto(`${BASE}${URLS[board]}`, { waitUntil: "domcontentloaded", timeout: 90_000 });
@@ -531,8 +697,29 @@ async function main() {
   }
 
   if (failed) process.exitCode = 1;
-  if (only || failed) {
-    console.log(`${only ? "CAPTURE_ONLY run" : "run with failures"}: ${files.length} crops, ${failed} failed; EVIDENCE.yml not written`);
+  if (only) {
+    if (updateHeatmap && failed === 0) {
+      const evidencePath = join(OUT, "EVIDENCE.yml");
+      const layoutFiles = Object.fromEntries(LAYOUT_FILES.map((rel) => [rel, sha256File(rel)]));
+      if (JSON.stringify(layoutFiles) !== JSON.stringify(capturedLayoutFiles) || currentGitHead() !== capturedAtHead) {
+        throw new Error("source changed during Heatmap capture; EVIDENCE.yml not written");
+      }
+      const evidence = updateHeatmapEvidence(readFileSync(evidencePath, "utf8"), {
+        files,
+        layoutFiles,
+        cropHashes: Object.fromEntries(files.map((file) => [file, createHash("sha256").update(readFileSync(join(OUT, file))).digest("hex")])),
+        capturedAtHead,
+        capturedAt: new Date().toISOString(),
+      });
+      writeFileSync(evidencePath, evidence);
+      console.log(`CAPTURE_ONLY run: ${files.length} crops, 0 failed; Heatmap evidence updated; other boards preserved`);
+    } else {
+      console.log(`CAPTURE_ONLY run: ${files.length} crops, ${failed} failed; EVIDENCE.yml not written`);
+    }
+    return;
+  }
+  if (failed) {
+    console.log(`run with failures: ${files.length} crops, ${failed} failed; EVIDENCE.yml not written`);
     return;
   }
   files.sort();
@@ -554,18 +741,25 @@ async function main() {
     "harness:",
     ...files.map((name) => {
       const state = Object.keys(STATES).find((s) => name.startsWith(`${s}-`));
-      const { board, replies, heal: healKeys, failAfter, search } = STATES[state];
+      const { board, replies, heal: healKeys, failAfter, search, persisted } = STATES[state];
       const injected = Object.entries(replies).map(([k, r]) => `"${k}": ${r}`).join(", ");
-      const healed = healKeys ? `, then: "${healKeys.join(" + ")} healed, Retry clicked"` : "";
-      const refresh = failAfter ? `, then: "healthy read landed; ${failAfter.join(" + ")} answer 503; page clock moved past two polls"` : "";
-      const searched = search ? `, then: "searched ${search}"` : "";
+      // One `then:` per row (a flow mapping cannot repeat a key); the steps run in this order.
+      const failure = persisted === "abort" ? "refuse the connection" : `answer ${persisted}`;
+      const steps = [
+        persisted && `${STATIC_FLOW} answered the fixture's flow_idx payload, written to IndexedDB and aged 6h; flow_idx + ${STATIC_FLOW} ${failure}; page reloaded`,
+        healKeys && `${healKeys.join(" + ")} healed, Retry clicked`,
+        failAfter && `healthy read landed; ${failAfter.join(" + ")} answer 503; page clock moved past two polls`,
+        search && `searched ${search}`,
+      ].filter(Boolean);
+      const then = steps.length ? `, then: "${steps.join("; then ")}"` : "";
       const stream = board === "belt" ? ", stream: aborted" : "";
-      return `  ${name}: { url: "${URLS[board]}", state: ${state}, injected: { ${injected} }${stream}${healed}${refresh}${searched} }`;
+      return `  ${name}: { url: "${URLS[board]}", state: ${state}, injected: { ${injected} }${stream}${then} }`;
     }),
     "surfaces: [EodContextBelt, StructureStrip, DarkPoolMini, FlowDeskView, HeatmapView]",
     "injection: page.route answers /api/flow (by f-param), /data/flow_idx.json and /api/quote with 503 / 403 / 404 or a refused request; /api/flow/stream is refused on the GEX desk; every other read is the FLOW_FIXTURE server",
+    "persisted: the heatmap-flow-persisted-* states age the browser's own IndexedDB record of /data/flow_idx.json (dataCache write-through), never a mocked cache",
     "capture_flag: TERMINAL_E2E_FIXTURE",
-    "capture_flag_law: next.config.ts sets devIndicators: false when TERMINAL_E2E_FIXTURE is set; this script starts next dev with the same flag.",
+    "capture_flag_law: next.config.ts sets devIndicators to false when TERMINAL_E2E_FIXTURE is set; this script starts next dev with the same flag.",
     "command: |",
     "  cd terminal",
     "  node e2e/tools/capture_eod_heatmap_flowdesk_load_failure.cjs",
@@ -577,7 +771,11 @@ async function main() {
   console.log(`wrote ${files.length} crops + EVIDENCE.yml (head ${capturedAtHead})`);
 }
 
-main().catch((err) => {
-  console.error(err);
-  process.exit(1);
-});
+module.exports = { updateHeatmapEvidence };
+
+if (require.main === module) {
+  main().catch((err) => {
+    console.error(err);
+    process.exit(1);
+  });
+}
