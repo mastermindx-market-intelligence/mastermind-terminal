@@ -6,6 +6,7 @@ import path from "node:path";
 import golden from "../lib/__tests__/fixtures/aapl-event-workspace.json";
 import {canonicalInvestigationJson} from "../lib/investigationContracts";
 import {normalizeEventWorkspace} from "../lib/eventWorkspace";
+import {fixtureAuthSetup} from "./fixtures/investigation-auth";
 
 test.setTimeout(120_000);
 const id="10000000-0000-4000-8000-000000000001";
@@ -191,6 +192,7 @@ test("at the saved-research limit the original is never sent again and the draft
 
 for(const lang of ["en","zh"] as const) test(`evidence review advances only through an explicit saved revision (${lang}, Terminal dark theme)`,async({page},testInfo)=>{
  await setup(page);
+ await fixtureAuthSetup(page,testInfo.project.use.baseURL!);
  await page.addInitScript(lang=>{localStorage.setItem("mm.lang",lang);},lang);
  const copy=lang==="en"?{title:"Review evidence changes",review:"Review current evidence",missing:"Not observed in the current read",removed:"Confirmed removal",advance:"Use this reviewed version in an edit",question:"Research question",save:"Save research",previous:"Previous revision",selected:"Selected generation"}:{title:"复核证据变化",review:"复核当前证据",missing:"当前读取未观察到",removed:"来源确认已删除",advance:"在编辑中使用此已复核版本",question:"研究问题",save:"保存研究",previous:"上一修订",selected:"已选择的版本"};
  const newer={...fixtureBaseline,workspace:normalizeEventWorkspace({...golden,generation_id:"b".repeat(24)}),reference:{...reference,version_ref:"b".repeat(24),fingerprint:"b".repeat(64)},receipt:{...fixtureBaseline.receipt,generation_id:"b".repeat(24),fingerprint:"b".repeat(64)}};

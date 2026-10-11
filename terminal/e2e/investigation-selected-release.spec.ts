@@ -1,4 +1,5 @@
 import {expect,test} from "@playwright/test";
+import{fixtureAuthSetup}from"./fixtures/investigation-auth";
 import golden from "../lib/__tests__/fixtures/aapl-event-workspace.json";
 const id="10000000-0000-4000-8000-000000000001",cutoff="2026-08-01T00:00:00Z";
 function baseline(generation=golden.generation_id,container="a".repeat(64),selection="b".repeat(64)){
@@ -13,6 +14,7 @@ const manifest={schema:"investigation_manifest.v2",argument_relations:[],intent:
 for(const lang of ["en","zh"] as const)test(`selected release review and replay preserve separate identities — ${lang}`,async({page},info)=>{
  const c=lang==="en"?{replay:"Open retained snapshot",cutoff:"Snapshot cutoff (UTC)",selected:"Selected issuer release",review:"Review current evidence",revised:"Content revised",advance:"Use this reviewed version in an edit",cancel:"Cancel editing"}:{replay:"打开保留快照",cutoff:"快照截止时间（UTC）",selected:"所选发行人公告",review:"复核当前证据",revised:"内容已修订",advance:"在编辑中使用此已复核版本",cancel:"取消编辑"};
  await page.addInitScript(value=>localStorage.setItem("mm.lang",value),lang);
+ await fixtureAuthSetup(page,info.project.use.baseURL!);
  let reviews=0,replays=0,selectedCurrent=0;const writes:string[]=[];
  page.on("request",request=>{if(request.method()!=="GET"&&new URL(request.url()).pathname.startsWith("/api/")&&!request.url().includes("/api/collect"))writes.push(request.url());});
  await page.route("**/api/layouts",route=>route.fulfill({json:{layouts:[],teams:[],teamRead:{ok:true}}}));
