@@ -2,6 +2,7 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { PHONE_QUERY, useIsMobile, useIsPhone } from "@/lib/useMediaQuery";
 import MobileSheet from "@/components/ui/MobileSheet";
+import replayStyles from "./ReplayTransport.module.css";
 import { DndContext, DragOverlay, PointerSensor, KeyboardSensor, useDroppable, useSensor, useSensors, closestCenter, type CollisionDetection, type DragEndEvent, type DragStartEvent, type Modifier } from "@dnd-kit/core";
 import { SortableContext, sortableKeyboardCoordinates, useSortable, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import { restrictToVerticalAxis } from "@dnd-kit/modifiers";
@@ -5425,7 +5426,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
             `replayChartKey`. `replayIdx` and `total` are both read from that chart's own axis, so
             the rail cannot report a length or a position that belongs to another chart. */}
         {replayOn && (
-          <div className="replay-transport" data-replay-rail="1" data-replay-chart={replayChart} data-replay-total={total} data-replay-idx={replayIdx ?? ""}>
+          <div className={`replay-transport ${replayStyles.transport}`} data-replay-rail="1" data-replay-chart={replayChart} data-replay-total={total} data-replay-idx={replayIdx ?? ""}>
             <button className="icbtn" disabled={!replaySpan} title={t("replayReset")} aria-label={t("replayReset")} onClick={() => { setReplayCutoff((c) => replayCutoffAt(replayAxis, initialReplayIdx(total)) ?? c); setPlaying(false); }}><svg viewBox="0 0 24 24"><path d="M11 19l-7-7 7-7M20 19l-7-7 7-7" /></svg></button>
             <button className="icbtn" disabled={!replaySpan} aria-label={t("replayPrev")} title={t("replayPrev")} onClick={() => setReplayCutoff((c) => stepReplayCutoff(replayAxis, c, -1) ?? c)}><svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6" /></svg></button>
             <button className="icbtn" disabled={!replaySpan} aria-label={playing ? t("replayPause") : t("replayPlay")} title={playing ? t("replayPause") : t("replayPlay")} onClick={() => setPlaying((p) => !p)}>{playing ? <svg viewBox="0 0 24 24"><path d="M6 4h4v16H6zM14 4h4v16h-4z" /></svg> : <svg viewBox="0 0 24 24" style={{ fill: "var(--signal)", stroke: "none" }}><path d="M6 4l14 8-14 8V4z" /></svg>}</button>

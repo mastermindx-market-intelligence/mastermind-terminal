@@ -275,7 +275,7 @@ export default function AnalysisHubSheet({ open, onClose, onAction, replay }: An
     <button
       key={entry.id}
       type="button"
-      className="mhub-tile"
+      className={`mhub-tile ${styles.tile}`}
       data-testid={`hub-tile-${entry.id}`}
       disabled={entry.action === "replay" && Boolean(replay.blockedReason)}
       data-replay-blocked={entry.action === "replay" ? replay.blockedReason : undefined}
