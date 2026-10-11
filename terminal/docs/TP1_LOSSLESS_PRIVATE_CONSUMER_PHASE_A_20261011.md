@@ -27,8 +27,8 @@ M2 Studio used an isolated /tmp test directory, with dependencies symlinked *rea
 To reproduce from **the Terminal repo's `terminal/` directory** after checking out the exact branch:
 
 ```bash
-npm run test -- --run lib/__tests__/tp1PrivateEvidence.test.ts lib/__tests__/tp1PrivateEvidence.pythonInterop.test.ts
-npx tsc --noEmit --strict
+npm run test -- lib/__tests__/tp1PrivateEvidence.test.ts lib/__tests__/tp1PrivateEvidence.pythonInterop.test.ts
+./node_modules/.bin/tsc --noEmit --strict --skipLibCheck --target ES2022 --lib ES2022 --module ESNext --moduleResolution Bundler --types node --esModuleInterop lib/tp1PrivateEvidence.ts lib/__tests__/tp1PrivateEvidence.test.ts lib/__tests__/tp1PrivateEvidence.pythonInterop.test.ts
 ```
 
 The tests exercise only private synthetic payload shapes. Their pass does **not** establish the provenance, cryptographic authorization, actual completeness or correctness of any future real production source.
