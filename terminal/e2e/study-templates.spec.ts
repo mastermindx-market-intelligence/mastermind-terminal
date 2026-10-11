@@ -322,6 +322,15 @@ test("applying a template changes only the chart's studies, whatever else the re
   await chartReady(page);
   await expect.poll(async () => (await readStore(page)).inds ?? [], { message: "the candles migration should run", timeout: 20_000 })
     .toContain("trend");
+  // The migration persists the study keys from more than one effect (on a loaded phone run the
+  // params landed after the list); wait until they stop moving before measuring the idle window.
+  let lastStudies = "";
+  await expect.poll(async () => {
+    const now = JSON.stringify(await readStore(page));
+    const settledNow = now === lastStudies;
+    lastStudies = now;
+    return settledNow;
+  }, { message: "the study keys should settle before the apply", timeout: 20_000, intervals: [1_000] }).toBe(true);
 
   // Keys the app itself rewrites while idle are not attributable to the apply; find them first.
   const idleA = await readAllStorage(page);
