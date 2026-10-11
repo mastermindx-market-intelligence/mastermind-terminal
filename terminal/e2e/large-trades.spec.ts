@@ -601,11 +601,29 @@ test("large trade controls expose full targets and scrollable provenance at thei
         await settledTradeChart(page, 1);
       }
     }
-    await resizeTradePricePane(page, 137);
+    // Exercise the 88px control contract below the actual painted header. The
+    // narrow header wraps, so a fixed 137px pane no longer admits those controls.
+    const boundary = await page.locator(".chart-wrap").first().evaluate((wrap) => {
+      const row = [...wrap.querySelectorAll(".tv-lightweight-charts table tr")]
+        .find((candidate) => candidate.querySelector("canvas"))!;
+      const price = row.getBoundingClientRect();
+      const header = wrap.querySelector<HTMLElement>(":scope > .statusline")!.getBoundingClientRect();
+      return { priceTop: price.top, headerBottom: header.bottom, headerHeight: header.height,
+        reserve: Math.max(48, header.bottom - price.top) };
+    });
+    const admittedPaneHeight = Math.ceil(boundary.reserve) + 89;
+    const rejectedPaneHeight = admittedPaneHeight - 2;
+    if (137 - boundary.reserve < 88) {
+      await resizeTradePricePane(page, 137);
+      await expect(overlay).toHaveAttribute("data-owner-visible", "false");
+      await expect(visible).toHaveCount(0); await expect(dock).toBeHidden();
+    }
+    await resizeTradePricePane(page, admittedPaneHeight);
     await expect(overlay).toHaveAttribute("data-owner-visible", "true");
     await expect.poll(() => visible.count()).toBeGreaterThan(0);
     const controls = await page.getByTestId("large-trades-controls").boundingBox();
     expect(controls!.height).toBeGreaterThanOrEqual(88); expect(controls!.height).toBeLessThanOrEqual(90);
+    expect(controls!.y).toBeGreaterThanOrEqual(boundary.headerBottom - .25);
     if (phase.startsWith("narrow")) { expect(controls!.width).toBeGreaterThanOrEqual(198); expect(controls!.width).toBeLessThanOrEqual(200); }
     const refresh = dock.getByRole("button", { name: "Refresh transaction evidence", exact: true });
     const refreshProof = await scrollTradeTarget(page, dock, refresh, -1);
@@ -639,11 +657,12 @@ test("large trade controls expose full targets and scrollable provenance at thei
     await expect(panel).toBeHidden();
     const settingsProof = await scrollTradeTarget(page, dock, dock.getByRole("button", { name: "Settings", exact: true }), 1);
     await info.attach(phase + "-hit-footprints", { body: JSON.stringify({ controls, viewport: page.viewportSize(),
+      boundary, admittedPaneHeight, rejectedPaneHeight,
       refreshProof, inspectProof, closeProof, termsProof, settingsProof, outerGeometry }, null, 2), contentType: "application/json" });
-    await resizeTradePricePane(page, 135);
+    await resizeTradePricePane(page, rejectedPaneHeight);
     await expect(overlay).toHaveAttribute("data-owner-visible", "false");
     await expect(visible).toHaveCount(0); await expect(dock).toBeHidden();
-    await resizeTradePricePane(page, 137);
+    await resizeTradePricePane(page, admittedPaneHeight);
     await expect(overlay).toHaveAttribute("data-owner-visible", "true");
     await expect.poll(() => visible.count()).toBeGreaterThan(0);
   }
