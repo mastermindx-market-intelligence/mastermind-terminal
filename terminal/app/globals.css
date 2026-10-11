@@ -115,12 +115,14 @@
   --flow-buy:#22b8d5; --flow-sell:#a92cce;
 }
 /* Paper International research materials: source support at the existing HTML
-   theme owner only. Default/root dark values above are unchanged. This does not
+   theme owner or an explicit Investigation main boundary. Default/root dark
+   values above are unchanged. This does not
    add a theme switch or make light mode user-reachable. Light surfaces and ink
    grades follow Macro templates/theme.css (0f575e51:213-239,364-380): white
    research sheets on a cool canvas, recessed secondary planes, hairlines and
    restrained shadow instead of dark inset sheen. Health inks never locale-flip. */
-html[data-theme="light"]{
+html[data-theme="light"] ,
+main.ws-shell[data-investigation-theme="light"]{
   --bg:#f7f8fa; --panel:#ffffff; --panel-2:#eef1f6;
   --text:#1c2430; --text-2:color-mix(in srgb,var(--text) 78%,var(--panel));
   --muted:#5d6b7e; --text-dim:var(--muted);
@@ -136,6 +138,10 @@ html[data-theme="light"]{
   --signal:color-mix(in srgb,#b07d05 62%,var(--text));
   --danger:color-mix(in srgb,#c43d3d 88%,var(--text));
   --shadow-card:0 1px 3px rgba(20,30,50,.07);
+  /* Resolve inherited root aliases again at the local material boundary. */
+  --surface-1:var(--panel-2);
+  --text-1:var(--text);
+  --text-3:var(--muted);
 }
 /* East-Asian convention: red = up / green = down (CN/HK/TW/MO). Flips the up/down semantics only;
    accent colors (brand/signal/warn) are unchanged. Set on <html data-updown="east"> pre-paint. */
