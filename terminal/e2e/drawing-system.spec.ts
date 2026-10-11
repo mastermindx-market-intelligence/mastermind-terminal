@@ -1662,10 +1662,14 @@ test("an indicator-pane drawing stays in its pane when that pane y-axis rescales
   ).toBe("pane-value-v2");
 
   const geometry = strokes.first().locator('line:not([stroke="transparent"])').first();
-  const before = await geometry.boundingBox();
-  expect(before).not.toBeNull();
-  expect(before!.y).toBeGreaterThanOrEqual(subPane!.top - 1);
-  expect(before!.y + before!.height).toBeLessThanOrEqual(subPane!.top + subPane!.height + 1);
+  // Persisting the anchors can precede an SVG repaint. Sample the current node
+  // until it is painted; a detached frame is not evidence of misplaced geometry.
+  await expect.poll(async () => {
+    const box = await geometry.boundingBox();
+    return box != null
+      && box.y >= subPane!.top - 1
+      && box.y + box.height <= subPane!.top + subPane!.height + 1;
+  }, { message: "the saved drawing should paint inside its owning pane" }).toBe(true);
 
   // This is the reported gesture: change the INDICATOR pane's own y-axis range.
   // The draw layer spans the whole chart, while LWC's priceToCoordinate values
