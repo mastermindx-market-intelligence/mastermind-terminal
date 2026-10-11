@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs";
 import { createHash } from "node:crypto";
 import { describe,it,expect } from "vitest";
-import { decodePrivateEvidence } from "../tp1PrivateEvidence";
+import { decodePrivateEvidence, pairPrivateEvidence } from "../tp1PrivateEvidence";
 
 const here=new URL("./fixtures/",import.meta.url);
 const IMMUTABLE_PYTHON_FIXTURES = {
@@ -31,5 +31,14 @@ describe("actual Macro Python-generated synthetic-v0 private artifacts",()=>{
   expect(m.publicDeliveryAllowed).toBe(false);
   expect(r.publicDeliveryAllowed).toBe(false);
   expect(m.sourceAuthenticated).toBe(false);
+ });  it("also pairs actual Python serializer outputs under their exact source hashes",()=>{
+  const m=verified("minute","tp1PrivateMinute.synthetic.v0.json");
+  const r=verified("research","tp1PrivateResearch.synthetic.v0.json");
+  const p=pairPrivateEvidence(m,r);
+  expect(p.pairingState).toBe("PRIVATE_COMPATIBLE_ORIGINAL_SOURCE_UNPROVEN");
+  expect(p.pairedArtifactsSha256).toMatch(/^[a-f0-9]{64}$/);
+  expect(p.sourceManifestSha256).toBe("e".repeat(64));
+  expect(p.sourceAuthenticated).toBe(false);
  });
+
 });
