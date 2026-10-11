@@ -339,7 +339,8 @@ export default function ScreenerView({ identity }: { identity: AccountIdentity }
   const [sort, setSort] = useState<{ k: SortKey; dir: 1 | -1 } | null>(null);
 
   // ── fundamental screen (E02) ───────────────────────────────────────────
-  // The scan is read only once the user opens the controls (or holds a fundamental filter).
+  // The scan is read only once the user opens the controls, holds a fundamental filter, or the
+  // smart-screens panel shows a saved screen with fundamental conditions (to count/explain it).
   // Columns exist for the field being edited and for every active predicate — never for the
   // whole field set, so the table does not grow "—" columns nobody asked for.
   const ft = useFundT();
@@ -347,7 +348,9 @@ export default function ScreenerView({ identity }: { identity: AccountIdentity }
   const [fundField, setFundField] = useState<FundamentalFieldId>("fund.net_margin_fy");
   const [fundPreds, setFundPreds] = useState<FundamentalPredicate[]>([]);
   const [evidence, setEvidence] = useState<FundamentalEvidenceTarget | null>(null);
-  const fund = useFundamentalScan(fundOpen || fundPreds.length > 0);
+  const [fundWanted, setFundWanted] = useState(false);
+  const fund = useFundamentalScan(fundOpen || fundPreds.length > 0 || fundWanted);
+  const fundCtx = useMemo(() => ({ source: fund.source, nowMs: fund.nowMs }), [fund.source, fund.nowMs]);
   const fundCols = useMemo(
     () => FUNDAMENTAL_FIELD_IDS.filter((id) => (fundOpen && id === fundField) || fundPreds.some((p) => p.field === id)),
     [fundOpen, fundField, fundPreds],
@@ -668,9 +671,10 @@ export default function ScreenerView({ identity }: { identity: AccountIdentity }
     });
   }, []);
 
-  // Clicking a preset REPLACES the whole filter state; clicking the active one clears it.
-  // Saved payloads are spread over DEFAULT_FILTERS so an older stored shape can never leave a
-  // filter key undefined.
+  // Clicking a preset replaces the whole FilterState; clicking the active one clears the
+  // FilterState only. Presets never carry fundamental (E02) conditions, so any the table holds are
+  // kept either way and stay visible as chips. Saved payloads are spread over DEFAULT_FILTERS so
+  // an older stored shape can never leave a filter key undefined.
   const applyPreset = useCallback((id: string, patch: Partial<FilterState>) => {
     const off = activePreset === id;
     startTransition(() => {
@@ -978,6 +982,9 @@ export default function ScreenerView({ identity }: { identity: AccountIdentity }
         ready={loaded && !err}
         asOf={asOf}
         filters={f}
+        fundPreds={fundPreds}
+        fundScan={fundCtx}
+        onFundNeeded={setFundWanted}
         prefsEnabled={prefsReady ? prefs.enabled : null}
         showAllMarkets={showAllMarkets}
         labelGics={gicsLabel}
@@ -985,6 +992,8 @@ export default function ScreenerView({ identity }: { identity: AccountIdentity }
         onOpen={(next, o) => startTransition(() => {
           setActivePreset(null);
           setF(next);
+          // A saved screen is applied whole: its fundamental conditions replace the table's.
+          setFundPreds(o.fund);
           if (o.showAllMarkets !== null) setShowAllMarkets(o.showAllMarkets);
         })}
       />
