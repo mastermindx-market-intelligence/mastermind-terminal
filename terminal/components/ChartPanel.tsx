@@ -40,6 +40,7 @@ import { drawingToolFromShortcut, getDrawingTool, FREEHAND_DRAWING_KINDS, type D
 import { DRAWING_RENDERER_FAMILY, materializeSemanticPoints } from "@/lib/drawing-engine/geometry";
 import { calculateAnchoredVwap, calculateFixedRangeVolumeProfile, calculateRegressionChannel, generateGhostFeed } from "@/lib/drawing-engine/analytics";
 import { cloneDrawing, constrainScreenAngle, translateDrawingAnchors } from "@/lib/drawing-engine/interaction";
+import { migrateLegacyPanePoints } from "@/lib/drawingPaneMigration";
 import { calculatePositionMetrics, fibonacciSettings, positionSettings, type FibonacciLabelMode } from "@/lib/drawing-engine/settings";
 import { registerPane, broadcastCrosshair, broadcastRange, peerValueAt } from "@/lib/paneSync";
 import {
@@ -4698,14 +4699,8 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
         const pane = paneLayoutFor(paneKey);
         const series = seriesForPane(paneKey);
         if (!pane || !series || !(pane.height > 0)) return drawing;
-        const migrated: Drawing["points"] = [];
-        for (const point of drawing.points) {
-          const legacyRootY = series.priceToCoordinate(point.p) as number | null;
-          if (legacyRootY == null || !Number.isFinite(legacyRootY)) return drawing;
-          const corrected = series.coordinateToPrice(legacyRootY - pane.top) as number | null;
-          if (corrected == null || !Number.isFinite(corrected)) return drawing;
-          migrated.push({ ...point, p: corrected });
-        }
+        const migrated = migrateLegacyPanePoints(drawing.points, pane.top, series);
+        if (!migrated) return drawing;
         changed = true;
         return {
           ...drawing,
