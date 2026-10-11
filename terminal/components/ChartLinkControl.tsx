@@ -163,7 +163,14 @@ export default function ChartLinkControl({ idx, view, labels, onAssign, onShare 
               </div>
             </fieldset>
           )}
-          <p className={styles.status} data-tone={tone} data-link-status-text={status} role="status">{statusText}</p>
+          <p
+            className={styles.status} // plain-language-ok: CSS-module class name, never rendered as text
+            data-tone={tone}
+            data-link-status-text={status}
+            role="status"
+          >
+            {statusText}
+          </p>
           <p className={styles.foot}>{t("clFootnote")}</p>
         </div>
       )}
