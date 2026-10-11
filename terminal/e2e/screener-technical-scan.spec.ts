@@ -214,8 +214,10 @@ for (const lang of ["en", "zh"] as const) {
     await page.locator(".scr2-preset-name").press("Enter");
     const saved = await page.evaluate(() => JSON.parse(localStorage.getItem("mm.scrPresets") ?? "null"));
     expect(saved?.v).toBe(1);
+    // E03 adds its four cross-market keys (taxonomy, stale-label choice, currency scope, the
+    // currency a liquidity floor was set in); none of them is technical.
     expect(Object.keys(saved.items.at(-1).f).sort()).toEqual(
-      ["asset", "liq", "market", "mcap", "move", "sector", "signal", "unpriced", "uptrend", "w52"],
+      ["asset", "ccy", "classStale", "liq", "liqCcy", "market", "mcap", "move", "sector", "signal", "taxonomy", "unpriced", "uptrend", "w52"],
     );
     expect(JSON.stringify(saved)).not.toMatch(/tech|buyside|"3D"/);
     await expect(page.locator("[data-tech-signal]")).toHaveValue("buyside"); // saving did not reset the screen

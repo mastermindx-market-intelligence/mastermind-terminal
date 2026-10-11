@@ -660,12 +660,17 @@ export default function ScreenerView({ identity }: { identity: AccountIdentity }
     for (const r of base) { if (isBuy(r.verdict)) b++; else if (r.verdict) s++; }
 
     // sort — nulls always last regardless of direction. Traded value is compared only within
-    // one currency (scope currency first, then each other currency as its own block); the
-    // sector column sorts by taxonomy, then label.
+    // one currency (scope currency first, then each other currency as its own block; a listing
+    // whose currency was not read is ordered only against its own market); the sector column
+    // sorts by taxonomy, then label.
     const noCur = { kind: "unknown" as const, reason: "not_in_scan" };
     const sorted = [...base].sort((a, b2) => {
       if (effSort.k === "dv") {
-        return compareMoney({ v: a.dv, cur: annot.get(a.sym)?.cur ?? noCur }, { v: b2.dv, cur: annot.get(b2.sym)?.cur ?? noCur }, scope.code, effSort.dir);
+        return compareMoney(
+          { v: a.dv, cur: annot.get(a.sym)?.cur ?? noCur, mkt: a.mktId },
+          { v: b2.dv, cur: annot.get(b2.sym)?.cur ?? noCur, mkt: b2.mktId },
+          scope.code, effSort.dir,
+        );
       }
       const x: any = effSort.k === "gics" ? annot.get(a.sym)?.key ?? null : a[effSort.k];
       const y: any = effSort.k === "gics" ? annot.get(b2.sym)?.key ?? null : b2[effSort.k];

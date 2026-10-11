@@ -250,6 +250,22 @@ describe("AC-E03-04 — money is compared only within one listing currency", () 
     expect(asc).toEqual([usd(1e6), usd(5e6), hkd(1e3), hkd(9e9), unk]);
   });
 
+  it("orders a currency that was not read by amount within its own market only, never across markets", () => {
+    const usd = (v: number) => ({ v, cur: { kind: "code", code: "USD" } as MoneyCurrency, mkt: "us" });
+    const unk = (v: number, mkt: string) => ({ v, cur: { kind: "unknown", reason: "scan_unavailable" } as MoneyCurrency, mkt });
+    const index = { v: 1e15, cur: { kind: "not_money", reason: "currency_not_applicable" } as MoneyCurrency, mkt: "us" };
+    const noValue = { v: null, cur: { kind: "code", code: "USD" } as MoneyCurrency, mkt: "us" };
+    // incoming order deliberately puts the largest HK amount first and the US rows apart
+    const items = [unk(9e9, "hk"), index, unk(1e6, "us"), noValue, unk(1e3, "hk"), usd(2e6), unk(5e6, "us")];
+    const desc = [...items].sort((a, b) => compareMoney(a, b, "USD", -1));
+    expect(desc).toEqual([usd(2e6), unk(5e6, "us"), unk(1e6, "us"), unk(9e9, "hk"), unk(1e3, "hk"), index, noValue]);
+    const asc = [...items].sort((a, b) => compareMoney(a, b, "USD", 1));
+    expect(asc).toEqual([usd(2e6), unk(1e6, "us"), unk(5e6, "us"), unk(1e3, "hk"), unk(9e9, "hk"), index, noValue]);
+    // with no read at all (the failure state), the HK block never interleaves with the US block
+    const unread = [unk(9e9, "hk"), unk(1e6, "us"), unk(1e3, "hk"), unk(5e6, "us")];
+    expect([...unread].sort((a, b) => compareMoney(a, b, null, -1)).map((x) => x.mkt)).toEqual(["us", "us", "hk", "hk"]);
+  });
+
   it("labels every money value with its unit", () => {
     expect(formatMoney(1.2e9, { kind: "code", code: "USD" })).toBe("$1.20B");
     expect(formatMoney(1.2e9, { kind: "code", code: "HKD" })).toBe("HKD 1.20B");

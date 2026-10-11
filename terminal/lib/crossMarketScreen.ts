@@ -20,6 +20,7 @@
 //                   malformed row, record unreadable, not processed) has an UNKNOWN label: it is
 //                   counted as "not read", never as unclassified and never as a non-match.
 
+import { MARKET_IDS } from "./markets";
 import {
   GICS_SECTORS,
   SECTOR_TAXONOMIES,
@@ -222,22 +223,41 @@ export function matchMoneyFloor(value: number | null | undefined, cur: MoneyCurr
   return value >= floor ? "pass" : "below";
 }
 
+/** One listing's money value for sorting; `mkt` is the listing's own market (never a currency). */
+export type MoneySortItem = { v: number | null | undefined; cur: MoneyCurrency; mkt?: string | null };
+
+const marketOrder = (m: string | null | undefined): number => {
+  const i = m == null ? -1 : (MARKET_IDS as readonly string[]).indexOf(m);
+  return i < 0 ? MARKET_IDS.length : i;
+};
+
 /**
  * Sort order for a money column: the scope currency first, then each other currency as its own
  * block (by code), then everything that has no comparable value. Values are compared only
  * within one currency; direction flips the values, never the blocks.
+ *
+ * A listing whose currency was not read still has an amount in its own market's quote unit, so
+ * those rows are ordered by amount within their own market only (markets in the product's
+ * market order, never interleaved). That keeps a failed or pending classification read from
+ * turning the traded-value sort into an arbitrary list, without ranking one market's amounts
+ * against another's. Rows with no amount, or no money at all, stay last in their incoming order.
  */
-export function compareMoney(
-  a: { v: number | null | undefined; cur: MoneyCurrency },
-  b: { v: number | null | undefined; cur: MoneyCurrency },
-  scopeCode: string | null,
-  dir: 1 | -1,
-): number {
-  const rank = (x: { v: number | null | undefined; cur: MoneyCurrency }): number =>
-    x.cur.kind !== "code" || x.v == null || !Number.isFinite(x.v) ? 2 : x.cur.code === scopeCode ? 0 : 1;
+export function compareMoney(a: MoneySortItem, b: MoneySortItem, scopeCode: string | null, dir: 1 | -1): number {
+  const finite = (x: MoneySortItem) => x.v != null && Number.isFinite(x.v);
+  const rank = (x: MoneySortItem): number =>
+    !finite(x) || x.cur.kind === "not_money" ? 3 : x.cur.kind === "unknown" ? 2 : x.cur.code === scopeCode ? 0 : 1;
   const ra = rank(a), rb = rank(b);
   if (ra !== rb) return ra - rb;
-  if (ra === 2) return 0;
+  if (ra === 3) return 0;
+  if (ra === 2) {
+    const ma = marketOrder(a.mkt), mb = marketOrder(b.mkt);
+    if (ma !== mb) return ma - mb;
+    const ka = a.mkt ?? "", kb = b.mkt ?? "";
+    if (ka !== kb) return ka < kb ? -1 : 1;
+    if (ka === "") return 0; // no market identity: no amount comparison either
+    const va = a.v as number, vb = b.v as number;
+    return (va > vb ? 1 : va < vb ? -1 : 0) * dir;
+  }
   const ca = (a.cur as { code: string }).code, cb = (b.cur as { code: string }).code;
   if (ca !== cb) return ca < cb ? -1 : 1;
   const va = a.v as number, vb = b.v as number;
