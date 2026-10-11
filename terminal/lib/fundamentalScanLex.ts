@@ -25,7 +25,7 @@ export const FUNDAMENTAL_SCAN_LEX: Record<string, [string, string]> = {
   fsUpdate: ["Update filter", "更新筛选"],
   fsRemove: ["Remove", "移除"],
   fsClear: ["Clear fundamentals", "清除基本面筛选"],
-  fsErrNumber: ["Enter a number", "请输入数字"],
+  fsErrNumber: ["Enter a number, using a point for decimals (1.5)", "请输入数字，小数请用小数点（如 1.5）"],
   fsErrOrder: ["Min must not exceed max", "最低值不能高于最高值"],
   fsErrEmpty: ["Enter a min, a max, or choose Only unknown", "请输入最低值或最高值，或选择仅未知"],
   fsUnitPct: ["Enter percent: 15 means 15%", "以百分比输入：15 即 15%"],

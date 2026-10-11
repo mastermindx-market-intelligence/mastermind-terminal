@@ -291,6 +291,23 @@ describe("units — the one scaling boundary (AC-E02-01)", () => {
     expect(formatFundamentalValue("fund.roe_fy", Number.NaN)).toBe("—");
     expect(formatFundamentalValue("fund.roe_fy", -0.5)).toBe("-50%");
   });
+
+  it("a comma is only a thousands separator; a decimal comma is invalid, never re-read", () => {
+    // "1,5" meant 1.5 in a decimal-comma locale; stripping the comma silently turned it into 15
+    expect(parseTypedBound("fund.pe_ttm", "1,5")).toBeNull();
+    expect(parseTypedBound("fund.pe_ttm", "15,00")).toBeNull();
+    expect(parseTypedBound("fund.pe_ttm", "1,5000")).toBeNull();
+    expect(parseTypedBound("fund.pe_ttm", ",500")).toBeNull();
+    expect(parseTypedBound("fund.pe_ttm", "1,500,")).toBeNull();
+    expect(parseTypedBound("fund.pe_ttm", "1,500")).toBe(1500);
+    expect(parseTypedBound("fund.pe_ttm", "1,500.25")).toBe(1500.25);
+    expect(parseTypedBound("fund.pe_ttm", " -1,500 ")).toBe(-1500);
+    expect(parseTypedBound("fund.pe_ttm", "12,345,678")).toBe(12345678);
+    expect(parseTypedBound("fund.pe_ttm", "1.5")).toBe(1.5);
+    expect(parseTypedBound("fund.net_margin_fy", "1,5%")).toBeNull();
+    expect(parseTypedBound("fund.net_margin_fy", "1.5%")).toBe(0.015);
+    expect(parseTypedBound("fund.net_margin_fy", " 15 % ")).toBe(0.15);
+  });
 });
 
 describe("predicates — unknown never satisfies a threshold unless explicitly selected", () => {

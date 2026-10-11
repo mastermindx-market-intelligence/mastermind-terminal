@@ -548,10 +548,21 @@ export function formatFundamentalValue(field: FundamentalFieldId, stored: number
     : `${MULT_FMT.format(stored)}×`;
 }
 
-/** Parse a typed bound; "" ⇒ undefined (no bound), junk ⇒ null (invalid). */
+/** A comma is accepted only as a thousands separator ("1,500", "12,345.6"). */
+const THOUSANDS_GROUPED = /^[+-]?\d{1,3}(,\d{3})+(\.\d+)?$/;
+
+/**
+ * Parse a typed bound; "" ⇒ undefined (no bound), junk ⇒ null (invalid).
+ * Any other comma ("1,5", "15,00") is invalid rather than stripped: a decimal-comma "1,5" means 1.5,
+ * and silently reading it as 15 would screen on a threshold ten times the one the user typed.
+ */
 export function parseTypedBound(field: FundamentalFieldId, text: string): number | undefined | null {
-  const t = text.trim().replace(/[%×x,]/gi, "");
+  let t = text.replace(/[%×x]/gi, "").trim();
   if (t === "") return undefined;
+  if (t.includes(",")) {
+    if (!THOUSANDS_GROUPED.test(t)) return null;
+    t = t.replace(/,/g, "");
+  }
   const n = Number(t);
   return Number.isFinite(n) ? toStoredThreshold(field, n) : null;
 }
