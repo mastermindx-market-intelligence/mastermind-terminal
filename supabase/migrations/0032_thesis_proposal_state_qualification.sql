@@ -1,4 +1,4 @@
--- Ledger row: 0032_thesis_proposal_state_qualification / PR #946 (open, packet B-F11-PROPOSAL-STATE-SQL); not applied
+-- Ledger row: 0032_thesis_proposal_state_qualification / PR #946 (merged 2957bd64, packet B-F11-PROPOSAL-STATE-SQL); applied 2026-10-11
 -- Rollback: restore only set_thesis_amendment_state(uuid,text) from 0025, retaining owner and ACL.
 -- Fix the installed proposal RPC: RETURNS TABLE output variables must not
 -- collide with UPDATE predicate columns. No table, grant, policy or data change.
