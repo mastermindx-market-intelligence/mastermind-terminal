@@ -21,4 +21,4 @@ Captured using the real Terminal dev-settings fixture and desktop (1440×900), t
 ]
 ```
 
-The rejected Paper page p-1C-0 is **not** the implementation authority. A new Paper-design write was refused on the current file-switch guard and has not been claimed as completed. PR #943 remains Draft + hold pending actual scoped review.
+The rejected Paper page p-1C-0 is **not** the implementation authority. The corrected editable native Paper study is [Terminal Settings · Original Pane · Aurora Only · R2](https://app.paper.design/file/01M2WGNCX9475G79JRKJTCM08P/p-1D-0), with desktop `61WU-0`, mobile `622X-0`, and before/after motion specification `625U-0`. Screenshots of all three artboards were verified through the Paper plugin; the former full-pane artboards are renamed REJECTED. PR #943 remains Draft + hold pending scoped acceptance.
