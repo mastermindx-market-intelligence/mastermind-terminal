@@ -202,20 +202,51 @@ const PRESET_CAP = 12;
 
 // Device-local, both for guests and accounts — server sync is out of scope for phase 1
 // (see the D5-6 block above; mirrors the useMarketPrefs guest pattern).
-function readPresets(): SavedPreset[] {
+type PresetRead = { ok: true; items: SavedPreset[] } | { ok: false };
+type PresetOperation =
+  | { kind: "save"; preset: SavedPreset }
+  | { kind: "delete"; id: string; name: string };
+
+// Recovery copy stays local to this device-local feature.
+const PRESET_COPY = {
+  read: ["Saved presets could not be read. Changes are blocked until Retry succeeds.", "无法读取已存预设。重试成功前不会写入更改。"],
+  save: ["Preset not saved. Your name and filters are kept for Retry.", "预设未保存。名称和筛选条件已保留，可重试。"],
+  delete: ["Preset not deleted. Your saved list is unchanged.", "预设未删除。已存列表保持不变。"],
+  retry: ["Retry", "重试"],
+  cancel: ["Cancel", "取消"],
+  retrySave: ["Retry saving", "重试保存"],
+  retryDelete: ["Retry deleting", "重试删除"],
+  cancelSave: ["Cancel saving", "取消保存"],
+  cancelDelete: ["Cancel deleting", "取消删除"],
+} as const;
+
+function readPresets(): PresetRead {
   try {
     const raw = localStorage.getItem(PRESET_LS);
-    if (!raw) return [];
+    if (raw === null) return { ok: true, items: [] };
     const p = JSON.parse(raw);
-    if (!p || p.v !== 1 || !Array.isArray(p.items)) return [];   // unknown schema → discard silently
-    return p.items
-      .filter((x: any) => x && typeof x.id === "string" && typeof x.name === "string" && x.f && typeof x.f === "object")
-      .slice(0, PRESET_CAP)
-      .map((x: any) => ({ id: x.id, name: x.name, f: { ...DEFAULT_FILTERS, ...x.f } as FilterState }));
-  } catch { return []; }
+    // Unread/unsupported bytes are not an empty list we have permission to overwrite.
+    if (!p || p.v !== 1 || !Array.isArray(p.items) || p.items.length > PRESET_CAP) return { ok: false };
+    const ids = new Set<string>();
+    const items: SavedPreset[] = [];
+    for (const x of p.items) {
+      if (!x || typeof x.id !== "string" || typeof x.name !== "string" || !x.f || typeof x.f !== "object" || Array.isArray(x.f) || ids.has(x.id)) return { ok: false };
+      const f = { ...DEFAULT_FILTERS, ...x.f };
+      if (!(f.market === "all" || ALL_MARKETS.includes(f.market)) || typeof f.asset !== "string" || typeof f.sector !== "string"
+        || !["any", "buy", "sell", "tracked"].includes(f.signal) || typeof f.uptrend !== "boolean" || typeof f.unpriced !== "boolean"
+        || typeof f.liq !== "number" || !Number.isFinite(f.liq) || f.liq < 0 || typeof f.mcap !== "number" || !Number.isFinite(f.mcap) || f.mcap < 0
+        || !["any", "nearHigh", "within15", "dd30", "nearLow"].includes(f.w52) || !["any", "up3", "down3", "abs5"].includes(f.move)) return { ok: false };
+      ids.add(x.id);
+      items.push({ id: x.id, name: x.name, f });
+    }
+    return { ok: true, items };
+  } catch { return { ok: false }; }
 }
-function writePresets(items: SavedPreset[]) {
-  try { localStorage.setItem(PRESET_LS, JSON.stringify({ v: 1, items })); } catch { /* storage blocked */ }
+function writePresets(items: SavedPreset[]): boolean {
+  try {
+    localStorage.setItem(PRESET_LS, JSON.stringify({ v: 1, items }));
+    return true;
+  } catch { return false; }
 }
 
 // ── virtualization constants ───────────────────────────────────────────────
@@ -272,14 +303,38 @@ export default function ScreenerView({ identity }: { identity: AccountIdentity }
 
   // ── presets + density (device-local) ───────────────────────────────────
   const [saved, setSaved] = useState<SavedPreset[]>([]);
+  // null means no acknowledged baseline. The synchronous ref also serializes events before
+  // React commits their render; state updater replay never performs a storage write.
+  const savedRef = useRef<SavedPreset[] | null>(null);
+  const presetHydrated = useRef(false);
+  const [presetReadFailed, setPresetReadFailed] = useState(false);
+  const [pendingPresets, setPendingPresets] = useState<PresetOperation[]>([]);
+  const pendingPresetsRef = useRef<PresetOperation[]>([]);
   const [saving, setSaving] = useState(false);
+  const savingRef = useRef(false);
   const [presetName, setPresetName] = useState("");
+  const presetSequence = useRef(0);
   const [density, setDensity] = useState<Density>("c");
+  const presetCopy = (key: keyof typeof PRESET_COPY) => PRESET_COPY[key][lang === "zh" ? 1 : 0];
+
+  const loadPresetBaseline = useCallback(() => {
+    if (savedRef.current !== null) return true;
+    const result = readPresets();
+    if (!result.ok) { setPresetReadFailed(true); return false; }
+    savedRef.current = result.items;
+    setSaved(result.items);
+    setPresetReadFailed(false);
+    return true;
+  }, []);
 
   useEffect(() => {
-    setSaved(readPresets());
+    // StrictMode effect replay is neither a read retry nor permission to reset known state.
+    if (!presetHydrated.current) {
+      presetHydrated.current = true;
+      loadPresetBaseline();
+    }
     try { const d = localStorage.getItem(DENSITY_LS); if (d === "c" || d === "k") setDensity(d); } catch { /* storage blocked */ }
-  }, []);
+  }, [loadPresetBaseline]);
 
   const pickDensity = useCallback((d: Density) => {
     setDensity(d);
@@ -530,22 +585,80 @@ export default function ScreenerView({ identity }: { identity: AccountIdentity }
     });
   }, [activePreset]);
 
+  const updatePendingPresets = useCallback((next: PresetOperation[]) => {
+    pendingPresetsRef.current = next;
+    setPendingPresets(next);
+  }, []);
+
+  const cancelPresetOperation = useCallback((operation: PresetOperation) => {
+    if (!pendingPresetsRef.current.includes(operation)) return;
+    updatePendingPresets(pendingPresetsRef.current.filter((p) => p !== operation));
+    if (operation.kind === "save") { savingRef.current = false; setSaving(false); setPresetName(""); }
+    // Cancelling an intent never certifies an unread baseline.
+  }, [updatePendingPresets]);
+
+  const cancelPresetDraft = useCallback(() => {
+    const operation = pendingPresetsRef.current.find((p) => p.kind === "save");
+    if (operation) cancelPresetOperation(operation);
+    else { savingRef.current = false; setSaving(false); setPresetName(""); }
+  }, [cancelPresetOperation]);
+
+  const persistPresetOperation = useCallback((operation: PresetOperation) => {
+    const baseline = savedRef.current;
+    let next: SavedPreset[] | null = null;
+    if (baseline !== null) {
+      if (operation.kind === "save") {
+        let preset = operation.preset;
+        // A draft made before read recovery could have picked an id present in that
+        // recovered list. Preserve its intent without creating ambiguous delete targets.
+        while (baseline.some((p) => p.id === preset.id)) {
+          preset = { ...preset, id: "sp" + Date.now().toString(36) + "-" + (++presetSequence.current).toString(36) };
+        }
+        next = [...baseline, preset].slice(-PRESET_CAP);
+      } else next = baseline.filter((p) => p.id !== operation.id);
+    }
+    if (next === null || !writePresets(next)) {
+      if (!pendingPresetsRef.current.includes(operation)) {
+        updatePendingPresets([...pendingPresetsRef.current, operation]);
+      }
+      if (next === null) setPresetReadFailed(true);
+      return false;
+    }
+    savedRef.current = next;
+    setSaved(next);
+    // A successful capped Save can also satisfy an older failed Delete by evicting its
+    // target. Drop only those now-acknowledged intents; never replay them as extra writes.
+    updatePendingPresets(pendingPresetsRef.current.filter((p) => p !== operation && (p.kind !== "delete" || next.some((item) => item.id === p.id))));
+    if (operation.kind === "save") { savingRef.current = false; setSaving(false); setPresetName(""); }
+    else setActivePreset((cur) => cur === operation.id ? null : cur);
+    return true;
+  }, [updatePendingPresets]);
+
+  const retryPresetOperation = useCallback((operation?: PresetOperation) => {
+    // Recovery installs the read baseline before applying the retained intent. A write
+    // retry always recomputes from the latest acknowledged list, never a failed snapshot.
+    if (!loadPresetBaseline()) return;
+    if (operation && pendingPresetsRef.current.includes(operation)) persistPresetOperation(operation);
+  }, [loadPresetBaseline, persistPresetOperation]);
+
   const commitPreset = useCallback(() => {
+    if (!savingRef.current) return;
+    const pending = pendingPresetsRef.current.find((p) => p.kind === "save");
+    if (pending) { retryPresetOperation(pending); return; }
     const name = presetName.trim().slice(0, 40);
-    setSaving(false);
-    setPresetName("");
     if (!name) return;
-    setSaved((prev) => {
-      const next = [...prev, { id: "sp" + Date.now().toString(36), name, f: { ...f } }].slice(-PRESET_CAP);
-      writePresets(next);
-      return next;
-    });
-  }, [presetName, f]);
+    let id: string;
+    do { id = "sp" + Date.now().toString(36) + "-" + (++presetSequence.current).toString(36); }
+    while (savedRef.current?.some((p) => p.id === id));
+    persistPresetOperation({ kind: "save", preset: { id, name, f: { ...f } } });
+  }, [presetName, f, persistPresetOperation, retryPresetOperation]);
 
   const deletePreset = useCallback((id: string) => {
-    setSaved((prev) => { const next = prev.filter((p) => p.id !== id); writePresets(next); return next; });
-    setActivePreset((cur) => (cur === id ? null : cur));
-  }, []);
+    const pending = pendingPresetsRef.current.find((p) => p.kind === "delete" && p.id === id);
+    if (pending) { retryPresetOperation(pending); return; }
+    const preset = savedRef.current?.find((p) => p.id === id);
+    if (preset) persistPresetOperation({ kind: "delete", id, name: preset.name });
+  }, [persistPresetOperation, retryPresetOperation]);
 
   // ── active-filter chips for the status row ─────────────────────────────
   const tags: { id: string; label: string; clear: Partial<FilterState> }[] = [];
@@ -690,19 +803,40 @@ export default function ScreenerView({ identity }: { identity: AccountIdentity }
                   placeholder={t("scr2PresetName")}
                   aria-label={t("scr2PresetName")}
                   value={presetName}
+                  readOnly={pendingPresets.some((p) => p.kind === "save")}
                   onChange={(e) => setPresetName(e.target.value)}
                   onKeyDown={(e) => {
-                    if (e.key === "Enter") commitPreset();
-                    else if (e.key === "Escape") { setSaving(false); setPresetName(""); }
+                    if (e.key === "Enter") { e.preventDefault(); commitPreset(); }
+                    else if (e.key === "Escape") { e.stopPropagation(); cancelPresetDraft(); }
                   }}
-                  onBlur={() => { setSaving(false); setPresetName(""); }}
+                  onBlur={() => {
+                    if (!pendingPresetsRef.current.some((p) => p.kind === "save")) cancelPresetDraft();
+                  }}
                 />
               ) : (
-                <button type="button" className="fin-tab" onClick={() => setSaving(true)}>{t("scr2Save")}</button>
+                <button type="button" className="fin-tab" onClick={() => { savingRef.current = true; setSaving(true); }}>{t("scr2Save")}</button>
               )}
             </div>
           </div>
         </div>
+
+        {(presetReadFailed || pendingPresets.length > 0) && (
+          <div role="alert" style={{ padding: "8px 16px", color: "var(--text-2)", overflowWrap: "anywhere" }}>
+            {presetReadFailed && <div>{presetCopy("read")}</div>}
+            {pendingPresets.map((operation) => (
+              <div key={operation.kind === "save" ? operation.preset.id : `delete-${operation.id}`}
+                onKeyDown={(e) => { if (e.key === "Escape") { e.stopPropagation(); cancelPresetOperation(operation); } }}
+                style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 8 }}>
+                <span>{operation.kind === "save" ? operation.preset.name : operation.name}: {presetCopy(operation.kind)}</span>
+                <button type="button" className="chip" aria-label={`${presetCopy(operation.kind === "save" ? "retrySave" : "retryDelete")}: ${operation.kind === "save" ? operation.preset.name : operation.name}`} onClick={() => retryPresetOperation(operation)}>{presetCopy("retry")}</button>
+                <button type="button" className="chip" aria-label={`${presetCopy(operation.kind === "save" ? "cancelSave" : "cancelDelete")}: ${operation.kind === "save" ? operation.preset.name : operation.name}`} onClick={() => cancelPresetOperation(operation)}>{presetCopy("cancel")}</button>
+              </div>
+            ))}
+            {pendingPresets.length === 0 && (
+              <button type="button" className="chip" onClick={() => retryPresetOperation()}>{presetCopy("retry")}</button>
+            )}
+          </div>
+        )}
 
         {/* ── criteria row ── */}
         <div className="scr2-row">
@@ -1001,3 +1135,4 @@ export default function ScreenerView({ identity }: { identity: AccountIdentity }
     </main>
   );
 }
+
