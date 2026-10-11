@@ -35,18 +35,14 @@ async function gotoTerminal(page: Page) {
 }
 
 /**
- * ≤640px replaces the chart toolbar with the roller strip + Analysis hub, and that hub
- * ships no replay launcher — its tiles are indicators / compare / alerts / chartType /
- * objectTree / templates / symbolDetails (components/mobile/AnalysisHubSheet.tsx). Bar
- * Replay is simply not reachable on the phone, which is pre-existing and untouched here;
- * `visual-intelligence.spec.ts` records the same fact. So these specs run where Replay
- * exists rather than pretending the phone has an entry point to assert against.
+ * The phone exposes Replay through Analysis hub. The grid and the extended temporal
+ * scenarios below still use desktop toolbar controls; the entry/span and stepping/exit
+ * cases exercise the actual phone launcher without resizing to a desktop viewport.
  */
-const skipWithoutReplayEntry = (page: Page) =>
-  test.skip(isPhoneViewport(page), "no phone entry point for Bar Replay (Analysis hub has no replay tile)");
+const skipDesktopControlScenarioOnPhone = (page: Page) =>
+  test.skip(isPhoneViewport(page), "this scenario uses desktop grid or study controls");
 
 test("Replay is offered to a single chart and reports that chart's own span", async ({ page }) => {
-  skipWithoutReplayEntry(page);
   test.slow();
   await gotoTerminal(page);
 
@@ -66,7 +62,7 @@ test("Replay is offered to a single chart and reports that chart's own span", as
 });
 
 test("a second chart cannot be left at present time under a Replay label", async ({ page }) => {
-  skipWithoutReplayEntry(page);
+  skipDesktopControlScenarioOnPhone(page);
   test.slow();
   await gotoTerminal(page);
 
@@ -91,7 +87,7 @@ test("a second chart cannot be left at present time under a Replay label", async
 });
 
 test("Replay cannot be entered from a grid, whatever its timeframes", async ({ page }) => {
-  skipWithoutReplayEntry(page);
+  skipDesktopControlScenarioOnPhone(page);
   test.slow();
   await gotoTerminal(page);
 
@@ -129,7 +125,6 @@ test("focusing another pane in a grid cannot resurrect a historical instant", as
 });
 
 test("exiting Replay restores the chart without losing its symbol", async ({ page }) => {
-  skipWithoutReplayEntry(page);
   test.slow();
   await gotoTerminal(page);
 
@@ -146,6 +141,37 @@ test("exiting Replay restores the chart without losing its symbol", async ({ pag
   await expect.poll(idxOf, ACT).toBe(start + 1);
   await rail.getByRole("button", { name: "Previous bar", exact: true }).click(ACT);
   await expect.poll(idxOf, ACT).toBe(start);
+
+  const fullscreen = page.locator(".chart-fs-float");
+  if (await fullscreen.isVisible()) {
+    const floatRect = await fullscreen.boundingBox();
+    const counterRect = await rail.locator(".num").boundingBox();
+    expect(floatRect).not.toBeNull();
+    expect(counterRect).not.toBeNull();
+    const overlap = Math.max(0, Math.min(floatRect!.x + floatRect!.width, counterRect!.x + counterRect!.width) - Math.max(floatRect!.x, counterRect!.x))
+      * Math.max(0, Math.min(floatRect!.y + floatRect!.height, counterRect!.y + counterRect!.height) - Math.max(floatRect!.y, counterRect!.y));
+    expect(overlap, "fullscreen must not cover the Replay counter").toBe(0);
+  }
+
+  await test.info().attach("replay-transport", { body: await page.screenshot({ path: test.info().outputPath("replay-transport.png") }), contentType: "image/png" });
+
+  if (isPhoneViewport(page)) {
+    const geometry = await rail.evaluate((root) => {
+      const controls = Array.from(root.querySelectorAll("button, input"));
+      return controls.map((control) => {
+        const rect = control.getBoundingClientRect();
+        return { left: rect.left, right: rect.right, width: rect.width, minWidth: control.tagName === "INPUT" ? 80 : 44 };
+      });
+    });
+    for (const control of geometry) {
+      expect(control.left).toBeGreaterThanOrEqual(0);
+      expect(control.right).toBeLessThanOrEqual(page.viewportSize()!.width);
+      expect(control.width).toBeGreaterThanOrEqual(control.minWidth);
+    }
+    await page.getByTestId("roller-more").click();
+    await expect(page.getByTestId("hub-tile-replay")).toHaveAttribute("aria-pressed", "true");
+    await test.info().attach("phone-replay-active-hub", { body: await page.screenshot({ path: test.info().outputPath("phone-replay-active-hub.png") }), contentType: "image/png" });
+  }
 
   await toggleToolbarReplay(page);
   await expect(replayRail(page)).toHaveCount(0, ACT);
@@ -253,7 +279,7 @@ function studyTailsAfter(w: Witness, last: string): string[] {
 }
 
 test("a timeframe change keeps the replay date instead of the bar number", async ({ page }) => {
-  skipWithoutReplayEntry(page);
+  skipDesktopControlScenarioOnPhone(page);
   test.slow();
   const pageErrors: string[] = [];
   page.on("pageerror", (e) => pageErrors.push(e.message));
@@ -338,7 +364,7 @@ test("a timeframe change keeps the replay date instead of the bar number", async
 });
 
 test("a timeframe that cannot reach the replay date ends Replay instead of shifting it", async ({ page }) => {
-  skipWithoutReplayEntry(page);
+  skipDesktopControlScenarioOnPhone(page);
   test.slow();
   const pageErrors: string[] = [];
   page.on("pageerror", (e) => pageErrors.push(e.message));
@@ -375,7 +401,7 @@ test("a timeframe that cannot reach the replay date ends Replay instead of shift
 });
 
 test("an intraday timeframe cannot borrow a daily replay date", async ({ page }) => {
-  skipWithoutReplayEntry(page);
+  skipDesktopControlScenarioOnPhone(page);
   test.slow();
   await gotoTerminal(page);
   await onDailyChart(page);
@@ -454,7 +480,7 @@ const zoneCounts = async (page: Page) => {
 };
 
 test("Gap Zones under Replay show only the gaps and fills known on the replay date", async ({ page }) => {
-  skipWithoutReplayEntry(page);
+  skipDesktopControlScenarioOnPhone(page);
   test.slow();
   await page.addInitScript(() => {
     localStorage.setItem("mm.inds", JSON.stringify(["gaps"]));
@@ -538,7 +564,7 @@ const optionLinePrices = (page: Page) => page.evaluate(() => {
 });
 
 test("Options Levels dated after the replay date are not drawn over it", async ({ page }) => {
-  skipWithoutReplayEntry(page);
+  skipDesktopControlScenarioOnPhone(page);
   test.slow();
   await page.addInitScript(() => {
     localStorage.setItem("mm.inds", JSON.stringify(["optlevels"]));
@@ -600,7 +626,7 @@ const prophetTitles = (page: Page) => page.evaluate(() =>
   [...document.querySelectorAll('[data-signal-source="prophet_board"] title')].map((t) => t.textContent ?? ""));
 
 test("a Prophet receipt under Replay shows no return priced after the replay date", async ({ page }) => {
-  skipWithoutReplayEntry(page);
+  skipDesktopControlScenarioOnPhone(page);
   test.slow();
   await routeProphetReceipt(page);
   await quietQuotes(page);
@@ -632,7 +658,7 @@ test("a Prophet receipt under Replay shows no return priced after the replay dat
 });
 
 test("changing the symbol under Replay ends it on the new symbol's live chart", async ({ page }, testInfo) => {
-  skipWithoutReplayEntry(page);
+  skipDesktopControlScenarioOnPhone(page);
   test.slow();
   await quietQuotes(page);
   await gotoTerminal(page);
@@ -710,7 +736,7 @@ function liveQuoteBody(q: LiveQuote, syms: string[]) {
 }
 
 test("a live quote cannot advance a replayed chart, and is there on the return to live", async ({ page }) => {
-  skipWithoutReplayEntry(page);
+  skipDesktopControlScenarioOnPhone(page);
   test.slow();
   let quote: LiveQuote = { basis: "EOD", last: LIVE_PREV_CLOSE, sessionDate: LIVE_LAST_SESSION, seconds: rthAt(LIVE_LAST_SESSION, 15, 0) };
   let served = 0;
@@ -789,7 +815,7 @@ const ORACLE_SIGNAL = { ts: "2026-06-03", known: "2026-06-05" } as const;
 const oracleChip = (page: Page) => page.locator(".statusline .mm", { hasText: "Golden Oracle" });
 
 test("the Golden Oracle chip under Replay waits for its verdict to be known", async ({ page }) => {
-  skipWithoutReplayEntry(page);
+  skipDesktopControlScenarioOnPhone(page);
   test.slow();
   await page.addInitScript(() => {
     localStorage.setItem("mm.inds", JSON.stringify(["_oracle"]));
@@ -852,7 +878,7 @@ test("the Golden Oracle chip under Replay waits for its verdict to be known", as
 // The status dot names the quote feed (delayed / live). A replayed chart takes no quote, so the
 // dot must not claim a feed for it; the feed's dot returns with the live chart.
 test("a replayed chart's status dot claims no quote feed", async ({ page }) => {
-  skipWithoutReplayEntry(page);
+  skipDesktopControlScenarioOnPhone(page);
   test.slow();
   const rowsDoc = await (await page.request.get("/data/NVDA.json")).json() as { bars: DailyRow[] };
   const last = rowsDoc.bars[rowsDoc.bars.length - 1];
