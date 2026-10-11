@@ -1,9 +1,9 @@
 {
   "schema": "factor_atlas.terminal_component_browser_proof.v1",
-  "observedAt": "2026-10-11T09:16:16.645Z",
+  "observedAt": "2026-10-11T09:42:10.364Z",
   "sourceHashes": {
-    "lib/factorAtlasHistory.ts": "27a4e572744257c18594c1581fd25696c271f4771f3bd0f6761ce46012af3878",
-    "components/factor-atlas/FactorHistoryPreview.tsx": "16762256d28990aa0496edb036b4c21c7106cf4cc8bb9ca033f01687915bf267",
+    "lib/factorAtlasHistory.ts": "6273f12623563a96c508b4242410e78857e0397b97d99b1a1770c7e773f2e354",
+    "components/factor-atlas/FactorHistoryPreview.tsx": "6cb258c3e591ae8f17f51101212c33d3dd220341175d814634795550753b997c",
     "components/factor-atlas/FactorHistoryPreview.module.css": "01e0d66a9635bf9a614bd27ec7309eb6b2ae9a090ff12b78233004100f960615",
     "components/charts/svgChart.ts": "0aeab3062dbb59b19a95d476ab445c69c69426c65e5acee35d298f0743cb2aad",
     "lib/__tests__/fixtures/factorAtlasNativeSynthetic.json": "6860786ee663c394e0d33b18e241592879501a6bc5335a09faed6d66b0b42626"

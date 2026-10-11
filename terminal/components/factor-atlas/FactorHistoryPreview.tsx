@@ -2,13 +2,14 @@
 
 import { useMemo, useRef, useState } from "react";
 import { fmtTick, niceTicks, padDomain, thinLabels, useChartWidth } from "../charts/svgChart";
-import { compareFactorHistories, formatFactorPercent, prepareFactorHistory, splitFactorSegments,
+import { compareFactorHistories, formatFactorPercent, formatFactorPoints, prepareFactorHistory, splitFactorSegments,
   type FactorComparison, type HistoryWindowRequest } from "../../lib/factorAtlasHistory";
 import styles from "./FactorHistoryPreview.module.css";
 
 type Lang = "en" | "zh";
 type Copy = readonly [string, string];
 const LEX = {
+  brand: ["Factor Atlas", "Factor Atlas"],
   eyebrow: ["RESEARCH WORKSPACE", "研究工作区"],
   preview: ["Synthetic preview — not live market data", "合成数据预览 — 非实时市场数据"],
   description: ["Compare the same source history without changing the basket underneath it.", "比较同一份源历史，不因显示区间而改变篮子持仓。"],
@@ -35,7 +36,7 @@ const LEX = {
   noPnl: ["A comparison, not a funded long/short strategy.", "仅为比较，不代表有资金支持的多空策略。"],
   selectionInvalid: ["Choose up to eight distinct factors", "请选择最多八个不同因子"],
 } satisfies Record<string, Copy>;
-function copy(key: keyof typeof LEX, lang: Lang): string { return LEX[key][lang === "zh" ? 1 : 0]; }
+function pick(key: keyof typeof LEX, lang: Lang): string { return LEX[key][lang === "zh" ? 1 : 0]; }
 
 export interface FactorPreviewItem { basketId: string; label: Copy; payload: unknown }
 export interface FactorHistoryPreviewProps {
@@ -62,8 +63,8 @@ function HistoryPlot({ comparison, labels, window, lang }: {
   const tickDates = available ? thinLabels(dates, x, 96) : [];
   return <div ref={ref} className={styles.chartHost}>
     {available ? <svg className={styles.chart} width={width} height={height} viewBox={`0 0 ${width} ${height}`}
-      role="img" aria-label={copy("chart", lang)}>
-      <title>{copy("chart", lang)}</title>
+      role="img" aria-label={pick("chart", lang)}>
+      <title>{pick("chart", lang)}</title>
       {ticks.values.map(value => <g key={value}>
         <line className={styles.grid} x1={left} x2={width - right} y1={y(value)} y2={y(value)} />
         <text className={styles.axis} x={left - 10} y={y(value) + 4} textAnchor="end">
@@ -79,7 +80,7 @@ function HistoryPlot({ comparison, labels, window, lang }: {
             d={segment.map((p, n) => `${n ? "L" : "M"}${x(p.date).toFixed(2)},${y(p.rebasedPercent!).toFixed(2)}`).join(" ")} />))}
       {tickDates.map((date, i) => <text key={date} className={styles.axis} x={x(date)} y={height - 15}
         textAnchor={i === 0 ? "start" : i === tickDates.length - 1 ? "end" : "middle"}>{date.slice(5)}</text>)}
-    </svg> : <div className={styles.empty} role="status">{copy(comparison.status === "INCOMPATIBLE" ? "incompatible" : "noChart", lang)}</div>}
+    </svg> : <div className={styles.empty} role="status">{pick(comparison.status === "INCOMPATIBLE" ? "incompatible" : "noChart", lang)}</div>}
     {available && <div className={styles.legend}>{comparison.series.map((s, i) => <span key={s.history.basketId}>
       <i className={styles.swatch} style={{ borderTopStyle: i ? "dashed" : "solid" }} />{labels.get(s.history.basketId)}
     </span>)}</div>}
@@ -95,17 +96,17 @@ export function FactorHistoryPreview({ items, initialWindow, audience, lang = "e
   const comparison = compareFactorHistories(histories, window);
   const labels = new Map(items.map(item => [item.basketId, item.label[lang === "zh" ? 1 : 0]]));
   const selectionInvalid = items.length > 8 || new Set(items.map(i => i.basketId)).size !== items.length;
-  if (audience !== "synthetic-preview") return <section className={styles.shell} aria-label="Factor Atlas">
-    <h2>Factor Atlas</h2><p role="status">{copy("withheld", lang)}</p><p>{copy("withheldDetail", lang)}</p>
+  if (audience !== "synthetic-preview") return <section className={styles.shell} aria-label={pick("brand", lang)}>
+    <h2>{pick("brand", lang)}</h2><p role="status">{pick("withheld", lang)}</p><p>{pick("withheldDetail", lang)}</p>
   </section>;
-  return <section className={styles.shell} aria-label="Factor Atlas">
+  return <section className={styles.shell} aria-label={pick("brand", lang)}>
     <header className={styles.header}>
-      <div><p className={styles.eyebrow}>{copy("eyebrow", lang)}</p><h2>Factor Atlas</h2>
-        <p className={styles.description}>{copy("description", lang)}</p></div>
-      <span className={styles.preview}>{copy("preview", lang)}</span>
+      <div><p className={styles.eyebrow}>{pick("eyebrow", lang)}</p><h2>{pick("brand", lang)}</h2>
+        <p className={styles.description}>{pick("description", lang)}</p></div>
+      <span className={styles.preview}>{pick("preview", lang)}</span>
     </header>
     <div className={styles.controls}>
-      <fieldset className={styles.selection}><legend>{copy("select", lang)}</legend>
+      <fieldset className={styles.selection}><legend>{pick("select", lang)}</legend>
         {items.slice(0, 8).map((item, i) => <label className={styles.chip} key={`${item.basketId}:${i}`}>
           <input type="checkbox" checked={selected.includes(item.basketId)} onChange={event => setSelected(current =>
             event.target.checked ? [...current, item.basketId] : current.filter(id => id !== item.basketId))} />
@@ -113,44 +114,44 @@ export function FactorHistoryPreview({ items, initialWindow, audience, lang = "e
         </label>)}
       </fieldset>
       <div className={styles.dates}>
-        <label>{copy("anchor", lang)}<input type="date" aria-label={copy("anchor", lang)} value={window.anchorDate}
+        <label>{pick("anchor", lang)}<input type="date" aria-label={pick("anchor", lang)} value={window.anchorDate}
           onChange={event => setWindow(current => ({ ...current, anchorDate: event.target.value }))} /></label>
-        <label>{copy("end", lang)}<input type="date" aria-label={copy("end", lang)} value={window.endDate}
+        <label>{pick("end", lang)}<input type="date" aria-label={pick("end", lang)} value={window.endDate}
           onChange={event => setWindow(current => ({ ...current, endDate: event.target.value }))} /></label>
       </div>
     </div>
-    {selectionInvalid ? <p role="status">{copy("selectionInvalid", lang)}</p> : <>
-      {!selected.length && <p role="status">{copy("none", lang)}</p>}
+    {selectionInvalid ? <p role="status">{pick("selectionInvalid", lang)}</p> : <>
+      {!selected.length && <p role="status">{pick("none", lang)}</p>}
       {reads.filter(r => !r.read.history).map(({ item, read }) => <p role="status" className={styles.notice} key={item.basketId}>
-        {labels.get(item.basketId)} — {copy(read.kind === "withheld" ? "synthetic" : "invalid", lang)}
+        {labels.get(item.basketId)} — {pick(read.kind === "withheld" ? "synthetic" : "invalid", lang)}
       </p>)}
       <div className={styles.cards}>{comparison.series.map(({ history, window: range }) => <article className={styles.card} key={history.basketId}>
-        <h3>{labels.get(history.basketId)}</h3><p className={styles.caption}>{copy("return", lang)}</p>
+        <h3>{labels.get(history.basketId)}</h3><p className={styles.caption}>{pick("return", lang)}</p>
         <strong className={styles.metric} data-metric="window-return">{formatFactorPercent(range.returnFraction, lang)}</strong>
-        <p className={styles.status}>{copy(range.status === "READY" ? "ready" : range.status === "PARTIAL" ? "partial" : "unavailable", lang)}</p>
-        <p className={styles.caption}>{copy(history.historyMode === "CURRENT_ROSTER" ? "current" : "pit", lang)} · {copy("basis", lang)}</p>
+        <p className={styles.status}>{pick(range.status === "READY" ? "ready" : range.status === "PARTIAL" ? "partial" : "unavailable", lang)}</p>
+        <p className={styles.caption}>{pick(history.historyMode === "CURRENT_ROSTER" ? "current" : "pit", lang)} · {pick("basis", lang)}</p>
       </article>)}</div>
-      <section className={styles.chartSection} aria-label={copy("chart", lang)}>
-        <div className={styles.chartHeader}><h3>{copy("axis", lang)}</h3><span>{window.anchorDate} → {window.endDate}</span></div>
+      <section className={styles.chartSection} aria-label={pick("chart", lang)}>
+        <div className={styles.chartHeader}><h3>{pick("axis", lang)}</h3><span>{window.anchorDate} → {window.endDate}</span></div>
         <HistoryPlot comparison={comparison} labels={labels} window={window} lang={lang} />
       </section>
-      <p className={styles.rule}>{copy("rule", lang)}</p>
-      {comparison.spreadFraction !== null && <p className={styles.difference}>{copy("difference", lang)}: <strong>
-        {formatFactorPercent(comparison.spreadFraction, lang).replace("%", lang === "zh" ? " 个百分点" : " pp")}
-      </strong><span>{copy("noPnl", lang)}</span></p>}
-      {!!histories.length && <details className={styles.details}><summary>{copy("observations", lang)}</summary>
+      <p className={styles.rule}>{pick("rule", lang)}</p>
+      {comparison.spreadFraction !== null && <p className={styles.difference}>{pick("difference", lang)}: <strong>
+        {formatFactorPoints(comparison.spreadFraction, lang)}
+      </strong><span>{pick("noPnl", lang)}</span></p>}
+      {!!histories.length && <details className={styles.details}><summary>{pick("observations", lang)}</summary>
         {comparison.series.map(({ history, window: range }) => <section className={styles.observations} key={history.basketId}>
           <h3>{labels.get(history.basketId)}</h3>
-          <dl className={styles.provenance}><dt>{copy("construction", lang)}</dt><dd>{history.constructionRef}</dd>
-            <dt>{copy("inception", lang)}</dt><dd>{history.seriesInception}</dd>
-            <dt>{copy("digest", lang)}</dt><dd><code>{history.sourceDigest}</code></dd></dl>
+          <dl className={styles.provenance}><dt>{pick("construction", lang)}</dt><dd>{history.constructionRef}</dd>
+            <dt>{pick("inception", lang)}</dt><dd>{history.seriesInception}</dd>
+            <dt>{pick("digest", lang)}</dt><dd><code>{history.sourceDigest}</code></dd></dl>
           <div className={styles.tableWrap}><table><thead><tr>
-            <th scope="col">{copy("date", lang)}</th><th scope="col">{copy("interval", lang)}</th>
-            <th scope="col">{copy("rebased", lang)}</th><th scope="col">{copy("state", lang)}</th>
+            <th scope="col">{pick("date", lang)}</th><th scope="col">{pick("interval", lang)}</th>
+            <th scope="col">{pick("rebased", lang)}</th><th scope="col">{pick("state", lang)}</th>
           </tr></thead><tbody>{range.points.map((point, i) => <tr key={point.date} data-observation={point.date}>
             <th scope="row">{point.date}</th><td>{i === 0 ? "—" : formatFactorPercent(point.returnFraction, lang)}</td>
             <td>{formatFactorPercent(point.rebasedPercent === null ? null : point.rebasedPercent / 100, lang)}</td>
-            <td>{copy(point.level === null ? "gap" : "observed", lang)}</td>
+            <td>{pick(point.level === null ? "gap" : "observed", lang)}</td>
           </tr>)}</tbody></table></div>
         </section>)}
       </details>}

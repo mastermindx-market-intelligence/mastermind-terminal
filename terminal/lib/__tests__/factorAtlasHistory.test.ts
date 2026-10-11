@@ -192,3 +192,18 @@ describe("comparison and units", () => {
     expect(subject().compareFactorHistories(many, full).status).toBe("UNAVAILABLE");
   });
 });
+
+
+describe("percentage-point display without string replacement", () => {
+  it.each([[0.03, "+3.0 pp"], [-0.03, "-3.0 pp"], [0, "0.0 pp"], [-0, "0.0 pp"], [null, "—"], [Infinity, "—"], [NaN, "—"]])(
+    "formats a return difference %s with an explicit unit", (value, expected) => {
+      const format = subject().formatFactorPoints;
+      expect(format, "explicit percentage-point formatter must exist").toBeTypeOf("function");
+      expect(format(value)).toBe(expected);
+    });
+  it("selects the Chinese percentage-point unit without replacing a percent sign", () => {
+    const format = subject().formatFactorPoints;
+    expect(format, "explicit percentage-point formatter must exist").toBeTypeOf("function");
+    expect(format(0.03, "zh")).toBe("+3.0 个百分点");
+  });
+});

@@ -201,3 +201,15 @@ export function formatFactorPercent(value: number | null, locale: "en" | "zh" = 
     style: "percent", minimumFractionDigits: 1, maximumFractionDigits: 1, signDisplay: "exceptZero",
   }).format(value);
 }
+
+
+/** A difference between two return fractions, displayed in percentage points.
+ * Format its numeric value directly; no percent-sign escaping/replacement.
+ */
+export function formatFactorPoints(value: number | null, locale: "en" | "zh" = "en"): string {
+  if (value === null || !Number.isFinite(value) || !Number.isFinite(value * 100)) return "—";
+  const number = new Intl.NumberFormat(locale === "zh" ? "zh-CN" : "en-US", {
+    minimumFractionDigits: 1, maximumFractionDigits: 1, signDisplay: "exceptZero",
+  }).format(value * 100);
+  return `${number}${locale === "zh" ? " 个百分点" : " pp"}`;
+}

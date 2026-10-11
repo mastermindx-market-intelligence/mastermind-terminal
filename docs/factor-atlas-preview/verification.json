@@ -1,15 +1,15 @@
 {
   "schema": "factor_atlas.terminal_native_preview_verification.v1",
-  "observed_at": "2026-10-11T09:28:42.897698+00:00",
+  "observed_at": "2026-10-11T09:45:09.656909+00:00",
   "operation": "factor-atlas-terminal-preview-20261011-c1",
   "base_sha": "fc76cf495781e5f53254aa3c457411de0cb64654",
   "protected_procedure_sha": "8d62a8571d2a6ad9da9d50e5e4624de6eecaac4c",
   "source_binding": "file hashes; final commit binds this receipt without self-reference",
   "source_sha256": {
-    "terminal/lib/factorAtlasHistory.ts": "27a4e572744257c18594c1581fd25696c271f4771f3bd0f6761ce46012af3878",
-    "terminal/components/factor-atlas/FactorHistoryPreview.tsx": "16762256d28990aa0496edb036b4c21c7106cf4cc8bb9ca033f01687915bf267",
+    "terminal/lib/factorAtlasHistory.ts": "6273f12623563a96c508b4242410e78857e0397b97d99b1a1770c7e773f2e354",
+    "terminal/components/factor-atlas/FactorHistoryPreview.tsx": "6cb258c3e591ae8f17f51101212c33d3dd220341175d814634795550753b997c",
     "terminal/components/factor-atlas/FactorHistoryPreview.module.css": "01e0d66a9635bf9a614bd27ec7309eb6b2ae9a090ff12b78233004100f960615",
-    "terminal/lib/__tests__/factorAtlasHistory.test.ts": "371ea832a9545b564f8d0777a9618504aa050d99529d5074cc389bda42fd71d1",
+    "terminal/lib/__tests__/factorAtlasHistory.test.ts": "d26edbef20d616ad7ecd004246d56c5538112cfb4708e46b37b01c3f6c6ad7da",
     "terminal/lib/__tests__/factorAtlasPreview.test.tsx": "59787bb5f501a165d7388210d6417a2f983afd00d7710cccc45d0e43eaa913a3",
     "terminal/lib/__tests__/fixtures/factorAtlasNativeSynthetic.json": "6860786ee663c394e0d33b18e241592879501a6bc5335a09faed6d66b0b42626",
     "docs/factor-atlas-preview/preview-entry.tsx": "9d3cbc9ebd7c692b5a7ade12249a0004dafded1e3e31e8417c07876dabd9de62",
@@ -30,11 +30,15 @@
     "dom_initial_harness_error_skipped": 10,
     "dom_initial_error_is_not_red_proof": true,
     "dom_corrected_red_expected_failures": 10,
-    "combined_native_passed": 74,
+    "combined_native_passed": 82,
     "focused_eslint_errors": 0,
     "focused_eslint_warnings": 0,
     "application_typecheck_exit": 0,
-    "full_terminal_regression": "NOT_RUN_LOCALLY"
+    "full_terminal_regression": "NOT_RUN_LOCALLY",
+    "initial_combined_native_passed": 74,
+    "ci_repair_red_expected_failures": 8,
+    "ci_repair_red_previous_tests_passed": 74,
+    "plain_language_enforce_added_exit": 0
   },
   "browser": {
     "contexts_passed": 24,
@@ -68,7 +72,7 @@
     "page_errors": 0,
     "external_requests": 0,
     "scope": "real native component bundled in loopback harness; shared theme variables supplied by harness, not full Next.js/auth route",
-    "receipt_sha256": "aa1e0609e7e3817aecfc4dd6043bfd554e1e8c43f8df7a75c01a96f14f42e569"
+    "receipt_sha256": "7c9d3893965d1bac0b7e048a2bbee4b51f1573baa8200f5f0f560ebca8359d97"
   },
   "logs": {
     "baseline.log": {
@@ -106,6 +110,38 @@
     "browser-run.log": {
       "bytes": 117,
       "sha256": "caf7a0f9a19e799fb3bf83e006713ed4105f486fe8e4b64d6b147c56983ee69b"
+    },
+    "ci-repair-red.log": {
+      "bytes": 5089,
+      "sha256": "868e83f190515db977a6eb55f1c0e6e871089e6970c0d82518e18509fa1e32a7"
+    },
+    "ci-repair-green.log": {
+      "bytes": 584,
+      "sha256": "578620a0758d7a3a1f7f87d0447d8d1f40c9faf204e800984ba506e0f1b9fe38"
+    },
+    "ci-repair-lint.log": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "ci-repair-typecheck.log": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "ci-repair-plain-language.log": {
+      "bytes": 1550,
+      "sha256": "ce489c635f569c940eec47aaf2308d7192ca678a9579f661f9fe81e8665ac848"
+    },
+    "ci-repair-browser.log": {
+      "bytes": 117,
+      "sha256": "caf7a0f9a19e799fb3bf83e006713ed4105f486fe8e4b64d6b147c56983ee69b"
+    },
+    "hosted-unit-first.log": {
+      "bytes": 175320,
+      "sha256": "fad67eca696daf5630e5f97afc14ddf33a6a94917c17bf211f65bd34616da062"
+    },
+    "hosted-codeql-annotations.json": {
+      "bytes": 484,
+      "sha256": "f86f0746c5dec3b1b5f405dbac08932505370114a1ee138331e4ec7e7311c94d"
     }
   },
   "screenshots": {
@@ -122,8 +158,32 @@
   "merged": false,
   "deployed": false,
   "notes": [
-    "Unused type import removed after combined unit/typecheck PASS; clean focused lint and browser proof use final component source.",
+    "Final source has 82 native passes, clean lint/typecheck and enforce-added plain-language; refreshed browser proof binds the repaired source. Prior 74-test milestone is historical.",
     "No Macro source/custody refusal replay; no change to S1/S2/S4/S6 sources or leases.",
     "Legacy typed Git status is bound to Mastermind-only source/remote. Read-only configuration evidence and separate Terminal mmx status establish a different resource target; no configuration changes or retry of that status."
-  ]
+  ],
+  "hosted_predecessor": {
+    "head_sha": "233a529c75e4a0215a5efa4cec1be9d8bfd011c2",
+    "run_id": 38128680548,
+    "unit_job_id": 114438291179,
+    "unit_test_files_passed": 531,
+    "unit_tests_passed": 8681,
+    "todo": 4,
+    "job_conclusion": "FAILURE",
+    "reason": "5 plain-language findings after successful full unit suite",
+    "codeql_check_id": 114438415187,
+    "codeql_new_alerts": 1,
+    "codeql_reason": "single-percent replacement in numeric unit display"
+  },
+  "repair": {
+    "scope": "brand/status routing through recognized bilingual pick helper; explicit numeric percentage-point formatter instead of replacing a percent sign",
+    "local_tests_passed": 82,
+    "local_plain_language_exit": 0,
+    "local_lint_exit": 0,
+    "local_typecheck_exit": 0,
+    "fresh_browser_contexts_passed": 24,
+    "fresh_hosted_ci": "PENDING_NEW_HEAD",
+    "fresh_codeql": "NOT_YET_PROVEN",
+    "no_test_or_gate_waiver": true
+  }
 }

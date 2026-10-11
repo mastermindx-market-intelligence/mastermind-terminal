@@ -98,7 +98,7 @@ separate. A preview PASS clears none of them.
 
 ## Verified native result
 
-The exact original S1 synthetic fixture is preserved. Native tests: **74 passed**.
+The exact original S1 synthetic fixture is preserved. Native tests: **82 passed** after the bounded CI repair.
 History RED: 64 expected missing-implementation failures. DOM RED: 10 expected
 missing-component failures after correcting a file-URL test-harness error; the
 initial 10 skipped tests are not RED proof. Focused lint: zero errors/warnings.
@@ -140,3 +140,22 @@ harness-byte references, not native producer digest attestations.
 - [Desktop / light / English](screenshots/chromium-1440-light-en.png)
 - [Tablet / light / Chinese](screenshots/webkit-820-light-zh.png)
 - [Mobile / light / Chinese](screenshots/webkit-390-light-zh.png)
+
+## Hosted-check repair at the first published candidate
+
+Initial head `233a529c75e4a0215a5efa4cec1be9d8bfd011c2` ran the full hosted unit
+suite successfully: 531 files / 8,681 tests passed, four TODO. Its job still failed
+because the later plain-language gate found five added-line issues. CodeQL also
+flagged the percent-sign replacement used for the percentage-point label.
+
+The repair uses the repository-recognized bilingual `pick` convention, including
+an explicit brand-name pair, and formats percentage points directly from the
+numeric difference. No finding was waived or test weakened. Eight new tests first
+failed, then all 82 native cases passed; lint, application typecheck and the exact
+local enforce-added plain-language gate pass. All 24 browser contexts were rerun
+on the repaired source and passed. Fresh hosted checks remain a separate gate.
+
+The client-side withheld view is not an access-control boundary. A future server
+consumer must validate authentication, product entitlement and purpose-specific
+source admission before serializing any retained or restricted payload. Never
+send unauthorized bytes to this component and rely on a blank customer view.
