@@ -1,13 +1,12 @@
 # B-F12-5 Account page polish — capture evidence
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
 # Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
-# capturedAtHead: bfe98ed4f82f30506af69e9ada13811343e386fe
-# capturedAt: 2026-09-27T10:11:54.099Z
+# capturedAtHead: 3aefdd08bc2bc774e2981f0b5cd0648b2503b45f
+# capturedAt: 2026-10-11T23:21:59.962Z
 # capturedAtHead is informational. The lock is layoutFiles.
-# 2026-10-05 F12-CLIPBOARD (macro#6819): hash-only restamp of terminal/components/settings/SectionAccount.tsx — logic-only change inside copyUid's clipboard-failure fallback; no captured frame exercises a copy action, so crops NOT recaptured and capturedAtHead unchanged. Not acceptance.
 layoutFiles:
   terminal/components/settings/SectionAccount.tsx: "fb274b73f54f9ac1a9f2803e245dc8b2dbacccf82c7d4d55a6ffe30a0257d473"
-  terminal/app/settings.css: "d17ceff6469db97d3d4bcfb800503ee3c22e89b0770a1c0a88c9d39eb5a72837"
+  terminal/app/settings.css: "71096c63198e8efb75340307b0367efcbdcaf3db3b14df357a8d95f6b523be61"
 theme: dark
 languages: [en, zh]
 viewports:
