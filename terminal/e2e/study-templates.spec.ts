@@ -118,6 +118,7 @@ type Plan = {
   skipped: { id: string; reason: string }[];
   next: Triple;
   noop: boolean;
+  baseFingerprint: string;
 };
 type Receipt = { source: "account" | "device"; id: string; mode: string; noop: boolean; next: Triple | null };
 type AccountRow = { id: string; name: string; revision: number; indicators: string[]; indParams: Record<string, Record<string, unknown>> };
@@ -464,6 +465,54 @@ test("the preview is exactly what Apply changes, in replace and add modes", asyn
   expect(near(tailOf(merged, "rsi"), RSI(9))).toBe(true);
   expect(near(tailOf(merged, "rsi__tplb2"), RSI(5))).toBe(true);
   expect(near(tailOf(merged, addedRsi[0]), RSI(3))).toBe(true);
+  expect(errors).toEqual([]);
+});
+
+test("a preview of a chart that has changed since is shown again, not applied", async ({ page, context, baseURL }, testInfo) => {
+  test.slow();
+  const errors = trackErrors(page);
+  await useLang(page, "en");
+  await asAccount(context, storeKey(testInfo, "stale"), baseURL!);
+  await serveWorkspace(page, {
+    ...baseSeed(["ema", "rsi", "macd"], { rsi: { length: 21 } }),
+    "mm.chartTemplates": JSON.stringify([SWING, FAST]),
+  });
+  await page.goto(`/terminal?symbol=${SYMBOL}`);
+  await settledRsi(page, 1, "the seeded RSI(21) should draw");
+
+  await openTemplateLibrary(page);
+  await pickRow(page, "device", SWING.id);
+  const stale = await readPlan(page);
+  expect(stale.removed).not.toContain("vol");
+
+  // The chart moves while the preview is open (here another template is added programmatically).
+  await page.evaluate((id) => window.dispatchEvent(new CustomEvent("mm:apply-template", { detail: { id, mode: "merge" } })), FAST.id);
+  await expect.poll(async () => (await readReceipts(page)).length, { message: "the programmatic add should land" }).toBe(1);
+  await expect.poll(async () => (await readStore(page)).inds ?? []).toContain("vol");
+  const moved = await readStore(page);
+  await expect(library(page)).toBeVisible();
+
+  // Apply refuses the old preview, says why, and shows the preview again against the chart as it is now.
+  await library(page).locator("[data-apply-template]").click();
+  await expect(library(page).locator("[data-chart-changed]"))
+    .toHaveText("The chart changed after this preview. Check the updated changes, then apply again.");
+  await expect(library(page)).toBeVisible();
+  await expect.poll(async () => (await readPlan(page)).baseFingerprint, { message: "the preview should be planned again" })
+    .not.toBe(stale.baseFingerprint);
+  const fresh = await readPlan(page);
+  expect(fresh.removed).toContain("vol");
+  expect(await readReceipts(page)).toHaveLength(1);
+  expect(await readStore(page)).toEqual(moved);
+
+  // Applying the new preview writes exactly what it shows.
+  await library(page).locator("[data-apply-template]").click();
+  await expect(library(page)).toHaveCount(0);
+  const receipts = await readReceipts(page);
+  expect(receipts).toHaveLength(2);
+  expect(receipts[1]).toMatchObject({ source: "device", id: SWING.id, mode: "replace", noop: false });
+  expect(receipts[1].next).toEqual(fresh.next);
+  await expect.poll(() => readStore(page), { message: "the stored studies should equal the new preview", timeout: 10_000 })
+    .toEqual({ inds: fresh.next.inds, indParams: fresh.next.indParams, hidden: fresh.next.hidden });
   expect(errors).toEqual([]);
 });
 
