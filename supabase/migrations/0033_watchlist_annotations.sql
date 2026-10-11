@@ -64,8 +64,8 @@ commit;
 --   left join pg_policy p on p.polrelid = c.oid
 --  where c.relnamespace = 'public'::regnamespace and c.relname = 'watchlist_annotations'
 --  group by 1, 2;
--- expected: watchlist_annotations | t | {watchlist_annotations_delete_own,watchlist_annotations_insert_own,
---           watchlist_annotations_select_own,watchlist_annotations_update_own}
+--   -- expected: watchlist_annotations | t | {watchlist_annotations_delete_own,watchlist_annotations_insert_own,
+--   --           watchlist_annotations_select_own,watchlist_annotations_update_own}
 -- select has_table_privilege('anon', 'public.watchlist_annotations', 'select');  -- expected: f
 
 -- down: (destructive -- deletes every account's synced notes and flags; take a verified backup first)
