@@ -40,6 +40,7 @@ import { drawingToolFromShortcut, getDrawingTool, FREEHAND_DRAWING_KINDS, type D
 import { DRAWING_RENDERER_FAMILY, materializeSemanticPoints } from "@/lib/drawing-engine/geometry";
 import { calculateAnchoredVwap, calculateFixedRangeVolumeProfile, calculateRegressionChannel, generateGhostFeed } from "@/lib/drawing-engine/analytics";
 import { cloneDrawing, constrainScreenAngle, translateDrawingAnchors } from "@/lib/drawing-engine/interaction";
+import { paneDrawingScaleReady, watchPaneDrawingReadiness } from "@/lib/drawingPaneReadiness";
 import { calculatePositionMetrics, fibonacciSettings, positionSettings, type FibonacciLabelMode } from "@/lib/drawing-engine/settings";
 import { registerPane, broadcastCrosshair, broadcastRange, peerValueAt } from "@/lib/paneSync";
 import {
@@ -67,6 +68,8 @@ import { isMacroSymbol, macroOnEtAxis } from "@/lib/macroSymbols";
 import { sessionVwap, openingRange, sessionLevels, pivotLevels, rvolSeries, ttmSqueeze, adx as calcAdx, cvdApprox, type Bar as IMBar, type DailyBar } from "@/lib/intradayMath";
 import { attachSessionShading, detachSessionShading, type SessionShadingPrimitive } from "@/lib/sessionShading";
 import { IND_DEFS, withDefaults, isIndKey } from "@/lib/indicators";
+import { isAdditionalStudyId, studyParamsWithDefaults, studyTypeOf } from "@/lib/studyInstances";
+import { expandStudyOrder, renderableStudyIds, studyInstanceMeta } from "@/lib/studyInstanceView";
 import { flowGet, flowGetFresh } from "@/lib/flowClientCache";
 import { deriveOptLevels, sessionsOldEt, type OptLevelKey, type OptLevelsResult } from "@/lib/optionsLevels";
 import { computeSuite, resolveSuiteColors } from "@/lib/indicator-canvas/host";
@@ -608,6 +611,18 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
   const t = useT();
   const ref = useRef<HTMLDivElement>(null);
   const statusRef = useRef<HTMLSpanElement>(null);
+  // Only phone-web CSS consumes this measurement. Observe the painted header:
+  // quotes, settings, locale, Replay chips and viewport changes can change its rows.
+  useLayoutEffect(() => {
+    const line = statusRef.current?.closest<HTMLElement>(".statusline");
+    const host = line?.parentElement;
+    if (!line || !host) return;
+    const measure = () => host.style.setProperty("--statusline-height", `${line.getBoundingClientRect().height}px`);
+    measure();
+    const observer = new ResizeObserver(measure);
+    observer.observe(line);
+    return () => { observer.disconnect(); host.style.removeProperty("--statusline-height"); };
+  }, []);
   const visualPanelRef = useRef<VisualIntelligenceHandle | null>(null);
   const visualSeriesRef = useRef<VisualSeries | null>(null);
   const visualSelectedTimeRef = useRef<string | null>(null);
@@ -1296,12 +1311,15 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
 
   // per-indicator params merged over the registry defaults (drives the Settings dialog + the math/style).
   // withDefaults() also resolves directional style colors against the active Up/Down setting.
-  const P = (k: string) => withDefaults(k, indParamsRef.current[k]);
+  // An additional study instance ("rsi__<token>", E06) reads ITS OWN record, validated, over its
+  // type's registry defaults — never the primary's — so two instances can never alias.
+  const P = (k: string) => (isAdditionalStudyId(k) ? studyParamsWithDefaults(k, indParamsRef.current[k]) : withDefaults(k, indParamsRef.current[k]));
   // Live --up/--down for canvas-painted indicator colors. tokensRef is filled on mount (Effect 1)
   // and re-read on the Up/Down flip (Effect 5); the literals cover only the pre-mount window.
   const dirUp = () => tokensRef.current.up || "#26c281";
   const dirDown = () => tokensRef.current.down || "#f0566b";
-  const labelOf = (k: string) => (isIndKey(k) ? IND_DEFS[k].label : k);
+  // A lone instance keeps its registry label; siblings of one type read "RSI 1 (14)" / "RSI 2 (7)".
+  const labelOf = (k: string) => studyInstanceMeta(k, indicatorsRef.current, indParamsRef.current[k])?.label ?? (isIndKey(k) ? IND_DEFS[k].label : k);
 
   // ── indicator builders (param-driven; params flow from the Settings dialog via indParams) ──
   // Each returns the list of ISeriesApi it created, tracked in indSeriesRef under its indKey.
@@ -1351,8 +1369,9 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
     return [vs];
   };
   // rsi and stochrsi each get their own pane (formerly combined into one shared "osc" pane)
-  const buildRsiPane = (chart: IChartApi, rows: Bar[], closes: number[], pane: number): ISeriesApi<any>[] => {
-    const p = P("rsi"); const rS = chart.addSeries(LineSeries, { color: p.col, lineWidth: p.width as any, lastValueVisible: true, title: axTitle("RSI") }, pane);
+  // `id` is the instance id: the primary "rsi" or an additional "rsi__<token>" with its own params/pane.
+  const buildRsiPane = (chart: IChartApi, rows: Bar[], closes: number[], pane: number, id = "rsi"): ISeriesApi<any>[] => {
+    const p = P(id); const rS = chart.addSeries(LineSeries, { color: p.col, lineWidth: p.width as any, lastValueVisible: true, title: axTitle(id === "rsi" ? "RSI" : `RSI ${p.length}`) }, pane);
     rS.setData(toLine(rows, rsi(closes, p.length)));
     if (p.showLevels) { try { rS.createPriceLine({ price: p.obLevel, color: "rgba(214,218,227,.25)", lineWidth: 1, lineStyle: 2, axisLabelVisible: false } as any); rS.createPriceLine({ price: p.osLevel, color: "rgba(214,218,227,.25)", lineWidth: 1, lineStyle: 2, axisLabelVisible: false } as any); } catch {} }
     return [rS];
@@ -2117,7 +2136,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
   // Which sub-pane keys are active given the current indicator set (canonical order).
   const activeSubpanes = (): string[] => {
     const inds = indicatorsRef.current; const out: string[] = [];
-    if (inds.has("rsi")) out.push("rsi");
+    out.push(...renderableStudyIds("rsi", inds));   // every RSI instance gets its own pane (E06)
     if (inds.has("stochrsi")) out.push("stochrsi");
     if (inds.has("macd")) out.push("macd");
     if (inds.has("rsistack")) out.push("rsistack");
@@ -2325,7 +2344,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
     for (let ci = 0; ci < cmp.length && ci < 4; ci++) { const cs = cmp[ci]; if (!cs || cs === symbol) continue; const cfg = cfgM[cs]; overlayEntries.push({ key: cmpKey(cs), label: cs, kind: "overlay", isPine: false, isCompare: true, color: cfg?.color || CMP_PALETTE[ci % CMP_PALETTE.length] }); }
     const metas: { key: string; removeKey?: string; isPrice: boolean; entries: Omit<LegendEntry, "hidden">[]; pane: IPaneApi<any> }[] = [];
     metas.push({ key: "__price__", isPrice: true, entries: overlayEntries, pane: priceS.getPane() });
-    for (const key of [...SUBPANE_ORDER, ...paneSuiteKeys()]) {
+    for (const key of [...expandStudyOrder(SUBPANE_ORDER, indSeriesRef.current.keys()), ...paneSuiteKeys()]) {
       const arr = indSeriesRef.current.get(key); if (!arr || !arr.length) continue;
       const sdefPane = getSuiteDef(key);
       const entries: Omit<LegendEntry, "hidden">[] = sdefPane
@@ -2488,7 +2507,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
     let pane = 1;
     for (const key of activeSubpanes()) {
       let series: ISeriesApi<any>[] = [];
-      if (key === "rsi") series = buildRsiPane(chart, rows, closes, pane);
+      if (studyTypeOf(key) === "rsi") series = buildRsiPane(chart, rows, closes, pane, key);
       else if (key === "stochrsi") series = buildStochRsiPane(chart, rows, closes, pane);
       else if (key === "macd") series = buildMacd(chart, rows, closes, pane);
       else if (key === "rsistack") series = buildRsiStack(chart, rows, pane);
@@ -2545,8 +2564,8 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
       const sArr = SB.get("vol"); if (sArr?.[0]) sArr[0].setData(volData(rows));
     }
     // sub-pane oscillators
-    if (SB.has("rsi")) {
-      const sArr = SB.get("rsi")!; const p = P("rsi");
+    for (const id of renderableStudyIds("rsi", SB.keys())) {   // each RSI instance with its own params
+      const sArr = SB.get(id)!; const p = P(id);
       if (sArr[0]) sArr[0].setData(toLine(rows, rsi(closes, p.length)));
     }
     if (SB.has("stochrsi")) {
@@ -2587,9 +2606,9 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
     if (inds.has("vwap")) {
       let cum = 0, cumv = 0; rows.forEach((r) => { const tp = (r.h + r.l + r.c) / 3; cum += tp * r.v; cumv += r.v; slot(r.time)["vwap"] = cumv ? cum / cumv : null; });
     }
-    if (inds.has("rsi")) {
-      const p = P("rsi"); const rsiVals = rsi(closes, p.length);
-      rows.forEach((r, i) => { slot(r.time)["rsi"] = rsiVals[i] ?? null; });
+    for (const id of renderableStudyIds("rsi", inds)) {   // one column per RSI instance, keyed by its id
+      const p = P(id); const rsiVals = rsi(closes, p.length);
+      rows.forEach((r, i) => { slot(r.time)[id] = rsiVals[i] ?? null; });
     }
     if (inds.has("stochrsi")) {
       const p = P("stochrsi"); const sr = cmStoch(rows.map(r => r.h), rows.map(r => r.l), closes, p.length, p.smoothK, p.smoothD);
@@ -2604,6 +2623,16 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
     visualSourceRef.current = { symbol: symbolRef.current, timeframe: timeframeRef.current };
     // The accepted-data writer owns the numeric projection and its exact resampled/replay bar basis.
     refreshVisualContext(rows);
+  };
+  // Re-project the numeric readout (Chart Table / CSV / visual intelligence) after the indicator SET
+  // or its params change, so an added study (or a new instance of one, E06) gets its column at once
+  // instead of on the next data load / live bar. Only when the accepted-data writer already owns
+  // THIS symbol + timeframe's bars, so a toggle mid-switch never stamps another generation's bars.
+  const refreshIndDataMap = () => {
+    const source = visualSourceRef.current;
+    if (!source || source.symbol !== symbolRef.current || source.timeframe !== timeframeRef.current) return;
+    if (chartDataSymRef.current !== symbolRef.current || !barsRef.current.length) return;
+    buildIndDataMap(barsRef.current, closesRef.current);
   };
 
   // Rebuild ONLY the compare overlays onto `rows` (used by data + replay effects).
@@ -4757,20 +4786,28 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
     // marker, and their p values encode coordinateToPrice(ROOT_Y). Convert them
     // once, at the first measured pane layout, while preserving their current
     // on-screen position. Persisting the marker prevents repeat conversion.
+    const paneDrawingReadiness = watchPaneDrawingReadiness(() => epochRef.current, () => {
+      if (!dead) { measureRef.current(); renderTagRef.current?.(); }
+    });
     const migrateLegacyPaneDrawings = () => {
       let changed = false;
+      const pendingSeries = new Set<ISeriesApi<any>>();
       const next = drawRef.current.map((drawing) => {
         const paneKey = drawingPaneKey(drawing);
         if (!paneKey || drawing.meta?.paneCoordSpace === PANE_VALUE_SPACE) return drawing;
         const pane = paneLayoutFor(paneKey);
         const series = seriesForPane(paneKey);
-        if (!pane || !series || !(pane.height > 0)) return drawing;
+        if (!series) return drawing;
+        const deferred = () => { pendingSeries.add(series); return drawing; };
+        // A measured pane can still have an empty price range: LWC returns
+        // finite zero coordinates then. Never persist that lossy conversion.
+        if (!pane || !(pane.height > 0) || !paneDrawingScaleReady(series)) return deferred();
         const migrated: Drawing["points"] = [];
         for (const point of drawing.points) {
           const legacyRootY = series.priceToCoordinate(point.p) as number | null;
-          if (legacyRootY == null || !Number.isFinite(legacyRootY)) return drawing;
+          if (legacyRootY == null || !Number.isFinite(legacyRootY)) return deferred();
           const corrected = series.coordinateToPrice(legacyRootY - pane.top) as number | null;
-          if (corrected == null || !Number.isFinite(corrected)) return drawing;
+          if (corrected == null || !Number.isFinite(corrected)) return deferred();
           migrated.push({ ...point, p: corrected });
         }
         changed = true;
@@ -4780,6 +4817,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
           meta: { ...(drawing.meta ?? {}), paneCoordSpace: PANE_VALUE_SPACE },
         };
       });
+      paneDrawingReadiness.sync(pendingSeries);
       if (!changed) return false;
       drawRef.current = next;
       onChangeRef.current?.([...next]);
@@ -8521,6 +8559,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
     // ── mount teardown (base line-416 logic + the new refs) ──
     return () => {
       dead = true; if (rafId != null) cancelAnimationFrame(rafId); if (measRaf != null) cancelAnimationFrame(measRaf);
+      paneDrawingReadiness.dispose();
       try { chart.unsubscribeCrosshairMove(onTagCrosshair); } catch {}
       try { chart.unsubscribeCrosshairMove(onVisualCrosshair); } catch {}
       if (drawRaf != null) cancelAnimationFrame(drawRaf); if (resizeRaf != null) cancelAnimationFrame(resizeRaf);
@@ -9128,7 +9167,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
     const wantOverlays = new Set<string>(OVERLAY_KEYS.filter((k) => indicators.has(k)));
     const haveOverlays = new Set<string>(OVERLAY_KEYS.filter((k) => indSeriesRef.current.has(k) || indOverlayRef.current[k]));
     const wantSub = activeSubpanes();                                   // canonical-order sub-pane keys
-    const haveSub: string[] = [...SUBPANE_ORDER, ...paneSuiteKeys()].filter((k) => indSeriesRef.current.has(k)); // current sub-panes in canonical order
+    const haveSub: string[] = [...expandStudyOrder(SUBPANE_ORDER, indSeriesRef.current.keys()), ...paneSuiteKeys()].filter((k) => indSeriesRef.current.has(k)); // current sub-panes in canonical order
 
     // ── overlays: always incremental (all live in pane 0, no reindex risk) ──
     for (const k of haveOverlays) if (!wantOverlays.has(k)) {
@@ -9194,7 +9233,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
       for (const a of added) {
         const pane = nextFreePane();
         let series: ISeriesApi<any>[] = [];
-        if (a === "rsi") series = buildRsiPane(chart, rows, closes, pane);
+        if (studyTypeOf(a) === "rsi") series = buildRsiPane(chart, rows, closes, pane, a);
         else if (a === "stochrsi") series = buildStochRsiPane(chart, rows, closes, pane);
         else if (a === "macd") series = buildMacd(chart, rows, closes, pane);
         else if (a === "rsistack") series = buildRsiStack(chart, rows, pane);
@@ -9227,6 +9266,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
       }
     }
 
+    refreshIndDataMap();
     normalizeStretch();
     renderSignalsRef.current(); renderRef.current(); renderTagRef.current?.();
     builtIndicatorRef.current = { generation: epochRef.current, key: indKey };
@@ -9287,6 +9327,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
     const chart = chartRef.current; if (!chart || !barsRef.current.length) return;
     const saved = PRESERVE_VIEW_ON_INDICATOR_TOGGLE ? (() => { try { const r = chart.timeScale().getVisibleLogicalRange(); return r ? { from: r.from as number, to: r.to as number } : null; } catch { return null; } })() : null;
     rebuildIndicators();
+    refreshIndDataMap();
     normalizeStretch();
     renderSignalsRef.current(); renderRef.current(); renderTagRef.current?.();
     if (saved) { try { chart.timeScale().setVisibleLogicalRange(saved); } catch {} }
