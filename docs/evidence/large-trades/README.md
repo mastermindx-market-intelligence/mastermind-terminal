@@ -96,3 +96,8 @@ During implementation, a concurrent decoder source revision was detected by the 
 Data provided for free by IEX. By accessing or using IEX Historical Data, you agree to the IEX Historical Data Terms of Use.
 
 [IEX Historical Data Terms of Use](https://www.iex.io/legal/hist-data-terms)
+
+
+## Offline CME components
+
+The [CME admission guide](../../CME_LARGE_TRADES_ADMISSION.md) documents the private DBN observation normalizer and separate synthetic decoded-native correction ledger. Their [source verification receipt](cme-source-verification.json) records independent review and repository tests. These components preserve private/fixture-only eligibility and do not expand the public IEX source admission or this real-data cohort.

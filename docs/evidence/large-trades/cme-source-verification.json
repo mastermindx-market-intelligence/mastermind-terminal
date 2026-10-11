@@ -1,0 +1,265 @@
+{
+  "schema": "mastermind.large_trades.cme_offline_source_verification.v1",
+  "status": "PASS_PRIVATE_OFFLINE_IMPLEMENTATION",
+  "verifiedAtUtc": "2026-10-11T19:27:31.910522+00:00",
+  "sourceBase": {
+    "head": "3310d4a55a93e7947e44866c2fbc15cd8dac5479",
+    "parents": [
+      "9b156272d1715734fbcdbafaf64c2fce02305e47",
+      "2957bd64eec9ac3246a52789acb0f7de55400144"
+    ],
+    "protectedMaster": "2957bd64eec9ac3246a52789acb0f7de55400144",
+    "meaning": "Parent before this offline-component source commit; actual source commit is the Git commit containing this receipt. Hosted CI and deployment require separate evidence."
+  },
+  "files": {
+    "ingest/cme_databento_trades.py": {
+      "bytes": 30431,
+      "sha256": "879fbfa8ec0c16923330683f8a756f5782bc3127efbf9f88b15ff76dc90691fe"
+    },
+    "ingest/cme_native_fixture_ledger.py": {
+      "bytes": 24306,
+      "sha256": "c2d465d2404b5eedca093ead2b328f1890c177b22d4da704d503fdfe3b8dc401"
+    },
+    "tests/test_cme_databento_trades.py": {
+      "bytes": 29415,
+      "sha256": "2f1bbae09c142c04051b411394e19579f0602704c62d78de535b9ddf7570d6ff"
+    },
+    "tests/test_cme_native_fixture_ledger.py": {
+      "bytes": 34401,
+      "sha256": "ba2eb9cbda052bce7c65577fae000baf6ba6e3ac0ad5ab37fc0801337f667418"
+    },
+    "docs/CME_LARGE_TRADES_ADMISSION.md": {
+      "bytes": 10277,
+      "sha256": "1c23a533b403a5d581ac4ff0edc220d7c4f931e3f503347539f7fe3a9b0dbb3c"
+    },
+    "docs/evidence/large-trades/cme-databento-observation-policy.json": {
+      "bytes": 4737,
+      "sha256": "3a5e9a89c160414ffe589c09280883392e1c927b6faf87a6e74cc2c7a69523d0"
+    },
+    "docs/evidence/large-trades/cme-native-fixture-contract.json": {
+      "bytes": 14529,
+      "sha256": "9f8ae59dbfa4b53d9ca98e4591b3f9f1e11fffb509eb147f16f68bb07e39a091"
+    },
+    "docs/evidence/large-trades/README.md": {
+      "bytes": 10648,
+      "sha256": "e08d2e96650430cff459748e1851371d48b41697435acc4bbbd0c1b4331b2a37"
+    },
+    "docs/evidence/large-trades/release-handoff.md": {
+      "bytes": 21863,
+      "sha256": "8b545ebef456c749c222592e8314277323f6030a4d545c9e1542423bdf7f1f7c"
+    }
+  },
+  "adoption": [
+    {
+      "files": [
+        {
+          "originSha256": "7712df4d9aeb791d1332f77de97fffa9d21d59df8d15c6ebd5afc55143db01e1",
+          "repositoryPath": "ingest/cme_databento_trades.py",
+          "adoptedSha256": "879fbfa8ec0c16923330683f8a756f5782bc3127efbf9f88b15ff76dc90691fe",
+          "adaptation": {
+            "from": "See observation-policy.json and README.md for the explicit admission limits.",
+            "to": "See docs/CME_LARGE_TRADES_ADMISSION.md for the explicit admission limits."
+          }
+        },
+        {
+          "originSha256": "473aca5d45ab998176f349aaedffa2bcadce84bb57cafdc9003315bb04f46cb1",
+          "repositoryPath": "tests/test_cme_databento_trades.py",
+          "adoptedSha256": "2f1bbae09c142c04051b411394e19579f0602704c62d78de535b9ddf7570d6ff",
+          "adaptation": {
+            "from": "from dbn_trades_normalizer import (",
+            "to": "from ingest.cme_databento_trades import ("
+          }
+        },
+        {
+          "originSha256": "a9d942a56ca0b5ad5cd2184c3033095615054ca89499816441a7276932e331dc",
+          "repositoryPath": "docs/evidence/large-trades/cme-databento-observation-policy.json",
+          "adoptedSha256": "3a5e9a89c160414ffe589c09280883392e1c927b6faf87a6e74cc2c7a69523d0",
+          "adaptation": {
+            "from": "No Terminal/Git/provider/runtime changes",
+            "to": "No provider connection, public source admission or runtime publication by this module"
+          }
+        }
+      ]
+    },
+    {
+      "files": [
+        {
+          "originSha256": "c2d465d2404b5eedca093ead2b328f1890c177b22d4da704d503fdfe3b8dc401",
+          "repositoryPath": "ingest/cme_native_fixture_ledger.py",
+          "adoptedSha256": "c2d465d2404b5eedca093ead2b328f1890c177b22d4da704d503fdfe3b8dc401",
+          "adaptation": "byte-identical source"
+        },
+        {
+          "originSha256": "4e976c12e3f6d480c9ef93ca827c3026d95ba95f3ecaa66297146684e9020187",
+          "repositoryPath": "tests/test_cme_native_fixture_ledger.py",
+          "adoptedSha256": "ba2eb9cbda052bce7c65577fae000baf6ba6e3ac0ad5ab37fc0801337f667418",
+          "adaptation": "three imports and one unittest.mock target use repository module path; AST otherwise identical"
+        },
+        {
+          "originSha256": "8aba939d240544f09560e1689d4fd4b733291b69700600ab044a03414b50a54a",
+          "repositoryPath": "docs/evidence/large-trades/cme-native-fixture-contract.json",
+          "adoptedSha256": "9f8ae59dbfa4b53d9ca98e4591b3f9f1e11fffb509eb147f16f68bb07e39a091",
+          "adaptation": "repository implementation path and review-status metadata; private history paths replaced with retained evidence identities"
+        }
+      ]
+    }
+  ],
+  "independentReview": {
+    "databento": {
+      "originSourceSha256": "7712df4d9aeb791d1332f77de97fffa9d21d59df8d15c6ebd5afc55143db01e1",
+      "authorTests": 63,
+      "independentGroups": 21,
+      "review": {
+        "bytes": 9975,
+        "sha256": "542fabcada4bc0136a5aa897576935706aef26fd401d146bf651f82da30cc0f2"
+      },
+      "runReceipt": {
+        "bytes": 8706,
+        "sha256": "4c0548b4a04c6dc947e669178cb0863bf1ea1c791abce86d5c17fe55c81feb33"
+      },
+      "scope": "Private synthetic DBN record blocks; caller provenance unverified"
+    },
+    "nativeLedger": {
+      "originSourceSha256": "c2d465d2404b5eedca093ead2b328f1890c177b22d4da704d503fdfe3b8dc401",
+      "authorTests": 57,
+      "independentCases": 27,
+      "dualCutoffComparisons": 100,
+      "review": {
+        "bytes": 29414,
+        "sha256": "fdc492c91194705a3cea8172f0977c2cddcce76d4c9bd0dfc01fa2e75434ead7"
+      },
+      "runReceipt": {
+        "bytes": 2633,
+        "sha256": "5be1547059141cea32ace79e90c3e76c662e1931a10e34261b70be670677d744"
+      },
+      "scope": "Synthetic decoded-native source-prefix arithmetic only"
+    }
+  },
+  "integratedLocalTests": {
+    "command": [
+      "python3",
+      "-B",
+      "-m",
+      "pytest",
+      "-q",
+      "-p",
+      "no:cacheprovider",
+      "tests/test_cme_databento_trades.py",
+      "tests/test_cme_native_fixture_ledger.py",
+      "tests/test_iex_deep_trades.py"
+    ],
+    "startedAtUtc": "2026-10-11T19:24:19.561185+00:00",
+    "endedAtUtc": "2026-10-11T19:24:20.388698+00:00",
+    "exitCode": 0,
+    "testFunctionsPassed": 229,
+    "subtestsPassed": 176,
+    "failures": 0,
+    "errors": 0,
+    "skipped": 0,
+    "junitEntries": 405,
+    "junitInterpretation": "229 tests plus 176 separately recorded successful subtests; not 405 distinct test functions.",
+    "pytestSeconds": "0.36",
+    "sourceUnchanged": true,
+    "receipt": {
+      "bytes": 4915,
+      "sha256": "66c94517118d3c74ec751daba24081eb8f270f74e66741cb0fe68e3411fb2f55"
+    },
+    "log": {
+      "bytes": 321,
+      "sha256": "5b3aa9990f7aad8301c3cd16f5bebfb073fa48e6764d7259fb4162660a82d8a5"
+    },
+    "junit": {
+      "bytes": 34355,
+      "sha256": "8c9d9de41a40a1d9e301670076aa9c4b41faaa0e1c224a895e2340d4d5c59234"
+    }
+  },
+  "repairedFindings": {
+    "resourceExpansion": {
+      "affectedSourceSha256": "40ce4832fcdb93916adbaa94d7d8bbf99992d5bb6737d3f22668cd32bcdd9711",
+      "originalWitnessSha256": "6879058729ae30a0c615b71dd324898beab66ac2d78ed767a75cfbe2ed61830f",
+      "repair": "Original values stored once with bounded incremental canonical serialization",
+      "rootCases": [
+        {
+          "depth": 0,
+          "inputBytes": 331,
+          "storedRowBytes": 70,
+          "earlierSnapshotBytes": 970,
+          "earlierSnapshotSha256": "7c0f08d86d428d7737086bba3522563c54c75da14664e67423cdba707489f4d8"
+        },
+        {
+          "depth": 4,
+          "inputBytes": 379,
+          "storedRowBytes": 346,
+          "earlierSnapshotBytes": 970,
+          "earlierSnapshotSha256": "7c0f08d86d428d7737086bba3522563c54c75da14664e67423cdba707489f4d8"
+        },
+        {
+          "depth": 8,
+          "inputBytes": 427,
+          "storedRowBytes": 622,
+          "earlierSnapshotBytes": 970,
+          "earlierSnapshotSha256": "7c0f08d86d428d7737086bba3522563c54c75da14664e67423cdba707489f4d8"
+        },
+        {
+          "depth": 12,
+          "inputBytes": 475,
+          "storedRowBytes": 898,
+          "earlierSnapshotBytes": 970,
+          "earlierSnapshotSha256": "7c0f08d86d428d7737086bba3522563c54c75da14664e67423cdba707489f4d8"
+        }
+      ]
+    },
+    "callerMarkerClocks": {
+      "affectedSourceSha256": "e0dfebfebe63b249e32991eec6673139739c6a2a38dba15c7ae3e5b9e7e87906",
+      "originalWitnessSha256": "775d02820526c0abbff231ba861237451f38b48828ad827a2f6a52b588889129",
+      "repair": "Parser-only provenance outside caller JSON; literal marker cannot authenticate missing raw clocks",
+      "rootRecheck": "Original marker and ordinary unclocked control both refuse with null totals"
+    },
+    "rootAcceptance": {
+      "bytes": 3531,
+      "sha256": "ad05a16ccb48db91871955dd05e18e131c204d63bf1a170ff49258fab7bf938c"
+    },
+    "priorVersionsAndFailuresPreserved": true
+  },
+  "unchangedConsumerSource": {
+    "ingest/iex_deep_trades.py": {
+      "bytes": 41379,
+      "sha256": "9655af3dde9ea225635f6d97be60c6d51a57795c7b7a68bfa91e4d3e18d5a068"
+    },
+    "terminal/lib/largeTrades/engine.ts": {
+      "bytes": 26612,
+      "sha256": "1936357255e27951d051f2c8fe93349292c7b12a63c66fed8c9246cbfb898483"
+    },
+    "terminal/lib/largeTrades/sourceAdmission.ts": {
+      "bytes": 1399,
+      "sha256": "3ed0038c92a3fcf5973968e4a1e73cda8236151fb5e921d36c191463f1c5c8ff"
+    },
+    "terminal/app/api/large-trades/route.ts": {
+      "bytes": 4661,
+      "sha256": "8d4703d776b9da7ca7ca5465fbda7051a812f8b13b58f96d807c7ae6dcde6c77"
+    },
+    "docs/LARGE_TRADES_ABSORPTION.md": {
+      "bytes": 19377,
+      "sha256": "2e00fdb6563abd00b993130e102536d9f4ecabaf973ab9c9a8c627020b84bf29"
+    }
+  },
+  "scope": {
+    "actualCmeMarketDataUsed": false,
+    "actualExportMetadataOrFramingValidated": false,
+    "nativeCmeDecoderImplemented": false,
+    "correctedCmeNetVolumeQualified": false,
+    "publicSourceAdmissionChanged": false,
+    "newFeedOrPublisherActivated": false,
+    "rightsGrantedOrCostApproved": false,
+    "liveDataClaim": false,
+    "absorptionOrTrappedPositionsOrOosClaim": false,
+    "hostedCiForThisSourceRecordedHere": false,
+    "deploymentOrProductionProven": false
+  },
+  "primaryPin": {
+    "library": "DBN v0.71.0",
+    "commit": "d368005a636bae84bff443cd6ddae6430a0ffd00",
+    "wireVersion": 3
+  },
+  "nextAdmission": "Complete protected source CI/merge; canonical deployment and authenticated IEX chart proof. CME activation additionally needs itemized commercial grant, real export/framing/definition/native-correction and completeness/knowledge provenance."
+}

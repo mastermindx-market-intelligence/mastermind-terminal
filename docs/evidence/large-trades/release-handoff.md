@@ -99,6 +99,12 @@ The [production API implementation](../../../terminal/app/api/large-trades/route
 
 The [ChartPanel snapshot path](../../../terminal/components/ChartPanel.tsx) now includes the execution overlay. It flushes the native bitmap, synchronously measures the current pane layout, repaints coordinates and freezes the admitted marker frame and other metadata before asynchronous SVG completion. The integrated packet contains actual downloaded PNGs across all three viewports, a byte-identical asynchronous state-change comparison, and the repaired pending-layout case; the pre-repair counterexample remains in private review custody. These local export results remain distinct from the production proof owed after deployment.
 
+## Offline CME implementation added during protected integration
+
+The [CME admission guide](../../CME_LARGE_TRADES_ADMISSION.md) and [source verification receipt](cme-source-verification.json) document two accepted offline components: an exact DBN trade observation normalizer and a separate synthetic decoded-native correction ledger. The repository check passes 229 tests plus 176 subtests, including the existing IEX decoder. Independent review covers 21 DBN and 27 native-ledger controls, with both original ledger counterexamples preserved and repaired.
+
+DBN quantities remain gross as reported with unsupported corrections; the native ledger is fixture-only. Neither component expands public source admission. Actual export framing, instrument definitions, native correction targeting, source completeness, rights, and consumer knowledge still need verification before any CME feed is published. The frozen research protocol and its IEX real-data receipt remain unchanged.
+
 ## 5. Exact CME/MNQ commercial approval still needed
 
 No commercial CME/MNQ entitlement or approved payable amount has been established. The pending approval is for a **written commercial quote and usage-rights grant covering `GLBX.MDP3` native MNQ trades and qualified quotes**, for Mastermind Terminal's actual deployment and audience.
@@ -130,7 +136,7 @@ The table is not an all-in quote and the rows must not be summed into a Mastermi
 | Deployment and source publication | Canonical owner deploys the fresh accepted SHA; incumbent Macro owner publishes the validated IEX historical envelopes; the authenticated and responsive gates above pass |
 | Missing mission attachment | Recover `MASTERMIND_LARGE_TRADES_PRO_HANDOFF.zip` and its two original Skylit ATLAS screenshots, then verify screenshot-specific requirements. The value `1301` must not be treated as 1,301 distinct orders |
 | Production native PNG export | Reproduce the locally accepted quantities, owner geometry, replay admission, labels and complete source attribution through the authenticated deployed chart |
-| CME/MNQ | Explicit approval of the final written commercial quote and rights defined above, followed by implementation and provenance verification under the existing data owner |
+| CME/MNQ | Approve the final written commercial quote and rights above, then qualify actual export framing, definitions, native corrections, completeness and provenance under the existing data owner. The offline modules are documented in the CME admission guide; they do not establish a usable feed |
 | Out-of-sample efficacy | Execute the frozen chronological research protocol on sufficiently broad, licensed transaction and qualified-quote data. The current one-session partial cohort supports `NOT_ESTIMABLE`, with no fitted-parameter, success-rate, or alpha claim |
 
 **Exact next production action:** the existing infrastructure/credential custodian restores the canonical VPS/root release owner and returns verified custody to the incumbent release process. That process then reads PR 929's actual accepted full merge SHA, verifies fresh protected-ref containment and the currently served generation, and runs the canonical command with its retained-volume and current-generation preflight gates. Macro publication and authenticated chart proof complete the historical IEX path. Full mission completion remains held until the applicable source, deployment, user-facing, attachment, export, feed-rights, and research acceptance gaps above are actually resolved.
