@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useId, useRef, useState, type KeyboardEvent as ReactKeyboardEvent } from "react";
+import { useEffect, useId, useLayoutEffect, useRef, useState, type KeyboardEvent as ReactKeyboardEvent } from "react";
 import { useLang } from "@/lib/i18n";
 import { subscribeInvestigationAuthOwner } from "@/lib/supabase/investigationAuthOwner";
 import type { AuthLifecycleSnapshot, AuthLifecycleSubscription } from "@/lib/supabase/authLifecycle";
@@ -63,6 +63,11 @@ export default function InvestigationWorkspace({ownerKey,initialSymbol,initialIn
  const authProjection=boundAuth?.ownerKey===ownerKey
   &&boundAuth.initialInvestigationId===initialInvestigationId&&boundAuth.initialRevision===initialRevision
   ?boundAuth.projection:null;
+ // The owner's original synchronous getter, tracked after commit so an async settlement can
+ // re-read the actual current lifetime even before React's projected snapshot catches up. Only a
+ // re-bound or cleaned-up lifetime has a different getter; a recreated projection keeps this one.
+ const authGetterRef=useRef<InvestigationAuthProjection["getSnapshot"]|null>(null);
+ useLayoutEffect(()=>{authGetterRef.current=authProjection?.getSnapshot??null;},[authProjection?.getSnapshot]);
  const [items,setItems]=useState<InvestigationSummary[]|null>(null), [listError,setListError]=useState(false);
  const [detail,setDetail]=useState<Detail|null>(null),[detailLoading,setDetailLoading]=useState(false);
  const [editing,setEditing]=useState(false),[draft,setDraft]=useState<Draft>(emptyDraft(initialSymbol));
@@ -253,14 +258,37 @@ export default function InvestigationWorkspace({ownerKey,initialSymbol,initialIn
  }
  async function selectReviewedBaseline(receipt:RetainedEventWorkspaceReceipt,reference?:InvestigationEvidenceRef) {
   if(!detail||editLocked()||detail.lifecycle!=="active"||detail.revision!==detail.current_revision)return;
-  const ticket=++baselineSeq.current,recordTicket=detailSeq.current;setBaselineState("loading");
+  // This follow-up GET is admitted only from the auth owner's current synchronous fresh read at the
+  // explicit request: ready, with a nonempty principal and epoch. Absent, pending, unverified,
+  // unavailable and the unauthenticated local-preview lifetime (which owns no subscription) never start it.
+  const getter=authGetterRef.current;
+  if(!getter)return;
+  const admitted=getter();
+  if(admitted?.availability!=="ready"||!admitted.principal_partition||!admitted.auth_epoch)return;
+  const principal=admitted.principal_partition,epoch=admitted.auth_epoch;
+  const ticket=++baselineSeq.current,recordTicket=detailSeq.current,controller=scope.current;setBaselineState("loading");
+  const current=()=>ticket===baselineSeq.current&&recordTicket===detailSeq.current&&controller===scope.current&&!!controller&&!controller.signal.aborted;
+  // Before either settlement the captured getter must still be the current projection's getter (same
+  // owner lifetime; a recreated projection object with the same getter is not invalidation) and its
+  // fresh read must still be ready on the captured principal and epoch. A genuine verified focus or
+  // refresh replay keeps the epoch and continues; a same-user session change, USER_UPDATED,
+  // PASSWORD_RECOVERY, verification fall-back or cleanup rejects even before React's snapshot catches
+  // up. This invalidates only this local read; it is never server, source or Saved admission.
+  const settled=()=>{if(authGetterRef.current!==getter)return false;const now=getter();return!!now&&now.availability==="ready"&&now.principal_partition===principal&&now.auth_epoch===epoch;};
   try {
    const value=await json(`/api/investigations/baseline?${new URLSearchParams({event_id:receipt.event_id,generation_id:receipt.generation_id,company_id:receipt.company_id,fingerprint:reference?.fingerprint??receipt.fingerprint})}`);
-   if(ticket!==baselineSeq.current||recordTicket!==detailSeq.current)return;
+   if(!current())return;
    if(!record(value)||value.ok!==true||!record(value.receipt)||value.receipt.fingerprint!==receipt.fingerprint||!record(value.reference)||!record(value.workspace)||(reference&&value.reference.fingerprint!==reference.fingerprint))throw Error("unavailable");
+   if(!settled()){setBaselineState(baseline?"ready":"unavailable");return;}
    if(!beginEdit()){setBaselineState(baseline?"ready":"unavailable");return;}
    setBaseline(value as unknown as Baseline);setBaselineState("ready");setSeenAt(new Date().toISOString());
-  } catch {if(ticket===baselineSeq.current&&!scope.current?.signal.aborted){setBaselineState(baseline?"ready":"unavailable");setMessage(c.reviewFailed);}}
+  } catch {
+   if(!current())return;
+   const stillAdmitted=settled();
+   // An invalid auth lifetime may settle only its own loading UI. Its failure cannot publish an error.
+   setBaselineState(baseline?"ready":"unavailable");
+   if(stillAdmitted)setMessage(c.reviewFailed);
+  }
  }
  function save(action:InvestigationCommand["action"]=detail?"revise":"create") {
   if(editLocked())return;
