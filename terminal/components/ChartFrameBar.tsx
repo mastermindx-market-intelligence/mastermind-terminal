@@ -369,8 +369,13 @@ export default function ChartFrameBar({
     return () => window.removeEventListener("keydown", h);
   }, [settings, onSettings, chartApi]);
 
+  // Only a NEW request opens the box: the value present at mount (a remount after an earlier
+  // request) is not one.
+  const handledGotoRequest = useRef(openGotoRequest);
   useEffect(() => {
-    if (openGotoRequest > 0) setGotoOpen(true);
+    if (openGotoRequest === handledGotoRequest.current) return;
+    handledGotoRequest.current = openGotoRequest;
+    setGotoOpen(true);
   }, [openGotoRequest]);
 
   // Go-to-date: focus the input when it opens

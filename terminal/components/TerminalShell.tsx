@@ -5147,6 +5147,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
   // the toolbar's drawing undo/redo, Bar Replay's toggle and the range row's go-to-date box. It
   // adds no queue, no session and no account/alert/trade action.
   const [paletteOpen, setPaletteOpen] = useState(false);
+  const [researchCloseRequest, setResearchCloseRequest] = useState(0);
   const paletteLang = lang === "zh" ? "zh" : "en";
   useEffect(() => {
     if (shellMode || paletteOpen) return;
@@ -5178,6 +5179,8 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
     replay: { on: replayOn, blocked: replayBlockedReason ?? null },
     phone: isPhone,
     researchOnAnalysisPage: isMobile,
+    // No watchlist review session exists in this build (program item E16); the palette says so.
+    review: null,
   } : null;
   const runPaletteAction = (actionId: string, seenToken: string): PaletteRunDecision => {
     if (!paletteContext) return { ok: false, reason: "gone", message: paletteText(paletteLang, "cpGone") };
@@ -5190,15 +5193,8 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
         if (run.via === "analysis-page") router.push(analysisPageHref(active, run.page));
         else setPaneOpen(run.page);
         break;
-      case "close-research": {
-        // The research pane's own close: drop its URL keys, then close.
-        const url = new URL(window.location.href);
-        url.searchParams.delete("pane");
-        url.searchParams.delete("tx");
-        window.history.replaceState(window.history.state, "", url.toString());
-        setPaneOpen(null);
-        break;
-      }
+      // The research pane's own Back button: MegaPane runs its closePane (URL cleanup + onClose).
+      case "close-research": setResearchCloseRequest((n) => n + 1); break;
       case "symbol": pick(run.symbol); break;
       case "timeframe": if (FUNCTIONAL.has(run.tf)) setTf(run.tf); break;
       case "template": window.dispatchEvent(new CustomEvent("mm:apply-template", { detail: { id: run.id } })); break;
@@ -5597,6 +5593,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
             name={nameOf(m) || active}
             mode="workspace"
             intel={intel}
+            closeRequest={researchCloseRequest}
           />
         ) : tableViewOpen ? (
           /* D3: Table view replaces the chart body */

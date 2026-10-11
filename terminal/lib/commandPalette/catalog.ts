@@ -64,6 +64,14 @@ export interface PaletteContext {
    * whole screen there and has no way back to the chart.
    */
   researchOnAnalysisPage: boolean;
+  /**
+   * Optional integration seam for a watchlist review session (program item E16): the session's
+   * frozen previous/next company. Null when no review session exists — which is always the case
+   * until that feature ships — and the review rows then say so instead of guessing a company.
+   * When a review owner supplies it, the rows run through the same `symbol` handler (the shell's
+   * `pick`) as the watchlist step; a null neighbour is the end of the review, never a substitute.
+   */
+  review: { next: string | null; previous: string | null } | null;
 }
 
 /** The closed set of things the palette can ask the shell to do. No free-form command, no code. */
@@ -257,19 +265,36 @@ export function buildPaletteActions(ctx: PaletteContext, lang: PaletteLang): Pal
   }, both("cpDrawRedo"));
 
   // ── Watchlist: the phone symbol wheel's step (shell `pick`), next/previous ──
+  const symbolTarget = (to: string | null) => {
+    const openAt = to ? ctx.panes.findIndex((sym) => sym === to) : -1;
+    return !to ? chart
+      : openAt >= 0 && openAt !== ctx.paneIndex ? paletteText(lang, "cpTargetFocus", { n: openAt + 1, sym: to })
+      : paletteText(lang, "cpTargetSwap", { n: ctx.paneIndex + 1, from: ctx.symbol, to });
+  };
   for (const direction of ["next", "previous"] as const) {
     const to = stepWatchlist(ctx.watchlist, ctx.symbol, direction);
-    const openAt = to ? ctx.panes.findIndex((sym) => sym === to) : -1;
     add({
       id: `watchlist:${direction}`,
       group: "watchlist",
       label: paletteText(lang, direction === "next" ? "cpNextSymbol" : "cpPrevSymbol"),
-      target: !to ? chart
-        : openAt >= 0 && openAt !== ctx.paneIndex ? paletteText(lang, "cpTargetFocus", { n: openAt + 1, sym: to })
-        : paletteText(lang, "cpTargetSwap", { n: ctx.paneIndex + 1, from: ctx.symbol, to }),
+      target: symbolTarget(to),
       run: { kind: "symbol", symbol: to ?? "" },
       unavailable: to ? null : paletteText(lang, "cpWhyNoOtherSymbol"),
     }, `${both(direction === "next" ? "cpNextSymbol" : "cpPrevSymbol")} ${to ?? ""}`);
+  }
+  // Review session (seam, see `PaletteContext.review`): its frozen neighbour, or an explanation.
+  for (const direction of ["next", "previous"] as const) {
+    const key = direction === "next" ? "cpNextReview" : "cpPrevReview";
+    const to = ctx.review ? ctx.review[direction] : null;
+    add({
+      id: `review:${direction}`,
+      group: "watchlist",
+      label: paletteText(lang, key),
+      target: symbolTarget(to),
+      run: { kind: "symbol", symbol: to ?? "" },
+      unavailable: !ctx.review ? paletteText(lang, "cpWhyNoReview")
+        : to ? null : paletteText(lang, "cpWhyReviewEdge"),
+    }, `${both(key)} review ${to ?? ""}`);
   }
   return out;
 }

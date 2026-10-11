@@ -28,6 +28,7 @@ function ctx(over: Partial<PaletteContext> = {}): PaletteContext {
     replay: { on: false, blocked: "multi-chart" },
     phone: false,
     researchOnAnalysisPage: false,
+    review: null,
     ...over,
   };
 }

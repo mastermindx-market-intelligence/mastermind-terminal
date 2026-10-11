@@ -20,6 +20,8 @@ const TEXT = {
     undoReason: "Not available: No drawing change to undo",
     undo: "undo drawing",
     targetPrefix: "Acting on",
+    review: "next review",
+    reviewWhy: "Review sessions aren't available yet",
   },
   zh: {
     dialog: /^操作$/,
@@ -31,6 +33,8 @@ const TEXT = {
     undoReason: "不可用：没有可撤销的绘图更改",
     undo: "撤销绘图",
     targetPrefix: "当前对象",
+    review: "复盘",
+    reviewWhy: "复盘会话暂未开放",
   },
 } as const;
 
@@ -123,12 +127,21 @@ for (const lang of ["en", "zh"] as const) {
       const pane = page.locator(".fin-pane");
       await expect(pane).toBeVisible();
       await expect(pane.locator("[data-fin-local=statements][aria-selected=true]")).toBeVisible();
+      // A transcript comparison leaves its keys in the URL; the pane's own Back button clears
+      // them, so the palette's "Back to chart" must too (it runs that same close).
+      await page.evaluate(() => {
+        const url = new URL(window.location.href);
+        url.searchParams.set("txcm", "align");
+        url.searchParams.set("txcq", "guidance");
+        window.history.replaceState(window.history.state, "", url.toString());
+      });
       const reopened = await openPalette(page, testInfo, lang, "button");
       await expect(reopened.locator("[data-palette-target]")).toContainText("NVDA");
       await search(page, testInfo, TEXT[lang].back);
       await runAction(page, testInfo, "research:close");
       await expect(pane).toHaveCount(0);
-      await expect(page).not.toHaveURL(/[?&]pane=/);
+      await expect(page).not.toHaveURL(/[?&](pane|tx|txc|txcq|txcm)=/);
+      await expect(page).toHaveURL(/[?&]symbol=NVDA/);
       await expect(page.locator(".chart-wrap canvas").first()).toBeVisible();
     });
 
@@ -196,6 +209,14 @@ for (const lang of ["en", "zh"] as const) {
         await expectTapTarget(row, { height: 44 });
         await expectTapTarget(page.locator("[data-command-palette] input[role=combobox]"), { height: 40 });
       }
+
+      // No watchlist review session exists in this build: its step is shown, disabled, and says so.
+      await search(page, testInfo, TEXT[lang].review);
+      const review = dialog.locator("[data-action-id='review:next']");
+      await expect(review).toHaveAttribute("aria-disabled", "true");
+      await expect(review).toContainText(TEXT[lang].reviewWhy);
+      await expect(shownSymbol(page, testInfo)).toHaveText("NVDA");
+      if (isTouch(testInfo)) await expectTapTarget(review, { height: 44 });
     });
   });
 }

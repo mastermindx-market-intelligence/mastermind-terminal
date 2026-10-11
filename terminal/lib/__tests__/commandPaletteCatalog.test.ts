@@ -45,6 +45,7 @@ function ctx(over: Partial<PaletteContext> = {}): PaletteContext {
     replay: { on: false, blocked: null },
     phone: false,
     researchOnAnalysisPage: false,
+    review: null,
     ...over,
   };
 }
@@ -102,6 +103,14 @@ describe("AC-E20-01: every action names an existing handler and an explicit targ
     expect(block).toContain("removeAllIndicators()");
     expect(block).toContain("travelDrawingHistory(active, run.direction)");
     expect(block).toContain("toggleReplay()");
+    // "Back to chart" runs the research pane's OWN close (its URL cleanup + onClose) instead of a
+    // palette copy of it — a copy drifted once already (it missed the transcript-compare keys).
+    expect(block).toContain("setResearchCloseRequest((n) => n + 1)");
+    expect(block).not.toMatch(/searchParams|replaceState|setPaneOpen\(null\)/);
+    expect(shell).toContain("closeRequest={researchCloseRequest}");
+    const pane = readFileSync(join(ROOT, "components/fin/MegaPane.tsx"), "utf8");
+    const effect = pane.slice(pane.indexOf("const handledCloseRequest"));
+    expect(effect.slice(0, effect.indexOf("}, [closePane, closeRequest]);"))).toContain("closePane();");
     // …and it re-checks against the live shell state before anything runs.
     expect(block.indexOf("resolvePaletteRun(")).toBeLessThan(block.indexOf("switch (run.kind)"));
   });
@@ -167,6 +176,27 @@ describe("AC-E20-04: unavailable prerequisites are disabled and explained", () =
     expect(decision).toMatchObject({ ok: true, run: { kind: "research", page: "statements", via: "pane" } });
     const goto = resolvePaletteRun("chart:goto-date", paletteContextToken(c), c, "en");
     expect(goto).toMatchObject({ ok: true, run: { kind: "goto-date", pane: 0, symbol: "NVDA" } });
+  });
+});
+
+describe("review session seam (E16 integration point)", () => {
+  it("explains that no review session exists instead of guessing a company", () => {
+    for (const id of ["review:next", "review:previous"]) {
+      const row = byId(ctx(), id);
+      expect(row?.group).toBe("watchlist");
+      expect(row?.run).toEqual({ kind: "symbol", symbol: "" });
+      expect(row?.unavailable).toMatch(/^Review sessions aren't available yet/);
+      expect(byId(ctx(), id, "zh")?.unavailable).toMatch(/^复盘会话暂未开放/);
+      expect(resolvePaletteRun(id, paletteContextToken(ctx()), ctx(), "en")).toMatchObject({ ok: false, reason: "unavailable" });
+    }
+  });
+
+  it("steps to the session's own frozen neighbour through the watchlist's symbol handler", () => {
+    const c = ctx({ review: { next: "TSLA", previous: null } });
+    expect(byId(c, "review:next")).toMatchObject({ unavailable: null, target: "Chart 1: NVDA → TSLA", run: { kind: "symbol", symbol: "TSLA" } });
+    // The end of the review is the end — never the watchlist's neighbour as a substitute.
+    expect(byId(c, "review:previous")).toMatchObject({ unavailable: "No further item in this review", run: { kind: "symbol", symbol: "" } });
+    expect(resolvePaletteRun("review:next", paletteContextToken(c), c, "en")).toMatchObject({ ok: true, run: { kind: "symbol", symbol: "TSLA" } });
   });
 });
 

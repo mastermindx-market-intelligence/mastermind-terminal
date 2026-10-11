@@ -48,6 +48,8 @@ export const COMMAND_PALETTE_LEX: Record<string, [string, string]> = {
   cpBackToChart: ["Back to chart", "返回图表"],
   cpNextSymbol: ["Next symbol in watchlist", "自选列表下一个标的"],
   cpPrevSymbol: ["Previous symbol in watchlist", "自选列表上一个标的"],
+  cpNextReview: ["Next review item", "复盘：下一项"],
+  cpPrevReview: ["Previous review item", "复盘：上一项"],
   cpTimeframe: ["Timeframe {tf}", "周期 {tf}"],
   cpApplyTemplate: ["Apply study template “{name}”", "应用指标模板“{name}”"],
   cpApplyTemplateNone: ["Apply a study template", "应用指标模板"],
@@ -64,6 +66,8 @@ export const COMMAND_PALETTE_LEX: Record<string, [string, string]> = {
   cpWhyAlreadyOpen: ["Already showing", "当前已显示"],
   cpWhyChartShowing: ["The chart is already showing", "图表已在显示"],
   cpWhyNoOtherSymbol: ["Your watchlist has no other symbol", "自选列表中没有其他标的"],
+  cpWhyNoReview: ["Review sessions aren't available yet. Use “Next symbol in watchlist” to step through your list.", "复盘会话暂未开放。可使用“自选列表下一个标的”逐个查看。"],
+  cpWhyReviewEdge: ["No further item in this review", "本次复盘没有更多项目"],
   cpWhyCurrentTf: ["Already the current timeframe", "已是当前周期"],
   cpWhyNoTemplates: ["No saved study templates yet. Save your current studies first.", "尚无已保存的指标模板，请先保存当前指标。"],
   cpWhyNoStudies: ["No studies on the charts", "图表上没有指标"],
@@ -100,6 +104,7 @@ export const PALETTE_PAGE_TEXT: Record<FinPage, { label: [string, string]; alias
   ownership: { label: ["Institutional", "机构"], alias: ["Ownership", "持仓"] },
   insider: { label: ["Insider", "内部交易"], alias: ["Insider trading", "内部人"] },
   lab: { label: ["Lab", "实验室"], alias: ["Research lab", "研究实验室"] },
+  compare: { label: ["Compare", "对比"], alias: ["Peer comparison", "同业对比"] },
 };
 
 /** Look up one pair and fill `{name}` placeholders. Unknown keys return the key itself so a
