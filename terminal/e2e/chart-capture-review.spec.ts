@@ -46,15 +46,35 @@ async function openTerminal(page: Page): Promise<Uploads> {
     localStorage.setItem("mm.lang", "en");
     window.__mmCaptureReady = false;
     window.addEventListener("mm:terminal-visual-ready", () => { window.__mmCaptureReady = true; }, { once: true });
-    // Canvas text never waits for a web font. Record, at each review request, whether the faces the
-    // chart header and provenance strip are painted with had already loaded.
+    // Canvas text never waits for a web font. Record, at each review request, whether every face the
+    // chart header and provenance strip are painted with had finished loading. This reads the faces
+    // themselves rather than document.fonts.check(): next/font declares a local() size-adjusted
+    // fallback face beside Inter, that face errors wherever the local font is absent (the Linux CI
+    // runners), and check() then answers false for ever. Only faces whose unicode-range covers the
+    // Latin text the strip paints count: Inter ships one face per script subset and the other
+    // subsets legitimately never load. A counted face the browser cannot use paints nothing, so it
+    // is left out; a counted face still unloaded or loading at the request is the defect.
     window.__e19FontsAtRequest = [];
     window.addEventListener("mm:snapshot", (event) => {
       if ((event as CustomEvent).detail?.action !== "review") return;
       const root = getComputedStyle(document.documentElement);
-      const families = ["--font-ui", "--font-num"].map((name) => root.getPropertyValue(name).trim()).filter(Boolean);
-      window.__e19FontsAtRequest!.push(families.length > 0
-        && families.every((family) => ["400", "600", "700"].every((weight) => document.fonts.check(`${weight} 16px ${family}`))));
+      const plain = (family: string) => family.trim().replace(/^["']|["']$/g, "").toLowerCase();
+      const wanted = new Set<string>();
+      for (const name of ["--font-ui", "--font-num"]) {
+        for (const family of root.getPropertyValue(name).split(",")) if (plain(family)) wanted.add(plain(family));
+      }
+      // "A" (U+0041): the header and the provenance strip are basic Latin letters, digits and punctuation.
+      const coversLatin = (face: FontFace) => face.unicodeRange.split(",").some((part) => {
+        const m = /^U\+([0-9A-F?]+)(?:-([0-9A-F]+))?$/i.exec(part.trim());
+        if (!m) return false;
+        const lo = parseInt(m[1].replace(/\?/g, "0"), 16);
+        const hi = m[2] ? parseInt(m[2], 16) : parseInt(m[1].replace(/\?/g, "F"), 16);
+        return lo <= 0x41 && 0x41 <= hi;
+      });
+      const faces: FontFace[] = [];
+      document.fonts.forEach((face) => { if (wanted.has(plain(face.family)) && coversLatin(face)) faces.push(face); });
+      const usable = faces.filter((face) => face.status !== "error");
+      window.__e19FontsAtRequest!.push(usable.length > 0 && usable.every((face) => face.status === "loaded"));
     });
   });
   await page.goto("/terminal?symbol=NVDA");
