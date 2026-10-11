@@ -1,0 +1,43 @@
+# E12 — two earnings calls side by side, each passage bound to its exact call, revision and segment
+# Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
+# Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
+# capturedAtHead: 31a9ddb30387c812ff749a5f1805f56123eeeab8
+# capturedAt: 2026-10-11T08:21:05Z
+# capturedAtHead is the code commit the pixels depict. This packet records no layout lock:
+# it names no source files, so it never reds an unrelated change. Recapture with the command below.
+# Transcript text in every crop is a synthetic fixture served by request interception; no archive
+# text is reproduced. The archive commit marker, the per-company list and the gzip bodies are
+# all intercepted, and each body's advertised fingerprint is computed from its fixture bytes.
+theme: dark
+languages: [en, zh]
+viewports:
+  - { name: desktop, width: 1440, height: 900 }
+  - { name: tablet, width: 820, height: 1180 }
+  - { name: mobile, width: 390, height: 844 }
+harness:
+  "{viewport}-en-absent.png": { url: "/analysis?symbol=NVDA&page=transcripts&txc=NVDA_2025Q1_2027Q1", fixture: "call A absent from the archive; column A says so and shows no other call" }
+  "{viewport}-en-side.png": { url: "/analysis?symbol=NVDA&page=transcripts", fixture: "Compare two calls -> Q1 FY2026 vs Q1 FY2027, side by side (phone: B tab)" }
+  "{viewport}-zh-side.png": { url: "/analysis?symbol=NVDA&page=transcripts", fixture: "same as en-side with mm.lang=zh" }
+  "{viewport}-en-align.png": { url: "/analysis?symbol=NVDA&page=transcripts", fixture: "Shared wording view: caveat, 2 pairs, 8 word chips plus +3" }
+  "{viewport}-zh-align.png": { url: "/analysis?symbol=NVDA&page=transcripts", fixture: "same as en-align with mm.lang=zh" }
+capture_flag: TERMINAL_E2E_FIXTURE
+capture_flag_law: The Playwright e2e dev server sets TERMINAL_E2E_FIXTURE, and with it the Next.js dev indicator is turned off, so no dev bubble appears in these crops.
+command: |
+  cd terminal
+  E12_CAPTURE=1 npx playwright test --grep "E12 evidence capture" --workers=1
+files:
+  - desktop-en-absent.png
+  - desktop-en-side.png
+  - desktop-zh-side.png
+  - desktop-en-align.png
+  - desktop-zh-align.png
+  - tablet-en-absent.png
+  - tablet-en-side.png
+  - tablet-zh-side.png
+  - tablet-en-align.png
+  - tablet-zh-align.png
+  - mobile-en-absent.png
+  - mobile-en-side.png
+  - mobile-zh-side.png
+  - mobile-en-align.png
+  - mobile-zh-align.png
