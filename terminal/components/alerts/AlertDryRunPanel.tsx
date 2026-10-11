@@ -17,7 +17,7 @@ import { readDryRunResult } from "@/lib/alertDryRunContract";
 import type { DryRunResult, DryRunTraceStep } from "@/lib/alertDryRunContract";
 import { SUITE_ALERT_EVENTS, SUITE_EVENT_FRESH_BARS } from "@/lib/suiteAlerts";
 import type { SuiteAlertCondition, SuiteSequenceCondition } from "@/lib/suiteAlerts";
-import { useAlertDryRunT } from "@/lib/alertDryRunLex";
+import { dryRunStepStatusLabel, dryRunVerdictLabel, useAlertDryRunT } from "@/lib/alertDryRunLex";
 import s from "./AlertDryRunPanel.module.css";
 
 type Phase =
@@ -153,7 +153,7 @@ export default function AlertDryRunPanel({
           >
             <span className={s.verdictLabel}>
               {result
-                ? T(`drVerdict.${result.verdict}`) // plain-language-ok: the verdict is a lexicon key; T() renders the EN/ZH sentence
+                ? dryRunVerdictLabel(T, result.verdict)
                 : view.kind === "cancelled"
                   ? T("drCancelled")
                   : T("drUnavailable")}
@@ -266,9 +266,7 @@ function Details({ result: r, T, eventName }: { result: DryRunResult; T: TFn; ev
                   className={s.chip}
                   data-status={st.status} // plain-language-ok: data attribute for styling and tests, never rendered as text
                 >
-                  {
-                    T(`drSt.${st.status}`) // plain-language-ok: the step status is a lexicon key; T() renders the EN/ZH word
-                  }
+                  {dryRunStepStatusLabel(T, st.status)}
                 </span>
                 <span className={s.stepText}>
                   {fill(T(`drStep.${st.id}`), { n: SUITE_EVENT_FRESH_BARS, date: c?.creationFloorDate ?? T("drUnknown") })}

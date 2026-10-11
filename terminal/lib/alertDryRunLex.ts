@@ -1,6 +1,7 @@
 "use client";
 import { useCallback } from "react";
 import { useLang, useT } from "./i18n";
+import type { DryRunTraceStatus, DryRunVerdict } from "./alertDryRunContract";
 
 /** Feature-local EN/ZH copy for the alert dry run (components/alerts/AlertDryRunPanel.tsx).
  * Kept out of the global LEX so unrelated screen evidence stays byte-stable. `{x}` slots are
@@ -121,3 +122,11 @@ export function useAlertDryRunT() {
     return pair ? pair[lang === "zh" ? 1 : 0] : sharedT(key, fallback);
   }, [lang, sharedT]);
 }
+
+type DryRunT = (key: string, fallback?: string) => string;
+
+/** The visible EN/ZH sentence for a verdict. The wire code itself is never rendered. */
+export const dryRunVerdictLabel = (T: DryRunT, verdict: DryRunVerdict): string => T(`drVerdict.${verdict}`);
+
+/** The visible EN/ZH word for a trace step's status. The wire code itself is never rendered. */
+export const dryRunStepStatusLabel = (T: DryRunT, status: DryRunTraceStatus): string => T(`drSt.${status}`);
