@@ -1,11 +1,11 @@
-# Terminal Visual Intelligence Layer — chart-settings candidate recapture
+# Terminal Visual Intelligence Layer — drawing migration repair recapture
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
 # Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
-# capturedAtHead: 702bd7fbbb92f7f10eb2138fc29f78e3cd94ff7c (E06 independent RSI instances, merged with origin/master fc76cf495)
-# capturedAt: 2026-10-11T08:48:39.310034+00:00
+# capturedAtHead: d5da2b3aa1a16347134439664ea6cee4c8a4191f
+# capturedAt: 2026-10-11T13:17:59.236846+00:00
 # Content-addressed layoutFiles + cropFiles, not ancestry, identify this capture.
 layoutFiles:
-  terminal/components/ChartPanel.tsx: "99821732c74fd5a179bc24de59ac4b87d6e0fd4a4ebce8873e4e694d30567ada"
+  terminal/components/ChartPanel.tsx: "2a9a5f452bc2742a6e3c73053d184d1df62c75a6271e3c444da76ab6e3d1b8c6"
   terminal/components/ChartSettingsModal.tsx: "f26bd7dcbb9bd23e96546e835dec4c62c593b9c4d7412c411511005e7418146e"
   terminal/components/ChartSettingsModal.module.css: "a1685d103511e11882f8d379b22570f018e47aed88266db5ca6fec8808100b0a"
   terminal/components/DrawingSidebar.tsx: "95910121c08efa2a41bcaac02ec626a48bc98021bbbf9e611ff0b61f7baaf6d9"
@@ -19,12 +19,12 @@ layoutFiles:
   terminal/lib/suites/trend/candlePainter.ts: "8384d2bce3af939a51e88584b1436ee2898a89f0fbf1aedc09ffee624a3e12e1"
   terminal/lib/indicator-canvas/host.ts: "4f2949efb22b8c378cab1ff9d176466c4857073c14a36ee4f0eeab4ec1015a25"
 cropFiles:
-  desktop-context.png: "ee68cdcf4c361b0a177164cdbff5160ff851e16d123ba6f6251f00cdc3b6a742"
-  desktop-context-zh.png: "696408192da3094bb82949f23e7ce4067f1e5e6994568751386fe869f7bda0ef"
-  tablet-context.png: "0639a8cd91cfb2b907958914d34b8229009474963507c2082b3cf9dd8a5aea5f"
-  tablet-context-zh.png: "13767ea9782973f29607dd6d22be4100c9d4084300600bf1cdebb010b392690c"
-  mobile-context.png: "d5990be7364778afea754cdc667e679d440242df3f62dc4305ed0a000c6c782a"
-  mobile-context-zh.png: "8cf049fe8cd7f6b0947255cd44044be341eaaeeb38b113c63716bfd67237ceaf"
+  desktop-context.png: "545b659ede3c1ed6bd640bad0ecdb5625016c4ba705e096b151d2885f7c8defb"
+  desktop-context-zh.png: "60012108fce233af3da01be2abfc6ed5ed1b7a392f97c324b5c3ea01e500df72"
+  tablet-context.png: "80d24f7a42c14077d15a558e6771e83e4637fdad3ce28eb93d29817bbc1e8d53"
+  tablet-context-zh.png: "b40296e586842cc8f0dc35d144c612dfc12b522ea7fc4c08a9a742b2b903a944"
+  mobile-context.png: "593a7584a176d4171a60bac7667e64faa0642a5f85ebd802d0ce83db6f9e9e71"
+  mobile-context-zh.png: "e57e36de24f67a5a141fa934944d1c638018950b0072c743cece36888a353b2a"
 
 theme: dark
 languages: [en, zh]
@@ -36,16 +36,16 @@ surface: Terminal Chart context
 harness: /terminal?symbol=NVDA
 capture_flag: TERMINAL_E2E_FIXTURE
 capture_flag_law: Standard Playwright fixture also disables the Next.js dev indicator.
-commands:
+historicalCommands:
   - TERMINAL_E2E_PORT=36947 npx playwright test e2e/visual-intelligence.spec.ts --project=desktop --project=tablet --project=mobile --workers=1 --retries=0 --reporter=list
   - TERMINAL_E2E_PORT=36948 npx playwright test e2e/chart-view-reset.spec.ts --project=mobile --workers=1 --retries=0 --grep 'New chart tickers reserve space'
-browserResults:
+historicalBrowserResults:
   desktop: 10/10 passed
   tablet: 10/10 passed
   mobile: 10/10 passed
   mobileCrosshairRegression: 1/1 passed
   visualIntelligenceMatrix: 30 passed; zero failures
-localGates:
+historicalLocalGates:
   typecheck: PASS
   scopedLint: NOT_RERUN; evidence refresh does not claim a new lint receipt
   plainLanguage: Existing localized copy retained; separate copy guard not rerun
@@ -57,3 +57,11 @@ files:
   - tablet-context-zh.png
   - mobile-context.png
   - mobile-context-zh.png
+
+recapture:
+  classification: LOCAL_BROWSER_FIXTURE_NOT_PRODUCTION
+  reason: Drawing migration repair changed ChartPanel; all six responsive EN/ZH chart-context captures were regenerated.
+  command: >-
+    TERMINAL_E2E_PORT=47847 npx playwright test e2e/visual-intelligence.spec.ts --project=desktop --project=tablet --project=mobile --workers=1 --retries=0 --grep "default context explains|Chinese context uses" --reporter=list
+  browserResults: "6/6 passed; two capture journeys at each of desktop, tablet and mobile"
+  historicalReceipts: Prior full-matrix, crosshair and unit counts above are retained historical evidence, not rerun claims.
