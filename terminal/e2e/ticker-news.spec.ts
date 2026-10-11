@@ -431,7 +431,7 @@ test("MSFT grouped detail starts while an Apple story response is still held", a
   });
 
   await panel.getByRole("button", { name: "2 reports" }).click();
-  await expect.poll(() => page.locator('[data-story-id="ev2_aapl_grp"] button').isDisabled()).toBeTruthy();
+  await expect.poll(() => page.locator('[data-story-id="ev2_aapl_grp"] button[aria-expanded]').isDisabled()).toBeTruthy();
 
   await pickSymbol(page, testInfo, "MSFT", "Microsoft");
   const msftPanel = await openNews(page);
