@@ -14,6 +14,7 @@ declare global {
     __mmCaptureMidHook?: () => unknown;
     __mmCaptureReady?: boolean;
     __e19FontsAtRequest?: boolean[];
+    __e19FacesAtRequest?: { family: string; status: string }[][];
   }
 }
 
@@ -53,8 +54,11 @@ async function openTerminal(page: Page): Promise<Uploads> {
     // runners), and check() then answers false for ever. Only faces whose unicode-range covers the
     // Latin text the strip paints count: Inter ships one face per script subset and the other
     // subsets legitimately never load. A counted face the browser cannot use paints nothing, so it
-    // is left out; a counted face still unloaded or loading at the request is the defect.
+    // is left out; a counted face still unloaded or loading at the request is the defect. This is
+    // the selection `lib/fontFaces.ts` makes for the capture itself, inline because an init script
+    // cannot import — keep the two in step.
     window.__e19FontsAtRequest = [];
+    window.__e19FacesAtRequest = [];
     window.addEventListener("mm:snapshot", (event) => {
       if ((event as CustomEvent).detail?.action !== "review") return;
       const root = getComputedStyle(document.documentElement);
@@ -74,6 +78,7 @@ async function openTerminal(page: Page): Promise<Uploads> {
       const faces: FontFace[] = [];
       document.fonts.forEach((face) => { if (wanted.has(plain(face.family)) && coversLatin(face)) faces.push(face); });
       const usable = faces.filter((face) => face.status !== "error");
+      window.__e19FacesAtRequest!.push(faces.map((face) => ({ family: plain(face.family), status: face.status })));
       window.__e19FontsAtRequest!.push(usable.length > 0 && usable.every((face) => face.status === "loaded"));
     });
   });
@@ -296,6 +301,87 @@ test.describe("chart capture review", () => {
     // forward-projected studies, past) the last bar and begins well after the first.
     expect(retried.manifest.viewport.from! > first).toBe(true);
     expect(retried.manifest.viewport.to! >= last).toBe(true);
+  });
+
+  test("the capture waits for a Latin face only the strip needs, even after the local() fallback face has errored", async ({ page }) => {
+    // next/font declares a size-adjusted local("Arial") fallback face beside the Inter subset faces.
+    // Where that local font is absent (the Linux CI runners) the face errors, and FontFaceSet.load()
+    // rejects on the first errored face, so a wait by family ends at once. The page's own text
+    // normally loads the Latin Inter face long before a capture, and Chromium's `fonts.ready` getter
+    // forces a layout that starts any load the page text still needs — so the old wait was carried
+    // by that side effect alone. Canvas text is the exception: a face only the provenance strip
+    // paints with is never loaded by layout. Construct exactly that state, on every machine: the
+    // fallback face pointed at a local font that does not exist, page text painted with a system
+    // family, a Latin Inter face nothing has used yet, and the capture requested in the same task.
+    let fallbackRewrites = 0;
+    await page.route(/\/_next\/static\/.*\.css(\?|$)/, async (route) => {
+      const response = await route.fetch();
+      const css = await response.text();
+      const rewritten = css.replace(/local\(\s*["']?Arial["']?\s*\)/g, 'local("E19 No Such Local Font")');
+      if (rewritten !== css) fallbackRewrites += 1;
+      const headers = Object.fromEntries(Object.entries(response.headers()).filter(([name]) => !/^content-(encoding|length)$/i.test(name)));
+      await route.fulfill({ response, headers, body: rewritten });
+    });
+    await openTerminal(page);
+    const dialog = await openReview(page);
+    await waitForState(dialog, "ready");
+    expect(fallbackRewrites, "the stylesheet declaring the fallback face went through the rewrite").toBeGreaterThan(0);
+    const before = await page.evaluate(() => window.__e19FontsAtRequest?.length ?? 0);
+    expect(before, "the first capture asked the chart for an image").toBeGreaterThan(0);
+
+    // The Latin Inter file, fetched once here so the held-back answer below is served from memory:
+    // the hold then measures the delay alone, not the dev server's latency under load.
+    const preloadHref = await page.evaluate(() => document.querySelector<HTMLLinkElement>('link[rel="preload"][as="font"]')?.href ?? null);
+    expect(preloadHref, "the Latin Inter file is preloaded, so its URL is known").not.toBeNull();
+    const fontBytes = await (await page.request.get(preloadHref!)).body();
+    expect(fontBytes.byteLength, "the Latin Inter file was fetched").toBeGreaterThan(0);
+    // Hold the slow face's download back for a while — well inside the capture's 2 s cap.
+    const slowUrl = `${preloadHref}${preloadHref!.includes("?") ? "&" : "?"}e19-slow=1`;
+    let delayed = 0;
+    await page.route((url) => url.searchParams.get("e19-slow") === "1", async (route) => {
+      delayed += 1;
+      await new Promise((resolve) => setTimeout(resolve, 600));
+      await route.fulfill({ status: 200, headers: { "content-type": "font/woff2", "cache-control": "no-store" }, body: fontBytes });
+    });
+    // Page text off Inter (the strip reads `--font-ui` itself, which this leaves alone), a Latin
+    // Inter face nothing has used yet, then the capture request in the same task, before any layout
+    // or chart repaint can start that face loading.
+    const added = await page.evaluate((url) => {
+      const style = document.createElement("style");
+      style.textContent = "* { font-family: ui-sans-serif, system-ui, sans-serif !important; }";
+      document.head.appendChild(style);
+      const face = new FontFace("Inter", `url("${url}")`, { weight: "100 900", unicodeRange: "U+0-FF" });
+      document.fonts.add(face);
+      const status = face.status;
+      const pageFont = getComputedStyle(document.body).fontFamily;
+      const stripFont = getComputedStyle(document.documentElement).getPropertyValue("--font-ui");
+      document.querySelector<HTMLButtonElement>('[data-testid="chart-capture-again"]')!.click();
+      return { status, pageFont, stripFont };
+    }, slowUrl);
+    expect(added.pageFont, "page text no longer uses Inter").not.toMatch(/inter/i);
+    expect(added.stripFont, "the strip still paints with the Inter list").toMatch(/inter/i);
+    expect(added.status, "the added face had not started loading when the capture was requested").toBe("unloaded");
+    await expect.poll(() => page.evaluate(() => window.__e19FontsAtRequest?.length ?? 0), {
+      message: "the second capture asks the chart for an image", timeout: 20_000,
+    }).toBeGreaterThan(before);
+    await waitForState(dialog, "ready");
+
+    // The first request of the second capture is the one that tells: later attempts of the same
+    // capture would find the face loaded whatever the wait did.
+    const seen = await page.evaluate((index) => ({
+      fonts: window.__e19FontsAtRequest![index],
+      faces: window.__e19FacesAtRequest![index],
+    }), before);
+    // The capture really ran in the Linux-runner state: the fallback face had errored, the slow face
+    // was among the faces the strip is painted with, and its file went through the delay.
+    expect(seen.faces.filter((f) => f.family === "inter fallback").map((f) => f.status), "the local() fallback face errored").toEqual(["error"]);
+    expect(seen.faces.filter((f) => f.family === "inter").length, "the slow face counts as one the strip paints with").toBeGreaterThanOrEqual(2);
+    expect(delayed, "the slow face was fetched through the delay").toBeGreaterThan(0);
+    // The claim: the chart was asked for the image only once every face the strip paints with had loaded.
+    const usable = seen.faces.filter((f) => f.status !== "error");
+    expect(usable.map((f) => `${f.family}:${f.status}`), "the capture was requested while a face it paints with was still loading")
+      .toEqual(usable.map((f) => `${f.family}:loaded`));
+    expect(seen.fonts).toBe(true);
   });
 
   test("the review fits the viewport with full-size controls", async ({ page }) => {
