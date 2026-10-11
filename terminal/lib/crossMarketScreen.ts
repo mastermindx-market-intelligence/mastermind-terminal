@@ -461,3 +461,36 @@ export function sanitizeCrossMarketFields(raw: {
       : raw.liqCcy === undefined ? "USD" : null;
   return { sector, taxonomy, classStale: raw.classStale === true, ccy, liqCcy };
 }
+
+// ── Smart screens (E04) hand-over ───────────────────────────────────────────
+
+/** Why the filter bar cannot be handed to a smart screen as it stands. */
+export type SmartScreenGap = "unclassified" | "non_gics_taxonomy" | "floor_inactive" | "floor_not_usd" | "floor_mixed_currency";
+
+/**
+ * Smart screens (E04) store a GICS sector and ONE traded-value number, shown and compared as US
+ * dollars on every row of the screen. The filter bar is handed to them unchanged only when it
+ * means the same thing there: no sector, or a GICS sector; and no floor, or a floor applied in
+ * USD over a population whose read listing currencies are all USD.
+ *
+ * Anything else — a Yahoo or CN-profile label, "unclassified", a floor in HKD/CNY, a USD floor
+ * over a mixed-currency population, a floor not applied for want of a read — has no faithful
+ * spelling in that grammar. The sector is then handed over as UNCLASSIFIED, which the screen
+ * grammar's own validator rejects, so Save refuses ("cannot be saved as a screen") instead of
+ * filing a Yahoo label as GICS or an HKD floor as dollars. The table itself is unaffected.
+ */
+export function smartScreenHandover<F extends CrossMarketFilters>(
+  f: F,
+  floor: FloorState,
+  scope: CurrencyScope,
+): { filters: F; gap: SmartScreenGap | null } {
+  let gap: SmartScreenGap | null = null;
+  if (f.sector === UNCLASSIFIED) gap = "unclassified";
+  else if (f.sector !== "all" && effectiveTaxonomy(f) !== "gics_sector") gap = "non_gics_taxonomy";
+  else if (floor.kind !== "none") {
+    if (floor.kind !== "applied") gap = "floor_inactive";
+    else if (floor.code !== "USD") gap = "floor_not_usd";
+    else if (scope.codes.some((c) => c.code !== "USD")) gap = "floor_mixed_currency";
+  }
+  return { filters: gap === null ? f : { ...f, sector: UNCLASSIFIED }, gap };
+}

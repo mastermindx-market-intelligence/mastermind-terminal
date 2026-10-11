@@ -25,11 +25,12 @@ import { TAXONOMY_IDS, labelOf, listingHref, type TaxonomyId } from "@/lib/class
 import {
   NO_EXCLUSIONS, UNCLASSIFIED, classPredicateOf, compareMoney, effectiveTaxonomy, formatFloor, formatMoney,
   floorState, labelStanding, moneyCurrency, reconcileFilters, resolveCurrencyScope, resolveLabel, sanitizeCrossMarketFields,
-  screenCrossMarket, sectorDisplay, type ClearedFilter, type ExclusionCounts, type MoneyCurrency, type SectorDisplay,
+  screenCrossMarket, sectorDisplay, smartScreenHandover, type ClearedFilter, type ExclusionCounts, type MoneyCurrency, type SectorDisplay,
 } from "@/lib/crossMarketScreen";
 import { TAXONOMY_LEX, YAHOO_SECTOR_ZH, useCrossMarketT } from "@/lib/crossMarketLex";
 import CrossMarketStrip, { CurrencyBadge, EmptyExclusionNote, SectorCellContent, type LabelCoverage } from "@/components/screener/CrossMarketStrip";
 import SmartScreensPanel from "@/components/screener/SmartScreensPanel";
+import type { ScreenerFilters } from "@/lib/smartScreen/predicate";
 // E01 technical screen: one bounded scan read (/data/scan/technical.json), classified per row by
 // lib/technicalScan — never inferred from per-symbol OHLC in the browser.
 import TechnicalScreenBar, { TechnicalCell, TECH_CELL_CLASS, TECH_ON_CLASS, TECH_TH_CLASS } from "@/components/screener/TechnicalScreenBar";
@@ -554,7 +555,7 @@ export default function ScreenerView({ identity }: { identity: AccountIdentity }
 
   // Whether the traded-value floor is APPLIED here (one currency, read), or set but inactive —
   // and then named in the strip and on its chip, never silently filtering on an unread unit.
-  const floorSt = floorState(f.liq, f.liqCcy, scope.code, scanReady);
+  const floorSt = useMemo(() => floorState(f.liq, f.liqCcy, scope.code, scanReady), [f.liq, f.liqCcy, scope.code, scanReady]);
   const appliedLiq = floorSt.kind === "applied" ? f.liq : 0;
   const floorText = formatFloor(f.liq, f.liqCcy ?? scope.code);
   // A floor set before any currency was read (or by a legacy preset without one) is bound to
@@ -564,6 +565,11 @@ export default function ScreenerView({ identity }: { identity: AccountIdentity }
     const code = scope.code;
     setF((cur) => (cur.liq > 0 && cur.liqCcy == null ? { ...cur, liqCcy: code } : cur));
   }, [scanReady, scope.code, f.liq, f.liqCcy]);
+
+  // E04 smart screens hold a GICS sector and a floor in US dollars. The bar is handed to them only
+  // in a sense that grammar can hold; otherwise Save refuses (smartScreenHandover), so a Yahoo
+  // label is never filed as GICS nor an HKD floor as dollars.
+  const smartFilters = useMemo(() => smartScreenHandover(f, floorSt, scope).filters, [f, floorSt, scope]);
 
   // ── view mode: signal scope switches the whole column set ──────────────
   const signalView = f.signal !== "any" || f.uptrend;
@@ -729,6 +735,18 @@ export default function ScreenerView({ identity }: { identity: AccountIdentity }
       setF(next);
     });
   }, [activePreset, reconcileTo]);
+
+  // A smart screen hands the bar back in ITS vocabulary — a GICS sector, a floor shown in US
+  // dollars — so it is read in that sense and reconciled like a preset: opened on another
+  // currency, the floor is cleared by name instead of being re-read as the same number.
+  const openSmartScreen = useCallback((next: ScreenerFilters, o: { showAllMarkets: boolean | null }) => {
+    const merged = reconcileTo({ ...DEFAULT_FILTERS, ...next, ...sanitizeCrossMarketFields(next) });
+    startTransition(() => {
+      setActivePreset(null);
+      setF(merged);
+      if (o.showAllMarkets !== null) setShowAllMarkets(o.showAllMarkets);
+    });
+  }, [reconcileTo]);
 
   const commitPreset = useCallback(() => {
     const name = presetName.trim().slice(0, 40);
@@ -1085,16 +1103,12 @@ export default function ScreenerView({ identity }: { identity: AccountIdentity }
         rows={rows}
         ready={loaded && !err}
         asOf={asOf}
-        filters={f}
+        filters={smartFilters}
         prefsEnabled={prefsReady ? prefs.enabled : null}
         showAllMarkets={showAllMarkets}
         labelGics={gicsLabel}
         labelAsset={assetLabel}
-        onOpen={(next, o) => startTransition(() => {
-          setActivePreset(null);
-          setF(next);
-          if (o.showAllMarkets !== null) setShowAllMarkets(o.showAllMarkets);
-        })}
+        onOpen={openSmartScreen}
       />
 
       {/* ── status row: counts computed over the FILTERED set, plus scope honesty ── */}

@@ -23,12 +23,14 @@ import {
   screenClassification,
   screenCrossMarket,
   sectorDisplay,
+  smartScreenHandover,
   type CrossMarketFilters,
   type ExclusionCounts,
   type MoneyCurrency,
   type ReconcileProbe,
 } from "../crossMarketScreen";
 import { marketOf } from "../markets";
+import { DEFAULT_SCREENER_FILTERS, compileFilters, type ScreenerFilters } from "../smartScreen/predicate";
 
 type MRow = { sym: string; mkt?: string; sec?: string; gics?: string; mcap?: number; last?: number; vol?: number };
 const MANIFEST: { symbols: Record<string, Omit<MRow, "sym">> } = JSON.parse(
@@ -368,5 +370,68 @@ describe("stored presets", () => {
     expect(classPredicateOf({ taxonomy: null, sector: "all" })).toBeNull();
     expect(classPredicateOf({ taxonomy: "yahoo_sector", sector: UNCLASSIFIED })).toEqual({ taxonomy: "yahoo_sector", op: "unclassified" });
     expect(classPredicateOf({ taxonomy: null, sector: "Energy", classStale: true })).toEqual({ taxonomy: "gics_sector", op: "in", labels: ["Energy"], includeStale: true });
+  });
+});
+
+describe("E04 smart screens — the bar is handed over only in a sense their grammar holds", () => {
+  // Smart screens store a GICS sector and one traded-value number shown as US dollars.
+  const ctx = { prefsEnabled: null, showAllMarkets: false };
+  type Bar = ScreenerFilters & CrossMarketFilters;
+  const bar = (f: Partial<CrossMarketFilters>): Bar => ({ ...DEFAULT_SCREENER_FILTERS, ...BASE, ...f } as Bar);
+  const handover = (f: Bar, s = S) => {
+    const { scope, floor } = screen(s, f);
+    return smartScreenHandover(f, floor, scope);
+  };
+
+  it("hands a GICS sector over unchanged, and a USD floor over a USD-only population", () => {
+    const gics = bar({ taxonomy: "gics_sector", sector: "Energy" });
+    const a = handover(gics);
+    expect(a.gap).toBeNull();
+    expect(a.filters).toBe(gics);
+    expect(compileFilters(a.filters, ctx).ok).toBe(true);
+    const usFloor = bar({ market: "us", liq: 5e6, liqCcy: "USD" });
+    expect(screen(S, usFloor).scope.codes.map((c) => c.code)).toEqual(["USD"]);
+    const b = handover(usFloor);
+    expect(b.gap).toBeNull();
+    expect(compileFilters(b.filters, ctx).ok).toBe(true);
+  });
+
+  it("refuses what the grammar would misfile: a Yahoo label as GICS, unclassified, a local-currency floor", () => {
+    const cases: [Bar, string][] = [
+      [bar({ taxonomy: "yahoo_sector", sector: "Technology" }), "non_gics_taxonomy"],
+      [bar({ taxonomy: "cn_profile_sector", sector: "Energy" }), "non_gics_taxonomy"],
+      [bar({ taxonomy: "gics_sector", sector: UNCLASSIFIED }), "unclassified"],
+      [bar({ market: "hk", liq: 5e6, liqCcy: "HKD" }), "floor_not_usd"],
+      // all markets: a USD floor applies to USD listings only, the grammar would compare HKD as $
+      [bar({ liq: 5e6, liqCcy: "USD" }), "floor_mixed_currency"],
+    ];
+    for (const [f, gap] of cases) {
+      const out = handover(f);
+      expect(out.gap, gap).toBe(gap);
+      expect(compileFilters(out.filters, ctx).ok, gap).toBe(false); // Save refuses
+      expect({ ...out.filters, sector: f.sector }, gap).toEqual(f); // only the hand-over changes
+    }
+  });
+
+  it("refuses a floor that is set but not applied for want of a read", () => {
+    const f = bar({ market: "us", liq: 5e6, liqCcy: "USD" });
+    for (const src of [{ kind: "absent" } as ClassificationScanSource, { kind: "error", error: "timeout" } as ClassificationScanSource]) {
+      expect(handover(f, src).gap, src.kind).toBe("floor_inactive");
+    }
+  });
+
+  it("reads an opened screen in its own vocabulary: its floor is US dollars, cleared by name elsewhere", () => {
+    // what decompileToFilters hands back: no taxonomy, no floor currency
+    const open = (f: Partial<ScreenerFilters>) => {
+      const next = { ...DEFAULT_SCREENER_FILTERS, ...f };
+      const merged = { ...BASE, ...next, ...sanitizeCrossMarketFields(next) };
+      return reconcileFilters(merged, inMarket(merged.market), probe(S), { preferred: merged.market === "all" ? "USD" : null, readable: true });
+    };
+    const hk = open({ market: "hk", liq: 5e6 });
+    expect(hk.cleared).toEqual([{ field: "liq", value: "$5M", reason: "currency_changed", from: "USD", to: "HKD" }]);
+    expect(hk.next).toMatchObject({ liq: 0, liqCcy: null });
+    const us = open({ market: "us", liq: 5e6, sector: "Energy" });
+    expect(us.cleared).toEqual([]);
+    expect(us.next).toMatchObject({ liq: 5e6, liqCcy: "USD", taxonomy: "gics_sector", sector: "Energy" });
   });
 });
