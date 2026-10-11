@@ -607,6 +607,18 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
   const t = useT();
   const ref = useRef<HTMLDivElement>(null);
   const statusRef = useRef<HTMLSpanElement>(null);
+  // Only phone-web CSS consumes this measurement. Observe the painted header:
+  // quotes, settings, locale, Replay chips and viewport changes can change its rows.
+  useLayoutEffect(() => {
+    const line = statusRef.current?.closest<HTMLElement>(".statusline");
+    const host = line?.parentElement;
+    if (!line || !host) return;
+    const measure = () => host.style.setProperty("--statusline-height", `${line.getBoundingClientRect().height}px`);
+    measure();
+    const observer = new ResizeObserver(measure);
+    observer.observe(line);
+    return () => { observer.disconnect(); host.style.removeProperty("--statusline-height"); };
+  }, []);
   const visualPanelRef = useRef<VisualIntelligenceHandle | null>(null);
   const visualSeriesRef = useRef<VisualSeries | null>(null);
   const visualSelectedTimeRef = useRef<string | null>(null);
