@@ -13,7 +13,9 @@ const output=path.join(__dirname,'.generated');
   for(const l of ['en','zh'])for(const t of ['dark','light']){
    await adjust(l,t);await page.locator('#state').selectOption('ready');await page.locator('#pane details summary').click();
    const r=await inspect();assert(r.sectionScroll<=r.sectionClient&&r.documentScroll<=r.documentClient&&r.selectContained,'route overflow '+JSON.stringify(r));
-   records.push({kind:'route-synthetic',viewport:[vw,vh],locale:l,material:t,...r});await page.screenshot({path:path.join(output,`ready-${vw}-${l}-${t}.png`),fullPage:true});
+   const datedCopy=l==='en'?'Disclosed as planned on 2024-02-26':'2024-02-26披露时为计划';
+   assert((await page.locator('#pane').innerText()).includes(datedCopy),'missing dated source disclosure '+l);
+   records.push({kind:'route-synthetic',viewport:[vw,vh],locale:l,material:t,datedDisclosure:datedCopy,...r});await page.screenshot({path:path.join(output,`ready-${vw}-${l}-${t}.png`),fullPage:true});
    for(const state of ['guest','unselected','unsupported','access_unknown','missing_feature','loading','metadata_only','source_unavailable','selection_changed','empty','selecting']){
     await page.locator('#state').selectOption(state);const text=await page.locator('#pane').innerText();assert(!text.includes('Synthetic product')&&!text.includes('a'.repeat(64)),'stale private projection in '+state);assert(await page.locator('#pane details').count()===0,'stale references');
    }

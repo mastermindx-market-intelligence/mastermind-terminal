@@ -45,9 +45,13 @@ export const PRIVATE_COMPANY_LEX = {
     "此视图未包含"
   ],
   "scopeNote": [
-    "This view includes no timing or commercial figures.",
-    "此视图不含时间或商业规模数据。"
+    "Source announcement timing only. No delivery schedule or commercial figures.",
+    "仅含来源公告时间，不含交付计划或商业规模数据。"
   ],
+  "disclosedAsPlanned": ["Disclosed as planned on {published_date}", "{published_date}披露时为计划"],
+  "publicationDate": ["Publication date", "发布日期"],
+  "publicationInstant": ["Publication instant", "发布时刻"],
+  "sourceObservation": ["Source observation", "来源观测时刻"],
   "authorityNote": [
     "Research context only. No ranking or position sizing.",
     "仅用于研究背景，不参与排序或仓位判断。"

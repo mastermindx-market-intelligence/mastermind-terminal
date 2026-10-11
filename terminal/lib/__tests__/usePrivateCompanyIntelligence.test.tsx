@@ -23,7 +23,7 @@ const PYTHON_RECEIPT_SHA = 'b94c988b5b1463c0e57f8d83b74be7f87fc4715efa418470fcf5
 const RECEIPT_SCHEMA = 'company_intelligence.current_issuer_identity/v1';
 const CONTEXT_SCHEMA = 'company_intelligence.private_company_context/v1';
 const SELECTIONS_SCHEMA = 'company_intelligence.private_issuer_selections/v1';
-const PRODUCT_SCHEMA = 'company_intelligence.private_product_integration/v1';
+const PRODUCT_SCHEMA = 'company_intelligence.private_product_integration/v2';
 const ERROR_SCHEMA = 'company_intelligence.private_error/v1';
 const FACT_SCHEMA = 'company_intelligence.product_integration_fact/v1';
 const EDITION_SCHEMA = 'company_intelligence.issuer_disclosure_edition/v1';
@@ -121,6 +121,7 @@ function factFixture(factId: string, subjectId: string, fields: Record<string, u
     },
     reference: { schema: FACT_SCHEMA, sha256: HASH_A, byte_length: 512 },
     edition: { schema: EDITION_SCHEMA, sha256: HASH_E, byte_length: 480 },
+    source_timing: { published_date: '2024-02-26', published_at: null, publication_precision: 'date', known_at: '2024-02-26T09:05:30.123456+08:00' },
     generation: GENERATION, authority: 'context_only',
   };
 }
@@ -477,6 +478,7 @@ describe('the three-read chain', () => {
       fact: { fact_id: fx.chosen, kind: 'product_integration', lifecycle: 'planned', subject_id: CONTEXT_ISSUER },
       reference: { schema: FACT_SCHEMA, sha256: HASH_A, byte_length: 512 },
       edition: { schema: EDITION_SCHEMA, sha256: HASH_E, byte_length: 480 },
+    source_timing: { published_date: '2024-02-26', published_at: null, publication_precision: 'date', known_at: '2024-02-26T09:05:30.123456+08:00' },
       generation: GENERATION, authority: 'context_only',
     };
     responder = chainRoutes(fx, {}, { fact: minimal });

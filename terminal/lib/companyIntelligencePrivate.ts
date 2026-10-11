@@ -3,7 +3,7 @@
  *
  * This module performs no I/O, imports nothing server-only, and never calls fetch. It
  * only decides whether a value that the private server helper has already bounded and
- * parsed has the exact shape of the published source contract at b536aeaa
+ * parsed has the exact shape of the published source contract at 0de7a9ca (private wire v2)
  * (engine/company_intelligence/issuer_disclosures.py, issuer_disclosure_selection.py,
  * app/company_disclosures.py).
  *
@@ -22,7 +22,7 @@
 export const PRIVATE_ISSUER_SELECTIONS_SCHEMA = 'company_intelligence.private_issuer_selections/v1';
 export const PRIVATE_COMPANY_CONTEXT_SCHEMA = 'company_intelligence.private_company_context/v1';
 export const PRIVATE_IDENTITY_RECEIPT_SCHEMA = 'company_intelligence.current_issuer_identity/v1';
-export const PRIVATE_PRODUCT_INTEGRATION_SCHEMA = 'company_intelligence.private_product_integration/v1';
+export const PRIVATE_PRODUCT_INTEGRATION_SCHEMA = 'company_intelligence.private_product_integration/v2';
 export const PRIVATE_ERROR_SCHEMA = 'company_intelligence.private_error/v1';
 export const PRIVATE_FACT_SCHEMA = 'company_intelligence.product_integration_fact/v1';
 export const PRIVATE_EDITION_SCHEMA = 'company_intelligence.issuer_disclosure_edition/v1';
@@ -114,11 +114,26 @@ export interface PrivateFactFields {
   readonly economic_share?: null;
 }
 
+/**
+ * Closed source-announcement timing copied from the verified referenced edition.
+ * Original wire strings are preserved verbatim: no JS Date parsing, no locale or UTC
+ * normalization of a rendered publication date, and no synthesized midnight when
+ * publication_precision is 'date'. known_at is the edition's observed knowledge
+ * instant — never a publication date and never a sign that the plan is current.
+ */
+export interface PrivateSourceTiming {
+  readonly published_date: string;
+  readonly published_at: string | null;
+  readonly publication_precision: 'date' | 'instant';
+  readonly known_at: string;
+}
+
 export interface PrivateProductIntegration {
   readonly schema: typeof PRIVATE_PRODUCT_INTEGRATION_SCHEMA;
   readonly fact: PrivateFactFields;
   readonly reference: PrivateReference;
   readonly edition: PrivateReference;
+  readonly source_timing: PrivateSourceTiming;
   readonly generation: string;
   readonly authority: typeof PRIVATE_AUTHORITY;
 }
@@ -158,7 +173,8 @@ export type PrivateDecodeReason =
   | 'RETRY'
   | 'BINDING'
   | 'IDENTITY'
-  | 'COMPOSITION';
+  | 'COMPOSITION'
+  | 'TIMING';
 
 /** Bounded refusal: the message is a fixed label, never data from the rejected value. */
 export class PrivateDecodeError extends Error {
@@ -181,6 +197,15 @@ const MIC_SHAPE = /^[A-Za-z0-9]{4}$/;
 const LISTING_CODE = /^[A-Za-z0-9][A-Za-z0-9.-]*$/;
 const LISTING_KEY_PARTS = /^([^-]*)-([^-]*)-(.*)$/;
 const DIGITS_ONLY = /^[0-9]+$/;
+const TIMING_DATE = /^([0-9]{4})-([0-9]{2})-([0-9]{2})$/;
+/** Offset designator is mandatory, exactly as the native _INSTANT pattern. */
+const TIMING_INSTANT = /^([0-9]{4})-([0-9]{2})-([0-9]{2})T([0-9]{2}):([0-9]{2}):([0-9]{2})(?:\.([0-9]{1,6}))?(Z|[+-][0-9]{2}:[0-9]{2})$/;
+/** Closed as BigInt() calls so the literal target of the terminal tsconfig is irrelevant. */
+const MICROSECONDS_PER_DAY = BigInt('86400000000');
+/** Inclusive: 0001-01-01T00:00:00Z. */
+const MIN_EPOCH_UTC_MICROSECONDS = BigInt('-62135596800000000');
+/** Exclusive: 10000-01-01T00:00:00Z, so 9999-12-31T23:59:59.999999Z is the last legal UTC instant. */
+const MAX_EPOCH_UTC_MICROSECONDS = BigInt('253402300800000000');
 
 /**
  * The MIC set is closed on purpose in lib/dataos/identity.py; the issuer id shape a
@@ -246,6 +271,150 @@ function evidencedCik(value: unknown): string {
   if (typeof value !== 'string' || !DIGITS_10.test(value)) throw new PrivateDecodeError('CIK');
   if (ALL_ZEROS.test(value)) throw new PrivateDecodeError('CIK');
   return value;
+}
+
+/**
+ * Source-authoritative Gregorian civil semantics over exact integers. The native side
+ * validates through datetime.fromisoformat, which tolerates noncanonical offset
+ * minutes, so this consumer guesses no stricter minute range and bounds only what the
+ * source establishes: a real local datetime, a total offset strictly inside ±24 hours,
+ * and a UTC datetime inside years 0001..9999. (Verified against the native semantics:
+ * '…-13:45' parses, '+24:00' raises, second==60 raises, and an offset that pushes UTC
+ * outside 0001..9999 raises.)
+ */
+function isGregorianLeap(year: number): boolean {
+  return year % 4 === 0 && (year % 100 !== 0 || year % 400 === 0);
+}
+
+function daysInGregorianMonth(year: number, month: number): number {
+  if (month === 2) return isGregorianLeap(year) ? 29 : 28;
+  return month === 4 || month === 6 || month === 9 || month === 11 ? 30 : 31;
+}
+
+/** Days since 1970-01-01 for a known-valid civil date (Hinnant days_from_civil). */
+function civilDateToDays(year: number, month: number, day: number): number {
+  const shifted = month <= 2 ? year - 1 : year;
+  const era = Math.floor(shifted / 400);
+  const yearOfEra = shifted - era * 400;
+  const dayOfYear = Math.floor((153 * (month + (month > 2 ? -3 : 9)) + 2) / 5) + day - 1;
+  const dayOfEra = yearOfEra * 365 + Math.floor(yearOfEra / 4) - Math.floor(yearOfEra / 100) + dayOfYear;
+  return era * 146097 + dayOfEra - 719468;
+}
+
+function eraStartDayOfEra(yearOfEra: number): number {
+  return yearOfEra * 365 + Math.floor(yearOfEra / 4) - Math.floor(yearOfEra / 100);
+}
+
+/** Inverse of civilDateToDays; the clamp is the 399→0 era rollover boundary. */
+function civilFromDays(days: number): { year: number; month: number; day: number } {
+  const shifted = days + 719468;
+  const era = Math.floor(shifted / 146097);
+  const dayOfEra = shifted - era * 146097;
+  let yearOfEra = Math.floor((dayOfEra - Math.floor(dayOfEra / 4) + Math.floor(dayOfEra / 146) - Math.floor(dayOfEra / 146096)) / 365);
+  while (eraStartDayOfEra(yearOfEra) > dayOfEra) yearOfEra -= 1;
+  while (yearOfEra < 399 && eraStartDayOfEra(yearOfEra + 1) <= dayOfEra) yearOfEra += 1;
+  const year = yearOfEra + era * 400;
+  const dayOfYear = dayOfEra - eraStartDayOfEra(yearOfEra);
+  const monthPrime = Math.floor((5 * dayOfYear + 2) / 153);
+  const day = dayOfYear - Math.floor((153 * monthPrime + 2) / 5) + 1;
+  const month = monthPrime + (monthPrime < 10 ? 3 : -9);
+  return { year: month <= 2 ? year + 1 : year, month, day };
+}
+
+/** Null unless the string is an exact real YYYY-MM-DD inside Gregorian 0001..9999. */
+function timingDateParts(value: string): { year: number; month: number; day: number } | null {
+  const match = TIMING_DATE.exec(value);
+  if (match === null) return null;
+  const year = Number.parseInt(match[1], 10);
+  const month = Number.parseInt(match[2], 10);
+  const day = Number.parseInt(match[3], 10);
+  if (year < 1 || year > 9999 || month < 1 || month > 12) return null;
+  if (day < 1 || day > daysInGregorianMonth(year, month)) return null;
+  return { year, month, day };
+}
+
+/**
+ * Exact whole-epoch-microsecond UTC instant for a shape-checked string, or null. No
+ * float milliseconds and no Date: ordering is decided to the microsecond with BigInt,
+ * and the original string stays the only rendered value.
+ */
+function timingInstantToEpochMicroseconds(value: string): bigint | null {
+  const match = TIMING_INSTANT.exec(value);
+  if (match === null) return null;
+  const date = timingDateParts(value.slice(0, 10));
+  if (date === null) return null;
+  const hour = Number.parseInt(match[4], 10);
+  const minute = Number.parseInt(match[5], 10);
+  const second = Number.parseInt(match[6], 10);
+  if (hour > 23 || minute > 59 || second > 59) return null;
+  const fraction = match[7];
+  const microsecond = fraction === undefined ? 0 : Number.parseInt(fraction.padEnd(6, '0'), 10);
+  let offsetSeconds = 0;
+  const designator = match[8];
+  if (designator !== 'Z') {
+    const offsetHours = Number.parseInt(designator.slice(1, 3), 10);
+    const offsetMinutes = Number.parseInt(designator.slice(4, 6), 10);
+    if (offsetHours * 60 + offsetMinutes >= 24 * 60) return null;
+    offsetSeconds = (designator.charAt(0) === '-' ? -1 : 1) * (offsetHours * 3600 + offsetMinutes * 60);
+  }
+  const local = BigInt(civilDateToDays(date.year, date.month, date.day)) * MICROSECONDS_PER_DAY
+    + BigInt(hour * 3600000000 + minute * 60000000) + BigInt(second * 1000000 + microsecond);
+  const utc = local - BigInt(offsetSeconds) * BigInt('1000000');
+  if (utc < MIN_EPOCH_UTC_MICROSECONDS || utc >= MAX_EPOCH_UTC_MICROSECONDS) return null;
+  return utc;
+}
+
+/** UTC calendar date of an exact epoch-microsecond instant (floor division, not truncation). */
+function utcDateFromEpochMicroseconds(microseconds: bigint): string {
+  let days = microseconds / MICROSECONDS_PER_DAY;
+  if (microseconds % MICROSECONDS_PER_DAY !== BigInt('0') && microseconds < BigInt('0')) days -= BigInt('1');
+  const civil = civilFromDays(Number(days));
+  return String(civil.year).padStart(4, '0') + '-' + String(civil.month).padStart(2, '0') + '-' + String(civil.day).padStart(2, '0');
+}
+
+/**
+ * Strict closed source_timing decoder. Every refusal is the one fixed label TIMING;
+ * no rejected value, field, or native cause is ever copied into the error.
+ */
+function decodeSourceTiming(value: unknown): PrivateSourceTiming {
+  let timing: Record<string, unknown>;
+  try {
+    timing = closedObject(value, ['published_date', 'published_at', 'publication_precision', 'known_at']);
+  } catch (error) {
+    if (error instanceof PrivateDecodeError) throw new PrivateDecodeError('TIMING');
+    throw error;
+  }
+  if (typeof timing.published_date !== 'string' || timingDateParts(timing.published_date) === null) throw new PrivateDecodeError('TIMING');
+  if (typeof timing.known_at !== 'string') throw new PrivateDecodeError('TIMING');
+  const knownMicroseconds = timingInstantToEpochMicroseconds(timing.known_at);
+  if (knownMicroseconds === null) throw new PrivateDecodeError('TIMING');
+  const precision = timing.publication_precision;
+  if (precision !== 'date' && precision !== 'instant') throw new PrivateDecodeError('TIMING');
+  if (precision === 'date') {
+    // Date-only announcements must not be upgraded to an invented instant, and the
+    // announcement may not sit after the edition's observed knowledge day in UTC.
+    if (timing.published_at !== null) throw new PrivateDecodeError('TIMING');
+    if (timing.published_date > utcDateFromEpochMicroseconds(knownMicroseconds)) throw new PrivateDecodeError('TIMING');
+    return Object.freeze({
+      published_date: timing.published_date,
+      published_at: null,
+      publication_precision: 'date',
+      known_at: timing.known_at,
+    });
+  }
+  if (typeof timing.published_at !== 'string') throw new PrivateDecodeError('TIMING');
+  const publishedMicroseconds = timingInstantToEpochMicroseconds(timing.published_at);
+  if (publishedMicroseconds === null) throw new PrivateDecodeError('TIMING');
+  // The validated instant string's leading ten characters ARE its offset-local
+  // calendar date; comparing strings is what keeps the original offset intact.
+  if (timing.published_at.slice(0, 10) !== timing.published_date) throw new PrivateDecodeError('TIMING');
+  if (publishedMicroseconds > knownMicroseconds) throw new PrivateDecodeError('TIMING');
+  return Object.freeze({
+    published_date: timing.published_date,
+    published_at: timing.published_at,
+    publication_precision: 'instant',
+    known_at: timing.known_at,
+  });
 }
 
 function utf8ByteLength(value: string): number {
@@ -574,7 +743,7 @@ export function decodePrivateIssuerSelections(value: unknown, expectedIssuerId: 
  * here is not yet evidence that it belongs to any issuer selection.
  */
 export function decodePrivateProductIntegration(value: unknown, expectedFactId: string): PrivateProductIntegration {
-  const root = closedObject(value, ['schema', 'fact', 'reference', 'edition', 'generation', 'authority']);
+  const root = closedObject(value, ['schema', 'fact', 'reference', 'edition', 'source_timing', 'generation', 'authority']);
   if (root.schema !== PRIVATE_PRODUCT_INTEGRATION_SCHEMA) throw new PrivateDecodeError('SCHEMA');
   if (root.authority !== PRIVATE_AUTHORITY) throw new PrivateDecodeError('VALUE');
   const generation = nativeIdentifier(root.generation);
@@ -587,6 +756,7 @@ export function decodePrivateProductIntegration(value: unknown, expectedFactId: 
     fact,
     reference,
     edition,
+    source_timing: decodeSourceTiming(root.source_timing),
     generation,
     authority: PRIVATE_AUTHORITY,
   });

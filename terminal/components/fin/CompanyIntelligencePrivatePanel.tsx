@@ -70,11 +70,16 @@ export function CompanyIntelligencePrivatePanel({
               <dl className={styles['ci-private-fields']}>
                 <div><dt>{t('product')}</dt><dd>{state.fact.fact.product ?? t('notInView')}</dd></div>
                 <div><dt>{t('platform')}</dt><dd>{state.fact.fact.platform ?? t('notInView')}</dd></div>
+                <div><dt>{t('disclosedAsPlanned').replace('{published_date}', state.fact.source_timing.published_date)}</dt><dd>{t('publicationDate')}: {state.fact.source_timing.published_date}</dd></div>
               </dl>
               <p className={styles['ci-private-note']}>{t('scopeNote')}</p>
               <details className={styles['ci-private-details']} key={JSON.stringify([state.viewKey, state.selectedFactId])}>
                 <summary>{t('referenceDetails')}</summary>
                 <dl>
+                  {state.fact.source_timing.publication_precision === 'instant' && (
+                    <Fragment><dt>{t('publicationInstant')}</dt><dd>{state.fact.source_timing.published_at}</dd></Fragment>
+                  )}
+                  <dt>{t('sourceObservation')}</dt><dd>{state.fact.source_timing.known_at}</dd>
                   <dt>{t('issuer')}</dt><dd>{state.context.issuer_binding.issuer_id}</dd>
                   <dt>{t('cik')}</dt><dd>{state.context.issuer_binding.evidenced_cik}</dd>
                   {referenceRows('identityReference', state.context.issuer_binding.identity_snapshot_reference)}

@@ -77,7 +77,7 @@
     ]
   },
   "fact": {
-    "schema": "company_intelligence.private_product_integration/v1",
+    "schema": "company_intelligence.private_product_integration/v2",
     "generation": "synthetic-generation",
     "authority": "context_only",
     "reference": {
@@ -97,6 +97,12 @@
       "subject_id": "ISS:US-XNAS-TEST",
       "product": "Synthetic product for layout review",
       "platform": "Synthetic platform for layout review"
+    },
+    "source_timing": {
+      "published_date": "2024-02-26",
+      "published_at": null,
+      "publication_precision": "date",
+      "known_at": "2024-02-26T09:05:30.123456+08:00"
     }
   }
 }

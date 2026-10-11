@@ -203,6 +203,7 @@ function factProjection(factFields: Record<string, unknown> = {}, overrides: Rec
     fact: Object.assign({ fact_id: FACT_ID, kind: 'product_integration', lifecycle: 'planned' }, factFields),
     reference: nativeReference(PRIVATE_FACT_SCHEMA, HASH_A, 512),
     edition: nativeReference(PRIVATE_EDITION_SCHEMA, HASH_B, 480),
+    source_timing: { published_date: '2024-02-26', published_at: null, publication_precision: 'date', known_at: '2024-02-26T09:05:30.123456+08:00' },
     generation: GENERATION,
     authority: 'context_only',
   }, overrides);
@@ -257,7 +258,7 @@ describe('private product-integration projection', () => {
     expect(decoded.schema).toBe(PRIVATE_PRODUCT_INTEGRATION_SCHEMA);
     expect(decoded.authority).toBe('context_only');
     expect(decoded.fact).toEqual({ fact_id: FACT_ID, kind: 'product_integration', lifecycle: 'planned' });
-    expect(Object.keys(decoded).sort()).toEqual(['authority', 'edition', 'fact', 'generation', 'reference', 'schema']);
+    expect(Object.keys(decoded).sort()).toEqual(['authority', 'edition', 'fact', 'generation', 'reference', 'schema', 'source_timing']);
   });
 
   it('accepts every optional field and an explicitly null magnitude', () => {
@@ -579,5 +580,123 @@ describe('selection-to-fact composition', () => {
     const tampered = Object.assign({}, fact, { generation: 'gen-2026-10-10' });
     expect(refuse(() => assertPrivateComposition(selection, entry, tampered)).reason).toBe('COMPOSITION');
     expect(refuse(() => assertPrivateComposition(selection, Object.assign({}, entry, { fact_id: OTHER_FACT_ID }), fact)).reason).toBe('COMPOSITION');
+  });
+});
+
+const TIMING = { published_date: '2024-02-26', published_at: null, publication_precision: 'date', known_at: '2024-02-26T09:05:30.123456+08:00' };
+function timedFact(timing: Record<string, unknown>, overrides: Record<string, unknown> = {}) {
+  return factProjection({ subject_id: ISSUER }, { source_timing: timing, ...overrides });
+}
+
+describe('private source timing', () => {
+  it('refuses the v1 projection and a projection without timing', () => {
+    const v1WithTiming = factProjection({ subject_id: ISSUER }, { schema: 'company_intelligence.private_product_integration/v1' });
+    expect(refuse(() => decodePrivateProductIntegration(v1WithTiming, FACT_ID)).reason).toBe('SCHEMA');
+    const v1Shape = factProjection({ subject_id: ISSUER });
+    delete (v1Shape as { source_timing?: unknown }).source_timing;
+    expect(refuse(() => decodePrivateProductIntegration(v1Shape, FACT_ID)).reason).toBe('KEYSET');
+  });
+  it('refuses a timing object with an unknown key or a missing field', () => {
+    expect(refuse(() => decodePrivateProductIntegration(timedFact({ ...TIMING, note: 'x' }), FACT_ID)).reason).toBe('TIMING');
+    for (const key of ['published_date', 'published_at', 'publication_precision', 'known_at']) {
+      const missing: Record<string, unknown> = { ...TIMING };
+      delete missing[key];
+      expect(refuse(() => decodePrivateProductIntegration(timedFact(missing), FACT_ID)).reason).toBe('TIMING');
+    }
+  });
+  it('refuses wrong precision and wrong null pairing', () => {
+    expect(refuse(() => decodePrivateProductIntegration(timedFact({ ...TIMING, publication_precision: 'second' }), FACT_ID)).reason).toBe('TIMING');
+    expect(refuse(() => decodePrivateProductIntegration(timedFact({ ...TIMING, published_at: '2024-02-26T00:00:00Z' }), FACT_ID)).reason).toBe('TIMING');
+    expect(refuse(() => decodePrivateProductIntegration(timedFact({ published_date: '2024-02-26', published_at: null, publication_precision: 'instant', known_at: '2024-02-27T00:00:00Z' }), FACT_ID)).reason).toBe('TIMING');
+  });
+  it('refuses impossible dates and instant precision defects', () => {
+    expect(refuse(() => decodePrivateProductIntegration(timedFact({ ...TIMING, published_date: '2023-02-29' }), FACT_ID)).reason).toBe('TIMING');
+    expect(refuse(() => decodePrivateProductIntegration(timedFact({ ...TIMING, published_date: '0000-01-01' }), FACT_ID)).reason).toBe('TIMING');
+    const instant = { ...TIMING, published_at: '2024-02-26T09:05:30Z', publication_precision: 'instant' };
+    expect(refuse(() => decodePrivateProductIntegration(timedFact({ ...instant, published_at: '2024-02-26T09:05:30' }), FACT_ID)).reason).toBe('TIMING');
+    expect(refuse(() => decodePrivateProductIntegration(timedFact({ ...instant, published_at: '2024-02-26T09:05:30.1234567Z' }), FACT_ID)).reason).toBe('TIMING');
+    expect(refuse(() => decodePrivateProductIntegration(timedFact({ ...instant, published_at: '2024-02-26T09:59:60Z' }), FACT_ID)).reason).toBe('TIMING');
+    expect(refuse(() => decodePrivateProductIntegration(timedFact({ ...instant, published_at: '2024-02-26T09:05:30+24:00' }), FACT_ID)).reason).toBe('TIMING');
+  });
+  it('refuses a local date that is not the instant day and a one-microsecond-late publication', () => {
+    const mismatch = { published_date: '2024-02-25', published_at: '2024-02-26T09:05:30Z', publication_precision: 'instant', known_at: '2024-02-28T00:00:00Z' };
+    expect(refuse(() => decodePrivateProductIntegration(timedFact(mismatch), FACT_ID)).reason).toBe('TIMING');
+    const late = { published_date: '2024-02-26', published_at: '2024-02-26T20:05:30.000001+08:00', publication_precision: 'instant', known_at: '2024-02-26T12:05:30Z' };
+    expect(refuse(() => decodePrivateProductIntegration(timedFact(late), FACT_ID)).reason).toBe('TIMING');
+  });
+  it('refuses a date-only announcement after the observed knowledge day', () => {
+    expect(refuse(() => decodePrivateProductIntegration(timedFact({ ...TIMING, published_date: '2024-02-27', known_at: '2024-02-26T23:59:59.999999Z' }), FACT_ID)).reason).toBe('TIMING');
+  });
+  it('accepts leap dates, later observations, and offset-crossing days, preserving exact strings', () => {
+    const leap = decodePrivateProductIntegration(timedFact({ published_date: '2024-02-29', published_at: null, publication_precision: 'date', known_at: '2024-03-01T00:00:00Z' }), FACT_ID);
+    expect(leap.source_timing.published_date).toBe('2024-02-29');
+    const crossed = decodePrivateProductIntegration(timedFact({ published_date: '2024-02-26', published_at: '2024-02-26T23:30:00.123456-05:00', publication_precision: 'instant', known_at: '2024-02-27T12:30:00.123456+08:00' }), FACT_ID);
+    expect(crossed.source_timing.published_at).toBe('2024-02-26T23:30:00.123456-05:00');
+    expect(crossed.source_timing.known_at).toBe('2024-02-27T12:30:00.123456+08:00');
+    expect(Object.isFrozen(crossed.source_timing)).toBe(true);
+  });
+  it('exercises the full source correction with the corrected edition timing', () => {
+    const original = decodePrivateIssuerSelections(selectionProjection([selectionEntry(FACT_ID)]), ISSUER);
+    const entry = original.selections[0];
+    const correctedEdition = nativeReference(PRIVATE_EDITION_SCHEMA, 'd'.repeat(64), 1024);
+    const correctedSelection = decodePrivateIssuerSelections(
+      selectionProjection([Object.assign({}, {
+        fact_id: FACT_ID,
+        fact_reference: nativeReference(PRIVATE_FACT_SCHEMA, HASH_A, 512),
+        edition_reference: correctedEdition,
+        kind: 'product_integration', lifecycle: 'planned',
+      })]),
+      ISSUER,
+    );
+    const correctedEntry = correctedSelection.selections[0];
+    const corrected = decodePrivateProductIntegration(timedFact({
+      published_date: '2024-02-27', published_at: '2024-02-27T08:00:00.000001+08:00',
+      publication_precision: 'instant', known_at: '2024-02-27T00:00:00.000002Z',
+    }, { edition: correctedEdition }), FACT_ID);
+    assertPrivateComposition(correctedSelection, correctedEntry, corrected);
+    expect(corrected.source_timing.published_date).toBe('2024-02-27');
+    expect(refuse(() => assertPrivateComposition(correctedSelection, correctedEntry,
+      decodePrivateProductIntegration(timedFact(TIMING, { edition: entry.edition_reference }), FACT_ID))).reason).toBe('COMPOSITION');
+  });
+});
+
+describe('native timing offset parity', () => {
+  it.each([
+    { published_date: '2024-02-26', published_at: '2024-02-26T13:15:00.123456+05:75', publication_precision: 'instant', known_at: '2024-02-26T07:00:00.123456Z' },
+    { published_date: '2024-02-27', published_at: null, publication_precision: 'date', known_at: '2024-02-26T23:30:00-00:99' },
+  ])('accepts native-valid noncanonical offset minutes without rewriting $known_at', timing => {
+    expect(decodePrivateProductIntegration(timedFact(timing), FACT_ID).source_timing).toEqual(timing);
+  });
+});
+
+
+describe('timing temporal boundaries', () => {
+  it.each([
+    { ...TIMING, published_date: '1900-02-29' },
+    { ...TIMING, published_date: '2024-04-31' },
+    { ...TIMING, published_date: '2024-02-26\n' },
+    { ...TIMING, known_at: '2024-02-26T09:05:30Z\n' },
+    { ...TIMING, known_at: '2024-02-26T24:00:00Z' },
+    { ...TIMING, known_at: '2024-02-26T12:60:00Z' },
+    { ...TIMING, known_at: '2024-02-26T23:30:00+23:60' },
+    { published_date: '0001-01-01', published_at: null, publication_precision: 'date', known_at: '0001-01-01T00:00:00+00:01' },
+    { published_date: '9999-12-31', published_at: null, publication_precision: 'date', known_at: '9999-12-31T23:59:59-00:01' },
+    { published_date: '9999-12-31', published_at: '9999-12-31T23:59:59.999999Z', publication_precision: 'instant', known_at: '9999-12-31T23:59:59.999998Z' },
+  ])('refuses an impossible or out-of-order timing %#', timing => {
+    expect(refuse(() => decodePrivateProductIntegration(timedFact(timing), FACT_ID)).reason).toBe('TIMING');
+  });
+  it.each([
+    { published_date: '0001-01-01', published_at: null, publication_precision: 'date', known_at: '0001-01-01T00:00:00Z' },
+    { published_date: '2000-02-29', published_at: null, publication_precision: 'date', known_at: '2000-02-29T00:00:00Z' },
+    { published_date: '2024-02-27', published_at: null, publication_precision: 'date', known_at: '2024-02-26T23:30:00-02:00' },
+    { published_date: '9999-12-31', published_at: '9999-12-31T23:59:59.999999Z', publication_precision: 'instant', known_at: '9999-12-31T23:59:59.999999Z' },
+  ])('preserves native-valid temporal boundary %#', timing => {
+    expect(decodePrivateProductIntegration(timedFact(timing), FACT_ID).source_timing).toEqual(timing);
+  });
+  it('keeps rejected source values out of timing errors', () => {
+    const error = refuse(() => decodePrivateProductIntegration(timedFact({ ...TIMING, known_at: SECRET }), FACT_ID));
+    expect(error.message).toBe('company_intelligence_private_TIMING');
+    expect(error).not.toHaveProperty('cause');
+    expect(JSON.stringify(error)).not.toContain(SECRET);
   });
 });

@@ -1,5 +1,7 @@
 # Private Company Intelligence — isolated component evidence
 
+The images and manifest below retain the earlier v1 source evidence. The current timing-v2 source and dated disclosure captures are documented in [v2/EVIDENCE.md](v2/EVIDENCE.md).
+
 These captures render the actual new presenter source with explicitly synthetic inputs. They do not establish production integration, account access, C01 admission, live private facts or light-mode availability.
 
 The browser receipt covers 24 layout cases, 132 transitions away from READY, preserved full hashes and strings, contained native controls, no horizontal document/panel overflow, and visible 2px keyboard focus. The source is pinned by file hashes in `manifest.json`.

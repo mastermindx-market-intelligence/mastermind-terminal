@@ -45,8 +45,9 @@ function ready(): PrivateCompanyReadyState {
       selections: [{ fact_id: factId, fact_reference: reference, edition_reference: edition, kind: 'product_integration', lifecycle: 'planned' }],
     },
     fact: {
-      schema: 'company_intelligence.private_product_integration/v1', generation: 'synthetic-generation',
+      schema: 'company_intelligence.private_product_integration/v2', generation: 'synthetic-generation',
       authority: 'context_only', reference, edition,
+      source_timing: { published_date: '2024-02-26', published_at: null, publication_precision: 'date', known_at: '2024-02-26T09:05:30.123456+08:00' },
       fact: { fact_id: factId, kind: 'product_integration', lifecycle: 'planned', subject_id: issuerBinding.issuer_id, product: 'PRIVATE_PRODUCT_SENTINEL', platform: 'PRIVATE_PLATFORM_SENTINEL' },
     },
   };
@@ -87,11 +88,14 @@ describe('private presentation', () => {
   it('renders the pinned EN and ZH copy without cross-locale fallback', async () => {
     await render(ready());
     expect(container.textContent).toContain('Product integrations');
-    expect(container.textContent).toContain('This view includes no timing or commercial figures.');
+    expect(container.textContent).toContain('Disclosed as planned on 2024-02-26');
+    expect(container.textContent).toContain('Source announcement timing only. No delivery schedule or commercial figures.');
+    expect(container.textContent).not.toContain('no timing');
     expect(container.textContent).not.toMatch(/[\u3400-\u9fff]/);
     await act(async () => applyLang('zh'));
     expect(container.textContent).toContain('产品整合');
-    expect(container.textContent).toContain('此视图不含时间或商业规模数据。');
+    expect(container.textContent).toContain('2024-02-26披露时为计划');
+    expect(container.textContent).toContain('仅含来源公告时间，不含交付计划或商业规模数据。');
     expect(container.textContent).not.toContain('Product integrations');
     expect(container.textContent).not.toContain('Research context only.');
     expect(container.querySelector('section')?.getAttribute('lang')).toBe('zh');
@@ -210,5 +214,17 @@ describe('private presentation', () => {
     await render({ status: 'empty', query: 'GOOG', viewKey: 'empty' });
     expect(container.textContent).toContain(PRIVATE_COMPANY_LEX.qualifiedEmpty[0]);
     expect(container.textContent).not.toContain(PRIVATE_COMPANY_LEX.metadataOnly[0]);
+  });
+  it('keeps the original instant precision visible for an instant announcement', async () => {
+    const state = ready();
+    await render({ ...state, fact: { ...state.fact, source_timing: { published_date: '2024-02-26', published_at: '2024-02-26T23:30:00.123456-05:00', publication_precision: 'instant', known_at: '2024-02-27T12:30:00.123456+08:00' } } });
+    expect(container.textContent).toContain('Disclosed as planned on 2024-02-26');
+    expect(container.textContent).toContain('2024-02-26T23:30:00.123456-05:00');
+    expect(container.textContent).toContain('2024-02-27T12:30:00.123456+08:00');
+    expect(container.textContent).toContain('Source observation');
+  });
+  it('never synthesizes midnight for a date-only announcement', async () => {
+    await render(ready());
+    expect(container.textContent).not.toContain('00:00:00');
   });
 });

@@ -103,6 +103,7 @@ function factFixture() {
     fact: { fact_id: FACT_ID, kind: 'product_integration', lifecycle: 'planned', subject_id: ISSUER, revision: 2 },
     reference: reference(PRIVATE_FACT_SCHEMA, HASH_B, 512),
     edition: reference(PRIVATE_EDITION_SCHEMA, HASH_C, 480),
+    source_timing: { published_date: '2024-02-26', published_at: null, publication_precision: 'date', known_at: '2024-02-26T09:05:30.123456+08:00' },
     generation: 'gen-2026-10-11',
     authority: 'context_only',
   };
@@ -741,7 +742,7 @@ describe('fixed owner request shape', () => {
     );
     const factAccepted = await factGet(factRequest(), FACT_ID);
     expect(factAccepted.status).toBe(200);
-    expect(Object.keys(await factAccepted.json() as Record<string, unknown>).sort()).toEqual(['authority', 'edition', 'fact', 'generation', 'reference', 'schema']);
+    expect(Object.keys(await factAccepted.json() as Record<string, unknown>).sort()).toEqual(['authority', 'edition', 'fact', 'generation', 'reference', 'schema', 'source_timing']);
   });
 
   it('sanitizes a projection that names another issuer or another fact than requested', async () => {
