@@ -108,6 +108,8 @@ const TickerNewsPanel = dynamic(() => import("@/components/news/TickerNewsPanel"
 const RollerStrip = dynamic(() => import("@/components/mobile/RollerStrip"), { ssr: false });
 const DrawingsSheet = dynamic(() => import("@/components/mobile/DrawingsSheet"), { ssr: false });
 const AnalysisHubSheet = dynamic(() => import("@/components/mobile/AnalysisHubSheet"), { ssr: false });
+// Review capture (E19): loaded on first open only — the chart snapshot compositor stays in ChartPanel.
+const ChartCaptureDialog = dynamic(() => import("@/components/chartCapture/ChartCaptureDialog"), { ssr: false });
 // BrainWidget mounts the production Mastermind Brain widget (mm_brain.js) — it renders null
 // and only injects a cross-origin <script>, so ssr:false / dynamic isn't needed.
 import BrainWidget from "@/components/BrainWidget";
@@ -143,6 +145,7 @@ import { OnboardingProvider } from "@/components/onboarding/OnboardingProvider";
 import DrawingSidebar from "@/components/DrawingSidebar";
 import DayRange from "@/components/DayRange";
 import { useT, useLang } from "@/lib/i18n";
+import { useCaptureT } from "@/lib/chartCaptureLex";
 import { displayName } from "@/lib/markets";
 import { useFromMacro, backToMacro } from "@/lib/originNav";
 import { getJSON, prefetch, loadCoverage } from "@/lib/dataCache";
@@ -1247,6 +1250,8 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
   const [searchOpen, setSearchOpen] = useState(false); const [seed, setSeed] = useState("");
   const [indOpen, setIndOpen] = useState(false);
   const [wlSetOpen, setWlSetOpen] = useState(false); const [tfOpen, setTfOpen] = useState(false); const [ctOpen, setCtOpen] = useState(false); const [snapOpen, setSnapOpen] = useState(false);
+  const [captureOpen, setCaptureOpen] = useState(false);
+  const captureT = useCaptureT();
   const [toolbarMoreOpen, setToolbarMoreOpen] = useState(false);
   const [toolbarMoreView, setToolbarMoreView] = useState<"main" | "detect" | "layouts" | "snapshot">("main");
   // ── REPLAY CONTRACT: Bar Replay is SINGLE-CHART ONLY (lib/replayContract.ts) ──
@@ -5305,10 +5310,14 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
                 <LayoutMenu {...layoutMenuProps} isOpen={layoutOpen} />
               </div>
             </div>
-            <div className="pophost tool-adv toolbar-overflow-item" data-toolbar-item>
+            <div className="pophost tool-adv toolbar-overflow-item" data-toolbar-item data-toolbar-action="snapshot">
               <button className="icbtn" title={t("snapshot")} onClick={(e) => { e.stopPropagation(); const willOpen = !snapOpen; closeAll(); setSnapOpen(willOpen); }}><svg viewBox="0 0 24 24"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z" /><circle cx="12" cy="13" r="4" /></svg></button>
               <div className={`pop snap-pop${snapOpen ? " show" : ""}`} style={{ top: 36, right: 0, minWidth: 220 }} onClick={(e) => e.stopPropagation()}>
                 <div className="menu-hd" style={{ padding: "7px 12px 5px", fontSize: 10, fontWeight: 700, letterSpacing: "0.08em", color: "var(--text-dim)", borderBottom: "1px solid var(--line)", marginBottom: 2 }}>{t("snapMenuTitle")}</div>
+                <div className="menu-row" data-snapshot-action="review" onClick={() => { setSnapOpen(false); setCaptureOpen(true); }}>
+                  <svg viewBox="0 0 24 24"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z" /><circle cx="12" cy="12" r="3" /></svg>
+                  {captureT("ccMenuReview")}
+                </div>
                 <div className="menu-row" onClick={() => { setSnapOpen(false); window.dispatchEvent(new CustomEvent("mm:snapshot", { detail: { action: "download" } })); }}>
                   <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3" /></svg>
                   {t("snapDownload")}<span style={{ marginLeft: "auto", opacity: 0.45, fontSize: 10 }}>⌥⌘S</span>
@@ -5411,6 +5420,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
                 </>)}
 
                 {toolbarMoreView === "snapshot" && (<>
+                  <button type="button" role="menuitem" className="menu-row" data-toolbar-menu-action="snapshot-review" onClick={() => { setToolbarMoreOpen(false); setCaptureOpen(true); }}><svg viewBox="0 0 24 24"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7S1 12 1 12z" /><circle cx="12" cy="12" r="3" /></svg>{captureT("ccMenuReview")}</button>
                   <button type="button" role="menuitem" className="menu-row" data-toolbar-menu-action="snapshot-download" onClick={() => { setToolbarMoreOpen(false); window.dispatchEvent(new CustomEvent("mm:snapshot", { detail: { action: "download" } })); }}><svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3" /></svg>{t("snapDownload")}</button>
                   <button type="button" role="menuitem" className="menu-row" data-toolbar-menu-action="snapshot-copy" onClick={() => { setToolbarMoreOpen(false); window.dispatchEvent(new CustomEvent("mm:snapshot", { detail: { action: "copy" } })); }}><svg viewBox="0 0 24 24"><path d="M8 17H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v3M11 21h8a2 2 0 0 0 2-2v-8a2 2 0 0 0-2-2h-8a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2z" /></svg>{t("snapCopy")}</button>
                   <button type="button" role="menuitem" className="menu-row" data-toolbar-menu-action="snapshot-share" onClick={() => { setToolbarMoreOpen(false); window.dispatchEvent(new CustomEvent("mm:snapshot", { detail: { action: "share" } })); }}><svg viewBox="0 0 24 24"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" /></svg>{t("snapCopyLink")}</button>
@@ -5633,6 +5643,9 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
       </section>
       )}
 
+      {/* Review capture (E19) — every breakpoint; the chart's own snapshot compositor paints it. */}
+      {captureOpen && <ChartCaptureDialog open onClose={() => setCaptureOpen(false)} />}
+
       {/* ── phone chart chrome (R2.1–R2.3) ──────────────────────────────────────────────────────
           The sheets the strip raises replace the phone's floating drawing dock and top toolbar
           row. They portal to the body, so they sit here rather than in the workspace; the strip
@@ -5656,6 +5669,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
             else if (action === "chartType") setCtOpen(true);
             else if (action === "workspaces") setPhoneWorkspacesOpen(true);
             else if (action === "replay") toggleReplay();
+            else if (action === "capture") setCaptureOpen(true);
             else if (action === "alerts") window.location.assign(`/alerts?sym=${encodeURIComponent(active)}`);
             else if (action === "symbolDetails") {
               setFullChart(false);
