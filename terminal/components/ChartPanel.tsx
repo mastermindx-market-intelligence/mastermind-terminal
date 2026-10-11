@@ -40,6 +40,7 @@ import { drawingToolFromShortcut, getDrawingTool, FREEHAND_DRAWING_KINDS, type D
 import { DRAWING_RENDERER_FAMILY, materializeSemanticPoints } from "@/lib/drawing-engine/geometry";
 import { calculateAnchoredVwap, calculateFixedRangeVolumeProfile, calculateRegressionChannel, generateGhostFeed } from "@/lib/drawing-engine/analytics";
 import { cloneDrawing, constrainScreenAngle, translateDrawingAnchors } from "@/lib/drawing-engine/interaction";
+import { paneDrawingScaleReady, watchPaneDrawingReadiness } from "@/lib/drawingPaneReadiness";
 import { calculatePositionMetrics, fibonacciSettings, positionSettings, type FibonacciLabelMode } from "@/lib/drawing-engine/settings";
 import { registerPane, broadcastCrosshair, broadcastRange, peerValueAt } from "@/lib/paneSync";
 import {
@@ -609,6 +610,18 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
   const t = useT();
   const ref = useRef<HTMLDivElement>(null);
   const statusRef = useRef<HTMLSpanElement>(null);
+  // Only phone-web CSS consumes this measurement. Observe the painted header:
+  // quotes, settings, locale, Replay chips and viewport changes can change its rows.
+  useLayoutEffect(() => {
+    const line = statusRef.current?.closest<HTMLElement>(".statusline");
+    const host = line?.parentElement;
+    if (!line || !host) return;
+    const measure = () => host.style.setProperty("--statusline-height", `${line.getBoundingClientRect().height}px`);
+    measure();
+    const observer = new ResizeObserver(measure);
+    observer.observe(line);
+    return () => { observer.disconnect(); host.style.removeProperty("--statusline-height"); };
+  }, []);
   const visualPanelRef = useRef<VisualIntelligenceHandle | null>(null);
   const visualSeriesRef = useRef<VisualSeries | null>(null);
   const visualSelectedTimeRef = useRef<string | null>(null);
@@ -4690,20 +4703,28 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
     // marker, and their p values encode coordinateToPrice(ROOT_Y). Convert them
     // once, at the first measured pane layout, while preserving their current
     // on-screen position. Persisting the marker prevents repeat conversion.
+    const paneDrawingReadiness = watchPaneDrawingReadiness(() => epochRef.current, () => {
+      if (!dead) { measureRef.current(); renderTagRef.current?.(); }
+    });
     const migrateLegacyPaneDrawings = () => {
       let changed = false;
+      const pendingSeries = new Set<ISeriesApi<any>>();
       const next = drawRef.current.map((drawing) => {
         const paneKey = drawingPaneKey(drawing);
         if (!paneKey || drawing.meta?.paneCoordSpace === PANE_VALUE_SPACE) return drawing;
         const pane = paneLayoutFor(paneKey);
         const series = seriesForPane(paneKey);
-        if (!pane || !series || !(pane.height > 0)) return drawing;
+        if (!series) return drawing;
+        const deferred = () => { pendingSeries.add(series); return drawing; };
+        // A measured pane can still have an empty price range: LWC returns
+        // finite zero coordinates then. Never persist that lossy conversion.
+        if (!pane || !(pane.height > 0) || !paneDrawingScaleReady(series)) return deferred();
         const migrated: Drawing["points"] = [];
         for (const point of drawing.points) {
           const legacyRootY = series.priceToCoordinate(point.p) as number | null;
-          if (legacyRootY == null || !Number.isFinite(legacyRootY)) return drawing;
+          if (legacyRootY == null || !Number.isFinite(legacyRootY)) return deferred();
           const corrected = series.coordinateToPrice(legacyRootY - pane.top) as number | null;
-          if (corrected == null || !Number.isFinite(corrected)) return drawing;
+          if (corrected == null || !Number.isFinite(corrected)) return deferred();
           migrated.push({ ...point, p: corrected });
         }
         changed = true;
@@ -4713,6 +4734,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
           meta: { ...(drawing.meta ?? {}), paneCoordSpace: PANE_VALUE_SPACE },
         };
       });
+      paneDrawingReadiness.sync(pendingSeries);
       if (!changed) return false;
       drawRef.current = next;
       onChangeRef.current?.([...next]);
@@ -8454,6 +8476,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
     // ── mount teardown (base line-416 logic + the new refs) ──
     return () => {
       dead = true; if (rafId != null) cancelAnimationFrame(rafId); if (measRaf != null) cancelAnimationFrame(measRaf);
+      paneDrawingReadiness.dispose();
       try { chart.unsubscribeCrosshairMove(onTagCrosshair); } catch {}
       try { chart.unsubscribeCrosshairMove(onVisualCrosshair); } catch {}
       if (drawRaf != null) cancelAnimationFrame(drawRaf); if (resizeRaf != null) cancelAnimationFrame(resizeRaf);

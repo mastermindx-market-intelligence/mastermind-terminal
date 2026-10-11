@@ -348,6 +348,22 @@ svg{display:block}
 .statusline .mm{display:inline-flex;align-items:center;gap:5px;padding:2px 8px;border-radius:var(--r);background:rgba(38,194,129,.12);border:1px solid rgba(38,194,129,.3);color:var(--buy);font:600 10px/1 var(--font-ui);letter-spacing:.05em}
 .statusline .mm i{width:5px;height:5px;border-radius:50%;background:var(--buy)}
 
+/* Phone web keeps the complete status inside its chart. Identity and chips share
+   the first row; OHLC/change/Vol/Day wrap below without suppressing any values.
+   The right gutter clears the existing intelligence and fullscreen controls. */
+@media (max-width:640px){
+  html:not([data-shell="app"]) .statusline{left:0;right:112px;box-sizing:border-box;flex-wrap:wrap;gap:4px 6px;padding:8px 10px;font-size:11px}
+  html:not([data-shell="app"]) .statusline>span:first-child{display:contents}
+  html:not([data-shell="app"]) .status-identity{flex:1 1 90px;min-width:0}
+  html:not([data-shell="app"]) .status-symbol-logo{flex:none}
+  html:not([data-shell="app"]) .status-values{order:2;flex:1 0 100%;min-width:0;flex-wrap:wrap;gap:3px 6px;white-space:normal}
+  html:not([data-shell="app"]) .status-values>span,html:not([data-shell="app"]) .status-change{white-space:nowrap}
+  html:not([data-shell="app"]) .statusline .mm{flex:none;white-space:nowrap}
+  /* The price legend's baseline starts 49px below the chart top. Grow its
+     clearance with the measured header instead of guessing the number of rows. */
+  html:not([data-shell="app"]) .chart-overlays>div:first-child .lg-block{margin-top:max(0px,calc(var(--statusline-height,49px) - 49px))}
+}
+
 .rail-resizer{grid-column:3;grid-row:2;justify-self:start;align-self:stretch;width:12px;margin-left:-6px;z-index:18;cursor:col-resize;display:flex;align-items:stretch;justify-content:center}
 .rail-resizer span{width:1px;background:linear-gradient(180deg,transparent,var(--line-3),transparent);opacity:.55;transition:width var(--t),opacity var(--t),background var(--t)}
 .rail-resizer:hover span,.rail-resizing .rail-resizer span{width:3px;opacity:1;background:linear-gradient(180deg,transparent,var(--brand-2),transparent)}
