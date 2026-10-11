@@ -62,6 +62,14 @@ priorE08MergeLocalGates:
   vitestFull: 545/546 files passed; 9011 tests passed; 2 failed (this packet's crop/layout hash rows before this recapture); 4 todo
   visualCompatibility: 48 passed; zero failures, skips or flaky cases
   baselineDisposition: E08 merge changed ChartPanel.tsx; three ChartPanel-bound packets recaptured on the merged tree
+priorTrain2MasterLocalGates:
+  sourceHead: e4b64a840997b368d2d602518d31a04716533484
+  sourceIdentity: E20 landing train 2 merged tree; source identical to merge 76b43cae770421ca03791bf22c324d473282bbc0 (only evidence docs differ)
+  typecheck: PASS; next typegen then tsc --noEmit exit0 on 76b43cae7 source
+  visualIntelligenceMatrix: 30 passed; zero failures, skips or flaky cases (10 per viewport, EN/ZH)
+  compatibilityCases: 18 passed; zero failures, skips or flaky cases (chart-view-reset, replay status EN/ZH, responsive shell, shell D/E at three viewports)
+  run: rm -rf .next/dev; cold Playwright webServer; --workers=1 --retries=0; 48 passed
+  baselineDisposition: recaptured after the train 2 merge changed locked sources; crops regenerated, never copied from either parent
 priorMasterSourceLocalGates:
   sourceHead: e669c889eaa004f580ae0b5a21bae6b55414d8a1
   typecheck: PASS; tsc --noEmit exit0 on actual capture source
