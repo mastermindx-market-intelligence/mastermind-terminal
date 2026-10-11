@@ -23,6 +23,7 @@ import { SUITE_DEFS } from "@/lib/suites/registry";
 import { useGateEntitlement } from "@/lib/entitlementStore";
 import { useShellIdentity } from "@/components/chrome/AppShell";
 import { ALERTS_CHANGED_EVENT, conditionText, firedEventTextZh } from "@/lib/alertsView";
+import AlertDryRunPanel from "@/components/alerts/AlertDryRunPanel";
 
 type Alert = { id: string; symbol: string; condition: any; active: boolean; created_at: string };
 
@@ -753,6 +754,15 @@ export default function AlertsView({ email, panelOnly, listOnly }: { email: stri
                   : suiteAlertPreview(suiteCondition!, lang === "zh" ? "zh" : "en")}
               </span>
             </div>
+          )}
+          {/* E17: read-only "would it trigger right now?" for this exact unsaved condition */}
+          {cat === "suite" && (
+            <AlertDryRunPanel
+              symbol={sym}
+              condition={suiteMode === "seq" ? seqCondition : suiteCondition}
+              signedIn={!!email}
+              locked={suiteMode === "seq" ? seqLocked : curLocked}
+            />
           )}
         </div>
   );

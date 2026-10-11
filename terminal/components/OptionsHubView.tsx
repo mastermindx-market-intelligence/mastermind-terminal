@@ -40,6 +40,13 @@ import { VolRegimeChip } from "@/components/eodcontext/VolRegimeChip";
 import { OptionsCsvExportButton } from "@/components/options/OptionsCsvExportButton";
 import { OptionsFlowBoardView } from "@/components/options/OptionsFlowBoardView";
 import { FlowFreshnessReceipt } from "@/components/flowdesk/FlowFreshnessReceipt";
+import {
+  ContractPinButton,
+  ContractShortlistTray,
+  shortlistSource,
+  useContractShortlist,
+} from "@/components/options/ContractShortlist";
+import { locatePin, type PinLocation, type ShortlistPin } from "@/lib/optionsContractShortlist";
 // Shared SVG chart primitives — measured 1:1 viewBox, nice ticks, pixel-gap label
 // thinning, padded domains. The hygiene rules live in that module's header.
 import {
@@ -1958,6 +1965,24 @@ export default function OptionsHubView({
     else { setScrSortKey(key); setScrSortDir(-1); }
   }
 
+  // E15 exact-contract shortlist. Read-only over oiData/hotData: pinning never
+  // touches the source arrays, filters, sort or view. "Show in list" returns to
+  // the originating table exactly as its preset chip would, and never edits the
+  // index filter — a filtered-out pin is reported instead.
+  const contractShortlist = useContractShortlist();
+  const showPinInList = (pin: ShortlistPin): PinLocation => {
+    const list = pin.family === "doi" ? oiData?.movers : hotData?.[pin.hotView ?? "by_premium"];
+    const where = locatePin(pin, list, scrRoot);
+    if (where !== "present") return where;
+    if (screenerPreset !== pin.family) {
+      setScreenerPreset(pin.family);
+      setScrSortKey(""); setScrSortDir(-1);
+      setScrGroup("");
+    }
+    if (pin.family === "hot" && pin.hotView && pin.hotView !== hotView) setHotView(pin.hotView);
+    return where;
+  };
+
   // The table and CSV consume the same memoized collections. That makes the
   // active preset's filters and ordering an executable contract instead of two
   // implementations that can drift apart.
@@ -3508,6 +3533,13 @@ export default function OptionsHubView({
                 padding: "14px 18px", display: "flex", flexDirection: "column", gap: 16,
               }}>
 
+              {(oiData || hotData) && (
+                <ContractShortlistTray
+                  shortlist={contractShortlist}
+                  active={screenerPreset === "doi" || screenerPreset === "hot"}
+                  onShowInList={showPinInList}
+                />
+              )}
               {screenerLoading && !oiData && !hotData && !feed && (
                 <div className="fin-empty" role="status">{t("loading", "Loading…")}</div>
               )}
@@ -3729,7 +3761,10 @@ export default function OptionsHubView({
                             const isAdd = m.d_oi > 0;
                             return (
                               <tr key={i} style={{ cursor: "pointer" }} onClick={() => { switchTab("tickers"); setSelectedTicker(m.root); }}>
-                                <td style={{ textAlign: "left", fontWeight: 700 }}>{m.root}</td>
+                                <td style={{ textAlign: "left", fontWeight: 700 }}>
+                                  <ContractPinButton shortlist={contractShortlist} row={m} source={shortlistSource("doi", oiData)} list={oiData.movers} />
+                                  {m.root}
+                                </td>
                                 <td style={{ textAlign: "left" }}>
                                   <span style={{ color: m.right === "C" ? "var(--up)" : "var(--down)", fontWeight: 700 }}>{m.right}</span>
                                 </td>
@@ -3847,7 +3882,10 @@ export default function OptionsHubView({
                       <tbody>
                         {hotRows.map((c, i) => (
                           <tr key={i} style={{ cursor: "pointer" }} onClick={() => { switchTab("tickers"); setSelectedTicker(c.root); }}>
-                            <td style={{ textAlign: "left", fontWeight: 700 }}>{c.root}</td>
+                            <td style={{ textAlign: "left", fontWeight: 700 }}>
+                              <ContractPinButton shortlist={contractShortlist} row={c} source={shortlistSource("hot", hotData, hotView)} list={hotData[hotView] ?? []} />
+                              {c.root}
+                            </td>
                             <td style={{ textAlign: "left" }}>
                               <span style={{ color: c.right === "C" ? "var(--up)" : "var(--down)", fontWeight: 700 }}>{c.right}</span>
                             </td>
