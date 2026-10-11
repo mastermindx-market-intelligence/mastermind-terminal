@@ -1,5 +1,146 @@
 # Investigation kernel repair — source verification
 
+## Intl investigation evidence, composition and panel, adopted as source only (IM08/09, 2026-10-11)
+
+Base `99c578b9`. The parent accepted the IM08 evidence adapter, the IM09
+composition mapper, the panel and its CSS as repaired source only
+(`ACCEPTED_PARENT_REPAIRED_SOURCE_ONLY`) in
+`/Volumes/Mastermind/evidence/paper-waves-20261006-01a1101f/im08-im09-contract-parent-r2/PARENT_ADJUDICATION.json`
+(SHA256 `734711bf4753504a369fabd08b87e164ce43f0e67dc52c8545bc4d2c4af9c5a2`). Its
+`candidate_hashes` map matches every adopted input below.
+
+| Adopted path | Accepted original (SHA256) | Repo (SHA256) | Change |
+|---|---|---|---|
+| `lib/investigationEvidenceDiff.ts` | `c10f7567…b121579` | same | none; the existing frozen kernel is imported, not copied or edited |
+| `lib/intlInvestigationEvidence.ts` | `2e885c11…5a5f2e` | `3333bc27…ed1b0d` | kernel import drops its `.ts` extension |
+| `lib/intlInvestigationComposition.ts` | `880bc8fb…485797` | `550e3293…11faf52` | adapter and kernel imports drop `.ts`; the panel type import uses `@/components/research/IntlInvestigationPanel` |
+| `components/research/IntlInvestigationPanel.tsx` | `d5549e44…7bf44` | `e5b8c1f1…157a93` | `"use client"` and the receiver copy repair below |
+| `components/research/IntlInvestigationPanel.module.css` | `a70e3841…1f9a1` | same | none (byte for byte) |
+
+Mapper, adapter and kernel semantics are unchanged. The parent's callback boundary
+is kept exactly: the composition passes through only the three function keys
+`onInspect`, `onContinue` and `onEdit`, and never calls them. The artifact's
+`css-modules.d.ts`, `vitest.config.ts`, `preview.*` and `index.html` were not
+copied.
+
+The adopted sources were missing from the paper capsule. They were recovered
+through its reviewed original capsule reader. The receipt is at
+`/Volumes/Mastermind/evidence/fabric-reliability-codex-20261008/recovery-engineering/capsule-path-correction-20261011/live-current-files/receipt.json`:
+
+- state `COMPLETE`, 5 files, 108,910 bytes;
+- all five hashes match the current return;
+- no replay or reconstruction, and no claim of a historical seal.
+
+The receipt admits these retained source inputs only. It is not T03k clearance.
+`FIELD_ORIGINS_R2.md` (`c40f5087…`) in the same evidence folder records where
+each panel field comes from.
+
+### Tests
+
+The eight accepted suites run as uniquely named files in the existing
+`lib/__tests__` discovery, on Vitest 2 with the installed React Testing Library.
+React files carry the jsdom pragma.
+
+| Repo test | Accepted source (SHA256) | Tests | Adaptation |
+|---|---|---|---|
+| `intlInvestigationEvidence.test.ts` | `test.mts`, `28b11bda…`, author | 48 | runner import, `@/lib` imports, kernel hash path via `join(__dirname, "../investigationEvidenceDiff.ts")` (expected hash unchanged), 3 type-only lines (below) |
+| `intlInvestigationEvidenceParentCountercases.test.ts` | `parent_countercases.mjs`, `25d99069…`, parent | 5 | runner import, `@/lib` imports, `// @ts-nocheck` header (below) |
+| `intlInvestigationEvidenceParentMembership.test.ts` | `parent_membership.test.mts`, `fb0626b4…`, parent | 4 | runner import, `@/lib` imports |
+| `intlInvestigationCompositionContractRepair.test.ts` | `contract_repair.test.mts`, `b9a19a20…`, author | 23 | runner import, `@/lib` imports |
+| `intlInvestigationCompositionCallbackBoundary.test.ts` | `parent_callback_boundary.test.mts`, `4ad498f3…`, parent | 2 | runner import, `@/lib` imports |
+| `intlInvestigationPanel.test.tsx` | `IntlInvestigationPanel.test.tsx`, `95b8029a…`, author | 12 | panel import path; two headline expectations (below) |
+| `intlInvestigationPanelParentContract.test.tsx` | `parent_panel_contract.test.tsx`, `bc95f330…`, parent | 27 | jsdom pragma, panel import path |
+| `intlInvestigationPanelContractRepair.test.tsx` | `panel_contract_repair.test.tsx`, `e56bd61f…`, parent-repaired | 24 | panel import path; two membership expectations (below) |
+
+The count is 82 Node tests (48 + 5 + 4 + 23 + 2) and 63 React tests (12 + 27 +
+24), so 145 in all. `parent_countercases.mjs` is the eighth accepted suite; the
+"53 evidence tests" in the return are its 5 plus the 48 in `test.mts`.
+
+Four exact-copy expectations changed on purpose, because the receiver copy repair
+below changes those strings. Every test case and every other assertion is kept.
+
+| File:line | Before | After |
+|---|---|---|
+| `intlInvestigationPanel.test.tsx:178` (shows on incomplete) | `getByText(/Evidence updated\. The comparison is still open\./)` | `getByText(/The comparison remains open\./)` |
+| `intlInvestigationPanel.test.tsx:191` (absent when ready) | `queryByText(/Evidence updated\. The comparison is still open\./)` is null | `queryByText(/The comparison remains open\./)` is null |
+| `intlInvestigationPanelContractRepair.test.tsx:325` | `"Not in saved baseline"` | `"Not previously observed"` |
+| `intlInvestigationPanelContractRepair.test.tsx:328` | `"Not present in the saved baseline — this is not an addition."` | `"Not observed in the saved evidence read — prior coverage was incomplete, so this is not proof of absence and not an addition."` |
+
+Type-only adaptations for the strict whole-project typecheck. None changes runtime
+behavior or an assertion:
+
+- `intlInvestigationEvidence.test.ts` has three `// @ts-expect-error` lines:
+  - one TS2783, where the frozen `makeObs` fixture sets `id` and then spreads `o`,
+    which also has an `id`;
+  - two TS2339, where frozen assertions read `.census` from the `BuildResult`
+    union.
+- `intlInvestigationEvidenceParentCountercases.test.ts` starts with
+  `// @ts-nocheck`. It came from untyped JavaScript, and its body is the same as
+  the frozen `.mjs`. The repo never typechecks JavaScript (`allowJs` without
+  `checkJs`).
+
+Not adopted: `legacy_composition.test.mts` (`fcb18058…`, called
+`composition.test.mts` in `RETURN.md`). It stays in the evidence folder as
+historical r1 evidence: 21 pass and 8 fail. The 8 failures are the superseded
+assertions `RETURN.md` lists (tests 1, 7, 8, 9, 18, 21, 28, 29). Each one
+asserts a loss the repair removed. It is not run in CI and is not claimed green.
+
+### Receiver copy repair
+
+Only presentation copy changed:
+
+- The kernel emits `not_previously_observed` only when prior membership was not
+  complete, so the panel may not say the saved baseline lacks the measure.
+- The incomplete headline also shows for denied or unavailable current reads with
+  no update clock, so it may not claim the evidence was updated.
+
+`not_observed` and `not_previously_observed` stay separate from added and removed.
+The explicit owner `updatedAt` header, the clock rows and the ready headline are
+unchanged.
+
+| Key | Before | After |
+|---|---|---|
+| `headline.incomplete` | "Evidence updated. The comparison is still open." / "证据已更新；对比仍待完成。" | "The comparison remains open." / "对比仍待完成。" |
+| `evidence.membership.not_previously_observed` | "Not in saved baseline" / "基线中不存在" | "Not previously observed" / "此前未观察到" |
+| `noteNotPreviouslyObserved` | "Not present in the saved baseline — this is not an addition." / "已保存基线中不存在该指标——这不表示新增。" | "Not observed in the saved evidence read — prior coverage was incomplete, so this is not proof of absence and not an addition." / "已保存的证据读取中未观察到该指标——此前覆盖不完整，这既不证明不存在，也不表示新增。" |
+
+`lib/__tests__/intlInvestigationPanelTruthfulCopy.test.tsx` has 8 tests, 4 per
+locale. Each renders the panel from a real adapter → mapper result, not hand-built
+props:
+
+- **Partial prior.** The prior read has `membership: "page"` with only m1, and
+  the current read is complete. The mapper must yield m2 and m3 as
+  `not_previously_observed`, with no added or removed rows. The panel shows one
+  badge and one note per row, no baseline-absence claim, and no Added or Removed.
+- **Failed read, two cases.** The current read is `denied` or `unavailable`, and
+  `updatedAt` is null. The neutral headline shows, with no successful-refresh
+  claim and no old headline.
+- **Explicit owner clock.** The "Evidence updated" header and its clock value
+  still render, and the headline stays neutral.
+
+Results:
+
+- **Red, on the candidate copy:** 8/8 failed, each at a copy assertion. Every
+  adapter → mapper check before it passed.
+- **Green, after the copy repair:** 8/8.
+- **Full adopted run:** 9 files, 153/153 (145 accepted + 8 new).
+- **Typecheck:** `npx tsc --noEmit` reported 0 errors.
+- **Scanner guards:** 156/156 (`plainLabels`, `plainLanguageGuard`,
+  `accountWriteScope`, `flowScoreBoundary`, `noMacroPagesFallback`,
+  `suiteRegistrySplit`).
+- **Plain-language CI guard:** passed (`--mode enforce-added`).
+
+The IM10 tests and results are reused as they were; the 16 module tests were not
+rerun.
+
+Not proven:
+
+- provider or source admission, and raw-draft validation;
+- Saved persistence or write authority, and any schema or migration;
+- rendered Paper parity, the light owner theme, and 200% zoom in a real browser;
+- any page or route mount, or production wiring;
+- any merge, deploy or live outcome.
+
 ## Intl policy comparison renderer, adopted as source only (IM10, 2026-10-11)
 
 Base `8dfaa443`. `components/research/IntlPolicyComparison.tsx` and its CSS module
