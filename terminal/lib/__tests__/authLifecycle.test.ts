@@ -416,17 +416,96 @@ describe("generation fence: a deferred result applies only while it is the pendi
 });
 
 describe("event policy once verified (mocked client)", () => {
-  it("a harmless focus or duplicate SIGNED_IN keeps a verified epoch with no new check or notice", async () => {
+  it("a harmless focus or duplicate SIGNED_IN replaying the exact verified token keeps ready and its epoch with no new check or notice", async () => {
     const h = harness();
-    const ready = await h.confirm("SIGNED_IN", session(USER_A, "SECRETSID-1"));
+    const s = session(USER_A, "SECRETSID-1");
+    const ready = await h.confirm("SIGNED_IN", s);
     expect(ready.availability).toBe("ready");
     const notices = h.seen.length;
-    for (let i = 0; i < 5; i++) h.emit("SIGNED_IN", session(USER_A, "SECRETSID-1"));
-    h.emit("TOKEN_REFRESHED", session(USER_A, "SECRETSID-1"));
+    for (let i = 0; i < 5; i++) h.emit("SIGNED_IN", s);
+    h.emit("TOKEN_REFRESHED", s);
     expect(h.sub.getSnapshot()).toBe(ready);
     await flush();
     expect(h.getClaims).toHaveBeenCalledTimes(1);
     expect(h.seen).toHaveLength(notices);
+  });
+
+  describe("a different token on the verified session (equal claims, new signature) must be verified on its own", () => {
+    const REPLACING = ["SIGNED_IN", "TOKEN_REFRESHED"] as const;
+
+    it.each(REPLACING)("%s drops to unverified on the same epoch, checks that exact token, and is ready again only once it verifies", async (event) => {
+      const h = harness();
+      const s1 = session(USER_A, "SECRETSID-1");
+      const ready = await h.confirm("SIGNED_IN", s1);
+      const notices = h.seen.length;
+      const s2 = session(USER_A, "SECRETSID-1");
+      expect(s2.access_token).not.toBe(s1.access_token);
+      expect(claimsOf(s2.access_token)).toEqual(claimsOf(s1.access_token));
+      h.emit(event, s2);
+      const again = h.sub.getSnapshot();
+      expect(again).toEqual({ ...ready, availability: "unverified" });
+      expect(h.getClaims).toHaveBeenCalledTimes(1);
+      await flush();
+      expect(h.getClaims).toHaveBeenCalledTimes(2);
+      expect(h.last().token).toBe(s2.access_token);
+      expect(h.callsInCallback()).toBe(0);
+      expect(h.seen).toHaveLength(notices + 1);
+      await flush();
+      expect(h.sub.getSnapshot()).toBe(again);
+      await h.settle();
+      expect(h.sub.getSnapshot()).toEqual(ready);
+      expect(h.sub.getSnapshot().auth_epoch).toBe(ready.auth_epoch);
+    });
+
+    it.each(REPLACING)("%s with a replacement the SDK rejects never reaches ready: unverified on the same epoch, no retry", async (event) => {
+      const h = harness();
+      const ready = await h.confirm("SIGNED_IN", session(USER_A, "SECRETSID-1"));
+      const n = h.seen.length;
+      h.emit(event, session(USER_A, "SECRETSID-1"));
+      await flush();
+      await h.settle(h.last(), { data: null, error: { name: "AuthInvalidJwtError", message: "Invalid JWT signature" } });
+      expect(h.sub.getSnapshot()).toEqual({ ...ready, availability: "unverified" });
+      expect(h.getClaims).toHaveBeenCalledTimes(2);
+      await flush();
+      expect(h.getClaims).toHaveBeenCalledTimes(2);
+      expect(h.seen.slice(n).every((x) => x.availability !== "ready")).toBe(true);
+    });
+
+    it("after the drop, the token verified earlier is checked again, not restored from memory", async () => {
+      const h = harness();
+      const s1 = session(USER_A, "SECRETSID-1");
+      const ready = await h.confirm("SIGNED_IN", s1);
+      h.emit("SIGNED_IN", session(USER_A, "SECRETSID-1"));
+      await flush();
+      await h.settle(h.last(), { data: null, error: { name: "AuthInvalidJwtError" } });
+      h.emit("SIGNED_IN", s1);
+      expect(h.sub.getSnapshot()).toEqual({ ...ready, availability: "unverified" });
+      await flush();
+      expect(h.getClaims).toHaveBeenCalledTimes(3);
+      expect(h.last().token).toBe(s1.access_token);
+      await h.settle();
+      expect(h.sub.getSnapshot()).toEqual(ready);
+    });
+
+    it("an older replacement's result cannot win once a newer token was observed", async () => {
+      const h = harness();
+      const ready = await h.confirm("SIGNED_IN", session(USER_A, "SECRETSID-1"));
+      h.emit("SIGNED_IN", session(USER_A, "SECRETSID-1"));
+      await flush();
+      const older = h.last();
+      const s3 = session(USER_A, "SECRETSID-1");
+      h.emit("TOKEN_REFRESHED", s3);
+      const dropped = h.sub.getSnapshot();
+      expect(dropped).toEqual({ ...ready, availability: "unverified" });
+      await flush();
+      const newer = h.last();
+      expect(newer).not.toBe(older);
+      expect(newer.token).toBe(s3.access_token);
+      await h.settle(older);
+      expect(h.sub.getSnapshot()).toBe(dropped);
+      await h.settle(newer);
+      expect(h.sub.getSnapshot()).toEqual(ready);
+    });
   });
 
   it("a new session for the same user gets a new epoch and needs its own check", async () => {
@@ -831,6 +910,52 @@ describe("real auth-js client (in-memory storage, mocked fetch, no live network)
     sub.unsubscribe();
   });
 
+  it.each([
+    ["a forged signature", async (k: Awaited<ReturnType<typeof es256>>) => {
+      const other = (await crypto.subtle.generateKey({ name: "ECDSA", namedCurve: "P-256" }, true, ["sign", "verify"])) as CryptoKeyPair;
+      return k.sign(idClaims(USER_A, "SECRETSID-1"), other.privateKey);
+    }],
+    ["an expired token", (k: Awaited<ReturnType<typeof es256>>) => k.sign({ ...idClaims(USER_A, "SECRETSID-1"), exp: 1 })],
+  ])("a verified ES256 session replaced by %s with equal claims drops to unverified and never reaches ready on it; a genuine refresh keeps the epoch", async (_n, make) => {
+    const key = await es256();
+    const stored = sessionFor(await key.sign(idClaims(USER_A, "SECRETSID-1")), { id: USER_A });
+    const { client, internals } = realClient(stored, { jwks: key.jwks });
+    await client.initialize();
+    const verify = vi.spyOn(client, "getClaims");
+    const seen: AuthLifecycleSnapshot[] = [];
+    const sub = subscribeAuthLifecycle((s) => seen.push(s), () => client);
+    await vi.waitFor(() => expect(sub.getSnapshot().availability).toBe("ready"));
+    const ready = sub.getSnapshot();
+    expect(verify).toHaveBeenCalledTimes(1);
+    // Control: the exact verified token replayed by a focus SIGNED_IN keeps ready with no check.
+    await internals._notifyAllSubscribers("SIGNED_IN", stored);
+    await flush();
+    expect(sub.getSnapshot()).toBe(ready);
+    expect(verify).toHaveBeenCalledTimes(1);
+
+    const replacement = sessionFor(await make(key), { id: USER_A });
+    expect(claimsOf(replacement.access_token)).toMatchObject({ sub: USER_A, session_id: "SECRETSID-1", aal: "aal1" });
+    const n = seen.length;
+    for (const [i, event] of ["SIGNED_IN", "TOKEN_REFRESHED"].entries()) {
+      await internals._notifyAllSubscribers(event, replacement);
+      expect(sub.getSnapshot()).toEqual({ ...ready, availability: "unverified" });
+      await vi.waitFor(() => expect(verify).toHaveBeenCalledTimes(2 + i));
+      expect(verify.mock.calls[1 + i][0]).toBe(replacement.access_token);
+      await expect(verify.mock.results[1 + i].value).resolves.toMatchObject({ data: null, error: { name: "AuthInvalidJwtError" } });
+      await flush();
+      expect(sub.getSnapshot()).toEqual({ ...ready, availability: "unverified" });
+    }
+    expect(seen.slice(n).every((s) => s.availability !== "ready")).toBe(true);
+
+    const refreshed = sessionFor(await key.sign(idClaims(USER_A, "SECRETSID-1")), { id: USER_A });
+    await internals._notifyAllSubscribers("TOKEN_REFRESHED", refreshed);
+    await vi.waitFor(() => expect(sub.getSnapshot().availability).toBe("ready"));
+    expect(sub.getSnapshot()).toEqual(ready);
+    expect(verify).toHaveBeenCalledTimes(4);
+    expect(verify.mock.calls[3][0]).toBe(refreshed.access_token);
+    sub.unsubscribe();
+  });
+
   it("legacy lock path: the init SIGNED_IN arrives while the auth lock is held, and the check starts only after release", async () => {
     const key = await es256();
     const stored = sessionFor(await key.sign(idClaims(USER_A, "SECRETSID-1")), { id: USER_A });
@@ -1010,15 +1135,16 @@ describe("late preview replies through the frozen IM10 session reducer", () => {
     expect(after.preview).toBeNull();
   });
 
-  const accepted: Array<[string, (s: Session) => Array<[string, Session | null]>]> = [
-    ["duplicate and focus SIGNED_IN", (s) => [["SIGNED_IN", s], ["SIGNED_IN", session(USER_A, "SECRETSID-1")]]],
-    ["a same-session TOKEN_REFRESHED", () => [["TOKEN_REFRESHED", session(USER_A, "SECRETSID-1")]]],
-    ["a late INITIAL_SESSION", (s) => [["INITIAL_SESSION", s], ["INITIAL_SESSION", session(USER_B, "SECRETSID-9")]]],
+  const accepted: Array<[string, number, (s: Session) => Array<[string, Session | null]>]> = [
+    ["a duplicate or focus SIGNED_IN replaying the exact verified token", 0, (s) => [["SIGNED_IN", s], ["SIGNED_IN", s], ["TOKEN_REFRESHED", s]]],
+    ["a late INITIAL_SESSION", 0, (s) => [["INITIAL_SESSION", s], ["INITIAL_SESSION", session(USER_B, "SECRETSID-9")]]],
+    ["a focus SIGNED_IN carrying a different same-claims token, once that token verifies", 1, () => [["SIGNED_IN", session(USER_A, "SECRETSID-1")]]],
+    ["a genuine same-session TOKEN_REFRESHED, once the new token verifies", 1, () => [["TOKEN_REFRESHED", session(USER_A, "SECRETSID-1")]]],
   ];
 
-  it.each(accepted)("accepts the reply after %s, with no new check", async (_name, events) => {
+  it.each(accepted)("accepts the reply after %s (%i new check)", async (_name, checks, events) => {
     const { rebound, after, newChecks } = await lateReply(events);
-    expect(newChecks).toBe(0);
+    expect(newChecks).toBe(checks);
     expect(rebound.pending).not.toBeNull();
     expect(after.pending).toBeNull();
     expect(after.preview?.state).toBe("qualified");

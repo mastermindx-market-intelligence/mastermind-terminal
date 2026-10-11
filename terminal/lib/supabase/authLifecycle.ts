@@ -26,8 +26,9 @@
  * the key is symmetric. Its claims must equal the observation exactly, or the
  * identity fails closed. An error, a throw or a missing result leaves the
  * identity unverified on the same epoch until the SDK's next event; nothing
- * retries on its own. The token lives only in the one pending check and is
- * never stored, exposed or logged.
+ * retries on its own. The token lives only in the one pending check and, once
+ * verified, in a private record that serves only to recognise its exact replay;
+ * neither is ever stored elsewhere, exposed or logged.
  *
  * Generation fence: every event that changes the state or carries a new token
  * replaces or voids the pending check, and so does unsubscribe. A result
@@ -44,10 +45,14 @@
  *   then checked like any other. After any other event it is a stale storage
  *   read and is ignored, so it never replaces a later session.
  * - SIGNED_IN, TOKEN_REFRESHED: a new (sub, session_id, aal) gets a new epoch
- *   and stays unverified until checked. The same identity already ready keeps
- *   "ready" and its epoch with no new check (duplicate, focus or cross-tab
- *   SIGNED_IN, same-session refresh). The same identity still unverified is
- *   checked again with the token just observed.
+ *   and stays unverified until checked. The same identity keeps its epoch. It
+ *   keeps "ready" only when the token observed is the exact token that was
+ *   verified (a duplicate, focus or cross-tab SIGNED_IN replaying it), with no
+ *   new check. Any other token string, equal claims included, drops to
+ *   unverified on the same epoch until that token is checked on its own:
+ *   decoded identity never reuses a verified status, and a same-session
+ *   refresh is a new token, not a reauthentication. The same identity still
+ *   unverified is checked again with the token just observed.
  * - USER_UPDATED: always a new epoch, unverified until checked, and it ends a
  *   recovery hold. auth-js emits it after updateUser (a password change
  *   included) with the same session and token, so equal claims prove nothing.
@@ -180,8 +185,9 @@ function closed(epoch: string): State {
   return { availability: "unavailable", identity: null, recovery: false, epoch };
 }
 
-/** Pure transition; only mint() can throw. Never grants "ready": only a check result does. */
-function transition(prev: State, event: string, identity: Identity | null, mint: () => string): Step {
+/** Pure transition; only mint() can throw. Never grants "ready": only a check result does.
+ * `exact` says the token just observed is the very token whose check made prev "ready". */
+function transition(prev: State, event: string, identity: Identity | null, exact: boolean, mint: () => string): Step {
   if (identity === null || !SESSION_EVENTS.has(event)) {
     return { state: closed(prev.identity === null ? prev.epoch : mint()), check: false };
   }
@@ -191,8 +197,10 @@ function transition(prev: State, event: string, identity: Identity | null, mint:
     return { state: { availability: "unverified", identity, recovery: true, epoch: mint() }, check: false };
   }
   if (same && !ROTATING.has(event)) {
-    if (prev.recovery || prev.availability === "ready") return { state: prev, check: false };
-    return { state: prev, check: true };
+    if (prev.recovery || (prev.availability === "ready" && exact)) return { state: prev, check: false };
+    if (prev.availability !== "ready") return { state: prev, check: true };
+    // Another token string on the verified session: same epoch, but no "ready" until it is checked itself.
+    return { state: { ...prev, availability: "unverified" }, check: true };
   }
   return { state: { availability: "unverified", identity, recovery: false, epoch: mint() }, check: true };
 }
@@ -221,6 +229,8 @@ export function subscribeAuthLifecycle(
   let heard = false;
   let auth: AuthObserver | null = null;
   let pending: Check | null = null;
+  /** The check whose result made the current state "ready"; null in every other state. */
+  let verified: Check | null = null;
   let timer: ReturnType<typeof setTimeout> | undefined;
   let checkTimer: ReturnType<typeof setTimeout> | undefined;
   let subscription: { unsubscribe(): void } | null = null;
@@ -263,9 +273,14 @@ export function subscribeAuthLifecycle(
     try {
       const claims = verifiedClaims(result);
       if (claims === null) return; // not verified: stays unverified on this epoch
-      if (sameIdentity(fromClaims(claims), state.identity)) commit({ ...state, availability: "ready" });
-      else commit(closed(mintEpoch()));
+      if (sameIdentity(fromClaims(claims), state.identity)) {
+        verified = mine;
+        commit({ ...state, availability: "ready" });
+      } else {
+        commit(closed(mintEpoch()));
+      }
     } catch {
+      verified = null;
       commit(closed(state.epoch));
     }
   };
@@ -289,7 +304,9 @@ export function subscribeAuthLifecycle(
     heard = true;
     try {
       const seen = observe(session);
-      const step = transition(state, event, seen?.identity ?? null, mintEpoch);
+      const exact = seen !== null && verified !== null && seen.token === verified.token;
+      const step = transition(state, event, seen?.identity ?? null, exact, mintEpoch);
+      if (step.state !== state) verified = null;
       if (step.state !== state || !step.check) pending = null;
       if (step.check && seen !== null && pending?.token !== seen.token) {
         pending = { token: seen.token };
@@ -298,6 +315,7 @@ export function subscribeAuthLifecycle(
       commit(step.state);
     } catch {
       pending = null;
+      verified = null;
       commit(closed(state.epoch));
     }
   };
@@ -306,6 +324,7 @@ export function subscribeAuthLifecycle(
     if (disposed) return;
     disposed = true;
     pending = null;
+    verified = null;
     if (timer !== undefined) clearTimeout(timer);
     if (checkTimer !== undefined) clearTimeout(checkTimer);
     timer = checkTimer = undefined;
