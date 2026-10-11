@@ -166,7 +166,9 @@ function canonical(value: unknown): string {
     return "{" + Object.keys(o).sort().map(k => JSON.stringify(k)+":"+canonical(o[k])).join(",") + "}";
   }
   if (Array.isArray(value)) return "["+value.map(canonical).join(",")+"]";
-  return JSON.stringify(value);
+  const rendered=JSON.stringify(value);
+  if (rendered===undefined) throw new PrivateEvidenceRefusal("source_bytes:noncanonical_value");
+  return rendered;
 }
 /** Preserve the exact original integer lexemes before any unsafe JS number parse. */
 function liftKnownTopLevelClocks(bytes: Buffer, kind: EvidenceKind): RecordValue {
@@ -254,6 +256,9 @@ export function decodePrivateEvidence(args: {
   const prefix=kind==="minute"?"equity.tick_plane":"equity.pressure_response";
   if (obj.schema !== prefix + (kind==="minute"?
       ".private_minute_artifact/v0":".private_context_view/v0") ||
+      obj.source_schema!==(kind==="minute"?
+        "equity.tick_plane.minute_observation/v0":
+        "equity.pressure_response.tp1_context/v0") ||
       obj.public_delivery_allowed!==false || obj.rank_trade_alert_authority!==false ||
       obj.absorption_signal!==null ||
       obj.distribution_class!==(kind==="minute"?
@@ -261,7 +266,8 @@ export function decodePrivateEvidence(args: {
       "PRIVATE_SERVICE_HOLD_PENDING_LICENSE_REVIEW"))
     throw new PrivateEvidenceRefusal("source:distribution_or_authority");
   if (kind==="minute") {
-    if (obj.source_authenticity!=="EXTERNAL_INCUMBENT_PROOF_REQUIRED" ||
+    if (obj.source_mode!=="ACTUAL_AS_SEEN_ONLY_WHEN_OWNER_PROVES_RECEIPTS" ||
+        obj.source_authenticity!=="EXTERNAL_INCUMBENT_PROOF_REQUIRED" ||
         obj.live_capture_completeness!=="UNVERIFIED_BY_PROJECTION" ||
         obj.correction_status!=="STREAM_PROVISIONAL_UNRECONCILED" ||
         obj.price_response_bps!==null)
