@@ -213,7 +213,7 @@ amendment, only a README edit.
 | `0030` | `investigation_kernel` | existing PR #804, IW2-G1 repair | open PR; not applied |
 | `0031` | `drawings_atomic_replace` | existing PR #858, TERMINAL-AUDIT20-A04 | open PR; not applied |
 | `0032` | `thesis_proposal_state_qualification` | PR #946, B-F11-PROPOSAL-STATE-SQL | merged `2957bd64`; applied 2026-10-11 ([catalog receipt](https://github.com/mastermindx-market-intelligence/mastermind-terminal/pull/946#issuecomment-6112592004)) |
-| `0033` | `watchlist_annotations` | packet E05 (program `terminal-enhancements20-20261011-opus`, #916), PR #927; numbered by rule (b) above `0029`–`0032`, which PRs #804, #858 and #946 hold | not applied — shipped unapplied; `/api/watchlist/annotations` answers 503 `annotations_unavailable` until it is |
+| `0033` | `watchlist_annotations` | packet E05 (program `terminal-enhancements20-20261011-opus`, #916), PR #927; numbered by rule (b) above `0029`–`0032`, which PRs #804, #858 and #946 hold | open PR; applied 2026-10-11 21:52Z through `scripts/supabase_apply.py` ([catalog receipt](https://github.com/mastermindx-market-intelligence/mastermind-terminal/pull/927#issuecomment-6114211528)): RLS on, four own-row policies, anon select = f; row flips to merged in the post-squash ledger follow-up PR |
 
 `0001`–`0007` and `0010` are **historical**: they predate this ledger, their creating pull
 requests were never recorded in-repo, and so their `pr` and `pr_state` fields in

@@ -59,13 +59,19 @@ grant select, insert, update, delete on table public.watchlist_annotations to au
 commit;
 
 -- readback:
--- select c.relname, c.relrowsecurity, array_agg(p.polname order by p.polname) as policies
+-- select c.relname, c.relrowsecurity
 --   from pg_class c
---   left join pg_policy p on p.polrelid = c.oid
+--  where c.relnamespace = 'public'::regnamespace and c.relname = 'watchlist_annotations';
+--   -- expected: watchlist_annotations | t
+-- select p.polname
+--   from pg_policy p
+--   join pg_class c on c.oid = p.polrelid
 --  where c.relnamespace = 'public'::regnamespace and c.relname = 'watchlist_annotations'
---  group by 1, 2;
---   -- expected: watchlist_annotations | t | {watchlist_annotations_delete_own,watchlist_annotations_insert_own,
---   --           watchlist_annotations_select_own,watchlist_annotations_update_own}
+--  order by p.polname;
+--   -- expected 4 rows, one policy name per row (the applier matches exact row values, so the
+--   -- names must not be aggregated into one array column): watchlist_annotations_delete_own,
+--   -- watchlist_annotations_insert_own, watchlist_annotations_select_own,
+--   -- watchlist_annotations_update_own
 -- select has_table_privilege('anon', 'public.watchlist_annotations', 'select');  -- expected: f
 
 -- down: (destructive -- deletes every account's synced notes and flags; take a verified backup first)
