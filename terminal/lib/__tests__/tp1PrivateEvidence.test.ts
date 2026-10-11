@@ -1,7 +1,7 @@
 /** Phase A: synthetic, byte-exact frozen-v0 private evidence tests. No vendor feed. */
 import { createHash } from "node:crypto";
 import { describe, it, expect } from "vitest";
-import { decodePrivateEvidence, pairPrivateEvidence, PrivateEvidenceRefusal, type EvidenceKind } from "../tp1PrivateEvidence";
+import { decodePrivateEvidence, pairPrivateEvidence, type EvidenceKind } from "../tp1PrivateEvidence";
 
 const START = "1791417600000000000";
 const END = "1791417660000000000";
