@@ -1,5 +1,5 @@
 "use client";
-import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import { PHONE_QUERY, useIsMobile, useIsPhone } from "@/lib/useMediaQuery";
 import MobileSheet from "@/components/ui/MobileSheet";
 import replayStyles from "./ReplayTransport.module.css";
@@ -121,7 +121,9 @@ import WashoutTurnRow from "@/components/WashoutTurnRow";
 import { oracleVerdict, deskVerdict } from "@/lib/signalVerdict";
 import { computeTrendState } from "@/lib/trend";
 import { useLive } from "@/lib/live";
-import { requestPaneFocus, setPaneSync, subscribePaneVisibleWindow } from "@/lib/paneSync";
+import { requestPaneFocus, setPaneLinks, subscribePaneRegistry, registeredPaneIds, subscribePaneVisibleWindow } from "@/lib/paneSync";
+import { assignPaneGroup, chartLinkView, fitLinkState, legacyLinkState, normalizeLinkState, pickLinkPanes, projectLegacySync, setGroupShare, type ChartLinkState, type LinkDimension, type LinkGroupId } from "@/lib/chartLinkGroups";
+import ChartLinkControl from "@/components/ChartLinkControl";
 import { REPLAY_MIN_IDX, replayIsAvailable, replayChartKey, resolveReplayTotal, replayHasSpan, clampReplayIdx, initialReplayIdx,
   replayIdxAt, replayCutoffAt, stepReplayCutoff, replayExitOnScreen, recordReplayAxis, type ReplayAxis, type ReplayCutoff, type ReplayExit } from "@/lib/replayContract";
 import {
@@ -1093,6 +1095,9 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
   const [panes, setPanes] = useState<string[]>([seed0]);
   const [activePane, setActivePane] = useState(0);
   const [sync, setSync] = useState(true);
+  // E09 link groups. `null` = derived from the legacy `sync` switch (all panes one group, or none);
+  // a value = the user chose groups per pane. Device-local (mm.ws `links`); saved layouts keep `sync`.
+  const [linkPlan, setLinkPlan] = useState<ChartLinkState | null>(null);
   const [split, setSplit] = useState(1);   // the split the user requested (panes.length may be smaller after dedup)
   const active = panes[activePane] ?? panes[0] ?? seed0;
   // A deep link already identifies the real landing symbol. A normal launch may restore a saved
@@ -1860,13 +1865,15 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
       try {
         const ws = load("mm.ws", null);
         if (ws && Array.isArray(ws.panes)) {
-          const pairs = ws.panes.map((s: string, i: number) => [s, ws.paneTfs?.[i] ?? startTf]).filter(([s]: any) => symbols.some((x) => x.symbol === s));
+          const pairs = ws.panes.map((s: string, i: number) => [s, ws.paneTfs?.[i] ?? startTf, i]).filter(([s]: any) => symbols.some((x) => x.symbol === s));
           if (pairs.length) {
             // a single chart always opens on the startup default; genuine multi-pane layouts (e.g. MTF) keep their saved per-pane timeframes
             setPanes(pairs.map((p: any) => p[0])); setPaneTfs(pairs.length === 1 ? [resolveStartTf(savedStartTf, functionalSet(pairs[0][0], secondBarsEnabled))] : pairs.map((p: any) => p[1]));
             setSplit([1, 2, 4].includes(ws.split) ? ws.split : (pairs.length >= 4 ? 4 : pairs.length >= 2 ? 2 : 1));
             setActivePane(Math.min(ws.activePane || 0, pairs.length - 1));
             if (typeof ws.sync === "boolean") setSync(ws.sync);
+            // E09: groups follow the slots that survived the symbol filter; an unreadable record falls back to `sync`.
+            { const savedLinks = pairs.length > 1 ? normalizeLinkState(ws.links, ws.panes.length) : null; setLinkPlan(savedLinks ? pickLinkPanes(savedLinks, pairs.map((p: unknown[]) => Number(p[2]))) : null); }
             if (typeof ws.lockedVLine === "string" || ws.lockedVLine === null) setLockedVLine(ws.lockedVLine);
           }
         }
@@ -1910,8 +1917,8 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
   // deep-link (?sym=) session, so following a Screener/Portfolio row can't clobber the saved layout.
   useEffect(() => {
     if (!wsMounted.current) { wsMounted.current = true; return; }
-    if (!initialSymbol) localStorage.setItem("mm.ws", JSON.stringify({ panes, paneTfs, split, sync, activePane, lockedVLine }));
-  }, [panes, paneTfs, split, sync, activePane, lockedVLine]);
+    if (!initialSymbol) localStorage.setItem("mm.ws", JSON.stringify({ panes, paneTfs, split, sync: linkPlan ? projectLegacySync(linkPlan, panes.length) : sync, links: linkPlan ? fitLinkState(linkPlan, panes.length) : undefined, activePane, lockedVLine }));
+  }, [panes, paneTfs, split, sync, linkPlan, activePane, lockedVLine]);
   // skip the mount-pass write (state is still the pre-load default) — otherwise a reload/discard
   // landing inside the mount→load window can permanently clobber the saved value with the default.
   // mm.inds was the one key WITHOUT this guard: on the mount pass the anon clamp (MAX_ANON_IND)
@@ -2313,9 +2320,24 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
   useEffect(() => { if (!flagsMounted.current) { flagsMounted.current = true; return; } writeOwnerStringMap(localStorage, WL_FLAGS_KEY, wlOwner, flags); }, [flags, wlOwner]);
   const notesMounted = useRef(false);
   useEffect(() => { if (!notesMounted.current) { notesMounted.current = true; return; } writeOwnerStringMap(localStorage, WL_NOTES_KEY, wlOwner, symbolNotes); }, [symbolNotes, wlOwner]);
-  // paneSync mirrors same-timeframe peers only — disable it entirely when the panes carry mixed timeframes
-  // (the Sync button is rendered disabled in that case), so a stale sync=true can't silently half-work.
-  useEffect(() => { setPaneSync(sync && panes.length > 1 && new Set(paneTfs.slice(0, panes.length)).size <= 1); }, [sync, panes.length, paneTfs]);
+  // paneSync mirrors same-timeframe peers only. Link groups (E09) narrow WHO mirrors whom on that one
+  // bus: a group whose members carry mixed timeframes is refused as a whole and says so in its chip,
+  // so a stale sync=true can't silently half-work. The legacy switch maps to one group of every pane.
+  const linkState = useMemo(() => linkPlan ?? legacyLinkState(sync, panes.length), [linkPlan, sync, panes.length]);
+  const registeredPaneKey = useSyncExternalStore(subscribePaneRegistry, registeredPaneIds, () => "");
+  const linkView = useMemo(() => chartLinkView(
+    fitLinkState(linkState, panes.length),
+    panes.map((_, i) => paneTfs[i] ?? "D"),
+    panes.length,
+    new Set(registeredPaneKey ? registeredPaneKey.split(",").map(Number) : []),
+  ), [linkState, panes, paneTfs, registeredPaneKey]);
+  useEffect(() => { setPaneLinks(linkView.plan); }, [linkView]);
+  const assignLinkGroup = useCallback((idx: number, group: LinkGroupId | null) => {
+    setLinkPlan((cur) => assignPaneGroup(fitLinkState(cur ?? legacyLinkState(sync, panes.length), panes.length), idx, group));
+  }, [sync, panes.length]);
+  const setLinkShare = useCallback((group: LinkGroupId, dim: LinkDimension, on: boolean) => {
+    setLinkPlan((cur) => setGroupShare(fitLinkState(cur ?? legacyLinkState(sync, panes.length), panes.length), group, dim, on));
+  }, [sync, panes.length]);
   useEffect(() => {
     const frame = window.requestAnimationFrame(() => {
       try {
@@ -2989,6 +3011,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
       next = [...panes, ...extra];   // may be < n if the watchlist can't supply enough unique symbols
     }
     setPanes(next);
+    setLinkPlan((s) => s && fitLinkState(s, next.length));   // removed slots leave their group; new ones start unlinked
     // keep one timeframe per pane; new panes inherit the active pane's timeframe
     setPaneTfs((tfs) => next.map((_, i) => tfs[i] ?? tf));
     setActivePane((a) => Math.min(a, next.length - 1));
@@ -3001,8 +3024,8 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
   // matching timeframes included — equal bar indexes still name different dates per symbol.
   const mixedTfs = panes.length > 1 && new Set(paneTfs.slice(0, panes.length)).size > 1;
   function mtfLayout() {
-    if (isMtf) { setSplit(1); setPanes([active]); setPaneTfs([tf]); setActivePane(0); return; }
-    const sym = active; setSplit(4); setPanes([sym, sym, sym, sym]); setPaneTfs(["D", "3D", "W", "1M"]); setActivePane(0);
+    if (isMtf) { setSplit(1); setPanes([active]); setPaneTfs([tf]); setActivePane(0); setLinkPlan((s) => s && fitLinkState(s, 1)); return; }
+    const sym = active; setSplit(4); setPanes([sym, sym, sym, sym]); setPaneTfs(["D", "3D", "W", "1M"]); setActivePane(0); setLinkPlan((s) => s && fitLinkState(s, 4));
   }
   function toggleReplay() {
     setReplayArmed((on) => {
@@ -4443,7 +4466,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
   // The single place that says what "the current workspace" IS, for both save and load. Keeping one
   // definition is what makes the round trip provable: the same shape is captured and re-applied.
   const currentWorkspace = (): LayoutWorkspace => ({
-    panes, paneTfs, split, activePane, sync, chartType,
+    panes, paneTfs, split, activePane, sync: linkPlan ? projectLegacySync(linkPlan, panes.length) : sync, chartType,
     inds: [...inds], indParams, hidden: [...hidden],
     compare, compareCfg, lockedVLine,
   });
@@ -4562,12 +4585,14 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
     const migrated = migrateLegacy(l.config, false);
     if (!migrated.ok) return;
     const envelope = migrated.envelope;
-    const next = applyLayoutConfig(workspaceToLayout(envelope), currentWorkspace());
+    const layout = workspaceToLayout(envelope);
+    const next = applyLayoutConfig(layout, currentWorkspace());
     setPanes(next.panes);
     setPaneTfs(next.paneTfs);
     setSplit(next.split);
     setActivePane(next.activePane);
-    setSync(next.sync);
+    // A layout that states `sync` owns the link choice (legacy mapping); one that doesn't keeps this device's groups.
+    if (layout.sync !== null) { setLinkPlan(null); setSync(next.sync); } else setLinkPlan((s) => s && fitLinkState(s, next.panes.length));
     setChartType(next.chartType);
     setInds(new Set(next.inds));
     setIndParams(next.indParams);
@@ -5286,7 +5311,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
             <div className="seg tool-adv toolbar-overflow-item" data-toolbar-item data-toolbar-action="split" title={t("splitLayout")}>{[1, 2, 4].map((n) => <button key={n} className={split === n ? "on" : ""} onClick={() => setGrid(n)}>{n}</button>)}</div>
             <button className={`tbtn tool-adv toolbar-overflow-item${isMtf ? " on" : ""}`} data-toolbar-item title={t("mtfTip")} onClick={mtfLayout}><svg viewBox="0 0 24 24"><path d="M3 13h4v8H3zM10 8h4v13h-4zM17 3h4v18h-4z" /></svg>{t("mtf")}</button>
             <button className={`tbtn dtm toolbar-overflow-item${dtm ? " on" : ""}`} data-toolbar-item title={t("dtmTip")} onClick={toggleDtm}><svg viewBox="0 0 24 24" style={{ width: 13, height: 13 }} fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" /></svg>{t("dtmBtn")}</button>
-            {panes.length > 1 && <button className={`tbtn tool-adv toolbar-overflow-item${sync && !mixedTfs ? " on" : ""}`} data-toolbar-item data-toolbar-action="sync" data-sync-on={sync && !mixedTfs ? "1" : "0"} disabled={mixedTfs} title={mixedTfs ? t("syncMixedTip") : t("syncTip")} onClick={() => setSync((s) => !s)}><svg viewBox="0 0 24 24"><path d="M4 7h11M4 7l3-3M4 7l3 3M20 17H9M20 17l-3-3M20 17l-3 3" /></svg>{t("sync")}</button>}
+            {panes.length > 1 && <button className={`tbtn tool-adv toolbar-overflow-item${linkView.anyLinked ? " on" : ""}`} data-toolbar-item data-toolbar-action="sync" data-sync-on={linkView.anyLinked ? "1" : "0"} disabled={mixedTfs && !linkView.anyLinked} title={mixedTfs && !linkView.anyLinked ? t("syncMixedTip") : t("syncTip")} onClick={() => { const on = !linkView.anyLinked; setLinkPlan(null); setSync(on); }}><svg viewBox="0 0 24 24"><path d="M4 7h11M4 7l3-3M4 7l3 3M20 17H9M20 17l-3-3M20 17l-3 3" /></svg>{t("sync")}</button>}
             <button
               className={`tbtn tool-adv toolbar-overflow-item${replayOn ? " on" : ""}`}
               data-toolbar-item
@@ -5383,7 +5408,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
                   <button type="button" role="menuitem" className={`menu-row${dtm ? " on" : ""}`} data-toolbar-menu-action="day" onClick={() => { toggleDtm(); setToolbarMoreOpen(false); }}>
                     <svg viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" /></svg>{t("dtmBtn")}
                   </button>
-                  {panes.length > 1 && <button type="button" role="menuitem" className={`menu-row${sync && !mixedTfs ? " on" : ""}`} data-toolbar-menu-action="sync" disabled={mixedTfs} onClick={() => { setSync((s) => !s); setToolbarMoreOpen(false); }}>
+                  {panes.length > 1 && <button type="button" role="menuitem" className={`menu-row${linkView.anyLinked ? " on" : ""}`} data-toolbar-menu-action="sync" disabled={mixedTfs && !linkView.anyLinked} onClick={() => { const on = !linkView.anyLinked; setLinkPlan(null); setSync(on); setToolbarMoreOpen(false); }}>
                     <svg viewBox="0 0 24 24"><path d="M4 7h11M4 7l3-3M4 7l3 3M20 17H9M20 17l-3-3M20 17l-3 3" /></svg>{t("sync")}
                   </button>}
                   <button type="button" role="menuitem" className={`menu-row${replayOn ? " on" : ""}`} data-toolbar-menu-action="replay" title={t(replayTitleKey)} disabled={Boolean(replayBlockedReason)} onClick={() => { toggleReplay(); setToolbarMoreOpen(false); }}>
@@ -5546,6 +5571,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
                   onSetLockedVLine={(t2) => setLockedVLine(t2)}
                   onIndRowsAt={i === activePane ? (fn, meta) => { setIndRowsAt(() => fn); if (meta) setChartReadoutMeta(meta); } : undefined}
                   onPaneCount={i === 0 ? onPaneCount : undefined}
+                  headerSlot={panes.length > 1 ? <ChartLinkControl idx={i} view={linkView} labels={panes} onAssign={assignLinkGroup} onShare={setLinkShare} /> : null}
                 />
               ))}
             </div>
