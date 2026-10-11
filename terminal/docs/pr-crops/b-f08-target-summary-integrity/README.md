@@ -28,3 +28,7 @@ Train 2 merged a different `TerminalShell.tsx` and `globals.css`, both locked so
 ## Recapture on E20 landing train 3
 
 Train 3 merged a different `TerminalShell.tsx` (E16 itinerary and E19 capture wiring, plus the train 2 master sync), a locked source. All twelve captures were regenerated on the merged tree at capture head `523a7f117`, which includes Terminal master `85ad93866`. No PNG or hash was copied from either parent. The run passed 6 of 6 with retries off and `animations: "disabled"` unchanged. The other twelve locked sources keep their accepted hashes. Desktop ZH and EN `unusable`, tablet ZH `recovered` and mobile EN `recovered` were viewed. `evidence.json` records the new hashes and nests the train 2 capture under `priorCapture`.
+
+### Recapture after the E05 master sync
+
+E05 (#927) then landed on master, and train 3 merged Terminal master `857a5076f` at `bf767cbfd`. That merge changed `TerminalShell.tsx` again (E05's owner-scoped note and flag promotion, and the `WatchlistAnnotationSync` mount), so all twelve captures were regenerated once more on the merged tree at capture head `bf767cbfd`. No PNG or hash was copied from either parent. The run passed 6 of 6 with retries off in 53.4s, with `animations: "disabled"` unchanged. The other twelve locked sources keep their accepted hashes. Desktop ZH `unusable` and mobile EN `recovered` were viewed. `evidence.json` records the new hashes and the new `TerminalShell.tsx` lock, and nests the `523a7f117` capture under `priorCapture`.
