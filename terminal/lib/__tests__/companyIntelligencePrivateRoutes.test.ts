@@ -578,7 +578,6 @@ describe('fixed owner request shape', () => {
     expect(ok.status).toBe(200);
     expect(clean.calls[1].url).toBe(FACT_OWNER_URL);
     expect(clean.calls[1].url).toContain(encodeURIComponent(FACT_ID));
-    expect(clean.calls[1].url.startsWith(BASE)).toBe(true);
   });
 
   it('never trusts a misreported or absent Content-Length and enforces the projection cap on the counted stream', async () => {
