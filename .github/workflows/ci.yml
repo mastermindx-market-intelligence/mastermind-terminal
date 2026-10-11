@@ -2,6 +2,8 @@ name: CI
 
 on:
   pull_request:
+  merge_group:
+    types: [checks_requested]
   # merge-on-green refreshes stale branches with GITHUB_TOKEN. Those writes do
   # not recursively emit pull_request workflows, so the controller dispatches
   # this same proof explicitly on the refreshed branch.
@@ -181,10 +183,32 @@ jobs:
       - name: Plain-language guard (forward-only, added lines block)
         env:
           BASE_REF: ${{ github.base_ref || 'master' }}
+          MERGE_GROUP_BASE_SHA: ${{ github.event.merge_group.base_sha }}
+          MERGE_GROUP_HEAD_SHA: ${{ github.event.merge_group.head_sha }}
+          MERGE_GROUP_BASE_REF: ${{ github.event.merge_group.base_ref }}
+          MERGE_GROUP_HEAD_REF: ${{ github.event.merge_group.head_ref }}
         run: |
           set -euo pipefail
           if [ "${GITHUB_EVENT_NAME}" = "pull_request" ]; then
             BASE=$(git rev-parse HEAD^1)
+          elif [ "${GITHUB_EVENT_NAME}" = "merge_group" ]; then
+            # The event freezes both trees. A later master must not turn an
+            # untouched legacy line into a newly added line on this candidate.
+            for SHA in "${MERGE_GROUP_BASE_SHA}" "${MERGE_GROUP_HEAD_SHA}"; do
+              [[ "$SHA" =~ ^[0-9a-f]{40}$ ]] || { echo "Invalid merge-group commit identity" >&2; exit 1; }
+            done
+            [ "${MERGE_GROUP_BASE_REF}" = "refs/heads/${BASE_REF}" ] || { echo "Wrong merge-group base ref" >&2; exit 1; }
+            case "${MERGE_GROUP_HEAD_REF}" in
+              "refs/heads/gh-readonly-queue/${BASE_REF}/"?*) ;;
+              *) echo "Invalid merge-group head ref" >&2; exit 1 ;;
+            esac
+            [ "${GITHUB_REF}" = "${MERGE_GROUP_HEAD_REF}" ] || { echo "Merge-group ref differs from checkout ref" >&2; exit 1; }
+            [ "${GITHUB_SHA}" = "${MERGE_GROUP_HEAD_SHA}" ] || { echo "Merge-group SHA differs from workflow SHA" >&2; exit 1; }
+            [ "$(git rev-parse HEAD)" = "${MERGE_GROUP_HEAD_SHA}" ] || { echo "Merge-group SHA differs from checked-out commit" >&2; exit 1; }
+            BASE="${MERGE_GROUP_BASE_SHA}"
+            # Fetch the exact object rather than resolving the moving branch.
+            git fetch --no-tags --depth=1 origin "$BASE"
+            [ "$(git rev-parse "${BASE}^{commit}")" = "$BASE" ] || { echo "Merge-group base is not the exact commit" >&2; exit 1; }
           else
             git fetch --no-tags --depth=1 origin "+refs/heads/${BASE_REF}:refs/remotes/origin/${BASE_REF}"
             BASE="refs/remotes/origin/${BASE_REF}"

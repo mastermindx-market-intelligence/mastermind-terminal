@@ -21,7 +21,10 @@ in full:
   * present file x `pr_state: "open"` is scope-dependent, so this guard runs it in one
     of THREE modes (see `resolve_run_mode`). On `master` (STRICT) the file being here
     proves its pull request merged, so `open` is a stale ledger (that is how
-    0014/0015/0016 lied) and it is a Finding. On a proven `pull_request` run
+    0014/0015/0016 lied) and it is a Finding. A `merge_group` also uses STRICT:
+    its group SHA does not supply frozen member PR ownership, so a present open
+    migration is unqualified and refused without claiming its owner has merged.
+    On a proven `pull_request` run
     (PULL_REQUEST) the branch legitimately carries its OWN migration with an open row --
     but only its own: a present file whose row names any OTHER pull request is stale
     (`OPEN_PR_STATE_STALE`), because the file being on this branch means that PR merged
@@ -46,11 +49,13 @@ in full:
     ledger's own top-level `project_ref`. Entries under `prefixes` and every `*.md`
     beside the ledger must write `{ref}` instead (Terminal #538's redaction law).
 
-`main()` selects strict mode only when the environment proves a `master` push
-(`GITHUB_EVENT_NAME=push` and `GITHUB_REF_NAME=master`), and pull-request mode only when
+`main()` selects strict mode for a proven `master` push
+(`GITHUB_EVENT_NAME=push` and `GITHUB_REF_NAME=master`) or a `merge_group` with no
+frozen member ownership contract, and pull-request mode only when
 the environment proves a pull-request run (`GITHUB_EVENT_NAME=pull_request` plus the
-running number in `PR_NUMBER`, wired into the pytest step in `.github/workflows/ci.yml`).
-Anything else -- a local run, a `workflow_dispatch` -- is lenient. Every run prints which
+running number in `PR_NUMBER`, wired into the pytest step in `.github/workflows/ci.yml`)
+or a `workflow_dispatch` with its explicit `pr_number` input. Other local or
+unattributed dispatch runs are lenient. Every run prints which
 of the three modes produced its report. This matters because no workflow in this
 repository has an `on: push` trigger: before the pull-request mode existed, the strict
 rule was reachable from no configuration CI could actually run, and the staleness this
@@ -292,8 +297,8 @@ def is_master_push(env: "Mapping[str, str] | None" = None) -> bool:
     The open-while-present rule (see `check_open_pr_state_for_present_files`) is a
     master-scope property, so it must not be asserted on a pull-request checkout.
     GitHub Actions sets both of these; anything else -- a local run, a
-    `pull_request` event, a `workflow_dispatch` on a branch -- reads as False here
-    and never earns STRICT. Which of the two remaining modes it then earns is
+    `pull_request` event, a `workflow_dispatch` on a branch -- reads as False here.
+    Whether another strict barrier or a PR/local scope applies is
     `resolve_run_mode`'s question, not this one's.
     """
     env = os.environ if env is None else env
@@ -349,6 +354,19 @@ def resolve_run_mode(
 
     if force_strict or is_master_push(env):
         return True, None, "STRICT (master push)"
+
+    # The merge_group event proves a group SHA, but supplies no frozen set of
+    # member PRs. Neither a queue-ref suffix nor a supplied PR_NUMBER proves that
+    # an open migration belongs to this group. Reuse the strict present/open
+    # barrier until an immutable membership contract is available; the ordinary
+    # PR and MOG workflow_dispatch paths retain their single-PR scope.
+    if env.get("GITHUB_EVENT_NAME") == "merge_group":
+        return (
+            True,
+            None,
+            "STRICT (merge_group: frozen PR membership unavailable; open migration "
+            "ownership unqualified)",
+        )
 
     number = pull_request_number(env)
     if number is not None:
@@ -504,7 +522,7 @@ def check_open_pr_state_for_present_files(
     Two rules with different scopes, which is why this takes `strict_master` and,
     for the pull-request scope, `pr_number`:
 
-    **present x open -- MASTER-scope only.** On `master`, a `.sql` file being
+    **present x open -- STRICT scope.** On `master`, a `.sql` file being
     here proves its pull request merged, so `pr_state: "open"` beside it is a
     stale ledger: that is exactly how 0014/0015/0016 lied (merged in #514/#527,
     never flipped off 'open'), silently, because `check_files_are_reserved` only
@@ -515,7 +533,9 @@ def check_open_pr_state_for_present_files(
     RESERVED_PREFIX_OCCUPIED, `taken`+`open` would trip this, and only a false
     `taken`+`merged` gets through (review round 2, FIX-2). So outside master a
     present file with `pr_state: "open"` can be legitimate -- but how far it is
-    trusted depends on what the environment proves:
+    trusted depends on what the environment proves. A merge-group run cannot
+    attribute a present open row to an immutable group member, so it uses the
+    same strict barrier. That refusal does not prove the owner has merged:
 
       * `pr_number` given (a proven `pull_request` run): the branch may carry the
         migration of THIS pull request and no other. A present file whose row names
@@ -555,10 +575,12 @@ def check_open_pr_state_for_present_files(
                     Finding(
                         "OPEN_PR_STATE_WITH_FILE_PRESENT",
                         prefix,
-                        f"prefix {prefix}'s file is present on master but RESERVATIONS.json "
-                        f"still records pr_state 'open' (pr {entry.get('pr')!r}) -- a file "
-                        "present on master means the owning pull request merged; flip pr_state "
-                        "to 'merged' (and record the merge sha) or the ledger is stale",
+                        f"prefix {prefix}'s file is present in a strict-scope checkout but "
+                        f"RESERVATIONS.json records pr_state 'open' (pr {entry.get('pr')!r}) "
+                        "-- this scope cannot admit a present open migration. On master, "
+                        "verify the owning PR's merge and record it truthfully; in a merge "
+                        "group, frozen member ownership remains unqualified. Do not mark an "
+                        "unmerged PR as merged to bypass this refusal",
                     )
                 )
             elif pr_number is not None:
@@ -984,7 +1006,8 @@ def main(argv: "Sequence[str] | None" = None) -> int:
         print(f"::error title=migration-namespace::RESERVATION_SCHEMA missing file — {RESERVATIONS_PATH} does not exist", flush=True)
         return 2
 
-    # The open-while-present rule is scope-dependent: master push -> strict,
+    # The open-while-present rule is scope-dependent: master push or a merge
+    # group with unproven member ownership -> strict,
     # proven pull request -> that pull request may carry its own migration and no
     # other, anything else -> lenient. `--strict` forces master scope for a local
     # dry run.
@@ -1003,8 +1026,9 @@ def main(argv: "Sequence[str] | None" = None) -> int:
             state="note",
             text=(
                 f"open-while-present rule ran in {mode} mode — STRICT: a present .sql whose "
-                "ledger row says pr_state 'open' is stale, because the file being on master "
-                "proves its pull request merged. PULL_REQUEST: it is legitimate only for the "
+                "ledger row says pr_state 'open' is refused. Master scope requires a truthful "
+                "merged row; merge-group scope has no frozen member ownership proof. "
+                "PULL_REQUEST: it is legitimate only for the "
                 "pull request named in this mode line; a present file whose row names any other "
                 "open pull request is stale. LENIENT: nothing about scope is proven, so it is "
                 "required only to be state 'taken' with a pull-request number. The "

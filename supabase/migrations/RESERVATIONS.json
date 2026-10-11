@@ -319,6 +319,27 @@
       "applied_in_production": false,
       "applied_date": null,
       "note": "Forward repair on the incumbent #804 carrier following integration review 5989604142. 0028/0029 remain byte-identical; 0030 is not applied. Applied date is not recorded because no application has occurred."
+    },
+    "0031": {
+      "state": "taken",
+      "file": "0031_drawings_atomic_replace.sql",
+      "packet": "TERMINAL-AUDIT20-A04",
+      "pr": 858,
+      "pr_state": "open",
+      "applied_in_production": false,
+      "applied_date": null,
+      "note": "Audit20 parent takeover 01a10f92: read-only legacy snapshot tokens and transactional drawing CAS/replay on the existing RLS table. Open-PR namespace census 2026-10-08 preserves 0029/0030 for #804. Source only; no production application. Applied date is not recorded because source ships unapplied; owning PR #858 retains application and catalog receipts."
+    },
+    "0032": {
+      "state": "taken",
+      "file": "0032_thesis_proposal_state_qualification.sql",
+      "packet": "B-F11-PROPOSAL-STATE-SQL",
+      "pr": 946,
+      "pr_state": "merged",
+      "applied_in_production": true,
+      "applied_date": "2026-10-11",
+      "note": "Alias-only repair of installed proposal RPC42702 ambiguity. PR946 merged as 2957bd64eec9ac3246a52789acb0f7de55400144. Applied 2026-10-11T19:04:02Z through the existing per-file Management API applier: one function replacement, exact installed body verified, owner/ACL/SECURITY DEFINER/search_path unchanged. Original 0025 unchanged. Actual pre/post catalog receipt: https://github.com/mastermindx-market-intelligence/mastermind-terminal/pull/946#issuecomment-6112592004. Live Accept/Reject verification is separate.",
+      "merged_sha": "2957bd64eec9ac3246a52789acb0f7de55400144"
     }
   }
 }

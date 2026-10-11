@@ -20,7 +20,7 @@ viewports:
   - { name: mobile, width: 390, height: 844 }
 harness: /dev/settings?s=team&lang=<en|zh> (owner crops with two controls painted); /dev/settings?s=team&team=member&lang=<en|zh> (member crops with read-only sentence + closed-default chart-theme label)
 capture_flag: TERMINAL_E2E_FIXTURE
-capture_flag_law: next.config.ts sets devIndicators: false when TERMINAL_E2E_FIXTURE is set; playwright.config.ts already sets that flag on the e2e dev server. This script starts next dev with the same flag.
+capture_flag_law: next.config.ts sets devIndicators to false when TERMINAL_E2E_FIXTURE is set; playwright.config.ts already sets that flag on the e2e dev server. This script starts next dev with the same flag.
 command: |
   cd terminal
   node e2e/tools/capture_f12_16_team_settings.cjs

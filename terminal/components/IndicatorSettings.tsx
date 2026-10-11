@@ -6,7 +6,8 @@
 // script's declared input() params instead.
 
 import { useEffect, useRef, useState, type CSSProperties } from "react";
-import { IND_DEFS, withDefaults, isIndKey, defaultVis, VIS_UNITS, type IndField, type VisUnit, type VisRange } from "@/lib/indicators";
+import { IND_DEFS, withDefaults, defaultVis, VIS_UNITS, type IndField, type VisUnit, type VisRange } from "@/lib/indicators";
+import { studyParamsWithDefaults, studyTypeOf } from "@/lib/studyInstances";
 import { isSuiteKey, getSuiteDef, suiteDefaults } from "@/lib/suites/registry";
 import { getSuiteModuleCatalogEntry, type SuiteModuleCatalogEntry } from "@/lib/suites/catalog";
 import type { SuiteField, SuiteModuleMeta, SuiteTier } from "@/lib/indicator-canvas/types";
@@ -229,8 +230,10 @@ function ModuleSection({ m, values, locked, expanded, onToggle, onChange, onGuid
   );
 }
 
-export default function IndicatorSettings({ indKey, moduleTarget, params, onChange, pine, onPineChange, onClose, onReset, userTier = "free", onOpenGuide }:
+export default function IndicatorSettings({ indKey, moduleTarget, params, onChange, pine, onPineChange, onClose, onReset, userTier = "free", onOpenGuide, title: instanceTitle }:
   { indKey: string;
+    /** Display name of this study INSTANCE (e.g. "RSI 2 (7)") when several of one type are active. */
+    title?: string;
     moduleTarget?: IndicatorSettingsModuleTarget;
     params: Record<string, any>;
     onChange: (patch: Record<string, any>) => void;
@@ -279,10 +282,12 @@ export default function IndicatorSettings({ indKey, moduleTarget, params, onChan
   useEffect(() => { if (!defOpen) return; const close = () => setDefOpen(false); window.addEventListener("click", close); return () => window.removeEventListener("click", close); }, [defOpen]);
 
   const isPine = indKey === "pine";
-  const def = !moduleEntry && isIndKey(indKey) ? IND_DEFS[indKey] : null;
+  // A study INSTANCE id ("rsi" or "rsi__<token>", E06) edits its type's fields under its own id.
+  const studyType = !moduleEntry ? studyTypeOf(indKey) : null;
+  const def = studyType ? IND_DEFS[studyType] : null;
   const title = moduleEntry ? moduleEntry.label
     : suite ? (suite.tkey ? t(suite.tkey, suite.label) : suite.label)
-    : isPine ? (pine?.name || "Custom script") : def?.label || indKey;
+    : isPine ? (pine?.name || "Custom script") : instanceTitle || def?.label || indKey;
 
   const rank = TIER_RANK[userTier] ?? 0;
   const isLocked = (m: SuiteModuleMeta) => rank < (TIER_RANK[m.tier] ?? 0);
@@ -295,7 +300,7 @@ export default function IndicatorSettings({ indKey, moduleTarget, params, onChan
   const pineEntries = isPine && pine ? Object.entries(pine.params) : [];
   const inputs = def ? def.fields.filter((f) => f.group === "inputs") : [];
   const styles = def ? def.fields.filter((f) => f.group === "style") : [];
-  const P = def ? withDefaults(indKey, params) : params;
+  const P = !def ? params : studyType === indKey ? withDefaults(indKey, params) : studyParamsWithDefaults(indKey, params);
   const vis: Record<VisUnit, VisRange> = (P._vis as any) || defaultVis();
   const setVis = (unit: VisUnit, patch: Partial<VisRange>) => onChange({ _vis: { ...vis, [unit]: { ...vis[unit], ...patch } } });
 

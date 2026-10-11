@@ -15,7 +15,7 @@ export const dynamic = "force-dynamic";
 // the hub's LRU/session logic).
 //
 // Response shape (UI contract):
-//   { quotes: { SYM: { extPrice, extChg, extTs, extSession? } | null } }
+//   { quotes: { SYM: { extPrice, extChg, extTs, extSession?, extSource?, extBasis? } | null } }
 // `extSession` ('pre' | 'post' | 'overnight') is the hub's own classification of WHICH
 // out-of-hours window the print came from. The route used to strip it, which forced the UI
 // to label every ext print "Overnight" — including a 08:15 ET pre-market print. Passed through
@@ -43,6 +43,14 @@ type ExtSession = (typeof EXT_SESSIONS)[number];
 const asExtSession = (v: unknown): ExtSession | null =>
   (EXT_SESSIONS as readonly string[]).includes(v as string) ? (v as ExtSession) : null;
 
+// Preserve the owner's provenance. Missing or unknown basis is never promoted to LIVE.
+const EXT_BASES = ["LIVE", "DELAYED_15M", "UNOFFICIAL"] as const;
+type ExtBasis = (typeof EXT_BASES)[number];
+const asExtBasis = (v: unknown): ExtBasis | null =>
+  (EXT_BASES as readonly unknown[]).includes(v) ? (v as ExtBasis) : null;
+const asExtSource = (v: unknown): string | null =>
+  typeof v === "string" && /^[A-Za-z0-9_.:-]{1,64}$/.test(v) ? v : null;
+
 export async function GET(req: Request) {
   const rl = rateLimit(req, { name: "ext-quote" });
   if (!rl.ok) return tooMany(rl);
@@ -54,7 +62,7 @@ export async function GET(req: Request) {
     .slice(0, MAX_SYMS);
   if (syms.length === 0) return NextResponse.json({ quotes: {} });
 
-  type ExtEntry = { extPrice: number; extChg: number; extTs: number; extSession?: ExtSession };
+  type ExtEntry = { extPrice: number; extChg: number; extTs: number; extSession?: ExtSession; extSource?: string; extBasis?: ExtBasis };
   const out: Record<string, ExtEntry | null> = {};
   for (const s of syms) out[s] = null;
 
@@ -77,12 +85,16 @@ export async function GET(req: Request) {
       const q = value as Record<string, unknown>;
       if (typeof q.extPrice === "number" && typeof q.extChg === "number") {
         const session = asExtSession(q.extSession);
+        const source = asExtSource(q.extSource);
+        const basis = asExtBasis(q.extBasis);
         const extTs = typeof q.extTs === "number"
           ? q.extTs
           : typeof q.ts === "number" ? q.ts : 0;
         out[s] = {
           extPrice: q.extPrice, extChg: q.extChg, extTs,
           ...(session ? { extSession: session } : {}),
+          ...(source ? { extSource: source } : {}),
+          ...(basis ? { extBasis: basis } : {}),
         };
       }
     }
