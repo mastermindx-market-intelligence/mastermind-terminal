@@ -35,11 +35,24 @@ length prefix, excluding that prefix. Heartbeats consume no message sequence.
 | L | 46 | Execution against a displayed order; executed quantity contributes to volume. |
 | T | 38 | Non-displayed versus non-displayed execution; quantity also contributes to volume. |
 | B | 38 | Later trade break targeting an earlier L or T by native trade ID. |
+| S | 10 | System event; timestamp, no symbol. |
+| D | 31 | Security directory; administrative reference metadata. |
+| H | 22 | Trading status; administrative status metadata. |
+| I | 18 | Retail-liquidity indicator; no executed quantity. |
+| O | 18 | Operational halt status; no executed quantity. |
+| P | 19 | Short-sale price-test status; no executed quantity. |
+| E | 18 | Opening/closing process status; no executed quantity. |
 
 L and T are distinct execution populations. The decoder does not discard L
 volume or count an order modification/removal as a trade. Trade IDs are scoped
-to protocol, transport session, market date and symbol; contradictory reuse
-refuses instead of guessing. A matching B subtracts the original execution only
+to market date, protocol, channel, transport session, symbol and native trade
+ID. DEEP+ v1.06 pp9-10 partitions symbols across channels; pp24-26 makes no
+cross-channel or cross-session global uniqueness promise for Trade ID. Redundant
+A/B sources retain the same channel/session identity and deduplicate by native
+sequence/offset, even if packet grouping or network endpoints differ. Distinct
+channels and sessions stay separate. Contradictory reuse refuses instead of
+guessing. The full native signature includes message kind, size, price, flags,
+event timestamp and (for L) resting-order ID. A matching B subtracts the original execution only
 from its later correction state. Orphan breaks remain explicit and subtract
 nothing. A break does not restore a previously executed order in the book.
 
@@ -61,7 +74,23 @@ All source messages advance transport continuity before any symbol filter.
 Protocol/channel/session/sequence identities deduplicate retransmissions even
 when redundant packet grouping differs. Contradictory retransmissions refuse.
 A finite sequence cache is explicit; a replay outside it cannot be silently
-certified as an identical duplicate.
+certified as an identical duplicate. Semantic trade/break signatures are retained
+before any time filter and before applying L to displayed quantity. Identical
+repeats cannot consume an order twice, including outside the selected output
+window. Contradictory repeated breaks are checked against both their original
+execution and the first break signature before any idempotent return.
+
+The shared 100,000-signature default ceiling includes filtered L/T and B records.
+Reaching it stops with partial evidence before the next lifecycle mutation;
+identities are never evicted and later mistaken for new trades. A selected B
+whose target was observed only outside the selection remains an explicit
+unmatched output correction and subtracts no selected volume.
+
+Known administrative messages must match their exact documented body length,
+nonnegative acquisition-bounded timestamp and (except S) valid source symbol.
+Their status/detail payloads remain unused administrative metadata, not inputs
+to executed volume, aggressor inference or response evidence. Unknown message
+types retain the existing lifecycle-invalidation policy.
 
 The actual source identified two details that the first fixtures had missed:
 
@@ -89,7 +118,11 @@ nanosecond capture clocks retain their rational tick representation.
 Native message order updates the book; exchange timestamps may decrease
 across message types. Time selection filters emitted records without
 discarding the prior lifecycle. No source event may postdate the claimed
-archive acquisition.
+archive acquisition. Each normalized row's session has the 31-character form
+`YYYYMMDD.pppp.cccccccc.ssssssss`, preserving full protocol/channel/session fields
+as hexadecimal. Native source sequences and cancel targets are scoped to this
+identity; date alone is not an ordering domain. The receipt records every
+observed native stream and its normalized session.
 
 Every envelope declares historical / HISTORICAL_REPLAY /
 archive_acquisition, venue scope, partial coverage, shares and a null tick
@@ -110,7 +143,8 @@ Run from the Terminal repository root on M2 Studio:
       --max-bytes 536870912 \
       --max-packets 2000000 \
       --max-messages 8000000 \
-      --max-records 10000
+      --max-records 10000 \
+      --max-native-identities 100000
 
 Use a new output directory. Existing output refuses so an interrupted effect
 must be inspected before another write. Source files and existing acquisition
@@ -125,13 +159,14 @@ Unsupported packet blocks/linktypes, IP fragments, truncated frames and
 contradictory lengths refuse. Metadata blocks do not become market messages.
 
 Default bounds are 512 MiB decompressed input, two million packets, eight
-million messages, 10,000 selected records, 100,000 selected live orders and
-65,536 recent sequence digests per stream. There is no full raw unpack or
+million messages, 10,000 selected records, 100,000 selected live orders,
+100,000 native trade/break signatures and 65,536 recent sequence digests per
+stream, with at most 32 streams. There is no full raw unpack or
 automatic archive retention/deletion.
 
-## Actual-data verification, October 11, 2026
+## Initial actual-data verification (v2), October 11, 2026
 
-The finalized decoder source SHA-256 is:
+The initial v2 decoder source SHA-256 was:
 
     b801e468e8e5143d83723a9ae11cc1c3041042b85fd9554ac0485d4573fadf71
 
@@ -171,7 +206,7 @@ predictive validation.
 | MU | 144 | 4,471 | 4,125 |
 | ARM | 33 | 1,899 | 1,854 |
 
-All seven finalized envelopes passed the actual Terminal transaction validator
+All seven v2 envelopes passed the actual Terminal transaction validator
 and snapshot builder. Their eligible quantities equal the decoded source
 quantities. A knowledge cutoff before archive acquisition exposes zero prints.
 No cluster receives absorption availability or predictive authority.
@@ -203,6 +238,99 @@ the product validator did not admit. The finalized pass uses native L/T/B
 labels. All seven native record arrays are identical after that label
 normalization; only the contract serialization and exact stopping boundary
 changed. Both receipts remain preserved.
+
+## Integrity review and regenerated v3 sample
+
+The v3 decoder source SHA-256 after the first bounded integrity review was:
+
+    d06d521146389c51d89cc254305adac007f3e458274ef7b2ced50feaf2c85ae1
+
+The review added 44 deterministic cases. Before the fixes, 37 new cases failed,
+while the original 53 and seven valid administrative-frame cases passed. After
+the fixes, **97/97 cases passed** using the same existing CI discovery command:
+
+    python3 -m pytest tests/test_iex_deep_trades.py -q --tb=short
+
+The new cases cover contradictory event times and resting-order references,
+channel/session-separated cancellation targets, maximum unsigned stream fields,
+all seven administrative body lengths and invalid clocks, filtered duplicate
+executions, contradictory repeated breaks, filtered correction targets, and the
+shared identity-memory ceiling. No test enrollment or workflow changed.
+
+The v3 regeneration repeated the exact v2 bounds: the same seven symbols, no
+event-time filter, two million packets and at most 512 MiB decompressed input.
+It finished in 40.757 seconds and stopped at the packet ceiling. All 312,182,060
+consumed bytes have the identical independently computed prefix digest. Every
+price, quantity, side, condition, event clock and source sequence is unchanged
+from v2. Only normalized row IDs, cancel-target IDs where applicable, and session
+identities changed. There were again 1,685 executions and 141,057 shares, with
+zero observed source gaps, unknown message types or breaks.
+
+Exactly one source stream was observed: protocol 32773 (`0x8005`), channel 1,
+session 1358626816, normalized as `20261005.8005.00000001.50fb0000`. Its first
+observed native sequence is 1 and its next sequence at the ceiling is 2,321,531.
+The decoder retained 1,685 native identity signatures, below its 100,000 cap.
+
+The v3 sample and its bounded comparison/test receipt remain private artifacts:
+
+    .large-trades-evidence/iex-20261005-v3/
+
+| Evidence | SHA-256 |
+| --- | --- |
+| decode-receipt.json | c42147b170e382a0a7c26ec9f3a434bbdb3496ada0712eb3bf2094fdcb3683c9 |
+| Native-record provenance | f157c389a3b2b383764ddbc64528962206c07be02d8876faf380c025223e4536 |
+| Independently hashed decompressed prefix | 3b173fd73113318e5db6ac0d232c19f7a7aaa25b55bd92228b66b17406a9fe5d |
+
+V2 receipts and data remain preserved. The earlier v2 consumer proof is not
+silently reassigned to v3 or to a later engine. Independent consumer verification
+must bind the v3 source receipt, current decoder and current engine hashes; its
+own receipt carries that result. The source acquisition and publication limits
+below are unchanged.
+
+## Independent correction review and final v4 sample
+
+Independent review found two additional native correction-order contradictions.
+A B timestamp earlier than a known L/T execution was accepted by the decoder
+while the consumer refused that correction. A first-seen L/T after an unmatched
+B in the same native identity scope was also accepted, allowing decoder and
+consumer correction totals to disagree. The decoder now rejects both before
+identity insertion, order-book mutation, time filtering or volume accounting.
+This follows the native contract that B refers to a previously sent L/T and
+carries the break event's timestamp. It does not introduce another pending-
+correction authority.
+
+Equal execution/break timestamps remain permitted. An exact duplicate of an
+already-known L/T after its valid B remains an idempotent no-op. Unknown-target
+breaks remain explicit when no contradictory original subsequently appears.
+
+The first nine review tests reproduced seven failures against v3 (99 cases
+passed). After the two checks and three additional mutation-boundary tests,
+**109/109 tests pass**. A separate read-only reviewer ran 13 independent probe
+groups, including 21 administrative length/clock rejection checks, and reported
+no remaining high or medium defect in this scoped diff.
+
+Final decoder source SHA-256:
+
+    9655af3dde9ea225635f6d97be60c6d51a57795c7b7a68bfa91e4d3e18d5a068
+
+The final sample is retained separately:
+
+    .large-trades-evidence/iex-20261005-v4/
+
+It repeats the same seven symbols and two-million-packet ceiling, finishing in
+21.908 seconds. The decoded prefix, all 1,685 normalized record objects, every
+native-provenance byte and the 141,057-share total are identical to v3. No B
+occurs in this real-data prefix; correction ordering remains deterministic-
+fixture proof, not an observed historical-bust example. V2 and v3 are preserved.
+
+| Evidence | SHA-256 |
+| --- | --- |
+| decode-receipt.json | aa952521d29fa6e4aa05f084ac2b6148becd9ed51e5c5d92b2e04fa1c73162d8 |
+| Native-record provenance | f157c389a3b2b383764ddbc64528962206c07be02d8876faf380c025223e4536 |
+| Independently hashed decompressed prefix | 3b173fd73113318e5db6ac0d232c19f7a7aaa25b55bd92228b66b17406a9fe5d |
+
+Independent consumer verification must use v4 and its matching decoder hash;
+the successful prior v3 receipt cannot stand in for this final binding.
 
 ## Interpretation and publication limits
 

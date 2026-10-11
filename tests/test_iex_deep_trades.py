@@ -423,3 +423,201 @@ def test_packet_limit_does_not_read_next_packet_body():
     assert audit["decompressedBytesRead"] == len(prefix)
     assert audit["stopReason"] == "packet_limit"
     assert len(envelopes["SPY"]["prints"]) == 1
+
+
+# Integrity review: semantic identity must precede lifecycle and output filtering.
+@pytest.mark.parametrize("maker", [trade, execution])
+def test_repeated_native_identity_with_different_event_time_is_conflicting(maker):
+    with pytest.raises(DecodeError, match="conflicting native trade identity"):
+        decode([maker(stamp=STAMP + 1), maker(stamp=STAMP + 2)])
+
+
+def test_repeated_native_execution_identity_with_different_resting_order_is_conflicting():
+    with pytest.raises(DecodeError, match="conflicting native trade identity"):
+        decode([add(order=1), add(order=2), execution(order=1), execution(order=2)])
+
+
+@pytest.mark.parametrize("second_channel,second_session", [(2, 123), (1, 124)])
+def test_normalized_identity_and_cancel_target_are_scoped_to_native_stream(second_channel, second_session):
+    packets = [
+        ethernet(transport([trade(size=50, trade=7)], channel=1, session=123)),
+        ethernet(transport([trade(size=60, trade=7), trade(size=60, trade=7, kind=b"B")],
+                           channel=second_channel, session=second_session)),
+    ]
+    envelopes, audit, _ = decode_stream(io.BytesIO(pcapng(packets)), RECEIPT, ["SPY"])
+    first, second, cancel = envelopes["SPY"]["prints"]
+    assert first["id"] != second["id"]
+    assert first["session"] != second["session"]
+    assert len(first["session"]) <= 32 and len(second["session"]) <= 32
+    assert cancel["session"] == second["session"]
+    assert cancel["targetId"] == second["id"]
+    assert cancel["targetId"] != first["id"]
+    assert audit["conservation"]["netUnbrokenShares"] == 50
+
+
+@pytest.mark.parametrize("channel,session", [(0, 0), (2**32 - 1, 2**32 - 1)])
+def test_normalized_session_retains_full_unsigned_channel_and_session_fields(channel, session):
+    packet = ethernet(transport([trade()], channel=channel, session=session))
+    envelopes, _, _ = decode_stream(io.BytesIO(pcapng([packet])), RECEIPT, ["SPY"])
+    assert envelopes["SPY"]["prints"][0]["session"] == f"20261005.8005.{channel:08x}.{session:08x}"
+
+
+ADMIN_BODY_LENGTHS = {b"S": 10, b"D": 31, b"H": 22, b"I": 18, b"O": 18, b"P": 19, b"E": 18}
+
+
+def admin_message(kind, stamp=STAMP + 5):
+    body = bytearray(ADMIN_BODY_LENGTHS[kind])
+    body[0:1] = kind
+    body[1] = {b"S": ord("O"), b"D": 0, b"H": ord("T"), b"I": ord(" "),
+               b"O": ord("O"), b"P": 0, b"E": ord("O")}[kind]
+    struct.pack_into("<q", body, 2, stamp)
+    if kind != b"S":
+        body[10:18] = sym()
+    return bytes(body)
+
+
+@pytest.mark.parametrize("kind", ADMIN_BODY_LENGTHS)
+@pytest.mark.parametrize("extra", [-1, 1])
+def test_known_admin_body_length_must_match_specification(kind, extra):
+    body = admin_message(kind)
+    malformed = body[:-1] if extra == -1 else body + b"\x00"
+    with pytest.raises(DecodeError, match="message length"):
+        decode([add(), malformed, execution()])
+
+
+@pytest.mark.parametrize("kind", ADMIN_BODY_LENGTHS)
+def test_known_admin_full_frame_remains_non_execution_and_preserves_lifecycle(kind):
+    envelopes, audit, _ = decode([add(), admin_message(kind), execution()])
+    assert envelopes["SPY"]["prints"][0]["side"] == "buy"
+    assert audit["conservation"]["grossExecutedShares"] == 100
+    assert audit["counters"]["admin_messages"] == 1
+
+
+@pytest.mark.parametrize("kind", ADMIN_BODY_LENGTHS)
+def test_known_admin_invalid_source_clock_is_not_silently_accepted(kind):
+    with pytest.raises(DecodeError, match="negative source timestamp"):
+        decode([admin_message(kind, stamp=-1)])
+
+
+def test_filtered_semantic_duplicate_l_does_not_reduce_resting_quantity_twice():
+    envelopes, audit, private = decode([
+        add(size=200), execution(size=100, trade=1, stamp=STAMP + 10),
+        execution(size=100, trade=1, stamp=STAMP + 10),
+        execution(size=100, trade=3, stamp=STAMP + 100),
+    ], start_ns=STAMP + 50)
+    assert [r["side"] for r in envelopes["SPY"]["prints"]] == ["buy"]
+    assert private[0]["orderQuantityBefore"] == 100
+    assert audit["conservation"]["grossExecutedShares"] == 100
+    assert audit["counters"]["semantic_duplicate_trades"] == 1
+    assert audit["counters"]["time_filtered_executions"] == 1
+
+
+@pytest.mark.parametrize("patch", [{"size": 51}, {"price": 100_0001},
+                                    {"stamp": STAMP + 21}, {"flags": 0x20}])
+def test_repeated_break_conflicting_native_payload_is_never_idempotent(patch):
+    with pytest.raises(DecodeError, match="conflicting native trade break|break price/quantity"):
+        decode([trade(), trade(kind=b"B"), trade(kind=b"B", **patch)])
+
+
+def test_break_of_filtered_trade_is_not_subtracted_from_selected_volume():
+    envelopes, audit, _ = decode([
+        trade(stamp=STAMP + 10), trade(kind=b"B", stamp=STAMP + 100),
+    ], start_ns=STAMP + 50)
+    assert [r["kind"] for r in envelopes["SPY"]["prints"]] == ["cancel"]
+    assert audit["conservation"]["grossExecutedShares"] == 0
+    assert audit["conservation"]["matchedBrokenShares"] == 0
+    assert audit["conservation"]["netUnbrokenShares"] == 0
+    assert audit["counters"]["break_targets_outside_selection"] == 1
+
+
+def test_contradictory_break_outside_selection_is_still_rejected():
+    with pytest.raises(DecodeError, match="conflicting native trade break|break price/quantity"):
+        decode([trade(), trade(kind=b"B"), trade(kind=b"B", size=51)], start_ns=STAMP + 100)
+
+
+def test_filtered_native_identity_memory_is_bounded_without_eviction():
+    envelopes, audit, _ = decode([
+        trade(trade=1), trade(trade=2), trade(trade=1),
+    ], start_ns=STAMP + 100, limits=Limits(max_native_identities=1))
+    assert envelopes == {}
+    assert audit["stopReason"] == "native_identity_limit"
+    assert audit["archiveExhausted"] is False
+    assert audit["counters"]["native_identity_signatures"] == 1
+
+
+def test_break_signature_memory_shares_the_native_identity_ceiling():
+    envelopes, audit, _ = decode([
+        trade(trade=1), trade(trade=1, kind=b"B"),
+    ], limits=Limits(max_native_identities=1))
+    assert [r["kind"] for r in envelopes["SPY"]["prints"]] == ["trade"]
+    assert audit["stopReason"] == "native_identity_limit"
+    assert audit["conservation"]["netUnbrokenShares"] == 50
+
+
+# Independent review: native breaks target previously sent executions, and their
+# break-event timestamp cannot precede the target execution's event timestamp.
+@pytest.mark.parametrize("maker", [trade, execution])
+def test_break_timestamp_cannot_precede_known_target_event(maker):
+    with pytest.raises(DecodeError, match="trade break precedes target execution timestamp"):
+        decode([maker(trade=9, size=100, stamp=STAMP + 100),
+                trade(trade=9, size=100, kind=b"B", stamp=STAMP + 50)])
+
+
+@pytest.mark.parametrize("maker", [trade, execution])
+@pytest.mark.parametrize("size", [100, 101])
+def test_unmatched_break_cannot_be_resolved_by_a_later_native_execution(maker, size):
+    with pytest.raises(DecodeError, match="execution follows unmatched native trade break"):
+        decode([trade(trade=9, size=100, kind=b"B", stamp=STAMP + 100),
+                maker(trade=9, size=size, stamp=STAMP + 50)])
+
+
+def test_known_execution_retransmitted_after_its_break_is_still_idempotent():
+    t = trade(trade=9, size=100, stamp=STAMP + 50)
+    _, audit, _ = decode([t, trade(trade=9, size=100, kind=b"B", stamp=STAMP + 100), t])
+    assert audit["conservation"]["grossExecutedShares"] == 100
+    assert audit["conservation"]["matchedBrokenShares"] == 100
+    assert audit["conservation"]["netUnbrokenShares"] == 0
+    assert audit["counters"]["semantic_duplicate_trades"] == 1
+
+
+def test_break_may_share_its_prior_native_targets_event_timestamp():
+    _, audit, _ = decode([trade(stamp=STAMP + 100), trade(kind=b"B", stamp=STAMP + 100)])
+    assert audit["conservation"]["netUnbrokenShares"] == 0
+
+
+def test_impossible_break_order_is_rejected_outside_the_output_time_selection():
+    with pytest.raises(DecodeError, match="trade break precedes target execution timestamp"):
+        decode([trade(stamp=STAMP + 100), trade(kind=b"B", stamp=STAMP + 50)],
+               start_ns=STAMP + 1000)
+
+
+@pytest.mark.parametrize("start_ns", [None, STAMP + 1000])
+def test_execution_after_unmatched_break_rejects_before_book_or_identity_mutation(start_ns):
+    decoder = Decoder(RECEIPT, ["SPY"], start_ns=start_ns)
+    stream = (0x8005, 1, 123)
+    decoder.consume_message(stream, 1, add(size=200), {})
+    decoder.consume_message(stream, 2, trade(trade=9, size=100, kind=b"B", stamp=STAMP + 100), {})
+    before_orders = {k: dict(v) for k, v in decoder.orders.items()}
+    before_rows = list(decoder.prints["SPY"])
+    with pytest.raises(DecodeError, match="execution follows unmatched native trade break"):
+        decoder.consume_message(stream, 3, execution(trade=9, size=100, stamp=STAMP + 50), {})
+    assert decoder.orders == before_orders
+    assert decoder.prints["SPY"] == before_rows
+    assert decoder.trades == {}
+    assert decoder.stats["native_identity_signatures"] == 1
+    assert decoder.stats["gross_executed_shares"] == 0
+
+
+def test_early_break_rejects_before_break_identity_or_conservation_mutation():
+    decoder = Decoder(RECEIPT, ["SPY"])
+    stream = (0x8005, 1, 123)
+    decoder.consume_message(stream, 1, add(size=200), {})
+    decoder.consume_message(stream, 2, execution(trade=9, size=100, stamp=STAMP + 100), {})
+    before_orders = {k: dict(v) for k, v in decoder.orders.items()}
+    with pytest.raises(DecodeError, match="trade break precedes target execution timestamp"):
+        decoder.consume_message(stream, 3, trade(trade=9, size=100, kind=b"B", stamp=STAMP + 50), {})
+    assert decoder.orders == before_orders
+    assert decoder.broken == {}
+    assert decoder.stats["native_identity_signatures"] == 1
+    assert decoder.stats["gross_executed_shares"] == 100
+    assert decoder.stats["matched_break_shares"] == 0

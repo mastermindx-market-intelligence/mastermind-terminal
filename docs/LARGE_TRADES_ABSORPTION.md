@@ -1,6 +1,6 @@
 # Large Trades and Absorption Intelligence
 
-Status: implementation and verification in progress, 2026-10-11. This document does not assert a production release or a predictive trading signal.
+Status: source implementation and validation, 2026-10-11. The real-data accounting and causal replay checks below have passed. Production release acceptance remains a separate, unresolved gate; this document asserts no predictive trading signal.
 
 ## Mission and source custody
 
@@ -37,6 +37,8 @@ The inspector exposes individual reports, quantities, prices, exact event/availa
 - Publication cannot precede any included record's availability. Missing or malformed provenance refuses.
 
 The read-only `/api/large-trades?sym=SYMBOL` route consumes `large_trades/SYMBOL.json` from the existing `MACRO_LIVE_DIR` published root (default `/var/lib/macro-live/public/live`). It authenticates through the existing server auth path, rate-limits requests, bounds reads, rejects final symlinks, validates the exact symbol/contract and returns a digest of the admitted bytes. Missing source data returns an explicit unavailable result. A non-production, explicitly enabled E2E fixture branch is separate from the real source.
+
+Production source admission currently accepts only official IEX HIST DEEP+ 1.0 equity envelopes in shares, with venue-only historical/archive-acquisition provenance, a declared source hash, native L/T executions and B breaks, and the exact required IEX attribution and terms URL. Other structurally valid vendor artifacts return `feed_not_admitted`. Authentication does not confer a data entitlement. Expanding this admission requires the incumbent source and entitlement review.
 
 This feature creates no provider socket, credential store, entitlement authority, vendor gateway, quote signer, background collector or alternate production publisher. The existing source owner must qualify and publish production artifacts. Continuous or adjusted futures chart aliases cannot silently stand in for an identified native expiry/price basis.
 
@@ -83,7 +85,7 @@ The offline adapter and native-field details are documented in [IEX_LARGE_TRADES
 
 The official October 5 DPLS HIST archive was already acquired on October 7. The bounded decoder reads PCAPNG → Ethernet/IP/UDP → IEX-TP v1 → DEEP+ protocol 0x8005. Both L displayed-order executions and T nondisplayed-vs-nondisplayed executions count. B breaks target either type. Order-book changes are never themselves executed quantity.
 
-Initial qualified scan:
+Final bounded scan, repeated after decoder integrity corrections:
 
 | Measurement | Result |
 |---|---:|
@@ -97,7 +99,10 @@ Initial qualified scan:
 Symbols: SPY, QQQ, NVDA, AMD, INTC, MU and ARM. This is IEX-only equities in shares. It is neither consolidated US market volume nor MNQ contracts. The selected observations span roughly 12:01:29–13:30:38 UTC, with symbol-specific starts. Later session breaks have not been examined. Break correctness is presently fixture-proven.
 
 Decompressed-prefix SHA256: `3b173fd73113318e5db6ac0d232c19f7a7aaa25b55bd92228b66b17406a9fe5d`.
-Decoder receipt SHA256: `c372d5b41afba4aa8282a2fe13e4e24cd5e936f105963ec4d7047d292f43ac28`.
+Decoder receipt SHA256: `aa952521d29fa6e4aa05f084ac2b6148becd9ed51e5c5d92b2e04fa1c73162d8`.
+Native-record provenance SHA256: `f157c389a3b2b383764ddbc64528962206c07be02d8876faf380c025223e4536`.
+Decoder source SHA256: `9655af3dde9ea225635f6d97be60c6d51a57795c7b7a68bfa91e4d3e18d5a068`.
+The observed native stream is protocol 0x8005, channel 1, session 1358626816. Its normalized session is `20261005.8005.00000001.50fb0000`; transport sequence is compared only within that scope. Source A/B replicas share this identity. Full semantic signatures include original timestamp and resting order ID, and are retained before time filtering or order-book mutation. Contradictory duplicates or repeated breaks refuse; a bounded identity ceiling never evicts a report and counts it again. The native decoder also rejects a break dated before its known execution and a first-seen execution that appears after an unmatched break in that native scope. Both checks precede filtering, identity insertion, book mutation and volume accounting. Equal event times and identical retransmissions remain valid. Independent probes confirmed that these rules prevent decoder/engine conservation disagreements.
 The acquisition receipt records full-archive SHA256 `2e41ba84c2a24ccd541d079c2bb05a6da38e988790d8e97a19c1527b1195b0dd`; this operation did not independently rehash all 9.9GB or reach the final gzip checksum.
 
 Official HIST terms require attribution and a link. September 2026 IEX policies §15 exempt compliant HIST recipients/users/distributors from a Data Subscriber Agreement. This applies to official HIST releases; old privately retained live data does not acquire those rights merely through age.
@@ -113,7 +118,11 @@ Private normalized/native payloads and working evidence remain outside Git. Only
 
 Deterministic tests cover execution/quantity separation, input rejection, idempotency, corrections, late arrivals, price/session/side boundaries, adaptive warmup and frozen thresholds, two-clock replay, source quality, additive quote age, pending maturity, path excursions and adverse continuation. Original regressions and independent-review counterexamples remain in the suite.
 
-The first real-data consumer check conserved all 141,057 shares, showed zero prints before archive acquisition and granted no absorption evidence. It must be rerun on the integrated final engine hash; earlier receipts identify their exact reviewed code.
+The final engine SHA256 `1936357255e27951d051f2c8fe93349292c7b12a63c66fed8c9246cbfb898483` conserved all 141,057 shares from all 1,685 native-linked reports, showed zero prints before archive acquisition, and granted no unsupported response, order-count or absorption evidence. The reproducible verifier passed 2,966 comparisons at every distinct event cutoff under both accounting and default display settings. It checks source and input hashes before and after execution and refuses to write a receipt if they change.
+
+Run instructions and the sanitized result are in [the verification evidence](evidence/large-trades/README.md). The verifier consumes explicitly provided, already authorized files; it downloads nothing and selects no fixture fallback. The historical browser lane supplies these same real envelope bytes to the actual client/engine/chart. Its coordinate-only bars are OHLC from those same executions, with no gap filling. That lane proves rendering and inspection mechanics, and is explicitly not evidence of authenticated production publication.
+
+Core validation includes the 48-case engine suite and the final 109-case native decoder suite. A separate UI boundary run passed 107 route/client/projection cases; subsequent settings and responsive integration checks are recorded with the UI evidence. The decoder review first reproduced 37 failing new regressions against the earlier decoder, then exposed two additional correction-order conservation mismatches before the final repairs passed. Responsive feature journeys, existing chart capture gates and complete hosted CI are recorded separately against their own exact source identities.
 
 Out-of-sample predictive validation is **not estimable** from the current partial, single-session, quote-unqualified slice. No success rate or alpha claim is made. Before obtaining outcomes, freeze:
 
@@ -143,7 +152,7 @@ The exact procurement action is an approved written quote and entitlement for GL
 
 Existing Terminal CI and source-fingerprint requirements apply. A ChartPanel change requires actual visual-intelligence and options-axis recaptures before their source hashes are refreshed. The protected terminal/public/data tree is unchanged by this design.
 
-Production deployment must use the incumbent `/opt/terminal/terminal-build.sh --target-sha <full accepted SHA>` owner after the ordinary source/CI/review gates. The obsolete local rsync deployer and Vercel are not release paths for this operation.
+Production deployment must use the incumbent `/opt/terminal/terminal-build.sh --target-sha <full accepted SHA>` owner after the ordinary source/CI/review gates. The current master update `707648d5201494ec42a2429ffb64cc39fb24314e` preserves the host volume guard ahead of preflight or deployment effects; integration must retain that entrance. The obsolete local rsync deployer and Vercel are not release paths for this operation.
 
 The earlier canonical VPS/Quote Hub root SSH attempt was refused with publickey denial, and the Massive real-time socket's incumbent custody remains unproven. No alternative user, key, host, second socket or CI-manifest workaround is authorized by this source return. The separate denied Macro TP1 CI enrollment remains on its original carrier.
 

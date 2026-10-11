@@ -42,7 +42,9 @@ TRADE_FLAGS = {
 }
 # These messages do not change displayed-order lifecycle. Unknown message types
 # invalidate dependent side inference instead of being treated as harmless.
-ADMIN_TYPES = {b"S", b"D", b"H", b"O", b"P", b"E", b"I"}
+# DEEP+ v1.06 pp13-20. Length includes the type byte, excludes TP prefix.
+ADMIN_LENGTHS = {b"S": 10, b"D": 31, b"H": 22, b"I": 18, b"O": 18, b"P": 19, b"E": 18}
+BOOK_TRADE_LENGTHS = {b"a": 38, b"M": 38, b"R": 26, b"C": 18, b"L": 46, b"T": 38, b"B": 38}
 SYMBOL_RE = re.compile(r"^[A-Z0-9][A-Z0-9.\-]{0,7}$")
 
 
@@ -63,6 +65,7 @@ class Limits:
     max_orders: int = 100_000
     recent_sequences: int = 65_536
     max_streams: int = 32
+    max_native_identities: int = 100_000
 
     def __post_init__(self):
         for name, value in vars(self).items():
@@ -405,8 +408,11 @@ class Decoder:
         self.tainted = set()
         self.reset_symbols = set()
         self.orders = {}
+        # Retain complete signatures for selected symbols even outside the output
+        # time range. Never evict an identity and then reapply its execution.
         self.trades = {}
-        self.broken = set()
+        self.broken = {}
+        self.emitted_trades = set()
         self.prints = {symbol: [] for symbol in symbols}
         self.private_records = []
         self.gaps = []
@@ -426,7 +432,7 @@ class Decoder:
         if state is None:
             if len(self.streams) >= self.limits.max_streams:
                 raise DecodeError("too many source streams")
-            state = {"next": sequence, "offset": offset, "recent": OrderedDict()}
+            state = {"first": sequence, "next": sequence, "offset": offset, "recent": OrderedDict()}
             self.streams[stream] = state
             if sequence > 1 or offset != 0:
                 self.stats["unobserved_stream_prefixes"] += 1
@@ -485,17 +491,19 @@ class Decoder:
             }
             self.consume_message(stream, sequence, body, message_meta)
 
+    def normalized_session(self, stream: tuple) -> str:
+        # 31 ASCII characters retain the full u16/u32/u32 fields. A native
+        # sequence is comparable only inside this exact transport stream.
+        return f"{self.receipt['date']}.{stream[0]:04x}.{stream[1]:08x}.{stream[2]:08x}"
+
     def consume_message(self, stream: tuple, sequence: int, body: bytes, meta: dict):
         kind = body[:1]
         self.type_counts[kind.hex()] += 1
-        if kind in ADMIN_TYPES:
-            self.stats["admin_messages"] += 1
-            return
-        if kind not in {b"a", b"M", b"R", b"C", b"L", b"T", b"B"}:
+        required = ADMIN_LENGTHS.get(kind, BOOK_TRADE_LENGTHS.get(kind))
+        if required is None:
             self.stats["unknown_message_types"] += 1
             self._invalidate(stream, "unknown_message_type_" + kind.hex())
             return
-        required = {b"a": 38, b"M": 38, b"R": 26, b"C": 18, b"L": 46, b"T": 38, b"B": 38}[kind]
         if len(body) != required:
             raise DecodeError("invalid native " + kind.decode() + " message length")
         stamp = struct.unpack_from("<q", body, 2)[0]
@@ -503,7 +511,12 @@ class Decoder:
             raise DecodeError("negative source timestamp")
         if stamp > self.receipt["acquired_ns"]:
             raise DecodeError("source event occurs after archive acquisition")
-        symbol = _symbol(body)
+        # System events have no symbol. All other supported administrative
+        # frames do; validate their common wire fields before ignoring them.
+        symbol = _symbol(body) if kind != b"S" else None
+        if kind in ADMIN_LENGTHS:
+            self.stats["admin_messages"] += 1
+            return
         if symbol not in self.symbols:
             return
         if self.first_event_ns is None:
@@ -565,13 +578,43 @@ class Decoder:
             size, price, trade_id = struct.unpack_from("<Iqq", body, 18)
         if size == 0 or price <= 0 or price > JS_MAX or trade_id < 0:
             raise DecodeError("invalid executed quantity/price/trade ID")
-        trade_key = f"iex-dpls:{self.receipt['date']}:{stream[0]}:{stream[2]}:{symbol}:{trade_id}"
-        signature = (kind.decode(), size, price, flags)
-        if kind != b"B" and trade_key in self.trades:
-            if self.trades[trade_key] != signature:
+        # DEEP+ channels partition symbols; source A/B copies retain the same
+        # channel/session. TradeID has no documented global uniqueness promise.
+        trade_key = f"iex-dpls:{self.receipt['date']}:{stream[0]}:{stream[1]}:{stream[2]}:{symbol}:{trade_id}"
+        signature = (kind.decode(), size, price, flags, stamp,
+                     order_key[2] if kind == b"L" else None)
+        previous = self.trades.get(trade_key)
+        if kind != b"B" and previous is not None:
+            if previous != signature:
                 raise DecodeError("conflicting native trade identity")
             self.stats["semantic_duplicate_trades"] += 1
             return
+        # B refers to a previously sent L/T. An earlier unmatched B cannot
+        # authorize a first-seen execution later in native stream order; that
+        # would create a second pending-correction authority in this adapter.
+        if kind != b"B" and trade_key in self.broken:
+            raise DecodeError("execution follows unmatched native trade break")
+        if kind == b"B":
+            if previous is not None and previous[1:3] != (size, price):
+                raise DecodeError("trade break price/quantity disagrees with target")
+            if previous is not None and stamp < previous[4]:
+                raise DecodeError("trade break precedes target execution timestamp")
+            previous_break = self.broken.get(trade_key)
+            if previous_break is not None:
+                if previous_break != signature:
+                    raise DecodeError("conflicting native trade break identity")
+                self.stats["duplicate_trade_breaks"] += 1
+                return
+        # One shared hard ceiling bounds trade AND break signatures, including
+        # filtered records. Stop before lifecycle mutation; eviction would allow
+        # a duplicate L to consume displayed size a second time.
+        if self.stats["native_identity_signatures"] >= self.limits.max_native_identities:
+            raise LimitReached("native_identity_limit")
+        self.stats["native_identity_signatures"] += 1
+        if kind == b"B":
+            self.broken[trade_key] = signature
+        else:
+            self.trades[trade_key] = signature
         side, side_method = "unknown", "unknown"
         native_order = self.orders.get(order_key) if kind == b"L" else None
         before = native_order["quantity"] if native_order else None
@@ -590,35 +633,30 @@ class Decoder:
                     native_order["quantity"] = remaining
                 else:
                     self.orders.pop(order_key, None)
-        # Native event order, not timestamp sorting, updates lifecycle. An event
-        # time filter affects emitted records only and never creates a new book.
+        # Native event order, not timestamp sorting, updates lifecycle and
+        # semantic identity. A time filter affects emitted records only.
         if (self.start_ns is not None and stamp < self.start_ns) or (self.end_ns is not None and stamp >= self.end_ns):
             self.stats["time_filtered_executions"] += 1
             return
         if kind != b"B":
-            self.trades[trade_key] = signature
+            self.emitted_trades.add(trade_key)
             self.stats["gross_executed_shares"] += size
             self.stats["native_" + kind.decode() + "_executions"] += 1
             record_id, target_id = trade_key, None
         else:
-            previous = self.trades.get(trade_key)
-            if trade_key in self.broken:
-                self.stats["duplicate_trade_breaks"] += 1
-                return
-            if previous is not None:
-                if previous[1:3] != (size, price):
-                    raise DecodeError("trade break price/quantity disagrees with target")
+            if trade_key in self.emitted_trades:
                 self.stats["matched_break_shares"] += size
             else:
                 self.stats["unmatched_trade_breaks"] += 1
-            self.broken.add(trade_key)
+                if previous is not None:
+                    self.stats["break_targets_outside_selection"] += 1
             self.stats["native_B_breaks"] += 1
             record_id, target_id = f"{trade_key}:break:{sequence}", trade_key
             side, side_method = "unknown", "unknown"
         row = {
             "id": record_id, "kind": "cancel" if kind == b"B" else "trade",
             "eventNs": str(stamp), "availableNs": str(self.receipt["acquired_ns"]),
-            "sourceSequence": str(sequence), "session": self.receipt["date"],
+            "sourceSequence": str(sequence), "session": self.normalized_session(stream),
             "priceInt": price, "quantity": size, "side": side, "sideMethod": side_method,
             "eligible": True,
             "conditions": [name for bit, name in TRADE_FLAGS.items() if flags & bit],
@@ -707,6 +745,12 @@ def decode_stream(raw: BinaryIO, receipt: dict, symbols: list[str], limits: Limi
         "acquisitionReceipt": {k: v for k, v in decoder.receipt.items() if k != "acquired_ns"},
         "counters": dict(decoder.stats), "nativeMessageTypeHexCounts": dict(decoder.type_counts),
         "gapExamples": decoder.gaps,
+        "sourceStreams": [{
+            "protocol": stream[0], "channel": stream[1], "sessionId": stream[2],
+            "normalizedSession": decoder.normalized_session(stream),
+            "firstObservedSequence": str(state["first"]),
+            "nextSequence": str(state["next"]), "nextStreamOffset": str(state["offset"]),
+        } for stream, state in sorted(decoder.streams.items())],
         "rowsBySymbol": {s: len(rows) for s, rows in decoder.prints.items()},
         "conservation": {
             "grossExecutedShares": decoder.stats["gross_executed_shares"],
@@ -746,6 +790,7 @@ def main(argv=None) -> int:
     parser.add_argument("--max-packets", type=int, default=2_000_000)
     parser.add_argument("--max-messages", type=int, default=8_000_000)
     parser.add_argument("--max-records", type=int, default=10_000)
+    parser.add_argument("--max-native-identities", type=int, default=100_000)
     args = parser.parse_args(argv)
     receipt_path = args.receipt or Path(str(args.archive) + ".receipt.json")
     receipt_bytes = receipt_path.read_bytes()
@@ -755,6 +800,7 @@ def main(argv=None) -> int:
     limits = Limits(
         max_decompressed_bytes=args.max_bytes, max_packets=args.max_packets,
         max_messages=args.max_messages, max_output_records=args.max_records,
+        max_native_identities=args.max_native_identities,
     )
     started = time.monotonic()
     with gzip.open(args.archive, "rb") as raw:
