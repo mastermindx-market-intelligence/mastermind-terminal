@@ -37,3 +37,24 @@ describe("One Sector Central journey — URL compatibility and context", () => {
     expect(parseSectorState(new URLSearchParams("sectorSources=true&sectorView=unexpected")).view).toBe("intelligence");
   });
 });
+
+
+describe("Finviz route continuity", () => {
+  it("round trips source, hierarchy, company, representation and qualified axes", () => {
+    const state = { ...DEFAULT_SECTOR_STATE, sourceFamily: "finviz" as const, finvizMode: "bubbles" as const,
+      finvizTheme: "finviz:theme:Artificial Intelligence", finvizSubtheme: "finviz:subtheme:aicompute",
+      company: "NVDA", discoveryQuery: "compute", matrixTimeframe: "1M" as const,
+      bubbleX: "members" as const, bubbleY: "1Y" as const, bubbleSize: "equal" as const };
+    const url = new URL(writeSectorState(new URL("https://example.test/discover"), state), "https://example.test");
+    expect(parseSectorState(url.searchParams)).toEqual(state);
+    for (const finvizMode of ["heatmap", "clusters", "matrix", "table"] as const) {
+      const next = { ...state, finvizMode };
+      const href = new URL(writeSectorState(url, next), url);
+      expect(parseSectorState(href.searchParams)).toEqual(next);
+    }
+  });
+  it("rejects unqualified metric names without manufacturing a metric", () => {
+    const state = parseSectorState(new URLSearchParams("sectorSource=house&bubbleX=alpha&bubbleY=marketcap&bubbleSize=marketcap"));
+    expect(state.sourceFamily).toBe("sectors"); expect(state.bubbleX).toBe("1W"); expect(state.bubbleY).toBe("1M"); expect(state.bubbleSize).toBe("members");
+  });
+});
