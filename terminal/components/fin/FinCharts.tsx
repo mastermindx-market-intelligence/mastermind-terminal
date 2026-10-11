@@ -1194,6 +1194,14 @@ export interface MiniRow {
   fmt?: ValFmt;
   /** Optional trailing cell content per period (e.g. a transcript doc-icon). */
   cellAdorn?: (periodIdx: number) => ReactNode;
+  /** Stable, never-displayed row identity a deep link can focus (e.g. "revenue"). */
+  id?: string;
+}
+
+/** A deep-linked source cell: the period column (index into `periods`) and, optionally, a row. */
+export interface MiniTableFocus {
+  index: number;
+  rowId?: string | null;
 }
 
 /** Props for {@link MiniTable}. */
@@ -1210,6 +1218,11 @@ export interface MiniTableProps {
   zh?: boolean;
   /** Sticky-first-column header label. */
   cornerLabel?: string;
+  /**
+   * Open on the page holding this period column and mark it (`data-focus` on the column,
+   * `data-focus-cell` on the matching row's cell). Paging away still works; the mark stays.
+   */
+  focus?: MiniTableFocus | null;
 }
 
 /**
@@ -1219,7 +1232,7 @@ export interface MiniTableProps {
  * are more periods than `pageSize`. Per-cell adornments (e.g. a transcript
  * doc-icon) render via `row.cellAdorn`.
  */
-export function MiniTable({ periods, rows, fmt = fmtNum, showChange, pageSize = 6, zh, cornerLabel }: MiniTableProps) {
+export function MiniTable({ periods, rows, fmt = fmtNum, showChange, pageSize = 6, zh, cornerLabel, focus = null }: MiniTableProps) {
   // Paging is counted BACKWARD from the newest period (0 = newest page), not forward from
   // index 0. `periods` is oldest→newest, so a forward counter opens on the OLDEST columns —
   // invisible while yfinance supplied ~5 periods (one page), but the Massive backfill takes
@@ -1238,7 +1251,11 @@ export function MiniTable({ periods, rows, fmt = fmtNum, showChange, pageSize = 
   const pages = Math.ceil(periods.length / pageSize);
   // clamp: a shorter set (e.g. annual→quarterly on a thin name) must not strand the reader
   // past the end.
-  const back = paging.sig === setSig ? Math.min(paging.back, pages - 1) : 0;
+  // A focused column opens its own page instead of the newest one — the same "chosen for this
+  // set" rule, so a reader who pages away is not pulled back.
+  const focusIndex = focus && Number.isInteger(focus.index) && focus.index >= 0 && focus.index < periods.length ? focus.index : null;
+  const initialBack = focusIndex == null ? 0 : Math.max(0, Math.min(pages - 1, pages - 1 - Math.floor(focusIndex / pageSize)));
+  const back = paging.sig === setSig ? Math.min(paging.back, pages - 1) : initialBack;
   const start = (pages - 1 - back) * pageSize;
   const cols = periods.map((p, i) => ({ p, i })).slice(start, start + pageSize);
   const rowKey = (r: MiniRow, path: string) => `${path}/${r.label}`;
@@ -1258,7 +1275,12 @@ export function MiniTable({ periods, rows, fmt = fmtNum, showChange, pageSize = 
           <span>{r.label}</span>
         </th>
         {cols.map(({ i }) => (
-          <td key={i} className="fin-cell fin-cell-num">
+          <td
+            key={i}
+            className={"fin-cell fin-cell-num" + (i === focusIndex ? " fin-cell-focus" : "") + (i === focusIndex && r.id != null && r.id === focus?.rowId ? " fin-cell-focus-cell" : "")}
+            data-focus={i === focusIndex ? "true" : undefined}
+            data-focus-cell={i === focusIndex && r.id != null && r.id === focus?.rowId ? "true" : undefined}
+          >
             <span className="fin-cell-v">{num(r.values[i]) ? rf(r.values[i] as number) : "—"}{r.cellAdorn?.(i)}</span>
             {showChange && r.change && num(r.change[i]) && (
               <span className={"fin-cell-chg " + ((r.change[i] as number) >= 0 ? "up" : "down")}>{fmtPct(r.change[i] as number, { decimals: 1, alreadyPct: true, sign: true })}</span>
@@ -1285,7 +1307,16 @@ export function MiniTable({ periods, rows, fmt = fmtNum, showChange, pageSize = 
           <thead>
             <tr>
               <th className="fin-cell fin-cell-sticky fin-cell-corner" scope="col">{cornerLabel ?? ""}</th>
-              {cols.map(({ p, i }) => <th key={i} className="fin-cell fin-cell-num fin-cell-head" scope="col">{p}</th>)}
+              {cols.map(({ p, i }) => (
+                <th
+                  key={i}
+                  className={"fin-cell fin-cell-num fin-cell-head" + (i === focusIndex ? " fin-cell-focus" : "")}
+                  data-focus={i === focusIndex ? "true" : undefined}
+                  scope="col"
+                >
+                  {p}
+                </th>
+              ))}
             </tr>
           </thead>
           <tbody>
