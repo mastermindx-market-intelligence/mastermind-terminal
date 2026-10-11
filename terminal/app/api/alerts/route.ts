@@ -148,7 +148,14 @@ export async function PATCH(req: Request) {
   const action = body?.action;
   if (!id || (action !== undefined && action !== "pause" && action !== "resume"))
     return NextResponse.json({ error: "bad request" }, { status: 400 });
-  const { data: row } = await supabase.from("alerts").select("*").eq("id", id).eq("user_id", user.id).single();
+  // A failed read is not "no such row": only PostgREST's zero-row answer (PGRST116) is a 404. Any
+  // other read error means the store did not answer, nothing was written, and the caller must not
+  // be told the alert does not exist.
+  const { data: row, error: readError } = await supabase.from("alerts").select("*").eq("id", id).eq("user_id", user.id).single();
+  if (readError && readError.code !== "PGRST116") {
+    console.error("alerts PATCH read failed:", readError);
+    return NextResponse.json({ error: "alerts unavailable" }, { status: 503 });
+  }
   if (!row) return NextResponse.json({ error: "not found" }, { status: 404 });
   let patch: Record<string, unknown>;
   if (action === "pause") {

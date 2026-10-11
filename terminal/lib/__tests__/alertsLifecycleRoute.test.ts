@@ -10,6 +10,7 @@
  *   - resume, and a PATCH with no action (the existing re-arm), arm the row and strip `triggered`;
  *   - an action the owner does not know is a 400 before the store is read or written;
  *   - another account's id is a 404 and the other account's row is unchanged (AC-E18-04);
+ *   - a read the store did not answer is a 503, never a 404 "not found" for a row that may exist;
  *   - each reply, fed through the manager's own classifier, reads as the owner meant it.
  */
 
@@ -24,6 +25,7 @@ const H = vi.hoisted(() => ({
   reads: 0,
   writes: [] as Array<Record<string, unknown>>,
   failUpdate: false,
+  failRead: false,
 }));
 
 vi.mock("@/lib/entitlement", () => ({
@@ -45,6 +47,7 @@ vi.mock("@/lib/supabase/server", () => ({
       q.single = vi.fn(async () => {
         if (!patch) {
           H.reads++;
+          if (H.failRead) return { data: null, error: { code: "08006", message: "connection failure" } };
           const [row] = match();
           return row ? { data: structuredClone(row), error: null } : { data: null, error: { code: "PGRST116" } };
         }
@@ -81,6 +84,7 @@ beforeEach(() => {
   H.reads = 0;
   H.writes = [];
   H.failUpdate = false;
+  H.failRead = false;
   vi.clearAllMocks();
   vi.spyOn(console, "error").mockImplementation(() => {});
 });
@@ -163,5 +167,15 @@ describe("PATCH refusals and failures", () => {
     const res = await patch({ id: "mine-armed", action: "pause" });
     expect(res.status).toBe(400);
     expect(classifyReply({ status: 400, body: await res.json() }, "mine-armed", "pause")).toEqual({ kind: "unknown" });
+  });
+
+  it("a read the store did not answer is a 503 with nothing written — not a 404 for a row that exists", async () => {
+    H.failRead = true;
+    const res = await patch({ id: "mine-armed", action: "pause" });
+    expect(res.status).toBe(503);
+    expect(H.writes).toEqual([]);
+    expect(stored("mine-armed").active).toBe(true);
+    // The manager does not report it as refused ("not found") or as paused: it is not confirmed.
+    expect(classifyReply({ status: 503, body: await res.json() }, "mine-armed", "pause")).toEqual({ kind: "unknown" });
   });
 });
