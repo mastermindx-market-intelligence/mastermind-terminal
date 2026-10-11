@@ -3,7 +3,9 @@
 import Link from "next/link";
 import { useEffect, useId, useRef, useState, type KeyboardEvent as ReactKeyboardEvent } from "react";
 import { useLang } from "@/lib/i18n";
-import { createClient } from "@/lib/supabase/client";
+import { subscribeInvestigationAuthOwner } from "@/lib/supabase/investigationAuthOwner";
+import type { AuthLifecycleSnapshot, AuthLifecycleSubscription } from "@/lib/supabase/authLifecycle";
+import { InvestigationAuthContext, type InvestigationAuthProjection } from "./InvestigationAuthContext";
 import { INVESTIGATION_MANIFEST_SCHEMA_V2, validateInvestigationManifest, validateStoredInvestigationManifest, canonicalInvestigationJson, type InvestigationManifest, type InvestigationEvidenceRef, type InvestigationThesisRef } from "@/lib/investigationContracts";
 import { INVESTIGATION_ADMISSION, type InvestigationCommand, type InvestigationSummary } from "@/lib/investigations";
 import { beginInvestigationSave, settleInvestigationSave, retryInvestigationSave, investigationCommandToReconcile, recoverInvestigationSave, receiptRequiresOwnerCheck, resendsRefusedReferences, type InvestigationSaveState } from "@/lib/investigationSave";
@@ -18,6 +20,10 @@ type Detail = { id:string; revision:number; current_revision:number; lifecycle:"
 type Baseline = {workspace:EventWorkspace | import("@/lib/investigationIssuerRelease").IssuerReleaseProjection;receipt:RetainedEventWorkspaceReceipt;reference:InvestigationEvidenceRef};
 type Layout = {id:string;name:string;config:{schema:string;revision:number};userId?:string;mine?:boolean};
 type Draft = {title:string;question:string;symbol:string;next:string;horizon:string;asOf:string;layoutId:string;theses:InvestigationThesisRef[]};
+type BoundAuthProjection = {
+ ownerKey: string; initialInvestigationId: string | undefined; initialRevision: number | undefined;
+ projection: InvestigationAuthProjection;
+};
 const emptyDraft=(symbol=""):Draft=>({title:"",question:"",symbol,next:"",horizon:"",asOf:"",layoutId:"",theses:[]});
 /** Select value for a recovered create's own layout capture; layout ids are UUIDs, so it cannot collide. */
 const RETAINED_LAYOUT="retained";
@@ -52,6 +58,11 @@ function contextLabel(value:string,lang:"en"|"zh") {
 
 export default function InvestigationWorkspace({ownerKey,initialSymbol,initialInvestigationId,initialRevision}:Props) {
  const {lang}=useLang(), c=COPY[lang];
+ const [boundAuth,setBoundAuth]=useState<BoundAuthProjection|null>(null);
+ // An old effect's render projection cannot cross a changed Workspace lifetime.
+ const authProjection=boundAuth?.ownerKey===ownerKey
+  &&boundAuth.initialInvestigationId===initialInvestigationId&&boundAuth.initialRevision===initialRevision
+  ?boundAuth.projection:null;
  const [items,setItems]=useState<InvestigationSummary[]|null>(null), [listError,setListError]=useState(false);
  const [detail,setDetail]=useState<Detail|null>(null),[detailLoading,setDetailLoading]=useState(false);
  const [editing,setEditing]=useState(false),[draft,setDraft]=useState<Draft>(emptyDraft(initialSymbol));
@@ -210,14 +221,24 @@ export default function InvestigationWorkspace({ownerKey,initialSymbol,initialIn
    }
   } catch {setStorageBlocked(true);}
   if(!recovery&&initialInvestigationId)void openRecord(initialInvestigationId,initialRevision);
-  let unsubscribe=()=>{};
+  let active=true;
+  let auth:AuthLifecycleSubscription|null=null;
+  setBoundAuth(null);
+  const getSnapshot=()=>active&&auth?auth.getSnapshot():null;
+  const publish=(snapshot:AuthLifecycleSnapshot)=>{
+   if(!active)return;
+   const projection:InvestigationAuthProjection=Object.freeze({snapshot,getSnapshot});
+   setBoundAuth({ownerKey,initialInvestigationId,initialRevision,projection});
+  };
   if(ownerKey!=="local-preview")try{
-   const {data:{subscription}}=createClient().auth.onAuthStateChange((_event,session)=>{
-    if(session?.user.id===ownerKey)return;
+   auth=subscribeInvestigationAuthOwner(publish,principal=>{
+    if(!active||principal===ownerKey)return;
     controller.abort();++detailSeq.current;++baselineSeq.current;setAuthEnded(true);setItems(null);setDetail(null);setBaseline(null);setDraft(emptyDraft());setRetainedCapture(null);setSave({phase:"idle"});setLayouts([]);setMessage("");
-   });unsubscribe=()=>subscription.unsubscribe();
+   });
+   if(auth)publish(auth.getSnapshot());
+   else {setAuthEnded(true);controller.abort();}
   }catch{setAuthEnded(true);controller.abort();}
-  return()=>{controller.abort();++detailSeq.current;++baselineSeq.current;unsubscribe();};
+  return()=>{active=false;setBoundAuth(null);controller.abort();++detailSeq.current;++baselineSeq.current;auth?.unsubscribe();};
   // Owner changes are remounted by the authenticated server page; every request also has a scope fence.
   // eslint-disable-next-line react-hooks/exhaustive-deps
  },[ownerKey,initialInvestigationId,initialRevision]);
@@ -292,8 +313,8 @@ export default function InvestigationWorkspace({ownerKey,initialSymbol,initialIn
  const symbol=detail?.manifest.intent.subjects.find(s=>s.owner==="terminal.analysis_symbol")?.object_id??draft.symbol;
  const visible=items?.filter(i=>i.lifecycle===filter);
  const frozen=locked||storageBlocked;
- if(authEnded)return <main className={`main2 ws-shell ${styles.root}`}><h1>{c.title}</h1><p role="status">{c.auth}</p><Link href="/login">{c.signIn}</Link></main>;
- return <main className={`main2 ws-shell ${styles.root}`}>
+ if(authEnded)return <InvestigationAuthContext.Provider value={authProjection}><main className={`main2 ws-shell ${styles.root}`}><h1>{c.title}</h1><p role="status">{c.auth}</p><Link href="/login">{c.signIn}</Link></main></InvestigationAuthContext.Provider>;
+ return <InvestigationAuthContext.Provider value={authProjection}><main className={`main2 ws-shell ${styles.root}`}>
   <Link className={styles.back} href={`/analysis${symbol?`?symbol=${encodeURIComponent(symbol)}`:""}`}>← {c.back}</Link>
   <header className={styles.heading}><div><h1>{c.title}</h1><p>{c.intro}</p></div><button disabled={frozen} onClick={()=>beginEdit(true)}>{c.start}</button></header>
   {storageBlocked&&<p className={styles.notice} role="alert">{c.storage}</p>}
@@ -342,5 +363,5 @@ export default function InvestigationWorkspace({ownerKey,initialSymbol,initialIn
     {baseline&&<section className={styles.card}><h2>{c.clocks}</h2><dl className={styles.clocks}>{[[c.public,baseline.receipt.public_known_at],[c.platform,baseline.receipt.platform_known_at],[c.generated,baseline.receipt.generation_emitted_at],[c.seen,seenAt],[c.rights,baseline.receipt.rights.checked_at]].map(([label,value])=><div key={label}><dt>{label}</dt><dd>{clock(value)}</dd></div>)}</dl></section>}
    </aside>
   </div>
- </main>;
+ </main></InvestigationAuthContext.Provider>;
 }
