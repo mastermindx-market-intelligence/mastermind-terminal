@@ -90,6 +90,9 @@ import { useChartBus } from "@/lib/useChartBus";
 import { isV2Envelope, type IndicatorSpec } from "@/lib/chartBus";
 import { describeNativeSuiteCapabilities } from "@/lib/chartIndicatorParams";
 import LinkedSeasonalityCard from "@/components/LinkedSeasonalityCard";
+import WatchlistReviewBar from "@/components/watchlist/WatchlistReviewBar";
+import { useWatchlistReview } from "@/lib/useWatchlistReview";
+import { useWatchlistReviewT } from "@/lib/watchlistReviewLex";
 // Code-split the conditionally-mounted heavies out of the /terminal first-paint bundle (task 9).
 // TerminalShell is a Client Component, so ssr:false is allowed — none of these render on any SSR
 // path (each mounts only when opened: paneOpen / signalsOpen / copilot toggle).
@@ -4297,6 +4300,10 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
     pick(symbol);
   }, [pick, visibleWlOrder]);
   const onSearchPick = (sym: string) => { if (searchMode === "compare") { toggleCompare(sym); } else pick(sym); };
+  // E16: a user-started, frozen review over one list. It navigates only through `pick` (the same
+  // owner a row click uses), so linked panels follow and pinned panels stay pinned.
+  const wlReview = useWatchlistReview({ owner: wlOwner, lists, listMeta, listsReady: wlsRestored, manifestSymbols: man?.symbols ?? null, navigate: pick });
+  const reviewT = useWatchlistReviewT();
 
   // The dashboard keeps one warm iframe alive between launches. A later ticker click
   // therefore switches the existing Terminal instance through the bridge instead of
@@ -5689,6 +5696,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
       {(!shellMode || dossierMode) && (<>
       <aside className="rail">
         <div className="rail-body">
+          <WatchlistReviewBar review={wlReview} activeSymbol={active} activeList={activeList} activeListCount={lists[activeList]?.length ?? 0} manifestSymbols={man?.symbols ?? null} />
           {/* The authenticated rail has three distinct sources: Portfolio, Watchlists and News.
               A guest has no book/news entitlement, so the guest rail is byte-for-byte what it was.
               The watchlist board below is HIDDEN, never unmounted, when another source is showing —
@@ -5811,6 +5819,12 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
                 {/* Actions on the ACTIVE list — the operator's reference puts sections and the
                     list-level commands behind the watchlist-name dropdown, not the gear. */}
                 <div className="set-grp">{t("thisList")}</div>
+                <div className="menu-row" role="button" tabIndex={0} data-testid="wl-review-start"
+                  title={wlReview.itinerary && wlReview.itinerary.listName !== activeList ? reviewT("wlrReplaces").replace("{list}", wlReview.itinerary.listName) : undefined}
+                  onClick={() => { setWlMenuOpen(false); if (wlReview.itinerary?.listName === activeList) wlReview.resume(); else wlReview.start(activeList); }}
+                  onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); (e.currentTarget as HTMLElement).click(); } }}>
+                  <svg viewBox="0 0 24 24"><path d="M4 6h11M4 12h11M4 18h7M17 15l3 3-3 3M14 18h6" /></svg>{reviewT(wlReview.itinerary?.listName === activeList ? "wlrResumeThis" : "wlrStartThis")}
+                </div>
                 {secCreating ? (
                   <div className="wl-sec-new">
                     <input
