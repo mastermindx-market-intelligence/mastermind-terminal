@@ -466,7 +466,7 @@ async function main() {
     "  FIXTURE_MONITOR_FIRED_TOKEN (terminal/lib/watchlistsFixtureDb.ts). The shipped",
     "  GET /api/thesis-fire-status route and mapOutboxToConditionStates() run for real",
     "  against it; nothing in this capture stubs a network response.",
-    "capture_flag_law: next.config.ts sets devIndicators: false when TERMINAL_E2E_FIXTURE is set; this script starts next dev with the same flag.",
+    "capture_flag_law: next.config.ts sets devIndicators to false when TERMINAL_E2E_FIXTURE is set; this script starts next dev with the same flag.",
     "command: |",
     "  cd terminal",
     "  node e2e/tools/capture_f11_4_research_views.cjs",
