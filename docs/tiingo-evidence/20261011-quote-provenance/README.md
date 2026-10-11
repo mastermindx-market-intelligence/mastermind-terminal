@@ -18,10 +18,26 @@ Actual tests:
 
 The logs contain actual test output with trailing whitespace removed for Git
 hygiene; no assertion or result was altered. Mock Tiingo provenance is a contract
-test, not a live Tiingo receipt or production browser acceptance. Hosted CI,
-independent review, protected merge, existing VPS release and live acceptance
-remain separate obligations. The registered Fabric review attempt was refused
-before lease/launch by its local log reservation permission; no worker ran.
+test, not a live Tiingo receipt or production browser acceptance.
+
+Hosted CI run 38161624995 completed successfully at exact head
+7506ef1539c8646e7bf52b65b697a102fd549942, including the aggregate and
+all responsive shards. The independently commissioned native reasoning review
+returned bounded source PASS at that head, with no actionable defects; see
+`independent-review.txt`. It ran no tests, provider effects, merge or deployment.
+
+The original Fabric request failed before lease/launch, and was left untouched.
+After the user expressly authorized an already permitted alternative, the native
+review completed. `fabric-reservation-diagnosis.md` records the filesystem-grant
+cause and why a log-only redirect would break adapter status/result/acceptance.
+No grant, adapter, lease or original reservation fence changed.
+
+Protected master 2957bd64eec9ac3246a52789acb0f7de55400144 was then
+merged into this carrier. It changes Alerts, SQL transitions and CI configuration,
+with no intervening change to either reviewed quote file. Fresh integrated-head
+CI, protected merge, existing VPS release and live acceptance remain obligations.
+The review is not formal GitHub approval, visible provenance disclosure, BOATS
+provider qualification or whole-programme acceptance.
 
 Programme source: Macro PR #8698. This Terminal carrier owns only the consumer
 metadata repair. Raw Tiingo data and capture remain with the existing Macro
