@@ -3,6 +3,14 @@
 import { useEffect, useRef, useState } from "react";
 
 import styles from "@/components/news/TickerNewsPanel.module.css";
+import {
+  NewsCatchupBar,
+  NewsFilterEmpty,
+  NewsMarkReviewed,
+  NewsReviewChange,
+  NewsReviewTag,
+} from "@/components/news/NewsCatchup";
+import { useNewsCatchup } from "@/components/news/useNewsCatchup";
 
 import {
   parseTickerNewsStory,
@@ -15,6 +23,8 @@ import {
 } from "@/components/news/useTickerNewsFeed";
 
 type Lang = "en" | "zh";
+
+const NO_ROWS: readonly TickerNewsStoryRow[] = [];
 
 const COPY = {
   en: {
@@ -73,7 +83,7 @@ function EmptyState({
   return null;
 }
 
-export default function TickerNewsPanel({ symbol, lang }: { symbol: string; lang: Lang }) {
+export default function TickerNewsPanel({ symbol, lang, userId }: { symbol: string; lang: Lang; userId?: string }) {
   const copy = COPY[lang];
   const { snapshot, loadState, liveInterrupted } = useTickerNewsFeed(symbol);
   const [details, setDetails] = useState<Record<string, TickerNewsStory | null>>({});
@@ -82,6 +92,9 @@ export default function TickerNewsPanel({ symbol, lang }: { symbol: string; lang
   const detailReq = useRef<{ controller: AbortController; gen: number } | null>(null);
   const rows = snapshot?.rows ?? [];
   const state = snapshot?.state;
+  // Only rows of a successful load are presented, so only they can ever be marked reviewed.
+  const presented = loadState === "ready" && snapshot ? snapshot.rows : NO_ROWS;
+  const catchup = useNewsCatchup({ userId, ticker: snapshot?.ticker ?? symbol, presented });
 
   useEffect(() => {
     detailGen.current += 1;
@@ -148,6 +161,10 @@ export default function TickerNewsPanel({ symbol, lang }: { symbol: string; lang
         {state === "catching_up" && <span className={styles.stateChip}>{copy.catchingUp}</span>}
       </div>
 
+      {presented.length > 0 && (
+        <NewsCatchupBar catchup={catchup} lang={lang} labelForSource={sourceLabel} />
+      )}
+
       <div className={styles.scroll}>
         <EmptyState state={loadState} copy={copy} />
         {loadState === "ready" && state === "degraded" && (
@@ -160,12 +177,21 @@ export default function TickerNewsPanel({ symbol, lang }: { symbol: string; lang
           <div className={styles.empty} role="status">{copy.quiet}</div>
         )}
 
-        {loadState === "ready" && rows.map((row) => {
+        {presented.length > 0 && catchup.visible.length === 0 && <NewsFilterEmpty lang={lang} />}
+
+        {presented.length > 0 && catchup.visible.map((row) => {
           const detail = details[row.story_id];
           const timeRaw = row.updated_at || row.published_at || row.received_at;
+          const review = catchup.classify(row);
           return (
-            <article className={styles.row} key={row.story_id} data-story-id={row.story_id}>
+            <article
+              className={styles.row}
+              key={row.story_id}
+              data-story-id={row.story_id}
+              data-news-review={review?.status}
+            >
               <div className={styles.meta}>
+                <NewsReviewTag cls={review} lang={lang} />
                 <span className={styles.source}>{sourceLabel(row.source)}</span>
                 <time dateTime={timeRaw}>{displayTime(row, lang)}</time>
               </div>
@@ -175,6 +201,8 @@ export default function TickerNewsPanel({ symbol, lang }: { symbol: string; lang
                 <span data-news-headline className={`${styles.headline} ${styles.headlineStatic}`} title={copy.sourceUnavailable}>{row.title}</span>
               )}
               {row.teaser && <p className={styles.teaser}>{row.teaser}</p>}
+              <NewsReviewChange cls={review} lang={lang} />
+              <NewsMarkReviewed cls={review} lang={lang} onMark={() => catchup.markStory(row.story_id)} />
               {row.item_count > 1 && (
                 <button
                   type="button"

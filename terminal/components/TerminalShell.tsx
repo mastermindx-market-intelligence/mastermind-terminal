@@ -5783,7 +5783,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
               </div>
             </div>
           )}
-          {loggedIn && newsRailEnabled && railTab === "news" && <TickerNewsPanel symbol={active} lang={lang} />}
+          {loggedIn && newsRailEnabled && railTab === "news" && <TickerNewsPanel symbol={active} lang={lang} userId={userId} />}
           <div className={`board wl-board${loggedIn && railTab !== "watchlists" ? " rail-hidden" : ""}`}
             id="rail-panel-watchlists" {...(loggedIn ? { role: "tabpanel", "aria-labelledby": "rail-tab-watchlists" } : {})}>
             <div className="wl-bar pophost">
