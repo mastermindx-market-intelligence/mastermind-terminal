@@ -29,6 +29,7 @@ import {
 } from "@/lib/crossMarketScreen";
 import { TAXONOMY_LEX, YAHOO_SECTOR_ZH, useCrossMarketT } from "@/lib/crossMarketLex";
 import CrossMarketStrip, { CurrencyBadge, EmptyExclusionNote, SectorCellContent, type LabelCoverage } from "@/components/screener/CrossMarketStrip";
+import SmartScreensPanel from "@/components/screener/SmartScreensPanel";
 // E01 technical screen: one bounded scan read (/data/scan/technical.json), classified per row by
 // lib/technicalScan — never inferred from per-symbol OHLC in the browser.
 import TechnicalScreenBar, { TechnicalCell, TECH_CELL_CLASS, TECH_ON_CLASS, TECH_TH_CLASS } from "@/components/screener/TechnicalScreenBar";
@@ -38,7 +39,6 @@ import { passes } from "@/lib/screenerScan";
 import { TECH_DEFAULT_CONTROLS, techControlsActive, technicalCoverageSummary, technicalScreenOf, type TechControls } from "@/lib/technicalScreenControls";
 import { DAILY_FUNCTIONAL_TIMEFRAMES } from "@/lib/startTf";
 import { useTechnicalT } from "@/lib/technicalScanLex";
-import SmartScreensPanel from "@/components/screener/SmartScreensPanel";
 
 /* ────────────────────────────────────────────────────────────────────────────
  * PHASE-2 DATA PLUMBING — deliberately NOT built in this component (D5-6).
