@@ -1,0 +1,342 @@
+/* Exact-contract shortlist (E15). Dark-first tokens from globals.css. */
+
+.pinBtn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  margin: -4px 8px -4px -6px;
+  padding: 0;
+  vertical-align: middle;
+  border-radius: 6px;
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+}
+
+.pinBtn:hover {
+  border-color: var(--line-3, var(--line));
+  color: var(--text);
+}
+
+.pinBtn:focus-visible {
+  outline: 2px solid var(--brand-2);
+  outline-offset: 1px;
+}
+
+.pinBtn[aria-pressed="true"] {
+  color: var(--brand-2);
+  background: rgba(41, 98, 255, 0.14);
+  border-color: rgba(41, 98, 255, 0.5);
+}
+
+.pinBtn[aria-disabled="true"] {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* Keep the pin on the same line as the ticker; the narrow tables already
+   scroll sideways, so the cell grows instead of stacking the two. */
+:global(td):has(> .pinBtn) {
+  white-space: nowrap;
+}
+
+.flash {
+  outline: 2px solid var(--brand-2);
+  outline-offset: 1px;
+}
+
+:global(tr):has(> td > .flash) > td {
+  background: rgba(41, 98, 255, 0.1);
+}
+
+.tray {
+  border: 1px solid var(--line);
+  border-radius: var(--r-md, 8px);
+  background: var(--panel, var(--bg));
+  padding: 10px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+}
+
+/* The tray sits at the top of the screener's results scroller (a flex column).
+   The preset cards below it clip with `overflow:hidden`, which lets flex shrink
+   them to whatever height is left, so an open comparison would squeeze the
+   originating table out of view. While the tray is shown, the cards after it
+   keep their natural height and the results region scrolls instead. */
+.tray ~ :global(.obs-card) {
+  flex-shrink: 0;
+}
+
+.trayHd {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.trayTitle {
+  font: 600 11px/1.2 var(--font-ui);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--text-2);
+}
+
+.trayCount {
+  font: 500 11px/1.2 var(--font-ui);
+  color: var(--muted);
+}
+
+.trayActions {
+  display: inline-flex;
+  gap: 6px;
+  margin-left: auto;
+}
+
+.tray .trayBtn {
+  height: 26px;
+  font-size: 11px;
+}
+
+.tray .trayBtn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.tray .removeBtn {
+  min-width: 26px;
+  justify-content: center;
+  padding: 0 8px;
+  color: var(--muted);
+}
+
+.hint,
+.status {
+  margin: 0;
+  font: 500 11.5px/1.45 var(--font-ui);
+  color: var(--muted);
+}
+
+.status:empty {
+  display: none;
+}
+
+.pins {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.pin {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  padding: 5px 6px 5px 10px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-md, 8px);
+  background: var(--panel-2, var(--bg));
+}
+
+.pinText {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.pinLabel {
+  font: 700 12px/1.3 var(--font-ui);
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
+}
+
+.pinMeta {
+  font: 500 10.5px/1.3 var(--font-ui);
+  color: var(--muted);
+  overflow-wrap: anywhere;
+}
+
+.cmp {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 0;
+  border-top: 1px solid var(--line);
+  padding-top: 10px;
+}
+
+.cmpHd {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.cmpTitle {
+  font: 600 12px/1.3 var(--font-ui);
+  color: var(--text);
+}
+
+.cmpNoExec {
+  font: 500 11px/1.4 var(--font-ui);
+  color: var(--text-2);
+}
+
+.warn,
+.info {
+  margin: 0;
+  padding: 8px 10px 8px 26px;
+  border-radius: 6px;
+  font: 500 11.5px/1.45 var(--font-ui);
+  list-style: disc outside;
+}
+
+.warn {
+  color: var(--warn);
+  background: rgba(232, 163, 61, 0.1);
+  border: 1px solid rgba(232, 163, 61, 0.35);
+}
+
+.info {
+  color: var(--text-2);
+  background: var(--panel-2, transparent);
+  border: 1px solid var(--line);
+}
+
+.ok {
+  margin: 0;
+  font: 500 11.5px/1.45 var(--font-ui);
+  color: var(--text-2);
+}
+
+.cmpScroll {
+  overflow-x: auto;
+  min-width: 0;
+  border: 1px solid var(--line);
+  border-radius: 6px;
+}
+
+.cmpTable {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  font: 500 12px/1.35 var(--font-ui);
+}
+
+.cmpTable th,
+.cmpTable td {
+  padding: 8px 12px;
+  text-align: left;
+  vertical-align: top;
+  border-bottom: 1px solid var(--line-2, var(--line));
+  min-width: 150px;
+}
+
+.cmpTable thead th {
+  background: var(--bg);
+  color: var(--text);
+  font-weight: 600;
+}
+
+.cmpTable tbody tr:last-child > * {
+  border-bottom: 0;
+}
+
+.cmpTable th:first-child {
+  position: sticky;
+  left: 0;
+  z-index: 1;
+  background: var(--bg);
+  min-width: 140px;
+  max-width: 180px;
+  border-right: 1px solid var(--line);
+}
+
+.colLabel,
+.fieldName,
+.val {
+  display: block;
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+}
+
+.colLabel {
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+
+.fieldName {
+  font-weight: 600;
+}
+
+.val {
+  font-weight: 700;
+}
+
+.colMeta,
+.basis,
+.obs {
+  display: block;
+  font: 500 10.5px/1.35 var(--font-ui);
+  color: var(--muted);
+}
+
+.none {
+  display: block;
+  color: var(--text-dim, var(--muted));
+  font-style: italic;
+}
+
+.staleTag,
+.adjTag {
+  display: inline-block;
+  margin-top: 4px;
+  font: 600 10px/1.3 var(--font-ui);
+  color: var(--warn);
+}
+
+@media (pointer: coarse), (max-width: 640px) {
+  .pinBtn {
+    width: 44px;
+    height: 44px;
+    margin: -10px 4px -10px -10px;
+  }
+
+  /* globals.css forces `.chip{min-height:36px!important}` at narrow widths;
+     the shortlist's own controls need the 44px touch floor. */
+  .tray .trayBtn {
+    height: auto;
+    min-height: 44px !important;
+    font-size: 12px;
+  }
+
+  .tray .removeBtn {
+    min-width: 44px;
+  }
+
+  .pin {
+    width: 100%;
+  }
+
+  .pinText {
+    flex: 1;
+  }
+
+  .cmpTable th,
+  .cmpTable td {
+    min-width: 136px;
+    padding: 8px 10px;
+  }
+
+  .cmpTable th:first-child {
+    min-width: 112px;
+    max-width: 128px;
+  }
+}
