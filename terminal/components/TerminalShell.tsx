@@ -5843,7 +5843,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
                 <div className="menu-row danger" onClick={() => clearList(activeList)}><svg viewBox="0 0 24 24"><path d="M4 7h16M9 7V5h6v2M6 7l1 13h10l1-13" /></svg>{t("clearWatchlist")}</div>
               </div>
               {loggedIn && wlOwner !== GUEST_OWNER && (
-                <WatchlistAnnotationSync key={wlOwner} owner={wlOwner} ready={wlsRestored} flags={flags} notes={symbolNotes} setFlags={setFlags} setNotes={setSymbolNotes} />
+                <WatchlistAnnotationSync key={wlOwner} owner={wlOwner} ready={wlsRestored} flags={flags} notes={symbolNotes} setFlags={setFlags} setNotes={setSymbolNotes} hubOpen={searchOpen} />
               )}
               <div className={`wl-acts${selectedWlCount >= 2 ? " wl-acts-selection" : ""}`}>
                 <button title={t("addSymbol")} onClick={(e) => { e.stopPropagation(); addSymbolTargetRef.current = null; setSeed(""); setAddSymOpen(true); }}><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14" /></svg></button>

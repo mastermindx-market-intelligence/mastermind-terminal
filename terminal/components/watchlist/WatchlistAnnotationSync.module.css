@@ -32,6 +32,22 @@ button.chip {
   cursor: pointer;
 }
 
+/* Touch copy in the list hub's header (the rail, and its chip, are hidden at ≤860px). It sits at
+   the header's right edge; the negative block margins keep the header's height, so the list rows
+   below do not move when it appears. */
+.hub {
+  margin: -6px 0 -6px auto;
+  max-width: 62%;
+}
+
+.hub .chip {
+  height: 22px;
+  padding: 0 9px;
+  font-size: 11.5px;
+  letter-spacing: normal;
+  text-transform: none;
+}
+
 button.chip:hover {
   border-color: var(--line-2);
   color: var(--text);

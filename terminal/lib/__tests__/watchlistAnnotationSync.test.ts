@@ -76,6 +76,14 @@ describe("local edits become pending writes", () => {
     expect(ledger.pending["AAPL|note"]).toEqual({ value: "abc", base: 3 });
   });
 
+  it("compares local values in the account's stored form, so a cosmetic difference is not an edit", () => {
+    const ledger = acked({ "AAPL|flag": [2, "#f23645"], "MSFT|note": [1, null] });
+    // An upper-case hex flag is the same flag, and a whitespace-only note is no note: no write.
+    expect(detectLocalEdits(ledger, maps({ MSFT: "   " }, { AAPL: " #F23645" }))).toBe(ledger);
+    // A value the account would reject still becomes a pending write (shown as "can't sync"), never dropped.
+    expect(detectLocalEdits(ledger, maps({}, { AAPL: "red" })).pending["AAPL|flag"]).toEqual({ value: "red", base: 2 });
+  });
+
   it("leaves a symbol the server could never key as local-only", () => {
     expect(detectLocalEdits(emptyLedger(), maps({ "aapl ": "lower-case key" })).pending).toEqual({});
   });
@@ -235,6 +243,10 @@ describe("conflict resolution", () => {
     const map = { AAPL: "typed after the read" };
     expect(applyToMap(map, [{ symbol: "AAPL", field: "note", from: "old", to: "remote" }], "note")).toBe(map);
     expect(applyToMap({ AAPL: "old" }, [{ symbol: "AAPL", field: "note", from: "old", to: null }], "note")).toEqual({});
+  });
+
+  it("applyToMap still applies a remote change over a local value that differs only cosmetically", () => {
+    expect(applyToMap({ AAPL: "#F23645" }, [{ symbol: "AAPL", field: "flag", from: "#f23645", to: "#2962ff" }], "flag")).toEqual({ AAPL: "#2962ff" });
   });
 });
 

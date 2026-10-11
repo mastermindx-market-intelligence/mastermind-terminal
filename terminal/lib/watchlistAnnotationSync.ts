@@ -62,12 +62,24 @@ export function splitKey(key: string): { symbol: string; field: AnnotationField 
 
 const mapFor = (maps: LocalMaps, field: AnnotationField) => (field === "note" ? maps.notes : maps.flags);
 
-/** The local value of one field as the shell holds it (`null` = absent). */
+/**
+ * A local value in the form the account stores it (`null` = absent), so a difference the server
+ * would normalize away (an upper-case hex flag, a whitespace-only note) is never read as an edit —
+ * otherwise every acknowledgement would look changed again and re-send forever. A value the account
+ * would reject stays raw: it becomes a pending write that comes back "invalid" and is shown as
+ * "can't sync", never silently dropped.
+ */
+export function canonicalLocal(field: AnnotationField, value: unknown): string | null {
+  if (typeof value !== "string" || !value) return null;
+  const normalized = normalizeAnnotationValue(field, value);
+  return normalized === undefined ? value : normalized;
+}
+
+/** The local value of one field, compared in the account's stored form (`null` = absent). */
 export function localValue(maps: LocalMaps, key: string): string | null {
   const parts = splitKey(key);
   if (!parts) return null;
-  const value = mapFor(maps, parts.field)[parts.symbol];
-  return typeof value === "string" && value ? value : null;
+  return canonicalLocal(parts.field, mapFor(maps, parts.field)[parts.symbol]);
 }
 
 // ───────────────────────────── persistence ─────────────────────────────
@@ -333,7 +345,7 @@ export function applyToMap(map: Record<string, string>, applies: LocalApply[], f
   let next: Record<string, string> | null = null;
   for (const apply of applies) {
     if (apply.field !== field) continue;
-    const current = typeof map[apply.symbol] === "string" && map[apply.symbol] ? map[apply.symbol] : null;
+    const current = canonicalLocal(field, map[apply.symbol]);
     if (current !== apply.from || current === apply.to) continue;
     next ??= { ...map };
     if (apply.to === null) delete next[apply.symbol];

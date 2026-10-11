@@ -1,6 +1,7 @@
 "use client";
 import { useCallback } from "react";
 import { useLang } from "./i18n";
+import { FLAG_COLORS } from "./flagPalette";
 
 /**
  * E05 feature-local EN/ZH copy for watchlist note/flag sync. Language state stays the shared
@@ -30,10 +31,18 @@ export const WATCHLIST_ANNOTATION_LEX: Record<string, [string, string]> = {
   wasReadFailedShort: ["Sync read failed", "同步读取失败"],
   wasRejectedShort: ["Can't sync · {n}", "无法同步 · {n}"],
   wasImportShort: ["Import guest · {n}", "导入访客 · {n}"],
-  wasChipTitle: ["Watchlist notes and flags sync across your signed-in devices", "自选备注和旗标会在已登录的设备间同步"],
   wasNote: ["Note", "备注"],
   wasFlag: ["Flag", "旗标"],
   wasCleared: ["(none)", "（无）"],
+  // Flag colours by name, in FLAG_COLORS order: a hex code means nothing to a reader.
+  wasFlagRed: ["Red", "红色"],
+  wasFlagBlue: ["Blue", "蓝色"],
+  wasFlagGreen: ["Green", "绿色"],
+  wasFlagYellow: ["Yellow", "黄色"],
+  wasFlagPurple: ["Purple", "紫色"],
+  wasFlagCyan: ["Cyan", "青色"],
+  wasFlagPink: ["Pink", "粉色"],
+  wasFlagOther: ["Other color", "其他颜色"],
   wasClose: ["Close", "关闭"],
   wasConflictTitle: ["Resolve sync conflict", "解决同步冲突"],
   wasConflictIntro: [
@@ -60,7 +69,6 @@ export const WATCHLIST_ANNOTATION_LEX: Record<string, [string, string]> = {
   ],
   wasImportConfirm: ["Import {n}", "导入 {n} 项"],
   wasImportLater: ["Not now", "暂不导入"],
-  wasSymbol: ["Symbol", "代码"],
   wasAccountValue: ["Account", "账户"],
   wasGuestValue: ["Guest", "访客"],
 };
@@ -72,4 +80,13 @@ export function useAnnotationT() {
     const text = pair ? pair[lang === "zh" ? 1 : 0] : key;
     return n === undefined ? text : text.replace("{n}", String(n));
   }, [lang]);
+}
+
+/** Lex keys naming each FLAG_COLORS entry, index for index. */
+export const FLAG_COLOR_NAME_KEYS = ["wasFlagRed", "wasFlagBlue", "wasFlagGreen", "wasFlagYellow", "wasFlagPurple", "wasFlagCyan", "wasFlagPink"] as const;
+
+/** The lex key that names a flag colour; a valid colour outside the palette is "Other color". */
+export function flagColorNameKey(value: string): string {
+  const index = FLAG_COLORS.indexOf(value.trim().toLowerCase());
+  return index >= 0 && index < FLAG_COLOR_NAME_KEYS.length ? FLAG_COLOR_NAME_KEYS[index] : "wasFlagOther";
 }

@@ -18,7 +18,7 @@
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type Dispatch, type SetStateAction } from "react";
 import { createPortal } from "react-dom";
 import styles from "./WatchlistAnnotationSync.module.css";
-import { useAnnotationT } from "@/lib/watchlistAnnotationLex";
+import { flagColorNameKey, useAnnotationT } from "@/lib/watchlistAnnotationLex";
 import { useLang } from "@/lib/i18n";
 import { GUEST_OWNER, ownerUserId } from "@/lib/accountIdentity";
 import { browserStorage } from "@/lib/ownerStorage";
@@ -57,6 +57,10 @@ const WRITE_DEBOUNCE_MS = 600;
 const BACKOFF_MS = [2_000, 5_000, 15_000, 30_000, 60_000];
 const REFRESH_MIN_GAP_MS = 15_000;
 const POLL_MS = 60_000;
+/** Touch layouts hide the rail (and this chip with it); there the status rides in the list hub. */
+const TOUCH_HUB_QUERY = "(max-width: 860px)";
+/** The hub is a centred modal on a tablet and a bottom sheet on a phone; both carry this header. */
+const HUB_EYEBROW = ":is(.smodal-hub, .msheet-search) .s-home-eyebrow";
 
 type Props = {
   owner: string;
@@ -66,6 +70,8 @@ type Props = {
   notes: Record<string, string>;
   setFlags: Dispatch<SetStateAction<Record<string, string>>>;
   setNotes: Dispatch<SetStateAction<Record<string, string>>>;
+  /** The symbol search / watchlist hub is open; on touch the status is also shown in its list header. */
+  hubOpen?: boolean;
 };
 
 const INITIAL_SIGNALS: SyncSignals = { readOk: false, readFailed: false, writeFailed: false, unavailable: false, unauthenticated: false, inFlight: false };
@@ -76,7 +82,7 @@ function readGuestMaps(): LocalMaps {
   return { flags: readOwnerStringMap(storage, WL_FLAGS_KEY, GUEST_OWNER), notes: readOwnerStringMap(storage, WL_NOTES_KEY, GUEST_OWNER) };
 }
 
-export default function WatchlistAnnotationSync({ owner, ready, flags, notes, setFlags, setNotes }: Props) {
+export default function WatchlistAnnotationSync({ owner, ready, flags, notes, setFlags, setNotes, hubOpen = false }: Props) {
   const t = useAnnotationT();
   const accountId = ownerUserId(owner);
   const storage = useMemo(() => browserStorage(), []);
@@ -89,6 +95,7 @@ export default function WatchlistAnnotationSync({ owner, ready, flags, notes, se
   const signalsRef = useRef(signals);
   const [guest, setGuest] = useState<LocalMaps>(() => readGuestMaps());
   const [dialog, setDialog] = useState<"conflict" | "import" | null>(null);
+  const hubTarget = useHubEyebrow(hubOpen);
 
   const aliveRef = useRef(true);
   const runningRef = useRef(false);
@@ -377,15 +384,18 @@ export default function WatchlistAnnotationSync({ owner, ready, flags, notes, se
   const chip = chipFor(status, t);
   const actionable = status.kind === "conflict" || status.kind === "retrying" || status.kind === "readFailed";
 
-  return (
-    <>
-      <span className={styles.wrap} role="status" aria-live="polite">
+  // One status, two places: the rail (desktop) and, on touch where the rail is hidden, the list
+  // hub's header. The hub copy carries its own test ids so each place is asserted on its own.
+  const chips = (place: "rail" | "hub") => {
+    const id = place === "hub" ? "-hub" : "";
+    return (
+      <span className={`${styles.wrap}${place === "hub" ? ` ${styles.hub}` : ""}`} role="status" aria-live="polite">
         {actionable ? (
           <button
             type="button"
             className={`${styles.chip} ${styles[chip.tone]}`}
-            data-testid="wl-annotation-sync"
-            data-sync-state={status.kind}
+            data-testid={`wl-annotation-sync${id}`}
+            data-sync-state={status.kind} // plain-language-ok: data attribute, not rendered text
             title={chip.long}
             aria-label={chip.long}
             onClick={(event) => { event.stopPropagation(); if (status.kind === "conflict") setDialog("conflict"); else retryNow(); }}
@@ -396,8 +406,8 @@ export default function WatchlistAnnotationSync({ owner, ready, flags, notes, se
         ) : (
           <span
             className={`${styles.chip} ${styles[chip.tone]}${importOffered && status.kind === "synced" ? ` ${styles.compact}` : ""}`}
-            data-testid="wl-annotation-sync"
-            data-sync-state={status.kind}
+            data-testid={`wl-annotation-sync${id}`}
+            data-sync-state={status.kind} // plain-language-ok: data attribute, not rendered text
             title={chip.long}
             aria-label={chip.long}
           >
@@ -409,7 +419,7 @@ export default function WatchlistAnnotationSync({ owner, ready, flags, notes, se
           <button
             type="button"
             className={`${styles.chip} ${styles.info}`}
-            data-testid="wl-annotation-import"
+            data-testid={`wl-annotation-import${id}`}
             title={t("wasImportOffer", offer.items.length)}
             onClick={(event) => { event.stopPropagation(); setDialog("import"); }}
           >
@@ -417,6 +427,13 @@ export default function WatchlistAnnotationSync({ owner, ready, flags, notes, se
           </button>
         )}
       </span>
+    );
+  };
+
+  return (
+    <>
+      {chips("rail")}
+      {hubTarget && createPortal(chips("hub"), hubTarget)}
       {dialog === "conflict" && conflictKeys.length > 0 && (
         <ConflictDialog
           ledger={ledger}
@@ -435,6 +452,34 @@ export default function WatchlistAnnotationSync({ owner, ready, flags, notes, se
 }
 
 type Tone = "ok" | "busy" | "warn" | "bad" | "info";
+
+/**
+ * The hub's list header while the hub is open on a touch layout, else null. The hub is lazily
+ * loaded and swaps its home list for search results as the user types, so the header comes and
+ * goes: a DOM observer, live only while the hub is open, tracks the current one.
+ */
+function useHubEyebrow(open: boolean): HTMLElement | null {
+  const [target, setTarget] = useState<HTMLElement | null>(null);
+  useEffect(() => {
+    // Closed: nothing to track (the previous run's cleanup already cleared the target).
+    if (!open || typeof window === "undefined" || typeof window.matchMedia !== "function") return;
+    const touch = window.matchMedia(TOUCH_HUB_QUERY);
+    const locate = () => {
+      const next = touch.matches ? document.querySelector<HTMLElement>(HUB_EYEBROW) : null;
+      setTarget((current) => (current === next ? current : next));
+    };
+    locate();
+    const observer = new MutationObserver(locate);
+    observer.observe(document.body, { childList: true, subtree: true });
+    touch.addEventListener("change", locate);
+    return () => {
+      observer.disconnect();
+      touch.removeEventListener("change", locate);
+      setTarget(null);
+    };
+  }, [open]);
+  return target;
+}
 
 function chipFor(status: SyncStatus, t: (key: string, n?: number) => string): { short: string; long: string; tone: Tone } {
   switch (status.kind) {
@@ -455,7 +500,22 @@ function useDialogKeys(onClose: () => void) {
   useEffect(() => {
     const previous = document.activeElement as HTMLElement | null;
     rootRef.current?.querySelector<HTMLElement>("button[data-autofocus]")?.focus();
-    const onKey = (event: KeyboardEvent) => { if (event.key === "Escape") { event.stopPropagation(); onClose(); } };
+    const onKey = (event: KeyboardEvent) => {
+      if (event.key === "Escape") { event.stopPropagation(); onClose(); return; }
+      if (event.key !== "Tab") return;
+      // A dialog opened from the phone's hub sheet sits above that sheet, whose own focus trap
+      // would pull Tab back into the sheet. Keep Tab cycling through this dialog instead.
+      const root = rootRef.current;
+      const items = root ? [...root.querySelectorAll<HTMLElement>("button:not([disabled]), input:not([disabled]), textarea:not([disabled])")] : [];
+      if (!root || items.length === 0) return;
+      event.stopPropagation();
+      const active = document.activeElement;
+      const first = items[0];
+      const last = items[items.length - 1];
+      if (!(active instanceof Node) || !root.contains(active)) { event.preventDefault(); first.focus(); }
+      else if (event.shiftKey && active === first) { event.preventDefault(); last.focus(); }
+      else if (!event.shiftKey && active === last) { event.preventDefault(); first.focus(); }
+    };
     window.addEventListener("keydown", onKey, true);
     return () => {
       window.removeEventListener("keydown", onKey, true);
@@ -469,7 +529,8 @@ function FieldValue({ field, value }: { field: AnnotationField; value: string | 
   const t = useAnnotationT();
   if (value === null) return <span className={styles.empty}>{t("wasCleared")}</span>;
   if (field === "flag") {
-    return <span className={styles.flagValue}><span className={styles.swatch} style={{ background: value }} aria-hidden="true" />{value}</span>;
+    // The colour by name beside its swatch; a hex code means nothing to a reader.
+    return <span className={styles.flagValue}><span className={styles.swatch} style={{ background: value }} aria-hidden="true" />{t(flagColorNameKey(value))}</span>;
   }
   return <span className={styles.noteValue}>{value}</span>;
 }

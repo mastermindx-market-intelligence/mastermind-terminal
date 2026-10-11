@@ -20,15 +20,18 @@ import { fixtureUserId } from "../lib/watchlistsFixtureDb";
 // account, or — where only the server state matters — the Playwright request fixture posting as
 // that account. Faults are the `mm_e2e_fault` cookie; a lost network is `page.route(...).abort()`.
 //
-// Touch widths hide the watchlist rail (`.rail .wl-board{display:none}` ≤ 860px), and the sync
-// chip lives in that rail, so on tablet/phone the component is a mounted-but-hidden mirror: its
-// `data-sync-state` is still asserted (it never claims "synced" falsely), and the hub's flag bars
-// prove the second-device read. Conflict and import choosers are reachable at desktop width only.
+// Touch widths hide the watchlist rail (`.rail .wl-board{display:none}` ≤ 860px) and the rail
+// chip with it, so on tablet/phone the same status is also shown in the list hub's header
+// (`wl-annotation-sync-hub`, portaled there while the hub is open). The hidden rail chip's
+// `data-sync-state` is still asserted (it never claims "synced" falsely); the hub chip is the one
+// a touch user sees and taps — retry, the conflict chooser and the import preview all open from it.
 
 const ENDPOINT = "/api/watchlist/annotations";
 const DEFAULT_BASE = "http://127.0.0.1:3108";
 const RUN = randomUUID().slice(0, 8);
 const SYNC = '[data-testid="wl-annotation-sync"]';
+/** The touch copy of the status, in the list hub's header while the hub is open. */
+const HUB_SYNC = '[data-testid="wl-annotation-sync-hub"]';
 const RED = "#f23645";
 const RED_RGB = "rgb(242, 54, 69)";
 const BLUE = "#2962ff";
@@ -189,11 +192,28 @@ async function menuNote(page: Page, symbol: string, text: string) {
   await expect(row(page, symbol).locator(".wl-note-mark")).toHaveAttribute("title", text);
 }
 
-/** The touch hub's row for one watchlist symbol. */
-async function hubRow(page: Page, symbol: string) {
+/** Open the touch list hub (the symbol bar). */
+async function openHub(page: Page) {
   await page.locator(".m-symbar").click({ timeout: 20_000 });
   await expect(page.locator(".s-home")).toBeVisible({ timeout: 20_000 });
+}
+
+/** The touch hub's row for one watchlist symbol (opens the hub if it is not open). */
+async function hubRow(page: Page, symbol: string) {
+  if (!(await page.locator(".s-home").isVisible())) await openHub(page);
   return page.locator(".s-home .r", { has: page.locator(".tk", { hasText: new RegExp(`^${symbol}$`) }) }).first();
+}
+
+/** The touch status chip: visible in the open hub's header, in the given state, with the given words. */
+async function expectHubSync(page: Page, state: string, text: string) {
+  const chip = page.locator(HUB_SYNC);
+  await expect(chip).toBeVisible({ timeout: 20_000 });
+  await expect(chip).toHaveAttribute("data-sync-state", state, { timeout: 20_000 });
+  await expect(chip).toHaveText(text);
+  // It sits in the hub's list header, inside the hub — not floating over other controls.
+  // (The hub is a centred modal on a tablet and a bottom sheet on a phone.)
+  await expect(page.locator(`:is(.smodal-hub, .msheet-search) .s-home-eyebrow ${HUB_SYNC}`)).toHaveCount(1);
+  return chip;
 }
 
 test.describe.configure({ timeout: 150_000 });
@@ -236,6 +256,8 @@ test("AC-E05-06 — a note and a flag written on one device are read on a second
     } else {
       const nvda = await hubRow(pageB, "NVDA");
       await expect(nvda.locator(".s-flag-bar--set")).toHaveCSS("background-color", RED_RGB);
+      // The touch user sees the account state where the list is, not only in a hidden rail.
+      await expectHubSync(pageB, "synced", "Synced");
     }
   } finally {
     await deviceB.close();
@@ -386,13 +408,17 @@ test("AC-E05-06 — a lost network keeps local notes and says the read failed, t
   } else {
     const nvda = await hubRow(page, "NVDA");
     await expect(nvda.locator(".s-flag-bar--set")).toHaveCSS("background-color", RED_RGB);
-    await page.keyboard.press("Escape");
+    await expectHubSync(page, "readFailed", "Sync read failed");
   }
 
   await page.unroute(`**${ENDPOINT}`);
-  if (isDesktop(testInfo)) await page.locator(SYNC).click();
-  else await goOnline(page);
+  // Retry is a tap on the chip the user can see: the rail chip on desktop, the hub chip on touch.
+  await page.locator(isDesktop(testInfo) ? SYNC : HUB_SYNC).click();
   await expectSync(page, "synced");
+  if (!isDesktop(testInfo)) {
+    await expectHubSync(page, "synced", "Synced");
+    await expect(page.locator(".s-home")).toBeVisible(); // the tap retried; it did not close the hub
+  }
   expect((await slot(page, E2E_WL_NOTES_KEY, owner)).NVDA).toBe(CJK_NOTE);
 });
 
@@ -427,19 +453,32 @@ test("AC-E05-03 — concurrent edits merge disjoint fields and surface a same-fi
   expect((await slot(page, E2E_WL_NOTES_KEY, owner)).NVDA).toBe(MINE);
   expect(await serverSymbol(request, key, "NVDA")).toMatchObject({ note: THEIRS, noteRevision: 2, flag: BLUE, flagRevision: 1 });
 
-  if (!isDesktop(testInfo)) return; // the chooser lives in the desktop rail
-  await expect(page.locator(SYNC)).toHaveText("Conflict · 1");
-  await expect(row(page, "NVDA").locator(".wl-flag-slot--set")).toHaveCSS("background-color", BLUE_RGB);
-  await page.locator(SYNC).click();
+  // The chooser opens from the chip the user can see: the rail on desktop, the list hub on touch.
+  let chip = page.locator(SYNC);
+  if (isDesktop(testInfo)) {
+    await expect(chip).toHaveText("Conflict · 1");
+    await expect(row(page, "NVDA").locator(".wl-flag-slot--set")).toHaveCSS("background-color", BLUE_RGB);
+  } else {
+    await expect((await hubRow(page, "NVDA")).locator(".s-flag-bar--set")).toHaveCSS("background-color", BLUE_RGB);
+    chip = await expectHubSync(page, "conflict", "Conflict · 1");
+  }
+  await chip.click();
   const dialog = page.getByTestId("wl-annotation-conflict");
   await expect(dialog).toBeVisible();
+  // Tab stays inside the chooser. On a phone it sits above the hub sheet, whose own focus trap
+  // must not pull focus back underneath it.
+  for (let i = 0; i < 4; i += 1) {
+    await page.keyboard.press("Tab");
+    expect(await dialog.evaluate((element) => element.contains(document.activeElement)), `Tab ${i + 1}`).toBe(true);
+  }
   await expect(dialog.getByTestId("wl-annotation-conflict-mine")).toContainText(MINE);
   await expect(dialog.getByTestId("wl-annotation-conflict-theirs")).toContainText(THEIRS);
   await dialog.getByRole("button", { name: "Keep this device's" }).click();
   await expect(dialog).toHaveCount(0);
   await expectSync(page, "synced");
   expect(await serverSymbol(request, key, "NVDA")).toMatchObject({ note: MINE, noteRevision: 3, flag: BLUE, flagRevision: 1 });
-  await expect(row(page, "NVDA").locator(".wl-note-mark")).toHaveAttribute("title", MINE);
+  if (isDesktop(testInfo)) await expect(row(page, "NVDA").locator(".wl-note-mark")).toHaveAttribute("title", MINE);
+  else await expectHubSync(page, "synced", "Synced");
 });
 
 test("AC-E05-02 — guest notes are imported only after a preview, and originals stay until acknowledged", async ({ page, request, baseURL }, testInfo) => {
@@ -471,10 +510,12 @@ test("AC-E05-02 — guest notes are imported only after a preview, and originals
   expect(await slot(page, E2E_WL_NOTES_KEY, GUEST_OWNER)).toEqual({ NVDA: GUEST_NVDA, AAPL: "guest AAPL note" });
   expect(await slot(page, E2E_WL_FLAGS_KEY, GUEST_OWNER)).toEqual({ MSFT: GREEN });
   expect(seen.some((entry) => entry.method === "POST")).toBe(false);
-  if (!isDesktop(testInfo)) return; // the import chooser lives in the desktop rail
-
-  await expect(row(page, "NVDA").locator(".wl-note-mark")).toHaveCount(0);
-  const offer = page.getByTestId("wl-annotation-import");
+  // The offer and its preview open from the chip the user can see: the rail on desktop, the list hub on touch.
+  const touch = !isDesktop(testInfo);
+  const place = touch ? "-hub" : "";
+  if (touch) await openHub(page);
+  else await expect(row(page, "NVDA").locator(".wl-note-mark")).toHaveCount(0);
+  const offer = page.getByTestId(`wl-annotation-import${place}`);
   await expect(offer).toHaveText("Import guest · 2");
   await offer.click();
   const dialog = page.getByTestId("wl-annotation-import-dialog");
@@ -484,7 +525,9 @@ test("AC-E05-02 — guest notes are imported only after a preview, and originals
   await expect(items).toContainText("NVDA");
   await expect(items).toContainText(GUEST_NVDA);
   await expect(items).toContainText("MSFT");
-  await expect(items).toContainText(GREEN);
+  // A flag reads as its colour's name beside the swatch, never as a hex code.
+  await expect(items).toContainText("Green");
+  await expect(items).not.toContainText(GREEN);
   const collisions = dialog.getByTestId("wl-annotation-import-collisions");
   await expect(collisions).toContainText("AAPL");
   await expect(collisions).toContainText("guest AAPL note");
@@ -494,14 +537,16 @@ test("AC-E05-02 — guest notes are imported only after a preview, and originals
   await setFault(page.context(), ["annotations_write"], baseURL);
   await dialog.getByRole("button", { name: "Import 2" }).click();
   await expectSync(page, "retrying");
-  await expect(row(page, "NVDA").locator(".wl-note-mark")).toHaveAttribute("title", GUEST_NVDA);
+  if (touch) await expectHubSync(page, "retrying", "Not synced · 2");
+  else await expect(row(page, "NVDA").locator(".wl-note-mark")).toHaveAttribute("title", GUEST_NVDA);
   expect(await slot(page, E2E_WL_NOTES_KEY, GUEST_OWNER)).toEqual({ NVDA: GUEST_NVDA, AAPL: "guest AAPL note" });
   expect(await slot(page, E2E_WL_FLAGS_KEY, GUEST_OWNER)).toEqual({ MSFT: GREEN });
 
   // Acknowledged: exactly the imported originals retire; the collision's guest copy stays.
   await setFault(page.context(), [], baseURL);
-  await page.locator(SYNC).click();
+  await page.getByTestId(`wl-annotation-sync${place}`).click();
   await expectSync(page, "synced");
+  if (touch) await expectHubSync(page, "synced", "Synced");
   await expect.poll(async () => slot(page, E2E_WL_NOTES_KEY, GUEST_OWNER)).toEqual({ AAPL: "guest AAPL note" });
   expect(await slot(page, E2E_WL_FLAGS_KEY, GUEST_OWNER)).toEqual({});
   await expect(offer).toHaveCount(0);
@@ -523,6 +568,9 @@ test("an absent annotations table reads as 'sync off', keeps local notes and sen
   if (isDesktop(testInfo)) {
     await expect(page.locator(SYNC)).toHaveText("Sync off");
     await expect(row(page, "NVDA").locator(".wl-note-mark")).toHaveAttribute("title", CJK_NOTE);
+  } else {
+    await openHub(page);
+    await expectHubSync(page, "unavailable", "Sync off");
   }
   await page.waitForTimeout(1_500);
   expect((await slot(page, E2E_WL_NOTES_KEY, owner)).NVDA).toBe(CJK_NOTE);
@@ -557,7 +605,17 @@ test("E05 evidence crops", async ({ page, request, baseURL }, testInfo) => {
       await expectSync(tab, "synced");
       const nvda = await hubRow(tab, "NVDA");
       await expect(nvda.locator(".s-flag-bar--set")).toHaveCSS("background-color", RED_RGB);
+      await expectHubSync(tab, "synced", zh ? "已同步" : "Synced");
       await shot(`${lang}-hub-synced`, tab);
+
+      // The network drops: the hub keeps the local flags and says the read failed, never "Synced".
+      await tab.route(`**${ENDPOINT}`, (route) => route.abort("internetdisconnected"));
+      await boot(tab);
+      await expectSync(tab, "readFailed");
+      await expect((await hubRow(tab, "NVDA")).locator(".s-flag-bar--set")).toHaveCSS("background-color", RED_RGB);
+      await expectHubSync(tab, "readFailed", zh ? "同步读取失败" : "Sync read failed");
+      await shot(`${lang}-hub-read-failed`, tab);
+      await tab.unroute(`**${ENDPOINT}`);
       await tab.close();
       continue;
     }
@@ -577,6 +635,10 @@ test("E05 evidence crops", async ({ page, request, baseURL }, testInfo) => {
     await offer.click();
     const importDialog = tab.getByTestId("wl-annotation-import-dialog");
     await expect(importDialog).toBeVisible();
+    // Flags read as colour names beside their swatches, in the page's language — never hex codes.
+    await expect(importDialog).toContainText(zh ? "红色" : "Red");
+    await expect(importDialog).toContainText(zh ? "绿色" : "Green");
+    await expect(importDialog).not.toContainText(RED);
     await shot(`${lang}-import-preview`, tab);
     await importDialog.getByRole("button", { name: zh ? "导入 3 项" : "Import 3" }).click();
     await expectSync(tab, "synced");
