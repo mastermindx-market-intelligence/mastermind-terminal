@@ -1,0 +1,171 @@
+/* GENERATED review-only snapshot of Macro templates/theme.css @ d7001c51dc93b968544cb66b6b7e82c4f1390ead. Product integration must use the canonical theme owner. */
+:root {
+  --font-ui: -apple-system, BlinkMacSystemFont, Inter, "Segoe UI", Roboto,
+    "Helvetica Neue", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei",
+    "Noto Sans CJK SC", sans-serif;
+  --font-mono: ui-monospace, "SF Mono", SFMono-Regular, "Cascadia Mono",
+    Menlo, Consolas, "DejaVu Sans Mono", monospace;
+  --num: var(--font-ui);
+  --fs-display:46px;
+  --fs-num-xl:38px;
+  --fs-h1:28px;
+  --fs-num-lg:22px;
+  --fs-h2:17px;
+  --fs-md:15px;
+  --fs-body:14px;
+  --fs-h3:14px;
+  --fs-sm:12.5px;
+  --fs-label:11px;
+  --fs-micro:10px;
+  --bg: #0f1115; --panel: #181b21; --panel2: #1e222a; --text: #d7dce3;
+  --muted: #8b93a1;
+  --line: #3a4150;
+  --q1: #2e9e4f; --q2: #d4a017; --q3: #d04545; --q4: #3f78d8;
+  --warn: #e0a030; --act: #e05555; --ok: #3da564;
+  --fresh-ok: var(--ok);
+  --up: #45b873; --down: #e06464; --orange: #e08b45;
+  --info: #5b9bf0; --link: #7aa7e0;
+  --g-cold: #4d8df0; --g-hot: #e0a23c; --g-mid: #3a4150;
+  --pv-buy: color-mix(in srgb, var(--up) 82%, var(--text));
+  --pv-near: color-mix(in srgb, var(--pv-buy) 70%, var(--muted));
+  --pv-wait: #e0a030;
+  --pv-hold: #8b93a1; --pv-avoid: #e06464;
+  --pv-dialog-shadow: 0 18px 60px rgba(0,0,0,.2666667);
+  --pv-dialog-backdrop: rgba(0,0,0,.5333333);
+  --chart-bg: transparent;
+  --card-shadow: 0 1px 0 rgba(255,255,255,.02);
+  --popover-shadow: 0 6px 18px rgba(0,0,0,.5);
+  --sb-thumb: color-mix(in srgb, var(--muted) 34%, transparent);
+  --sb-thumb-hover: color-mix(in srgb, var(--muted) 60%, transparent);
+  --sb-thumb-active: color-mix(in srgb, var(--info) 62%, var(--muted));
+  --glass-bg: color-mix(in srgb, var(--panel) 86%, transparent);
+  --glass-brd: color-mix(in srgb, var(--text) 14%, transparent);
+  --glass-blur: saturate(180%) blur(22px);
+  --glass-shadow: 0 24px 64px -22px rgba(3,7,18,.74), 0 10px 26px -12px rgba(3,7,18,.55),
+    inset 0 1px 0 color-mix(in srgb,#fff 10%,transparent);
+  --gbtn-bg:        color-mix(in srgb, var(--panel2) 52%, transparent);
+  --gbtn-bg-hover:  color-mix(in srgb, var(--panel2) 76%, transparent);
+  --gbtn-brd:       color-mix(in srgb, var(--text) 12%, transparent);
+  --gbtn-brd-hover: color-mix(in srgb, var(--text) 24%, transparent);
+  --gbtn-sheen:     rgba(255,255,255,.09);
+  --mc-ink-02: color-mix(in srgb, var(--text) 2%, transparent);
+  --mc-ink-05: color-mix(in srgb, var(--text) 5%, transparent);
+  --mc-ink-07: color-mix(in srgb, var(--text) 7%, transparent);
+  --mc-ink-08: color-mix(in srgb, var(--text) 8%, transparent);
+  --mc-ink-09: color-mix(in srgb, var(--text) 9%, transparent);
+  --mc-ink-10: color-mix(in srgb, var(--text) 10%, transparent);
+  --mc-ink-12: color-mix(in srgb, var(--text) 12%, transparent);
+  --mc-ink-14: color-mix(in srgb, var(--text) 14%, transparent);
+  --mc-ink-18: color-mix(in srgb, var(--text) 18%, transparent);
+  --mc-text-06: color-mix(in srgb, var(--text) 6%, transparent);
+  --mc-text-10: color-mix(in srgb, var(--text) 10%, transparent);
+  --mc-text-22: color-mix(in srgb, var(--text) 22%, transparent);
+  --mc-accent-10: color-mix(in srgb, var(--info) 10%, transparent);
+  --mc-accent-12: color-mix(in srgb, var(--info) 12%, transparent);
+  --mc-accent-22: color-mix(in srgb, var(--info) 22%, transparent);
+  --mc-accent-34: color-mix(in srgb, var(--info) 34%, transparent);
+  --mc-accent-line: color-mix(in srgb, var(--info) 38%, var(--mq-line));
+  --mc-halo: 0;
+  --mc-halo-fill: color-mix(in srgb, currentColor calc(var(--mc-halo) * 100%), transparent);
+  --mc-stance-ok: transparent;
+  --mc-stance-warn: transparent;
+  --mc-stance-bad: transparent;
+  --mc-stance-neutral: transparent;
+  --mc-stance-fill: var(--mc-stance-neutral)
+}
+html[data-theme="light"] {
+  --gbtn-bg:        color-mix(in srgb, var(--panel2) 78%, var(--panel));
+  --gbtn-bg-hover:  color-mix(in srgb, var(--panel2) 96%, var(--panel));
+  --gbtn-brd:       color-mix(in srgb, #1c2430 50%, transparent);
+  --gbtn-brd-hover: color-mix(in srgb, #1c2430 66%, transparent);
+  --gbtn-sheen:     rgba(255,255,255,.7);
+  --mc-stance-ok: color-mix(in srgb, var(--ok) 6%, transparent);
+  --mc-stance-warn: color-mix(in srgb, var(--warn) 6%, transparent);
+  --mc-stance-bad: color-mix(in srgb, var(--act) 6%, transparent);
+  --mc-stance-neutral: color-mix(in srgb, var(--muted) 6%, transparent)
+}
+html[data-theme="light"] {
+  --bg: #f7f8fa; --panel: #ffffff; --panel2: #eef1f6; --text: #1c2430;
+  --muted: #5d6b7e;
+  --line: color-mix(in srgb, #1c2430 16%, #eaecf0);
+  --q1: #1f8b41; --q2: #b07d05; --q3: #c12f2f; --q4: #2f63c4;
+  --warn: #b9791a; --act: #c43d3d; --ok: #2f8a52;
+  --fresh-ok: var(--ok);
+  --up: #1f9a55; --down: #cf4040; --orange: #c4781f;
+  --info: #285fff; --link: #285fff;
+  --g-cold: #285fff; --g-hot: #c2841f; --g-mid: #cdd5e0;
+  --pv-buy: color-mix(in srgb, var(--up) 54%, var(--text));
+  --pv-near: color-mix(in srgb, var(--pv-buy) 70%, var(--muted));
+  --pv-wait: #b9791a;
+  --pv-hold: #5d6b7e; --pv-avoid: #cf4040;
+  --chart-bg: #11151c;
+  --card-shadow: 0 1px 3px rgba(20,30,50,.07);
+  --popover-shadow: 0 4px 10px rgba(20,30,50,.06), 0 12px 28px rgba(20,30,50,.14);
+  --glass-bg: color-mix(in srgb, var(--panel) 90%, transparent);
+  --glass-brd: color-mix(in srgb, #1c2430 9%, transparent);
+  --glass-shadow: 0 20px 54px -24px rgba(20,32,64,.34), 0 10px 24px -14px rgba(20,32,64,.20),
+    inset 0 1px 0 rgba(255,255,255,.85)
+}
+html[data-lang="zh"] {
+  --up: #e06464; --down: #45b873;
+  --q1: #d04545;
+  --q3: #2e9e4f;
+  --pv-avoid: var(--down)
+}
+html[data-theme="light"][data-lang="zh"] {
+  --up: #cf4040; --down: #1f9a55;
+  --q1: #c12f2f;
+  --q3: #1f8b41
+}
+:root {
+  --ink-mix-up: 100%; --ink-mix-down: 100%; --ink-mix-warn: 100%; --ink-mix-ok: 100%;
+  --ink-mix-act: 100%; --ink-mix-orange: 100%; --ink-mix-link: 100%; --ink-mix-info: 100%
+}
+html[data-theme="light"] {
+  --ink-mix-up: 62%; --ink-mix-down: 84%; --ink-mix-warn: 62%; --ink-mix-ok: 70%;
+  --ink-mix-act: 88%; --ink-mix-orange: 58%; --ink-mix-link: 88%; --ink-mix-info: 88%
+}
+html[data-theme="light"][data-lang="zh"] {
+  --ink-mix-up: 84%;
+  --ink-mix-down: 62%
+}
+:root {
+  --ink-up:     color-mix(in srgb, var(--up)     var(--ink-mix-up),     var(--text));
+  --ink-down:   color-mix(in srgb, var(--down)   var(--ink-mix-down),   var(--text));
+  --ink-warn:   color-mix(in srgb, var(--warn)   var(--ink-mix-warn),   var(--text));
+  --ink-ok:     color-mix(in srgb, var(--ok)     var(--ink-mix-ok),     var(--text));
+  --ink-act:    color-mix(in srgb, var(--act)    var(--ink-mix-act),    var(--text));
+  --ink-orange: color-mix(in srgb, var(--orange) var(--ink-mix-orange), var(--text));
+  --ink-link:   color-mix(in srgb, var(--link)   var(--ink-mix-link),   var(--text));
+  --ink-info:   color-mix(in srgb, var(--info)   var(--ink-mix-info),   var(--text))
+}
+:root {
+  --fill-mix: 64%;
+  --fill-up:     color-mix(in srgb, var(--up)     var(--fill-mix), #000);
+  --fill-down:   color-mix(in srgb, var(--down)   var(--fill-mix), #000);
+  --fill-warn:   color-mix(in srgb, var(--warn)   var(--fill-mix), #000);
+  --fill-ok:     color-mix(in srgb, var(--ok)     var(--fill-mix), #000);
+  --fill-act:    color-mix(in srgb, var(--act)    var(--fill-mix), #000);
+  --fill-orange: color-mix(in srgb, var(--orange) var(--fill-mix), #000);
+  --fill-link:   color-mix(in srgb, var(--link)   var(--fill-mix), #000);
+  --fill-info:   color-mix(in srgb, var(--info)   var(--fill-mix), #000)
+}
+:root {
+  --ink-pv-buy: var(--pv-buy); --ink-pv-near: var(--pv-near);
+  --ink-pv-wait: var(--pv-wait);
+  --ink-pv-avoid: color-mix(in srgb, var(--pv-avoid) 88%, var(--text))
+}
+html[data-theme="light"] {
+  --ink-pv-buy:   var(--pv-buy);
+  --ink-pv-near:  var(--pv-near);
+  --ink-pv-wait:  color-mix(in srgb, var(--pv-wait)  62%, var(--text));
+  --ink-pv-avoid: color-mix(in srgb, var(--pv-avoid) 84%, var(--text))
+}
+html[data-theme="light"][data-lang="zh"] {
+  --ink-pv-avoid: color-mix(in srgb, var(--pv-avoid) 62%, var(--text))
+}
+:root { --prov: #62a0e8; --prov-ink: var(--prov)
+}
+html[data-theme="light"] { --prov: #2f6fd0;
+  --prov-ink: color-mix(in srgb, var(--prov) 82%, var(--text))
+}
