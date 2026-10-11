@@ -1,0 +1,94 @@
+[warmup] /terminal?symbol=NVDA → 200 in 65ms
+[warmup] /options → 200 in 120ms
+[warmup] /portfolio → 200 in 67ms
+[warmup] /alerts → 200 in 69ms
+[warmup] /analysis → 200 in 158ms
+[warmup] /discover → 200 in 81ms
+[warmup] /admin → 200 in 50ms
+[warmup] /embed/chart?symbol=NVDA → 200 in 48ms
+[warmup] /login → 200 in 85ms
+[warmup] /reset-password → 200 in 71ms
+[warmup] /api/me → 200 in 65ms
+[warmup] /api/watchlist → 200 in 23ms
+[warmup] /api/layouts → 200 in 27ms
+[warmup] 13 routes compiled in 1s
+
+Running 112 tests using 1 worker
+
+[1/112] [desktop] › e2e/company-intelligence-appearance.spec.ts:69:7 › existing card ages at UTC expiry without reloading or fetching (dark/EN)
+
+[WebServer] [analyticsEvents] SUPABASE_SERVICE_ROLE_KEY absent — events held in memory only (dev mode)
+[2/112] [desktop] › e2e/company-intelligence-appearance.spec.ts:96:9 › degraded existing theme card: source-stale (dark/EN)
+[3/112] [desktop] › e2e/company-intelligence-appearance.spec.ts:96:9 › degraded existing theme card: missing (dark/EN)
+[4/112] [desktop] › e2e/company-intelligence-appearance.spec.ts:96:9 › degraded existing theme card: invalid (dark/EN)
+[5/112] [desktop] › e2e/company-intelligence-appearance.spec.ts:96:9 › degraded existing theme card: future (dark/EN)
+[6/112] [desktop] › e2e/company-intelligence-appearance.spec.ts:96:9 › degraded existing theme card: future-generation (dark/EN)
+[7/112] [desktop] › e2e/company-intelligence-appearance.spec.ts:96:9 › degraded existing theme card: last-good (dark/EN)
+[8/112] [desktop] › e2e/company-intelligence-appearance.spec.ts:96:9 › degraded existing theme card: mixed (dark/EN)
+[9/112] [desktop] › e2e/company-intelligence-appearance.spec.ts:96:9 › degraded existing theme card: unmapped-only (dark/EN)
+[10/112] [desktop] › e2e/company-intelligence-appearance.spec.ts:96:9 › degraded existing theme card: empty (dark/EN)
+[11/112] [desktop] › e2e/company-intelligence-appearance.spec.ts:96:9 › degraded existing theme card: refreshing (dark/EN)
+[12/112] [desktop] › e2e/company-intelligence-appearance.spec.ts:96:9 › degraded existing theme card: unavailable (dark/EN)
+[13/112] [desktop] › e2e/company-intelligence-appearance.spec.ts:69:7 › existing card ages at UTC expiry without reloading or fetching (dark/ZH)
+[14/112] [desktop] › e2e/company-intelligence-appearance.spec.ts:96:9 › degraded existing theme card: source-stale (dark/ZH)
+[15/112] [desktop] › e2e/company-intelligence-appearance.spec.ts:96:9 › degraded existing theme card: missing (dark/ZH)
+[16/112] [desktop] › e2e/company-intelligence-appearance.spec.ts:96:9 › degraded existing theme card: invalid (dark/ZH)
+[17/112] [desktop] › e2e/company-intelligence-appearance.spec.ts:96:9 › degraded existing theme card: future (dark/ZH)
+[18/112] [desktop] › e2e/company-intelligence-appearance.spec.ts:96:9 › degraded existing theme card: future-generation (dark/ZH)
+[19/112] [desktop] › e2e/company-intelligence-appearance.spec.ts:96:9 › degraded existing theme card: last-good (dark/ZH)
+[20/112] [desktop] › e2e/company-intelligence-appearance.spec.ts:96:9 › degraded existing theme card: mixed (dark/ZH)
+[21/112] [desktop] › e2e/company-intelligence-appearance.spec.ts:96:9 › degraded existing theme card: unmapped-only (dark/ZH)
+[22/112] [desktop] › e2e/company-intelligence-appearance.spec.ts:96:9 › degraded existing theme card: empty (dark/ZH)
+[23/112] [desktop] › e2e/company-intelligence-appearance.spec.ts:96:9 › degraded existing theme card: refreshing (dark/ZH)
+[24/112] [desktop] › e2e/company-intelligence-appearance.spec.ts:96:9 › degraded existing theme card: unavailable (dark/ZH)
+[25/112] [desktop] › e2e/company-intelligence-appearance.spec.ts:69:7 › existing card ages at UTC expiry without reloading or fetching (light/EN)
+[26/112] [desktop] › e2e/company-intelligence-appearance.spec.ts:96:9 › degraded existing theme card: source-stale (light/EN)
+[27/112] [desktop] › e2e/company-intelligence-appearance.spec.ts:96:9 › degraded existing theme card: missing (light/EN)
+[28/112] [desktop] › e2e/company-intelligence-appearance.spec.ts:96:9 › degraded existing theme card: invalid (light/EN)
+[29/112] [desktop] › e2e/company-intelligence-appearance.spec.ts:96:9 › degraded existing theme card: future (light/EN)
+[30/112] [desktop] › e2e/company-intelligence-appearance.spec.ts:96:9 › degraded existing theme card: future-generation (light/EN)
+[31/112] [desktop] › e2e/company-intelligence-appearance.spec.ts:96:9 › degraded existing theme card: last-good (light/EN)
+[32/112] [desktop] › e2e/company-intelligence-appearance.spec.ts:96:9 › degraded existing theme card: mixed (light/EN)
+[33/112] [desktop] › e2e/company-intelligence-appearance.spec.ts:96:9 › degraded existing theme card: unmapped-only (light/EN)
+[34/112] [desktop] › e2e/company-intelligence-appearance.spec.ts:96:9 › degraded existing theme card: empty (light/EN)
+[35/112] [desktop] › e2e/company-intelligence-appearance.spec.ts:96:9 › degraded existing theme card: refreshing (light/EN)
+  1) [desktop] › e2e/company-intelligence-appearance.spec.ts:96:9 › degraded existing theme card: refreshing (light/EN) 
+
+    Test was interrupted.
+
+    Error: locator.screenshot: Test ended.
+    Call log:
+      - taking element screenshot
+      - waiting for fonts to load...
+      - fonts loaded
+      - attempting scroll into view action
+        - waiting for element to be stable
+
+
+      63 |   const widths = await page.evaluate(() => ({ viewport: document.documentElement.clientWidth, width: document.documentElement.scrollWidth }));
+      64 |   expect(widths.width).toBeLessThanOrEqual(widths.viewport + 1);
+    > 65 |   await card.screenshot({ path: outputPath(name + "-card.png") });
+         |              ^
+      66 | }
+      67 |
+      68 | for (const mode of ["dark", "light"] as const) for (const zh of [false, true]) {
+        at proof (/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/gmi-cte-semantic-aging-20261004-astra-001/terminal/e2e/company-intelligence-appearance.spec.ts:65:14)
+        at /Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/gmi-cte-semantic-aging-20261004-astra-001/terminal/e2e/company-intelligence-appearance.spec.ts:128:7
+
+    attachment #1: screenshot (image/png) ──────────────────────────────────────────────────────────
+    ../docs/verification/cte-appearance-implementation-2026-10-04/appearance-repaired-repeat-raw/company-intelligence-appea-89b17-e-card-refreshing-light-EN--desktop/test-failed-1.png
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+    attachment #2: trace (application/zip) ─────────────────────────────────────────────────────────
+    ../docs/verification/cte-appearance-implementation-2026-10-04/appearance-repaired-repeat-raw/company-intelligence-appea-89b17-e-card-refreshing-light-EN--desktop/trace.zip
+    Usage:
+
+        npx playwright show-trace ../docs/verification/cte-appearance-implementation-2026-10-04/appearance-repaired-repeat-raw/company-intelligence-appea-89b17-e-card-refreshing-light-EN--desktop/trace.zip
+
+    ────────────────────────────────────────────────────────────────────────────────────────────────
+
+
+  1 interrupted
+    [desktop] › e2e/company-intelligence-appearance.spec.ts:96:9 › degraded existing theme card: refreshing (light/EN) 
+  77 did not run
+  34 passed (3.0m)

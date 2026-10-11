@@ -1,0 +1,64 @@
+{
+  "base_source_commit": "3ee6f7ae31f0ba98b85308a15014799163fdc1ba",
+  "changed_source_path": "terminal/lib/__tests__/companyThemeExposureRoute.test.ts",
+  "changed_source_sha256": "937b971778e8aee8aa5fc4bffb4b1ebd43db2ea968171a86f0cbda7c96e83097",
+  "entries": [
+    {
+      "bytes": 232,
+      "original_path": ".claude/evidence/cte-aging/node20-realm-witness.log",
+      "path": "node20-realm-witness.log",
+      "sha256": "8b9f00017731d8eb1ab556197df95af570385b33a256481f8cf0f2f49a4f017b"
+    },
+    {
+      "bytes": 5798,
+      "original_path": ".claude/evidence/cte-aging/node20-test-red.log",
+      "path": "node20-test-red.log",
+      "sha256": "90ba452c8fd802a0ac19dc74a89bb86b24cfbb8d0217897c3d02d267113e84aa"
+    },
+    {
+      "bytes": 846,
+      "original_path": ".claude/evidence/cte-aging/node20-test-green.log",
+      "path": "node20-test-green.log",
+      "sha256": "147b91905d041bce66733863112e0de41c5e928d0b6b81d52bcea98c607b95d1"
+    },
+    {
+      "bytes": 8,
+      "original_path": ".claude/evidence/cte-aging/node20-type-green.log",
+      "path": "node20-type-green.log",
+      "sha256": "0e606818852cc6d4e60902e87575d34ac32240a5d6906a692c9213d2c43e035c"
+    },
+    {
+      "bytes": 8,
+      "original_path": ".claude/evidence/cte-aging/node20-lint-green.log",
+      "path": "node20-lint-green.log",
+      "sha256": "0e606818852cc6d4e60902e87575d34ac32240a5d6906a692c9213d2c43e035c"
+    },
+    {
+      "bytes": 3456,
+      "original_path": ".claude/evidence/cte-aging/node20-harness-correction.patch",
+      "path": "node20-harness-correction.patch",
+      "sha256": "a2654597dee2e275a2d279482c11ce9814c76e78a92725db4a72ad0ed72322f6"
+    },
+    {
+      "bytes": 2150,
+      "original_path": ".claude/evidence/cte-aging/node20-harness-correction-receipt.json",
+      "path": "node20-harness-correction-receipt.json",
+      "sha256": "3b410371ccbe3caf35b1c05f8e0c6eb46d4ac79a6568ed64e946c4666417c8d6"
+    },
+    {
+      "bytes": 3338,
+      "path": "README.md",
+      "sha256": "15c33e725071791344a0fabce392c516a1c51ce97d13db5b362256639c7c508f"
+    }
+  ],
+  "hosted_refreshed_candidate": "PENDING",
+  "natural_publication_proven": false,
+  "original_proof_files_preserved": 95,
+  "production_deployment_proven": false,
+  "runtime": {
+    "arch": "arm64",
+    "platform": "darwin",
+    "version": "v20.20.2"
+  },
+  "schema": "gmi.terminal_evidence_addendum.v1"
+}

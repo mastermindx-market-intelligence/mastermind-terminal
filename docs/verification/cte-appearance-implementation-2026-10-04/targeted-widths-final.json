@@ -1,0 +1,451 @@
+{
+  "source_patch_sha256": "e0d8cbade534779fdd8a7090999ef7a559cbf5e51959a9c8c4dbd2c7838117d4",
+  "source_manifest_sha256": "78577ad07af65b8e82a51cc6c02b407ab20ffc985b8665ded9e8b4d16f2226e6",
+  "pid": 19717,
+  "exit_code": 0,
+  "tests": 16,
+  "runtime_seconds": 130.76,
+  "repeat_each": 2,
+  "retries": 0,
+  "ci_no_server_reuse": true,
+  "log_sha256": "31cac12374a574407d5dcd2f7710b49bc0b639ec8c2703a45fc14cb8b29322b9",
+  "artifacts": [
+    {
+      "path": "appearance-final-widths-raw/.last-run.json",
+      "bytes": 45,
+      "sha256": "91d1c43004802cd49950d78eb11c8fa7d05da8ffffe219a8b13b2f561bc00903"
+    },
+    {
+      "path": "appearance-final-widths-raw/company-intelligence-appea-15fd2--and-a-new-cold-context-ZH--mobile/control-dark-cold-zh-card.png",
+      "bytes": 60501,
+      "sha256": "6c02884af5206b45424f9b7cd39b83f0f6112732d80184cf243b1bf907b052ba",
+      "image_dimensions": [
+        366,
+        301
+      ]
+    },
+    {
+      "path": "appearance-final-widths-raw/company-intelligence-appea-15fd2--and-a-new-cold-context-ZH--mobile/control-dark-cold-zh-shell.png",
+      "bytes": 125086,
+      "sha256": "e72a046d7a46a2465f92b6e8c9ed4e7b360db97067089ad15174acd95519e632",
+      "image_dimensions": [
+        390,
+        844
+      ]
+    },
+    {
+      "path": "appearance-final-widths-raw/company-intelligence-appea-15fd2--and-a-new-cold-context-ZH--mobile/control-light-zh-card.png",
+      "bytes": 61846,
+      "sha256": "8b523f08a121b1d4c0dd4437c162d57169b3c3d7ca1356e7e0da2b795fc2cec5",
+      "image_dimensions": [
+        366,
+        301
+      ]
+    },
+    {
+      "path": "appearance-final-widths-raw/company-intelligence-appea-15fd2--and-a-new-cold-context-ZH--mobile/control-light-zh-shell.png",
+      "bytes": 120133,
+      "sha256": "e81dcdf2442f2b2b026999b4dce1039e080221a582fc0e1af8bd275d40b538bf",
+      "image_dimensions": [
+        390,
+        844
+      ]
+    },
+    {
+      "path": "appearance-final-widths-raw/company-intelligence-appea-15fd2--and-a-new-cold-context-ZH--mobile-repeat1/control-dark-cold-zh-card.png",
+      "bytes": 60501,
+      "sha256": "6c02884af5206b45424f9b7cd39b83f0f6112732d80184cf243b1bf907b052ba",
+      "image_dimensions": [
+        366,
+        301
+      ]
+    },
+    {
+      "path": "appearance-final-widths-raw/company-intelligence-appea-15fd2--and-a-new-cold-context-ZH--mobile-repeat1/control-dark-cold-zh-shell.png",
+      "bytes": 125086,
+      "sha256": "e72a046d7a46a2465f92b6e8c9ed4e7b360db97067089ad15174acd95519e632",
+      "image_dimensions": [
+        390,
+        844
+      ]
+    },
+    {
+      "path": "appearance-final-widths-raw/company-intelligence-appea-15fd2--and-a-new-cold-context-ZH--mobile-repeat1/control-light-zh-card.png",
+      "bytes": 61846,
+      "sha256": "8b523f08a121b1d4c0dd4437c162d57169b3c3d7ca1356e7e0da2b795fc2cec5",
+      "image_dimensions": [
+        366,
+        301
+      ]
+    },
+    {
+      "path": "appearance-final-widths-raw/company-intelligence-appea-15fd2--and-a-new-cold-context-ZH--mobile-repeat1/control-light-zh-shell.png",
+      "bytes": 120133,
+      "sha256": "e81dcdf2442f2b2b026999b4dce1039e080221a582fc0e1af8bd275d40b538bf",
+      "image_dimensions": [
+        390,
+        844
+      ]
+    },
+    {
+      "path": "appearance-final-widths-raw/company-intelligence-appea-15fd2--and-a-new-cold-context-ZH--tablet/control-dark-cold-zh-card.png",
+      "bytes": 96738,
+      "sha256": "71b5781d4a1de527daf94294dfe28694658b06861a34ec4e7e35cb8f280bd0e3",
+      "image_dimensions": [
+        788,
+        298
+      ]
+    },
+    {
+      "path": "appearance-final-widths-raw/company-intelligence-appea-15fd2--and-a-new-cold-context-ZH--tablet/control-dark-cold-zh-shell.png",
+      "bytes": 233489,
+      "sha256": "51ca155a5653e04bbbd763d36152e8c59bec6b7e2971f15b2346b46f042704d4",
+      "image_dimensions": [
+        820,
+        1180
+      ]
+    },
+    {
+      "path": "appearance-final-widths-raw/company-intelligence-appea-15fd2--and-a-new-cold-context-ZH--tablet/control-light-zh-card.png",
+      "bytes": 105014,
+      "sha256": "ffb81b9f7abcec566da533351c0a18db7aab016c478f13da5506b115059a3c7a",
+      "image_dimensions": [
+        788,
+        298
+      ]
+    },
+    {
+      "path": "appearance-final-widths-raw/company-intelligence-appea-15fd2--and-a-new-cold-context-ZH--tablet/control-light-zh-shell.png",
+      "bytes": 220541,
+      "sha256": "24a47dcb35740183a2c55073dff1e4dfc74ad28a07146ee811c595b7aee1caf9",
+      "image_dimensions": [
+        820,
+        1180
+      ]
+    },
+    {
+      "path": "appearance-final-widths-raw/company-intelligence-appea-15fd2--and-a-new-cold-context-ZH--tablet-repeat1/control-dark-cold-zh-card.png",
+      "bytes": 96738,
+      "sha256": "71b5781d4a1de527daf94294dfe28694658b06861a34ec4e7e35cb8f280bd0e3",
+      "image_dimensions": [
+        788,
+        298
+      ]
+    },
+    {
+      "path": "appearance-final-widths-raw/company-intelligence-appea-15fd2--and-a-new-cold-context-ZH--tablet-repeat1/control-dark-cold-zh-shell.png",
+      "bytes": 233489,
+      "sha256": "51ca155a5653e04bbbd763d36152e8c59bec6b7e2971f15b2346b46f042704d4",
+      "image_dimensions": [
+        820,
+        1180
+      ]
+    },
+    {
+      "path": "appearance-final-widths-raw/company-intelligence-appea-15fd2--and-a-new-cold-context-ZH--tablet-repeat1/control-light-zh-card.png",
+      "bytes": 105014,
+      "sha256": "ffb81b9f7abcec566da533351c0a18db7aab016c478f13da5506b115059a3c7a",
+      "image_dimensions": [
+        788,
+        298
+      ]
+    },
+    {
+      "path": "appearance-final-widths-raw/company-intelligence-appea-15fd2--and-a-new-cold-context-ZH--tablet-repeat1/control-light-zh-shell.png",
+      "bytes": 220541,
+      "sha256": "24a47dcb35740183a2c55073dff1e4dfc74ad28a07146ee811c595b7aee1caf9",
+      "image_dimensions": [
+        820,
+        1180
+      ]
+    },
+    {
+      "path": "appearance-final-widths-raw/company-intelligence-appea-7c603-l19-00-and-focus-resume-EN--mobile/auto-resumed-light-en-card.png",
+      "bytes": 69320,
+      "sha256": "2ff70417d8f7287b5ff4bf145c1e2fa1d0d0de6b61887605e4a00cae6e0fe0a4",
+      "image_dimensions": [
+        366,
+        316
+      ]
+    },
+    {
+      "path": "appearance-final-widths-raw/company-intelligence-appea-7c603-l19-00-and-focus-resume-EN--mobile/auto-resumed-light-en-shell.png",
+      "bytes": 124289,
+      "sha256": "1bf6d1aa70abf653a6611e17dca745571a102857927c5ca462d2450817b58469",
+      "image_dimensions": [
+        390,
+        844
+      ]
+    },
+    {
+      "path": "appearance-final-widths-raw/company-intelligence-appea-7c603-l19-00-and-focus-resume-EN--mobile-repeat1/auto-resumed-light-en-card.png",
+      "bytes": 69320,
+      "sha256": "2ff70417d8f7287b5ff4bf145c1e2fa1d0d0de6b61887605e4a00cae6e0fe0a4",
+      "image_dimensions": [
+        366,
+        316
+      ]
+    },
+    {
+      "path": "appearance-final-widths-raw/company-intelligence-appea-7c603-l19-00-and-focus-resume-EN--mobile-repeat1/auto-resumed-light-en-shell.png",
+      "bytes": 124289,
+      "sha256": "1bf6d1aa70abf653a6611e17dca745571a102857927c5ca462d2450817b58469",
+      "image_dimensions": [
+        390,
+        844
+      ]
+    },
+    {
+      "path": "appearance-final-widths-raw/company-intelligence-appea-7c603-l19-00-and-focus-resume-EN--tablet/auto-resumed-light-en-card.png",
+      "bytes": 110138,
+      "sha256": "1c3ef11200ddc99d8292e64b6e212af154a9ccc45ff56fffb7af669a71e935dc",
+      "image_dimensions": [
+        788,
+        298
+      ]
+    },
+    {
+      "path": "appearance-final-widths-raw/company-intelligence-appea-7c603-l19-00-and-focus-resume-EN--tablet/auto-resumed-light-en-shell.png",
+      "bytes": 226608,
+      "sha256": "555c2e5bd2446e9e409358f8ce1c8dd895d00b6ce473acc928cd4f50aed8bbd0",
+      "image_dimensions": [
+        820,
+        1180
+      ]
+    },
+    {
+      "path": "appearance-final-widths-raw/company-intelligence-appea-7c603-l19-00-and-focus-resume-EN--tablet-repeat1/auto-resumed-light-en-card.png",
+      "bytes": 110138,
+      "sha256": "1c3ef11200ddc99d8292e64b6e212af154a9ccc45ff56fffb7af669a71e935dc",
+      "image_dimensions": [
+        788,
+        298
+      ]
+    },
+    {
+      "path": "appearance-final-widths-raw/company-intelligence-appea-7c603-l19-00-and-focus-resume-EN--tablet-repeat1/auto-resumed-light-en-shell.png",
+      "bytes": 226608,
+      "sha256": "555c2e5bd2446e9e409358f8ce1c8dd895d00b6ce473acc928cd4f50aed8bbd0",
+      "image_dimensions": [
+        820,
+        1180
+      ]
+    },
+    {
+      "path": "appearance-final-widths-raw/company-intelligence-appea-db038--and-a-new-cold-context-EN--mobile/control-dark-cold-en-card.png",
+      "bytes": 67837,
+      "sha256": "1788c1b409b0b41f8affc96b725ea6df04f5aa6d998437d1365249464640d5fe",
+      "image_dimensions": [
+        366,
+        316
+      ]
+    },
+    {
+      "path": "appearance-final-widths-raw/company-intelligence-appea-db038--and-a-new-cold-context-EN--mobile/control-dark-cold-en-shell.png",
+      "bytes": 129451,
+      "sha256": "d55783e4028cab7e82ffd3201236cd06db1da223486cc81d137e8ed4bce37296",
+      "image_dimensions": [
+        390,
+        844
+      ]
+    },
+    {
+      "path": "appearance-final-widths-raw/company-intelligence-appea-db038--and-a-new-cold-context-EN--mobile/control-light-en-card.png",
+      "bytes": 69320,
+      "sha256": "2ff70417d8f7287b5ff4bf145c1e2fa1d0d0de6b61887605e4a00cae6e0fe0a4",
+      "image_dimensions": [
+        366,
+        316
+      ]
+    },
+    {
+      "path": "appearance-final-widths-raw/company-intelligence-appea-db038--and-a-new-cold-context-EN--mobile/control-light-en-shell.png",
+      "bytes": 124289,
+      "sha256": "1bf6d1aa70abf653a6611e17dca745571a102857927c5ca462d2450817b58469",
+      "image_dimensions": [
+        390,
+        844
+      ]
+    },
+    {
+      "path": "appearance-final-widths-raw/company-intelligence-appea-db038--and-a-new-cold-context-EN--mobile-repeat1/control-dark-cold-en-card.png",
+      "bytes": 67837,
+      "sha256": "1788c1b409b0b41f8affc96b725ea6df04f5aa6d998437d1365249464640d5fe",
+      "image_dimensions": [
+        366,
+        316
+      ]
+    },
+    {
+      "path": "appearance-final-widths-raw/company-intelligence-appea-db038--and-a-new-cold-context-EN--mobile-repeat1/control-dark-cold-en-shell.png",
+      "bytes": 129451,
+      "sha256": "d55783e4028cab7e82ffd3201236cd06db1da223486cc81d137e8ed4bce37296",
+      "image_dimensions": [
+        390,
+        844
+      ]
+    },
+    {
+      "path": "appearance-final-widths-raw/company-intelligence-appea-db038--and-a-new-cold-context-EN--mobile-repeat1/control-light-en-card.png",
+      "bytes": 69320,
+      "sha256": "2ff70417d8f7287b5ff4bf145c1e2fa1d0d0de6b61887605e4a00cae6e0fe0a4",
+      "image_dimensions": [
+        366,
+        316
+      ]
+    },
+    {
+      "path": "appearance-final-widths-raw/company-intelligence-appea-db038--and-a-new-cold-context-EN--mobile-repeat1/control-light-en-shell.png",
+      "bytes": 124289,
+      "sha256": "1bf6d1aa70abf653a6611e17dca745571a102857927c5ca462d2450817b58469",
+      "image_dimensions": [
+        390,
+        844
+      ]
+    },
+    {
+      "path": "appearance-final-widths-raw/company-intelligence-appea-db038--and-a-new-cold-context-EN--tablet/control-dark-cold-en-card.png",
+      "bytes": 101431,
+      "sha256": "cccac92c0b7da94198f2af37f4063665c3107301ec49ac216f20fa2e13feaedf",
+      "image_dimensions": [
+        788,
+        298
+      ]
+    },
+    {
+      "path": "appearance-final-widths-raw/company-intelligence-appea-db038--and-a-new-cold-context-EN--tablet/control-dark-cold-en-shell.png",
+      "bytes": 239158,
+      "sha256": "cfa89985a523eebaa99468c58c82c1bcc443681fec5c1a8f918753366b157ae6",
+      "image_dimensions": [
+        820,
+        1180
+      ]
+    },
+    {
+      "path": "appearance-final-widths-raw/company-intelligence-appea-db038--and-a-new-cold-context-EN--tablet/control-light-en-card.png",
+      "bytes": 110138,
+      "sha256": "1c3ef11200ddc99d8292e64b6e212af154a9ccc45ff56fffb7af669a71e935dc",
+      "image_dimensions": [
+        788,
+        298
+      ]
+    },
+    {
+      "path": "appearance-final-widths-raw/company-intelligence-appea-db038--and-a-new-cold-context-EN--tablet/control-light-en-shell.png",
+      "bytes": 226608,
+      "sha256": "555c2e5bd2446e9e409358f8ce1c8dd895d00b6ce473acc928cd4f50aed8bbd0",
+      "image_dimensions": [
+        820,
+        1180
+      ]
+    },
+    {
+      "path": "appearance-final-widths-raw/company-intelligence-appea-db038--and-a-new-cold-context-EN--tablet-repeat1/control-dark-cold-en-card.png",
+      "bytes": 101431,
+      "sha256": "cccac92c0b7da94198f2af37f4063665c3107301ec49ac216f20fa2e13feaedf",
+      "image_dimensions": [
+        788,
+        298
+      ]
+    },
+    {
+      "path": "appearance-final-widths-raw/company-intelligence-appea-db038--and-a-new-cold-context-EN--tablet-repeat1/control-dark-cold-en-shell.png",
+      "bytes": 239209,
+      "sha256": "1398f3a341693195affa3846c1ca89cafc459e5fdb77fbd2d76c186284fc6dd1",
+      "image_dimensions": [
+        820,
+        1180
+      ]
+    },
+    {
+      "path": "appearance-final-widths-raw/company-intelligence-appea-db038--and-a-new-cold-context-EN--tablet-repeat1/control-light-en-card.png",
+      "bytes": 110138,
+      "sha256": "1c3ef11200ddc99d8292e64b6e212af154a9ccc45ff56fffb7af669a71e935dc",
+      "image_dimensions": [
+        788,
+        298
+      ]
+    },
+    {
+      "path": "appearance-final-widths-raw/company-intelligence-appea-db038--and-a-new-cold-context-EN--tablet-repeat1/control-light-en-shell.png",
+      "bytes": 226608,
+      "sha256": "555c2e5bd2446e9e409358f8ce1c8dd895d00b6ce473acc928cd4f50aed8bbd0",
+      "image_dimensions": [
+        820,
+        1180
+      ]
+    },
+    {
+      "path": "appearance-final-widths-raw/company-intelligence-appea-e4620-l19-00-and-focus-resume-ZH--mobile/auto-resumed-light-zh-card.png",
+      "bytes": 61846,
+      "sha256": "8b523f08a121b1d4c0dd4437c162d57169b3c3d7ca1356e7e0da2b795fc2cec5",
+      "image_dimensions": [
+        366,
+        301
+      ]
+    },
+    {
+      "path": "appearance-final-widths-raw/company-intelligence-appea-e4620-l19-00-and-focus-resume-ZH--mobile/auto-resumed-light-zh-shell.png",
+      "bytes": 120133,
+      "sha256": "e81dcdf2442f2b2b026999b4dce1039e080221a582fc0e1af8bd275d40b538bf",
+      "image_dimensions": [
+        390,
+        844
+      ]
+    },
+    {
+      "path": "appearance-final-widths-raw/company-intelligence-appea-e4620-l19-00-and-focus-resume-ZH--mobile-repeat1/auto-resumed-light-zh-card.png",
+      "bytes": 61846,
+      "sha256": "8b523f08a121b1d4c0dd4437c162d57169b3c3d7ca1356e7e0da2b795fc2cec5",
+      "image_dimensions": [
+        366,
+        301
+      ]
+    },
+    {
+      "path": "appearance-final-widths-raw/company-intelligence-appea-e4620-l19-00-and-focus-resume-ZH--mobile-repeat1/auto-resumed-light-zh-shell.png",
+      "bytes": 120133,
+      "sha256": "e81dcdf2442f2b2b026999b4dce1039e080221a582fc0e1af8bd275d40b538bf",
+      "image_dimensions": [
+        390,
+        844
+      ]
+    },
+    {
+      "path": "appearance-final-widths-raw/company-intelligence-appea-e4620-l19-00-and-focus-resume-ZH--tablet/auto-resumed-light-zh-card.png",
+      "bytes": 105014,
+      "sha256": "ffb81b9f7abcec566da533351c0a18db7aab016c478f13da5506b115059a3c7a",
+      "image_dimensions": [
+        788,
+        298
+      ]
+    },
+    {
+      "path": "appearance-final-widths-raw/company-intelligence-appea-e4620-l19-00-and-focus-resume-ZH--tablet/auto-resumed-light-zh-shell.png",
+      "bytes": 220541,
+      "sha256": "24a47dcb35740183a2c55073dff1e4dfc74ad28a07146ee811c595b7aee1caf9",
+      "image_dimensions": [
+        820,
+        1180
+      ]
+    },
+    {
+      "path": "appearance-final-widths-raw/company-intelligence-appea-e4620-l19-00-and-focus-resume-ZH--tablet-repeat1/auto-resumed-light-zh-card.png",
+      "bytes": 105014,
+      "sha256": "ffb81b9f7abcec566da533351c0a18db7aab016c478f13da5506b115059a3c7a",
+      "image_dimensions": [
+        788,
+        298
+      ]
+    },
+    {
+      "path": "appearance-final-widths-raw/company-intelligence-appea-e4620-l19-00-and-focus-resume-ZH--tablet-repeat1/auto-resumed-light-zh-shell.png",
+      "bytes": 220541,
+      "sha256": "24a47dcb35740183a2c55073dff1e4dfc74ad28a07146ee811c595b7aee1caf9",
+      "image_dimensions": [
+        820,
+        1180
+      ]
+    }
+  ]
+}

@@ -1,0 +1,7 @@
+{
+  "reason": "SOURCE_SUPERSEDED: write-only storage failure source blocker",
+  "wrapper_pid": 83605,
+  "playwright_pid": 83617,
+  "signal": "SIGINT",
+  "owned_command": "../.claude/evidence/cte-aging/node20-runtime/node_modules/node/bin/node node_modules/@playwright/test/cli.js test e2e/company-intelligence-appearance.spec.ts --project=desktop --repeat-each=2 --workers=1 --retries=0 --output=../docs/verification/cte-appearance-implementation-2026-10-04/appearance-repaired-repeat-raw --reporter=line"
+}

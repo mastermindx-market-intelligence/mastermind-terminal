@@ -1,0 +1,55 @@
+{
+  "head": "2e9c81f51267ba1cab62789db0504d8315d031a6",
+  "node": "v20.20.2",
+  "port": 33298,
+  "temporary_launch_config_sha256": "0e4ff584f9d82de0de342ed70144311c329ce17af5c4db3b6dd36661323ddeb3",
+  "CI": "1",
+  "workers": 1,
+  "retries": 0,
+  "repeat_each": 1,
+  "results": [
+    {
+      "name": "desktop-mobile-direct",
+      "argv": [
+        "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/gmi-cte-semantic-aging-20261004-astra-001/.claude/evidence/cte-aging/node20-runtime/node_modules/node/bin/node",
+        "node_modules/@playwright/test/cli.js",
+        "test",
+        "--config=/tmp/gmi-terminal-integrated-verification-20261004/playwright-direct.config.ts",
+        "company-intelligence-appearance.spec.ts",
+        "--project=desktop",
+        "--project=mobile",
+        "--grep",
+        "existing card ages|degraded existing theme card: (future |last-good |refreshing |unavailable )|actual appearance selection|auto survives",
+        "--workers=1",
+        "--retries=0",
+        "--output=/tmp/gmi-terminal-integrated-verification-20261004/desktop-mobile-direct-raw",
+        "--reporter=line"
+      ],
+      "start": "2026-10-04T10:56:53.133552+00:00",
+      "end": "2026-10-04T11:01:24.610008+00:00",
+      "exit": 0,
+      "log_sha256": "f4b6e1481aa2f5745fe4d0b53b2dd47ab2d70bc9d998013c7f00659f4e22c145"
+    },
+    {
+      "name": "tablet-controls-direct",
+      "argv": [
+        "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/gmi-cte-semantic-aging-20261004-astra-001/.claude/evidence/cte-aging/node20-runtime/node_modules/node/bin/node",
+        "node_modules/@playwright/test/cli.js",
+        "test",
+        "--config=/tmp/gmi-terminal-integrated-verification-20261004/playwright-direct.config.ts",
+        "company-intelligence-appearance.spec.ts",
+        "--project=tablet",
+        "--grep",
+        "actual appearance selection|auto survives",
+        "--workers=1",
+        "--retries=0",
+        "--output=/tmp/gmi-terminal-integrated-verification-20261004/tablet-controls-direct-raw",
+        "--reporter=line"
+      ],
+      "start": "2026-10-04T11:01:24.610537+00:00",
+      "end": "2026-10-04T11:02:05.577041+00:00",
+      "exit": 0,
+      "log_sha256": "5209454fca5fe4e25ada92045094c981b9300baaafa7d4b41fb5933f18ad097b"
+    }
+  ]
+}

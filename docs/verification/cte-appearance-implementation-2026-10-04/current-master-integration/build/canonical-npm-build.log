@@ -1,0 +1,6 @@
+npm verbose cli /Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/gmi-cte-semantic-aging-20261004-astra-001/.claude/evidence/cte-aging/node20-runtime/node_modules/node/bin/node /opt/homebrew/bin/npm
+npm info using npm@11.17.0
+npm info using node@v20.20.2
+npm verbose title npm run build
+npm verbose argv "--loglevel" "verbose" "run" "build"
+npm verbose logfile logs-max:10 dir:/Volumes/Mastermind/agent-workspaces/cache/npm/_logs/2026-10-04T11_25_09_437Z-

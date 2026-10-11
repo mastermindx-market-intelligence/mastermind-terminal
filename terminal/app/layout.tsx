@@ -10,6 +10,8 @@ import "./fin.css";
 import "./observatory.css";
 import "./onboarding.css";
 import "./settings.css";
+import "./terminal-appearance-light.css";
+import { TERMINAL_APPEARANCE_INIT } from "@/lib/terminalAppearance";
 import { LangProvider } from "@/lib/i18n";
 import Tracker from "@/components/Tracker";
 import EmbeddedTerminalBridge from "@/components/EmbeddedTerminalBridge";
@@ -52,7 +54,7 @@ const LOCALE_INIT = `(function(){try{
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en" data-theme="dark" className={`${inter.variable} ${jetbrainsMono.variable}`} suppressHydrationWarning>
-      <head><script dangerouslySetInnerHTML={{ __html: LOCALE_INIT }} /></head>
+      <head><script dangerouslySetInnerHTML={{ __html: TERMINAL_APPEARANCE_INIT + LOCALE_INIT }} /></head>
       <body><LangProvider>{children}</LangProvider><EmbeddedTerminalBridge /><Tracker /></body>
     </html>
   );

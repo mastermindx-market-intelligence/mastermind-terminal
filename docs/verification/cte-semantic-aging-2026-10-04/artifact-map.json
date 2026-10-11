@@ -1,0 +1,571 @@
+{
+  "policy": "byte-preserving relocation of reviewed final proof only",
+  "original_manifest_sha256": "c57f6193bd4ed1936887f17e61275daf84ac02c3f284c67f56e014052dbc32df",
+  "source_patch_sha256": "06a311543877717fc4d4e98d22a7a3e04109f8add4e3b0c293b9781c34d7e96d",
+  "copied_artifact_count": 93,
+  "copied_artifacts": [
+    {
+      "source_path": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/gmi-cte-semantic-aging-20261004-astra-001/.claude/evidence/cte-aging/wire-red.log",
+      "stored_path": "logs/wire-red.log",
+      "bytes": 2154,
+      "sha256": "dc5fed3ae04feed84c13111d13cc5c26defc83907433be31f7f21248782b0fe1"
+    },
+    {
+      "source_path": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/gmi-cte-semantic-aging-20261004-astra-001/.claude/evidence/cte-aging/wire-green-final.log",
+      "stored_path": "logs/wire-green-final.log",
+      "bytes": 859,
+      "sha256": "91c6610d02f61857b72845e0dac7de35b509c505df9483e1a4fa611b6baa3889"
+    },
+    {
+      "source_path": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/gmi-cte-semantic-aging-20261004-astra-001/.claude/evidence/cte-aging/type-wire-final.log",
+      "stored_path": "logs/type-wire-final.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "source_path": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/gmi-cte-semantic-aging-20261004-astra-001/.claude/evidence/cte-aging/lint-wire-final.log",
+      "stored_path": "logs/lint-wire-final.log",
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    {
+      "source_path": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/gmi-cte-semantic-aging-20261004-astra-001/.claude/evidence/cte-aging/browser-wire-final.log",
+      "stored_path": "logs/browser-wire-final.log",
+      "bytes": 10087,
+      "sha256": "45eb354f0878a619ae9ac91131ad14d4c83eb09cdcddd52bd332fe507918f35b"
+    },
+    {
+      "source_path": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/gmi-cte-semantic-aging-20261004-astra-001/.claude/evidence/cte-aging/browser-incumbent-wire-final.log",
+      "stored_path": "logs/browser-incumbent-wire-final.log",
+      "bytes": 2397,
+      "sha256": "a5b45a27bb83e43896af59d327b3f1f18098232abee0afc98a1e0b80b12b9d6a"
+    },
+    {
+      "source_path": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/gmi-cte-semantic-aging-20261004-astra-001/.claude/evidence/cte-aging/source-wire-final.patch",
+      "stored_path": "source/source-wire-final.patch",
+      "bytes": 53068,
+      "sha256": "06a311543877717fc4d4e98d22a7a3e04109f8add4e3b0c293b9781c34d7e96d"
+    },
+    {
+      "source_path": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/gmi-cte-semantic-aging-20261004-astra-001/.claude/evidence/cte-aging/source-wire-final-receipt.json",
+      "stored_path": "source/source-wire-final-receipt.json",
+      "bytes": 1737,
+      "sha256": "02c15baa3dd3c8843189819905457ca3af1b5ef99407afc6236c81714272c88c"
+    },
+    {
+      "source_path": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/gmi-cte-semantic-aging-20261004-astra-001/.claude/evidence/cte-aging/browser-wire-final/company-theme-context-agin-02011-theme-card-source-stale-ZH--desktop/dark-zh-source-stale.png",
+      "stored_path": "images/desktop/zh/source-stale.png",
+      "bytes": 101923,
+      "sha256": "a99c03ddfc3d8abf010b2fb64bd030d722cccd05413c257a3721a5589b0c825c"
+    },
+    {
+      "source_path": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/gmi-cte-semantic-aging-20261004-astra-001/.claude/evidence/cte-aging/browser-wire-final/company-theme-context-agin-02011-theme-card-source-stale-ZH--mobile/dark-zh-source-stale.png",
+      "stored_path": "images/mobile/zh/source-stale.png",
+      "bytes": 72445,
+      "sha256": "a4b16550d338fc12350455fb763c2377d4736cc388b4aac1979265540a4d4676"
+    },
+    {
+      "source_path": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/gmi-cte-semantic-aging-20261004-astra-001/.claude/evidence/cte-aging/browser-wire-final/company-theme-context-agin-02011-theme-card-source-stale-ZH--tablet/dark-zh-source-stale.png",
+      "stored_path": "images/tablet/zh/source-stale.png",
+      "bytes": 117001,
+      "sha256": "abbb1ca49449d47034af197c9ceb2eb6ba0120116ae702b1a2f27970a7960ac2"
+    },
+    {
+      "source_path": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/gmi-cte-semantic-aging-20261004-astra-001/.claude/evidence/cte-aging/browser-wire-final/company-theme-context-agin-13065-isting-theme-card-empty-ZH--desktop/dark-zh-empty.png",
+      "stored_path": "images/desktop/zh/empty.png",
+      "bytes": 89722,
+      "sha256": "61309bd6f8e70ac7478f9c7e38459f1419de1b78ab8c5a1520621cd0a263aa11"
+    },
+    {
+      "source_path": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/gmi-cte-semantic-aging-20261004-astra-001/.claude/evidence/cte-aging/browser-wire-final/company-theme-context-agin-13065-isting-theme-card-empty-ZH--mobile/dark-zh-empty.png",
+      "stored_path": "images/mobile/zh/empty.png",
+      "bytes": 68474,
+      "sha256": "2e79c8cd8baa95d462dac2ac68a5e5bd6e08910cf6a2938ca5579462c1fc570d"
+    },
+    {
+      "source_path": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/gmi-cte-semantic-aging-20261004-astra-001/.claude/evidence/cte-aging/browser-wire-final/company-theme-context-agin-13065-isting-theme-card-empty-ZH--tablet/dark-zh-empty.png",
+      "stored_path": "images/tablet/zh/empty.png",
+      "bytes": 101302,
+      "sha256": "4f8bfb128a890794cc58723732fa427ffeae60ce73f31c8c9426aa6f7141208b"
+    },
+    {
+      "source_path": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/gmi-cte-semantic-aging-20261004-astra-001/.claude/evidence/cte-aging/browser-wire-final/company-theme-context-agin-2297b-sting-theme-card-future-ZH--desktop/dark-zh-future.png",
+      "stored_path": "images/desktop/zh/future.png",
+      "bytes": 103466,
+      "sha256": "97713096825c2664fe22c95e32d62954b70f4d0d529c452023f362c956d66a92"
+    },
+    {
+      "source_path": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/gmi-cte-semantic-aging-20261004-astra-001/.claude/evidence/cte-aging/browser-wire-final/company-theme-context-agin-2297b-sting-theme-card-future-ZH--mobile/dark-zh-future.png",
+      "stored_path": "images/mobile/zh/future.png",
+      "bytes": 73835,
+      "sha256": "35b2a346fcd20508d6f230d32a81a6f4bccf85fe7ef001d07fcd73ffa891ed41"
+    },
+    {
+      "source_path": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/gmi-cte-semantic-aging-20261004-astra-001/.claude/evidence/cte-aging/browser-wire-final/company-theme-context-agin-2297b-sting-theme-card-future-ZH--tablet/dark-zh-future.png",
+      "stored_path": "images/tablet/zh/future.png",
+      "bytes": 118846,
+      "sha256": "29b8a2fb1e7ef26764d0c015a85162d08b63922eda0fb5c10b2815a357a26cab"
+    },
+    {
+      "source_path": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/gmi-cte-semantic-aging-20261004-astra-001/.claude/evidence/cte-aging/browser-wire-final/company-theme-context-agin-4f1cb-heme-card-unmapped-only-EN--desktop/dark-en-unmapped-only.png",
+      "stored_path": "images/desktop/en/unmapped-only.png",
+      "bytes": 122176,
+      "sha256": "9c99bbeffc1c27cc0b2590cc1793cca6387c1bf1d625235a57beb86a4b25f4f7"
+    },
+    {
+      "source_path": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/gmi-cte-semantic-aging-20261004-astra-001/.claude/evidence/cte-aging/browser-wire-final/company-theme-context-agin-4f1cb-heme-card-unmapped-only-EN--mobile/dark-en-unmapped-only.png",
+      "stored_path": "images/mobile/en/unmapped-only.png",
+      "bytes": 101113,
+      "sha256": "e390b52a276c91ee5d46b5b87d4389fe6d108dfcb07baefb10511c237594e054"
+    },
+    {
+      "source_path": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/gmi-cte-semantic-aging-20261004-astra-001/.claude/evidence/cte-aging/browser-wire-final/company-theme-context-agin-4f1cb-heme-card-unmapped-only-EN--tablet/dark-en-unmapped-only.png",
+      "stored_path": "images/tablet/en/unmapped-only.png",
+      "bytes": 131318,
+      "sha256": "26835ee5b7a30a619a2822018e734aed90c6a2d1edd5cf25545699152546f820"
+    },
+    {
+      "source_path": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/gmi-cte-semantic-aging-20261004-astra-001/.claude/evidence/cte-aging/browser-wire-final/company-theme-context-agin-54ba3-ting-theme-card-missing-ZH--desktop/dark-zh-missing.png",
+      "stored_path": "images/desktop/zh/missing.png",
+      "bytes": 101191,
+      "sha256": "39ef485997939560cff324fb85c7bc119d38bca8551c11264c6981c87f646504"
+    },
+    {
+      "source_path": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/gmi-cte-semantic-aging-20261004-astra-001/.claude/evidence/cte-aging/browser-wire-final/company-theme-context-agin-54ba3-ting-theme-card-missing-ZH--mobile/dark-zh-missing.png",
+      "stored_path": "images/mobile/zh/missing.png",
+      "bytes": 71495,
+      "sha256": "c3b4e74c3b57b39e55ce5a5f9778e093975c71afa19cec0960a082a339140604"
+    },
+    {
+      "source_path": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/gmi-cte-semantic-aging-20261004-astra-001/.claude/evidence/cte-aging/browser-wire-final/company-theme-context-agin-54ba3-ting-theme-card-missing-ZH--tablet/dark-zh-missing.png",
+      "stored_path": "images/tablet/zh/missing.png",
+      "bytes": 116368,
+      "sha256": "74c942d48f3c5ec6afcd8dc3c75976f326c5a6f0f001b1138e6fdb8cf0c54e21"
+    },
+    {
+      "source_path": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/gmi-cte-semantic-aging-20261004-astra-001/.claude/evidence/cte-aging/browser-wire-final/company-theme-context-agin-612f3-isting-theme-card-mixed-ZH--desktop/dark-zh-mixed.png",
+      "stored_path": "images/desktop/zh/mixed.png",
+      "bytes": 103929,
+      "sha256": "78bab90cde92b617f54dbfcbf4f12fc5a04e0b74201644f8837bfe49cf0af24c"
+    },
+    {
+      "source_path": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/gmi-cte-semantic-aging-20261004-astra-001/.claude/evidence/cte-aging/browser-wire-final/company-theme-context-agin-612f3-isting-theme-card-mixed-ZH--mobile/dark-zh-mixed.png",
+      "stored_path": "images/mobile/zh/mixed.png",
+      "bytes": 74180,
+      "sha256": "b6a75b1aa0d30ec1b4bae8f7f4317c9b37404bc3b6a17b800e55b9bd8071af34"
+    },
+    {
+      "source_path": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/gmi-cte-semantic-aging-20261004-astra-001/.claude/evidence/cte-aging/browser-wire-final/company-theme-context-agin-612f3-isting-theme-card-mixed-ZH--tablet/dark-zh-mixed.png",
+      "stored_path": "images/tablet/zh/mixed.png",
+      "bytes": 119086,
+      "sha256": "200031a25480dd141edb751166ec164aa3353238f5a6693334907d0bb42bfea6"
+    },
+    {
+      "source_path": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/gmi-cte-semantic-aging-20261004-astra-001/.claude/evidence/cte-aging/browser-wire-final/company-theme-context-agin-6fdf5-ting-theme-card-invalid-EN--desktop/dark-en-invalid.png",
+      "stored_path": "images/desktop/en/invalid.png",
+      "bytes": 112674,
+      "sha256": "117cdfa88a17dc45db42066b09350a15d714bcfd1ba4da20ad3c89e7980cb899"
+    },
+    {
+      "source_path": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/gmi-cte-semantic-aging-20261004-astra-001/.claude/evidence/cte-aging/browser-wire-final/company-theme-context-agin-6fdf5-ting-theme-card-invalid-EN--mobile/dark-en-invalid.png",
+      "stored_path": "images/mobile/en/invalid.png",
+      "bytes": 81007,
+      "sha256": "34b924e9dd488c53caf4868364f50352565a710de15edbb44a35bc2ad0a3c63b"
+    },
+    {
+      "source_path": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/gmi-cte-semantic-aging-20261004-astra-001/.claude/evidence/cte-aging/browser-wire-final/company-theme-context-agin-6fdf5-ting-theme-card-invalid-EN--tablet/dark-en-invalid.png",
+      "stored_path": "images/tablet/en/invalid.png",
+      "bytes": 122472,
+      "sha256": "f5f976168f604c18506e5d76c116ca4807084af3ebbb4bf42d583eab7e33f9bb"
+    },
+    {
+      "source_path": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/gmi-cte-semantic-aging-20261004-astra-001/.claude/evidence/cte-aging/browser-wire-final/company-theme-context-agin-7209d-theme-card-source-stale-EN--desktop/dark-en-source-stale.png",
+      "stored_path": "images/desktop/en/source-stale.png",
+      "bytes": 113200,
+      "sha256": "f80ceb37e5fce21b78a694361bb50bf6e758acc6bb0920f2d7d6f87b6e4fb40e"
+    },
+    {
+      "source_path": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/gmi-cte-semantic-aging-20261004-astra-001/.claude/evidence/cte-aging/browser-wire-final/company-theme-context-agin-7209d-theme-card-source-stale-EN--mobile/dark-en-source-stale.png",
+      "stored_path": "images/mobile/en/source-stale.png",
+      "bytes": 81493,
+      "sha256": "4895273b9bf99a98e999b5be14f8f78e7defe0db6100bc8d3196762457f0e33a"
+    },
+    {
+      "source_path": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/gmi-cte-semantic-aging-20261004-astra-001/.claude/evidence/cte-aging/browser-wire-final/company-theme-context-agin-7209d-theme-card-source-stale-EN--tablet/dark-en-source-stale.png",
+      "stored_path": "images/tablet/en/source-stale.png",
+      "bytes": 122995,
+      "sha256": "5d6bdcefd1d36c2ea7c059140142296989413606e6491717f91db1fc0a6361f7"
+    },
+    {
+      "source_path": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/gmi-cte-semantic-aging-20261004-astra-001/.claude/evidence/cte-aging/browser-wire-final/company-theme-context-agin-8580c-sting-theme-card-future-EN--desktop/dark-en-future.png",
+      "stored_path": "images/desktop/en/future.png",
+      "bytes": 115127,
+      "sha256": "3944ee1eb9e5ce476fcc9b18f830fa842cda1d50b19384a2eb298a1e8f4d6e97"
+    },
+    {
+      "source_path": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/gmi-cte-semantic-aging-20261004-astra-001/.claude/evidence/cte-aging/browser-wire-final/company-theme-context-agin-8580c-sting-theme-card-future-EN--mobile/dark-en-future.png",
+      "stored_path": "images/mobile/en/future.png",
+      "bytes": 85791,
+      "sha256": "fcba1e9045ff27b0c45169ea7a35f59c59bc39ab937b87e3e2ad086bab837832"
+    },
+    {
+      "source_path": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/gmi-cte-semantic-aging-20261004-astra-001/.claude/evidence/cte-aging/browser-wire-final/company-theme-context-agin-8580c-sting-theme-card-future-EN--tablet/dark-en-future.png",
+      "stored_path": "images/tablet/en/future.png",
+      "bytes": 124776,
+      "sha256": "25962e20af4a68529276f4ae6287d9b569b69ca3c3514667f13ba272bf374994"
+    },
+    {
+      "source_path": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/gmi-cte-semantic-aging-20261004-astra-001/.claude/evidence/cte-aging/browser-wire-final/company-theme-context-agin-96b30-ting-theme-card-missing-EN--desktop/dark-en-missing.png",
+      "stored_path": "images/desktop/en/missing.png",
+      "bytes": 113238,
+      "sha256": "faff16ded48cf6eb617ff2f0ac3edcf9afcd5cd9ca509913af3c1722514e2e4a"
+    },
+    {
+      "source_path": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/gmi-cte-semantic-aging-20261004-astra-001/.claude/evidence/cte-aging/browser-wire-final/company-theme-context-agin-96b30-ting-theme-card-missing-EN--mobile/dark-en-missing.png",
+      "stored_path": "images/mobile/en/missing.png",
+      "bytes": 81351,
+      "sha256": "0eedeab772daa97d08688aa6b01ed1cc870f170e362791b0e929a74332c378b6"
+    },
+    {
+      "source_path": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/gmi-cte-semantic-aging-20261004-astra-001/.claude/evidence/cte-aging/browser-wire-final/company-theme-context-agin-96b30-ting-theme-card-missing-EN--tablet/dark-en-missing.png",
+      "stored_path": "images/tablet/en/missing.png",
+      "bytes": 123071,
+      "sha256": "890b77b17719ff8e7696bf5ca69fe1fcb03622d0573f089385cc4563af25056d"
+    },
+    {
+      "source_path": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/gmi-cte-semantic-aging-20261004-astra-001/.claude/evidence/cte-aging/browser-wire-final/company-theme-context-agin-a5590-ting-theme-card-invalid-ZH--desktop/dark-zh-invalid.png",
+      "stored_path": "images/desktop/zh/invalid.png",
+      "bytes": 101424,
+      "sha256": "93ef6868fc2690f3b860a7fb26dfcd75850d8a7a9979c1c4712428a9f8699384"
+    },
+    {
+      "source_path": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/gmi-cte-semantic-aging-20261004-astra-001/.claude/evidence/cte-aging/browser-wire-final/company-theme-context-agin-a5590-ting-theme-card-invalid-ZH--mobile/dark-zh-invalid.png",
+      "stored_path": "images/mobile/zh/invalid.png",
+      "bytes": 71685,
+      "sha256": "d66e34b0e82be1c5155dd947e0f007c39dd05148c49e5062655fd7bb81035963"
+    },
+    {
+      "source_path": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/gmi-cte-semantic-aging-20261004-astra-001/.claude/evidence/cte-aging/browser-wire-final/company-theme-context-agin-a5590-ting-theme-card-invalid-ZH--tablet/dark-zh-invalid.png",
+      "stored_path": "images/tablet/zh/invalid.png",
+      "bytes": 116584,
+      "sha256": "ff3c69d4d3b5f38c3d9ed5b951a54bd7b9e438f080dd07432acc4367551a51ee"
+    },
+    {
+      "source_path": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/gmi-cte-semantic-aging-20261004-astra-001/.claude/evidence/cte-aging/browser-wire-final/company-theme-context-agin-a7d0d-g-theme-card-refreshing-EN--desktop/dark-en-refreshing.png",
+      "stored_path": "images/desktop/en/refreshing.png",
+      "bytes": 12801,
+      "sha256": "9925c93a7871a53f5e05a7f8d7e45ec9a733aae02a2efe88162c6c2dadb18a63"
+    },
+    {
+      "source_path": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/gmi-cte-semantic-aging-20261004-astra-001/.claude/evidence/cte-aging/browser-wire-final/company-theme-context-agin-a7d0d-g-theme-card-refreshing-EN--mobile/dark-en-refreshing.png",
+      "stored_path": "images/mobile/en/refreshing.png",
+      "bytes": 12377,
+      "sha256": "fe56d638408172059ec7b388ce279d5b044f8488f9e8f3616652e2245e50dad9"
+    },
+    {
+      "source_path": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/gmi-cte-semantic-aging-20261004-astra-001/.claude/evidence/cte-aging/browser-wire-final/company-theme-context-agin-a7d0d-g-theme-card-refreshing-EN--tablet/dark-en-refreshing.png",
+      "stored_path": "images/tablet/en/refreshing.png",
+      "bytes": 12555,
+      "sha256": "64d8f6a03c903fb785e449a9ff87137665177312b337dd28fbca2881fdd819d7"
+    },
+    {
+      "source_path": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/gmi-cte-semantic-aging-20261004-astra-001/.claude/evidence/cte-aging/browser-wire-final/company-theme-context-agin-ab918-ng-theme-card-last-good-EN--desktop/dark-en-last-good.png",
+      "stored_path": "images/desktop/en/last-good.png",
+      "bytes": 94973,
+      "sha256": "fe3756c7ecb1e911ac87f2283dc7f45cdee85c64425daf99b24916391673425b"
+    },
+    {
+      "source_path": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/gmi-cte-semantic-aging-20261004-astra-001/.claude/evidence/cte-aging/browser-wire-final/company-theme-context-agin-ab918-ng-theme-card-last-good-EN--mobile/dark-en-last-good.png",
+      "stored_path": "images/mobile/en/last-good.png",
+      "bytes": 68045,
+      "sha256": "4927f2fd7da0132f175c17a6c0fb3f313c43070b183dbc56e9259aff2dee53cd"
+    },
+    {
+      "source_path": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/gmi-cte-semantic-aging-20261004-astra-001/.claude/evidence/cte-aging/browser-wire-final/company-theme-context-agin-ab918-ng-theme-card-last-good-EN--tablet/dark-en-last-good.png",
+      "stored_path": "images/tablet/en/last-good.png",
+      "bytes": 101753,
+      "sha256": "ebe19d02e986838c7977fbd6f873c149563f337839f54cc73c94b4098568026f"
+    },
+    {
+      "source_path": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/gmi-cte-semantic-aging-20261004-astra-001/.claude/evidence/cte-aging/browser-wire-final/company-theme-context-agin-b3b8b-t-reloading-or-fetching-ZH--desktop/dark-zh-expired.png",
+      "stored_path": "images/desktop/zh/expired.png",
+      "bytes": 101923,
+      "sha256": "a99c03ddfc3d8abf010b2fb64bd030d722cccd05413c257a3721a5589b0c825c"
+    },
+    {
+      "source_path": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/gmi-cte-semantic-aging-20261004-astra-001/.claude/evidence/cte-aging/browser-wire-final/company-theme-context-agin-b3b8b-t-reloading-or-fetching-ZH--desktop/dark-zh-fresh.png",
+      "stored_path": "images/desktop/zh/fresh.png",
+      "bytes": 84807,
+      "sha256": "4f3387748ef1d92702562d835ec347fbf4fd6f0d72770d3328554db3cefa8a51"
+    },
+    {
+      "source_path": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/gmi-cte-semantic-aging-20261004-astra-001/.claude/evidence/cte-aging/browser-wire-final/company-theme-context-agin-b3b8b-t-reloading-or-fetching-ZH--desktop/dark-zh-historical.png",
+      "stored_path": "images/desktop/zh/historical.png",
+      "bytes": 20984,
+      "sha256": "ae97d88992d07c1c64f5bf61454dfde7c746461a44a111e50af28e90f3fe73b9"
+    },
+    {
+      "source_path": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/gmi-cte-semantic-aging-20261004-astra-001/.claude/evidence/cte-aging/browser-wire-final/company-theme-context-agin-b3b8b-t-reloading-or-fetching-ZH--mobile/dark-zh-expired.png",
+      "stored_path": "images/mobile/zh/expired.png",
+      "bytes": 72445,
+      "sha256": "a4b16550d338fc12350455fb763c2377d4736cc388b4aac1979265540a4d4676"
+    },
+    {
+      "source_path": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/gmi-cte-semantic-aging-20261004-astra-001/.claude/evidence/cte-aging/browser-wire-final/company-theme-context-agin-b3b8b-t-reloading-or-fetching-ZH--mobile/dark-zh-fresh.png",
+      "stored_path": "images/mobile/zh/fresh.png",
+      "bytes": 60468,
+      "sha256": "4c0753d85ee501e669b5a174b5118e1119df918d217f59e628585b1d360564fb"
+    },
+    {
+      "source_path": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/gmi-cte-semantic-aging-20261004-astra-001/.claude/evidence/cte-aging/browser-wire-final/company-theme-context-agin-b3b8b-t-reloading-or-fetching-ZH--mobile/dark-zh-historical.png",
+      "stored_path": "images/mobile/zh/historical.png",
+      "bytes": 18309,
+      "sha256": "4f19d68151c2d5e91759879a26d7b1d4c71d39abaf85d97fabf7fa44e3ac258b"
+    },
+    {
+      "source_path": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/gmi-cte-semantic-aging-20261004-astra-001/.claude/evidence/cte-aging/browser-wire-final/company-theme-context-agin-b3b8b-t-reloading-or-fetching-ZH--tablet/dark-zh-expired.png",
+      "stored_path": "images/tablet/zh/expired.png",
+      "bytes": 117001,
+      "sha256": "abbb1ca49449d47034af197c9ceb2eb6ba0120116ae702b1a2f27970a7960ac2"
+    },
+    {
+      "source_path": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/gmi-cte-semantic-aging-20261004-astra-001/.claude/evidence/cte-aging/browser-wire-final/company-theme-context-agin-b3b8b-t-reloading-or-fetching-ZH--tablet/dark-zh-fresh.png",
+      "stored_path": "images/tablet/zh/fresh.png",
+      "bytes": 96695,
+      "sha256": "536fafd510c79f5d2fae40d58d6afcbf6a97e415667fe9b04048cad39533d338"
+    },
+    {
+      "source_path": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/gmi-cte-semantic-aging-20261004-astra-001/.claude/evidence/cte-aging/browser-wire-final/company-theme-context-agin-b3b8b-t-reloading-or-fetching-ZH--tablet/dark-zh-historical.png",
+      "stored_path": "images/tablet/zh/historical.png",
+      "bytes": 19553,
+      "sha256": "48ea2f99e35fcdc3feeaf335256596702bc34ea9c05c25bed13640c98b61496e"
+    },
+    {
+      "source_path": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/gmi-cte-semantic-aging-20261004-astra-001/.claude/evidence/cte-aging/browser-wire-final/company-theme-context-agin-c043f--card-future-generation-EN--desktop/dark-en-future-generation.png",
+      "stored_path": "images/desktop/en/future-generation.png",
+      "bytes": 10932,
+      "sha256": "a4411a77c2bd4e381354dab3687c012fa1abbbe637cff6e95a143a5d040fcf47"
+    },
+    {
+      "source_path": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/gmi-cte-semantic-aging-20261004-astra-001/.claude/evidence/cte-aging/browser-wire-final/company-theme-context-agin-c043f--card-future-generation-EN--mobile/dark-en-future-generation.png",
+      "stored_path": "images/mobile/en/future-generation.png",
+      "bytes": 10671,
+      "sha256": "5e74f8d5e2d2e308eafe3dc62678a734e241a577100eae43a97ddb85a894fb33"
+    },
+    {
+      "source_path": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/gmi-cte-semantic-aging-20261004-astra-001/.claude/evidence/cte-aging/browser-wire-final/company-theme-context-agin-c043f--card-future-generation-EN--tablet/dark-en-future-generation.png",
+      "stored_path": "images/tablet/en/future-generation.png",
+      "bytes": 11137,
+      "sha256": "14e9cfe13d144e919428d0d3b1993e268c3024a7cc566dbce3f1cc8a070f1647"
+    },
+    {
+      "source_path": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/gmi-cte-semantic-aging-20261004-astra-001/.claude/evidence/cte-aging/browser-wire-final/company-theme-context-agin-c1c06--card-future-generation-ZH--desktop/dark-zh-future-generation.png",
+      "stored_path": "images/desktop/zh/future-generation.png",
+      "bytes": 10171,
+      "sha256": "51ca2c3dabfc02c3ee72c0e93a64b450c596fd9004dff9be249cdf971a80781b"
+    },
+    {
+      "source_path": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/gmi-cte-semantic-aging-20261004-astra-001/.claude/evidence/cte-aging/browser-wire-final/company-theme-context-agin-c1c06--card-future-generation-ZH--mobile/dark-zh-future-generation.png",
+      "stored_path": "images/mobile/zh/future-generation.png",
+      "bytes": 9939,
+      "sha256": "05e340c5223d7c0e9de4a86bb05541e180dd64ed02dc00788a3535e23ad8536d"
+    },
+    {
+      "source_path": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/gmi-cte-semantic-aging-20261004-astra-001/.claude/evidence/cte-aging/browser-wire-final/company-theme-context-agin-c1c06--card-future-generation-ZH--tablet/dark-zh-future-generation.png",
+      "stored_path": "images/tablet/zh/future-generation.png",
+      "bytes": 10400,
+      "sha256": "e82d42c8823de4bdb9c94a79d3f226b3c9a1e63aa27d21de20b57c7825400392"
+    },
+    {
+      "source_path": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/gmi-cte-semantic-aging-20261004-astra-001/.claude/evidence/cte-aging/browser-wire-final/company-theme-context-agin-cdb0f-t-reloading-or-fetching-EN--desktop/dark-en-expired.png",
+      "stored_path": "images/desktop/en/expired.png",
+      "bytes": 113200,
+      "sha256": "f80ceb37e5fce21b78a694361bb50bf6e758acc6bb0920f2d7d6f87b6e4fb40e"
+    },
+    {
+      "source_path": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/gmi-cte-semantic-aging-20261004-astra-001/.claude/evidence/cte-aging/browser-wire-final/company-theme-context-agin-cdb0f-t-reloading-or-fetching-EN--desktop/dark-en-fresh.png",
+      "stored_path": "images/desktop/en/fresh.png",
+      "bytes": 94668,
+      "sha256": "5e75ec5c73070370ccf4ba876a5bcff42e478199c3ae3b5508d72af947e5a512"
+    },
+    {
+      "source_path": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/gmi-cte-semantic-aging-20261004-astra-001/.claude/evidence/cte-aging/browser-wire-final/company-theme-context-agin-cdb0f-t-reloading-or-fetching-EN--desktop/dark-en-historical.png",
+      "stored_path": "images/desktop/en/historical.png",
+      "bytes": 19572,
+      "sha256": "213e80620fe44948c98cc05f81d0102bb846b21496d15b3622c9b954b09fa740"
+    },
+    {
+      "source_path": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/gmi-cte-semantic-aging-20261004-astra-001/.claude/evidence/cte-aging/browser-wire-final/company-theme-context-agin-cdb0f-t-reloading-or-fetching-EN--mobile/dark-en-expired.png",
+      "stored_path": "images/mobile/en/expired.png",
+      "bytes": 81493,
+      "sha256": "4895273b9bf99a98e999b5be14f8f78e7defe0db6100bc8d3196762457f0e33a"
+    },
+    {
+      "source_path": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/gmi-cte-semantic-aging-20261004-astra-001/.claude/evidence/cte-aging/browser-wire-final/company-theme-context-agin-cdb0f-t-reloading-or-fetching-EN--mobile/dark-en-fresh.png",
+      "stored_path": "images/mobile/en/fresh.png",
+      "bytes": 67837,
+      "sha256": "1788c1b409b0b41f8affc96b725ea6df04f5aa6d998437d1365249464640d5fe"
+    },
+    {
+      "source_path": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/gmi-cte-semantic-aging-20261004-astra-001/.claude/evidence/cte-aging/browser-wire-final/company-theme-context-agin-cdb0f-t-reloading-or-fetching-EN--mobile/dark-en-historical.png",
+      "stored_path": "images/mobile/en/historical.png",
+      "bytes": 18748,
+      "sha256": "1984ef74ad6bea68892a983622d71a38667867eeac16ad8521e8190c0c0b06cb"
+    },
+    {
+      "source_path": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/gmi-cte-semantic-aging-20261004-astra-001/.claude/evidence/cte-aging/browser-wire-final/company-theme-context-agin-cdb0f-t-reloading-or-fetching-EN--tablet/dark-en-expired.png",
+      "stored_path": "images/tablet/en/expired.png",
+      "bytes": 122995,
+      "sha256": "5d6bdcefd1d36c2ea7c059140142296989413606e6491717f91db1fc0a6361f7"
+    },
+    {
+      "source_path": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/gmi-cte-semantic-aging-20261004-astra-001/.claude/evidence/cte-aging/browser-wire-final/company-theme-context-agin-cdb0f-t-reloading-or-fetching-EN--tablet/dark-en-fresh.png",
+      "stored_path": "images/tablet/en/fresh.png",
+      "bytes": 101431,
+      "sha256": "cccac92c0b7da94198f2af37f4063665c3107301ec49ac216f20fa2e13feaedf"
+    },
+    {
+      "source_path": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/gmi-cte-semantic-aging-20261004-astra-001/.claude/evidence/cte-aging/browser-wire-final/company-theme-context-agin-cdb0f-t-reloading-or-fetching-EN--tablet/dark-en-historical.png",
+      "stored_path": "images/tablet/en/historical.png",
+      "bytes": 18353,
+      "sha256": "e62ec6148a94abecd89c3c6c60f9dc6079c5c991da6d745ac14f64b9c0e8d04f"
+    },
+    {
+      "source_path": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/gmi-cte-semantic-aging-20261004-astra-001/.claude/evidence/cte-aging/browser-wire-final/company-theme-context-agin-d3e46--theme-card-unavailable-EN--desktop/dark-en-unavailable.png",
+      "stored_path": "images/desktop/en/unavailable.png",
+      "bytes": 11067,
+      "sha256": "c1e052a1aa0b08e0056d42f89a7ca25fb9dfb70e6f32ae3c7bd6c41c456a8808"
+    },
+    {
+      "source_path": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/gmi-cte-semantic-aging-20261004-astra-001/.claude/evidence/cte-aging/browser-wire-final/company-theme-context-agin-d3e46--theme-card-unavailable-EN--mobile/dark-en-unavailable.png",
+      "stored_path": "images/mobile/en/unavailable.png",
+      "bytes": 11140,
+      "sha256": "a6636b455e9aaff42cf2f0dfc72927b46a2b1246b1e39951c4556e5c70497996"
+    },
+    {
+      "source_path": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/gmi-cte-semantic-aging-20261004-astra-001/.claude/evidence/cte-aging/browser-wire-final/company-theme-context-agin-d3e46--theme-card-unavailable-EN--tablet/dark-en-unavailable.png",
+      "stored_path": "images/tablet/en/unavailable.png",
+      "bytes": 11284,
+      "sha256": "7ab0358eec1900d2bd1010a2ee61b6ca1bd4596033955acc4b5f843a810b9b0f"
+    },
+    {
+      "source_path": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/gmi-cte-semantic-aging-20261004-astra-001/.claude/evidence/cte-aging/browser-wire-final/company-theme-context-agin-e1b2d-isting-theme-card-mixed-EN--desktop/dark-en-mixed.png",
+      "stored_path": "images/desktop/en/mixed.png",
+      "bytes": 115195,
+      "sha256": "190db46d19ad1cbf523d011164262c8821ff49e5e5545f2a3187644418d7a43d"
+    },
+    {
+      "source_path": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/gmi-cte-semantic-aging-20261004-astra-001/.claude/evidence/cte-aging/browser-wire-final/company-theme-context-agin-e1b2d-isting-theme-card-mixed-EN--mobile/dark-en-mixed.png",
+      "stored_path": "images/mobile/en/mixed.png",
+      "bytes": 86116,
+      "sha256": "ad130e160e5ba083052901f60142a3d488c837aaf3daed5aca617fc5614d99ad"
+    },
+    {
+      "source_path": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/gmi-cte-semantic-aging-20261004-astra-001/.claude/evidence/cte-aging/browser-wire-final/company-theme-context-agin-e1b2d-isting-theme-card-mixed-EN--tablet/dark-en-mixed.png",
+      "stored_path": "images/tablet/en/mixed.png",
+      "bytes": 125198,
+      "sha256": "e1221ab7c30aa6ad50feb0d266229a4187d8aa8ec638a7d9904efc25e3d983a3"
+    },
+    {
+      "source_path": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/gmi-cte-semantic-aging-20261004-astra-001/.claude/evidence/cte-aging/browser-wire-final/company-theme-context-agin-e398b-ng-theme-card-last-good-ZH--desktop/dark-zh-last-good.png",
+      "stored_path": "images/desktop/zh/last-good.png",
+      "bytes": 85046,
+      "sha256": "214022ea8acd8c1b2899dfe18d1c4297a0fddfdf8ae839b732bc801ed885814c"
+    },
+    {
+      "source_path": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/gmi-cte-semantic-aging-20261004-astra-001/.claude/evidence/cte-aging/browser-wire-final/company-theme-context-agin-e398b-ng-theme-card-last-good-ZH--mobile/dark-zh-last-good.png",
+      "stored_path": "images/mobile/zh/last-good.png",
+      "bytes": 60749,
+      "sha256": "ae79c306f4ede1a2acaf4c242019ad8dcaca0209705aa451408fcb026a8efd5f"
+    },
+    {
+      "source_path": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/gmi-cte-semantic-aging-20261004-astra-001/.claude/evidence/cte-aging/browser-wire-final/company-theme-context-agin-e398b-ng-theme-card-last-good-ZH--tablet/dark-zh-last-good.png",
+      "stored_path": "images/tablet/zh/last-good.png",
+      "bytes": 97005,
+      "sha256": "9662a14f18809c28994891dd52eb15090a287c15c10b1b70d5b5ddb636f2129b"
+    },
+    {
+      "source_path": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/gmi-cte-semantic-aging-20261004-astra-001/.claude/evidence/cte-aging/browser-wire-final/company-theme-context-agin-e6e0d-g-theme-card-refreshing-ZH--desktop/dark-zh-refreshing.png",
+      "stored_path": "images/desktop/zh/refreshing.png",
+      "bytes": 11627,
+      "sha256": "ddbed0719b47601726947ae989687a31382c6c0922fe1c159fb8532a7ee01353"
+    },
+    {
+      "source_path": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/gmi-cte-semantic-aging-20261004-astra-001/.claude/evidence/cte-aging/browser-wire-final/company-theme-context-agin-e6e0d-g-theme-card-refreshing-ZH--mobile/dark-zh-refreshing.png",
+      "stored_path": "images/mobile/zh/refreshing.png",
+      "bytes": 11301,
+      "sha256": "7466016d4c52a081a5f17f659b0225f36c0ea7f215a4665241e0a8278070fed1"
+    },
+    {
+      "source_path": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/gmi-cte-semantic-aging-20261004-astra-001/.claude/evidence/cte-aging/browser-wire-final/company-theme-context-agin-e6e0d-g-theme-card-refreshing-ZH--tablet/dark-zh-refreshing.png",
+      "stored_path": "images/tablet/zh/refreshing.png",
+      "bytes": 11869,
+      "sha256": "4000f91ac19ee677fd5aa3c44eb8c0794dee4916eed916a0008bfa76321b4241"
+    },
+    {
+      "source_path": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/gmi-cte-semantic-aging-20261004-astra-001/.claude/evidence/cte-aging/browser-wire-final/company-theme-context-agin-ef919--theme-card-unavailable-ZH--desktop/dark-zh-unavailable.png",
+      "stored_path": "images/desktop/zh/unavailable.png",
+      "bytes": 10679,
+      "sha256": "94c47e42617962e8ac28eb3bd8a868483698067d1e3bbd2a53c2624acb914b83"
+    },
+    {
+      "source_path": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/gmi-cte-semantic-aging-20261004-astra-001/.claude/evidence/cte-aging/browser-wire-final/company-theme-context-agin-ef919--theme-card-unavailable-ZH--mobile/dark-zh-unavailable.png",
+      "stored_path": "images/mobile/zh/unavailable.png",
+      "bytes": 10447,
+      "sha256": "170d9469f9e641519fc0285a22d8deae35a5ae392348eb254e3cc353c54f1f16"
+    },
+    {
+      "source_path": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/gmi-cte-semantic-aging-20261004-astra-001/.claude/evidence/cte-aging/browser-wire-final/company-theme-context-agin-ef919--theme-card-unavailable-ZH--tablet/dark-zh-unavailable.png",
+      "stored_path": "images/tablet/zh/unavailable.png",
+      "bytes": 10915,
+      "sha256": "e063e821b346ab06a86e5517d241c0741a134c913a33fd09eafb239af291a955"
+    },
+    {
+      "source_path": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/gmi-cte-semantic-aging-20261004-astra-001/.claude/evidence/cte-aging/browser-wire-final/company-theme-context-agin-f468d-isting-theme-card-empty-EN--desktop/dark-en-empty.png",
+      "stored_path": "images/desktop/en/empty.png",
+      "bytes": 100675,
+      "sha256": "e231f09febece6f136b98662eb50ed566ec6b9ba33924d69aff0ab625309f5f8"
+    },
+    {
+      "source_path": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/gmi-cte-semantic-aging-20261004-astra-001/.claude/evidence/cte-aging/browser-wire-final/company-theme-context-agin-f468d-isting-theme-card-empty-EN--mobile/dark-en-empty.png",
+      "stored_path": "images/mobile/en/empty.png",
+      "bytes": 79377,
+      "sha256": "83252d27e331ad476ee3c65f84bdf8bf8685c51bc139881f52eb098df53bdfbc"
+    },
+    {
+      "source_path": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/gmi-cte-semantic-aging-20261004-astra-001/.claude/evidence/cte-aging/browser-wire-final/company-theme-context-agin-f468d-isting-theme-card-empty-EN--tablet/dark-en-empty.png",
+      "stored_path": "images/tablet/en/empty.png",
+      "bytes": 107593,
+      "sha256": "d62a1dd46490831ed1ee8b4ab27dc4db39aa164cc65a664a507e472080b43ff5"
+    },
+    {
+      "source_path": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/gmi-cte-semantic-aging-20261004-astra-001/.claude/evidence/cte-aging/browser-wire-final/company-theme-context-agin-f8c78-heme-card-unmapped-only-ZH--desktop/dark-zh-unmapped-only.png",
+      "stored_path": "images/desktop/zh/unmapped-only.png",
+      "bytes": 109356,
+      "sha256": "fdf26137e9a96123de367c7f5b262f0ff21b5186124436b2269a92a2552f7388"
+    },
+    {
+      "source_path": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/gmi-cte-semantic-aging-20261004-astra-001/.claude/evidence/cte-aging/browser-wire-final/company-theme-context-agin-f8c78-heme-card-unmapped-only-ZH--mobile/dark-zh-unmapped-only.png",
+      "stored_path": "images/mobile/zh/unmapped-only.png",
+      "bytes": 83746,
+      "sha256": "e1b020c0cf5ab421cb9b8ceb30e2248c79f71d3ca877f886560b4aa0a0dcec49"
+    },
+    {
+      "source_path": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/gmi-cte-semantic-aging-20261004-astra-001/.claude/evidence/cte-aging/browser-wire-final/company-theme-context-agin-f8c78-heme-card-unmapped-only-ZH--tablet/dark-zh-unmapped-only.png",
+      "stored_path": "images/tablet/zh/unmapped-only.png",
+      "bytes": 123956,
+      "sha256": "8c854a711b00c2ee1f37310d35dae36b1f938fc1dd63b6d67318032e21fddd10"
+    },
+    {
+      "source_path": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/gmi-cte-semantic-aging-20261004-astra-001/.claude/evidence/cte-aging/verification-wire-final.json",
+      "stored_path": "verification-wire-final.json",
+      "bytes": 27036,
+      "sha256": "c57f6193bd4ed1936887f17e61275daf84ac02c3f284c67f56e014052dbc32df"
+    }
+  ],
+  "generated_readme": {
+    "stored_path": "README.md",
+    "bytes": 9658,
+    "sha256": "2820c3961cbbceebe0f2d49c2b12e71e896cd4e2ef7fb14b279f04e6a162289c"
+  }
+}

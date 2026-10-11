@@ -1,0 +1,96 @@
+
+> terminal@0.1.0 test:e2e:responsive
+> playwright test e2e/company-theme-context-aging.spec.ts --project=desktop --project=tablet --project=mobile --workers=1 --retries=0 --reporter=list --output=../.claude/evidence/cte-aging/browser-wire-final
+
+[warmup] /terminal?symbol=NVDA → 200 in 64ms
+[warmup] /options → 200 in 104ms
+[warmup] /portfolio → 200 in 61ms
+[warmup] /alerts → 200 in 56ms
+[warmup] /analysis → 200 in 102ms
+[warmup] /discover → 200 in 65ms
+[warmup] /admin → 200 in 41ms
+[warmup] /embed/chart?symbol=NVDA → 200 in 39ms
+[warmup] /login → 200 in 51ms
+[warmup] /reset-password → 200 in 65ms
+[warmup] /api/me → 200 in 48ms
+[warmup] /api/watchlist → 200 in 24ms
+[warmup] /api/layouts → 200 in 23ms
+[warmup] 13 routes compiled in 1s
+
+Running 72 tests using 1 worker
+
+[WebServer] [analyticsEvents] SUPABASE_SERVICE_ROLE_KEY absent — events held in memory only (dev mode)
+  ✓   1 [desktop] › e2e/company-theme-context-aging.spec.ts:37:7 › existing card ages at UTC expiry without reloading or fetching (EN) (1.5s)
+  ✓   2 [desktop] › e2e/company-theme-context-aging.spec.ts:62:9 › degraded existing theme card: source-stale (EN) (953ms)
+  ✓   3 [desktop] › e2e/company-theme-context-aging.spec.ts:62:9 › degraded existing theme card: missing (EN) (953ms)
+  ✓   4 [desktop] › e2e/company-theme-context-aging.spec.ts:62:9 › degraded existing theme card: invalid (EN) (977ms)
+  ✓   5 [desktop] › e2e/company-theme-context-aging.spec.ts:62:9 › degraded existing theme card: future (EN) (950ms)
+  ✓   6 [desktop] › e2e/company-theme-context-aging.spec.ts:62:9 › degraded existing theme card: future-generation (EN) (912ms)
+  ✓   7 [desktop] › e2e/company-theme-context-aging.spec.ts:62:9 › degraded existing theme card: last-good (EN) (971ms)
+  ✓   8 [desktop] › e2e/company-theme-context-aging.spec.ts:62:9 › degraded existing theme card: mixed (EN) (959ms)
+  ✓   9 [desktop] › e2e/company-theme-context-aging.spec.ts:62:9 › degraded existing theme card: unmapped-only (EN) (973ms)
+  ✓  10 [desktop] › e2e/company-theme-context-aging.spec.ts:62:9 › degraded existing theme card: empty (EN) (967ms)
+  ✓  11 [desktop] › e2e/company-theme-context-aging.spec.ts:62:9 › degraded existing theme card: refreshing (EN) (1.2s)
+  ✓  12 [desktop] › e2e/company-theme-context-aging.spec.ts:62:9 › degraded existing theme card: unavailable (EN) (933ms)
+  ✓  13 [desktop] › e2e/company-theme-context-aging.spec.ts:37:7 › existing card ages at UTC expiry without reloading or fetching (ZH) (1.4s)
+  ✓  14 [desktop] › e2e/company-theme-context-aging.spec.ts:62:9 › degraded existing theme card: source-stale (ZH) (1.0s)
+  ✓  15 [desktop] › e2e/company-theme-context-aging.spec.ts:62:9 › degraded existing theme card: missing (ZH) (1.0s)
+  ✓  16 [desktop] › e2e/company-theme-context-aging.spec.ts:62:9 › degraded existing theme card: invalid (ZH) (1.0s)
+  ✓  17 [desktop] › e2e/company-theme-context-aging.spec.ts:62:9 › degraded existing theme card: future (ZH) (1.0s)
+  ✓  18 [desktop] › e2e/company-theme-context-aging.spec.ts:62:9 › degraded existing theme card: future-generation (ZH) (973ms)
+  ✓  19 [desktop] › e2e/company-theme-context-aging.spec.ts:62:9 › degraded existing theme card: last-good (ZH) (992ms)
+  ✓  20 [desktop] › e2e/company-theme-context-aging.spec.ts:62:9 › degraded existing theme card: mixed (ZH) (1.0s)
+  ✓  21 [desktop] › e2e/company-theme-context-aging.spec.ts:62:9 › degraded existing theme card: unmapped-only (ZH) (1.0s)
+  ✓  22 [desktop] › e2e/company-theme-context-aging.spec.ts:62:9 › degraded existing theme card: empty (ZH) (1.0s)
+  ✓  23 [desktop] › e2e/company-theme-context-aging.spec.ts:62:9 › degraded existing theme card: refreshing (ZH) (955ms)
+  ✓  24 [desktop] › e2e/company-theme-context-aging.spec.ts:62:9 › degraded existing theme card: unavailable (ZH) (954ms)
+  ✓  25 [tablet] › e2e/company-theme-context-aging.spec.ts:37:7 › existing card ages at UTC expiry without reloading or fetching (EN) (1.3s)
+  ✓  26 [tablet] › e2e/company-theme-context-aging.spec.ts:62:9 › degraded existing theme card: source-stale (EN) (955ms)
+  ✓  27 [tablet] › e2e/company-theme-context-aging.spec.ts:62:9 › degraded existing theme card: missing (EN) (936ms)
+  ✓  28 [tablet] › e2e/company-theme-context-aging.spec.ts:62:9 › degraded existing theme card: invalid (EN) (933ms)
+  ✓  29 [tablet] › e2e/company-theme-context-aging.spec.ts:62:9 › degraded existing theme card: future (EN) (971ms)
+  ✓  30 [tablet] › e2e/company-theme-context-aging.spec.ts:62:9 › degraded existing theme card: future-generation (EN) (905ms)
+  ✓  31 [tablet] › e2e/company-theme-context-aging.spec.ts:62:9 › degraded existing theme card: last-good (EN) (915ms)
+  ✓  32 [tablet] › e2e/company-theme-context-aging.spec.ts:62:9 › degraded existing theme card: mixed (EN) (1.1s)
+  ✓  33 [tablet] › e2e/company-theme-context-aging.spec.ts:62:9 › degraded existing theme card: unmapped-only (EN) (936ms)
+  ✓  34 [tablet] › e2e/company-theme-context-aging.spec.ts:62:9 › degraded existing theme card: empty (EN) (928ms)
+  ✓  35 [tablet] › e2e/company-theme-context-aging.spec.ts:62:9 › degraded existing theme card: refreshing (EN) (1.0s)
+  ✓  36 [tablet] › e2e/company-theme-context-aging.spec.ts:62:9 › degraded existing theme card: unavailable (EN) (1.3s)
+  ✓  37 [tablet] › e2e/company-theme-context-aging.spec.ts:37:7 › existing card ages at UTC expiry without reloading or fetching (ZH) (1.4s)
+  ✓  38 [tablet] › e2e/company-theme-context-aging.spec.ts:62:9 › degraded existing theme card: source-stale (ZH) (1.0s)
+  ✓  39 [tablet] › e2e/company-theme-context-aging.spec.ts:62:9 › degraded existing theme card: missing (ZH) (994ms)
+  ✓  40 [tablet] › e2e/company-theme-context-aging.spec.ts:62:9 › degraded existing theme card: invalid (ZH) (1.0s)
+  ✓  41 [tablet] › e2e/company-theme-context-aging.spec.ts:62:9 › degraded existing theme card: future (ZH) (973ms)
+  ✓  42 [tablet] › e2e/company-theme-context-aging.spec.ts:62:9 › degraded existing theme card: future-generation (ZH) (948ms)
+  ✓  43 [tablet] › e2e/company-theme-context-aging.spec.ts:62:9 › degraded existing theme card: last-good (ZH) (1.0s)
+  ✓  44 [tablet] › e2e/company-theme-context-aging.spec.ts:62:9 › degraded existing theme card: mixed (ZH) (1.0s)
+  ✓  45 [tablet] › e2e/company-theme-context-aging.spec.ts:62:9 › degraded existing theme card: unmapped-only (ZH) (994ms)
+  ✓  46 [tablet] › e2e/company-theme-context-aging.spec.ts:62:9 › degraded existing theme card: empty (ZH) (969ms)
+  ✓  47 [tablet] › e2e/company-theme-context-aging.spec.ts:62:9 › degraded existing theme card: refreshing (ZH) (970ms)
+  ✓  48 [tablet] › e2e/company-theme-context-aging.spec.ts:62:9 › degraded existing theme card: unavailable (ZH) (936ms)
+  ✓  49 [mobile] › e2e/company-theme-context-aging.spec.ts:37:7 › existing card ages at UTC expiry without reloading or fetching (EN) (1.2s)
+  ✓  50 [mobile] › e2e/company-theme-context-aging.spec.ts:62:9 › degraded existing theme card: source-stale (EN) (888ms)
+  ✓  51 [mobile] › e2e/company-theme-context-aging.spec.ts:62:9 › degraded existing theme card: missing (EN) (873ms)
+  ✓  52 [mobile] › e2e/company-theme-context-aging.spec.ts:62:9 › degraded existing theme card: invalid (EN) (915ms)
+  ✓  53 [mobile] › e2e/company-theme-context-aging.spec.ts:62:9 › degraded existing theme card: future (EN) (914ms)
+  ✓  54 [mobile] › e2e/company-theme-context-aging.spec.ts:62:9 › degraded existing theme card: future-generation (EN) (899ms)
+  ✓  55 [mobile] › e2e/company-theme-context-aging.spec.ts:62:9 › degraded existing theme card: last-good (EN) (923ms)
+  ✓  56 [mobile] › e2e/company-theme-context-aging.spec.ts:62:9 › degraded existing theme card: mixed (EN) (936ms)
+  ✓  57 [mobile] › e2e/company-theme-context-aging.spec.ts:62:9 › degraded existing theme card: unmapped-only (EN) (899ms)
+  ✓  58 [mobile] › e2e/company-theme-context-aging.spec.ts:62:9 › degraded existing theme card: empty (EN) (870ms)
+  ✓  59 [mobile] › e2e/company-theme-context-aging.spec.ts:62:9 › degraded existing theme card: refreshing (EN) (880ms)
+  ✓  60 [mobile] › e2e/company-theme-context-aging.spec.ts:62:9 › degraded existing theme card: unavailable (EN) (873ms)
+  ✓  61 [mobile] › e2e/company-theme-context-aging.spec.ts:37:7 › existing card ages at UTC expiry without reloading or fetching (ZH) (1.3s)
+  ✓  62 [mobile] › e2e/company-theme-context-aging.spec.ts:62:9 › degraded existing theme card: source-stale (ZH) (947ms)
+  ✓  63 [mobile] › e2e/company-theme-context-aging.spec.ts:62:9 › degraded existing theme card: missing (ZH) (956ms)
+  ✓  64 [mobile] › e2e/company-theme-context-aging.spec.ts:62:9 › degraded existing theme card: invalid (ZH) (955ms)
+  ✓  65 [mobile] › e2e/company-theme-context-aging.spec.ts:62:9 › degraded existing theme card: future (ZH) (954ms)
+  ✓  66 [mobile] › e2e/company-theme-context-aging.spec.ts:62:9 › degraded existing theme card: future-generation (ZH) (940ms)
+  ✓  67 [mobile] › e2e/company-theme-context-aging.spec.ts:62:9 › degraded existing theme card: last-good (ZH) (966ms)
+  ✓  68 [mobile] › e2e/company-theme-context-aging.spec.ts:62:9 › degraded existing theme card: mixed (ZH) (978ms)
+  ✓  69 [mobile] › e2e/company-theme-context-aging.spec.ts:62:9 › degraded existing theme card: unmapped-only (ZH) (957ms)
+  ✓  70 [mobile] › e2e/company-theme-context-aging.spec.ts:62:9 › degraded existing theme card: empty (ZH) (950ms)
+  ✓  71 [mobile] › e2e/company-theme-context-aging.spec.ts:62:9 › degraded existing theme card: refreshing (ZH) (922ms)
+  ✓  72 [mobile] › e2e/company-theme-context-aging.spec.ts:62:9 › degraded existing theme card: unavailable (ZH) (914ms)
+
+  72 passed (1.3m)

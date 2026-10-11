@@ -1,0 +1,33 @@
+
+> terminal@0.1.0 test:e2e:responsive
+> playwright test e2e/company-intelligence.spec.ts --grep theme context|theme-sidecar|lagging theme --project=company-intelligence-desktop --project=company-intelligence-tablet --project=company-intelligence-mobile --no-deps --workers=1 --retries=0 --reporter=list --output=../.claude/evidence/cte-aging/browser-incumbent-wire-final
+
+[warmup] /terminal?symbol=NVDA → 200 in 62ms
+[warmup] /options → 200 in 112ms
+[warmup] /portfolio → 200 in 63ms
+[warmup] /alerts → 200 in 58ms
+[warmup] /analysis → 200 in 107ms
+[warmup] /discover → 200 in 68ms
+[warmup] /admin → 200 in 42ms
+[warmup] /embed/chart?symbol=NVDA → 200 in 38ms
+[warmup] /login → 200 in 49ms
+[warmup] /reset-password → 200 in 63ms
+[warmup] /api/me → 200 in 50ms
+[warmup] /api/watchlist → 200 in 23ms
+[warmup] /api/layouts → 200 in 22ms
+[warmup] 13 routes compiled in 1s
+
+Running 9 tests using 1 worker
+
+  ✓  1 [company-intelligence-desktop] › e2e/company-intelligence.spec.ts:721:5 › theme context stays pinned to the latest event and makes its receipts inspectable (1.2s)
+  ✓  2 [company-intelligence-desktop] › e2e/company-intelligence.spec.ts:735:5 › current-event authority survives a theme-sidecar outage (939ms)
+  ✓  3 [company-intelligence-desktop] › e2e/company-intelligence.spec.ts:776:5 › a lagging theme sidecar is quarantined instead of relabelling the latest event (825ms)
+  -  4 [company-intelligence-tablet] › e2e/company-intelligence.spec.ts:721:5 › theme context stays pinned to the latest event and makes its receipts inspectable
+  -  5 [company-intelligence-tablet] › e2e/company-intelligence.spec.ts:735:5 › current-event authority survives a theme-sidecar outage
+  -  6 [company-intelligence-tablet] › e2e/company-intelligence.spec.ts:776:5 › a lagging theme sidecar is quarantined instead of relabelling the latest event
+  -  7 [company-intelligence-mobile] › e2e/company-intelligence.spec.ts:721:5 › theme context stays pinned to the latest event and makes its receipts inspectable
+  -  8 [company-intelligence-mobile] › e2e/company-intelligence.spec.ts:735:5 › current-event authority survives a theme-sidecar outage
+  -  9 [company-intelligence-mobile] › e2e/company-intelligence.spec.ts:776:5 › a lagging theme sidecar is quarantined instead of relabelling the latest event
+
+  6 skipped
+  3 passed (9.2s)

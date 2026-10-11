@@ -1,0 +1,18 @@
+{
+  "checked_at_utc": "2026-10-04T09:36:53.698798+00:00",
+  "head": "48ab22b5d429bf4f95a3ac924c765246ae4a1976",
+  "tree": "76c69fd492b00d89d83db018f7582aba22561169",
+  "all11_source_hashes_unchanged": true,
+  "all657_preexisting_hashes_unchanged": true,
+  "baseline_bytes": 60584935,
+  "index_empty": true,
+  "tracked_changed_paths": [
+    "terminal/app/layout.tsx",
+    "terminal/components/ChartPanel.tsx",
+    "terminal/components/settings/SectionPreferences.tsx",
+    "terminal/components/settings/SettingsProvider.tsx",
+    "terminal/lib/i18n.tsx"
+  ],
+  "owned_port33296_free": true,
+  "no_release_effect": true
+}

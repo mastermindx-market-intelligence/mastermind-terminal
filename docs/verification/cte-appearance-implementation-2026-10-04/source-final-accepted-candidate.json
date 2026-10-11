@@ -1,0 +1,84 @@
+{
+  "head": "48ab22b5d429bf4f95a3ac924c765246ae4a1976",
+  "tree": "76c69fd492b00d89d83db018f7582aba22561169",
+  "previous_patch_sha256": "a7b912fb23c221ba7ea3d3183806f03dce5d650a6a77e142ab094901d7decfa2",
+  "files": [
+    {
+      "path": "terminal/lib/terminalAppearance.ts",
+      "bytes": 3424,
+      "sha256": "b6b6ce8efddc4e5704a403cac0a56b161e35f058c1e1569267913de8fe8d55a8",
+      "git_blob": "79504892ccacc9940027dcaff568f66956991d0d",
+      "base_blob": null
+    },
+    {
+      "path": "terminal/app/terminal-appearance-light.css",
+      "bytes": 3354,
+      "sha256": "a4954f9808d975746191ec9ddce75a7b8df0e0a8f3c4d58c65e67347cef7f7d1",
+      "git_blob": "bc167d8e3c9d59151f13e46952412543c15ed208",
+      "base_blob": null
+    },
+    {
+      "path": "terminal/app/layout.tsx",
+      "bytes": 3247,
+      "sha256": "48c48ece64b871740ae938fcc2568197902a7f42a67dae0a602a76aebc68888e",
+      "git_blob": "fc4aa2c799eb95f3648f04c0c0a2a3bdecb17c6c",
+      "base_blob": "9d62b2ba98361b549e50a5ce2229cea5433c87b6"
+    },
+    {
+      "path": "terminal/components/settings/SettingsProvider.tsx",
+      "bytes": 9925,
+      "sha256": "b7de6f9aac2c31b5373e5ecab59a0280c82e605c9b5aacb657b2684f6a12e63d",
+      "git_blob": "7947c3e65269903f7ddb72288e086693efa2f4c0",
+      "base_blob": "157e4a0ca97181e3b8373452404212549e2bb639"
+    },
+    {
+      "path": "terminal/components/settings/SectionPreferences.tsx",
+      "bytes": 10019,
+      "sha256": "43835aaf41242d2a691c5c15ae15198dcaba03ec6012121c1213cedee1036b83",
+      "git_blob": "71f449b4b6e790d6cdea64b1e24eddc3d2181dc5",
+      "base_blob": "001aa26496ca640625632227b0d47499eb916e87"
+    },
+    {
+      "path": "terminal/lib/i18n.tsx",
+      "bytes": 200995,
+      "sha256": "bbdf0d17f38452c04820f065d46965565e778e5395658c1423be3919bb8ba163",
+      "git_blob": "eb94dbbb3d2b0e24c64f4aad510aaa964f2ab90d",
+      "base_blob": "cb2624e2fac1abb858bdb2b57f5f1ea46e56d56d"
+    },
+    {
+      "path": "terminal/components/ChartPanel.tsx",
+      "bytes": 643827,
+      "sha256": "90f4eaad48a4f73d331be8a016c843d6d22d1ac9c4e9f5561fa6a013325511cf",
+      "git_blob": "ad3416c44897031d0299571abc44dd22528d0680",
+      "base_blob": "639cf9180ebd82c4a0c7644a013e8dba2ddcd442"
+    },
+    {
+      "path": "terminal/lib/__tests__/terminalAppearance.test.ts",
+      "bytes": 5761,
+      "sha256": "ad21c13915eac9e6b8b21fa21c7f22c61e36452ed59458f18cdf072f58d489cd",
+      "git_blob": "35cf0a2f6c93071aaa202b4603d38981d63380af",
+      "base_blob": null
+    },
+    {
+      "path": "terminal/lib/__tests__/terminalAppearanceSync.test.tsx",
+      "bytes": 12590,
+      "sha256": "5fd08163bcd49f6414b6b0debdafa07e9db727e49b5af2600cff561a81a434a5",
+      "git_blob": "1f781515357b925fc1c1bfce58e5d3c9b82138fb",
+      "base_blob": null
+    },
+    {
+      "path": "terminal/lib/__tests__/chartAppearanceContract.test.tsx",
+      "bytes": 7119,
+      "sha256": "22587a5b41970469341644f88185d6c737300590d6973c67cc543982ee9bf254",
+      "git_blob": "63e3cacef841709ecf1e2b7852e541fb8f054e41",
+      "base_blob": null
+    },
+    {
+      "path": "terminal/e2e/company-intelligence-appearance.spec.ts",
+      "bytes": 23351,
+      "sha256": "aacc676fa0c6d1ee2975236256303c54a54c2a04328b30b1972d3ba64b79354f",
+      "git_blob": "6ef32f51fecc8e19843b52f4f4b8e20f2e52385e",
+      "base_blob": null
+    }
+  ]
+}

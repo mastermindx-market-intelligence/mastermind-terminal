@@ -1,0 +1,26 @@
+{
+  "argv": [
+    "npm",
+    "--logs-dir=/tmp/gmi-terminal-canonical-launch-build-20261004/npm-logs",
+    "run",
+    "build"
+  ],
+  "child_pid": 22393,
+  "head": "2e9c81f51267ba1cab62789db0504d8315d031a6",
+  "tree": "52e5bfa4b2a57f2174de1a12e58111c3eeac54ee",
+  "node": "v20.20.2",
+  "npm": "11.17.0",
+  "start": "2026-10-04T11:29:03.157754+00:00",
+  "end": "2026-10-04T11:29:30.888136+00:00",
+  "exit": 0,
+  "bounded_seconds": 600,
+  "timed_out": false,
+  "env_selection": "RetainedNode20PATH/TZUTC/CI1 only; no auth/provider/testfixture/deployment inputs added",
+  "coverage_build_artifact": {
+    "exists": true,
+    "sha256": "5860f4f474ff00d95582169e40411a0114cc4b8d5db28e9185b4ded9a9ca71d9"
+  },
+  "BUILD_ID_exists": true,
+  "BUILD_ID": "gocGEqG5MrhL_xIBpopV7",
+  "log_sha256": "a2e992754580f8f72ff5716019b64748c88cb927ec9debe88aed9546f540cf8f"
+}

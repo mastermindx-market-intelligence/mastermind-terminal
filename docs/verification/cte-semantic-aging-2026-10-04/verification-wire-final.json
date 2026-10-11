@@ -1,0 +1,547 @@
+{
+  "generated_at": "2026-10-04T01:35:44.273689+00:00",
+  "source_receipt": {
+    "head": "c298fa1b831509dd3dcb7553aa34c03d69dd0084",
+    "branch": "claude/gmi-cte-semantic-aging-20261004-astra-001",
+    "patch_sha256": "06a311543877717fc4d4e98d22a7a3e04109f8add4e3b0c293b9781c34d7e96d",
+    "patch_bytes": 53068,
+    "files": [
+      {
+        "path": "terminal/lib/companyThemeExposure.ts",
+        "git_blob": "a7992cffe83b3bf4ca839da7ed305a4060360b40",
+        "sha256": "c0f7442bf47ef52a2e743e850eec20e818922f23d5c51b4f50bb70c3740d9d39",
+        "bytes": 35148
+      },
+      {
+        "path": "terminal/components/fin/CompanyThemeContextCard.tsx",
+        "git_blob": "1f85277cc3b285e34bd229a030a27918d8eaed55",
+        "sha256": "236501e98da08bd5f786bd60c441b54bebf13055df713e5c13d74f828ab2da75",
+        "bytes": 16380
+      },
+      {
+        "path": "terminal/lib/__tests__/companyThemeExposure.test.ts",
+        "git_blob": "dd6bc9fee32f776c38af7a81815c95c5bc31d2b9",
+        "sha256": "d849ac4a6ad31f9bcfbdc139fdf35ff6ff3ebc24289b0415d6d2a1d6b09a44d7",
+        "bytes": 18890
+      },
+      {
+        "path": "terminal/lib/__tests__/companyThemeExposureRoute.test.ts",
+        "git_blob": "cf84bc5ca304906ad5b21a4ce478df45ca144bd9",
+        "sha256": "9908203706fadcfa5de309db7b0a05cfaa66d8ca30fd95d53019158b7fc0a726",
+        "bytes": 10215
+      },
+      {
+        "path": "terminal/lib/__tests__/companyThemeContextCardAging.test.tsx",
+        "git_blob": "5e92d619c9fe0627741c759b694e6537e3151430",
+        "sha256": "71684702be95ace38d3ea1ca40cee2008425040595e6ba109d9dd817acec1f22",
+        "bytes": 7441
+      },
+      {
+        "path": "terminal/e2e/company-theme-context-aging.spec.ts",
+        "git_blob": "c1e2dc8211686c427afa147c6491bc1b7fedb052",
+        "sha256": "5f32bb788ed2c374f61d78b92a03faef2e9a6131ba2bf420e09a4320c5164455",
+        "bytes": 12570
+      }
+    ]
+  },
+  "checks": {
+    "unit": {
+      "passed": 40,
+      "exit": 0,
+      "pid": 49516
+    },
+    "typecheck": {
+      "exit": 0,
+      "pid": 49516
+    },
+    "focused_lint": {
+      "exit": 0,
+      "pid": 49516
+    },
+    "browser": {
+      "passed": 72,
+      "exit": 0,
+      "pid": 51324,
+      "port": 3201,
+      "server_reuse": false,
+      "fixture": true,
+      "retries": 0,
+      "workers": 1
+    },
+    "incumbent_browser": {
+      "passed": 3,
+      "skipped_existing": 6,
+      "exit": 0,
+      "pid": 58024,
+      "port": 3202,
+      "server_reuse": false
+    }
+  },
+  "artifacts": [
+    {
+      "path": ".claude/evidence/cte-aging/wire-red.log",
+      "sha256": "dc5fed3ae04feed84c13111d13cc5c26defc83907433be31f7f21248782b0fe1",
+      "bytes": 2154
+    },
+    {
+      "path": ".claude/evidence/cte-aging/wire-green-final.log",
+      "sha256": "91c6610d02f61857b72845e0dac7de35b509c505df9483e1a4fa611b6baa3889",
+      "bytes": 859
+    },
+    {
+      "path": ".claude/evidence/cte-aging/type-wire-final.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": ".claude/evidence/cte-aging/lint-wire-final.log",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": ".claude/evidence/cte-aging/browser-wire-final.log",
+      "sha256": "45eb354f0878a619ae9ac91131ad14d4c83eb09cdcddd52bd332fe507918f35b",
+      "bytes": 10087
+    },
+    {
+      "path": ".claude/evidence/cte-aging/browser-incumbent-wire-final.log",
+      "sha256": "a5b45a27bb83e43896af59d327b3f1f18098232abee0afc98a1e0b80b12b9d6a",
+      "bytes": 2397
+    },
+    {
+      "path": ".claude/evidence/cte-aging/source-wire-final.patch",
+      "sha256": "06a311543877717fc4d4e98d22a7a3e04109f8add4e3b0c293b9781c34d7e96d",
+      "bytes": 53068
+    },
+    {
+      "path": ".claude/evidence/cte-aging/source-wire-final-receipt.json",
+      "sha256": "02c15baa3dd3c8843189819905457ca3af1b5ef99407afc6236c81714272c88c",
+      "bytes": 1737
+    },
+    {
+      "path": ".claude/evidence/cte-aging/browser-wire-final/company-theme-context-agin-02011-theme-card-source-stale-ZH--desktop/dark-zh-source-stale.png",
+      "sha256": "a99c03ddfc3d8abf010b2fb64bd030d722cccd05413c257a3721a5589b0c825c",
+      "bytes": 101923
+    },
+    {
+      "path": ".claude/evidence/cte-aging/browser-wire-final/company-theme-context-agin-02011-theme-card-source-stale-ZH--mobile/dark-zh-source-stale.png",
+      "sha256": "a4b16550d338fc12350455fb763c2377d4736cc388b4aac1979265540a4d4676",
+      "bytes": 72445
+    },
+    {
+      "path": ".claude/evidence/cte-aging/browser-wire-final/company-theme-context-agin-02011-theme-card-source-stale-ZH--tablet/dark-zh-source-stale.png",
+      "sha256": "abbb1ca49449d47034af197c9ceb2eb6ba0120116ae702b1a2f27970a7960ac2",
+      "bytes": 117001
+    },
+    {
+      "path": ".claude/evidence/cte-aging/browser-wire-final/company-theme-context-agin-13065-isting-theme-card-empty-ZH--desktop/dark-zh-empty.png",
+      "sha256": "61309bd6f8e70ac7478f9c7e38459f1419de1b78ab8c5a1520621cd0a263aa11",
+      "bytes": 89722
+    },
+    {
+      "path": ".claude/evidence/cte-aging/browser-wire-final/company-theme-context-agin-13065-isting-theme-card-empty-ZH--mobile/dark-zh-empty.png",
+      "sha256": "2e79c8cd8baa95d462dac2ac68a5e5bd6e08910cf6a2938ca5579462c1fc570d",
+      "bytes": 68474
+    },
+    {
+      "path": ".claude/evidence/cte-aging/browser-wire-final/company-theme-context-agin-13065-isting-theme-card-empty-ZH--tablet/dark-zh-empty.png",
+      "sha256": "4f8bfb128a890794cc58723732fa427ffeae60ce73f31c8c9426aa6f7141208b",
+      "bytes": 101302
+    },
+    {
+      "path": ".claude/evidence/cte-aging/browser-wire-final/company-theme-context-agin-2297b-sting-theme-card-future-ZH--desktop/dark-zh-future.png",
+      "sha256": "97713096825c2664fe22c95e32d62954b70f4d0d529c452023f362c956d66a92",
+      "bytes": 103466
+    },
+    {
+      "path": ".claude/evidence/cte-aging/browser-wire-final/company-theme-context-agin-2297b-sting-theme-card-future-ZH--mobile/dark-zh-future.png",
+      "sha256": "35b2a346fcd20508d6f230d32a81a6f4bccf85fe7ef001d07fcd73ffa891ed41",
+      "bytes": 73835
+    },
+    {
+      "path": ".claude/evidence/cte-aging/browser-wire-final/company-theme-context-agin-2297b-sting-theme-card-future-ZH--tablet/dark-zh-future.png",
+      "sha256": "29b8a2fb1e7ef26764d0c015a85162d08b63922eda0fb5c10b2815a357a26cab",
+      "bytes": 118846
+    },
+    {
+      "path": ".claude/evidence/cte-aging/browser-wire-final/company-theme-context-agin-4f1cb-heme-card-unmapped-only-EN--desktop/dark-en-unmapped-only.png",
+      "sha256": "9c99bbeffc1c27cc0b2590cc1793cca6387c1bf1d625235a57beb86a4b25f4f7",
+      "bytes": 122176
+    },
+    {
+      "path": ".claude/evidence/cte-aging/browser-wire-final/company-theme-context-agin-4f1cb-heme-card-unmapped-only-EN--mobile/dark-en-unmapped-only.png",
+      "sha256": "e390b52a276c91ee5d46b5b87d4389fe6d108dfcb07baefb10511c237594e054",
+      "bytes": 101113
+    },
+    {
+      "path": ".claude/evidence/cte-aging/browser-wire-final/company-theme-context-agin-4f1cb-heme-card-unmapped-only-EN--tablet/dark-en-unmapped-only.png",
+      "sha256": "26835ee5b7a30a619a2822018e734aed90c6a2d1edd5cf25545699152546f820",
+      "bytes": 131318
+    },
+    {
+      "path": ".claude/evidence/cte-aging/browser-wire-final/company-theme-context-agin-54ba3-ting-theme-card-missing-ZH--desktop/dark-zh-missing.png",
+      "sha256": "39ef485997939560cff324fb85c7bc119d38bca8551c11264c6981c87f646504",
+      "bytes": 101191
+    },
+    {
+      "path": ".claude/evidence/cte-aging/browser-wire-final/company-theme-context-agin-54ba3-ting-theme-card-missing-ZH--mobile/dark-zh-missing.png",
+      "sha256": "c3b4e74c3b57b39e55ce5a5f9778e093975c71afa19cec0960a082a339140604",
+      "bytes": 71495
+    },
+    {
+      "path": ".claude/evidence/cte-aging/browser-wire-final/company-theme-context-agin-54ba3-ting-theme-card-missing-ZH--tablet/dark-zh-missing.png",
+      "sha256": "74c942d48f3c5ec6afcd8dc3c75976f326c5a6f0f001b1138e6fdb8cf0c54e21",
+      "bytes": 116368
+    },
+    {
+      "path": ".claude/evidence/cte-aging/browser-wire-final/company-theme-context-agin-612f3-isting-theme-card-mixed-ZH--desktop/dark-zh-mixed.png",
+      "sha256": "78bab90cde92b617f54dbfcbf4f12fc5a04e0b74201644f8837bfe49cf0af24c",
+      "bytes": 103929
+    },
+    {
+      "path": ".claude/evidence/cte-aging/browser-wire-final/company-theme-context-agin-612f3-isting-theme-card-mixed-ZH--mobile/dark-zh-mixed.png",
+      "sha256": "b6a75b1aa0d30ec1b4bae8f7f4317c9b37404bc3b6a17b800e55b9bd8071af34",
+      "bytes": 74180
+    },
+    {
+      "path": ".claude/evidence/cte-aging/browser-wire-final/company-theme-context-agin-612f3-isting-theme-card-mixed-ZH--tablet/dark-zh-mixed.png",
+      "sha256": "200031a25480dd141edb751166ec164aa3353238f5a6693334907d0bb42bfea6",
+      "bytes": 119086
+    },
+    {
+      "path": ".claude/evidence/cte-aging/browser-wire-final/company-theme-context-agin-6fdf5-ting-theme-card-invalid-EN--desktop/dark-en-invalid.png",
+      "sha256": "117cdfa88a17dc45db42066b09350a15d714bcfd1ba4da20ad3c89e7980cb899",
+      "bytes": 112674
+    },
+    {
+      "path": ".claude/evidence/cte-aging/browser-wire-final/company-theme-context-agin-6fdf5-ting-theme-card-invalid-EN--mobile/dark-en-invalid.png",
+      "sha256": "34b924e9dd488c53caf4868364f50352565a710de15edbb44a35bc2ad0a3c63b",
+      "bytes": 81007
+    },
+    {
+      "path": ".claude/evidence/cte-aging/browser-wire-final/company-theme-context-agin-6fdf5-ting-theme-card-invalid-EN--tablet/dark-en-invalid.png",
+      "sha256": "f5f976168f604c18506e5d76c116ca4807084af3ebbb4bf42d583eab7e33f9bb",
+      "bytes": 122472
+    },
+    {
+      "path": ".claude/evidence/cte-aging/browser-wire-final/company-theme-context-agin-7209d-theme-card-source-stale-EN--desktop/dark-en-source-stale.png",
+      "sha256": "f80ceb37e5fce21b78a694361bb50bf6e758acc6bb0920f2d7d6f87b6e4fb40e",
+      "bytes": 113200
+    },
+    {
+      "path": ".claude/evidence/cte-aging/browser-wire-final/company-theme-context-agin-7209d-theme-card-source-stale-EN--mobile/dark-en-source-stale.png",
+      "sha256": "4895273b9bf99a98e999b5be14f8f78e7defe0db6100bc8d3196762457f0e33a",
+      "bytes": 81493
+    },
+    {
+      "path": ".claude/evidence/cte-aging/browser-wire-final/company-theme-context-agin-7209d-theme-card-source-stale-EN--tablet/dark-en-source-stale.png",
+      "sha256": "5d6bdcefd1d36c2ea7c059140142296989413606e6491717f91db1fc0a6361f7",
+      "bytes": 122995
+    },
+    {
+      "path": ".claude/evidence/cte-aging/browser-wire-final/company-theme-context-agin-8580c-sting-theme-card-future-EN--desktop/dark-en-future.png",
+      "sha256": "3944ee1eb9e5ce476fcc9b18f830fa842cda1d50b19384a2eb298a1e8f4d6e97",
+      "bytes": 115127
+    },
+    {
+      "path": ".claude/evidence/cte-aging/browser-wire-final/company-theme-context-agin-8580c-sting-theme-card-future-EN--mobile/dark-en-future.png",
+      "sha256": "fcba1e9045ff27b0c45169ea7a35f59c59bc39ab937b87e3e2ad086bab837832",
+      "bytes": 85791
+    },
+    {
+      "path": ".claude/evidence/cte-aging/browser-wire-final/company-theme-context-agin-8580c-sting-theme-card-future-EN--tablet/dark-en-future.png",
+      "sha256": "25962e20af4a68529276f4ae6287d9b569b69ca3c3514667f13ba272bf374994",
+      "bytes": 124776
+    },
+    {
+      "path": ".claude/evidence/cte-aging/browser-wire-final/company-theme-context-agin-96b30-ting-theme-card-missing-EN--desktop/dark-en-missing.png",
+      "sha256": "faff16ded48cf6eb617ff2f0ac3edcf9afcd5cd9ca509913af3c1722514e2e4a",
+      "bytes": 113238
+    },
+    {
+      "path": ".claude/evidence/cte-aging/browser-wire-final/company-theme-context-agin-96b30-ting-theme-card-missing-EN--mobile/dark-en-missing.png",
+      "sha256": "0eedeab772daa97d08688aa6b01ed1cc870f170e362791b0e929a74332c378b6",
+      "bytes": 81351
+    },
+    {
+      "path": ".claude/evidence/cte-aging/browser-wire-final/company-theme-context-agin-96b30-ting-theme-card-missing-EN--tablet/dark-en-missing.png",
+      "sha256": "890b77b17719ff8e7696bf5ca69fe1fcb03622d0573f089385cc4563af25056d",
+      "bytes": 123071
+    },
+    {
+      "path": ".claude/evidence/cte-aging/browser-wire-final/company-theme-context-agin-a5590-ting-theme-card-invalid-ZH--desktop/dark-zh-invalid.png",
+      "sha256": "93ef6868fc2690f3b860a7fb26dfcd75850d8a7a9979c1c4712428a9f8699384",
+      "bytes": 101424
+    },
+    {
+      "path": ".claude/evidence/cte-aging/browser-wire-final/company-theme-context-agin-a5590-ting-theme-card-invalid-ZH--mobile/dark-zh-invalid.png",
+      "sha256": "d66e34b0e82be1c5155dd947e0f007c39dd05148c49e5062655fd7bb81035963",
+      "bytes": 71685
+    },
+    {
+      "path": ".claude/evidence/cte-aging/browser-wire-final/company-theme-context-agin-a5590-ting-theme-card-invalid-ZH--tablet/dark-zh-invalid.png",
+      "sha256": "ff3c69d4d3b5f38c3d9ed5b951a54bd7b9e438f080dd07432acc4367551a51ee",
+      "bytes": 116584
+    },
+    {
+      "path": ".claude/evidence/cte-aging/browser-wire-final/company-theme-context-agin-a7d0d-g-theme-card-refreshing-EN--desktop/dark-en-refreshing.png",
+      "sha256": "9925c93a7871a53f5e05a7f8d7e45ec9a733aae02a2efe88162c6c2dadb18a63",
+      "bytes": 12801
+    },
+    {
+      "path": ".claude/evidence/cte-aging/browser-wire-final/company-theme-context-agin-a7d0d-g-theme-card-refreshing-EN--mobile/dark-en-refreshing.png",
+      "sha256": "fe56d638408172059ec7b388ce279d5b044f8488f9e8f3616652e2245e50dad9",
+      "bytes": 12377
+    },
+    {
+      "path": ".claude/evidence/cte-aging/browser-wire-final/company-theme-context-agin-a7d0d-g-theme-card-refreshing-EN--tablet/dark-en-refreshing.png",
+      "sha256": "64d8f6a03c903fb785e449a9ff87137665177312b337dd28fbca2881fdd819d7",
+      "bytes": 12555
+    },
+    {
+      "path": ".claude/evidence/cte-aging/browser-wire-final/company-theme-context-agin-ab918-ng-theme-card-last-good-EN--desktop/dark-en-last-good.png",
+      "sha256": "fe3756c7ecb1e911ac87f2283dc7f45cdee85c64425daf99b24916391673425b",
+      "bytes": 94973
+    },
+    {
+      "path": ".claude/evidence/cte-aging/browser-wire-final/company-theme-context-agin-ab918-ng-theme-card-last-good-EN--mobile/dark-en-last-good.png",
+      "sha256": "4927f2fd7da0132f175c17a6c0fb3f313c43070b183dbc56e9259aff2dee53cd",
+      "bytes": 68045
+    },
+    {
+      "path": ".claude/evidence/cte-aging/browser-wire-final/company-theme-context-agin-ab918-ng-theme-card-last-good-EN--tablet/dark-en-last-good.png",
+      "sha256": "ebe19d02e986838c7977fbd6f873c149563f337839f54cc73c94b4098568026f",
+      "bytes": 101753
+    },
+    {
+      "path": ".claude/evidence/cte-aging/browser-wire-final/company-theme-context-agin-b3b8b-t-reloading-or-fetching-ZH--desktop/dark-zh-expired.png",
+      "sha256": "a99c03ddfc3d8abf010b2fb64bd030d722cccd05413c257a3721a5589b0c825c",
+      "bytes": 101923
+    },
+    {
+      "path": ".claude/evidence/cte-aging/browser-wire-final/company-theme-context-agin-b3b8b-t-reloading-or-fetching-ZH--desktop/dark-zh-fresh.png",
+      "sha256": "4f3387748ef1d92702562d835ec347fbf4fd6f0d72770d3328554db3cefa8a51",
+      "bytes": 84807
+    },
+    {
+      "path": ".claude/evidence/cte-aging/browser-wire-final/company-theme-context-agin-b3b8b-t-reloading-or-fetching-ZH--desktop/dark-zh-historical.png",
+      "sha256": "ae97d88992d07c1c64f5bf61454dfde7c746461a44a111e50af28e90f3fe73b9",
+      "bytes": 20984
+    },
+    {
+      "path": ".claude/evidence/cte-aging/browser-wire-final/company-theme-context-agin-b3b8b-t-reloading-or-fetching-ZH--mobile/dark-zh-expired.png",
+      "sha256": "a4b16550d338fc12350455fb763c2377d4736cc388b4aac1979265540a4d4676",
+      "bytes": 72445
+    },
+    {
+      "path": ".claude/evidence/cte-aging/browser-wire-final/company-theme-context-agin-b3b8b-t-reloading-or-fetching-ZH--mobile/dark-zh-fresh.png",
+      "sha256": "4c0753d85ee501e669b5a174b5118e1119df918d217f59e628585b1d360564fb",
+      "bytes": 60468
+    },
+    {
+      "path": ".claude/evidence/cte-aging/browser-wire-final/company-theme-context-agin-b3b8b-t-reloading-or-fetching-ZH--mobile/dark-zh-historical.png",
+      "sha256": "4f19d68151c2d5e91759879a26d7b1d4c71d39abaf85d97fabf7fa44e3ac258b",
+      "bytes": 18309
+    },
+    {
+      "path": ".claude/evidence/cte-aging/browser-wire-final/company-theme-context-agin-b3b8b-t-reloading-or-fetching-ZH--tablet/dark-zh-expired.png",
+      "sha256": "abbb1ca49449d47034af197c9ceb2eb6ba0120116ae702b1a2f27970a7960ac2",
+      "bytes": 117001
+    },
+    {
+      "path": ".claude/evidence/cte-aging/browser-wire-final/company-theme-context-agin-b3b8b-t-reloading-or-fetching-ZH--tablet/dark-zh-fresh.png",
+      "sha256": "536fafd510c79f5d2fae40d58d6afcbf6a97e415667fe9b04048cad39533d338",
+      "bytes": 96695
+    },
+    {
+      "path": ".claude/evidence/cte-aging/browser-wire-final/company-theme-context-agin-b3b8b-t-reloading-or-fetching-ZH--tablet/dark-zh-historical.png",
+      "sha256": "48ea2f99e35fcdc3feeaf335256596702bc34ea9c05c25bed13640c98b61496e",
+      "bytes": 19553
+    },
+    {
+      "path": ".claude/evidence/cte-aging/browser-wire-final/company-theme-context-agin-c043f--card-future-generation-EN--desktop/dark-en-future-generation.png",
+      "sha256": "a4411a77c2bd4e381354dab3687c012fa1abbbe637cff6e95a143a5d040fcf47",
+      "bytes": 10932
+    },
+    {
+      "path": ".claude/evidence/cte-aging/browser-wire-final/company-theme-context-agin-c043f--card-future-generation-EN--mobile/dark-en-future-generation.png",
+      "sha256": "5e74f8d5e2d2e308eafe3dc62678a734e241a577100eae43a97ddb85a894fb33",
+      "bytes": 10671
+    },
+    {
+      "path": ".claude/evidence/cte-aging/browser-wire-final/company-theme-context-agin-c043f--card-future-generation-EN--tablet/dark-en-future-generation.png",
+      "sha256": "14e9cfe13d144e919428d0d3b1993e268c3024a7cc566dbce3f1cc8a070f1647",
+      "bytes": 11137
+    },
+    {
+      "path": ".claude/evidence/cte-aging/browser-wire-final/company-theme-context-agin-c1c06--card-future-generation-ZH--desktop/dark-zh-future-generation.png",
+      "sha256": "51ca2c3dabfc02c3ee72c0e93a64b450c596fd9004dff9be249cdf971a80781b",
+      "bytes": 10171
+    },
+    {
+      "path": ".claude/evidence/cte-aging/browser-wire-final/company-theme-context-agin-c1c06--card-future-generation-ZH--mobile/dark-zh-future-generation.png",
+      "sha256": "05e340c5223d7c0e9de4a86bb05541e180dd64ed02dc00788a3535e23ad8536d",
+      "bytes": 9939
+    },
+    {
+      "path": ".claude/evidence/cte-aging/browser-wire-final/company-theme-context-agin-c1c06--card-future-generation-ZH--tablet/dark-zh-future-generation.png",
+      "sha256": "e82d42c8823de4bdb9c94a79d3f226b3c9a1e63aa27d21de20b57c7825400392",
+      "bytes": 10400
+    },
+    {
+      "path": ".claude/evidence/cte-aging/browser-wire-final/company-theme-context-agin-cdb0f-t-reloading-or-fetching-EN--desktop/dark-en-expired.png",
+      "sha256": "f80ceb37e5fce21b78a694361bb50bf6e758acc6bb0920f2d7d6f87b6e4fb40e",
+      "bytes": 113200
+    },
+    {
+      "path": ".claude/evidence/cte-aging/browser-wire-final/company-theme-context-agin-cdb0f-t-reloading-or-fetching-EN--desktop/dark-en-fresh.png",
+      "sha256": "5e75ec5c73070370ccf4ba876a5bcff42e478199c3ae3b5508d72af947e5a512",
+      "bytes": 94668
+    },
+    {
+      "path": ".claude/evidence/cte-aging/browser-wire-final/company-theme-context-agin-cdb0f-t-reloading-or-fetching-EN--desktop/dark-en-historical.png",
+      "sha256": "213e80620fe44948c98cc05f81d0102bb846b21496d15b3622c9b954b09fa740",
+      "bytes": 19572
+    },
+    {
+      "path": ".claude/evidence/cte-aging/browser-wire-final/company-theme-context-agin-cdb0f-t-reloading-or-fetching-EN--mobile/dark-en-expired.png",
+      "sha256": "4895273b9bf99a98e999b5be14f8f78e7defe0db6100bc8d3196762457f0e33a",
+      "bytes": 81493
+    },
+    {
+      "path": ".claude/evidence/cte-aging/browser-wire-final/company-theme-context-agin-cdb0f-t-reloading-or-fetching-EN--mobile/dark-en-fresh.png",
+      "sha256": "1788c1b409b0b41f8affc96b725ea6df04f5aa6d998437d1365249464640d5fe",
+      "bytes": 67837
+    },
+    {
+      "path": ".claude/evidence/cte-aging/browser-wire-final/company-theme-context-agin-cdb0f-t-reloading-or-fetching-EN--mobile/dark-en-historical.png",
+      "sha256": "1984ef74ad6bea68892a983622d71a38667867eeac16ad8521e8190c0c0b06cb",
+      "bytes": 18748
+    },
+    {
+      "path": ".claude/evidence/cte-aging/browser-wire-final/company-theme-context-agin-cdb0f-t-reloading-or-fetching-EN--tablet/dark-en-expired.png",
+      "sha256": "5d6bdcefd1d36c2ea7c059140142296989413606e6491717f91db1fc0a6361f7",
+      "bytes": 122995
+    },
+    {
+      "path": ".claude/evidence/cte-aging/browser-wire-final/company-theme-context-agin-cdb0f-t-reloading-or-fetching-EN--tablet/dark-en-fresh.png",
+      "sha256": "cccac92c0b7da94198f2af37f4063665c3107301ec49ac216f20fa2e13feaedf",
+      "bytes": 101431
+    },
+    {
+      "path": ".claude/evidence/cte-aging/browser-wire-final/company-theme-context-agin-cdb0f-t-reloading-or-fetching-EN--tablet/dark-en-historical.png",
+      "sha256": "e62ec6148a94abecd89c3c6c60f9dc6079c5c991da6d745ac14f64b9c0e8d04f",
+      "bytes": 18353
+    },
+    {
+      "path": ".claude/evidence/cte-aging/browser-wire-final/company-theme-context-agin-d3e46--theme-card-unavailable-EN--desktop/dark-en-unavailable.png",
+      "sha256": "c1e052a1aa0b08e0056d42f89a7ca25fb9dfb70e6f32ae3c7bd6c41c456a8808",
+      "bytes": 11067
+    },
+    {
+      "path": ".claude/evidence/cte-aging/browser-wire-final/company-theme-context-agin-d3e46--theme-card-unavailable-EN--mobile/dark-en-unavailable.png",
+      "sha256": "a6636b455e9aaff42cf2f0dfc72927b46a2b1246b1e39951c4556e5c70497996",
+      "bytes": 11140
+    },
+    {
+      "path": ".claude/evidence/cte-aging/browser-wire-final/company-theme-context-agin-d3e46--theme-card-unavailable-EN--tablet/dark-en-unavailable.png",
+      "sha256": "7ab0358eec1900d2bd1010a2ee61b6ca1bd4596033955acc4b5f843a810b9b0f",
+      "bytes": 11284
+    },
+    {
+      "path": ".claude/evidence/cte-aging/browser-wire-final/company-theme-context-agin-e1b2d-isting-theme-card-mixed-EN--desktop/dark-en-mixed.png",
+      "sha256": "190db46d19ad1cbf523d011164262c8821ff49e5e5545f2a3187644418d7a43d",
+      "bytes": 115195
+    },
+    {
+      "path": ".claude/evidence/cte-aging/browser-wire-final/company-theme-context-agin-e1b2d-isting-theme-card-mixed-EN--mobile/dark-en-mixed.png",
+      "sha256": "ad130e160e5ba083052901f60142a3d488c837aaf3daed5aca617fc5614d99ad",
+      "bytes": 86116
+    },
+    {
+      "path": ".claude/evidence/cte-aging/browser-wire-final/company-theme-context-agin-e1b2d-isting-theme-card-mixed-EN--tablet/dark-en-mixed.png",
+      "sha256": "e1221ab7c30aa6ad50feb0d266229a4187d8aa8ec638a7d9904efc25e3d983a3",
+      "bytes": 125198
+    },
+    {
+      "path": ".claude/evidence/cte-aging/browser-wire-final/company-theme-context-agin-e398b-ng-theme-card-last-good-ZH--desktop/dark-zh-last-good.png",
+      "sha256": "214022ea8acd8c1b2899dfe18d1c4297a0fddfdf8ae839b732bc801ed885814c",
+      "bytes": 85046
+    },
+    {
+      "path": ".claude/evidence/cte-aging/browser-wire-final/company-theme-context-agin-e398b-ng-theme-card-last-good-ZH--mobile/dark-zh-last-good.png",
+      "sha256": "ae79c306f4ede1a2acaf4c242019ad8dcaca0209705aa451408fcb026a8efd5f",
+      "bytes": 60749
+    },
+    {
+      "path": ".claude/evidence/cte-aging/browser-wire-final/company-theme-context-agin-e398b-ng-theme-card-last-good-ZH--tablet/dark-zh-last-good.png",
+      "sha256": "9662a14f18809c28994891dd52eb15090a287c15c10b1b70d5b5ddb636f2129b",
+      "bytes": 97005
+    },
+    {
+      "path": ".claude/evidence/cte-aging/browser-wire-final/company-theme-context-agin-e6e0d-g-theme-card-refreshing-ZH--desktop/dark-zh-refreshing.png",
+      "sha256": "ddbed0719b47601726947ae989687a31382c6c0922fe1c159fb8532a7ee01353",
+      "bytes": 11627
+    },
+    {
+      "path": ".claude/evidence/cte-aging/browser-wire-final/company-theme-context-agin-e6e0d-g-theme-card-refreshing-ZH--mobile/dark-zh-refreshing.png",
+      "sha256": "7466016d4c52a081a5f17f659b0225f36c0ea7f215a4665241e0a8278070fed1",
+      "bytes": 11301
+    },
+    {
+      "path": ".claude/evidence/cte-aging/browser-wire-final/company-theme-context-agin-e6e0d-g-theme-card-refreshing-ZH--tablet/dark-zh-refreshing.png",
+      "sha256": "4000f91ac19ee677fd5aa3c44eb8c0794dee4916eed916a0008bfa76321b4241",
+      "bytes": 11869
+    },
+    {
+      "path": ".claude/evidence/cte-aging/browser-wire-final/company-theme-context-agin-ef919--theme-card-unavailable-ZH--desktop/dark-zh-unavailable.png",
+      "sha256": "94c47e42617962e8ac28eb3bd8a868483698067d1e3bbd2a53c2624acb914b83",
+      "bytes": 10679
+    },
+    {
+      "path": ".claude/evidence/cte-aging/browser-wire-final/company-theme-context-agin-ef919--theme-card-unavailable-ZH--mobile/dark-zh-unavailable.png",
+      "sha256": "170d9469f9e641519fc0285a22d8deae35a5ae392348eb254e3cc353c54f1f16",
+      "bytes": 10447
+    },
+    {
+      "path": ".claude/evidence/cte-aging/browser-wire-final/company-theme-context-agin-ef919--theme-card-unavailable-ZH--tablet/dark-zh-unavailable.png",
+      "sha256": "e063e821b346ab06a86e5517d241c0741a134c913a33fd09eafb239af291a955",
+      "bytes": 10915
+    },
+    {
+      "path": ".claude/evidence/cte-aging/browser-wire-final/company-theme-context-agin-f468d-isting-theme-card-empty-EN--desktop/dark-en-empty.png",
+      "sha256": "e231f09febece6f136b98662eb50ed566ec6b9ba33924d69aff0ab625309f5f8",
+      "bytes": 100675
+    },
+    {
+      "path": ".claude/evidence/cte-aging/browser-wire-final/company-theme-context-agin-f468d-isting-theme-card-empty-EN--mobile/dark-en-empty.png",
+      "sha256": "83252d27e331ad476ee3c65f84bdf8bf8685c51bc139881f52eb098df53bdfbc",
+      "bytes": 79377
+    },
+    {
+      "path": ".claude/evidence/cte-aging/browser-wire-final/company-theme-context-agin-f468d-isting-theme-card-empty-EN--tablet/dark-en-empty.png",
+      "sha256": "d62a1dd46490831ed1ee8b4ab27dc4db39aa164cc65a664a507e472080b43ff5",
+      "bytes": 107593
+    },
+    {
+      "path": ".claude/evidence/cte-aging/browser-wire-final/company-theme-context-agin-f8c78-heme-card-unmapped-only-ZH--desktop/dark-zh-unmapped-only.png",
+      "sha256": "fdf26137e9a96123de367c7f5b262f0ff21b5186124436b2269a92a2552f7388",
+      "bytes": 109356
+    },
+    {
+      "path": ".claude/evidence/cte-aging/browser-wire-final/company-theme-context-agin-f8c78-heme-card-unmapped-only-ZH--mobile/dark-zh-unmapped-only.png",
+      "sha256": "e1b020c0cf5ab421cb9b8ceb30e2248c79f71d3ca877f886560b4aa0a0dcec49",
+      "bytes": 83746
+    },
+    {
+      "path": ".claude/evidence/cte-aging/browser-wire-final/company-theme-context-agin-f8c78-heme-card-unmapped-only-ZH--tablet/dark-zh-unmapped-only.png",
+      "sha256": "8c854a711b00c2ee1f37310d35dae36b1f938fc1dd63b6d67318032e21fddd10",
+      "bytes": 123956
+    }
+  ],
+  "limitations": [
+    "Dark only: Terminal has no light mode.",
+    "Synthetic fixtures, not natural-publication/production/premium-plane evidence.",
+    "No hosted required CI, commit, push, merge, deploy, rights-age or premium-delivery claim."
+  ]
+}

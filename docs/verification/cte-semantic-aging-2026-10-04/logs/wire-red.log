@@ -1,0 +1,47 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+ RUN  v2.1.9 /Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/gmi-cte-semantic-aging-20261004-astra-001/terminal
+
+ ✓ lib/__tests__/companyThemeExposure.test.ts (21 tests) 24ms
+ ❯ lib/__tests__/companyThemeExposureRoute.test.ts (8 tests | 1 failed) 29ms
+   × /api/company-theme-context/[symbol] > round-trips a future-source derived partial from verified resolver through API to browser and mounted card 14ms
+     → expected { ok: false, state: 'error', …(1) } to match object { ok: true, state: 'partial', …(2) }
+(4 matching properties omitted from actual)
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  lib/__tests__/companyThemeExposureRoute.test.ts > /api/company-theme-context/[symbol] > round-trips a future-source derived partial from verified resolver through API to browser and mounted card
+AssertionError: expected { ok: false, state: 'error', …(1) } to match object { ok: true, state: 'partial', …(2) }
+(4 matching properties omitted from actual)
+
+- Expected
++ Received
+
+  Object {
+-   "context": Object {
+-     "status": "ready",
+-   },
+-   "freshness": Object {
+-     "status": "future",
+-   },
+-   "ok": true,
+-   "state": "partial",
++   "ok": false,
++   "state": "error",
+  }
+
+ ❯ lib/__tests__/companyThemeExposureRoute.test.ts:94:51
+     92|     expect(createHash("sha256").update(futureRaw).digest("hex")).toBe(…
+     93|     globalThis.fetch = vi.fn(async () => new Response(JSON.stringify(w…
+     94|     expect(await getCompanyThemeExposure("NVDA")).toMatchObject({ ok: …
+       |                                                   ^
+     95|     const host = document.createElement("div");
+     96|     document.body.append(host);
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+ Test Files  1 failed | 1 passed (2)
+      Tests  1 failed | 28 passed (29)
+   Start at  18:29:14
+   Duration  858ms (transform 157ms, setup 0ms, collect 234ms, tests 53ms, environment 360ms, prepare 82ms)
+

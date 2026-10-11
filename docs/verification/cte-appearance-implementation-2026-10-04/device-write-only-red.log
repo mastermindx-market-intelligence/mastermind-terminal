@@ -1,0 +1,31 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+ RUN  v2.1.9 /Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/gmi-cte-semantic-aging-20261004-astra-001/terminal
+
+ ❯ lib/__tests__/terminalAppearanceSync.test.tsx (12 tests | 1 failed) 96ms
+   × canonical appearance through the real provider and controls > volatile device intent outranks a readable stale cache when only writes fail 6ms
+     → expected 'dark' to be 'light' // Object.is equality
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 1 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  lib/__tests__/terminalAppearanceSync.test.tsx > canonical appearance through the real provider and controls > volatile device intent outranks a readable stale cache when only writes fail
+AssertionError: expected 'dark' to be 'light' // Object.is equality
+
+Expected: "light"
+Received: "dark"
+
+ ❯ lib/__tests__/terminalAppearanceSync.test.tsx:132:54
+    130|     try {
+    131|       act(() => { applyTerminalAppearance("light"); });
+    132|       expect(document.documentElement.dataset.theme).toBe("light");
+       |                                                      ^
+    133|       expect(localStorage.getItem("theme")).toBe("dark");
+    134|       act(() => { applyTerminalAppearance("auto"); });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/1]⎯
+
+ Test Files  1 failed (1)
+      Tests  1 failed | 11 passed (12)
+   Start at  02:06:38
+   Duration  1.10s (transform 161ms, setup 0ms, collect 234ms, tests 96ms, environment 480ms, prepare 67ms)
+

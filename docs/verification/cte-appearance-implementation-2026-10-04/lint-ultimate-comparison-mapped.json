@@ -1,0 +1,29 @@
+[
+  {
+    "path": "components/ChartPanel.tsx",
+    "base_errors": 264,
+    "base_warnings": 24,
+    "current_errors": 264,
+    "current_warnings": 24,
+    "added": [],
+    "removed": []
+  },
+  {
+    "path": "components/settings/SectionPreferences.tsx",
+    "base_errors": 5,
+    "base_warnings": 0,
+    "current_errors": 5,
+    "current_warnings": 0,
+    "added": [],
+    "removed": []
+  },
+  {
+    "path": "components/settings/SettingsProvider.tsx",
+    "base_errors": 4,
+    "base_warnings": 0,
+    "current_errors": 4,
+    "current_warnings": 0,
+    "added": [],
+    "removed": []
+  }
+]

@@ -1,0 +1,40 @@
+{
+  "head": "2e9c81f51267ba1cab62789db0504d8315d031a6",
+  "tree": "52e5bfa4b2a57f2174de1a12e58111c3eeac54ee",
+  "source_preserved": true,
+  "prior977_preserved": true,
+  "files": [
+    {
+      "path": "terminal/package.json",
+      "sha256": "722f7d03e3c7e8a14423612a3b9bf6416442498e90f5890b2249a188edd27f10"
+    },
+    {
+      "path": "terminal/package-lock.json",
+      "sha256": "c8bd178646d6ee83c463c6c8f77a6b277ddfd2e5d80f60395b4b747a9cecd1c1"
+    },
+    {
+      "path": ".github/workflows/ci.yml",
+      "sha256": "0184a31a3e98bca66cc36bf4fbe18312ff2bfbc2bccaee2654d549c594d9b295"
+    },
+    {
+      "path": "ops/terminal-build.sh",
+      "sha256": "31d04362f041258524bbce1551befbae7322d2dd80a2f368cf6ae43c98de669f"
+    },
+    {
+      "path": "scripts/build_data_coverage.py",
+      "sha256": "652c994ecfd8573a005091242c273c008b2bd64690c05ac1ccc198293b21691d"
+    },
+    {
+      "path": "DEPLOY.md",
+      "sha256": "ad2b07bdfeb1697ea9d1ee932dd1f502067b6fbd21b927ac4eba22bbac91f357"
+    },
+    {
+      "path": "terminal/next.config.ts",
+      "sha256": "85305db0bd0c943fbc40b4b1f4032e9c60d5991aa3313067a20eb0e7ea189ce0"
+    },
+    {
+      "path": "terminal/playwright.config.ts",
+      "sha256": "c075c66531c8adbe369f525e20ed864c9d8594cc7ed81fb62ecb601659f857d3"
+    }
+  ]
+}

@@ -1,0 +1,19 @@
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+ RUN  v2.1.9 /Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/gmi-cte-semantic-aging-20261004-astra-001/terminal
+
+ ✓ lib/__tests__/accountPrefs.test.ts (35 tests) 6ms
+ ✓ lib/__tests__/companyThemeExposure.test.ts (21 tests) 48ms
+ ✓ lib/__tests__/marketPrefsOwner.test.ts (32 tests) 82ms
+ ✓ lib/__tests__/companyThemeExposureSuccessor.test.ts (64 tests) 77ms
+ ✓ lib/__tests__/companyThemeExposureRoute.test.ts (8 tests) 308ms
+ ✓ lib/__tests__/terminalAppearance.test.ts (18 tests) 8ms
+ ✓ lib/__tests__/companyThemeContextCardAging.test.tsx (11 tests) 72ms
+ ✓ lib/__tests__/terminalAppearanceSync.test.tsx (12 tests) 88ms
+ ✓ lib/__tests__/chartAppearanceContract.test.tsx (6 tests) 42ms
+
+ Test Files  9 passed (9)
+      Tests  207 passed (207)
+   Start at  02:11:27
+   Duration  1.59s (transform 779ms, setup 0ms, collect 2.33s, tests 731ms, environment 2.17s, prepare 450ms)
+

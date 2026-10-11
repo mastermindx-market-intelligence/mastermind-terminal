@@ -98,8 +98,19 @@ export type CompanyThemeExposureErrorCode =
   | "upstream_unavailable"
   | "invalid_payload";
 
+/** Consumer evaluation; never part of the immutable producer context or its hash. */
+export interface CompanyThemeExposureFreshness {
+  policy: "company_theme_exposure.v1/five_calendar_days";
+  evaluated_at: string;
+  status: CompanyThemeStateReceipt["status"] | "future";
+  reason: "source_status" | "expired" | "future_clock" | null;
+  source_as_of: string | null;
+  age_days: number | null;
+  expires_at: string | null;
+}
+
 export type CompanyThemeExposureResult =
-  | { ok: true; state: CompanyThemeExposureState; context: CompanyThemeExposure }
+  | { ok: true; state: CompanyThemeExposureState; context: CompanyThemeExposure; freshness: CompanyThemeExposureFreshness }
   | { ok: false; state: "error"; error: { code: CompanyThemeExposureErrorCode; message: string; retryable: boolean } };
 
 export interface CompanyThemeExposureLineageExpectation {
@@ -362,8 +373,51 @@ function error(code: CompanyThemeExposureErrorCode, message: string, retryable: 
   return { ok: false, state: "error", error: { code, message, retryable } };
 }
 
-function ready(context: CompanyThemeExposure, state: CompanyThemeExposureState = context.status): CompanyThemeExposureResult {
-  return { ok: true, state, context };
+/**
+ * Mirrors Macro views.py's existing v1 predicate: calendar-date difference > 5.
+ * as_of is a UTC calendar date, so expiration starts on day six at 00:00Z.
+ * Fetch/cache timestamps and generated_at never renew the source receipt.
+ */
+export function evaluateCompanyThemeExposureFreshness(context: CompanyThemeExposure, now = Date.now()): CompanyThemeExposureFreshness {
+  const receipt = context.theme_state;
+  const out: CompanyThemeExposureFreshness = {
+    policy: "company_theme_exposure.v1/five_calendar_days",
+    evaluated_at: new Date(now).toISOString(),
+    status: receipt.status,
+    reason: receipt.status === "fresh" ? null : "source_status",
+    source_as_of: receipt.as_of,
+    age_days: null,
+    expires_at: null,
+  };
+  // Unknown or invalid source clocks have no inferred age or expiration.
+  if (receipt.status === "missing" || receipt.status === "invalid" || !validDate(receipt.as_of)) return out;
+  const dayMs = 86_400_000;
+  const sourceDay = Date.parse(`${receipt.as_of}T00:00:00.000Z`);
+  const currentDay = Math.floor(now / dayMs) * dayMs;
+  const age = (currentDay - sourceDay) / dayMs;
+  if (age < 0) return { ...out, status: "future", reason: "future_clock" };
+  out.age_days = age;
+  out.expires_at = new Date(sourceDay + 6 * dayMs).toISOString();
+  if (receipt.status === "fresh" && age > 5) {
+    out.status = "stale";
+    out.reason = "expired";
+  }
+  return out;
+}
+
+function ready(context: CompanyThemeExposure, state: CompanyThemeExposureState = context.status, now = Date.now()): CompanyThemeExposureResult {
+  if (Date.parse(context.generated_at) > now) {
+    return error("invalid_payload", "Company theme context has a future publication clock", true);
+  }
+  const freshness = evaluateCompanyThemeExposureFreshness(context, now);
+  const effective = state === "stale" || freshness.status === "stale" ? "stale"
+    : freshness.status === "fresh" ? state : "partial";
+  return { ok: true, state: effective, context, freshness };
+}
+
+/** Re-evaluate an already verified result without mutating its source context. */
+export function ageCompanyThemeExposureResult(result: CompanyThemeExposureResult, now = Date.now()): CompanyThemeExposureResult {
+  return result.ok ? ready(result.context, result.state, now) : result;
 }
 
 function sameThemeState(left: CompanyThemeStateReceipt, right: CompanyThemeStateReceipt): boolean {
@@ -554,8 +608,9 @@ export async function resolveCompanyThemeExposureFromR2(
   const context = normalizeCompanyThemeExposure(fetched.raw, ticker, manifest.generation_id);
   if (!context || !matchesLineage(context, manifest, expected)) return cachedContext ? ready(cachedContext, "stale") : lastGoodContext ? ready(lastGoodContext, "stale")
     : error("invalid_payload", "Company theme context payload is invalid", true);
-  remember(`${manifest.generation_id}:${ticker}`, ticker, context, now);
-  return ready(context);
+  const result = ready(context);
+  if (result.ok) remember(`${manifest.generation_id}:${ticker}`, ticker, context, now);
+  return result;
 }
 
 /** Client-side same-origin call; public R2 never enters a client bundle. */
@@ -580,7 +635,16 @@ export async function getCompanyThemeExposure(symbol: string, options: { signal?
     }
     if (payload.ok === true && (payload.state === "ready" || payload.state === "partial" || payload.state === "stale" || payload.state === "not_covered")) {
       const context = normalizeCompanyThemeExposure(payload.context, ticker);
-      if (context && (payload.state === "stale" || context.status === payload.state)) return ready(context, payload.state);
+      if (context) {
+        // The BFF may derive partial for an unusable source clock while the
+        // immutable publication still says ready. Admit that override only
+        // when our own source-clock evaluation independently derives partial.
+        const derived = ready(context);
+        if (payload.state === "stale" || context.status === payload.state
+          || (payload.state === "partial" && derived.ok && derived.state === "partial")) {
+          return ready(context, payload.state);
+        }
+      }
     }
     return error(response.status === 404 ? "not_found" : "upstream_unavailable", "Company theme context returned an invalid response", response.status !== 404);
   } catch { return error("upstream_unavailable", "Company theme context could not be reached", true); }

@@ -1,0 +1,33 @@
+{
+  "head": "2e9c81f51267ba1cab62789db0504d8315d031a6",
+  "tree": "52e5bfa4b2a57f2174de1a12e58111c3eeac54ee",
+  "bundler": "Turbopack",
+  "artifacts": [
+    {
+      "path": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/gmi-cte-semantic-aging-20261004-astra-001/terminal/.next/BUILD_ID",
+      "bytes": 21,
+      "sha256": "213c67b7f269e327ab2d9237b49cff4f8b71761446f861b26c74846637fbc1f4"
+    },
+    {
+      "path": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/gmi-cte-semantic-aging-20261004-astra-001/terminal/.next/build-manifest.json",
+      "bytes": 541,
+      "sha256": "9e23437d83946f92f6ee079666c90202c217a6eadb6f36b00168596f0975c618"
+    },
+    {
+      "path": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/gmi-cte-semantic-aging-20261004-astra-001/terminal/.next/routes-manifest.json",
+      "bytes": 25539,
+      "sha256": "f2c9685c99baa802d418dbeb4b8561b29997e6ff814b02004ce20ed216be5b7a"
+    },
+    {
+      "path": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/gmi-cte-semantic-aging-20261004-astra-001/terminal/.next/server/app-paths-manifest.json",
+      "bytes": 6666,
+      "sha256": "d0c6c92b9da3dc1ad9e3277e99383a48e3a344516266e1cad93708ee16ed6e65"
+    },
+    {
+      "path": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/gmi-cte-semantic-aging-20261004-astra-001/terminal/.next/server/app/api/company-theme-context/[symbol]/route.js",
+      "bytes": 685,
+      "sha256": "9f63c7a7e4325b54d490e8f53e9a975551df4d017c50df7be4099ccaa569f82b"
+    }
+  ],
+  "ordinary_local_build_not_deployment": true
+}

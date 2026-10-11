@@ -1,0 +1,49 @@
+{
+  "head": "2e9c81f51267ba1cab62789db0504d8315d031a6",
+  "tree": "52e5bfa4b2a57f2174de1a12e58111c3eeac54ee",
+  "node": "v20.20.2",
+  "env": {
+    "TZ": "UTC",
+    "CI": "1"
+  },
+  "results": [
+    {
+      "name": "units",
+      "argv": [
+        "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/gmi-cte-semantic-aging-20261004-astra-001/.claude/evidence/cte-aging/node20-runtime/node_modules/node/bin/node",
+        "node_modules/vitest/vitest.mjs",
+        "run",
+        "lib/__tests__/terminalAppearance.test.ts",
+        "lib/__tests__/terminalAppearanceSync.test.tsx",
+        "lib/__tests__/chartAppearanceContract.test.tsx",
+        "lib/__tests__/companyThemeExposureSuccessor.test.ts",
+        "lib/__tests__/companyThemeExposure.test.ts",
+        "lib/__tests__/companyThemeExposureRoute.test.ts",
+        "lib/__tests__/companyThemeContextCardAging.test.tsx",
+        "lib/__tests__/accountPrefs.test.ts",
+        "lib/__tests__/marketPrefsOwner.test.ts",
+        "--reporter=default",
+        "--reporter=junit",
+        "--outputFile.junit=/tmp/gmi-terminal-integrated-verification-20261004/units.xml"
+      ],
+      "started": "2026-10-04T10:50:55.256463+00:00",
+      "ended": "2026-10-04T10:50:57.090549+00:00",
+      "exit": 0,
+      "log_sha256": "d1bc510f2f8a31c1ce1da97b482a533b6f4e58ab46f336075d0d76b834d56468"
+    },
+    {
+      "name": "typecheck",
+      "argv": [
+        "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/gmi-cte-semantic-aging-20261004-astra-001/.claude/evidence/cte-aging/node20-runtime/node_modules/node/bin/node",
+        "node_modules/typescript/bin/tsc",
+        "--noEmit",
+        "--incremental",
+        "false"
+      ],
+      "started": "2026-10-04T10:50:57.090852+00:00",
+      "ended": "2026-10-04T10:51:18.591344+00:00",
+      "exit": 0,
+      "log_sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    }
+  ]
+}

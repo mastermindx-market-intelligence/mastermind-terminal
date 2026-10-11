@@ -1,0 +1,63 @@
+{
+  "at": "2026-10-04T11:23:52.937376+00:00",
+  "sourcehead": "2e9c81f51267ba1cab62789db0504d8315d031a6",
+  "tests": [
+    {
+      "label": "node20-npm-script-shell",
+      "argv": [
+        "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/gmi-cte-semantic-aging-20261004-astra-001/.claude/evidence/cte-aging/node20-runtime/node_modules/node/bin/node",
+        "/opt/homebrew/lib/node_modules/npm/bin/npm-cli.js",
+        "config",
+        "get",
+        "script-shell"
+      ],
+      "timeout_seconds": 10,
+      "stdout": "None",
+      "stderr": "None"
+    },
+    {
+      "label": "node20-npm-prefix",
+      "argv": [
+        "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/gmi-cte-semantic-aging-20261004-astra-001/.claude/evidence/cte-aging/node20-runtime/node_modules/node/bin/node",
+        "/opt/homebrew/lib/node_modules/npm/bin/npm-cli.js",
+        "prefix"
+      ],
+      "timeout_seconds": 10,
+      "stdout": "None",
+      "stderr": "None"
+    }
+  ],
+  "resolution": [
+    {
+      "path": "/opt/homebrew/bin/node",
+      "exists": true,
+      "symlink": true,
+      "resolved": "/opt/homebrew/Cellar/node/26.5.0/bin/node"
+    },
+    {
+      "path": "/opt/homebrew/bin/npm",
+      "exists": true,
+      "symlink": true,
+      "resolved": "/opt/homebrew/lib/node_modules/npm/bin/npm-cli.js"
+    },
+    {
+      "path": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/gmi-cte-semantic-aging-20261004-astra-001/.claude/evidence/cte-aging/node20-runtime/node_modules/node/bin/node",
+      "exists": true,
+      "symlink": false,
+      "resolved": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/gmi-cte-semantic-aging-20261004-astra-001/.claude/evidence/cte-aging/node20-runtime/node_modules/node/bin/node"
+    },
+    {
+      "path": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/gmi-cte-semantic-aging-20261004-astra-001/terminal/node_modules/.bin/node",
+      "exists": false,
+      "symlink": false,
+      "resolved": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/gmi-cte-semantic-aging-20261004-astra-001/terminal/node_modules/.bin/node"
+    },
+    {
+      "path": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/gmi-cte-semantic-aging-20261004-astra-001/terminal/node_modules/.bin/next",
+      "exists": true,
+      "symlink": true,
+      "resolved": "/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/gmi-cte-semantic-aging-20261004-astra-001/terminal/node_modules/next/dist/bin/next"
+    }
+  ],
+  "prior_launch_log_sha256": "8fb8183505b6e4c9ea78599d0a8ccf24b9796b891b8711194e386b16f270a71c"
+}
