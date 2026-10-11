@@ -2,6 +2,7 @@ import { expect, test, type Page, type TestInfo } from "@playwright/test";
 import { readFileSync } from "node:fs";
 import path from "node:path";
 import { expectTapTarget } from "./tapTarget";
+import { openPanel, prepare } from "./smartScreensFixture";
 
 /**
  * E03 — cross-market industry and currency-aware discovery, end to end in the Screener.
@@ -325,4 +326,39 @@ test("a row opens its own listing by its exact, encoded id (AC-E03-01)", async (
   await expect(row(page, "^GSPC").locator("td[data-ccy]")).toHaveAttribute("data-ccy", "not_money");
   await row(page, "^GSPC").locator(".sym-cell").click();
   await page.waitForURL(/\/terminal\?sym=%5EGSPC$/, { waitUntil: "commit", timeout: 30_000 });
+});
+
+test("a smart screen is saved only in a sense its grammar holds (E04 hand-over, AC-E03-02/04)", async ({ page, context, baseURL }, testInfo) => {
+  // A signed-in fixture account with its own smart-screen store, so Save is genuinely writable.
+  await prepare(context, baseURL!, `e03-handover-${testInfo.project.name}-${Date.now()}`, false);
+  await open(page);
+  const ss = await openPanel(page);
+  const saveBtn = ss.locator("[data-ss-save-button]");
+  const current = ss.locator("[data-ss-current]");
+
+  // A GICS sector in one US-dollar market is what a smart screen holds: Save is offered.
+  await marketSelect(page).selectOption("us");
+  await control(page, "taxonomy").selectOption("gics_sector");
+  await control(page, "label").selectOption("Information Technology");
+  await expect(saveBtn).toBeEnabled({ timeout: 20_000 });
+  await expect(current).toBeVisible();
+
+  // A native Yahoo label is not a GICS sector: refused, never filed as one.
+  await control(page, "taxonomy").selectOption("yahoo_sector");
+  await control(page, "label").selectOption("Technology");
+  await expect(saveBtn).toBeDisabled();
+  await expect(current).toHaveCount(0);
+
+  // A USD floor in the US is a USD floor; the same number in Hong Kong is HKD and is refused.
+  await control(page, "taxonomy").selectOption("");
+  await control(page, "liq").selectOption("5000000");
+  await expect(page.locator('[data-cm="money"]')).toHaveAttribute("data-cm-floor", "applied");
+  await expect(saveBtn).toBeEnabled();
+  await marketSelect(page).selectOption("hk");
+  await expect(page.locator('[data-cm-cleared="liq"]')).toHaveCount(1);
+  await control(page, "liq").selectOption("5000000");
+  await expect(page.locator('[data-cm="money"]')).toHaveAttribute("data-cm-scope", "HKD");
+  await expect(page.locator('[data-cm="money"]')).toHaveAttribute("data-cm-floor", "applied");
+  await expect(saveBtn).toBeDisabled();
+  await expect(current).toHaveCount(0);
 });
