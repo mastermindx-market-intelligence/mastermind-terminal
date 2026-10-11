@@ -33,6 +33,8 @@ export default function WatchlistReviewBar({ review, activeSymbol, activeList, a
     if (!notice) return null;
     if (notice.kind === "edge") return t(notice.direction === 1 ? "wlrAtEnd" : "wlrAtStart");
     if (notice.kind === "empty") return fill("wlrEmpty", { list: notice.listName });
+    if (notice.kind === "moved") return t(notice.ended ? "wlrMovedEnded" : "wlrMoved");
+    if (notice.kind === "discardFailed") return t("wlrDiscardFailed");
     const entries = notice.entries
       .map((entry) => fill("wlrSkipEntry", { symbol: entry.symbol, reason: t(entry.availability === "removed" ? "wlrReasonRemoved" : "wlrReasonMissing") }))
       .join(t("wlrSkipJoin"));
@@ -55,7 +57,13 @@ export default function WatchlistReviewBar({ review, activeSymbol, activeList, a
     const notice = noticeText(review.notice);
     return (
       <>
-        {notice && <p className={styles.loneNotice} role="status">{notice}</p>}
+        {notice && <p className={styles.loneNotice} role="status" data-testid="wl-review-notice">{notice}</p>}
+        {review.unreadable && (
+          <div className={styles.loneNotice} role="status" data-testid="wl-review-unreadable">
+            <span>{t("wlrUnreadable")} </span>
+            <button type="button" className={styles.textBtn} onClick={review.discardUnreadable}>{t("wlrDiscard")}</button>
+          </div>
+        )}
         {activeListCount > 0 && (
           <button type="button" className={styles.idle} data-testid="wl-review-idle-start" onClick={() => review.start(activeList)}>
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h11M4 12h11M4 18h7M17 15l3 3-3 3M14 18h6" /></svg>
@@ -75,7 +83,7 @@ export default function WatchlistReviewBar({ review, activeSymbol, activeList, a
   const mark = review.currentMark;
   const summary = review.summary;
   const row = current ? (manifestSymbols?.[current] as ManifestName | undefined) : undefined;
-  const companyName = row ? (lang === "zh" && row.zh ? row.zh : row.name ?? "") : "";
+  const displayName = row ? (lang === "zh" && row.zh ? row.zh : row.name ?? "") : "";
   const editing = deferFor !== null && deferFor === current;
   const notice = noticeText(review.notice);
   const driftCount = review.drift.added.length + review.drift.removed.length;
@@ -94,7 +102,7 @@ export default function WatchlistReviewBar({ review, activeSymbol, activeList, a
 
       <div className={styles.current}>
         <span className={styles.sym} data-testid="wl-review-current">{current}</span>
-        {companyName && <span className={styles.name}>{companyName}</span>}
+        {displayName && <span className={styles.name}>{displayName}</span>}
         {markLabel && <span className={styles.chip} data-mark={markState} data-testid="wl-review-mark">{markLabel}</span>}
       </div>
       {mark?.state === "deferred" && mark.note && !editing && <p className={styles.note} data-testid="wl-review-note">{mark.note}</p>}

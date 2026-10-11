@@ -2,8 +2,9 @@
 //
 // E16 — the shell-side review hook and its bar, mounted for real (react-dom/client + act; this repo
 // has no @testing-library). Covers what the pure-module tests cannot: one storage write per user
-// action, a burst of Next presses inside one frame, the owner boundary, and an honest "not saved"
-// state when the browser store refuses the write.
+// action, a burst of Next presses inside one frame, the owner boundary, an honest "not saved"
+// state when the browser store refuses the write, an unreadable saved review, the revision check
+// between two tabs, and a list rename.
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
@@ -39,7 +40,11 @@ function button(label: string): HTMLButtonElement {
   if (!found) throw new Error(`no button "${label}"`);
   return found as HTMLButtonElement;
 }
-const click = (label: string) => act(() => { button(label).click(); });
+const click = (label: string, within: ParentNode = host) => act(() => {
+  const found = [...within.querySelectorAll("button")].find((el) => el.getAttribute("aria-label") === label || el.textContent?.trim() === label);
+  if (!found) throw new Error(`no button "${label}"`);
+  (found as HTMLButtonElement).click();
+});
 const text = (testId: string) => host.querySelector(`[data-testid="${testId}"]`)?.textContent ?? null;
 const stored = (owner: string) => (JSON.parse(store.getItem(WL_REVIEW_KEY) || "{}") as Record<string, { cursor: number; symbols: string[]; marks: Record<string, unknown> }>)[owner];
 
@@ -90,9 +95,9 @@ describe("useWatchlistReview + WatchlistReviewBar", () => {
     render({ owner: "guest", lists: { Tech: rows("TSLA", "NVDA", "MSFT", "AAPL") } });
     expect(text("wl-review-next")).toBe("Next: TSLA");
     expect(host.querySelector('[data-testid="wl-review-drift"]')).toBeNull();
-    click("Next company");
+    click("Next symbol");
     expect(navigate).toHaveBeenLastCalledWith("TSLA");
-    click("Next company");
+    click("Next symbol");
     expect(navigate).toHaveBeenLastCalledWith("AAPL");
     expect(text("wl-review-position")).toBe("3 of 4");
   });
@@ -102,7 +107,7 @@ describe("useWatchlistReview + WatchlistReviewBar", () => {
     expect(writes()).toBe(0);
     act(() => latest.start("Tech"));
     expect(writes()).toBe(1);
-    click("Next company");
+    click("Next symbol");
     expect(writes()).toBe(2);
     click("Mark reviewed");
     expect(writes()).toBe(3);
@@ -121,22 +126,22 @@ describe("useWatchlistReview + WatchlistReviewBar", () => {
     act(() => { latest.next(); latest.next(); latest.next(); latest.next(); });
     expect(navigate.mock.calls.map(([symbol]) => symbol)).toEqual(["TSLA", "AAPL", "MSFT"]);
     expect(stored("guest").cursor).toBe(3);
-    expect(text("wl-review-notice")).toBe("No available company after this one.");
+    expect(text("wl-review-notice")).toBe("No available symbol after this one.");
   });
 
-  it("skips an unavailable company by name and never opens a neighbour in its place", () => {
+  it("skips an unavailable symbol by name and never opens a neighbour in its place", () => {
     render({ owner: "guest", lists: { Tech: rows("NVDA", "ZZZQ", "AAPL") } });
     act(() => latest.start("Tech"));
-    click("Next company");
+    click("Next symbol");
     expect(navigate.mock.calls.map(([symbol]) => symbol)).toEqual(["NVDA", "AAPL"]);
     expect(text("wl-review-notice")).toBe("Skipped ZZZQ (no market data).");
     expect(text("wl-review-summary")).toContain("1 unavailable");
   });
 
-  it("shows a removed company as removed, separates drift, and refreshes only on request", () => {
+  it("shows a removed symbol as removed, separates drift, and refreshes only on request", () => {
     render({ owner: "guest", lists: { Tech: rows("NVDA", "TSLA", "AAPL") } });
     act(() => latest.start("Tech"));
-    click("Next company");
+    click("Next symbol");
     render({ owner: "guest", lists: { Tech: rows("NVDA", "AAPL", "AMZN") } });
     expect(text("wl-review-current")).toBe("TSLA");
     expect(text("wl-review-availability")).toMatch(/removed from the list after this review started/i);
@@ -154,7 +159,7 @@ describe("useWatchlistReview + WatchlistReviewBar", () => {
   it("keeps each owner's review to that owner, including across a switch and back", () => {
     render({ owner: "account:a", lists: { Tech: rows("NVDA", "TSLA", "AAPL") } });
     act(() => latest.start("Tech"));
-    click("Next company");
+    click("Next symbol");
     render({ owner: "account:b", lists: { Tech: rows("NVDA", "TSLA", "AAPL") } });
     expect(host.querySelector('[data-testid="wl-review"]')).toBeNull();
     expect(latest.itinerary).toBeNull();
@@ -170,7 +175,7 @@ describe("useWatchlistReview + WatchlistReviewBar", () => {
     render({ owner: "guest", lists: { Tech: rows("NVDA", "TSLA", "AAPL") } });
     act(() => latest.start("Tech"));
     store.fail = true;
-    click("Next company");
+    click("Next symbol");
     expect(text("wl-review-current")).toBe("TSLA");
     expect(host.querySelector('[data-testid="wl-review-save"]')?.getAttribute("data-save")).toBe("unsaved");
     expect(stored("guest").cursor).toBe(0);
@@ -183,7 +188,7 @@ describe("useWatchlistReview + WatchlistReviewBar", () => {
   it("restores the saved position after a remount (reload)", () => {
     render({ owner: "guest", lists: { Tech: rows("NVDA", "TSLA", "AAPL") } });
     act(() => latest.start("Tech"));
-    click("Next company");
+    click("Next symbol");
     act(() => root.unmount());
     root = createRoot(host);
     navigate.mockReset();
@@ -192,5 +197,133 @@ describe("useWatchlistReview + WatchlistReviewBar", () => {
     expect(text("wl-review-next")).toBe("Next: AAPL");
     // Resuming does not move the chart by itself.
     expect(navigate).not.toHaveBeenCalled();
+  });
+});
+
+describe("useWatchlistReview: unreadable, other tabs, rename (AC-E16-05)", () => {
+  const good = (owner: string) => {
+    render({ owner, lists: { Tech: rows("NVDA", "TSLA", "AAPL") } });
+    act(() => latest.start("Tech"));
+    const saved = store.getItem(WL_REVIEW_KEY)!;
+    act(() => root.unmount());
+    root = createRoot(host);
+    store.data.clear();
+    store.writes = 0;
+    navigate.mockReset();
+    return (JSON.parse(saved) as Record<string, unknown>)[owner];
+  };
+
+  it("says a saved review could not be read before a new start replaces it", () => {
+    store.data.set(WL_REVIEW_KEY, JSON.stringify({ guest: { v: 1, listName: "Tech", symbols: ["NVDA"], cursor: 7 } }));
+    render({ owner: "guest", lists: { Tech: rows("NVDA", "TSLA", "AAPL") } });
+    expect(latest.unreadable).toBe(true);
+    expect(latest.itinerary).toBeNull();
+    expect(text("wl-review-unreadable")).toMatch(/could not be read\. Starting a review replaces it\./);
+    // Reading it wrote nothing; the record is untouched until the user acts.
+    expect(writes()).toBe(0);
+    act(() => latest.start("Tech"));
+    expect(writes()).toBe(1);
+    expect(host.querySelector('[data-testid="wl-review-unreadable"]')).toBeNull();
+    expect(stored("guest").symbols).toEqual(["NVDA", "TSLA", "AAPL"]);
+  });
+
+  it("an absent review shows no unreadable notice", () => {
+    render({ owner: "guest", lists: { Tech: rows("NVDA") } });
+    expect(latest.unreadable).toBe(false);
+    expect(host.querySelector('[data-testid="wl-review-unreadable"]')).toBeNull();
+  });
+
+  it("Discard removes only this owner's unreadable record, and says so when it cannot", () => {
+    const other = good("account:b");
+    store.data.set(WL_REVIEW_KEY, JSON.stringify({ guest: "not a review", "account:b": other }));
+    render({ owner: "guest", lists: { Tech: rows("NVDA") } });
+    store.fail = true;
+    click("Discard it");
+    expect(text("wl-review-notice")).toBe("Could not remove the saved review from this device.");
+    expect(host.querySelector('[data-testid="wl-review-unreadable"]')).not.toBeNull();
+    store.fail = false;
+    click("Discard it");
+    expect(host.querySelector('[data-testid="wl-review-unreadable"]')).toBeNull();
+    expect(stored("guest")).toBeUndefined();
+    expect(stored("account:b")).toEqual(other);
+  });
+
+  it("a tab that is behind adopts the newer saved review instead of writing over it", () => {
+    // Tab B mounts in its own root on the same browser store, after tab A has started.
+    const hostB = document.createElement("div");
+    document.body.appendChild(hostB);
+    const rootB = createRoot(hostB);
+    const navigateB = vi.fn<(symbol: string) => void>();
+    let tabB!: WatchlistReview;
+    function TabB() {
+      const review = useWatchlistReview({ owner: "guest", lists: { Tech: rows("NVDA", "TSLA", "AAPL", "MSFT") }, listMeta: {}, listsReady: true, manifestSymbols: MANIFEST, navigate: navigateB });
+      tabB = review;
+      return <WatchlistReviewBar review={review} activeSymbol="NVDA" activeList="Tech" activeListCount={4} manifestSymbols={MANIFEST} />;
+    }
+    try {
+      render({ owner: "guest", lists: { Tech: rows("NVDA", "TSLA", "AAPL", "MSFT") } });
+      act(() => latest.start("Tech"));
+      act(() => rootB.render(<TabB />));
+      expect(tabB.current).toBe("NVDA");
+
+      // Tab A moves on to TSLA. Tab B still shows NVDA and presses Next.
+      click("Next symbol");
+      expect(stored("guest").cursor).toBe(1);
+      const before = writes();
+      click("Next symbol", hostB);
+      // B adopted A's position (TSLA) and showed it; it did not write NVDA→TSLA over A's record.
+      expect(writes()).toBe(before);
+      expect(stored("guest").cursor).toBe(1);
+      expect(tabB.current).toBe("TSLA");
+      expect(navigateB).toHaveBeenLastCalledWith("TSLA");
+      expect(hostB.querySelector('[data-testid="wl-review-notice"]')?.textContent).toBe("This review changed in another tab. Showing its latest saved position.");
+      // The next press in B is a normal step from the adopted position.
+      click("Next symbol", hostB);
+      expect(stored("guest").cursor).toBe(2);
+      expect(tabB.current).toBe("AAPL");
+
+      // Now A is behind. Its marker press adopts B's position instead of marking TSLA.
+      click("Mark reviewed");
+      expect(stored("guest").marks).toEqual({});
+      expect(latest.current).toBe("AAPL");
+
+      // Resume in a tab that is behind shows the saved position, not its own stale one.
+      click("Next symbol", hostB);
+      navigate.mockReset();
+      act(() => latest.resume());
+      expect(navigate).toHaveBeenCalledTimes(1);
+      expect(navigate).toHaveBeenLastCalledWith("MSFT");
+
+      // B ends the review. A's next press finds it ended and does not bring it back.
+      click("End review", hostB);
+      expect(stored("guest")).toBeUndefined();
+      const beforeEnd = writes();
+      click("Previous symbol");
+      expect(writes()).toBe(beforeEnd);
+      expect(stored("guest")).toBeUndefined();
+      expect(latest.itinerary).toBeNull();
+      expect(text("wl-review-notice")).toBe("This review was ended in another tab.");
+    } finally {
+      act(() => rootB.unmount());
+      hostB.remove();
+    }
+  });
+
+  it("follows a list rename without moving the chart", () => {
+    render({ owner: "guest", lists: { Tech: rows("NVDA", "TSLA", "AAPL") } });
+    act(() => latest.start("Tech"));
+    click("Next symbol");
+    navigate.mockReset();
+    act(() => latest.renameList("Tech", "Semis"));
+    render({ owner: "guest", lists: { Semis: rows("NVDA", "TSLA", "AAPL") } });
+    expect(host.querySelector('[data-testid="wl-review"]')?.getAttribute("data-review-list")).toBe("Semis");
+    expect(latest.listMissing).toBe(false);
+    expect(text("wl-review-current")).toBe("TSLA");
+    expect((stored("guest") as unknown as { listName: string }).listName).toBe("Semis");
+    expect(navigate).not.toHaveBeenCalled();
+    // A rename of some other list leaves the review alone.
+    const before = writes();
+    act(() => latest.renameList("Other", "Else"));
+    expect(writes()).toBe(before);
   });
 });

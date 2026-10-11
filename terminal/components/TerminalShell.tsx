@@ -208,6 +208,8 @@ type ExtQuote = { extPrice: number; extChg: number; extTs: number; extSession?: 
 const normalizeWatchlistRows = (rows: readonly { symbol: string; section?: unknown }[]) => rows
   .filter((row) => typeof row.symbol === "string" && !!row.symbol)
   .map((row) => ({ symbol: row.symbol, section: typeof row.section === "string" ? row.section.trim() : WATCHLIST_ROOT_SECTION }));
+/** E16: the watchlist review never moves the symbol inside the native dossier. */
+const noReviewNavigation = () => {};
 
 const fmt = (n: number | null | undefined, d = 2) => (n == null || !isFinite(n) ? "—" : n.toLocaleString("en-US", { minimumFractionDigits: d, maximumFractionDigits: d }));
 const vol = (v: number | null | undefined) => (v == null || !isFinite(v) ? "—" : v >= 1e9 ? (v / 1e9).toFixed(2) + "B" : v >= 1e6 ? (v / 1e6).toFixed(1) + "M" : String(v));
@@ -3554,6 +3556,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
       return n;
     });
     setActiveList((a) => (a === name ? next : a));
+    wlReview.renameList(name, next);                // E16: a review of this list follows the rename
     if (!loggedIn) return;                          // guest: local rename only, exactly as before
     const listId = serverListIdsRef.current[name];
     // Move the id onto the new key first: a symbol op racing the rename must not target a name
@@ -4301,8 +4304,10 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
   }, [pick, visibleWlOrder]);
   const onSearchPick = (sym: string) => { if (searchMode === "compare") { toggleCompare(sym); } else pick(sym); };
   // E16: a user-started, frozen review over one list. It navigates only through `pick` (the same
-  // owner a row click uses), so linked panels follow and pinned panels stay pinned.
-  const wlReview = useWatchlistReview({ owner: wlOwner, lists, listMeta, listsReady: wlsRestored, manifestSymbols: man?.symbols ?? null, navigate: pick });
+  // owner a row click uses), so linked panels follow and pinned panels stay pinned. The native
+  // dossier (?shell=app&dossier=1) has no chart and its header owns the symbol, so the review is
+  // not mounted there and cannot navigate there.
+  const wlReview = useWatchlistReview({ owner: wlOwner, lists, listMeta, listsReady: wlsRestored, manifestSymbols: man?.symbols ?? null, navigate: shellMode && shellDossier ? noReviewNavigation : pick });
   const reviewT = useWatchlistReviewT();
 
   // The dashboard keeps one warm iframe alive between launches. A later ticker click
@@ -5696,7 +5701,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
       {(!shellMode || dossierMode) && (<>
       <aside className="rail">
         <div className="rail-body">
-          <WatchlistReviewBar review={wlReview} activeSymbol={active} activeList={activeList} activeListCount={lists[activeList]?.length ?? 0} manifestSymbols={man?.symbols ?? null} />
+          {!dossierMode && <WatchlistReviewBar review={wlReview} activeSymbol={active} activeList={activeList} activeListCount={lists[activeList]?.length ?? 0} manifestSymbols={man?.symbols ?? null} />}
           {/* The authenticated rail has three distinct sources: Portfolio, Watchlists and News.
               A guest has no book/news entitlement, so the guest rail is byte-for-byte what it was.
               The watchlist board below is HIDDEN, never unmounted, when another source is showing —
@@ -5819,12 +5824,12 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
                 {/* Actions on the ACTIVE list — the operator's reference puts sections and the
                     list-level commands behind the watchlist-name dropdown, not the gear. */}
                 <div className="set-grp">{t("thisList")}</div>
-                <div className="menu-row" role="button" tabIndex={0} data-testid="wl-review-start"
+                {!dossierMode && <div className="menu-row" role="button" tabIndex={0} data-testid="wl-review-start"
                   title={wlReview.itinerary && wlReview.itinerary.listName !== activeList ? reviewT("wlrReplaces").replace("{list}", wlReview.itinerary.listName) : undefined}
                   onClick={() => { setWlMenuOpen(false); if (wlReview.itinerary?.listName === activeList) wlReview.resume(); else wlReview.start(activeList); }}
                   onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); (e.currentTarget as HTMLElement).click(); } }}>
                   <svg viewBox="0 0 24 24"><path d="M4 6h11M4 12h11M4 18h7M17 15l3 3-3 3M14 18h6" /></svg>{reviewT(wlReview.itinerary?.listName === activeList ? "wlrResumeThis" : "wlrStartThis")}
-                </div>
+                </div>}
                 {secCreating ? (
                   <div className="wl-sec-new">
                     <input

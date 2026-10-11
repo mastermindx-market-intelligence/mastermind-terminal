@@ -1,7 +1,8 @@
 import { describe, expect, it } from "vitest";
 import {
   WL_REVIEW_KEY, currentSymbol, isSkipped, itineraryDrift, liveListOrder, markEntry, parseItinerary, peekNext,
-  readReview, refreshItinerary, resolveAvailability, startItinerary, stepItinerary, summarizeItinerary, writeReview,
+  readReview, refreshItinerary, renameItinerary, resolveAvailability, reviewStamp, startItinerary, stepItinerary,
+  summarizeItinerary, writeReview,
   type AvailabilityOf, type ReviewItinerary,
 } from "@/lib/watchlistReview";
 import type { StoragePort } from "@/lib/ownerStorage";
@@ -35,7 +36,7 @@ function started(order: readonly string[], avail: AvailabilityOf = availability(
 }
 
 describe("E16 frozen order — AC-E16-01 and the falsifier", () => {
-  it("a background re-sort of the live list does not change the next company", () => {
+  it("a background re-sort of the live list does not change the next symbol", () => {
     const frozen = ["NVDA", "TSLA", "AAPL", "MSFT"];
     let review = started(frozen);
     expect(currentSymbol(review)).toBe("NVDA");
@@ -52,7 +53,7 @@ describe("E16 frozen order — AC-E16-01 and the falsifier", () => {
     expect(itineraryDrift(review, resorted)).toEqual({ added: [], removed: [] });
   });
 
-  it("only an explicit refresh adopts the live order, and it keeps the cursor on the same company", () => {
+  it("only an explicit refresh adopts the live order, and it keeps the cursor on the same symbol", () => {
     const review = { ...started(["NVDA", "TSLA", "AAPL", "MSFT"]), cursor: 1 };
     const live = ["AAPL", "MSFT", "NVDA", "TSLA"];
     const refreshed = refreshItinerary(review, live, availability(live), T0 + 5)!;
@@ -62,27 +63,54 @@ describe("E16 frozen order — AC-E16-01 and the falsifier", () => {
     expect(peekNext(refreshed, availability(live))).toBeNull();
   });
 
-  it("refresh keeps markers for companies still listed and drops the rest", () => {
+  it("refresh keeps markers for symbols still listed and drops the rest", () => {
     let review = started(["NVDA", "TSLA", "AAPL"]);
     review = markEntry(review, "NVDA", { state: "reviewed" }, T0 + 1)!;
     review = markEntry(review, "TSLA", { state: "deferred", note: "after earnings" }, T0 + 2)!;
     const live = ["NVDA", "AAPL", "AMZN"];
     const refreshed = refreshItinerary(review, live, availability(live), T0 + 3)!;
     expect(refreshed.marks).toEqual({ NVDA: review.marks.NVDA });
-    // The cursor company (NVDA) is still listed, so the cursor follows it.
+    // The cursor symbol (NVDA) is still listed, so the cursor follows it.
     expect(currentSymbol(refreshed)).toBe("NVDA");
   });
 
-  it("a refresh whose cursor company left the list lands on the first unmarked available company, not the old index", () => {
+  it("a refresh whose cursor symbol left the list continues from the old position, mapped into the live order", () => {
     let review = { ...started(["NVDA", "TSLA", "AAPL", "MSFT"]), cursor: 1 };
     review = markEntry(review, "NVDA", { state: "reviewed" }, T0 + 1)!;
+    // TSLA (the cursor) left. The frozen successor is AAPL, wherever the live order now puts it.
     const live = ["NVDA", "AAPL", "MSFT"];
-    const refreshed = refreshItinerary(review, live, availability(live), T0 + 2)!;
-    // Old index 1 would now be AAPL by accident; the rule picks the first unmarked company.
-    expect(currentSymbol(refreshed)).toBe("AAPL");
+    expect(currentSymbol(refreshItinerary(review, live, availability(live), T0 + 2)!)).toBe("AAPL");
     const live2 = ["NVDA", "MSFT", "AAPL"];
     const refreshed2 = refreshItinerary(review, live2, availability(live2), T0 + 2)!;
-    expect(currentSymbol(refreshed2)).toBe("MSFT");
+    expect(currentSymbol(refreshed2)).toBe("AAPL");
+    expect(refreshed2.cursor).toBe(2);
+  });
+
+  it("a refresh deep in the review does not send the cursor back to the top", () => {
+    // Reviewing MSFT, fourth of five, nothing marked yet. MSFT leaves the list.
+    const review = { ...started(["NVDA", "TSLA", "AAPL", "MSFT", "AMZN"]), cursor: 3 };
+    const live = ["NVDA", "TSLA", "AAPL", "AMZN"];
+    const refreshed = refreshItinerary(review, live, availability(live), T0 + 1)!;
+    expect(currentSymbol(refreshed)).toBe("AMZN");
+    expect(currentSymbol(refreshed)).not.toBe("NVDA");
+  });
+
+  it("the old-position successor skips symbols that are no longer reviewable", () => {
+    // Reviewing AAPL. AAPL leaves; its frozen successor ZZZQ has no market data, so MSFT is next.
+    const review = { ...started(["NVDA", "TSLA", "AAPL", "ZZZQ", "MSFT"]), cursor: 2 };
+    const live = ["NVDA", "TSLA", "ZZZQ", "MSFT"];
+    expect(currentSymbol(refreshItinerary(review, live, availability(live), T0 + 1)!)).toBe("MSFT");
+  });
+
+  it("falls back to the top only when nothing reviewable is left at or after the old position", () => {
+    let review = { ...started(["NVDA", "TSLA", "AAPL"]), cursor: 2 };
+    review = markEntry(review, "NVDA", { state: "reviewed" }, T0 + 1)!;
+    const live = ["NVDA", "TSLA"];
+    // Nothing after AAPL: the first unmarked available symbol.
+    expect(currentSymbol(refreshItinerary(review, live, availability(live), T0 + 2)!)).toBe("TSLA");
+    // Everything marked: the first available symbol.
+    const allMarked = markEntry(review, "TSLA", { state: "reviewed" }, T0 + 3)!;
+    expect(currentSymbol(refreshItinerary(allMarked, live, availability(live), T0 + 4)!)).toBe("NVDA");
   });
 });
 
@@ -101,7 +129,7 @@ describe("E16 availability — AC-E16-02", () => {
     expect(isSkipped("unknown")).toBe(false);
   });
 
-  it("skips removed and missing companies explicitly and never substitutes a neighbour", () => {
+  it("skips removed and missing symbols explicitly and never substitutes a neighbour", () => {
     const frozen = ["NVDA", "ZZZQ", "TSLA", "AAPL", "MSFT"];
     let review = started(frozen);
     // TSLA leaves the list after the review starts.
@@ -129,7 +157,7 @@ describe("E16 availability — AC-E16-02", () => {
     expect(stepItinerary(trailing, 1, availability(["NVDA", "ZZZQ"]), T0)).toBeNull();
   });
 
-  it("starts on the first available company", () => {
+  it("starts on the first available symbol", () => {
     const review = started(["ZZZQ", "NVDA", "AAPL"]);
     expect(currentSymbol(review)).toBe("NVDA");
     expect(startItinerary("Empty", [], availability([]), T0)).toBeNull();
@@ -184,11 +212,12 @@ describe("E16 persistence — AC-E16-05", () => {
     const theirs = { ...started(["TSLA"]), listName: "Other" };
     expect(writeReview(storage, "account:a", mine)).toBe(true);
     expect(writeReview(storage, "account:b", theirs)).toBe(true);
-    expect(readReview(storage, "account:a")).toEqual(mine);
-    expect(readReview(storage, "account:b")).toEqual(theirs);
-    expect(readReview(storage, "guest")).toBeNull();
+    expect(readReview(storage, "account:a")).toEqual({ status: "ok", itinerary: mine });
+    expect(readReview(storage, "account:b")).toEqual({ status: "ok", itinerary: theirs });
+    expect(readReview(storage, "guest")).toEqual({ status: "absent" });
     expect(writeReview(storage, "account:b", null)).toBe(true);
-    expect(readReview(storage, "account:a")).toEqual(mine);
+    expect(readReview(storage, "account:a")).toEqual({ status: "ok", itinerary: mine });
+    expect(readReview(storage, "account:b")).toEqual({ status: "absent" });
   });
 
   it("reports a failed write so the UI can say 'not saved'", () => {
@@ -196,7 +225,43 @@ describe("E16 persistence — AC-E16-05", () => {
     storage.fail = true;
     expect(writeReview(storage, "guest", started(["NVDA"]))).toBe(false);
     expect(writeReview(null, "guest", started(["NVDA"]))).toBe(false);
-    expect(readReview(storage, "guest")).toBeNull();
+    expect(readReview(storage, "guest")).toEqual({ status: "absent" });
+  });
+
+  it("tells an absent review apart from one that cannot be read", () => {
+    const good = started(["NVDA", "AAPL"]);
+    const slot = (value: unknown) => memoryStorage({ [WL_REVIEW_KEY]: JSON.stringify({ guest: value }) });
+    expect(readReview(memoryStorage(), "guest")).toEqual({ status: "absent" });
+    expect(readReview(memoryStorage({ [WL_REVIEW_KEY]: "" }), "guest")).toEqual({ status: "absent" });
+    // Another owner's slot is not this owner's record.
+    expect(readReview(memoryStorage({ [WL_REVIEW_KEY]: JSON.stringify({ "account:b": good }) }), "guest")).toEqual({ status: "absent" });
+    expect(readReview(slot(good), "guest")).toEqual({ status: "ok", itinerary: good });
+    // Unreadable: the store refuses, the envelope is not JSON or not an object, the slot is malformed or a newer format.
+    const refusing: StoragePort = { getItem() { throw new Error("SecurityError"); }, setItem() {}, removeItem() {} };
+    expect(readReview(refusing, "guest")).toEqual({ status: "unreadable" });
+    expect(readReview(null, "guest")).toEqual({ status: "unreadable" });
+    expect(readReview(memoryStorage({ [WL_REVIEW_KEY]: "{not json" }), "guest")).toEqual({ status: "unreadable" });
+    expect(readReview(memoryStorage({ [WL_REVIEW_KEY]: "[1,2]" }), "guest")).toEqual({ status: "unreadable" });
+    expect(readReview(slot({ ...good, cursor: 9 }), "guest")).toEqual({ status: "unreadable" });
+    expect(readReview(slot({ ...good, v: 2 }), "guest")).toEqual({ status: "unreadable" });
+    expect(readReview(slot(null), "guest")).toEqual({ status: "unreadable" });
+  });
+
+  it("stamps a review by start, revision and last update", () => {
+    const review = started(["NVDA", "AAPL"]);
+    expect(reviewStamp(null)).toBeNull();
+    const stepped = stepItinerary(review, 1, availability(["NVDA", "AAPL"]), T0 + 1)!.itinerary;
+    expect(reviewStamp(stepped)).not.toBe(reviewStamp(review));
+    // The stamp survives a JSON round-trip, so a tab never mistakes its own write for another tab's.
+    expect(reviewStamp(review)).toBe(reviewStamp(JSON.parse(JSON.stringify(review))));
+  });
+
+  it("follows a list rename without changing position or markers", () => {
+    const review = markEntry({ ...started(["NVDA", "AAPL"]), cursor: 1 }, "NVDA", { state: "reviewed" }, T0 + 1)!;
+    const renamed = renameItinerary(review, "  Semis  ", T0 + 2)!;
+    expect(renamed).toEqual({ ...review, listName: "Semis", updatedAt: T0 + 2 });
+    expect(renameItinerary(review, "Tech", T0 + 2)).toBeNull();
+    expect(renameItinerary(review, "   ", T0 + 2)).toBeNull();
   });
 
   it("rejects malformed records instead of repairing them into a review", () => {

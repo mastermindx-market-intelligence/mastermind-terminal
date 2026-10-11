@@ -3,7 +3,7 @@ import { useLang } from "./layoutStore";
 import { E2E_WL_FLAGS_KEY, E2E_WL_NOTES_KEY, E2E_WLS_KEY, e2eWatchlistOwner, isolateWatchlistStore, seedOwnerWatchlists } from "./watchlistStore";
 
 // E16: a user-started review that freezes one list's order, walks it next/previous through the
-// shell's own navigation owner, skips companies with no data BY NAME, and resumes after a reload.
+// shell's own navigation owner, skips symbols with no data BY NAME, and resumes after a reload.
 // The real shell, the real rail and the real #821 context card; deterministic feed/auth fixtures.
 
 const LIST = "Review Mix";
@@ -18,18 +18,18 @@ const REVIEW_KEY = "mm.wlReview.v1";
 
 const COPY = {
   en: {
-    region: "Watchlist review", next: "Next company", prev: "Previous company", reviewed: "Mark reviewed", defer: "Defer",
+    region: "Watchlist review", next: "Next symbol", prev: "Previous symbol", reviewed: "Mark reviewed", defer: "Defer",
     saveDefer: "Save defer", end: "End review", sort: "Sort A → Z", chipReviewed: "Reviewed", chipDeferred: "Deferred",
     skipped: "Skipped ZZZQ (no market data).", nextIs: (s: string) => `Next: ${s}`, position: (n: number, t: number) => `${n} of ${t}`,
     summary: "1 reviewed · 1 deferred · 1 unavailable", saved: "Progress saved on this device.", unsaved: "Not saved", retry: "Retry save",
-    atEnd: "No available company after this one.", start: "Review this list", resume: "Resume review",
+    atEnd: "No available symbol after this one.", start: "Review this list", resume: "Resume review",
   },
   zh: {
-    region: "自选列表复盘", next: "下一家公司", prev: "上一家公司", reviewed: "标记已复盘", defer: "推迟",
+    region: "自选列表复盘", next: "下一个标的", prev: "上一个标的", reviewed: "标记已复盘", defer: "推迟",
     saveDefer: "确认推迟", end: "结束复盘", sort: "按 A → Z 排序", chipReviewed: "已复盘", chipDeferred: "已推迟",
-    skipped: "已跳过 ZZZQ（无行情数据）。", nextIs: (s: string) => `下一家：${s}`, position: (n: number, t: number) => `第 ${n} / ${t} 个`,
+    skipped: "已跳过 ZZZQ（无行情数据）。", nextIs: (s: string) => `下一个：${s}`, position: (n: number, t: number) => `第 ${n} / ${t} 个`,
     summary: "已复盘 1 · 已推迟 1 · 不可用 1", saved: "进度已保存在本设备。", unsaved: "未保存", retry: "重试保存",
-    atEnd: "之后没有可复盘的公司。", start: "逐个复盘此列表", resume: "继续复盘",
+    atEnd: "之后没有可复盘的标的。", start: "逐个复盘此列表", resume: "继续复盘",
   },
 } as const;
 
@@ -94,15 +94,19 @@ for (const lang of ["en", "zh"] as const) {
     await expect(region.getByTestId("wl-review-notice")).toHaveText(c.skipped);
     await expect.poll(() => chartSymbol(page)).toBe("MSFT");
 
-    if (wide(page)) {
-      // The falsifier: re-sorting the live list must not change where Next goes. In the live
-      // A→Z order MSFT is followed by NVDA; the frozen review still goes to AAPL.
-      await page.locator(".wl-select").click();
-      await page.locator(".wl-lists .menu-row", { hasText: c.sort }).click();
-      await expect(page.locator(".wl-row").first()).toHaveAttribute("data-watchlist-symbol", "AAPL");
-      await expect(region.getByTestId("wl-review-next")).toHaveText(c.nextIs("AAPL"));
-      await expect(region.getByTestId("wl-review-drift")).toHaveCount(0);
-    }
+    // The falsifier, in every project: re-sorting the live list must not change where Next goes.
+    // In the live A→Z order MSFT is followed by NVDA; the frozen review still goes to AAPL. The
+    // list's sort control lives on the rail board, which is hidden at ≤860px, so tablet and phone
+    // widen the same page for the sort and narrow it again; the review is never reloaded.
+    const viewport = page.viewportSize()!;
+    if (!wide(page)) await page.setViewportSize({ width: 1440, height: 900 });
+    await page.locator(".wl-select").click();
+    await page.locator(".wl-lists .menu-row", { hasText: c.sort }).click();
+    await expect(page.locator(".wl-row").first()).toHaveAttribute("data-watchlist-symbol", "AAPL");
+    await page.setViewportSize(viewport);
+    await expect(current).toHaveText("MSFT");
+    await expect(region.getByTestId("wl-review-next")).toHaveText(c.nextIs("AAPL"));
+    await expect(region.getByTestId("wl-review-drift")).toHaveCount(0);
 
     // Markers: review-local only. No list, flag, note, alert or watchlist write may follow.
     const before = await ownedKeys(page);
@@ -140,6 +144,10 @@ for (const lang of ["en", "zh"] as const) {
     expect(writes.filter((path) => /alert|watchlist|flag|note|portfolio|position/.test(path))).toEqual([]);
 
     await region.screenshot({ path: testInfo.outputPath(`review-${lang}.png`), animations: "disabled" });
+    // The bar in context: the whole visible page at this width, scrolled so the bar is on screen.
+    await region.scrollIntoViewIfNeeded();
+    await page.mouse.move(0, 0);
+    await page.screenshot({ path: testInfo.outputPath(`context-${lang}.png`), animations: "disabled" });
 
     // Resume: same owner, same list, same frozen order, same position. Reloading does not move the chart.
     const saved = await reviewSlot(page, owner);
@@ -176,7 +184,7 @@ test("en: Next updates linked panels through the context owner and leaves a pinn
   await expect(pin).toHaveAttribute("aria-pressed", "true");
 
   await region.scrollIntoViewIfNeeded();
-  await region.getByRole("button", { name: "Next company", exact: true }).click();
+  await region.getByRole("button", { name: "Next symbol", exact: true }).click();
   await expect(region.getByTestId("wl-review-current")).toHaveText("MSFT");
   await expect.poll(() => chartSymbol(page)).toBe("MSFT");
   await expect(status).toContainText("pinned to NVDA; chart is MSFT");
@@ -184,7 +192,7 @@ test("en: Next updates linked panels through the context owner and leaves a pinn
 
   await card.getByRole("button", { name: "Follow chart", exact: true }).click();
   await expect(status).toHaveText("Following chart: MSFT");
-  await region.getByRole("button", { name: "Next company", exact: true }).click();
+  await region.getByRole("button", { name: "Next symbol", exact: true }).click();
   await expect(region.getByTestId("wl-review-current")).toHaveText("AAPL");
   await expect(status).toHaveText("Following chart: AAPL");
   await expect(card.getByTestId("seasonality-context")).toContainText("AAPL");
@@ -194,7 +202,7 @@ test("en: a review belongs to its account, and a refused save says so until Retr
   test.setTimeout(120_000);
   const { storeKey, owner } = await boot(page, testInfo, baseURL, "en");
   const region = await startReview(page, "en");
-  await region.getByRole("button", { name: "Next company", exact: true }).click();
+  await region.getByRole("button", { name: "Next symbol", exact: true }).click();
   await expect(region.getByTestId("wl-review-current")).toHaveText("MSFT");
 
   // The browser store starts refusing writes for the review key (quota / blocked storage).
@@ -206,7 +214,7 @@ test("en: a review belongs to its account, and a refused save says so until Retr
       return original.call(this, name, value);
     };
   }, REVIEW_KEY);
-  await region.getByRole("button", { name: "Next company", exact: true }).click();
+  await region.getByRole("button", { name: "Next symbol", exact: true }).click();
   await expect(region.getByTestId("wl-review-current")).toHaveText("AAPL");
   await expect(region.getByTestId("wl-review-save")).toHaveAttribute("data-save", "unsaved");
   await expect(region.getByTestId("wl-review-save")).toContainText("Not saved");
@@ -230,3 +238,56 @@ test("en: a review belongs to its account, and a refused save says so until Retr
   await expect(page.locator(".mm-ptag")).toBeVisible({ timeout: 60_000 });
   await expect(page.getByRole("region", { name: "Watchlist review" }).getByTestId("wl-review-current")).toHaveText("AAPL");
 });
+
+test("en: a review started on the web never surfaces in the native dossier", async ({ page, baseURL }, testInfo) => {
+  test.setTimeout(120_000);
+  const { owner } = await boot(page, testInfo, baseURL, "en");
+  const region = await startReview(page, "en");
+  await region.getByRole("button", { name: "Next symbol", exact: true }).click();
+  await expect(region.getByTestId("wl-review-current")).toHaveText("MSFT");
+  const saved = await reviewSlot(page, owner);
+  expect(saved).toMatchObject({ listName: LIST, cursor: 2 });
+
+  // The installable app opens the dossier for NVDA on the same browser profile. It has no chart, so
+  // the review (and its menu entry) must not appear there, and nothing may move the symbol to MSFT.
+  await page.goto("/terminal?symbol=NVDA&shell=app&dossier=1");
+  await expect(page.locator('[data-dossier="1"]')).toHaveCount(1);
+  await expect(page.locator(".detail-board")).toBeVisible({ timeout: 45_000 });
+  await page.waitForFunction(() => (window as unknown as { __mmShell?: { version?: number } }).__mmShell?.version === 1);
+  await expect(page.locator('[data-testid^="wl-review"]')).toHaveCount(0);
+  expect(await page.evaluate(() => (window as unknown as { __mmShell: { getState: () => { sym: string } } }).__mmShell.getState().sym)).toBe("NVDA");
+  // The saved review is untouched: the dossier neither resumed, moved nor ended it.
+  expect(await reviewSlot(page, owner)).toEqual(saved);
+  await page.mouse.move(0, 0);
+  await page.screenshot({ path: testInfo.outputPath("dossier-en.png"), animations: "disabled" });
+});
+
+test("en: a saved review this device cannot read is named before a new start replaces it", async ({ page, baseURL }, testInfo) => {
+  test.setTimeout(120_000);
+  const storeKey = await isolateWatchlistStore(page, testInfo, baseURL);
+  const owner = e2eWatchlistOwner(storeKey);
+  await seedOwnerWatchlists(page, storeKey, SEED);
+  // A record in a format this build does not know (e.g. written by a newer version).
+  await page.addInitScript(([key, slot]) => {
+    if (sessionStorage.getItem("e16-unreadable-seeded")) return;
+    sessionStorage.setItem("e16-unreadable-seeded", "1");
+    localStorage.setItem(key, JSON.stringify({ [slot]: { v: 9, listName: "Review Mix" } }));
+  }, [REVIEW_KEY, owner] as const);
+  await useLang(page, "en");
+  await page.route("https://www.mastermind-x.com/mm_brain.js", (route) => route.fulfill({ contentType: "application/javascript", body: "" }));
+  await page.goto("/terminal?symbol=SPY");
+  await expect(page.locator(".mm-ptag")).toBeVisible({ timeout: 60_000 });
+
+  const notice = page.getByTestId("wl-review-unreadable");
+  await notice.scrollIntoViewIfNeeded();
+  await expect(notice).toBeVisible();
+  await expect(notice).toContainText("A saved review on this device could not be read. Starting a review replaces it.");
+  // Loading the page did not overwrite the record.
+  expect(await reviewSlot(page, owner)).toEqual({ v: 9, listName: "Review Mix" });
+
+  const region = await startReview(page, "en");
+  await expect(region.getByTestId("wl-review-current")).toHaveText("NVDA");
+  await expect(page.getByTestId("wl-review-unreadable")).toHaveCount(0);
+  expect(await reviewSlot(page, owner)).toMatchObject({ v: 1, listName: LIST, cursor: 0 });
+});
+

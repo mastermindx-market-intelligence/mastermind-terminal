@@ -7,7 +7,7 @@
  *
  * ── The frozen-order contract (the E16 falsifier) ──────────────────────────────────────────────
  * The itinerary copies the list's symbols ONCE, at start, and steps through that copy. The live
- * list can be re-sorted, re-ordered by drag, or re-ranked by quotes and the next company does not
+ * list can be re-sorted, re-ordered by drag, or re-ranked by quotes and the next symbol does not
  * move. Membership changes are reported as drift (`itineraryDrift`) and only an explicit
  * `refreshItinerary` call — a user action — rebuilds the order.
  *
@@ -25,11 +25,14 @@
  * ── Storage ───────────────────────────────────────────────────────────────────────────────────
  * One active review per owner, in the same owner envelope as every other owner-scoped key
  * (`lib/ownerStorage.ts`): `{ "<owner>": <itinerary> }`. A guest's review is unreadable by an
- * account and vice versa. A write reports failure so the UI can say "not saved" honestly.
+ * account and vice versa. A write reports failure so the UI can say "not saved" honestly, and a
+ * read tells "no saved review" apart from "a saved review that could not be read" (`readReview`).
+ * `reviewStamp` (start time, revision, last update) names one saved state, so a tab that is behind
+ * can see that another tab moved, refreshed or ended the review before it writes over it.
  */
 
 import { isComposite, parseComposite } from "@/lib/composite";
-import { isPlainObject, readOwnerSlot, writeOwnerSlot, type StoragePort } from "@/lib/ownerStorage";
+import { isPlainObject, writeOwnerSlot, type StoragePort } from "@/lib/ownerStorage";
 import { orderWatchlistRowsBySections } from "@/lib/watchlistSections";
 
 /** Owner envelope key for the active review. */
@@ -49,7 +52,7 @@ export type ReviewItinerary = {
   listName: string;
   /** Frozen order, copied at start or at the last explicit refresh. */
   symbols: string[];
-  /** Index into `symbols` of the company under review. */
+  /** Index into `symbols` of the symbol under review. */
   cursor: number;
   /** symbol → marker. Only symbols in `symbols`. */
   marks: Record<string, ReviewMark>;
@@ -137,7 +140,7 @@ export function stepItinerary(itinerary: ReviewItinerary, direction: 1 | -1, ava
   return null;
 }
 
-/** The company the next press of Next would land on, or null. Pure preview — moves nothing. */
+/** The symbol the next press of Next would land on, or null. Pure preview — moves nothing. */
 export function peekNext(itinerary: ReviewItinerary, availabilityOf: AvailabilityOf): string | null {
   const step = stepItinerary(itinerary, 1, availabilityOf, itinerary.updatedAt);
   return step ? step.itinerary.symbols[step.itinerary.cursor] : null;
@@ -169,21 +172,37 @@ export function itineraryDrift(itinerary: ReviewItinerary, liveOrder: readonly s
 
 /**
  * The ONLY way the order changes: the user asked for the current list. Markers survive for
- * companies still on it; the cursor stays on the same company when it is still there, otherwise
- * it moves to the first unmarked reviewable entry (never to "whatever is at the old index").
+ * symbols still on it. The cursor stays on the same symbol when it is still there and reviewable.
+ * Otherwise it keeps the user's place: the first reviewable symbol at or after the old position in
+ * the OLD frozen order, found in the new order. Only when nothing after that place is left does it
+ * fall back to the first unmarked reviewable symbol from the top. It never lands on "whatever now
+ * sits at the old index".
  */
 export function refreshItinerary(itinerary: ReviewItinerary, liveOrder: readonly string[], availabilityOf: AvailabilityOf, now: number): ReviewItinerary | null {
   const symbols = dedupe(liveOrder);
   if (!symbols.length || symbols.length > REVIEW_MAX_SYMBOLS) return null;
   const marks: Record<string, ReviewMark> = {};
   for (const symbol of symbols) if (itinerary.marks[symbol]) marks[symbol] = itinerary.marks[symbol];
+  const reviewableAt = (index: number) => index >= 0 && !isSkipped(availabilityOf(symbols[index]));
   const here = currentSymbol(itinerary);
   let cursor = here ? symbols.indexOf(here) : -1;
-  if (cursor < 0 || isSkipped(availabilityOf(symbols[cursor]))) {
-    cursor = symbols.findIndex((symbol) => !marks[symbol] && !isSkipped(availabilityOf(symbol)));
-    if (cursor < 0) cursor = Math.max(0, symbols.findIndex((symbol) => !isSkipped(availabilityOf(symbol))));
+  if (!reviewableAt(cursor)) {
+    cursor = -1;
+    for (let i = itinerary.cursor; i < itinerary.symbols.length && cursor < 0; i++) {
+      const index = symbols.indexOf(itinerary.symbols[i]);
+      if (reviewableAt(index)) cursor = index;
+    }
   }
+  if (cursor < 0) cursor = symbols.findIndex((symbol, index) => !marks[symbol] && reviewableAt(index));
+  if (cursor < 0) cursor = Math.max(0, symbols.findIndex((_, index) => reviewableAt(index)));
   return { ...itinerary, symbols, marks, cursor, revision: itinerary.revision + 1, updatedAt: now };
+}
+
+/** The same itinerary under a new list name (the user renamed the list). Order and place are kept. */
+export function renameItinerary(itinerary: ReviewItinerary, listName: string, now: number): ReviewItinerary | null {
+  const name = listName.trim();
+  if (!name || name === itinerary.listName) return null;
+  return { ...itinerary, listName: name, updatedAt: now };
 }
 
 export type ItinerarySummary = { total: number; position: number; reviewed: number; deferred: number; unavailable: number; unknown: number };
@@ -237,12 +256,42 @@ export function parseItinerary(raw: unknown): ReviewItinerary | null {
   };
 }
 
-export function readReview(storage: StoragePort, owner: string): ReviewItinerary | null {
+/**
+ * What a read found. `absent` = this owner has no saved review. `unreadable` = something is saved
+ * (or the store refused the read) but it is not a review this code can use: the store threw, the
+ * envelope is not JSON, or the owner's record is malformed or from another version. The UI says so
+ * instead of presenting it as "no review", and a new start replaces it only after saying so.
+ */
+export type ReviewRead = { status: "ok"; itinerary: ReviewItinerary } | { status: "absent" } | { status: "unreadable" };
+
+export function readReview(storage: StoragePort | null, owner: string): ReviewRead {
+  if (!storage) return { status: "unreadable" };
+  let raw: string | null;
   try {
-    return parseItinerary(readOwnerSlot(storage, WL_REVIEW_KEY, owner));
+    raw = storage.getItem(WL_REVIEW_KEY);
   } catch {
-    return null;
+    return { status: "unreadable" };
   }
+  if (raw === null || raw === "") return { status: "absent" };
+  let envelope: unknown;
+  try {
+    envelope = JSON.parse(raw);
+  } catch {
+    return { status: "unreadable" };
+  }
+  if (!isPlainObject(envelope)) return { status: "unreadable" };
+  if (!Object.prototype.hasOwnProperty.call(envelope, owner)) return { status: "absent" };
+  const itinerary = parseItinerary(envelope[owner]);
+  return itinerary ? { status: "ok", itinerary } : { status: "unreadable" };
+}
+
+/**
+ * One saved state's identity: which review (start time), which revision of its order, and which
+ * update. Two tabs holding the same stamp hold the same record; a different stamp on disk means
+ * another tab wrote since this one last read or wrote. `null` = no review.
+ */
+export function reviewStamp(itinerary: ReviewItinerary | null): string | null {
+  return itinerary ? `${itinerary.startedAt}:${itinerary.revision}:${itinerary.updatedAt}` : null;
 }
 
 /** Replace (or, with null, remove) one owner's review. False = not persisted; say so in the UI. */
