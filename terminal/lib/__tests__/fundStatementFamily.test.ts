@@ -58,6 +58,15 @@ describe("legacy financial-services statement classification", () => {
     expect(isIndustrialIncomeView(incomeView("JPM", classified.statements.annual, "annual"))).toBe(false);
   });
 
+  it("treats the GICS \"Financials\" sector the live JPM artifact carries the same way", () => {
+    // Live JPM.fund.json (2026-10-11) says sector "Financials", not "Financial Services";
+    // matching only the latter left a bank statement presented — and comparable — as industrial.
+    const legacy = legacyFund("Financials");
+    const classified = applyLegacyStatementFamilyFallback(legacy);
+    expect(classified.statements.annual!.source_family).toBe("financial_services");
+    expect(isIndustrialIncomeView(incomeView("JPM", classified.statements.annual, "annual"))).toBe(false);
+  });
+
   it.each(["V", "MA", "SPGI", "CME", "ICE"])(
     "keeps %s industrial when its sourced statement carries COGS/gross profit",
     (ticker) => {
