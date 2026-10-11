@@ -558,6 +558,17 @@ test("Prophet fills its Options workspace at every supported width", async ({ pa
 });
 
 test("Levels keeps the gamma map and named-level rail reachable at every supported width", async ({ page }, testInfo) => {
+  // Tablet runs the board in Chinese; desktop/mobile stay English. The level notes and the
+  // regime ribbon are payload text, so only the LEX strings switch language.
+  const zh = testInfo.project.name === "tablet";
+  if (zh) {
+    await page.addInitScript(() => {
+      localStorage.setItem("mm.lang", "zh");
+      document.documentElement.setAttribute("data-lang", "zh");
+      document.documentElement.setAttribute("lang", "zh-CN");
+    });
+  }
+
   await page.route("**/api/flow?**", async (route) => {
     const url = new URL(route.request().url());
     if (url.searchParams.get("f") !== "levels:SPY") {
@@ -588,7 +599,8 @@ test("Levels keeps the gamma map and named-level rail reachable at every support
   await expect(board).toBeVisible({ timeout: 15_000 });
   await expect(column).toBeVisible();
   await expect(rail).toBeVisible();
-  await expect(board).toContainText("Positioning, not prophecy");
+  await expect(board).toContainText(zh ? "这是仓位结构，不是预言" : "Positioning, not prophecy. These are locations");
+  await expect(board).not.toContainText(zh ? "These are locations" : "仓位结构");
 
   const geometry = await board.evaluate((root) => {
     const columnEl = root.querySelector<HTMLElement>(".levels-column");
@@ -615,14 +627,15 @@ test("Levels keeps the gamma map and named-level rail reachable at every support
     expect(geometry.rail.left).toBeGreaterThanOrEqual(geometry.column.right - 1);
   }
 
-  const keystone = rail.getByRole("button").filter({ hasText: "Keystone" });
+  const keystone = rail.getByRole("button").filter({ hasText: zh ? "关键位" : "Keystone" });
   await expect(keystone).toBeVisible();
   await expect(keystone).toContainText("775");
   await keystone.click();
   await expect(rail).toContainText("The largest gamma concentration");
 
-  // The routed Levels payload crowds Ceiling/Cluster/Keystone within 0.5 points.
-  // Their exact-price anchors stay put, while readable rungs must never overlap.
+  // The routed Levels payload crowds Ceiling/Cluster/Keystone within 0.5 points, so
+  // deconfliction moves some readable rungs off their exact price. Rungs must never
+  // overlap, and a moved rung keeps an exact-price tick that crosses no label's text.
   const rungs = board.getByTestId("levels-rung");
   await expect(rungs).toHaveCount(8);
   const rungGeometry = await rungs.evaluateAll((els) => els.map((el) => {
@@ -638,9 +651,62 @@ test("Levels keeps the gamma map and named-level rail reachable at every support
   for (let i = 1; i < orderedRungs.length; i += 1) {
     expect(orderedRungs[i].top).toBeGreaterThanOrEqual(orderedRungs[i - 1].bottom + 1);
   }
-  expect(rungGeometry.some((r) => Math.abs(r.rawY - r.displayY) > 0.002)).toBe(true);
-  await expect(board.getByTestId("levels-rung-leader").first()).toBeVisible();
-  await expect(board.getByTestId("levels-rung-anchor")).toHaveCount(8);
+  await expect(rungs.filter({ hasText: zh ? "上方阻力" : "Ceiling" })).toHaveCount(1);
+
+  const marks = await board.evaluate((root) => {
+    const box = (el: Element) => {
+      const r = el.getBoundingClientRect();
+      return { left: r.left, top: r.top, right: r.right, bottom: r.bottom };
+    };
+    const rungEls = [...root.querySelectorAll<HTMLElement>('[data-testid="levels-rung"]')];
+    const stage = rungEls[0]?.parentElement;
+    const columnEl = root.querySelector<HTMLElement>(".levels-column");
+    if (!stage || !columnEl) throw new Error("Levels stage is unavailable");
+    return {
+      stageTop: stage.getBoundingClientRect().top + stage.clientTop,
+      stageHeight: stage.clientHeight,
+      column: box(columnEl),
+      // Every piece of label text drawn on the map: rung glyph/strike/role, flip, spot, void.
+      labels: [...stage.querySelectorAll("span")]
+        .filter((el) => el.textContent?.trim())
+        .map((el) => ({ text: el.textContent?.trim() ?? "", ...box(el) })),
+      rungs: rungEls.map((el) => ({
+        strike: el.getAttribute("data-strike") ?? "",
+        rawY: Number(el.getAttribute("data-raw-y")),
+        displayY: Number(el.getAttribute("data-display-y")),
+        ...box(el),
+      })),
+      anchors: [...root.querySelectorAll('[data-testid="levels-rung-anchor"]')]
+        .map((el) => ({ strike: el.getAttribute("data-strike") ?? "", ...box(el) })),
+      leaders: root.querySelectorAll('[data-testid="levels-rung-leader"]').length,
+    };
+  });
+  type Box = { left: number; top: number; right: number; bottom: number };
+  const intersects = (a: Box, b: Box) =>
+    a.left < b.right && b.left < a.right && a.top < b.bottom && b.top < a.bottom;
+  expect(marks.labels.length).toBeGreaterThanOrEqual(8 * 3);
+  const crossings = marks.anchors.flatMap((a) => marks.labels
+    .filter((label) => intersects(a, label))
+    .map((label) => `${a.strike} tick crosses "${label.text}"`));
+  expect(crossings).toEqual([]);
+
+  // Only a moved rung needs a separate exact-price mark: an unmoved rung is centred on
+  // its own price. Each tick sits on that exact price, left of every label box.
+  const moved = marks.rungs.filter((r) => Math.abs(r.rawY - r.displayY) > 0.002);
+  expect(moved.length).toBeGreaterThan(0);
+  expect(marks.anchors.map((a) => a.strike).sort()).toEqual(moved.map((r) => r.strike).sort());
+  expect(marks.leaders).toBe(moved.length);
+  const labelBoxesLeft = Math.min(...marks.rungs.map((r) => r.left));
+  for (const anchor of marks.anchors) {
+    const rung = moved.find((r) => r.strike === anchor.strike);
+    if (!rung) throw new Error(`no moved rung for the ${anchor.strike} tick`);
+    const exactY = marks.stageTop + rung.rawY * marks.stageHeight;
+    expect(Math.abs((anchor.top + anchor.bottom) / 2 - exactY)).toBeLessThanOrEqual(1.5);
+    expect(anchor.right).toBeLessThanOrEqual(labelBoxesLeft + 0.5);
+    expect(anchor.right - anchor.left).toBeGreaterThanOrEqual(6);
+    expect(anchor.left).toBeGreaterThanOrEqual(marks.column.left);
+  }
+  await expect(board.getByTestId("levels-rung-anchor").first()).toBeVisible();
 
   const viewportWidth = page.viewportSize()?.width ?? 1440;
   const pageWidth = await page.evaluate(() => ({

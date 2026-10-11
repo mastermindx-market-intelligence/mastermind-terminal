@@ -13,6 +13,7 @@ class TestEventSource {
   onerror: (() => void) | null = null;
   closed = false;
   constructor(readonly url: string) { TestEventSource.instances.push(this); }
+  addEventListener() { /* the named status event is covered by flowStreamFailureState */ }
   close() { this.closed = true; }
   open() { this.onopen?.(); }
   fail() { this.onerror?.(); }
@@ -50,7 +51,7 @@ describe("mounted flow stream transport ownership", () => {
     await render(); await fallback(); expect(pending).toHaveLength(1);
     await act(async () => { source().open(); source().frame({ value: "SSE" }); });
     await resolvePoll(0, { value: "old poll" });
-    expect(snapshot()).toEqual({ data: { value: "SSE" }, connected: true, error: false });
+    expect(snapshot()).toEqual({ data: { value: "SSE" }, connected: true, error: false, status: "data", stale: false });
     await act(async () => { await vi.advanceTimersByTimeAsync(3000); });
     expect(fetcher).toHaveBeenCalledTimes(1);
   });
@@ -70,7 +71,7 @@ describe("mounted flow stream transport ownership", () => {
     expect(fetcher).toHaveBeenCalledTimes(2);
     expect(snapshot().data).toEqual({ value: "SSE" });
     await resolvePoll(1, { value: "new fallback" });
-    expect(snapshot()).toEqual({ data: { value: "new fallback" }, connected: false, error: false });
+    expect(snapshot()).toEqual({ data: { value: "new fallback" }, connected: false, error: false, status: "data", stale: false });
   });
   it("does not adopt an earlier generation's still-pending request after another outage", async () => {
     await render(); await fallback();

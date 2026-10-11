@@ -48,6 +48,7 @@ function layoutFileMap(yml: string): Record<string, string> {
     if (!line.startsWith("  ")) break;
     const m = line.match(/^  (\S+): "?([0-9a-f]{64})"?$/);
     if (!m) throw new Error(`layoutFiles row is not path: sha256: ${line}`);
+    if (map[m[1]]) throw new Error(`layoutFiles repeats ${m[1]}`);
     map[m[1]] = m[2];
   }
   if (Object.keys(map).length === 0) throw new Error("EVIDENCE.yml layoutFiles is empty");
@@ -75,58 +76,28 @@ function fetchCommitOnce(sha: string): void {
   git(["fetch", "--depth=1", "origin", sha]);
 }
 
-function commitParents(sha: string): string[] {
-  const r = git(["cat-file", "-p", sha]);
-  if (!r.ok) return [];
-  const parents: string[] = [];
-  for (const line of r.stdout.toString("utf8").split("\n")) {
-    if (line === "") break;
-    const m = line.match(/^parent ([0-9a-f]{40})$/);
-    if (m) parents.push(m[1]);
-  }
-  return parents;
-}
-
-function isAncestorOrEqual(sha: string): boolean {
-  if (git(["merge-base", "--is-ancestor", sha, "HEAD"]).ok) return true;
-  // GitHub's pull_request checkout is fetch-depth 2 of the merge commit
-  // (HEAD = merge, parents = base + PR tip). capturedAtHead is the PR
-  // tip's parent by the B1 crops-follow-code flow, so it sits behind
-  // .git/shallow: merge-base cannot walk the PR tip's parent even after
-  // the ruled `git fetch --depth=1 origin <sha>` brings the object in
-  // disconnected. Parent SHAs in commit headers of objects we do have
-  // still name that hop. Walk those headers (no second fetch). A sha
-  // that is not on HEAD's parent chain still fails.
-  const head = git(["rev-parse", "HEAD"]);
-  if (!head.ok) return false;
-  const headSha = head.stdout.toString("utf8").trim();
-  if (headSha === sha) return true;
-  const seen = new Set<string>();
-  let frontier = [headSha];
-  for (let hops = 0; hops < 6 && frontier.length > 0; hops += 1) {
-    const next: string[] = [];
-    for (const c of frontier) {
-      if (seen.has(c)) continue;
-      seen.add(c);
-      if (c === sha) return true;
-      for (const p of commitParents(c)) {
-        if (p === sha) return true;
-        if (!seen.has(p) && commitExists(p)) next.push(p);
-      }
-    }
-    frontier = next;
-  }
-  // A squash merge lands the packet's bytes on a brand-new master commit, so
-  // capturedAtHead can sit more than two hops behind HEAD. CI checks out with
-  // fetch-depth 2, so neither merge-base nor the header walk above can reach
-  // it. Deepen the shallow history once, then re-ask merge-base before failing.
-  git(["fetch", "--deepen=64", "origin"]);
-  return git(["merge-base", "--is-ancestor", sha, "HEAD"]).ok;
-}
-
 function blobAt(sha: string, rel: string): Buffer | null {
   const r = git(["cat-file", "-p", `${sha}:${rel}`]);
   return r.ok ? r.stdout : null;
+}
+
+function requireCapturedLayoutBytes(
+  yml: string,
+  readBlob: (sha: string, rel: string) => Buffer | null,
+): Record<string, string> {
+  const sha = capturedAtHead(yml);
+  const recorded = layoutFileMap(yml);
+  for (const rel of LAYOUT_FILES) {
+    if (!recorded[rel]) throw new Error(`layoutFiles is missing ${rel}`);
+  }
+  for (const [rel, expected] of Object.entries(recorded)) {
+    const blob = readBlob(sha, rel);
+    if (!blob) throw new Error(`git cannot read ${rel} at capturedAtHead ${sha}`);
+    if (sha256Buf(blob) !== expected) {
+      throw new Error(`${rel} hash does not match the file bytes at capturedAtHead ${sha}`);
+    }
+  }
+  return recorded;
 }
 
 function escapeRegExp(s: string): string {
@@ -147,13 +118,12 @@ function measurement(yml: string, file: string): Record<string, string> {
 }
 
 describe("B-F12-9 evidence lock is the sha256 of the layout sources", () => {
-  it("capturedAtHead is an ancestor-or-equal of HEAD and layoutFiles hashes match the bytes at that commit", () => {
+  it("capturedAtHead names the exact layout bytes, including after a squash merge", () => {
     // Seat ruling B1(ii): capturedAtHead is no longer informational. RED on 75916e59
     // because EVIDENCE.yml still names 144fbbd7 while layoutFiles hashes were restamped
     // to this head's SectionTeam.tsx bytes (99/22 after the stacked-base merge).
     const yml = evidenceText();
     const sha = capturedAtHead(yml);
-    const recorded = layoutFileMap(yml);
     expect(sha).toMatch(/^[0-9a-f]{40}$/);
     if (!commitExists(sha)) {
       fetchCommitOnce(sha);
@@ -162,12 +132,11 @@ describe("B-F12-9 evidence lock is the sha256 of the layout sources", () => {
       commitExists(sha),
       `capturedAtHead ${sha} is not a commit reachable from origin — recapture and record the real code commit`,
     ).toBe(true);
-    expect(isAncestorOrEqual(sha), `capturedAtHead ${sha} is not an ancestor-or-equal of HEAD`).toBe(true);
-    for (const [rel, expected] of Object.entries(recorded)) {
-      const blob = blobAt(sha, rel);
-      expect(blob, `git cannot read ${rel} at capturedAtHead ${sha}`).not.toBeNull();
-      expect(sha256Buf(blob!), `${rel} hash does not match the file bytes at capturedAtHead ${sha}`).toBe(expected);
-    }
+    // Squash merges preserve the captured source bytes but replace branch ancestry.
+    // Keep B1(ii)'s capture-commit binding: every recorded hash must match that
+    // actual commit AND the checked-out source. A new HEAD or a restamped hash
+    // cannot substitute for the code that generated the retained crops.
+    const recorded = requireCapturedLayoutBytes(yml, blobAt);
     for (const rel of LAYOUT_FILES) {
       expect(recorded[rel], `layoutFiles is missing ${rel}`).toMatch(/^[0-9a-f]{64}$/);
     }
@@ -247,5 +216,41 @@ describe("B-F12-9 evidence lock is the sha256 of the layout sources", () => {
         expect(existsSync(join(CROP_DIR, zh)), zh).toBe(true);
       }
     }
+  });
+});
+
+describe("B-F12-9 capture-commit binding negative controls", () => {
+  const sha = "1".repeat(40);
+  const blobs = new Map(LAYOUT_FILES.map((rel) => [rel, Buffer.from(`captured:${rel}`)]));
+  const rows = LAYOUT_FILES.map((rel) => `  ${rel}: "${sha256Buf(blobs.get(rel)!)}"`);
+  const yml = `# capturedAtHead: ${sha}\ncapturedAtHead: ${sha}\nlayoutFiles:\n${rows.join("\n")}\n`;
+  const readCaptured = (ref: string, rel: string) => ref === sha ? blobs.get(rel) ?? null : null;
+
+  it("accepts byte-bound captured source without consulting current branch ancestry", () => {
+    expect(Object.keys(requireCapturedLayoutBytes(yml, readCaptured))).toEqual(LAYOUT_FILES);
+  });
+
+  it("does not let a valid comment mask a false data-line capture SHA", () => {
+    const tampered = yml.replace(/^capturedAtHead: .+$/m, `capturedAtHead: ${"2".repeat(40)}`);
+    expect(() => requireCapturedLayoutBytes(tampered, readCaptured)).toThrow(/git cannot read/);
+    expect(() => requireCapturedLayoutBytes(yml.replace(/^capturedAtHead: .+\n/m, ""), readCaptured))
+      .toThrow(/missing a 40-char capturedAtHead/);
+  });
+
+  it("rejects hashes restamped to bytes absent from the actual capture commit", () => {
+    const tampered = yml.replace(sha256Buf(blobs.get(LAYOUT_FILES[0])!), sha256Buf(Buffer.from("later source")));
+    expect(() => requireCapturedLayoutBytes(tampered, readCaptured)).toThrow(/hash does not match/);
+  });
+
+  it("rejects omitted or duplicate required layout rows", () => {
+    expect(() => requireCapturedLayoutBytes(yml.replace(`${rows[0]}\n`, ""), readCaptured))
+      .toThrow(/layoutFiles is missing/);
+    expect(() => requireCapturedLayoutBytes(`${yml}${rows[0]}\n`, readCaptured))
+      .toThrow(/layoutFiles repeats/);
+  });
+
+  it("rejects a missing captured blob even when the manifest hash is valid", () => {
+    expect(() => requireCapturedLayoutBytes(yml, (ref, rel) => rel === LAYOUT_FILES[0] ? null : readCaptured(ref, rel)))
+      .toThrow(/git cannot read/);
   });
 });
