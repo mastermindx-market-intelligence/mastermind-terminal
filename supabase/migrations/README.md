@@ -354,3 +354,11 @@ receipts are in `terminal/docs/verification/iw2-g1/`. Application deployment and
 real authenticated acceptance are separate gates. Rollback revokes the mutation
 RPC grant and retains heads, revisions, receipts and captures. Current layouts
 are not changed by the migration.
+
+### 0032 — Audit20 portfolio entry-unit receipt
+
+Reserved/taken on draft #866 for `TERMINAL-AUDIT20-A09`, root `01a10f92`. Production is **UNAPPLIED**. Incumbent0029/0030 remain with held #804 and0031 with #858; ledger-order and source/review/CI/application gates remain separate.
+
+`0032_portfolio_entry_currency.sql` adds nullable `entry_currency` and `entry_currency_basis` on the existing owner/RLS-scoped `portfolio_positions`. The explicit declaration is tied to the exact ticker and entry price. An older writer changing either invalidates both receipt columns; changing back cannot resurrect a unit. Status/share/notes-only writers preserve the declaration. Legacy rows remain unknown. No current-quote inference, historical backfill, FX conversion, new table, privilege or RLS change is made.
+
+The source refuses absent table/RLS, conflicting column types, non-null/defaulted unit columns and a same-named incompatible constraint. Its invoker receipt trigger pins `search_path`; the file carries executable readback and application-only rollback guidance that retains recorded data and the compatibility fence. Native PostgreSQL qualification is isolated fixture evidence, never production application. Apply/catalog receipts must be posted on #866 before changing its application status.
