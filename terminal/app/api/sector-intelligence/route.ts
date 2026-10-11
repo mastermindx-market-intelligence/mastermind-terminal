@@ -1,4 +1,5 @@
-import { TIMEFRAMES } from "@/lib/finvizThemes";
+import { qualifyFinvizMembershipManifest } from "@/lib/finvizMembershipManifest";
+import { normalizeFinviz, TIMEFRAMES } from "@/lib/finvizThemes";
 import { isAdminRequest } from "@/lib/adminGate";
 import { createHash } from "node:crypto";
 import { cookies } from "next/headers";
@@ -160,10 +161,14 @@ export async function GET(req: Request): Promise<Response> {
       contentHash: parsed.hash, ...(riskRead ? { qualificationReasons: riskRead.reasons } : {}) };
     // Transport factual identity/membership/measurements only, never vendor prose.
     const owner = object(parsed.data);
+    const membershipRead = key === "finviz"
+      ? qualifyFinvizMembershipManifest(owner.membership_manifest, normalizeFinviz(owner)) : null;
+    if (membershipRead?.status === "invalid") return failure(502, "invalid");
     const factualPerf = (value: unknown) => Object.fromEntries(TIMEFRAMES.map(tf => [tf, number(object(value)[tf])]));
     const data = key === "finviz" ? {
       map_type: owner.map_type, source: owner.source, asof: owner.asof,
       generated_utc: owner.generated_utc, n_tiles: owner.n_tiles, n_members: owner.n_members,
+      ...(membershipRead?.status === "qualified" ? { membership_manifest: membershipRead.manifest } : {}),
       size_basis: owner.size_basis, timeframes: (owner.timeframes as unknown[]).map(value => { const row = object(value); return { key: row.key, available: row.available === true }; }),
       sectors: (owner.sectors as unknown[]).map(value => { const row = object(value); return { key: row.key, en: row.en, zh: row.zh }; }),
       tiles: (owner.tiles as unknown[]).map(value => {

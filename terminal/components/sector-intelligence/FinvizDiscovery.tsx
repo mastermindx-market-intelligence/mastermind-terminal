@@ -4,7 +4,8 @@ import Link from "next/link";
 import { useMemo, useRef } from "react";
 import { useLang } from "@/lib/i18n";
 import { useSectorT } from "@/lib/sectorIntelligenceLex";
-import { companyHref, formatValue, type FeedPayload, type SectorState, type FinvizMode, type FinvizAxis } from "@/lib/sectorIntelligence";
+import { qualifyFinvizMembershipManifest } from "@/lib/finvizMembershipManifest";
+import { object, companyHref, formatValue, type FeedPayload, type SectorState, type FinvizMode, type FinvizAxis } from "@/lib/sectorIntelligence";
 import { normalizeFinviz, visibleGroups, bubblePoints, metric, TIMEFRAMES, type ThemeGroup } from "@/lib/finvizThemes";
 import { useChartWidth, padDomain, niceTicks, fmtTick, thinLabels } from "@/components/charts/svgChart";
 import styles from "./FinvizDiscovery.module.css";
@@ -53,7 +54,11 @@ export default function FinvizDiscovery({ feed, state, onChange }: { feed?: Feed
   const inspectorRef = useRef<HTMLElement>(null);
   const result = useMemo(() => {
     if (!feed || feed.receipt.status !== "ready") return null;
-    try { return normalizeFinviz(feed.data); } catch { return null; }
+    try {
+      const population = normalizeFinviz(feed.data);
+      const membershipRead = qualifyFinvizMembershipManifest(object(feed.data).membership_manifest, population);
+      return membershipRead.status === "invalid" ? null : { ...population, membershipRead };
+    } catch { return null; }
   }, [feed]);
   const groups = useMemo(() => result ? visibleGroups(result, state.discoveryQuery, state.finvizTheme) : [], [result, state.discoveryQuery, state.finvizTheme]);
   const selected = result?.groups.find(g => g.id === state.finvizSubtheme);
@@ -78,6 +83,10 @@ export default function FinvizDiscovery({ feed, state, onChange }: { feed?: Feed
   const metrics = state.finvizMode === "matrix" ? TIMEFRAMES : [state.matrixTimeframe];
   const known = selected?.members.filter(m => m.perf[state.matrixTimeframe] !== null) || [];
   const advancers = known.filter(m => m.perf[state.matrixTimeframe]! > 0).length;
+  const researchHref = state.company ? companyHref(state.company) : null;
+  const manifest = result.membershipRead.manifest;
+  const coverage = manifest?.coverage[state.matrixTimeframe];
+  const unknown = t("siFinvizUnknown");
   return <section className={styles.root} data-testid="finviz-discovery">
     <header className={styles.heading}><div><p className={styles.eyebrow}>{t("siFinvizINTERNALRESEARCHFINVIZ")}</p><h2>{t("siFinvizExploreThemes")}</h2><p>{t("siFinvizFollowThemesToSubthemesAndTheCompanies")}</p></div><p>{date} {stale ? (t("siFinvizStale")) : ""}</p></header>
     <div className={styles.stats} data-testid="finviz-population"><span><strong>{result.counts.themes}</strong> {t("siFinvizThemes")}</span><span><strong>{result.counts.subthemes}</strong> {t("siFinvizSubthemes")}</span><span><strong>{result.counts.tickers}</strong> {t("siFinvizDistinctTickers")}</span><span><strong>{result.counts.appearances}</strong> {t("siFinvizMemberAppearances")}</span></div>
@@ -115,12 +124,21 @@ export default function FinvizDiscovery({ feed, state, onChange }: { feed?: Feed
       {!selected ? <p>{state.finvizSubtheme ? (t("siFinvizTheSelectedSubthemeIsAbsentFromThis")) : (t("siFinvizSelectASubthemeToInspectEveryMember"))}</p> : <>
         <p className={styles.eyebrow}>{parentName(selected.parentId)}</p><h3>{selected.name}</h3><p className={styles.sourceId}>{selected.id}</p><p>{known.length} / {selected.members.length} {t("siFinvizMembersMeasured")} · {advancers} {t("siFinvizAdvancing")} · {state.matrixTimeframe}</p>
         <div className={styles.members}>{selected.members.map(member => <button type="button" key={member.ticker} aria-pressed={state.company === member.ticker} onClick={() => onChange({ company: member.ticker })}><strong>{member.ticker}</strong><span data-sign={sign(member.perf[state.matrixTimeframe])}>{pct(member.perf[state.matrixTimeframe])}</span></button>)}</div>
-        {state.company && selected.members.some(m => m.ticker === state.company) && <p><Link href={companyHref(state.company)!}>{t("siFinvizResearchCompany")}: {state.company} →</Link></p>}
+        {researchHref && selected.members.some(m => m.ticker === state.company) && <p><Link href={researchHref}>{t("siFinvizResearchCompany")}: {state.company} →</Link></p>}
         <details><summary>{t("siFinvizOverlappingSubthemes")}</summary>{result.groups.filter(g => g.id !== selected.id && g.members.some(m => selected.members.some(s => s.ticker === m.ticker))).map(g => <button className={styles.overlap} key={g.id} type="button" onClick={() => select(g)}>{parentName(g.parentId)} / {g.name} · {g.members.filter(m => selected.members.some(s => s.ticker === m.ticker)).length}</button>)}</details>
       </>}
     </aside></div>
-    <details className={styles.receipt}><summary>{t("siFinvizSourceAndCoverage")}</summary><dl>
+    <details className={styles.receipt} data-testid="finviz-source-coverage"><summary>{t("siFinvizSourceAndCoverage")}</summary><dl>
       <dt>{t("siFinvizSource")}</dt><dd>Finviz · {feed?.receipt.path}</dd><dt>{t("siFinvizMarketDate")}</dt><dd>{date}</dd><dt>{t("siFinvizGenerated")}</dt><dd>{result.generatedAt || "—"}</dd><dt>{t("siFinvizRetrieved")}</dt><dd>{feed?.receipt.observedAt || "—"}</dd><dt>{t("siFinvizContentFingerprint")}</dt><dd>{feed?.receipt.contentHash || "—"}</dd><dt>{t("siFinvizSelectedSourceIdentity")}</dt><dd>{selected?.id || "—"}</dd>
-    </dl><p>{t("siFinvizOwnerReportedSubthemeAndTickerTotalsReconcile")}</p><p>{t("siFinvizSourceLabelsArePreservedCapitalizationCorrelationHistorical")}</p><p>{t("siFinvizInternalResearchOnlyCustomerDisplayRemainsGated")}</p></details>
+      <dt>{t("siFinvizMembershipDate")}</dt><dd>{manifest?.membership.asof ?? unknown}</dd>
+      <dt>{t("siFinvizMembershipObserved")}</dt><dd>{manifest?.membership.refreshed_at_utc ?? unknown}</dd>
+      <dt>{t("siFinvizCoverageMembers")} · {state.matrixTimeframe}</dt><dd>{coverage ? `${coverage.measured_members} / ${coverage.total_members}` : unknown}</dd>
+      <dt>{t("siFinvizCoverageSubthemes")} · {state.matrixTimeframe}</dt><dd>{coverage ? `${coverage.measured_groups} / ${coverage.total_groups}` : unknown}</dd>
+      <dt>{t("siFinvizUnpricedMembers")}</dt><dd>{manifest?.unpriced_members ?? unknown}</dd>
+      <dt>{t("siFinvizUnresolvedIdentities")}</dt><dd>{unknown}</dd>
+      <dt>{t("siFinvizPartialGroups")}</dt><dd>{unknown}</dd>
+      <dt>{t("siFinvizMissingGroups")}</dt><dd>{unknown}</dd>
+      <dt>{t("siFinvizCorrectionStatus")}</dt><dd>{manifest?.corrections.status === "snapshot_promoted" ? t("siFinvizSnapshotPromoted") : unknown}</dd>
+    </dl><p>{t(manifest ? "siFinvizMembershipScope" : "siFinvizMembershipUnavailable")}</p><p>{t("siFinvizSourceLabelsArePreservedCapitalizationCorrelationHistorical")}</p><p>{t("siFinvizInternalResearchOnlyCustomerDisplayRemainsGated")}</p></details>
   </section>;
 }

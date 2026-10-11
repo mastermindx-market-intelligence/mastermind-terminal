@@ -2,6 +2,7 @@ import { readFileSync } from "node:fs";
 import { createHash } from "node:crypto";
 import { expect, test, type Page } from "@playwright/test";
 import { sectorFixture } from "./fixtures/sector-company-v3";
+import { finvizMembershipPayload, finvizMembershipFixture } from "../lib/__tests__/fixtures/finvizMembership";
 import { riskEnvelopeFixture } from "../lib/__tests__/marketRiskFixture";
 
 // An explicit local evidence path allows this same journey to qualify real owner
@@ -196,5 +197,37 @@ for (const [lang, appearance] of [["en", "dark"], ["zh", "light"]]) {
       await root.getByTestId("finviz-inventory").evaluate(el => el.scrollIntoView({ block: "start" }));
       await page.screenshot({ path: info.outputPath(`${mode.toLowerCase()}-${lang}-${appearance}.png`) });
     }
+  });
+}
+
+
+for (const [lang, appearance] of [["en", "light"], ["en", "dark"], ["zh", "light"], ["zh", "dark"]]) {
+  test(`membership metadata ${lang} ${appearance}`, async ({ page }, info) => {
+    const data = supplied ? payload : { ...finvizMembershipPayload(), membership_manifest: finvizMembershipFixture() };
+    const manifest = (data as unknown as { membership_manifest: ReturnType<typeof finvizMembershipFixture> }).membership_manifest;
+    expect(manifest, "the explicit metadata proof payload must include the committed contract").toBeTruthy();
+    const membership = manifest.membership as { asof: string };
+    const errors: string[] = []; page.on("pageerror", error => errors.push(error.message));
+    await page.addInitScript(language => localStorage.setItem("mm.lang", language), lang);
+    await page.route("**/api/sector-intelligence?**", async route => {
+      if (new URL(route.request().url()).searchParams.get("source") !== "finviz") return sectorFixture(route);
+      return route.fulfill({ json: { data, receipt: { source: "finviz", path: "/marketdata/themes_heatmap.json", status: "ready",
+        asOf: data.asof, observedAt: "2026-10-10T15:00:00Z", stale: false, contentHash: "local-metadata-proof" } } });
+    });
+    await page.goto(url.replace("sectorTheme=light", `sectorTheme=${appearance}`));
+    const root = page.getByTestId("finviz-discovery"), coverage = root.getByTestId("finviz-source-coverage");
+    await coverage.locator("summary").click();
+    const field = (name: string) => coverage.locator("dt").filter({ hasText: new RegExp(`^${name}$`) }).locator("+ dd");
+    await expect(field(lang === "zh" ? "成员日期" : "Membership date")).toHaveText(membership.asof);
+    await expect(field(lang === "zh" ? "行情日期" : "Market date")).toHaveText(data.asof);
+    await expect(field(lang === "zh" ? "未解析身份" : "Unresolved identities")).toHaveText(lang === "zh" ? "未知" : "Unknown");
+    await expect(field(lang === "zh" ? "来源声明的缺失分组" : "Source-declared missing groups")).toHaveText(lang === "zh" ? "未知" : "Unknown");
+    await root.getByRole("combobox", { name: lang === "zh" ? "时间范围" : "Timeframe", exact: true }).selectOption("1W");
+    const weekly = (manifest.coverage as Record<string, { measured_members: number; total_members: number }>)["1W"];
+    await expect(field(lang === "zh" ? "有观测的成员 · 1W" : "Measured members · 1W")).toHaveText(`${weekly.measured_members} / ${weekly.total_members}`);
+    await noOverflow(page);
+    await coverage.scrollIntoViewIfNeeded();
+    await page.screenshot({ path: info.outputPath(`membership-${lang}-${appearance}.png`) });
+    expect(errors).toEqual([]);
   });
 }

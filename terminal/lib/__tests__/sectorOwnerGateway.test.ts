@@ -17,6 +17,7 @@ vi.mock("@/lib/supabase/server", () => ({ createClient: vi.fn(async () => ({ aut
 vi.mock("@/lib/rateLimit", () => ({ rateLimit: vi.fn(() => ({ ok: true })) }));
 vi.mock("@/lib/upstreams", () => ({ NW_BASE: "https://mastermind-x.com" }));
 import { filteredSupabaseCookieHeader, GET } from "@/app/api/sector-intelligence/route";
+import { finvizMembershipPayload, finvizMembershipFixture } from "./fixtures/finvizMembership";
 import { MARKET_RISK_NOW, riskEnvelopeFixture } from "./marketRiskFixture";
 
 const AUTH_COOKIE = "sb-fsldfzlxyavsuwqbceod-auth-token.0=base64-part-0; theme=dark; sb-fsldfzlxyavsuwqbceod-auth-token.1=part-1";
@@ -245,5 +246,37 @@ describe("canonical risk context over the existing authenticated gateway", () =>
     upstream.mockResolvedValue(Response.json({ schema: "market_state.v1", verdict: "RISK_OFF" }));
     const response = await GET(request("risk"));
     expect(response.status).toBe(502); expect((await response.json()).data).toBeNull();
+  });
+});
+
+
+describe("Finviz membership metadata transport", () => {
+  beforeEach(() => adminGate.isAdminRequest.mockResolvedValue({ status: "admin" }));
+  it("projects the committed metadata contract and strips unrecognized authority claims", async () => {
+    const manifest = finvizMembershipFixture();
+    upstream.mockResolvedValue(Response.json({ ...finvizMembershipPayload(), membership_manifest: {
+      ...manifest, rights: "public", accepted: true, vendor_prose: "do not transport",
+    } }));
+    const response = await GET(request("finviz"));
+    const body = await response.json();
+    expect(response.status).toBe(200);
+    expect(body.data.membership_manifest).toEqual(manifest);
+    expect(body.data.membership_manifest.membership.asof).not.toBe(body.receipt.asOf);
+    expect(body.data.membership_manifest.unresolved_identity_count).toBeNull();
+  });
+  it.each(["counts", "unknowns", "clock", "null"])("withholds inconsistent %s metadata with its population", async change => {
+    const manifest = finvizMembershipFixture();
+    if (change === "counts") (manifest.counts as Record<string, unknown>).appearances = 3;
+    if (change === "unknowns") manifest.unresolved_identity_count = 0;
+    if (change === "clock") (manifest.membership as Record<string, unknown>).refreshed_at_utc = "2027-01-01T00:00:00Z";
+    upstream.mockResolvedValue(Response.json({ ...finvizMembershipPayload(), membership_manifest: change === "null" ? null : manifest }));
+    const response = await GET(request("finviz")), body = await response.json();
+    expect(response.status).toBe(502); expect(body.data).toBeNull(); expect(body.receipt.status).toBe("invalid");
+  });
+  it("keeps legacy metadata absent without inventing a source receipt", async () => {
+    upstream.mockResolvedValue(Response.json(finvizMembershipPayload()));
+    const response = await GET(request("finviz"));
+    expect(response.status).toBe(200);
+    expect((await response.json()).data).not.toHaveProperty("membership_manifest");
   });
 });
