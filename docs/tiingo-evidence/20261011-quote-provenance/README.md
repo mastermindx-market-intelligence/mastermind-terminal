@@ -54,3 +54,13 @@ The live merge proof and actual local red/green logs are retained here.
 The guard was reproduced in GITHUB_EVENT_NAME=pull_request / PR_NUMBER=945
 mode and the complete affected namespace suite then passed. This is source
 merge-state evidence, not a claim that #946's SQL was applied to production.
+
+That one-field repair and its SQL hash describe head
+df468209483cf215b17b5d0f5d891736b1fcc6ab. Protected master then
+advanced to 200786b34d03f454717068512c32fabdb469eda7 via owner PR #947,
+which records #946's actual production application. The carrier consumed the
+incumbent RESERVATIONS.json byte-for-byte to resolve the adjacent-field conflict;
+the SQL and migration README also match that protected base. The final PR has
+no migration-source delta. The initiating Tiingo session applied no SQL and
+inherits, rather than re-adjudicates, the owner's application receipt.
+The namespace suite passed again with that current record in PR #945 mode.
