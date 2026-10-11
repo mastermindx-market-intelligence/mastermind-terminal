@@ -206,8 +206,8 @@ test("table and CSV expose the same actual 3D bars and numeric context as the pl
 test("replay consumer excludes current-calendar events and future numeric rows across viewport sizes", async ({ page }) => {
   test.slow();
   const originalSize = page.viewportSize()!;
-  // Replay has an existing desktop toolbar entry. Exercise that real entry, then its responsive
-  // consumer; this is not a claim that the phone's older hub exposes a new replay launcher.
+  // Open the context controls through the desktop toolbar, then exercise the responsive consumer.
+  // The actual phone Replay launcher is covered by replay-temporal-authority.spec.ts.
   if (originalSize.width <= 640) await page.setViewportSize({ width: 1440, height: 900 });
   const panel = await openContext(page);
   const before = await page.evaluate(() => (window as any).__mmChartAxisOpts?.());
