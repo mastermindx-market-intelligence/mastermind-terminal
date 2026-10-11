@@ -177,6 +177,21 @@ async function readCsv(download: Download) {
   return { meta, header: body[0].split(","), rows: body.slice(1).map((l) => l.split(",")) };
 }
 
+/** The theme's rise, fall and plain cell colours, resolved inside the inspector. */
+async function toneColours(inspector: Locator) {
+  return inspector.evaluate((root) => {
+    const resolve = (token: string) => {
+      const probe = document.createElement("span");
+      probe.style.color = `var(${token})`;
+      root.appendChild(probe);
+      const colour = getComputedStyle(probe).color;
+      probe.remove();
+      return colour;
+    };
+    return { up: resolve("--up"), down: resolve("--down"), plain: resolve("--text-2") };
+  });
+}
+
 async function focusProbe(page: Page) {
   return page.evaluate(() => {
     const probe = (window as unknown as Probes).__mmPaneSync?.();
@@ -241,6 +256,11 @@ test.describe("Data Inspector on a same-date intraday fixture", () => {
     await expect(close.nth(0)).toHaveText(closeOf(9, 6).toFixed(2));
     await expect(close.nth(1)).toHaveText(closeOf(9, 7).toFixed(2));
     await expect(close.nth(2)).toHaveText("+0.25");
+    // A rise keeps the theme's rise colour; the comparison's grey cell colour must not override it.
+    const tone = await toneColours(inspector);
+    expect(tone.up, "the theme's rise and fall colours differ").not.toBe(tone.down);
+    await expect(close.nth(2)).toHaveCSS("color", tone.up);
+    await expect(close.nth(0)).toHaveCSS("color", tone.plain);
     const studyKeys = await inspector.locator(".ctv-th[data-column-key]").evaluateAll((els) => els.map((el) => el.getAttribute("data-column-key")!));
     expect(studyKeys).toContain("ema");
     const headerIndex = await inspector.locator('.ctv-thead [role="columnheader"]').evaluateAll(
@@ -296,6 +316,22 @@ test.describe("Data Inspector on a same-date intraday fixture", () => {
     await again.getByRole("button", { name: "Clear", exact: true }).click();
     await expect(again.getByText("None selected", { exact: true })).toBeVisible();
     await expect(again.getByText(`Exports all ${TOTAL} rows`, { exact: true })).toBeVisible();
+
+    // A rise and a fall keep their direction colour in the grid and in the comparison; the tables'
+    // grey cell colour must not override it. Friday's 09:30 bar opens below Thursday's 15:55 close.
+    const thuClose = at(8, 15, 55);
+    const friOpen = at(9, 9, 30);
+    await jump(again, "2026-10-08T15:55");
+    const changeCell = (t: number) => row(again, t).getByRole("gridcell").filter({ hasText: "%)" });
+    await expect(changeCell(thuClose)).toHaveCSS("color", tone.up);
+    await expect(changeCell(friOpen)).toHaveCSS("color", tone.down);
+    await press(row(again, thuClose), isTouch(testInfo));
+    await press(row(again, friOpen), isTouch(testInfo));
+    await again.getByRole("button", { name: "Compare", exact: true }).click();
+    const fall = again.locator('section[data-diff] tr[data-diff-field="close"] td');
+    await expect(fall.nth(2)).toHaveText("-9.25");
+    await expect(fall.nth(2)).toHaveCSS("color", tone.down);
+    await expect(fall.nth(0)).toHaveCSS("color", tone.plain);
   });
 
   test("Show on chart lands on the exact bar and a missing time is explained, not substituted", { tag: "@e10" }, async ({ page }, testInfo) => {

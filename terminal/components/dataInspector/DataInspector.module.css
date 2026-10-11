@@ -183,6 +183,15 @@
   vertical-align: bottom;
 }
 
+/* A rise or fall keeps its direction colour: the grey cell rule above outranks the global .up/.down. */
+.diffTable td:global(.up) {
+  color: var(--up);
+}
+
+.diffTable td:global(.down) {
+  color: var(--down);
+}
+
 .diffTable tbody th {
   text-align: left;
   color: var(--text);
@@ -272,6 +281,15 @@
   min-width: 168px;
   justify-content: flex-end;
   gap: 4px;
+}
+
+/* Same for the grid's change column: the global .ctv-td grey is declared after .up/.down. */
+.cChg:global(.up) {
+  color: var(--up);
+}
+
+.cChg:global(.down) {
+  color: var(--down);
 }
 
 .cInd {
