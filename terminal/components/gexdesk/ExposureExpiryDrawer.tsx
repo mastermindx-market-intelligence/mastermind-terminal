@@ -10,9 +10,10 @@
  *
  * HONESTY: by_expiry carries NET only (no call/put split) → the drawer is labelled Net-only.
  * It is an EOD structural read (the by_expiry snapshot), NOT intraday — it does not
- * participate in the replay scrubber and stamps its as-of as EOD. Vanna/charm aren't provided
- * per-expiration → an honest "not per-expiration" state, never faked zeros. Bar/bubble
- * direction (dealer-sign) is an assumption; magnitude is the read.
+ * participate in the replay scrubber and stamps its as-of as EOD. Current payloads may carry
+ * Vanna/Charm by expiration; older archived payloads do not, and therefore keep the existing
+ * honest "not per-expiration" state rather than faked zeros. Bar/bubble direction
+ * (dealer-sign) is an assumption; magnitude is the read.
  *
  * T-B: that "does not participate" is now VISIBLE rather than implicit. While the workspace
  * scrubber is off the live head, the drawer wears EodReplayTag — it keeps showing the close
@@ -25,7 +26,7 @@ import { ExpiryBars } from "./ExpiryBars";
 import { EodReplayTag } from "@/components/surface/EodReplayTag";
 import type { Lang } from "@/lib/i18n";
 import type { GexPayload, GreekLens } from "./GexDeskView";
-import { byExpiryToTermStructure, type ExpiryRow } from "@/lib/expiryTermStructure";
+import { byExpiryToTermStructure, EXPIRY_UNIT_KEYS, type ExpiryRow } from "@/lib/expiryTermStructure";
 import { fmtMn } from "@/lib/gexLadder";
 
 interface Props {
@@ -72,7 +73,7 @@ export function ExposureExpiryDrawer({ byExpiry, greek, asOf, lang }: Props) {
         <span className={`obs-xdrawer-caret${open ? " open" : ""}`} aria-hidden>▶</span>
         <span className="obs-lbl">{t("xdrawerTitle")}</span>
         <span className="obs-xdrawer-count">
-          {count} {t("xdrawerExp")} · {t("dataEod")}
+          {count}{ts.missingCount > 0 ? `/${ts.sourceCount}` : ""} {t("xdrawerExp")} · {t("dataEod")}
         </span>
         {/* On the header, not in the body — the tag has to be true whether the drawer is
             open or collapsed. */}
@@ -106,12 +107,18 @@ export function ExposureExpiryDrawer({ byExpiry, greek, asOf, lang }: Props) {
           </div>
 
           {/* Body */}
-          {!ts.available ? (
+          {ts.sourceCount === 0 ? (
+            <div className="obs-xdrawer-empty">{t("xdrawerEmpty")}</div>
+          ) : !ts.available ? (
             <div className="obs-xdrawer-empty">{t("xdrawerNA")}</div>
           ) : count === 0 ? (
             <div className="obs-xdrawer-empty">{t("xdrawerEmpty")}</div>
           ) : view === "bubbles" ? (
-            <BubbleField ts={ts} t={t} />
+            <>
+              {(ts.missingCount > 0 || ts.partialCount > 0) && <p role="status" data-testid="expiry-support" className="obs-note">{t("expirySupportSummary").replace("{known}", String(count)).replace("{total}", String(ts.sourceCount)).replace("{partial}", String(ts.partialCount))}</p>}
+              <div data-testid="expiry-unit" className="obs-note">{t(EXPIRY_UNIT_KEYS[greek])}</div>
+              <BubbleField ts={ts} knownLabel={t("expiryKnownSubtotal")} label={t("exposureByExpiry")} />
+            </>
           ) : (
             // Bars view reuses the existing ExpiryBars component unchanged.
             <div style={{ display: "flex", flexDirection: "column", maxHeight: 168, overflowY: "auto" }}>
@@ -120,7 +127,7 @@ export function ExposureExpiryDrawer({ byExpiry, greek, asOf, lang }: Props) {
           )}
 
           {/* Honesty: Net-only + EOD, not intraday. */}
-          <div className="obs-note obs-xdrawer-note">{t("xdrawerNetOnly")}</div>
+          <div className="obs-note obs-xdrawer-note">{t("xdrawerNetOnly")} · {t("expirySourceBasis")}</div>
         </div>
       )}
     </div>
@@ -133,7 +140,7 @@ export function ExposureExpiryDrawer({ byExpiry, greek, asOf, lang }: Props) {
 // (plain <text>) with values also shown as node labels so the read never depends on font
 // metrics. Colours via var(--up)/var(--down) (East-Asian flip aware) — no direction hex.
 
-function BubbleField({ ts, t }: { ts: ReturnType<typeof byExpiryToTermStructure>; t: ReturnType<typeof makeGexT> }) {
+function BubbleField({ ts, knownLabel, label }: { ts: ReturnType<typeof byExpiryToTermStructure>; knownLabel: string; label: string }) {
   // Give every expiry a real slot. A fixed 680px viewBox put 20–30 labels on top of
   // one another; this expands horizontally and lets the drawer scroll instead.
   const slotW = 68;
@@ -154,7 +161,7 @@ function BubbleField({ ts, t }: { ts: ReturnType<typeof byExpiryToTermStructure>
     return midY - (net / ts.maxAbs) * (plotH / 2 - 10);
   };
   const xFor = (i: number) => (n <= 1 ? padL + plotW / 2 : padL + (i / (n - 1)) * plotW);
-  const rFor = (frac: number) => 5 + Math.sqrt(Math.max(0, frac)) * 17;
+  const rFor = (frac: number, sign: -1 | 0 | 1) => sign === 0 ? 3.5 : 5 + Math.sqrt(Math.max(0, frac)) * 17;
 
   return (
     <div className="obs-xdrawer-plot obs-scroll">
@@ -163,7 +170,7 @@ function BubbleField({ ts, t }: { ts: ReturnType<typeof byExpiryToTermStructure>
           container's 204px, so every bubble rendered as a 7%-tall ellipse and the value
           labels were sheared. The field still scrolls horizontally at its natural width. */}
       <svg viewBox={`0 0 ${W} ${H}`} width={W} height={H} style={{ display: "block" }} role="img"
-        aria-label={t("exposureByExpiry")}>
+        aria-label={label}>
         {/* Quiet horizontal guides keep positive/negative distance legible. */}
         {[0.25, 0.75].map((p) => (
           <line key={p} x1={padL} y1={padT + plotH * p} x2={W - padR} y2={padT + plotH * p}
@@ -174,22 +181,23 @@ function BubbleField({ ts, t }: { ts: ReturnType<typeof byExpiryToTermStructure>
         {ts.nodes.map((node, i) => {
           const cx = xFor(i);
           const cy = yFor(node.net);
-          const r = rFor(node.frac);
-          const col = node.isPos ? "var(--up)" : "var(--down)";
+          const r = rFor(node.frac, node.sign);
+          const col = node.sign > 0 ? "var(--up)" : node.sign < 0 ? "var(--down)" : "var(--muted)";
           return (
-            <g key={node.exp}>
+            <g key={node.exp} data-expiry={node.exp} data-partial={node.partial ? "true" : undefined}>
+              {node.partial && <title>{knownLabel} · {node.knownContracts}/{node.admittedContracts}</title>}
               <circle
                 cx={cx} cy={cy} r={r}
-                fill={col} fillOpacity={0.28}
-                stroke={col} strokeOpacity={0.9} strokeWidth={1.2}
+                fill={col} fillOpacity={node.sign === 0 ? 0 : 0.28}
+                stroke={col} strokeOpacity={0.9} strokeWidth={1.2} strokeDasharray={node.partial ? "3 2" : undefined}
               />
               {/* value label above/below the bubble depending on sign */}
               <text
-                x={cx} y={node.isPos ? Math.max(12, cy - r - 5) : Math.min(H - padB + 4, cy + r + 12)}
+                x={cx} y={node.sign > 0 ? Math.max(12, cy - r - 5) : Math.min(H - padB + 4, cy + r + 12)}
                 textAnchor="middle" fontSize={10} fontWeight={650} fill={col}
                 style={{ fontVariantNumeric: "tabular-nums" }}
               >
-                {fmtMn(node.net)}
+                {node.partial ? "† " : ""}{fmtMn(node.net)}
               </text>
               {/* DTE label on the x axis */}
               <text
@@ -203,6 +211,7 @@ function BubbleField({ ts, t }: { ts: ReturnType<typeof byExpiryToTermStructure>
           );
         })}
       </svg>
+      {ts.partialCount > 0 && <span className="obs-note">† {knownLabel}</span>}
     </div>
   );
 }
