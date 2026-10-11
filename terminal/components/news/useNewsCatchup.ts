@@ -57,11 +57,9 @@ export function useNewsCatchup({
   useEffect(() => {
     if (!owner) return;
     const storage = browserStorage();
-    if (!storage) {
-      commit({ owner, data: {}, mode: "session" });
-      return;
-    }
-    commit({ owner, data: readOwnerReview(storage, owner), mode: "saved" });
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- localStorage is client-only; reading this owner's slot after mount is the hydration boundary.
+    commit(storage ? { owner, data: readOwnerReview(storage, owner), mode: "saved" } : { owner, data: {}, mode: "session" });
+    if (!storage) return;
     // Another tab of the same owner marked something: re-read this owner's slot only.
     const onStorage = (event: StorageEvent) => {
       if (event.key !== null && event.key !== NEWS_REVIEW_KEY) return;
