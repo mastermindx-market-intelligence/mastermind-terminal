@@ -892,8 +892,8 @@ export default function ScreenerView({ identity }: { identity: AccountIdentity }
             onChange={(e) => patchF({ ccy: e.target.value })}
           >
             <option value="auto">{autoCode ? ct("cmCcyAuto").replace("{c}", autoCode) : ct("cmCcyNone")}</option>
-            {scope.codes.map((c) => (
-              <option key={c.code} value={c.code}>{ct("cmCcyOpt").replace("{c}", c.code).replace("{n}", c.n.toLocaleString())}</option>
+            {scope.codes.map(({ code, n }) => (
+              <option key={code} value={code}>{ct("cmCcyOpt").replace("{c}", code).replace("{n}", n.toLocaleString())}</option>
             ))}
             {f.ccy && f.ccy !== "auto" && !scope.codes.some((c) => c.code === f.ccy) && <option value={f.ccy}>{f.ccy}</option>}
           </select>
@@ -1116,10 +1116,12 @@ export default function ScreenerView({ identity }: { identity: AccountIdentity }
               );
               const lastCell = <td>{r.last == null ? "—" : fmt(r.last, r.last < 10 ? 4 : 2)}</td>;
               const chgCell = <td className={chgCls}>{r.chg == null ? "—" : `${r.chg >= 0 ? "+" : ""}${fmt(r.chg)}%`}</td>;
+              // A data attribute for tests and styling, never rendered: the ISO code, or the kind.
+              const ccyAttr = cur.kind === "code" ? cur.code : cur.kind;
               const dvCell = (
                 <td
                   style={{ color: "var(--text-2)" }}
-                  data-ccy={cur.kind === "code" ? cur.code : cur.kind}
+                  data-ccy={ccyAttr}
                   title={cur.kind === "unknown" ? ct("cmCcyUnknownTitle") : cur.kind === "not_money" ? ct("cmNotMoneyTitle")
                     : r.vol != null ? `${t("colVolShort")} ${shares(r.vol)}` : undefined}
                 >{formatMoney(r.dv, cur)}</td>

@@ -159,7 +159,7 @@ export default function CrossMarketStrip(p: StripProps) {
 /** The listing's trading currency beside its ticker — the unit of every money cell in its row. */
 export function CurrencyBadge({ cur }: { cur: MoneyCurrency }) {
   if (cur.kind !== "code") return null;
-  return <span className={styles.ccy} data-ccy={cur.code}>{cur.code}</span>;
+  return <span className={styles.ccy} data-ccy={cur.code}>{cur.code}</span>; // plain-language-ok: an ISO 4217 currency code (USD, HKD, CNY) is the unit label itself, not a slug.
 }
 
 /** Sector cell content: a label always carries its taxonomy chip, a stale one its marker and
