@@ -134,9 +134,9 @@ function reject(kind:EvidenceKind, edit:(doc:Record<string,unknown>)=>void, patt
 describe("private source consumer: original ns precision without a second source",()=>{
   it("exposes exact bigint ns from canonical TP1 v0 bytes",()=>{
     const m=decodePrivateEvidence(input("minute"));
-    expect(m.clocksNs.source_latest_print_available_ns).toBe(1791417640000000123n);
-    expect(m.clocksNs.decision_ns).toBe(1791417662000000000n);
-    expect(m.clocksNs.end_ns-m.clocksNs.start_ns).toBe(60_000_000_000n);
+    expect(m.clocksNs.source_latest_print_available_ns).toBe(BigInt("1791417640000000123"));
+    expect(m.clocksNs.decision_ns).toBe(BigInt("1791417662000000000"));
+    expect(m.clocksNs.end_ns-m.clocksNs.start_ns).toBe(BigInt("60000000000"));
     expect(m.sourceCounts.n_lit_classified_quote_gt5s_prints).toBe(1);
     expect(m.volumeShares?.source_volume_included_shares).toBe("20");
     expect(m.publicDeliveryAllowed).toBe(false);
@@ -147,18 +147,24 @@ describe("private source consumer: original ns precision without a second source
     const original=input("minute").bytes.toString("utf8");
     const parsed=JSON.parse(original);
     expect(Number.isSafeInteger(parsed.source_latest_print_available_ns)).toBe(false);
-    expect(BigInt(Math.trunc(parsed.source_latest_print_available_ns))).not.toBe(1791417640000000123n);
+    expect(BigInt(Math.trunc(parsed.source_latest_print_available_ns))).not.toBe(BigInt("1791417640000000123"));
     const a=decodePrivateEvidence(input("minute"));
     const b=decodePrivateEvidence(input("minute",doc=>{
       doc.source_latest_print_available_ns="1791417640000000124";
     }));
-    expect(a.clocksNs.source_latest_print_available_ns+1n)
+    expect(a.clocksNs.source_latest_print_available_ns+BigInt("1"))
       .toBe(b.clocksNs.source_latest_print_available_ns);
     expect(a.originalByteSha256).not.toBe(b.originalByteSha256);
   });
+  it("preserves the exact signed native 64-bit ceiling",()=>{
+    const max="9223372036854775807";
+    const minute=decodePrivateEvidence(input("minute",doc=>{doc.decision_ns=max;}));
+    expect(minute.clocksNs.decision_ns.toString()).toBe(max);
+    reject("minute",doc=>{doc.decision_ns="9223372036854775808";},/decision_ns:overflow/);
+  });
   it("parses one completed R0 proxy without pretending order-level truth",()=>{
     const r=decodePrivateEvidence(input("research"));
-    expect(r.clocksNs.source_quote_age_limit_ns).toBe(25_000_000_000n);
+    expect(r.clocksNs.source_quote_age_limit_ns).toBe(BigInt("25000000000"));
     expect(r.quoteRecovery?.ask.state).toBe("MEASURED_NBBO_SIZE_PROXY_NOT_ORDER_REPLENISHMENT");
     expect(r.quoteRecovery?.bid.state).toBe("MEASURED_NBBO_SIZE_PROXY_NOT_ORDER_REPLENISHMENT");
     if(r.quoteRecovery?.ask.state==="MEASURED_NBBO_SIZE_PROXY_NOT_ORDER_REPLENISHMENT")
@@ -268,7 +274,7 @@ describe("private minute + R0 joint source/cutoff compatibility",()=>{
     expect(p.pairingState).toBe("PRIVATE_COMPATIBLE_ORIGINAL_SOURCE_UNPROVEN");
     expect(p.ticker).toBe("SPY");
     expect(p.session).toBe("2026-10-08:RTH");
-    expect(p.decisionNs).toBe(1791417662000000000n);
+    expect(p.decisionNs).toBe(BigInt("1791417662000000000"));
     expect(p.sourceManifestSha256).toBe(SHA("b"));
     expect(p.quotePolicySha256).toBe(SHA("f"));
     expect(p.pairedArtifactsSha256).toMatch(/^[a-f0-9]{64}$/);
