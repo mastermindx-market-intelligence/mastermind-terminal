@@ -112,8 +112,8 @@ const CLOCK = /^(0|[1-9]\d{0,18})$/;
 const DECIMAL = /^-?(?:0|[1-9]\d*)(?:\.\d+)?$/;
 const MAX_SOURCE_DECIMAL_CHARS = 128;
 const MAX_R0_DERIVED_DECIMAL_CHARS = 544;
-const MINUTE_NS = 60_000_000_000n;
-const MAX_NS = 9_223_372_036_854_775_807n; // signed native 64-bit
+const MINUTE_NS = BigInt("60000000000");
+const MAX_NS = BigInt("9223372036854775807"); // signed native 64-bit
 const MAX_LENGTH = { minute: 32 * 1024, research: 24 * 1024 };
 
 type RecordValue = Record<string, unknown>;
@@ -164,12 +164,12 @@ function fixed(value: string): Fixed {
 function sameSum(parts: string[], total: string): boolean {
   const entries = [...parts, total].map(fixed);
   const scale = Math.max(...entries.map(x => x.scale));
-  const scaleUp = (x: Fixed) => x.n * 10n ** BigInt(scale - x.scale);
-  return entries.slice(0,-1).reduce((a,x) => a + scaleUp(x), 0n) === scaleUp(entries[entries.length-1]);
+  const scaleUp = (x: Fixed) => x.n * BigInt("10") ** BigInt(scale - x.scale);
+  return entries.slice(0,-1).reduce((a,x) => a + scaleUp(x), BigInt("0")) === scaleUp(entries[entries.length-1]);
 }
 function atMostOne(value: string): boolean {
   const x=fixed(value);
-  return x.n >= 0n && x.n <= 10n ** BigInt(x.scale);
+  return x.n >= BigInt("0") && x.n <= BigInt("10") ** BigInt(x.scale);
 }
 function canonical(value: unknown): string {
   if (value && typeof value === "object" && !Array.isArray(value)) {
@@ -238,8 +238,8 @@ function parseRecovery(value: unknown, side: string): QuoteRecovery {
   // never infer participant/order-level replenishment from BBO-size recovery.
   const vals=[initial,depleted,recovered,ending].map(fixed);
   const scale=Math.max(...vals.map(x=>x.scale));
-  const n=vals.map(x=>x.n*10n**BigInt(scale-x.scale));
-  if (n[0]<=0n || n[1]<=0n || n[3]<=0n || fixed(price).n<=0n ||
+  const n=vals.map(x=>x.n*BigInt("10")**BigInt(scale-x.scale));
+  if (n[0]<=BigInt("0") || n[1]<=BigInt("0") || n[3]<=BigInt("0") || fixed(price).n<=BigInt("0") ||
       n[1]>n[0] || n[0]-n[1]+n[2]!==n[3])
     throw new PrivateEvidenceRefusal(side+":invalid_recovery");
   if (typeof obj.source_best_exchange!=="string" || !/^[0-9]{1,5}$/.test(obj.source_best_exchange))
@@ -298,9 +298,9 @@ export function decodePrivateEvidence(args: {
   const clocksNs: Record<string,bigint>={};
   for (const field of NS_FIELDS[kind]) clocksNs[field]=assertClock(obj[field],field);
   const start=clocksNs.start_ns, end=clocksNs.end_ns, cutoff=clocksNs.decision_ns;
-  if (start%MINUTE_NS!==0n || end<=start || cutoff<end ||
-      (end-start)%MINUTE_NS!==0n ||
-      (kind==="minute"?end-start!==MINUTE_NS:end-start>5n*MINUTE_NS))
+  if (start%MINUTE_NS!==BigInt("0") || end<=start || cutoff<end ||
+      (end-start)%MINUTE_NS!==BigInt("0") ||
+      (kind==="minute"?end-start!==MINUTE_NS:end-start>BigInt("5")*MINUTE_NS))
     throw new PrivateEvidenceRefusal("source:time_window");
   if (kind==="minute" &&
       (clocksNs.source_complete_through_ns<end ||
@@ -386,7 +386,7 @@ export function decodePrivateEvidence(args: {
     if(obj.pressure_balance!==null){
       pressureBalance=assertDecimal(
         obj.pressure_balance,"pressure_balance",true,MAX_R0_DERIVED_DECIMAL_CHARS);
-      const value=fixed(pressureBalance),bound=10n**BigInt(value.scale);
+      const value=fixed(pressureBalance),bound=BigInt("10")**BigInt(value.scale);
       if(value.n< -bound || value.n>bound)throw new PrivateEvidenceRefusal("research:pressure_range");
     }
     completedWindowResponseBps=assertDecimal(obj.completed_window_midpoint_response_bps,
