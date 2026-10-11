@@ -18,7 +18,7 @@ const { spawn, execFileSync } = require("node:child_process");
 const { createHash } = require("node:crypto");
 const { mkdirSync, readdirSync, readFileSync, writeFileSync } = require("node:fs");
 const { join } = require("node:path");
-const { chromium } = require("@playwright/test");
+const { chromium, expect } = require("@playwright/test");
 
 const ROOT = join(__dirname, "..", "..");
 const REPO = join(ROOT, "..");
@@ -305,6 +305,12 @@ async function captureChartChrome(page, width, lang, outPath) {
   await page.locator(".workspace").waitFor({ state: "visible", timeout: 45_000 });
   const day = page.locator(".dayrange").first();
   const oracle = page.locator(".statusline").first();
+  // The SSR statusline box is visible before paintStatus receives its bars.
+  // Capture real hydrated identity/values, never an empty phone header.
+  await expect(oracle.locator(".status-symbol-name")).toContainText("SPY", { timeout: 45_000 });
+  const ohlc = oracle.locator(".status-ohlc b");
+  await expect(ohlc).toHaveCount(4);
+  for (const value of await ohlc.all()) await expect(value).toHaveText(/\d/);
   const dayVisible = (await day.count()) > 0 && (await day.isVisible().catch(() => false));
   const loc = dayVisible ? day : oracle;
   await loc.waitFor({ state: "visible", timeout: 20_000 });

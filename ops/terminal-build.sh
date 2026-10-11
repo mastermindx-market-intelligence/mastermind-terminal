@@ -1027,6 +1027,12 @@ TARGET_SHA=$2
 validate_target_sha "$TARGET_SHA" || exit $?
 sanitize_git_environment
 
+# Volume-backed hosts must admit storage before preflight or deploy effects.
+# Hosts without the separately installed guard retain their existing entrance.
+if [ -e /usr/local/sbin/terminal-volume-guard ] || [ -L /usr/local/sbin/terminal-volume-guard ]; then
+  /usr/local/sbin/terminal-volume-guard || exit $?
+fi
+
 # 0) CURRENT-GENERATION PREFLIGHT — before fetch/reset/clean/build/source writes.
 if [ ! -d "$SRC/.git" ]; then
   log "FATAL: canonical checkout missing. Create it once with:"

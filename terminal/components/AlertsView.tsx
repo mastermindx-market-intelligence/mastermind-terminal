@@ -239,6 +239,7 @@ export default function AlertsView({ email, panelOnly, listOnly }: { email: stri
   const [sym, setSym] = useState("NVDA");
   const [ctype, setCtype] = useState("signal_buy");
   const [val, setVal] = useState("");
+  const draftRevision = useRef(0);
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
   // ── options-flow sub-form state ─────────────────────────────────────────────
@@ -306,6 +307,8 @@ export default function AlertsView({ email, panelOnly, listOnly }: { email: stri
   // A re-arm acknowledged while reads were in flight is newer than what those reads saw for that
   // row: until a read that STARTED after the acknowledgement lands, the acknowledged row stands.
   const ackedRows = useRef(new Map<string, { floor: number; row: Alert }>());
+  // A pre-ack inventory cannot resurrect a successfully deleted row.
+  const ackedDeletes = useRef(new Map<string, number>());
   // Rows with a re-arm whose outcome was never learned. Kept apart from the current attempt's phase:
   // a later attempt settling does not settle the earlier one.
   const [earlierUnknown, setEarlierUnknown] = useState<Record<string, true>>({});
@@ -339,11 +342,15 @@ export default function AlertsView({ email, panelOnly, listOnly }: { email: stri
       if (!d || !Array.isArray(d.alerts)) { if (speaks(false)) setUnavailable(true); return; }
       if (speaks(true)) {
         const acked = ackedRows.current;
-        const rows = (d.alerts as Alert[]).map((x) => {
+        const rows = (d.alerts as Alert[]).filter((x) => {
+          const floor = ackedDeletes.current.get(x.id);
+          return floor === undefined || seq > floor;
+        }).map((x) => {
           const a = acked.get(x.id);
           return a && seq <= a.floor ? a.row : x;
         });
         for (const [id, a] of acked) if (seq > a.floor) acked.delete(id);
+        for (const [id, floor] of ackedDeletes.current) if (seq > floor) ackedDeletes.current.delete(id);
         setAlerts(rows); setUnavailable(false); setSignedOut(false);
         // This read began after any failed re-arm check did, so it IS an observation of that row.
         updateRearm((p) => {
@@ -384,6 +391,7 @@ export default function AlertsView({ email, panelOnly, listOnly }: { email: stri
     // sticks, so a remount between the two cannot lose the prefill.
     const pre = takePendingPrefill();
     if (pre) {
+      if (pre.sym || pre.ctype || pre.value || pre.options) draftRevision.current++;
       if (pre.sym) setSym(pre.sym);
       if (pre.ctype) setCtype(pre.ctype);
       if (pre.value) setVal(pre.value);
@@ -493,9 +501,14 @@ export default function AlertsView({ email, panelOnly, listOnly }: { email: stri
         symbol = sym;
         condition = { ...ct.cond, ...(ct.needsVal ? { value: parseFloat(val) || 0 } : {}) };
       }
+      const submittedRevision = draftRevision.current;
       const r = await fetch("/api/alerts", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ symbol, condition }) });
       const d = await r.json().catch(() => ({}));
-      if (d.alert) { setAlerts((a) => [d.alert, ...a]); setVal(""); window.dispatchEvent(new Event(ALERTS_CHANGED_EVENT)); }
+      if (d.alert) {
+        setAlerts((a) => [d.alert, ...a]);
+        if (draftRevision.current === submittedRevision) setVal("");
+        window.dispatchEvent(new Event(ALERTS_CHANGED_EVENT));
+      }
       else setErr(d.error || t("couldNotCreateAlert"));
     } catch {
       setErr(t("alertNetErr"));
@@ -564,6 +577,8 @@ export default function AlertsView({ email, panelOnly, listOnly }: { email: stri
     try {
       const r = await fetch(`/api/alerts?id=${id}`, { method: "DELETE" });
       if (!r.ok) throw new Error();
+      ackedDeletes.current.set(id, readSeq.current);
+      setAlerts((a) => a.filter((x) => x.id !== id));
       window.dispatchEvent(new Event(ALERTS_CHANGED_EVENT));
     } catch {
       // re-insert ONLY the failed item (functional update preserves any concurrent deletes)
@@ -602,7 +617,7 @@ export default function AlertsView({ email, panelOnly, listOnly }: { email: stri
   const newAlertPanel = (
         <div className="panel">
           <div className="ph">{t("newAlert")}</div>
-          <div className="alert-form">
+          <div className="alert-form" onChangeCapture={() => { draftRevision.current++; }}>
             {/* category picker: signal/regime (legacy 6) · options flow (5) · suite events (catalog) */}
             <select aria-label={t("newAlert")} value={cat} onChange={(e) => setCat(e.target.value as "signal" | "options" | "suite")}>
               <option value="signal">{t("condCatSignal")}</option>
