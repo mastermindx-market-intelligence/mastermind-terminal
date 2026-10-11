@@ -22,7 +22,7 @@ export const FIN_FAMILY_ORDER: readonly FinFamily[] = [
 export const FIN_FAMILY_PAGES: Readonly<Record<FinFamily, readonly FinPage[]>> = {
   overview: ["overview"],
   intelligence: ["intelligence"],
-  financials: ["statements", "statistics", "revenue", "dividends"],
+  financials: ["statements", "statistics", "revenue", "dividends", "compare"],
   earnings: ["earnings", "forecast", "transcripts"],
   market: ["technicals", "seasonals"],
   ownership: ["ownership", "insider"],

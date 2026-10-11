@@ -1,5 +1,5 @@
 "use client";
-import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, useSyncExternalStore } from "react";
 import { PHONE_QUERY, useIsMobile, useIsPhone } from "@/lib/useMediaQuery";
 import MobileSheet from "@/components/ui/MobileSheet";
 import replayStyles from "./ReplayTransport.module.css";
@@ -43,6 +43,8 @@ import { portfolioRailOwner, usePortfolioRailRead } from "@/lib/usePortfolioRail
 import { FIN_PAGES, type FinPage } from "@/components/fin/finPages";
 import { getFund, getOpts, getBars, type Fund, type Bar } from "@/lib/fund";
 import { allDefaults, indDefaults, withDefaults, IND_ORDER, IND_DEFS, isIndKey } from "@/lib/indicators";
+import { addStudyInstance, isAdditionalStudyId, studyParamsWithDefaults, studyTypeOf, supportsMultipleInstances } from "@/lib/studyInstances";
+import { isRenderableStudyInstance, studyInstanceMeta, withStudyInstanceParams } from "@/lib/studyInstanceView";
 import { isSuiteKey, suiteDefaults, SUITE_ORDER } from "@/lib/suites/registry";
 import { isAmbientCandleSuite, migrateMastermindCandlesDefault, MASTERMIND_CANDLES_MIGRATION_KEY, MASTERMIND_CANDLES_MODULE_ID, MASTERMIND_CANDLES_SUITE_KEY } from "@/lib/mastermindCandlesDefault";
 import {
@@ -124,7 +126,9 @@ import WashoutTurnRow from "@/components/WashoutTurnRow";
 import { oracleVerdict, deskVerdict } from "@/lib/signalVerdict";
 import { computeTrendState } from "@/lib/trend";
 import { useLive } from "@/lib/live";
-import { setPaneSync, subscribePaneVisibleWindow } from "@/lib/paneSync";
+import { setPaneLinks, subscribePaneRegistry, registeredPaneIds, subscribePaneVisibleWindow } from "@/lib/paneSync";
+import { assignPaneGroup, chartLinkView, fitLinkState, legacyLinkState, normalizeLinkState, pickLinkPanes, projectLegacySync, setGroupShare, type ChartLinkState, type LinkDimension, type LinkGroupId } from "@/lib/chartLinkGroups";
+import ChartLinkControl from "@/components/ChartLinkControl";
 import { REPLAY_MIN_IDX, replayIsAvailable, replayChartKey, resolveReplayTotal, replayHasSpan, clampReplayIdx, initialReplayIdx,
   replayIdxAt, replayCutoffAt, stepReplayCutoff, replayExitOnScreen, recordReplayAxis, type ReplayAxis, type ReplayCutoff, type ReplayExit } from "@/lib/replayContract";
 import {
@@ -1095,6 +1099,9 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
   const [panes, setPanes] = useState<string[]>([seed0]);
   const [activePane, setActivePane] = useState(0);
   const [sync, setSync] = useState(true);
+  // E09 link groups. `null` = derived from the legacy `sync` switch (all panes one group, or none);
+  // a value = the user chose groups per pane. Device-local (mm.ws `links`); saved layouts keep `sync`.
+  const [linkPlan, setLinkPlan] = useState<ChartLinkState | null>(null);
   const [split, setSplit] = useState(1);   // the split the user requested (panes.length may be smaller after dedup)
   const active = panes[activePane] ?? panes[0] ?? seed0;
   // A deep link already identifies the real landing symbol. A normal launch may restore a saved
@@ -1826,7 +1833,8 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
       for (const k of Object.keys(rollout.params)) {
         if (isSuiteKey(k)) base[k] = { ...suiteDefaults(k), ...rollout.params[k] };
       }
-      setIndParams(base);
+      // Additional study instances ("rsi__<token>", E06) keep THEIR OWN saved params.
+      setIndParams(withStudyInstanceParams(base, rollout.indicators, rollout.params));
       setHidden(new Set(rollout.hidden));
       // Commit the one-time rollout before the mount-skip persistence effects. The marker is written
       // last so an interrupted/blocked storage write retries rather than falsely claiming success.
@@ -1863,13 +1871,15 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
       try {
         const ws = load("mm.ws", null);
         if (ws && Array.isArray(ws.panes)) {
-          const pairs = ws.panes.map((s: string, i: number) => [s, ws.paneTfs?.[i] ?? startTf]).filter(([s]: any) => symbols.some((x) => x.symbol === s));
+          const pairs = ws.panes.map((s: string, i: number) => [s, ws.paneTfs?.[i] ?? startTf, i]).filter(([s]: any) => symbols.some((x) => x.symbol === s));
           if (pairs.length) {
             // a single chart always opens on the startup default; genuine multi-pane layouts (e.g. MTF) keep their saved per-pane timeframes
             setPanes(pairs.map((p: any) => p[0])); setPaneTfs(pairs.length === 1 ? [resolveStartTf(savedStartTf, functionalSet(pairs[0][0], secondBarsEnabled))] : pairs.map((p: any) => p[1]));
             setSplit([1, 2, 4].includes(ws.split) ? ws.split : (pairs.length >= 4 ? 4 : pairs.length >= 2 ? 2 : 1));
             setActivePane(Math.min(ws.activePane || 0, pairs.length - 1));
             if (typeof ws.sync === "boolean") setSync(ws.sync);
+            // E09: groups follow the slots that survived the symbol filter; an unreadable record falls back to `sync`.
+            { const savedLinks = pairs.length > 1 ? normalizeLinkState(ws.links, ws.panes.length) : null; setLinkPlan(savedLinks ? pickLinkPanes(savedLinks, pairs.map((p: unknown[]) => Number(p[2]))) : null); }
             if (typeof ws.lockedVLine === "string" || ws.lockedVLine === null) setLockedVLine(ws.lockedVLine);
           }
         }
@@ -1913,8 +1923,8 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
   // deep-link (?sym=) session, so following a Screener/Portfolio row can't clobber the saved layout.
   useEffect(() => {
     if (!wsMounted.current) { wsMounted.current = true; return; }
-    if (!initialSymbol) localStorage.setItem("mm.ws", JSON.stringify({ panes, paneTfs, split, sync, activePane, lockedVLine }));
-  }, [panes, paneTfs, split, sync, activePane, lockedVLine]);
+    if (!initialSymbol) localStorage.setItem("mm.ws", JSON.stringify({ panes, paneTfs, split, sync: linkPlan ? projectLegacySync(linkPlan, panes.length) : sync, links: linkPlan ? fitLinkState(linkPlan, panes.length) : undefined, activePane, lockedVLine }));
+  }, [panes, paneTfs, split, sync, linkPlan, activePane, lockedVLine]);
   // skip the mount-pass write (state is still the pre-load default) — otherwise a reload/discard
   // landing inside the mount→load window can permanently clobber the saved value with the default.
   // mm.inds was the one key WITHOUT this guard: on the mount pass the anon clamp (MAX_ANON_IND)
@@ -2316,9 +2326,24 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
   useEffect(() => { if (!flagsMounted.current) { flagsMounted.current = true; return; } writeOwnerStringMap(localStorage, WL_FLAGS_KEY, wlOwner, flags); }, [flags, wlOwner]);
   const notesMounted = useRef(false);
   useEffect(() => { if (!notesMounted.current) { notesMounted.current = true; return; } writeOwnerStringMap(localStorage, WL_NOTES_KEY, wlOwner, symbolNotes); }, [symbolNotes, wlOwner]);
-  // paneSync mirrors same-timeframe peers only — disable it entirely when the panes carry mixed timeframes
-  // (the Sync button is rendered disabled in that case), so a stale sync=true can't silently half-work.
-  useEffect(() => { setPaneSync(sync && panes.length > 1 && new Set(paneTfs.slice(0, panes.length)).size <= 1); }, [sync, panes.length, paneTfs]);
+  // paneSync mirrors same-timeframe peers only. Link groups (E09) narrow WHO mirrors whom on that one
+  // bus: a group whose members carry mixed timeframes is refused as a whole and says so in its chip,
+  // so a stale sync=true can't silently half-work. The legacy switch maps to one group of every pane.
+  const linkState = useMemo(() => linkPlan ?? legacyLinkState(sync, panes.length), [linkPlan, sync, panes.length]);
+  const registeredPaneKey = useSyncExternalStore(subscribePaneRegistry, registeredPaneIds, () => "");
+  const linkView = useMemo(() => chartLinkView(
+    fitLinkState(linkState, panes.length),
+    panes.map((_, i) => paneTfs[i] ?? "D"),
+    panes.length,
+    new Set(registeredPaneKey ? registeredPaneKey.split(",").map(Number) : []),
+  ), [linkState, panes, paneTfs, registeredPaneKey]);
+  useEffect(() => { setPaneLinks(linkView.plan); }, [linkView]);
+  const assignLinkGroup = useCallback((idx: number, group: LinkGroupId | null) => {
+    setLinkPlan((cur) => assignPaneGroup(fitLinkState(cur ?? legacyLinkState(sync, panes.length), panes.length), idx, group));
+  }, [sync, panes.length]);
+  const setLinkShare = useCallback((group: LinkGroupId, dim: LinkDimension, on: boolean) => {
+    setLinkPlan((cur) => setGroupShare(fitLinkState(cur ?? legacyLinkState(sync, panes.length), panes.length), group, dim, on));
+  }, [sync, panes.length]);
   useEffect(() => {
     const frame = window.requestAnimationFrame(() => {
       try {
@@ -2963,7 +2988,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
       const base = allDefaults();
       for (const k of IND_ORDER) { if (tmpl.indParams[k]) base[k] = withDefaults(k, tmpl.indParams[k]); }
       for (const k of Object.keys(tmpl.indParams || {})) { if (isSuiteKey(k)) base[k] = { ...suiteDefaults(k), ...tmpl.indParams[k] }; }
-      setIndParams(base);
+      setIndParams(withStudyInstanceParams(base, tmpl.indicators, tmpl.indParams));   // per-instance params (E06)
     };
     window.addEventListener("mm:apply-template", h);
     return () => window.removeEventListener("mm:apply-template", h);
@@ -2992,6 +3017,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
       next = [...panes, ...extra];   // may be < n if the watchlist can't supply enough unique symbols
     }
     setPanes(next);
+    setLinkPlan((s) => s && fitLinkState(s, next.length));   // removed slots leave their group; new ones start unlinked
     // keep one timeframe per pane; new panes inherit the active pane's timeframe
     setPaneTfs((tfs) => next.map((_, i) => tfs[i] ?? tf));
     setActivePane((a) => Math.min(a, next.length - 1));
@@ -3004,8 +3030,8 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
   // matching timeframes included — equal bar indexes still name different dates per symbol.
   const mixedTfs = panes.length > 1 && new Set(paneTfs.slice(0, panes.length)).size > 1;
   function mtfLayout() {
-    if (isMtf) { setSplit(1); setPanes([active]); setPaneTfs([tf]); setActivePane(0); return; }
-    const sym = active; setSplit(4); setPanes([sym, sym, sym, sym]); setPaneTfs(["D", "3D", "W", "1M"]); setActivePane(0);
+    if (isMtf) { setSplit(1); setPanes([active]); setPaneTfs([tf]); setActivePane(0); setLinkPlan((s) => s && fitLinkState(s, 1)); return; }
+    const sym = active; setSplit(4); setPanes([sym, sym, sym, sym]); setPaneTfs(["D", "3D", "W", "1M"]); setActivePane(0); setLinkPlan((s) => s && fitLinkState(s, 4));
   }
   function toggleReplay() {
     setReplayArmed((on) => {
@@ -3895,6 +3921,19 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
       });
     }
   };
+  // "Add another <study>" (E06): a NEW independent instance with its own id, params and pane. It is
+  // an indicator slot like any other, so the anonymous cap applies exactly as in toggleInd.
+  const addIndInstance = (type: string) => {
+    if (!isIndKey(type) || !supportsMultipleInstances(type)) return;
+    if (!loggedIn && inds.size - Number(isAmbientCandleSuite(inds, indParams)) >= MAX_ANON_IND) { showGateNudge(t("gateIndCap")); return; }
+    const added = addStudyInstance({ inds: [...inds], indParams, hidden: [...hidden] }, type);
+    if (!added) return;
+    const { id } = added;
+    const seeded = added.state.indParams[id];
+    setInds((s) => { if (s.has(id)) return s; const n = new Set(s); n.add(id); return n; });
+    if (seeded) setIndParams((p) => ({ ...p, [id]: seeded }));
+    setHidden((h) => { if (!h.has(id)) return h; const n = new Set(h); n.delete(id); return n; });
+  };
   const applySuitePreset = (k: string, presetId: SuitePresetId) => {
     if (!isSuiteKey(k)) return;
     const profile = resolveSuitePreset(k, presetId);
@@ -4029,6 +4068,9 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
       return;
     }
     setInds((s) => { if (!s.has(k)) return s; const n = new Set(s); n.delete(k); return n; });
+    // An additional study instance's id is never reused, so its params retire with it (E06); a
+    // primary keeps its params as the device preference, exactly as before.
+    if (isAdditionalStudyId(k)) setIndParams((p) => { if (!Object.prototype.hasOwnProperty.call(p, k)) return p; const n = { ...p }; delete n[k]; return n; });
     setHidden((s) => {
       const childIds = isSuiteKey(k) ? suiteModuleCatalogFor(k).map((entry) => entry.id) : [];
       if (!s.has(k) && !childIds.some((id) => s.has(id))) return s;
@@ -4044,7 +4086,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
     setIndParams((p) => ({
       ...p,
       [targetKey]: {
-        ...(isSuiteKey(targetKey) ? { ...suiteDefaults(targetKey), ...p[targetKey] } : withDefaults(targetKey, p[targetKey])),
+        ...(isSuiteKey(targetKey) ? { ...suiteDefaults(targetKey), ...p[targetKey] } : isAdditionalStudyId(targetKey) ? studyParamsWithDefaults(targetKey, p[targetKey]) : withDefaults(targetKey, p[targetKey])),
         ...patch,
       },
     }));
@@ -4052,7 +4094,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
   const resetIndParam = useCallback((k: string) => {
     const moduleTarget = parseSuiteModuleId(k);
     if (!moduleTarget) {
-      setIndParams((p) => ({ ...p, [k]: isSuiteKey(k) ? suiteDefaults(k) : indDefaults(k) }));
+      setIndParams((p) => ({ ...p, [k]: isSuiteKey(k) ? suiteDefaults(k) : indDefaults(studyTypeOf(k) ?? k) }));
       return;
     }
     const entry = getSuiteModuleCatalogEntry(k);
@@ -4446,7 +4488,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
   // The single place that says what "the current workspace" IS, for both save and load. Keeping one
   // definition is what makes the round trip provable: the same shape is captured and re-applied.
   const currentWorkspace = (): LayoutWorkspace => ({
-    panes, paneTfs, split, activePane, sync, chartType,
+    panes, paneTfs, split, activePane, sync: linkPlan ? projectLegacySync(linkPlan, panes.length) : sync, chartType,
     inds: [...inds], indParams, hidden: [...hidden],
     compare, compareCfg, lockedVLine,
   });
@@ -4565,12 +4607,14 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
     const migrated = migrateLegacy(l.config, false);
     if (!migrated.ok) return;
     const envelope = migrated.envelope;
-    const next = applyLayoutConfig(workspaceToLayout(envelope), currentWorkspace());
+    const layout = workspaceToLayout(envelope);
+    const next = applyLayoutConfig(layout, currentWorkspace());
     setPanes(next.panes);
     setPaneTfs(next.paneTfs);
     setSplit(next.split);
     setActivePane(next.activePane);
-    setSync(next.sync);
+    // A layout that states `sync` owns the link choice (legacy mapping); one that doesn't keeps this device's groups.
+    if (layout.sync !== null) { setLinkPlan(null); setSync(next.sync); } else setLinkPlan((s) => s && fitLinkState(s, next.panes.length));
     setChartType(next.chartType);
     setInds(new Set(next.inds));
     setIndParams(next.indParams);
@@ -5293,7 +5337,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
             <div className="seg tool-adv toolbar-overflow-item" data-toolbar-item data-toolbar-action="split" title={t("splitLayout")}>{[1, 2, 4].map((n) => <button key={n} className={split === n ? "on" : ""} onClick={() => setGrid(n)}>{n}</button>)}</div>
             <button className={`tbtn tool-adv toolbar-overflow-item${isMtf ? " on" : ""}`} data-toolbar-item title={t("mtfTip")} onClick={mtfLayout}><svg viewBox="0 0 24 24"><path d="M3 13h4v8H3zM10 8h4v13h-4zM17 3h4v18h-4z" /></svg>{t("mtf")}</button>
             <button className={`tbtn dtm toolbar-overflow-item${dtm ? " on" : ""}`} data-toolbar-item title={t("dtmTip")} onClick={toggleDtm}><svg viewBox="0 0 24 24" style={{ width: 13, height: 13 }} fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" /></svg>{t("dtmBtn")}</button>
-            {panes.length > 1 && <button className={`tbtn tool-adv toolbar-overflow-item${sync && !mixedTfs ? " on" : ""}`} data-toolbar-item data-toolbar-action="sync" data-sync-on={sync && !mixedTfs ? "1" : "0"} disabled={mixedTfs} title={mixedTfs ? t("syncMixedTip") : t("syncTip")} onClick={() => setSync((s) => !s)}><svg viewBox="0 0 24 24"><path d="M4 7h11M4 7l3-3M4 7l3 3M20 17H9M20 17l-3-3M20 17l-3 3" /></svg>{t("sync")}</button>}
+            {panes.length > 1 && <button className={`tbtn tool-adv toolbar-overflow-item${linkView.anyLinked ? " on" : ""}`} data-toolbar-item data-toolbar-action="sync" data-sync-on={linkView.anyLinked ? "1" : "0"} disabled={mixedTfs && !linkView.anyLinked} title={mixedTfs && !linkView.anyLinked ? t("syncMixedTip") : t("syncTip")} onClick={() => { const on = !linkView.anyLinked; setLinkPlan(null); setSync(on); }}><svg viewBox="0 0 24 24"><path d="M4 7h11M4 7l3-3M4 7l3 3M20 17H9M20 17l-3-3M20 17l-3 3" /></svg>{t("sync")}</button>}
             <button
               className={`tbtn tool-adv toolbar-overflow-item${replayOn ? " on" : ""}`}
               data-toolbar-item
@@ -5390,7 +5434,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
                   <button type="button" role="menuitem" className={`menu-row${dtm ? " on" : ""}`} data-toolbar-menu-action="day" onClick={() => { toggleDtm(); setToolbarMoreOpen(false); }}>
                     <svg viewBox="0 0 24 24"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" /></svg>{t("dtmBtn")}
                   </button>
-                  {panes.length > 1 && <button type="button" role="menuitem" className={`menu-row${sync && !mixedTfs ? " on" : ""}`} data-toolbar-menu-action="sync" disabled={mixedTfs} onClick={() => { setSync((s) => !s); setToolbarMoreOpen(false); }}>
+                  {panes.length > 1 && <button type="button" role="menuitem" className={`menu-row${linkView.anyLinked ? " on" : ""}`} data-toolbar-menu-action="sync" disabled={mixedTfs && !linkView.anyLinked} onClick={() => { const on = !linkView.anyLinked; setLinkPlan(null); setSync(on); setToolbarMoreOpen(false); }}>
                     <svg viewBox="0 0 24 24"><path d="M4 7h11M4 7l3-3M4 7l3 3M20 17H9M20 17l-3-3M20 17l-3 3" /></svg>{t("sync")}
                   </button>}
                   <button type="button" role="menuitem" className={`menu-row${replayOn ? " on" : ""}`} data-toolbar-menu-action="replay" title={t(replayTitleKey)} disabled={Boolean(replayBlockedReason)} onClick={() => { toggleReplay(); setToolbarMoreOpen(false); }}>
@@ -5473,9 +5517,10 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
             symbol={active}
             timeframe={tf}
             bars={chartReadoutMeta?.symbol === active && chartReadoutMeta.timeframe === tf ? chartReadoutMeta.bars : []}
-            indCols={[...[...inds].filter((k) => !isSuiteKey(k) && !hidden.has(k)).map((k) => {
+            indCols={[...[...inds].filter((k) => !isSuiteKey(k) && !hidden.has(k) && (!isAdditionalStudyId(k) || isRenderableStudyInstance(k, inds))).map((k) => {
               const def = (IND_DEFS as any)[k];
-              return { key: k, label: def?.label ?? k, tag: def?.tag ?? k };
+              const meta = studyInstanceMeta(k, inds, indParams[k]);   // one column per study instance (E06)
+              return { key: k, label: meta?.label ?? def?.label ?? k, tag: meta?.tag ?? def?.tag ?? k };
             }), ...visualReadoutColumns(lang)]}
             indRowsAt={indRowsAt ?? undefined}
             onBack={() => setTableViewOpen(false)}
@@ -5540,6 +5585,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
                   onSetLockedVLine={(t2) => setLockedVLine(t2)}
                   onIndRowsAt={i === activePane ? (fn, meta) => { setIndRowsAt(() => fn); if (meta) setChartReadoutMeta(meta); } : undefined}
                   onPaneCount={i === 0 ? onPaneCount : undefined}
+                  headerSlot={panes.length > 1 ? <ChartLinkControl idx={i} view={linkView} labels={panes} onAssign={assignLinkGroup} onShare={setLinkShare} /> : null}
                 />
               ))}
             </div>
@@ -5582,12 +5628,14 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
                     key: "pine:" + s.id, label: s.name, kind: "overlay", hidden: hidden.has("pine:" + s.id),
                   })),
                   // sub-pane indicators
+                  // sub-pane study INSTANCES (E06): each RSI instance is its own row under its own id
                   ...[...inds].filter((k) => {
                     const def = (IND_DEFS as any)[k];
-                    return def && def.kind === "pane";
+                    return (def && def.kind === "pane") || (isAdditionalStudyId(k) && studyInstanceMeta(k, inds)?.kind === "pane");
                   }).map((k): OTEntry => {
                     const def = (IND_DEFS as any)[k];
-                    return { key: k, label: def?.label ?? k, tag: def?.tag ?? k, kind: "pane", hidden: hidden.has(k) };
+                    const meta = studyInstanceMeta(k, inds, indParams[k]);
+                    return { key: k, label: meta?.label ?? def?.label ?? k, tag: meta?.tag ?? def?.tag ?? k, kind: "pane", hidden: hidden.has(k) };
                   }),
                   // Premium modules are first-class object-tree rows while their five runtime
                   // containers and three oscillator panes remain shared internally.
@@ -6216,7 +6264,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
           onToggleCompare={(s: string, mode?: CmpMode) => toggleCompare(s, mode)} />
       )}
       {indOpen && (
-        <IndicatorsModal open suspended={!!guide} active={inds} onClose={() => setIndOpen(false)} onToggle={toggleInd}
+        <IndicatorsModal open suspended={!!guide} active={inds} onClose={() => setIndOpen(false)} onToggle={toggleInd} onAddInstance={addIndInstance}
           onApplyPreset={applySuitePreset} suiteParams={indParams} userTier={userTier}
           activeModules={activeSuiteModuleIds} onToggleModule={toggleSuiteModule} onOpenModuleSettings={openSettings}
           onOpenGuide={(id) => {
@@ -6233,11 +6281,11 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
               pine={{ name: scriptById[settingsKey].name, params: mergedParams(scriptById[settingsKey], pineParams) }}
               onPineChange={(patch) => setPineParam(settingsKey, patch)}
               onClose={() => setSettingsKey(null)} />
-          : <IndicatorSettings key={settingsKey} indKey={settingsKey} params={indParams[parseSuiteModuleId(settingsKey)?.suiteKey ?? settingsKey] || {}} onChange={(patch) => setIndParam(settingsKey, patch)} onClose={() => setSettingsKey(null)} onReset={() => resetIndParam(settingsKey)} userTier={userTier} onOpenGuide={(sk, mk, ml) => {
+          : <IndicatorSettings key={settingsKey} indKey={settingsKey} title={studyInstanceMeta(settingsKey, inds, indParams[settingsKey])?.label} params={indParams[parseSuiteModuleId(settingsKey)?.suiteKey ?? settingsKey] || {}} onChange={(patch) => setIndParam(settingsKey, patch)} onClose={() => setSettingsKey(null)} onReset={() => resetIndParam(settingsKey)} userTier={userTier} onOpenGuide={(sk, mk, ml) => {
               setSettingsKey(null);
               setGuide({ suite: sk, mod: mk, label: ml });
             }} />)}
-      {sourceKey && <IndicatorSource indKey={sourceKey} onClose={() => setSourceKey(null)} />}
+      {sourceKey && <IndicatorSource indKey={studyTypeOf(sourceKey) ?? sourceKey} onClose={() => setSourceKey(null)} />}
       {guide && (
         <GuidePanel
           suiteKey={guide.suite}
