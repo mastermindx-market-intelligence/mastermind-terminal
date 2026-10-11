@@ -20,13 +20,16 @@ import 'server-only';
 import { BILLING_BASE, billingAuth } from '@/app/api/billing/gateway';
 import {
   PrivateDecodeError,
+  decodePrivateCompanyContext,
   decodePrivateError,
   decodePrivateIssuerSelections,
   decodePrivateProductIntegration,
   isCanonicalIssuerShape,
   isFactIdShape,
+  isPrivateCompanySymbol,
   privateErrorPayload,
   type PrivateErrorCode,
+  type PrivateCompanyContext,
   type PrivateIssuerSelections,
   type PrivateProductIntegration,
 } from './companyIntelligencePrivate';
@@ -49,6 +52,9 @@ import {
  * A compact serialization of the largest admitted projection therefore stays under
  * 16 KiB; 32 KiB leaves room for serializer spacing without widening what the contract
  * allows. The counted stream read below is the real enforcement.
+ * Context adds a closed identity receipt capped at 16 KiB. Its three source lengths
+ * may each name up to 2 MiB, but only those integers and hashes cross this boundary;
+ * the referenced Parquet bytes are never fetched or carried here.
  */
 export const OWNER_PROJECTION_MAX_BYTES = 32 * 1024;
 
@@ -70,6 +76,7 @@ export const PRIVATE_RESPONSE_HEADERS: Readonly<Record<string, string>> = Object
 });
 
 export type PrivateRequestTarget =
+  | { readonly kind: 'company_context' }
   | { readonly kind: 'issuer_selections'; readonly issuerId: string }
   | { readonly kind: 'product_integration'; readonly factId: string };
 
@@ -79,6 +86,10 @@ export async function handlePrivateIssuerRequest(request: Request, issuerId: str
 
 export async function handlePrivateFactRequest(request: Request, factId: string): Promise<Response> {
   return handlePrivateRequest(request, { kind: 'product_integration', factId });
+}
+
+export async function handlePrivateCompanyContextRequest(request: Request): Promise<Response> {
+  return handlePrivateRequest(request, { kind: 'company_context' });
 }
 
 async function handlePrivateRequest(request: Request, target: PrivateRequestTarget): Promise<Response> {
@@ -148,7 +159,10 @@ async function privateExchange(
   const invalid = refusalForInvalidInput(request, target);
   if (invalid !== null) return invalid;
 
-  const path = target.kind === 'issuer_selections'
+  const symbol = target.kind === 'company_context' ? new URL(request.url).searchParams.get('symbol')! : '';
+  const path = target.kind === 'company_context'
+    ? '/api/company-intelligence/private/company-context?symbol=' + encodeURIComponent(symbol)
+    : target.kind === 'issuer_selections'
     ? issuerSelectionsPath(target.issuerId)
     : productIntegrationPath(target.factId);
   const owner = await authorizedGet(origin + path, token, controller, OWNER_PROJECTION_MAX_BYTES);
@@ -162,9 +176,11 @@ async function privateExchange(
     }
   }
   try {
-    const projection: PrivateIssuerSelections | PrivateProductIntegration = target.kind === 'issuer_selections'
-      ? decodePrivateIssuerSelections(owner.payload, target.issuerId)
-      : decodePrivateProductIntegration(owner.payload, target.factId);
+    const projection: PrivateCompanyContext | PrivateIssuerSelections | PrivateProductIntegration = target.kind === 'company_context'
+      ? await withAbort(controller.signal, () => decodePrivateCompanyContext(owner.payload, symbol))
+      : target.kind === 'issuer_selections'
+        ? decodePrivateIssuerSelections(owner.payload, target.issuerId)
+        : decodePrivateProductIntegration(owner.payload, target.factId);
     // The decoded closed representation is re-serialized: arbitrary upstream JSON can
     // never be piped through, and only granted fields survive.
     return privateJson(projection, 200);
@@ -175,18 +191,22 @@ async function privateExchange(
 }
 
 function refusalForInvalidInput(request: Request, target: PrivateRequestTarget): Response | null {
-  // This slice is current-only, so it carries no query controls at all: every parameter
-  // is refused, including mode and as_of, rather than silently ignored. The request URL
-  // is read for its parameter count only; it can never choose an upstream origin, path
-  // or token.
-  let query: string;
+  // Context admits exactly one symbol. Other reads admit no query parameters.
+  // Neither path supports caller-selected identity namespaces, historical cutoffs,
+  // upstream origins, purpose or audience.
+  let query: URLSearchParams;
   try {
-    query = new URL(request.url).searchParams.toString();
+    query = new URL(request.url).searchParams;
   } catch {
     return privateRefusal('REQUEST_INVALID', 400);
   }
-  if (query !== '') return privateRefusal('REQUEST_INVALID', 400);
   if (hasRequestBody(request)) return privateRefusal('REQUEST_INVALID', 400);
+  if (target.kind === 'company_context') {
+    const pairs = Array.from(query.entries());
+    return pairs.length === 1 && pairs[0][0] === 'symbol' && isPrivateCompanySymbol(pairs[0][1])
+      ? null : privateRefusal('REQUEST_INVALID', 400);
+  }
+  if (query.toString() !== '') return privateRefusal('REQUEST_INVALID', 400);
   if (target.kind === 'issuer_selections') {
     // Canonical issuer shape only. The owner endpoint stays the authority for semantic
     // issuer binding; a well-formed id is not a binding assertion.

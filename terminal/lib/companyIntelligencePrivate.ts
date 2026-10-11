@@ -3,15 +3,15 @@
  *
  * This module performs no I/O, imports nothing server-only, and never calls fetch. It
  * only decides whether a value that the private server helper has already bounded and
- * parsed has the exact shape of the published source contract at 9bf268e
+ * parsed has the exact shape of the published source contract at b536aeaa
  * (engine/company_intelligence/issuer_disclosures.py, issuer_disclosure_selection.py,
  * app/company_disclosures.py).
  *
  * Two things this decoder deliberately does not claim:
  *   1. A reference (schema/SHA-256/byte length) inside a projection is discovery
  *      metadata, never a permission token. Format equality grants nothing.
- *   2. Nothing here computes or recomputes a hash. Comparing reference components is a
- *      structural comparison; the source owner, not the consumer, verifies content.
+ *   2. The context decoder hashes the included identity receipt only. It does not
+ *      retrieve or qualify its referenced artifacts, identities or disclosure rights.
  *
  * Every refusal throws PrivateDecodeError carrying one fixed reason label declared in
  * this file. A rejected object's contents are never copied into the error, because a
@@ -20,6 +20,8 @@
  */
 
 export const PRIVATE_ISSUER_SELECTIONS_SCHEMA = 'company_intelligence.private_issuer_selections/v1';
+export const PRIVATE_COMPANY_CONTEXT_SCHEMA = 'company_intelligence.private_company_context/v1';
+export const PRIVATE_IDENTITY_RECEIPT_SCHEMA = 'company_intelligence.current_issuer_identity/v1';
 export const PRIVATE_PRODUCT_INTEGRATION_SCHEMA = 'company_intelligence.private_product_integration/v1';
 export const PRIVATE_ERROR_SCHEMA = 'company_intelligence.private_error/v1';
 export const PRIVATE_FACT_SCHEMA = 'company_intelligence.product_integration_fact/v1';
@@ -50,6 +52,31 @@ export interface PrivateIssuerBinding {
   readonly issuer_id: string;
   readonly evidenced_cik: string;
   readonly identity_snapshot_reference: PrivateReference;
+}
+
+export interface PrivateIdentitySource {
+  readonly sha256: string;
+  readonly byte_length: number;
+}
+
+export interface PrivateIdentityReceipt {
+  readonly schema: typeof PRIVATE_IDENTITY_RECEIPT_SCHEMA;
+  readonly identity_mode: typeof PRIVATE_IDENTITY_MODE;
+  readonly issuer_id: string;
+  readonly evidenced_cik: string;
+  readonly source_commit: string;
+  readonly sources: Readonly<Record<'security_master' | 'vendor_aliases' | 'issuer_master', PrivateIdentitySource>>;
+  readonly evidence_source: 'sec_company_tickers';
+  readonly evidence_snapshot: string;
+}
+
+export interface PrivateCompanyContext {
+  readonly schema: typeof PRIVATE_COMPANY_CONTEXT_SCHEMA;
+  readonly identity_mode: typeof PRIVATE_IDENTITY_MODE;
+  readonly query: { readonly namespace: 'store'; readonly symbol: string };
+  readonly security_id: string;
+  readonly issuer_binding: PrivateIssuerBinding;
+  readonly identity_receipt: PrivateIdentityReceipt;
 }
 
 export interface PrivateSelectionEntry {
@@ -319,6 +346,127 @@ function decodeSnapshotReference(value: unknown): PrivateReference {
 
 function sameReference(left: PrivateReference, right: PrivateReference): boolean {
   return left.schema === right.schema && left.sha256 === right.sha256 && left.byte_length === right.byte_length;
+}
+
+/** Exact current store query grammar; this does not resolve or normalize identity. */
+export function isPrivateCompanySymbol(value: unknown): value is string {
+  return typeof value === 'string' && value.length >= 1 && value.length <= 24
+    && /^[A-Z0-9][A-Z0-9.\-]{0,23}$/.test(value);
+}
+
+function currentIssuerIdentifier(value: unknown): string {
+  const id = canonicalIssuerIdentifier(value);
+  if (id !== id.toUpperCase()) throw new PrivateDecodeError('IDENTIFIER');
+  const suffix = id.slice(id.lastIndexOf('.') + 1);
+  // Native disambiguators are arbitrary-size decimal integers. Never round them
+  // through a JS Number merely to reject noncanonical leading zeroes.
+  if (id.includes('.') && DIGITS_ONLY.test(suffix) && suffix.length > 1 && suffix.startsWith('0')) {
+    throw new PrivateDecodeError('IDENTIFIER');
+  }
+  return id;
+}
+
+function currentSecurityIdentifier(value: unknown): string {
+  if (typeof value !== 'string' || !/^SEC:US-(XNAS|XNYS|XASE)-/.test(value)) {
+    throw new PrivateDecodeError('IDENTIFIER');
+  }
+  // Reuse listing-key syntax only; this never derives the issuer of a security.
+  currentIssuerIdentifier('ISS:' + value.slice(4));
+  return value;
+}
+
+function identitySource(value: unknown): PrivateIdentitySource {
+  const source = closedObject(value, ['sha256', 'byte_length']);
+  return Object.freeze({
+    sha256: nativeDigest(source.sha256),
+    byte_length: boundedInteger(source.byte_length, 1, 2 * 1024 * 1024),
+  });
+}
+
+function evidenceDate(value: unknown): string {
+  if (typeof value !== 'string' || value.length !== 10 || !/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/.test(value)) {
+    throw new PrivateDecodeError('VALUE');
+  }
+  const date = new Date(value + 'T00:00:00.000Z');
+  if (value.startsWith('0000-') || !Number.isFinite(date.getTime())
+    || date.toISOString().slice(0, 10) !== value || value > new Date().toISOString().slice(0, 10)) {
+    throw new PrivateDecodeError('VALUE');
+  }
+  return value;
+}
+
+/** Only closed ASCII strings, safe integers and objects enter this receipt encoder. */
+function canonicalReceiptJson(value: unknown): string {
+  if (isPlainObject(value)) {
+    return '{' + Object.keys(value).sort().map(key => JSON.stringify(key) + ':' + canonicalReceiptJson(value[key])).join(',') + '}';
+  }
+  if (typeof value === 'string' || typeof value === 'number') return JSON.stringify(value);
+  throw new PrivateDecodeError('VALUE');
+}
+
+/** Verify the closed current metadata receipt; its digest is not an owner grant. */
+export async function decodePrivateCompanyContext(value: unknown, expectedSymbol: string): Promise<PrivateCompanyContext> {
+  const root = closedObject(value, ['schema', 'identity_mode', 'query', 'security_id', 'issuer_binding', 'identity_receipt']);
+  if (root.schema !== PRIVATE_COMPANY_CONTEXT_SCHEMA) throw new PrivateDecodeError('SCHEMA');
+  if (root.identity_mode !== PRIVATE_IDENTITY_MODE) throw new PrivateDecodeError('VALUE');
+  const query = closedObject(root.query, ['namespace', 'symbol']);
+  if (query.namespace !== 'store' || !isPrivateCompanySymbol(query.symbol) || query.symbol !== expectedSymbol) {
+    throw new PrivateDecodeError('BINDING');
+  }
+  const symbol = query.symbol;
+  const securityId = currentSecurityIdentifier(root.security_id);
+  const binding = closedObject(root.issuer_binding, ['issuer_id', 'evidenced_cik', 'identity_snapshot_reference']);
+  const issuerId = currentIssuerIdentifier(binding.issuer_id);
+  const cik = evidencedCik(binding.evidenced_cik);
+  const reference = decodeNativeReference(binding.identity_snapshot_reference, PRIVATE_IDENTITY_RECEIPT_SCHEMA);
+  const raw = closedObject(root.identity_receipt, ['schema', 'identity_mode', 'issuer_id', 'evidenced_cik', 'source_commit', 'sources', 'evidence_source', 'evidence_snapshot']);
+  if (raw.schema !== PRIVATE_IDENTITY_RECEIPT_SCHEMA || raw.identity_mode !== PRIVATE_IDENTITY_MODE
+    || raw.issuer_id !== issuerId || raw.evidenced_cik !== cik || raw.evidence_source !== 'sec_company_tickers') {
+    throw new PrivateDecodeError('BINDING');
+  }
+  if (typeof raw.source_commit !== 'string' || raw.source_commit.length !== 40 || !/^[0-9a-f]{40}$/.test(raw.source_commit)) {
+    throw new PrivateDecodeError('DIGEST');
+  }
+  const sources = closedObject(raw.sources, ['security_master', 'vendor_aliases', 'issuer_master']);
+  // Snapshot/freeze before awaiting crypto: caller mutation cannot replace a hashed value.
+  const receipt: PrivateIdentityReceipt = Object.freeze({
+    schema: PRIVATE_IDENTITY_RECEIPT_SCHEMA, identity_mode: PRIVATE_IDENTITY_MODE,
+    issuer_id: issuerId, evidenced_cik: cik, source_commit: raw.source_commit,
+    sources: Object.freeze({
+      security_master: identitySource(sources.security_master),
+      vendor_aliases: identitySource(sources.vendor_aliases),
+      issuer_master: identitySource(sources.issuer_master),
+    }),
+    evidence_source: 'sec_company_tickers', evidence_snapshot: evidenceDate(raw.evidence_snapshot),
+  });
+  const bytes = new TextEncoder().encode(canonicalReceiptJson(receipt));
+  if (bytes.byteLength > PRIVATE_MAX_OBJECT_BYTES || bytes.byteLength !== reference.byte_length) {
+    throw new PrivateDecodeError('REFERENCE');
+  }
+  let digest: string;
+  try {
+    const hash = await globalThis.crypto.subtle.digest('SHA-256', bytes);
+    digest = Array.from(new Uint8Array(hash), byte => byte.toString(16).padStart(2, '0')).join('');
+  } catch {
+    throw new PrivateDecodeError('DIGEST');
+  }
+  if (digest !== reference.sha256) throw new PrivateDecodeError('REFERENCE');
+  return Object.freeze({
+    schema: PRIVATE_COMPANY_CONTEXT_SCHEMA, identity_mode: PRIVATE_IDENTITY_MODE,
+    query: Object.freeze({ namespace: 'store', symbol }), security_id: securityId,
+    issuer_binding: Object.freeze({ issuer_id: issuerId, evidenced_cik: cik, identity_snapshot_reference: reference }),
+    identity_receipt: receipt,
+  });
+}
+
+/** Compare decoded projections before selecting a fact; matching hashes grant no rights. */
+export function assertPrivateContextSelection(context: PrivateCompanyContext, selection: PrivateIssuerSelections): void {
+  const left = context.issuer_binding;
+  const right = selection.issuer_binding;
+  if (left.issuer_id !== right.issuer_id || left.evidenced_cik !== right.evidenced_cik
+    || !sameReference(left.identity_snapshot_reference, right.identity_snapshot_reference)) {
+    throw new PrivateDecodeError('COMPOSITION');
+  }
 }
 
 function sameSelectionEntry(left: PrivateSelectionEntry, right: PrivateSelectionEntry): boolean {

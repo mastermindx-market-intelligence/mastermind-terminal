@@ -1,4 +1,5 @@
-import { describe, expect, it } from 'vitest';
+import { createHash } from 'node:crypto';
+import { describe, expect, it, vi } from 'vitest';
 
 import {
   PRIVATE_EDITION_SCHEMA,
@@ -7,13 +8,157 @@ import {
   PRIVATE_ISSUER_SELECTIONS_SCHEMA,
   PRIVATE_PRODUCT_INTEGRATION_SCHEMA,
   PrivateDecodeError,
+  assertPrivateContextSelection,
   assertPrivateComposition,
+  decodePrivateCompanyContext,
   decodePrivateError,
   decodePrivateIssuerSelections,
   decodePrivateProductIntegration,
   isCanonicalIssuerShape,
   isFactIdShape,
+  isPrivateCompanySymbol,
 } from '@/lib/companyIntelligencePrivate';
+
+// Synthetic metadata only, independently serialized with Python by the contract review.
+const CONTEXT_RECEIPT_HASH = 'b94c988b5b1463c0e57f8d83b74be7f87fc4715efa418470fcf5e1f74fedce90';
+function contextFixture(symbol = 'GOOG') {
+  const identity_receipt = {
+    schema: 'company_intelligence.current_issuer_identity/v1', identity_mode: 'current',
+    issuer_id: 'ISS:US-XNAS-TEST', evidenced_cik: '0000000001', source_commit: 'b'.repeat(40),
+    sources: {
+      security_master: { sha256: '1'.repeat(64), byte_length: 512 },
+      vendor_aliases: { sha256: '2'.repeat(64), byte_length: 512 },
+      issuer_master: { sha256: '3'.repeat(64), byte_length: 512 },
+    },
+    evidence_source: 'sec_company_tickers', evidence_snapshot: '2026-10-10',
+  };
+  return {
+    schema: 'company_intelligence.private_company_context/v1', identity_mode: 'current',
+    query: { namespace: 'store', symbol }, security_id: 'SEC:US-XNAS-' + symbol,
+    issuer_binding: {
+      issuer_id: identity_receipt.issuer_id, evidenced_cik: identity_receipt.evidenced_cik,
+      identity_snapshot_reference: { schema: identity_receipt.schema, sha256: CONTEXT_RECEIPT_HASH, byte_length: 629 },
+    },
+    identity_receipt,
+  };
+}
+
+function sortedFixture(value: unknown): unknown {
+  if (value !== null && typeof value === 'object' && !Array.isArray(value)) {
+    return Object.fromEntries(Object.entries(value).sort(([a], [b]) => a.localeCompare(b)).map(([k, v]) => [k, sortedFixture(v)]));
+  }
+  return value;
+}
+
+function rebindReceipt(value: ReturnType<typeof contextFixture>) {
+  const bytes = Buffer.from(JSON.stringify(sortedFixture(value.identity_receipt)), 'utf8');
+  value.issuer_binding.identity_snapshot_reference.sha256 = createHash('sha256').update(bytes).digest('hex');
+  value.issuer_binding.identity_snapshot_reference.byte_length = bytes.length;
+  return value;
+}
+
+describe('current private company context', () => {
+  it('matches independent Python receipt bytes and preserves one receipt across share classes', async () => {
+    const original = contextFixture();
+    expect(rebindReceipt(contextFixture()).issuer_binding.identity_snapshot_reference).toEqual(original.issuer_binding.identity_snapshot_reference);
+    const a = await decodePrivateCompanyContext(original, 'GOOG');
+    const b = await decodePrivateCompanyContext(contextFixture('GOOGL'), 'GOOGL');
+    expect(a.issuer_binding).toEqual(b.issuer_binding);
+    expect(a.security_id).not.toBe(b.security_id);
+    expect(a.query.symbol).not.toBe(b.query.symbol);
+    expect(Object.isFrozen(a.identity_receipt.sources.security_master)).toBe(true);
+    const reversed = Object.fromEntries(Object.entries(original).reverse());
+    expect(await decodePrivateCompanyContext(reversed, 'GOOG')).toEqual(a);
+  });
+
+  it.each(['', 'mu', 'MU\n', '^NDX', 'A B', 'A/B', 'A'.repeat(25), 'MÜ'])('rejects malformed symbol %j without normalization', symbol => {
+    expect(isPrivateCompanySymbol(symbol)).toBe(false);
+  });
+
+  it('keeps syntactically valid dot/hyphen aliases distinct for the owner', () => {
+    expect(isPrivateCompanySymbol('BRK.B')).toBe(true);
+    expect(isPrivateCompanySymbol('BRK-B')).toBe(true);
+  });
+
+  it.each(['9007199254740993', '1000000000000000000000'])('preserves a native arbitrary-size decimal disambiguator %s', async suffix => {
+    const value = contextFixture();
+    value.identity_receipt.issuer_id = value.issuer_binding.issuer_id = 'ISS:US-XNAS-TEST.' + suffix;
+    value.security_id = 'SEC:US-XNAS-GOOG.' + suffix;
+    await expect(decodePrivateCompanyContext(rebindReceipt(value), 'GOOG')).resolves.toHaveProperty('security_id', value.security_id);
+  });
+
+  it('rejects forged receipt hash or byte length and an incorrect echoed query', async () => {
+    const hash = contextFixture(); hash.issuer_binding.identity_snapshot_reference.sha256 = '0'.repeat(64);
+    const length = contextFixture(); length.issuer_binding.identity_snapshot_reference.byte_length += 1;
+    for (const value of [hash, length]) await expect(decodePrivateCompanyContext(value, 'GOOG')).rejects.toBeInstanceOf(PrivateDecodeError);
+    await expect(decodePrivateCompanyContext(contextFixture(), 'GOOGL')).rejects.toBeInstanceOf(PrivateDecodeError);
+  });
+
+  it('rejects closed-key and scalar violations even with a matching recomputed digest', async () => {
+    const mutations: Array<(v: ReturnType<typeof contextFixture>) => void> = [
+      v => { Object.assign(v, { generation: 'invented' }); },
+      v => { Object.assign(v.query, { vendor: 'yahoo' }); },
+      v => { Object.assign(v.identity_receipt, { query: 'GOOG' }); },
+      v => { Object.assign(v.identity_receipt.sources, { other: {} }); },
+      v => { Object.assign(v.identity_receipt.sources.issuer_master, { schema: 'extra' }); },
+      v => { v.identity_receipt.evidenced_cik = '0000000002'; },
+      v => { v.identity_receipt.evidenced_cik = v.issuer_binding.evidenced_cik = '0000000000'; },
+      v => { v.identity_receipt.evidenced_cik = v.issuer_binding.evidenced_cik = '0000000001\n'; },
+      v => { v.identity_receipt.issuer_id = v.issuer_binding.issuer_id = 'ISS:US-XNAS-TÉST'; },
+      v => { v.identity_receipt.issuer_id = v.issuer_binding.issuer_id = 'ISS:us-xnas-test'; },
+      v => { v.identity_receipt.issuer_id = v.issuer_binding.issuer_id = 'ISS:US-XNAS-TEST.02'; },
+      v => { v.identity_receipt.source_commit += '\n'; },
+      v => { v.identity_receipt.evidence_source = 'inferred'; },
+      v => { v.identity_receipt.evidence_snapshot = '2026-02-30'; },
+      v => { v.identity_receipt.evidence_snapshot = '2099-01-01'; },
+      v => { v.identity_receipt.evidence_snapshot = '0000-01-01'; },
+      v => { v.identity_receipt.evidence_snapshot += 'T00:00:00Z'; },
+      v => { v.identity_receipt.sources.security_master.byte_length = 2097153; },
+      v => { v.identity_receipt.sources.security_master.byte_length = 0; },
+      v => { v.identity_receipt.sources.security_master.sha256 += '\n'; },
+      v => { v.security_id = 'ISS:US-XNAS-GOOG'; },
+      v => { v.security_id = 'SEC:CA-XTSE-GOOG'; },
+      v => { v.security_id = 'SEC:US-BATS-GOOG'; },
+    ];
+    for (const mutate of mutations) {
+      const value = contextFixture(); mutate(value); rebindReceipt(value);
+      await expect(decodePrivateCompanyContext(value, 'GOOG')).rejects.toBeInstanceOf(PrivateDecodeError);
+    }
+    const largeSource = contextFixture(); largeSource.identity_receipt.sources.security_master.byte_length = 2097152;
+    await expect(decodePrivateCompanyContext(rebindReceipt(largeSource), 'GOOG')).resolves.toHaveProperty('query.symbol', 'GOOG');
+  });
+
+  it('freezes validated values before an asynchronous digest can settle', async () => {
+    let resolveHash!: (v: ArrayBuffer) => void;
+    const spy = vi.spyOn(globalThis.crypto.subtle, 'digest').mockImplementationOnce(() => new Promise(resolve => { resolveHash = resolve; }));
+    try {
+      const value = contextFixture();
+      const pending = decodePrivateCompanyContext(value, 'GOOG');
+      value.query.symbol = 'NVDA'; value.identity_receipt.sources.security_master.sha256 = 'f'.repeat(64);
+      value.issuer_binding.evidenced_cik = '0000000002';
+      resolveHash(Uint8Array.from(Buffer.from(CONTEXT_RECEIPT_HASH, 'hex')).buffer);
+      const decoded = await pending;
+      expect(decoded.query.symbol).toBe('GOOG');
+      expect(decoded.issuer_binding.evidenced_cik).toBe('0000000001');
+      expect(decoded.identity_receipt.sources.security_master.sha256).toBe('1'.repeat(64));
+    } finally { spy.mockRestore(); }
+  });
+
+  it('compares every context/selection binding member without inventing a generation', async () => {
+    const context = await decodePrivateCompanyContext(contextFixture(), 'GOOG');
+    const raw = selectionProjection([], { issuer_binding: context.issuer_binding });
+    const selection = decodePrivateIssuerSelections(raw, context.issuer_binding.issuer_id);
+    expect(() => assertPrivateContextSelection(context, selection)).not.toThrow();
+    for (const binding of [
+      { ...selection.issuer_binding, issuer_id: OTHER_ISSUER },
+      { ...selection.issuer_binding, evidenced_cik: '0000000002' },
+      ...['schema', 'sha256', 'byte_length'].map(key => ({
+        ...selection.issuer_binding,
+        identity_snapshot_reference: { ...selection.issuer_binding.identity_snapshot_reference, [key]: key === 'byte_length' ? 1 : 'different' },
+      })),
+    ]) expect(() => assertPrivateContextSelection(context, { ...selection, issuer_binding: binding })).toThrow(PrivateDecodeError);
+  });
+});
 
 const SECRET = 'LEAKED_SOURCE_TEXT';
 const ISSUER = 'ISS:US-XNYS-MMC';

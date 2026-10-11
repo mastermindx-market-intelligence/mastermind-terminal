@@ -20,6 +20,7 @@ import {
 } from '@/lib/companyIntelligencePrivateServer';
 import * as issuerRoute from '@/app/api/company-intelligence/private/issuers/[issuerId]/product-integrations/route';
 import * as factRoute from '@/app/api/company-intelligence/private/product-integrations/[factId]/route';
+import * as contextRoute from '@/app/api/company-intelligence/private/company-context/route';
 
 const BASE = 'https://billing.example';
 const ME_URL = BASE + '/api/me';
@@ -134,6 +135,116 @@ beforeEach(() => {
 afterEach(() => {
   vi.unstubAllGlobals();
   vi.useRealTimers();
+});
+
+function companyContextFixture() {
+  const receipt = {
+    schema: 'company_intelligence.current_issuer_identity/v1', identity_mode: 'current',
+    issuer_id: 'ISS:US-XNAS-TEST', evidenced_cik: '0000000001', source_commit: 'b'.repeat(40),
+    sources: {
+      security_master: { sha256: '1'.repeat(64), byte_length: 512 },
+      vendor_aliases: { sha256: '2'.repeat(64), byte_length: 512 },
+      issuer_master: { sha256: '3'.repeat(64), byte_length: 512 },
+    },
+    evidence_source: 'sec_company_tickers', evidence_snapshot: '2026-10-10',
+  };
+  return {
+    schema: 'company_intelligence.private_company_context/v1', identity_mode: 'current',
+    query: { namespace: 'store', symbol: 'GOOG' }, security_id: 'SEC:US-XNAS-GOOG',
+    issuer_binding: {
+      issuer_id: receipt.issuer_id, evidenced_cik: receipt.evidenced_cik,
+      identity_snapshot_reference: { schema: receipt.schema, sha256: 'b94c988b5b1463c0e57f8d83b74be7f87fc4715efa418470fcf5e1f74fedce90', byte_length: 629 },
+    },
+    identity_receipt: receipt,
+  };
+}
+
+function companyContextRequest(query = 'symbol=GOOG', options?: RequestInit) {
+  return new Request('https://evil-origin.example/api/company-intelligence/private/company-context?' + query, options);
+}
+
+describe('fixed current company-context route', () => {
+  it('uses the same fresh authenticated feature gate and fixed owner origin', async () => {
+    const probe = stubFetch(() => jsonResponse(grantedRow()), () => jsonResponse(companyContextFixture()));
+    const response = await contextRoute.GET(companyContextRequest());
+    expect(response.status).toBe(200);
+    expect(await response.json()).toEqual(companyContextFixture());
+    expect(probe.calls.map(c => c.url)).toEqual([ME_URL, BASE + '/api/company-intelligence/private/company-context?symbol=GOOG']);
+    expect(probe.calls[1].init).toMatchObject({ method: 'GET', redirect: 'error', cache: 'no-store' });
+    expect(probe.calls[1].init.headers).toEqual({ Accept: 'application/json', Authorization: 'Bearer verified-token' });
+    expectPrivateHeaders(response);
+    expect(contextRoute.dynamic).toBe('force-dynamic');
+    expect(contextRoute.revalidate).toBe(0);
+    expect(contextRoute.fetchCache).toBe('force-no-store');
+  });
+
+  it('refuses authentication and feature failures before context metadata', async () => {
+    session.mockResolvedValueOnce(null);
+    const probe = stubFetch(() => jsonResponse(grantedRow([])));
+    const guest = await contextRoute.GET(companyContextRequest());
+    expect(guest.status).toBe(401); expect(probe.calls).toHaveLength(0); expectPrivateHeaders(guest);
+    const denied = await contextRoute.GET(companyContextRequest());
+    expect(denied.status).toBe(403); expect(probe.calls).toHaveLength(1); expectPrivateHeaders(denied);
+  });
+
+  it.each(['', 'symbol=', 'symbol=mu', 'symbol=MU%0A', 'symbol=%5ENDX', 'symbol=A%2FB', 'symbol=' + 'A'.repeat(25),
+    'symbol=MU&symbol=MU', 'symbol=MU&namespace=store', 'symbol=MU&as_of=2026-10-01', 'symbol=MU&url=https://other.example'])
+  ('refuses malformed or extra query controls after entitlement: %s', async query => {
+    const probe = stubFetch(() => jsonResponse(grantedRow()));
+    const response = await contextRoute.GET(companyContextRequest(query));
+    expect(response.status).toBe(400); expect(probe.calls).toHaveLength(1);
+    expect((await errorPayload(response)).code).toBe('REQUEST_INVALID'); expectPrivateHeaders(response);
+  });
+
+  it('rejects an inbound body without reaching the owner', async () => {
+    const probe = stubFetch(() => jsonResponse(grantedRow()));
+    const response = await contextRoute.GET(companyContextRequest('symbol=GOOG', { method: 'POST', body: '{}' }));
+    expect(response.status).toBe(400); expect(probe.calls).toHaveLength(1); expectPrivateHeaders(response);
+  });
+
+  it('forwards BRK.B exactly and preserves a bounded unsupported-source refusal', async () => {
+    const probe = stubFetch(() => jsonResponse(grantedRow()), () => jsonResponse({
+      schema: PRIVATE_ERROR_SCHEMA, code: 'PRIVATE_SOURCE_UNAVAILABLE', automatic_retry_permitted: false,
+    }, 503));
+    const response = await contextRoute.GET(companyContextRequest('symbol=BRK.B'));
+    expect(probe.calls[1].url).toBe(BASE + '/api/company-intelligence/private/company-context?symbol=BRK.B');
+    expect(response.status).toBe(503); expect((await errorPayload(response)).code).toBe('PRIVATE_SOURCE_UNAVAILABLE');
+    expectPrivateHeaders(response);
+  });
+
+  it('refuses bad receipt hashes and private extras instead of forwarding owner JSON', async () => {
+    for (const mutate of [
+      (value: ReturnType<typeof companyContextFixture>) => { value.issuer_binding.identity_snapshot_reference.sha256 = 'f'.repeat(64); },
+      (value: ReturnType<typeof companyContextFixture>) => { Object.assign(value, { evidence: SECRET }); },
+    ]) {
+      const value = companyContextFixture(); mutate(value);
+      const probe = stubFetch(() => jsonResponse(grantedRow()), () => jsonResponse(value));
+      const response = await contextRoute.GET(companyContextRequest());
+      expect(response.status).toBe(503); expect(probe.calls).toHaveLength(2);
+      expect(await response.text()).not.toContain(SECRET); expectPrivateHeaders(response);
+    }
+  });
+
+  it('enforces the original byte cap on context payload streams', async () => {
+    stubFetch(() => jsonResponse(grantedRow()), () => new Response(new Uint8Array(OWNER_PROJECTION_MAX_BYTES + 1), { headers: { 'content-type': 'application/json' } }));
+    const response = await contextRoute.GET(companyContextRequest());
+    expect(response.status).toBe(503); expectPrivateHeaders(response);
+  });
+
+  it('includes a non-cooperating async digest in the existing request deadline', async () => {
+    vi.useFakeTimers();
+    const spy = vi.spyOn(globalThis.crypto.subtle, 'digest').mockImplementationOnce(() => new Promise(() => {}));
+    stubFetch(() => jsonResponse(grantedRow()), () => jsonResponse(companyContextFixture()));
+    let response: Response | undefined;
+    const pending = contextRoute.GET(companyContextRequest()).then(value => { response = value; });
+    try {
+      await vi.advanceTimersByTimeAsync(PRIVATE_REQUEST_DEADLINE_MS + 1);
+      expect(spy).toHaveBeenCalledTimes(1);
+      expect(response?.status).toBe(503); expectPrivateHeaders(response!);
+      expect((await errorPayload(response!)).code).toBe('PRIVATE_SERVICE_UNAVAILABLE');
+      await pending;
+    } finally { spy.mockRestore(); }
+  });
 });
 
 describe('authentication and actual-feature gate', () => {
