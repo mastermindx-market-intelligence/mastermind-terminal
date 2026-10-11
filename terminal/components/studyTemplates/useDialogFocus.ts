@@ -2,7 +2,7 @@
 // E07 — keyboard contract shared by the two template dialogs: focus moves into the dialog when it
 // opens, Tab / Shift+Tab stay inside it, Escape asks to close, and focus returns to whatever opened
 // it (the chart menu, the library button) when it closes.
-import { useEffect, useRef, type RefObject } from "react";
+import { useEffect, useLayoutEffect, useRef, type RefObject } from "react";
 
 const FOCUSABLE = [
   "a[href]",
@@ -19,7 +19,7 @@ function focusables(root: HTMLElement): HTMLElement[] {
 
 export function useDialogFocus(ref: RefObject<HTMLElement | null>, onEscape: () => void): void {
   const escape = useRef(onEscape);
-  escape.current = onEscape;
+  useLayoutEffect(() => { escape.current = onEscape; });
 
   useEffect(() => {
     const root = ref.current;

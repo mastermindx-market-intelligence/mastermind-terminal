@@ -8,7 +8,7 @@
 // result the user did not see. A template only carries studies, so everything else on the chart
 // (symbol, drawings, compare overlays, scripts, watchlists, alerts, data settings, Day Trade Mode)
 // is outside its reach by construction; the notice states that.
-import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import {
   deleteDeviceTemplate,
   readDeviceTemplates,
@@ -84,8 +84,9 @@ export default function StudyTemplateLibraryDialog({
 }: Props) {
   const t = useStudyTemplatesT();
   const dialogRef = useRef<HTMLDivElement>(null);
+  // The chart's live studies, read only by Apply (an event handler) to detect a change since the preview.
   const studyRef = useRef(studyState);
-  studyRef.current = studyState;
+  useLayoutEffect(() => { studyRef.current = studyState; });
   const [device, setDevice] = useState<DeviceTemplatesRead>(() => readDeviceTemplates());
   const [selection, setSelection] = useState<TemplateRef | null>(initialSelection);
   const [view, setView] = useState<"list" | "preview">(initialSelection ? "preview" : "list");
@@ -97,8 +98,12 @@ export default function StudyTemplateLibraryDialog({
   const [busy, setBusy] = useState(false);
   const [actionError, setActionError] = useState<ActionError | null>(null);
   const actionErrorCode = actionError?.code; // the data-error test hook only; the visible text is writeErrorText
+  // Re-armed on every mount: a development double-mount runs the cleanup once before the real mount.
   const mounted = useRef(true);
-  useEffect(() => () => { mounted.current = false; }, []);
+  useEffect(() => {
+    mounted.current = true;
+    return () => { mounted.current = false; };
+  }, []);
 
   useDialogFocus(dialogRef, onClose);
 
@@ -106,15 +111,21 @@ export default function StudyTemplateLibraryDialog({
   const selected = resolve(selection, account, device);
   const selectedKey = selected ? `${selected.source}:${selected.template.id}:${selected.template.revision}` : "";
 
-  const plan: StudyTemplatePlan | null = useMemo(() => {
+  // The chart the preview was planned against travels with the plan, so "Removed" names what the
+  // chart held at preview time and Apply can tell whether the chart moved since.
+  const planned: { base: StudyState; plan: StudyTemplatePlan } | null = useMemo(() => {
     if (!selected) return null;
-    return planStudyTemplateApply(studyRef.current, studyTemplateBodyOf(selected.template), mode, {
-      guestLimit: planContext.guestLimit,
-      userTier: planContext.userTier,
-    });
+    return {
+      base: studyState,
+      plan: planStudyTemplateApply(studyState, studyTemplateBodyOf(selected.template), mode, {
+        guestLimit: planContext.guestLimit,
+        userTier: planContext.userTier,
+      }),
+    };
     // Frozen per template revision + mode (+ an explicit rebuild); never silently re-planned.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedKey, mode, planNonce, planContext.guestLimit, planContext.userTier]);
+  const plan = planned?.plan ?? null;
 
   const resetRowState = () => {
     setRenaming(null);
@@ -319,8 +330,8 @@ export default function StudyTemplateLibraryDialog({
     );
   };
 
-  const currentIds = studyRef.current.inds;
-  const currentParams = studyRef.current.indParams;
+  const currentIds = planned?.base.inds ?? studyState.inds;
+  const currentParams = planned?.base.indParams ?? studyState.indParams;
 
   const previewPane = () => {
     if (!selected || !plan) {

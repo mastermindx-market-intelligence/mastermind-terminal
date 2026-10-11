@@ -527,7 +527,8 @@ test("account templates reopen on a second device, stay per-account and refuse a
     await library(page).getByRole("button", { name: "Save name" }).click();
     const conflict = library(page).locator('[role="alert"][data-error="conflict"]');
     await expect(conflict).toContainText("This template was changed on another device. Reload to see the latest version. Nothing was changed.");
-    await expect(toast(page)).not.toHaveText("Template renamed");
+    // Device A has raised no toast since its reload: a refused rename must not raise "Template renamed".
+    await expect(toast(page)).toHaveCount(0);
     await conflict.getByRole("button", { name: "Reload" }).click();
     await expect(row(page, "account", deskA.id)).toContainText("Desk B", { timeout: 20_000 });
     const afterConflict = (await apiList(page)).templates;

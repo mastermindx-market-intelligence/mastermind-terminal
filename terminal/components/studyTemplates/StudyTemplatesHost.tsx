@@ -11,7 +11,7 @@
 // The only chart effect is `onApply(next)` with a planned study triple. Nothing here can reach the
 // symbol, drawings, watchlists, alerts, data settings or Day Trade Mode.
 import dynamic from "next/dynamic";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import type { AccountIdentity } from "@/lib/accountIdentity";
 import { ACCOUNT_MENU_PREFIX, publishTemplateMenu, readDeviceTemplates } from "@/lib/chartTemplates";
 import { studyTemplateBodyOf, type StudyTemplateBody } from "@/lib/studyTemplateSchema";
@@ -39,6 +39,17 @@ const announceApplied = (receipt: AppliedReceipt) => {
   window.dispatchEvent(new CustomEvent<AppliedReceipt>(STUDY_TEMPLATE_APPLIED_EVENT, { detail: receipt }));
 };
 
+/** The template a menu id names, from the list the host holds (account) or storage (device). */
+function resolveTemplateBody(ref: TemplateRef, list: AccountTemplatesState): StudyTemplateBody | null {
+  if (ref.source === "account") {
+    const found = list.status === "ok" ? list.templates.find((entry) => entry.id === ref.id) : undefined;
+    return found ? studyTemplateBodyOf(found) : null;
+  }
+  const device = readDeviceTemplates();
+  const found = device.status === "ok" ? device.templates.find((entry) => entry.id === ref.id) : undefined;
+  return found ? studyTemplateBodyOf(found) : null;
+}
+
 const FIRST_READ_DELAY_MS = 800;
 const TOAST_MS = 4000;
 
@@ -63,14 +74,17 @@ export default function StudyTemplatesHost({
   const [dialog, setDialog] = useState<Dialog>(null);
   const [toast, setToast] = useState<{ text: string; n: number } | null>(null);
 
+  // Latest-value refs for the window event handlers below; refreshed after every commit.
   const accountRef = useRef(account);
-  accountRef.current = account;
   const studyRef = useRef(studyState);
-  studyRef.current = studyState;
   const applyRef = useRef(onApply);
-  applyRef.current = onApply;
   const contextRef = useRef<TemplatePlanContext>({ guestLimit, userTier });
-  contextRef.current = { guestLimit, userTier };
+  useLayoutEffect(() => {
+    accountRef.current = account;
+    studyRef.current = studyState;
+    applyRef.current = onApply;
+    contextRef.current = { guestLimit, userTier };
+  });
   const generation = useRef(0);
   const started = useRef(false);
   const alive = useRef(true);
@@ -121,20 +135,6 @@ export default function StudyTemplatesHost({
     loadAccount(true);
   }, [loadAccount]);
 
-  /** The template a menu id names, from the list this host holds (account) or storage (device). */
-  const resolveBody = (ref: TemplateRef): StudyTemplateBody | null => {
-    if (ref.source === "account") {
-      const list = accountRef.current;
-      const found = list.status === "ok" ? list.templates.find((entry) => entry.id === ref.id) : undefined;
-      return found ? studyTemplateBodyOf(found) : null;
-    }
-    const device = readDeviceTemplates();
-    const found = device.status === "ok" ? device.templates.find((entry) => entry.id === ref.id) : undefined;
-    return found ? studyTemplateBodyOf(found) : null;
-  };
-  const resolveRef = useRef(resolveBody);
-  resolveRef.current = resolveBody;
-
   useEffect(() => {
     const onApplyRequest = (event: Event) => {
       const detail = (event as CustomEvent<{ id?: unknown; mode?: unknown }>).detail;
@@ -143,7 +143,7 @@ export default function StudyTemplatesHost({
       const ref: TemplateRef = raw.startsWith(ACCOUNT_MENU_PREFIX)
         ? { source: "account", id: raw.slice(ACCOUNT_MENU_PREFIX.length) }
         : { source: "device", id: raw };
-      const body = resolveRef.current(ref);
+      const body = resolveTemplateBody(ref, accountRef.current);
       if (!body) {
         showToast(t("stplToastNotFound"));
         return;
