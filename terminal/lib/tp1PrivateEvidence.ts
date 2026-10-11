@@ -106,7 +106,12 @@ const SHA = /^[a-f0-9]{64}$/;
 const SYMBOL = /^[A-Z][A-Z0-9.-]{0,19}$/;
 const SESSION = /^\d{4}-\d{2}-\d{2}:RTH$/;
 const CLOCK = /^(0|[1-9]\d{0,18})$/;
-const DECIMAL = /^-?(?:0|[1-9]\d{0,59})(?:\.\d{1,30})?$/;
+// Align exact private Decimal representation with Macro source limits:
+// native/quote values <= 128 fixed-point characters; R0 derived midpoint
+// response and normalized pressure may use 2*(2*128+16) = 544 chars.
+const DECIMAL = /^-?(?:0|[1-9]\d*)(?:\.\d+)?$/;
+const MAX_SOURCE_DECIMAL_CHARS = 128;
+const MAX_R0_DERIVED_DECIMAL_CHARS = 544;
 const MINUTE_NS = 60_000_000_000n;
 const MAX_NS = 9_223_372_036_854_775_807n; // signed native 64-bit
 const MAX_LENGTH = { minute: 32 * 1024, research: 24 * 1024 };
@@ -141,8 +146,12 @@ function assertCount(value: unknown, field: string): number {
     throw new PrivateEvidenceRefusal(field + ":unsafe_count");
   return value;
 }
-function assertDecimal(value: unknown, field: string, signed = false): string {
-  if (typeof value !== "string" || !DECIMAL.test(value) || (!signed && value.startsWith("-")))
+function assertDecimal(
+  value: unknown, field: string, signed = false,
+  maxWidth = MAX_SOURCE_DECIMAL_CHARS,
+): string {
+  if (typeof value !== "string" || value.length > maxWidth ||
+      !DECIMAL.test(value) || (!signed && value.startsWith("-")))
     throw new PrivateEvidenceRefusal(field + ":bad_decimal");
   return value;
 }
@@ -374,12 +383,13 @@ export function decodePrivateEvidence(args: {
        !atMostOne(assertDecimal(obj.classified_notional_coverage,"classified_notional_coverage")))
       throw new PrivateEvidenceRefusal("research:coverage");
     if(obj.pressure_balance!==null){
-      pressureBalance=assertDecimal(obj.pressure_balance,"pressure_balance",true);
+      pressureBalance=assertDecimal(
+        obj.pressure_balance,"pressure_balance",true,MAX_R0_DERIVED_DECIMAL_CHARS);
       const value=fixed(pressureBalance),bound=10n**BigInt(value.scale);
       if(value.n< -bound || value.n>bound)throw new PrivateEvidenceRefusal("research:pressure_range");
     }
     completedWindowResponseBps=assertDecimal(obj.completed_window_midpoint_response_bps,
-      "completed_window_midpoint_response_bps",true);
+      "completed_window_midpoint_response_bps",true,MAX_R0_DERIVED_DECIMAL_CHARS);
     quoteRecovery={bid:parseRecovery(obj.bid_size_recovery_proxy,"bid"),
                    ask:parseRecovery(obj.ask_size_recovery_proxy,"ask")};
   }
