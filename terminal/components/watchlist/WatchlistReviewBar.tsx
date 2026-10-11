@@ -5,24 +5,32 @@ import { useLang } from "@/lib/i18n";
 import { isSkipped, REVIEW_NOTE_MAX } from "@/lib/watchlistReview";
 import type { ReviewNotice, WatchlistReview } from "@/lib/useWatchlistReview";
 import { useWatchlistReviewT } from "@/lib/watchlistReviewLex";
+import { useIsPhone } from "@/lib/useMediaQuery";
 import styles from "./WatchlistReviewBar.module.css";
 
 type ManifestName = { name?: string; zh?: string };
 
+/** Where a mount sits: `rail-top` is first in the rail, `phone-foot` follows the oracle row. */
+export type WatchlistReviewSlot = "rail-top" | "phone-foot";
+
 /**
- * The review's one surface, mounted once at the top of the rail so it is reachable at desktop,
- * tablet and phone widths. At ≤860px the watchlist board (and its list menu, the desktop entry
- * point) is hidden, so the bar also carries a compact idle "Review <list>" control there.
+ * The review's surface, reachable at desktop, tablet and phone widths. The shell mounts it twice
+ * from one review state. `rail-top` carries the active review and the unsaved-end alert at every
+ * width. At ≤860px the watchlist board (and its list menu, the desktop entry point) is hidden, so
+ * the idle state adds a compact "Review <list>" control: at the top of the rail on a tablet, and in
+ * `phone-foot` on a phone, where anything above the oracle row pushes it under the fold (R2.3).
  */
-export default function WatchlistReviewBar({ review, activeSymbol, activeList, activeListCount, manifestSymbols }: {
+export default function WatchlistReviewBar({ review, activeSymbol, activeList, activeListCount, manifestSymbols, slot = "rail-top" }: {
   review: WatchlistReview;
   activeSymbol: string;
   activeList: string;
   activeListCount: number;
   manifestSymbols: Readonly<Record<string, unknown>> | null;
+  slot?: WatchlistReviewSlot;
 }) {
   const t = useWatchlistReviewT();
   const { lang } = useLang();
+  const isPhone = useIsPhone();
   const [deferFor, setDeferFor] = useState<string | null>(null);
   const [deferNote, setDeferNote] = useState("");
   if (!review.loaded) return null;
@@ -44,6 +52,8 @@ export default function WatchlistReviewBar({ review, activeSymbol, activeList, a
   const { itinerary } = review;
   if (!itinerary) {
     if (review.save === "unsaved") {
+      // The alert replaces the bar the user just ended, so it stays where the bar was.
+      if (slot !== "rail-top") return null;
       return (
         <div className={`${styles.bar} ${styles.alert}`} role="status" data-testid="wl-review-unsaved">
           <p className={styles.warnText}>{t("wlrEndUnsaved")}</p>
@@ -54,8 +64,16 @@ export default function WatchlistReviewBar({ review, activeSymbol, activeList, a
         </div>
       );
     }
+    // Exactly one mount shows the idle state: the foot on a phone, the top of the rail elsewhere.
+    if ((slot === "phone-foot") !== isPhone) return null;
     const notice = noticeText(review.notice);
-    return (
+    if (!notice && !review.unreadable && activeListCount <= 0) return null;
+    const startHere = () => {
+      review.start(activeList);
+      // On a phone the active bar renders at the top of the rail, above the control just tapped.
+      if (slot === "phone-foot") window.requestAnimationFrame(() => document.querySelector('[data-testid="wl-review"]')?.scrollIntoView({ block: "start" }));
+    };
+    const idle = (
       <>
         {notice && <p className={styles.loneNotice} role="status" data-testid="wl-review-notice">{notice}</p>}
         {review.unreadable && (
@@ -65,7 +83,7 @@ export default function WatchlistReviewBar({ review, activeSymbol, activeList, a
           </div>
         )}
         {activeListCount > 0 && (
-          <button type="button" className={styles.idle} data-testid="wl-review-idle-start" onClick={() => review.start(activeList)}>
+          <button type="button" className={styles.idle} data-testid="wl-review-idle-start" onClick={startHere}>
             <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h11M4 12h11M4 18h7M17 15l3 3-3 3M14 18h6" /></svg>
             <span className={styles.idleText}>
               <b>{fill("wlrStartList", { list: activeList })}</b>
@@ -75,7 +93,9 @@ export default function WatchlistReviewBar({ review, activeSymbol, activeList, a
         )}
       </>
     );
+    return slot === "phone-foot" ? <div className={styles.foot}>{idle}</div> : idle;
   }
+  if (slot !== "rail-top") return null;
 
   const current = review.current;
   const availability = review.currentAvailability;

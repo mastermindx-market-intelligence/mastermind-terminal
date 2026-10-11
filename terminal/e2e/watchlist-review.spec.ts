@@ -169,6 +169,68 @@ for (const lang of ["en", "zh"] as const) {
   });
 }
 
+// The phone fold (R2.3): at rest the oracle row is the first thing under the chart. The idle
+// review control must not sit between them on a phone, so there it follows the oracle row. The
+// tablet keeps it at the top of the rail, above the symbol board; desktop starts from the list menu.
+for (const lang of ["en", "zh"] as const) {
+  test(`${lang}: the idle review control never sits between the chart and the oracle row on a phone`, async ({ page, baseURL }, testInfo) => {
+    test.setTimeout(120_000);
+    await boot(page, testInfo, baseURL, lang);
+    const idle = page.getByTestId("wl-review-idle-start");
+    await expect(idle).toHaveCount(1, { timeout: 30_000 });
+    await expect(idle).toContainText(LIST);
+    await expect(page.locator(".detail-scroll .sig-btn")).toBeVisible({ timeout: 45_000 });
+    const width = page.viewportSize()!.width;
+    if (width > 860) {
+      await expect(idle).toBeHidden();
+      return;
+    }
+
+    const layout = await page.evaluate(() => {
+      const oracle = document.querySelector(".detail-scroll .sig-btn")!;
+      const board = document.querySelector(".detail-board")!;
+      const pageY = (el: Element) => { const box = el.getBoundingClientRect(); return { top: box.top + window.scrollY, bottom: box.bottom + window.scrollY }; };
+      const shown = [...document.querySelectorAll<HTMLElement>('[data-testid^="wl-review"]')]
+        .filter((el) => el.checkVisibility({ visibilityProperty: true }))
+        .map((el) => ({
+          id: el.dataset.testid ?? "",
+          ...pageY(el),
+          afterOracle: Boolean(oracle.compareDocumentPosition(el) & Node.DOCUMENT_POSITION_FOLLOWING),
+        }));
+      return { oracle: pageY(oracle), boardTop: pageY(board).top, shown };
+    });
+    expect(layout.shown.map((el) => el.id)).toContain("wl-review-idle-start");
+    if (width <= 640) {
+      // Phone: every visible review element comes after the oracle row, in the DOM and on screen.
+      for (const el of layout.shown) {
+        expect(el.afterOracle, `${el.id} follows the oracle row`).toBe(true);
+        expect(el.top, `${el.id} top`).toBeGreaterThanOrEqual(layout.oracle.bottom - 1);
+      }
+    } else {
+      // Tablet: unchanged, at the top of the rail above the symbol board.
+      for (const el of layout.shown) {
+        expect(el.afterOracle, `${el.id} precedes the oracle row`).toBe(false);
+        expect(el.bottom, `${el.id} bottom`).toBeLessThanOrEqual(layout.boardTop + 1);
+      }
+    }
+
+    await page.mouse.move(0, 0);
+    await page.screenshot({ path: testInfo.outputPath(`rest-${lang}.png`), animations: "disabled" });
+    await idle.scrollIntoViewIfNeeded();
+    const clipTop = Math.max(0, Math.min(layout.oracle.top, ...layout.shown.map((el) => el.top)) - 8);
+    const clipBottom = Math.max(layout.oracle.bottom, ...layout.shown.map((el) => el.bottom)) + 8;
+    await page.screenshot({ path: testInfo.outputPath(`idle-${lang}.png`), fullPage: true, animations: "disabled", clip: { x: 0, y: clipTop, width, height: clipBottom - clipTop } });
+
+    // Starting from the control puts the review on screen; the active bar sits at the top of the rail.
+    await idle.click();
+    const region = page.getByRole("region", { name: COPY[lang].region });
+    await expect(region.getByTestId("wl-review-current")).toHaveText("NVDA");
+    await expect(region).toBeInViewport();
+    await expect(page.getByTestId("wl-review-idle-start")).toHaveCount(0);
+    expect(await region.evaluate((el) => Boolean(el.compareDocumentPosition(document.querySelector(".detail-board")!) & Node.DOCUMENT_POSITION_FOLLOWING))).toBe(true);
+  });
+}
+
 test("en: Next updates linked panels through the context owner and leaves a pinned panel pinned", async ({ page, baseURL }, testInfo) => {
   test.setTimeout(120_000);
   await boot(page, testInfo, baseURL, "en", "NVDA");

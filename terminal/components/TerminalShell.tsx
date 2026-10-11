@@ -6109,6 +6109,8 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
                 <TrendRow bars={bars} />
                 <WashoutTurnRow wt={intel?.tape?.washout_turn} zh={lang === "zh"} />
               </div>
+              {/* E16 on a phone: the idle review control follows the oracle row so the row keeps the fold (R2.3). */}
+              {!dossierMode && <WatchlistReviewBar slot="phone-foot" review={wlReview} activeSymbol={active} activeList={activeList} activeListCount={lists[activeList]?.length ?? 0} manifestSymbols={man?.symbols ?? null} />}
               {/* Seasonality is injected via beforeIv so it renders BETWEEN the Analyst gauge and Implied
                   Volatility (order: analysis → Seasonality → IV) rather than after the whole card. */}
               <StockAnalysis intel={intel} row={m} fund={fund} opts={opts} bars={bars} glance={parseGlanceState(railGex, active)} onOpenPane={(p) => setPaneOpen(p)} onOpenSignals={() => setSignalsOpen(true)}

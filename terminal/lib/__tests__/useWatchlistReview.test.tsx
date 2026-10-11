@@ -11,6 +11,7 @@ import { createRoot, type Root } from "react-dom/client";
 import WatchlistReviewBar from "@/components/watchlist/WatchlistReviewBar";
 import { useWatchlistReview, type WatchlistReview } from "@/lib/useWatchlistReview";
 import { WL_REVIEW_KEY } from "@/lib/watchlistReview";
+import { PHONE_QUERY } from "@/lib/useMediaQuery";
 
 (globalThis as unknown as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
 
@@ -69,9 +70,18 @@ class CountingStorage {
 let store: CountingStorage;
 const writes = () => store.writes;
 
+// jsdom has no matchMedia; the bar asks the phone query to pick its slot. Default: not a phone.
+let phone = false;
+const matchMedia = (query: string) => ({
+  matches: query === PHONE_QUERY ? phone : false, media: query, onchange: null,
+  addEventListener() {}, removeEventListener() {}, addListener() {}, removeListener() {}, dispatchEvent: () => false,
+});
+
 beforeEach(() => {
   store = new CountingStorage();
   Object.defineProperty(globalThis, "localStorage", { configurable: true, value: store });
+  phone = false;
+  Object.defineProperty(window, "matchMedia", { configurable: true, value: matchMedia });
   navigate.mockReset();
   host = document.createElement("div");
   document.body.appendChild(host);
@@ -325,5 +335,83 @@ describe("useWatchlistReview: unreadable, other tabs, rename (AC-E16-05)", () =>
     const before = writes();
     act(() => latest.renameList("Other", "Else"));
     expect(writes()).toBe(before);
+  });
+});
+
+describe("WatchlistReviewBar slots: the phone fold (R2.3)", () => {
+  // The shell mounts the bar twice: `rail-top` first in the rail, `phone-foot` after the oracle row.
+  function Slots({ lists, owner = "guest" }: { lists: Rows; owner?: string }) {
+    const review = useWatchlistReview({ owner, lists, listMeta: {}, listsReady: true, manifestSymbols: MANIFEST, navigate });
+    latest = review;
+    const props = { review, activeSymbol: "AAPL", activeList: "Tech", activeListCount: lists.Tech?.length ?? 0, manifestSymbols: MANIFEST };
+    return (
+      <>
+        <div data-slot="rail-top"><WatchlistReviewBar {...props} /></div>
+        <div data-slot="phone-foot"><WatchlistReviewBar slot="phone-foot" {...props} /></div>
+      </>
+    );
+  }
+  const count = (slot: string, testId: string) => host.querySelectorAll(`[data-slot="${slot}"] [data-testid="${testId}"]`).length;
+  const lists = { Tech: rows("NVDA", "TSLA") };
+
+  it("puts the idle state after the oracle row on a phone only, and keeps the active review at the top", () => {
+    for (const isPhone of [false, true]) {
+      phone = isPhone;
+      act(() => { root.render(<Slots key={String(isPhone)} lists={lists} />); });
+      // Exactly one idle control at any width: at the top of the rail off a phone, at the foot on one.
+      expect(count("rail-top", "wl-review-idle-start")).toBe(isPhone ? 0 : 1);
+      expect(count("phone-foot", "wl-review-idle-start")).toBe(isPhone ? 1 : 0);
+      act(() => latest.start("Tech"));
+      expect(count("rail-top", "wl-review")).toBe(1);
+      expect(count("phone-foot", "wl-review")).toBe(0);
+      expect(host.querySelectorAll('[data-testid="wl-review-idle-start"]')).toHaveLength(0);
+      act(() => latest.end());
+      expect(host.querySelectorAll('[data-testid="wl-review"]')).toHaveLength(0);
+    }
+  });
+
+  it("shows an unreadable saved review beside the phone's idle control, not above the oracle row", () => {
+    store.data.set(WL_REVIEW_KEY, JSON.stringify({ guest: "not a review" }));
+    phone = true;
+    act(() => { root.render(<Slots lists={lists} />); });
+    expect(count("rail-top", "wl-review-unreadable")).toBe(0);
+    expect(count("phone-foot", "wl-review-unreadable")).toBe(1);
+  });
+
+  it("keeps the unsaved-end alert where the active bar was (the top) at every width", () => {
+    for (const isPhone of [false, true]) {
+      phone = isPhone;
+      store.fail = false;
+      act(() => { root.render(<Slots key={String(isPhone)} lists={lists} />); });
+      act(() => latest.start("Tech"));
+      store.fail = true;
+      act(() => latest.end());
+      expect(count("rail-top", "wl-review-unsaved")).toBe(1);
+      expect(count("phone-foot", "wl-review-unsaved")).toBe(0);
+      expect(host.querySelectorAll('[data-testid="wl-review-idle-start"]')).toHaveLength(0);
+      store.fail = false;
+      act(() => latest.dismissUnsaved());
+      store.data.clear();
+    }
+  });
+
+  it("starting from the phone's control brings the active bar on screen", () => {
+    phone = true;
+    const frames: FrameRequestCallback[] = [];
+    const raf = vi.spyOn(window, "requestAnimationFrame").mockImplementation((callback) => { frames.push(callback); return frames.length; });
+    const original = Element.prototype.scrollIntoView;
+    const scrolled = vi.fn();
+    Element.prototype.scrollIntoView = scrolled;
+    try {
+      act(() => { root.render(<Slots lists={lists} />); });
+      act(() => (host.querySelector('[data-slot="phone-foot"] [data-testid="wl-review-idle-start"]') as HTMLButtonElement).click());
+      expect(navigate).toHaveBeenLastCalledWith("NVDA");
+      act(() => { frames.splice(0).forEach((callback) => callback(0)); });
+      expect(scrolled).toHaveBeenCalledTimes(1);
+      expect(scrolled.mock.contexts[0]).toBe(host.querySelector('[data-slot="rail-top"] [data-testid="wl-review"]'));
+    } finally {
+      Element.prototype.scrollIntoView = original;
+      raf.mockRestore();
+    }
   });
 });
