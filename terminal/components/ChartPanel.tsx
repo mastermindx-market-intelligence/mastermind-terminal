@@ -77,6 +77,7 @@ import {
 } from "@/lib/markerTooltip";
 import { paintCandleData } from "@/lib/indicator-canvas/candlePaint";
 import { paintSnapshotTables } from "@/lib/chartSnapshotTables";
+import LargeTradesOverlay, { type LargeTradesOverlayHandle } from "@/components/LargeTradesOverlay";
 import { SUITE_DEFS, getSuiteDef, isSuiteKey as isSuiteKeyReg, paneSuiteKeys } from "@/lib/suites/registry";
 import { ensureSuiteRuntime, peekSuiteRuntime, type SuiteRuntimeProfile } from "@/lib/suites/compute";
 import {
@@ -96,7 +97,7 @@ import { dailyMultipleOf, groupSessionBars, parseSessionAnchor, resolveBarAnchor
 import { ichimoku, supertrend, avwap as computeAvwap, rollingVwap, weekAnchoredVwap, vprofile, volbox, rsiStack, accumPct, trendRibbon, buyShare as mfBuyShare } from "@/lib/indicatorMath";
 import ChartOverlays, { type PaneInfo, type LegendEntry } from "@/components/ChartOverlays";
 import DayStatsStrip from "@/components/DayStatsStrip";
-import { tPlain, useT } from "@/lib/i18n";
+import { tPlain, useLang, useT } from "@/lib/i18n";
 import { verdictLabel, type PlainLang } from "@/lib/plainLabels";
 import { listTemplates } from "@/lib/chartTemplates";
 import {
@@ -605,9 +606,12 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
     userTier?: SuiteTier;
   }) {
   const t = useT();
+  const { lang } = useLang();
+  const chartLanguageRef = useRef(lang); chartLanguageRef.current = lang;
   const ref = useRef<HTMLDivElement>(null);
   const statusRef = useRef<HTMLSpanElement>(null);
   const visualPanelRef = useRef<VisualIntelligenceHandle | null>(null);
+  const largeTradesRef = useRef<LargeTradesOverlayHandle | null>(null);
   const visualSeriesRef = useRef<VisualSeries | null>(null);
   const visualSelectedTimeRef = useRef<string | null>(null);
   // Accepted data identity, not merely the currently REQUESTED React symbol/timeframe.
@@ -1297,7 +1301,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
   // and re-read on the Up/Down flip (Effect 5); the literals cover only the pre-mount window.
   const dirUp = () => tokensRef.current.up || "#26c281";
   const dirDown = () => tokensRef.current.down || "#f0566b";
-  const labelOf = (k: string) => (isIndKey(k) ? IND_DEFS[k].label : k);
+  const labelOf = (k: string) => (isIndKey(k) ? (chartLanguageRef.current === "zh" && IND_DEFS[k].labelZh ? IND_DEFS[k].labelZh! : IND_DEFS[k].label) : k);
 
   // ── indicator builders (param-driven; params flow from the Settings dialog via indParams) ──
   // Each returns the list of ISeriesApi it created, tracked in indSeriesRef under its indKey.
@@ -2252,6 +2256,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
       }
       overlayEntries.push({ key: k, label: labelOf(k), kind: "overlay", isPine: false });
     }
+    if (inds.has("largeTrades")) overlayEntries.push({ key: "largeTrades", label: labelOf("largeTrades"), kind: "overlay", isPine: false, noSource: true });
     // Gaps & Demand: signal-layer overlay (no plotted series, like the oracle) — drawn in renderSignals.
     // Registry-backed, so it keeps its Settings/Source/eye/remove menu.
     if (inds.has("gaps")) overlayEntries.push({ key: "gaps", label: labelOf("gaps"), kind: "overlay", isPine: false });
@@ -2368,6 +2373,13 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
     const subPaneCount = metas.filter((m) => !m.isPrice).length;
     if (subPaneCount !== lastPaneCountRef.current) { lastPaneCountRef.current = subPaneCount; onPaneCountRef.current?.(subPaneCount); }
   };
+
+  // The legend registry is imperative; repaint this feature's bilingual title when
+  // the canonical language changes without rebuilding the chart or fetching data.
+  useEffect(() => {
+    if (indicatorsRef.current.has("largeTrades")) rebuildPaneMeta();
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- imperative reader, language is the trigger
+  }, [lang]);
 
   // ── pane-control operations (read chart refs; safe to recreate every render) ──
   const keyOfPaneIndex = (pi: number) => { const m = panesMeta.current.find((x) => { try { return x.pane.paneIndex() === pi; } catch { return false; } }); return m?.key ?? null; };
@@ -2987,6 +2999,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
    * symbol-guarded consumer (splice, options levels, drawings) that this pane is unpainted.
    */
   const clearChartData = () => {
+    largeTradesRef.current?.clear();
     try { episodeMarkersRef.current?.detach(); } catch {}
     episodeMarkersRef.current = null;
     barsRef.current = []; fullBarsRef.current = []; fullBarsTfRef.current = ""; dailyBarsRef.current = []; closesRef.current = [];
@@ -7050,6 +7063,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
       }
       positionBar();
       renderAllPriceTags();  // keep persistent and foreground scale labels in step with data/pan/style renders
+      largeTradesRef.current?.reposition();
     };
     renderRef.current = renderDraw;
     clearDrawingSelectionRef.current = () => {
@@ -8520,6 +8534,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
       ttmsqMarkersRef.current = null; macdMarkersRef.current = null;
       try { episodeMarkersRef.current?.detach(); } catch {}
       episodeMarkersRef.current = null;
+      largeTradesRef.current?.clear();
       priceSeriesRef.current = null; priceFamilyRef.current = null;
       futureAxisRef.current = null;   // the engine disposes every series with the chart
       watermarkPluginRef.current = null;   // plugin is attached to a pane; engine.destroy() tears it down
@@ -8719,6 +8734,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
         applyFutureAxis();   // future dates on the time axis follow the loaded bars
         cpMark(`chart-painted[${symbol}@${effectiveTimeframe}:intraday]`);
         chartDataSymRef.current = symbol;
+        largeTradesRef.current?.sourceChanged();
         clearAllIndicators();
         buildAllIndicators(onChart, closes);
         buildIndDataMap(onChart, closes);
@@ -8892,6 +8908,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
       applyFutureAxis();   // future dates on the time axis follow the loaded bars
       cpMark(`chart-painted[${symbol}@${effectiveTimeframe}:daily]`);   // first candle on canvas
       chartDataSymRef.current = symbol;
+      largeTradesRef.current?.sourceChanged();
       // ── PERF-FIX (a): indicators — on same-symbol TF/chartType switch, update series data in-place
       //    (setData only, no removeSeries/addSeries lifecycle). On symbol change, do a full rebuild. ──
       // updateAllIndicators() only re-setData's the "inplace-series" keys; every other DT-suite
@@ -9469,6 +9486,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
     // exiting replay returns to the live series → re-apply the splice (self-guards under replay/EOD/intraday)
     applyLiveSplice();
     applyExtendedPriceLine();
+    largeTradesRef.current?.refresh();
     // eslint-disable-next-line
   }, [replayKey]);
 
@@ -9909,6 +9927,15 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
       </div>
       <div ref={ref} style={{ position: "absolute", inset: 0 }} />
       <ChartTables tables={suiteTables} />
+      {indicators.has("largeTrades") && !hidden.has("largeTrades") && tfVisible("largeTrades") && (
+        <LargeTradesOverlay ref={largeTradesRef} symbol={symbol} timeframe={effectiveTimeframe}
+          params={indParams.largeTrades || EMPTY_OBJ} replayCutoff={replayCutoff} interactive={!tool}
+          onSettings={onOpenSettings ? () => onOpenSettings("largeTrades") : undefined}
+          getContext={() => ({ chart: chartRef.current, series: priceSeriesRef.current,
+            bars: barsRef.current, sourceSymbol: chartDataSymRef.current,
+            timeframe: fullBarsTfRef.current, pricePane: paneLayout.find((pane) => pane.isPrice) ?? null })}
+        />
+      )}
       <VisualIntelligencePanel ref={visualPanelRef} symbol={symbol} timeframe={timeframe}
         visible={isActive && !!onVisualSettings && !paneLayout.some((pane) => pane.maximized && !pane.isPrice)}
         replay={replayCutoff !== null} settings={visualSettings(chartSettings)}

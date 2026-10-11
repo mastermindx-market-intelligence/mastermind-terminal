@@ -10,7 +10,8 @@ import { IND_DEFS, withDefaults, isIndKey, defaultVis, VIS_UNITS, type IndField,
 import { isSuiteKey, getSuiteDef, suiteDefaults } from "@/lib/suites/registry";
 import { getSuiteModuleCatalogEntry, type SuiteModuleCatalogEntry } from "@/lib/suites/catalog";
 import type { SuiteField, SuiteModuleMeta, SuiteTier } from "@/lib/indicator-canvas/types";
-import { useT } from "@/lib/i18n";
+import { useLang, useT } from "@/lib/i18n";
+import { largeTradesText } from "@/lib/largeTrades/labels";
 
 const SWATCHES = ["#4d82ff", "#26c281", "#f0566b", "#e8b339", "#e8a33d", "#9d86ff", "#19c2c2", "#d6dae3", "#868d9c", "#ff8a3d"];
 const hexOf = (c: string) => (/^#([0-9a-f]{3}|[0-9a-f]{6})$/i.test(c) ? c : "#888888");
@@ -29,13 +30,15 @@ function returnFocus(el: HTMLElement | null, frames = 3) {
   });
 }
 
-function NumberField({ value, min, max, step = 1, onChange }: { value: number; min?: number; max?: number; step?: number; onChange: (v: number) => void }) {
+function NumberField({ value, min, max, step = 1, onChange, label }: { value: number; min?: number; max?: number; step?: number; onChange: (v: number) => void; label?: string }) {
+  const { lang } = useLang();
+  const t = (key: string) => largeTradesText(lang, key);
   const clamp = (v: number) => Math.max(min ?? -Infinity, Math.min(max ?? Infinity, +v.toFixed(4)));
   return (
     <span className="is-stepper">
-      <button onClick={() => onChange(clamp(value - step))} aria-label="decrease">−</button>
-      <input type="number" value={value} step={step} min={min} max={max} onChange={(e) => { const v = parseFloat(e.target.value); if (!isNaN(v)) onChange(clamp(v)); }} />
-      <button onClick={() => onChange(clamp(value + step))} aria-label="increase">+</button>
+      <button onClick={() => onChange(clamp(value - step))} aria-label={label ? t("ltDecrease") + " " + label : "decrease"}>−</button>
+      <input type="number" aria-label={label} value={value} step={step} min={min} max={max} onChange={(e) => { const v = parseFloat(e.target.value); if (!isNaN(v)) onChange(clamp(v)); }} />
+      <button onClick={() => onChange(clamp(value + step))} aria-label={label ? t("ltIncrease") + " " + label : "increase"}>+</button>
     </span>
   );
 }
@@ -53,12 +56,14 @@ function ColorField({ value, onChange }: { value: string; onChange: (v: string) 
 }
 
 function Row({ f, val, onChange }: { f: IndField; val: any; onChange: (v: any) => void }) {
+  const { lang } = useLang();
+  const label = lang === "zh" && f.labelZh ? f.labelZh : f.label;
   return (
     <div className="is-row">
-      <span className="is-label">{f.label}</span>
-      {f.type === "number" && <NumberField value={typeof val === "number" ? val : 0} min={f.min} max={f.max} step={f.step} onChange={onChange} />}
+      <span className="is-label">{label}</span>
+      {f.type === "number" && <NumberField value={typeof val === "number" ? val : 0} min={f.min} max={f.max} step={f.step} onChange={onChange} label={label} />}
       {f.type === "color" && <ColorField value={String(val ?? "#888888")} onChange={onChange} />}
-      {f.type === "bool" && <span className={`is-switch${val ? " on" : ""}`} onClick={() => onChange(!val)} role="switch" aria-checked={!!val} tabIndex={0}
+      {f.type === "bool" && <span className={`is-switch${val ? " on" : ""}`} onClick={() => onChange(!val)} role="switch" aria-label={label} aria-checked={!!val} tabIndex={0}
         onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onChange(!val); } }} />}
     </div>
   );
@@ -242,6 +247,7 @@ export default function IndicatorSettings({ indKey, moduleTarget, params, onChan
     userTier?: Tier;   // fail closed: unknown/absent entitlement = free
   }) {
   const t = useT();
+  const { lang } = useLang();
   const moduleEntry = resolveIndicatorSettingsModule(indKey, moduleTarget);
   const suiteKey = moduleEntry?.suiteKey ?? (isSuiteKey(indKey) ? indKey : null);
   const suite = suiteKey ? getSuiteDef(suiteKey) : null;
@@ -282,7 +288,7 @@ export default function IndicatorSettings({ indKey, moduleTarget, params, onChan
   const def = !moduleEntry && isIndKey(indKey) ? IND_DEFS[indKey] : null;
   const title = moduleEntry ? moduleEntry.label
     : suite ? (suite.tkey ? t(suite.tkey, suite.label) : suite.label)
-    : isPine ? (pine?.name || "Custom script") : def?.label || indKey;
+    : isPine ? (pine?.name || "Custom script") : def ? (lang === "zh" && def.labelZh ? def.labelZh : def.label) : indKey;
 
   const rank = TIER_RANK[userTier] ?? 0;
   const isLocked = (m: SuiteModuleMeta) => rank < (TIER_RANK[m.tier] ?? 0);
@@ -296,13 +302,15 @@ export default function IndicatorSettings({ indKey, moduleTarget, params, onChan
   const inputs = def ? def.fields.filter((f) => f.group === "inputs") : [];
   const styles = def ? def.fields.filter((f) => f.group === "style") : [];
   const P = def ? withDefaults(indKey, params) : params;
+  const changeBuiltIn = (patch: Record<string, any>) => onChange(indKey === "largeTrades"
+    ? withDefaults(indKey, { ...P, ...patch }) : patch);
   const vis: Record<VisUnit, VisRange> = (P._vis as any) || defaultVis();
-  const setVis = (unit: VisUnit, patch: Partial<VisRange>) => onChange({ _vis: { ...vis, [unit]: { ...vis[unit], ...patch } } });
+  const setVis = (unit: VisUnit, patch: Partial<VisRange>) => changeBuiltIn({ _vis: { ...vis, [unit]: { ...vis[unit], ...patch } } });
 
   const cancel = () => {
     if (isPine) { /* revert pine inputs to the snapshot */ const cur = pine?.params || {}; const back: Record<string, any> = {}; for (const k of Object.keys(cur)) back[k] = (pineSnap.current as any)?.[k]; onPineChange?.(back); }
     else if (directModule) onChange(directSnap.current ?? {});
-    else onChange(snap.current);   // snapshot has all fields → merge restores the open-time state
+    else onChange(indKey === "largeTrades" ? withDefaults(indKey, snap.current) : snap.current);   // restore effective open-time criteria
     onClose();
   };
   const resetSettings = () => {
@@ -384,13 +392,13 @@ export default function IndicatorSettings({ indKey, moduleTarget, params, onChan
                 </div>
               ))
           ) : def ? (
-            inputs.length ? inputs.map((f) => <Row key={f.key} f={f} val={P[f.key]} onChange={(v) => onChange({ [f.key]: v })} />) : <div className="is-empty">{t("isEmptyNoInputs", "No inputs for this indicator.")}</div>
+            inputs.length ? inputs.map((f) => <Row key={f.key} f={f} val={P[f.key]} onChange={(v) => changeBuiltIn({ [f.key]: v })} />) : <div className="is-empty">{t("isEmptyNoInputs", "No inputs for this indicator.")}</div>
           ) : <div className="is-empty">{t("isEmptyNoSettings", "No settings for this item.")}</div>)}
 
           {activeTab === "style" && (suite
             ? <div className="is-empty">{t("isSuiteStyleHint", "Suite styling lives with each module's inputs.")}</div>
             : def && styles.length
-              ? styles.map((f) => <Row key={f.key} f={f} val={P[f.key]} onChange={(v) => onChange({ [f.key]: v })} />)
+              ? styles.map((f) => <Row key={f.key} f={f} val={P[f.key]} onChange={(v) => changeBuiltIn({ [f.key]: v })} />)
               : <div className="is-empty">{t("isEmptyNoStyle", "No style options.")}</div>)}
 
           {activeTab === "visibility" && (

@@ -11,6 +11,7 @@ import {
 import Link from "next/link";
 import { ACS_UPGRADE_URL } from "@/components/settings/types";
 import { useLang, useT } from "@/lib/i18n";
+import { LARGE_TRADES_LABELS } from "@/lib/largeTrades/labels";
 import {
   normalizeIndicatorSearch,
   rankIndicatorSearch,
@@ -34,7 +35,7 @@ import { SUITE_DEFS, SUITE_ORDER } from "@/lib/suites/registry";
 import { SUITE_TIER_LABEL } from "@/lib/indicator-canvas/types";
 import { classicCategoryLabel, planTierLabel } from "@/lib/plainLabels";
 
-type ClassicIndicator = { key: string; label: string; mm?: boolean; tkey?: string };
+type ClassicIndicator = { key: string; label: string; labelZh?: string; mm?: boolean; tkey?: string };
 
 const CATS: Record<string, ClassicIndicator[]> = {
   Mastermind: [
@@ -58,6 +59,7 @@ const CATS: Record<string, ClassicIndicator[]> = {
   "Price Action": [{ key: "gaps", label: "Gap Zones" }],
   Volume: [
     { key: "vol", label: "Volume" },
+    { key: "largeTrades", label: "Large trades", labelZh: LARGE_TRADES_LABELS.ltTitle[1] },
     { key: "vprofile", label: "Volume Profile", tkey: "indVprofile" },
   ],
   // Day Trade suite — spec §2 order: overlays then panes
@@ -259,7 +261,7 @@ export default function IndicatorsModal({
     }
 
     for (const { item, category } of classicEntries) {
-      const label = item.tkey ? t(item.tkey, item.label) : item.label;
+      const label = lang === "zh" && item.labelZh ? item.labelZh : item.tkey ? t(item.tkey, item.label) : item.label;
       documents.push({
         id: `classic:${item.key}`,
         primary: label,
@@ -430,7 +432,7 @@ export default function IndicatorsModal({
 
   const renderClassic = (item: ClassicIndicator, category: string) => {
     const on = active.has(item.key);
-    const label = item.tkey ? t(item.tkey, item.label) : item.label;
+    const label = lang === "zh" && item.labelZh ? item.labelZh : item.tkey ? t(item.tkey, item.label) : item.label;
     return (
       <button
         type="button"
