@@ -42,6 +42,7 @@ import TechLabPanel from "./TechLabPanel";
 import TranscriptDrawer from "./TranscriptDrawer";
 import TranscriptsPage from "./TranscriptsPage";
 import CompanyIntelligencePage from "./CompanyIntelligencePage";
+import FinComparePage from "./FinComparePage";
 import ResearchWorkspaceNav from "./ResearchWorkspaceNav";
 import { isTranscriptId } from "../../lib/transcripts";
 import type { TranscriptOpenTarget } from "../../lib/transcriptSearch";
@@ -69,6 +70,7 @@ const PAGE_LABELS: Record<FinPage, [string, string]> = {
   ownership: ["Ownership", "持仓"],
   insider: ["Insider", "内部交易"],
   lab: ["Lab", "实验室"],
+  compare: ["Compare", "对比"],
 };
 
 export interface MegaPaneProps {
@@ -309,6 +311,9 @@ export default function MegaPane({
           {page === "ownership" && <OwnershipPage sym={sym} />}
           {page === "insider" && <InsiderPage sym={sym} bars={bars} zh={zh} />}
           {page === "lab" && <TechLabPanel sym={sym} intel={intel} zh={zh} />}
+          {page === "compare" && (
+            <FinComparePage key={sym} sym={sym} fund={fund} fundLoading={fundLoading} onOpenTx={openTranscript} />
+          )}
         </div>
       </div>
 
