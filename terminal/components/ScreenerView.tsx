@@ -17,6 +17,15 @@ import { parseGlanceIndex, REGIME_COLORS, REGIME_RANK, type GexRegime, type Glan
 import { makeGexT } from "@/components/gexdesk/gexStrings";
 import { notClassified, verdictLabel } from "@/lib/plainLabels";
 import AssetLogo from "@/components/AssetLogo";
+// E01 technical screen: one bounded scan read (/data/scan/technical.json), classified per row by
+// lib/technicalScan — never inferred from per-symbol OHLC in the browser.
+import TechnicalScreenBar, { TechnicalCell, TECH_CELL_CLASS, TECH_ON_CLASS, TECH_TH_CLASS } from "@/components/screener/TechnicalScreenBar";
+import { useTechnicalScan } from "@/lib/useTechnicalScan";
+import { classifyTechnical, evaluateTechnicalScreen, technicalChartHandover } from "@/lib/technicalScan";
+import { passes } from "@/lib/screenerScan";
+import { TECH_DEFAULT_CONTROLS, techControlsActive, technicalCoverageSummary, technicalScreenOf, type TechControls } from "@/lib/technicalScreenControls";
+import { DAILY_FUNCTIONAL_TIMEFRAMES } from "@/lib/startTf";
+import { useTechnicalT } from "@/lib/technicalScanLex";
 
 /* ────────────────────────────────────────────────────────────────────────────
  * PHASE-2 DATA PLUMBING — deliberately NOT built in this component (D5-6).
@@ -33,7 +42,9 @@ import AssetLogo from "@/components/AssetLogo";
  *  2. Tech-rating / trend-state column + filter — techRating.ts and trend.ts
  *     take Bar[] per symbol; 9.5k OHLC fetches from the browser is infeasible.
  *     Needs a nightly scan artifact (compact rating in the manifest, or a
- *     screener_scan.json).
+ *     screener_scan.json). E01 ships the flagship-engine STATE half of this as
+ *     the nightly technical scan (ingest/gen_technical_scan.py → TechnicalScreenBar);
+ *     techRating/trend ratings are still not produced.
  *  3. Fundamental filters (P/E, dividend yield, margins, growth) — these live in
  *     per-symbol fund.json only; needs a merged scan file. fund.json units law:
  *     percents are 0..1 FRACTIONS.
@@ -402,6 +413,19 @@ export default function ScreenerView({ identity }: { identity: AccountIdentity }
     setReloadN((n) => n + 1);
   }, []);
 
+  // ── E01 technical screen ─────────────────────────────────────────────────
+  // Opt-in: the scan is read only once the user opens the technical screen. Its controls live
+  // OUTSIDE FilterState, so saved presets (#884) keep exactly the shape they had.
+  const tt = useTechnicalT();
+  const [techOpen, setTechOpen] = useState(false);
+  const [techControls, setTechControls] = useState<TechControls>(TECH_DEFAULT_CONTROLS);
+  const techScan = useTechnicalScan(techOpen);
+  const techSource = techScan.phase === "settled" && techScan.source.kind === "ready" ? techScan.source : null;
+  const techNow = techScan.phase === "settled" ? techScan.now : 0;
+  const techOnScreen = techOpen && techSource !== null;
+  const techScreen = useMemo(() => technicalScreenOf(techControls), [techControls]);
+  const techGate = techOnScreen && techControlsActive(techControls);
+
   // ── label helpers ──────────────────────────────────────────────────────
   const gicsLabel = useCallback((g: string) => (GICS_TKEY[g] ? t(GICS_TKEY[g]) : g), [t]);
   const assetLabel = useCallback((v: string) => {
@@ -438,7 +462,7 @@ export default function ScreenerView({ identity }: { identity: AccountIdentity }
   // ── filtered view (single pass) ────────────────────────────────────────
   // Aggregates are computed AFTER the predicates run, on the filtered array — the old
   // component accumulated them inside the predicate, so the counts never reacted to a filter.
-  const { view, nBuy, nSell, hiddenN, hiddenFrom } = useMemo(() => {
+  const { view, nBuy, nSell, hiddenN, hiddenFrom, techReq, techHidden } = useMemo(() => {
     const qRaw = search.trim();
     const q = qRaw.toLowerCase();
     const explicitMkt = f.market !== "all";
@@ -447,6 +471,10 @@ export default function ScreenerView({ identity }: { identity: AccountIdentity }
     const gateByPrefs = !explicitMkt && prefsReady && !showAllMarkets && prefs.enabled.length < ALL_MARKETS.length;
     let hidden = 0;
     const from = new Set<MarketId>();
+    // E01: the technical screen's REQUESTED universe is every row the manifest filters admit
+    // and the market gate shows; the coverage strip accounts for all of them (AC-E01-02).
+    const techReq: string[] = [];
+    let techHidden = 0;
 
     const base = rowsJoined.filter((r) => {
       if (!f.unpriced && r.last == null) return false;
@@ -477,6 +505,17 @@ export default function ScreenerView({ identity }: { identity: AccountIdentity }
       // zh names are searchable here now — they were unreachable in the old component
       if (q && !r.sym.toLowerCase().includes(q) && !r.name.toLowerCase().includes(q) && !(r.zh && r.zh.includes(qRaw))) return false;
 
+      if (techOnScreen) {
+        const visible = !gateByPrefs || isSymbolVisible(r.sym, r, prefs);
+        if (visible) techReq.push(r.sym);
+        if (techGate) {
+          const m = evaluateTechnicalScreen(techSource!, r.sym, techScreen, techNow).match;
+          // A name that was not evaluated is hidden only as "unknown" and counted, never
+          // dropped silently or shown as a negative signal.
+          if (!passes(m)) { if (visible && m === "unknown") techHidden++; return false; }
+        }
+      }
+
       // Market-visibility gate LAST, so the hidden count describes rows that would OTHERWISE
       // be results — the same semantics as SearchModal's hiddenByMarket notice.
       if (gateByPrefs && !isSymbolVisible(r.sym, r, prefs)) { hidden++; from.add(r.mktId); return false; }
@@ -496,8 +535,13 @@ export default function ScreenerView({ identity }: { identity: AccountIdentity }
       return (x > y ? 1 : x < y ? -1 : 0) * effSort.dir;
     });
 
-    return { view: sorted, nBuy: b, nSell: s, hiddenN: hidden, hiddenFrom: Array.from(from) };
-  }, [rowsJoined, f, search, effSort, prefs, prefsReady, showAllMarkets]);
+    return { view: sorted, nBuy: b, nSell: s, hiddenN: hidden, hiddenFrom: Array.from(from), techReq, techHidden };
+  }, [rowsJoined, f, search, effSort, prefs, prefsReady, showAllMarkets, techOnScreen, techGate, techSource, techScreen, techNow]);
+
+  const techSummary = useMemo(
+    () => (techSource ? technicalCoverageSummary(techReq, techSource, techControls.tf, techNow) : null),
+    [techReq, techSource, techControls.tf, techNow],
+  );
 
   // ── virtualization window ──────────────────────────────────────────────
   const rowH = density === "k" ? ROW_H_COMPACT : ROW_H_COMFORT;
@@ -516,7 +560,11 @@ export default function ScreenerView({ identity }: { identity: AccountIdentity }
   }, []);
 
   const clearAll = useCallback(() => {
-    startTransition(() => { setActivePreset(null); setF(DEFAULT_FILTERS); });
+    startTransition(() => {
+      setActivePreset(null);
+      setF(DEFAULT_FILTERS);
+      setTechControls((c) => ({ ...TECH_DEFAULT_CONTROLS, tf: c.tf }));
+    });
   }, []);
 
   // Clicking a preset REPLACES the whole filter state; clicking the active one clears it.
@@ -597,6 +645,9 @@ export default function ScreenerView({ identity }: { identity: AccountIdentity }
       { k: "verdict", label: t("signalCol"), w: "66px" },
     ];
 
+  // Every full-width row spans the visible columns, including the technical one when shown.
+  const colN = cols.length + (techOnScreen ? 1 : 0);
+
   // "{n} results" with the numeral in a <b> so it can carry tabular-nums
   const resultLine = (() => {
     const tpl = t("scr2Results");
@@ -607,7 +658,7 @@ export default function ScreenerView({ identity }: { identity: AccountIdentity }
   })();
 
   return (
-    <main className={`main2 screener-main scr2 ${signalView ? "s-view" : "u-view"}${density === "k" ? " den-k" : ""}`}>
+    <main className={`main2 screener-main scr2 ${signalView ? "s-view" : "u-view"}${density === "k" ? " den-k" : ""}${techOnScreen ? ` ${TECH_ON_CLASS}` : ""}`}>
       <div className="scr2-bar">
         {/* ── scope row ── */}
         <div className="scr2-row">
@@ -779,6 +830,17 @@ export default function ScreenerView({ identity }: { identity: AccountIdentity }
             <button type="button" className={density === "k" ? "on" : ""} onClick={() => pickDensity("k")}>{t("scr2DenCompact")}</button>
           </div>
         </div>
+
+        {/* ── technical screen row (E01) ── */}
+        <TechnicalScreenBar
+          open={techOpen}
+          onToggle={() => setTechOpen((o) => !o)}
+          scan={techScan}
+          controls={techControls}
+          onControls={setTechControls}
+          summary={techSummary}
+          hiddenUnknown={techHidden}
+        />
       </div>
 
       {/* ── status row: counts computed over the FILTERED set, plus scope honesty ── */}
@@ -848,6 +910,7 @@ export default function ScreenerView({ identity }: { identity: AccountIdentity }
                   </th>
                 );
               })}
+              {techOnScreen && <th className={TECH_TH_CLASS} data-tech-col>{tt("tsColumn", { tf: techControls.tf })}</th>}
             </tr>
           </thead>
           <tbody>
@@ -859,13 +922,14 @@ export default function ScreenerView({ identity }: { identity: AccountIdentity }
                     <div className="fin-skel" style={{ height: skelH, width: c.w, marginLeft: j === 0 ? 0 : "auto" }} />
                   </td>
                 ))}
+                {techOnScreen && <td className={TECH_CELL_CLASS}><div className="fin-skel" style={{ height: skelH, width: "96px", marginLeft: "auto" }} /></td>}
               </tr>
             ))}
 
             {/* error — never the no-match copy; the why-line names WHICH failure */}
             {loaded && err && (
               <tr className="empty-row">
-                <td colSpan={cols.length}>
+                <td colSpan={colN}>
                   <div className="fin-empty fin-empty-lg" data-scr-fault={err}>
                     <EmptyIcon />
                     <div className="fin-empty-title">{t("scr2ErrTitle")}</div>
@@ -879,16 +943,18 @@ export default function ScreenerView({ identity }: { identity: AccountIdentity }
             {/* empty — the why line names WHICH reason */}
             {loaded && !err && view.length === 0 && (
               <tr className="empty-row">
-                <td colSpan={cols.length}>
+                <td colSpan={colN}>
                   <div className="fin-empty fin-empty-lg">
                     <EmptyIcon />
                     <div className="fin-empty-title">{t("scr2EmptyTitle")}</div>
                     <div className="fin-empty-why">
-                      {signalView
-                        ? t("scr2EmptySigWhy").replace("{n}", trackedCount.toLocaleString())
-                        : t("scr2EmptyWhy")}
+                      {techGate && techSummary
+                        ? tt("tsEmptyWhy", { tf: techControls.tf, u: (techSummary.account.total - techSummary.account.evaluated).toLocaleString() })
+                        : signalView
+                          ? t("scr2EmptySigWhy").replace("{n}", trackedCount.toLocaleString())
+                          : t("scr2EmptyWhy")}
                     </div>
-                    {tags.length > 0 && (
+                    {(tags.length > 0 || techGate) && (
                       <button type="button" className="chip" onClick={clearAll}>{t("scr2ClearAll")}</button>
                     )}
                   </div>
@@ -898,7 +964,7 @@ export default function ScreenerView({ identity }: { identity: AccountIdentity }
 
             {/* top spacer preserving scroll height */}
             {loaded && !err && paddingTop > 0 && (
-              <tr className="scr2-spacer" style={{ height: paddingTop }}><td colSpan={cols.length} /></tr>
+              <tr className="scr2-spacer" style={{ height: paddingTop }}><td colSpan={colN} /></tr>
             )}
 
             {/* windowed rows */}
@@ -940,7 +1006,13 @@ export default function ScreenerView({ identity }: { identity: AccountIdentity }
                 </td>
               );
               return (
-                <tr key={r.sym} onClick={() => { if (searchRaw.trim()) trackSearch(r.sym, "screener", searchRaw.trim()); router.push(`/terminal?sym=${r.sym}`); }}>
+                <tr key={r.sym} onClick={() => {
+                  if (searchRaw.trim()) trackSearch(r.sym, "screener", searchRaw.trim());
+                  // With the technical screen on, the row opens the chart AT the screened
+                  // timeframe when the chart can honour it (AC-E01-05); the strip discloses when not.
+                  const h = techOnScreen ? technicalChartHandover(r.sym, techControls.tf, DAILY_FUNCTIONAL_TIMEFRAMES) : null;
+                  router.push(h ? h.href : `/terminal?sym=${r.sym}`);
+                }}>
                   {symCell}
                   {lastCell}
                   {chgCell}
@@ -977,13 +1049,14 @@ export default function ScreenerView({ identity }: { identity: AccountIdentity }
                       {sigCell}
                     </>
                   )}
+                  {techOnScreen && <TechnicalCell c={classifyTechnical(techSource!, r.sym, techControls.tf, techNow)} />}
                 </tr>
               );
             })}
 
             {/* bottom spacer preserving scroll height */}
             {loaded && !err && paddingBottom > 0 && (
-              <tr className="scr2-spacer" style={{ height: paddingBottom }}><td colSpan={cols.length} /></tr>
+              <tr className="scr2-spacer" style={{ height: paddingBottom }}><td colSpan={colN} /></tr>
             )}
           </tbody>
         </table>
