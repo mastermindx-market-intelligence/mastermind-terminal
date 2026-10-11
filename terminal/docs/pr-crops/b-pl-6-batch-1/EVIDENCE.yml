@@ -1,7 +1,7 @@
 # B-PL-6 batch 1 — capture evidence
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
 # Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
-# capturedAtHead: caf202fd5ac63c44ed09ddc758cab53d0c259beb
+# capturedAtHead: d33534e11eabbbb755b904eb7e0d1ff1b009438e (E08 commit; crops captured on its working tree over base caf202fd5)
 # capturedAt: 2026-10-11T08:54:58.930Z
 # capturedAtHead is informational. The lock is layoutFiles.
 layoutFiles:

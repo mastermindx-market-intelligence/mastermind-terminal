@@ -1,7 +1,7 @@
 # Terminal Visual Intelligence Layer — chart-settings candidate recapture
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
 # Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
-# capturedAtHead: caf202fd5ac63c44ed09ddc758cab53d0c259beb (E08 anchored-benchmark compare working tree; stamped to the E08 commit in a follow-up)
+# capturedAtHead: d33534e11eabbbb755b904eb7e0d1ff1b009438e (E08 commit; crops captured on its working tree over base caf202fd5)
 # capturedAt: 2026-10-11T08:51:30.654594+00:00
 # Content-addressed layoutFiles + cropFiles, not ancestry, identify this capture.
 layoutFiles:
