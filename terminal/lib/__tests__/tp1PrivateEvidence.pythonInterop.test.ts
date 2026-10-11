@@ -40,5 +40,18 @@ describe("actual Macro Python-generated synthetic-v0 private artifacts",()=>{
   expect(p.sourceManifestSha256).toBe("e".repeat(64));
   expect(p.sourceAuthenticated).toBe(false);
  });
+  it("preserves null-policy and unknown-reason evidence from the original Python emitter",()=>{
+  const bytes=readFileSync(new URL("tp1PrivateUnknown.synthetic.v0.json",here));
+  const digest="02e0bab2885af1a46e399aa1b9474486c1a650a61c3927a2726d702baa6406bf";
+  expect(bytes.length).toBe(2210);
+  expect(createHash("sha256").update(bytes).digest("hex")).toBe(digest);
+  const m=decodePrivateEvidence({kind:"minute",bytes,expectedLength:2210,expectedSha256:digest});
+  expect(m.unknownReasons).toEqual({TRADE_CONDITION_POLICY_UNQUALIFIED:1});
+  expect(m.sourceCounts.n_unclassified).toBe(1);
+  expect(m.sourceHashes.condition_policy_sha256).toBeNull();
+  expect(m.sourceHashes.exchange_policy_sha256).toBeNull();
+  expect(m.sourceHashes.quote_policy_sha256).toBeNull();
+  expect(m.publicDeliveryAllowed).toBe(false);
+ });
 
 });
