@@ -1,8 +1,8 @@
 # B-PL-6 batch 1 — capture evidence
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
 # Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
-# capturedAtHead: 702bd7fbbb92f7f10eb2138fc29f78e3cd94ff7c
-# capturedAt: 2026-10-11T09:00:07.904Z
+# capturedAtHead: 91ab51dc7fbb5814b15d9164a18cbfdcf294a566
+# capturedAt: 2026-10-11T09:45:23.104Z
 # capturedAtHead is informational. The lock is layoutFiles.
 layoutFiles:
   terminal/components/OptionsHubView.tsx: "dd8e4e9d5234aae8fb41b597fe1a262bd54dfd8abebb2e46361bde50354c9f08"
