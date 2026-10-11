@@ -7,20 +7,24 @@
 .marker span { background: color-mix(in srgb, var(--bg) 70%, transparent); border-radius: 3px; padding: 2px 3px; }
 .marker:hover, .marker:focus-visible { z-index: 3; outline: 2px solid var(--brand); outline-offset: 3px; }
 .dock { position: absolute; right: 8px; bottom: 8px; width: min(312px, calc(100% - 16px)); max-height: calc(100% - 16px); box-sizing: border-box; overflow: auto; overscroll-behavior: contain; border: 1px solid var(--border); border-radius: 10px; background: color-mix(in srgb, var(--panel, var(--bg)) 94%, transparent); padding: 10px 12px; pointer-events: auto; box-shadow: 0 8px 28px #0002; backdrop-filter: blur(12px); }
-.dockHeader { display: flex; gap: 8px; align-items: center; min-width: 0; }
-.dockHeader strong { font-size: 12px; flex: 1; }
+.dockHeader { display: grid; grid-template-columns: minmax(0, 1fr) 44px; column-gap: 8px; row-gap: 2px; min-width: 0; }
+.dockHeader strong { font-size: 12px; grid-column: 1; min-width: 0; overflow-wrap: anywhere; }
+.dockHeader .mode { grid-column: 1; white-space: normal; overflow-wrap: anywhere; }
+.dockHeader .iconButton { grid-column: 2; grid-row: 1 / span 2; align-self: start; }
 .mode { font-size: 10px; font-weight: 600; color: var(--up); white-space: nowrap; }
 .mode[data-warning="true"] { color: var(--muted); }
-.iconButton { display: grid; place-items: center; width: 32px; min-height: 32px; border: 0; background: transparent; color: var(--muted); border-radius: 6px; font-size: 19px; cursor: pointer; flex-shrink: 0; }
+.iconButton { display: grid; place-items: center; box-sizing: border-box; width: 44px; min-width: 44px; height: 44px; min-height: 44px; padding: 0; border: 0; background: transparent; color: var(--muted); border-radius: 6px; font-size: 19px; cursor: pointer; flex-shrink: 0; }
 .iconButton:hover { background: color-mix(in srgb, var(--muted) 10%, transparent); color: var(--text); }
 .sourceLine { color: var(--muted); font-size: 10px; margin: 3px 0 7px; overflow-wrap: anywhere; }
 .notice { color: var(--muted); font-size: 11px; line-height: 1.5; margin: 5px 0 0; overflow-wrap: anywhere; }
 .actions { display: flex; flex-wrap: wrap; gap: 7px; align-items: center; margin-top: 7px; }
-.actions button { min-height: 32px; border: 1px solid var(--border); border-radius: 6px; background: transparent; color: var(--text); padding: 4px 9px; cursor: pointer; font-size: 11px; }
+.actions button { min-height: 44px; min-width: 44px; box-sizing: border-box; border: 1px solid var(--border); border-radius: 6px; background: transparent; color: var(--text); padding: 4px 9px; cursor: pointer; font-size: 11px; }
 .actions > span { margin-right: auto; color: var(--muted); font-size: 11px; font-variant-numeric: tabular-nums; }
 .actions b { margin-left: 5px; }
 .inspector { position: absolute; right: 8px; bottom: 8px; width: min(588px, calc(100% - 16px)); max-height: calc(100% - 16px); box-sizing: border-box; overflow: auto; overscroll-behavior: contain; border: 1px solid var(--border); border-radius: 12px; background: var(--panel, var(--bg)); box-shadow: 0 14px 60px #0005; pointer-events: auto; outline: none; }
-.inspectorHeader { position: sticky; top: 0; z-index: 1; background: var(--panel, var(--bg)); display: flex; align-items: center; justify-content: space-between; padding: 14px 16px 10px; border-bottom: 1px solid var(--border); }
+.inspectorHeader { position: sticky; top: 0; z-index: 1; background: var(--panel, var(--bg)); display: grid; grid-template-columns: minmax(0, 1fr) 44px; gap: 8px; align-items: start; padding: 14px 16px 10px; border-bottom: 1px solid var(--border); }
+.inspectorHeader > div { min-width: 0; overflow-wrap: anywhere; }
+.inspectorHeader .iconButton { align-self: start; }
 .inspectorHeader strong { font-size: 14px; }
 .inspectorHeader p { margin: 5px 0 0; color: var(--muted); font-size: 11px; }
 .banner { padding: 9px 16px; margin: 0; background: color-mix(in srgb, var(--signal, #e8b339) 7%, transparent); border-bottom: 1px solid var(--border); color: var(--muted); font-size: 11px; line-height: 1.5; }
@@ -58,7 +62,7 @@
   .detail { padding: 12px; }
   .detail dl { gap: 7px 10px; }
   .hero strong { font-size: 25px; }
-  .actions button, .iconButton { min-height: 36px; }
+  .actions button, .iconButton { min-height: 44px; }
 }
 @media (pointer: coarse) {
   .actions button, .iconButton { min-height: 44px; min-width: 44px; }
@@ -74,6 +78,15 @@
 .reportList dt { margin-top: 6px; }
 .reportList b { font-size: 11px; }
 .moreReports { min-height: 36px; border: 1px solid var(--border); border-radius: 6px; background: transparent; color: var(--text); padding: 5px 10px; cursor: pointer; }
+
+/* At the admitted minimum, a tall sticky header would consume the scrollport. */
+.controlsLayer[data-compact="true"] .inspectorHeader { position: static; }
+.controlsLayer[data-compact="true"] .inspectorBody { display: block; }
+.controlsLayer[data-compact="true"] .hero { flex-wrap: wrap; min-width: 0; }
+.controlsLayer[data-compact="true"] .hero > * { min-width: 0; max-width: 100%; overflow-wrap: anywhere; }
+.controlsLayer[data-compact="true"] .tradeList { display: flex; overflow-x: auto; max-height: 94px; border-right: 0; border-bottom: 1px solid var(--border); gap: 3px; }
+.controlsLayer[data-compact="true"] .tradeList li { flex: 0 0 124px; }
+.controlsLayer[data-compact="true"] .tradeList button { min-height: 72px; min-width: 0; overflow-wrap: anywhere; }
 
 .root[data-open="true"][data-owner-visible="true"] { z-index: 35; }
 

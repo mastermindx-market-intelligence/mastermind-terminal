@@ -3488,6 +3488,9 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
           renderSignalsRef.current?.();
           renderRef.current?.();
           const src = chart.takeScreenshot(); // flushes pending native layout synchronously
+          // The queued measurement may still describe pre-flush pane tops/heights. Read the
+          // captured native layout now, before marker admission and pane-label copies.
+          measureRef.current?.();
           // Coordinate-only repaint after the flush; do not run indicator/native data builders here.
           renderSignalsRef.current?.(); renderRef.current?.();
           const now = new Date();

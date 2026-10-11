@@ -43,9 +43,12 @@ export function largeTradesPlotBounds(
 
 /**
  * Control targets and mandatory provenance belong inside the visible price plot. Reserve
- * the native pane header's 44px target plus its 4px top spacing, then require room for
- * one 44px touch target and 8px inner spacing on each side. If that cannot fit, the
- * caller hides the entire study frame until the owning pane has room again.
+ * the native pane header's 44px target plus its 4px top spacing. The control width
+ * budgets 16px outer gaps + 2px border + 32px header padding + 80px copy + 8px gap +
+ * 44px action + 16px scrollbar allowance. Height budgets 16 + 2 + 14px top padding +
+ * 44px action + 10px bottom padding + 1px separator, rounded to 88px. Compact headers
+ * keep the action at the top inset and scroll their text, rather than centering it
+ * against wrapping copy. If this footprint cannot fit, the entire study co-hides.
  */
 export function largeTradesControlBounds(
   plot: LargeTradesPlot | null,
@@ -61,7 +64,7 @@ export function largeTradesControlBounds(
   const y = Math.max(0, plot.y + 48, viewport.y);
   const right = Math.min(rootWidth, plot.x + plot.width, viewport.x + viewport.width);
   const bottom = Math.min(rootHeight, plot.y + plot.height, viewport.y + viewport.height);
-  return right - x >= 60 && bottom - y >= 60
+  return right - x >= 198 && bottom - y >= 88
     ? { x, y, width: right - x, height: bottom - y } : null;
 }
 

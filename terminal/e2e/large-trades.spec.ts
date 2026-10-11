@@ -1,11 +1,11 @@
-import { expect, test, type Page, type TestInfo } from "@playwright/test";
+import { expect, test, type Locator, type Page, type TestInfo } from "@playwright/test";
 import { toggleToolbarReplay } from "./terminalToolbar";
 import { makeLargeTradesFixture } from "../lib/largeTrades/fixtures";
 
 // Bars are explicit chart-coordinate fixtures. Transaction quantities come from the route's
 // separately declared deterministic execution fixture; no candle volume enters the study.
 const DISPLAY_START = Date.parse("2026-10-05T09:30:00Z") / 1000;
-async function prepare(page: Page, lang: "en" | "zh" = "en", theme = "dark", timeframe = "5s") {
+async function prepare(page: Page, lang: "en" | "zh" = "en", theme = "dark", timeframe = "5s", coordinateDuration = 300) {
   await page.addInitScript(({ lang, theme, timeframe }) => {
     localStorage.setItem("mm.startTf", JSON.stringify(timeframe));
     localStorage.setItem("mm.inds", JSON.stringify(["largeTrades"]));
@@ -17,9 +17,9 @@ async function prepare(page: Page, lang: "en" | "zh" = "en", theme = "dark", tim
   await page.route("**/api/intraday?**", async (route) => {
     const url = new URL(route.request().url());
     const symbol = url.searchParams.get("sym");
-    if (symbol !== "AAPL" && symbol !== "NVDA") return route.continue();
+    if (!symbol || !["AAPL", "NVDA", "MSFT"].includes(symbol)) return route.continue();
     const step = timeframe === "1s" ? 1 : 5;
-    const bars = Array.from({ length: 300 / step + 1 }, (_, i) => {
+    const bars = Array.from({ length: coordinateDuration / step + 1 }, (_, i) => {
       const open = 225 + Math.sin(i / 7) * 0.05;
       const close = 225 + Math.sin((i + 1) / 7) * 0.05;
       return [DISPLAY_START + i * step, open, Math.max(open, close) + 0.04,
@@ -79,6 +79,8 @@ for (const variant of [{ lang: "en", theme: "dark" }, { lang: "zh", theme: "dark
       await expect(detail.getByTestId("large-trade-reports")).toContainText("300");
       await expect(detail.getByTestId("large-trade-reports")).toContainText("2026-10-05T13:30:10.100000000Z");
       const close = panel.getByRole("button", { name: variant.lang === "en" ? "Close trade inspection" : "关闭成交详情", exact: true });
+      // Compact inspection deliberately has a nonsticky header; return by real wheel.
+      await scrollTradeTarget(page, panel, close, -1);
       await expect(close).toBeInViewport();
       if (info.project.name === "mobile") {
         // Inspection stays inside its owning plot and below the native header targets.
@@ -99,8 +101,9 @@ for (const variant of [{ lang: "en", theme: "dark" }, { lang: "zh", theme: "dark
         await expect(panel.locator('[data-response-state="continued"]')).toBeVisible();
         await capture(page, info, "large-trades-adverse-selling-continued");
       }
-      if (info.project.name === "mobile") await close.click();
-      else await panel.press("Escape");
+      if (info.project.name === "mobile") {
+        await scrollTradeTarget(page, panel, close, -1); await close.click();
+      } else await panel.press("Escape");
       await expect(panel).toHaveCount(0);
       await expect(page.getByTestId("large-trades-inspect")).toBeFocused();
       expect(errors.filter((error) => /LargeTrades|large.trades|QUANTITY_OVERFLOW/i.test(error))).toEqual([]);
@@ -492,6 +495,161 @@ test("large trade markers and inspection co-hide in a short price pane and retur
   await capture(page, info, "large-trades-short-owner-restored");
 });
 
+async function tradeTargetFootprint(target: Locator) {
+  return target.evaluate((node) => {
+    const r = node.getBoundingClientRect();
+    let left = Math.max(0, r.left), top = Math.max(0, r.top);
+    let right = Math.min(innerWidth, r.right), bottom = Math.min(innerHeight, r.bottom);
+    const scrollports: unknown[] = [];
+    for (let parent = node.parentElement; parent; parent = parent.parentElement) {
+      const style = getComputedStyle(parent);
+      const clipX = /auto|scroll|hidden|clip/.test(style.overflowX);
+      const clipY = /auto|scroll|hidden|clip/.test(style.overflowY);
+      if (!clipX && !clipY) continue;
+      const p = parent.getBoundingClientRect(), x = p.left + parent.clientLeft, y = p.top + parent.clientTop;
+      if (clipX) { left = Math.max(left, x); right = Math.min(right, x + parent.clientWidth); }
+      if (clipY) { top = Math.max(top, y); bottom = Math.min(bottom, y + parent.clientHeight); }
+      scrollports.push({ testId: parent.dataset.testid, clientWidth: parent.clientWidth,
+        clientHeight: parent.clientHeight, scrollWidth: parent.scrollWidth, scrollHeight: parent.scrollHeight,
+        scrollTop: parent.scrollTop, scrollbarWidth: parent.offsetWidth - parent.clientWidth - parent.clientLeft * 2,
+        padding: [style.paddingTop, style.paddingRight, style.paddingBottom, style.paddingLeft],
+        border: [style.borderTopWidth, style.borderRightWidth, style.borderBottomWidth, style.borderLeftWidth] });
+    }
+    const visible = getComputedStyle(node).visibility === "visible";
+    const points = [[.5, .5], [.12, .12], [.88, .12], [.12, .88], [.88, .88]];
+    return { rect: r.toJSON(), visibleWidth: visible ? Math.max(0, right - left) : 0,
+      visibleHeight: visible ? Math.max(0, bottom - top) : 0,
+      hits: points.map(([x, y]) => node.contains(document.elementFromPoint(r.x + r.width * x, r.y + r.height * y))),
+      scrollports };
+  });
+}
+async function scrollTradeTarget(page: Page, box: Locator, target: Locator, direction: number, minHeight = 44) {
+  const steps: unknown[] = [];
+  for (let attempt = 0; attempt < 24; attempt++) {
+    const proof = await tradeTargetFootprint(target);
+    const port = await box.evaluate((node) => {
+      const r = node.getBoundingClientRect();
+      return { x: r.x + node.clientLeft, y: r.y + node.clientTop,
+        width: node.clientWidth, height: node.clientHeight, scrollTop: node.scrollTop,
+        scrollHeight: node.scrollHeight, outerWidth: r.width, outerHeight: r.height };
+    });
+    const requiredHeight = minHeight || proof.rect.height;
+    const centerDelta = proof.rect.y + proof.rect.height / 2 - (port.y + port.height / 2);
+    const wheelDelta = Math.max(-500, Math.min(500, Math.abs(centerDelta) >= 1 ? centerDelta : direction * 4));
+    steps.push({ target: proof.rect, visibleWidth: proof.visibleWidth, visibleHeight: proof.visibleHeight,
+      hits: proof.hits, port, wheelDelta });
+    if (proof.visibleWidth >= Math.min(44, proof.rect.width) - .1
+      && proof.visibleHeight >= requiredHeight - .1 && proof.hits.every(Boolean)) return { ...proof, wheelSteps: steps };
+    // Real wheel motion follows measured geometry and can reverse; a fixed44px step can
+    // skip the27px interval in which a44px button fits a71px scrollport.
+    await box.hover({ position: { x: Math.min(6, port.outerWidth / 2), y: port.outerHeight / 2 } });
+    await page.mouse.wheel(0, wheelDelta);
+    await page.evaluate(() => new Promise<void>((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve()))));
+  }
+  await test.info().attach("unreachable-target-wheel-steps", { body: JSON.stringify(steps, null, 2), contentType: "application/json" });
+  throw new Error("A complete target was not reachable by measured native wheel input within the owned scrollport");
+}
+async function resizeTradePricePane(page: Page, height: number) {
+  for (let attempt = 0; attempt < 4; attempt++) {
+    const geometry = await page.locator(".chart-wrap").first().evaluate((wrap) => {
+      const rows = [...wrap.querySelectorAll(".tv-lightweight-charts table tr")];
+      const price = rows.find((row) => row.querySelector("canvas"))!.getBoundingClientRect();
+      const separator = rows.find((row) => !row.querySelector("canvas") && row.getBoundingClientRect().height > 0)!.getBoundingClientRect();
+      return { height: price.height, x: separator.x + separator.width * .22, y: separator.y + separator.height / 2 };
+    });
+    if (Math.abs(geometry.height - height) < .6) return;
+    await page.mouse.move(geometry.x, geometry.y); await page.mouse.down();
+    const delta = height - geometry.height;
+    // Installed native LWC requires5px before starting a drag. Cross that unchanged
+    // threshold, then return to the exact2px boundary adjustment using real input.
+    if (Math.abs(delta) < 8) await page.mouse.move(geometry.x, geometry.y + Math.sign(delta) * 8, { steps: 4 });
+    await page.mouse.move(geometry.x, geometry.y + delta, { steps: 8 }); await page.mouse.up();
+    await settledTradeChart(page, 1);
+  }
+  throw new Error("Native pane separator did not reach the requested boundary height");
+}
+
+test("large trade controls expose full targets and scrollable provenance at their admitted minimum", async ({ page }, info) => {
+  test.skip(info.project.name !== "desktop", "One boundary geometry journey; the standard phone and tablet interaction matrices remain separate.");
+  test.setTimeout(180_000);
+  await prepare(page, "en", "dark", "5s", 210);
+  const envelope = makeLargeTradesFixture("AAPL");
+  // The normal engine produces this exact safe aggregate; no DOM replacement or real-data claim.
+  envelope.prints[0].quantity = 999_999_199; // + 501 + 300 = 1,000,000,000 shares, three reports.
+  envelope.provenance.termsUrl = "https://example.test/large-trades-fixture-terms";
+  await page.route("**/api/large-trades?**", (route) => route.fulfill({ json: {
+    state: "ready", envelope, artifactSha256: null, servedAtNs: envelope.provenance.generatedAtNs,
+  } }));
+  await page.addInitScript(() => localStorage.setItem("mm.inds", JSON.stringify(["largeTrades", "rsi"])));
+  await openFixture(page); await settledTradeChart(page, 1);
+  const overlay = page.getByTestId("large-trades-overlay"), dock = page.getByTestId("large-trades-dock");
+  const visible = page.locator('[data-testid="large-trade-marker"]:visible');
+  for (const phase of ["desktop-height-boundary", "narrow-width-and-height-boundary"]) {
+    if (phase.startsWith("narrow")) {
+      for (let i = 0; i < 5; i++) {
+        // Read the actual native plot, even if a responsive height change temporarily
+        // co-hides controls and their last admitted style width is intentionally retained.
+        const width = await page.locator(".chart-wrap").first().evaluate((wrap) => {
+          const row = [...wrap.querySelectorAll(".tv-lightweight-charts table tr")].find((row) => row.querySelector("canvas"))!;
+          const canvas = [...row.querySelectorAll("canvas")].sort((a, b) => b.getBoundingClientRect().width - a.getBoundingClientRect().width)[0];
+          const rect = canvas.getBoundingClientRect();
+          return Math.max(0, Math.min(innerWidth, rect.right) - Math.max(0, rect.left));
+        });
+        if (Math.abs(width - 199) < .6) break;
+        const current = page.viewportSize()!;
+        await page.setViewportSize({ width: Math.round(current.width + 199 - width), height: current.height });
+        await settledTradeChart(page, 1);
+      }
+    }
+    await resizeTradePricePane(page, 137);
+    await expect(overlay).toHaveAttribute("data-owner-visible", "true");
+    await expect.poll(() => visible.count()).toBeGreaterThan(0);
+    const controls = await page.getByTestId("large-trades-controls").boundingBox();
+    expect(controls!.height).toBeGreaterThanOrEqual(88); expect(controls!.height).toBeLessThanOrEqual(90);
+    if (phase.startsWith("narrow")) { expect(controls!.width).toBeGreaterThanOrEqual(198); expect(controls!.width).toBeLessThanOrEqual(200); }
+    const refresh = dock.getByRole("button", { name: "Refresh transaction evidence", exact: true });
+    const refreshProof = await scrollTradeTarget(page, dock, refresh, -1);
+    expect(refreshProof.visibleWidth).toBeGreaterThanOrEqual(43.9);
+    expect(refreshProof.visibleHeight).toBeGreaterThanOrEqual(43.9);
+    await refresh.click(); await expect(overlay).toHaveAttribute("data-state", "ready");
+    const inspect = page.getByTestId("large-trades-inspect");
+    const inspectProof = await scrollTradeTarget(page, dock, inspect, 1);
+    await inspect.click();
+    const panel = page.getByTestId("large-trades-inspector"), close = panel.getByRole("button", { name: "Close trade inspection", exact: true });
+    await expect(panel).toBeVisible();
+    const closeProof = await tradeTargetFootprint(close);
+    expect(closeProof.visibleWidth).toBeGreaterThanOrEqual(43.9);
+    expect(closeProof.visibleHeight).toBeGreaterThanOrEqual(43.9); expect(closeProof.hits.every(Boolean)).toBe(true);
+    await expect(panel.getByTestId("large-trade-detail").locator("strong").first()).toHaveText("1,000,000,000");
+    const outerGeometry = await panel.evaluate((node) => ({
+      clientWidth: node.clientWidth, scrollWidth: node.scrollWidth,
+      clientHeight: node.clientHeight, scrollHeight: node.scrollHeight,
+      horizontalScrollbar: (node as HTMLElement).offsetHeight - node.clientHeight - node.clientTop * 2,
+      quantity: node.querySelector('[data-testid="large-trade-detail"] strong')?.textContent,
+      quantityOverflowWrap: getComputedStyle(node.querySelector('[data-testid="large-trade-detail"] strong')!).overflowWrap,
+    }));
+    expect(outerGeometry.scrollWidth).toBeLessThanOrEqual(outerGeometry.clientWidth);
+    expect(outerGeometry.horizontalScrollbar).toBe(0);
+    const terms = panel.getByRole("link", { name: "Data terms", exact: true });
+    const termsProof = await scrollTradeTarget(page, panel, terms, 1, 0);
+    await expect(terms).toHaveAttribute("href", "https://example.test/large-trades-fixture-terms");
+    await expect(panel.locator("footer")).toContainText("Synthetic fixture");
+    await capture(page, info, "large-trades-" + phase + "-terms");
+    await scrollTradeTarget(page, panel, close, -1); await close.click();
+    await expect(panel).toBeHidden();
+    const settingsProof = await scrollTradeTarget(page, dock, dock.getByRole("button", { name: "Settings", exact: true }), 1);
+    await info.attach(phase + "-hit-footprints", { body: JSON.stringify({ controls, viewport: page.viewportSize(),
+      refreshProof, inspectProof, closeProof, termsProof, settingsProof, outerGeometry }, null, 2), contentType: "application/json" });
+    await resizeTradePricePane(page, 135);
+    await expect(overlay).toHaveAttribute("data-owner-visible", "false");
+    await expect(visible).toHaveCount(0); await expect(dock).toBeHidden();
+    await resizeTradePricePane(page, 137);
+    await expect(overlay).toHaveAttribute("data-owner-visible", "true");
+    await expect.poll(() => visible.count()).toBeGreaterThan(0);
+  }
+  await capture(page, info, "large-trades-boundary-restored");
+});
+
 type TradePngFrame = { width: number; height: number; pixels: Uint8ClampedArray; text: string[] };
 declare global {
   interface Window {
@@ -624,25 +782,47 @@ test("native PNG preserves disabled quantity labels and canonical replay admissi
 test("native PNG freezes its admitted symbol and marker frame across asynchronous decoding", async ({ page }, info) => {
   test.skip(info.project.name !== "desktop", "One asynchronous ownership case; responsive export is covered separately.");
   test.setTimeout(120_000);
-  await prepare(page); await observeTradePng(page); await openFixture(page);
-  await settledTradeChart(page);
+  await page.clock.setFixedTime(new Date("2026-10-11T11:00:00.000Z"));
+  await prepare(page); await observeTradePng(page);
+  await page.addInitScript(() => {
+    localStorage.setItem("mm.inds", JSON.stringify(["largeTrades", "rsi"]));
+    localStorage.setItem("mm.chartSettings", JSON.stringify({ paneButtons: "always" }));
+  });
+  await openFixture(page); await settledTradeChart(page, 1);
+  await page.evaluate(() => document.fonts.ready.then(() => undefined));
   await expect(page.locator('[data-testid="large-trade-marker"]:visible')).toHaveCount(4);
+  const baseline = await downloadTradePng(page, info, "large-trades-native-export-before-async-mutations");
+  const baselineFrame = await page.evaluate(() => JSON.stringify((window as unknown as {
+    __mmLargeTradesSnapshot: import("../lib/largeTrades/snapshot").LargeTradesExportFrame;
+  }).__mmLargeTradesSnapshot));
   await page.evaluate(() => { window.__ltHoldImageDecode = true; });
   const pending = page.waitForEvent("download");
   await page.evaluate(() => window.dispatchEvent(new CustomEvent("mm:snapshot", { detail: { action: "download" } })));
-  await expect.poll(() => page.evaluate(() => window.__ltImageReleases.length)).toBeGreaterThan(0);
-  await page.getByTestId("large-trades-dock").getByRole("button", { name: "Settings", exact: true }).click();
-  await page.locator(".ind-set").getByRole("button", { name: "Style", exact: true }).click();
-  await page.getByRole("switch", { name: "Show exact quantity labels", exact: true }).click();
-  await page.keyboard.press("Escape");
+  let transitions: unknown;
   try {
+    await expect.poll(() => page.evaluate(() => window.__ltImageReleases.length)).toBeGreaterThan(0);
+    await page.getByTestId("large-trades-dock").getByRole("button", { name: "Settings", exact: true }).click();
+    await page.locator(".ind-set").getByRole("button", { name: "Style", exact: true }).click();
+    await page.getByRole("switch", { name: "Show exact quantity labels", exact: true }).click();
+    await page.keyboard.press("Escape");
     // Symbol selection is intentionally disabled in canonical replay; change symbol first.
     await page.keyboard.press("Control+K");
     const search = page.locator('input[role="combobox"]');
     await search.fill("NVDA"); await search.press("Enter");
     await expect(page.getByTestId("large-trades-overlay")).toHaveAttribute("data-symbol", "NVDA");
+    await expect(page.getByTestId("large-trades-overlay")).toHaveAttribute("data-state", "ready");
+    await settledTradeChart(page, 1);
     await toggleToolbarReplay(page);
     await page.locator("[data-replay-rail]").getByRole("slider").press("Home");
+    await page.locator(".pane-ops").getByRole("button", { name: "Maximize pane", exact: true }).click();
+    await expect.poll(() => page.evaluate(() => (window as unknown as { __mmPaneMaximized(): string | null }).__mmPaneMaximized())).toBe("rsi");
+    await expect(page.locator('[data-testid="large-trade-marker"]:visible')).toHaveCount(0);
+    transitions = await page.evaluate(() => ({
+      symbol: document.querySelector('[data-testid="large-trades-overlay"]')?.getAttribute("data-symbol"),
+      replayRailPresent: !!document.querySelector("[data-replay-rail]"),
+      maximized: (window as unknown as { __mmPaneMaximized(): string | null }).__mmPaneMaximized(),
+      labels: JSON.parse(localStorage.getItem("mm.indParams") ?? "{}").largeTrades?.showLabels,
+    }));
   } finally {
     await page.evaluate(() => { window.__ltHoldImageDecode = false; window.__ltImageReleases.splice(0).forEach((release) => release()); });
   }
@@ -650,8 +830,26 @@ test("native PNG freezes its admitted symbol and marker frame across asynchronou
   expect(downloaded.suggestedFilename()).toMatch(/^AAPL_5s_/);
   const file = info.outputPath("large-trades-native-export-frozen-before-symbol-change.png");
   await downloaded.saveAs(file); await info.attach("frozen-before-symbol-change", { path: file, contentType: "image/png" });
-  expect(await page.evaluate(() => window.__ltPngFrames.at(-1)!.text)).toEqual(expect.arrayContaining(["AAPL", "1,301", "1,500", "1,800", "1,600"]));
-  expect(await page.evaluate(() => window.__ltPngFrames.at(-1)!.text)).not.toContain("NVDA");
+  const equality = await page.evaluate(({ baselineIndex, baselineFrame }) => {
+    const before = window.__ltPngFrames[baselineIndex], after = window.__ltPngFrames.at(-1)!;
+    const sameDimensions = before.width === after.width && before.height === after.height;
+    return {
+      before: { width: before.width, height: before.height }, after: { width: after.width, height: after.height },
+      differentBytes: sameDimensions ? before.pixels.reduce((count, byte, i) => count + (byte !== after.pixels[i] ? 1 : 0), 0) : -1,
+      textEqual: JSON.stringify(before.text) === JSON.stringify(after.text),
+      frameEqual: baselineFrame === JSON.stringify((window as unknown as { __mmLargeTradesSnapshot: unknown }).__mmLargeTradesSnapshot),
+      text: after.text,
+    };
+  }, { baselineIndex: baseline.index, baselineFrame });
+  expect(equality.differentBytes).toBe(0);
+  expect(equality.textEqual).toBe(true);
+  expect(equality.frameEqual).toBe(true);
+  expect(equality.text).toEqual(expect.arrayContaining(["AAPL", "1,301", "1,500", "1,800", "1,600"]));
+  expect(equality.text).not.toContain("NVDA");
+  await info.attach("async-capture-frame-equality", { body: JSON.stringify({
+    fixedCaptureTime: "2026-10-11T11:00:00.000Z", transitions, equality,
+    scope: "Exact native raster, overlays, frozen quantity frame, pane labels, header and provenance footer",
+  }, null, 2), contentType: "application/json" });
 });
 
 test("native PNG waits while the requested symbol has no accepted native source", async ({ page }) => {
@@ -759,4 +957,236 @@ test("native PNG retains complete IEX historical attribution and terms from the 
     footer: proof.footer, transport: "Explicit same-origin historical interception, not production publication",
     chartCoordinates: "OHLC from the same partial IEX executions; no candle-derived execution quantities",
   }, null, 2), contentType: "application/json" });
+});
+
+test("large trades follow the price owner through an additional RSI instance and pane reorder", async ({ page }, info) => {
+  test.skip(info.project.name !== "desktop", "One integrated RSI-instance compatibility journey; responsive owner transitions are covered separately.");
+  test.setTimeout(180_000);
+  const sibling = "rsi__ltcompat01";
+  await prepare(page); await observeTradePng(page);
+  await page.addInitScript((sibling) => {
+    localStorage.setItem("mm.inds", JSON.stringify(["largeTrades", "rsi", sibling]));
+    localStorage.setItem("mm.indParams", JSON.stringify({ rsi: { length: 14 }, [sibling]: { length: 7 } }));
+    localStorage.setItem("mm.chartSettings", JSON.stringify({ paneButtons: "always" }));
+  }, sibling);
+  await openFixture(page); await settledTradeChart(page, 2);
+  const visible = page.locator('[data-testid="large-trade-marker"]:visible');
+  const admitted = await visible.count(); expect(admitted).toBeGreaterThan(0);
+  const paneFor = (label: string) => page.locator(".chart-overlays > div")
+    .filter({ has: page.locator(".lg-name").getByText(label, { exact: true }) });
+  const second = paneFor("RSI 2 (7)");
+  await expect(second).toHaveCount(1);
+  await second.getByRole("button", { name: "Maximize pane", exact: true }).click();
+  await expect.poll(() => page.evaluate(() => (window as unknown as { __mmPaneMaximized(): string | null }).__mmPaneMaximized())).toBe(sibling);
+  await expect(visible).toHaveCount(0);
+  await expect(page.getByTestId("large-trades-dock")).toBeHidden();
+  const hiddenPng = await downloadTradePng(page, info, "large-trades-additional-rsi-maximized");
+  const hiddenProof = await page.evaluate((index) => ({
+    frame: (window as unknown as { __mmLargeTradesSnapshot: unknown }).__mmLargeTradesSnapshot,
+    text: window.__ltPngFrames[index].text,
+  }), hiddenPng.index);
+  expect(hiddenProof.frame).toBeNull();
+  for (const quantity of ["1,301", "1,500", "1,800", "1,600"]) expect(hiddenProof.text).not.toContain(quantity);
+  await second.getByRole("button", { name: "Restore pane", exact: true }).click();
+  await settledTradeChart(page, 2); await expect(visible).toHaveCount(admitted);
+  const primary = page.locator(".lg-row").filter({ has: page.locator(".lg-name").getByText("RSI 1 (14)", { exact: true }) });
+  const beforeRemoval: string[] = await page.evaluate(() => JSON.parse(localStorage.getItem("mm.inds") ?? "[]"));
+  expect(beforeRemoval).toEqual(expect.arrayContaining(["largeTrades", "rsi", sibling]));
+  await primary.hover(); await primary.getByRole("button", { name: "Remove", exact: true }).click();
+  await expect.poll(() => page.evaluate(() => JSON.parse(localStorage.getItem("mm.inds") ?? "[]")))
+    .toEqual(beforeRemoval.filter((id) => id !== "rsi"));
+  await settledTradeChart(page, 1);
+  const remaining = page.locator(".chart-overlays > div").filter({ has: page.locator(".lg-name").getByText(/^RSI/) });
+  await expect(remaining).toHaveCount(1);
+  await remaining.getByRole("button", { name: "Move pane up", exact: true }).click();
+  await settledTradeChart(page, 1);
+  const reordered = await downloadTradePng(page, info, "large-trades-price-owner-after-rsi-reorder");
+  const restoredProof = await page.evaluate((index) => {
+    const frame = (window as unknown as { __mmLargeTradesSnapshot: import("../lib/largeTrades/snapshot").LargeTradesExportFrame }).__mmLargeTradesSnapshot;
+    const wrap = document.querySelector(".chart-wrap")!, root = wrap.getBoundingClientRect();
+    const rows = [...wrap.querySelectorAll(".tv-lightweight-charts table tr")].filter((row) => row.querySelector("canvas"));
+    const pricePane = rows[1].getBoundingClientRect();
+    return { frame, text: window.__ltPngFrames[index].text, pricePane: { y: pricePane.y - root.y, height: pricePane.height } };
+  }, reordered.index);
+  expect(restoredProof.frame.symbol).toBe("AAPL");
+  expect(restoredProof.frame.plot.y).toBeGreaterThan(0);
+  expect(Math.abs(restoredProof.frame.plot.y - restoredProof.pricePane.y)).toBeLessThan(1);
+  expect(restoredProof.frame.markers.length).toBeGreaterThan(0);
+  expect(restoredProof.frame.markers.every((mark) => mark.y >= restoredProof.frame.plot.y
+    && mark.y <= restoredProof.frame.plot.y + restoredProof.frame.plot.height)).toBe(true);
+  await remaining.getByRole("button", { name: "Maximize pane", exact: true }).click();
+  await expect(visible).toHaveCount(0);
+  await remaining.getByRole("button", { name: "Restore pane", exact: true }).click();
+  await settledTradeChart(page, 1); await expect(visible).toHaveCount(admitted);
+  await info.attach("additional-rsi-owner-proof", { body: JSON.stringify({
+    sibling, beforeRemoval, expectedAfterRemoval: beforeRemoval.filter((id) => id !== "rsi"), primaryRemoved: true, priceMovedBelowSibling: true, hiddenProof,
+    restored: { filename: reordered.filename, plot: restoredProof.frame.plot, pricePane: restoredProof.pricePane,
+      markers: restoredProof.frame.markers.map((mark) => ({ quantity: mark.quantity, reports: mark.reports, y: mark.y })) },
+  }, null, 2), contentType: "application/json" });
+  await capture(page, info, "large-trades-additional-rsi-price-owner-restored");
+});
+
+test("linked same-timeframe charts keep their own executions and PNG through active symbol and group changes", async ({ page }, info) => {
+  test.skip(info.project.name !== "desktop", "One two-visible-chart ownership compatibility journey; broader link behavior is covered by chart-link-groups.");
+  test.setTimeout(180_000);
+  await prepare(page); await observeTradePng(page);
+  const multipliers: Record<string, number> = { AAPL: 1, NVDA: 2, MSFT: 3 };
+  const envelopes = Object.fromEntries(Object.entries(multipliers).map(([symbol, multiplier]) => {
+    const envelope = makeLargeTradesFixture(symbol);
+    envelope.provenance.sourceId = "fixture:owner:" + symbol;
+    envelope.provenance.sourceRef = "fixture:owner:" + symbol;
+    envelope.prints = envelope.prints.map((print) => ({ ...print, id: symbol + ":" + print.id, quantity: print.quantity * multiplier }));
+    return [symbol, envelope];
+  }));
+  await page.route("**/api/large-trades?**", (route) => {
+    const symbol = new URL(route.request().url()).searchParams.get("sym") ?? "";
+    const envelope = envelopes[symbol];
+    if (!envelope) return route.fallback();
+    return route.fulfill({ json: { state: "ready", envelope, artifactSha256: null, servedAtNs: envelope.provenance.generatedAtNs } });
+  });
+  await page.addInitScript(() => {
+    localStorage.setItem("mm.ws", JSON.stringify({
+      panes: ["AAPL", "NVDA"], paneTfs: ["5s", "5s"], split: 2, activePane: 0, lockedVLine: null, sync: false,
+      links: { v: 1, panes: ["A", "A"], share: {
+        A: { crosshair: true, window: true }, B: { crosshair: true, window: true }, C: { crosshair: true, window: true },
+      } },
+    }));
+  });
+  await page.goto("/terminal");
+  const panes = page.locator(".pane");
+  await expect(panes).toHaveCount(2, { timeout: 60_000 });
+  for (const [index, symbol] of ["AAPL", "NVDA"].entries()) {
+    await expect(panes.nth(index).getByTestId("large-trades-overlay")).toHaveAttribute("data-state", "ready", { timeout: 60_000 });
+    await expect(panes.nth(index).getByTestId("large-trades-overlay")).toHaveAttribute("data-symbol", symbol);
+  }
+  await settledTradeChart(page);
+  await expect(page.locator("[data-chart-link='0']")).toHaveAttribute("data-link-status", "active");
+  const reports: unknown[] = [];
+  async function exportOwner(index: number, symbol: string, name: string) {
+    const pane = panes.nth(index), multiplier = multipliers[symbol];
+    await pane.locator(".pane-hd b").click();
+    await expect(pane).toHaveClass(/\bon\b/);
+    const overlay = pane.getByTestId("large-trades-overlay");
+    await expect(overlay).toHaveAttribute("data-symbol", symbol);
+    await expect(overlay).toHaveAttribute("data-state", "ready");
+    const expected = [1301, 1500, 1800, 1600].map((quantity) => quantity * multiplier);
+    await expect.poll(() => pane.getByTestId("large-trade-marker").evaluateAll((nodes) =>
+      nodes.map((node) => Number((node as HTMLElement).dataset.quantity)))).toEqual(expected);
+    await expect.poll(() => pane.locator('[data-testid="large-trade-marker"]:visible').count()).toBeGreaterThan(0);
+    const png = await downloadTradePng(page, info, name);
+    expect(png.filename).toMatch(new RegExp("^" + symbol + "_5s_"));
+    const proof = await page.evaluate((index) => ({
+      frame: (window as unknown as { __mmLargeTradesSnapshot: import("../lib/largeTrades/snapshot").LargeTradesExportFrame }).__mmLargeTradesSnapshot,
+      text: window.__ltPngFrames[index].text,
+    }), png.index);
+    expect(proof.frame.symbol).toBe(symbol);
+    expect(proof.frame.timeframe).toBe("5s");
+    expect(proof.frame.markers.length).toBeGreaterThan(0);
+    expect(proof.frame.markers.every((mark) => expected.includes(mark.quantity))).toBe(true);
+    expect(proof.text).toContain(symbol);
+    expect(proof.frame.footer.join(" ")).toContain("Synthetic fixture");
+    for (const mark of proof.frame.markers) expect(proof.text).toContain(mark.quantity.toLocaleString("en-US"));
+    reports.push({ index, symbol, filename: png.filename, expected,
+      markers: proof.frame.markers.map((mark) => ({ id: mark.id, quantity: mark.quantity, reports: mark.reports })),
+      footer: proof.frame.footer });
+  }
+  await exportOwner(0, "AAPL", "large-trades-linked-aapl-owner");
+  await exportOwner(1, "NVDA", "large-trades-linked-nvda-owner");
+  await page.keyboard.press("Control+K");
+  const search = page.locator('input[role="combobox"]');
+  await search.fill("MSFT"); await search.press("Enter");
+  await expect(panes.nth(1).getByTestId("large-trades-overlay")).toHaveAttribute("data-symbol", "MSFT");
+  await exportOwner(1, "MSFT", "large-trades-linked-active-symbol-msft");
+  await expect(panes.nth(0).getByTestId("large-trades-overlay")).toHaveAttribute("data-symbol", "AAPL");
+  await page.locator("[data-chart-link-chip='1']").click();
+  await page.locator("[data-chart-link-menu='1'] [data-link-choice='B']").click();
+  await expect(page.locator("[data-chart-link='1']")).toHaveAttribute("data-link-status", "alone");
+  await expect(panes.nth(1)).toHaveClass(/\bon\b/);
+  await exportOwner(1, "MSFT", "large-trades-regrouped-msft-owner");
+  await page.locator("[data-chart-link-chip='0']").click();
+  await page.locator("[data-chart-link-menu='0'] [data-link-choice='B']").click();
+  await expect(page.locator("[data-chart-link='0']")).toHaveAttribute("data-link-status", "active");
+  await exportOwner(0, "AAPL", "large-trades-rejoined-aapl-owner");
+  await info.attach("linked-chart-execution-owners", { body: JSON.stringify({
+    feedMode: "Explicit synthetic execution fixtures; no real-data or provider-rights claim",
+    sameTimeframe: "5s", quantitiesDistinguishOwners: true, reports,
+  }, null, 2), contentType: "application/json" });
+  await capture(page, info, "large-trades-linked-distinct-owners-restored");
+});
+
+test("native PNG refreshes pending pane geometry before freezing its execution frame", async ({ page }, info) => {
+  test.skip(info.project.name !== "desktop", "One deterministic scheduling falsifier; real responsive pointer/touch acceptance is separate.");
+  test.setTimeout(120_000);
+  await prepare(page); await observeTradePng(page);
+  await page.addInitScript(() => {
+    localStorage.setItem("mm.inds", JSON.stringify(["largeTrades", "rsi"]));
+    localStorage.setItem("mm.chartSettings", JSON.stringify({ paneButtons: "always" }));
+  });
+  await openFixture(page); await settledTradeChart(page, 1);
+  const rsi = page.locator(".chart-overlays > div").filter({ has: page.locator(".lg-name").getByText(/^RSI/) });
+  await rsi.getByRole("button", { name: "Move pane up", exact: true }).click();
+  await settledTradeChart(page, 1);
+  await downloadTradePng(page, info, "large-trades-before-pending-native-geometry");
+  const baseline = await page.evaluate(() => (window as unknown as {
+    __mmLargeTradesSnapshot: import("../lib/largeTrades/snapshot").LargeTradesExportFrame;
+  }).__mmLargeTradesSnapshot);
+  expect(baseline.plot.y).toBeGreaterThan(0);
+  await page.evaluate(() => {
+    const originalRequest = window.requestAnimationFrame.bind(window), originalCancel = window.cancelAnimationFrame.bind(window);
+    let next = 1_000_000; const held = new Map<number, FrameRequestCallback>();
+    const w = window as unknown as { __ltHeldRafCount(): number; __ltResumeRaf(): void };
+    w.__ltHeldRafCount = () => held.size;
+    w.__ltResumeRaf = () => {
+      window.requestAnimationFrame = originalRequest; window.cancelAnimationFrame = originalCancel;
+      const callbacks = [...held.values()]; held.clear(); callbacks.forEach((callback) => originalRequest(callback));
+    };
+    window.requestAnimationFrame = (callback) => { const id = ++next; held.set(id, callback); return id; };
+    window.cancelAnimationFrame = (id) => { if (!held.delete(id)) originalCancel(id); };
+  });
+  const proofs: { desired: number; actual: { top: number; height: number }; heldCallbacks: number;
+    frame: import("../lib/largeTrades/snapshot").LargeTradesExportFrame | null; text: string[]; filename: string }[] = [];
+  try {
+    for (const desired of [220, 100]) {
+      const geometry = await page.locator(".chart-wrap").evaluate((wrap) => {
+        const rows = [...wrap.querySelectorAll(".tv-lightweight-charts table tr")];
+        const price = rows.filter((row) => row.querySelector("canvas"))[1].getBoundingClientRect();
+        const separator = rows.find((row) => !row.querySelector("canvas") && row.getBoundingClientRect().height > 0)!.getBoundingClientRect();
+        return { priceHeight: price.height, x: separator.x + separator.width * .22, y: separator.y + separator.height / 2 };
+      });
+      await page.mouse.move(geometry.x, geometry.y); await page.mouse.down();
+      await page.mouse.move(geometry.x, geometry.y + geometry.priceHeight - desired, { steps: 8 }); await page.mouse.up();
+      // No layout-settling wait: the native screenshot must flush and synchronously measure.
+      const png = await downloadTradePng(page, info, "large-trades-pending-native-price-height-" + desired);
+      const proof = await page.evaluate((index) => {
+        const wrap = document.querySelector(".chart-wrap")!, root = wrap.getBoundingClientRect();
+        const price = [...wrap.querySelectorAll(".tv-lightweight-charts table tr")]
+          .filter((row) => row.querySelector("canvas"))[1].getBoundingClientRect();
+        const w = window as unknown as { __ltHeldRafCount(): number;
+          __mmLargeTradesSnapshot: import("../lib/largeTrades/snapshot").LargeTradesExportFrame | null };
+        return { actual: { top: price.y - root.y, height: price.height }, heldCallbacks: w.__ltHeldRafCount(),
+          frame: w.__mmLargeTradesSnapshot, text: window.__ltPngFrames[index].text };
+      }, png.index);
+      proofs.push({ desired, ...proof, filename: png.filename });
+    }
+  } finally {
+    await page.evaluate(() => (window as unknown as { __ltResumeRaf(): void }).__ltResumeRaf());
+  }
+  await info.attach("pending-native-geometry-proof", { body: JSON.stringify({
+    scheduling: "Page RAF callbacks held deliberately; real native separator input and actual PNG downloads",
+    baseline: baseline.plot, proofs, minimumUnclippedPriceHeight: 136,
+  }, null, 2), contentType: "application/json" });
+  const [ample, small] = proofs;
+  expect(ample.heldCallbacks).toBeGreaterThan(0);
+  expect(Math.abs(ample.actual.height - ample.desired)).toBeLessThan(1);
+  expect(ample.frame).not.toBeNull();
+  expect(Math.abs(ample.frame!.plot.y - ample.actual.top)).toBeLessThan(1);
+  expect(Math.abs(ample.frame!.plot.height - ample.actual.height)).toBeLessThan(1);
+  expect(ample.frame!.plot.y).not.toBe(baseline.plot.y);
+  expect(ample.frame!.markers.length).toBeGreaterThan(0);
+  expect(Math.abs(small.actual.height - small.desired)).toBeLessThan(1);
+  expect(small.frame).toBeNull();
+  expect(small.text.join(" ")).not.toContain("Synthetic fixture");
+  for (const quantity of ["1,301", "1,500", "1,800", "1,600"]) expect(small.text).not.toContain(quantity);
+  await expect(page.getByTestId("large-trades-overlay")).toHaveAttribute("data-owner-visible", "false");
+  await expect(page.locator('[data-testid="large-trade-marker"]:visible')).toHaveCount(0);
 });

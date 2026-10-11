@@ -162,6 +162,7 @@ const LargeTradesOverlay = forwardRef<LargeTradesOverlayHandle, Props>(function 
       if (!controlBounds) { hideControls(); return; } // Never leave quantities without reachable provenance.
       controls.style.left = controlBounds.x + "px"; controls.style.top = controlBounds.y + "px";
       controls.style.width = controlBounds.width + "px"; controls.style.height = controlBounds.height + "px";
+      controls.dataset.compact = String(controlBounds.width < 300 || controlBounds.height < 200);
       controls.style.visibility = "visible"; controls.removeAttribute("aria-hidden");
       root.dataset.ownerVisible = "true";
       if (paintedView.current !== viewRef.current

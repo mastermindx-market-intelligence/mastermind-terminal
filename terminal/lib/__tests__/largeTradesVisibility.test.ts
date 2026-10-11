@@ -48,11 +48,13 @@ describe("large-trade bounded controls and mandatory context", () => {
     expect(largeTradesControlBounds({ x: 64, y: 120, width: 800, height: 300 }, 934, 620,
       { x: 100, y: 200, width: 500, height: 160 })).toEqual({ x: 100, y: 200, width: 500, height: 160 });
   });
-  it("admits exactly one44px target with8px padding and rejects one pixel less", () => {
-    expect(largeTradesControlBounds({ x: 0, y: 0, width: 60, height: 108 }, 60, 108))
-      .toEqual({ x: 0, y: 48, width: 60, height: 60 });
-    expect(largeTradesControlBounds({ x: 0, y: 0, width: 60, height: 107 }, 60, 107)).toBeNull();
-    expect(largeTradesControlBounds({ x: 0, y: 0, width: 59, height: 108 }, 59, 108)).toBeNull();
+  it("admits the complete CSS footprint of a 44px target and rejects one pixel less", () => {
+    expect(largeTradesControlBounds({ x: 0, y: 0, width: 198, height: 136 }, 198, 136))
+      .toEqual({ x: 0, y: 48, width: 198, height: 88 });
+    expect(largeTradesControlBounds({ x: 0, y: 0, width: 198, height: 135 }, 198, 135)).toBeNull();
+    expect(largeTradesControlBounds({ x: 0, y: 0, width: 197, height: 136 }, 197, 136)).toBeNull();
+    // The earlier 60px layer left only a44px border-box dock before its own padding.
+    expect(largeTradesControlBounds({ x: 0, y: 0, width: 60, height: 108 }, 60, 108)).toBeNull();
   });
   it("co-hides the feature for an absent or fully scrolled-out price owner", () => {
     expect(largeTradesControlBounds(null, 390, 600)).toBeNull();
