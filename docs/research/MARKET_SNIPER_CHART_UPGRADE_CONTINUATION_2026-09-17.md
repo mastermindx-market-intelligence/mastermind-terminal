@@ -1,0 +1,35 @@
+# Market Sniper chart upgrade — implementation continuation
+
+This is a repository implementation/proof packet, not an Agent OS mirror or an execution grant. Current Chairman intent is full Sol leadership of the already-approved end-to-end charting upgrade. Organizational publication remains owed to Macro Agent OS behind the exact guide-read gate; no substitute authority/store is created.
+
+## Mission and end state
+Turn the existing chart components into truthful, useful reversal/reclaim and continuation workflows, then strengthen structural context and qualify scientific discovery/options use. Preserve existing RSI/Pulse/MACD, IndicatorCanvas, chart context, drawing, Setup Species, TOI, Live Entry Radar and Options/Evaluation owners. Neither a preset nor a CI pass validates alpha. No extra signal/ranking/event/identity/queue/control plane.
+
+## Fresh source authority used in this session
+Mastermind protected Skillpack8b231e8267f09cfb002ed3e87bec14906dce1720, compatible1.0.1/bootstrap1. Terminal root/terminal agent rules and CLAUDE read; current #600 DEPLOY.md and W2A preflight contract read. Terminal base75c22083249e7a1529be3d6baf819b9ad5ea509f is accepted #600 ops-only advancement over a9b615f41fc44a6cc6a3588ef1aace26226b3eec.
+
+## Exact carriers / latest verified effects
+- **#602 / CHART-RECLAIM-A1-20260917-SOL-001:** confirmed signal timing + actual alert-runtime repair. Reviewed semantic head1f9c8ac1dcc637379e4e6d0d02125d2a464f9e5a. Existing native controller refreshed onto master as65b074e77fc8590524c231d785eda66fc0317993; changed files are the already accepted #600 ops/test/doc paths only. Native CI run35276504258 is proven in_progress on that exact head/branch; tablet/desktop jobs105388315312/105388315332 are actual running jobs, not just queued delivery. Native auto-merge is armed under protected checks. No candidate deployment yet.
+- **#606 / CHART-RECLAIM-WORKSPACE-20260917-SOL-001:** the existing study/preset owner now configures a real Reversal & Reclaim chart with custom-input preservation, actual entitlements, inspectable source limits and one-step undo. First review's undo-expiry defect and successor's keyboard focus defect were both reproduced and repaired on this same branch. Current commit's proof document is the authority for exact latest tests; reviewer/native CI return remains pending at this packet boundary. Keep the existing source carrier; do not restart the audit.
+- **#604 / CHART-RECLAIM-A2-GEOMETRY-20260917-SOL-001, head312a67b136f77eefe479536dbcfef89b7ecb043f:** original/remaining-R math and candidate drawing preserved, but visual overlap rejected. Exact refinement operation was safety-denied and same-carrier readback proved no effect. HOLD; no alternate writer/route, merge or deployment.
+- **#607 / CHART-DIVERGENCE-PRICE-LINKS-20260917-SOL-001, head6e96c8b2d033a7bd4727e6d84a681c280a723288:** paired price/RSI producer/projection is partial. Nine new tests pass, but one hygiene test fails on date formatting in computation and the ChartPanel consumer is not wired. The intended presentation repair was safety-denied; no effect was verified. HOLD, not a delivered indicator. No alternate route to the denied edit.
+
+No Executive job or child-worker START was fabricated. Direct Terminal source work stayed in separately owned ignored worktrees under the declared charting-app home. Native Codex GitHub review supplied read-only findings; it was not authorized to modify, deploy or purchase anything.
+
+## Production baseline, already verified; do not redo blindly
+At21:10:32Z on2026-09-17 the actual deployed alert sidecar's no-creds INTC demo produced zero total events for all five suites. Installed app marker was a9b615f... and bundleSHA2560eb09f10d356922e3bce24ccf420e1f785f39d9d8592f4fd8189d665a193019f. The candidate bundle on identical production bar files produces substantive historical event streams. This proves the deployed metadata/runtime bug, not deployed repair acceptance. Production input files were as-of2026-09-16, not claimed live quotes.
+
+#600 W2A production preflight already has accepted CLEAN receiptf119aa78c584fbe74329b0028efdaba4618bc77e2d0c8f76426ad32646718b43 and policySHA2560c5ee6c1c12691edb4a99b283019ffbccbd5224d5a5d1ebbba91ef95fb8fe9c5. Owner comment5720929901 accepts it. Do not duplicate its runner or W2B integration. This receipt is not a future candidate deploy receipt.
+
+## Exact next action and proof
+First consume #606's exact-successor review/native checks; repair only actual new findings on its carrier. #602 release is with its existing protected CI/merge owner: reconcile the latest semantic/source head when it returns, not by polling unchanged jobs or bypassing review/checks. Once merged and release-qualified, use the existing canonical VPS deployment wrapper, verify installed app AND sidecar bundle identity, rerun no-creds real-input demo, and prove the real user chart path. Production app marker alone does not prove the nonfatal sidecar build succeeded.
+
+Production Pro-workspace proof may require an authorized authenticated browser. Opera Browser was explicitly unconnected; no cookies or credentials were extracted or imported to bypass it. A fresh anonymous Playwright baseline was read-only, not a fake authenticated acceptance run. Resolve only the genuine authentication ceremony when that proof becomes the next gate.
+
+The exact blocked Macro guide read, #604 refinement, #607 presentation repair and optional keyboard apply/undo probe stay frozen until a material capability/permission invalidator. Their effects are reconciled as absent; do not reinterpret denial as success or replay them via another tool/worker. Source/PR proof remains recoverable even while organizational publication is owed.
+
+## Remaining parent capabilities
+Linked price/pane evidence remains #607, not complete. A real contextual forming/triggered setup projection must use existing VisualIntelligencePanel and TOI/Radar scientific owners. Contextual gap/zone lifecycle, nested lines/wedges, and validated scanner/options expressions follow the accepted first chart vertical; they are not authorized to invent new score/registry/clock planes. TOI data/clock #7094 remains open at5bb1bc68c99146fab040aade04bbf1903c51e5b7; Options control #6604 remains open at3319ac9dbf037592857de8cd270a686552fceb51. Integration notice is #602 comment5721352635, not a receiver assignment.
+
+## Do not redo / do not overclaim
+Do not re-audit the entire indicator catalogue, duplicate existing gap/profile/position tools, rerun accepted #600 proof without a material change, clone an engine, rewrite a STARTed/native-release carrier, or weaken source/copy/security tests. Terminal is currently explicitly dark-only; nominal light captures were rejected. Preserve null/missing prices, forming source bars, legacy dedupe clocks, custom chart settings, source provenance and invalidated patterns. No customer alerts or trades were sent for testing. Parent programme remains incomplete until real product and required scientific proof are accepted.
