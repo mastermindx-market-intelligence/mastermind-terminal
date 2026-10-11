@@ -1,0 +1,45 @@
+{
+  "captured_at": "2026-10-11T07:21:49.859509+00:00",
+  "base": "caf202fd5ac63c44ed09ddc758cab53d0c259beb",
+  "theme": "existing Terminal dark shell",
+  "viewports": {
+    "desktop": [
+      1440,
+      900
+    ],
+    "tablet": [
+      820,
+      1180
+    ],
+    "mobile": [
+      390,
+      844
+    ]
+  },
+  "languages": [
+    "en",
+    "zh"
+  ],
+  "states": [
+    "unavailable",
+    "recovered"
+  ],
+  "source_and_capture_sha256": {
+    "terminal/components/settings/SectionPortfolioTargets.tsx": "2ffd3c0a7a3c15d80ccf5c52902e19d1cad05fdc28c6b7747c3144681448e8c0",
+    "terminal/components/settings/__tests__/SectionPortfolioTargets.test.tsx": "a1b6596ff18269d428da95b6f38976759a44660a8bbf779bcb4222e8341e302e",
+    "terminal/e2e/settings-targets-retry.spec.ts": "6a4072ffbc0f125fde00c6572ed35190a84d2ece240d23f0bb9cd023eb8698fe",
+    "terminal/docs/pr-crops/mo-b-settings-retry/desktop-en-recovered.png": "8852bf8a539b65fadc518a4b8f83b396bd8c25f99983bfb95d7a678674363dc9",
+    "terminal/docs/pr-crops/mo-b-settings-retry/desktop-en-unavailable.png": "05ad189b3be1fb5d8b944c2b342646a1ebb25fa8cc28f9e94384f4b081b05e1f",
+    "terminal/docs/pr-crops/mo-b-settings-retry/desktop-zh-recovered.png": "3c32104205eef254708136ef073635dcc5c2dbd1e0b037665da6cb3c7756fb98",
+    "terminal/docs/pr-crops/mo-b-settings-retry/desktop-zh-unavailable.png": "5cb2f34d8629899bdb298516bf481d1a9ab904dd59b8aeffaaa42cde635ea703",
+    "terminal/docs/pr-crops/mo-b-settings-retry/mobile-en-recovered.png": "844a340c8d79ed43d50ad2c182e153df968f0df244f6ce83048dca19135d18c1",
+    "terminal/docs/pr-crops/mo-b-settings-retry/mobile-en-unavailable.png": "72a15149d7938c7f0f0e727ebaad2dcc19a0d9e9d98363696d07add40660cf01",
+    "terminal/docs/pr-crops/mo-b-settings-retry/mobile-zh-recovered.png": "9ec78924bd9685bdc585080b99c248f80f0ae89e363a8f53149d851d2f3c3295",
+    "terminal/docs/pr-crops/mo-b-settings-retry/mobile-zh-unavailable.png": "4be423bdda67356b0f3872869c128c4e37af2202910f618abb90cd91a3a75872",
+    "terminal/docs/pr-crops/mo-b-settings-retry/tablet-en-recovered.png": "977f135357e8b8ebee3c5328e44cd9e4da5556e592d7c8f8c00ef972135812eb",
+    "terminal/docs/pr-crops/mo-b-settings-retry/tablet-en-unavailable.png": "dff671e0fe57d6b67f1ec16fc032cabaf1031bb5d985ec9df3408dc2de7be98f",
+    "terminal/docs/pr-crops/mo-b-settings-retry/tablet-zh-recovered.png": "907bc9f613f17ae7ff47f9ec590f93bf9efb3454f0b0fc26f7d1ad71484166a0",
+    "terminal/docs/pr-crops/mo-b-settings-retry/tablet-zh-unavailable.png": "fbbc42e3772a2966fbe0b861ad16173acf21eebc997bf31f9fe0d1c265ba38bb"
+  },
+  "proof": "Local fixture identity and intercepted targets GET; not production sign-in or persistence acceptance."
+}
