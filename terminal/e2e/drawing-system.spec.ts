@@ -1714,6 +1714,68 @@ test("legacy indicator-pane drawing coordinates migrate into pane value space", 
     .toHaveAttribute("clip-path", /drawing-pane-clip/);
 });
 
+test("legacy pane drawings wait for a usable scale and migrate automatically on its paint", async ({ page }) => {
+  test.skip((page.viewportSize()?.width ?? 1440) <= 860, DESKTOP_ONLY);
+  const saves: DrawingSavePayload[] = [];
+  let instrumented = 0;
+  await page.addInitScript(() => { (window as any).__holdLegacyPaneScale = true; });
+  // Control only the public LWC scale input. Migration and its scheduling remain
+  // the actual application code; releasing autoscale must be sufficient on its own.
+  await page.route("**/*ChartPanel*js", async (route) => {
+    const response = await route.fetch();
+    const body = await response.text();
+    const anchor = "const series = seriesForPane(paneKey);";
+    if (!body.includes(anchor)) return route.fulfill({ response });
+    instrumented += 1;
+    await route.fulfill({ response, body: body.replace(anchor, `${anchor}
+      if (series && paneKey === "macd") {
+        window.__legacyPaneDrawing = () => drawRef.current.find((drawing) => drawing.id === "legacy-macd-pane");
+        if (!series.__legacyScaleControlled) {
+          series.__legacyScaleControlled = true;
+          const scaleOf = series.priceScale.bind(series);
+          const yOf = series.priceToCoordinate.bind(series);
+          const priceAt = series.coordinateToPrice.bind(series);
+          series.priceScale = () => {
+            const scale = scaleOf(); const rangeOf = scale.getVisibleRange.bind(scale);
+            scale.getVisibleRange = () => window.__holdLegacyPaneScale ? {from: 0, to: 0} : rangeOf();
+            return scale;
+          };
+          series.priceToCoordinate = (price) => window.__holdLegacyPaneScale ? 0 : yOf(price);
+          series.coordinateToPrice = (y) => window.__holdLegacyPaneScale ? 0 : priceAt(y);
+        }
+        window.__legacyPaneScale = series.priceScale();
+      }`) });
+  });
+  await openTerminal(page, {
+    drawings: [{
+      id: "legacy-macd-pane", kind: "trendline",
+      points: [{ t: "2026-06-12", p: 0 }, { t: "2026-06-18", p: 1 }],
+      color: "#4d82ff", width: 2, dash: "solid", meta: { pane: "macd" },
+    }],
+    onPut: (payload) => saves.push(payload),
+  });
+  expect(instrumented, "the real ChartPanel module should receive the controlled scale input").toBeGreaterThan(0);
+  await expect.poll(() => page.evaluate(() => (window as any).__legacyPaneScale?.getVisibleRange())).toEqual({ from: 0, to: 0 });
+  await page.waitForTimeout(250); // Hold the invalid scale through multiple actual canvas paints.
+  expect(saves.flatMap((payload) => payload.drawings ?? []).filter((drawing) => drawing.id === "legacy-macd-pane")).toHaveLength(0);
+  expect(await page.evaluate(() => (window as any).__legacyPaneDrawing())).toMatchObject({
+    points: [{ t: "2026-06-12", p: 0 }, { t: "2026-06-18", p: 1 }], meta: { pane: "macd" },
+  });
+  expect(await page.evaluate(() => (window as any).__legacyPaneDrawing().meta.paneCoordSpace)).toBeUndefined();
+  await page.evaluate(() => {
+    (window as any).__holdLegacyPaneScale = false;
+    (window as any).__legacyPaneScale.setAutoScale(true);
+  });
+  await expect.poll(() => saves.flatMap((payload) => payload.drawings ?? [])
+    .filter((drawing) => drawing.id === "legacy-macd-pane" && drawing.meta?.paneCoordSpace === "pane-value-v2"),
+  { timeout: 5_000 }).toHaveLength(1);
+  const migrated = saves.flatMap((payload) => payload.drawings ?? []).find((drawing) => drawing.id === "legacy-macd-pane");
+  const points = migrated?.points as { p: number }[];
+  expect(points).toHaveLength(2);
+  expect(points[0].p).not.toBe(0); expect(points[0].p).not.toBe(points[1].p);
+  await expect(page.locator('.pane.on .drawing-layer g[data-id="legacy-macd-pane"]')).toHaveAttribute("clip-path", /drawing-pane-clip/);
+});
+
 test("selecting a brush stroke shows its bounds, not a handle per sample", async ({ page }) => {
   test.skip((page.viewportSize()?.width ?? 1440) <= 860, DESKTOP_ONLY);
   await openTerminal(page);
