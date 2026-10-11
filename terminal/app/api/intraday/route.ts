@@ -1,10 +1,12 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
-import { fetchIntraday, isIntradayTf, isSecondTf, classify } from "@/lib/intradaySources";
+import { fetchIntraday, fetchUsEquityDateStudyBars, isIntradayTf, isSecondTf, classify } from "@/lib/intradaySources";
+import { fetchHubOvernightWallDate } from "@/lib/overnightHistory";
 import { isMacroSymbol } from "@/lib/macroSymbols";
 import { withStoredHistory } from "@/lib/intradayStore";
 import { buildIntradaySourceEvidence, type IntradayAssemblyTrace } from "@/lib/intradayEvidence";
-import { filterBarsToSessionDate, type Bar6 } from "@/lib/intradayShared";
+import { filterBarsToSessionDate, sessionEpoch, type Bar6 } from "@/lib/intradayShared";
+import { usRegularSessionWindow } from "@/lib/usEquitySessionClock";
 import { intradayFixture } from "@/lib/flowSource";
 import { rateLimit, tooMany } from "@/lib/rateLimit";
 
@@ -25,7 +27,20 @@ type IntradayResponse = {
   note?: string;
   error?: string;
   session_date?: string;
+  regular_session_window?: { start_minute: number; end_minute: number } | null;
   source_evidence?: ReturnType<typeof buildIntradaySourceEvidence>;
+  overnight_evidence?: {
+    source: "alpaca-boats";
+    status: "available" | "empty" | "not_configured" | "unavailable";
+    bars: number;
+    note?: string;
+  };
+  session_study_evidence?: {
+    source: "massive-date";
+    status: "available" | "empty" | "unavailable";
+    bars: number;
+    note?: string;
+  };
 };
 type EvidenceState = {
   trace: IntradayAssemblyTrace;
@@ -42,6 +57,8 @@ const TTL = 45_000; // delayed data doesn't move faster than this; also bounds u
 // (and every other viewer of the same symbol) into one upstream call.
 const SECOND_TTL = 10_000;
 const SESSION_DATE_RE = /^\d{4}-\d{2}-\d{2}$/;
+const SESSION_STUDY_TTL = 60_000;
+const SESSION_STUDY_CACHE = new Map<string, { at: number; bars: Bar6[] }>();
 
 function isValidSessionDate(date: string): boolean {
   if (!SESSION_DATE_RE.test(date)) return false;
@@ -63,8 +80,24 @@ function responseForSession(
   const bars = date && Array.isArray(data.bars)
     ? filterBarsToSessionDate(data.bars as Bar6[], date)
     : data.bars;
+  let regularSessionWindow: IntradayResponse["regular_session_window"] | undefined;
+  if (date && classify(data.t) === "us" && !isMacroSymbol(data.t)) {
+    try {
+      const window = usRegularSessionWindow(sessionEpoch(date, "12:00"));
+      regularSessionWindow = window
+        ? { start_minute: window[0], end_minute: window[1] }
+        : null;
+    } catch {
+      regularSessionWindow = undefined;
+    }
+  }
   const response: IntradayResponse = date
-    ? { ...data, bars, session_date: date }
+    ? {
+        ...data,
+        bars,
+        session_date: date,
+        ...(regularSessionWindow !== undefined ? { regular_session_window: regularSessionWindow } : {}),
+      }
     : { ...data, bars };
   if (!evidence) return response;
   return {
@@ -85,6 +118,99 @@ function errorMessage(error: unknown, fallback: string): string {
   return error instanceof Error && error.message ? error.message : fallback;
 }
 
+async function withRequestedSessionStudy(
+  response: IntradayResponse,
+  sym: string,
+  tf: string,
+  date: string,
+  requested: boolean,
+): Promise<IntradayResponse> {
+  if (
+    !requested ||
+    !date ||
+    response.bars.length > 0 ||
+    classify(sym) !== "us" ||
+    isMacroSymbol(sym) ||
+    isSecondTf(tf)
+  ) return response;
+
+  const key = `${sym.toUpperCase()}|${tf}|${date}`;
+  const hit = SESSION_STUDY_CACHE.get(key);
+  let bars: Bar6[];
+  if (hit && Date.now() - hit.at < SESSION_STUDY_TTL) {
+    bars = hit.bars;
+  } else {
+    try {
+      bars = await fetchUsEquityDateStudyBars(sym, tf, true, date);
+      SESSION_STUDY_CACHE.set(key, { at: Date.now(), bars });
+    } catch (error: unknown) {
+      return {
+        ...response,
+        session_study_evidence: {
+          source: "massive-date",
+          status: "unavailable",
+          bars: 0,
+          note: errorMessage(error, "date-scoped session study unavailable"),
+        },
+      };
+    }
+  }
+
+  if (!bars.length) {
+    return {
+      ...response,
+      session_study_evidence: { source: "massive-date", status: "empty", bars: 0 },
+    };
+  }
+  // The original evidence describes the empty stored/recent assembly. Once this fallback supplies
+  // bars, do not attach that trace to different bytes; emit an explicit date-study receipt instead.
+  const rest: IntradayResponse = { ...response };
+  delete rest.source_evidence;
+  return {
+    ...rest,
+    bars,
+    session_study_evidence: { source: "massive-date", status: "available", bars: bars.length },
+  };
+}
+
+async function withRequestedOvernight(
+  response: IntradayResponse,
+  sym: string,
+  tf: string,
+  date: string,
+  requested: boolean,
+): Promise<IntradayResponse> {
+  if (!requested || !date || classify(sym) !== "us" || isMacroSymbol(sym)) return response;
+  const overnight = await fetchHubOvernightWallDate(sym, tf, date);
+  if (!overnight.bars.length) {
+    return {
+      ...response,
+      overnight_evidence: {
+        source: overnight.source,
+        status: overnight.status,
+        bars: 0,
+        ...(overnight.note ? { note: overnight.note } : {}),
+      },
+    };
+  }
+
+  // BOATS owns only 20:00–04:00. Preserve every canonical Massive/store bar and fill the
+  // disjoint overnight epochs; if an upstream ever overlaps, the canonical bar wins.
+  const byEpoch = new Map<number, Bar6>(overnight.bars.map((bar) => [bar[0], bar]));
+  for (const bar of response.bars) byEpoch.set(bar[0], bar);
+  const bars = [...byEpoch.values()].sort((a, b) => a[0] - b[0]);
+  return {
+    ...response,
+    bars,
+    overnight_evidence: {
+      source: overnight.source,
+      status: overnight.status,
+      bars: overnight.bars.length,
+      ...(overnight.note ? { note: overnight.note } : {}),
+    },
+  };
+}
+
 export async function GET(req: Request) {
   const rl = rateLimit(req, { name: "intraday" });
   if (!rl.ok) return tooMany(rl);
@@ -93,7 +219,16 @@ export async function GET(req: Request) {
   const tf = (searchParams.get("tf") || "").trim();
   const date = (searchParams.get("date") || "").trim();
   const ext = searchParams.get("ext") === "1"; // regular session by default; extended is explicit opt-in
-  if (!sym || !isIntradayTf(tf) || (date && !isValidSessionDate(date))) {
+  const overnightMode = (searchParams.get("overnight") || "").trim();
+  const overnight = ext && (overnightMode === "1" || overnightMode === "only");
+  const overnightOnly = ext && overnightMode === "only";
+  if (
+    !sym ||
+    !isIntradayTf(tf) ||
+    (date && !isValidSessionDate(date)) ||
+    (overnightMode && overnightMode !== "1" && overnightMode !== "only") ||
+    (overnightOnly && !date)
+  ) {
     return NextResponse.json({ error: "bad params" }, { status: 400 });
   }
 
@@ -150,13 +285,24 @@ export async function GET(req: Request) {
     if (!user) return NextResponse.json({ error: "unauthenticated" }, { status: 401 });
   }
 
+  // The calendar's prior-wall-date request needs only 20:00–24:00 BOATS bars. Do not spend
+  // Massive/store work on pre/RTH/post data that the client will discard.
+  if (overnightOnly) {
+    const base: IntradayResponse = { t: sym, tf, bars: [], session_date: date };
+    const served = await withRequestedOvernight(base, sym, tf, date, true);
+    return NextResponse.json(served, { headers: { "Cache-Control": "no-store" } });
+  }
+
   // `date` joins the key for the SECOND band only. Minute-band entries are deliberately
   // date-agnostic — one deep-history read serves the full chart and any single-session study —
   // but a second-band fetch is itself scoped to one session, so two dates are two entries.
   const ckey = `${sym}|${tf}|${ext ? 1 : 0}|${source}|${basis}${seconds ? `|${date || "latest"}` : ""}`;
   const hit = CACHE.get(ckey);
   if (hit && Date.now() - hit.at < (seconds ? SECOND_TTL : TTL)) {
-    return NextResponse.json(seconds ? hit.data : responseForSession(hit.data, date, hit.evidence, "cache"));
+    if (seconds) return NextResponse.json(hit.data);
+    const cached = responseForSession(hit.data, date, hit.evidence, "cache");
+    const studied = await withRequestedSessionStudy(cached, sym, tf, date, overnight);
+    return NextResponse.json(await withRequestedOvernight(studied, sym, tf, date, overnight));
   }
 
   // ── Second band: single-session live window, no store ────────────────────────────────────
@@ -211,13 +357,21 @@ export async function GET(req: Request) {
       : undefined);
   } catch (error: unknown) {
     // store read failed entirely (unlikely; readStore swallows its own errors)
-    if (hit) return NextResponse.json(responseForSession(hit.data, date, hit.evidence, "stale_cache"));
+    if (hit) {
+      const stale = responseForSession(hit.data, date, hit.evidence, "stale_cache");
+      const studied = await withRequestedSessionStudy(stale, sym, tf, date, overnight);
+      return NextResponse.json(await withRequestedOvernight(studied, sym, tf, date, overnight));
+    }
     return NextResponse.json({ t: sym, tf, bars: [], error: errorMessage(error, "store error") });
   }
 
   if (bars.length === 0 && liveErr) {
     // nothing at all — propagate the live error; stale cache wins if present
-    if (hit) return NextResponse.json(responseForSession(hit.data, date, hit.evidence, "stale_cache"));
+    if (hit) {
+      const stale = responseForSession(hit.data, date, hit.evidence, "stale_cache");
+      const studied = await withRequestedSessionStudy(stale, sym, tf, date, overnight);
+      return NextResponse.json(await withRequestedOvernight(studied, sym, tf, date, overnight));
+    }
     return NextResponse.json({ t: sym, tf, bars: [], error: liveErr });
   }
 
@@ -230,5 +384,8 @@ export async function GET(req: Request) {
     trace, assembledAtMs, symbol: sym, timeframe: tf, extended: ext,
   } : null;
   CACHE.set(ckey, { at: assembledAtMs, data, evidence });
-  return NextResponse.json(responseForSession(data, date, evidence, "new_assembly"), { headers: { "Cache-Control": "no-store" } });
+  const response = responseForSession(data, date, evidence, "new_assembly");
+  const studied = await withRequestedSessionStudy(response, sym, tf, date, overnight);
+  const served = await withRequestedOvernight(studied, sym, tf, date, overnight);
+  return NextResponse.json(served, { headers: { "Cache-Control": "no-store" } });
 }
