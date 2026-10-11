@@ -96,6 +96,18 @@ export default function ChartPane({ idx, symbol, drawingOwnerKey, isActive, onAc
   // in when it is really on screen — `mm:terminal-visual-ready` fires after two frames, so it
   // means pixels, not "setData returned". A blank canvas for a second was the alternative.
   const [swapping, setSwapping] = useState(false);
+  // Command palette "Go to date…": only the ACTIVE pane listens, and only a request naming this
+  // pane AND its symbol opens the box — a request aimed at another chart can never land here.
+  const [gotoRequest, setGotoRequest] = useState(0);
+  useEffect(() => {
+    if (!isActive) return;
+    const onGoto = (event: Event) => {
+      const detail = (event as CustomEvent<{ pane?: number; symbol?: string }>).detail;
+      if (detail?.pane === idx && detail.symbol === symbol) setGotoRequest((n) => n + 1);
+    };
+    window.addEventListener("mm:open-goto-date", onGoto);
+    return () => window.removeEventListener("mm:open-goto-date", onGoto);
+  }, [idx, isActive, symbol]);
   const swappedOnce = useRef(false);
   useEffect(() => {
     // The first paint has nothing to cross-fade from.
@@ -207,6 +219,7 @@ export default function ChartPane({ idx, symbol, drawingOwnerKey, isActive, onAc
           setSettingsModalOpen(true);
         }}
         extendedEligible={extendedEligible}
+        openGotoRequest={gotoRequest}
       />
       <ChartSettingsModal
         open={settingsModalOpen}
