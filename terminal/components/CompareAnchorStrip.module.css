@@ -66,6 +66,16 @@
 .markCaveat { display: inline-flex; align-items: center; gap: 3px; font-weight: 600; }
 .markIncomparable { color: var(--warn); }
 .markCaveat { color: var(--text-2); }
+.flag {
+  flex: none;
+  height: 20px;
+  padding: 0 7px;
+  border: 1px dashed currentColor;
+  border-radius: var(--r-pill);
+  white-space: nowrap;
+}
+.flag[data-cmp-flag="caveat"] { border-style: dotted; }
+.flag b { color: inherit; }
 
 .dot {
   flex: none;
@@ -176,6 +186,21 @@
    top:52px / right:9px of the workspace, z-index 7) is shown. Depending on the toolbar row above the
    pane it lands on this bar (tablet) or on the first panel row (phone): both rows keep its column
    clear so neither control is ever under the other. */
+/* Phone: the region keeps its accessible name, the bar drops its visible title, and the flag keeps
+   only the glyph + symbol on screen (its words stay in the accessibility tree), so the chip row
+   keeps usable width beside it. */
+@media (max-width: 640px) {
+  .title { display: none; }
+  .flagWords {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+}
+
 @media (max-width: 860px) {
   .bar,
   .policy { padding-right: 56px; }

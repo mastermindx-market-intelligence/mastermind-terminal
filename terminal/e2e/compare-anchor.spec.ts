@@ -353,6 +353,14 @@ test.describe("anchored benchmark comparison (E08)", () => {
     await expect(chip(page, "0700.HK").locator("[data-cmp-mark]")).toBeVisible();
     await expect(chip(page, "QQQ")).toHaveAttribute("data-cmp-comparability", "comparable");
     await expect(chip(page, "QQQ").locator("[data-cmp-mark]")).toHaveCount(0);
+    // The chip row scrolls sideways; the flag outside it stays on screen at every width.
+    const flag = page.locator("[data-cmp-flag]");
+    await expect(flag).toHaveAttribute("data-cmp-flag", "incomparable");
+    await expect(flag).toBeInViewport({ ratio: 1 });
+    await expect(flag).toContainText("0700.HK");
+    await expect(flag).toContainText("not like-for-like");   // textContent: phone clips the words visually only
+    if (isPhoneViewport(page)) expect((await flag.boundingBox())!.width).toBeLessThan(110);
+    if (testInfo.project.name !== "desktop") await expectClearOfFullscreenFloat(page, ["[data-cmp-flag]", "[data-cmp-toggle]"]);
     await expect.poll(() => compareLines(page), ACT).toEqual({
       "0700.HK": { color: "rgba(232,163,61,0.5)", lineStyle: 3 },   // long-dashed, dimmed
       QQQ: { color: "#9d86ff", lineStyle: 0 },                     // the saved style, untouched

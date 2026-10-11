@@ -120,6 +120,15 @@ export default function CompareAnchorStrip({ host, timeframe, legs, compareCfg, 
 
   const receiptFor = (cs: string): CmpLegReceipt | null => current?.legs.find((l) => l.symbol === cs) ?? null;
 
+  // AC-E08-03: the chips scroll sideways, so a marked chip can sit out of view. One flag outside the
+  // scroller names the leg(s) that are not like-for-like (else the caveat legs) at every width.
+  const marked = intraday ? [] : legs.flatMap((l) => {
+    const mark = legComparabilityMark(receiptFor(l.cs));
+    return mark ? [{ cs: l.cs, state: mark.state }] : [];
+  });
+  const flagState = marked.some((m) => m.state === "incomparable") ? "incomparable" : marked.length ? "caveat" : null;
+  const flagged = marked.filter((m) => m.state === flagState).map((m) => m.cs);
+
   return (
     <div
       className={styles.strip}
@@ -173,6 +182,17 @@ export default function CompareAnchorStrip({ host, timeframe, legs, compareCfg, 
             );
           })}
         </ul>
+        {flagState && (
+          <span
+            className={`${styles.flag} ${flagState === "incomparable" ? styles.markIncomparable : styles.markCaveat}`}
+            // plain-language-ok: data attribute, not rendered text
+            data-cmp-flag={flagState}
+          >
+            <span aria-hidden="true">{flagState === "incomparable" ? "≠" : "≈"}</span>
+            <b>{flagged.length > 1 ? `${flagged[0]} +${flagged.length - 1}` : flagged[0]}</b>
+            <span className={styles.flagWords}>{t(`cmpaFlag_${flagState}`)}</span>
+          </span>
+        )}
         <button
           ref={toggleRef}
           type="button"

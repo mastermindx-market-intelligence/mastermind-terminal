@@ -59,6 +59,8 @@ export const COMPARE_ANCHOR_LEX: Record<string, [string, string]> = {
   cmpaMark_basis_unknown: ["not like-for-like · basis unknown", "不可直接比较 · 口径未知"],
   cmpaMark_basis_mismatch: ["not like-for-like · bases differ", "不可直接比较 · 口径不同"],
   cmpaMark_basis_adjusted: ["caveat · both adj. close", "注意 · 均为复权收盘"],
+  cmpaFlag_incomparable: ["not like-for-like", "不可直接比较"],
+  cmpaFlag_caveat: ["caveat · adj. close", "注意 · 复权收盘"],
   cmpaLook_incomparable: ["Line drawn long-dashed and dimmed: not like-for-like with {host}", "线条以长虚线淡化显示：与 {host} 不可直接比较"],
   cmpaLook_caveat: ["Line drawn sparse-dotted: both adjusted closes", "线条以稀疏点线显示：均为复权收盘价"],
   cmpaUnmatched: ["{n} sessions left blank · no observation", "{n} 个交易日留空 · 无观测值"],
