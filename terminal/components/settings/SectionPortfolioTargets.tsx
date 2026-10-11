@@ -4,7 +4,7 @@ import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react
 import { PortfolioTargetsReadout } from "@/components/PortfolioView";
 import { IconExtLink, SectionHead } from "./icons";
 import type { SectionProps } from "./types";
-import type { PortfolioTargetsSummary } from "@/lib/portfolioTargets";
+import { isPortfolioTargetsSummary, type PortfolioTargetsSummary } from "@/lib/portfolioTargets";
 
 // ── Portfolio construction targets (MO-DELTA-003 / B-F08-13) ────────────────
 //
@@ -74,9 +74,9 @@ export default function SectionPortfolioTargets({ t, lang, onClose, email, user 
     setState({ kind: "loading" });
     fetch("/api/portfolio/targets", { headers: { Accept: "application/json" }, signal: ac.signal })
       .then((r) => (r.ok ? r.json() : Promise.reject(new Error(String(r.status)))))
-      .then((body: { summary?: PortfolioTargetsSummary }) => {
+      .then((body: { summary?: unknown } | null) => {
         if (ac.signal.aborted) return;
-        if (!body || typeof body !== "object" || !body.summary) {
+        if (!isPortfolioTargetsSummary(body?.summary)) {
           setState({ kind: "unreadable" });
           return;
         }
@@ -145,8 +145,8 @@ export default function SectionPortfolioTargets({ t, lang, onClose, email, user 
         try {
           const refreshed = await fetch("/api/portfolio/targets", { headers: { Accept: "application/json" } });
           if (refreshed.ok) {
-            const body = await refreshed.json() as { summary?: PortfolioTargetsSummary };
-            if (body && body.summary && live()) {
+            const body = await refreshed.json() as { summary?: unknown } | null;
+            if (isPortfolioTargetsSummary(body?.summary) && live()) {
               setState({ kind: "loaded", summary: body.summary });
               painted = true;
             }
