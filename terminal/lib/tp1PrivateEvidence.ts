@@ -306,7 +306,8 @@ export function decodePrivateEvidence(args: {
       (clocksNs.source_complete_through_ns<end ||
        clocksNs.source_watermark_available_ns<clocksNs.source_complete_through_ns ||
        clocksNs.source_watermark_available_ns>cutoff ||
-       clocksNs.source_latest_print_available_ns>cutoff))
+       clocksNs.source_latest_print_available_ns>cutoff ||
+       clocksNs.source_latest_print_available_ns<start))
     throw new PrivateEvidenceRefusal("source:original_availability");
   const hashes: Record<string,string|null>={};
   for (const field of (kind==="minute"?
