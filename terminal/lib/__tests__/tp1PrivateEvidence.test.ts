@@ -1,7 +1,7 @@
 /** Phase A: synthetic, byte-exact frozen-v0 private evidence tests. No vendor feed. */
 import { createHash } from "node:crypto";
 import { describe, it, expect } from "vitest";
-import { decodePrivateEvidence, PrivateEvidenceRefusal, type EvidenceKind } from "../tp1PrivateEvidence";
+import { decodePrivateEvidence, pairPrivateEvidence, PrivateEvidenceRefusal, type EvidenceKind } from "../tp1PrivateEvidence";
 
 const START = "1791417600000000000";
 const END = "1791417660000000000";
@@ -250,5 +250,59 @@ describe("private source consumer: original ns precision without a second source
   });
   it("rejects unsafe counters outside JavaScript safe-integer range",()=>{
     reject("minute",m=>{(m.counts as Record<string,number>).n_sampled_prints=Number.MAX_SAFE_INTEGER+1;},/unsafe_count/);
+  });
+});
+
+describe("private minute + R0 joint source/cutoff compatibility",()=>{
+  const pair = (changeMinute?: (v:Record<string,unknown>)=>void,
+                changeResearch?: (v:Record<string,unknown>)=>void) =>
+    pairPrivateEvidence(decodePrivateEvidence(input("minute",changeMinute)),
+                        decodePrivateEvidence(input("research",changeResearch)));
+  it("pairs one source minute under the same original watermark and policy",()=>{
+    const p=pair();
+    expect(p.pairingState).toBe("PRIVATE_COMPATIBLE_ORIGINAL_SOURCE_UNPROVEN");
+    expect(p.ticker).toBe("SPY");
+    expect(p.session).toBe("2026-10-08:RTH");
+    expect(p.decisionNs).toBe(1791417662000000000n);
+    expect(p.sourceManifestSha256).toBe(SHA("b"));
+    expect(p.quotePolicySha256).toBe(SHA("f"));
+    expect(p.pairedArtifactsSha256).toMatch(/^[a-f0-9]{64}$/);
+    expect(p.productionApproved).toBe(false);
+    expect(p.publicDeliveryAllowed).toBe(false);
+    expect(p.sourceAuthenticated).toBe(false);
+  });
+  it("rejects a 1-nanosecond mismatch even when both originals separately pass",()=>{
+    expect(()=>pair(v=>{v.decision_ns="1791417662000000001";}))
+      .toThrowError(/original_clock_mismatch/);
+  });
+  it("rejects mixing one symbol with another valid original",()=>{
+    expect(()=>pair(v=>{v.ticker="QQQ";})).toThrowError(/symbol_session_mismatch/);
+  });
+  it("rejects source quote-policy or watermark revision mismatches",()=>{
+    expect(()=>pair(v=>{v.quote_policy_sha256=SHA("8");}))
+      .toThrowError(/source_policy_or_receipt_mismatch/);
+    expect(()=>pair(undefined,v=>{v.source_watermark_receipt_sha256=SHA("8");}))
+      .toThrowError(/source_policy_or_receipt_mismatch/);
+  });
+  it("rejects preserved valid but different provisional buy/sell totals",()=>{
+    expect(()=>pair(undefined,v=>{
+      const m=v.notional_usd as Record<string,string>;
+      m.buy_proxy_notional_usd="1010.0";
+      m.gross_sampled_notional_usd="2011.0";
+    })).toThrowError(/source_notional_mismatch/);
+  });
+  it("rejects research pretending to use tighter quote-age admission than source",()=>{
+    expect(()=>pair(undefined,v=>{v.source_quote_age_limit_ns="1000000000";}))
+      .toThrowError(/research_age_policy_too_strict/);
+  });
+  it("rejects differing print populations despite a matching market/session",()=>{
+    expect(()=>pair(undefined,v=>{
+      (v.n_observations as Record<string,number>).n_sampled_prints=3;
+    })).toThrowError(/source_population_mismatch/);
+  });
+  it("rejects a non-minute source pairing and swapped inputs",()=>{
+    const m=decodePrivateEvidence(input("minute"));
+    const r=decodePrivateEvidence(input("research"));
+    expect(()=>pairPrivateEvidence(r,m)).toThrowError(/wrong_private_artifact_types/);
   });
 });
