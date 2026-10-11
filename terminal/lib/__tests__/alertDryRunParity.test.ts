@@ -5,6 +5,13 @@
 // bar files, for every catalog event (with and without direction / strength filters) and
 // sequences, across a sweep of "today"s. A new alert created at the dry run's instant is exactly
 // the state the lane sees on that alert's first evaluation.
+//
+// Sequence FIRES need their own segment. At a real "now" (creation day = the newest bar's day or
+// later) only the creation day's bar clears the floor, and the evaluator completes step B only on a
+// bar strictly after step A, so a brand-new 2-step sequence can arm but never complete on its first
+// run. The sweep therefore also places the creation day several bars BEFORE the newest bar (a bar
+// file that already holds bars dated after the alert's creation day: same admitted data, same
+// initial state on both sides), which is where A-then-B completions above the floor exist.
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { readFile, stat } from "node:fs/promises";
@@ -110,12 +117,15 @@ describe("dry run ⇔ firing lane parity (AC-E17-01)", () => {
     let eventFires = 0;
     let seqFires = 0;
     let seqArms = 0;
+    let seqFiresAtRealNow = 0;
     const mismatches: string[] = [];
 
-    // Sweep "today" over the last bars of a growing history, and also a day after the last bar
-    // (weekend: the creation floor is past every bar — nothing can fire, on both sides).
+    // Sweep "today" over the last bars of a growing history, a day after the last bar (weekend:
+    // the creation floor is past every bar — nothing can fire, on both sides), and a creation day
+    // CREATED_BEFORE_NEWEST bars before the newest bar (sequence completions above the floor).
+    const CREATED_BEFORE_NEWEST = 6;
     for (const count of [180, 195, 205, 214, 223, 232, 241, 250, 259, 268]) {
-      for (const lag of [0, 2]) {
+      for (const lag of [0, 2, -CREATED_BEFORE_NEWEST]) {
         writeBars(dir, count);
         const lastIdx = count - 1;
         const nowMs = T0 + (lastIdx + lag) * DAY + 18 * 3_600_000;
@@ -139,7 +149,15 @@ describe("dry run ⇔ firing lane parity (AC-E17-01)", () => {
           const tag = `${count}+${lag} ${JSON.stringify(a.condition)}`;
           if (laneFired !== dryFired) mismatches.push(`${tag}: lane=${laneFired} dry=${dryFired}`);
           if (a.condition.type === "suite_sequence") {
-            if (laneFired) seqFires++;
+            if (laneFired) {
+              seqFires++;
+              if (lag >= 0) seqFiresAtRealNow++;
+              // Same canonical completion note and value as the fire the lane recorded.
+              const trig = (p.find((x) => x.active === false)?.condition as { triggered?: { note?: string; value?: number | null } })?.triggered;
+              if (trig?.note !== `${SYM} — ${r.decision?.note}`) mismatches.push(`${tag}: seq note lane=${trig?.note} dry=${r.decision?.note}`);
+              if ((trig?.value ?? null) !== (r.decision?.value ?? null)) mismatches.push(`${tag}: seq value lane=${trig?.value} dry=${r.decision?.value}`);
+              if (r.sequenceState?.output !== "completed") mismatches.push(`${tag}: seq fired but dry state=${r.sequenceState?.output}`);
+            }
             // The lane persists an arming as condition._sq; the dry run reports the SAME arming as
             // simulated (never recorded). Same stepIdx, same armed day.
             const sq = p.at(-1)?.condition as { _sq?: { stepIdx?: number; armedT?: number } } | undefined;
@@ -156,12 +174,16 @@ describe("dry run ⇔ firing lane parity (AC-E17-01)", () => {
         }
       }
     }
-    if (process.env.E17_PARITY_STATS) process.stdout.write(`parity: compared=${compared} eventFires=${eventFires} seqFires=${seqFires} seqArms=${seqArms}\n`);
+    if (process.env.E17_PARITY_STATS) {
+      process.stdout.write(`parity: compared=${compared} eventFires=${eventFires} seqFires=${seqFires} (atRealNow=${seqFiresAtRealNow}) seqArms=${seqArms}\n`);
+    }
     expect(mismatches).toEqual([]);
     expect(compared).toBeGreaterThan(2000);
-    // Non-vacuous: the sweep must actually contain fires and armings for parity to mean anything.
+    // Non-vacuous: the sweep must actually contain event fires, sequence completions AND sequence
+    // armings for parity to mean anything — each family on its own, so none can silently vanish.
     expect(eventFires).toBeGreaterThan(5);
-    expect(seqFires + seqArms).toBeGreaterThan(5);
+    expect(seqFires).toBeGreaterThan(5);
+    expect(seqArms).toBeGreaterThan(5);
   }, 240_000);
 
   it("the lane's own bar file is what the dry run reads (no second parser)", () => {

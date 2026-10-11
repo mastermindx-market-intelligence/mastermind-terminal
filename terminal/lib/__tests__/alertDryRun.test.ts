@@ -18,7 +18,8 @@ import {
 } from "@/lib/alertDryRun";
 import type { DryRunDeps, DryRunResult } from "@/lib/alertDryRun";
 import { ALERT_DRY_RUN_SCHEMA, dryRunResult } from "@/lib/alertDryRunContract";
-import { SUITE_ALERT_EVENTS, evalSuiteEvent, evalSuiteSequence } from "@/lib/suiteAlerts";
+import { SUITE_ALERT_EVENTS, SUITE_EVENT_FRESH_BARS, evalSuiteEvent, evalSuiteSequence } from "@/lib/suiteAlerts";
+import { ALERT_DRY_RUN_LEX } from "@/lib/alertDryRunLex";
 import type { SuiteAlertCondition, SuiteSequenceCondition } from "@/lib/suiteAlerts";
 import type { SuiteEvent } from "@/lib/indicator-canvas/types";
 import type { SuiteSymbolData } from "@/lib/suiteAlertInputs";
@@ -402,5 +403,31 @@ describe("client reading of the wire (readDryRunResult)", () => {
       expect(r.schema).toBe(ALERT_DRY_RUN_SCHEMA);
     }
     expect(spy).toHaveBeenCalledTimes(4);
+  });
+});
+
+describe("trace copy derives its numbers and dates (no hard-coded window, no ambiguous 'today')", () => {
+  it("the fresh-window step interpolates the evaluator constant in both languages", () => {
+    expect(SUITE_EVENT_FRESH_BARS).toBeGreaterThan(0);
+    for (const s of ALERT_DRY_RUN_LEX["drStep.fresh_window"]) {
+      expect(s).toContain("{n}");
+      expect(s).not.toMatch(/\d/); // the bar count comes only from SUITE_EVENT_FRESH_BARS
+    }
+  });
+
+  it("every floor-bearing step names the UTC creation day", () => {
+    for (const k of ["drStep.creation_floor", "drStep.sequence_replay", "drStep.prior_history"]) {
+      for (const s of ALERT_DRY_RUN_LEX[k]) {
+        expect(s).toContain("{date}");
+        expect(s).toContain("UTC");
+      }
+    }
+  });
+
+  it("no dry-run string says 'today' (the floor is a UTC calendar day, not the viewer's local day)", () => {
+    for (const [en, zh] of Object.values(ALERT_DRY_RUN_LEX)) {
+      expect(en).not.toMatch(/\btoday\b/i);
+      expect(zh).not.toMatch(/今天|今日/);
+    }
   });
 });

@@ -15,7 +15,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { readDryRunResult } from "@/lib/alertDryRunContract";
 import type { DryRunResult, DryRunTraceStep } from "@/lib/alertDryRunContract";
-import { SUITE_ALERT_EVENTS } from "@/lib/suiteAlerts";
+import { SUITE_ALERT_EVENTS, SUITE_EVENT_FRESH_BARS } from "@/lib/suiteAlerts";
 import type { SuiteAlertCondition, SuiteSequenceCondition } from "@/lib/suiteAlerts";
 import { useAlertDryRunT } from "@/lib/alertDryRunLex";
 import s from "./AlertDryRunPanel.module.css";
@@ -231,7 +231,7 @@ function Details({ result: r, T, eventName }: { result: DryRunResult; T: TFn; ev
               </div>
               <div className={s.cell}>
                 <dt>{T("drCreationFloor")}</dt>
-                <dd>{c.creationFloorDate}</dd>
+                <dd>{c.creationFloorDate} UTC</dd>
               </div>
             </>
           )}
@@ -255,7 +255,9 @@ function Details({ result: r, T, eventName }: { result: DryRunResult; T: TFn; ev
             {r.trace.map((st: DryRunTraceStep) => (
               <li key={st.id} className={s.step} data-step={st.id} data-status={st.status}>
                 <span className={s.chip} data-status={st.status}>{T(`drSt.${st.status}`)}</span>
-                <span className={s.stepText}>{T(`drStep.${st.id}`)}</span>
+                <span className={s.stepText}>
+                  {fill(T(`drStep.${st.id}`), { n: SUITE_EVENT_FRESH_BARS, date: c?.creationFloorDate ?? T("drUnknown") })}
+                </span>
                 {st.at && <span className={s.date}>{st.at}</span>}
               </li>
             ))}

@@ -5,7 +5,9 @@
 // created. READ-ONLY: this handler reads the caller's session, asks the billing authority whether
 // the plan admits the condition's tier, and reads public/data/<SYM>.json. It never queries or
 // writes the alerts table, trigger history or the run/outbox receipts (it never calls
-// supabase.from), never writes a file, and never sends a notification.
+// supabase.from), never writes a file, and never sends a notification. No writes or sends: its only
+// network call is the read-only entitlement lookup (lib/entitlement isPaidTier/isProTier → GET
+// /api/me on the billing service) that the alerts POST route itself makes; this file holds no fetch.
 //
 // Gate order: rate limit → session → admission → plan → data. A refusal at any step is an
 // explicit cannot_evaluate / unsupported verdict, never "not met".

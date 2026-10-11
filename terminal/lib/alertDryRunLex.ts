@@ -77,15 +77,18 @@ export const ALERT_DRY_RUN_LEX: Record<string, [string, string]> = {
   drUnknown: ["unknown", "未知"],
 
   "drStep.data": ["Daily bars loaded", "已载入日线"],
-  "drStep.fresh_window": ["Only events confirmed in the last 3 bars can fire", "只有最近3根K线内确认的事件才能触发"],
+  "drStep.fresh_window": ["Only events confirmed in the last {n} bars can fire", "只有最近{n}根K线内确认的事件才能触发"],
   "drStep.event_in_window": ["An event of this type confirmed in the fresh window", "新鲜窗口内确认了此类事件"],
   "drStep.filters": ["Direction / strength filter met", "满足方向/强度筛选"],
-  "drStep.creation_floor": ["Confirmed on or after the creation day (today)", "在创建日（今天）或之后确认"],
+  "drStep.creation_floor": ["Confirmed on or after the creation day ({date}, UTC)", "在创建日（{date}，UTC）或之后确认"],
   "drStep.initial_state": ["Starts from a new alert's exact state: no prior events", "从新提醒的确切状态开始：无先前事件"],
-  "drStep.sequence_replay": ["Step A, then step B within the bar limit, confirmed today or later", "先A后B且在K线数限制内，今天或之后确认"],
+  "drStep.sequence_replay": [
+    "Step A, then step B within the bar limit, both confirmed on or after {date} (UTC)",
+    "先A后B且在K线数限制内，均在 {date}（UTC）或之后确认",
+  ],
   "drStep.prior_history": [
-    "Events before today are not replayed (that would invent alert history)",
-    "不重放今天之前的事件（否则会虚构提醒历史）",
+    "Events before {date} (UTC) are not replayed (that would invent alert history)",
+    "不重放 {date}（UTC）之前的事件（否则会虚构提醒历史）",
   ],
 
   "drSt.pass": ["met", "满足"],

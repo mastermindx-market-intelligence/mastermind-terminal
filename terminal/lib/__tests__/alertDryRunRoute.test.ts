@@ -5,7 +5,10 @@
 //     sequences, under every paid/pro combination (the dry run never previews what its caller
 //     could not save);
 //   • read-only proof: across every path (refusal, stale, evaluated, fired) the handler never
-//     touches the store (supabase.from is never called), never calls fetch, and writes no file;
+//     touches the store (supabase.from is never called), writes no file, and makes no fetch of its
+//     own. Scope of the fetch spy: lib/entitlement is mocked here, so the spy proves the handler and
+//     the dry-run graph send nothing; in production the only network call is the read-only
+//     entitlement GET (isPaidTier/isProTier → billing /api/me) shared with the alerts POST route;
 //   • the e2e fixture identity is inert in production.
 import { readFileSync, readdirSync, statSync } from "node:fs";
 import path from "node:path";
@@ -124,7 +127,8 @@ beforeEach(() => {
 });
 
 afterEach(() => {
-  // The read-only invariant, after EVERY test: the dry run never reached the store or the network.
+  // The read-only invariant, after EVERY test: the dry run never reached the store, and made no
+  // network call of its own (the entitlement lookup, a read-only GET, is mocked above).
   expect(H.fromCalls.filter((p) => p === "dry")).toEqual([]);
   expect(fetchSpy).not.toHaveBeenCalled();
   fetchSpy.mockRestore();

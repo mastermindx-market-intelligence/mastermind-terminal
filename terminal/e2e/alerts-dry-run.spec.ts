@@ -86,7 +86,9 @@ const SEQ_ARMED = {
     { id: "prior_history", status: "unsupported" },
   ],
   recent: [],
-  sequenceState: { input: "initial", output: "simulated_armed", armedDate: "2026-10-08" },
+  // Step A on the creation day itself: the evaluator drops confirmations at or below the floor,
+  // so a fresh alert can only arm on a bar from its creation day onward.
+  sequenceState: { input: "initial", output: "simulated_armed", armedDate: "2026-10-09" },
 };
 
 type Lang = "en" | "zh";
@@ -187,6 +189,10 @@ for (const lang of ["en", "zh"] as const) {
     await expect(panel.getByTestId("alert-dry-run-trace").locator("li")).toHaveCount(5);
     await expect(panel.locator('li[data-step="event_in_window"][data-status="pass"]')).toContainText("2026-10-09");
     await expect(panel.getByTestId("alert-dry-run-recent").locator("li")).toHaveCount(2);
+    // The creation floor is a UTC calendar day, named as such (never an ambiguous "today").
+    await expect(panel.locator('li[data-step="creation_floor"]')).toContainText("2026-10-09");
+    await expect(panel.locator('li[data-step="creation_floor"]')).toContainText("UTC");
+    await expect(panel).not.toContainText(lang === "en" ? "today" : "今天");
     if (lang === "en") {
       await expect(panel.locator('[data-verdict="would_trigger"]')).toContainText("Would trigger now");
       await expect(panel).toContainText("Read-only: nothing is created, armed, acknowledged or sent.");
@@ -202,32 +208,39 @@ for (const lang of ["en", "zh"] as const) {
   });
 }
 
-test("sequence mode reports a SIMULATED arming from the exact initial state", async ({ page, baseURL }, testInfo) => {
-  const writes = await setup(page, "en", baseURL);
-  const posted: Array<{ condition?: { type?: string; steps?: Array<{ event: string }> } }> = [];
-  await page.route("**/api/alerts/dry-run", async (route) => {
-    posted.push(route.request().postDataJSON());
-    await route.fulfill({ json: SEQ_ARMED });
+for (const lang of ["en", "zh"] as const) {
+  test(`sequence mode reports a SIMULATED arming from the exact initial state (${lang})`, async ({ page, baseURL }, testInfo) => {
+    const writes = await setup(page, lang, baseURL);
+    const posted: Array<{ condition?: { type?: string; steps?: Array<{ event: string }> } }> = [];
+    await page.route("**/api/alerts/dry-run", async (route) => {
+      posted.push(route.request().postDataJSON());
+      await route.fulfill({ json: SEQ_ARMED });
+    });
+    const panel = await openSuiteForm(page);
+    await page.locator('select:has(option[value="seq"])').selectOption("seq", { timeout: 20_000 });
+    await panel.getByTestId("alert-dry-run-go").click();
+    await expect(panel).toHaveAttribute("data-dry-run-verdict", "not_met", { timeout: 15_000 });
+
+    expect(posted).toHaveLength(1);
+    expect(posted[0].condition?.type).toBe("suite_sequence");
+    expect(posted[0].condition?.steps?.map((s) => s.event)).toEqual(["bos", "choch"]);
+    // The browser never supplies recorded state: no _se / _sq / triggered in the body.
+    expect(JSON.stringify(posted[0])).not.toMatch(/"_se"|"_sq"|"triggered"/);
+
+    await expect(panel.locator('[data-dry-run-seq="simulated_armed"]')).toContainText(lang === "en" ? "SIMULATED" : "模拟");
+    await expect(panel.locator('[data-dry-run-seq="simulated_armed"]')).toContainText("2026-10-09");
+    await expect(panel.locator('li[data-step="prior_history"][data-status="unsupported"]')).toBeVisible();
+    await expect(panel.locator('[data-verdict="not_met"]')).toContainText(lang === "en" ? "Would not trigger now" : "现在不会触发");
+    // Trace copy derives the fresh-window size from the evaluator constant and names the UTC
+    // creation day instead of an ambiguous "today".
+    await expect(panel.locator('li[data-step="fresh_window"]')).toContainText(lang === "en" ? "last 3 bars" : "最近3根K线");
+    await expect(panel.locator('li[data-step="prior_history"]')).toContainText("2026-10-09");
+    await expect(panel.locator('li[data-step="prior_history"]')).toContainText("UTC");
+    await expectContained(page);
+    await shot(page, testInfo, `e17-sequence-simulated-${lang}`);
+    expect(writes).toEqual([]);
   });
-  const panel = await openSuiteForm(page);
-  await page.locator('select[aria-label="Sequence"]').selectOption("seq");
-  await panel.getByTestId("alert-dry-run-go").click();
-  await expect(panel).toHaveAttribute("data-dry-run-verdict", "not_met", { timeout: 15_000 });
-
-  expect(posted).toHaveLength(1);
-  expect(posted[0].condition?.type).toBe("suite_sequence");
-  expect(posted[0].condition?.steps?.map((s) => s.event)).toEqual(["bos", "choch"]);
-  // The browser never supplies recorded state: no _se / _sq / triggered in the body.
-  expect(JSON.stringify(posted[0])).not.toMatch(/"_se"|"_sq"|"triggered"/);
-
-  await expect(panel.locator('[data-dry-run-seq="simulated_armed"]')).toContainText("SIMULATED");
-  await expect(panel.locator('[data-dry-run-seq="simulated_armed"]')).toContainText("2026-10-08");
-  await expect(panel.locator('li[data-step="prior_history"][data-status="unsupported"]')).toBeVisible();
-  await expect(panel.locator('[data-verdict="not_met"]')).toContainText("Would not trigger now");
-  await expectContained(page);
-  await shot(page, testInfo, "e17-sequence-simulated-en");
-  expect(writes).toEqual([]);
-});
+}
 
 test("refusals and outages are explicit: never 'would not trigger'", async ({ page, baseURL }) => {
   const writes = await setup(page, "en", baseURL);
