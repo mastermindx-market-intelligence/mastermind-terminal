@@ -25,6 +25,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useLang } from "../../lib/i18n";
 import { pick } from "../../lib/finFormat";
 import type { Fund, Bar } from "../../lib/fund";
+import { GUEST_IDENTITY, type AccountIdentity } from "../../lib/accountIdentity";
 
 import OverviewPage from "./OverviewPage";
 import StatementsPage from "./StatementsPage";
@@ -42,6 +43,7 @@ import TechLabPanel from "./TechLabPanel";
 import TranscriptDrawer from "./TranscriptDrawer";
 import TranscriptsPage from "./TranscriptsPage";
 import CompanyIntelligencePage from "./CompanyIntelligencePage";
+import CompanyIntelligencePrivate from "./CompanyIntelligencePrivate";
 import FinComparePage from "./FinComparePage";
 import ResearchWorkspaceNav from "./ResearchWorkspaceNav";
 import { isTranscriptId } from "../../lib/transcripts";
@@ -74,8 +76,14 @@ const PAGE_LABELS: Record<FinPage, [string, string]> = {
   compare: ["Compare", "对比"],
 };
 
+const signInForPrivateIntelligence = () => window.location.assign("/login");
+
 export interface MegaPaneProps {
   sym: string;
+  /** Canonical account identity from the host's existing authentication boundary. */
+  identity?: AccountIdentity;
+  /** The host has settled its company cursor; omitted hosts remain disabled. */
+  privateEnabled?: boolean;
   fund: Fund | null;
   /** True while the shell's deferred getFund is in flight — gates the Analyst skeleton. */
   fundLoading?: boolean;
@@ -103,6 +111,8 @@ export interface MegaPaneProps {
 
 export default function MegaPane({
   sym,
+  identity = GUEST_IDENTITY,
+  privateEnabled = false,
   fund,
   fundLoading = false,
   quote,
@@ -291,12 +301,20 @@ export default function MegaPane({
         <div className="fin-body" key={page} id="fin-active-panel" role="tabpanel" aria-labelledby={`fin-tab-${page}`}>
           {page === "overview" && <OverviewPage sym={sym} fund={fund} name={displayName} onNavigate={navigate} />}
           {page === "intelligence" && (
-            <CompanyIntelligencePage
-              sym={sym}
-              name={displayName}
-              onOpenTx={openTranscript}
-              onEvidenceOpenChange={setIntelligenceEvidenceOpen}
-            />
+            <>
+              <CompanyIntelligencePrivate
+                identity={identity}
+                symbol={sym}
+                enabled={privateEnabled}
+                onSignIn={signInForPrivateIntelligence}
+              />
+              <CompanyIntelligencePage
+                sym={sym}
+                name={displayName}
+                onOpenTx={openTranscript}
+                onEvidenceOpenChange={setIntelligenceEvidenceOpen}
+              />
+            </>
           )}
           {page === "statements" && (
             <StatementsPage sym={sym} fund={fund} name={displayName} onOpenTx={openTranscript} />
