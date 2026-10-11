@@ -17,7 +17,20 @@ import { parseGlanceIndex, REGIME_COLORS, REGIME_RANK, type GexRegime, type Glan
 import { makeGexT } from "@/components/gexdesk/gexStrings";
 import { notClassified, verdictLabel } from "@/lib/plainLabels";
 import AssetLogo from "@/components/AssetLogo";
+// E03 cross-market screening: native taxonomies (no crosswalk), listing currency on every money
+// cell, one currency scope per monetary floor, and named clears on a market change. The rules
+// live in lib/crossMarketScreen.ts; this view only wires them in.
+import { useClassificationScan } from "@/lib/useClassificationScan";
+import { TAXONOMY_IDS, labelOf, listingHref, type TaxonomyId } from "@/lib/classificationScan";
+import {
+  NO_EXCLUSIONS, UNCLASSIFIED, classPredicateOf, compareMoney, effectiveTaxonomy, formatFloor, formatMoney,
+  floorState, labelStanding, moneyCurrency, reconcileFilters, resolveCurrencyScope, resolveLabel, sanitizeCrossMarketFields,
+  screenCrossMarket, sectorDisplay, smartScreenHandover, type ClearedFilter, type ExclusionCounts, type MoneyCurrency, type SectorDisplay,
+} from "@/lib/crossMarketScreen";
+import { TAXONOMY_LEX, YAHOO_SECTOR_ZH, useCrossMarketT } from "@/lib/crossMarketLex";
+import CrossMarketStrip, { CurrencyBadge, EmptyExclusionNote, SectorCellContent, type LabelCoverage } from "@/components/screener/CrossMarketStrip";
 import SmartScreensPanel from "@/components/screener/SmartScreensPanel";
+import type { ScreenerFilters } from "@/lib/smartScreen/predicate";
 // E01 technical screen: one bounded scan read (/data/scan/technical.json), classified per row by
 // lib/technicalScan — never inferred from per-symbol OHLC in the browser.
 import TechnicalScreenBar, { TechnicalCell, TECH_CELL_CLASS, TECH_ON_CLASS, TECH_TH_CLASS } from "@/components/screener/TechnicalScreenBar";
@@ -49,8 +62,9 @@ import { useTechnicalT } from "@/lib/technicalScanLex";
  *  3. Fundamental filters (P/E, dividend yield, margins, growth) — these live in
  *     per-symbol fund.json only; needs a merged scan file. fund.json units law:
  *     percents are 0..1 FRACTIONS.
- *  4. Sector for CN/HK names — the gics enrichment is US-only; CN would need
- *     SW-industry from Tushare. Hence scr2SectorNote.
+ *  4. Sector for CN/HK names — BUILT (E03) as native taxonomies from each listing's
+ *     owner record (scan/classification.json), shown with their taxonomy and age.
+ *     There is still no crosswalk between them (e.g. SW-industry ↔ GICS); none is faked.
  *  5. Fresh market caps — reference.parquet is frozen Jul-9 (open macro bug), so
  *     the mcap floors ship labeled approximate (scr2McapNote) until it refreshes.
  *  6. Preset sync to the account (Supabase user_metadata, like marketPrefs) —
@@ -66,7 +80,7 @@ type Row = {
   verdict: string | null; vts?: string | null; wr: number | null; pf: number | null;
   cagr: number | null; regimeBull: boolean | null;
   // derived ONCE at normalization — the sort comparator must never recompute these
-  dv: number | null;      // dollar volume (last × vol) — what the $ Vol column shows AND sorts by
+  dv: number | null;      // traded value (last × vol) in the LISTING'S currency — never USD by assumption
   offHi: number | null;   // % away from the 52-week high (negative = below)
   offLo: number | null;   // % above the 52-week low
   mktId: MarketId;        // marketOf(sym, row), precomputed for the market select
@@ -101,19 +115,24 @@ type Density = "c" | "k";
 type FilterState = {
   market: "all" | MarketId;
   asset: "all" | string;    // manifest `sec`
-  sector: "all" | string;   // manifest `gics`
+  sector: "all" | string;   // a label of `taxonomy`, or UNCLASSIFIED
   signal: Sig;
   uptrend: boolean;
-  liq: number;              // 0 = no floor
-  mcap: number;             // 0 = no floor
+  liq: number;              // traded-value floor in the `ccy` scope currency; 0 = no floor
+  mcap: number;             // USD (US reference data); 0 = no floor
   w52: W52;
   move: Move;
   unpriced: boolean;        // true = also show rows with no price
+  taxonomy?: TaxonomyId | null; // the native taxonomy `sector` belongs to (E03)
+  classStale?: boolean;         // a stale label may match — explicit opt-in (E03)
+  ccy?: string;                 // "auto" | the currency a traded-value floor applies in (E03)
+  liqCcy?: string | null;       // the currency `liq` was set in; null = not yet bound (E03)
 };
 
 const DEFAULT_FILTERS: FilterState = {
   market: "all", asset: "all", sector: "all", signal: "any",
   uptrend: false, liq: 0, mcap: 0, w52: "any", move: "any", unpriced: false,
+  taxonomy: null, classStale: false, ccy: "auto", liqCcy: null,
 };
 
 type SortKey =
@@ -200,12 +219,14 @@ const MOVE_OPTS: { v: Move; key: string }[] = [
 // ── presets ────────────────────────────────────────────────────────────────
 const BUILTIN_PRESETS: { id: string; key: string; f: Partial<FilterState> }[] = [
   { id: "psBuys", key: "scr2PsBuys", f: { signal: "buy" } },
-  { id: "psGainers", key: "scr2PsGainers", f: { move: "up3", liq: 5e6 } },
-  { id: "psDecliners", key: "scr2PsDecliners", f: { move: "down3", liq: 5e6 } },
-  { id: "psNearHigh", key: "scr2PsNearHigh", f: { w52: "nearHigh", liq: 5e6 } },
+  // A floor names its currency: the all-markets presets screen in USD (their auto scope), the
+  // single-market ones in that market's listing currency — never one number read in two units.
+  { id: "psGainers", key: "scr2PsGainers", f: { move: "up3", liq: 5e6, liqCcy: "USD" } },
+  { id: "psDecliners", key: "scr2PsDecliners", f: { move: "down3", liq: 5e6, liqCcy: "USD" } },
+  { id: "psNearHigh", key: "scr2PsNearHigh", f: { w52: "nearHigh", liq: 5e6, liqCcy: "USD" } },
   { id: "psDrawdown", key: "scr2PsDrawdown", f: { w52: "dd30" } },
-  { id: "psCn", key: "scr2PsCn", f: { market: "cn", liq: 20e6 } },
-  { id: "psHk", key: "scr2PsHk", f: { market: "hk", liq: 5e6 } },
+  { id: "psCn", key: "scr2PsCn", f: { market: "cn", liq: 20e6, liqCcy: "CNY" } },
+  { id: "psHk", key: "scr2PsHk", f: { market: "hk", liq: 5e6, liqCcy: "HKD" } },
 ];
 
 type SavedPreset = { id: string; name: string; f: FilterState };
@@ -223,7 +244,7 @@ function readPresets(): SavedPreset[] {
     return p.items
       .filter((x: any) => x && typeof x.id === "string" && typeof x.name === "string" && x.f && typeof x.f === "object")
       .slice(0, PRESET_CAP)
-      .map((x: any) => ({ id: x.id, name: x.name, f: { ...DEFAULT_FILTERS, ...x.f } as FilterState }));
+      .map((x: any) => ({ id: x.id, name: x.name, f: { ...DEFAULT_FILTERS, ...x.f, ...sanitizeCrossMarketFields(x.f) } as FilterState }));
   } catch { return []; }
 }
 function writePresets(items: SavedPreset[]) {
@@ -264,7 +285,7 @@ export default function ScreenerView({ identity }: { identity: AccountIdentity }
   // ── data state ─────────────────────────────────────────────────────────
   const [rows, setRows] = useState<Row[]>([]);
   const [asOf, setAsOf] = useState<string>("");
-  const [loaded, setLoaded] = useState(false);
+  const [manifestLoaded, setLoaded] = useState(false);
   // Four distinct load states, never collapsed: skeleton (!loaded), a scan (loaded, err null),
   // "the manifest is not published" (absent) and "we could not reach it" (unavailable). The
   // last two both mean NO SCAN — but they are different facts, so the why-line names which.
@@ -405,6 +426,15 @@ export default function ScreenerView({ identity }: { identity: AccountIdentity }
     });
   }, [rows, glance]);
 
+  // E03: listing classifications + currencies. The table waits for this read to SETTLE (any
+  // outcome) — a money cell drawn before the listing currency is known would read as "?" and
+  // then change unit under the user. A failed or absent scan is a stated state in the strip,
+  // never a reason to hide the manifest.
+  const { source: scan, retry: retryScan } = useClassificationScan();
+  const loaded = manifestLoaded && (err !== null || scan !== null);
+  // One evaluation clock per scan read: ages (stale labels, old generations) are fixed at read.
+  const now = useMemo(() => (scan ? Date.now() : 0), [scan]);
+
   // invalidate() also clears the in-session 404 negative cache, without which a manifest that
   // once 404'd would answer `absent` from memory forever and Retry could never reach the network.
   const retry = useCallback(() => {
@@ -441,13 +471,105 @@ export default function ScreenerView({ identity }: { identity: AccountIdentity }
     return n;
   }, [rows]);
 
-  // Only the GICS values actually present in this manifest. On a fixture manifest (no gics at
-  // all) the select correctly offers "All sectors" alone — that is honest, not a bug.
-  const sectorOptions = useMemo(() => {
+  // ── E03 cross-market projection ────────────────────────────────────────
+  const ct = useCrossMarketT();
+  const zi = lang === "zh" ? 1 : 0;
+  // Labels are stored as their source's own string and only DISPLAYED translated, so a language
+  // change never changes what a filter selects.
+  const labelText = useCallback((tax: TaxonomyId, l: string) => (
+    tax === "gics_sector" ? gicsLabel(l) : tax === "yahoo_sector" && lang === "zh" ? (YAHOO_SECTOR_ZH[l] ?? l) : l
+  ), [gicsLabel, lang]);
+  const tax = effectiveTaxonomy(f);
+
+  // Per listing, computed once per scan/taxonomy: the unit of its money cells and what its
+  // sector cell says (with taxonomy, age and staleness). `key` is the sector sort key.
+  const annot = useMemo(() => {
+    const m = new Map<string, { cur: MoneyCurrency; disp: SectorDisplay; key: string | null }>();
+    if (!scan) return m;
+    for (const r of rows) {
+      const disp = sectorDisplay(scan, r, tax, now);
+      m.set(r.sym, {
+        cur: moneyCurrency(scan, r.sym),
+        disp,
+        key: disp.kind === "label" ? `${TAXONOMY_IDS.indexOf(disp.taxonomy)}|${disp.label}` : null,
+      });
+    }
+    return m;
+  }, [rows, scan, tax, now]);
+
+  // The market population a screen is set against: the named market, or — for "all markets" —
+  // the markets this user's preferences show (unless widened for the session).
+  // Prefs narrow the base scope only when the user has NOT named a market: an explicit market
+  // selection always shows that market (explicit intent wins, as in SearchModal).
+  const prefsGate = prefsReady && !showAllMarkets && prefs.enabled.length < ALL_MARKETS.length;
+  const gateByPrefs = f.market === "all" && prefsGate;
+  const populationOf = useCallback((market: FilterState["market"]) => rows.filter((r) => (
+    market !== "all" ? r.mktId === market : !prefsGate || isSymbolVisible(r.sym, r, prefs)
+  )), [rows, prefs, prefsGate]);
+  const marketPop = useMemo(() => populationOf(f.market), [populationOf, f.market]);
+
+  // The ONE currency a traded-value floor (and the traded-value sort) applies in. Auto = USD
+  // for the all-markets screen, the market's most common listing currency otherwise.
+  const scope = useMemo(() => {
+    const cur = marketPop.map((r) => annot.get(r.sym)?.cur ?? { kind: "unknown" as const, reason: "scan_pending" });
+    return resolveCurrencyScope(f.ccy, cur, f.market === "all" ? "USD" : null);
+  }, [marketPop, annot, f.ccy, f.market]);
+  const autoCode = useMemo(() => {
+    if (scope.auto) return scope.code;
+    const cur = marketPop.map((r) => annot.get(r.sym)?.cur ?? { kind: "unknown" as const, reason: "scan_pending" });
+    return resolveCurrencyScope("auto", cur, f.market === "all" ? "USD" : null).code;
+  }, [scope, marketPop, annot, f.market]);
+
+  // Labels present (current or stale) in this market under the screened taxonomy. A label the
+  // user already picked stays selectable even when no listing here carries it.
+  const labelOptions = useMemo(() => {
+    if (!scan || !tax) return [] as string[];
     const s = new Set<string>();
-    for (const r of rows) if (r.gics) s.add(r.gics);
-    return Array.from(s).sort((a, b) => gicsLabel(a).localeCompare(gicsLabel(b)));
-  }, [rows, gicsLabel]);
+    for (const r of marketPop) {
+      const c = resolveLabel(scan, r, tax, now);
+      const st = labelStanding(c);
+      if (st === "current" || st === "stale") s.add(labelOf(c) as string);
+    }
+    if (f.sector !== "all" && f.sector !== UNCLASSIFIED) s.add(f.sector);
+    return Array.from(s).sort((a, b) => labelText(tax, a).localeCompare(labelText(tax, b)));
+  }, [scan, tax, marketPop, now, f.sector, labelText]);
+
+  // Filters a market change (or a preset) cleared because they describe nothing in the new
+  // market — named in the strip until dismissed, never silently dropped.
+  const [cleared, setCleared] = useState<{ market: string; items: ClearedFilter[] } | null>(null);
+  // Until the scan has been READ (pending, absent, unreadable) listing currencies and labels are
+  // unknown, so nothing is cleared for lacking them: the filters are kept as set, and a floor
+  // stays named but inactive (floorState) until a read can apply it.
+  const scanReady = scan?.kind === "ready";
+  const reconcileTo = useCallback((next: FilterState): FilterState => {
+    const r = reconcileFilters(next, populationOf(next.market), {
+      currency: (row: Row) => annot.get(row.sym)?.cur ?? { kind: "unknown", reason: "scan_pending" },
+      mcap: (row: Row) => row.mcap,
+      label: (row: Row, t2: TaxonomyId) => (scan
+        ? resolveLabel(scan, row, t2, now)
+        : { taxonomy: t2, coverage: { status: "unavailable", reason: "scan_pending" }, cell: null }),
+    }, { preferred: next.market === "all" ? "USD" : null, readable: scanReady });
+    setCleared(r.cleared.length > 0 ? { market: next.market, items: r.cleared } : null);
+    return r.next;
+  }, [scan, scanReady, populationOf, annot, now]);
+
+  // Whether the traded-value floor is APPLIED here (one currency, read), or set but inactive —
+  // and then named in the strip and on its chip, never silently filtering on an unread unit.
+  const floorSt = useMemo(() => floorState(f.liq, f.liqCcy, scope.code, scanReady), [f.liq, f.liqCcy, scope.code, scanReady]);
+  const appliedLiq = floorSt.kind === "applied" ? f.liq : 0;
+  const floorText = formatFloor(f.liq, f.liqCcy ?? scope.code);
+  // A floor set before any currency was read (or by a legacy preset without one) is bound to
+  // the first scope it applies in — from then on a scope change clears it by name.
+  useEffect(() => {
+    if (!scanReady || scope.code === null || !(f.liq > 0) || f.liqCcy != null) return;
+    const code = scope.code;
+    setF((cur) => (cur.liq > 0 && cur.liqCcy == null ? { ...cur, liqCcy: code } : cur));
+  }, [scanReady, scope.code, f.liq, f.liqCcy]);
+
+  // E04 smart screens hold a GICS sector and a floor in US dollars. The bar is handed to them only
+  // in a sense that grammar can hold; otherwise Save refuses (smartScreenHandover), so a Yahoo
+  // label is never filed as GICS nor an HKD floor as dollars.
+  const smartFilters = useMemo(() => smartScreenHandover(f, floorSt, scope).filters, [f, floorSt, scope]);
 
   // ── view mode: signal scope switches the whole column set ──────────────
   const signalView = f.signal !== "any" || f.uptrend;
@@ -463,15 +585,18 @@ export default function ScreenerView({ identity }: { identity: AccountIdentity }
   // ── filtered view (single pass) ────────────────────────────────────────
   // Aggregates are computed AFTER the predicates run, on the filtered array — the old
   // component accumulated them inside the predicate, so the counts never reacted to a filter.
-  const { view, nBuy, nSell, hiddenN, hiddenFrom, techReq, techHidden } = useMemo(() => {
+  const { view, nBuy, nSell, hiddenN, hiddenFrom, excl, coverage, techReq, techHidden } = useMemo(() => {
     const qRaw = search.trim();
     const q = qRaw.toLowerCase();
     const explicitMkt = f.market !== "all";
-    // Prefs narrow the base scope only when the user has NOT named a market: an explicit
-    // market selection always shows that market (explicit intent wins, as in SearchModal).
-    const gateByPrefs = !explicitMkt && prefsReady && !showAllMarkets && prefs.enabled.length < ALL_MARKETS.length;
     let hidden = 0;
     const from = new Set<MarketId>();
+    // E03: the classification predicate (native taxonomy, stale only by opt-in) and the money
+    // floor (one currency scope) run after every other filter, so their exclusion counts and the
+    // current/stale/unclassified split describe rows that would OTHERWISE be results.
+    const pred = classPredicateOf(f);
+    const ex: ExclusionCounts = { ...NO_EXCLUSIONS };
+    const cov: LabelCoverage | null = scan && tax ? { current: 0, stale: 0, unclassified: 0, unavailable: 0 } : null;
     // E01: the technical screen's REQUESTED universe is every row the manifest filters admit
     // and the market gate shows; the coverage strip accounts for all of them (AC-E01-02).
     const techReq: string[] = [];
@@ -481,14 +606,12 @@ export default function ScreenerView({ identity }: { identity: AccountIdentity }
       if (!f.unpriced && r.last == null) return false;
       if (explicitMkt && r.mktId !== f.market) return false;
       if (f.asset !== "all" && r.sec !== f.asset) return false;
-      if (f.sector !== "all" && r.gics !== f.sector) return false;
 
       if (f.signal === "buy" && !isBuy(r.verdict)) return false;
       if (f.signal === "sell" && (r.verdict == null || isBuy(r.verdict))) return false;
       if (f.signal === "tracked" && r.verdict == null) return false;
       if (f.uptrend && r.regimeBull !== true) return false;
 
-      if (f.liq > 0 && (r.dv == null || r.dv < f.liq)) return false;
       if (f.mcap > 0 && (r.mcap == null || r.mcap < f.mcap)) return false;
 
       if (f.w52 === "nearHigh" && (r.offHi == null || r.offHi < -5)) return false;
@@ -506,8 +629,18 @@ export default function ScreenerView({ identity }: { identity: AccountIdentity }
       // zh names are searchable here now — they were unreachable in the old component
       if (q && !r.sym.toLowerCase().includes(q) && !r.name.toLowerCase().includes(q) && !(r.zh && r.zh.includes(qRaw))) return false;
 
+      const visible = !gateByPrefs || isSymbolVisible(r.sym, r, prefs);
+      if (scan) {
+        const cls = pred || cov ? resolveLabel(scan, r, tax as TaxonomyId, now) : null;
+        if (cov && cls && visible) cov[labelStanding(cls)]++;
+        const cur = annot.get(r.sym)?.cur ?? { kind: "unknown" as const, reason: "not_in_scan" };
+        const x = screenCrossMarket(cls, pred, { v: r.dv, cur }, appliedLiq, scope.code);
+        if (x !== null) { if (x !== "fail" && visible) ex[x]++; return false; }
+      } else if (f.liq > 0 || pred) {
+        return false; // no read has settled: nothing is admitted on a rule it cannot evaluate
+      }
+
       if (techOnScreen) {
-        const visible = !gateByPrefs || isSymbolVisible(r.sym, r, prefs);
         if (visible) techReq.push(r.sym);
         if (techGate) {
           const m = evaluateTechnicalScreen(techSource!, r.sym, techScreen, techNow).match;
@@ -519,25 +652,37 @@ export default function ScreenerView({ identity }: { identity: AccountIdentity }
 
       // Market-visibility gate LAST, so the hidden count describes rows that would OTHERWISE
       // be results — the same semantics as SearchModal's hiddenByMarket notice.
-      if (gateByPrefs && !isSymbolVisible(r.sym, r, prefs)) { hidden++; from.add(r.mktId); return false; }
+      if (!visible) { hidden++; from.add(r.mktId); return false; }
       return true;
     });
 
     let b = 0, s = 0;
     for (const r of base) { if (isBuy(r.verdict)) b++; else if (r.verdict) s++; }
 
-    // sort — nulls always last regardless of direction
+    // sort — nulls always last regardless of direction. Traded value is compared only within
+    // one currency (scope currency first, then each other currency as its own block; a listing
+    // whose currency was not read is ordered only against its own market); the sector column
+    // sorts by taxonomy, then label.
+    const noCur = { kind: "unknown" as const, reason: "not_in_scan" };
     const sorted = [...base].sort((a, b2) => {
-      const x: any = a[effSort.k];
-      const y: any = b2[effSort.k];
+      if (effSort.k === "dv") {
+        return compareMoney(
+          { v: a.dv, cur: annot.get(a.sym)?.cur ?? noCur, mkt: a.mktId },
+          { v: b2.dv, cur: annot.get(b2.sym)?.cur ?? noCur, mkt: b2.mktId },
+          scope.code, effSort.dir,
+        );
+      }
+      const x: any = effSort.k === "gics" ? annot.get(a.sym)?.key ?? null : a[effSort.k];
+      const y: any = effSort.k === "gics" ? annot.get(b2.sym)?.key ?? null : b2[effSort.k];
       if (x == null && y == null) return 0;
       if (x == null) return 1;
       if (y == null) return -1;
       return (x > y ? 1 : x < y ? -1 : 0) * effSort.dir;
     });
 
-    return { view: sorted, nBuy: b, nSell: s, hiddenN: hidden, hiddenFrom: Array.from(from), techReq, techHidden };
-  }, [rowsJoined, f, search, effSort, prefs, prefsReady, showAllMarkets, techOnScreen, techGate, techSource, techScreen, techNow]);
+    return { view: sorted, nBuy: b, nSell: s, hiddenN: hidden, hiddenFrom: Array.from(from), excl: ex, coverage: cov, techReq, techHidden };
+  }, [rowsJoined, f, search, effSort, prefs, gateByPrefs, scan, tax, now, annot, scope.code, appliedLiq, techOnScreen, techGate, techSource, techScreen, techNow]);
+  const exclTotal = excl.stale + excl.unclassified + excl.unread + excl.otherCurrency + excl.currencyUnknown + excl.notMoney;
 
   const techSummary = useMemo(
     () => (techSource ? technicalCoverageSummary(techReq, techSource, techControls.tf, techNow) : null),
@@ -561,6 +706,7 @@ export default function ScreenerView({ identity }: { identity: AccountIdentity }
   }, []);
 
   const clearAll = useCallback(() => {
+    setCleared(null);
     startTransition(() => {
       setActivePreset(null);
       setF(DEFAULT_FILTERS);
@@ -568,16 +714,44 @@ export default function ScreenerView({ identity }: { identity: AccountIdentity }
     });
   }, []);
 
+  // A market change keeps every filter that still describes part of the new market and clears
+  // (by name, in the strip) each one that describes none of it — AC-E03-05.
+  const changeMarket = useCallback((market: FilterState["market"]) => {
+    const next = reconcileTo({ ...f, market });
+    startTransition(() => { setActivePreset(null); setF(next); });
+  }, [f, reconcileTo]);
+
+  // A currency-scope change moves the unit a floor is read in, so it is reconciled the same way:
+  // a floor set in another currency is cleared by name, never re-read as the same number.
+  const changeCcy = useCallback((ccy: string) => {
+    const next = reconcileTo({ ...f, ccy });
+    startTransition(() => { setActivePreset(null); setF(next); });
+  }, [f, reconcileTo]);
+
   // Clicking a preset REPLACES the whole filter state; clicking the active one clears it.
   // Saved payloads are spread over DEFAULT_FILTERS so an older stored shape can never leave a
   // filter key undefined.
   const applyPreset = useCallback((id: string, patch: Partial<FilterState>) => {
     const off = activePreset === id;
+    const next = off ? DEFAULT_FILTERS : reconcileTo({ ...DEFAULT_FILTERS, ...patch });
+    if (off) setCleared(null);
     startTransition(() => {
       setActivePreset(off ? null : id);
-      setF(off ? DEFAULT_FILTERS : { ...DEFAULT_FILTERS, ...patch });
+      setF(next);
     });
-  }, [activePreset]);
+  }, [activePreset, reconcileTo]);
+
+  // A smart screen hands the bar back in ITS vocabulary — a GICS sector, a floor shown in US
+  // dollars — so it is read in that sense and reconciled like a preset: opened on another
+  // currency, the floor is cleared by name instead of being re-read as the same number.
+  const openSmartScreen = useCallback((next: ScreenerFilters, o: { showAllMarkets: boolean | null }) => {
+    const merged = reconcileTo({ ...DEFAULT_FILTERS, ...next, ...sanitizeCrossMarketFields(next) });
+    startTransition(() => {
+      setActivePreset(null);
+      setF(merged);
+      if (o.showAllMarkets !== null) setShowAllMarkets(o.showAllMarkets);
+    });
+  }, [reconcileTo]);
 
   const commitPreset = useCallback(() => {
     const name = presetName.trim().slice(0, 40);
@@ -600,7 +774,14 @@ export default function ScreenerView({ identity }: { identity: AccountIdentity }
   const tags: { id: string; label: string; clear: Partial<FilterState> }[] = [];
   if (f.market !== "all") tags.push({ id: "market", label: t(MARKET_TKEY[f.market]), clear: { market: "all" } });
   if (f.asset !== "all") tags.push({ id: "asset", label: assetLabel(f.asset), clear: { asset: "all" } });
-  if (f.sector !== "all") tags.push({ id: "sector", label: gicsLabel(f.sector), clear: { sector: "all" } });
+  if (f.sector !== "all" && tax) {
+    const lbl = f.sector === UNCLASSIFIED ? ct("cmUnclassified") : labelText(tax, f.sector);
+    tags.push({
+      id: "sector",
+      label: `${TAXONOMY_LEX[tax].chip[zi]} · ${lbl}${f.classStale ? ` · ${ct("cmInclStale")}` : ""}`,
+      clear: { sector: "all", classStale: false },
+    });
+  }
   if (f.signal !== "any") {
     tags.push({
       id: "signal",
@@ -609,14 +790,22 @@ export default function ScreenerView({ identity }: { identity: AccountIdentity }
     });
   }
   if (f.uptrend) tags.push({ id: "uptrend", label: t("uptrendRegime"), clear: { uptrend: false } });
-  if (f.liq > 0) tags.push({ id: "liq", label: `${t("scr2Liq")} ≥ ${floorUsd(f.liq)}`, clear: { liq: 0 } });
+  if (f.liq > 0) {
+    tags.push({
+      id: "liq",
+      label: `${ct("cmMinTraded")} ≥ ${floorText}${floorSt.kind === "applied" ? "" : ` · ${ct("cmNotApplied")}`}`,
+      clear: { liq: 0, liqCcy: null },
+    });
+  }
+  if (f.ccy && f.ccy !== "auto") tags.push({ id: "ccy", label: `${ct("cmCcy")} · ${f.ccy}`, clear: { ccy: "auto" } });
   if (f.mcap > 0) tags.push({ id: "mcap", label: `${t("scr2Mcap")} ≥ ${floorUsd(f.mcap)}`, clear: { mcap: 0 } });
   if (f.w52 !== "any") tags.push({ id: "w52", label: t(W52_OPTS.find((o) => o.v === f.w52)!.key), clear: { w52: "any" } });
   if (f.move !== "any") tags.push({ id: "move", label: t(MOVE_OPTS.find((o) => o.v === f.move)!.key), clear: { move: "any" } });
   if (f.unpriced) tags.push({ id: "unpriced", label: t("scr2InclThin"), clear: { unpriced: false } });
 
   // ── column set for the active view ─────────────────────────────────────
-  const cols: { k: SortKey; label: string; w: string }[] = signalView
+  const dvCol = { k: "dv" as SortKey, label: ct("cmTraded"), w: "76px", title: ct("cmTradedTitle") };
+  const cols: { k: SortKey; label: string; w: string; title?: string }[] = signalView
     ? [
       { k: "sym", label: t("symbol"), w: "150px" },
       { k: "last", label: t("colLast"), w: "70px" },
@@ -626,16 +815,16 @@ export default function ScreenerView({ identity }: { identity: AccountIdentity }
       { k: "wr", label: t("winRate"), w: "54px" },
       { k: "pf", label: t("profitFactor"), w: "50px" },
       { k: "cagr", label: t("cagr"), w: "96px" },
-      { k: "dv", label: t("colDollarVol"), w: "76px" },
+      dvCol,
     ]
     : [
       { k: "sym", label: t("symbol"), w: "150px" },
       { k: "last", label: t("colLast"), w: "70px" },
       { k: "chg", label: t("colChgPctShort"), w: "62px" },
-      { k: "dv", label: t("colDollarVol"), w: "76px" },
-      { k: "mcap", label: t("colMcap"), w: "76px" },
+      dvCol,
+      { k: "mcap", label: t("colMcap"), w: "76px", title: ct("cmMcapUsd") },
       { k: "offHi", label: t("colOffHigh"), w: "66px" },
-      { k: "gics", label: t("colSector"), w: "110px" },
+      { k: "gics", label: tax === "yahoo_industry" ? ct("cmIndustry") : t("colSector"), w: "110px" },
       // R3.2 msc_* columns exist only while the positioning index is loaded — the thead
       // and the tbody share this ONE condition so the positional cells can't misalign.
       ...(glance ? [
@@ -668,7 +857,7 @@ export default function ScreenerView({ identity }: { identity: AccountIdentity }
             aria-label={t("scr2Market")}
             title={t("scr2Market")}
             value={f.market}
-            onChange={(e) => patchF({ market: e.target.value as FilterState["market"] })}
+            onChange={(e) => changeMarket(e.target.value as FilterState["market"])}
           >
             <option value="all">{t("scr2AllMarkets")}</option>
             {ALL_MARKETS.map((m) => <option key={m} value={m}>{t(MARKET_TKEY[m])}</option>)}
@@ -685,15 +874,35 @@ export default function ScreenerView({ identity }: { identity: AccountIdentity }
             {ASSET_OPTS.map((o) => <option key={o.v} value={o.v}>{t(o.key)}</option>)}
           </select>
 
+          {/* E03: a label is picked WITHIN one native taxonomy — no crosswalk between them */}
           <select
             className="scr2-select"
-            aria-label={t("scr2Sector")}
-            title={t("scr2Sector")}
-            value={f.sector}
-            onChange={(e) => patchF({ sector: e.target.value })}
+            aria-label={ct("cmTaxonomy")}
+            title={ct("cmTaxonomy")}
+            data-cm-control="taxonomy"
+            value={tax ?? ""}
+            onChange={(e) => patchF({ taxonomy: (e.target.value || null) as TaxonomyId | null, sector: "all", classStale: false })}
           >
-            <option value="all">{t("scr2SectorAll")}</option>
-            {sectorOptions.map((g) => <option key={g} value={g}>{gicsLabel(g)}</option>)}
+            <option value="">{ct("cmTaxonomyAny")}</option>
+            {TAXONOMY_IDS.map((id) => <option key={id} value={id}>{TAXONOMY_LEX[id].name[zi]}</option>)}
+          </select>
+
+          <select
+            className="scr2-select"
+            aria-label={ct("cmLabel")}
+            title={tax ? ct("cmLabel") : ct("cmLabelPick")}
+            data-cm-control="label"
+            disabled={!tax}
+            value={f.sector}
+            onChange={(e) => patchF({ sector: e.target.value, classStale: false })}
+          >
+            <option value="all">{ct("cmLabelAll")}</option>
+            {tax && labelOptions.map((l) => <option key={l} value={l}>{labelText(tax, l)}</option>)}
+            {/* "Unclassified" is a population only of listings that were READ and carry no label;
+                without a read there is none to offer (an unread label is unknown, not absent). */}
+            {tax && (scanReady || f.sector === UNCLASSIFIED) && (
+              <option value={UNCLASSIFIED} disabled={!scanReady}>{ct("cmUnclassified")}</option>
+            )}
           </select>
 
           <input
@@ -772,21 +981,47 @@ export default function ScreenerView({ identity }: { identity: AccountIdentity }
             onClick={() => patchF({ uptrend: !f.uptrend })}
           >{t("uptrendRegime")}</button>
 
+          {/* E03: a traded-value floor is applied in ONE currency scope — never across currencies */}
           <select
             className="scr2-select"
-            aria-label={t("scr2Liq")}
-            title={t("scr2Liq")}
+            aria-label={ct("cmMinTraded")}
+            title={scope.code === null ? ct("cmLiqOff") : ct("cmMinTraded")}
+            data-cm-control="liq"
+            disabled={scope.code === null && f.liq === 0}
             value={String(f.liq)}
-            onChange={(e) => patchF({ liq: Number(e.target.value) })}
+            onChange={(e) => {
+              const v = Number(e.target.value);
+              // the floor is set IN the scope currency shown beside it, and remembers it
+              patchF({ liq: v, liqCcy: v > 0 && scanReady ? scope.code : null });
+            }}
           >
-            <option value="0">{`${t("scr2Liq")} · ${t("scr2Any")}`}</option>
-            {LIQ_FLOORS.map((n) => <option key={n} value={String(n)}>{`≥ ${floorUsd(n)}`}</option>)}
+            <option value="0">{`${ct("cmMinTraded")} · ${t("scr2Any")}`}</option>
+            {/* the floor that is set reads in the currency it was set in; the others in the scope's */}
+            {LIQ_FLOORS.map((n) => (
+              <option key={n} value={String(n)}>{`≥ ${formatFloor(n, n === f.liq && f.liqCcy ? f.liqCcy : scope.code)}`}</option>
+            ))}
+          </select>
+
+          <select
+            className="scr2-select"
+            aria-label={ct("cmCcy")}
+            title={ct("cmCcy")}
+            data-cm-control="ccy"
+            disabled={scope.codes.length === 0 && (f.ccy ?? "auto") === "auto"}
+            value={f.ccy ?? "auto"}
+            onChange={(e) => changeCcy(e.target.value)}
+          >
+            <option value="auto">{autoCode ? ct("cmCcyAuto").replace("{c}", autoCode) : ct("cmCcyNone")}</option>
+            {scope.codes.map(({ code, n }) => (
+              <option key={code} value={code}>{ct("cmCcyOpt").replace("{c}", code).replace("{n}", n.toLocaleString())}</option>
+            ))}
+            {f.ccy && f.ccy !== "auto" && !scope.codes.some((c) => c.code === f.ccy) && <option value={f.ccy}>{f.ccy}</option>}
           </select>
 
           <select
             className="scr2-select"
             aria-label={t("scr2Mcap")}
-            title={t("scr2Mcap")}
+            title={`${t("scr2Mcap")} — ${ct("cmMcapUsd")}`}
             value={String(f.mcap)}
             onChange={(e) => patchF({ mcap: Number(e.target.value) })}
           >
@@ -844,22 +1079,41 @@ export default function ScreenerView({ identity }: { identity: AccountIdentity }
         />
       </div>
 
+      {/* ── E03: scan state, screened taxonomy, money scope and market-change clears ── */}
+      {loaded && !err && scan && (
+        <CrossMarketStrip
+          source={scan}
+          now={now}
+          taxonomy={tax}
+          sector={f.sector}
+          classStale={f.classStale === true}
+          coverage={coverage}
+          excl={excl}
+          liq={f.liq}
+          floor={floorSt}
+          floorText={floorText}
+          scope={scope}
+          cleared={cleared}
+          marketName={(m) => (m === "all" ? t("scr2AllMarkets") : t(MARKET_TKEY[m as MarketId]))}
+          labelText={labelText}
+          onRetry={retryScan}
+          onToggleStale={() => patchF({ classStale: !f.classStale })}
+          onShowUnclassified={() => patchF({ sector: UNCLASSIFIED, classStale: false })}
+          onDismissCleared={() => setCleared(null)}
+        />
+      )}
       {/* E04 smart screens: account-saved, explainable screens with on-demand entered/left review. */}
       <SmartScreensPanel
         identity={identity}
         rows={rows}
         ready={loaded && !err}
         asOf={asOf}
-        filters={f}
+        filters={smartFilters}
         prefsEnabled={prefsReady ? prefs.enabled : null}
         showAllMarkets={showAllMarkets}
         labelGics={gicsLabel}
         labelAsset={assetLabel}
-        onOpen={(next, o) => startTransition(() => {
-          setActivePreset(null);
-          setF(next);
-          if (o.showAllMarkets !== null) setShowAllMarkets(o.showAllMarkets);
-        })}
+        onOpen={openSmartScreen}
       />
 
       {/* ── status row: counts computed over the FILTERED set, plus scope honesty ── */}
@@ -884,7 +1138,7 @@ export default function ScreenerView({ identity }: { identity: AccountIdentity }
             className="fin-tag scr2-ftag"
             style={{ "--c": "var(--brand-2)" } as React.CSSProperties}
             aria-label={`${t("remove")}: ${tg.label}`}
-            onClick={() => patchF(tg.clear)}
+            onClick={() => (tg.id === "market" ? changeMarket("all") : tg.id === "ccy" ? changeCcy("auto") : patchF(tg.clear))}
           >{tg.label} ×</button>
         ))}
         {tags.length >= 2 && (
@@ -893,11 +1147,8 @@ export default function ScreenerView({ identity }: { identity: AccountIdentity }
 
         {/* scope caveats + the hidden-markets notice ride right; one group so the auto margin
             survives a wrap instead of stranding them on the next line's left edge */}
-        {(f.sector !== "all" || f.mcap > 0 || hiddenN > 0) && (
+        {(f.mcap > 0 || hiddenN > 0) && (
           <span className="scr2-status-tail">
-            {f.sector !== "all" && (
-              <span className="fin-tag" style={{ "--c": "var(--warn)" } as React.CSSProperties}>{t("scr2SectorNote")}</span>
-            )}
             {f.mcap > 0 && (
               <span className="fin-tag" style={{ "--c": "var(--warn)" } as React.CSSProperties}>{t("scr2McapNote")}</span>
             )}
@@ -921,6 +1172,7 @@ export default function ScreenerView({ identity }: { identity: AccountIdentity }
                 return (
                   <th
                     key={c.k}
+                    title={c.title}
                     className={on ? "sorted" : ""}
                     aria-sort={on ? (effSort.dir === -1 ? "descending" : "ascending") : "none"}
                     onClick={() => setSort({ k: c.k, dir: on && effSort.dir === -1 ? 1 : -1 })}
@@ -973,6 +1225,7 @@ export default function ScreenerView({ identity }: { identity: AccountIdentity }
                           ? t("scr2EmptySigWhy").replace("{n}", trackedCount.toLocaleString())
                           : t("scr2EmptyWhy")}
                     </div>
+                    <EmptyExclusionNote n={exclTotal} />
                     {(tags.length > 0 || techGate) && (
                       <button type="button" className="chip" onClick={clearAll}>{t("scr2ClearAll")}</button>
                     )}
@@ -991,6 +1244,8 @@ export default function ScreenerView({ identity }: { identity: AccountIdentity }
               // chg coloring: neutral when chg is null (thin row or missing)
               const chgCls = r.chg == null ? "" : r.chg >= 0 ? "up" : "down";
               const buy = isBuy(r.verdict);
+              const a = annot.get(r.sym);
+              const cur: MoneyCurrency = a?.cur ?? { kind: "unknown", reason: "not_in_scan" };
               const symCell = (
                 <td>
                   <div className="sym-cell">
@@ -1003,7 +1258,7 @@ export default function ScreenerView({ identity }: { identity: AccountIdentity }
                       size={density === "k" ? 20 : 24}
                     />
                     <div>
-                      <div className="tk">{r.sym}</div>
+                      <div className="tk">{r.sym}<CurrencyBadge cur={cur} /></div>
                       <div className="nm">{displayName(r, lang)}</div>
                     </div>
                   </div>
@@ -1011,11 +1266,15 @@ export default function ScreenerView({ identity }: { identity: AccountIdentity }
               );
               const lastCell = <td>{r.last == null ? "—" : fmt(r.last, r.last < 10 ? 4 : 2)}</td>;
               const chgCell = <td className={chgCls}>{r.chg == null ? "—" : `${r.chg >= 0 ? "+" : ""}${fmt(r.chg)}%`}</td>;
+              // A data attribute for tests and styling, never rendered: the ISO code, or the kind.
+              const ccyAttr = cur.kind === "code" ? cur.code : cur.kind;
               const dvCell = (
                 <td
                   style={{ color: "var(--text-2)" }}
-                  title={r.vol != null ? `${t("colVolShort")} ${shares(r.vol)}` : undefined}
-                >{usd(r.dv)}</td>
+                  data-ccy={ccyAttr}
+                  title={cur.kind === "unknown" ? ct("cmCcyUnknownTitle") : cur.kind === "not_money" ? ct("cmNotMoneyTitle")
+                    : r.vol != null ? `${t("colVolShort")} ${shares(r.vol)}` : undefined}
+                >{formatMoney(r.dv, cur)}</td>
               );
               const sigCell = (
                 <td>
@@ -1029,8 +1288,10 @@ export default function ScreenerView({ identity }: { identity: AccountIdentity }
                   if (searchRaw.trim()) trackSearch(r.sym, "screener", searchRaw.trim());
                   // With the technical screen on, the row opens the chart AT the screened
                   // timeframe when the chart can honour it (AC-E01-05); the strip discloses when not.
+                  // Otherwise the listing href (canonical symbol, URL-encoded — E03).
                   const h = techOnScreen ? technicalChartHandover(r.sym, techControls.tf, DAILY_FUNCTIONAL_TIMEFRAMES) : null;
-                  router.push(h ? h.href : `/terminal?sym=${r.sym}`);
+                  const href = h ? h.href : listingHref(r.sym);
+                  if (href) router.push(href);
                 }}>
                   {symCell}
                   {lastCell}
@@ -1054,7 +1315,7 @@ export default function ScreenerView({ identity }: { identity: AccountIdentity }
                       <td>{usd(r.mcap)}</td>
                       {/* position, not day direction — never up/down coloured */}
                       <td>{r.offHi == null ? "—" : `${r.offHi > 0 ? "+" : ""}${r.offHi.toFixed(1)}%`}</td>
-                      <td className="scr2-sec">{r.gics ? gicsLabel(r.gics) : "—"}</td>
+                      <td className="scr2-sec">{a ? <SectorCellContent d={a.disp} labelText={labelText} /> : "—"}</td>
                       {glance && (
                         <>
                           {/* γ regime — the desk's word + colour (one table, lib/mscGlance) */}

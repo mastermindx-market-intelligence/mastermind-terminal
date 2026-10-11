@@ -356,6 +356,7 @@ def test_the_coverage_index_is_rebuilt_AFTER_every_artifact_writer():
         'run "$PY" ingest/refresh_crypto_ohlc.py',
         'run "$PY" ingest/hydrate_prices.py',
         f'run "$PY" {SCAN_STEP}',
+        f'run "$PY" {CLASSIFICATION_STEP}',
     ):
         assert line_of(writer) < coverage, f"{writer} must run BEFORE the coverage index"
 
@@ -475,3 +476,37 @@ def test_the_screener_scan_runs_after_the_swap_and_every_slice_writer():
                          if body[i].strip() == "fi")
     assert fi_after_swap < scan
     assert not body[scan].startswith(" "), "the scan step must not be nested in a conditional"
+
+
+# ── the screener classification generation (E03) ────────────────────────────────────────
+# Native taxonomies + trading currency per listing, projected from the fund.json owner records
+# in the served dir. Unwired, the Screener would state "classification scan not published"
+# forever — indistinguishable from outside from a producer that ran and found nothing.
+CLASSIFICATION_STEP = "ingest/gen_classification_scan.py"
+
+
+def test_the_nightly_publishes_the_classification_scan_into_the_served_dir():
+    body = NIGHTLY.read_text()
+    assert re.search(
+        rf'^run "\$PY" {re.escape(CLASSIFICATION_STEP)} --data-dir "\$D"( --budget-seconds \d+)?\s*$',
+        body, re.M,
+    ), f"{CLASSIFICATION_STEP} must be invoked by ops/terminal-data and write into $D"
+
+
+def test_the_classification_scan_runs_after_the_swap_outside_any_conditional():
+    """Before the swap it would classify the PREVIOUS universe (rows the reader never gets)."""
+    body = NIGHTLY.read_text().splitlines()
+
+    def line_of(needle: str) -> int:
+        for i, ln in enumerate(body):
+            if ln.strip().startswith(needle):
+                return i
+        raise AssertionError(f"{needle} not found in ops/terminal-data")
+
+    step = line_of(f'run "$PY" {CLASSIFICATION_STEP}')
+    for earlier in ('mv -f "$STAGE" "$LIVE"', 'run "$PY" -m ingest.build_polygon_universe'):
+        assert line_of(earlier) < step, f"{earlier} must run BEFORE {CLASSIFICATION_STEP}"
+    fi_after_swap = next(i for i in range(line_of('mv -f "$STAGE" "$LIVE"'), len(body))
+                         if body[i].strip() == "fi")
+    assert fi_after_swap < step
+    assert not body[step].startswith(" "), "the classification step must not be nested in a conditional"

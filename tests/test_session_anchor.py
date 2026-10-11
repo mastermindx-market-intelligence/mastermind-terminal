@@ -307,6 +307,8 @@ def test_every_nightly_step_after_the_stamper_is_explicitly_classified():
         "ingest/hydrate_prices.py": "writes the MANIFEST only; reads bars, never writes <SYM>.json",
         "scripts/build_data_coverage.py": "writes a coverage artifact, not <SYM>.json",
         "ingest/gen_technical_scan.py": "writes scan/technical.json; READS <SYM>.json + slices, never writes them",
+        "ingest/gen_classification_scan.py":
+            "writes scan/classification.json + receipt; READS manifest + <SYM>.fund.json, never <SYM>.json",
         # Indented (Mondays-only) invocation — found by this test, missed by a `^run` grep.
         "ingest/gen_seasonal_outlook.py": "writes <SYM>.seasonal.json; READS <SYM>.json as an offline fallback",
     }
