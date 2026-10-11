@@ -623,6 +623,7 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
   const [missingIds, setMissingIds] = useState<Set<string>>(new Set());
   const lensRefs = useRef<Partial<Record<RmsViewId, HTMLButtonElement | null>>>({});
   const detailRequest = useRef(0);
+  const statementEditRevision = useRef(0);
   const routeDiscardAuthorized = useRef(false);
   const historyPositionRef = useRef(0);
   const restoringPop = useRef(false);
@@ -1504,6 +1505,7 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
   }, []);
 
   const loadProposals = useCallback(async (id: string, token = detailRequest.current) => {
+    if (token !== detailRequest.current) return;
     // A different thesis starts from "loading", never from the previous thesis's rows; a refresh of the
     // same thesis keeps its last answered rows until this read settles.
     setProposalRead((prev) => (prev.thesisId === id ? prev : { thesisId: id, state: "loading", rows: [] }));
@@ -1782,6 +1784,7 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
   }, [copy.confirmDiscard, isDirty, openDetail, pending, resetToList, resetToNew]);
 
   const changeDraft = useCallback(<K extends keyof Draft>(key: K, value: Draft[K]) => {
+    if (key === "statement") statementEditRevision.current += 1;
     setDraft((current) => ({ ...current, [key]: value }));
     setMessage(null);
   }, []);
@@ -1994,6 +1997,7 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
       setMessage(copy.suggestNeedVersion);
       return;
     }
+    const token = detailRequest.current;
     setProposalBusy(true);
     try {
       const response = await fetch(`/api/thesis/${encodeURIComponent(selectedId)}/proposals`, {
@@ -2002,6 +2006,7 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
         body: JSON.stringify({ amended_from: version.id, body: text, evidence_refs: [] }),
       });
       const payload = await response.json().catch(() => ({}));
+      if (token !== detailRequest.current) return;
       if (response.status === 400 && payload && typeof payload === "object") {
         setMessage(lang === "zh" && payload.messageZh ? String(payload.messageZh) : String(payload.message || MESSAGES.emptyBody[lang === "zh" ? 1 : 0]));
         return;
@@ -2012,9 +2017,9 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
       }
       setAssistantText("");
       setMessage(copy.suggested);
-      await loadProposals(selectedId);
+      await loadProposals(selectedId, token);
     } catch {
-      setMessage(copy.unavailable);
+      if (token === detailRequest.current) setMessage(copy.unavailable);
     } finally {
       setProposalBusy(false);
     }
@@ -2022,6 +2027,10 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
 
   const setProposalState = useCallback(async (proposal: ProposalRow, next: "accepted" | "rejected") => {
     if (!selectedId) return;
+    // The issued server action can settle after navigation; its editor/message/read effects
+    // belong only to this selection generation, including an A→B→A return.
+    const token = detailRequest.current;
+    const editRevision = statementEditRevision.current;
     setProposalBusy(true);
     try {
       const response = await fetch(
@@ -2032,8 +2041,10 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
           body: JSON.stringify({ state: next }),
         },
       );
+      if (token !== detailRequest.current) return;
       if (response.status === 400) {
         const payload = await response.json().catch(() => ({}));
+        if (token !== detailRequest.current) return;
         setMessage(lang === "zh" && payload.messageZh ? String(payload.messageZh) : String(payload.message || copy.transition));
         return;
       }
@@ -2041,13 +2052,13 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
         setMessage(copy.unavailable);
         return;
       }
-      if (next === "accepted") {
+      if (next === "accepted" && editRevision === statementEditRevision.current) {
         setDraft((current) => ({ ...current, statement: proposal.body }));
         setMessage(copy.acceptedIntoEditor);
       }
-      await loadProposals(selectedId);
+      await loadProposals(selectedId, token);
     } catch {
-      setMessage(copy.unavailable);
+      if (token === detailRequest.current) setMessage(copy.unavailable);
     } finally {
       setProposalBusy(false);
     }

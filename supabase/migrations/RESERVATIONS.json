@@ -300,6 +300,46 @@
       "applied_date": "2026-10-04T06:17:18Z",
       "note": "Single Investigation aggregate on existing #777. All 39 DDL statements applied; independent read-only catalog reconciled the incomplete initial readback and verified all 19 objects, RLS and grants. Receipt: https://github.com/mastermindx-market-intelligence/mastermind-terminal/pull/777#issuecomment-5977275494. Application save/reopen acceptance remains pending deployment."
     },
+    "0029": {
+      "state": "taken",
+      "file": "0029_investigation_thesis_refs.sql",
+      "packet": "IW2-G5-THESIS-REFERENCES",
+      "pr": 804,
+      "pr_state": "open",
+      "applied_in_production": true,
+      "applied_date": "2026-10-05T06:31:03Z",
+      "note": "Canonical Thesis version references; all 8 migration statements applied and both function definitions, grants and four RLS tables read back. Receipt: https://github.com/mastermindx-market-intelligence/mastermind-terminal/pull/804#issuecomment-5989351431. Application acceptance awaits merged-code deployment."
+    },
+    "0030": {
+      "state": "taken",
+      "file": "0030_investigation_kernel.sql",
+      "packet": "IW2-G1-KERNEL-REPAIR",
+      "pr": 804,
+      "pr_state": "open",
+      "applied_in_production": false,
+      "applied_date": null,
+      "note": "Forward repair on the incumbent #804 carrier following integration review 5989604142. 0028/0029 remain byte-identical; 0030 is not applied. Applied date is not recorded because no application has occurred."
+    },
+    "0031": {
+      "state": "taken",
+      "file": "0031_drawings_atomic_replace.sql",
+      "packet": "TERMINAL-AUDIT20-A04",
+      "pr": 858,
+      "pr_state": "open",
+      "applied_in_production": false,
+      "applied_date": null,
+      "note": "Audit20 parent takeover 01a10f92: read-only legacy snapshot tokens and transactional drawing CAS/replay on the existing RLS table. Open-PR namespace census 2026-10-08 preserves 0029/0030 for #804. Source only; no production application. Applied date is not recorded because source ships unapplied; owning PR #858 retains application and catalog receipts."
+    },
+    "0032": {
+      "state": "taken",
+      "file": "0032_thesis_proposal_state_qualification.sql",
+      "packet": "B-F11-PROPOSAL-STATE-SQL",
+      "pr": 946,
+      "pr_state": "open",
+      "applied_in_production": false,
+      "applied_date": null,
+      "note": "Forward alias-only repair of installed proposal RPC42702 ambiguity, MarketOntology B. Original0025 and all grants/policies retained. Source only; not applied. PR946 owns the production catalog and real-path receipt. Applied date is not recorded because the repair has not been applied."
+    },
     "0033": {
       "state": "taken",
       "file": "0033_watchlist_annotations.sql",
@@ -308,7 +348,7 @@
       "pr_state": "open",
       "applied_in_production": false,
       "applied_date": null,
-      "note": "E05 cross-device watchlist notes/flags (program terminal-enhancements20-20261011-opus, tracking #916). Numbered 0033 by rule (b): open PRs #804 (0029, 0030), #858 (0031) and #866 (0032) hold the lower prefixes. One additive owner-only RLS table, public.watchlist_annotations, with per-field compare-and-set revisions. Shipped UNAPPLIED: applied_in_production is false and applied_date is null, not recorded because there is no application yet. Until it is applied, /api/watchlist/annotations answers 503 annotations_unavailable and the Terminal keeps notes/flags on the device with a visible 'sync unavailable' state."
+      "note": "E05 cross-device watchlist notes/flags (program terminal-enhancements20-20261011-opus, tracking #916). Numbered 0033 by rule (b): 0029-0032 are held by PRs #804 (0029, 0030), #858 (0031) and #946 (0032). One additive owner-only RLS table, public.watchlist_annotations, with per-field compare-and-set revisions. Shipped UNAPPLIED: applied_in_production is false and applied_date is null, not recorded because there is no application yet. Until it is applied, /api/watchlist/annotations answers 503 annotations_unavailable and the Terminal keeps notes/flags on the device with a visible 'sync unavailable' state."
     }
   }
 }

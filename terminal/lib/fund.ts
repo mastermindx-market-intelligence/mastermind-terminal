@@ -489,6 +489,8 @@ function negMark(key: string): void {
   negCache.set(key, Date.now() + NEG_TTL);
 }
 
+const LEGACY_FINANCIAL_SECTORS = new Set(["financial services", "financials"]);
+
 function withFinancialFamilyFallback(set: StatementPeriodSet): StatementPeriodSet {
   // Explicit producer taxonomy, especially a historical by-period receipt, always wins.
   if (set.source_family != null || (set.source_family_by_period?.length ?? 0) > 0) return set;
@@ -513,7 +515,10 @@ function withFinancialFamilyFallback(set: StatementPeriodSet): StatementPeriodSe
  * and it never overrides producer-owned taxonomy.
  */
 export function applyLegacyStatementFamilyFallback(fund: Fund): Fund {
-  if (fund.profile?.sector?.trim().toLowerCase() !== "financial services") return fund;
+  // Both sector vocabularies the profile producer has emitted: the Yahoo-style "Financial
+  // Services" and the GICS "Financials" that live JPM.fund.json carries (verified 2026-10-11 —
+  // under the old single-name match the live JPM statement rendered as industrial "Revenue").
+  if (!LEGACY_FINANCIAL_SECTORS.has(fund.profile?.sector?.trim().toLowerCase() ?? "")) return fund;
   // Some valid source-gap artifacts carry a null annual or interim set even though the frozen
   // v1 TypeScript shape predates that reality. Classify only sets that actually exist.
   const annual = fund.statements?.annual;
