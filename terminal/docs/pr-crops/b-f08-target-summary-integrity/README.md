@@ -20,3 +20,7 @@ TERMINAL_E2E_PORT=3194 MO_SETTINGS_SUMMARY_CAPTURE_DIRECTORY="$PWD/docs/pr-crops
 ```
 
 The test uses the existing localhost fixture identity and intercepts portfolio-targets GET responses. It proves mounted UI and integration behavior, not live signed-in persistence, tenant acceptance or production delivery. The existing Terminal dark-only surface is retained; no light treatment, CSS or copy change is introduced. This is a new evidence packet; PR902-owned packets and their hashes are untouched.
+
+## Recapture on E20 landing train 2
+
+Train 2 merged a different `TerminalShell.tsx` and `globals.css`, both locked sources, so all twelve captures were regenerated on the merged tree (capture head `1bfb1c7f4`, Terminal master `2957bd64e` merged in). No PNG or hash was copied from either parent. The first recapture caught the desktop ZH `unusable` frame halfway through the section's entry animation, so the pane was blank. The capture now passes `animations: "disabled"`, which finishes that animation before the frame is taken; the test's assertions are unchanged. The repeat run passed 6 of 6 with retries off, and all twelve captures, EN and ZH, were viewed. `evidence.json` records the new hashes and keeps the previous capture under `priorCapture`.

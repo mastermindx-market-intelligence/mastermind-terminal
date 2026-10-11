@@ -2,23 +2,23 @@
   "schema": "marketontology.f08.mutation_races.local_evidence.v1",
   "base": "fc76cf495781e5f53254aa3c457411de0cb64654",
   "source_sha256": {
-    "terminal/components/AlertsView.tsx": "25bb2a73b465d00a565231f956fe1d8265c8eea7c5ed18ec320504909adba0a3",
+    "terminal/components/AlertsView.tsx": "35ebc9be4bd16c99ffd6f7262815da60e91dec7a642576ded46efbff5b8625f9",
     "terminal/lib/__tests__/alertsMutationRaces.test.tsx": "d3c4bd24a530d6278069d91d08f9fafeb088eea6f34e6b5449014725706993a0",
-    "terminal/e2e/alerts-mutation-races.spec.ts": "0c55346dc2970c132506d57cd6765868d7daaebd9f1948aa7d839ea9d1f796bf"
+    "terminal/e2e/alerts-mutation-races.spec.ts": "c32fa08fdfc99a5b060ec96ada99e795c67b724161ea9a791f529bc08643d3ba"
   },
   "captures": {
     "desktop-en-deleted-row.png": "cb42eccd8ec5788ce36e8e77240603f8f6d2d8bb2b6f3e06292213590d928372",
-    "desktop-en-newer-draft.png": "77eafef6fa5b2c75af736ee2525c490065bcb1e3a2b64e71180ecf8817f4c4ab",
+    "desktop-en-newer-draft.png": "d0f784eea3f30e558902ecacbb393c76bcd098ce913b801b26526d54575a6ef3",
     "desktop-zh-deleted-row.png": "caa369a1c24e24f2f981d5bb77967fc19399ccbe12a6169b5f2b22d6f4845743",
-    "desktop-zh-newer-draft.png": "22aeda5d9dcd62f1ab13e3dd1540605b121f4e291593e50f27815ce7234d42ce",
-    "mobile-en-deleted-row.png": "ce755c6e5c3588028cc69134eb69346fd1a2912287343a42d4450efa8ca02701",
+    "desktop-zh-newer-draft.png": "d7810b4fb74ed1740b4928b8cc525f6496a353d707e655386e0bdd57b960f36e",
+    "mobile-en-deleted-row.png": "6f67c7577185a6b0d3a1cfab282b0e644ace50be49f9eb4cd7f4e7c8c58f1f00",
     "mobile-en-newer-draft.png": "992f13612b57033f9681facdadc7c639eb681efda381de943ab70d87c10dd67e",
-    "mobile-zh-deleted-row.png": "ac581323029b6f75bac90042d5df105284218ecf061b273df3e5706770deefca",
-    "mobile-zh-newer-draft.png": "a92f59430b920399b0bb476d655cb4db943ed52c0053ff4b3d4c7b820505752c",
-    "tablet-en-deleted-row.png": "6d8a77ffe335f21e9c23c9d7c30f2c64b6d2d14d75ea0a71b7ecceaa3e2051fe",
-    "tablet-en-newer-draft.png": "033ac3969c96adde1ab4fb927afb37b19f6ef323e93614680e9615bfaa197bb9",
-    "tablet-zh-deleted-row.png": "b6c509df5c541a655d38e19ebf9272dab0e437428c66348edf0022e527ae1755",
-    "tablet-zh-newer-draft.png": "36a8fe9551ca18c43b36558868dc0e578c28788b90060cfcbc210c318afeb5ea"
+    "mobile-zh-deleted-row.png": "f2ffbb142e27a7a8d8a714076b11097293f8166389f40e4a72ceb2956a0664bd",
+    "mobile-zh-newer-draft.png": "8728cf3d06a01b855ec8e145aba28a925790c94c8b2c130c8e6bbff6476c38a3",
+    "tablet-en-deleted-row.png": "f7e1c7c2a0f7bffaae5997d8c1abe3a72f1fbf789741e527c248abc8eefe5878",
+    "tablet-en-newer-draft.png": "1d565a8fdcf7323b0f848bd7a6df5b16d27c5d5acc60f18f3161612945dbd546",
+    "tablet-zh-deleted-row.png": "06a5614b1e376a69ba1c59b8aae6d9e3c93f3a25d8590722faf3d5b453cea5a9",
+    "tablet-zh-newer-draft.png": "05f71d899b04b5323e4684bf7c252b322777771d8f3d011d5fbe142e8a011835"
   },
   "baseline": {
     "race_failures": 6,
@@ -27,5 +27,14 @@
   "fixed_component_checks": 51,
   "responsive_browser_checks": 12,
   "production": false,
-  "theme": "Existing dark Terminal surface; no styles changed"
+  "theme": "Existing dark Terminal surface; no styles changed",
+  "recapture": {
+    "reason": "E20 landing train 2 merged E17 into AlertsView.tsx, a locked source; crops regenerated on the merged tree, never copied from either parent",
+    "capturedAtHead": "1bfb1c7f4b08d9d375eec15be88467d645ec8f6c",
+    "capturedAt": "2026-10-11T20:49:05.333597+00:00",
+    "command": "TERMINAL_E2E_PORT=47310 npx playwright test e2e/alerts-mutation-races.spec.ts --project=desktop --project=tablet --project=mobile --workers=1 --retries=0",
+    "responsive_browser_checks_passed": 12,
+    "responsive_browser_checks_failed": 0,
+    "historical_fields": "base, baseline and fixed_component_checks describe the original #931 qualification"
+  }
 }
