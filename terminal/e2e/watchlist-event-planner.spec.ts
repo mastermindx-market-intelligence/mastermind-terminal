@@ -243,13 +243,14 @@ test("AC-E14-05: switching lists drops the previous list's late answers", async 
 for (const lang of ["en", "zh"] as const) {
   test(`crops ${lang}`, async ({ page, baseURL }, testInfo) => {
     test.skip(!CROPS, "Crops are written only with TERMINAL_CROPS=1.");
-    const net = await steerFundamentals(page, {
+    const plan: Record<string, Answer> = {
       AAPL: { kind: "date", date: AAPL_DAY },
       MSFT: { kind: "date", date: null },
       NVDA: { kind: "status", status: 503 },
       AMD: { kind: "status", status: 404 },
       AVGO: { kind: "date", date: day(60), period: "Q4 FY2026" },
-    });
+    };
+    const net = await steerFundamentals(page, plan);
     await boot(page, testInfo, baseURL, lang);
     await openPlanner(page);
     await expect(coverage(page)).toHaveAttribute("data-unknown", "2", { timeout: 20_000 });
@@ -258,5 +259,17 @@ for (const lang of ["en", "zh"] as const) {
     await page.mouse.move(0, 0);
     mkdirSync(OUT, { recursive: true });
     await page.screenshot({ path: join(OUT, `${testInfo.project.name}-${lang}.png`), animations: "disabled" });
+
+    // Repair state: Read again cannot reach AAPL's source (its earlier answer stays, labelled) and
+    // MSFT's source now carries a date that has already passed (outdated, never "no upcoming report").
+    plan.AAPL = { kind: "status", status: 503 };
+    plan.MSFT = { kind: "date", date: day(-3) };
+    await page.getByTestId("wep-read-again").click();
+    await expect(coverage(page)).toHaveAttribute("data-refreshing", "false", { timeout: 20_000 });
+    await expect(eventRow(page, "AAPL").getByTestId("wep-earlier-copy")).toBeVisible({ timeout: 20_000 });
+    await expect(coverage(page)).toHaveAttribute("data-unknown", "4");
+    await expect(coverage(page)).toHaveAttribute("data-complete", "false");
+    await page.mouse.move(0, 0);
+    await page.screenshot({ path: join(OUT, `${testInfo.project.name}-${lang}-repair.png`), animations: "disabled" });
   });
 }
