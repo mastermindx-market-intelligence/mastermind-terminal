@@ -1,0 +1,38 @@
+# E18 alert management — capture evidence
+# Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
+# Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
+# capturedAtHead: fc76cf495781e5f53254aa3c457411de0cb64654
+# capturedAt: 2026-10-11T10:25:44.551Z
+# capturedAtHead is informational. The lock is layoutFiles.
+layoutFiles:
+  terminal/components/alerts/AlertBulkManager.tsx: "d309bfabed6691c46a8fdd0b1648c23061875d75a619fbddc1b502cb962028b5"
+  terminal/components/alerts/alertBulk.module.css: "204bd08ac5e221aaf5a5a5bb04f4eae7f017d7eafedd90254a1fbfa9608c5ba8"
+  terminal/lib/alertBulk.ts: "21a2872a62ea7f04fa9fcb0a98dcebb97784c7c007cd3705de724eb7121919ca"
+  terminal/lib/alertBulkLex.ts: "6f7bcf757c0e33f0b2319494f6a29d5a474413db002b005904183410e6c2828f"
+theme: dark
+languages: [en, zh]
+viewports:
+  - { name: desktop, width: 1440, height: 900 }
+  - { name: tablet, width: 820, height: 1180 }
+  - { name: mobile, width: 390, height: 844 }
+surfaces: [AlertBulkManager]
+capture_flag: TERMINAL_E2E_FIXTURE
+capture_flag_law: next.config.ts sets devIndicators to false when TERMINAL_E2E_FIXTURE is set; this script starts next dev with the same flag.
+states:
+  review: five alerts ticked, pause preview open (four to pause, AMD already paused and skipped)
+  results: the batch confirmed against a scripted owner (NVDA paused, MSFT refused, AAPL and TSLA not confirmed, AMD skipped)
+crops:
+  results-desktop-en.png: { url: "/alerts", state: results }
+  results-desktop-zh.png: { url: "/alerts", state: results }
+  results-mobile-en.png: { url: "/alerts", state: results }
+  results-mobile-zh.png: { url: "/alerts", state: results }
+  results-tablet-en.png: { url: "/alerts", state: results }
+  results-tablet-zh.png: { url: "/alerts", state: results }
+  review-desktop-en.png: { url: "/alerts", state: review }
+  review-desktop-zh.png: { url: "/alerts", state: review }
+  review-mobile-en.png: { url: "/alerts", state: review }
+  review-mobile-zh.png: { url: "/alerts", state: review }
+  review-tablet-en.png: { url: "/alerts", state: review }
+  review-tablet-zh.png: { url: "/alerts", state: review }
+command: |
+  TERMINAL_CROP_PORT=47283 node e2e/tools/capture_e18_alert_management.cjs
