@@ -1,0 +1,31 @@
+{
+  "schema": "marketontology.f08.mutation_races.local_evidence.v1",
+  "base": "fc76cf495781e5f53254aa3c457411de0cb64654",
+  "source_sha256": {
+    "terminal/components/AlertsView.tsx": "25bb2a73b465d00a565231f956fe1d8265c8eea7c5ed18ec320504909adba0a3",
+    "terminal/lib/__tests__/alertsMutationRaces.test.tsx": "d3c4bd24a530d6278069d91d08f9fafeb088eea6f34e6b5449014725706993a0",
+    "terminal/e2e/alerts-mutation-races.spec.ts": "0c55346dc2970c132506d57cd6765868d7daaebd9f1948aa7d839ea9d1f796bf"
+  },
+  "captures": {
+    "desktop-en-deleted-row.png": "cb42eccd8ec5788ce36e8e77240603f8f6d2d8bb2b6f3e06292213590d928372",
+    "desktop-en-newer-draft.png": "77eafef6fa5b2c75af736ee2525c490065bcb1e3a2b64e71180ecf8817f4c4ab",
+    "desktop-zh-deleted-row.png": "caa369a1c24e24f2f981d5bb77967fc19399ccbe12a6169b5f2b22d6f4845743",
+    "desktop-zh-newer-draft.png": "22aeda5d9dcd62f1ab13e3dd1540605b121f4e291593e50f27815ce7234d42ce",
+    "mobile-en-deleted-row.png": "ce755c6e5c3588028cc69134eb69346fd1a2912287343a42d4450efa8ca02701",
+    "mobile-en-newer-draft.png": "992f13612b57033f9681facdadc7c639eb681efda381de943ab70d87c10dd67e",
+    "mobile-zh-deleted-row.png": "ac581323029b6f75bac90042d5df105284218ecf061b273df3e5706770deefca",
+    "mobile-zh-newer-draft.png": "a92f59430b920399b0bb476d655cb4db943ed52c0053ff4b3d4c7b820505752c",
+    "tablet-en-deleted-row.png": "6d8a77ffe335f21e9c23c9d7c30f2c64b6d2d14d75ea0a71b7ecceaa3e2051fe",
+    "tablet-en-newer-draft.png": "033ac3969c96adde1ab4fb927afb37b19f6ef323e93614680e9615bfaa197bb9",
+    "tablet-zh-deleted-row.png": "b6c509df5c541a655d38e19ebf9272dab0e437428c66348edf0022e527ae1755",
+    "tablet-zh-newer-draft.png": "36a8fe9551ca18c43b36558868dc0e578c28788b90060cfcbc210c318afeb5ea"
+  },
+  "baseline": {
+    "race_failures": 6,
+    "success_controls_passed": 4
+  },
+  "fixed_component_checks": 51,
+  "responsive_browser_checks": 12,
+  "production": false,
+  "theme": "Existing dark Terminal surface; no styles changed"
+}
