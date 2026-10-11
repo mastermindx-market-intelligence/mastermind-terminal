@@ -15,6 +15,11 @@
 # live dir (atomic per file). Logs to /var/log/terminal-data.log (cron 30 21 * * *).
 
 set -u
+# Volume-backed hosts must admit storage before env, lock or data effects.
+# The separate host guard survives this wrapper's canonical reinstall.
+if [ -e /usr/local/sbin/terminal-volume-guard ] || [ -L /usr/local/sbin/terminal-volume-guard ]; then
+  /usr/local/sbin/terminal-volume-guard || exit $?
+fi
 cd /opt/terminal || exit 1
 set -a; [ -f /opt/terminal/.env ] && . /opt/terminal/.env; set +a
 export MACRO_REPO=/opt/macro
