@@ -94,7 +94,7 @@ export async function GET() {
   }
   const summary = computePortfolioTargets(
     positions.positions.map((p) => ({
-      ticker: p.ticker, shares: p.shares, entryPrice: p.entryPrice, status: p.status,
+      ticker: p.ticker, shares: p.shares, entryPrice: p.entryPrice, entryCurrency: p.entryCurrency, status: p.status,
     })),
     targets.targets,
   );

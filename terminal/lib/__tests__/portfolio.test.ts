@@ -263,23 +263,25 @@ describe("semantic invariants A-D (packet section 0) at the store level", () => 
   });
 });
 
+// Existing arithmetic controls explicitly use fictional USD inputs. Unknown/legacy and
+// mixed-unit behavior is independently covered in portfolioMonetaryBasis.test.ts.
 describe("display math — honest nulls, never a fabricated number", () => {
   const position = (over: Partial<Position> = {}): Position => ({
-    id: "p", ticker: "NVDA", shares: 10, entryPrice: 100, entryDate: null,
+    id: "p", ticker: "NVDA", shares: 10, entryPrice: 100, entryCurrency: "USD", entryDate: null,
     notes: null, status: "open", createdAt: null, ...over,
   });
 
   it("has no value without shares, and no since-entry without an entry price", () => {
-    expect(marketValue(position({ shares: null }), 120)).toBeNull();
-    expect(marketValue(position(), null)).toBeNull();
-    expect(marketValue(position(), 120)).toBe(1200);
+    expect(marketValue(position({ shares: null }), 120, "USD")).toBeNull();
+    expect(marketValue(position(), null, "USD")).toBeNull();
+    expect(marketValue(position(), 120, "USD")).toBe(1200);
     expect(costBasis(position({ entryPrice: null }))).toBeNull();
-    expect(sinceEntryPct(position({ entryPrice: null }), 120)).toBeNull();
-    expect(sinceEntryPct(position(), null)).toBeNull();
-    expect(sinceEntryPct(position(), 120)).toBeCloseTo(20);
-    expect(sinceEntryValue(position(), 120)).toBe(200);
+    expect(sinceEntryPct(position({ entryPrice: null }), 120, "USD")).toBeNull();
+    expect(sinceEntryPct(position(), null, "USD")).toBeNull();
+    expect(sinceEntryPct(position(), 120, "USD")).toBeCloseTo(20);
+    expect(sinceEntryValue(position(), 120, "USD")).toBe(200);
     // A zero entry price has no defined percentage — null, not Infinity.
-    expect(sinceEntryPct(position({ entryPrice: 0 }), 120)).toBeNull();
+    expect(sinceEntryPct(position({ entryPrice: 0 }), 120, "USD")).toBeNull();
   });
 
   it("prefers a live quote over the nightly manifest and dashes when neither resolves", () => {
@@ -308,7 +310,7 @@ describe("display math — honest nulls, never a fabricated number", () => {
       position({ id: "a", ticker: "AAA", shares: 100, entryPrice: 200 }),
       position({ id: "b", ticker: "BBB", shares: 100, entryPrice: null }),
     ];
-    const totals = bookTotals(positions, { AAA: { last: 220 }, BBB: { last: 500 } }, {});
+    const totals = bookTotals(positions, { AAA: { last: 220 , currency: "USD"}, BBB: { last: 500 , currency: "USD"} }, {});
 
     // What the book is WORTH still covers everything held — that population is not restricted.
     expect(totals.marketValue).toBe(72000);
@@ -333,7 +335,7 @@ describe("display math — honest nulls, never a fabricated number", () => {
         position({ id: "c", ticker: "CCC", shares: 10, entryPrice: 100 }),    // no price at all
         position({ id: "d", ticker: "DDD", shares: null, entryPrice: 100 }),  // unsized
       ],
-      { AAA: { last: 120 }, BBB: { last: 50 }, DDD: { last: 10 } },
+      { AAA: { last: 120 , currency: "USD"}, BBB: { last: 50 , currency: "USD"}, DDD: { last: 10 , currency: "USD"} },
       {},
     );
     expect(totals.openCount).toBe(4);
@@ -347,7 +349,7 @@ describe("display math — honest nulls, never a fabricated number", () => {
   it("reports no P&L at all when nothing carries a basis, rather than a number built from none", () => {
     const totals = bookTotals(
       [position({ shares: 100, entryPrice: null })],
-      { NVDA: { last: 500 } },
+      { NVDA: { last: 500 , currency: "USD"} },
       {},
     );
     expect(totals.marketValue).toBe(50000);
@@ -361,7 +363,7 @@ describe("display math — honest nulls, never a fabricated number", () => {
   it("names the unpriced rather than quietly dropping them from a confident total", () => {
     const totals = bookTotals(
       [position({ id: "a", ticker: "NVDA" }), position({ id: "b", ticker: "0700.HK" })],
-      { NVDA: { last: 120, chg: 2 } },
+      { NVDA: { last: 120, chg: 2 , currency: "USD"} },
       {},
     );
     expect(totals.openCount).toBe(2);
@@ -369,7 +371,7 @@ describe("display math — honest nulls, never a fabricated number", () => {
     expect(totals.marketValue).toBe(1200);
     expect(totals.unpriced).toEqual(["0700.HK"]);
     // An unsized name is NOT "unpriced" — it has a price, just no size to apply it to.
-    const unsized = bookTotals([position({ shares: null })], { NVDA: { last: 120 } }, {});
+    const unsized = bookTotals([position({ shares: null })], { NVDA: { last: 120 , currency: "USD"} }, {});
     expect(unsized.unpriced).toEqual([]);
     expect(unsized.valued).toBe(0);
   });
@@ -377,7 +379,7 @@ describe("display math — honest nulls, never a fabricated number", () => {
   it("counts closed positions apart and keeps them out of the totals", () => {
     const totals = bookTotals(
       [position({ id: "a" }), position({ id: "b", status: "closed", shares: 500 })],
-      { NVDA: { last: 120 } },
+      { NVDA: { last: 120 , currency: "USD"} },
       {},
     );
     expect(totals.openCount).toBe(1);
@@ -386,7 +388,7 @@ describe("display math — honest nulls, never a fabricated number", () => {
   });
 
   it("derives day change from each name's own percent move", () => {
-    const totals = bookTotals([position()], { NVDA: { last: 110, chg: 10 } }, {});
+    const totals = bookTotals([position()], { NVDA: { last: 110, chg: 10 , currency: "USD"} }, {});
     expect(totals.marketValue).toBe(1100);
     expect(totals.dayChange).toBeCloseTo(100);      // 1100 - (1100 / 1.1)
     expect(totals.sinceEntry).toBeCloseTo(100);

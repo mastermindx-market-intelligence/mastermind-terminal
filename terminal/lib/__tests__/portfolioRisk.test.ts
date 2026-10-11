@@ -9,8 +9,9 @@ import {
   type RiskInputPosition,
 } from "@/lib/portfolioRisk";
 
+// Mathematical controls declare a fictional shared USD entry unit.
 const pos = (ticker: string, shares: number | null, entryPrice: number | null, status: "open" | "closed" = "open"): RiskInputPosition =>
-  ({ ticker, shares, entryPrice, status });
+  ({ ticker, shares, entryPrice, entryCurrency: "USD", status });
 
 const read = (facts: Partial<{ sector: string | null; marketCap: number | null; thinlyTraded: boolean | null }>, ticker: string): ArtifactState =>
   ({ kind: "read", facts: { ticker, sector: null, marketCap: null, thinlyTraded: null, ...facts } });

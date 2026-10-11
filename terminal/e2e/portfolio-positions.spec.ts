@@ -22,15 +22,16 @@ test.setTimeout(120_000);
 
 const MANIFEST = {
   symbols: {
-    NVDA: { name: "NVIDIA", zh: "英伟达", col: "#76b900", last: 175, chg: 1.2 },
-    AAPL: { name: "Apple", zh: "苹果", col: "#8e8e93", last: 228.1, chg: -0.4 },
-    MSFT: { name: "Microsoft", zh: "微软", col: "#00a4ef", last: 511.8, chg: 0.7 },
+    NVDA: { name: "NVIDIA", zh: "英伟达", col: "#76b900", last: 175, chg: 1.2, currency: "USD" },
+    AAPL: { name: "Apple", zh: "苹果", col: "#8e8e93", last: 228.1, chg: -0.4, currency: "USD" },
+    MSFT: { name: "Microsoft", zh: "微软", col: "#00a4ef", last: 511.8, chg: 0.7, currency: "USD" },
   },
 };
 
+// Mathematical controls use explicitly recorded fictional USD units.
 // NVDA quotes live (and differs from the manifest, so the test can tell which one won). AAPL has
 // no live quote and falls back to the manifest. `ZZUNKNOWN` is in NEITHER — it must render dashes.
-const QUOTES = { quotes: { NVDA: { last: 180, chg: 2.5 } } };
+const QUOTES = { quotes: { NVDA: { last: 180, chg: 2.5, currency: "USD" } } };
 
 const BRIEF = {
   schema: "portfolio_brief.v1",
@@ -48,11 +49,11 @@ const BRIEF = {
   }],
 };
 
-type Draft = { ticker: string; shares?: string; entryPrice?: string; entryDate?: string; notes?: string };
+type Draft = { ticker: string; shares?: string; entryPrice?: string; entryCurrency?: string; entryDate?: string; notes?: string };
 
 /** Create a position through the product's own route, as the signed-in fixture user. */
 async function seedPosition(page: Page, draft: Draft) {
-  const response = await page.request.post("/api/portfolio", { data: { action: "create", ...draft } });
+  const response = await page.request.post("/api/portfolio", { data: { action: "create", entryCurrency: "USD", ...draft } });
   expect(response.ok(), `seeding ${draft.ticker} failed: ${response.status()}`).toBe(true);
   return (await response.json()).position as { id: string; ticker: string };
 }
@@ -145,12 +146,12 @@ test("live values come from the quote hub, and an unresolved symbol dashes inste
 
   // The LIVE quote wins over the nightly manifest (175 would be the manifest's answer).
   const nvda = row(page, "NVDA").locator("td");
-  await expect.poll(async () => (await nvda.nth(4).innerText()).trim(), { timeout: 20_000 }).toBe("180.00");
-  await expect(nvda.nth(5)).toHaveText("1,800.00");                 // 10 × 180
+  await expect(nvda.nth(4)).toHaveText("180.00USD", { timeout: 20_000 });
+  await expect(nvda.nth(5)).toHaveText("USD 1,800.00");             // 10 × 180 in the quote's unit
   await expect(nvda.nth(6)).toContainText("+20.00%");               // 150 → 180
 
   // Manifest fallback for a name the live batch did not answer for.
-  await expect(row(page, "AAPL").locator("td").nth(4)).toHaveText("228.10");
+  await expect(row(page, "AAPL").locator("td").nth(4)).toHaveText("228.10USD");
 
   // No price anywhere → dashes, never a cost-basis stand-in and never a zero.
   const unknown = row(page, "ZZUNKNOWN").locator("td");
@@ -194,7 +195,7 @@ test("a position with no entry price is kept out of P&L and NAMED, not folded in
 
   // Book value covers BOTH (that population is not restricted): 100×180 + 100×228.1 = 40,810.
   await expect.poll(async () => (await page.locator(".kpi").first().locator("b").innerText()).trim(),
-    { timeout: 20_000 }).toBe("40,810.00");
+    { timeout: 20_000 }).toBe("USD 40,810.00");
 
   // Since-entry covers ONLY NVDA: (100×180) − (100×150) = +3,000 / +20%. Before the round-2 fix
   // this read +25,810 / +172%, because AAPL's whole market value was booked as profit.
@@ -234,6 +235,7 @@ test("add · edit · close · delete, all browser-driven, none of it touching th
   await modal.locator("input[name='ticker']").fill("nvda");
   await modal.locator("input[name='shares']").fill("10");
   await modal.locator("input[name='entryPrice']").fill("150");
+  await modal.locator("input[name='entryCurrency']").fill("USD");
   await page.screenshot({
     path: testInfo.outputPath(`${testInfo.project.name}-portfolio-add-modal.png`),
     fullPage: false,
@@ -250,7 +252,7 @@ test("add · edit · close · delete, all browser-driven, none of it touching th
   await edit.getByRole("button", { name: /Save position|保存持仓/ }).click();
   await expect(edit).toHaveCount(0);
   await expect(row(page, "NVDA").locator("td").nth(1)).toHaveText("25");
-  await expect(row(page, "NVDA").locator("td").nth(2)).toHaveText("150.00");   // entry price untouched
+  await expect(row(page, "NVDA").locator("td").nth(2)).toHaveText("150.00USD"); // price/unit untouched
 
   // ── CLOSE (gate D: watchlist membership survives) ──
   await page.request.post("/api/watchlist", { data: { action: "add", symbols: ["NVDA"], section: "Equities" } });

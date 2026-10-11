@@ -13,6 +13,7 @@
 // allocatePercentages (that is reserved for stacked bars that must visually sum to 100).
 
 import { tickerKey, type Lang, type Bilingual, type RiskInputPosition } from "@/lib/portfolioRisk";
+import { positiveCostCohort, type CostGap } from "@/lib/portfolioMoney";
 
 export type { Lang, Bilingual };
 
@@ -44,6 +45,8 @@ export type OrphanedTarget = { ticker: string; targetWeightPct: number; bandPct:
 export interface PortfolioTargetsSummary {
   schema: "portfolio_targets.v1";
   weightBasis: "cost";
+  costCurrency?: string | null;
+  costGap?: CostGap | null;
   targetsSumPct: number | null;
   targetsSumOffBy100: number | null;
   drifts: TargetDrift[];
@@ -97,6 +100,7 @@ export function computePortfolioTargets(
   targets: readonly PortfolioTarget[],
 ): PortfolioTargetsSummary {
   const open = positions.filter((p) => p.status === "open");
+  const cohort = positiveCostCohort(open);
   const costByTicker = new Map<string, number>();
   const openTickers = new Set<string>();
   for (const p of open) {
@@ -112,7 +116,7 @@ export function computePortfolioTargets(
     if (cost == null || !(cost > 0)) continue;
     costByTicker.set(key, (costByTicker.get(key) ?? 0) + cost);
   }
-  const totalCost = [...costByTicker.values()].reduce((a, c) => a + c, 0);
+  const totalCost = cohort.money?.amount ?? 0;
   const pctOf = (cost: number): number | null =>
     totalCost > 0 ? round1((cost / totalCost) * 100) : null;
 
@@ -178,6 +182,8 @@ export function computePortfolioTargets(
   return {
     schema: "portfolio_targets.v1",
     weightBasis: "cost",
+    costCurrency: cohort.money?.currency ?? null,
+    costGap: cohort.reason,
     targetsSumPct,
     targetsSumOffBy100,
     drifts,

@@ -38,6 +38,7 @@ async function seedOpenPosition(key: string, ticker: string, shares: number, ent
   const userId = fixtureUserId(key);
   await db.from("portfolio_positions").insert({
     user_id: userId, ticker, shares, entry_price: entryPrice, status: "open",
+    entry_currency: "USD", entry_currency_basis: { ticker, price: entryPrice },
   } as any);
 }
 

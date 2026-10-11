@@ -23,12 +23,13 @@ import {
 } from "@/lib/portfolioRiskHistory";
 import { computePortfolioRisk } from "@/lib/portfolioRisk";
 
+// Mathematical controls declare a fictional shared USD entry unit.
 const pos = (
   ticker: string,
   shares: number | null,
   entryPrice: number | null,
   status: "open" | "closed" = "open",
-): HistoryInputPosition => ({ ticker, shares, entryPrice, status });
+): HistoryInputPosition => ({ ticker, shares, entryPrice, entryCurrency: "USD", status });
 
 function series(pairs: Array<[string, number]>): CloseSeries {
   return pairs.map(([date, close]) => ({ date, close }));

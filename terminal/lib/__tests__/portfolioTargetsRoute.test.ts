@@ -112,7 +112,7 @@ const postBook = (body: Record<string, unknown>) => PORTFOLIO_POST(new Request("
 const owner = fixtureUserId("pftargets");
 
 async function seedHolding(ticker: string, shares = 10, entryPrice = 100) {
-  const response = await postBook({ action: "create", ticker, shares, entryPrice });
+  const response = await postBook({ action: "create", ticker, shares, entryPrice, entryCurrency: "USD" });
   expect(response.status).toBe(200);
   return (await response.json()).position as { id: string; ticker: string };
 }
