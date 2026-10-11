@@ -1,0 +1,129 @@
+{
+  "schema": "factor_atlas.terminal_native_preview_verification.v1",
+  "observed_at": "2026-10-11T09:28:42.897698+00:00",
+  "operation": "factor-atlas-terminal-preview-20261011-c1",
+  "base_sha": "fc76cf495781e5f53254aa3c457411de0cb64654",
+  "protected_procedure_sha": "8d62a8571d2a6ad9da9d50e5e4624de6eecaac4c",
+  "source_binding": "file hashes; final commit binds this receipt without self-reference",
+  "source_sha256": {
+    "terminal/lib/factorAtlasHistory.ts": "27a4e572744257c18594c1581fd25696c271f4771f3bd0f6761ce46012af3878",
+    "terminal/components/factor-atlas/FactorHistoryPreview.tsx": "16762256d28990aa0496edb036b4c21c7106cf4cc8bb9ca033f01687915bf267",
+    "terminal/components/factor-atlas/FactorHistoryPreview.module.css": "01e0d66a9635bf9a614bd27ec7309eb6b2ae9a090ff12b78233004100f960615",
+    "terminal/lib/__tests__/factorAtlasHistory.test.ts": "371ea832a9545b564f8d0777a9618504aa050d99529d5074cc389bda42fd71d1",
+    "terminal/lib/__tests__/factorAtlasPreview.test.tsx": "59787bb5f501a165d7388210d6417a2f983afd00d7710cccc45d0e43eaa913a3",
+    "terminal/lib/__tests__/fixtures/factorAtlasNativeSynthetic.json": "6860786ee663c394e0d33b18e241592879501a6bc5335a09faed6d66b0b42626",
+    "docs/factor-atlas-preview/preview-entry.tsx": "9d3cbc9ebd7c692b5a7ade12249a0004dafded1e3e31e8417c07876dabd9de62",
+    "docs/factor-atlas-preview/serve.mjs": "a0bdb9bf28e8d764e82d4e320449c80edce39468f89ff99476dffaebf7588c9d",
+    "docs/factor-atlas-preview/prove.mjs": "7939c711c57236afa8349a6dde46c15fbf72d64854a99f85e1568a58488d03c6"
+  },
+  "source_native_fixture": {
+    "repo": "mastermindx-market-intelligence/macro",
+    "commit": "ddf1f07f2059caebb4bfa6b1db6c4008dd97859c",
+    "blob": "3590dc40e3116834b79ae17628b399d4be01a18f",
+    "sha256": "6860786ee663c394e0d33b18e241592879501a6bc5335a09faed6d66b0b42626",
+    "scope": "fabricated AAA/BBB/CCC, not actual mag7"
+  },
+  "tests": {
+    "baseline_passed": 1,
+    "history_red_expected_failures": 64,
+    "history_green_passed": 64,
+    "dom_initial_harness_error_skipped": 10,
+    "dom_initial_error_is_not_red_proof": true,
+    "dom_corrected_red_expected_failures": 10,
+    "combined_native_passed": 74,
+    "focused_eslint_errors": 0,
+    "focused_eslint_warnings": 0,
+    "application_typecheck_exit": 0,
+    "full_terminal_regression": "NOT_RUN_LOCALLY"
+  },
+  "browser": {
+    "contexts_passed": 24,
+    "assertion_groups_passed": 432,
+    "viewports": [
+      [
+        1440,
+        900
+      ],
+      [
+        820,
+        1180
+      ],
+      [
+        390,
+        844
+      ]
+    ],
+    "engines": [
+      "chromium",
+      "webkit"
+    ],
+    "languages": [
+      "en",
+      "zh"
+    ],
+    "themes": [
+      "dark",
+      "light"
+    ],
+    "page_errors": 0,
+    "external_requests": 0,
+    "scope": "real native component bundled in loopback harness; shared theme variables supplied by harness, not full Next.js/auth route",
+    "receipt_sha256": "aa1e0609e7e3817aecfc4dd6043bfd554e1e8c43f8df7a75c01a96f14f42e569"
+  },
+  "logs": {
+    "baseline.log": {
+      "bytes": 516,
+      "sha256": "2048ec306d8a45dfbe17574065fe25780329278c4be65a2568142a3d8d82488c"
+    },
+    "history-red.log": {
+      "bytes": 38538,
+      "sha256": "f5e79f4b93506888e67ff31f43d682a1a67879c5f5228aad80bfb72ba240b3a7"
+    },
+    "history-green.log": {
+      "bytes": 513,
+      "sha256": "7eda298e2e3bb674145a22607ae309f55cc180f8839561a0e53af6a264ec4208"
+    },
+    "preview-red.log": {
+      "bytes": 1135,
+      "sha256": "0fd3bffd31c15a62b41c6c68222a1168399862fa09d2ba22e17b06314f5fcd63"
+    },
+    "preview-red-corrected.log": {
+      "bytes": 11274,
+      "sha256": "d34fb3d6194b1ab84481e059d1fd87e03647041f524952ff6d3c495bdf8894dc"
+    },
+    "native-green.log": {
+      "bytes": 582,
+      "sha256": "5807f7098e66663e9de86c9312dba9adb96e21b4b36378a3d254706314c97d71"
+    },
+    "focused-lint-final.log": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "typecheck.log": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "browser-run.log": {
+      "bytes": 117,
+      "sha256": "caf7a0f9a19e799fb3bf83e006713ed4105f486fe8e4b64d6b147c56983ee69b"
+    }
+  },
+  "screenshots": {
+    "chromium-1440-dark-en-compare.png": "b626ebf2ac7a702c68c87f3e2cc11a2b0ae670397edf8d4b80a6d6f4dfa5bc1c",
+    "chromium-390-dark-en.png": "bf1a79e64108d9ea8c41a3f3a2b65aaf3d3dc75612508b6f560792401d909d97",
+    "chromium-1440-light-en.png": "4a67bc5bb554e68d6270f6cebe521ca3a5edcc812f0d4c676fbd1a879cbcfad9",
+    "webkit-820-light-zh.png": "e15bbb3aa92b6cc1577c9590ddfc685cf66989c986d8603d609af5543349e106",
+    "webkit-390-light-zh.png": "cdae2a729049099241528138a2e79ccd2fc9f2deadf434034cbcfd451cf39661"
+  },
+  "source_admission": false,
+  "authenticated_production": false,
+  "customer_publication": false,
+  "independent_review": null,
+  "merged": false,
+  "deployed": false,
+  "notes": [
+    "Unused type import removed after combined unit/typecheck PASS; clean focused lint and browser proof use final component source.",
+    "No Macro source/custody refusal replay; no change to S1/S2/S4/S6 sources or leases.",
+    "Legacy typed Git status is bound to Mastermind-only source/remote. Read-only configuration evidence and separate Terminal mmx status establish a different resource target; no configuration changes or retry of that status."
+  ]
+}
