@@ -49,6 +49,9 @@ export const FAULT_THESES_READ = "theses_read";
 export const FAULT_SAVED_VIEWS_READ = "saved_views_read";
 export const FAULT_ALERT_OUTBOX_READ = "alert_outbox_read";
 export const FAULT_TARGETS_READ = "targets_read";
+/** Every INSERT/UPSERT/UPDATE/DELETE on `workspace_settings` fails with the supabase-js error
+ *  shape; reads still answer. Proves a refused account write never reads back as "Saved". */
+export const FAULT_WORKSPACE_SETTINGS_WRITE = "workspace_settings_write";
 
 /**
  * Store-key token that models "macro's nightly thesis-condition monitor enqueued one
@@ -293,6 +296,9 @@ class FixtureQuery implements WatchlistQuery {
     }
     if (this.table === "workspace_settings" && this.mode === "read" && this.faults.has(FAULT_SAVED_VIEWS_READ)) {
       return { data: null, error: { message: "fixture: workspace_settings unavailable" } };
+    }
+    if (this.table === "workspace_settings" && this.mode !== "read" && this.faults.has(FAULT_WORKSPACE_SETTINGS_WRITE)) {
+      return { data: null, error: { message: "fixture: workspace_settings write unavailable" } };
     }
     if (this.table === "alert_outbox" && this.mode === "read" && this.faults.has(FAULT_ALERT_OUTBOX_READ)) {
       return { data: null, error: { message: "fixture: alert_outbox unavailable" } };

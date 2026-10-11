@@ -284,3 +284,61 @@ export function normalizeStudyTemplateRecord(
 export function studyTemplateSettingsKey(id: string): string {
   return `${STUDY_TEMPLATE_KEY_PREFIX}${id}`;
 }
+
+// --- writes ------------------------------------------------------------------------------------
+
+/** Why a write was refused before it reached storage. Shared by the device and account stores. */
+export type StudyTemplateWriteProblem =
+  | "invalid_name"
+  | "name_too_long"
+  | "empty"
+  | "too_many_studies"
+  | "too_large"
+  | "invalid_body";
+
+/**
+ * Validate one user-initiated write. The body is checked STRICTLY: whatever the caller built is
+ * stored exactly or not at all, so a "Saved" answer always describes the bytes that were kept.
+ */
+export function validateStudyTemplateWrite(
+  name: unknown,
+  body: unknown,
+): { ok: true; name: string; body: StudyTemplateBody } | { ok: false; problem: StudyTemplateWriteProblem } {
+  const nameProblem = templateNameProblem(name);
+  if (nameProblem) return { ok: false, problem: nameProblem === "too_long" ? "name_too_long" : "invalid_name" };
+  const parsed = normalizeStudyTemplateBody(body, { strict: true });
+  if (!parsed.body) {
+    if (parsed.issues.includes("too_many_studies")) return { ok: false, problem: "too_many_studies" };
+    if (parsed.issues.includes("too_large") || parsed.issues.includes("too_many_hidden")) return { ok: false, problem: "too_large" };
+    return { ok: false, problem: "invalid_body" };
+  }
+  if (!parsed.body.indicators.length) return { ok: false, problem: "empty" };
+  return { ok: true, name: normalizeTemplateName(name)!, body: parsed.body };
+}
+
+/** The one v2 record shape both stores write. Old readers keep reading `indicators`/`indParams`. */
+export function buildStudyTemplateRecord(input: {
+  id: string;
+  name: string;
+  body: StudyTemplateBody;
+  revision: number;
+  createdAt: string;
+  updatedAt: string;
+}): StudyTemplateRecord {
+  return {
+    v: STUDY_TEMPLATE_VERSION,
+    id: input.id,
+    name: input.name,
+    indicators: [...input.body.indicators],
+    indParams: { ...input.body.indParams },
+    hidden: [...input.body.hidden],
+    revision: input.revision,
+    createdAt: input.createdAt,
+    updatedAt: input.updatedAt,
+  };
+}
+
+/** A body view of a record (drops identity/version fields). */
+export function studyTemplateBodyOf(record: StudyTemplateBody): StudyTemplateBody {
+  return { indicators: record.indicators, indParams: record.indParams, hidden: record.hidden };
+}
