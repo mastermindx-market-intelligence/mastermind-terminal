@@ -24,6 +24,7 @@ import {
   isAvailable,
 } from "../idbJsonStore";
 import { _seedDecision, type SeedDecision } from "../dataCache";
+import { makeFakeIndexedDB, type Rec } from "./helpers/fakeIndexedDB";
 
 // ───────────────────────────────────────────────────────────────────────────
 // Tier A — pure decision logic (no IndexedDB required)
@@ -104,110 +105,12 @@ describe("dataCache._seedDecision — seed-with-persisted-ts freshness classifie
 });
 
 // ───────────────────────────────────────────────────────────────────────────
-// Tier B — end-to-end through a minimal in-memory fake IndexedDB.
+// Tier B — end-to-end through a minimal in-memory fake IndexedDB
+// (./helpers/fakeIndexedDB — shared with the Heatmap's persisted-copy suite).
 //
-// Covers only the request surface dataCache/idbJsonStore actually use:
-//   open + upgradeneeded(createObjectStore/createIndex),
-//   transaction/objectStore, get, put, delete, clear, count,
-//   index("ts").openCursor() (ascending).
 // The fake is intentionally small; it validates the WIRING (seed memory with the
 // persisted ts and apply freshness) against real code, not IDB spec conformance.
 // ───────────────────────────────────────────────────────────────────────────
-
-type Rec = { url: string; data: any; ts: number };
-
-function makeFakeIndexedDB() {
-  const data = new Map<string, Rec>();
-
-  // Microtask-defer a request's success so on* handlers (assigned after the call
-  // returns, exactly like real IDB) are already attached when they fire.
-  function fire<T>(makeResult: () => T) {
-    const req: any = { onsuccess: null, onerror: null, result: undefined };
-    queueMicrotask(() => {
-      try {
-        req.result = makeResult();
-        req.onsuccess && req.onsuccess({ target: req });
-      } catch (e) {
-        req.onerror && req.onerror({ target: req });
-      }
-    });
-    return req;
-  }
-
-  function makeStore() {
-    return {
-      get: (url: string) => fire(() => data.get(url)),
-      put: (rec: Rec) => fire(() => {
-        data.set(rec.url, rec);
-        return rec.url;
-      }),
-      delete: (url: string) => fire(() => {
-        data.delete(url);
-        return undefined;
-      }),
-      clear: () => fire(() => {
-        data.clear();
-        return undefined;
-      }),
-      count: () => fire(() => data.size),
-      index: (_name: string) => ({
-        openCursor: () => {
-          // Ascending-by-ts cursor.
-          const sorted = [...data.values()].sort((a, b) => a.ts - b.ts);
-          let i = 0;
-          const req: any = { onsuccess: null, onerror: null, result: undefined };
-          const step = () => {
-            queueMicrotask(() => {
-              if (i >= sorted.length) {
-                req.result = null;
-                req.onsuccess && req.onsuccess({ target: req });
-                return;
-              }
-              const rec = sorted[i];
-              req.result = {
-                value: rec,
-                delete: () => data.delete(rec.url),
-                continue: () => {
-                  i++;
-                  step();
-                },
-              };
-              req.onsuccess && req.onsuccess({ target: req });
-            });
-          };
-          step();
-          return req;
-        },
-      }),
-      createIndex: () => {},
-    };
-  }
-
-  const db: any = {
-    objectStoreNames: { contains: (_n: string) => true },
-    createObjectStore: () => makeStore(),
-    transaction: (_store: string, _mode?: string) => {
-      const tx: any = { oncomplete: null, onerror: null, onabort: null, objectStore: () => makeStore() };
-      // Resolve the transaction as complete after pending request microtasks.
-      queueMicrotask(() => queueMicrotask(() => tx.oncomplete && tx.oncomplete({ target: tx })));
-      return tx;
-    },
-    close: () => {},
-    onversionchange: null,
-  };
-
-  return {
-    _data: data,
-    open: (_name: string, _version?: number) => {
-      const req: any = { onupgradeneeded: null, onsuccess: null, onerror: null, onblocked: null, result: db };
-      queueMicrotask(() => {
-        req.onupgradeneeded && req.onupgradeneeded({ target: req });
-        req.onsuccess && req.onsuccess({ target: req });
-      });
-      return req;
-    },
-  };
-}
 
 // Load dataCache/idbJsonStore FRESH per test with the fake installed, so the
 // module-level open-promise cache starts clean each time.

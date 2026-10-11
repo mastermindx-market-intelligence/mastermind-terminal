@@ -253,7 +253,7 @@ async function main() {
     "harness:",
     ...SHOTS.map((s) => `  ${s.file}: { url: "/analysis?view=theses&symbol=${SYM}&lang=${s.lang}", state: ${s.kind === "entry" ? "entry" : (s.filled ? "filled" : "empty")} }`),
     "capture_flag: TERMINAL_E2E_FIXTURE",
-    "capture_flag_law: next.config.ts sets devIndicators: false when TERMINAL_E2E_FIXTURE is set; playwright.config.ts already sets that flag on the e2e dev server. This script starts next dev with the same flag.",
+    "capture_flag_law: next.config.ts sets devIndicators to false when TERMINAL_E2E_FIXTURE is set; playwright.config.ts already sets that flag on the e2e dev server. This script starts next dev with the same flag.",
     "command: |",
     "  cd terminal",
     "  node e2e/tools/capture_b_f13_6_claim_form.cjs",

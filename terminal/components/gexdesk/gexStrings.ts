@@ -154,6 +154,7 @@ const GEX_LEX = {
     "暂时无法读取每日状态。这是读取失败，并非状态仍在计算。",
   ],
   stateRefreshFailed: ["Could not refresh — showing the last read.", "无法刷新 — 显示上次读取的数据。"],
+  liveRefreshFailed:  ["Could not refresh — showing the last read.", "无法刷新 — 显示上次读取的数据。"],
   stateRegimeLabel:   ["Regime", "状态"],
   stateStability:     ["Stability", "稳定性"],
   stateGravity:       ["Gravity", "引力"],
@@ -605,6 +606,11 @@ const GEX_LEX = {
   heatSeekerNull:       [
     "No standout pick — load is shared across levels.",
     "无突出精选 — 仓位分布于多个价位。",
+  ],
+  // A 404 matrix: nothing is published for this name, so nothing is known about its load.
+  heatSeekerAbsent:     [
+    "No pick is published for this name — the nightly strike × expiry matrix does not cover it.",
+    "本标的未发布精选 — 每日行权价 × 到期矩阵未覆盖它。",
   ],
   // A third fact: the matrix read did not land, so whether a pick exists is unknown.
   heatSeekerError:      [

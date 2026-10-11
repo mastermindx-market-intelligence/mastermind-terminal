@@ -183,8 +183,9 @@ const LEVEL_RUNG_EDGE_GUTTER = 14 / 360;
 
 /**
  * Spread display labels apart while preserving each level's exact raw price Y.
- * Raw positions are still rendered as anchor ticks; this only moves the readable
- * rung/button when two prices project too close to fit without overlap.
+ * This only moves the readable rung/button when two prices project too close to
+ * fit without overlap (or into the edge gutter). An unmoved rung is centred on its
+ * own price; a moved one keeps an exact-price tick on the axis (RUNG_ANCHOR).
  */
 function spreadLevelYs(rawYs: readonly number[]): number[] {
   if (rawYs.length === 0) return [];
@@ -536,7 +537,8 @@ export function LevelsView() {
                 );
               })}
 
-              {/* strike terrain rungs — exact-price anchors + collision-free readable labels */}
+              {/* strike terrain rungs — collision-free readable labels; a moved label keeps
+                  an exact-price tick on the axis, joined to it by a leader */}
               {band && terrainLayout.map(({ node: n, index: i, rawY, displayY }) => {
                 const b = n.brightness ?? 0;
                 const rgb = n.sticky ? palette.stickyRGB : palette.slipperyRGB;
@@ -548,28 +550,29 @@ export function LevelsView() {
                 return (
                   <React.Fragment key={`rung-${i}`}>
                     {shifted && (
-                      <span
-                        aria-hidden="true"
-                        data-testid="levels-rung-leader"
-                        style={{
-                          ...RUNG_LEADER,
-                          top: `${leaderTop}%`,
-                          height: `${leaderHeight}%`,
-                          background: `rgba(${rgb},0.42)`,
-                        }}
-                      />
+                      <>
+                        <span
+                          aria-hidden="true"
+                          data-testid="levels-rung-leader"
+                          style={{
+                            ...RUNG_LEADER,
+                            top: `${leaderTop}%`,
+                            height: `${leaderHeight}%`,
+                            background: `rgba(${rgb},0.42)`,
+                          }}
+                        />
+                        <span
+                          aria-hidden="true"
+                          data-testid="levels-rung-anchor"
+                          data-strike={fmtStrike(n.strike)}
+                          style={{
+                            ...RUNG_ANCHOR,
+                            top: `${rawY * 100}%`,
+                            background: `rgba(${rgb},${0.72 + b * 0.24})`,
+                          }}
+                        />
+                      </>
                     )}
-                    <span
-                      aria-hidden="true"
-                      data-testid="levels-rung-anchor"
-                      style={{
-                        ...RUNG_ANCHOR,
-                        top: `${rawY * 100}%`,
-                        width: `${w}%`,
-                        background: `linear-gradient(90deg, rgba(${rgb},${0.64 + b * 0.28}) 0%, rgba(${rgb},0.16) 100%)`,
-                        borderLeft: `2px solid rgba(${rgb},${0.72 + b * 0.24})`,
-                      }}
-                    />
                     <button
                       data-testid="levels-rung"
                       data-strike={fmtStrike(n.strike)}
@@ -763,7 +766,7 @@ const COLUMN_PANE: React.CSSProperties = {
 };
 const COLUMN_STAGE: React.CSSProperties = {
   position: "relative", flex: 1, minHeight: 360,
-  marginLeft: 8,
+  marginLeft: 8, // room for the moved labels' exact-price ticks (RUNG_ANCHOR)
   borderLeft: "1px solid var(--line-3)",
 };
 const COLUMN_LOADING: React.CSSProperties = {
@@ -782,9 +785,13 @@ const RUNG: React.CSSProperties = {
 const RUNG_LEADER: React.CSSProperties = {
   position: "absolute", left: 0, width: 1, pointerEvents: "none", zIndex: 1,
 };
+// A moved label's exact-price tick. It sits on the axis line and in the stage's left margin
+// (COLUMN_STAGE marginLeft), where no rung is ever drawn, so it cannot cross any label's text.
+// A moved price usually lies inside a neighbour's label — that crowding is why it moved.
+const RUNG_ANCHOR_TICK = 8;
 const RUNG_ANCHOR: React.CSSProperties = {
-  position: "absolute", left: 0, height: 2, transform: "translateY(-50%)",
-  borderRadius: "0 2px 2px 0", pointerEvents: "none", zIndex: 2,
+  position: "absolute", left: -RUNG_ANCHOR_TICK, width: RUNG_ANCHOR_TICK, height: 2,
+  transform: "translateY(-50%)", borderRadius: "1px 0 0 1px", pointerEvents: "none", zIndex: 2,
 };
 const RUNG_GLYPH: React.CSSProperties = { fontSize: 13, fontWeight: 700, width: 14, textAlign: "center" };
 const RUNG_STRIKE: React.CSSProperties = {
