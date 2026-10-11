@@ -1,5 +1,5 @@
 "use client";
-import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type Dispatch, type SetStateAction } from "react";
 import type { ChartReadoutMeta } from "@/lib/visualIntelligence";
 import ChartPanel, { type DetectCmd, type LiveQuote, type PineScript } from "@/components/ChartPanel";
 import ChartFrameBar, { DEFAULT_CHART_SETTINGS, type ChartSettings } from "@/components/ChartFrameBar";
@@ -7,7 +7,9 @@ import ChartSettingsModal, { type ChartSettingsTab } from "@/components/ChartSet
 import { type Drawing, type DrawKind } from "@/lib/drawings";
 import { drawingPanelInstanceKey } from "@/lib/drawingOwnership";
 import { type CmpCfg } from "@/lib/compare";
-import { type IChartApi } from "lightweight-charts";
+import { PriceScaleMode, type IChartApi } from "lightweight-charts";
+import CompareAnchorStrip, { compareLegsOf } from "@/components/CompareAnchorStrip";
+import type { CompareStudy } from "@/lib/compareAnchor";
 import { useLang } from "@/lib/i18n";
 import { displayName } from "@/lib/markets";
 import AssetLogo from "@/components/AssetLogo";
@@ -26,7 +28,7 @@ const load = (d: ChartSettings): ChartSettings => { try { const v = localStorage
 // stay pane-local and are merged in only for this pane's own render.
 export default function ChartPane({ idx, symbol, drawingOwnerKey, isActive, onActivate, row, tf, chartType, dataReady = true, initialTimeframe = null, episodeId = null, inds, tool, toolActivation = 0, drawingSticky = false, drawingCreationDisabled = false, drawStyle, detectCmd, compare, compareCfg, magnet, replayCutoff, onMeta, drawings, drawingsVisible = true, onDrawingsChange, liveQuote, indParams, hidden, onToggleHidden, onRemoveInd, onOpenSettings, onOpenSource, pineScripts,
   onDetectedDrawingCount,
-  onAddAlert, onTableView, onObjectTree, lockedVLine, onSetLockedVLine, onIndRowsAt, dayMode: _dayMode, onPaneCount, userTier }:
+  onAddAlert, onTableView, onObjectTree, lockedVLine, onSetLockedVLine, onIndRowsAt, dayMode: _dayMode, onPaneCount, userTier, onCompareCfgChange }:
   { idx: number; symbol: string; drawingOwnerKey: string; isActive: boolean; onActivate: (i: number) => void; dataReady?: boolean; initialTimeframe?: string | null; row?: { name?: string; zh?: string; sec?: string; mkt?: string; col?: string; last?: number; chg?: number } | null; tf: string; chartType: string; inds: Set<string>; tool: DrawKind | null; toolActivation?: number; drawingSticky?: boolean; drawingCreationDisabled?: boolean; drawStyle?: { color: string; width: number; dash: "solid" | "dashed" | "dotted" }; detectCmd: DetectCmd; compare: string[]; compareCfg?: Record<string, CmpCfg>; magnet: "off" | "weak" | "strong"; replayCutoff: ReplayCutoff | null; onMeta: (m: { symbol: string; timeframe: string; axis: ReplayAxis }) => void; drawings: Drawing[]; drawingsVisible?: boolean; onDrawingsChange: (d: Drawing[]) => void;     onDetectedDrawingCount?: (count: number) => void; liveQuote?: LiveQuote; episodeId?: string | null;
     indParams?: Record<string, any>; hidden?: Set<string>; onToggleHidden?: (key: string) => void; onRemoveInd?: (key: string) => void; onOpenSettings?: (key: string) => void; onOpenSource?: (key: string) => void; pineScripts?: PineScript[];
     onAddAlert?: (price: number) => void; onTableView?: () => void; onObjectTree?: () => void;
@@ -38,12 +40,16 @@ export default function ChartPane({ idx, symbol, drawingOwnerKey, isActive, onAc
     onPaneCount?: (n: number) => void;
     /** Entitlement tier — UI gate for premium suite modules. */
     userTier?: "free" | "essential" | "pro";
+    /** E08: the shell's compare-config setter, so the anchor control writes the SAME CmpCfg the layout saves. */
+    onCompareCfgChange?: Dispatch<SetStateAction<Record<string, CmpCfg>>>;
   }) {
   const { lang } = useLang();
   const [auto, setAuto] = useState<Drawing[]>([]);
   const [chartSettings, setChartSettings] = useState<ChartSettings>(DEFAULT_CHART_SETTINGS);
   const [chartSettingsReady, setChartSettingsReady] = useState(false);
   const [chartApi, setChartApi] = useState<IChartApi | null>(null);
+  // E08: the receipt of the last compare build ChartPanel drew, rendered by CompareAnchorStrip.
+  const [cmpStudy, setCmpStudy] = useState<CompareStudy | null>(null);
   const [settingsModalOpen, setSettingsModalOpen] = useState(false);
   const [settingsModalTab, setSettingsModalTab] = useState<ChartSettingsTab>("scales");
 
@@ -137,6 +143,9 @@ export default function ChartPane({ idx, symbol, drawingOwnerKey, isActive, onAc
   const marketLabel = row?.mkt || row?.sec || "";
 
   const extendedEligible = classify(symbol) === "us" && !isMacroSymbol(symbol);
+  const paneCompare = useMemo(() => (isActive ? compare.filter((c) => c !== symbol) : []), [isActive, compare, symbol]);
+  const cmpLegs = useMemo(() => compareLegsOf(paneCompare, symbol), [paneCompare, symbol]);
+  useEffect(() => { if (!cmpLegs.length) setCmpStudy(null); }, [cmpLegs.length]);
   const panelSettings = useMemo(() => ({ ...chartSettings }), [chartSettings]);
   const displayLabel = displayName(row, lang) || symbol;
   const title = chartSettings.titleMode === "ticker"
@@ -167,12 +176,19 @@ export default function ChartPane({ idx, symbol, drawingOwnerKey, isActive, onAc
           sit in history while its neighbour stayed live. Meta is likewise reported unconditionally:
           the shell keys bar counts by (symbol|timeframe), so a pane that is merely not focused still
           contributes the span that becomes authoritative once the workspace collapses onto it. */}
+      {cmpLegs.length > 0 && (
+        <CompareAnchorStrip
+          host={symbol} timeframe={tf} legs={cmpLegs} compareCfg={compareCfg} study={cmpStudy} chartApi={chartApi}
+          percentAxis={chartSettings.mode === PriceScaleMode.Percentage || chartSettings.mode === PriceScaleMode.IndexedTo100}
+          onCompareCfgChange={onCompareCfgChange}
+        />
+      )}
       <ChartPanel
         symbol={symbol} companyName={displayName(row, lang)} chartType={chartType} indicators={inds} timeframe={tf} dataReady={dataReady && chartSettingsReady} initialTimeframe={initialTimeframe}
         replayCutoff={replayCutoff} onMeta={onMeta}
         tool={isActive ? tool : null} toolActivation={toolActivation} drawingSticky={isActive && drawingSticky} drawingCreationDisabled={drawingCreationDisabled} drawStyle={drawStyle} drawings={merged}
         onDrawingsChange={handleChange} detectCmd={detectCmd?.targetPane === idx ? detectCmd : null}
-        compare={isActive ? compare.filter((c) => c !== symbol) : []} compareCfg={compareCfg}
+        compare={paneCompare} compareCfg={compareCfg} onCompareStudy={setCmpStudy}
         magnet={isActive ? magnet : "off"} isActive={isActive} syncId={idx}
         liveQuote={liveQuote} indParams={indParams} hidden={hidden}
         instrumentName={displayLabel}

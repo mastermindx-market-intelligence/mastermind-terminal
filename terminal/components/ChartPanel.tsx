@@ -55,9 +55,10 @@ import {
 } from "@/lib/priceTagPlacement";
 import { hoverTagPaint } from "@/lib/hoverTagPaint";
 import { setActivePaneCoords, getActivePaneCoords } from "@/lib/paneCoords";
-import { getJSON, getSliceAndOhlc, getCompositeOhlc, getOhlc, type CacheOutcome } from "@/lib/dataCache";
+import { getJSON, getJSONResult, getSliceAndOhlc, getCompositeOhlc, getOhlc, type CacheOutcome } from "@/lib/dataCache";
 import { parseComposite, alignAndSum } from "@/lib/composite";
 import { CMP_PALETTE, type CmpCfg, defaultCmpCfg, cmpKey } from "@/lib/compare";
+import { buildCompareStudy, type CmpLegLoad, type CompareStudy } from "@/lib/compareAnchor";
 import { isIntradayTf, isSecondTf, classify, tfMinutes, type Market } from "@/lib/intradaySources";
 import { episodeMarks, type MarkTone } from "@/lib/dislocations/episodeMarks";
 import { chartMarkerSpecs, toChartMarks } from "@/lib/dislocations/episodeChartTimes";
@@ -574,7 +575,7 @@ import { eodSnapshotKnown, replayAxisOf, replayChipAnchor, replayDayChangePct, r
 import { detectGapZones, gapZonesAsOf, type GapZone } from "@/lib/gapZones";
 
 export default function ChartPanel({ symbol, chartType = "candles", indicators, timeframe = "D", replayCutoff = null, onMeta, tool = null, toolActivation = 0, drawingSticky = false, drawingCreationDisabled = false, drawStyle, drawings = [], onDrawingsChange, detectCmd = null, magnet = "off", compare = [], compareCfg = EMPTY_OBJ, isActive = true, syncId = null, liveQuote = null,
-  indParams = EMPTY_OBJ, hidden = EMPTY_SET, onToggleHidden, onRemoveInd, onOpenSettings, onOpenSource, pineScripts = EMPTY_PINE, chartSettings, onVisualSettings, onChartApi, extHours = false, episodeId = null,
+  indParams = EMPTY_OBJ, hidden = EMPTY_SET, onToggleHidden, onRemoveInd, onOpenSettings, onOpenSource, pineScripts = EMPTY_PINE, chartSettings, onVisualSettings, onChartApi, onCompareStudy, extHours = false, episodeId = null,
   instrumentName, instrumentMarket, instrumentColor, onAddAlert, onTableView, onObjectTree, onOpenSettingsModal, lockedVLine = null, onSetLockedVLine, onIndRowsAt, dayMode = false, onPaneCount, companyName = "", userTier = "free", dataReady = true, initialTimeframe = null }:
   { symbol: string; companyName?: string; chartType?: string; indicators: Set<string>; timeframe?: string; replayCutoff?: ReplayCutoff | null; onMeta?: (m: { symbol: string; timeframe: string; axis: ReplayAxis }) => void;
     /** False until the shell has COMMITTED its persisted prefs. See `effectiveTimeframe`. */
@@ -589,6 +590,8 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
     instrumentMarket?: string;
     instrumentColor?: string;
     onChartApi?: (api: IChartApi | null) => void; extHours?: boolean; episodeId?: string | null;
+    /** E08: the receipt of every completed compare build (anchors, bases, withheld legs, digest). */
+    onCompareStudy?: (study: CompareStudy) => void;
     onAddAlert?: (price: number) => void;
     onTableView?: () => void;
     onObjectTree?: () => void;
@@ -631,6 +634,8 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
   const priceFamilyRef = useRef<string | null>(null);   // which series family is on the chart now
   const indSeriesRef = useRef<Map<string, ISeriesApi<any>[]>>(new Map());   // indKey → its series
   const cmpSeriesRef = useRef<Map<string, ISeriesApi<any>>>(new Map());      // compare-sym → series
+  const hostSrcRef = useRef<{ symbol: string; src: string | null } | null>(null);   // writer of the host bars (E08 basis)
+  const onCompareStudyRef = useRef(onCompareStudy); onCompareStudyRef.current = onCompareStudy;
   const paneMapRef = useRef<Map<string, number>>(new Map());                 // sub-pane indKey → pane index
   // ── custom-script (Pine) render state (parallels the built-in indicator refs) ──
   const pineSeriesRef = useRef<Map<string, ISeriesApi<any>[]>>(new Map());   // scriptId → its series (all panes)
@@ -2612,34 +2617,48 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
     for (const s of cmpSeriesRef.current.values()) { try { chart.removeSeries(s); } catch {} }
     cmpSeriesRef.current.clear();
     const prec = precRef.current; const cmp = compareRef.current || [];
+    const tf = timeframeRef.current;
+    const picked: { cs: string; ci: number }[] = [];
     for (let ci = 0; ci < cmp.length && ci < 4; ci++) {
-      const cs = cmp[ci]; if (!cs || cs === symbol) continue;
-      const co = await getJSON(`/data/${cs}.json`);
-      if (cmpGenRef.current !== gen || epochRef.current !== epoch) return;   // superseded compare run OR symbol/tf changed mid-fetch — abandon this build
-      if (!co?.bars?.length) continue;
-      let crows: Bar[] = co.bars.map((b: any[]) => ({ time: b[0], o: b[1], h: b[2], l: b[3], c: b[4], v: b[5] }));
-      // Each leg is bucketed with ITS OWN published anchor, never the host symbol's. The overlay
-      // is a date join (`cmap[r.time]` below), so two legs only line up when both grids sit on
-      // the real global session calendar; phasing each at its own first row — which is what
-      // bucketing by row index did — made every leg with a different history start join on a
-      // staircase of misses the moment the timeframe was a daily multiple.
-      crows = resampleTf(crows, timeframeRef.current, parseSessionAnchor(co.session_anchor));
-      const cmap: Record<string, number> = {}; for (const cr of crows) cmap[cr.time] = cr.c;
-      const cfg = compareCfgRef.current[cs] || defaultCmpCfg(ci);
-      let lv: number | null = null;
-      let cdata: any[];
-      if (cfg.mode === "price") {
-        cdata = rows.map((r) => { const v = cmap[r.time]; if (v != null) lv = v; return lv != null ? { time: r.time, value: +lv.toFixed(prec) } : null; }).filter(Boolean);
-        const ln = chart.addSeries(LineSeries, { color: cfg.color, lineWidth: cfg.lineWidth as any, lineStyle: cfg.lineStyle as any, priceLineVisible: false, lastValueVisible: false, crosshairMarkerVisible: false, title: cs, priceScaleId: cmpKey(cs), visible: !hiddenRef.current.has(cmpKey(cs)) }, 0);
-        ln.setData(cdata as any); cmpSeriesRef.current.set(cs, ln);
-      } else {
-        let bse = 0, baseA = rows[0]?.c ?? 0; for (const r of rows) { if (cmap[r.time] != null) { bse = cmap[r.time]; baseA = r.c; break; } }
-        if (!bse) continue; const scl = baseA / bse;
-        cdata = rows.map((r) => { const v = cmap[r.time]; if (v != null) lv = v; return lv != null ? { time: r.time, value: +(lv * scl).toFixed(prec) } : null; }).filter(Boolean);
-        const ln = chart.addSeries(LineSeries, { color: cfg.color, lineWidth: cfg.lineWidth as any, lineStyle: cfg.lineStyle as any, priceLineVisible: false, lastValueVisible: false, crosshairMarkerVisible: false, title: cs, visible: !hiddenRef.current.has(cmpKey(cs)) }, 0);
-        ln.setData(cdata as any); cmpSeriesRef.current.set(cs, ln);
-      }
+      const cs = cmp[ci]; if (!cs || cs === symbol || picked.some((p) => p.cs === cs)) continue;
+      picked.push({ cs, ci });
     }
+    // E08 — every leg is read together and the study is built only once ALL of them have answered,
+    // by the one pure owner (lib/compareAnchor). No leg's anchor or values can therefore depend on
+    // which document happened to land first. A failed read stays a failure, never an empty leg.
+    const reads = await Promise.all(picked.map(({ cs }) => getJSONResult(`/data/${cs}.json`)
+      .catch((): CacheOutcome => ({ status: "unavailable", reason: "network" }))));
+    if (cmpGenRef.current !== gen || epochRef.current !== epoch) return;   // superseded compare run OR symbol/tf changed mid-fetch — abandon this build
+    const legs = picked.map(({ cs, ci }, k) => {
+      const read = reads[k];
+      const cfg = compareCfgRef.current[cs] || defaultCmpCfg(ci);
+      let load: CmpLegLoad;
+      if (read.status === "unavailable") load = { status: "unavailable" };
+      else if (read.status !== "data" || !read.data?.bars?.length) load = { status: "absent" };
+      else {
+        const co = read.data;
+        let crows: Bar[] = co.bars.map((b: any[]) => ({ time: b[0], o: b[1], h: b[2], l: b[3], c: b[4], v: b[5] }));
+        // Each leg is bucketed with ITS OWN published anchor, never the host symbol's. The overlay
+        // is a date join, so two legs only line up when both grids sit on the real global session
+        // calendar; phasing each at its own first row — which is what bucketing by row index did —
+        // made every leg with a different history start join on a staircase of misses the moment
+        // the timeframe was a daily multiple.
+        crows = resampleTf(crows, tf, parseSessionAnchor(co.session_anchor));
+        load = { status: "data", rows: crows.map((r) => ({ time: r.time as string, c: r.c })), src: typeof co.src === "string" ? co.src : null };
+      }
+      return { symbol: cs, cfg, load };
+    });
+    const hostSrc = hostSrcRef.current?.symbol === symbol ? hostSrcRef.current.src : null;
+    const { study, series } = buildCompareStudy({
+      host: { symbol, rows: rows.map((r) => ({ time: r.time as string, c: r.c })), src: hostSrc },
+      timeframe: tf, legs, prec,
+    });
+    for (const s of series) {
+      const cfg = legs.find((l) => l.symbol === s.symbol)!.cfg;
+      const ln = chart.addSeries(LineSeries, { color: cfg.color, lineWidth: cfg.lineWidth as any, lineStyle: cfg.lineStyle as any, priceLineVisible: false, lastValueVisible: false, crosshairMarkerVisible: false, title: s.symbol, ...(s.mode === "price" ? { priceScaleId: cmpKey(s.symbol) } : {}), visible: !hiddenRef.current.has(cmpKey(s.symbol)) }, 0);
+      ln.setData(s.data as any); cmpSeriesRef.current.set(s.symbol, ln);
+    }
+    onCompareStudyRef.current?.(study);
   };
 
   // Client-Pine FALLBACK: run the ungated v1 confluence Pine (ORACLE_V1_PINE) on the DAILY bars and
@@ -8651,6 +8670,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
         sliceRef.current = null;                 // no daily slice on intraday → no sig marks
         setSliceState("none", symbol);
         sessionAnchorRef.current = null; ohlcSrcRef.current = null;   // daily-multiple grid does not apply here
+        hostSrcRef.current = { symbol, src: null };
         sigMarksRef.current = [];
         earlyDotsRef.current = []; warnMarksRef.current = [];   // GC v2 side channels: daily-only too
         dailyBarsRef.current = [];               // splice is daily-only; disable it here
@@ -8776,6 +8796,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
         // what the signal engine would do, and no Oracle signal is claimed on a composite.
         sessionAnchorRef.current = null;
         ohlcSrcRef.current = summed;
+        hostSrcRef.current = { symbol, src: null };
       } else {
         // The bars are REQUIRED, the slice OPTIONAL: both requests start together (and reuse the
         // route preload / any shell read in flight), but only the OHLC gates this paint. The slice
@@ -8817,6 +8838,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
         sessionAnchorRef.current = parseSessionAnchor(ohlc.session_anchor);
         // …and the document's own bars array is the aggregation memo's generation token.
         ohlcSrcRef.current = ohlc.bars;
+        hostSrcRef.current = { symbol, src: typeof ohlc.src === "string" ? ohlc.src : null };
         // From here this generation owns the slice refs (Effect 4's replay re-resolves from them).
         sliceOwned = true;
         if (sliceOutcome) adoptSlice(sliceOutcome);
