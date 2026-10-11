@@ -103,6 +103,9 @@ const IndicatorSource = dynamic(() => import("@/components/IndicatorSource"), { 
 const CompareSettings = dynamic(() => import("@/components/CompareSettings"), { ssr: false });
 const ChartObjectTree = dynamic(() => import("@/components/ChartObjectTree"), { ssr: false });
 const TickerNewsPanel = dynamic(() => import("@/components/news/TickerNewsPanel"), { ssr: false });
+// E05: cross-device note/flag sync for a signed-in owner. Lazy and client-only, so the guest
+// bundle never carries it; it renders inside the watchlist bar and owns no watchlist state.
+const WatchlistAnnotationSync = dynamic(() => import("@/components/watchlist/WatchlistAnnotationSync"), { ssr: false });
 // Phone-only chart chrome (R2): the bottom roller strip and the two sheets it raises. Never
 // server-rendered — the phone breakpoint is a client media query, and shell mode brings its own.
 const RollerStrip = dynamic(() => import("@/components/mobile/RollerStrip"), { ssr: false });
@@ -1221,6 +1224,11 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
       // across a page load, where the incoming owner now reads its own namespace and nothing else.
       setLists((current) => ({ ...current, [DEFAULT_LIST]: serverDefault }));
       setActiveList(DEFAULT_LIST);
+      // E05: notes and flags do NOT ride that promotion. They are the account's own (and sync
+      // across its devices); the guest's stay in the guest slot until the user previews and
+      // explicitly imports them — never silently written into whichever account signs in next.
+      setFlags(readOwnerStringMap(localStorage, WL_FLAGS_KEY, wlOwner));
+      setSymbolNotes(readOwnerStringMap(localStorage, WL_NOTES_KEY, wlOwner));
     } else {
       // Sign-out, or a straight account→account switch: load the INCOMING owner's own state.
       // Nothing carries over — a signed-out browser must not inherit the account's cache, and
@@ -5834,6 +5842,9 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
                 <div className="menu-row" onClick={() => importList()}><svg viewBox="0 0 24 24"><path d="M12 15V3M8 7l4-4 4 4M4 19h16" /></svg>{t("importCsv")}</div>
                 <div className="menu-row danger" onClick={() => clearList(activeList)}><svg viewBox="0 0 24 24"><path d="M4 7h16M9 7V5h6v2M6 7l1 13h10l1-13" /></svg>{t("clearWatchlist")}</div>
               </div>
+              {loggedIn && wlOwner !== GUEST_OWNER && (
+                <WatchlistAnnotationSync key={wlOwner} owner={wlOwner} ready={wlsRestored} flags={flags} notes={symbolNotes} setFlags={setFlags} setNotes={setSymbolNotes} />
+              )}
               <div className={`wl-acts${selectedWlCount >= 2 ? " wl-acts-selection" : ""}`}>
                 <button title={t("addSymbol")} onClick={(e) => { e.stopPropagation(); addSymbolTargetRef.current = null; setSeed(""); setAddSymOpen(true); }}><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14" /></svg></button>
                 <button title={t("settings")} onClick={(e) => { e.stopPropagation(); const willOpen = !wlSetOpen; closeAll(); setWlSetOpen(willOpen); }}><svg viewBox="0 0 24 24"><circle cx="5" cy="12" r="1.5" /><circle cx="12" cy="12" r="1.5" /><circle cx="19" cy="12" r="1.5" /></svg></button>
