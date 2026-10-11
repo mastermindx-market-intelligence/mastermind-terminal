@@ -321,17 +321,30 @@ test("applying a template changes only the chart's studies, whatever else the re
   });
   await page.goto(`/terminal?symbol=${SYMBOL}`);
   await chartReady(page);
+  // Ordering, not a time bound: the saved studies are already on the chart at its first ready frame.
+  // The shell restores them before paint; restored from a passive mount effect they sat in React's
+  // idle lane and, on a loaded machine, landed only after the page looked idle (or after the apply,
+  // which then planned from the default studies).
+  const firstFrame = Object.keys((await readWitness(page))?.series ?? {});
+  expect(firstFrame, "the saved Bollinger study is drawn at the first ready frame").toContain("bb");
+  expect(firstFrame, "a default-only study is not drawn at the first ready frame").not.toContain("stochrsi");
   await expect.poll(async () => (await readStore(page)).inds ?? [], { message: "the candles migration should run", timeout: 20_000 })
     .toContain("trend");
-  // The migration persists the study keys from more than one effect (on a loaded phone run the
-  // params landed after the list); wait until they stop moving before measuring the idle window.
-  let lastStudies = "";
+  // The boot writes these keys more than once (the candles rollout, then the persisted studies).
+  // Every key the idle check below attributes must hold still for three consecutive 1 s samples
+  // before that window is measured.
+  const attributable = async () => {
+    const all = await readAllStorage(page);
+    return JSON.stringify(Object.keys(all).sort()
+      .filter((k) => STUDY_KEYS.has(k) || k === "mm.dtm" || k === "mm.dtmSnapshot" || k === "mm.chartTemplates")
+      .map((k) => [k, all[k]]));
+  };
+  const settleSamples: string[] = [];
   await expect.poll(async () => {
-    const now = JSON.stringify(await readStore(page));
-    const settledNow = now === lastStudies;
-    lastStudies = now;
-    return settledNow;
-  }, { message: "the study keys should settle before the apply", timeout: 20_000, intervals: [1_000] }).toBe(true);
+    settleSamples.push(await attributable());
+    const lastThree = settleSamples.slice(-3);
+    return lastThree.length === 3 && lastThree.every((sample) => sample === lastThree[0]);
+  }, { message: "every attributable key should settle before the idle window", timeout: 20_000, intervals: [1_000] }).toBe(true);
 
   // Keys the app itself rewrites while idle are not attributable to the apply; find them first.
   const idleA = await readAllStorage(page);

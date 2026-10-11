@@ -1473,14 +1473,22 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
   // Silent — the manual add path (toggleInd) shows the nudge; bulk/load just cap.
   useEffect(() => {
     if (loggedIn) return;
-    const candlesAreAmbientOnly = isAmbientCandleSuite(inds, indParams);
-    const counted = [...inds].filter((key) => !(candlesAreAmbientOnly && key === MASTERMIND_CANDLES_SUITE_KEY));
-    if (counted.length <= MAX_ANON_IND) return;
-    const keep = new Set(counted.slice(0, MAX_ANON_IND));
-    // Mastermind Candles is the Terminal's default candle styling, not one of the anonymous
-    // study slots. Exempt the carrier only while it contains no other Trend Waves modules.
-    if (candlesAreAmbientOnly) keep.add(MASTERMIND_CANDLES_SUITE_KEY);
-    setInds(keep);
+    const clamp = (current: Set<string>) => {
+      const candlesAreAmbientOnly = isAmbientCandleSuite(current, indParams);
+      const counted = [...current].filter((key) => !(candlesAreAmbientOnly && key === MASTERMIND_CANDLES_SUITE_KEY));
+      if (counted.length <= MAX_ANON_IND) return current;
+      const keep = new Set(counted.slice(0, MAX_ANON_IND));
+      // Mastermind Candles is the Terminal's default candle styling, not one of the anonymous
+      // study slots. Exempt the carrier only while it contains no other Trend Waves modules.
+      if (candlesAreAmbientOnly) keep.add(MASTERMIND_CANDLES_SUITE_KEY);
+      return keep;
+    };
+    if (clamp(inds) === inds) return;
+    // An updater, never a value: on the mount pass this effect sees the 4-study DEFAULT while the
+    // saved studies are already queued by the layout restore below, at a higher priority. A value
+    // queued here would be replayed after them when the idle lane lands and reset a guest's saved
+    // set to the clamped default; an updater clamps whatever set it is replayed onto.
+    setInds(clamp);
   }, [indParams, inds, loggedIn]);
   // Preserve OpenMarket-style defaults per tool. A global blue/1.5/solid state
   // flattened meaningful defaults (for example Highlighter 8px and dashed Fib)
@@ -1801,6 +1809,42 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
       window.removeEventListener(TERMINAL_VISUAL_READY_EVENT, loadManifest);
     };
   }, []);
+  // The saved studies (mm.inds / mm.indParams / mm.indHidden, with the one-time Mastermind Candles
+  // rollout) are restored in a LAYOUT effect, not in the passive restore below. The shell hydrates
+  // inside the route's loading boundary at offscreen priority, so a setState in its passive mount
+  // effects lands in React's idle lane: every other boot update preempts it and the restored render is
+  // thrown away and started again — for seconds on a busy machine, indefinitely on a slow one. While it
+  // waits, the chart, the Settings dialog and a study-template apply all see the default studies, and
+  // the late commit then rewrites mm.indParams long after the page looked idle. React flushes updates
+  // scheduled in a layout effect before paint, so the first painted frame already holds them.
+  useLayoutEffect(() => {
+    const savedInds = load("mm.inds", ["ema", "vol", "macd", "stochrsi"]) as string[];
+    const savedParams = load("mm.indParams", {}) as Record<string, Record<string, unknown>>;
+    const savedHidden = load("mm.indHidden", []) as string[];
+    const candlesMigrated = load(MASTERMIND_CANDLES_MIGRATION_KEY, null) === 1;
+    const rollout = migrateMastermindCandlesDefault(savedInds, savedParams, savedHidden, candlesMigrated);
+    // A one-time read of the browser's saved studies at mount, before paint (see above).
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setInds(new Set(rollout.indicators));
+    const base = allDefaults();
+    for (const k of IND_ORDER) base[k] = withDefaults(k, rollout.params[k]);
+    for (const k of Object.keys(rollout.params)) {
+      if (isSuiteKey(k)) base[k] = { ...suiteDefaults(k), ...rollout.params[k] };
+    }
+    // Additional study instances ("rsi__<token>", E06) keep THEIR OWN saved params.
+    setIndParams(withStudyInstanceParams(base, rollout.indicators, rollout.params));
+    setHidden(new Set(rollout.hidden));
+    // Commit the one-time rollout before the mount-skip persistence effects. The marker is written
+    // last so an interrupted/blocked storage write retries rather than falsely claiming success.
+    if (rollout.changed) {
+      try {
+        localStorage.setItem("mm.inds", JSON.stringify(rollout.indicators));
+        localStorage.setItem("mm.indParams", JSON.stringify(rollout.params));
+        localStorage.setItem("mm.indHidden", JSON.stringify(rollout.hidden));
+        localStorage.setItem(MASTERMIND_CANDLES_MIGRATION_KEY, "1");
+      } catch { /* storage blocked: keep the in-memory default and retry next visit */ }
+    }
+  }, []);
   useEffect(() => {
     // Settings → Terminal → Default timeframe (3D unless changed). Resolved against the landing
     // symbol's functional set, since the workspace restore below can land on a symbol other than seed0.
@@ -1813,35 +1857,9 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
     // paneTfs — same effect, same React batch, so the chart sees one commit either way.
     setPaneTfs([startTf]);
     setPrefsHydrated(true);
-    {
-      const savedInds = load("mm.inds", ["ema", "vol", "macd", "stochrsi"]) as string[];
-      const savedParams = load("mm.indParams", {}) as Record<string, Record<string, unknown>>;
-      const savedHidden = load("mm.indHidden", []) as string[];
-      const candlesMigrated = load(MASTERMIND_CANDLES_MIGRATION_KEY, null) === 1;
-      const rollout = migrateMastermindCandlesDefault(savedInds, savedParams, savedHidden, candlesMigrated);
-      setInds(new Set(rollout.indicators));
-      const base = allDefaults();
-      for (const k of IND_ORDER) base[k] = withDefaults(k, rollout.params[k]);
-      for (const k of Object.keys(rollout.params)) {
-        if (isSuiteKey(k)) base[k] = { ...suiteDefaults(k), ...rollout.params[k] };
-      }
-      // Additional study instances ("rsi__<token>", E06) keep THEIR OWN saved params.
-      setIndParams(withStudyInstanceParams(base, rollout.indicators, rollout.params));
-      setHidden(new Set(rollout.hidden));
-      // Commit the one-time rollout before the mount-skip persistence effects. The marker is written
-      // last so an interrupted/blocked storage write retries rather than falsely claiming success.
-      if (rollout.changed) {
-        try {
-          localStorage.setItem("mm.inds", JSON.stringify(rollout.indicators));
-          localStorage.setItem("mm.indParams", JSON.stringify(rollout.params));
-          localStorage.setItem("mm.indHidden", JSON.stringify(rollout.hidden));
-          localStorage.setItem(MASTERMIND_CANDLES_MIGRATION_KEY, "1");
-        } catch { /* storage blocked: keep the in-memory default and retry next visit */ }
-      }
-    }
     setChartType(load("mm.ct", "candles"));
-    // Hidden-state is restored inside the rollout block above so the one-time enable also makes
-    // Mastermind Candles visible for users who had previously hidden the old Candle Painter.
+    // Hidden-state is restored with the studies in the layout effect above, inside the rollout, so the
+    // one-time enable also makes Mastermind Candles visible for users who had hidden the old Candle Painter.
     setFavTF(load("mm.favtf", ["D", "3D", "W", "1M"])); {
       const savedSet = load(WATCHLIST_SETTINGS_KEY, {});
       const savedVersion = Number(localStorage.getItem(WATCHLIST_SETTINGS_VERSION_KEY) || 0);
