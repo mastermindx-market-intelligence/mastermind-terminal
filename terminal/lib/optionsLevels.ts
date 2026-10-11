@@ -42,6 +42,12 @@ export interface OptLevelsResult {
   /** Oldest contributing session date, or null when any contributing lane is undated. */
   asofDate: string | null;
   /**
+   * Newest contributing session date (null when any contributing lane is undated): the day the
+   * overlay as drawn first existed. Bar Replay hides the overlay on charts rewound before it.
+   * Optional so hand-built empty results (SurfacePane) need not carry it.
+   */
+  newestDate?: string | null;
+  /**
    * True when a dealer-SIGNED level (wall or flip) is drawn — the legend's Tier-B
    * "signed estimate" disclosure rides this. An EM-only or abs-gamma-only set is Tier A
    * arithmetic and must NOT carry the disclosure (masterplan §4.1: disclose at the tier
@@ -164,6 +170,7 @@ export function deriveOptLevels(
     status: "empty",
     levels: [],
     asofDate: null,
+    newestDate: null,
     signed: false,
     spot: null,
     netGexBn: null,
@@ -239,6 +246,7 @@ export function deriveOptLevels(
     status: "ok",
     levels,
     asofDate: hasUndatedContributor ? null : dates[0] ?? null,
+    newestDate: hasUndatedContributor ? null : dates[dates.length - 1] ?? null,
     signed: levels.some(
       (level) => level.key === "call_wall" || level.key === "put_wall" || level.key === "gamma_flip",
     ),

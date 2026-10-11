@@ -6,6 +6,7 @@ import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { rateLimit } from "@/lib/rateLimit";
 import { NW_BASE } from "@/lib/upstreams";
+import { qualifyRiskEnvelope } from "@/lib/marketRisk";
 import { object, number, sourceDate, readableOwnerEnvelope, type FeedReceipt, type SectorFeed } from "@/lib/sectorIntelligence";
 
 export const runtime = "nodejs";
@@ -18,6 +19,7 @@ const PATHS: Record<SectorFeed, string> = {
   themes: "/neuralwebdata/theme_state.json",
   heatmap: "/marketdata/sp500_heatmap.json",
   finviz: "/marketdata/themes_heatmap.json",
+  risk: "/riskdata/risk_envelope.json",
 };
 const MAX_BYTES = 4 * 1024 * 1024;
 
@@ -152,8 +154,10 @@ export async function GET(req: Request): Promise<Response> {
     let parsed: { data: unknown; hash: string };
     try { parsed = await readJson(response); } catch { return failure(502, "invalid"); }
     if (!readableOwnerEnvelope(key, parsed.data)) return failure(502, "invalid");
+    const riskRead = key === "risk" ? qualifyRiskEnvelope(parsed.data) : null;
     const receipt: FeedReceipt = { ...baseReceipt, status: "ready", asOf: sourceDate(parsed.data),
-      observedAt: new Date().toISOString(), stale: object(parsed.data).stale === true, contentHash: parsed.hash };
+      observedAt: new Date().toISOString(), stale: object(parsed.data).stale === true || riskRead?.qualified === false,
+      contentHash: parsed.hash, ...(riskRead ? { qualificationReasons: riskRead.reasons } : {}) };
     // Transport factual identity/membership/measurements only, never vendor prose.
     const owner = object(parsed.data);
     const factualPerf = (value: unknown) => Object.fromEntries(TIMEFRAMES.map(tf => [tf, number(object(value)[tf])]));
@@ -167,7 +171,7 @@ export async function GET(req: Request): Promise<Response> {
         return { t: tile.t, name: tile.name, sector: tile.sector, size: tile.size, perf: factualPerf(tile.perf),
           members: (tile.members as unknown[]).map(value => { const member = object(value); return { t: member.t, perf: factualPerf(member.perf) }; }) };
       }),
-    } : parsed.data;
+    } : riskRead ? riskRead.envelope : parsed.data;
     return NextResponse.json({ data, receipt }, { headers: HEADERS });
   } catch { return failure(503, "error"); }
   finally { clearTimeout(timer); req.signal.removeEventListener("abort", abort); }

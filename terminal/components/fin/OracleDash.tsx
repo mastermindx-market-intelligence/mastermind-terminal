@@ -15,6 +15,7 @@ import { LineSeries } from "./FinCharts"
 import { getJSON } from "../../lib/dataCache"
 import { oracleVerdict, deskVerdict, signalKnownTs, isBlockedSignal, isBottomWatch, isRetroOverride, isStopSweepReclaim, isStructureStop, retroLegendCopy, sliceSignalBasis } from "../../lib/signalVerdict"
 import { computeTrendState } from "../../lib/trend"
+import { normalizeMarketRisk, riskEnvelopeCopy, type MarketRiskRead } from "../../lib/marketRisk"
 import { computeRatings, verdictFromScore } from "../../lib/techRating"
 import type { Bar } from "../../lib/fund"
 
@@ -417,50 +418,56 @@ function FactorBar({ label, value, zh }: { label: string; value: number | null |
 
 /* ── MarketRisk: compact regime chip (market_risk.json mirror of macro Risk Radar) ── */
 
-interface MarketRiskDisplay {
-  verdict?: string | null
-  score?: number | null
-  label_en?: string | null
-  label_zh?: string | null
-  color?: string | null
-}
-interface MarketRiskData {
-  built?: string | null
-  display?: MarketRiskDisplay | null
-}
-
-function MarketRiskChip({ zh }: { zh: boolean }) {
-  const [data, setData] = useState<MarketRiskData | null>(null)
+export function MarketRiskChip({ zh }: { zh: boolean }) {
+  const [data, setData] = useState<MarketRiskRead | null>(null)
+  const [loaded, setLoaded] = useState(false)
 
   useEffect(() => {
-    let cancelled = false
-    fetch("/data/market_risk.json")
-      .then((r) => (r.ok ? r.json() : null))
-      .then((raw: MarketRiskData | null) => {
-        if (cancelled || !raw) return
-        // graceful degradation: hide if data older than 48 h
-        const built = raw?.built ? Date.parse(raw.built) : NaN
-        if (!isNaN(built) && Date.now() - built > 48 * 3600 * 1000) return
-        if (!raw?.display?.verdict) return
-        setData(raw)
-      })
-      .catch(() => {})
-    return () => { cancelled = true }
+    let cancelled = false, pending = false
+    const controller = new AbortController()
+    const refresh = async () => {
+      if (pending || cancelled) return
+      pending = true
+      try {
+        const response = await fetch("/data/market_risk.json", { cache: "no-store", signal: controller.signal })
+        const raw: unknown = response.ok ? await response.json() : null
+        if (!cancelled) { setData(normalizeMarketRisk(raw)); setLoaded(true) }
+      } catch {
+        if (!cancelled) { setData(null); setLoaded(true) }
+      } finally { pending = false }
+    }
+    void refresh()
+    const timer = window.setInterval(() => { void refresh() }, 60_000)
+    const onFocus = () => { if (document.visibilityState === "visible") void refresh() }
+    window.addEventListener("focus", onFocus)
+    return () => { cancelled = true; controller.abort(); window.clearInterval(timer); window.removeEventListener("focus", onFocus) }
   }, [])
 
-  if (!data) return null
-  const disp = data.display!
-  const dotColor = disp.color === "green" ? "var(--up)" : disp.color === "red" ? "var(--down)" : "var(--warn)"
-  const label = pick(zh, disp.label_en ?? disp.verdict ?? "—", disp.label_zh ?? disp.verdict ?? "—")
-  const score = disp.score != null && isFinite(disp.score) ? Math.round(disp.score) : null
+  if (!loaded) return null
+  const available = data !== null && !data.stale
+  const disp = available ? data : null
+  const dotColor = !disp ? "var(--text-2)" : disp.color === "green" ? "var(--up)" : disp.color === "red" ? "var(--down)" : "var(--warn)"
+  const label = disp ? pick(zh, disp.label_en ?? disp.verdict, disp.label_zh ?? disp.verdict) : pick(zh, "Market risk unavailable", "市场风险不可用")
+  const score = disp?.score != null ? Math.round(disp.score) : null
+  const context = riskEnvelopeCopy(disp?.risk_envelope ?? null, zh)
 
   return (
-    <div className="sig-conflict" style={{ display: "flex", alignItems: "center", gap: 6, color: "var(--text-2)" }}>
-      <span style={{ width: 8, height: 8, borderRadius: "50%", background: dotColor, flexShrink: 0, display: "inline-block" }} aria-hidden />
-      <span style={{ fontWeight: 600, color: dotColor }}>{label}</span>
-      {score != null && <span style={{ opacity: 0.7 }}>{score}/100</span>}
-      <span style={{ marginLeft: "auto", opacity: 0.5, fontSize: "10px" }}>{pick(zh, "Market risk", "市场风险")}</span>
-    </div>
+    <details className="sig-conflict" data-testid="market-risk-chip" style={{ display: "block", color: "var(--text-2)" }}>
+      <summary style={{ display: "flex", alignItems: "center", gap: 6, minHeight: 32, cursor: "pointer" }}>
+        <span style={{ width: 8, height: 8, borderRadius: "50%", background: dotColor, flexShrink: 0, display: "inline-block" }} aria-hidden />
+        <span style={{ fontWeight: 600, color: dotColor }}>{label}</span>
+        {score != null && <span style={{ opacity: 0.7 }}>{score}/100</span>}
+        <span style={{ marginLeft: "auto", opacity: 0.65, fontSize: "10px" }}>{pick(zh, "Market risk", "市场风险")} ▾</span>
+      </summary>
+      <div style={{ paddingTop: 8, fontSize: "11px", lineHeight: 1.5 }} data-testid="market-risk-details">
+        {data?.asof && <p>{pick(zh, "Observation session: ", "观测日期：")}{data.asof}</p>}
+        {disp && <p>{pick(zh, disp.headline_en ?? "", disp.headline_zh ?? disp.headline_en ?? "")}</p>}
+        {disp?.display_pending && <p>{pick(zh, "The numerical score is live; the risk label is held while the new state is confirmed.", "数值评分来自实时观测；风险标签在新状态确认期间保持不变。")}</p>}
+        <p>{context.caption}</p>
+        {context.details.map(detail => <p key={detail}>{detail}</p>)}
+        {data?.stale && <p>{pick(zh, "This source is stale or could not be qualified.", "该来源已过期或无法核实。")}</p>}
+      </div>
+    </details>
   )
 }
 

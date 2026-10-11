@@ -19,8 +19,12 @@ const H = vi.hoisted(() => ({
   positionTable: [] as Array<Record<string, unknown>>,
   scriptTable: [] as Array<Record<string, unknown>>,
   layoutTable: [] as Array<Record<string, unknown>>,
+  drawingTable: [] as Array<Record<string, unknown>>,
+  alertTable: [] as Array<Record<string, unknown>>,
   scriptResult: null as StoreResult | null,
   layoutResult: null as StoreResult | null,
+  drawingResult: null as StoreResult | null,
+  alertResult: null as StoreResult | null,
   watchlistRows: { data: [] as unknown[], error: null } as StoreResult,
   positionRows: { data: [] as unknown[], error: null } as StoreResult,
   probeResult: { data: [{ id: "w1" }], error: null } as StoreResult,
@@ -99,6 +103,10 @@ vi.mock("@/lib/supabase/server", () => ({
                   ? collectionResult(H.scriptTable, H.scriptResult)
                 : table === "chart_layouts"
                   ? collectionResult(H.layoutTable, H.layoutResult)
+                : table === "drawings"
+                  ? collectionResult(H.drawingTable, H.drawingResult)
+                : table === "alerts"
+                  ? collectionResult(H.alertTable, H.alertResult)
                 : table === "account_lifecycle_requests"
                   ? H.lifecycleSelectResult.error
                     ? H.lifecycleSelectResult
@@ -160,6 +168,7 @@ beforeEach(() => {
   ];
   H.scriptResult = null;
   H.layoutResult = null;
+  H.drawingTable = []; H.alertTable = []; H.drawingResult = null; H.alertResult = null;
   H.watchlistRows = { data: [], error: null };
   H.positionRows = { data: [], error: null };
   H.probeResult = { data: [{ id: "w1" }], error: null };
@@ -205,11 +214,13 @@ describe("GET /api/account/export", () => {
     expect(H.eqCalls.length).toBe(before);
   });
 
-  it("503s when all four collection reads fail", async () => {
+  it("503s when all six collection reads fail", async () => {
     H.probeResult = { data: null, error: { message: "down" } };
     H.positionRows = { data: null, error: { message: "down" } };
     H.scriptResult = { data: null, error: { message: "down" } };
     H.layoutResult = { data: null, error: { message: "down" } };
+    H.drawingResult = { data: null, error: { message: "down" } };
+    H.alertResult = { data: null, error: { message: "down" } };
     const res = await exportGET(req("https://x.test/api/account/export"));
     expect(res.status).toBe(503);
   });
@@ -223,7 +234,7 @@ describe("GET /api/account/export", () => {
     expect(body.coverage.unavailable.map((e: { key: string }) => e.key).sort()).toEqual(["portfolio_positions", "watchlists"]);
     expect(body.saved_scripts.map((s: { id: string }) => s.id)).toEqual(["s-mine"]);
     expect(body.chart_layouts.map((l: { id: string }) => l.id)).toEqual(["l-mine"]);
-    expect(body.coverage.included.map((e: { key: string; row_count: number }) => [e.key, e.row_count])).toEqual([["saved_scripts", 1], ["chart_layouts", 1]]);
+    expect(body.coverage.included.map((e: { key: string; row_count: number }) => [e.key, e.row_count])).toEqual([["saved_scripts", 1], ["chart_layouts", 1], ["chart_drawings", 0], ["alerts", 0]]);
   });
 
   it.each(["scripts", "layouts"] as const)("discloses an unavailable %s read without treating it as empty success", async (source) => {

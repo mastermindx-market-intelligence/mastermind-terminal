@@ -366,6 +366,6 @@ def test_the_flagship_builder_stamps_its_own_rebuilt_documents():
     stamping pass. Without an inline stamp those documents lose the field every night."""
     src = (ROOT / "ingest" / "build_polygon_universe.py").read_text()
     assert "from ingest.session_anchor import stamp as stamp_session_anchor" in src
-    write_at = src.index('(OUT / f"{sym}.json").write_text')
+    write_at = src.index('write_atomic(OUT / f"{sym}.json", _doc)')
     stamp_at = src.index("stamp_session_anchor(_doc, sym)")
     assert stamp_at < write_at, "the anchor must be stamped BEFORE the document is written"

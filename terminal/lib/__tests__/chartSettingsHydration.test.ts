@@ -79,7 +79,7 @@ function paneProps() {
     detectCmd: null as never,
     compare: [] as string[],
     magnet: "off" as const,
-    replayIdx: null,
+    replayCutoff: null,
     onMeta: () => {},
     drawings: [],
     onDrawingsChange: () => {},

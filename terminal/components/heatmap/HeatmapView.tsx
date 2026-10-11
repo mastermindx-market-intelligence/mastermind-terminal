@@ -3,8 +3,16 @@
  * HeatmapView.tsx — dual-layer market heatmap orchestrator.
  *
  * Data sources:
- *   - Manifest (price): /api/flow?f=manifest → manifest.json (34 names, nightly)
- *   - Flow index:        /api/flow?f=flow_idx → flow_idx.json (EOD, ΔOI-based)
+ *   - Manifest (price): /api/flow?f=manifest → manifest.json (34 names, nightly);
+ *     the static /data/manifest.json copy is the second source (guests get a 403 from
+ *     the route). Only a 404/410 from EVERY source is an empty market — any read that
+ *     did not land is a load error with a Retry, and a failed refresh keeps the last read.
+ *   - Flow index:        /api/flow?f=flow_idx → flow_idx.json (EOD, ΔOI-based); the static
+ *     /data/flow_idx.json copy is the second source. Same rule: both 404/410 is published
+ *     absence, a route refusal with no public copy is an access answer, anything else that
+ *     did not land is a load error with a Retry, and a failed refresh keeps the flow tiles.
+ *   - Live quotes:       /api/quote over the top names; a refresh that did not land stops
+ *     calling the held values live.
  *
  * HONESTY DOCTRINE:
  *   - 1D timeframe is REAL (nightly Polygon manifest.chg).
@@ -16,8 +24,10 @@
  *   - No "validated" or predictive copy anywhere.
  */
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useLang } from "@/lib/i18n";
+import { flowGetResult, flowInvalidate, type FlowOutcome } from "@/lib/flowClientCache";
+import { getJSONResult, invalidate, type CacheOutcome, type Revalidation } from "@/lib/dataCache";
 import { trackSearch } from "@/lib/searchTrack";
 import { makeHeatmapT, sectorChipLabel } from "@/lib/heatmapStrings";
 import { Tip } from "@/components/ui/Tip";
@@ -25,6 +35,11 @@ import { Treemap, heatSwatches } from "./Treemap";
 import { HeatmapTable } from "./HeatmapTable";
 import { DetailPanel } from "./DetailPanel";
 import { getSector } from "./sectorMap";
+import {
+  MARKET_CAP_SOURCE,
+  capCoverage,
+  type CapCoverage,
+} from "@/lib/heatmapCapitalization";
 import type {
   HeatmapTile,
   Layer,
@@ -50,46 +65,173 @@ const CALL_SHARE_DEAD = 0.08;
 
 // ─── Data fetching ────────────────────────────────────────────────────────────
 
-async function safeFetch<T>(url: string): Promise<T | null> {
-  try {
-    const r = await fetch(url, { cache: "no-store" });
-    if (!r.ok) return null;
-    return (await r.json()) as T;
-  } catch {
-    return null;
-  }
+const STATIC_MANIFEST = "/data/manifest.json";
+const STATIC_FLOW_IDX = "/data/flow_idx.json";
+
+/** A manifest is an object carrying a `symbols` map. Anything else parsed fine but is not a
+ *  price snapshot — painting it as zero tiles would print "No data available" over an
+ *  unread market (and `buildTiles` cannot walk it). */
+function isManifest(m: unknown): m is ManifestPayload {
+  if (!m || typeof m !== "object" || Array.isArray(m)) return false;
+  const symbols = (m as { symbols?: unknown }).symbols;
+  return !!symbols && typeof symbols === "object" && !Array.isArray(symbols);
 }
+
+/** What the latest manifest read established. `loading` until the first read settles. */
+type ManifestRead = "loading" | "data" | "absent" | "unavailable";
+
+/** `refresh` is set when the manifest is an old copy (in practice the IndexedDB record of an
+ *  earlier visit) being refreshed in the background; it settles with how that refresh ended. */
+type ManifestOutcome =
+  | { status: "data"; manifest: ManifestPayload; refresh?: Promise<Revalidation> }
+  | { status: "absent" }
+  | { status: "unavailable" };
+
+/**
+ * Read the price snapshot: /api/flow first, the static copy second. The route answers a
+ * guest 403 and never claims the manifest is absent, so a missing static copy behind a
+ * failed route read is still a read that did not land. Only when every source answered
+ * 404/410 is the market honestly empty.
+ *
+ * The static copy is usually answered from disk: the shell, Screener and Alerts all read it,
+ * so a persisted copy exists and, being older than the cache TTL, is served stale while the
+ * network is asked again. That copy paints, and its refresh is handed back so a refresh that
+ * fails labels the tiles as the last read instead of passing them off as current.
+ */
+async function readManifest(onRevalidate: (m: ManifestPayload) => void): Promise<ManifestOutcome> {
+  let primary: FlowOutcome;
+  try {
+    primary = await flowGetResult("manifest");
+  } catch {
+    primary = { status: "unavailable", reason: "network" };
+  }
+  if (primary.status === "data" && isManifest(primary.data)) return { status: "data", manifest: primary.data };
+
+  let fallback: CacheOutcome;
+  try {
+    fallback = await getJSONResult(STATIC_MANIFEST, {
+      onRevalidate: (m: unknown) => { if (isManifest(m)) onRevalidate(m); },
+    });
+  } catch {
+    fallback = { status: "unavailable", reason: "network" };
+  }
+  if (fallback.status === "data" && isManifest(fallback.data)) {
+    return { status: "data", manifest: fallback.data, refresh: fallback.stale?.revalidation };
+  }
+  if (primary.status === "absent" && fallback.status === "absent") return { status: "absent" };
+  return { status: "unavailable" };
+}
+
+/** A flow index is an object; when it carries `rows` they are an array. */
+function isFlowIdx(v: unknown): v is FlowIdxPayload {
+  if (!v || typeof v !== "object" || Array.isArray(v)) return false;
+  const rows = (v as { rows?: unknown }).rows;
+  return rows === undefined || Array.isArray(rows);
+}
+
+/** What the latest flow-index read established. `auth` = the route refused and no public copy exists. */
+type FlowRead = "loading" | "data" | "absent" | "auth" | "unavailable";
+
+type FlowIdxOutcome =
+  | { status: "data"; flowIdx: FlowIdxPayload; refresh?: Promise<Revalidation> }
+  | { status: "absent" }
+  | { status: "auth" }
+  | { status: "unavailable" };
+
+/**
+ * Read the flow index: /api/flow first, the static copy second. Both 404/410 is published
+ * absence. A route 401/403 with the static copy proven absent is the guest's real answer —
+ * the layer needs access. Anything else that did not land says nothing about whether the
+ * index exists. A static copy answered from disk hands back its refresh, as the manifest does.
+ */
+async function readFlowIdx(onRevalidate: (f: FlowIdxPayload) => void): Promise<FlowIdxOutcome> {
+  let primary: FlowOutcome;
+  try {
+    primary = await flowGetResult("flow_idx");
+  } catch {
+    primary = { status: "unavailable", reason: "network" };
+  }
+  if (primary.status === "data" && isFlowIdx(primary.data)) return { status: "data", flowIdx: primary.data };
+
+  let fallback: CacheOutcome;
+  try {
+    fallback = await getJSONResult(STATIC_FLOW_IDX, {
+      onRevalidate: (f: unknown) => { if (isFlowIdx(f)) onRevalidate(f); },
+    });
+  } catch {
+    fallback = { status: "unavailable", reason: "network" };
+  }
+  if (fallback.status === "data" && isFlowIdx(fallback.data)) {
+    return { status: "data", flowIdx: fallback.data, refresh: fallback.stale?.revalidation };
+  }
+  if (primary.status === "absent" && fallback.status === "absent") return { status: "absent" };
+  const refused = primary.status === "unavailable" && (primary.httpStatus === 401 || primary.httpStatus === 403);
+  if (refused && fallback.status === "absent") return { status: "auth" };
+  return { status: "unavailable" };
+}
+
+/** What the latest live-quote read established. `idle` until a read has been asked for. */
+type LiveRead = "idle" | "live" | "stale" | "failed";
 
 /**
  * Fetch live quotes for up to INTRADAY_TOP_N US tiles via /api/quote.
- * Returns a map of ticker → live chg% (null entries are skipped so manifest values are kept).
- * Chunks the request into batches of QUOTE_CHUNK to respect the route's MAX_BATCH cap.
+ * Returns ticker → live chg% (null entries are skipped so manifest values are kept) and
+ * whether every chunk landed. Chunks the request into batches of QUOTE_CHUNK to respect
+ * the route's MAX_BATCH cap.
  */
-async function fetchLiveChg(tickers: string[]): Promise<Record<string, number>> {
-  const result: Record<string, number> = {};
+type QuoteMap = Record<string, { chg: number | null } | null>;
+
+async function fetchLiveChg(tickers: string[]): Promise<{ chg: Record<string, number>; complete: boolean }> {
+  const chg: Record<string, number> = {};
+  let complete = true;
   for (let i = 0; i < tickers.length; i += QUOTE_CHUNK) {
     const chunk = tickers.slice(i, i + QUOTE_CHUNK);
     const symsParam = chunk.join(",");
-    const data = await safeFetch<{ quotes: Record<string, { chg: number | null } | null> }>(
-      `/api/quote?view=regular&syms=${encodeURIComponent(symsParam)}`
-    );
-    if (!data?.quotes) continue;
-    for (const [sym, q] of Object.entries(data.quotes)) {
+    let quotes: QuoteMap | null = null;
+    try {
+      const r = await fetch(`/api/quote?view=regular&syms=${encodeURIComponent(symsParam)}`, { cache: "no-store" });
+      if (r.ok) {
+        const body = (await r.json()) as { quotes?: unknown } | null;
+        if (body?.quotes && typeof body.quotes === "object") quotes = body.quotes as QuoteMap;
+      }
+    } catch {
+      quotes = null;
+    }
+    if (!quotes) { complete = false; continue; }
+    for (const [sym, q] of Object.entries(quotes)) {
       if (q != null && typeof q.chg === "number" && isFinite(q.chg)) {
-        result[sym] = q.chg;
+        chg[sym] = q.chg;
       }
     }
   }
-  return result;
+  return { chg, complete };
 }
 
 // ─── Data join: manifest + flow_idx → HeatmapTile[] ──────────────────────────
 
-function buildTiles(
+/** Result of buildTiles: render set + original scoped universe (pre prune). */
+export interface HeatmapBuildResult {
+  /** Tiles to render (pruned to MAX_TILES for readability). */
+  tiles: HeatmapTile[];
+  /**
+   * Original scoped universe BEFORE render pruning.
+   * Breadth denominator and cap-coverage base — render pruning must not rewrite these.
+   */
+  scopedTiles: HeatmapTile[];
+  /** True when MAX_TILES pruned names from the scoped universe. */
+  pruned: boolean;
+}
+
+/**
+ * Join manifest + flow index into HeatmapTile[].
+ * Propagates source USD cap + named provenance onto each tile.
+ * Returns both the render-ready set and the original scoped universe.
+ */
+export function buildTiles(
   manifest: ManifestPayload | null,
   flowIdx: FlowIdxPayload | null
-): HeatmapTile[] {
-  if (!manifest) return [];
+): HeatmapBuildResult {
+  if (!manifest) return { tiles: [], scopedTiles: [], pruned: false };
 
   // Index flow by ticker
   const flowMap: Record<string, FlowIdxRow> = {};
@@ -123,6 +265,13 @@ function buildTiles(
       hasFlow: false,
     };
 
+    // Propagate already-present universe cap + named cached-reference provenance.
+    // Raw value kept so missing (absent key) vs invalid (0/NaN/Inf) stay distinguishable.
+    if (sym.mcap !== undefined && sym.mcap !== null) {
+      tile.mcap = sym.mcap;
+      tile.mcapSource = MARKET_CAP_SOURCE.tileProvenance;
+    }
+
     if (flow) {
       tile.hasFlow = true;
       tile.flowAsof = flow.asof;
@@ -143,7 +292,10 @@ function buildTiles(
   // Cap the render set: the full universe (~8.7k) makes the treemap unreadable
   // and slow. Keep every name with flow data (the 368-name flow universe) plus
   // the most liquid names by dollar volume, up to ~500 tiles total.
+  // NOTE: pruning is RENDER-only — scopedTiles keeps the original breadth denominator
+  // and the cap-coverage base.
   const MAX_TILES = 500;
+  const scopedTiles = tiles;
   if (tiles.length > MAX_TILES) {
     const dollarVol = (t: HeatmapTile) => (t.price ?? 0) * (t.vol ?? 0);
     // US-listed only for the map: the manifest carries international listings
@@ -154,10 +306,11 @@ function buildTiles(
     const rest = tiles
       .filter(t => !t.hasFlow && isUS(t))
       .sort((a, b) => dollarVol(b) - dollarVol(a));
-    return [...flowTiles, ...rest.slice(0, Math.max(0, MAX_TILES - flowTiles.length))];
+    const rendered = [...flowTiles, ...rest.slice(0, Math.max(0, MAX_TILES - flowTiles.length))];
+    return { tiles: rendered, scopedTiles, pruned: true };
   }
 
-  return tiles;
+  return { tiles, scopedTiles, pruned: false };
 }
 
 // ─── Breadth strip computations ───────────────────────────────────────────────
@@ -268,11 +421,11 @@ export function HeatmapView() {
   // ── Data state ──────────────────────────────────────────────────────────────
   const [manifest, setManifest] = useState<ManifestPayload | null>(null);
   const [flowIdx, setFlowIdx]   = useState<FlowIdxPayload | null>(null);
-  const [loadingManifest, setLoadingManifest] = useState(true);
-  const [loadingFlow,     setLoadingFlow]     = useState(true);
-  const [flowError,       setFlowError]       = useState(false);
+  const [manifestRead, setManifestRead] = useState<ManifestRead>("loading");
+  const [flowRead, setFlowRead] = useState<FlowRead>("loading");
   /** Live chg% values for top-N tiles; keyed by ticker. Null map = not yet loaded. */
   const [liveChg, setLiveChg] = useState<Record<string, number> | null>(null);
+  const [liveRead, setLiveRead] = useState<LiveRead>("idle");
   const intradayPollRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   // ── UI state ─────────────────────────────────────────────────────────────────
@@ -294,37 +447,77 @@ export function HeatmapView() {
   const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   // ── Fetch manifest ────────────────────────────────────────────────────────────
-  // Primary: /api/flow?f=manifest (integrator wires this in route.ts)
-  // Fallback: /data/manifest.json (static public file, always present)
+  // Primary: /api/flow?f=manifest; second source: /data/manifest.json (see readManifest).
+  // A read that did not land keeps whatever is on screen — it is the last read, labelled
+  // so — and only a proven absence withdraws it. The fence drops a read a newer one replaced.
+  // An old copy whose background refresh fails is the same: the tiles stay, labelled.
+  const manifestReqRef = useRef(0);
   const fetchManifest = useCallback(async () => {
-    let data = await safeFetch<ManifestPayload>("/api/flow?f=manifest");
-    if (!data) {
-      data = await safeFetch<ManifestPayload>("/data/manifest.json");
+    const req = ++manifestReqRef.current;
+    const current = () => manifestReqRef.current === req;
+    const read = await readManifest((fresh) => {
+      if (current()) { setManifest(fresh); setManifestRead("data"); }
+    });
+    if (!current()) return;
+    if (read.status === "data") {
+      setManifest(read.manifest);
+      setManifestRead("data");
+      // A refresh that succeeds arrives through onRevalidate above; "superseded" means a newer
+      // read or a Retry owns the board.
+      void read.refresh?.then((result) => {
+        if (result === "failed" && current()) setManifestRead("unavailable");
+      });
+    } else if (read.status === "absent") {
+      setManifest(null);
+      setManifestRead("absent");
+    } else {
+      setManifestRead("unavailable");
     }
-    if (data) {
-      setManifest(data);
-    }
-    setLoadingManifest(false);
   }, []);
 
+  // Retry asks both sources again: a failed read never stays cached, but a 200 that was not
+  // a manifest does, and the static copy's 404 is remembered — both must reach the network.
+  const retryManifest = useCallback(() => {
+    flowInvalidate("manifest");
+    invalidate(STATIC_MANIFEST);
+    setManifestRead("loading");
+    void fetchManifest();
+  }, [fetchManifest]);
+
   // ── Fetch flow index ──────────────────────────────────────────────────────────
-  // Primary: /api/flow?f=flow_idx (integrator wires this in route.ts)
-  // Fallback: /data/flow_idx.json (VPS-mirrored from GitHub Pages via pull_macro_intel)
-  // Tertiary: direct GitHub Pages URL (may hit CORS in some environments)
+  // Primary: /api/flow?f=flow_idx; second source: /data/flow_idx.json (see readFlowIdx).
+  // A read that did not land keeps the flow tiles on screen as the last read; a proven
+  // absence or a refusal withdraws them. The fence drops a read a newer one replaced.
+  // An old copy whose background refresh fails is the same: the flow tiles stay, labelled.
+  const flowReqRef = useRef(0);
   const fetchFlow = useCallback(async () => {
-    let data = await safeFetch<FlowIdxPayload>("/api/flow?f=flow_idx");
-    if (!data) {
-      data = await safeFetch<FlowIdxPayload>("/data/flow_idx.json");
-    }
-    if (data) {
-      setFlowIdx(data);
-      setFlowError(false);
+    const req = ++flowReqRef.current;
+    const current = () => flowReqRef.current === req;
+    const read = await readFlowIdx((fresh) => {
+      if (current()) { setFlowIdx(fresh); setFlowRead("data"); }
+    });
+    if (!current()) return;
+    if (read.status === "data") {
+      setFlowIdx(read.flowIdx);
+      setFlowRead("data");
+      void read.refresh?.then((result) => {
+        if (result === "failed" && current()) setFlowRead("unavailable");
+      });
+    } else if (read.status === "absent" || read.status === "auth") {
+      setFlowIdx(null);
+      setFlowRead(read.status);
     } else {
-      // Flow index unavailable — heatmap degrades gracefully to price-only
-      setFlowError(true);
+      setFlowRead("unavailable");
     }
-    setLoadingFlow(false);
   }, []);
+
+  // Retry asks both sources again, past the static copy's remembered 404.
+  const retryFlow = useCallback(() => {
+    flowInvalidate("flow_idx");
+    invalidate(STATIC_FLOW_IDX);
+    setFlowRead("loading");
+    void fetchFlow();
+  }, [fetchFlow]);
 
   // ── Mount ─────────────────────────────────────────────────────────────────────
   useEffect(() => {
@@ -347,6 +540,7 @@ export function HeatmapView() {
   // Only US plain-ticker names (no suffix) are passed to the quote hub. The top-N
   // is ranked by dollar-vol (price × vol) from the manifest — a reasonable mcap proxy.
   // On null quote → manifest value kept (guard: never blank a tile).
+  const liveChgRef = useRef<Record<string, number> | null>(null);
   const refreshIntraday = useCallback(async (tiles: HeatmapTile[]) => {
     const isUS = (t: HeatmapTile) => /^[A-Z]+(\.[AB])?$/.test(t.ticker) && !/^\d/.test(t.ticker);
     const dollarVol = (t: HeatmapTile) => (t.price ?? 0) * (t.vol ?? 0);
@@ -356,18 +550,23 @@ export function HeatmapView() {
       .slice(0, INTRADAY_TOP_N)
       .map((t) => t.ticker);
     if (topTickers.length === 0) return;
-    const fresh = await fetchLiveChg(topTickers);
-    setLiveChg((prev) => ({ ...(prev ?? {}), ...fresh }));
+    const { chg, complete } = await fetchLiveChg(topTickers);
+    // Only values this read refreshed are live. A read that did not fully land leaves the
+    // held values as the last read, and with nothing held the board is plain EOD.
+    const next = { ...(liveChgRef.current ?? {}), ...chg };
+    liveChgRef.current = next;
+    setLiveChg(next);
+    setLiveRead(complete ? "live" : Object.keys(next).length > 0 ? "stale" : "failed");
   }, []);
 
   // Kick off intraday refresh once the manifest is loaded (gives us dollar-vol ranks).
   useEffect(() => {
     if (!manifest) return;
-    const tiles = buildTiles(manifest, flowIdx);
-    void refreshIntraday(tiles);
+    const built = buildTiles(manifest, flowIdx);
+    void refreshIntraday(built.tiles);
     if (intradayPollRef.current) clearInterval(intradayPollRef.current);
     intradayPollRef.current = setInterval(() => {
-      void refreshIntraday(buildTiles(manifest, flowIdx));
+      void refreshIntraday(buildTiles(manifest, flowIdx).tiles);
     }, INTRADAY_POLL_MS);
     return () => {
       if (intradayPollRef.current) { clearInterval(intradayPollRef.current); intradayPollRef.current = null; }
@@ -376,6 +575,8 @@ export function HeatmapView() {
   }, [manifest]);
 
   // ── Layer change: auto-select sizing ─────────────────────────────────────────
+  // Legacy default preserved: price → "cap" (price×vol proxy). Cached USD cap is
+  // an explicit opt-in — never silently substituted for old saved views.
   const handleLayerChange = useCallback((l: Layer) => {
     setLayer(l);
     setSizing(l === "flow" ? "premium" : "cap");  // CAP (dollar-vol) for price; PREMIUM for flow
@@ -383,7 +584,8 @@ export function HeatmapView() {
   }, []);
 
   // ── Build tiles ───────────────────────────────────────────────────────────────
-  const rawTiles = buildTiles(manifest, flowIdx);
+  const built = useMemo(() => buildTiles(manifest, flowIdx), [manifest, flowIdx]);
+  const rawTiles = built.tiles;
 
   // Apply live chg% overlay for top-N tickers (guard: null → keep manifest value).
   const liveSet = liveChg ? new Set(Object.keys(liveChg)) : new Set<string>();
@@ -403,10 +605,36 @@ export function HeatmapView() {
     return true;
   });
 
-  const breadth = computeBreadth(allTiles);
-  const sectorChips = computeSectorChips(allTiles);
+  // Breadth denominator = ORIGINAL scoped universe (pre render-pruning).
+  // Render pruning must not rewrite it.
+  const breadth = useMemo(() => computeBreadth(built.scopedTiles), [built.scopedTiles]);
+  const sectorChips = useMemo(() => computeSectorChips(allTiles), [allTiles]);
+  // Cap coverage disclosed against the same original scoped universe.
+  const coverage: CapCoverage = useMemo(
+    () => capCoverage(built.scopedTiles),
+    [built.scopedTiles]
+  );
 
-  const isLoading = loadingManifest;
+  // The canvas states, by what the manifest read established. A held manifest is always
+  // painted; without one, only a proven absence is an empty market.
+  const isLoading = !manifest && manifestRead === "loading";
+  const loadFailed = !manifest && manifestRead === "unavailable";
+  const refreshFailed = manifest != null && manifestRead === "unavailable";
+  // Tiles exist but the filter hides every one: a search miss, never an empty market.
+  const noMatch = search !== "" && allTiles.length > 0 && tiles.length === 0;
+
+  // The flow layer's states, shown only on the flow layer. A held index is always painted.
+  const onFlow = layer === "flow";
+  const flowRefreshFailed = onFlow && flowIdx != null && flowRead === "unavailable";
+  const flowLoadFailed = onFlow && flowIdx == null && flowRead === "unavailable";
+
+  // Inline bilingual labels — heatmapStrings.ts is owner-held READ ONLY.
+  const capCopy = cachedUsdCapCopy(zh, coverage, {
+    pruned: built.pruned,
+    renderedCount: built.tiles.length,
+    scopedCount: built.scopedTiles.length,
+  });
+  const missingNames = completeMissingCapNames(coverage);
 
   // ── Render ────────────────────────────────────────────────────────────────────
 
@@ -422,10 +650,10 @@ export function HeatmapView() {
       </div>
 
       {/* ═══ BREADTH STRIP — glass header card ════════════════════════════════ */}
-      <div className="obs-card" style={BREADTH_STRIP}>
-        {/* Mode label */}
+      <div className="obs-card" style={BREADTH_STRIP} data-testid="heatmap-breadth">
+        {/* Mode label — derived from the manifest, so no reading until one is held */}
         <div style={BREADTH_MODE}>
-          <span style={{
+          {!manifest ? <span style={{ color: "var(--muted)" }}>—</span> : <span style={{
             fontWeight: 700,
             color: layer === "price"
               ? (breadth.priceMode === "BULLISH" ? "var(--up)" : breadth.priceMode === "BEARISH" ? "var(--down)" : "var(--warn)")
@@ -435,7 +663,7 @@ export function HeatmapView() {
               ? (breadth.priceMode === "BULLISH" ? t("bullish") : breadth.priceMode === "BEARISH" ? t("bearish") : t("mixed"))
               : (breadth.callShareClass === "CALL-HEAVY" ? t("bullish") : breadth.callShareClass === "PUT-HEAVY" ? t("bearish") : t("mixed"))
             }
-          </span>
+          </span>}
         </div>
 
         <div style={BREADTH_SEP} />
@@ -443,16 +671,22 @@ export function HeatmapView() {
         {/* Advancers / decliners */}
         <div style={BREADTH_ITEM}>
           <span className="obs-lbl" style={{ textTransform: "none", letterSpacing: 0, fontSize: 10 }}>{t("advancers")}</span>
-          <span className="num" style={{ color: "var(--up)", marginLeft: 4 }}>
-            {breadth.advancers}
-          </span>
-          <span style={{ color: "var(--muted)", margin: "0 3px" }}>/</span>
-          <span className="num" style={{ color: "var(--down)" }}>
-            {breadth.decliners}
-          </span>
-          <span style={{ color: "var(--muted)", marginLeft: 3 }}>
-            ({breadth.total > 0 ? Math.round(breadth.advancers / breadth.total * 100) : 0}%)
-          </span>
+          {!manifest ? (
+            <span className="num" style={{ color: "var(--muted)", marginLeft: 4 }}>—</span>
+          ) : (
+            <>
+              <span className="num" style={{ color: "var(--up)", marginLeft: 4 }}>
+                {breadth.advancers}
+              </span>
+              <span style={{ color: "var(--muted)", margin: "0 3px" }}>/</span>
+              <span className="num" style={{ color: "var(--down)" }}>
+                {breadth.decliners}
+              </span>
+              <span style={{ color: "var(--muted)", marginLeft: 3 }}>
+                ({breadth.total > 0 ? Math.round(breadth.advancers / breadth.total * 100) : 0}%)
+              </span>
+            </>
+          )}
         </div>
 
         {/* Total flow premium */}
@@ -498,14 +732,17 @@ export function HeatmapView() {
           {t("dataNote")}
         </div>
 
-        {/* Intraday overlay note — shown once live data has been loaded */}
-        {liveChg && liveSet.size > 0 && (
+        {/* Intraday overlay note — says "live" only for values the last read refreshed */}
+        {(liveRead === "failed" || (liveRead !== "idle" && liveSet.size > 0)) && (
           <>
             <div style={BREADTH_SEP} />
-            <div style={{ fontSize: 10, color: "var(--muted)", fontStyle: "italic", alignSelf: "center" }}>
-              {zh
-                ? `实时（延迟15分钟）前${liveSet.size}支 · 其余为昨收`
-                : `live (15m delayed) top ${liveSet.size} · rest EOD`}
+            <div
+              data-testid="heatmap-live-note"
+              data-state={liveRead}
+              style={{ fontSize: 10, color: liveRead === "live" ? "var(--muted)" : "var(--warn)", fontStyle: "italic", alignSelf: "center" }}
+            >
+              {(liveRead === "live" ? t("liveNote") : liveRead === "stale" ? t("liveStale") : t("liveFailed"))
+                .replace("{n}", String(liveSet.size))}
             </div>
           </>
         )}
@@ -553,17 +790,27 @@ export function HeatmapView() {
                 className={`obs-chip${sizing === "cap" ? " on" : ""}`}
                 style={CHIP_COMPACT}
                 onClick={() => setSizing("cap")}
+                aria-pressed={sizing === "cap"}
               >{t("sizeCap")}</button>
+              <button
+                className={`obs-chip${sizing === "marketCap" ? " on" : ""}`}
+                style={CHIP_COMPACT}
+                onClick={() => setSizing("marketCap")}
+                aria-pressed={sizing === "marketCap"}
+                aria-label={capCopy.modeLabel}
+              >{capCopy.modeLabel}</button>
               <button
                 className={`obs-chip${sizing === "equal" ? " on" : ""}`}
                 style={CHIP_COMPACT}
                 onClick={() => setSizing("equal")}
+                aria-pressed={sizing === "equal"}
               >{t("sizeEqual")}</button>
               {layer === "flow" && (
                 <button
                   className={`obs-chip${sizing === "premium" ? " on" : ""}`}
                   style={CHIP_COMPACT}
                   onClick={() => setSizing("premium")}
+                  aria-pressed={sizing === "premium"}
                 >{t("sizePremium")}</button>
               )}
             </div>
@@ -622,15 +869,75 @@ export function HeatmapView() {
       </div>
 
       {/* ═══ FLOW SOFT DISCLAIMER (flow layer only) ══════════════════════════ */}
-      {layer === "flow" && !flowError && !loadingFlow && (
+      {onFlow && flowIdx != null && (
         <div className="obs-note" style={FLOW_NOTE_BAR}>
           {t("toneSoftNote")}
         </div>
       )}
 
-      {flowError && (
-        <div style={FLOW_ERR_BAR}>
+      {flowRefreshFailed && (
+        <div style={REFRESH_FAILED_BAR} data-testid="heatmap-flow-refresh-failed" role="status">
+          <span>{t("flowRefreshFailed")}</span>
+          <button type="button" className="btn btn-ghost load-retry" style={RETRY_INLINE} onClick={retryFlow}>
+            {t("retry")}
+          </button>
+        </div>
+      )}
+
+      {flowLoadFailed && (
+        <div style={FLOW_LOAD_ERROR_BAR} data-testid="heatmap-flow-load-error" role="alert">
+          <span style={{ color: "var(--text)", fontWeight: 600 }}>{t("flowLoadError")}</span>
+          <span style={{ color: "var(--muted)" }}>{t("flowLoadErrorWhy")}</span>
+          <button type="button" className="btn btn-ghost load-retry" style={RETRY_INLINE} onClick={retryFlow}>
+            {t("retry")}
+          </button>
+        </div>
+      )}
+
+      {onFlow && flowIdx == null && flowRead === "absent" && (
+        <div style={FLOW_ERR_BAR} data-testid="heatmap-flow-absent">
           {t("noFlowData")}
+        </div>
+      )}
+
+      {onFlow && flowIdx == null && flowRead === "auth" && (
+        <div style={FLOW_ERR_BAR} data-testid="heatmap-flow-auth">
+          {t("flowAuth")}
+        </div>
+      )}
+
+      {/* ═══ CACHED USD-CAP DISCLOSURE (marketCap sizing, map view) ════════ */}
+      {view === "map" && sizing === "marketCap" && manifest != null && (
+        <div className="obs-note" style={CAP_NOTE_BAR}>
+          <div>{capCopy.modeNote}</div>
+          <div style={{ marginTop: 2 }}>{capCopy.coverageNote}</div>
+          {capCopy.pruneNote && <div style={{ marginTop: 2 }}>{capCopy.pruneNote}</div>}
+          <MissingCapDisclosure
+            names={missingNames}
+            heading={capCopy.missingHeading}
+            regionLabel={capCopy.missingRegionLabel}
+          />
+          {coverage.withCap === 0 && coverage.total > 0 && (
+            <div style={{ marginTop: 3, color: "var(--warn)" }}>
+              {capCopy.emptyCapWarn}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Render-prune note when not in marketCap mode (breadth honesty). */}
+      {view === "map" && sizing !== "marketCap" && capCopy.pruneNote && manifest != null && (
+        <div className="obs-note" style={CAP_NOTE_BAR}>
+          {capCopy.pruneNote}
+        </div>
+      )}
+
+      {refreshFailed && (
+        <div style={REFRESH_FAILED_BAR} data-testid="heatmap-refresh-failed" role="status">
+          <span>{t("refreshFailed")}</span>
+          <button type="button" className="btn btn-ghost load-retry" style={RETRY_INLINE} onClick={retryManifest}>
+            {t("retry")}
+          </button>
         </div>
       )}
 
@@ -638,6 +945,10 @@ export function HeatmapView() {
       <div style={CANVAS_AREA} data-tut="heatmap-canvas">
         {isLoading ? (
           <LoadingState t={t} />
+        ) : loadFailed ? (
+          <LoadErrorState t={t} onRetry={retryManifest} />
+        ) : noMatch ? (
+          <NoMatchState t={t} query={search.trim() || search} onClear={() => setSearch("")} />
         ) : tiles.length === 0 ? (
           <EmptyState t={t} />
         ) : view === "map" ? (
@@ -711,6 +1022,129 @@ export function HeatmapView() {
   );
 }
 
+// ─── Cached USD-cap product copy (inline — heatmapStrings.ts is owner-held) ───
+
+/**
+ * Complete missing/unusable ticker list. Never truncated.
+ * Invalid (present but not finite positive) first, then missing (absent key).
+ */
+export function completeMissingCapNames(coverage: CapCoverage): string[] {
+  return [...coverage.invalidTickers, ...coverage.missingTickers];
+}
+
+/**
+ * Truthful bilingual product copy for cached USD-cap mode.
+ * Explains cached USD capitalization, unknown reference date, and that quote
+ * time is a separate timestamp. Does not name raw columns, cache keys, or
+ * ingest modules.
+ */
+export function cachedUsdCapCopy(
+  zh: boolean,
+  coverage: CapCoverage,
+  opts: { pruned: boolean; renderedCount: number; scopedCount: number }
+): {
+  modeLabel: string;
+  modeNote: string;
+  coverageNote: string;
+  pruneNote: string | null;
+  emptyCapWarn: string;
+  missingHeading: string;
+  missingRegionLabel: string;
+} {
+  const excluded = coverage.missingCap + coverage.invalidCap;
+  return {
+    modeLabel: zh ? "美元市值" : "USD CAP",
+    modeNote: zh
+      ? "图块面积按缓存的美元市值加权。CAP 仍使用价格×成交量代理。财务参考日期未知；行情时间（实时覆盖或收盘）单独显示。"
+      : "Tile area uses cached USD market capitalization. CAP continues to use its price × volume proxy. The capitalization reference date is unknown. Quote time (live overlay or end-of-day) is shown separately.",
+    coverageNote: zh
+      ? `缓存美元市值覆盖（所选范围共 ${coverage.total} 只）：可用 ${coverage.withCap}/${coverage.total} · 缺失 ${coverage.missingCap} · 不可用 ${coverage.invalidCap}。完整名单如下。`
+      : `Cached USD cap coverage: usable ${coverage.withCap}/${coverage.total} · missing ${coverage.missingCap} · unusable ${coverage.invalidCap}. Coverage uses the original scoped universe of ${coverage.total} symbols; the complete missing list is below.`,
+    pruneNote: opts.pruned
+      ? (zh
+        ? `显示 ${opts.renderedCount}/${opts.scopedCount} 只标的；市场广度包含当前筛选范围内全部 ${opts.scopedCount} 只标的。`
+        : `Showing ${opts.renderedCount}/${opts.scopedCount} symbols. Breadth includes all ${opts.scopedCount} symbols in the current scope.`)
+      : null,
+    emptyCapWarn: zh
+      ? "当前范围内暂无可用缓存美元市值。可选择 CAP 或 EQUAL 查看这些标的。"
+      : "No usable cached USD market cap in the current scope. Choose CAP or EQUAL to view these symbols.",
+    missingHeading: zh
+      ? `无可用缓存美元市值的标的 ${excluded} 个（缺失 ${coverage.missingCap} · 不可用 ${coverage.invalidCap}）— 保持可见，不参与面积`
+      : `${excluded} names without usable cached USD cap (${coverage.missingCap} missing · ${coverage.invalidCap} unusable) — kept visible, no map area`,
+    missingRegionLabel: zh
+      ? "无可用缓存美元市值的完整标的列表"
+      : "Complete list of names without usable cached USD cap",
+  };
+}
+
+/**
+ * Complete, keyboard- and touch-accessible list of names without usable
+ * cached USD cap. Native <details>/<summary> is the disclosure control
+ * (Enter/Space, tap). The region is focusable and scrollable on keyboard
+ * and mobile; every name is rendered — nothing is hidden after 24.
+ */
+export function MissingCapDisclosure({
+  names,
+  heading,
+  regionLabel,
+}: {
+  names: string[];
+  heading: string;
+  regionLabel: string;
+}) {
+  if (names.length === 0) return null;
+  return (
+    <details open style={{ marginTop: 3 }}>
+      <summary
+        style={{
+          cursor: "pointer",
+          fontWeight: 600,
+          listStylePosition: "outside",
+          touchAction: "manipulation",
+        }}
+      >
+        {heading}
+      </summary>
+      <div
+        role="list"
+        tabIndex={0}
+        aria-label={regionLabel}
+        style={{
+          display: "flex",
+          flexWrap: "wrap",
+          gap: 4,
+          marginTop: 6,
+          maxHeight: 140,
+          overflowY: "auto",
+          overflowX: "hidden",
+          WebkitOverflowScrolling: "touch",
+          overscrollBehavior: "contain",
+          touchAction: "pan-y",
+          padding: "2px 0",
+          outline: "1px solid transparent",
+        }}
+      >
+        {names.map((ticker) => (
+          <span
+            key={ticker}
+            role="listitem"
+            className="num"
+            style={{
+              fontVariantNumeric: "tabular-nums",
+              padding: "1px 6px",
+              borderRadius: 3,
+              background: "rgba(255,255,255,0.06)",
+              flexShrink: 0,
+            }}
+          >
+            {ticker}
+          </span>
+        ))}
+      </div>
+    </details>
+  );
+}
+
 // ─── Sub-components ───────────────────────────────────────────────────────────
 
 function SectorChip({
@@ -754,6 +1188,31 @@ function LoadingState({ t }: { t: (k: Parameters<ReturnType<typeof makeHeatmapT>
   return (
     <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "100%", color: "var(--muted)", fontSize: 13 }}>
       {t("loadingHeatmap")}
+    </div>
+  );
+}
+
+/** The manifest read did not land: say so, and re-read in place. Never the empty state. */
+function LoadErrorState({ t, onRetry }: { t: (k: Parameters<ReturnType<typeof makeHeatmapT>>[0]) => string; onRetry: () => void }) {
+  return (
+    <div data-testid="heatmap-load-error" role="alert" style={LOAD_ERROR_STATE}>
+      <div style={{ fontSize: 13, fontWeight: 600, color: "var(--text)" }}>{t("loadErrorTitle")}</div>
+      <div style={{ fontSize: 12, color: "var(--muted)", maxWidth: 420 }}>{t("loadErrorWhy")}</div>
+      <button type="button" className="btn btn-ghost load-retry" onClick={onRetry}>{t("retry")}</button>
+    </div>
+  );
+}
+
+/** The board has tiles; the search hides all of them. Say that, and offer the way back. */
+function NoMatchState({ t, query, onClear }: {
+  t: (k: Parameters<ReturnType<typeof makeHeatmapT>>[0]) => string;
+  query: string;
+  onClear: () => void;
+}) {
+  return (
+    <div data-testid="heatmap-no-match" style={LOAD_ERROR_STATE}>
+      <div style={{ fontSize: 13, color: "var(--text)" }}>{t("noMatch").replace("{q}", query)}</div>
+      <button type="button" className="btn btn-ghost load-retry" onClick={onClear}>{t("clearSearch")}</button>
     </div>
   );
 }
@@ -876,6 +1335,57 @@ const FLOW_ERR_BAR: React.CSSProperties = {
   color: "var(--warn)",
   borderBottom: "1px solid rgba(255,255,255,0.06)",
   flexShrink: 0,
+};
+
+// Cached USD-cap / render-prune disclosure bar (inline bilingual — heatmapStrings held READ ONLY).
+const CAP_NOTE_BAR: React.CSSProperties = {
+  margin: 0,
+  borderRadius: 0,
+  borderLeft: "none",
+  borderRight: "none",
+  borderTop: "none",
+  fontSize: 9,
+  lineHeight: 1.45,
+  flexShrink: 0,
+};
+
+const FLOW_LOAD_ERROR_BAR: React.CSSProperties = {
+  display: "flex",
+  alignItems: "center",
+  flexWrap: "wrap",
+  gap: "4px 8px",
+  padding: "4px 14px",
+  fontSize: 10,
+  borderBottom: "1px solid rgba(255,255,255,0.06)",
+  flexShrink: 0,
+};
+
+const REFRESH_FAILED_BAR: React.CSSProperties = {
+  display: "flex",
+  alignItems: "center",
+  flexWrap: "wrap",
+  gap: 8,
+  padding: "4px 14px",
+  fontSize: 10,
+  color: "var(--warn)",
+  borderBottom: "1px solid rgba(255,255,255,0.06)",
+  flexShrink: 0,
+};
+
+const RETRY_INLINE: React.CSSProperties = {
+  padding: "2px 10px",
+  fontSize: 11,
+};
+
+const LOAD_ERROR_STATE: React.CSSProperties = {
+  display: "flex",
+  flexDirection: "column",
+  alignItems: "center",
+  justifyContent: "center",
+  gap: 8,
+  height: "100%",
+  padding: "0 16px",
+  textAlign: "center",
 };
 
 const CANVAS_AREA: React.CSSProperties = {

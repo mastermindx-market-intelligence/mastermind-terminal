@@ -977,6 +977,11 @@ cleanup_deploy_attempt(){
   local rc=$? live_marker restored_head dirty
   trap - EXIT
   set +e
+  # A failed stage can exhaust the filesystem. Release this attempt's staging
+  # bytes before Git needs space for the canonical recovery index.
+  if [ -n "${STAGE_ROOT:-}" ] && [ -d "$STAGE_ROOT" ]; then
+    rm -rf "$STAGE_ROOT" || log "WARN: could not remove staging directory $STAGE_ROOT"
+  fi
   if [ "$rc" -ne 0 ] && [ "${CANONICAL_RECOVERY_ARMED:-0}" = 1 ]; then
     if live_marker=$(read_live_deployment_marker "$DEPLOYMENT_MARKER") \
       && [ -n "${CANONICAL_RECOVERY_SHA:-}" ] \
@@ -1001,9 +1006,6 @@ cleanup_deploy_attempt(){
       log "FATAL: pre-swap recovery refused because live identity changed or became unreadable"
       rc=74
     fi
-  fi
-  if [ -n "${STAGE_ROOT:-}" ] && [ -d "$STAGE_ROOT" ]; then
-    rm -rf "$STAGE_ROOT" || log "WARN: could not remove staging directory $STAGE_ROOT"
   fi
   exit "$rc"
 }

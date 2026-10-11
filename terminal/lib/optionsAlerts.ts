@@ -26,6 +26,8 @@
  * by raising the z threshold — the threshold itself is an unadjusted single-look bar.
  */
 
+import { isValidRoot } from "@/lib/flowRoot";
+
 export type GexState = {
   root?: string;
   spot?: number;
@@ -629,14 +631,13 @@ export function isMarketWideOptKind(kind: string): boolean {
   return kind === "opt_premium_burst" || kind === "opt_0dte_spike";
 }
 
-const OPT_ALERT_ROOT_RE = /^[A-Z0-9]{1,10}(?:[.-][A-Z0-9]{1,4})?$/;
-
 /** Normalize a root before it can become both the row identity and evaluator input. */
 export function normalizeOptAlertRoot(value: unknown): string | null {
   if (typeof value !== "string") return null;
   const root = value.trim().toUpperCase();
-  // Flow._root (ingest/alerts_engine.py) is the law: strip+upper, total length ≤ 12, then the regex.
-  return root.length <= 12 && OPT_ALERT_ROOT_RE.test(root) ? root : null;
+  // Strip+upper, then the one root rule /api/flow applies (lib/flowRoot.ts). Flow._root in
+  // ingest/alerts_engine.py ports the same rule; tests/test_alerts_engine_identity.py pins it.
+  return isValidRoot(root) ? root : null;
 }
 
 /** Canonical storage identity for an options alert.

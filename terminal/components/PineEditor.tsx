@@ -4,6 +4,7 @@ import { useLang, useT } from "@/lib/i18n";
 import { useRouter, useSearchParams } from "next/navigation";
 import { type Bar, type PineError } from "@/lib/pine-engine";
 import { createPineHost, type PineHost } from "@/lib/pine-engine/host";
+import { parseExpectedUpdatedAtMs } from "@/lib/savedScriptStamp";
 
 type Script = { id: string; name: string; source: string; lang: string; params: Record<string, any>; updated_at: string; locked?: boolean };
 
@@ -112,19 +113,35 @@ export default function PineEditor({ scripts, isPro, email, libraryUnavailable =
   }, [serverIds]);
 
   // ?id=<scriptId> deep-links a specific script (from the terminal legend "Source code" / "Edit"); fall
-  // back to the first script when absent or unknown.
-  const initialIdx = (() => { const id = searchParams.get("id"); if (!id) return 0; const i = scripts.findIndex((s) => s.id === id); return i >= 0 ? i : 0; })();
-  const [idx, setIdx] = useState(initialIdx);
-  const active = library[idx];
+  // back to the first script when absent or unknown. Selection is the script ID, never the array
+  // index: the list is ordered by updated_at, so a save or a server refresh would otherwise move
+  // the cursor onto a different row and look like the buffer was lost.
+  const initialId = (() => {
+    const id = searchParams.get("id");
+    if (id && scripts.some((s) => s.id === id)) return id;
+    return scripts[0]?.id ?? null;
+  })();
+  const [selectedId, setSelectedId] = useState<string | null>(initialId);
+  const active = library.find((s) => s.id === selectedId) ?? library[0];
   const [src, setSrc] = useState(active?.source || "");
   const [params, setParams] = useState<Record<string, any>>(active?.params || {});
+  const srcRef = useRef(src);
+  const paramsRef = useRef(params);
+  srcRef.current = src;
+  paramsRef.current = params;
   const [status, setStatus] = useState<"idle" | "saving" | "saved" | "compiling" | "err">("idle");
   const [picker, setPicker] = useState(false);
   // D3a: the script a pending switch wants to reach, while the current buffer is dirty. Null = no
-  // decision outstanding. The switch does not happen until the user makes one.
-  const [pendingIdx, setPendingIdx] = useState<number | null>(null);
+  // decision outstanding. The switch does not happen until the user makes one. Keyed by script ID
+  // so a list reorder while the dialog is open cannot retarget the switch onto a different row.
+  const [pendingTargetId, setPendingTargetId] = useState<string | null>(null);
+  const pendingTargetIdRef = useRef<string | null>(null);
+  pendingTargetIdRef.current = pendingTargetId;
   const [switchErr, setSwitchErr] = useState("");
   const taRef = useRef<HTMLTextAreaElement>(null);
+  // One in-flight save per script ID. A second click (or save-and-switch) joins the same request
+  // rather than racing two CAS tokens against the same row.
+  const saveInflightRef = useRef<Map<string, Promise<string | null>>>(new Map());
   // A local selection changes `active` before the passive buffer-reset and URL-mirroring effects
   // settle. useSearchParams can therefore deliver the editor's own PREVIOUS mirrored id during
   // that transition. Suppress exactly that one stale echo; real later history changes still route
@@ -137,9 +154,10 @@ export default function PineEditor({ scripts, isPro, email, libraryUnavailable =
   useEffect(() => () => { hostRef.current?.dispose(); hostRef.current = null; }, []);
 
   // Switching scripts resets the editable buffers to that script's stored source/params. Keyed on
-  // the SELECTION (idx + which script that is), never on the library's contents — so a save, which
-  // rewrites the active row in `library`, does not reset the buffer the user is still typing in.
-  useEffect(() => { setSrc(active?.source || ""); setParams(active?.params || {}); setStatus("idle"); setPicker(false); }, [idx, active?.id]);
+  // the selected script ID, never on the library's contents or array index — so a save, which
+  // rewrites the active row in `library`, or a server-list reorder of the same identities, does
+  // not reset the buffer the user is still typing in.
+  useEffect(() => { setSrc(active?.source || ""); setParams(active?.params || {}); setStatus("idle"); setPicker(false); }, [selectedId]); // eslint-disable-line react-hooks/exhaustive-deps
   // close the script picker on any outside click
   useEffect(() => { if (!picker) return; const close = () => setPicker(false); window.addEventListener("click", close); return () => window.removeEventListener("click", close); }, [picker]);
 
@@ -175,32 +193,84 @@ export default function PineEditor({ scripts, isPro, email, libraryUnavailable =
   // Save the current buffer. Returns the saved id (existing id on success, null on failure). Locked
   // scripts and non-Pro users can't save — but the proprietary/locked script is still addable to the
   // chart from its stable id (no save needed), handled in addToChart().
+  //
+  // The snapshot (id, source, params, expected_updated_at) is frozen at click time. The in-flight
+  // map is per script ID, so a reorder or a later selection cannot redirect this write, and a
+  // second click joins the same request. A receipt older than what the user typed must not mark
+  // the buffer clean: the library baseline moves to the snapshot + actual `updated_at`, and the
+  // live buffer stays dirty against that baseline.
   async function save(): Promise<string | null> {
     if (!isPro || !active || isLocked) return null;
-    setStatus("saving");
-    // Freeze exactly what is being sent. If the user keeps typing during the request, the buffer
-    // must stay dirty against THIS baseline rather than silently adopting the newer text as saved.
-    const sentSrc = src;
-    const sentParams = params;
-    const at = active.id;
-    const r = await fetch("/api/scripts/save", { method: "POST", headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ id: at, name: active.name, source: sentSrc, params: sentParams }) }).catch(() => null);
-    const ok = !!(r && r.ok);
-    if (!ok) {
-      setStatus("err");
-      setTimeout(() => setStatus("idle"), 2200);
-      return null;
+    const captured = {
+      id: active.id,
+      name: active.name,
+      source: src,
+      params,
+      expected_updated_at: active.updated_at,
+    };
+    const existing = saveInflightRef.current.get(captured.id);
+    if (existing) return existing;
+
+    const run = (async (): Promise<string | null> => {
+      setStatus("saving");
+      const r = await fetch("/api/scripts/save", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          id: captured.id,
+          name: captured.name,
+          source: captured.source,
+          params: captured.params,
+          expected_updated_at: captured.expected_updated_at,
+        }),
+      }).catch(() => null);
+      const ok = !!(r && r.ok);
+      if (!ok) {
+        setStatus("err");
+        setTimeout(() => setStatus("idle"), 2200);
+        return null;
+      }
+      let receiptId: string | null = null;
+      let receiptAt: string | null = null;
+      try {
+        const d = await r!.json();
+        if (typeof d?.id === "string" && d.id) receiptId = d.id;
+        if (typeof d?.updated_at === "string" && d.updated_at && parseExpectedUpdatedAtMs(d.updated_at) != null) {
+          receiptAt = d.updated_at;
+        }
+      } catch { /* malformed body is an unverified save */ }
+      // HTTP 200 is not enough: missing/malformed/wrong-id receipts must not invent a saved
+      // baseline, a clean buffer, or a CAS token. Keep the captured id/token and stay dirty.
+      if (!receiptId || receiptId !== captured.id || receiptAt == null) {
+        setStatus("err");
+        setTimeout(() => setStatus("idle"), 2200);
+        return null;
+      }
+      // D3b: the write landed, so make it the editor's stored baseline. Without this the next script
+      // switch rehydrates from the pre-save server snapshot and a successful save reads as lost.
+      // The next save must send the actual row receipt as expected_updated_at — never a client-clock
+      // guess, and never a token invented when the body omitted updated_at.
+      setLibrary((prev) => prev.map((s) => (s.id === captured.id
+        ? { ...s, source: captured.source, params: captured.params, updated_at: receiptAt }
+        : s)));
+      const stillSnap =
+        srcRef.current === captured.source &&
+        JSON.stringify(paramsRef.current) === JSON.stringify(captured.params);
+      if (stillSnap) {
+        setStatus("saved");
+        setTimeout(() => setStatus("idle"), 2200);
+      } else {
+        setStatus("idle");
+      }
+      return receiptId;
+    })();
+
+    saveInflightRef.current.set(captured.id, run);
+    try {
+      return await run;
+    } finally {
+      saveInflightRef.current.delete(captured.id);
     }
-    let savedId = at;
-    try { const d = await r!.json(); if (typeof d?.id === "string" && d.id) savedId = d.id; } catch { /* keep the existing id */ }
-    // D3b: the write landed, so make it the editor's stored baseline. Without this the next script
-    // switch rehydrates from the pre-save server snapshot and a successful save reads as lost.
-    setLibrary((prev) => prev.map((s) => (s.id === at
-      ? { ...s, id: savedId, source: sentSrc, params: sentParams, updated_at: new Date().toISOString() }
-      : s)));
-    setStatus("saved");
-    setTimeout(() => setStatus("idle"), 2200);
-    return savedId;
   }
 
   // ── D4: the visible script and the ?id= deep link are one identity ──
@@ -221,12 +291,13 @@ export default function PineEditor({ scripts, isPro, email, libraryUnavailable =
   // Selection used to be a bare `setIdx(i)`; the switch effect then replaced the buffers from the
   // target script, so edits to the script being left simply vanished. Every entry point (side list,
   // header picker, an external ?id= change) goes through here.
-  const commitSelect = useCallback((i: number) => {
+  const commitSelect = useCallback((id: string) => {
     staleMirroredIdRef.current = active?.id || null;
-    setPendingIdx(null);
+    pendingTargetIdRef.current = null;
+    setPendingTargetId(null);
     setSwitchErr("");
     setPicker(false);
-    setIdx(i);
+    setSelectedId(id);
   }, [active?.id]);
 
   // The URL names whatever script is visible — from the FIRST paint, not only after a switch.
@@ -238,25 +309,33 @@ export default function PineEditor({ scripts, isPro, email, libraryUnavailable =
   useEffect(() => { mirrorUrl(active?.id); }, [active?.id, mirrorUrl]);
 
   const requestSelect = useCallback((i: number) => {
-    if (i === idx || i < 0 || i >= library.length) { setPicker(false); return; }
-    if (dirty) { setPendingIdx(i); setSwitchErr(""); setPicker(false); return; }
-    commitSelect(i);
-  }, [idx, library.length, dirty, commitSelect]);
+    const target = library[i];
+    if (!target || target.id === selectedId) { setPicker(false); return; }
+    if (dirty) { pendingTargetIdRef.current = target.id; setPendingTargetId(target.id); setSwitchErr(""); setPicker(false); return; }
+    commitSelect(target.id);
+  }, [selectedId, library, dirty, commitSelect]);
 
   async function saveAndSwitch() {
-    const target = pendingIdx;
-    if (target == null) return;
+    const targetId = pendingTargetIdRef.current;
+    if (targetId == null) return;
+    // Save the script whose buffer is captured now (the one on screen). After await, switch to the
+    // captured TARGET id — never the array index that was current when the dialog opened, which a
+    // server-list reorder would have pointed at a different row.
     const savedId = await save();
+    // A Cancel (or retarget) while this save is in flight must not navigate away or drop newer
+    // dirty edits. The receipt is applied by save() itself when verified; staying put is required.
+    if (pendingTargetIdRef.current !== targetId) return;
     // A failed save must not lose the edit and must not move: staying put IS the safe outcome.
     if (!savedId) { setSwitchErr(t("peUnsavedSaveFailed").replace("{name}", active?.name || "")); return; }
-    commitSelect(target);
+    commitSelect(targetId);
   }
   function discardAndSwitch() {
-    if (pendingIdx == null) return;
-    commitSelect(pendingIdx);   // the switch effect rehydrates the buffers from the target script
+    if (pendingTargetIdRef.current == null) return;
+    commitSelect(pendingTargetIdRef.current);   // the switch effect rehydrates the buffers from the target script
   }
   function cancelSwitch() {
-    setPendingIdx(null);
+    pendingTargetIdRef.current = null;
+    setPendingTargetId(null);
     setSwitchErr("");
     mirrorUrl(active?.id);      // an external ?id= change that the user declined must not stick
   }
@@ -322,7 +401,7 @@ export default function PineEditor({ scripts, isPro, email, libraryUnavailable =
               <div className="pop show" style={{ top: 38, left: 0 }} onClick={(e) => e.stopPropagation()}>
                 {library.map((s, i) => (
                   <div key={s.id} className="menu-row" onClick={() => requestSelect(i)}>
-                    {s.locked && <span style={{ marginRight: 6, color: "var(--brand-2)" }} title={t("peReadOnly")}>🔒</span>}{s.name}{i === idx && <span style={{ marginLeft: "auto", color: "var(--brand-2)" }}>●</span>}
+                    {s.locked && <span style={{ marginRight: 6, color: "var(--brand-2)" }} title={t("peReadOnly")}>🔒</span>}{s.name}{s.id === active?.id && <span style={{ marginLeft: "auto", color: "var(--brand-2)" }}>●</span>}
                   </div>
                 ))}
               </div>
@@ -433,7 +512,7 @@ export default function PineEditor({ scripts, isPro, email, libraryUnavailable =
               <div className="gate" role="alert" data-scripts-status="unavailable">{t("scriptsUnavailable")}</div>
             )}
             {library.map((s, i) => (
-              <div key={s.id} className={`script-row${i === idx ? " on" : ""}`} onClick={() => requestSelect(i)}>
+              <div key={s.id} className={`script-row${s.id === active?.id ? " on" : ""}`} onClick={() => requestSelect(i)}>
                 <span className="si">{s.lang === "pine" ? "ƒ" : "λ"}</span>
                 <span className="meta"><span>{s.name}</span><small>{s.locked ? t("peReadOnly") : `${s.lang === "pine" ? t("peLangPine") : t("peLangScript")} · ${t("peLastEdited").replace("{date}", editedOn(s.updated_at, lang))}`}</small></span>
                 {s.locked && <svg width="11" height="11" viewBox="0 0 24 24" style={{ marginLeft: "auto", fill: "var(--brand-2)" }} aria-label="locked"><path d="M12 1a5 5 0 0 0-5 5v3H6a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-9a2 2 0 0 0-2-2h-1V6a5 5 0 0 0-5-5zm3 8H9V6a3 3 0 0 1 6 0z" /></svg>}
@@ -459,7 +538,7 @@ export default function PineEditor({ scripts, isPro, email, libraryUnavailable =
       {/* D3a — leaving a dirty script is an explicit decision, never a silent buffer reset.
           Cancel is the default action (focused, and what Escape does), because the safe outcome
           when someone is unsure about unsaved work is to keep it. */}
-      {pendingIdx != null && (
+      {pendingTargetId != null && (
         <div className="scrim" role="presentation" onClick={cancelSwitch}
           style={{ alignItems: "center", paddingTop: 0 }}>
           <div className="imodal pine-unsaved" role="dialog" aria-modal="true" aria-labelledby="pe-unsaved-t"

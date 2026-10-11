@@ -53,6 +53,43 @@ describe("flowClientCache fresh revalidation", () => {
     expect(fetchMock).toHaveBeenCalledTimes(2);
   });
 
+  it("a manual Leaders check forces the server upstream even inside both TTLs", async () => {
+    const fetchMock = vi.fn()
+      .mockResolvedValueOnce(response({ session_date: "2026-08-12", stale: true }))
+      .mockResolvedValueOnce(response({ session_date: "2026-10-08", stale: false }));
+    vi.stubGlobal("fetch", fetchMock);
+
+    expect(await flowGetFresh("leaders")).toMatchObject({ session_date: "2026-08-12" });
+    // Same clock: an ordinary read would reuse the 25-second client cache.
+    expect(await flowGetFresh("leaders", { forceUpstream: true }))
+      .toMatchObject({ session_date: "2026-10-08" });
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+    expect(fetchMock.mock.calls[0]?.[0]).toBe("/api/flow?f=leaders");
+    expect(fetchMock.mock.calls[1]?.[0]).toBe("/api/flow?f=leaders&refresh=1");
+    expect(await flowGet("leaders")).toMatchObject({ session_date: "2026-10-08" });
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+  });
+
+  it("waits for an existing normal cache read before forcing its own source check", async () => {
+    let release!: (value: ReturnType<typeof response>) => void;
+    const pending = new Promise<ReturnType<typeof response>>((resolve) => { release = resolve; });
+    const fetchMock = vi.fn()
+      .mockResolvedValueOnce(response({ session_date: "2026-08-12" }))
+      .mockImplementationOnce(() => pending)
+      .mockResolvedValueOnce(response({ session_date: "2026-10-08" }));
+    vi.stubGlobal("fetch", fetchMock);
+    await flowGetFresh("leaders");
+    now = 26_000;
+    // Starts the existing ordinary background refresh.
+    await flowGet("leaders");
+    const forced = flowGetFresh("leaders", { forceUpstream: true });
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+    release(response({ session_date: "2026-10-07" }));
+    expect(await forced).toMatchObject({ session_date: "2026-10-08" });
+    expect(fetchMock).toHaveBeenCalledTimes(3);
+    expect(fetchMock.mock.calls[2]?.[0]).toBe("/api/flow?f=leaders&refresh=1");
+  });
+
   it("joins an in-flight SWR refresh instead of starting a duplicate fetch", async () => {
     let release!: (value: ReturnType<typeof response>) => void;
     const pending = new Promise<ReturnType<typeof response>>((resolve) => { release = resolve; });

@@ -54,16 +54,29 @@ def test_normalize_opt_alert_root_table():
     # Regex matches; Flow._root still refuses because total length is 15 (> 12).
     assert ae.normalize_opt_alert_root("ABCDEFGHIJ.ABCD") is None
     assert ae.Flow._root("ABCDEFGHIJ.ABCD") is None
+    # 12 characters typed; upper-casing turns ß into SS, so the root is 13 and refused.
+    assert ae.normalize_opt_alert_root("abcdefghij.ß") is None
 
 
-def test_root_regex_parity_with_typescript():
-    """§2.5 case 16 — the two pattern bodies must be equal, not merely non-empty."""
-    ts = (ROOT / "terminal" / "lib" / "optionsAlerts.ts").read_text()
+def test_root_rule_parity_with_typescript():
+    """§2.5 case 16 — the engine's root rule is the Terminal's one rule (terminal/lib/flowRoot.ts,
+    which normalizeOptAlertRoot calls): equal pattern bodies, and the same length bound at every
+    FLOW_ROOT_RE use, not merely non-empty ones."""
+    ts = (ROOT / "terminal" / "lib" / "flowRoot.ts").read_text()
     py = (ROOT / "ingest" / "alerts_engine.py").read_text()
-    ts_m = re.search(r"const OPT_ALERT_ROOT_RE = /(.+)/;", ts)
+    ts_m = re.search(r"const ROOT_RE = /(.+)/;", ts)
     py_m = re.search(r"FLOW_ROOT_RE = re\.compile\(r\"(.+)\"\)", py)
     assert ts_m and py_m
     assert ts_m.group(1) == py_m.group(1)
+
+    ts_bound = re.search(r"root\.length <= (\d+)", ts)
+    py_bounds = re.findall(r"len\(\w+\) <= (\d+) and FLOW_ROOT_RE\.fullmatch\(", py)
+    assert ts_bound and py_bounds
+    assert set(py_bounds) == {ts_bound.group(1)}
+    assert len(py_bounds) == py.count("FLOW_ROOT_RE.fullmatch(")
+
+    opt = (ROOT / "terminal" / "lib" / "optionsAlerts.ts").read_text()
+    assert 'from "@/lib/flowRoot"' in opt
 
 
 def test_padded_spy_evaluates_against_canonical_root():

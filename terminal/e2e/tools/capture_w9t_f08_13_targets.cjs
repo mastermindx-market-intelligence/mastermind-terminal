@@ -258,7 +258,7 @@ async function main() {
     ],
     surfaces: ["SectionPortfolioTargets"],
     capture_flag: "TERMINAL_E2E_FIXTURE",
-    capture_flag_law: "next.config.ts sets devIndicators: false when TERMINAL_E2E_FIXTURE is set; this script starts next dev with the same flag.",
+    capture_flag_law: "next.config.ts sets devIndicators to false when TERMINAL_E2E_FIXTURE is set; this script starts next dev with the same flag.",
     files: STATES.flatMap((s) =>
       Object.keys(VIEWPORTS).flatMap((vpName) =>
         ["en", "zh"].map((lang) =>

@@ -12,6 +12,8 @@ import {
   buildAccountExport,
   normalizeExportPageOpts,
   readChartLayoutsForExport,
+  readChartDrawingsForExport,
+  readAlertsForExport,
   readSavedScriptsForExport,
   serializeCsv,
   serializeJson,
@@ -62,13 +64,15 @@ function makeOwnerDb(tables: Record<string, MockTable>): {
   db: WatchlistDb;
   eqCalls: Array<{ table: string; column: string; value: unknown }>;
   rangeCalls: Array<{ table: string; from: number; to: number }>;
+  selectCalls: Array<{ table: string; fields: string | undefined }>;
 } {
   const eqCalls: Array<{ table: string; column: string; value: unknown }> = [];
   const rangeCalls: Array<{ table: string; from: number; to: number }> = [];
+  const selectCalls: Array<{ table: string; fields: string | undefined }> = [];
 
   const db = {
     from(table: string) {
-      const config = tables[table] ?? { rows: [] };
+      const config = tables[table] ?? { rows: [], failMessage: `Unknown mocked relation ${table}` };
       const predicates: Array<(row: DbRow) => boolean> = [];
       let orderKey: string | null = null;
       let ascending = true;
@@ -104,6 +108,7 @@ function makeOwnerDb(tables: Record<string, MockTable>): {
 
       const q = {
         select(fields?: string): WatchlistQuery {
+          selectCalls.push({ table, fields });
           projection = fields && fields !== "*" ? fields.split(",").map((f) => f.trim()) : null;
           return q as unknown as WatchlistQuery;
         },
@@ -148,11 +153,12 @@ function makeOwnerDb(tables: Record<string, MockTable>): {
           return Promise.resolve(result(rows)).then(onfulfilled, onrejected);
         },
       };
+      if (config.noRange) delete (q as { range?: unknown }).range;
       return q as unknown as WatchlistQuery;
     },
   } as unknown as WatchlistDb;
 
-  return { db, eqCalls, rangeCalls };
+  return { db, eqCalls, rangeCalls, selectCalls };
 }
 
 function baseSources(over: Partial<ExportSources> = {}): ExportSources {
@@ -674,5 +680,116 @@ describe("partial-page disclosure shape", () => {
     expect(partial).toBeTruthy();
     expect(partial?.why[0]).toMatch(/cap|partial|cut|full/i);
     expect(partial?.why[1]).toBeTruthy();
+  });
+});
+
+
+const drawingRow = (over: Partial<DbRow> = {}): DbRow => ({
+  id: "drawing-1", user_id: OWNED_USER, symbol: " NVDA ", kind: "__collection_v1",
+  data: { revision: "actual-revision-7", opId: "op-7", priorOperations: ["op-6"],
+    drawings: [{ id: "geometry-1", points: [{ time: 123, price: 45.6 }], futureField: { keep: true } }] },
+  created_at: "2026-08-01T00:00:00.000Z", ...over,
+});
+const alertRow = (over: Partial<DbRow> = {}): DbRow => ({
+  id: "alert-1", user_id: OWNED_USER, symbol: " NVDA ",
+  condition: { type: "price", operator: ">", value: 150, triggered_at: "2026-10-08", unknown: [1, 2] },
+  active: false, created_at: "2026-08-01T00:00:00.000Z", ...over,
+});
+
+describe("owned drawings and alert definition archive", () => {
+  it("preserves collection geometry, legacy rows, stored condition and real revision without normalization", async () => {
+    const collection = drawingRow(); const legacy = drawingRow({ id: "legacy", kind: "future_kind", data: { points: [1, 2], revision: "not-a-collection-revision" } });
+    const alert = alertRow();
+    const { db, eqCalls, rangeCalls, selectCalls } = makeOwnerDb({ drawings: { rows: [collection, legacy] }, alerts: { rows: [alert] } });
+    const drawings = await readChartDrawingsForExport(db, OWNED_USER, { pageSize: 1 });
+    const alerts = await readAlertsForExport(db, OWNED_USER, { pageSize: 1 });
+    expect(drawings.ok && drawings.complete).toBe(true); expect(alerts.ok && alerts.complete).toBe(true);
+    if (!drawings.ok || !alerts.ok) return;
+    expect(drawings.rows[0]).toEqual({ id: collection.id, symbol: collection.symbol, kind: collection.kind,
+      data: collection.data, created_at: collection.created_at, version: "actual-revision-7" });
+    expect(drawings.rows[1].version).toBeNull(); expect(drawings.rows[1].data).toEqual(legacy.data);
+    expect(alerts.rows[0]).toEqual({ id: alert.id, symbol: alert.symbol, condition: alert.condition,
+      active: false, created_at: alert.created_at, version: null });
+    expect(eqCalls).toHaveLength(rangeCalls.length);
+    expect(eqCalls.every(c => c.column === "user_id" && c.value === OWNED_USER)).toBe(true);
+    expect(selectCalls.filter(c => c.table === "drawings").every(c => c.fields === "id,user_id,symbol,kind,data,created_at")).toBe(true);
+    expect(selectCalls.filter(c => c.table === "alerts").every(c => c.fields === "id,user_id,symbol,condition,active,created_at")).toBe(true);
+    expect(JSON.stringify(drawings.rows) + JSON.stringify(alerts.rows)).not.toContain("user_id");
+  });
+
+  it.each(["drawings", "alerts"])("rejects foreign, missing-owner and malformed %s rows without a complete-count claim", async (table) => {
+    const row = table === "alerts" ? alertRow : drawingRow;
+    const { db } = makeOwnerDb({ [table]: { leakEq: true, rows: [row({ id: "a-owned" }), row({ id: "b-foreign", user_id: "other" }), row({ id: "c-no-owner", user_id: undefined }), row({ id: "d-invalid", created_at: undefined })] } });
+    const read = await (table === "alerts" ? readAlertsForExport : readChartDrawingsForExport)(db, OWNED_USER);
+    expect(read.ok).toBe(true); if (!read.ok) return;
+    expect(read.rows.map(r => r.id)).toEqual(["a-owned"]); expect(read.complete).toBe(false);
+  });
+
+  it.each(["drawings", "alerts"])("bounds %s retained rows, physical pages and unpageable reads", async (table) => {
+    const row = table === "alerts" ? alertRow : drawingRow;
+    const reader = table === "alerts" ? readAlertsForExport : readChartDrawingsForExport;
+    const rows = Array.from({ length: 8 }, (_, i) => row({ id: `row-${i}` }));
+    const { db, rangeCalls } = makeOwnerDb({ [table]: { rows } });
+    const read = await reader(db, OWNED_USER, { pageSize: 2, maxRows: 3 });
+    expect(read.ok && read.rows.length).toBe(3); expect(read.ok && read.complete).toBe(false); expect(rangeCalls).toHaveLength(2);
+    const capped = await reader(db, OWNED_USER, { pageSize: 2, maxPhysicalRows: 2 });
+    expect(capped.ok && capped.complete).toBe(false);
+    const unpaged = await reader(makeOwnerDb({ [table]: { rows, noRange: true } }).db, OWNED_USER);
+    expect(unpaged.ok && unpaged.complete).toBe(false);
+    const duplicate = await reader(makeOwnerDb({ [table]: { rows: [row(), row()] } }).db, OWNED_USER);
+    expect(duplicate.ok && duplicate.rows.length).toBe(1); expect(duplicate.ok && duplicate.complete).toBe(false);
+  });
+
+  it("keeps unknown or null JSON payloads verbatim and never uses creation clocks as revisions", async () => {
+    const drawings = await readChartDrawingsForExport(makeOwnerDb({ drawings: { rows: [drawingRow({ data: null })] } }).db, OWNED_USER);
+    const alerts = await readAlertsForExport(makeOwnerDb({ alerts: { rows: [alertRow({ condition: null })] } }).db, OWNED_USER);
+    expect(drawings.ok && drawings.rows[0].data).toBeNull(); expect(drawings.ok && drawings.rows[0].version).toBeNull();
+    expect(alerts.ok && alerts.rows[0].condition).toBeNull(); expect(alerts.ok && alerts.rows[0].version).toBeNull();
+  });
+
+  it("counts physical persisted drawing rows and discloses partial, failed and remaining archive categories", async () => {
+    const drawings = await readChartDrawingsForExport(makeOwnerDb({ drawings: { rows: [drawingRow()] } }).db, OWNED_USER);
+    const doc = buildAccountExport(baseSources({ saved_scripts: { ok: true, rows: [], complete: true }, chart_layouts: { ok: true, rows: [], complete: true },
+      chart_drawings: drawings, alerts: { ok: false, error: "unavailable" } }));
+    expect(doc.coverage.included.find(e => e.key === "chart_drawings")?.row_count).toBe(1);
+    expect(doc.coverage.unavailable.map(e => e.key)).toContain("alerts"); expect(doc.alerts).toEqual([]);
+    const omissions = doc.coverage.not_included.map(e => e.key);
+    expect(omissions).not.toContain("chart_drawings"); expect(omissions).not.toContain("alerts");
+    expect(omissions).toEqual(expect.arrayContaining(["research_theses_and_versions", "investigations_and_revisions", "chart_layout_revisions", "favorites_briefs_and_device_local_work"]));
+    const partial = buildAccountExport(baseSources({ chart_drawings: { ok: true, rows: [], complete: false }, alerts: { ok: true, rows: [], complete: true } }));
+    expect(partial.coverage.partial?.map(e => e.key)).toEqual(["chart_drawings"]);
+    expect(partial.coverage.not_included.map(e => e.key)).toEqual(expect.arrayContaining(["chart_layouts", "saved_scripts"]));
+  });
+
+  it("retains raw nested JSON and formula defenses in both download representations", async () => {
+    const drawings = await readChartDrawingsForExport(makeOwnerDb({ drawings: { rows: [drawingRow({ symbol: "=formula" })] } }).db, OWNED_USER);
+    const alerts = await readAlertsForExport(makeOwnerDb({ alerts: { rows: [alertRow()] } }).db, OWNED_USER);
+    const doc = buildAccountExport(baseSources({ chart_drawings: drawings, alerts })); const csv = serializeCsv(doc);
+    expect(csv).toContain("data,chart_drawings,drawing-1,symbol,'=formula");
+    expect(csv).toContain("data,chart_drawings,drawing-1,data,"); expect(csv).toContain("data,alerts,alert-1,condition,");
+    expect(csv).toContain("data,alerts,alert-1,active,false"); expect(JSON.parse(serializeJson(doc)).chart_drawings[0].data).toEqual(drawingRow().data);
+  });
+});
+
+
+describe("structured JSON credential guard", () => {
+  it.each([
+    { api_key: ["fictional-container-value"] },
+    { api_key: { value: "fictional-container-value" } },
+    { note: JSON.stringify({ api_key: "fictional-container-value" }) },
+  ])("withholds credential containers and encoded JSON", value => {
+    expect(assertNoSecrets(JSON.stringify(value)).ok).toBe(false);
+  });
+  it("keeps null, empty and non-string credential containers exportable", () => {
+    expect(assertNoSecrets(JSON.stringify({ api_key: [null, "", false, 0, { value: "" }], note: JSON.stringify({ password: null }) })).ok).toBe(true);
+  });
+  it("detects escaped credential strings nested in arrays without treating null, empty or prose as a credential", () => {
+    expect(assertNoSecrets(JSON.stringify({ metadata: [{ API_Key: 'ab"cd' }] })).ok).toBe(false);
+    expect(assertNoSecrets(JSON.stringify({ secret: null, password: "", note: "changed password; Secret picks" })).ok).toBe(true);
+  });
+  it("does not lose the withholding guard on deeply nested valid JSON", () => {
+    const depth = 5000;
+    const json = '{"child":'.repeat(depth) + '{"api_key":"fictional-deep-value"}' + '}'.repeat(depth);
+    expect(assertNoSecrets(json).ok).toBe(false);
   });
 });

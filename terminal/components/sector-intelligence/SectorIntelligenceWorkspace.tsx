@@ -29,7 +29,7 @@ const RETURN_KEYS: Record<OuterWorkspace, string> = {
   rotation: "siReturnToRotation", discover: "siReturnToDiscover", breadth: "siReturnToBreadth",
 };
 const FEED_KEYS: Record<SectorFeed, string> = {
-  sector: "siFeedSector", confluence: "siFeedConfluence", themes: "siFeedThemes", heatmap: "siFeedHeatmap", finviz: "siFeedFinviz",
+  sector: "siFeedSector", confluence: "siFeedConfluence", themes: "siFeedThemes", heatmap: "siFeedHeatmap", finviz: "siFeedFinviz", risk: "siFeedRisk",
 };
 const STATUS_KEYS: Record<FeedStatus, string> = {
   loading: "siStatusLoading", ready: "siStatusReady", access: "siStatusAccess", unavailable: "siStatusUnavailable",
@@ -132,6 +132,8 @@ export default function SectorIntelligenceWorkspace() {
               source, status, path: text(receipt.path), asOf: text(receipt.asOf) || null,
               observedAt: text(receipt.observedAt) || null, contentHash: text(receipt.contentHash) || null,
               stale: receipt.stale === true,
+              qualificationReasons: Array.isArray(receipt.qualificationReasons)
+                ? receipt.qualificationReasons.filter((value): value is string => typeof value === "string") : undefined,
             } };
           }
         } catch {
@@ -279,7 +281,7 @@ export default function SectorIntelligenceWorkspace() {
         <button type="button" aria-pressed={state.sourceFamily === "sectors"} onClick={() => change({ sourceFamily: "sectors" }, true)}>{t("siFinvizSectors")}</button>
         <button type="button" aria-pressed={state.sourceFamily === "finviz"} onClick={() => change({ sourceFamily: "finviz" }, true)}>{t("siFeedFinviz")}</button>
       </nav>}
-      {state.workspace === "discover" && state.sourceFamily === "finviz" ? <FinvizDiscovery feed={feeds.finviz} state={state} onChange={patch => change(patch, !Object.hasOwn(patch, "discoveryQuery"))} /> : state.workspace === "rotation" ? <SectorRotationMap rows={sectors} status={status}
+      {state.workspace === "discover" && state.sourceFamily === "finviz" ? <FinvizDiscovery feed={feeds.finviz} state={state} onChange={patch => change(patch, !Object.hasOwn(patch, "discoveryQuery"))} /> : state.workspace === "rotation" ? <SectorRotationMap rows={sectors} status={status} risk={feeds.risk}
         asOf={feeds.sector?.receipt.asOf || null} selected={state.sector} mode={state.rotationMode} query={state.rotationQuery}
         onMode={rotationMode => change({ rotationMode })} onQuery={rotationQuery => change({ rotationQuery })}
         onSources={() => openSources()} onSelect={sector => change({ sector }, true)}

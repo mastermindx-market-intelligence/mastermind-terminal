@@ -4,6 +4,7 @@ import re
 from copy import deepcopy
 from pathlib import Path
 from typing import Any
+from urllib.parse import parse_qs, urlsplit
 
 import pytest
 import yaml
@@ -61,6 +62,7 @@ def pull(
     state = mergeable_state if mergeable_state is not None else ("clean" if mergeable else "dirty")
     return {
         "number": number,
+        "node_id": f"PR-node-{number}",
         "created_at": f"2026-08-{number:02d}T00:00:00Z",
         "draft": draft,
         "mergeable": mergeable,
@@ -78,11 +80,23 @@ def pull(
 class FakeApi:
     repo = "owner/repo"
 
-    def __init__(self, pulls, runs=None, merge_errors=None):
+    def __init__(
+        self,
+        pulls,
+        runs=None,
+        merge_errors=None,
+        *,
+        queue_enabled=False,
+        queue_entries=None,
+        enqueue_errors=None,
+    ):
         self.pulls = {item["number"]: deepcopy(item) for item in pulls}
         self.runs = runs or {item["head"]["sha"]: checks() for item in pulls}
         # number -> (status, message) to raise as ApiError instead of merging.
         self.merge_errors = merge_errors or {}
+        self.queue_enabled = queue_enabled
+        self.queue_entries = dict(queue_entries or {})
+        self.enqueue_errors = dict(enqueue_errors or {})
         self.actions = []
         self.dispatched: list[tuple[str, int | None]] = []
 
@@ -104,6 +118,23 @@ class FakeApi:
         # down, which is what makes the refreshed head's CI run provable.
         self.actions.append(("dispatch_ci", branch))
         self.dispatched.append((branch, pr_number))
+
+    def merge_queue_enabled(self, base_ref):
+        assert base_ref == "master"
+        return self.queue_enabled
+
+    def queue_entry(self, pull_request_id):
+        return self.queue_entries.get(pull_request_id)
+
+    def enqueue(self, pull_request_id, head_sha):
+        self.actions.append(("enqueue", pull_request_id, head_sha))
+        number = int(pull_request_id.rsplit("-", 1)[-1])
+        if number in self.enqueue_errors:
+            status, message = self.enqueue_errors[number]
+            raise ApiError(status, message)
+        entry_id = f"MQE-{pull_request_id}"
+        self.queue_entries[pull_request_id] = entry_id
+        return entry_id
 
     def merge(self, number, head_sha):
         self.actions.append(("merge", number, head_sha))
@@ -146,6 +177,56 @@ class FakeApi:
 
     def delete_branch(self, branch):
         self.actions.append(("delete", branch))
+
+
+def paged_pull_reader(monkeypatch, pages):
+    """Exercise the real REST reader while controlling only HTTP responses."""
+    api = mog.GitHubApi("owner/repo", "fictional-test-token")
+    visited = []
+
+    def request(method, path, payload=None):
+        assert method == "GET" and urlsplit(path).path == "/pulls"
+        page = int(parse_qs(urlsplit(path).query).get("page", ["1"])[0])
+        visited.append(page)
+        result = pages[page]
+        if isinstance(result, Exception):
+            raise result
+        return deepcopy(result)
+
+    monkeypatch.setattr(api, "request", request)
+    return api, visited
+
+
+def test_trigger_after_first_hundred_open_pulls_reaches_the_existing_sweep(monkeypatch):
+    older = [pull(number, labels=[]) for number in range(1, 101)]
+    target = pull(861)
+    reader, visited = paged_pull_reader(monkeypatch, {1: older, 2: [target]})
+    api = FakeApi(older + [target])
+    monkeypatch.setattr(api, "list_pulls", reader.list_pulls)
+    sweep(api, trigger_number=861)
+    assert ("merge", 861, "head-861") in api.actions
+    assert visited == [1, 2]
+
+
+def test_exact_full_pull_page_reads_empty_end_before_reporting_complete(monkeypatch):
+    page = [pull(number, labels=[]) for number in range(1, 101)]
+    reader, visited = paged_pull_reader(monkeypatch, {1: page, 2: []})
+    assert len(reader.list_pulls()) == 100
+    assert visited == [1, 2]
+
+
+def test_short_open_pull_page_needs_no_further_request(monkeypatch):
+    reader, visited = paged_pull_reader(monkeypatch, {1: [pull(7)]})
+    assert [item["number"] for item in reader.list_pulls()] == [7]
+    assert visited == [1]
+
+
+def test_later_pull_page_failure_does_not_return_a_partial_census(monkeypatch):
+    page = [pull(number, labels=[]) for number in range(1, 101)]
+    reader, visited = paged_pull_reader(monkeypatch, {1: page, 2: ApiError(503, "unavailable")})
+    with pytest.raises(ApiError, match="unavailable"):
+        reader.list_pulls()
+    assert visited == [1, 2]
 
 
 def test_latest_rerun_wins_over_an_older_green_check():
@@ -309,6 +390,12 @@ def test_candidate_ci_explicitly_pins_read_only_contents_permission():
     assert job_level_permissions(workflow) == {}
 
 
+def test_candidate_ci_runs_for_native_merge_queue_heads():
+    text = ci_workflow_text()
+    assert "\n  merge_group:\n    types: [checks_requested]\n" in text
+
+
+
 def test_job_level_permission_elevation_is_rejected_by_the_candidate_ci_guard():
     # Reviewer minor #3 on PR #487: the previous version of this test asserted
     # only the helper's return value, never that the guard itself (the same
@@ -336,6 +423,56 @@ def test_green_current_head_is_sha_pinned_merged_and_deleted():
     assert ("merge", 7, "head-7") in api.actions
     assert ("delete", "claude/pr-7") in api.actions
     assert result[0] == "#7: merged and deleted claude/pr-7"
+
+
+def test_green_heads_enqueue_concurrently_when_native_queue_is_enabled():
+    api = FakeApi(
+        [pull(1), pull(2, mergeable_state="behind")],
+        queue_enabled=True,
+    )
+
+    result = sweep(api)
+
+    assert ("enqueue", "PR-node-1", "head-1") in api.actions
+    assert ("enqueue", "PR-node-2", "head-2") in api.actions
+    assert not any(action[0] == "merge" for action in api.actions)
+    assert not any(action[0] == "update" for action in api.actions)
+    assert not any(action[0] == "dispatch_ci" for action in api.actions)
+    assert not any(action[0] == "delete" for action in api.actions)
+    assert result == [
+        "#1: enqueued in merge queue (MQE-PR-node-1)",
+        "#2: enqueued in merge queue (MQE-PR-node-2)",
+    ]
+
+
+def test_queue_mode_is_idempotent_for_an_already_enqueued_head():
+    api = FakeApi(
+        [pull()],
+        queue_enabled=True,
+        queue_entries={"PR-node-7": "MQE-existing"},
+    )
+
+    result = sweep(api)
+
+    assert result == ["#7: already queued (MQE-existing)"]
+    assert not any(action[0] in {"enqueue", "merge", "update", "delete"} for action in api.actions)
+
+
+def test_queue_enqueue_4xx_is_a_per_pr_decline_and_does_not_hide_the_next_candidate():
+    api = FakeApi(
+        [pull(1), pull(2)],
+        queue_enabled=True,
+        enqueue_errors={1: (422, "expected head changed")},
+    )
+
+    result = sweep(api)
+
+    assert result == [
+        "#1: declined: GitHub API 422: expected head changed",
+        "#2: enqueued in merge queue (MQE-PR-node-2)",
+    ]
+    assert ("enqueue", "PR-node-2", "head-2") in api.actions
+
 
 
 def test_wrong_app_green_never_reaches_merge_or_quarantine():
@@ -527,6 +664,42 @@ def test_after_one_merge_the_next_stale_green_is_refreshed_not_merged():
 #
 # Every test here drives a stub in place of the HTTP layer: nothing touches the
 # network, and no token or project reference appears anywhere.
+
+
+class RecordingGraphQLApi(mog.GitHubApi):
+    def __init__(self, responses):
+        super().__init__("owner/repo", "unused-in-this-test")
+        self.responses = list(responses)
+        self.calls: list[tuple[str, dict[str, Any]]] = []
+
+    def graphql_request(self, query, variables):  # type: ignore[override]
+        self.calls.append((query, deepcopy(variables)))
+        return deepcopy(self.responses.pop(0))
+
+
+def test_merge_queue_probe_is_bound_to_the_exact_repository_and_base():
+    api = RecordingGraphQLApi(
+        [{"repository": {"mergeQueue": {"id": "MQ-main"}}}]
+    )
+
+    assert api.merge_queue_enabled("master") is True
+    assert api.calls[0][1] == {
+        "owner": "owner",
+        "name": "repo",
+        "branch": "master",
+    }
+
+
+def test_enqueue_mutation_pins_the_exact_pull_request_and_head():
+    api = RecordingGraphQLApi(
+        [{"enqueuePullRequest": {"mergeQueueEntry": {"id": "MQE-7"}}}]
+    )
+
+    assert api.enqueue("PR-node-7", "head-7") == "MQE-7"
+    assert api.calls[0][1] == {
+        "pullRequestId": "PR-node-7",
+        "expectedHeadOid": "head-7",
+    }
 
 
 class RecordingApi(mog.GitHubApi):

@@ -2,6 +2,7 @@ import { readFileSync } from "node:fs";
 import { createHash } from "node:crypto";
 import { expect, test, type Page } from "@playwright/test";
 import { sectorFixture } from "./fixtures/sector-company-v3";
+import { riskEnvelopeFixture } from "../lib/__tests__/marketRiskFixture";
 
 // An explicit local evidence path allows this same journey to qualify real owner
 // bytes. The default fixture is synthetic and is never production/source proof.
@@ -40,6 +41,10 @@ async function prepareCustomerSources(page: Page, heatmapUnavailable = false) {
   await page.route("**/api/sector-intelligence?**", async route => {
     const source = new URL(route.request().url()).searchParams.get("source") || "";
     requests.push(source);
+    if (source === "risk") return route.fulfill({ json: {
+      data: riskEnvelopeFixture(),
+      receipt: { source, status: "ready", path: "/riskdata/risk_envelope.json", asOf: "2026-10-07", observedAt: null, stale: false, contentHash: null },
+    } });
     if (source !== "finviz" && (source !== "heatmap" || heatmapUnavailable)) return sectorFixture(route);
     const restricted = source === "finviz";
     return route.fulfill({ status: restricted ? 403 : 200, json: {
@@ -54,7 +59,7 @@ test("customer source completeness excludes internal Finviz until selected", asy
   const requests = await prepareCustomerSources(page);
   await page.goto("/discover?tab=sectors&sectorWorkspace=detail&sectorView=signals");
   const root = page.getByTestId("sector-intelligence");
-  await expect(root.getByText(/4 \/ 4 sources received/)).toBeVisible();
+  await expect(root.getByText(/5 \/ 5 sources received/)).toBeVisible();
   await expect(root.getByText("Some sources are unavailable.", { exact: true })).toHaveCount(0);
   expect(requests).not.toContain("finviz");
   await root.getByRole("button", { name: "Sources", exact: true }).click();
@@ -76,7 +81,7 @@ test("customer source completeness still reports a missing customer feed", async
   const requests = await prepareCustomerSources(page, true);
   await page.goto("/discover?tab=sectors&sectorWorkspace=detail&sectorView=signals");
   const root = page.getByTestId("sector-intelligence");
-  await expect(root.getByText(/3 \/ 4 sources received/)).toBeVisible();
+  await expect(root.getByText(/4 \/ 5 sources received/)).toBeVisible();
   await expect(root.getByText("Some sources are unavailable.", { exact: true })).toBeVisible();
   expect(requests).not.toContain("finviz");
 });
