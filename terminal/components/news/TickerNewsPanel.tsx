@@ -188,7 +188,7 @@ export default function TickerNewsPanel({ symbol, lang, userId }: { symbol: stri
               className={styles.row}
               key={row.story_id}
               data-story-id={row.story_id}
-              data-news-review={review?.status}
+              data-news-review={review?.status} // plain-language-ok: data attribute, not rendered text
             >
               <div className={styles.meta}>
                 <NewsReviewTag cls={review} lang={lang} />
