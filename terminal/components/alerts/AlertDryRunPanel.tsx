@@ -147,10 +147,13 @@ export default function AlertDryRunPanel({
 
       <div className={s.out} role="status" aria-live="polite">
         {verdictKey && (
-          <div className={s.verdict} data-verdict={verdictKey}>
+          <div
+            className={s.verdict} // plain-language-ok: CSS module class name, never rendered as text
+            data-verdict={verdictKey}
+          >
             <span className={s.verdictLabel}>
               {result
-                ? T(`drVerdict.${result.verdict}`)
+                ? T(`drVerdict.${result.verdict}`) // plain-language-ok: the verdict is a lexicon key; T() renders the EN/ZH sentence
                 : view.kind === "cancelled"
                   ? T("drCancelled")
                   : T("drUnavailable")}
@@ -253,8 +256,20 @@ function Details({ result: r, T, eventName }: { result: DryRunResult; T: TFn; ev
           <p className={s.sectionLbl}>{T("drTrace")}</p>
           <ol className={s.list} data-testid="alert-dry-run-trace">
             {r.trace.map((st: DryRunTraceStep) => (
-              <li key={st.id} className={s.step} data-step={st.id} data-status={st.status}>
-                <span className={s.chip} data-status={st.status}>{T(`drSt.${st.status}`)}</span>
+              <li
+                key={st.id}
+                className={s.step}
+                data-step={st.id}
+                data-status={st.status} // plain-language-ok: data attribute for styling and tests, never rendered as text
+              >
+                <span
+                  className={s.chip}
+                  data-status={st.status} // plain-language-ok: data attribute for styling and tests, never rendered as text
+                >
+                  {
+                    T(`drSt.${st.status}`) // plain-language-ok: the step status is a lexicon key; T() renders the EN/ZH word
+                  }
+                </span>
                 <span className={s.stepText}>
                   {fill(T(`drStep.${st.id}`), { n: SUITE_EVENT_FRESH_BARS, date: c?.creationFloorDate ?? T("drUnknown") })}
                 </span>
