@@ -1,0 +1,59 @@
+
+> terminal@0.1.0 test
+> vitest run --run lib/__tests__/extQuoteRoute.test.ts
+
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+ RUN  v2.1.9 /Volumes/Mastermind/agent-workspaces/claude/5600d31ffa29643a/tiingo-quotehub-consumer-c0f8c26031dcf9f8/terminal
+
+ ❯ lib/__tests__/extQuoteRoute.test.ts (11 tests | 2 failed) 20ms
+   × /api/ext-quote — source and price basis > preserves the hub's source and basis across live, delayed and unofficial legs 9ms
+     → expected undefined to be 'tiingo_boats' // Object.is equality
+   × /api/ext-quote — source and price basis > preserves the source without inventing a LIVE basis when the hub does not supply one 1ms
+     → expected undefined to be 'tiingo_boats' // Object.is equality
+
+⎯⎯⎯⎯⎯⎯⎯ Failed Tests 2 ⎯⎯⎯⎯⎯⎯⎯
+
+ FAIL  lib/__tests__/extQuoteRoute.test.ts > /api/ext-quote — source and price basis > preserves the hub's source and basis across live, delayed and unofficial legs
+AssertionError: expected undefined to be 'tiingo_boats' // Object.is equality
+
+- Expected: 
+"tiingo_boats"
+
++ Received: 
+undefined
+
+ ❯ lib/__tests__/extQuoteRoute.test.ts:120:32
+    118|       installHub({ NVDA: extRow({ extSession: "overnight", extSource: …
+    119|       const q = await quotes("NVDA");
+    120|       expect(q.NVDA.extSource).toBe(source);
+       |                                ^
+    121|       expect(q.NVDA.extBasis).toBe(basis);
+    122|       expect(calls.at(-1)).toContain("127.0.0.1");
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[1/2]⎯
+
+ FAIL  lib/__tests__/extQuoteRoute.test.ts > /api/ext-quote — source and price basis > preserves the source without inventing a LIVE basis when the hub does not supply one
+AssertionError: expected undefined to be 'tiingo_boats' // Object.is equality
+
+- Expected: 
+"tiingo_boats"
+
++ Received: 
+undefined
+
+ ❯ lib/__tests__/extQuoteRoute.test.ts:129:30
+    127|     installHub({ NVDA: extRow({ extSource: "tiingo_boats" }) });
+    128|     const q = await quotes("NVDA");
+    129|     expect(q.NVDA.extSource).toBe("tiingo_boats");
+       |                              ^
+    130|     expect("extBasis" in q.NVDA).toBe(false);
+    131|   });
+
+⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯
+
+ Test Files  1 failed (1)
+      Tests  2 failed | 9 passed (11)
+   Start at  10:43:04
+   Duration  1.10s (transform 82ms, setup 0ms, collect 379ms, tests 20ms, environment 0ms, prepare 213ms)
+

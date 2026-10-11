@@ -1,0 +1,18 @@
+
+> terminal@0.1.0 test
+> vitest run --run lib/__tests__/extQuoteRoute.test.ts lib/__tests__/liveCandle.test.ts lib/__tests__/quoteDisplay.test.ts lib/__tests__/quoteRouteView.test.ts
+
+[33mThe CJS build of Vite's Node API is deprecated. See https://vite.dev/guide/troubleshooting.html#vite-cjs-node-api-deprecated for more details.[39m
+
+ RUN  v2.1.9 /Volumes/Mastermind/agent-workspaces/claude/5600d31ffa29643a/tiingo-quotehub-consumer-c0f8c26031dcf9f8/terminal
+
+ ✓ lib/__tests__/quoteDisplay.test.ts (10 tests) 4ms
+ ✓ lib/__tests__/liveCandle.test.ts (8 tests) 21ms
+ ✓ lib/__tests__/quoteRouteView.test.ts (4 tests) 13ms
+ ✓ lib/__tests__/extQuoteRoute.test.ts (11 tests) 23ms
+
+ Test Files  4 passed (4)
+      Tests  33 passed (33)
+   Start at  10:43:43
+   Duration  1.88s (transform 527ms, setup 0ms, collect 1.16s, tests 61ms, environment 1ms, prepare 907ms)
+
