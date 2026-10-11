@@ -3,6 +3,7 @@ import { FUNDAMENTAL_FIELD_IDS } from "@/lib/fundamentalScan";
 import { projectFundamental } from "@/lib/fundamentalScanProducer";
 import { SCREENER_SCAN_SCHEMA } from "@/lib/screenerScan";
 import { fundDoc, JUNCO_ANNUAL, SEPCO_ANNUAL, type Col } from "../lib/__tests__/fixtures/fundamentalScan/fundDoc";
+import { openPanel } from "./smartScreensFixture";
 
 /**
  * E02 — period-aware fundamental screening, end to end in the browser.
@@ -223,6 +224,63 @@ test("P/E ≤ 10×, only-unknown and include-unknown: a negative P/E is never a 
   await page.locator("[data-fund-commit]").click();
   await expect(page.locator("[data-fund-error]")).toHaveAttribute("data-fund-error", "number");
   await expect(tableSyms(page)).toHaveCount(3);
+});
+
+// Repair round 1 (PR #950, MINOR 1): "Save current" compiled only the filter bar, so a screen
+// saved while "Net margin ≥ 15%" was on the table reopened WITHOUT it and showed every name.
+test("a smart screen saved with a fundamental condition reopens with it — the table is the saved screen", async ({ page, baseURL }, testInfo) => {
+  const lang = testInfo.project.name === "tablet" ? "zh" : "en";
+  await page.context().addCookies([
+    { name: "mm_e2e_rs30", value: "1", url: baseURL! },
+    { name: "mm_e2e_wl", value: `e02-smart-${testInfo.project.name}-${Date.now()}`, url: baseURL! },
+  ]);
+  await setup(page, lang);
+  await openScreen(page);
+  await addRange(page, "fund.net_margin_fy", "15", "");
+  await expect(tableSyms(page)).toHaveCount(1);
+  const label = lang === "zh" ? "净利率财年 ≥ 15%" : "Net mgn FY ≥ 15%";
+
+  // ── save: the definition being saved names the fundamental condition ──
+  const ss = await openPanel(page);
+  await expect(ss).toHaveAttribute("data-ss-status", "ready");
+  await expect(ss.locator("[data-ss-current]")).toContainText(label);
+  await ss.locator("[data-ss-name-input]").fill("Quality");
+  await ss.locator("[data-ss-save-button]").click();
+  const screen = ss.locator("[data-ss-screen]");
+  await expect(screen).toHaveCount(1);
+  await expect(screen.locator("[data-ss-definition]")).toContainText(label);
+  await expect(screen.locator("[data-ss-on-table]")).toBeVisible();
+  await expect(ss.locator("[data-ss-duplicate]")).toBeVisible();
+  // The panel counts the saved screen with the table's own rule: SEPCO only.
+  await expect(screen.locator("[data-ss-matches]")).toHaveAttribute("data-ss-matches", "1");
+  // A review cannot describe a fundamental screen, so it is refused visibly rather than stored.
+  await expect(screen.locator("[data-ss-review]")).toBeDisabled();
+  await expect(screen.locator("[data-ss-fund-note]")).toBeVisible();
+
+  // ── take the condition off the table: it is no longer the saved screen ──
+  await page.locator('[data-fund-chip="fund.net_margin_fy"]').click();
+  await expect(tableSyms(page)).toHaveCount(SYMS.length);
+  await expect(screen.locator("[data-ss-on-table]")).toHaveCount(0);
+  await expect(ss.locator("[data-ss-duplicate]")).toHaveCount(0);
+
+  // ── open: the condition comes back as a chip and the table equals the saved screen ──
+  await screen.locator("[data-ss-open]").click();
+  await expect(page.locator('[data-fund-chip="fund.net_margin_fy"]')).toContainText("15%");
+  await expect(tableSyms(page)).toHaveCount(1);
+  await expect(tableSyms(page).first()).toContainText("SEPCO");
+  await expect(screen.locator("[data-ss-on-table]")).toBeVisible();
+  await expect(ss.locator("[data-ss-duplicate]")).toBeVisible();
+
+  // ── explain names the fundamental condition and the value it was judged on ──
+  await screen.locator("[data-ss-changes]").click();
+  await expect(screen.locator("[data-ss-nc]")).toHaveAttribute("data-ss-nc", "fundamental_conditions");
+  await screen.locator("[data-ss-explain-input]").fill("JUNCO");
+  await screen.locator("[data-ss-explain-button]").click();
+  await expect(screen.locator("[data-ss-explained]")).toHaveAttribute("data-ss-explained", "fail");
+  const leaf = screen.locator('[data-ss-fund-leaf="fund.net_margin_fy"]');
+  await expect(leaf).toHaveAttribute("data-ss-leaf", "fail");
+  await expect(leaf).toContainText(label);
+  await expect(leaf).toContainText("10%");
 });
 
 test("an unpublished or failing scan is a stated state with Retry — never an empty or passing screen", async ({ page }, testInfo) => {
