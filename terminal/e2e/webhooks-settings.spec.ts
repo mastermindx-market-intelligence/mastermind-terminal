@@ -1,5 +1,4 @@
 import { expect, test, type Page } from "@playwright/test";
-import { expectSettingsNavigation } from "./settingsNavigation";
 
 async function mockWebhookApis(page: Page) {
   await page.route("**/api/teams**", async (route) => {
@@ -28,8 +27,9 @@ async function mockWebhookApis(page: Page) {
 
 // This spec matches no project's testIgnore, so it runs in the desktop (1440),
 // tablet (820) and mobile (390) shards. Every assertion below must therefore
-// At <=640px the old tablist is replaced by a native section picker.
-// Verify each destination in the visible control, including the ZH labels. The guard is explicit rather than
+// hold at all three widths: the Settings panel keeps its full nav at 390 (it
+// becomes a horizontal scroller, it is not collapsed), so the Webhooks tab is
+// present and selectable everywhere. The guard is explicit rather than
 // implied — a project with no fixed viewport would otherwise pass vacuously.
 test("settings Webhooks section is reachable in EN and ZH", async ({ page }, testInfo) => {
   const viewport = page.viewportSize();
@@ -48,11 +48,14 @@ test("settings Webhooks section is reachable in EN and ZH", async ({ page }, tes
   await page.goto("/dev/settings?s=webhooks&lang=en");
   const dialog = page.locator(".acs-overlay.open .acs-card");
   await expect(dialog).toBeVisible({ timeout: 45_000 });
-  await expectSettingsNavigation(page, [
-    { id: "sharing", label: "Sharing" },
-    { id: "portfolioTargets", label: "Portfolio targets" },
-    { id: "webhooks", label: "Webhooks" },
-  ], "webhooks");
+  const tabs = dialog.getByRole("tab");
+  // The rail now has 13 rows (developer from master + portfolioTargets is the new last tab, added by #586).
+  // Assert Sharing is present and the new row is also present — order-independent.
+  await expect(dialog.getByRole("tab", { name: "Sharing" })).toBeVisible();
+  await expect(dialog.getByRole("tab", { name: "Portfolio targets" })).toBeVisible();
+  expect(await tabs.count()).toBeGreaterThanOrEqual(11);
+  await expect(dialog.getByRole("tab", { name: "Webhooks" })).toBeVisible();
+  await expect(dialog.getByRole("tab", { name: "Webhooks" })).toHaveAttribute("aria-selected", "true");
   await expect(page.getByRole("heading", { name: "Webhooks" })).toBeVisible();
   await expect(page.getByText("You don't have a team yet")).toHaveCount(0);
   await expect(page.getByText("This team has not registered a webhook endpoint yet.")).toBeVisible();
@@ -65,11 +68,11 @@ test("settings Webhooks section is reachable in EN and ZH", async ({ page }, tes
   await page.goto("/dev/settings?s=webhooks&lang=zh");
   const zhDialog = page.locator(".acs-overlay.open .acs-card");
   await expect(zhDialog).toBeVisible({ timeout: 45_000 });
-  await expectSettingsNavigation(page, [
-    { id: "sharing", label: "共享" },
-    { id: "portfolioTargets", label: "组合目标权重" },
-    { id: "webhooks", label: "Webhook 回调" },
-  ], "webhooks");
+  await expect(zhDialog.getByRole("tab", { name: "共享" })).toBeVisible();
+  await expect(zhDialog.getByRole("tab", { name: "组合目标权重" })).toBeVisible();
+  expect(await zhDialog.getByRole("tab").count()).toBeGreaterThanOrEqual(11);
+  await expect(zhDialog.getByRole("tab", { name: "Webhook 回调" })).toBeVisible();
+  await expect(zhDialog.getByRole("tab", { name: "Webhook 回调" })).toHaveAttribute("aria-selected", "true");
   await expect(page.getByRole("heading", { name: "Webhook 回调" })).toBeVisible();
   await expect(page.getByText("您还没有团队")).toHaveCount(0);
   await expect(page.getByText("此团队尚未登记 Webhook 端点。")).toBeVisible();

@@ -11,7 +11,10 @@ import type { AcsPlan, AcsUsage, DevTeamFixture, SectionProps } from "./types";
 import type { AccuracyReadout } from "@/lib/personalAccuracy";
 import type { TeamRollupResult } from "@/lib/teamRollup";
 import { parseTeamsResponse } from "@/lib/teamSummary";
-import { IconSignOut, IconX } from "./icons";
+import {
+  IconAccount, IconAlertDelivery, IconBilling, IconDeveloper, IconPortfolioTargets, IconPrefs, IconSharing, IconSignOut, IconSync, IconTeam, IconTerminal, IconUsage,
+  IconWebhooks, IconX,
+} from "./icons";
 import SectionAccount from "./SectionAccount";
 import SectionAccuracy from "./SectionAccuracy";
 import SectionBilling from "./SectionBilling";
@@ -26,24 +29,54 @@ import SectionDeveloper from "./SectionDeveloper";
 import SectionSharing from "./SectionSharing";
 import SectionPortfolioTargets from "./SectionPortfolioTargets";
 
-// Paper-led native Terminal shell. Data ownership, hydration and delivery stay in
-// their existing stores; these groups organize the same thirteen destinations.
-const NAV_GROUPS: { key: string; items: { id: SettingsSection; key: string }[] }[] = [
-  { key: "acsNavAccount", items: [
-    { id: "account", key: "acsAccount" }, { id: "team", key: "acsTeam" },
-    { id: "billing", key: "acsBilling" }, { id: "usage", key: "acsUsage" },
-  ] },
-  { key: "acsNavWorkspace", items: [
-    { id: "prefs", key: "acsPrefs" }, { id: "terminal", key: "acsTerminal" },
-    { id: "alertDelivery", key: "acsAlertDelivery" }, { id: "accuracy", key: "accNav" },
-    { id: "portfolioTargets", key: "acsPortfolioTargets" },
-  ] },
-  { key: "acsNavConnections", items: [
-    { id: "sync", key: "acsSyncT" }, { id: "webhooks", key: "acsWebhooks" },
-    { id: "developer", key: "acsDeveloper" }, { id: "sharing", key: "acsSharing" },
-  ] },
+function IconAccuracy() {
+  return (
+    <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M8 7h11M8 12h11M8 17h7" />
+      <path d="m4.2 7.2 1.2 1.2 2.2-2.4M4.2 12.2l1.2 1.2 2.2-2.4" />
+    </svg>
+  );
+}
+
+// ── The settings dashboard shell ─────────────────────────────────────────────
+// Ported from the Macro Dashboard's `_buildSDash` / `_wireSDash` / `_sdShow` /
+// `_openSDash`. Same card (min(1140px,94vw) × min(772px,100dvh-40px), r22), same
+// 238px rail, same premium top accent placement, same ≤640px full-sheet collapse.
+//
+// Two upstream bugs are deliberately NOT reproduced:
+//   1. macro's desktop header close button (`.sd-x`) has no click handler — ours
+//      is wired (see icons.tsx SectionHead).
+//   2. macro's SD_PLAN_FEATURES has no `unlimited` key, so unlimited users saw
+//      the FREE feature list — see ACS_PLAN_FEATURES in types.ts.
+
+const NAV: { id: SettingsSection; icon: React.ReactNode; key: string }[] = [
+  { id: "account", icon: <IconAccount />, key: "acsAccount" },
+  { id: "team", icon: <IconTeam />, key: "acsTeam" },
+  { id: "accuracy", icon: <IconAccuracy />, key: "accNav" },
+  { id: "billing", icon: <IconBilling />, key: "acsBilling" },
+  { id: "usage", icon: <IconUsage />, key: "acsUsage" },
+  { id: "prefs", icon: <IconPrefs />, key: "acsPrefs" },
+  { id: "alertDelivery", icon: <IconAlertDelivery />, key: "acsAlertDelivery" },
+  { id: "terminal", icon: <IconTerminal />, key: "acsTerminal" },
+  { id: "sync", icon: <IconSync />, key: "acsSyncT" },
+  { id: "webhooks", icon: <IconWebhooks />, key: "acsWebhooks" },
+  { id: "developer", icon: <IconDeveloper />, key: "acsDeveloper" },
+  { id: "sharing", icon: <IconSharing />, key: "acsSharing" },
+  { id: "portfolioTargets", icon: <IconPortfolioTargets />, key: "acsPortfolioTargets" },
 ];
-const NAV = NAV_GROUPS.flatMap(group => group.items);
+
+// Flame-crown geometry for the settings shell. The path intentionally has uneven
+// peaks/troughs rather than repeated sine periods: it should read as living energy,
+// not a translated decorative rail. Every state uses the same command topology so
+// SVG interpolation is deterministic across Chromium/WebKit/Gecko.
+const AURORA_STATES = [
+  "M0 26 C38 26 70 24 104 25 C132 26 144 12 166 11 C188 11 199 32 230 33 C262 34 274 13 306 14 C338 15 351 30 382 29 C414 28 431 9 463 11 C494 13 509 35 542 32 C574 29 594 14 626 16 C658 18 675 30 707 28 C739 26 754 11 786 13 C818 15 835 30 868 28 C903 26 944 24 1000 26",
+  "M0 26 C40 26 68 19 103 20 C132 21 151 32 181 31 C211 30 226 10 257 12 C289 14 305 34 338 32 C369 30 386 15 418 17 C449 19 464 8 496 11 C528 14 545 31 577 29 C609 27 625 11 657 13 C689 15 706 33 738 31 C770 29 787 14 819 16 C851 18 870 10 902 13 C935 16 964 24 1000 26",
+  "M0 26 C42 27 71 18 107 20 C136 22 151 9 180 10 C210 11 226 31 259 32 C291 33 309 15 340 16 C372 17 390 6 421 10 C454 14 469 34 502 31 C534 28 552 12 584 14 C616 16 635 30 668 28 C700 26 718 8 750 11 C782 14 799 33 832 30 C864 27 882 14 914 17 C946 20 974 25 1000 26",
+  "M0 26 C35 25 60 14 95 16 C126 18 143 30 176 30 C207 30 224 11 256 13 C288 15 306 34 338 32 C370 30 389 16 421 18 C453 20 469 6 501 9 C533 12 551 31 583 30 C615 29 634 15 666 17 C698 19 715 7 747 10 C779 13 798 32 830 31 C862 30 882 17 914 18 C946 20 975 25 1000 26",
+  "M0 26 C38 26 70 24 104 25 C132 26 144 12 166 11 C188 11 199 32 230 33 C262 34 274 13 306 14 C338 15 351 30 382 29 C414 28 431 9 463 11 C494 13 509 35 542 32 C574 29 594 14 626 16 C658 18 675 30 707 28 C739 26 754 11 786 13 C818 15 835 30 868 28 C903 26 944 24 1000 26",
+] as const;
+const AURORA_VALUES = AURORA_STATES.join("; ");
 
 const HEAD_KEY: Record<SettingsSection, string> = {
   account: "acsAccount",
@@ -63,7 +96,7 @@ const HEAD_KEY: Record<SettingsSection, string> = {
 
 export interface SettingsPanelProps {
   visible: boolean;
-  /** Increments on every open() so the existing account readers can revalidate. */
+  /** Increments on every open() — re-keys the aurora so its vector motion restarts cleanly. */
   openSeq: number;
   section: SettingsSection;
   onSection: (s: SettingsSection) => void;
@@ -124,32 +157,30 @@ export default function SettingsPanel(props: SettingsPanelProps) {
 
   // ── focus the active rail tab on open (keyboard entry point) ──────────────
   const cardRef = useRef<HTMLDivElement>(null);
+  const navRef = useRef<HTMLElement>(null);
   useEffect(() => {
     if (!visible) return;
     const id = setTimeout(() => {
-      const selector = window.matchMedia("(max-width: 640px)").matches
-        ? ".acs-section-select" : ".acs-nav-b.active";
-      const el = cardRef.current?.querySelector<HTMLElement>(selector);
+      const el = cardRef.current?.querySelector<HTMLElement>(".acs-nav-b.active")
+        || cardRef.current?.querySelector<HTMLElement>(".acs-nav-b");
       if (el) { try { el.focus({ preventScroll: true }); } catch { el.focus(); } }
     }, 90);
     return () => clearTimeout(id);
   }, [visible]);
 
-  // The desktop rail is one vertical tablist. Mobile uses one native select,
-  // so no destination can disappear off a horizontally scrolling strip.
-  const onNavKeyDown = (e: React.KeyboardEvent<HTMLElement>) => {
-    const index = NAV.findIndex(item => item.id === section);
-    let next: number;
-    if (e.key === "ArrowDown") next = (index + 1) % NAV.length;
-    else if (e.key === "ArrowUp") next = (index + NAV.length - 1) % NAV.length;
-    else if (e.key === "Home") next = 0;
-    else if (e.key === "End") next = NAV.length - 1;
-    else return;
-    e.preventDefault();
-    const destination = NAV[next].id;
-    onSection(destination);
-    e.currentTarget.querySelector<HTMLElement>(`#acs-tab-${destination}`)?.focus();
-  };
+  // The mobile rail collapses into a horizontally scrollable tab strip. Keep the selected tab
+  // fully in view on open and after a section switch without moving the vertical settings pane.
+  useEffect(() => {
+    if (!visible || !window.matchMedia("(max-width: 640px)").matches) return;
+    const id = requestAnimationFrame(() => {
+      const nav = navRef.current;
+      const activeTab = nav?.querySelector<HTMLElement>(".acs-nav-b.active");
+      if (!nav || !activeTab) return;
+      const left = activeTab.offsetLeft - (nav.clientWidth - activeTab.offsetWidth) / 2;
+      nav.scrollTo({ left: Math.max(0, left), behavior: "smooth" });
+    });
+    return () => cancelAnimationFrame(id);
+  }, [visible, section]);
 
   // ── focus trap (Tab cycle within the card) ────────────────────────────────
   const onCardKeyDown = useCallback((e: React.KeyboardEvent<HTMLDivElement>) => {
@@ -157,7 +188,7 @@ export default function SettingsPanel(props: SettingsPanelProps) {
     const card = cardRef.current;
     if (!card) return;
     const all = card.querySelectorAll<HTMLElement>(
-      'button:not([disabled]):not([tabindex="-1"]),input:not([disabled]),textarea:not([disabled]),a[href],select:not([disabled]),[tabindex="0"]',
+      'button:not([disabled]),input:not([disabled]),a[href],select:not([disabled]),[tabindex="0"]',
     );
     const f = Array.prototype.filter.call(all, (el: HTMLElement) => el.offsetParent !== null) as HTMLElement[];
     if (!f.length) return;
@@ -301,52 +332,104 @@ export default function SettingsPanel(props: SettingsPanelProps) {
         ref={cardRef}
         onKeyDown={onCardKeyDown}
       >
+        <svg
+          className="acs-aurora"
+          aria-hidden="true"
+          key={openSeq}
+          viewBox="0 0 1000 48"
+          preserveAspectRatio="none"
+        >
+          <defs>
+            <linearGradient id={"acsAuroraGradient-" + openSeq} x1="0" y1="0" x2="1000" y2="0" gradientUnits="userSpaceOnUse">
+              <stop offset="0%" stopColor="#22d3ff" />
+              <stop offset="17%" stopColor="#4fb4ff" />
+              <stop offset="34%" stopColor="#4d67ff" />
+              <stop offset="52%" stopColor="#c05cff" />
+              <stop offset="68%" stopColor="#7c58ff" />
+              <stop offset="84%" stopColor="#3f9fff" />
+              <stop offset="100%" stopColor="#20d6ff" />
+              <animateTransform
+                attributeName="gradientTransform"
+                type="translate"
+                values="-70 0; 70 0; -70 0"
+                dur="9.5s"
+                repeatCount="indefinite"
+              />
+            </linearGradient>
+            <filter id={"acsAuroraBloom-" + openSeq} x="-8%" y="-220%" width="116%" height="540%">
+              <feGaussianBlur stdDeviation="7.2" />
+            </filter>
+            <filter id={"acsAuroraGlow-" + openSeq} x="-8%" y="-170%" width="116%" height="440%">
+              <feGaussianBlur stdDeviation="2.7" />
+            </filter>
+          </defs>
+          <g className="acs-aurora-live">
+            <path
+              className="acs-aurora-bloom"
+              pathLength="1000"
+              d={AURORA_STATES[0]}
+              stroke={"url(#acsAuroraGradient-" + openSeq + ")"}
+              filter={"url(#acsAuroraBloom-" + openSeq + ")"}
+            >
+              <animate attributeName="d" dur="7.4s" repeatCount="indefinite" values={AURORA_VALUES} />
+            </path>
+            <path
+              className="acs-aurora-glow"
+              pathLength="1000"
+              d={AURORA_STATES[0]}
+              stroke={"url(#acsAuroraGradient-" + openSeq + ")"}
+              filter={"url(#acsAuroraGlow-" + openSeq + ")"}
+            >
+              <animate attributeName="d" dur="7.4s" repeatCount="indefinite" values={AURORA_VALUES} />
+            </path>
+            <path
+              className="acs-aurora-core"
+              pathLength="1000"
+              d={AURORA_STATES[0]}
+              stroke={"url(#acsAuroraGradient-" + openSeq + ")"}
+            >
+              <animate attributeName="d" dur="7.4s" repeatCount="indefinite" values={AURORA_VALUES} />
+            </path>
+            <path
+              className="acs-aurora-hot"
+              pathLength="1000"
+              d={AURORA_STATES[0]}
+            >
+              <animate attributeName="d" dur="7.4s" repeatCount="indefinite" values={AURORA_VALUES} />
+            </path>
+          </g>
+          <path
+            className="acs-aurora-static"
+            d={AURORA_STATES[0]}
+            stroke={"url(#acsAuroraGradient-" + openSeq + ")"}
+          />
+        </svg>
+
         <div className="acs-card-surface">
           <aside className="acs-rail">
           <div className="acs-me">
             <span className="acs-me-av">{avatarChar}</span>
             <span className="acs-me-main">
               <span className="acs-me-name">{displayName || "—"}</span>
-              <span className="acs-me-sub">{t("acsAccountSettings")}</span>
+              <span className="acs-me-sub">{t("acsRailSub")}</span>
             </span>
           </div>
 
-          <nav className="acs-nav" role="tablist" aria-orientation="vertical" aria-label={t("acsSections")} onKeyDown={onNavKeyDown}>
-            {NAV_GROUPS.map(group => (
-              <div className="acs-nav-group" role="presentation" key={group.key}>
-                <div className="acs-nav-group-label" aria-hidden="true">{t(group.key)}</div>
-                {group.items.map(n => (
-                  <button
-                    key={n.id}
-                    id={`acs-tab-${n.id}`}
-                    type="button"
-                    role="tab"
-                    tabIndex={section === n.id ? 0 : -1}
-                    className={`acs-nav-b${section === n.id ? " active" : ""}`}
-                    aria-selected={section === n.id}
-                    aria-controls="acs-active-section"
-                    onClick={() => onSection(n.id)}
-                  >
-                    {t(n.key)}
-                    <span className="acs-nav-chevron" aria-hidden="true">›</span>
-                  </button>
-                ))}
-              </div>
+          <nav className="acs-nav" role="tablist" aria-label={t("acsSections")} ref={navRef}>
+            {NAV.map((n) => (
+              <button
+                key={n.id}
+                type="button"
+                role="tab"
+                className={`acs-nav-b${section === n.id ? " active" : ""}`}
+                aria-selected={section === n.id}
+                onClick={() => onSection(n.id)}
+              >
+                {n.icon}
+                {t(n.key)}
+              </button>
             ))}
           </nav>
-          <select
-            className="acs-section-select"
-            aria-label={t("acsSections")}
-            aria-controls="acs-active-section"
-            value={section}
-            onChange={e => onSection(e.target.value as SettingsSection)}
-          >
-            {NAV_GROUPS.map(group => (
-              <optgroup key={group.key} label={t(group.key)}>
-                {group.items.map(n => <option key={n.id} value={n.id}>{t(n.key)}</option>)}
-              </optgroup>
-            ))}
-          </select>
 
           <span className="acs-rail-spacer" />
 
@@ -369,7 +452,7 @@ export default function SettingsPanel(props: SettingsPanelProps) {
               from all fetching at once. The payloads they share (plan, usage)
               are cached above, so switching back is free. Team joins the existing
               settings family; it is not a third nav. */}
-          <div className="acs-sect on" id="acs-active-section" role="tabpanel" aria-label={t(HEAD_KEY[section])} data-section={section} key={section}>
+          <div className="acs-sect on" key={section}>
             {section === "account" && <SectionAccount {...shared} />}
             {section === "team" && <SectionTeam {...shared} devTeam={props.devTeam} />}
             {section === "accuracy" && (

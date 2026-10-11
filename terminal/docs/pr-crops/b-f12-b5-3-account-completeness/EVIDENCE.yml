@@ -1,14 +1,14 @@
 # B-F12-B5-3b Account completeness — capture evidence
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
 # Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
-# capturedAtHead: fe1b5da159071050279ef2591ae18c98f81a3a76
-# capturedAt: 2026-10-11T12:15:56.326Z
+# capturedAtHead: 74a9a3b0d5786d0e216334b1c045e7b314d32a57
+# capturedAt: 2026-10-10T00:34:13.439Z
 # capturedAtHead is the code commit the pixels depict. The lock is layoutFiles.
 layoutFiles:
   terminal/components/settings/SectionAccount.tsx: "fb274b73f54f9ac1a9f2803e245dc8b2dbacccf82c7d4d55a6ffe30a0257d473"
   terminal/lib/teamSummary.ts: "7bd3b3f1d5251490e42399be1dd77e977b2626c1714efbece2f7139c584e0f15"
-  terminal/lib/i18n.tsx: "db154cfb98dc8a15b62dadf59f599619c89c054bec3e40a2fbaeda6524054637"
-  terminal/components/settings/SettingsPanel.tsx: "5d296e5327e52d8455d2da694aa844aed7ef22ed3f68919927cc04d290fb5258"
+  terminal/lib/i18n.tsx: "cfad0a8290b9b872fe919b7b9855bbd3a4cee095eb26ebd902c399942196a65d"
+  terminal/components/settings/SettingsPanel.tsx: "526725b37af04f1092359a8aca1e6d3d6d62815b5913b3a7eba754e4ca020329"
   terminal/components/settings/SettingsProvider.tsx: "a4c829c956ca7ffd89bbc3158009b1148bb613569a9716b092dd9a27d449d910"
 theme: dark
 languages: [en, zh]

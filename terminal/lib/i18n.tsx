@@ -2054,18 +2054,6 @@ export const LEX: Record<string, [string, string]> = {
   acsDeveloper: ["Developer access", "开发者访问"],
   acsDeveloperSub: ["Personal read-only keys for what you already see in the Terminal.", "用于读取你在终端里已经能看到的内容的个人只读密钥。"],
   // rail
-  // Native Terminal settings shell (Paper study, 2026-10-11).
-  acsAccountSettings: ["Account & settings", "账户与设置"],
-  acsNavAccount: ["Account", "账户"],
-  acsNavWorkspace: ["Workspace", "工作区"],
-  acsNavConnections: ["Connections", "连接"],
-  acsTerminalIntro: ["Your markets. Your chart defaults.", "选择市场，设置图表默认值。"],
-  acsMarketsSearch: ["Markets in search", "搜索中的市场"],
-  acsMarketsSearchHelp: ["Choose which markets appear when you search for a symbol.", "选择搜索代码时显示的市场。"],
-  acsMarketsSearchOnly: ["Turning a market off only hides its symbols from search.", "关闭市场仅会在搜索中隐藏该市场的代码。"],
-  acsDefaultTimeframe: ["Default timeframe", "默认周期"],
-  acsTimeframeHelp: ["Used when you open Terminal. Your current chart stays unchanged.", "在打开终端时生效，不会更改当前图表。"],
-  acsColorsHelp: ["Choose the color convention you read most naturally.", "选择您最习惯的涨跌配色。"],
   acsRailSub: ["Synced across devices", "已在各设备同步"],
   acsSections: ["Settings sections", "设置分区"],
   acsClose: ["Close", "关闭"],

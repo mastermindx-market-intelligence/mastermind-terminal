@@ -1,5 +1,4 @@
 import { expect, test, type Page } from "@playwright/test";
-import { selectSettingsSection } from "./settingsNavigation";
 import { e2eAccountOwner, LEGACY_MARKET_PREFS_KEY, MARKET_PREFS_KEY } from "./accountOwner";
 
 /**
@@ -39,7 +38,7 @@ async function boot(page: Page) {
 async function openTerminalSettings(page: Page) {
   await page.locator('button[aria-label="Settings"]:visible').first().click();
   await expect(page.locator(".acs-card")).toBeVisible({ timeout: 15_000 });
-  await selectSettingsSection(page, "terminal", "Terminal");
+  await page.getByRole("tab", { name: "Terminal", exact: true }).click();
   await expect(page.getByRole("button", { name: NARROWED, exact: false })).toBeVisible();
 }
 
