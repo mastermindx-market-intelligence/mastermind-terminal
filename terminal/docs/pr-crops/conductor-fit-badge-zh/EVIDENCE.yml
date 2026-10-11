@@ -1,7 +1,7 @@
 # Conductor fit chip in zh — capture evidence
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
 # Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
-# capturedAtHead: 4ea4fb47345d580cb9a1aa01c27bdd419e767fed
+# capturedAtHead: 7fa0fa51bf10b327958289ccfe44fc71b9a69936
 # capturedAt: 2026-10-11T18:36:17.632Z
 # capturedAtHead is informational. The lock is layoutFiles.
 # before/ holds the same crops at the commit before the fix (before/BEFORE.yml); this tool never rewrites it.
