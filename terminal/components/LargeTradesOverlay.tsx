@@ -23,6 +23,7 @@ export type LargeTradesChartContext = {
   timeframe: string;
   replayCutoff: ReplayCutoff | null;
   pricePane: LargeTradesPricePane | null;
+  statusHeaderBottom: number;
 };
 export type LargeTradesOverlayHandle = {
   refresh(): void; sourceChanged(): void; reposition(): void; clear(): void;
@@ -158,7 +159,8 @@ const LargeTradesOverlay = forwardRef<LargeTradesOverlayHandle, Props>(function 
         y: ((viewport?.offsetTop ?? 0) - bounds.top) * sy,
         width: (viewport?.width ?? window.innerWidth) * sx,
         height: (viewport?.height ?? window.innerHeight) * sy };
-      const controlBounds = largeTradesControlBounds(plot, root.clientWidth, root.clientHeight, visible);
+      const controlBounds = largeTradesControlBounds(plot, root.clientWidth, root.clientHeight,
+        visible, context.statusHeaderBottom);
       if (!controlBounds) { hideControls(); return; } // Never leave quantities without reachable provenance.
       controls.style.left = controlBounds.x + "px"; controls.style.top = controlBounds.y + "px";
       controls.style.width = controlBounds.width + "px"; controls.style.height = controlBounds.height + "px";

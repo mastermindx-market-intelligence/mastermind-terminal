@@ -43,7 +43,8 @@ export function largeTradesPlotBounds(
 
 /**
  * Control targets and mandatory provenance belong inside the visible price plot. Reserve
- * the native pane header's 44px target plus its 4px top spacing. The control width
+ * the native pane header's 44px target plus its 4px top spacing, and the actual
+ * chart-owned status header when it extends farther down. The control width
  * budgets 16px outer gaps + 2px border + 32px header padding + 80px copy + 8px gap +
  * 44px action + 16px scrollbar allowance. Height budgets 16 + 2 + 14px top padding +
  * 44px action + 10px bottom padding + 1px separator, rounded to 88px. Compact headers
@@ -55,13 +56,14 @@ export function largeTradesControlBounds(
   rootWidth: number,
   rootHeight: number,
   viewport: LargeTradesPlot = { x: 0, y: 0, width: rootWidth, height: rootHeight },
+  statusHeaderBottom = 0,
 ): LargeTradesPlot | null {
   if (!plot || ![plot.x, plot.y, plot.width, plot.height, rootWidth, rootHeight,
-    viewport.x, viewport.y, viewport.width, viewport.height].every(Number.isFinite)
+    viewport.x, viewport.y, viewport.width, viewport.height, statusHeaderBottom].every(Number.isFinite)
     || plot.width <= 0 || plot.height <= 0 || rootWidth <= 0 || rootHeight <= 0
     || viewport.width <= 0 || viewport.height <= 0) return null;
   const x = Math.max(0, plot.x, viewport.x);
-  const y = Math.max(0, plot.y + 48, viewport.y);
+  const y = Math.max(0, plot.y + 48, statusHeaderBottom, viewport.y);
   const right = Math.min(rootWidth, plot.x + plot.width, viewport.x + viewport.width);
   const bottom = Math.min(rootHeight, plot.y + plot.height, viewport.y + viewport.height);
   return right - x >= 198 && bottom - y >= 88

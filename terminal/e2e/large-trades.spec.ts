@@ -1190,3 +1190,77 @@ test("native PNG refreshes pending pane geometry before freezing its execution f
   await expect(page.getByTestId("large-trades-overlay")).toHaveAttribute("data-owner-visible", "false");
   await expect(page.locator('[data-testid="large-trade-marker"]:visible')).toHaveCount(0);
 });
+
+
+for (const lang of ["en", "zh"] as const) {
+  test("phone inspection follows a changing Replay status header " + lang, async ({ page }, info) => {
+    test.skip((page.viewportSize()?.width ?? 1440) > 640, "Phone status-header regression");
+    test.setTimeout(120_000);
+    const errors: string[] = [];
+    page.on("pageerror", (error) => errors.push(error.message));
+    await prepare(page, lang, "dark", "1s");
+    await page.addInitScript(() => {
+      localStorage.setItem("mm.chartSettings", JSON.stringify({
+        showOHLC: true, showBarChange: true, showVolume: true, showLastDayChange: true,
+      }));
+    });
+    await openFixture(page);
+    await toggleToolbarReplay(page);
+    const rail = page.locator("[data-replay-rail]");
+    await expect(rail).toBeVisible();
+    const slider = rail.getByRole("slider");
+    await slider.focus(); await slider.press("End");
+    await page.getByTestId("large-trades-inspect").click();
+    const panel = page.getByTestId("large-trades-inspector");
+    const line = page.locator(".chart-wrap .statusline").first();
+    await expect(line.locator(".mm", { hasText: /^REPLAY$/ })).toBeVisible();
+    const quantities = await page.getByTestId("large-trade-marker").evaluateAll((nodes) => nodes.map((node) => node.getAttribute("data-quantity")));
+    const assertClear = async (state: string) => {
+      await expect(panel).toBeVisible();
+      await expect.poll(async () => {
+        const header = await line.boundingBox(), inspector = await panel.boundingBox();
+        return header && inspector ? inspector.y - header.y - header.height : -Infinity;
+      }).toBeGreaterThanOrEqual(-1);
+      const geometry = await page.locator(".chart-wrap").first().evaluate((host) => {
+        const rect = (node: Element) => {
+          const r = node.getBoundingClientRect();
+          return { left: r.left, right: r.right, top: r.top, bottom: r.bottom, width: r.width, height: r.height };
+        };
+        const header = host.querySelector(".statusline")!;
+        const inspector = rect(host.querySelector('[data-testid="large-trades-inspector"]')!);
+        const fields = [...header.querySelectorAll(".status-identity, .status-ohlc, .status-change, .status-vol, .status-day, .mm")]
+          .map((node) => ({ text: node.textContent, ...rect(node) })).filter((r) => r.width > 0 && r.height > 0);
+        return { header: rect(header), inspector, fields,
+          overlap: fields.map((r) => Math.max(0, Math.min(r.right, inspector.right) - Math.max(r.left, inspector.left))
+            * Math.max(0, Math.min(r.bottom, inspector.bottom) - Math.max(r.top, inspector.top))) };
+      });
+      expect(geometry.fields.length).toBeGreaterThan(2);
+      expect(geometry.overlap.every((area) => area === 0)).toBe(true);
+      await info.attach("phone-header-" + state + "-" + lang, { body: JSON.stringify(geometry, null, 2), contentType: "application/json" });
+      await capture(page, info, "large-trades-phone-header-" + state + "-" + lang);
+    };
+    await assertClear("normal");
+    await page.locator(".chart-fs-float").click();
+    await expect(page.locator(".app")).toHaveClass(/\bfs\b/);
+    await assertClear("fullscreen");
+    await page.locator(".chart-fs-float").click();
+    await expect(page.locator(".app")).not.toHaveClass(/\bfs\b/);
+    await assertClear("restored");
+    const initialHeight = await line.evaluate((node) => node.getBoundingClientRect().height);
+    // Controlled text scaling is an input to the real rendered header. It changes
+    // wrapping without a window/pane resize or an inspector open/close cycle.
+    await line.evaluate((node) => node.style.setProperty("font-size", "18px", "important"));
+    await expect.poll(() => line.evaluate((node) => node.getBoundingClientRect().height)).toBeGreaterThan(initialHeight + 1);
+    await assertClear("text-scaled");
+    await line.evaluate((node) => node.style.removeProperty("font-size"));
+    await expect.poll(async () => Math.abs(await line.evaluate((node) => node.getBoundingClientRect().height) - initialHeight)).toBeLessThanOrEqual(1);
+    await assertClear("text-restored");
+    expect(await page.getByTestId("large-trade-marker").evaluateAll((nodes) => nodes.map((node) => node.getAttribute("data-quantity")))).toEqual(quantities);
+    const close = panel.getByRole("button", { name: lang === "en" ? "Close trade inspection" : "关闭成交详情", exact: true });
+    await scrollTradeTarget(page, panel, close, -1);
+    await close.click();
+    await expect(panel).toHaveCount(0);
+    await expect(page.getByTestId("large-trades-inspect")).toBeFocused();
+    expect(errors).toEqual([]);
+  });
+}

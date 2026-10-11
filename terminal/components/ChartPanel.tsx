@@ -621,7 +621,10 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
     const line = statusRef.current?.closest<HTMLElement>(".statusline");
     const host = line?.parentElement;
     if (!line || !host) return;
-    const measure = () => host.style.setProperty("--statusline-height", `${line.getBoundingClientRect().height}px`);
+    const measure = () => {
+      host.style.setProperty("--statusline-height", `${line.getBoundingClientRect().height}px`);
+      largeTradesRef.current?.reposition();
+    };
     measure();
     const observer = new ResizeObserver(measure);
     observer.observe(line);
@@ -10017,7 +10020,21 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
           getContext={() => {
             let nativePaneIndex: number | null = null;
             try { nativePaneIndex = priceSeriesRef.current?.getPane().paneIndex() ?? null; } catch {}
-            return { chart: chartRef.current, series: priceSeriesRef.current,
+            // The header belongs to this chart, and can wrap without a pane resize.
+            // Normalize its painted bottom into the overlay's local CSS coordinates.
+            let statusHeaderBottom = 0;
+            const wrap = wrapElRef.current;
+            const line = statusRef.current?.closest<HTMLElement>(".statusline");
+            if (wrap && line) {
+              const lineRect = line.getBoundingClientRect(), wrapRect = wrap.getBoundingClientRect();
+              const style = getComputedStyle(line);
+              if (lineRect.width > 0 && lineRect.height > 0 && style.display !== "none"
+                && style.visibility !== "hidden" && Number(style.opacity) !== 0) {
+                statusHeaderBottom = wrapRect.height > 0
+                  ? (lineRect.bottom - wrapRect.top) * wrap.clientHeight / wrapRect.height : NaN;
+              }
+            }
+            return { chart: chartRef.current, series: priceSeriesRef.current, statusHeaderBottom,
               bars: barsRef.current, sourceSymbol: chartDataSymRef.current,
               timeframe: fullBarsTfRef.current, replayCutoff: replayIdxRef.current,
               pricePane: resolveLargeTradesPricePane(paneLayoutRef.current.find((pane) => pane.isPrice) ?? null,

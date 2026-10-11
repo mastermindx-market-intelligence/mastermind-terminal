@@ -56,6 +56,26 @@ describe("large-trade bounded controls and mandatory context", () => {
     // The earlier 60px layer left only a44px border-box dock before its own padding.
     expect(largeTradesControlBounds({ x: 0, y: 0, width: 60, height: 108 }, 60, 108)).toBeNull();
   });
+  it("follows a growing and shrinking chart header while preserving the complete control footprint", () => {
+    const plot = { x: 0, y: 0, width: 320, height: 200 };
+    const viewport = { x: 0, y: 0, width: 390, height: 600 };
+    expect(largeTradesControlBounds(plot, 390, 600, viewport, 75))
+      .toEqual({ x: 0, y: 75, width: 320, height: 125 });
+    expect(largeTradesControlBounds(plot, 390, 600, viewport, 112))
+      .toEqual({ x: 0, y: 112, width: 320, height: 88 });
+    expect(largeTradesControlBounds(plot, 390, 600, viewport, 113)).toBeNull();
+    expect(largeTradesControlBounds(plot, 390, 600, viewport, 40))
+      .toEqual({ x: 0, y: 48, width: 320, height: 152 });
+  });
+  it("keeps a reordered price pane's own header when the chart status is above it", () => {
+    expect(largeTradesControlBounds({ x: 64, y: 180, width: 800, height: 320 }, 934, 620,
+      { x: 0, y: 0, width: 934, height: 620 }, 75))
+      .toEqual({ x: 64, y: 228, width: 800, height: 272 });
+  });
+  it.each([NaN, Infinity, -Infinity])("co-hides when a painted header cannot be measured: %s", (bottom) => {
+    expect(largeTradesControlBounds({ x: 0, y: 0, width: 320, height: 300 }, 390, 600,
+      { x: 0, y: 0, width: 390, height: 600 }, bottom)).toBeNull();
+  });
   it("co-hides the feature for an absent or fully scrolled-out price owner", () => {
     expect(largeTradesControlBounds(null, 390, 600)).toBeNull();
     expect(largeTradesControlBounds({ x: 0, y: 0, width: 320, height: 300 }, 390, 600,
