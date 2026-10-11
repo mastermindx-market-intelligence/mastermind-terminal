@@ -1,11 +1,14 @@
 """Execute the proposal state RPC on disposable PostgreSQL, never a live database."""
 import json
+import io
 import os
 from pathlib import Path
 import shutil
 import subprocess
 
 import pytest
+
+from scripts.supabase_apply import run_apply
 
 ROOT = Path(__file__).resolve().parents[1]
 MIGRATIONS = ROOT / "supabase/migrations"
@@ -162,14 +165,26 @@ def test_direct_write_and_anonymous_rpc_still_denied(pg):
     assert states(pg) == before
 
 
-def test_forward_reapply_preserves_owner_grants_configuration_and_trigger(pg):
+def test_forward_reapply_preserves_owner_grants_configuration_and_trigger(pg, tmp_path):
     catalog = """select jsonb_build_object('owner',pg_get_userbyid(p.proowner),
       'definer',p.prosecdef,'config',p.proconfig,'acl',p.proacl,
       'result',pg_get_function_result(p.oid)) from pg_proc p
       where p.oid='public.set_thesis_amendment_state(uuid,text)'::regprocedure;"""
     before = pg(catalog)
     pg(REPAIR.read_text())
-    pg(REPAIR.read_text())
+
+    def local_runner(sql):
+        # Exercise the existing applier/readback protocol using only this test DB.
+        if sql.lstrip().lower().startswith("select"):
+            return json.loads(pg("select coalesce(json_agg(row_to_json(r)), '[]'::json) from (" + sql.rstrip().rstrip(";") + ") r;"))
+        pg(sql)
+        return []
+
+    output = io.StringIO()
+    receipt = tmp_path / "local-apply-receipt.json"
+    assert run_apply(REPAIR, runner=local_runner, receipt_path=receipt,
+                     project_ref="isolated-local-test", out=output) == 0, output.getvalue()
+    assert json.loads(receipt.read_text())["status"] == "applied"
     assert pg(catalog) == before
     assert json.loads(before)["owner"] == "postgres"
     assert json.loads(before)["definer"] is True
