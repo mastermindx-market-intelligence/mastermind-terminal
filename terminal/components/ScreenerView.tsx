@@ -17,6 +17,7 @@ import { parseGlanceIndex, REGIME_COLORS, REGIME_RANK, type GexRegime, type Glan
 import { makeGexT } from "@/components/gexdesk/gexStrings";
 import { notClassified, verdictLabel } from "@/lib/plainLabels";
 import AssetLogo from "@/components/AssetLogo";
+import SmartScreensPanel from "@/components/screener/SmartScreensPanel";
 // E01 technical screen: one bounded scan read (/data/scan/technical.json), classified per row by
 // lib/technicalScan — never inferred from per-symbol OHLC in the browser.
 import TechnicalScreenBar, { TechnicalCell, TECH_CELL_CLASS, TECH_ON_CLASS, TECH_TH_CLASS } from "@/components/screener/TechnicalScreenBar";
@@ -842,6 +843,24 @@ export default function ScreenerView({ identity }: { identity: AccountIdentity }
           hiddenUnknown={techHidden}
         />
       </div>
+
+      {/* E04 smart screens: account-saved, explainable screens with on-demand entered/left review. */}
+      <SmartScreensPanel
+        identity={identity}
+        rows={rows}
+        ready={loaded && !err}
+        asOf={asOf}
+        filters={f}
+        prefsEnabled={prefsReady ? prefs.enabled : null}
+        showAllMarkets={showAllMarkets}
+        labelGics={gicsLabel}
+        labelAsset={assetLabel}
+        onOpen={(next, o) => startTransition(() => {
+          setActivePreset(null);
+          setF(next);
+          if (o.showAllMarkets !== null) setShowAllMarkets(o.showAllMarkets);
+        })}
+      />
 
       {/* ── status row: counts computed over the FILTERED set, plus scope honesty ── */}
       <div className="scr2-status">

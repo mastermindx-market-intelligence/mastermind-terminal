@@ -1,0 +1,174 @@
+{
+  "schema": "marketontology.b_f08.targets_summary.integrated_evidence.v1",
+  "outcome": "PASS_SCOPED_INTEGRATED_SOURCE_TYPECHECK_AND_SETTINGS_BROWSER",
+  "capturedAt": "2026-10-11T11:09:26.056244+00:00",
+  "capturedAtHead": "9573d60ab12ff593b6e6764e75e2cf0ec9e049cc",
+  "sourceRepairCommit": "a20df4ea4",
+  "integratedMaster": "0e8de334d",
+  "theme": "dark",
+  "languages": [
+    "en",
+    "zh"
+  ],
+  "viewports": {
+    "desktop": [
+      1440,
+      900
+    ],
+    "tablet": [
+      820,
+      1180
+    ],
+    "mobile": [
+      390,
+      844
+    ]
+  },
+  "sourceSha256": {
+    "terminal/lib/portfolioTargets.ts": "9b498033cc66f4c71e277a331a5cc0a95c9f841e138416a70d3d7c4c06a144a5",
+    "terminal/components/settings/SectionPortfolioTargets.tsx": "c15e26b2bb23842b057d44926c062d713b2ca2507934e33e39694465535f302c",
+    "terminal/lib/__tests__/portfolioTargetsSummary.test.ts": "171288f7e5238d2f1185acc2de24a9df238c21e388229a1fdbe3b41f10744ba7",
+    "terminal/components/settings/__tests__/SectionPortfolioTargets.summary.test.tsx": "8eca7a3e33e55af78d8ace33878e323b4b2f6447cfe94c8ef9cb32e933183cb5",
+    "terminal/e2e/settings-targets-summary.spec.ts": "2a783587d976dc72bc6ad82a0078ba3325fc0f3c0a1ecf8ac72a8af17848fd37",
+    "terminal/components/TerminalShell.tsx": "64ede5fa4343e8b96f52e519adb082bc45a3fb04f039d015d658cdb49f591f53",
+    "terminal/components/settings/SettingsPanel.tsx": "526725b37af04f1092359a8aca1e6d3d6d62815b5913b3a7eba754e4ca020329",
+    "terminal/components/settings/SettingsProvider.tsx": "a4c829c956ca7ffd89bbc3158009b1148bb613569a9716b092dd9a27d449d910",
+    "terminal/app/settings.css": "d17ceff6469db97d3d4bcfb800503ee3c22e89b0770a1c0a88c9d39eb5a72837",
+    "terminal/app/globals.css": "d67894b84cb6968d6fc87ab379f95da3b7e887cd5dd38240c5db8a55e31408a2",
+    "terminal/app/layout.tsx": "ff4990ac529a99651f15d4a8f6e8e0d118ab737f8e20dd5b364225e3ba125d90",
+    "terminal/lib/i18n.tsx": "cfad0a8290b9b872fe919b7b9855bbd3a4cee095eb26ebd902c399942196a65d",
+    "terminal/playwright.config.ts": "dfa8c513d7d8aa2893a16ad409c8d6a58ee157103134b99142576be1117962db"
+  },
+  "captures": {
+    "desktop-en-unusable.png": {
+      "sha256": "3be14c33ff28d62029d9e2cd6117dcf64ac9fad5af848acceb044be4dfad1368",
+      "bytes": 216750,
+      "width": 1440,
+      "height": 900,
+      "language": "en",
+      "state": "unusable"
+    },
+    "desktop-en-recovered.png": {
+      "sha256": "517ea3d9200f9e7c667297504f1f6ba3ac6493d3ac5e7a5f2838475ec7de6c55",
+      "bytes": 223723,
+      "width": 1440,
+      "height": 900,
+      "language": "en",
+      "state": "recovered"
+    },
+    "desktop-zh-unusable.png": {
+      "sha256": "14a9368c2a7eaa9e89fa9a9c42bab9f6af012f1669258148be3a60127fadf6ad",
+      "bytes": 223167,
+      "width": 1440,
+      "height": 900,
+      "language": "zh",
+      "state": "unusable"
+    },
+    "desktop-zh-recovered.png": {
+      "sha256": "65c03e6ab89dd4f04794f094e31e7918ff63f4a6ed8d4a8d3c3a59f73f39524f",
+      "bytes": 226991,
+      "width": 1440,
+      "height": 900,
+      "language": "zh",
+      "state": "recovered"
+    },
+    "tablet-en-unusable.png": {
+      "sha256": "0b0c90bcc3a12a1867a9f088cfb5112130b01fe1355f61843b5d6ad81e3981ac",
+      "bytes": 179880,
+      "width": 820,
+      "height": 1180,
+      "language": "en",
+      "state": "unusable"
+    },
+    "tablet-en-recovered.png": {
+      "sha256": "793f9181b5f7842d33d6788e1c1f11385a7318029adbc98ebcc0ade696924d9b",
+      "bytes": 186466,
+      "width": 820,
+      "height": 1180,
+      "language": "en",
+      "state": "recovered"
+    },
+    "tablet-zh-unusable.png": {
+      "sha256": "9461b114f47f67709480c370dc67244009750fa8f074d1452cd38db0eb41b75f",
+      "bytes": 178745,
+      "width": 820,
+      "height": 1180,
+      "language": "zh",
+      "state": "unusable"
+    },
+    "tablet-zh-recovered.png": {
+      "sha256": "79ab29cccc523748cc2408464db5e7ea7a97ce1b4fc568a603796608e91a5852",
+      "bytes": 184891,
+      "width": 820,
+      "height": 1180,
+      "language": "zh",
+      "state": "recovered"
+    },
+    "mobile-en-unusable.png": {
+      "sha256": "e3e7d7e6b469c1f7962dcefdf8f83ea8ad93419d0409e2443886db3d2a384013",
+      "bytes": 67011,
+      "width": 390,
+      "height": 844,
+      "language": "en",
+      "state": "unusable"
+    },
+    "mobile-en-recovered.png": {
+      "sha256": "257714e0ca3c254d62c1b249f67ebd6090997bc32ed230559bbefeeb4390f9c3",
+      "bytes": 68751,
+      "width": 390,
+      "height": 844,
+      "language": "en",
+      "state": "recovered"
+    },
+    "mobile-zh-unusable.png": {
+      "sha256": "4a2d1409b10403f1f6e4531c66f46314453ea9f970d8a010dbae448bb4e8b969",
+      "bytes": 67655,
+      "width": 390,
+      "height": 844,
+      "language": "zh",
+      "state": "unusable"
+    },
+    "mobile-zh-recovered.png": {
+      "sha256": "77dd05ed10b012c8f5a86a79526f3704044549b4882530e4ae999f1557ec16ad",
+      "bytes": 75647,
+      "width": 390,
+      "height": 844,
+      "language": "zh",
+      "state": "recovered"
+    }
+  },
+  "verification": {
+    "next_typegen_exit_code": 0,
+    "full_terminal_typecheck_exit_code": 0,
+    "browser_exit_code": 0,
+    "browser_passed": 6,
+    "browser_failed": 0,
+    "browser_flaky": 0,
+    "browser_duration_seconds": 35.6,
+    "prior_targeted_tests_reused": 199,
+    "reviewed_five_source_files_unchanged": true,
+    "assertions": [
+      "Malformed successful response stays unreadable with localized Retry; no loaded or empty readout.",
+      "Retry accepts valid empty producer shape via exactly one additional GET.",
+      "No target writes, zero page errors, no horizontal document overflow."
+    ],
+    "visual_inspection": [
+      "desktop-en-unusable.png",
+      "desktop-en-recovered.png",
+      "mobile-zh-unusable.png",
+      "mobile-zh-recovered.png"
+    ]
+  },
+  "commands": [
+    "npx next typegen",
+    "npx tsc --noEmit",
+    "TERMINAL_E2E_PORT=3194 MO_SETTINGS_SUMMARY_CAPTURE_DIRECTORY=/Volumes/Mastermind/agent-workspaces/claude/5600d31ffa29643a/mo-b-f08-targets-summary-read-c04912aaeec3e93f/terminal/docs/pr-crops/b-f08-target-summary-integrity npm run test:e2e:responsive -- e2e/settings-targets-summary.spec.ts --project=desktop --project=tablet --project=mobile --workers=1 --reporter=list,json"
+  ],
+  "limits": [
+    "Existing localhost fixture identity with intercepted portfolio-targets GET responses.",
+    "Existing Terminal dark-only surface; no light art direction or redesign.",
+    "Browser rendering and integrated source checks; no live signed-in persistence, tenant acceptance, hosted CI, merge, deployment or production proof.",
+    "No old PR902-owned evidence packet or hash changed."
+  ],
+  "writer": "STOPPED / RELEASED; parent owns publication"
+}
