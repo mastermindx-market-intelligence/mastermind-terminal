@@ -31,7 +31,8 @@ describe("actual Macro Python-generated synthetic-v0 private artifacts",()=>{
   expect(m.publicDeliveryAllowed).toBe(false);
   expect(r.publicDeliveryAllowed).toBe(false);
   expect(m.sourceAuthenticated).toBe(false);
- });  it("also pairs actual Python serializer outputs under their exact source hashes",()=>{
+ });
+ it("also pairs actual Python serializer outputs under their exact source hashes",()=>{
   const m=verified("minute","tp1PrivateMinute.synthetic.v0.json");
   const r=verified("research","tp1PrivateResearch.synthetic.v0.json");
   const p=pairPrivateEvidence(m,r);
@@ -52,6 +53,21 @@ describe("actual Macro Python-generated synthetic-v0 private artifacts",()=>{
   expect(m.sourceHashes.exchange_policy_sha256).toBeNull();
   expect(m.sourceHashes.quote_policy_sha256).toBeNull();
   expect(m.publicDeliveryAllowed).toBe(false);
+ });
+ it("preserves Python-derived 100 fractional digits without changing native receipts",()=>{
+  const bytes=readFileSync(new URL("tp1PrivateHighPrecision.synthetic.v0.json",here));
+  const digest="c2a0d860787e1967815635a8ceda2ecd47f9c3dad6bd2a7df9f4ba9fa0552372";
+  expect(bytes.length).toBe(2390);
+  expect(createHash("sha256").update(bytes).digest("hex")).toBe(digest);
+  const r=decodePrivateEvidence({
+    kind:"research",bytes,expectedLength:2390,expectedSha256:digest,
+  });
+  const expected="0."+"0".repeat(99)+"1";
+  expect(r.completedWindowResponseBps).toBe(expected);
+  expect(r.pressureBalance).toBe(expected);
+  expect(r.sourceHashes.source_manifest_sha256).toBe("e".repeat(64));
+  expect(r.productionApproved).toBe(false);
+  expect(r.publicDeliveryAllowed).toBe(false);
  });
 
 });
