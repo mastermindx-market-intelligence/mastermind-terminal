@@ -142,6 +142,17 @@ test("exiting Replay restores the chart without losing its symbol", async ({ pag
   await rail.getByRole("button", { name: "Previous bar", exact: true }).click(ACT);
   await expect.poll(idxOf, ACT).toBe(start);
 
+  const fullscreen = page.locator(".chart-fs-float");
+  if (await fullscreen.isVisible()) {
+    const floatRect = await fullscreen.boundingBox();
+    const counterRect = await rail.locator(".num").boundingBox();
+    expect(floatRect).not.toBeNull();
+    expect(counterRect).not.toBeNull();
+    const overlap = Math.max(0, Math.min(floatRect!.x + floatRect!.width, counterRect!.x + counterRect!.width) - Math.max(floatRect!.x, counterRect!.x))
+      * Math.max(0, Math.min(floatRect!.y + floatRect!.height, counterRect!.y + counterRect!.height) - Math.max(floatRect!.y, counterRect!.y));
+    expect(overlap, "fullscreen must not cover the Replay counter").toBe(0);
+  }
+
   await test.info().attach("replay-transport", { body: await page.screenshot({ path: test.info().outputPath("replay-transport.png") }), contentType: "image/png" });
 
   if (isPhoneViewport(page)) {

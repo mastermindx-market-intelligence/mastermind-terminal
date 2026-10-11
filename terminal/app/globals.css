@@ -5304,8 +5304,12 @@ html[data-shell="app"] .mm-brandbug{
 .mhub-ghost-tag{position:absolute;left:0;right:0;bottom:5px;color:var(--text-dim);font:600 8px/1 var(--font-ui);font-style:normal;text-align:center}
 
 .replay-transport{display:flex;align-items:center;gap:10px;padding:7px 14px;border-bottom:1px solid var(--line);background:var(--bg)}
+@media(max-width:860px){
+  /* The workspace's existing floating fullscreen button occupies the right edge. */
+  .replay-transport{padding-right:60px}
+}
 @media(max-width:640px){
-  .replay-transport{flex-wrap:wrap;gap:6px;padding:8px 10px}
+  .replay-transport{flex-wrap:wrap;gap:6px;padding:8px 60px 8px 10px}
   .replay-transport>.icbtn{flex:none;width:44px;height:44px}
   .replay-transport>.seg{flex:none;height:44px!important}
   .replay-transport>.seg button{min-width:44px;height:44px}
