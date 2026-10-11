@@ -21,8 +21,9 @@ const FIXTURES = join(process.cwd(), "lib", "__tests__", "fixtures", "fin-compar
 type FundJson = Record<string, unknown> & { statements: Record<string, Record<string, unknown>> };
 const fixture = (sym: string): FundJson => JSON.parse(readFileSync(join(FIXTURES, `${sym}.fund.json`), "utf8"));
 
-const fundPattern = (sym: string) =>
-  new RegExp(`/data/${encodeURIComponent(sym).replace(/\./g, "\\.")}\\.fund\\.json(?:\\?.*)?$`);
+// Match on the parsed path, never on a regex built from the ticker: a symbol is data (0700.HK,
+// BRK.B), and only an exact path comparison cannot be widened by what it contains.
+const fundPattern = (sym: string) => (url: URL) => url.pathname === `/data/${encodeURIComponent(sym)}.fund.json`;
 
 async function serveFund(page: Page, sym: string, body: FundJson = fixture(sym)): Promise<void> {
   await page.route(fundPattern(sym), (route: Route) => route.fulfill({ json: body }));
@@ -49,6 +50,48 @@ async function addPeer(page: Page, sym: string): Promise<void> {
 const cell = (page: Page, metric: string, sym: string, col: string) =>
   page.locator(`[data-fc-table="${metric}"] tr[data-fc-row="${sym}"] td[data-fc-col="${col}"]`);
 const row = (page: Page, metric: string, sym: string) => page.locator(`[data-fc-table="${metric}"] tr[data-fc-row="${sym}"]`);
+
+/**
+ * A row message (missing / failed peer) spans the figure columns. Scrolled to the latest figures —
+ * where a phone usually is — the message and its Retry must still be on screen, right of the sticky
+ * company column, not left behind at the start of the scrolled-away row.
+ */
+async function expectRowMessageInView(page: Page, metric: string, sym: string): Promise<void> {
+  const r = row(page, metric, sym);
+  const geometry = await r.evaluate((tr) => {
+    const scroller = tr.closest(".fin-table-scroll") as HTMLElement;
+    scroller.scrollLeft = scroller.scrollWidth;
+    const view = scroller.getBoundingClientRect();
+    const head = tr.querySelector("th")!.getBoundingClientRect();
+    const msg = tr.querySelector("td > span")!.getBoundingClientRect();
+    const retry = tr.querySelector("[data-fc-retry]")?.getBoundingClientRect() ?? null;
+    const out = {
+      overflow: scroller.scrollWidth - scroller.clientWidth,
+      scrolled: scroller.scrollLeft,
+      viewLeft: view.left,
+      viewRight: view.right,
+      headRight: head.right,
+      msgLeft: msg.left,
+      msgRight: msg.right,
+      retryLeft: retry?.left ?? null,
+      retryRight: retry?.right ?? null,
+    };
+    scroller.scrollLeft = 0;
+    return out;
+  });
+  if (page.viewportSize()!.width <= 560) {
+    // On a phone the figures really do scroll sideways, so this check can fail.
+    expect(geometry.overflow).toBeGreaterThan(40);
+    expect(geometry.scrolled).toBeGreaterThan(40);
+  }
+  expect(geometry.msgLeft).toBeGreaterThanOrEqual(geometry.headRight - 1);
+  expect(geometry.msgLeft).toBeGreaterThanOrEqual(geometry.viewLeft - 1);
+  expect(geometry.msgRight).toBeLessThanOrEqual(geometry.viewRight + 1);
+  if (geometry.retryLeft !== null) {
+    expect(geometry.retryLeft).toBeGreaterThanOrEqual(geometry.headRight - 1);
+    expect(geometry.retryRight!).toBeLessThanOrEqual(geometry.viewRight + 1);
+  }
+}
 
 async function expectNoPageOverflow(page: Page): Promise<void> {
   const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
@@ -258,6 +301,7 @@ test("a missing peer and a failed read are row states, and Retry recovers the fa
   await expect(missing).toHaveAttribute("data-fc-row-state", "absent");
   await expect(missing).toContainText("Statements for ZZZZ are not published.");
   await expect(missing.locator("[data-fc-value], [data-fc-rank], [data-fc-retry]")).toHaveCount(0);
+  await expectRowMessageInView(page, "revenue", "ZZZZ");
 
   await addPeer(page, "AAPL");
   const failed = row(page, "revenue", "AAPL");
@@ -266,6 +310,7 @@ test("a missing peer and a failed read are row states, and Retry recovers the fa
   await expect(failed.locator("[data-fc-value], [data-fc-rank]")).toHaveCount(0);
   // The anchor's rank ignores rows that could not be read.
   await expect(cell(page, "revenue", "NVDA", "F0").locator("[data-fc-rank]")).toHaveCount(0);
+  await expectRowMessageInView(page, "revenue", "AAPL");
 
   healthy = true;
   await failed.locator('[data-fc-retry="AAPL"]').click();

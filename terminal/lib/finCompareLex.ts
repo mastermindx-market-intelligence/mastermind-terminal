@@ -1,6 +1,7 @@
 "use client";
-import { useCallback } from "react";
+import { useMemo } from "react";
 import { useLang } from "./i18n";
+import { fmtDate } from "./finFormat";
 
 /**
  * Feature-local EN/ZH copy for the Financials · Compare workbench. Language state stays the
@@ -216,8 +217,27 @@ export function fcText(zh: boolean, key: FinCompareKey, vars?: FinCompareVars): 
   );
 }
 
+/**
+ * A period end or filing date in the active language: "Dec 31, 2025" (the Statements formatter)
+ * or "2025年12月31日". Dates are read as UTC calendar days, exactly as `fmtDate` reads them; a
+ * missing or unreadable date is the same dash in both languages.
+ */
+export function fcDate(zh: boolean, v: string | null | undefined): string {
+  if (!zh || v == null || v === "") return fmtDate(v);
+  const d = new Date(v.length <= 10 ? `${v}T00:00:00Z` : v);
+  if (Number.isNaN(d.getTime())) return fmtDate(v);
+  return `${d.getUTCFullYear()}年${d.getUTCMonth() + 1}月${d.getUTCDate()}日`;
+}
+
+/** `t(key, vars)` for this page, plus `t.date(iso)` so every date follows the same language. */
 export function useFinCompareT() {
   const { lang } = useLang();
   const zh = lang === "zh";
-  return useCallback((key: FinCompareKey, vars?: FinCompareVars) => fcText(zh, key, vars), [zh]);
+  return useMemo(
+    () =>
+      Object.assign((key: FinCompareKey, vars?: FinCompareVars) => fcText(zh, key, vars), {
+        date: (v: string | null | undefined) => fcDate(zh, v),
+      }),
+    [zh],
+  );
 }

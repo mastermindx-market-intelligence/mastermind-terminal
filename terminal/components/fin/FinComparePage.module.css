@@ -212,13 +212,26 @@
    (on a phone the pane grew to ~560px and could be scrolled sideways). */
 .scroll {
   position: relative;
+  /* The company column has ONE fixed width so a row message can stay pinned just right of it
+     while the figures scroll sideways (see .rowMsgText); the scroller is a size container so
+     that message can wrap to the visible width rather than the full table width. */
+  --fc-head: 176px;
+  container-type: inline-size;
 }
 .table {
   min-width: 100%;
 }
+.table .rowHead,
+.table :global(.fin-cell-corner) {
+  box-sizing: border-box;
+  width: var(--fc-head);
+  min-width: var(--fc-head);
+  max-width: var(--fc-head);
+}
 .rowHead {
   vertical-align: top;
-  min-width: 96px;
+  white-space: normal;
+  overflow-wrap: anywhere;
 }
 .rowSym {
   display: block;
@@ -254,7 +267,15 @@
   text-align: left;
   white-space: normal;
 }
+/* A missing / failed / refused-row message spans the figure columns. Pinned just right of the
+   sticky company column, it stays in view (with its Retry) however far the figures are scrolled —
+   on a phone the latest columns are usually the ones on screen. */
 .rowMsgText {
+  position: sticky;
+  left: calc(var(--fc-head) + 10px);
+  display: block;
+  width: max-content;
+  max-width: max(120px, calc(100cqw - var(--fc-head) - 20px));
   font: 500 11.5px/1.45 var(--font-ui);
   color: var(--text-2);
 }
@@ -441,10 +462,12 @@
     flex: 1;
     width: auto;
   }
+  .scroll {
+    /* Two figure columns still fit beside it on a 390px phone, and "USD · industrial" stays on
+       one line, so a row is two lines of meta rather than three. */
+    --fc-head: 112px;
+  }
   .cell {
     min-width: 98px;
-  }
-  .rowHead {
-    min-width: 78px;
   }
 }

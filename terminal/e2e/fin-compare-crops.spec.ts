@@ -28,8 +28,9 @@ const PEERS = ["AMD", "INTC", "JPM", "0700.HK", "MSFT"];
 async function open(page: Page, lang: "en" | "zh") {
   for (const sym of ["NVDA", ...PEERS]) {
     const body = JSON.parse(readFileSync(join(FIXTURES, `${sym}.fund.json`), "utf8"));
-    const re = new RegExp(`/data/${sym.replace(/\./g, "\\.")}\\.fund\\.json(?:\\?.*)?$`);
-    await page.route(re, (route) => route.fulfill({ json: body }));
+    // An exact path comparison, never a regex built from the ticker (0700.HK carries a dot).
+    const path = `/data/${encodeURIComponent(sym)}.fund.json`;
+    await page.route((url) => url.pathname === path, (route) => route.fulfill({ json: body }));
   }
   await page.addInitScript((l) => {
     window.localStorage.setItem("mm.lang", l as string);
@@ -53,23 +54,34 @@ async function open(page: Page, lang: "en" | "zh") {
   await page.mouse.move(0, 0);
 }
 
-/** Wait for a box to stop moving before it is captured. */
-async function steady(page: Page, selector: string) {
+/**
+ * Bring a box to the top of the pane, park the pointer (no hover highlight on a row), and wait for
+ * the box to stop moving before it is captured. With `clearOfBar`, a phone/tablet capture must sit
+ * entirely above the Financials bottom tab bar, which otherwise paints over the last rows.
+ */
+async function steady(page: Page, selector: string, opts: { clearOfBar?: boolean } = {}) {
   const el = page.locator(selector).first();
-  await el.scrollIntoViewIfNeeded();
-  await settled({
+  await el.evaluate((node) => node.scrollIntoView({ block: "start", inline: "nearest", behavior: "instant" }));
+  await page.mouse.move(0, 0);
+  const box = await settled({
     read: async () => JSON.stringify(await el.boundingBox()),
     ok: (v) => !!v && v !== "null",
     same: (a, b) => a === b,
     message: `${selector} never stopped moving`,
   });
+  const bar = page.locator(".fin-local-tabs-mobile");
+  if (opts.clearOfBar && (await bar.isVisible())) {
+    const { y, height } = JSON.parse(box) as { y: number; height: number };
+    const barTop = (await bar.boundingBox())!.y;
+    expect(y + height, `${selector} is covered by the bottom tab bar`).toBeLessThanOrEqual(barTop + 1);
+  }
   return el;
 }
 
 for (const lang of ["en", "zh"] as const) {
   test(`compare crops · ${lang}`, async ({ page }, info) => {
     const tag = `${info.project.name}-${lang}`;
-    await page.route(/\/data\/ZZZZ\.fund\.json(?:\?.*)?$/, (route) => route.fulfill({ status: 404, body: "not found" }));
+    await page.route((url) => url.pathname === "/data/ZZZZ.fund.json", (route) => route.fulfill({ status: 404, body: "not found" }));
     await open(page, lang);
 
     // 1. The top of the page: the Financials local tabs with Compare selected, and the controls.
@@ -79,16 +91,18 @@ for (const lang of ["en", "zh"] as const) {
     // 2. Fiscal-relative, annual: the industrial top line (JPM refused on format, 0700.HK on
     //    currency) and the family-neutral net income line (JPM compared).
     for (const metric of ["revenue", "net_income"]) {
-      const table = await steady(page, `[data-fc-table="${metric}"]`);
+      const table = await steady(page, `[data-fc-table="${metric}"]`, { clearOfBar: true });
       await table.screenshot({ path: join(OUT, `${tag}-fiscal-${metric}.png`), animations: "disabled" });
     }
 
     // 3. Calendar-aligned: relabelled columns, and MSFT's split June year left out.
     await page.locator('[data-fc-align-option="calendar"]').click();
+    await page.mouse.move(0, 0);
     await expect(page.locator('[data-fc-table="revenue"] th[data-fc-col="CY2025"]')).toBeVisible();
-    const calendar = await steady(page, '[data-fc-table="revenue"]');
+    const calendar = await steady(page, '[data-fc-table="revenue"]', { clearOfBar: true });
     await calendar.screenshot({ path: join(OUT, `${tag}-calendar-revenue.png`), animations: "disabled" });
     await page.locator('[data-fc-align-option="fiscal"]').click();
+    await page.mouse.move(0, 0);
 
     // 4. Source drilldown: AMD's latest FY revenue opens AMD's Statements on that column and row.
     await page.locator('[data-fc-cell="revenue:AMD:F0"]').click();
@@ -106,6 +120,7 @@ for (const lang of ["en", "zh"] as const) {
       await page.screenshot({ path: join(OUT, `${tag}-source-cell.png`), animations: "disabled" });
     }
     await page.locator("[data-fc-close-source]").click();
+    await page.mouse.move(0, 0);
 
     // 5. A peer with no published statements is a row state — no zero, no rank.
     await page.getByRole("button", { name: lang === "zh" ? "移除 MSFT" : "Remove MSFT" }).click();
@@ -113,8 +128,12 @@ for (const lang of ["en", "zh"] as const) {
     await input.fill("ZZZZ");
     await input.press("Enter");
     await expect(page.locator('[data-fc-table="revenue"] tr[data-fc-row="ZZZZ"]')).toHaveAttribute("data-fc-row-state", "absent");
-    await page.mouse.move(0, 0);
-    const missing = await steady(page, '[data-fc-table="revenue"]');
+    // Shown scrolled to the latest figures (where a phone sits): the row message stays pinned
+    // beside the company column instead of scrolling away with the first columns.
+    await page.locator('[data-fc-table="revenue"] .fin-table-scroll').evaluate((el) => {
+      el.scrollLeft = el.scrollWidth;
+    });
+    const missing = await steady(page, '[data-fc-table="revenue"]', { clearOfBar: true });
     await missing.screenshot({ path: join(OUT, `${tag}-missing-peer.png`), animations: "disabled" });
   });
 }

@@ -18,7 +18,7 @@ import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties, 
 import type { Fund } from "../../lib/fund";
 import { getJSONResult, invalidate } from "../../lib/dataCache";
 import { normalizeAnalysisSymbol } from "../../lib/analysisSymbol";
-import { fmtDate, fmtNum, fmtPct, statementCurrencyCode } from "../../lib/finFormat";
+import { fmtNum, fmtPct, statementCurrencyCode } from "../../lib/finFormat";
 import {
   incomeTopLineLabel,
   resolveStatementBasis,
@@ -68,6 +68,10 @@ interface FinComparePageProps {
 }
 
 // ── per-anchor choices, remembered for this tab (choices only — never statement data) ──────────
+// In memory only (gone on reload), never persisted, never sent anywhere, and holding nothing but
+// public tickers and toggle states — so it is deliberately not keyed to the signed-in owner (the
+// account-identity law covers owner-scoped stores of account data; this is not one). Subscribing
+// this page to auth changes just to forget a peer list would pull the auth client into a guest view.
 
 interface CompareChoices {
   peers: string[];
@@ -581,7 +585,12 @@ export default function FinComparePage({ sym, fund, fundLoading = false, onOpenT
                       </thead>
                       <tbody>
                         {table.rows.map((row) => (
-                          <tr key={row.sym} className="fin-row" data-fc-row={row.sym} data-fc-row-state={row.state.status}>
+                          <tr
+                            key={row.sym}
+                            className="fin-row"
+                            data-fc-row={row.sym}
+                            data-fc-row-state={row.state.status} // plain-language-ok: data attribute for tests, never rendered text
+                          >
                             <th scope="row" className={`fin-cell fin-cell-sticky ${styles.rowHead}`}>
                               <span className={styles.rowSym}>{row.sym}</span>
                               <RowSub t={t} row={row} />
@@ -730,7 +739,7 @@ function RowMessage({
     case "generation_gap":
       return (
         <span className={styles.rowMsgText}>
-          {t("fcGenerationGap", { sym: row.sym, latest: fmtDate(state.latestEnd), frame: fmtDate(state.frameEnd) })}
+          {t("fcGenerationGap", { sym: row.sym, latest: t.date(state.latestEnd), frame: t.date(state.frameEnd) })}
         </span>
       );
     case "ready":
@@ -760,16 +769,16 @@ function CellView({
   const period = source ? (
     <span className={styles.period}>
       <span className={styles.periodLabel}>{source.label}</span>
-      <span className={styles.periodEnd}>{t("fcCellEnded", { date: fmtDate(source.end) })}</span>
+      <span className={styles.periodEnd}>{t("fcCellEnded", { date: t.date(source.end) })}</span>
     </span>
   ) : null;
   const openLabel = source
-    ? t("fcOpenSource", { sym: row.sym, metric: label, label: source.label, date: fmtDate(source.end) })
+    ? t("fcOpenSource", { sym: row.sym, metric: label, label: source.label, date: t.date(source.end) })
     : undefined;
 
   if (cell.status === "ok" && cell.value != null && source) {
     const restatedTitle = source.restated
-      ? t("fcRestatedTitle", { filed: source.filed ? t("fcFiledOn", { date: fmtDate(source.filed) }) : t("fcFiledUnknown") })
+      ? t("fcRestatedTitle", { filed: source.filed ? t("fcFiledOn", { date: t.date(source.filed) }) : t("fcFiledUnknown") })
       : undefined;
     return (
       <td className={`fin-cell fin-cell-num ${styles.cell}`} data-fc-col={cell.column} data-fc-status="ok">
@@ -901,7 +910,7 @@ function SourcePanel({
         </button>
       </div>
       <p className={styles.sourceFor} data-fc-source-for>
-        {t("fcSourceFor", { sym: source.sym, metric: label, label: source.label, date: fmtDate(source.end) })}
+        {t("fcSourceFor", { sym: source.sym, metric: label, label: source.label, date: t.date(source.end) })}
       </p>
       <p className={styles.sourceMeta}>
         {t("fcSourceBasis", {
@@ -910,7 +919,7 @@ function SourcePanel({
           currency: currencyWord(t, sourceCurrency),
           family: t(FAMILY_WORD[source.family]),
         })}
-        {source.filed ? ` · ${t("fcFiledOn", { date: fmtDate(source.filed) })}` : ""}
+        {source.filed ? ` · ${t("fcFiledOn", { date: t.date(source.filed) })}` : ""}
       </p>
       {refusal && (
         <p className={styles.sourceRefusal} data-fc-source-refusal={cell.reason ?? undefined}>
@@ -919,7 +928,7 @@ function SourcePanel({
       )}
       {source.restated && (
         <p className={styles.sourceNote} data-fc-source-restated>
-          {t("fcRestatedTitle", { filed: source.filed ? t("fcFiledOn", { date: fmtDate(source.filed) }) : t("fcFiledUnknown") })}
+          {t("fcRestatedTitle", { filed: source.filed ? t("fcFiledOn", { date: t.date(source.filed) }) : t("fcFiledUnknown") })}
         </p>
       )}
       {source.derivation === "differenced_ytd" && <p className={styles.sourceNote}>{t("fcDifferencedTitle")}</p>}
