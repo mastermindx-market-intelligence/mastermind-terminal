@@ -45,6 +45,7 @@ import CompanyIntelligencePage from "./CompanyIntelligencePage";
 import ResearchWorkspaceNav from "./ResearchWorkspaceNav";
 import { isTranscriptId } from "../../lib/transcripts";
 import type { TranscriptOpenTarget } from "../../lib/transcriptSearch";
+import { writeTranscriptCompareParams } from "../../lib/transcriptCompare";
 
 // The page ids live in the import-free leaf `./finPages` — an eager module that needs
 // FIN_PAGES as a runtime value (TerminalShell does) must import it from THERE, never from
@@ -133,6 +134,7 @@ export default function MegaPane({
     const url = new URL(window.location.href);
     url.searchParams.delete("pane");
     url.searchParams.delete("tx");
+    writeTranscriptCompareParams(url.searchParams, null);
     window.history.replaceState(window.history.state, "", url.toString());
     onClose();
   }, [onClose]);
@@ -225,6 +227,7 @@ export default function MegaPane({
     } else {
       setTxTarget(null);
       url.searchParams.delete("tx");
+      writeTranscriptCompareParams(url.searchParams, null);
       window.history.replaceState(window.history.state, "", url.toString());
     }
     initialTxHydration.current = true;
