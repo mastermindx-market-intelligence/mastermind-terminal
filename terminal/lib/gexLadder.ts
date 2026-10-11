@@ -1,4 +1,5 @@
 import { isoSession } from "./dte";
+import { readOptionsMatrixSourceSession } from "./investigationOptionsReference";
 
 /**
  * gexLadder.ts — pure transforms behind the GEX desk's strike ladder (OEU T-A).
@@ -268,7 +269,8 @@ function describedGexDay(value: unknown): string | null {
  * builds, so it is never used as the 0DTE anchor.
  */
 export function matrixSourceSession(matrix: GexMatrix | null | undefined): string | null {
-  return isoSession(matrix?._build_meta?.asof_date);
+  const r = readOptionsMatrixSourceSession(matrix);
+  return r.ok ? r.sourceSession : null;
 }
 
 /**
