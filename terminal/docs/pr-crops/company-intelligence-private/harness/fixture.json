@@ -1,0 +1,102 @@
+{
+  "status": "ready",
+  "viewKey": "synthetic-view-1",
+  "query": "GOOG",
+  "selectedFactId": "integration:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+  "context": {
+    "schema": "company_intelligence.private_company_context/v1",
+    "identity_mode": "current",
+    "query": {
+      "namespace": "store",
+      "symbol": "GOOG"
+    },
+    "security_id": "SEC:US-XNAS-GOOG",
+    "issuer_binding": {
+      "issuer_id": "ISS:US-XNAS-TEST",
+      "evidenced_cik": "0000000001",
+      "identity_snapshot_reference": {
+        "schema": "company_intelligence.current_issuer_identity/v1",
+        "sha256": "b94c988b5b1463c0e57f8d83b74be7f87fc4715efa418470fcf5e1f74fedce90",
+        "byte_length": 629
+      }
+    },
+    "identity_receipt": {
+      "schema": "company_intelligence.current_issuer_identity/v1",
+      "identity_mode": "current",
+      "issuer_id": "ISS:US-XNAS-TEST",
+      "evidenced_cik": "0000000001",
+      "source_commit": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+      "sources": {
+        "security_master": {
+          "sha256": "1111111111111111111111111111111111111111111111111111111111111111",
+          "byte_length": 512
+        },
+        "vendor_aliases": {
+          "sha256": "2222222222222222222222222222222222222222222222222222222222222222",
+          "byte_length": 512
+        },
+        "issuer_master": {
+          "sha256": "3333333333333333333333333333333333333333333333333333333333333333",
+          "byte_length": 512
+        }
+      },
+      "evidence_source": "sec_company_tickers",
+      "evidence_snapshot": "2026-10-10"
+    }
+  },
+  "selection": {
+    "schema": "company_intelligence.private_issuer_selections/v1",
+    "identity_mode": "current",
+    "issuer_role": "subject_disclosing_company",
+    "issuer_binding": {
+      "issuer_id": "ISS:US-XNAS-TEST",
+      "evidenced_cik": "0000000001",
+      "identity_snapshot_reference": {
+        "schema": "company_intelligence.current_issuer_identity/v1",
+        "sha256": "b94c988b5b1463c0e57f8d83b74be7f87fc4715efa418470fcf5e1f74fedce90",
+        "byte_length": 629
+      }
+    },
+    "generation": "synthetic-generation",
+    "selections": [
+      {
+        "fact_id": "integration:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "fact_reference": {
+          "schema": "company_intelligence.product_integration_fact/v1",
+          "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+          "byte_length": 512
+        },
+        "edition_reference": {
+          "schema": "company_intelligence.issuer_disclosure_edition/v1",
+          "sha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+          "byte_length": 1024
+        },
+        "kind": "product_integration",
+        "lifecycle": "planned"
+      }
+    ]
+  },
+  "fact": {
+    "schema": "company_intelligence.private_product_integration/v1",
+    "generation": "synthetic-generation",
+    "authority": "context_only",
+    "reference": {
+      "schema": "company_intelligence.product_integration_fact/v1",
+      "sha256": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "byte_length": 512
+    },
+    "edition": {
+      "schema": "company_intelligence.issuer_disclosure_edition/v1",
+      "sha256": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+      "byte_length": 1024
+    },
+    "fact": {
+      "fact_id": "integration:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "kind": "product_integration",
+      "lifecycle": "planned",
+      "subject_id": "ISS:US-XNAS-TEST",
+      "product": "Synthetic product for layout review",
+      "platform": "Synthetic platform for layout review"
+    }
+  }
+}
