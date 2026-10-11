@@ -18,9 +18,9 @@ It uses the frozen existing source schemas `equity.tick_plane.private_minute_art
 
 ## Reproducible proof at the exact implementation candidate
 
-M2 Studio used an isolated /tmp test directory, with dependencies symlinked *read-only* from the existing Terminal installation; no workspace checkout, producer, daemon or source-host state was modified. At tested Terminal source-and-test head `ee19811723eee092ce075343fd044b9cd4f4f84a`:
+M2 Studio used an isolated /tmp test directory, with dependencies symlinked *read-only* from the existing Terminal installation; no workspace checkout, producer, daemon or source-host state was modified. At tested Terminal source-and-test head `29a6843a949fd8443ec2d54d73b6cff9e685a278`:
 
-- **32 Vitest cases passed**, including arbitrary nanosecond +1 difference, unsafe `Number` precision counterexample, hash/byte/canonical-source errors, spoofed authorization/public flags, invalid native counter/share/notional math and forged order-replenishment.
+- **37 Vitest cases passed**, including arbitrary nanosecond +1 difference, unsafe `Number` precision counterexample, hash/byte/canonical-source errors, spoofed authorization/public flags, invalid native counter/share/notional math and forged order-replenishment.
 - **Strict TypeScript compilation passed** (`tsc --noEmit --strict` with Node types).
 - A genuine **synthetic-only Python interop fixture** was generated against actual TP-1 head `a3879855b943e1007e43750b38aedd185d745cb9` and R0 head `f7c31402ab4ffc10c1ebe76aeb7929e2f8ab3526`; both source serializers produced byte-identical golden files under `lib/__tests__/fixtures/` (no licensed vendor tape). TP-1 golden SHA256 `71bed6bb49ffce62735cc50c9f16a181d69b80393e6737f7899b911985f7f2c8` (2362 bytes), R0 golden SHA256 `47fb5af5e6e7fb8b30c594725363d8d84d787e1879a8916362aa0b81016e9ad2` (2219 bytes). Original byte hashes, source watermark and quote-policy digests, native BigInt timestamps and private-only states verified together.
 
@@ -47,7 +47,15 @@ The existing Python private minute projector permits nullable sale, exchange and
 
 A third genuine Python-generator fixture is now frozen for **one unclassified source print**: `tp1PrivateUnknown.synthetic.v0.json` (2,210 bytes; SHA-256 `02e0bab2885af1a46e399aa1b9474486c1a650a61c3927a2726d702baa6406bf`), produced by the existing TP-1 `minute_projection` + `private_minute_artifact` under source head `a3879855...`. Sale, venue and quote-policy hashes were absent, but `TRADE_CONDITION_POLICY_UNQUALIFIED:1` and the original unknown-notional remain visible. The exact JavaScript decoder interoperated with these **actual Python-serializer bytes** without treating the absent reference as a market zero. Both trusted synthetic golden pairs and this source-invalid fixture contain no licensed market tape.
 
-The associated native-JSON lossless decoder, Python-generated golden interop, cross-artifact pairing and negative missing-policy cases pass **32 focused Vitest tests** at exact source/test head `ee19811723eee092ce075343fd044b9cd4f4f84a`, with targeted strict TypeScript compilation passing. This is still **only** a private, unauthenticated compatibility reader; it grants no live-source, customer delivery or publication status.
+The associated native-JSON lossless decoder, Python-generated golden interop, cross-artifact pairing and negative missing-policy cases pass **37 focused Vitest tests** at exact source/test head `29a6843a949fd8443ec2d54d73b6cff9e685a278`, with targeted strict TypeScript compilation passing. This is still **only** a private, unauthenticated compatibility reader; it grants no live-source, customer delivery or publication status.
+
+### Bounded high-precision R0 Decimal interoperability
+
+The incumbent R0 arithmetic repair expanded derived-value precision. At `macro@57bcd2a47d30504bb48197998e0b5c47d636a15a`, `private_context_view._signed` permits a bounded **544-character fixed-point string** (`2×(2×128+16)`), while source/notional and quote-size amounts use a separate **128-character** limit. The former Terminal Phase-A v0 decoder admitted just 30 fractional digits, which could wrongly classify a legitimate narrow research response as unavailable.
+
+At Terminal `29a6843a949fd8443ec2d54d73b6cff9e685a278`, this is corrected with bounded, exact decimal-string/fixed-`BigInt` arithmetic. It accepts 544-character **derived** research ratios/response but refuses 545; does not relax native source/share/quote-size bounds. Tests include both limits and a **byte-exact actual Python source-serializer fixture** `tp1PrivateHighPrecision.synthetic.v0.json` (2,390 bytes, SHA-256 `c2a0d860787e1967815635a8ceda2ecd47f9c3dad6bd2a7df9f4ba9fa0552372`) generated with a deliberately synthetic 100-fractional-digit R0 response/pressure case. The Python private writer's own readback verified those bytes first. This is a **wire/precision stress fixture**, not an empirical market return or an artificial claim that the live predictor attained 100-digit accuracy.
+
+Focused verification at this exact head: **37 Vitest tests PASS**, strict `tsc --noEmit` PASS, ESLint `--max-warnings=0` PASS. Tested in a temporary isolated directory with dependencies linked to the already-installed Terminal node_modules; no live source, production auth or user-facing service.
 
 ## Release gates and next in-scope phases
 
