@@ -12,6 +12,8 @@ export const OPTIONS_LEX = {
   loading: ["Loading options snapshot…", "正在加载期权快照…"], refresh: ["Refresh snapshot", "刷新快照"],
   unavailable: ["No covered snapshot", "暂无覆盖快照"],
   unavailableBody: ["The source did not publish usable data for this symbol and view. No other symbol is substituted.", "数据源尚未为该代码及视角发布可用数据。不会替换为其他代码。"],
+  snapshotAbsent: ["no published options snapshot for this symbol", "该代码没有已发布的期权快照"],
+  snapshotUnreadable: ["options data could not be read — retry", "期权数据无法读取 — 请重试"],
   identity: ["Source identity does not match this chart. Values are withheld.", "源数据标识与当前图表不符，已隐藏数值。"],
   session: ["The snapshot has no trustworthy session date. Values are withheld.", "快照缺少可信的交易日期，已隐藏数值。"],
   malformed: ["The source contains an incompatible or duplicate grid. Values are withheld.", "源数据网格格式不兼容或存在重复数据，已隐藏数值。"],

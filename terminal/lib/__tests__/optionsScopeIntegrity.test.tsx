@@ -8,7 +8,10 @@ import { matrixForExpiry, readCompanionMatrix, type OptionsChartLevel } from "@/
 import { buildMatrixGrid, matrixAxisDomain, matrixExactScopeStats, matrixSelectedNodeContext, type MatrixHeatCell, type StrikeExpiryDoc } from "@/components/shared/StrikeExpiryMatrix";
 
 // Market Memory has its own transport and race tests; scope tests stay deterministic.
-vi.mock("@/lib/flowClientCache", () => ({ flowGetFresh: vi.fn(async () => null) }));
+vi.mock("@/lib/flowClientCache", () => ({
+  flowGetFresh: vi.fn(async () => null),
+  flowGetResult: vi.fn(async () => ({ status: "absent", httpStatus: 404 })),
+}));
 const transport = vi.hoisted(() => ({ data: null as unknown }));
 vi.mock("@/components/options-companion/useOptionsSnapshot", () => ({ useOptionsSnapshot: () => ({ data: transport.data, loading: false, failed: false, refresh: vi.fn() }) }));
 const session = "2026-09-25", later = "2026-09-28", last = "2026-10-02";

@@ -6,7 +6,10 @@ import { MatrixCompanion, type MatrixPreferences } from "@/components/options-co
 import { optionsT } from "@/components/options-companion/optionsStrings";
 import type { OptionsChartLevel } from "@/lib/optionsCompanion";
 // Market Memory has its own transport and race tests; scope tests stay deterministic.
-vi.mock("@/lib/flowClientCache", () => ({ flowGetFresh: vi.fn(async () => null) }));
+vi.mock("@/lib/flowClientCache", () => ({
+  flowGetFresh: vi.fn(async () => null),
+  flowGetResult: vi.fn(async () => ({ status: "absent", httpStatus: 404 })),
+}));
 const transport = vi.hoisted(() => ({ data: null as unknown }));
 vi.mock("@/components/options-companion/useOptionsSnapshot", () => ({ useOptionsSnapshot: () => ({ data: transport.data, loading: false, failed: false, refresh: vi.fn() }) }));
 let node: HTMLDivElement, root: Root;

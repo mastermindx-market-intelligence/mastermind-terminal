@@ -1,6 +1,6 @@
 "use client";
 import { useEffect, useMemo, useState } from "react";
-import { flowGetFresh } from "@/lib/flowClientCache";
+import { flowGetResult, type FlowOutcome } from "@/lib/flowClientCache";
 import {
   buildCompanionGexMemory,
   formatExposureMn,
@@ -15,7 +15,16 @@ type MemoryState =
   | { key: string; status: "ready"; current: CompanionGexSnapshot; previous: CompanionGexSnapshot }
   | { key: string; status: "mismatch"; gexSession: string }
   | { key: string; status: "archive-missing"; previousSession: string }
+  | { key: string; status: "absent" }
+  | { key: string; status: "no-prior" }
   | { key: string; status: "unavailable" };
+
+/** A failed read must not look like a published gap. Unavailable wins over absent. */
+function readClass(outcomes: FlowOutcome[]): "data" | "absent" | "unavailable" {
+  if (outcomes.some((o) => o.status === "unavailable")) return "unavailable";
+  if (outcomes.some((o) => o.status === "absent")) return "absent";
+  return "data";
+}
 
 const fmtNetBn = (value: number | null) => value == null ? "—" : formatExposureMn(value * 1_000);
 const fmtMn = (value: number | null) => value == null ? "—" : formatExposureMn(value);
@@ -32,20 +41,28 @@ export function GexMarketMemory({ root, matrixSession, strike, t }: {
     let active = true;
     void (async () => {
       const [currentRaw, datesRaw] = await Promise.all([
-        flowGetFresh(`gex:${root}`),
-        flowGetFresh(`gex_dates:${root}`),
+        flowGetResult(`gex:${root}`),
+        flowGetResult(`gex_dates:${root}`),
       ]);
       if (!active) return;
-      const current = readCompanionGexSnapshot(currentRaw, root);
+      const liveClass = readClass([currentRaw, datesRaw]);
+      if (liveClass === "unavailable") { setState({ key, status: "unavailable" }); return; }
+      if (liveClass === "absent") { setState({ key, status: "absent" }); return; }
+      const current = readCompanionGexSnapshot(currentRaw.status === "data" ? currentRaw.data : null, root);
       if (!current.ok) { setState({ key, status: "unavailable" }); return; }
       if (current.value.session !== matrixSession) {
         setState({ key, status: "mismatch", gexSession: current.value.session }); return;
       }
-      const prior = previousAvailableGexSession(datesRaw, root, matrixSession);
-      if (!prior.ok || !prior.value.session) { setState({ key, status: "unavailable" }); return; }
-      const previousRaw = await flowGetFresh(`gex_at:${root}:${prior.value.session}`);
+      const prior = previousAvailableGexSession(datesRaw.status === "data" ? datesRaw.data : null, root, matrixSession);
+      if (!prior.ok) { setState({ key, status: "unavailable" }); return; }
+      if (!prior.value.session) { setState({ key, status: "no-prior" }); return; }
+      const previousRaw = await flowGetResult(`gex_at:${root}:${prior.value.session}`);
       if (!active) return;
-      const previous = readCompanionGexSnapshot(previousRaw, root);
+      if (previousRaw.status === "unavailable") { setState({ key, status: "unavailable" }); return; }
+      if (previousRaw.status === "absent") {
+        setState({ key, status: "archive-missing", previousSession: prior.value.session }); return;
+      }
+      const previous = readCompanionGexSnapshot(previousRaw.status === "data" ? previousRaw.data : null, root);
       if (!previous.ok || previous.value.session !== prior.value.session) {
         setState({ key, status: "archive-missing", previousSession: prior.value.session }); return;
       }
@@ -74,8 +91,14 @@ export function GexMarketMemory({ root, matrixSession, strike, t }: {
     <p className={styles.warning} role="status">{t("memoryArchiveMissing")}</p>
     <small>{visible.previousSession}</small>
   </>, "archive-missing");
-  if (visible.status !== "ready" || !memory) {
+  if (visible.status === "absent") {
+    return shell(<p className={styles.scopeHint} role="status">{t("snapshotAbsent")}</p>, "absent");
+  }
+  if (visible.status === "no-prior") {
     return shell(<p className={styles.scopeHint} role="status">{t("memoryUnavailable")}</p>, "unavailable");
+  }
+  if (visible.status !== "ready" || !memory) {
+    return shell(<p className={styles.scopeHint} role="status">{t("snapshotUnreadable")}</p>, "unavailable");
   }
 
   const currentNetMn = memory.current.netGexBn == null ? null : memory.current.netGexBn * 1_000;

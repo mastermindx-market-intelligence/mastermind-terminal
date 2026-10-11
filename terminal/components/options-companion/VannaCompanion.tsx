@@ -22,7 +22,7 @@ export function VannaCompanion({ root, t, windowPct, ...pin }: PinProps & { root
   const published = rows.filter((row) => row.valueMn != null);
   const total = published.reduce((sum, row) => sum + (row.valueMn ?? 0), 0);
   const selected = selection?.session === data?.session ? rows.find((row) => row.strike === selection?.strike) : undefined;
-  if (!data) return <SnapshotEmpty issue={receipt.ok ? "unavailable" : receipt.reason} t={t} loading={snapshot.loading} refresh={snapshot.refresh} />;
+  if (!data) return <SnapshotEmpty issue={receipt.ok ? "unavailable" : receipt.reason} fetchStatus={snapshot.status} t={t} loading={snapshot.loading} refresh={snapshot.refresh} />;
   return <>
     <SnapshotStamp session={data.session} t={t} refresh={snapshot.refresh} loading={snapshot.loading} />
     {snapshot.failed && <p className={styles.warning}>{t("failed")}</p>}

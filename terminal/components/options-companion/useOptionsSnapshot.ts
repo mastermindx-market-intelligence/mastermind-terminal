@@ -1,28 +1,47 @@
 "use client";
 import { useCallback, useEffect, useState } from "react";
-import { flowGetFresh } from "@/lib/flowClientCache";
+import type { UnavailableReason } from "@/lib/dataCache";
+import { flowGetResult, type FlowOutcome } from "@/lib/flowClientCache";
 
-/** One cache owner, bounded polling only while this visible perspective is mounted.
- * A late response is fenced by both effect lifetime and feed identity. Failure may retain
- * a clearly dated same-root snapshot; a new root never inherits another root's values.
+/** Discriminated read of one options feed. `data` / `loading` / `failed` stay for
+ * existing consumers: a refresh that did not land may still retain a same-root snapshot.
+ * A 403 is `unavailable` here; not-entitled copy is the `access` prop, never a FlowOutcome.
  */
-export function useOptionsSnapshot(feed: string) {
+export type OptionsSnapshotState =
+  | { status: "loading"; data: unknown; reason?: undefined }
+  | { status: "data"; data: unknown; reason?: undefined }
+  | { status: "absent"; data: unknown; reason?: undefined }
+  | { status: "unavailable"; data: unknown; reason: UnavailableReason };
+
+type Internal = OptionsSnapshotState & { feed: string };
+
+export function useOptionsSnapshot(feed: string): OptionsSnapshotState & {
+  loading: boolean;
+  failed: boolean;
+  refresh: () => void;
+} {
   const [version, setVersion] = useState(0);
-  const [state, setState] = useState<{ feed: string; data: unknown; loading: boolean; failed: boolean }>(
-    { feed: "", data: null, loading: true, failed: false },
-  );
+  const [state, setState] = useState<Internal>({ feed: "", status: "loading", data: null });
   const refresh = useCallback(() => setVersion((n) => n + 1), []);
   useEffect(() => {
     let active = true, inFlight = false;
     const load = async () => {
       if (inFlight || document.visibilityState === "hidden") return;
       inFlight = true;
-      setState((previous) => ({ feed, data: previous.feed === feed ? previous.data : null, loading: true, failed: false }));
-      let data: unknown = null;
-      try { data = await flowGetFresh(feed, version > 0); } catch { /* shared source can be temporarily unavailable */ }
+      setState((previous) => ({
+        feed, status: "loading", data: previous.feed === feed ? previous.data : null,
+      }));
+      let outcome: FlowOutcome;
+      try { outcome = await flowGetResult(feed, { refresh: version > 0 }); }
+      catch { outcome = { status: "unavailable", reason: "network" }; }
       inFlight = false;
       if (!active) return;
-      setState((previous) => ({ feed, data: data ?? (previous.feed === feed ? previous.data : null), loading: false, failed: data == null }));
+      setState((previous) => {
+        const retained = previous.feed === feed ? previous.data : null;
+        if (outcome.status === "data") return { feed, status: "data", data: outcome.data };
+        if (outcome.status === "absent") return { feed, status: "absent", data: retained };
+        return { feed, status: "unavailable", data: retained, reason: outcome.reason };
+      });
     };
     void load();
     const timer = setInterval(() => { void load(); }, 120_000);
@@ -30,5 +49,13 @@ export function useOptionsSnapshot(feed: string) {
     document.addEventListener("visibilitychange", visible);
     return () => { active = false; clearInterval(timer); document.removeEventListener("visibilitychange", visible); };
   }, [feed, version]);
-  return state.feed === feed ? { ...state, refresh } : { data: null, loading: true, failed: false, refresh };
+  if (state.feed !== feed) {
+    return { status: "loading", data: null, loading: true, failed: false, refresh };
+  }
+  return {
+    ...state,
+    loading: state.status === "loading",
+    failed: state.status === "absent" || state.status === "unavailable",
+    refresh,
+  };
 }

@@ -5,9 +5,11 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { GexMarketMemory } from "@/components/options-companion/GexMarketMemory";
 import { optionsT } from "@/components/options-companion/optionsStrings";
 import { buildCompanionGexMemory, previousAvailableGexSession, readCompanionGexSnapshot } from "@/lib/optionsCompanion";
-import { flowGetFresh } from "@/lib/flowClientCache";
-vi.mock("@/lib/flowClientCache", () => ({ flowGetFresh: vi.fn() }));
-const load = vi.mocked(flowGetFresh);
+import { flowGetResult } from "@/lib/flowClientCache";
+vi.mock("@/lib/flowClientCache", () => ({ flowGetResult: vi.fn() }));
+const load = vi.mocked(flowGetResult);
+const asData = (data: unknown) => ({ status: "data" as const, data });
+const asAbsent = () => ({ status: "absent" as const, httpStatus: 404 });
 const current = "2026-09-25", prior = "2026-09-23";
 const snapshot = (asof = current, root = "SPY") => ({ schema: "options_hub.gex/v1", root, asof, spot_ref: 770,
   net_gex_bn: asof === current ? 1.2 : 1, by_strike: [{ strike: 770, gamma_net: asof === current ? 8 : 2 }] });
@@ -18,7 +20,7 @@ beforeEach(() => {
   Object.assign(globalThis, { IS_REACT_ACT_ENVIRONMENT: true });
   vi.spyOn(Date, "now").mockReturnValue(Date.parse("2026-09-29T12:00:00Z"));
   load.mockReset();
-  load.mockImplementation(async (key) => key === "gex:SPY" ? snapshot() : key === "gex_dates:SPY" ? index() : key === `gex_at:SPY:${prior}` ? snapshot(prior) : null);
+  load.mockImplementation(async (key) => key === "gex:SPY" ? asData(snapshot()) : key === "gex_dates:SPY" ? asData(index()) : key === `gex_at:SPY:${prior}` ? asData(snapshot(prior)) : asAbsent());
   host = document.createElement("div"); document.body.append(host); root = createRoot(host);
 });
 afterEach(async () => { await act(async () => root.unmount()); host.remove(); vi.restoreAllMocks(); });
@@ -60,16 +62,16 @@ describe("Market Memory qualification", () => {
     expect(host.textContent).not.toContain("+1B");
   });
   it.each([null, snapshot(), snapshot(prior, "QQQ")])("shows a missing archive rather than using today's data: %j", async (archive) => {
-    load.mockImplementation(async (key) => key.startsWith("gex_at:") ? archive : key === "gex:SPY" ? snapshot() : index());
+    load.mockImplementation(async (key) => key.startsWith("gex_at:") ? (archive == null ? asAbsent() : asData(archive)) : key === "gex:SPY" ? asData(snapshot()) : asData(index()));
     await render(); expect(status()).toBe("archive-missing"); expect(host.textContent).not.toContain("+1B");
     expect(load.mock.calls.map(([key]) => key)).toEqual(["gex:SPY", "gex_dates:SPY", `gex_at:SPY:${prior}`]);
   });
   it("does not let an old root's delayed archive replace the new root", async () => {
     let finish!: (value: unknown) => void;
     const delayed = new Promise<unknown>(resolve => { finish = resolve; });
-    load.mockImplementation(async (key) => key === "gex:SPY" ? snapshot() : key === "gex_dates:SPY" ? index() : key.startsWith("gex_at:SPY:") ? delayed : null);
+    load.mockImplementation(async (key) => key === "gex:SPY" ? asData(snapshot()) : key === "gex_dates:SPY" ? asData(index()) : key.startsWith("gex_at:SPY:") ? delayed : asAbsent());
     await render(); expect(status()).toBe("loading");
-    await render("QQQ"); expect(status()).toBe("unavailable");
-    await act(async () => finish(snapshot(prior))); expect(status()).toBe("unavailable"); expect(host.textContent).not.toContain(prior);
+    await render("QQQ"); expect(status()).toBe("absent");
+    await act(async () => finish(snapshot(prior))); expect(status()).toBe("absent"); expect(host.textContent).not.toContain(prior);
   });
 });

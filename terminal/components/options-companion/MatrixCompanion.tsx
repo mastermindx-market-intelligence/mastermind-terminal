@@ -19,13 +19,23 @@ export function SnapshotStamp({ session, t, refresh, loading }: { session: strin
     <button type="button" onClick={refresh} disabled={loading} aria-label={t("refresh")} title={t("refresh")}>↻</button>
   </div>;
 }
-export function SnapshotEmpty({ issue = "unavailable", t, loading, refresh }: {
-  issue?: CompanionIssue; t: OptionsT; loading: boolean; refresh: () => void;
+export function SnapshotEmpty({ issue = "unavailable", fetchStatus, t, loading, refresh }: {
+  issue?: CompanionIssue; fetchStatus?: "loading" | "data" | "absent" | "unavailable";
+  t: OptionsT; loading: boolean; refresh: () => void;
 }) {
+  const copy = loading ? "loading"
+    : fetchStatus === "absent" ? "snapshotAbsent"
+    : fetchStatus === "unavailable" ? "snapshotUnreadable"
+    : issue === "unavailable" ? "unavailableBody"
+    : issue;
+  const title = loading ? "loading"
+    : fetchStatus === "absent" ? "snapshotAbsent"
+    : fetchStatus === "unavailable" ? "snapshotUnreadable"
+    : "unavailable";
   return <div className={styles.empty} role="status">
     <span aria-hidden="true" className={styles.emptyGlyph}>▦</span>
-    <strong>{t(loading ? "loading" : "unavailable")}</strong>
-    {!loading && <><p>{t(issue === "unavailable" ? "unavailableBody" : issue)}</p><button type="button" className={styles.action} onClick={refresh}>{t("refresh")}</button></>}
+    <strong>{t(title)}</strong>
+    {!loading && <><p>{t(copy)}</p><button type="button" className={styles.action} onClick={refresh}>{t("refresh")}</button></>}
   </div>;
 }
 export function PinButton({ root, strike, session, label, pinned, onPin, replayActive, t }: PinProps & {
@@ -99,7 +109,7 @@ export function MatrixCompanion({ root, metric, prefs, onPrefs, t, ...pin }: Pin
 
   return <>
     {data ? <SnapshotStamp session={data.session} t={t} refresh={snapshot.refresh} loading={snapshot.loading} />
-      : <SnapshotEmpty issue={receipt.ok ? "unavailable" : receipt.reason} t={t} loading={snapshot.loading} refresh={snapshot.refresh} />}
+      : <SnapshotEmpty issue={receipt.ok ? "unavailable" : receipt.reason} fetchStatus={snapshot.status} t={t} loading={snapshot.loading} refresh={snapshot.refresh} />}
     {snapshot.failed && data && <p className={styles.warning} role="status">{t("failed")}</p>}
     <div className={styles.scopeBar} data-options-scope={scopeOpen ? "editing" : "applied"}>
       <button ref={scopeToggleRef} type="button" className={styles.scopeButton} data-testid="options-scope-toggle" aria-expanded={scopeOpen} aria-controls="options-scope-editor"
