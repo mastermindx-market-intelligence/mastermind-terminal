@@ -4,6 +4,7 @@ import { Suspense } from "react";
 import { usePathname, useRouter } from "next/navigation";
 import { useT } from "@/lib/i18n";
 import { useActiveSymbol } from "@/lib/activeSymbol";
+import { MACRO_OVERVIEW_HREF } from "@/lib/investorShellPreview";
 // The nav-decoration policy is a leaf module so both nav surfaces share one rule and it can be
 // unit-tested without mounting a nav.
 import { navHref } from "@/lib/navSymbol";
@@ -60,15 +61,17 @@ export const TOP = [
 // useSearchParams() forces a CSR bailout during static prerender; the primary nav no longer
 // reads params (active key is pure path-prefix), but the Suspense boundary is retained so the
 // nav keeps rendering a stable fallback while the shell hydrates.
-export function AppNav() {
+type AppNavPresentation = { labelled?: boolean; id?: string; overviewBridge?: boolean };
+
+export function AppNav({ labelled = false, id, overviewBridge = false }: AppNavPresentation = {}) {
   return (
-    <Suspense fallback={<nav className="appnav" aria-label="Primary" />}>
-      <AppNavInner />
+    <Suspense fallback={<nav id={id} className="appnav" aria-label="Primary" />}>
+      <AppNavInner labelled={labelled} id={id} overviewBridge={overviewBridge} />
     </Suspense>
   );
 }
 
-function AppNavInner() {
+function AppNavInner({ labelled = false, id, overviewBridge = false }: AppNavPresentation) {
   const path = usePathname();
   const router = useRouter();
   const t = useT();
@@ -86,7 +89,27 @@ function AppNavInner() {
     : "chart";
   const openAI = () => { if (path.startsWith("/terminal")) window.dispatchEvent(new CustomEvent("mm:copilot")); else router.push("/terminal?ai=1"); };
   return (
-    <nav className="appnav" aria-label="Primary">
+    <nav id={id} className="appnav" aria-label="Primary">
+      {overviewBridge && (
+        <>
+          {/* Existing published Macro overview, not a new source of route or user state.
+              A normal document navigation hands control back to Macro's current owner. */}
+          <a
+            href={MACRO_OVERVIEW_HREF}
+            className="navbtn investor-overview-link"
+            data-investor-overview-bridge=""
+            aria-label={t("dashboard")}
+          >
+            <svg viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+              <path d="M3 11.5 12 4l9 7.5" />
+              <path d="M5.5 10.5V20h13V10.5" />
+              <path d="M9 20v-6h6v6" />
+            </svg>
+            {labelled && <span className="investor-nav-label">{t("dashboard")}</span>}
+          </a>
+          <div className="investor-nav-divider" aria-hidden="true" />
+        </>
+      )}
       {TOP.map((it) => {
         const on = it.k === activeKey;
         return (
@@ -97,13 +120,13 @@ function AppNavInner() {
               className={`navbtn${on ? " on" : ""}`}
               aria-current={on ? "page" : undefined}
               aria-label={t(it.k, it.label)}
-            ><Glyph k={it.k} /></Link>
+            ><Glyph k={it.k} />{labelled && <span className="investor-nav-label">{t(it.k, it.label)}</span>}</Link>
           </Tip>
         );
       })}
       <div className="gap" />
       <Tip label={t("ai")} side="right" size="mini">
-        <button className="navbtn" onClick={openAI} aria-label={t("ai")}><Glyph k="ai" /></button>
+        <button className="navbtn" onClick={openAI} aria-label={t("ai")}><Glyph k="ai" />{labelled && <span className="investor-nav-label">{t("ai")}</span>}</button>
       </Tip>
     </nav>
   );

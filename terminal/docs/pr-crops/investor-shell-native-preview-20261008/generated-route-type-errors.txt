@@ -1,0 +1,12 @@
+.next/types/app/api/account/deletion/route.ts(14,13): error TS2344: Type 'OmitWithTag<typeof import("/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/investor-shell-native-20261008-c1/terminal/app/api/account/deletion/route"), "POST" | "GET" | ... 15 more ... | "maxDuration", "">' does not satisfy the constraint '{ [x: string]: never; }'.
+  Property 'LIFECYCLE_TABLE' is incompatible with index signature.
+    Type '"account_lifecycle_requests"' is not assignable to type 'never'.
+.next/types/app/api/alerts/route.ts(14,13): error TS2344: Type 'OmitWithTag<typeof import("/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/investor-shell-native-20261008-c1/terminal/app/api/alerts/route"), "POST" | "GET" | "HEAD" | ... 14 more ... | "maxDuration", "">' does not satisfy the constraint '{ [x: string]: never; }'.
+  Property 'normalizeStoredAlert' is incompatible with index signature.
+    Type '(row: unknown) => unknown' is not assignable to type 'never'.
+.next/types/app/api/sector-intelligence/route.ts(14,13): error TS2344: Type 'OmitWithTag<typeof import("/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/investor-shell-native-20261008-c1/terminal/app/api/sector-intelligence/route"), "POST" | ... 16 more ... | "maxDuration", "">' does not satisfy the constraint '{ [x: string]: never; }'.
+  Property 'filteredSupabaseCookieHeader' is incompatible with index signature.
+    Type '(req: Request) => string | null' is not assignable to type 'never'.
+.next/types/app/api/v1/dislocations/route.ts(14,13): error TS2344: Type 'OmitWithTag<typeof import("/Users/chriswong/Documents/Cluade/charting-app/.claude/worktrees/investor-shell-native-20261008-c1/terminal/app/api/v1/dislocations/route"), "POST" | "GET" | ... 15 more ... | "maxDuration", "">' does not satisfy the constraint '{ [x: string]: never; }'.
+  Property 'MAX_EPISODES' is incompatible with index signature.
+    Type '200' is not assignable to type 'never'.
