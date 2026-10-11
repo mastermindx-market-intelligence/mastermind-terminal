@@ -211,7 +211,7 @@ amendment, only a README edit.
 | `0029` | `investigation_thesis_refs` | existing PR #804, IW2-G5 | open PR; its own applied receipt remains authoritative |
 | `0030` | `investigation_kernel` | existing PR #804, IW2-G1 repair | open PR; not applied |
 | `0031` | `drawings_atomic_replace` | existing PR #858, TERMINAL-AUDIT20-A04 | open PR; not applied |
-| `0032` | `thesis_proposal_state_qualification` | B-F11-PROPOSAL-STATE-SQL | reserved; not applied |
+| `0032` | `thesis_proposal_state_qualification` | PR #946, B-F11-PROPOSAL-STATE-SQL | open PR; not applied |
 
 `0001`–`0007` and `0010` are **historical**: they predate this ledger, their creating pull
 requests were never recorded in-repo, and so their `pr` and `pr_state` fields in
