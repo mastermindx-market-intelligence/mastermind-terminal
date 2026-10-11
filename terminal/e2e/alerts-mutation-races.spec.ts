@@ -34,6 +34,8 @@ for (const lang of ["en", "zh"] as const) {
     });
     await page.goto("/alerts");
     const form = page.locator(".alert-form");
+    // The SSR picker is interactive before hydration; this form's manifest effect adds TSLA.
+    await expect(form.locator('option[value="TSLA"]')).toBeAttached();
     const type = form.locator("select").filter({ has: page.locator('option[value="price_above"]') });
     await type.selectOption("price_above");
     const value = form.locator('input[type="number"]');
