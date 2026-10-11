@@ -171,8 +171,7 @@ export default function CompareAnchorStrip({ host, timeframe, legs, compareCfg, 
                 {mark && (
                   <span
                     className={mark.state === "incomparable" ? styles.markIncomparable : styles.markCaveat}
-                    // plain-language-ok: data attribute, not rendered text
-                    data-cmp-mark={mark.state}
+                    data-cmp-mark={mark.state} // plain-language-ok: data attribute, not rendered text
                   >
                     <span aria-hidden="true">{mark.state === "incomparable" ? "≠" : "≈"}</span>
                     {t(`cmpaMark_${mark.reason}`, { ccy: mark.currency ?? "?" })}
@@ -185,8 +184,7 @@ export default function CompareAnchorStrip({ host, timeframe, legs, compareCfg, 
         {flagState && (
           <span
             className={`${styles.flag} ${flagState === "incomparable" ? styles.markIncomparable : styles.markCaveat}`}
-            // plain-language-ok: data attribute, not rendered text
-            data-cmp-flag={flagState}
+            data-cmp-flag={flagState} // plain-language-ok: data attribute, not rendered text
           >
             <span aria-hidden="true">{flagState === "incomparable" ? "≠" : "≈"}</span>
             <b>{flagged.length > 1 ? `${flagged[0]} +${flagged.length - 1}` : flagged[0]}</b>
