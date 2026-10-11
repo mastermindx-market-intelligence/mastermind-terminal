@@ -10,8 +10,8 @@ import { createServerClient, createChunks, stringToBase64URL, stringFromBase64UR
 import type { Page } from "@playwright/test";
 import { fixtureAuthSetup } from "../../e2e/fixtures/investigation-auth";
 import { webcrypto } from "node:crypto";
-import { beforeAll, describe, expect, it, vi } from "vitest";
-import { createClient } from "@supabase/supabase-js";
+import { afterEach, beforeAll, describe, expect, it, vi } from "vitest";
+import { createClient, RealtimeClient, type WebSocketLikeConstructor } from "@supabase/supabase-js";
 import {
   E2E_AUTH_MARKER_VALUE,
   fixtureFlagsEnabled,
@@ -29,6 +29,19 @@ const env = (overrides: Partial<FixtureEnv>): FixtureEnv => ({ ...FIXTURE, ...ov
 const BASE_URL = "http://127.0.0.1:54321";
 const JWKS_URL = `${BASE_URL}/auth/v1/.well-known/jwks.json`;
 const BASE_KEY = "sb-127-auth-token";
+
+// Auth-only proof must not depend on native WebSocket availability (CI uses Node 20).
+// The pinned SDK accepts this transport without constructing it. Any attempt to
+// connect throws, and the per-case assertion catches attempts swallowed by callers.
+const rejectRealtimeSocket = vi.fn(function (): never {
+  throw new Error("Unexpected Realtime socket in auth-only fixture proof");
+});
+const authOnlyRealtime = { transport: rejectRealtimeSocket as unknown as WebSocketLikeConstructor };
+
+afterEach(() => {
+  try { expect(rejectRealtimeSocket).not.toHaveBeenCalled(); }
+  finally { rejectRealtimeSocket.mockClear(); }
+});
 
 beforeAll(() => {
   if (!globalThis.crypto?.subtle) vi.stubGlobal("crypto", webcrypto); // auth-js polyfills WebCrypto
@@ -76,6 +89,7 @@ describe("pinned SSR session vocabulary", () => {
     expect(JSON.parse(stringFromBase64URL(encoded!.slice("base64-".length)))).toEqual(session);
     const requested: string[] = [];
     const client = createServerClient(FIXTURE_ORIGIN, "fixture-anon-key", {
+      realtime: authOnlyRealtime,
       cookies: { getAll: () => cookies, setAll: () => {} },
       global: { fetch: async (input) => {
         const url = String(input); requested.push(url);
@@ -136,6 +150,7 @@ describe("the real pinned SDK verifies the fixture session", () => {
     const directStorageKey = `${BASE_KEY}-direct-sdk-proof`;
     if (sessionJson !== null) items.set(directStorageKey, sessionJson);
     return createClient(BASE_URL, "fixture-anon-key", {
+      realtime: authOnlyRealtime,
       auth: {
         storageKey: directStorageKey,
         storage: { // synthetic storage in the standard name/shape, not a ready-context stub
@@ -272,5 +287,24 @@ describe("parent fixture integration counterexamples", () => {
     expect(appPath.includes("/_")).toBe(false);
     const { AppPathnameNormalizer } = require(join(nextRoot, "dist/server/normalizers/built/app/app-pathname-normalizer.js"));
     expect(new AppPathnameNormalizer().normalize(appPath)).toBe(FIXTURE_JWKS_PATH);
+  });
+});
+
+// Exercise the actual SDK transport seam without opening a socket or changing globals.
+describe("auth-only Realtime transport guard", () => {
+  it("fails closed if the pinned SDK attempts a Realtime connection", () => {
+    const realtime = new RealtimeClient(`${BASE_URL}/realtime/v1`, {
+      params: { apikey: "fixture-anon-key" }, ...authOnlyRealtime,
+    });
+    try {
+      expect(rejectRealtimeSocket).not.toHaveBeenCalled();
+      expect(realtime.transport).toBe(authOnlyRealtime.transport);
+      expect(() => realtime.connect()).toThrow("Unexpected Realtime socket in auth-only fixture proof");
+      expect(rejectRealtimeSocket).toHaveBeenCalledTimes(1);
+      expect(realtime.isConnected()).toBe(false);
+    } finally {
+      // Only this deliberate refusal is exempt from the auth cases' zero-attempt guard.
+      rejectRealtimeSocket.mockClear();
+    }
   });
 });
