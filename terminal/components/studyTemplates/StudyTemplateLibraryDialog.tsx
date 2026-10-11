@@ -107,6 +107,31 @@ export default function StudyTemplateLibraryDialog({
 
   useDialogFocus(dialogRef, onClose);
 
+  // On a phone only one pane shows at a time, so the control that switched panes can disappear with
+  // the pane it lived in. Hand focus to the pane that is now on screen instead of dropping it on the
+  // page. Wider layouts keep both panes, and focus stays where the user left it.
+  const pendingFocus = useRef<"preview" | "list" | null>(null);
+  useEffect(() => {
+    const want = pendingFocus.current;
+    if (!want) return;
+    pendingFocus.current = null;
+    const root = dialogRef.current;
+    if (!root) return;
+    const active = document.activeElement as HTMLElement | null;
+    if (active && active !== root && root.contains(active) && active.offsetParent !== null) return;
+    const candidates = want === "preview"
+      ? ["#study-template-preview-title", "#study-template-rename", "[data-library-back]"]
+      : ['[data-template-row][aria-current="true"]', "[data-template-row]", "[data-library-close]"];
+    for (const selector of candidates) {
+      const target = root.querySelector<HTMLElement>(selector);
+      if (target && target.offsetParent !== null) {
+        target.focus();
+        return;
+      }
+    }
+    root.focus();
+  });
+
   const refreshDevice = useCallback(() => setDevice(readDeviceTemplates()), []);
   const selected = resolve(selection, account, device);
   const selectedKey = selected ? `${selected.source}:${selected.template.id}:${selected.template.revision}` : "";
@@ -134,7 +159,13 @@ export default function StudyTemplateLibraryDialog({
     setChartChanged(false);
   };
 
+  const showList = () => {
+    pendingFocus.current = "list";
+    setView("list");
+  };
+
   const choose = (ref: TemplateRef) => {
+    pendingFocus.current = "preview";
     setSelection(ref);
     setView("preview");
     resetRowState();
@@ -197,7 +228,7 @@ export default function StudyTemplateLibraryDialog({
         return;
       }
       setSelection(null);
-      setView("list");
+      showList();
       resetRowState();
       onToast("stplToastDeleted");
       return;
@@ -218,7 +249,7 @@ export default function StudyTemplateLibraryDialog({
     }
     onAccountChanged((list) => list.filter((entry) => entry.id !== id));
     setSelection(null);
-    setView("list");
+    showList();
     resetRowState();
     onToast("stplToastDeleted");
   };
@@ -399,7 +430,7 @@ export default function StudyTemplateLibraryDialog({
               </div>
             </form>
           ) : (
-            <h4 className={styles.previewTitle} id="study-template-preview-title">{template.name}</h4>
+            <h4 className={styles.previewTitle} id="study-template-preview-title" tabIndex={-1}>{template.name}</h4>
           )}
           {renaming === null && !confirmDelete && (
             <div className={styles.inlineBtns}>
@@ -548,7 +579,12 @@ export default function StudyTemplateLibraryDialog({
         <div className={styles.libraryHead}>
           <h3 id="study-template-library-title">{t("stplLibraryTitle")}</h3>
           {view === "preview" && (
-            <button type="button" className={`btn btn-ghost ${styles.back}`} onClick={() => { setView("list"); resetRowState(); }}>
+            <button
+              type="button"
+              className={`btn btn-ghost ${styles.back}`}
+              data-library-back=""
+              onClick={() => { showList(); resetRowState(); }}
+            >
               {t("stplBack")}
             </button>
           )}
@@ -562,7 +598,15 @@ export default function StudyTemplateLibraryDialog({
         </div>
         <div className="tmpl-btns">
           <button type="button" className="btn btn-ghost" onClick={onSaveCurrent}>{t("stplSaveCurrent")}</button>
-          <button type="button" className="btn btn-ghost" data-autofocus={initialSelection ? undefined : ""} onClick={onClose}>{t("stplClose")}</button>
+          <button
+            type="button"
+            className="btn btn-ghost"
+            data-autofocus={initialSelection ? undefined : ""}
+            data-library-close=""
+            onClick={onClose}
+          >
+            {t("stplClose")}
+          </button>
         </div>
       </div>
     </div>

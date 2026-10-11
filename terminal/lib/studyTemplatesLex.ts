@@ -118,6 +118,7 @@ export const STUDY_TEMPLATES_LEX: Record<string, [string, string]> = {
   stplToastSavedAccount: ["Template saved to your account", "模板已保存到账户"],
   stplToastSavedDevice: ["Template saved on this device", "模板已保存到本设备"],
   stplToastApplied: ["Template applied", "已应用模板"],
+  stplToastNoop: ["The chart already matches this template. Nothing changed.", "图表已与此模板一致，未作更改。"],
   stplToastDeleted: ["Template deleted", "模板已删除"],
   stplToastRenamed: ["Template renamed", "模板已重命名"],
   stplToastCopied: ["Copied to your account", "已复制到账户"],

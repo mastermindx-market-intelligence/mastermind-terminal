@@ -161,7 +161,7 @@ export default function StudyTemplatesHost({
         const plan = planStudyTemplateApply(studyRef.current, body, mode, contextRef.current);
         if (!plan.noop) applyRef.current(plan.next);
         announceApplied({ source: ref.source, id: ref.id, mode, noop: plan.noop, next: plan.noop ? null : plan.next });
-        showToast(t("stplToastApplied"));
+        showToast(t(plan.noop ? "stplToastNoop" : "stplToastApplied"));
       });
     };
     const onSaveRequest = () => setDialog({ kind: "save" });

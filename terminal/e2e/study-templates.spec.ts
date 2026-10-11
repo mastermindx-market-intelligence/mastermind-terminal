@@ -374,6 +374,15 @@ test("applying a template changes only the chart's studies, whatever else the re
   expect(receipts[0]).toMatchObject({ source: "device", id: "ct_hostile01", mode: "replace", noop: false });
   expect(receipts[0].next).toEqual({ inds: after.inds, indParams: after.indParams, hidden: after.hidden });
   await settledRsi(page, 1, "the template's RSI(9) should draw");
+
+  // The same template again changes nothing, and the toast says so instead of "Template applied".
+  const settled = await readStore(page);
+  await page.evaluate(() => window.dispatchEvent(new CustomEvent("mm:apply-template", { detail: { id: "ct_hostile01", mode: "replace" } })));
+  await expect(toast(page)).toHaveText("The chart already matches this template. Nothing changed.");
+  const again = await readReceipts(page);
+  expect(again).toHaveLength(2);
+  expect(again[1]).toMatchObject({ source: "device", id: "ct_hostile01", mode: "replace", noop: true, next: null });
+  expect(await readStore(page)).toEqual(settled);
   expect(errors).toEqual([]);
 });
 
@@ -754,6 +763,18 @@ test("the library and the save dialog work from the keyboard alone", async ({ pa
   await expect(target).toHaveAttribute("aria-current", "true");
   await expect(library(page).locator("[data-plan]")).toBeVisible();
   await expect.poll(() => focusIsInside(page, LIB), { message: "focus stays in the dialog after choosing a row" }).toBe(true);
+  const back = library(page).locator("[data-library-back]");
+  if (await back.isVisible()) {
+    // Phone: one pane at a time. Choosing a row hands focus to the preview, and Back hands it to the row.
+    await expect.poll(() => page.evaluate(() => document.activeElement?.id ?? "")).toBe("study-template-preview-title");
+    await tabTo(page, back, LIB);
+    await page.keyboard.press("Enter");
+    await expect(target).toBeVisible();
+    await expect.poll(() => page.evaluate(() => document.activeElement?.getAttribute("data-template-id") ?? "")).toBe(KEYS.id);
+    await page.keyboard.press("Enter");
+    await expect(library(page).locator("[data-plan]")).toBeVisible();
+    await expect.poll(() => page.evaluate(() => document.activeElement?.id ?? "")).toBe("study-template-preview-title");
+  }
   await tabTo(page, library(page).locator('input[name="study-template-mode"][value="replace"]'), LIB);
   await page.keyboard.press("ArrowDown");
   await expect(library(page).locator('input[name="study-template-mode"][value="merge"]')).toBeChecked();
