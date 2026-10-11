@@ -328,7 +328,7 @@ export default function ChartCaptureDialog({ open, onClose }: { open: boolean; o
           <div className={styles.preview} aria-busy={phase.kind === "capturing"}>
             {ready
               ? <img src={ready.url} alt={t("ccPreviewAlt")} data-testid="chart-capture-preview" />
-              : <p className={styles.state} role={phase.kind === "capturing" ? undefined : "alert"} data-testid="chart-capture-state">{stateText}</p>}
+              : <p className={styles.previewText} role={phase.kind === "capturing" ? undefined : "alert"} data-testid="chart-capture-state">{stateText}</p>}
           </div>
 
           <div className={styles.privacy}>

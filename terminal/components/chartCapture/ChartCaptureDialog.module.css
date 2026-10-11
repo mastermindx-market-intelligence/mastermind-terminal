@@ -46,7 +46,7 @@
   background: var(--panel-2); border: 1px solid var(--line); border-radius: 12px;
 }
 .preview img { display: block; width: 100%; height: auto; max-height: min(56dvh, 560px); object-fit: contain; border-radius: 11px; }
-.state { margin: 0; padding: 24px; max-width: 46ch; text-align: center; font-size: 13.5px; line-height: 1.5; color: var(--text); }
+.previewText { margin: 0; padding: 24px; max-width: 46ch; text-align: center; font-size: 13.5px; line-height: 1.5; color: var(--text); }
 
 .privacy {
   grid-area: privacy; padding: 12px 14px; background: var(--panel-2);
