@@ -114,7 +114,7 @@
     "cancellations": "absent"
   },
   "boundaries": [
-    "No DBN metadata/framing reader or decompressor implemented",
+    "This record-only module has no container reader or decompressor. The separate cme_dbn_container bridge supplies bounded uncompressed structural validation, without export authentication.",
     "No actual export authenticity or licensing grant verified",
     "No real market input or feed",
     "No public TradePrint/envelope emitted",

@@ -6,10 +6,11 @@ Prepared 2026-10-11. These components support reproducible offline development. 
 
 | Module | Purpose | Tests |
 | --- | --- | --- |
+| `ingest/cme_dbn_container.py` | Bounded uncompressed DBN container framing and private observation bridge | `tests/test_cme_dbn_container.py` |
 | `ingest/cme_databento_trades.py` | Private DBN trade observations | `tests/test_cme_databento_trades.py` |
 | `ingest/cme_native_fixture_ledger.py` | Explicitly synthetic decoded-native correction accounting | `tests/test_cme_native_fixture_ledger.py` |
 
-The reviewed private DBN origin has 63 author tests and 21 independent control groups passing. Native revision 3 has 57 author tests and 27 independent controls passing. The combined repository verification passes all 120 new tests and 109 existing IEX decoder tests: **229 passed, plus 176 subtests passed**, with no failures or skips. Root also replayed both original ledger counterexamples successfully. The [source verification receipt](evidence/large-trades/cme-source-verification.json) binds these results to exact source bytes. These results establish bounded synthetic contracts; actual market qualification and hosted CI require their own evidence.
+Before the container addition, the reviewed private DBN origin had 63 author tests and 21 independent control groups passing. Native revision 3 has 57 author tests and 27 independent controls passing. The combined repository verification passes all 120 new tests and 109 existing IEX decoder tests: **229 passed, plus 176 subtests passed**, with no failures or skips. Root also replayed both original ledger counterexamples successfully. The [source verification receipt](evidence/large-trades/cme-source-verification.json) binds these results to exact source bytes. These results establish bounded synthetic contracts; actual market qualification and hosted CI require their own evidence.
 
 Private origin SHA256s, before repository adoption:
 
@@ -22,6 +23,7 @@ From the repository root, with the existing test dependencies installed:
 
 ```sh
 python3 -B -m pytest -q -p no:cacheprovider \
+  tests/test_cme_dbn_container.py \
   tests/test_cme_databento_trades.py \
   tests/test_cme_native_fixture_ledger.py \
   tests/test_iex_deep_trades.py
@@ -29,13 +31,17 @@ python3 -B -m pytest -q -p no:cacheprovider \
 
 This command uses deterministic fixtures only. Machine-readable policies are [DBN observations](evidence/large-trades/cme-databento-observation-policy.json) and the [native fixture contract](evidence/large-trades/cme-native-fixture-contract.json). The frozen [research protocol](LARGE_TRADES_ABSORPTION.md) continues to govern any future efficacy evaluation.
 
+## Bounded uncompressed DBN containers
+
+The separate [container reader](CME_DBN_CONTAINER.md) validates the complete supported DBN v3 container, hashes the original full file and metadata prefix, and passes exact records with their original absolute offsets to the unchanged record normalizer. Its strict canonical profile, resource limits, explicit query-versus-split range declaration, and independent evidence are recorded in the [container policy](evidence/large-trades/cme-dbn-container-policy.json) and [source verification](evidence/large-trades/cme-dbn-container-verification.json). Structural parsing does not authenticate an export, supply definitions or qualify a feed. Public source admission remains unchanged.
+
 ## Exact DBN representation
 
 The normalizer accepts immutable **48-byte, little-endian TradeMsg blocks**, pinned to Databento DBN library **v0.71.0**, commit `d368005a636bae84bff443cd6ddae6430a0ffd00`, **wire version 3**. A library release number is not a wire version.
 
 The 16-byte header must identify twelve four-byte words, trade rtype 0, and publisher 1. Remaining offsets are price i64 at 16, quantity u32 at 24, action at 28, side at 29, flags at 30, depth at 31, capture timestamp u64 at 32, signed input delta i32 at 40, and sequence u32 at 44. Only trade action T is admitted. A/B/N mean sell/buy/unknown aggressor.
 
-Input binding declares GLBX.MDP3, trades schema, uncompressed blocks, no appended ts_out, and raw-symbol input. No complete DBN-file metadata/framing reader, decompressor, or export authenticator exists here.
+Input binding declares GLBX.MDP3, trades schema, uncompressed blocks, no appended ts_out, and raw-symbol input. This record-only module does not parse container metadata or decompress data. The separate container reader provides bounded uncompressed structural validation; neither component authenticates an export.
 
 Size 1301 means **1,301 reported contracts in one observation**. `orderCount`, native order ID, and native trade ID remain null. Contract quantity is never multiplied by the dollar multiplier or substituted with candle volume. Undefined prices, sizes, and timestamps refuse; zero size refuses. Integers remain exact, with raw prices and nanoseconds serialized as decimal strings. The narrow projection requires positive safe-integer prices on the declared tick; it never rounds unsupported values.
 

@@ -105,6 +105,12 @@ The [CME admission guide](../../CME_LARGE_TRADES_ADMISSION.md) and [source verif
 
 DBN quantities remain gross as reported with unsupported corrections; the native ledger is fixture-only. Neither component expands public source admission. Actual export framing, instrument definitions, native correction targeting, source completeness, rights, and consumer knowledge still need verification before any CME feed is published. The frozen research protocol and its IEX real-data receipt remain unchanged.
 
+### Bounded DBN container framing addition
+
+The [container reader](../../CME_DBN_CONTAINER.md) adds a strict, bounded uncompressed DBN v3 import profile around the unchanged private record normalizer. It verifies the full supplied container SHA256, header-and-metadata SHA256, declared metadata boundaries and exact original record offsets. The bridge requires an explicit half-open query range indexed by ts_recv; unknown and split-file range semantics are unsupported by this bridge. Its [source verification](cme-dbn-container-verification.json) preserves author and independent synthetic results, the original malformed test-vector failure and the integrated repository check.
+
+This closes the offline structural-reader gap. Actual export authenticity, dated trusted definitions, acquisition and knowledge provenance, native correction coverage, completeness and licensing remain separate admission requirements. No provider, public consumer or runtime publisher is activated by the reader. Current protected CI, actual merge, canonical deployment and authenticated production proof must still bind the final release source; an earlier CI result cannot certify this added module.
+
 ## 5. Exact CME/MNQ commercial approval still needed
 
 No commercial CME/MNQ entitlement or approved payable amount has been established. The pending approval is for a **written commercial quote and usage-rights grant covering `GLBX.MDP3` native MNQ trades and qualified quotes**, for Mastermind Terminal's actual deployment and audience.

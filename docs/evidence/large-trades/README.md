@@ -101,3 +101,7 @@ Data provided for free by IEX. By accessing or using IEX Historical Data, you ag
 ## Offline CME components
 
 The [CME admission guide](../../CME_LARGE_TRADES_ADMISSION.md) documents the private DBN observation normalizer and separate synthetic decoded-native correction ledger. Their [source verification receipt](cme-source-verification.json) records independent review and repository tests. These components preserve private/fixture-only eligibility and do not expand the public IEX source admission or this real-data cohort.
+
+### Bounded DBN container framing
+
+The [uncompressed DBN v3 container reader](../../CME_DBN_CONTAINER.md) now validates full-file framing and metadata content bindings before composing the unchanged record normalizer. Its [profile](cme-dbn-container-policy.json) and [source verification](cme-dbn-container-verification.json) distinguish structural evidence, author tests, independent synthetic controls and the integrated repository check. The original DBN/native verification above remains the prior record-level baseline. This addition uses no actual CME records, grants no rights and does not expand the IEX cohort, quote coverage, absorption evidence or OOS result.
