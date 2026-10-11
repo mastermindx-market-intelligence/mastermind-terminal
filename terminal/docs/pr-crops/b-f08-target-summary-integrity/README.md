@@ -24,3 +24,7 @@ The test uses the existing localhost fixture identity and intercepts portfolio-t
 ## Recapture on E20 landing train 2
 
 Train 2 merged a different `TerminalShell.tsx` and `globals.css`, both locked sources, so all twelve captures were regenerated on the merged tree (capture head `1bfb1c7f4`, Terminal master `2957bd64e` merged in). No PNG or hash was copied from either parent. The first recapture caught the desktop ZH `unusable` frame halfway through the section's entry animation, so the pane was blank. The capture now passes `animations: "disabled"`, which finishes that animation before the frame is taken; the test's assertions are unchanged. The repeat run passed 6 of 6 with retries off, and all twelve captures, EN and ZH, were viewed. `evidence.json` records the new hashes and keeps the previous capture under `priorCapture`.
+
+## Recapture on E20 landing train 3
+
+Train 3 merged a different `TerminalShell.tsx` (E16 itinerary and E19 capture wiring, plus the train 2 master sync), a locked source. All twelve captures were regenerated on the merged tree at capture head `523a7f117`, which includes Terminal master `85ad93866`. No PNG or hash was copied from either parent. The run passed 6 of 6 with retries off and `animations: "disabled"` unchanged. The other twelve locked sources keep their accepted hashes. Desktop ZH and EN `unusable`, tablet ZH `recovered` and mobile EN `recovered` were viewed. `evidence.json` records the new hashes and nests the train 2 capture under `priorCapture`.

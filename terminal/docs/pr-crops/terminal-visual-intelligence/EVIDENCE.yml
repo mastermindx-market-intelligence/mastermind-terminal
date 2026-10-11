@@ -1,8 +1,8 @@
-# Terminal Visual Intelligence Layer — E20 landing train 3 merged-tree source recapture (E08 #924 + E19 #952 ChartPanel)
+# Terminal Visual Intelligence Layer — E20 landing train 3 merged-tree source recapture after origin/master sync (train 2 #936)
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
 # Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
-# capturedAtHead: e6f4a64003f09bea43cd52fc893f76f99c223c1d
-# capturedAt: 2026-10-11T21:46:12Z
+# capturedAtHead: 523a7f117f45e5f46e448bb0f8f775e03784793e
+# capturedAt: 2026-10-11T22:54:07Z
 # Actual fresh local fixture captures; source identity remains the capture commit when artifacts are committed later.
 # Content-addressed layoutFiles + cropFiles, not ancestry, identify this capture.
 layoutFiles:
@@ -20,12 +20,12 @@ layoutFiles:
   terminal/lib/suites/trend/candlePainter.ts: "8384d2bce3af939a51e88584b1436ee2898a89f0fbf1aedc09ffee624a3e12e1"
   terminal/lib/indicator-canvas/host.ts: "4f2949efb22b8c378cab1ff9d176466c4857073c14a36ee4f0eeab4ec1015a25"
 cropFiles:
-  desktop-context.png: "347506a1af28d47bda116c78e03baf50c9ff779c645a806c69172b2782e2efda"
-  desktop-context-zh.png: "740810d62070f531e8384e6ee41edff63e8739ef20a39eb3e85239bb93604a98"
-  tablet-context.png: "0a66c435ecb6b2d44cc2c0645b1abed1b43d100c7e05be14d6f95fcabfb7cc61"
-  tablet-context-zh.png: "09c7434f535b600ddd9d7e9b38adf71f62dc0be2e0b1c64244e0063575bc4e8d"
-  mobile-context.png: "03197b5e9025c9e63eaa502ac938667f6d587fdb03a61642ba0c2bb9377bab78"
-  mobile-context-zh.png: "991427a14ed136c24439829362c6333c39732b6226d2e4dcba941ea9ac92a797"
+  desktop-context.png: "ea9920b1eb1c30237da9a914370ef1c336e3059660dfd7f6c632a9491dc19843"
+  desktop-context-zh.png: "2a73403e93866d2594fafc46bdf00157804bec272ba76647bbdd44e2a58ba4d1"
+  tablet-context.png: "320b87c539db31275a5701204e30cea4d87aac9aaf40248d0f91b942451ca5d0"
+  tablet-context-zh.png: "b26278a233e733b22346ccef8642cdd14eda377e354de05af7421aeb076da8c3"
+  mobile-context.png: "1f0fa0d2cd9cf67e22162b46924a7b2c5f9b57d2593b6ab908486538130dd466"
+  mobile-context-zh.png: "9a6c6b01a2aa962f1cbbce6b1e96a853af927a491bd066fcba6ca53abdfa1fd4"
 
 theme: dark
 languages: [en, zh]
@@ -46,9 +46,17 @@ browserResults:
   mobileCrosshairRegression: 1/1 passed
   visualIntelligenceMatrix: 30 passed; zero failures
 browserReportHashes:
-  visualReport: "46b5c63c31e7f2ce4c35439da7530f9eb1de1cdbfe433c38bd77970b1da740bc"
-  mobileCrosshairReport: "46b5c63c31e7f2ce4c35439da7530f9eb1de1cdbfe433c38bd77970b1da740bc"
+  visualReport: "488faedf49135ebaf34c611d84ca32f044fea5cdb4b336897411de929f35faf8"
+  mobileCrosshairReport: "488faedf49135ebaf34c611d84ca32f044fea5cdb4b336897411de929f35faf8"
 currentLocalGates:
+  sourceHead: 523a7f117f45e5f46e448bb0f8f775e03784793e
+  sourceIdentity: E20 landing train 3 merged tree after merging origin/master 85ad93866dcd9daf203c89a7d5e23280b5d6ed50 (train 2 #936)
+  captureServer: own landing-train-3 fixture next dev on 127.0.0.1:47321; lsof-verified owner
+  typecheck: PASS; next typegen then tsc --noEmit on the master-synced train-3 tree
+  visualCompatibility: 48 passed (16 desktop, 16 tablet, 16 mobile); zero failures, skips or flaky cases
+  focusedEvidenceGuards: lib/__tests__ Evidence gates rerun after this recapture
+  baselineDisposition: this EVIDENCE.yml conflicted in the origin/master sync (train 2 #936 touched TerminalShell, hub and alert sources); per PROGRAM_RULES §5 crops regenerated on the merged tree, never copied from either parent
+priorTrain3PreSyncLocalGates:
   sourceHead: e6f4a64003f09bea43cd52fc893f76f99c223c1d
   captureServer: own landing-train-3 fixture next dev on 127.0.0.1:47321; lsof-verified owner
   typecheck: PASS; next typegen then tsc --noEmit on the merged train-3 tree

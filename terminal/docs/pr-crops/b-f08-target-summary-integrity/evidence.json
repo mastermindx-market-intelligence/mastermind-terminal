@@ -1,10 +1,10 @@
 {
   "schema": "marketontology.b_f08.targets_summary.integrated_evidence.v1",
   "outcome": "PASS_SCOPED_INTEGRATED_SOURCE_TYPECHECK_AND_SETTINGS_BROWSER",
-  "capturedAt": "2026-10-11T20:51:40.382450+00:00",
-  "capturedAtHead": "1bfb1c7f4b08d9d375eec15be88467d645ec8f6c",
+  "capturedAt": "2026-10-11T22:59:12.249020+00:00",
+  "capturedAtHead": "523a7f117f45e5f46e448bb0f8f775e03784793e",
   "sourceRepairCommit": "a20df4ea4",
-  "integratedMaster": "2957bd64eec9ac3246a52789acb0f7de55400144",
+  "integratedMaster": "85ad93866dcd9daf203c89a7d5e23280b5d6ed50",
   "theme": "dark",
   "languages": [
     "en",
@@ -30,7 +30,7 @@
     "terminal/lib/__tests__/portfolioTargetsSummary.test.ts": "171288f7e5238d2f1185acc2de24a9df238c21e388229a1fdbe3b41f10744ba7",
     "terminal/components/settings/__tests__/SectionPortfolioTargets.summary.test.tsx": "8eca7a3e33e55af78d8ace33878e323b4b2f6447cfe94c8ef9cb32e933183cb5",
     "terminal/e2e/settings-targets-summary.spec.ts": "ca4c912e3a77f67284814fd3b790c440f7a7f1502e60b3808063c96aaabf91e0",
-    "terminal/components/TerminalShell.tsx": "359b860dae8a81337be72dc3a051815676df7a2d31c3f63636d5749204c7d36c",
+    "terminal/components/TerminalShell.tsx": "92281f24cef66cbf4ce39eca8709dc7c7424278748779e343db67401bf9f32bd",
     "terminal/components/settings/SettingsPanel.tsx": "526725b37af04f1092359a8aca1e6d3d6d62815b5913b3a7eba754e4ca020329",
     "terminal/components/settings/SettingsProvider.tsx": "a4c829c956ca7ffd89bbc3158009b1148bb613569a9716b092dd9a27d449d910",
     "terminal/app/settings.css": "d17ceff6469db97d3d4bcfb800503ee3c22e89b0770a1c0a88c9d39eb5a72837",
@@ -41,96 +41,96 @@
   },
   "captures": {
     "desktop-en-unusable.png": {
-      "sha256": "faa85ccc74c67242fff042d1a36d5607792f220421f957eaf40d291bd82532cd",
-      "bytes": 219928,
+      "sha256": "7686abb7530ee6e5e88ca51f3c790a30fa23e602ea0a038b815ddadc902e656b",
+      "bytes": 220392,
       "width": 1440,
       "height": 900,
       "language": "en",
       "state": "unusable"
     },
     "desktop-en-recovered.png": {
-      "sha256": "081913c81735c6ffb19a859dfbf3baf37afe1543e4c5f3a7f1602a151ac636d8",
-      "bytes": 225743,
+      "sha256": "68f9bb1ac7576be71cfd5041362c4e0bc486c07c2d5d93d137483d655ac1d8a5",
+      "bytes": 226197,
       "width": 1440,
       "height": 900,
       "language": "en",
       "state": "recovered"
     },
     "desktop-zh-unusable.png": {
-      "sha256": "19e2cbb19fb9f7c3961dd4964310ec8bea428c76b17fb6b311ee15852f403a6a",
-      "bytes": 223367,
+      "sha256": "ee0a848af41f42905048f98d656f334bb7bc572d7e77cb27d980dc3de56eb61e",
+      "bytes": 218185,
       "width": 1440,
       "height": 900,
       "language": "zh",
       "state": "unusable"
     },
     "desktop-zh-recovered.png": {
-      "sha256": "eefb1e13b212cb043d20a8994fbf376d1d176ca81277fd5ac106de2a28c75b55",
-      "bytes": 230439,
+      "sha256": "2afae8cda29e6d1d6d04b9ed46d3287480577b05df98e3f0005bd9c621106653",
+      "bytes": 226802,
       "width": 1440,
       "height": 900,
       "language": "zh",
       "state": "recovered"
     },
     "tablet-en-unusable.png": {
-      "sha256": "c0a4bbdadbb36e71103efeec5466dccc2a8d1f29075c5d13530e4e02af89505e",
-      "bytes": 181084,
+      "sha256": "cbc9453bae06c837a3af87db553d5b2e5eb92ef6522343795d3822d6a221c048",
+      "bytes": 179348,
       "width": 820,
       "height": 1180,
       "language": "en",
       "state": "unusable"
     },
     "tablet-en-recovered.png": {
-      "sha256": "7dbae994e7b2f40f045a676de394fa605955e5287a163688abe19c4456008e19",
-      "bytes": 188019,
+      "sha256": "591226235c1dcf5a1337424f538ede54b52e7c942ae1562b8d09611f77608f75",
+      "bytes": 185993,
       "width": 820,
       "height": 1180,
       "language": "en",
       "state": "recovered"
     },
     "tablet-zh-unusable.png": {
-      "sha256": "f51f15099c1180192f8d1287d2297205ffcd25790369508e70544a0a7a48c0c0",
-      "bytes": 180499,
+      "sha256": "094468e90134505b809ddab9831859f4effa376e582e023d620c64016a20a4e5",
+      "bytes": 179173,
       "width": 820,
       "height": 1180,
       "language": "zh",
       "state": "unusable"
     },
     "tablet-zh-recovered.png": {
-      "sha256": "1e2f3911151cd6069418bf2c251b3d7d7877ce4e11da9e9c0dbf5d61fbc2f3e3",
-      "bytes": 188063,
+      "sha256": "3672d3bc218e2c7ed0359afca25ae49fe336188d8843fe1f61923221860b1118",
+      "bytes": 186728,
       "width": 820,
       "height": 1180,
       "language": "zh",
       "state": "recovered"
     },
     "mobile-en-unusable.png": {
-      "sha256": "9dca562129791b3fcfdb246c217be64f1a0e90e101ca47392fd543f1804c1501",
-      "bytes": 65942,
+      "sha256": "ad5168e9dddf3b6fae7bfa0e814b43ae91ddfee6cf2a1b5619f2c5be136da1f8",
+      "bytes": 66167,
       "width": 390,
       "height": 844,
       "language": "en",
       "state": "unusable"
     },
     "mobile-en-recovered.png": {
-      "sha256": "dddd21b417b6c9e9c1472d9661398b78ce90957eb97648f4da1a6b5c9fe7093d",
-      "bytes": 70474,
+      "sha256": "2439239633873dfc266e0dd3a604a95f4cb406d715e2db905cbba793a8e3c540",
+      "bytes": 70685,
       "width": 390,
       "height": 844,
       "language": "en",
       "state": "recovered"
     },
     "mobile-zh-unusable.png": {
-      "sha256": "685ae8da7f77a51b09f324e6589133bd61ffba3dcaf0814fb7a4e854a3c56a28",
-      "bytes": 68410,
+      "sha256": "7cc4922b788155d3d3f865c840259d0e3b772b3adb1713fdc7009a6f899edf52",
+      "bytes": 68542,
       "width": 390,
       "height": 844,
       "language": "zh",
       "state": "unusable"
     },
     "mobile-zh-recovered.png": {
-      "sha256": "0e2e11f39c0af792273896c69051fbdcb4dbcbc199aad53c069e864448dc4c5d",
-      "bytes": 76518,
+      "sha256": "8c7e07766e492b66fbf52b0a977b68cf6e41671e73f2ac8f055795fb7e932c39",
+      "bytes": 76717,
       "width": 390,
       "height": 844,
       "language": "zh",
@@ -144,7 +144,7 @@
     "browser_passed": 6,
     "browser_failed": 0,
     "browser_flaky": 0,
-    "browser_duration_seconds": 29.3,
+    "browser_duration_seconds": 42.2,
     "prior_targeted_tests_reused": 199,
     "reviewed_five_source_files_unchanged": true,
     "assertions": [
@@ -153,16 +153,16 @@
       "No target writes, zero page errors, no horizontal document overflow."
     ],
     "visual_inspection": [
+      "desktop-zh-unusable.png",
+      "mobile-en-recovered.png",
       "desktop-en-unusable.png",
-      "desktop-en-recovered.png",
-      "mobile-zh-unusable.png",
-      "mobile-zh-recovered.png"
+      "tablet-zh-recovered.png"
     ]
   },
   "commands": [
     "npx next typegen",
     "npx tsc --noEmit",
-    "TERMINAL_E2E_PORT=47310 MO_SETTINGS_SUMMARY_CAPTURE_DIRECTORY=\"$PWD/docs/pr-crops/b-f08-target-summary-integrity\" npx playwright test e2e/settings-targets-summary.spec.ts --project=desktop --project=tablet --project=mobile --workers=1 --retries=0"
+    "TERMINAL_E2E_PORT=47322 MO_SETTINGS_SUMMARY_CAPTURE_DIRECTORY=\"$PWD/docs/pr-crops/b-f08-target-summary-integrity\" npx playwright test e2e/settings-targets-summary.spec.ts --project=desktop --project=tablet --project=mobile --workers=1 --retries=0"
   ],
   "limits": [
     "Existing localhost fixture identity with intercepted portfolio-targets GET responses.",
@@ -172,8 +172,13 @@
   ],
   "writer": "STOPPED / RELEASED; parent owns publication",
   "priorCapture": {
-    "capturedAt": "2026-10-11T11:09:26.056244+00:00",
-    "capturedAtHead": "9573d60ab12ff593b6e6764e75e2cf0ec9e049cc",
-    "reason": "E20 landing train 2 merged a different TerminalShell.tsx, a locked source; crops regenerated on the merged tree, never copied from either parent"
+    "capturedAt": "2026-10-11T20:51:40.382450+00:00",
+    "capturedAtHead": "1bfb1c7f4b08d9d375eec15be88467d645ec8f6c",
+    "reason": "E20 landing train 3 merged a different TerminalShell.tsx (E16/E19 hub and itinerary wiring plus the train 2 master sync), a locked source; crops regenerated on the merged tree, never copied from either parent",
+    "priorCapture": {
+      "capturedAt": "2026-10-11T11:09:26.056244+00:00",
+      "capturedAtHead": "9573d60ab12ff593b6e6764e75e2cf0ec9e049cc",
+      "reason": "E20 landing train 2 merged a different TerminalShell.tsx, a locked source; crops regenerated on the merged tree, never copied from either parent"
+    }
   }
 }
