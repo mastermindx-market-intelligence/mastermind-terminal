@@ -44,7 +44,9 @@ for (const lang of ["en", "zh"] as const) {
       const directory = process.env.MO_SETTINGS_SUMMARY_CAPTURE_DIRECTORY;
       if (!directory) return;
       await mkdir(directory, { recursive: true });
-      await page.screenshot({ path: join(directory, `${info.project.name}-${lang}-${state}.png`) });
+      // The section mounts with the acsRise entry animation; finish it so the
+      // crop never records a half-faded pane.
+      await page.screenshot({ path: join(directory, `${info.project.name}-${lang}-${state}.png`), animations: "disabled" });
     };
     await capture("unusable");
     const initial = [...methods];
