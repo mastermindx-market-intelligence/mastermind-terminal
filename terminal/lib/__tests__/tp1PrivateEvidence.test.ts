@@ -306,3 +306,55 @@ describe("private minute + R0 joint source/cutoff compatibility",()=>{
     expect(()=>pairPrivateEvidence(r,m)).toThrowError(/wrong_private_artifact_types/);
   });
 });
+
+function allUnknownMinute(): Record<string,unknown> {
+  const m=minute();
+  const c=m.counts as Record<string,number>;
+  c.n_sampled_prints=1;c.n_lit=1;c.n_unclassified=1;
+  c.n_buy_proxy=0;c.n_sell_proxy=0;c.n_midpoint=0;
+  c.n_lit_eligible_prints=0;c.n_lit_classified_quote_le5s_prints=0;
+  c.n_lit_classified_quote_gt5s_prints=0;c.n_lit_unclassified_prints=0;
+  c.n_lit_source_unqualified_prints=1;
+  c.n_source_volume_included_prints=1;
+  const dollars=m.notional_usd as Record<string,string>;
+  dollars.gross_sampled_notional_usd="100.50";
+  dollars.buy_proxy_notional_usd="0";
+  dollars.sell_proxy_notional_usd="0";
+  dollars.unknown_notional_usd="100.50";
+  const shares=m.volume_shares as Record<string,string>;
+  shares.source_all_printed_shares="10";
+  shares.source_volume_included_shares="10";
+  m.lit_quoted_notional_coverage="0";
+  m.unknown_reason_counts={TRADE_CONDITION_POLICY_UNQUALIFIED:1};
+  m.lit_unknown_reason_counts={};
+  m.condition_policy_sha256=null;m.exchange_policy_sha256=null;m.quote_policy_sha256=null;
+  return m;
+}
+describe("source missingness remains evidence, not a zero or an invented policy",()=>{
+ it("reads a fully abstained source minute with null condition references",()=>{
+   const m=allUnknownMinute();
+   const decoded=decodePrivateEvidence(input("minute",target=>Object.assign(target,m)));
+   expect(decoded.unknownReasons).toEqual({TRADE_CONDITION_POLICY_UNQUALIFIED:1});
+   expect(decoded.litUnknownReasons).toEqual({});
+   expect(decoded.sourceCounts.n_unclassified).toBe(1);
+   expect(decoded.notionalUsd.unknown_notional_usd).toBe("100.50");
+   expect(decoded.sourceHashes.condition_policy_sha256).toBeNull();
+   expect(decoded.sourceHashes.exchange_policy_sha256).toBeNull();
+   expect(decoded.sourceHashes.quote_policy_sha256).toBeNull();
+   expect(decoded.productionApproved).toBe(false);
+   expect(decoded.publicDeliveryAllowed).toBe(false);
+ });
+ it("does not treat missing source policy on a signed print as legitimate",()=>{
+   reject("minute",m=>{m.quote_policy_sha256=null;},/measured_without_source_policy/);
+ });
+ it("will not pair unknown-only source with source-qualified R0 research",()=>{
+   const m=decodePrivateEvidence(input("minute",target=>Object.assign(target,allUnknownMinute())));
+   const r=decodePrivateEvidence(input("research"));
+   expect(()=>pairPrivateEvidence(m,r)).toThrowError(/source_policy_or_receipt_mismatch/);
+ });
+ it("rejects untyped free-text reasons instead of leaking source paths",()=>{
+   reject("minute",m=>{
+     m.unknown_reason_counts={"vendor:/private/key.txt":1};
+   },/invalid_reason/);
+ });
+});
