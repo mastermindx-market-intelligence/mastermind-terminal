@@ -278,3 +278,9 @@
     transform: translate(-50%, 0);
   }
 }
+
+/* Phone: the body holds focus while the sheet is open (so keys reach the palette without raising
+   the keyboard). The highlighted row is the visible focus, so the container draws no ring. */
+.body:focus {
+  outline: none;
+}

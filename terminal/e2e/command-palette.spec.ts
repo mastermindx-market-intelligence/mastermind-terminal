@@ -3,9 +3,10 @@ import { expectTapTarget } from "./tapTarget";
 
 // E20 chart command palette: a search → action → return journey through the shell's own
 // handlers, in English and Chinese, at desktop, tablet and phone widths. Also proves the
-// guards: a chart change while choosing runs nothing on the first confirmation, typing ">" in a
-// text field or another dialog never opens the palette, and an unavailable action explains
-// itself instead of pretending to succeed.
+// guards: a chart change while choosing runs nothing on the first confirmation, a click on the
+// palette's own text keeps the keyboard in it, typing ">" in a text field or another dialog
+// never opens the palette, and an unavailable action explains itself instead of pretending to
+// succeed.
 
 type Lang = "en" | "zh";
 
@@ -189,6 +190,56 @@ for (const lang of ["en", "zh"] as const) {
       await confirm();
       await expect(dialog).toBeHidden();
       await expect(shownSymbol(page, testInfo)).not.toHaveText("NVDA");
+    });
+
+    test("clicks on the palette's own text keep the keyboard in the palette", async ({ page }, testInfo) => {
+      await openTerminal(page, lang);
+      const cursor = await activeCursor(page);
+      const symbolSearch = page.locator(".smodal, .msheet-search");
+      // Symbol search loads on first use. Open and close it once, so the checks below would see it
+      // the moment a stray key opened it, rather than passing before it finished loading.
+      await page.keyboard.press("q");
+      await expect(symbolSearch.first()).toBeVisible({ timeout: 20_000 });
+      // Escape closes it once its keyboard handling is ready; until then the key does nothing.
+      await expect(async () => {
+        await page.keyboard.press("Escape");
+        await expect(symbolSearch).toHaveCount(0, { timeout: 1_000 });
+      }).toPass({ timeout: 20_000 });
+      const settled = () => page.evaluate(() => new Promise((done) => requestAnimationFrame(() => requestAnimationFrame(done))));
+
+      const dialog = await openPalette(page, testInfo, lang);
+      const palette = page.locator("[data-command-palette]");
+      const focusInPalette = () => page.evaluate(() => Boolean(document.activeElement?.closest("[data-command-palette]")));
+      // None of these is a control. A click on one used to drop focus to the page, where the
+      // next letter opened symbol search hidden under the palette and Enter changed the chart.
+      const spots = [palette.locator("[data-palette-target]"), palette.locator("[role=group] > [role=presentation]").first()];
+      if (testInfo.project.name === "mobile") spots.push(page.locator(".msheet-title"));
+      else spots.push(dialog.locator("h2"), palette.locator("p[aria-hidden=true]"));
+      for (const spot of spots) {
+        await spot.click({ timeout: 20_000 });
+        await expect.poll(focusInPalette, { timeout: 20_000 }).toBe(true);
+      }
+
+      // The keys now belong to the palette: they search it, and nothing matches a ticker.
+      await page.keyboard.type("googl");
+      await page.keyboard.press("Enter");
+      await expect(palette.locator("input[role=combobox]")).toHaveValue("googl", { timeout: 20_000 });
+      await expect(dialog).toBeVisible({ timeout: 20_000 });
+      await settled();
+      await expect(symbolSearch).toHaveCount(0, { timeout: 20_000 });
+      await expect(shownSymbol(page, testInfo)).toHaveText("NVDA", { timeout: 20_000 });
+      expect(await activeCursor(page)).toBe(cursor);
+      expect(await focusInPalette()).toBe(true);
+
+      // A key that reaches the page itself while the palette is open still does not open
+      // symbol search underneath it.
+      await page.evaluate(() => {
+        document.body.dispatchEvent(new KeyboardEvent("keydown", { key: "g", bubbles: true, cancelable: true }));
+      });
+      await settled();
+      await expect(dialog).toBeVisible({ timeout: 20_000 });
+      await expect(symbolSearch).toHaveCount(0, { timeout: 20_000 });
+      await expect(shownSymbol(page, testInfo)).toHaveText("NVDA", { timeout: 20_000 });
     });
 
     test("an unavailable action explains itself and does not run", async ({ page }, testInfo) => {

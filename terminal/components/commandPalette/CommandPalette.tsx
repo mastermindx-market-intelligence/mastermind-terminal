@@ -10,8 +10,20 @@
  *
  * Desktop/tablet: a centred dialog with a combobox + listbox. Phone: the same body in the shared
  * MobileSheet (focus trap, Escape, drag-to-dismiss), opened without summoning the keyboard.
+ *
+ * While it is open, focus stays inside it. A press on its own text or padding does not move focus
+ * to the page, and focus that leaves it anyway is brought back, so the next key cannot reach a
+ * chart hotkey or the symbol search hidden under the palette.
  */
-import { useEffect, useId, useMemo, useRef, useState, type KeyboardEvent as ReactKeyboardEvent } from "react";
+import {
+  useEffect,
+  useId,
+  useMemo,
+  useRef,
+  useState,
+  type KeyboardEvent as ReactKeyboardEvent,
+  type MouseEvent as ReactMouseEvent,
+} from "react";
 import { createPortal } from "react-dom";
 import MobileSheet from "@/components/ui/MobileSheet";
 import {
@@ -38,6 +50,8 @@ export interface CommandPaletteProps {
 
 /** Runs that open their own dialog keep focus there instead of returning it to the opener. */
 const KEEPS_FOCUS = new Set(["open-indicators", "save-template", "goto-date"]);
+/** The palette's real controls; a press anywhere else in it leaves focus where it is. */
+const TAKES_FOCUS = "input, textarea, select, button, a[href]";
 
 export default function CommandPalette({ lang, context, phone, onRun, onClose }: CommandPaletteProps) {
   const t = (key: string, vars?: Record<string, string | number>) => paletteText(lang, key, vars);
@@ -46,7 +60,10 @@ export default function CommandPalette({ lang, context, phone, onRun, onClose }:
   const inputRef = useRef<HTMLInputElement>(null);
   const closeRef = useRef<HTMLButtonElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
+  const bodyRef = useRef<HTMLDivElement>(null);
   const openerRef = useRef<Element | null>(null);
+  /** Set once the palette starts closing, so focus handed to the opener or a dialog is kept there. */
+  const closingRef = useRef(false);
 
   const token = paletteContextToken(context);
   const [seenToken, setSeenToken] = useState(token);
@@ -74,6 +91,35 @@ export default function CommandPalette({ lang, context, phone, onRun, onClose }:
     return undefined;
   }, [phone]);
 
+  // Focus that leaves the open palette comes back to it: to the search field on wide layouts,
+  // to the palette body on the phone (focusing the field there would raise the keyboard).
+  // Checked a frame later, so a palette that is closing or unmounting is left alone.
+  useEffect(() => {
+    let frame = 0;
+    const inside = (node: unknown) => node instanceof Node && Boolean(bodyRef.current?.contains(node));
+    const reclaim = () => {
+      window.cancelAnimationFrame(frame);
+      frame = window.requestAnimationFrame(() => {
+        if (closingRef.current || !bodyRef.current?.isConnected || inside(document.activeElement)) return;
+        (phone ? bodyRef.current : inputRef.current)?.focus({ preventScroll: true });
+      });
+    };
+    const onFocusIn = (event: FocusEvent) => {
+      if (!closingRef.current && !inside(event.target)) reclaim();
+    };
+    // Focus dropped to nothing (the focused node was removed or blurred) is also reclaimed.
+    const onFocusOut = (event: FocusEvent) => {
+      if (!closingRef.current && event.relatedTarget === null) reclaim();
+    };
+    document.addEventListener("focusin", onFocusIn, true);
+    document.addEventListener("focusout", onFocusOut, true);
+    return () => {
+      window.cancelAnimationFrame(frame);
+      document.removeEventListener("focusin", onFocusIn, true);
+      document.removeEventListener("focusout", onFocusOut, true);
+    };
+  }, [phone]);
+
   // A new query starts from its best match.
   useEffect(() => { setActiveId(null); }, [query]);
 
@@ -85,6 +131,7 @@ export default function CommandPalette({ lang, context, phone, onRun, onClose }:
 
   const close = (restoreFocus: boolean) => {
     const opener = openerRef.current as HTMLElement | null;
+    closingRef.current = true;
     onClose();
     if (restoreFocus && !phone && opener && typeof opener.focus === "function" && opener.isConnected) {
       opener.focus({ preventScroll: true });
@@ -149,7 +196,21 @@ export default function CommandPalette({ lang, context, phone, onRun, onClose }:
         (document.activeElement === inputRef.current ? closeRef.current : inputRef.current)?.focus();
         return;
       default:
+        // A letter typed while focus is elsewhere in the palette (its body on the phone) searches
+        // the palette: the field takes focus before the character is inserted.
+        if (
+          e.key.length === 1 && !e.ctrlKey && !e.metaKey && !e.altKey
+          && e.target !== inputRef.current && !(e.target instanceof HTMLButtonElement)
+        ) {
+          inputRef.current?.focus({ preventScroll: true });
+        }
     }
+  };
+
+  // Wide layouts: only the palette's real controls take focus from a press; its title, target
+  // line, group labels, hint and padding leave focus in the search field.
+  const keepFocusOnPress = (e: ReactMouseEvent<HTMLDivElement>) => {
+    if (!(e.target instanceof Element) || !e.target.closest(TAKES_FOCUS)) e.preventDefault();
   };
 
   const target = describePaletteTarget(context, lang);
@@ -157,7 +218,16 @@ export default function CommandPalette({ lang, context, phone, onRun, onClose }:
   const shownNotice = notice ?? staleNotice;
 
   const body = (
-    <div className={`${styles.body}${phone ? ` ${styles.phone}` : ""}`} onKeyDown={onKeyDown} data-command-palette="1" data-stale={stale ? "1" : undefined}>
+    <div
+      ref={bodyRef}
+      className={`${styles.body}${phone ? ` ${styles.phone}` : ""}`}
+      onKeyDown={onKeyDown}
+      // Phone: the sheet parks focus here on open, so keys reach this handler without the keyboard.
+      tabIndex={phone ? -1 : undefined}
+      data-autofocus={phone ? "1" : undefined}
+      data-command-palette="1"
+      data-stale={stale ? "1" : undefined}
+    >
       {!phone && (
         <div className={styles.head}>
           <h2 id={`${baseId}-title`} className={styles.title}>{t("cpTitle")}</h2>
@@ -240,7 +310,7 @@ export default function CommandPalette({ lang, context, phone, onRun, onClose }:
   return createPortal(
     <>
       <div className={styles.scrim} aria-hidden="true" onMouseDown={() => close(true)} />
-      <div className={styles.dialog} role="dialog" aria-modal="true" aria-labelledby={`${baseId}-title`}>
+      <div className={styles.dialog} role="dialog" aria-modal="true" aria-labelledby={`${baseId}-title`} onMouseDown={keepFocusOnPress}>
         {body}
       </div>
     </>,

@@ -1,8 +1,8 @@
 // @vitest-environment jsdom
 /**
  * E20 chart command palette — the dialog's own behaviour: a stale highlight never runs on the
- * first confirmation, IME composition never confirms, disabled rows explain themselves, and keys
- * typed in the palette never reach the page's own hotkeys.
+ * first confirmation, IME composition never confirms, disabled rows explain themselves, keys
+ * typed in the palette never reach the page's own hotkeys, and focus stays inside the open palette.
  */
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { act } from "react";
@@ -153,6 +153,69 @@ describe("CommandPalette", () => {
     key("ArrowDown");
     window.removeEventListener("keydown", pageHotkey);
     expect(pageHotkey).not.toHaveBeenCalled();
+  });
+
+  it("AC-E20-03: a press on the palette's own text keeps focus in the search field", () => {
+    render();
+    const press = (el: Element) => {
+      const event = new MouseEvent("mousedown", { bubbles: true, cancelable: true });
+      act(() => { el.dispatchEvent(event); });
+      return event.defaultPrevented;
+    };
+    // The target line, a group label, the title, the key hint and the padding are not controls:
+    // pressing them must not move focus off the field to the page underneath.
+    expect(press(document.querySelector("[data-palette-target]")!)).toBe(true);
+    expect(press(document.querySelector("[role=group] > [role=presentation]")!)).toBe(true);
+    expect(press(document.querySelector("[role=dialog] h2")!)).toBe(true);
+    expect(press(document.querySelector("[role=dialog] p[aria-hidden=true]")!)).toBe(true);
+    expect(press(document.querySelector("[data-command-palette]")!)).toBe(true);
+    // Its real controls still take focus.
+    expect(press(input())).toBe(false);
+    expect(press(document.querySelector("button[aria-label=Close]")!)).toBe(false);
+  });
+
+  it("AC-E20-03: focus that leaves the open palette comes straight back", () => {
+    const outside = document.createElement("button");
+    document.body.appendChild(outside);
+    render();
+    expect(document.activeElement).toBe(input());
+    act(() => outside.focus());
+    expect(document.activeElement).toBe(input());
+    act(() => input().blur());
+    expect(document.activeElement).toBe(input());
+  });
+
+  it("AC-E20-03: a run that opens its own dialog keeps the focus that dialog takes", () => {
+    const other = document.createElement("input");
+    document.body.appendChild(other);
+    render();
+    typeQuery("add or edit");
+    key("Enter");
+    expect(ran).toEqual(["studies:open@All charts"]);
+    expect(closed).toBe(1);
+    // The study dialog focuses its own field; the closing palette must not pull focus back.
+    act(() => other.focus());
+    expect(document.activeElement).toBe(other);
+  });
+
+  it("AC-E20-03 (phone): the sheet keeps focus in the palette and a typed letter searches it", () => {
+    vi.stubGlobal("matchMedia", (query: string) => ({ matches: false, media: query, addEventListener() {}, removeEventListener() {} }));
+    const pageHotkey = vi.fn();
+    window.addEventListener("keydown", pageHotkey);
+    act(() => {
+      root.render(<CommandPalette lang="en" context={live} phone onRun={onRun} onClose={() => { closed += 1; }} />);
+    });
+    const body = document.querySelector<HTMLElement>("[data-command-palette]")!;
+    // Opening does not summon the keyboard: focus parks on the palette, not on its field.
+    expect(document.activeElement).toBe(body);
+    // A press on the sheet's own title or grabber focuses the sheet; focus comes back.
+    act(() => document.querySelector<HTMLElement>("[role=dialog]")!.focus());
+    expect(document.activeElement).toBe(body);
+    act(() => { body.dispatchEvent(new KeyboardEvent("keydown", { key: "g", bubbles: true, cancelable: true })); });
+    window.removeEventListener("keydown", pageHotkey);
+    expect(pageHotkey).not.toHaveBeenCalled();
+    expect(document.activeElement).toBe(input());
+    expect(ran).toEqual([]);
   });
 
   it("AC-E20-04: a disabled row explains itself and running it reports why instead of succeeding", () => {

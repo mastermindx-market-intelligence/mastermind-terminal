@@ -3048,9 +3048,14 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
   const onTick = useCallback((p: number) => setLivePx(p), []);
   const liveStatus = useLive(active, onTick);
 
+  // The chart command palette (E20, below) is modal: while it is open, a key that reaches the page
+  // must not open symbol search underneath it. Declared here so the type-anywhere effect can see it.
+  const [paletteOpen, setPaletteOpen] = useState(false);
+
   // type-anywhere → search; Ctrl/Cmd+K
   useEffect(() => {
     const h = (e: KeyboardEvent) => {
+      if (paletteOpen) return;
       const tag = (e.target as HTMLElement)?.tagName?.toLowerCase();
       if (tag === "input" || tag === "textarea") return;
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") { e.preventDefault(); setSeed(""); setSearchOpen(true); return; }
@@ -3058,7 +3063,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
       if (!searchOpen && e.key.length === 1 && /[a-zA-Z0-9]/.test(e.key)) { setSeed(e.key); setSearchOpen(true); }
     };
     window.addEventListener("keydown", h); return () => window.removeEventListener("keydown", h);
-  }, [searchOpen]);
+  }, [paletteOpen, searchOpen]);
 
   // Snapshot keyboard shortcuts (guarded: not when an input/textarea has focus)
   //   ⌥⌘S  → Download image
@@ -5145,8 +5150,8 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
   // the research nav's setPaneOpen, the symbol wheel's pick, the timeframe menu's FUNCTIONAL-guarded
   // setTf, the template menu's events, the indicator dialog, remove-all (with its 5-second undo),
   // the toolbar's drawing undo/redo, Bar Replay's toggle and the range row's go-to-date box. It
-  // adds no queue, no session and no account/alert/trade action.
-  const [paletteOpen, setPaletteOpen] = useState(false);
+  // adds no queue, no session and no account/alert/trade action. (`paletteOpen` is declared with
+  // the type-anywhere search effect, which stands down while the palette is open.)
   const [researchCloseRequest, setResearchCloseRequest] = useState(0);
   const paletteLang = lang === "zh" ? "zh" : "en";
   useEffect(() => {
