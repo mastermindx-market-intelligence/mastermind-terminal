@@ -141,7 +141,7 @@ import {
   uid,
 } from "@/lib/drawings";
 import { reconcileDrawingJournal, writeDrawingJournal, refreshDrawingJournalSymbol, selectDrawingRecoveryCopy } from "@/lib/drawingOutbox";
-import { parseDrawingSnapshot, parseDrawingSaveReceipt, prepareDrawingAttempt, settleDrawingAttempt, beginDrawingLoad, abandonDrawingLoad, abandonAllDrawingLoads, isCurrentDrawingLoad, shouldRescheduleDrawingFlush, type DrawingJournal, type DrawingSnapshot, type DrawingRevision } from "@/lib/drawingPersistence";
+import { parseDrawingSnapshot, parseDrawingSaveReceipt, prepareDrawingAttempt, settleDrawingAttempt, beginDrawingLoad, abandonDrawingLoad, abandonAllDrawingLoads, isCurrentDrawingLoad, shouldRescheduleDrawingFlush, decideDrawingLoadReconciliation, unionCloudWithPreloadAdditions, type DrawingJournal, type DrawingSnapshot, type DrawingRevision } from "@/lib/drawingPersistence";
 import { FREEHAND_DRAWING_KINDS, getDrawingTool, isDrawingToolId } from "@/lib/drawingTools";
 import { SHELL_DRAW_TOOLS } from "@/lib/drawingTaxonomy";
 import { type ShellPanelId } from "@/lib/platform/contract";
@@ -151,6 +151,7 @@ import { OnboardingProvider } from "@/components/onboarding/OnboardingProvider";
 import DrawingSidebar from "@/components/DrawingSidebar";
 import DayRange from "@/components/DayRange";
 import { useT, useLang } from "@/lib/i18n";
+import * as finFormat from "@/lib/finFormat";
 import { displayName } from "@/lib/markets";
 import { useFromMacro, backToMacro } from "@/lib/originNav";
 import { getJSON, prefetch, loadCoverage } from "@/lib/dataCache";
@@ -1728,6 +1729,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
     const ownerKey = drawOwner.current;
     const recovery = drawRecovery.current[ownerKey] ?? (drawRecovery.current[ownerKey] = {});
     const entry = recovery[sym] ?? (recovery[sym] = { drawings, ...(Object.hasOwn(drawRevisions.current, sym) ? { revision: drawRevisions.current[sym] } : {}) });
+    if (!Object.hasOwn(entry, "revision") && !Object.hasOwn(drawRevisions.current, sym)) return;
     const attempt = prepareDrawingAttempt(entry, () => crypto.randomUUID());
     if (!attempt) {
       void persistDrawingRecovery(ownerKey, recovery);
@@ -1833,7 +1835,11 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
       const entry = recovery[sym];
       if (entry) entry.drawings = normalized;
       else recovery[sym] = { drawings: normalized, ...(Object.hasOwn(drawRevisions.current, sym) ? { revision: drawRevisions.current[sym] } : {}) };
-      void persistDrawingRecovery(ownerKey, recovery);
+      // A durable row with no revision is re-read as a legacy copy. Keep pre-GET
+      // edits in memory until the pane GET stamps R, then persist once.
+      if (Object.hasOwn(recovery[sym], "revision") || Object.hasOwn(drawRevisions.current, sym)) {
+        void persistDrawingRecovery(ownerKey, recovery);
+      }
     }
     clearTimeout(drawTimers.current[sym]);
     drawTimers.current[sym] = setTimeout(() => flushDrawings(sym), 600);
@@ -2521,6 +2527,9 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
       if (drawLoaded.current.has(sym)) continue;
       drawLoaded.current.add(sym);
       if (loggedIn) {
+        if (drawPending.current[sym] === undefined) {
+          setDrawStore((s) => (s[sym] !== undefined ? s : { ...s, [sym]: [] }));
+        }
         const ownerEpoch = drawOwnerEpoch.current;
         const generation = beginDrawingLoad(drawLoadGeneration.current, sym);
         fetch(`/api/drawings?symbol=${encodeURIComponent(sym)}&ownerKey=${encodeURIComponent(drawOwner.current)}`).then((r) => {
@@ -2532,10 +2541,55 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
           if (!prevPaneSyms.current.has(sym)) return;
           const snapshot = parseDrawingSnapshot(d);
           if (!snapshot) throw new Error("Drawing snapshot is unavailable");
-          if (drawPending.current[sym] === undefined) {
+          const pending = drawPending.current[sym];
+          const ownerKey = drawOwner.current;
+          const recovery = drawRecovery.current[ownerKey] ?? (drawRecovery.current[ownerKey] = {});
+          const entry = recovery[sym];
+          let decision = decideDrawingLoadReconciliation({
+            cloudIds: snapshot.drawings.map((drawing) => drawing.id),
+            cloudRevision: snapshot.revision,
+            hasPending: pending !== undefined,
+            pendingIds: (pending ?? []).map((drawing) => drawing.id),
+            pendingRevisionPresent: Boolean(entry && Object.hasOwn(entry, "revision")),
+            pendingRevision: entry?.revision,
+            pendingBlocked: entry?.blocked,
+            pendingHasAlternatives: Boolean(entry?.alternatives?.length),
+          });
+          let merged: Drawing[] | null = null;
+          if (decision.action === "merge") {
+            merged = unionCloudWithPreloadAdditions(snapshot.drawings, pending ?? []);
+            if (!merged) decision = { action: "park", reason: "overlap" };
+          }
+          if (decision.action === "stamp") {
             drawRevisions.current[sym] = snapshot.revision;
-            setDrawStore((s) => (s[sym] !== undefined ? s : { ...s, [sym]: normalizeDrawings(snapshot.drawings) }));
-          } else setDrawingCloudCopies((copies) => ({ ...copies, [sym]: snapshot }));
+            setDrawStore((s) => ({ ...s, [sym]: normalizeDrawings(snapshot.drawings) }));
+          } else if (decision.action === "keep") {
+            drawRevisions.current[sym] = snapshot.revision;
+          } else if (decision.action === "merge" && merged) {
+            const mergedDrawings = merged;
+            drawRevisions.current[sym] = snapshot.revision;
+            drawPending.current[sym] = mergedDrawings;
+            if (entry) {
+              entry.drawings = mergedDrawings;
+              entry.revision = snapshot.revision;
+              delete entry.blocked;
+            } else {
+              recovery[sym] = { drawings: mergedDrawings, revision: snapshot.revision };
+            }
+            setDrawStore((s) => ({ ...s, [sym]: normalizeDrawings(mergedDrawings) }));
+            void persistDrawingRecovery(ownerKey, recovery);
+            clearTimeout(drawTimers.current[sym]);
+            drawTimers.current[sym] = setTimeout(() => flushDrawings(sym), 0);
+          } else {
+            const parkEntry = entry ?? (pending ? (recovery[sym] = { drawings: pending }) : undefined);
+            if (parkEntry) parkEntry.blocked ??= "conflict";
+            setDrawingCloudCopies((copies) => ({ ...copies, [sym]: snapshot }));
+            setDrawingSaveIssues((issues) => ({
+              ...issues,
+              [sym]: decision.action === "park" && decision.reason !== "conflict" ? "preload" : (parkEntry?.blocked ?? "conflict"),
+            }));
+            void persistDrawingRecovery(ownerKey, recovery);
+          }
           clearTimeout(drawLoadRetryTimers.current[sym]);
           delete drawLoadRetryTimers.current[sym];
           delete drawLoadRetryAttempts.current[sym];
@@ -2547,6 +2601,14 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
           if (!isCurrentDrawingLoad(drawLoadGeneration.current, sym, generation)) return;
           if (drawOwnerEpoch.current !== ownerEpoch || !prevPaneSyms.current.has(sym)) return;
           drawLoaded.current.delete(sym);
+          if (drawPending.current[sym] === undefined) {
+            setDrawStore((s) => {
+              if (s[sym] === undefined) return s;
+              const next = { ...s };
+              delete next[sym];
+              return next;
+            });
+          }
           setDrawingLoadFailures((failed) => failed.has(sym) ? failed : new Set(failed).add(sym));
           const attempt = (drawLoadRetryAttempts.current[sym] ?? 0) + 1;
           drawLoadRetryAttempts.current[sym] = attempt;
@@ -2570,7 +2632,10 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
       flushDrawings(sym);
       clearTimeout(drawLoadRetryTimers.current[sym]);
       delete drawLoadRetryTimers.current[sym];
-      if (drawSaving.current[sym] || drawPending.current[sym] !== undefined) continue;
+      if (drawSaving.current[sym] || drawPending.current[sym] !== undefined) {
+        if (!Object.hasOwn(drawRevisions.current, sym)) drawLoaded.current.delete(sym);
+        continue;
+      }
       drawLoaded.current.delete(sym);
       delete drawLoadRetryAttempts.current[sym];
       delete drawRevisions.current[sym];
@@ -2582,7 +2647,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
       setDrawStore((s) => { if (s[sym] === undefined) return s; const n = { ...s }; delete n[sym]; return n; });
     }
     prevPaneSyms.current = now;
-  }, [panes, flushDrawings, loggedIn, drawingLoadRetryVersion, email]);
+  }, [panes, flushDrawings, loggedIn, drawingLoadRetryVersion, email, persistDrawingRecovery]);
   useEffect(() => () => {
     for (const timer of Object.values(drawLoadRetryTimers.current)) clearTimeout(timer);
     for (const sym of Object.keys(drawPending.current)) flushDrawingsRef.current(sym);
@@ -6541,7 +6606,13 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
 
       {drawingOwnerMatches && drawingSaveIssues[active] && (
         <div className="undo-toast" role="alert" data-testid="drawing-save-recovery" style={{ position: "fixed", bottom: 176, left: "50%", transform: "translateX(-50%)", background: "var(--panel-3)", border: "1px solid var(--warn)", borderRadius: "var(--r-md)", padding: "12px 16px", fontSize: 12.5, color: "var(--text)", boxShadow: "0 8px 24px -8px rgba(0,0,0,.7)", zIndex: 53, width: "min(92vw, 560px)", display: "flex", flexWrap: "wrap", gap: 10 }}>
-          <span style={{ width: "100%" }}>{t(drawingSaveIssues[active] === "storage" ? "drawingStorageUnavailable" : drawingSaveIssues[active] === "retry" ? "drawingSaveRetry" : "drawingSaveConflict")}</span>
+          <span style={{ width: "100%" }}>{
+            drawingSaveIssues[active] === "storage" ? t("drawingStorageUnavailable")
+              : drawingSaveIssues[active] === "retry" ? t("drawingSaveRetry")
+              : drawingSaveIssues[active] === "preload"
+                ? finFormat.pick(lang === "zh", "You drew before your saved drawings finished loading. Choose which copy to keep.", "你在已保存图形载入完成前绘制了内容。请选择要保留的副本。")
+                : t("drawingSaveConflict")
+          }</span>
           {["retry", "storage"].includes(drawingSaveIssues[active]) ? (
             <button type="button" style={{ minHeight: 44 }} disabled={drawingSavesActive.has(active)} onClick={() => flushDrawings(active)}>{t("drawingRetrySave")}</button>
           ) : drawingCloudCopies[active] ? (

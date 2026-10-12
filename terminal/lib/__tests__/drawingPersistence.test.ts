@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { parseDrawingSaveReceipt, parseDrawingSnapshot, parsePersistedDrawings, prepareDrawingAttempt, settleDrawingAttempt, beginDrawingLoad, abandonDrawingLoad, abandonAllDrawingLoads, isCurrentDrawingLoad, shouldRescheduleDrawingFlush, type DrawingJournalEntry, type DrawingLoadGenerations } from "@/lib/drawingPersistence";
+import { parseDrawingSaveReceipt, parseDrawingSnapshot, parsePersistedDrawings, prepareDrawingAttempt, settleDrawingAttempt, beginDrawingLoad, abandonDrawingLoad, abandonAllDrawingLoads, isCurrentDrawingLoad, shouldRescheduleDrawingFlush, decideDrawingLoadReconciliation, unionCloudWithPreloadAdditions, type DrawingJournalEntry, type DrawingLoadGenerations } from "@/lib/drawingPersistence";
 import { readDrawingJournal, writeDrawingJournal, writeDrawingOutbox, refreshDrawingJournalSymbol, reconcileDrawingJournal, selectDrawingRecoveryCopy, DRAWING_JOURNAL_KEY, DRAWING_RECEIPTS_KEY, DRAWING_RECEIPTS_UNREADABLE_KEY, DRAWING_RECEIPT_HISTORY, DRAWING_RECEIPT_OWNERS, type DrawingJournalLocks } from "@/lib/drawingOutbox";
 let lockTail=Promise.resolve();
 const locks={request:(_name:string, fn:()=>unknown)=>{const task=lockTail.then(fn);lockTail=task.then(()=>{},()=>{});return task;}} as DrawingJournalLocks;
@@ -562,5 +562,71 @@ describe("drawing save settle reschedule", () => {
 
   it("does not auto-retry a failed save that is waiting for recovery", () => {
     expect(shouldRescheduleDrawingFlush({ queuedDuringSave: false, hasPending: true, timerArmed: false, saveSettledOk: false })).toBe(false);
+  });
+});
+
+describe("drawing load vs pre-GET local edits", () => {
+  const cloudRevision = revision;
+  const base = {
+    cloudIds: ["cloud-a"],
+    cloudRevision,
+    pendingBlocked: undefined as DrawingJournalEntry["blocked"] | undefined,
+    pendingHasAlternatives: false,
+  };
+
+  it("stamps the GET when this pane has no pending work", () => {
+    expect(decideDrawingLoadReconciliation({
+      ...base, hasPending: false, pendingIds: [], pendingRevisionPresent: false,
+    })).toEqual({ action: "stamp" });
+  });
+
+  it("merges when the only pending work is a no-revision pure addition", () => {
+    expect(decideDrawingLoadReconciliation({
+      ...base, hasPending: true, pendingIds: ["local-new"], pendingRevisionPresent: false,
+    })).toEqual({ action: "merge" });
+  });
+
+  it("parks overlapping no-revision pending ids instead of dropping either copy", () => {
+    expect(decideDrawingLoadReconciliation({
+      ...base, hasPending: true, pendingIds: ["cloud-a", "local-new"], pendingRevisionPresent: false,
+    })).toEqual({ action: "park", reason: "overlap" });
+  });
+
+  it("parks a no-revision empty pending set because it is not a proven addition", () => {
+    expect(decideDrawingLoadReconciliation({
+      ...base, hasPending: true, pendingIds: [], pendingRevisionPresent: false,
+    })).toEqual({ action: "park", reason: "preload" });
+  });
+
+  it("keeps post-load pending work whose revision already matches the GET", () => {
+    expect(decideDrawingLoadReconciliation({
+      ...base, hasPending: true, pendingIds: ["cloud-a", "local-new"],
+      pendingRevisionPresent: true, pendingRevision: cloudRevision,
+    })).toEqual({ action: "keep" });
+  });
+
+  it("parks when a pending revision disagrees with the GET", () => {
+    expect(decideDrawingLoadReconciliation({
+      ...base, hasPending: true, pendingIds: ["local-new"],
+      pendingRevisionPresent: true, pendingRevision: null,
+    })).toEqual({ action: "park", reason: "conflict" });
+  });
+
+  it("parks blocked or forked recovery instead of merging", () => {
+    expect(decideDrawingLoadReconciliation({
+      ...base, hasPending: true, pendingIds: ["local-new"], pendingRevisionPresent: false,
+      pendingBlocked: "legacy",
+    })).toEqual({ action: "park", reason: "conflict" });
+    expect(decideDrawingLoadReconciliation({
+      ...base, hasPending: true, pendingIds: ["local-new"], pendingRevisionPresent: false,
+      pendingHasAlternatives: true,
+    })).toEqual({ action: "park", reason: "conflict" });
+  });
+
+  it("unions cloud drawings with disjoint pre-load additions and refuses an overlap", () => {
+    const cloud = [line("cloud-a")];
+    const local = [line("local-new")];
+    expect(unionCloudWithPreloadAdditions(cloud, local)?.map((drawing) => drawing.id)).toEqual(["cloud-a", "local-new"]);
+    expect(unionCloudWithPreloadAdditions(cloud, [line("cloud-a")])).toBeNull();
   });
 });
