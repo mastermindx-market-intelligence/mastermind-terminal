@@ -18,6 +18,8 @@ export type DrawingJournalEntry = {
   revision?: DrawingRevision;
   attempt?: DrawingAttempt;
   blocked?: "legacy" | "conflict" | "superseded" | "invalid";
+  conflictCode?: "revision_conflict" | "owner_conflict" | "operation_payload_mismatch";
+  operationUnknownPossible?: true;
 };
 export type DrawingJournal = Record<string, DrawingJournalEntry>;
 export type DrawingSaveReceipt = {

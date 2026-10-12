@@ -142,6 +142,7 @@ import {
 } from "@/lib/drawings";
 import { reconcileDrawingJournal, writeDrawingJournal, refreshDrawingJournalSymbol, selectDrawingRecoveryCopy } from "@/lib/drawingOutbox";
 import { DRAWING_OWNER_HEADER, parseDrawingSnapshot, parseDrawingSaveReceipt, prepareDrawingAttempt, settleDrawingAttempt, beginDrawingLoad, abandonDrawingLoad, abandonAllDrawingLoads, isCurrentDrawingLoad, shouldRescheduleDrawingFlush, type DrawingJournal, type DrawingSnapshot, type DrawingRevision } from "@/lib/drawingPersistence";
+import { applyDrawingSaveConflict, drawingSaveIssueFromEntry, drawingSaveIssueOffersReplace, drawingSaveRecoveryMessage } from "@/lib/drawingSaveConflict";
 import { FREEHAND_DRAWING_KINDS, getDrawingTool, isDrawingToolId } from "@/lib/drawingTools";
 import { SHELL_DRAW_TOOLS } from "@/lib/drawingTaxonomy";
 import { type ShellPanelId } from "@/lib/platform/contract";
@@ -1768,8 +1769,12 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
         });
         if (drawOwnerEpoch.current !== ownerEpoch) return;
         if (!response.ok) {
-          if (response.status === 409) entry.blocked = "conflict";
-          else if ([400, 413, 422].includes(response.status)) entry.blocked = "invalid";
+          if (response.status === 409) {
+            let payload: unknown = null;
+            try { payload = await response.json(); } catch { payload = null; }
+            const issue = applyDrawingSaveConflict(entry, payload);
+            if (drawOwnerEpoch.current === ownerEpoch) setDrawingSaveIssues((issues) => ({ ...issues, [sym]: issue }));
+          } else if ([400, 413, 422].includes(response.status)) entry.blocked = "invalid";
           throw new Error("Drawing save was not acknowledged");
         }
         const receipt = parseDrawingSaveReceipt(await response.json(), attempt);
@@ -1788,8 +1793,8 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
       } catch {
         if (drawOwnerEpoch.current !== ownerEpoch) return;
         // Preserve both the exact unknown-outcome attempt and the newest edit.
-        setDrawingSaveIssues((issues) => ({ ...issues, [sym]: entry.blocked ?? "retry" }));
-        if (entry.blocked) void loadDrawingCloudCopy(sym);
+        setDrawingSaveIssues((issues) => ({ ...issues, [sym]: drawingSaveIssueFromEntry(entry) ?? "retry" }));
+        if (entry.blocked && entry.conflictCode !== "owner_conflict") void loadDrawingCloudCopy(sym);
       } finally {
         if (drawOwnerEpoch.current !== ownerEpoch) return;
         const durable = await persistDrawingRecovery(ownerKey, recovery);
@@ -2515,7 +2520,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
     prevPaneSyms.current.clear();
     setDrawStore(pending);
     setDrawingLoadFailures(new Set());
-    setDrawingSaveIssues(Object.fromEntries(Object.entries(recovered).filter(([, entry]) => entry.blocked).map(([sym, entry]) => [sym, entry.blocked!])));
+    setDrawingSaveIssues(Object.fromEntries(Object.entries(recovered).filter(([, entry]) => entry.blocked).map(([sym, entry]) => [sym, drawingSaveIssueFromEntry(entry)!])));
     setDrawingCloudCopies({});
     setDrawingSavesActive(new Set());
     setDrawingStorageUnavailable(false);
@@ -6551,10 +6556,10 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
 
       {drawingOwnerMatches && drawingSaveIssues[active] && (
         <div className="undo-toast" role="alert" data-testid="drawing-save-recovery" style={{ position: "fixed", bottom: 176, left: "50%", transform: "translateX(-50%)", background: "var(--panel-3)", border: "1px solid var(--warn)", borderRadius: "var(--r-md)", padding: "12px 16px", fontSize: 12.5, color: "var(--text)", boxShadow: "0 8px 24px -8px rgba(0,0,0,.7)", zIndex: 53, width: "min(92vw, 560px)", display: "flex", flexWrap: "wrap", gap: 10 }}>
-          <span style={{ width: "100%" }}>{t(drawingSaveIssues[active] === "storage" ? "drawingStorageUnavailable" : drawingSaveIssues[active] === "retry" ? "drawingSaveRetry" : "drawingSaveConflict")}</span>
+          <span style={{ width: "100%" }}>{drawingSaveRecoveryMessage(drawingSaveIssues[active], lang, t)}</span>
           {["retry", "storage"].includes(drawingSaveIssues[active]) ? (
             <button type="button" style={{ minHeight: 44 }} disabled={drawingSavesActive.has(active)} onClick={() => flushDrawings(active)}>{t("drawingRetrySave")}</button>
-          ) : drawingCloudCopies[active] ? (
+          ) : drawingSaveIssueOffersReplace(drawingSaveIssues[active]) && drawingCloudCopies[active] ? (
             <>
               <span style={{ width: "100%" }}>{t("drawingLocalCopy")} ({drawPending.current[active]?.length ?? 0}) · {t("drawingCloudCopy")} ({drawingCloudCopies[active].drawings.length})</span>
               {[...(drawRecovery.current[drawOwner.current]?.[active]?.alternatives ?? [])].map((copy, index) => (
@@ -6563,7 +6568,9 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
               <button type="button" style={{ minHeight: 44 }} disabled={drawingSavesActive.has(active)} onClick={() => resolveDrawingRecovery(active, "cloud")}>{t("drawingUseCloud")}</button>
               <button type="button" style={{ minHeight: 44 }} disabled={drawingSavesActive.has(active)} onClick={() => resolveDrawingRecovery(active, "local")}>{t("drawingKeepLocal")}</button>
             </>
-          ) : <button type="button" style={{ minHeight: 44 }} onClick={() => void loadDrawingCloudCopy(active)}>{t("drawingReviewCloud")}</button>}
+          ) : drawingSaveIssueOffersReplace(drawingSaveIssues[active]) ? (
+            <button type="button" style={{ minHeight: 44 }} onClick={() => void loadDrawingCloudCopy(active)}>{t("drawingReviewCloud")}</button>
+          ) : null}
         </div>
       )}
 

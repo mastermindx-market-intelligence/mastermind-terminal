@@ -115,6 +115,10 @@ function parseEntry(value: unknown): Entry | null {
   const entry: Entry = { drawings };
   if (Object.hasOwn(raw, "revision") && validDrawingRevision(raw.revision)) entry.revision = raw.revision;
   if (["legacy", "conflict", "superseded", "invalid"].includes(String(raw.blocked))) entry.blocked = raw.blocked as Entry["blocked"];
+  if (raw.conflictCode === "revision_conflict" || raw.conflictCode === "owner_conflict" || raw.conflictCode === "operation_payload_mismatch") {
+    entry.conflictCode = raw.conflictCode;
+  }
+  if (raw.operationUnknownPossible === true) entry.operationUnknownPossible = true;
   if (raw.attempt && typeof raw.attempt === "object") {
     const attempt = raw.attempt as Record<string, unknown>;
     const attemptedDrawings = parsePersistedDrawings(attempt.drawings);
@@ -134,7 +138,7 @@ function fingerprint(entry: Entry): string {
   // envelope fields without rewriting the attempted drawing JSON itself.
   return JSON.stringify([
     entry.drawings, Object.hasOwn(entry, "revision"), entry.revision ?? null,
-    entry.blocked ?? null,
+    entry.blocked ?? null, entry.conflictCode ?? null, entry.operationUnknownPossible === true,
     entry.attempt ? [entry.attempt.operationId, entry.attempt.expectedRevision, entry.attempt.drawings] : null,
   ]);
 }

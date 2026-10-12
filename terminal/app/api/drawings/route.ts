@@ -57,16 +57,54 @@ export async function GET(req: Request) {
   return NextResponse.json(snapshot, { headers: { "Cache-Control": "private, no-store" } });
 }
 
+function drawingPayloadTooLarge() {
+  return NextResponse.json({ ok: false, error: "Drawing payload is too large" }, { status: 413 });
+}
+
+/** Auth already ran. Reject from Content-Length, else count stream bytes and abort at cap+1. */
+async function readCappedDrawingBody(req: Request): Promise<{ text: string } | NextResponse> {
+  const declared = req.headers.get("content-length");
+  if (declared && /^\d+$/.test(declared) && Number(declared) > MAX_DRAWING_PAYLOAD_BYTES) {
+    return drawingPayloadTooLarge();
+  }
+  if (!req.body) return { text: "" };
+  const reader = req.body.getReader();
+  const chunks: Uint8Array[] = [];
+  let total = 0;
+  try {
+    for (;;) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      if (!value?.byteLength) continue;
+      total += value.byteLength;
+      if (total > MAX_DRAWING_PAYLOAD_BYTES) {
+        await reader.cancel().catch(() => undefined);
+        return drawingPayloadTooLarge();
+      }
+      chunks.push(value);
+    }
+  } catch {
+    return NextResponse.json({ ok: false, error: "Invalid JSON" }, { status: 400 });
+  } finally {
+    try { reader.releaseLock(); } catch { /* cancelled or already released */ }
+  }
+  const bytes = new Uint8Array(total);
+  let offset = 0;
+  for (const chunk of chunks) {
+    bytes.set(chunk, offset);
+    offset += chunk.byteLength;
+  }
+  return { text: new TextDecoder().decode(bytes) };
+}
+
 export async function PUT(req: Request) {
   const { supabase, user } = await ctx();
   if (!user) return NextResponse.json({ ok: false }, { status: 401 });
+  const capped = await readCappedDrawingBody(req);
+  if (capped instanceof NextResponse) return capped;
   let payload: unknown;
   try {
-    const body = await req.text();
-    if (new TextEncoder().encode(body).byteLength > MAX_DRAWING_PAYLOAD_BYTES) {
-      return NextResponse.json({ ok: false, error: "Drawing payload is too large" }, { status: 413 });
-    }
-    payload = JSON.parse(body);
+    payload = JSON.parse(capped.text);
   } catch { return NextResponse.json({ ok: false, error: "Invalid JSON" }, { status: 400 }); }
   if (!payload || typeof payload !== "object" || Array.isArray(payload)) return NextResponse.json({ ok: false }, { status: 400 });
   const raw = payload as Record<string, unknown>;
@@ -92,8 +130,15 @@ export async function PUT(req: Request) {
     p_symbol: symbol, p_drawings: drawings, p_expected_revision: raw.expectedRevision, p_operation_id: raw.operationId,
   });
   if (error) return NextResponse.json({ ok: false, error: "Could not save drawings" }, { status: 503 });
-  if (data?.ok === false && ["revision_conflict", "operation_payload_mismatch"].includes(data.code)) {
-    return NextResponse.json({ ok: false, code: data.code }, { status: 409 });
+  if (data?.ok === false && data.code === "revision_conflict") {
+    return NextResponse.json({
+      ok: false,
+      code: "revision_conflict",
+      ...(data.operationUnknownPossible === true ? { operationUnknownPossible: true } : {}),
+    }, { status: 409 });
+  }
+  if (data?.ok === false && data.code === "operation_payload_mismatch") {
+    return NextResponse.json({ ok: false, code: "operation_payload_mismatch" }, { status: 409 });
   }
   if (data?.ok !== true || !validDrawingOperationId(data.revision)
     || typeof data.idempotentReplay !== "boolean" || typeof data.superseded !== "boolean"
