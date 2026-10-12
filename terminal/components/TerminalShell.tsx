@@ -1709,10 +1709,14 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
           // cleared the conflict (legacy alternative was dropped): clear the
           // issue and let the normal flush path PUT with the new revision.
           if (!remaining.alternatives?.length && !remaining.blocked) {
-            drawPending.current[sym] = remaining.drawings;
             setDrawStore((store) => ({ ...store, [sym]: normalizeDrawings(remaining.drawings) }));
             setDrawingSaveIssues((issues) => { const next = { ...issues }; delete next[sym]; return next; });
-            drawTimers.current[sym] = setTimeout(() => flushDrawingsRef.current(sym), 100);
+            // A3: schedule a re-flush so the next normal flush path PUTs with
+            // the now-current expected revision. We do NOT call flushDrawings
+            // directly here (it would race with the save function that just
+            // awaited us and cause duplicate PUTs in the media-tools path).
+            // The next debounced flush (from setSymbolDrawings or the 600ms
+            // timer) will pick up the re-read state.
           } else {
             // Surviving entry still has alternatives or is blocked: keep the
             // matching issue (same mapping flushDrawings uses for the PRE-write
