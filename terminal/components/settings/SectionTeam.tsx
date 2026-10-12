@@ -217,6 +217,10 @@ function OwnedSectionTeam({
     setTeamsTruncated(false);
     setCallerRole(null);
     setMembers([]);
+    setBusyId(new Set());
+    setConfirm(null);
+    setTransfer(null);
+    setTransferBusy(false);
     setTruncated(false);
     setRosterFail(null);
     setSettingsLoaded(false);
@@ -483,6 +487,8 @@ function OwnedSectionTeam({
 
   async function patchRole(target: RosterMember, role: "admin" | "member") {
     if (!teamId || devTeam) return;
+    const rosterVersion = rosterSequence.current;
+    const current = () => active.current && rosterVersion === rosterSequence.current;
     const previousRole = target.role;
     setMembers((rows) => rows.map((row) => (row.userId === target.userId ? { ...row, role } : row)));
     addBusy(target.userId);
@@ -494,6 +500,7 @@ function OwnedSectionTeam({
         body: JSON.stringify({ userId: target.userId, role }),
       });
       const body = await res.json().catch(() => ({}));
+      if (!current()) return;
       if (!res.ok) {
         setMembers((rows) =>
           rows.map((row) => (row.userId === target.userId ? { ...row, role: previousRole } : row)),
@@ -511,6 +518,7 @@ function OwnedSectionTeam({
       setMembers((rows) => rows.map((row) => (row.userId === target.userId ? { ...row, role: nextRole } : row)));
       setMsg({ kind: "ok", text: t("acsTeamSaved") });
     } catch {
+      if (!current()) return;
       setMembers((rows) =>
         rows.map((row) => (row.userId === target.userId ? { ...row, role: previousRole } : row)),
       );
@@ -519,12 +527,14 @@ function OwnedSectionTeam({
         text: rowError(target, TEAM_ROUTE_MESSAGES.role_change_failed[lang === "zh" ? 1 : 0]),
       });
     } finally {
-      dropBusy(target.userId);
+      if (current()) dropBusy(target.userId);
     }
   }
 
   async function confirmRemove() {
     if (!confirm || !teamId || devTeam) return;
+    const rosterVersion = rosterSequence.current;
+    const current = () => active.current && rosterVersion === rosterSequence.current;
     const { userId, kind } = confirm;
     addBusy(userId);
     setMsg(null);
@@ -533,23 +543,25 @@ function OwnedSectionTeam({
         method: "DELETE",
       });
       const body = await res.json().catch(() => ({}));
+      if (!current()) return;
       if (!res.ok) {
         setMsg({ kind: "err", text: routeMessage(body, lang) || TEAM_ROUTE_MESSAGES.remove_failed[lang === "zh" ? 1 : 0] });
         return;
       }
       // Round-6 ruling R6: a successful self-leave must reload, the same way createTeam
       // does, so the zero-team state renders with acsTeamLeft as the notice.
+      setConfirm(null);
+      setMsg({ kind: "ok", text: t(kind === "leave" ? "acsTeamLeft" : "acsTeamRemoved") });
       if (kind === "leave") {
         await loadLive();
       } else {
         setMembers((rows) => rows.filter((row) => row.userId !== userId));
       }
-      setConfirm(null);
-      setMsg({ kind: "ok", text: t(kind === "leave" ? "acsTeamLeft" : "acsTeamRemoved") });
     } catch {
+      if (!current()) return;
       setMsg({ kind: "err", text: TEAM_ROUTE_MESSAGES.remove_failed[lang === "zh" ? 1 : 0] });
     } finally {
-      dropBusy(userId);
+      if (current()) dropBusy(userId);
     }
   }
 
@@ -566,6 +578,8 @@ function OwnedSectionTeam({
 
   async function postTransfer(recipientId: string) {
     if (!teamId || !active.current) return;
+    const rosterVersion = rosterSequence.current;
+    const current = () => active.current && rosterVersion === rosterSequence.current;
     const previousMembers = members;
     const previousRole = callerRole;
     applyLocalTransfer(recipientId);
@@ -584,6 +598,7 @@ function OwnedSectionTeam({
         body: JSON.stringify({ newOwnerUserId: recipientId }),
       });
       const body = await res.json().catch(() => ({}));
+      if (!current()) return;
       if (res.status === 409) {
         setMembers(previousMembers);
         setCallerRole(previousRole);
@@ -613,20 +628,24 @@ function OwnedSectionTeam({
       setTransfer(null);
       setMsg({ kind: "ok", text: fillName(t("acsTeamTransferSuccess"), name) });
     } catch {
+      if (!current()) return;
       setMembers(previousMembers);
       setCallerRole(previousRole);
       setTransfer(null);
       setMsg({ kind: "err", text: TEAM_ROUTE_MESSAGES.write_failed[lang === "zh" ? 1 : 0] });
     } finally {
-      setTransferBusy(false);
+      if (current()) setTransferBusy(false);
     }
   }
 
   async function retryTransfer() {
     if (!transfer || transfer.phase !== "conflict" || !transfer.recipientId) return;
+    const rosterVersion = rosterSequence.current;
+    const recipientId = transfer.recipientId;
     setTransferBusy(true);
     await new Promise((resolve) => setTimeout(resolve, 1000));
-    await postTransfer(transfer.recipientId);
+    if (!active.current || rosterVersion !== rosterSequence.current) return;
+    await postTransfer(recipientId);
   }
 
   /**

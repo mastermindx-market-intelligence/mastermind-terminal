@@ -177,4 +177,70 @@ describe("Team canonical owner boundary", () => {
     expect(container.querySelector('[data-testid="team-settings-msg"]')).toBeNull();
     expect((container.querySelector('[data-testid="team-invite-url"]') as HTMLInputElement).value).toBe("https://example.invalid/one-time");
   });
+
+  for (const operation of ["role", "transfer", "retry"] as const) {
+    for (const reload of ["success", "failure"] as const) {
+      it(`late ${operation} failure cannot restore controls after a ${reload} roster reload`, async () => {
+        const write = deferred<Response>();
+        const invitation = deferred<Response>();
+        let refreshed = false;
+        let transferRequests = 0;
+        const fetch = vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+          const url = String(input);
+          if (url.endsWith("/transfer-ownership")) {
+            transferRequests += 1;
+            if (operation === "retry") return response({ message: "Initial conflict" }, 409);
+            return write.promise;
+          }
+          if (init?.method === "PATCH") return write.promise;
+          if (init?.method === "POST") return invitation.promise;
+          if (url === "/api/teams" && refreshed && reload === "failure") return response({ message: "Read refused" }, 403);
+          if (url.endsWith("/members")) return response({ callerRole: refreshed ? "member" : "owner", members: [
+            { userId: A, role: refreshed ? "member" : "owner", displayName: "Current caller" },
+            { userId: B, role: "admin", displayName: "Current teammate" },
+          ] });
+          return response(bodyFor(url, A));
+        });
+        vi.stubGlobal("fetch", fetch);
+        await render(accountIdentity(A));
+        const click = async (selector: string) => {
+          const button = container.querySelector(selector) as HTMLButtonElement;
+          expect(button).not.toBeNull();
+          expect(button.disabled).toBe(false);
+          await act(async () => button.click());
+        };
+        await act(async () => {
+          const email = container.querySelector('[data-testid="team-invite-email"]') as HTMLInputElement;
+          Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value")!.set!.call(email, "fixture@example.com");
+          email.dispatchEvent(new Event("input", { bubbles: true }));
+        });
+        await click('[data-testid="team-invite-create"]');
+        if (operation === "role") await click('[data-testid="team-change-role"] button');
+        else {
+          await click('[data-testid="team-transfer-ownership"]');
+          await click('[data-testid="team-transfer-recipients"] button');
+          await click('[data-testid="team-transfer-next"]');
+          await click('[data-testid="team-transfer-confirm"]');
+          if (operation === "retry") await click('[data-testid="team-transfer-retry"]');
+        }
+        refreshed = true;
+        await act(async () => invitation.resolve(response({ inviteUrl: "https://example.invalid/one-time" })));
+        expect(live().getAttribute("data-caller-role")).toBe(reload === "success" ? "member" : "");
+        expect(container.querySelector('[data-testid="team-change-role"]')).toBeNull();
+        if (operation === "retry") {
+          await act(async () => { await new Promise((resolve) => setTimeout(resolve, 1100)); });
+          expect(transferRequests).toBe(1);
+        } else {
+          await act(async () => write.resolve(response({ message: "Old write refused" }, operation === "transfer" ? 409 : 403)));
+        }
+        expect(live().getAttribute("data-caller-role")).toBe(reload === "success" ? "member" : "");
+        expect(container.querySelector('[data-testid="team-change-role"]')).toBeNull();
+        expect(container.querySelector('[data-testid="team-transfer-dialog"]')).toBeNull();
+        expect(text()).not.toContain("Old write refused");
+        if (reload === "failure") expect(text()).not.toContain("Current teammate");
+        expect((container.querySelector('[data-testid="team-invite-url"]') as HTMLInputElement).value).toBe("https://example.invalid/one-time");
+      });
+    }
+  }
+
 });
