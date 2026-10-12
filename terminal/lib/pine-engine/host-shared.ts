@@ -56,11 +56,18 @@ function isParseableSession(s: unknown): s is string {
 }
 
 // ChartPanel 3D session groups stamp `closeTime`; the engine's HTF resample stamps `timeClose`.
-// `timeClose` wins when both are present and parseable.
+// `timeClose` wins when both are present and parseable. When NEITHER is parseable but at least
+// one was explicitly supplied, propagate the present-but-junk value (instead of silently falling
+// back to `time`): the engine's `time_close` then parses it to NA — distinct from the documented
+// `time` fallback, which only applies when both fields are absent. Returning the junk string (not
+// undefined) is what carries the signal "the chart group gave us a close stamp, just an invalid
+// one" through normalize → time_close.
 export function resolveBarTimeClose(b: { timeClose?: string; closeTime?: string }): string | undefined {
   if (isParseableSession(b.timeClose)) return b.timeClose;
   if (isParseableSession(b.closeTime)) return b.closeTime;
-  return undefined;
+  if (b.timeClose != null && b.timeClose !== "") return b.timeClose;   // junk timeClose (parseSessionStampMs → NA)
+  if (b.closeTime != null && b.closeTime !== "") return b.closeTime;   // junk closeTime (the F2 fix)
+  return undefined;                                                      // both absent → runtime falls back to `time`
 }
 
 // Pack row-object bars into columns. Returns the payload plus the ArrayBuffers to hand to
