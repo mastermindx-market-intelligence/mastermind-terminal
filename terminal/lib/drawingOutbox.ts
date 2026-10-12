@@ -115,7 +115,7 @@ function parseEntry(value: unknown): Entry | null {
   const entry: Entry = { drawings };
   if (Object.hasOwn(raw, "revision") && validDrawingRevision(raw.revision)) entry.revision = raw.revision;
   if (["legacy", "conflict", "superseded", "invalid"].includes(String(raw.blocked))) entry.blocked = raw.blocked as Entry["blocked"];
-  if (raw.conflictCode === "revision_conflict" || raw.conflictCode === "owner_conflict" || raw.conflictCode === "operation_payload_mismatch") {
+  if (raw.conflictCode === "revision_conflict" || raw.conflictCode === "owner_conflict" || raw.conflictCode === "operation_payload_mismatch" || raw.conflictCode === "unknown") {
     entry.conflictCode = raw.conflictCode;
   }
   if (raw.operationUnknownPossible === true) entry.operationUnknownPossible = true;

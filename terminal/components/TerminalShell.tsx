@@ -1742,8 +1742,9 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
     const attempt = prepareDrawingAttempt(entry, () => crypto.randomUUID());
     if (!attempt) {
       void persistDrawingRecovery(ownerKey, recovery);
-      setDrawingSaveIssues((issues) => ({ ...issues, [sym]: entry.alternatives?.length ? "multiple" : entry.blocked ?? "legacy" }));
-      void loadDrawingCloudCopy(sym);
+      const issue = entry.alternatives?.length ? "multiple" : (drawingSaveIssueFromEntry(entry) ?? entry.blocked ?? "legacy");
+      setDrawingSaveIssues((issues) => ({ ...issues, [sym]: issue }));
+      if (drawingSaveIssueOffersReplace(issue)) void loadDrawingCloudCopy(sym);
       return;
     }
     let queued = false;
@@ -1759,8 +1760,9 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
         // The durable write keeps a copy it cannot prove was never discarded
         // for an explicit choice; the attempt prepared before it is not sent.
         if (entry.blocked) {
-          setDrawingSaveIssues((issues) => ({ ...issues, [sym]: entry.blocked! }));
-          void loadDrawingCloudCopy(sym);
+          const issue = drawingSaveIssueFromEntry(entry) ?? entry.blocked;
+          setDrawingSaveIssues((issues) => ({ ...issues, [sym]: issue }));
+          if (drawingSaveIssueOffersReplace(issue)) void loadDrawingCloudCopy(sym);
           return;
         }
         const response = await fetch("/api/drawings", {
@@ -1793,8 +1795,9 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
       } catch {
         if (drawOwnerEpoch.current !== ownerEpoch) return;
         // Preserve both the exact unknown-outcome attempt and the newest edit.
-        setDrawingSaveIssues((issues) => ({ ...issues, [sym]: drawingSaveIssueFromEntry(entry) ?? "retry" }));
-        if (entry.blocked && entry.conflictCode !== "owner_conflict") void loadDrawingCloudCopy(sym);
+        const issue = drawingSaveIssueFromEntry(entry) ?? "retry";
+        setDrawingSaveIssues((issues) => ({ ...issues, [sym]: issue }));
+        if (entry.blocked && drawingSaveIssueOffersReplace(issue)) void loadDrawingCloudCopy(sym);
       } finally {
         if (drawOwnerEpoch.current !== ownerEpoch) return;
         const durable = await persistDrawingRecovery(ownerKey, recovery);

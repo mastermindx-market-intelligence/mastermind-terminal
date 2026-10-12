@@ -9,6 +9,22 @@ import {
   drawingSaveRecoveryMessage,
 } from "@/lib/drawingSaveConflict";
 import type { DrawingJournalEntry } from "@/lib/drawingPersistence";
+import { readDrawingJournal, writeDrawingJournal, type DrawingJournalLocks } from "@/lib/drawingOutbox";
+
+let lockTail = Promise.resolve();
+const locks = {
+  request: (_name: string, fn: () => unknown) => {
+    const task = lockTail.then(fn);
+    lockTail = task.then(() => {}, () => {});
+    return task;
+  },
+} as DrawingJournalLocks;
+class MemoryStorage {
+  values = new Map<string, string>();
+  getItem(k: string) { return this.values.get(k) ?? null; }
+  setItem(k: string, v: string) { this.values.set(k, v); }
+  removeItem(k: string) { this.values.delete(k); }
+}
 
 describe("classifyDrawingSaveConflict", () => {
   it("parks only a revision conflict for replace/use-cloud", () => {
@@ -79,5 +95,55 @@ describe("drawing save conflict copy", () => {
     expect(applyDrawingSaveConflict(lost, { ok: false, code: "revision_conflict", operationUnknownPossible: true })).toBe("conflict_unknown");
     expect(lost.operationUnknownPossible).toBe(true);
     expect(lost.conflictCode).toBe("revision_conflict");
+  });
+});
+
+describe("P0 unrecognised 409 stays save_rejected through catch and reload", () => {
+  const unrecognisedPayloads: unknown[] = [
+    null,
+    { ok: false },
+    { code: "quota_exceeded" },
+  ];
+
+  it("apply + catch overwrite (drawingSaveIssueFromEntry) stay save_rejected with no Replace", () => {
+    for (const payload of unrecognisedPayloads) {
+      const entry: DrawingJournalEntry = { drawings: [] };
+      const thrownIssue = applyDrawingSaveConflict(entry, payload);
+      expect(thrownIssue).toBe("save_rejected");
+      const catchIssue = drawingSaveIssueFromEntry(entry) ?? "retry";
+      expect(catchIssue).toBe("save_rejected");
+      expect(drawingSaveIssueOffersReplace(catchIssue)).toBe(false);
+      expect(entry.blocked).toBe("conflict");
+      expect(entry.conflictCode).toBe("unknown");
+    }
+  });
+
+  it("journal restore of an unrecognised 409 stays save_rejected with no Replace", async () => {
+    const storage = new MemoryStorage();
+    const entry: DrawingJournalEntry = { drawings: [], revision: null };
+    expect(applyDrawingSaveConflict(entry, { ok: false, code: "quota_exceeded" })).toBe("save_rejected");
+    expect(await writeDrawingJournal(storage, "account:a", { NVDA: entry }, locks)).toBe(true);
+    const recovered = readDrawingJournal(storage, "account:a").NVDA;
+    const restoredIssue = drawingSaveIssueFromEntry(recovered);
+    expect(restoredIssue).toBe("save_rejected");
+    expect(drawingSaveIssueOffersReplace(restoredIssue!)).toBe(false);
+  });
+
+  it("a previous-build blocked:conflict entry with no conflictCode still offers Replace", () => {
+    const legacy = drawingSaveIssueFromEntry({ blocked: "conflict" });
+    expect(legacy).toBe("conflict");
+    expect(drawingSaveIssueOffersReplace(legacy!)).toBe(true);
+  });
+
+  it("owner_conflict still fails closed and revision_conflict still offers Replace", () => {
+    const owner: DrawingJournalEntry = { drawings: [] };
+    expect(applyDrawingSaveConflict(owner, { ok: false, code: "owner_conflict" })).toBe("owner_conflict");
+    expect(drawingSaveIssueFromEntry(owner)).toBe("owner_conflict");
+    expect(drawingSaveIssueOffersReplace("owner_conflict")).toBe(false);
+
+    const revision: DrawingJournalEntry = { drawings: [] };
+    expect(applyDrawingSaveConflict(revision, { ok: false, code: "revision_conflict" })).toBe("conflict");
+    expect(drawingSaveIssueFromEntry(revision)).toBe("conflict");
+    expect(drawingSaveIssueOffersReplace("conflict")).toBe(true);
   });
 });
