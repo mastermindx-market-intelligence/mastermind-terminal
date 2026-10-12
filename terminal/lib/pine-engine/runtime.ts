@@ -132,10 +132,16 @@ function builtinSeriesAt(name: string, B: Bar[], NB: number, j: number): any {
 type HtfPlan = { kind: "week" } | { kind: "month"; n: number } | { kind: "session"; mult: number; barAnchor: number };
 const CALENDAR_MONTHS = new Set([1, 3, 12]);
 function tfParts(tf: string): { n: number; unit: string } | null {
-  const m = String(tf).trim().toUpperCase().match(/^(\d*)([A-Z]*)$/);
+  // Case-sensitive on the month unit: Pine months are "M"/"1M". A blanket toUpperCase()
+  // would turn the invalid lowercase "m" (e.g. "15m", "1m") into months — "1m" would
+  // even be admitted as 1M. Other units have no such collision and fold to upper.
+  const m = String(tf).trim().match(/^(\d*)([A-Za-z]*)$/);
   if (!m) return null;
   const n = m[1] === "" ? 1 : parseInt(m[1], 10);
-  return Number.isFinite(n) && n > 0 ? { n, unit: m[2] } : null;
+  const rawUnit = m[2];
+  if (rawUnit === "m") return null;
+  const unit = rawUnit.toUpperCase();
+  return Number.isFinite(n) && n > 0 ? { n, unit } : null;
 }
 function planHtf(chartTf: string, tf: string, bars: Bar[], barAnchor: number): HtfPlan | string {
   const req = tfParts(tf), chart = tfParts(chartTf);
@@ -212,13 +218,11 @@ const SEC_AMBIGUOUS = Symbol("request.security ambiguous");
 // (unlike builtins.tfSeconds, which falls back to 86400 for unknown units — that fallback must
 // not be mistaken for a valid finer/same TF when deciding whether to refuse).
 function parseTfSecStrict(tf: string): number | null {
-  const s = String(tf).trim().toUpperCase();
-  if (s === "") return null;
-  const m = s.match(/^(\d*)([A-Z]*)$/);
-  if (!m) return null;
-  const n = m[1] === "" ? 1 : parseInt(m[1], 10);
-  if (!Number.isFinite(n) || n <= 0) return null;   // "0D"/"0"/… — never zero-second valid
-  const unit = m[2];
+  // Empty is a distinct same-chart convention handled by the caller, not a 1-minute bar.
+  if (String(tf).trim() === "") return null;
+  const p = tfParts(tf);
+  if (!p) return null;                              // unknown/unparseable, incl. lowercase "m"
+  const { n, unit } = p;
   if (unit === "" || unit === "MIN") return n * 60;
   if (unit === "S") return n;
   if (unit === "H") return n * 3600;

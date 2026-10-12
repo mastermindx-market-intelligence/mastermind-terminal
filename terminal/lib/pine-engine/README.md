@@ -146,7 +146,8 @@ period. Session-count periods (`nD`) have no correction.
 
 Refused with `na` and a warning that names the reason (never an approximate value):
 multi-week periods (`2W`, `3W`, … — no calendar phase is known in the loaded bars), other month
-counts (`2M`, `5M`, …), minute/second/hour units, any coarser request from a `W`, `2W` or `nD`
+counts (`2M`, `5M`, …), minute/second/hour units, a lowercase `m` unit (`1m`, `15m` — not valid
+Pine; months are `M`, and a blanket uppercasing would silently treat them as months), any coarser request from a `W`, `2W` or `nD`
 chart (its bars cannot be regrouped without splitting a chart bar), bar times that are not
 ascending `YYYY-MM-DD` dates, a request inside a `for` loop,
 a request inside a function called from a `for` loop, a call site that the requested timeframe's
