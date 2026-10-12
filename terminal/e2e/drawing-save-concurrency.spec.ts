@@ -663,34 +663,112 @@ test("keep-mine of a differing preload overlap PUTs every cloud-only id",async({
  await expect(recovery).toHaveCount(0,{timeout:20_000});
 });
 
-// A3: mixed v2+legacy losing tab. Owner B has its own UUID v2 copy for a symbol
-// plus an imported v1 (`legacy:`) alternative; owner A on the same browser already
-// holds the legacy claim. B's flush drops the legacy alternative on disk but
-// must re-derive the issue from the RE-READ journal entry — the chrome must
-// never offer "Replace cloud with local copy" for a single, unblocked own copy.
-test("A3: a mixed v2+legacy entry whose claim belongs to another owner drops the legacy alternative and clears the issue", async ({ page }) => {
- const ownOp = "11111111-1111-4111-8111-111111111111";
- // The fixture's drawingLegacyOwner is account:responsive@example.com.
- const legacySourceId = "responsive@example.com";
- const legacyKey = `legacy:${legacySourceId}`;
- // Seed B's journal with a v2 copy AND a v1 alternative (legacy copy keyed by
- // the legacy source so dropUnownedLegacyCopies recognises it), then plant
- // Alice's claim so the journal write must drop the legacy alternative.
- await page.addInitScript(({ ownOp, legacyKey, legacySourceId }) => {
+// A3 (T1): mixed v2+legacy losing tab. Owner B has its own UUID v2 copy for a
+// symbol plus an imported v1 (`legacy:`) alternative; another owner on the same
+// browser holds the legacy claim. B's first locked journal write must drop the
+// legacy alternative on disk, B's !attempt branch must re-derive the issue
+// from the post-write entry so the chrome clears, B's own-v2 PUTs exactly once.
+// The GET is held so the cloud-side park cannot race the post-write check.
+test("A3: held-GET locks-patched claim drops the legacy alternative, clears the issue, PUTs own-v2 once", async ({ page }) => {
+ let releaseGet:()=>void=()=>{};
+ const getHeld=new Promise<void>((resolve)=>{releaseGet=resolve;});
+ await page.addInitScript(() => {
   if (sessionStorage.getItem("drawing-recovery-seeded")) return;
   sessionStorage.setItem("drawing-recovery-seeded", "1");
-  const ownV2 = { drawings: [{ id: "bob-v2", kind: "hline", source: "user", schemaVersion: 1, points: [{ t: "2026-01-01", p: 100 }], meta: { label: "保持" } }], revision: null };
-  const legacyV1 = { drawings: [{ id: "alice-v1", kind: "hline", source: "user", schemaVersion: 1, points: [{ t: "2026-01-01", p: 200 }], meta: { label: "保持" } }], revision: null };
-  const record = {
-   format: 2,
-   copies: { [ownOp]: ownV2, [legacyKey]: legacyV1 },
-   legacySeen: { [legacySourceId]: "[[{\"id\":\"alice-v1\"}]]" },
-   legacyLinks: { [legacyKey]: { sourceId: legacySourceId, token: "[[{\"id\":\"alice-v1\"}]]" } },
+  // v1: the email-aliased v1 outbox holds the legacy drawing keyed under
+  // "legacy" inside readCopies (drawingOutbox.ts ~:180-192), so the import
+  // id becomes "legacy:legacy" — a valid id in the in-memory imports dict
+  // that sorts after "4444…" so own-v2 wins as the active copy and
+  // legacy-v1 lands as the alternative.
+  localStorage.setItem("mm.drawing.account-outbox.v1", JSON.stringify({
+   "account:responsive@example.com": {
+    NVDA: [{ id: "legacy-v1", kind: "hline", source: "user", schemaVersion: 1, points: [{ t: "2026-01-01", p: 200 }], meta: { label: "保持" } }],
+   },
+  }));
+  // v2: own v2 only, no legacySeen so the import is not suppressed.
+  localStorage.setItem("mm.drawing.account-outbox.v2", JSON.stringify({
+   "account:e2e-user-default": {
+    NVDA: {
+     format: 2,
+     copies: { "44444444-4444-4444-8444-444444444444": { drawings: [{ id: "own-v2", kind: "hline", source: "user", schemaVersion: 1, points: [{ t: "2026-01-01", p: 100 }], meta: { label: "保持" } }], revision: null } },
+     legacySeen: {},
+     legacyLinks: {},
+    },
+   },
+  }));
+  // Patch navigator.locks.request so the FIRST locked journal write sets
+  // another owner's claim BEFORE delegating — places the claim after the
+  // lock-free hydration read and before writeDrawingJournal drops the
+  // unowned legacy alternative.
+  const proto = Object.getPrototypeOf(navigator.locks) as { request: (name: string, ...rest: unknown[]) => Promise<unknown> };
+  const originalRequest = proto.request;
+  let firstWriteSeen = false;
+  proto.request = function(name: string, ...rest: unknown[]) {
+   if (!firstWriteSeen && name === "mm.drawing.account-outbox.v2") {
+    firstWriteSeen = true;
+    localStorage.setItem("mm.drawing.legacy-claim.v1", JSON.stringify({ "account:responsive@example.com": "account:uuid-a" }));
+   }
+   return originalRequest.call(this, name, ...rest);
   };
-  localStorage.setItem("mm.drawing.account-outbox.v2", JSON.stringify({ "account:e2e-user-default": { NVDA: record } }));
-  // Alice holds the legacy claim for this email alias.
-  localStorage.setItem("mm.drawing.legacy-claim.v1", JSON.stringify({ [`account:${legacySourceId}`]: "account:uuid-a" }));
- }, { ownOp, legacyKey, legacySourceId });
+ });
+ const puts: { operationId:string; expectedRevision:string|null; drawings:{id:string}[] }[] = [];
+ await page.route("**/api/drawings**", async (route) => {
+  if (route.request().method() === "GET") { await getHeld; await route.fulfill(json({ drawings: [], revision: null, schemaVersion: 1 })); return; }
+  const value = route.request().postDataJSON();
+  puts.push(value);
+  await route.fulfill(json({ ok: true, operationId: value.operationId, revision: committed, idempotentReplay: false, superseded: false }));
+ });
+ await open(page);
+ // The re-flush my fix arms must PUT own-v2 exactly once.
+ await expect.poll(() => puts.length, { timeout: 20_000 }).toBe(1);
+ expect(puts[0].expectedRevision).toBeNull();
+ expect(puts[0].drawings.map((drawing) => drawing.id)).toEqual(["own-v2"]);
+ for (const put of puts) {
+  expect(put.drawings.map((drawing) => drawing.id)).not.toContain("legacy-v1");
+ }
+ // The recovery chrome is gone — the post-write check cleared "multiple".
+ await expect(page.getByTestId("drawing-save-recovery")).toHaveCount(0, { timeout: 20_000 });
+ // The claim set by the locks patch is intact.
+ const claim = await page.evaluate(() => localStorage.getItem("mm.drawing.legacy-claim.v1"));
+ expect(claim).not.toBeNull();
+ expect(JSON.parse(claim!)).toEqual({ "account:responsive@example.com": "account:uuid-a" });
+ // v1 bytes are unchanged.
+ const v1Bytes = await page.evaluate(() => localStorage.getItem("mm.drawing.account-outbox.v1"));
+ expect(v1Bytes).not.toBeNull();
+ expect(JSON.parse(v1Bytes!)).toEqual({
+  "account:responsive@example.com": {
+   NVDA: [{ id: "legacy-v1", kind: "hline", source: "user", schemaVersion: 1, points: [{ t: "2026-01-01", p: 200 }], meta: { label: "保持" } }],
+  },
+ });
+ releaseGet();
+});
+
+// A3 (T1c) CONTROL: same seed, locks patch DISABLED, so the legacy alternative
+// is NOT dropped. The "Other local copy 1" button must render — proves the seed
+// really created the alternative (the original A3 e2e seed keyed
+// "legacy:responsive@example.com" was filtered out by readCopies, so the
+// chrome never offered an alternative button).
+test("A3 control: without the locks-patched claim the legacy alternative survives and the chrome offers another local copy", async ({ page }) => {
+ await page.addInitScript(() => {
+  if (sessionStorage.getItem("drawing-recovery-seeded")) return;
+  sessionStorage.setItem("drawing-recovery-seeded", "1");
+  localStorage.setItem("mm.drawing.account-outbox.v1", JSON.stringify({
+   "account:responsive@example.com": {
+    NVDA: [{ id: "legacy-v1", kind: "hline", source: "user", schemaVersion: 1, points: [{ t: "2026-01-01", p: 200 }], meta: { label: "保持" } }],
+   },
+  }));
+  localStorage.setItem("mm.drawing.account-outbox.v2", JSON.stringify({
+   "account:e2e-user-default": {
+    NVDA: {
+     format: 2,
+     copies: { "44444444-4444-4444-8444-444444444444": { drawings: [{ id: "own-v2", kind: "hline", source: "user", schemaVersion: 1, points: [{ t: "2026-01-01", p: 100 }], meta: { label: "保持" } }], revision: null } },
+     legacySeen: {},
+     legacyLinks: {},
+    },
+   },
+  }));
+  // Deliberately no locks patch — the legacy alternative survives the write.
+ });
  const puts: unknown[] = [];
  await page.route("**/api/drawings**", async (route) => {
   if (route.request().method() === "GET") { await route.fulfill(json({ drawings: [], revision: null, schemaVersion: 1 })); return; }
@@ -698,27 +776,126 @@ test("A3: a mixed v2+legacy entry whose claim belongs to another owner drops the
   await route.fulfill(json({ ok: true, operationId: route.request().postDataJSON().operationId, revision: committed, idempotentReplay: false, superseded: false }));
  });
  await open(page);
- const recovery = page.getByTestId("drawing-save-recovery");
- // A3: the chrome must NEVER offer "Replace cloud with local copy" for a symbol
- // whose only remaining copy is Bob's own unblocked v2. This is the primary
- // symptom of the A3 defect: the issue was "multiple" but the journal write
- // dropped the legacy alternative, so the chrome should be cleared.
- await expect(recovery.getByRole("button", { name: "Replace cloud with local copy", exact: true })).toHaveCount(0, { timeout: 20_000 });
- await expect(recovery.getByRole("button", { name: "Use cloud copy", exact: true })).toHaveCount(0, { timeout: 20_000 });
- // The recovery chrome is gone — the issue was cleared, not "multiple".
- await expect(recovery).toHaveCount(0, { timeout: 20_000 });
- // The journal symbol is now a single, unblocked own copy (legacy dropped).
- const journal = await page.evaluate(() => {
-  const raw = localStorage.getItem("mm.drawing.account-outbox.v2");
-  if (!raw) return null;
-  const env = JSON.parse(raw) as Record<string, Record<string, { copies: Record<string, { drawings: { id: string }[]; blocked?: string; alternatives?: unknown }> }>>;
-  const copies = env["account:e2e-user-default"]?.NVDA?.copies ?? {};
-  const own = copies["11111111-1111-4111-8111-111111111111"];
-  return { hasOwn: !!own, ownDrawings: own?.drawings?.map((d) => d.id) ?? [], ownBlocked: own?.blocked, ownAlternatives: own?.alternatives };
+ // The chrome must show a "Review another local copy" button — proving the
+ // seed really created the alternative. The original A3 e2e seed could never
+ // produce this button because readCopies (drawingOutbox.ts ~:187) filtered
+ // out the invalid "legacy:responsive@example.com" key entirely.
+ await expect(page.getByTestId("drawing-save-recovery")).toBeVisible({ timeout: 20_000 });
+ // Wait for the cloud copy to load so the chrome shows the full keep-mine
+ // UI (with the alternative + "Use cloud copy" + "Replace cloud with
+ // local copy"). Before the cloud copy loads, only "Review cloud copy" is
+ // shown.
+ await expect(page.getByRole("button", { name: "Use cloud copy", exact: true })).toBeVisible({ timeout: 20_000 });
+ await expect(page.getByRole("button", { name: /Review another local copy/ })).toBeVisible({ timeout: 20_000 });
+ // No PUT was sent — alternatives still in the journal, no flush reached PUT.
+ expect(puts).toHaveLength(0);
+});
+
+// T2 (F2 keep-local): two local copies in the journal, the user picks one via
+// "Replace cloud with local copy", and the PUT must carry the chosen copy's id.
+// The final2 A3 widened refreshDrawingJournalSymbol to re-read on every write,
+// restoring every on-disk copy and making the sorted-first copy win regardless
+// of the user's choice — so the user's copy was never PUT.
+test("F2 keep-local with two local copies PUTs the copy the user chose", async ({ page }) => {
+ const ownA = "11111111-1111-4111-8111-111111111111";
+ const ownB = "22222222-2222-4222-8222-222222222222";
+ const cloudRevision = "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa";
+ const puts: { expectedRevision:string|null; drawings:{id:string}[] }[] = [];
+ await page.addInitScript(({ ownA, ownB }) => {
+  if (sessionStorage.getItem("drawing-recovery-seeded")) return;
+  sessionStorage.setItem("drawing-recovery-seeded", "1");
+  localStorage.setItem("mm.drawing.account-outbox.v2", JSON.stringify({
+   "account:e2e-user-default": {
+    NVDA: {
+     format: 2,
+     copies: {
+      [ownA]: { drawings: [{ id: "local-a", kind: "hline", source: "user", schemaVersion: 1, points: [{ t: "2026-01-01", p: 100 }], meta: { label: "保持" } }], revision: null },
+      [ownB]: { drawings: [{ id: "local-b", kind: "hline", source: "user", schemaVersion: 1, points: [{ t: "2026-01-01", p: 200 }], meta: { label: "保持" } }], revision: null },
+     },
+     legacySeen: {},
+     legacyLinks: {},
+    },
+   },
+  }));
+ }, { ownA, ownB });
+ await page.route("**/api/drawings**", async (route) => {
+  if (route.request().method() === "GET") { await route.fulfill(json({ drawings: [], revision: cloudRevision, schemaVersion: 1 })); return; }
+  const value = route.request().postDataJSON();
+  puts.push(value);
+  await route.fulfill(json({ ok: true, operationId: value.operationId, revision: committed, idempotentReplay: false, superseded: false }));
  });
- expect(journal).not.toBeNull();
- expect(journal!.hasOwn).toBe(true);
- expect(journal!.ownDrawings).toEqual(["bob-v2"]);
- expect(journal!.ownBlocked).toBeUndefined();
- expect(journal!.ownAlternatives).toBeUndefined();
+ await open(page);
+ const recovery = page.getByTestId("drawing-save-recovery");
+ await expect(recovery).toBeVisible({ timeout: 20_000 });
+ // Pick local-b explicitly by clicking its alternative button (which is the
+ // only alternative; the sorted-first "11111111-…" copy is local-a and is
+ // the initial active).
+ await expect(recovery.getByRole("button", { name: /Review another local copy/ })).toBeVisible({ timeout: 20_000 });
+ await recovery.getByRole("button", { name: /Review another local copy/ }).click({ timeout: 20_000 });
+ // Now click "Replace cloud with local copy" — the chosen copy must be PUT.
+ await recovery.getByRole("button", { name: "Replace cloud with local copy", exact: true }).click({ timeout: 20_000 });
+ await expect.poll(() => puts.length, { timeout: 20_000 }).toBe(1);
+ expect(puts[0].drawings.map((drawing) => drawing.id)).toEqual(["local-b"]);
+ expect(puts[0].expectedRevision).toBe(cloudRevision);
+ // One local copy remains; clicking "Use cloud copy" clears the chrome.
+ await recovery.getByRole("button", { name: "Use cloud copy", exact: true }).click({ timeout: 20_000 });
+ await expect(recovery).toHaveCount(0, { timeout: 20_000 });
+});
+
+// T3 (F3 retry): a PUT that fails with a 5xx must surface "Retry save" and the
+// banner must STAY visible across a new stroke — the previous A3 widening
+// cleared the retry code after every save, including the in-flight retry.
+test("F3 retry: a 5xx PUT keeps 'Retry save' visible across the next stroke and clears only on success", async ({ page }) => {
+ const okOp = "33333333-3333-4333-8333-333333333333";
+ const cloudRevision = "cccccccc-cccc-4ccc-8ccc-cccccccccccc";
+ const puts: { operationId:string; expectedRevision:string|null; drawings:{id:string}[] }[] = [];
+ let putCalls = 0;
+ await page.route("**/api/drawings**", async (route) => {
+  if (route.request().method() === "GET") { await route.fulfill(json({ drawings: [], revision: cloudRevision, schemaVersion: 1 })); return; }
+  const value = route.request().postDataJSON();
+  putCalls++;
+  // PUTs 1 and 2 (the retry path before / after the new stroke) 500; PUT 3 succeeds.
+  if (putCalls <= 2) { await route.fulfill({ status: 500, contentType: "application/json", body: JSON.stringify({ error: "boom" }) }); return; }
+  puts.push(value);
+  await route.fulfill(json({ ok: true, operationId: value.operationId, revision: okOp, idempotentReplay: false, superseded: false }));
+ });
+ // Seed a v2 with revision: cloudRevision so the attempt is created and the
+ // first PUT reaches it; a 500 triggers the retry issue.
+ await page.addInitScript(({ cloudRevision }) => {
+  if (sessionStorage.getItem("drawing-recovery-seeded")) return;
+  sessionStorage.setItem("drawing-recovery-seeded", "1");
+  localStorage.setItem("mm.drawing.account-outbox.v2", JSON.stringify({
+   "account:e2e-user-default": {
+    NVDA: {
+     format: 2,
+     copies: { "44444444-4444-4444-8444-444444444444": { drawings: [{ id: "stroke-1", kind: "hline", source: "user", schemaVersion: 1, points: [{ t: "2026-01-01", p: 100 }], meta: { label: "保持" } }], revision: cloudRevision } },
+     legacySeen: {},
+     legacyLinks: {},
+    },
+   },
+  }));
+ }, { cloudRevision });
+ await open(page);
+ // First PUT 500s — the chrome must show "Retry save".
+ await expect(page.getByTestId("drawing-save-recovery")).toContainText("Retry save", { timeout: 20_000 });
+ // Trigger another flush by editing the existing copy in localStorage and
+ // reloading. The new entry still has the same cloudRevision so the attempt
+ // is created and the 500 issue remains "retry" (not "legacy" or "conflict").
+ await page.evaluate(() => {
+  const raw = localStorage.getItem("mm.drawing.account-outbox.v2");
+  if (!raw) throw new Error("missing v2");
+  const env = JSON.parse(raw) as Record<string, Record<string, { copies: Record<string, { drawings: { id:string }[]; revision: string }> }>>;
+  env["account:e2e-user-default"].NVDA.copies["44444444-4444-4444-8444-444444444444"].drawings.push({ id: "stroke-2", kind: "hline", source: "user", schemaVersion: 1, points: [{ t: "2026-01-01", p: 200 }], meta: { label: "保持" } });
+  localStorage.setItem("mm.drawing.account-outbox.v2", JSON.stringify(env));
+ });
+ await page.reload();
+ await expect(page.locator(".chart-wrap canvas").first()).toBeVisible();
+ // The retry banner must STILL be present — the retry code must not be cleared
+ // by the post-write code (the previous A3 widening wiped it after every save).
+ await expect(page.getByTestId("drawing-save-recovery")).toContainText("Retry save", { timeout: 20_000 });
+ // Click Retry save to trigger another PUT (which still 500s, count=2).
+ await page.getByRole("button", { name: "Retry save", exact: true }).click({ timeout: 20_000 });
+ // The third PUT (after the user retries again) succeeds; wait for the puts array.
+ await expect.poll(() => puts.length, { timeout: 20_000 }).toBeGreaterThan(0);
+ await expect(page.getByTestId("drawing-save-recovery")).toHaveCount(0, { timeout: 20_000 });
 });
