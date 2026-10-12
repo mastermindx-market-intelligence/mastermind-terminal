@@ -9069,6 +9069,14 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
         return idx == null ? null : (barsRef.current[idx]?.c ?? null);
       },
       tf: timeframeRef.current,
+      focusOwner: () => {
+        const acceptedSymbol = chartDataSymRef.current;
+        const acceptedTf = fullBarsTfRef.current;
+        if (chartRef.current !== chart || priceSeriesRef.current !== priceS
+          || !acceptedSymbol || acceptedSymbol !== symbolRef.current
+          || !acceptedTf || acceptedTf !== timeframeRef.current || !barsRef.current.length) return null;
+        return { symbol: acceptedSymbol, tf: acceptedTf };
+      },
       // A mirrored crosshair draws with no crosshairMove event behind it. Feed the independent
       // foreground DOM label directly while keeping both persistent badges untouched.
       onCrosshair: (price, time) => {
