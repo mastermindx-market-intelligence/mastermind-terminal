@@ -87,7 +87,11 @@ export interface PineInput { title: string; type: string; value: any; }
 export interface PineMeta { title: string; shorttitle?: string; overlay: boolean; }
 export interface RunResult { meta: PineMeta; plots: PinePlot[]; shapes: PineShape[]; hlines: PineHline[]; inputs: PineInput[]; warnings: string[]; barCount: number; }
 
-const isNa = (x: any) => x == null || (typeof x === "number" && isNaN(x));
+// A refused request.security result is na for plots/comparisons but is NOT ordinary na:
+// nz() must not replace it with a definite value (README: refused → na, never an approximate).
+const REFUSED = Object.freeze({ __pineRefused: true as const });
+const isRefused = (x: any) => x === REFUSED;
+const isNa = (x: any) => x == null || isRefused(x) || (typeof x === "number" && isNaN(x));
 const truthy = (x: any): boolean => { if (isNa(x)) return false; if (typeof x === "boolean") return x; if (typeof x === "number") return x !== 0; if (typeof x === "string") return x.length > 0; return !!x; };
 const num = (x: any): number => (typeof x === "number" ? x : typeof x === "boolean" ? (x ? 1 : 0) : NA);
 
@@ -346,6 +350,7 @@ export function run(source: string | ParseResult, bars: Bar[], opts: { timeframe
     const warnings: string[] = [];
     const warned = new Set<string>();
     const warn = (m: string) => { if (!warned.has(m)) { warned.add(m); warnings.push(m); } };
+    const refuseSec = (m: string) => { warn(m); return REFUSED; };
     const MAX_SHAPES = 3000;
 
     // ── builtin scalar series ──
@@ -536,8 +541,7 @@ export function run(source: string | ParseResult, bars: Bar[], opts: { timeframe
         // 1) Symbol — only the canonical exact chart symbol, OR an empty-string symbol argument
         //    (Pine same-chart convention: "" means current context), may evaluate on chart bars.
         if (!symArg) {
-          warn(`request.security() unsupported symbol (missing) — returning na`);
-          return NA;
+          return refuseSec(`request.security() unsupported symbol (missing) — returning na`);
         }
         const symVal = evalNode(symArg.value, ctx);
         // Pine: an empty-string symbol argument means the current chart's symbol (same context).
@@ -550,10 +554,9 @@ export function run(source: string | ParseResult, bars: Bar[], opts: { timeframe
         if (!sameSymbol) {
           // Different, missing, or ambiguous/unresolvable symbol: chart bars cannot stand in for
           // another instrument. No alias guessing, no exchange-prefix stripping, no fetch.
-          warn(typeof symVal === "string" && symVal.length > 0
+          return refuseSec(typeof symVal === "string" && symVal.length > 0
             ? `request.security() unsupported symbol '${symVal}' (chart symbol '${symbol}') — returning na`
             : `request.security() unsupported symbol (unresolved/ambiguous) — returning na`);
-          return NA;
         }
 
         // 2) Timeframe — read the arg node before any expression evaluation.
@@ -590,8 +593,7 @@ export function run(source: string | ParseResult, bars: Bar[], opts: { timeframe
         if (reqSec == null) {
           // Unknown/unparseable/zero-second — refuse; do NOT treat as a valid TF (builtins.tfSeconds
           // falls back to 86400 for junk units, which would silently compare as same/finer).
-          warn(`request.security() unsupported timeframe '${tf}' (unknown/unparseable) — returning na`);
-          return NA;
+          return refuseSec(`request.security() unsupported timeframe '${tf}' (unknown/unparseable) — returning na`);
         }
         const contextSec = parseTfSecStrict(evalTf) ?? (tfSeconds(evalTf) || 86400);
 
@@ -599,8 +601,7 @@ export function run(source: string | ParseResult, bars: Bar[], opts: { timeframe
         // with na + an explicit unsupported-finer-TF warning. Never chart-TF / same-context
         // substituted values (including inside the weekly re-run, whose chartTf is W).
         if (reqSec < contextSec) {
-          warn(`request.security() unsupported timeframe '${tf}' finer than chart '${evalTf}' — returning na`);
-          return NA;
+          return refuseSec(`request.security() unsupported timeframe '${tf}' finer than chart '${evalTf}' — returning na`);
         }
 
         // Same as the effective current context: in-place arithmetic (chart same-TF, or the HTF
@@ -609,8 +610,7 @@ export function run(source: string | ParseResult, bars: Bar[], opts: { timeframe
         // Equal seconds alone is not the same timeframe: the unit must match too (7D on a weekly
         // chart is seven sessions, not the chart's week), and such a request cannot be rebuilt.
         if (reqSec === contextSec && tfUnitFamily(tf) !== tfUnitFamily(evalTf)) {
-          warn(`request.security() unsupported timeframe '${tf}' on chart '${evalTf}': '${tf}' bars cannot be built from chart '${evalTf}' bars — returning na`);
-          return NA;
+          return refuseSec(`request.security() unsupported timeframe '${tf}' on chart '${evalTf}': '${tf}' bars cannot be built from chart '${evalTf}' bars — returning na`);
         }
         if (reqSec <= contextSec) return inPlace ? inPlace.v : evalNode(exprNode, ctx);
 
@@ -618,21 +618,18 @@ export function run(source: string | ParseResult, bars: Bar[], opts: { timeframe
         // Nested coarser (inside an HTF re-run) has no second producer and must not silently
         // substitute the current-context series.
         if (htfDepth > 0) {
-          warn(`request.security() unsupported timeframe '${tf}' coarser than current context '${evalTf}' — returning na`);
-          return NA;
+          return refuseSec(`request.security() unsupported timeframe '${tf}' coarser than current context '${evalTf}' — returning na`);
         }
         // A loop iterator has no value on the requested timeframe's bars, and a call made once per
         // iteration has no single value per bar, so the call cannot be evaluated there honestly.
         // This includes a request inside a user function called from a loop.
         if (ctx.inLoop) {
-          warn(`request.security() for timeframe '${tf}' inside a for loop is not supported — returning na`);
-          return NA;
+          return refuseSec(`request.security() for timeframe '${tf}' inside a for loop is not supported — returning na`);
         }
 
         const htfc = getHtfCtx(tf);
         if (typeof htfc === "string") {
-          warn(`request.security() unsupported timeframe '${tf}' on chart '${chartTf}': ${htfc} — returning na`);
-          return NA;
+          return refuseSec(`request.security() unsupported timeframe '${tf}' on chart '${chartTf}': ${htfc} — returning na`);
         }
         if (htfc.plan.kind === "session" && sessionPhase.fallback) {
           warn(`request.security() '${tf}' groups sessions from the first loaded session (${sessionPhase.fallback}; feed-phase fallback) — group boundaries may differ from the chart's ${tf} bars`);
@@ -650,7 +647,7 @@ export function run(source: string | ParseResult, bars: Bar[], opts: { timeframe
         };
         const gaps = readMerge(gapsArg, "gaps");
         const lookahead = readMerge(lookaheadArg, "lookahead");
-        if (gaps == null || lookahead == null) return NA;
+        if (gaps == null || lookahead == null) return REFUSED;
         const gapsOn = gaps === "on";
         const lookaheadOn = lookahead === "on";
         const g = htfc.groupOf[ctx.i];
@@ -693,10 +690,9 @@ export function run(source: string | ParseResult, bars: Bar[], opts: { timeframe
           htfc.firstGap.set(key, gap);
         }
         if (barIdx >= gap.at) {
-          warn(gap.twice
+          return refuseSec(gap.twice
             ? `request.security() call site reached more than once on one '${tf}' bar — returning na`
             : `request.security() call site not reached on every '${tf}' bar (conditional scope) — returning na`);
-          return NA;
         }
         return htfc.recs.get(key)![barIdx];
       }
@@ -747,7 +743,14 @@ export function run(source: string | ParseResult, bars: Bar[], opts: { timeframe
       if (name === "plot") return doPlot(n, ctx);
       if (name === "plotshape" || name === "plotchar" || name === "plotarrow") return doPlotshape(n, ctx, name);
       if (name === "hline") return doHline(n, ctx);
-      if (name === "nz") { const { pos } = evalArgs(n.args, ctx); return isNa(pos[0]) ? (pos[1] !== undefined ? pos[1] : 0) : pos[0]; }
+      if (name === "nz") {
+        const { pos } = evalArgs(n.args, ctx);
+        if (isRefused(pos[0])) {
+          warn("nz() cannot replace a refused request.security() result — returning na");
+          return pos[0];
+        }
+        return isNa(pos[0]) ? (pos[1] !== undefined ? pos[1] : 0) : pos[0];
+      }
       if (name === "na") { const { pos } = evalArgs(n.args, ctx); return isNa(pos[0]); }
       if (name === "fixnan") { const { pos } = evalArgs(n.args, ctx); const key = "#fix" + n.id; const st = taState.get(key) || { last: NA }; if (!isNa(pos[0])) st.last = pos[0]; taState.set(key, st); return st.last; }
       // Deferred global drawing/alert builtins: nothing is emitted, but the args are still

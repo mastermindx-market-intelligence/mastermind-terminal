@@ -263,6 +263,37 @@ plot(close, "c")
     expect(finer.some((w) => w.includes("'W'"))).toBe(true);
   });
 
+  it("nz cannot launder a refused request.security result into a definite value", () => {
+    // README: refused requests return na with a warning and never an approximate value.
+    // nz(refused, 0) used to replace that na with 0, hiding the refusal. Ordinary na
+    // (warmup / gaps / not-yet-confirmed) must still be replaceable.
+    const out = runSrc(`//@version=6
+indicator("nz refuse")
+refused = request.security(syminfo.tickerid, "W", request.security(syminfo.tickerid, "M", close))
+plot(nz(refused, 0), "nested")
+plot(request.security(syminfo.tickerid, "W", nz(request.security(syminfo.tickerid, "M", close), 0)), "inside")
+plot(nz(request.security(syminfo.tickerid, "60", close), 0), "finer")
+plot(nz(request.security(syminfo.tickerid, "FOO", close), 0), "junk")
+plot(nz(na, 0), "ordinary")
+plot(nz(close), "close")
+`);
+    // Requests refused on every chart bar (no publication path) stay na through nz.
+    expect(plot(out, "finer").every((v) => v === undefined)).toBe(true);
+    expect(plot(out, "junk").every((v) => v === undefined)).toBe(true);
+    // nz inside the HTF expression: published weekly values are the refused inner, never 0.
+    expect(plot(out, "inside")[4]).toBeUndefined();
+    expect(plot(out, "inside").some((v) => v === 0)).toBe(false);
+    // nz around a valid weekly request whose expression is refused: the confirmed Friday
+    // (index 4) would be 0 if nz replaced the refusal; it must stay na.
+    expect(plot(out, "nested")[4]).toBeUndefined();
+    expect(plot(out, "ordinary").every((v) => v === 0)).toBe(true);
+    expect(plot(out, "close").some((v) => typeof v === "number" && v !== 0)).toBe(true);
+    expect(out.result!.warnings.some((w) => w.includes("coarser than current context"))).toBe(true);
+    expect(out.result!.warnings.some((w) => w.includes("finer than chart"))).toBe(true);
+    expect(out.result!.warnings.some((w) => w.includes("unknown/unparseable"))).toBe(true);
+    expect(out.result!.warnings.some((w) => w.includes("nz()") && w.includes("refused"))).toBe(true);
+  });
+
   it("nested coarser request inside weekly expression is NA + deduplicated diagnostic", () => {
     const out = runSrc(`//@version=6
 indicator("nested coarser")

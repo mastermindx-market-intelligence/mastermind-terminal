@@ -155,7 +155,8 @@ re-run did not reach on every requested bar up to the one shown (for example und
 `ta.*` and `[n]` history would run over a thinned series), a request in a different unit of the same
 length as the chart (`7D` on a `W` chart, `30D` on an `M` chart, `1440` or `24H` on a daily chart),
 and a request nested inside another coarser request. Finer-than-chart requests are refused the
-same way.
+same way. `nz()` does not turn a refused request into a definite value (`nz(refused, 0)` stays
+`na`); ordinary `na` (warmup, `gaps_on`) is still replaced.
 
 Deferred / no-op (clearly reported, never throws):
 - Tables, labels, lines, boxes, `fill`, `bgcolor`, `alertcondition` are parsed but draw nothing
