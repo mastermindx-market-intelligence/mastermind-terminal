@@ -141,8 +141,8 @@ import {
   uid,
 } from "@/lib/drawings";
 import { reconcileDrawingJournal, writeDrawingJournal, refreshDrawingJournalSymbol, selectDrawingRecoveryCopy } from "@/lib/drawingOutbox";
-import { DRAWING_OWNER_HEADER, parseDrawingSnapshot, parseDrawingSaveReceipt, prepareDrawingAttempt, settleDrawingAttempt, beginDrawingLoad, abandonDrawingLoad, abandonAllDrawingLoads, isCurrentDrawingLoad, shouldRescheduleDrawingFlush, shouldApplyDrawingCloudCopy, decideDrawingLoadReconciliation, unionCloudWithPreloadAdditions, type DrawingJournal, type DrawingSnapshot, type DrawingRevision } from "@/lib/drawingPersistence";
-import { applyDrawingSaveConflict, drawingSaveIssueFromEntry, drawingSaveIssueFromLoadPark, drawingSaveIssueOffersReplace, drawingSaveRecoveryMessage } from "@/lib/drawingSaveConflict";
+import { DRAWING_OWNER_HEADER, parseDrawingSnapshot, parseDrawingSaveReceipt, prepareDrawingAttempt, settleDrawingAttempt, beginDrawingLoad, abandonDrawingLoad, abandonAllDrawingLoads, isCurrentDrawingLoad, shouldRescheduleDrawingFlush, shouldApplyDrawingCloudCopy, decideDrawingLoadReconciliation, unionCloudWithPreloadAdditions, remainingPreloadPending, keepMinePutDrawings, settlePreloadMergeRevisionConflict, type DrawingJournal, type DrawingSnapshot, type DrawingRevision } from "@/lib/drawingPersistence";
+import { applyDrawingSaveConflict, drawingSaveIssueChoices, drawingSaveIssueFromEntry, drawingSaveIssueFromLoadPark, drawingSaveIssueOffersReplace, drawingSaveRecoveryMessage } from "@/lib/drawingSaveConflict";
 import { FREEHAND_DRAWING_KINDS, getDrawingTool, isDrawingToolId } from "@/lib/drawingTools";
 import { SHELL_DRAW_TOOLS } from "@/lib/drawingTaxonomy";
 import { type ShellPanelId } from "@/lib/platform/contract";
@@ -1668,6 +1668,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
   const [drawingLoadFailures, setDrawingLoadFailures] = useState<Set<string>>(new Set());
   const drawRecovery = useRef<Record<string, DrawingJournal>>({});
   const drawRevisions = useRef<Record<string, DrawingRevision>>({});
+  const drawPreloadMergeReread = useRef<Set<string>>(new Set());
   const drawOwnerHydrated = useRef(false);
   const [drawingSavesActive, setDrawingSavesActive] = useState<Set<string>>(new Set());
   const [drawingSaveIssues, setDrawingSaveIssues] = useState<Record<string, string>>({});
@@ -1787,6 +1788,35 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
           if (response.status === 409) {
             let payload: unknown = null;
             try { payload = await response.json(); } catch { payload = null; }
+            const code = payload && typeof payload === "object" && !Array.isArray(payload)
+              ? (payload as Record<string, unknown>).code
+              : undefined;
+            if (entry.preload && code === "revision_conflict" && !drawPreloadMergeReread.current.has(attempt.operationId)) {
+              drawPreloadMergeReread.current.add(attempt.operationId);
+              let cloudSnap: DrawingSnapshot | null = null;
+              try {
+                const reread = await fetch(`/api/drawings?symbol=${encodeURIComponent(sym)}`, {
+                  cache: "no-store",
+                  headers: { [DRAWING_OWNER_HEADER]: drawOwner.current },
+                });
+                cloudSnap = reread.ok ? parseDrawingSnapshot(await reread.json()) : null;
+              } catch { cloudSnap = null; }
+              if (drawOwnerEpoch.current !== ownerEpoch) return;
+              if (cloudSnap && settlePreloadMergeRevisionConflict({
+                wasPreloadMerge: true,
+                conflictCode: code,
+                pending: attempt.drawings,
+                cloud: cloudSnap.drawings,
+              }) === "saved") {
+                drawRevisions.current[sym] = cloudSnap.revision;
+                delete recovery[sym];
+                delete drawPending.current[sym];
+                setDrawStore((store) => ({ ...store, [sym]: normalizeDrawings(cloudSnap.drawings) }));
+                setDrawingSaveIssues((issues) => { const next = { ...issues }; delete next[sym]; return next; });
+                saveSettledOk = true;
+                return;
+              }
+            }
             const issue = applyDrawingSaveConflict(entry, payload);
             if (drawOwnerEpoch.current === ownerEpoch) setDrawingSaveIssues((issues) => ({ ...issues, [sym]: issue }));
           } else if ([400, 413, 422].includes(response.status)) entry.blocked = "invalid";
@@ -2533,6 +2563,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
     drawSaving.current = {};
     drawTimers.current = {};
     drawRevisions.current = {};
+    drawPreloadMergeReread.current = new Set();
     drawLoadRetryTimers.current = {};
     drawLoadRetryAttempts.current = {};
     drawLoaded.current.clear();
@@ -2586,17 +2617,22 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
             pendingBlocked: entry?.blocked,
             pendingHasAlternatives: Boolean(entry?.alternatives?.length),
             pendingPreload: entry?.preload === true,
+            cloudDrawings: snapshot.drawings,
+            pendingDrawings: pending,
           });
           let merged: Drawing[] | null = null;
           if (decision.action === "merge") {
-            const union = unionCloudWithPreloadAdditions(snapshot.drawings, pending ?? []);
+            const remaining = entry?.preload === true
+              ? remainingPreloadPending(snapshot.drawings, pending ?? [])
+              : (pending ?? []);
+            const union = unionCloudWithPreloadAdditions(snapshot.drawings, remaining);
             if (union.ok) merged = union.drawings;
             else decision = { action: "park", reason: union.reason };
           }
           if (decision.action === "stamp") {
             drawRevisions.current[sym] = snapshot.revision;
             setDrawStore((s) => ({ ...s, [sym]: normalizeDrawings(snapshot.drawings) }));
-            if (pending !== undefined && pending.length === 0) {
+            if (pending !== undefined) {
               delete drawPending.current[sym];
               delete recovery[sym];
               clearTimeout(drawTimers.current[sym]);
@@ -2613,9 +2649,8 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
               entry.drawings = mergedDrawings;
               entry.revision = snapshot.revision;
               delete entry.blocked;
-              delete entry.preload;
             } else {
-              recovery[sym] = { drawings: mergedDrawings, revision: snapshot.revision };
+              recovery[sym] = { drawings: mergedDrawings, revision: snapshot.revision, preload: true };
             }
             setDrawStore((s) => ({ ...s, [sym]: normalizeDrawings(mergedDrawings) }));
             void persistDrawingRecovery(ownerKey, recovery);
@@ -2720,7 +2755,15 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
     } else {
       // This click is a new replacement intent against the displayed cloud copy.
       // Neither a background GET nor a superseded replay can take this action.
+      // A preload row is additions, never a full snapshot: union so cloud-only ids survive.
+      const put = keepMinePutDrawings(cloud.drawings, entry.drawings, entry.preload === true);
+      if (!put.ok) {
+        setDrawingSaveIssues((issues) => ({ ...issues, [sym]: drawingSaveIssueFromLoadPark("too_many") }));
+        return;
+      }
       delete entry.attempt; delete entry.blocked; delete entry.alternatives; entry.revision = cloud.revision;
+      entry.drawings = put.drawings;
+      if (entry.preload) delete entry.preload;
       drawPending.current[sym] = entry.drawings;
     }
     const owner = drawOwner.current;
@@ -6658,20 +6701,46 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
       {drawingOwnerMatches && drawingSaveIssues[active] && (
         <div className="undo-toast" role="alert" data-testid="drawing-save-recovery" style={{ position: "fixed", bottom: 176, left: "50%", transform: "translateX(-50%)", background: "var(--panel-3)", border: "1px solid var(--warn)", borderRadius: "var(--r-md)", padding: "12px 16px", fontSize: 12.5, color: "var(--text)", boxShadow: "0 8px 24px -8px rgba(0,0,0,.7)", zIndex: 53, width: "min(92vw, 560px)", display: "flex", flexWrap: "wrap", gap: 10 }}>
           <span style={{ width: "100%" }}>{drawingSaveRecoveryMessage(drawingSaveIssues[active], lang, t)}</span>
-          {["retry", "storage"].includes(drawingSaveIssues[active]) ? (
-            <button type="button" style={{ minHeight: 44 }} disabled={drawingSavesActive.has(active)} onClick={() => flushDrawings(active)}>{t("drawingRetrySave")}</button>
-          ) : drawingSaveIssueOffersReplace(drawingSaveIssues[active]) && drawingCloudCopies[active] ? (
-            <>
-              <span style={{ width: "100%" }}>{t("drawingLocalCopy")} ({drawPending.current[active]?.length ?? 0}) · {t("drawingCloudCopy")} ({drawingCloudCopies[active].drawings.length})</span>
-              {[...(drawRecovery.current[drawOwner.current]?.[active]?.alternatives ?? [])].map((copy, index) => (
-                <button key={copy.recoveryId} type="button" style={{ minHeight: 44 }} disabled={drawingSavesActive.has(active)} onClick={() => chooseDrawingRecoveryCopy(active, copy.recoveryId!)}>{t("drawingOtherLocalCopy")} {index + 1} ({copy.drawings.length})</button>
-              ))}
-              <button type="button" style={{ minHeight: 44 }} disabled={drawingSavesActive.has(active)} onClick={() => resolveDrawingRecovery(active, "cloud")}>{t("drawingUseCloud")}</button>
-              <button type="button" style={{ minHeight: 44 }} disabled={drawingSavesActive.has(active)} onClick={() => resolveDrawingRecovery(active, "local")}>{t("drawingKeepLocal")}</button>
-            </>
-          ) : drawingSaveIssueOffersReplace(drawingSaveIssues[active]) ? (
-            <button type="button" style={{ minHeight: 44 }} onClick={() => void loadDrawingCloudCopy(active)}>{t("drawingReviewCloud")}</button>
-          ) : null}
+          {(() => {
+            const issue = drawingSaveIssues[active];
+            const choices = drawingSaveIssueChoices(issue, !!drawingCloudCopies[active]);
+            if (choices.length === 0) return null;
+            if (choices.includes("retry_save")) {
+              return (
+                <button type="button" style={{ minHeight: 44 }} disabled={drawingSavesActive.has(active)} onClick={() => flushDrawings(active)}>{t("drawingRetrySave")}</button>
+              );
+            }
+            // keep_local implies the full replace/keep cloud UI (counts + alternatives + both buttons)
+            if (choices.includes("keep_local")) {
+              return (
+                <>
+                  <span style={{ width: "100%" }}>{t("drawingLocalCopy")} ({drawPending.current[active]?.length ?? 0}) · {t("drawingCloudCopy")} ({drawingCloudCopies[active].drawings.length})</span>
+                  {[...(drawRecovery.current[drawOwner.current]?.[active]?.alternatives ?? [])].map((copy, index) => (
+                    <button key={copy.recoveryId} type="button" style={{ minHeight: 44 }} disabled={drawingSavesActive.has(active)} onClick={() => chooseDrawingRecoveryCopy(active, copy.recoveryId!)}>{t("drawingOtherLocalCopy")} {index + 1} ({copy.drawings.length})</button>
+                  ))}
+                  {choices.includes("use_cloud") && (
+                    <button type="button" style={{ minHeight: 44 }} disabled={drawingSavesActive.has(active)} onClick={() => resolveDrawingRecovery(active, "cloud")}>{t("drawingUseCloud")}</button>
+                  )}
+                  {choices.includes("keep_local") && (
+                    <button type="button" style={{ minHeight: 44 }} disabled={drawingSavesActive.has(active)} onClick={() => resolveDrawingRecovery(active, "local")}>{t("drawingKeepLocal")}</button>
+                  )}
+                </>
+              );
+            }
+            // too_many falls here: only "Use cloud copy" once the cloud copy is loaded,
+            // or "Review cloud copy" if the user still needs to fetch it.
+            if (choices.includes("use_cloud")) {
+              return (
+                <button type="button" style={{ minHeight: 44 }} disabled={drawingSavesActive.has(active)} onClick={() => resolveDrawingRecovery(active, "cloud")}>{t("drawingUseCloud")}</button>
+              );
+            }
+            if (choices.includes("review_cloud")) {
+              return (
+                <button type="button" style={{ minHeight: 44 }} onClick={() => void loadDrawingCloudCopy(active)}>{t("drawingReviewCloud")}</button>
+              );
+            }
+            return null;
+          })()}
         </div>
       )}
 

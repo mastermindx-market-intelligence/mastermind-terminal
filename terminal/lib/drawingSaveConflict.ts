@@ -42,8 +42,8 @@ const COPY = {
     "你在已保存图形载入完成前绘制了内容。请选择要保留的副本。",
   ],
   tooMany: [
-    "This symbol already has 500 saved drawings, the limit for one symbol. The saved drawings are kept. Your new drawings stay on this device until you delete some saved drawings.",
-    "此代码已有 500 个已保存图形，达到单个代码上限。已保存的图形会保留。你的新图形会留在此设备上，直到你删除部分已保存图形。",
+    "This symbol already has 500 saved drawings, the limit for one symbol. Your new drawings were not saved and stay on this device. Use cloud copy shows the 500 saved drawings and discards the new ones. Delete saved drawings before adding new ones.",
+    "此代码已有 500 个已保存图形，达到单个代码上限。你的新图形未保存，仍保留在此设备上。使用云端副本可显示这 500 个已保存图形并放弃新图形。添加新图形前请先删除已保存图形。",
   ],
 } as const;
 
@@ -65,6 +65,30 @@ export function drawingSaveIssueFromConflict(
 export function drawingSaveIssueOffersReplace(issue: string): boolean {
   if (issue === "preload") return true;
   return !["retry", "storage", "owner_conflict", "save_rejected", "too_many"].includes(issue);
+}
+
+/**
+ * Recovery choices a save issue renders, given whether the cloud copy is loaded.
+ * - "use_cloud": discard the local copy and show the saved drawings
+ *   (resolveDrawingRecovery(sym, "cloud")).
+ * - "keep_local": submit the local copy over the cloud (resolveDrawingRecovery(sym, "local")).
+ * - "review_cloud": fetch the cloud copy first (loadDrawingCloudCopy).
+ * - "retry_save": retry the failed save (flushDrawings).
+ *
+ * For `too_many` we never offer `keep_local`: the cloud already holds the
+ * per-symbol cap, so submitting the local copy would only replace the 500
+ * saved drawings with the (smaller) local set. The user reaches the saved
+ * drawings via "Use cloud copy" once the cloud copy is loaded, or via
+ * "Review cloud copy" if it has not been loaded yet.
+ */
+export type DrawingRecoveryChoice = "use_cloud" | "keep_local" | "review_cloud" | "retry_save";
+
+export function drawingSaveIssueChoices(issue: string, hasCloudCopy: boolean): DrawingRecoveryChoice[] {
+  if (issue === "retry" || issue === "storage") return ["retry_save"];
+  if (issue === "owner_conflict" || issue === "save_rejected") return [];
+  if (issue === "too_many") return hasCloudCopy ? ["use_cloud"] : ["review_cloud"];
+  // conflict, conflict_unknown, payload_mismatch, preload, overlap, multiple, legacy, ...
+  return hasCloudCopy ? ["use_cloud", "keep_local"] : ["review_cloud"];
 }
 
 /** Map a load-reconciliation park reason onto the recovery issue the toast shows. */

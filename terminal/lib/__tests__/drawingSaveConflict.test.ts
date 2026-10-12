@@ -3,6 +3,7 @@ import {
   applyDrawingSaveConflict,
   classifyDrawingSaveConflict,
   drawingSaveConflictCopy,
+  drawingSaveIssueChoices,
   drawingSaveIssueFromConflict,
   drawingSaveIssueFromEntry,
   drawingSaveIssueFromLoadPark,
@@ -115,13 +116,40 @@ describe("drawing save conflict copy", () => {
     const tooManyEn = drawingSaveRecoveryMessage("too_many", "en", t);
     const tooManyZh = drawingSaveRecoveryMessage("too_many", "zh", t);
     expect(tooManyEn).toMatch(/500/);
-    expect(tooManyEn).toMatch(/saved drawings are kept/i);
+    expect(tooManyEn).toMatch(/new drawings were not saved/i);
     expect(tooManyEn).toMatch(/stay on this device/i);
+    expect(tooManyEn).toMatch(/use cloud copy/i);
+    expect(tooManyEn).toMatch(/delete saved drawings before adding new ones/i);
     expect(tooManyEn).not.toMatch(/before your saved drawings finished loading/i);
     expect(tooManyZh).toMatch(/500/);
-    expect(tooManyZh).toMatch(/已保存/);
+    expect(tooManyZh).toMatch(/未保存/);
     expect(tooManyZh).toMatch(/此设备/);
+    expect(tooManyZh).toMatch(/云端副本/);
     expect(tooManyZh).not.toBe(tooManyEn);
+  });
+  it("offers only Use cloud copy / Review cloud copy for too_many — never Replace cloud with local copy", () => {
+    // The cap cannot be replaced by the smaller local copy; that would just delete
+    // the 500 saved drawings. Use cloud copy is the only exit once the copy is loaded.
+    expect(drawingSaveIssueChoices("too_many", true)).toEqual(["use_cloud"]);
+    expect(drawingSaveIssueChoices("too_many", false)).toEqual(["review_cloud"]);
+    expect(drawingSaveIssueChoices("too_many", true)).not.toContain("keep_local");
+    expect(drawingSaveIssueChoices("too_many", false)).not.toContain("keep_local");
+    expect(drawingSaveIssueChoices("too_many", true)).not.toContain("retry_save");
+    expect(drawingSaveIssueChoices("too_many", false)).not.toContain("retry_save");
+  });
+  it("keeps the existing keep-mine / keep-saved choices for non-too_many issues", () => {
+    // The recovery chrome for non-cap conflicts stays unchanged: with a cloud
+    // copy loaded the user can keep the local copy or use the cloud; without
+    // it, they can review the cloud copy first.
+    const replaceIssues = ["conflict", "conflict_unknown", "payload_mismatch", "preload", "overlap", "multiple", "legacy"];
+    for (const issue of replaceIssues) {
+      expect(drawingSaveIssueChoices(issue, true)).toEqual(["use_cloud", "keep_local"]);
+      expect(drawingSaveIssueChoices(issue, false)).toEqual(["review_cloud"]);
+    }
+    expect(drawingSaveIssueChoices("retry", true)).toEqual(["retry_save"]);
+    expect(drawingSaveIssueChoices("storage", false)).toEqual(["retry_save"]);
+    expect(drawingSaveIssueChoices("owner_conflict", true)).toEqual([]);
+    expect(drawingSaveIssueChoices("save_rejected", false)).toEqual([]);
   });
   it("parks the local journal copy and records the 409 code", () => {
     const owner: DrawingJournalEntry = { drawings: [] };

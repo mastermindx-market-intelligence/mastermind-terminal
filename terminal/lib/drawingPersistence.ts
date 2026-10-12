@@ -159,6 +159,8 @@ export type DrawingLoadReconciliation = {
   pendingBlocked?: DrawingJournalEntry["blocked"];
   pendingHasAlternatives?: boolean;
   pendingPreload?: boolean;
+  cloudDrawings?: readonly Drawing[];
+  pendingDrawings?: readonly Drawing[];
 };
 
 export type DrawingLoadParkReason = "preload" | "overlap" | "conflict" | "too_many";
@@ -171,6 +173,19 @@ export type DrawingPreloadUnion =
   | { ok: true; drawings: Drawing[] }
   | { ok: false; reason: "overlap" | "too_many" };
 
+function drawingStoredEqual(a: Drawing, b: Drawing): boolean {
+  return JSON.stringify(a) === JSON.stringify(b);
+}
+
+/** Drop preload pending drawings that are already in the cloud with the same stored fields. */
+export function remainingPreloadPending(cloud: readonly Drawing[], pending: readonly Drawing[]): Drawing[] {
+  const byId = new Map(cloud.map((drawing) => [drawing.id, drawing]));
+  return pending.filter((drawing) => {
+    const existing = byId.get(drawing.id);
+    return !existing || !drawingStoredEqual(existing, drawing);
+  });
+}
+
 /** Decide how a settled drawings GET should combine with in-pane pending work. */
 export function decideDrawingLoadReconciliation(input: DrawingLoadReconciliation): DrawingLoadDecision {
   if (input.pendingBlocked || input.pendingHasAlternatives) return { action: "park", reason: "conflict" };
@@ -182,9 +197,13 @@ export function decideDrawingLoadReconciliation(input: DrawingLoadReconciliation
   }
   if (input.pendingIds.length === 0) return { action: "stamp" };
   if (!input.pendingPreload) return { action: "park", reason: "conflict" };
+  const pendingIds = input.cloudDrawings && input.pendingDrawings
+    ? remainingPreloadPending(input.cloudDrawings, input.pendingDrawings).map((drawing) => drawing.id)
+    : input.pendingIds;
+  if (pendingIds.length === 0) return { action: "stamp" };
   const cloud = new Set(input.cloudIds);
-  if (input.pendingIds.some((id) => cloud.has(id))) return { action: "park", reason: "overlap" };
-  if (input.cloudIds.length + input.pendingIds.length > MAX_DRAWINGS_PER_SYMBOL) {
+  if (pendingIds.some((id) => cloud.has(id))) return { action: "park", reason: "overlap" };
+  if (input.cloudIds.length + pendingIds.length > MAX_DRAWINGS_PER_SYMBOL) {
     return { action: "park", reason: "too_many" };
   }
   return { action: "merge" };
@@ -198,4 +217,52 @@ export function unionCloudWithPreloadAdditions(cloud: Drawing[], pending: Drawin
   }
   if (cloud.length + pending.length > MAX_DRAWINGS_PER_SYMBOL) return { ok: false, reason: "too_many" };
   return { ok: true, drawings: [...cloud, ...pending] };
+}
+
+/** Cloud ∪ pending with pending overriding same-id drawings. Preload pending is additions, not a snapshot. */
+export function unionCloudWithPreloadKeepMine(cloud: Drawing[], pending: Drawing[]): DrawingPreloadUnion {
+  const byId = new Map(cloud.map((drawing) => [drawing.id, drawing]));
+  const extra: Drawing[] = [];
+  for (const drawing of pending) {
+    if (byId.has(drawing.id)) byId.set(drawing.id, drawing);
+    else extra.push(drawing);
+  }
+  const drawings = [...byId.values(), ...extra];
+  if (drawings.length > MAX_DRAWINGS_PER_SYMBOL) return { ok: false, reason: "too_many" };
+  return { ok: true, drawings };
+}
+
+/** PUT set for "Replace cloud with local copy". Non-preload rows stay a full-snapshot replace. */
+export function keepMinePutDrawings(
+  cloud: Drawing[],
+  pending: Drawing[],
+  preload: boolean,
+): DrawingPreloadUnion {
+  if (!preload) {
+    if (pending.length > MAX_DRAWINGS_PER_SYMBOL) return { ok: false, reason: "too_many" };
+    return { ok: true, drawings: pending };
+  }
+  return unionCloudWithPreloadKeepMine(cloud, pending);
+}
+
+/**
+ * A preload-merge PUT that lost revision_conflict can settle as saved after one
+ * cloud re-read finds every pending drawing present and deep-equal.
+ * owner_conflict / unknown / payload_mismatch stay conflict.
+ */
+export function settlePreloadMergeRevisionConflict(input: {
+  wasPreloadMerge: boolean;
+  conflictCode: unknown;
+  pending: readonly Drawing[];
+  cloud: readonly Drawing[] | null;
+}): "saved" | "conflict" {
+  if (!input.wasPreloadMerge || input.conflictCode !== "revision_conflict" || !input.cloud) {
+    return "conflict";
+  }
+  const byId = new Map(input.cloud.map((drawing) => [drawing.id, drawing]));
+  const saved = input.pending.every((drawing) => {
+    const existing = byId.get(drawing.id);
+    return existing !== undefined && drawingStoredEqual(existing, drawing);
+  });
+  return saved ? "saved" : "conflict";
 }
