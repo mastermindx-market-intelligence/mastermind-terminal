@@ -1,0 +1,72 @@
+{
+  "header": {
+    "left": 0,
+    "right": 278,
+    "top": 231.671875,
+    "bottom": 306.546875,
+    "width": 278,
+    "height": 74.875
+  },
+  "inspector": {
+    "left": 8,
+    "right": 320,
+    "top": 314.625,
+    "bottom": 541.65625,
+    "width": 312,
+    "height": 227.03125
+  },
+  "fields": [
+    {
+      "text": "AApple Inc · 1s · Equities",
+      "left": 10,
+      "right": 191.625,
+      "top": 239.671875,
+      "bottom": 259.671875,
+      "width": 181.625,
+      "height": 20
+    },
+    {
+      "text": "O224.95H225.00L224.91C224.96",
+      "left": 10,
+      "right": 205.875,
+      "top": 263.671875,
+      "bottom": 279.609375,
+      "width": 195.875,
+      "height": 15.9375
+    },
+    {
+      "text": "+0.00 (+0.00%)",
+      "left": 13,
+      "right": 102.0625,
+      "top": 282.609375,
+      "bottom": 298.546875,
+      "width": 89.0625,
+      "height": 15.9375
+    },
+    {
+      "text": "Vol7",
+      "left": 108.0625,
+      "right": 132.734375,
+      "top": 282.609375,
+      "bottom": 298.546875,
+      "width": 24.671875,
+      "height": 15.9375
+    },
+    {
+      "text": "REPLAY",
+      "left": 197.625,
+      "right": 268,
+      "top": 241.671875,
+      "bottom": 257.671875,
+      "width": 70.375,
+      "height": 16
+    }
+  ],
+  "overlap": [
+    0,
+    0,
+    0,
+    0,
+    0
+  ]
+}

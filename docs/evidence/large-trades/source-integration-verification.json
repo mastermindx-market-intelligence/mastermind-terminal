@@ -1,0 +1,228 @@
+{
+  "schema": "mastermind.large_trades.source_integration_verification.v1",
+  "recordedAt": "2026-10-11T10:19:46.085260+00:00",
+  "sourceCommit": "28851b8d823ee38516c8902da3c9b3453a95ee7e",
+  "upstreamIntegrated": "707648d5201494ec42a2429ffb64cc39fb24314e",
+  "classification": "LOCAL_SOURCE_AND_BROWSER_EVIDENCE_NOT_PRODUCTION_ACCEPTANCE",
+  "terminalUnit": {
+    "sourceCommit": "28851b8d823ee38516c8902da3c9b3453a95ee7e",
+    "startedAt": "2026-10-11T10:18:20.235687+00:00",
+    "endedAt": "2026-10-11T10:19:03.932491+00:00",
+    "command": [
+      "npm",
+      "test"
+    ],
+    "seconds": 43.7,
+    "exitCode": 0,
+    "sourceChartPanelSha256": "6210ada239f30556ff2ff2be1f1359b173a2d104e8c347d4615d267f6a740938",
+    "evidenceRecaptures": [
+      "terminal-visual-intelligence",
+      "options-level-axis-labels",
+      "b-pl-6-batch-1"
+    ],
+    "passedFiles": 534,
+    "passedTests": 8766,
+    "existingTodo": 4,
+    "logSha256": "59c8cabc6e83a9b560a6895276fdbf9cb87bf30eedc058d332bf747211acf327"
+  },
+  "compile": {
+    "sourceCommit": "28851b8d823ee38516c8902da3c9b3453a95ee7e",
+    "startedAt": "2026-10-11T10:11:34.036376+00:00",
+    "purpose": "Local compile proof only; no deployment or data-coverage prebuild",
+    "gates": [
+      {
+        "name": "next-typegen",
+        "command": [
+          "npx",
+          "next",
+          "typegen"
+        ],
+        "startedAt": "2026-10-11T10:11:34.037119+00:00",
+        "endedAt": "2026-10-11T10:11:35.628242+00:00",
+        "seconds": 1.59,
+        "exitCode": 0
+      },
+      {
+        "name": "typescript",
+        "command": [
+          "npx",
+          "tsc",
+          "--noEmit"
+        ],
+        "startedAt": "2026-10-11T10:11:35.629009+00:00",
+        "endedAt": "2026-10-11T10:12:24.943239+00:00",
+        "seconds": 49.31,
+        "exitCode": 0
+      },
+      {
+        "name": "next-production-compile",
+        "command": [
+          "npx",
+          "next",
+          "build"
+        ],
+        "startedAt": "2026-10-11T10:12:24.944682+00:00",
+        "endedAt": "2026-10-11T10:13:48.790166+00:00",
+        "seconds": 83.85,
+        "exitCode": 0
+      }
+    ],
+    "endedAt": "2026-10-11T10:13:48.790941+00:00"
+  },
+  "compileWarning": {
+    "count": 1,
+    "scope": "Unmodified flowSource / flow stream import trace reports broad file tracing",
+    "result": "Optimized build completed with exit 0; no data-coverage prebuild or deployment was run"
+  },
+  "plainLanguage": [
+    {
+      "name": "plain-language-self-check",
+      "command": [
+        "node",
+        "scripts/check_plain_language.mjs",
+        "--self-check"
+      ],
+      "startedAt": "2026-10-11T10:12:54.132272+00:00",
+      "endedAt": "2026-10-11T10:12:54.529649+00:00",
+      "exitCode": 0
+    },
+    {
+      "name": "plain-language-added-copy",
+      "command": [
+        "node",
+        "scripts/check_plain_language.mjs",
+        "--mode",
+        "enforce-added",
+        "--diff-file",
+        "<reviewed-diff-file>"
+      ],
+      "startedAt": "2026-10-11T10:12:54.529986+00:00",
+      "endedAt": "2026-10-11T10:12:57.141648+00:00",
+      "exitCode": 0
+    }
+  ],
+  "pythonIntegration": {
+    "command": "python3 -m pytest tests/test_iex_deep_trades.py tests/test_terminal_volume_guard.py tests/test_terminal_release_preflight.py::test_production_policy_is_complete_narrow_and_tree_pinned -q",
+    "passedTests": 123,
+    "exitCode": 0,
+    "tests": {
+      "decoder": 109,
+      "retainedVolumeGuard": 13,
+      "protectedPolicy": 1
+    },
+    "exactRunTimes": null,
+    "logSha256": "255822664ef63053a14f64278dfb0ad92cd8985b7ab964a32d9cdda049d07ad0"
+  },
+  "firstWholeUnitRun": {
+    "passedFiles": 533,
+    "failedFiles": 1,
+    "passedTests": 8765,
+    "failedTests": 1,
+    "existingTodo": 4,
+    "reason": "The B-PL-6 ChartPanel screenshot fingerprint still referenced the prior source. The full 24-image family was actually recaptured before the successful whole-suite rerun.",
+    "sourceChangeRequired": false
+  },
+  "legacyCaptureGates": [
+    {
+      "family": "terminal-visual-intelligence",
+      "browserJourneysPassed": 30,
+      "imagesInspected": 6,
+      "manifest": "terminal/docs/pr-crops/terminal-visual-intelligence/EVIDENCE.yml",
+      "manifestSha256": "523a1f8771378b7e74e8fd71baea14a72064f3033f1e18bf1964a35a5cae67b4"
+    },
+    {
+      "family": "options-level-axis-labels",
+      "captureJourneysPassed": 5,
+      "imagesInspected": 5,
+      "manifest": "terminal/docs/pr-crops/options-level-axis-labels/manifest.json",
+      "manifestSha256": "38d9ab47c5d15a72f02b259db6177797bc2ea1797b58e1daf3257a20079588e4"
+    },
+    {
+      "family": "b-pl-6-batch-1",
+      "imagesCapturedAndInspected": 24,
+      "deterministicIdenticalImages": 21,
+      "manifest": "terminal/docs/pr-crops/b-pl-6-batch-1/EVIDENCE.yml",
+      "manifestSha256": "b906862d0a9de17ab75f848b3cc37489e1055be0a536b085bcc6decdbb1d07e5"
+    }
+  ],
+  "featureEvidence": {
+    "manifest": "terminal/docs/pr-crops/large-trades/manifest.json",
+    "images": 32,
+    "originalBytesVerified": true,
+    "countingRule": "Capture stages repeat journeys; do not add them into a unique test count.",
+    "historicalEnvelopeSha256": "015eab741c6bc40ef9931a4683584cdafee9eedfffc299e75824b1560cccd2b9"
+  },
+  "independentUiBoundaryReview": {
+    "reviewedCommit": "28851b8d823ee38516c8902da3c9b3453a95ee7e",
+    "reviewBase": "707648d5201494ec42a2429ffb64cc39fb24314e",
+    "reviewer": "Independent market-microstructure research agent",
+    "method": "Bounded static read; no source or runtime mutation",
+    "highFindings": 0,
+    "mediumFindings": 0,
+    "files": [
+      "terminal/app/api/large-trades/route.ts",
+      "terminal/lib/largeTrades/sourceAdmission.ts",
+      "terminal/lib/largeTrades/client.ts",
+      "terminal/lib/largeTrades/chartProjection.ts",
+      "terminal/components/ChartPanel.tsx"
+    ],
+    "scope": [
+      "Production fixture and authenticated-source gating",
+      "IEX historical provider and timing admission",
+      "Client request and response symbol identity",
+      "Distinct market and knowledge cutoffs and safe chart-time projection",
+      "Chart teardown, painted-source and replay ownership"
+    ],
+    "limits": [
+      "No production authentication, publication, or browser claim",
+      "Overlay asynchronous internals outside this final static review",
+      "Declared source authenticity remains incumbent publisher responsibility"
+    ]
+  },
+  "sourceCustody": {
+    "uiSourceHashes": {
+      "terminal/components/ChartPanel.tsx": "6210ada239f30556ff2ff2be1f1359b173a2d104e8c347d4615d267f6a740938",
+      "terminal/components/IndicatorSettings.tsx": "aaca596377c579748326d93f83ad4d020acfb42cdddfcb84e96d3041eafc5f53",
+      "terminal/components/IndicatorsModal.tsx": "7cf62b612d9a10d10ffaec1c90ac3084bdf169b309b7024d4e05899f9aa2a097",
+      "terminal/lib/indicators.ts": "0f5149c3c29d31c2f9d57d5638123ccd02611c8a8eacafa670f0c5fb8c0aaf72",
+      "terminal/lib/liveBarProjection.ts": "79034ce4354351229b79cacbecbdf65c5fb353c6172252a0224811a0176ce66b",
+      "terminal/components/LargeTradesOverlay.tsx": "3785437d84b9b1d404ddf03280cf6a9ebf367b40746f861238706bd11a1f6b71",
+      "terminal/components/LargeTradesOverlay.module.css": "1d14ddb27af03f0f7407eee5d8ca177714832a6fb85d0b220a84bbc25baf82f1",
+      "terminal/lib/largeTrades/chartProjection.ts": "772352a6969221a3a635415842f74c782321fb50234357ef8d609c3816b48502",
+      "terminal/lib/largeTrades/client.ts": "01ccba2f576668f9a8459cc750fcb0c748a188510675fef620017860decddd05",
+      "terminal/lib/largeTrades/labels.ts": "4f59ae651684728701552c69225fd291aff397c4f3f635d6ce70a38d52a5deb8",
+      "terminal/lib/largeTrades/sourceAdmission.ts": "3ed0038c92a3fcf5973968e4a1e73cda8236151fb5e921d36c191463f1c5c8ff",
+      "terminal/app/api/large-trades/route.ts": "8d4703d776b9da7ca7ca5465fbda7051a812f8b13b58f96d807c7ae6dcde6c77",
+      "terminal/lib/__tests__/largeTradesProjection.test.ts": "5bcabefd60884c38000495e00a4d761eb93324b74cd2fc2dd27539f33e4ebc98",
+      "terminal/lib/__tests__/largeTradesClient.test.ts": "eb96fe9191cf8101119d28afafefb0a985cf1cdd8a7382dc1e43c1c11ebfcfa5",
+      "terminal/lib/__tests__/largeTradesRoute.test.ts": "f90115f7ab85255c3b1e4631f41e65e52095ab8ebc5a88e3144c579569e4132b",
+      "terminal/e2e/large-trades.spec.ts": "a303e240c37dbf758662fb0c042926bb01551e33c96bfaa295c198aa6db5c950",
+      "terminal/e2e/large-trades-historical.spec.ts": "beb7ae35e934298ce18c2eea2ac8c498b17013ee6810979ab53a2c401dcd4ba4",
+      "terminal/lib/__tests__/largeTradesSettings.test.ts": "b772595e9103edac1f382b2cc1cf185d9c9478473204247e45e321d24114417c"
+    },
+    "dependencyHashes": {
+      "terminal/lib/largeTrades/types.ts": "caaf4fbde97518400930a1dd2b90a349534108d2f67680161392e8264e9cebec",
+      "terminal/lib/largeTrades/engine.ts": "1936357255e27951d051f2c8fe93349292c7b12a63c66fed8c9246cbfb898483",
+      "terminal/lib/largeTrades/fixtures.ts": "ed34d800b7d81b7cd7625eb844a3e0a1b4acac18a81e12bd8cea1b502ba1c5c2",
+      "terminal/lib/i18n.tsx": "cfad0a8290b9b872fe919b7b9855bbd3a4cee095eb26ebd902c399942196a65d"
+    },
+    "protectedDataWorkingTreeDiff": false,
+    "newProviderSocket": false,
+    "newCollector": false
+  },
+  "requiredHostedChecks": [
+    "Quote Hub tests",
+    "Terminal typecheck + tests",
+    "Ingest + signal-layer tests"
+  ],
+  "hostedStatusAtRecording": "Final evidence candidate not yet pushed; latest-head hosted CI is a separate subsequent gate.",
+  "releaseLimits": [
+    "Canonical production access has an unreconciled public-key refusal.",
+    "Incumbent Macro envelope publication and authenticated production consumption remain unproven.",
+    "IEX cohort is historical, venue-only and partial; qualified response data is unavailable.",
+    "Out-of-sample predictive efficacy remains NOT_ESTIMABLE.",
+    "Original Skylit attachment is unavailable.",
+    "Native chart PNG exporter omits the HTML overlay.",
+    "CME/MNQ commercial quote and rights have not been approved."
+  ]
+}

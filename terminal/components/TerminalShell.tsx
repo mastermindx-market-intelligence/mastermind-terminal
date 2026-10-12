@@ -5554,7 +5554,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
             replayCursor={replayOn && replayCutoff ? `${replayCutoff.clock}:${replayCutoff.at}` : null}
             onBack={() => setTableViewOpen(false)}
             onShowOnChart={(time, label) => {
-              void requestPaneFocus(activePane, { tf, time }).then((r) => {
+              void requestPaneFocus(activePane, { symbol: active, tf, time }).then((r) => {
                 const msg = dataInspectorFocusMessage(r.status, label, lang);
                 if (msg) showDtmToast(msg);
               });
