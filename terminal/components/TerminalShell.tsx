@@ -1738,8 +1738,12 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
     const ownerEpoch = drawOwnerEpoch.current;
     const ownerKey = drawOwner.current;
     const recovery = drawRecovery.current[ownerKey] ?? (drawRecovery.current[ownerKey] = {});
-    const entry = recovery[sym] ?? (recovery[sym] = { drawings, ...(Object.hasOwn(drawRevisions.current, sym) ? { revision: drawRevisions.current[sym] } : {}) });
-    if (!Object.hasOwn(entry, "revision") && !Object.hasOwn(drawRevisions.current, sym)) return;
+    const entry = recovery[sym] ?? (recovery[sym] = { drawings, ...(Object.hasOwn(drawRevisions.current, sym) ? { revision: drawRevisions.current[sym] } : { preload: true as const }) });
+    if (!Object.hasOwn(entry, "revision") && !Object.hasOwn(drawRevisions.current, sym)) {
+      entry.preload = true;
+      void persistDrawingRecovery(ownerKey, recovery);
+      return;
+    }
     const attempt = prepareDrawingAttempt(entry, () => crypto.randomUUID());
     if (!attempt) {
       void persistDrawingRecovery(ownerKey, recovery);
@@ -1847,13 +1851,15 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
       const ownerKey = drawOwner.current;
       const recovery = drawRecovery.current[ownerKey] ?? (drawRecovery.current[ownerKey] = {});
       const entry = recovery[sym];
-      if (entry) entry.drawings = normalized;
-      else recovery[sym] = { drawings: normalized, ...(Object.hasOwn(drawRevisions.current, sym) ? { revision: drawRevisions.current[sym] } : {}) };
-      // A durable row with no revision is re-read as a legacy copy. Keep pre-GET
-      // edits in memory until the pane GET stamps R, then persist once.
-      if (Object.hasOwn(recovery[sym], "revision") || Object.hasOwn(drawRevisions.current, sym)) {
-        void persistDrawingRecovery(ownerKey, recovery);
+      if (entry) {
+        entry.drawings = normalized;
+        if (!Object.hasOwn(entry, "revision") && !Object.hasOwn(drawRevisions.current, sym)) entry.preload = true;
+      } else {
+        recovery[sym] = Object.hasOwn(drawRevisions.current, sym)
+          ? { drawings: normalized, revision: drawRevisions.current[sym] }
+          : { drawings: normalized, preload: true };
       }
+      void persistDrawingRecovery(ownerKey, recovery);
     }
     clearTimeout(drawTimers.current[sym]);
     drawTimers.current[sym] = setTimeout(() => flushDrawings(sym), 600);
@@ -2588,6 +2594,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
               entry.drawings = mergedDrawings;
               entry.revision = snapshot.revision;
               delete entry.blocked;
+              delete entry.preload;
             } else {
               recovery[sym] = { drawings: mergedDrawings, revision: snapshot.revision };
             }

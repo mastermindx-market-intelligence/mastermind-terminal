@@ -371,3 +371,63 @@ test("drawing before the pane GET settles merges cloud ids and does not claim th
  expect(saved).toContain(localId as string);
  expect(puts[0].expectedRevision).toBe(cloudRevision);
 });
+
+// D1: a stroke made while the GET is held must land in the durable journal so a
+// reload (GET still held) restores it. After the GET settles, save against R.
+test("a pre-GET drawing survives reload while the GET is still held and then saves against the GET revision",async({page})=>{
+ test.skip((page.viewportSize()?.width??1440)<=860,"Pointer edit plus a held GET is exercised on the desktop chart.");
+ const cloudRevision="aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa";
+ const cloudId="cloud-hline";
+ let releaseGet:()=>void=()=>{};
+ const getHeld=new Promise<void>((resolve)=>{releaseGet=resolve;});
+ let gets=0;
+ const puts:{drawings:{id:string}[];expectedRevision:string|null}[]=[];
+ await page.route("**/api/drawings**",async(route)=>{
+  const request=route.request();
+  if(request.method()==="PUT"){
+   const value=request.postDataJSON();
+   puts.push(value);
+   await route.fulfill(json({ok:true,operationId:value.operationId,revision:"cccccccc-cccc-4ccc-8ccc-cccccccccccc",idempotentReplay:false,superseded:false}));
+   return;
+  }
+  const symbol=new URL(request.url()).searchParams.get("symbol");
+  if(symbol!=="NVDA"){
+   await route.fulfill(json({drawings:[],revision:null,schemaVersion:1}));
+   return;
+  }
+  gets+=1;
+  await getHeld;
+  await route.fulfill(json({drawings:[cloudLine(cloudId,196)],revision:cloudRevision,schemaVersion:1}));
+ });
+ await page.goto("/terminal?symbol=NVDA");
+ await expect(page.locator(".chart-wrap canvas").first()).toBeVisible();
+ await expect.poll(()=>gets,{timeout:20_000}).toBeGreaterThan(0);
+ const layer=page.locator(".pane.on .drawing-layer");
+ await expect(layer).toBeVisible();
+ const box=await layer.boundingBox();
+ expect(box).not.toBeNull();
+ await page.getByTestId("drawing-group-lines-main").click();
+ await expect(page.getByTestId("drawing-group-lines-main")).toHaveAttribute("aria-pressed","true",{timeout:20_000});
+ await page.mouse.click(box!.x+box!.width*0.23,box!.y+box!.height*0.34);
+ await page.mouse.click(box!.x+box!.width*0.57,box!.y+box!.height*0.52);
+ await expect(layer.locator('g[data-drawing-kind="trendline"]:not([data-id="_p"])')).toHaveCount(1,{timeout:20_000});
+ const localId=await layer.locator('g[data-drawing-kind="trendline"]:not([data-id="_p"])').first().getAttribute("data-id");
+ expect(localId).toBeTruthy();
+ await expect.poll(async()=>{
+  const raw=await page.evaluate(()=>localStorage.getItem("mm.drawing.account-outbox.v2"));
+  return raw&&raw.includes(localId as string);
+ },{timeout:20_000}).toBe(true);
+ const getsBeforeReload=gets;
+ await page.reload();
+ await expect(page.locator(".chart-wrap canvas").first()).toBeVisible();
+ await expect.poll(()=>gets,{timeout:20_000}).toBeGreaterThan(getsBeforeReload);
+ await expect(page.locator(`.pane.on .drawing-layer g[data-drawing-kind="trendline"][data-id="${localId}"]`)).toHaveCount(1,{timeout:20_000});
+ await expect(page.getByTestId("drawing-save-recovery")).toHaveCount(0);
+ releaseGet();
+ await expect.poll(()=>puts.length,{timeout:20_000}).toBeGreaterThan(0);
+ await expect(page.getByTestId("drawing-save-recovery")).toHaveCount(0);
+ const saved=puts[0].drawings.map((drawing)=>drawing.id);
+ expect(saved).toContain(cloudId);
+ expect(saved).toContain(localId as string);
+ expect(puts[0].expectedRevision).toBe(cloudRevision);
+});

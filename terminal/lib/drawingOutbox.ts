@@ -119,6 +119,7 @@ function parseEntry(value: unknown): Entry | null {
     entry.conflictCode = raw.conflictCode;
   }
   if (raw.operationUnknownPossible === true) entry.operationUnknownPossible = true;
+  if (raw.preload === true) entry.preload = true;
   if (raw.attempt && typeof raw.attempt === "object") {
     const attempt = raw.attempt as Record<string, unknown>;
     const attemptedDrawings = parsePersistedDrawings(attempt.drawings);
@@ -126,7 +127,7 @@ function parseEntry(value: unknown): Entry | null {
       entry.attempt = { operationId: attempt.operationId, expectedRevision: attempt.expectedRevision, drawings: attemptedDrawings };
     } else entry.blocked = "invalid";
   }
-  if (!Object.hasOwn(entry, "revision") && !entry.attempt) entry.blocked ??= "legacy";
+  if (!Object.hasOwn(entry, "revision") && !entry.attempt && !entry.preload) entry.blocked ??= "legacy";
   return entry;
 }
 function storedEntry(entry: Entry): Entry {

@@ -675,3 +675,33 @@ describe("drawing load vs pre-GET local edits", () => {
     expect(unionCloudWithPreloadAdditions(cloud, [line("cloud-a")])).toBeNull();
   });
 });
+
+describe("durable pre-GET journal rows", () => {
+  it("round-trips a preload row through write/parse without treating it as a leftover legacy copy", async () => {
+    const storage = new MemoryStorage();
+    expect(await persist(storage, { NVDA: { drawings: [line("pre")], preload: true } })).toBe(true);
+    const recovered = readDrawingJournal(storage, "account:a").NVDA;
+    expect(recovered.preload).toBe(true);
+    expect(recovered.blocked).toBeUndefined();
+    expect(Object.hasOwn(recovered, "revision")).toBe(false);
+    expect(recovered.alternatives).toBeUndefined();
+    expect(recovered.drawings.map((drawing) => drawing.id)).toEqual(["pre"]);
+    expect(prepareDrawingAttempt(recovered, () => op)).toBeNull();
+    expect(recovered.blocked).toBeUndefined();
+    const reloaded = readDrawingJournal(storage, "account:a");
+    expect(await persist(storage, reloaded)).toBe(true);
+    const again = readDrawingJournal(storage, "account:a").NVDA;
+    expect(again.alternatives).toBeUndefined();
+    expect(again.preload).toBe(true);
+    expect(again.blocked).toBeUndefined();
+  });
+
+  it("keeps stored-entry bytes of a no-preload row free of the preload field", async () => {
+    const storage = new MemoryStorage();
+    expect(await persist(storage, { NVDA: { drawings: [line("A")], revision: null } })).toBe(true);
+    const copies = JSON.parse(storage.getItem(DRAWING_JOURNAL_KEY)!)["account:a"].NVDA.copies as Record<string, Record<string, unknown>>;
+    const stored = Object.values(copies)[0];
+    expect(Object.hasOwn(stored, "preload")).toBe(false);
+    expect(JSON.stringify(stored)).toBe(JSON.stringify({ drawings: [line("A")], revision: null }));
+  });
+});

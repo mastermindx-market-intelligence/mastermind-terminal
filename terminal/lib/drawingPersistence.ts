@@ -20,6 +20,8 @@ export type DrawingJournalEntry = {
   blocked?: "legacy" | "conflict" | "superseded" | "invalid";
   conflictCode?: "revision_conflict" | "owner_conflict" | "operation_payload_mismatch";
   operationUnknownPossible?: true;
+  // In-pane edit made before the drawings GET observed a revision. Not a leftover copy.
+  preload?: true;
 };
 export type DrawingJournal = Record<string, DrawingJournalEntry>;
 export type DrawingSaveReceipt = {
@@ -78,7 +80,7 @@ export function prepareDrawingAttempt(entry: DrawingJournalEntry, operationId: (
   if (entry.blocked || entry.alternatives?.length) return null;
   if (entry.attempt) return entry.attempt;
   if (!Object.hasOwn(entry, "revision") || !validDrawingRevision(entry.revision)) {
-    entry.blocked = "legacy";
+    if (!entry.preload) entry.blocked = "legacy";
     return null;
   }
   entry.attempt = {
