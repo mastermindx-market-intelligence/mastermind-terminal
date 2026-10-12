@@ -288,6 +288,67 @@ describe("useTickerNewsFeed races", () => {
     });
     expect(readFeed().title).toBe("Headline B");
     expect(readFeed().loadState).toBe("ready");
+
+    // A superseded refresh that FAILS must not write unavailable over the newer snapshot.
+    await settle(() => {
+      stream.emit("upsert", changePayload(4, "ev2_d", "Headline D"));
+      stream.emit("upsert", changePayload(5, "ev2_e", "Headline E"));
+    });
+    expect(background).toHaveLength(4);
+
+    await act(async () => {
+      background[3].resolve(jsonResponse(snapshot("NVDA", [row("ev2_e", "Headline E", 5)])));
+      await background[3].promise;
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+    expect(readFeed().title).toBe("Headline E");
+    expect(readFeed().loadState).toBe("ready");
+
+    await act(async () => {
+      background[2].resolve(jsonResponse({ detail: "upstream missing" }, 503));
+      await background[2].promise;
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+    expect(readFeed().title).toBe("Headline E");
+    expect(readFeed().loadState).toBe("ready");
+    expect(readFeed().live).toBe("no");
+  });
+
+  it("a successful refresh after a background failure returns to ready with the fresh snapshot", async () => {
+    let phase: "initial" | "fail" | "recover" = "initial";
+    globalThis.fetch = vi.fn(() => {
+      if (phase === "initial") return response(snapshot("NVDA", [row("ev2_a", "First headline", 1)]));
+      if (phase === "fail") return response({ detail: "upstream missing" }, 503);
+      return response(snapshot("NVDA", [row("ev2_d", "Recovered headline", 4)]));
+    }) as unknown as typeof globalThis.fetch;
+
+    await act(async () => {
+      root.render(<FeedProbe symbol="NVDA" />);
+    });
+    expect(readFeed().loadState).toBe("ready");
+    const stream = FakeEventSource.instances[0];
+    expect(stream).toBeTruthy();
+
+    phase = "fail";
+    await settle(() => {
+      stream.emit("upsert", changePayload(2, "ev2_b", "Lost headline"));
+    });
+    expect(readFeed().loadState).toBe("unavailable");
+    expect(readFeed().live).toBe("no");
+    // The snapshot is retained (the panel hides it); only the state went unavailable.
+    expect(readFeed().title).toBe("First headline");
+
+    phase = "recover";
+    await settle(() => {
+      stream.emit("upsert", changePayload(4, "ev2_d", "Recovered headline"));
+    });
+
+    expect(readFeed().loadState).toBe("ready");
+    expect(readFeed().title).toBe("Recovered headline");
+    expect(readFeed().ticker).toBe("NVDA");
+    expect(readFeed().live).toBe("no");
   });
 
   it("background refresh failure ends unavailable and renders no story rows", async () => {
@@ -349,6 +410,27 @@ describe("useTickerNewsFeed races", () => {
 
       expect(host.querySelector("article[data-story-id]"), scenario.name).toBeNull();
       expect(host.textContent, scenario.name).toContain("News is temporarily unavailable");
+
+      // The same failure hides rows and every review control in Chinese too.
+      await unmountRoot();
+      root = createRoot(host);
+      rootMounted = true;
+      FakeEventSource.instances = [];
+      phase = "initial";
+      await act(async () => {
+        root.render(<TickerNewsPanel symbol="NVDA" lang="zh" />);
+      });
+      expect(host.querySelector("article[data-story-id]"), scenario.name).not.toBeNull();
+
+      phase = "refresh";
+      await settle(() => {
+        FakeEventSource.instances.at(-1)!.emit("upsert", changePayload(2, "ev2_a", "Ignored failure"));
+      });
+
+      expect(host.querySelector("article[data-story-id]"), scenario.name).toBeNull();
+      expect(host.querySelector("[data-news-mark-shown]"), scenario.name).toBeNull();
+      expect(host.querySelector("[data-news-catchup]"), scenario.name).toBeNull();
+      expect(host.textContent, scenario.name).toContain("新闻暂时不可用");
     }
   });
 
