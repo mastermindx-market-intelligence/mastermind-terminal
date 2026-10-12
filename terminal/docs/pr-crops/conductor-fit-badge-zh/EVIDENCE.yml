@@ -1,17 +1,17 @@
 # Conductor fit chip in zh — capture evidence
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
 # Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
-# capturedAtHead: 7e2c19610fe30df2cc68d84fe725a3aef70d085c
-# capturedAt: 2026-10-11T11:02:09.973Z
+# capturedAtHead: 205e5e6710eed65db18ab60e19df9acfd0b22acb
+# capturedAt: 2026-10-12T04:50:59.194Z
 # capturedAtHead is informational. The lock is layoutFiles.
 # before/ holds the same crops at the commit before the fix (before/BEFORE.yml); this tool never rewrites it.
 layoutFiles:
   terminal/app/dev/theater/page.tsx: "f491c099134faba5cff32eff08cce3c954401831e8cff0dcb6099096c4a89fed"
-  terminal/app/globals.css: "06e122f87cc402a9021d3a357e95c9c9a1cd7f4e622a25e2b24e8f7bc7ee6cd9"
+  terminal/app/globals.css: "272fbbee3354931f712a30d60461f62b38fceee050f6b86e23107c7adcb14beb"
   terminal/components/ChartConductor.tsx: "1ab2a57aafcdaf6f4cd5853de93179b1f387a3d8b68d9863ce4953921c372583"
   terminal/lib/chartBus.ts: "0feac4f3a7e30e19e54f66aa3c9aa8bdb8f7f11acd1ce9f3b9a07d4f86a6e063"
   terminal/lib/conductorState.ts: "4ec3827338cf2ed9f9eb8145553265ab46157ad2ef2e726439433dc474a585f1"
-  terminal/lib/i18n.tsx: "cfad0a8290b9b872fe919b7b9855bbd3a4cee095eb26ebd902c399942196a65d"
+  terminal/lib/i18n.tsx: "af45118c980cad0c274c23577df30482bff911b3caa3c53683e53c4fa87c2b85"
 theme: dark
 languages: [en, zh]
 viewports:
