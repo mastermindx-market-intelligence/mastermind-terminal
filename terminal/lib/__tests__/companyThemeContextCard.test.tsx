@@ -347,6 +347,21 @@ describe("company theme context card errors", () => {
     expect(transport.pending[1].symbol).toBe("NVDA");
     expect(transport.pending[1].retryNonce).not.toBe(transport.pending[0].retryNonce);
   });
+
+  it("a late settling first response cannot overwrite the retried result", async () => {
+    await mount();
+    await settle(0, failure("upstream_unavailable", true));
+    await act(async () => retryButton("Retry")!.click());
+    expect(transport.pending).toHaveLength(2);
+    // The abandoned first request settles late with data that differs from the
+    // retried one; it must never paint over the in-flight retry.
+    await settle(0, success(exposure({ exposures: [item({ name_en: "Ghost Theme", name_zh: "幽灵主题" })] }), "ready"));
+    expect(host.textContent).not.toContain("Ghost Theme");
+    expect(host.querySelector("[aria-busy='true']")).not.toBeNull();
+    await settle(1, success(exposure(), "ready"));
+    expect(host.textContent).toContain("AI Infrastructure");
+    expect(host.textContent).not.toContain("Ghost Theme");
+  });
 });
 
 describe("company theme context card rejection and abort", () => {
