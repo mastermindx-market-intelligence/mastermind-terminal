@@ -501,6 +501,113 @@ test("a pre-GET drawing survives pagehide, leave/return, and reload while the GE
  expect(puts[0].expectedRevision).toBe(cloudRevision);
 });
 
+// F2 falsifier: the pagehide listener must flush every drawPending symbol
+// immediately so a revision-bearing edit's PUT starts before the page goes,
+// instead of after the 600ms debounce. The pre-GET survival test above stays
+// green even with the listener removed (setSymbolDrawings already writes the
+// preload journal row, and the unmount flush covers leave/return); what this
+// test uniquely proves is that pagehide fires the PUT before the debounce
+// would have, by intercepting setTimeout before any user code arms the 600 ms
+// debounce. With every delayed timer extended to 60 s, the only way a PUT can
+// arrive in the test window is via the synchronous pagehide handler.
+test("pagehide flushes a revision-bearing PUT before the 600ms debounce can fire",async({page})=>{
+ test.skip((page.viewportSize()?.width??1440)<=860,"Page-clock flush is exercised on the desktop chart.");
+ const cloudRevision="aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa";
+ const cloudId="cloud-hline";
+ const puts:{drawings:{id:string}[];expectedRevision:string|null;operationId?:string}[]=[];
+ // Replace window.setTimeout before any user script executes, so the
+ // 600 ms drawing-flush debounce cannot fire within the test window. Short
+ // timers (≤ 100 ms) keep their original delay so React's microtask loop and
+ // Playwright's own waiting stay alive; the drawing flush specifically arms
+ // setTimeout(..., 600).
+ await page.addInitScript(()=>{
+  const originalSetTimeout=window.setTimeout;
+  window.setTimeout=((handler:TimerHandler,delay?:number,...args:unknown[])=>{
+   const ms=typeof delay==="number"?delay:0;
+   if(ms>100)return originalSetTimeout(handler as TimerHandler,60_000,...args);
+   return originalSetTimeout(handler as TimerHandler,ms,...args);
+  }) as typeof window.setTimeout;
+ });
+ await page.route("**/api/drawings**",async(route)=>{
+  const request=route.request();
+  if(request.method()==="PUT"){
+   const value=request.postDataJSON();
+   puts.push(value);
+   // Hold the PUT response so the listener's durable journal write remains
+   // observable. The listener persists the attempt BEFORE the PUT is sent, and
+   // settleDrawingAttempt (which would clear the attempt) only runs after the
+   // response is received. With the response paused, the journal row carries
+   // the attempt indefinitely so we can prove the listener persisted it.
+   await new Promise<void>(()=>{});
+   return;
+  }
+  const symbol=new URL(request.url()).searchParams.get("symbol");
+  if(symbol!=="NVDA"){
+   await route.fulfill(json({drawings:[],revision:null,schemaVersion:1}));
+   return;
+  }
+  await route.fulfill(json({drawings:[cloudLine(cloudId,196)],revision:cloudRevision,schemaVersion:1}));
+ });
+ await page.goto("/terminal?symbol=NVDA");
+ await page.locator(".chart-wrap canvas").first().waitFor({state:"visible",timeout:20_000});
+ await page.locator(`.pane.on .drawing-layer g[data-id="${cloudId}"]`).first().waitFor({state:"visible",timeout:20_000});
+ const layer=page.locator(".pane.on .drawing-layer");
+ await layer.waitFor({state:"visible",timeout:20_000});
+ const box=await layer.boundingBox();
+ expect(box).not.toBeNull();
+ await page.getByTestId("drawing-group-lines-main").click();
+ // Confirm the drawing tool armed itself, then click two points to draw a
+ // revision-bearing trendline. After this, setSymbolDrawings arms the 600 ms
+ // debounce — but our override has pushed it out to 60 s, so it cannot fire.
+ await page.locator('g[data-drawing-kind="trendline"]').first().waitFor({state:"attached",timeout:20_000}).catch(()=>undefined);
+ await page.mouse.click(box!.x+box!.width*0.23,box!.y+box!.height*0.34);
+ await page.mouse.click(box!.x+box!.width*0.57,box!.y+box!.height*0.52);
+ await layer.locator('g[data-drawing-kind="trendline"]:not([data-id="_p"])').first().waitFor({state:"attached",timeout:20_000});
+ const localId=await layer.locator('g[data-drawing-kind="trendline"]:not([data-id="_p"])').first().getAttribute("data-id");
+ expect(localId).toBeTruthy();
+ expect(localId).not.toBe(cloudId);
+ // No PUT yet: the 600 ms debounce was extended to 60 s by the init override,
+ // and no clock-advance has happened. The journal row carries revision R but
+ // no attempt yet.
+ expect(puts).toHaveLength(0);
+ await page.waitForFunction(({sym,expectedRevision,localId}:{sym:string;expectedRevision:string;localId:string|null})=>{
+  const raw=localStorage.getItem("mm.drawing.account-outbox.v2");
+  if(!raw)return false;
+  const journal=JSON.parse(raw) as Record<string,Record<string,any>>;
+  const entry=Object.values(journal["account:e2e-user-default"]?.[sym]?.copies??{})[0] as {drawings?:{id:string}[];attempt?:unknown;revision?:string}|undefined;
+  return entry?.revision===expectedRevision&&!!entry?.drawings?.some((d)=>d.id===localId)&&!entry?.attempt;
+ },{sym:"NVDA",expectedRevision:cloudRevision,localId},{polling:"raf",timeout:5_000});
+ // Dispatch pagehide BEFORE any 60 s timer can fire. The listener must call
+ // flushDrawingsRef.current(sym) synchronously and produce a PUT before any
+ // timer — the debounce included — has a chance to run.
+ await page.evaluate(()=>window.dispatchEvent(new Event("pagehide")));
+ await page.waitForFunction(()=>{
+  const raw=localStorage.getItem("mm.drawing.account-outbox.v2");
+  if(!raw)return false;
+  const journal=JSON.parse(raw) as Record<string,Record<string,any>>;
+  const entry=Object.values(journal["account:e2e-user-default"]?.NVDA?.copies??{})[0] as {attempt?:{operationId:string;expectedRevision:string;drawings:{id:string}[]}}|undefined;
+  return !!entry?.attempt&&entry.attempt.expectedRevision.length>0;
+ },undefined,{polling:"raf",timeout:5_000});
+ // Read the final state without further polling.
+ const finalPuts=puts.slice();
+ const journalAttempt=await page.evaluate(()=>{
+  const raw=localStorage.getItem("mm.drawing.account-outbox.v2");
+  if(!raw)return null;
+  const journal=JSON.parse(raw) as Record<string,Record<string,any>>;
+  const entry=Object.values(journal["account:e2e-user-default"]?.NVDA?.copies??{})[0] as {attempt?:{operationId:string;expectedRevision:string;drawings:{id:string}[]}}|undefined;
+  return entry?.attempt??null;
+ });
+ expect(finalPuts.length).toBe(1);
+ expect(finalPuts[0].expectedRevision).toBe(cloudRevision);
+ expect(finalPuts[0].drawings.map((drawing)=>drawing.id)).toContain(localId as string);
+ expect(finalPuts[0].drawings.map((drawing)=>drawing.id)).toContain(cloudId);
+ expect(typeof finalPuts[0].operationId).toBe("string");
+ expect(journalAttempt).not.toBeNull();
+ expect(journalAttempt?.expectedRevision).toBe(cloudRevision);
+ expect(journalAttempt?.operationId).toBe(finalPuts[0].operationId);
+ expect(journalAttempt?.drawings?.map((drawing)=>drawing.id)).toContain(localId as string);
+});
+
 // P1(a): a leftover preload row whose drawings are already on the cloud must
 // acknowledge. A second tab / reload that hydrates { drawings:[L], preload:true }
 // against GET {C, L} used to park and offer keep-mine of [L], which deleted C.
