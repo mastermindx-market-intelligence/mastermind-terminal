@@ -97,7 +97,9 @@ export function applyDrawingSaveConflict(entry: DrawingJournalEntry, payload: un
   const classified = classifyDrawingSaveConflict(raw?.code);
   const unknownPossible = classified.kind === "revision_conflict" && raw?.operationUnknownPossible === true;
   entry.blocked = "conflict";
-  if (classified.kind !== "unknown") entry.conflictCode = classified.kind;
+  // Persist unknown as its own code so reload/catch cannot collapse it onto
+  // blocked:"conflict" (the previous build's revision-conflict encoding).
+  entry.conflictCode = classified.kind;
   if (unknownPossible) entry.operationUnknownPossible = true;
   return drawingSaveIssueFromConflict(classified.kind, unknownPossible);
 }

@@ -115,7 +115,7 @@ function parseEntry(value: unknown): Entry | null {
   const entry: Entry = { drawings };
   if (Object.hasOwn(raw, "revision") && validDrawingRevision(raw.revision)) entry.revision = raw.revision;
   if (["legacy", "conflict", "superseded", "invalid"].includes(String(raw.blocked))) entry.blocked = raw.blocked as Entry["blocked"];
-  if (raw.conflictCode === "revision_conflict" || raw.conflictCode === "owner_conflict" || raw.conflictCode === "operation_payload_mismatch") {
+  if (raw.conflictCode === "revision_conflict" || raw.conflictCode === "owner_conflict" || raw.conflictCode === "operation_payload_mismatch" || raw.conflictCode === "unknown") {
     entry.conflictCode = raw.conflictCode;
   }
   if (raw.operationUnknownPossible === true) entry.operationUnknownPossible = true;
@@ -136,11 +136,17 @@ function storedEntry(entry: Entry): Entry {
 function fingerprint(entry: Entry): string {
   // parseEntry rebuilds the envelope fields in a fixed order. Compare semantic
   // envelope fields without rewriting the attempted drawing JSON itself.
-  return JSON.stringify([
+  // When conflictCode is absent and operationUnknownPossible is not true, the
+  // token must match bf0689f7 (drawings, hasRev, rev, blocked, attempt).
+  const token: unknown[] = [
     entry.drawings, Object.hasOwn(entry, "revision"), entry.revision ?? null,
-    entry.blocked ?? null, entry.conflictCode ?? null, entry.operationUnknownPossible === true,
-    entry.attempt ? [entry.attempt.operationId, entry.attempt.expectedRevision, entry.attempt.drawings] : null,
-  ]);
+    entry.blocked ?? null,
+  ];
+  if (entry.conflictCode != null || entry.operationUnknownPossible === true) {
+    token.push(entry.conflictCode ?? null, entry.operationUnknownPossible === true);
+  }
+  token.push(entry.attempt ? [entry.attempt.operationId, entry.attempt.expectedRevision, entry.attempt.drawings] : null);
+  return JSON.stringify(token);
 }
 function readCopies(value: unknown): Copies {
   if (value && typeof value === "object" && !Array.isArray(value)

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { parseDrawingSaveReceipt, parseDrawingSnapshot, parsePersistedDrawings, prepareDrawingAttempt, settleDrawingAttempt, beginDrawingLoad, abandonDrawingLoad, abandonAllDrawingLoads, isCurrentDrawingLoad, shouldRescheduleDrawingFlush, type DrawingJournalEntry, type DrawingLoadGenerations } from "@/lib/drawingPersistence";
+import { parseDrawingSaveReceipt, parseDrawingSnapshot, parsePersistedDrawings, prepareDrawingAttempt, settleDrawingAttempt, beginDrawingLoad, abandonDrawingLoad, abandonAllDrawingLoads, isCurrentDrawingLoad, shouldRescheduleDrawingFlush, shouldApplyDrawingCloudCopy, type DrawingJournalEntry, type DrawingLoadGenerations } from "@/lib/drawingPersistence";
 import { readDrawingJournal, writeDrawingJournal, writeDrawingOutbox, refreshDrawingJournalSymbol, reconcileDrawingJournal, selectDrawingRecoveryCopy, DRAWING_JOURNAL_KEY, DRAWING_RECEIPTS_KEY, DRAWING_RECEIPTS_UNREADABLE_KEY, DRAWING_RECEIPT_HISTORY, DRAWING_RECEIPT_OWNERS, type DrawingJournalLocks } from "@/lib/drawingOutbox";
 let lockTail=Promise.resolve();
 const locks={request:(_name:string, fn:()=>unknown)=>{const task=lockTail.then(fn);lockTail=task.then(()=>{},()=>{});return task;}} as DrawingJournalLocks;
@@ -547,6 +547,39 @@ describe("auth-UUID journal owner with the released email-keyed v1 namespace",()
   // The imported copy now lives under the UUID owner even without the alias.
   expect(readDrawingJournal(storage,"account:uuid-a").NVDA.drawings[0].id).toBe("released-v1");
  });
+ it("P1: a v2 journal written by the previous build does not re-import the still-present v1 outbox",()=>{
+  // Fingerprint as of bf0689f7c26cb39ea07f071d8aa76325bbbe489f. Copied, not imported.
+  function previousBuildFingerprint(entry:{
+    drawings:unknown;
+    revision?:unknown;
+    blocked?:unknown;
+    attempt?:{operationId:unknown;expectedRevision:unknown;drawings:unknown};
+  }):string {
+    return JSON.stringify([
+      entry.drawings, Object.hasOwn(entry,"revision"), entry.revision ?? null,
+      entry.blocked ?? null,
+      entry.attempt ? [entry.attempt.operationId, entry.attempt.expectedRevision, entry.attempt.drawings] : null,
+    ]);
+  }
+  const storage=new MemoryStorage();
+  writeDrawingOutbox(storage,"account:a",{NVDA:[line("released-v1")]});
+  const imported=readDrawingJournal(storage,"account:a").NVDA;
+  const {recoveryId:_id,alternatives:_alts,...payload}=imported;
+  const oldToken=previousBuildFingerprint(payload);
+  storage.setItem(DRAWING_JOURNAL_KEY,JSON.stringify({
+    "account:a":{
+      NVDA:{
+        format:2,
+        copies:{[op]:payload},
+        legacySeen:{legacy:oldToken},
+        legacyLinks:{[op]:{sourceId:"legacy",token:oldToken}},
+      },
+    },
+  }));
+  const upgraded=readDrawingJournal(storage,"account:a").NVDA;
+  expect([upgraded,...(upgraded.alternatives??[])]).toHaveLength(1);
+  expect(upgraded.drawings[0].id).toBe("released-v1");
+ });
  it("keys acknowledgement receipts on the UUID owner, never the email alias",async()=>{
   const storage=new MemoryStorage();
   writeDrawingOutbox(storage,"account:a@example.com",{NVDA:[line("released-v1")]});
@@ -572,10 +605,51 @@ describe("per-symbol drawing load generation", () => {
 
   it("D2: a late GET failure is ignored once a later load generation is current", () => {
     const generations: DrawingLoadGenerations = {};
+    const store: Record<string, string> = {};
     const first = beginDrawingLoad(generations, "NVDA");
     abandonDrawingLoad(generations, "NVDA");
-    beginDrawingLoad(generations, "NVDA");
+    const second = beginDrawingLoad(generations, "NVDA");
+    store.NVDA = "populated";
+    if (isCurrentDrawingLoad(generations, "NVDA", first)) store.NVDA = "cleared-by-stale-failure";
     expect(isCurrentDrawingLoad(generations, "NVDA", first)).toBe(false);
+    expect(isCurrentDrawingLoad(generations, "NVDA", second)).toBe(true);
+    expect(store.NVDA).toBe("populated");
+  });
+
+  it("P2a: a late cloud-copy GET must not apply after leave, owner change, or a newer load", () => {
+    const generations: DrawingLoadGenerations = {};
+    const started = beginDrawingLoad(generations, "NVDA");
+    expect(shouldApplyDrawingCloudCopy({
+      generations, symbol: "NVDA", startedGeneration: started,
+      ownerEpoch: 1, currentOwnerEpoch: 1, symbolStillOpen: true,
+    })).toBe(true);
+
+    abandonDrawingLoad(generations, "NVDA");
+    expect(shouldApplyDrawingCloudCopy({
+      generations, symbol: "NVDA", startedGeneration: started,
+      ownerEpoch: 1, currentOwnerEpoch: 1, symbolStillOpen: false,
+    })).toBe(false);
+
+    const generationsAfterOwner: DrawingLoadGenerations = {};
+    const ownerStarted = beginDrawingLoad(generationsAfterOwner, "NVDA");
+    abandonAllDrawingLoads(generationsAfterOwner);
+    expect(shouldApplyDrawingCloudCopy({
+      generations: generationsAfterOwner, symbol: "NVDA", startedGeneration: ownerStarted,
+      ownerEpoch: 1, currentOwnerEpoch: 2, symbolStillOpen: true,
+    })).toBe(false);
+
+    const overlapping: DrawingLoadGenerations = {};
+    const stale = beginDrawingLoad(overlapping, "NVDA");
+    abandonDrawingLoad(overlapping, "NVDA");
+    const fresh = beginDrawingLoad(overlapping, "NVDA");
+    expect(shouldApplyDrawingCloudCopy({
+      generations: overlapping, symbol: "NVDA", startedGeneration: stale,
+      ownerEpoch: 1, currentOwnerEpoch: 1, symbolStillOpen: true,
+    })).toBe(false);
+    expect(shouldApplyDrawingCloudCopy({
+      generations: overlapping, symbol: "NVDA", startedGeneration: fresh,
+      ownerEpoch: 1, currentOwnerEpoch: 1, symbolStillOpen: true,
+    })).toBe(true);
   });
 
   it("owner change abandons every in-flight symbol so neither success nor failure can land", () => {
@@ -590,22 +664,18 @@ describe("per-symbol drawing load generation", () => {
 
 describe("drawing save settle reschedule", () => {
   it("D3: a pending edit with no armed timer must flush after save settles", () => {
-    expect(shouldRescheduleDrawingFlush({ queuedDuringSave: false, hasPending: true, timerArmed: false, saveSettledOk: true })).toBe(true);
+    expect(shouldRescheduleDrawingFlush({ hasPending: true, timerArmed: false, saveSettledOk: true })).toBe(true);
   });
 
   it("does not arm a second timer when the debounce is already waiting", () => {
-    expect(shouldRescheduleDrawingFlush({ queuedDuringSave: false, hasPending: true, timerArmed: true, saveSettledOk: true })).toBe(false);
-  });
-
-  it("still flushes follow-up work that queued during the in-flight save", () => {
-    expect(shouldRescheduleDrawingFlush({ queuedDuringSave: true, hasPending: true, timerArmed: false, saveSettledOk: true })).toBe(true);
+    expect(shouldRescheduleDrawingFlush({ hasPending: true, timerArmed: true, saveSettledOk: true })).toBe(false);
   });
 
   it("does not flush when the save consumed the pending drawings", () => {
-    expect(shouldRescheduleDrawingFlush({ queuedDuringSave: false, hasPending: false, timerArmed: false, saveSettledOk: true })).toBe(false);
+    expect(shouldRescheduleDrawingFlush({ hasPending: false, timerArmed: false, saveSettledOk: true })).toBe(false);
   });
 
   it("does not auto-retry a failed save that is waiting for recovery", () => {
-    expect(shouldRescheduleDrawingFlush({ queuedDuringSave: false, hasPending: true, timerArmed: false, saveSettledOk: false })).toBe(false);
+    expect(shouldRescheduleDrawingFlush({ hasPending: true, timerArmed: false, saveSettledOk: false })).toBe(false);
   });
 });

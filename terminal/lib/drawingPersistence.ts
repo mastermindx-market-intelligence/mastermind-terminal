@@ -18,7 +18,7 @@ export type DrawingJournalEntry = {
   revision?: DrawingRevision;
   attempt?: DrawingAttempt;
   blocked?: "legacy" | "conflict" | "superseded" | "invalid";
-  conflictCode?: "revision_conflict" | "owner_conflict" | "operation_payload_mismatch";
+  conflictCode?: "revision_conflict" | "owner_conflict" | "operation_payload_mismatch" | "unknown";
   operationUnknownPossible?: true;
 };
 export type DrawingJournal = Record<string, DrawingJournalEntry>;
@@ -123,14 +123,26 @@ export function isCurrentDrawingLoad(
   return generations[symbol] === generation;
 }
 
+/** Recovery GET for Review cloud: ignore a late 200 after leave, owner change, or a newer load. */
+export function shouldApplyDrawingCloudCopy(input: {
+  generations: DrawingLoadGenerations;
+  symbol: string;
+  startedGeneration: number;
+  ownerEpoch: number;
+  currentOwnerEpoch: number;
+  symbolStillOpen: boolean;
+}): boolean {
+  if (!input.symbolStillOpen) return false;
+  if (input.ownerEpoch !== input.currentOwnerEpoch) return false;
+  return (input.generations[input.symbol] ?? 0) === input.startedGeneration;
+}
+
 /** After a save settles, a newer local edit must not sit without a flush timer. */
 export function shouldRescheduleDrawingFlush(input: {
-  queuedDuringSave: boolean;
   hasPending: boolean;
   timerArmed: boolean;
   saveSettledOk: boolean;
 }): boolean {
   if (input.timerArmed) return false;
-  if (input.queuedDuringSave) return true;
   return input.saveSettledOk && input.hasPending;
 }
