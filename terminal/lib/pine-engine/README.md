@@ -115,16 +115,17 @@ A `request.security(sym, tf, expr, …)` call to a **coarser** `tf` than the cha
 3. each chart bar shows the recorded value of the HTF bar it may see. The chart pass never
    evaluates the expression itself, so chart-bar state cannot leak into the requested context.
    `time` inside the requested expression is the HTF period's opening session; `time_close` is
-   its last session.
+   its last session. Chart-TF `time_close` uses a bar's `timeClose` when present, otherwise the
+   ChartPanel session-group `closeTime`, otherwise `time`.
 
 Admitted contexts — each has an explicit grouping and confirmation rule:
 
 | chart | requested | grouping | confirmed at |
 | --- | --- | --- | --- |
-| daily | `W` | ISO week (keyed by its last session) | its last session, once a session in a later week is loaded |
-| daily | `M`, `3M`, `12M` | calendar month / quarter / year | its last session, once a session in a later period is loaded |
-| `1M`/`3M`/`12M` | a coarser `1M`/`3M`/`12M` multiple | calendar quarter / year of whole monthly bars | same as above |
-| daily | `nD` (n ≥ 2) | `lib/sessionBars` session grid at the chart's session anchor | the session whose global index is a multiple of n |
+| daily | `W` | ISO week (`time` = Monday open, `time_close` = last session) | its last session, once a session in a later week is loaded |
+| daily | `M`, `3M`, `12M` | calendar month / quarter / year (`time` = first session, `time_close` = last session) | its last session, once a session in a later period is loaded |
+| `1M`/`3M`/`12M` | a coarser `1M`/`3M`/`12M` multiple | calendar quarter / year of whole monthly bars (`time` = period open) | same as above |
+| daily | `nD` (n ≥ 2) | `lib/sessionBars` session grid at the chart's session anchor (`time` = open, `time_close` = last session) | the session whose global index is a multiple of n |
 
 The `nD` grid is phased by `RunOpts.sessionAnchor`, the symbol's published `session_anchor`
 (`{ v, date, index, basis }`, see `lib/sessionBars`): the anchor's session is located in the chart
@@ -146,10 +147,19 @@ cutoff, except one documented correction — the session that closes a calendar 
 to close it once a later session loads, so at the cutoff itself the prefix still shows the previous
 period. Session-count periods (`nD`) have no correction.
 
+Timeframe grammar (one parser, used by `tfParts`, `parseTfSecStrict`, and `tfSeconds` /
+`timeframe.in_seconds`): the Terminal's chart vocabulary is case-sensitive. `<n>m` is n minutes,
+`<n>M` is n months (≈ 30 days), `<n>s`/`<n>S` is seconds, `<n>h`/`<n>H` is hours, `D` and `W`
+as today, and a bare number is minutes (Pine). So `tfSeconds("1m")` is 60, `tfSeconds("15m")`
+is 900, `tfSeconds("1M")` is 2592000. On a `1m` chart, `request.security(timeframe.period)` is
+in-place; `request.security("W")` / `("1D")` is a coarser request (not finer, not unparseable).
+On a daily chart, `request.security("1m")` is refused as finer than the chart — never read as a
+month.
+
 Refused with `na` and a warning that names the reason (never an approximate value):
 multi-week periods (`2W`, `3W`, … — no calendar phase is known in the loaded bars), other month
-counts (`2M`, `5M`, …), minute/second/hour units, a lowercase `m` unit (`1m`, `15m` — not valid
-Pine; months are `M`, and a blanket uppercasing would silently treat them as months), any coarser request from a `W`, `2W` or `nD`
+counts (`2M`, `5M`, …), minute/second/hour units requested from a daily chart (finer than the
+chart; lowercase `m` is minutes, not an unknown unit), any coarser request from a `W`, `2W` or `nD`
 chart (its bars cannot be regrouped without splitting a chart bar), bar times that are not
 ascending `YYYY-MM-DD` dates, a request inside a `for` loop,
 a request inside a function called from a `for` loop, a call site that the requested timeframe's
@@ -158,7 +168,14 @@ re-run did not reach on every requested bar up to the one shown (for example und
 length as the chart (`7D` on a `W` chart, `30D` on an `M` chart, `1440` or `24H` on a daily chart),
 and a request nested inside another coarser request. Finer-than-chart requests are refused the
 same way. `nz()` does not turn a refused request into a definite value (`nz(refused, 0)` stays
-`na`); ordinary `na` (warmup, `gaps_on`) is still replaced.
+`na`); ordinary `na` (warmup, `gaps_on`) is still replaced. Refusal is sticky through arithmetic,
+`math.*` (including variadic `math.avg` / `math.max` — any refused argument refuses the result)
+and `fixnan`. `str.*` treats a refused value as ordinary `na`. An `input.*` default that is refused
+is stored in `RunResult.inputs` as ordinary `na` (NaN), so the sentinel object never crosses the
+worker boundary. `ta.*` currently coerces a refused input to ordinary `na` (so
+`nz(ta.sma(refused, 3), 0)` is `0`); making refusal stick through `ta.*` history buffers is not
+done, because a refused higher-timeframe series is already consumed by crossovers and windows in
+shipped scripts.
 
 Deferred / no-op (clearly reported, never throws):
 - Tables, labels, lines, boxes, `fill`, `bgcolor`, `alertcondition` are parsed but draw nothing
