@@ -29,7 +29,7 @@ These are caller-supplied, already-verified receipts. The pure adapter does not 
 
 ## Event architecture and source boundaries
 
-The existing Quote Hub owns live futures ingestion/fan-out; existing historical/archive owners retain immutable market events and materialized views. There is no new stream broker, user permission model, scheduler, alert engine or storage registry in this work.
+The existing Quote Hub is the intended owner for the new live futures adapter/fan-out; existing historical/archive owners retain immutable market events and materialized views. There is no new stream broker, user permission model, scheduler, alert engine or storage registry in this work.
 
 Keep raw UTC nanoseconds, exact uint64 order IDs and fixed-point price units lossless in the ingest boundary (decimal strings/BigInt, not JS floating-point identifiers). Bind instrument identity to publisher, source session and named contract definition; vendor instrument IDs alone need not identify one contract forever [S6,S9]. Normalize trade records once and derive footprint, tape, CVD and executed-volume profile from that same population. Never synthesize a bid/ask footprint by splitting OHLC volume.
 
@@ -80,7 +80,37 @@ Procedural pin retained: Mastermind 85807cf48e29e2fe5df19534d6b181fc25b9746f (sk
 
 Carrier: original RDC M2 Studio worktree and branch `claude/futures-gex-projection-20261011`; Terminal PR #964. Original head 615f8ae56009e494178c211187a9bee7af79f3a9 is a source-only kernel, not a delivered chart. New GEX/frame tests: 56/56 REAL Vitest cases passed on M2 (including a deterministic 1,000-case loop under both mappings); full Terminal `tsc --noEmit` exited 0. Local Node runner also passed the same assertions; it is not counted as a second independent validation. Fixtures are synthetic. No live futures feed, purchase, UI integration, production change, or independent review has occurred in this phase.
 
-Next action: extend the existing hub's source-event domain code and executable conformance tests, then connect one jointly-timed development consumer. Release and live-feed gates remain explicit. This document is the cumulative research/implementation checkpoint, not a new execution queue. Update its frontier when the next coherent result is verified.
+The original source-only checkpoint was pushed as `a67b530a9e626687678c8f7050b88cbf7297ff13`. The continuation below supersedes that checkpoint's UI/next-action statements; it does not supersede the live-feed, rights, source-receipt or release gates.
+
+### Pro continuation: implemented domain engine and development consumer
+
+The additional implementation is inside the existing repositories and owners:
+
+- `hub/lib/futuresMbo.js`: atomic complete-event book updates, lossless order identifiers/timestamps, correct trade/passive-fill/cancel separation, bounded capacity, idempotent current-cursor handling, gap refusal and snapshot recovery. `aggregateFootprint` derives observed buy/sell/unknown volume, candles, known-side delta, window-based CVD, diagonal imbalances and volume profile. `buildLiquidityTiles` derives time-weighted depth with explicit missing/stale coverage. These are pure domain reducers, not a licensed feed connection.
+- `hub/tests/futuresMbo.test.js`: 64 new executable conformance/invariant tests, including 10,000 generated trade conservation, late corrections, unsupported flags, incomplete events, snapshot/live-tail behavior, crossed non-trading state, and missing versus zero depth. The complete Quote Hub suite passed **452/452** tests, including these 64.
+- `hub/tools/build_futures_lab_fixture.js`: reproducible synthetic inputs run through those actual reducers, producing 192 executions, 4,203 observed contracts and 24 minutes of footprint/depth data. The generated JSON is 158,191 bytes, SHA-256 `31e5b7d2135a786a2c87e62755bfe73a9969560603495aa2c8c7ed3b9c9bcfff`. No vendor dataset or live price history is hidden in this fixture.
+- `/dev/futures` in the actual Terminal application: Depth / Footprint modes, mapped GEX bubbles and price-axis bars, executed-volume profile, quote/source inspector, basis/ratio switch, replay cutoff, zoom, EN/zh labels, and deliberately selectable stale-publication/quote/feed-gap scenarios. Only bars available at the replay cutoff contribute to the volume profile. The synthetic development warning is permanent. The production route refuses before importing the laboratory component, covered by an additional unit test.
+
+The gamma/frame suite is 56 tests; the production-boundary test brings the focused Terminal unit run to **57/57**. Browser acceptance covers 9 cases across 1440x900, 820x1180 and 390x844, both languages, mapped-level parity across modes, replay and exposure switches, missing-source states, touch geometry, page/console errors and zero document overflow. The first browser attempt caught React SVG-title hydration mismatches; these were fixed, not worked around by reload. Screenshots and final source hashes belong in `docs/pr-crops/futures-lab-20261012/`; the verification manifest binds the exact final files rather than relying on this prose. Production browser behavior has NOT been verified.
+
+### Venue-specific findings that changed the implementation
+
+The CME supplement [S14] confirms three non-obvious distinctions. `F_LAST` can be carried by a no-op record; some snapshot endings need the following live event before a valid complete book is visible. The reducer accepts a contiguous snapshot prefix followed by live records, but never a return into snapshot state midway through the batch. A locked or crossed book can be legitimate in a non-trading period; the view requires an explicit non-trading state to disclose that condition rather than labeling it executable. Finally, MBO covers displayed outright orders, while implied liquidity is a distinct book. The output says `displayed_orders_excludes_implied`; do not compare it against a combined real-plus-implied quote and call any difference corruption.
+
+Exact raw DBN decoding/SDK normalization, event-batch assembly, source sequence/gap verification, session/status/contract-definition ingestion, trade correction adjudication, source receipt authentication and live subscription management remain outside these reducers and unimplemented in this PR. Publisher-specific flags are refused until their meaning is confirmed on the chosen data lane. This is not a generic all-products CME decoder. The official open-source DBN repository has tiny codec fixtures [S15], but its MBO fixture is only 465 bytes; codec examples cannot establish a full-session order-book or commercial display right.
+
+### Performance finding, not a live-capacity claim
+
+A single synthetic local run on Node v26.5.0/macOS arm64, with 10,000 resting orders, measured 10,000 one-order modifications in 329.64ms (about 30,336/s), and 100 full aggregated book views in 1,468.32ms (14.68ms mean per view). The initial synthetic snapshot took 103.42ms. The heap delta was 34.27MB but includes garbage-collection timing/temporary allocations and is not a steady-state estimate. The exact result is `kernel-benchmark.json`, reproducible with `node hub/tools/bench_futures_mbo.js`.
+
+This excludes network, SDK decoding, event recording, actual market bursts, user fan-out and browser drawing. It supports a narrow implementation choice: ingest all valid events, but build/fan out display views at a bounded cadence rather than rebuilding the full price ladder for every order modification. Actual ES/NQ peak-load, reconnect, long-session memory and mobile frame-time tests remain necessary before choosing production worker capacity. Do not advertise these synthetic throughput figures as achieved exchange latency.
+
+### Actual remaining critical path
+
+Next: establish a lawfully usable ES/NQ full-depth sample and the exact source entitlement/receipt/definition path. Connect the official SDK-decoded event stream to the existing Quote Hub and compare the reconstructed DISPLAYED book with the matching source book; conserve trades through footprint, tape and profiles, then connect current options/quote receipts to the same replay clock. Confirm independent code review and exact-head CI before merge; activate only through the existing deployment owner after source and commercial display/retention rights are established.
+
+This pass has not bought data, contacted vendors, launched a background worker/watch, merged the PR or deployed to production. It has not completed production chart-shell integration, NQ browser proof, 0DTE filtering, generalized price/time aggregation, historical feed corrections, calibrated absorption/sweep alerts, or prospective predictive validation. The live-data gate is not permission to invent those capabilities or call a synthetic chart finished. All completed source/evidence remains on PR #964, with no duplicate Agent OS or runtime store.
+
 
 ## Source register
 
@@ -98,6 +128,8 @@ All public sources below were inspected through official pages in this research 
 - S10 Databento pricing: https://databento.com/pricing (tier, history, distribution and additional fee qualifiers).
 - S11 CME agreement center: https://www.cmegroup.com/market-data/license-data/market-data-policy-education-center.html (2026 agreement/schedule revisions).
 - S12 CME equity index basis: https://www.cmegroup.com/education/courses/introduction-to-equity-index-products/what-is-equity-index-basis (basis definition/carry).
+- S14 Databento CME venue supplement: https://databento.com/docs/venues-and-datasets/glbx-mdp3 (complete events, passive fills, generated snapshots, implied liquidity and non-trading crossed books).
+- S15 Databento official DBN codec source/test fixtures: https://github.com/databento/dbn (software/codec examples, not a new market-data entitlement).
 - S13 CME fair value: https://www.cmegroup.com/trading/equity-index/fairvalue.html (theoretical versus actual futures prices).
 - I1 Terminal original kernel: 615f8ae56009e494178c211187a9bee7af79f3a9, `terminal/lib/futuresGexProjection.ts`.
 - I2 Terminal base: e0c405a09b6897df3b5e4a2f22344f3560b800a4, `terminal/lib/gexLadder.ts`, `terminal/lib/optionsLevels.ts`, `terminal/lib/flowClientCache.ts`, `hub/`.
