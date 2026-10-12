@@ -16,6 +16,7 @@ import {
   formatDeviceClock, layersText, marketObservedText, notCapturedText, resolveCapture,
   type ChartCaptureManifest, type ChartCaptureRequest, type ChartCaptureResponse,
 } from "@/lib/chartCapture";
+import { paintingFaces } from "@/lib/fontFaces";
 import styles from "./ChartCaptureDialog.module.css";
 
 /** A capture whose chart keeps moving is retried this many times before it is withheld. */
@@ -52,19 +53,20 @@ function cssToken(name: string, fallback: string): string {
 
 /** Canvas text never waits for a web font: a face that is still loading paints in a fallback, so
  * the chart header and the provenance strip would be drawn in the wrong glyphs. Load the faces both
- * are painted with first. Bounded — a font that never arrives must not block the capture. */
+ * are painted with first — the faces themselves, not the families: next/font's `local()` fallback
+ * face errors wherever the local font is absent, and `fonts.load()` then rejects before the Latin
+ * Inter face has arrived, while a `fonts.ready` promise only covers loads the page's own text has
+ * already started (see lib/fontFaces.ts). Bounded — a font that never arrives must not block the
+ * capture. */
 const CAPTURE_FONT_WAIT_MS = 2_000;
 async function fontsReady(): Promise<void> {
   const fonts = typeof document !== "undefined" ? document.fonts : undefined;
   if (!fonts) return;
-  const loads: Promise<unknown>[] = [fonts.ready];
-  for (const family of new Set([cssToken("--font-ui", ""), cssToken("--font-num", "")])) {
-    if (!family) continue;
-    for (const weight of ["400", "600", "700"]) loads.push(fonts.load(`${weight} 16px ${family}`).catch(() => null));
-  }
+  const faces = paintingFaces(fonts, [cssToken("--font-ui", ""), cssToken("--font-num", "")]);
+  if (faces.length === 0) return;
   let timer = 0;
   await Promise.race([
-    Promise.all(loads),
+    Promise.all(faces.map((face) => face.load().catch(() => null))),
     new Promise<void>((resolve) => { timer = window.setTimeout(resolve, CAPTURE_FONT_WAIT_MS); }),
   ]);
   window.clearTimeout(timer);
