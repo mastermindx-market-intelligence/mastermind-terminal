@@ -203,10 +203,10 @@ if (process.env.WRITE_SPECIMEN === "1") {
 
 describe("news-flow specimen (D-W1: generated from the live components)", () => {
   it("renders four sections (dark/light × EN/ZH) with all eight frames each", () => {
-    expect((specimenHtml.match(/data-specimen-theme="dark"/g) ?? []).length).toBe(2);
-    expect((specimenHtml.match(/data-specimen-theme="light"/g) ?? []).length).toBe(2);
-    expect((specimenHtml.match(/data-specimen-lang="en"/g) ?? []).length).toBe(2);
-    expect((specimenHtml.match(/data-specimen-lang="zh"/g) ?? []).length).toBe(2);
+    expect((specimenHtml.match(/<section data-specimen-theme="dark"/g) ?? []).length).toBe(2);
+    expect((specimenHtml.match(/<section data-specimen-theme="light"/g) ?? []).length).toBe(2);
+    expect((specimenHtml.match(/<section data-specimen-theme="[^"]*" data-specimen-lang="en"/g) ?? []).length).toBe(2);
+    expect((specimenHtml.match(/<section data-specimen-theme="[^"]*" data-specimen-lang="zh"/g) ?? []).length).toBe(2);
     // 4 sections × 8 frames = 32 strips
     expect((specimenHtml.match(/data-flow-state/g) ?? []).length).toBe(32);
   });
@@ -224,7 +224,7 @@ describe("news-flow specimen (D-W1: generated from the live components)", () => 
   it("embeds the module CSS rewritten to the rendered class names", () => {
     expect(specimenHtml).toContain(`.${stripStyles.flow}{`);
     expect(specimenHtml).toContain(`.${panelStyles.liveDot}{`);
-    expect(specimenHtml).toContain(`data-specimen-theme="light" .${stripStyles.flow}{`);
+    expect(specimenHtml).toContain(`[data-specimen-theme="light"] .${stripStyles.flow}{`);
   });
 
   it("the committed file is byte-identical to the fresh render (WRITE_SPECIMEN=1 regenerates)", () => {

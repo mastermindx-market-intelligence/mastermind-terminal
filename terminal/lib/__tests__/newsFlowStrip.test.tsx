@@ -27,7 +27,7 @@ const M = vi.hoisted(() => ({
   },
 }));
 vi.mock("@/components/news/useTickerNewsFeed", () => ({
-  useTickerNewsFeed: (_symbol: string) => M.feed,
+  useTickerNewsFeed: () => M.feed,
 }));
 
 // ---- contract section 5 fixtures (verbatim; see newsFlowContract.test.ts) ------
@@ -278,8 +278,8 @@ describe("TickerNewsPanel — news-flow strip mount (design pin P6)", () => {
     ["flow null (old API, or a cursor page)", { flow: null }],
     ["reason no_accessible_sources", { flow: flow(FLOW_NO_ACCESS) }],
     ["zero rows (the empty state already speaks)", { flow: flow(FLOW_OK), rows: [] }],
-    ["snapshot state restricted", { flow: flow(FLOW_OK), state: "restricted" }],
-    ["snapshot state unavailable", { flow: flow(FLOW_OK), state: "unavailable" }],
+    ["snapshot state restricted", { flow: flow(FLOW_OK), state: "restricted" as const }],
+    ["snapshot state unavailable", { flow: flow(FLOW_OK), state: "unavailable" as const }],
   ])("the strip is hidden when %s", async (_name, over) => {
     await renderPanel(over);
     expect(stripEl()).toBeNull();
@@ -339,7 +339,8 @@ describe("TickerNewsPanel — news-flow details control (G9)", () => {
   it("opens on click; aria-expanded flips and aria-controls points at the details", async () => {
     const button = await openDetails();
     expect(button.getAttribute("aria-expanded")).toBe("true");
-    const details = host.querySelector(`#${CSS.escape(button.getAttribute("aria-controls")!)}`)!;
+    const byId = () => host.querySelector(`[id="${button.getAttribute("aria-controls")}"]`);
+    const details = byId()!;
     expect(details.tagName).toBe("SECTION");
     expect(details.querySelector("h3")?.textContent).toBe("Report count, last 28 days");
 
@@ -347,7 +348,7 @@ describe("TickerNewsPanel — news-flow details control (G9)", () => {
       button.dispatchEvent(new MouseEvent("click", { bubbles: true }));
     });
     expect(button.getAttribute("aria-expanded")).toBe("false");
-    expect(host.querySelector(`#${CSS.escape(button.getAttribute("aria-controls")!)}`)).toBeNull();
+    expect(byId()).toBeNull();
   });
 
   it("Escape closes the details and returns focus to the button", async () => {
