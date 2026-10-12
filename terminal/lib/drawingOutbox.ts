@@ -292,10 +292,11 @@ function journalState(storage: StoragePort, owner: string, legacyOwner: string, 
     namespace[symbol] = { format: 2, copies, legacySeen: { ...seen as Record<string, string> }, legacyLinks: { ...links as Record<string, LegacyLink> } };
   }
   const alias = accountOwner(legacyOwner) && legacyOwner !== owner;
-  const claims = alias ? readLegacyClaims(storage) : {};
   const imports: LegacyImports = {};
   let sawLegacy = false;
   try {
+  // Claim I/O stays inside this catch so a corrupt record cannot hide v2 work.
+  const claims = alias ? readLegacyClaims(storage) : {};
   if (!legacyOwnerClaimedByOther(claims, owner, legacyOwner)) {
   const legacy = accountOwner(legacyOwner) ? ownerNamespace(strictEnvelope(storage, DRAWING_OUTBOX_KEY), legacyOwner) : {};
   sawLegacy = Object.keys(legacy).length > 0;
@@ -445,7 +446,12 @@ export async function writeDrawingJournal(
       // copies without the claim. Fail closed: do not return durability without it.
       if (alias && !claims[legacyOwner] && sawLegacy) {
         claims[legacyOwner] = owner;
-        writeLegacyClaims(storage, claims);
+        try {
+          writeLegacyClaims(storage, claims);
+        } catch (error) {
+          dropUnownedLegacyCopies(journal);
+          throw error;
+        }
       }
       if (Object.keys(envelope).length) storage.setItem(DRAWING_JOURNAL_KEY, JSON.stringify(envelope));
       else storage.removeItem(DRAWING_JOURNAL_KEY);

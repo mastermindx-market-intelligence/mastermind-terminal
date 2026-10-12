@@ -642,6 +642,44 @@ describe("legacy email-keyed journal claimed by at most one auth UUID",()=>{
   expect(readDrawingJournal(storage,bob)).toEqual({});
   expect(storage.getItem("mm.drawing.account-outbox.v1")).toBe(v1);
  });
+ const plantPendingV2=(storage:MemoryStorage)=>{
+  const record={format:2,copies:{[op]:{drawings:[line("pending-v2")],revision}},legacySeen:{},legacyLinks:{}};
+  storage.setItem(DRAWING_JOURNAL_KEY,JSON.stringify({"account:uuid-a":{AAPL:record}}));
+ };
+ it("returns the pending v2 copy with zero imports when the claim record is corrupt",()=>{
+  const storage=new MemoryStorage();
+  plantPendingV2(storage);
+  writeDrawingOutbox(storage,"account:alice@x",{NVDA:[line("alice-v1")]});
+  const v1=storage.getItem("mm.drawing.account-outbox.v1");
+  const v2=storage.getItem(DRAWING_JOURNAL_KEY);
+  storage.setItem(claimKey,"not-json");
+  const journal=readDrawingJournal(storage,alice);
+  expect(journal.AAPL).toMatchObject({drawings:[{id:"pending-v2"}]});
+  expect(journal.NVDA).toBeUndefined();
+  expect(storage.getItem("mm.drawing.account-outbox.v1")).toBe(v1);
+  expect(storage.getItem(DRAWING_JOURNAL_KEY)).toBe(v2);
+  storage.setItem(claimKey,JSON.stringify({"account:alice@x":1}));
+  const again=readDrawingJournal(storage,alice);
+  expect(again.AAPL).toMatchObject({drawings:[{id:"pending-v2"}]});
+  expect(again.NVDA).toBeUndefined();
+  expect(storage.getItem("mm.drawing.account-outbox.v1")).toBe(v1);
+  expect(storage.getItem(DRAWING_JOURNAL_KEY)).toBe(v2);
+ });
+ it("returns the pending v2 copy with zero imports when claim setItem throws",async()=>{
+  const storage=new MemoryStorage();
+  plantPendingV2(storage);
+  writeDrawingOutbox(storage,"account:alice@x",{NVDA:[line("alice-v1")]});
+  const v1=storage.getItem("mm.drawing.account-outbox.v1");
+  const v2=storage.getItem(DRAWING_JOURNAL_KEY);
+  const origSetItem=storage.setItem.bind(storage);
+  storage.setItem=(k,value)=>{if(k===claimKey) throw new Error("quota");origSetItem(k,value);};
+  const journal=readDrawingJournal(storage,alice);
+  expect(journal.AAPL).toMatchObject({drawings:[{id:"pending-v2"}]});
+  expect(await writeDrawingJournal(storage,alice,journal,locks)).toBe(false);
+  expect(journal.NVDA).toBeUndefined();
+  expect(storage.getItem("mm.drawing.account-outbox.v1")).toBe(v1);
+  expect(storage.getItem(DRAWING_JOURNAL_KEY)).toBe(v2);
+ });
  it("lets only one UUID persist the v1 copy when two first-reads race through nested setItem",async()=>{
   const storage=new MemoryStorage();
   writeDrawingOutbox(storage,"account:alice@x",{NVDA:[line("alice-v1")]});
