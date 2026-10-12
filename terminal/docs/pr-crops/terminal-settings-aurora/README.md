@@ -1,24 +1,23 @@
-# Terminal Original Settings + Muted Animated Edge
+# Terminal R3 — Refraction
 
-This is **not** the earlier rejected redesign. These are real existing `SettingsPanel` screenshots with the entire original settings layout, original 13 navigation destinations/order/icons/copy and original controls preserved. Only the animated top strip has a lower profile, quieter slate/blue gradient, and much less bloom. The line continues to animate; still screenshots show one arbitrary phase. Reduced-motion has the existing static variant.
+[Open Paper R3](https://app.paper.design/file/01M2WGNCX9475G79JRKJTCM08P/p-1G-0).
+Desktop `6271-0`, mobile `627F-0`, material/motion detail `627M-0`.
+The floating neon crown and the rejected R2 grey wave are both superseded.
 
-Captured using the real Terminal dev-settings fixture and desktop (1440×900), tablet (820×1180), and mobile (390×844) browser projects after CSS-only changes. Image hashes follow. This is local source evidence, not live or authenticated production proof.
+## What changed
 
-```json
-[
-  {
-    "file": "tablet-original-settings.png",
-    "sha256": "8e4e26c3abf2053da87d7e969823ba717bb855bef4ff508f84441bbd345cb4ca"
-  },
-  {
-    "file": "mobile-original-settings.png",
-    "sha256": "7dbb9837424c6e3ba4cbf93825911f8345edcf7a50163ce9ee7bdd46ee973fa2"
-  },
-  {
-    "file": "desktop-original-settings.png",
-    "sha256": "c38e4124753288f4e8db5edcd908fde74f542a372398562a1e5f5342b03f857b"
-  }
-]
-```
+The top accent now behaves like light caught in the original panel's bevel: a crisp ice-blue/lilac rim follows the existing rounded corners, with a shallow inward reflection. Color drifts over 16 seconds; geometry and opacity stay still. No waving, bouncing or flashing. Desktop decoration is limited to the top 32px; the inner reflection ends within 26px. The original mobile sheet gets its square-edged equivalent. Reduced motion freezes the same material, and closing the panel pauses the CSS animation.
 
-The rejected Paper page p-1C-0 is **not** the implementation authority. The corrected editable native Paper study is [Terminal Settings · Original Pane · Aurora Only · R2](https://app.paper.design/file/01M2WGNCX9475G79JRKJTCM08P/p-1D-0), with desktop `61WU-0`, mobile `622X-0`, and before/after motion specification `625U-0`. Screenshots of all three artboards were verified through the Paper plugin; the former full-pane artboards are renamed REJECTED. PR #943 remains Draft + hold pending scoped acceptance.
+**The rest of the pane is untouched.** `SettingsPanel.tsx`, `SectionTerminal.tsx`, original labels/icons/order, all thirteen navigation rows, original controls, dimensions, stores, auth and account behavior have no new changes. No generated imagery was used. In Paper, the existing pane is an actual browser screenshot reference and the revised rim/reflection are editable vectors; it is not a claim that the entire settings UI was recreated as editable layers.
+
+## Actual native evidence
+
+`desktop-original-settings.png`, `tablet-original-settings.png`, `mobile-original-settings.png` and `mobile-zh-refraction.png` show the actual `/terminal?symbol=NVDA` consumer opening its real settings pane under the established local fixture identity. `header-refraction.png` isolates the material. **[Play the real-time animation](refraction-motion.mp4)**: a 16-second native browser recording, not a rendered concept or accelerated animation.
+
+`r3-visual-proof.json` records image hashes, original navigation labels, dimensions and the pixel comparison. In desktop, tablet, mobile and Chinese mobile, every pixel below the top 40px was byte-identical with the decorative pseudo-elements on versus off. This is a same-page preservation proof, not a screenshot comparison across unrelated market-data frames. All data/account identity in these images is local fixture context, not production proof.
+
+The focused browser suite exercises unchanged navigation and dimensions, rim geometry, actual animation sampling, reduced motion and original close-button access across all three canonical viewports. Existing source-bound settings evidence packs are recaptured by their incumbent tools; no hash-only visual acceptance.
+
+## Review / release
+
+Prior Paper R1 and R2 artboards are labeled REJECTED. This page is the current candidate, not presumed Chairman aesthetic acceptance. PR #943 remains Draft + hold with no auto-merge. No production deployment occurred.

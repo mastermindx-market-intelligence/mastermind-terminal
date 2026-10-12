@@ -89,11 +89,9 @@ html.acs-lock, html.acs-lock body { overflow: hidden; }
   border-radius: 22px;
   overflow: hidden;
   background: color-mix(in srgb, var(--panel-2) 82%, transparent);
-  /* The aurora IS the top edge. Keeping the old 1px border under it made the
-     crown read as a decorative line sitting on a conventional rectangle. */
+  /* The original shell remains; its top edge receives the R3 optical layers. */
   border: 1px solid color-mix(in srgb, var(--text) 14%, transparent);
-  /* A quiet border remains beneath the living edge; no neon gap. */
-  border-top-color: color-mix(in srgb, var(--text) 7%, transparent);
+  border-top-color: color-mix(in srgb, var(--text) 14%, transparent);
   -webkit-backdrop-filter: blur(24px) saturate(1.6);
   backdrop-filter: blur(24px) saturate(1.6);
   box-shadow:
@@ -118,83 +116,89 @@ html.acs-lock, html.acs-lock body { overflow: hidden; }
   .acs-card-surface { background: var(--panel-2); }
 }
 
-/* Terminal settings · restrained animated edge ONLY.
-   Keep the SVG/SMIL, original navigation, modal size and every control intact.
-   Lower the existing wave from a hovering neon crown to a hairline that rides
-   the card border; reuse the product palette rather than rainbow accents. */
-.acs-aurora {
+/* R3 REFRACTION — the light moves, the original panel does not.
+   Paper: file 01M2WGNCX9475G79JRKJTCM08P / p-1G-0.
+   Retire the floating sinusoidal crown. Two CSS-only optical layers follow the
+   original radius and occupy at most 32px at its top; no text/layout changes,
+   new DOM, controls, timers, account state, or full-card animated gradients. */
+.acs-aurora { display: none; }
+.acs-card-surface::before,
+.acs-card-surface::after {
+  content: "";
   position: absolute;
-  top: -12px;
-  left: 16px;
-  width: calc(100% - 32px);
-  height: 26px;
+  top: 0;
+  left: 0;
+  right: 0;
   z-index: 3;
+  box-sizing: border-box;
   pointer-events: none;
-  overflow: visible;
-  opacity: 0;
-  filter: none;
+  border-radius: 22px 22px 0 0;
 }
-/* Deliberately override the original vivid SVG stop attributes with slate-blue
-   Terminal tokens, without changing the React shell or duplicating the SVG. */
-.acs-aurora stop {
-  stop-color: color-mix(in srgb, var(--brand-2) 28%, var(--text-2));
+/* Transparent middle leaves only the rounded bevel; zero bottom padding means
+   there is no second horizontal line underneath the header. */
+.acs-card-surface::before {
+  height: 32px;
+  padding: 1.25px 1px 0;
+  background: linear-gradient(105deg,
+    rgba(88,113,149,.14) 0%,
+    rgba(100,204,241,.58) 14%,
+    rgba(164,204,255,.96) 27%,
+    rgba(118,151,242,.76) 43%,
+    rgba(176,151,249,.88) 62%,
+    rgba(224,197,255,.98) 74%,
+    rgba(111,153,221,.68) 87%,
+    rgba(88,105,146,.16) 100%);
+  background-size: 170% 100%;
+  background-position: 20% 0;
+  -webkit-mask: linear-gradient(#fff 35%, transparent 100%), linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: source-in, xor, source-over;
+  mask: linear-gradient(#fff 35%, transparent 100%), linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask-composite: intersect, exclude, add;
+  opacity: .92;
+  animation: acsRefractionRim 16s ease-in-out infinite alternate;
+  animation-play-state: paused;
 }
-.acs-aurora stop:nth-child(3),
-.acs-aurora stop:nth-child(4),
-.acs-aurora stop:nth-child(5) {
-  stop-color: color-mix(in srgb, var(--brand-2) 44%, var(--text-2));
+/* An inward reflection, not a luminous banner. The vertical radius is bounded
+   independently of width and drops to transparency before the identity/title. */
+.acs-card-surface::after {
+  height: 26px;
+  background:
+    radial-gradient(ellipse 24% 22px at 28% 0%, rgba(94,169,255,.28) 0%, rgba(84,140,250,.12) 34%, transparent 100%),
+    radial-gradient(ellipse 21% 20px at 76% 0%, rgba(195,160,255,.22) 0%, rgba(164,131,247,.09) 30%, transparent 100%);
+  background-size: 130% 100%;
+  background-position: 20% 0;
+  opacity: .9;
+  animation: acsRefractionLight 16s ease-in-out infinite alternate;
+  animation-play-state: paused;
 }
-.acs-aurora path {
-  fill: none;
-  vector-effect: non-scaling-stroke;
-  stroke-linecap: round;
-  stroke-linejoin: round;
+.acs-overlay.open .acs-card-surface::before,
+.acs-overlay.open .acs-card-surface::after { animation-play-state: running; }
+@keyframes acsRefractionRim {
+  from { background-position: 20% 0; }
+  to { background-position: 80% 0; }
 }
-.acs-aurora-bloom {
-  stroke-width: 7;
-  opacity: .10;
+@keyframes acsRefractionLight {
+  from { background-position: 20% 0; }
+  to { background-position: 80% 0; }
 }
-.acs-aurora-glow {
-  stroke-width: 3;
-  opacity: .18;
+/* Older engines keep a restrained single-edge highlight rather than painting
+   an unmasked rectangle over the original controls. */
+@supports not ((mask-composite: exclude) or (-webkit-mask-composite: xor)) {
+  .acs-card-surface::before {
+    left: 22px; right: 22px; height: 1px; padding: 0; border-radius: 0;
+    -webkit-mask: none; mask: none;
+  }
 }
-.acs-aurora-core {
-  stroke-width: 1.35;
-  opacity: .84;
-}
-.acs-aurora-hot {
-  stroke: rgba(217, 229, 247, .44);
-  stroke-width: .4;
-  opacity: .3;
-}
-.acs-aurora-static {
-  display: none;
-  stroke-width: 1.35;
-  opacity: .72;
-  filter: none;
-}
-.acs-overlay.open .acs-aurora {
-  animation: acsAuroraReveal .6s ease-out .06s both,
-             acsAuroraBreathe 7s ease-in-out .66s infinite;
-}
-@keyframes acsAuroraReveal {
-  from { opacity: 0; transform: translateY(2px); }
-  to { opacity: .7; transform: none; }
-}
-@keyframes acsAuroraBreathe {
-  0%, 100% { opacity: .56; }
-  42% { opacity: .76; }
-  70% { opacity: .66; }
-}
-
 @media (prefers-reduced-motion: reduce) {
   .acs-overlay, .acs-card { transition: opacity .15s ease; }
   .acs-card { transform: none; }
-  .acs-overlay.open .acs-card,
-  .acs-overlay.open .acs-aurora { animation: none; }
-  .acs-aurora { opacity: .7; }
-  .acs-aurora-live { display: none; }
-  .acs-aurora-static { display: block; }
+  .acs-overlay.open .acs-card { animation: none; }
+  .acs-card-surface::before,
+  .acs-card-surface::after { animation: none; }
+}
+@media (forced-colors: active) {
+  .acs-card-surface::before,
+  .acs-card-surface::after { display: none; }
 }
 
 /* ── left rail ─────────────────────────────────────────────────────────── */
@@ -785,8 +789,10 @@ html.acs-lock, html.acs-lock body { overflow: hidden; }
     border-left: 0;
     border-right: 0;
   }
-  /* The same subtle edge touches the full-screen sheet without a neon cap. */
-  .acs-aurora { top: -10px; left: 12px; width: calc(100% - 24px); height: 26px; }
+  /* Full-screen mobile sheet has square corners: the exact same material
+     becomes a 1.25px edge with a shallow inward reflection. */
+  .acs-card-surface::before { left: 0; right: 0; height: 1.25px; padding: 1.25px 0 0; border-radius: 0; }
+  .acs-card-surface::after { height: 18px; border-radius: 0; }
   .acs-overlay.open .acs-card { transform: none; }
   .acs-rail {
     width: auto;
