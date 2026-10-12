@@ -1,8 +1,8 @@
 {
   "schema": "mastermind.options_level_axis_evidence/v1",
-  "capturedAt": "2026-10-11T22:48:46.462Z",
-  "sourceHead": "523a7f117f45e5f46e448bb0f8f775e03784793e",
-  "baseURL": "http://127.0.0.1:47321",
+  "capturedAt": "2026-10-12T03:00:48.740Z",
+  "sourceHead": "c8b7b5847afc585aa7e931e6b448b28d4c70a1fb",
+  "baseURL": "http://127.0.0.1:47403",
   "classification": "LOCAL_BROWSER_WITH_INTERCEPTED_OPTIONS_CONTRACT_PAYLOADS_NOT_PRODUCTION_DATA",
   "expectedLinePrices": [
     192.42,
@@ -23,7 +23,7 @@
       "width": 1440,
       "height": 900,
       "screenshot": "desktop.png",
-      "sha256": "947d353006ce857f4e54e712891aaab9b4c4c5c7e21c9fe0bc199d7b5d20b8ab",
+      "sha256": "858b95937e920a1f8dfc301ba3cb43823248d55bf393ec573331e08f803f24a4",
       "proof": {
         "labels": {
           "primaryTop": 106,
@@ -132,7 +132,7 @@
       "width": 820,
       "height": 1180,
       "screenshot": "tablet.png",
-      "sha256": "a00b7d4780203e92971b12405c39342ac0835ff5363ba2d4d4d896dfdd7b959a",
+      "sha256": "73f8841c948b42c97db6792538528c2c7f2f3dd744fa25f49d9ce23740d6e1c9",
       "proof": {
         "labels": {
           "primaryTop": 38,
@@ -241,7 +241,7 @@
       "width": 390,
       "height": 844,
       "screenshot": "mobile.png",
-      "sha256": "f5164656d248f31a2919311fab3180ffb89311b6bf859056043fa43833200472",
+      "sha256": "7b36f54c19e73a49aadec18f3ade2e88b74db55b63b41e5fd3d2d287523dce95",
       "proof": {
         "labels": {
           "primaryTop": 46,
@@ -352,7 +352,7 @@
       "left": true,
       "percentage": true,
       "screenshot": "desktop-left-percentage.png",
-      "sha256": "51ed946df6aebdb348fc317123d68f0bc5dea4aa8b56a332083130dea86e2e9f",
+      "sha256": "c878379e75e35d1a3cebcaf96a0d538d5bdb14d2581eec46482729896ea91ab0",
       "proof": {
         "labels": {
           "primaryTop": 106,
@@ -461,7 +461,7 @@
       "width": 1440,
       "height": 430,
       "screenshot": "desktop-compact.png",
-      "sha256": "ddf11f5626a5dea7a2dc0a3b6f8100522a99bde39fa447474ff48a0fd647e7ea",
+      "sha256": "107aea49fb5442310b2e7599be0cdf10e7ae4ab60bc554754c850a4c6a2fbc9d",
       "proof": {
         "labels": {
           "primaryTop": 48,

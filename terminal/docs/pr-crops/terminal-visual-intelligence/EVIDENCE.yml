@@ -1,8 +1,8 @@
-# Terminal Visual Intelligence Layer — E20 landing train 3 merged-tree source recapture after origin/master sync (train 2 #936)
+# Terminal Visual Intelligence Layer — E20 landing train 3 fold round 2 recapture (E20 #953 + #957 ledger + E19 fonts #952 folded)
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
 # Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
-# capturedAtHead: 523a7f117f45e5f46e448bb0f8f775e03784793e
-# capturedAt: 2026-10-11T22:54:07Z
+# capturedAtHead: c8b7b5847afc585aa7e931e6b448b28d4c70a1fb
+# capturedAt: 2026-10-12T03:07:46Z
 # Actual fresh local fixture captures; source identity remains the capture commit when artifacts are committed later.
 # Content-addressed layoutFiles + cropFiles, not ancestry, identify this capture.
 layoutFiles:
@@ -20,12 +20,12 @@ layoutFiles:
   terminal/lib/suites/trend/candlePainter.ts: "8384d2bce3af939a51e88584b1436ee2898a89f0fbf1aedc09ffee624a3e12e1"
   terminal/lib/indicator-canvas/host.ts: "4f2949efb22b8c378cab1ff9d176466c4857073c14a36ee4f0eeab4ec1015a25"
 cropFiles:
-  desktop-context.png: "ea9920b1eb1c30237da9a914370ef1c336e3059660dfd7f6c632a9491dc19843"
-  desktop-context-zh.png: "2a73403e93866d2594fafc46bdf00157804bec272ba76647bbdd44e2a58ba4d1"
-  tablet-context.png: "320b87c539db31275a5701204e30cea4d87aac9aaf40248d0f91b942451ca5d0"
-  tablet-context-zh.png: "b26278a233e733b22346ccef8642cdd14eda377e354de05af7421aeb076da8c3"
-  mobile-context.png: "1f0fa0d2cd9cf67e22162b46924a7b2c5f9b57d2593b6ab908486538130dd466"
-  mobile-context-zh.png: "9a6c6b01a2aa962f1cbbce6b1e96a853af927a491bd066fcba6ca53abdfa1fd4"
+  desktop-context.png: "1efe10c831c6c9852c14cdaff012a7062ea23165a42029ada7575e92be8c5d49"
+  desktop-context-zh.png: "97e8a373efe2b10b62e558e17298b5b1f5f228e2625a06756a935c6c1a772a17"
+  tablet-context.png: "389e4468b8a48cd80bfbdc3b70a9f3c8d9fda91aa47a03eb36018b69dfd6ee1c"
+  tablet-context-zh.png: "c01b4de9b65cc794fb94a51bab33bcd91714a0c72a411a96f4e936ca58541cbd"
+  mobile-context.png: "0b805d938bf91b6928dbbe11995be2df5f07fb3c09b435a655eb59285b3a03da"
+  mobile-context-zh.png: "8fce8bf95ed6fd712b1b6af727a4b8fd2f2eae603b393f84bcc24ba5542e3f33"
 
 theme: dark
 languages: [en, zh]
@@ -38,7 +38,7 @@ harness: /terminal?symbol=NVDA
 capture_flag: TERMINAL_E2E_FIXTURE
 capture_flag_law: Standard Playwright fixture also disables the Next.js dev indicator.
 commands:
-  - TERMINAL_E2E_PORT=47321 npm run test:e2e:responsive -- e2e/replay-statusline-responsive.spec.ts e2e/responsive.spec.ts e2e/shell-mode.spec.ts e2e/visual-intelligence.spec.ts e2e/chart-view-reset.spec.ts --grep "Replay status|canonical Terminal shell|D · identity|E · legend|saved startup timeframe|default context explains|classic candles retain|historical crosshair inspection|real candle colors|context can be restored|table and CSV|replay consumer excludes|unavailable calendar|Chinese context|New chart tickers reserve space" --project=desktop --project=tablet --project=mobile --workers=1 --retries=0 --reporter=list,json
+  - TERMINAL_E2E_PORT=47404 npm run test:e2e:responsive -- e2e/replay-statusline-responsive.spec.ts e2e/responsive.spec.ts e2e/shell-mode.spec.ts e2e/visual-intelligence.spec.ts e2e/chart-view-reset.spec.ts --grep "Replay status|canonical Terminal shell|D · identity|E · legend|saved startup timeframe|default context explains|classic candles retain|historical crosshair inspection|real candle colors|context can be restored|table and CSV|replay consumer excludes|unavailable calendar|Chinese context|New chart tickers reserve space" --project=desktop --project=tablet --project=mobile --workers=1 --retries=0 --reporter=list,json
 browserResults:
   desktop: 10/10 passed
   tablet: 10/10 passed
@@ -46,9 +46,17 @@ browserResults:
   mobileCrosshairRegression: 1/1 passed
   visualIntelligenceMatrix: 30 passed; zero failures
 browserReportHashes:
-  visualReport: "488faedf49135ebaf34c611d84ca32f044fea5cdb4b336897411de929f35faf8"
-  mobileCrosshairReport: "488faedf49135ebaf34c611d84ca32f044fea5cdb4b336897411de929f35faf8"
+  visualReport: "45f2611b8151a15a90b08cbe13fd7cd455969ed7017aaaee46131569c5684288"
+  mobileCrosshairReport: "45f2611b8151a15a90b08cbe13fd7cd455969ed7017aaaee46131569c5684288"
 currentLocalGates:
+  sourceHead: c8b7b5847afc585aa7e931e6b448b28d4c70a1fb
+  sourceIdentity: E20 landing train 3 fold round 2 tree (origin/master c923cc46d179dd92cb6e3bd6d10c03c9bac17c76 + E20 #953 @27df75b81 + #957 @c011934ad + E19 fonts #952 @789f15847)
+  captureServer: own landing-train-3 fixture next dev on 127.0.0.1:47404; lsof-verified owner
+  typecheck: PASS; next typegen then tsc --noEmit on the folded train-3 tree
+  visualCompatibility: 48 passed, 0 failed, 0 flaky, 0 skipped (desktop, tablet, mobile; retries off)
+  focusedEvidenceGuards: lib/__tests__ Evidence gates rerun after this recapture
+  baselineDisposition: E20 adds a visible palette trigger to the shell and MobileNav; crops regenerated on the folded tree, never copied from either parent
+priorTrain3MasterSyncLocalGates:
   sourceHead: 523a7f117f45e5f46e448bb0f8f775e03784793e
   sourceIdentity: E20 landing train 3 merged tree after merging origin/master 85ad93866dcd9daf203c89a7d5e23280b5d6ed50 (train 2 #936)
   captureServer: own landing-train-3 fixture next dev on 127.0.0.1:47321; lsof-verified owner
