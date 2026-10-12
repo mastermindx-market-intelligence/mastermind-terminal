@@ -8,7 +8,10 @@ import type {
   EngineLogicalRangeHandler,
   EngineMouseEventParams,
   EngineMouseHandler,
+  EngineOptions,
+  EngineRange,
   EngineSeriesKind,
+  EngineSeriesOptions,
   EngineSeriesRow,
   EngineTime,
   PaneHandle,
@@ -151,6 +154,14 @@ class FakeTimeScale implements TimeScaleHandle {
   applyOptions(): void { throw new Error("not part of this contract test"); }
   fitContent(): void { throw new Error("not part of this contract test"); }
   unwrap<T>(): T { throw new Error("not part of this contract test"); }
+  // C02 contract surface — the adapter speaks logical ranges only.
+  getVisibleRange(): EngineRange<EngineTime> | null { throw new Error("not part of this contract test"); }
+  setVisibleRange(): void { throw new Error("not part of this contract test"); }
+  logicalToCoordinate(): number | null { throw new Error("not part of this contract test"); }
+  coordinateToLogical(): number | null { throw new Error("not part of this contract test"); }
+  width(): number { throw new Error("not part of this contract test"); }
+  timeToIndex(): number | null { throw new Error("not part of this contract test"); }
+  options(): Record<string, unknown> { return {}; }
 }
 
 class FakeSeries implements SeriesHandle {
@@ -172,6 +183,16 @@ class FakeSeries implements SeriesHandle {
   detachPrimitive(): void { throw new Error("not part of this contract test"); }
   remove(): void { throw new Error("not part of this contract test"); }
   unwrap<T>(): T { throw new Error("not part of this contract test"); }
+  // C02 contract surface — read-only views are honoured; mutators stay out of scope.
+  options(): EngineSeriesOptions { return {}; }
+  data(): readonly EngineSeriesRow[] { return this.rows; }
+  dataByIndex(logicalIndex: number): EngineSeriesRow | null {
+    const i = Math.round(logicalIndex);
+    return i >= 0 && i < this.rows.length ? this.rows[i] : null;
+  }
+  removePriceLine(): void { throw new Error("not part of this contract test"); }
+  priceLines(): PriceLineHandle[] { return []; }
+  priceScale(): PriceScaleHandle { throw new Error("not part of this contract test"); }
 }
 
 class FakeEngine implements ChartEngine {
@@ -207,6 +228,13 @@ class FakeEngine implements ChartEngine {
   unwrap<T>(): T { throw new Error("not part of this contract test"); }
   inventory(): EngineInventory { throw new Error("not part of this contract test"); }
   destroy(): void { this.crosshairListeners.clear(); }
+  // C02 contract surface — not exercised by the pane-sync adapter.
+  readonly impl = "lwc" as const;
+  removeSeries(): void { throw new Error("not part of this contract test"); }
+  chartElement(): HTMLElement { throw new Error("not part of this contract test"); }
+  options(): EngineOptions { return {}; }
+  setCrosshairPosition(): void { throw new Error("not part of this contract test"); }
+  clearCrosshairPosition(): void { throw new Error("not part of this contract test"); }
 
   crosshairMove(param: EngineMouseEventParams): void {
     for (const h of [...this.crosshairListeners]) h(param);
