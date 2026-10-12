@@ -318,19 +318,23 @@ test("ROT: rotate the tablet with the transcript open over the pane, close it, r
 test("A11Y-ESC: with the transcript open over the phone pane, the first Escape closes only the drawer and the second closes the pane", async ({ page }, testInfo) => {
   test.skip(testInfo.project.name !== "mobile", "the Escape order is pinned on the 390x844 phone viewport");
   test.setTimeout(150_000);
-  await openTerminal(page);
+  const before = await openTerminal(page);
   const pane = await openChartPane(page, testInfo);
+  await expectOverflow(page, LOCKED, "A11Y-ESC pane open on the phone: body and html locked");
   await showTranscripts(page, pane, testInfo);
   await openTranscript(page, pane, testInfo);
+  await expectOverflow(page, LOCKED, "A11Y-ESC transcript open over the pane: body and html still locked");
 
   await page.keyboard.press("Escape");
   await expect(drawer(page)).toHaveCount(0, ACTION);
   await settle(page);
   await expect(chartPane(page)).toHaveCount(1, ACTION);
+  await expectOverflow(page, LOCKED, "A11Y-ESC first Escape closed only the drawer: the pane still holds the lock");
 
   await page.keyboard.press("Escape");
   await expect(chartPane(page)).toHaveCount(0, ACTION);
   expect(new URL(page.url()).pathname).toBe("/terminal");
+  await expectOverflow(page, before, "A11Y-ESC second Escape closed the pane: body and html equal before");
 });
 
 test("ANALYSIS: the /analysis workspace on a phone holds no scroll lock and Escape keeps the route", async ({ page }, testInfo) => {
