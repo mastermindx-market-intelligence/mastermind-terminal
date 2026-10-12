@@ -5500,7 +5500,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
              because `active` is the same symbol-selection state the chart uses. ── */}
         {paneOpen ? (
           <MegaPane
-            sym={active}
+            sym={active} host="chart"
             fund={fund}
             fundLoading={fundLoading}
             quote={liveQuote ? { last: lastPx ?? null } : null}

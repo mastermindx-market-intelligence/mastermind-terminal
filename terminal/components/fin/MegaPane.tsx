@@ -25,6 +25,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useLang } from "../../lib/i18n";
 import { pick } from "../../lib/finFormat";
 import type { Fund, Bar } from "../../lib/fund";
+import { useIsMobile } from "@/lib/useMediaQuery";
 
 import OverviewPage from "./OverviewPage";
 import StatementsPage from "./StatementsPage";
@@ -92,6 +93,14 @@ export interface MegaPaneProps {
   /** Company display name for the header + transcript title. */
   name?: string | null;
   /**
+   * Where the pane is mounted. "route" (default) — the standalone /analysis workspace, which
+   * owns its own context bar and Back-to-chart. "chart" — mounted inside the chart route, where
+   * fin.css presents the workspace pane as a fixed full-screen overlay at <=860px (the in-flow
+   * `.fin-pane--workspace` override exists only at >=861px), so at those widths the pane must
+   * carry the overlay's own header, Escape and scroll lock.
+   */
+  host?: "chart" | "route";
+  /**
    * "overlay" (default) — legacy full-screen fixed overlay (used on mobile).
    * "workspace" — embedded in the chart-pane slot; no scrim, no scroll-lock,
    *   CSS handles positioning via .fin-pane--workspace.
@@ -111,10 +120,15 @@ export default function MegaPane({
   onPage,
   onClose,
   name,
+  host = "route",
   mode = "overlay",
   intel = null,
 }: MegaPaneProps) {
   const workspace = mode === "workspace";
+  const isMobile = useIsMobile();
+  // The chart-hosted workspace pane is visually a full-screen overlay at <=860px, so it needs
+  // the overlay's close affordances there. The /analysis workspace never does.
+  const presentsAsOverlay = !workspace || (host === "chart" && isMobile);
   const { lang } = useLang();
   const zh = lang === "zh";
   const [txTarget, setTxTarget] = useState<TranscriptOpenTarget | null>(null);
@@ -163,9 +177,10 @@ export default function MegaPane({
   // so Esc closes the drawer BEFORE the pane.
   useEffect(() => {
     // The standalone analysis workspace is embedded in its route. Escape must
-    // never send a reader away from that workspace; only the true overlay
-    // variant owns the route-changing close affordance.
-    if (workspace) return;
+    // never send a reader away from that workspace; only a pane that presents
+    // as an overlay (the overlay variant, or the chart-hosted pane at <=860px)
+    // owns the close affordance.
+    if (!presentsAsOverlay) return;
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") {
         if (txOpenRef.current || intelligenceEvidenceOpenRef.current) return; // nested inspector/drawer owns Esc
@@ -175,17 +190,17 @@ export default function MegaPane({
     };
     window.addEventListener("keydown", onKey, { capture: true });
     return () => window.removeEventListener("keydown", onKey, true);
-  }, [closePane, workspace]);
+  }, [closePane, presentsAsOverlay]);
 
-  // ── body scroll lock while open (overlay mode only — workspace scrolls inside its slot) ──
+  // ── body scroll lock while presented as an overlay (an in-flow workspace scrolls inside its slot) ──
   useEffect(() => {
-    if (workspace) return;
+    if (!presentsAsOverlay) return;
     const prev = document.body.style.overflow;
     document.body.style.overflow = "hidden";
     return () => {
       document.body.style.overflow = prev;
     };
-  }, [workspace]);
+  }, [presentsAsOverlay]);
 
   // ── legacy ?pane= deep-link sync (chart overlay only) ──
   useEffect(() => {
@@ -262,13 +277,14 @@ export default function MegaPane({
       {!workspace && <div className="fin-scrim" onClick={closePane} aria-hidden />}
       <div
         className={`fin-pane${workspace ? " fin-pane--workspace" : ""}`}
-        role={workspace ? "region" : "dialog"}
-        aria-modal={workspace ? undefined : true}
+        role={presentsAsOverlay ? "dialog" : "region"}
+        aria-modal={presentsAsOverlay ? true : undefined}
         aria-label={`${displayName} · ${pageTitle}`}
       >
         {/* The standalone /analysis workspace already owns company identity and Back-to-chart
-            in its context bar. Keep this legacy header only for the chart-hosted overlay. */}
-        {!workspace && (
+            in its context bar. Keep this header wherever the pane presents as an overlay: the
+            overlay variant, and the chart-hosted workspace pane at <=860px. */}
+        {presentsAsOverlay && (
           <div className="fin-head">
             <button className="fin-head-back" onClick={closePane}>
               <svg viewBox="0 0 24 24" width="13" height="13" aria-hidden style={{ fill: "none", stroke: "currentColor", strokeWidth: 2 }}>
