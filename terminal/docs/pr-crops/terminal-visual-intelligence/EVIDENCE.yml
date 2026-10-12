@@ -1,8 +1,8 @@
 # Terminal Visual Intelligence Layer — pane readiness source recapture
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
 # Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
-# capturedAtHead: e669c889eaa004f580ae0b5a21bae6b55414d8a1
-# capturedAt: 2026-10-11T12:28:45.061614+00:00
+# capturedAtHead: e4b64a840997b368d2d602518d31a04716533484
+# capturedAt: 2026-10-11T20:22:41.824469+00:00
 # Actual fresh local fixture captures; source identity remains the capture commit when artifacts are committed later.
 # Content-addressed layoutFiles + cropFiles, not ancestry, identify this capture.
 layoutFiles:
@@ -20,12 +20,12 @@ layoutFiles:
   terminal/lib/suites/trend/candlePainter.ts: "8384d2bce3af939a51e88584b1436ee2898a89f0fbf1aedc09ffee624a3e12e1"
   terminal/lib/indicator-canvas/host.ts: "4f2949efb22b8c378cab1ff9d176466c4857073c14a36ee4f0eeab4ec1015a25"
 cropFiles:
-  desktop-context.png: "1d8b25dcab34b7295ee0d6cdce8a6f2cb84c22d5c5b448a5cd7b351b1f84b561"
-  desktop-context-zh.png: "7fbedae2f19df74411447ebf10864f3811a1aea1a78aefb41581f62780ce414d"
-  tablet-context.png: "5ba4128882d7a5a00eaf6e50547a582cdde600912ac398950685738a62fdfaa6"
-  tablet-context-zh.png: "2dac7aaa606122bfef3b4872e251636fce42ee1e82507ce80543663fce5ec6c1"
-  mobile-context.png: "b00e3819277ce4b49e9933c5062e6d8cadfbd0ece58ae4495d0dce221fc8c802"
-  mobile-context-zh.png: "ee39114b1b7873cf12aa168058430b1ab7c85252eb2d6b1c6a25d99f5f900a6a"
+  desktop-context.png: "7bcb74640c18a4874f1411f83e822430ba7bed3597220fd85e58afcbc2318bde"
+  desktop-context-zh.png: "0f5f03371a30a28a994c2797d9389f6f4eae0fa0b9ee64b9ad476347b8d3ada4"
+  tablet-context.png: "980d954111a153440bf074440430f4beb56cd875bba373a8ef887ed14a27020b"
+  tablet-context-zh.png: "36f84f55291937318127562159d9a2c3fed692aea2b372d8cc515786a9607d54"
+  mobile-context.png: "dd621ddd37a243db8fccbdf5ccc15afdccae72131cc9765a0841a04122ac2466"
+  mobile-context-zh.png: "1972c1a70cb559b8ace7f18d5da414239bec17807564bd08104fc88f9c7de2bb"
 
 theme: dark
 languages: [en, zh]
@@ -46,9 +46,17 @@ browserResults:
   mobileCrosshairRegression: 1/1 passed
   visualIntelligenceMatrix: 30 passed; zero failures
 browserReportHashes:
-  visualReport: "a389765b982e2ceb6ab83b341a02929c0d210e9e715cc952f816422d25b3bff8"
-  mobileCrosshairReport: "a389765b982e2ceb6ab83b341a02929c0d210e9e715cc952f816422d25b3bff8"
+  visualReport: "e8731c620abade7ab5c02c55900d8ef4de2fc83ef7ff820ce6c6cfecc51d3603"
+  mobileCrosshairReport: "e8731c620abade7ab5c02c55900d8ef4de2fc83ef7ff820ce6c6cfecc51d3603"
 currentLocalGates:
+  sourceHead: e4b64a840997b368d2d602518d31a04716533484
+  sourceIdentity: E20 landing train 2 merged tree; source identical to merge 76b43cae770421ca03791bf22c324d473282bbc0 (only evidence docs differ)
+  typecheck: PASS; next typegen then tsc --noEmit exit0 on 76b43cae7 source
+  visualIntelligenceMatrix: 30 passed; zero failures, skips or flaky cases (10 per viewport, EN/ZH)
+  compatibilityCases: 18 passed; zero failures, skips or flaky cases (chart-view-reset, replay status EN/ZH, responsive shell, shell D/E at three viewports)
+  run: rm -rf .next/dev; cold Playwright webServer; --workers=1 --retries=0; 48 passed
+  baselineDisposition: recaptured after the train 2 merge changed locked sources; crops regenerated, never copied from either parent
+priorCaptureLocalGates:
   sourceHead: e669c889eaa004f580ae0b5a21bae6b55414d8a1
   typecheck: PASS; tsc --noEmit exit0 on actual capture source
   drawingReadiness: 11 focused tests and 3 existing owner lifecycle tests passed

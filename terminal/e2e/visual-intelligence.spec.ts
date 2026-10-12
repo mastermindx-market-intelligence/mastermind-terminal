@@ -195,7 +195,9 @@ test("table and CSV expose the same actual 3D bars and numeric context as the pl
   expect(download.suggestedFilename()).toBe("NVDA_3D.csv");
   const path = await download.path();
   expect(path).not.toBeNull();
-  const [header, ...rows] = readFileSync(path!, "utf8").trim().split("\n").map((line) => line.split(","));
+  // E10: the export opens with a UTF-8 BOM and a "# key: value" metadata preamble before the header.
+  const [header, ...rows] = readFileSync(path!, "utf8").replace(/^\uFEFF/, "").trim().split("\n")
+    .filter((line) => !line.startsWith("#")).map((line) => line.split(","));
   expect(rows.length).toBe(proof.rowCount);
   expect(rows[0][0]).toBe(String(last.time));
   expect(Number(rows[0][header.indexOf("Mastermind RSI (14)")])).toBeCloseTo(last.rsi14, 3);
