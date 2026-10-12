@@ -3,14 +3,14 @@
   "sourceHashes": {
     "terminal/app/(shell)/admin/factor-atlas-preview/page.tsx": "f505113bb77630759f0c34d63806ccf47860935f69361b3fa5d2db450bfcbbc7",
     "terminal/components/factor-atlas/FactorHistoryShellPreview.tsx": "58599b679173398d6add2a9af07386cd989937245741b85caac61219dbda35ac",
-    "terminal/components/factor-atlas/FactorHistoryPreview.tsx": "0d50375b183efbc5f50d4c95e2786630b629917d0d4dd513fbbd41bd62e0bba2",
+    "terminal/components/factor-atlas/FactorHistoryPreview.tsx": "7edb41aa4f36b1daabfd00c3e306e708b45404e4927a3e2e416b54bd38fb3d00",
     "terminal/components/factor-atlas/FactorHistoryPreview.module.css": "6b4aa0dd484410d7c47fe1d965cff7f48a5367d831aa044db40e6442ec83040d",
-    "terminal/lib/factorAtlasHistory.ts": "6273f12623563a96c508b4242410e78857e0397b97d99b1a1770c7e773f2e354",
+    "terminal/lib/factorAtlasHistory.ts": "a6dea56b5f41b4fbd79adc41cc8914b4af3a481a8ce2e23584f8b6d388fdaa29",
     "terminal/lib/factorAtlasLocation.ts": "87a81bb50d274643c7701bec3d2ef4c61713b596920519604c5aca101999d658",
     "docs/factor-atlas-preview/prove-shell.mjs": "dcc01e0f18cbc5a7c7b6b9b42f6455ff6ba0dd82cec0761d2f7ebe57e3cddedc",
     "terminal/lib/__tests__/fixtures/factorAtlasNativeSynthetic.json": "6860786ee663c394e0d33b18e241592879501a6bc5335a09faed6d66b0b42626"
   },
-  "observedAt": "2026-10-12T07:24:25.874Z",
+  "observedAt": "2026-10-12T08:00:48.227Z",
   "scope": "REAL_NEXT_SHELL_DEVELOPMENT_ONLY_SYNTHETIC_FIXTURE",
   "productionAccess": false,
   "admittedSource": false,

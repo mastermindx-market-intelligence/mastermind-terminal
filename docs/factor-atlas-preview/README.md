@@ -305,3 +305,38 @@ source hashes. Actual Next browser proof now includes exact direct-link
 acceptance/refusal, Back/Forward, refresh and preserved selected-source NAV.
 These are synthetic research fixtures only, not market returns or a
 production data-release authorization.
+
+## R5: unavailable evidence cannot become a return or mislabelled source refusal
+
+Three source-consistency test witnesses failed on the inherited native-preview
+adapter before repair:
+
+- A source return marked `PARTIAL` could contain a null held-weight NAV level
+  together with a numerical interval return. The projection rejected neither,
+  so the observation table could imply a measured percentage for an unknown
+  portfolio valuation. The adapter now rejects the contradictory pair.
+- A source envelope marked `UNAVAILABLE` with populated numerical points
+  could nevertheless display a READY result. The adapter now withholds the
+  unavailable input, even if its method/synthetic fixture structure is valid.
+- A previously projected `FactorHistory` with its source status changed to
+  `UNAVAILABLE` could still compute a READY window. The pure window
+  function now fails closed, with null return and no displayed points.
+
+The UI now distinguishes source unavailability (English/Chinese) from a
+retained-owner input presented to the synthetic-only preview. The former
+must not tell a user merely to supply a synthetic fixture, and neither
+state publishes an invented return.
+
+**Test-first:** the three source assertions were visibly RED before the
+implementation, then GREEN. The two display-copy tests likewise failed
+before the localized correction. Complete focused suite: **114 tests passed**
+across four native/unit/React/URL suites, with no skipped tests counted as
+passes. ESLint and TypeScript checks passed, and the optimized local Next.js
+production build completed. These are author/local source and synthetic
+browser tests, *not* S1 market-data qualification, receipt authentication,
+rights approval, actual profitable strategy evidence or release permission.
+
+S1 `factor_atlas_read.v1`, capital-pressure S2, options S3,
+evidence S4 and evaluation S6 remain original upstream owners. The Terminal
+consumer enforces presentation semantics only and never mutates their
+stores, payloads or original release ceilings.

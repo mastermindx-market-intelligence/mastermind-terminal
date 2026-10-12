@@ -122,6 +122,24 @@ describe("native Factor Atlas candidate boundary", () => {
     const d = fixture(); Object.assign(d.points[1], { index_level: null, return: null });
     expect(subject().prepareFactorHistory(d, options).history).toBeNull();
   });
+  it("rejects a numeric interval return when the NAV/held valuation is missing", () => {
+    const d = fixture(); d.status = "PARTIAL";
+    Object.assign(d.points[1], { index_level: null, reasons: ["MISSING_OR_INVALID_HELD_PRICE"] });
+    const response = subject().prepareFactorHistory(d, options);
+    expect(response.history).toBeNull();
+    expect(response.kind).toBe("invalid");
+  });
+  it("never presents an UNAVAILABLE source envelope as an observed READY series", () => {
+    const d = fixture(); d.status = "UNAVAILABLE";
+    expect(subject().prepareFactorHistory(d, options).history).toBeNull();
+  });
+  it("enforces source UNAVAILABLE even if a previously projected history is reused", () => {
+    const d = history(); d.sourceStatus = "UNAVAILABLE";
+    const r = subject().factorHistoryWindow(d, full);
+    expect(r.status).toBe("UNAVAILABLE");
+    expect(r.points).toHaveLength(0);
+    expect(r.returnFraction).toBeNull();
+  });
   it("does not mutate the native candidate or copy arbitrary payload values", () => {
     const d = fixture(); const before = JSON.stringify(d);
     const r = subject().prepareFactorHistory({ ...d, vendor_secret: "never-copy-this" }, options);

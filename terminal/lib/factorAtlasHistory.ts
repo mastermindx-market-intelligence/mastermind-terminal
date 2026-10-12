@@ -96,6 +96,7 @@ export function prepareFactorHistory(raw: unknown, options: {
     if (!["CURRENT_ROSTER", "PIT_AS_KNOWN"].includes(String(d.history_mode))
       || request.history_mode !== d.history_mode) throw new Error("HISTORY_MODE_MISMATCH");
     if (!["READY", "PARTIAL", "UNAVAILABLE"].includes(String(d.status))) throw new Error("INVALID_STATUS");
+    if (d.status === "UNAVAILABLE") return blocked("withheld", "SOURCE_UNAVAILABLE");
     const sourceDigest = text(d.result_digest, 64);
     if (!/^[a-f0-9]{64}$/.test(sourceDigest)) throw new Error("INVALID_DIGEST_REFERENCE");
     const start = day(request.start), end = day(request.end), asOf = day(d.as_of), cutoff = clock(request.measurement_cutoff);
@@ -120,6 +121,7 @@ export function prepareFactorHistory(raw: unknown, options: {
       if (typeof segment !== "number" || !Number.isInteger(segment) || segment < previous.segmentId) throw new Error("INVALID_SEGMENT");
       if (broken && level !== null) throw new Error("BROKEN_NAV_RECONNECTED");
       if (level !== null && ret === null) throw new Error("LEVEL_WITHOUT_RETURN");
+      if (level === null && ret !== null) throw new Error("RETURN_WITHOUT_HELD_VALUATION");
       if (level !== null && previous.level !== null && ret !== null) {
         const expected = previous.level * (1 + ret);
         if (!Number.isFinite(expected) || Math.abs(level - expected) > 1e-9 * Math.max(1, Math.abs(expected))) {
@@ -147,6 +149,7 @@ export function prepareFactorHistory(raw: unknown, options: {
 export function factorHistoryWindow(history: FactorHistory, window: HistoryWindowRequest): HistoryWindow {
   const unavailable = (reason: string): HistoryWindow => ({ ...window, status: "UNAVAILABLE", reason,
     points: [], returnFraction: null, sourceDigest: history.sourceDigest });
+  if (history.sourceStatus === "UNAVAILABLE") return unavailable("SOURCE_UNAVAILABLE");
   const from = history.points.findIndex(p => p.date === window.anchorDate);
   const to = history.points.findIndex(p => p.date === window.endDate);
   if (from < 0 || to <= from) return unavailable("EXACT_WINDOW_UNAVAILABLE");

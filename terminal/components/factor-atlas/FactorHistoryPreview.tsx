@@ -19,6 +19,7 @@ const LEX = {
   select: ["Compare factors", "比较因子"], anchor: ["Comparison anchor", "参考日期"], end: ["Window end", "区间结束"],
   none: ["Select at least one factor", "请至少选择一个因子"],
   synthetic: ["Synthetic fixture required", "仅支持合成测试数据"], invalid: ["Unsupported native candidate", "不支持的原生候选数据"],
+  sourceUnavailable: ["Source unavailable", "数据源不可用"],
   return: ["Return over selected window", "所选区间收益"], ready: ["Complete window", "区间完整"],
   partial: ["Valuation gap", "估值数据缺口"], unavailable: ["Exact reference or end date is unavailable", "缺少所选参考日期或结束日期的数据"],
   chart: ["Source history, rebased at the selected anchor", "源历史，以所选参考日期重新标定"],
@@ -196,7 +197,9 @@ export function FactorHistoryPreview({ items, initialWindow, audience, lang = "e
       {locationProblem && <p role="status" className={styles.notice}>{pick("invalidLink", lang)}</p>}
       {!selected.length && !locationProblem && <p role="status">{pick("none", lang)}</p>}
       {reads.filter(r => !r.read.history).map(({ item, read }) => <p role="status" className={styles.notice} key={item.basketId}>
-        {labels.get(item.basketId)} — {pick(read.kind === "withheld" ? "synthetic" : "invalid", lang)}
+        {labels.get(item.basketId)} — {pick(read.kind === "withheld"
+          ? read.reasons.includes("SOURCE_UNAVAILABLE") ? "sourceUnavailable" : "synthetic"
+          : "invalid", lang)}
       </p>)}
       <div className={styles.cards}>{comparison.series.map(({ history, window: range }) => <article className={styles.card} key={history.basketId}>
         <h3>{labels.get(history.basketId)}</h3><p className={styles.caption}>{pick("return", lang)}</p>

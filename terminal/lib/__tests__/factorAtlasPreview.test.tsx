@@ -45,6 +45,20 @@ describe("native Factor Atlas preview component", () => {
     expect(container.querySelector("svg")).toBeNull();
     expect(container.textContent).not.toContain("33.3%");
   });
+  it("discloses source unavailability rather than falsely suggesting a synthetic-input type mismatch", async () => {
+    const props = baseProps(); props.items[0].payload.status = "UNAVAILABLE";
+    await mount(props);
+    expect(container.textContent).toContain("Source unavailable");
+    expect(container.textContent).not.toContain("Synthetic fixture required");
+    expect(container.querySelector("svg")).toBeNull();
+    expect(container.querySelector('[data-metric="window-return"]')).toBeNull();
+  });
+  it("explains source unavailability in Chinese", async () => {
+    const props = baseProps(); props.items[0].payload.status = "UNAVAILABLE";
+    await mount({ ...props, lang: "zh" });
+    expect(container.textContent).toContain("数据源不可用");
+    expect(container.textContent).not.toContain("仅支持合成测试数据");
+  });
   it("cannot preview a real retained-owner payload by caller flag alone", async () => {
     const props = baseProps(); props.items[0].payload.evidence_kind = "RETAINED_OWNER_INPUT";
     await mount(props);
