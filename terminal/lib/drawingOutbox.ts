@@ -15,6 +15,17 @@ export const DRAWING_JOURNAL_KEY = "mm.drawing.account-outbox.v2";
 // copy alone never discards another tab's unsaved memory or exact retry.
 export const DRAWING_RECEIPTS_KEY = "mm.drawing.retired-copies.v1";
 /**
+ * Browser-level {legacyOwner → auth-UUID owner} claim. The first account that
+ * imports a given email-keyed v1 namespace on this browser writes it; later
+ * UUIDs with the same address do not import. v1 bytes are never rewritten.
+ *
+ * Residual: v1 data names only the email, not the auth UUID. If a reassigned
+ * holder signs in on this browser before the original owner ever does after
+ * upgrade, the reassigned holder claims the namespace. That is the narrowest
+ * boundary possible without a UUID in v1 data.
+ */
+export const DRAWING_LEGACY_CLAIM_KEY = "mm.drawing.legacy-claim.v1";
+/**
  * Acknowledged copy IDs kept per owner, matching the server's 32 prior
  * operations. An older acknowledgement is forgotten: a stale tab's copy is
  * then kept again, but only for review. It never saves by itself, because the
@@ -38,7 +49,9 @@ function accountOwner(owner: string): boolean {
  * to import from: released clients keyed v1 on `account:<email>`, so the shell
  * passes that alias for the signed-in account. A copy imported through a
  * different key is review-only: an email alias cannot prove which auth account
- * made it, so it never saves by itself.
+ * made it, so it never saves by itself. The first UUID that imports a given
+ * alias on this browser claims it (DRAWING_LEGACY_CLAIM_KEY); a later UUID
+ * with the same email is not offered those copies.
  */
 export type DrawingJournalOwner = string | { owner: string; legacyOwner?: string };
 function journalOwner(value: DrawingJournalOwner): { owner: string; legacyOwner: string } {
@@ -212,6 +225,27 @@ function strictEnvelope(storage: StoragePort, key: string): StoredEnvelope {
   if (!raw || typeof raw !== "object" || Array.isArray(raw)) throw new Error("Invalid recovery envelope");
   return raw as StoredEnvelope;
 }
+type LegacyClaims = Record<string, string>;
+/** Strict-read: corrupt bytes throw. Callers fail closed without deleting anything. */
+function readLegacyClaims(storage: StoragePort): LegacyClaims {
+  const raw: unknown = JSON.parse(storage.getItem(DRAWING_LEGACY_CLAIM_KEY) || "{}");
+  if (!raw || typeof raw !== "object" || Array.isArray(raw)) throw new Error("Invalid legacy claim record");
+  const claims: LegacyClaims = {};
+  for (const [legacyOwner, owner] of Object.entries(raw as Record<string, unknown>)) {
+    if (!accountOwner(legacyOwner) || typeof owner !== "string" || !accountOwner(owner)) throw new Error("Invalid legacy claim record");
+    claims[legacyOwner] = owner;
+  }
+  return claims;
+}
+function writeLegacyClaims(storage: StoragePort, claims: LegacyClaims): void {
+  storage.setItem(DRAWING_LEGACY_CLAIM_KEY, JSON.stringify(claims));
+}
+/** True when another UUID already claimed this email-keyed v1 namespace. */
+function legacyOwnerClaimedByOther(claims: LegacyClaims, owner: string, legacyOwner: string): boolean {
+  if (!accountOwner(legacyOwner) || legacyOwner === owner) return false;
+  const claimedBy = claims[legacyOwner];
+  return !!claimedBy && claimedBy !== owner;
+}
 function ownerNamespace(envelope: StoredEnvelope, owner: string): Record<string, unknown> {
   const raw = envelope[owner];
   if (raw && (typeof raw !== "object" || Array.isArray(raw))) throw new Error("Invalid recovery owner");
@@ -235,9 +269,14 @@ function journalState(storage: StoragePort, owner: string, legacyOwner: string, 
         || typeof (value as LegacyLink).sourceId !== "string" || typeof (value as LegacyLink).token !== "string")) throw new Error("Invalid legacy import link");
     namespace[symbol] = { format: 2, copies, legacySeen: { ...seen as Record<string, string> }, legacyLinks: { ...links as Record<string, LegacyLink> } };
   }
+  const alias = accountOwner(legacyOwner) && legacyOwner !== owner;
+  const claims = alias ? readLegacyClaims(storage) : {};
   const imports: LegacyImports = {};
+  let sawLegacy = false;
   try {
+  if (!legacyOwnerClaimedByOther(claims, owner, legacyOwner)) {
   const legacy = accountOwner(legacyOwner) ? ownerNamespace(strictEnvelope(storage, DRAWING_OUTBOX_KEY), legacyOwner) : {};
+  sawLegacy = Object.keys(legacy).length > 0;
   for (const [symbol, raw] of Object.entries(legacy)) {
     const copies = readCopies(raw);
     // Before fingerprinting, so the import receipt matches on every later read.
@@ -253,11 +292,18 @@ function journalState(storage: StoragePort, owner: string, legacyOwner: string, 
       }
     }
   }
+  }
   } catch (error) {
     if (!allowUnreadableLegacy) throw error;
     // Valid v2 pending work remains visible. Every write still reads strictly
     // and fails closed, retaining both stores and preventing a cloud PUT.
     return { envelope, namespace, imports: {} };
+  }
+  // Persist under this call (reads are sync; writes already hold DRAWING_JOURNAL_KEY).
+  // Fail closed if the claim cannot be stored: do not return imports without it.
+  if (alias && !claims[legacyOwner] && sawLegacy) {
+    claims[legacyOwner] = owner;
+    writeLegacyClaims(storage, claims);
   }
   return { envelope, namespace, imports };
 }
