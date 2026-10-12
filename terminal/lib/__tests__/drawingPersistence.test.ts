@@ -642,4 +642,27 @@ describe("legacy email-keyed journal claimed by at most one auth UUID",()=>{
   expect(readDrawingJournal(storage,bob)).toEqual({});
   expect(storage.getItem("mm.drawing.account-outbox.v1")).toBe(v1);
  });
+ it("lets only one UUID persist the v1 copy when two first-reads race through nested setItem",async()=>{
+  const storage=new MemoryStorage();
+  writeDrawingOutbox(storage,"account:alice@x",{NVDA:[line("alice-v1")]});
+  const v1=storage.getItem("mm.drawing.account-outbox.v1");
+  const origSetItem=storage.setItem.bind(storage);
+  let tabB:ReturnType<typeof readDrawingJournal>|undefined;
+  storage.setItem=(k,v)=>{
+   if(k===claimKey&&tabB===undefined) tabB=readDrawingJournal(storage,bob);
+   origSetItem(k,v);
+  };
+  const tabA=readDrawingJournal(storage,alice);
+  tabB??=readDrawingJournal(storage,bob);
+  expect(tabA.NVDA).toMatchObject({drawings:[{id:"alice-v1"}],blocked:"legacy"});
+  expect(tabB.NVDA).toMatchObject({drawings:[{id:"alice-v1"}],blocked:"legacy"});
+  expect(await writeDrawingJournal(storage,alice,tabA,locks)).toBe(true);
+  expect(await writeDrawingJournal(storage,bob,tabB,locks)).toBe(true);
+  const v2=JSON.parse(storage.getItem(DRAWING_JOURNAL_KEY)||"{}") as Record<string,Record<string,{copies?:Record<string,{drawings?:{id:string}[]}>}>>;
+  const owners=Object.entries(v2).flatMap(([owner,ns])=>
+   Object.values(ns??{}).some((record)=>Object.values(record.copies??{}).some((copy)=>copy.drawings?.some((drawing)=>drawing.id==="alice-v1")))?[owner]:[]);
+  expect(owners).toEqual(["account:uuid-a"]);
+  expect(tabB.NVDA).toBeUndefined();
+  expect(storage.getItem("mm.drawing.account-outbox.v1")).toBe(v1);
+ });
 });

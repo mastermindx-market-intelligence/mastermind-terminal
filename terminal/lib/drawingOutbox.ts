@@ -16,13 +16,14 @@ export const DRAWING_JOURNAL_KEY = "mm.drawing.account-outbox.v2";
 export const DRAWING_RECEIPTS_KEY = "mm.drawing.retired-copies.v1";
 /**
  * Browser-level {legacyOwner → auth-UUID owner} claim. The first account that
- * imports a given email-keyed v1 namespace on this browser writes it; later
- * UUIDs with the same address do not import. v1 bytes are never rewritten.
+ * adopts a given email-keyed v1 namespace on this browser writes it under the
+ * journal lock; later UUIDs with the same address do not import. The read path
+ * never writes the claim. v1 bytes are never rewritten.
  *
  * Residual: v1 data names only the email, not the auth UUID. If a reassigned
- * holder signs in on this browser before the original owner ever does after
- * upgrade, the reassigned holder claims the namespace. That is the narrowest
- * boundary possible without a UUID in v1 data.
+ * holder signs in on this browser and their write adopts the namespace before
+ * the original owner ever does after upgrade, the reassigned holder claims it.
+ * That is the narrowest boundary possible without a UUID in v1 data.
  */
 export const DRAWING_LEGACY_CLAIM_KEY = "mm.drawing.legacy-claim.v1";
 /**
@@ -49,9 +50,10 @@ function accountOwner(owner: string): boolean {
  * to import from: released clients keyed v1 on `account:<email>`, so the shell
  * passes that alias for the signed-in account. A copy imported through a
  * different key is review-only: an email alias cannot prove which auth account
- * made it, so it never saves by itself. The first UUID that imports a given
- * alias on this browser claims it (DRAWING_LEGACY_CLAIM_KEY); a later UUID
- * with the same email is not offered those copies.
+ * made it, so it never saves by itself. The first UUID that adopts a given
+ * alias on this browser claims it under DRAWING_JOURNAL_KEY
+ * (DRAWING_LEGACY_CLAIM_KEY); a later UUID with the same email is not offered
+ * those copies. The read path honours an existing claim and never writes it.
  */
 export type DrawingJournalOwner = string | { owner: string; legacyOwner?: string };
 function journalOwner(value: DrawingJournalOwner): { owner: string; legacyOwner: string } {
@@ -250,12 +252,28 @@ function legacyOwnerClaimedByOther(claims: LegacyClaims, owner: string, legacyOw
   const claimedBy = claims[legacyOwner];
   return !!claimedBy && claimedBy !== owner;
 }
+/** Drop in-memory `legacy:` copies this owner does not hold the claim for. */
+function dropUnownedLegacyCopies(journal: DrawingJournal): void {
+  for (const symbol of Object.keys(journal)) {
+    const entry = journal[symbol];
+    if (!entry) continue;
+    const retained = [entry, ...(entry.alternatives ?? [])].filter((copy) => !String(copy.recoveryId ?? "").startsWith("legacy:"));
+    if (!retained.length) {
+      delete journal[symbol];
+      continue;
+    }
+    const [next, ...rest] = retained;
+    delete next.alternatives;
+    if (rest.length) next.alternatives = rest.map(({ alternatives: _nested, ...copy }) => copy);
+    journal[symbol] = next;
+  }
+}
 function ownerNamespace(envelope: StoredEnvelope, owner: string): Record<string, unknown> {
   const raw = envelope[owner];
   if (raw && (typeof raw !== "object" || Array.isArray(raw))) throw new Error("Invalid recovery owner");
   return raw ?? {};
 }
-function journalState(storage: StoragePort, owner: string, legacyOwner: string, allowUnreadableLegacy = false): { envelope: StoredEnvelope; namespace: JournalNamespace; imports: LegacyImports } {
+function journalState(storage: StoragePort, owner: string, legacyOwner: string, allowUnreadableLegacy = false): { envelope: StoredEnvelope; namespace: JournalNamespace; imports: LegacyImports; sawLegacy: boolean } {
   const envelope = strictEnvelope(storage, DRAWING_JOURNAL_KEY);
   const namespace: JournalNamespace = {};
   for (const [symbol, raw] of Object.entries(ownerNamespace(envelope, owner))) {
@@ -301,15 +319,9 @@ function journalState(storage: StoragePort, owner: string, legacyOwner: string, 
     if (!allowUnreadableLegacy) throw error;
     // Valid v2 pending work remains visible. Every write still reads strictly
     // and fails closed, retaining both stores and preventing a cloud PUT.
-    return { envelope, namespace, imports: {} };
+    return { envelope, namespace, imports: {}, sawLegacy: false };
   }
-  // Persist under this call (reads are sync; writes already hold DRAWING_JOURNAL_KEY).
-  // Fail closed if the claim cannot be stored: do not return imports without it.
-  if (alias && !claims[legacyOwner] && sawLegacy) {
-    claims[legacyOwner] = owner;
-    writeLegacyClaims(storage, claims);
-  }
-  return { envelope, namespace, imports };
+  return { envelope, namespace, imports, sawLegacy };
 }
 
 /** Read competing copies independently; no GET can silently choose or rebase one. */
@@ -349,7 +361,19 @@ export async function writeDrawingJournal(
   if (!accountOwner(owner) || !locks) return false;
   try {
     return await locks.request(DRAWING_JOURNAL_KEY, () => {
-      const { envelope, namespace, imports } = journalState(storage, owner, legacyOwner);
+      let { envelope, namespace, imports, sawLegacy } = journalState(storage, owner, legacyOwner);
+      const alias = accountOwner(legacyOwner) && legacyOwner !== owner;
+      let claims: LegacyClaims = {};
+      if (alias) {
+        // Re-read under the same lock the journal write already holds (or the
+        // in-process queue tests use when navigator.locks is unavailable).
+        claims = readLegacyClaims(storage);
+        if (legacyOwnerClaimedByOther(claims, owner, legacyOwner)) {
+          imports = {};
+          sawLegacy = false;
+          dropUnownedLegacyCopies(journal);
+        }
+      }
       const receipts = readRetiredCopies(storage, owner), retired = new Set(receipts), acknowledged: string[] = [];
       const previous = baselines.get(journal) ?? {};
       const next: JournalBaseline = {};
@@ -417,6 +441,12 @@ export async function writeDrawingJournal(
       // Receipts first: a failure between the two writes leaves a receipt for a
       // copy that is still stored, which retires nothing.
       if (acknowledged.length) writeRetiredCopies(storage, owner, [...receipts.filter((id) => !acknowledged.includes(id)), ...acknowledged]);
+      // Claim before the journal so a storage failure cannot persist adopted
+      // copies without the claim. Fail closed: do not return durability without it.
+      if (alias && !claims[legacyOwner] && sawLegacy) {
+        claims[legacyOwner] = owner;
+        writeLegacyClaims(storage, claims);
+      }
       if (Object.keys(envelope).length) storage.setItem(DRAWING_JOURNAL_KEY, JSON.stringify(envelope));
       else storage.removeItem(DRAWING_JOURNAL_KEY);
       // Change the in-memory baseline only after the actual durable write.
