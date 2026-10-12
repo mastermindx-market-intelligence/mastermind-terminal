@@ -238,3 +238,70 @@ release gates. No deployed Atlas product is claimed by these development tools.
 - [Verification receipt](verification.json) pins source digests and representative
   screenshots. This source still requires independent review and exact-head
   hosted checks on its own new Git commit before any accepted release.
+
+## R4: exact, shareable factor comparison locations
+
+A new **pure presentation-state codec**, `terminal/lib/factorAtlasLocation.ts`, serializes
+`faFactor` (up to eight repeated qualified *catalog-local* identifiers),
+`faStart`, and `faEnd` into the existing page URL. It does not declare
+a factor source, create server-side state, or grant access. Existing unrelated
+query values, including `?tab=`, are retained. The client uses the existing
+`window.history` and `popstate` mechanism; it creates no persistence system.
+
+Only factor IDs actually supplied by the current qualified input catalog can be
+selected from a copied URL. Unknown, duplicate, over-eight, malformed-date,
+partial or excessive links show a localized invalid-link state, never a
+different silently chosen basket. An explicitly empty selection is preserved.
+Display-window changes do not reset underlying S1 holdings, and the same exact
+source NAV is used on browser Back, Forward and reload. Customer mode
+continues to withhold all numerical source data regardless of URL parameters.
+
+**Implemented on the original Draft/HOLD PR #928 carrier**, not in a new route
+or specialist source. Existing non-URL component consumers default to URL
+sync **disabled**; only the dev-only existing AppShell mount opts in. The
+original `factor_atlas_read.v1` synthetic fixture remains unmodified.
+
+Evidence: `terminal/lib/__tests__/factorAtlasLocation.test.ts` covers pure
+selection/date parsing and writing; `factorAtlasLocationDOM.test.tsx` covers
+real React history state, reload-state restoration, invalid IDs, empty selection
+and withholding. The existing 87 tests remain; **108 focused tests pass**.
+The actual Next.js development-shell browser receipt
+([link](next-shell-browser-proof.json)) now exercises full browser Back,
+Forward, reload and unknown/valid direct deep links across Chromium/WebKit,
+1440/820/390 widths, light/dark and EN/ZH. It is a local authorized fixture,
+not an account login, real retained data, or production route.
+
+The [principal source-grounded Terminal UX census](S5_TERMINAL_PRODUCT_CENSUS.md)
+maps the proposed Factor Atlas journey to existing Discover, Sector
+Intelligence, issuer research, Options and Portfolio owners. It is a new
+principal analysis, **not** a recovered historical Session 5 specialist result,
+design sign-off or permission to change primary navigation before source
+admission.
+
+Release criteria are still separate: true source/rights/identity and
+adjusted-price vintage receipts, accepted server-side auth/entitlement
+use, qualified independent review, current-base hosted CI, and an actually
+authenticated customer and production browser journey. The synthetic
+dev-only route must remain invisible in production.
+
+### R4 source-first-render protection and verification
+
+A further test found a browser-only timing defect: server rendering could
+display the initial default candidate before a malformed shared link had been
+validated by the first client effect. The URL-enabled client now renders a
+neutral, localized **validating-link** state on the server and during hydration.
+Only after the explicit allowlist/date check does it render source-derived
+numbers. Invalid links remain withheld with an explanation instead of
+temporarily showing the wrong basket. Source audiences not using URL state
+retain the original presentation behavior.
+
+The test was observed RED before repair, then the complete **109/109**
+native history, catalog, URL-codec, URL-DOM and SSR cases passed.
+Focused TypeScript also passed after isolating the ignored malformed
+Next development-generated validator; the tracked repository was not altered
+by that generated-artifact repair. The final **24 standalone** and
+**24 actual Next AppShell** browser contexts passed again under the current
+source hashes. Actual Next browser proof now includes exact direct-link
+acceptance/refusal, Back/Forward, refresh and preserved selected-source NAV.
+These are synthetic research fixtures only, not market returns or a
+production data-release authorization.

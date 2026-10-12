@@ -1,7 +1,8 @@
 "use client";
 
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { fmtTick, niceTicks, padDomain, thinLabels, useChartWidth } from "../charts/svgChart";
+import { decodeFactorLocation, encodeFactorLocation } from "../../lib/factorAtlasLocation";
 import { compareFactorHistories, formatFactorPercent, formatFactorPoints, prepareFactorHistory, splitFactorSegments,
   type FactorComparison, type HistoryWindowRequest } from "../../lib/factorAtlasHistory";
 import styles from "./FactorHistoryPreview.module.css";
@@ -35,6 +36,8 @@ const LEX = {
   difference: ["Return difference (percentage points)", "收益差值（百分点）"],
   noPnl: ["A comparison, not a funded long/short strategy.", "仅为比较，不代表有资金支持的多空策略。"],
   selectionInvalid: ["Factor catalog is unavailable", "因子目录不可用"],
+  invalidLink: ["Invalid factor link", "无效的因子链接"],
+  linkPending: ["Validating factor link", "正在验证因子链接"],
   find: ["Find factors", "查找因子"], selected: ["Selected", "已选"], ofEight: ["of 8", "/ 8"],
   showing: ["Showing", "显示"], of: ["of", "/"], refine: ["Refine search to see more", "缩小搜索范围可查看更多"],
 } satisfies Record<string, Copy>;
@@ -47,6 +50,8 @@ export interface FactorHistoryPreviewProps {
   audience: "synthetic-preview" | "customer";
   /** Passed by the incumbent locale owner; this component owns no language store. */
   lang?: Lang;
+  /** Opt-in URL navigation for this preview; never an authentication or data admission grant. */
+  urlState?: boolean;
 }
 
 function HistoryPlot({ comparison, labels, window, lang }: {
@@ -89,13 +94,43 @@ function HistoryPlot({ comparison, labels, window, lang }: {
   </div>;
 }
 
-export function FactorHistoryPreview({ items, initialWindow, audience, lang = "en" }: FactorHistoryPreviewProps) {
+export function FactorHistoryPreview({ items, initialWindow, audience, lang = "en", urlState = false }: FactorHistoryPreviewProps) {
   const [selected, setSelected] = useState(() => items.slice(0, 3).map(i => i.basketId));
   const [filter, setFilter] = useState("");
   const [window, setWindow] = useState(initialWindow);
+  const [locationProblem, setLocationProblem] = useState<string | null>(null);
+  // On SSR and the first hydrated frame, withhold historical numbers until the
+  // exact URL has been validated; otherwise a bad link flashes a default basket.
+  const [urlInitialized, setUrlInitialized] = useState(!urlState || audience !== "synthetic-preview");
+
+  useEffect(() => {
+    if (!urlState || audience !== "synthetic-preview" || typeof globalThis.window === "undefined") return;
+    const read = () => {
+      const current = decodeFactorLocation(globalThis.window.location.search,
+        items.map(i => i.basketId), items.slice(0, 3).map(i => i.basketId), initialWindow);
+      setSelected(current.selection);
+      setWindow(current.window);
+      setLocationProblem(current.reason);
+      setUrlInitialized(true);
+    };
+    read();
+    globalThis.window.addEventListener("popstate", read);
+    return () => globalThis.window.removeEventListener("popstate", read);
+  }, [urlState, audience, items, initialWindow]);
+
+  const commitLocation = (nextSelection: string[], nextWindow: HistoryWindowRequest) => {
+    if (!urlState || audience !== "synthetic-preview" || typeof globalThis.window === "undefined") return;
+    try {
+      const view = globalThis.window;
+      const search = encodeFactorLocation(view.location.search, nextSelection, nextWindow);
+      const next = view.location.pathname + search + view.location.hash;
+      if (next !== view.location.pathname + view.location.search + view.location.hash)
+        view.history.pushState(null, "", next);
+    } catch { setLocationProblem("INVALID_FACTOR_LINK"); }
+  };
   const reads = useMemo(() => items.filter(i => selected.includes(i.basketId)).map(item => ({ item,
     read: prepareFactorHistory(item.payload, { basketId: item.basketId, audience }) })), [items, selected, audience]);
-  const histories = reads.flatMap(r => r.read.history ? [r.read.history] : []);
+  const histories = locationProblem ? [] : reads.flatMap(r => r.read.history ? [r.read.history] : []);
   const comparison = compareFactorHistories(histories, window);
   const labels = new Map(items.map(item => [item.basketId, item.label[lang === "zh" ? 1 : 0]]));
   const selectionInvalid = !items.length || items.length > 4096 || new Set(items.map(i => i.basketId)).size !== items.length;
@@ -105,6 +140,10 @@ export function FactorHistoryPreview({ items, initialWindow, audience, lang = "e
     item.label[lang === "zh" ? 1 : 0].toLocaleLowerCase().includes(needle));
   // Bound render work, not catalog size: search reaches items past this page.
   const visibleItems = matchingItems.slice(0, 64);
+  if (audience === "synthetic-preview" && urlState && !urlInitialized) return <section
+    className={styles.shell} aria-label={pick("brand", lang)}>
+    <h2>{pick("brand", lang)}</h2><p role="status">{pick("linkPending", lang)}</p>
+  </section>;
   if (audience !== "synthetic-preview") return <section className={styles.shell} aria-label={pick("brand", lang)}>
     <h2>{pick("brand", lang)}</h2><p role="status">{pick("withheld", lang)}</p><p>{pick("withheldDetail", lang)}</p>
   </section>;
@@ -125,9 +164,14 @@ export function FactorHistoryPreview({ items, initialWindow, audience, lang = "e
           {visibleItems.map((item, i) => <label className={styles.chip} key={`${item.basketId}:${i}`}>
             <input type="checkbox" checked={selected.includes(item.basketId)}
               disabled={!selected.includes(item.basketId) && selected.length >= 8}
-              onChange={event => setSelected(current => event.target.checked
-                ? current.length < 8 ? [...current, item.basketId] : current
-                : current.filter(id => id !== item.basketId))} />
+              onChange={event => {
+                const next = event.target.checked
+                  ? selected.length < 8 ? [...selected, item.basketId] : selected
+                  : selected.filter(id => id !== item.basketId);
+                setSelected(next);
+                setLocationProblem(null);
+                commitLocation(next, window);
+              }} />
             {labels.get(item.basketId)}
           </label>)}
         </div>
@@ -137,13 +181,20 @@ export function FactorHistoryPreview({ items, initialWindow, audience, lang = "e
       </fieldset>
       <div className={styles.dates}>
         <label>{pick("anchor", lang)}<input type="date" aria-label={pick("anchor", lang)} value={window.anchorDate}
-          onChange={event => setWindow(current => ({ ...current, anchorDate: event.target.value }))} /></label>
+          onChange={event => {
+            const next = { ...window, anchorDate: event.target.value };
+            setWindow(next); setLocationProblem(null); commitLocation(selected, next);
+          }} /></label>
         <label>{pick("end", lang)}<input type="date" aria-label={pick("end", lang)} value={window.endDate}
-          onChange={event => setWindow(current => ({ ...current, endDate: event.target.value }))} /></label>
+          onChange={event => {
+            const next = { ...window, endDate: event.target.value };
+            setWindow(next); setLocationProblem(null); commitLocation(selected, next);
+          }} /></label>
       </div>
     </div>
     {selectionInvalid ? <p role="status">{pick("selectionInvalid", lang)}</p> : <>
-      {!selected.length && <p role="status">{pick("none", lang)}</p>}
+      {locationProblem && <p role="status" className={styles.notice}>{pick("invalidLink", lang)}</p>}
+      {!selected.length && !locationProblem && <p role="status">{pick("none", lang)}</p>}
       {reads.filter(r => !r.read.history).map(({ item, read }) => <p role="status" className={styles.notice} key={item.basketId}>
         {labels.get(item.basketId)} — {pick(read.kind === "withheld" ? "synthetic" : "invalid", lang)}
       </p>)}

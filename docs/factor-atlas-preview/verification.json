@@ -1,13 +1,13 @@
 {
   "schema": "factor_atlas.terminal_native_preview_verification.v1",
-  "observed_at": "2026-10-11T10:49:38.001178+00:00",
+  "observed_at": "2026-10-12T07:31:50.691880+00:00",
   "operation": "factor-atlas-terminal-preview-20261011-c1",
   "base_sha": "fc76cf495781e5f53254aa3c457411de0cb64654",
-  "protected_procedure_sha": "8d62a8571d2a6ad9da9d50e5e4624de6eecaac4c",
+  "protected_procedure_sha": "25c4b7923734392b1013afae179966985819d847",
   "source_binding": "file hashes; final commit binds this receipt without self-reference",
   "source_sha256": {
     "terminal/lib/factorAtlasHistory.ts": "6273f12623563a96c508b4242410e78857e0397b97d99b1a1770c7e773f2e354",
-    "terminal/components/factor-atlas/FactorHistoryPreview.tsx": "a3d808aed5818e9a4d69849c958637ed3bafbf2ae2e2af8aed2773c9dbe922f8",
+    "terminal/components/factor-atlas/FactorHistoryPreview.tsx": "0d50375b183efbc5f50d4c95e2786630b629917d0d4dd513fbbd41bd62e0bba2",
     "terminal/components/factor-atlas/FactorHistoryPreview.module.css": "6b4aa0dd484410d7c47fe1d965cff7f48a5367d831aa044db40e6442ec83040d",
     "terminal/lib/__tests__/factorAtlasHistory.test.ts": "d26edbef20d616ad7ecd004246d56c5538112cfb4708e46b37b01c3f6c6ad7da",
     "terminal/lib/__tests__/factorAtlasPreview.test.tsx": "73ffc23380ac67a2938aa056b372547b83fd26449c0842fbc9aa1678ba333f33",
@@ -16,8 +16,13 @@
     "docs/factor-atlas-preview/serve.mjs": "a0bdb9bf28e8d764e82d4e320449c80edce39468f89ff99476dffaebf7588c9d",
     "docs/factor-atlas-preview/prove.mjs": "4313dd848eb242b4dc71c588ae0a11ee2b03f37969c59f8e6f3bee41fdb707b4",
     "terminal/app/(shell)/admin/factor-atlas-preview/page.tsx": "f505113bb77630759f0c34d63806ccf47860935f69361b3fa5d2db450bfcbbc7",
-    "terminal/components/factor-atlas/FactorHistoryShellPreview.tsx": "fc0c2c3a686e56853ef8a28349e74f31ccd76dcd86db96f966bd93a24e11db67",
-    "docs/factor-atlas-preview/prove-shell.mjs": "70729f3850d2b7c36972a7648c6aa1db07e87e14ae022abf90295a062ea9b04e"
+    "terminal/components/factor-atlas/FactorHistoryShellPreview.tsx": "58599b679173398d6add2a9af07386cd989937245741b85caac61219dbda35ac",
+    "docs/factor-atlas-preview/prove-shell.mjs": "dcc01e0f18cbc5a7c7b6b9b42f6455ff6ba0dd82cec0761d2f7ebe57e3cddedc",
+    "terminal/lib/factorAtlasLocation.ts": "87a81bb50d274643c7701bec3d2ef4c61713b596920519604c5aca101999d658",
+    "terminal/lib/__tests__/factorAtlasLocation.test.ts": "4ae3a56fd12999d3e2171c70873eba0963879ea0471d8ee4abc8ec5d21f94648",
+    "terminal/lib/__tests__/factorAtlasLocationDOM.test.tsx": "3a7a8ec8b731fa10fe4a989f9cddef26ad5fa8e71535b527c5dc6e18acfdd3b6",
+    "docs/factor-atlas-preview/S5_TERMINAL_PRODUCT_CENSUS.md": "439766826d0d8bd68c2c1ea045d2db64e7b767ba10715df510deb9b8d4db09be",
+    "docs/factor-atlas-preview/README.md": "55f79c75bd4c5caf4affac8559885fa7c8a24609dfd81c7b4214618daa544611"
   },
   "source_native_fixture": {
     "repo": "mastermindx-market-intelligence/macro",
@@ -33,7 +38,7 @@
     "dom_initial_harness_error_skipped": 10,
     "dom_initial_error_is_not_red_proof": true,
     "dom_corrected_red_expected_failures": 10,
-    "combined_native_passed": 87,
+    "combined_native_passed": 109,
     "focused_eslint_errors": 0,
     "focused_eslint_warnings": 0,
     "application_typecheck_exit": 0,
@@ -48,7 +53,13 @@
     "catalog_visible_page_bound": 64,
     "r3_focused_lint_exit": 0,
     "r3_typescript_exit": 0,
-    "r3_plain_language_gate_exit": 0
+    "r3_plain_language_gate_exit": 0,
+    "test_files_passed": 4,
+    "url_codec_case_count": 15,
+    "url_dom_case_count": 7,
+    "ssr_initial_wrong_basket_red": 1,
+    "ssr_fail_closed_green": true,
+    "full_typescript_after_generated_dev_cleanup_exit": 0
   },
   "browser": {
     "contexts_passed": 24,
@@ -82,7 +93,7 @@
     "page_errors": 0,
     "external_requests": 0,
     "scope": "real native component bundled in loopback harness; shared theme variables supplied by harness, not full Next.js/auth route",
-    "receipt_sha256": "8cda7214fc26e3d70bc6313a2692e8da4727774807302d6ea08a95e24fb554ba"
+    "receipt_sha256": "a0b0d54506b9f8d9bb1dfaea72869a3fb803e11f358f919d31f1ac09738e7b49"
   },
   "logs": {
     "baseline.log": {
@@ -200,6 +211,66 @@
     "r3-plain.log": {
       "bytes": 1683,
       "sha256": "e51e81349279edd76463d3cc4b8116477177a43a6d41de6faab04b5507b03de7"
+    },
+    "location-red.log": {
+      "bytes": 1073,
+      "sha256": "1f34e0d10d86a9726557ed6926ecdcb77e9f17f5efbdd6856e3da562f95816d5",
+      "storage": "WORKSPACE_IGNORED_LOG"
+    },
+    "location-green.log": {
+      "bytes": 512,
+      "sha256": "c226d39139abe25a016230088a3e5fd8f2337df5b9c80bac70ce9013a607d9d9",
+      "storage": "WORKSPACE_IGNORED_LOG"
+    },
+    "location-dom-red.log": {
+      "bytes": 7725,
+      "sha256": "682ced435c6fcd79c3c731c548f87e2f6ae10aee5e84cbac8b6d965e7cdc4fb7",
+      "storage": "WORKSPACE_IGNORED_LOG"
+    },
+    "location-dom-green.log": {
+      "bytes": 714,
+      "sha256": "7e8e45c38e53c9a0f75eb83f854883bcfd9bd082016ded0287efe97a08a013be",
+      "storage": "WORKSPACE_IGNORED_LOG"
+    },
+    "location-ssr-red.log": {
+      "bytes": 6031,
+      "sha256": "4d46a42456f778d0c3c241b3f62bbcd46e9db20329e635e306575c248e4338db",
+      "storage": "WORKSPACE_IGNORED_LOG"
+    },
+    "location-ssr-green.log": {
+      "bytes": 713,
+      "sha256": "adb1913b34c85297cb57091f5eebd3efb9bdfa979ee6b043cb732d29a862f719",
+      "storage": "WORKSPACE_IGNORED_LOG"
+    },
+    "continuation-typecheck.log": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "storage": "WORKSPACE_IGNORED_LOG"
+    },
+    "url-r41-typecheck-final.log": {
+      "bytes": 0,
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "storage": "WORKSPACE_IGNORED_LOG"
+    },
+    "location-ssr-standalone-browser.log": {
+      "bytes": 117,
+      "sha256": "caf7a0f9a19e799fb3bf83e006713ed4105f486fe8e4b64d6b147c56983ee69b",
+      "storage": "WORKSPACE_IGNORED_LOG"
+    },
+    "url-r41-next-browser.log": {
+      "bytes": 97,
+      "sha256": "63ec875e74bdae4e83020105f50c69c0fd5155bad034e8f61ae6ad7c48c9b326",
+      "storage": "WORKSPACE_IGNORED_LOG"
+    },
+    "url-r41-next-build.log": {
+      "bytes": 4373,
+      "sha256": "274a737b25d45e8b9f4940b156d1241c3b51051f6d45c665748cac14552e2c28",
+      "storage": "WORKSPACE_IGNORED_LOG"
+    },
+    "url-r41-production-negative.log": {
+      "bytes": 118,
+      "sha256": "55ed6870c35fcb5c8c8cd2f50011c6d32e22514a34a6c2aa3539b7212a3d6f7e",
+      "storage": "WORKSPACE_IGNORED_LOG"
     }
   },
   "screenshots": {
@@ -210,8 +281,8 @@
     "screenshots/webkit-820-light-zh.png": "aed3aa261c3aaf3f36eabb25ee03d6083259023868dd800cdf584abe46dff0ee",
     "screenshots/chromium-1440-dark-en-catalog.png": "56aa6f1cfb14b998c16d701778dcedc18b1d58e2a29bacf55ce011d94f3839f7",
     "screenshots/next-shell/chromium-1440-dark-en.png": "5d51a8dff0ffcc61daad9ab0f9b47e9fa05de63c54c4a9f9f5fa206b520ff4eb",
-    "screenshots/next-shell/chromium-390-dark-en.png": "d2346c054121cefc7027b7d9154856e0454b63dcd3e965406c9852ad82c4d95a",
-    "screenshots/next-shell/chromium-390-light-zh.png": "6a7c075962d6633b21ef555578f7ebc0d0135ef1e6b85f7201b46bb285063eb2"
+    "screenshots/next-shell/chromium-390-dark-en.png": "14e4fa7bcb1271e125685b687c803e771256778cebd891a69834641f29e220d1",
+    "screenshots/next-shell/chromium-390-light-zh.png": "76d764a7e6c47e781127278897dbec4e40748821e3f6091d699be53d61f3e739"
   },
   "source_admission": false,
   "authenticated_production": false,
@@ -224,7 +295,9 @@
     "No Macro source/custody refusal replay; no change to S1/S2/S4/S6 sources or leases.",
     "Legacy typed Git status is bound to Mastermind-only source/remote. Read-only configuration evidence and separate Terminal mmx status establish a different resource target; no configuration changes or retry of that status.",
     "R3: actual Next route developer-admin-only; test auth fixture and Chromium/WebKit proof do not establish real authenticated production. The route returns notFound in non-development mode before querying rights or delivering any fixture.",
-    "R3: 160+ factor catalog works with 64-choice bounded rendering and eight simultaneous selections; every clone is synthetic, not a provider-sourced catalog or validated historical cohort."
+    "R3: 160+ factor catalog works with 64-choice bounded rendering and eight simultaneous selections; every clone is synthetic, not a provider-sourced catalog or validated historical cohort.",
+    "R4 proof: server-rendered URL-enabled preview returns a bilingual validation state until exact factor ID/date allowlist checks complete, avoiding wrong-default flash. The 109 tests include this source-visible RED/GREEN invariant.",
+    "One optional final local lint/plain-language diagnostic was blocked before dispatch; earlier pre-SSR-edit focused lint/plain-language passed and source modifications were only the bilingual LEX validation state and its hooks. Current-head hosted checks are required."
   ],
   "hosted_predecessor": {
     "head_sha": "233a529c75e4a0215a5efa4cec1be9d8bfd011c2",
@@ -258,7 +331,7 @@
     "real_next_route_red_404": true,
     "real_next_route_green_200": true,
     "browser_contexts_passed": 24,
-    "assertion_groups_passed": 240,
+    "assertion_groups_passed": 384,
     "engines": [
       "chromium",
       "webkit"
@@ -287,15 +360,48 @@
     ],
     "source_sha256": {
       "terminal/app/(shell)/admin/factor-atlas-preview/page.tsx": "f505113bb77630759f0c34d63806ccf47860935f69361b3fa5d2db450bfcbbc7",
-      "terminal/components/factor-atlas/FactorHistoryShellPreview.tsx": "fc0c2c3a686e56853ef8a28349e74f31ccd76dcd86db96f966bd93a24e11db67",
-      "terminal/components/factor-atlas/FactorHistoryPreview.tsx": "a3d808aed5818e9a4d69849c958637ed3bafbf2ae2e2af8aed2773c9dbe922f8",
+      "terminal/components/factor-atlas/FactorHistoryShellPreview.tsx": "58599b679173398d6add2a9af07386cd989937245741b85caac61219dbda35ac",
+      "terminal/components/factor-atlas/FactorHistoryPreview.tsx": "0d50375b183efbc5f50d4c95e2786630b629917d0d4dd513fbbd41bd62e0bba2",
       "terminal/components/factor-atlas/FactorHistoryPreview.module.css": "6b4aa0dd484410d7c47fe1d965cff7f48a5367d831aa044db40e6442ec83040d",
       "terminal/lib/factorAtlasHistory.ts": "6273f12623563a96c508b4242410e78857e0397b97d99b1a1770c7e773f2e354",
+      "terminal/lib/factorAtlasLocation.ts": "87a81bb50d274643c7701bec3d2ef4c61713b596920519604c5aca101999d658",
+      "docs/factor-atlas-preview/prove-shell.mjs": "dcc01e0f18cbc5a7c7b6b9b42f6455ff6ba0dd82cec0761d2f7ebe57e3cddedc",
       "terminal/lib/__tests__/fixtures/factorAtlasNativeSynthetic.json": "6860786ee663c394e0d33b18e241592879501a6bc5335a09faed6d66b0b42626"
     },
-    "receipt_sha256": "d7c90b55faaef0fa603108460b4322072943d466564feb5b984fc0cb0fa342d9",
-    "production_not_proven": true
+    "receipt_sha256": "53c0e780cb63696a66e6dfe9f25df9cefa38ad6cb7ac390ce160d15e47623dac",
+    "production_not_proven": true,
+    "shareable_url_state": {
+      "reload": true,
+      "back": true,
+      "forward": true,
+      "unknown_id": "REFUSED_NO_FALLBACK",
+      "direct_valid": "EXACT_WINDOW",
+      "ssr_hydration": "WITHHELD_UNTIL_VALIDATION"
+    }
   },
   "production_proven": false,
-  "real_house_data_qualified": false
+  "real_house_data_qualified": false,
+  "r4_source_parent_head": "e3446da05eae17d32c5a54cb589258927c595717",
+  "production_build_current_candidate": {
+    "exit_code": 0,
+    "log_sha256": "274a737b25d45e8b9f4940b156d1241c3b51051f6d45c665748cac14552e2c28",
+    "optimized_next": "16.2.9",
+    "authenticated_production": false
+  },
+  "production_route_negative_current_candidate": {
+    "anonymous_status": 404,
+    "spoofed_cookie_status": 404,
+    "direct_factor_link_status": 404,
+    "invalid_link_status": 404,
+    "fixture_bytes_leaked": false,
+    "host": "127.0.0.1",
+    "source": "PLACEHOLDER_SUPABASE_CONFIGURATION_LOCAL_ONLY",
+    "log_sha256": "55ed6870c35fcb5c8c8cd2f50011c6d32e22514a34a6c2aa3539b7212a3d6f7e"
+  },
+  "s5_principal_design": {
+    "path": "docs/factor-atlas-preview/S5_TERMINAL_PRODUCT_CENSUS.md",
+    "sha256": "439766826d0d8bd68c2c1ea045d2db64e7b767ba10715df510deb9b8d4db09be",
+    "is_original_specialist_receipt": false,
+    "adopted_product_ia": false
+  }
 }

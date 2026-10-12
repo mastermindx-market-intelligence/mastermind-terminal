@@ -2,13 +2,15 @@
   "schema": "factor_atlas.next_shell_dev_browser_proof.v1",
   "sourceHashes": {
     "terminal/app/(shell)/admin/factor-atlas-preview/page.tsx": "f505113bb77630759f0c34d63806ccf47860935f69361b3fa5d2db450bfcbbc7",
-    "terminal/components/factor-atlas/FactorHistoryShellPreview.tsx": "fc0c2c3a686e56853ef8a28349e74f31ccd76dcd86db96f966bd93a24e11db67",
-    "terminal/components/factor-atlas/FactorHistoryPreview.tsx": "a3d808aed5818e9a4d69849c958637ed3bafbf2ae2e2af8aed2773c9dbe922f8",
+    "terminal/components/factor-atlas/FactorHistoryShellPreview.tsx": "58599b679173398d6add2a9af07386cd989937245741b85caac61219dbda35ac",
+    "terminal/components/factor-atlas/FactorHistoryPreview.tsx": "0d50375b183efbc5f50d4c95e2786630b629917d0d4dd513fbbd41bd62e0bba2",
     "terminal/components/factor-atlas/FactorHistoryPreview.module.css": "6b4aa0dd484410d7c47fe1d965cff7f48a5367d831aa044db40e6442ec83040d",
     "terminal/lib/factorAtlasHistory.ts": "6273f12623563a96c508b4242410e78857e0397b97d99b1a1770c7e773f2e354",
+    "terminal/lib/factorAtlasLocation.ts": "87a81bb50d274643c7701bec3d2ef4c61713b596920519604c5aca101999d658",
+    "docs/factor-atlas-preview/prove-shell.mjs": "dcc01e0f18cbc5a7c7b6b9b42f6455ff6ba0dd82cec0761d2f7ebe57e3cddedc",
     "terminal/lib/__tests__/fixtures/factorAtlasNativeSynthetic.json": "6860786ee663c394e0d33b18e241592879501a6bc5335a09faed6d66b0b42626"
   },
-  "observedAt": "2026-10-11T10:47:19.373Z",
+  "observedAt": "2026-10-12T07:24:25.874Z",
   "scope": "REAL_NEXT_SHELL_DEVELOPMENT_ONLY_SYNTHETIC_FIXTURE",
   "productionAccess": false,
   "admittedSource": false,
@@ -57,8 +59,14 @@
         "search",
         "svg",
         "no_overflow",
+        "shareable_factor_url",
+        "real_browser_back",
+        "real_browser_forward",
+        "reload_exact_window",
         "source_holdings_preserved",
         "exact_anchor_no_fallback",
+        "unknown_id_refused_without_fallback",
+        "valid_exact_deeplink_restored",
         "zero_page_errors"
       ],
       "ok": true
@@ -80,8 +88,14 @@
         "search",
         "svg",
         "no_overflow",
+        "shareable_factor_url",
+        "real_browser_back",
+        "real_browser_forward",
+        "reload_exact_window",
         "source_holdings_preserved",
         "exact_anchor_no_fallback",
+        "unknown_id_refused_without_fallback",
+        "valid_exact_deeplink_restored",
         "zero_page_errors"
       ],
       "ok": true
@@ -103,8 +117,14 @@
         "search",
         "svg",
         "no_overflow",
+        "shareable_factor_url",
+        "real_browser_back",
+        "real_browser_forward",
+        "reload_exact_window",
         "source_holdings_preserved",
         "exact_anchor_no_fallback",
+        "unknown_id_refused_without_fallback",
+        "valid_exact_deeplink_restored",
         "zero_page_errors"
       ],
       "ok": true
@@ -126,8 +146,14 @@
         "search",
         "svg",
         "no_overflow",
+        "shareable_factor_url",
+        "real_browser_back",
+        "real_browser_forward",
+        "reload_exact_window",
         "source_holdings_preserved",
         "exact_anchor_no_fallback",
+        "unknown_id_refused_without_fallback",
+        "valid_exact_deeplink_restored",
         "zero_page_errors"
       ],
       "ok": true
@@ -149,8 +175,14 @@
         "search",
         "svg",
         "no_overflow",
+        "shareable_factor_url",
+        "real_browser_back",
+        "real_browser_forward",
+        "reload_exact_window",
         "source_holdings_preserved",
         "exact_anchor_no_fallback",
+        "unknown_id_refused_without_fallback",
+        "valid_exact_deeplink_restored",
         "zero_page_errors"
       ],
       "ok": true
@@ -172,8 +204,14 @@
         "search",
         "svg",
         "no_overflow",
+        "shareable_factor_url",
+        "real_browser_back",
+        "real_browser_forward",
+        "reload_exact_window",
         "source_holdings_preserved",
         "exact_anchor_no_fallback",
+        "unknown_id_refused_without_fallback",
+        "valid_exact_deeplink_restored",
         "zero_page_errors"
       ],
       "ok": true
@@ -195,8 +233,14 @@
         "search",
         "svg",
         "no_overflow",
+        "shareable_factor_url",
+        "real_browser_back",
+        "real_browser_forward",
+        "reload_exact_window",
         "source_holdings_preserved",
         "exact_anchor_no_fallback",
+        "unknown_id_refused_without_fallback",
+        "valid_exact_deeplink_restored",
         "zero_page_errors"
       ],
       "ok": true
@@ -218,8 +262,14 @@
         "search",
         "svg",
         "no_overflow",
+        "shareable_factor_url",
+        "real_browser_back",
+        "real_browser_forward",
+        "reload_exact_window",
         "source_holdings_preserved",
         "exact_anchor_no_fallback",
+        "unknown_id_refused_without_fallback",
+        "valid_exact_deeplink_restored",
         "zero_page_errors"
       ],
       "ok": true
@@ -241,8 +291,14 @@
         "search",
         "svg",
         "no_overflow",
+        "shareable_factor_url",
+        "real_browser_back",
+        "real_browser_forward",
+        "reload_exact_window",
         "source_holdings_preserved",
         "exact_anchor_no_fallback",
+        "unknown_id_refused_without_fallback",
+        "valid_exact_deeplink_restored",
         "zero_page_errors"
       ],
       "ok": true
@@ -264,8 +320,14 @@
         "search",
         "svg",
         "no_overflow",
+        "shareable_factor_url",
+        "real_browser_back",
+        "real_browser_forward",
+        "reload_exact_window",
         "source_holdings_preserved",
         "exact_anchor_no_fallback",
+        "unknown_id_refused_without_fallback",
+        "valid_exact_deeplink_restored",
         "zero_page_errors"
       ],
       "ok": true
@@ -287,8 +349,14 @@
         "search",
         "svg",
         "no_overflow",
+        "shareable_factor_url",
+        "real_browser_back",
+        "real_browser_forward",
+        "reload_exact_window",
         "source_holdings_preserved",
         "exact_anchor_no_fallback",
+        "unknown_id_refused_without_fallback",
+        "valid_exact_deeplink_restored",
         "zero_page_errors"
       ],
       "ok": true
@@ -310,8 +378,14 @@
         "search",
         "svg",
         "no_overflow",
+        "shareable_factor_url",
+        "real_browser_back",
+        "real_browser_forward",
+        "reload_exact_window",
         "source_holdings_preserved",
         "exact_anchor_no_fallback",
+        "unknown_id_refused_without_fallback",
+        "valid_exact_deeplink_restored",
         "zero_page_errors"
       ],
       "ok": true
@@ -333,8 +407,14 @@
         "search",
         "svg",
         "no_overflow",
+        "shareable_factor_url",
+        "real_browser_back",
+        "real_browser_forward",
+        "reload_exact_window",
         "source_holdings_preserved",
         "exact_anchor_no_fallback",
+        "unknown_id_refused_without_fallback",
+        "valid_exact_deeplink_restored",
         "zero_page_errors"
       ],
       "ok": true
@@ -356,8 +436,14 @@
         "search",
         "svg",
         "no_overflow",
+        "shareable_factor_url",
+        "real_browser_back",
+        "real_browser_forward",
+        "reload_exact_window",
         "source_holdings_preserved",
         "exact_anchor_no_fallback",
+        "unknown_id_refused_without_fallback",
+        "valid_exact_deeplink_restored",
         "zero_page_errors"
       ],
       "ok": true
@@ -379,8 +465,14 @@
         "search",
         "svg",
         "no_overflow",
+        "shareable_factor_url",
+        "real_browser_back",
+        "real_browser_forward",
+        "reload_exact_window",
         "source_holdings_preserved",
         "exact_anchor_no_fallback",
+        "unknown_id_refused_without_fallback",
+        "valid_exact_deeplink_restored",
         "zero_page_errors"
       ],
       "ok": true
@@ -402,8 +494,14 @@
         "search",
         "svg",
         "no_overflow",
+        "shareable_factor_url",
+        "real_browser_back",
+        "real_browser_forward",
+        "reload_exact_window",
         "source_holdings_preserved",
         "exact_anchor_no_fallback",
+        "unknown_id_refused_without_fallback",
+        "valid_exact_deeplink_restored",
         "zero_page_errors"
       ],
       "ok": true
@@ -425,8 +523,14 @@
         "search",
         "svg",
         "no_overflow",
+        "shareable_factor_url",
+        "real_browser_back",
+        "real_browser_forward",
+        "reload_exact_window",
         "source_holdings_preserved",
         "exact_anchor_no_fallback",
+        "unknown_id_refused_without_fallback",
+        "valid_exact_deeplink_restored",
         "zero_page_errors"
       ],
       "ok": true
@@ -448,8 +552,14 @@
         "search",
         "svg",
         "no_overflow",
+        "shareable_factor_url",
+        "real_browser_back",
+        "real_browser_forward",
+        "reload_exact_window",
         "source_holdings_preserved",
         "exact_anchor_no_fallback",
+        "unknown_id_refused_without_fallback",
+        "valid_exact_deeplink_restored",
         "zero_page_errors"
       ],
       "ok": true
@@ -471,8 +581,14 @@
         "search",
         "svg",
         "no_overflow",
+        "shareable_factor_url",
+        "real_browser_back",
+        "real_browser_forward",
+        "reload_exact_window",
         "source_holdings_preserved",
         "exact_anchor_no_fallback",
+        "unknown_id_refused_without_fallback",
+        "valid_exact_deeplink_restored",
         "zero_page_errors"
       ],
       "ok": true
@@ -494,8 +610,14 @@
         "search",
         "svg",
         "no_overflow",
+        "shareable_factor_url",
+        "real_browser_back",
+        "real_browser_forward",
+        "reload_exact_window",
         "source_holdings_preserved",
         "exact_anchor_no_fallback",
+        "unknown_id_refused_without_fallback",
+        "valid_exact_deeplink_restored",
         "zero_page_errors"
       ],
       "ok": true
@@ -517,8 +639,14 @@
         "search",
         "svg",
         "no_overflow",
+        "shareable_factor_url",
+        "real_browser_back",
+        "real_browser_forward",
+        "reload_exact_window",
         "source_holdings_preserved",
         "exact_anchor_no_fallback",
+        "unknown_id_refused_without_fallback",
+        "valid_exact_deeplink_restored",
         "zero_page_errors"
       ],
       "ok": true
@@ -540,8 +668,14 @@
         "search",
         "svg",
         "no_overflow",
+        "shareable_factor_url",
+        "real_browser_back",
+        "real_browser_forward",
+        "reload_exact_window",
         "source_holdings_preserved",
         "exact_anchor_no_fallback",
+        "unknown_id_refused_without_fallback",
+        "valid_exact_deeplink_restored",
         "zero_page_errors"
       ],
       "ok": true
@@ -563,8 +697,14 @@
         "search",
         "svg",
         "no_overflow",
+        "shareable_factor_url",
+        "real_browser_back",
+        "real_browser_forward",
+        "reload_exact_window",
         "source_holdings_preserved",
         "exact_anchor_no_fallback",
+        "unknown_id_refused_without_fallback",
+        "valid_exact_deeplink_restored",
         "zero_page_errors"
       ],
       "ok": true
@@ -586,8 +726,14 @@
         "search",
         "svg",
         "no_overflow",
+        "shareable_factor_url",
+        "real_browser_back",
+        "real_browser_forward",
+        "reload_exact_window",
         "source_holdings_preserved",
         "exact_anchor_no_fallback",
+        "unknown_id_refused_without_fallback",
+        "valid_exact_deeplink_restored",
         "zero_page_errors"
       ],
       "ok": true

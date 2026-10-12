@@ -25,6 +25,7 @@ export default function FactorHistoryShellPreview({ items }: { items: readonly F
     items={items}
     lang={lang}
     audience="synthetic-preview"
+    urlState
     initialWindow={{ anchorDate: "2026-01-28", endDate: "2026-01-30" }}
   />;
 }

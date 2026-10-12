@@ -21,6 +21,8 @@ const sourcePaths = [
  "terminal/components/factor-atlas/FactorHistoryPreview.tsx",
  "terminal/components/factor-atlas/FactorHistoryPreview.module.css",
  "terminal/lib/factorAtlasHistory.ts",
+ "terminal/lib/factorAtlasLocation.ts",
+ "docs/factor-atlas-preview/prove-shell.mjs",
  "terminal/lib/__tests__/fixtures/factorAtlasNativeSynthetic.json",
 ];
 const repo = resolve(terminal, "..");
@@ -74,9 +76,35 @@ try {
           const anchor=page.getByLabel(lang==="zh"?"参考日期":"Comparison anchor",{exact:true});
           await anchor.fill("2026-01-29");
           await expect(page.locator('[data-metric="window-return"]')).toHaveText("-25.0%");
+          const activeLink = new URL(page.url());
+          assert.deepEqual(activeLink.searchParams.getAll("faFactor"), ["mag7"], "factor ID in URL");
+          assert.equal(activeLink.searchParams.get("faStart"), "2026-01-29", "exact reference in URL");
+          await page.goBack();
+          await expect(anchor).toHaveValue("2026-01-28");
+          await expect(page.locator('[data-metric="window-return"]')).toHaveText("0.0%");
+          await page.goForward();
+          await expect(anchor).toHaveValue("2026-01-29");
+          await expect(page.locator('[data-metric="window-return"]')).toHaveText("-25.0%");
+          await page.reload({waitUntil:"networkidle"});
+          await expect(page.locator('[data-metric="window-return"]')).toHaveText("-25.0%");
+          r.checks.push("shareable_factor_url","real_browser_back","real_browser_forward","reload_exact_window");
           await anchor.fill("2026-01-27");
           await expect(page.locator("svg[role='img']")).toHaveCount(0);
           r.checks.push("source_holdings_preserved","exact_anchor_no_fallback");
+          const invalid = new URL("/admin/factor-atlas-preview",origin);
+          invalid.searchParams.set("faFactor","NOT_IN_CATALOG");
+          invalid.searchParams.set("faStart","2026-01-28");
+          invalid.searchParams.set("faEnd","2026-01-30");
+          await page.goto(invalid.href,{waitUntil:"networkidle"});
+          await expect(page.getByText(lang==="zh"?"无效的因子链接":"Invalid factor link",{exact:true})).toBeVisible();
+          await expect(page.locator('[data-metric="window-return"]')).toHaveCount(0);
+          const valid = new URL("/admin/factor-atlas-preview",origin);
+          valid.searchParams.set("faFactor","mag7");
+          valid.searchParams.set("faStart","2026-01-29");
+          valid.searchParams.set("faEnd","2026-01-30");
+          await page.goto(valid.href,{waitUntil:"networkidle"});
+          await expect(page.locator('[data-metric="window-return"]')).toHaveText("-25.0%");
+          r.checks.push("unknown_id_refused_without_fallback","valid_exact_deeplink_restored");
           assert.deepEqual(errors,[],"page runtime errors");r.checks.push("zero_page_errors");r.ok=true;
         }catch(e){r.error=String(e);r.pageErrors=errors;throw e;}
         finally {proof.results.push(r);await ctx.close();}
