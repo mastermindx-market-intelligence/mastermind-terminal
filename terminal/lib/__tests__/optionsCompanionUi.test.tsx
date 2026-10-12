@@ -4,6 +4,7 @@ import { createRoot, type Root } from "react-dom/client";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { useOptionsSnapshot } from "@/components/options-companion/useOptionsSnapshot";
 import OptionsCompanion from "@/components/options-companion/OptionsCompanion";
+import { VannaCompanion } from "@/components/options-companion/VannaCompanion";
 import { MatrixCompanion, type MatrixPreferences } from "@/components/options-companion/MatrixCompanion";
 import { optionsT } from "@/components/options-companion/optionsStrings";
 import { StrikeExpiryMatrix, buildMatrixGrid } from "@/components/shared/StrikeExpiryMatrix";
@@ -188,6 +189,54 @@ describe("companion fetch failure states", () => {
     expect(element.querySelector("[data-options-companion]")).toBeTruthy();
     expect(element.querySelector('button[aria-label^="194, 2026-10-02:"]')).toBeTruthy();
     expect(element.querySelector("[data-options-session]")?.getAttribute("data-options-session")).toBe("2026-09-25");
+  });
+});
+
+describe("vanna visible total", () => {
+  const pin = { pinned: null, onPin: () => {}, replayActive: false };
+  const PARTIAL = "Some visible cells are missing; the total includes published values only.";
+  function vannaDoc(strikes: { strike: number; vanna_net: number | null }[]) {
+    return {
+      root: "NVDA", schema: "options_hub.gex/v1", asof: "2026-09-25T20:21:00Z", spot_ref: 193,
+      by_strike: strikes,
+    };
+  }
+  async function renderVanna(strikes: { strike: number; vanna_net: number | null }[]) {
+    fetchSnapshot.mockResolvedValue(asData(vannaDoc(strikes)));
+    await act(async () => root.render(<VannaCompanion root="NVDA" t={optionsT("en")} windowPct={25} {...pin} />));
+    await act(async () => { await Promise.resolve(); await Promise.resolve(); });
+  }
+  function headline() {
+    const label = [...element.querySelectorAll("span")].find((node) => node.textContent === "Visible net VEX");
+    const row = label?.parentElement ?? null;
+    return { summary: row?.parentElement ?? null, total: row?.querySelector("strong") ?? null };
+  }
+
+  it("partial Vanna profile shows no numeric headline total", async () => {
+    await renderVanna([
+      { strike: 190, vanna_net: 1.5 },
+      { strike: 195, vanna_net: null },
+      { strike: 200, vanna_net: -2.25 },
+    ]);
+    const profile = element.querySelector('[aria-label="NVDA Vanna"]')!;
+    expect([...profile.querySelectorAll("button")].map((node) => node.querySelector("b")?.textContent)).toEqual(["−2.25M", "—", "+1.5M"]);
+    const { summary, total } = headline();
+    expect(total?.textContent ?? "").not.toMatch(/[0-9]|[MB]/);
+    expect(summary?.textContent ?? "").toContain(PARTIAL);
+    expect(summary?.querySelector("details")).toBeNull();
+    expect(element.querySelector("details")?.textContent).toContain(PARTIAL);
+  });
+
+  it("complete Vanna profile shows the summed total", async () => {
+    await renderVanna([
+      { strike: 190, vanna_net: 1 },
+      { strike: 195, vanna_net: 2 },
+      { strike: 200, vanna_net: 3 },
+    ]);
+    const { summary, total } = headline();
+    expect(total?.textContent).toBe("+6M");
+    expect(summary?.textContent ?? "").not.toContain(PARTIAL);
+    expect(element.querySelector("details")?.textContent ?? "").not.toContain(PARTIAL);
   });
 });
 
