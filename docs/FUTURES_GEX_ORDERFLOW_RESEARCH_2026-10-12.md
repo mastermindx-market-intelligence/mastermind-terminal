@@ -165,6 +165,29 @@ was dispatched and no review is claimed. That affected action stays held. It doe
 block the independently authorized data/sample and consumer work. No unknown modifying
 effects exist; current work remains on the original RDC M2 worktree and PR #964.
 
+## Resume continuation: real historical source canary
+
+The public sample was acquired as a bounded local five-minute prefix, not a paid
+feed or a full-day download. ESZ5 / 2025-09-22: 18,418 MBO records, an 8,831-order
+starting snapshot, and 4,980 matching MBP-1 records. The final comparison achieved
+4,471/4,471 bid/ask price, size and order-count matches at completed packet/time
+groups, zero unmatched groups and zero source adapter errors. All 377 Trade
+records / 839 contracts conserved through the actual footprint reducer.
+
+Initial join errors were due to nonunique packet sequences and partially-started
+next events, not a changed book algorithm. Both the failed initial report and the
+corrected exact-boundary comparison remain in
+`docs/evidence/futures-real-sample-20261012/`, with 515 Hub and 24 Python tests.
+Real market rows and detailed price images remain local under ignored
+`.local-futures/`; only aggregate results/hashes/source URLs enter GitHub.
+
+This is now real historical BBO conformance, but not a full-book oracle, full
+session, NQ source canary, production definition/receipt binding, live license or
+subscriber display permission. The sample contains no paired historical SPX GEX.
+Next useful phase is an honest actual-data development consumer using the same
+renderer, showing GEX unavailable rather than mixing synthetic exposure with real
+prices. Original PR #964 remains draft/unmerged; no review/production claim.
+
 ## Source register
 
 All public sources below were inspected through official pages in this research pass. Publisher claims remain claims; no authenticated QuantData runtime teardown or vendor negotiation was performed.
