@@ -63,6 +63,15 @@ export function drawingSaveIssueOffersReplace(issue: string): boolean {
   return !["retry", "storage", "owner_conflict", "save_rejected"].includes(issue);
 }
 
+/** Map a load-reconciliation park reason onto the recovery issue the toast shows. */
+export function drawingSaveIssueFromLoadPark(
+  reason: "preload" | "overlap" | "conflict",
+  blocked?: string,
+): string {
+  if (reason === "preload") return "preload";
+  return blocked ?? "conflict";
+}
+
 export function drawingSaveIssueFromEntry(entry: {
   blocked?: string;
   conflictCode?: string;

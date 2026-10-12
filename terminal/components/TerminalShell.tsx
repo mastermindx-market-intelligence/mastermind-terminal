@@ -142,7 +142,7 @@ import {
 } from "@/lib/drawings";
 import { reconcileDrawingJournal, writeDrawingJournal, refreshDrawingJournalSymbol, selectDrawingRecoveryCopy } from "@/lib/drawingOutbox";
 import { DRAWING_OWNER_HEADER, parseDrawingSnapshot, parseDrawingSaveReceipt, prepareDrawingAttempt, settleDrawingAttempt, beginDrawingLoad, abandonDrawingLoad, abandonAllDrawingLoads, isCurrentDrawingLoad, shouldRescheduleDrawingFlush, decideDrawingLoadReconciliation, unionCloudWithPreloadAdditions, type DrawingJournal, type DrawingSnapshot, type DrawingRevision } from "@/lib/drawingPersistence";
-import { applyDrawingSaveConflict, drawingSaveIssueFromEntry, drawingSaveIssueOffersReplace, drawingSaveRecoveryMessage } from "@/lib/drawingSaveConflict";
+import { applyDrawingSaveConflict, drawingSaveIssueFromEntry, drawingSaveIssueFromLoadPark, drawingSaveIssueOffersReplace, drawingSaveRecoveryMessage } from "@/lib/drawingSaveConflict";
 import { FREEHAND_DRAWING_KINDS, getDrawingTool, isDrawingToolId } from "@/lib/drawingTools";
 import { SHELL_DRAW_TOOLS } from "@/lib/drawingTaxonomy";
 import { type ShellPanelId } from "@/lib/platform/contract";
@@ -2616,7 +2616,9 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
             setDrawingCloudCopies((copies) => ({ ...copies, [sym]: snapshot }));
             setDrawingSaveIssues((issues) => ({
               ...issues,
-              [sym]: decision.action === "park" && decision.reason !== "conflict" ? "preload" : (parkEntry?.blocked ?? "conflict"),
+              [sym]: decision.action === "park"
+                ? drawingSaveIssueFromLoadPark(decision.reason, parkEntry?.blocked)
+                : (parkEntry?.blocked ?? "conflict"),
             }));
             void persistDrawingRecovery(ownerKey, recovery);
           }

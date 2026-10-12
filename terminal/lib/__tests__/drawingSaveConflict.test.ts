@@ -5,6 +5,7 @@ import {
   drawingSaveConflictCopy,
   drawingSaveIssueFromConflict,
   drawingSaveIssueFromEntry,
+  drawingSaveIssueFromLoadPark,
   drawingSaveIssueOffersReplace,
   drawingSaveRecoveryMessage,
 } from "@/lib/drawingSaveConflict";
@@ -71,6 +72,27 @@ describe("drawing save conflict copy", () => {
     expect(drawingSaveConflictCopy("preload", "en")).toMatch(/before your saved drawings finished loading/i);
     expect(drawingSaveConflictCopy("preload", "zh")).toMatch(/载入完成前/);
     expect(drawingSaveIssueOffersReplace("preload")).toBe(true);
+  });
+  it("maps each load-park reason to the matching issue and recovery sentence", () => {
+    const t = (key: string) => key === "drawingSaveConflict"
+      ? "The cloud copy changed, or local recovery needs review. Your local drawings are kept. Choose which copy to use."
+      : key;
+    expect(drawingSaveIssueFromLoadPark("preload")).toBe("preload");
+    expect(drawingSaveRecoveryMessage(drawingSaveIssueFromLoadPark("preload"), "en", t)).toBe(drawingSaveConflictCopy("preload", "en"));
+    expect(drawingSaveRecoveryMessage(drawingSaveIssueFromLoadPark("preload"), "zh", t)).toBe(drawingSaveConflictCopy("preload", "zh"));
+
+    expect(drawingSaveIssueFromLoadPark("overlap")).toBe("conflict");
+    expect(drawingSaveIssueFromLoadPark("overlap", "conflict")).toBe("conflict");
+    const overlapEn = drawingSaveRecoveryMessage(drawingSaveIssueFromLoadPark("overlap"), "en", t);
+    const overlapZh = drawingSaveRecoveryMessage(drawingSaveIssueFromLoadPark("overlap"), "zh", t);
+    expect(overlapEn).toBe(t("drawingSaveConflict"));
+    expect(overlapZh).toBe(t("drawingSaveConflict"));
+    expect(overlapEn).not.toMatch(/before your saved drawings finished loading/i);
+    expect(drawingSaveIssueOffersReplace(drawingSaveIssueFromLoadPark("overlap"))).toBe(true);
+
+    expect(drawingSaveIssueFromLoadPark("conflict")).toBe("conflict");
+    expect(drawingSaveIssueFromLoadPark("conflict", "legacy")).toBe("legacy");
+    expect(drawingSaveRecoveryMessage(drawingSaveIssueFromLoadPark("conflict"), "en", t)).toBe(t("drawingSaveConflict"));
   });
   it("parks the local journal copy and records the 409 code", () => {
     const owner: DrawingJournalEntry = { drawings: [] };
