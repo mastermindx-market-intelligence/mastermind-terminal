@@ -1,0 +1,45 @@
+# Evidence packet for the chart-hosted research pane close at <=860px (E20, refs #916).
+# Deliberately ungated: no lib/__tests__ lock reads this file, so it records what was
+# captured at capturedAtHead without failing later PRs that touch the same layout files.
+# Recapture: cd terminal && TERMINAL_CROPS=1 CI=1 npx playwright test
+#   e2e/chart-pane-mobile-close.spec.ts --project=mobile --project=tablet --project=desktop
+#   --workers=1 --retries=0
+capturedAtHead: 088400e9556a5b3e8bd3133dfaf1ea9a71e3f7c8
+theme: dark
+spec: terminal/e2e/chart-pane-mobile-close.spec.ts
+layoutFiles:
+  - path: terminal/components/fin/MegaPane.tsx
+    sha256: d1468dbc8966b0b58e1bf60a9f077ed7cb15955fed3faee9700cfebcb8183424
+  - path: terminal/components/TerminalShell.tsx
+    sha256: 8fc6cce54907744631879569d90cc4a38c62bc7066dcd95b7d4631b8a0c77785
+crops:
+  - file: mobile-en-dark.png
+    viewport: 390x844
+    lang: en
+    state: chart-pane-overlay-open
+    sha256: 05c222fb48a90e708f1a85a934e4159817ea1731f91ba8e8501fd0691d6f8633
+  - file: mobile-zh-dark.png
+    viewport: 390x844
+    lang: zh
+    state: chart-pane-overlay-open
+    sha256: 6a8cd6ab2eca4daf0902dd0be4b797ed3d158b4727811969b5eec2f00f68fa87
+  - file: tablet-en-dark.png
+    viewport: 820x1180
+    lang: en
+    state: chart-pane-overlay-open
+    sha256: d49d768e667427a8b8f78c3f7fe6e028bf4164a04c6967ce87986c7110f8501e
+  - file: tablet-zh-dark.png
+    viewport: 820x1180
+    lang: zh
+    state: chart-pane-overlay-open
+    sha256: 3c719ddc28a9a7a13996076084930d9fcb8eb468a9a55a3c20b9c6682e2dc44b
+  - file: analysis-mobile-en-dark.png
+    viewport: 390x844
+    lang: en
+    state: analysis-route-embedded
+    sha256: 3a8303deb157100c617ba94cea7b17afbf4db14d2eefdc9bbfd67ad08f07e23b
+  - file: desktop-en-dark.png
+    viewport: 1440x900
+    lang: en
+    state: chart-pane-in-slot
+    sha256: 88c2cc9495b46995efd13c154c0739c3b9cbe4da133d11c1e081ffa3c9e65dbb
