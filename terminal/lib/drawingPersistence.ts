@@ -20,6 +20,8 @@ export type DrawingJournalEntry = {
   blocked?: "legacy" | "conflict" | "superseded" | "invalid";
   conflictCode?: "revision_conflict" | "owner_conflict" | "operation_payload_mismatch" | "unknown";
   operationUnknownPossible?: true;
+  // In-pane edit made before the drawings GET observed a revision. Not a leftover copy.
+  preload?: true;
 };
 export type DrawingJournal = Record<string, DrawingJournalEntry>;
 export type DrawingSaveReceipt = {
@@ -78,7 +80,7 @@ export function prepareDrawingAttempt(entry: DrawingJournalEntry, operationId: (
   if (entry.blocked || entry.alternatives?.length) return null;
   if (entry.attempt) return entry.attempt;
   if (!Object.hasOwn(entry, "revision") || !validDrawingRevision(entry.revision)) {
-    entry.blocked = "legacy";
+    if (!entry.preload) entry.blocked = "legacy";
     return null;
   }
   entry.attempt = {
@@ -145,4 +147,55 @@ export function shouldRescheduleDrawingFlush(input: {
 }): boolean {
   if (input.timerArmed) return false;
   return input.saveSettledOk && input.hasPending;
+}
+
+export type DrawingLoadReconciliation = {
+  cloudIds: readonly string[];
+  cloudRevision: DrawingRevision;
+  hasPending: boolean;
+  pendingIds: readonly string[];
+  pendingRevisionPresent: boolean;
+  pendingRevision?: DrawingRevision;
+  pendingBlocked?: DrawingJournalEntry["blocked"];
+  pendingHasAlternatives?: boolean;
+  pendingPreload?: boolean;
+};
+
+export type DrawingLoadParkReason = "preload" | "overlap" | "conflict" | "too_many";
+export type DrawingLoadDecision =
+  | { action: "stamp" }
+  | { action: "keep" }
+  | { action: "merge" }
+  | { action: "park"; reason: DrawingLoadParkReason };
+export type DrawingPreloadUnion =
+  | { ok: true; drawings: Drawing[] }
+  | { ok: false; reason: "overlap" | "too_many" };
+
+/** Decide how a settled drawings GET should combine with in-pane pending work. */
+export function decideDrawingLoadReconciliation(input: DrawingLoadReconciliation): DrawingLoadDecision {
+  if (input.pendingBlocked || input.pendingHasAlternatives) return { action: "park", reason: "conflict" };
+  if (!input.hasPending) return { action: "stamp" };
+  if (input.pendingRevisionPresent) {
+    return input.pendingRevision === input.cloudRevision
+      ? { action: "keep" }
+      : { action: "park", reason: "conflict" };
+  }
+  if (input.pendingIds.length === 0) return { action: "stamp" };
+  if (!input.pendingPreload) return { action: "park", reason: "conflict" };
+  const cloud = new Set(input.cloudIds);
+  if (input.pendingIds.some((id) => cloud.has(id))) return { action: "park", reason: "overlap" };
+  if (input.cloudIds.length + input.pendingIds.length > MAX_DRAWINGS_PER_SYMBOL) {
+    return { action: "park", reason: "too_many" };
+  }
+  return { action: "merge" };
+}
+
+/** Cloud drawings plus disjoint pre-load additions. Overlap or a cap overflow cannot merge. */
+export function unionCloudWithPreloadAdditions(cloud: Drawing[], pending: Drawing[]): DrawingPreloadUnion {
+  const ids = new Set(cloud.map((drawing) => drawing.id));
+  for (const drawing of pending) {
+    if (ids.has(drawing.id)) return { ok: false, reason: "overlap" };
+  }
+  if (cloud.length + pending.length > MAX_DRAWINGS_PER_SYMBOL) return { ok: false, reason: "too_many" };
+  return { ok: true, drawings: [...cloud, ...pending] };
 }

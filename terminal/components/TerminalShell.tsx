@@ -141,8 +141,8 @@ import {
   uid,
 } from "@/lib/drawings";
 import { reconcileDrawingJournal, writeDrawingJournal, refreshDrawingJournalSymbol, selectDrawingRecoveryCopy } from "@/lib/drawingOutbox";
-import { DRAWING_OWNER_HEADER, parseDrawingSnapshot, parseDrawingSaveReceipt, prepareDrawingAttempt, settleDrawingAttempt, beginDrawingLoad, abandonDrawingLoad, abandonAllDrawingLoads, isCurrentDrawingLoad, shouldRescheduleDrawingFlush, shouldApplyDrawingCloudCopy, type DrawingJournal, type DrawingSnapshot, type DrawingRevision } from "@/lib/drawingPersistence";
-import { applyDrawingSaveConflict, drawingSaveIssueFromEntry, drawingSaveIssueOffersReplace, drawingSaveRecoveryMessage } from "@/lib/drawingSaveConflict";
+import { DRAWING_OWNER_HEADER, parseDrawingSnapshot, parseDrawingSaveReceipt, prepareDrawingAttempt, settleDrawingAttempt, beginDrawingLoad, abandonDrawingLoad, abandonAllDrawingLoads, isCurrentDrawingLoad, shouldRescheduleDrawingFlush, shouldApplyDrawingCloudCopy, decideDrawingLoadReconciliation, unionCloudWithPreloadAdditions, type DrawingJournal, type DrawingSnapshot, type DrawingRevision } from "@/lib/drawingPersistence";
+import { applyDrawingSaveConflict, drawingSaveIssueFromEntry, drawingSaveIssueFromLoadPark, drawingSaveIssueOffersReplace, drawingSaveRecoveryMessage } from "@/lib/drawingSaveConflict";
 import { FREEHAND_DRAWING_KINDS, getDrawingTool, isDrawingToolId } from "@/lib/drawingTools";
 import { SHELL_DRAW_TOOLS } from "@/lib/drawingTaxonomy";
 import { type ShellPanelId } from "@/lib/platform/contract";
@@ -1746,7 +1746,12 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
     const ownerEpoch = drawOwnerEpoch.current;
     const ownerKey = drawOwner.current;
     const recovery = drawRecovery.current[ownerKey] ?? (drawRecovery.current[ownerKey] = {});
-    const entry = recovery[sym] ?? (recovery[sym] = { drawings, ...(Object.hasOwn(drawRevisions.current, sym) ? { revision: drawRevisions.current[sym] } : {}) });
+    const entry = recovery[sym] ?? (recovery[sym] = { drawings, ...(Object.hasOwn(drawRevisions.current, sym) ? { revision: drawRevisions.current[sym] } : { preload: true as const }) });
+    if (!Object.hasOwn(entry, "revision") && !Object.hasOwn(drawRevisions.current, sym)) {
+      entry.preload = true;
+      void persistDrawingRecovery(ownerKey, recovery);
+      return;
+    }
     const attempt = prepareDrawingAttempt(entry, () => crypto.randomUUID());
     if (!attempt) {
       void persistDrawingRecovery(ownerKey, recovery);
@@ -1856,8 +1861,14 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
       const ownerKey = drawOwner.current;
       const recovery = drawRecovery.current[ownerKey] ?? (drawRecovery.current[ownerKey] = {});
       const entry = recovery[sym];
-      if (entry) entry.drawings = normalized;
-      else recovery[sym] = { drawings: normalized, ...(Object.hasOwn(drawRevisions.current, sym) ? { revision: drawRevisions.current[sym] } : {}) };
+      if (entry) {
+        entry.drawings = normalized;
+        if (!Object.hasOwn(entry, "revision") && !Object.hasOwn(drawRevisions.current, sym)) entry.preload = true;
+      } else {
+        recovery[sym] = Object.hasOwn(drawRevisions.current, sym)
+          ? { drawings: normalized, revision: drawRevisions.current[sym] }
+          : { drawings: normalized, preload: true };
+      }
       void persistDrawingRecovery(ownerKey, recovery);
     }
     clearTimeout(drawTimers.current[sym]);
@@ -2547,6 +2558,9 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
       if (drawLoaded.current.has(sym)) continue;
       drawLoaded.current.add(sym);
       if (drawingAccount) {
+        if (drawPending.current[sym] === undefined) {
+          setDrawStore((s) => (s[sym] !== undefined ? s : { ...s, [sym]: [] }));
+        }
         const ownerEpoch = drawOwnerEpoch.current;
         const generation = beginDrawingLoad(drawLoadGeneration.current, sym);
         fetch(`/api/drawings?symbol=${encodeURIComponent(sym)}`, { headers: { [DRAWING_OWNER_HEADER]: drawOwner.current } }).then((r) => {
@@ -2558,10 +2572,69 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
           if (!prevPaneSyms.current.has(sym)) return;
           const snapshot = parseDrawingSnapshot(d);
           if (!snapshot) throw new Error("Drawing snapshot is unavailable");
-          if (drawPending.current[sym] === undefined) {
+          const pending = drawPending.current[sym];
+          const ownerKey = drawOwner.current;
+          const recovery = drawRecovery.current[ownerKey] ?? (drawRecovery.current[ownerKey] = {});
+          const entry = recovery[sym];
+          let decision = decideDrawingLoadReconciliation({
+            cloudIds: snapshot.drawings.map((drawing) => drawing.id),
+            cloudRevision: snapshot.revision,
+            hasPending: pending !== undefined,
+            pendingIds: (pending ?? []).map((drawing) => drawing.id),
+            pendingRevisionPresent: Boolean(entry && Object.hasOwn(entry, "revision")),
+            pendingRevision: entry?.revision,
+            pendingBlocked: entry?.blocked,
+            pendingHasAlternatives: Boolean(entry?.alternatives?.length),
+            pendingPreload: entry?.preload === true,
+          });
+          let merged: Drawing[] | null = null;
+          if (decision.action === "merge") {
+            const union = unionCloudWithPreloadAdditions(snapshot.drawings, pending ?? []);
+            if (union.ok) merged = union.drawings;
+            else decision = { action: "park", reason: union.reason };
+          }
+          if (decision.action === "stamp") {
             drawRevisions.current[sym] = snapshot.revision;
-            setDrawStore((s) => (s[sym] !== undefined ? s : { ...s, [sym]: normalizeDrawings(snapshot.drawings) }));
-          } else setDrawingCloudCopies((copies) => ({ ...copies, [sym]: snapshot }));
+            setDrawStore((s) => ({ ...s, [sym]: normalizeDrawings(snapshot.drawings) }));
+            if (pending !== undefined && pending.length === 0) {
+              delete drawPending.current[sym];
+              delete recovery[sym];
+              clearTimeout(drawTimers.current[sym]);
+              delete drawTimers.current[sym];
+              void persistDrawingRecovery(ownerKey, recovery);
+            }
+          } else if (decision.action === "keep") {
+            drawRevisions.current[sym] = snapshot.revision;
+          } else if (decision.action === "merge" && merged) {
+            const mergedDrawings = merged;
+            drawRevisions.current[sym] = snapshot.revision;
+            drawPending.current[sym] = mergedDrawings;
+            if (entry) {
+              entry.drawings = mergedDrawings;
+              entry.revision = snapshot.revision;
+              delete entry.blocked;
+              delete entry.preload;
+            } else {
+              recovery[sym] = { drawings: mergedDrawings, revision: snapshot.revision };
+            }
+            setDrawStore((s) => ({ ...s, [sym]: normalizeDrawings(mergedDrawings) }));
+            void persistDrawingRecovery(ownerKey, recovery);
+            clearTimeout(drawTimers.current[sym]);
+            drawTimers.current[sym] = setTimeout(() => flushDrawings(sym), 0);
+          } else {
+            const parkEntry = entry ?? (pending ? (recovery[sym] = { drawings: pending }) : undefined);
+            if (parkEntry && !(decision.action === "park" && decision.reason === "too_many")) {
+              parkEntry.blocked ??= "conflict";
+            }
+            setDrawingCloudCopies((copies) => ({ ...copies, [sym]: snapshot }));
+            setDrawingSaveIssues((issues) => ({
+              ...issues,
+              [sym]: decision.action === "park"
+                ? drawingSaveIssueFromLoadPark(decision.reason, parkEntry?.blocked)
+                : (parkEntry?.blocked ?? "conflict"),
+            }));
+            void persistDrawingRecovery(ownerKey, recovery);
+          }
           clearTimeout(drawLoadRetryTimers.current[sym]);
           delete drawLoadRetryTimers.current[sym];
           delete drawLoadRetryAttempts.current[sym];
@@ -2573,6 +2646,14 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
           if (!isCurrentDrawingLoad(drawLoadGeneration.current, sym, generation)) return;
           if (drawOwnerEpoch.current !== ownerEpoch || !prevPaneSyms.current.has(sym)) return;
           drawLoaded.current.delete(sym);
+          if (drawPending.current[sym] === undefined) {
+            setDrawStore((s) => {
+              if (s[sym] === undefined) return s;
+              const next = { ...s };
+              delete next[sym];
+              return next;
+            });
+          }
           setDrawingLoadFailures((failed) => failed.has(sym) ? failed : new Set(failed).add(sym));
           const attempt = (drawLoadRetryAttempts.current[sym] ?? 0) + 1;
           drawLoadRetryAttempts.current[sym] = attempt;
@@ -2596,7 +2677,10 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
       flushDrawings(sym);
       clearTimeout(drawLoadRetryTimers.current[sym]);
       delete drawLoadRetryTimers.current[sym];
-      if (drawSaving.current[sym] || drawPending.current[sym] !== undefined) continue;
+      if (drawSaving.current[sym] || drawPending.current[sym] !== undefined) {
+        if (!Object.hasOwn(drawRevisions.current, sym)) drawLoaded.current.delete(sym);
+        continue;
+      }
       drawLoaded.current.delete(sym);
       delete drawLoadRetryAttempts.current[sym];
       delete drawRevisions.current[sym];
@@ -2608,11 +2692,18 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
       setDrawStore((s) => { if (s[sym] === undefined) return s; const n = { ...s }; delete n[sym]; return n; });
     }
     prevPaneSyms.current = now;
-  }, [panes, flushDrawings, drawingAccount, drawingLoadRetryVersion, currentDrawingOwnerKey]);
-  useEffect(() => () => {
-    for (const timer of Object.values(drawLoadRetryTimers.current)) clearTimeout(timer);
-    for (const sym of Object.keys(drawPending.current)) flushDrawingsRef.current(sym);
-    if (drawingLimitTimer.current !== null) clearTimeout(drawingLimitTimer.current);
+  }, [panes, flushDrawings, drawingAccount, drawingLoadRetryVersion, currentDrawingOwnerKey, persistDrawingRecovery]);
+  useEffect(() => {
+    const persistPendingDrawings = () => {
+      for (const timer of Object.values(drawLoadRetryTimers.current)) clearTimeout(timer);
+      for (const sym of Object.keys(drawPending.current)) flushDrawingsRef.current(sym);
+      if (drawingLimitTimer.current !== null) clearTimeout(drawingLimitTimer.current);
+    };
+    window.addEventListener("pagehide", persistPendingDrawings);
+    return () => {
+      window.removeEventListener("pagehide", persistPendingDrawings);
+      persistPendingDrawings();
+    };
   }, []);
 
   const resolveDrawingRecovery = useCallback(async (sym: string, choice: "cloud" | "local") => {

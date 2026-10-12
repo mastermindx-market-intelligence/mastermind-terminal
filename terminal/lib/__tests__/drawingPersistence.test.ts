@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { parseDrawingSaveReceipt, parseDrawingSnapshot, parsePersistedDrawings, prepareDrawingAttempt, settleDrawingAttempt, beginDrawingLoad, abandonDrawingLoad, abandonAllDrawingLoads, isCurrentDrawingLoad, shouldRescheduleDrawingFlush, shouldApplyDrawingCloudCopy, type DrawingJournalEntry, type DrawingLoadGenerations } from "@/lib/drawingPersistence";
+import { parseDrawingSaveReceipt, parseDrawingSnapshot, parsePersistedDrawings, prepareDrawingAttempt, settleDrawingAttempt, beginDrawingLoad, abandonDrawingLoad, abandonAllDrawingLoads, isCurrentDrawingLoad, shouldRescheduleDrawingFlush, shouldApplyDrawingCloudCopy, decideDrawingLoadReconciliation, unionCloudWithPreloadAdditions, type DrawingJournalEntry, type DrawingLoadGenerations } from "@/lib/drawingPersistence";
+import { MAX_DRAWINGS_PER_SYMBOL } from "@/lib/drawings";
 import { readDrawingJournal, writeDrawingJournal, writeDrawingOutbox, refreshDrawingJournalSymbol, reconcileDrawingJournal, selectDrawingRecoveryCopy, DRAWING_JOURNAL_KEY, DRAWING_RECEIPTS_KEY, DRAWING_RECEIPTS_UNREADABLE_KEY, DRAWING_RECEIPT_HISTORY, DRAWING_RECEIPT_OWNERS, type DrawingJournalLocks } from "@/lib/drawingOutbox";
 let lockTail=Promise.resolve();
 const locks={request:(_name:string, fn:()=>unknown)=>{const task=lockTail.then(fn);lockTail=task.then(()=>{},()=>{});return task;}} as DrawingJournalLocks;
@@ -842,4 +843,126 @@ describe("legacy email-keyed journal claimed by at most one auth UUID",()=>{
   expect(tabB.NVDA).toBeUndefined();
   expect(storage.getItem("mm.drawing.account-outbox.v1")).toBe(v1);
  });
+});
+
+describe("drawing load vs pre-GET local edits", () => {
+  const cloudRevision = revision;
+  const base = {
+    cloudIds: ["cloud-a"],
+    cloudRevision,
+    pendingBlocked: undefined as DrawingJournalEntry["blocked"] | undefined,
+    pendingHasAlternatives: false,
+  };
+
+  it("stamps the GET when this pane has no pending work", () => {
+    expect(decideDrawingLoadReconciliation({
+      ...base, hasPending: false, pendingIds: [], pendingRevisionPresent: false,
+    })).toEqual({ action: "stamp" });
+  });
+
+  it("merges when the only pending work is a no-revision pure addition", () => {
+    expect(decideDrawingLoadReconciliation({
+      ...base, hasPending: true, pendingIds: ["local-new"], pendingRevisionPresent: false,
+      pendingPreload: true,
+    })).toEqual({ action: "merge" });
+  });
+
+  it("parks overlapping no-revision pending ids instead of dropping either copy", () => {
+    expect(decideDrawingLoadReconciliation({
+      ...base, hasPending: true, pendingIds: ["cloud-a", "local-new"], pendingRevisionPresent: false,
+      pendingPreload: true,
+    })).toEqual({ action: "park", reason: "overlap" });
+  });
+
+  it("stamps an empty no-revision pending set so keep-mine cannot delete unseen cloud drawings", () => {
+    expect(decideDrawingLoadReconciliation({
+      ...base, hasPending: true, pendingIds: [], pendingRevisionPresent: false,
+    })).toEqual({ action: "stamp" });
+  });
+
+  it("keeps post-load pending work whose revision already matches the GET", () => {
+    expect(decideDrawingLoadReconciliation({
+      ...base, hasPending: true, pendingIds: ["cloud-a", "local-new"],
+      pendingRevisionPresent: true, pendingRevision: cloudRevision,
+    })).toEqual({ action: "keep" });
+  });
+
+  it("parks when a pending revision disagrees with the GET", () => {
+    expect(decideDrawingLoadReconciliation({
+      ...base, hasPending: true, pendingIds: ["local-new"],
+      pendingRevisionPresent: true, pendingRevision: null,
+    })).toEqual({ action: "park", reason: "conflict" });
+  });
+
+  it("parks blocked or forked recovery instead of merging", () => {
+    expect(decideDrawingLoadReconciliation({
+      ...base, hasPending: true, pendingIds: ["local-new"], pendingRevisionPresent: false,
+      pendingBlocked: "legacy",
+    })).toEqual({ action: "park", reason: "conflict" });
+    expect(decideDrawingLoadReconciliation({
+      ...base, hasPending: true, pendingIds: ["local-new"], pendingRevisionPresent: false,
+      pendingHasAlternatives: true,
+    })).toEqual({ action: "park", reason: "conflict" });
+  });
+
+  it("parks a non-preload no-revision row instead of merging it as a pre-GET edit", () => {
+    expect(decideDrawingLoadReconciliation({
+      ...base, hasPending: true, pendingIds: ["local-new"], pendingRevisionPresent: false,
+      pendingPreload: false,
+    })).toEqual({ action: "park", reason: "conflict" });
+  });
+
+  it("unions cloud drawings with disjoint pre-load additions and refuses an overlap", () => {
+    const cloud = [line("cloud-a")];
+    const local = [line("local-new")];
+    const merged = unionCloudWithPreloadAdditions(cloud, local);
+    expect(merged.ok).toBe(true);
+    if (merged.ok) expect(merged.drawings.map((drawing) => drawing.id)).toEqual(["cloud-a", "local-new"]);
+    expect(unionCloudWithPreloadAdditions(cloud, [line("cloud-a")])).toEqual({ ok: false, reason: "overlap" });
+  });
+
+  it("parks a disjoint pre-GET union that would exceed 500 drawings per symbol as too_many", () => {
+    expect(decideDrawingLoadReconciliation({
+      ...base,
+      cloudIds: Array.from({ length: MAX_DRAWINGS_PER_SYMBOL }, (_, index) => `cloud-${index}`),
+      hasPending: true, pendingIds: ["local-new"], pendingRevisionPresent: false,
+      pendingPreload: true,
+    })).toEqual({ action: "park", reason: "too_many" });
+  });
+
+  it("refuses a cap overflow as too_many rather than overlap or a dropped cloud set", () => {
+    const cloud = Array.from({ length: MAX_DRAWINGS_PER_SYMBOL }, (_, index) => line(`cloud-${index}`));
+    expect(unionCloudWithPreloadAdditions(cloud, [line("local-new")])).toEqual({ ok: false, reason: "too_many" });
+    expect(unionCloudWithPreloadAdditions(cloud, [line("cloud-0")])).toEqual({ ok: false, reason: "overlap" });
+  });
+});
+
+describe("durable pre-GET journal rows", () => {
+  it("round-trips a preload row through write/parse without treating it as a leftover legacy copy", async () => {
+    const storage = new MemoryStorage();
+    expect(await persist(storage, { NVDA: { drawings: [line("pre")], preload: true } })).toBe(true);
+    const recovered = readDrawingJournal(storage, "account:a").NVDA;
+    expect(recovered.preload).toBe(true);
+    expect(recovered.blocked).toBeUndefined();
+    expect(Object.hasOwn(recovered, "revision")).toBe(false);
+    expect(recovered.alternatives).toBeUndefined();
+    expect(recovered.drawings.map((drawing) => drawing.id)).toEqual(["pre"]);
+    expect(prepareDrawingAttempt(recovered, () => op)).toBeNull();
+    expect(recovered.blocked).toBeUndefined();
+    const reloaded = readDrawingJournal(storage, "account:a");
+    expect(await persist(storage, reloaded)).toBe(true);
+    const again = readDrawingJournal(storage, "account:a").NVDA;
+    expect(again.alternatives).toBeUndefined();
+    expect(again.preload).toBe(true);
+    expect(again.blocked).toBeUndefined();
+  });
+
+  it("keeps stored-entry bytes of a no-preload row free of the preload field", async () => {
+    const storage = new MemoryStorage();
+    expect(await persist(storage, { NVDA: { drawings: [line("A")], revision: null } })).toBe(true);
+    const copies = JSON.parse(storage.getItem(DRAWING_JOURNAL_KEY)!)["account:a"].NVDA.copies as Record<string, Record<string, unknown>>;
+    const stored = Object.values(copies)[0];
+    expect(Object.hasOwn(stored, "preload")).toBe(false);
+    expect(JSON.stringify(stored)).toBe(JSON.stringify({ drawings: [line("A")], revision: null }));
+  });
 });
