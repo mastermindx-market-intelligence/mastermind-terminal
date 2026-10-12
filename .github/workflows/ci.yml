@@ -241,10 +241,17 @@ jobs:
             projects: "--project=desktop --shard=1/2"
           - shard: desktop-2
             projects: "--project=desktop --shard=2/2"
-          - shard: tablet
-            projects: "--project=tablet"
-          - shard: mobile
-            projects: "--project=mobile"
+          # At head 88bdb412, each compact project carried 665 tests: mobile took
+          # 57.8 minutes and tablet reached the 60-minute cap. Keep that cap and
+          # every test; split each project with Playwright's complete shard pair.
+          - shard: tablet-1
+            projects: "--project=tablet --shard=1/2"
+          - shard: tablet-2
+            projects: "--project=tablet --shard=2/2"
+          - shard: mobile-1
+            projects: "--project=mobile --shard=1/2"
+          - shard: mobile-2
+            projects: "--project=mobile --shard=2/2"
           # The company-intelligence chain uses Playwright `dependencies`
           # (playwright.config.ts:69-87) and MUST stay whole inside one shard, or the
           # dependency projects re-run in every shard that touches them.
