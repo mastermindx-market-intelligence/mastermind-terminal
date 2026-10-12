@@ -232,3 +232,25 @@ export function keepMinePutDrawings(
   }
   return unionCloudWithPreloadKeepMine(cloud, pending);
 }
+
+/**
+ * A preload-merge PUT that lost revision_conflict can settle as saved after one
+ * cloud re-read finds every pending drawing present and deep-equal.
+ * owner_conflict / unknown / payload_mismatch stay conflict.
+ */
+export function settlePreloadMergeRevisionConflict(input: {
+  wasPreloadMerge: boolean;
+  conflictCode: unknown;
+  pending: readonly Drawing[];
+  cloud: readonly Drawing[] | null;
+}): "saved" | "conflict" {
+  if (!input.wasPreloadMerge || input.conflictCode !== "revision_conflict" || !input.cloud) {
+    return "conflict";
+  }
+  const byId = new Map(input.cloud.map((drawing) => [drawing.id, drawing]));
+  const saved = input.pending.every((drawing) => {
+    const existing = byId.get(drawing.id);
+    return existing !== undefined && drawingStoredEqual(existing, drawing);
+  });
+  return saved ? "saved" : "conflict";
+}

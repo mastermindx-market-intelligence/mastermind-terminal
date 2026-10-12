@@ -141,7 +141,7 @@ import {
   uid,
 } from "@/lib/drawings";
 import { reconcileDrawingJournal, writeDrawingJournal, refreshDrawingJournalSymbol, selectDrawingRecoveryCopy } from "@/lib/drawingOutbox";
-import { DRAWING_OWNER_HEADER, parseDrawingSnapshot, parseDrawingSaveReceipt, prepareDrawingAttempt, settleDrawingAttempt, beginDrawingLoad, abandonDrawingLoad, abandonAllDrawingLoads, isCurrentDrawingLoad, shouldRescheduleDrawingFlush, decideDrawingLoadReconciliation, unionCloudWithPreloadAdditions, remainingPreloadPending, keepMinePutDrawings, type DrawingJournal, type DrawingSnapshot, type DrawingRevision } from "@/lib/drawingPersistence";
+import { DRAWING_OWNER_HEADER, parseDrawingSnapshot, parseDrawingSaveReceipt, prepareDrawingAttempt, settleDrawingAttempt, beginDrawingLoad, abandonDrawingLoad, abandonAllDrawingLoads, isCurrentDrawingLoad, shouldRescheduleDrawingFlush, decideDrawingLoadReconciliation, unionCloudWithPreloadAdditions, remainingPreloadPending, keepMinePutDrawings, settlePreloadMergeRevisionConflict, type DrawingJournal, type DrawingSnapshot, type DrawingRevision } from "@/lib/drawingPersistence";
 import { applyDrawingSaveConflict, drawingSaveIssueFromEntry, drawingSaveIssueFromLoadPark, drawingSaveIssueOffersReplace, drawingSaveRecoveryMessage } from "@/lib/drawingSaveConflict";
 import { FREEHAND_DRAWING_KINDS, getDrawingTool, isDrawingToolId } from "@/lib/drawingTools";
 import { SHELL_DRAW_TOOLS } from "@/lib/drawingTaxonomy";
@@ -1668,6 +1668,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
   const [drawingLoadFailures, setDrawingLoadFailures] = useState<Set<string>>(new Set());
   const drawRecovery = useRef<Record<string, DrawingJournal>>({});
   const drawRevisions = useRef<Record<string, DrawingRevision>>({});
+  const drawPreloadMergeReread = useRef<Set<string>>(new Set());
   const drawOwnerHydrated = useRef(false);
   const [drawingSavesActive, setDrawingSavesActive] = useState<Set<string>>(new Set());
   const [drawingSaveIssues, setDrawingSaveIssues] = useState<Record<string, string>>({});
@@ -1777,6 +1778,35 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
           if (response.status === 409) {
             let payload: unknown = null;
             try { payload = await response.json(); } catch { payload = null; }
+            const code = payload && typeof payload === "object" && !Array.isArray(payload)
+              ? (payload as Record<string, unknown>).code
+              : undefined;
+            if (entry.preload && code === "revision_conflict" && !drawPreloadMergeReread.current.has(attempt.operationId)) {
+              drawPreloadMergeReread.current.add(attempt.operationId);
+              let cloudSnap: DrawingSnapshot | null = null;
+              try {
+                const reread = await fetch(`/api/drawings?symbol=${encodeURIComponent(sym)}`, {
+                  cache: "no-store",
+                  headers: { [DRAWING_OWNER_HEADER]: drawOwner.current },
+                });
+                cloudSnap = reread.ok ? parseDrawingSnapshot(await reread.json()) : null;
+              } catch { cloudSnap = null; }
+              if (drawOwnerEpoch.current !== ownerEpoch) return;
+              if (cloudSnap && settlePreloadMergeRevisionConflict({
+                wasPreloadMerge: true,
+                conflictCode: code,
+                pending: attempt.drawings,
+                cloud: cloudSnap.drawings,
+              }) === "saved") {
+                drawRevisions.current[sym] = cloudSnap.revision;
+                delete recovery[sym];
+                delete drawPending.current[sym];
+                setDrawStore((store) => ({ ...store, [sym]: normalizeDrawings(cloudSnap.drawings) }));
+                setDrawingSaveIssues((issues) => { const next = { ...issues }; delete next[sym]; return next; });
+                saveSettledOk = true;
+                return;
+              }
+            }
             const issue = applyDrawingSaveConflict(entry, payload);
             if (drawOwnerEpoch.current === ownerEpoch) setDrawingSaveIssues((issues) => ({ ...issues, [sym]: issue }));
           } else if ([400, 413, 422].includes(response.status)) entry.blocked = "invalid";
@@ -2523,6 +2553,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
     drawSaving.current = {};
     drawTimers.current = {};
     drawRevisions.current = {};
+    drawPreloadMergeReread.current = new Set();
     drawLoadRetryTimers.current = {};
     drawLoadRetryAttempts.current = {};
     drawLoaded.current.clear();
@@ -2608,9 +2639,8 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
               entry.drawings = mergedDrawings;
               entry.revision = snapshot.revision;
               delete entry.blocked;
-              delete entry.preload;
             } else {
-              recovery[sym] = { drawings: mergedDrawings, revision: snapshot.revision };
+              recovery[sym] = { drawings: mergedDrawings, revision: snapshot.revision, preload: true };
             }
             setDrawStore((s) => ({ ...s, [sym]: normalizeDrawings(mergedDrawings) }));
             void persistDrawingRecovery(ownerKey, recovery);

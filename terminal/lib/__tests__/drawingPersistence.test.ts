@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { parseDrawingSaveReceipt, parseDrawingSnapshot, parsePersistedDrawings, prepareDrawingAttempt, settleDrawingAttempt, beginDrawingLoad, abandonDrawingLoad, abandonAllDrawingLoads, isCurrentDrawingLoad, shouldRescheduleDrawingFlush, decideDrawingLoadReconciliation, unionCloudWithPreloadAdditions, remainingPreloadPending, keepMinePutDrawings, type DrawingJournalEntry, type DrawingLoadGenerations } from "@/lib/drawingPersistence";
+import { parseDrawingSaveReceipt, parseDrawingSnapshot, parsePersistedDrawings, prepareDrawingAttempt, settleDrawingAttempt, beginDrawingLoad, abandonDrawingLoad, abandonAllDrawingLoads, isCurrentDrawingLoad, shouldRescheduleDrawingFlush, decideDrawingLoadReconciliation, unionCloudWithPreloadAdditions, remainingPreloadPending, keepMinePutDrawings, settlePreloadMergeRevisionConflict, type DrawingJournalEntry, type DrawingLoadGenerations } from "@/lib/drawingPersistence";
 import { MAX_DRAWINGS_PER_SYMBOL } from "@/lib/drawings";
 import { readDrawingJournal, writeDrawingJournal, writeDrawingOutbox, refreshDrawingJournalSymbol, reconcileDrawingJournal, selectDrawingRecoveryCopy, DRAWING_JOURNAL_KEY, DRAWING_RECEIPTS_KEY, DRAWING_RECEIPTS_UNREADABLE_KEY, DRAWING_RECEIPT_HISTORY, DRAWING_RECEIPT_OWNERS, type DrawingJournalLocks } from "@/lib/drawingOutbox";
 let lockTail=Promise.resolve();
@@ -768,6 +768,64 @@ describe("drawing load vs pre-GET local edits", () => {
     if (!put.ok) return;
     expect(put.drawings.map((drawing) => drawing.id)).toEqual(["local-only"]);
     expect(put.drawings).toEqual(pending);
+  });
+
+  it("P2: a lost preload-merge PUT settles as saved when a re-read already contains every pending drawing", () => {
+    expect(settlePreloadMergeRevisionConflict({
+      wasPreloadMerge: true,
+      conflictCode: "revision_conflict",
+      pending: [line("cloud-hline"), line("pre-tab-a")],
+      cloud: [line("cloud-hline"), line("pre-tab-a")],
+    })).toBe("saved");
+    expect(settlePreloadMergeRevisionConflict({
+      wasPreloadMerge: true,
+      conflictCode: "revision_conflict",
+      pending: [line("cloud-hline"), line("pre-tab-a")],
+      cloud: [line("cloud-hline"), line("pre-tab-a"), line("other-tab")],
+    })).toBe("saved");
+  });
+
+  it("P2: a re-read that is missing or differs from a pending drawing stays a conflict", () => {
+    expect(settlePreloadMergeRevisionConflict({
+      wasPreloadMerge: true,
+      conflictCode: "revision_conflict",
+      pending: [line("cloud-hline"), line("pre-tab-a")],
+      cloud: [line("cloud-hline")],
+    })).toBe("conflict");
+    expect(settlePreloadMergeRevisionConflict({
+      wasPreloadMerge: true,
+      conflictCode: "revision_conflict",
+      pending: [line("pre-tab-a")],
+      cloud: [{ ...line("pre-tab-a"), points: [{ t: "2026-01-01", p: 50 }] }],
+    })).toBe("conflict");
+    expect(settlePreloadMergeRevisionConflict({
+      wasPreloadMerge: true,
+      conflictCode: "revision_conflict",
+      pending: [line("pre-tab-a")],
+      cloud: null,
+    })).toBe("conflict");
+  });
+
+  it("P2: owner_conflict, payload mismatch, unknown, and non-preload 409s stay F2 conflicts", () => {
+    const matching = {
+      pending: [line("pre-tab-a")],
+      cloud: [line("pre-tab-a")],
+    };
+    expect(settlePreloadMergeRevisionConflict({
+      wasPreloadMerge: true, conflictCode: "owner_conflict", ...matching,
+    })).toBe("conflict");
+    expect(settlePreloadMergeRevisionConflict({
+      wasPreloadMerge: true, conflictCode: "operation_payload_mismatch", ...matching,
+    })).toBe("conflict");
+    expect(settlePreloadMergeRevisionConflict({
+      wasPreloadMerge: true, conflictCode: "unknown", ...matching,
+    })).toBe("conflict");
+    expect(settlePreloadMergeRevisionConflict({
+      wasPreloadMerge: true, conflictCode: undefined, ...matching,
+    })).toBe("conflict");
+    expect(settlePreloadMergeRevisionConflict({
+      wasPreloadMerge: false, conflictCode: "revision_conflict", ...matching,
+    })).toBe("conflict");
   });
 });
 
