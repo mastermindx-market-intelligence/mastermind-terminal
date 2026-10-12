@@ -166,6 +166,8 @@ function aggregateFootprint(trades, options) {
     requireThat(['complete', 'partial', 'gap'].includes(options.coverage) && nonempty(options.sourceId), 'missing_coverage');
     const ratio = options.imbalanceRatio ?? 3, minVolume = options.minImbalanceVolume ?? 10;
     requireThat(Number.isFinite(ratio) && ratio > 1 && Number.isSafeInteger(minVolume) && minVolume > 0, 'invalid_imbalance_policy');
+    const priceStepTicks = options.priceStepTicks ?? 1;
+    requireThat(Number.isSafeInteger(priceStepTicks) && priceStepTicks >= 1 && priceStepTicks <= 256, 'invalid_price_step');
     const ids = new Map(), accepted = [];
     for (const t of trades) {
       requireThat(object(t) && nonempty(t.id) && t.contract === options.contract && t.sessionId === options.sessionId &&
@@ -186,16 +188,18 @@ function aggregateFootprint(trades, options) {
     accepted.sort((a, b) => a.event < b.event ? -1 : a.event > b.event ? 1 : 0);
     const bars = new Map(), profile = new Map();
     const add = (map, t) => {
-      const cell = map.get(t.priceTicks) || { priceTicks: t.priceTicks, buy: 0, sell: 0, unknown: 0, total: 0 };
+      const bucketTick = Math.floor(t.priceTicks / priceStepTicks) * priceStepTicks;
+      const cell = map.get(bucketTick) || { priceTicks: bucketTick, buy: 0, sell: 0, unknown: 0, total: 0 };
       cell[t.aggressor] = plusSafe(cell[t.aggressor], t.size); cell.total = plusSafe(cell.total, t.size);
-      map.set(t.priceTicks, cell);
+      map.set(bucketTick, cell);
     };
     for (const t of accepted) {
       const at = start + (t.event - start) / interval * interval, key = at.toString();
       let bar = bars.get(key);
       if (!bar) { bar = { startNs: key, openTicks: t.priceTicks, highTicks: t.priceTicks,
-        lowTicks: t.priceTicks, closeTicks: t.priceTicks, cells: new Map() }; bars.set(key, bar); }
+        lowTicks: t.priceTicks, closeTicks: t.priceTicks, availableAtNs: t.availableAtNs, cells: new Map() }; bars.set(key, bar); }
       bar.highTicks = Math.max(bar.highTicks, t.priceTicks); bar.lowTicks = Math.min(bar.lowTicks, t.priceTicks);
+      if (BigInt(t.availableAtNs) > BigInt(bar.availableAtNs)) bar.availableAtNs = t.availableAtNs;
       bar.closeTicks = t.priceTicks; add(bar.cells, t); add(profile, t);
     }
     let cvdKnown = 0, cumulativeUnknown = 0, observedVolume = 0;
@@ -205,14 +209,15 @@ function aggregateFootprint(trades, options) {
       for (const cell of cells) {
         buy = plusSafe(buy, cell.buy); sell = plusSafe(sell, cell.sell); unknown = plusSafe(unknown, cell.unknown);
         if (!poc || cell.total > poc.total) poc = cell; // ascending price wins a POC tie
-        const lower = bar.cells.get(cell.priceTicks - 1), upper = bar.cells.get(cell.priceTicks + 1);
+        const lower = bar.cells.get(cell.priceTicks - priceStepTicks), upper = bar.cells.get(cell.priceTicks + priceStepTicks);
         cell.buyImbalance = options.coverage === 'complete' && cell.unknown === 0 && !!lower && lower.unknown === 0 && lower.sell > 0 && cell.buy >= minVolume && cell.buy >= ratio * lower.sell;
         cell.sellImbalance = options.coverage === 'complete' && cell.unknown === 0 && !!upper && upper.unknown === 0 && upper.buy > 0 && cell.sell >= minVolume && cell.sell >= ratio * upper.buy;
       }
       const total = plusSafe(plusSafe(buy, sell), unknown), deltaKnown = buy - sell;
       cvdKnown = plusSafe(cvdKnown, deltaKnown); cumulativeUnknown = plusSafe(cumulativeUnknown, unknown);
       observedVolume = plusSafe(observedVolume, total);
-      return { ...bar, cells, buy, sell, unknown, total, deltaKnown,
+      const naturalEnd = BigInt(bar.startNs) + interval;
+      return { ...bar, endNs: (naturalEnd < end ? naturalEnd : end).toString(), cells, buy, sell, unknown, total, deltaKnown,
         delta: unknown === 0 && options.coverage === 'complete' ? deltaKnown : null,
         cvdKnown, cvd: cumulativeUnknown === 0 && options.coverage === 'complete' ? cvdKnown : null,
         pocTicks: poc?.priceTicks ?? null };
@@ -220,7 +225,7 @@ function aggregateFootprint(trades, options) {
     return { status: options.coverage === 'complete' ? 'ok' : 'partial', coverage: options.coverage,
       sourceId: options.sourceId, contract: options.contract, sessionId: options.sessionId,
       windowStartNs: start.toString(), windowEndNs: end.toString(), decisionTimeNs: decision.toString(),
-      intervalNs: interval.toString(), observedVolume, bars: output,
+      intervalNs: interval.toString(), priceStepTicks, priceBucketAnchor: 'absolute_zero_ticks', observedVolume, bars: output,
       volumeProfile: [...profile.values()].sort((a, b) => a.priceTicks - b.priceTicks),
       cvdBasis: 'selected_window_start', pocTieBreak: 'lower_price', imbalanceRatio: ratio, minImbalanceVolume: minVolume };
   } catch (error) { return { status: 'unavailable', reason: error instanceof Error ? error.message : 'invalid_input' }; }

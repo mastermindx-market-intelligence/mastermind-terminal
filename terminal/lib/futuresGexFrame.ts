@@ -9,7 +9,12 @@ import {
   type FuturesGexQuotePair, type FuturesGexMapping, type FuturesGexProjection,
 } from "./futuresGexProjection";
 
+import { selectFuturesGexLens, validFuturesLens, type FuturesMatrixSource, type FuturesLensReason } from "./futuresGexLens";
+import type { ExpiryLens } from "./gexLadder";
+
 export type FuturesGexFrameInput = {
+  expiryLens?: ExpiryLens;
+  matrix?: FuturesMatrixSource;
   quotes: FuturesGexQuotePair;
   quoteAvailability: {
     indexAvailableAtMs: number; futuresAvailableAtMs: number;
@@ -25,7 +30,7 @@ export type FuturesGexFrameInput = {
     maxClockSkewMs: number; method: FuturesGexMapping;
   };
 };
-export type FuturesGexFrameReason = "invalid_input" | "invalid_policy" | "invalid_contract" |
+export type FuturesGexFrameReason = FuturesLensReason | "invalid_input" | "invalid_policy" | "invalid_contract" |
   "contract_inactive" | "missing_receipt" | "invalid_clock" | "not_yet_available" |
   "stale_quote" | "stale_exposure" | "source_schema" | "source_root" |
   "source_session" | "source_rows" | "empty_source" | "invalid_projection";
@@ -38,8 +43,11 @@ export type FuturesGexFrame = { status: "unavailable"; reason: FuturesGexFrameRe
     sourceAsOfMs: number; sourceAvailableAtMs: number; decisionTimeMs: number;
     indexAvailableAtMs: number; futuresAvailableAtMs: number;
     indexFeedBasis: "realtime" | "delayed"; futuresFeedBasis: "realtime" | "delayed";
-    quoteAgeMs: number; exposureAgeMs: number;
-    inventoryBasis: string | null; expiryLens: "all"; dealerPositioning: "estimate";
+    quoteAgeMs: number; exposureAgeMs: number; frameAvailableAtMs: number;
+    inventoryBasis: string | null; expiryLens: ExpiryLens["kind"]; dealerPositioning: "estimate";
+    expirySessionDate: string; selectedExpiries: string[];
+    expiryCutBasis: "source_session_date_not_trading_cutoff";
+    matrixArtifactId: string | null; matrixAvailableAtMs: number | null; matrixAsOfMs: number | null;
   };
 };
 const text = (v: unknown): v is string => typeof v === "string" && v.trim().length > 0;
@@ -55,6 +63,8 @@ export function buildFuturesGexFrame(input: FuturesGexFrameInput): FuturesGexFra
   if (!isRecord(input) || !isRecord(input.quotes) || !isRecord(input.quoteAvailability) ||
       !isRecord(input.policy)) return unavailable("invalid_input");
   const { quotes: q, quoteAvailability: a, policy: p, contract: c, sourceReceipt: r } = input;
+  const lens = input.expiryLens ?? { kind: "all" };
+  if (!validFuturesLens(lens)) return unavailable("invalid_expiry_lens");
   if (!validClockMs(p.decisionTimeMs) ||
       ![p.maxQuoteAgeMs, p.maxExposureAgeMs, p.maxClockSkewMs].every(v => finiteNumber(v) && v >= 0) ||
       (p.method !== "basis" && p.method !== "ratio")) return unavailable("invalid_policy");
@@ -91,7 +101,20 @@ export function buildFuturesGexFrame(input: FuturesGexFrameInput): FuturesGexFra
     // by_strike is already USD millions, unlike the matrix's whole-dollar cells.
     rows.push({ strike: row.strike, gammaNetMn: row.gamma_net });
   }
-  if (rows.length === 0 || rows.every(row => row.gammaNetMn === null)) return unavailable("empty_source");
+  if (rows.length === 0) return unavailable("empty_source");
+  let matrixArtifactId: string | null = null, matrixAvailableAtMs: number | null = null,
+    matrixAsOfMs: number | null = null;
+  let selectedExpiries: string[] = [];
+  if (lens.kind !== "all") {
+    const selected = selectFuturesGexLens({ matrix: input.matrix, lens, root: q.indexRoot,
+      sourceSession: r.sessionDate, strikes: rows.map(row => row.strike),
+      decisionTimeMs: p.decisionTimeMs, maxAgeMs: p.maxExposureAgeMs });
+    if (selected.status !== "ok") return unavailable(selected.reason);
+    matrixArtifactId = selected.matrixArtifactId; matrixAvailableAtMs = selected.matrixAvailableAtMs;
+    matrixAsOfMs = selected.matrixAsOfMs; selectedExpiries = selected.selectedExpiries;
+    for (const row of rows) row.gammaNetMn = selected.byStrike.get(row.strike) ?? null;
+  }
+  if (rows.every(row => row.gammaNetMn === null)) return unavailable("empty_source");
   const projection = projectFuturesGex(q, rows, p.maxClockSkewMs, p.method);
   if (!projection) return unavailable("invalid_projection");
   const coverage = isRecord(source.coverage) ? source.coverage : null;
@@ -101,8 +124,10 @@ export function buildFuturesGexFrame(input: FuturesGexFrameInput): FuturesGexFra
     decisionTimeMs: p.decisionTimeMs, indexAvailableAtMs: a.indexAvailableAtMs,
     futuresAvailableAtMs: a.futuresAvailableAtMs,
     indexFeedBasis: a.indexFeedBasis, futuresFeedBasis: a.futuresFeedBasis,
-    quoteAgeMs, exposureAgeMs,
+    quoteAgeMs, exposureAgeMs: Math.max(exposureAgeMs, matrixAsOfMs === null ? 0 : p.decisionTimeMs - matrixAsOfMs),
+    frameAvailableAtMs: Math.max(a.indexAvailableAtMs, a.futuresAvailableAtMs, r.availableAtMs, matrixAvailableAtMs ?? 0),
     inventoryBasis: coverage && text(coverage.oi_date) ? coverage.oi_date : null,
-    expiryLens: "all", dealerPositioning: "estimate",
+    expiryLens: lens.kind, dealerPositioning: "estimate", expirySessionDate: r.sessionDate, selectedExpiries,
+    expiryCutBasis: "source_session_date_not_trading_cutoff", matrixArtifactId, matrixAvailableAtMs, matrixAsOfMs,
   } };
 }

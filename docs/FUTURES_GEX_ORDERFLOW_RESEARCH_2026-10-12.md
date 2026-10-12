@@ -138,6 +138,33 @@ price/time aggregation, while authentic feed/receipt and release requirements st
 unchanged. The unavailability of a full licensed sample does not block these
 independent source/consumer improvements. Reuse this original PR and worktree.
 
+## Resume continuation: expanded consumer verified
+
+The ES-only/all-expiry/one-minute limitations in earlier sections are now superseded
+for the DEVELOPMENT consumer. Both ES and NQ have browser data and identity-isolated
+switching. All, source-session 0DTE, later and named-date cuts reuse `gexLadder` with
+strict matrix receipts/nulls. One/five-minute and one/four/eight-tick views conserve
+volume. A known-side captured-window CVD pane is wired. The actual chart renderer
+is now reusable and imports no fixture. No production ChartPanel or auth code changed.
+
+Current evidence: `docs/pr-crops/futures-expanded-20261012/`: 127 focused Terminal,
+507 full Hub, 15 SDK and 15 browser tests; 27 screenshots; full typecheck/scoped lint
+exit 0. Previous source hashes remain historical evidence at their original commits.
+
+Real-data frontier improved: the official Databento tick-data page exposes public
+CME MBO and MBP-1 CSV sample downloads. Header inspection found ESZ5 on 2025-09-22,
+an initial order-book snapshot, and matching best-bid/offer samples. These are not
+the two-row GitHub codec assets. Next: acquire only a bounded local research prefix,
+compare the reconstructed book to that reference, and do not publish raw sample data
+or infer commercial display rights. URLs are S14 below. No purchase required to read
+these publicly advertised download links; no paid API or account session used.
+
+Independent-review route discovery encountered one OpenAI safety-check refusal on a
+read-only compound command. It was not replayed or moved to another carrier; no worker
+was dispatched and no review is claimed. That affected action stays held. It does not
+block the independently authorized data/sample and consumer work. No unknown modifying
+effects exist; current work remains on the original RDC M2 worktree and PR #964.
+
 ## Source register
 
 All public sources below were inspected through official pages in this research pass. Publisher claims remain claims; no authenticated QuantData runtime teardown or vendor negotiation was performed.
@@ -161,3 +188,5 @@ All public sources below were inspected through official pages in this research 
 - I2 Terminal base: e0c405a09b6897df3b5e4a2f22344f3560b800a4, `terminal/lib/gexLadder.ts`, `terminal/lib/optionsLevels.ts`, `terminal/lib/flowClientCache.ts`, `hub/`.
 - I3 Macro 1338e106c6303a62ed14ca8432d3b4a1291007fc, `engine/options_hub.py`, `agentos/workstreams/WS-ADVANCED-DATA-OPTIONS.md` (source units/cadence and canonical ThetaData ruling; organizational record is not current host-liveness proof).
 - I4 Terminal base as I2, `docs/DATABENTO_INTEGRATION_DESIGN.md` (design-only UTC/display-epoch integration warning; not a shipping feed).
+
+- S14 Public tick-data sample landing page: https://databento.com/tick-data ; exact advertised CME links: https://hist.databento.com/v0/dataset/sample/download/glbx.mdp3/mbo?sample_type=futures and https://hist.databento.com/v0/dataset/sample/download/glbx.mdp3/mbp-1?sample_type=futures . Landing page and headers inspected 2026-10-12; historical sample usability still under test.
