@@ -121,9 +121,16 @@ export const GexHistory = memo(function GexHistory({
   activeSession,
   liveDate,
   onLoadSession,
+  historyState,
 }: {
   history: GexPayload["history"];
   lang: Lang;
+  /**
+   * Set while the live payload that carries `history` is not in hand: "pending" while it
+   * is being read, "unavailable" when the read did not land. Either way an empty strip is
+   * not "no settled sessions" — nothing was read to count.
+   */
+  historyState?: "pending" | "unavailable";
   /**
    * Dated-replay wiring (R0.10) — all optional so the strip renders unchanged where the
    * desk doesn't offer replay. `sessionDates` is the gex_history dates.json index
@@ -241,7 +248,9 @@ export const GexHistory = memo(function GexHistory({
             </select>
           )}
           {hasSeries && <span style={HINT}>{t("gexHistScrubHint")}</span>}
-          <span style={SESSIONS}>{rows.length} {t("gexHistSessions")}</span>
+          {!(historyState && rows.length === 0) && (
+            <span style={SESSIONS}>{rows.length} {t("gexHistSessions")}</span>
+          )}
         </span>
       </div>
 
@@ -250,14 +259,22 @@ export const GexHistory = memo(function GexHistory({
           {!hasSeries || !cur ? (
             /* Honest thin state — names WHICH condition this is (nothing archived yet vs a
                single settled session) rather than removing the section from the page. */
-            <div style={THIN}>
-              <span className="obs-lbl">
-                {rows.length === 0
-                  ? t("gexHistThinNone")
-                  : t("gexHistThin").replace("{n}", String(rows.length))}
-              </span>
-              <span style={THIN_WHY}>{t("gexHistThinWhy")}</span>
-            </div>
+            historyState && rows.length === 0 ? (
+              <div style={THIN}>
+                <span className="obs-lbl">
+                  {historyState === "pending" ? t("loading") : t("gexHistUnread")}
+                </span>
+              </div>
+            ) : (
+              <div style={THIN}>
+                <span className="obs-lbl">
+                  {rows.length === 0
+                    ? t("gexHistThinNone")
+                    : t("gexHistThin").replace("{n}", String(rows.length))}
+                </span>
+                <span style={THIN_WHY}>{t("gexHistThinWhy")}</span>
+              </div>
+            )
           ) : (
             <svg
               viewBox={`0 0 ${W} ${H}`}

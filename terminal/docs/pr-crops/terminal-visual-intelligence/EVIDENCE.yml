@@ -1,11 +1,12 @@
-# Terminal Visual Intelligence Layer — chart-settings candidate recapture
+# Terminal Visual Intelligence Layer — pane readiness source recapture
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
 # Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
-# capturedAtHead: 4b358bbcf8b5783adcde1a00bb079511b25121e5 (TERMINAL-02 live-bar generation split, rebased onto #772)
-# capturedAt: 2026-09-29T19:37:11.851609+00:00
+# capturedAtHead: e4b64a840997b368d2d602518d31a04716533484
+# capturedAt: 2026-10-11T20:22:41.824469+00:00
+# Actual fresh local fixture captures; source identity remains the capture commit when artifacts are committed later.
 # Content-addressed layoutFiles + cropFiles, not ancestry, identify this capture.
 layoutFiles:
-  terminal/components/ChartPanel.tsx: "5d5d73aa589e349e7e4d9dfd9ba82c3cd9443278103c216ef9bfa595b12f8684"
+  terminal/components/ChartPanel.tsx: "dbcf06220493ce0c4dff17e184cb1408c01e64b12c626ef7d5b01c350ac33a33"
   terminal/components/ChartSettingsModal.tsx: "f26bd7dcbb9bd23e96546e835dec4c62c593b9c4d7412c411511005e7418146e"
   terminal/components/ChartSettingsModal.module.css: "a1685d103511e11882f8d379b22570f018e47aed88266db5ca6fec8808100b0a"
   terminal/components/DrawingSidebar.tsx: "95910121c08efa2a41bcaac02ec626a48bc98021bbbf9e611ff0b61f7baaf6d9"
@@ -19,12 +20,12 @@ layoutFiles:
   terminal/lib/suites/trend/candlePainter.ts: "8384d2bce3af939a51e88584b1436ee2898a89f0fbf1aedc09ffee624a3e12e1"
   terminal/lib/indicator-canvas/host.ts: "4f2949efb22b8c378cab1ff9d176466c4857073c14a36ee4f0eeab4ec1015a25"
 cropFiles:
-  desktop-context.png: "b9b6f168acfe25d70dec683cf979c45d76d3afdbeb7b1c97efac280e5e32ff57"
-  desktop-context-zh.png: "f71078467fbf697ae55446df53d8ba302be442f480afce6b6480053bd21103a5"
-  tablet-context.png: "47d6503f75af5d1397418d9cf780704eb3489bfefd031a5aa41908724b7d9700"
-  tablet-context-zh.png: "0597f373202e9bcbd1fa6b7e92ed4d70d3291b2587359a1e96549b36c598927f"
-  mobile-context.png: "dd8d965842b0d042391568d7a7fc7b54070971bd476bde1f6c944fa48c99b65c"
-  mobile-context-zh.png: "850e5baaf94450ba1117e69b02259a21739b493ccdd022591466f2613309f008"
+  desktop-context.png: "7bcb74640c18a4874f1411f83e822430ba7bed3597220fd85e58afcbc2318bde"
+  desktop-context-zh.png: "0f5f03371a30a28a994c2797d9389f6f4eae0fa0b9ee64b9ad476347b8d3ada4"
+  tablet-context.png: "980d954111a153440bf074440430f4beb56cd875bba373a8ef887ed14a27020b"
+  tablet-context-zh.png: "36f84f55291937318127562159d9a2c3fed692aea2b372d8cc515786a9607d54"
+  mobile-context.png: "dd621ddd37a243db8fccbdf5ccc15afdccae72131cc9765a0841a04122ac2466"
+  mobile-context-zh.png: "1972c1a70cb559b8ace7f18d5da414239bec17807564bd08104fc88f9c7de2bb"
 
 theme: dark
 languages: [en, zh]
@@ -37,19 +38,50 @@ harness: /terminal?symbol=NVDA
 capture_flag: TERMINAL_E2E_FIXTURE
 capture_flag_law: Standard Playwright fixture also disables the Next.js dev indicator.
 commands:
-  - TERMINAL_E2E_PORT=36947 npx playwright test e2e/visual-intelligence.spec.ts --project=desktop --project=tablet --project=mobile --workers=1 --retries=0 --reporter=list
-  - TERMINAL_E2E_PORT=36948 npx playwright test e2e/chart-view-reset.spec.ts --project=mobile --workers=1 --retries=0 --grep 'New chart tickers reserve space'
+  - TERMINAL_E2E_PORT=3203 npm run test:e2e:responsive -- e2e/replay-statusline-responsive.spec.ts e2e/responsive.spec.ts e2e/shell-mode.spec.ts e2e/visual-intelligence.spec.ts e2e/chart-view-reset.spec.ts --grep "Replay status|canonical Terminal shell|D · identity|E · legend|saved startup timeframe|default context explains|classic candles retain|historical crosshair inspection|real candle colors|context can be restored|table and CSV|replay consumer excludes|unavailable calendar|Chinese context|New chart tickers reserve space" --project=desktop --project=tablet --project=mobile --workers=1 --retries=0 --reporter=list,json
 browserResults:
   desktop: 10/10 passed
   tablet: 10/10 passed
   mobile: 10/10 passed
   mobileCrosshairRegression: 1/1 passed
   visualIntelligenceMatrix: 30 passed; zero failures
-localGates:
+browserReportHashes:
+  visualReport: "e8731c620abade7ab5c02c55900d8ef4de2fc83ef7ff820ce6c6cfecc51d3603"
+  mobileCrosshairReport: "e8731c620abade7ab5c02c55900d8ef4de2fc83ef7ff820ce6c6cfecc51d3603"
+currentLocalGates:
+  sourceHead: e4b64a840997b368d2d602518d31a04716533484
+  sourceIdentity: E20 landing train 2 merged tree; source identical to merge 76b43cae770421ca03791bf22c324d473282bbc0 (only evidence docs differ)
+  typecheck: PASS; next typegen then tsc --noEmit exit0 on 76b43cae7 source
+  visualIntelligenceMatrix: 30 passed; zero failures, skips or flaky cases (10 per viewport, EN/ZH)
+  compatibilityCases: 18 passed; zero failures, skips or flaky cases (chart-view-reset, replay status EN/ZH, responsive shell, shell D/E at three viewports)
+  run: rm -rf .next/dev; cold Playwright webServer; --workers=1 --retries=0; 48 passed
+  baselineDisposition: recaptured after the train 2 merge changed locked sources; crops regenerated, never copied from either parent
+priorCaptureLocalGates:
+  sourceHead: e669c889eaa004f580ae0b5a21bae6b55414d8a1
+  typecheck: PASS; tsc --noEmit exit0 on actual capture source
+  drawingReadiness: 11 focused tests and 3 existing owner lifecycle tests passed
+  drawingBrowser: 5 desktop cases passed; automatic recovery without measure/resize/reload; existing nonzero assertion retained
+  vitestFull: NOT_RERUN; required CI qualifies final artifact head
+  focusedEvidenceGuards: 6 files passed; 28 tests passed; zero failures after actual capture regeneration
+  phoneResponsiveCompatibility: 15 passed; zero failures, skips or flaky cases
+  visualCompatibility: 30 passed; zero failures, skips or flaky cases
+  baselineDisposition: Three ChartPanel-bound packets recaptured; unchanged CSS-only packets retain their accepted source identities
+priorIntegratedSourceLocalGates:
+  sourceHead: 495f544179edc95c39c73099d399289c1e357ddf
+  typecheck: PASS; next typegen then tsc --noEmit on actual capture source
+  vitestFull: NOT_RERUN_ON_INTEGRATED_SOURCE; required CI qualifies final head
+  focusedEvidenceGuards: 6 files passed; 28 tests passed; zero failures on actual integrated source and fresh packets
+  priorSourceBaseline: 7e2c19610fe30df2cc68d84fe725a3aef70d085c; 523 files passed; 8601 tests passed; 6 source-hash guards failed; 4 todo
+  priorSourceGuardRepair: Six source-bound packets recaptured; 6 files and 28 assertions passed at 7e2c196
+  baselineDisposition: Six existing source-bound capture packets refreshed; full required CI qualifies final artifact head
+  phoneResponsiveCompatibility: 15 passed; zero failures, skips, or flaky cases; EN/ZH at three viewports plus existing shell cases
+historicalLocalGates:
+  capturedAtHead: b04c73152254e985cb50941c64c269ba8409fae9
+  capturedAt: 2026-10-09T17:14:43.262392+00:00
+  originalGitArtifact: 707648d5201494ec42a2429ffb64cc39fb24314e:terminal/docs/pr-crops/terminal-visual-intelligence/EVIDENCE.yml
   typecheck: PASS
-  scopedLint: NOT_RERUN; evidence refresh does not claim a new lint receipt
-  plainLanguage: Existing localized copy retained; separate copy guard not rerun
   vitest: 379 files passed; 6093 tests passed; 4 todo
+  scope: Prior qualification receipt retained as history; not a new-source test count
 files:
   - desktop-context.png
   - desktop-context-zh.png

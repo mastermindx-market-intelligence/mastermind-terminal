@@ -320,6 +320,7 @@ export default function OnboardingSheet(props: OnboardingSheetProps) {
                   onModeSwitch={setMode}
                   onConfirmPending={accountConfirmPending}
                   onAdvance={accountAdvance}
+                  onSignedIn={handleClose}
                 />
               </div>
             </div>
@@ -345,6 +346,7 @@ export default function OnboardingSheet(props: OnboardingSheetProps) {
                     onModeSwitch={setMode}
                     onConfirmPending={accountConfirmPending}
                     onAdvance={accountAdvance}
+                    onSignedIn={handleClose}
                   />
                 )}
                 {step === STEP_PREFS && <StepPreferences prefs={prefs} setPrefs={setPrefs} />}

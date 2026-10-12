@@ -58,7 +58,7 @@ function Shell({ initial }: { initial: Drawing[] }) {
     <ChartPane
       idx={0} symbol="AAPL" drawingOwnerKey="account:test" isActive onActivate={() => {}}
       row={{ name: "Apple", last: 200 + tick, chg: 0.5 }} tf="D" chartType="candles" inds={new Set<string>()}
-      tool={null} detectCmd={null} compare={[]} magnet="off" replayIdx={null} onMeta={() => {}}
+      tool={null} detectCmd={null} compare={[]} magnet="off" replayCutoff={null} onMeta={() => {}}
       drawings={[...store]} drawingsVisible={visible} onDrawingsChange={(d) => setStoreState(d)}
     />
   );

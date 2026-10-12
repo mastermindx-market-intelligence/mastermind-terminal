@@ -26,7 +26,7 @@
 import React, { useMemo, useState } from "react";
 import { makeGexT, type GexDeskKey } from "./gexStrings";
 import type { Lang } from "@/lib/i18n";
-import type { MatrixDoc } from "./matrixDoc";
+import type { MatrixDoc, MatrixRead } from "./matrixDoc";
 import {
   buildMatrixUnusualRail,
   type ExactContractUnusualFlag,
@@ -96,7 +96,13 @@ export interface ExposureMatrixProps {
   levels: MatrixLevels;
   spot: number | null;
   /** Confluence mode refetches SPY/QQQ/IWM through the desk's own fetcher. */
-  fetchMatrix: (root: string) => Promise<MatrixDoc | null>;
+  fetchMatrix: (root: string) => Promise<MatrixRead>;
+  /** The selected root's matrix read did not land — a failed read, never "no matrix". */
+  matrixUnread?: boolean;
+  /** Re-reads the selected root's matrix in place. */
+  onRetry?: () => void;
+  /** The selected root, named in the failed-read copy. */
+  sym?: string;
   lang: Lang;
 }
 
@@ -105,6 +111,9 @@ export function ExposureMatrix({
   levels,
   spot,
   fetchMatrix,
+  matrixUnread = false,
+  onRetry,
+  sym = "",
   lang,
 }: ExposureMatrixProps) {
   const t = makeGexT(lang);
@@ -273,6 +282,14 @@ export function ExposureMatrix({
       {/* ── Body ────────────────────────────────────────────────────────── */}
       {mode === "confluence" ? (
         <MatrixConfluence fetchMatrix={fetchMatrix} metric={metric} lang={lang} />
+      ) : !grid && matrixUnread ? (
+        <div style={EMPTY_ERROR} data-testid="gex-matrix-error" role="alert">
+          <span style={EMPTY_ERROR_TITLE}>{t("mtxErrorTitle")}</span>
+          <span>{t("mtxErrorWhy").replace("{sym}", sym)}</span>
+          {onRetry && (
+            <button type="button" className="btn btn-ghost load-retry" onClick={onRetry}>{t("errorRetry")}</button>
+          )}
+        </div>
       ) : !grid ? (
         <div style={EMPTY}>{t("mtxNone")}</div>
       ) : (
@@ -603,4 +620,16 @@ const EMPTY: React.CSSProperties = {
   color: "var(--muted)",
   padding: "var(--sp-5)",
   textAlign: "center",
+};
+
+const EMPTY_ERROR: React.CSSProperties = {
+  ...EMPTY,
+  flexDirection: "column",
+  gap: 8,
+};
+
+const EMPTY_ERROR_TITLE: React.CSSProperties = {
+  fontSize: 13,
+  fontWeight: 600,
+  color: "var(--text)",
 };
