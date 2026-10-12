@@ -1755,10 +1755,51 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
     }
     const attempt = prepareDrawingAttempt(entry, () => crypto.randomUUID());
     if (!attempt) {
-      void persistDrawingRecovery(ownerKey, recovery);
+      // A3 (narrow): the only call site that sets an issue from the PRE-write
+      // entry. capture the pre-write alternatives count, set the issue from
+      // the pre-write entry exactly as the branch did before, then act on the
+      // post-write truth that writeDrawingJournal already re-derived under
+      // its lock. writeDrawingJournal updates recovery[sym] in place when it
+      // drops an unowned legacy alternative (lib/drawingOutbox.ts:352-366),
+      // and assigns new recoveryIds on line 585; the entry reference may now
+      // differ from recovery[sym]. Re-reading via refreshDrawingJournalSymbol
+      // here would over-write the recovery the rest of the flush observes,
+      // so we use the in-place truth and never call refreshDrawingJournalSymbol.
+      const hadAlts = entry.alternatives?.length ?? 0;
       const issue = entry.alternatives?.length ? "multiple" : (drawingSaveIssueFromEntry(entry) ?? entry.blocked ?? "legacy");
       setDrawingSaveIssues((issues) => ({ ...issues, [sym]: issue }));
       if (drawingSaveIssueOffersReplace(issue)) void loadDrawingCloudCopy(sym);
+      void (async () => {
+        const durable = await persistDrawingRecovery(ownerKey, recovery);
+        if (!durable || drawOwnerEpoch.current !== ownerEpoch || hadAlts === 0) return;
+        const after = recovery[sym];
+        if (after && after !== entry && drawPending.current[sym] === drawings) {
+          drawPending.current[sym] = after.drawings;
+          setDrawStore((store) => ({ ...store, [sym]: normalizeDrawings(after.drawings) }));
+        }
+        if (after && !after.alternatives?.length && !after.blocked) {
+          // The write cleared the conflict (legacy alternative dropped): only
+          // the "multiple" issue can be cleared here. Any other issue (storage,
+          // retry, too_many, preload, conflict, owner_conflict, save_rejected,
+          // payload_mismatch, invalid, superseded, legacy) is set by a path
+          // whose condition still holds and must not be wiped.
+          setDrawingSaveIssues((issues) => issues[sym] === "multiple"
+            ? (() => { const next = { ...issues }; delete next[sym]; return next; })()
+            : issues);
+          setDrawingCloudCopies((copies) => { const next = { ...copies }; delete next[sym]; return next; });
+          if (!drawSaving.current[sym] && !drawTimers.current[sym]) {
+            // drawSaving and the drawSaving early return in flushDrawings
+            // together block the duplicate-PUT race that made final2 drop
+            // its re-flush arm (drawing-system.spec.ts media-tools path).
+            drawTimers.current[sym] = setTimeout(() => flushDrawingsRef.current(sym), 0);
+          }
+        } else if (after) {
+          // Surviving entry still has alternatives or is blocked: keep the
+          // matching mapping exactly as the pre-write branch did.
+          const nextIssue = after.alternatives?.length ? "multiple" : (drawingSaveIssueFromEntry(after) ?? after.blocked ?? "legacy");
+          setDrawingSaveIssues((issues) => ({ ...issues, [sym]: nextIssue }));
+        }
+      })();
       return;
     }
     let queued = false;
