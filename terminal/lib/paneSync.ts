@@ -24,6 +24,8 @@ export type PaneRegistration = {
   series: ISeriesApi<SeriesType>;
   valueAt: (t: Time) => number | null;
   tf: string;
+  /** Current accepted bars' owner, for symbol-scoped focus only; null while data is unready. */
+  focusOwner?: () => { symbol: string; tf: string } | null;
   onCrosshair?: (price: number | null, time: Time | null) => void;
 };
 
@@ -362,6 +364,7 @@ export type PaneFocusResult = { status: PaneFocusStatus; index?: number };
 
 type FocusRequest = {
   id: number;
+  symbol?: string;
   tf: string;
   time: Time;
   resolve: (result: PaneFocusResult) => void;
@@ -379,8 +382,8 @@ const FOCUS_REASSERT_MS = 400;
 const DEFAULT_FOCUS_SPAN = 80;
 
 let pendingFocus: FocusRequest | null = null;
-let heldFocus: { id: number; tf: string; time: Time; until: number } | null = null;
-let lastFocus: { id: number; tf: string; time: Time; status: PaneFocusStatus; index: number | null; at: number } | null = null;
+let heldFocus: { id: number; symbol?: string; tf: string; time: Time; until: number } | null = null;
+let lastFocus: { id: number; symbol?: string; tf: string; time: Time; status: PaneFocusStatus; index: number | null; at: number } | null = null;
 
 function settleFocus(request: FocusRequest, result: PaneFocusResult) {
   if (request.done) return;
@@ -388,8 +391,22 @@ function settleFocus(request: FocusRequest, result: PaneFocusResult) {
   if (request.timer) clearTimeout(request.timer);
   if (request.graceTimer) clearTimeout(request.graceTimer);
   if (pendingFocus === request) pendingFocus = null;
-  lastFocus = { id: request.id, tf: request.tf, time: request.time, status: result.status, index: result.index ?? null, at: Date.now() };
+  lastFocus = { id: request.id, symbol: request.symbol, tf: request.tf, time: request.time, status: result.status, index: result.index ?? null, at: Date.now() };
   request.resolve(result);
+}
+
+/**
+ * A pane id is a reusable grid slot. Focus belongs to the selected row's symbol, unlike the
+ * intentional cross-symbol calendar sync above. Read ownership at lookup time: a registration
+ * can survive while its chart refs change. Missing ownership never relaxes a scoped request.
+ */
+function focusOwnerState(peer: Peer, scope: { symbol?: string; tf: string }): "match" | "unknown" | "different" {
+  if (scope.symbol === undefined) return "match"; // legacy unscoped navigation
+  let owner: { symbol: string; tf: string } | null = null;
+  try { owner = peer.focusOwner?.() ?? null; } catch { return "unknown"; }
+  if (!owner?.symbol || !owner.tf) return "unknown";
+  if (owner.symbol !== scope.symbol) return "different";
+  return owner.tf === scope.tf ? "match" : "unknown";
 }
 
 /** Exact index + plotted value of `time` on this pane, or null when the pane does not plot it. */
@@ -415,22 +432,30 @@ function placeFocus(peer: Peer, index: number, value: number, time: Time) {
 }
 
 function tryFocus(request: FocusRequest, peer: Peer, final = false) {
-  if (request.done || peer.tf !== request.tf) return;   // the pane is still on another timeframe
-  let hit: { index: number; value: number } | null;
-  try { hit = exactBar(peer, request.time); } catch { settleFocus(request, { status: "unavailable" }); return; }
+  if (request.done) return;
+  let owner = focusOwnerState(peer, request);
+  if (owner === "different") { settleFocus(request, { status: "replaced" }); return; }
+  if (peer.tf !== request.tf) return;   // the same symbol is still on another timeframe
+  let hit: { index: number; value: number } | null = null;
+  if (owner === "match") {
+    try { hit = exactBar(peer, request.time); } catch { settleFocus(request, { status: "unavailable" }); return; }
+    // The value lookup may read mutable chart refs. Recheck before any range/crosshair write.
+    owner = focusOwnerState(peer, request);
+    if (owner === "different") { settleFocus(request, { status: "replaced" }); return; }
+    if (owner !== "match") hit = null;
+  }
   if (!hit) {
-    if (final) { settleFocus(request, { status: "missing" }); return; }
-    // Re-read the pane once more when the grace ends: its bar set may have hydrated in place
-    // (setData on the same registration) without registering again.
+    if (final) { settleFocus(request, { status: owner === "unknown" ? "unavailable" : "missing" }); return; }
+    // Re-read the current owner and exact bar after hydration, never a replacement symbol's bar.
     if (!request.graceTimer) request.graceTimer = setTimeout(() => {
       const current = peers.get(request.id);
-      if (current && current.tf === request.tf) tryFocus(request, current, true);
+      if (current) tryFocus(request, current, true);
       else settleFocus(request, { status: "missing" });
     }, FOCUS_MISSING_GRACE_MS);
     return;
   }
   try { placeFocus(peer, hit.index, hit.value, request.time); } catch { settleFocus(request, { status: "unavailable" }); return; }
-  heldFocus = { id: request.id, tf: request.tf, time: request.time, until: Date.now() + FOCUS_HOLD_MS };
+  heldFocus = { id: request.id, symbol: request.symbol, tf: request.tf, time: request.time, until: Date.now() + FOCUS_HOLD_MS };
   settleFocus(request, { status: "exact", index: hit.index });
   const id = request.id;
   setTimeout(() => reassertFocus(id), FOCUS_REASSERT_MS);
@@ -442,9 +467,12 @@ function reassertFocus(id: number) {
   if (!held || held.id !== id) return;
   if (Date.now() > held.until) { heldFocus = null; return; }
   const peer = peers.get(id);
-  if (!peer || peer.tf !== held.tf) return;
+  if (!peer) return; // a legitimate same-symbol remount may still be pending
+  if (focusOwnerState(peer, held) !== "match") { heldFocus = null; return; }
+  if (peer.tf !== held.tf) return;
   try {
     const hit = exactBar(peer, held.time);
+    if (focusOwnerState(peer, held) !== "match") { heldFocus = null; return; }
     if (!hit) return;                       // the bar set moved on; never re-point at a neighbour
     const r = peer.chart.timeScale().getVisibleLogicalRange();
     if (r && hit.index >= r.from && hit.index <= r.to) return;
@@ -454,16 +482,18 @@ function reassertFocus(id: number) {
 
 /**
  * Ask pane `id` to show the bar at exactly `time` (in that pane's own time key) on timeframe `tf`.
+ * A supplied `symbol` binds the request to that owner, including hydration and later remounts.
  * Resolves once: `exact` (view centred on it, crosshair on it), `missing` (the pane plots no bar at
  * that time; the view did not move), `expired` (the pane never registered on that timeframe),
- * `replaced` (a newer request superseded this one) or `unavailable` (the chart refused the write).
+ * `replaced` (a newer request or symbol superseded this one) or `unavailable` (the chart could not
+ * prove the requested owner or refused the write).
  */
-export function requestPaneFocus(id: number, req: { tf: string; time: string | number; timeoutMs?: number }): Promise<PaneFocusResult> {
+export function requestPaneFocus(id: number, req: { symbol?: string; tf: string; time: string | number; timeoutMs?: number }): Promise<PaneFocusResult> {
   if (pendingFocus) settleFocus(pendingFocus, { status: "replaced" });
   heldFocus = null;
   return new Promise<PaneFocusResult>((resolve) => {
     // The bar's own time key as the pane plotted it: epoch seconds intraday, "YYYY-MM-DD" daily.
-    const request: FocusRequest = { id, tf: req.tf, time: req.time as Time, resolve, done: false, timer: null, graceTimer: null };
+    const request: FocusRequest = { id, symbol: req.symbol, tf: req.tf, time: req.time as Time, resolve, done: false, timer: null, graceTimer: null };
     pendingFocus = request;
     request.timer = setTimeout(() => settleFocus(request, { status: "expired" }), req.timeoutMs ?? FOCUS_TIMEOUT_MS);
     const peer = peers.get(id);
@@ -533,6 +563,6 @@ function installProbe() {
       return { id, tf: p.tf, logical, visible, window: win, pendingEcho: p.echoOf ?? null, link: link ? { ...link } : null };
     }),
     focus: lastFocus,
-    pendingFocus: pendingFocus ? { id: pendingFocus.id, tf: pendingFocus.tf, time: pendingFocus.time } : null,
+    pendingFocus: pendingFocus ? { id: pendingFocus.id, symbol: pendingFocus.symbol, tf: pendingFocus.tf, time: pendingFocus.time } : null,
   });
 }
