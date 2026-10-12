@@ -628,12 +628,14 @@ describe("drawing load vs pre-GET local edits", () => {
   it("merges when the only pending work is a no-revision pure addition", () => {
     expect(decideDrawingLoadReconciliation({
       ...base, hasPending: true, pendingIds: ["local-new"], pendingRevisionPresent: false,
+      pendingPreload: true,
     })).toEqual({ action: "merge" });
   });
 
   it("parks overlapping no-revision pending ids instead of dropping either copy", () => {
     expect(decideDrawingLoadReconciliation({
       ...base, hasPending: true, pendingIds: ["cloud-a", "local-new"], pendingRevisionPresent: false,
+      pendingPreload: true,
     })).toEqual({ action: "park", reason: "overlap" });
   });
 
@@ -665,6 +667,13 @@ describe("drawing load vs pre-GET local edits", () => {
     expect(decideDrawingLoadReconciliation({
       ...base, hasPending: true, pendingIds: ["local-new"], pendingRevisionPresent: false,
       pendingHasAlternatives: true,
+    })).toEqual({ action: "park", reason: "conflict" });
+  });
+
+  it("parks a non-preload no-revision row instead of merging it as a pre-GET edit", () => {
+    expect(decideDrawingLoadReconciliation({
+      ...base, hasPending: true, pendingIds: ["local-new"], pendingRevisionPresent: false,
+      pendingPreload: false,
     })).toEqual({ action: "park", reason: "conflict" });
   });
 

@@ -2575,6 +2575,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
             pendingRevision: entry?.revision,
             pendingBlocked: entry?.blocked,
             pendingHasAlternatives: Boolean(entry?.alternatives?.length),
+            pendingPreload: entry?.preload === true,
           });
           let merged: Drawing[] | null = null;
           if (decision.action === "merge") {

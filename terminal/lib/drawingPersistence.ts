@@ -146,6 +146,7 @@ export type DrawingLoadReconciliation = {
   pendingRevision?: DrawingRevision;
   pendingBlocked?: DrawingJournalEntry["blocked"];
   pendingHasAlternatives?: boolean;
+  pendingPreload?: boolean;
 };
 
 export type DrawingLoadDecision =
@@ -164,6 +165,7 @@ export function decideDrawingLoadReconciliation(input: DrawingLoadReconciliation
       : { action: "park", reason: "conflict" };
   }
   if (input.pendingIds.length === 0) return { action: "stamp" };
+  if (!input.pendingPreload) return { action: "park", reason: "conflict" };
   const cloud = new Set(input.cloudIds);
   if (input.pendingIds.some((id) => cloud.has(id))) return { action: "park", reason: "overlap" };
   return { action: "merge" };
