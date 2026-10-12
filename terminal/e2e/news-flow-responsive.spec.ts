@@ -374,6 +374,7 @@ async function assertFocusRing(page: Page, button: ReturnType<Page["locator"]>) 
   await page.evaluate(() => {
     (document.activeElement as HTMLElement | null)?.blur?.();
   });
+  await page.keyboard.press("Shift+Tab");
   let focused = false;
   for (let i = 0; i < 60 && !focused; i++) {
     focused = await button.evaluate((el) => document.activeElement === el);
@@ -425,7 +426,8 @@ async function runCell(page: Page, baseURL: string | undefined, testInfo: TestIn
   const strip = panel.locator("[data-flow-state]");
   await expect(strip).toHaveAttribute("data-flow-state", flowState);
 
-  const line = strip.locator("p");
+  const line = strip.locator(":scope > p");
+  await expect(line).toHaveCount(1);
   if (state === "unavailable") {
     // Only the unavailable sentence: no button, no tally, nothing else.
     await expect(line).toHaveText(GLANCE.unavailable[lang][0]);
