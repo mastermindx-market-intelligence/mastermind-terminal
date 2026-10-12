@@ -680,6 +680,21 @@ describe("legacy email-keyed journal claimed by at most one auth UUID",()=>{
   expect(storage.getItem("mm.drawing.account-outbox.v1")).toBe(v1);
   expect(storage.getItem(DRAWING_JOURNAL_KEY)).toBe(v2);
  });
+ it("keeps an unrelated email's claim when this owner writes its own",async()=>{
+  const storage=new MemoryStorage();
+  writeDrawingOutbox(storage,"account:alice@x",{NVDA:[line("alice-v1")]});
+  const origGetItem=storage.getItem.bind(storage);
+  const origSetItem=storage.setItem.bind(storage);
+  storage.getItem=(k)=>{
+   if(k===DRAWING_RECEIPTS_KEY) origSetItem(claimKey,JSON.stringify({"account:carol@x":"account:uuid-c"}));
+   return origGetItem(k);
+  };
+  const journal=readDrawingJournal(storage,alice);
+  expect(await writeDrawingJournal(storage,alice,journal,locks)).toBe(true);
+  const claims=JSON.parse(storage.getItem(claimKey)!) as Record<string,string>;
+  expect(claims["account:alice@x"]).toBe("account:uuid-a");
+  expect(claims["account:carol@x"]).toBe("account:uuid-c");
+ });
  it("lets only one UUID persist the v1 copy when two first-reads race through nested setItem",async()=>{
   const storage=new MemoryStorage();
   writeDrawingOutbox(storage,"account:alice@x",{NVDA:[line("alice-v1")]});

@@ -445,9 +445,15 @@ export async function writeDrawingJournal(
       // Claim before the journal so a storage failure cannot persist adopted
       // copies without the claim. Fail closed: do not return durability without it.
       if (alias && !claims[legacyOwner] && sawLegacy) {
-        claims[legacyOwner] = owner;
         try {
-          writeLegacyClaims(storage, claims);
+          // Re-read and merge only this alias so an unrelated email's claim survives.
+          const latest = readLegacyClaims(storage);
+          if (legacyOwnerClaimedByOther(latest, owner, legacyOwner)) {
+            dropUnownedLegacyCopies(journal);
+          } else {
+            latest[legacyOwner] = owner;
+            writeLegacyClaims(storage, latest);
+          }
         } catch (error) {
           dropUnownedLegacyCopies(journal);
           throw error;
