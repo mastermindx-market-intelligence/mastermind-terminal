@@ -1,11 +1,11 @@
 # EOD belt, Flow Desk chain heat and Heatmap flow layer failure-state truth — capture evidence
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
 # Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
-# capturedAtHead: 70b4778936bf90f8177c587b3de77b1b571339c9
-# capturedAt: 2026-10-11T15:53:28.995Z
+# capturedAtHead: 4e39ea9de6d31557f8fe05e9b478ce3e61706566
+# capturedAt: 2026-10-12T07:41:47.814Z
 # capturedAtHead is informational. The lock is layoutFiles.
 layoutFiles:
-  terminal/app/globals.css: "4a141b28f9c4755c9ba812dace23b963415934b57abe59c4dbf4e90c8a189fc6"
+  terminal/app/globals.css: "d366f257f52b01c335a9988633366105f11dadbb4b3ed66ccbe3b921081b32e6"
   terminal/components/eodcontext/DarkPoolMini.tsx: "1a32c139addae19531a4c9463e6f9b278e0c6b6626c59d0092bc2a0a45527420"
   terminal/components/eodcontext/EodContextBelt.tsx: "983b21e1a030ab66aada5d773a9d0ae9abccf0e796452e9cd6e3df62d6761013"
   terminal/components/eodcontext/StructureStrip.tsx: "e4edc9df9e58a544a30930ac3369c77491e0d5323748b3c1ac600adfc7ee23d3"
