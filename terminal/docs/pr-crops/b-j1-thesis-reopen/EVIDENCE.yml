@@ -1,0 +1,38 @@
+{
+  "task": "B-J1-THESIS-REOPEN",
+  "capturedAtHead": "d97461cc5935f701a45d07a0f29d5b812926c185",
+  "layoutFiles": {
+    "terminal/components/workspaces/ThesisWorkspace.tsx": "d48372250c746f43c13b556e99822c655f5b28fde362e25b56c80d10c2083214",
+    "terminal/components/workspaces/ThesisWorkspace.module.css": "c7fcd07d13cf3d7453bb51cd47ffb13c80af05e327bf9662368e97988023320c",
+    "terminal/e2e/market-ontology-context.spec.ts": "07a992ddad262280b1b64185b51cc7bfe994c54c71f02e3bd42085843653be5e"
+  },
+  "theme": "dark",
+  "themeLaw": "DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06",
+  "languages": [
+    "en",
+    "zh"
+  ],
+  "widths": [
+    1440,
+    820,
+    390
+  ],
+  "command": "cd terminal && TERMINAL_E2E_PORT=3691 npx playwright test e2e/market-ontology-context.spec.ts --project=desktop --workers=1",
+  "producer": "terminal/e2e/market-ontology-context.spec.ts",
+  "files": {
+    "terminal/e2e/proof/mo-context-strip/desktop-reopen-thesis-1440-zh.png": "3e38986fb0afc361b49e6a020a006b3023cee2d1fafb5149459d1d57559ce4b0",
+    "terminal/e2e/proof/mo-context-strip/desktop-reopen-thesis-1440.png": "151b477e87579ca0cbfab892533d442ca06a0d724d114562fe470f4b801ccdbc",
+    "terminal/e2e/proof/mo-context-strip/desktop-reopen-thesis-390-zh.png": "1803755ff70cdd01b1593a64c23b953b39be79d2fe2ffe0999e70cc1f8e10246",
+    "terminal/e2e/proof/mo-context-strip/desktop-reopen-thesis-390.png": "2f92f2e74c5e9dcdc8e7fe07827558ff5c33967ad50871cd30158c5db80e6621",
+    "terminal/e2e/proof/mo-context-strip/desktop-reopen-thesis-820-zh.png": "789cfdd57cfd9ce6be167b030d2fe387f6f035cd2e95e99feff3839229a7f1f0",
+    "terminal/e2e/proof/mo-context-strip/desktop-reopen-thesis-820.png": "3808ac5bfb20a5339544d9d4c757ec2c113ae8367490b2c7d1b6319354cd087b"
+  },
+  "adjudication": "Parent viewed all six original PNGs: settled EN/ZH interface, confirmed same-company context and exact return link visible; 390 actions wrap without overflow; desktop/tablet hierarchy retained. Existing shared styles only.",
+  "scope": "Actual local fixture browser captures. No production acceptance or natural exceptional race is claimed.",
+  "checks": [
+    "25 mounted J1 tests and 255 neighboring checks pass",
+    "Full typecheck passes",
+    "18 context browser cases pass before final departure guard; 4 affected cases including all six matrix cells and rapid history pass after it"
+  ],
+  "liveAcceptance": "Required after protected merge through existing release owner, using only the two archived MU records read-only."
+}
