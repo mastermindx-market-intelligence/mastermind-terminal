@@ -4,7 +4,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const { createHash } = require('node:crypto');
 const { FuturesEventAssembler } = require('../lib/futuresSource');
-const { aggregateFootprint, FLAGS } = require('../lib/futuresMbo');
+const { aggregateFootprint, projectDepthWindow, FLAGS } = require('../lib/futuresMbo');
 const hash = bytes => createHash('sha256').update(bytes).digest('hex');
 const key = (time, sequence) => `${time}:${sequence}`;
 const check = (ok, why) => { if (!ok) throw new Error(why); };
@@ -34,7 +34,7 @@ function compareBbo(view, expected) {
 }
 
 /** Two independent SOURCE SCHEMAS, not an independent exchange or counterparty. */
-function compareSamples(mbo, reference) {
+function compareSamples(mbo, reference, { retainEveryEventWindow = null } = {}) {
   check(mbo.receipt.sourceSchema === 'mbo' && reference.receipt.sourceSchema === 'mbp-1', 'sample_schemas');
   check(mbo.receipt.instruments.length === 1 && reference.receipt.instruments.length === 1 &&
     JSON.stringify(mbo.receipt.instruments) === JSON.stringify(reference.receipt.instruments), 'sample_identity_mismatch');
@@ -97,13 +97,14 @@ function compareSamples(mbo, reference) {
     const expected = groupComplete ? references.get(k) : null;
     // Preserve source-time depth views for the actual internal browser proof, but
     // bound samples to once per second plus reference comparisons. No public export.
-    const needsDepthSample = !samples.length || BigInt(row.availableAtNs) - BigInt(samples.at(-1).availableAtNs) >= 1000000000n;
+    const needsDepthSample = retainEveryEventWindow !== null || !samples.length || BigInt(row.availableAtNs) - BigInt(samples.at(-1).availableAtNs) >= 1000000000n;
     if (!expected && !needsDepthSample) continue;
     const view = assembler.view({ publisherId: binding.publisherId, instrumentId: binding.instrumentId,
       decisionTimeNs: row.availableAtNs, maxAgeNs: '1000000000', marketStatus: 'unknown' });
     if (firstSnapshotOrders === null && view.status === 'ok')
       firstSnapshotOrders = [...view.bids, ...view.asks].reduce((sum, l) => sum + l.orderCount, 0);
-    if (needsDepthSample) samples.push({ availableAtNs: row.availableAtNs, view });
+    if (needsDepthSample) samples.push({ availableAtNs: row.availableAtNs, view: retainEveryEventWindow === null ? view
+      : projectDepthWindow(view, retainEveryEventWindow.lowTick, retainEveryEventWindow.highTick) });
     if (!expected) continue;
     seen.add(k);
     compared++;

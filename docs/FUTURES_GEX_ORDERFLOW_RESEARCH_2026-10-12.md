@@ -188,6 +188,26 @@ Next useful phase is an honest actual-data development consumer using the same
 renderer, showing GEX unavailable rather than mixing synthetic exposure with real
 prices. Original PR #964 remains draft/unmerged; no review/production claim.
 
+## Resume continuation: actual historical browser proof
+
+The real ES sample now drives `/dev/futures-sample` through the same reusable
+renderer. Five retrospective replay cutoffs show 165/375/486/751/839 contracts;
+actual depth integrates every one of 8,070 completed events in a declared initial
+price window. Missing historical SPX gamma stays unavailable. No synthetic GEX is
+mixed with actual historical prices. The route is production-disabled before file
+reads, the private view is hash-bound, and deployment tracing excludes sample files.
+
+Evidence: `docs/evidence/futures-real-browser-20261012/`: 6/6 real-source browser
+cases; 144 focused Terminal tests; 524 full Hub tests; full typecheck/scoped lint pass.
+Nine real-price images remain private locally with hashes in evidence. Prior synthetic
+ES/NQ GEX browser evidence remains separate and is not relabeled as real-market proof.
+
+Next independently useful source validation: the same public landing page also
+advertises a CME MBP-10 sample. A bounded prefix can compare the reconstructed top
+TEN bid/ask price levels rather than only BBO. Do not download the full 1.5GB file or
+publish raw rows; preserve the same private/research-only boundaries. This remains
+source validation, not procurement, market-data rights or production admission.
+
 ## Source register
 
 All public sources below were inspected through official pages in this research pass. Publisher claims remain claims; no authenticated QuantData runtime teardown or vendor negotiation was performed.

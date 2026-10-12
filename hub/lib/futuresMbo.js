@@ -259,7 +259,10 @@ function buildLiquidityTiles(samples, options) {
         const v = sample.view;
         requireThat(v.contract === options.contract && v.sessionId === options.sessionId &&
           v.publisherId === options.publisherId && v.instrumentId === options.instrumentId &&
-          v.coverage === 'full_order_book' && v.liquidityScope === 'displayed_orders_excludes_implied' && v.availableAtNs === sample.availableAtNs &&
+          (v.coverage === 'full_order_book' || (v.coverage === 'displayed_price_window' &&
+            Number.isSafeInteger(v.coveredLowTick) && Number.isSafeInteger(v.coveredHighTick) &&
+            v.coveredLowTick <= lo && v.coveredHighTick >= hi)) &&
+          v.liquidityScope === 'displayed_orders_excludes_implied' && v.availableAtNs === sample.availableAtNs &&
           Array.isArray(v.bids) && Array.isArray(v.asks), 'sample_identity_or_coverage');
         requireThat(exactUInt(v.receiveTimeNs, 'invalid_receive_clock') <= at, 'invalid_receive_clock');
         for (const side of [v.bids, v.asks]) {
@@ -312,3 +315,18 @@ function buildLiquidityTiles(samples, options) {
   } catch (error) { return { status: 'unavailable', reason: error instanceof Error ? error.message : 'invalid_input' }; }
 }
 module.exports.buildLiquidityTiles = buildLiquidityTiles;
+
+/** Transport-size reduction with an explicit price-coverage boundary. Never invents depth. */
+function projectDepthWindow(view, lowTick, highTick) {
+  try {
+    requireThat(object(view) && Number.isSafeInteger(lowTick) && lowTick > 0 &&
+      Number.isSafeInteger(highTick) && highTick >= lowTick && highTick - lowTick < 2048, 'invalid_price_window');
+    if (view.status !== 'ok') return { ...view };
+    requireThat(view.coverage === 'full_order_book' || (view.coverage === 'displayed_price_window' &&
+      view.coveredLowTick <= lowTick && view.coveredHighTick >= highTick), 'uncovered_price_window');
+    return { ...view, coverage: 'displayed_price_window', coveredLowTick: lowTick, coveredHighTick: highTick,
+      bids: view.bids.filter(l => l.priceTicks >= lowTick && l.priceTicks <= highTick),
+      asks: view.asks.filter(l => l.priceTicks >= lowTick && l.priceTicks <= highTick) };
+  } catch (error) { return { status: 'unavailable', reason: error.message }; }
+}
+module.exports.projectDepthWindow = projectDepthWindow;
