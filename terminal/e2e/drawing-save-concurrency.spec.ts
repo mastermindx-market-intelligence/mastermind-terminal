@@ -177,6 +177,26 @@ test("selecting another copy then using cloud discards that copy without an inte
  expect(await page.evaluate(()=>localStorage.getItem("mm.drawing.account-outbox.v2"))).toBeNull();
 });
 
+test("owner_conflict keeps the local copy and does not offer replace",async({page})=>{
+ await seed(page,{drawings:[line("kept-local")],revision:null});
+ let puts=0;
+ await page.route("**/api/drawings**",async(route)=>{
+  if(route.request().method()==="GET"){await route.fulfill(json({drawings:[],revision:null,schemaVersion:1}));return;}
+  puts++;
+  await route.fulfill({status:409,contentType:"application/json",body:JSON.stringify({ok:false,code:"owner_conflict"})});
+ });
+ await open(page);
+ const recovery=page.getByTestId("drawing-save-recovery");
+ await expect(recovery).toBeVisible({timeout:20_000});
+ await expect(recovery).toContainText("different account",{timeout:20_000});
+ await expect(recovery).toContainText("kept on this device");
+ await expect(recovery.getByRole("button",{name:"Replace cloud with local copy",exact:true})).toHaveCount(0);
+ await expect(recovery.getByRole("button",{name:"Use cloud copy",exact:true})).toHaveCount(0);
+ const stored=async()=>Object.values(JSON.parse(await page.evaluate(()=>localStorage.getItem("mm.drawing.account-outbox.v2"))??"{}")["account:responsive@example.com"]?.NVDA?.copies??{}) as {blocked?:string;conflictCode?:string;drawings:{id:string}[]}[];
+ await expect.poll(async()=>(await stored()).map((copy)=>[copy.drawings[0]?.id,copy.blocked,copy.conflictCode]),{timeout:20_000}).toEqual([["kept-local","conflict","owner_conflict"]]);
+ expect(puts).toBeGreaterThan(0);
+});
+
 test("unavailable durable serialization warns to keep the tab open and never starts a save",async({page})=>{
  await page.addInitScript(()=>Object.defineProperty(navigator,"locks",{value:undefined,configurable:true}));
  await seed(page,{drawings:[line("memory-only")],revision:null});let puts=0;

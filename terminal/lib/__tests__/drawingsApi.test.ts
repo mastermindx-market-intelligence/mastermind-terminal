@@ -5,6 +5,7 @@ vi.mock("@/lib/supabase/server",()=>({createClient:async()=>db}));
 vi.mock("next/headers",()=>({cookies:async()=>({get:(name:string)=>jar.has(name)?{name,value:jar.get(name)}:undefined})}));
 import { GET, PUT } from "@/app/api/drawings/route";
 import { parseDrawingSaveReceipt, parseDrawingSnapshot } from "@/lib/drawingPersistence";
+import { MAX_DRAWING_PAYLOAD_BYTES } from "@/lib/drawings";
 import { GUEST_COOKIE } from "@/lib/layoutsFixtureDb";
 const operationId="11111111-1111-4111-8111-111111111111";
 const revision="22222222-2222-4222-8222-222222222222";
@@ -57,6 +58,53 @@ describe("transactional drawing API",()=>{
   for(const result of [{data:null,error:{code:"PGRST202"}},{data:{ok:true},error:null}]){
    db.rpc.mockResolvedValue(result);expect((await PUT(request({symbol:"NVDA",drawings:[],expectedRevision:null,operationId}))).status).toBe(503);
   }
+ });
+ it("passes operationUnknownPossible through on a revision conflict",async()=>{
+  db.rpc.mockResolvedValue({data:{ok:false,code:"revision_conflict",operationUnknownPossible:true},error:null});
+  const response=await PUT(request({symbol:"NVDA",drawings:[],expectedRevision:revision,operationId}));
+  expect(response.status).toBe(409);
+  expect(await response.json()).toEqual({ok:false,code:"revision_conflict",operationUnknownPossible:true});
+ });
+ it("does not invent operationUnknownPossible when the RPC omitted it",async()=>{
+  db.rpc.mockResolvedValue({data:{ok:false,code:"revision_conflict"},error:null});
+  expect(await (await PUT(request({symbol:"NVDA",drawings:[],expectedRevision:revision,operationId}))).json())
+   .toEqual({ok:false,code:"revision_conflict"});
+ });
+ it("returns operation_payload_mismatch as its own 409 code",async()=>{
+  db.rpc.mockResolvedValue({data:{ok:false,code:"operation_payload_mismatch"},error:null});
+  const response=await PUT(request({symbol:"NVDA",drawings:[],expectedRevision:revision,operationId}));
+  expect(response.status).toBe(409);expect(await response.json()).toEqual({ok:false,code:"operation_payload_mismatch"});
+ });
+ it("rejects an advertised oversize drawing body before reading bytes",async()=>{
+  const response=await PUT(new Request("https://example.test/api/drawings",{
+   method:"PUT",headers:{"content-length":String(MAX_DRAWING_PAYLOAD_BYTES+1)},
+   body:JSON.stringify({ownerKey:"account:owner@example.com",symbol:"NVDA",drawings:[],expectedRevision:null,operationId}),
+  }));
+  expect(response.status).toBe(413);
+  expect(await response.json()).toEqual({ok:false,error:"Drawing payload is too large"});
+  expect(db.rpc).not.toHaveBeenCalled();
+ });
+ it("aborts a chunked oversize drawing body at the cap without buffering the rest",async()=>{
+  let pulled=0;const chunk=new Uint8Array(64*1024);
+  const body=new ReadableStream({
+   pull(controller){
+    pulled+=chunk.byteLength;controller.enqueue(chunk);
+    if(pulled>=MAX_DRAWING_PAYLOAD_BYTES+chunk.byteLength*4)controller.close();
+   }
+  });
+  const response=await PUT(new Request("https://example.test/api/drawings",{method:"PUT",body,duplex:"half"} as RequestInit));
+  expect(response.status).toBe(413);
+  expect(await response.json()).toEqual({ok:false,error:"Drawing payload is too large"});
+  expect(pulled).toBeGreaterThan(MAX_DRAWING_PAYLOAD_BYTES);
+  expect(pulled).toBeLessThan(MAX_DRAWING_PAYLOAD_BYTES+chunk.byteLength*3);
+  expect(db.rpc).not.toHaveBeenCalled();
+ });
+ it("keeps auth before the size cap for an anonymous oversize body",async()=>{
+  db.auth.getUser.mockResolvedValue({data:{user:null}});
+  const response=await PUT(new Request("https://example.test/api/drawings",{
+   method:"PUT",headers:{"content-length":String(MAX_DRAWING_PAYLOAD_BYTES+1)},body:"{}",
+  }));
+  expect(response.status).toBe(401);expect(db.rpc).not.toHaveBeenCalled();
  });
  it("rejects a cookie-account change before either read or write reaches storage",async()=>{
   expect((await PUT(request({ownerKey:"account:other@example.com",symbol:"NVDA",drawings:[],expectedRevision:null,operationId}))).status).toBe(409);
