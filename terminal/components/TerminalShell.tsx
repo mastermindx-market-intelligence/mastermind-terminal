@@ -2683,10 +2683,17 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
     }
     prevPaneSyms.current = now;
   }, [panes, flushDrawings, drawingAccount, drawingLoadRetryVersion, currentDrawingOwnerKey, persistDrawingRecovery]);
-  useEffect(() => () => {
-    for (const timer of Object.values(drawLoadRetryTimers.current)) clearTimeout(timer);
-    for (const sym of Object.keys(drawPending.current)) flushDrawingsRef.current(sym);
-    if (drawingLimitTimer.current !== null) clearTimeout(drawingLimitTimer.current);
+  useEffect(() => {
+    const persistPendingDrawings = () => {
+      for (const timer of Object.values(drawLoadRetryTimers.current)) clearTimeout(timer);
+      for (const sym of Object.keys(drawPending.current)) flushDrawingsRef.current(sym);
+      if (drawingLimitTimer.current !== null) clearTimeout(drawingLimitTimer.current);
+    };
+    window.addEventListener("pagehide", persistPendingDrawings);
+    return () => {
+      window.removeEventListener("pagehide", persistPendingDrawings);
+      persistPendingDrawings();
+    };
   }, []);
 
   const resolveDrawingRecovery = useCallback(async (sym: string, choice: "cloud" | "local") => {
