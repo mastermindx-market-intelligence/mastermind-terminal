@@ -18,6 +18,10 @@ The top accent now behaves like light caught in the original panel's bevel: a cr
 
 The focused browser suite exercises unchanged navigation and dimensions, rim geometry, actual animation sampling, reduced motion and original close-button access across all three canonical viewports. Existing source-bound settings evidence packs are recaptured by their incumbent tools; no hash-only visual acceptance.
 
+## Verified R3
+
+Full unit suite: **553 files / 9,108 tests passed**, four existing todos. The five browser contracts passed in **Chromium and WebKit**, across desktop/tablet/mobile (**30 passes total**). TypeScript, changed-spec lint and local production build passed. Five original capture tools refreshed 56 source-bound images; all evidence-lock tests passed in the full suite. `r3-css-scope-proof.json` verifies 210 non-accent selectors/declarations unchanged. `r3-verification.json` records the exact rendered source, results and a resolved local fixture-capture failure without claiming live acceptance.
+
 ## Review / release
 
 Prior Paper R1 and R2 artboards are labeled REJECTED. This page is the current candidate, not presumed Chairman aesthetic acceptance. PR #943 remains Draft + hold with no auto-merge. No production deployment occurred.

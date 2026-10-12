@@ -3,9 +3,9 @@
 # Seat ruling 2026-09-13: honest link-only. No mail provider is provisioned by this lane.
 # layoutFiles carry sha256 hashes of the files they name; proof of which code generated each crop.
 # Rebuild any crop and recompute its layoutFiles, or the evidence lock will fail and the PR will not land.
-# capturedAtHead: 3aefdd08bc2bc774e2981f0b5cd0648b2503b45f
-capturedAtHead: 3aefdd08bc2bc774e2981f0b5cd0648b2503b45f
-capturedAt: 2026-10-11T23:23:28.702Z
+# capturedAtHead: bffa04d428d29ff225958899050bc40753c61954
+capturedAtHead: bffa04d428d29ff225958899050bc40753c61954
+capturedAt: 2026-10-12T00:38:26.434Z
 layoutFiles:
   terminal/components/settings/SectionTeam.tsx: "00f61441215f0cdb8c6b40536e66e243d0ae83ffa54d6f19ae8a67dd99d7a79d"
   terminal/components/settings/SectionTeam.module.css: "069056ff7ac4274a57ae9a835a0fdda178e9625a591b4374e855b9d41a3fd5bc"
@@ -15,7 +15,7 @@ layoutFiles:
   terminal/app/invite/page.tsx: "1e9e766f3551978a9e0e7f4f4fdace0db07fbd4661e45426576d180d8db94716"
   terminal/app/invite/InviteAccept.tsx: "4730e81646141530d0a7481d4ee9a6483167a582115983bcb280a02636d1d363"
   terminal/app/invite/invite.module.css: "98c9c1c76ac7c5a78dafee6968c0265aa315a7238359a725f806e65d82774aae"
-  terminal/app/settings.css: "71096c63198e8efb75340307b0367efcbdcaf3db3b14df357a8d95f6b523be61"
+  terminal/app/settings.css: "2a15b7704f1c6ec62671ec84723063dcce367c7998bbea56e04b50c9bda2252c"
 theme: dark
 languages: [en, zh]
 viewports:
