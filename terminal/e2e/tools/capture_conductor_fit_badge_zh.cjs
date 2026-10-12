@@ -26,7 +26,7 @@ const { spawn, execFileSync } = require("node:child_process");
 const { createHash } = require("node:crypto");
 const { mkdirSync, readFileSync, writeFileSync } = require("node:fs");
 const { join } = require("node:path");
-const { chromium } = require("@playwright/test");
+const { chromium, expect } = require("@playwright/test");
 
 const ROOT = join(__dirname, "..", "..");
 const REPO = join(ROOT, "..");
@@ -190,10 +190,16 @@ function chipProblems(lang, chip) {
 async function captureRail(page, lang, outPath) {
   await page.goto(`${BASE}/dev/theater`, { waitUntil: "domcontentloaded", timeout: 90_000 });
   await ensureLang(page, lang);
-  await page.waitForTimeout(400);
   const play = page.getByRole("button", { name: /Play demo|Playing/ });
   await play.waitFor({ state: "visible", timeout: 20_000 });
-  await play.click();
+  // SSR exposes the button before its handler hydrates. A click can be lost
+  // while the theater remains idle; wait for real conductor feedback, retrying
+  // only that idle state so an already-running demo is never restarted.
+  await expect.poll(async () => {
+    if (await page.locator(".cmx-plate.show").isVisible()) return true;
+    if (await play.isEnabled() && (await play.textContent())?.includes("Play demo")) await play.click();
+    return page.locator(".cmx-plate.show").isVisible();
+  }, { timeout: 20_000, intervals: [200, 400, 600] }).toBe(true);
   await page.waitForFunction(() => {
     const el = document.querySelector(".cmx-plate.show");
     return !!el && getComputedStyle(el).opacity === "1";
