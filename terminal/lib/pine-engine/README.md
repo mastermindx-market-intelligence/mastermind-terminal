@@ -114,6 +114,8 @@ A `request.security(sym, tf, expr, …)` call to a **coarser** `tf` than the cha
    — and its value is recorded per HTF bar;
 3. each chart bar shows the recorded value of the HTF bar it may see. The chart pass never
    evaluates the expression itself, so chart-bar state cannot leak into the requested context.
+   `time` inside the requested expression is the HTF period's opening session; `time_close` is
+   its last session.
 
 Admitted contexts — each has an explicit grouping and confirmation rule:
 

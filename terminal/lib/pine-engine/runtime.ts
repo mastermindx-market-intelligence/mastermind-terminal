@@ -62,7 +62,7 @@ import { PineSyntaxError } from "./lexer";
 import { NA, NS_CONST, toCss, fmtNum, tfSeconds } from "./builtins";
 import { groupSessionBars, parseSessionAnchor } from "../sessionBars";
 
-export interface Bar { time: string; o: number; h: number; l: number; c: number; v: number; }
+export interface Bar { time: string; o: number; h: number; l: number; c: number; v: number; timeClose?: string }
 
 // Thrown when a script blows the global run budget (wall-clock or total loop iterations).
 // runPine() in index.ts catches it like any runtime error → errors[], so a runaway script
@@ -115,7 +115,8 @@ function builtinSeriesAt(name: string, B: Bar[], NB: number, j: number): any {
     case "close": return b.c; case "open": return b.o; case "high": return b.h; case "low": return b.l; case "volume": return b.v;
     case "hl2": return (b.h + b.l) / 2; case "hlc3": return (b.h + b.l + b.c) / 3; case "ohlc4": return (b.o + b.h + b.l + b.c) / 4;
     case "hlcc4": return (b.h + b.l + b.c + b.c) / 4; case "bar_index": return j; case "last_bar_index": return NB - 1;
-    case "time": case "time_close": return Date.parse(b.time + "T00:00:00Z");
+    case "time": return Date.parse(b.time + "T00:00:00Z");
+    case "time_close": return Date.parse((b.timeClose ?? b.time) + "T00:00:00Z");
     default: return undefined;
   }
 }
@@ -188,7 +189,8 @@ function resampleBars(src: Bar[], plan: HtfPlan): { bars: Bar[]; groupOf: number
       confirmChartIdx.push(((to + a) % m + m) % m === 0 ? to : -1);
       return { o: src[from].o, h, l, c: src[to].c, v };
     });
-    return { bars: grouped.map(({ time, o, h, l, c, v }) => ({ time, o, h, l, c, v })), groupOf, confirmChartIdx };
+    // Session bars are already open-keyed (`time`) with `closeTime` as the last session.
+    return { bars: grouped.map(({ time, o, h, l, c, v, closeTime }) => ({ time, o, h, l, c, v, timeClose: closeTime })), groupOf, confirmChartIdx };
   }
   const out: Bar[] = [];
   let cur: Bar | null = null; let key: string | null = null; let gi = -1;
@@ -201,10 +203,14 @@ function resampleBars(src: Bar[], plan: HtfPlan): { bars: Bar[]; groupOf: number
         // A session of a later period exists → the previous period's membership is complete.
         confirmChartIdx[gi] = groupLast;
       }
-      key = k; gi++; cur = { ...r };
+      key = k; gi++; cur = { ...r, timeClose: r.time };
       confirmChartIdx[gi] = -1; // not confirmed until a later period appears
     } else {
-      cur!.h = Math.max(cur!.h, r.h); cur!.l = Math.min(cur!.l, r.l); cur!.c = r.c; cur!.time = r.time; cur!.v += r.v;
+      // Keep `time` as the period OPEN (Pine `time` inside request.security). The last
+      // session is `timeClose` (Pine `time_close`). Overwriting `time` here used to
+      // report the confirming session as `time`.
+      cur!.h = Math.max(cur!.h, r.h); cur!.l = Math.min(cur!.l, r.l); cur!.c = r.c; cur!.v += r.v;
+      cur!.timeClose = r.time;
     }
     groupLast = i;
     groupOf[i] = gi;

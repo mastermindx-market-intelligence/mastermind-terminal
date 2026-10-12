@@ -51,6 +51,43 @@ describe("historical default HTF knowledge", () => {
   });
 });
 
+describe("request.security time is the HTF period open", () => {
+  it("weekly time is the Monday open, not the confirming Friday", () => {
+    // TradingView: `time` inside request.security is the opening time of the HTF bar.
+    // The engine used the last session of the period (the chart-bar identity of a
+    // last-keyed calendar bucket) which is time_close, not time.
+    const closed = barsOn([...dates, "2025-01-20"]);
+    const t = values(closed, "time");
+    const monday = Date.parse("2025-01-06T00:00:00Z");
+    const friday = Date.parse("2025-01-10T00:00:00Z");
+    expect(t[4]).toBe(monday);
+    expect(t[4]).not.toBe(friday);
+    expect(t.slice(5, 9).every((v) => v === monday)).toBe(true); // lookahead_off carries W1 through Thu
+    expect(t[9]).toBe(Date.parse("2025-01-13T00:00:00Z"));       // W2 open, published at Friday
+    const tc = values(closed, "time_close");
+    expect(tc[4]).toBe(friday);
+  });
+
+  it("monthly time is the first session of the month, not the last", () => {
+    const days = ["2025-01-02", "2025-01-15", "2025-01-31", "2025-02-03", "2025-02-28", "2025-03-03"];
+    const bars = barsOn(days);
+    const out = runPine(`//@version=6
+indicator("htf time")
+plot(request.security(syminfo.tickerid, "M", time), "t")
+plot(request.security(syminfo.tickerid, "M", time_close), "c")
+`, bars, { timeframe: "1D", symbol: "TEST" });
+    expect(out.ok, JSON.stringify(out.errors)).toBe(true);
+    const t = out.result!.plots.find((p) => p.title === "t")!.data.map((p) => p.value);
+    const c = out.result!.plots.find((p) => p.title === "c")!.data.map((p) => p.value);
+    const janOpen = Date.parse("2025-01-02T00:00:00Z");
+    const janClose = Date.parse("2025-01-31T00:00:00Z");
+    // February's first session (index 3) confirms January.
+    expect(t[3]).toBe(janOpen);
+    expect(t[3]).not.toBe(janClose);
+    expect(c[3]).toBe(janClose);
+  });
+});
+
 describe("named weekly lookahead/gaps witnesses", () => {
   it("explicit lookahead_off + gaps_off matches omitted-default publication", () => {
     const extra = "gaps=barmerge.gaps_off, lookahead=barmerge.lookahead_off";
