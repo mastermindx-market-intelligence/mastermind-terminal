@@ -523,4 +523,84 @@ describe("useTickerNewsFeed races", () => {
     expect(writesAfterUnmount).toBe(writesAfterMount);
     expect(FakeEventSource.instances).toHaveLength(0);
   });
+
+  it("ready then SSE restricted clears the snapshot and does not open a new EventSource", async () => {
+    const fetchMock = vi.fn(() => response(snapshot("NVDA", [row("ev2_a", "Headline")])));
+    globalThis.fetch = fetchMock as unknown as typeof globalThis.fetch;
+
+    await act(async () => {
+      root.render(<FeedProbe symbol="NVDA" />);
+    });
+    expect(readFeed().loadState).toBe("ready");
+    expect(readFeed().hasSnapshot).toBe("yes");
+    expect(readFeed().title).toBe("Headline");
+    const stream = FakeEventSource.instances[0];
+    expect(stream).toBeTruthy();
+    expect(FakeEventSource.instances).toHaveLength(1);
+
+    await settle(() => {
+      stream.emit("restricted", { state: "restricted" });
+    });
+
+    expect(readFeed().hasSnapshot).toBe("no");
+    expect(readFeed().loadState).toBe("restricted");
+    expect(readFeed().title).toBe("");
+    expect(readFeed().ticker).toBe("");
+    expect(stream.closed).toBe(true);
+    expect(FakeEventSource.instances).toHaveLength(1);
+
+    await act(async () => {
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+    expect(FakeEventSource.instances).toHaveLength(1);
+    expect(stream.closed).toBe(true);
+    expect(readFeed().hasSnapshot).toBe("no");
+    expect(readFeed().loadState).toBe("restricted");
+  });
+
+  it("in-flight refresh resolved after SSE restricted does not restore rows", async () => {
+    const refresh = defer();
+    let calls = 0;
+    globalThis.fetch = vi.fn(() => {
+      calls += 1;
+      if (calls === 1) return response(snapshot("NVDA", [row("ev2_a", "Initial headline", 1)]));
+      return refresh.promise;
+    }) as unknown as typeof globalThis.fetch;
+
+    await act(async () => {
+      root.render(<FeedProbe symbol="NVDA" />);
+    });
+    expect(readFeed().title).toBe("Initial headline");
+    expect(readFeed().loadState).toBe("ready");
+    expect(readFeed().hasSnapshot).toBe("yes");
+    const stream = FakeEventSource.instances[0];
+    expect(stream).toBeTruthy();
+
+    await settle(() => {
+      stream.emit("upsert", changePayload(2, "ev2_b", "Incoming"));
+    });
+    expect(calls).toBe(2);
+    expect(readFeed().title).toBe("Initial headline");
+    expect(readFeed().loadState).toBe("ready");
+
+    await settle(() => {
+      stream.emit("restricted", { state: "restricted" });
+    });
+    expect(stream.closed).toBe(true);
+
+    await act(async () => {
+      refresh.resolve(jsonResponse(snapshot("NVDA", [row("ev2_b", "Stale republish", 2)])));
+      await refresh.promise;
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+
+    expect(readFeed().hasSnapshot).toBe("no");
+    expect(readFeed().loadState).toBe("restricted");
+    expect(readFeed().title).toBe("");
+    expect(readFeed().ticker).toBe("");
+    expect(readFeed().title).not.toContain("Stale republish");
+    expect(FakeEventSource.instances).toHaveLength(1);
+  });
 });

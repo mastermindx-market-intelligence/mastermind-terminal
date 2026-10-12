@@ -139,7 +139,10 @@ export function useTickerNewsFeed(symbol: string) {
       events.addEventListener("remove", refreshFromChange);
       events.addEventListener("restricted", () => {
         if (!alive || generation.current !== currentGeneration) return;
+        // A rights revocation invalidates every refresh already in flight.
+        requestSerial += 1;
         streamClosed = true;
+        setSnapshot(null);
         setLoadState({ symbol, state: "restricted" });
         events?.close();
       });
