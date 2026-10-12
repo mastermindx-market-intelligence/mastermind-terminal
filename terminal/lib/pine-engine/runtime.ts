@@ -444,7 +444,20 @@ export function run(source: string | ParseResult, bars: Bar[], opts: { timeframe
     function evalMember(n: Extract<Node, { t: "member" }>, ctx: Ctx): any {
       if (n.obj.t === "id") {
         const ns = n.obj.name, prop = n.prop;
-        if (ns === "timeframe") { const tf = chartTf; if (prop === "period") return tf; if (prop === "multiplier") return parseInt(tf) || 1; if (prop === "isdaily") return /D$/.test(tf); if (prop === "isweekly") return /W$/.test(tf); if (prop === "ismonthly") return /M$/.test(tf); if (prop === "isintraday") return tfSeconds(tf) < 86400; return NA; }
+        if (ns === "timeframe") {
+          // All flags derive from the SAME parsed tfParts as `in_seconds`, so "w" is weekly,
+          // "d" is daily, and an unparseable chart TF reads as NA in every flag (no 1D guess).
+          const tf = chartTf;
+          if (prop === "period") return tf;
+          if (prop === "multiplier") return parseInt(tf) || 1;
+          const p = tfParts(tf);
+          if (!p) return NA;
+          if (prop === "isdaily") return p.unit === "D";
+          if (prop === "isweekly") return p.unit === "W";
+          if (prop === "ismonthly") return p.unit === "M";
+          if (prop === "isintraday") return p.unit === "" || p.unit === "MIN" || p.unit === "m" || p.unit === "S" || p.unit === "H";
+          return NA;
+        }
         if (ns === "barstate") { if (prop === "islast" || prop === "islastconfirmedhistory") return ctx.i === N - 1; if (prop === "isfirst") return ctx.i === 0; if (prop === "ishistory") return ctx.i < N - 1; if (prop === "isrealtime") return false; if (prop === "isnew" || prop === "isconfirmed") return true; return false; }
         // Unknown members return na (not ""). An empty-string stub here would be accepted by
         // request.security as current-context and silently substitute chart bars.
