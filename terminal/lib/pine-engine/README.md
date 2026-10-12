@@ -130,10 +130,13 @@ Admitted contexts — each has an explicit grouping and confirmation rule:
 The `nD` grid is phased by `RunOpts.sessionAnchor`, the symbol's published `session_anchor`
 (`{ v, date, index, basis }`, see `lib/sessionBars`): the anchor's session is located in the chart
 rows and gives row 0's global session index, the same way `ChartPanel.resampleTf` builds the
-chart's own `nD` bars. Without an anchor, or when its session is not among the loaded rows or it is
-malformed, the grid falls back to the canonical owner's feed phase (the first loaded session) and
-every run that uses it says which of those happened in a warning — the group boundaries can then
-differ from the chart's own `nD` bars. ChartPanel does not pass the anchor yet.
+chart's own `nD` bars. ChartPanel parses the OHLC document's `session_anchor` with
+`parseSessionAnchor` into `sessionAnchorRef`, and passes `sessionAnchor: sessionAnchorRef.current`
+into every Pine run: the worker-backed `host.run` and the ORACLE_V1 `runPine` fallback. Without an
+anchor, or when its session is not among the loaded rows or it is malformed, the grid falls back to
+the canonical owner's feed phase (the first loaded session) and every run that uses it says which
+of those happened in a warning — the group boundaries can then differ from the chart's own `nD`
+bars.
 
 Publication (historical bars, `isrealtime=false`): default `lookahead_off` shows a period's value
 from its confirming session on and carries the previous confirmed value before that (`gaps_off`);
