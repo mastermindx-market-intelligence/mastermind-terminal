@@ -241,8 +241,13 @@ jobs:
             projects: "--project=desktop --shard=1/2"
           - shard: desktop-2
             projects: "--project=desktop --shard=2/2"
-          - shard: tablet
-            projects: "--project=tablet"
+          # Run 38184699337: tablet passed all selected tests in 58.7 min, then
+          # hit the 60-min job cap during cache cleanup. Split the same project
+          # without raising the hang limit or dropping its evidence.
+          - shard: tablet-1
+            projects: "--project=tablet --shard=1/2"
+          - shard: tablet-2
+            projects: "--project=tablet --shard=2/2"
           - shard: mobile
             projects: "--project=mobile"
           # The company-intelligence chain uses Playwright `dependencies`

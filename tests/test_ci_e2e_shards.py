@@ -17,6 +17,7 @@ from copy import deepcopy
 from pathlib import Path
 from typing import Any
 
+import pytest
 import yaml
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -120,15 +121,16 @@ def test_every_playwright_project_runs_exactly_once_across_the_e2e_matrix():
     assert matrix_coverage_errors(e2e_matrix(ci_workflow()), playwright_projects()) == []
 
 
-def test_desktop_is_split_so_no_single_job_carries_the_whole_project():
-    desktop = [
+@pytest.mark.parametrize("project", ["desktop", "tablet"])
+def test_slow_projects_are_split_so_no_single_job_carries_the_whole_project(project):
+    shards = [
         item for item in e2e_matrix(ci_workflow())
-        if "--project=desktop" in str(item["projects"]).split()
+        if f"--project={project}" in str(item["projects"]).split()
     ]
-    assert len(desktop) >= 2
+    assert len(shards) >= 2
     assert all(
         any(SHARD_FLAG.match(token) for token in str(item["projects"]).split())
-        for item in desktop
+        for item in shards
     )
 
 
@@ -152,8 +154,9 @@ def mutated() -> list[dict[str, Any]]:
     return deepcopy(e2e_matrix(ci_workflow()))
 
 
-def test_a_missing_desktop_half_is_reported():
-    include = [item for item in mutated() if item["shard"] != "desktop-2"]
+@pytest.mark.parametrize("project", ["desktop", "tablet"])
+def test_a_missing_half_is_reported(project):
+    include = [item for item in mutated() if item["shard"] != f"{project}-2"]
     errors = matrix_coverage_errors(include, playwright_projects())
     assert any("do not cover 1..2" in error for error in errors), errors
 
