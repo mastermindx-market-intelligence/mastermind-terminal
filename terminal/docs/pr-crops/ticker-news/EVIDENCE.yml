@@ -1,17 +1,17 @@
-capturedAtHead: 1bfb1c7f4b08d9d375eec15be88467d645ec8f6c
+capturedAtHead: d9acb6709751f5964c2cb2b9a9ca6e0dd01b3d3a
 layoutFiles:
   - path: terminal/components/news/TickerNewsPanel.tsx
     sha256: e176e7e3f1a4f1875ce80b779e25defee1b270ef5044262806e67c8696b9d753
   - path: terminal/components/news/TickerNewsPanel.module.css
     sha256: 57464a037b904a52c01c16cbcb0484fde288de0354d98b59901738c1a2f3bbac
   - path: terminal/components/TerminalShell.tsx
-    sha256: 359b860dae8a81337be72dc3a051815676df7a2d31c3f63636d5749204c7d36c
+    sha256: a9d6e179a7c5b83691d66c086c3c9bb843df13fc4ae2f066d0e2eae4a77ca307
 crops:
   - file: desktop-en-dark.png
     viewport: 1440x900
     lang: en
     state: live-feed
-    sha256: db8c91c90b39e402bdc7cd13864d049934a298e4f0ed4fa72a13573ea298cec0
+    sha256: 98fcf26658fb6bcd65acc72575e831a0fd11e947643356d1418bfbac6180ffda
   - file: desktop-zh-dark.png
     viewport: 1440x900
     lang: zh
@@ -26,7 +26,7 @@ crops:
     viewport: 820x1180
     lang: zh
     state: live-feed
-    sha256: 10c5651c984069b0aeb26cfe50aeef73293ecfaad7c8d3ec97d74ea6c46235fd
+    sha256: 5f957a7eeeaa9995c8dc203ea1f483723a499710e58b74e5c3ffecdbb537442c
   - file: mobile-en-dark.png
     viewport: 390x844
     lang: en
@@ -41,7 +41,7 @@ crops:
     viewport: 1440x900
     lang: en
     state: unavailable
-    sha256: f39f4430fbeba27daf8eb7251be624bd94bbb3c44cbf70cd967d6684573b7040
+    sha256: a1e4b7a8b6a4473b410948afcaa657413c031032fc2ec7e4a29a7b347e9119a3
   - file: unavailable-desktop-zh-dark.png
     viewport: 1440x900
     lang: zh
