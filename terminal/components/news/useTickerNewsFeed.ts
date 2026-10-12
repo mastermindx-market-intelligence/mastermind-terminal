@@ -26,7 +26,14 @@ export function useTickerNewsFeed(symbol: string) {
     expectedGeneration: number,
     controller: AbortController,
     background: boolean,
+    isLatest: () => boolean,
+    clearInterruptedOnSuccess: boolean,
+    isStreamClosed: () => boolean,
   ): Promise<TickerNewsSnapshot | null> => {
+    const stale = () =>
+      controller.signal.aborted ||
+      generation.current !== expectedGeneration ||
+      !isLatest();
     try {
       const res = await fetch(`/api/news/${encodeURIComponent(symbol)}?limit=20`, {
         method: "GET",
@@ -34,7 +41,7 @@ export function useTickerNewsFeed(symbol: string) {
         signal: controller.signal,
         cache: "no-store",
       });
-      if (generation.current !== expectedGeneration) return null;
+      if (stale()) return null;
       if (!res.ok) {
         let detail = "";
         try {
@@ -43,28 +50,43 @@ export function useTickerNewsFeed(symbol: string) {
         } catch {
           detail = "";
         }
-        if (generation.current !== expectedGeneration) return null;
+        if (stale()) return null;
         const restricted =
           res.status === 401 ||
           res.status === 403 ||
           /rights|access|unauth/i.test(detail);
-        if (!background) setSnapshot(null);
-        setLoadState({ symbol, state: restricted ? "restricted" : "unavailable" });
+        if (restricted) {
+          setSnapshot(null);
+          setLoadState({ symbol, state: "restricted" });
+          return null;
+        }
+        if (background) {
+          setLiveInterrupted(true);
+          return null;
+        }
+        setSnapshot(null);
+        setLoadState({ symbol, state: "unavailable" });
         return null;
       }
       const parsed = parseTickerNewsSnapshot(await res.json());
-      if (
-        generation.current !== expectedGeneration ||
-        parsed.ticker !== symbol.toUpperCase()
-      ) {
+      if (stale()) return null;
+      if (parsed.ticker !== symbol.toUpperCase()) {
+        if (!background) {
+          setSnapshot(null);
+          setLoadState({ symbol, state: "unavailable" });
+        }
         return null;
       }
       setSnapshot(parsed);
       setLoadState({ symbol, state: "ready" });
-      if (!background) setLiveInterrupted(false);
+      if ((!background || clearInterruptedOnSuccess) && !isStreamClosed()) {
+        setLiveInterrupted(false);
+      }
       return parsed;
     } catch {
-      if (controller.signal.aborted || generation.current !== expectedGeneration) {
+      if (stale()) return null;
+      if (background) {
+        setLiveInterrupted(true);
         return null;
       }
       setLoadState({ symbol, state: "unavailable" });
@@ -78,6 +100,22 @@ export function useTickerNewsFeed(symbol: string) {
     const controller = new AbortController();
     let events: EventSource | null = null;
     let alive = true;
+    // Overlapping refreshes share one generation, so only the newest request may publish.
+    let requestSerial = 0;
+    let reconnectPending = false;
+    let streamClosed = false;
+
+    const issue = (background: boolean, clearInterruptedOnSuccess = false) => {
+      const requestId = ++requestSerial;
+      return loadSnapshot(
+        currentGeneration,
+        controller,
+        background,
+        () => alive && requestId === requestSerial,
+        clearInterruptedOnSuccess,
+        () => streamClosed,
+      );
+    };
 
     const refreshFromChange = async (event: Event) => {
       const message = event as MessageEvent;
@@ -86,12 +124,12 @@ export function useTickerNewsFeed(symbol: string) {
       } catch {
         return;
       }
-      if (!alive || generation.current !== currentGeneration) return;
-      await loadSnapshot(currentGeneration, controller, true);
+      if (!alive || streamClosed || generation.current !== currentGeneration) return;
+      await issue(true);
     };
 
     void (async () => {
-      const initial = await loadSnapshot(currentGeneration, controller, false);
+      const initial = await issue(false);
       if (!initial || !alive || generation.current !== currentGeneration) return;
       if (typeof EventSource === "undefined") return;
       events = new EventSource(
@@ -101,18 +139,26 @@ export function useTickerNewsFeed(symbol: string) {
       events.addEventListener("remove", refreshFromChange);
       events.addEventListener("restricted", () => {
         if (!alive || generation.current !== currentGeneration) return;
+        streamClosed = true;
         setLoadState({ symbol, state: "restricted" });
         events?.close();
       });
       events.addEventListener("unavailable", () => {
         if (!alive || generation.current !== currentGeneration) return;
+        streamClosed = true;
         setLiveInterrupted(true);
         events?.close();
       });
       events.onerror = () => {
-        if (alive && generation.current === currentGeneration) {
-          setLiveInterrupted(true);
-        }
+        if (!alive || generation.current !== currentGeneration || streamClosed) return;
+        reconnectPending = true;
+        setLiveInterrupted(true);
+      };
+      events.onopen = () => {
+        if (!alive || generation.current !== currentGeneration || streamClosed) return;
+        if (!reconnectPending) return;
+        reconnectPending = false;
+        void issue(true, true);
       };
     })();
 
