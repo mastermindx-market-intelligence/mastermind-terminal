@@ -23,20 +23,26 @@ const H = vi.hoisted(() => {
   interface FakePriceLine {
     __opts: unknown;
     applyOptions: Spy;
+    options: Spy;
   }
   interface FakeSeries {
     __def: unknown;
     __opts: unknown;
     __paneIndex: number;
+    __data: unknown[];
     setData: Spy;
     update: Spy;
     applyOptions: Spy;
+    options: Spy;
+    data: Spy;
+    dataByIndex: Spy;
     createPriceLine: Spy;
     removePriceLine: Spy;
     priceToCoordinate: Spy;
     coordinateToPrice: Spy;
     moveToPane: Spy;
     getPane: Spy;
+    priceScale: Spy;
     attachPrimitive: Spy;
     detachPrimitive: Spy;
     // Real LWC exposes priceLines() as a METHOD returning only the custom lines
@@ -58,12 +64,17 @@ const H = vi.hoisted(() => {
     getStretchFactor: Spy;
     setStretchFactor: Spy;
     getHTMLElement: Spy;
+    priceScale: Spy;
   }
   interface FakePriceScale {
     __id: string;
     __paneIndex: number | undefined;
     width: Spy;
     applyOptions: Spy;
+    options: Spy;
+    getVisibleRange: Spy;
+    setVisibleRange: Spy;
+    setAutoScale: Spy;
   }
   interface FakeMarkersPlugin {
     __series: FakeSeries;
@@ -87,6 +98,13 @@ const H = vi.hoisted(() => {
     scrollToPosition: Spy;
     applyOptions: Spy;
     fitContent: Spy;
+    getVisibleRange: Spy;
+    setVisibleRange: Spy;
+    logicalToCoordinate: Spy;
+    coordinateToLogical: Spy;
+    width: Spy;
+    timeToIndex: Spy;
+    options: Spy;
   }
   interface FakeChart {
     __opts: unknown;
@@ -107,6 +125,10 @@ const H = vi.hoisted(() => {
     paneSize: Spy;
     swapPanes: Spy;
     takeScreenshot: Spy;
+    chartElement: Spy;
+    options: Spy;
+    setCrosshairPosition: Spy;
+    clearCrosshairPosition: Spy;
     __ts: FakeTimeScale;
     __panes: FakePane[];
     __priceScales: FakePriceScale[];
@@ -136,6 +158,16 @@ const H = vi.hoisted(() => {
     getStretchFactor: vi.fn(() => index + 1),
     setStretchFactor: vi.fn(),
     getHTMLElement: vi.fn(() => ({ __paneEl: index }) as unknown),
+    priceScale: vi.fn((id: string): FakePriceScale => ({
+      __id: id,
+      __paneIndex: index,
+      width: vi.fn(() => 57),
+      applyOptions: vi.fn(),
+      options: vi.fn(() => ({ tickMarkDensity: 2, autoScale: true })),
+      getVisibleRange: vi.fn(() => ({ from: 1, to: 2 })),
+      setVisibleRange: vi.fn(),
+      setAutoScale: vi.fn(),
+    })),
     };
     return pane;
   };
@@ -146,10 +178,24 @@ const H = vi.hoisted(() => {
       __opts: opts,
       __paneIndex: paneIndex,
       __priceLines: [],
+      __data: [],
       priceLines: vi.fn(() => s.__priceLines),
-      setData: vi.fn(),
+      setData: vi.fn((rows: unknown[]) => { s.__data = rows; }),
       update: vi.fn(),
       applyOptions: vi.fn(),
+      options: vi.fn(() => s.__opts ?? {}),
+      data: vi.fn(() => s.__data),
+      dataByIndex: vi.fn((i: number) => (s.__data[i] ?? null) as unknown),
+      priceScale: vi.fn((): FakePriceScale => ({
+        __id: "right",
+        __paneIndex: s.__paneIndex,
+        width: vi.fn(() => 57),
+        applyOptions: vi.fn(),
+        options: vi.fn(() => ({ mode: 0, autoScale: true })),
+        getVisibleRange: vi.fn(() => ({ from: 10, to: 20 })),
+        setVisibleRange: vi.fn(),
+        setAutoScale: vi.fn(),
+      })),
       priceToCoordinate: vi.fn((p: number) => p * 2),
       coordinateToPrice: vi.fn((y: number) => y / 2),
       moveToPane: vi.fn((idx: number) => {
@@ -172,7 +218,11 @@ const H = vi.hoisted(() => {
       attachPrimitive: vi.fn(),
       detachPrimitive: vi.fn(),
       createPriceLine: vi.fn((o: unknown) => {
-        const pl: FakePriceLine = { __opts: o, applyOptions: vi.fn() };
+        const pl: FakePriceLine = {
+          __opts: o,
+          applyOptions: vi.fn(),
+          options: vi.fn(() => (typeof o === "object" && o ? o : { price: 0 })),
+        };
         s.__priceLines.push(pl);
         return pl;
       }),
@@ -195,6 +245,13 @@ const H = vi.hoisted(() => {
     scrollToPosition: vi.fn(),
     applyOptions: vi.fn(),
     fitContent: vi.fn(),
+    getVisibleRange: vi.fn(() => ({ from: 1_700_000_000, to: 1_700_086_400 })),
+    setVisibleRange: vi.fn(),
+    logicalToCoordinate: vi.fn((i: number) => i * 10),
+    coordinateToLogical: vi.fn((x: number) => x / 10),
+    width: vi.fn(() => 800),
+    timeToIndex: vi.fn(() => 4),
+    options: vi.fn(() => ({ borderColor: "#333", rightOffset: 12 })),
   });
 
   const createChart = vi.fn((_container: unknown, opts: unknown): FakeChart => {
@@ -234,13 +291,26 @@ const H = vi.hoisted(() => {
       remove: vi.fn(),
       __priceScales: [],
       priceScale: vi.fn((id: string, paneIndex?: number): FakePriceScale => {
-        const ps: FakePriceScale = { __id: id, __paneIndex: paneIndex, width: vi.fn(() => 57), applyOptions: vi.fn() };
+        const ps: FakePriceScale = {
+          __id: id,
+          __paneIndex: paneIndex,
+          width: vi.fn(() => 57),
+          applyOptions: vi.fn(),
+          options: vi.fn(() => ({ autoScale: true, scaleMargins: { top: 0.1, bottom: 0.1 } })),
+          getVisibleRange: vi.fn(() => ({ from: 10, to: 20 })),
+          setVisibleRange: vi.fn(),
+          setAutoScale: vi.fn(),
+        };
         chart.__priceScales.push(ps);
         return ps;
       }),
       paneSize: vi.fn((paneIndex?: number) => ({ width: 800, height: 400 + (paneIndex ?? 0) })),
       swapPanes: vi.fn(),
       takeScreenshot: vi.fn(() => ({ __canvas: true }) as unknown),
+      chartElement: vi.fn(() => ({ __chartEl: true }) as unknown),
+      options: vi.fn(() => ({ layout: { fontSize: 12 } })),
+      setCrosshairPosition: vi.fn(),
+      clearCrosshairPosition: vi.fn(),
     };
     reg.charts.push(chart);
     return chart;
@@ -268,7 +338,9 @@ const H = vi.hoisted(() => {
     BaselineSeries: { seriesType: "Baseline" },
   };
 
-  return { reg, createChart, createSeriesMarkers, createTextWatermark, defs };
+  const MismatchDirection = { NearestLeft: -1, None: 0, NearestRight: 1 } as const;
+
+  return { reg, createChart, createSeriesMarkers, createTextWatermark, defs, MismatchDirection };
 });
 
 vi.mock("lightweight-charts", () => ({
@@ -281,11 +353,12 @@ vi.mock("lightweight-charts", () => ({
   AreaSeries: H.defs.AreaSeries,
   HistogramSeries: H.defs.HistogramSeries,
   BaselineSeries: H.defs.BaselineSeries,
+  MismatchDirection: H.MismatchDirection,
 }));
 
 // Imported AFTER the mock is registered (vi.mock is hoisted, so this resolves to the mock).
 import { createEngine } from "../chart-engine";
-import { createLwcEngine } from "../chart-engine/lwc";
+import { createLwcEngine, LWC_CAPABILITIES } from "../chart-engine/lwc";
 import type { EngineSeriesKind } from "../chart-engine";
 
 const container = {} as unknown as HTMLElement;
@@ -928,5 +1001,21 @@ describe("lwc adapter — inventory()", () => {
     c.__panes[0].getSeries.mockImplementationOnce(() => { throw new Error("pane gone"); });
     expect(() => e.inventory()).not.toThrow();
     expect(e.inventory().alive).toBe(true);
+  });
+});
+
+describe("lwc adapter — C02 identity + capabilities", () => {
+  it("reports impl 'lwc' and the full LWC capability set", () => {
+    const e = createEngine(container);
+    expect(e.impl).toBe("lwc");
+    expect(LWC_CAPABILITIES.seriesKinds).toEqual(["candles", "bars", "line", "area", "histogram", "baseline"]);
+    expect(LWC_CAPABILITIES.priceScaleModes).toEqual(["normal", "log", "percent", "indexed100"]);
+    expect(LWC_CAPABILITIES).toMatchObject({
+      watermark: true,
+      markers: true,
+      primitives: true,
+      screenshot: true,
+      kineticScroll: true,
+    });
   });
 });
