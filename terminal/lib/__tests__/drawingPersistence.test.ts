@@ -676,9 +676,25 @@ describe("legacy email-keyed journal claimed by at most one auth UUID",()=>{
   const journal=readDrawingJournal(storage,alice);
   expect(journal.AAPL).toMatchObject({drawings:[{id:"pending-v2"}]});
   expect(await writeDrawingJournal(storage,alice,journal,locks)).toBe(false);
-  expect(journal.NVDA).toBeUndefined();
+  expect(journal.AAPL).toMatchObject({drawings:[{id:"pending-v2"}]});
+  expect(journal.NVDA).toMatchObject({drawings:[{id:"alice-v1"}],blocked:"legacy"});
   expect(storage.getItem("mm.drawing.account-outbox.v1")).toBe(v1);
   expect(storage.getItem(DRAWING_JOURNAL_KEY)).toBe(v2);
+ });
+ it("keeps the caller's in-memory legacy copy when claim setItem throws",async()=>{
+  const storage=new MemoryStorage();
+  writeDrawingOutbox(storage,"account:alice@x",{NVDA:[line("alice-v1")]});
+  const v1=storage.getItem("mm.drawing.account-outbox.v1");
+  const journal=readDrawingJournal(storage,alice);
+  expect(journal.NVDA).toMatchObject({drawings:[{id:"alice-v1"}],blocked:"legacy"});
+  expect(String(journal.NVDA.recoveryId)).toMatch(/^legacy:/);
+  const origSetItem=storage.setItem.bind(storage);
+  storage.setItem=(k,value)=>{if(k===claimKey) throw new Error("quota");origSetItem(k,value);};
+  expect(await writeDrawingJournal(storage,alice,journal,locks)).toBe(false);
+  expect(journal.NVDA).toMatchObject({drawings:[{id:"alice-v1"}],blocked:"legacy"});
+  expect(String(journal.NVDA.recoveryId)).toMatch(/^legacy:/);
+  expect(storage.getItem("mm.drawing.account-outbox.v1")).toBe(v1);
+  expect(storage.getItem(DRAWING_JOURNAL_KEY)).toBeNull();
  });
  const carol={owner:"account:uuid-c",legacyOwner:"account:carol@x"};
  it("fails closed for every alias on array, version-only, or null claim records and still returns v2",()=>{

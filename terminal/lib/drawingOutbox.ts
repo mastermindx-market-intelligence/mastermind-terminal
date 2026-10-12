@@ -548,7 +548,9 @@ export async function writeDrawingJournal(
             mergeWriteLegacyClaim(storage, legacyOwner, owner);
           }
         } catch (error) {
-          dropUnownedLegacyCopies(journal);
+          // Claim I/O failure is not proof another owner holds the alias.
+          // Leave the caller's in-memory `legacy:` copies intact; the outer
+          // catch returns false without reporting durability.
           throw error;
         }
       }
