@@ -1,8 +1,8 @@
 # B-F13-5 Personal accuracy ledger — capture evidence
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
 # Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
-# capturedAtHead: 058805486c469d27066ccb2edc59cb48f618bf5f
-# capturedAt: 2026-10-12T01:36:50.404Z
+# capturedAtHead: fa498c1d1a04d6744792afbe3a1be800e7057f06
+# capturedAt: 2026-10-12T03:34:15.244Z
 # capturedAtHead is informational. The lock is layoutFiles.
 layoutFiles:
   terminal/components/settings/SectionAccuracy.tsx: "c15b4a28962cf39ba7783c1bc71647a5677ddb4c957e9b70da3ab44a0b36327d"

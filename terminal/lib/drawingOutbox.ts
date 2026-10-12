@@ -32,6 +32,20 @@ function accountOwner(owner: string): boolean {
   return owner.startsWith("account:") && owner.length > "account:".length;
 }
 
+/**
+ * The journal owner. `owner` is the auth-UUID key (`account:<uuid>`) every v2
+ * copy, receipt and cloud save is keyed on. `legacyOwner` names the v1 namespace
+ * to import from: released clients keyed v1 on `account:<email>`, so the shell
+ * passes that alias for the signed-in account. A copy imported through a
+ * different key is review-only: an email alias cannot prove which auth account
+ * made it, so it never saves by itself.
+ */
+export type DrawingJournalOwner = string | { owner: string; legacyOwner?: string };
+function journalOwner(value: DrawingJournalOwner): { owner: string; legacyOwner: string } {
+  if (typeof value === "string") return { owner: value, legacyOwner: value };
+  return { owner: value.owner, legacyOwner: value.legacyOwner || value.owner };
+}
+
 function readEnvelope(storage: StoragePort): StoredEnvelope {
   try {
     const value = JSON.parse(storage.getItem(DRAWING_OUTBOX_KEY) || "{}");
@@ -203,7 +217,7 @@ function ownerNamespace(envelope: StoredEnvelope, owner: string): Record<string,
   if (raw && (typeof raw !== "object" || Array.isArray(raw))) throw new Error("Invalid recovery owner");
   return raw ?? {};
 }
-function journalState(storage: StoragePort, owner: string, allowUnreadableLegacy = false): { envelope: StoredEnvelope; namespace: JournalNamespace; imports: LegacyImports } {
+function journalState(storage: StoragePort, owner: string, legacyOwner: string, allowUnreadableLegacy = false): { envelope: StoredEnvelope; namespace: JournalNamespace; imports: LegacyImports } {
   const envelope = strictEnvelope(storage, DRAWING_JOURNAL_KEY);
   const namespace: JournalNamespace = {};
   for (const [symbol, raw] of Object.entries(ownerNamespace(envelope, owner))) {
@@ -223,9 +237,11 @@ function journalState(storage: StoragePort, owner: string, allowUnreadableLegacy
   }
   const imports: LegacyImports = {};
   try {
-  const legacy = ownerNamespace(strictEnvelope(storage, DRAWING_OUTBOX_KEY), owner);
+  const legacy = accountOwner(legacyOwner) ? ownerNamespace(strictEnvelope(storage, DRAWING_OUTBOX_KEY), legacyOwner) : {};
   for (const [symbol, raw] of Object.entries(legacy)) {
     const copies = readCopies(raw);
+    // Before fingerprinting, so the import receipt matches on every later read.
+    if (legacyOwner !== owner) for (const entry of Object.values(copies)) entry.blocked ??= "legacy";
     const container = raw as { format?: number; copies?: Record<string, unknown> } | undefined;
     if (!Object.keys(copies).length || (container?.format === 2
       && Object.keys(container.copies ?? {}).length !== Object.keys(copies).length)) throw new Error("Invalid legacy copy; preserve stored bytes");
@@ -247,12 +263,13 @@ function journalState(storage: StoragePort, owner: string, allowUnreadableLegacy
 }
 
 /** Read competing copies independently; no GET can silently choose or rebase one. */
-export function readDrawingJournal(storage: StoragePort, owner: string): DrawingJournal {
+export function readDrawingJournal(storage: StoragePort, journalKey: DrawingJournalOwner): DrawingJournal {
+  const { owner, legacyOwner } = journalOwner(journalKey);
   const journal: DrawingJournal = {};
   const baseline: JournalBaseline = {};
   if (accountOwner(owner)) {
     try {
-      const { namespace, imports } = journalState(storage, owner, true);
+      const { namespace, imports } = journalState(storage, owner, legacyOwner, true);
       journalNamespaces.set(journal, namespace);
       for (const symbol of new Set([...Object.keys(namespace), ...Object.keys(imports)])) {
         const copies = { ...namespace[symbol]?.copies, ...imports[symbol] };
@@ -275,13 +292,14 @@ export function readDrawingJournal(storage: StoragePort, owner: string): Drawing
  * selected unchanged copy. Browser-storage failure never reports durability.
  */
 export async function writeDrawingJournal(
-  storage: StoragePort, owner: string, journal: DrawingJournal,
+  storage: StoragePort, journalKey: DrawingJournalOwner, journal: DrawingJournal,
   locks: DrawingJournalLocks | null = typeof navigator !== "undefined" ? navigator.locks ?? null : null,
 ): Promise<boolean> {
+  const { owner, legacyOwner } = journalOwner(journalKey);
   if (!accountOwner(owner) || !locks) return false;
   try {
     return await locks.request(DRAWING_JOURNAL_KEY, () => {
-      const { envelope, namespace, imports } = journalState(storage, owner);
+      const { envelope, namespace, imports } = journalState(storage, owner, legacyOwner);
       const receipts = readRetiredCopies(storage, owner), retired = new Set(receipts), acknowledged: string[] = [];
       const previous = baselines.get(journal) ?? {};
       const next: JournalBaseline = {};
@@ -362,8 +380,8 @@ export async function writeDrawingJournal(
 }
 
 /** Reconcile only a completed/discarded symbol without disturbing live edits. */
-export function refreshDrawingJournalSymbol(storage: StoragePort, owner: string, journal: DrawingJournal, symbol: string): Entry | undefined {
-  const fresh = readDrawingJournal(storage, owner);
+export function refreshDrawingJournalSymbol(storage: StoragePort, journalKey: DrawingJournalOwner, journal: DrawingJournal, symbol: string): Entry | undefined {
+  const fresh = readDrawingJournal(storage, journalKey);
   const baseline = baselines.get(journal) ?? {};
   if (fresh[symbol]) {
     journal[symbol] = fresh[symbol];
@@ -376,8 +394,9 @@ export function refreshDrawingJournalSymbol(storage: StoragePort, owner: string,
 }
 
 /** Refresh an owner on re-entry while retaining unsaved memory and exact retries. */
-export function reconcileDrawingJournal(storage: StoragePort, owner: string, journal?: DrawingJournal): DrawingJournal {
-  const fresh = readDrawingJournal(storage, owner);
+export function reconcileDrawingJournal(storage: StoragePort, journalKey: DrawingJournalOwner, journal?: DrawingJournal): DrawingJournal {
+  const { owner } = journalOwner(journalKey);
+  const fresh = readDrawingJournal(storage, journalKey);
   if (!journal) return fresh;
   const baseline = baselines.get(journal) ?? {};
   const freshBaseline = baselines.get(fresh) ?? {};

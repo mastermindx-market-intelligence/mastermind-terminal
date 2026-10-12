@@ -1,6 +1,12 @@
 import { normalizeDrawings, MAX_DRAWINGS_PER_SYMBOL, type Drawing } from "@/lib/drawings";
 import { drawingToolAcceptsPersistedPointCount } from "@/lib/drawingTools";
 
+/**
+ * Request header that carries the page's owner key (`account:<auth uuid>`) on a drawings read.
+ * Never a query parameter: owner identity must not land in URLs, proxy logs or the edge cache key.
+ */
+export const DRAWING_OWNER_HEADER = "x-drawing-owner";
+
 export type DrawingRevision = string | null;
 export type DrawingSnapshot = { drawings: Drawing[]; revision: DrawingRevision; schemaVersion: 1 };
 export type DrawingAttempt = { operationId: string; expectedRevision: DrawingRevision; drawings: Drawing[] };

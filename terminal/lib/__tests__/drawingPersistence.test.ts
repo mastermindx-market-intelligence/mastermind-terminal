@@ -514,3 +514,48 @@ describe("an explicit discard is never resurrected as a sendable attempt",()=>{
   expect(prepareDrawingAttempt(tabA.NVDA,()=>"new")).toBeNull();
  });
 });
+
+// Account-identity law: owner-scoped stores key on the auth UUID, never the email.
+// Released clients keyed v1 on `account:<email>`; that copy must survive the re-key
+// without ever acquiring the authority to save by itself.
+describe("auth-UUID journal owner with the released email-keyed v1 namespace",()=>{
+ const owner={owner:"account:uuid-a",legacyOwner:"account:a@example.com"};
+ it("imports the email-keyed v1 copies into the UUID owner, review-only, and never rewrites v1",async()=>{
+  const storage=new MemoryStorage();
+  writeDrawingOutbox(storage,"account:a@example.com",{NVDA:[line("released-v1")]});
+  // A format-2 record with an exact attempt under the email key: imported through an
+  // alias it cannot prove which auth account made it, so it must not replay itself.
+  const v1=JSON.parse(storage.getItem("mm.drawing.account-outbox.v1")!);
+  v1["account:a@example.com"].AAPL={format:2,copies:{[op]:{drawings:[line("aliased")],revision,attempt:{operationId:op,expectedRevision:revision,drawings:[line("aliased")]}}}};
+  storage.setItem("mm.drawing.account-outbox.v1",JSON.stringify(v1));
+  const preimage=storage.getItem("mm.drawing.account-outbox.v1");
+  const journal=readDrawingJournal(storage,owner);
+  expect(journal.NVDA).toMatchObject({drawings:[{id:"released-v1"}],blocked:"legacy"});
+  expect(journal.AAPL).toMatchObject({drawings:[{id:"aliased"}],blocked:"legacy"});
+  expect(prepareDrawingAttempt(journal.AAPL,()=>op)).toBeNull();
+  // The UUID owner alone has no email namespace to read; nothing crosses owners.
+  expect(readDrawingJournal(storage,"account:uuid-a")).toEqual({});
+  expect(readDrawingJournal(storage,{owner:"account:uuid-b"})).toEqual({});
+  expect(await writeDrawingJournal(storage,owner,journal,locks)).toBe(true);
+  const v2=JSON.parse(storage.getItem(DRAWING_JOURNAL_KEY)!);
+  expect(Object.keys(v2)).toEqual(["account:uuid-a"]);
+  expect(storage.getItem("mm.drawing.account-outbox.v1")).toBe(preimage);
+  // The import receipt is stable: a reload sees one copy per symbol, not a re-import.
+  const reloaded=readDrawingJournal(storage,owner);
+  expect(reloaded.NVDA.alternatives).toBeUndefined();expect(reloaded.AAPL.alternatives).toBeUndefined();
+  expect(reloaded.AAPL.blocked).toBe("legacy");
+  // The imported copy now lives under the UUID owner even without the alias.
+  expect(readDrawingJournal(storage,"account:uuid-a").NVDA.drawings[0].id).toBe("released-v1");
+ });
+ it("keys acknowledgement receipts on the UUID owner, never the email alias",async()=>{
+  const storage=new MemoryStorage();
+  writeDrawingOutbox(storage,"account:a@example.com",{NVDA:[line("released-v1")]});
+  const journal=readDrawingJournal(storage,owner);
+  expect(await writeDrawingJournal(storage,owner,journal,locks)).toBe(true);
+  delete journal.NVDA;
+  expect(await writeDrawingJournal(storage,owner,journal,locks)).toBe(true);
+  const receipts=JSON.parse(storage.getItem(DRAWING_RECEIPTS_KEY)!);
+  expect(Object.keys(receipts)).toEqual(["account:uuid-a"]);
+  expect(readDrawingJournal(storage,owner)).toEqual({});
+ });
+});

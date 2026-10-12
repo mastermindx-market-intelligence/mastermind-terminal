@@ -34,7 +34,7 @@ import { flowGet } from "@/lib/flowClientCache";
 import { parseGlanceState } from "@/lib/mscGlance";
 import { DEFAULT_START_TF, TF_CANONICAL_ORDER, mobileTimeframeOptions, readStartTf, resolveStartTf } from "@/lib/startTf";
 import { useMarketPrefs } from "@/lib/useMarketPrefs";
-import { accountIdentity } from "@/lib/accountIdentity";
+import { accountIdentity, identityOwnerKey, isAccountOwner } from "@/lib/accountIdentity";
 import { portfolioRailOwner, usePortfolioRailRead } from "@/lib/usePortfolioRailRead";
 // Import the page ids from the import-free leaf, NOT from MegaPane: MegaPane is mounted
 // through next/dynamic below, and a value import out of it here would statically pull its
@@ -141,7 +141,7 @@ import {
   uid,
 } from "@/lib/drawings";
 import { reconcileDrawingJournal, writeDrawingJournal, refreshDrawingJournalSymbol, selectDrawingRecoveryCopy } from "@/lib/drawingOutbox";
-import { parseDrawingSnapshot, parseDrawingSaveReceipt, prepareDrawingAttempt, settleDrawingAttempt, type DrawingJournal, type DrawingSnapshot, type DrawingRevision } from "@/lib/drawingPersistence";
+import { DRAWING_OWNER_HEADER, parseDrawingSnapshot, parseDrawingSaveReceipt, prepareDrawingAttempt, settleDrawingAttempt, type DrawingJournal, type DrawingSnapshot, type DrawingRevision } from "@/lib/drawingPersistence";
 import { FREEHAND_DRAWING_KINDS, getDrawingTool, isDrawingToolId } from "@/lib/drawingTools";
 import { SHELL_DRAW_TOOLS } from "@/lib/drawingTaxonomy";
 import { type ShellPanelId } from "@/lib/platform/contract";
@@ -1649,8 +1649,17 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
   // (guest -> account, sign-out, or account swap). A stale request must never
   // populate or enqueue work into the next owner's cache.
   const drawOwnerEpoch = useRef(0);
-  const drawOwner = useRef(email ? `account:${email}` : "guest");
-  const [drawingOwnerKey, setDrawingOwnerKey] = useState(email ? `account:${email}` : "guest");
+  // Owner-scoped stores key on the auth UUID, never the email (account-identity law):
+  // `account:<uuid>` keys the journal, the receipts and the server's ownership check.
+  const currentDrawingOwnerKey = identityOwnerKey(identity);
+  const drawingAccount = isAccountOwner(currentDrawingOwnerKey);
+  // Released clients wrote the v1 outbox under `account:<email>`; that namespace is
+  // imported (review-only) into the UUID owner and never written or sent anywhere.
+  const drawingLegacyOwner = drawingAccount && email ? `account:${email}` : undefined;
+  const drawOwner = useRef(currentDrawingOwnerKey);
+  const drawLegacyOwners = useRef<Record<string, string | undefined>>({});
+  const drawJournalKey = useCallback((owner: string) => ({ owner, legacyOwner: drawLegacyOwners.current[owner] }), []);
+  const [drawingOwnerKey, setDrawingOwnerKey] = useState(currentDrawingOwnerKey);
   const drawHistory = useRef<Record<string, { undo: Drawing[][]; redo: Drawing[][] }>>({});
   const prevPaneSyms = useRef<Set<string>>(new Set());
   const [drawingLoadRetryVersion, setDrawingLoadRetryVersion] = useState(0);
@@ -1664,7 +1673,8 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
   const loadDrawingCloudCopy = useCallback(async (sym: string) => {
     const epoch = drawOwnerEpoch.current;
     try {
-      const response = await fetch(`/api/drawings?symbol=${encodeURIComponent(sym)}&ownerKey=${encodeURIComponent(drawOwner.current)}`, { cache: "no-store" });
+      // The owner key travels in a header, never the URL (logs, history, edge cache keys).
+      const response = await fetch(`/api/drawings?symbol=${encodeURIComponent(sym)}`, { cache: "no-store", headers: { [DRAWING_OWNER_HEADER]: drawOwner.current } });
       const snapshot = response.ok ? parseDrawingSnapshot(await response.json()) : null;
       if (snapshot && drawOwnerEpoch.current === epoch) setDrawingCloudCopies((copies) => ({ ...copies, [sym]: snapshot }));
     } catch { /* Keep the local recovery copy until a valid cloud read succeeds. */ }
@@ -1672,7 +1682,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
   const [drawingStorageUnavailable, setDrawingStorageUnavailable] = useState(false);
   const persistDrawingRecovery = useCallback(async (owner: string, journal: DrawingJournal) => {
     const before = Object.entries(journal).map(([sym, entry]) => ({ sym, drawings: entry.drawings }));
-    const durable = await writeDrawingJournal(localStorage, owner, journal);
+    const durable = await writeDrawingJournal(localStorage, drawJournalKey(owner), journal);
     if (drawOwner.current === owner) {
       setDrawingStorageUnavailable(!durable);
       if (durable) for (const { sym, drawings } of before) {
@@ -1680,7 +1690,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
         // Another tab acknowledged this unchanged legacy import while our
         // handle was stale. Re-read remaining copies before accepting cloud.
         delete drawPending.current[sym];
-        const remaining = refreshDrawingJournalSymbol(localStorage, owner, journal, sym);
+        const remaining = refreshDrawingJournalSymbol(localStorage, drawJournalKey(owner), journal, sym);
         if (remaining) {
           remaining.blocked ??= "conflict";
           drawPending.current[sym] = remaining.drawings;
@@ -1696,10 +1706,10 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
       }
     }
     return durable;
-  }, [loadDrawingCloudCopy]);
+  }, [drawJournalKey, loadDrawingCloudCopy]);
   const restoreOtherDrawingCopies = useCallback((sym: string, owner: string, journal: DrawingJournal) => {
     if (drawOwner.current !== owner || drawPending.current[sym] !== undefined) return;
-    const remaining = refreshDrawingJournalSymbol(localStorage, owner, journal, sym);
+    const remaining = refreshDrawingJournalSymbol(localStorage, drawJournalKey(owner), journal, sym);
     if (!remaining) return;
     // A remaining copy can belong to a still-open tab. Review it explicitly;
     // recovering it is never authority to replay or overwrite the cloud.
@@ -1708,7 +1718,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
     setDrawStore((store) => ({ ...store, [sym]: normalizeDrawings(remaining.drawings) }));
     setDrawingSaveIssues((issues) => ({ ...issues, [sym]: "multiple" }));
     void loadDrawingCloudCopy(sym);
-  }, [loadDrawingCloudCopy]);
+  }, [drawJournalKey, loadDrawingCloudCopy]);
   const [drawingLimitWarning, setDrawingLimitWarning] = useState(false);
   const drawingLimitTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const showDrawingLimitWarning = useCallback(() => {
@@ -1721,7 +1731,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
     if (drawSaving.current[sym]) return;
     const drawings = drawPending.current[sym];
     if (!drawings) return;
-    if (!loggedIn) { delete drawPending.current[sym]; writeGuestDraw(sym, drawings); return; }
+    if (!drawingAccount) { delete drawPending.current[sym]; writeGuestDraw(sym, drawings); return; }
     const ownerEpoch = drawOwnerEpoch.current;
     const ownerKey = drawOwner.current;
     const recovery = drawRecovery.current[ownerKey] ?? (drawRecovery.current[ownerKey] = {});
@@ -1794,15 +1804,15 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
       }
     })();
     drawSaving.current[sym] = save;
-  }, [loggedIn, loadDrawingCloudCopy, persistDrawingRecovery, restoreOtherDrawingCopies]);
+  }, [drawingAccount, loadDrawingCloudCopy, persistDrawingRecovery, restoreOtherDrawingCopies]);
   useEffect(() => { flushDrawingsRef.current = flushDrawings; }, [flushDrawings]);
   const setSymbolDrawings = useCallback((sym: string, d: Drawing[], recordHistory = true) => {
-    if (drawOwner.current !== (email ? `account:${email}` : "guest")) return;
+    if (drawOwner.current !== currentDrawingOwnerKey) return;
     // `undefined` is deliberate: signed-in symbols remain fail-closed until an
     // authoritative GET succeeds (a valid empty collection is stored as `[]`).
     // This prevents a transient load failure plus one new mark from replacing
     // an unseen server collection.
-    if (loggedIn && drawStoreRef.current[sym] === undefined) return;
+    if (drawingAccount && drawStoreRef.current[sym] === undefined) return;
     if (d.length > MAX_DRAWINGS_PER_SYMBOL) {
       showDrawingLimitWarning();
       return;
@@ -1817,7 +1827,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
     }
     setDrawStore((s) => ({ ...s, [sym]: normalized }));
     drawPending.current[sym] = normalized;
-    if (loggedIn) {
+    if (drawingAccount) {
       const ownerKey = drawOwner.current;
       const recovery = drawRecovery.current[ownerKey] ?? (drawRecovery.current[ownerKey] = {});
       const entry = recovery[sym];
@@ -1828,7 +1838,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
     clearTimeout(drawTimers.current[sym]);
     drawTimers.current[sym] = setTimeout(() => flushDrawings(sym), 600);
     setDrawingHistoryVersion((v) => v + 1);
-  }, [email, flushDrawings, loggedIn, showDrawingLimitWarning, persistDrawingRecovery]);
+  }, [currentDrawingOwnerKey, drawingAccount, flushDrawings, showDrawingLimitWarning, persistDrawingRecovery]);
   const travelDrawingHistory = useCallback((sym: string, dir: "undo" | "redo") => {
     const history = drawHistory.current[sym]; if (!history) return;
     const from = dir === "undo" ? history.undo : history.redo, to = dir === "undo" ? history.redo : history.undo;
@@ -2464,7 +2474,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
   }, [drawStyleOverrides, drawingPrefsHydrated, drawingSticky, drawingsVisible, lastDrawingColor, magnet]);
   // Ownership invalidates async callbacks; recovery keeps the original attempt and revision.
   useEffect(() => {
-    const nextOwner = email ? `account:${email}` : "guest";
+    const nextOwner = currentDrawingOwnerKey;
     const previousOwner = drawOwner.current;
     if (previousOwner === nextOwner && drawOwnerHydrated.current) return;
     drawOwnerHydrated.current = true;
@@ -2477,9 +2487,10 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
     }
     drawOwnerEpoch.current += 1;
     drawOwner.current = nextOwner;
+    drawLegacyOwners.current[nextOwner] = drawingLegacyOwner;
     setDrawingOwnerKey(nextOwner);
     const recovered: DrawingJournal = nextOwner === "guest" ? {} :
-      reconcileDrawingJournal(localStorage, nextOwner, drawRecovery.current[nextOwner]);
+      reconcileDrawingJournal(localStorage, drawJournalKey(nextOwner), drawRecovery.current[nextOwner]);
     if (nextOwner !== "guest") drawRecovery.current[nextOwner] = recovered;
     const pending = Object.fromEntries(Object.entries(recovered).map(([sym, entry]) => [sym, entry.drawings]));
     drawPending.current = pending;
@@ -2499,7 +2510,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
     setDrawingStorageUnavailable(false);
     setDrawingHistoryVersion((version) => version + 1);
     for (const sym of Object.keys(recovered)) drawTimers.current[sym] = setTimeout(() => flushDrawings(sym), 0);
-  }, [email, flushDrawings, persistDrawingRecovery]);
+  }, [currentDrawingOwnerKey, drawingLegacyOwner, drawJournalKey, flushDrawings, persistDrawingRecovery]);
   // load drawings once per symbol that appears in a pane; don't clobber an in-flight local edit
   useEffect(() => {
     const now = new Set(panes);
@@ -2509,9 +2520,9 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
       if (drawSaving.current[sym]) continue;
       if (drawLoaded.current.has(sym)) continue;
       drawLoaded.current.add(sym);
-      if (loggedIn) {
+      if (drawingAccount) {
         const ownerEpoch = drawOwnerEpoch.current;
-        fetch(`/api/drawings?symbol=${encodeURIComponent(sym)}&ownerKey=${encodeURIComponent(drawOwner.current)}`).then((r) => {
+        fetch(`/api/drawings?symbol=${encodeURIComponent(sym)}`, { headers: { [DRAWING_OWNER_HEADER]: drawOwner.current } }).then((r) => {
           if (!r.ok) throw new Error(`drawing load failed (${r.status})`);
           return r.json();
         }).then((d) => {
@@ -2567,7 +2578,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
       setDrawStore((s) => { if (s[sym] === undefined) return s; const n = { ...s }; delete n[sym]; return n; });
     }
     prevPaneSyms.current = now;
-  }, [panes, flushDrawings, loggedIn, drawingLoadRetryVersion, email]);
+  }, [panes, flushDrawings, drawingAccount, drawingLoadRetryVersion, currentDrawingOwnerKey]);
   useEffect(() => () => {
     for (const timer of Object.values(drawLoadRetryTimers.current)) clearTimeout(timer);
     for (const sym of Object.keys(drawPending.current)) flushDrawingsRef.current(sym);
@@ -2575,7 +2586,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
   }, []);
 
   const resolveDrawingRecovery = useCallback(async (sym: string, choice: "cloud" | "local") => {
-    if (drawSaving.current[sym] || drawOwner.current !== (email ? `account:${email}` : "guest")) return;
+    if (drawSaving.current[sym] || drawOwner.current !== currentDrawingOwnerKey) return;
     const cloud = drawingCloudCopies[sym];
     const recovery = drawRecovery.current[drawOwner.current];
     const entry = recovery?.[sym];
@@ -2602,7 +2613,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
       if (durable) drawTimers.current[sym] = setTimeout(() => flushDrawings(sym), 0);
       else setDrawingSaveIssues((issues) => ({ ...issues, [sym]: "storage" }));
     }
-  }, [drawingCloudCopies, email, flushDrawings, persistDrawingRecovery, restoreOtherDrawingCopies]);
+  }, [drawingCloudCopies, currentDrawingOwnerKey, flushDrawings, persistDrawingRecovery, restoreOtherDrawingCopies]);
   const chooseDrawingRecoveryCopy = useCallback((sym: string, id: string) => {
     const journal = drawRecovery.current[drawOwner.current];
     if (!journal || drawSaving.current[sym]) return;
@@ -5185,9 +5196,8 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
     window.addEventListener("mouseup", up);
     document.body.classList.add("rail-resizing");
   };
-  const currentDrawingOwnerKey = email ? `account:${email}` : "guest";
   const drawingOwnerMatches = drawingOwnerKey === currentDrawingOwnerKey;
-  const drawingsReadyFor = (sym: string) => drawingOwnerMatches && (!loggedIn || drawStore[sym] !== undefined);
+  const drawingsReadyFor = (sym: string) => drawingOwnerMatches && (!drawingAccount || drawStore[sym] !== undefined);
   // ONE activation path for every surface that arms a tool — the desktop dock, the phone Drawings
   // sheet, and the native bridge's setDrawTool. Returns whether the tool actually armed.
   const activateDrawingTool = (id: DrawKind | null) => {

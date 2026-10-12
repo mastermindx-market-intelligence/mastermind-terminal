@@ -2,11 +2,20 @@ import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { createClient } from "@/lib/supabase/server";
 import { MAX_DRAWING_PAYLOAD_BYTES, MAX_DRAWINGS_PER_SYMBOL } from "@/lib/drawings";
-import { parseDrawingSnapshot, parsePersistedDrawings, validDrawingOperationId, validDrawingRevision } from "@/lib/drawingPersistence";
+import { DRAWING_OWNER_HEADER, parseDrawingSnapshot, parsePersistedDrawings, validDrawingOperationId, validDrawingRevision } from "@/lib/drawingPersistence";
 import { GUEST_COOKIE } from "@/lib/layoutsFixtureDb";
+import { fixtureUserId, FIXTURE_STORE_COOKIE } from "@/lib/watchlistsFixtureDb";
 
 const isE2eFixture = () => process.env.NODE_ENV !== "production" && process.env.TERMINAL_E2E_FIXTURE === "1";
-type DrawingSession = { supabase: Awaited<ReturnType<typeof createClient>> | null; user: { email?: string } | null };
+type DrawingSession = { supabase: Awaited<ReturnType<typeof createClient>> | null; user: { id: string } | null };
+
+/**
+ * Owner-scoped stores key on the auth UUID, never the email (account-identity law).
+ * An email can change or be reassigned; the UUID cannot. Exact match: UUID keys are canonical.
+ */
+function ownsKey(user: { id: string }, ownerKey: unknown): boolean {
+  return typeof ownerKey === "string" && !!user.id && ownerKey === `account:${user.id}`;
+}
 
 /**
  * The Playwright dev server signs the page in as TERMINAL_E2E_EMAIL without a
@@ -17,21 +26,24 @@ type DrawingSession = { supabase: Awaited<ReturnType<typeof createClient>> | nul
  */
 async function ctx(): Promise<DrawingSession> {
   if (isE2eFixture()) {
-    const guest = (await cookies()).get(GUEST_COOKIE)?.value === "1";
+    const jar = await cookies();
+    const guest = jar.get(GUEST_COOKIE)?.value === "1";
     const email = process.env.TERMINAL_E2E_EMAIL;
-    return { supabase: null, user: !guest && email ? { email } : null };
+    // Same identity /terminal hands TerminalShell as userId for the fixture account.
+    const id = fixtureUserId(jar.get(FIXTURE_STORE_COOKIE)?.value || "default");
+    return { supabase: null, user: !guest && email ? { id } : null };
   }
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
-  return { supabase, user };
+  return { supabase, user: user?.id ? { id: user.id } : null };
 }
 
 export async function GET(req: Request) {
   const { supabase, user } = await ctx();
   if (!user) return NextResponse.json({ error: "Authentication required" }, { status: 401 });
   const query = new URL(req.url).searchParams;
-  const expectedOwner = query.get("ownerKey");
-  if (expectedOwner && expectedOwner.toLowerCase() !== `account:${user.email ?? ""}`.toLowerCase()) {
+  const expectedOwner = req.headers.get(DRAWING_OWNER_HEADER);
+  if (expectedOwner !== null && !ownsKey(user, expectedOwner)) {
     return NextResponse.json({ error: "Account changed" }, { status: 409 });
   }
   const symbol = query.get("symbol")?.trim();
@@ -58,7 +70,7 @@ export async function PUT(req: Request) {
   } catch { return NextResponse.json({ ok: false, error: "Invalid JSON" }, { status: 400 }); }
   if (!payload || typeof payload !== "object" || Array.isArray(payload)) return NextResponse.json({ ok: false }, { status: 400 });
   const raw = payload as Record<string, unknown>;
-  if (typeof raw.ownerKey !== "string" || raw.ownerKey.toLowerCase() !== `account:${user.email ?? ""}`.toLowerCase()) {
+  if (!ownsKey(user, raw.ownerKey)) {
     return NextResponse.json({ ok: false, code: "owner_conflict" }, { status: 409 });
   }
   const symbol = typeof raw.symbol === "string" ? raw.symbol.trim() : "";

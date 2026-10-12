@@ -2,6 +2,9 @@ import { expect, test, type Page } from "@playwright/test";
 const original="11111111-1111-4111-8111-111111111111";
 const committed="22222222-2222-4222-8222-222222222222";
 const nextRevision="33333333-3333-4333-8333-333333333333";
+// The fixture account's auth UUID (app/terminal/page.tsx -> fixtureUserId("default")).
+// Released clients keyed the v1 outbox on the email; it stays an import source only.
+const owner="account:e2e-user-default";
 const line=(id:string)=>({id,kind:"hline",source:"user",schemaVersion:1,points:[{t:"2026-01-01",p:100}]});
 async function seed(page:Page,entry:unknown){
  await page.addInitScript((value)=>{
@@ -11,10 +14,33 @@ async function seed(page:Page,entry:unknown){
    localStorage.setItem("mm.drawing.account-outbox.v1",JSON.stringify({"account:responsive@example.com":{NVDA:value}}));
   }else{
    const record=(value as any)?.format===2?value:{format:2,copies:{"44444444-4444-4444-8444-444444444444":value}};
-   localStorage.setItem("mm.drawing.account-outbox.v2",JSON.stringify({"account:responsive@example.com":{NVDA:record}}));
+   localStorage.setItem("mm.drawing.account-outbox.v2",JSON.stringify({"account:e2e-user-default":{NVDA:record}}));
   }
  },entry);
 }
+// Account-identity law: owner-scoped stores key on the auth UUID, never the email,
+// and owner identity never travels in a URL (history, proxy logs, edge cache keys).
+test("drawing reads and saves carry the auth-UUID owner, never the email, and never in a URL",async({page})=>{
+ await seed(page,{drawings:[line("uuid-owned")],revision:null});
+ const seen:{method:string;url:string;header:string|undefined;body?:{ownerKey?:string}}[]=[];
+ await page.route("**/api/drawings**",async(route)=>{
+  const request=route.request();
+  seen.push({method:request.method(),url:request.url(),header:request.headers()["x-drawing-owner"],body:request.method()==="PUT"?request.postDataJSON():undefined});
+  if(request.method()==="GET"){await route.fulfill(json({drawings:[],revision:null,schemaVersion:1}));return;}
+  await route.fulfill(json({ok:true,operationId:request.postDataJSON().operationId,revision:committed,idempotentReplay:false,superseded:false}));
+ });
+ await open(page);
+ await expect.poll(()=>seen.filter((request)=>request.method==="PUT").length,{timeout:20_000}).toBe(1);
+ expect(seen.filter((request)=>request.method==="GET").length).toBeGreaterThan(0);
+ for(const request of seen){
+  const url=new URL(request.url);
+  expect(url.searchParams.has("ownerKey")).toBe(false);
+  expect(decodeURIComponent(request.url)).not.toContain("@");
+  if(request.method==="GET") expect(request.header).toBe(owner);
+  else expect(request.body?.ownerKey).toBe(owner);
+ }
+ await expect(page.getByTestId("drawing-save-recovery")).toHaveCount(0);
+});
 const open=async(page:Page)=>{await page.goto("/terminal?symbol=NVDA");await expect(page.locator(".chart-wrap canvas").first()).toBeVisible();};
 const json=(body:unknown)=>({status:200,contentType:"application/json",body:JSON.stringify(body)});
 
@@ -53,6 +79,10 @@ test("site-data loss before a retry keeps the unsaved drawing and its exact oper
  const recovery=page.getByTestId("drawing-save-recovery");
  await expect(recovery).toContainText("Retry saving",{timeout:20_000});
  await expect.poll(()=>puts.length,{timeout:20_000}).toBe(1);
+ // The failed save settles only after its final durable journal write; the shell
+ // re-enables Retry save at that point. Losing site data before that write lets the
+ // write restore the journal, so the site-data loss must follow the settled save.
+ await expect(recovery.getByRole("button",{name:"Retry save",exact:true})).toBeEnabled({timeout:20_000});
  const cdp=await context.newCDPSession(page);
  await cdp.send("Storage.clearDataForOrigin",{origin:new URL(page.url()).origin,storageTypes:"local_storage"});
  await expect.poll(()=>page.evaluate(()=>localStorage.getItem("mm.drawing.account-outbox.v2")),{timeout:20_000}).toBeNull();
@@ -60,7 +90,7 @@ test("site-data loss before a retry keeps the unsaved drawing and its exact oper
  await expect(recovery).toContainText("The cloud copy changed, or local recovery needs review",{timeout:20_000});
  await expect(recovery.getByRole("button",{name:"Replace cloud with local copy",exact:true})).toBeVisible({timeout:20_000});
  await expect(recovery.getByRole("button",{name:"Use cloud copy",exact:true})).toBeVisible({timeout:20_000});
- const stored=async()=>Object.values(JSON.parse(await page.evaluate(()=>localStorage.getItem("mm.drawing.account-outbox.v2"))??"{}")["account:responsive@example.com"]?.NVDA?.copies??{}) as {blocked?:string;drawings:{id:string}[];attempt?:{operationId?:string}}[];
+ const stored=async()=>Object.values(JSON.parse(await page.evaluate(()=>localStorage.getItem("mm.drawing.account-outbox.v2"))??"{}")["account:e2e-user-default"]?.NVDA?.copies??{}) as {blocked?:string;drawings:{id:string}[];attempt?:{operationId?:string}}[];
  await expect.poll(async()=>(await stored()).map((copy)=>[copy.drawings[0]?.id,copy.attempt?.operationId,copy.blocked]),{timeout:20_000}).toEqual([["first",original,"conflict"]]);
  expect(puts).toHaveLength(1);
  // Only the explicit choice sends, as a new operation against the cloud read.
@@ -170,7 +200,7 @@ test("selecting another copy then using cloud discards that copy without an inte
  await page.getByRole("button",{name:/Review another local copy/}).click();
  await page.getByRole("button",{name:"Use cloud copy",exact:true}).click();
  await expect(page.getByTestId("drawing-save-recovery")).toContainText("Local drawings (1)");
- const remaining=await page.evaluate(()=>JSON.parse(localStorage.getItem("mm.drawing.account-outbox.v2")!)["account:responsive@example.com"].NVDA.copies);
+ const remaining=await page.evaluate(()=>JSON.parse(localStorage.getItem("mm.drawing.account-outbox.v2")!)["account:e2e-user-default"].NVDA.copies);
  expect(Object.keys(remaining)).toEqual([original]);expect(remaining[original].drawings[0].id).toBe("local-a");expect(puts).toBe(0);
  await page.getByRole("button",{name:"Use cloud copy",exact:true}).click();
  await expect(page.getByTestId("drawing-save-recovery")).toHaveCount(0);expect(puts).toBe(0);
@@ -185,5 +215,5 @@ test("unavailable durable serialization warns to keep the tab open and never sta
   await route.fulfill(json({drawings:[],revision:null,schemaVersion:1}));
  });
  await open(page);await expect(page.getByTestId("drawing-save-recovery")).toContainText("Keep this tab open");expect(puts).toBe(0);
- expect(await page.evaluate(()=>Object.values(JSON.parse(localStorage.getItem("mm.drawing.account-outbox.v2")!)["account:responsive@example.com"].NVDA.copies as Record<string,any>)[0].drawings[0].id)).toBe("memory-only");
+ expect(await page.evaluate(()=>Object.values(JSON.parse(localStorage.getItem("mm.drawing.account-outbox.v2")!)["account:e2e-user-default"].NVDA.copies as Record<string,any>)[0].drawings[0].id)).toBe("memory-only");
 });
