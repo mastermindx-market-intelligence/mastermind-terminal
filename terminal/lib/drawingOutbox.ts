@@ -136,11 +136,17 @@ function storedEntry(entry: Entry): Entry {
 function fingerprint(entry: Entry): string {
   // parseEntry rebuilds the envelope fields in a fixed order. Compare semantic
   // envelope fields without rewriting the attempted drawing JSON itself.
-  return JSON.stringify([
+  // When conflictCode is absent and operationUnknownPossible is not true, the
+  // token must match bf0689f7 (drawings, hasRev, rev, blocked, attempt).
+  const token: unknown[] = [
     entry.drawings, Object.hasOwn(entry, "revision"), entry.revision ?? null,
-    entry.blocked ?? null, entry.conflictCode ?? null, entry.operationUnknownPossible === true,
-    entry.attempt ? [entry.attempt.operationId, entry.attempt.expectedRevision, entry.attempt.drawings] : null,
-  ]);
+    entry.blocked ?? null,
+  ];
+  if (entry.conflictCode != null || entry.operationUnknownPossible === true) {
+    token.push(entry.conflictCode ?? null, entry.operationUnknownPossible === true);
+  }
+  token.push(entry.attempt ? [entry.attempt.operationId, entry.attempt.expectedRevision, entry.attempt.drawings] : null);
+  return JSON.stringify(token);
 }
 function readCopies(value: unknown): Copies {
   if (value && typeof value === "object" && !Array.isArray(value)

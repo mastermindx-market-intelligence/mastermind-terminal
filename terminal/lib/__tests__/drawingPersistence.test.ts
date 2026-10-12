@@ -547,6 +547,39 @@ describe("auth-UUID journal owner with the released email-keyed v1 namespace",()
   // The imported copy now lives under the UUID owner even without the alias.
   expect(readDrawingJournal(storage,"account:uuid-a").NVDA.drawings[0].id).toBe("released-v1");
  });
+ it("P1: a v2 journal written by the previous build does not re-import the still-present v1 outbox",()=>{
+  // Fingerprint as of bf0689f7c26cb39ea07f071d8aa76325bbbe489f. Copied, not imported.
+  function previousBuildFingerprint(entry:{
+    drawings:unknown;
+    revision?:unknown;
+    blocked?:unknown;
+    attempt?:{operationId:unknown;expectedRevision:unknown;drawings:unknown};
+  }):string {
+    return JSON.stringify([
+      entry.drawings, Object.hasOwn(entry,"revision"), entry.revision ?? null,
+      entry.blocked ?? null,
+      entry.attempt ? [entry.attempt.operationId, entry.attempt.expectedRevision, entry.attempt.drawings] : null,
+    ]);
+  }
+  const storage=new MemoryStorage();
+  writeDrawingOutbox(storage,"account:a",{NVDA:[line("released-v1")]});
+  const imported=readDrawingJournal(storage,"account:a").NVDA;
+  const {recoveryId:_id,alternatives:_alts,...payload}=imported;
+  const oldToken=previousBuildFingerprint(payload);
+  storage.setItem(DRAWING_JOURNAL_KEY,JSON.stringify({
+    "account:a":{
+      NVDA:{
+        format:2,
+        copies:{[op]:payload},
+        legacySeen:{legacy:oldToken},
+        legacyLinks:{[op]:{sourceId:"legacy",token:oldToken}},
+      },
+    },
+  }));
+  const upgraded=readDrawingJournal(storage,"account:a").NVDA;
+  expect([upgraded,...(upgraded.alternatives??[])]).toHaveLength(1);
+  expect(upgraded.drawings[0].id).toBe("released-v1");
+ });
  it("keys acknowledgement receipts on the UUID owner, never the email alias",async()=>{
   const storage=new MemoryStorage();
   writeDrawingOutbox(storage,"account:a@example.com",{NVDA:[line("released-v1")]});
