@@ -105,6 +105,9 @@ const IndicatorSource = dynamic(() => import("@/components/IndicatorSource"), { 
 const CompareSettings = dynamic(() => import("@/components/CompareSettings"), { ssr: false });
 const ChartObjectTree = dynamic(() => import("@/components/ChartObjectTree"), { ssr: false });
 const TickerNewsPanel = dynamic(() => import("@/components/news/TickerNewsPanel"), { ssr: false });
+// E05: cross-device note/flag sync for a signed-in owner. Lazy and client-only, so the guest
+// bundle never carries it; it renders inside the watchlist bar and owns no watchlist state.
+const WatchlistAnnotationSync = dynamic(() => import("@/components/watchlist/WatchlistAnnotationSync"), { ssr: false });
 // Phone-only chart chrome (R2): the bottom roller strip and the two sheets it raises. Never
 // server-rendered — the phone breakpoint is a client media query, and shell mode brings its own.
 const RollerStrip = dynamic(() => import("@/components/mobile/RollerStrip"), { ssr: false });
@@ -123,7 +126,7 @@ import WashoutTurnRow from "@/components/WashoutTurnRow";
 import { oracleVerdict, deskVerdict } from "@/lib/signalVerdict";
 import { computeTrendState } from "@/lib/trend";
 import { useLive } from "@/lib/live";
-import { setPaneLinks, subscribePaneRegistry, registeredPaneIds, subscribePaneVisibleWindow } from "@/lib/paneSync";
+import { requestPaneFocus, setPaneLinks, subscribePaneRegistry, registeredPaneIds, subscribePaneVisibleWindow } from "@/lib/paneSync";
 import { assignPaneGroup, chartLinkView, fitLinkState, legacyLinkState, normalizeLinkState, pickLinkPanes, projectLegacySync, setGroupShare, type ChartLinkState, type LinkDimension, type LinkGroupId } from "@/lib/chartLinkGroups";
 import ChartLinkControl from "@/components/ChartLinkControl";
 import { REPLAY_MIN_IDX, replayIsAvailable, replayChartKey, resolveReplayTotal, replayHasSpan, clampReplayIdx, initialReplayIdx,
@@ -168,7 +171,8 @@ import { type PineScript } from "@/components/ChartPanel";
 
 type ShellDrawingStyle = { color: string; width: number; dash: Dash };
 import { visualReadoutColumns, type ChartReadoutMeta } from "@/lib/visualIntelligence";
-import ChartTableView from "@/components/ChartTableView";
+import DataInspector from "@/components/dataInspector/DataInspector";
+import { dataInspectorFocusMessage } from "@/lib/dataInspectorLex";
 import { type OTEntry } from "@/components/ChartObjectTree";
 import { listTemplates, saveTemplate } from "@/lib/chartTemplates";
 import { FLAG_DEFAULT, FLAG_COLORS } from "@/lib/flagPalette";
@@ -1228,6 +1232,11 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
       // across a page load, where the incoming owner now reads its own namespace and nothing else.
       setLists((current) => ({ ...current, [DEFAULT_LIST]: serverDefault }));
       setActiveList(DEFAULT_LIST);
+      // E05: notes and flags do NOT ride that promotion. They are the account's own (and sync
+      // across its devices); the guest's stay in the guest slot until the user previews and
+      // explicitly imports them — never silently written into whichever account signs in next.
+      setFlags(readOwnerStringMap(localStorage, WL_FLAGS_KEY, wlOwner));
+      setSymbolNotes(readOwnerStringMap(localStorage, WL_NOTES_KEY, wlOwner));
     } else {
       // Sign-out, or a straight account→account switch: load the INCOMING owner's own state.
       // Nothing carries over — a signed-out browser must not inherit the account's cache, and
@@ -5241,7 +5250,9 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
       {/* Dossier mode renders NO chart workspace — the native sheet owns the chart above us. */}
       {!dossierMode && (
       <section className="workspace">
-        {!shellMode && (
+        {/* The table view replaces the chart, so its float would only cover the table's header;
+            it stays while fullscreen is on because it is also the way out. */}
+        {!shellMode && (!tableViewOpen || fullChart) && (
         <button className={`chart-fs-float${fullChart ? " on" : ""}`} title={fullChart ? t("exitFullscreen") : t("fullscreenChart")} onClick={() => setFullChart((f) => !f)}>
           {fullChart
             ? <svg viewBox="0 0 24 24"><path d="M9 4v5H4M20 9h-5V4M15 20v-5h5M4 15h5v5" /></svg>
@@ -5502,18 +5513,31 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
             intel={intel}
           />
         ) : tableViewOpen ? (
-          /* D3: Table view replaces the chart body */
-          <ChartTableView
+          /* D3 → E10: the time-aware Data Inspector replaces the chart body. It reads only what the
+             active pane published (bars + its own readout map) and returns to the chart through
+             paneSync's time-keyed focus, so no indicator is recomputed and no row number travels. */
+          <DataInspector
             symbol={active}
             timeframe={tf}
             bars={chartReadoutMeta?.symbol === active && chartReadoutMeta.timeframe === tf ? chartReadoutMeta.bars : []}
-            indCols={[...[...inds].filter((k) => !isSuiteKey(k) && !hidden.has(k) && (!isAdditionalStudyId(k) || isRenderableStudyInstance(k, inds))).map((k) => {
+            columns={[...[...inds].filter((k) => !isSuiteKey(k) && !hidden.has(k) && (!isAdditionalStudyId(k) || isRenderableStudyInstance(k, inds))).map((k) => {
               const def = (IND_DEFS as any)[k];
               const meta = studyInstanceMeta(k, inds, indParams[k]);   // one column per study instance (E06)
               return { key: k, label: meta?.label ?? def?.label ?? k, tag: meta?.tag ?? def?.tag ?? k };
             }), ...visualReadoutColumns(lang)]}
-            indRowsAt={indRowsAt ?? undefined}
+            valuesAt={indRowsAt ?? undefined}
+            feedBasis={isSuspended ? t("suspended") : freshnessLabel(
+              { basis: liveQuote?.basis ?? (liveStatus === "live" ? "LIVE" : "EOD"), lagMs: liveQuote?.lagMs, asOfMs: liveQuote?.asOfMs, marketSession: liveQuote?.marketSession }, t).label}
+            replay={replayOn}
+            replayCursor={replayOn && replayCutoff ? `${replayCutoff.clock}:${replayCutoff.at}` : null}
             onBack={() => setTableViewOpen(false)}
+            onShowOnChart={(time, label) => {
+              void requestPaneFocus(activePane, { tf, time }).then((r) => {
+                const msg = dataInspectorFocusMessage(r.status, label, lang);
+                if (msg) showDtmToast(msg);
+              });
+              setTableViewOpen(false);
+            }}
           />
         ) : (
           <div className="chart-body" style={{ "--subpanes": subPanes } as React.CSSProperties}>
@@ -5704,6 +5728,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
             else if (action === "chartType") setCtOpen(true);
             else if (action === "workspaces") setPhoneWorkspacesOpen(true);
             else if (action === "replay") toggleReplay();
+            else if (action === "dataTable") setTableViewOpen(true);
             else if (action === "alerts") window.location.assign(`/alerts?sym=${encodeURIComponent(active)}`);
             else if (action === "symbolDetails") {
               setFullChart(false);
@@ -5831,7 +5856,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
               </div>
             </div>
           )}
-          {loggedIn && newsRailEnabled && railTab === "news" && <TickerNewsPanel symbol={active} lang={lang} />}
+          {loggedIn && newsRailEnabled && railTab === "news" && <TickerNewsPanel symbol={active} lang={lang} userId={userId} />}
           <div className={`board wl-board${loggedIn && railTab !== "watchlists" ? " rail-hidden" : ""}`}
             id="rail-panel-watchlists" {...(loggedIn ? { role: "tabpanel", "aria-labelledby": "rail-tab-watchlists" } : {})}>
             <div className="wl-bar pophost">
@@ -5882,6 +5907,9 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
                 <div className="menu-row" onClick={() => importList()}><svg viewBox="0 0 24 24"><path d="M12 15V3M8 7l4-4 4 4M4 19h16" /></svg>{t("importCsv")}</div>
                 <div className="menu-row danger" onClick={() => clearList(activeList)}><svg viewBox="0 0 24 24"><path d="M4 7h16M9 7V5h6v2M6 7l1 13h10l1-13" /></svg>{t("clearWatchlist")}</div>
               </div>
+              {loggedIn && wlOwner !== GUEST_OWNER && (
+                <WatchlistAnnotationSync key={wlOwner} owner={wlOwner} ready={wlsRestored} flags={flags} notes={symbolNotes} setFlags={setFlags} setNotes={setSymbolNotes} hubOpen={searchOpen} />
+              )}
               <div className={`wl-acts${selectedWlCount >= 2 ? " wl-acts-selection" : ""}`}>
                 <button title={t("addSymbol")} onClick={(e) => { e.stopPropagation(); addSymbolTargetRef.current = null; setSeed(""); setAddSymOpen(true); }}><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14" /></svg></button>
                 <button title={t("settings")} onClick={(e) => { e.stopPropagation(); const willOpen = !wlSetOpen; closeAll(); setWlSetOpen(willOpen); }}><svg viewBox="0 0 24 24"><circle cx="5" cy="12" r="1.5" /><circle cx="12" cy="12" r="1.5" /><circle cx="19" cy="12" r="1.5" /></svg></button>

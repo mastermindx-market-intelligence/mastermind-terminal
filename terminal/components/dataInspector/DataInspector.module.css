@@ -1,0 +1,425 @@
+/* Time-aware Data Inspector (E10). Extends the shared ctv-* table classes in globals.css without
+   editing them; widths here are fixed so header and virtual rows stay column-aligned. */
+
+.root {
+  min-height: 0;
+}
+
+.dim {
+  color: var(--text-2);
+  font-weight: 400;
+}
+
+.tf {
+  padding: 1px 6px;
+  border: 1px solid var(--line-2);
+  border-radius: var(--r-md);
+  color: var(--text-2);
+  font: 600 11px/1.4 var(--font-num);
+  font-variant-numeric: tabular-nums;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+
+.btn[aria-pressed="true"] {
+  background: rgba(41, 98, 255, 0.14);
+  border-color: var(--brand);
+  color: var(--text);
+}
+
+.btn:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+
+.back {
+  margin-left: auto;
+}
+
+.toolbar,
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 10px;
+  padding: 8px 16px;
+  border-bottom: 1px solid var(--line);
+  flex-shrink: 0;
+}
+
+.jump {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+
+.jumpLabel {
+  color: var(--text-dim);
+  font: 500 11.5px/1.2 var(--font-ui);
+  white-space: nowrap;
+}
+
+.input {
+  height: 32px;
+  min-width: 0;
+  padding: 0 8px;
+  border: 1px solid var(--line-2);
+  border-radius: var(--r-md);
+  background: var(--panel-2);
+  color: var(--text);
+  color-scheme: dark;
+  font: 500 12px/1 var(--font-num);
+  font-variant-numeric: tabular-nums;
+}
+
+.input:focus-visible {
+  outline: 2px solid var(--brand);
+  outline-offset: 1px;
+}
+
+.segment {
+  display: inline-flex;
+  gap: 4px;
+}
+
+.meta {
+  color: var(--text-dim);
+  font: 500 11.5px/1.3 var(--font-ui);
+}
+
+.count {
+  min-width: 88px;
+  color: var(--text-2);
+  font: 600 12px/1.3 var(--font-ui);
+}
+
+.spacer {
+  flex: 1 1 auto;
+}
+
+.notices {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 8px 16px;
+  border-bottom: 1px solid var(--line);
+  flex-shrink: 0;
+}
+
+.note {
+  margin: 0;
+  color: var(--text-dim);
+  font: 500 11.5px/1.4 var(--font-ui);
+}
+
+.notice {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 12px;
+  padding: 8px 10px;
+  border: 1px solid var(--pop-edge);
+  border-radius: var(--r-md);
+  background: rgba(255, 255, 255, 0.025);
+  color: var(--text-2);
+  font: 500 12px/1.4 var(--font-ui);
+}
+
+.nearby {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 8px;
+}
+
+.diff {
+  padding: 8px 16px 10px;
+  border-bottom: 1px solid var(--line);
+  background: var(--panel);
+  flex-shrink: 0;
+}
+
+.diffHead {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 10px;
+  margin-bottom: 6px;
+  color: var(--text);
+  font: 600 12.5px/1.3 var(--font-ui);
+}
+
+.diffScroll {
+  max-height: 260px;
+  overflow: auto;
+  margin-bottom: 6px;
+}
+
+.diffTable {
+  width: 100%;
+  border-collapse: collapse;
+  font: 500 12px/1.35 var(--font-num);
+  font-variant-numeric: tabular-nums;
+}
+
+.diffTable th,
+.diffTable td {
+  padding: 4px 10px;
+  border-bottom: 1px solid var(--line);
+  text-align: right;
+  white-space: nowrap;
+  color: var(--text-2);
+}
+
+.diffTable thead th {
+  color: var(--text-dim);
+  font: 600 11px/1.3 var(--font-ui);
+  vertical-align: bottom;
+}
+
+/* A rise or fall keeps its direction colour: the grey cell rule above outranks the global .up/.down. */
+.diffTable td:global(.up) {
+  color: var(--up);
+}
+
+.diffTable td:global(.down) {
+  color: var(--down);
+}
+
+.diffTable tbody th {
+  text-align: left;
+  color: var(--text);
+  font: 600 12px/1.3 var(--font-ui);
+}
+
+.diffTable thead th:first-child {
+  text-align: left;
+}
+
+.nowrap {
+  white-space: nowrap;
+}
+
+/* The field name stays put while a narrow screen scrolls the numbers sideways. */
+.diffTable th:first-child {
+  position: sticky;
+  left: 0;
+  z-index: 1;
+  background: var(--panel);
+}
+
+/* In fullscreen the shell's floating exit control sits at the top-right of this header. */
+:global(.app.fs) .root > :global(.ctv-head) {
+  padding-right: 60px;
+}
+
+.grid {
+  position: relative;
+  outline: none;
+}
+
+.grid:focus-visible {
+  box-shadow: inset 0 0 0 2px var(--brand);
+}
+
+.head {
+  align-items: center;
+}
+
+.head > [role="columnheader"] {
+  display: flex;
+  align-items: center;
+}
+
+.row {
+  cursor: pointer;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.row:hover {
+  background: rgba(255, 255, 255, 0.035);
+}
+
+.row[data-selected] {
+  background: rgba(41, 98, 255, 0.16);
+}
+
+.row[data-focused] {
+  box-shadow: inset 2px 0 0 var(--brand);
+}
+
+.row[data-range-start] {
+  box-shadow: inset 0 0 0 1px var(--brand);
+}
+
+.cCheck {
+  width: 36px;
+  min-width: 36px;
+  justify-content: center;
+}
+
+.cTime {
+  width: 156px;
+  min-width: 156px;
+}
+
+.cNum {
+  width: 92px;
+  min-width: 92px;
+  justify-content: flex-end;
+}
+
+.cChg {
+  width: 168px;
+  min-width: 168px;
+  justify-content: flex-end;
+  gap: 4px;
+}
+
+/* Same for the grid's change column: the global .ctv-td grey is declared after .up/.down. */
+.cChg:global(.up) {
+  color: var(--up);
+}
+
+.cChg:global(.down) {
+  color: var(--down);
+}
+
+.cInd {
+  width: 112px;
+  min-width: 112px;
+  justify-content: flex-end;
+  text-align: right;
+}
+
+.check {
+  display: inline-grid;
+  place-items: center;
+  width: 16px;
+  height: 16px;
+  border: 1px solid var(--line-3);
+  border-radius: 4px;
+  color: #fff;
+  font: 700 11px/1 var(--font-ui);
+}
+
+.row[data-selected] .check {
+  background: var(--brand);
+  border-color: var(--brand);
+}
+
+.pct {
+  opacity: 0.75;
+}
+
+.noValues {
+  color: var(--muted);
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+.empty {
+  margin: 24px 16px;
+  color: var(--text-dim);
+  font: 500 13px/1.5 var(--font-ui);
+}
+
+.footer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 16px;
+  padding: 6px 16px;
+  border-top: 1px solid var(--line);
+  color: var(--text-dim);
+  font: 500 11px/1.3 var(--font-ui);
+  flex-shrink: 0;
+}
+
+.hint {
+  margin-left: auto;
+}
+
+@media (pointer: coarse) {
+  .btn,
+  .input {
+    min-height: 44px;
+  }
+
+  .row:hover {
+    background: inherit;
+  }
+
+  .row[data-selected]:hover {
+    background: rgba(41, 98, 255, 0.16);
+  }
+}
+
+/* ≤860px the shell page-scrolls and zeroes flex:1 regions; give the grid a real height. */
+@media (max-width: 860px) {
+  .root {
+    height: auto;
+    min-height: 70svh;
+  }
+
+  .grid {
+    flex: none;
+    height: 62svh;
+    min-height: 320px;
+  }
+
+  .toolbar,
+  .actions,
+  .notices,
+  .diff,
+  .footer {
+    padding-left: 12px;
+    padding-right: 12px;
+  }
+
+  .jump {
+    flex: 1 1 100%;
+  }
+
+  .jump .input {
+    flex: 1 1 auto;
+  }
+
+  .meta {
+    flex: 1 1 100%;
+  }
+
+  .diffTable th,
+  .diffTable td {
+    padding: 4px 8px;
+  }
+
+  .diffTable tbody th {
+    max-width: 128px;
+    white-space: normal;
+  }
+
+  .diffTable thead th {
+    white-space: normal;
+  }
+
+  /* The page scrolls here, so the comparison shows every row instead of nesting a scroller. */
+  .diffScroll {
+    max-height: none;
+  }
+}
