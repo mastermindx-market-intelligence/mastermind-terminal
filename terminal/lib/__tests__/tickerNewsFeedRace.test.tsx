@@ -578,6 +578,55 @@ describe("useTickerNewsFeed races", () => {
     expect(readFeed().loadState).toBe("restricted");
   });
 
+  it("a successful change refresh after a failed re-open refresh clears liveInterrupted", async () => {
+    let phase: "initial" | "reopenFail" | "recover" = "initial";
+    const recover = defer();
+    globalThis.fetch = vi.fn(() => {
+      if (phase === "initial") return response(snapshot("NVDA", [row("ev2_a", "Before break", 1)]));
+      if (phase === "reopenFail") return response({ detail: "upstream missing" }, 503);
+      return recover.promise;
+    }) as unknown as typeof globalThis.fetch;
+
+    await act(async () => {
+      root.render(<FeedProbe symbol="NVDA" />);
+    });
+    const stream = FakeEventSource.instances[0];
+    expect(stream).toBeTruthy();
+    expect(readFeed().live).toBe("no");
+
+    await settle(() => {
+      stream.onerror?.(new Event("error"));
+    });
+    expect(readFeed().live).toBe("yes");
+    expect(readFeed().loadState).toBe("ready");
+
+    // The stream re-opens but its catch-up refresh fails: unavailable, note still up.
+    phase = "reopenFail";
+    await settle(() => {
+      stream.onopen?.(new Event("open"));
+    });
+    expect(readFeed().loadState).toBe("unavailable");
+    expect(readFeed().live).toBe("yes");
+
+    // The still-connected stream delivers a change and that refresh succeeds.
+    phase = "recover";
+    await settle(() => {
+      stream.emit("upsert", changePayload(3, "ev2_c", "Recovered headline"));
+    });
+    expect(readFeed().loadState).toBe("unavailable");
+
+    await act(async () => {
+      recover.resolve(jsonResponse(snapshot("NVDA", [row("ev2_c", "Recovered headline", 3)])));
+      await recover.promise;
+      await Promise.resolve();
+      await Promise.resolve();
+    });
+
+    expect(readFeed().loadState).toBe("ready");
+    expect(readFeed().title).toBe("Recovered headline");
+    expect(readFeed().live).toBe("no");
+  });
+
   it("in-flight refresh resolved after SSE restricted does not restore rows", async () => {
     const refresh = defer();
     let calls = 0;

@@ -119,7 +119,9 @@ export function useTickerNewsFeed(symbol: string) {
         return;
       }
       if (!alive || streamClosed || generation.current !== currentGeneration) return;
-      await issue(true);
+      // A delivered change event proves the stream is live again, so a successful catch-up
+      // refresh also clears a stale interrupted note (e.g. after a failed re-open refresh).
+      await issue(true, true);
     };
 
     void (async () => {
