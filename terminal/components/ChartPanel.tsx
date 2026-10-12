@@ -34,7 +34,7 @@ import { FUTURE_ANCHOR_BARS, futureBarTimes, futureCadence, futureSlotOf, type F
 import { keepIndicatorPaneAxisLabelsOnly } from "@/lib/indicatorPaneSeries";
 import { runPine, type RunResult } from "@/lib/pine-engine";
 import { createPineHost, type PineHost } from "@/lib/pine-engine/host";
-import { PINE_ENGINE_WAIT_SLACK_MS, PINE_PENDING_GRACE_MS, pineRowState, settleChartPineRun, type PineEngineFailure } from "@/lib/pineChartRun";
+import { PINE_ENGINE_WAIT_SLACK_MS, PINE_PENDING_GRACE_MS, pineFailurePinned, pineRowState, settleChartPineRun, type PineUnavailable } from "@/lib/pineChartRun";
 import { ORACLE_V1_PINE } from "@/lib/pine";
 import { DRAWING_SCHEMA_VERSION, MAX_DRAWING_PAYLOAD_BYTES, type Drawing, type DrawKind, type Bar as DBar, uid, autoTrendlines, autoFib, srDrawings, mtfaDrawings } from "@/lib/drawings";
 import { drawingToolFromShortcut, getDrawingTool, FREEHAND_DRAWING_KINDS, type DrawingToolCapability } from "@/lib/drawingTools";
@@ -667,9 +667,10 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
   // names the run that currently owns the entry.
   const pineInflightRef = useRef<Map<string, { token: number; since: number; graceMs: number; timers: ReturnType<typeof setTimeout>[] }>>(new Map());
   const pineRunTokenRef = useRef(0);
-  // scriptId → why the ENGINE (not the script) failed on its latest run. Kept out of pineCacheRef on
-  // purpose: a failed read is not the script's result, so the next rebuild or a legend Retry re-runs it.
-  const pineUnavailRef = useRef<Map<string, PineEngineFailure>>(new Map());
+  // scriptId → why the ENGINE (not the script) failed on its latest run, and for which request. Kept
+  // out of pineCacheRef on purpose: a failed read is not the script's result. The same request re-runs
+  // only from the legend Retry (pineFailurePinned); new bars / timeframe / symbol / source run fresh.
+  const pineUnavailRef = useRef<Map<string, PineUnavailable>>(new Map());
   // ── worker-backed Pine host (PINE lane's host.ts) ──────────────────────────────────────────────
   // The host runs compile+execute in a terminateable Web Worker (SSR/tests fall back to a sync host,
   // same surface), caches the parsed AST by source hash (data-only re-runs skip re-parsing), and
@@ -1480,8 +1481,8 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
   // Launch an async host run for one script on `rows`. A SCRIPT outcome (result, script error, budget
   // breach) is cached under the (script,data) key and returned. An ENGINE outcome (worker never booted,
   // crashed, or was reset under the run past the bounded re-issue — lib/pineChartRun.ts) is recorded in
-  // pineUnavailRef and NOT cached, so it is shown as unavailable and re-runs on the next rebuild or a
-  // Retry. `superseded` (a newer same-slot run owns the outcome) records nothing. compile() is
+  // pineUnavailRef and NOT cached, so it is shown as unavailable and re-runs from the legend Retry or
+  // when its request (bars / timeframe / symbol / source) changes. `superseded` (a newer same-slot run owns the outcome) records nothing. compile() is
   // fire-and-forget to warm the AST cache — run() also carries `source` so it self-compiles if the
   // astId isn't cached yet.
   const runPineHost = async (script: PineScript, rows: Bar[], graceMs = PINE_PENDING_GRACE_MS): Promise<{ result: RunResult | null; error: string | null } | null> => {
@@ -1504,7 +1505,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
     const owns = pineRunEnd(script.id, token);
     if (settled.kind === "superseded") return null;   // the newer run owns the entry; don't cache
     if (settled.kind === "unavailable") {
-      if (owns) pineUnavailRef.current.set(script.id, settled.reason);
+      if (owns) pineUnavailRef.current.set(script.id, { reason: settled.reason, key });
       return null;
     }
     if (settled.astId && pineAstRef.current.get(script.id)?.source === script.source) pineAstRef.current.set(script.id, { source: script.source, astId: settled.astId });
@@ -1625,7 +1626,9 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
     const chart = chartRef.current; if (!chart) return;
     const scripts = pineScriptsRef.current; if (!scripts.length) return;
     const epoch = ++pineEpochRef.current;
-    const misses = scripts.filter((s) => pineCached(s, rows) === null);
+    // A script whose engine failed on THIS exact request is not a miss: it stays "failed" with its
+    // Retry until the user retries or the request itself changes (lib/pineChartRun.ts).
+    const misses = scripts.filter((s) => pineCached(s, rows) === null && !pineFailurePinned(pineUnavailRef.current.get(s.id), pineCacheKey(s, rows)));
     // paint whatever is already cached now (avoids a blank flash when only SOME scripts changed)
     paintPineFromCache(rows);
     if (!misses.length) return;   // fast path: everything was cached
@@ -2318,7 +2321,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
       budgetMs: PINE_RUNTIME_CAP_MS,
       now: performance.now(),
       hasPlot: !!series?.length,
-      unavailable: pineUnavailRef.current.get(s.id) ?? null,
+      unavailable: pineUnavailRef.current.get(s.id)?.reason ?? null,
       error: err,
     });
     const pineState: PineLegendState | undefined =

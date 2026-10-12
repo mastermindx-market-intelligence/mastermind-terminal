@@ -83,6 +83,16 @@ export async function settleChartPineRun(
   }
 }
 
+// An engine failure is pinned to the request that failed (`key` = script · params · symbol ·
+// timeframe · bar set). The SAME request is re-issued only by an explicit Retry: a background
+// rebuild — a live splice every few seconds, an indicator toggle on the same bars — would otherwise
+// restart a hung boot behind a row that says it failed, flipping it back to "running" before anyone
+// could act on it. A different request (new bars, timeframe, symbol, edited script) runs fresh.
+export type PineUnavailable = { reason: PineEngineFailure; key: string };
+export function pineFailurePinned(unavail: PineUnavailable | undefined, key: string): boolean {
+  return !!unavail && unavail.key === key;
+}
+
 // ── legend state ──────────────────────────────────────────────────────────────────────────────
 // What a script's legend row says. The four-state law applied to one script: a run still in
 // flight is not "no plot", and an engine failure is not the script's result.

@@ -3,7 +3,7 @@ import { type Bar } from "../pine-engine";
 import { hashSource } from "../pine-engine/host-shared";
 import type { PineResult } from "../pine-engine/host";
 import {
-  classifyPineRun, pineEngineFailure, pineRowState, settleChartPineRun,
+  classifyPineRun, pineEngineFailure, pineFailurePinned, pineRowState, settleChartPineRun,
   PINE_ENGINE_WAIT_SLACK_MS, PINE_INTERRUPT_REISSUES,
 } from "../pineChartRun";
 
@@ -222,5 +222,18 @@ describe("pineRowState: what a script's legend row says", () => {
     expect(pineRowState({ ...base, intraday: true, unavailable: "start", inflightSince: 0 }).kind).toBe("intraday");
     expect(pineRowState({ ...base, error: "Line 3: x" })).toEqual({ kind: "error", message: "Line 3: x" });
     expect(pineRowState(base).kind).toBe("ok");
+  });
+});
+
+describe("pineFailurePinned: an engine failure re-runs only on Retry or a changed request", () => {
+  it("the same request stays failed; a different request, or no failure, runs", () => {
+    const failed = { reason: "start" as const, key: "src|{}|NVDA|D|250:2026-10-09" };
+    expect(pineFailurePinned(failed, failed.key)).toBe(true);
+    // a live splice moves the last close in place: the request key (len:lastTime) is unchanged
+    expect(pineFailurePinned(failed, "src|{}|NVDA|D|250:2026-10-09")).toBe(true);
+    // a new bar, timeframe, symbol or edit is a different request
+    expect(pineFailurePinned(failed, "src|{}|NVDA|D|251:2026-10-12")).toBe(false);
+    expect(pineFailurePinned(failed, "src|{}|NVDA|W|250:2026-10-09")).toBe(false);
+    expect(pineFailurePinned(undefined, failed.key)).toBe(false);
   });
 });
