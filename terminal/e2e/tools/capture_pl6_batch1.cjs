@@ -107,7 +107,7 @@ async function waitForServer(timeoutMs) {
     try {
       const res = await fetch(`${BASE}/terminal?symbol=SPY`, { redirect: "manual" });
       last = String(res.status);
-      if (res.status >= 200 && res.status < 500) return;
+      if (res.status >= 200 && res.status < 300) return;
     } catch (err) {
       last = err.cause?.code || err.message;
     }
@@ -153,7 +153,8 @@ async function ensureLang(page, lang) {
 }
 
 async function gotoReady(page, path, lang) {
-  await page.goto(`${BASE}${path}`, { waitUntil: "domcontentloaded", timeout: 90_000 });
+  const response = await page.goto(`${BASE}${path}`, { waitUntil: "domcontentloaded", timeout: 90_000 });
+  if (!response?.ok()) throw new Error(`${path}: capture navigation failed (HTTP ${response?.status() ?? "no response"})`);
   await ensureLang(page, lang);
   await page.waitForTimeout(400);
 }
