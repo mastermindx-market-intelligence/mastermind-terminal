@@ -143,8 +143,12 @@ describe("Team canonical owner boundary", () => {
     });
     await act(async () => checkbox.click());
     expect(writes).toEqual(["default_chart_theme", "share_layouts_by_default"]);
+    expect(select.disabled).toBe(true);
+    expect(checkbox.disabled).toBe(true);
     await act(async () => share.resolve(response({})));
     expect(checkbox.checked).toBe(false);
+    expect(checkbox.disabled).toBe(false);
+    expect(select.disabled).toBe(true);
     await act(async () => chart.resolve(response({})));
     expect(select.value).toBe("green_up");
     expect(checkbox.checked).toBe(false);
@@ -242,5 +246,42 @@ describe("Team canonical owner boundary", () => {
       });
     }
   }
+
+
+  for (const nextTeam of ["none", "other"] as const) {
+    it(`clears a one-time invitation when a successful reload resolves ${nextTeam} team`, async () => {
+      let changed = false;
+      vi.stubGlobal("fetch", vi.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
+        const url = String(input);
+        if (init?.method === "POST") {
+          changed = true;
+          return response({ inviteUrl: "https://example.invalid/old-team-link" });
+        }
+        if (changed && url === "/api/teams") return response({ teams: nextTeam === "none" ? [] : [{ id: B, name: "Different team" }] });
+        return response(bodyFor(url, A));
+      }));
+      await render(accountIdentity(A));
+      await act(async () => {
+        const email = container.querySelector('[data-testid="team-invite-email"]') as HTMLInputElement;
+        Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, "value")!.set!.call(email, "fixture@example.com");
+        email.dispatchEvent(new Event("input", { bubbles: true }));
+      });
+      await act(async () => (container.querySelector('[data-testid="team-invite-create"]') as HTMLButtonElement).click());
+      expect(live().getAttribute("data-team-id")).toBe(nextTeam === "none" ? "" : B);
+      expect(container.querySelector('[data-testid="team-invite-url"]')).toBeNull();
+      expect(container.querySelector(nextTeam === "none" ? '[data-testid="team-none"]' : '[data-testid="team-invite-form"]')).not.toBeNull();
+    });
+  }
+
+  it("loads the canonical account when a guest signs in", async () => {
+    const fetch = vi.fn(async (input: RequestInfo | URL) => response(bodyFor(String(input), A)));
+    vi.stubGlobal("fetch", fetch);
+    await render(GUEST_IDENTITY);
+    expect(fetch).not.toHaveBeenCalled();
+    await render(accountIdentity(A));
+    expect(text()).toContain("Alpha desk");
+    expect(live().getAttribute("data-caller-role")).toBe("owner");
+    expect(container.querySelector('[data-testid="team-settings"]')).not.toBeNull();
+  });
 
 });

@@ -18,7 +18,7 @@ import s from "./SectionTeam.module.css";
 type RosterMember = DevTeamMember;
 type PendingInvite = DevTeamFixture["invites"][number];
 /** The link a created invitation answers with. Shown once: the server keeps only its hash. */
-type InviteLink = { email: string; role: "admin" | "member"; url: string };
+type InviteLink = { teamId: string; email: string; role: "admin" | "member"; url: string };
 
 function isKnownRole(role: string | null | undefined): role is TeamRole {
   return role === "owner" || role === "admin" || role === "member";
@@ -170,7 +170,7 @@ function OwnedSectionTeam({
   );
   const [settingsLoaded, setSettingsLoaded] = useState(Boolean(devTeam));
   const [settingsError, setSettingsError] = useState<[string, string] | null>(null);
-  const [settingsBusyKey, setSettingsBusyKey] = useState<WorkspaceSettingKey | null>(null);
+  const [settingsBusyKeys, setSettingsBusyKeys] = useState<Set<WorkspaceSettingKey>>(() => new Set());
   const [settingsMsg, setSettingsMsg] = useState<{ key: WorkspaceSettingKey; tone: "ok" | "err"; text: string } | null>(null);
 
   useEffect(() => {
@@ -226,7 +226,7 @@ function OwnedSectionTeam({
     setSettingsLoaded(false);
     setSettingsError(null);
     setSettingsMsg(null);
-    setSettingsBusyKey(null);
+    setSettingsBusyKeys(new Set());
     const nextDefaults = workspaceSettingDefaults();
     setChartTheme(nextDefaults[0].value as string);
     setShareLayouts(nextDefaults[1].value as boolean);
@@ -261,6 +261,7 @@ function OwnedSectionTeam({
         return;
       }
       if (teams.length === 0) {
+        setInviteLink(null);
         setRosterFail(null);
         setTeamId(null);
         setTeamName("");
@@ -276,6 +277,7 @@ function OwnedSectionTeam({
         return;
       }
       const team = teams[0];
+      setInviteLink((link) => link?.teamId === team.id ? link : null);
       setTeamId(typeof team.id === "string" ? team.id : null);
       setTeamName(typeof team.name === "string" ? team.name.trim() : "");
       setTeamsCount(teams.length);
@@ -434,7 +436,7 @@ function OwnedSectionTeam({
     // may finish in either order; one key must not cancel another key's result.
     const current = () => active.current && rosterVersion === rosterSequence.current &&
       settingWrites.current.get(key) === writeVersion;
-    setSettingsBusyKey(key);
+    setSettingsBusyKeys((busy) => new Set(busy).add(key));
     setSettingsMsg(null);
     setSettingsError(null);
     try {
@@ -460,7 +462,11 @@ function OwnedSectionTeam({
       const text = lang === "zh" ? SETTING_MESSAGES.unavailable[1] : SETTING_MESSAGES.unavailable[0];
       setSettingsMsg({ key, tone: "err", text });
     } finally {
-      if (current()) setSettingsBusyKey((busy) => busy === key ? null : busy);
+      if (current()) setSettingsBusyKeys((busy) => {
+        const next = new Set(busy);
+        next.delete(key);
+        return next;
+      });
     }
   }
 
@@ -682,7 +688,7 @@ function OwnedSectionTeam({
         return;
       }
       const invited = typeof body.invite?.email === "string" && body.invite.email ? body.invite.email : email;
-      setInviteLink({ email: invited, role: inviteRole, url });
+      setInviteLink({ teamId, email: invited, role: inviteRole, url });
       setInviteEmail("");
       setMsg({ kind: "ok", text: t("acsTeamInviteCreated") });
       await loadLive();
@@ -1111,7 +1117,7 @@ function OwnedSectionTeam({
                 <select
                   className={s.settingsSelect}
                   data-testid="team-settings-chart"
-                  disabled={settingsBusyKey === "default_chart_theme"}
+                  disabled={settingsBusyKeys.has("default_chart_theme")}
                   value={chartTheme}
                   onChange={(event) => void patchSetting("default_chart_theme", event.target.value)}
                 >
@@ -1136,7 +1142,7 @@ function OwnedSectionTeam({
                 <label className={s.settingsSwitch} data-testid="team-settings-share">
                   <input
                     type="checkbox"
-                    disabled={settingsBusyKey === "share_layouts_by_default"}
+                    disabled={settingsBusyKeys.has("share_layouts_by_default")}
                     checked={shareLayouts}
                     onChange={(event) => void patchSetting("share_layouts_by_default", event.target.checked)}
                   />

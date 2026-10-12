@@ -85,6 +85,7 @@ for (const lang of ["en", "zh"] as const) {
         await expect.poll(() => reloadReads).toBeGreaterThan(0);
         // A pending refresh must not retain stale permission controls.
         await expect(page.getByTestId("team-change-role")).toHaveCount(0);
+        await expect(page.getByTestId("team-role-badge")).toHaveCount(0);
         await expect(page.getByTestId("team-settings")).toHaveCount(0);
         await expect(page.getByTestId("team-invite-url")).toHaveValue(url);
         releaseReload();
