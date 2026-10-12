@@ -9,7 +9,7 @@
 .more:hover{color:var(--text);border-color:var(--text-dim)}
 .more[aria-expanded=true]{color:var(--text);border-color:var(--text-2)}
 .more:focus-visible{outline:2px solid var(--brand-2);outline-offset:2px}
-.detail{grid-column:1 / -1;grid-row:2;min-height:0;overflow-y:auto;overscroll-behavior:contain;margin-top:8px;padding:12px;border:1px solid var(--line-3);border-radius:6px;background:var(--panel-2);color:var(--text-2)}
+.detail{grid-column:1 / -1;grid-row:2;align-self:stretch;min-height:0;overflow-y:auto;overscroll-behavior:contain;margin-top:8px;padding:12px;border:1px solid var(--line-3);border-radius:6px;background:var(--panel-2);color:var(--text-2)}
 .detailTitle{margin:0 0 8px;font:600 12px/16px var(--font-ui);color:var(--text)}
 .facts{display:grid;grid-template-columns:auto minmax(0,1fr);gap:4px 12px;margin:10px 0}
 .facts dt{color:var(--flow-muted)}
