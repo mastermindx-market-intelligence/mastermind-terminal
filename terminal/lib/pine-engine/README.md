@@ -200,6 +200,15 @@ worker boundary. `ta.*` currently coerces a refused input to ordinary `na` (so
 done, because a refused higher-timeframe series is already consumed by crossovers and windows in
 shipped scripts.
 
+A refused higher-timeframe value is a gap through the non-comparison operators that previously
+leaked it as a definite number: `r ? 1 : 0` and `na(r) ? 0 : r` paint a gap (not 0); `not r`,
+`true and r`, `r and true`, `false or r`, `r or false` all stay a gap. A **comparison** against a
+refused value, by contrast, is `na` like plain `na` today — the shipped signal scripts rely on
+this Pine semantic, e.g. `leadBullState = k_l >= d_l` and `confirmBullTrend = not useMTF or
+(macd_c >= sig_c) or b1FromOS`, where the lead / confirm higher-timeframe is refused on the
+chart's timeframe. `r > 0 ? 1 : 0` therefore paints `0` (Pine `na` semantics, required by the
+golden); test the value with `na(r) ? 0 : r` first if a gap is what you want.
+
 Deferred / no-op (clearly reported, never throws):
 - Tables, labels, lines, boxes, `fill`, `bgcolor`, `alertcondition` are parsed but draw nothing
   (they aren't chart series). The flagship's MTF dashboard table is therefore not rendered here.
