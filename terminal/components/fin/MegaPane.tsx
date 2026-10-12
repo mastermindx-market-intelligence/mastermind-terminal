@@ -14,7 +14,7 @@
  *     its OWN capture handler that calls stopImmediatePropagation, AND this
  *     handler early-returns while a drawer is open — so Esc closes the drawer
  *     before the pane (belt-and-braces).
- *   - body scroll lock while open
+ *   - page scroll lock while presented as an overlay (lib/scrollLock, shared with the drawer)
  *   - chart-overlay shallow deep-link: ?pane=<page>; standalone /analysis uses
  *     the canonical ?page=<page> key owned by AnalysisWorkspace
  *
@@ -26,6 +26,7 @@ import { useLang } from "../../lib/i18n";
 import { pick } from "../../lib/finFormat";
 import type { Fund, Bar } from "../../lib/fund";
 import { useIsMobile } from "@/lib/useMediaQuery";
+import { acquireScrollLock } from "../../lib/scrollLock";
 
 import OverviewPage from "./OverviewPage";
 import StatementsPage from "./StatementsPage";
@@ -192,14 +193,13 @@ export default function MegaPane({
     return () => window.removeEventListener("keydown", onKey, true);
   }, [closePane, presentsAsOverlay]);
 
-  // ── body scroll lock while presented as an overlay (an in-flow workspace scrolls inside its slot) ──
+  // ── page scroll lock while presented as an overlay (an in-flow workspace scrolls inside its slot) ──
+  // This lock turns on and off when the chart-hosted pane crosses 860px, possibly while the
+  // transcript drawer holds its own; the shared ref-counted lock restores the page only when the
+  // last holder releases, in any order.
   useEffect(() => {
     if (!presentsAsOverlay) return;
-    const prev = document.body.style.overflow;
-    document.body.style.overflow = "hidden";
-    return () => {
-      document.body.style.overflow = prev;
-    };
+    return acquireScrollLock();
   }, [presentsAsOverlay]);
 
   // ── legacy ?pane= deep-link sync (chart overlay only) ──
