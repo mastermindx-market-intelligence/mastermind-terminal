@@ -898,4 +898,70 @@ test("F3 retry: a 5xx PUT keeps 'Retry save' visible across the next stroke and 
  // The third PUT (after the user retries again) succeeds; wait for the puts array.
  await expect.poll(() => puts.length, { timeout: 20_000 }).toBeGreaterThan(0);
  await expect(page.getByTestId("drawing-save-recovery")).toHaveCount(0, { timeout: 20_000 });
+});// fix4 too_many end-to-end proof. Cloud GET returns 500 drawings for a symbol
+// and the user has 1 disjoint pre-GET drawing. The recovery toast must show
+// the tooMany sentence and EXACTLY ONE button ("Use cloud copy" — the cloud
+// copy is set in the same React batch as the issue). No "Keep local" /
+// "Replace cloud" button. No PUT. Clicking "Use cloud copy" renders the 500
+// saved drawings, removes the local addition, clears the toast, and clears
+// the journal row. A reload afterwards does not re-park or re-toast.
+//
+// Determinism: no held GET — the local preload row is set BEFORE the GET
+// returns (the persistDrawingRecovery in the preload branch finishes before
+// the GET response), so the decision is computed against the local preload
+// row and lands on "park" / "too_many" with the cloud copy applied in the
+// same batch. Reload re-creates the same state: the local preload row is
+// gone (resolveDrawingRecovery cleared the symbol's row), so the reload
+// has nothing to park against and the chrome stays hidden.
+test("too_many parks with exactly one button, never offers replace or a PUT, and the journal row clears on use-cloud", async ({ page }) => {
+ const cloudRevision = "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa";
+ const localDrawing = { id: "local-extra", kind: "hline", source: "user", schemaVersion: 1, points: [{ t: "2026-01-01", p: 999 }], meta: { label: "保持" } };
+ const cloudDrawings = Array.from({ length: 500 }, (_, i) => ({ id: `cloud-${i}`, kind: "hline", source: "user", schemaVersion: 1, points: [{ t: "2026-01-01", p: 100 + i }], meta: { label: "保持" } }));
+ // Seed: 1 pre-GET disjoint drawing for the symbol.
+ await seed(page, { drawings: [localDrawing], preload: true });
+ const puts: unknown[] = [];
+ await page.route("**/api/drawings**", async (route) => {
+  const request = route.request();
+  if (request.method() === "GET") {
+   await route.fulfill(json({ drawings: cloudDrawings, revision: cloudRevision, schemaVersion: 1 }));
+   return;
+  }
+  puts.push(request.postDataJSON());
+  await route.fulfill(json({ ok: true, operationId: request.postDataJSON().operationId, revision: cloudRevision, idempotentReplay: false, superseded: false }));
+ });
+ await open(page);
+ const recovery = page.getByTestId("drawing-save-recovery");
+ // (1) The recovery toast shows the tooMany sentence and EXACTLY ONE button.
+ await expect(recovery).toBeVisible({ timeout: 20_000 });
+ await expect(recovery).toContainText("500 saved drawings");
+ await expect(recovery).toContainText("new drawings were not saved");
+ await expect(recovery).toContainText("stay on this device");
+ // No "Keep local" / "Replace cloud" button anywhere.
+ await expect(recovery.getByRole("button", { name: "Keep local", exact: true })).toHaveCount(0);
+ await expect(recovery.getByRole("button", { name: "Replace cloud with local copy", exact: true })).toHaveCount(0);
+ // Only "Use cloud copy" — the cloud copy lands in the same React batch as the issue.
+ await expect(recovery.getByRole("button", { name: "Use cloud copy", exact: true })).toBeVisible();
+ await expect(recovery.getByRole("button", { name: "Review cloud copy", exact: true })).toHaveCount(0);
+ // (2) NO PUT is sent for that symbol at any point.
+ expect(puts).toHaveLength(0);
+ // (3) Clicking "Use cloud copy" renders the 500 saved drawings, removes the
+ // local addition, clears the toast, and clears that symbol's journal row.
+ await recovery.getByRole("button", { name: "Use cloud copy", exact: true }).click();
+ await expect(recovery).toHaveCount(0, { timeout: 20_000 });
+ expect(puts).toHaveLength(0);
+ // The local addition is gone: the journal row for NVDA is cleared.
+ await expect.poll(async () => {
+  const raw = await page.evaluate(() => localStorage.getItem("mm.drawing.account-outbox.v2"));
+  if (!raw) return "empty";
+  const env = JSON.parse(raw) as Record<string, Record<string, unknown>>;
+  const nvda = env["account:e2e-user-default"]?.NVDA;
+  return nvda ? "present" : "absent";
+ }, { timeout: 20_000 }).toBe("empty");
+ // (4) A reload afterwards does not re-park or re-toast. The journal row is
+ // gone, so the reload reads no preload entry, the GET is the only source,
+ // and there is nothing to park against.
+ await page.reload();
+ await expect(page.locator(".chart-wrap canvas").first()).toBeVisible();
+ await expect(page.getByTestId("drawing-save-recovery")).toHaveCount(0, { timeout: 20_000 });
+ expect(puts).toHaveLength(0);
 });
