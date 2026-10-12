@@ -123,6 +123,20 @@ export function isCurrentDrawingLoad(
   return generations[symbol] === generation;
 }
 
+/** Recovery GET for Review cloud: ignore a late 200 after leave, owner change, or a newer load. */
+export function shouldApplyDrawingCloudCopy(input: {
+  generations: DrawingLoadGenerations;
+  symbol: string;
+  startedGeneration: number;
+  ownerEpoch: number;
+  currentOwnerEpoch: number;
+  symbolStillOpen: boolean;
+}): boolean {
+  if (!input.symbolStillOpen) return false;
+  if (input.ownerEpoch !== input.currentOwnerEpoch) return false;
+  return (input.generations[input.symbol] ?? 0) === input.startedGeneration;
+}
+
 /** After a save settles, a newer local edit must not sit without a flush timer. */
 export function shouldRescheduleDrawingFlush(input: {
   queuedDuringSave: boolean;

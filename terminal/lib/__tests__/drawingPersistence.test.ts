@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { parseDrawingSaveReceipt, parseDrawingSnapshot, parsePersistedDrawings, prepareDrawingAttempt, settleDrawingAttempt, beginDrawingLoad, abandonDrawingLoad, abandonAllDrawingLoads, isCurrentDrawingLoad, shouldRescheduleDrawingFlush, type DrawingJournalEntry, type DrawingLoadGenerations } from "@/lib/drawingPersistence";
+import { parseDrawingSaveReceipt, parseDrawingSnapshot, parsePersistedDrawings, prepareDrawingAttempt, settleDrawingAttempt, beginDrawingLoad, abandonDrawingLoad, abandonAllDrawingLoads, isCurrentDrawingLoad, shouldRescheduleDrawingFlush, shouldApplyDrawingCloudCopy, type DrawingJournalEntry, type DrawingLoadGenerations } from "@/lib/drawingPersistence";
 import { readDrawingJournal, writeDrawingJournal, writeDrawingOutbox, refreshDrawingJournalSymbol, reconcileDrawingJournal, selectDrawingRecoveryCopy, DRAWING_JOURNAL_KEY, DRAWING_RECEIPTS_KEY, DRAWING_RECEIPTS_UNREADABLE_KEY, DRAWING_RECEIPT_HISTORY, DRAWING_RECEIPT_OWNERS, type DrawingJournalLocks } from "@/lib/drawingOutbox";
 let lockTail=Promise.resolve();
 const locks={request:(_name:string, fn:()=>unknown)=>{const task=lockTail.then(fn);lockTail=task.then(()=>{},()=>{});return task;}} as DrawingJournalLocks;
@@ -609,6 +609,42 @@ describe("per-symbol drawing load generation", () => {
     abandonDrawingLoad(generations, "NVDA");
     beginDrawingLoad(generations, "NVDA");
     expect(isCurrentDrawingLoad(generations, "NVDA", first)).toBe(false);
+  });
+
+  it("P2a: a late cloud-copy GET must not apply after leave, owner change, or a newer load", () => {
+    const generations: DrawingLoadGenerations = {};
+    const started = beginDrawingLoad(generations, "NVDA");
+    expect(shouldApplyDrawingCloudCopy({
+      generations, symbol: "NVDA", startedGeneration: started,
+      ownerEpoch: 1, currentOwnerEpoch: 1, symbolStillOpen: true,
+    })).toBe(true);
+
+    abandonDrawingLoad(generations, "NVDA");
+    expect(shouldApplyDrawingCloudCopy({
+      generations, symbol: "NVDA", startedGeneration: started,
+      ownerEpoch: 1, currentOwnerEpoch: 1, symbolStillOpen: false,
+    })).toBe(false);
+
+    const generationsAfterOwner: DrawingLoadGenerations = {};
+    const ownerStarted = beginDrawingLoad(generationsAfterOwner, "NVDA");
+    abandonAllDrawingLoads(generationsAfterOwner);
+    expect(shouldApplyDrawingCloudCopy({
+      generations: generationsAfterOwner, symbol: "NVDA", startedGeneration: ownerStarted,
+      ownerEpoch: 1, currentOwnerEpoch: 2, symbolStillOpen: true,
+    })).toBe(false);
+
+    const overlapping: DrawingLoadGenerations = {};
+    const stale = beginDrawingLoad(overlapping, "NVDA");
+    abandonDrawingLoad(overlapping, "NVDA");
+    const fresh = beginDrawingLoad(overlapping, "NVDA");
+    expect(shouldApplyDrawingCloudCopy({
+      generations: overlapping, symbol: "NVDA", startedGeneration: stale,
+      ownerEpoch: 1, currentOwnerEpoch: 1, symbolStillOpen: true,
+    })).toBe(false);
+    expect(shouldApplyDrawingCloudCopy({
+      generations: overlapping, symbol: "NVDA", startedGeneration: fresh,
+      ownerEpoch: 1, currentOwnerEpoch: 1, symbolStillOpen: true,
+    })).toBe(true);
   });
 
   it("owner change abandons every in-flight symbol so neither success nor failure can land", () => {
