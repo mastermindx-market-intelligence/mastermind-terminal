@@ -60,11 +60,9 @@ export function useTickerNewsFeed(symbol: string) {
           setLoadState({ symbol, state: "restricted" });
           return null;
         }
-        if (background) {
-          setLiveInterrupted(true);
-          return null;
-        }
-        setSnapshot(null);
+        // Master contract: a failed load ends unavailable whether initial or background; only the
+        // initial load also clears the snapshot (the panel hides rows whenever state is not ready).
+        if (!background) setSnapshot(null);
         setLoadState({ symbol, state: "unavailable" });
         return null;
       }
@@ -85,10 +83,6 @@ export function useTickerNewsFeed(symbol: string) {
       return parsed;
     } catch {
       if (stale()) return null;
-      if (background) {
-        setLiveInterrupted(true);
-        return null;
-      }
       setLoadState({ symbol, state: "unavailable" });
       return null;
     }

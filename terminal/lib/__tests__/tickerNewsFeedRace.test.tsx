@@ -3,6 +3,7 @@ import React, { act } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
+import TickerNewsPanel from "@/components/news/TickerNewsPanel";
 import { useTickerNewsFeed } from "@/components/news/useTickerNewsFeed";
 
 const { stateWrites } = vi.hoisted(() => ({
@@ -289,7 +290,7 @@ describe("useTickerNewsFeed races", () => {
     expect(readFeed().loadState).toBe("ready");
   });
 
-  it("background refresh failure keeps the ready snapshot and marks the feed interrupted", async () => {
+  it("background refresh failure ends unavailable and renders no story rows", async () => {
     const scenarios: Array<{ name: string; fail: () => Promise<Response> }> = [
       {
         name: "http 503",
@@ -326,10 +327,28 @@ describe("useTickerNewsFeed races", () => {
         FakeEventSource.instances.at(-1)!.emit("upsert", changePayload(2, "ev2_a", "Ignored failure"));
       });
 
-      expect(readFeed().loadState, scenario.name).toBe("ready");
-      expect(readFeed().title, scenario.name).toBe("Kept headline");
-      expect(readFeed().hasSnapshot, scenario.name).toBe("yes");
-      expect(readFeed().live, scenario.name).toBe("yes");
+      // Master contract (AC-E13-01): a failed refresh ends unavailable, not interrupted.
+      expect(readFeed().loadState, scenario.name).toBe("unavailable");
+      expect(readFeed().live, scenario.name).toBe("no");
+
+      // The panel therefore hides the rows instead of showing them as live-interrupted.
+      await unmountRoot();
+      root = createRoot(host);
+      rootMounted = true;
+      FakeEventSource.instances = [];
+      phase = "initial";
+      await act(async () => {
+        root.render(<TickerNewsPanel symbol="NVDA" lang="en" />);
+      });
+      expect(host.querySelector("article[data-story-id]"), scenario.name).not.toBeNull();
+
+      phase = "refresh";
+      await settle(() => {
+        FakeEventSource.instances.at(-1)!.emit("upsert", changePayload(2, "ev2_a", "Ignored failure"));
+      });
+
+      expect(host.querySelector("article[data-story-id]"), scenario.name).toBeNull();
+      expect(host.textContent, scenario.name).toContain("News is temporarily unavailable");
     }
   });
 
