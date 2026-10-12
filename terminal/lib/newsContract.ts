@@ -19,6 +19,7 @@ import {
   normalizeTickerNewsSymbol,
   parseHealth,
   parseStoryRow,
+  parseTickerNewsFlow,
 } from "@/lib/newsValidation";
 
 export type * from "@/lib/newsTypes";
@@ -56,6 +57,9 @@ export function parseTickerNewsSnapshot(value: unknown): TickerNewsSnapshot {
     next_cursor: nextCursor,
     has_more: asBoolean(obj.has_more, "snapshot_has_more"),
     source_health: parseHealth(obj.source_health),
+    // Wave B: an absent flow key (old API, or a cursor page) is null; a present key
+    // parses to a flow or the terminal-only MALFORMED flow — never a snapshot throw.
+    flow: "flow" in obj ? parseTickerNewsFlow(obj.flow) : null,
   };
 }
 

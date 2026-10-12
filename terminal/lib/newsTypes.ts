@@ -48,7 +48,58 @@ export type TickerNewsSnapshot = {
   next_cursor: number | null;
   has_more: boolean;
   source_health: TickerNewsSourceHealth;
+  flow: TickerNewsFlow | null;
 };
+
+// ---- ticker_news.flow.v1 (Wave B; frozen wire contract wb_news_flow_contract.md) ----
+
+export type TickerNewsFlowState = "ok" | "thin_history" | "unavailable";
+export type TickerNewsFlowReason = "no_accessible_sources" | "calculation_failed" | "malformed";
+export type TickerNewsFlowComparison = "busier" | "typical" | "quieter" | "insufficient_history";
+
+export type TickerNewsFlowProvenance = {
+  velocity_schema: string;
+  sources_counted: string[];
+  status_counted: string;
+  distinct_by: string;
+  story_grouping: string;
+  cluster_policy_version: string;
+  windows: {
+    reports_24h: string;
+    reports_7d: string;
+    daily_28d: {
+      start_date: string;
+      end_date: string;
+      unit: string;
+      excludes: string;
+      order: string;
+    };
+  };
+  calculation: {
+    method: string;
+    comparison_rule: string;
+  };
+  time_basis_counts_24h: {
+    published_at: number;
+    received_at: number;
+  };
+};
+
+export interface TickerNewsFlow {
+  schema: "ticker_news.flow.v1";
+  state: TickerNewsFlowState;
+  reason: TickerNewsFlowReason | null;
+  coverage: "complete" | "partial";
+  as_of: string | null;
+  reports_24h: number | null;
+  reports_7d: number | null;
+  stories_24h: number | null;
+  median_daily_28d: number | null;
+  daily_counts_28d: number[] | null;
+  history_days_observed: number | null;
+  comparison: TickerNewsFlowComparison | null;
+  provenance: TickerNewsFlowProvenance | null;
+}
 
 export type TickerNewsChange = {
   sequence: number;
