@@ -3,6 +3,7 @@
 // worker payload transferable-friendly. Kept in its own module so worker.ts never imports host.ts
 // (which references `new Worker(...)`, illegal inside a worker) and vice-versa.
 import type { Bar } from "./runtime";
+import { NA } from "./builtins";
 
 // FNV-1a (32-bit, folded twice) over the source — matches lib/fingerprint.ts's idiom. Cheap,
 // stable, collision-resistant enough to key an AST cache; NOT security-sensitive.
@@ -18,10 +19,22 @@ export function hashSource(str: string): string {
 // engine's date math reads. n is redundant with the array lengths but explicit for clarity/guards.
 export interface ColumnarBars { n: number; time: string[]; timeClose?: string[]; o: Float64Array; h: Float64Array; l: Float64Array; c: Float64Array; v: Float64Array; }
 
+// One rule for session stamps used by admission (isParseableSession) and by
+// builtin `time` / `time_close`. Date-only → UTC midnight; a string containing
+// "T" → Date.parse as-is; anything else, or a failed parse → Pine na (never a
+// leaked Date.parse NaN treated as a timestamp).
+export function parseSessionStampMs(stamp: unknown): number {
+  if (typeof stamp !== "string" || stamp.length === 0) return NA;
+  const ms = /^\d{4}-\d{2}-\d{2}$/.test(stamp)
+    ? Date.parse(stamp + "T00:00:00Z")
+    : stamp.includes("T")
+      ? Date.parse(stamp)
+      : Number.NaN;
+  return Number.isFinite(ms) ? ms : NA;
+}
+
 function isParseableSession(s: unknown): s is string {
-  if (typeof s !== "string" || s.length === 0) return false;
-  if (/^\d{4}-\d{2}-\d{2}$/.test(s)) return true;
-  return Number.isFinite(Date.parse(s.includes("T") ? s : s + "T00:00:00Z"));
+  return Number.isFinite(parseSessionStampMs(s));
 }
 
 // ChartPanel 3D session groups stamp `closeTime`; the engine's HTF resample stamps `timeClose`.

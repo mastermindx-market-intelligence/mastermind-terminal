@@ -61,7 +61,7 @@ import { Node, Stmt, Arg, parse, type ParseResult } from "./parser";
 import { PineSyntaxError } from "./lexer";
 import { NA, NS_CONST, toCss, fmtNum, tfSeconds, tfParts, tfPartsToSeconds } from "./builtins";
 import { groupSessionBars, parseSessionAnchor } from "../sessionBars";
-import { resolveBarTimeClose } from "./host-shared";
+import { parseSessionStampMs, resolveBarTimeClose } from "./host-shared";
 
 export interface Bar { time: string; o: number; h: number; l: number; c: number; v: number; timeClose?: string; closeTime?: string }
 
@@ -116,8 +116,8 @@ function builtinSeriesAt(name: string, B: Bar[], NB: number, j: number): any {
     case "close": return b.c; case "open": return b.o; case "high": return b.h; case "low": return b.l; case "volume": return b.v;
     case "hl2": return (b.h + b.l) / 2; case "hlc3": return (b.h + b.l + b.c) / 3; case "ohlc4": return (b.o + b.h + b.l + b.c) / 4;
     case "hlcc4": return (b.h + b.l + b.c + b.c) / 4; case "bar_index": return j; case "last_bar_index": return NB - 1;
-    case "time": return Date.parse(b.time + "T00:00:00Z");
-    case "time_close": return Date.parse((b.timeClose ?? b.time) + "T00:00:00Z");
+    case "time": return parseSessionStampMs(b.time);
+    case "time_close": return parseSessionStampMs(b.timeClose ?? b.time);
     default: return undefined;
   }
 }

@@ -2,7 +2,8 @@
 // (and the engine's own `timeClose`), with `timeClose` winning when both exist.
 import { describe, it, expect } from "vitest";
 import { runPine, type Bar } from "../pine-engine";
-import { barsToColumns, columnsToBars } from "../pine-engine/host-shared";
+import { NA } from "../pine-engine/builtins";
+import { barsToColumns, columnsToBars, parseSessionStampMs } from "../pine-engine/host-shared";
 
 function runClose(bars: Bar[]) {
   const out = runPine(`
@@ -69,5 +70,84 @@ describe("chart-TF time_close reads closeTime / timeClose", () => {
     ];
     const { t, c } = runClose(bars);
     expect(c[0]).toBe(t[0]);
+  });
+});
+
+function runIsoClose(bars: Bar[]) {
+  const out = runPine(`
+//@version=6
+indicator("iso")
+plot(time, "t")
+plot(time_close, "c")
+plot(time_close == time_close ? 1 : 0, "eq")
+plot(na(time_close) ? 1 : 0, "isna")
+`, bars, { timeframe: "D", symbol: "TEST" });
+  expect(out.ok, JSON.stringify(out.errors)).toBe(true);
+  const val = (title: string) => out.result!.plots.find((p) => p.title === title)!.data.map((p) => p.value);
+  return { t: val("t"), c: val("c"), eq: val("eq"), isna: val("isna") };
+}
+
+describe("chart-TF time / time_close parse ISO date-time session stamps", () => {
+  it("time_close of an ISO date-time close stamp equals Date.parse of that string", () => {
+    const iso = "2026-10-09T20:00:00Z";
+    const bars: Bar[] = [
+      { time: "2026-10-09", timeClose: iso, o: 1, h: 2, l: 0.5, c: 1.5, v: 10 },
+    ];
+    const { t, c, eq, isna } = runIsoClose(bars);
+    expect(t[0]).toBe(Date.parse("2026-10-09T00:00:00Z"));
+    expect(c[0]).toBe(Date.parse(iso));
+    expect(c[0]).not.toBe(t[0]);
+    expect(eq[0]).toBe(1);
+    expect(isna[0]).toBe(0);
+  });
+
+  it("an unparseable close stamp yields Pine na, not a leaked NaN timestamp", () => {
+    const bars: Bar[] = [
+      { time: "2026-10-09", timeClose: "not-a-session", o: 1, h: 2, l: 0.5, c: 1.5, v: 10 },
+    ];
+    const { t, c, eq, isna } = runIsoClose(bars);
+    expect(t[0]).toBe(Date.parse("2026-10-09T00:00:00Z"));
+    // plot(time_close) is a gap (no finite value). na(time_close) is true. A
+    // leaked Date.parse NaN is the same IEEE value as Pine na, so the engine
+    // contract is: never a finite timestamp, and na() is true.
+    expect(c[0]).toBeUndefined();
+    expect(Number.isFinite(c[0] as number)).toBe(false);
+    expect(eq[0]).toBe(0);
+    expect(isna[0]).toBe(1);
+  });
+
+  it("a date-only close stamp is still UTC midnight (byte-identical with the old parse)", () => {
+    const bars: Bar[] = [
+      { time: "2025-01-06", timeClose: "2025-01-08", o: 1, h: 2, l: 0.5, c: 1.5, v: 10 },
+    ];
+    const { t, c, eq, isna } = runIsoClose(bars);
+    expect(t[0]).toBe(Date.parse("2025-01-06T00:00:00Z"));
+    expect(c[0]).toBe(Date.parse("2025-01-08T00:00:00Z"));
+    expect(eq[0]).toBe(1);
+    expect(isna[0]).toBe(0);
+  });
+
+  it("barsToColumns admits an ISO date-time close stamp and the engine parses it as-is", () => {
+    const iso = "2026-10-09T20:00:00Z";
+    const bars = [
+      { time: "2026-10-09", closeTime: iso, o: 1, h: 2, l: 0.5, c: 1.5, v: 10 },
+    ] as Bar[];
+    const { payload } = barsToColumns(bars);
+    expect(payload.timeClose?.[0]).toBe(iso);
+    const back = columnsToBars(payload);
+    const { c, eq } = runIsoClose(back);
+    expect(c[0]).toBe(Date.parse(iso));
+    expect(eq[0]).toBe(1);
+  });
+});
+
+describe("parseSessionStampMs is the one session-stamp rule", () => {
+  it("date-only is UTC midnight; ISO date-time is Date.parse as-is; unparseable is Pine na", () => {
+    expect(parseSessionStampMs("2026-10-09")).toBe(Date.parse("2026-10-09T00:00:00Z"));
+    expect(parseSessionStampMs("2026-10-09T20:00:00Z")).toBe(Date.parse("2026-10-09T20:00:00Z"));
+    expect(parseSessionStampMs("not-a-session")).toBe(NA);
+    expect(Number.isFinite(parseSessionStampMs("not-a-session"))).toBe(false);
+    expect(parseSessionStampMs("")).toBe(NA);
+    expect(parseSessionStampMs(undefined)).toBe(NA);
   });
 });
