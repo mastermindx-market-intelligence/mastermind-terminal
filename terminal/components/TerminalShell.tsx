@@ -2584,6 +2584,13 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
           if (decision.action === "stamp") {
             drawRevisions.current[sym] = snapshot.revision;
             setDrawStore((s) => ({ ...s, [sym]: normalizeDrawings(snapshot.drawings) }));
+            if (pending !== undefined && pending.length === 0) {
+              delete drawPending.current[sym];
+              delete recovery[sym];
+              clearTimeout(drawTimers.current[sym]);
+              delete drawTimers.current[sym];
+              void persistDrawingRecovery(ownerKey, recovery);
+            }
           } else if (decision.action === "keep") {
             drawRevisions.current[sym] = snapshot.revision;
           } else if (decision.action === "merge" && merged) {

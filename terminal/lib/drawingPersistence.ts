@@ -163,7 +163,7 @@ export function decideDrawingLoadReconciliation(input: DrawingLoadReconciliation
       ? { action: "keep" }
       : { action: "park", reason: "conflict" };
   }
-  if (input.pendingIds.length === 0) return { action: "park", reason: "preload" };
+  if (input.pendingIds.length === 0) return { action: "stamp" };
   const cloud = new Set(input.cloudIds);
   if (input.pendingIds.some((id) => cloud.has(id))) return { action: "park", reason: "overlap" };
   return { action: "merge" };

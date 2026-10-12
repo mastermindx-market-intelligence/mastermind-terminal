@@ -637,10 +637,10 @@ describe("drawing load vs pre-GET local edits", () => {
     })).toEqual({ action: "park", reason: "overlap" });
   });
 
-  it("parks a no-revision empty pending set because it is not a proven addition", () => {
+  it("stamps an empty no-revision pending set so keep-mine cannot delete unseen cloud drawings", () => {
     expect(decideDrawingLoadReconciliation({
       ...base, hasPending: true, pendingIds: [], pendingRevisionPresent: false,
-    })).toEqual({ action: "park", reason: "preload" });
+    })).toEqual({ action: "stamp" });
   });
 
   it("keeps post-load pending work whose revision already matches the GET", () => {
