@@ -1,7 +1,8 @@
 "use client";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { Group, Msg, Row, SectionHead } from "./icons";
 import { acsDate, type DevTeamFixture, type DevTeamMember, type SectionProps } from "./types";
+import { identityOwnerKey, identityUserId, isAccountOwner } from "@/lib/accountIdentity";
 import {
   INVITE_TTL_DAYS,
   SETTING_MESSAGES,
@@ -109,14 +110,24 @@ function rosterFailPair(status: number, body: { message?: unknown; messageZh?: u
   return TEAM_ROUTE_MESSAGES.read_failed;
 }
 
-export default function SectionTeam({
+type TeamProps = SectionProps & { devTeam?: DevTeamFixture };
+
+export default function SectionTeam(props: TeamProps) {
+  // Reset every read, draft and one-time link before a new owner's first paint.
+  // Profile loading and a same-account email edit do not change this boundary.
+  return <OwnedSectionTeam key={identityOwnerKey(props.identity)} {...props} />;
+}
+
+function OwnedSectionTeam({
   t,
   lang,
-  user,
+  identity,
   onClose,
   devTeam,
-}: SectionProps & { devTeam?: DevTeamFixture }) {
-  const callerUserId = devTeam?.callerUserId || user?.id || "";
+}: TeamProps) {
+  const callerUserId = devTeam?.callerUserId || identityUserId(identity);
+  const signedIn = isAccountOwner(identityOwnerKey(identity));
+  const active = useRef(true);
   const [teamId, setTeamId] = useState<string | null>(devTeam?.team?.id ?? null);
   const [teamName, setTeamName] = useState((devTeam?.team?.name || "").trim());
   const [teamsCount, setTeamsCount] = useState(devTeam?.team ? 1 : 0);
@@ -126,7 +137,9 @@ export default function SectionTeam({
   const [invites, setInvites] = useState<PendingInvite[]>(devTeam?.invites ?? []);
   const [invitesFail, setInvitesFail] = useState(false);
   const [truncated, setTruncated] = useState(Boolean(devTeam?.truncated));
-  const [rosterFail, setRosterFail] = useState<[string, string] | null>(null);
+  const [rosterFail, setRosterFail] = useState<[string, string] | null>(
+    !devTeam && !signedIn ? TEAM_ROUTE_MESSAGES.not_signed_in : null,
+  );
   const [msg, setMsg] = useState<{ kind: "ok" | "err"; text: string } | null>(null);
   const [busyId, setBusyId] = useState<Set<string>>(() => new Set());
   const [confirm, setConfirm] = useState<{ userId: string; kind: "remove" | "leave" } | null>(null);
@@ -136,7 +149,7 @@ export default function SectionTeam({
   const transferButtonRef = useRef<HTMLButtonElement>(null);
   const transferWasOpen = useRef(false);
   // The zero-team sentence must not flash before the first answer arrives, so it waits on this.
-  const [loaded, setLoaded] = useState(Boolean(devTeam));
+  const [loaded, setLoaded] = useState(Boolean(devTeam) || !signedIn);
   const [newName, setNewName] = useState("");
   const [creating, setCreating] = useState(false);
   const [inviteEmail, setInviteEmail] = useState("");
@@ -175,10 +188,51 @@ export default function SectionTeam({
     }
   }, [transfer]);
 
+  const rosterSequence = useRef(0);
+  const settingsSequence = useRef(0);
+  const settingWrites = useRef(new Map<WorkspaceSettingKey, number>());
+  const [readVersion, setReadVersion] = useState(0);
+  const invalidateReads = useCallback(() => {
+    ++rosterSequence.current;
+    ++settingsSequence.current;
+  }, []);
+  useLayoutEffect(() => {
+    active.current = true;
+    return () => {
+      active.current = false;
+      invalidateReads();
+    };
+  }, [invalidateReads]);
+
   const loadLive = useCallback(async () => {
-    if (devTeam) return;
+    if (devTeam || !signedIn || !active.current) return;
+    const version = ++rosterSequence.current;
+    const current = () => version === rosterSequence.current;
+    ++settingsSequence.current;
+    setReadVersion(version);
+    setLoaded(false);
+    setTeamId(null);
+    setTeamName("");
+    setTeamsCount(0);
+    setTeamsTruncated(false);
+    setCallerRole(null);
+    setMembers([]);
+    setTruncated(false);
+    setRosterFail(null);
+    setSettingsLoaded(false);
+    setSettingsError(null);
+    setSettingsMsg(null);
+    setSettingsBusyKey(null);
+    const nextDefaults = workspaceSettingDefaults();
+    setChartTheme(nextDefaults[0].value as string);
+    setShareLayouts(nextDefaults[1].value as boolean);
     const fail = (status: number, body: { message?: unknown; messageZh?: unknown }) => {
       setRosterFail(rosterFailPair(status, body));
+      setTeamId(null);
+      setTeamName("");
+      setTeamsCount(0);
+      setTeamsTruncated(false);
+      setCallerRole(null);
       setMembers([]);
       setTruncated(false);
       setInvites([]);
@@ -188,11 +242,15 @@ export default function SectionTeam({
     setInvitesFail(false);
     try {
       const teamsRes = await fetch("/api/teams");
+      if (!current()) return;
       if (!teamsRes.ok) {
-        fail(teamsRes.status, await teamsRes.json().catch(() => ({})));
+        const body = await teamsRes.json().catch(() => ({}));
+        if (!current()) return;
+        fail(teamsRes.status, body);
         return;
       }
       const teamsBody = await teamsRes.json();
+      if (!current()) return;
       const teams = Array.isArray(teamsBody?.teams) ? teamsBody.teams : null;
       if (!teams) {
         fail(teamsRes.status, {});
@@ -219,11 +277,15 @@ export default function SectionTeam({
       setTeamsCount(teams.length);
       setTeamsTruncated(teamsBody.truncated === true);
       const membersRes = await fetch(`/api/teams/${encodeURIComponent(team.id)}/members`);
+      if (!current()) return;
       if (!membersRes.ok) {
-        fail(membersRes.status, await membersRes.json().catch(() => ({})));
+        const body = await membersRes.json().catch(() => ({}));
+        if (!current()) return;
+        fail(membersRes.status, body);
         return;
       }
       const membersBody = await membersRes.json();
+      if (!current()) return;
       const rows = Array.isArray(membersBody?.members) ? membersBody.members : null;
       if (!rows) {
         fail(membersRes.status, {});
@@ -243,11 +305,13 @@ export default function SectionTeam({
       if (membersBody.callerRole === "owner" || membersBody.callerRole === "admin") {
         try {
           const invRes = await fetch(`/api/teams/invitations?teamId=${encodeURIComponent(team.id)}`);
+          if (!current()) return;
           if (!invRes.ok) {
             setInvitesFail(true);
             setInvites([]);
           } else {
             const invBody = await invRes.json();
+            if (!current()) return;
             const pending = Array.isArray(invBody?.invites) ? invBody.invites : [];
             setInvitesFail(false);
             setInvites(
@@ -260,6 +324,7 @@ export default function SectionTeam({
             );
           }
         } catch {
+          if (!current()) return;
           setInvitesFail(true);
           setInvites([]);
         }
@@ -268,14 +333,13 @@ export default function SectionTeam({
         setInvitesFail(false);
       }
     } catch {
+      if (!current()) return;
       // A network failure is not an absent team schema either.
-      setRosterFail(TEAM_ROUTE_MESSAGES.read_failed);
-      setMembers([]);
-      setTruncated(false);
+      fail(0, {});
     } finally {
-      setLoaded(true);
+      if (current()) setLoaded(true);
     }
-  }, [devTeam]);
+  }, [devTeam, signedIn]);
 
   useEffect(() => {
     if (devTeam) return;
@@ -287,8 +351,9 @@ export default function SectionTeam({
     })();
     return () => {
       cancelled = true;
+      invalidateReads();
     };
-  }, [devTeam, loadLive]);
+  }, [devTeam, loadLive, invalidateReads]);
 
   // MO-PAID-083 — fetch the team's two workspace settings whenever the live roster identifies a
   // team. The dev harness has no Supabase session, so the devTeam fixture already carries the
@@ -296,6 +361,11 @@ export default function SectionTeam({
   const loadSettings = useCallback(async () => {
     if (devTeam) return;
     if (!teamId) return;
+    const version = ++settingsSequence.current;
+    const rosterVersion = rosterSequence.current;
+    const current = () => version === settingsSequence.current && rosterVersion === rosterSequence.current;
+    setSettingsLoaded(false);
+    setSettingsError(null);
     try {
       const res = await fetch(`/api/teams/${encodeURIComponent(teamId)}/settings`);
       const body = (await res.json().catch(() => ({}))) as {
@@ -303,6 +373,7 @@ export default function SectionTeam({
         message?: unknown;
         messageZh?: unknown;
       };
+      if (!current()) return;
       if (!res.ok) {
         // Surface the failure with a plain sentence so the block does not silently paint the
         // closed defaults as "the team's saved values". Keep the route's EN/ZH pair and pick
@@ -322,6 +393,7 @@ export default function SectionTeam({
       if (share && typeof share.value === "boolean") setShareLayouts(share.value);
       setSettingsLoaded(true);
     } catch {
+      if (!current()) return;
       // Network failure has no body; keep the catalogue pair and pick at render.
       setSettingsError(TEAM_ROUTE_MESSAGES.read_failed);
       setSettingsLoaded(true);
@@ -331,14 +403,13 @@ export default function SectionTeam({
   useEffect(() => {
     if (devTeam) return;
     if (!loaded) return;
-    if (!teamId) {
-      // Zero-team state hides the whole block; do not paint a half-state.
-      setSettingsLoaded(true);
-      setSettingsError(null);
-      return;
-    }
-    void loadSettings();
-  }, [devTeam, loaded, teamId, loadSettings]);
+    if (!teamId) return;
+    let cancelled = false;
+    void Promise.resolve().then(() => {
+      if (!cancelled) void loadSettings();
+    });
+    return () => { cancelled = true; };
+  }, [devTeam, loaded, teamId, loadSettings, readVersion]);
 
   async function patchSetting(key: WorkspaceSettingKey, value: string | boolean) {
     if (devTeam) {
@@ -351,6 +422,14 @@ export default function SectionTeam({
       return;
     }
     if (!teamId) return;
+    const rosterVersion = rosterSequence.current;
+    const writeVersion = (settingWrites.current.get(key) ?? 0) + 1;
+    settingWrites.current.set(key, writeVersion);
+    ++settingsSequence.current;
+    // A roster reload invalidates this completion. Independent settings writes
+    // may finish in either order; one key must not cancel another key's result.
+    const current = () => active.current && rosterVersion === rosterSequence.current &&
+      settingWrites.current.get(key) === writeVersion;
     setSettingsBusyKey(key);
     setSettingsMsg(null);
     setSettingsError(null);
@@ -361,6 +440,7 @@ export default function SectionTeam({
         body: JSON.stringify({ key, value }),
       });
       const body = (await res.json().catch(() => ({}))) as { message?: unknown; messageZh?: unknown };
+      if (!current()) return;
       if (!res.ok) {
         const message =
           routeMessage(body, lang) ||
@@ -372,10 +452,11 @@ export default function SectionTeam({
       if (key === "share_layouts_by_default" && typeof value === "boolean") setShareLayouts(value);
       setSettingsMsg({ key, tone: "ok", text: routeMessage(body, lang) || (lang === "zh" ? SETTING_MESSAGES.saved[1] : SETTING_MESSAGES.saved[0]) });
     } catch {
+      if (!current()) return;
       const text = lang === "zh" ? SETTING_MESSAGES.unavailable[1] : SETTING_MESSAGES.unavailable[0];
       setSettingsMsg({ key, tone: "err", text });
     } finally {
-      setSettingsBusyKey(null);
+      if (current()) setSettingsBusyKey((busy) => busy === key ? null : busy);
     }
   }
 
@@ -484,7 +565,7 @@ export default function SectionTeam({
   }
 
   async function postTransfer(recipientId: string) {
-    if (!teamId) return;
+    if (!teamId || !active.current) return;
     const previousMembers = members;
     const previousRole = callerRole;
     applyLocalTransfer(recipientId);
