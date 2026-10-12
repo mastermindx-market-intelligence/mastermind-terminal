@@ -843,60 +843,141 @@ test("F2 keep-local with two local copies PUTs the copy the user chose", async (
 });
 
 // T3 (F3 retry): a PUT that fails with a 5xx must surface "Retry save" and the
-// banner must STAY visible across a new stroke — the previous A3 widening
-// cleared the retry code after every save, including the in-flight retry.
-test("F3 retry: a 5xx PUT keeps 'Retry save' visible across the next stroke and clears only on success", async ({ page }) => {
+// banner must STAY visible across a user-added stroke — the retry code is
+// bound to a condition the durable write did not address, so any post-write
+// widening that clears it (the previous A3 widening) is a defect. On a
+// successful retry click the PUT must carry every locally edited drawing and
+// the chrome must clear.
+test("T3 (F3 retry): a 5xx PUT keeps 'Retry save' visible across the next stroke and clears only on a successful retry", async ({ page }) => {
+ test.skip((page.viewportSize()?.width ?? 1440) <= 860, "The drawing sidebar is desktop-only (rendered via ds-dock at >860px); the journal and retry chrome are checked on the desktop chart.");
  const okOp = "33333333-3333-4333-8333-333333333333";
  const cloudRevision = "cccccccc-cccc-4ccc-8ccc-cccccccccccc";
+ const seedCloudRevision = cloudRevision;
  const puts: { operationId:string; expectedRevision:string|null; drawings:{id:string}[] }[] = [];
- let putCalls = 0;
+ // Test-controlled flag: a single boolean decides whether PUTs commit. The
+ // flag flips once we have observed "Retry save" survives the user-added
+ // stroke; the retry click then sees the same route handler that has been
+ // answering every prior PUT with 5xx.
+ let commitOk = false;
  await page.route("**/api/drawings**", async (route) => {
-  if (route.request().method() === "GET") { await route.fulfill(json({ drawings: [], revision: cloudRevision, schemaVersion: 1 })); return; }
+  if (route.request().method() === "GET") {
+   await route.fulfill(json({ drawings: [], revision: cloudRevision, schemaVersion: 1 }));
+   return;
+  }
   const value = route.request().postDataJSON();
-  putCalls++;
-  // PUTs 1 and 2 (the retry path before / after the new stroke) 500; PUT 3 succeeds.
-  if (putCalls <= 2) { await route.fulfill({ status: 500, contentType: "application/json", body: JSON.stringify({ error: "boom" }) }); return; }
+  if (!commitOk) {
+   await route.fulfill({ status: 500, contentType: "application/json", body: JSON.stringify({ error: "boom" }) });
+   return;
+  }
   puts.push(value);
   await route.fulfill(json({ ok: true, operationId: value.operationId, revision: okOp, idempotentReplay: false, superseded: false }));
  });
+ // Record how many times the recovery chrome enters and leaves the DOM. A
+ // defect that wipes the retry code after every durable write is observable
+ // here as >= 1 disappear in the user-stroke window; the fix leaves the
+ // counter at the initial-appear only.
+ await page.addInitScript(() => {
+  if (!(window as unknown as { __drawingChromeTransitions?: unknown }).__drawingChromeTransitions) {
+   (window as unknown as { __drawingChromeTransitions: { appears:number; disappears:number }; tagRecording?: boolean }).__drawingChromeTransitions = { appears: 0, disappears: 0 };
+   const targets = new Set<Element>();
+   const scan = (root: ParentNode) => {
+    if ((root as Element).matches?.("[data-testid=\"drawing-save-recovery\"]")) targets.add(root as Element);
+    for (const child of Array.from(root.childNodes)) if (child.nodeType === 1) scan(child as ParentNode);
+   };
+   const observer = new MutationObserver((muts) => {
+    for (const m of muts) {
+     for (const n of Array.from(m.addedNodes)) {
+      if (n.nodeType !== 1) continue;
+      scan(n as ParentNode);
+      if ((n as Element).matches?.("[data-testid=\"drawing-save-recovery\"]")) {
+       (window as unknown as { __drawingChromeTransitions: { appears:number; disappears:number } }).__drawingChromeTransitions.appears++;
+      }
+     }
+     for (const n of Array.from(m.removedNodes)) {
+      if (n.nodeType !== 1) continue;
+      for (const t of Array.from(targets)) {
+       if (!(t as Element).isConnected) {
+        targets.delete(t);
+        if ((t as Element).matches?.("[data-testid=\"drawing-save-recovery\"]")) {
+         (window as unknown as { __drawingChromeTransitions: { appears:number; disappears:number } }).__drawingChromeTransitions.disappears++;
+        }
+       }
+      }
+     }
+    }
+   });
+   observer.observe(document.documentElement, { childList: true, subtree: true });
+  }
+ });
  // Seed a v2 with revision: cloudRevision so the attempt is created and the
- // first PUT reaches it; a 500 triggers the retry issue.
- await page.addInitScript(({ cloudRevision }) => {
+ // first PUT reaches it; a 500 surfaces the retry issue.
+ await page.addInitScript(({ cloudRevision: rev }) => {
   if (sessionStorage.getItem("drawing-recovery-seeded")) return;
   sessionStorage.setItem("drawing-recovery-seeded", "1");
+  // Force a single price pane (no indicator sub-panes) so the drawing tool is
+  // not blocked by TerminalShell's multi-chart disable (panes.length > 1).
+  localStorage.setItem("mm.inds", "[]");
   localStorage.setItem("mm.drawing.account-outbox.v2", JSON.stringify({
    "account:e2e-user-default": {
     NVDA: {
      format: 2,
-     copies: { "44444444-4444-4444-8444-444444444444": { drawings: [{ id: "stroke-1", kind: "hline", source: "user", schemaVersion: 1, points: [{ t: "2026-01-01", p: 100 }], meta: { label: "保持" } }], revision: cloudRevision } },
+     copies: { "44444444-4444-4444-8444-444444444444": { drawings: [{ id: "stroke-1", kind: "hline", source: "user", schemaVersion: 1, points: [{ t: "2026-01-01", p: 100 }], meta: { label: "保持" } }], revision: rev } },
      legacySeen: {},
      legacyLinks: {},
     },
    },
   }));
- }, { cloudRevision });
+ }, { cloudRevision: seedCloudRevision });
  await open(page);
  // First PUT 500s — the chrome must show "Retry save".
  await expect(page.getByTestId("drawing-save-recovery")).toContainText("Retry save", { timeout: 20_000 });
- // Trigger another flush by editing the existing copy in localStorage and
- // reloading. The new entry still has the same cloudRevision so the attempt
- // is created and the 500 issue remains "retry" (not "legacy" or "conflict").
- await page.evaluate(() => {
-  const raw = localStorage.getItem("mm.drawing.account-outbox.v2");
-  if (!raw) throw new Error("missing v2");
-  const env = JSON.parse(raw) as Record<string, Record<string, { copies: Record<string, { drawings: { id:string }[]; revision: string }> }>>;
-  (env["account:e2e-user-default"].NVDA.copies["44444444-4444-4444-8444-444444444444"].drawings as { id:string }[]).push({ id: "stroke-2" });
-  localStorage.setItem("mm.drawing.account-outbox.v2", JSON.stringify(env));
- });
- await page.reload();
- await expect(page.locator(".chart-wrap canvas").first()).toBeVisible();
- // The retry banner must STILL be present — the retry code must not be cleared
- // by the post-write code (the previous A3 widening wiped it after every save).
- await expect(page.getByTestId("drawing-save-recovery")).toContainText("Retry save", { timeout: 20_000 });
- // Click Retry save to trigger another PUT (which still 500s, count=2).
+ // The user adds another drawing through the UI in the same session (no
+ // reload). Selecting the hline tool then clicking on the layer places a new
+ // horizontal line at that y coordinate.
+ await page.getByTestId("drawing-group-lines-menu-trigger").click();
+ await page.getByTestId("drawing-tool-hline").press("Enter");
+ const layer = page.locator(".pane.on .drawing-layer");
+ await expect(layer).toBeVisible();
+ const box = await layer.boundingBox();
+ expect(box).not.toBeNull();
+ await page.mouse.click(box!.x + box!.width * 0.55, box!.y + box!.height * 0.45);
+ // Wait deterministically until the new stroke lands in the v2 journal. The
+ // count across every local copy is the seed's stroke-1 plus the new hline.
+ await expect.poll(async () => {
+  return await page.evaluate(() => {
+   const raw = localStorage.getItem("mm.drawing.account-outbox.v2");
+   if (!raw) return 0;
+   try {
+    const env = JSON.parse(raw) as Record<string, Record<string, { copies: Record<string, { drawings: unknown[] }> }>>;
+    let total = 0;
+    for (const c of Object.values(env["account:e2e-user-default"]?.NVDA?.copies ?? {})) total += (c.drawings ?? []).length;
+    return total;
+   } catch { return 0; }
+  });
+ }, { timeout: 20_000 }).toBeGreaterThanOrEqual(2);
+ // The retry banner must STAY visible across the user-added stroke and the
+ // in-flight retry — the retry code is bound to a 5xx condition the durable
+ // write did not address, so the post-write widening must not clear it. We
+ // count appears / disappears on the recovery chrome via the MutationObserver
+ // installed at page init: a defect that wipes the retry code on every save
+ // records >= 1 disappear during the user-stroke window; the fix records 0.
+ const transitions = await page.evaluate(() => (window as unknown as { __drawingChromeTransitions: { appears:number; disappears:number } }).__drawingChromeTransitions);
+ expect(transitions.disappears).toBe(0);
+ await expect(page.getByTestId("drawing-save-recovery")).toContainText("Retry save", { timeout: 5_000 });
+ // Flip the flag: subsequent PUTs commit with the existing revision.
+ commitOk = true;
+ // The user triggers the retry by clicking "Retry save".
  await page.getByRole("button", { name: "Retry save", exact: true }).click({ timeout: 20_000 });
- // The third PUT (after the user retries again) succeeds; wait for the puts array.
- await expect.poll(() => puts.length, { timeout: 20_000 }).toBeGreaterThan(0);
+ // The retry click triggers a chain of PUTs — the first successful PUT may
+// settle as "queued" against the cached attempt's pre-edit drawings and
+// the re-prepared second commit carries every locally edited drawing.
+// Wait for a committed PUT that includes the freshly added hline alongside
+// the seeded stroke-1, then verify chrome cleared on success.
+ await expect.poll(() => puts.filter((p) => p.drawings.length >= 2 && p.drawings.some((d) => d.id === "stroke-1")).length, { timeout: 20_000 }).toBeGreaterThan(0);
+ const committedWithBoth = puts.filter((p) => p.drawings.length >= 2 && p.drawings.some((d) => d.id === "stroke-1"));
+ const lastPut = committedWithBoth[committedWithBoth.length - 1];
+ expect(lastPut.drawings.length).toBeGreaterThanOrEqual(2);
+ expect(lastPut.drawings.map((d) => d.id)).toContain("stroke-1");
  await expect(page.getByTestId("drawing-save-recovery")).toHaveCount(0, { timeout: 20_000 });
 });// fix4 too_many end-to-end proof. Cloud GET returns 500 drawings for a symbol
 // and the user has 1 disjoint pre-GET drawing. The recovery toast must show
