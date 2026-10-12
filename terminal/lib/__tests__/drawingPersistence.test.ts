@@ -1225,7 +1225,7 @@ describe("durable pre-GET journal rows", () => {
   });
 });
 
-describe("A3: re-read after write drops the legacy alternative when another owner already holds the claim", () => {
+describe("a journal write drops the legacy alternative when another owner already holds the claim", () => {
   const claimKey = "mm.drawing.legacy-claim.v1";
   const ownedV2 = (id: string) => ({ id, kind: "hline" as const, schemaVersion: 1, source: "user" as const, points: [{ t: "2026-01-01", p: 100 }], meta: { label: "保持" }, locked: false, hidden: false, z: 0, opacity: 1, extend: "none" as const });
 

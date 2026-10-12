@@ -663,13 +663,13 @@ test("keep-mine of a differing preload overlap PUTs every cloud-only id",async({
  await expect(recovery).toHaveCount(0,{timeout:20_000});
 });
 
-// A3 (T1): mixed v2+legacy losing tab. Owner B has its own UUID v2 copy for a
+// Mixed v2+legacy losing tab. Owner B has its own UUID v2 copy for a
 // symbol plus an imported v1 (`legacy:`) alternative; another owner on the same
 // browser holds the legacy claim. B's first locked journal write must drop the
 // legacy alternative on disk, B's !attempt branch must re-derive the issue
 // from the post-write entry so the chrome clears, B's own-v2 PUTs exactly once.
 // The GET is held so the cloud-side park cannot race the post-write check.
-test("A3: held-GET locks-patched claim drops the legacy alternative, clears the issue, PUTs own-v2 once", async ({ page }) => {
+test("another account claiming the legacy copy during the first locked write drops the alternative, clears the prompt and saves the own copy once", async ({ page }) => {
  let releaseGet:()=>void=()=>{};
  const getHeld=new Promise<void>((resolve)=>{releaseGet=resolve;});
  await page.addInitScript(() => {
@@ -743,12 +743,12 @@ test("A3: held-GET locks-patched claim drops the legacy alternative, clears the 
  releaseGet();
 });
 
-// A3 (T1c) CONTROL: same seed, locks patch DISABLED, so the legacy alternative
+// Control for the test above: same seed, locks patch DISABLED, so the legacy alternative
 // is NOT dropped. The "Other local copy 1" button must render — proves the seed
-// really created the alternative (the original A3 e2e seed keyed
+// really created the alternative (an earlier seed keyed
 // "legacy:responsive@example.com" was filtered out by readCopies, so the
 // chrome never offered an alternative button).
-test("A3 control: without the locks-patched claim the legacy alternative survives and the chrome offers another local copy", async ({ page }) => {
+test("without another account's claim the legacy alternative survives and the prompt offers another local copy", async ({ page }) => {
  await page.addInitScript(() => {
   if (sessionStorage.getItem("drawing-recovery-seeded")) return;
   sessionStorage.setItem("drawing-recovery-seeded", "1");
@@ -777,7 +777,7 @@ test("A3 control: without the locks-patched claim the legacy alternative survive
  });
  await open(page);
  // The chrome must show a "Review another local copy" button — proving the
- // seed really created the alternative. The original A3 e2e seed could never
+ // seed really created the alternative. An earlier seed could never
  // produce this button because readCopies (drawingOutbox.ts ~:187) filtered
  // out the invalid "legacy:responsive@example.com" key entirely.
  await expect(page.getByTestId("drawing-save-recovery")).toBeVisible({ timeout: 20_000 });
@@ -791,12 +791,12 @@ test("A3 control: without the locks-patched claim the legacy alternative survive
  expect(puts).toHaveLength(0);
 });
 
-// T2 (F2 keep-local): two local copies in the journal, the user picks one via
+// Keep-local with two local copies in the journal: the user picks one via
 // "Replace cloud with local copy", and the PUT must carry the chosen copy's id.
-// The final2 A3 widened refreshDrawingJournalSymbol to re-read on every write,
+// An earlier revision re-read the journal after every durable write,
 // restoring every on-disk copy and making the sorted-first copy win regardless
 // of the user's choice — so the user's copy was never PUT.
-test("F2 keep-local with two local copies PUTs the copy the user chose", async ({ page }) => {
+test("keep-local with two local copies PUTs the copy the user chose", async ({ page }) => {
  const ownA = "11111111-1111-4111-8111-111111111111";
  const ownB = "22222222-2222-4222-8222-222222222222";
  const cloudRevision = "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa";
@@ -842,13 +842,13 @@ test("F2 keep-local with two local copies PUTs the copy the user chose", async (
  await expect(recovery).toHaveCount(0, { timeout: 20_000 });
 });
 
-// T3 (F3 retry): a PUT that fails with a 5xx must surface "Retry save" and the
+// A PUT that fails with a 5xx must surface "Retry save" and the
 // banner must STAY visible across a user-added stroke — the retry code is
 // bound to a condition the durable write did not address, so any post-write
-// widening that clears it (the previous A3 widening) is a defect. On a
+// widening that clears it is a defect. On a
 // successful retry click the PUT must carry every locally edited drawing and
 // the chrome must clear.
-test("T3 (F3 retry): a 5xx PUT keeps 'Retry save' visible across the next stroke and clears only on a successful retry", async ({ page }) => {
+test("a 5xx PUT keeps 'Retry save' visible across the next stroke and clears only on a successful retry", async ({ page }) => {
  test.skip((page.viewportSize()?.width ?? 1440) <= 860, "The drawing sidebar is desktop-only (rendered via ds-dock at >860px); the journal and retry chrome are checked on the desktop chart.");
  const okOp = "33333333-3333-4333-8333-333333333333";
  const cloudRevision = "cccccccc-cccc-4ccc-8ccc-cccccccccccc";
@@ -882,7 +882,7 @@ test("T3 (F3 retry): a 5xx PUT keeps 'Retry save' visible across the next stroke
    const targets = new Set<Element>();
    const scan = (root: ParentNode) => {
     if ((root as Element).matches?.("[data-testid=\"drawing-save-recovery\"]")) targets.add(root as Element);
-    for (const child of Array.from(root.childNodes)) if (child.nodeType === 1) scan(child as ParentNode);
+    for (const child of Array.from(root.children)) scan(child);
    };
    const observer = new MutationObserver((muts) => {
     for (const m of muts) {
@@ -969,17 +969,19 @@ test("T3 (F3 retry): a 5xx PUT keeps 'Retry save' visible across the next stroke
  // The user triggers the retry by clicking "Retry save".
  await page.getByRole("button", { name: "Retry save", exact: true }).click({ timeout: 20_000 });
  // The retry click triggers a chain of PUTs — the first successful PUT may
-// settle as "queued" against the cached attempt's pre-edit drawings and
-// the re-prepared second commit carries every locally edited drawing.
-// Wait for a committed PUT that includes the freshly added hline alongside
-// the seeded stroke-1, then verify chrome cleared on success.
+ // settle as "queued" against the cached attempt's pre-edit drawings and
+ // the re-prepared second commit carries every locally edited drawing.
+ // Wait for a committed PUT that includes the freshly added hline alongside
+ // the seeded stroke-1, then verify chrome cleared on success.
  await expect.poll(() => puts.filter((p) => p.drawings.length >= 2 && p.drawings.some((d) => d.id === "stroke-1")).length, { timeout: 20_000 }).toBeGreaterThan(0);
  const committedWithBoth = puts.filter((p) => p.drawings.length >= 2 && p.drawings.some((d) => d.id === "stroke-1"));
  const lastPut = committedWithBoth[committedWithBoth.length - 1];
  expect(lastPut.drawings.length).toBeGreaterThanOrEqual(2);
  expect(lastPut.drawings.map((d) => d.id)).toContain("stroke-1");
  await expect(page.getByTestId("drawing-save-recovery")).toHaveCount(0, { timeout: 20_000 });
-});// fix4 too_many end-to-end proof. Cloud GET returns 500 drawings for a symbol
+});
+
+// fix4 too_many end-to-end proof. Cloud GET returns 500 drawings for a symbol
 // and the user has 1 disjoint pre-GET drawing. The recovery toast must show
 // the tooMany sentence and EXACTLY ONE button ("Use cloud copy" — the cloud
 // copy is set in the same React batch as the issue). No "Keep local" /
