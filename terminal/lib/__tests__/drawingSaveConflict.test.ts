@@ -93,6 +93,19 @@ describe("drawing save conflict copy", () => {
     expect(drawingSaveIssueFromLoadPark("conflict")).toBe("conflict");
     expect(drawingSaveIssueFromLoadPark("conflict", "legacy")).toBe("legacy");
     expect(drawingSaveRecoveryMessage(drawingSaveIssueFromLoadPark("conflict"), "en", t)).toBe(t("drawingSaveConflict"));
+
+    expect(drawingSaveIssueFromLoadPark("too_many")).toBe("too_many");
+    expect(drawingSaveIssueOffersReplace("too_many")).toBe(false);
+    const tooManyEn = drawingSaveRecoveryMessage("too_many", "en", t);
+    const tooManyZh = drawingSaveRecoveryMessage("too_many", "zh", t);
+    expect(tooManyEn).toMatch(/500/);
+    expect(tooManyEn).toMatch(/saved drawings are kept/i);
+    expect(tooManyEn).toMatch(/stay on this device/i);
+    expect(tooManyEn).not.toMatch(/before your saved drawings finished loading/i);
+    expect(tooManyZh).toMatch(/500/);
+    expect(tooManyZh).toMatch(/已保存/);
+    expect(tooManyZh).toMatch(/此设备/);
+    expect(tooManyZh).not.toBe(tooManyEn);
   });
   it("parks the local journal copy and records the 409 code", () => {
     const owner: DrawingJournalEntry = { drawings: [] };

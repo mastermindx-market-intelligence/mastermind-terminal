@@ -41,6 +41,10 @@ const COPY = {
     "You drew before your saved drawings finished loading. Choose which copy to keep.",
     "你在已保存图形载入完成前绘制了内容。请选择要保留的副本。",
   ],
+  tooMany: [
+    "This symbol already has 500 saved drawings, the limit for one symbol. The saved drawings are kept. Your new drawings stay on this device until you delete some saved drawings.",
+    "此代码已有 500 个已保存图形，达到单个代码上限。已保存的图形会保留。你的新图形会留在此设备上，直到你删除部分已保存图形。",
+  ],
 } as const;
 
 export function drawingSaveConflictCopy(key: keyof typeof COPY, lang: Lang): string {
@@ -60,15 +64,16 @@ export function drawingSaveIssueFromConflict(
 
 export function drawingSaveIssueOffersReplace(issue: string): boolean {
   if (issue === "preload") return true;
-  return !["retry", "storage", "owner_conflict", "save_rejected"].includes(issue);
+  return !["retry", "storage", "owner_conflict", "save_rejected", "too_many"].includes(issue);
 }
 
 /** Map a load-reconciliation park reason onto the recovery issue the toast shows. */
 export function drawingSaveIssueFromLoadPark(
-  reason: "preload" | "overlap" | "conflict",
+  reason: "preload" | "overlap" | "conflict" | "too_many",
   blocked?: string,
 ): string {
   if (reason === "preload") return "preload";
+  if (reason === "too_many") return "too_many";
   return blocked ?? "conflict";
 }
 
@@ -95,6 +100,7 @@ export function drawingSaveRecoveryMessage(
   if (issue === "payload_mismatch") return drawingSaveConflictCopy("payload", lang);
   if (issue === "save_rejected") return drawingSaveConflictCopy("unknown", lang);
   if (issue === "preload") return drawingSaveConflictCopy("preload", lang);
+  if (issue === "too_many") return drawingSaveConflictCopy("tooMany", lang);
   const base = t(
     issue === "storage" ? "drawingStorageUnavailable" : issue === "retry" ? "drawingSaveRetry" : "drawingSaveConflict",
   );

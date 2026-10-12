@@ -2579,8 +2579,9 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
           });
           let merged: Drawing[] | null = null;
           if (decision.action === "merge") {
-            merged = unionCloudWithPreloadAdditions(snapshot.drawings, pending ?? []);
-            if (!merged) decision = { action: "park", reason: "overlap" };
+            const union = unionCloudWithPreloadAdditions(snapshot.drawings, pending ?? []);
+            if (union.ok) merged = union.drawings;
+            else decision = { action: "park", reason: union.reason };
           }
           if (decision.action === "stamp") {
             drawRevisions.current[sym] = snapshot.revision;
@@ -2612,7 +2613,9 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
             drawTimers.current[sym] = setTimeout(() => flushDrawings(sym), 0);
           } else {
             const parkEntry = entry ?? (pending ? (recovery[sym] = { drawings: pending }) : undefined);
-            if (parkEntry) parkEntry.blocked ??= "conflict";
+            if (parkEntry && !(decision.action === "park" && decision.reason === "too_many")) {
+              parkEntry.blocked ??= "conflict";
+            }
             setDrawingCloudCopies((copies) => ({ ...copies, [sym]: snapshot }));
             setDrawingSaveIssues((issues) => ({
               ...issues,

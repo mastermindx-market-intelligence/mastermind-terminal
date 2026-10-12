@@ -149,11 +149,15 @@ export type DrawingLoadReconciliation = {
   pendingPreload?: boolean;
 };
 
+export type DrawingLoadParkReason = "preload" | "overlap" | "conflict" | "too_many";
 export type DrawingLoadDecision =
   | { action: "stamp" }
   | { action: "keep" }
   | { action: "merge" }
-  | { action: "park"; reason: "preload" | "overlap" | "conflict" };
+  | { action: "park"; reason: DrawingLoadParkReason };
+export type DrawingPreloadUnion =
+  | { ok: true; drawings: Drawing[] }
+  | { ok: false; reason: "overlap" | "too_many" };
 
 /** Decide how a settled drawings GET should combine with in-pane pending work. */
 export function decideDrawingLoadReconciliation(input: DrawingLoadReconciliation): DrawingLoadDecision {
@@ -168,15 +172,18 @@ export function decideDrawingLoadReconciliation(input: DrawingLoadReconciliation
   if (!input.pendingPreload) return { action: "park", reason: "conflict" };
   const cloud = new Set(input.cloudIds);
   if (input.pendingIds.some((id) => cloud.has(id))) return { action: "park", reason: "overlap" };
+  if (input.cloudIds.length + input.pendingIds.length > MAX_DRAWINGS_PER_SYMBOL) {
+    return { action: "park", reason: "too_many" };
+  }
   return { action: "merge" };
 }
 
 /** Cloud drawings plus disjoint pre-load additions. Overlap or a cap overflow cannot merge. */
-export function unionCloudWithPreloadAdditions(cloud: Drawing[], pending: Drawing[]): Drawing[] | null {
+export function unionCloudWithPreloadAdditions(cloud: Drawing[], pending: Drawing[]): DrawingPreloadUnion {
   const ids = new Set(cloud.map((drawing) => drawing.id));
   for (const drawing of pending) {
-    if (ids.has(drawing.id)) return null;
+    if (ids.has(drawing.id)) return { ok: false, reason: "overlap" };
   }
-  if (cloud.length + pending.length > MAX_DRAWINGS_PER_SYMBOL) return null;
-  return [...cloud, ...pending];
+  if (cloud.length + pending.length > MAX_DRAWINGS_PER_SYMBOL) return { ok: false, reason: "too_many" };
+  return { ok: true, drawings: [...cloud, ...pending] };
 }

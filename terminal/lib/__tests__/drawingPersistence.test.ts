@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { parseDrawingSaveReceipt, parseDrawingSnapshot, parsePersistedDrawings, prepareDrawingAttempt, settleDrawingAttempt, beginDrawingLoad, abandonDrawingLoad, abandonAllDrawingLoads, isCurrentDrawingLoad, shouldRescheduleDrawingFlush, decideDrawingLoadReconciliation, unionCloudWithPreloadAdditions, type DrawingJournalEntry, type DrawingLoadGenerations } from "@/lib/drawingPersistence";
+import { MAX_DRAWINGS_PER_SYMBOL } from "@/lib/drawings";
 import { readDrawingJournal, writeDrawingJournal, writeDrawingOutbox, refreshDrawingJournalSymbol, reconcileDrawingJournal, selectDrawingRecoveryCopy, DRAWING_JOURNAL_KEY, DRAWING_RECEIPTS_KEY, DRAWING_RECEIPTS_UNREADABLE_KEY, DRAWING_RECEIPT_HISTORY, DRAWING_RECEIPT_OWNERS, type DrawingJournalLocks } from "@/lib/drawingOutbox";
 let lockTail=Promise.resolve();
 const locks={request:(_name:string, fn:()=>unknown)=>{const task=lockTail.then(fn);lockTail=task.then(()=>{},()=>{});return task;}} as DrawingJournalLocks;
@@ -680,8 +681,25 @@ describe("drawing load vs pre-GET local edits", () => {
   it("unions cloud drawings with disjoint pre-load additions and refuses an overlap", () => {
     const cloud = [line("cloud-a")];
     const local = [line("local-new")];
-    expect(unionCloudWithPreloadAdditions(cloud, local)?.map((drawing) => drawing.id)).toEqual(["cloud-a", "local-new"]);
-    expect(unionCloudWithPreloadAdditions(cloud, [line("cloud-a")])).toBeNull();
+    const merged = unionCloudWithPreloadAdditions(cloud, local);
+    expect(merged.ok).toBe(true);
+    if (merged.ok) expect(merged.drawings.map((drawing) => drawing.id)).toEqual(["cloud-a", "local-new"]);
+    expect(unionCloudWithPreloadAdditions(cloud, [line("cloud-a")])).toEqual({ ok: false, reason: "overlap" });
+  });
+
+  it("parks a disjoint pre-GET union that would exceed 500 drawings per symbol as too_many", () => {
+    expect(decideDrawingLoadReconciliation({
+      ...base,
+      cloudIds: Array.from({ length: MAX_DRAWINGS_PER_SYMBOL }, (_, index) => `cloud-${index}`),
+      hasPending: true, pendingIds: ["local-new"], pendingRevisionPresent: false,
+      pendingPreload: true,
+    })).toEqual({ action: "park", reason: "too_many" });
+  });
+
+  it("refuses a cap overflow as too_many rather than overlap or a dropped cloud set", () => {
+    const cloud = Array.from({ length: MAX_DRAWINGS_PER_SYMBOL }, (_, index) => line(`cloud-${index}`));
+    expect(unionCloudWithPreloadAdditions(cloud, [line("local-new")])).toEqual({ ok: false, reason: "too_many" });
+    expect(unionCloudWithPreloadAdditions(cloud, [line("cloud-0")])).toEqual({ ok: false, reason: "overlap" });
   });
 });
 
