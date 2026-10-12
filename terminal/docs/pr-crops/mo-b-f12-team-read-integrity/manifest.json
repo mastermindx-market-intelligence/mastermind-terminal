@@ -1,0 +1,50 @@
+{
+  "source_head": "24336e676a9fcc6d3ce2d5f30d0889a622b76c03",
+  "base": "da02025d0b5cc0cfc1f169cd204a2a79d175bccd",
+  "generated_at": "2026-10-12T21:58:38.086543+00:00",
+  "theme": "existing Terminal dark shell; no presentation source changed",
+  "viewports": {
+    "desktop": [
+      1440,
+      900
+    ],
+    "tablet": [
+      820,
+      1180
+    ],
+    "mobile": [
+      390,
+      844
+    ]
+  },
+  "languages": [
+    "en",
+    "zh"
+  ],
+  "states": [
+    "success",
+    "failure"
+  ],
+  "browser_result": "12/12 passed on committed source; actual browser with local fixture identity and controlled responses",
+  "mounted_result": "27 failed / 4 passed on original source; 108/108 passed on repaired source with 77 existing neighbors",
+  "source_and_capture_sha256": {
+    "terminal/components/settings/SectionTeam.tsx": "93db8b56fd0aa9ac6f3aaf587b97e285c6a0c28ca39ad407bae1c90eff3229de",
+    "terminal/e2e/team-read-integrity.spec.ts": "39913492cb292d395c88f6b7778be3e6c77a73b286fb62b6f6d634361da68181",
+    "terminal/lib/__tests__/sectionTeamOwnerBoundary.test.tsx": "92fb7dbf8bb5405b4995e80270c8bfffdcc87f1aff43b22ea1239595204fa8c9",
+    "terminal/lib/__tests__/sectionTeamReadIntegrity.test.tsx": "2cf99963cc5a6378a6a39d94a388590896e6e82fc0c9c8abf35b7bec7c8abcb6",
+    "terminal/docs/pr-crops/mo-b-f12-team-read-integrity/desktop-en-failure.png": "7b52a4deced3e158ffe5f909e535ce177d97c2d3c565e2a90bd59447aa897389",
+    "terminal/docs/pr-crops/mo-b-f12-team-read-integrity/desktop-en-success.png": "3970c57b91b74f728fd2ae8d2addd76ceaf45018e8cd32bb2b44a7607c46a25c",
+    "terminal/docs/pr-crops/mo-b-f12-team-read-integrity/desktop-zh-failure.png": "1d328b30601db11dbd3825dc00cd19ef1ee2578fea1cd05b758164c66d36408b",
+    "terminal/docs/pr-crops/mo-b-f12-team-read-integrity/desktop-zh-success.png": "80d5d1696c62901b578c0710f203dbe5004ef7352c2472814d96b2c2503cc547",
+    "terminal/docs/pr-crops/mo-b-f12-team-read-integrity/mobile-en-failure.png": "8d1dab0aa8d44d8993e838b5a3bd502e9175746661bd9cbaaf63289129909401",
+    "terminal/docs/pr-crops/mo-b-f12-team-read-integrity/mobile-en-success.png": "6f97bce7d8a905897eed851d2f8ca7f438761a46918f256ec058729f6d3036a7",
+    "terminal/docs/pr-crops/mo-b-f12-team-read-integrity/mobile-zh-failure.png": "73097a94750ad66b36652fdb824487b6f2975f93ec3456390230ba00098b8432",
+    "terminal/docs/pr-crops/mo-b-f12-team-read-integrity/mobile-zh-success.png": "5be346d141a0cbafdb5e5c7718ceb25c2a8d7d173135adfd1b8726b355b470a1",
+    "terminal/docs/pr-crops/mo-b-f12-team-read-integrity/tablet-en-failure.png": "74742fcf171e8bae7c26c42812ed7613337c1ae3c8b49ff6a84fd6e61cc57452",
+    "terminal/docs/pr-crops/mo-b-f12-team-read-integrity/tablet-en-success.png": "425a121aa17bddd11d91ffc0b9afbc94f2514193dafffe51e84eef840e854600",
+    "terminal/docs/pr-crops/mo-b-f12-team-read-integrity/tablet-zh-failure.png": "d340ae68dac36b657f8506f91fbf1977986d7a25eadd89bbf3fd0dd149ed6ced",
+    "terminal/docs/pr-crops/mo-b-f12-team-read-integrity/tablet-zh-success.png": "aaa72838d2603adc461b56b6056d7ae5cbd8200eda3ee9f4907b5348a65b0bd3"
+  },
+  "visual_inspection": "Parent inspected all 12 actual images: invitation URL and copy control readable/reachable, correct EN/ZH error and populated states, expected vertical scrolling in narrow/short viewports, no horizontal overflow. Success settings and member controls beyond the crop are checked by browser assertions and inherited captures.",
+  "scope": "Controlled invitation POST is intercepted locally; no real invitation, team, role or settings mutation. Owner-change fetch/JSON/error races are mounted tests. Authenticated production verification is a separate release-owner gate."
+}
