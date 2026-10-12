@@ -666,7 +666,8 @@ describe("PineHost worker: module boot is not charged to the run budget", () => 
     const bootMs = (host as { WORKER_BOOT_TIMEOUT_MS?: number }).WORKER_BOOT_TIMEOUT_MS ?? 30_000;
     const p = h.run({ slot: "s1", source: SMA, bars: genBars(10), budgetMs: 200 });
 
-    await vi.advanceTimersByTimeAsync(bootMs);
+    await vi.advanceTimersByTimeAsync(bootMs); // first dead generation → internal retry
+    await vi.advanceTimersByTimeAsync(bootMs); // second consecutive dead generation → settle
     const res = await p;
     expect(res.ok).toBe(false);
     expect(res.budgetExceeded).toBeFalsy();
@@ -675,12 +676,14 @@ describe("PineHost worker: module boot is not charged to the run budget", () => 
     expect(res.errors[0].phase).toBe("runtime");
     expect(res.errors[0].message).toBe("Pine engine failed to start");
     expect(created[0].terminated).toBe(true);
+    expect(created.length).toBe(2);
+    expect(created[1].terminated).toBe(true);
 
     autoReady = true;
     const p2 = h.run({ slot: "s1", source: SMA, bars: genBars(10), budgetMs: 200 });
-    expect(created.length).toBe(2);
-    expect(created[1].terminated).toBe(false);
-    created[1].replyPosted();
+    expect(created.length).toBe(3);
+    expect(created[2].terminated).toBe(false);
+    created[2].replyPosted();
     const res2 = await p2;
     expect(res2.ok).toBe(true);
     expect(res2.budgetExceeded).toBeFalsy();
@@ -699,6 +702,165 @@ describe("PineHost worker: module boot is not charged to the run budget", () => 
     expect(res.errors[0].message).toMatch(/budget/);
     expect(created[0].terminated).toBe(true);
     h.dispose();
+  });
+
+  // One slow cold start must not pin "Pine engine failed to start" on the chart: ChartPanel
+  // caches every non-cancelled outcome, so the host has to retry internally on the first
+  // boot timeout. A second consecutive dead generation is the truthful start-failure.
+  it("first boot timeout retries on a fresh worker; a later ready still runs (does not pin start-failure)", async () => {
+    autoReady = false;
+    const host = await import("../pine-engine/host");
+    const h = host.createPineHost();
+    const bootMs = host.WORKER_BOOT_TIMEOUT_MS;
+    const p = h.run({ slot: "s1", source: SMA, bars: genBars(10), budgetMs: 200 });
+    expect(created.length).toBe(1);
+    expect(created[0].posted.filter((m) => m.kind === "run")).toHaveLength(1);
+    const reqId = created[0].posted.find((m) => m.kind === "run")!.reqId;
+
+    let settled = false;
+    let outcome: { ok?: boolean; errors?: { message: string }[] } | undefined;
+    void p.then((r) => { settled = true; outcome = r; });
+
+    await vi.advanceTimersByTimeAsync(bootMs);
+    await Promise.resolve();
+    // RED at BASE: onBootTimeout settles {message:"Pine engine failed to start"} on the first timeout
+    expect(settled).toBe(false);
+    expect(outcome?.errors?.[0]?.message).not.toBe("Pine engine failed to start");
+    expect(created[0].terminated).toBe(true);
+    expect(created.length).toBe(2);
+    expect(created[1].posted.filter((m) => m.kind === "run" && m.reqId === reqId)).toHaveLength(1);
+
+    created[1].emitReady();
+    created[1].replyPosted();
+    const res = await p;
+    expect(res.ok).toBe(true);
+    expect(res.budgetExceeded).toBeFalsy();
+    expect(res.result).toBeTruthy();
+    expect(res.errors.some((e) => e.message === "Pine engine failed to start")).toBe(false);
+    expect(vi.getTimerCount()).toBe(0);
+    h.dispose();
+    expect(vi.getTimerCount()).toBe(0);
+  });
+
+  it("two consecutive dead generations settle 'Pine engine failed to start' exactly once per request", async () => {
+    autoReady = false;
+    const host = await import("../pine-engine/host");
+    const h = host.createPineHost();
+    const bootMs = host.WORKER_BOOT_TIMEOUT_MS;
+    let settles = 0;
+    const p = h.run({ slot: "s1", source: SMA, bars: genBars(10), budgetMs: 200 }).then((r) => {
+      settles += 1;
+      return r;
+    });
+    const c = h.compile(SMA).then((r) => {
+      settles += 1;
+      return r;
+    });
+
+    await vi.advanceTimersByTimeAsync(bootMs);
+    await Promise.resolve();
+    expect(settles).toBe(0); // first timeout retries; neither request settles yet
+    expect(created.length).toBe(2);
+    expect(created[0].terminated).toBe(true);
+
+    await vi.advanceTimersByTimeAsync(bootMs);
+    const runRes = await p;
+    const compileRes = await c;
+    expect(settles).toBe(2);
+    expect(runRes.ok).toBe(false);
+    expect(runRes.budgetExceeded).toBeFalsy();
+    expect(runRes.cancelled).toBeFalsy();
+    expect(runRes.interrupted).toBeFalsy();
+    expect(runRes.errors).toHaveLength(1);
+    expect(runRes.errors[0].phase).toBe("runtime");
+    expect(runRes.errors[0].message).toBe("Pine engine failed to start");
+    expect(compileRes.ok).toBe(false);
+    expect(compileRes.errors[0].message).toBe("Pine engine failed to start");
+    expect(created[1].terminated).toBe(true);
+    expect(vi.getTimerCount()).toBe(0);
+    h.dispose();
+    expect(vi.getTimerCount()).toBe(0);
+  });
+
+  it("a request superseded during the first boot is cancelled once and is never re-posted", async () => {
+    autoReady = false;
+    const host = await import("../pine-engine/host");
+    const h = host.createPineHost();
+    const bootMs = host.WORKER_BOOT_TIMEOUT_MS;
+    const first = h.run({ slot: "same", source: SMA, bars: genBars(10), budgetMs: 200 });
+    expect(created[0].posted.filter((m) => m.kind === "run")).toHaveLength(1);
+    const firstReqId = created[0].posted[0].reqId;
+
+    const second = h.run({ slot: "same", source: SMA, bars: genBars(12), budgetMs: 200 });
+    const r1 = await first;
+    expect(r1.cancelled).toBe(true);
+    expect(r1.result).toBeNull();
+    const runPosts = created[0].posted.filter((m) => m.kind === "run");
+    expect(runPosts).toHaveLength(2);
+    const secondReqId = runPosts[1].reqId;
+    expect(secondReqId).not.toBe(firstReqId);
+
+    let secondSettled = false;
+    void second.then(() => { secondSettled = true; });
+    await vi.advanceTimersByTimeAsync(bootMs);
+    await Promise.resolve();
+    expect(secondSettled).toBe(false);
+    expect(created.length).toBe(2);
+    const postsWithFirstId = created.flatMap((w) => w.posted).filter((m) => m.reqId === firstReqId);
+    expect(postsWithFirstId).toHaveLength(1); // cancelled request is not re-posted on retry
+    expect(created[1].posted.filter((m) => m.reqId === secondReqId && m.kind === "run")).toHaveLength(1);
+    expect(created[1].posted.filter((m) => m.reqId === firstReqId)).toHaveLength(0);
+
+    created[1].emitReady();
+    created[1].replyPosted();
+    const r2 = await second;
+    expect(r2.ok).toBe(true);
+    expect(vi.getTimerCount()).toBe(0);
+    h.dispose();
+  });
+
+  it("dispose during the retry boot leaves no timers", async () => {
+    autoReady = false;
+    const host = await import("../pine-engine/host");
+    const h = host.createPineHost();
+    const bootMs = host.WORKER_BOOT_TIMEOUT_MS;
+    const p = h.run({ slot: "s1", source: SMA, bars: genBars(10), budgetMs: 200 });
+
+    await vi.advanceTimersByTimeAsync(bootMs);
+    await Promise.resolve();
+    expect(created.length).toBe(2); // retry generation is live and waiting for ready
+    expect(created[1].terminated).toBe(false);
+
+    h.dispose();
+    const res = await p;
+    expect(res.ok).toBe(false);
+    expect(res.cancelled).toBe(true);
+    expect(res.interrupted).toBe(true);
+    expect(created[1].terminated).toBe(true);
+    expect(vi.getTimerCount()).toBe(0);
+  });
+
+  it("a post-ready runaway on the retried generation still hits budgetExceeded", async () => {
+    autoReady = false;
+    hangAfterReady = true;
+    const host = await import("../pine-engine/host");
+    const h = host.createPineHost();
+    const bootMs = host.WORKER_BOOT_TIMEOUT_MS;
+    const p = h.run({ slot: "s1", source: SMA, bars: genBars(10), budgetMs: 200 });
+
+    await vi.advanceTimersByTimeAsync(bootMs);
+    await Promise.resolve();
+    expect(created.length).toBe(2);
+    created[1].emitReady(); // arms the 200ms wall budget; postMessage hangs (hangAfterReady)
+    await vi.advanceTimersByTimeAsync(300);
+    const res = await p;
+    expect(res.ok).toBe(false);
+    expect(res.budgetExceeded).toBe(true);
+    expect(res.errors[0].message).toMatch(/budget/);
+    expect(created[1].terminated).toBe(true);
+    expect(vi.getTimerCount()).toBe(0);
+    h.dispose();
+    expect(vi.getTimerCount()).toBe(0);
   });
 });
 
