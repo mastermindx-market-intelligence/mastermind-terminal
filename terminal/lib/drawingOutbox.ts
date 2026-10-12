@@ -160,6 +160,10 @@ function fingerprint(entry: Entry): string {
     entry.attempt ? [entry.attempt.operationId, entry.attempt.expectedRevision, entry.attempt.drawings] : null,
   ]);
 }
+/** Drawings-payload identity, matching settleDrawingAttempt's JSON.stringify(drawings). Not the stored-entry fingerprint used for legacySeen. */
+function drawingsPayloadFingerprint(entry: Entry): string {
+  return JSON.stringify(entry.drawings);
+}
 function readCopies(value: unknown): Copies {
   if (value && typeof value === "object" && !Array.isArray(value)
       && (value as Record<string, unknown>).format === 2) {
@@ -423,7 +427,12 @@ export function readDrawingJournal(storage: StoragePort, journalKey: DrawingJour
       const { namespace, imports } = journalState(storage, owner, legacyOwner, true);
       journalNamespaces.set(journal, namespace);
       for (const symbol of new Set([...Object.keys(namespace), ...Object.keys(imports)])) {
-        const copies = { ...namespace[symbol]?.copies, ...imports[symbol] };
+        const copies = { ...namespace[symbol]?.copies };
+        const payloads = new Set(Object.values(copies).map(drawingsPayloadFingerprint));
+        for (const [id, entry] of Object.entries(imports[symbol] ?? {})) {
+          if (payloads.has(drawingsPayloadFingerprint(entry))) continue;
+          copies[id] = entry;
+        }
         const ids = Object.keys(copies).sort();
         if (!ids.length) continue;
         const entries = ids.map((id) => ({ ...copies[id], recoveryId: id }));
@@ -476,12 +485,15 @@ export async function writeDrawingJournal(
         const copies = record.copies;
         const imported: Record<string, { id: string; token: string }> = {};
         for (const [sourceId, importedEntry] of Object.entries(imports[symbol] ?? {})) {
-          const id = crypto.randomUUID(), token = fingerprint(importedEntry);
-          copies[id] = storedEntry(importedEntry);
-          record.legacySeen[sourceId.slice("legacy:".length)] = token;
-          record.legacyLinks[id] = { sourceId: sourceId.slice("legacy:".length), token };
-          imported[sourceId] = { id, token };
+          const token = fingerprint(importedEntry);
+          const source = sourceId.slice("legacy:".length);
+          record.legacySeen[source] = token;
           adopted += 1;
+          if (Object.values(copies).some((copy) => drawingsPayloadFingerprint(copy) === drawingsPayloadFingerprint(importedEntry))) continue;
+          const id = crypto.randomUUID();
+          copies[id] = storedEntry(importedEntry);
+          record.legacyLinks[id] = { sourceId: source, token };
+          imported[sourceId] = { id, token };
         }
         const entry = journal[symbol];
         const base = previous[symbol];

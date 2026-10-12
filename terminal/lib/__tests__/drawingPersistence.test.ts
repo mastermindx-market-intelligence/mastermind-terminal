@@ -815,6 +815,42 @@ describe("legacy email-keyed journal claimed by at most one auth UUID",()=>{
   expect(readDrawingJournal(storage,alice).NVDA).toMatchObject({drawings:[{id:"alice-v1"}]});
   expect(readDrawingJournal(storage,bob).NVDA).toMatchObject({drawings:[{id:"alice-v1"}]});
  });
+ it("does not present a v1 import whose drawings match an existing v2 copy, and write acknowledges without duplicating",async()=>{
+  const storage=new MemoryStorage();
+  const same={id:"same",kind:"hline" as const,points:[{t:"2026-01-01",p:100}],schemaVersion:1,source:"user" as const,locked:false,hidden:false,z:0,opacity:1,extend:"none" as const,meta:{label:"保持"}};
+  storage.setItem(DRAWING_JOURNAL_KEY,JSON.stringify({"account:uuid-a":{NVDA:{format:2,copies:{[op]:{drawings:[same],revision}},legacySeen:{},legacyLinks:{}}}}));
+  writeDrawingOutbox(storage,"account:alice@x",{NVDA:[line("same")]});
+  const v1=storage.getItem("mm.drawing.account-outbox.v1");
+  const journal=readDrawingJournal(storage,alice);
+  expect(journal.NVDA.alternatives).toBeUndefined();
+  expect([journal.NVDA,...(journal.NVDA.alternatives??[])]).toHaveLength(1);
+  expect(journal.NVDA.drawings[0].id).toBe("same");
+  expect(journal.NVDA.recoveryId).toBe(op);
+  expect(await writeDrawingJournal(storage,alice,journal,locks)).toBe(true);
+  const rec=JSON.parse(storage.getItem(DRAWING_JOURNAL_KEY)!)["account:uuid-a"].NVDA as {copies:Record<string,unknown>;legacySeen:Record<string,string>};
+  expect(Object.keys(rec.copies)).toEqual([op]);
+  expect(rec.legacySeen.legacy).toBe('[[{"id":"same","kind":"hline","points":[{"t":"2026-01-01","p":100}],"schemaVersion":1,"source":"user","locked":false,"hidden":false,"z":0,"opacity":1,"extend":"none","meta":{"label":"保持"}}],false,null,"legacy",null,false,null]');
+  expect(JSON.parse(storage.getItem(claimKey)!)["account:alice@x"]).toBe("account:uuid-a");
+  expect(storage.getItem("mm.drawing.account-outbox.v1")).toBe(v1);
+ });
+ it("still presents a non-identical v1 drawing as an alternative to this owner's v2 copy",async()=>{
+  const storage=new MemoryStorage();
+  const owned={id:"v2-only",kind:"hline" as const,points:[{t:"2026-01-01",p:100}],schemaVersion:1,source:"user" as const,locked:false,hidden:false,z:0,opacity:1,extend:"none" as const,meta:{label:"保持"}};
+  storage.setItem(DRAWING_JOURNAL_KEY,JSON.stringify({"account:uuid-a":{NVDA:{format:2,copies:{[op]:{drawings:[owned],revision}},legacySeen:{},legacyLinks:{}}}}));
+  writeDrawingOutbox(storage,"account:alice@x",{NVDA:[line("v1-other")]});
+  const journal=readDrawingJournal(storage,alice);
+  const ids=[journal.NVDA,...(journal.NVDA.alternatives??[])].map((entry)=>entry.drawings[0].id);
+  expect(ids).toEqual(expect.arrayContaining(["v2-only","v1-other"]));
+  expect(ids).toHaveLength(2);
+ });
+ it("legacySeen token for an unchanged imported entry is byte-identical to the BASE stored-entry fingerprint",async()=>{
+  const storage=new MemoryStorage();
+  writeDrawingOutbox(storage,"account:alice@x",{NVDA:[line("alice-v1")]});
+  const journal=readDrawingJournal(storage,alice);
+  expect(await writeDrawingJournal(storage,alice,journal,locks)).toBe(true);
+  const rec=JSON.parse(storage.getItem(DRAWING_JOURNAL_KEY)!)["account:uuid-a"].NVDA as {legacySeen:Record<string,string>};
+  expect(rec.legacySeen.legacy).toBe('[[{"id":"alice-v1","kind":"hline","points":[{"t":"2026-01-01","p":100}],"schemaVersion":1,"source":"user","locked":false,"hidden":false,"z":0,"opacity":1,"extend":"none","meta":{"label":"保持"}}],false,null,"legacy",null,false,null]');
+ });
  it("lets only one UUID persist the v1 copy when two first-reads race through nested setItem",async()=>{
   const storage=new MemoryStorage();
   writeDrawingOutbox(storage,"account:alice@x",{NVDA:[line("alice-v1")]});
