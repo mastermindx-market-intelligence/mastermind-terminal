@@ -1471,25 +1471,39 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
   // localStorage restore, templates, DTM presets, layouts, commands, undo) flows
   // through `inds`, so clamp here instead of guarding ~10 setInds call sites.
   // Silent — the manual add path (toggleInd) shows the nudge; bulk/load just cap.
+  //
+  // The cap waits for the saved studies. On the mount pass this effect still sees the 4-study default
+  // and the default params, while the layout restore below has already queued the saved set at a
+  // higher priority. A clamp queued from that pass lands in React's idle lane, which the restored
+  // render keeps skipping, so it never applies; every later setInds is then replayed from the old base
+  // on each render. `studiesRestored` is set in the same batch as the restored set, so the cap only
+  // ever clamps the guest's real studies against their real params.
+  const [studiesRestored, setStudiesRestored] = useState(false);
   useEffect(() => {
-    if (loggedIn) return;
+    if (loggedIn || !studiesRestored) return;
+    // React may replay this updater onto the same base on every render while an earlier update waits.
+    // Returning the same Set for the same input keeps `inds` stable, so the replay cannot re-run the
+    // effects that read it and start a render loop.
+    let last: { from: Set<string>; to: Set<string> } | null = null;
     const clamp = (current: Set<string>) => {
+      if (last && last.from === current) return last.to;
       const candlesAreAmbientOnly = isAmbientCandleSuite(current, indParams);
       const counted = [...current].filter((key) => !(candlesAreAmbientOnly && key === MASTERMIND_CANDLES_SUITE_KEY));
-      if (counted.length <= MAX_ANON_IND) return current;
-      const keep = new Set(counted.slice(0, MAX_ANON_IND));
-      // Mastermind Candles is the Terminal's default candle styling, not one of the anonymous
-      // study slots. Exempt the carrier only while it contains no other Trend Waves modules.
-      if (candlesAreAmbientOnly) keep.add(MASTERMIND_CANDLES_SUITE_KEY);
+      let keep = current;
+      if (counted.length > MAX_ANON_IND) {
+        keep = new Set(counted.slice(0, MAX_ANON_IND));
+        // Mastermind Candles is the Terminal's default candle styling, not one of the anonymous
+        // study slots. Exempt the carrier only while it contains no other Trend Waves modules.
+        if (candlesAreAmbientOnly) keep.add(MASTERMIND_CANDLES_SUITE_KEY);
+      }
+      last = { from: current, to: keep };
       return keep;
     };
     if (clamp(inds) === inds) return;
-    // An updater, never a value: on the mount pass this effect sees the 4-study DEFAULT while the
-    // saved studies are already queued by the layout restore below, at a higher priority. A value
-    // queued here would be replayed after them when the idle lane lands and reset a guest's saved
-    // set to the clamped default; an updater clamps whatever set it is replayed onto.
+    // An updater, never a value: it clamps whatever set it is applied to, so it cannot undo another
+    // change queued before it.
     setInds(clamp);
-  }, [indParams, inds, loggedIn]);
+  }, [indParams, inds, loggedIn, studiesRestored]);
   // Preserve OpenMarket-style defaults per tool. A global blue/1.5/solid state
   // flattened meaningful defaults (for example Highlighter 8px and dashed Fib)
   // as soon as a tool was selected. Overrides now belong to the tool that the
@@ -1834,6 +1848,8 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
     // Additional study instances ("rsi__<token>", E06) keep THEIR OWN saved params.
     setIndParams(withStudyInstanceParams(base, rollout.indicators, rollout.params));
     setHidden(new Set(rollout.hidden));
+    // Releases the guest study cap above, in the same pre-paint batch as the restored set.
+    setStudiesRestored(true);
     // Commit the one-time rollout before the mount-skip persistence effects. The marker is written
     // last so an interrupted/blocked storage write retries rather than falsely claiming success.
     if (rollout.changed) {
