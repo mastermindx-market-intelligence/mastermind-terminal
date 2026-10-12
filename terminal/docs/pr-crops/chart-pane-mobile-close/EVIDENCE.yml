@@ -4,14 +4,20 @@
 # Recapture: cd terminal && TERMINAL_CROPS=1 CI=1 npx playwright test
 #   e2e/chart-pane-mobile-close.spec.ts --project=mobile --project=tablet --project=desktop
 #   --workers=1 --retries=0
-capturedAtHead: 088400e9556a5b3e8bd3133dfaf1ea9a71e3f7c8
+capturedAtHead: abd87ce6060c138f9c84fc3097c5db6283a8f630
 theme: dark
 spec: terminal/e2e/chart-pane-mobile-close.spec.ts
 layoutFiles:
   - path: terminal/components/fin/MegaPane.tsx
-    sha256: d1468dbc8966b0b58e1bf60a9f077ed7cb15955fed3faee9700cfebcb8183424
+    sha256: dcbb940c5e7dcc636d5dbf59771db191ff0789e23ed271031723c1cfe2bdaab0
   - path: terminal/components/TerminalShell.tsx
     sha256: 8fc6cce54907744631879569d90cc4a38c62bc7066dcd95b7d4631b8a0c77785
+  - path: terminal/components/fin/TranscriptDrawer.tsx
+    sha256: 17e00d0434bf86fbda971dc71cf01b612aa3d69596dd6fd5f1a96e19aa096eb4
+  - path: terminal/lib/scrollLock.ts
+    sha256: 31ead56ad65b953f864e9a62d91c9826229ffd06416f52dba6b34e16303daeaa
+  - path: terminal/components/fin/TranscriptSearchWorkspace.tsx
+    sha256: c709317f56a6d0c39241ae73fbc29a1794917a5eff548ee30a5fe6ca20e4080c
 crops:
   - file: mobile-en-dark.png
     viewport: 390x844
@@ -42,4 +48,4 @@ crops:
     viewport: 1440x900
     lang: en
     state: chart-pane-in-slot
-    sha256: 88c2cc9495b46995efd13c154c0739c3b9cbe4da133d11c1e081ffa3c9e65dbb
+    sha256: 01998b3c049196c23f01bf8b560e718d992c9ef9ea2cda11027531c43907f51f
