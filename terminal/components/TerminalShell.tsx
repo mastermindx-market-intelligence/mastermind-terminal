@@ -141,7 +141,7 @@ import {
   uid,
 } from "@/lib/drawings";
 import { reconcileDrawingJournal, writeDrawingJournal, refreshDrawingJournalSymbol, selectDrawingRecoveryCopy } from "@/lib/drawingOutbox";
-import { DRAWING_OWNER_HEADER, parseDrawingSnapshot, parseDrawingSaveReceipt, prepareDrawingAttempt, settleDrawingAttempt, type DrawingJournal, type DrawingSnapshot, type DrawingRevision } from "@/lib/drawingPersistence";
+import { DRAWING_OWNER_HEADER, parseDrawingSnapshot, parseDrawingSaveReceipt, prepareDrawingAttempt, settleDrawingAttempt, beginDrawingLoad, abandonDrawingLoad, abandonAllDrawingLoads, isCurrentDrawingLoad, shouldRescheduleDrawingFlush, type DrawingJournal, type DrawingSnapshot, type DrawingRevision } from "@/lib/drawingPersistence";
 import { FREEHAND_DRAWING_KINDS, getDrawingTool, isDrawingToolId } from "@/lib/drawingTools";
 import { SHELL_DRAW_TOOLS } from "@/lib/drawingTaxonomy";
 import { type ShellPanelId } from "@/lib/platform/contract";
@@ -1649,6 +1649,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
   // (guest -> account, sign-out, or account swap). A stale request must never
   // populate or enqueue work into the next owner's cache.
   const drawOwnerEpoch = useRef(0);
+  const drawLoadGeneration = useRef<Record<string, number>>({});
   // Owner-scoped stores key on the auth UUID, never the email (account-identity law):
   // `account:<uuid>` keys the journal, the receipts and the server's ownership check.
   const currentDrawingOwnerKey = identityOwnerKey(identity);
@@ -1728,6 +1729,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
   }, []);
   const flushDrawings = useCallback((sym: string) => {
     clearTimeout(drawTimers.current[sym]);
+    delete drawTimers.current[sym];
     if (drawSaving.current[sym]) return;
     const drawings = drawPending.current[sym];
     if (!drawings) return;
@@ -1744,6 +1746,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
       return;
     }
     let queued = false;
+    let saveSettledOk = false;
     setDrawingSavesActive((active) => new Set(active).add(sym));
     const save = (async () => {
       try {
@@ -1779,8 +1782,8 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
         } else {
           drawRevisions.current[sym] = receipt.revision;
           setDrawingSaveIssues((issues) => { const next = { ...issues }; delete next[sym]; return next; });
-          if (outcome === "saved") { delete recovery[sym]; delete drawPending.current[sym]; }
-          else queued = true;
+          if (outcome === "saved") { delete recovery[sym]; delete drawPending.current[sym]; saveSettledOk = true; }
+          else { queued = true; saveSettledOk = true; }
         }
       } catch {
         if (drawOwnerEpoch.current !== ownerEpoch) return;
@@ -1795,7 +1798,14 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
         setDrawingSavesActive((active) => { const next = new Set(active); next.delete(sym); return next; });
         if (durable && !recovery[sym]) restoreOtherDrawingCopies(sym, ownerKey, recovery);
         if (queued) drawTimers.current[sym] = setTimeout(() => flushDrawings(sym), 0);
-        else if (!drawPending.current[sym] && !prevPaneSyms.current.has(sym)) {
+        else if (shouldRescheduleDrawingFlush({
+          queuedDuringSave: false,
+          hasPending: drawPending.current[sym] !== undefined,
+          timerArmed: Boolean(drawTimers.current[sym]),
+          saveSettledOk,
+        })) {
+          drawTimers.current[sym] = setTimeout(() => flushDrawings(sym), 0);
+        } else if (!drawPending.current[sym] && !prevPaneSyms.current.has(sym)) {
           drawLoaded.current.delete(sym);
           delete drawRevisions.current[sym];
           delete drawHistory.current[sym];
@@ -2500,6 +2510,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
     drawLoadRetryTimers.current = {};
     drawLoadRetryAttempts.current = {};
     drawLoaded.current.clear();
+    abandonAllDrawingLoads(drawLoadGeneration.current);
     drawHistory.current = {};
     prevPaneSyms.current.clear();
     setDrawStore(pending);
@@ -2522,10 +2533,12 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
       drawLoaded.current.add(sym);
       if (drawingAccount) {
         const ownerEpoch = drawOwnerEpoch.current;
+        const generation = beginDrawingLoad(drawLoadGeneration.current, sym);
         fetch(`/api/drawings?symbol=${encodeURIComponent(sym)}`, { headers: { [DRAWING_OWNER_HEADER]: drawOwner.current } }).then((r) => {
           if (!r.ok) throw new Error(`drawing load failed (${r.status})`);
           return r.json();
         }).then((d) => {
+          if (!isCurrentDrawingLoad(drawLoadGeneration.current, sym, generation)) return;
           if (drawOwnerEpoch.current !== ownerEpoch) return;
           if (!prevPaneSyms.current.has(sym)) return;
           const snapshot = parseDrawingSnapshot(d);
@@ -2542,6 +2555,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
             const next = new Set(failed); next.delete(sym); return next;
           });
         }).catch(() => {
+          if (!isCurrentDrawingLoad(drawLoadGeneration.current, sym, generation)) return;
           if (drawOwnerEpoch.current !== ownerEpoch || !prevPaneSyms.current.has(sym)) return;
           drawLoaded.current.delete(sym);
           setDrawingLoadFailures((failed) => failed.has(sym) ? failed : new Set(failed).add(sym));
@@ -2563,6 +2577,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
     // later re-visit re-fetches fresh server state (restores the old per-mount refetch behavior)
     for (const sym of prevPaneSyms.current) {
       if (now.has(sym)) continue;
+      abandonDrawingLoad(drawLoadGeneration.current, sym);
       flushDrawings(sym);
       clearTimeout(drawLoadRetryTimers.current[sym]);
       delete drawLoadRetryTimers.current[sym];

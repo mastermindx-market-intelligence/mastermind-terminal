@@ -95,3 +95,40 @@ export function settleDrawingAttempt(entry: DrawingJournalEntry, receipt: Drawin
   delete entry.attempt;
   return savedLatest ? "saved" : "queued";
 }
+
+/** Monotonic per-symbol token for in-flight drawing GETs. */
+export type DrawingLoadGenerations = Record<string, number>;
+
+export function beginDrawingLoad(generations: DrawingLoadGenerations, symbol: string): number {
+  const next = (generations[symbol] ?? 0) + 1;
+  generations[symbol] = next;
+  return next;
+}
+
+export function abandonDrawingLoad(generations: DrawingLoadGenerations, symbol: string): void {
+  generations[symbol] = (generations[symbol] ?? 0) + 1;
+}
+
+export function abandonAllDrawingLoads(generations: DrawingLoadGenerations): void {
+  for (const symbol of Object.keys(generations)) generations[symbol] += 1;
+}
+
+export function isCurrentDrawingLoad(
+  generations: DrawingLoadGenerations,
+  symbol: string,
+  generation: number,
+): boolean {
+  return generations[symbol] === generation;
+}
+
+/** After a save settles, a newer local edit must not sit without a flush timer. */
+export function shouldRescheduleDrawingFlush(input: {
+  queuedDuringSave: boolean;
+  hasPending: boolean;
+  timerArmed: boolean;
+  saveSettledOk: boolean;
+}): boolean {
+  if (input.timerArmed) return false;
+  if (input.queuedDuringSave) return true;
+  return input.saveSettledOk && input.hasPending;
+}

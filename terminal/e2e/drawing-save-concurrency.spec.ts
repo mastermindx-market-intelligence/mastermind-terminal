@@ -217,3 +217,82 @@ test("unavailable durable serialization warns to keep the tab open and never sta
  await open(page);await expect(page.getByTestId("drawing-save-recovery")).toContainText("Keep this tab open");expect(puts).toBe(0);
  expect(await page.evaluate(()=>Object.values(JSON.parse(localStorage.getItem("mm.drawing.account-outbox.v2")!)["account:e2e-user-default"].NVDA.copies as Record<string,any>)[0].drawings[0].id)).toBe("memory-only");
 });
+
+const r1="aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa";
+const r2="bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb";
+const cloudLine=(id:string,p:number)=>({id,kind:"hline",source:"user",schemaVersion:1,points:[{t:"2026-06-15",p}]});
+async function pickSymbol(page:Page,symbol:string){
+ await page.locator(".pair").first().click();
+ const search=page.locator(".sh input");
+ await expect(search).toBeVisible({timeout:20_000});
+ await search.fill(symbol);
+ await expect(page.locator('.sres [role="option"]').first()).toBeVisible({timeout:20_000});
+ await search.press("Enter");
+ await expect(page.locator(".pair b").first()).toHaveText(symbol,{timeout:20_000});
+}
+
+// D1: the first NVDA GET must not land after leave/return started a newer GET.
+// Hold GET1 until GET2 exists, deliver D_old then D_new, edit, and require the PUT to keep D_new.
+test("a stale overlapping drawings GET cannot overwrite a newer load before the next save",async({page})=>{
+ test.skip((page.viewportSize()?.width??1440)<=860,"Symbol switch plus a pointer edit is exercised on the desktop chart.");
+ let releaseStale:()=>void=()=>{};
+ let releaseFresh:()=>void=()=>{};
+ const staleHeld=new Promise<void>((resolve)=>{releaseStale=resolve;});
+ const freshHeld=new Promise<void>((resolve)=>{releaseFresh=resolve;});
+ let serveStale=true;
+ let staleGets=0;
+ let freshGets=0;
+ let staleFulfilled=0;
+ const puts:{drawings:{id:string}[];expectedRevision:string|null}[]=[];
+ await page.route("**/api/drawings**",async(route)=>{
+  const request=route.request();
+  if(request.method()==="PUT"){
+   const value=request.postDataJSON();
+   puts.push(value);
+   await route.fulfill(json({ok:true,operationId:value.operationId,revision:"cccccccc-cccc-4ccc-8ccc-cccccccccccc",idempotentReplay:false,superseded:false}));
+   return;
+  }
+  const symbol=new URL(request.url()).searchParams.get("symbol");
+  if(symbol!=="NVDA"){
+   await route.fulfill(json({drawings:[],revision:null,schemaVersion:1}));
+   return;
+  }
+  const stale=serveStale;
+  if(stale){
+   staleGets+=1;
+   await staleHeld;
+   await route.fulfill(json({drawings:[cloudLine("old-cloud",196)],revision:r1,schemaVersion:1}));
+   staleFulfilled+=1;
+   return;
+  }
+  freshGets+=1;
+  await freshHeld;
+  await route.fulfill(json({drawings:[cloudLine("new-cloud",204)],revision:r2,schemaVersion:1}));
+ });
+ await page.goto("/terminal?symbol=NVDA");
+ await expect(page.locator(".chart-wrap canvas").first()).toBeVisible();
+ await expect.poll(()=>staleGets,{timeout:20_000}).toBeGreaterThan(0);
+ await pickSymbol(page,"AAPL");
+ serveStale=false;
+ await pickSymbol(page,"NVDA");
+ await expect.poll(()=>freshGets,{timeout:20_000}).toBeGreaterThan(0);
+ const staleResponse=page.waitForResponse((response)=>response.url().includes("/api/drawings")&&response.url().includes("NVDA")&&response.request().method()==="GET");
+ releaseStale();
+ await staleResponse;
+ await page.locator(".pair b").first().evaluate((el)=>el.textContent);
+ releaseFresh();
+ await expect(page.locator('.pane.on .drawing-layer g[data-id="new-cloud"]')).toHaveCount(1,{timeout:20_000});
+ await expect(page.locator('.pane.on .drawing-layer g[data-id="old-cloud"]')).toHaveCount(0);
+ const layer=page.locator(".pane.on .drawing-layer");
+ const box=await layer.boundingBox();
+ expect(box).not.toBeNull();
+ await page.getByTestId("drawing-group-lines-main").click();
+ await page.mouse.click(box!.x+box!.width*0.23,box!.y+box!.height*0.34);
+ await page.mouse.click(box!.x+box!.width*0.57,box!.y+box!.height*0.52);
+ await expect.poll(()=>puts.length,{timeout:20_000}).toBeGreaterThan(0);
+ const saved=puts[0].drawings.map((drawing)=>drawing.id);
+ expect(saved).toContain("new-cloud");
+ expect(saved).not.toContain("old-cloud");
+ expect(puts[0].expectedRevision).toBe(r2);
+ expect(staleFulfilled).toBeGreaterThan(0);
+});
