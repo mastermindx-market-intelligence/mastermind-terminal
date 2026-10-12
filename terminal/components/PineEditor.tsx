@@ -4,6 +4,8 @@ import { useLang, useT } from "@/lib/i18n";
 import { useRouter, useSearchParams } from "next/navigation";
 import { type Bar, type PineError } from "@/lib/pine-engine";
 import { createPineHost, type PineHost } from "@/lib/pine-engine/host";
+import { pineEngineFailure } from "@/lib/pineChartRun";
+import { usePineRunT } from "@/lib/pineRunLex";
 import { parseExpectedUpdatedAtMs } from "@/lib/savedScriptStamp";
 
 type Script = { id: string; name: string; source: string; lang: string; params: Record<string, any>; updated_at: string; locked?: boolean };
@@ -46,7 +48,8 @@ const SYNTH_BARS: Bar[] = (() => {
   return out;
 })();
 
-type Diag = { errors: PineError[]; warnings: string[] };
+// `unavailable`: the ENGINE (worker boot/crash), not the script, failed — nothing was checked.
+type Diag = { errors: PineError[]; warnings: string[]; unavailable?: boolean };
 
 // The "edited <date>" stamp in the script list. A bare `toLocaleDateString()` resolves against the
 // SERVER's locale and timezone during SSR and the BROWSER's on hydration, so the two rendered
@@ -66,14 +69,20 @@ export function editedOn(iso: string, lang: "en" | "zh" = "en"): string {
 // "Compiled"). Both go through the same host `slot` so a keystroke supersedes the previous in-flight
 // diagnostics run (terminateable — a mid-type recompile cancels the previous one), and the per-run
 // wall budget preempts a runaway. SSR/no-Worker falls back to a synchronous host transparently.
-async function diagnose(host: PineHost, src: string, params: Record<string, any>): Promise<Diag> {
+// `null` = superseded/disposed: nothing was checked, so the caller keeps what it showed rather than
+// reporting a clean compile. An engine failure (the worker never booted, or crashed) comes back as
+// `unavailable` — not as the script's errors, and not as a clean pass.
+async function diagnose(host: PineHost, src: string, params: Record<string, any>): Promise<Diag | null> {
   const c = await host.compile(src);
-  if (c.cancelled) return { errors: [], warnings: [] };
-  if (!c.ok) return { errors: c.errors, warnings: [] };
+  if (c.cancelled) return null;
+  if (!c.ok) return pineEngineFailure(c.errors[0]) ? { errors: [], warnings: [], unavailable: true } : { errors: c.errors, warnings: [] };
   const r = await host.run({ slot: DIAG_SLOT, source: src, astId: c.astId ?? undefined, bars: SYNTH_BARS, inputs: params, opts: { timeframe: "1D", symbol: "SYNTH" }, budgetMs: 1000 });
-  if (r.cancelled) return { errors: [], warnings: [] };
+  if (r.cancelled) return null;
+  if (!r.ok && pineEngineFailure(r.errors[0])) return { errors: [], warnings: [], unavailable: true };
   return { errors: r.ok ? [] : r.errors, warnings: r.result?.warnings ?? [] };
 }
+// A check that settles inside this window never shows "Checking…", so ordinary typing doesn't flicker.
+const DIAG_PENDING_GRACE_MS = 700;
 const DIAG_SLOT = "@diag";   // shared supersession slot for editor diagnostics (compile + dry-run)
 
 // Code-layer font metrics (must mirror .code / .code-wrap textarea in globals.css: 12.5px/1.65
@@ -89,6 +98,7 @@ const COL_W = 12.5 * 0.6;          // px per mono char (JetBrains Mono advance �
 // data loss.
 export default function PineEditor({ scripts, isPro, email, libraryUnavailable = false }: { scripts: Script[]; isPro: boolean; email: string; libraryUnavailable?: boolean }) {
   const t = useT();
+  const pt = usePineRunT();   // engine-state console copy (feature-local LEX)
   const { lang } = useLang();
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -168,16 +178,34 @@ export default function PineEditor({ scripts, isPro, email, libraryUnavailable =
 
   // Real compile diagnostics via the Pine engine (parse errors + dry-run runtime warnings, see
   // diagnose() above), debounced ~300ms so we don't re-run on every keystroke.
+  // A check still in flight past the grace period says "Checking…" (a worker boot can take up to
+  // 2 × WORKER_BOOT_TIMEOUT_MS) instead of leaving the previous buffer's clean console standing; an
+  // engine failure says the script has NOT been checked, with a retry.
   const [diag, setDiag] = useState<PineError[]>([]);
   const [warns, setWarns] = useState<string[]>([]);
+  const [checking, setChecking] = useState(false);
+  const [engineDown, setEngineDown] = useState(false);
+  const diagSeqRef = useRef(0);   // the latest launched check; a result for an older one is dropped
+  function launchDiag(host: PineHost): Promise<void> {
+    const seq = ++diagSeqRef.current;
+    const grace = window.setTimeout(() => { if (diagSeqRef.current === seq) setChecking(true); }, DIAG_PENDING_GRACE_MS);
+    return diagnose(host, src, params).then((d) => {
+      window.clearTimeout(grace);
+      if (diagSeqRef.current !== seq) return;   // a newer check owns the console
+      setChecking(false);
+      if (!d) return;   // superseded/disposed with nothing newer: keep what the console showed
+      setDiag(d.errors); setWarns(d.warnings); setEngineDown(!!d.unavailable);
+    });
+  }
   useEffect(() => {
-    let alive = true;
+    const seq = diagSeqRef;   // the live counter itself, not a snapshot: cleanup must bump the current value
     const id = window.setTimeout(() => {
       const host = hostRef.current; if (!host) return;
-      diagnose(host, src, params).then((d) => { if (alive) { setDiag(d.errors); setWarns(d.warnings); } });
+      launchDiag(host);
     }, 300);
-    return () => { alive = false; window.clearTimeout(id); };
-  }, [src, params]);
+    // an edit invalidates the in-flight check for the previous buffer (it must not land late)
+    return () => { seq.current++; window.clearTimeout(id); };
+  }, [src, params]); // eslint-disable-line react-hooks/exhaustive-deps
   const hasErrors = diag.length > 0;
   // First parse error, mapped to its 1-based line so the gutter/code layers can decorate it.
   const errAt = diag.find((e) => e.phase === "parse" && e.line > 0) ?? (diag[0]?.line ? diag[0] : null);
@@ -187,7 +215,7 @@ export default function PineEditor({ scripts, isPro, email, libraryUnavailable =
   function compile() {
     const host = hostRef.current; if (!host) return;
     setStatus("compiling");
-    diagnose(host, src, params).then((d) => { setDiag(d.errors); setWarns(d.warnings); window.setTimeout(() => setStatus("idle"), 300); });
+    launchDiag(host).then(() => { window.setTimeout(() => setStatus("idle"), 300); });
   }
 
   // Save the current buffer. Returns the saved id (existing id on success, null on failure). Locked
@@ -480,6 +508,13 @@ export default function PineEditor({ scripts, isPro, email, libraryUnavailable =
           <div className="console">
             {status === "compiling" ? (
               <div><span className="k">{t("peCompiling").replace("{name}", active.name)}</span></div>
+            ) : checking ? (
+              <div data-pe-state="checking"><span className="k">{pt("peChecking", { name: active.name })}</span></div>
+            ) : engineDown ? (
+              <div data-pe-state="engine-unavailable">
+                <span style={{ color: "var(--warn)" }}>⚠ {pt("peEngineUnavailable")}</span>{" "}
+                <button type="button" className="ai" style={{ marginLeft: 6 }} onClick={compile}>{pt("peRetryCheck")}</button>
+              </div>
             ) : hasErrors ? (
               <>
                 <div><span style={{ color: "var(--down)" }}>✗ {diag.length === 1 ? t("peErrorCountOne") : t("peErrorCount").replace("{n}", String(diag.length))}</span> <span className="k">· {t("peLineCount").replace("{n}", String(lines.length))}</span></div>

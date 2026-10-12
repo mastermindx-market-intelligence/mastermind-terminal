@@ -10,6 +10,8 @@
 
 import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import { useT } from "@/lib/i18n";
+import { usePineRunT } from "@/lib/pineRunLex";
+import styles from "./ChartOverlays.module.css";
 
 export type LegendEntry = {
   key: string;          // "ema" | "bb" | … | "pine" | "cmp:SYM"
@@ -21,7 +23,20 @@ export type LegendEntry = {
   noParams?: boolean;   // signal-style row (e.g. Golden Oracle) — no Settings / Source, just eye + remove
   noSource?: boolean;   // premium suite row — Settings works but there is no pseudo-Pine source view
   color?: string;       // line color (used for the compare row's swatch dot)
+  // Custom-script run state. Absent = settled (plotted, or a script error carried by the ⚠ label).
+  // A row with no plot must say why: still running, waiting on the engine, or the engine failed.
+  pineState?: PineLegendState;
 };
+
+export type PineLegendState = "running" | "engineWait" | "engineFail" | "engineError" | "interrupted";
+const PINE_STATE_TEXT: Record<PineLegendState, string> = {
+  running: "pineRunning",
+  engineWait: "pineEngineWait",
+  engineFail: "pineEngineFail",
+  engineError: "pineEngineError",
+  interrupted: "pineRunInterrupted",
+};
+const pineStatePending = (s: PineLegendState) => s === "running" || s === "engineWait";
 
 export type PaneInfo = {
   key: string;          // stable pane identity ("__price__" | indicator key) — survives reorder
@@ -47,6 +62,7 @@ export type OverlayActions = {
   onMaximize: (paneIndex: number) => void;
   canMoveUp: (paneIndex: number) => boolean;
   canMoveDown: (paneIndex: number) => boolean;
+  onRetry?: (key: string) => void;   // re-run a custom script whose engine failed (pineState unavailable)
 };
 
 // B5 icon sizing: width/height removed from inline style so CSS (.lg-ic svg, .po-ic svg) can scale them.
@@ -91,6 +107,7 @@ export default function ChartOverlays(props: {
 } & OverlayActions) {
   const coarse = !!props.coarse;
   const t = useT();
+  const pt = usePineRunT();   // pine run-state copy (feature-local LEX)
   const [more, setMore] = useState<MoreState | null>(null);
   const [flip, setFlip] = useState<{ key: string; n: number } | null>(null);
   // Static Legend (touch): tapping a row's name ARMS it — the icon strip appears INSIDE the same
@@ -217,6 +234,24 @@ export default function ChartOverlays(props: {
                         className="lg-name"
                         onClick={coarse && !isArmed ? (ev) => { ev.stopPropagation(); setArmedKey(e.key); } : undefined}
                       >{e.label}</span>
+                      {e.pineState && (
+                        <span
+                          className={`${styles.state} ${pineStatePending(e.pineState) ? styles.pending : styles.unavail}`}
+                          role="status"
+                          data-pine-state={e.pineState}
+                          onClick={coarse && !isArmed ? (ev) => { ev.stopPropagation(); setArmedKey(e.key); } : undefined}
+                        >{pt(PINE_STATE_TEXT[e.pineState])}</span>
+                      )}
+                      {e.pineState && !pineStatePending(e.pineState) && props.onRetry && !isArmed && (
+                        <button
+                          type="button"
+                          className={styles.retry}
+                          data-pine-retry={e.key}
+                          title={pt("pineRetryTip")}
+                          aria-label={`${pt("pineRetry")}: ${e.label}`}
+                          onClick={stop(() => props.onRetry!(e.key))}
+                        >{pt("pineRetry")}</button>
+                      )}
                       {/* Touch armed strip: icons appear INSIDE the same box — same .lg-menu as desktop,
                           no separate pill, no geometry change. Eye is the fixed first slot. */}
                       {coarse && isArmed ? (
