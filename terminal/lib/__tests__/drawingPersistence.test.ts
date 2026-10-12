@@ -680,6 +680,40 @@ describe("legacy email-keyed journal claimed by at most one auth UUID",()=>{
   expect(storage.getItem("mm.drawing.account-outbox.v1")).toBe(v1);
   expect(storage.getItem(DRAWING_JOURNAL_KEY)).toBe(v2);
  });
+ const carol={owner:"account:uuid-c",legacyOwner:"account:carol@x"};
+ it("fails closed for every alias on array, version-only, or null claim records and still returns v2",()=>{
+  for(const record of ["[]",JSON.stringify({version:1}),"null"] as const){
+   const storage=new MemoryStorage();
+   plantPendingV2(storage);
+   writeDrawingOutbox(storage,"account:alice@x",{NVDA:[line("alice-v1")]});
+   const v1=storage.getItem("mm.drawing.account-outbox.v1");
+   const v2=storage.getItem(DRAWING_JOURNAL_KEY);
+   storage.setItem(claimKey,record);
+   const journal=readDrawingJournal(storage,alice);
+   expect(journal.AAPL,record).toMatchObject({drawings:[{id:"pending-v2"}]});
+   expect(journal.NVDA,record).toBeUndefined();
+   expect(storage.getItem("mm.drawing.account-outbox.v1")).toBe(v1);
+   expect(storage.getItem(DRAWING_JOURNAL_KEY)).toBe(v2);
+  }
+ });
+ it("fails closed for this alias only when its claim value is not an account UUID",()=>{
+  const storage=new MemoryStorage();
+  writeDrawingOutbox(storage,"account:alice@x",{NVDA:[line("alice-v1")]});
+  writeDrawingOutbox(storage,"account:carol@x",{NVDA:[line("carol-v1")]});
+  const v1=storage.getItem("mm.drawing.account-outbox.v1");
+  storage.setItem(claimKey,JSON.stringify({"account:alice@x":1,"account:carol@x":"account:uuid-c"}));
+  expect(readDrawingJournal(storage,alice).NVDA).toBeUndefined();
+  expect(readDrawingJournal(storage,carol).NVDA).toMatchObject({drawings:[{id:"carol-v1"}],blocked:"legacy"});
+  expect(storage.getItem("mm.drawing.account-outbox.v1")).toBe(v1);
+ });
+ it("ignores an extra bogus claim key and still honours a valid sibling",()=>{
+  const storage=new MemoryStorage();
+  writeDrawingOutbox(storage,"account:alice@x",{NVDA:[line("alice-v1")]});
+  const v1=storage.getItem("mm.drawing.account-outbox.v1");
+  storage.setItem(claimKey,JSON.stringify({"account:alice@x":"account:uuid-a",nope:"x"}));
+  expect(readDrawingJournal(storage,alice).NVDA).toMatchObject({drawings:[{id:"alice-v1"}],blocked:"legacy"});
+  expect(storage.getItem("mm.drawing.account-outbox.v1")).toBe(v1);
+ });
  it("keeps an unrelated email's claim when this owner writes its own",async()=>{
   const storage=new MemoryStorage();
   writeDrawingOutbox(storage,"account:alice@x",{NVDA:[line("alice-v1")]});

@@ -232,25 +232,42 @@ function strictEnvelope(storage: StoragePort, key: string): StoredEnvelope {
   return raw as StoredEnvelope;
 }
 type LegacyClaims = Record<string, string>;
-/** Strict-read: corrupt bytes throw. Callers fail closed without deleting anything. */
-function readLegacyClaims(storage: StoragePort): LegacyClaims {
-  const raw: unknown = JSON.parse(storage.getItem(DRAWING_LEGACY_CLAIM_KEY) || "{}");
+type LegacyClaimState = { claims: LegacyClaims; blocked: Set<string> };
+/** Strict-read: wholly invalid bytes throw. Per-key invalid entries are ignored for other aliases. */
+function parseLegacyClaimRecord(raw: unknown): LegacyClaimState {
   if (!raw || typeof raw !== "object" || Array.isArray(raw)) throw new Error("Invalid legacy claim record");
   const claims: LegacyClaims = {};
-  for (const [legacyOwner, owner] of Object.entries(raw as Record<string, unknown>)) {
-    if (!accountOwner(legacyOwner) || typeof owner !== "string" || !accountOwner(owner)) throw new Error("Invalid legacy claim record");
-    claims[legacyOwner] = owner;
+  const blocked = new Set<string>();
+  let sawAccountKey = false;
+  let sawBogusKey = false;
+  for (const [key, value] of Object.entries(raw as Record<string, unknown>)) {
+    if (!accountOwner(key)) { sawBogusKey = true; continue; }
+    sawAccountKey = true;
+    if (typeof value !== "string" || !accountOwner(value)) { blocked.add(key); continue; }
+    claims[key] = value;
   }
-  return claims;
+  // {version:1} and other non-account maps are not a claim record.
+  if (sawBogusKey && !sawAccountKey) throw new Error("Invalid legacy claim record");
+  return { claims, blocked };
 }
-function writeLegacyClaims(storage: StoragePort, claims: LegacyClaims): void {
-  storage.setItem(DRAWING_LEGACY_CLAIM_KEY, JSON.stringify(claims));
+function readLegacyClaims(storage: StoragePort): LegacyClaimState {
+  return parseLegacyClaimRecord(JSON.parse(storage.getItem(DRAWING_LEGACY_CLAIM_KEY) || "{}"));
+}
+/** Merge-write only this alias so unrelated keys, including invalid ones, survive. */
+function mergeWriteLegacyClaim(storage: StoragePort, legacyOwner: string, owner: string): void {
+  const raw: unknown = JSON.parse(storage.getItem(DRAWING_LEGACY_CLAIM_KEY) || "{}");
+  if (!raw || typeof raw !== "object" || Array.isArray(raw)) throw new Error("Invalid legacy claim record");
+  (raw as Record<string, unknown>)[legacyOwner] = owner;
+  storage.setItem(DRAWING_LEGACY_CLAIM_KEY, JSON.stringify(raw));
 }
 /** True when another UUID already claimed this email-keyed v1 namespace. */
 function legacyOwnerClaimedByOther(claims: LegacyClaims, owner: string, legacyOwner: string): boolean {
   if (!accountOwner(legacyOwner) || legacyOwner === owner) return false;
   const claimedBy = claims[legacyOwner];
   return !!claimedBy && claimedBy !== owner;
+}
+function legacyAliasClosed(state: LegacyClaimState, owner: string, legacyOwner: string): boolean {
+  return state.blocked.has(legacyOwner) || legacyOwnerClaimedByOther(state.claims, owner, legacyOwner);
 }
 /** Drop in-memory `legacy:` copies this owner does not hold the claim for. */
 function dropUnownedLegacyCopies(journal: DrawingJournal): void {
@@ -296,8 +313,8 @@ function journalState(storage: StoragePort, owner: string, legacyOwner: string, 
   let sawLegacy = false;
   try {
   // Claim I/O stays inside this catch so a corrupt record cannot hide v2 work.
-  const claims = alias ? readLegacyClaims(storage) : {};
-  if (!legacyOwnerClaimedByOther(claims, owner, legacyOwner)) {
+  const claims = alias ? readLegacyClaims(storage) : { claims: {}, blocked: new Set<string>() };
+  if (!legacyAliasClosed(claims, owner, legacyOwner)) {
   const legacy = accountOwner(legacyOwner) ? ownerNamespace(strictEnvelope(storage, DRAWING_OUTBOX_KEY), legacyOwner) : {};
   sawLegacy = Object.keys(legacy).length > 0;
   for (const [symbol, raw] of Object.entries(legacy)) {
@@ -364,12 +381,12 @@ export async function writeDrawingJournal(
     return await locks.request(DRAWING_JOURNAL_KEY, () => {
       let { envelope, namespace, imports, sawLegacy } = journalState(storage, owner, legacyOwner);
       const alias = accountOwner(legacyOwner) && legacyOwner !== owner;
-      let claims: LegacyClaims = {};
+      let claims: LegacyClaimState = { claims: {}, blocked: new Set() };
       if (alias) {
         // Re-read under the same lock the journal write already holds (or the
         // in-process queue tests use when navigator.locks is unavailable).
         claims = readLegacyClaims(storage);
-        if (legacyOwnerClaimedByOther(claims, owner, legacyOwner)) {
+        if (legacyAliasClosed(claims, owner, legacyOwner)) {
           imports = {};
           sawLegacy = false;
           dropUnownedLegacyCopies(journal);
@@ -444,15 +461,14 @@ export async function writeDrawingJournal(
       if (acknowledged.length) writeRetiredCopies(storage, owner, [...receipts.filter((id) => !acknowledged.includes(id)), ...acknowledged]);
       // Claim before the journal so a storage failure cannot persist adopted
       // copies without the claim. Fail closed: do not return durability without it.
-      if (alias && !claims[legacyOwner] && sawLegacy) {
+      if (alias && !claims.claims[legacyOwner] && !claims.blocked.has(legacyOwner) && sawLegacy) {
         try {
           // Re-read and merge only this alias so an unrelated email's claim survives.
           const latest = readLegacyClaims(storage);
-          if (legacyOwnerClaimedByOther(latest, owner, legacyOwner)) {
+          if (legacyAliasClosed(latest, owner, legacyOwner)) {
             dropUnownedLegacyCopies(journal);
           } else {
-            latest[legacyOwner] = owner;
-            writeLegacyClaims(storage, latest);
+            mergeWriteLegacyClaim(storage, legacyOwner, owner);
           }
         } catch (error) {
           dropUnownedLegacyCopies(journal);
