@@ -6,6 +6,7 @@ import { describe, expect, it } from "vitest";
 
 const recipes = [
   "capture_pl6_batch1.cjs",
+  "capture_pl6_batch2.cjs",
   "capture_gex_levels_heatmap_load_failure.cjs",
   "capture_eod_heatmap_flowdesk_load_failure.cjs",
 ];
