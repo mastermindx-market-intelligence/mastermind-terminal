@@ -467,12 +467,15 @@ def sweep(api: MergeApi, trigger_number: int | None = None, *, wait=time.sleep) 
         if mergeable_state == "behind":
             branch = str(pull["head"]["ref"])
             api.update_branch(number, head_sha)
-            refreshed_sha = str(api.pull(number)["head"]["sha"])
+            # update-branch answers 202 Accepted and performs the merge
+            # asynchronously: the refreshed head commit, and then the held
+            # pull_request run GitHub creates on it, appear a few seconds
+            # later. Re-read the head on every attempt and ask for runs only
+            # once it has moved. Poll briefly; never sleep directly.
             held_runs: list[dict[str, Any]] = []
-            if refreshed_sha != head_sha:
-                # GitHub creates the held pull_request run a few seconds after
-                # the refresh. Poll briefly; never sleep directly.
-                for attempt in range(4):
+            for attempt in range(4):
+                refreshed_sha = str(api.pull(number)["head"]["sha"])
+                if refreshed_sha != head_sha:
                     held_runs = [
                         run
                         for run in api.workflow_runs(refreshed_sha, "pull_request")
@@ -481,8 +484,8 @@ def sweep(api: MergeApi, trigger_number: int | None = None, *, wait=time.sleep) 
                     ]
                     if held_runs:
                         break
-                    if attempt < 3:
-                        wait(3)
+                if attempt < 3:
+                    wait(3)
             if held_runs:
                 held_id = int(held_runs[0]["id"])
                 try:

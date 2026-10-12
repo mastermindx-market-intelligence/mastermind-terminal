@@ -100,8 +100,13 @@ class FakeApi:
         enqueue_errors=None,
         held_runs=None,
         approve_errors=None,
+        refresh_visible_after_reads=0,
     ):
         self.pulls = {item["number"]: deepcopy(item) for item in pulls}
+        # GitHub's update-branch is asynchronous: with N > 0 the refreshed head
+        # becomes visible to pull() only on the N-th read after update_branch.
+        self.refresh_visible_after_reads = refresh_visible_after_reads
+        self.pending_refresh: dict[int, list] = {}
         self.runs = runs or {item["head"]["sha"]: checks() for item in pulls}
         # number -> (status, message) to raise as ApiError instead of merging.
         self.merge_errors = merge_errors or {}
@@ -118,6 +123,12 @@ class FakeApi:
         return [deepcopy(item) for item in self.pulls.values()]
 
     def pull(self, number):
+        pending = self.pending_refresh.get(number)
+        if pending is not None:
+            pending[0] -= 1
+            if pending[0] <= 0:
+                self.pulls[number]["head"]["sha"] = pending[1]
+                del self.pending_refresh[number]
         return deepcopy(self.pulls[number])
 
     def check_runs(self, sha):
@@ -125,8 +136,13 @@ class FakeApi:
 
     def update_branch(self, number, head_sha):
         self.actions.append(("update", number, head_sha))
-        # GitHub's update-branch creates a new head commit on the PR.
-        self.pulls[number]["head"]["sha"] = head_sha + "-refreshed"
+        # GitHub's update-branch creates a new head commit on the PR, either at
+        # once (the default here) or only after a few reads (202 Accepted).
+        refreshed = head_sha + "-refreshed"
+        if self.refresh_visible_after_reads > 0:
+            self.pending_refresh[number] = [self.refresh_visible_after_reads, refreshed]
+        else:
+            self.pulls[number]["head"]["sha"] = refreshed
 
     def workflow_runs(self, head_sha, event):
         self.actions.append(("workflow_runs", head_sha, event))
@@ -850,6 +866,31 @@ def test_refresh_polls_briefly_for_the_held_run_before_falling_back():
     assert ("approve_run", 501) in api.actions
     assert sum(action[0] == "workflow_runs" for action in api.actions) == 3
     assert not any(action[0] == "dispatch_ci" for action in api.actions)
+    assert result == [
+        "#7: updated onto current master; approved held CI run 501; awaiting fresh CI"
+    ]
+
+
+def test_refresh_polls_the_pull_until_the_refreshed_head_appears():
+    # PUT /pulls/{n}/update-branch answers 202 Accepted and performs the merge
+    # asynchronously, so the first GET /pulls/{n} after it can still show the
+    # old head. The sweeper must keep re-reading the head instead of concluding
+    # from one stale read that nothing moved and falling back to a dispatch.
+    api = FakeApi(
+        [pull(mergeable_state="behind")],
+        held_runs={"head-7-refreshed": [HELD_CI_RUN]},
+        refresh_visible_after_reads=2,
+    )
+
+    result = sweep(api, wait=lambda _s: None)
+
+    assert ("approve_run", 501) in api.actions
+    assert not any(action[0] == "dispatch_ci" for action in api.actions)
+    # Runs are requested only for a head that has actually moved, never for
+    # the stale one.
+    assert [action for action in api.actions if action[0] == "workflow_runs"] == [
+        ("workflow_runs", "head-7-refreshed", "pull_request")
+    ]
     assert result == [
         "#7: updated onto current master; approved held CI run 501; awaiting fresh CI"
     ]
