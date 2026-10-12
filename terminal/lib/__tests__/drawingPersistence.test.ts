@@ -851,6 +851,35 @@ describe("legacy email-keyed journal claimed by at most one auth UUID",()=>{
   const rec=JSON.parse(storage.getItem(DRAWING_JOURNAL_KEY)!)["account:uuid-a"].NVDA as {legacySeen:Record<string,string>};
   expect(rec.legacySeen.legacy).toBe('[[{"id":"alice-v1","kind":"hline","points":[{"t":"2026-01-01","p":100}],"schemaVersion":1,"source":"user","locked":false,"hidden":false,"z":0,"opacity":1,"extend":"none","meta":{"label":"保持"}}],false,null,"legacy",null,false,null]');
  });
+ it("treats a mixed-case claim UUID as the holder and does not drop that owner's copies",async()=>{
+  const storage=new MemoryStorage();
+  writeDrawingOutbox(storage,"account:alice@x",{NVDA:[line("alice-v1")]});
+  const v1=storage.getItem("mm.drawing.account-outbox.v1");
+  const holder={owner:"account:uuid-a",legacyOwner:"account:alice@x"};
+  const journal=readDrawingJournal(storage,holder);
+  expect(journal.NVDA).toMatchObject({drawings:[{id:"alice-v1"}],blocked:"legacy"});
+  storage.setItem(claimKey,JSON.stringify({"account:alice@x":"account:UUID-A"}));
+  expect(await writeDrawingJournal(storage,holder,journal,locks)).toBe(true);
+  expect(journal.NVDA).toMatchObject({drawings:[{id:"alice-v1"}],blocked:"legacy"});
+  expect(readDrawingJournal(storage,holder).NVDA).toMatchObject({drawings:[{id:"alice-v1"}]});
+  expect(storage.getItem("mm.drawing.account-outbox.v1")).toBe(v1);
+ });
+ it("still withholds the alias from a different UUID when the claim hex case differs",()=>{
+  const storage=new MemoryStorage();
+  writeDrawingOutbox(storage,"account:alice@x",{NVDA:[line("alice-v1")]});
+  storage.setItem(claimKey,JSON.stringify({"account:alice@x":"account:UUID-A"}));
+  expect(readDrawingJournal(storage,alice).NVDA).toMatchObject({drawings:[{id:"alice-v1"}],blocked:"legacy"});
+  expect(readDrawingJournal(storage,bob).NVDA).toBeUndefined();
+ });
+ it("stamps the claim UUID in lowercase",async()=>{
+  const storage=new MemoryStorage();
+  const mixed={owner:"account:UUID-A",legacyOwner:"account:alice@x"};
+  writeDrawingOutbox(storage,"account:alice@x",{NVDA:[line("alice-v1")]});
+  const journal=readDrawingJournal(storage,mixed);
+  expect(await writeDrawingJournal(storage,mixed,journal,locks)).toBe(true);
+  expect(JSON.parse(storage.getItem(claimKey)!)["account:alice@x"]).toBe("account:uuid-a");
+  expect(Object.keys(JSON.parse(storage.getItem(DRAWING_JOURNAL_KEY)!))).toEqual(["account:UUID-A"]);
+ });
  it("lets only one UUID persist the v1 copy when two first-reads race through nested setItem",async()=>{
   const storage=new MemoryStorage();
   writeDrawingOutbox(storage,"account:alice@x",{NVDA:[line("alice-v1")]});
