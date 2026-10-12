@@ -729,6 +729,26 @@ describe("legacy email-keyed journal claimed by at most one auth UUID",()=>{
   expect(claims["account:alice@x"]).toBe("account:uuid-a");
   expect(claims["account:carol@x"]).toBe("account:uuid-c");
  });
+ it("does not let leftover legacySeen with empty copies claim, so another UUID can still import",async()=>{
+  const storage=new MemoryStorage();
+  writeDrawingOutbox(storage,"account:alice@x",{NVDA:[line("alice-v1")]});
+  const v1=storage.getItem("mm.drawing.account-outbox.v1");
+  const bobJournal=readDrawingJournal(storage,bob);
+  expect(await writeDrawingJournal(storage,bob,bobJournal,locks)).toBe(true);
+  storage.removeItem(claimKey);
+  const planted=JSON.parse(storage.getItem(DRAWING_JOURNAL_KEY)!) as Record<string,Record<string,{copies:unknown;legacySeen:unknown;legacyLinks:unknown}>>;
+  for(const record of Object.values(planted["account:uuid-b"]??{})){record.copies={};record.legacyLinks={};}
+  storage.setItem(DRAWING_JOURNAL_KEY,JSON.stringify(planted));
+  const leftover=readDrawingJournal(storage,bob);
+  expect(leftover.NVDA).toBeUndefined();
+  expect(await writeDrawingJournal(storage,bob,leftover,locks)).toBe(true);
+  expect(JSON.parse(storage.getItem(claimKey)||"{}")["account:alice@x"]).toBeUndefined();
+  const aliceJournal=readDrawingJournal(storage,alice);
+  expect(aliceJournal.NVDA).toMatchObject({drawings:[{id:"alice-v1"}],blocked:"legacy"});
+  expect(await writeDrawingJournal(storage,alice,aliceJournal,locks)).toBe(true);
+  expect(JSON.parse(storage.getItem(claimKey)!)["account:alice@x"]).toBe("account:uuid-a");
+  expect(storage.getItem("mm.drawing.account-outbox.v1")).toBe(v1);
+ });
  it("lets only one UUID persist the v1 copy when two first-reads race through nested setItem",async()=>{
   const storage=new MemoryStorage();
   writeDrawingOutbox(storage,"account:alice@x",{NVDA:[line("alice-v1")]});
