@@ -605,10 +605,15 @@ describe("per-symbol drawing load generation", () => {
 
   it("D2: a late GET failure is ignored once a later load generation is current", () => {
     const generations: DrawingLoadGenerations = {};
+    const store: Record<string, string> = {};
     const first = beginDrawingLoad(generations, "NVDA");
     abandonDrawingLoad(generations, "NVDA");
-    beginDrawingLoad(generations, "NVDA");
+    const second = beginDrawingLoad(generations, "NVDA");
+    store.NVDA = "populated";
+    if (isCurrentDrawingLoad(generations, "NVDA", first)) store.NVDA = "cleared-by-stale-failure";
     expect(isCurrentDrawingLoad(generations, "NVDA", first)).toBe(false);
+    expect(isCurrentDrawingLoad(generations, "NVDA", second)).toBe(true);
+    expect(store.NVDA).toBe("populated");
   });
 
   it("P2a: a late cloud-copy GET must not apply after leave, owner change, or a newer load", () => {
