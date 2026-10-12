@@ -37,6 +37,10 @@ const COPY = {
     "This drawing copy could not be saved. It is kept on this device.",
     "这份绘图未能保存。副本已保留在此设备上。",
   ],
+  preload: [
+    "You drew before your saved drawings finished loading. Choose which copy to keep.",
+    "你在已保存图形载入完成前绘制了内容。请选择要保留的副本。",
+  ],
 } as const;
 
 export function drawingSaveConflictCopy(key: keyof typeof COPY, lang: Lang): string {
@@ -55,6 +59,7 @@ export function drawingSaveIssueFromConflict(
 }
 
 export function drawingSaveIssueOffersReplace(issue: string): boolean {
+  if (issue === "preload") return true;
   return !["retry", "storage", "owner_conflict", "save_rejected"].includes(issue);
 }
 
@@ -80,6 +85,7 @@ export function drawingSaveRecoveryMessage(
   if (issue === "owner_conflict") return drawingSaveConflictCopy("owner", lang);
   if (issue === "payload_mismatch") return drawingSaveConflictCopy("payload", lang);
   if (issue === "save_rejected") return drawingSaveConflictCopy("unknown", lang);
+  if (issue === "preload") return drawingSaveConflictCopy("preload", lang);
   const base = t(
     issue === "storage" ? "drawingStorageUnavailable" : issue === "retry" ? "drawingSaveRetry" : "drawingSaveConflict",
   );

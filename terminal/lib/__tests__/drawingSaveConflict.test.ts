@@ -57,11 +57,20 @@ describe("drawing save conflict copy", () => {
     expect(drawingSaveIssueOffersReplace("conflict")).toBe(true);
     expect(drawingSaveIssueOffersReplace("payload_mismatch")).toBe(true);
     expect(drawingSaveIssueOffersReplace("conflict_unknown")).toBe(true);
+    expect(drawingSaveIssueOffersReplace("preload")).toBe(true);
   });
   it("does not use the replace chrome copy for an account change", () => {
     const t = (key: string) => key;
     expect(drawingSaveRecoveryMessage("owner_conflict", "en", t)).toBe(drawingSaveConflictCopy("owner", "en"));
     expect(drawingSaveRecoveryMessage("owner_conflict", "zh", t)).toBe(drawingSaveConflictCopy("owner", "zh"));
+  });
+  it("describes a parked pre-load copy in plain language and offers keep-mine / keep-saved", () => {
+    const t = (key: string) => key;
+    expect(drawingSaveRecoveryMessage("preload", "en", t)).toBe(drawingSaveConflictCopy("preload", "en"));
+    expect(drawingSaveRecoveryMessage("preload", "zh", t)).toBe(drawingSaveConflictCopy("preload", "zh"));
+    expect(drawingSaveConflictCopy("preload", "en")).toMatch(/before your saved drawings finished loading/i);
+    expect(drawingSaveConflictCopy("preload", "zh")).toMatch(/载入完成前/);
+    expect(drawingSaveIssueOffersReplace("preload")).toBe(true);
   });
   it("parks the local journal copy and records the 409 code", () => {
     const owner: DrawingJournalEntry = { drawings: [] };
