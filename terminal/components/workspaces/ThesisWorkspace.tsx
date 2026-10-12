@@ -1565,6 +1565,11 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
     const currentRoute = parseAnalysisSearchParams(new URLSearchParams(window.location.search));
     if (window.location.pathname !== "/analysis" || currentRoute.kind !== "theses"
       || currentRoute.thesisId !== thesisId.toLowerCase()) return;
+    // A same-id history entry can carry a different candidate. An old read must
+    // not overwrite that entry even if its popstate was missed during remount.
+    if (normalizeAnalysisSymbol(currentRoute.symbol) !== candidate.company
+      || JSON.stringify(parseMarketOntologyContext(new URLSearchParams(window.location.search)))
+        !== JSON.stringify(candidate.context)) return;
     if (loadedSubjectKey !== null && loadedSubjectKey === candidate.company) {
       contextCompany.current = candidate.company;
       const url = new URL(window.location.href);
@@ -1624,14 +1629,14 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
 
   const openDetail = useCallback((id: string, historyMode: "push" | "none" = "push") => {
     const token = ++detailRequest.current;
-    // Keep the candidate on this invocation, including when mount effects are replayed.
-    const incomingContext = historyMode === "push"
-      ? marketOntologyContext
-      : parseMarketOntologyContext(new URLSearchParams(window.location.search));
-    const company = historyMode === "push" ? contextCompany.current
-      : normalizeAnalysisSymbol(new URLSearchParams(window.location.search).get("symbol") ?? undefined) ?? contextCompany.current;
-    const contextCandidate = incomingContext && company
-      ? { context: incomingContext, company }
+    const urlParams = new URLSearchParams(window.location.search);
+    const urlContext = parseMarketOntologyContext(urlParams);
+    const company = normalizeAnalysisSymbol(urlParams.get("symbol") ?? undefined);
+    // The URL carries the candidate as one context/company pair, including while
+    // display is withheld. This survives a real remount and cannot resurrect a
+    // previous entry's context on a context-free history navigation.
+    const contextCandidate = urlContext && company
+      ? { context: urlContext, company }
       : null;
     setRouteInvalid(false);
     setSelectedId(id);
@@ -1650,16 +1655,16 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
       const url = new URL(window.location.href);
       url.searchParams.set("view", "theses");
       url.searchParams.set("thesis", id);
-      url.searchParams.delete("symbol");
-      url.search = stripMarketOntologyParams(url.searchParams).toString();
+      if (!contextCandidate) {
+        url.searchParams.delete("symbol");
+        url.search = stripMarketOntologyParams(url.searchParams).toString();
+      }
       writeRoute(url, "push");
-    } else if (incomingContext) {
-      // The restored entry still carries mo_*; the strip is withheld until the
-      // same-company load confirms it, so no unvalidated context is ever on screen.
-      setMarketOntologyContext(null);
     }
+    // Retained URL context is an input, not a claim about the unconfirmed detail.
+    setMarketOntologyContext(null);
     void loadDetail(id, token, contextCandidate);
-  }, [loadDetail, marketOntologyContext, writeRoute]);
+  }, [loadDetail, writeRoute]);
 
   const beginDetailLoad = useCallback((id: string, discardConfirmed = false) => {
     if (pending || (!discardConfirmed && !confirmDiscard())) return;
@@ -1776,6 +1781,8 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
       url.searchParams.delete("thesis");
       if (symbol) url.searchParams.set("symbol", symbol);
       else url.searchParams.delete("symbol");
+      // New thesis may follow a successful save whose existing route omits symbol.
+      // Only the displayed, confirmed context can bridge that explicit action.
       const nextContext = marketOntologyContext;
       if (!symbol || symbol !== contextCompany.current || !nextContext) {
         url.search = stripMarketOntologyParams(url.searchParams).toString();
@@ -1850,23 +1857,32 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
         window.setTimeout(() => { routeDiscardAuthorized.current = false; }, 1000);
       }
       if (nextPosition !== null) historyPositionRef.current = nextPosition;
-      // History entries carry context only where it was validated: the arrival and
-      // composer entries, and confirmed same-company detail entries. A detail entry
-      // re-withholds in openDetail below and lets its own load confirm again.
-      setMarketOntologyContext(parseMarketOntologyContext(new URLSearchParams(window.location.search)));
       if (window.location.pathname !== "/analysis") return;
-      const route = parseAnalysisSearchParams(new URLSearchParams(window.location.search));
+      const params = new URLSearchParams(window.location.search);
+      const route = parseAnalysisSearchParams(params);
+      const urlContext = parseMarketOntologyContext(params);
       if (route.kind === "invalid_thesis") {
         detailRequest.current += 1;
+        setMarketOntologyContext(null);
         setRouteInvalid(true);
         setSelectedId(null);
         setDetail(null);
         setDetailState("idle");
         return;
       }
-      if (route.kind !== "theses") return;
-      if (route.thesisId) return openDetail(route.thesisId, "none");
+      if (route.kind !== "theses") {
+        setMarketOntologyContext(urlContext);
+        return;
+      }
+      // Detail history entries may carry a pending candidate. Withhold display
+      // until this entry's own canonical read confirms the anchored company.
+      if (route.thesisId) {
+        setMarketOntologyContext(null);
+        return openDetail(route.thesisId, "none");
+      }
       const symbol = normalizeAnalysisSymbol(route.symbol) ?? "";
+      contextCompany.current = symbol;
+      setMarketOntologyContext(symbol ? urlContext : null);
       if (symbol) return resetToNew(symbol, "none");
       resetToList("none");
     };
@@ -2002,10 +2018,16 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
     const url = new URL(window.location.href);
     url.searchParams.set("view", "theses");
     url.searchParams.set("thesis", id);
-    url.searchParams.delete("symbol");
     const savedSubjectKey = pendingSubjectKey(pendingMutation);
     if (!savedSubjectKey || savedSubjectKey !== contextCompany.current) {
+      url.searchParams.delete("symbol");
       url.search = stripMarketOntologyParams(url.searchParams).toString();
+    } else if (parseMarketOntologyContext(url.searchParams)) {
+      // Preserve the same context/company pair in the saved detail history entry.
+      // Back or reload must be able to revalidate it without another entry's state.
+      url.searchParams.set("symbol", savedSubjectKey);
+    } else {
+      url.searchParams.delete("symbol");
     }
     writeRoute(url, "replace");
     setSelectedId(id);

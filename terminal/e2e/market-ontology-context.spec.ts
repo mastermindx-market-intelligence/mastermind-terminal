@@ -518,3 +518,79 @@ test("rapid Back and Forward during a lazy mount settles on the current thesis U
   await expect(page.getByText("Version 1 · Current")).toBeVisible();
   await expect(page.getByTestId("mo-context-strip")).toBeVisible();
 });
+
+test("Forward before A settles then a same-company B click keeps B and Transmission context", async ({ page, browser, baseURL }, testInfo) => {
+  test.skip(testInfo.project.name !== "desktop", "Focused EN/ZH820 control; parent owns the full matrix.");
+  const run = async (workspace: Page, locale: "en" | "zh", width: number, height: number, aReq: string, bReq: string) => {
+    await workspace.setViewportSize({ width, height });
+    const titleA = locale === "zh" ? `已归档论点 A ${width}` : `Archived thesis A ${width}`;
+    const titleB = locale === "zh" ? `当前论点 B ${width}` : `Current thesis B ${width}`;
+    const thesisA = await createFixtureThesis(workspace, aReq, "NVDA", titleA);
+    const thesisB = await createFixtureThesis(workspace, bReq, "NVDA", titleB);
+    await workspace.goto(`/analysis?view=theses&symbol=NVDA&${TRANSMISSION_QUERY}`);
+    await expect(workspace.getByTestId("thesis-workspace")).toBeVisible({ timeout: 45_000 });
+    const list = workspace.getByTestId("thesis-list-pane");
+    await list.getByRole("button", { name: titleA }).click();
+    const currentVersion = locale === "zh" ? "版本 1 · 当前" : "Version 1 · Current";
+    await expect(workspace.getByText(currentVersion)).toBeVisible({ timeout: 30_000 });
+    await workspace.reload();
+    await expect(workspace.getByText(currentVersion)).toBeVisible({ timeout: 30_000 });
+    await workspace.goBack();
+    await expect(workspace.getByTestId("mo-context-strip")).toBeVisible({ timeout: 30_000 });
+    await expect(workspace.getByText(currentVersion)).toHaveCount(0);
+
+    const releasesA: (() => void)[] = [];
+    let sawA: (() => void) | undefined;
+    const aRequested = new Promise<void>((resolve) => { sawA = resolve; });
+    let holdA = true;
+    await workspace.route((url) => url.pathname === "/api/theses" && url.searchParams.get("id") === thesisA, async (route) => {
+      if (holdA) {
+        sawA!();
+        await new Promise<void>((resolve) => { releasesA.push(resolve); });
+      }
+      await route.continue();
+    });
+
+    await workspace.goForward();
+    const bRow = list.getByRole("button", { name: titleB });
+    await expect(bRow).toBeVisible({ timeout: 30_000 });
+    await aRequested;
+    // Do not wait for A's canonical detail. Click B while that read is still held.
+    await expect(workspace.getByText(currentVersion)).toHaveCount(0);
+    const bAnswered = workspace.waitForResponse((response) => {
+      const url = new URL(response.url());
+      return url.pathname === "/api/theses" && url.searchParams.get("id") === thesisB;
+    });
+    await bRow.click();
+    await bAnswered;
+    await expect(workspace.getByLabel(locale === "zh" ? "标题" : "Title", { exact: true })).toHaveValue(titleB);
+    const lateAAnswered = workspace.waitForResponse((response) => {
+      const url = new URL(response.url());
+      return url.pathname === "/api/theses" && url.searchParams.get("id") === thesisA;
+    });
+    holdA = false;
+    expect(releasesA.length, "A must still be held when B settles").toBeGreaterThan(0);
+    releasesA.forEach((release) => release());
+    await lateAAnswered;
+
+    await expect(workspace.getByLabel(locale === "zh" ? "标题" : "Title", { exact: true })).toHaveValue(titleB);
+    await expect(workspace.getByText(currentVersion)).toBeVisible({ timeout: 30_000 });
+    expect(new URL(workspace.url()).searchParams.get("thesis")).toBe(thesisB);
+    await expect(workspace.getByTestId("mo-context-strip")).toBeVisible();
+    await expect(workspace.getByTestId("mo-context-strip").getByRole("link", {
+      name: locale === "zh" ? "返回传导" : "Back to Transmission",
+    })).toHaveAttribute("href", TRANSMISSION_RETURN_HREF);
+    expectTransmissionContextParams(new URL(workspace.url()));
+  };
+
+  await prepare(page, testInfo, baseURL);
+  await run(page, "en", 1440, 900, "a1000000-0000-4000-8000-00000000c4de", "a1000000-0000-4000-8000-00000000c5de");
+  await run(page, "en", 820, 1180, "a1000000-0000-4000-8000-00000000c6de", "a1000000-0000-4000-8000-00000000c7de");
+  const zhPage = await browser.newPage();
+  try {
+    await prepare(zhPage, testInfo, baseURL, true);
+    await run(zhPage, "zh", 820, 1180, "a1000000-0000-4000-8000-00000000cade", "a1000000-0000-4000-8000-00000000cbde");
+  } finally {
+    await zhPage.close();
+  }
+});
