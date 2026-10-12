@@ -112,6 +112,32 @@ Next: establish a lawfully usable ES/NQ full-depth sample and the exact source e
 This pass has not bought data, contacted vendors, launched a background worker/watch, merged the PR or deployed to production. It has not completed production chart-shell integration, NQ browser proof, 0DTE filtering, generalized price/time aggregation, historical feed corrections, calibrated absorption/sweep alerts, or prospective predictive validation. The live-data gate is not permission to invent those capabilities or call a synthetic chart finished. All completed source/evidence remains on PR #964, with no duplicate Agent OS or runtime store.
 
 
+## Resume continuation: official SDK and source adapter
+
+This subsection supersedes the earlier statement that raw decoding and source-event
+assembly are unimplemented. On the existing PR/carrier, the official native DBN
+decoder is now connected through `hub/tools/normalize_futures_dbn.py` and
+`hub/tools/replay_futures_source.js` to `hub/lib/futuresSource.js` and the existing
+book/footprint reducers. It supports source-integrity hashes, bounded streaming,
+lossless fields, atomic new-output publication, explicit retrospective availability,
+per-instrument complete-event assembly, gap/sequence handling, definition validity
+and venue-status selection. It does not own sockets, storage, security master,
+receipt authentication or subscriber entitlements.
+
+Verification: 498/498 full Hub tests (46 new source cases) and 15/15 SDK tests.
+Evidence: `docs/evidence/futures-source-20261012/`. Official upstream codec assets
+are pinned/licensed/hashes retained in `hub/tests/fixtures/databento-dbn/`.
+Their two ESH1 cancellations have no snapshot; the real canary correctly refuses
+to claim depth. Separate synthetic native-DBN tests connect decoder to book/trades
+and preserve a historical availability cutoff. A full-session reference comparison
+remains open. No purchase, live subscription, merge, deployment, or independent
+review is claimed. The existing Quote Hub CI job now runs the SDK tests.
+
+Next safe phase: NQ browser coverage, explicit source-session expiry lenses and
+price/time aggregation, while authentic feed/receipt and release requirements stay
+unchanged. The unavailability of a full licensed sample does not block these
+independent source/consumer improvements. Reuse this original PR and worktree.
+
 ## Source register
 
 All public sources below were inspected through official pages in this research pass. Publisher claims remain claims; no authenticated QuantData runtime teardown or vendor negotiation was performed.

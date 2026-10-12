@@ -39,6 +39,10 @@ class FuturesMboBook {
     this.reason = 'snapshot_required'; this.cursor = null; this.digest = null;
     this.lastRecv = 0n; this.availableAt = 0n;
   }
+  /** Called by the existing capture adapter after a channel gap or incomplete source. */
+  invalidate(reason) {
+    this.valid = false; this.reason = nonempty(reason) ? reason : 'source_unavailable';
+  }
   /** Atomic at a source F_LAST boundary. Duplicate last cursor is idempotent. */
   applyBatch(batch) {
     try {
