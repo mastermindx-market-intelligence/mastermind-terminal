@@ -122,9 +122,9 @@ Admitted contexts — each has an explicit grouping and confirmation rule:
 
 | chart | requested | grouping | confirmed at |
 | --- | --- | --- | --- |
-| daily | `W` | ISO week (`time` = Monday open, `time_close` = last session) | its last session, once a session in a later week is loaded |
-| daily | `M`, `3M`, `12M` | calendar month / quarter / year (`time` = first session, `time_close` = last session) | its last session, once a session in a later period is loaded |
-| `1M`/`3M`/`12M` | a coarser `1M`/`3M`/`12M` multiple | calendar quarter / year of whole monthly bars (`time` = period open) | same as above |
+| daily | `W` | ISO week (`time` = first LOADED session of the ISO week, `time_close` = last session) | its last session, once a session in a later week is loaded |
+| daily | `M`, `3M`, `12M` | calendar month / quarter / year (`time` = first LOADED session, `time_close` = last session) | its last session, once a session in a later period is loaded |
+| `1M`/`3M`/`12M` | a coarser `1M`/`3M`/`12M` multiple | calendar quarter / year of whole monthly bars (`time` = first loaded session of the period) | same as above |
 | daily | `nD` (n ≥ 2) | `lib/sessionBars` session grid at the chart's session anchor (`time` = open, `time_close` = last session) | the session whose global index is a multiple of n |
 
 The `nD` grid is phased by `RunOpts.sessionAnchor`, the symbol's published `session_anchor`
@@ -137,6 +137,26 @@ anchor, or when its session is not among the loaded rows or it is malformed, the
 the canonical owner's feed phase (the first loaded session) and every run that uses it says which
 of those happened in a warning — the group boundaries can then differ from the chart's own `nD`
 bars.
+
+`time` inside `request.security` is the first **loaded** session of the period, not a wall-clock
+Monday open. The ISO-week / calendar-month key is computed from each bar's stamped date, and
+the period's opening session is whatever the loaded rows gave the engine first — a weekly chart
+that starts on Wednesday reports the first loaded Wednesday's session as `time`, not Monday.
+A session stamped with the previous calendar date (a Sunday-evening futures session whose
+`time` is Sunday) groups into the prior ISO week, not the next: ISO weeks are Mon-anchored, so
+the period key is derived from the stamped date regardless of when the bar's session actually
+ran. Calendar W/M grouping is fixed on the loaded sessions' date stamps and is NOT re-phased by
+`session_anchor` — only the `nD` session grid honours the anchor (it tells the engine where the
+loaded rows sit on the symbol's session grid, but W/M key off the date stamp of each session).
+
+`W` / `M` / `3M` / `12M` grouping requires **date-only** bar stamps (`YYYY-MM-DD`). ISO
+date-time stamps (`YYYY-MM-DDTHH:MM:SSZ` / `±HH:MM`) are admitted for the chart-TF `time` /
+`time_close` and for `nD` session grouping, but the calendar-week / calendar-month key
+cannot be derived from an instant in time without a wall-clock definition that the loaded
+data does not carry. A daily chart whose bars carry ISO date-time stamps therefore refuses `W`,
+`M`, `3M` and `12M` with a deduplicated warning naming the date-only requirement; `nD` still
+works (its session grid reads each stamp's date portion). ISO date-time W/M grouping is not
+implemented in this engine — the date-only contract is the documented refusal boundary.
 
 Publication (historical bars, `isrealtime=false`): default `lookahead_off` shows a period's value
 from its confirming session on and carries the previous confirmed value before that (`gaps_off`);
