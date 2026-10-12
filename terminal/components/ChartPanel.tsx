@@ -40,6 +40,7 @@ import { drawingToolFromShortcut, getDrawingTool, FREEHAND_DRAWING_KINDS, type D
 import { DRAWING_RENDERER_FAMILY, materializeSemanticPoints } from "@/lib/drawing-engine/geometry";
 import { calculateAnchoredVwap, calculateFixedRangeVolumeProfile, calculateRegressionChannel, generateGhostFeed } from "@/lib/drawing-engine/analytics";
 import { cloneDrawing, constrainScreenAngle, translateDrawingAnchors } from "@/lib/drawing-engine/interaction";
+import { paneDrawingScaleReady, watchPaneDrawingReadiness } from "@/lib/drawingPaneReadiness";
 import { calculatePositionMetrics, fibonacciSettings, positionSettings, type FibonacciLabelMode } from "@/lib/drawing-engine/settings";
 import { registerPane, broadcastCrosshair, broadcastRange, peerValueAt } from "@/lib/paneSync";
 import {
@@ -55,7 +56,7 @@ import {
 } from "@/lib/priceTagPlacement";
 import { hoverTagPaint } from "@/lib/hoverTagPaint";
 import { setActivePaneCoords, getActivePaneCoords } from "@/lib/paneCoords";
-import { getJSON, getSliceAndOhlc, getCompositeOhlc, getOhlc } from "@/lib/dataCache";
+import { getJSON, getSliceAndOhlc, getCompositeOhlc, getOhlc, type CacheOutcome } from "@/lib/dataCache";
 import { parseComposite, alignAndSum } from "@/lib/composite";
 import { CMP_PALETTE, type CmpCfg, defaultCmpCfg, cmpKey } from "@/lib/compare";
 import { isIntradayTf, isSecondTf, classify, tfMinutes, type Market } from "@/lib/intradaySources";
@@ -67,6 +68,8 @@ import { isMacroSymbol, macroOnEtAxis } from "@/lib/macroSymbols";
 import { sessionVwap, openingRange, sessionLevels, pivotLevels, rvolSeries, ttmSqueeze, adx as calcAdx, cvdApprox, type Bar as IMBar, type DailyBar } from "@/lib/intradayMath";
 import { attachSessionShading, detachSessionShading, type SessionShadingPrimitive } from "@/lib/sessionShading";
 import { IND_DEFS, withDefaults, isIndKey } from "@/lib/indicators";
+import { isAdditionalStudyId, studyParamsWithDefaults, studyTypeOf } from "@/lib/studyInstances";
+import { expandStudyOrder, renderableStudyIds, studyInstanceMeta } from "@/lib/studyInstanceView";
 import { flowGet, flowGetFresh } from "@/lib/flowClientCache";
 import { deriveOptLevels, sessionsOldEt, type OptLevelKey, type OptLevelsResult } from "@/lib/optionsLevels";
 import { computeSuite, resolveSuiteColors } from "@/lib/indicator-canvas/host";
@@ -88,7 +91,7 @@ import {
 import type { SuiteRenderBundle, SuiteTier, SuiteColors, CoordMapper, TableSpec } from "@/lib/indicator-canvas/types";
 import ChartTables from "@/components/ChartTables";
 import { crossUps, crossDowns, crossUpsBelow, crossDownsAbove } from "@/lib/crossSignals";
-import { SOFT_Q, anchorSignal, isBlockedSignal, isOverrideCandidate, isReclaimOverrideTake, isRetroOverride, isStopSweepReclaim, isStructureStop, isWaivedEntry, markerTooltipCopy, opportunityMarkerGlyph, sliceSignalBasis } from "@/lib/signalVerdict";
+import { SOFT_Q, anchorSignal, isBlockedSignal, isOverrideCandidate, isReclaimOverrideTake, isStopSweepReclaim, isStructureStop, isWaivedEntry, markerTooltipCopy, opportunityMarkerGlyph, sliceSignalBasis } from "@/lib/signalVerdict";
 import { makeNearestBarIndex } from "@/lib/barSnap";
 import { LIVE_BAR_PROJECTION, LIVE_INPLACE_SERIES_KEYS, LIVE_REBUILD_KEYS, acceptsLiveTick, liveQuoteStamp, seriesReuseChart, type AcceptedLiveTick } from "@/lib/liveBarProjection";
 import { dailyMultipleOf, groupSessionBars, parseSessionAnchor, resolveBarAnchor,
@@ -570,11 +573,13 @@ import { buildVisualSeries, participationColor, visualOverlayBundle, visualReado
   EMPTY_VISUAL_CALENDAR, type ChartReadoutMeta, type VisualCalendar, type VisualIntelligenceSettings,
   type VisualSeries } from "@/lib/visualIntelligence";
 import { candleVolumeRank } from "@/lib/suites/trend/candlePainter";
+import { eodSnapshotKnown, replayAxisOf, replayChipAnchor, replayDayChangePct, replayEarlyDotAdmission, replayReceiptAdmission, replaySignalAdmission, replayVisibleCount, replayWarningAdmission, type ReplayAxis, type ReplayCutoff } from "@/lib/replayContract";
+import { detectGapZones, gapZonesAsOf, type GapZone } from "@/lib/gapZones";
 
-export default function ChartPanel({ symbol, chartType = "candles", indicators, timeframe = "D", replayIdx = null, onMeta, tool = null, toolActivation = 0, drawingSticky = false, drawingCreationDisabled = false, drawStyle, drawings = [], onDrawingsChange, detectCmd = null, magnet = "off", compare = [], compareCfg = EMPTY_OBJ, isActive = true, syncId = null, liveQuote = null,
+export default function ChartPanel({ symbol, chartType = "candles", indicators, timeframe = "D", replayCutoff = null, onMeta, tool = null, toolActivation = 0, drawingSticky = false, drawingCreationDisabled = false, drawStyle, drawings = [], onDrawingsChange, detectCmd = null, magnet = "off", compare = [], compareCfg = EMPTY_OBJ, isActive = true, syncId = null, liveQuote = null,
   indParams = EMPTY_OBJ, hidden = EMPTY_SET, onToggleHidden, onRemoveInd, onOpenSettings, onOpenSource, pineScripts = EMPTY_PINE, chartSettings, onVisualSettings, onChartApi, extHours = false, episodeId = null,
   instrumentName, instrumentMarket, instrumentColor, onAddAlert, onTableView, onObjectTree, onOpenSettingsModal, lockedVLine = null, onSetLockedVLine, onIndRowsAt, dayMode = false, onPaneCount, companyName = "", userTier = "free", dataReady = true, initialTimeframe = null }:
-  { symbol: string; companyName?: string; chartType?: string; indicators: Set<string>; timeframe?: string; replayIdx?: number | null; onMeta?: (m: { total: number }) => void;
+  { symbol: string; companyName?: string; chartType?: string; indicators: Set<string>; timeframe?: string; replayCutoff?: ReplayCutoff | null; onMeta?: (m: { symbol: string; timeframe: string; axis: ReplayAxis }) => void;
     /** False until the shell has COMMITTED its persisted prefs. See `effectiveTimeframe`. */
     dataReady?: boolean;
     /** The shell's already-resolved startup timeframe, handed over before it can be rendered. */
@@ -605,6 +610,18 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
   const t = useT();
   const ref = useRef<HTMLDivElement>(null);
   const statusRef = useRef<HTMLSpanElement>(null);
+  // Only phone-web CSS consumes this measurement. Observe the painted header:
+  // quotes, settings, locale, Replay chips and viewport changes can change its rows.
+  useLayoutEffect(() => {
+    const line = statusRef.current?.closest<HTMLElement>(".statusline");
+    const host = line?.parentElement;
+    if (!line || !host) return;
+    const measure = () => host.style.setProperty("--statusline-height", `${line.getBoundingClientRect().height}px`);
+    measure();
+    const observer = new ResizeObserver(measure);
+    observer.observe(line);
+    return () => { observer.disconnect(); host.style.removeProperty("--statusline-height"); };
+  }, []);
   const visualPanelRef = useRef<VisualIntelligenceHandle | null>(null);
   const visualSeriesRef = useRef<VisualSeries | null>(null);
   const visualSelectedTimeRef = useRef<string | null>(null);
@@ -662,6 +679,10 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
   const pineScriptsRef = useRef<PineScript[]>(pineScripts); pineScriptsRef.current = pineScripts;
   const barsRef = useRef<Bar[]>([]);        // the bars currently ON the chart (full OR replay-sliced)
   const fullBarsRef = useRef<Bar[]>([]);    // the full resampled history — NEVER mutated by replay
+  // The timeframe `fullBarsRef` was resampled to. During a timeframe switch `timeframeRef` already
+  // names the NEW timeframe while these rows are still the old one's; a replay step landing in that
+  // window must slice them by THEIR availability rule, not the new timeframe's.
+  const fullBarsTfRef = useRef<string>("");
   const dailyBarsRef = useRef<Bar[]>([]);   // the raw DAILY source (pre-resample) — the R11 splice operates here
   // The published 2D/3D session anchor for the symbol currently on the chart, and the identity of
   // the OHLC document it arrived on. The anchor phases the daily-multiple grid onto the SAME bars
@@ -754,11 +775,10 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
     return barIdxRef.current.map;
   };
   // PERF: gap-zone detection memo — the O(daily²) gap+fill scan is pure data-derived geometry that does
-  // NOT depend on the crosshair/range, yet renderSignals ran it every frame. Cache keyed on the daily
-  // source array identity + the gap params so it recomputes only on a data/param change; the per-frame
-  // render just re-projects the cached zones' coordinates.
-  type GapZone = { date: string; type: "up" | "down"; lo: number; hi: number; fill: string | null };
-  const gapZonesRef = useRef<{ src: Bar[] | null; thr: number; map: Map<string, Bar["time"]>; gaps: GapZone[] }>({ src: null, thr: -1, map: new Map(), gaps: [] });
+  // NOT depend on the crosshair/range, yet renderSignals ran it every frame. Detection is cached on the
+  // daily source array identity + the size floor; the date→bar map on the CHART's bar array identity
+  // (Replay re-slices the chart without touching the daily source); the per-frame render re-projects.
+  const gapZonesRef = useRef<{ src: Bar[] | null; thr: number; gaps: GapZone[]; barsSrc: Bar[] | null; map: Map<string, Bar["time"]> }>({ src: null, thr: -1, gaps: [], barsSrc: null, map: new Map() });
   const prevSymbolRef = useRef<string>("");  // tracks the symbol from the last Effect 2 run to detect symbol changes
   const precRef = useRef<number>(2);
   // GC v2: sig marks additionally carry keeper quality + recipe tier (drives the marker dimming/
@@ -804,6 +824,20 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
   const visualReadyRef = useRef<TerminalVisualReadyAnnouncement | null>(null);
   const cmpGenRef = useRef(0);              // compare-specific generation token (epoch doesn't bump on compare change)
   const sliceRef = useRef<any>(null);       // latest slice, so replay re-resolves sig marks without a refetch
+  // The slice is OPTIONAL: bars paint without it. Its state is stated, never inferred from a null
+  // sliceRef — "pending"/"unavailable" must not read as "this symbol has no signals" (which would
+  // run the unscored client fallback). "none" = this view has no daily slice (composite, intraday).
+  // Mirrored on the chart wrapper as data-slice-state / data-slice-symbol.
+  const sliceStateRef = useRef<"none" | "pending" | "data" | "absent" | "unavailable">("none");
+  const setSliceState = (state: "none" | "pending" | "data" | "absent" | "unavailable", sym: string) => {
+    sliceStateRef.current = state;
+    const wrap = wrapElRef.current;
+    if (!wrap) return;
+    if (state === "none") { delete wrap.dataset.sliceState; delete wrap.dataset.sliceSymbol; return; }
+    wrap.dataset.sliceState = state;
+    wrap.dataset.sliceSymbol = sym;
+  };
+  const sliceUnsettled = () => sliceStateRef.current === "pending" || sliceStateRef.current === "unavailable";
   const viewSavedRef = useRef<{ from: number; to: number } | null>(null);
   // SSR-safe: seed with empty tokens (this client component still renders on the server for initial
   // HTML, where getComputedStyle/document are unavailable). Effect 1 populates real tokens on mount.
@@ -815,7 +849,9 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
   const indicatorsRef = useRef<Set<string>>(indicators);
   const indicatorSetKey = (set: ReadonlySet<string>) => Array.from(set).sort().join(",");
   const syncIdRef = useRef<number | null>(syncId);
-  const replayIdxRef = useRef<number | null>(replayIdx);   // live replayIdx so Effect 2 doesn't build against a stale closure if replay starts mid-fetch
+  // The live replay CUTOFF (an instant, lib/replayContract.ts), so Effect 2 doesn't build against a
+  // stale closure if replay starts mid-fetch. Non-null ⇔ this chart is replaying.
+  const replayIdxRef = useRef<ReplayCutoff | null>(replayCutoff);
   const liveQuoteRef = useRef<LiveQuote>(liveQuote);       // latest live quote, so Effect 2's tail can re-apply the splice after setData
   const extHoursRef = useRef(extHours);
   const liveTickKeyRef = useRef("");                        // rejects a repeated one-second packet without repainting
@@ -1162,6 +1198,8 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
   // change and no second load is issued. Standalone callers (embed, dev theater, ChartConductor)
   // pass neither prop and are unaffected.
   const effectiveTimeframe = dataReady ? timeframe : (initialTimeframe ?? timeframe);
+  // The cutoff as a stable effect key: a new object for the same instant must not re-slice.
+  const replayKey = replayCutoff ? `${replayCutoff.clock}:${replayCutoff.at}` : null;
   useLayoutEffect(() => {
     visualSourceRef.current = null;
     visualSeriesRef.current = null;
@@ -1173,8 +1211,8 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
     visualSeriesRef.current = null;
     visualSelectedTimeRef.current = null;
     visualPanelRef.current?.reset();
-  }, [replayIdx]);
-  chartTypeRef.current = chartType; timeframeRef.current = effectiveTimeframe; compareRef.current = compare || []; compareCfgRef.current = compareCfg; indicatorsRef.current = indicators; dataReadyRef.current = dataReady; syncIdRef.current = syncId; replayIdxRef.current = replayIdx; liveQuoteRef.current = liveQuote; extHoursRef.current = extHours; symbolRef.current = symbol; companyNameRef.current = companyName;
+  }, [replayKey]);
+  chartTypeRef.current = chartType; timeframeRef.current = effectiveTimeframe; compareRef.current = compare || []; compareCfgRef.current = compareCfg; indicatorsRef.current = indicators; dataReadyRef.current = dataReady; syncIdRef.current = syncId; replayIdxRef.current = replayCutoff; liveQuoteRef.current = liveQuote; extHoursRef.current = extHours; symbolRef.current = symbol; companyNameRef.current = companyName;
   lastValueVisibleRef.current = chartSettings?.lastValueVisible !== false;
   countdownVisibleRef.current = chartSettings?.countdownVisible !== false;
   chartSettingsRef.current = chartSettings ?? {};
@@ -1269,12 +1307,15 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
 
   // per-indicator params merged over the registry defaults (drives the Settings dialog + the math/style).
   // withDefaults() also resolves directional style colors against the active Up/Down setting.
-  const P = (k: string) => withDefaults(k, indParamsRef.current[k]);
+  // An additional study instance ("rsi__<token>", E06) reads ITS OWN record, validated, over its
+  // type's registry defaults — never the primary's — so two instances can never alias.
+  const P = (k: string) => (isAdditionalStudyId(k) ? studyParamsWithDefaults(k, indParamsRef.current[k]) : withDefaults(k, indParamsRef.current[k]));
   // Live --up/--down for canvas-painted indicator colors. tokensRef is filled on mount (Effect 1)
   // and re-read on the Up/Down flip (Effect 5); the literals cover only the pre-mount window.
   const dirUp = () => tokensRef.current.up || "#26c281";
   const dirDown = () => tokensRef.current.down || "#f0566b";
-  const labelOf = (k: string) => (isIndKey(k) ? IND_DEFS[k].label : k);
+  // A lone instance keeps its registry label; siblings of one type read "RSI 1 (14)" / "RSI 2 (7)".
+  const labelOf = (k: string) => studyInstanceMeta(k, indicatorsRef.current, indParamsRef.current[k])?.label ?? (isIndKey(k) ? IND_DEFS[k].label : k);
 
   // ── indicator builders (param-driven; params flow from the Settings dialog via indParams) ──
   // Each returns the list of ISeriesApi it created, tracked in indSeriesRef under its indKey.
@@ -1324,8 +1365,9 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
     return [vs];
   };
   // rsi and stochrsi each get their own pane (formerly combined into one shared "osc" pane)
-  const buildRsiPane = (chart: IChartApi, rows: Bar[], closes: number[], pane: number): ISeriesApi<any>[] => {
-    const p = P("rsi"); const rS = chart.addSeries(LineSeries, { color: p.col, lineWidth: p.width as any, lastValueVisible: true, title: axTitle("RSI") }, pane);
+  // `id` is the instance id: the primary "rsi" or an additional "rsi__<token>" with its own params/pane.
+  const buildRsiPane = (chart: IChartApi, rows: Bar[], closes: number[], pane: number, id = "rsi"): ISeriesApi<any>[] => {
+    const p = P(id); const rS = chart.addSeries(LineSeries, { color: p.col, lineWidth: p.width as any, lastValueVisible: true, title: axTitle(id === "rsi" ? "RSI" : `RSI ${p.length}`) }, pane);
     rS.setData(toLine(rows, rsi(closes, p.length)));
     if (p.showLevels) { try { rS.createPriceLine({ price: p.obLevel, color: "rgba(214,218,227,.25)", lineWidth: 1, lineStyle: 2, axisLabelVisible: false } as any); rS.createPriceLine({ price: p.osLevel, color: "rgba(214,218,227,.25)", lineWidth: 1, lineStyle: 2, axisLabelVisible: false } as any); } catch {} }
     return [rS];
@@ -1942,6 +1984,9 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
     // Never draw until this symbol's bars are on the canvas (see chartDataSymRef) — the
     // Effect-2 build path re-runs this builder right after setData, so nothing is lost.
     if (chartDataSymRef.current !== symbolRef.current) return [];
+    // An end-of-day snapshot dated after the replay date did not exist yet (Effect 4 rebuilds
+    // this on every replay toggle, so the lines return on the way back to live).
+    if (!eodSnapshotKnown(st.res.newestDate ?? null, replayIdxRef.current)) return [];
     const styles = optLevelRenderStyles();
     for (const lv of st.res.levels) {
       const s = styles[lv.key];
@@ -2087,7 +2132,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
   // Which sub-pane keys are active given the current indicator set (canonical order).
   const activeSubpanes = (): string[] => {
     const inds = indicatorsRef.current; const out: string[] = [];
-    if (inds.has("rsi")) out.push("rsi");
+    out.push(...renderableStudyIds("rsi", inds));   // every RSI instance gets its own pane (E06)
     if (inds.has("stochrsi")) out.push("stochrsi");
     if (inds.has("macd")) out.push("macd");
     if (inds.has("rsistack")) out.push("rsistack");
@@ -2239,6 +2284,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
       let note: string;
       if (!optLevelsEligible(symbolRef.current)) note = tPlain("olUsOnly");
       else if (!fresh || fresh.status === "loading") note = tPlain("olLoading");
+      else if (fresh.status === "ok" && fresh.res && !eodSnapshotKnown(fresh.res.newestDate ?? null, replayIdxRef.current)) note = tPlain("olReplay");
       else if (fresh.status === "ok" && fresh.res) {
         const d = fresh.res.asofDate;
         const age = d ? sessionsOldEt(d) : 0;
@@ -2294,7 +2340,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
     for (let ci = 0; ci < cmp.length && ci < 4; ci++) { const cs = cmp[ci]; if (!cs || cs === symbol) continue; const cfg = cfgM[cs]; overlayEntries.push({ key: cmpKey(cs), label: cs, kind: "overlay", isPine: false, isCompare: true, color: cfg?.color || CMP_PALETTE[ci % CMP_PALETTE.length] }); }
     const metas: { key: string; removeKey?: string; isPrice: boolean; entries: Omit<LegendEntry, "hidden">[]; pane: IPaneApi<any> }[] = [];
     metas.push({ key: "__price__", isPrice: true, entries: overlayEntries, pane: priceS.getPane() });
-    for (const key of [...SUBPANE_ORDER, ...paneSuiteKeys()]) {
+    for (const key of [...expandStudyOrder(SUBPANE_ORDER, indSeriesRef.current.keys()), ...paneSuiteKeys()]) {
       const arr = indSeriesRef.current.get(key); if (!arr || !arr.length) continue;
       const sdefPane = getSuiteDef(key);
       const entries: Omit<LegendEntry, "hidden">[] = sdefPane
@@ -2457,7 +2503,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
     let pane = 1;
     for (const key of activeSubpanes()) {
       let series: ISeriesApi<any>[] = [];
-      if (key === "rsi") series = buildRsiPane(chart, rows, closes, pane);
+      if (studyTypeOf(key) === "rsi") series = buildRsiPane(chart, rows, closes, pane, key);
       else if (key === "stochrsi") series = buildStochRsiPane(chart, rows, closes, pane);
       else if (key === "macd") series = buildMacd(chart, rows, closes, pane);
       else if (key === "rsistack") series = buildRsiStack(chart, rows, pane);
@@ -2514,8 +2560,8 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
       const sArr = SB.get("vol"); if (sArr?.[0]) sArr[0].setData(volData(rows));
     }
     // sub-pane oscillators
-    if (SB.has("rsi")) {
-      const sArr = SB.get("rsi")!; const p = P("rsi");
+    for (const id of renderableStudyIds("rsi", SB.keys())) {   // each RSI instance with its own params
+      const sArr = SB.get(id)!; const p = P(id);
       if (sArr[0]) sArr[0].setData(toLine(rows, rsi(closes, p.length)));
     }
     if (SB.has("stochrsi")) {
@@ -2556,9 +2602,9 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
     if (inds.has("vwap")) {
       let cum = 0, cumv = 0; rows.forEach((r) => { const tp = (r.h + r.l + r.c) / 3; cum += tp * r.v; cumv += r.v; slot(r.time)["vwap"] = cumv ? cum / cumv : null; });
     }
-    if (inds.has("rsi")) {
-      const p = P("rsi"); const rsiVals = rsi(closes, p.length);
-      rows.forEach((r, i) => { slot(r.time)["rsi"] = rsiVals[i] ?? null; });
+    for (const id of renderableStudyIds("rsi", inds)) {   // one column per RSI instance, keyed by its id
+      const p = P(id); const rsiVals = rsi(closes, p.length);
+      rows.forEach((r, i) => { slot(r.time)[id] = rsiVals[i] ?? null; });
     }
     if (inds.has("stochrsi")) {
       const p = P("stochrsi"); const sr = cmStoch(rows.map(r => r.h), rows.map(r => r.l), closes, p.length, p.smoothK, p.smoothD);
@@ -2573,6 +2619,16 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
     visualSourceRef.current = { symbol: symbolRef.current, timeframe: timeframeRef.current };
     // The accepted-data writer owns the numeric projection and its exact resampled/replay bar basis.
     refreshVisualContext(rows);
+  };
+  // Re-project the numeric readout (Chart Table / CSV / visual intelligence) after the indicator SET
+  // or its params change, so an added study (or a new instance of one, E06) gets its column at once
+  // instead of on the next data load / live bar. Only when the accepted-data writer already owns
+  // THIS symbol + timeframe's bars, so a toggle mid-switch never stamps another generation's bars.
+  const refreshIndDataMap = () => {
+    const source = visualSourceRef.current;
+    if (!source || source.symbol !== symbolRef.current || source.timeframe !== timeframeRef.current) return;
+    if (chartDataSymRef.current !== symbolRef.current || !barsRef.current.length) return;
+    buildIndDataMap(barsRef.current, closesRef.current);
   };
 
   // Rebuild ONLY the compare overlays onto `rows` (used by data + replay effects).
@@ -2699,9 +2755,14 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
     const snap = (ts: string, type: string): SigMark | null => { let bar = byTime.get(ts); if (!bar && barOf) { const key = barOf.get(ts); if (key) bar = byTime.get(key); } if (!bar && !barOf) { const i = nearIdx(ts); if (i >= 0) bar = rows[i]; } if (!bar) return null; return { t: bar.time as string, type, price: type === "SELL" || type === "CUT" ? bar.h : bar.l }; };
     const sigs = slice?.indicator?.signals;
     const marks: SigMark[] = [];
+    // Under Replay a mark must also have been OBSERVABLE by the replay date, and a RETRO projection
+    // names a rule (RETRO_RULE_DATE) that did not exist before its own date (lib/replayContract.ts).
+    const replaying = replayIdxRef.current != null;
     if (Array.isArray(sigs) && sigs.length) {
       for (const s of sigs) {
-        if (typeof s?.ts !== "string" || typeof s?.type !== "string" || s.ts > lastSession) continue;
+        if (typeof s?.type !== "string") continue;
+        const admit = replaySignalAdmission(s, lastSession, replaying);
+        if (!admit.show) continue;
         const m = snap(s.ts, s.type); if (!m) continue;
         m.quality = s.quality; m.tier = s.tier; m.reason = s.quality_reason;
         m.scored = s.scored; m.subtype = s.subtype ?? null;
@@ -2715,7 +2776,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
         m.overrideCandidate = isOverrideCandidate(s);
         m.overrideTake = isWaivedEntry(s);
         m.reclaimWaived = isReclaimOverrideTake(s);
-        m.retro = isRetroOverride(s);
+        m.retro = admit.retro;
         if (m.overrideCandidate || m.overrideTake) {
           m.overrideGroup = s.override_ctx?.name ?? s.override_ctx?.group_id ?? null;
           m.overrideDd = typeof s.override_ctx?.peer_dd === "number" ? s.override_ctx.peer_dd : null;
@@ -2724,7 +2785,13 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
         if (m.retro) { m.overrideGroup = s.retro_ctx?.name ?? s.retro_ctx?.group_id ?? null; m.retroCtx = s.retro_ctx ?? null; }
         marks.push(m);
       }
-    } else {
+    } else if (!sliceUnsettled()) {
+      // Only a slice that ANSWERED without signals reaches the fallback. A slice still in flight or
+      // one that failed says nothing about this symbol's signals: painting unscored marks then
+      // swapping them for the scored stream would show signals the engine never issued.
+      // The client-Pine fallback runs on the WHOLE daily history and is cut at the last session.
+      // That is lookahead-free under Replay only because its marks are prefix-stable — what it
+      // marks on or before a date never depends on later bars (lib/__tests__/replayLookahead.test.ts).
       const daily = dailyBarsRef.current.length ? dailyBarsRef.current : rows;
       marks.push(...oracleSignals(daily)
         .filter((s) => s.ts <= lastSession)
@@ -2735,18 +2802,19 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
     // Prophet board/reversal admissions are a distinct, append-only source receipt. They
     // share the slice for delivery efficiency, but never enter indicator.signals and never
     // become Oracle BUYs. Place them at their recorded entry when available, else the bar low.
+    // Under Replay the entry and the marked-to-market return wait for the sessions that produced
+    // them (replayReceiptAdmission) — the ledger prices every receipt through its own as-of date.
     const opps = slice?.opportunities?.events;
     if (Array.isArray(opps)) {
       for (const o of opps) {
-        const ts = typeof o?.surfaced_at === "string" ? o.surfaced_at
-          : typeof o?.entry_date === "string" ? o.entry_date : null;
-        if (!ts || ts > lastSession) continue;
-        const m = snap(ts, "PROPHET"); if (!m) continue;
-        if (typeof o.entry_price === "number" && Number.isFinite(o.entry_price)) m.price = o.entry_price;
+        const adm = replayReceiptAdmission(o, lastSession, replaying);
+        if (!adm.show || !adm.ts) continue;
+        const m = snap(adm.ts, "PROPHET"); if (!m) continue;
+        if (adm.entryPrice != null) m.price = adm.entryPrice;
         m.source = String(o.system || "prophet");
         m.definition = typeof o.definition === "string" ? o.definition : null;
         m.rank = typeof o.rank === "number" ? o.rank : null;
-        m.returnPct = typeof o.return_pct === "number" ? o.return_pct : null;
+        m.returnPct = adm.returnPct;
         m.authority = typeof o.authority === "string" ? o.authority : "candidate";
         marks.push(m);
       }
@@ -2772,12 +2840,16 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
     // resolves through the grid, and the calendar units binary-search the precomputed epoch array
     // (replay re-resolves per tick; the old linear scan cost ~100ms/step here).
     const snapT = (iso: string) => { if (tset.has(iso)) return iso; if (barOf) { const k = barOf.get(iso); return k && tset.has(k) ? k : null; } const i = nearIdx(iso); return i >= 0 ? (times[i] as string) : null; };
+    // Under Replay a dot waits for the close of the 3D bar it is dated by, and a warning for its
+    // known_ts when it ships one (lib/replayContract.ts).
+    const replaying = replayIdxRef.current != null;
+    const sessions = replaying ? (dailyBarsRef.current.length ? dailyBarsRef.current : rows).map((r) => r.time) : [];
     const dots = ((slice?.indicator?.early_dots || []) as string[])
-      .filter((ts) => ts <= lastSession)
+      .filter((ts) => replayEarlyDotAdmission(ts, sessions, lastSession, replaying))
       .map((ts) => ({ t: snapT(ts) as string | null }))
       .filter((m) => m.t) as { t: string }[];
     const warns = ((slice?.indicator?.warnings || []) as { ts: string; kind: string }[])
-      .filter((w) => w?.ts <= lastSession)
+      .filter((w) => replayWarningAdmission(w, lastSession, replaying))
       .map((w) => ({ t: snapT(w.ts) as string | null, kind: w.kind }))
       .filter((m) => m.t) as { t: string; kind: string }[];
     return { dots, warns };
@@ -2838,7 +2910,8 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
             ? `${name} · ${currentSymbol}`
             : name;
         const identity = [title, timeframeRef.current, instrumentMarketRef.current].filter(Boolean).map(escH).join(" · ");
-        const basis = liveQuoteRef.current?.basis;
+        // The dot names the quote feed. A replayed chart takes no quote, so it claims no feed.
+        const basis = replayIdxRef.current == null ? liveQuoteRef.current?.basis : undefined;
         identityHtml += `<b class="status-symbol-name">${identity}</b><i class="status-market-dot ${basis === "LIVE" ? "is-live" : basis === "DELAYED_15M" ? "is-delayed" : ""}"></i>`;
       }
       if (identityHtml) html += `<span class="status-identity">${identityHtml}</span>`;
@@ -2851,7 +2924,10 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
       if (showBarChange) valuesHtml += `<b class="status-change ${u ? "up" : "down"}">${u ? "+" : ""}${f(ch)} (${u ? "+" : ""}${cp.toFixed(2)}%)</b>`;
       if (showVolumeRef.current) valuesHtml += `<span class="status-vol"><span class="mut">Vol</span><b>${last.v.toLocaleString("en-US", { notation: "compact", maximumFractionDigits: 2 })}</b></span>`;
       if (showLastDayChangeRef.current) {
-        const dayChange = liveQuoteRef.current?.prevSessionChg ?? liveQuoteRef.current?.chg;
+        // A replayed chart reports its own last session's move; the quote's is today's.
+        const dayChange = replayIdxRef.current == null
+          ? liveQuoteRef.current?.prevSessionChg ?? liveQuoteRef.current?.chg
+          : isIntradayRef.current ? null : replayDayChangePct(dailyBarsRef.current.length ? dailyBarsRef.current : rows, lastSessionOf(rows));
         if (dayChange != null && Number.isFinite(dayChange)) {
           valuesHtml += `<span class="status-day"><span class="mut">Day</span><b class="${dayChange >= 0 ? "up" : "down"}">${dayChange >= 0 ? "+" : ""}${dayChange.toFixed(2)}%</b></span>`;
         }
@@ -2868,8 +2944,11 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
       // Chip verdict = the scored lane's anchor: signalVerdict.anchorSignal — the SAME helper the
       // rail card (oracleVerdict) runs, so chip and panel can't contradict. regime_blocked markers
       // are vetoed displays and never anchor (contracts.py).
-      // Bounded by the last visible bar's DATE so replay (and stale bar caches) can't future-leak a
-      // verdict the on-chart marks don't show; intraday bars carry epoch times → convert to the day.
+      // Live: bounded by the last visible bar's DATE so a stale bar cache can't future-leak a
+      // verdict; intraday bars carry epoch times → convert to the day. Under Replay the chip admits
+      // exactly the signals the markers may show, on the markers' own horizon — the last SESSION,
+      // not the last bar key — and on the intraday clock only signals whose session had closed by
+      // the cutoff (lib/replayContract.ts replayChipAnchor).
       // Client-Pine fallback (no slice signals): the latest computed mark stands in, as before.
       const sigs = slice?.indicator?.signals;
       const lastT = rows[rows.length - 1]?.time;
@@ -2878,7 +2957,8 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
       let vBasis: string | undefined;
       let vQuality: string | undefined;
       if (Array.isArray(sigs) && sigs.length) {
-        const { anchor } = anchorSignal(sigs, lastDate);
+        const replay = replayIdxRef.current;
+        const { anchor } = replay == null ? anchorSignal(sigs, lastDate) : replayChipAnchor(sigs, rows[rows.length - 1], replay);
         if (anchor) { v = String(anchor.type).toUpperCase(); vBasis = sliceSignalBasis(anchor); vQuality = anchor.quality; }
       } else {
         const sm = sigMarksRef.current.filter((m) => m.type !== "PROPHET");
@@ -2903,14 +2983,19 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
           : isStopSweepReclaim({ type: v, quality: vQuality })
             ? verdictLabel("RECLAIM", chipLang)
             : verdictLabel(v, chipLang);
-      verdictRef.current.textContent = `${tPlain("goldenOracleLbl")} · ${vLabel}`;
-      verdictRef.current.style.color = chipColor;
+      // An unsettled slice is stated as such, in muted ink — never as "—" (no signal) or a verdict.
+      // (Inline EN/ZH like the chip's other words: lib/i18n.tsx is pinned by several evidence locks.)
+      const sliceNote = sliceStateRef.current === "pending" ? (chipLang === "zh" ? "信号加载中" : "Signals loading")
+        : sliceStateRef.current === "unavailable" ? (chipLang === "zh" ? "信号暂不可用" : "Signals unavailable") : null;
+      const inkColor = sliceNote ? t.mut : chipColor;
+      verdictRef.current.textContent = `${tPlain("goldenOracleLbl")} · ${sliceNote ?? vLabel}`;
+      verdictRef.current.style.color = inkColor;
       const w = verdictRef.current.parentElement as HTMLElement;
       // Token-derived so the chip tracks the shell palette (byte-identical output on web, where
       // --buy/--sell still resolve to the locked v5 hexes).
       if (w) {
-        w.style.background = `color-mix(in srgb, ${chipColor} 12%, transparent)`;
-        w.style.borderColor = `color-mix(in srgb, ${chipColor} 30%, transparent)`;
+        w.style.background = `color-mix(in srgb, ${inkColor} 12%, transparent)`;
+        w.style.borderColor = `color-mix(in srgb, ${inkColor} 30%, transparent)`;
       }
     }
   };
@@ -2933,9 +3018,10 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
   const clearChartData = () => {
     try { episodeMarkersRef.current?.detach(); } catch {}
     episodeMarkersRef.current = null;
-    barsRef.current = []; fullBarsRef.current = []; dailyBarsRef.current = []; closesRef.current = [];
+    barsRef.current = []; fullBarsRef.current = []; fullBarsTfRef.current = ""; dailyBarsRef.current = []; closesRef.current = [];
     barIdxRef.current = { src: null, map: new Map() };
     sliceRef.current = null; sigMarksRef.current = []; earlyDotsRef.current = []; warnMarksRef.current = [];
+    setSliceState("none", "");
     chartDataSymRef.current = "";
     clearExtendedPriceLine();
     clearAllIndicators();
@@ -2967,7 +3053,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
       liveWrap.style.removeProperty("--mm-live-color");
     }
     rebuildPaneMeta();             // the legend must not advertise studies that are no longer drawn
-    if (onMeta) onMeta({ total: 0 });
+    if (onMeta) onMeta({ symbol: symbolRef.current, timeframe: timeframeRef.current, axis: replayAxisOf([], timeframeRef.current) });
     renderTagRef.current?.();      // no bars → the last-price badge hides itself
     renderSignalsRef.current();    // drop the previous symbol's markers / gap zones
     renderRef.current();
@@ -3055,7 +3141,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
     barIdxRef.current = { src: null, map: new Map() };
     const closes = closesRef.current;
     // 0. a grown bar set moves the future-anchor gutter and the parent's row count with it
-    if (appended) { applyFutureAxis(); onMeta?.({ total: rows.length }); }
+    if (appended) { applyFutureAxis(); onMeta?.({ symbol: symbolRef.current, timeframe: timeframeRef.current, axis: replayAxisOf(rows, timeframeRef.current) }); }
     // 1. series that own a cached derivation of the bars
     updateAllIndicators(rows, closes);
     refreshLiveStudies(rows, closes);
@@ -3227,7 +3313,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
   };
 
   // Apply the default view (recent ~240 window in normal mode; fit the slice in replay).
-  const applyView = (rows: Bar[], replay: number | null) => {
+  const applyView = (rows: Bar[], replay: ReplayCutoff | null) => {
     const chart = chartRef.current; if (!chart) return;
     let plotWidth: number | undefined;
     try { plotWidth = chart.timeScale().width(); } catch {}
@@ -4289,7 +4375,8 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
         && chartDataSymRef.current === symbolRef.current
         && st?.sym === symbolRef.current
         && st.status === "ok"
-        && !!st.res;
+        && !!st.res
+        && eodSnapshotKnown(st.res.newestDate ?? null, replayIdxRef.current);
       const levelStyles = optionBadgesVisible ? optLevelRenderStyles() : null;
       if (optionBadgesVisible && levelStyles) {
         for (const level of st!.res!.levels) {
@@ -4616,20 +4703,28 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
     // marker, and their p values encode coordinateToPrice(ROOT_Y). Convert them
     // once, at the first measured pane layout, while preserving their current
     // on-screen position. Persisting the marker prevents repeat conversion.
+    const paneDrawingReadiness = watchPaneDrawingReadiness(() => epochRef.current, () => {
+      if (!dead) { measureRef.current(); renderTagRef.current?.(); }
+    });
     const migrateLegacyPaneDrawings = () => {
       let changed = false;
+      const pendingSeries = new Set<ISeriesApi<any>>();
       const next = drawRef.current.map((drawing) => {
         const paneKey = drawingPaneKey(drawing);
         if (!paneKey || drawing.meta?.paneCoordSpace === PANE_VALUE_SPACE) return drawing;
         const pane = paneLayoutFor(paneKey);
         const series = seriesForPane(paneKey);
-        if (!pane || !series || !(pane.height > 0)) return drawing;
+        if (!series) return drawing;
+        const deferred = () => { pendingSeries.add(series); return drawing; };
+        // A measured pane can still have an empty price range: LWC returns
+        // finite zero coordinates then. Never persist that lossy conversion.
+        if (!pane || !(pane.height > 0) || !paneDrawingScaleReady(series)) return deferred();
         const migrated: Drawing["points"] = [];
         for (const point of drawing.points) {
           const legacyRootY = series.priceToCoordinate(point.p) as number | null;
-          if (legacyRootY == null || !Number.isFinite(legacyRootY)) return drawing;
+          if (legacyRootY == null || !Number.isFinite(legacyRootY)) return deferred();
           const corrected = series.coordinateToPrice(legacyRootY - pane.top) as number | null;
-          if (corrected == null || !Number.isFinite(corrected)) return drawing;
+          if (corrected == null || !Number.isFinite(corrected)) return deferred();
           migrated.push({ ...point, p: corrected });
         }
         changed = true;
@@ -4639,6 +4734,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
           meta: { ...(drawing.meta ?? {}), paneCoordSpace: PANE_VALUE_SPACE },
         };
       });
+      paneDrawingReadiness.sync(pendingSeries);
       if (!changed) return false;
       drawRef.current = next;
       onChangeRef.current?.([...next]);
@@ -4735,29 +4831,26 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
           const daily = dailyBarsRef.current.length ? dailyBarsRef.current : cur;
           // current bars may be daily (YYYY-MM-DD strings) or intraday (numeric epoch secs) → a calendar date
           const dstr = (t: string | number) => (typeof t === "string" ? t : new Date((t as number) * 1000).toISOString().slice(0, 10));
-          // PERF: memoize the O(daily²) gap+fill detection AND the dayToBar map. These are pure functions
-          // of (daily bars, cur bars, thr) — NONE depend on the crosshair/range — so recompute only when
-          // the underlying bar array identity (or the size threshold) changes. `cur`/`daily` reassign to a
-          // fresh array on every data/replay/splice, so array-identity is a sound cache key.
-          // Key on daily identity + thr; the dayToBar map is derived from `cur`, which reassigns in
-          // lockstep with `daily` on every data change, so caching them together is safe.
+          // PERF: memoize the O(daily²) gap+fill detection (lib/gapZones.ts) on the daily source identity
+          // + thr, and the date→bar map on the CHART's bar array identity. Neither depends on the
+          // crosshair/range. They are cached SEPARATELY because Replay re-slices `cur` while the daily
+          // source stays whole: a map built from the live bars projected future fill dates onto the
+          // whitespace right of a replayed chart.
           const cache = gapZonesRef.current;
-          if (cache.src !== daily || cache.thr !== thr) {
+          if (cache.src !== daily || cache.thr !== thr) gapZonesRef.current = { ...cache, src: daily, thr, gaps: detectGapZones(daily, thr) };
+          if (gapZonesRef.current.barsSrc !== cur) {
             const dayToBar = new Map<string, Bar["time"]>();
             for (const b of cur) { const d = dstr(b.time); if (!dayToBar.has(d)) dayToBar.set(d, b.time); }
-            const gaps: GapZone[] = [];
-            for (let i = 1; i < daily.length; i++) {
-              const b = daily[i], pb = daily[i - 1];
-              let g: GapZone | null = null;
-              if (pb.h > 0 && b.l > pb.h && (b.l - pb.h) / pb.h >= thr) g = { date: dstr(b.time), type: "up", lo: pb.h, hi: b.l, fill: null };
-              else if (pb.l > 0 && b.h < pb.l && (pb.l - b.h) / pb.l >= thr) g = { date: dstr(b.time), type: "down", lo: b.h, hi: pb.l, fill: null };
-              if (!g) continue;
-              for (let j = i + 1; j < daily.length; j++) { if (g.type === "up" ? daily[j].l <= g.lo : daily[j].h >= g.hi) { g.fill = dstr(daily[j].time); break; } }
-              gaps.push(g);
-            }
-            gapZonesRef.current = { src: daily, thr, map: dayToBar, gaps };
+            gapZonesRef.current = { ...gapZonesRef.current, barsSrc: cur, map: dayToBar };
           }
-          const { map: dayToBar, gaps } = gapZonesRef.current;
+          const { map: dayToBar } = gapZonesRef.current;
+          // Under Replay only the daily rows knowable at the cutoff exist: a gap that forms later is not
+          // drawn, and one filled later is still OPEN (solid, reaching the last visible bar). The daily
+          // source is separate from the chart only on daily-derived timeframes, where the cutoff is on
+          // the session clock; on intraday `daily` IS the already-sliced chart.
+          const ri = replayIdxRef.current;
+          const known = ri && daily !== cur ? replayVisibleCount(daily, "D", ri) : daily.length;
+          const gaps = gapZonesAsOf(gapZonesRef.current.gaps, known);
           const lastX = cur.length ? xOf(cur[cur.length - 1].time) : null;
           // unfilled zones are the actionable ones → always drawn; filled ones are context → recent-capped.
           const shown = [...(hideFilled ? [] : gaps.filter((g) => g.fill).slice(-maxGaps)), ...gaps.filter((g) => !g.fill)];
@@ -8383,6 +8476,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
     // ── mount teardown (base line-416 logic + the new refs) ──
     return () => {
       dead = true; if (rafId != null) cancelAnimationFrame(rafId); if (measRaf != null) cancelAnimationFrame(measRaf);
+      paneDrawingReadiness.dispose();
       try { chart.unsubscribeCrosshairMove(onTagCrosshair); } catch {}
       try { chart.unsubscribeCrosshairMove(onVisualCrosshair); } catch {}
       if (drawRaf != null) cancelAnimationFrame(drawRaf); if (resizeRaf != null) cancelAnimationFrame(resizeRaf);
@@ -8514,12 +8608,13 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
     builtIndicatorRef.current = null;
     let cancelled = false;
     let generationReady: TerminalVisualReadyAnnouncement | null = null;
+    const releaseVisualOwners = () => {
+      visualSourceRef.current = null; visualSeriesRef.current = null; indDataMapRef.current.clear();
+      visualPanelRef.current?.reset("empty");
+      onIndRowsAtRef.current?.(() => ({}), { symbol, timeframe: effectiveTimeframe, bars: [] });
+    };
     const announceVisualReady = (state: "data" | "empty") => {
-      if (state === "empty") {
-        visualSourceRef.current = null; visualSeriesRef.current = null; indDataMapRef.current.clear();
-        visualPanelRef.current?.reset("empty");
-        onIndRowsAtRef.current?.(() => ({}), { symbol, timeframe: effectiveTimeframe, bars: [] });
-      }
+      if (state === "empty") releaseVisualOwners();
       generationReady?.cancel();
       generationReady = announceTerminalVisualReady(symbol, state, {
         timeframe: effectiveTimeframe,
@@ -8555,6 +8650,21 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
       });
       visualReadyRef.current = generationReady;
     };
+    // ── optional slice (daily, non-composite): adopted by this generation whenever it settles ──
+    let sliceOutcome: CacheOutcome | null = null;
+    let sliceOwned = false;    // this generation's bars own sliceRef (set once its OHLC painted)
+    let barsPainted = false;   // the tail resolved marks; a later slice must re-resolve them itself
+    const adoptSlice = (outcome: CacheOutcome) => {
+      sliceRef.current = outcome.status === "data" ? outcome.data : null;
+      setSliceState(outcome.status, symbol);
+      if (!barsPainted) return;   // the tail of this generation reads sliceRef itself
+      const rows = barsRef.current;
+      if (!rows.length) return;
+      sigMarksRef.current = resolveSigMarks(sliceRef.current, rows);
+      { const sc = resolveSideChannels(sliceRef.current, rows); earlyDotsRef.current = sc.dots; warnMarksRef.current = sc.warns; }
+      paintStatus(rows, sliceRef.current);
+      renderSignalsRef.current();
+    };
     const intraday = isIntradayTf(effectiveTimeframe);
     // crossing the intraday↔daily boundary changes the TIME TYPE of every series (numeric epoch vs
     // 'YYYY-MM-DD') — in-place setData updates across it are unsound (LWC one-time-type law) and the
@@ -8578,6 +8688,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
         } catch (e: any) { feedErr = e?.message || "network error"; }
         if (cancelled || epochRef.current !== epoch) return;
         sliceRef.current = null;                 // no daily slice on intraday → no sig marks
+        setSliceState("none", symbol);
         sessionAnchorRef.current = null; ohlcSrcRef.current = null;   // daily-multiple grid does not apply here
         sigMarksRef.current = [];
         earlyDotsRef.current = []; warnMarksRef.current = [];   // GC v2 side channels: daily-only too
@@ -8599,10 +8710,10 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
         chart.applyOptions({ timeScale: { timeVisible: true, secondsVisible: isSecondTf(effectiveTimeframe) } });
         // epoch-second Bar6 [t,o,h,l,c,v] → Bar with a NUMERIC time (lightweight-charts accepts UTCTimestamp)
         const rows: Bar[] = bars.map((b: any[]) => ({ time: b[0] as any, o: b[1], h: b[2], l: b[3], c: b[4], v: b[5] }));
-        if (onMeta) onMeta({ total: rows.length });
-        fullBarsRef.current = rows;
+        if (onMeta) onMeta({ symbol, timeframe: effectiveTimeframe, axis: replayAxisOf(rows, effectiveTimeframe) });
+        fullBarsRef.current = rows; fullBarsTfRef.current = effectiveTimeframe;
         const ri = replayIdxRef.current;
-        const onChart = ri != null ? rows.slice(0, Math.max(20, ri + 1)) : rows;
+        const onChart = ri != null ? rows.slice(0, replayVisibleCount(rows, effectiveTimeframe, ri)) : rows;
         barsRef.current = onChart;
         const closes = onChart.map((r) => r.c);
         closesRef.current = closes;
@@ -8698,16 +8809,38 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
         }
         daily = summed;
         sliceRef.current = null;
+        setSliceState("none", symbol);
         // A basket has no published session calendar of its own — the legs' anchors do not
         // combine into one. It falls back to the documented feed-phased default, which is also
         // what the signal engine would do, and no Oracle signal is claimed on a composite.
         sessionAnchorRef.current = null;
         ohlcSrcRef.current = summed;
       } else {
-        const { ohlc, slice } = await getSliceAndOhlc(symbol);
+        // The bars are REQUIRED, the slice OPTIONAL: both requests start together (and reuse the
+        // route preload / any shell read in flight), but only the OHLC gates this paint. The slice
+        // lands whenever it lands — before the bars, during the tail, or after ready — and is
+        // adopted only by THIS generation (a superseded symbol's late slice changes nothing).
+        const reads = getSliceAndOhlc(symbol);
+        reads.slice
+          .catch((): CacheOutcome => ({ status: "unavailable", reason: "network" }))
+          .then((outcome) => {
+            if (cancelled || epochRef.current !== epoch) return;
+            sliceOutcome = outcome;
+            if (sliceOwned) adoptSlice(outcome);
+          });
+        const ohlcRead = await reads.ohlc;
         cpMark(`ohlc-fetch-done[${symbol}]`);
         if (cancelled || epochRef.current !== epoch) return;
-        sliceRef.current = slice;   // authoritative slice for replay sig-mark re-resolution (Effect 4)
+        if (ohlcRead.status === "unavailable") {
+          // A failed read is not an empty history (failure-state law): say the bars could not be
+          // loaded, and announce nothing — no ready edge, data or empty, was earned.
+          clearChartData();
+          releaseVisualOwners();
+          if (statusRef.current) statusRef.current.textContent = "Chart data unavailable.";
+          showEmptyRef.current(`Could not load ${symbol} price history. Try again shortly.`, null);
+          return;
+        }
+        const ohlc = ohlcRead.status === "data" ? ohlcRead.data : null;
         if (!ohlc?.bars?.length) {
           clearChartData();
           if (statusRef.current) statusRef.current.textContent = "No data for this symbol.";
@@ -8723,18 +8856,24 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
         sessionAnchorRef.current = parseSessionAnchor(ohlc.session_anchor);
         // …and the document's own bars array is the aggregation memo's generation token.
         ohlcSrcRef.current = ohlc.bars;
+        // From here this generation owns the slice refs (Effect 4's replay re-resolves from them).
+        sliceOwned = true;
+        if (sliceOutcome) adoptSlice(sliceOutcome);
+        else { sliceRef.current = null; setSliceState("pending", symbol); }
       }
       dailyBarsRef.current = daily;         // raw daily source — the R11 splice operates on THIS
       // ── PERF-FIX (b): use cached resample; same-symbol TF switches skip the O(N) bucketing pass ──
       let rows: Bar[] = resampleTfCached(daily, effectiveTimeframe, symbol,
         ohlcSrcRef.current, sessionAnchorRef.current);
-      if (onMeta) onMeta({ total: rows.length });
-      fullBarsRef.current = rows;
-      // Read the LIVE replayIdx (not the effect's closure): if the user started replay while this
+      if (onMeta) onMeta({ symbol, timeframe: effectiveTimeframe, axis: replayAxisOf(rows, effectiveTimeframe) });
+      fullBarsRef.current = rows; fullBarsTfRef.current = effectiveTimeframe;
+      // Read the LIVE replay cutoff (not the effect's closure): if the user started replay while this
       // fetch was in flight, Effect 4 bailed (fullBarsRef was empty) and would NOT re-slice — so we
-      // must honor the current replayIdx here or the chart stays stuck on the full series.
+      // must honor the current cutoff here or the chart stays stuck on the full series. The cutoff is
+      // an INSTANT: a timeframe change re-slices this timeframe's bars at the same moment, never at
+      // the previous timeframe's bar number, and never pads past it.
       const ri = replayIdxRef.current;
-      const onChart = ri != null ? rows.slice(0, Math.max(20, ri + 1)) : rows;
+      const onChart = ri != null ? rows.slice(0, replayVisibleCount(rows, effectiveTimeframe, ri)) : rows;
       barsRef.current = onChart;
       const closes = onChart.map((r) => r.c);
       closesRef.current = closes;
@@ -8823,6 +8962,8 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
 
       // ── signal marks, status, verdict, view ──
       // sliceRef.current is null for composites (no Oracle signal) — functions guard on null slice.
+      // A slice landing after this point re-resolves through adoptSlice.
+      barsPainted = true;
       sigMarksRef.current = resolveSigMarks(sliceRef.current, onChart);
       { const sc = resolveSideChannels(sliceRef.current, onChart); earlyDotsRef.current = sc.dots; warnMarksRef.current = sc.warns; }
       paintStatus(onChart, sliceRef.current);
@@ -8929,7 +9070,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
     const wantOverlays = new Set<string>(OVERLAY_KEYS.filter((k) => indicators.has(k)));
     const haveOverlays = new Set<string>(OVERLAY_KEYS.filter((k) => indSeriesRef.current.has(k) || indOverlayRef.current[k]));
     const wantSub = activeSubpanes();                                   // canonical-order sub-pane keys
-    const haveSub: string[] = [...SUBPANE_ORDER, ...paneSuiteKeys()].filter((k) => indSeriesRef.current.has(k)); // current sub-panes in canonical order
+    const haveSub: string[] = [...expandStudyOrder(SUBPANE_ORDER, indSeriesRef.current.keys()), ...paneSuiteKeys()].filter((k) => indSeriesRef.current.has(k)); // current sub-panes in canonical order
 
     // ── overlays: always incremental (all live in pane 0, no reindex risk) ──
     for (const k of haveOverlays) if (!wantOverlays.has(k)) {
@@ -8995,7 +9136,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
       for (const a of added) {
         const pane = nextFreePane();
         let series: ISeriesApi<any>[] = [];
-        if (a === "rsi") series = buildRsiPane(chart, rows, closes, pane);
+        if (studyTypeOf(a) === "rsi") series = buildRsiPane(chart, rows, closes, pane, a);
         else if (a === "stochrsi") series = buildStochRsiPane(chart, rows, closes, pane);
         else if (a === "macd") series = buildMacd(chart, rows, closes, pane);
         else if (a === "rsistack") series = buildRsiStack(chart, rows, pane);
@@ -9028,6 +9169,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
       }
     }
 
+    refreshIndDataMap();
     normalizeStretch();
     renderSignalsRef.current(); renderRef.current(); renderTagRef.current?.();
     builtIndicatorRef.current = { generation: epochRef.current, key: indKey };
@@ -9088,6 +9230,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
     const chart = chartRef.current; if (!chart || !barsRef.current.length) return;
     const saved = PRESERVE_VIEW_ON_INDICATOR_TOGGLE ? (() => { try { const r = chart.timeScale().getVisibleLogicalRange(); return r ? { from: r.from as number, to: r.to as number } : null; } catch { return null; } })() : null;
     rebuildIndicators();
+    refreshIndDataMap();
     normalizeStretch();
     renderSignalsRef.current(); renderRef.current(); renderTagRef.current?.();
     if (saved) { try { chart.timeScale().setVisibleLogicalRange(saved); } catch {} }
@@ -9321,12 +9464,12 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
   }, [hidden]); // eslint-disable-line
 
   // ────────────────────────────────────────────────────────────────────────────
-  // EFFECT 4 — replay [replayIdx]. Slice from fullBarsRef; recompute indicators+sigMarks on the slice.
+  // EFFECT 4 — replay [replayKey]. Slice from fullBarsRef at the cutoff instant; recompute indicators+sigMarks on the slice.
   // ────────────────────────────────────────────────────────────────────────────
   useEffect(() => {
     const chart = chartRef.current, priceS = priceSeriesRef.current; if (!chart || !priceS) return;
-    if (!fullBarsRef.current.length) return;   // no data yet — Effect 2 already honors replayIdx on first load
-    if (replayIdx == null) {
+    if (!fullBarsRef.current.length) return;   // no data yet — Effect 2 already honors the cutoff on first load
+    if (replayCutoff == null) {
       // exit replay → restore the FULL series (price + indicators + compare) + default view
       const full = fullBarsRef.current; barsRef.current = full; const closes = full.map((r) => r.c); closesRef.current = closes;
       precRef.current = closes.length && closes[closes.length - 1] < 10 ? 4 : 2;   // parity: prec from the visible last close
@@ -9341,7 +9484,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
       paintStatus(full, sliceRef.current);
       applyView(full, null);
     } else {
-      const rows = fullBarsRef.current.slice(0, Math.max(20, replayIdx + 1));
+      const rows = fullBarsRef.current.slice(0, replayVisibleCount(fullBarsRef.current, fullBarsTfRef.current || timeframeRef.current, replayCutoff));
       barsRef.current = rows;                          // replicate the base's snap-sees-visible-bars behavior
       const closes = rows.map((r) => r.c); closesRef.current = closes;
       precRef.current = closes.length && closes[closes.length - 1] < 10 ? 4 : 2;   // parity: prec from the visible last close
@@ -9361,13 +9504,14 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
     }
     normalizeStretch();
     renderSignalsRef.current(); renderRef.current();
+    renderTagRef.current?.();   // price-axis badges (incl. Options Levels) follow the replay date too
     // re-register sync so its close-by-time map matches the visible bar set
     reRegisterSync();
     // exiting replay returns to the live series → re-apply the splice (self-guards under replay/EOD/intraday)
     applyLiveSplice();
     applyExtendedPriceLine();
     // eslint-disable-next-line
-  }, [replayIdx]);
+  }, [replayKey]);
 
   // ────────────────────────────────────────────────────────────────────────────
   // EFFECT 7 — live-bar splice [liveQuote]. Daily-derived bars take the regular quote; intraday
@@ -9739,15 +9883,15 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
     if (!tool && creationPaletteRef.current) creationPaletteRef.current.style.display = "none";
   }, [tool, toolActivation]);
   useLayoutEffect(() => {
-    if (!drawingCreationDisabled && replayIdx == null) return;
+    if (!drawingCreationDisabled && replayKey == null) return;
     cancelPendingDrawingRef.current();
     cancelMediaToolRef.current(null);
     if (creationPaletteRef.current) creationPaletteRef.current.style.display = "none";
     // Replay is a read-only historical lens: its first committed frame must
     // retire any live selection so no inspector, handle, keyboard edit, or
     // direct-dispatched pointer event can mutate the document behind it.
-    if (replayIdx != null) clearDrawingSelectionRef.current();
-  }, [drawingCreationDisabled, replayIdx]);
+    if (replayKey != null) clearDrawingSelectionRef.current();
+  }, [drawingCreationDisabled, replayKey]);
   useEffect(() => { renderRef.current?.(); }, [drawings]);
 
   // ── unchanged: detection commands → append auto-drawings (or clear) ──
@@ -9795,7 +9939,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
       <div className="statusline">
         <span ref={statusRef} />
         <span className="mm" style={{ display: oracleVisible ? undefined : "none" }}><i style={{ background: "currentColor" }} /><span ref={verdictRef}>{t("goldenOracleLbl")}</span></span>
-        {replayIdx != null && <span className="mm" style={{ background: "rgba(232,179,57,.14)", borderColor: "rgba(232,179,57,.35)", color: "var(--signal)" }}><i style={{ background: "var(--signal)" }} />REPLAY</span>}
+        {replayCutoff != null && <span className="mm" style={{ background: "rgba(232,179,57,.14)", borderColor: "rgba(232,179,57,.35)", color: "var(--signal)" }}><i style={{ background: "var(--signal)" }} />REPLAY</span>}
         {/* GC v2: toggle the early-dots + arm/confirm warning overlay (side channels) */}
         {oracleVisible && <span className="mm" role="button" tabIndex={0} onClick={() => setShowDetail((v) => !v)}
           onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setShowDetail((v) => !v); } }}
@@ -9808,7 +9952,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
       <ChartTables tables={suiteTables} />
       <VisualIntelligencePanel ref={visualPanelRef} symbol={symbol} timeframe={timeframe}
         visible={isActive && !!onVisualSettings && !paneLayout.some((pane) => pane.maximized && !pane.isPrice)}
-        replay={replayIdx !== null} settings={visualSettings(chartSettings)}
+        replay={replayCutoff !== null} settings={visualSettings(chartSettings)}
         availableHeight={Math.max(160, (wrapElRef.current?.clientHeight ?? 480) - 90)}
         onSettings={(patch) => onVisualSettings?.(patch)}
         onInspectTime={inspectVisualTime}

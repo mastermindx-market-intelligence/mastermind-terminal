@@ -278,12 +278,13 @@ export const NEUTRAL_CHIP: React.CSSProperties = {
   whiteSpace: "nowrap",
 };
 
-/** Two-line honest empty body used inside every panel (title + why). */
-export function PanelEmpty({ title, why, minHeight }: { title: string; why: string; minHeight: number }) {
+/** Two-line honest empty body used inside every panel (title + why, plus an optional action). */
+export function PanelEmpty({ title, why, minHeight, action }: { title: string; why?: string; minHeight: number; action?: React.ReactNode }) {
   return (
     <div className="fin-empty" style={{ minHeight, flexDirection: "column", gap: 6 }}>
       <div className="fin-empty-title">{title}</div>
-      <div className="fin-empty-why">{why}</div>
+      {why && <div className="fin-empty-why">{why}</div>}
+      {action}
     </div>
   );
 }

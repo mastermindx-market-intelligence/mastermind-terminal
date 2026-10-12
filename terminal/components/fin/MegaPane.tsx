@@ -42,9 +42,11 @@ import TechLabPanel from "./TechLabPanel";
 import TranscriptDrawer from "./TranscriptDrawer";
 import TranscriptsPage from "./TranscriptsPage";
 import CompanyIntelligencePage from "./CompanyIntelligencePage";
+import FinComparePage from "./FinComparePage";
 import ResearchWorkspaceNav from "./ResearchWorkspaceNav";
 import { isTranscriptId } from "../../lib/transcripts";
 import type { TranscriptOpenTarget } from "../../lib/transcriptSearch";
+import { writeTranscriptCompareParams } from "../../lib/transcriptCompare";
 
 // The page ids live in the import-free leaf `./finPages` — an eager module that needs
 // FIN_PAGES as a runtime value (TerminalShell does) must import it from THERE, never from
@@ -69,6 +71,7 @@ const PAGE_LABELS: Record<FinPage, [string, string]> = {
   ownership: ["Ownership", "持仓"],
   insider: ["Insider", "内部交易"],
   lab: ["Lab", "实验室"],
+  compare: ["Compare", "对比"],
 };
 
 export interface MegaPaneProps {
@@ -133,6 +136,7 @@ export default function MegaPane({
     const url = new URL(window.location.href);
     url.searchParams.delete("pane");
     url.searchParams.delete("tx");
+    writeTranscriptCompareParams(url.searchParams, null);
     window.history.replaceState(window.history.state, "", url.toString());
     onClose();
   }, [onClose]);
@@ -225,6 +229,7 @@ export default function MegaPane({
     } else {
       setTxTarget(null);
       url.searchParams.delete("tx");
+      writeTranscriptCompareParams(url.searchParams, null);
       window.history.replaceState(window.history.state, "", url.toString());
     }
     initialTxHydration.current = true;
@@ -309,6 +314,9 @@ export default function MegaPane({
           {page === "ownership" && <OwnershipPage sym={sym} />}
           {page === "insider" && <InsiderPage sym={sym} bars={bars} zh={zh} />}
           {page === "lab" && <TechLabPanel sym={sym} intel={intel} zh={zh} />}
+          {page === "compare" && (
+            <FinComparePage key={sym} sym={sym} fund={fund} fundLoading={fundLoading} onOpenTx={openTranscript} />
+          )}
         </div>
       </div>
 

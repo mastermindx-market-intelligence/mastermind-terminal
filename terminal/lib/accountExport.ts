@@ -1,7 +1,7 @@
 // accountExport.ts — pure builder for the self-serve "download my data" artifact (B-F12-4).
 //
 // Terminal-owned tables in this file: watchlists, portfolio positions, saved_scripts, and
-// chart_layouts. It is deliberately NOT a whole-account export: chart drawings, alerts, chat
+// chart_layouts, drawings (export key chart_drawings) and alerts. It is deliberately NOT a whole-account export: chat
 // history, usage records, profile/plan, payment records and the download allowance live elsewhere
 // and are disclosed by name in `coverage.not_included` rather than silently omitted (F12
 // incompleteness danger). A source read that fails is disclosed in `coverage.unavailable` and its
@@ -24,6 +24,7 @@ import type { DbResult, DbRow, WatchlistDb, WatchlistQuery } from "@/lib/watchli
 import type { ServerWatchlist } from "@/lib/watchlists";
 import { listWatchlists } from "@/lib/watchlists";
 import type { Position } from "@/lib/portfolio";
+import { accountExportPayload, canonicalExportJson, type ExportIntegrityManifest, type ExportSha256 } from "@/lib/accountExportIntegrity";
 
 export const EXPORT_SCHEMA = "mm.terminal_account_export.v1";
 export type ExportFormat = "json" | "csv";
@@ -104,6 +105,18 @@ export type ChartLayoutExport = {
   version: string | null;
 };
 
+/** Persisted physical drawing row; nested geometry and operation metadata are kept verbatim. */
+export type ChartDrawingExport = {
+  id: string; symbol: string; kind: string; data: unknown; created_at: string;
+  /** Only the stored collection revision. Creation time is not a revision. */
+  version: string | null;
+};
+export type AlertExport = {
+  id: string; symbol: string; condition: unknown; active: boolean; created_at: string;
+  /** The live alerts table has no revision/update column. */
+  version: null;
+};
+
 export type CollectionRead<T> =
   | { ok: true; rows: T[]; complete: boolean; cut?: string }
   | { ok: false; error: string };
@@ -122,6 +135,9 @@ export type AccountExportDoc = {
   portfolio_positions: Position[];
   saved_scripts?: SavedScriptExport[];
   chart_layouts?: ChartLayoutExport[];
+  chart_drawings?: ChartDrawingExport[];
+  alerts?: AlertExport[];
+  integrity?: ExportIntegrityManifest;
 };
 
 export type ExportSources = {
@@ -132,6 +148,8 @@ export type ExportSources = {
   positions: { ok: true; positions: Position[] } | { ok: false; error: string };
   saved_scripts?: CollectionRead<SavedScriptExport>;
   chart_layouts?: CollectionRead<ChartLayoutExport>;
+  chart_drawings?: CollectionRead<ChartDrawingExport>;
+  alerts?: CollectionRead<AlertExport>;
 };
 
 const UNAVAILABLE_WHY: Bilingual = [
@@ -147,6 +165,9 @@ const COLLECTION_SNAPSHOT: Bilingual = [
 
 const SCRIPTS_WHAT: Bilingual = ["Your saved scripts", "你保存的脚本"];
 const LAYOUTS_WHAT: Bilingual = ["Your saved chart layouts", "你保存的图表布局"];
+
+const DRAWINGS_WHAT: Bilingual = ["Your saved chart drawings", "你保存的图表画线"];
+const ALERTS_WHAT: Bilingual = ["Your saved alert definitions", "你保存的提醒定义"];
 
 const ASK_SUPPORT: Bilingual = ["Ask support and we will send them to you.", "联系客服，我们会发送给你。"];
 const NOT_IN_FILE_YET: Bilingual = [
@@ -227,15 +248,32 @@ const OMISSION_ALERTS: OmittedEntry = {
   how_to_ask: ASK_SUPPORT,
 };
 
+const REMAINING_WORK_OMISSIONS: OmittedEntry[] = [
+  { key: "research_theses_and_versions", what: ["Saved research theses and their versions", "保存的研究论点及其版本"], why: NOT_IN_FILE_YET, how_to_ask: ASK_SUPPORT },
+  { key: "investigations_and_revisions", what: ["Saved investigations, revisions and mutation receipts", "保存的调查、修订及变更记录"], why: NOT_IN_FILE_YET, how_to_ask: ASK_SUPPORT },
+  { key: "chart_layout_revisions", what: ["Historical chart layout revisions", "图表布局的历史修订"], why: NOT_IN_FILE_YET, how_to_ask: ASK_SUPPORT },
+  { key: "favorites_briefs_and_device_local_work", what: ["Research favorites, briefs and work saved only on a device", "研究收藏、简报及仅保存在设备上的内容"], why: NOT_IN_FILE_YET,
+    how_to_ask: ["Keep a separate copy of device-local work; contact support about stored favorites and briefs.", "请另行保存设备上的内容；存储的收藏和简报可咨询客服。"] },
+];
+
 function notIncludedFor(src: ExportSources): OmittedEntry[] {
   const hasScripts = src.saved_scripts !== undefined;
   const hasLayouts = src.chart_layouts !== undefined;
-  if (!hasScripts && !hasLayouts) return NOT_INCLUDED_LEGACY;
-  return NOT_INCLUDED_LEGACY.map((entry) => {
-    if (hasLayouts && entry.key === "chart_layouts_and_drawings") return OMISSION_CHART_DRAWINGS;
-    if (hasScripts && entry.key === "alerts_and_saved_scripts") return OMISSION_ALERTS;
-    return entry;
+  const hasDrawings = src.chart_drawings !== undefined;
+  const hasAlerts = src.alerts !== undefined;
+  if (!hasScripts && !hasLayouts && !hasDrawings && !hasAlerts) return NOT_INCLUDED_LEGACY;
+  const omitted = NOT_INCLUDED_LEGACY.flatMap((entry): OmittedEntry[] => {
+    if (entry.key === "chart_layouts_and_drawings" && (hasLayouts || hasDrawings)) {
+      if (hasLayouts && hasDrawings) return [];
+      return hasLayouts ? [OMISSION_CHART_DRAWINGS] : [{ key: "chart_layouts", what: LAYOUTS_WHAT, why: NOT_IN_FILE_YET, how_to_ask: ASK_SUPPORT }];
+    }
+    if (entry.key === "alerts_and_saved_scripts" && (hasScripts || hasAlerts)) {
+      if (hasScripts && hasAlerts) return [];
+      return hasScripts ? [OMISSION_ALERTS] : [{ key: "saved_scripts", what: SCRIPTS_WHAT, why: NOT_IN_FILE_YET, how_to_ask: ASK_SUPPORT }];
+    }
+    return [entry];
   });
+  return hasDrawings || hasAlerts ? [...omitted, ...REMAINING_WORK_OMISSIONS] : omitted;
 }
 
 function covered(
@@ -328,6 +366,19 @@ export function buildAccountExport(src: ExportSources): AccountExportDoc {
     }
   }
 
+  function appendOwnedCollection<T>(key: string, what: Bilingual, read: CollectionRead<T> | undefined): T[] | undefined {
+    if (read === undefined) return undefined;
+    if (!read.ok) {
+      unavailable.push({ key, what, why: UNAVAILABLE_WHY });
+      return [];
+    }
+    included.push(covered(key, what, read.rows.length, true));
+    if (!read.complete) partial.push({ key, what, why: partialWhy(read.cut) });
+    return read.rows;
+  }
+  const chartDrawings = appendOwnedCollection("chart_drawings", DRAWINGS_WHAT, src.chart_drawings);
+  const alerts = appendOwnedCollection("alerts", ALERTS_WHAT, src.alerts);
+
   const coverage: AccountExportDoc["coverage"] = {
     included,
     not_included: notIncludedFor(src),
@@ -345,6 +396,8 @@ export function buildAccountExport(src: ExportSources): AccountExportDoc {
   };
   if (hasScripts) doc.saved_scripts = saved_scripts;
   if (hasLayouts) doc.chart_layouts = chart_layouts;
+  if (src.chart_drawings !== undefined) doc.chart_drawings = chartDrawings;
+  if (src.alerts !== undefined) doc.alerts = alerts;
   return doc;
 }
 
@@ -394,7 +447,7 @@ function jsonCell(value: unknown): string {
   }
 }
 
-export function serializeCsv(doc: AccountExportDoc): string {
+export function serializeCsv(doc: AccountExportDoc, sha256?: ExportSha256): string {
   const BOM = "\ufeff";
   let out = BOM + csvRow(["section", "dataset", "row_id", "field", "value"]);
 
@@ -475,6 +528,32 @@ export function serializeCsv(doc: AccountExportDoc): string {
     out += csvRow(["data", "chart_layouts", layout.id, "version", layout.version]);
   }
 
+  for (const drawing of doc.chart_drawings ?? []) {
+    out += csvRow(["data", "chart_drawings", drawing.id, "symbol", drawing.symbol]);
+    out += csvRow(["data", "chart_drawings", drawing.id, "kind", drawing.kind]);
+    out += csvRow(["data", "chart_drawings", drawing.id, "data", jsonCell(drawing.data)]);
+    out += csvRow(["data", "chart_drawings", drawing.id, "created_at", drawing.created_at]);
+    out += csvRow(["data", "chart_drawings", drawing.id, "version", drawing.version]);
+  }
+  for (const alert of doc.alerts ?? []) {
+    out += csvRow(["data", "alerts", alert.id, "symbol", alert.symbol]);
+    out += csvRow(["data", "alerts", alert.id, "condition", jsonCell(alert.condition)]);
+    out += csvRow(["data", "alerts", alert.id, "active", alert.active]);
+    out += csvRow(["data", "alerts", alert.id, "created_at", alert.created_at]);
+    out += csvRow(["data", "alerts", alert.id, "version", alert.version]);
+  }
+
+  if (doc.integrity) {
+    if (!sha256) throw new Error("sealed CSV requires SHA256");
+    // The legacy row view is useful in spreadsheets but cannot reconstruct all JSON
+    // relationships or distinguish null from empty strings. Include the exact logical
+    // payload and receipt as JSON cells, then bind all preceding CSV bytes too.
+    out += csvRow(["artifact", "logical_json", "", "canonical_json", canonicalExportJson(accountExportPayload(doc))]);
+    out += csvRow(["integrity", "manifest", "", "canonical_json", canonicalExportJson(doc.integrity)]);
+    const checksum = sha256(out);
+    if (!/^[a-f0-9]{64}$/.test(checksum)) throw new Error("invalid CSV SHA256 result");
+    out += csvRow(["integrity", "csv_bytes", "", "sha256", checksum]);
+  }
   return out;
 }
 
@@ -501,6 +580,35 @@ const SECRET_PATTERNS: Array<{ label: string; test: (raw: string) => boolean }> 
 ];
 
 export function assertNoSecrets(serialized: string): { ok: true } | { ok: false; hit: string } {
+  // JSON keys are quoted, so text key=value patterns alone miss raw nested user
+  // content such as a condition/params object containing an api_key string.
+  // Credential containers keep their key context; JSON encoded inside a string
+  // is inspected too. Null/empty values and ordinary prose remain exportable.
+  const secretKey = /^(password|secret|access_token|refresh_token|service_role|api[_-]?key|authorization)$/i;
+  function hasStructuredSecret(value: unknown): boolean {
+    const pending: Array<{ value: unknown; credential: boolean }> = [{ value, credential: false }];
+    while (pending.length) {
+      const { value: item, credential } = pending.pop()!;
+      if (typeof item === "string") {
+        const text = item.trim();
+        if (credential && text.length >= 4) return true;
+        if (text.startsWith("{") || text.startsWith("[")) {
+          try {
+            pending.push({ value: JSON.parse(text), credential });
+          } catch { /* Malformed JSON prose still gets the text checks below. */ }
+        }
+        continue;
+      }
+      if (item === null || typeof item !== "object") continue;
+      for (const [key, entry] of Object.entries(item)) {
+        pending.push({ value: entry, credential: credential || secretKey.test(key) });
+      }
+    }
+    return false;
+  }
+  try {
+    if (hasStructuredSecret(JSON.parse(serialized))) return { ok: false, hit: "json_key_value_secret" };
+  } catch { /* Non-JSON text/CSV keeps the existing text-pattern checks below. */ }
   for (const pattern of SECRET_PATTERNS) {
     if (pattern.test(serialized)) return { ok: false, hit: pattern.label };
   }
@@ -535,6 +643,10 @@ export async function readWatchlistsForExport(
 // name is text NOTNULL — `''` and whitespace are valid saved_scripts/chart_layouts data.
 const SCRIPT_FIELDS = "id,user_id,name,lang,source,params,is_public,updated_at,created_at";
 const LAYOUT_FIELDS = "id,user_id,name,config,updated_at,created_at";
+// Read-only live pg_catalog evidence, 2026-10-09: exactly these six columns per table.
+// No updated_at/version exists; no delivery/outbox/webhook-secret table is read.
+const DRAWING_FIELDS = "id,user_id,symbol,kind,data,created_at";
+const ALERT_FIELDS = "id,user_id,symbol,condition,active,created_at";
 
 type RangeQuery = WatchlistQuery & {
   range?: (from: number, to: number) => PromiseLike<DbResult> | WatchlistQuery;
@@ -600,6 +712,25 @@ function mapLayout(row: DbRow, userId: string): Mapped<ChartLayoutExport> {
       version: rowVersion(row),
     },
   };
+}
+
+function mapDrawing(row: DbRow, userId: string): Mapped<ChartDrawingExport> {
+  if (row.user_id !== userId) return row.user_id == null ? { kind: "invalid" } : { kind: "drop" };
+  if (typeof row.id !== "string" || !row.id || typeof row.symbol !== "string" ||
+      typeof row.kind !== "string" || typeof row.created_at !== "string" || row.data === undefined) return { kind: "invalid" };
+  const data = row.data;
+  const revision = row.kind === "__collection_v1" && data !== null && typeof data === "object" && !Array.isArray(data)
+    ? (data as Record<string, unknown>).revision : null;
+  return { kind: "ok", value: { id: row.id, symbol: row.symbol, kind: row.kind, data,
+    created_at: row.created_at, version: typeof revision === "string" && revision ? revision : null } };
+}
+
+function mapAlert(row: DbRow, userId: string): Mapped<AlertExport> {
+  if (row.user_id !== userId) return row.user_id == null ? { kind: "invalid" } : { kind: "drop" };
+  if (typeof row.id !== "string" || !row.id || typeof row.symbol !== "string" ||
+      typeof row.active !== "boolean" || typeof row.created_at !== "string" || row.condition === undefined) return { kind: "invalid" };
+  return { kind: "ok", value: { id: row.id, symbol: row.symbol, condition: row.condition,
+    active: row.active, created_at: row.created_at, version: null } };
 }
 
 function rowsOf(result: DbResult): DbRow[] | null {
@@ -826,4 +957,15 @@ export async function readChartLayoutsForExport(
   opts?: ExportPageOpts,
 ): Promise<CollectionRead<ChartLayoutExport>> {
   return readBoundedCollection(db, "chart_layouts", userId, LAYOUT_FIELDS, mapLayout, opts);
+}
+
+
+/** Raw persisted rows on the existing authenticated client, including legacy drawing kinds. */
+export async function readChartDrawingsForExport(db: WatchlistDb, userId: string, opts?: ExportPageOpts): Promise<CollectionRead<ChartDrawingExport>> {
+  return readBoundedCollection(db, "drawings", userId, DRAWING_FIELDS, mapDrawing, opts);
+}
+
+/** Saved alert definitions only, preserving condition payloads and inactive/triggered rows. */
+export async function readAlertsForExport(db: WatchlistDb, userId: string, opts?: ExportPageOpts): Promise<CollectionRead<AlertExport>> {
+  return readBoundedCollection(db, "alerts", userId, ALERT_FIELDS, mapAlert, opts);
 }

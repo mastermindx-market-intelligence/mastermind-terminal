@@ -21,6 +21,13 @@ export interface ManifestSymbol {
   pf?: number;
   cagr?: number;
   regimeBull?: boolean;
+  /**
+   * USD market capitalization when the nightly universe already carries it.
+   * Financial as-of is unknown — never inferred from mtime/quote timestamps.
+   * Only finite positive values are usable for cached USD-cap sizing;
+   * missing/invalid names are disclosed separately (no fabricated area).
+   */
+  mcap?: number;
 }
 
 export interface ManifestPayload {
@@ -96,13 +103,33 @@ export interface HeatmapTile {
   // Computed
   hasFlow: boolean;
   callSharePct?: number;  // derived from doiPc when available
+  /**
+   * Source USD market capitalization as received from the universe payload
+   * (raw — may be absent, zero, NaN, or non-finite). Absent key = missing;
+   * present but not finite positive = invalid. Both are disclosed, never
+   * floored into fake area. See terminal/lib/heatmapCapitalization.ts.
+   */
+  mcap?: number;
+  /**
+   * Provenance stamp written when the universe payload carried a capitalization
+   * value. Cached reference — not a live quote timestamp.
+   */
+  mcapSource?: string;
 }
 
 // ─── Layer / view / sizing ────────────────────────────────────────────────────
 
 export type Layer   = "price" | "flow";
 export type View    = "map" | "table";
-export type SizingMode = "equal" | "cap" | "premium";
+/**
+ * Sizing modes:
+ *   - "equal"     → area = 1
+ *   - "cap"       → LEGACY dollar-volume proxy (price × vol). Never reinterpreted.
+ *   - "premium"   → |netPremiumMn| on the flow layer
+ *   - "marketCap" → cached USD market cap (finite positive source value only).
+ *     Distinct from "cap": independent of volume; missing/invalid disclosed.
+ */
+export type SizingMode = "equal" | "cap" | "premium" | "marketCap";
 export type Timeframe  = "1D" | "1W" | "1M" | "YTD";
 
 // ─── Treemap layout node ──────────────────────────────────────────────────────

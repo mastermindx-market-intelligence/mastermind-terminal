@@ -25,6 +25,12 @@ const VOL_LEX = {
   asofStaleAge:      ["{n} sessions old", "{n} 个交易日前"],
   loading:           ["Loading volatility data…", "加载波动率数据中…"],
   errorLoad:         ["Could not load volatility data", "无法加载波动率数据"],
+  errorWhy: [
+    "The volatility store could not be read just now. This is a failed read, not a missing snapshot.",
+    "暂时无法读取波动率数据。这是读取失败，并非缺少快照。",
+  ],
+  // Re-reads in place: a failed read is retried here, never by reloading the page.
+  retry:             ["Retry", "重试"],
   // Honest empty — a missing single name is a nightly-coverage gap, not a broken tab.
   emptyTitle:        ["No volatility snapshot for this name yet", "该品种暂无波动率快照"],
   emptyWhy: [
@@ -159,6 +165,12 @@ const VOL_LEX = {
   vrpEmptyWhy: [
     "The historical band needs the aggregate-trend store (spot + IV per session); it has not been published for this root.",
     "历史区间需要聚合趋势数据（每日现价与IV）；该标的尚未发布。",
+  ],
+  vrpLoading:        ["Loading spread history…", "加载差值历史中…"],
+  vrpErrorTitle:     ["Could not load the spread history", "无法加载差值历史"],
+  vrpErrorWhy: [
+    "The aggregate-trend store could not be read just now. This is a failed read, not a missing history.",
+    "暂时无法读取聚合趋势数据。这是读取失败，并非缺少历史。",
   ],
   // "Partial" only when a rejected row lies inside the drawn window's source span.
   vrpOrderRejectedWindowOne: ["Partial spread history · 1 supplied row rejected for a duplicate or out-of-order date", "差值历史不完整 · 1 个已提供行因日期重复或顺序错乱被排除"],

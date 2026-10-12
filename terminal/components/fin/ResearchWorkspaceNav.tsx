@@ -28,6 +28,7 @@ const LOCAL_LABELS: Record<FinPage, [string, string]> = {
   statistics: ["Statistics", "统计"],
   revenue: ["Revenue", "营收"],
   dividends: ["Dividends", "股息"],
+  compare: ["Compare", "对比"],
   earnings: ["Results", "结果"],
   forecast: ["Analyst", "分析师"],
   transcripts: ["Transcripts", "电话会"],

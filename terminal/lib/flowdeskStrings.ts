@@ -149,6 +149,17 @@ const FLOW_LEX = {
   chainHeatLeanNote:  ["ask-share derived — not NBBO", "基于卖价成交比 — 非NBBO"],
   chainHeatEmpty:     ["No campaigns today — accumulation threshold ≥$3M", "今日无集群 — 累计阈值≥300万美元"],
   chainHeatLoading:   ["Loading chain heat…", "加载链式热度中…"],
+  // A read that did not land is not "still loading", and a 404 is not a failure.
+  chainHeatError:     ["Could not load chain heat", "无法加载链式热度"],
+  chainHeatErrorWhy:  [
+    "The read did not reach the store, so this says nothing about today's campaigns.",
+    "读取未能到达数据源，因此无法判断今日的集群情况。",
+  ],
+  chainHeatAbsent:    ["No chain heat published for this session yet", "本交易时段尚未发布链式热度"],
+  chainHeatRefreshFailed: [
+    "Could not refresh chain heat — showing the last read.",
+    "无法刷新链式热度——显示的是上次读取的数据。",
+  ],
 
   // ── Soft-direction tooltip (HONESTY DOCTRINE — the key required copy) ──────
   leanTooltip: [

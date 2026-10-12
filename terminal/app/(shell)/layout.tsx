@@ -1,3 +1,4 @@
+import { cookies } from "next/headers";
 import { createClient } from "@/lib/supabase/server";
 import AppShell from "@/components/chrome/AppShell";
 
@@ -28,6 +29,16 @@ export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
 export default async function ShellLayout({ children }: { children: React.ReactNode }) {
+  // Opt-in fixture identity for research consumers; unrelated suites keep their existing identity.
+  // Both development and the existing fixture flag are required; production uses verified claims.
+  if (process.env.NODE_ENV === "development" && process.env.TERMINAL_E2E_FIXTURE === "1") {
+    const jar = await cookies();
+    if (jar.get("mm_e2e_rs30")?.value === "1") {
+      const guest = jar.get("mm_e2e_guest")?.value === "1";
+      return <AppShell email={guest ? "" : process.env.TERMINAL_E2E_EMAIL ?? "responsive@example.com"}
+        userId={guest ? "" : "terminal-responsive-fixture"}>{children}</AppShell>;
+    }
+  }
   const supabase = await createClient();
   const { data } = await supabase.auth.getClaims();
   const email = typeof data?.claims?.email === "string" ? data.claims.email : "";

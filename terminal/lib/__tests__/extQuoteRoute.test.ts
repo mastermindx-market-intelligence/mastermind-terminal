@@ -106,3 +106,36 @@ describe("/api/ext-quote — extSession passthrough", () => {
     expect((await quotes("NVDA")).NVDA.extTs).toBe(1_799_999_000);
   });
 });
+
+
+describe("/api/ext-quote — source and price basis", () => {
+  it("preserves the hub's source and basis across live, delayed and unofficial legs", async () => {
+    for (const [source, basis] of [
+      ["tiingo_boats", "LIVE"],
+      ["alpaca_overnight", "DELAYED_15M"],
+      ["webull", "UNOFFICIAL"],
+    ]) {
+      installHub({ NVDA: extRow({ extSession: "overnight", extSource: source, extBasis: basis }) });
+      const q = await quotes("NVDA");
+      expect(q.NVDA.extSource).toBe(source);
+      expect(q.NVDA.extBasis).toBe(basis);
+      expect(calls.at(-1)).toContain("127.0.0.1");
+    }
+  });
+
+  it("preserves the source without inventing a LIVE basis when the hub does not supply one", async () => {
+    installHub({ NVDA: extRow({ extSource: "tiingo_boats" }) });
+    const q = await quotes("NVDA");
+    expect(q.NVDA.extSource).toBe("tiingo_boats");
+    expect("extBasis" in q.NVDA).toBe(false);
+  });
+
+  it("omits malformed source and unknown basis without changing the price or null semantics", async () => {
+    installHub({ NVDA: extRow({ extSource: { name: "tiingo_boats" }, extBasis: "guaranteed_live" }), AAPL: {} });
+    const q = await quotes("NVDA,AAPL");
+    expect(q.NVDA.extPrice).toBe(181.5);
+    expect("extSource" in q.NVDA).toBe(false);
+    expect("extBasis" in q.NVDA).toBe(false);
+    expect(q.AAPL).toBeNull();
+  });
+});
