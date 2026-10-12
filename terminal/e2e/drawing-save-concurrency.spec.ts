@@ -662,3 +662,118 @@ test("keep-mine of a differing preload overlap PUTs every cloud-only id",async({
  expect(puts[0].drawings.find((drawing)=>drawing.id==="pre-tab-a")?.points[0].p).toBe(50);
  await expect(recovery).toHaveCount(0,{timeout:20_000});
 });
+
+// A3: mixed v2+legacy losing tab. Owner B has its own UUID v2 copy for a symbol
+// plus an imported v1 (`legacy:`) alternative; owner A on the same browser already
+// holds the legacy claim. B's flush drops the legacy alternative on disk but
+// must re-derive the issue from the RE-READ journal entry — the chrome must
+// never offer "Replace cloud with local copy" for a single, unblocked own copy.
+test("A3: a mixed v2+legacy entry whose claim belongs to another owner drops the legacy alternative and clears the issue", async ({ page }) => {
+ const ownOp = "11111111-1111-4111-8111-111111111111";
+ const legacyOp = "55555555-5555-4555-8555-555555555555";
+ const legacySourceId = "alice@x";
+ // Seed B's journal with a v2 copy AND a v1 alternative (legacy copy), then
+ // plant Alice's claim so the journal write must drop the legacy alternative.
+ await page.addInitScript(({ ownOp, legacyOp, legacySourceId }) => {
+  if (sessionStorage.getItem("drawing-recovery-seeded")) return;
+  sessionStorage.setItem("drawing-recovery-seeded", "1");
+  const ownV2 = { drawings: [{ id: "bob-v2", kind: "hline", source: "user", schemaVersion: 1, points: [{ t: "2026-01-01", p: 100 }], meta: { label: "保持" } }], revision: null };
+  const legacyV1 = { drawings: [{ id: "alice-v1", kind: "hline", source: "user", schemaVersion: 1, points: [{ t: "2026-01-01", p: 200 }], meta: { label: "保持" } }], revision: null, recoveryId: `legacy:${legacySourceId}` };
+  const record = {
+   format: 2,
+   copies: { [ownOp]: ownV2, [legacyOp]: legacyV1 },
+   legacySeen: { [legacySourceId]: "[[{\"id\":\"alice-v1\"}]]" },
+   legacyLinks: { [legacyOp]: { sourceId: legacySourceId, token: "[[{\"id\":\"alice-v1\"}]]" } },
+  };
+  localStorage.setItem("mm.drawing.account-outbox.v2", JSON.stringify({ "account:e2e-user-default": { NVDA: record } }));
+  // Alice holds the legacy claim for this email alias.
+  localStorage.setItem("mm.drawing.legacy-claim.v1", JSON.stringify({ [`account:${legacySourceId}`]: "account:uuid-a" }));
+ }, { ownOp, legacyOp, legacySourceId });
+ const puts: unknown[] = [];
+ await page.route("**/api/drawings**", async (route) => {
+  if (route.request().method() === "GET") { await route.fulfill(json({ drawings: [], revision: null, schemaVersion: 1 })); return; }
+  puts.push(route.request().postDataJSON());
+  await route.fulfill(json({ ok: true, operationId: route.request().postDataJSON().operationId, revision: committed, idempotentReplay: false, superseded: false }));
+ });
+ await open(page);
+ const recovery = page.getByTestId("drawing-save-recovery");
+ // A3: the chrome must NEVER offer "Replace cloud with local copy" for a symbol
+ // whose only remaining copy is Bob's own unblocked v2.
+ await expect(recovery.getByRole("button", { name: "Replace cloud with local copy", exact: true })).toHaveCount(0, { timeout: 20_000 });
+ await expect(recovery.getByRole("button", { name: "Use cloud copy", exact: true })).toHaveCount(0, { timeout: 20_000 });
+ // Bob's v2 is PUT exactly once (the normal flush path proceeds after the legacy
+ // alternative is dropped).
+ await expect.poll(() => puts.length, { timeout: 20_000 }).toBe(1);
+ const sent = puts[0] as { drawings: { id: string }[] };
+ expect(sent.drawings.map((d) => d.id)).toEqual(["bob-v2"]);
+ // The recovery chrome is gone — the issue was cleared, not "multiple".
+ await expect(recovery).toHaveCount(0, { timeout: 20_000 });
+});
+
+// Step 2b: fix4 end-to-end proof for too_many. The cloud GET returns 500
+// drawings for a symbol and the user has 1 disjoint pre-GET drawing. The
+// recovery toast must show the tooMany sentence and EXACTLY ONE button
+// ("Review cloud copy" if the cloud copy is not yet loaded, then "Use cloud
+// copy" once it is). No "Keep local" / "Replace cloud" button. No PUT. Clicking
+// "Use cloud copy" renders the 500 saved drawings, removes the local addition,
+// clears the toast, and clears the journal row. A reload does not re-park.
+test("too_many parks as a single 'Review cloud copy' button and never offers replace, keep local, or a PUT", async ({ page }) => {
+ const cloudRevision = "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa";
+ const localDrawing = { id: "local-extra", kind: "hline", source: "user", schemaVersion: 1, points: [{ t: "2026-01-01", p: 999 }], meta: { label: "保持" } };
+ const cloudDrawings = Array.from({ length: 500 }, (_, i) => ({ id: `cloud-${i}`, kind: "hline", source: "user", schemaVersion: 1, points: [{ t: "2026-01-01", p: 100 + i }], meta: { label: "保持" } }));
+ // Seed: 1 pre-GET disjoint drawing for the symbol.
+ await seed(page, { drawings: [localDrawing], preload: true });
+ const puts: unknown[] = [];
+ const gets: number[] = [];
+ await page.route("**/api/drawings**", async (route) => {
+  const request = route.request();
+  if (request.method() === "GET") {
+   gets.push(Date.now());
+   await route.fulfill(json({ drawings: cloudDrawings, revision: cloudRevision, schemaVersion: 1 }));
+   return;
+  }
+  puts.push(request.postDataJSON());
+  await route.fulfill(json({ ok: true, operationId: request.postDataJSON().operationId, revision: cloudRevision, idempotentReplay: false, superseded: false }));
+ });
+ await open(page);
+ const recovery = page.getByTestId("drawing-save-recovery");
+ // (1) The recovery toast shows the tooMany sentence and EXACTLY ONE button.
+ await expect(recovery).toBeVisible({ timeout: 20_000 });
+ await expect(recovery).toContainText("500 saved drawings");
+ await expect(recovery).toContainText("new drawings were not saved");
+ await expect(recovery).toContainText("stay on this device");
+ // No "Keep local" / "Replace cloud" button anywhere.
+ await expect(recovery.getByRole("button", { name: "Keep local", exact: true })).toHaveCount(0);
+ await expect(recovery.getByRole("button", { name: "Replace cloud with local copy", exact: true })).toHaveCount(0);
+ // No "Use cloud copy" until the cloud copy is loaded; the only button is "Review cloud copy".
+ await expect(recovery.getByRole("button", { name: "Review cloud copy", exact: true })).toBeVisible();
+ await expect(recovery.getByRole("button", { name: "Use cloud copy", exact: true })).toHaveCount(0);
+ // (2) NO PUT is sent for that symbol at any point.
+ expect(puts).toHaveLength(0);
+ // Click "Review cloud copy" → the cloud copy loads → the toast then shows exactly "Use cloud copy".
+ await recovery.getByRole("button", { name: "Review cloud copy", exact: true }).click();
+ await expect(recovery.getByRole("button", { name: "Use cloud copy", exact: true })).toBeVisible({ timeout: 20_000 });
+ await expect(recovery.getByRole("button", { name: "Review cloud copy", exact: true })).toHaveCount(0);
+ // Still no "Keep local" / "Replace cloud" button.
+ await expect(recovery.getByRole("button", { name: "Keep local", exact: true })).toHaveCount(0);
+ await expect(recovery.getByRole("button", { name: "Replace cloud with local copy", exact: true })).toHaveCount(0);
+ // (3) Clicking "Use cloud copy" renders the 500 saved drawings, removes the
+ // local addition, clears the toast, and clears that symbol's journal row.
+ await recovery.getByRole("button", { name: "Use cloud copy", exact: true }).click();
+ await expect(recovery).toHaveCount(0, { timeout: 20_000 });
+ // No PUT was sent even after the user clicked through.
+ expect(puts).toHaveLength(0);
+ // The local addition is gone: the journal row for NVDA is cleared.
+ await expect.poll(async () => {
+  const raw = await page.evaluate(() => localStorage.getItem("mm.drawing.account-outbox.v2"));
+  if (!raw) return "empty";
+  const env = JSON.parse(raw) as Record<string, Record<string, unknown>>;
+  const nvda = env["account:e2e-user-default"]?.NVDA;
+  return nvda ? "present" : "absent";
+ }, { timeout: 20_000 }).toBe("absent");
+ // (4) A reload afterwards does not re-park or re-toast.
+ await page.reload();
+ await page.waitForLoadState("networkidle");
+ await expect(page.getByTestId("drawing-save-recovery")).toHaveCount(0, { timeout: 20_000 });
+ expect(puts).toHaveLength(0);
+});
