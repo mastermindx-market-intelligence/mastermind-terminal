@@ -19,18 +19,36 @@ export function hashSource(str: string): string {
 // engine's date math reads. n is redundant with the array lengths but explicit for clarity/guards.
 export interface ColumnarBars { n: number; time: string[]; timeClose?: string[]; o: Float64Array; h: Float64Array; l: Float64Array; c: Float64Array; v: Float64Array; }
 
-// One rule for session stamps used by admission (isParseableSession) and by
-// builtin `time` / `time_close`. Date-only → UTC midnight; a string containing
-// "T" → Date.parse as-is; anything else, or a failed parse → Pine na (never a
-// leaked Date.parse NaN treated as a timestamp).
+// One rule for session stamps used by admission (isParseableSession), builtin
+// `time` / `time_close`, and calendar week bucketing. Date-only → UTC midnight.
+// A date-time is admitted only with an explicit offset (`Z` or `±hh:mm`);
+// offset-less date-time is Pine na, so every viewer maps the same epoch.
+// Anything else, or a failed parse → Pine na (never a leaked Date.parse NaN,
+// never a local-time parse).
+const DATE_ONLY = /^\d{4}-\d{2}-\d{2}$/;
+const DATETIME_WITH_OFFSET = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}(?::\d{2}(?:\.\d+)?)?(?:Z|[+-]\d{2}:\d{2})$/;
+
 export function parseSessionStampMs(stamp: unknown): number {
   if (typeof stamp !== "string" || stamp.length === 0) return NA;
-  const ms = /^\d{4}-\d{2}-\d{2}$/.test(stamp)
-    ? Date.parse(stamp + "T00:00:00Z")
-    : stamp.includes("T")
-      ? Date.parse(stamp)
-      : Number.NaN;
+  const iso = DATE_ONLY.test(stamp)
+    ? stamp + "T00:00:00Z"
+    : DATETIME_WITH_OFFSET.test(stamp)
+      ? stamp
+      : null;
+  if (iso == null) return NA;
+  const ms = Date.parse(iso);
   return Number.isFinite(ms) ? ms : NA;
+}
+
+// ISO-week Monday (UTC date-only) for a parseable session stamp. Unparseable
+// stamps return null rather than throwing on Invalid Date#toISOString.
+export function sessionWeekOpenDate(stamp: unknown): string | null {
+  const ms = parseSessionStampMs(stamp);
+  if (!Number.isFinite(ms)) return null;
+  const dt = new Date(ms);
+  const day = (dt.getUTCDay() + 6) % 7;
+  dt.setUTCDate(dt.getUTCDate() - day);
+  return dt.toISOString().slice(0, 10);
 }
 
 function isParseableSession(s: unknown): s is string {

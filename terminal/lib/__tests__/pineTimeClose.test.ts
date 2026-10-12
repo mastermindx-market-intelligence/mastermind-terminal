@@ -1,9 +1,13 @@
 // F5 — chart-TF time_close must honour ChartPanel's session-group `closeTime`
 // (and the engine's own `timeClose`), with `timeClose` winning when both exist.
 import { describe, it, expect } from "vitest";
+import { spawnSync } from "node:child_process";
+import { mkdtempSync, writeFileSync, rmSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join, resolve } from "node:path";
 import { runPine, type Bar } from "../pine-engine";
 import { NA } from "../pine-engine/builtins";
-import { barsToColumns, columnsToBars, parseSessionStampMs } from "../pine-engine/host-shared";
+import { barsToColumns, columnsToBars, parseSessionStampMs, sessionWeekOpenDate } from "../pine-engine/host-shared";
 
 function runClose(bars: Bar[]) {
   const out = runPine(`
@@ -142,12 +146,139 @@ describe("chart-TF time / time_close parse ISO date-time session stamps", () => 
 });
 
 describe("parseSessionStampMs is the one session-stamp rule", () => {
-  it("date-only is UTC midnight; ISO date-time is Date.parse as-is; unparseable is Pine na", () => {
+  it("date-only is UTC midnight; ISO date-time with offset is Date.parse as-is; unparseable is Pine na", () => {
     expect(parseSessionStampMs("2026-10-09")).toBe(Date.parse("2026-10-09T00:00:00Z"));
     expect(parseSessionStampMs("2026-10-09T20:00:00Z")).toBe(Date.parse("2026-10-09T20:00:00Z"));
+    expect(parseSessionStampMs("2026-10-09T20:00:00+00:00")).toBe(Date.parse("2026-10-09T20:00:00+00:00"));
+    expect(parseSessionStampMs("2026-10-09T20:00:00-04:00")).toBe(Date.parse("2026-10-09T20:00:00-04:00"));
     expect(parseSessionStampMs("not-a-session")).toBe(NA);
     expect(Number.isFinite(parseSessionStampMs("not-a-session"))).toBe(false);
     expect(parseSessionStampMs("")).toBe(NA);
     expect(parseSessionStampMs(undefined)).toBe(NA);
   });
+
+  it("an offset-less date-time is Pine na, not a local-time epoch", () => {
+    expect(parseSessionStampMs("2026-10-09T20:00:00")).toBe(NA);
+    expect(Number.isFinite(parseSessionStampMs("2026-10-09T20:00:00"))).toBe(false);
+    expect(parseSessionStampMs("2026-10-09T20:00:00.000")).toBe(NA);
+  });
+
+  it("offset-less date-time is na under America/New_York and Asia/Shanghai", () => {
+    const stamp = "2026-10-09T20:00:00";
+    const prev = process.env.TZ;
+    try {
+      process.env.TZ = "America/New_York";
+      const ny = parseSessionStampMs(stamp);
+      process.env.TZ = "Asia/Shanghai";
+      const sh = parseSessionStampMs(stamp);
+      expect(ny).toBe(NA);
+      expect(sh).toBe(NA);
+      expect(Number.isFinite(ny)).toBe(false);
+      expect(Number.isFinite(sh)).toBe(false);
+    } finally {
+      if (prev === undefined) delete process.env.TZ;
+      else process.env.TZ = prev;
+    }
+  });
+
+  it("two child processes under America/New_York and Asia/Shanghai agree the offset-less stamp is na", () => {
+    const stamp = "2026-10-09T20:00:00";
+    const ny = parseStampChild("America/New_York", stamp);
+    const sh = parseStampChild("Asia/Shanghai", stamp);
+    expect(Number.isFinite(ny)).toBe(false);
+    expect(Number.isFinite(sh)).toBe(false);
+  });
 });
+
+describe("offset-less date-time is not admitted, so resolveBarTimeClose falls through", () => {
+  it("an offset-less timeClose yields to a parseable closeTime", () => {
+    const bars = [
+      { time: "2026-10-09", timeClose: "2026-10-09T20:00:00", closeTime: "2026-10-10", o: 1, h: 2, l: 0.5, c: 1.5, v: 10 },
+    ] as Bar[];
+    const { payload } = barsToColumns(bars);
+    expect(payload.timeClose?.[0]).toBe("2026-10-10");
+    const { t, c, isna } = runIsoClose(columnsToBars(payload));
+    expect(t[0]).toBe(Date.parse("2026-10-09T00:00:00Z"));
+    expect(c[0]).toBe(Date.parse("2026-10-10T00:00:00Z"));
+    expect(isna[0]).toBe(0);
+  });
+
+  it("plot(time_close) on an offset-less stamp with no fallback is a gap, and time_close > 0 is na", () => {
+    const bars: Bar[] = [
+      { time: "2026-10-09", timeClose: "2026-10-09T20:00:00", o: 1, h: 2, l: 0.5, c: 1.5, v: 10 },
+    ];
+    const out = runPine(`
+//@version=6
+indicator("na-cmp")
+plot(time_close, "c")
+plot(time_close > 0 ? 1 : 0, "gt")
+plot(na(time_close > 0) ? 1 : 0, "nagt")
+plot(na(time_close) ? 1 : 0, "isna")
+`, bars, { timeframe: "D", symbol: "TEST" });
+    expect(out.ok, JSON.stringify(out.errors)).toBe(true);
+    const val = (title: string) => out.result!.plots.find((p) => p.title === title)!.data.map((p) => p.value);
+    expect(val("c")[0]).toBeUndefined();
+    expect(Number.isFinite(val("c")[0] as number)).toBe(false);
+    // Pine: a comparison with na is na (not false); truthy(na) is false, so the
+    // ternary plots 0, and na(time_close > 0) is true.
+    expect(val("gt")[0]).toBe(0);
+    expect(val("nagt")[0]).toBe(1);
+    expect(val("isna")[0]).toBe(1);
+  });
+});
+
+describe("sessionWeekOpenDate is the one week-bucket rule and never throws", () => {
+  it("date-only matches the previous UTC-midnight Monday key", () => {
+    expect(sessionWeekOpenDate("2026-10-09")).toBe("2026-10-05");
+    expect(sessionWeekOpenDate("2025-01-06")).toBe("2025-01-06");
+  });
+
+  it("a T-stamp with offset does not throw; an offset-less T-stamp is skipped", () => {
+    expect(() => sessionWeekOpenDate("2026-10-09T20:00:00Z")).not.toThrow();
+    expect(sessionWeekOpenDate("2026-10-09T20:00:00Z")).toBe("2026-10-05");
+    expect(() => sessionWeekOpenDate("2026-10-09T20:00:00")).not.toThrow();
+    expect(sessionWeekOpenDate("2026-10-09T20:00:00")).toBeNull();
+    expect(() => sessionWeekOpenDate("2026-99-99")).not.toThrow();
+    expect(sessionWeekOpenDate("2026-99-99")).toBeNull();
+  });
+
+  it("week request.security on a calendar-shaped unparseable stamp skips rather than throwing Invalid time value", () => {
+    const bars: Bar[] = [
+      { time: "2026-99-99", o: 1, h: 2, l: 0.5, c: 1, v: 1 },
+      { time: "2027-01-04", o: 1, h: 2, l: 0.5, c: 1, v: 1 },
+    ];
+    const out = runPine(`//@version=6
+indicator("w")
+plot(request.security(syminfo.tickerid, "W", close), "x")
+`, bars, { timeframe: "1D", symbol: "TEST" });
+    expect(out.ok, JSON.stringify(out.errors)).toBe(true);
+    const warnings = (out.result?.warnings ?? []).join("\n");
+    expect(warnings).not.toMatch(/Invalid time value/);
+    const x = out.result!.plots.find((p) => p.title === "x")!.data;
+    expect(x[0]?.value).toBeUndefined();
+    expect(x[1]?.value).toBeUndefined();
+  });
+});
+
+function parseStampChild(tz: string, stamp: string): number {
+  const dir = mkdtempSync(join(process.env.TMPDIR || tmpdir(), "pine-tz-"));
+  const file = join(dir, "probe.ts");
+  const helper = resolve(__dirname, "../pine-engine/host-shared.ts");
+  writeFileSync(
+    file,
+    `import { parseSessionStampMs } from ${JSON.stringify(helper)};\nconst ms = parseSessionStampMs(${JSON.stringify(stamp)});\nconsole.log(Number.isFinite(ms) ? String(ms) : "na");\n`,
+  );
+  try {
+    const r = spawnSync("npx", ["vite-node", file], {
+      encoding: "utf8",
+      cwd: resolve(__dirname, "../.."),
+      env: { ...process.env, TZ: tz },
+      timeout: 60_000,
+    });
+    if (r.status !== 0) throw new Error(r.stderr || r.stdout || `vite-node exit ${r.status}`);
+    const line = r.stdout.trim().split("\n").pop()!;
+    return line === "na" ? Number.NaN : Number(line);
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+}

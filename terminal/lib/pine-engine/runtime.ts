@@ -61,7 +61,7 @@ import { Node, Stmt, Arg, parse, type ParseResult } from "./parser";
 import { PineSyntaxError } from "./lexer";
 import { NA, NS_CONST, toCss, fmtNum, tfSeconds, tfParts, tfPartsToSeconds } from "./builtins";
 import { groupSessionBars, parseSessionAnchor } from "../sessionBars";
-import { parseSessionStampMs, resolveBarTimeClose } from "./host-shared";
+import { parseSessionStampMs, resolveBarTimeClose, sessionWeekOpenDate } from "./host-shared";
 
 export interface Bar { time: string; o: number; h: number; l: number; c: number; v: number; timeClose?: string; closeTime?: string }
 
@@ -158,8 +158,9 @@ function planHtf(chartTf: string, tf: string, bars: Bar[], barAnchor: number): H
   }
   return plan;
 }
-function periodKey(time: string, plan: { kind: "week" } | { kind: "month"; n: number }): string {
-  if (plan.kind === "week") { const dt = new Date(time + "T00:00:00Z"); const day = (dt.getUTCDay() + 6) % 7; dt.setUTCDate(dt.getUTCDate() - day); return dt.toISOString().slice(0, 10); }   // ISO week (Mon-anchored) — matches ChartPanel.resampleTf
+function periodKey(time: string, plan: { kind: "week" } | { kind: "month"; n: number }): string | null {
+  if (plan.kind === "week") return sessionWeekOpenDate(time);   // ISO week (Mon-anchored) — matches ChartPanel.resampleTf; unparseable → skip
+  if (!Number.isFinite(parseSessionStampMs(time))) return null;
   const mo = parseInt(time.slice(5, 7), 10);
   return plan.n === 1 ? time.slice(0, 7) : plan.n === 3 ? time.slice(0, 4) + "Q" + Math.ceil(mo / 3) : time.slice(0, 4);
 }
@@ -186,6 +187,7 @@ function resampleBars(src: Bar[], plan: HtfPlan): { bars: Bar[]; groupOf: number
   let groupLast = -1;
   for (let i = 0; i < src.length; i++) {
     const r = src[i]; const k = periodKey(r.time, plan);
+    if (k == null) continue; // unparseable stamp: leave groupOf=-1 (security reads na) rather than throw
     if (k !== key) {
       if (cur) {
         out.push(cur);
