@@ -21,13 +21,15 @@ export function VannaCompanion({ root, t, windowPct, ...pin }: PinProps & { root
   const scale = Math.max(...rows.map((row) => Math.abs(row.valueMn ?? 0)), 1e-12);
   const published = rows.filter((row) => row.valueMn != null);
   const total = published.reduce((sum, row) => sum + (row.valueMn ?? 0), 0);
+  // A partial window is not a total. Missing stays missing; only a fully published profile sums.
+  const showTotal = published.length > 0 && published.length === rows.length;
   const selected = selection?.session === data?.session ? rows.find((row) => row.strike === selection?.strike) : undefined;
   if (!data) return <SnapshotEmpty issue={receipt.ok ? "unavailable" : receipt.reason} fetchStatus={snapshot.status} t={t} loading={snapshot.loading} refresh={snapshot.refresh} />;
   return <>
     <SnapshotStamp session={data.session} t={t} refresh={snapshot.refresh} loading={snapshot.loading} />
     {snapshot.failed && <p className={styles.warning}>{t("failed")}</p>}
     <p className={styles.viewCaption}>{t("allExpiries")} · ±{windowPct}%</p>
-    <div className={styles.summary}><div><span>{t("visibleVanna")}</span><strong className={total < 0 ? styles.negative : styles.positive}>{published.length ? formatExposureMn(total) : "—"}</strong><small>{t("unitsVanna")}</small></div>
+    <div className={styles.summary}><div><span>{t("visibleVanna")}</span><strong className={showTotal && total < 0 ? styles.negative : styles.positive}>{showTotal ? formatExposureMn(total) : "—"}</strong><small>{t("unitsVanna")}</small>{published.length !== rows.length && <span>{t("partial")}</span>}</div>
       <div className={styles.reference}><span>{t("reference")}</span><b>{data.spot?.toLocaleString("en-US", { maximumFractionDigits: 2 }) ?? "—"}</b></div></div>
     <div className={styles.legend}><span className={styles.positive}>● {t("positive")}</span><span className={styles.negative}>● {t("negative")}</span><span>{t("magnitude")}</span></div>
     <div className={styles.profile} aria-label={`${root} Vanna`}>
