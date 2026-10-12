@@ -208,6 +208,25 @@ TEN bid/ask price levels rather than only BBO. Do not download the full 1.5GB fi
 publish raw rows; preserve the same private/research-only boundaries. This remains
 source validation, not procurement, market-data rights or production admission.
 
+## Resume continuation: deeper actual-data validation
+
+The same public landing page's MBP-10 link has now supplied a bounded five-minute
+reference (6,841 records, not the full 1.5GB file). The reconstructed top TEN bid
+and ask levels matched **6,280/6,280** completed packet/time groups exactly on price,
+quantity and order count. No unmatched groups or source adapter errors remain.
+Current automated source tests: 526 full Hub and 26 Python; actual-source browser
+6/6 and expanded synthetic ES/NQ browser 15/15 remain accepted for unchanged inputs.
+Evidence: `docs/evidence/futures-depth10-20261012/`. No raw market rows are committed.
+
+The remaining production boundary is now materially narrower: approved live source
+and actual contract/status/receipt plumbing, paired contemporaneous SPX/NDX input,
+production chart-shell integration, independent release review and exact-head CI.
+A narrow connected-mail lookup did not recover a Databento/CME licensing or invoice
+receipt; that absence does NOT prove no company account/license exists. No purchase,
+license assent, credential search, vendor message, live subscription or deployment
+was performed. Existing source grants must be verified before activation; public
+historical samples prove calculations, not subscriber-distribution rights.
+
 ## Source register
 
 All public sources below were inspected through official pages in this research pass. Publisher claims remain claims; no authenticated QuantData runtime teardown or vendor negotiation was performed.

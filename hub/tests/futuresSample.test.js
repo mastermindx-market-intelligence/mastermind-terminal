@@ -82,3 +82,33 @@ test('unfinished next event at packet tail does not hide its preceding completed
   assert.equal(report.unmatchedReferences, 0); assert.equal(report.result, 'historical_displayed_bbo_agrees');
   assert.equal(report.admittedTradeVolume, 2);
 });
+
+test('top-ten comparison checks every rank, not only the best quotes', () => {
+  const { compareDepth10 } = require('../tools/compare_futures_sample');
+  const bids = Array.from({ length: 10 }, (_, i) => ({ priceTicks: 26800 - i, size: 10 + i, orderCount: 2 + i }));
+  const asks = Array.from({ length: 10 }, (_, i) => ({ priceTicks: 26801 + i, size: 20 + i, orderCount: 3 + i }));
+  const levels = bids.map((bid, i) => ({ bidPrice: (BigInt(bid.priceTicks) * 250000000n).toString(),
+    askPrice: (BigInt(asks[i].priceTicks) * 250000000n).toString(), bidSize: bid.size, askSize: asks[i].size,
+    bidCount: bid.orderCount, askCount: asks[i].orderCount }));
+  assert.deepEqual(compareDepth10({ bids, asks }, { levels }), []);
+  levels[8].askSize++;
+  assert.deepEqual(compareDepth10({ bids, asks }, { levels }), ['level9:askSize']);
+  assert.throws(() => compareDepth10({ bids, asks }, { levels: levels.slice(0, 9) }), /invalid_depth_reference/);
+});
+test('full source replay compares deeper displayed liquidity against MBP-10', () => {
+  const { mbo, reference } = sample(); reference.receipt.sourceSchema = 'mbp-10';
+  for (const [i, row] of reference.rows.entries()) {
+    const empty = { bidPrice: '9223372036854775807', askPrice: '9223372036854775807',
+      bidSize: 0, askSize: 0, bidCount: 0, askCount: 0 };
+    row.record.levels = [row.record, ...Array.from({ length: 9 }, () => ({ ...empty }))];
+    // Avoid a circular fixture; the reference level only contains scalar book fields.
+    row.record.levels[0] = { bidPrice: row.record.bidPrice, askPrice: row.record.askPrice,
+      bidSize: row.record.bidSize, askSize: row.record.askSize, bidCount: row.record.bidCount, askCount: row.record.askCount };
+    if (i === 1) row.record.levels[1] = { ...empty, bidPrice: '6699750000000', bidSize: 5, bidCount: 1 };
+  }
+  const { report } = compareSamples(mbo, reference);
+  assert.equal(report.result, 'historical_displayed_depth10_agrees'); assert.equal(report.comparisonDepth, 10);
+  reference.rows[1].record.levels[1].bidSize = 4;
+  const bad = compareSamples(mbo, reference).report;
+  assert.equal(bad.result, 'comparison_incomplete_or_mismatched'); assert.equal(bad.mismatchFields['level2:bidSize'], 1);
+});

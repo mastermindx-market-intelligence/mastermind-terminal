@@ -14,10 +14,10 @@ import os
 from pathlib import Path
 import tempfile
 from urllib.request import Request, urlopen
-from futures_csv import timestamp_ns, normalize_mbo, normalize_reference
+from futures_csv import timestamp_ns, normalize_mbo, normalize_reference, normalize_depth_reference
 
 URLS = {schema: f"https://hist.databento.com/v0/dataset/sample/download/glbx.mdp3/{schema}?sample_type=futures"
-        for schema in ("mbo", "mbp-1")}
+        for schema in ("mbo", "mbp-1", "mbp-10")}
 ROOT = Path(__file__).resolve().parents[2] / ".local-futures"
 
 
@@ -75,7 +75,7 @@ def acquire(schema: str, seconds: int = 300) -> dict:
                 if len(instruments) > 16:
                     raise ValueError("sample_instrument_capacity")
                 # Parse every admitted row before retaining its bytes.
-                (normalize_mbo if schema == "mbo" else normalize_reference)(row)
+                {"mbo": normalize_mbo, "mbp-1": normalize_reference, "mbp-10": normalize_depth_reference}[schema](row)
                 counts += 1; total_bytes += len(line)
                 if counts > 250000 or total_bytes > 128 * 1024**2:
                     raise ValueError("sample_prefix_capacity")
@@ -86,7 +86,7 @@ def acquire(schema: str, seconds: int = 300) -> dict:
         raw_digest = raw_hash.hexdigest(); source_id = "sha256:" + raw_digest
         output_hash = hashlib.sha256()
         with (staging / "normalized.jsonl").open("xb") as output, raw.open(newline="") as source:
-            metadata = {"kind": "metadata", "schema": "hub.futures_source_records/v1" if schema == "mbo" else "hub.futures_bbo_reference/v1",
+            metadata = {"kind": "metadata", "schema": "hub.futures_source_records/v1" if schema == "mbo" else "hub.futures_bbo_reference/v1" if schema == "mbp-1" else "hub.futures_depth_reference/v1",
                 "dataset": "GLBX.MDP3", "sourceSchema": schema, "sourceId": source_id,
                 "inputSha256": raw_digest, "availabilityBasis": "vendor_capture_retrospective",
                 "decoder": "strict_csv_fixedpoint_ns/v1", "scope": "public_sample_prefix_not_full_file"}
@@ -95,7 +95,7 @@ def acquire(schema: str, seconds: int = 300) -> dict:
                 output.write(line); output_hash.update(line)
             emit(metadata)
             for ordinal, row in enumerate(csv.DictReader(source)):
-                normalized = (normalize_mbo if schema == "mbo" else normalize_reference)(row)
+                normalized = {"mbo": normalize_mbo, "mbp-1": normalize_reference, "mbp-10": normalize_depth_reference}[schema](row)
                 emit({"kind": "record", "sourceId": source_id, "ordinal": ordinal,
                       "availableAtNs": timestamp_ns(row["ts_recv"]), "record": normalized})
             output.flush(); os.fsync(output.fileno())

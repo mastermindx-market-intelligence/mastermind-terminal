@@ -60,3 +60,19 @@ def normalize_reference(row: dict[str, str]) -> dict:
         "bidPrice": fixed_price(row["bid_px_00"]), "askPrice": fixed_price(row["ask_px_00"]),
         "bidSize": integer(row["bid_sz_00"]), "askSize": integer(row["ask_sz_00"]),
         "bidCount": integer(row["bid_ct_00"]), "askCount": integer(row["ask_ct_00"])}
+
+
+def normalize_depth_reference(row: dict[str, str]) -> dict:
+    """Independent top-ten reference rows; do not reconstruct them from the MBO test input."""
+    if integer(row["rtype"]) != 10:
+        raise ValueError("csv_not_mbp_10")
+    result = {"publisherId": integer(row["publisher_id"], 16), "instrumentId": integer(row["instrument_id"]),
+        "receiveTimeNs": timestamp_ns(row["ts_recv"]), "sequence": integer(row["sequence"]),
+        "flags": integer(row["flags"], 8), "symbol": row["symbol"], "levels": []}
+    for level in range(10):
+        suffix = f"{level:02d}"
+        result["levels"].append({"bidPrice": fixed_price(row[f"bid_px_{suffix}"]),
+            "askPrice": fixed_price(row[f"ask_px_{suffix}"]), "bidSize": integer(row[f"bid_sz_{suffix}"]),
+            "askSize": integer(row[f"ask_sz_{suffix}"]), "bidCount": integer(row[f"bid_ct_{suffix}"]),
+            "askCount": integer(row[f"ask_ct_{suffix}"])})
+    return result

@@ -33,9 +33,16 @@ function compareBbo(view, expected) {
   return changes;
 }
 
+function compareDepth10(view, expected) {
+  check(Array.isArray(expected.levels) && expected.levels.length === 10, 'invalid_depth_reference');
+  return expected.levels.flatMap((level, index) => compareBbo({
+    bids: view.bids?.slice(index, index + 1), asks: view.asks?.slice(index, index + 1),
+  }, level).map(field => `level${index + 1}:${field}`));
+}
+
 /** Two independent SOURCE SCHEMAS, not an independent exchange or counterparty. */
 function compareSamples(mbo, reference, { retainEveryEventWindow = null } = {}) {
-  check(mbo.receipt.sourceSchema === 'mbo' && reference.receipt.sourceSchema === 'mbp-1', 'sample_schemas');
+  check(mbo.receipt.sourceSchema === 'mbo' && ['mbp-1', 'mbp-10'].includes(reference.receipt.sourceSchema), 'sample_schemas');
   check(mbo.receipt.instruments.length === 1 && reference.receipt.instruments.length === 1 &&
     JSON.stringify(mbo.receipt.instruments) === JSON.stringify(reference.receipt.instruments), 'sample_identity_mismatch');
   const instrument = mbo.receipt.instruments[0];
@@ -108,7 +115,7 @@ function compareSamples(mbo, reference, { retainEveryEventWindow = null } = {}) 
     if (!expected) continue;
     seen.add(k);
     compared++;
-    const different = view.status === 'ok' ? compareBbo(view, expected) : [`book:${view.reason}`];
+    const different = view.status === 'ok' ? (reference.receipt.sourceSchema === 'mbp-10' ? compareDepth10 : compareBbo)(view, expected) : [`book:${view.reason}`];
     if (!different.length) exact++;
     else {
       for (const field of different) mismatchFields[field] = (mismatchFields[field] || 0) + 1;
@@ -128,6 +135,7 @@ function compareSamples(mbo, reference, { retainEveryEventWindow = null } = {}) 
     sourceUrl: mbo.receipt.sourceUrl, referenceUrl: reference.receipt.sourceUrl,
     sourceRawSha256: mbo.receipt.rawPrefixSha256, referenceRawSha256: reference.receipt.rawPrefixSha256,
     sourceNormalizedSha256: mbo.receipt.normalizedSha256, referenceNormalizedSha256: reference.receipt.normalizedSha256,
+    referenceSchema: reference.receipt.sourceSchema, comparisonDepth: reference.receipt.sourceSchema === 'mbp-10' ? 10 : 1,
     contract: instrument.symbol, startNs: start.toString(), endNs: end.toString(),
     sourceRecords: mbo.rows.length, referenceRecords: reference.rows.length, initialSnapshotRows, firstSnapshotOrders,
     completedEvents, eligibleReferences, referenceNonFinal, compared, exact, mismatches: compared - exact,
@@ -138,20 +146,21 @@ function compareSamples(mbo, reference, { retainEveryEventWindow = null } = {}) 
     tradeConservation: rawTradeCount === trades.length && rawTradeVolume === tradeVolume && footprint.observedVolume === tradeVolume,
     elapsedMs: performance.now() - timeStarted,
     result: compared > 0 && exact === compared && !unmatched && !unavailable && finish.status === 'finished'
-      ? 'historical_displayed_bbo_agrees' : 'comparison_incomplete_or_mismatched',
+      ? (reference.receipt.sourceSchema === 'mbp-10' ? 'historical_displayed_depth10_agrees' : 'historical_displayed_bbo_agrees') : 'comparison_incomplete_or_mismatched',
     fullBookOracle: false, fullSession: false, live: false, authenticatedVenueDefinition: false,
     availabilityBasis: 'vendor_capture_retrospective', subscriberDisplayRights: 'not_established',
-    interpretation: 'Reconstructed displayed-book BBO vs separately supplied vendor MBP-1 schema, not proof of full-book queues or production admission.' };
+    interpretation: `Reconstructed displayed ${reference.receipt.sourceSchema === 'mbp-10' ? 'top-ten depth' : 'BBO'} vs separately supplied vendor ${reference.receipt.sourceSchema} schema, not proof of full-book queues or production admission.` };
   return { report, privateData: { binding, samples, trades, footprint, mismatchExamples, endNs: end.toString(), startNs: start.toString() } };
 }
-module.exports = { compareBbo, compareSamples, load };
+module.exports = { compareBbo, compareDepth10, compareSamples, load };
 if (require.main === module) {
   const root = path.resolve(__dirname, '../../.local-futures');
   const [mboFolder = 'public-mbo-300s', bboFolder = 'public-mbp-1-300s'] = process.argv.slice(2);
   check(/^[a-z0-9-]+$/.test(mboFolder) && /^[a-z0-9-]+$/.test(bboFolder), 'invalid_local_sample_directory');
   const result = compareSamples(load(path.join(root, mboFolder)), load(path.join(root, bboFolder)));
-  fs.writeFileSync(path.join(root, 'comparison-private.json'), JSON.stringify(result.privateData));
-  fs.writeFileSync(path.join(root, 'comparison-report.json'), JSON.stringify(result.report, null, 2) + '\n');
+  const label = result.report.comparisonDepth === 10 ? 'depth10-comparison' : 'comparison';
+  fs.writeFileSync(path.join(root, label + '-private.json'), JSON.stringify(result.privateData));
+  fs.writeFileSync(path.join(root, label + '-report.json'), JSON.stringify(result.report, null, 2) + '\n');
   console.log(JSON.stringify(result.report, null, 2));
-  if (result.report.result !== 'historical_displayed_bbo_agrees' || !result.report.tradeConservation) process.exitCode = 2;
+  if (!['historical_displayed_bbo_agrees', 'historical_displayed_depth10_agrees'].includes(result.report.result) || !result.report.tradeConservation) process.exitCode = 2;
 }

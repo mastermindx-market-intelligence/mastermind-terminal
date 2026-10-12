@@ -105,5 +105,31 @@ class CsvBoundaryTest(unittest.TestCase):
                 with self.assertRaisesRegex(ValueError, 'ended_before'): acquisition.acquire('mbo', 10)
             self.assertFalse((Path(tmp)/'public-mbo-10s').exists())
 
+class DepthReferenceTest(unittest.TestCase):
+    def row(self):
+        result = {'rtype':'10','publisher_id':'1','instrument_id':'42','ts_recv':STAMP,
+            'sequence':'1','flags':'128','symbol':'ESZ5'}
+        for i in range(10):
+            suffix = f'{i:02d}'
+            result.update({f'bid_px_{suffix}':f'{6700-i}.250000000', f'ask_px_{suffix}':f'{6701+i}.250000000',
+                f'bid_sz_{suffix}':str(10+i), f'ask_sz_{suffix}':str(20+i),
+                f'bid_ct_{suffix}':'2', f'ask_ct_{suffix}':'3'})
+        return result
+
+    def test_all_ten_levels_keep_exact_prices_and_counts(self):
+        row = fields.normalize_depth_reference(self.row())
+        self.assertEqual(len(row['levels']), 10)
+        self.assertEqual(row['levels'][9]['bidPrice'], '6691250000000')
+        self.assertEqual(row['levels'][9]['askSize'], 29)
+        self.assertEqual(row['levels'][9]['bidCount'], 2)
+
+    def test_missing_or_bad_deeper_level_cannot_be_silently_dropped(self):
+        row = self.row(); del row['ask_sz_09']
+        with self.assertRaises(KeyError): fields.normalize_depth_reference(row)
+        row = self.row(); row['bid_px_08'] = 'NaN'
+        with self.assertRaises(ValueError): fields.normalize_depth_reference(row)
+        row = self.row(); row['rtype'] = '1'
+        with self.assertRaises(ValueError): fields.normalize_depth_reference(row)
+
 if __name__ == '__main__':
     unittest.main()
