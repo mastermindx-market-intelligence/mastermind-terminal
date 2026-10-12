@@ -5,7 +5,7 @@
 # capturedAt: 2026-10-12T01:37:33.113Z
 # capturedAtHead is informational. The lock is layoutFiles.
 layoutFiles:
-  terminal/components/workspaces/ThesisWorkspace.tsx: "3d52b675f5784dac1f2868cd4c3c7bed5127cd18262ce5256727a4c0127be167"
+  terminal/components/workspaces/ThesisWorkspace.tsx: "d48372250c746f43c13b556e99822c655f5b28fde362e25b56c80d10c2083214"
   terminal/components/workspaces/ThesisWorkspace.module.css: "c7fcd07d13cf3d7453bb51cd47ffb13c80af05e327bf9662368e97988023320c"
   terminal/lib/rmsViews.ts: "fd5f025806c5a4b1b27e7d99a026e82f555767f0d96b6a2766a5b363961897cb"
   terminal/lib/savedViews.ts: "16e2914a032cba50cce999d1802c53e51098ce76dd82931925ef41b8e0f7af54"
