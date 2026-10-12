@@ -1,8 +1,8 @@
 # B-PL-6 batch 1 — capture evidence
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
 # Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
-# capturedAtHead: 4e39ea9de6d31557f8fe05e9b478ce3e61706566
-# capturedAt: 2026-10-12T07:36:24.066Z
+# capturedAtHead: 3b18fd7360903f2a3a7097700f0d0182e6294386
+# capturedAt: 2026-10-12T03:57:33.190Z
 # capturedAtHead is informational. The lock is layoutFiles.
 layoutFiles:
   terminal/components/OptionsHubView.tsx: "7c194ce6ed4d67bae366db36b9ae5257a34ed283a9e1e8a079a101dd995f6e3c"
@@ -12,8 +12,8 @@ layoutFiles:
   terminal/components/ChartPanel.tsx: "579ba00f36210e1de19b95b5295eb75cc9a58e8e5979ed50b314bb2715857bb3"
   terminal/components/DayRange.tsx: "c84724652783da1897ab4eeb98550eaf3dbd7942eefe3ce127b6ada2b16dd672"
   terminal/lib/plainLabels.ts: "8f57e32a21abcae530075b7c4da72f170afff8ea38084026995887b4a18fe29a"
-  terminal/lib/i18n.tsx: "af45118c980cad0c274c23577df30482bff911b3caa3c53683e53c4fa87c2b85"
-  terminal/app/company-intelligence.css: "16ca4e131ad1f2973b6346e7f051af802dbfa27227d6c33615af87578e73f885"
+  terminal/lib/i18n.tsx: "cfad0a8290b9b872fe919b7b9855bbd3a4cee095eb26ebd902c399942196a65d"
+  terminal/app/company-intelligence.css: "2bd8643832428198d38e8a5140cb7029687466781b2366976cb3ca5ddad9892b"
 theme: dark
 languages: [en, zh]
 viewports:

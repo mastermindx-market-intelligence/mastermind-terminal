@@ -237,19 +237,38 @@ test("a superseded packet arriving after a burst never rolls the candle backward
   test.slow();
   let phase: QuotePhase = { basis: "EOD", last: LAST_CLOSE, sessionDate: LAST_SESSION, seconds: rthSeconds(LAST_SESSION) };
   const served: Served = { count: 0, lastSeconds: null };
-  const ASSERTED_STUDIES = ["ema", "rsi"] as const;
-  await serve(page, () => phase, [...ASSERTED_STUDIES], served);
+  await serve(page, () => phase, ["ema", "rsi"], served);
   await page.goto(`/terminal?symbol=${SYMBOL}`);
-  // Both compared studies must exist before the accepted quote establishes their baseline.
+  // Gate on the ELEMENT, never the count (the `built` law above). The chart's FIRST build runs on
+  // the pre-hydration default set (ema/vol/macd/stochrsi — TerminalShell state until the mm.inds
+  // mount read lands), which satisfies `barCount > 50` with no rsi in existence; rsi arrives only
+  // via the indicator effect's bounded rebuild once the hydrated [ema, rsi] set commits. Measured at
+  // 4x CPU throttle (mobile, the CI shard's signature): default-set build at 5.1s, the high bar
+  // ACCEPTED at 11.0s with rsi still unbuilt, rsi first built at 13.1s — between this test's
+  // `settled` and `stale` snapshots. barCount alone green-lights that whole window.
   await expect.poll(async () => {
     const w = await witness(page);
-    return w && w.barCount > 50 && ASSERTED_STUDIES.every((k) => built(w, k)) ? "ready" : "waiting";
-  }, { message: "the fixture history and every compared study should reach the canvas", timeout: 60_000 }).toBe("ready");
+    return w && w.barCount > 50 && built(w, "ema") && built(w, "rsi") ? "ready" : "waiting";
+  }, { message: "the fixture history and both asserted studies should reach the canvas", timeout: 60_000 }).toBe("ready");
 
   const high = Number((LAST_CLOSE * 1.3).toFixed(2));
   phase = { basis: "REALTIME", last: high, sessionDate: LAST_SESSION, seconds: rthSeconds(LAST_SESSION, 15, 40) };
-  await expect.poll(async () => (await witness(page))?.lastBar?.c ?? null, { timeout: 30_000 }).toBe(high);
+  // The candle and its studies move in ONE synchronous pass (`commitLiveBarGeneration`), so a built
+  // study's tail sitting on the high bar's own time is atomic with the candle reaching it — there is
+  // no interleaved state where lastBar.c === high but a built study predates the tick. Waiting for
+  // that coherence (not just the close) is what makes `settled` a snapshot of the high generation.
+  await expect.poll(async () => {
+    const w = await witness(page);
+    if (!w || w.lastBar?.c !== high) return "waiting";
+    const onHighBar = (k: string) => w.series[k]?.[0]?.time === w.lastBar?.time && typeof w.series[k]?.[0]?.value === "number";
+    return onHighBar("ema") && onHighBar("rsi") ? "settled" : "waiting";
+  }, { message: "the high bar should reach the candle and both studies in one generation", timeout: 30_000 }).toBe("settled");
   const settled = (await witness(page))!;
+  // A settled snapshot missing either study would let the equality assertions below pass VACUOUSLY
+  // as undefined === undefined — the same race one poll later (observed 9/10 times at 4x throttle:
+  // the rebuild had not landed even by `stale`). Pin both to real numbers before the stale phase.
+  expect(typeof settled.series.ema?.[0]?.value).toBe("number");
+  expect(typeof settled.series.rsi?.[0]?.value).toBe("number");
 
   // An OLDER stamp on the same lane: refused, so neither the candle nor the generation moves.
   // (A generation that advanced here would mean the boundary ran on a rejected packet.)
