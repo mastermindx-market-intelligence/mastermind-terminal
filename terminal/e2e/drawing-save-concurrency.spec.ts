@@ -885,7 +885,7 @@ test("F3 retry: a 5xx PUT keeps 'Retry save' visible across the next stroke and 
   const raw = localStorage.getItem("mm.drawing.account-outbox.v2");
   if (!raw) throw new Error("missing v2");
   const env = JSON.parse(raw) as Record<string, Record<string, { copies: Record<string, { drawings: { id:string }[]; revision: string }> }>>;
-  env["account:e2e-user-default"].NVDA.copies["44444444-4444-4444-8444-444444444444"].drawings.push({ id: "stroke-2", kind: "hline", source: "user", schemaVersion: 1, points: [{ t: "2026-01-01", p: 200 }], meta: { label: "保持" } });
+  (env["account:e2e-user-default"].NVDA.copies["44444444-4444-4444-8444-444444444444"].drawings as { id:string }[]).push({ id: "stroke-2" });
   localStorage.setItem("mm.drawing.account-outbox.v2", JSON.stringify(env));
  });
  await page.reload();
