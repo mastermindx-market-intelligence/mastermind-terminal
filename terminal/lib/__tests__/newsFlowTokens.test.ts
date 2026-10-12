@@ -50,6 +50,12 @@ describe("newsFlowTokens — structural laws", () => {
     expect(read("components/news/NewsFlowStrip.module.css")).not.toContain("[data-comparison");
   });
 
+  it("the open details stretch to their grid row so they scroll inside the strip (pin P8a)", () => {
+    const rule = read("components/news/NewsFlowStrip.module.css").match(/\.detail\{([^}]*)\}/);
+    expect(rule, ".detail rule").not.toBeNull();
+    expect(rule![1]).toContain("align-self:stretch");
+  });
+
   it("no owned file contains data-theme (D-W1: dark ships, light is specimen-only)", () => {
     for (const rel of OWNED) {
       expect(read(rel), rel).not.toContain("data-theme");
