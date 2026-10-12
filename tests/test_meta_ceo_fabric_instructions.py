@@ -36,5 +36,5 @@ def test_principal_returns_are_compact_and_existing_owners_remain():
     for phrase in ("source hash", "test evidence", "next", "outside principal context"):
         assert phrase in AGENTS
     assert "canonical Macro Agent OS" in AGENTS
-    assert "do not install a" not in AGENTS.lower()  # no false install claim
+    assert "These source instructions do not install a" in AGENTS
     assert "do not spawn just to fill 114" in AGENTS.lower()
