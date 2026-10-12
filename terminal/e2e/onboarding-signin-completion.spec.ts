@@ -18,26 +18,26 @@ for (const lang of ["en", "zh"] as const) {
       };
       const encode = (value: unknown) => Buffer.from(JSON.stringify(value)).toString("base64url");
       const token = `${encode({ alg: "HS256", typ: "JWT" })}.${encode({ sub: user.id, exp: Math.floor(Date.now() / 1000) + 3600 })}.fixture`;
-      // Match the existing password-recovery fixture seam. Chromium may reject
-      // a cross-port local request before route interception, so supply the
+      // Match the same-origin fixture base in playwright.config.ts. Supply the
       // Auth response at fetch while keeping the real SDK and form path intact.
       await page.addInitScript(({ user, token }) => {
         const state = window as unknown as { __mmSigninSubmissions: number; __mmResolveSignin?: () => void };
         state.__mmSigninSubmissions = 0;
         const originalFetch = window.fetch.bind(window);
+        const authPath = "/api/__e2e__/supabase/auth/v1";
         window.fetch = async (input: RequestInfo | URL, init?: RequestInit) => {
           const raw = typeof input === "string" ? input : input instanceof Request ? input.url : input.toString();
           const url = new URL(raw, window.location.href);
-          if (!url.pathname.startsWith("/auth/v1/")) return originalFetch(input, init);
-          if (url.origin !== "http://127.0.0.1:54321") throw new Error("Unexpected auth fixture origin");
-          if (url.pathname === "/auth/v1/token" && url.searchParams.get("grant_type") === "password") {
+          if (!url.pathname.startsWith(`${authPath}/`)) return originalFetch(input, init);
+          if (url.origin !== window.location.origin) throw new Error("Unexpected auth fixture origin");
+          if (url.pathname === `${authPath}/token` && url.searchParams.get("grant_type") === "password") {
             state.__mmSigninSubmissions += 1;
             await new Promise<void>((resolve) => { state.__mmResolveSignin = resolve; });
             return new Response(JSON.stringify({ access_token: token, token_type: "bearer",
               expires_in: 3600, refresh_token: "local-fixture-only", user }),
             { status: 200, headers: { "content-type": "application/json" } });
           }
-          if (url.pathname === "/auth/v1/user") return new Response(JSON.stringify(user),
+          if (url.pathname === `${authPath}/user`) return new Response(JSON.stringify(user),
             { status: 200, headers: { "content-type": "application/json" } });
           throw new Error("Unexpected auth fixture operation");
         };
