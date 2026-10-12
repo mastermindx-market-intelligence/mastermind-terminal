@@ -1580,6 +1580,8 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
       return;
     }
     const url = new URL(window.location.href);
+    // A disproved candidate loses both halves of its context/company pair.
+    url.searchParams.delete("symbol");
     url.search = stripMarketOntologyParams(url.searchParams).toString();
     if (url.href === window.location.href) setMarketOntologyContext(null);
     else writeRoute(url, "replace");

@@ -440,6 +440,15 @@ test("reopening an existing thesis of the same company keeps the Transmission co
   await expect(strip).toHaveCount(0);
   expect([...new URL(page.url()).searchParams.keys()].filter((key) => key.startsWith("mo_"))).toEqual([]);
 
+  // Disproof clears the company as well as the context; a shared/reloaded URL
+  // must not seed the previous company's subject or Claim form.
+  expect(new URL(page.url()).searchParams.get("symbol")).toBeNull();
+  await page.reload();
+  await expect(page.getByText("MSFT · Listing-scoped identity")).toBeVisible({ timeout: 30_000 });
+  await expect(page.getByLabel("Title")).toHaveValue("Another company reopen thesis");
+  await expect(strip).toHaveCount(0);
+  expect(new URL(page.url()).searchParams.get("symbol")).toBeNull();
+
   // Browser Back returns to the confirmed same-company entry, context still honest.
   await page.goBack();
   await expect(page.getByText("Version 1 · Current")).toBeVisible({ timeout: 30_000 });

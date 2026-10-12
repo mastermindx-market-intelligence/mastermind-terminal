@@ -283,6 +283,43 @@ describe("ThesisWorkspace reopen with MarketOntology context", () => {
     });
     expect(strip(el)).toBeNull();
     expect(moKeys()).toEqual([]);
+    expect(new URL(window.location.href).searchParams.get("symbol")).toBeNull();
+  });
+
+  it("a cross-company selection clears the whole candidate before its URL is reloaded", async () => {
+    const nvda = summary(NVDA_ID, listingSubject("NVDA"), "NVDA thesis");
+    const msft = summary(MSFT_ID, listingSubject("MSFT"), "MSFT thesis");
+    installFetch({ theses: [nvda, msft], detailFor: (id) => id === MSFT_ID
+      ? jsonResponse({ thesis: detailFor(msft) }) : undefined });
+    const el = await mountAt(`/analysis?view=theses&symbol=NVDA&${MO_QUERY}`, { initialSymbol: "NVDA" });
+    await act(async () => thesisRow(el, "MSFT thesis").click());
+    await flush();
+    const actualUrl = new URL(window.location.href);
+    expect(actualUrl.searchParams.get("thesis")).toBe(MSFT_ID);
+    expect(actualUrl.searchParams.get("symbol"), "a disproved company must not survive in a shared or reloaded URL").toBeNull();
+    expect(moKeys()).toEqual([]);
+    expect(strip(el)).toBeNull();
+
+    await act(async () => root!.unmount());
+    container!.remove();
+    root = null;
+    container = null;
+    let answer: ((response: Response) => void) | undefined;
+    installFetch({ theses: [nvda, msft], detailFor: () => new Promise<Response>((resolve) => { answer = resolve; }) });
+    const reloaded = await mountAt(actualUrl.href, {
+      initialSymbol: actualUrl.searchParams.get("symbol") ?? undefined,
+      initialThesisId: actualUrl.searchParams.get("thesis") ?? undefined,
+    });
+    const header = reloaded.querySelector('[data-testid="thesis-workspace"] > header')!;
+    const claim = reloaded.querySelector('[data-testid="claim-entry-button"]') as HTMLButtonElement;
+    expect(header.textContent).not.toContain("NVDA");
+    expect(claim.disabled, "a pending canonical read must not seed a claim with the previous company").toBe(true);
+    expect(strip(reloaded)).toBeNull();
+    await act(async () => answer!(jsonResponse({ thesis: detailFor(msft) })));
+    await flush();
+    expect(header.textContent).toContain("MSFT");
+    expect(claim.disabled).toBe(false);
+    expect(strip(reloaded)).toBeNull();
   });
 
   it("a lazy composer mount does not keep a thesis selected from stale server props", async () => {
@@ -616,6 +653,7 @@ describe("ThesisWorkspace reopen with MarketOntology context", () => {
     expect(el.textContent).toContain("MSFT");
     expect(strip(el), "a wrong-company deep link must never carry the strip").toBeNull();
     expect(moKeys()).toEqual([]);
+    expect(new URL(window.location.href).searchParams.get("symbol")).toBeNull();
   });
 
   it("browser back to the composer entry and forward to the confirmed thesis entry keep the context honest", async () => {
