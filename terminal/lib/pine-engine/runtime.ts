@@ -18,7 +18,7 @@
 // the expression itself, so chart-bar state cannot leak into the requested context.
 //
 // Admitted contexts and their publication rule (planHtf / resampleBars below):
-//   daily chart → 1W        ISO week (Mon-anchored, keyed by its last session like ChartPanel)
+//   daily chart → 1W        ISO week (Mon-anchored; time = period OPEN, time_close = last session)
 //   daily chart → 1M/3M/12M calendar month / quarter / year
 //   monthly chart → coarser 1M/3M/12M that is a whole multiple of the chart's months
 //   daily chart → nD (n≥2)  lib/sessionBars grid (the canonical 2D/3D owner) phased by
@@ -59,10 +59,11 @@
 // read the requested TF, because the expression runs in the exec() pass whose chartTf IS that TF.
 import { Node, Stmt, Arg, parse, type ParseResult } from "./parser";
 import { PineSyntaxError } from "./lexer";
-import { NA, NS_CONST, toCss, fmtNum, tfSeconds } from "./builtins";
+import { NA, NS_CONST, toCss, fmtNum, tfSeconds, tfParts, tfPartsToSeconds } from "./builtins";
 import { groupSessionBars, parseSessionAnchor } from "../sessionBars";
+import { resolveBarTimeClose } from "./host-shared";
 
-export interface Bar { time: string; o: number; h: number; l: number; c: number; v: number; timeClose?: string }
+export interface Bar { time: string; o: number; h: number; l: number; c: number; v: number; timeClose?: string; closeTime?: string }
 
 // Thrown when a script blows the global run budget (wall-clock or total loop iterations).
 // runPine() in index.ts catches it like any runtime error → errors[], so a runaway script
@@ -136,18 +137,6 @@ function builtinSeriesAt(name: string, B: Bar[], NB: number, j: number): any {
 // lib/sessionBars grid and confirm a group at its mult-th session.
 type HtfPlan = { kind: "week" } | { kind: "month"; n: number } | { kind: "session"; mult: number; barAnchor: number };
 const CALENDAR_MONTHS = new Set([1, 3, 12]);
-function tfParts(tf: string): { n: number; unit: string } | null {
-  // Case-sensitive on the month unit: Pine months are "M"/"1M". A blanket toUpperCase()
-  // would turn the invalid lowercase "m" (e.g. "15m", "1m") into months — "1m" would
-  // even be admitted as 1M. Other units have no such collision and fold to upper.
-  const m = String(tf).trim().match(/^(\d*)([A-Za-z]*)$/);
-  if (!m) return null;
-  const n = m[1] === "" ? 1 : parseInt(m[1], 10);
-  const rawUnit = m[2];
-  if (rawUnit === "m") return null;
-  const unit = rawUnit.toUpperCase();
-  return Number.isFinite(n) && n > 0 ? { n, unit } : null;
-}
 function planHtf(chartTf: string, tf: string, bars: Bar[], barAnchor: number): HtfPlan | string {
   const req = tfParts(tf), chart = tfParts(chartTf);
   if (!req || !chart) return "timeframe is not recognised";
@@ -231,15 +220,8 @@ function parseTfSecStrict(tf: string): number | null {
   // Empty is a distinct same-chart convention handled by the caller, not a 1-minute bar.
   if (String(tf).trim() === "") return null;
   const p = tfParts(tf);
-  if (!p) return null;                              // unknown/unparseable, incl. lowercase "m"
-  const { n, unit } = p;
-  if (unit === "" || unit === "MIN") return n * 60;
-  if (unit === "S") return n;
-  if (unit === "H") return n * 3600;
-  if (unit === "D") return n * 86400;
-  if (unit === "W") return n * 604800;
-  if (unit === "M") return n * 2592000;             // calendar month ≈ 30d, same as tfSeconds
-  return null;                                      // unknown unit (e.g. "FOO", "1X") → refuse
+  if (!p) return null;                              // unknown/unparseable
+  return tfPartsToSeconds(p);                       // null for unknown units (e.g. "FOO", "1X")
 }
 function isDailyTf(tf: string): boolean {
   const p = tfParts(tf);
@@ -251,7 +233,7 @@ function isDailyTf(tf: string): boolean {
 function tfUnitFamily(tf: string): string | null {
   const p = tfParts(tf);
   if (!p) return null;
-  return p.unit === "" || p.unit === "MIN" || p.unit === "S" || p.unit === "H" ? "intraday" : p.unit;
+  return p.unit === "" || p.unit === "MIN" || p.unit === "m" || p.unit === "S" || p.unit === "H" ? "intraday" : p.unit;
 }
 // Where the chart's rows sit on the symbol's session grid, for nD requests. The anchor is the
 // published `session_anchor` point (lib/sessionBars): a session date and its global index. Located
@@ -313,7 +295,12 @@ export function run(source: string | ParseResult, bars: Bar[], opts: { timeframe
   const sessionPhase = resolveSessionPhase(bars, opts.sessionAnchor);
 
   // run the chart timeframe; HTF re-runs are spawned lazily from inside exec()
-  return exec(bars, opts.timeframe || "1D", opts.symbol || "SYM", opts.params || {}, 0).result;
+  const normalized: Bar[] = bars.map((b) => {
+    const timeClose = resolveBarTimeClose(b);
+    if (timeClose === b.timeClose) return b;
+    return timeClose ? { ...b, timeClose } : b;
+  });
+  return exec(normalized, opts.timeframe || "1D", opts.symbol || "SYM", opts.params || {}, 0).result;
 
   // One full bar-by-bar execution over `bars` at `chartTf`. htfDepth>0 marks a re-run spawned by a
   // request.security() call (such runs don't resample again — a single HTF hop is enough and avoids
@@ -414,7 +401,9 @@ export function run(source: string | ParseResult, bars: Bar[], opts: { timeframe
         }
         case "unary": {
           if (n.op === "not") return !truthy(evalNode(n.e, ctx));
-          const v = num(evalNode(n.e, ctx)); return n.op === "-" ? -v : v;
+          const e = evalNode(n.e, ctx);
+          if (isRefused(e)) return e;
+          const v = num(e); return n.op === "-" ? -v : v;
         }
         case "binary": return evalBinary(n, ctx);
         // evaluate BOTH arms so any stateful builtin (ta.*) inside an arm advances every bar like Pine,
@@ -435,6 +424,7 @@ export function run(source: string | ParseResult, bars: Bar[], opts: { timeframe
       if (op === "or") { const l = truthy(evalNode(n.l, ctx)); const r = truthy(evalNode(n.r, ctx)); return l || r; }
       const a = evalNode(n.l, ctx), b = evalNode(n.r, ctx);
       if (op === "+") { if (typeof a === "string" || typeof b === "string") return (isNa(a) ? "na" : String(a)) + (isNa(b) ? "na" : String(b)); }
+      if (isRefused(a) || isRefused(b)) return REFUSED;
       switch (op) {   // Pine: a comparison with an na operand is na (not false); truthy(na)=false keeps boolean logic intact
         case "==": return isNa(a) || isNa(b) ? NA : a === b;
         case "!=": return isNa(a) || isNa(b) ? NA : a !== b;
@@ -501,7 +491,7 @@ export function run(source: string | ParseResult, bars: Bar[], opts: { timeframe
 
     // resample-and-rerun for one coarser timeframe (cached); a string is the reason it is refused
     function getHtfCtx(tf: string): HtfBuilt | string {
-      const key = tf.trim().toUpperCase();
+      const key = tf.trim(); // case-sensitive: "1m" (minutes) must not share a cache slot with "1M" (months)
       const hit = htfCache.get(key);
       if (hit !== undefined) return hit;
       let built: HtfBuilt | string;
@@ -711,16 +701,20 @@ export function run(source: string | ParseResult, bars: Bar[], opts: { timeframe
           if (method === "rgb") return `rgba(${num(pos[0]) | 0}, ${num(pos[1]) | 0}, ${num(pos[2]) | 0}, ${pos[3] != null ? (100 - num(pos[3])) / 100 : 1})`;
           if (method === "from_gradient") return toCss(pos[3] ?? pos[4]);
           warn(`unsupported color.${method}() (na)`); return NA;
-        case "str":
-          if (method === "tostring") return fmtNum(num(pos[0]), pos[1]);
-          if (method === "format") { let s = String(pos[0] ?? ""); for (let k = 1; k < pos.length; k++) s = s.replace(`{${k - 1}}`, isNa(pos[k]) ? "na" : String(pos[k])); return s; }
-          if (method === "length") return String(pos[0] ?? "").length;
-          if (method === "tonumber") return parseFloat(pos[0]);
-          if (method === "contains") return String(pos[0]).includes(String(pos[1]));
-          if (method === "upper") return String(pos[0]).toUpperCase();
-          if (method === "lower") return String(pos[0]).toLowerCase();
+        case "str": {
+          // A refused request.security value is ordinary na at the string boundary
+          // (never String(sentinel) → "[object Object]").
+          const a = pos.map((x) => isRefused(x) ? NA : x);
+          if (method === "tostring") return fmtNum(num(a[0]), a[1]);
+          if (method === "format") { let s = String(a[0] ?? ""); for (let k = 1; k < a.length; k++) s = s.replace(`{${k - 1}}`, isNa(a[k]) ? "na" : String(a[k])); return s; }
+          if (method === "length") return String(a[0] ?? "").length;
+          if (method === "tonumber") return parseFloat(a[0]);
+          if (method === "contains") return String(a[0]).includes(String(a[1]));
+          if (method === "upper") return String(a[0]).toUpperCase();
+          if (method === "lower") return String(a[0]).toLowerCase();
           // na, not "": an empty-string stub would be accepted by request.security as current-context.
           warn(`unsupported str.${method}() (na)`); return NA;
+        }
         case "input": return inputDispatch(method, pos, named);
         case "timeframe":
           if (method === "in_seconds") return tfSeconds(pos[0] != null ? String(pos[0]) : chartTf);
@@ -740,7 +734,7 @@ export function run(source: string | ParseResult, bars: Bar[], opts: { timeframe
     function inputDispatch(method: string, pos: any[], named: Record<string, any>): any {
       const def = pos[0];
       const title = named.title !== undefined ? named.title : (typeof pos[1] === "string" ? pos[1] : method);
-      if (collectInputs) inputs.push({ title: String(title), type: method, value: def }); // dedupe: first bar only
+      if (collectInputs) inputs.push({ title: String(title), type: method, value: isRefused(def) ? NA : def }); // dedupe: first bar only; refused → ordinary na (never the sentinel object)
       return def;
     }
 
@@ -758,7 +752,11 @@ export function run(source: string | ParseResult, bars: Bar[], opts: { timeframe
         return isNa(pos[0]) ? (pos[1] !== undefined ? pos[1] : 0) : pos[0];
       }
       if (name === "na") { const { pos } = evalArgs(n.args, ctx); return isNa(pos[0]); }
-      if (name === "fixnan") { const { pos } = evalArgs(n.args, ctx); const key = "#fix" + n.id; const st = taState.get(key) || { last: NA }; if (!isNa(pos[0])) st.last = pos[0]; taState.set(key, st); return st.last; }
+      if (name === "fixnan") {
+        const { pos } = evalArgs(n.args, ctx);
+        if (isRefused(pos[0])) return pos[0];
+        const key = "#fix" + n.id; const st = taState.get(key) || { last: NA }; if (!isNa(pos[0])) st.last = pos[0]; taState.set(key, st); return st.last;
+      }
       // Deferred global drawing/alert builtins: nothing is emitted, but the args are still
       // EVALUATED (then dropped) so any stateful builtin inside them — ta.*, a nested plot(),
       // `expr[n]` history — advances its per-call-site state on every bar, the same rule the
@@ -867,6 +865,7 @@ export function run(source: string | ParseResult, bars: Bar[], opts: { timeframe
     }
 
     function mathDispatch(method: string, pos: any[]): any {
+      if (pos.some(isRefused)) return REFUSED;
       const a = num(pos[0]), b = num(pos[1]);
       switch (method) {
         case "abs": return Math.abs(a); case "max": { let m = -Infinity; for (const x of pos) { const v = num(x); if (isNaN(v)) return NA; m = Math.max(m, v); } return m; }

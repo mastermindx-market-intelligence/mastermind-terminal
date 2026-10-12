@@ -34,6 +34,7 @@
 //     witness) is not confirmed merely because it is the last array item. Prefix vs full history:
 //     the only difference at an observation cutoff is that one documented correction (the session
 //     that closes a calendar period is known to close it only once a later session loads).
+//     Timeframe grammar is case-sensitive and shared (tfParts): "1m" is minutes, "1M" is months.
 //     Everything else coarser — multi-week (2W, 3W…), 2M/5M…, intraday units, W/2W/nD charts,
 //     unsorted or non-date bar times, a call inside a for loop (also through a user function), a
 //     call site the requested pass did not reach on every HTF bar up to the one shown (conditional

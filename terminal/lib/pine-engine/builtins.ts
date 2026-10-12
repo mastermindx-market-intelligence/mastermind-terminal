@@ -80,19 +80,37 @@ export function fmtNum(v: number, mask?: string): string {
   return v.toFixed(decimals);
 }
 
-// seconds-per-bar for a Pine timeframe string ("1D", "3D", "1W", "1M", "240", "60", "15", …)
-export function tfSeconds(tf: string): number {
-  if (!tf) return 86400;
-  const s = tf.trim().toUpperCase();
-  const m = s.match(/^(\d*)([A-Z]*)$/);
-  if (!m) return 86400;
+// Terminal chart TFs are case-sensitive (lib/startTf.ts TF_CANONICAL_ORDER):
+//   "1m"/"15m" = minutes, "1M"/"3M" = months, "1s"/"1S" = seconds, "1h"/"1H" = hours,
+//   "D"/"W" as today. Pine: a bare number is minutes.
+// One parser: tfParts, then tfPartsToSeconds. tfSeconds keeps a 1-day fallback for junk.
+export type TfParts = { n: number; unit: string };
+
+export function tfParts(tf: string): TfParts | null {
+  const m = String(tf).trim().match(/^(\d*)([A-Za-z]*)$/);
+  if (!m) return null;
   const n = m[1] === "" ? 1 : parseInt(m[1], 10);
-  const unit = m[2];
-  if (unit === "" || unit === "MIN") return n * 60;          // bare number = minutes
+  if (!Number.isFinite(n) || n <= 0) return null;
+  const raw = m[2];
+  // "m" vs "M" must not fold: a blanket toUpperCase() reads "1m" as a month.
+  const unit = raw === "m" || raw === "M" ? raw : raw.toUpperCase();
+  return { n, unit };
+}
+
+export function tfPartsToSeconds(p: TfParts): number | null {
+  const { n, unit } = p;
+  if (unit === "" || unit === "MIN" || unit === "m") return n * 60;
   if (unit === "S") return n;
   if (unit === "H") return n * 3600;
   if (unit === "D") return n * 86400;
   if (unit === "W") return n * 604800;
   if (unit === "M") return n * 2592000;                       // calendar month ≈ 30d
-  return 86400;
+  return null;
+}
+
+export function tfSeconds(tf: string): number {
+  if (!tf) return 86400;
+  const p = tfParts(tf);
+  if (!p) return 86400;
+  return tfPartsToSeconds(p) ?? 86400;
 }

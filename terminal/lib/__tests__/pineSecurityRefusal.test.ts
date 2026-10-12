@@ -312,9 +312,9 @@ plot(x, "x")
   });
 
   it("lowercase m in an intraday timeframe is not months and is refused", () => {
-    // TradingView: bare number = minutes, uppercase "M" = months. Lowercase "m" is not a valid
-    // Pine unit. Blind toUpperCase() would turn "1m" into admitted 1M and silently resample
-    // monthly — that must never happen. Refuse via the existing unknown/unparseable path.
+    // Terminal chart TFs: lowercase "m" = minutes, uppercase "M" = months. Blind toUpperCase()
+    // would turn "1m" into admitted 1M and silently resample monthly — that must never happen.
+    // On a daily chart these minute requests are refused as finer than the chart (not unparseable).
     const src = `
 //@version=6
 indicator("t")
@@ -334,10 +334,10 @@ plot(months, "months")
     // Uppercase M remains the month unit and is still admitted (1M on a daily chart).
     expect(hasNumbers(plotValues(out, "months"))).toBe(true);
     expect(plotValues(out, "mins")).not.toEqual(plotValues(out, "months"));
-    expect(countWarnings(out, "unknown/unparseable").length).toBeGreaterThanOrEqual(1);
-    expect(countWarnings(out, "unknown/unparseable").some((w) => w.includes("'1m'"))).toBe(true);
-    expect(countWarnings(out, "unknown/unparseable").some((w) => w.includes("'15m'"))).toBe(true);
-    expect(countWarnings(out, "unknown/unparseable").some((w) => w.includes("'3m'"))).toBe(true);
+    expect(countWarnings(out, "finer than chart").length).toBeGreaterThanOrEqual(1);
+    expect(countWarnings(out, "finer than chart").some((w) => w.includes("'1m'"))).toBe(true);
+    expect(countWarnings(out, "finer than chart").some((w) => w.includes("'15m'"))).toBe(true);
+    expect(countWarnings(out, "finer than chart").some((w) => w.includes("'3m'"))).toBe(true);
   });
 
   it("zero-second / nonsense multiplier timeframe refuses (never valid)", () => {
