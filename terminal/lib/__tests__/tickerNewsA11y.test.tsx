@@ -340,26 +340,33 @@ describe("t-rail-a11y — no translated text in title attributes", () => {
   const allTitles = () =>
     [...host.querySelectorAll("[data-testid=ticker-news-panel] [title]")].map((el) => el.getAttribute("title") ?? "");
 
-  it("EN: no CJK in any title attribute; the no-url headline carries the EN hint", async () => {
+  it("EN: the panel renders no element with a title attribute", async () => {
     feed(() => response(snapshot("NVDA", noUrlRows())));
     await render(<TickerNewsPanel symbol="NVDA" lang="en" userId="user-a" />);
-    expect(allTitles()).toEqual(["Source link unavailable"]);
-    expect(allTitles().join("|")).not.toMatch(/[㐀-鿿]/);
+    expect(allTitles()).toEqual([]);
   });
 
-  // The law: never put translated text in HTML title=. TickerNewsPanel.tsx:201 renders
-  // title={copy.sourceUnavailable} on the no-url headline, which is 原文链接不可用 in ZH —
-  // so the law currently FAILS in ZH. Held as it.fails until the component is fixed (GAP).
-  it.fails("ZH: no CJK in any title attribute (law; currently red at TickerNewsPanel.tsx:201)", async () => {
+  // The law: never put translated text in HTML title=. TickerNewsPanel.tsx:201 used to
+  // render title={copy.sourceUnavailable} on the no-url headline, which is 原文链接不可用
+  // in ZH. Fixed in Wave B3 (U5): the hint is now visually hidden text next to the headline.
+  it("ZH: the panel renders no element with a title attribute", async () => {
     feed(() => response(snapshot("NVDA", noUrlRows())));
     await render(<TickerNewsPanel symbol="NVDA" lang="zh" userId="user-a" />);
-    expect(allTitles().join("|")).not.toMatch(/[㐀-鿿]/);
+    expect(allTitles()).toEqual([]);
   });
 
-  it("characterization: the ZH no-url headline title is 原文链接不可用 (the defect it.fails above holds)", async () => {
-    feed(() => response(snapshot("NVDA", noUrlRows())));
-    await render(<TickerNewsPanel symbol="NVDA" lang="zh" userId="user-a" />);
-    expect(allTitles()).toEqual(["原文链接不可用"]);
+  it("the no-url hint is visually hidden text in the static row, in both languages", async () => {
+    const hint = { en: "Source link unavailable", zh: "原文链接不可用" } as const;
+    for (const lang of ["en", "zh"] as const) {
+      feed(() => response(snapshot("NVDA", noUrlRows())));
+      await render(<TickerNewsPanel symbol="NVDA" lang={lang} userId="user-a" />);
+      expect(allTitles()).toEqual([]);
+      const article = host.querySelector("article");
+      expect(article).toBeTruthy();
+      expect(article!.textContent).toContain(hint[lang]);
+      await act(async () => root.unmount());
+      root = createRoot(host);
+    }
   });
 });
 
@@ -599,23 +606,21 @@ describe("t-rail-a11y — no body or image from the feed", () => {
 });
 
 describe("t-rail-a11y — candidate defects probed (characterized, never fixed here)", () => {
-  it("the live dot is a generic span whose aria-label is hard-coded English in both languages (TickerNewsPanel.tsx:160)", async () => {
-    feed(() => response(snapshot("NVDA", [row("ev2_a", "Launch story", 1)])));
-    await render(<TickerNewsPanel symbol="NVDA" lang="en" userId="user-a" />);
-    const enDot = host.querySelector('[aria-label="live"]');
-    expect(enDot?.tagName).toBe("SPAN");
-    expect(enDot?.getAttribute("role")).toBeNull();
-
-    await act(async () => root.unmount());
-    root = createRoot(host);
-    await render(<TickerNewsPanel symbol="NVDA" lang="zh" userId="user-a" />);
-    const zhDot = host.querySelector('[aria-label="live"]');
-    // ZH render exposes the same hard-coded English "live" — see GAP.
-    expect(zhDot?.tagName).toBe("SPAN");
-    expect(zhDot?.getAttribute("aria-label")).toBe("live");
+  it("the live dot is role=img with a localized accessible name (Wave B3 U5 fix)", async () => {
+    const label = { en: "Live", zh: "实时" } as const;
+    for (const lang of ["en", "zh"] as const) {
+      feed(() => response(snapshot("NVDA", [row("ev2_a", "Launch story", 1)])));
+      await render(<TickerNewsPanel symbol="NVDA" lang={lang} userId="user-a" />);
+      const dot = host.querySelector("[data-news-live-dot]");
+      expect(dot?.tagName).toBe("SPAN");
+      expect(dot?.getAttribute("role")).toBe("img");
+      expect(accessibleName(dot!)).toBe(label[lang]);
+      await act(async () => root.unmount());
+      root = createRoot(host);
+    }
   });
 
-  it("the expanded grouped-source list is a generic div carrying aria-label (TickerNewsPanel.tsx:218)", async () => {
+  it("the expanded grouped-source list is a role=group named by its aria-label (Wave B3 U5 fix)", async () => {
     feed((input: RequestInfo | URL) => {
       const url = String(input);
       if (url.includes("/stories/")) return response(groupDetail());
@@ -626,24 +631,36 @@ describe("t-rail-a11y — candidate defects probed (characterized, never fixed h
       host.querySelector<HTMLButtonElement>("button[aria-expanded]")!.dispatchEvent(new MouseEvent("click", { bubbles: true }));
     });
 
-    const list = [...host.querySelectorAll("div[aria-label]")].find((el) => (el.getAttribute("aria-label") ?? "").includes("reports"));
+    const list = [...host.querySelectorAll('[data-testid=ticker-news-panel] div[role="group"]')].find((el) =>
+      (el.getAttribute("aria-label") ?? "").includes("reports"),
+    );
     expect(list).toBeTruthy();
+    expect(list?.getAttribute("role")).toBe("group");
+    expect(accessibleName(list!)).toBe("2 reports");
     expect(list?.querySelectorAll("a[href]").length).toBe(2); // it holds the two member links
-    expect(list?.getAttribute("role")).toBeNull(); // generic div: aria-label is not a supported name — see GAP
+    // The grouping note is the list's first child (Wave B3 row copy).
+    expect(list?.firstElementChild?.tagName).toBe("P");
+    expect(list?.firstElementChild?.textContent).toContain(
+      "Grouped because these reports describe the same event.",
+    );
   });
 
-  it("per-story Mark reviewed buttons share one identical accessible name in both languages (TickerNewsPanel.tsx:205)", async () => {
+  it("per-story Mark reviewed buttons carry distinct accessible names that name their headline (Wave B3 U5 fix)", async () => {
+    const nameOf = (id: string) =>
+      accessibleName(host.querySelector(`article[data-story-id="${id}"] [data-news-mark-one]`)!);
+
     feed(() => response(snapshot("NVDA", richRows())));
     await render(<TickerNewsPanel symbol="NVDA" lang="en" userId="user-a" />);
-    const enNames = [...host.querySelectorAll("[data-news-mark-one]")].map((el) => accessibleName(el));
-    expect(enNames).toEqual(["Mark reviewed", "Mark reviewed", "Mark reviewed"]);
+    expect(nameOf("ev2_grp")).toBe("Mark reviewed: Grouped coverage headline");
+    expect(nameOf("ev2_b")).toBe("Mark reviewed: Supply story");
+    expect(nameOf("ev2_a")).toBe("Mark reviewed: Launch story");
 
     await act(async () => root.unmount());
     root = createRoot(host);
     await render(<TickerNewsPanel symbol="NVDA" lang="zh" userId="user-a" />);
-    const zhNames = [...host.querySelectorAll("[data-news-mark-one]")].map((el) => accessibleName(el));
-    expect(zhNames).toEqual(["标为已读", "标为已读", "标为已读"]);
-    // Judged a real defect: a screen-reader user browsing by button cannot tell WHICH
-    // story a given "Mark reviewed" would mark. GAP, not fixed in this lane.
+    expect(nameOf("ev2_a")).toBe("标为已读：Launch story");
+    const names = [...host.querySelectorAll("[data-news-mark-one]")].map((el) => accessibleName(el));
+    expect(names.length).toBe(3);
+    expect(new Set(names).size).toBe(3); // every mark button is distinguishable
   });
 });
