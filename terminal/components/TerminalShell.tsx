@@ -1817,7 +1817,9 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
       window.removeEventListener(TERMINAL_VISUAL_READY_EVENT, loadManifest);
     };
   }, []);
-  useEffect(() => {
+  // Commit persisted preference authority before chart passive work. Continuous chart updates
+  // can starve a passive mount restore and leave a painted generation waiting on dataReady.
+  useLayoutEffect(() => {
     // Settings → Terminal → Default timeframe (3D unless changed). Resolved against the landing
     // symbol's functional set, since the workspace restore below can land on a symbol other than seed0.
     const savedStartTf = readStartTf();
