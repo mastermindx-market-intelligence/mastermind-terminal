@@ -1,8 +1,8 @@
 # Terminal Visual Intelligence Layer — pane readiness source recapture
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
 # Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
-# capturedAtHead: 1d45d00bd241aa32d038d59efc13658ee50859ac
-# capturedAt: 2026-10-11T18:52:27.791+00:00
+# capturedAtHead: 334795ff67de18e9c51b018d6c9dc4ed2a0c75e5
+# capturedAt: 2026-10-12T05:00:15.918+00:00
 # Actual fresh local fixture captures; source identity remains the capture commit when artifacts are committed later.
 # Content-addressed layoutFiles + cropFiles, not ancestry, identify this capture.
 layoutFiles:
@@ -20,12 +20,12 @@ layoutFiles:
   terminal/lib/suites/trend/candlePainter.ts: "8384d2bce3af939a51e88584b1436ee2898a89f0fbf1aedc09ffee624a3e12e1"
   terminal/lib/indicator-canvas/host.ts: "4f2949efb22b8c378cab1ff9d176466c4857073c14a36ee4f0eeab4ec1015a25"
 cropFiles:
-  desktop-context.png: "813fba7046dd11be0f85c579497441beafbf6a6fc20db432efe4f39da7b376b0"
-  desktop-context-zh.png: "b33a732b5aeae66ef81acbbd2f745e0846621a551433469772ff272108014f77"
-  tablet-context.png: "0043789f2a8651e9fdcee6988dcc0b9163a93c2a67d7b4e012ac7e2046bd362e"
-  tablet-context-zh.png: "22c93f6e2a2dad8c014d3df16e60ad6df19eb9817e782bccb5224272ad6d3b40"
-  mobile-context.png: "81d398d8282424071aab6c3880c60d0a189e55273937808c9b2ee26418ddf8a1"
-  mobile-context-zh.png: "e3d7302df35628ac74421464f3f1d44b2e60cf10b7f5ab60905dd6b5d8106735"
+  desktop-context.png: "b05c6558ce7bc8d7419ca22ebd7150991791c1b4c15f4c0669038744c8da2df5"
+  desktop-context-zh.png: "82dce9d4e19c84485cafeda3b835d16c0b09ee4c0b80879af89a7d3065fefcf7"
+  tablet-context.png: "a196ccda1a7ff5ffa2da71dd4a9b7f4a58b292302ada0ad7391a0f4934a811f7"
+  tablet-context-zh.png: "8d02486ed7cbce5e87697deccc3e6a8ede2f50475f976b74ea7c08cd2d92852f"
+  mobile-context.png: "df7eea476a6ac219559cf685d03bd01d3080dc6c739e8522c02b9398c65cfcb9"
+  mobile-context-zh.png: "d509c8dacb7908b7c5928ee3a2e0c33836923e609d74c14c89bafa716ad4d934"
 
 theme: dark
 languages: [en, zh]
@@ -46,9 +46,21 @@ browserResults:
   mobileCrosshairRegression: 1/1 passed
   visualIntelligenceMatrix: 30 passed; zero failures
 browserReportHashes:
-  visualReport: "a389765b982e2ceb6ab83b341a02929c0d210e9e715cc952f816422d25b3bff8"
-  mobileCrosshairReport: "a389765b982e2ceb6ab83b341a02929c0d210e9e715cc952f816422d25b3bff8"
+  visualReport: "f06af766841a35b6989bb8453a2171d2f97493820d6b38f797c496301d89a5d1"
+  mobileCrosshairReport: "f06af766841a35b6989bb8453a2171d2f97493820d6b38f797c496301d89a5d1"
 currentLocalGates:
+  sourceHead: 334795ff67de18e9c51b018d6c9dc4ed2a0c75e5
+  capturedAt: 2026-10-12T05:00:15.918+00:00
+  typecheck: PASS; next typegen exit 0 and tsc --noEmit exit 0 on this capture source
+  vitestFull: NOT_RERUN at capture; full npm test is the post-commit gate
+  focusedEvidenceGuards: 3 files passed; 10 tests passed; zero failures (b_pl_6Batch1Evidence, visualIntelligenceEvidence, optionsLevelAxisEvidence) after this recapture
+  responsiveCommand: 48 passed; zero failures, skips or flaky; 16/16 on desktop, tablet and mobile
+  visualCompatibility: 30 passed; zero failures, skips or flaky cases
+  mobileCrosshairRegression: 1/1 passed
+  browserResultsNote: visual-intelligence.spec.ts is 10/10 on each project; the recorded grep also ran 6 further cases per project, all passed
+  fontFallback: Google fonts Inter and JetBrains Mono failed to download; Next used fallback fonts. Linux host ubuntu2, node v22.23.3
+  baselineDisposition: b-pl-6 batch 1, options-level axis labels and visual intelligence recaptured in one pass at this sourceHead
+demotedCaptureLocalGates:
   sourceHead: e669c889eaa004f580ae0b5a21bae6b55414d8a1
   typecheck: PASS; tsc --noEmit exit0 on actual capture source
   drawingReadiness: 11 focused tests and 3 existing owner lifecycle tests passed
