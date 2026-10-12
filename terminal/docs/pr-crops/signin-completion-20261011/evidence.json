@@ -1,0 +1,87 @@
+{
+  "base_revision": "85ad93866dcd9daf203c89a7d5e23280b5d6ed50",
+  "source_sha256": {
+    "terminal/components/onboarding/StepAccount.tsx": "9170a1bd265abf2a37218fa7719a20d76461dd9f00dd1a193e05f9169f2d6f85",
+    "terminal/components/onboarding/OnboardingSheet.tsx": "b2dd051b6af84c5bcc6982f2218ab1b83f6ed558b0ae43b965b1ce602ea8595b",
+    "terminal/e2e/onboarding-signin-completion.spec.ts": "34499244e5f52337e6605c5c64884a9efdfc14faa9068d4512c31f6c5704d7a0"
+  },
+  "command": "TERMINAL_E2E_PORT=3186 npm run test:e2e:responsive -- e2e/onboarding-signin-completion.spec.ts e2e/password-recovery.spec.ts --workers=2",
+  "result": "18 passed (42.6s)",
+  "viewports": {
+    "desktop": [
+      1440,
+      900
+    ],
+    "tablet": [
+      820,
+      1180
+    ],
+    "mobile": [
+      390,
+      844
+    ]
+  },
+  "languages": [
+    "en",
+    "zh"
+  ],
+  "system_color_preferences": [
+    "dark",
+    "light"
+  ],
+  "actual_product_theme": "dark",
+  "supabase_transport": "local deterministic fixture; no production account or credentials",
+  "new_signup_or_subscription": false,
+  "live_repair_verified": false,
+  "files": [
+    {
+      "name": "desktop-en-dark-continued.png",
+      "sha256": "97273d74c396031c755271027dc440e0147e116677fa083b4ae566a2119170da"
+    },
+    {
+      "name": "desktop-en-dark-signin.png",
+      "sha256": "518955793f2a3ea541f4da02dc74490f42fb819563e532181a4a8fb527ee31ca"
+    },
+    {
+      "name": "desktop-zh-dark-continued.png",
+      "sha256": "86808cf8539d7c7e3c7d7b653d6d3141fbc0c0ab35ada28e1e333f2ae68c1488"
+    },
+    {
+      "name": "desktop-zh-dark-signin.png",
+      "sha256": "1d81e39c8667d712b5e26c4ea5d82d307c74002bc82af955de572cf40b61fcc3"
+    },
+    {
+      "name": "mobile-en-dark-continued.png",
+      "sha256": "902056095f22e9b8feda763781a2257a8e50382886b0889d8ef947dd7340e748"
+    },
+    {
+      "name": "mobile-en-dark-signin.png",
+      "sha256": "78c810367be974f00d23871b3c3da94860d77a1d2cd005a87bad35fb8e4e7b13"
+    },
+    {
+      "name": "mobile-zh-dark-continued.png",
+      "sha256": "ee1ecfe4dc803a6b6aa88f5627af98cf32f53b0180f45320a53b0b400ec00211"
+    },
+    {
+      "name": "mobile-zh-dark-signin.png",
+      "sha256": "cfbc1f1e1563cee71e6c2d5a2d71495e77f4a89f7ea3e2c654ca69b67422d9ca"
+    },
+    {
+      "name": "tablet-en-dark-continued.png",
+      "sha256": "7c6d0100c28a726b0b9e167661f7bfe826cadaa3a5f45f1051653f3fffeac7d8"
+    },
+    {
+      "name": "tablet-en-dark-signin.png",
+      "sha256": "719496fb1a4e34c1e55e97aebd5f0ce9c88f8dd09a716007aa0f4b3c629188b4"
+    },
+    {
+      "name": "tablet-zh-dark-continued.png",
+      "sha256": "c177e01c05107a753806a72823150967e5e678b19001457858a06b2a42aca03b"
+    },
+    {
+      "name": "tablet-zh-dark-signin.png",
+      "sha256": "86165bffabd3cd13acf0ec94abacf8f2743d49c039a27dddfbcf7cb56e89ecab"
+    }
+  ],
+  "pending_mode_switch_regression": "red first (1 failed, 3 passed); repaired disabled button and accepted source review; pending browser response keeps sheet open and mode switch disabled"
+}
