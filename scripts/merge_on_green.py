@@ -206,14 +206,33 @@ class GitHubApi:
     def update_branch(self, number: int, head_sha: str) -> None:
         self.request("PUT", f"/pulls/{number}/update-branch", {"expected_head_sha": head_sha})
 
+    def workflow_runs(self, head_sha: str, event: str) -> list[dict[str, Any]]:
+        quoted_sha = urllib.parse.quote(head_sha, safe="")
+        quoted_event = urllib.parse.quote(event, safe="")
+        data = self.request(
+            "GET",
+            f"/actions/runs?head_sha={quoted_sha}&event={quoted_event}&per_page=50",
+        ) or {}
+        runs = data.get("workflow_runs") or []
+        return [
+            run
+            for run in runs
+            if str(run.get("path") or "").endswith(".github/workflows/ci.yml")
+            and str(run.get("event") or "") == event
+        ]
+
+    def approve_run(self, run_id: int) -> None:
+        self.request("POST", f"/actions/runs/{run_id}/approve")
+
     def dispatch_ci(self, branch: str, pr_number: int | None = None) -> None:
-        # GITHUB_TOKEN-authored branch updates do not recursively fire pull_request
-        # workflows. workflow_dispatch is the documented exception, so the sweeper
-        # explicitly orders the fresh proof it just made necessary.
+        # A GITHUB_TOKEN-authored branch refresh DOES create a pull_request run of
+        # ci.yml on the new head, but GitHub holds that run (status/conclusion
+        # action_required) until it is approved. sweep() tries to approve that
+        # held run first. workflow_dispatch is the fallback when no held run
+        # appears or approve_run cannot be called with this token.
         #
-        # That dispatched run is therefore the ONLY CI run for the sha that then
-        # merges, and on a workflow_dispatch `github.event.pull_request.number` is
-        # empty -- so the migration-namespace guard fell to its LENIENT rule set on
+        # On a workflow_dispatch `github.event.pull_request.number` is empty --
+        # so the migration-namespace guard fell to its LENIENT rule set on
         # exactly the gating run (round 4, MAJOR 2). ci.yml now takes a `pr_number`
         # input and the number is passed here.
         payload: dict[str, Any] = {"ref": branch}
@@ -276,6 +295,8 @@ class MergeApi(Protocol):
     def check_runs(self, sha: str) -> list[dict[str, Any]]: ...
     def update_branch(self, number: int, head_sha: str) -> None: ...
     def dispatch_ci(self, branch: str, pr_number: int | None = None) -> None: ...
+    def workflow_runs(self, head_sha: str, event: str) -> list[dict[str, Any]]: ...
+    def approve_run(self, run_id: int) -> None: ...
     def merge_queue_enabled(self, base_ref: str) -> bool: ...
     def queue_entry(self, pull_request_id: str) -> str | None: ...
     def enqueue(self, pull_request_id: str, head_sha: str) -> str: ...
@@ -446,6 +467,50 @@ def sweep(api: MergeApi, trigger_number: int | None = None, *, wait=time.sleep) 
         if mergeable_state == "behind":
             branch = str(pull["head"]["ref"])
             api.update_branch(number, head_sha)
+            refreshed_sha = str(api.pull(number)["head"]["sha"])
+            held_runs: list[dict[str, Any]] = []
+            if refreshed_sha != head_sha:
+                # GitHub creates the held pull_request run a few seconds after
+                # the refresh. Poll briefly; never sleep directly.
+                for attempt in range(4):
+                    held_runs = [
+                        run
+                        for run in api.workflow_runs(refreshed_sha, "pull_request")
+                        if run.get("status") == "action_required"
+                        or run.get("conclusion") == "action_required"
+                    ]
+                    if held_runs:
+                        break
+                    if attempt < 3:
+                        wait(3)
+            if held_runs:
+                held_id = int(held_runs[0]["id"])
+                try:
+                    for run in held_runs:
+                        api.approve_run(int(run["id"]))
+                except ApiError as error:
+                    if not (400 <= error.status < 500):
+                        raise
+                    # The number is known here; hand it to the dispatched run so
+                    # the namespace guard can earn PULL_REQUEST mode on the
+                    # refreshed head.
+                    api.dispatch_ci(branch, number)
+                    api.comment(
+                        number,
+                        "Held pull_request CI run "
+                        f"{held_id} could not be approved automatically "
+                        f"(HTTP {error.status}). Approve it manually with:\n"
+                        f"gh api -X POST repos/{api.repo}/actions/runs/{held_id}/approve",
+                    )
+                    actions.append(
+                        f"#{number}: updated onto current master; could not approve held CI run {held_id} "
+                        f"(HTTP {error.status}); dispatched CI instead"
+                    )
+                    break
+                actions.append(
+                    f"#{number}: updated onto current master; approved held CI run {held_id}; awaiting fresh CI"
+                )
+                break
             # The number is known here; hand it to the dispatched run so the
             # namespace guard can earn PULL_REQUEST mode on the refreshed head.
             api.dispatch_ci(branch, number)

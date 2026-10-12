@@ -77,6 +77,15 @@ def pull(
     }
 
 
+HELD_CI_RUN = {
+    "id": 501,
+    "status": "completed",
+    "conclusion": "action_required",
+    "path": ".github/workflows/ci.yml",
+    "event": "pull_request",
+}
+
+
 class FakeApi:
     repo = "owner/repo"
 
@@ -89,6 +98,8 @@ class FakeApi:
         queue_enabled=False,
         queue_entries=None,
         enqueue_errors=None,
+        held_runs=None,
+        approve_errors=None,
     ):
         self.pulls = {item["number"]: deepcopy(item) for item in pulls}
         self.runs = runs or {item["head"]["sha"]: checks() for item in pulls}
@@ -97,7 +108,10 @@ class FakeApi:
         self.queue_enabled = queue_enabled
         self.queue_entries = dict(queue_entries or {})
         self.enqueue_errors = dict(enqueue_errors or {})
+        self.held_runs = {sha: deepcopy(runs) for sha, runs in dict(held_runs or {}).items()}
+        self.approve_errors = dict(approve_errors or {})
         self.actions = []
+        self.comments: list[tuple[int, str]] = []
         self.dispatched: list[tuple[str, int | None]] = []
 
     def list_pulls(self):
@@ -111,6 +125,20 @@ class FakeApi:
 
     def update_branch(self, number, head_sha):
         self.actions.append(("update", number, head_sha))
+        # GitHub's update-branch creates a new head commit on the PR.
+        self.pulls[number]["head"]["sha"] = head_sha + "-refreshed"
+
+    def workflow_runs(self, head_sha, event):
+        self.actions.append(("workflow_runs", head_sha, event))
+        if event != "pull_request":
+            return []
+        return deepcopy(self.held_runs.get(head_sha, []))
+
+    def approve_run(self, run_id):
+        self.actions.append(("approve_run", run_id))
+        if run_id in self.approve_errors:
+            status, message = self.approve_errors[run_id]
+            raise ApiError(status, message)
 
     def dispatch_ci(self, branch, pr_number=None):
         # The ("dispatch_ci", branch) shape is what the older tests assert on and
@@ -174,6 +202,7 @@ class FakeApi:
 
     def comment(self, number, body):
         self.actions.append(("comment", number, body))
+        self.comments.append((number, body))
 
     def delete_branch(self, branch):
         self.actions.append(("delete", branch))
@@ -492,7 +521,7 @@ def test_wrong_app_green_never_reaches_merge_or_quarantine():
 
 def test_green_stale_head_is_updated_then_waits_for_fresh_ci():
     api = FakeApi([pull(mergeable_state="behind")])
-    result = sweep(api)
+    result = sweep(api, wait=lambda _s: None)
     assert ("update", 7, "head-7") in api.actions
     assert ("dispatch_ci", "claude/pr-7") in api.actions
     assert not any(action[0] == "merge" for action in api.actions)
@@ -507,7 +536,7 @@ def test_stale_base_sha_with_live_behind_mergeable_state_takes_the_refresh_path(
     # relation to the current master tip -- reads "behind". The refresh path
     # must be taken from mergeable_state alone, and merge() must never be called.
     api = FakeApi([pull(base_sha="base-sha", mergeable_state="behind")])
-    result = sweep(api)
+    result = sweep(api, wait=lambda _s: None)
     assert ("update", 7, "head-7") in api.actions
     assert ("dispatch_ci", "claude/pr-7") in api.actions
     assert not any(action[0] == "merge" for action in api.actions)
@@ -642,7 +671,7 @@ def test_after_one_merge_the_next_stale_green_is_refreshed_not_merged():
     first = pull(1)
     second = pull(2, mergeable_state="behind")
     api = FakeApi([first, second])
-    result = sweep(api)
+    result = sweep(api, wait=lambda _s: None)
     assert ("merge", 1, "head-1") in api.actions
     assert ("update", 2, "head-2") in api.actions
     assert ("dispatch_ci", "claude/pr-2") in api.actions
@@ -655,12 +684,15 @@ def test_after_one_merge_the_next_stale_green_is_refreshed_not_merged():
 
 # --- review round 4, MAJOR 2 -------------------------------------------------
 #
-# A GITHUB_TOKEN-authored branch update fires no recursive pull_request workflow,
-# so the run this controller dispatches is the ONLY CI run for the sha that then
-# merges. On a workflow_dispatch `github.event.pull_request.number` is empty, so
-# the supabase/migrations namespace guard resolved that gating run to its LENIENT
-# rule set and its one enforcement rule was inert on exactly the head that
-# merges. ci.yml now takes a `pr_number` input and the number is passed through.
+# Observed on PR #963: a GITHUB_TOKEN-authored branch refresh DOES create a
+# pull_request run of ci.yml on the new head, but GitHub holds that run
+# (status/conclusion action_required) until it is approved. The controller's
+# workflow_dispatch is the fallback when no held run appears or approve_run
+# cannot be called with this token. On a workflow_dispatch
+# `github.event.pull_request.number` is empty, so the supabase/migrations
+# namespace guard resolved that gating run to its LENIENT rule set and its one
+# enforcement rule was inert on exactly the head that merges. ci.yml now takes
+# a `pr_number` input and the number is passed through.
 #
 # Every test here drives a stub in place of the HTTP layer: nothing touches the
 # network, and no token or project reference appears anywhere.
@@ -776,5 +808,145 @@ def test_the_refresh_path_hands_the_number_to_the_dispatched_run():
     at the refresh site and must reach the run that will gate the merge.
     """
     api = FakeApi([pull(7, mergeable_state="behind")])
-    sweep(api)
+    sweep(api, wait=lambda _s: None)
     assert api.dispatched == [("claude/pr-7", 7)]
+
+
+def test_refresh_approves_the_held_pull_request_run_instead_of_dispatching():
+    api = FakeApi(
+        [pull(mergeable_state="behind")],
+        held_runs={"head-7-refreshed": [HELD_CI_RUN]},
+    )
+
+    result = sweep(api, wait=lambda _s: None)
+
+    assert ("approve_run", 501) in api.actions
+    assert not any(action[0] == "dispatch_ci" for action in api.actions)
+    assert not any(action[0] == "merge" for action in api.actions)
+    assert result == [
+        "#7: updated onto current master; approved held CI run 501; awaiting fresh CI"
+    ]
+
+
+def test_refresh_polls_briefly_for_the_held_run_before_falling_back():
+    api = FakeApi(
+        [pull(mergeable_state="behind")],
+        held_runs={"head-7-refreshed": [HELD_CI_RUN]},
+    )
+    remaining_empty = {"count": 2}
+    inner = api.workflow_runs
+
+    def delayed(head_sha, event):
+        if remaining_empty["count"] > 0:
+            remaining_empty["count"] -= 1
+            api.actions.append(("workflow_runs", head_sha, event))
+            return []
+        return inner(head_sha, event)
+
+    api.workflow_runs = delayed
+
+    result = sweep(api, wait=lambda _s: None)
+
+    assert ("approve_run", 501) in api.actions
+    assert sum(action[0] == "workflow_runs" for action in api.actions) == 3
+    assert not any(action[0] == "dispatch_ci" for action in api.actions)
+    assert result == [
+        "#7: updated onto current master; approved held CI run 501; awaiting fresh CI"
+    ]
+
+
+def test_refresh_falls_back_to_dispatch_when_approve_is_refused():
+    api = FakeApi(
+        [pull(mergeable_state="behind")],
+        held_runs={"head-7-refreshed": [HELD_CI_RUN]},
+        approve_errors={501: (403, "Resource not accessible by integration")},
+    )
+
+    result = sweep(api, wait=lambda _s: None)
+
+    approve_at = api.actions.index(("approve_run", 501))
+    dispatch_at = api.actions.index(("dispatch_ci", "claude/pr-7"))
+    assert approve_at < dispatch_at
+    assert len(api.comments) == 1
+    assert "gh api -X POST repos/owner/repo/actions/runs/501/approve" in api.comments[0][1]
+    assert result == [
+        "#7: updated onto current master; could not approve held CI run 501 "
+        "(HTTP 403); dispatched CI instead"
+    ]
+
+
+def test_refresh_without_a_held_run_dispatches_as_before():
+    api = FakeApi([pull(mergeable_state="behind")])
+
+    result = sweep(api, wait=lambda _s: None)
+
+    assert ("dispatch_ci", "claude/pr-7") in api.actions
+    assert ("workflow_runs", "head-7-refreshed", "pull_request") in api.actions
+    assert sum(action[0] == "workflow_runs" for action in api.actions) == 4
+    assert not any(action[0] == "approve_run" for action in api.actions)
+    assert result == ["#7: updated onto current master; awaiting fresh CI"]
+
+
+def test_refresh_5xx_on_approve_propagates():
+    api = FakeApi(
+        [pull(mergeable_state="behind")],
+        held_runs={"head-7-refreshed": [HELD_CI_RUN]},
+        approve_errors={501: (502, "bad gateway")},
+    )
+
+    with pytest.raises(ApiError) as excinfo:
+        sweep(api, wait=lambda _s: None)
+
+    assert excinfo.value.status == 502
+    assert ("approve_run", 501) in api.actions
+    assert not any(action[0] == "dispatch_ci" for action in api.actions)
+
+
+def test_workflow_runs_ignores_runs_of_other_workflows_and_events(monkeypatch):
+    api = mog.GitHubApi("owner/repo", "unused-in-this-test")
+    mixed = {
+        "workflow_runs": [
+            {
+                "id": 10,
+                "path": ".github/workflows/ci.yml",
+                "event": "pull_request",
+            },
+            {
+                "id": 11,
+                "path": ".github/workflows/merge-on-green.yml",
+                "event": "pull_request",
+            },
+            {
+                "id": 12,
+                "path": ".github/workflows/ci.yml",
+                "event": "workflow_dispatch",
+            },
+            {
+                "id": 13,
+                "path": ".github/workflows/ci.yml",
+                "event": "pull_request",
+            },
+        ]
+    }
+    captured = []
+
+    def request(method, path, payload=None):
+        captured.append((method, path, payload))
+        return deepcopy(mixed)
+
+    monkeypatch.setattr(api, "request", request)
+    result = api.workflow_runs("abc123", "pull_request")
+
+    assert captured[0][0] == "GET"
+    assert captured[0][1].startswith("/actions/runs?")
+    query = parse_qs(urlsplit(captured[0][1]).query)
+    assert query["head_sha"] == ["abc123"]
+    assert query["event"] == ["pull_request"]
+    assert query["per_page"] == ["50"]
+    assert [run["id"] for run in result] == [10, 13]
+
+
+def test_approve_run_posts_to_the_approve_endpoint():
+    api = RecordingApi()
+    api.approve_run(501)
+    assert api.calls == [("POST", "/actions/runs/501/approve", None)]
