@@ -237,10 +237,14 @@ test("a superseded packet arriving after a burst never rolls the candle backward
   test.slow();
   let phase: QuotePhase = { basis: "EOD", last: LAST_CLOSE, sessionDate: LAST_SESSION, seconds: rthSeconds(LAST_SESSION) };
   const served: Served = { count: 0, lastSeconds: null };
-  await serve(page, () => phase, ["ema", "rsi"], served);
+  const ASSERTED_STUDIES = ["ema", "rsi"] as const;
+  await serve(page, () => phase, [...ASSERTED_STUDIES], served);
   await page.goto(`/terminal?symbol=${SYMBOL}`);
-  await expect.poll(async () => ((await witness(page))?.barCount ?? 0) > 50 ? "ready" : "waiting",
-    { timeout: 60_000 }).toBe("ready");
+  // Both compared studies must exist before the accepted quote establishes their baseline.
+  await expect.poll(async () => {
+    const w = await witness(page);
+    return w && w.barCount > 50 && ASSERTED_STUDIES.every((k) => built(w, k)) ? "ready" : "waiting";
+  }, { message: "the fixture history and every compared study should reach the canvas", timeout: 60_000 }).toBe("ready");
 
   const high = Number((LAST_CLOSE * 1.3).toFixed(2));
   phase = { basis: "REALTIME", last: high, sessionDate: LAST_SESSION, seconds: rthSeconds(LAST_SESSION, 15, 40) };
