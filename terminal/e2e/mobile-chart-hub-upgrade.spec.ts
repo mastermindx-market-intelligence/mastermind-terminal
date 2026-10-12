@@ -38,6 +38,7 @@ function supportedHubControls(hub: Locator) {
     hub.getByTestId("hub-tile-chartType"),
     hub.getByTestId("hub-tile-workspaces"),
     hub.getByTestId("hub-tile-replay"),
+    hub.getByTestId("hub-tile-dataTable"),
     hub.getByTestId("hub-tile-symbolDetails"),
   ];
 }
@@ -139,7 +140,7 @@ test("MM-006: only supported tools are actionable and chart type uses canonical 
   await openTerminal(page);
   const { hub, trigger } = await openHub(page);
 
-  await expect(hub.locator(".mhub-grid .mhub-tile")).toHaveCount(7);
+  await expect(hub.locator(".mhub-grid .mhub-tile")).toHaveCount(8);
   await expect(hub.getByTestId("hub-tile-objectTree")).toHaveCount(0);
   await expect(hub.getByTestId("hub-tile-templates")).toHaveCount(0);
   await expect(hub.getByTestId("hub-unavailable-tools")).toContainText("This panel isn't available in this version");
