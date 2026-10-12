@@ -609,3 +609,37 @@ describe("drawing save settle reschedule", () => {
     expect(shouldRescheduleDrawingFlush({ queuedDuringSave: false, hasPending: true, timerArmed: false, saveSettledOk: false })).toBe(false);
   });
 });
+
+// A released email can be reassigned. The v1 namespace is claimed by the first
+// auth UUID that imports it on this browser; later UUIDs with the same address
+// must not be offered those copies.
+describe("legacy email-keyed journal claimed by at most one auth UUID",()=>{
+ const alice={owner:"account:uuid-a",legacyOwner:"account:alice@x"};
+ const bob={owner:"account:uuid-b",legacyOwner:"account:alice@x"};
+ const claimKey="mm.drawing.legacy-claim.v1";
+ it("lets the first UUID import the v1 copy and withholds it from a later UUID on this browser",async()=>{
+  const storage=new MemoryStorage();
+  writeDrawingOutbox(storage,"account:alice@x",{NVDA:[line("alice-v1")]});
+  const v1=storage.getItem("mm.drawing.account-outbox.v1");
+  const first=readDrawingJournal(storage,alice);
+  expect(first.NVDA).toMatchObject({drawings:[{id:"alice-v1"}],blocked:"legacy"});
+  expect(await writeDrawingJournal(storage,alice,first,locks)).toBe(true);
+  expect(readDrawingJournal(storage,bob)).toEqual({});
+  expect(first.NVDA).toMatchObject({drawings:[{id:"alice-v1"}],blocked:"legacy"});
+  expect(readDrawingJournal(storage,alice).NVDA).toMatchObject({drawings:[{id:"alice-v1"}],blocked:"legacy"});
+  expect(storage.getItem("mm.drawing.account-outbox.v1")).toBe(v1);
+ });
+ it("fails closed on a corrupt claim record and leaves v1 bytes byte-identical",()=>{
+  const storage=new MemoryStorage();
+  writeDrawingOutbox(storage,"account:alice@x",{NVDA:[line("alice-v1")]});
+  const v1=storage.getItem("mm.drawing.account-outbox.v1");
+  storage.setItem(claimKey,"not-json");
+  expect(readDrawingJournal(storage,alice)).toEqual({});
+  expect(readDrawingJournal(storage,bob)).toEqual({});
+  expect(storage.getItem("mm.drawing.account-outbox.v1")).toBe(v1);
+  storage.setItem(claimKey,JSON.stringify({"account:alice@x":1}));
+  expect(readDrawingJournal(storage,alice)).toEqual({});
+  expect(readDrawingJournal(storage,bob)).toEqual({});
+  expect(storage.getItem("mm.drawing.account-outbox.v1")).toBe(v1);
+ });
+});
