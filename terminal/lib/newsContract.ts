@@ -5,6 +5,7 @@ import type {
   TickerNewsState,
   TickerNewsStory,
 } from "@/lib/newsTypes";
+import { parseRightsBasis, parseUniverseKnownAt } from "@/lib/newsProvenance";
 import {
   TickerNewsContractError,
   asBoolean,
@@ -48,6 +49,8 @@ export function parseTickerNewsSnapshot(value: unknown): TickerNewsSnapshot {
     schema: "ticker_news.snapshot.v1",
     ticker: normalizeTickerNewsSymbol(asText(obj.ticker, "snapshot_ticker", 32)),
     security_id: asText(obj.security_id, "snapshot_security_id", 1024),
+    universe_known_at: parseUniverseKnownAt(obj.universe_known_at),
+    rights_basis: parseRightsBasis(obj.rights_basis),
     state,
     rows: obj.rows.map(parseStoryRow),
     next_cursor: nextCursor,
