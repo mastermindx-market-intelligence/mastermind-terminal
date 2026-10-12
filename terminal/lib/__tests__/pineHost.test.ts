@@ -216,7 +216,10 @@ describe("PineHost worker: supersession + budget error shape (stubbed Worker)", 
     posted: any[] = [];
     terminated = false;
     replyWith: ((msg: any) => any) | null = null;   // if set, auto-reply to run/compile
-    constructor(_url: any, _opts: any) { created.push(this); }
+    constructor(_url: any, _opts: any) {
+      created.push(this);
+      queueMicrotask(() => this.onmessage?.({ data: { kind: "ready" } }));
+    }
     postMessage(msg: any) {
       this.posted.push(msg);
       if (this.replyWith) { const r = this.replyWith(msg); if (r) queueMicrotask(() => this.onmessage?.({ data: r })); }
@@ -304,6 +307,7 @@ describe("A02 PineHost lifecycle contract (fake Worker + fake timers)", () => {
     constructor(_url: any, _opts: any) {
       if (spawnThrows) throw new Error("pine worker startup failed (stub)");
       created.push(this);
+      queueMicrotask(() => this.onmessage?.({ data: { kind: "ready" } }));
     }
     postMessage(msg: any) {
       if (postThrows) throw new Error("pine postMessage failed (stub)");
@@ -577,6 +581,123 @@ describe("A02 PineHost lifecycle contract (fake Worker + fake timers)", () => {
     expect(rd.budgetExceeded).toBeFalsy();
     // honest shape: sibling still carries run payload fields (result null) rather than a compile-only shape
     expect(rd).toHaveProperty("result", null);
+    h.dispose();
+  });
+});
+
+// ── worker module boot is not charged to the per-request wall budget ─────────────────────────────
+// A cold Worker (module fetch + evaluate) can take longer than the run/compile budget on a
+// contended device. The wall budget is meant to bound script execution, not startup.
+describe("PineHost worker: module boot is not charged to the run budget", () => {
+  let created: BootStub[] = [];
+  let autoReady = true;
+  let hangAfterReady = false;
+
+  class BootStub {
+    onmessage: ((e: any) => void) | null = null;
+    onerror: (() => void) | null = null;
+    posted: any[] = [];
+    terminated = false;
+    constructor(_url: any, _opts: any) {
+      created.push(this);
+      if (autoReady) queueMicrotask(() => this.emitReady());
+    }
+    emitReady() { this.onmessage?.({ data: { kind: "ready" } }); }
+    replyPosted() {
+      for (const msg of this.posted) {
+        if (msg.kind === "run") {
+          this.onmessage?.({ data: { kind: "ran", reqId: msg.reqId, ok: true, errors: [], result: { plots: [], shapes: [], warnings: [] } } });
+        } else if (msg.kind === "compile") {
+          this.onmessage?.({ data: { kind: "compiled", reqId: msg.reqId, ok: true, errors: [], astId: hashSource(msg.source) } });
+        }
+      }
+    }
+    postMessage(msg: any) {
+      this.posted.push(msg);
+      if (hangAfterReady) return;
+    }
+    terminate() { this.terminated = true; }
+  }
+
+  beforeEach(() => {
+    created = [];
+    autoReady = true;
+    hangAfterReady = false;
+    (globalThis as any).window = globalThis;
+    (globalThis as any).Worker = BootStub as any;
+    vi.useFakeTimers();
+  });
+  afterEach(() => {
+    vi.useRealTimers();
+    delete (globalThis as any).window;
+    delete (globalThis as any).Worker;
+    vi.resetModules();
+  });
+
+  it("a worker whose module evaluation finishes after the run budget still runs (boot is not budgetExceeded)", async () => {
+    autoReady = false;
+    const host = await import("../pine-engine/host");
+    const h = host.createPineHost();
+    const p = h.run({ slot: "s1", source: SMA, bars: genBars(10), budgetMs: 200 });
+    expect(created.length).toBe(1);
+    expect(created[0].posted.some((m) => m.kind === "run")).toBe(true);
+
+    let settled = false;
+    void p.then(() => { settled = true; });
+    await vi.advanceTimersByTimeAsync(400); // past the 200ms run budget; module still evaluating
+    await Promise.resolve();
+    expect(settled).toBe(false);            // RED at BASE: host arms the budget at post, before ready
+    expect(created[0].terminated).toBe(false);
+
+    created[0].emitReady();
+    created[0].replyPosted();
+    const res = await p;
+    expect(res.ok).toBe(true);
+    expect(res.budgetExceeded).toBeFalsy();
+    expect(res.result).toBeTruthy();
+    expect(created[0].terminated).toBe(false);
+    h.dispose();
+  });
+
+  it("boot timeout settles pending requests with a start-failure (not budgetExceeded) and the next request respawns", async () => {
+    autoReady = false;
+    const host = await import("../pine-engine/host");
+    const h = host.createPineHost();
+    const bootMs = (host as { WORKER_BOOT_TIMEOUT_MS?: number }).WORKER_BOOT_TIMEOUT_MS ?? 30_000;
+    const p = h.run({ slot: "s1", source: SMA, bars: genBars(10), budgetMs: 200 });
+
+    await vi.advanceTimersByTimeAsync(bootMs);
+    const res = await p;
+    expect(res.ok).toBe(false);
+    expect(res.budgetExceeded).toBeFalsy();
+    expect(res.cancelled).toBeFalsy();
+    expect(res.interrupted).toBeFalsy();
+    expect(res.errors[0].phase).toBe("runtime");
+    expect(res.errors[0].message).toBe("Pine engine failed to start");
+    expect(created[0].terminated).toBe(true);
+
+    autoReady = true;
+    const p2 = h.run({ slot: "s1", source: SMA, bars: genBars(10), budgetMs: 200 });
+    expect(created.length).toBe(2);
+    expect(created[1].terminated).toBe(false);
+    created[1].replyPosted();
+    const res2 = await p2;
+    expect(res2.ok).toBe(true);
+    expect(res2.budgetExceeded).toBeFalsy();
+    h.dispose();
+  });
+
+  it("a genuine runaway after ready still hits budgetExceeded (budget is not disabled)", async () => {
+    hangAfterReady = true;
+    const host = await import("../pine-engine/host");
+    const h = host.createPineHost();
+    const p = h.run({ slot: "s1", source: SMA, bars: genBars(10), budgetMs: 200 });
+    await vi.advanceTimersByTimeAsync(300);
+    const res = await p;
+    expect(res.ok).toBe(false);
+    expect(res.budgetExceeded).toBe(true);
+    expect(res.errors[0].message).toMatch(/budget/);
+    expect(created[0].terminated).toBe(true);
     h.dispose();
   });
 });

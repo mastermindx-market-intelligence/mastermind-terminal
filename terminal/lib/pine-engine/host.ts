@@ -6,9 +6,11 @@
 //      new run for a slot supersedes any in-flight run for that slot: the old promise resolves with
 //      { cancelled: true } and its result is dropped, so a stale worker reply never paints over a
 //      newer one. (The host also stamps an epoch per slot; the consumer should still guard on it.)
-//   2. PER-RUN WALL BUDGET — each run arms a timer; on breach the host worker.terminate()s (real
-//      preemption — the cooperative in-engine budget can't stop a tight non-looping hot path) and
-//      auto-respawns a fresh worker, resolving the run with { budgetExceeded: true } + an error.
+//   2. PER-RUN WALL BUDGET — each run arms a timer once the worker has announced it finished
+//      loading (kind:"ready"); on breach the host worker.terminate()s (real preemption — the
+//      cooperative in-engine budget can't stop a tight non-looping hot path) and auto-respawns a
+//      fresh worker, resolving the run with { budgetExceeded: true } + an error. Module fetch /
+//      evaluate is bounded separately by WORKER_BOOT_TIMEOUT_MS (not budgetExceeded).
 //   3. AST CACHE BY SOURCE HASH — compile(source) returns an astId (source hash); the worker caches
 //      the parsed AST under it, so data-only re-runs (replay ticks, live splices, param edits) pass
 //      astId and skip re-parsing entirely. This is the layer the future ChartPanel integration reuses
@@ -65,6 +67,9 @@ export interface RunRequest {
 const DEFAULT_RUN_BUDGET_MS = 1500;
 // Compile shares the admitted run default wall budget (1500ms) — explicit and finite.
 const DEFAULT_COMPILE_BUDGET_MS = 1500;
+// Worker module fetch + evaluate is not charged to the per-request wall budget. After this
+// timeout the pending requests settle as a start failure and the next request respawns.
+export const WORKER_BOOT_TIMEOUT_MS = 30_000;
 
 // True when a real Web Worker is available (browser, not SSR, not a bare jsdom without Worker).
 export function hasWorker(): boolean {
@@ -125,25 +130,79 @@ class WorkerHost implements PineHost {
   private disposed = false;
   // Monotonic generation stamp per spawned worker. Callbacks from a terminated generation are ignored.
   private generation = 0;
+  private workerReady = false;
+  private bootTimer: ReturnType<typeof setTimeout> | null = null;
   readonly usingWorker = true;
 
   private spawn(): Worker {
     const gen = ++this.generation;
+    this.workerReady = false;
+    this.clearBootTimer();
     // Bundled worker — Turbopack/webpack resolve `new URL('./worker.ts', import.meta.url)` to a real
     // worker chunk (Next 16 supports this; see AGENTS.md / turbopack docs on new Worker()).
     const w = new Worker(new URL("./worker.ts", import.meta.url), { type: "module" });
     w.onmessage = (e: MessageEvent) => {
       if (this.disposed || gen !== this.generation) return;
+      if (e.data && e.data.kind === "ready") {
+        this.onWorkerReady();
+        return;
+      }
       this.onMessage(e.data);
     };
     w.onerror = () => {
       if (this.disposed || gen !== this.generation) return;
       this.onWorkerError();
     };
+    this.bootTimer = setTimeout(() => {
+      if (this.disposed || gen !== this.generation || this.workerReady) return;
+      this.onBootTimeout();
+    }, WORKER_BOOT_TIMEOUT_MS);
     return w;
   }
 
   private ensure(): Worker { if (!this.worker) this.worker = this.spawn(); return this.worker; }
+
+  private clearBootTimer() {
+    if (this.bootTimer) { clearTimeout(this.bootTimer); this.bootTimer = null; }
+  }
+
+  private onWorkerReady() {
+    if (this.workerReady) return;
+    this.workerReady = true;
+    this.clearBootTimer();
+    for (const p of this.pending.values()) this.armBudget(p);
+  }
+
+  private onBootTimeout() {
+    const err = runtimeError("Pine engine failed to start");
+    for (const p of Array.from(this.pending.values())) {
+      this.settle(p, () =>
+        p.kind === "compile"
+          ? ({ ok: false, errors: [err], astId: null } as PineCompileResult)
+          : ({ ok: false, errors: [err], result: null } as PineResult)
+      );
+    }
+    this.respawn();
+  }
+
+  // Arm the per-request wall budget only after this worker generation has announced ready.
+  private armBudget(p: Pending) {
+    if (p.timer || !this.workerReady) return;
+    const reqId = p.reqId;
+    const budgetMs = p.budgetMs;
+    p.timer = setTimeout(() => {
+      if (!this.pending.has(reqId)) return;
+      if (p.kind === "compile") {
+        const err = runtimeError(`compile exceeded the ${budgetMs}ms wall budget`);
+        this.settle(p, () => ({ ok: false, errors: [err], astId: null, budgetExceeded: true } as PineCompileResult));
+      } else {
+        const budgetErr = runtimeError(`script exceeded the ${budgetMs}ms run budget (cancelled)`);
+        this.settle(p, () => ({ ok: false, errors: [budgetErr], result: null, budgetExceeded: true } as PineResult));
+      }
+      this.interruptOthers(reqId);
+      this.respawn();
+    }, budgetMs);
+  }
 
   private onMessage(data: any) {
     if (!data || typeof data.reqId !== "number") return;
@@ -186,9 +245,11 @@ class WorkerHost implements PineHost {
     }
   }
 
-  // Terminate the current worker (used on budget breach / supersession preemption) and drop it;
-  // next request respawns.
+  // Terminate the current worker (used on budget breach / supersession preemption / boot timeout)
+  // and drop it; next request respawns and must wait for that worker's ready before arming budgets.
   private respawn() {
+    this.clearBootTimer();
+    this.workerReady = false;
     if (this.worker) { try { this.worker.terminate(); } catch { /* noop */ } this.worker = null; }
   }
 
@@ -234,15 +295,9 @@ class WorkerHost implements PineHost {
 
     return new Promise<PineCompileResult>((resolve) => {
       const p: Pending = { reqId, slot, kind: "compile", resolve, timer: null, budgetMs };
-      p.timer = setTimeout(() => {
-        if (!this.pending.has(reqId)) return;
-        const err = runtimeError(`compile exceeded the ${budgetMs}ms wall budget`);
-        this.settle(p, () => ({ ok: false, errors: [err], astId: null, budgetExceeded: true } as PineCompileResult));
-        this.interruptOthers(reqId);
-        this.respawn();
-      }, budgetMs);
       this.pending.set(reqId, p);
       this.slotReq.set(slot, reqId);
+      this.armBudget(p);
       const postErr = this.tryPost(spawned.w, { kind: "compile", reqId, source });
       if (postErr) {
         this.settle(p, () => ({ ok: false, errors: [postErr], astId: null } as PineCompileResult));
@@ -265,19 +320,12 @@ class WorkerHost implements PineHost {
       if (prev != null) { const pp = this.pending.get(prev); if (pp) this.settle(pp, () => cancelledRunOutcome()); }
 
       const p: Pending = { reqId, slot: req.slot, kind: "run", resolve, timer: null, budgetMs };
-      // Per-run wall budget: on breach, terminate + respawn the worker and resolve THIS run as
-      // budgetExceeded. Sibling/queued requests settle as cancelled/interrupted — they did not
-      // consume the offending run's budget. This is the real preemption the cooperative in-engine
-      // budget can't give.
-      p.timer = setTimeout(() => {
-        if (!this.pending.has(reqId)) return;
-        const budgetErr = runtimeError(`script exceeded the ${budgetMs}ms run budget (cancelled)`);
-        this.settle(p, () => ({ ok: false, errors: [budgetErr], result: null, budgetExceeded: true } as PineResult));
-        this.interruptOthers(reqId);
-        this.respawn();
-      }, budgetMs);
-
+      // Per-run wall budget (armed at worker ready): on breach, terminate + respawn the worker
+      // and resolve THIS run as budgetExceeded. Sibling/queued requests settle as
+      // cancelled/interrupted — they did not consume the offending run's budget. This is the
+      // real preemption the cooperative in-engine budget can't give.
       this.pending.set(reqId, p); this.slotReq.set(req.slot, reqId);
+      this.armBudget(p);
       const { payload, transfer } = barsToColumns(req.bars);
       const postErr = this.tryPost(spawned.w, { kind: "run", reqId, astId: req.astId, source: req.source, bars: payload, inputs: req.inputs || {}, opts: req.opts || {} }, transfer);
       if (postErr) {
