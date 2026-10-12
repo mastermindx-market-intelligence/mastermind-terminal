@@ -670,25 +670,27 @@ test("keep-mine of a differing preload overlap PUTs every cloud-only id",async({
 // never offer "Replace cloud with local copy" for a single, unblocked own copy.
 test("A3: a mixed v2+legacy entry whose claim belongs to another owner drops the legacy alternative and clears the issue", async ({ page }) => {
  const ownOp = "11111111-1111-4111-8111-111111111111";
- const legacyOp = "55555555-5555-4555-8555-555555555555";
- const legacySourceId = "alice@x";
- // Seed B's journal with a v2 copy AND a v1 alternative (legacy copy), then
- // plant Alice's claim so the journal write must drop the legacy alternative.
- await page.addInitScript(({ ownOp, legacyOp, legacySourceId }) => {
+ // The fixture's drawingLegacyOwner is account:responsive@example.com.
+ const legacySourceId = "responsive@example.com";
+ const legacyKey = `legacy:${legacySourceId}`;
+ // Seed B's journal with a v2 copy AND a v1 alternative (legacy copy keyed by
+ // the legacy source so dropUnownedLegacyCopies recognises it), then plant
+ // Alice's claim so the journal write must drop the legacy alternative.
+ await page.addInitScript(({ ownOp, legacyKey, legacySourceId }) => {
   if (sessionStorage.getItem("drawing-recovery-seeded")) return;
   sessionStorage.setItem("drawing-recovery-seeded", "1");
   const ownV2 = { drawings: [{ id: "bob-v2", kind: "hline", source: "user", schemaVersion: 1, points: [{ t: "2026-01-01", p: 100 }], meta: { label: "保持" } }], revision: null };
-  const legacyV1 = { drawings: [{ id: "alice-v1", kind: "hline", source: "user", schemaVersion: 1, points: [{ t: "2026-01-01", p: 200 }], meta: { label: "保持" } }], revision: null, recoveryId: `legacy:${legacySourceId}` };
+  const legacyV1 = { drawings: [{ id: "alice-v1", kind: "hline", source: "user", schemaVersion: 1, points: [{ t: "2026-01-01", p: 200 }], meta: { label: "保持" } }], revision: null };
   const record = {
    format: 2,
-   copies: { [ownOp]: ownV2, [legacyOp]: legacyV1 },
+   copies: { [ownOp]: ownV2, [legacyKey]: legacyV1 },
    legacySeen: { [legacySourceId]: "[[{\"id\":\"alice-v1\"}]]" },
-   legacyLinks: { [legacyOp]: { sourceId: legacySourceId, token: "[[{\"id\":\"alice-v1\"}]]" } },
+   legacyLinks: { [legacyKey]: { sourceId: legacySourceId, token: "[[{\"id\":\"alice-v1\"}]]" } },
   };
   localStorage.setItem("mm.drawing.account-outbox.v2", JSON.stringify({ "account:e2e-user-default": { NVDA: record } }));
   // Alice holds the legacy claim for this email alias.
   localStorage.setItem("mm.drawing.legacy-claim.v1", JSON.stringify({ [`account:${legacySourceId}`]: "account:uuid-a" }));
- }, { ownOp, legacyOp, legacySourceId });
+ }, { ownOp, legacyKey, legacySourceId });
  const puts: unknown[] = [];
  await page.route("**/api/drawings**", async (route) => {
   if (route.request().method() === "GET") { await route.fulfill(json({ drawings: [], revision: null, schemaVersion: 1 })); return; }
@@ -698,16 +700,27 @@ test("A3: a mixed v2+legacy entry whose claim belongs to another owner drops the
  await open(page);
  const recovery = page.getByTestId("drawing-save-recovery");
  // A3: the chrome must NEVER offer "Replace cloud with local copy" for a symbol
- // whose only remaining copy is Bob's own unblocked v2.
+ // whose only remaining copy is Bob's own unblocked v2. This is the primary
+ // symptom of the A3 defect: the issue was "multiple" but the journal write
+ // dropped the legacy alternative, so the chrome should be cleared.
  await expect(recovery.getByRole("button", { name: "Replace cloud with local copy", exact: true })).toHaveCount(0, { timeout: 20_000 });
  await expect(recovery.getByRole("button", { name: "Use cloud copy", exact: true })).toHaveCount(0, { timeout: 20_000 });
- // Bob's v2 is PUT exactly once (the normal flush path proceeds after the legacy
- // alternative is dropped).
- await expect.poll(() => puts.length, { timeout: 20_000 }).toBe(1);
- const sent = puts[0] as { drawings: { id: string }[] };
- expect(sent.drawings.map((d) => d.id)).toEqual(["bob-v2"]);
  // The recovery chrome is gone — the issue was cleared, not "multiple".
  await expect(recovery).toHaveCount(0, { timeout: 20_000 });
+ // The journal symbol is now a single, unblocked own copy (legacy dropped).
+ const journal = await page.evaluate(() => {
+  const raw = localStorage.getItem("mm.drawing.account-outbox.v2");
+  if (!raw) return null;
+  const env = JSON.parse(raw) as Record<string, Record<string, { copies: Record<string, { drawings: { id: string }[]; blocked?: string; alternatives?: unknown }> }>>;
+  const copies = env["account:e2e-user-default"]?.NVDA?.copies ?? {};
+  const own = copies["11111111-1111-4111-8111-111111111111"];
+  return { hasOwn: !!own, ownDrawings: own?.drawings?.map((d) => d.id) ?? [], ownBlocked: own?.blocked, ownAlternatives: own?.alternatives };
+ });
+ expect(journal).not.toBeNull();
+ expect(journal!.hasOwn).toBe(true);
+ expect(journal!.ownDrawings).toEqual(["bob-v2"]);
+ expect(journal!.ownBlocked).toBeUndefined();
+ expect(journal!.ownAlternatives).toBeUndefined();
 });
 
 // Step 2b: fix4 end-to-end proof for too_many. The cloud GET returns 500

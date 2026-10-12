@@ -1712,7 +1712,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
             drawPending.current[sym] = remaining.drawings;
             setDrawStore((store) => ({ ...store, [sym]: normalizeDrawings(remaining.drawings) }));
             setDrawingSaveIssues((issues) => { const next = { ...issues }; delete next[sym]; return next; });
-            drawTimers.current[sym] = setTimeout(() => flushDrawingsRef.current(sym), 0);
+            drawTimers.current[sym] = setTimeout(() => flushDrawingsRef.current(sym), 100);
           } else {
             // Surviving entry still has alternatives or is blocked: keep the
             // matching issue (same mapping flushDrawings uses for the PRE-write
