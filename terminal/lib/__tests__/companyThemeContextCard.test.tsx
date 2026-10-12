@@ -706,6 +706,35 @@ describe("company theme context card plural unmapped warning", () => {
     expect(text).not.toBe("active memberships unmapped");
     expect(text).toContain("Some active curated baskets are deliberately outside this theme crosswalk.");
   });
+
+  // The singular code is the one the per-company normalizer emits
+  // (lib/companyThemeExposure.ts:272), so its map entry needs its own pin.
+  const singularUnmapped = exposure({
+    status: "partial",
+    coverage: {
+      status: "unmapped_only",
+      active_basket_count: 2,
+      mapped_basket_count: 0,
+      unmapped_basket_count: 2,
+    },
+    exposures: [],
+    warnings: ["active_membership_unmapped"],
+  });
+
+  it("active_membership_unmapped EN uses the English sentence rather than the raw code", async () => {
+    await show(success(singularUnmapped, "partial"));
+    const text = host.querySelector(".ci-theme-warning p")?.textContent ?? "";
+    expect(text).not.toBe("active membership unmapped");
+    expect(text).toContain("Some active curated baskets are deliberately outside this theme crosswalk.");
+  });
+
+  it("active_membership_unmapped ZH uses Chinese copy rather than the raw code", async () => {
+    await show(success(singularUnmapped, "partial"), "zh");
+    const text = host.querySelector(".ci-theme-warning p")?.textContent ?? "";
+    expect(text).not.toBe("active membership unmapped");
+    expect(text).toContain("部分活跃策展篮子被有意排除在此主题映射之外。");
+    expect(text).toMatch(/\p{Script=Han}/u);
+  });
 });
 
 describe("company theme context card receipts", () => {
