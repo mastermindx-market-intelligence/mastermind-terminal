@@ -749,6 +749,56 @@ describe("legacy email-keyed journal claimed by at most one auth UUID",()=>{
   expect(JSON.parse(storage.getItem(claimKey)!)["account:alice@x"]).toBe("account:uuid-a");
   expect(storage.getItem("mm.drawing.account-outbox.v1")).toBe(v1);
  });
+ it("stamps the claim on a later write when this owner already adopted and no claim exists",async()=>{
+  const storage=new MemoryStorage();
+  writeDrawingOutbox(storage,"account:alice@x",{NVDA:[line("alice-v1")]});
+  const first=readDrawingJournal(storage,alice);
+  expect(await writeDrawingJournal(storage,alice,first,locks)).toBe(true);
+  storage.removeItem(claimKey);
+  expect(JSON.parse(storage.getItem(claimKey)||"{}")["account:alice@x"]).toBeUndefined();
+  const later=readDrawingJournal(storage,alice);
+  expect(later.NVDA).toMatchObject({drawings:[{id:"alice-v1"}]});
+  expect(await writeDrawingJournal(storage,alice,later,locks)).toBe(true);
+  expect(JSON.parse(storage.getItem(claimKey)!)["account:alice@x"]).toBe("account:uuid-a");
+ });
+ it("withholds v1 from another UUID when a durable envelope already proves adoption, without writing a claim",async()=>{
+  const storage=new MemoryStorage();
+  writeDrawingOutbox(storage,"account:alice@x",{NVDA:[line("alice-v1")]});
+  const first=readDrawingJournal(storage,alice);
+  expect(await writeDrawingJournal(storage,alice,first,locks)).toBe(true);
+  storage.removeItem(claimKey);
+  const v2=JSON.parse(storage.getItem(DRAWING_JOURNAL_KEY)!) as Record<string,unknown>;
+  v2["account:uuid-b"]={AAPL:{format:2,copies:{[op]:{drawings:[line("bob-v2")],revision}},legacySeen:{},legacyLinks:{}}};
+  storage.setItem(DRAWING_JOURNAL_KEY,JSON.stringify(v2));
+  const bobJournal=readDrawingJournal(storage,bob);
+  expect(bobJournal.NVDA).toBeUndefined();
+  expect(bobJournal.AAPL).toMatchObject({drawings:[{id:"bob-v2"}]});
+  expect(storage.getItem(claimKey)).toBeNull();
+ });
+ it("double adoption withholds imports from a third UUID and never auto-stamps either holder",async()=>{
+  const storage=new MemoryStorage();
+  writeDrawingOutbox(storage,"account:alice@x",{NVDA:[line("alice-v1")]});
+  const first=readDrawingJournal(storage,alice);
+  expect(await writeDrawingJournal(storage,alice,first,locks)).toBe(true);
+  const v2=JSON.parse(storage.getItem(DRAWING_JOURNAL_KEY)!) as Record<string,unknown>;
+  v2["account:uuid-b"]=JSON.parse(JSON.stringify(v2["account:uuid-a"]));
+  storage.setItem(DRAWING_JOURNAL_KEY,JSON.stringify(v2));
+  storage.removeItem(claimKey);
+  const third={owner:"account:uuid-d",legacyOwner:"account:alice@x"};
+  expect(readDrawingJournal(storage,third)).toEqual({});
+  const aliceLater=readDrawingJournal(storage,alice);
+  const bobLater=readDrawingJournal(storage,bob);
+  expect(aliceLater.NVDA).toMatchObject({drawings:[{id:"alice-v1"}]});
+  expect(bobLater.NVDA).toMatchObject({drawings:[{id:"alice-v1"}]});
+  expect(aliceLater.NVDA.alternatives).toBeUndefined();
+  expect(bobLater.NVDA.alternatives).toBeUndefined();
+  expect(await writeDrawingJournal(storage,alice,aliceLater,locks)).toBe(true);
+  expect(await writeDrawingJournal(storage,bob,bobLater,locks)).toBe(true);
+  expect(JSON.parse(storage.getItem(claimKey)||"{}")["account:alice@x"]).toBeUndefined();
+  expect(readDrawingJournal(storage,third)).toEqual({});
+  expect(readDrawingJournal(storage,alice).NVDA).toMatchObject({drawings:[{id:"alice-v1"}]});
+  expect(readDrawingJournal(storage,bob).NVDA).toMatchObject({drawings:[{id:"alice-v1"}]});
+ });
  it("lets only one UUID persist the v1 copy when two first-reads race through nested setItem",async()=>{
   const storage=new MemoryStorage();
   writeDrawingOutbox(storage,"account:alice@x",{NVDA:[line("alice-v1")]});

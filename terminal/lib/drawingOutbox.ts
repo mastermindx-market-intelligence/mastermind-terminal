@@ -24,6 +24,9 @@ export const DRAWING_RECEIPTS_KEY = "mm.drawing.retired-copies.v1";
  * holder signs in on this browser and their write adopts at least one import
  * before the original owner ever does after upgrade, the reassigned holder
  * claims it. That is the narrowest boundary possible without a UUID in v1 data.
+ * Residual (pre-patch double adoption): if two or more UUID envelopes already
+ * prove adoption of the same alias, neither write auto-stamps a claim and
+ * every other UUID is offered zero imports.
  */
 export const DRAWING_LEGACY_CLAIM_KEY = "mm.drawing.legacy-claim.v1";
 /**
@@ -269,6 +272,65 @@ function legacyOwnerClaimedByOther(claims: LegacyClaims, owner: string, legacyOw
 function legacyAliasClosed(state: LegacyClaimState, owner: string, legacyOwner: string): boolean {
   return state.blocked.has(legacyOwner) || legacyOwnerClaimedByOther(state.claims, owner, legacyOwner);
 }
+/**
+ * Proof of prior adoption of this email alias: a symbol still has >=1 copy in
+ * this owner's record AND a `legacySeen` token for a v1 sourceId of this alias
+ * (or a live `legacyLinks` entry for that sourceId) equals the stored-entry
+ * fingerprint of that current v1 source. Empty leftover receipts are not
+ * proof. Residual: two owners that both carry this proof never auto-stamp a
+ * claim; every other UUID sees zero imports.
+ */
+function ownerProvesAliasAdoption(namespace: JournalNamespace, legacyCopies: Record<string, Copies>): boolean {
+  for (const [symbol, record] of Object.entries(namespace)) {
+    if (!Object.keys(record.copies).length) continue;
+    const v1 = legacyCopies[symbol];
+    if (!v1) continue;
+    for (const [sourceId, entry] of Object.entries(v1)) {
+      const token = fingerprint(entry);
+      if (record.legacySeen[sourceId] === token) return true;
+      for (const [id, link] of Object.entries(record.legacyLinks)) {
+        if (record.copies[id] && link.sourceId === sourceId && link.token === token) return true;
+      }
+    }
+  }
+  return false;
+}
+function tryParseOwnerNamespace(envelope: StoredEnvelope, owner: string): JournalNamespace | null {
+  try {
+    const raw = ownerNamespace(envelope, owner);
+    const namespace: JournalNamespace = {};
+    for (const [symbol, value] of Object.entries(raw)) {
+      if (!value || typeof value !== "object" || Array.isArray(value)) return null;
+      const record = value as { format?: number; copies?: unknown; legacySeen?: unknown; legacyLinks?: unknown };
+      if (record.format !== 2 || !record.copies || typeof record.copies !== "object" || Array.isArray(record.copies)) return null;
+      const copies = readCopies(value);
+      if (Object.keys(record.copies).length !== Object.keys(copies).length) return null;
+      const seen = record.legacySeen ?? {};
+      if (!seen || typeof seen !== "object" || Array.isArray(seen)
+        || Object.values(seen).some((token) => typeof token !== "string" || !token.length)) return null;
+      const links = record.legacyLinks ?? {};
+      if (!links || typeof links !== "object" || Array.isArray(links)
+        || Object.entries(links).some(([id, linkValue]) => !validDrawingOperationId(id) || !linkValue || typeof linkValue !== "object"
+          || typeof (linkValue as LegacyLink).sourceId !== "string" || typeof (linkValue as LegacyLink).token !== "string")) return null;
+      namespace[symbol] = { format: 2, copies, legacySeen: { ...seen as Record<string, string> }, legacyLinks: { ...links as Record<string, LegacyLink> } };
+    }
+    return namespace;
+  } catch {
+    return null;
+  }
+}
+function adoptionHoldersForAlias(
+  envelope: StoredEnvelope, owner: string, namespace: JournalNamespace, legacyCopies: Record<string, Copies>,
+): string[] {
+  const holders: string[] = [];
+  if (ownerProvesAliasAdoption(namespace, legacyCopies)) holders.push(owner);
+  for (const candidate of Object.keys(envelope)) {
+    if (!accountOwner(candidate) || candidate === owner) continue;
+    const other = tryParseOwnerNamespace(envelope, candidate);
+    if (other && ownerProvesAliasAdoption(other, legacyCopies)) holders.push(candidate);
+  }
+  return holders;
+}
 /** Drop in-memory `legacy:` copies this owner does not hold the claim for. */
 function dropUnownedLegacyCopies(journal: DrawingJournal): void {
   for (const symbol of Object.keys(journal)) {
@@ -290,7 +352,7 @@ function ownerNamespace(envelope: StoredEnvelope, owner: string): Record<string,
   if (raw && (typeof raw !== "object" || Array.isArray(raw))) throw new Error("Invalid recovery owner");
   return raw ?? {};
 }
-function journalState(storage: StoragePort, owner: string, legacyOwner: string, allowUnreadableLegacy = false): { envelope: StoredEnvelope; namespace: JournalNamespace; imports: LegacyImports } {
+function journalState(storage: StoragePort, owner: string, legacyOwner: string, allowUnreadableLegacy = false): { envelope: StoredEnvelope; namespace: JournalNamespace; imports: LegacyImports; adoptionHolders: string[] } {
   const envelope = strictEnvelope(storage, DRAWING_JOURNAL_KEY);
   const namespace: JournalNamespace = {};
   for (const [symbol, raw] of Object.entries(ownerNamespace(envelope, owner))) {
@@ -315,6 +377,7 @@ function journalState(storage: StoragePort, owner: string, legacyOwner: string, 
   const claims = alias ? readLegacyClaims(storage) : { claims: {}, blocked: new Set<string>() };
   if (!legacyAliasClosed(claims, owner, legacyOwner)) {
   const legacy = accountOwner(legacyOwner) ? ownerNamespace(strictEnvelope(storage, DRAWING_OUTBOX_KEY), legacyOwner) : {};
+  const legacyCopies: Record<string, Copies> = {};
   for (const [symbol, raw] of Object.entries(legacy)) {
     const copies = readCopies(raw);
     // Before fingerprinting, so the import receipt matches on every later read.
@@ -322,22 +385,32 @@ function journalState(storage: StoragePort, owner: string, legacyOwner: string, 
     const container = raw as { format?: number; copies?: Record<string, unknown> } | undefined;
     if (!Object.keys(copies).length || (container?.format === 2
       && Object.keys(container.copies ?? {}).length !== Object.keys(copies).length)) throw new Error("Invalid legacy copy; preserve stored bytes");
-    for (const [sourceId, entry] of Object.entries(copies)) {
-      // Compare exact semantic content, not a lossy hash. A receipt suppresses
-      // only the unchanged legacy snapshot the user already acknowledged.
-      if (namespace[symbol]?.legacySeen[sourceId] !== fingerprint(entry)) {
-        (imports[symbol] ??= {})[`legacy:${sourceId}`] = entry;
+    legacyCopies[symbol] = copies;
+  }
+  // READ never writes. Another owner's live adoption proof (legacySeen or
+  // live legacyLinks matching this alias's current v1, with copies remaining)
+  // holds the alias implicitly: this reader gets zero imports and keeps v2.
+  const adoptionHolders = alias ? adoptionHoldersForAlias(envelope, owner, namespace, legacyCopies) : [];
+  if (!adoptionHolders.some((holder) => holder !== owner)) {
+    for (const [symbol, copies] of Object.entries(legacyCopies)) {
+      for (const [sourceId, entry] of Object.entries(copies)) {
+        // Compare exact semantic content, not a lossy hash. A receipt suppresses
+        // only the unchanged legacy snapshot the user already acknowledged.
+        if (namespace[symbol]?.legacySeen[sourceId] !== fingerprint(entry)) {
+          (imports[symbol] ??= {})[`legacy:${sourceId}`] = entry;
+        }
       }
     }
   }
+  return { envelope, namespace, imports, adoptionHolders };
   }
   } catch (error) {
     if (!allowUnreadableLegacy) throw error;
     // Valid v2 pending work remains visible. Every write still reads strictly
     // and fails closed, retaining both stores and preventing a cloud PUT.
-    return { envelope, namespace, imports: {} };
+    return { envelope, namespace, imports: {}, adoptionHolders: [] };
   }
-  return { envelope, namespace, imports };
+  return { envelope, namespace, imports, adoptionHolders: [] };
 }
 
 /** Read competing copies independently; no GET can silently choose or rebase one. */
@@ -377,14 +450,16 @@ export async function writeDrawingJournal(
   if (!accountOwner(owner) || !locks) return false;
   try {
     return await locks.request(DRAWING_JOURNAL_KEY, () => {
-      let { envelope, namespace, imports } = journalState(storage, owner, legacyOwner);
+      let { envelope, namespace, imports, adoptionHolders } = journalState(storage, owner, legacyOwner);
       const alias = accountOwner(legacyOwner) && legacyOwner !== owner;
       let claims: LegacyClaimState = { claims: {}, blocked: new Set() };
+      const selfHolds = adoptionHolders.some((holder) => holder === owner);
+      const othersHold = adoptionHolders.some((holder) => holder !== owner);
       if (alias) {
         // Re-read under the same lock the journal write already holds (or the
         // in-process queue tests use when navigator.locks is unavailable).
         claims = readLegacyClaims(storage);
-        if (legacyAliasClosed(claims, owner, legacyOwner)) {
+        if (legacyAliasClosed(claims, owner, legacyOwner) || (othersHold && !selfHolds)) {
           imports = {};
           dropUnownedLegacyCopies(journal);
         }
@@ -460,7 +535,10 @@ export async function writeDrawingJournal(
       if (acknowledged.length) writeRetiredCopies(storage, owner, [...receipts.filter((id) => !acknowledged.includes(id)), ...acknowledged]);
       // Claim before the journal so a storage failure cannot persist adopted
       // copies without the claim. Fail closed: do not return durability without it.
-      if (alias && !claims.claims[legacyOwner] && !claims.blocked.has(legacyOwner) && adopted > 0) {
+      // Stamp when this write adopts, or when this owner's envelope already
+      // proves prior adoption. Residual: two owners with that proof never
+      // auto-stamp a claim for either.
+      if (alias && !claims.claims[legacyOwner] && !claims.blocked.has(legacyOwner) && (adopted > 0 || selfHolds) && !othersHold) {
         try {
           // Re-read and merge only this alias so an unrelated email's claim survives.
           const latest = readLegacyClaims(storage);
