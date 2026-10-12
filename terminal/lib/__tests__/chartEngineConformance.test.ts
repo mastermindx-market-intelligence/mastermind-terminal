@@ -282,7 +282,9 @@ const H = vi.hoisted(() => {
     BaselineSeries: { seriesType: "Baseline" },
   };
 
-  return { reg, createChart, createSeriesMarkers, createTextWatermark, defs };
+  const MismatchDirection = { NearestLeft: -1, None: 0, NearestRight: 1 } as const;
+
+  return { reg, createChart, createSeriesMarkers, createTextWatermark, defs, MismatchDirection };
 });
 
 vi.mock("lightweight-charts", () => ({
@@ -295,6 +297,7 @@ vi.mock("lightweight-charts", () => ({
   AreaSeries: H.defs.AreaSeries,
   HistogramSeries: H.defs.HistogramSeries,
   BaselineSeries: H.defs.BaselineSeries,
+  MismatchDirection: H.MismatchDirection,
 }));
 
 import { createLwcEngine } from "../chart-engine/lwc";
@@ -309,6 +312,7 @@ import type {
   EngineLogicalRange,
   EngineLogicalRangeHandler,
   EngineMouseHandler,
+  EngineOptions,
   EngineSeriesKind,
   EngineSeriesOptions,
   EngineSeriesRow,
@@ -372,7 +376,20 @@ describe("conformance corpus", () => {
 // check(s) RED — asserted through the headless collector.
 type FakeDefect = "update-appends-duplicates" | "destroy-not-zeroing" | "watermark-stacks";
 
+function fakePriceScale(): PriceScaleHandle {
+  return {
+    width: () => 57,
+    applyOptions: () => undefined,
+    options: () => ({}),
+    getVisibleRange: () => null,
+    setVisibleRange: () => undefined,
+    setAutoScale: () => undefined,
+    unwrap: <T>(): T => ({}) as unknown as T,
+  };
+}
+
 class FakeEngine implements ChartEngine {
+  readonly impl = "lwc" as const;
   private destroyed = false;
   private paneSeries: FakeEngineSeries[][] = [[]];
   // One watermark entry list per pane; its length is the census count.
@@ -404,8 +421,27 @@ class FakeEngine implements ChartEngine {
   }
 
   panes(): PaneHandle[] {
-    return this.paneSeries.map((_p, i) => new FakeEnginePane(i));
+    return this.paneSeries.map((_p, i) => new FakeEnginePane(i, this));
   }
+
+  seriesInPane(idx: number): SeriesHandle[] {
+    return (this.paneSeries[idx] ?? []).slice();
+  }
+
+  removeSeries(series: SeriesHandle): void {
+    series.remove();
+  }
+
+  chartElement(): HTMLElement {
+    return this.container;
+  }
+
+  options(): EngineOptions {
+    return {};
+  }
+
+  setCrosshairPosition(): void {}
+  clearCrosshairPosition(): void {}
 
   timeScale(): TimeScaleHandle {
     return {
@@ -422,12 +458,19 @@ class FakeEngine implements ChartEngine {
       scrollToPosition: () => undefined,
       applyOptions: () => undefined,
       fitContent: () => undefined,
+      getVisibleRange: () => null,
+      setVisibleRange: () => undefined,
+      logicalToCoordinate: () => null,
+      coordinateToLogical: () => null,
+      width: () => 800,
+      timeToIndex: () => null,
+      options: () => ({}),
       unwrap: <T>(): T => ({ __fakeTimeScale: true }) as unknown as T,
     };
   }
 
   priceScale(): PriceScaleHandle {
-    return { width: () => 57, applyOptions: () => undefined, unwrap: <T>(): T => ({}) as unknown as T };
+    return fakePriceScale();
   }
 
   paneSize(): { width: number; height: number } {
@@ -522,9 +565,18 @@ class FakeEngine implements ChartEngine {
 }
 
 class FakeEnginePane implements PaneHandle {
-  constructor(private readonly idx: number) {}
+  constructor(
+    private readonly idx: number,
+    private readonly engine: FakeEngine | null = null,
+  ) {}
   index(): number {
     return this.idx;
+  }
+  getSeries(): SeriesHandle[] {
+    return this.engine ? this.engine.seriesInPane(this.idx) : [];
+  }
+  priceScale(): PriceScaleHandle {
+    return fakePriceScale();
   }
   height(): number {
     return 100 + this.idx;
@@ -546,7 +598,7 @@ class FakeEngineSeries implements SeriesHandle {
   readonly kind: EngineSeriesKind;
   private rows: EngineSeriesRow[] = [];
   private removed = false;
-  private priceLines: FakeEnginePriceLine[] = [];
+  private lines: FakeEnginePriceLine[] = [];
   private markers: unknown[] = [];
 
   constructor(
@@ -597,8 +649,24 @@ class FakeEngineSeries implements SeriesHandle {
   createPriceLine(opts: PriceLineSpec): PriceLineHandle {
     this.live();
     const line = new FakeEnginePriceLine(this, opts);
-    this.priceLines.push(line);
+    this.lines.push(line);
     return line;
+  }
+  removePriceLine(line: PriceLineHandle): void {
+    line.remove();
+  }
+  priceLines(): PriceLineHandle[] {
+    return this.lines.filter((l) => !l.isRemoved());
+  }
+  priceScale(): PriceScaleHandle {
+    return fakePriceScale();
+  }
+  options(): EngineSeriesOptions {
+    return {};
+  }
+  dataByIndex(logicalIndex: number): EngineSeriesRow | null {
+    const i = Math.round(logicalIndex);
+    return i >= 0 && i < this.rows.length ? this.rows[i] : null;
   }
   priceToCoordinate(): number | null {
     return null;
@@ -612,7 +680,7 @@ class FakeEngineSeries implements SeriesHandle {
   }
   pane(): PaneHandle {
     this.live();
-    return new FakeEnginePane(this.paneIdx);
+    return new FakeEnginePane(this.paneIdx, this.engine);
   }
   moveToPane(paneIndex: number): void {
     this.live();
@@ -631,12 +699,12 @@ class FakeEngineSeries implements SeriesHandle {
   }
 
   priceLineCount(): number {
-    return this.priceLines.filter((l) => !l.isRemoved()).length;
+    return this.lines.filter((l) => !l.isRemoved()).length;
   }
 
   splicePriceLine(line: FakeEnginePriceLine): void {
-    const at = this.priceLines.indexOf(line);
-    if (at !== -1) this.priceLines.splice(at, 1);
+    const at = this.lines.indexOf(line);
+    if (at !== -1) this.lines.splice(at, 1);
   }
 }
 
@@ -647,6 +715,9 @@ class FakeEnginePriceLine implements PriceLineHandle {
     public readonly opts: PriceLineSpec,
   ) {}
   applyOptions(): void {}
+  options(): Record<string, unknown> {
+    return { ...this.opts };
+  }
   remove(): void {
     if (this.removed) return;
     this.removed = true;
