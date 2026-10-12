@@ -98,6 +98,35 @@ vi.mock("@/lib/companyThemeExposure", () => ({
     }),
 }));
 
+const stateProbe = vi.hoisted(() => ({
+  armed: false,
+  setterCallsAfterArm: [] as unknown[],
+}));
+
+// Transparent useState shim for this file's module graph: it delegates to the
+// real hook (hook order, values and setter behavior unchanged) and records
+// every setter call made while stateProbe.armed is set. React 19 silently
+// drops setState on an unmounted component, so the probe is the only way to
+// prove the card's abort guards make zero state updates after unmount. Setter
+// identity stays stable across renders via the WeakMap cache.
+vi.mock("react", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("react")>();
+  const wrappedSetters = new WeakMap<object, unknown>();
+  const probedUseState = <S,>(initialState: S | (() => S)) => {
+    const [value, setter] = actual.useState<S>(initialState);
+    const cached = wrappedSetters.get(setter);
+    if (cached) return [value, cached as typeof setter] as [S, typeof setter];
+    const wrapped: typeof setter = (action) => {
+      if (stateProbe.armed) stateProbe.setterCallsAfterArm.push(action);
+      setter(action);
+    };
+    wrappedSetters.set(setter, wrapped);
+    return [value, wrapped] as [S, typeof setter];
+  };
+  const mocked = { ...actual, useState: probedUseState };
+  return { ...mocked, default: (actual as { default?: unknown }).default ?? mocked };
+});
+
 function item(patch: Partial<CompanyThemeExposureItem> = {}): CompanyThemeExposureItem {
   return {
     theme_id: "ai_infrastructure",
@@ -344,7 +373,7 @@ describe("company theme context card rejection and abort", () => {
     expect(retryButton("重试")).not.toBeNull();
   });
 
-  it("unmount mid-request does not update state and does not warn about act()", async () => {
+  it("unmount mid-request does not update state on the resolve path and does not warn about act()", async () => {
     const errors: string[] = [];
     const spy = vi.spyOn(console, "error").mockImplementation((...args: unknown[]) => {
       errors.push(args.map((part) => String(part)).join(" "));
@@ -352,18 +381,44 @@ describe("company theme context card rejection and abort", () => {
     try {
       await mount();
       expect(transport.pending).toHaveLength(1);
+      // Arm the probe only after mount effects settle — LangProvider's own
+      // setLangState fires during mount. React 19 silently drops a setState
+      // on an unmounted component, so the stateProbe-wrapped setters are the
+      // observable pin: the guarded .then must make zero setter calls.
+      stateProbe.armed = true;
+      stateProbe.setterCallsAfterArm.length = 0;
       mounted = false;
       await act(async () => root.unmount());
       expect(transport.pending[0].signal?.aborted).toBe(true);
-      // The real client resolves after abort. React 19 does not warn when a
-      // setState is attempted on an unmounted card, so the observable abort
-      // pin is the signal plus an empty host.
-      transport.pending[0].resolve(success(exposure()));
-      await new Promise((resolve) => setTimeout(resolve, 0));
-      expect(host.innerHTML).toBe("");
+      // The real client resolves after abort.
+      await act(async () => {
+        transport.pending[0].resolve(success(exposure()));
+      });
+      expect(stateProbe.setterCallsAfterArm).toHaveLength(0);
       expect(errors.join("\n")).not.toMatch(/not wrapped in act|unmounted component/i);
     } finally {
+      stateProbe.armed = false;
       spy.mockRestore();
+    }
+  });
+
+  it("unmount mid-request does not update state on the reject path", async () => {
+    try {
+      await mount();
+      expect(transport.pending).toHaveLength(1);
+      stateProbe.armed = true;
+      stateProbe.setterCallsAfterArm.length = 0;
+      mounted = false;
+      await act(async () => root.unmount());
+      expect(transport.pending[0].signal?.aborted).toBe(true);
+      // Same pin for the .catch branch: a rejection after abort must not
+      // touch any state setter on the unmounted card.
+      await act(async () => {
+        transport.pending[0].reject(new Error("network down"));
+      });
+      expect(stateProbe.setterCallsAfterArm).toHaveLength(0);
+    } finally {
+      stateProbe.armed = false;
     }
   });
 });
@@ -607,24 +662,34 @@ describe("company theme context card coverage", () => {
 });
 
 describe("company theme context card plural unmapped warning", () => {
-  // warning() has no entry for active_memberships_unmapped, so both languages
-  // fall through to the underscored code (CompanyThemeContextCard.tsx:40).
-  it.fails("active_memberships_unmapped ZH uses Chinese copy rather than the raw code", async () => {
-    const context = exposure({
-      status: "partial",
-      coverage: {
-        status: "unmapped_only",
-        active_basket_count: 2,
-        mapped_basket_count: 0,
-        unmapped_basket_count: 2,
-      },
-      exposures: [],
-      warnings: ["active_memberships_unmapped"],
-    });
-    await show(success(context, "partial"), "zh");
+  // The producer contract allows both active_membership_unmapped and the plural
+  // active_memberships_unmapped (lib/companyThemeExposure.ts:18-24), so warning()
+  // must carry the same copy for both codes in each language.
+  const pluralUnmapped = exposure({
+    status: "partial",
+    coverage: {
+      status: "unmapped_only",
+      active_basket_count: 2,
+      mapped_basket_count: 0,
+      unmapped_basket_count: 2,
+    },
+    exposures: [],
+    warnings: ["active_memberships_unmapped"],
+  });
+
+  it("active_memberships_unmapped ZH uses Chinese copy rather than the raw code", async () => {
+    await show(success(pluralUnmapped, "partial"), "zh");
     const text = host.querySelector(".ci-theme-warning p")?.textContent ?? "";
     expect(text).not.toBe("active memberships unmapped");
+    expect(text).toContain("部分活跃策展篮子被有意排除在此主题映射之外。");
     expect(text).toMatch(/\p{Script=Han}/u);
+  });
+
+  it("active_memberships_unmapped EN uses the English sentence rather than the raw code", async () => {
+    await show(success(pluralUnmapped, "partial"));
+    const text = host.querySelector(".ci-theme-warning p")?.textContent ?? "";
+    expect(text).not.toBe("active memberships unmapped");
+    expect(text).toContain("Some active curated baskets are deliberately outside this theme crosswalk.");
   });
 });
 
