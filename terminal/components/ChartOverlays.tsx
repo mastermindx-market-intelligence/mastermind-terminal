@@ -223,7 +223,7 @@ export default function ChartOverlays(props: {
                     <div
                       key={e.key}
                       ref={isArmed ? armedRowRef : undefined}
-                      className={`lg-row${e.hidden ? " is-hidden" : ""}${e.isCompare ? " is-cmp" : ""}${isArmed ? " is-armed" : ""}`}
+                      className={`lg-row${e.hidden ? " is-hidden" : ""}${e.isCompare ? " is-cmp" : ""}${isArmed ? " is-armed" : ""}${e.pineState ? ` ${styles.stateRow}` : ""}`}
                       style={visible
                         ? { background: `rgba(6,9,14,${Math.max(0, Math.min(100, props.backgroundOpacity ?? 70)) * 0.0054})` }
                         : { display: "none" }}

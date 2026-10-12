@@ -8,11 +8,12 @@ import { useLang, useT } from "./i18n";
  * LEX leaves unrelated screen evidence untouched. `{name}` = script name. No mutable registration.
  */
 export const PINE_RUN_LEX: Record<string, [string, string]> = {
-  // legend row (lib/pineChartRun.ts pineRowState)
+  // legend row (lib/pineChartRun.ts pineRowState). Terse on purpose: it sits beside the script's
+  // name in a row that must stay clear of the price scale on a 390px phone.
   pineRunning: ["Running…", "运行中…"],
-  pineEngineWait: ["Waiting for script engine…", "正在等待脚本引擎…"],
-  pineEngineFail: ["Script engine failed to start", "脚本引擎启动失败"],
-  pineEngineError: ["Script engine error", "脚本引擎出错"],
+  pineEngineWait: ["Waiting for engine…", "等待引擎…"],
+  pineEngineFail: ["Engine failed to start", "引擎启动失败"],
+  pineEngineError: ["Engine error", "引擎出错"],
   pineRunInterrupted: ["Run interrupted", "运行被中断"],
   pineRetry: ["Retry", "重试"],
   pineRetryTip: ["Run this script again", "重新运行此脚本"],

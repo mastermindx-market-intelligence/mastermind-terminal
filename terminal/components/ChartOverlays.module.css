@@ -36,6 +36,14 @@
 .retry:hover { background: color-mix(in srgb, var(--warn) 16%, rgba(6, 9, 14, .8)); }
 .retry:focus-visible { outline: 2px solid var(--warn); outline-offset: 1px; }
 
+/* Phone: the chart spans the viewport, and a row carrying a state + Retry is the only legend row
+   long enough to reach the 46ch row cap, which on a 390px screen runs under the price scale. End it
+   before the scale; the state text ellipsizes first (Retry is flex:none). An armed row keeps its own
+   wider cap (globals.css .lg-row.is-armed). */
+@media (max-width: 640px) {
+  :global(.lg-row).stateRow:not(:global(.is-armed)) { max-width: calc(100vw - 96px); }
+}
+
 @media (max-width: 860px) {
   .state { font-size: 12px; }
   .retry { height: 24px; padding: 0 9px; font-size: 12px; }
