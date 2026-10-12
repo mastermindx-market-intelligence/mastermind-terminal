@@ -1,15 +1,15 @@
 # Pine engine boot states — capture evidence
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
 # Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
-# capturedAtHead: dbdb18cdbf705e89e32c2b68ae3641535a62a7f5
-# capturedAt: 2026-10-12T07:31:00.707Z
+# capturedAtHead: 705e256dd52821e35e7bfab46a4a4fee28da4f63
+# capturedAt: 2026-10-12T07:38:09.373Z
 # capturedAtHead is informational. The lock is layoutFiles.
 # ChartPanel.tsx is not locked: it picks the row's state, which e2e/pine-engine-boot-pending.spec.ts
 # gates; the files below draw the crops and choose their words.
 layoutFiles:
   terminal/app/globals.css: "06e122f87cc402a9021d3a357e95c9c9a1cd7f4e622a25e2b24e8f7bc7ee6cd9"
-  terminal/components/ChartOverlays.module.css: "80b85f06591e513082a2f222ae307ff3bba8328e8c246513cbca14e7e3e5f774"
-  terminal/components/ChartOverlays.tsx: "bf41ceed7012c80ec98e93a5eb17ac57b401b9ed865b72a97e3d1507530585c1"
+  terminal/components/ChartOverlays.module.css: "06e931d50c67391a1a768553054d514ffdc06d70defc194e233d2890172f174d"
+  terminal/components/ChartOverlays.tsx: "52b28414dc2836ea93744b03447588e24a30cc597f2127c59c68700e6c0783e8"
   terminal/components/PineEditor.tsx: "8a68b0a8b0d3f0443efe006c131f64516ab2615489fffbaf616818074a717497"
   terminal/lib/pineChartRun.ts: "460ee8f0d12990e8772b84bc819e2ec76f325c865f1d07181d907581f072100c"
   terminal/lib/pineRunLex.ts: "a814e31a926ad2f7562eed0716cae2af5ee88f14bbfdf7312bb08c4078963971"

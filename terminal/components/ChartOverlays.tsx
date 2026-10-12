@@ -236,7 +236,7 @@ export default function ChartOverlays(props: {
                       >{e.label}</span>
                       {e.pineState && (
                         <span
-                          className={`${styles.state} ${pineStatePending(e.pineState) ? styles.pending : styles.unavail}`}
+                          className={`${styles.stateChip} ${pineStatePending(e.pineState) ? styles.pending : styles.unavail}`}
                           role="status"
                           data-pine-state={e.pineState}
                           onClick={coarse && !isArmed ? (ev) => { ev.stopPropagation(); setArmedKey(e.key); } : undefined}
