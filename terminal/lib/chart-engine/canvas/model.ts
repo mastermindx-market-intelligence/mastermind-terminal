@@ -14,9 +14,11 @@ import type {
   EngineInventory,
   EngineLogicalRange,
   EngineLogicalRangeHandler,
+  EngineMismatchDirection,
   EngineMouseEventParams,
   EngineMouseHandler,
   EngineOptions,
+  EngineRange,
   EngineSeriesKind,
   EngineSeriesOptions,
   EngineSeriesRow,
@@ -231,6 +233,13 @@ export class ChartModel {
   private nextLineId = 1;
   private readonly hooks: ModelHooks;
   private tsHandle: TimeScaleHandle | null = null;
+  // Handle identity: the contract (C02) promises that pane.getSeries() and
+  // series.priceLines() return the SAME handle objects the engine handed out.
+  private readonly seriesHandles = new Map<number, ModelSeriesHandle>();
+  private readonly lineHandles = new Map<number, ModelPriceLineHandle>();
+  // Programmatic crosshair (ChartEngine.setCrosshairPosition): drawn by the
+  // renderer, never echoed to crosshair subscribers (LWC semantics).
+  externalCrosshair: { price: number; time: EngineTime; seriesId: number } | null = null;
 
   constructor(hooks: ModelHooks) {
     this.hooks = hooks;
@@ -367,7 +376,20 @@ export class ChartModel {
     this.seriesOrder.push(id);
     this.panes[pane].seriesIds.push(id);
     this.bump();
-    return new ModelSeriesHandle(kind, this, id);
+    const handle = new ModelSeriesHandle(kind, this, id);
+    this.seriesHandles.set(id, handle);
+    return handle;
+  }
+
+  /** The handle object addSeries() returned for `id` (identity-stable), or null. */
+  seriesHandle(id: number): SeriesHandle | null {
+    const s = this.series.get(id);
+    if (!this.alive || !s || s.removed) return null;
+    return this.seriesHandles.get(id) ?? null;
+  }
+  /** The handle object createPriceLine() returned for `lineId`, or null. */
+  priceLineHandle(lineId: number): PriceLineHandle | null {
+    return this.alive ? this.lineHandles.get(lineId) ?? null : null;
   }
 
   paneHandles(): PaneHandle[] {
@@ -625,7 +647,41 @@ export class ChartModel {
     const id = this.nextLineId++;
     s.priceLines.push({ id, spec: { ...spec }, removed: false });
     this.bump();
-    return new ModelPriceLineHandle(this, seriesId, id);
+    const handle = new ModelPriceLineHandle(this, seriesId, id);
+    this.lineHandles.set(id, handle);
+    return handle;
+  }
+
+  /** Exact logical index of `time` in the primary series; nearest when asked; future slot via the cadence seam. */
+  timeToIndex(time: EngineTime, findNearest?: boolean): number | null {
+    if (!this.alive) return null;
+    const primary = this.primarySeries();
+    if (!primary || primary.rows.length === 0) return null;
+    const target = timeToMs(time);
+    if (!Number.isFinite(target)) return null;
+    let best = -1;
+    let bestDist = Infinity;
+    for (let i = 0; i < primary.rows.length; i++) {
+      const d = Math.abs(timeToMs(primary.rows[i].time) - target);
+      if (d === 0) return i;
+      if (d < bestDist) { bestDist = d; best = i; }
+    }
+    const fut = futureSlotResolver.resolve(time, primary.rows.map((r) => r.time));
+    if (fut) return fut.logical;
+    return findNearest && best >= 0 ? best : null;
+  }
+
+  /** Time at a logical index: a primary row, or a future cadence slot past the last row. */
+  timeAtLogical(logical: number): EngineTime | null {
+    if (!this.alive) return null;
+    const primary = this.primarySeries();
+    if (!primary || primary.rows.length === 0) return null;
+    const n = primary.rows.length;
+    const i = Math.round(logical);
+    if (i < 0) return primary.rows[0].time;
+    if (i < n) return primary.rows[i].time;
+    const futures = futureBarTimes(primary.rows.map((r) => asCadenceTime(r.time)));
+    return futures[i - n] ?? null;
   }
 }
 
@@ -641,6 +697,10 @@ class ModelPriceLineHandle implements PriceLineHandle {
     if (!line) return;
     line.spec = { ...line.spec, ...opts };
     this.m.bump();
+  }
+  options(): Record<string, unknown> {
+    const line = this.line();
+    return line ? { ...line.spec } : {};
   }
   remove(): void {
     const s = this.m.getSeries(this.seriesId);
@@ -677,7 +737,44 @@ class ModelSeriesHandle implements SeriesHandle {
     s.markers = marks.slice();
     this.m.bump();
   }
+  options(): EngineSeriesOptions {
+    const s = this.live();
+    return s ? { ...s.options } : {};
+  }
+  data(): readonly EngineSeriesRow[] {
+    const s = this.live();
+    return s ? s.rows.slice() : [];
+  }
+  dataByIndex(logicalIndex: number, mismatchDirection: EngineMismatchDirection = "none"): EngineSeriesRow | null {
+    const s = this.live();
+    if (!s || s.rows.length === 0 || !Number.isFinite(logicalIndex)) return null;
+    const n = s.rows.length;
+    const i = Math.round(logicalIndex);
+    if (i >= 0 && i < n) return s.rows[i];
+    if (mismatchDirection === "nearest-left" && i >= n) return s.rows[n - 1];
+    if (mismatchDirection === "nearest-right" && i < 0) return s.rows[0];
+    return null;
+  }
   createPriceLine(opts: PriceLineSpec): PriceLineHandle { return this.m.createPriceLine(this.id, opts); }
+  removePriceLine(line: PriceLineHandle): void {
+    if (!this.live()) return;
+    line.remove();
+  }
+  priceLines(): PriceLineHandle[] {
+    const s = this.live();
+    if (!s) return [];
+    const out: PriceLineHandle[] = [];
+    for (const l of s.priceLines) {
+      if (l.removed) continue;
+      const h = this.m.priceLineHandle(l.id);
+      if (h) out.push(h);
+    }
+    return out;
+  }
+  priceScale(): PriceScaleHandle {
+    const s = this.live();
+    return this.m.priceScaleHandle(s?.priceScaleId ?? "right", s?.paneIndex ?? 0);
+  }
   priceToCoordinate(price: number): number | null {
     const s = this.live();
     return s ? this.m.projectionFor(s).yOfPrice(price) : null;
@@ -731,6 +828,19 @@ class ModelPaneHandle implements PaneHandle {
   getHTMLElement(): HTMLElement | null {
     return this.m.alive ? this.m.paneElementLookup?.(this.idx) ?? null : null;
   }
+  getSeries(): SeriesHandle[] {
+    const p = this.pane();
+    if (!p) return [];
+    const out: SeriesHandle[] = [];
+    for (const sid of p.seriesIds) {
+      const h = this.m.seriesHandle(sid);
+      if (h) out.push(h);
+    }
+    return out;
+  }
+  priceScale(priceScaleId: string): PriceScaleHandle {
+    return this.m.priceScaleHandle(priceScaleId, this.idx);
+  }
   unwrap<T>(): T {
     return (this.pane() ?? { index: this.idx, height: 0, stretchFactor: 0, seriesIds: [] }) as unknown as T;
   }
@@ -754,6 +864,38 @@ class ModelPriceScaleHandle implements PriceScaleHandle {
     else if (opts.mode === "indexed100" || opts.mode === 3) scale.mode = "indexed100";
     this.m.bump();
   }
+  options(): Record<string, unknown> {
+    if (!this.m.alive) return {};
+    const scale = this.m.scale(this.paneIdx, this.id);
+    return {
+      mode: scale.mode,
+      invertScale: scale.inverted,
+      autoScale: scale.autoScale,
+      scaleMargins: { ...scale.margins },
+    };
+  }
+  getVisibleRange(): EngineRange<number> | null {
+    if (!this.m.alive) return null;
+    const scale = this.m.autoscaleScale(this.paneIdx, this.id);
+    if (!Number.isFinite(scale.from) || !Number.isFinite(scale.to)) return null;
+    return { from: scale.from, to: scale.to };
+  }
+  setVisibleRange(range: EngineRange<number>): void {
+    if (!this.m.alive) return;
+    if (!Number.isFinite(range.from) || !Number.isFinite(range.to)) return;
+    const scale = this.m.scale(this.paneIdx, this.id);
+    scale.from = Math.min(range.from, range.to);
+    scale.to = Math.max(range.from, range.to);
+    scale.autoScale = false;
+    this.m.bump();
+  }
+  setAutoScale(on: boolean): void {
+    if (!this.m.alive) return;
+    const scale = this.m.scale(this.paneIdx, this.id);
+    if (scale.autoScale === on) return;
+    scale.autoScale = on;
+    this.m.bump();
+  }
   unwrap<T>(): T { return this.m.scale(this.paneIdx, this.id) as unknown as T; }
 }
 
@@ -769,5 +911,38 @@ class ModelTimeScaleHandle implements TimeScaleHandle {
   scrollToPosition(position: number, animated?: boolean): void { void animated; this.m.scrollToPosition(position); }
   applyOptions(opts: Record<string, unknown>): void { this.m.applyTimeScaleOptions(opts); }
   fitContent(): void { this.m.fitContent(); }
+  getVisibleRange(): EngineRange<EngineTime> | null {
+    const lr = this.m.getVisibleLogicalRange();
+    if (!lr) return null;
+    // The visible window is [from, to) in bar slots; the last visible bar is to - 1.
+    const from = this.m.timeAtLogical(lr.from);
+    const to = this.m.timeAtLogical(Math.max(lr.from, lr.to - 1));
+    return from != null && to != null ? { from, to } : null;
+  }
+  setVisibleRange(range: EngineRange<EngineTime>): void {
+    const from = this.m.timeToIndex(range.from, true);
+    const to = this.m.timeToIndex(range.to, true);
+    if (from == null || to == null) return;
+    this.m.setVisibleLogicalRange({ from: Math.min(from, to), to: Math.max(from, to) + 1 });
+  }
+  logicalToCoordinate(logical: number): number | null {
+    return this.m.alive && Number.isFinite(logical) ? this.m.xOfLogical(logical) : null;
+  }
+  coordinateToLogical(x: number): number | null {
+    return this.m.alive && Number.isFinite(x) ? this.m.logicalOfX(x) : null;
+  }
+  width(): number { return this.m.alive ? this.m.time.widthPx : 0; }
+  timeToIndex(time: EngineTime, findNearest?: boolean): number | null {
+    return this.m.timeToIndex(time, findNearest);
+  }
+  options(): Record<string, unknown> {
+    if (!this.m.alive) return {};
+    const ts = this.m.options.timeScale;
+    return {
+      rightOffset: this.m.time.rightOffset,
+      barSpacing: this.m.time.barSpacing,
+      ...(ts && typeof ts === "object" ? (ts as Record<string, unknown>) : {}),
+    };
+  }
   unwrap<T>(): T { return this.m.time as unknown as T; }
 }

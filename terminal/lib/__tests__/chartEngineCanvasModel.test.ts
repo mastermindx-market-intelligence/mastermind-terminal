@@ -359,7 +359,9 @@ describe("canvas engine skeleton", () => {
       priceLines: 0,
       watermarks: 0,
     });
-    expect(engine.chartElement()).toBeNull();
+    // Contract: chartElement() is always an HTMLElement; after destroy it is the detached root.
+    expect(engine.chartElement()).toBe(root);
+    expect(engine.chartElement().isConnected).toBe(false);
   });
 
   it("post-destroy handles are deterministic no-ops and queries return null/[]/0", () => {

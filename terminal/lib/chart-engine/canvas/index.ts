@@ -13,6 +13,7 @@ import type {
   EngineInventory,
   EngineOptions,
   EngineSeriesKind,
+  EngineTime,
   EngineSeriesOptions,
   EngineMouseHandler,
   PaneHandle,
@@ -244,13 +245,15 @@ function backgroundColor(options: EngineOptions): string | null {
 
 export type CanvasChartEngine = ChartEngine & {
   readonly impl: typeof CANVAS_ENGINE_IMPL;
-  chartElement(): HTMLElement | null;
 };
 
 class CanvasEngine implements CanvasChartEngine {
   readonly impl = CANVAS_ENGINE_IMPL;
   private readonly model: ChartModel;
+  private readonly container: HTMLElement;
   private dom: ChartDom | null;
+  // Kept after destroy so chartElement() stays a (detached) HTMLElement, as the contract requires.
+  private lastRoot: HTMLElement | null = null;
   private readonly scheduler: PaintScheduler;
   private paintHandle: unknown = null;
   private readonly overlayListeners: Array<[string, EventListener]> = [];
@@ -282,6 +285,8 @@ class CanvasEngine implements CanvasChartEngine {
         this.resize(w, h);
       },
     });
+    this.container = container;
+    this.lastRoot = this.dom.root;
     this.model.paneElementLookup = (i) => (this.dom ? paneElement(this.dom, i) : null);
     this.bindOverlay();
     this.syncStructure();
@@ -336,20 +341,34 @@ class CanvasEngine implements CanvasChartEngine {
     const octx = dom.overlay.getContext("2d");
     if (octx) {
       octx.clearRect(0, 0, this.model.time.widthPx, this.model.totalHeight);
-      if (this.lastPoint) {
+      const point = this.lastPoint ?? this.externalCrosshairPoint();
+      if (point) {
         const ch = this.model.options.crosshair;
         const vert = ch && typeof ch === "object" ? (ch as { vertLine?: unknown }).vertLine : undefined;
         octx.strokeStyle = optionColor(vert, "rgba(180,180,180,0.6)");
         octx.beginPath();
-        octx.moveTo(this.lastPoint.x, 0);
-        octx.lineTo(this.lastPoint.x, this.model.totalHeight);
+        octx.moveTo(point.x, 0);
+        octx.lineTo(point.x, this.model.totalHeight);
         octx.stroke();
         octx.beginPath();
-        octx.moveTo(0, this.lastPoint.y);
-        octx.lineTo(this.model.time.widthPx, this.lastPoint.y);
+        octx.moveTo(0, point.y);
+        octx.lineTo(this.model.time.widthPx, point.y);
         octx.stroke();
       }
     }
+  }
+
+  /** Pixel position of the programmatic crosshair (setCrosshairPosition), or null. */
+  private externalCrosshairPoint(): { x: number; y: number } | null {
+    const xc = this.model.externalCrosshair;
+    if (!xc) return null;
+    const s = this.model.getSeries(xc.seriesId);
+    if (!s || s.removed) return null;
+    const x = this.model.timeToCoordinate(xc.time);
+    if (x == null) return null;
+    let y = this.model.projectionFor(s).yOfPrice(xc.price);
+    for (let i = 0; i < s.paneIndex; i++) y += this.model.panes[i]?.height ?? 0;
+    return { x, y };
   }
 
   private bindOverlay(): void {
@@ -381,12 +400,32 @@ class CanvasEngine implements CanvasChartEngine {
     this.overlayListeners.push(["mousemove", move], ["click", click], ["dblclick", dbl]);
   }
 
-  chartElement(): HTMLElement | null {
-    return this.dom?.root ?? null;
+  /** The owned chart root; after destroy() the detached root (never null — contract). */
+  chartElement(): HTMLElement {
+    return this.dom?.root ?? this.lastRoot ?? this.container;
+  }
+  options(): EngineOptions {
+    return { ...this.model.options };
   }
 
   addSeries(kind: EngineSeriesKind, options?: EngineSeriesOptions, paneIndex?: number): SeriesHandle {
     return this.model.addSeries(kind, options, paneIndex);
+  }
+  removeSeries(series: SeriesHandle): void {
+    series.remove();
+  }
+  setCrosshairPosition(price: number, time: EngineTime, series: SeriesHandle): void {
+    if (!this.dom) return;
+    const s = series.unwrap<{ id?: number; removed?: boolean }>();
+    if (!s || typeof s.id !== "number" || s.removed) return;
+    this.model.externalCrosshair = { price, time, seriesId: s.id };
+    this.invalidate();
+  }
+  clearCrosshairPosition(): void {
+    if (!this.dom) return;
+    if (this.model.externalCrosshair == null) return;
+    this.model.externalCrosshair = null;
+    this.invalidate();
   }
   panes(): PaneHandle[] {
     return this.model.paneHandles();
@@ -474,6 +513,7 @@ class CanvasEngine implements CanvasChartEngine {
     this.overlayListeners.length = 0;
     destroyChartDom(this.dom);
     this.dom = null;
+    this.model.externalCrosshair = null;
     this.model.destroy();
   }
 }
