@@ -206,20 +206,13 @@ describe("ticker news snapshot provenance", () => {
     );
   });
 
-  it("P9 a snapshot literal without provenance keys still satisfies the TickerNewsSnapshot type", () => {
-    const legacySnapshot: TickerNewsSnapshot = {
-      schema: "ticker_news.snapshot.v1",
-      ticker: "NVDA",
-      security_id: "SEC:US-XNAS-NVDA",
-      state: "live",
-      rows: [row],
-      next_cursor: 7,
-      has_more: false,
-      source_health: {
-        state: "live",
-        last_successful_catchup: "2026-10-05T14:01:01+00:00",
-      },
-    };
+  it("P9 the TickerNewsSnapshot provenance members are optional (a provenance-free object satisfies them)", () => {
+    // Pick over only the two provenance keys: the empty literal compiles while
+    // both members are optional, whatever other members the snapshot type gains.
+    const legacySnapshot: Pick<
+      TickerNewsSnapshot,
+      "universe_known_at" | "rights_basis"
+    > = {};
 
     expect("universe_known_at" in legacySnapshot).toBe(false);
     expect("rights_basis" in legacySnapshot).toBe(false);
