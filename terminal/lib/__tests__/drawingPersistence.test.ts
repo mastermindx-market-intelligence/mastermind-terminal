@@ -659,22 +659,18 @@ describe("per-symbol drawing load generation", () => {
 
 describe("drawing save settle reschedule", () => {
   it("D3: a pending edit with no armed timer must flush after save settles", () => {
-    expect(shouldRescheduleDrawingFlush({ queuedDuringSave: false, hasPending: true, timerArmed: false, saveSettledOk: true })).toBe(true);
+    expect(shouldRescheduleDrawingFlush({ hasPending: true, timerArmed: false, saveSettledOk: true })).toBe(true);
   });
 
   it("does not arm a second timer when the debounce is already waiting", () => {
-    expect(shouldRescheduleDrawingFlush({ queuedDuringSave: false, hasPending: true, timerArmed: true, saveSettledOk: true })).toBe(false);
-  });
-
-  it("still flushes follow-up work that queued during the in-flight save", () => {
-    expect(shouldRescheduleDrawingFlush({ queuedDuringSave: true, hasPending: true, timerArmed: false, saveSettledOk: true })).toBe(true);
+    expect(shouldRescheduleDrawingFlush({ hasPending: true, timerArmed: true, saveSettledOk: true })).toBe(false);
   });
 
   it("does not flush when the save consumed the pending drawings", () => {
-    expect(shouldRescheduleDrawingFlush({ queuedDuringSave: false, hasPending: false, timerArmed: false, saveSettledOk: true })).toBe(false);
+    expect(shouldRescheduleDrawingFlush({ hasPending: false, timerArmed: false, saveSettledOk: true })).toBe(false);
   });
 
   it("does not auto-retry a failed save that is waiting for recovery", () => {
-    expect(shouldRescheduleDrawingFlush({ queuedDuringSave: false, hasPending: true, timerArmed: false, saveSettledOk: false })).toBe(false);
+    expect(shouldRescheduleDrawingFlush({ hasPending: true, timerArmed: false, saveSettledOk: false })).toBe(false);
   });
 });

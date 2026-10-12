@@ -1815,7 +1815,6 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
         if (durable && !recovery[sym]) restoreOtherDrawingCopies(sym, ownerKey, recovery);
         if (queued) drawTimers.current[sym] = setTimeout(() => flushDrawings(sym), 0);
         else if (shouldRescheduleDrawingFlush({
-          queuedDuringSave: false,
           hasPending: drawPending.current[sym] !== undefined,
           timerArmed: Boolean(drawTimers.current[sym]),
           saveSettledOk,

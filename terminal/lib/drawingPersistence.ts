@@ -139,12 +139,10 @@ export function shouldApplyDrawingCloudCopy(input: {
 
 /** After a save settles, a newer local edit must not sit without a flush timer. */
 export function shouldRescheduleDrawingFlush(input: {
-  queuedDuringSave: boolean;
   hasPending: boolean;
   timerArmed: boolean;
   saveSettledOk: boolean;
 }): boolean {
   if (input.timerArmed) return false;
-  if (input.queuedDuringSave) return true;
   return input.saveSettledOk && input.hasPending;
 }
