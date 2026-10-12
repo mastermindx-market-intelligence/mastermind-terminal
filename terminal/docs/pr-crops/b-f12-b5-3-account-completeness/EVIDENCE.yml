@@ -1,8 +1,8 @@
 # B-F12-B5-3b Account completeness — capture evidence
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
 # Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
-# capturedAtHead: ec10dcb5ec6fcbfc338d8b7a3071a2b8e9ed7629
-# capturedAt: 2026-10-12T04:21:42.259Z
+# capturedAtHead: 198a62d5193ba9a221f0052c3f370494d71d1876
+# capturedAt: 2026-10-12T05:32:24.083Z
 # capturedAtHead is the code commit the pixels depict. The lock is layoutFiles.
 layoutFiles:
   terminal/components/settings/SectionAccount.tsx: "fb274b73f54f9ac1a9f2803e245dc8b2dbacccf82c7d4d55a6ffe30a0257d473"
