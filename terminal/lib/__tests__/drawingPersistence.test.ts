@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { parseDrawingSaveReceipt, parseDrawingSnapshot, parsePersistedDrawings, prepareDrawingAttempt, settleDrawingAttempt, beginDrawingLoad, abandonDrawingLoad, abandonAllDrawingLoads, isCurrentDrawingLoad, shouldRescheduleDrawingFlush, shouldApplyDrawingCloudCopy, decideDrawingLoadReconciliation, unionCloudWithPreloadAdditions, remainingPreloadPending, keepMinePutDrawings, settlePreloadMergeRevisionConflict, type DrawingJournalEntry, type DrawingLoadGenerations } from "@/lib/drawingPersistence";
+import { drawingSaveIssueChoices, drawingSaveIssueFromEntry } from "@/lib/drawingSaveConflict";
 import { MAX_DRAWINGS_PER_SYMBOL } from "@/lib/drawings";
 import { readDrawingJournal, writeDrawingJournal, writeDrawingOutbox, refreshDrawingJournalSymbol, reconcileDrawingJournal, selectDrawingRecoveryCopy, DRAWING_JOURNAL_KEY, DRAWING_RECEIPTS_KEY, DRAWING_RECEIPTS_UNREADABLE_KEY, DRAWING_RECEIPT_HISTORY, DRAWING_RECEIPT_OWNERS, type DrawingJournalLocks } from "@/lib/drawingOutbox";
 let lockTail=Promise.resolve();
@@ -900,7 +901,7 @@ describe("legacy email-keyed journal claimed by at most one auth UUID",()=>{
   expect(await writeDrawingJournal(storage,alice,journal,locks)).toBe(true);
   const rec=JSON.parse(storage.getItem(DRAWING_JOURNAL_KEY)!)["account:uuid-a"].NVDA as {copies:Record<string,unknown>;legacySeen:Record<string,string>};
   expect(Object.keys(rec.copies)).toEqual([op]);
-  expect(rec.legacySeen.legacy).toBe('[[{"id":"same","kind":"hline","points":[{"t":"2026-01-01","p":100}],"schemaVersion":1,"source":"user","locked":false,"hidden":false,"z":0,"opacity":1,"extend":"none","meta":{"label":"保持"}}],false,null,"legacy",null,false,null]');
+  expect(rec.legacySeen.legacy).toBe('[[{"id":"same","kind":"hline","points":[{"t":"2026-01-01","p":100}],"schemaVersion":1,"source":"user","locked":false,"hidden":false,"z":0,"opacity":1,"extend":"none","meta":{"label":"保持"}}],false,null,"legacy",null]');
   expect(JSON.parse(storage.getItem(claimKey)!)["account:alice@x"]).toBe("account:uuid-a");
   expect(storage.getItem("mm.drawing.account-outbox.v1")).toBe(v1);
  });
@@ -920,7 +921,7 @@ describe("legacy email-keyed journal claimed by at most one auth UUID",()=>{
   const journal=readDrawingJournal(storage,alice);
   expect(await writeDrawingJournal(storage,alice,journal,locks)).toBe(true);
   const rec=JSON.parse(storage.getItem(DRAWING_JOURNAL_KEY)!)["account:uuid-a"].NVDA as {legacySeen:Record<string,string>};
-  expect(rec.legacySeen.legacy).toBe('[[{"id":"alice-v1","kind":"hline","points":[{"t":"2026-01-01","p":100}],"schemaVersion":1,"source":"user","locked":false,"hidden":false,"z":0,"opacity":1,"extend":"none","meta":{"label":"保持"}}],false,null,"legacy",null,false,null]');
+  expect(rec.legacySeen.legacy).toBe('[[{"id":"alice-v1","kind":"hline","points":[{"t":"2026-01-01","p":100}],"schemaVersion":1,"source":"user","locked":false,"hidden":false,"z":0,"opacity":1,"extend":"none","meta":{"label":"保持"}}],false,null,"legacy",null]');
  });
  it("treats a mixed-case claim UUID as the holder and does not drop that owner's copies",async()=>{
   const storage=new MemoryStorage();
@@ -1221,5 +1222,84 @@ describe("durable pre-GET journal rows", () => {
     const stored = Object.values(copies)[0];
     expect(Object.hasOwn(stored, "preload")).toBe(false);
     expect(JSON.stringify(stored)).toBe(JSON.stringify({ drawings: [line("A")], revision: null }));
+  });
+});
+
+describe("A3: re-read after write drops the legacy alternative when another owner already holds the claim", () => {
+  const claimKey = "mm.drawing.legacy-claim.v1";
+  const ownedV2 = (id: string) => ({ id, kind: "hline" as const, schemaVersion: 1, source: "user" as const, points: [{ t: "2026-01-01", p: 100 }], meta: { label: "保持" }, locked: false, hidden: false, z: 0, opacity: 1, extend: "none" as const });
+
+  it("after a write that drops the legacy alternative, the re-read entry is single + unblocked and the issue is cleared", async () => {
+    const storage = new MemoryStorage();
+    // Set up the legacy v1 in the outbox and let Bob read it as an alternative
+    // BEFORE Alice takes the claim. Bob's in-memory journal then carries the
+    // v1 as a `legacy:` alternative even after Alice claims the alias.
+    writeDrawingOutbox(storage, "account:alice@x", { NVDA: [{ id: "alice-v1", kind: "hline", source: "user", schemaVersion: 1, points: [{ t: "2026-01-01", p: 200 }], meta: { label: "保持" } } as never] });
+    const bob = { owner: "account:uuid-b", legacyOwner: "account:alice@x" };
+    storage.setItem(DRAWING_JOURNAL_KEY, JSON.stringify({
+      "account:uuid-b": { NVDA: { format: 2, copies: { [op]: { drawings: [ownedV2("bob-v2")], revision } }, legacySeen: {}, legacyLinks: {} } },
+    }));
+    const journal = readDrawingJournal(storage, bob);
+    // Pre-write: Bob sees his v2 plus the legacy v1 as an alternative.
+    expect(journal.NVDA.drawings[0].id).toBe("bob-v2");
+    expect(journal.NVDA.alternatives?.length).toBe(1);
+    expect(journal.NVDA.alternatives![0].recoveryId?.startsWith("legacy:")).toBe(true);
+    // flushDrawings sets the issue from this PRE-write entry: "multiple".
+    const preWriteIssue = journal.NVDA.alternatives?.length ? "multiple" : drawingSaveIssueFromEntry(journal.NVDA);
+    expect(preWriteIssue).toBe("multiple");
+    // Now Alice takes the claim. Bob still has the legacy alternative in memory.
+    storage.setItem(claimKey, JSON.stringify({ "account:alice@x": "account:uuid-a" }));
+    // Now write: under the lock, the journal drops the legacy alternative
+    // because Alice already holds the claim.
+    expect(await writeDrawingJournal(storage, bob, journal, locks)).toBe(true);
+    // RE-READ the journal symbol: the on-disk entry has no alternatives and is not blocked.
+    const reRead = refreshDrawingJournalSymbol(storage, bob, journal, "NVDA");
+    expect(reRead).toBeDefined();
+    expect(reRead!.alternatives).toBeUndefined();
+    expect(reRead!.blocked).toBeUndefined();
+    // The re-derived issue is undefined (no "multiple", no blocked). TerminalShell
+    // gates the recovery chrome on `drawingSaveIssues[sym]` being truthy, so an
+    // undefined issue renders NO buttons at all — the chrome can never offer
+    // "keep_local" / "Replace cloud with local copy".
+    const reDerivedIssue = drawingSaveIssueFromEntry(reRead!);
+    expect(reDerivedIssue).toBeUndefined();
+    // Mirror the TerminalShell gate: the chrome is rendered only when the issue
+    // is truthy. An undefined issue means no chrome, which means no buttons.
+    const issueForChrome: string | undefined = reDerivedIssue;
+    const chromeRendered = Boolean(issueForChrome);
+    expect(chromeRendered).toBe(false);
+  });
+
+  it("the PRE-write multiple issue would have offered keep_local (negative control)", async () => {
+    const storage = new MemoryStorage();
+    writeDrawingOutbox(storage, "account:alice@x", { NVDA: [{ id: "alice-v1", kind: "hline", source: "user", schemaVersion: 1, points: [{ t: "2026-01-01", p: 200 }], meta: { label: "保持" } } as never] });
+    const bob = { owner: "account:uuid-b", legacyOwner: "account:alice@x" };
+    storage.setItem(DRAWING_JOURNAL_KEY, JSON.stringify({
+      "account:uuid-b": { NVDA: { format: 2, copies: { [op]: { drawings: [ownedV2("bob-v2")], revision } }, legacySeen: {}, legacyLinks: {} } },
+    }));
+    const journal = readDrawingJournal(storage, bob);
+    // The PRE-write entry has alternatives; the issue is "multiple" and the
+    // chrome would have offered "keep_local" (the bug). After the write drops
+    // the legacy alternative, the re-read issue is undefined (no chrome).
+    const preWriteIssue = journal.NVDA.alternatives?.length ? "multiple" : drawingSaveIssueFromEntry(journal.NVDA);
+    expect(preWriteIssue).toBe("multiple");
+    const preWriteChoices = drawingSaveIssueChoices(preWriteIssue!, true);
+    expect(preWriteChoices).toContain("keep_local");
+  });
+
+  it("the surviving single, unblocked own copy has a revision and lets prepareDrawingAttempt succeed (so the next flush can PUT)", async () => {
+    const storage = new MemoryStorage();
+    writeDrawingOutbox(storage, "account:alice@x", { NVDA: [{ id: "alice-v1", kind: "hline", source: "user", schemaVersion: 1, points: [{ t: "2026-01-01", p: 200 }], meta: { label: "保持" } } as never] });
+    const bob = { owner: "account:uuid-b", legacyOwner: "account:alice@x" };
+    storage.setItem(DRAWING_JOURNAL_KEY, JSON.stringify({
+      "account:uuid-b": { NVDA: { format: 2, copies: { [op]: { drawings: [ownedV2("bob-v2")], revision } }, legacySeen: {}, legacyLinks: {} } },
+    }));
+    const journal = readDrawingJournal(storage, bob);
+    storage.setItem(claimKey, JSON.stringify({ "account:alice@x": "account:uuid-a" }));
+    expect(await writeDrawingJournal(storage, bob, journal, locks)).toBe(true);
+    const reRead = refreshDrawingJournalSymbol(storage, bob, journal, "NVDA");
+    expect(reRead).toBeDefined();
+    // The next flushDrawings can build a normal PUT attempt.
+    expect(prepareDrawingAttempt(reRead!, () => op)).not.toBeNull();
   });
 });

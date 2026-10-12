@@ -1697,18 +1697,35 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
     if (drawOwner.current === owner) {
       setDrawingStorageUnavailable(!durable);
       if (durable) for (const { sym, drawings } of before) {
-        if (journal[sym] || drawPending.current[sym] !== drawings) continue;
-        // Another tab acknowledged this unchanged legacy import while our
-        // handle was stale. Re-read remaining copies before accepting cloud.
-        delete drawPending.current[sym];
+        if (drawPending.current[sym] !== drawings) continue;
+        // A3: re-read the journal after the write. writeDrawingJournal's lock may
+        // have re-derived the persisted state (e.g. dropped a legacy alternative
+        // when a claim moved owners, or applied a sibling-tab acknowledgement).
+        // The PRE-write entry was used to set the issue in flushDrawings; the
+        // RE-READ entry is the truth, and the issue + UI must follow it.
         const remaining = refreshDrawingJournalSymbol(localStorage, drawJournalKey(owner), journal, sym);
         if (remaining) {
-          remaining.blocked ??= "conflict";
-          drawPending.current[sym] = remaining.drawings;
-          setDrawStore((store) => ({ ...store, [sym]: normalizeDrawings(remaining.drawings) }));
-          setDrawingSaveIssues((issues) => ({ ...issues, [sym]: "multiple" }));
-          void loadDrawingCloudCopy(sym);
+          // A surviving single, unblocked own copy means the journal write
+          // cleared the conflict (legacy alternative was dropped): clear the
+          // issue and let the normal flush path PUT with the new revision.
+          if (!remaining.alternatives?.length && !remaining.blocked) {
+            drawPending.current[sym] = remaining.drawings;
+            setDrawStore((store) => ({ ...store, [sym]: normalizeDrawings(remaining.drawings) }));
+            setDrawingSaveIssues((issues) => { const next = { ...issues }; delete next[sym]; return next; });
+            drawTimers.current[sym] = setTimeout(() => flushDrawingsRef.current(sym), 0);
+          } else {
+            // Surviving entry still has alternatives or is blocked: keep the
+            // matching issue (same mapping flushDrawings uses for the PRE-write
+            // entry: "multiple" if alternatives, else drawingSaveIssueFromEntry
+            // → blocked → "legacy" fallback) and surface the recovery chrome.
+            drawPending.current[sym] = remaining.drawings;
+            setDrawStore((store) => ({ ...store, [sym]: normalizeDrawings(remaining.drawings) }));
+            const issue = remaining.alternatives?.length ? "multiple" : (drawingSaveIssueFromEntry(remaining) ?? remaining.blocked ?? "legacy");
+            setDrawingSaveIssues((issues) => ({ ...issues, [sym]: issue }));
+            if (drawingSaveIssueOffersReplace(issue)) void loadDrawingCloudCopy(sym);
+          }
         } else {
+          // Legacy-only: all copies dropped, chart row cleared, cloud GET retry.
           drawLoaded.current.delete(sym);
           setDrawStore((store) => { const next = { ...store }; delete next[sym]; return next; });
           setDrawingSaveIssues((issues) => { const next = { ...issues }; delete next[sym]; return next; });
