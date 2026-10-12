@@ -500,3 +500,58 @@ test("a pre-GET drawing survives pagehide, leave/return, and reload while the GE
  expect(saved).toContain(localId as string);
  expect(puts[0].expectedRevision).toBe(cloudRevision);
 });
+
+// P1(a): a leftover preload row whose drawings are already on the cloud must
+// acknowledge. A second tab / reload that hydrates { drawings:[L], preload:true }
+// against GET {C, L} used to park and offer keep-mine of [L], which deleted C.
+test("a leftover preload row already on the cloud acknowledges without a prompt or PUT",async({page})=>{
+ test.skip((page.viewportSize()?.width??1440)<=860,"Preload journal hydrate vs GET is exercised on the desktop chart.");
+ const cloudRevision="aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa";
+ const cloud=[cloudLine("cloud-hline",196),cloudLine("pre-tab-a",100)];
+ let puts=0;
+ await seed(page,{drawings:[cloudLine("pre-tab-a",100)],preload:true});
+ await page.route("**/api/drawings**",async(route)=>{
+  if(route.request().method()==="PUT"){puts++;await route.fulfill(json({ok:true,operationId:route.request().postDataJSON().operationId,revision:committed,idempotentReplay:false,superseded:false}));return;}
+  const symbol=new URL(route.request().url()).searchParams.get("symbol");
+  if(symbol!=="NVDA"){await route.fulfill(json({drawings:[],revision:null,schemaVersion:1}));return;}
+  await route.fulfill(json({drawings:cloud,revision:cloudRevision,schemaVersion:1}));
+ });
+ await open(page);
+ await expect(page.getByTestId("drawing-save-recovery")).toHaveCount(0,{timeout:20_000});
+ await expect(page.getByText("cloud copy changed")).toHaveCount(0);
+ await expect(page.locator('.pane.on .drawing-layer g[data-id="cloud-hline"]')).toHaveCount(1,{timeout:20_000});
+ await expect(page.locator('.pane.on .drawing-layer g[data-id="pre-tab-a"]')).toHaveCount(1);
+ await expect.poll(async()=>page.evaluate(()=>localStorage.getItem("mm.drawing.account-outbox.v2")),{timeout:20_000}).toBeNull();
+ expect(puts).toBe(0);
+});
+
+// P1(b): overlapping preload id whose cloud version differs is a real conflict.
+// Keep-mine must PUT cloud ∪ pending so cloud-only drawings are not deleted.
+test("keep-mine of a differing preload overlap PUTs every cloud-only id",async({page})=>{
+ test.skip((page.viewportSize()?.width??1440)<=860,"Preload keep-mine PUT body is exercised on the desktop chart.");
+ const cloudRevision="aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa";
+ const puts:{drawings:{id:string;points:{p:number}[]}[];expectedRevision:string|null}[]=[];
+ await seed(page,{drawings:[cloudLine("pre-tab-a",50)],preload:true});
+ await page.route("**/api/drawings**",async(route)=>{
+  if(route.request().method()==="PUT"){
+   const value=route.request().postDataJSON();
+   puts.push(value);
+   await route.fulfill(json({ok:true,operationId:value.operationId,revision:committed,idempotentReplay:false,superseded:false}));
+   return;
+  }
+  const symbol=new URL(route.request().url()).searchParams.get("symbol");
+  if(symbol!=="NVDA"){await route.fulfill(json({drawings:[],revision:null,schemaVersion:1}));return;}
+  await route.fulfill(json({drawings:[cloudLine("cloud-hline",196),cloudLine("pre-tab-a",100)],revision:cloudRevision,schemaVersion:1}));
+ });
+ await open(page);
+ const recovery=page.getByTestId("drawing-save-recovery");
+ await expect(recovery).toContainText("cloud copy changed",{timeout:20_000});
+ await expect(recovery.getByRole("button",{name:"Replace cloud with local copy",exact:true})).toBeVisible();
+ await recovery.getByRole("button",{name:"Replace cloud with local copy",exact:true}).click();
+ await expect.poll(()=>puts.length,{timeout:20_000}).toBe(1);
+ expect(puts[0].expectedRevision).toBe(cloudRevision);
+ expect(puts[0].drawings.map((drawing)=>drawing.id)).toEqual(["cloud-hline","pre-tab-a"]);
+ expect(puts[0].drawings.find((drawing)=>drawing.id==="cloud-hline")?.points[0].p).toBe(196);
+ expect(puts[0].drawings.find((drawing)=>drawing.id==="pre-tab-a")?.points[0].p).toBe(50);
+ await expect(recovery).toHaveCount(0,{timeout:20_000});
+});

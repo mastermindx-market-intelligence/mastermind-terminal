@@ -141,7 +141,7 @@ import {
   uid,
 } from "@/lib/drawings";
 import { reconcileDrawingJournal, writeDrawingJournal, refreshDrawingJournalSymbol, selectDrawingRecoveryCopy } from "@/lib/drawingOutbox";
-import { DRAWING_OWNER_HEADER, parseDrawingSnapshot, parseDrawingSaveReceipt, prepareDrawingAttempt, settleDrawingAttempt, beginDrawingLoad, abandonDrawingLoad, abandonAllDrawingLoads, isCurrentDrawingLoad, shouldRescheduleDrawingFlush, decideDrawingLoadReconciliation, unionCloudWithPreloadAdditions, type DrawingJournal, type DrawingSnapshot, type DrawingRevision } from "@/lib/drawingPersistence";
+import { DRAWING_OWNER_HEADER, parseDrawingSnapshot, parseDrawingSaveReceipt, prepareDrawingAttempt, settleDrawingAttempt, beginDrawingLoad, abandonDrawingLoad, abandonAllDrawingLoads, isCurrentDrawingLoad, shouldRescheduleDrawingFlush, decideDrawingLoadReconciliation, unionCloudWithPreloadAdditions, remainingPreloadPending, keepMinePutDrawings, type DrawingJournal, type DrawingSnapshot, type DrawingRevision } from "@/lib/drawingPersistence";
 import { applyDrawingSaveConflict, drawingSaveIssueFromEntry, drawingSaveIssueFromLoadPark, drawingSaveIssueOffersReplace, drawingSaveRecoveryMessage } from "@/lib/drawingSaveConflict";
 import { FREEHAND_DRAWING_KINDS, getDrawingTool, isDrawingToolId } from "@/lib/drawingTools";
 import { SHELL_DRAW_TOOLS } from "@/lib/drawingTaxonomy";
@@ -2576,17 +2576,22 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
             pendingBlocked: entry?.blocked,
             pendingHasAlternatives: Boolean(entry?.alternatives?.length),
             pendingPreload: entry?.preload === true,
+            cloudDrawings: snapshot.drawings,
+            pendingDrawings: pending,
           });
           let merged: Drawing[] | null = null;
           if (decision.action === "merge") {
-            const union = unionCloudWithPreloadAdditions(snapshot.drawings, pending ?? []);
+            const remaining = entry?.preload === true
+              ? remainingPreloadPending(snapshot.drawings, pending ?? [])
+              : (pending ?? []);
+            const union = unionCloudWithPreloadAdditions(snapshot.drawings, remaining);
             if (union.ok) merged = union.drawings;
             else decision = { action: "park", reason: union.reason };
           }
           if (decision.action === "stamp") {
             drawRevisions.current[sym] = snapshot.revision;
             setDrawStore((s) => ({ ...s, [sym]: normalizeDrawings(snapshot.drawings) }));
-            if (pending !== undefined && pending.length === 0) {
+            if (pending !== undefined) {
               delete drawPending.current[sym];
               delete recovery[sym];
               clearTimeout(drawTimers.current[sym]);
@@ -2710,7 +2715,15 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
     } else {
       // This click is a new replacement intent against the displayed cloud copy.
       // Neither a background GET nor a superseded replay can take this action.
+      // A preload row is additions, never a full snapshot: union so cloud-only ids survive.
+      const put = keepMinePutDrawings(cloud.drawings, entry.drawings, entry.preload === true);
+      if (!put.ok) {
+        setDrawingSaveIssues((issues) => ({ ...issues, [sym]: drawingSaveIssueFromLoadPark("too_many") }));
+        return;
+      }
       delete entry.attempt; delete entry.blocked; delete entry.alternatives; entry.revision = cloud.revision;
+      entry.drawings = put.drawings;
+      if (entry.preload) delete entry.preload;
       drawPending.current[sym] = entry.drawings;
     }
     const owner = drawOwner.current;

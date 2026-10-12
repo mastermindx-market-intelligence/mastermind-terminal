@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { parseDrawingSaveReceipt, parseDrawingSnapshot, parsePersistedDrawings, prepareDrawingAttempt, settleDrawingAttempt, beginDrawingLoad, abandonDrawingLoad, abandonAllDrawingLoads, isCurrentDrawingLoad, shouldRescheduleDrawingFlush, decideDrawingLoadReconciliation, unionCloudWithPreloadAdditions, type DrawingJournalEntry, type DrawingLoadGenerations } from "@/lib/drawingPersistence";
+import { parseDrawingSaveReceipt, parseDrawingSnapshot, parsePersistedDrawings, prepareDrawingAttempt, settleDrawingAttempt, beginDrawingLoad, abandonDrawingLoad, abandonAllDrawingLoads, isCurrentDrawingLoad, shouldRescheduleDrawingFlush, decideDrawingLoadReconciliation, unionCloudWithPreloadAdditions, remainingPreloadPending, keepMinePutDrawings, type DrawingJournalEntry, type DrawingLoadGenerations } from "@/lib/drawingPersistence";
 import { MAX_DRAWINGS_PER_SYMBOL } from "@/lib/drawings";
 import { readDrawingJournal, writeDrawingJournal, writeDrawingOutbox, refreshDrawingJournalSymbol, reconcileDrawingJournal, selectDrawingRecoveryCopy, DRAWING_JOURNAL_KEY, DRAWING_RECEIPTS_KEY, DRAWING_RECEIPTS_UNREADABLE_KEY, DRAWING_RECEIPT_HISTORY, DRAWING_RECEIPT_OWNERS, type DrawingJournalLocks } from "@/lib/drawingOutbox";
 let lockTail=Promise.resolve();
@@ -700,6 +700,74 @@ describe("drawing load vs pre-GET local edits", () => {
     const cloud = Array.from({ length: MAX_DRAWINGS_PER_SYMBOL }, (_, index) => line(`cloud-${index}`));
     expect(unionCloudWithPreloadAdditions(cloud, [line("local-new")])).toEqual({ ok: false, reason: "too_many" });
     expect(unionCloudWithPreloadAdditions(cloud, [line("cloud-0")])).toEqual({ ok: false, reason: "overlap" });
+  });
+
+  it("P1(a): a preload row whose overlapping drawings already match the cloud stamps", () => {
+    const cloud = [line("cloud-hline"), line("pre-tab-a")];
+    const pending = [line("pre-tab-a")];
+    expect(remainingPreloadPending(cloud, pending)).toEqual([]);
+    expect(decideDrawingLoadReconciliation({
+      cloudIds: cloud.map((drawing) => drawing.id),
+      cloudRevision,
+      hasPending: true,
+      pendingIds: pending.map((drawing) => drawing.id),
+      pendingRevisionPresent: false,
+      pendingPreload: true,
+      cloudDrawings: cloud,
+      pendingDrawings: pending,
+    })).toEqual({ action: "stamp" });
+  });
+
+  it("P1(a): remaining disjoint additions still merge after dropping already-saved overlap", () => {
+    const cloud = [line("cloud-hline"), line("pre-tab-a")];
+    const pending = [line("pre-tab-a"), line("local-new")];
+    expect(remainingPreloadPending(cloud, pending).map((drawing) => drawing.id)).toEqual(["local-new"]);
+    expect(decideDrawingLoadReconciliation({
+      cloudIds: cloud.map((drawing) => drawing.id),
+      cloudRevision,
+      hasPending: true,
+      pendingIds: pending.map((drawing) => drawing.id),
+      pendingRevisionPresent: false,
+      pendingPreload: true,
+      cloudDrawings: cloud,
+      pendingDrawings: pending,
+    })).toEqual({ action: "merge" });
+  });
+
+  it("P1(b): an overlapping preload id whose stored fields differ parks as overlap", () => {
+    const cloud = [line("cloud-hline"), line("pre-tab-a")];
+    const pending = [{ ...line("pre-tab-a"), points: [{ t: "2026-01-01", p: 50 }] }];
+    expect(decideDrawingLoadReconciliation({
+      cloudIds: cloud.map((drawing) => drawing.id),
+      cloudRevision,
+      hasPending: true,
+      pendingIds: pending.map((drawing) => drawing.id),
+      pendingRevisionPresent: false,
+      pendingPreload: true,
+      cloudDrawings: cloud,
+      pendingDrawings: pending,
+    })).toEqual({ action: "park", reason: "overlap" });
+  });
+
+  it("P1(b): keep-mine for a preload row PUTs cloud ∪ pending and never drops cloud-only ids", () => {
+    const cloud = [line("cloud-hline"), line("pre-tab-a")];
+    const pending = [{ ...line("pre-tab-a"), points: [{ t: "2026-01-01", p: 50 }] }];
+    const put = keepMinePutDrawings(cloud, pending, true);
+    expect(put.ok).toBe(true);
+    if (!put.ok) return;
+    expect(put.drawings.map((drawing) => drawing.id)).toEqual(["cloud-hline", "pre-tab-a"]);
+    expect(put.drawings.find((drawing) => drawing.id === "cloud-hline")).toEqual(line("cloud-hline"));
+    expect(put.drawings.find((drawing) => drawing.id === "pre-tab-a")?.points[0].p).toBe(50);
+  });
+
+  it("non-preload keep-mine PUT set remains the local snapshot", () => {
+    const cloud = [line("cloud-hline"), line("other")];
+    const pending = [line("local-only")];
+    const put = keepMinePutDrawings(cloud, pending, false);
+    expect(put.ok).toBe(true);
+    if (!put.ok) return;
+    expect(put.drawings.map((drawing) => drawing.id)).toEqual(["local-only"]);
+    expect(put.drawings).toEqual(pending);
   });
 });
 
