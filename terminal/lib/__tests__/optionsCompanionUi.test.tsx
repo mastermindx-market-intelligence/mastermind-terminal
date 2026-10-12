@@ -239,4 +239,3 @@ describe("vanna visible total", () => {
     expect(element.querySelector("details")?.textContent ?? "").not.toContain(PARTIAL);
   });
 });
-
