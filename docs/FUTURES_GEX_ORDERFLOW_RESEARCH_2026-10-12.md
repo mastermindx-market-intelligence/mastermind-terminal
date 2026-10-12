@@ -2,6 +2,60 @@
 
 Research as of 2026-10-12 UTC / 2026-10-11 Pacific. Current Chairman continuation explicitly requests deeper Pro research and implementation. This is an extension of Terminal's existing Options/Market Structure and Quote Hub owners, not another product backend or control plane.
 
+## Current recoverable frontier (supersedes earlier open-item lists)
+
+As of 2026-10-12; source head `582111f5fb4e52e76704973e640e40fb529b2f76`,
+Terminal PR #964, original branch `claude/futures-gex-projection-20261011`.
+Protected procedure pin remains `85807cf48e29e2fe5df19534d6b181fc25b9746f`.
+
+**What is now verified:** official DBN/CSV source adapters; complete-event book/trade
+reducers; strict PIT gamma/expiry selection; ES/NQ synthetic UI with source-session
+0DTE/later/named dates, interval/price aggregation and CVD; and an ACTUAL historical
+ES source-to-browser path with missing gamma explicitly unavailable. Real ES BBO:
+4,471/4,471; top-ten bid/ask price, quantity and order count: 6,280/6,280, zero
+mismatches/unmatched groups. All 377 executions / 839 contracts conserved.
+
+**Regression:** 9,440 full Terminal tests passed in 571 files, four existing TODOs,
+zero failures; 526 full Hub tests; 26 Python tests; 15 expanded synthetic ES/NQ browser
+cases and six actual historical browser cases; typecheck and scoped lint exit 0.
+Full local-suite receipt is in `docs/evidence/futures-depth10-20261012/`.
+Hosted Quote Hub check 114736368525 passed at the source head above, including the
+new offline SDK/source-conformance step. Other exact-head hosted browser/unit checks
+were still running at last inspection; no full CI or release acceptance inferred.
+
+**Durable evidence:** `docs/evidence/futures-source-20261012/`,
+`docs/pr-crops/futures-expanded-20261012/`,
+`docs/evidence/futures-real-sample-20261012/`,
+`docs/evidence/futures-real-browser-20261012/`, and
+`docs/evidence/futures-depth10-20261012/`. Raw samples, exact-price screenshots and
+private comparison detail remain under ignored `.local-futures/` on the original M2
+worktree; only aggregate evidence/hashes are public. Both development pages remain
+production-disabled, and private files are excluded from production tracing.
+
+**Do not redo:** original census, the decoder conformance spike, synthetic ES/NQ
+renderer, five-minute sample acquisition, completed-packet comparison ruler,
+BBO/top-ten tests or the full local regression without a relevant invalidator.
+Do not relabel source-session 0DTE as guaranteed intraday tradability, combine
+synthetic GEX with actual historical prices, or treat sample rights as live rights.
+
+**Unfinished capability and next action:** connect the existing canonical options
+publication/quote-receipt and actual futures contract/status owners to the reusable
+frame and chart; establish the exact approved live-data/subscriber entitlement
+before activating any stream. Preserve access denials and the prior action-scoped
+review-discovery refusal. Independent release review, remaining exact-head CI,
+production Chart-shell/access wiring and normal git-gated deploy/live acceptance
+are still outstanding. NQ real-source and full-session/load/reconnect proof remain
+separate. No worker, watcher, paid subscription, procurement, live feed, credential
+change, merge, production deployment or calibrated predictive trading signal is
+claimed. No source modification is effect-unknown. The original writer/carrier is
+retained and no successor is silently assigned by this checkpoint.
+
+The next phase changes from bounded offline source/consumer implementation to
+cross-owner production receipt/entitlement integration. Resume against this exact
+frontier and inspect only those materially required interfaces and effects rather
+than restarting archaeology. Mission is incomplete; the checkpoint is not a
+production acceptance or a background execution claim.
+
 ## Decision
 
 Build one ES/NQ microstructure workspace with two synchronized views: Depth and Footprint. Reuse the existing options source, chart-coordinate owner, quote hub, access checks, and replay/storage owners. Add only the missing futures event adapter, domain reducers, and renderer layers. Do not buy native futures-options data just to put SPX/NDX gamma on ES/NQ. Actual CME futures trades and resting order data are still required for genuine footprint and depth; converted gamma does not supply them.
