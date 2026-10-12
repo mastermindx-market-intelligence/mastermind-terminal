@@ -5,6 +5,7 @@ import {
   parseRightsBasis,
   parseUniverseKnownAt,
 } from "@/lib/newsProvenance";
+import type { TickerNewsSnapshot } from "@/lib/newsTypes";
 
 const row = {
   sequence: 7,
@@ -203,6 +204,25 @@ describe("ticker news snapshot provenance", () => {
     expect(projectMaster(parsed)).toEqual(
       projectMaster(parseTickerNewsSnapshot({ ...baseSnapshot })),
     );
+  });
+
+  it("P9 a snapshot literal without provenance keys still satisfies the TickerNewsSnapshot type", () => {
+    const legacySnapshot: TickerNewsSnapshot = {
+      schema: "ticker_news.snapshot.v1",
+      ticker: "NVDA",
+      security_id: "SEC:US-XNAS-NVDA",
+      state: "live",
+      rows: [row],
+      next_cursor: 7,
+      has_more: false,
+      source_health: {
+        state: "live",
+        last_successful_catchup: "2026-10-05T14:01:01+00:00",
+      },
+    };
+
+    expect("universe_known_at" in legacySnapshot).toBe(false);
+    expect("rights_basis" in legacySnapshot).toBe(false);
   });
 });
 
