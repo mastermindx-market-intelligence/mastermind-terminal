@@ -1,0 +1,126 @@
+{
+  "contract": "private-databento-glbx-trades-observations-v1",
+  "publicConsumerEligible": false,
+  "sourceRecordType": "DATABENTO_GLBX_TRADES_MBP0",
+  "volumeMeaning": "gross_as_reported",
+  "correctionCoverage": "unsupported",
+  "provider": "Databento",
+  "dataset": "GLBX.MDP3",
+  "publisherId": 1,
+  "sourcePin": {
+    "repository": "https://github.com/databento/dbn",
+    "commit": "d368005a636bae84bff443cd6ddae6430a0ffd00",
+    "release": "v0.71.0",
+    "wireVersion": 3,
+    "recordBytes": 48,
+    "headerBytes": 16
+  },
+  "input": {
+    "representation": "exact immutable 48-byte little-endian TradeMsg blocks",
+    "metadataAuthority": "caller_supplied_unverified; fixture declarations synthetic",
+    "schema": "trades",
+    "rtype": 0,
+    "headerLengthWords": 12,
+    "action": "T",
+    "tsOut": false,
+    "compression": "none",
+    "mixedSchema": false,
+    "jsonFloatInput": false
+  },
+  "projection": {
+    "product": "MNQ",
+    "instrumentClass": "F",
+    "securityType": "FUT",
+    "symbolType": "raw_symbol",
+    "outright": true,
+    "priceBasis": "unadjusted",
+    "priceScale": 1000000000,
+    "tickSizeInt": 250000000,
+    "contractMultiplierInt": 2000000000,
+    "contractMultiplierScale": 1000000000,
+    "quantityUnit": "contracts",
+    "orderCount": null,
+    "rounding": false
+  },
+  "identity": {
+    "kind": "artifact_position",
+    "key": "declared artifact SHA256 plus uncompressed byte offset",
+    "samePositionSameBytes": "idempotent",
+    "samePositionDifferentBytes": "permanent batch refusal",
+    "differentPositions": "retain even identical economic/clock/sequence fields",
+    "crossArtifact": "refuse; no automatic overlap merge",
+    "sourceOrder": "strictly increasing new physical positions; exact replays do not reorder observations",
+    "venueSequence": "raw packet/message value only; neither identity nor continuity proof"
+  },
+  "mapping": {
+    "lookupClock": "ts_recv UTC",
+    "interval": "inclusive start_date/exclusive end_date",
+    "definition": "exact instrument/raw-symbol/product/tick/multiplier with bounded effective interval and evidence ID/SHA/known-at",
+    "authority": "declarations are not independently verified data or rights",
+    "overlap": "refuse ambiguity",
+    "rolls": "separate dated resolved instruments; no alias inference or adjustment"
+  },
+  "clocks": {
+    "representation": "Python integer internally; nanosecond values serialized as decimal strings",
+    "sourceEvent": "preserved without sorting",
+    "vendorCapture": "preserved; never Mastermind live receipt",
+    "sourceSend": "ts_recv minus ts_in_delta only if unsaturated and in uint64 timestamp range",
+    "acquisition": "caller-supplied or synthetic",
+    "mappingKnowledge": "separate",
+    "qualification": "explicit and no earlier than relevant knowledge",
+    "publication": "explicit and no earlier than qualification",
+    "cutoffView": "no numeric observations before publication and all required knowledge",
+    "liveMode": false
+  },
+  "flags": {
+    "raw": "preserve all 8 bits",
+    "qualityExclusions": [
+      32,
+      8,
+      4,
+      2,
+      1
+    ],
+    "characteristics": [
+      128,
+      64,
+      16
+    ],
+    "last": "not an export, correction, or global completeness watermark",
+    "unflagged": "not evidence of complete source capture"
+  },
+  "limits": {
+    "defaults": {
+      "maxRecords": 4096,
+      "maxIdentities": 4096,
+      "maxInputBytes": 196608,
+      "maxMappings": 64
+    },
+    "hardMaximum": {
+      "maxRecords": 65536,
+      "maxIdentities": 65536,
+      "maxInputBytes": 3145728,
+      "maxMappings": 64
+    },
+    "accounting": "Every attempted consume call counts; admitted bytes (including duplicates) consume the byte budget. A refused oversized block is not read/hashed and its offered length is recorded separately. No truncation or eviction; unconsumed supplied records are explicit."
+  },
+  "outputs": {
+    "kind": "PRIVATE_OBSERVATION_BATCH",
+    "artifactCoverage": "unverified_partial_or_unknown",
+    "quantityTotals": "unique successfully decoded and projected observations, with side and quality partitions",
+    "fatalResult": "incomplete diagnostic observations only; no qualified totals",
+    "responses": "absent",
+    "absorption": "absent",
+    "cancellations": "absent"
+  },
+  "boundaries": [
+    "This record-only module has no container reader or decompressor. The separate cme_dbn_container bridge supplies bounded uncompressed structural validation, without export authentication.",
+    "No actual export authenticity or licensing grant verified",
+    "No real market input or feed",
+    "No public TradePrint/envelope emitted",
+    "No correction-qualified net volume",
+    "No order identity/order count",
+    "No OOS or absorption claim",
+    "No provider connection, public source admission or runtime publication by this module"
+  ]
+}
