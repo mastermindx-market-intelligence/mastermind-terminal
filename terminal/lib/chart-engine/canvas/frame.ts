@@ -33,7 +33,6 @@ import {
   barGeometry,
   baselineGeometry,
   candleGeometry,
-  extentsOf,
   histogramGeometry,
   lineGeometry,
   visibleSlice,
@@ -416,24 +415,7 @@ function withClip(ctx: CanvasRenderingContext2D, w: number, h: number, paint: ()
 }
 
 function displayScale(model: ChartModel, paneIndex: number, priceScaleId: string) {
-  const scale = model.scale(paneIndex, priceScaleId);
-  if (!scale.autoScale) return scale;
-  const pane = model.panes[paneIndex];
-  let min = Infinity;
-  let max = -Infinity;
-  if (pane) {
-    for (const sid of pane.seriesIds) {
-      const s = model.getSeries(sid);
-      if (!s || s.removed || s.priceScaleId !== priceScaleId) continue;
-      const ext = extentsOf(s.rows, model.time.visibleFrom, model.time.visibleTo, s.kind, s.options);
-      if (!ext) continue;
-      if (ext.min < min) min = ext.min;
-      if (ext.max > max) max = ext.max;
-    }
-  }
-  if (!Number.isFinite(min) || !Number.isFinite(max)) return scale;
-  if (min === max) { min -= 1; max += 1; }
-  return { ...scale, from: min, to: max };
+  return model.autoscaleScale(paneIndex, priceScaleId);
 }
 
 export function engineProjectionFor(
