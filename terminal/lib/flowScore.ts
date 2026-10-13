@@ -52,10 +52,10 @@ export interface ScorerInput {
   premium: number;
   /** z-score vs 252-session baseline; null when baseline <30 sessions warm. */
   premium_z: number | null;
-  /** DTE bucket string from feed contract. */
-  dte_bucket: DteBucket;
-  /** Exact days to expiry (may be 0 for 0DTE). */
-  dte: number;
+  /** DTE bucket string from feed contract. "unknown" when the expiry could not be read. */
+  dte_bucket: DteBucket | "unknown";
+  /** Exact days to expiry (may be 0 for 0DTE). Null when the expiry could not be read. */
+  dte: number | null;
   /** Moneyness bucket. */
   mny_bucket: MnyBucket;
   /** Vol > OI flag: true = fresh open interest / new positioning. null = unknown. */
@@ -132,10 +132,16 @@ function unusualnessFactor(z: number | null): number {
  * DTE relevance factor.
  * Peak window: 1–45d (factor = 1.0).
  * 0DTE: 0.20 (high noise, very short theta exposure).
+ * Missing, undefined, or any non-finite day count: 0.20, whatever the bucket
+ * says. An "unknown" bucket is also 0.20 — a finite day count on that bucket
+ * is not read. Both match the Python scorer, which turns a missing expiry
+ * into 0 and then returns 0.20, so an unreadable expiry cannot outscore a
+ * real contract.
  * 46–90d: tapers linearly from 1.0 → 0.50.
  * >90d (bucket "90p"): 0.30 (far OTM / LEAPS roll, lower urgency).
  */
-function dteFactor(dte: number, bucket: DteBucket): number {
+function dteFactor(dte: number | null, bucket: DteBucket | "unknown"): number {
+  if (bucket === "unknown" || typeof dte !== "number" || !Number.isFinite(dte)) return 0.20;
   if (bucket === "0d" || dte === 0) return 0.20;
   if (dte >= 1 && dte <= 45) return 1.0;
   if (dte <= 90) {
