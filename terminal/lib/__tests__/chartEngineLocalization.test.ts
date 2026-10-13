@@ -8,6 +8,26 @@
 // the configured locale.
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
+// K1 (review patch): the de-DE label assertion below compares two
+// `Intl.DateTimeFormat` results, so on a small-ICU Node both sides collapse to
+// the root locale and a dropped `timeTicks` locale argument goes undetected.
+// This pass-through mock records the locale `timeAxisTicks` actually hands to
+// canvas/ticks.ts, which is ICU-independent. `vi.hoisted` and `vi.mock` are
+// hoisted above the imports by vitest.
+const ticksCalls = vi.hoisted(() => ({ locales: [] as Array<string | undefined> }));
+
+vi.mock("@/lib/chart-engine/canvas/ticks", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@/lib/chart-engine/canvas/ticks")>();
+  type TimeTicksArgs = Parameters<typeof actual.timeTicks>;
+  return {
+    ...actual,
+    timeTicks: (rows: TimeTicksArgs[0], state: TimeTicksArgs[1], options: TimeTicksArgs[2]) => {
+      ticksCalls.locales.push(options.locale);
+      return actual.timeTicks(rows, state, options);
+    },
+  };
+});
+
 import { ChartModel } from "@/lib/chart-engine/canvas/model";
 import { timeAxisTicks } from "@/lib/chart-engine/canvas/frame";
 import type { EngineSeriesRow, EngineTime } from "@/lib/chart-engine/api";
@@ -53,6 +73,7 @@ function monthLabelFor(locale: string, time: EngineTime): string {
 
 describe("F-4 canvas engine honours localization.locale on time-axis labels", () => {
   beforeEach(() => {
+    ticksCalls.locales.length = 0;
     vi.restoreAllMocks();
   });
   afterEach(() => {
@@ -61,7 +82,7 @@ describe("F-4 canvas engine honours localization.locale on time-axis labels", ()
 
   it("with no localization the labels and the tickMarkFormatter's 3rd arg stay 'en-US'", () => {
     const m = makeModel();
-    const spy = vi.fn((_time: EngineTime, _weight: number, _locale: string) => "");
+    const spy = vi.fn<(time: EngineTime, weight: number, locale: string) => string>();
     m.applyOptions({ timeScale: { tickMarkFormatter: spy } });
 
     const ticks = timeAxisTicks(m);
@@ -85,7 +106,7 @@ describe("F-4 canvas engine honours localization.locale on time-axis labels", ()
 
   it("localization.locale = 'de-DE' flows into both the labels and the tickMarkFormatter 3rd arg", () => {
     const m = makeModel();
-    const spy = vi.fn((_time: EngineTime, _weight: number, _locale: string) => "");
+    const spy = vi.fn<(time: EngineTime, weight: number, locale: string) => string>();
     m.applyOptions({
       localization: { locale: "de-DE" },
       timeScale: { tickMarkFormatter: spy },
@@ -112,7 +133,7 @@ describe("F-4 canvas engine honours localization.locale on time-axis labels", ()
 
   it("a non-string localization.locale collapses to 'en-US' (default behaviour is byte-identical)", () => {
     const m = makeModel();
-    const spy = vi.fn((_time: EngineTime, _weight: number, _locale: string) => "");
+    const spy = vi.fn<(time: EngineTime, weight: number, locale: string) => string>();
     m.applyOptions({
       // Both flavours of a non-string locale value land back on "en-US".
       localization: { locale: 42 as unknown as string },
@@ -129,7 +150,7 @@ describe("F-4 canvas engine honours localization.locale on time-axis labels", ()
 
   it("an empty-string localization.locale also collapses to 'en-US'", () => {
     const m = makeModel();
-    const spy = vi.fn((_time: EngineTime, _weight: number, _locale: string) => "");
+    const spy = vi.fn<(time: EngineTime, weight: number, locale: string) => string>();
     m.applyOptions({
       localization: { locale: "" },
       timeScale: { tickMarkFormatter: spy },
@@ -142,7 +163,7 @@ describe("F-4 canvas engine honours localization.locale on time-axis labels", ()
 
   it("localization without a locale key is treated as 'en-US'", () => {
     const m = makeModel();
-    const spy = vi.fn((_time: EngineTime, _weight: number, _locale: string) => "");
+    const spy = vi.fn<(time: EngineTime, weight: number, locale: string) => string>();
     m.applyOptions({
       localization: { priceFormatter: (n: number) => String(n) },
       timeScale: { tickMarkFormatter: spy },
@@ -151,5 +172,20 @@ describe("F-4 canvas engine honours localization.locale on time-axis labels", ()
     expect(ticks.length).toBeGreaterThan(0);
     const calledLocales = spy.mock.calls.map((c) => c[2]);
     for (const l of calledLocales) expect(l).toBe("en-US");
+  });
+
+  it("K1: timeAxisTicks hands the caller locale to canvas/ticks.ts (ICU-independent)", () => {
+    const m = makeModel();
+    m.applyOptions({ localization: { locale: "de-DE" } });
+    expect(timeAxisTicks(m).length).toBeGreaterThan(0);
+    expect(ticksCalls.locales.length).toBeGreaterThan(0);
+    for (const l of ticksCalls.locales) expect(l).toBe("de-DE");
+  });
+
+  it("K1: with no localization timeAxisTicks still hands 'en-US' to canvas/ticks.ts", () => {
+    const m = makeModel();
+    expect(timeAxisTicks(m).length).toBeGreaterThan(0);
+    expect(ticksCalls.locales.length).toBeGreaterThan(0);
+    for (const l of ticksCalls.locales) expect(l).toBe("en-US");
   });
 });

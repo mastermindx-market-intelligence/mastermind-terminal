@@ -150,8 +150,6 @@ metric it invalidated (`REFUSAL_TAINTS` in `receipt.ts`) to `UNMEASURED`, so a
 refusing renderer cannot print a green receipt. The harness does not patch the
 engine.
 
-## Files
-
 ## Presented-frame cadence (Q03)
 
 Q03 measures the cost of a gesture in actual presentation times, not rAF
@@ -217,6 +215,45 @@ unless `BENCH_ENFORCE=1`, which fails the test on `budget_ok: false`. The
 median-run receipt uses the canonical `buildCadenceReceipt` math against
 `CADENCE_BUDGETS` — never hardcoded 20 / 33.4 anywhere in the spec.
 
+### Input-rate floor (read the p95/p99 with this in mind)
+
+`presented_p95_ms` / `presented_p99_ms` are intervals between consecutive
+*presented* frames, so they are bounded below by whichever is slower: the
+renderer, or the arrival of the next input. Both gestures dispatch every
+event as an awaited CDP round trip (200 `mouse.move` steps, 60
+`mouse.wheel` pulses, no waits), so on a busy host the dispatch rate — not
+the engine — sets the floor:
+
+```
+input_floor_ms = 1000 / input_hz
+```
+
+Measured examples: on a 100 Hz display with `input_hz` 49.3 the zoom p50 is
+20 ms (the wheel spacing) for BOTH engines, while pan p95 is 10 ms; on a
+loaded Linux dev host with `input_hz` 22.3 the pan p50 is 44.3 ms and
+`presented == inputs` for zoom (60 == 60), i.e. the renderer presented
+exactly one frame per wheel pulse and every interval is an input gap.
+
+Consequences for the seat:
+
+  - Read `CADENCE_DIAG` (console only, never in the receipt) next to the
+    `CADENCE` line: when `p95_ms` sits at or just above `input_floor_ms`
+    and `presented_per_input` is ~1.0, the number is measuring the harness,
+    not the engine.
+  - `budget_ok: false` on `zoom.presented_p95_ms` is expected on any host
+    whose dispatch rate is below 50 Hz, because the 20 ms budget is under
+    the input floor. It is not by itself evidence of an engine regression.
+  - Compare engines at a matched `input_hz` (same host, same session), and
+    prefer pan for renderer attribution: its 200 dispatch steps keep the
+    compositor busy continuously, whereas the 60 wheel pulses do not.
+
+Attributing an interval to the renderer alone would need one
+`performance.mark` per dispatched input (already on the captured
+`blink.user_timing` category) and dropping intervals with no input pending.
+That changes what the receipt means, so it is a commission decision, not a
+patch to this lane. `CADENCE_BUDGETS`, the gesture definition and the
+receipt shape are fixed by D10 and are unchanged here.
+
 ### INVALID gates
 
 The bench fails when any of these is true:
@@ -251,6 +288,10 @@ sorted set). Receipts are valid only against `validateCadenceReceipt`,
 which rejects any top-level key outside the eight and any per-gesture key
 outside the eight stat keys.
 
+Use an odd `BENCH_RUNS` (the default is 3). With an even count the rule
+above picks the lower of the two middle runs, which is the better result,
+not a true median.
+
 ## Files
 
 | File | Role |
@@ -264,6 +305,7 @@ outside the eight stat keys.
 | `terminal/bench/chart-engine.bench.ts` | B1–B6 protocol. |
 | `terminal/bench/chart-engine.cadence.bench.ts` | Q03 protocol. |
 | `terminal/lib/__tests__/chartEngineCadence.test.ts` | Q03 parser unit tests + 4 falsifiers. |
-| `terminal/lib/__tests__/fixtures/chart-engine/cadence-trace.sample.json` | Trimmed Q03 fixture (real Chromium 149 pan trace, ≤ 300 events, scrubbed). |
+| `terminal/lib/__tests__/chartEngineLocalization.test.ts` | F-4 `localization.locale` on canvas time-axis labels (the locale is passed through `terminal/lib/chart-engine/canvas/frame.ts`). |
+| `terminal/lib/__tests__/fixtures/chart-engine/cadence-trace.sample.json` | Trimmed Q03 fixture (real Chromium 149 pan trace, ≤ 300 events, scrubbed). Its p95/p99 literals come from the gaps the trimming left, not from a real cadence. |
 | `terminal/lib/__tests__/fixtures/chart-engine/cadence-trace.raf-only.sample.json` | Same fixture with PipelineReporter removed + FireAnimationFrame events per presented time. |
 | `docs/chart-engine-completion/receipts/` | Official receipts (seat only); ships with README. |

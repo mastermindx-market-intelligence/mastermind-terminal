@@ -77,7 +77,7 @@ describe("parsePresentedFrames (Q03)", () => {
     expect(startMs).not.toBeNull();
     expect(endMs).not.toBeNull();
     if (startMs == null || endMs == null) throw new Error("unreachable");
-    // M-B guard: presentedMs[0] is at -115.798 (before the gesture window
+    // M-B guard: presentedMs[0] is at -117.511 (before the gesture window
     // start of 100 ms). The interval between that and the first in-window
     // entry MUST be excluded, so intervals.length == 16 (not 18).
     expect(parsed.presentedMs[0]).toBeLessThan(startMs);

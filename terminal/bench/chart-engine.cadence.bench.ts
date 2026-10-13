@@ -326,6 +326,16 @@ test("chart-engine presented-frame cadence protocol (Q03)", async ({ browser }) 
           const line = `CADENCE ${impl} commit=${COMMIT} pan_p95=${round1(stats.pan.p95_ms)} pan_p99=${round1(stats.pan.p99_ms)} zoom_p95=${round1(stats.zoom.p95_ms)} zoom_p99=${round1(stats.zoom.p99_ms)} presented=${stats.pan.presented} partial=${stats.pan.partial} dropped=${stats.pan.dropped} input_hz=${round1(stats.pan.input_hz)} budget_ok=${r.budget_ok} violations=${r.violations.length} file=${file}`;
           console.log(line);
           appendLog(logFile, `[${impl}] run ${i + 1} ${line}`);
+          // Diagnostic only: never part of the receipt. `input_floor_ms` is
+          // the fastest cadence the dispatched input rate can possibly
+          // produce, so a p95 at or just above it measures the harness, not
+          // the renderer. `presented_per_input` ~1.0 means one presented
+          // frame per dispatched input, i.e. no renderer-induced starvation.
+          const floor = (hz: number) => (hz > 0 ? round1(1000 / hz) : 0);
+          const perInput = (st: CadenceGestureStats) => (st.inputs > 0 ? round1(st.presented / st.inputs) : 0);
+          const diag = `CADENCE_DIAG ${impl} run=${i + 1} pan_input_hz=${round1(stats.pan.input_hz)} pan_input_floor_ms=${floor(stats.pan.input_hz)} pan_presented_per_input=${perInput(stats.pan)} zoom_input_hz=${round1(stats.zoom.input_hz)} zoom_input_floor_ms=${floor(stats.zoom.input_hz)} zoom_presented_per_input=${perInput(stats.zoom)}`;
+          console.log(diag);
+          appendLog(logFile, `[${impl}] run ${i + 1} ${diag}`);
         } finally {
           await page.close().catch(() => undefined);
           await context.close().catch(() => undefined);
