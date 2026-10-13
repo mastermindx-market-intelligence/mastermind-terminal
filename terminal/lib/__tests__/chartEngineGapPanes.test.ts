@@ -394,15 +394,16 @@ describe("I03-A03: Group plan changes before RAF fires -> Old-plan event is disc
     registerPane(1, b.peer);
     setPaneLinks({ 0: link("A"), 1: link("A") });
 
-    // Mimic the adapter's onCrosshair: when B receives a mirrored crosshair,
-    // the adapter would call broadcastCrosshair back. Install the callback
-    // explicitly so the test exercises the bus's defence.
+    // Echo through the hook attachPaneSync actually registers: paneSyncAdapter
+    // wires the peer's `onCrosshair` (paneSyncAdapter.ts:399-401) and its
+    // chartShim.setCrosshairPosition (:370-372) into applyPeerCrosshair, which
+    // today ABSORBS the mirror. A consumer that instead re-broadcasts from that
+    // delivery must be stopped by the bus's `applying` guard (paneSync.ts:272).
     let echoBroadcastCalls = 0;
-    b.peer.chart!.setCrosshairPosition = ((price: number, time: unknown, series: unknown) => {
+    b.onCrosshair.mockImplementation((_price: number | null, time: unknown) => {
       echoBroadcastCalls += 1;
       broadcastCrosshair(1, time as Parameters<typeof broadcastCrosshair>[1]);
-      return b.setCrosshairPosition(price, time, series);
-    }) as unknown as typeof b.peer.chart.setCrosshairPosition;
+    });
 
     broadcastCrosshair(0, "2026-09-19" as unknown as Parameters<typeof broadcastCrosshair>[1]);
     runFrames();
