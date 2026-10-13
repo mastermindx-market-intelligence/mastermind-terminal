@@ -51,7 +51,15 @@ import {
 } from "./model";
 import { createPrimitiveHost, type HostPrimitive, type PrimitiveHost } from "./primitives";
 import { EngineRefusalError } from "./refusal";
-import { crosshairInvalidation, dataAt, resolveCrosshair, snapLogicalToBar } from "./crosshair";
+import {
+  buildMouseParams,
+  crosshairInvalidation,
+  dataAt,
+  resolveCrosshair,
+  snapLogicalToBar,
+  type CrosshairState,
+  type HoverableSeries,
+} from "./crosshair";
 import { attachEngineInput, type EngineInputBinding } from "./inputBridge";
 
 export { ChartModel, priceScaleMath, futureSlotResolver, xOfLogical, logicalOfX } from "./model";
@@ -184,6 +192,8 @@ class CanvasEngine implements CanvasChartEngine {
   private readonly invalidator: Invalidator;
   private snaps = new Map<number, SeriesSnap>();
   private lastPrimGen = -1;
+  private lastCrosshair: CrosshairState | null = null;
+  private lastCrosshairLevel: "none" | "light" | "cursor" = "cursor";
   private input: EngineInputBinding | null = null;
   private readonly nowFn: () => number;
 
@@ -424,7 +434,13 @@ class CanvasEngine implements CanvasChartEngine {
         series,
         primaryId: primary ? String(primary.id) : null,
       });
-      void crosshairInvalidation(null, resolved);
+      // PATCH3P2 F10 — preserve the crosshairInvalidation level so a bar-time
+      // change can escalate the frame, and route the full buildMouseParams payload
+      // through to subscribers (was: discarded, leaving seriesData/hoveredSeries
+      // /paneIndex/sourceEvent unreachable for any legend or tooltip).
+      const level = crosshairInvalidation(this.lastCrosshair, resolved);
+      this.lastCrosshair = resolved;
+      this.lastCrosshairLevel = level;
       let time: EngineTime | undefined;
       if (primary) {
         const row = dataAt(
@@ -434,11 +450,13 @@ class CanvasEngine implements CanvasChartEngine {
         );
         if (row) time = row.time;
       }
-      return { point: p, logical, time };
+      return { ...buildMouseParams(resolved, series as HoverableSeries[], ev), point: p, logical, time };
     };
     const move: EventListener = (ev) => {
       this.model.emitMouse("crosshair", param(ev));
-      this.requestPaint({ level: "cursor", panes: "all" });
+      // PATCH3P2 F10 — let crosshairInvalidation decide paint level (was: hardcoded "cursor",
+      // so a bar-time change never escalated to "light").
+      this.requestPaint({ level: this.lastCrosshairLevel === "none" ? "cursor" : this.lastCrosshairLevel, panes: "all" });
     };
     const click: EventListener = (ev) => this.model.emitMouse("click", param(ev));
     const dbl: EventListener = (ev) => this.model.emitMouse("dblclick", param(ev));

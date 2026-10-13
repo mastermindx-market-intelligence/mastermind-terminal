@@ -16,6 +16,7 @@
 import type {
   EngineProjection,
   PrimitiveAttachContext,
+  PrimitiveHit,
   PrimitiveZOrder,
 } from "../primitive";
 
@@ -41,11 +42,20 @@ export interface HostHit {
   zOrder?: string;
 }
 
+/**
+ * Contract-shape primitive hit — returnable by a primitive so the host can ingest
+ * a `hitTest()` from an `EnginePrimitive` (which uses `PrimitiveHit`) as well as
+ * from a `HostPrimitive` (which historically used `HostHit`). PATCH3P2 F2 union
+ * keeps both consumer paths compileable in one place.
+ */
+export type HostHitOrPrimitiveHit = HostHit | PrimitiveHit;
+
 /** Context handed to attached(); `paneIndex` is read live through requestUpdate. */
 export type HostAttachContext = PrimitiveAttachContext;
 
-/** The engine-neutral primitive shape this host consumes. EnginePrimitive is assignable
- *  when the extra EngineProjection methods are present on the delivered projection. */
+/** The engine-neutral primitive shape this host consumes. EnginePrimitive IS assignable:
+ *  every contract member is accepted, and hitTest may answer either the host's legacy
+ *  HostHit or the contract's PrimitiveHit (F2, PATCH3P2). */
 export interface HostPrimitive {
   id: string;
   zOrder?: HostZOrder;
@@ -54,7 +64,7 @@ export interface HostPrimitive {
   update?(proj: HostProjection): void;
   paint?(ctx: CanvasRenderingContext2D, proj: HostProjection): void;
   paintAxis?(ctx: CanvasRenderingContext2D, proj: HostProjection, axis: HostAxisSide): void;
-  hitTest?(x: number, y: number): HostHit | null;
+  hitTest?(x: number, y: number): HostHitOrPrimitiveHit | null;
 }
 
 /** Optional renderer hooks; the only way the host reaches back outside its registry. */
@@ -82,8 +92,10 @@ export interface HostError {
   error: unknown;
 }
 
-/** A hit-test match: the owning primitive plus the report its hitTest returned. */
-export type PrimitiveHit = { primitive: HostPrimitive; hit: HostHit };
+/** A hit-test match: the owning primitive plus the report its hitTest returned.
+ *  Renamed from the local `PrimitiveHit` (F2, PATCH3P2) so it no longer collides
+ *  with the contract's `PrimitiveHit` from `lib/chart-engine/primitive.ts`. */
+export type HostHitMatch = { primitive: HostPrimitive; hit: HostHitOrPrimitiveHit };
 
 /** Live-resource census (lifecycle law: after dispose() answers {alive:false, zeros}). */
 export interface PrimitiveHostInventory {
@@ -123,11 +135,15 @@ export interface PrimitiveHost {
   ): void;
   /** All hits at (x, y), TOP-most first: top tier before normal before bottom, and
    *  within a tier later-attached first (R04-A02). Empty when nothing hits. */
-  hitTest(paneIndex: number, x: number, y: number): PrimitiveHit[];
+  hitTest(paneIndex: number, x: number, y: number): HostHitMatch[];
   /** Deliver one projection generation: update() runs at most once per primitive per
    *  generation (proj.generation <= that primitive's last delivered generation is a
    *  no-op — R04-A01). A throwing update is isolated and recorded (R04-A03). */
   deliver(proj: HostProjection): void;
+  /** PATCH3P2 F11 — deliver one generation to exactly this pane's primitives (same
+   *  once-per-generation + record-on-throw guards as `deliver`). The frame calls
+   *  this once per pane instead of re-rolling a bare `try { p.update } catch {}`. */
+  deliverPane(paneIndex: number, proj: HostProjection): void;
   /** Re-home every primitive attached via seriesId to toPane. */
   moveSeries(seriesId: string, toPane: number): void;
   /** Detach every primitive of seriesId, each with detached() exactly once. */
@@ -217,6 +233,23 @@ export function createPrimitiveHost(hooks: PrimitiveHostHooks = {}): PrimitiveHo
           TIER_RANK[tierOf(a.primitive)] - TIER_RANK[tierOf(b.primitive)] || a.seq - b.seq,
       );
 
+  // PATCH3P2 F11 — shared once-per-generation + record-on-throw delivery helper.
+  // R04-A01: <= last delivered generation for THIS primitive is a no-op.
+  // The negated > also makes a NaN generation a no-op instead of a retry loop.
+  // Advance the guard BEFORE the call so a throw is not retried within the same generation.
+  const deliverTo = (list: Entry[], proj: HostProjection): void => {
+    for (const e of list) {
+      if (!(proj.generation > e.lastGeneration)) continue;
+      e.lastGeneration = proj.generation;
+      if (!e.primitive.update) continue;
+      try {
+        e.primitive.update(proj);
+      } catch (error) {
+        record(e, "update", proj.generation, error);
+      }
+    }
+  };
+
   const host: PrimitiveHost = {
     attach(paneIndex, seriesId, p) {
       if (disposed) return () => undefined;
@@ -282,12 +315,12 @@ export function createPrimitiveHost(hooks: PrimitiveHostHooks = {}): PrimitiveHo
     },
 
     hitTest(paneIndex, x, y) {
-      const hits: PrimitiveHit[] = [];
+      const hits: HostHitMatch[] = [];
       const ordered = sortedForPane(paneIndex); // bottom → top
       for (let i = ordered.length - 1; i >= 0; i--) {
         const e = ordered[i]; // top-most first
         if (!e.primitive.hitTest) continue;
-        let hit: HostHit | null = null;
+        let hit: HostHitOrPrimitiveHit | null = null;
         try {
           hit = e.primitive.hitTest(x, y);
         } catch (error) {
@@ -302,23 +335,12 @@ export function createPrimitiveHost(hooks: PrimitiveHostHooks = {}): PrimitiveHo
     deliver(proj) {
       // Slice: an update() that attaches another primitive must not also deliver
       // this same generation to it mid-iteration (it gets it on the next deliver).
-      for (const e of entries.slice()) {
-        // R04-A01: <= last delivered generation for THIS primitive is a no-op.
-        // The negated > also makes a NaN generation a no-op instead of a retry loop.
-        // R04-A01: <= last delivered generation for THIS primitive is a no-op.
-        // The negated > also makes a NaN generation a no-op instead of a retry loop.
-        if (!(proj.generation > e.lastGeneration)) continue;
-        // Advance the guard before the call: "once per primitive per generation"
-        // holds even when update() throws (a throw is not retried within the
-        // generation; the error is recorded below instead).
-        e.lastGeneration = proj.generation;
-        if (!e.primitive.update) continue;
-        try {
-          e.primitive.update(proj);
-        } catch (error) {
-          record(e, "update", proj.generation, error);
-        }
-      }
+      deliverTo(entries.slice(), proj);
+    },
+
+    deliverPane(paneIndex, proj) {
+      // Same once-per-generation + record-on-throw guards, only this pane's entries.
+      deliverTo(entries.slice().filter((e) => e.paneIndex === paneIndex), proj);
     },
 
     moveSeries(seriesId, toPane) {
