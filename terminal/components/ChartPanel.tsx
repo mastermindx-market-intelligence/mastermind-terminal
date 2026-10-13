@@ -3966,19 +3966,11 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
       // refuses, so the catch branch below mounts lwc on the wire (same data, same documents).
       ...(isRefusalProbeRequested(window.location.search) ? ENGINE_REFUSAL_PROBE_OPTIONS : {}),
     };
-    // F-13: URL ?engine=mm is opt-in only. Default / "lwc" is the BASE createEngine call
-    // (impl absent). mm unwrap() is ChartModel, so remaining chartRef sites cannot drive
-    // it — destroy the attempt, warn once, mount lwc.
     const requestedImpl = resolveMountEngineImpl(window.location.search);
     let engine: ChartEngine | undefined;
     if (requestedImpl === "mm") {
       try {
         engine = createEngine(el, engineOptions, "mm");
-        if (engine.impl !== "lwc") {
-          try { engine.destroy(); } catch {}
-          console.warn("chart-engine: mm mount fell back to lwc: ChartPanel still needs the raw lwc bridge (F-13)");
-          engine = createEngine(el, engineOptions);
-        }
       } catch (err) {
         try { engine?.destroy(); } catch {}
         console.warn(`chart-engine: mm mount fell back to lwc: ${err instanceof Error ? err.message : String(err)}`);
