@@ -87,7 +87,7 @@ import type {
 } from "../api";
 import type { EngineCapabilities } from "../options";
 // F-10: the primitive/projection vocabulary is imported, never re-declared here.
-import { projectionReady } from "../primitive";
+import { isEnginePrimitiveShape, projectionReady } from "../primitive";
 import type {
   EnginePrimitive,
   EngineProjection,
@@ -242,6 +242,11 @@ type EnginePrimitiveBridge = ISeriesPrimitive<Time> & { readonly mmRelease: () =
 
 const EMPTY_PANE_VIEWS: readonly IPrimitivePaneView[] = [];
 
+/** High-water generation per EnginePrimitive: a re-attached primitive must never
+ *  see its generation regress, or a consumer that dedupes update() by generation
+ *  (the R04-A0 pattern in canvas/primitives.ts) goes permanently stale. */
+const lastGenerationByPrimitive = new WeakMap<EnginePrimitive, number>();
+
 /**
  * The engine-neutral overlay shape, recognised structurally: a non-null object with
  * a string `id` and attached/detached/update functions. All four are required so
@@ -249,16 +254,13 @@ const EMPTY_PANE_VIEWS: readonly IPrimitivePaneView[] = [];
  * hand-rolled primitives (sessionShading.SessionShadingPrimitive, the
  * drawingPaneReadiness watcher, the markers/watermark plugin wrappers) have
  * attached/detached/paneViews but no string id and no update().
+ *
+ * The predicate is the shared one in ../primitive (isEnginePrimitiveShape) so
+ * canvas/refusal.ts's assertEnginePrimitive agrees with this adapter on every
+ * shape (F4 / PATCH-5).
  */
 function isEnginePrimitive(value: unknown): value is EnginePrimitive {
-  if (value === null || typeof value !== "object") return false;
-  const candidate = value as Record<string, unknown>;
-  return (
-    typeof candidate.id === "string" &&
-    typeof candidate.attached === "function" &&
-    typeof candidate.detached === "function" &&
-    typeof candidate.update === "function"
-  );
+  return isEnginePrimitiveShape(value);
 }
 
 /** LWC answers null outside the projected domain; a projection answers NaN so a
@@ -361,6 +363,7 @@ function createPrimitiveBridge(
   let delivered: EngineProjection | null = null;
   let views: readonly IPrimitivePaneView[] | null = null;
   let renderer: IPrimitivePaneRenderer | null = null;
+  let context: PrimitiveAttachContext | null = null;
 
   const zOrderOf = (): PrimitiveZOrder => primitive.zOrder ?? "normal";
 
@@ -384,8 +387,12 @@ function createPrimitiveBridge(
     }
     const signature = geometrySignature(raw);
     if (memo && memo.signature === signature) return memo.projection;
+    // F3 (PATCH-4): a re-attached primitive must not see its generation regress.
+    // generation += 1, but never below (last high-water mark for this primitive).
+    generation = Math.max(generation + 1, (lastGenerationByPrimitive.get(primitive) ?? 0) + 1);
+    lastGenerationByPrimitive.set(primitive, generation);
     const projection: EngineProjection = {
-      generation: ++generation,
+      generation,
       dpr: raw.dpr,
       widthPx: raw.widthPx,
       heightPx: raw.heightPx,
@@ -413,7 +420,7 @@ function createPrimitiveBridge(
       if (!Number.isNaN(deliveredGeneration) && projection.generation < deliveredGeneration) return;
       if (!attachNotified) {
         attachNotified = true;
-        const context: PrimitiveAttachContext = {
+        context = {
           seriesId: options?.seriesId ?? "",
           paneIndex: paneIndexOf(),
           requestUpdate: () => {
@@ -425,6 +432,11 @@ function createPrimitiveBridge(
           },
         };
         primitive.attached(context);
+      } else if (context) {
+        // F11 (PATCH-7): moveToPane/swapPanes re-home the series after attached()
+        // has run: keep the paneIndex live for a consumer that reads it at paint
+        // time.
+        context.paneIndex = paneIndexOf();
       }
       if (!Number.isNaN(deliveredGeneration) && projection.generation === deliveredGeneration) {
         return; // same generation: identical geometry, already delivered
@@ -647,8 +659,16 @@ class LwcSeriesHandle implements SeriesHandle {
         bridge.mmRelease(); // idempotent; covers a host that never calls detached()
         return;
       }
-      // Engine-shaped but never attached here: nothing of ours to release.
+      // Engine-shaped but not bridged here (defensive second detach, or a primitive
+      // that lives on another handle): a no-op. LWC's SeriesApi.detachPrimitive
+      // calls primitive.detached() UNCONDITIONALLY (5.2.0 dev build :12802-12807),
+      // so handing it the raw EnginePrimitive would fire detached() again — C03-A03
+      // says exactly once. Trade-off: a caller that mixed unwrap().attachPrimitive(p)
+      // with handle.detachPrimitive(p) now gets a no-op instead of a native detach.
+      return;
     }
+    // Non-engine value: forwarded raw. Real LWC will then call detached()
+    // unconditionally (the bridge never owned the lifecycle for native plugins).
     this.series.detachPrimitive(value as Parameters<ISeriesApi<SeriesType>["detachPrimitive"]>[0]);
   }
   /** Release every engine primitive this handle attached, exactly once each. Called
@@ -908,6 +928,8 @@ class LwcTimeScaleHandle implements TimeScaleHandle {
 }
 
 // ── Engine ──────────────────────────────────────────────────────────────────
+const markerOwners = new WeakMap<HTMLElement, LwcChartEngine>();
+
 class LwcChartEngine implements ChartEngine {
   readonly impl = "lwc" as const;
   private chart: IChartApi | null;
@@ -929,7 +951,10 @@ class LwcChartEngine implements ChartEngine {
     // Identity marker: only after createChart() has returned (a thrown mount must
     // leave the host untouched). Read by Playwright `[data-chart-engine="mm"]` and
     // the live proofs. Guarded for test stubs whose `{} as HTMLElement` has no dataset.
-    if (container.dataset) container.dataset.chartEngine = "lwc";
+    if (container.dataset) {
+      container.dataset.chartEngine = "lwc";
+      markerOwners.set(container, this);
+    }
   }
 
   private ensure(): IChartApi {
@@ -1156,10 +1181,14 @@ class LwcChartEngine implements ChartEngine {
     this.timeScaleHandle = null;
     const chart = this.chart;
     this.chart = null;
-    // Identity marker: only clear if it still reads THIS impl — never wipe a newer
-    // engine's marker that took over the same host. Idempotent: missing attr is fine.
+    // Identity marker: only clear if it still reads THIS impl AND we are still the
+    // registered owner — never wipe a newer engine's marker that took over the same
+    // host. Idempotent: missing attr is fine.
     const ds = this.container.dataset;
-    if (ds && ds.chartEngine === "lwc") delete ds.chartEngine;
+    if (ds && ds.chartEngine === "lwc" && markerOwners.get(this.container) === this) {
+      delete ds.chartEngine;
+      markerOwners.delete(this.container);
+    }
     chart.remove();
   }
 }
