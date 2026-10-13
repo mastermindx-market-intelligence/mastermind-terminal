@@ -366,6 +366,11 @@ export function createKeyboardController(deps: KeyboardControllerDeps): Keyboard
     const span = to - from;
     if (!(span > 0)) return;
     const cross = deps.getCrosshair();
+    // PERF-RR2 ruling 3 (LWC _internal_zoom dev:6277-6288): the float index
+    // under the anchor is the invariant across a zoom — we never snap it to
+    // a bar centre, even on data. With a crosshair the anchor is its logical;
+    // without one it is the centre of the visible range. Either way the
+    // pixel-position law below keeps the anchor x fixed across every step.
     const anchor =
       cross.logical != null && Number.isFinite(cross.logical)
         ? (cross.logical as number)
@@ -373,6 +378,22 @@ export function createKeyboardController(deps: KeyboardControllerDeps): Keyboard
     const steps = barsForEvent(1, streak);
     const factor = Math.pow(ZOOM_FACTOR_PER_STEP, direction * steps);
     const newSpan = Math.min(MAX_VISIBLE_SPAN, Math.max(MIN_VISIBLE_SPAN, span * factor));
+    const width = finiteOr(ts.widthPx, 0);
+    if (width > 0 && newSpan > 0) {
+      // Float-index pixel-centre law: x = (anchor - from + 0.5) * spacing stays
+      // fixed. For a non-integer anchor this is float-exact; for an integer
+      // anchor it is the bar-centre law (a special case, not the anchor).
+      const nextSpacing = width / newSpan;
+      const anchorX = (anchor - from + 0.5) * (width / span);
+      let newFrom = anchor - anchorX / nextSpacing + 0.5;
+      let newTo = newFrom + newSpan;
+      if (newFrom < 0) {
+        newFrom = 0;
+        newTo = newSpan;
+      }
+      deps.setVisibleLogicalRange(newFrom, newTo);
+      return;
+    }
     const ratio = newSpan / span;
     let newFrom = anchor - (anchor - from) * ratio;
     let newTo = anchor + (to - anchor) * ratio;

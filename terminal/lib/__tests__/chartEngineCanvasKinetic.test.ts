@@ -359,16 +359,99 @@ describe("canvas engine pointer / wheel / kinetic (T3)", () => {
     expect(engine.timeScale().getVisibleLogicalRange()).toBeNull();
   });
 
-  it("(f) destroy() removes every listener the bridge added to the overlay", () => {
-    const { engine, overlay } = mount();
-    const removeSpy = vi.spyOn(overlay, "removeEventListener");
-    engine.destroy();
-    const types = removeSpy.mock.calls.map((call) => String(call[0]));
-    for (const t of [
-      "pointerdown", "pointermove", "pointerup", "pointercancel", "wheel", "dblclick",
-    ]) {
-      expect(types, t).toContain(t);
+  it("(f) destroy() removes every listener the bridge added to the overlay and the window", () => {
+    // PERF-A: after mount, the bridge splits its listeners across two targets.
+    // pointerdown / wheel / dblclick stay on the overlay surface; pointermove /
+    // pointerup / pointercancel are taken on the WINDOW (gated by the bridge's
+    // active-pointer set so co-resident engines never react to each other's
+    // pointers). destroy() must still balance every listener the bridge adds,
+    // and the same listener reference that was added must be the one removed
+    // from the same target.
+    //
+    // The overlay does not exist before mount, so we spy on
+    // HTMLCanvasElement.prototype and filter by the data-mm-overlay attribute
+    // (same pattern as chartEngineCanvasPatch3Kinetic.test.ts mountDragged()).
+    // vi.spyOn calls through to the original by default and exposes the `this`
+    // of each call via mock.instances, so the original listener registration
+    // still happens — we only record what we need for the assertions.
+    const canvasAddSpy = vi.spyOn(HTMLCanvasElement.prototype, "addEventListener");
+    const canvasRemoveSpy = vi.spyOn(HTMLCanvasElement.prototype, "removeEventListener");
+    const winAddSpy = vi.spyOn(window, "addEventListener");
+    const winRemoveSpy = vi.spyOn(window, "removeEventListener");
+
+    // Mount the engine — this is when the bridge (and the click-latch code in
+    // canvas/index.ts) add their listeners. Spies are already installed, so
+    // every [type, listener] pair added during mount is recorded.
+    const { engine } = mount();
+
+    // Pull [type, listener] pairs out of the spy records, filtering canvas
+    // calls to only those on the data-mm-overlay element.
+    type ListenerSpy = {
+      mock: {
+        calls: Array<Array<unknown>>;
+        instances: Array<unknown>;
+      };
+    };
+    function canvasPairs(spy: ListenerSpy): Array<[string, EventListener]> {
+      const out: Array<[string, EventListener]> = [];
+      spy.mock.calls.forEach((call, i) => {
+        const inst = spy.mock.instances[i] as HTMLCanvasElement | undefined;
+        const type = String(call[0]);
+        const listener = call[1] as EventListener | null;
+        if (
+          inst
+          && typeof inst.getAttribute === "function"
+          && inst.getAttribute("data-mm-overlay") !== null
+          && listener
+        ) {
+          out.push([type, listener]);
+        }
+      });
+      return out;
     }
+    function windowPairs(spy: ListenerSpy): Array<[string, EventListener]> {
+      const out: Array<[string, EventListener]> = [];
+      spy.mock.calls.forEach((call) => {
+        const type = String(call[0]);
+        const listener = call[1] as EventListener | null;
+        if (listener) out.push([type, listener]);
+      });
+      return out;
+    }
+
+    // Snapshot what was added during mount so the BALANCE check only covers
+    // listeners the engine itself installed, not anything destroy() might
+    // indirectly cause to be re-added.
+    const overlayAddedAtMount = canvasPairs(canvasAddSpy);
+    const windowAddedAtMount = windowPairs(winAddSpy);
+
+    engine.destroy();
+
+    const overlayRemoved = canvasPairs(canvasRemoveSpy);
+    const windowRemoved = windowPairs(winRemoveSpy);
+
+    // BALANCE: every [type, listener] pair added during mount is removed from
+    // the SAME target with the SAME listener reference.
+    for (const [type, listener] of overlayAddedAtMount) {
+      const matched = overlayRemoved.some(([t, l]) => t === type && l === listener);
+      expect(matched, `overlay remove ${type} (same listener ref)`).toBe(true);
+    }
+    for (const [type, listener] of windowAddedAtMount) {
+      const matched = windowRemoved.some(([t, l]) => t === type && l === listener);
+      expect(matched, `window remove ${type} (same listener ref)`).toBe(true);
+    }
+
+    // The bridge must remove its specific listener types from the right target.
+    const overlayRemovedTypes = overlayRemoved.map(([t]) => t);
+    for (const t of ["pointerdown", "wheel", "dblclick"]) {
+      expect(overlayRemovedTypes, `overlay removed ${t}`).toContain(t);
+    }
+    const windowRemovedTypes = windowRemoved.map(([t]) => t);
+    for (const t of ["pointermove", "pointerup", "pointercancel"]) {
+      expect(windowRemovedTypes, `window removed ${t}`).toContain(t);
+    }
+
+    // Spies are restored by the file's afterEach (vi.restoreAllMocks()).
   });
 
   it("(g) destroy() cancels an in-flight inertia frame", () => {
