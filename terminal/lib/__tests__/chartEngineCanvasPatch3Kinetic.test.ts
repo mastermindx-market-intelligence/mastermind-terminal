@@ -466,3 +466,91 @@ describe("F5 — inputBridge consumer side honours an optional measured price-ax
     expect(outsideFloor.region).toBe("plot");
   });
 });
+
+describe("F13 — a pan drag does not emit a consumer click (LWC cancelClick parity)", () => {
+  let container: HTMLDivElement;
+  let nowMs: number;
+
+  beforeEach(() => {
+    container = document.createElement("div");
+    document.body.appendChild(container);
+    nowMs = 0;
+    installCtxSpy();
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+    container.remove();
+  });
+
+  function mountWithClick() {
+    const scheduler = createManualScheduler();
+    const engine = createCanvasEngine(container, {
+      width: 200,
+      height: 100,
+      devicePixelRatio: 1,
+      scheduler,
+      now: () => nowMs,
+      kineticScroll: { mouse: true, touch: true },
+    });
+    const series = engine.addSeries("candles", { upColor: "U", downColor: "D" });
+    series.setData(ROWS);
+    engine.timeScale().setVisibleLogicalRange({ from: 0, to: 20 });
+    scheduler.flush();
+    const overlay = engine.chartElement().querySelector("[data-mm-overlay]") as HTMLCanvasElement;
+    expect(overlay).toBeTruthy();
+    const m = engine.unwrap<{ time: { visibleFrom: number } }>();
+    return { engine, overlay, m };
+  }
+
+  it("(i) a plain click without a drag still reaches subscribeClick", () => {
+    const { engine, overlay } = mountWithClick();
+    const clicks: number[] = [];
+    engine.subscribeClick(() => {
+      clicks.push(1);
+    });
+    gesture(overlay, [50, 30], null); // down/up/click, no move
+    expect(clicks.length).toBe(1);
+    engine.destroy();
+  });
+
+  it("(ii) a >=5px pan drag cancels the click, matching LWC cancelClick", () => {
+    const { engine, overlay, m } = mountWithClick();
+    const clicks: number[] = [];
+    engine.subscribeClick(() => {
+      clicks.push(1);
+    });
+    const from0 = m.time.visibleFrom;
+    gesture(overlay, [40, 30], [120, 30]); // 80px pan, then the browser click
+    expect(Math.abs(m.time.visibleFrom - from0)).toBeGreaterThan(0.5);
+    expect(clicks.length).toBe(0);
+    engine.destroy();
+  });
+
+  // `gesture` dispatches BOTH event families a real browser fires, with buttons:1 while pressed —
+  // the latch reads pointer events, the pan reads pointer events, the click reads the mouse family.
+  function gesture(overlay: HTMLCanvasElement, from: [number, number], to: [number, number] | null): void {
+    const mk = (type: string, x: number, y: number, buttons: number) => {
+      const ev = new MouseEvent(type, {
+        clientX: x,
+        clientY: y,
+        bubbles: true,
+        cancelable: true,
+        button: 0,
+        buttons,
+      });
+      Object.defineProperty(ev, "pointerId", { value: 1 });
+      Object.defineProperty(ev, "pointerType", { value: "mouse" });
+      return ev;
+    };
+    const both = (mouseType: string, pointerType: string, x: number, y: number, buttons: number) => {
+      overlay.dispatchEvent(mk(mouseType, x, y, buttons));
+      overlay.dispatchEvent(mk(pointerType, x, y, buttons));
+    };
+    both("mousedown", "pointerdown", from[0], from[1], 1);
+    if (to) both("mousemove", "pointermove", to[0], to[1], 1);
+    const end = to ?? from;
+    both("mouseup", "pointerup", end[0], end[1], 0);
+    overlay.dispatchEvent(mk("click", end[0], end[1], 0));
+  }
+});
