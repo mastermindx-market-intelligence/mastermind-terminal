@@ -45,6 +45,16 @@ export type MmBenchHook = {
   screenshot(): ScreenshotResult;
   anchorTimeAt(x: number): EngineTime | null;
   timeToCoordinate(time: EngineTime): number | null;
+  /** Float-index anchor under a pointer x (PERF-RR2 ruling 3): the LWC public
+   *  API is not float-exact, so the metric interpolates from the two
+   *  neighbouring integer logicals the engine reports. x is the container
+   *  coordinate (already past rect.left). Returns null when any call is
+   *  non-finite or the two anchor pixels coincide (zoom extremes). */
+  floatAnchorAt(x: number): { x: number; logical: number } | null;
+  /** coordOf(L) for a float logical L: x = d0 + (L - j) * (d1 - d0) where
+   *  j = floor(L) and d0, d1 are logicalToCoordinate(j), logicalToCoordinate(j+1).
+   *  Returns null when the engine cannot answer or d1 === d0. */
+  coordinateOfLogical(logical: number): number | null;
   /** Visible logical range, or null — the protocol uses it to prove pan/zoom did something. */
   visibleLogicalRange(): { from: number; to: number } | null;
   inventory(): EngineInventory;
@@ -350,6 +360,55 @@ export function mountBench(container: HTMLElement, impl: EngineImpl): MountBench
         return engine?.timeScale().timeToCoordinate(time) ?? null;
       } catch (err) {
         refuse("timeToCoordinate", err);
+        return null;
+      }
+    },
+    floatAnchorAt(x: number) {
+      // Mirrors the integer interpolation documented in
+      // docs/chart-engine-completion/lwc-reference-semantics.md dev:6283-6286.
+      // The LWC public API is not float-exact (coordinateToLogical returns the
+      // ceiling of the float index, logicalToCoordinate is only defined for
+      // integer logicals), so the metric is built by linear interpolation
+      // between the two neighbouring integer logicals the engine reports.
+      try {
+        const ts = engine?.timeScale();
+        if (!ts) return null;
+        const i = ts.coordinateToLogical(x);
+        if (i == null) return null;
+        const c0 = ts.logicalToCoordinate(i);
+        const c1 = ts.logicalToCoordinate(i + 1);
+        if (c0 == null || c1 == null) return null;
+        if (!Number.isFinite(c0) || !Number.isFinite(c1)) return null;
+        if (c1 === c0) return null;
+        const el = engine?.chartElement() ?? container;
+        const rect = el.getBoundingClientRect();
+        const localX = x - rect.left;
+        const logical = i + (localX - c0) / (c1 - c0);
+        if (!Number.isFinite(logical)) return null;
+        return { x: localX, logical };
+      } catch (err) {
+        refuse("floatAnchorAt", err);
+        return null;
+      }
+    },
+    coordinateOfLogical(logical: number) {
+      // Inverse of floatAnchorAt: same integer-interpolation convention so the
+      // bench measures the exact pixel the engine would paint for the float
+      // index, not an integer logical it would quantise.
+      try {
+        const ts = engine?.timeScale();
+        if (!ts) return null;
+        if (!Number.isFinite(logical)) return null;
+        const j = Math.floor(logical);
+        const d0 = ts.logicalToCoordinate(j);
+        const d1 = ts.logicalToCoordinate(j + 1);
+        if (d0 == null || d1 == null) return null;
+        if (!Number.isFinite(d0) || !Number.isFinite(d1)) return null;
+        if (d1 === d0) return null;
+        const x = d0 + (logical - j) * (d1 - d0);
+        return Number.isFinite(x) ? x : null;
+      } catch (err) {
+        refuse("coordinateOfLogical", err);
         return null;
       }
     },

@@ -5,10 +5,14 @@
 // setVisibleLogicalRange / setPriceRange; the clock and frame scheduler are
 // injectable so tests drive inertia without requestAnimationFrame.
 //
-// Coordinate law (mirrors LWC, I02 pointer-anchor): a bar at logical index i
-// is centred at x = (i - visibleFrom + 0.5) * barSpacing, with
-// barSpacing = widthPx / (visibleTo - visibleFrom). Zoom/pinch keep the
-// logical under the pointer (or pinch midpoint) fixed to <= 1e-9 logical.
+// Coordinate law (mirrors LWC, I02 pointer-anchor / PERF-RR2 ruling 3): a bar
+// at logical index i is centred at x = (i - visibleFrom + 0.5) * barSpacing,
+// with barSpacing = widthPx / (visibleTo - visibleFrom). Zoom/pinch keep the
+// CONTINUOUS time coordinate — the float index under the pointer (or pinch
+// midpoint) — fixed across the gesture (LWC _internal_zoom dev:6277-6288;
+// pointer-anchor drift <= 1 CSS px). Bar-centre anchoring breaks that law
+// once barSpacing exceeds ~13 px, so this controller anchors the float index
+// at every wheel and pinch-start site.
 //
 // Gesture classification uses the event's own timeStamp deltas, never now()
 // (handler-clock delay on a busy thread is not a long-press — see
@@ -161,29 +165,23 @@ export function zoomTimeAround(
 export type ZoomLimits = { minBarSpacing: number; maxBarSpacing: number; barCount: number };
 
 /**
- * Zoom anchor: the logical point plus the CSS px it must stay at. On data the
- * anchor is the EXISTING bar under the pointer pinned at its own pixel centre
- * (PERF-A F4); off data it is the float index under the pointer.
+ * Zoom anchor: the logical point plus the CSS px it must stay at. The anchor
+ * is the float index under the pointer (PERF-RR2 ruling 3, LWC
+ * _internal_zoom dev:6277-6288): the continuous time coordinate must be
+ * invariant across a zoom, not the bar under the pointer's centre. Bar-centre
+ * anchoring breaks the <= 1 CSS px law once barSpacing exceeds ~13 px.
  */
 export type ZoomAnchor = { anchorLogical: LogicalIndex; anchorX: number };
-
-/** Bar-centre anchor for a pointer at `x` (float fallback off data / no data). */
-export function barCentreAnchor(ts: TimeScaleState, x: number, barCount?: number): ZoomAnchor {
-  const floatLogical = logicalOfX(x, ts);
-  if (ts.barSpacing > 0 && barCount != null && Number.isFinite(barCount)) {
-    const bar = Math.round(floatLogical);
-    if (bar >= 0 && bar < barCount) {
-      return { anchorLogical: bar, anchorX: (bar - ts.visibleFrom + 0.5) * ts.barSpacing };
-    }
-  }
-  return { anchorLogical: floatLogical, anchorX: x };
-}
 
 /**
  * zoomTimeAround with the new spacing CLAMPED BEFORE the anchor is placed
  * (PERF-A F4): the clamped spacing is the one the model will accept, so the
  * model's own clamp never re-quantises the anchored range. Without limits the
  * legacy float-anchor law (zoomTimeAround) applies unchanged.
+ *
+ * Pair this with the float-index anchor (anchorLogical = logicalOfX(x, ts),
+ * anchorX = x): placing the anchor at the pointer x under the clamped
+ * spacing keeps logicalOfX(x) exactly invariant across the gesture.
  */
 export function zoomTimeAroundAt(
   ts: TimeScaleState,
@@ -375,8 +373,9 @@ export function createInputController(deps: InputControllerDeps): InputControlle
       visibleTo: pinch.startSpan,
       barSpacing: pinch.startBarSpacing,
     };
-    // Place the pinch-start anchor bar (bar centre on data, PERF-A C2) under
-    // the current midpoint, with the new spacing clamped before the anchor.
+    // Pinch move re-anchors the float index captured at pinch-start under the
+    // current midpoint; spacing is clamped BEFORE the anchor is placed so the
+    // model's own clamp never re-quantises the anchored range.
     deps.setVisibleLogicalRange(
       zoomTimeAroundAt(ts, { anchorLogical: pinch.anchorLogical, anchorX: midX }, factor, deps.zoomLimits?.()),
     );
@@ -445,9 +444,12 @@ export function createInputController(deps: InputControllerDeps): InputControlle
     }
     const ts = deps.getTimeScale();
     const midX = (a.x + b.x) / 2;
-    // Anchor the bar under the pinch-start midpoint at its own centre when it
-    // is on data (PERF-A F4); float logical off data.
-    const anchorLogical = barCentreAnchor(ts, midX, deps.zoomLimits?.().barCount).anchorLogical;
+    // Float-index anchor (PERF-RR2 ruling 3, LWC _internal_zoom dev:6277-6288):
+    // capture the continuous time coordinate under the pinch-start midpoint
+    // and keep it fixed across every spread step. Bar-centre anchoring
+    // re-quantises the anchor on each step and breaks the <= 1 CSS px law
+    // once barSpacing grows past ~13 px.
+    const anchorLogical = logicalOfX(midX, ts);
     pinch = {
       ids: [a.id, b.id],
       startDist: dist,
@@ -599,10 +601,12 @@ export function createInputController(deps: InputControllerDeps): InputControlle
       stopInertia(true);
       const factor = wheelDeltaToZoomFactor(delta, deltaMode, ts.widthPx);
       const limits = deps.zoomLimits?.();
-      // Bar-centre anchor on data (F4): the bar under the pointer stays at its
-      // own pixel centre, float anchor off data; spacing clamped BEFORE the
-      // anchor is placed so the model clamp never re-quantises it.
-      const anchor = barCentreAnchor(ts, e.x, limits?.barCount);
+      // Float-index anchor (PERF-RR2 ruling 3, LWC _internal_zoom dev:6277-6288):
+      // the continuous time coordinate under the pointer is the invariant,
+      // not the bar under the pointer's centre. The clamped spacing is
+      // applied BEFORE the anchor so the model clamp never re-quantises the
+      // anchored range.
+      const anchor: ZoomAnchor = { anchorLogical: logicalOfX(e.x, ts), anchorX: e.x };
       deps.setVisibleLogicalRange(zoomTimeAroundAt(ts, anchor, factor, limits));
       return;
     }
