@@ -1,5 +1,5 @@
 "use client";
-import { type ComponentProps, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import type { ChartReadoutMeta } from "@/lib/visualIntelligence";
 import ChartPanel, { type DetectCmd, type LiveQuote, type PineScript } from "@/components/ChartPanel";
 import ChartFrameBar, { DEFAULT_CHART_SETTINGS, type ChartSettings } from "@/components/ChartFrameBar";
@@ -46,15 +46,6 @@ export default function ChartPane({ idx, symbol, drawingOwnerKey, isActive, onAc
   const [chartSettings, setChartSettings] = useState<ChartSettings>(DEFAULT_CHART_SETTINGS);
   const [chartSettingsReady, setChartSettingsReady] = useState(false);
   const [chartApi, setChartApi] = useState<ChartEngine | null>(null);
-  // M04-interim engine-unwrap: ChartFrameBar still speaks the raw vendor time scale
-  // (ts.scrollToRealTime, capital T); hand it the engine's native chart until the next
-  // migration2 commit retypes its prop to ChartEngine and deletes this bridge. lwc-only in
-  // practice: the forced fallback still on this commit means ?engine=mm mounts lwc.
-  const frameBarChartApi = useMemo(() => {
-    try {
-      return (chartApi?.unwrap<unknown>() ?? null) as unknown as ComponentProps<typeof ChartFrameBar>["chartApi"];
-    } catch { return null; }
-  }, [chartApi]);
   const [settingsModalOpen, setSettingsModalOpen] = useState(false);
   const [settingsModalTab, setSettingsModalTab] = useState<ChartSettingsTab>("scales");
 
@@ -211,7 +202,7 @@ export default function ChartPane({ idx, symbol, drawingOwnerKey, isActive, onAc
       />
       <ChartFrameBar
         timeframe={tf}
-        chartApi={frameBarChartApi}
+        chartApi={chartApi}
         settings={chartSettings}
         onSettings={patchSettings}
         onOpenSettingsModal={(tab) => {

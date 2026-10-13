@@ -44,9 +44,6 @@ const CHART_PANEL = path.join(TERMINAL_ROOT, "components", "ChartPanel.tsx");
 const LWC_IMPORT_ALLOWLIST: readonly string[] = [
   // Standalone embed chart (not the main ChartPanel engine path).
   "app/embed/chart/EmbedChart.tsx",
-  // M04-interim: ChartFrameBar keeps its raw IChartApi prop until the next migration2
-  // commit retypes it to ChartEngine; the entry is a BASE one, not a ratchet raise.
-  "components/ChartFrameBar.tsx",
   // Lazy-loaded tide mini-chart (standalone LWC instance).
   "components/TideChartLazy.tsx",
   // Options surface panes — separate createChart lifecycles from the main terminal chart.
