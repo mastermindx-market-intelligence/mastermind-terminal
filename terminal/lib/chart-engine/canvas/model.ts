@@ -1550,21 +1550,20 @@ class ModelPaneHandle implements PaneHandle {
   //                          baseline of `m.panes[idx] ?? null`)
   //   • pane removed but  → throw the existing "no longer exists" error
   //     engine alive         (the orchestrator's binding; tests pin it).
-  constructor(private readonly m: ChartModel, private readonly pane: PaneModel) {}
+  private readonly idx0: number;
+  constructor(private readonly m: ChartModel, private readonly pane: PaneModel) {
+    this.idx0 = m.panes.indexOf(pane);
+  }
   private resolve(): PaneModel | null {
     if (!this.m.alive) return null;
-    const i = this.m.panes.indexOf(this.pane);
-    return i === -1 ? null : this.pane;
-  }
-  private require(): PaneModel {
-    if (!this.m.alive) {
-      throw new Error(`chart-engine: pane ${this.pane.index} no longer exists`);
-    }
-    const i = this.m.panes.indexOf(this.pane);
-    if (i === -1) {
-      throw new Error(`chart-engine: pane ${this.pane.index} no longer exists`);
+    if (this.m.panes.indexOf(this.pane) === -1) {
+      throw new Error(`chart-engine: pane ${this.idx0} no longer exists`);
     }
     return this.pane;
+  }
+  private resolveQuiet(): PaneModel | null {
+    if (!this.m.alive) return null;
+    return this.m.panes.indexOf(this.pane) === -1 ? null : this.pane;
   }
   index(): number {
     // Disposed: return -1 to mirror LwcPaneHandle. A live pane that's been
@@ -1598,7 +1597,9 @@ class ModelPaneHandle implements PaneHandle {
     return this.m.paneElementLookup?.(i) ?? null;
   }
   getSeries(): SeriesHandle[] {
-    const p = this.resolve();
+    // Collection reads stay quiet on a gone pane, matching LwcPaneHandle.getSeries()
+    // (which routes through quietQuery and answers [] rather than throwing).
+    const p = this.resolveQuiet();
     if (!p) return [];
     const out: SeriesHandle[] = [];
     for (const sid of p.seriesIds) {
@@ -1611,9 +1612,19 @@ class ModelPaneHandle implements PaneHandle {
     // priceScaleHandle needs the pane's CURRENT index — not the snapshot in
     // this.pane.index (which only updates after a layout pass). Resolve live.
     const i = this.index();
+    if (i === -1 && this.m.alive) {
+      throw new Error(`chart-engine: pane ${this.idx0} no longer exists`);
+    }
     return this.m.priceScaleHandle(priceScaleId, i === -1 ? 0 : i);
   }
   unwrap<T>(): T {
+    // Q01-C13 forbids resurrection: once the engine is destroyed this handle must
+    // not keep handing out the live internal PaneModel (LwcPaneHandle.unwrap()
+    // throws "disposed" here). The zeroed snapshot is the canvas adapter's quiet
+    // equivalent, and is what this adapter returned before identity semantics.
+    if (!this.m.alive) {
+      return { index: this.idx0, height: 0, stretchFactor: 0, seriesIds: [] } as unknown as T;
+    }
     return this.pane as unknown as T;
   }
 }

@@ -347,3 +347,83 @@ describe("PaneHandle identity — canvas engine mm", () => {
     expect(chartH2.unwrap<{ index: number }>()).toBe(unwrappedChart2Pre);
   });
 });
+describe("PaneHandle contract after pane removal / engine disposal — LWC adapter", () => {
+  const oneBar = [{ time: "2026-10-01", open: 1, high: 2, low: 1, close: 1.5 } as const];
+  it("a pane the renderer dropped reports index() -1; acting methods throw, reads stay quiet", () => {
+    const e = createLwcEngine(lwcContainer);
+    const s0 = e.addSeries("candles", {}, 0);
+    s0.setData([...oneBar]);
+    const s1 = e.addSeries("line", {}, 1);
+    s1.setData([{ time: "2026-10-01", value: 1 }]);
+    const held = s1.pane();
+    // Model LWC's `_private__cleanupIfPaneIsEmpty`: the internal Pane is spliced out
+    // of the chart's array, after which PaneApi.paneIndex() (= indexOf) answers -1.
+    const chart = H.reg.charts[0]!;
+    const dropped = chart.__panes[1]!;
+    chart.__panes.splice(1, 1);
+    dropped.__index = -1;
+    expect(held.index()).toBe(-1);
+    expect(() => held.height()).toThrow(/no longer exists/);
+    expect(() => held.setHeight(50)).toThrow(/no longer exists/);
+    expect(() => held.setStretchFactor(2)).toThrow(/no longer exists/);
+    expect(() => held.stretchFactor()).toThrow(/no longer exists/);
+    expect(() => held.unwrap<unknown>()).toThrow(/no longer exists/);
+    expect(held.priceScale("right")).toBeTruthy(); // lazy: the resolver runs per call
+    expect(() => held.priceScale("right").width()).toThrow(/no longer exists/);
+    expect(held.getSeries()).toEqual([]); // quiet, like every other collection read
+    expect(held.getHTMLElement()).toBeNull(); // real PaneApi.getHTMLElement() -> null
+  });
+  it("after destroy the handle is neutral: getHTMLElement() null, acting methods throw /disposed/", () => {
+    const e = createLwcEngine(lwcContainer);
+    const s0 = e.addSeries("candles", {}, 0);
+    s0.setData([...oneBar]);
+    const held = s0.pane();
+    e.destroy();
+    expect(held.getHTMLElement()).toBeNull();
+    expect(held.getSeries()).toEqual([]);
+    expect(() => held.height()).toThrow(/disposed/);
+    expect(() => held.unwrap<unknown>()).toThrow(/disposed/);
+    expect(e.inventory()).toMatchObject({ alive: false, panes: 0, series: 0 });
+  });
+});
+
+describe("PaneHandle contract after engine disposal — canvas engine mm", () => {
+  it("stays quiet at index -1 and unwrap() hands back a zeroed snapshot, never the live model", () => {
+    const e = makeCanvas();
+    const s0 = e.addSeries("candles", {}, 0);
+    s0.setData([{ time: "2026-10-01", open: 1, high: 2, low: 1, close: 1.5 }]);
+    const held = s0.pane();
+    const raw = held.unwrap<{ height: number; seriesIds: unknown[] }>();
+    expect(raw.height).toBeGreaterThan(0); // the live model really has geometry
+    e.destroy();
+    expect(held.index()).toBe(-1);
+    expect(held.height()).toBe(0);
+    expect(held.stretchFactor()).toBe(0);
+    expect(held.getSeries()).toEqual([]);
+    expect(held.getHTMLElement()).toBeNull();
+    expect(() => held.setHeight(40)).not.toThrow();
+    expect(() => held.setStretchFactor(2)).not.toThrow();
+    // Q01-C13 forbids resurrection: a destroyed handle must not keep exposing the
+    // live internal PaneModel (LwcPaneHandle.unwrap() throws "disposed" here).
+    const after = held.unwrap<{ height: number; seriesIds: unknown[] }>();
+    expect(after.height).toBe(0);
+    expect(after.seriesIds).toEqual([]);
+    expect(e.inventory()).toMatchObject({ alive: false, panes: 0, series: 0 });
+  });
+  it("the canvas model never drops a pane, so its removed-pane throw stays unreachable (tripwire)", () => {
+    const e = makeCanvas();
+    const s0 = e.addSeries("candles", {}, 0);
+    s0.setData([{ time: "2026-10-01", open: 1, high: 2, low: 1, close: 1.5 }]);
+    const s1 = e.addSeries("line", {}, 1);
+    s1.setData([{ time: "2026-10-01", value: 1 }]);
+    const held = s1.pane();
+    s1.remove();
+    // Real LWC collapses the emptied pane (`_private__cleanupIfPaneIsEmpty`); the
+    // canvas model does not. Pin the gap so closing it is a deliberate act that
+    // also adds the removed-pane throw test this adapter currently cannot have.
+    expect(e.inventory().panes).toBe(2);
+    expect(held.index()).toBe(1);
+    expect(held.getSeries()).toEqual([]);
+    expect(() => held.height()).not.toThrow();
+  });
+});
