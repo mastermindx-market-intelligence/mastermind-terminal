@@ -620,18 +620,20 @@ export class ChartModel {
     const t = timeToMs(row.time);
     if (historicalUpdate) {
       const idx = s.rows.findIndex((r) => timeToMs(r.time) === t);
-      if (idx >= 0) s.rows[idx] = row;
-      else { s.rows.push(row); s.rows.sort((a, b) => timeToMs(a.time) - timeToMs(b.time)); }
+      if (idx < 0) {
+        throw new Error("Cannot update non-existing data point when historicalUpdate is true");
+      }
+      s.rows[idx] = row;
     } else if (s.rows.length === 0) {
       s.rows.push(row);
     } else {
-      const lastT = timeToMs(s.rows[s.rows.length - 1].time);
-      if (t === lastT) s.rows[s.rows.length - 1] = row;
-      else if (t > lastT) s.rows.push(row);
-      else {
-        const idx = s.rows.findIndex((r) => timeToMs(r.time) === t);
-        if (idx >= 0) s.rows[idx] = row;
+      const last = s.rows[s.rows.length - 1];
+      const lastT = timeToMs(last.time);
+      if (t < lastT) {
+        throw new Error(`Cannot update oldest data, last time=${String(last.time)}, new time=${String(row.time)}`);
       }
+      if (t === lastT) s.rows[s.rows.length - 1] = row;
+      else s.rows.push(row);
     }
     this.bump();
   }
