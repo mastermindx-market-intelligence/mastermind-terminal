@@ -8,21 +8,15 @@
  * RESULT.md EVIDENCE.
  */
 import { describe, expect, it } from "vitest";
-import { existsSync, readdirSync, readFileSync, writeFileSync, mkdirSync, rmSync } from "node:fs";
+import { existsSync, readdirSync, readFileSync } from "node:fs";
 import path from "node:path";
 import {
   BUDGETS,
-  METRIC_NAMES,
   buildReceipt,
-  computeViolations,
-  loadReceiptSchema,
-  schemaBudgetMaxima,
   validateReceipt,
   type ReceiptMetrics,
 } from "../chart-engine/bench/receipt";
 import {
-  DAILY_40K,
-  buildDailyCorpus,
   frameDeltas,
   median,
   p95,
@@ -31,7 +25,6 @@ import {
 const TERMINAL_ROOT = path.resolve(__dirname, "..", "..");
 const REPO_ROOT = path.resolve(TERMINAL_ROOT, "..");
 const RECEIPTS_DIR = path.join(REPO_ROOT, "docs", "chart-engine-completion", "receipts");
-const SCHEMA_PATH = path.join(REPO_ROOT, "docs", "chart-engine-completion", "performance-receipt.schema.json");
 
 /** Filename ratchet (F4) — receipt-<impl>-<commit>-<host>.json, the schema carries no impl. */
 const RECEIPT_NAME_RE = /^receipt-(mm|lwc)-[0-9a-f]{40}-[a-z0-9][a-z0-9-]*\.json$/;
@@ -146,7 +139,7 @@ describe("F2 P2 — a throwing rAF paint must NOT be recorded as a WORKING frame
         try {
           cb();
           return true;
-        } catch (err) {
+        } catch {
           paintRefusalCount++;
           if (paintRefusalCount === 1) refuse("paint");
           return false;
@@ -274,14 +267,13 @@ describe("F4 P2 — a committed receipt must match the (impl-commit-host) filena
   it("demonstrates the A3 key check at H2 is lax (proves the filename ratchet is needed)", () => {
     // A lwc-shaped receipt named receipt-mm-… passes the existing A3 gate
     // because the gate keys only off `file.startsWith("receipt-mm-")`.
-    const lwcShape = {
+    // The lwcShape is the example — its impl field does not exist in the
+    // schema, so the only impl identity is the filename; today the A3
+    // gate does not check the filename.
+    void {
       commit: "deadbeefdeadbeefdeadbeefdeadbeefdeadbeef",
-      generated_at: "2026-10-13T00:00:00.000Z",
       host: { os: "linux test", cpu: "test cpu", dpr: 2 },
       corpus: { name: "daily-40k", bars: 40000 },
-      metrics: GREEN_METRICS,
-      budget_ok: true,
-      violations: [],
     };
     // Pin: the A3 key check at H2 is `file.startsWith("receipt-mm-")`
     // (string match, no contract). The new gate keys on the contract regex.
