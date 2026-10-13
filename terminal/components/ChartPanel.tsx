@@ -4047,13 +4047,11 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
         const raw = engine.unwrap() as { panes?: unknown; timeScale?: unknown; addSeries?: unknown };
         if (typeof raw?.panes !== "function" || typeof raw?.timeScale !== "function" || typeof raw?.addSeries !== "function") {
           try { engine.destroy(); } catch {}
-          // eslint-disable-next-line no-console
           console.warn("chart-engine: mm mount fell back to lwc: unwrap() is ChartModel, not a vendor chart instance");
           engine = createEngine(el, engineOptions);
         }
       } catch (err) {
         try { engine?.destroy(); } catch {}
-        // eslint-disable-next-line no-console
         console.warn(`chart-engine: mm mount fell back to lwc: ${err instanceof Error ? err.message : String(err)}`);
         engine = createEngine(el, engineOptions);
       }

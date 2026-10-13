@@ -97,7 +97,6 @@ describe("ChartPanel primary price-series construction", () => {
       compilerOptions: { target: ts.ScriptTarget.ES2019, module: ts.ModuleKind.CommonJS },
     }).outputText;
 
-    // eslint-disable-next-line @typescript-eslint/no-implied-eval
     const build = new Function(
       "exports",
       "LineType", "withAlpha",
