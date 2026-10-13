@@ -358,4 +358,42 @@ describe("canvas engine pointer / wheel / kinetic (T3)", () => {
     }).not.toThrow();
     expect(engine.timeScale().getVisibleLogicalRange()).toBeNull();
   });
+
+  it("(f) destroy() removes every listener the bridge added to the overlay", () => {
+    const { engine, overlay } = mount();
+    const removeSpy = vi.spyOn(overlay, "removeEventListener");
+    engine.destroy();
+    const types = removeSpy.mock.calls.map((call) => String(call[0]));
+    for (const t of [
+      "pointerdown", "pointermove", "pointerup", "pointercancel", "wheel", "dblclick",
+    ]) {
+      expect(types, t).toContain(t);
+    }
+  });
+
+  it("(g) destroy() cancels an in-flight inertia frame", () => {
+    let seq = 0;
+    const pending = new Map<unknown, () => void>();
+    const recorder = {
+      schedule(cb: () => void): unknown { const h = ++seq; pending.set(h, cb); return h; },
+      cancel(h: unknown): void { pending.delete(h); },
+    };
+    const engine = createCanvasEngine(container, {
+      width: 200, height: 100, devicePixelRatio: 1, scheduler: recorder,
+      now: () => nowMs, kineticScroll: { mouse: true, touch: true },
+    });
+    const series = engine.addSeries("candles", { upColor: "U", downColor: "D" });
+    series.setData(ROWS);
+    engine.timeScale().setVisibleLogicalRange({ from: 0, to: 20 });
+    const overlay = engine.chartElement().querySelector("[data-mm-overlay]") as HTMLCanvasElement;
+    dispatchPointer(overlay, "pointerdown", 40, 30, { timeStamp: 0 });
+    nowMs = 10;
+    dispatchPointer(overlay, "pointermove", 70, 30, { timeStamp: 10 });
+    nowMs = 20;
+    dispatchPointer(overlay, "pointermove", 100, 30, { timeStamp: 20 });
+    dispatchPointer(overlay, "pointerup", 100, 30, { timeStamp: 20 });
+    expect(pending.size).toBeGreaterThan(0);
+    engine.destroy();
+    expect(pending.size).toBe(0);
+  });
 });
