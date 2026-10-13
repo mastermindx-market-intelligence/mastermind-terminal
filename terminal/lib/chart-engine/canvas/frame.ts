@@ -9,7 +9,6 @@ import { axisWidthForLabels, layoutPriceLabels, layoutTimeLabels, type Measure a
 import {
   layoutMarkers,
   layoutPriceLines,
-  layoutSessionShading,
   layoutWatermark,
   paintDecorations,
   type RowsIndex,
@@ -503,13 +502,14 @@ export function paintPaneFrame(args: PanePaintArgs): void {
   }
   paintGrid(ctx, model, paneIndex, w, h);
 
+  // PATCH3P2 F12 — delete the dead session-shading branch. The list was hardcoded
+  // `[]` so layoutSessionShading always returned `[]` and paintDecorations({sessionShading})
+  // never ran. The full fix also needs a `pane.sessionShading` field on the model
+  // (MODEL2-owned — see PROPOSED_PATCHES).
   const paneProj = engineProjectionForPane(model, paneIndex);
   const plotRect = { x: 0, y: 0, width: w, height: h };
-  const primary = model.primarySeries();
-  if (primary && !primary.removed) {
-    const shading = layoutSessionShading([], paneProj, rowsIndexFor(primary, paneProj), plotRect);
-    if (shading.length > 0) paintDecorations(ctx, { sessionShading: shading }, { dpr: model.dpr });
-  }
+  void plotRect; // unused now; kept for the named binding when the model-side lands
+
   withClip(ctx, w, h, () => primHost.paintPane(ctx, paneIndex, paneProj, "bottom"));
 
   const view = { dpr: model.dpr, clipRect: { x: 0, y: 0, width: w, height: h } };

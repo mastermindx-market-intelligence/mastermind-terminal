@@ -13,6 +13,7 @@ import {
   type ChartModel,
 } from "@/lib/chart-engine/canvas";
 import { engineProjectionFor } from "@/lib/chart-engine/canvas/frame";
+import type { HostPrimitive } from "@/lib/chart-engine/canvas/primitives";
 import type { EnginePrimitive } from "@/lib/chart-engine/primitive";
 import type { EngineSeriesKind, EngineSeriesRow } from "@/lib/chart-engine/api";
 
@@ -299,6 +300,30 @@ describe("F9 (P2) primitive requestUpdate advances update() generation through t
     scheduler.flush();
     expect(updates).toBe(2);
     engine.destroy();
+  });
+});
+
+// ─── F2 (P2) — an EnginePrimitive is assignable to HostPrimitive ────────────────
+// PATCH3P2 F2 widens HostPrimitive.hitTest to return either HostHit or PrimitiveHit
+// (and renames the formerly-colliding local `PrimitiveHit` type to `HostHitMatch`).
+// The tsc engine is the falsifier: a typed-assignment probe below MUST compile.
+describe("F2 (P2) HostPrimitive is assignable from a contract-shaped EnginePrimitive", () => {
+  it("a PrimitiveHit-returning hitTest satisfies HostPrimitive.hitTest", () => {
+    const probe = (() => {
+      const ePrim: EnginePrimitive = {
+        id: "f2",
+        attached: () => undefined,
+        detached: () => undefined,
+        update: () => undefined,
+        hitTest: () => ({ primitiveId: "f2", cursor: "crosshair" }),
+      };
+      // The type assertion compiles when PATCH3P2 F2 is applied; it errors out with
+      //   TS2322: Types of property 'hitTest' are incompatible …
+      // when reverted. Vitest's tsc-on-test-files pass is the runtime gate.
+      const host: HostPrimitive = ePrim;
+      return host.id;
+    });
+    expect(probe()).toBe("f2");
   });
 });
 
