@@ -15,5 +15,6 @@
 .cell[data-selected="true"]{box-shadow:inset 0 0 0 2px var(--warn)}
 .cell:focus-visible{position:relative;z-index:1;outline:2px solid var(--brand-2);outline-offset:-3px}
 @media (pointer:coarse),(max-width:860px){.cell{min-height:44px}.table tbody th{min-height:44px}.scroll{min-height:240px;max-height:min(50svh,420px)}}
+@media (max-width:640px){.scroll{max-height:364px}}
 @media (prefers-contrast:more){.cell{font-weight:600}.table td,.table tbody th{border-color:var(--text-2)}}
 @media (forced-colors:active){.cell[data-selected="true"]{outline:2px solid Highlight;outline-offset:-2px}.cell{border:1px solid CanvasText}.cell[data-value="missing"]{background-image:none}}
