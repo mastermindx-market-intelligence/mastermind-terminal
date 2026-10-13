@@ -140,9 +140,9 @@ export function MatrixCompanion({ root, metric, prefs, onPrefs, t, ...pin }: Pin
     const row = (label: string, value: React.ReactNode, key: string) => (
       <div className={styles.receiptsRow} key={key}><dt>{label}</dt><dd>{value ?? unavailableText}</dd></div>
     );
-    const buildTime = <time dateTime={r.build ?? ""}>{r.build ?? unavailableText}</time>;
+    const buildTime = r.build ? <time dateTime={r.build}>{r.build}</time> : null;
     return <details className={styles.receipts} data-testid="options-receipts">
-      <summary>{r.mixed && <span aria-hidden="true">⚠</span>}{t("receipts")}<span className={styles.receiptsVisuallyHidden}>{t("receiptsMixedHidden")}</span></summary>
+      <summary>{r.mixed && <span aria-hidden="true">⚠</span>}{t("receipts")}{r.mixed && <span className={styles.receiptsVisuallyHidden}>{t("receiptsMixedHidden")}</span>}</summary>
       <dl className={styles.receiptsList}>
         {row(t("receiptBuild"), buildTime, "build")}
         {row(t("receiptEod"), r.eod, "eod")}
@@ -166,10 +166,10 @@ export function MatrixCompanion({ root, metric, prefs, onPrefs, t, ...pin }: Pin
       {renderReceipts(receipts)}
     </SnapshotStamp>
       : <SnapshotEmpty issue={receipt.ok ? "unavailable" : receipt.reason} fetchStatus={fetchStatus} t={t} loading={snapshot.loading} refresh={snapshot.refresh} />}
-    {snapshot.pending && pendingReceipt && <div className={styles.newerSnapshot} data-testid="options-newer-snapshot" role="status">
+    {snapshot.pending && <div className={styles.newerSnapshot} data-testid="options-newer-snapshot" role="status">
       <span>{t("newerSnapshot")
-        .replace("{session}", pendingReceipt.session)
-        .replace("{build}", pendingReceipt.build ?? unavailableText)}</span>
+        .replace("{session}", pendingReceipt?.session || unavailableText)
+        .replace("{build}", pendingReceipt?.build ?? unavailableText)}</span>
       <button type="button" className={styles.action} data-testid="options-apply-newer" onClick={applyNewer}>{t("applyNewer")}</button>
     </div>}
     {snapshot.failed && data && <p className={styles.warning} role="status">{t("failed")}</p>}

@@ -105,6 +105,7 @@ describe("PP2-UI-a source receipts", () => {
     openReceipts();
     const summary1 = element.querySelector('[data-testid="options-receipts"] > summary')!;
     expect(summary1.textContent).toContain("⚠");
+    expect(summary1.textContent).toContain("Source dates differ from the map session.");
     expect(element.querySelector('[data-testid="options-receipts-mixed"]')?.textContent).toContain("Source dates differ from the map session.");
   });
 
@@ -114,6 +115,7 @@ describe("PP2-UI-a source receipts", () => {
     openReceipts();
     const summary = element.querySelector('[data-testid="options-receipts"] > summary')!;
     expect(summary.textContent).not.toContain("⚠");
+    expect(summary.textContent).not.toContain("Source dates differ");
     expect(element.querySelector('[data-testid="options-receipts-mixed"]')).toBeNull();
   });
 
@@ -122,8 +124,8 @@ describe("PP2-UI-a source receipts", () => {
     await renderOnce(broken);
     openReceipts();
     const details = element.querySelector('[data-testid="options-receipts"]')!;
-    const buildTime = details.querySelector("time")!;
-    expect(buildTime.textContent).toBe("unavailable");
+    expect(details.querySelector("time")).toBeNull();
+    expect(details.querySelector("dd")?.textContent).toBe("unavailable");
     expect(details.textContent).toContain("Option greeks");
     expect(details.textContent).toContain("unavailable");
   });
@@ -275,5 +277,25 @@ describe("PP2-UI-a held newer snapshot", () => {
     await act(async () => applyBtn!.click());
     const session = element.querySelector("[data-options-session]")?.getAttribute("data-options-session");
     expect(session).toBe(SESSION_C);
+  });
+
+  it("(m) a queued build the reader rejects still raises the banner, reads unavailable and keeps A", async () => {
+    const onPin = vi.fn();
+    const docA = doc();
+    const docBad = doc({ asof: ISO_B, cells: [
+      { strike: 192, expiry: SESSION, gex: 1_000_000, call_oi: 2, put_oi: 1 },
+      { strike: 192, expiry: SESSION, gex: 9_999_000, call_oi: 3, put_oi: 2 }] });
+    queueMatrix([docA, docBad]);
+    await act(async () => root.render(<Harness onPin={onPin} />));
+    await act(async () => { await Promise.resolve(); await Promise.resolve(); });
+    await selectFirstCell();
+    const before = element.querySelector<HTMLButtonElement>('[data-options-grid] button[aria-label^="194,"]')?.textContent ?? "";
+    expect(before).toContain("2M");
+    await refresh();
+    const banner = element.querySelector('[data-testid="options-newer-snapshot"]');
+    expect(banner).toBeTruthy();
+    expect(banner?.textContent).toContain("unavailable");
+    expect(element.querySelector('[data-testid="options-apply-newer"]')).toBeTruthy();
+    expect(element.querySelector<HTMLButtonElement>('[data-options-grid] button[aria-label^="194,"]')?.textContent ?? "").toBe(before);
   });
 });

@@ -1,7 +1,7 @@
 /* Options companion: the chart stays dominant. Canonical Terminal tokens own the material. */
 .newerSnapshot{display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:8px 10px;border-radius:4px;background:var(--panel-2);border:1px solid var(--line);color:var(--text-2);font-size:11px;line-height:1.5;flex:none;overflow-wrap:anywhere}
 .newerSnapshot .action{margin-left:auto}
-.receipts{flex:1 0 100%;font-size:10px;color:var(--text-2)}
+.receipts{flex:none;font-size:10px;color:var(--text-2)}
 .receipts[open]{flex:1 0 100%}
 .receipts>summary{display:flex;align-items:center;gap:6px;min-height:30px;cursor:pointer;list-style:none}
 .receipts>summary::-webkit-details-marker{display:none}
@@ -28,7 +28,7 @@
 .tabs button{min-height:34px;padding:5px 3px;border-radius:4px;font-size:11px;font-weight:600;color:var(--text-2)}
 .tabs button[aria-selected="true"]{background:var(--panel-3);color:var(--text);box-shadow:inset 0 1px 0 var(--line-3)}
 .view{display:flex;flex-direction:column;min-height:0;min-width:0;gap:10px;flex:1;overflow:auto;overscroll-behavior:contain;padding-bottom:4px}
-.receipt{display:flex;align-items:center;gap:7px;min-height:30px;flex:none;font-size:10px;color:var(--text-2);font-variant-numeric:tabular-nums}
+.receipt{display:flex;flex-wrap:wrap;align-items:center;gap:7px;min-height:30px;flex:none;font-size:10px;color:var(--text-2);font-variant-numeric:tabular-nums}
 .receipt strong{color:var(--warn);font-size:10px;letter-spacing:.04em;font-weight:600;white-space:nowrap}
 .receipt time{margin-left:auto;white-space:nowrap}
 .receipt button{width:30px;height:30px;border:1px solid var(--line);border-radius:5px;font-size:18px;line-height:1;flex:none}
@@ -142,7 +142,7 @@
 :global(html[data-theme="light"]) .root.page{background:transparent}
 @media(max-width:860px){.overview{flex:none;overflow:visible}.railSwitch{display:none}.root{padding:8px 12px}.sheet .root{height:100%}.summary strong{font-size:22px}.view{gap:6px}.summary{padding-bottom:4px}}
 @media(max-width:640px){.view{gap:4px}.scopeBar{padding:0}.summary{gap:2px 8px;padding:0 0 2px}.summary strong{font-size:18px;line-height:1.1}.legend{gap:1px 8px;line-height:1.2}.mapColumn{gap:4px}.root{padding-bottom:2px}}
-@media(pointer:coarse),(max-width:860px){.railSwitch button,.tabs button,.lens button,.action,.link,.deskLink,.method summary,.controls select,.scopeButton,.scopeBriefGrid>button,.close,.receipt button{min-height:44px}.receipt button{width:44px}.profile>button{min-height:44px}.tabs button{font-size:12px}.notice,.warning,.inspector p,.method p{font-size:11px}.controls label>span,.viewCaption{font-size:10px}}
+@media(pointer:coarse),(max-width:860px){.railSwitch button,.tabs button,.lens button,.action,.link,.deskLink,.method summary,.controls select,.scopeButton,.scopeBriefGrid>button,.close,.receipt button{min-height:44px}.receipt button{width:44px}.receipts>summary{min-height:44px}.profile>button{min-height:44px}.tabs button{font-size:12px}.notice,.warning,.inspector p,.method p{font-size:11px}.controls label>span,.viewCaption{font-size:10px}}
 @media(prefers-reduced-motion:no-preference){.tabs button,.lens button,.action,.close{transition:background-color 120ms ease,border-color 120ms ease}}
 
 .railSwitch[hidden]{display:none}
