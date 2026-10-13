@@ -10,6 +10,8 @@ import {
   EngineRefusalError,
   logicalOfX,
   xOfLogical,
+  type CanvasChartEngine,
+  type CanvasEngineOptions,
   type SeriesModel,
 } from "@/lib/chart-engine/canvas";
 import type { EngineSeriesKind, EngineSeriesRow } from "@/lib/chart-engine/api";
@@ -393,19 +395,35 @@ describe("canvas engine skeleton", () => {
   });
 
   it("EngineRefusalError leaves no DOM (R01-A04)", () => {
-    expect(CANVAS_CAPABILITIES.priceScaleModes).toEqual(["normal"]);
+    expect(CANVAS_CAPABILITIES.priceScaleModes).toEqual(["normal", "log", "percent", "indexed100"]);
+    expect(CANVAS_CAPABILITIES.kineticScroll).toBe(true);
     expect(() =>
-      createCanvasEngine(container, { width: 100, height: 50, rightPriceScale: { mode: "log" } }),
+      createCanvasEngine(container, { width: 100, height: 50, trackingMode: {} } as CanvasEngineOptions),
     ).toThrow(EngineRefusalError);
     try {
-      createCanvasEngine(container, { width: 100, height: 50, rightPriceScale: { mode: "log" } });
+      createCanvasEngine(container, { width: 100, height: 50, trackingMode: {} } as CanvasEngineOptions);
     } catch (err) {
       expect(err).toBeInstanceOf(EngineRefusalError);
       const e = err as EngineRefusalError;
-      expect(e.reason).toMatch(/log/);
-      expect(e.unsupported).toContain("priceScaleMode:log");
+      expect(e.reason).toMatch(/trackingMode/);
+      expect(e.unsupported).toContain("trackingMode");
     }
     expect(container.childNodes).toHaveLength(0);
+    // kineticScroll is a supported canvas capability; supplying it must not throw.
+    const container2 = document.createElement("div");
+    document.body.appendChild(container2);
+    let accepted: CanvasChartEngine | undefined;
+    try {
+      accepted = createCanvasEngine(container2, {
+        width: 100,
+        height: 50,
+        kineticScroll: { touch: true, mouse: true },
+      });
+    } catch (err) {
+      expect.fail(`kineticScroll sample should be accepted; got ${err}`);
+    }
+    accepted!.destroy();
+    container2.remove();
   });
 
   it("paneSize throws for a missing pane while alive", () => {

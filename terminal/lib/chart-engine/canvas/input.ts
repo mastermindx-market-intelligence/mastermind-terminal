@@ -92,8 +92,16 @@ export type InputControllerDeps = {
   onGesture?: (gesture: InputGesture) => void;
 };
 
+export type InputOptionsPatch = {
+  handleScroll?: Partial<InputControllerOptions["handleScroll"]>;
+  handleScale?: Partial<InputControllerOptions["handleScale"]>;
+  kineticScroll?: Partial<InputControllerOptions["kineticScroll"]>;
+};
+
 export type InputController = {
   handleEvent(event: InputEvent): void;
+  /** Additive: merge flags into the live controller (applyOptions pass-through). */
+  applyOptions(patch: InputOptionsPatch): void;
   dispose(): void;
 };
 
@@ -522,6 +530,12 @@ export function createInputController(deps: InputControllerDeps): InputControlle
         case "wheel": onWheel(event); return;
         case "dblclick": return;
       }
+    },
+    applyOptions(patch: InputOptionsPatch): void {
+      if (disposed) return;
+      if (patch.handleScroll) Object.assign(options.handleScroll, patch.handleScroll);
+      if (patch.handleScale) Object.assign(options.handleScale, patch.handleScale);
+      if (patch.kineticScroll) Object.assign(options.kineticScroll, patch.kineticScroll);
     },
     dispose(): void {
       if (disposed) return;
