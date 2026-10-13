@@ -69,7 +69,7 @@ const DPR = 2;
  * CollectedPayload = { value: { [key: string]: string }[] }` describes the
  * older key/value wire format and types our callback incorrectly. Use the
  * actual runtime shape so `eslint` and `tsc --strict` stay green without an
- * `any` or `eslint-disable`.
+ * bare `unknown` or other escape hatch.
  */
 interface TraceDataCollectedPayload {
   value?: unknown[];
