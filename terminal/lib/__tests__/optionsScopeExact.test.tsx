@@ -83,6 +83,21 @@ function Harness({ root: r = "SPY", lang = "en" as "en" | "zh", onPin, onPrefs }
       pinned={null} onPin={pin} replayActive={false} />
   </LangProvider>;
 }
+// PP2-UI-c repair 1: holds prefs outside the companion so the second Apply in
+// n2b can observe the propagated norm without remounting.
+function PrefsHarness({ initial, onPrefs, lang = "en" as "en" | "zh" }: {
+  initial: MatrixPreferences; onPrefs?: ReturnType<typeof vi.fn>; lang?: "en" | "zh";
+}) {
+  const [prefs, setPrefs] = React.useState<MatrixPreferences>(initial);
+  const handle = React.useCallback((next: MatrixPreferences) => {
+    onPrefs?.(next);
+    setPrefs(next);
+  }, [onPrefs]);
+  return <LangProvider>
+    <MatrixCompanion root="SPY" metric="gex" prefs={prefs} onPrefs={handle}
+      t={optionsT(lang)} pinned={null} onPin={() => {}} replayActive={false} />
+  </LangProvider>;
+}
 async function renderOnce(payload: unknown, lang: "en" | "zh" = "en", opts: { root?: string; onPin?: ReturnType<typeof vi.fn>; onPrefs?: ReturnType<typeof vi.fn> } = {}) {
   fetchSnapshot.mockResolvedValue(asData(payload));
   await act(async () => root.render(<Harness root={opts.root} lang={lang} onPin={opts.onPin} onPrefs={opts.onPrefs} />));
@@ -127,6 +142,23 @@ async function cancelScope() {
 }
 function issues() { return element.querySelector('[data-testid="options-scope-issues"]')?.textContent ?? ""; }
 function applyButton() { return element.querySelector<HTMLButtonElement>('[data-testid="options-scope-apply"]')!; }
+async function changeNorm(value: "global" | "column") {
+  const select = element.querySelector<HTMLSelectElement>('[data-testid="options-scope-norm"]');
+  expect(select).not.toBeNull();
+  const setter = Object.getOwnPropertyDescriptor(window.HTMLSelectElement.prototype, "value")!.set!;
+  await act(async () => {
+    setter.call(select, value);
+    select!.dispatchEvent(new Event("change", { bubbles: true }));
+  });
+}
+async function changeWindow(value: string) {
+  const select = element.querySelector<HTMLSelectElement>('[data-testid="options-scope-window"]')!;
+  const setter = Object.getOwnPropertyDescriptor(window.HTMLSelectElement.prototype, "value")!.set!;
+  await act(async () => {
+    setter.call(select, value);
+    select.dispatchEvent(new Event("change", { bubbles: true }));
+  });
+}
 function fromInput() { return element.querySelector<HTMLInputElement>('[data-testid="options-scope-from"]')!; }
 function toInput() { return element.querySelector<HTMLInputElement>('[data-testid="options-scope-to"]')!; }
 function minInput() { return element.querySelector<HTMLInputElement>('[data-testid="options-scope-dte-min"]')!; }
@@ -469,5 +501,100 @@ describe("PP2-UI-c (u10) a one-strike range renders one row", () => {
     const rowCount = element.querySelectorAll('[data-options-grid] tbody tr').length;
     expect(rowCount).toBe(1);
     expect(element.querySelector('[data-options-grid] tbody th')?.textContent ?? "").toContain("102");
+  });
+});
+
+// PP2-UI-c repair 1 (R1 norm in exact scope, R2 empty issue region).
+describe("PP2-UI-c repair 1 (n1) one norm select in exact mode", () => {
+  it("opens the editor, picks exact mode, and shows exactly one options-scope-norm", async () => {
+    await renderOnce(declaredFixture());
+    await openScope(); await pickMode("exact");
+    const norms = element.querySelectorAll('[data-testid="options-scope-norm"]');
+    expect(norms.length).toBe(1);
+    expect((norms[0] as HTMLSelectElement).tagName).toBe("SELECT");
+  });
+});
+
+describe("PP2-UI-c repair 1 (n2a) preset→exact apply commits only the norm change", () => {
+  it("onPrefs is called once with the then-current prefs and only norm replaced", async () => {
+    const onPrefs = vi.fn();
+    await renderOnce(declaredFixture(), "en", { onPrefs });
+    await openScope();
+    await changeWindow("6");
+    await pickMode("exact");
+    await typeFromTo("100", "104");
+    await typeDte("0", "7");
+    await changeNorm("column");
+    expect(applyButton().disabled).toBe(false);
+    await applyScope();
+    expect(onPrefs).toHaveBeenCalledTimes(1);
+    expect(onPrefs).toHaveBeenLastCalledWith({ expiries: "3", window: 25, norm: "column" });
+    expect(element.querySelector('[data-options-scope-mode]')?.getAttribute("data-options-scope-mode")).toBe("exact");
+  });
+});
+
+describe("PP2-UI-c repair 1 (n2b) exact-apply with a norm-only change commits a single norm-replaced prefs call", () => {
+  it("after the first apply, reopening and changing only the norm enables Apply and calls onPrefs once with only norm replaced", async () => {
+    const onPrefs = vi.fn();
+    // Use PrefsHarness so the post-apply prefs flow back into the next render.
+    fetchSnapshot.mockResolvedValue(asData(declaredFixture()));
+    await act(async () => root.render(<PrefsHarness initial={{ expiries: "3", window: 25, norm: "global" }} onPrefs={onPrefs} />));
+    await act(async () => { await Promise.resolve(); await Promise.resolve(); });
+    // First apply: switch to exact, type valid fields, change norm to "column", Apply.
+    await openScope(); await pickMode("exact");
+    await typeFromTo("100", "104"); await typeDte("0", "7");
+    await changeNorm("column");
+    await applyScope();
+    expect(onPrefs).toHaveBeenCalledTimes(1);
+    expect(onPrefs).toHaveBeenLastCalledWith({ expiries: "3", window: 25, norm: "column" });
+    expect(element.querySelector('[data-options-scope-mode]')?.getAttribute("data-options-scope-mode")).toBe("exact");
+    // Second apply: reopen, change ONLY the norm to "global", Apply.
+    onPrefs.mockClear();
+    await openScope();
+    expect(element.querySelector('[data-testid="options-scope-norm"]')).not.toBeNull();
+    await changeNorm("global");
+    expect(applyButton().disabled).toBe(false);
+    await applyScope();
+    expect(onPrefs).toHaveBeenCalledTimes(1);
+    expect(onPrefs).toHaveBeenLastCalledWith({ expiries: "3", window: 25, norm: "global" });
+    expect(element.querySelector('[data-options-scope-mode]')?.getAttribute("data-options-scope-mode")).toBe("exact");
+  });
+});
+
+describe("PP2-UI-c repair 1 (n3) norm change is discarded by Cancel and Escape", () => {
+  for (const action of ["cancel", "escape"] as const) {
+    it(`${action} restores the norm select to the applied value and never calls onPrefs`, async () => {
+      const onPrefs = vi.fn();
+      await renderOnce(declaredFixture(), "en", { onPrefs });
+      await openScope(); await pickMode("exact");
+      await changeNorm("column");
+      if (action === "escape") {
+        const norm = element.querySelector<HTMLSelectElement>('[data-testid="options-scope-norm"]')!;
+        await act(async () => { norm.focus(); norm.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true, cancelable: true })); });
+      } else {
+        await cancelScope();
+      }
+      expect(element.querySelector('[data-testid="options-scope-editor"]')).toBeNull();
+      expect(onPrefs).not.toHaveBeenCalled();
+      // Reopen: the norm select shows the applied prefs.norm.
+      await openScope();
+      const select = element.querySelector<HTMLSelectElement>('[data-testid="options-scope-norm"]')!;
+      expect(select.value).toBe("global");
+    });
+  }
+});
+
+describe("PP2-UI-c repair 1 (n4) no empty issue region renders while data is still loading", () => {
+  it("with no data, opening the editor in exact mode renders neither an issues element nor an empty status region", async () => {
+    // The MatrixCompanion derives `data` from the snapshot; an absent read leaves
+    // the editor openable but with no parseDraft. Today that path renders an
+    // empty `options-scope-issues` <p> — the bug this case guards against.
+    fetchSnapshot.mockResolvedValue({ status: "absent" });
+    await act(async () => root.render(<Harness />));
+    await act(async () => { await Promise.resolve(); await Promise.resolve(); });
+    await openScope(); await pickMode("exact");
+    expect(element.querySelector('[data-testid="options-scope-issues"]')).toBeNull();
+    const statusInEditor = element.querySelector('[data-testid="options-scope-editor"] [role="status"]');
+    expect(statusInEditor).toBeNull();
   });
 });
