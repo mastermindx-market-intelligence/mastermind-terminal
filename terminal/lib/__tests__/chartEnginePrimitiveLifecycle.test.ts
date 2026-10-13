@@ -2,7 +2,6 @@ import { describe, expect, it, vi } from "vitest";
 import {
   createPrimitiveLifecycle,
   projectionReady,
-  toLwcPrimitive,
   type EnginePrimitive,
   type EngineProjection,
   type PrimitiveAttachContext,
@@ -546,11 +545,11 @@ describe("dispose()", () => {
   });
 });
 
-// ── LWC bridge stub ───────────────────────────────────────────────────────────
-
-describe("toLwcPrimitive stub", () => {
-  it("throws: the lwc/ adapter implements the real bridge (contract stays LWC-free)", () => {
-    const spy = spyPrimitive("bridge");
-    expect(() => toLwcPrimitive(spy.primitive, () => null)).toThrow(/stub/);
-  });
-});
+// ── LWC bridge ────────────────────────────────────────────────────────────────
+//
+// toLwcPrimitive is no longer a stub and no longer lives in primitive.ts: the
+// ISeriesPrimitive wrapper is implemented in lib/chart-engine/lwc/index.ts (the only
+// module allowed to name lightweight-charts types), and its lifecycle — attached
+// once, once-per-generation update, paint through paneViews/renderer, hitTest
+// mapping, and exactly-once detach on detachPrimitive/remove()/destroy() — is
+// covered by lib/__tests__/chartEngineLwcPrimitive.test.ts.
