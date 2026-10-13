@@ -802,10 +802,23 @@ class ModelSeriesHandle implements SeriesHandle {
     const s = this.live();
     if (!s || s.rows.length === 0 || !Number.isFinite(logicalIndex)) return null;
     const n = s.rows.length;
+    // LWC PlotList (dev:3014-3037): NearestLeft = largest index < logical (floor
+    // for a dense integer grid); NearestRight = smallest index > logical (ceil).
+    // An integer that exists is an exact hit and returns itself.
+    if (mismatchDirection === "nearest-left") {
+      const i = Math.floor(logicalIndex);
+      if (i >= n) return s.rows[n - 1];
+      if (i >= 0 && i < n) return s.rows[i];
+      return null;
+    }
+    if (mismatchDirection === "nearest-right") {
+      const i = Math.ceil(logicalIndex);
+      if (i < 0) return s.rows[0];
+      if (i >= 0 && i < n) return s.rows[i];
+      return null;
+    }
     const i = Math.round(logicalIndex);
     if (i >= 0 && i < n) return s.rows[i];
-    if (mismatchDirection === "nearest-left" && i >= n) return s.rows[n - 1];
-    if (mismatchDirection === "nearest-right" && i < 0) return s.rows[0];
     return null;
   }
   createPriceLine(opts: PriceLineSpec): PriceLineHandle { return this.m.createPriceLine(this.id, opts); }
