@@ -13,6 +13,7 @@ import {
   type ChartModel,
 } from "@/lib/chart-engine/canvas";
 import { engineProjectionFor } from "@/lib/chart-engine/canvas/frame";
+import { priceToDisplay, type PriceScaleState } from "@/lib/chart-engine/canvas/scales";
 import type { HostPrimitive } from "@/lib/chart-engine/canvas/primitives";
 import type { EnginePrimitive } from "@/lib/chart-engine/primitive";
 import type { EngineSeriesKind, EngineSeriesRow } from "@/lib/chart-engine/api";
@@ -333,26 +334,72 @@ describe("F2 (P2) HostPrimitive is assignable from a contract-shaped EnginePrimi
 // Mutant: widen CANVAS_CAPABILITIES.priceScaleModes to ["normal", "log", "percent",
 // "indexed100"] with nothing painted differently, then verify the assertion fires.
 describe("F3 (P2) every advertised price-scale mode produces a distinct priceToCoordinate", () => {
-  it("normal / log / percent / indexed100 place 110 at distinct y values on a line series", () => {
-    const ys: { mode: string; y: number | null }[] = [];
-    for (const mode of ["normal", "log", "percent", "indexed100"] as const) {
+  // F3 / B-0 — non-vacuous log: log must shift the pixel y for an in-range price
+  // away from the normal-mode y by more than half a CSS pixel. The previous
+  // `unique.size === 4` assertion accepted identical pixel y under percent and
+  // indexed100 (affine maps of price), so it could not catch a regression that
+  // silently demoted log to normal.
+  it("log places 110 at a different y than normal (non-vacuous)", () => {
+    const { engine: eN, scheduler: sN } = mount();
+    const sN2 = eN.addSeries("line", { color: "l" });
+    sN2.setData([{ time: 1, value: 100 }, { time: 2, value: 110 }, { time: 3, value: 120 }]);
+    sN2.priceScale().applyOptions({ mode: "normal" });
+    sN.flush();
+    const yNormal = sN2.priceToCoordinate(110);
+    eN.destroy();
+
+    const { engine: eL, scheduler: sL } = mount();
+    const sL2 = eL.addSeries("line", { color: "l" });
+    sL2.setData([{ time: 1, value: 100 }, { time: 2, value: 110 }, { time: 3, value: 120 }]);
+    sL2.priceScale().applyOptions({ mode: "log" });
+    sL.flush();
+    const yLog = sL2.priceToCoordinate(110);
+    eL.destroy();
+
+    expect(yNormal, "normal must answer priceToCoordinate(110)").not.toBeNull();
+    expect(yLog, "log must answer priceToCoordinate(110)").not.toBeNull();
+    expect(Math.abs(yLog! - yNormal!), `|yLog - yNormal|=${Math.abs(yLog! - yNormal!)}`).toBeGreaterThan(0.5);
+  });
+
+  // F3 / B-0 — percent and indexed100 change the DISPLAY DOMAIN. With
+  // data {50, 100, 150} and baseValue = 50 (the first valued close), the display
+  // value of 120 differs across modes:
+  //   normal    → 120 (price)
+  //   percent   → 100 * (140 - 50) / 50 = 140 (a percent)
+  //   indexed100→ 100 * (140 - 50) / 50 + 100 = 240 (indexed units)
+  // percent/indexed100 are AFFINE maps of price, so on a constant base the
+  // pixel y at any given price equals normal's (LWC agrees); assert that
+  // equality within 1e-6 to pin the contract.
+  it("percent and indexed100 change the display domain while autoscaled y matches normal", () => {
+    const rows: EngineSeriesRow[] = [{ time: 1, value: 50 }, { time: 2, value: 100 }, { time: 3, value: 150 }];
+    const targetPrice = 120;
+    const displayByMode: Record<string, number> = {};
+    const yByMode: Record<string, number> = {};
+    for (const mode of ["normal", "percent", "indexed100"] as const) {
       const { engine, scheduler } = mount();
       const s = engine.addSeries("line", { color: "l" });
-      s.setData([{ time: 1, value: 100 }, { time: 2, value: 110 }, { time: 3, value: 120 }]);
+      s.setData(rows);
       s.priceScale().applyOptions({ mode });
       scheduler.flush();
-      ys.push({ mode, y: s.priceToCoordinate(110) });
+      const state = s.priceScale().unwrap<PriceScaleState>();
+      displayByMode[mode] = priceToDisplay(targetPrice, state);
+      const y = s.priceToCoordinate(targetPrice);
+      expect(y, `${mode} must answer priceToCoordinate(${targetPrice})`).not.toBeNull();
+      yByMode[mode] = y!;
       engine.destroy();
     }
-    // First sanity: every mode must answer a numeric y (not null) when given a
-    // value in the visible range.
-    for (const e of ys) {
-      expect(e.y, `${e.mode} must answer priceToCoordinate(110)`).not.toBeNull();
-    }
-    // Then: every (mode -> y) pair must differ — distinct mapping proves the mode
-    // actually changed the scale (which is what CAPABILITIES.priceScaleModes implies).
-    const unique = new Set(ys.map((e) => e.y));
-    expect(unique.size, `all four modes must produce distinct y values: ${JSON.stringify(ys)}`).toBe(4);
+    // Display domain must differ across modes.
+    expect(displayByMode.normal, "normal priceToDisplay(120) = price").toBe(120);
+    expect(displayByMode.percent, "percent priceToDisplay(120, base=50)").toBe(140);
+    expect(displayByMode.indexed100, "indexed100 priceToDisplay(120, base=50)").toBe(240);
+    // Distinct pairwise.
+    const uniq = new Set([displayByMode.normal, displayByMode.percent, displayByMode.indexed100]);
+    expect(uniq.size, `display domains must be pairwise distinct: ${JSON.stringify(displayByMode)}`).toBe(3);
+    // Percent / indexed100 are affine maps of price over a constant base, so
+    // the autoscale collapses them to the SAME pixel y as normal at any
+    // same-priced bar (LWC agrees). Pin that equality within 1e-6.
+    expect(yByMode.percent, "percent pixel y at 120 vs normal").toBeCloseTo(yByMode.normal, 6);
+    expect(yByMode.indexed100, "indexed100 pixel y at 120 vs normal").toBeCloseTo(yByMode.normal, 6);
   });
 });
 // ───           silently swallowed by a bare `catch {}` (F11, paint2-rev). ────────
