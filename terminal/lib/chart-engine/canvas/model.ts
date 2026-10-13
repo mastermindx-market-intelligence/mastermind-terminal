@@ -519,11 +519,19 @@ function maintainExtentsOnInPlace(
   oldRow: EngineSeriesRow,
   newRow: EngineSeriesRow,
   prevVersion: number,
+  index: number,
 ): void {
   const c = s.extentsCache;
   if (!c) return;
   if (c.rowVersion !== prevVersion) { s.extentsCache = null; return; }
   if (c.from !== window.from || c.to !== window.to) { s.extentsCache = null; return; }
+  if (index < window.from || index > window.to) {
+    // The mutated row is OUTSIDE the cached slice (the user is browsing history
+    // while the live bar ticks): the slice is unchanged, only its version stamp
+    // moves, so the O(1) live commit stays O(1) and no rescan is forced.
+    s.extentsCache = { from: c.from, to: c.to, rowVersion: rowVersionOf(s), min: c.min, max: c.max };
+    return;
+  }
   const oldNums = rowExtentNumbers(s, oldRow);
   for (const v of oldNums) {
     if (v === c.min || v === c.max) { s.extentsCache = null; return; }
@@ -1235,7 +1243,7 @@ export class ChartModel {
         const prevVersion = rowVersionOf(s);
         bumpRowVersion(s);
         maintainValuedIdx(s, s.rows.length - 1, wasValued, seriesClose(row) != null);
-        maintainExtentsOnInPlace(s, windowBefore, last, row, prevVersion);
+        maintainExtentsOnInPlace(s, windowBefore, last, row, prevVersion, s.rows.length - 1);
       } else {
         const nBefore = s.rows.length;
         const follow = this.primarySeries()?.id === id

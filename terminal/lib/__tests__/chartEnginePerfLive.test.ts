@@ -181,4 +181,23 @@ describe("PERF-B T4 incremental extents equal a full visible rescan after every 
       expect(m.visiblePriceExtents(s)).toEqual(oracleExtents(m, s));
     }
   });
+
+  it("a same-bar tick on an OFF-SCREEN last row leaves the visible extents untouched", () => {
+    // The live branch of updateSeriesRow always mutates row n-1; maintainExtentsOnInPlace
+    // must not fold it into a cache built for a window that excludes it.
+    const m = new ChartModel({ onInvalidate: () => undefined, onStructure: () => undefined });
+    m.applyOptions({ width: 900, height: 400 });
+    const h = m.addSeries("candles");
+    // Distinct extremes per row so no off-window row can equal the visible min/max.
+    h.setData(Array.from({ length: 1000 }, (_, i) => ({
+      time: 1_700_000_000 + i * 3600, open: 100 + i * 1e-4,
+      high: 101 + i * 1e-4, low: 99 + i * 1e-4, close: 100.5 + i * 1e-4,
+    })));
+    const s = m.primarySeries()!;
+    m.setVisibleLogicalRange({ from: 100, to: 300 });
+    expect(m.visiblePriceExtents(s)).toEqual(oracleExtents(m, s));
+    m.updateSeriesRow(s.id, { time: 1_700_000_000 + 999 * 3600, open: 100, high: 900, low: 1, close: 500 });
+    expect(m.visiblePriceExtents(s)).toEqual(oracleExtents(m, s));
+    expect(m.autoscaleScale(0, "right").to).toBeLessThan(200);
+  });
 });

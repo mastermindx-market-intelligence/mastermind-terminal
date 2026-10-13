@@ -203,6 +203,9 @@ function clampPriceSpan(range: AxisRange, anchor: number): AxisRange {
 function clampBarSpacing(spacing: number, widthPx: number): number {
   // PERF-A F6: one clamp source — modelTime's LWC helpers (option 0 means
   // width * 0.5, exactly the MAX_BAR_SPACING_WIDTH_FRACTION law above).
+  // maxBarSpacingPx falls back to 50 when widthPx is 0, so keep the former
+  // local bound for the degenerate zero-width case.
+  if (!(widthPx > 0)) return clampBarSpacingValue(spacing, MIN_BAR_SPACING, MIN_BAR_SPACING);
   return clampBarSpacingValue(
     spacing,
     MIN_BAR_SPACING,

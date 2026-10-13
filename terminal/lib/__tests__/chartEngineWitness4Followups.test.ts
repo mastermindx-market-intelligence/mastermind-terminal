@@ -106,6 +106,58 @@ describe("W4-F1 — scaleLeft: PAINT must use the displayed scale too, not only 
     right.remove();
     left.remove();
   });
+
+  it("the GRID horizontal lines are the displayed (left) scale's too", () => {
+    // M10 showed that reverting only the paintGrid site (frame.ts:290) to "right"
+    // keeps every existing test green, so the grid half of W4-F1 needs its own pin.
+    // paintGrid early-returns when model.options.grid is missing, so this test
+    // builds the engines directly (the file's mountInto does not enable the grid).
+    const mountWithGrid = (root: HTMLElement, scaleLeft: boolean) => {
+      const scheduler = createManualScheduler();
+      const engine = createCanvasEngine(root, {
+        width: 200, height: 100, devicePixelRatio: 1, scheduler, now: () => nowMs,
+        // paintGrid runs only when model.options.grid is set AND bagVisible
+        // returns true for the vert/horz sub-bags (frame.ts:286-312).
+        grid: { vertLines: { visible: true }, horzLines: { visible: true } },
+      } as never);
+      if (scaleLeft) {
+        engine.applyOptions({
+          leftPriceScale: { visible: true },
+          rightPriceScale: { visible: false },
+        } as never);
+      }
+      const s = engine.addSeries("candles", { upColor: "U", downColor: "D" });
+      if (scaleLeft) s.applyOptions({ priceScaleId: "left" } as never);
+      s.setData(ROWS as never);
+      engine.timeScale().setVisibleLogicalRange({ from: 0, to: 20 });
+      scheduler.flush();
+      return engine;
+    };
+    const right = mountWithGrid(container, false);
+    const left = mountWithGrid(container, true);
+    const gridYs = (engine: ReturnType<typeof mountWithGrid>): number[] => {
+      const out: number[] = [];
+      engine.chartElement().querySelectorAll("canvas").forEach((cv) => {
+        const c = ctxByCanvas.get(cv);
+        if (!c) return;
+        for (const call of c.__calls) {
+          // paintGrid horzLines: moveTo(0, y) then lineTo(w, y). Drop the
+          // time-axis border at y = h - 0.5 (frame.ts:391) which is also
+          // moveTo(0, y); only the grid lines should remain.
+          if (call.method === "moveTo" && Number(call.args[0]) === 0) out.push(Number(call.args[1]));
+        }
+      });
+      return out.filter((y) => Math.abs(y - 99.5) > 0.01);
+    };
+    const leftYs = gridYs(left);
+    const rightYs = gridYs(right);
+    // Same data, left-displayed vs right-displayed: identical geometry, and the
+    // left chart's grid must not be drawn from a degenerate right scale.
+    expect(leftYs).toEqual(rightYs);
+    expect(leftYs.length).toBeGreaterThan(0);
+    right.destroy();
+    left.destroy();
+  });
 });
 
 describe("W4-F2 — the click latch must not arm on an unpressed (hover) move", () => {
@@ -168,6 +220,40 @@ describe("W4-F3 — a pressed move >= 5px must suppress the next dblclick (LWC p
     expect(ctrlDbls.length).toBe(1);
     engine.destroy();
     control.engine.destroy();
+  });
+
+  it("after a pressed drag, a realistic double-click still delivers exactly one dblclick", () => {
+    // W4-F3 already pins the cancel-after-pressed-move case and the no-down
+    // control. This pins the realistic DOM sequence the user actually performs:
+    //   (a) press, drag past the 5-px latch, release, click, dblclick → 0 dblclicks
+    //   (b) at a fixed point with no travel: down, up, click, down, up, click,
+    //       dblclick → exactly 1 dblclick and 2 clicks
+    const { engine } = setupEngines();
+    const overlay = engine.chartElement().querySelector("[data-mm-overlay]") as HTMLElement;
+    const dbls: number[] = [];
+    const clicks: number[] = [];
+    engine.subscribeDblClick(() => { dbls.push(1); });
+    engine.subscribeClick(() => { clicks.push(1); });
+    // (a) pressed drag past the 5-px latch, then click + dblclick must NOT fire.
+    overlay.dispatchEvent(ev("pointerdown", 10, 10, 1));
+    overlay.dispatchEvent(ev("pointermove", 90, 40, 1));
+    overlay.dispatchEvent(ev("pointerup", 90, 40, 0));
+    overlay.dispatchEvent(ev("click", 90, 40, 0));
+    overlay.dispatchEvent(new MouseEvent("dblclick", { clientX: 90, clientY: 40, bubbles: true }));
+    expect(dbls.length).toBe(0);
+    // (b) at a fixed point with no travel: a normal down/up/click, then another
+    // down/up/click, then a dblclick — exactly 1 dblclick and 2 clicks.
+    const P = { x: 50, y: 30 };
+    overlay.dispatchEvent(ev("pointerdown", P.x, P.y, 1));
+    overlay.dispatchEvent(ev("pointerup", P.x, P.y, 0));
+    overlay.dispatchEvent(ev("click", P.x, P.y, 0));
+    overlay.dispatchEvent(ev("pointerdown", P.x, P.y, 1));
+    overlay.dispatchEvent(ev("pointerup", P.x, P.y, 0));
+    overlay.dispatchEvent(ev("click", P.x, P.y, 0));
+    overlay.dispatchEvent(new MouseEvent("dblclick", { clientX: P.x, clientY: P.y, bubbles: true }));
+    expect(dbls.length).toBe(1);
+    expect(clicks.length).toBe(2);
+    engine.destroy();
   });
 });
 
