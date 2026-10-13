@@ -1,0 +1,159 @@
+{
+  "design": "R3 Refraction",
+  "paper": {
+    "fileId": "01M2WGNCX9475G79JRKJTCM08P",
+    "pageId": "p-1G-0",
+    "desktop": "6271-0",
+    "mobile": "627F-0",
+    "detail": "627M-0"
+  },
+  "productionVerified": false,
+  "mode": "Pro requested by user; runtime mode not independently attested",
+  "unchangedContentComparison": "Same native /terminal component, with optical pseudo-elements enabled versus disabled; all pixels below top 40px compared as exact PNG bytes.",
+  "viewports": [
+    {
+      "name": "desktop",
+      "width": 1440,
+      "height": 900,
+      "lang": "en",
+      "bounds": {
+        "x": 150,
+        "y": 64,
+        "width": 1140,
+        "height": 772
+      },
+      "nonEdgePixelsByteIdentical": true,
+      "nav": [
+        "Account",
+        "Team",
+        "Accuracy",
+        "Billing",
+        "Usage",
+        "Preferences",
+        "Alert delivery",
+        "Terminal",
+        "Sync",
+        "Webhooks",
+        "Developer access",
+        "Sharing",
+        "Portfolio targets"
+      ]
+    },
+    {
+      "name": "tablet",
+      "width": 820,
+      "height": 1180,
+      "lang": "en",
+      "bounds": {
+        "x": 24.59375,
+        "y": 204,
+        "width": 770.796875,
+        "height": 772
+      },
+      "nonEdgePixelsByteIdentical": true,
+      "nav": [
+        "Account",
+        "Team",
+        "Accuracy",
+        "Billing",
+        "Usage",
+        "Preferences",
+        "Alert delivery",
+        "Terminal",
+        "Sync",
+        "Webhooks",
+        "Developer access",
+        "Sharing",
+        "Portfolio targets"
+      ]
+    },
+    {
+      "name": "mobile",
+      "width": 390,
+      "height": 844,
+      "lang": "en",
+      "bounds": {
+        "x": 0,
+        "y": 0,
+        "width": 390,
+        "height": 844
+      },
+      "nonEdgePixelsByteIdentical": true,
+      "nav": [
+        "Account",
+        "Team",
+        "Accuracy",
+        "Billing",
+        "Usage",
+        "Preferences",
+        "Alert delivery",
+        "Terminal",
+        "Sync",
+        "Webhooks",
+        "Developer access",
+        "Sharing",
+        "Portfolio targets"
+      ]
+    },
+    {
+      "name": "mobile-zh",
+      "width": 390,
+      "height": 844,
+      "lang": "zh",
+      "bounds": {
+        "x": 0,
+        "y": 0,
+        "width": 390,
+        "height": 844
+      },
+      "nonEdgePixelsByteIdentical": true,
+      "nav": [
+        "\u8d26\u6237",
+        "\u56e2\u961f",
+        "\u51c6\u786e\u5ea6",
+        "\u8d26\u5355",
+        "\u7528\u91cf",
+        "\u504f\u597d",
+        "\u63d0\u9192\u9001\u8fbe",
+        "\u7ec8\u7aef",
+        "\u540c\u6b65",
+        "Webhook \u56de\u8c03",
+        "\u5f00\u53d1\u8005\u8bbf\u95ee",
+        "\u5171\u4eab",
+        "\u7ec4\u5408\u76ee\u6807\u6743\u91cd"
+      ]
+    }
+  ],
+  "assets": [
+    {
+      "file": "desktop-original-settings.png",
+      "sha256": "5b47fab7b374e018afff07b67d72c4818a8fd3f6f4dc5059ff071d303f722f0e",
+      "bytes": 214210
+    },
+    {
+      "file": "tablet-original-settings.png",
+      "sha256": "ae1a39dc355f5754a3c755d01357c2a644a73415eabd55c64a918442001bfb58",
+      "bytes": 168789
+    },
+    {
+      "file": "mobile-original-settings.png",
+      "sha256": "f2deb63a2aa515e615bddd19779525f540e2c54cd211a41ce61819cd7aef932d",
+      "bytes": 62088
+    },
+    {
+      "file": "mobile-zh-refraction.png",
+      "sha256": "0a205954cc32a37193f4f9658d6ac234ab3c9e69850bf70161333f321c220e70",
+      "bytes": 63012
+    },
+    {
+      "file": "header-refraction.png",
+      "sha256": "c2efff9414deefaf72b20e3803ba1a0a2abc3ad3164ca3ee798f2a7a8fc3994b",
+      "bytes": 37239
+    },
+    {
+      "file": "refraction-motion.mp4",
+      "sha256": "084141d5da27086175d4aae1e7ffb97289ee3d7d3ea6a9e37a216a0490ba5335",
+      "bytes": 214682
+    }
+  ]
+}
