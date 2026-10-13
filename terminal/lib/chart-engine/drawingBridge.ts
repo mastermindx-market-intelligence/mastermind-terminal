@@ -23,6 +23,7 @@ import type {
 } from "./api";
 import { FUTURE_ANCHOR_BARS, futureSlotOf } from "./futureTime";
 import type { FutureCadence } from "./futureTime";
+import type { EngineProjection } from "./primitive";
 
 /** A drawing anchor: data-space position scoped to one pane's price scale. */
 export type DrawingAnchor = {
@@ -44,20 +45,10 @@ export type PixelPoint = { x: number; y: number };
 export type ClampedPixelPoint = PixelPoint & { clamped: boolean };
 
 /**
- * Local mirror of the programme's shared Projection vocabulary (see the lane
- * brief): everything an overlay needs to map one pane between data and pixels.
+ * Pane overlay projection: EngineProjection without time<->x lookups.
  * `generation` advances on every visible-logical-range change.
  */
-export type DrawingProjection = {
-  generation: number;
-  dpr: number;
-  widthPx: number;
-  heightPx: number;
-  xOfLogical(i: number): number;
-  logicalOfX(x: number): number;
-  yOfPrice(p: number): number;
-  priceOfY(y: number): number;
-};
+export type DrawingProjection = Omit<EngineProjection, "timeToX" | "xToTime">;
 
 export type DrawingBridgeOptions = {
   // The series whose price scale defines a pane's y projection (one per pane).
