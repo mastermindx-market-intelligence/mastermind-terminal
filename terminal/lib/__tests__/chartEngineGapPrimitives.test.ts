@@ -1,24 +1,15 @@
 // @vitest-environment jsdom
-// GAP-PRIMITIVES — falsifier tests for R04-A01..A04, C03-A04, C02-A04.
+// GAP-PRIMITIVES / GAP-PRIMFIX - falsifier tests for R04-A01..A04, C03-A04, C02-A04.
 //
 // Each describe block is the test a single acceptance-matrix row has to pass at HEAD.
-// Mutant receipts (RED → restore → GREEN) are produced by the routine at the bottom:
-// apply the mutant, run the file, capture the failing line, restore, capture the
-// re-ran passing line. The rows intentionally exercise the LWC-free public surface —
-// neither api.ts nor canvas/* ever imports "lightweight-charts" (masterplan law 1).
+// Mutant receipts (RED -> restore -> GREEN) are taken BY HAND against the
+// IMPLEMENTATION and quoted in RESULT.md; this file never shells out to a runner
+// and no `it` in it asserts a constant. The rows exercise the LWC-free public
+// surface only: neither api.ts nor canvas/* imports "lightweight-charts" (law 1).
 //
-// This suite covers:
-//   R04-A01  Paint and hits clip consistently to the intended pane.
-//   R04-A02  Stale projection is discarded/requeued without committing old geometry.
-//   R04-A03  Existing honest unavailable rendering is preserved; no recomputation.
-//   R04-A04  Explicit unsupported boundary until bridge exists for raw LWC primitives.
-//   C03-A04  All paint and hit coordinates use the same projection generation.
-//   C02-A04  Normalization returns the frozen explicit refusal with unchanged last valid frame.
+// One describe per acceptance-matrix row: R04-A01..A04, C03-A04, C02-A04.
 
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { execSync } from "node:child_process";
-import { existsSync } from "node:fs";
-import path from "node:path";
 
 import { createPrimitiveHost, type HostPrimitive } from "@/lib/chart-engine/canvas/primitives";
 import { assertEnginePrimitive, EngineRefusalError } from "@/lib/chart-engine/canvas/refusal";
@@ -35,7 +26,7 @@ import {
 } from "@/lib/chart-engine/primitive";
 import { normalizeEngineOptions } from "@/lib/chart-engine/options";
 import { deriveOptLevels } from "@/lib/optionsLevels";
-import { engineProjectionForPane } from "@/lib/chart-engine/canvas/frame";
+import { hitTestEngineInput } from "@/lib/chart-engine/canvas/inputBridge";
 import type { EngineSeriesRow } from "@/lib/chart-engine/api";
 
 type CtxCall = { method: string; args: unknown[] };
@@ -49,38 +40,15 @@ function makeFakeCtx(): FakeCtx {
   const props: Record<string, unknown> = {};
   const ctx: Record<string, unknown> = {
     __calls: calls,
-    setTransform: rec("setTransform"),
-    fillRect: rec("fillRect"),
-    clearRect: rec("clearRect"),
-    drawImage: rec("drawImage"),
-    beginPath: rec("beginPath"),
-    moveTo: rec("moveTo"),
-    lineTo: rec("lineTo"),
-    stroke: rec("stroke"),
-    fill: rec("fill"),
-    save: rec("save"),
-    restore: rec("restore"),
-    scale: rec("scale"),
-    translate: rec("translate"),
-    rect: rec("rect"),
-    arc: rec("arc"),
-    clip: rec("clip"),
-    closePath: rec("closePath"),
-    fillText: rec("fillText"),
-    strokeRect: rec("strokeRect"),
-    setLineDash: rec("setLineDash"),
     measureText: (text: string) => ({ width: String(text).length * 7 }),
     getTransform: () => ({ a: 1, b: 0, c: 0, d: 1, e: 0, f: 0 }),
   };
-  for (const p of [
-    "fillStyle",
-    "strokeStyle",
-    "lineWidth",
-    "font",
-    "textAlign",
-    "textBaseline",
-    "globalAlpha",
-  ]) {
+  for (const m of [
+    "setTransform", "fillRect", "clearRect", "drawImage", "beginPath", "moveTo", "lineTo",
+    "stroke", "fill", "save", "restore", "scale", "translate", "rect", "arc", "clip",
+    "closePath", "fillText", "strokeRect", "setLineDash",
+  ]) ctx[m] = rec(m);
+  for (const p of ["fillStyle", "strokeStyle", "lineWidth", "font", "textAlign", "textBaseline", "globalAlpha"]) {
     Object.defineProperty(ctx, p, {
       get: () => props[p],
       set: (v: unknown) => {
@@ -136,8 +104,7 @@ function paneCtx(engine: ReturnType<typeof createCanvasEngine>, index = 0): Fake
   return ctx;
 }
 
-function mount(opts: Record<string, unknown> = {}) {
-  const scheduler = createManualScheduler();
+function mount(opts: Record<string, unknown> = {}, scheduler: ManualScheduler = createManualScheduler()) {
   const engine = createCanvasEngine(container, {
     width: 200,
     height: 100,
@@ -146,6 +113,62 @@ function mount(opts: Record<string, unknown> = {}) {
     ...opts,
   });
   return { engine, scheduler };
+}
+
+// ── shared instruments ────────────────────────────────────────────────────────
+// createManualScheduler (canvas/index.ts:96) publishes no pending-count, so a test
+// cannot observe "the engine re-armed a frame" from it directly. This wrapper
+// delegates schedule/cancel/flush 1:1 to the real manual scheduler and only ADDS a
+// count of scheduled callbacks that have not started running. No production code.
+type ManualScheduler = ReturnType<typeof createManualScheduler>;
+type InstrumentedScheduler = ManualScheduler & { pendingFrames(): number };
+
+function instrumentedManualScheduler(): InstrumentedScheduler {
+  const inner = createManualScheduler();
+  const live = new Map<symbol, unknown>();
+  return {
+    schedule(cb: () => void) {
+      const token = Symbol("frame");
+      live.set(token, inner.schedule(() => { live.delete(token); cb(); }));
+      return token;
+    },
+    cancel(token: unknown) {
+      // A cancel arriving after the callback already fired is tolerated, exactly as
+      // cancelAnimationFrame tolerates it (invalidation.ts flush() contract).
+      const handle = live.get(token as symbol);
+      if (handle === undefined) return;
+      live.delete(token as symbol);
+      inner.cancel(handle);
+    },
+    flush() { inner.flush(); },
+    pendingFrames() { return live.size; },
+  };
+}
+
+// The engine's own published layout, read structurally so this file does not
+// depend on the ChartModel class shape (sibling lanes own model.ts).
+type EngineLayoutShape = {
+  time: { widthPx: number };
+  panes: Array<{ height: number }>;
+  priceAxisStripPx: number[];
+};
+
+function engineLayout(engine: ReturnType<typeof createCanvasEngine>): EngineLayoutShape {
+  return engine.unwrap<EngineLayoutShape>();
+}
+
+// paintPaneFrame wraps every primitive tier in withClip(ctx, w, h, …)
+// (frame.ts:410) which emits save/beginPath/rect/clip. `rect` immediately
+// followed by `clip` is therefore the clip rect ACTIVE at `beforeIndex`.
+function clipRectActiveAt(calls: CtxCall[], beforeIndex: number): { x: number; y: number; w: number; h: number } | null {
+  for (let i = Math.min(beforeIndex, calls.length) - 1; i >= 1; i--) {
+    if (calls[i].method !== "clip") continue;
+    const rect = calls[i - 1];
+    if (rect.method !== "rect" || rect.args.length !== 4) continue;
+    const [x, y, w, h] = rect.args as number[];
+    return { x, y, w, h };
+  }
+  return null;
 }
 
 // Generic fake projection factory — `nullProjection = true` builds a degenerate
@@ -168,9 +191,7 @@ function fakeProjection(overrides: Partial<EngineProjection> = {}): EngineProjec
 }
 
 // ─── R04-A01 — primitive crosses plot boundary ───────────────────────────────
-// Mutant M-R04A01-clip: change `withClip(ctx, w, h, …)` in
-// terminal/lib/chart-engine/canvas/frame.ts:514 to call paint directly,
-// so no clip is established before primitive.paint runs.
+// Mutant receipts (RED -> restore -> GREEN) for this row: RESULT.md MUTANTS.
 describe("R04-A01: Primitive crosses plot boundary -> Paint and hits clip consistently to the intended pane", () => {
   it("paintPaneFrame establishes a ctx clip equal to pane 0's plot rect; pane 1 hit returns nothing for a pane-0-only primitive", () => {
     const { engine, scheduler } = mount();
@@ -196,44 +217,12 @@ describe("R04-A01: Primitive crosses plot boundary -> Paint and hits clip consis
     // After construction paintPaneFrame has run at least once for pane 0 and
     // pane 1 in response to setData + flush.
     const pane0 = paneCtx(engine, 0);
-    // Capture the position of the primitive's own fillRect inside the log so we
-    // can verify the clip rect ACTIVE DURING paint() of the bottom-tier primitive
-    // is pane 0's plot rect.
-    const sawFillAt: number[] = [];
-    pane0.__calls.forEach((c, i) => {
-      if (
-        c.method === "fillRect" &&
-        Array.isArray(c.args) &&
-        c.args.length === 4 &&
-        c.args[2] === 200 &&
-        c.args[3] === 500
-      ) sawFillAt.push(i);
-    });
-    expect(sawFillAt.length).toBeGreaterThan(0);
-    const atFill = sawFillAt[0];
-    // Walk backwards to find the most recent beginPath/rect(0,0,200,50)/clip
-    // sequence — this is the withClip wrapper that bounds the bottom-tier paint.
-    let sawPane0Clip = false;
-    for (let i = atFill - 1; i >= 0; i--) {
-      const c = pane0.__calls[i];
-      if (c.method === "clip") {
-        if (sawPane0Clip) break;
-        sawPane0Clip = true;
-      }
-      if (
-        c.method === "rect" &&
-        Array.isArray(c.args) &&
-        c.args.length === 4 &&
-        c.args[0] === 0 &&
-        c.args[1] === 0 &&
-        c.args[2] === 200 &&
-        c.args[3] === 50
-      ) {
-        expect(sawPane0Clip).toBe(true);
-        break;
-      }
-    }
-    expect(sawPane0Clip).toBe(true);
+    // The clip rect ACTIVE during the bottom-tier paint is pane 0's plot rect.
+    const atFill = pane0.__calls.findIndex(
+      (c) => c.method === "fillRect" && c.args.length === 4 && c.args[2] === 200 && c.args[3] === 500,
+    );
+    expect(atFill).toBeGreaterThan(0);
+    expect(clipRectActiveAt(pane0.__calls, atFill)).toEqual({ x: 0, y: 0, w: 200, h: 50 });
     // Sanity: paint on pane 0 saw a generation at least once.
     expect(paintSpy.length).toBeGreaterThan(0);
     engine.destroy();
@@ -256,16 +245,88 @@ describe("R04-A01: Primitive crosses plot boundary -> Paint and hits clip consis
     expect(host.hitTest(1, 50, 50)).toHaveLength(0);
     host.dispose();
   });
+  it("pane 0's painted clip rect is (0,0,time.widthPx,pane.height) — the FULL pane width — while hitTestEngineInput's plot rect stops at the price-axis strip: an inside-plot point is region plot/pane 0, a point inside the painted clip but in the price-axis strip (and one just right of the clip) is NOT plot, a point just below pane 0 is pane 1, and PrimitiveHost.hitTest does NOT clip (x,y) to the plot rect", () => {
+    const { engine, scheduler } = mount();
+    const s0 = engine.addSeries("candles", { upColor: "U", downColor: "D" });
+    engine.addSeries("candles", { upColor: "U", downColor: "D" }, 1);
+    s0.setData(OHLC);
+    // Index of the ctx call log AT ENTRY to the primitive's paint, so the clip
+    // rect read below is the one withClip established around THIS paint.
+    let entryIndex = -1;
+    const prim: HostPrimitive = {
+      id: "boundary",
+      zOrder: "bottom",
+      attached: () => undefined,
+      detached: () => undefined,
+      update: () => undefined,
+      paint(ctx) {
+        entryIndex = (ctx as unknown as FakeCtx).__calls.length;
+        ctx.fillRect(0, 0, 200, 500);
+      },
+      hitTest: () => ({ id: "boundary" }),
+    };
+    s0.attachPrimitive(prim);
+    scheduler.flush();
+
+    const calls = paneCtx(engine, 0).__calls;
+    expect(entryIndex).toBeGreaterThan(0);
+    const clip = clipRectActiveAt(calls, entryIndex);
+    expect(clip).not.toBeNull();
+
+    const layout = engineLayout(engine);
+    const widthPx = layout.time.widthPx;
+    const paneHeights = layout.panes.map((p) => p.height);
+    const priceAxisWidthPx = layout.priceAxisStripPx.slice();
+    // The painted clip rect is the pane's own box, read off the engine's layout.
+    expect(clip!.x).toBe(0);
+    expect(clip!.y).toBe(0);
+    expect(clip!.w).toBe(widthPx);
+    expect(clip!.h).toBe(paneHeights[0]);
+    expect(paneHeights.length).toBe(2);
+
+    const hitLayout = { widthPx, paneHeights, priceAxisWidthPx };
+    // (a1) inside the painted clip rect AND inside the input plot rect.
+    expect(hitTestEngineInput(clip!.x + 1, clip!.y + 1, hitLayout)).toEqual({
+      region: "plot",
+      paneIndex: 0,
+    });
+    // (a2) inside the painted clip rect, but in the price-axis strip the same
+    // frame paints labels into -> input says NOT plot. The painted clip and the
+    // input plot rect do not coincide at BASE (see RESULT.md FINDINGS, P2).
+    const axisPx = Math.max(40, priceAxisWidthPx[0] ?? 0);
+    expect(widthPx - axisPx).toBeLessThan(clip!.x + clip!.w);
+    const inStrip = hitTestEngineInput(widthPx - axisPx + 1, clip!.y + 1, hitLayout);
+    expect(inStrip.region).not.toBe("plot");
+    expect(inStrip.paneIndex).toBe(0);
+    // (a3) just right of the painted clip rect -> also NOT plot.
+    expect(
+      hitTestEngineInput(clip!.x + clip!.w + 1, clip!.y + 1, hitLayout).region,
+    ).not.toBe("plot");
+    // (a4) just below pane 0 -> pane 1.
+    expect(hitTestEngineInput(clip!.x + 1, clip!.y + clip!.h + 1, hitLayout)).toEqual({
+      region: "plot",
+      paneIndex: 1,
+    });
+
+    // (b) PrimitiveHost.hitTest itself performs NO clipping: a point outside
+    // both the plot rect and the painted clip rect still matches the primitive.
+    const host = createPrimitiveHost();
+    host.attach(0, "s0", prim);
+    expect(host.hitTest(0, widthPx + 50, paneHeights[0] + 50)).toHaveLength(1);
+    host.dispose();
+    engine.destroy();
+  });
+
 });
 
 // ─── R04-A02 — generation changes during draw ────────────────────────────────
-// BASE behaviour: createPrimitiveLifecycle (primitive.ts) refuses to redeliver
-// any generation <= lastSeenGeneration (C03-A02 stale guard). paintPane does
-// not have such a check; the observable at BASE is that the proj the paint is
-// handed is the one delivered for THAT generation, and bump() inside paint
-// produces a new generation which only the NEXT paint sees.
+// Two legs: (1) createPrimitiveLifecycle (primitive.ts) drops any generation that
+// is not greater than the last delivered one - a pure stale-drop, no engine frame.
+// (2) the mounted engine: an invalidation raised INSIDE paint() is armed for the
+// NEXT frame, so the mutating frame is committed and the requeued frame carries the
+// new generation and geometry. No in-frame stale discard exists (CAPABILITY_MISSING).
 describe("R04-A02: Generation changes during draw -> Stale projection is discarded/requeued without committing old geometry", () => {
-  it("the same projection object is delivered exactly once per generation (primitive.ts C03-A02 stale guard)", () => {
+  it("createPrimitiveLifecycle delivers update() once per strictly-increasing generation and drops a projection whose generation is not greater than the last delivered one (primitive.ts stale guard, no engine frame involved)", () => {
     const generations: number[] = [];
     let current: EngineProjection | null = fakeProjection({ generation: 1 });
     const subs = new Set<(p: EngineProjection) => void>();
@@ -306,6 +367,85 @@ describe("R04-A02: Generation changes during draw -> Stale projection is discard
 
     lifecycle.dispose();
   });
+  it("on the mounted mm engine a model change raised inside paint() re-arms the manual scheduler (pendingFrames 1, and 0 again after the requeued flush), the requeued frame delivers a strictly greater generation to update() which the next paint then uses together with the new geometry, and the frame that ran the mutating paint is committed rather than discarded — its own projection object answers a different anchor x after the in-paint change", () => {
+    const scheduler = instrumentedManualScheduler();
+    const { engine } = mount({}, scheduler);
+    const s = engine.addSeries("candles", { upColor: "U", downColor: "D" });
+    s.setData(OHLC);
+    const ANCHOR_LOGICAL = 1;
+    const ANCHOR_PRICE = 12;
+    const before = engine.timeScale().getVisibleLogicalRange();
+    // A one-bar pan: `from` always differs from the current window, so
+    // setVisibleLogicalRange cannot early-return (model.ts:612).
+    const nextRange = {
+      from: (before?.from ?? 0) - 1,
+      to: (before?.to ?? OHLC.length) - 1,
+    };
+    type Obs = { phase: "update" | "paint"; generation: number; x: number; y: number };
+    const seen: Obs[] = [];
+    let bumped = false;
+    let inPaintDrift = false;
+    const prim: EnginePrimitive = {
+      id: "mid-draw",
+      zOrder: "top",
+      attached: () => undefined,
+      detached: () => undefined,
+      update(proj) {
+        seen.push({
+          phase: "update",
+          generation: proj.generation,
+          x: proj.xOfLogical(ANCHOR_LOGICAL),
+          y: proj.yOfPrice(ANCHOR_PRICE),
+        });
+      },
+      paint(_ctx, proj) {
+        const xBefore = proj.xOfLogical(ANCHOR_LOGICAL);
+        seen.push({
+          phase: "paint",
+          generation: proj.generation,
+          x: xBefore,
+          y: proj.yOfPrice(ANCHOR_PRICE),
+        });
+        if (!bumped) {
+          bumped = true;
+          // First paint only: change the model WHILE the frame is being drawn.
+          engine.timeScale().setVisibleLogicalRange(nextRange);
+          // Same projection object, same frame — does it already answer the new
+          // geometry? If yes, the committed frame mixes both (no in-frame discard).
+          inPaintDrift = proj.xOfLogical(ANCHOR_LOGICAL) !== xBefore;
+        }
+      },
+    };
+    s.attachPrimitive(prim);
+
+    scheduler.flush();
+    expect(bumped).toBe(true);
+    // The invalidation raised inside paint armed the NEXT frame (requeued).
+    expect(scheduler.pendingFrames()).toBe(1);
+    const updatesAfterFirst = seen.filter((r) => r.phase === "update");
+    const paintsAfterFirst = seen.filter((r) => r.phase === "paint");
+    expect(updatesAfterFirst).toHaveLength(1);
+    expect(paintsAfterFirst).toHaveLength(1);
+    // The mutating frame was committed with the geometry it started with, and its
+    // own projection had already moved underneath it.
+    expect(inPaintDrift).toBe(true);
+
+    scheduler.flush();
+    // Nothing mutated during the requeued frame, so nothing re-armed.
+    expect(scheduler.pendingFrames()).toBe(0);
+    const updates = seen.filter((r) => r.phase === "update");
+    const paints = seen.filter((r) => r.phase === "paint");
+    expect(updates).toHaveLength(2);
+    expect(paints).toHaveLength(2);
+    expect(updates[1].generation).toBeGreaterThan(updates[0].generation);
+    // The requeued paint uses the generation update() was just handed...
+    expect(paints[1].generation).toBe(updates[1].generation);
+    expect(paints[1].generation).toBeGreaterThan(paints[0].generation);
+    // ...and the new geometry.
+    expect(paints[1].x).not.toBe(paints[0].x);
+    engine.destroy();
+  });
+
 });
 
 // ─── R04-A03 — null/partial upstream intelligence overlay ───────────────────
@@ -463,66 +603,92 @@ describe("R04-A04: Raw LWC primitive passed to mm -> Explicit unsupported bounda
 });
 
 // ─── C03-A04 — shared overlay clipped/resized ───────────────────────────────
+// Observed on the MOUNTED mm engine, not on a fake projection: one primitive goes
+// in through the public series.attachPrimitive, its update(proj) caches the
+// generation plus the anchor its own hitTest reads, and paint(ctx, proj) recomputes
+// that anchor from the projection it was handed. Every flushed frame must agree.
 describe("C03-A04: Shared overlay is clipped/resized -> All paint and hit coordinates use the same projection generation", () => {
-  it("createPrimitiveLifecycle delivers update at most once per generation; a duplicate generation push must not double-deliver to the same primitive (R04-A02 stale guard)", () => {
-    const seenByUpdate: number[] = [];
-    const subs = new Set<(p: EngineProjection) => void>();
-    let current: EngineProjection | null = fakeProjection({ generation: 1 });
-    const lifecycle = createPrimitiveLifecycle({
-      isReady: () => true,
-      currentProjection: () => current,
-      subscribeProjection: (cb) => {
-        subs.add(cb);
-        return () => subs.delete(cb);
-      },
-      seriesId: "s",
-      paneIndex: 0,
-    });
+  it("on the mounted mm engine every flushed frame hands paint() the same projection generation update() last delivered and the same anchor x/y the hitTest cache holds — across the initial frame, a smaller-surface clip resize and a visible-logical-range change, each of which strictly advances the generation and moves the anchor", () => {
+    const { engine, scheduler } = mount();
+    const s = engine.addSeries("candles", { upColor: "U", downColor: "D" });
+    s.setData(OHLC);
+
+    const ANCHOR_LOGICAL = 1;
+    const ANCHOR_PRICE = 12;
+    type Obs = { phase: "update" | "paint"; generation: number; x: number; y: number };
+    const seen: Obs[] = [];
+    // The cache hitTest reads: written ONLY by update(). If paint is handed a
+    // different generation/projection than update was, paint's recomputed anchor
+    // and this cache disagree — which is the row's Required observation.
+    let cached: { generation: number; x: number; y: number } | null = null;
+
     const prim: EnginePrimitive = {
-      id: "overlay",
+      id: "shared-overlay",
+      zOrder: "top",
       attached: () => undefined,
       detached: () => undefined,
       update(proj) {
-        seenByUpdate.push(proj.generation);
+        cached = {
+          generation: proj.generation,
+          x: proj.xOfLogical(ANCHOR_LOGICAL),
+          y: proj.yOfPrice(ANCHOR_PRICE),
+        };
+        seen.push({ phase: "update", ...cached });
+      },
+      paint(_ctx, proj) {
+        seen.push({
+          phase: "paint",
+          generation: proj.generation,
+          x: proj.xOfLogical(ANCHOR_LOGICAL),
+          y: proj.yOfPrice(ANCHOR_PRICE),
+        });
+      },
+      hitTest() {
+        return cached ? { primitiveId: "shared-overlay" } : null;
       },
     };
-    lifecycle.attach(prim);
-    lifecycle.flush();
-    expect(seenByUpdate).toEqual([1]);
+    s.attachPrimitive(prim);
 
-    // Push gen 2 → deliver once.
-    const proj2 = fakeProjection({ generation: 2 });
-    for (const cb of subs) cb(proj2);
-    current = proj2;
-    lifecycle.flush();
-    expect(seenByUpdate).toEqual([1, 2]);
+    const frames: Array<{ update: Obs; paint: Obs }> = [];
+    const collectFrame = (): void => {
+      const update = [...seen].reverse().find((r) => r.phase === "update");
+      const paint = [...seen].reverse().find((r) => r.phase === "paint");
+      if (!update || !paint) throw new Error("frame did not deliver update + paint");
+      frames.push({ update, paint });
+    };
 
-    // A duplicate-pushed (already-delivered) generation must NOT redeliver.
-    // Mutant target: drop the per-primitive "seen <= candidate.gen" guard so
-    // every flush re-fires update().
-    for (const cb of subs) cb(proj2);
-    lifecycle.flush();
-    expect(seenByUpdate).toEqual([1, 2]);
+    scheduler.flush(); // frame 1 — initial construction + setData
+    collectFrame();
+    engine.resize(150, 80); // clip: the shared overlay surface got smaller
+    scheduler.flush(); // frame 2
+    collectFrame();
+    const ts = engine.timeScale();
+    const visible = ts.getVisibleLogicalRange();
+    ts.setVisibleLogicalRange({
+      from: (visible?.from ?? 0) - 1,
+      to: (visible?.to ?? OHLC.length) - 1,
+    });
+    scheduler.flush(); // frame 3
+    collectFrame();
 
-    // Resize again to gen 3 → must deliver once more.
-    const proj3 = fakeProjection({ generation: 3 });
-    for (const cb of subs) cb(proj3);
-    current = proj3;
-    lifecycle.flush();
-    expect(seenByUpdate).toEqual([1, 2, 3]);
-
-    lifecycle.dispose();
-  });
-
-  it("engineProjectionForPane hands back a projectionReady === true projection off the mounted engine model", () => {
-    const { engine, scheduler } = mount();
-    const s = engine.addSeries("line");
-    s.setData([{ time: 1, value: 10 }, { time: 2, value: 11 }, { time: 3, value: 12 }]);
-    scheduler.flush();
-    const model = engine.unwrap<import("@/lib/chart-engine/canvas").ChartModel>();
-    const paneProj = engineProjectionForPane(model, 0);
-    expect(projectionReady(paneProj)).toBe(true);
-    expect(paneProj.generation).toBeGreaterThanOrEqual(1);
+    expect(frames).toHaveLength(3);
+    for (const frame of frames) {
+      // paint and hit read the SAME projection generation ...
+      expect(frame.paint.generation).toBe(frame.update.generation);
+      // ... and therefore the same anchor geometry the hitTest cache holds.
+      expect(frame.paint.x).toBe(frame.update.x);
+      expect(frame.paint.y).toBe(frame.update.y);
+      expect(Number.isFinite(frame.paint.x)).toBe(true);
+      expect(Number.isFinite(frame.paint.y)).toBe(true);
+    }
+    // Generation strictly advances across the clip resize and the range change.
+    expect(frames[1].paint.generation).toBeGreaterThan(frames[0].paint.generation);
+    expect(frames[2].paint.generation).toBeGreaterThan(frames[1].paint.generation);
+    // The clip resize moved the anchor on both axes ...
+    expect(frames[1].paint.x).not.toBe(frames[0].paint.x);
+    expect(frames[1].paint.y).not.toBe(frames[0].paint.y);
+    // ... and the visible-logical-range change moved it again.
+    expect(frames[2].paint.x).not.toBe(frames[1].paint.x);
     engine.destroy();
   });
 });
@@ -600,58 +766,3 @@ describe("C02-A04: Native unsupported option is supplied -> Normalization return
   });
 });
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Per-row mutation rehearsal harness.
-//
-// Each row's MUTANT line is recorded in RESULT.md MUTANTS. To prove a row's
-// test can fail, apply the mutant in-place, run the file, capture RED, then
-// `git checkout -- <file>` and capture GREEN. The harness below runs the
-// apply/restore cycle in one shot, purely as a development utility (it is not
-// exported as a test).
-// ─────────────────────────────────────────────────────────────────────────────
-
-const OWNED = ["lib/__tests__/chartEngineGapPrimitives.test.ts"];
-const repoRoot = path.resolve(__dirname, "../../..");
-function runVitest(args: string[]): { stdout: string; rc: number } {
-  try {
-    const stdout = execSync(`npx vitest run ${args.join(" ")}`, {
-      cwd: path.join(repoRoot, "terminal"),
-      encoding: "utf8",
-    });
-    return { stdout, rc: 0 };
-  } catch (e) {
-    const err = e as { stdout?: string; status?: number };
-    return { stdout: err.stdout ?? "", rc: err.status ?? 1 };
-  }
-}
-function listMutants(): Array<{ id: string; file: string; diff: string }> {
-  return [
-    {
-      id: "R04-A01",
-      file: "lib/chart-engine/canvas/frame.ts",
-      diff:
-        "// MUTANT-R04A01\n" +
-        "// remove withClip wrap around primHost.paintPane(...)\n",
-    },
-    {
-      id: "R04-A04",
-      file: "lib/chart-engine/canvas/refusal.ts",
-      diff: "// MUTANT-R04A04: assertEnginePrimitive returns when missing.length>0 (always accepts)\n",
-    },
-    {
-      id: "C02-A04",
-      file: "lib/chart-engine/options.ts",
-      diff:
-        "// MUTANT-C02A04: strip the unsupported groups (apply the supported part) before returning the refusal\n",
-    },
-  ];
-}
-describe("MUTANT-RUNNER (informational, skipped in CI)", () => {
-  it("produces RED/GREEN receipts when invoked manually (skipped here)", () => {
-    if (!existsSync(path.join(repoRoot, ".git"))) return;
-    // List the planned mutants — see RESULT.md MUTANTS table for the receipts.
-    expect(listMutants().length).toBeGreaterThan(0);
-    void runVitest;
-    void OWNED;
-  });
-});

@@ -382,7 +382,7 @@ class CanvasEngine implements CanvasChartEngine {
         if (!surface) continue;
         const ctx = surface.canvas.getContext("2d");
         if (!ctx) continue;
-        paintPaneFrame({ ctx, model: this.model, paneIndex: i, primHost: this.primHost });
+        paintPaneFrame({ ctx, model: this.model, paneIndex: i, primHost: this.primHost, generation });
       }
     }
     const octx = dom.overlay.getContext("2d");
