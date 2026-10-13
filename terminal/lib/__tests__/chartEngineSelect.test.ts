@@ -10,6 +10,7 @@ import {
   persistEngineChoice,
   readStoredEngine,
   resolveEngineImpl,
+  resolveMountEngineImpl,
   withEngineParam,
   type EngineSelection,
   type EngineStorage,
@@ -170,6 +171,32 @@ describe("kill switch", () => {
     const selection = resolveEngineImpl({ search: "?engine=canvas9", buildDefault: "mm", killSwitch: true });
     expect(selection).toMatchObject({ impl: "lwc", source: "killswitch" });
     expect(selection.invalid).toBeUndefined();
+  });
+});
+
+describe("resolveMountEngineImpl (F-13 opt-in, storage-blind)", () => {
+  it.each([
+    { name: "undefined search", search: undefined, impl: "lwc" as const },
+    { name: "empty string", search: "", impl: "lwc" as const },
+    { name: "?engine=lwc", search: "?engine=lwc", impl: "lwc" as const },
+    { name: "?engine=mm", search: "?engine=mm", impl: "mm" as const },
+    { name: "?engine=MM (case-insensitive)", search: "?engine=MM", impl: "mm" as const },
+    { name: "?engine=garbage", search: "?engine=garbage", impl: "lwc" as const },
+    { name: "?foo=1&engine=mm (first-occurrence URLSearchParams)", search: "?foo=1&engine=mm", impl: "mm" as const },
+  ])("$name → $impl", ({ search, impl }) => {
+    expect(resolveMountEngineImpl(search)).toBe(impl);
+  });
+
+  it("null search is lwc", () => {
+    expect(resolveMountEngineImpl(null)).toBe("lwc");
+  });
+
+  it("never consults storage: a stored mm.engine value cannot change the result", () => {
+    // The function has no stored/storage parameter; a host that already wrote
+    // STORAGE_KEY="mm" still gets lwc unless the URL asks for mm.
+    expect(resolveMountEngineImpl("")).toBe("lwc");
+    expect(resolveMountEngineImpl("?engine=lwc")).toBe("lwc");
+    expect(resolveMountEngineImpl("?engine=garbage")).toBe("lwc");
   });
 });
 

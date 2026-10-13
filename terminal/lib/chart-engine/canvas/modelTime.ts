@@ -166,6 +166,9 @@ export function lastBarIsVisible(visibleFrom: number, visibleTo: number, rowCoun
 /** LWC TimeScale.scrollToPosition animated duration (dev:12862-12868). */
 export const SCROLL_TO_POSITION_MS = 1000;
 
+/** LWC TimeScale.scrollToRealTime animated duration (dev:6347-6350). */
+export const SCROLL_TO_REALTIME_MS = 400;
+
 /** Injectable clock so scroll animation can be driven without real timers. */
 export type ModelClock = {
   now(): number;

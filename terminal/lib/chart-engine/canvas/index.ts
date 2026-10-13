@@ -12,6 +12,7 @@ import type {
   EngineTime,
   EngineSeriesOptions,
   EngineMouseHandler,
+  EngineMouseEventParams,
   PaneHandle,
   PriceScaleHandle,
   SeriesHandle,
@@ -51,7 +52,15 @@ import {
 } from "./model";
 import { createPrimitiveHost, type HostPrimitive, type PrimitiveHost } from "./primitives";
 import { EngineRefusalError } from "./refusal";
-import { crosshairInvalidation, dataAt, resolveCrosshair, snapLogicalToBar } from "./crosshair";
+import {
+  buildMouseParams,
+  crosshairInvalidation,
+  dataAt,
+  resolveCrosshair,
+  snapLogicalToBar,
+  type CrosshairState,
+  type HoverableSeries,
+} from "./crosshair";
 import { attachEngineInput, type EngineInputBinding } from "./inputBridge";
 
 export { ChartModel, priceScaleMath, futureSlotResolver, xOfLogical, logicalOfX } from "./model";
@@ -170,6 +179,8 @@ export type CanvasChartEngine = ChartEngine & {
   readonly impl: typeof CANVAS_ENGINE_IMPL;
 };
 
+const markerOwners = new WeakMap<HTMLElement, CanvasEngine>();
+
 class CanvasEngine implements CanvasChartEngine {
   readonly impl = CANVAS_ENGINE_IMPL;
   private readonly model: ChartModel;
@@ -184,6 +195,8 @@ class CanvasEngine implements CanvasChartEngine {
   private readonly invalidator: Invalidator;
   private snaps = new Map<number, SeriesSnap>();
   private lastPrimGen = -1;
+  private lastCrosshair: CrosshairState | null = null;
+  private lastCrosshairLevel: "none" | "light" | "cursor" = "cursor";
   private input: EngineInputBinding | null = null;
   private readonly nowFn: () => number;
 
@@ -253,6 +266,7 @@ class CanvasEngine implements CanvasChartEngine {
     this.requestPaint({ level: "full", panes: "all" });
     // Identity marker: written LAST so a thrown ctor/refusal path leaves the host clean.
     container.dataset.chartEngine = CANVAS_ENGINE_IMPL;
+    markerOwners.set(container, this);
   }
 
   private requestPaint(partial: Partial<InvalidationMask> & { level: InvalidationMask["level"] }): void {
@@ -407,9 +421,20 @@ class CanvasEngine implements CanvasChartEngine {
       const logical = this.model.logicalOfX(p.x);
       const snapped = snapLogicalToBar(logical);
       const primary = this.model.primarySeries();
-      const series = [...this.model.series.values()]
+      const series: HoverableSeries[] = [...this.model.series.values()]
         .filter((s) => !s.removed)
-        .map((s) => ({ id: String(s.id), paneIndex: s.paneIndex, kind: s.kind, rows: s.rows }));
+        .map((s) => {
+          // RV-4: buildMouseParams resolves hoveredSeries only through yOfValue, so
+          // without it every payload answers hoveredSeries: null (crosshair.ts:331).
+          const proj = this.model.projectionFor(s);
+          return {
+            id: String(s.id),
+            paneIndex: s.paneIndex,
+            kind: s.kind,
+            rows: s.rows,
+            yOfValue: (value: number) => proj.yOfPrice(value),
+          };
+        });
       const resolved = resolveCrosshair({
         x: p.x,
         y: p.y,
@@ -424,7 +449,13 @@ class CanvasEngine implements CanvasChartEngine {
         series,
         primaryId: primary ? String(primary.id) : null,
       });
-      void crosshairInvalidation(null, resolved);
+      // PATCH3P2 F10 — preserve the crosshairInvalidation level so a bar-time
+      // change can escalate the frame, and route the full buildMouseParams payload
+      // through to subscribers (was: discarded, leaving seriesData/hoveredSeries
+      // /paneIndex/sourceEvent unreachable for any legend or tooltip).
+      const level = crosshairInvalidation(this.lastCrosshair, resolved);
+      this.lastCrosshair = resolved;
+      this.lastCrosshairLevel = level;
       let time: EngineTime | undefined;
       if (primary) {
         const row = dataAt(
@@ -434,18 +465,70 @@ class CanvasEngine implements CanvasChartEngine {
         );
         if (row) time = row.time;
       }
-      return { point: p, logical, time };
+      const params: EngineMouseEventParams =
+        { ...buildMouseParams(resolved, series, ev), point: p, logical, time };
+      // RV-1: LWC keys seriesData by the ISeriesApi instance (typings.d.ts:3419) and the
+      // consumer reads it that way (ChartPanel.tsx:4642 calls candidate.options() /
+      // priceToCoordinate()). Re-key the id-keyed map onto the handles this engine hands
+      // out so both implementations of subscribeCrosshairMove emit the same key kind.
+      const idKeyed = params.seriesData;
+      if (idKeyed instanceof Map) {
+        const handleKeyed = new Map<unknown, unknown>();
+        for (const [id, row] of idKeyed as Map<string, unknown>) {
+          const handle = this.model.seriesHandle(Number(id));
+          if (handle) handleKeyed.set(handle, row);
+        }
+        params.seriesData = handleKeyed;
+      }
+      return params;
     };
     const move: EventListener = (ev) => {
       this.model.emitMouse("crosshair", param(ev));
-      this.requestPaint({ level: "cursor", panes: "all" });
+      // PATCH3P2 F10 — let crosshairInvalidation decide paint level (was: hardcoded "cursor",
+      // so a bar-time change never escalated to "light").
+      // RV-2: the crosshair itself paints on the overlay, which repaints at every level,
+      // so a bar change only needs a pane-bitmap repaint when a primitive paints into one.
+      const escalate = this.lastCrosshairLevel === "light" && this.primHost.inventory().primitives > 0;
+      this.requestPaint({ level: escalate ? "light" : "cursor", panes: "all" });
     };
-    const click: EventListener = (ev) => this.model.emitMouse("click", param(ev));
+    // LWC 5.2.0 (dist dev build 8169-8173, 8275-8277) cancels the click that a
+    // mouseup would emit once a pressed move has travelled >= 5 manhattan px.
+    // Pointer events are latched (not mouse events) so touch and pen drags are
+    // covered as well; `buttons === 1` keeps hover moves from arming the latch.
+    const CANCEL_CLICK_MANHATTAN_PX = 5;
+    let cancelClick = false;
+    let downX = 0;
+    let downY = 0;
+    const latchDown: EventListener = (ev) => {
+      const e = ev as MouseEvent;
+      cancelClick = false;
+      downX = e.clientX;
+      downY = e.clientY;
+    };
+    const latchMove: EventListener = (ev) => {
+      const e = ev as MouseEvent;
+      if (cancelClick || e.buttons !== 1) return;
+      if (Math.abs(e.clientX - downX) + Math.abs(e.clientY - downY) >= CANCEL_CLICK_MANHATTAN_PX) {
+        cancelClick = true;
+      }
+    };
+    const click: EventListener = (ev) => {
+      if (cancelClick) return;
+      this.model.emitMouse("click", param(ev));
+    };
     const dbl: EventListener = (ev) => this.model.emitMouse("dblclick", param(ev));
+    overlay.addEventListener("pointerdown", latchDown);
+    overlay.addEventListener("pointermove", latchMove);
     overlay.addEventListener("mousemove", move);
     overlay.addEventListener("click", click);
     overlay.addEventListener("dblclick", dbl);
-    this.overlayListeners.push(["mousemove", move], ["click", click], ["dblclick", dbl]);
+    this.overlayListeners.push(
+      ["pointerdown", latchDown],
+      ["pointermove", latchMove],
+      ["mousemove", move],
+      ["click", click],
+      ["dblclick", dbl],
+    );
   }
 
   chartElement(): HTMLElement {
@@ -563,10 +646,13 @@ class CanvasEngine implements CanvasChartEngine {
     }
     this.overlayListeners.length = 0;
     destroyChartDom(this.dom);
-    // Identity marker: only clear if it still reads THIS impl — never wipe a
-    // newer engine's marker that took over the same host.
-    if (this.container.dataset.chartEngine === CANVAS_ENGINE_IMPL) {
+    // Identity marker: only clear if it still reads THIS impl AND we are still
+    // the registered owner — never wipe a newer engine's marker that took over
+    // the same host.
+    if (this.container.dataset.chartEngine === CANVAS_ENGINE_IMPL
+      && markerOwners.get(this.container) === this) {
       delete this.container.dataset.chartEngine;
+      markerOwners.delete(this.container);
     }
     this.dom = null;
     this.model.externalCrosshair = null;

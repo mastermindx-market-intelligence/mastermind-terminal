@@ -132,6 +132,12 @@ function finiteNumber(value: number | undefined, fallback: number): number {
   return value != null && Number.isFinite(value) ? value : fallback;
 }
 
+/**
+ * LWC divides by the base verbatim, so base 0 yields Infinity/NaN and the
+ * scale goes empty (dev:4192, dev:5055-5057). We deliberately substitute 1
+ * to keep the scale finite and the round-trip invertible; documented
+ * deviation, pinned by chartEngineCanvasPatch3Model.test.ts F-6.
+ */
 function usableBase(baseValue: number | undefined): number {
   const base = finiteNumber(baseValue, 1);
   return base === 0 ? 1 : base;
@@ -156,11 +162,17 @@ export function priceToDisplay(price: number, state: PriceScaleState): number {
       return axisPriceToLog(price, logFormulaOf(state));
     case "percent": {
       const base = usableBase(state.baseValue);
-      return (price / base - 1) * 100;
+      // LWC dev:4191-4194: a negative base flips the sign so the series stays
+      // upright on screen (dossier:278-281). Without this, an oscillator or
+      // a below-zero spread renders upside down.
+      const result = 100 * (price - base) / base;
+      return base < 0 ? -result : result;
     }
     case "indexed100": {
       const base = usableBase(state.baseValue);
-      return (price / base) * 100;
+      // LWC dev:4207-4210: same sign-flip rule as percent for negative base.
+      const result = 100 * (price - base) / base + 100;
+      return base < 0 ? -result : result;
     }
     default:
       return price;
@@ -175,11 +187,16 @@ export function displayToPrice(display: number, state: PriceScaleState): number 
       return axisLogToPrice(display, logFormulaOf(state));
     case "percent": {
       const base = usableBase(state.baseValue);
-      return base * (display / 100 + 1);
+      // LWC dev:4185-4189: mirror the sign-flip when base < 0.
+      const value = base < 0 ? -display : display;
+      return (value / 100) * base + base;
     }
     case "indexed100": {
       const base = usableBase(state.baseValue);
-      return base * (display / 100);
+      // LWC dev:4200-4205: index base is 100, so the offset flips with base.
+      let value = display - 100;
+      if (base < 0) value = -value;
+      return (value / 100) * base + base;
     }
     default:
       return display;

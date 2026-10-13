@@ -29,7 +29,12 @@ export type BarKey = EngineTime & { readonly __brand: "BarKey" };
 export interface BarTimeFacts {
   /** Opening-bar identity used as the x key (never a close/availability stamp). */
   readonly key: BarKey;
-  /** True UTC epoch ms of the bar's opening instant. */
+  /**
+   * Epoch ms of the bar's opening instant in the record's `keyBasis`: true UTC
+   * when the basis is "utc", the app's display-epoch ms when it is "display".
+   * Never mix bases across a comparison — `preserveSessionAnchors` compares
+   * this directly across refreshes.
+   */
   readonly openUtcMs: number;
   /**
    * Availability: the earliest instant at which the bar's complete values are
@@ -53,6 +58,8 @@ export interface BarTimeFacts {
   readonly cadenceSec: number;
   /** True for future/whitespace slots, false for real bars. */
   readonly isSynthetic: boolean;
+  /** Which basis `key` / `openUtcMs` / `closeUtcMs` are in, so a consumer can tell without guessing. */
+  readonly keyBasis: TimeKeyBasis;
 }
 
 /** A row as fact-extraction sees it: a validated key plus the optional availability stamp. */
@@ -236,6 +243,7 @@ function freezeFacts(
     sessionId,
     cadenceSec,
     isSynthetic,
+    keyBasis,
   });
 }
 
@@ -346,7 +354,7 @@ export function futureAnchors(
     // its own session.
     const spanSec = numeric ? stepMs / 1000 : 0;
     const closeUtcMs = numeric ? openUtcMs + stepMs : openUtcMs;
-    out.push(freezeFacts(barKey, openUtcMs, closeUtcMs, market, spanSec, true));
+    out.push(freezeFacts(barKey, openUtcMs, closeUtcMs, market, spanSec, true, lastFacts.keyBasis));
   }
   return Object.freeze(out);
 }
