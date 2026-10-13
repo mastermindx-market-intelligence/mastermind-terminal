@@ -304,9 +304,12 @@ import { createLwcEngine } from "../chart-engine/lwc";
 import {
   runEngineConformance,
   collectEngineConformance,
+  declaredSkipDetails,
   loadConformanceCorpus,
   mulberry32,
 } from "../chart-engine/conformance";
+import type { ConformanceSkip } from "../chart-engine/conformance";
+import { createCanvasEngine, createManualScheduler } from "../chart-engine/canvas";
 import type {
   ChartEngine,
   EngineLogicalRange,
@@ -334,6 +337,87 @@ beforeEach(() => {
 
 // ── (1) The LWC adapter through the factory-agnostic harness ─────────────────
 runEngineConformance("LWC adapter (fake registry)", (container) => createLwcEngine(container));
+
+// ── (1b) The owned canvas renderer "mm" through the SAME harness (F-08) ──────
+// jsdom has no 2D context, so getContext("2d") is replaced by a recording
+// stand-in (house style: chartEngineCanvasC02.test.ts). A manual scheduler
+// this suite never flushes keeps painting out of the behavioural checks: the harness grades the contract
+// surface, not pixels. The skip table below is DECLARED (F-16) — every entry
+// names a real check id, quotes the observed failure and carries the finding
+// id that owns the gap — and it starts EMPTY: a check is only skipped once it
+// has been observed to fail for a reason that is not a setup mistake.
+type CtxCall = { method: string; args: unknown[] };
+type RecordingCtx = CanvasRenderingContext2D & { __calls: CtxCall[] };
+
+function makeRecordingCtx(): RecordingCtx {
+  const calls: CtxCall[] = [];
+  const props: Record<string, unknown> = {};
+  const rec = (method: string) => (...args: unknown[]) => {
+    calls.push({ method, args });
+  };
+  const ctx: Record<string, unknown> = {
+    __calls: calls,
+    measureText: (text: unknown) => ({ width: String(text).length * 7 }),
+    getTransform: () => ({ a: 1, b: 0, c: 0, d: 1, e: 0, f: 0 }),
+    createLinearGradient: () => ({ addColorStop: () => undefined }),
+    createPattern: () => null,
+  };
+  for (const m of [
+    "setTransform", "resetTransform", "fillRect", "clearRect", "strokeRect", "drawImage",
+    "beginPath", "closePath", "moveTo", "lineTo", "stroke", "fill", "clip", "rect", "arc",
+    "arcTo", "ellipse", "quadraticCurveTo", "bezierCurveTo", "save", "restore", "scale",
+    "translate", "rotate", "setLineDash", "fillText", "strokeText",
+  ]) ctx[m] = rec(m);
+  for (const k of [
+    "fillStyle", "strokeStyle", "lineWidth", "font", "textAlign", "textBaseline",
+    "globalAlpha", "lineCap", "lineJoin", "miterLimit", "shadowBlur", "shadowColor",
+  ]) {
+    Object.defineProperty(ctx, k, {
+      get: () => props[k],
+      set: (v: unknown) => {
+        props[k] = v;
+      },
+      enumerable: true,
+      configurable: true,
+    });
+  }
+  return ctx as unknown as RecordingCtx;
+}
+
+const ctxByCanvas = new WeakMap<HTMLCanvasElement, RecordingCtx>();
+
+vi.spyOn(HTMLCanvasElement.prototype, "getContext").mockImplementation(function (
+  this: HTMLCanvasElement,
+  type: string,
+) {
+  if (type !== "2d") return null;
+  let ctx = ctxByCanvas.get(this);
+  if (!ctx) {
+    ctx = makeRecordingCtx();
+    ctxByCanvas.set(this, ctx);
+  }
+  return ctx as unknown as CanvasRenderingContext2D;
+});
+
+// One mount bag for every canvas check: explicit CSS size (jsdom reports 0x0
+// for a detached container), dpr 1, no ResizeObserver, and a manual scheduler
+// that is never flushed.
+function makeCanvasEngine(container: HTMLElement): ChartEngine {
+  return createCanvasEngine(container, {
+    width: 800,
+    height: 400,
+    devicePixelRatio: 1,
+    resizeObserverCtor: null,
+    scheduler: createManualScheduler(),
+  });
+}
+
+// Declared skip table (F-16) for impl "mm". Empty by design: entries are added
+// only for a check that was OBSERVED to fail on a correct setup, each with the
+// observed failure quoted in `reason` and the owning finding in `finding`.
+const CANVAS_CONFORMANCE_SKIPS: readonly ConformanceSkip[] = [];
+
+runEngineConformance("canvas engine mm", makeCanvasEngine, { skips: CANVAS_CONFORMANCE_SKIPS });
 
 // ── (2) Corpus laws (Q01-A02) ─────────────────────────────────────────────────
 describe("conformance corpus", () => {
@@ -762,5 +846,158 @@ describe("conformance harness — falsifier (broken engine must go RED)", () => 
     );
     const failedIds = results.filter((r) => r.status === "fail").map((r) => r.id).sort();
     expect(failedIds).toEqual(["Q01-C03", "Q01-C10", "Q01-C13", "Q01-C14", "Q01-C15"].sort());
+  });
+});
+
+// ── (4) The declared skip table is a guard, not a free-form opt-out (F-16) ───
+describe("conformance harness — declared skip table (F-16)", () => {
+  const anyEngine = (c: HTMLElement): ChartEngine => new FakeEngine(c, []);
+
+  it("throws at registration on an unknown check id (typo guard)", () => {
+    expect(() => declaredSkipDetails([{ id: "Q01-C99", reason: "typo" }])).toThrow(/unknown skip id "Q01-C99"/);
+    expect(() =>
+      collectEngineConformance(anyEngine, { skips: [{ id: "Q01-C99", reason: "typo" }] }),
+    ).toThrow(/unknown skip id/);
+    expect(() =>
+      runEngineConformance("skip-guard", anyEngine, { skips: [{ id: "nope", reason: "x" }] }),
+    ).toThrow(/unknown skip id "nope"/);
+  });
+
+  it("throws on an empty or whitespace-only reason", () => {
+    expect(() => declaredSkipDetails([{ id: "Q01-C10", reason: "" }])).toThrow(/empty reason/);
+    expect(() => declaredSkipDetails([{ id: "Q01-C10", reason: "   " }])).toThrow(/empty reason/);
+    expect(() =>
+      collectEngineConformance(anyEngine, { skips: [{ id: "Q01-C10", reason: "" }] }),
+    ).toThrow(/empty reason/);
+  });
+
+  it("throws on an empty id, a non-object entry, an empty finding and a duplicate", () => {
+    expect(() => declaredSkipDetails([{ id: "", reason: "r" }])).toThrow(/non-empty check id/);
+    expect(() => declaredSkipDetails([null as unknown as ConformanceSkip])).toThrow(/must be an object/);
+    expect(() =>
+      declaredSkipDetails([{ id: "Q01-C10", reason: "r", finding: "  " }]),
+    ).toThrow(/empty finding tag/);
+    expect(() =>
+      declaredSkipDetails([
+        { id: "Q01-C10", reason: "one" },
+        { id: "Q01-C10", reason: "two" },
+      ]),
+    ).toThrow(/declared twice/);
+  });
+
+  it("reports a declared skip with its reason and finding, and still runs the rest", () => {
+    const results = collectEngineConformance(anyEngine, {
+      skips: [{ id: "Q01-C10", reason: "graded by another suite", finding: "ACCEPT2-T1" }],
+    });
+    const skipped = results.filter((r) => r.status === "skip");
+    expect(skipped.map((r) => r.id)).toEqual(["Q01-C10"]);
+    expect(skipped[0].detail).toContain("graded by another suite");
+    expect(skipped[0].detail).toContain("[finding ACCEPT2-T1]");
+    expect(results.filter((r) => r.status === "fail")).toEqual([]);
+    expect(results.filter((r) => r.status === "pass")).toHaveLength(results.length - 1);
+  });
+
+  it("accepts every real check id", () => {
+    const ids = collectEngineConformance(anyEngine).map((r) => r.id);
+    expect(ids).toContain("Q01-C15");
+    expect(declaredSkipDetails(ids.map((id) => ({ id, reason: "declared" }))).size).toBe(ids.length);
+  });
+
+  it("a runtime self-skip (CheckHarness.skip) still carries its reason", () => {
+    // Neither engine at HEAD exposes no readback, so the self-skip path is
+    // provoked here: the handle answers neither data() nor unwrap().data().
+    const noReadback = (container: HTMLElement): ChartEngine => {
+      const engine = new FakeEngine(container, []);
+      return proxyDefect(engine, {
+        addSeries: (kind: EngineSeriesKind, options?: EngineSeriesOptions, paneIndex?: number): SeriesHandle =>
+          proxyDefect(engine.addSeries(kind, options, paneIndex), { data: undefined, unwrap: () => ({}) }),
+      });
+    };
+    const results = collectEngineConformance(noReadback);
+    const skips = results.filter((r) => r.status === "skip");
+    expect(skips.map((r) => r.id)).toEqual(["Q01-C03", "Q01-C04", "Q01-C05", "Q01-C15"]);
+    for (const s of skips) {
+      expect(s.detail).toBe("engine exposes no data() readback (handle.data()/unwrap().data())");
+    }
+    expect(results.filter((r) => r.status === "fail")).toEqual([]);
+  });
+});
+
+// ── (5) The canvas registration can fail (ACCEPT2 W3 falsifier) ──────────────
+// Section (1b) is only evidence if the SAME canvas factory goes RED when one
+// contract behaviour breaks. proxyDefect overrides exactly one member of the
+// real engine (or of a real handle it handed out) and leaves everything else
+// intact, so a failing id names the broken behaviour, not a broken stand-in.
+function proxyDefect<T extends object>(target: T, overrides: Record<string, unknown>): T {
+  return new Proxy(target, {
+    get(obj, prop) {
+      if (typeof prop === "string" && prop in overrides) return overrides[prop];
+      const value = Reflect.get(obj, prop, obj);
+      return typeof value === "function" ? value.bind(obj) : value;
+    },
+  }) as T;
+}
+
+function canvasWithDataDefect(container: HTMLElement): ChartEngine {
+  const engine = makeCanvasEngine(container);
+  return proxyDefect(engine, {
+    addSeries: (kind: EngineSeriesKind, options?: EngineSeriesOptions, paneIndex?: number): SeriesHandle =>
+      proxyDefect(engine.addSeries(kind, options, paneIndex), { data: () => [] }),
+  });
+}
+
+function canvasWithRangeDefect(container: HTMLElement): ChartEngine {
+  const engine = makeCanvasEngine(container);
+  return proxyDefect(engine, {
+    timeScale: (): TimeScaleHandle =>
+      proxyDefect(engine.timeScale(), { getVisibleLogicalRange: (): EngineLogicalRange => ({ from: 0, to: 0 }) }),
+  });
+}
+
+describe("conformance harness — canvas registration falsifier (ACCEPT2 W3)", () => {
+  it("the registered factory really builds impl mm, not the LWC adapter", () => {
+    const container = document.createElement("div");
+    const engine = makeCanvasEngine(container);
+    expect(engine.impl).toBe("mm");
+    // ENGID: the host container carries the identity marker for as long as the
+    // engine owns it, and only this engine may clear it.
+    expect(container.dataset.chartEngine).toBe("mm");
+    engine.destroy();
+    expect(container.dataset.chartEngine).toBeUndefined();
+  });
+
+  it("positive control: the real canvas factory has zero failures", () => {
+    const results = collectEngineConformance(makeCanvasEngine, { skips: CANVAS_CONFORMANCE_SKIPS });
+    expect(results.filter((r) => r.status === "fail")).toEqual([]);
+    // The census grades C01-A01 PROVEN / C02-A03 PARTIAL on "both engines print
+    // 15 pass / 0 skip / 0 fail". A declared skip (or a runtime self-skip that
+    // starts firing) must fail here, not silently shrink that evidence.
+    expect(results.filter((r) => r.status === "skip")).toEqual([]);
+    expect(results.filter((r) => r.status === "pass")).toHaveLength(15);
+  });
+
+  it("positive control: the LWC factory also answers all 15 checks with no skip", () => {
+    const results = collectEngineConformance((c) => createLwcEngine(c));
+    expect(results.filter((r) => r.status === "fail")).toEqual([]);
+    expect(results.filter((r) => r.status === "skip")).toEqual([]);
+    expect(results.filter((r) => r.status === "pass")).toHaveLength(15);
+  });
+
+  it("series.data() returning [] turns the data-readback checks RED", () => {
+    const results = collectEngineConformance(canvasWithDataDefect, { skips: CANVAS_CONFORMANCE_SKIPS });
+    const failed = results.filter((r) => r.status === "fail").map((r) => r.id).sort();
+    expect(failed.length).toBeGreaterThan(0);
+    expect(failed).toContain("Q01-C03");
+    expect(failed).toContain("Q01-C15");
+    const clean = collectEngineConformance(makeCanvasEngine, { skips: CANVAS_CONFORMANCE_SKIPS });
+    for (const id of failed) expect(clean.find((r) => r.id === id)?.status).toBe("pass");
+  });
+
+  it("a stale getVisibleLogicalRange turns the round-trip check RED", () => {
+    const results = collectEngineConformance(canvasWithRangeDefect, { skips: CANVAS_CONFORMANCE_SKIPS });
+    const failed = results.filter((r) => r.status === "fail").map((r) => r.id);
+    expect(failed).toContain("Q01-C06");
+    const clean = collectEngineConformance(makeCanvasEngine, { skips: CANVAS_CONFORMANCE_SKIPS });
+    expect(clean.find((r) => r.id === "Q01-C06")?.status).toBe("pass");
   });
 });

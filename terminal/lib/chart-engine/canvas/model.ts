@@ -38,11 +38,12 @@ import { EPOCH_SECONDS_MAX } from "../time";
 import {
   applyPriceScaleOptionBag,
   autoscaleRange,
+  coercePriceScaleMode,
   coordinateToPrice as scaleCoordinateToPrice,
   priceToCoordinate as scalePriceToCoordinate,
   type PriceScaleState,
 } from "./scales";
-import { assertEnginePrimitive } from "./refusal";
+import { EngineRefusalError, assertEnginePrimitive } from "./refusal";
 import {
   applyBarSpacingToWindow,
   applyRightOffsetToWindow,
@@ -57,6 +58,7 @@ import {
   nextScrollFrameDelayMs,
   resizeTimeScaleWidth,
   SCROLL_TO_POSITION_MS,
+  SCROLL_TO_REALTIME_MS,
   type ModelClock,
   type TimeScaleBehaviour,
 } from "./modelTime";
@@ -94,6 +96,8 @@ export type SeriesModel = {
   paneIndex: number;
   priceScaleId: string;
   removed: boolean;
+  /** Ascending indices of valued (non-whitespace) rows; null = dirty. */
+  valuedIdx?: number[] | null;
 };
 export type PaneModel = {
   index: number;
@@ -223,6 +227,24 @@ export function seriesClose(row: EngineSeriesRow): number | null {
   return null;
 }
 
+/** Ascending valued-row indices: the PlotList index LWC searches (dev:3015-3039). */
+export function valuedIndicesOf(rows: EngineSeriesRow[]): number[] {
+  const out: number[] = [];
+  for (let i = 0; i < rows.length; i++) if (seriesClose(rows[i]) != null) out.push(i);
+  return out;
+}
+
+/** First position in `list` whose value is >= target (LWC lowerBound). */
+function lowerBoundOf(list: number[], target: number): number {
+  let lo = 0;
+  let hi = list.length;
+  while (lo < hi) {
+    const mid = (lo + hi) >> 1;
+    if ((list[mid] as number) < target) lo = mid + 1; else hi = mid;
+  }
+  return lo;
+}
+
 export type ModelHooks = { onInvalidate: () => void; onStructure: () => void; clock?: ModelClock };
 export type PaneElementLookup = (index: number) => HTMLElement | null;
 type MouseKind = "crosshair" | "click" | "dblclick";
@@ -231,6 +253,8 @@ export class ChartModel {
   alive = true;
   generation = 0;
   dpr = 1;
+  /** Per-pane CSS px width of the painted right price-axis strip (empty until the first paint). */
+  priceAxisStripPx: number[] = [];
   options: EngineOptions = {};
   panes: PaneModel[] = [];
   series = new Map<number, SeriesModel>();
@@ -291,7 +315,6 @@ export class ChartModel {
   private syncRightOffsetFromWindow(): void {
     const n = this.primarySeries()?.rows.length ?? 0;
     this.time.rightOffset = this.time.visibleTo - n;
-    this.timeScaleBehaviour.rightOffset = this.time.rightOffset;
   }
 
   layoutHeights(totalHeight: number): void {
@@ -579,6 +602,7 @@ export class ChartModel {
   }
 
   private applyPriceScaleGroup(id: string, opts: Record<string, unknown>): void {
+    assertPriceScaleModeSupported(opts);
     for (const pane of this.panes) applyPriceScaleOptionBag(this.scale(pane.index, id), opts);
   }
 
@@ -643,11 +667,9 @@ export class ChartModel {
   }
   scrollToRealtime(): void {
     if (!this.alive) return;
-    const n = this.primarySeries()?.rows.length ?? 0;
-    const span = this.time.visibleTo - this.time.visibleFrom;
-    const width = span > 0 ? span : Math.max(1, n);
-    const right = this.time.rightOffset;
-    this.setVisibleLogicalRange({ from: n - width + right, to: n + right });
+    // LWC dev:6347-6350: scrollToOffsetAnimated(timeScaleBehaviour.rightOffset) over 400 ms.
+    // Targeting the live rightOffset made this a no-op after any pan.
+    this.scrollToPosition(this.timeScaleBehaviour.rightOffset, true, SCROLL_TO_REALTIME_MS);
   }
   private applyRightOffsetNow(position: number, spanOverride?: number): void {
     const n = this.primarySeries()?.rows.length ?? 0;
@@ -666,7 +688,7 @@ export class ChartModel {
     this.scrollAnim = null;
   }
 
-  scrollToPosition(position: number, animated = false): void {
+  scrollToPosition(position: number, animated = false, durationMs: number = SCROLL_TO_POSITION_MS): void {
     if (!this.alive) return;
     const n = this.primarySeries()?.rows.length ?? 0;
     const clamped = correctRightOffset(
@@ -702,7 +724,7 @@ export class ChartModel {
       from,
       to: clamped,
       startMs: this.clock.now(),
-      durationMs: SCROLL_TO_POSITION_MS,
+      durationMs,
       span,
       handle: null,
     };
@@ -770,6 +792,7 @@ export class ChartModel {
     const s = this.series.get(id);
     if (!this.alive || !s || s.removed) return;
     s.rows = rows.slice();
+    s.valuedIdx = null;
     if (!this.rangeExplicit && this.primarySeries()?.id === id) {
       this.time.visibleFrom = 0;
       this.time.visibleTo = Math.max(1, s.rows.length);
@@ -808,11 +831,11 @@ export class ChartModel {
             this.time.visibleTo += 1;
           } else {
             this.time.rightOffset -= 1;
-            this.timeScaleBehaviour.rightOffset = this.time.rightOffset;
           }
         }
       }
     }
+    s.valuedIdx = null;
     this.bump();
   }
 
@@ -982,25 +1005,27 @@ class ModelSeriesHandle implements SeriesHandle {
   dataByIndex(logicalIndex: number, mismatchDirection: EngineMismatchDirection = "none"): EngineSeriesRow | null {
     const s = this.live();
     if (!s || s.rows.length === 0 || !Number.isFinite(logicalIndex)) return null;
-    const n = s.rows.length;
-    // LWC PlotList (dev:3014-3037): NearestLeft = largest index < logical (floor
-    // for a dense integer grid); NearestRight = smallest index > logical (ceil).
-    // An integer that exists is an exact hit and returns itself.
+    // LWC searches the valued PlotList (dev:3015-3039, dev:13128-13136): a
+    // whitespace index is a miss, and nearest-left/right skip whitespace rows.
+    // Mirror that over the valued subset of s.rows. The default direction
+    // preserves the canvas precedent of rounding non-integer logicals to the
+    // nearest integer (P-1: chartEngineCanvasC02.test.ts:105 pins this).
+    const valuedAt = s.valuedIdx ?? (s.valuedIdx = valuedIndicesOf(s.rows));
+    const n = valuedAt.length;
+    if (n === 0) return null;
+    const lo = lowerBoundOf(valuedAt, logicalIndex);
+    const hit = lo < n && (valuedAt[lo] as number) === logicalIndex ? (valuedAt[lo] as number) : -1;
     if (mismatchDirection === "nearest-left") {
-      const i = Math.floor(logicalIndex);
-      if (i >= n) return s.rows[n - 1];
-      if (i >= 0 && i < n) return s.rows[i];
-      return null;
+      if (hit >= 0) return s.rows[hit] as EngineSeriesRow;
+      return lo > 0 ? (s.rows[valuedAt[lo - 1] as number] as EngineSeriesRow) : null;
     }
     if (mismatchDirection === "nearest-right") {
-      const i = Math.ceil(logicalIndex);
-      if (i < 0) return s.rows[0];
-      if (i >= 0 && i < n) return s.rows[i];
-      return null;
+      if (hit >= 0) return s.rows[hit] as EngineSeriesRow;
+      return lo < n ? (s.rows[valuedAt[lo] as number] as EngineSeriesRow) : null;
     }
-    const i = Math.round(logicalIndex);
-    if (i >= 0 && i < n) return s.rows[i];
-    return null;
+    const rounded = Math.round(logicalIndex);
+    const at = lowerBoundOf(valuedAt, rounded);
+    return at < n && (valuedAt[at] as number) === rounded ? (s.rows[rounded] as EngineSeriesRow) : null;
   }
   createPriceLine(opts: PriceLineSpec): PriceLineHandle { return this.m.createPriceLine(this.id, opts); }
   removePriceLine(line: PriceLineHandle): void {
@@ -1094,11 +1119,24 @@ class ModelPaneHandle implements PaneHandle {
   }
 }
 
+/**
+ * ONE option gate also covers the scale handle: an `mode` the renderer cannot
+ * coerce is a typed refusal, never a silent no-op (PAINT2-rev F4). The token and
+ * the reason string mirror options.ts:79-88 / :109-115 so both paths answer alike.
+ */
+function assertPriceScaleModeSupported(opts: Record<string, unknown>): void {
+  if (!("mode" in opts) || opts.mode === undefined) return;
+  if (coercePriceScaleMode(opts.mode) !== undefined) return;
+  const token = `priceScaleMode:${String(opts.mode)}`;
+  throw new EngineRefusalError(`unsupported option groups: ${token}`, [token]);
+}
+
 class ModelPriceScaleHandle implements PriceScaleHandle {
   constructor(private readonly m: ChartModel, private readonly id: string, private readonly paneIdx: number) {}
   width(): number { return 0; }
   applyOptions(opts: Record<string, unknown>): void {
     if (!this.m.alive) return;
+    assertPriceScaleModeSupported(opts);
     applyPriceScaleOptionBag(this.m.scale(this.paneIdx, this.id), opts);
     this.m.bump();
   }
@@ -1177,7 +1215,6 @@ class ModelTimeScaleHandle implements TimeScaleHandle {
     if (!this.m.alive) return {};
     return {
       ...this.m.timeScaleBehaviour,
-      rightOffset: this.m.time.rightOffset,
       barSpacing: this.m.time.barSpacing,
     };
   }
