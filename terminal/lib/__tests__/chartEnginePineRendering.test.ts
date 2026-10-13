@@ -10,6 +10,7 @@ import {
   buildPineScriptOnEngine,
   clearPineLayer,
   isPineKey,
+  paintPineFromCacheOnEngine,
   pineEpochStillCurrent,
   pineKeyOf,
   pineOutcome,
@@ -319,5 +320,130 @@ describe("chart-engine pine rendering (L03)", () => {
       expect(isPineKey(pineKeyOf("abc"))).toBe(true);
       expect(isPineKey("rsi")).toBe(false);
     });
+  });
+});
+
+// ── review-lane additions (ce-l03-rev-1013) ────────────────────────────────────────────
+// The four behaviours below were each provable-survivable by a real mutant at 852943d38:
+// the epoch guard, overlay→pane-0 routing, sub-pane sequencing and the price-anchored
+// marker merge. Every case fails RED under its mutant and passes GREEN at HEAD.
+describe("chart-engine pine rendering (L03) — falsifiable guards", () => {
+  const script = (id: string) => ({ id, name: id, source: "", params: {} });
+  const tick = () => new Promise((r) => setTimeout(r, 0));
+
+  function slowHooks(engine: ChartEngine | null, epochRef: { v: number }, gate: Promise<void>) {
+    return {
+      getEngine: () => engine,
+      getScripts: () => [script("s1")],
+      bumpEpoch: () => ++epochRef.v,
+      getEpoch: () => epochRef.v,
+      readCache: () => null,           // every script is a miss → the slow path always runs
+      clear: vi.fn(),
+      paint: vi.fn(),
+      runMisses: async () => { await gate; },
+      afterSlowRepaint: vi.fn(),
+    };
+  }
+
+  it("A02: a superseded slow batch never clears, repaints or re-measures", async () => {
+    const { engine } = makeRecordingEngine();
+    const epochRef = { v: 0 };
+    let release!: () => void;
+    const h = slowHooks(engine, epochRef, new Promise<void>((r) => { release = r; }));
+    buildAllPineOnEngine(makeBars(), h);
+    expect(h.paint).toHaveBeenCalledTimes(1);          // the synchronous fast paint
+    epochRef.v = 99;                                     // a newer rebuild supersedes this batch
+    release();
+    await tick();
+    expect(h.clear).not.toHaveBeenCalled();
+    expect(h.paint).toHaveBeenCalledTimes(1);
+    expect(h.afterSlowRepaint).not.toHaveBeenCalled();
+  });
+
+  it("A02 control: a still-current slow batch DOES clear, repaint and re-measure", async () => {
+    const { engine } = makeRecordingEngine();
+    const epochRef = { v: 0 };
+    let release!: () => void;
+    const h = slowHooks(engine, epochRef, new Promise<void>((r) => { release = r; }));
+    buildAllPineOnEngine(makeBars(), h);
+    release();
+    await tick();
+    expect(h.clear).toHaveBeenCalledTimes(1);
+    expect(h.paint).toHaveBeenCalledTimes(2);
+    expect(h.afterSlowRepaint).toHaveBeenCalledTimes(1);
+  });
+
+  it("A02: with no engine nothing runs and the epoch is not burned", () => {
+    const epochRef = { v: 0 };
+    const h = slowHooks(null, epochRef, Promise.resolve());
+    buildAllPineOnEngine(makeBars(), h);
+    expect(h.paint).not.toHaveBeenCalled();
+    expect(epochRef.v).toBe(0);
+  });
+
+  const plotRow = { time: "2024-01-01", value: 1 };
+  const overlayPlotResult: RunResult = {
+    meta: { title: "o", overlay: true },
+    plots: [{ id: 0, kind: "line", title: "p", color: "#0f0", linewidth: 1, overlay: true, data: [plotRow] }],
+    hlines: [], shapes: [], inputs: [], warnings: [], barCount: 1,
+  };
+  const overlayShapeResult: RunResult = {
+    meta: { title: "o", overlay: true }, plots: [], hlines: [],
+    shapes: [{ time: "2024-01-01", position: "aboveBar", shape: "circle", color: "#fff", text: "x", overlay: true }],
+    inputs: [], warnings: [], barCount: 1,
+  };
+  const emptyPaneResult: RunResult = {
+    meta: { title: "e", overlay: false }, plots: [], hlines: [], shapes: [], inputs: [], warnings: [], barCount: 1,
+  };
+
+  it("overlay script plots on pane 0 even when handed sub-pane 3", () => {
+    const { engine, price, allSeries } = makeRecordingEngine();
+    const maps = makeMaps();
+    buildPineScriptOnEngine(engine, price as unknown as SeriesHandle, script("a"), makeBars(), 3,
+      maps, pooledPool(), () => {}, () => ({ result: overlayPlotResult, error: null }));
+    expect(allSeries.filter((s) => s.kind === "line").map((s) => s.pane)).toEqual([0]);
+    expect(maps.paneMap.size).toBe(0);
+  });
+
+  it("price-anchored shapes merge through the shared writer, never a raw setMarkers", () => {
+    const { engine, price } = makeRecordingEngine();
+    const maps = makeMaps();
+    const applyPriceMarkers = vi.fn();
+    buildPineScriptOnEngine(engine, price as unknown as SeriesHandle, script("a"), makeBars(), 1,
+      maps, pooledPool(), applyPriceMarkers, () => ({ result: overlayShapeResult, error: null }));
+    expect(applyPriceMarkers).toHaveBeenCalledTimes(1);
+    expect(maps.priceShapes.get("a")?.length).toBe(1);
+    expect(price.setMarkers).not.toHaveBeenCalled();
+  });
+
+  it("clearPineLayer drops price-anchored shapes from the shared set", () => {
+    const maps = makeMaps();
+    const applyPriceMarkers = vi.fn();
+    maps.priceShapes.set("a", [{ time: "2024-01-01", position: "aboveBar", shape: "circle", color: "#fff" }]);
+    clearPineLayer(maps, pooledPool(), applyPriceMarkers);
+    expect(applyPriceMarkers).toHaveBeenCalledTimes(1);
+    expect(maps.priceShapes.size).toBe(0);
+  });
+
+  it("two sub-pane scripts take consecutive panes above builtinPaneMax", () => {
+    const { engine, price, allSeries } = makeRecordingEngine();
+    const maps = makeMaps();
+    paintPineFromCacheOnEngine(engine, price as unknown as SeriesHandle,
+      [script("a"), script("b")], makeBars(), maps, pooledPool(), () => {},
+      () => ({ result: panePlotHlineResult, error: null }), 2);
+    expect(allSeries.filter((s) => s.kind === "line").map((s) => s.pane)).toEqual([2, 3]);
+    expect([...maps.paneMap.entries()]).toEqual([["a", 2], ["b", 3]]);
+  });
+
+  it("a script that renders no series claims no pane", () => {
+    const { engine, price, allSeries } = makeRecordingEngine();
+    const maps = makeMaps();
+    paintPineFromCacheOnEngine(engine, price as unknown as SeriesHandle,
+      [script("empty"), script("b")], makeBars(), maps, pooledPool(), () => {},
+      (s) => (s.id === "empty"
+        ? { result: emptyPaneResult, error: null }
+        : { result: panePlotHlineResult, error: null }), 2);
+    expect(allSeries.filter((s) => s.kind === "line").map((s) => s.pane)).toEqual([2]);
+    expect([...maps.paneMap.entries()]).toEqual([["b", 2]]);
   });
 });

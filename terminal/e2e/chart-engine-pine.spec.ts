@@ -83,6 +83,10 @@ async function bootPine(page: Page, engineQuery: string, addScriptId: string) {
   await expect
     .poll(() => page.evaluate(() => (window as unknown as OwnershipWindow).__mmChartEngineImpl?.() ?? "missing"), { timeout: 30_000 })
     .not.toBe("missing");
+  // Record what ACTUALLY mounted: `?engine=mm` may still fall back to lwc, and a report that
+  // does not say which impl ran hides the day the default flip changes this suite's meaning.
+  const mounted = await page.evaluate(() => (window as unknown as OwnershipWindow).__mmChartEngineImpl?.() ?? null);
+  test.info().annotations.push({ type: "mountedEngineImpl", description: `requested="${engineQuery || "(default)"}" mounted="${mounted}"` });
 }
 
 async function census(page: Page): Promise<Census> {
@@ -150,11 +154,13 @@ for (const impl of IMPL_QUERY) {
       test.skip(testInfo.project.name !== "desktop", "Desktop-only heavy case.");
       await bootPine(page, impl.query, PANE_ID);
       await expect.poll(async () => (await census(page)).owned.pine, { timeout: 60_000 }).toBeGreaterThan(0);
+      const loaded = await census(page);
       await setSymbol(page, "NOSUCH.TEST");
       await expect.poll(async () => (await census(page)).owned.pine, { timeout: 60_000 }).toBe(0);
       const dead = await census(page);
       expect(dead.orphanSeries).toBe(0);
       expect(dead.trackedPricePaneLines).toBe(0);
+      expect(dead.orphanPricePaneLines).toBe(loaded.orphanPricePaneLines);
     });
   });
 }
