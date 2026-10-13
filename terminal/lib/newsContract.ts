@@ -5,6 +5,7 @@ import type {
   TickerNewsState,
   TickerNewsStory,
 } from "@/lib/newsTypes";
+import { parseRightsBasis, parseUniverseKnownAt } from "@/lib/newsProvenance";
 import {
   TickerNewsContractError,
   asBoolean,
@@ -18,6 +19,7 @@ import {
   normalizeTickerNewsSymbol,
   parseHealth,
   parseStoryRow,
+  parseTickerNewsFlow,
 } from "@/lib/newsValidation";
 
 export type * from "@/lib/newsTypes";
@@ -48,11 +50,16 @@ export function parseTickerNewsSnapshot(value: unknown): TickerNewsSnapshot {
     schema: "ticker_news.snapshot.v1",
     ticker: normalizeTickerNewsSymbol(asText(obj.ticker, "snapshot_ticker", 32)),
     security_id: asText(obj.security_id, "snapshot_security_id", 1024),
+    universe_known_at: parseUniverseKnownAt(obj.universe_known_at),
+    rights_basis: parseRightsBasis(obj.rights_basis),
     state,
     rows: obj.rows.map(parseStoryRow),
     next_cursor: nextCursor,
     has_more: asBoolean(obj.has_more, "snapshot_has_more"),
     source_health: parseHealth(obj.source_health),
+    // Wave B: an absent flow key (old API, or a cursor page) is null; a present key
+    // parses to a flow or the terminal-only MALFORMED flow — never a snapshot throw.
+    flow: "flow" in obj ? parseTickerNewsFlow(obj.flow) : null,
   };
 }
 

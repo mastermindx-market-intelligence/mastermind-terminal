@@ -17,6 +17,8 @@ export const NEWS_CATCHUP_LEX = {
   ncMoreReports: ["{n} more reports since your review", "阅读后新增 {n} 条报道"],
   ncMoreReport: ["1 more report since your review", "阅读后新增 1 条报道"],
   ncMarkOne: ["Mark reviewed", "标为已读"],
+  // Wave B3 (U5): per-story accessible name — visible text stays ncMarkOne.
+  ncMarkOneFor: ["Mark reviewed: {title}", "标为已读：{title}"],
   ncMarkShown: ["Mark shown as reviewed", "将显示的标为已读"],
   ncSummary: ["{new} new · {updated} updated", "{new} 条新 · {updated} 条更新"],
   ncCaughtUp: ["All shown stories reviewed", "显示的新闻已全部读完"],
