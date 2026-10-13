@@ -122,52 +122,42 @@ describe("F2 P2 — a throwing rAF paint must NOT be recorded as a WORKING frame
     //   const end = performance.now();
     //   records.push({ frameTs, start, end });
     // After the fix it must guard the push on paint success. We assert the
-    // SOURCE: the `records.push({ frameTs, start, end })` line must be
-    // preceded by an `if (painted)` (or equivalent) guard.
-    const idx = mountSrc.indexOf("records.push({ frameTs, start, end })");
-    expect(idx).toBeGreaterThan(0);
-    // Find the `if`-statement that immediately precedes the push. If the
-    // push is the unconditional next statement after `invoke()` returns,
-    // the snippet contains the bug. The fix must add one such guard.
-    const before = mountSrc.slice(Math.max(0, idx - 200), idx);
+    // SOURCE: a line `if (painted) records.push(...)` (or with whitespace)
+    // must appear in mount.ts.
     expect(
-      /\bif\s*\([^)]*\bpainted\b[^)]*\)\s*records\.push/.test(before),
-      "records.push({ frameTs, start, end }) must be guarded by `if (painted) ...` so a throwing paint is not recorded as work",
+      /\bif\s*\(\s*painted\s*\)\s*records\.push\s*\(\s*\{\s*frameTs\s*,\s*start\s*,\s*end\s*\}\s*\)/.test(mountSrc),
+      "mount.ts must contain `if (painted) records.push({ frameTs, start, end })` so a throwing paint is not recorded as work",
     ).toBe(true);
   });
 
   it("a paint that throws does not produce a frame record (logic-level falsifier)", () => {
-    // Reproduce the wrapper logic from mount.ts:109-131 *identically* so we
-    // can show the bug at H2 (records are pushed even when paint threw) and
-    // prove the fix lands. The mount.ts source pin above proves the same
-    // property against the real source.
+    // Reproduce the wrapper logic from mount.ts:109-139 — the POST-FIX
+    // shape — so we can pin the contract end-to-end. The mount.ts source
+    // pin above pins the same property against the real source.
     type FrameRec = { frameTs: number; start: number; end: number };
     const records: FrameRec[] = [];
-    let paintRefused = false;
+    let paintRefusalCount = 0;
     const refLog: string[] = [];
-    const refuse = (m: string) => {
-      refLog.push(`refused:${m}`);
-      paintRefused = true;
-    };
+    const refuse = (m: string) => refLog.push(`refused:${m}`);
 
-    // === exact H2 wrapper logic ===
+    // === FIXED wrapper logic (matches mount.ts:111-139) ===
     const wrapper = (cb: () => void): void => {
-      const invoke = () => {
+      const invoke = (): boolean => {
         try {
           cb();
+          return true;
         } catch (err) {
-          if (!paintRefused) {
-            refuse("paint", err);
-            paintRefused = true;
-          }
+          paintRefusalCount++;
+          if (paintRefusalCount === 1) refuse("paint", err);
+          return false;
         }
       };
-      invoke();
       const start = 0;
+      const painted = invoke();
       const end = 0;
-      records.push({ frameTs: 0, start, end });
+      if (painted) records.push({ frameTs: 0, start, end });
     };
-    // =================================
+    // ===========================================================
 
     // Two throwing + one success.
     wrapper(() => {
@@ -180,11 +170,11 @@ describe("F2 P2 — a throwing rAF paint must NOT be recorded as a WORKING frame
       // success
     });
 
-    // Pin the FIXED contract: zero frame records when every paint threw.
-    // At H2 (unconditional records.push), records has 3 entries and this
-    // assertion fails (RED). After the fix the assertion passes (GREEN).
+    // Pin the FIXED contract: one record (the success), exactly one
+    // refused:paint line (the latch), and the counter says 2.
     expect(records, "frames whose paint threw must NOT be recorded as WORKING").toHaveLength(1);
     expect(refLog.filter((l) => l.startsWith("refused:paint")), "exactly one refused:paint line for the run (the latch)").toHaveLength(1);
+    expect(paintRefusalCount, "the counter reflects every throwing paint").toBe(2);
   });
 });
 

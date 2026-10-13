@@ -32,6 +32,7 @@ export type MmBenchHook = {
   heapBefore: number;
   firstPaintMs: number;
   log: string[];
+  paintRefusals(): number;
   plotCenter(): { x: number; y: number };
   startFrameLog(): void;
   stopFrameLog(): FrameRecord[];
@@ -106,18 +107,21 @@ export function mountBench(container: HTMLElement, impl: EngineImpl): MountBench
   const origCancel = window.cancelAnimationFrame.bind(window);
   let logging = false;
   const records: FrameRecord[] = [];
-  let paintRefused = false;
+  let paintRefusalCount = 0;
 
   window.requestAnimationFrame = ((cb: FrameRequestCallback): number => {
     return origRaf((frameTs) => {
-      const invoke = () => {
+      /** False when the callback threw: that frame presented nothing. */
+      const invoke = (): boolean => {
         try {
           cb(frameTs);
+          return true;
         } catch (err) {
-          if (!paintRefused) {
-            refuse("paint", err);
-            paintRefused = true;
+          paintRefusalCount++;
+          if (paintRefusalCount === 1) {
+            refuse("paint", err); // the first occurrence carries the message
           }
+          return false;
         }
       };
       if (!logging) {
@@ -125,9 +129,12 @@ export function mountBench(container: HTMLElement, impl: EngineImpl): MountBench
         return;
       }
       const start = performance.now();
-      invoke();
+      const painted = invoke();
       const end = performance.now();
-      records.push({ frameTs, start, end });
+      // A frame whose paint threw did no work. Recording it would price a
+      // failure as a fast frame and feed the pan/zoom/live p95s with
+      // numbers no renderer produced.
+      if (painted) records.push({ frameTs, start, end });
     });
   }) as typeof window.requestAnimationFrame;
 
@@ -240,6 +247,7 @@ export function mountBench(container: HTMLElement, impl: EngineImpl): MountBench
     heapBefore,
     firstPaintMs: 0,
     log,
+    paintRefusals: () => paintRefusalCount,
     plotCenter() {
       const el = engine?.chartElement() ?? container;
       const rect = el.getBoundingClientRect();
@@ -355,6 +363,7 @@ export function mountBench(container: HTMLElement, impl: EngineImpl): MountBench
         hook.firstPaintMs = 1e-9;
       }
       log.push(`corpus=${DAILY_40K.name} bars=${DAILY_40K.bars} impl=${impl}`);
+      log.push(`paint_refusals=${paintRefusalCount}`);
       resolveReady();
     });
   });
