@@ -533,37 +533,18 @@ export class ChartModel {
   }
 
   timeToCoordinate(time: EngineTime): number | null {
-    if (!this.alive) return null;
-    const primary = this.primarySeries();
-    if (!primary || primary.rows.length === 0) return null;
-    const target = timeToMs(time);
-    if (!Number.isFinite(target)) return null;
-    const times = primary.rows.map((r) => timeToMs(r.time));
-    const lo = Math.min(times[0], times[times.length - 1]);
-    const hi = Math.max(times[0], times[times.length - 1]);
-    if (target < lo || target > hi) {
-      const fut = futureSlotResolver.resolve(time, primary.rows.map((r) => r.time));
-      return fut ? this.xOfLogical(fut.logical) : null;
-    }
-    let best = 0;
-    let bestDist = Infinity;
-    for (let i = 0; i < times.length; i++) {
-      const d = Math.abs(times[i] - target);
-      if (d < bestDist) { bestDist = d; best = i; }
-    }
-    return this.xOfLogical(best);
+    // §1.6 / dev:12931-12936: indexToCoordinate(timeToIndex(t, false)) — null off-grid.
+    const idx = this.timeToIndex(time, false);
+    return idx == null ? null : this.xOfLogical(idx);
   }
 
   coordinateToTime(x: number): EngineTime | null {
     if (!this.alive) return null;
     const primary = this.primarySeries();
     if (!primary || primary.rows.length === 0) return null;
-    const n = primary.rows.length;
     const i = Math.round(this.logicalOfX(x));
-    if (i < 0) return null;
-    if (i < n) return primary.rows[i].time;
-    const futures = futureBarTimes(primary.rows.map((r) => asCadenceTime(r.time)));
-    return futures[i - n] ?? null;
+    if (i < 0 || i >= primary.rows.length) return null;
+    return primary.rows[i].time;
   }
 
   fitContent(): void {
@@ -695,7 +676,10 @@ export class ChartModel {
     return handle;
   }
 
-  /** Exact logical index of `time` in the primary series; nearest when asked; future slot via the cadence seam. */
+  /**
+   * Exact logical index of `time` on the primary series (dev:6037-6053).
+   * Off-grid — including future times — is null unless findNearest.
+   */
   timeToIndex(time: EngineTime, findNearest?: boolean): number | null {
     if (!this.alive) return null;
     const primary = this.primarySeries();
@@ -709,12 +693,10 @@ export class ChartModel {
       if (d === 0) return i;
       if (d < bestDist) { bestDist = d; best = i; }
     }
-    const fut = futureSlotResolver.resolve(time, primary.rows.map((r) => r.time));
-    if (fut) return fut.logical;
     return findNearest && best >= 0 ? best : null;
   }
 
-  /** Time at a logical index: a primary row, or a future cadence slot past the last row. */
+  /** Time at a logical index on the primary series. Out-of-range logicals clamp to the first/last row (no future leak). */
   timeAtLogical(logical: number): EngineTime | null {
     if (!this.alive) return null;
     const primary = this.primarySeries();
@@ -722,7 +704,35 @@ export class ChartModel {
     const n = primary.rows.length;
     const i = Math.round(logical);
     if (i < 0) return primary.rows[0].time;
-    if (i < n) return primary.rows[i].time;
+    if (i >= n) return primary.rows[n - 1].time;
+    return primary.rows[i].time;
+  }
+
+  /** True iff round-to-nearest-bar logical lands on an existing primary-series row. */
+  hasBarAtLogical(logical: number): boolean {
+    if (!this.alive || !Number.isFinite(logical)) return false;
+    const primary = this.primarySeries();
+    if (!primary) return false;
+    const i = Math.round(logical);
+    return i >= 0 && i < primary.rows.length;
+  }
+
+  /** Drawing-only: logical index of a synthetic future slot, or null when `time` is not past the last bar. */
+  futureSlotLogical(time: EngineTime): number | null {
+    if (!this.alive) return null;
+    const primary = this.primarySeries();
+    if (!primary || primary.rows.length < 2) return null;
+    return futureSlotResolver.resolve(time, primary.rows.map((r) => r.time))?.logical ?? null;
+  }
+
+  /** Drawing-only: time of a synthetic future slot at `logical`, or null when that slot is a real bar. */
+  logicalToFutureTime(logical: number): EngineTime | null {
+    if (!this.alive || !Number.isFinite(logical)) return null;
+    const primary = this.primarySeries();
+    if (!primary || primary.rows.length < 2) return null;
+    const n = primary.rows.length;
+    const i = Math.round(logical);
+    if (i < n) return null;
     const futures = futureBarTimes(primary.rows.map((r) => asCadenceTime(r.time)));
     return futures[i - n] ?? null;
   }
