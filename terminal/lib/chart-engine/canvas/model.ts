@@ -57,6 +57,7 @@ import {
   nextScrollFrameDelayMs,
   resizeTimeScaleWidth,
   SCROLL_TO_POSITION_MS,
+  SCROLL_TO_REALTIME_MS,
   type ModelClock,
   type TimeScaleBehaviour,
 } from "./modelTime";
@@ -291,7 +292,6 @@ export class ChartModel {
   private syncRightOffsetFromWindow(): void {
     const n = this.primarySeries()?.rows.length ?? 0;
     this.time.rightOffset = this.time.visibleTo - n;
-    this.timeScaleBehaviour.rightOffset = this.time.rightOffset;
   }
 
   layoutHeights(totalHeight: number): void {
@@ -643,11 +643,9 @@ export class ChartModel {
   }
   scrollToRealtime(): void {
     if (!this.alive) return;
-    const n = this.primarySeries()?.rows.length ?? 0;
-    const span = this.time.visibleTo - this.time.visibleFrom;
-    const width = span > 0 ? span : Math.max(1, n);
-    const right = this.time.rightOffset;
-    this.setVisibleLogicalRange({ from: n - width + right, to: n + right });
+    // LWC dev:6347-6350: scrollToOffsetAnimated(timeScaleBehaviour.rightOffset) over 400 ms.
+    // Targeting the live rightOffset made this a no-op after any pan.
+    this.scrollToPosition(this.timeScaleBehaviour.rightOffset, true, SCROLL_TO_REALTIME_MS);
   }
   private applyRightOffsetNow(position: number, spanOverride?: number): void {
     const n = this.primarySeries()?.rows.length ?? 0;
@@ -666,7 +664,7 @@ export class ChartModel {
     this.scrollAnim = null;
   }
 
-  scrollToPosition(position: number, animated = false): void {
+  scrollToPosition(position: number, animated = false, durationMs: number = SCROLL_TO_POSITION_MS): void {
     if (!this.alive) return;
     const n = this.primarySeries()?.rows.length ?? 0;
     const clamped = correctRightOffset(
@@ -702,7 +700,7 @@ export class ChartModel {
       from,
       to: clamped,
       startMs: this.clock.now(),
-      durationMs: SCROLL_TO_POSITION_MS,
+      durationMs,
       span,
       handle: null,
     };
@@ -808,7 +806,6 @@ export class ChartModel {
             this.time.visibleTo += 1;
           } else {
             this.time.rightOffset -= 1;
-            this.timeScaleBehaviour.rightOffset = this.time.rightOffset;
           }
         }
       }
@@ -982,25 +979,36 @@ class ModelSeriesHandle implements SeriesHandle {
   dataByIndex(logicalIndex: number, mismatchDirection: EngineMismatchDirection = "none"): EngineSeriesRow | null {
     const s = this.live();
     if (!s || s.rows.length === 0 || !Number.isFinite(logicalIndex)) return null;
-    const n = s.rows.length;
-    // LWC PlotList (dev:3014-3037): NearestLeft = largest index < logical (floor
-    // for a dense integer grid); NearestRight = smallest index > logical (ceil).
-    // An integer that exists is an exact hit and returns itself.
-    if (mismatchDirection === "nearest-left") {
-      const i = Math.floor(logicalIndex);
-      if (i >= n) return s.rows[n - 1];
-      if (i >= 0 && i < n) return s.rows[i];
+    // LWC searches the valued PlotList (dev:3015-3039, dev:13128-13136): a
+    // whitespace index is a miss, and nearest-left/right skip whitespace rows.
+    // Mirror that over the valued subset of s.rows. The default direction
+    // preserves the canvas precedent of rounding non-integer logicals to the
+    // nearest integer (P-1: chartEngineCanvasC02.test.ts:105 pins this).
+    const valued: EngineSeriesRow[] = [];
+    const valuedAt: number[] = [];
+    for (let i = 0; i < s.rows.length; i++) {
+      if (seriesClose(s.rows[i]) != null) { valued.push(s.rows[i]); valuedAt.push(i); }
+    }
+    const n = valued.length;
+    if (n === 0) return null;
+    const lookupExact = (i: number): EngineSeriesRow | null => {
+      for (let k = 0; k < n; k++) if (valuedAt[k] === i) return valued[k];
       return null;
+    };
+    if (mismatchDirection === "nearest-left") {
+      let lo = 0;
+      while (lo < n && valuedAt[lo] < logicalIndex) lo++;
+      if (lo < n && valuedAt[lo] === logicalIndex) return valued[lo];
+      return lo > 0 ? valued[lo - 1] : null;
     }
     if (mismatchDirection === "nearest-right") {
-      const i = Math.ceil(logicalIndex);
-      if (i < 0) return s.rows[0];
-      if (i >= 0 && i < n) return s.rows[i];
-      return null;
+      let lo = 0;
+      while (lo < n && valuedAt[lo] < logicalIndex) lo++;
+      if (lo < n && valuedAt[lo] === logicalIndex) return valued[lo];
+      return lo < n ? valued[lo] : null;
     }
-    const i = Math.round(logicalIndex);
-    if (i >= 0 && i < n) return s.rows[i];
-    return null;
+    const rounded = Math.round(logicalIndex);
+    return lookupExact(rounded);
   }
   createPriceLine(opts: PriceLineSpec): PriceLineHandle { return this.m.createPriceLine(this.id, opts); }
   removePriceLine(line: PriceLineHandle): void {
