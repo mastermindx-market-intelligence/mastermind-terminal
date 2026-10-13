@@ -1,12 +1,8 @@
-// Mastermind Chart Engine — native Canvas2D renderer (P3 / R01).
+// Mastermind Chart Engine — native Canvas2D renderer (P3).
 //
 // Implements the renderer-agnostic ChartEngine contract with an owned ChartModel
 // and pane canvases. unwrap() returns that ChartModel: the native engine has no
-// vendor instance. Dark-launched as impl "mm".
-//
-// R01 is a skeleton: placeholder series paint (close-price polyline / 1px candle
-// stems), linear/normal price math, lifecycle, inventory, and a synchronous
-// screenshot. Pretty geometry lands in R02 (canvas/series.ts).
+// vendor instance. Dark-launched as impl "mm". Frame composition lives in frame.ts.
 
 import type {
   ChartEngine,
@@ -23,6 +19,7 @@ import type {
   WatermarkLine,
   WatermarkSpec,
 } from "../api";
+import { normalizeEngineOptions } from "../options";
 import {
   createChartDom,
   destroyChartDom,
@@ -34,11 +31,28 @@ import {
   type ResizeObserverCtor,
 } from "./dom";
 import {
+  deliverPrimitiveUpdates,
+  paintOverlayFrame,
+  paintPaneFrame,
+} from "./frame";
+import {
+  createInvalidator,
+  dataChangeMask,
+  liveTickMask,
+  type FlushReport,
+  type InvalidationMask,
+  type Invalidator,
+} from "./invalidation";
+import {
   ChartModel,
   seriesClose,
-  type Projection,
+  timeToMs,
   type SeriesModel,
 } from "./model";
+import { createPrimitiveHost, type HostPrimitive, type PrimitiveHost } from "./primitives";
+import { EngineRefusalError } from "./refusal";
+import { crosshairInvalidation, dataAt, resolveCrosshair, snapLogicalToBar } from "./crosshair";
+import { attachEngineInput, type EngineInputBinding } from "./inputBridge";
 
 export { ChartModel, priceScaleMath, futureSlotResolver, xOfLogical, logicalOfX } from "./model";
 export type {
@@ -50,29 +64,20 @@ export type {
   PaneModel,
   PriceLineModel,
 } from "./model";
+export { EngineRefusalError, assertEnginePrimitive } from "./refusal";
+export { CANVAS_NEUTRAL_DEFAULTS } from "./frame";
 
 export const CANVAS_ENGINE_IMPL = "mm" as const;
 
 export const CANVAS_CAPABILITIES = {
   seriesKinds: ["candles", "bars", "line", "area", "histogram", "baseline"] as const,
-  priceScaleModes: ["normal"] as const,
+  priceScaleModes: ["normal", "log", "percent", "indexed100"] as const,
   watermark: true,
   markers: true,
   primitives: true,
   screenshot: true,
-  kineticScroll: false,
+  kineticScroll: true,
 };
-
-export class EngineRefusalError extends Error {
-  readonly reason: string;
-  readonly unsupported: string[];
-  constructor(reason: string, unsupported: string[]) {
-    super(reason);
-    this.name = "EngineRefusalError";
-    this.reason = reason;
-    this.unsupported = unsupported;
-  }
-}
 
 export type PaintScheduler = {
   schedule(cb: () => void): unknown;
@@ -80,19 +85,21 @@ export type PaintScheduler = {
 };
 
 export function createManualScheduler(): PaintScheduler & { flush(): void } {
-  let pending: (() => void) | null = null;
+  const pending = new Map<unknown, () => void>();
+  let seq = 0;
   return {
     schedule(cb) {
-      pending = cb;
-      return cb;
+      const handle = ++seq;
+      pending.set(handle, cb);
+      return handle;
     },
-    cancel() {
-      pending = null;
+    cancel(handle) {
+      pending.delete(handle);
     },
     flush() {
-      const p = pending;
-      pending = null;
-      if (p) p();
+      const batch = [...pending.values()];
+      pending.clear();
+      for (const p of batch) p();
     },
   };
 }
@@ -108,139 +115,55 @@ export type CanvasEngineOptions = EngineOptions & {
   scheduler?: PaintScheduler;
   resizeObserverCtor?: ResizeObserverCtor | null;
   devicePixelRatio?: number;
+  now?: () => number;
 };
 
-function isNormalMode(mode: unknown): boolean {
-  return mode === "normal" || mode === 0 || mode === "Normal";
+const LOCAL_KEYS = ["scheduler", "resizeObserverCtor", "devicePixelRatio", "now"] as const;
+
+function stripLocalKeys(options: CanvasEngineOptions | undefined): {
+  engine: EngineOptions;
+  scheduler?: PaintScheduler;
+  resizeObserverCtor?: ResizeObserverCtor | null;
+  devicePixelRatio?: number;
+  now?: () => number;
+} {
+  if (!options) return { engine: {} };
+  const bag = { ...options } as Record<string, unknown>;
+  const scheduler = bag.scheduler as PaintScheduler | undefined;
+  const resizeObserverCtor = bag.resizeObserverCtor as ResizeObserverCtor | null | undefined;
+  const devicePixelRatio = bag.devicePixelRatio as number | undefined;
+  const now = bag.now as (() => number) | undefined;
+  for (const k of LOCAL_KEYS) delete bag[k];
+  return { engine: bag, scheduler, resizeObserverCtor, devicePixelRatio, now };
 }
 
-function kineticRequested(k: unknown): boolean {
-  if (k == null || k === false) return false;
-  if (k === true) return true;
-  if (typeof k !== "object") return false;
-  return Object.values(k as Record<string, unknown>).some((v) => v === true);
+function gateEngineOptions(options: EngineOptions): EngineOptions {
+  const result = normalizeEngineOptions(options, CANVAS_CAPABILITIES);
+  if (!result.ok) {
+    throw new EngineRefusalError(result.reason, result.unsupported);
+  }
+  return result.options;
 }
 
-function collectUnsupported(options: EngineOptions | undefined): string[] {
-  if (!options) return [];
-  const bad: string[] = [];
-  for (const key of ["rightPriceScale", "leftPriceScale"] as const) {
-    const scale = options[key];
-    if (!scale || typeof scale !== "object") continue;
-    const mode = (scale as { mode?: unknown }).mode;
-    if (mode != null && !isNormalMode(mode)) bad.push(`priceScaleMode:${String(mode)}`);
-  }
-  if (!CANVAS_CAPABILITIES.kineticScroll && kineticRequested(options.kineticScroll)) {
-    bad.push("kineticScroll");
-  }
-  return bad;
-}
+type SeriesSnap = {
+  paneIndex: number;
+  priceScaleId: string;
+  rowCount: number;
+  lastTime: number | null;
+  lastClose: number | null;
+  removed: boolean;
+};
 
-function seriesStroke(options: EngineSeriesOptions): string {
-  if (typeof options.lineColor === "string") return options.lineColor;
-  if (typeof options.color === "string") return options.color;
-  if (typeof options.topColor === "string") return options.topColor;
-  if (typeof options.upColor === "string") return options.upColor;
-  if (typeof options.borderColor === "string") return options.borderColor;
-  return "#848484";
-}
-
-function optionColor(bag: unknown, fallback: string): string {
-  if (bag && typeof bag === "object" && typeof (bag as { color?: unknown }).color === "string") {
-    return (bag as { color: string }).color;
-  }
-  return fallback;
-}
-
-function optionVisible(bag: unknown): boolean {
-  if (bag && typeof bag === "object" && (bag as { visible?: unknown }).visible === false) return false;
-  return true;
-}
-
-// R02 replaces with canvas/series.ts geometry
-function paintSeries(ctx: CanvasRenderingContext2D, series: SeriesModel, projection: Projection): void {
-  const color = seriesStroke(series.options);
-  ctx.strokeStyle = color;
-  ctx.lineWidth = 1;
-  if (series.kind === "candles" || series.kind === "bars") {
-    for (let i = 0; i < series.rows.length; i++) {
-      const row = series.rows[i] as { high?: number; low?: number; close?: number };
-      if (typeof row.high !== "number" || typeof row.low !== "number") continue;
-      const x = projection.xOfLogical(i);
-      ctx.beginPath();
-      ctx.moveTo(x, projection.yOfPrice(row.high));
-      ctx.lineTo(x, projection.yOfPrice(row.low));
-      ctx.stroke();
-    }
-    return;
-  }
-  ctx.beginPath();
-  let started = false;
-  for (let i = 0; i < series.rows.length; i++) {
-    const v = seriesClose(series.rows[i]);
-    if (v == null) {
-      started = false;
-      continue;
-    }
-    const x = projection.xOfLogical(i);
-    const y = projection.yOfPrice(v);
-    if (!started) {
-      ctx.moveTo(x, y);
-      started = true;
-    } else {
-      ctx.lineTo(x, y);
-    }
-  }
-  if (started) ctx.stroke();
-}
-
-function paintGrid(
-  ctx: CanvasRenderingContext2D,
-  model: ChartModel,
-  width: number,
-  height: number,
-): void {
-  const grid = model.options.grid;
-  if (!grid || typeof grid !== "object") return;
-  const g = grid as { vertLines?: unknown; horzLines?: unknown };
-  if (optionVisible(g.vertLines)) {
-    ctx.strokeStyle = optionColor(g.vertLines, "rgba(128,128,128,0.2)");
-    ctx.lineWidth = 1;
-    const from = Math.floor(model.time.visibleFrom);
-    const to = Math.ceil(model.time.visibleTo);
-    for (let i = from; i <= to; i++) {
-      const x = model.xOfLogical(i);
-      ctx.beginPath();
-      ctx.moveTo(x, 0);
-      ctx.lineTo(x, height);
-      ctx.stroke();
-    }
-  }
-  if (optionVisible(g.horzLines)) {
-    ctx.strokeStyle = optionColor(g.horzLines, "rgba(128,128,128,0.2)");
-    ctx.lineWidth = 1;
-    const steps = 4;
-    for (let s = 1; s < steps; s++) {
-      const y = (height * s) / steps;
-      ctx.beginPath();
-      ctx.moveTo(0, y);
-      ctx.lineTo(width, y);
-      ctx.stroke();
-    }
-  }
-}
-
-function backgroundColor(options: EngineOptions): string | null {
-  const layout = options.layout;
-  if (!layout || typeof layout !== "object") return null;
-  const bag = layout as Record<string, unknown>;
-  if (typeof bag.backgroundColor === "string") return bag.backgroundColor;
-  const bg = bag.background;
-  if (bg && typeof bg === "object") {
-    const c = (bg as { color?: unknown }).color;
-    if (typeof c === "string") return c;
-  }
-  return null;
+function snapOf(s: SeriesModel): SeriesSnap {
+  const last = s.rows[s.rows.length - 1];
+  return {
+    paneIndex: s.paneIndex,
+    priceScaleId: s.priceScaleId,
+    rowCount: s.rows.length,
+    lastTime: last ? timeToMs(last.time) : null,
+    lastClose: last ? seriesClose(last) : null,
+    removed: s.removed,
+  };
 }
 
 export type CanvasChartEngine = ChartEngine & {
@@ -252,24 +175,50 @@ class CanvasEngine implements CanvasChartEngine {
   private readonly model: ChartModel;
   private readonly container: HTMLElement;
   private dom: ChartDom | null;
-  // Kept after destroy so chartElement() stays a (detached) HTMLElement, as the contract requires.
   private lastRoot: HTMLElement | null = null;
   private readonly scheduler: PaintScheduler;
   private paintHandle: unknown = null;
   private readonly overlayListeners: Array<[string, EventListener]> = [];
   private lastPoint: { x: number; y: number } | null = null;
+  private readonly primHost: PrimitiveHost;
+  private readonly invalidator: Invalidator;
+  private snaps = new Map<number, SeriesSnap>();
+  private lastPrimGen = -1;
+  private input: EngineInputBinding | null = null;
+  private readonly nowFn: () => number;
 
   constructor(container: HTMLElement, options: CanvasEngineOptions | undefined, dpr: number) {
     const width = typeof options?.width === "number" ? options.width : container.clientWidth || 0;
     const height = typeof options?.height === "number" ? options.height : container.clientHeight || 0;
     this.scheduler = options?.scheduler ?? rafScheduler();
+    this.nowFn = options?.now
+      ?? (() => (typeof performance !== "undefined" ? performance.now() : Date.now()));
+
+    this.primHost = createPrimitiveHost({
+      onRequestUpdate: () => this.requestPaint({ level: "light", panes: "all" }),
+    });
+
+    this.invalidator = createInvalidator((flush) => {
+      const handle = this.scheduler.schedule(() => {
+        this.paintHandle = null;
+        const report = (flush as unknown as () => FlushReport | null)();
+        if (report) this.paintFrame(report.mask, report.generation);
+      });
+      this.paintHandle = handle;
+      return () => {
+        this.scheduler.cancel(handle);
+        this.paintHandle = null;
+      };
+    });
 
     this.model = new ChartModel({
-      onInvalidate: () => this.invalidate(),
+      onInvalidate: () => this.onModelInvalidate(),
       onStructure: () => this.syncStructure(),
     });
     this.model.dpr = dpr;
-    this.model.options = { ...(options ?? {}) };
+    const stored = { ...(options ?? {}) } as Record<string, unknown>;
+    for (const k of LOCAL_KEYS) delete stored[k];
+    this.model.options = stored;
     this.model.setWidth(width);
     this.model.layoutHeights(height);
 
@@ -289,8 +238,107 @@ class CanvasEngine implements CanvasChartEngine {
     this.lastRoot = this.dom.root;
     this.model.paneElementLookup = (i) => (this.dom ? paneElement(this.dom, i) : null);
     this.bindOverlay();
+    this.input = attachEngineInput({
+      model: this.model,
+      getTarget: () => this.dom?.overlay ?? null,
+      scheduler: this.scheduler,
+      now: () => this.nowFn(),
+      options: this.model.options,
+      onPointerPoint: (point) => {
+        this.lastPoint = point;
+        this.requestPaint({ level: "cursor", panes: "all" });
+      },
+    });
     this.syncStructure();
-    this.invalidate();
+    this.requestPaint({ level: "full", panes: "all" });
+    // Identity marker: written LAST so a thrown ctor/refusal path leaves the host clean.
+    container.dataset.chartEngine = CANVAS_ENGINE_IMPL;
+  }
+
+  private requestPaint(partial: Partial<InvalidationMask> & { level: InvalidationMask["level"] }): void {
+    if (!this.dom) return;
+    this.invalidator.invalidate(partial);
+  }
+
+  private onModelInvalidate(): void {
+    this.reconcilePrimitives();
+    this.requestPaint(this.classifyModelChange());
+    this.captureSnaps();
+  }
+
+  private captureSnaps(): void {
+    this.snaps = new Map();
+    for (const s of this.model.series.values()) this.snaps.set(s.id, snapOf(s));
+  }
+
+  private classifyModelChange(): Partial<InvalidationMask> & { level: InvalidationMask["level"] } {
+    const livePanes = new Set<number>();
+    let onlyLive = this.snaps.size > 0;
+    let tickScale = false;
+    let priceScaleId = "right";
+    for (const s of this.model.series.values()) {
+      const prev = this.snaps.get(s.id);
+      if (!prev) {
+        if (s.removed) continue;
+        onlyLive = false;
+        continue;
+      }
+      if (s.removed && !prev.removed) {
+        return dataChangeMask({
+          kind: "remove", paneIndex: s.paneIndex, priceScaleId: s.priceScaleId, visibleAffected: true,
+        });
+      }
+      const next = snapOf(s);
+      const inPlace = next.rowCount === prev.rowCount && next.lastTime === prev.lastTime
+        && next.lastClose !== prev.lastClose;
+      const appended = next.rowCount === prev.rowCount + 1 && prev.lastTime != null
+        && next.lastTime != null && next.lastTime > prev.lastTime;
+      if (inPlace || appended) {
+        livePanes.add(s.paneIndex);
+        priceScaleId = s.priceScaleId;
+        const tick = liveTickMask(
+          prev.lastTime != null ? { time: prev.lastTime } : null,
+          { time: next.lastTime ?? prev.lastTime ?? 0 },
+          this.model.time.visibleTo,
+          prev.rowCount,
+        );
+        tickScale = tickScale || tick.timeScale;
+      } else if (next.rowCount !== prev.rowCount || next.lastClose !== prev.lastClose) {
+        onlyLive = false;
+      }
+    }
+    if (onlyLive && livePanes.size > 0) {
+      const paneIndex = [...livePanes][0];
+      const data = dataChangeMask({
+        kind: "update", paneIndex, priceScaleId, visibleAffected: true,
+      });
+      return { ...data, panes: livePanes, timeScale: tickScale, autoscale: livePanes };
+    }
+    return { level: "full", panes: "all" };
+  }
+
+  private reconcilePrimitives(): void {
+    const wanted = new Map<HostPrimitive, { paneIndex: number; seriesId: string }>();
+    for (const s of this.model.series.values()) {
+      if (s.removed) continue;
+      for (const raw of s.primitives) {
+        if (!raw || typeof raw !== "object") continue;
+        const p = raw as HostPrimitive;
+        if (typeof p.id !== "string") continue;
+        wanted.set(p, { paneIndex: s.paneIndex, seriesId: String(s.id) });
+      }
+    }
+    for (let i = 0; i < this.model.panes.length; i++) {
+      for (const p of this.primHost.forPane(i)) {
+        if (!wanted.has(p)) this.primHost.detach(p);
+      }
+    }
+    for (const [p, loc] of wanted) {
+      const already = this.primHost.forPane(loc.paneIndex).includes(p)
+        || this.model.panes.some((_, i) => this.primHost.forPane(i).includes(p));
+      if (!already) this.primHost.attach(loc.paneIndex, loc.seriesId, p);
+      else this.primHost.moveSeries(loc.seriesId, loc.paneIndex);
+    }
   }
 
   private syncStructure(): void {
@@ -304,61 +352,35 @@ class CanvasEngine implements CanvasChartEngine {
     );
   }
 
-  private invalidate(): void {
-    if (!this.dom) return;
-    if (this.paintHandle != null) return;
-    this.paintHandle = this.scheduler.schedule(() => {
-      this.paintHandle = null;
-      this.paint();
-    });
-  }
-
-  private paint(): void {
+  private paintFrame(mask: InvalidationMask, generation: number): void {
     const dom = this.dom;
     if (!dom) return;
-    const bg = backgroundColor(this.model.options);
-    for (let i = 0; i < this.model.panes.length; i++) {
-      const pane = this.model.panes[i];
-      const surface = dom.panes[i];
-      if (!pane || !surface) continue;
-      const ctx = surface.canvas.getContext("2d");
-      if (!ctx) continue;
-      const w = this.model.time.widthPx;
-      const h = pane.height;
-      if (bg) {
-        ctx.fillStyle = bg;
-        ctx.fillRect(0, 0, w, h);
-      } else {
-        ctx.clearRect(0, 0, w, h);
-      }
-      paintGrid(ctx, this.model, w, h);
-      for (const sid of pane.seriesIds) {
-        const s = this.model.getSeries(sid);
-        if (!s || s.removed) continue;
-        paintSeries(ctx, s, this.model.projectionFor(s));
+    if (generation !== this.lastPrimGen && this.primHost.inventory().primitives > 0) {
+      deliverPrimitiveUpdates(this.model, this.primHost, generation);
+      this.lastPrimGen = generation;
+    }
+    const dirtyAll = mask.panes === "all";
+    const skipPanes = mask.level === "cursor";
+    if (!skipPanes) {
+      for (let i = 0; i < this.model.panes.length; i++) {
+        if (!dirtyAll && mask.panes instanceof Set && !mask.panes.has(i)) continue;
+        const surface = dom.panes[i];
+        if (!surface) continue;
+        const ctx = surface.canvas.getContext("2d");
+        if (!ctx) continue;
+        paintPaneFrame({ ctx, model: this.model, paneIndex: i, primHost: this.primHost });
       }
     }
     const octx = dom.overlay.getContext("2d");
     if (octx) {
-      octx.clearRect(0, 0, this.model.time.widthPx, this.model.totalHeight);
-      const point = this.lastPoint ?? this.externalCrosshairPoint();
-      if (point) {
-        const ch = this.model.options.crosshair;
-        const vert = ch && typeof ch === "object" ? (ch as { vertLine?: unknown }).vertLine : undefined;
-        octx.strokeStyle = optionColor(vert, "rgba(180,180,180,0.6)");
-        octx.beginPath();
-        octx.moveTo(point.x, 0);
-        octx.lineTo(point.x, this.model.totalHeight);
-        octx.stroke();
-        octx.beginPath();
-        octx.moveTo(0, point.y);
-        octx.lineTo(this.model.time.widthPx, point.y);
-        octx.stroke();
-      }
+      paintOverlayFrame({
+        ctx: octx,
+        model: this.model,
+        point: this.lastPoint ?? this.externalCrosshairPoint(),
+      });
     }
   }
 
-  /** Pixel position of the programmatic crosshair (setCrosshairPosition), or null. */
   private externalCrosshairPoint(): { x: number; y: number } | null {
     const xc = this.model.externalCrosshair;
     if (!xc) return null;
@@ -382,15 +404,41 @@ class CanvasEngine implements CanvasChartEngine {
     const param = (ev: Event) => {
       const p = point(ev);
       this.lastPoint = p;
-      return {
-        point: p,
-        logical: this.model.logicalOfX(p.x),
-        time: this.model.coordinateToTime(p.x) ?? undefined,
-      };
+      const logical = this.model.logicalOfX(p.x);
+      const snapped = snapLogicalToBar(logical);
+      const primary = this.model.primarySeries();
+      const series = [...this.model.series.values()]
+        .filter((s) => !s.removed)
+        .map((s) => ({ id: String(s.id), paneIndex: s.paneIndex, kind: s.kind, rows: s.rows }));
+      const resolved = resolveCrosshair({
+        x: p.x,
+        y: p.y,
+        paneIndex: 0,
+        mode: "normal",
+        proj: {
+          logicalOfX: (x) => this.model.logicalOfX(x),
+          xOfLogical: (i) => this.model.xOfLogical(i),
+          priceOfY: (_pane, y) => y,
+          yOfPrice: (_pane, price) => price,
+        },
+        series,
+        primaryId: primary ? String(primary.id) : null,
+      });
+      void crosshairInvalidation(null, resolved);
+      let time: EngineTime | undefined;
+      if (primary) {
+        const row = dataAt(
+          { id: String(primary.id), paneIndex: primary.paneIndex, kind: primary.kind, rows: primary.rows },
+          snapped,
+          "none",
+        );
+        if (row) time = row.time;
+      }
+      return { point: p, logical, time };
     };
     const move: EventListener = (ev) => {
       this.model.emitMouse("crosshair", param(ev));
-      this.invalidate();
+      this.requestPaint({ level: "cursor", panes: "all" });
     };
     const click: EventListener = (ev) => this.model.emitMouse("click", param(ev));
     const dbl: EventListener = (ev) => this.model.emitMouse("dblclick", param(ev));
@@ -400,7 +448,6 @@ class CanvasEngine implements CanvasChartEngine {
     this.overlayListeners.push(["mousemove", move], ["click", click], ["dblclick", dbl]);
   }
 
-  /** The owned chart root; after destroy() the detached root (never null — contract). */
   chartElement(): HTMLElement {
     return this.dom?.root ?? this.lastRoot ?? this.container;
   }
@@ -419,13 +466,13 @@ class CanvasEngine implements CanvasChartEngine {
     const s = series.unwrap<{ id?: number; removed?: boolean }>();
     if (!s || typeof s.id !== "number" || s.removed) return;
     this.model.externalCrosshair = { price, time, seriesId: s.id };
-    this.invalidate();
+    this.requestPaint({ level: "cursor", panes: "all" });
   }
   clearCrosshairPosition(): void {
     if (!this.dom) return;
     if (this.model.externalCrosshair == null) return;
     this.model.externalCrosshair = null;
-    this.invalidate();
+    this.requestPaint({ level: "cursor", panes: "all" });
   }
   panes(): PaneHandle[] {
     return this.model.paneHandles();
@@ -449,11 +496,14 @@ class CanvasEngine implements CanvasChartEngine {
       empty.height = 1;
       return empty;
     }
-    return takeDomScreenshot(this.dom);
+    const overlayOn = !!(this.lastPoint ?? this.externalCrosshairPoint());
+    return takeDomScreenshot(this.dom, overlayOn);
   }
   applyOptions(options: EngineOptions): void {
-    this.model.applyOptions(options);
-    if (typeof options.width === "number" || typeof options.height === "number") {
+    const gated = gateEngineOptions(options);
+    this.model.applyOptions(gated);
+    this.input?.applyOptions(gated);
+    if (typeof gated.width === "number" || typeof gated.height === "number") {
       this.syncStructure();
     }
   }
@@ -484,16 +534,13 @@ class CanvasEngine implements CanvasChartEngine {
     this.model.layoutHeights(height);
     this.syncStructure();
     if (forceRepaint) {
-      if (this.paintHandle != null) {
-        this.scheduler.cancel(this.paintHandle);
-        this.paintHandle = null;
-      }
-      this.paint();
+      this.requestPaint({ level: "full", panes: "all" });
+      const report = this.invalidator.flush();
+      if (report) this.paintFrame(report.mask, report.generation);
     } else {
-      this.invalidate();
+      this.requestPaint({ level: "full", panes: "all" });
     }
   }
-  /** Returns this engine's owned ChartModel (the native renderer has no vendor instance). */
   unwrap<T>(): T {
     return this.model as unknown as T;
   }
@@ -502,6 +549,10 @@ class CanvasEngine implements CanvasChartEngine {
   }
   destroy(): void {
     if (!this.dom) return;
+    this.input?.dispose();
+    this.input = null;
+    this.invalidator.dispose();
+    this.primHost.dispose();
     if (this.paintHandle != null) {
       this.scheduler.cancel(this.paintHandle);
       this.paintHandle = null;
@@ -512,6 +563,11 @@ class CanvasEngine implements CanvasChartEngine {
     }
     this.overlayListeners.length = 0;
     destroyChartDom(this.dom);
+    // Identity marker: only clear if it still reads THIS impl — never wipe a
+    // newer engine's marker that took over the same host.
+    if (this.container.dataset.chartEngine === CANVAS_ENGINE_IMPL) {
+      delete this.container.dataset.chartEngine;
+    }
     this.dom = null;
     this.model.externalCrosshair = null;
     this.model.destroy();
@@ -522,16 +578,16 @@ export function createCanvasEngine(
   container: HTMLElement,
   options?: CanvasEngineOptions,
 ): CanvasChartEngine {
-  const unsupported = collectUnsupported(options);
-  if (unsupported.length > 0) {
-    throw new EngineRefusalError(
-      `canvas engine refused: ${unsupported.join(", ")}`,
-      unsupported,
-    );
-  }
-  const dpr = options?.devicePixelRatio
+  const local = stripLocalKeys(options);
+  const gated = gateEngineOptions(local.engine);
+  const dpr = local.devicePixelRatio
     ?? (typeof window !== "undefined" && window.devicePixelRatio ? window.devicePixelRatio : 1);
-  return new CanvasEngine(container, options, dpr);
+  return new CanvasEngine(container, {
+    ...gated,
+    scheduler: local.scheduler,
+    resizeObserverCtor: local.resizeObserverCtor,
+    devicePixelRatio: local.devicePixelRatio,
+    now: local.now,
+  }, dpr);
 }
-
 

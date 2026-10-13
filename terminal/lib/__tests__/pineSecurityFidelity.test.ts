@@ -51,6 +51,43 @@ describe("historical default HTF knowledge", () => {
   });
 });
 
+describe("request.security time is the HTF period open", () => {
+  it("weekly time is the Monday open, not the confirming Friday", () => {
+    // TradingView: `time` inside request.security is the opening time of the HTF bar.
+    // The engine used the last session of the period (the chart-bar identity of a
+    // last-keyed calendar bucket) which is time_close, not time.
+    const closed = barsOn([...dates, "2025-01-20"]);
+    const t = values(closed, "time");
+    const monday = Date.parse("2025-01-06T00:00:00Z");
+    const friday = Date.parse("2025-01-10T00:00:00Z");
+    expect(t[4]).toBe(monday);
+    expect(t[4]).not.toBe(friday);
+    expect(t.slice(5, 9).every((v) => v === monday)).toBe(true); // lookahead_off carries W1 through Thu
+    expect(t[9]).toBe(Date.parse("2025-01-13T00:00:00Z"));       // W2 open, published at Friday
+    const tc = values(closed, "time_close");
+    expect(tc[4]).toBe(friday);
+  });
+
+  it("monthly time is the first session of the month, not the last", () => {
+    const days = ["2025-01-02", "2025-01-15", "2025-01-31", "2025-02-03", "2025-02-28", "2025-03-03"];
+    const bars = barsOn(days);
+    const out = runPine(`//@version=6
+indicator("htf time")
+plot(request.security(syminfo.tickerid, "M", time), "t")
+plot(request.security(syminfo.tickerid, "M", time_close), "c")
+`, bars, { timeframe: "1D", symbol: "TEST" });
+    expect(out.ok, JSON.stringify(out.errors)).toBe(true);
+    const t = out.result!.plots.find((p) => p.title === "t")!.data.map((p) => p.value);
+    const c = out.result!.plots.find((p) => p.title === "c")!.data.map((p) => p.value);
+    const janOpen = Date.parse("2025-01-02T00:00:00Z");
+    const janClose = Date.parse("2025-01-31T00:00:00Z");
+    // February's first session (index 3) confirms January.
+    expect(t[3]).toBe(janOpen);
+    expect(t[3]).not.toBe(janClose);
+    expect(c[3]).toBe(janClose);
+  });
+});
+
 describe("named weekly lookahead/gaps witnesses", () => {
   it("explicit lookahead_off + gaps_off matches omitted-default publication", () => {
     const extra = "gaps=barmerge.gaps_off, lookahead=barmerge.lookahead_off";
@@ -263,6 +300,37 @@ plot(close, "c")
     expect(finer.some((w) => w.includes("'W'"))).toBe(true);
   });
 
+  it("nz cannot launder a refused request.security result into a definite value", () => {
+    // README: refused requests return na with a warning and never an approximate value.
+    // nz(refused, 0) used to replace that na with 0, hiding the refusal. Ordinary na
+    // (warmup / gaps / not-yet-confirmed) must still be replaceable.
+    const out = runSrc(`//@version=6
+indicator("nz refuse")
+refused = request.security(syminfo.tickerid, "W", request.security(syminfo.tickerid, "M", close))
+plot(nz(refused, 0), "nested")
+plot(request.security(syminfo.tickerid, "W", nz(request.security(syminfo.tickerid, "M", close), 0)), "inside")
+plot(nz(request.security(syminfo.tickerid, "60", close), 0), "finer")
+plot(nz(request.security(syminfo.tickerid, "FOO", close), 0), "junk")
+plot(nz(na, 0), "ordinary")
+plot(nz(close), "close")
+`);
+    // Requests refused on every chart bar (no publication path) stay na through nz.
+    expect(plot(out, "finer").every((v) => v === undefined)).toBe(true);
+    expect(plot(out, "junk").every((v) => v === undefined)).toBe(true);
+    // nz inside the HTF expression: published weekly values are the refused inner, never 0.
+    expect(plot(out, "inside")[4]).toBeUndefined();
+    expect(plot(out, "inside").some((v) => v === 0)).toBe(false);
+    // nz around a valid weekly request whose expression is refused: the confirmed Friday
+    // (index 4) would be 0 if nz replaced the refusal; it must stay na.
+    expect(plot(out, "nested")[4]).toBeUndefined();
+    expect(plot(out, "ordinary").every((v) => v === 0)).toBe(true);
+    expect(plot(out, "close").some((v) => typeof v === "number" && v !== 0)).toBe(true);
+    expect(out.result!.warnings.some((w) => w.includes("coarser than current context"))).toBe(true);
+    expect(out.result!.warnings.some((w) => w.includes("finer than chart"))).toBe(true);
+    expect(out.result!.warnings.some((w) => w.includes("unknown/unparseable"))).toBe(true);
+    expect(out.result!.warnings.some((w) => w.includes("nz()") && w.includes("refused"))).toBe(true);
+  });
+
   it("nested coarser request inside weekly expression is NA + deduplicated diagnostic", () => {
     const out = runSrc(`//@version=6
 indicator("nested coarser")
@@ -289,6 +357,8 @@ plot(x, "x")
   });
 
   it("separate coarser monthly request still resamples alongside a weekly request", () => {
+    // A February session closes January, so the monthly request has a confirmed period to
+    // publish. Without it, January is the uncertified final period and stays na (no lookahead).
     const out = runSrc(`//@version=6
 indicator("separate coarser")
 w = request.security(syminfo.tickerid, "W", close)
@@ -296,7 +366,7 @@ m = request.security(syminfo.tickerid, "M", close)
 plot(w, "w")
 plot(m, "m")
 plot(close, "c")
-`);
+`, barsOn([...dates, "2025-01-20", "2025-02-03"]));
     expect(plot(out, "w")[4]).toBe(105);
     const m = plot(out, "m");
     expect(m.some((v) => typeof v === "number" && !Number.isNaN(v))).toBe(true);

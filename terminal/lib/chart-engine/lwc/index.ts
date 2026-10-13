@@ -17,6 +17,11 @@
 //     (see lib/__tests__/subpaneAssign.test.ts).
 //   • timeScale().scrollToRealTime() has a capital T in LWC; the contract's
 //     scrollToRealtime() bridges to it.
+//   • SeriesHandle.attachPrimitive/detachPrimitive accept EITHER a native LWC
+//     plugin (forwarded untouched — what ChartPanel/sessionShading/
+//     drawingPaneReadiness do today) OR an engine-neutral EnginePrimitive from
+//     lib/chart-engine/primitive.ts, bridged by toLwcPrimitive below and tracked
+//     per handle so remove()/destroy() detach it exactly once.
 
 import {
   createChart,
@@ -32,6 +37,12 @@ import {
   type IChartApi,
   type ISeriesApi,
   type IPaneApi,
+  type ISeriesPrimitive,
+  type IPrimitivePaneRenderer,
+  type IPrimitivePaneView,
+  type PrimitiveHoveredItem,
+  type PrimitivePaneViewZOrder,
+  type SeriesAttachedParameter,
   type ITimeScaleApi,
   type IPriceLine,
   type IPriceScaleApi,
@@ -75,6 +86,15 @@ import type {
   WatermarkSpec,
 } from "../api";
 import type { EngineCapabilities } from "../options";
+// F-10: the primitive/projection vocabulary is imported, never re-declared here.
+import { projectionReady } from "../primitive";
+import type {
+  EnginePrimitive,
+  EngineProjection,
+  PrimitiveAttachContext,
+  PrimitiveHit,
+  PrimitiveZOrder,
+} from "../primitive";
 
 const DISPOSED = "chart-engine: disposed";
 
@@ -177,6 +197,309 @@ class LwcPriceLineHandle implements PriceLineHandle {
   }
 }
 
+// ── Engine primitive → LWC plugin bridge ───────────────────────────────────────
+//
+// The ONLY place where the engine-neutral overlay vocabulary (../primitive) meets
+// lightweight-charts (contract law 1). toLwcPrimitive wraps an EnginePrimitive in an
+// LWC 5.2 ISeriesPrimitive<Time>. It re-implements the C03 lifecycle rules for a
+// single primitive rather than embedding createPrimitiveLifecycle, because the
+// context passed to attached() must carry LWC's own requestUpdate handle and that
+// context is built inside the helper:
+//
+//   C03-A01  attached() and update() are gated on projectionReady(). LWC calls
+//            attached() from inside series.attachPrimitive — before the pane has any
+//            measurable geometry — so a primitive attached too early is wired on the
+//            first ready pass instead.
+//   C03-A02  update() is delivered at most once per projection generation, and a
+//            projection older than one already delivered is dropped.
+//   C03-A03  detached() fires exactly once, and only when attached() did. release()
+//            is idempotent; every lifecycle hook after it is silent.
+//   C03-A04  one delivery per flush; a primitive calling requestUpdate() from inside
+//            update() or paint() cannot re-enter the flush.
+//
+// Signatures verified against node_modules/lightweight-charts/dist/typings.d.ts
+// (v5.2.0): ISeriesPrimitiveBase.updateAllViews?():2697, paneViews?():2724,
+// attached?(param):2762, detached?():2768, hitTest?(x, y):2780; IPrimitivePaneView
+// zOrder?():2320 / renderer():2326; IPrimitivePaneRenderer.draw(target):2300;
+// SeriesAttachedParameter:3868 (chart, series, requestUpdate, horzScaleBehavior);
+// PrimitiveHoveredItem:3819 (externalId:3847, zOrder:3851, cursorStyle?:3843);
+// PrimitivePaneViewZOrder:4889 = "bottom" | "normal" | "top"; ISeriesPrimitive:4774.
+// CanvasRenderingTarget2D is never named here: it comes from "fancy-canvas", and
+// annotating the view/renderer object literals types the target contextually.
+
+/** Identity EnginePrimitive.attached() needs that LWC's own API does not carry. */
+export interface LwcPrimitiveBridgeOptions {
+  /** Stable series label; "" when the caller does not mint one. */
+  seriesId?: string;
+  /** Fallback pane index for the rare attach without a resolvable pane. */
+  paneIndex?: number;
+}
+
+/** The bridge hands LWC a release hook in addition to the plugin interface, so the
+ *  series handle can force the engine primitive's detached() when the chart is torn
+ *  down without ever calling detachPrimitive (removeSeries / chart.remove). */
+type EnginePrimitiveBridge = ISeriesPrimitive<Time> & { readonly mmRelease: () => void };
+
+const EMPTY_PANE_VIEWS: readonly IPrimitivePaneView[] = [];
+
+/**
+ * The engine-neutral overlay shape, recognised structurally: a non-null object with
+ * a string `id` and attached/detached/update functions. All four are required so
+ * native LWC plugins keep flowing through the raw forwarding path — today's
+ * hand-rolled primitives (sessionShading.SessionShadingPrimitive, the
+ * drawingPaneReadiness watcher, the markers/watermark plugin wrappers) have
+ * attached/detached/paneViews but no string id and no update().
+ */
+function isEnginePrimitive(value: unknown): value is EnginePrimitive {
+  if (value === null || typeof value !== "object") return false;
+  const candidate = value as Record<string, unknown>;
+  return (
+    typeof candidate.id === "string" &&
+    typeof candidate.attached === "function" &&
+    typeof candidate.detached === "function" &&
+    typeof candidate.update === "function"
+  );
+}
+
+/** LWC answers null outside the projected domain; a projection answers NaN so a
+ *  degenerate map fails projectionReady() instead of posing as position 0. */
+function lwcCoord(value: number | null | undefined): number {
+  return value === null || value === undefined ? Number.NaN : Number(value);
+}
+
+/**
+ * Default projection source: everything an EngineProjection needs, read from the
+ * LWC chart/series handed to attached(). price<->y goes through the series' own
+ * price scale (pane-scoped, so a subpane's independent autoscale is respected);
+ * x<->logical and x<->time go through the shared time scale.
+ * `generation` is a placeholder — the bridge stamps it (see createPrimitiveBridge).
+ */
+function projectionFromAttached(param: SeriesAttachedParameter<Time>): EngineProjection {
+  const chart = param.chart;
+  const timeScale = chart.timeScale();
+  const series = param.series;
+  const paneIndex = series.getPane().paneIndex();
+  const size = chart.paneSize(paneIndex);
+  const ratio = typeof window === "undefined" ? 1 : window.devicePixelRatio;
+  return {
+    generation: 0,
+    dpr: Number.isFinite(ratio) && ratio > 0 ? ratio : 1,
+    widthPx: size.width,
+    heightPx: size.height,
+    xOfLogical: (i: number) => lwcCoord(timeScale.logicalToCoordinate(i as Logical)),
+    logicalOfX: (x: number) => lwcCoord(timeScale.coordinateToLogical(x)),
+    yOfPrice: (p: number) => lwcCoord(series.priceToCoordinate(p)),
+    priceOfY: (y: number) => lwcCoord(series.coordinateToPrice(y)),
+    timeToX: (t: EngineTime) => {
+      const c = timeScale.timeToCoordinate(t as Time);
+      return c === null || c === undefined ? null : Number(c);
+    },
+    xToTime: (x: number) => (timeScale.coordinateToTime(x) as EngineTime | null) ?? null,
+  };
+}
+
+/**
+ * Fingerprint of a projection's geometry. Two projections with the same signature
+ * describe the same pixel map, so they share one generation token — which is what
+ * keeps EngineProjection's contract ("two calls with the same generation describe
+ * identical geometry") true for a projection source the bridge owns itself.
+ */
+function geometrySignature(p: EngineProjection): string {
+  const probe = (v: number): string => (Number.isFinite(v) ? v.toFixed(3) : "x");
+  const t0 = p.xToTime(0);
+  const roundTrip = t0 === null ? Number.NaN : (p.timeToX(t0) ?? Number.NaN);
+  return [
+    p.widthPx,
+    p.heightPx,
+    p.dpr,
+    probe(p.xOfLogical(0)),
+    probe(p.xOfLogical(1)),
+    probe(p.logicalOfX(0)),
+    probe(p.yOfPrice(0)),
+    probe(p.yOfPrice(1)),
+    probe(p.priceOfY(0)),
+    probe(roundTrip),
+  ].join("|");
+}
+
+function hoveredItem(hit: PrimitiveHit, zOrder: PrimitiveZOrder): PrimitiveHoveredItem {
+  const item: PrimitiveHoveredItem = { externalId: hit.primitiveId, zOrder };
+  if (hit.cursor !== undefined) item.cursorStyle = hit.cursor;
+  return item;
+}
+
+/**
+ * Bridge an EnginePrimitive onto an LWC 5.2 series plugin.
+ *
+ * @param primitive the engine-neutral overlay.
+ * @param projectionFromLwc optional projection source. When omitted the bridge
+ *   builds one from the chart/series it receives in attached() and owns the
+ *   generation counter; when supplied, the caller owns `generation` and the bridge
+ *   only enforces at-most-once-per-generation delivery on it.
+ * @param options series label / pane index for the attach context.
+ */
+export function toLwcPrimitive(
+  primitive: EnginePrimitive,
+  projectionFromLwc?: () => EngineProjection | null,
+  options?: LwcPrimitiveBridgeOptions,
+): ISeriesPrimitive<Time> {
+  return createPrimitiveBridge(primitive, projectionFromLwc, options);
+}
+
+function createPrimitiveBridge(
+  primitive: EnginePrimitive,
+  projectionFromLwc: (() => EngineProjection | null) | undefined,
+  options?: LwcPrimitiveBridgeOptions,
+): EnginePrimitiveBridge {
+  let param: SeriesAttachedParameter<Time> | null = null;
+  let attachNotified = false;
+  let released = false;
+  let flushing = false;
+  let generation = 0;
+  let memo: { signature: string; projection: EngineProjection } | null = null;
+  let deliveredGeneration = Number.NaN;
+  let delivered: EngineProjection | null = null;
+  let views: readonly IPrimitivePaneView[] | null = null;
+  let renderer: IPrimitivePaneRenderer | null = null;
+
+  const zOrderOf = (): PrimitiveZOrder => primitive.zOrder ?? "normal";
+
+  const paneIndexOf = (): number => {
+    try {
+      if (param) return param.series.getPane().paneIndex();
+    } catch {
+      // pane vanished (chart being torn down) — fall through to the static hint
+    }
+    return options?.paneIndex ?? 0;
+  };
+
+  const buildProjection = (): EngineProjection | null => {
+    if (projectionFromLwc) return projectionFromLwc();
+    if (param == null) return null;
+    let raw: EngineProjection;
+    try {
+      raw = projectionFromAttached(param);
+    } catch {
+      return null; // scale/pane not resolvable yet: no projection, no delivery
+    }
+    const signature = geometrySignature(raw);
+    if (memo && memo.signature === signature) return memo.projection;
+    const projection: EngineProjection = {
+      generation: ++generation,
+      dpr: raw.dpr,
+      widthPx: raw.widthPx,
+      heightPx: raw.heightPx,
+      xOfLogical: (i: number) => raw.xOfLogical(i),
+      logicalOfX: (x: number) => raw.logicalOfX(x),
+      yOfPrice: (p: number) => raw.yOfPrice(p),
+      priceOfY: (y: number) => raw.priceOfY(y),
+      timeToX: (t: EngineTime) => raw.timeToX(t),
+      xToTime: (x: number) => raw.xToTime(x),
+    };
+    memo = { signature, projection };
+    return projection;
+  };
+
+  // One delivery attempt: the newest projection, gated on readiness (C03-A01),
+  // never re-delivered for a generation already seen (C03-A02), never re-entered
+  // from inside a callback (C03-A04).
+  const flush = (): void => {
+    if (released || flushing) return;
+    flushing = true;
+    try {
+      const projection = buildProjection();
+      if (projection == null || !Number.isFinite(projection.generation)) return;
+      if (!projectionReady(projection)) return;
+      if (!Number.isNaN(deliveredGeneration) && projection.generation < deliveredGeneration) return;
+      if (!attachNotified) {
+        attachNotified = true;
+        const context: PrimitiveAttachContext = {
+          seriesId: options?.seriesId ?? "",
+          paneIndex: paneIndexOf(),
+          requestUpdate: () => {
+            // C03-A04: hand the repaint request to LWC and return. LWC schedules
+            // updateAllViews() on the next render, so nothing is delivered from
+            // here — not even when a primitive calls it from inside update().
+            if (released) return;
+            param?.requestUpdate();
+          },
+        };
+        primitive.attached(context);
+      }
+      if (!Number.isNaN(deliveredGeneration) && projection.generation === deliveredGeneration) {
+        return; // same generation: identical geometry, already delivered
+      }
+      // Advance the watermark before delivering: a throwing update() must not make
+      // this generation eligible again (at-most-once, C03-A02).
+      deliveredGeneration = projection.generation;
+      delivered = projection;
+      primitive.update(projection);
+    } finally {
+      flushing = false;
+    }
+  };
+
+  const rendererFor = (): IPrimitivePaneRenderer => {
+    if (renderer == null) {
+      renderer = {
+        draw: (target): void => {
+          if (released) return;
+          if (delivered == null) flush(); // first paint after attach
+          const projection = delivered;
+          if (projection == null) return; // C03-A01: never paint without a ready projection
+          target.useMediaCoordinateSpace(({ context }) => {
+            primitive.paint?.(context, projection);
+          });
+        },
+      };
+    }
+    return renderer;
+  };
+
+  const release = (): void => {
+    if (released) return; // C03-A03: idempotent
+    released = true;
+    const wasNotified = attachNotified;
+    attachNotified = false;
+    param = null;
+    delivered = null;
+    views = null;
+    memo = null;
+    if (wasNotified) primitive.detached();
+  };
+
+  return {
+    attached: (attachedParam: SeriesAttachedParameter<Time>): void => {
+      if (released) return;
+      param = attachedParam;
+      flush();
+    },
+    detached: release,
+    updateAllViews: flush,
+    paneViews: (): readonly IPrimitivePaneView[] => {
+      if (released || primitive.paint == null) return EMPTY_PANE_VIEWS;
+      if (views == null) {
+        const view: IPrimitivePaneView = {
+          zOrder: (): PrimitivePaneViewZOrder => zOrderOf(),
+          renderer: rendererFor,
+        };
+        views = [view];
+      }
+      return views;
+    },
+    hitTest: (x: number, y: number): PrimitiveHoveredItem | null => {
+      if (released || primitive.hitTest == null) return null;
+      const hit = primitive.hitTest(x, y);
+      return hit == null ? null : hoveredItem(hit, zOrderOf());
+    },
+    mmRelease: release,
+  };
+}
+
+/** Serial for the per-series label reported to EnginePrimitive.attached(); LWC
+ *  has no series id of its own (ISeriesApi exposes none in v5.2). */
+let bridgeSerial = 0;
+
 // ── Series handle ─────────────────────────────────────────────────────────────
 type SeriesLookup = (raw: ISeriesApi<SeriesType>) => SeriesHandle | null;
 type LineLookup = (raw: IPriceLine) => PriceLineHandle | null;
@@ -185,6 +508,10 @@ type LineRegister = (raw: IPriceLine, handle: LwcPriceLineHandle) => void;
 class LwcSeriesHandle implements SeriesHandle {
   private removed = false;
   private markersPlugin: ISeriesMarkersPluginApi<Time> | null = null;
+  // Engine primitives attached through this handle, keyed by the caller's object so
+  // detachPrimitive(sameObject) finds the wrapper that was handed to LWC.
+  private readonly bridges = new Map<EnginePrimitive, EnginePrimitiveBridge>();
+  private readonly bridgeSeriesId = `lwc-series-${++bridgeSerial}`;
   constructor(
     public readonly kind: EngineSeriesKind,
     private readonly chart: IChartApi,
@@ -297,13 +624,50 @@ class LwcSeriesHandle implements SeriesHandle {
     this.live();
     this.series.moveToPane(paneIndex);
   }
-  attachPrimitive(primitive: unknown): void {
+  attachPrimitive(value: unknown): void {
     this.live();
-    this.series.attachPrimitive(primitive as Parameters<ISeriesApi<SeriesType>["attachPrimitive"]>[0]);
+    if (isEnginePrimitive(value)) {
+      if (this.bridges.has(value)) return; // attaching the same object twice: the first wins
+      const bridge = createPrimitiveBridge(value, undefined, { seriesId: this.bridgeSeriesId });
+      this.bridges.set(value, bridge);
+      this.series.attachPrimitive(bridge);
+      return;
+    }
+    // Not engine-shaped (native markers, watermarks, hand-rolled ISeriesPrimitive
+    // objects): forwarded raw, exactly as before.
+    this.series.attachPrimitive(value as Parameters<ISeriesApi<SeriesType>["attachPrimitive"]>[0]);
   }
-  detachPrimitive(primitive: unknown): void {
+  detachPrimitive(value: unknown): void {
     this.live();
-    this.series.detachPrimitive(primitive as Parameters<ISeriesApi<SeriesType>["detachPrimitive"]>[0]);
+    if (isEnginePrimitive(value)) {
+      const bridge = this.bridges.get(value);
+      if (bridge) {
+        this.bridges.delete(value);
+        this.series.detachPrimitive(bridge);
+        bridge.mmRelease(); // idempotent; covers a host that never calls detached()
+        return;
+      }
+      // Engine-shaped but never attached here: nothing of ours to release.
+    }
+    this.series.detachPrimitive(value as Parameters<ISeriesApi<SeriesType>["detachPrimitive"]>[0]);
+  }
+  /** Release every engine primitive this handle attached, exactly once each. Called
+   *  from remove() and from the engine's destroy(), where LWC may drop the plugin
+   *  wrapper without calling detached(). Idempotent. */
+  releaseBridges(): void {
+    for (const [primitive, bridge] of this.bridges) {
+      try {
+        this.series.detachPrimitive(bridge);
+      } catch {
+        // series/chart already gone: the direct release below still unwinds the primitive
+      }
+      try {
+        bridge.mmRelease();
+      } catch {
+        // a throwing detached() must not strand the remaining bridges
+      }
+      this.bridges.delete(primitive);
+    }
   }
   remove(): void {
     if (this.removed) return;
@@ -317,6 +681,9 @@ class LwcSeriesHandle implements SeriesHandle {
       }
       this.markersPlugin = null;
     }
+    // Detach engine primitives while the series is still addressable, so their
+    // detached() hooks run even though LWC tears plugins down with the series.
+    this.releaseBridges();
     try {
       this.chart.removeSeries(this.series);
     } catch {
@@ -559,6 +926,10 @@ class LwcChartEngine implements ChartEngine {
   constructor(container: HTMLElement, options?: EngineOptions) {
     this.container = container;
     this.chart = createChart(container, (options ?? {}) as DeepPartial<ChartOptions>);
+    // Identity marker: only after createChart() has returned (a thrown mount must
+    // leave the host untouched). Read by Playwright `[data-chart-engine="mm"]` and
+    // the live proofs. Guarded for test stubs whose `{} as HTMLElement` has no dataset.
+    if (container.dataset) container.dataset.chartEngine = "lwc";
   }
 
   private ensure(): IChartApi {
@@ -777,12 +1148,18 @@ class LwcChartEngine implements ChartEngine {
       }
     }
     this.watermarks.clear();
+    // Every bridge this wave's handles attached is released before the chart goes.
+    for (const handle of this.series) handle.releaseBridges();
     // Series markers/plugins are owned by the chart; chart.remove() disposes them. We
     // still clear our bookkeeping so post-destroy handle calls hit the removed guard.
     this.series.clear();
     this.timeScaleHandle = null;
     const chart = this.chart;
     this.chart = null;
+    // Identity marker: only clear if it still reads THIS impl — never wipe a newer
+    // engine's marker that took over the same host. Idempotent: missing attr is fine.
+    const ds = this.container.dataset;
+    if (ds && ds.chartEngine === "lwc") delete ds.chartEngine;
     chart.remove();
   }
 }
