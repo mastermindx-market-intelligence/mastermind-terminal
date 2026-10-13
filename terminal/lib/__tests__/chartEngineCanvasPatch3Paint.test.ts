@@ -425,4 +425,87 @@ describe("F10 (P2) crosshair mouse payload carries seriesData + hoveredSeries + 
     engine.unsubscribeCrosshairMove(handler);
     engine.destroy();
   });
+
+  // P-4 RV-1 — re-key seriesData onto the series handle (object), not the bare id (string).
+  it("RV-1 seriesData is keyed by the SeriesHandle (object), not by the bare id (string)", () => {
+    const { engine, scheduler } = mount();
+    const s = engine.addSeries("candles", { upColor: "U", downColor: "D" });
+    s.setData([
+      { time: 100, open: 10, high: 12, low: 9, close: 11 },
+      { time: 200, open: 11, high: 14, low: 10, close: 13 },
+    ]);
+    scheduler.flush();
+    const seen: Record<string, unknown>[] = [];
+    const handler = (p: Record<string, unknown>) => seen.push(p);
+    engine.subscribeCrosshairMove(handler);
+    const overlay = engine.chartElement().querySelector("canvas[data-mm-overlay]") as HTMLCanvasElement | null;
+    expect(overlay).toBeTruthy();
+    const rect = { left: 0, top: 0, width: 200, height: 100, right: 200, bottom: 100, x: 0, y: 0, toJSON: () => ({}) };
+    overlay!.getBoundingClientRect = () => rect as DOMRect;
+    overlay!.dispatchEvent(new MouseEvent("mousemove", { clientX: 100, clientY: 50, bubbles: true }));
+    expect(seen.length).toBeGreaterThanOrEqual(1);
+    const sd = seen[0].seriesData as Map<unknown, unknown>;
+    expect(sd, "seriesData must be a Map after the F10 payload wiring").toBeInstanceOf(Map);
+    const key = [...sd.keys()][0] as { priceToCoordinate?: unknown; options?: unknown };
+    expect(typeof key, "seriesData must be keyed by the series handle, not a bare id").toBe("object");
+    expect(typeof key?.priceToCoordinate).toBe("function");
+    expect(typeof key?.options).toBe("function");
+    engine.unsubscribeCrosshairMove(handler);
+    engine.destroy();
+  });
+
+  // P-4 RV-2 — a bar-crossing mousemove with no primitives must not repaint pane bitmaps.
+  it("RV-2 a bar-crossing mousemove with no attached primitives does not repaint pane bitmaps", () => {
+    const { engine, scheduler } = mount();
+    const a = engine.addSeries("candles", { upColor: "U", downColor: "D" }, 0);
+    engine.addSeries("line", { color: "#abc" }, 1);
+    a.setData([
+      { time: 100, open: 10, high: 12, low: 9, close: 11 },
+      { time: 200, open: 11, high: 14, low: 10, close: 13 },
+      { time: 300, open: 13, high: 16, low: 12, close: 15 },
+    ]);
+    scheduler.flush();
+    const overlay = engine.chartElement().querySelector("canvas[data-mm-overlay]") as HTMLCanvasElement | null;
+    expect(overlay).toBeTruthy();
+    const rect = { left: 0, top: 0, width: 200, height: 100, right: 200, bottom: 100, x: 0, y: 0, toJSON: () => ({}) };
+    overlay!.getBoundingClientRect = () => rect as DOMRect;
+    const before0 = paneCtx(engine, 0).__calls.length;
+    const before1 = paneCtx(engine, 1).__calls.length;
+    overlay!.dispatchEvent(new MouseEvent("mousemove", { clientX: 20, clientY: 50, bubbles: true }));
+    scheduler.flush();
+    overlay!.dispatchEvent(new MouseEvent("mousemove", { clientX: 180, clientY: 60, bubbles: true }));
+    scheduler.flush();
+    expect(paneCtx(engine, 0).__calls.length, "pane0 pane-bitmap must NOT advance on a bar-crossing crosshair move with no primitives").toBe(before0);
+    expect(paneCtx(engine, 1).__calls.length, "pane1 pane-bitmap must NOT advance on a bar-crossing crosshair move with no primitives").toBe(before1);
+    engine.destroy();
+  });
+
+  // P-4 RV-4 — hoveredSeries can no longer be unconditionally null; supply yOfValue so the
+  // buildMouseParams hover-candidate branch has a chance to resolve.
+  it("RV-4 hoveredSeries resolves at least one non-null entry when the cursor is over a bar", () => {
+    const { engine, scheduler } = mount();
+    const s = engine.addSeries("candles", { upColor: "U", downColor: "D" });
+    s.setData([
+      { time: 100, open: 10, high: 12, low: 9, close: 11 },
+      { time: 200, open: 11, high: 14, low: 10, close: 13 },
+    ]);
+    scheduler.flush();
+    const seen: Record<string, unknown>[] = [];
+    const handler = (p: Record<string, unknown>) => seen.push(p);
+    engine.subscribeCrosshairMove(handler);
+    const overlay = engine.chartElement().querySelector("canvas[data-mm-overlay]") as HTMLCanvasElement | null;
+    expect(overlay).toBeTruthy();
+    const rect = { left: 0, top: 0, width: 200, height: 100, right: 200, bottom: 100, x: 0, y: 0, toJSON: () => ({}) };
+    overlay!.getBoundingClientRect = () => rect as DOMRect;
+    for (const x of [10, 30, 60, 100, 140, 190]) {
+      overlay!.dispatchEvent(new MouseEvent("mousemove", { clientX: x, clientY: 60, bubbles: true }));
+    }
+    expect(seen.length).toBeGreaterThanOrEqual(1);
+    expect(
+      seen.map((p) => p.hoveredSeries).some((h) => h != null),
+      "hoveredSeries must resolve at least one non-null entry across cursor sweeps over the bars",
+    ).toBe(true);
+    engine.unsubscribeCrosshairMove(handler);
+    engine.destroy();
+  });
 });

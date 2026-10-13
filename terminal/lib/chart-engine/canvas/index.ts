@@ -12,6 +12,7 @@ import type {
   EngineTime,
   EngineSeriesOptions,
   EngineMouseHandler,
+  EngineMouseEventParams,
   PaneHandle,
   PriceScaleHandle,
   SeriesHandle,
@@ -420,9 +421,20 @@ class CanvasEngine implements CanvasChartEngine {
       const logical = this.model.logicalOfX(p.x);
       const snapped = snapLogicalToBar(logical);
       const primary = this.model.primarySeries();
-      const series = [...this.model.series.values()]
+      const series: HoverableSeries[] = [...this.model.series.values()]
         .filter((s) => !s.removed)
-        .map((s) => ({ id: String(s.id), paneIndex: s.paneIndex, kind: s.kind, rows: s.rows }));
+        .map((s) => {
+          // RV-4: buildMouseParams resolves hoveredSeries only through yOfValue, so
+          // without it every payload answers hoveredSeries: null (crosshair.ts:331).
+          const proj = this.model.projectionFor(s);
+          return {
+            id: String(s.id),
+            paneIndex: s.paneIndex,
+            kind: s.kind,
+            rows: s.rows,
+            yOfValue: (value: number) => proj.yOfPrice(value),
+          };
+        });
       const resolved = resolveCrosshair({
         x: p.x,
         y: p.y,
@@ -453,13 +465,31 @@ class CanvasEngine implements CanvasChartEngine {
         );
         if (row) time = row.time;
       }
-      return { ...buildMouseParams(resolved, series as HoverableSeries[], ev), point: p, logical, time };
+      const params: EngineMouseEventParams =
+        { ...buildMouseParams(resolved, series, ev), point: p, logical, time };
+      // RV-1: LWC keys seriesData by the ISeriesApi instance (typings.d.ts:3419) and the
+      // consumer reads it that way (ChartPanel.tsx:4642 calls candidate.options() /
+      // priceToCoordinate()). Re-key the id-keyed map onto the handles this engine hands
+      // out so both implementations of subscribeCrosshairMove emit the same key kind.
+      const idKeyed = params.seriesData;
+      if (idKeyed instanceof Map) {
+        const handleKeyed = new Map<unknown, unknown>();
+        for (const [id, row] of idKeyed as Map<string, unknown>) {
+          const handle = this.model.seriesHandle(Number(id));
+          if (handle) handleKeyed.set(handle, row);
+        }
+        params.seriesData = handleKeyed;
+      }
+      return params;
     };
     const move: EventListener = (ev) => {
       this.model.emitMouse("crosshair", param(ev));
       // PATCH3P2 F10 — let crosshairInvalidation decide paint level (was: hardcoded "cursor",
       // so a bar-time change never escalated to "light").
-      this.requestPaint({ level: this.lastCrosshairLevel === "none" ? "cursor" : this.lastCrosshairLevel, panes: "all" });
+      // RV-2: the crosshair itself paints on the overlay, which repaints at every level,
+      // so a bar change only needs a pane-bitmap repaint when a primitive paints into one.
+      const escalate = this.lastCrosshairLevel === "light" && this.primHost.inventory().primitives > 0;
+      this.requestPaint({ level: escalate ? "light" : "cursor", panes: "all" });
     };
     const click: EventListener = (ev) => this.model.emitMouse("click", param(ev));
     const dbl: EventListener = (ev) => this.model.emitMouse("dblclick", param(ev));
