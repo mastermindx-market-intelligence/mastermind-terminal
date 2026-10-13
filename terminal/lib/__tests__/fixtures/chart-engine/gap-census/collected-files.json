@@ -390,6 +390,9 @@
     "file": "terminal/lib/__tests__/chartOverlaysI18nKeys.test.ts"
   },
   {
+    "file": "terminal/lib/__tests__/chartPanelPineSessionAnchor.test.ts"
+  },
+  {
     "file": "terminal/lib/__tests__/chartSettingsHydration.test.ts"
   },
   {
@@ -660,6 +663,9 @@
     "file": "terminal/lib/__tests__/flagshipPine.test.ts"
   },
   {
+    "file": "terminal/lib/__tests__/flagshipPineMarks.test.ts"
+  },
+  {
     "file": "terminal/lib/__tests__/flowBroadcast.test.ts"
   },
   {
@@ -690,10 +696,19 @@
     "file": "terminal/lib/__tests__/flowScoreBoundary.test.ts"
   },
   {
+    "file": "terminal/lib/__tests__/flowScoreDte.test.ts"
+  },
+  {
     "file": "terminal/lib/__tests__/flowStreamFailureState.test.tsx"
   },
   {
+    "file": "terminal/lib/__tests__/flowStreamLifetime.test.ts"
+  },
+  {
     "file": "terminal/lib/__tests__/flowStreamRouteBoundary.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/flowStreamSessionRenewal.test.ts"
   },
   {
     "file": "terminal/lib/__tests__/flowStreamTransport.test.tsx"
@@ -1170,16 +1185,34 @@
     "file": "terminal/lib/__tests__/pinProbability.test.ts"
   },
   {
+    "file": "terminal/lib/__tests__/pineChartPanelCloseTime.test.ts"
+  },
+  {
     "file": "terminal/lib/__tests__/pineEditorIdBuffer.test.tsx"
   },
   {
     "file": "terminal/lib/__tests__/pineHost.test.ts"
   },
   {
+    "file": "terminal/lib/__tests__/pineRefusedPoison.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/pineRefusedPropagate.test.ts"
+  },
+  {
     "file": "terminal/lib/__tests__/pineSecurityFidelity.test.ts"
   },
   {
     "file": "terminal/lib/__tests__/pineSecurityRefusal.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/pineTfFlagsAgree.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/pineTfGrammar.test.ts"
+  },
+  {
+    "file": "terminal/lib/__tests__/pineTimeClose.test.ts"
   },
   {
     "file": "terminal/lib/__tests__/plainAbbrev.test.ts"
