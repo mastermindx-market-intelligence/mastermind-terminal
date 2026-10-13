@@ -14,6 +14,7 @@ import AssetLogo from "@/components/AssetLogo";
 import { classify, isIntradayTf } from "@/lib/intradaySources";
 import { isMacroSymbol } from "@/lib/macroSymbols";
 import type { ReplayAxis, ReplayCutoff } from "@/lib/replayContract";
+import type { DataOrigin } from "@/lib/dataOrigin";
 
 const f = (n: number | null | undefined, d = 2) => (n == null || !isFinite(n) ? "—" : n.toLocaleString("en-US", { minimumFractionDigits: d, maximumFractionDigits: d }));
 
@@ -48,6 +49,9 @@ export default function ChartPane({ idx, symbol, drawingOwnerKey, isActive, onAc
   const [chartApi, setChartApi] = useState<ChartEngine | null>(null);
   const [settingsModalOpen, setSettingsModalOpen] = useState(false);
   const [settingsModalTab, setSettingsModalTab] = useState<ChartSettingsTab>("scales");
+  // Data OS U02: the pane owns the origin readout for ITS symbol; ChartPanel emits it
+  // per accepted data generation, ChartFrameBar renders it beside the clock.
+  const [dataOrigin, setDataOrigin] = useState<DataOrigin | null>(null);
 
   // Resolve this pane-local owner before child passive data work can become visually current.
   // `dataReady && chartSettingsReady` below also covers a fast child generation that was already
@@ -199,6 +203,7 @@ export default function ChartPane({ idx, symbol, drawingOwnerKey, isActive, onAc
         onIndRowsAt={isActive ? onIndRowsAt : undefined}
         dayMode={_dayMode}
         onPaneCount={onPaneCount}
+        onDataOrigin={setDataOrigin}
       />
       <ChartFrameBar
         timeframe={tf}
@@ -210,6 +215,8 @@ export default function ChartPane({ idx, symbol, drawingOwnerKey, isActive, onAc
           setSettingsModalOpen(true);
         }}
         extendedEligible={extendedEligible}
+        symbol={symbol}
+        dataOrigin={dataOrigin}
       />
       <ChartSettingsModal
         open={settingsModalOpen}
