@@ -101,6 +101,26 @@ describe("ChartPanel mount engine selector (F-13)", () => {
     expect(mountSlice).not.toMatch(/localStorage/);
     expect(mountSlice).not.toMatch(/sessionStorage/);
   });
+
+  // P03 ADDITION (assertions may only be added here — the BASE block above pins the
+  // UNMODIFIED ChartPanel mount, masterplan A06). This case is the standing
+  // falsifier for that pin: it proves the call-site regex is sensitive to a
+  // one-line edit of the slice, so the "still matches BASE" claim can fail. When
+  // the parent applies P03's PROPOSED_PATCH, the anchors themselves move to
+  // resolveMountEngineSelection and this file is re-pinned (see RESULT.md
+  // INTEGRATION_NOTES for the exact assertion list that must move).
+  it("anchored pin is falsifiable: swapping the one-line selector breaks the F-13 call-site match", () => {
+    const edited = mountSlice.replace(
+      "const requestedImpl = resolveMountEngineImpl(window.location.search);",
+      "const requestedImpl = resolveMountEngineSelection(window.location.search);",
+    );
+    // The edit must actually apply to the BASE slice, or this falsifier is vacuous.
+    expect(edited).not.toBe(mountSlice);
+    expect(edited).not.toContain("const requestedImpl = resolveMountEngineImpl(");
+    expect(edited).not.toMatch(/resolveMountEngineImpl\(\s*window\.location\.search\s*\)/);
+    // …while the real BASE slice does match (this is what A06 pins):
+    expect(mountSlice).toMatch(/resolveMountEngineImpl\(\s*window\.location\.search\s*\)/);
+  });
 });
 
 // P01-A03 live probe (production acceptance "forced refusal → lwc fallback"): the
