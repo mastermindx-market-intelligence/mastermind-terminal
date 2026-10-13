@@ -205,6 +205,14 @@ export function validateTimeKeys(
   return { ok: true, kind: kind ?? "epochSec" };
 }
 
+/**
+ * How numeric row keys should be read.
+ * - "utc": true UTC epoch seconds (default; liveDisplayEpoch is applied once).
+ * - "display": the app's display-epoch keys (liveCandle.ts:71-88). The key
+ *   already IS the axis coordinate; liveDisplayEpoch must not run again.
+ */
+export type TimeKeyBasis = "utc" | "display";
+
 /** Build the frozen facts record; the one place display shifting is applied. */
 function freezeFacts(
   key: BarKey,
@@ -213,8 +221,12 @@ function freezeFacts(
   market: Market,
   cadenceSec: number,
   isSynthetic: boolean,
+  keyBasis: TimeKeyBasis = "utc",
 ): BarTimeFacts {
-  const displayEpochSec = liveDisplayEpoch(openUtcMs, market) ?? Math.floor(openUtcMs / 1000);
+  const alreadyDisplay = keyBasis === "display" && typeof key === "number";
+  const displayEpochSec = alreadyDisplay
+    ? (key as number)
+    : (liveDisplayEpoch(openUtcMs, market) ?? Math.floor(openUtcMs / 1000));
   const sessionId = typeof key === "number" ? isoDateUtc(displayEpochSec * 1000) : (key as string);
   return Object.freeze({
     key,
@@ -229,12 +241,19 @@ function freezeFacts(
 
 /**
  * Extract the six time facts of one row (T01-A03: displayEpochSec IS
- * liveDisplayEpoch(openUtcMs, market) for every market). Numeric keys are read as
- * true UTC epoch seconds; business-day keys canonicalize to UTC noon of the
+ * liveDisplayEpoch(openUtcMs, market) for every market when keyBasis is "utc").
+ * Numeric keys default to true UTC epoch seconds; pass keyBasis "display" when
+ * the row already carries the app's display-epoch key so the shift is not
+ * applied a second time. Business-day keys canonicalize to UTC noon of the
  * session date, and their sessionId is the key itself. Returns null for a key
  * toBarKey rejects — validate first, then extract.
  */
-export function barTimeFacts(row: BarTimeRow, market: Market, cadenceSec: number): BarTimeFacts | null {
+export function barTimeFacts(
+  row: BarTimeRow,
+  market: Market,
+  cadenceSec: number,
+  keyBasis: TimeKeyBasis = "utc",
+): BarTimeFacts | null {
   const key = toBarKey(row.time);
   if (key === null) return null;
   const openUtcMs = keyOpenUtcMs(key);
@@ -247,7 +266,7 @@ export function barTimeFacts(row: BarTimeRow, market: Market, cadenceSec: number
   const closeKey = row.closeTime === undefined ? null : toBarKey(row.closeTime);
   const closeUtcMs = closeKey !== null ? keyOpenUtcMs(closeKey) : openUtcMs + span * 1000;
 
-  return freezeFacts(key, openUtcMs, closeUtcMs, market, span, row.isSynthetic === true);
+  return freezeFacts(key, openUtcMs, closeUtcMs, market, span, row.isSynthetic === true, keyBasis);
 }
 
 /**
