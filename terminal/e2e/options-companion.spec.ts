@@ -788,6 +788,37 @@ for (const lang of ["en", "zh"] as const) {
     await expect(panel.getByTestId("options-scope-toggle")).toBeFocused();
     await expect(panel.getByTestId("options-scope-meta")).toContainText("770–774");
 
+    // PP2-UI-c repair 1 (R1 + R2): the norm select is also visible in exact mode.
+    // Reopen, assert exactly one norm select, switch to "Per expiry" / "各到期日",
+    // Apply, and verify the scope meta and mode are unchanged. Then assert no
+    // localStorage value contains any of the four typed strings.
+    await panel.getByTestId("options-scope-toggle").click();
+    await expect(panel.getByTestId("options-scope-editor")).toBeVisible();
+    const normSelects = panel.locator('[data-testid="options-scope-norm"]');
+    expect(await normSelects.count()).toBe(1);
+    await expect(normSelects).toBeVisible();
+    await normSelects.selectOption({ label: lang === "zh" ? "各到期日" : "Per expiry" });
+    await panel.getByTestId("options-scope-apply").click();
+    await expect(panel.getByTestId("options-scope-editor")).toHaveCount(0);
+    await expect(panel.locator("[data-options-scope-mode]")).toHaveAttribute("data-options-scope-mode", "exact");
+    await expect(panel.getByTestId("options-scope-meta")).toContainText(lang === "zh" ? "各到期日" : "Per expiry");
+    const localStorageLeak = await page.evaluate(() => {
+      // Same invariant the (u9) vitest test asserts: the four typed values never
+      // appear as JSON pairs of from/to/dteMin/dteMax. The raw substrings "0" and
+      // "4" would falsely match unrelated chart settings, so check the typed
+      // strings in the context they were typed in.
+      const pairs = ['"from":"770"', '"to":"774"', '"dteMin":"0"', '"dteMax":"4"'];
+      const hits: string[] = [];
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (!key) continue;
+        const value = localStorage.getItem(key) ?? "";
+        for (const p of pairs) if (value.includes(p)) hits.push(`${key}:${p}`);
+      }
+      return hits;
+    });
+    expect(localStorageLeak).toEqual([]);
+
     // Touch targets and overflow check on tablet/mobile.
     if (project === "tablet" || project === "mobile") {
       await panel.getByTestId("options-scope-toggle").click();
