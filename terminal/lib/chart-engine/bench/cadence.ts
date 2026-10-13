@@ -39,9 +39,13 @@
 
 import { percentile } from "./corpus";
 
+// Q03b per-input presentation latency budgets are bound here prospectively,
+// before any reference-Mac run (D10: never lower a budget after a result).
 export const CADENCE_BUDGETS = {
   presented_p95_ms: 20,
   presented_p99_ms: 33.4,
+  input_to_present_p95_ms: 20,
+  input_to_present_p99_ms: 33.4,
 } as const;
 
 export const GESTURE_TAIL_MS = 100;

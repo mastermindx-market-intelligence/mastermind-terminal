@@ -253,7 +253,12 @@ describe("percentile shims and BUDGETS (Q03 / Q02 interop)", () => {
   });
 
   it("7. CADENCE_BUDGETS and BUDGETS are the canonical handshake", () => {
-    expect(CADENCE_BUDGETS).toEqual({ presented_p95_ms: 20, presented_p99_ms: 33.4 });
+    expect(CADENCE_BUDGETS).toEqual({
+      presented_p95_ms: 20,
+      presented_p99_ms: 33.4,
+      input_to_present_p95_ms: 20,
+      input_to_present_p99_ms: 33.4,
+    });
     expect(BUDGETS).toEqual({
       first_paint_ms: 150,
       pan_frame_p95_ms: 18,
