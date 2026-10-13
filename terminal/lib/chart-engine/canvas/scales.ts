@@ -27,6 +27,7 @@ import {
   type AxisMargins,
   type AxisRange,
 } from "../axisZoom";
+import { clampBarSpacingValue } from "./modelTime";
 import type { EnginePriceScaleMode } from "../options";
 
 /** Fractional bar index; 0 = first row of the primary series. */
@@ -411,11 +412,9 @@ export function logicalOfX(x: number, state: TimeScaleState): number {
 }
 
 function clampBarSpacing(spacing: number, minSpacing: number, maxSpacing: number): number {
-  let next = spacing;
-  if (!Number.isFinite(next) || next <= 0) next = MIN_BAR_SPACING;
-  if (next < minSpacing) next = minSpacing;
-  if (next > maxSpacing) next = maxSpacing;
-  return next;
+  // PERF-A F6: delegate to the single modelTime clamp so every spacing bound
+  // in canvas/ has one source (identical semantics to the former local body).
+  return clampBarSpacingValue(spacing, minSpacing, maxSpacing);
 }
 
 function clampLogicalWindow(

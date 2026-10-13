@@ -142,20 +142,23 @@ async function measureImpl(page: Page, impl: EngineImpl, logFile: string): Promi
     (window as unknown as { __mmBench: { startFrameLog: () => void } }).__mmBench.startFrameLog();
   });
   const rangeBeforeZoom = await readRange(page);
-  const beforeAnchor = await benchEval(page, () => {
+  // Zoom metric: float index under the pointer (PERF-RR2 ruling 3). The metric
+  // is the quantity the <= 1 CSS px law names; bar-centre anchoring breaks the
+  // law at large barSpacing. Chrome dispatches MouseEvent.clientX as an
+  // integer, so zoomX must be an integer CSS px identical to what the wheel
+  // events are dispatched at. The lwc pane centre can be fractional, so we
+  // round the centre to the same integer the wheel will use.
+  const zoomX = Math.round(center.x);
+  const zoomY = Math.round(center.y);
+  const beforeAnchor = await benchEval(page, (px: number) => {
     const w = window as unknown as {
       __mmBench: {
-        plotCenter: () => { x: number; y: number };
-        anchorTimeAt: (x: number) => unknown;
-        timeToCoordinate: (t: unknown) => number | null;
+        floatAnchorAt: (x: number) => { x: number; logical: number } | null;
       };
     };
-    const c = w.__mmBench.plotCenter();
-    const t = w.__mmBench.anchorTimeAt(c.x);
-    const x = t == null ? null : w.__mmBench.timeToCoordinate(t);
-    return { t, x };
-  });
-  await page.mouse.move(center.x, center.y);
+    return w.__mmBench.floatAnchorAt(px);
+  }, zoomX);
+  await page.mouse.move(zoomX, zoomY);
   for (let i = 0; i < 60; i++) {
     await page.mouse.wheel(0, -120);
     await page.waitForTimeout(50);
@@ -163,15 +166,22 @@ async function measureImpl(page: Page, impl: EngineImpl, logFile: string): Promi
   const zoomRecords = await benchEval(page, () => {
     return (window as unknown as { __mmBench: { stopFrameLog: () => FrameRecord[] } }).__mmBench.stopFrameLog();
   });
-  const afterX = await page.evaluate((t) => {
-    const w = window as unknown as { __mmBench: { timeToCoordinate: (time: unknown) => number | null } };
-    return t == null ? null : w.__mmBench.timeToCoordinate(t);
-  }, beforeAnchor.t);
+  const afterX = await benchEval(page, (logical: number) => {
+    const w = window as unknown as {
+      __mmBench: {
+        coordinateOfLogical: (l: number) => number | null;
+      };
+    };
+    return w.__mmBench.coordinateOfLogical(logical);
+  }, beforeAnchor?.logical ?? Number.NaN);
   let zoomDriftPx: number | null = null;
-  if (typeof beforeAnchor.x === "number" && typeof afterX === "number") {
+  if (beforeAnchor != null && typeof afterX === "number") {
     zoomDriftPx = Math.abs(afterX - beforeAnchor.x);
   }
   appendLog(logFile, `[${impl}] zoom_anchor_drift_px=${zoomDriftPx ?? "n/a"}`);
+  if (beforeAnchor != null && typeof afterX === "number") {
+    appendLog(logFile, `[${impl}] zoom_anchor_float logical=${beforeAnchor.logical} x=${beforeAnchor.x} after_x=${afterX}`);
+  }
   const rangeAfterZoom = await readRange(page);
   appendLog(logFile, `[${impl}] visible_range before_zoom=${JSON.stringify(rangeBeforeZoom)} after_zoom=${JSON.stringify(rangeAfterZoom)}`);
   if (impl === "mm") {
@@ -181,7 +191,7 @@ async function measureImpl(page: Page, impl: EngineImpl, logFile: string): Promi
     ).toBe(true);
     expect(
       zoomDriftPx,
-      "mm pointer-anchor drift must be MEASURABLE: coordinateToTime/timeToCoordinate returned null, so the <=1px law was never checked",
+      "mm pointer-anchor drift must be MEASURABLE: floatAnchorAt/coordinateOfLogical returned null (before or after the zoom), so the <=1px law was never checked",
     ).not.toBe(null);
   }
   await page.mouse.move(10, 10);
