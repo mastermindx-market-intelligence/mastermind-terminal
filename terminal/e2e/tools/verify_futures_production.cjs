@@ -4,10 +4,11 @@ const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
 const { createHash } = require('node:crypto');
+const { execFileSync } = require('node:child_process');
 const { chromium } = require('@playwright/test');
 const root = path.resolve(__dirname, '../..');
 const base = 'http://127.0.0.1:3597';
-const evidence = path.resolve(root, '../docs/evidence/futures-production-build-20261012');
+const evidence = path.resolve(root, '../docs/evidence/futures-production-build-20261013');
 const hash = bytes => createHash('sha256').update(bytes).digest('hex');
 async function main() {
   assert.ok(fs.existsSync(path.join(root, '.next/BUILD_ID')), 'run the normal production build first');
@@ -63,6 +64,9 @@ async function main() {
     }
   } finally { await browser.close(); }
   const receipt = { schema: 'futures.local_production_build_qualification/v1', generatedAt: new Date().toISOString(),
+    sourceHead: execFileSync('git', ['rev-parse', 'HEAD'], { cwd: root, encoding: 'utf8' }).trim(),
+    terminalTree: execFileSync('git', ['rev-parse', 'HEAD:terminal'], { cwd: root, encoding: 'utf8' }).trim(),
+    authScope: 'no authenticated session; loopback public client settings only; no fake user grant, FLOW_FIXTURE or E2E bypass',
     productionMode: true, scope: 'compiled Next build on loopback; NOT deployed service or paid live-market qualification',
     buildIdSha256: hash(fs.readFileSync(path.join(root, '.next/BUILD_ID'))), traceFiles: traces.length,
     privateSampleTraceFiles: privateFiles.length, http, browser: checks, images,
