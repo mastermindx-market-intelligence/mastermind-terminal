@@ -485,6 +485,15 @@ export type PanePaintArgs = {
   model: ChartModel;
   paneIndex: number;
   primHost: PrimitiveHost;
+  /**
+   * GAP-PRIMFIX C03-A04 - the frame generation the invalidator stamped for this
+   * paint. deliverPrimitiveUpdates hands primitives that same counter, so
+   * threading it into the pane projection is what makes a primitive's paint()
+   * and its update()-cached hit coordinates agree on which generation they came
+   * from. Callers that have no frame (snapshot, direct unit use) omit it and keep
+   * model.generation, the pre-existing value.
+   */
+  generation?: number;
 };
 
 export function paintPaneFrame(args: PanePaintArgs): void {
@@ -507,7 +516,9 @@ export function paintPaneFrame(args: PanePaintArgs): void {
   // `[]` so layoutSessionShading always returned `[]` and paintDecorations({sessionShading})
   // never ran. The full fix also needs a `pane.sessionShading` field on the model
   // (MODEL2-owned — see PROPOSED_PATCHES).
-  const paneProj = engineProjectionForPane(model, paneIndex);
+  const paneProj = args.generation === undefined
+    ? engineProjectionForPane(model, paneIndex)
+    : { ...engineProjectionForPane(model, paneIndex), generation: args.generation };
   const plotRect = { x: 0, y: 0, width: w, height: h };
   void plotRect; // unused now; kept for the named binding when the model-side lands
 
