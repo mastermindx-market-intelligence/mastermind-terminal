@@ -212,6 +212,7 @@ export default function ChartFrameBar({
   onSettings,
   onOpenSettingsModal,
   extendedEligible = false,
+  openGotoRequest = 0,
 }: {
   timeframe: string;
   chartApi: IChartApi | null;
@@ -219,6 +220,9 @@ export default function ChartFrameBar({
   onSettings: (patch: Partial<ChartSettings>) => void;
   onOpenSettingsModal?: (tab?: string) => void;
   extendedEligible?: boolean;
+  /** Bumped by the chart pane when the command palette asks for this chart's go-to-date box:
+   *  each new value opens the same popover the calendar button opens. */
+  openGotoRequest?: number;
 }) {
   const t = useT();
   // Client-only clock: render nothing until mounted to avoid SSR/hydration mismatch.
@@ -364,6 +368,15 @@ export default function ChartFrameBar({
     window.addEventListener("keydown", h);
     return () => window.removeEventListener("keydown", h);
   }, [settings, onSettings, chartApi]);
+
+  // Only a NEW request opens the box: the value present at mount (a remount after an earlier
+  // request) is not one.
+  const handledGotoRequest = useRef(openGotoRequest);
+  useEffect(() => {
+    if (openGotoRequest === handledGotoRequest.current) return;
+    handledGotoRequest.current = openGotoRequest;
+    setGotoOpen(true);
+  }, [openGotoRequest]);
 
   // Go-to-date: focus the input when it opens
   useEffect(() => {

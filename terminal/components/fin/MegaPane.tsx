@@ -99,6 +99,12 @@ export interface MegaPaneProps {
   mode?: "overlay" | "workspace";
   /** Full intel/v1 payload (for the Lab tab). Optional — Lab shows empty state when absent. */
   intel?: unknown | null;
+  /**
+   * Bumped by the shell when the command palette chooses "Back to chart": each NEW value runs
+   * this pane's own close (the same URL cleanup + `onClose` the Back button runs). The value
+   * present when the pane mounts is never treated as a request.
+   */
+  closeRequest?: number;
 }
 
 export default function MegaPane({
@@ -113,6 +119,7 @@ export default function MegaPane({
   name,
   mode = "overlay",
   intel = null,
+  closeRequest = 0,
 }: MegaPaneProps) {
   const workspace = mode === "workspace";
   const { lang } = useLang();
@@ -140,6 +147,12 @@ export default function MegaPane({
     window.history.replaceState(window.history.state, "", url.toString());
     onClose();
   }, [onClose]);
+  const handledCloseRequest = useRef(closeRequest);
+  useEffect(() => {
+    if (closeRequest === handledCloseRequest.current) return;
+    handledCloseRequest.current = closeRequest;
+    closePane();
+  }, [closePane, closeRequest]);
 
   // A transcript ID belongs to exactly one ticker. Never carry an open drawer
   // across symbol changes, even if both symbols happen to share a fiscal ID.

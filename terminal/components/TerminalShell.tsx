@@ -10,7 +10,7 @@ import { CSS as DndCSS } from "@dnd-kit/utilities";
 import dynamic from "next/dynamic";
 import { createPortal, flushSync } from "react-dom";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { BrandLockup } from "@/components/BrandMark";
 import DashboardBackButton from "@/components/DashboardBackButton";
 import { AppNav } from "@/components/AppNav";
@@ -113,6 +113,8 @@ const WatchlistAnnotationSync = dynamic(() => import("@/components/watchlist/Wat
 const RollerStrip = dynamic(() => import("@/components/mobile/RollerStrip"), { ssr: false });
 const DrawingsSheet = dynamic(() => import("@/components/mobile/DrawingsSheet"), { ssr: false });
 const AnalysisHubSheet = dynamic(() => import("@/components/mobile/AnalysisHubSheet"), { ssr: false });
+// Chart command palette (E20): mounts only while open, so its code stays out of the first load.
+const CommandPalette = dynamic(() => import("@/components/commandPalette/CommandPalette"), { ssr: false });
 // BrainWidget mounts the production Mastermind Brain widget (mm_brain.js) — it renders null
 // and only injects a cross-origin <script>, so ssr:false / dynamic isn't needed.
 import BrainWidget from "@/components/BrainWidget";
@@ -203,6 +205,9 @@ import {
   watchlistSectionOrder,
   watchlistVisualOrder,
 } from "@/lib/watchlistSections";
+import { analysisPageHref, hasOpenModal, resolvePaletteRun, shouldOpenPaletteFromKey, type PaletteContext, type PaletteRunDecision } from "@/lib/commandPalette/catalog";
+import { paletteText } from "@/lib/commandPaletteLex";
+import paletteTriggerStyles from "@/components/commandPalette/CommandPaletteTrigger.module.css";
 
 type Row ={ name: string; sec: string; col: string; mkt?: string; zh?: string; last: number; chg: number; open: number; high: number; low: number; vol: number; hi52: number; lo52: number; verdict: string | null; wr: number | null; pf: number | null; cagr: number | null; regimeBull: boolean | null; suspended?: boolean };
 type Manifest = { as_of: string | null; symbols: Record<string, Row> };
@@ -1595,6 +1600,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
   // Narrower than isMobile on purpose — the tablet contract viewport keeps the desktop-era chrome.
   const isPhone = useIsPhone();
   const navPath = usePathname();
+  const router = useRouter();
   // ── urlSearch: window.location.search alternative to useSearchParams() ──────
   // TerminalShell is always dynamically-rendered (server-side, on demand) so the
   // implicit-Suspense prerender path that useSearchParams() triggers on static
@@ -3063,9 +3069,14 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
   const onTick = useCallback((p: number) => setLivePx(p), []);
   const liveStatus = useLive(active, onTick);
 
+  // The chart command palette (E20, below) is modal: while it is open, a key that reaches the page
+  // must not open symbol search underneath it. Declared here so the type-anywhere effect can see it.
+  const [paletteOpen, setPaletteOpen] = useState(false);
+
   // type-anywhere → search; Ctrl/Cmd+K
   useEffect(() => {
     const h = (e: KeyboardEvent) => {
+      if (paletteOpen) return;
       const tag = (e.target as HTMLElement)?.tagName?.toLowerCase();
       if (tag === "input" || tag === "textarea") return;
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === "k") { e.preventDefault(); setSeed(""); setSearchOpen(true); return; }
@@ -3073,7 +3084,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
       if (!searchOpen && e.key.length === 1 && /[a-zA-Z0-9]/.test(e.key)) { setSeed(e.key); setSearchOpen(true); }
     };
     window.addEventListener("keydown", h); return () => window.removeEventListener("keydown", h);
-  }, [searchOpen]);
+  }, [paletteOpen, searchOpen]);
 
   // Snapshot keyboard shortcuts (guarded: not when an input/textarea has focus)
   //   ⌥⌘S  → Download image
@@ -5153,6 +5164,78 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
     setHubOpen(true);
     if (!hubSeen) { setHubSeen(true); try { localStorage.setItem("mm.hubSeen", "1"); } catch {} }
   };
+  // ── Chart command palette (E20) ─────────────────────────────────────────────────────────────
+  // A second way to reach controls this shell already owns. The palette gets a snapshot of the
+  // current chart (`paletteContext`) and hands a chosen action back to `runPaletteAction`, which
+  // re-checks it against the live state and then calls the SAME handler the visible control uses:
+  // the research nav's setPaneOpen, the symbol wheel's pick, the timeframe menu's FUNCTIONAL-guarded
+  // setTf, the template menu's events, the indicator dialog, remove-all (with its 5-second undo),
+  // the toolbar's drawing undo/redo, Bar Replay's toggle and the range row's go-to-date box. It
+  // adds no queue, no session and no account/alert/trade action. (`paletteOpen` is declared with
+  // the type-anywhere search effect, which stands down while the palette is open.)
+  const [researchCloseRequest, setResearchCloseRequest] = useState(0);
+  const paletteLang = lang === "zh" ? "zh" : "en";
+  useEffect(() => {
+    if (shellMode || paletteOpen) return;
+    const onKey = (event: KeyboardEvent) => {
+      const modalOpen = searchOpen || indOpen || tmplSaveOpen || hasOpenModal(document);
+      const target = event.target instanceof Element ? event.target : null;
+      if (!shouldOpenPaletteFromKey(event, { target, active: document.activeElement, modalOpen })) return;
+      event.preventDefault();
+      setPaletteOpen(true);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [indOpen, paletteOpen, searchOpen, shellMode, tmplSaveOpen]);
+  const paletteContext: PaletteContext | null = paletteOpen ? {
+    paneIndex: activePane,
+    panes,
+    symbol: active,
+    timeframe: tf,
+    researchPage: paneOpen,
+    tableView: tableViewOpen,
+    watchlist: stripSymbols,
+    timeframes: TF_GROUPS.flatMap(([, items]) => items).map((tfi) => (
+      FUNCTIONAL.has(tfi) ? { tf: tfi, available: true } : { tf: tfi, available: false, reason: tfDisabledReason(tfi) }
+    )),
+    templates: templates.map((template) => ({ id: template.id, name: template.name })),
+    // Exactly what remove-all removes (and what its own guard checks).
+    indicatorCount: inds.size + enabledIds.length,
+    drawing: drawingHistoryState,
+    replay: { on: replayOn, blocked: replayBlockedReason ?? null },
+    phone: isPhone,
+    researchOnAnalysisPage: isMobile,
+    // No watchlist review session exists in this build (program item E16); the palette says so.
+    review: null,
+  } : null;
+  const runPaletteAction = (actionId: string, seenToken: string): PaletteRunDecision => {
+    if (!paletteContext) return { ok: false, reason: "gone", message: paletteText(paletteLang, "cpGone") };
+    const decision = resolvePaletteRun(actionId, seenToken, paletteContext, paletteLang);
+    if (!decision.ok) return decision;
+    const run = decision.run;
+    switch (run.kind) {
+      // Wide layouts: the research nav's page switch. Touch layouts: the menu's Analysis link.
+      case "research":
+        if (run.via === "analysis-page") router.push(analysisPageHref(active, run.page));
+        else setPaneOpen(run.page);
+        break;
+      // The research pane's own Back button: MegaPane runs its closePane (URL cleanup + onClose).
+      case "close-research": setResearchCloseRequest((n) => n + 1); break;
+      case "symbol": pick(run.symbol); break;
+      case "timeframe": if (FUNCTIONAL.has(run.tf)) setTf(run.tf); break;
+      case "template": window.dispatchEvent(new CustomEvent("mm:apply-template", { detail: { id: run.id } })); break;
+      case "save-template": window.dispatchEvent(new CustomEvent("mm:save-template")); break;
+      case "open-indicators": setIndOpen(true); break;
+      case "remove-indicators": removeAllIndicators(); break;
+      case "drawing-history":
+        if (run.direction === "undo" ? drawingHistoryState.canUndo : drawingHistoryState.canRedo) travelDrawingHistory(active, run.direction);
+        break;
+      case "replay": toggleReplay(); break;
+      case "goto-date": window.dispatchEvent(new CustomEvent("mm:open-goto-date", { detail: { pane: run.pane, symbol: run.symbol } })); break;
+    }
+    return decision;
+  };
+
   shellCmdRef.current = {
     favTimeframes: favTfOrder,
     setDrawTool: (id) => (isDrawingToolId(id) ? activateDrawingTool(id) : false),
@@ -5221,6 +5304,19 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
           return <span className={`${cls} topbar-livebadge`} title={tip}><i />{label}</span>;
         })()}
         <div className="spacer" />
+        <button
+          type="button"
+          className="cmp-btn"
+          data-command-palette-trigger="desktop"
+          aria-haspopup="dialog"
+          aria-keyshortcuts=">"
+          aria-label={paletteText(paletteLang, "cpTriggerName")}
+          title={paletteText(paletteLang, "cpTriggerTip")}
+          onClick={() => setPaletteOpen(true)}
+        >
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 7l5 5-5 5M12 17h7" /></svg>
+          <span>{paletteText(paletteLang, "cpTrigger")}<kbd className={paletteTriggerStyles.kbd}>&gt;</kbd></span>
+        </button>
         <button className="ai" onClick={() => openBrainReincluding(setBrainIncluded, () => (window as any).MMBrain?.toggle())}><svg viewBox="0 0 24 24"><path d="M12 2l2.2 5.8L20 10l-5.8 2.2L12 18l-2.2-5.8L4 10l5.8-2.2z" /></svg>Mastermind AI</button>
         <SettingsButton email={email} />
       </header>
@@ -5233,6 +5329,8 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
         fromMacro={fromMacro}
         onBack={onBack}
         onOpenCopilot={() => openBrainReincluding(setBrainIncluded, () => (window as any).MMBrain?.open())}
+        onOpenCommandPalette={() => setPaletteOpen(true)}
+        commandPaletteLabel={paletteText(paletteLang, "cpTriggerName")}
         isTerminal
         activeKey={(() => {
           const pane = new URLSearchParams(urlSearch).get("pane");
@@ -5523,6 +5621,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
             name={nameOf(m) || active}
             mode="workspace"
             intel={intel}
+            closeRequest={researchCloseRequest}
           />
         ) : tableViewOpen ? (
           /* D3 → E10: the time-aware Data Inspector replaces the chart body. It reads only what the
@@ -6378,6 +6477,17 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
             </div>
           </div>
         </div>
+      )}
+
+      {/* ── E20 chart command palette ─── */}
+      {!shellMode && paletteContext && (
+        <CommandPalette
+          lang={paletteLang}
+          context={paletteContext}
+          phone={isPhone}
+          onRun={runPaletteAction}
+          onClose={() => setPaletteOpen(false)}
+        />
       )}
 
       {/* ── D1 "remove all indicators" undo toast ─── */}
