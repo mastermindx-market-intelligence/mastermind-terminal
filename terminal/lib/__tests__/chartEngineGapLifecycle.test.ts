@@ -793,10 +793,8 @@ describe("R03-A04: Deliberately orphan one series/line", () => {
       expect(orphanReport.seriesLeft).toBe(1);
       expect(orphanReport.ledgerSeries).toBe(2);
 
-      // Falsifier seed: knowing the in-memory id of s2 (kept in the ledger) is
-      // proof the orphan is a divergence, not a forget. We rebuild the ledger
-      // fairly by reducing the handled series set as we drop them, then check
-      // they now agree.
+      // Knowing s2's in-memory id (still in the ledger) is proof this is a
+      // divergence, not a forget: drop it from the ledger and they agree again.
       ledger.seriesIds.delete(Number((s2.unwrap<{ id: number }>().id)));
       expect(lC.series).toBe(ledger.seriesIds.size);
 
@@ -921,15 +919,14 @@ describe("R03-A04: Deliberately orphan one series/line", () => {
 
 // ── Q02-A02 (mm + lwc) ───────────────────────────────────────────────────────
 
-/** Build a minimal EnginePrimitive shape — id + attached/detached/update methods.
- *  Canvas's assertEnginePrimitive throws on anything missing the structural contract,
- *  which is exactly what R03-A04's "deliberately orphan" need not cover (the orphan
- *  is on SERIES/PRICE-LINES, not on primitives). */
-function makeMinimalEnginePrimitive(id: string): EnginePrimitive {
+/** Minimal EnginePrimitive shape (id + attached/detached/update); canvas's
+ *  assertEnginePrimitive throws on anything missing that structural contract.
+ *  `detached` records the id so a caller can prove detached() ran exactly once. */
+function makeMinimalEnginePrimitive(id: string, detached?: string[]): EnginePrimitive {
   return {
     id,
     attached: () => { /* host will queue until first projection */ },
-    detached: () => { /* release handle */ },
+    detached: () => { detached?.push(id); },
     update: () => { /* drop stale projection */ },
   };
 }
@@ -943,6 +940,38 @@ describe("Q02-A02: 52 transitions plus owner churn", () => {
     const restoreFake = installFake2D();
     const containerEl = document.createElement("div");
     document.body.appendChild(containerEl);
+    // Listener ownership: EngineInventory cannot express it, so record every
+    // add/remove on any ELEMENT (the engine's DOM lives inside containerEl) and
+    // require a net-zero balance once destroy() has run.
+    const listenerBalance = new Map<string, number>();
+    const elementIds = new WeakMap<EventTarget, number>();
+    let nextElementId = 0;
+    const listenerKey = (target: EventTarget, type: string): string | null => {
+      if (!(target instanceof Element)) return null;
+      let id = elementIds.get(target);
+      if (id === undefined) { nextElementId += 1; id = nextElementId; elementIds.set(target, id); }
+      return `el${id}:${type}`;
+    };
+    const realAdd = EventTarget.prototype.addEventListener;
+    const realRemove = EventTarget.prototype.removeEventListener;
+    const addSpy = vi.spyOn(EventTarget.prototype, "addEventListener").mockImplementation(
+      function (this: EventTarget, type: string, cb: EventListenerOrEventListenerObject | null, opts?: boolean | AddEventListenerOptions) {
+        const key = listenerKey(this, type);
+        if (key !== null) listenerBalance.set(key, (listenerBalance.get(key) ?? 0) + 1);
+        realAdd.call(this, type, cb, opts);
+      },
+    );
+    const removeSpy = vi.spyOn(EventTarget.prototype, "removeEventListener").mockImplementation(
+      function (this: EventTarget, type: string, cb: EventListenerOrEventListenerObject | null, opts?: boolean | EventListenerOptions) {
+        const key = listenerKey(this, type);
+        if (key !== null) listenerBalance.set(key, (listenerBalance.get(key) ?? 0) - 1);
+        realRemove.call(this, type, cb, opts);
+      },
+    );
+    // Primitive ownership: ids the engine accepted vs ids it detached.
+    const attachedIds: string[] = [];
+    const detachedIds: string[] = [];
+
     try {
       const scheduler = createManualScheduler();
       let disconnectedTimes = 0;
@@ -962,20 +991,18 @@ describe("Q02-A02: 52 transitions plus owner churn", () => {
         resizeObserverCtor: CountingResizeObserver as unknown as null,
       });
 
-      type Owner = { id: number; series: SeriesHandle[]; lines: unknown[] };
+      type Owner = { id: number; series: SeriesHandle[]; lines: unknown[]; prims: EnginePrimitive[] };
       const owners: Owner[] = [];
       const kinds: EngineSeriesKind[] = ["candles", "bars", "line", "area", "histogram", "baseline"];
 
-      // 52 transitions drawn from the matrix, rotating the owner between rows.
-      // Each owner releases ONLY its own resources; we compare against the engine
-      // inventory at every step.
+      // 52 transitions from the matrix, rotating the owner between rows.
       let txn = 0;
       const step = (op: () => void) => { op(); scheduler.flush(); txn += 1; };
 
       // Seed owners up front so the rotating lookup stays a plain array index.
-      owners.push({ id: 0, series: [], lines: [] });
-      owners.push({ id: 1, series: [], lines: [] });
-      owners.push({ id: 2, series: [], lines: [] });
+      owners.push({ id: 0, series: [], lines: [], prims: [] });
+      owners.push({ id: 1, series: [], lines: [], prims: [] });
+      owners.push({ id: 2, series: [], lines: [], prims: [] });
       const [o0, o1, o2] = owners;
 
       // Owner 0 creates 2 series + 2 lines.
@@ -1042,12 +1069,31 @@ describe("Q02-A02: 52 transitions plus owner churn", () => {
             if (line) { step(() => { line.remove(); ledger.lines -= 1; }); } else { step(() => {}); }
             break;
           }
-          case 5:
-            step(() => { (owner.series[0] as unknown as { attachPrimitive(p: EnginePrimitive): void }).attachPrimitive(makeMinimalEnginePrimitive(`p-o${owner.id}-${txn}`)); });
+          case 5: {
+            const host = owners.find((o) => o.series.length > 0);
+            const prim = makeMinimalEnginePrimitive(`p-o${owner.id}-${txn}`, detachedIds);
+            if (host) {
+              step(() => {
+                (host.series[0] as unknown as { attachPrimitive(p: EnginePrimitive): void }).attachPrimitive(prim);
+                attachedIds.push(prim.id);
+                host.prims.push(prim);
+              });
+            } else {
+              step(() => { owner.series.push(engine.addSeries(kind)); ledger.series += 1; });
+            }
             break;
+          }
           case 6: {
-            const prim = makeMinimalEnginePrimitive(`p-o${owner.id}-${txn - 1}`);
-            step(() => { (owner.series[0] as unknown as { detachPrimitive(p: EnginePrimitive): void }).detachPrimitive(prim); });
+            // Detach the SAME object case 5 attached (identity, not a look-alike id).
+            const donor = owners.find((o) => o.prims.length > 0 && o.series.length > 0);
+            const prim = donor?.prims.pop();
+            if (donor && prim) {
+              step(() => {
+                (donor.series[0] as unknown as { detachPrimitive(p: EnginePrimitive): void }).detachPrimitive(prim);
+              });
+            } else {
+              step(() => { owner.series.push(engine.addSeries(kind)); ledger.series += 1; });
+            }
             break;
           }
           case 7:
@@ -1082,6 +1128,23 @@ describe("Q02-A02: 52 transitions plus owner churn", () => {
 
       agreeNow(0, 0, 0);
 
+      // A series + primitive NO owner releases: its detached() can then only come
+      // from the engine's own primitive-host teardown, so "zero owned primitives
+      // after destroy" is observed instead of implied by the release loop below.
+      const probe = engine.addSeries("line");
+      const probePrim = makeMinimalEnginePrimitive("destroy-probe", detachedIds);
+      (probe as unknown as { attachPrimitive(p: EnginePrimitive): void }).attachPrimitive(probePrim);
+      attachedIds.push(probePrim.id);
+      ledger.series += 1;
+      scheduler.flush();
+
+      // Timer ownership: arm the engine's own scroll-animation clock (a real
+      // setTimeout the renderer owns) so the post-destroy zero is an observation.
+      vi.useFakeTimers();
+      engine.timeScale().scrollToPosition(3, true);
+      scheduler.flush();
+      expect(vi.getTimerCount()).toBeGreaterThan(0);
+
       // Now each owner releases its own resources.
       for (const owner of owners) {
         for (const ln of owner.lines) {
@@ -1098,9 +1161,8 @@ describe("Q02-A02: 52 transitions plus owner churn", () => {
       expect(engine.inventory().series).toBe(ledger.series);
       expect(engine.inventory().priceLines).toBe(ledger.lines);
 
-      // ResizeObserver / canvas / listener accounting at destroy. The
-      // CountingResizeObserver declared above recorded the live observe() call
-      // and counts the destroy() disconnect(). The canvas engine MUST release it.
+      // ResizeObserver accounting at destroy: the CountingResizeObserver above
+      // recorded observe() and counts the disconnect() the engine MUST make.
       engine.destroy();
       expect(disconnectedTimes).toBeGreaterThanOrEqual(1);
       expect(containerEl.querySelectorAll("canvas").length).toBe(0);
@@ -1108,17 +1170,33 @@ describe("Q02-A02: 52 transitions plus owner churn", () => {
       expect(inv.alive).toBe(false);
       expect(inv.series).toBe(0);
       expect(inv.priceLines).toBe(0);
+      // Timers: destroy() cancelled the scroll-animation clock it owned.
+      expect(vi.getTimerCount()).toBe(0);
+      // Primitives: every id the engine accepted came back detached, exactly once,
+      // including the one no owner released.
+      expect(detachedIds.slice().sort()).toEqual(attachedIds.slice().sort());
+      expect(new Set(detachedIds).size).toBe(detachedIds.length);
+      expect(detachedIds).toContain("destroy-probe");
+      // Listeners: net live listener keys on the engine's elements is empty, and the
+      // map is non-empty so that zero is an observation, not a vacuous truth.
+      expect(listenerBalance.size).toBeGreaterThan(0);
+      expect([...listenerBalance.entries()].filter(([, n]) => n !== 0)).toEqual([]);
 
-      // Double destroy is a no-op.
+      // Double destroy is a no-op: no primitive is detached a second time.
       engine.destroy();
       expect(engine.inventory().alive).toBe(false);
+      expect(detachedIds.slice().sort()).toEqual(attachedIds.slice().sort());
     } finally {
+      addSpy.mockRestore();
+      removeSpy.mockRestore();
+      vi.useRealTimers();
+      vi.unstubAllGlobals();
       restoreFake();
       containerEl.remove();
     }
   });
 
-  it("lwc: 52 transitions drive the registry to zero live series / lines / primitives; chart.remove called exactly once", () => {
+  it("lwc: 52 transitions drive the registry to zero live series / lines; chart.remove called exactly once", () => {
     H.reg.reset();
     const engine = createEngine({} as unknown as HTMLElement, { width: 800, height: 600 }, "lwc");
     const s1 = engine.addSeries("candles");
