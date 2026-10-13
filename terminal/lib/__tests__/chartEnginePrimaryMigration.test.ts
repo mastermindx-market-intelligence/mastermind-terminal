@@ -462,7 +462,9 @@ describe("M01 ratchet — ChartPanel raw-LWC site ceilings (BASE_SHA)", () => {
   // Integrator: lower these ceilings when M01/M02/M03 land.
   const CEILINGS = {
     "unwrap<": 1,
-    "chartRef.current": 46,
+    // 48, not the census 46: master #929 (b4095c3d) net-added two chartRef.current sites to
+    // ChartPanel after the M01 census commit; measured at origin/master e0ffafc1f.
+    "chartRef.current": 48,
     IChartApi: 28,
     "ISeriesApi<": 56,
     "createSeriesMarkers(": 4,
