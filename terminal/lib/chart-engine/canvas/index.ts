@@ -251,6 +251,8 @@ class CanvasEngine implements CanvasChartEngine {
     });
     this.syncStructure();
     this.requestPaint({ level: "full", panes: "all" });
+    // Identity marker: written LAST so a thrown ctor/refusal path leaves the host clean.
+    container.dataset.chartEngine = CANVAS_ENGINE_IMPL;
   }
 
   private requestPaint(partial: Partial<InvalidationMask> & { level: InvalidationMask["level"] }): void {
@@ -561,6 +563,11 @@ class CanvasEngine implements CanvasChartEngine {
     }
     this.overlayListeners.length = 0;
     destroyChartDom(this.dom);
+    // Identity marker: only clear if it still reads THIS impl — never wipe a
+    // newer engine's marker that took over the same host.
+    if (this.container.dataset.chartEngine === CANVAS_ENGINE_IMPL) {
+      delete this.container.dataset.chartEngine;
+    }
     this.dom = null;
     this.model.externalCrosshair = null;
     this.model.destroy();
