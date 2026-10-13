@@ -4,9 +4,8 @@
 // this file's directory (the ESM equivalent of __dirname). NEVER imported by
 // the bench page or mount.ts — those must stay browser-safe.
 
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import path from "node:path";
-import { fileURLToPath } from "node:url";
 import Ajv2020 from "ajv/dist/2020";
 import addFormats from "ajv-formats";
 import { DAILY_40K } from "./corpus";
@@ -55,13 +54,34 @@ export const METRIC_NAMES: readonly ReceiptMetricName[] = [
   "heap_mb",
 ];
 
-/** ESM equivalent of __dirname for this module (bench/). */
-const DIRNAME = path.dirname(fileURLToPath(import.meta.url));
+/**
+ * Directory of this module. Playwright compiles the spec (and this file) to
+ * CJS, where `import.meta` is a SyntaxError; vitest may run the same file as
+ * ESM, where `__dirname` is missing. Resolve both, then fall back to cwd.
+ */
+function moduleDir(): string {
+  try {
+    if (typeof __dirname === "string" && __dirname.length > 0) return __dirname;
+  } catch {
+    /* ESM: __dirname is an unbound binding */
+  }
+  return path.resolve(process.cwd(), "lib/chart-engine/bench");
+}
 
-export const RECEIPT_SCHEMA_PATH = path.resolve(
-  DIRNAME,
-  "../../../../docs/chart-engine-completion/performance-receipt.schema.json",
-);
+function resolveSchemaPath(): string {
+  const rel = ["docs", "chart-engine-completion", "performance-receipt.schema.json"] as const;
+  const candidates = [
+    path.resolve(moduleDir(), "..", "..", "..", "..", ...rel),
+    path.resolve(process.cwd(), "..", ...rel),
+    path.resolve(process.cwd(), ...rel),
+  ];
+  for (const candidate of candidates) {
+    if (existsSync(candidate)) return candidate;
+  }
+  throw new Error(`performance-receipt.schema.json not found (tried ${candidates.join(", ")})`);
+}
+
+export const RECEIPT_SCHEMA_PATH = resolveSchemaPath();
 
 let cachedSchema: unknown | null = null;
 let cachedValidate: ((data: unknown) => boolean) | null = null;
