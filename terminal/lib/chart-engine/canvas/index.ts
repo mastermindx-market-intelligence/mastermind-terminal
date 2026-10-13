@@ -170,6 +170,8 @@ export type CanvasChartEngine = ChartEngine & {
   readonly impl: typeof CANVAS_ENGINE_IMPL;
 };
 
+const markerOwners = new WeakMap<HTMLElement, CanvasEngine>();
+
 class CanvasEngine implements CanvasChartEngine {
   readonly impl = CANVAS_ENGINE_IMPL;
   private readonly model: ChartModel;
@@ -253,6 +255,7 @@ class CanvasEngine implements CanvasChartEngine {
     this.requestPaint({ level: "full", panes: "all" });
     // Identity marker: written LAST so a thrown ctor/refusal path leaves the host clean.
     container.dataset.chartEngine = CANVAS_ENGINE_IMPL;
+    markerOwners.set(container, this);
   }
 
   private requestPaint(partial: Partial<InvalidationMask> & { level: InvalidationMask["level"] }): void {
@@ -563,10 +566,13 @@ class CanvasEngine implements CanvasChartEngine {
     }
     this.overlayListeners.length = 0;
     destroyChartDom(this.dom);
-    // Identity marker: only clear if it still reads THIS impl — never wipe a
-    // newer engine's marker that took over the same host.
-    if (this.container.dataset.chartEngine === CANVAS_ENGINE_IMPL) {
+    // Identity marker: only clear if it still reads THIS impl AND we are still
+    // the registered owner — never wipe a newer engine's marker that took over
+    // the same host.
+    if (this.container.dataset.chartEngine === CANVAS_ENGINE_IMPL
+      && markerOwners.get(this.container) === this) {
       delete this.container.dataset.chartEngine;
+      markerOwners.delete(this.container);
     }
     this.dom = null;
     this.model.externalCrosshair = null;
