@@ -1,4 +1,4 @@
-// Mastermind Chart Engine — engine selection resolver (P3/P4 dark-launch input).
+// Mastermind Chart Engine — engine selection resolver (P03: the P4 default flip).
 //
 // Pure decision logic for WHICH renderer impl ("lwc" today, "mm" once P3 lands) a chart
 // mount should use, feeding the dark launch and its rollback path
@@ -10,15 +10,23 @@
 //
 // Precedence (strictly ordered, first match wins):
 //   1. kill switch        — always forces "lwc"; nothing below it is even consulted.
-//   2. url ?engine=…      — one-shot override; also the operator's one-click rollback
-//                           lever (?engine=lwc beats any stored "mm").
+//   2. url ?engine=…      — override that ALSO PERSISTS the choice per browser (P03),
+//                           the operator's one-click rollback lever (?engine=lwc beats
+//                           any stored "mm") and the opt-in lever (?engine=mm).
 //   3. stored preference  — the per-browser choice made by persistEngineChoice().
-//   4. build default      — the compiled-in default ("lwc" until the P4 flip).
+//   4. build default      — the compiled-in BUILD_DEFAULT_ENGINE ("mm" since the flip).
 //
 // An invalid url/stored value never silently wins: resolution falls through to the next
 // source and the rejected value is reported in `selection.invalid` (typed, explicit) so
 // a consumer can log it. If both url and stored are invalid, the higher-precedence one
 // (url) is the one reported — one field, one story.
+//
+// The mount entry point resolveMountEngineSelection() layers the P03 persistence rules
+// on top of resolveEngineImpl and defaults its storage to browserEngineStorage()
+// (browserStorage.ts) — the ONLY module in this corner that touches browser globals, so
+// the purity guarantee above (and its test) holds here unchanged.
+
+import { browserEngineStorage } from "./browserStorage";
 
 export type EngineImplId = "lwc" | "mm";
 
@@ -41,8 +49,9 @@ export type ResolveEngineInput = {
   search?: string;
   /** Raw persisted value (what the host's storage returned), if any. */
   stored?: string | null;
-  /** Compiled-in default impl; must itself be a valid EngineImplId. */
-  buildDefault: EngineImplId;
+  /** Compiled-in default impl; must itself be a valid EngineImplId. Omitted means
+   *  BUILD_DEFAULT_ENGINE ("mm" since the P03 flip). */
+  buildDefault?: EngineImplId;
   /** Emergency rollback: when true, resolution short-circuits to "lwc". */
   killSwitch?: boolean;
 };
@@ -67,6 +76,25 @@ export const STORAGE_KEY = "mm.engine";
 
 /** URL query parameter that carries the one-shot override / rollback lever. */
 export const ENGINE_URL_PARAM = "engine";
+
+/**
+ * The compiled-in default impl since the P4 default flip (delivered by P03): a mount
+ * with no kill switch, no url override and no stored choice lands on the owned
+ * renderer. Callers wanting the historical opt-in shape pass buildDefault explicitly.
+ * Mutant guard: chartEngineSelect.test.ts pins this to "mm" (A01).
+ */
+export const BUILD_DEFAULT_ENGINE: EngineImplId = "mm";
+
+/**
+ * Build-time kill switch: NEXT_PUBLIC_CHART_ENGINE_KILLSWITCH === "1" forces every
+ * mount to "lwc" — the rollback lever for a shipped bundle (the var is inlined at
+ * build, so flipping it means a rebuild). The full literal property access is
+ * deliberate: it is the shape Next.js statically replaces in client bundles. Tests
+ * stub it with vi.stubEnv.
+ */
+export function isEngineKillSwitchOn(): boolean {
+  return process.env.NEXT_PUBLIC_CHART_ENGINE_KILLSWITCH === "1";
+}
 
 const IMPL_IDS: readonly EngineImplId[] = ["lwc", "mm"];
 
@@ -107,19 +135,55 @@ export function engineQueryFromUrl(search: string): EngineImplId | null {
  * suitable for the status line or diagnostics.
  */
 /**
- * Opt-in mount selector for ChartPanel (F-13). Built on resolveEngineImpl with
- * stored = null and buildDefault "lwc", so a persisted mm.engine value can never
- * change production. Returns "mm" only when the URL query selects mm under
- * engineQueryFromUrl's existing parsing: URLSearchParams.get("engine") (leading
- * "?" optional; first occurrence wins), then trim + lower-case. Absent, "",
- * "lwc", and garbage all resolve to "lwc". "?engine=MM" / "?engine= mm " → "mm".
+ * Storage-aware mount selector for ChartPanel (P03 default flip). Resolution goes
+ * through resolveEngineImpl with buildDefault = BUILD_DEFAULT_ENGINE, then the flip's
+ * persistence rules apply:
+ *   - kill switch on: pure short-circuit to "lwc" — nothing is READ and nothing is
+ *     WRITTEN (no storage call at all) and the url is never consulted;
+ *   - valid url value: that impl wins AND persistEngineChoice(storage, impl) writes
+ *     the canonical choice per browser ("?engine=lwc" stores "lwc", "?engine=mm"
+ *     stores "mm" — the rollback lever and the opt-in both survive refreshes);
+ *   - absent/invalid url: fall through to the stored choice, then
+ *     BUILD_DEFAULT_ENGINE; an invalid url value persists NOTHING.
+ * storage defaults to browserEngineStorage() — null under SSR or when the host denies
+ * storage, which means "no stored value, nothing to persist". Every storage touch
+ * goes through the never-throwing read/persist wrappers, so this can never take down a
+ * mount. killSwitch defaults to isEngineKillSwitchOn() (build-inlined flag).
  */
-export function resolveMountEngineImpl(search: string | null | undefined): EngineImplId {
-  return resolveEngineImpl({
+export function resolveMountEngineSelection(
+  search: string | null | undefined,
+  storage: EngineStorage | null = browserEngineStorage(),
+  killSwitch: boolean = isEngineKillSwitchOn(),
+): EngineSelection {
+  if (killSwitch) {
+    // Deliberately constructed WITHOUT search/stored so the kill switch reads nothing
+    // (resolveEngineImpl's own short-circuit already ignores both — belt and braces).
+    return resolveEngineImpl({ buildDefault: BUILD_DEFAULT_ENGINE, killSwitch: true });
+  }
+  const selection = resolveEngineImpl({
     search: search ?? undefined,
-    stored: null,
-    buildDefault: "lwc",
-  }).impl;
+    stored: readStoredEngine(storage),
+    buildDefault: BUILD_DEFAULT_ENGINE,
+  });
+  if (selection.source === "url" && storage !== null) {
+    persistEngineChoice(storage, selection.impl);
+  }
+  return selection;
+}
+
+/**
+ * Impl-only convenience in front of resolveMountEngineSelection. The leading parameter
+ * is the same as the F-13 opt-in selector it replaces, so existing call sites —
+ * `resolveMountEngineImpl(<the page's search string>)` in components/ChartPanel.tsx —
+ * compile unchanged and now see post-flip semantics: "mm" is the default, a valid url
+ * choice persists, and the per-browser stored choice is consulted.
+ */
+export function resolveMountEngineImpl(
+  search: string | null | undefined,
+  storage: EngineStorage | null = browserEngineStorage(),
+  killSwitch: boolean = isEngineKillSwitchOn(),
+): EngineImplId {
+  return resolveMountEngineSelection(search, storage, killSwitch).impl;
 }
 
 export function resolveEngineImpl(input: ResolveEngineInput): EngineSelection {
@@ -150,20 +214,24 @@ export function resolveEngineImpl(input: ResolveEngineInput): EngineSelection {
     invalid ??= { source: "stored", value: input.stored };
   }
 
+  const buildDefault = input.buildDefault ?? BUILD_DEFAULT_ENGINE;
   return {
-    impl: input.buildDefault,
+    impl: buildDefault,
     source: "default",
-    reason: `build default ${input.buildDefault}`,
+    reason: `build default ${buildDefault}`,
     invalid,
   };
 }
 
 /**
  * Read the persisted preference. Returns the raw stored string (canonical or garbage —
- * resolveEngineImpl decides), or null when absent/unreadable. Never throws: hosts can
- * deny storage (private mode), which must not take down a chart mount.
+ * resolveEngineImpl decides), or null when absent/unreadable — including the
+ * `storage === null` case (no host storage: SSR or denied access, the shape
+ * browserEngineStorage() returns for both). Never throws: hosts can deny storage
+ * (private mode), which must not take down a chart mount.
  */
-export function readStoredEngine(storage: EngineStorage): string | null {
+export function readStoredEngine(storage: EngineStorage | null): string | null {
+  if (storage === null) return null;
   try {
     return storage.getItem(STORAGE_KEY);
   } catch {
