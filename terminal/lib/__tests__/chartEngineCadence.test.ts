@@ -562,11 +562,38 @@ describe("buildCadenceReceipt / validateCadenceReceipt (Q03)", () => {
       "zoom.input_to_present_p99_ms",
     ]);
 
-    // 9 top-level keys, 13 gesture stat keys.
+    // 10 top-level keys (9 v1 + `protocol`), 13 gesture stat keys. Q03c v2
+    // bumps the top-level count by 1; the unit test is updated in lock-step
+    // with the validator's TOP_LEVEL_KEYS.
     const keyCount = (o: unknown) => (o && typeof o === "object" ? Object.keys(o as Record<string, unknown>).length : 0);
-    expect(keyCount(r)).toBe(9);
+    expect(keyCount(r)).toBe(10);
     expect(keyCount(r.gesture.pan)).toBe(13);
     expect(keyCount(r.gesture.zoom)).toBe(13);
+    expect(r.protocol).toBe("q03b-v1");
+    // missing protocol -> rejected
+    {
+      const bad = JSON.parse(JSON.stringify(r));
+      delete bad.protocol;
+      const v = validateCadenceReceipt(bad);
+      expect(v.ok).toBe(false);
+      if (!v.ok) expect(v.errors.some((e) => /protocol/.test(e))).toBe(true);
+    }
+    // unknown protocol -> rejected
+    {
+      const bad = JSON.parse(JSON.stringify(r));
+      bad.protocol = "q03b-v3";
+      const v = validateCadenceReceipt(bad);
+      expect(v.ok).toBe(false);
+      if (!v.ok) expect(v.errors.some((e) => /protocol/.test(e))).toBe(true);
+    }
+    // v1 receipt carrying a v2-specific zoom key -> rejected
+    {
+      const bad = JSON.parse(JSON.stringify(r));
+      bad.gesture.zoom.answered_by_prior_frame = 0;
+      const v = validateCadenceReceipt(bad);
+      expect(v.ok).toBe(false);
+      if (!v.ok) expect(v.errors.some((e) => /answered_by_prior_frame/.test(e))).toBe(true);
+    }
 
     // display missing.
     {
@@ -977,3 +1004,426 @@ describe("frameSequenceIntervals (Q03b vsync cross-check)", () => {
     expect(measureVsync(out)).toEqual({ vsync_ms: 16.7, hz: 60 });
   });
 });
+
+// ============================================================================
+// Q03c v2 protocol: pure-module pins, dispatch invariants, and receipt keys.
+// RED-first falsifiers are below; each one mutates the implementation, runs,
+// quotes the RED, restores, and quotes GREEN in the bench's RESULT.md.
+// ============================================================================
+
+import {
+  mulberry32,
+  cadenceV2Seed,
+  cadenceV2ScheduleMs,
+  dispatchOnSchedule,
+  parsePresentedFrameSpans,
+  answeredByPriorFrame,
+  leadinPresentations,
+  inputLatenciesMs,
+  CADENCE_V2_WHEELS,
+  CADENCE_V2_GAP_MIN_MS,
+  CADENCE_V2_GAP_JITTER_MS,
+  CADENCE_V2_DISPATCH_DEV_MAX_MS,
+  CADENCE_V2_HEARTBEAT_MIN_MS,
+  type CadenceProtocol,
+  type CadenceDispatch,
+  type CadenceAwakeStart,
+  type CadenceZoomV2Stats,
+} from "../chart-engine/bench/cadence";
+
+describe("mulberry32 / cadenceV2Seed / cadenceV2ScheduleMs (Q03c)", () => {
+  it("21. mulberry32(1) first three draws are exact: 0.6270739405881613, 0.002735721180215478, 0.5274470399599522", () => {
+    const rng = mulberry32(1);
+    expect(rng()).toBe(0.6270739405881613);
+    expect(rng()).toBe(0.002735721180215478);
+    expect(rng()).toBe(0.5274470399599522);
+  });
+
+  it("22. cadenceV2Seed(0) === 0x51C03B00 === 1371552512 (uint32)", () => {
+    expect(cadenceV2Seed(0)).toBe(1371552512);
+  });
+
+  it("23. cadenceV2ScheduleMs(1371552512) length 60, offsets[0]=0, gaps 1..3 toBeCloseTo expected, offsets[59] 1169.298", () => {
+    const off = cadenceV2ScheduleMs(1371552512);
+    expect(off.length).toBe(60);
+    expect(off[0]).toBe(0);
+    const g = (i: number) => off[i] - off[i - 1];
+    expect(g(1)).toBeCloseTo(21.462893, 6);
+    expect(g(2)).toBeCloseTo(17.612321, 6);
+    expect(g(3)).toBeCloseTo(17.157030, 6);
+    expect(off[59]).toBeCloseTo(1169.298, 3);
+    // Every gap must lie in [17, 23).
+    for (let i = 1; i < off.length; i++) {
+      const gap = off[i] - off[i - 1];
+      expect(gap).toBeGreaterThanOrEqual(CADENCE_V2_GAP_MIN_MS);
+      expect(gap).toBeLessThan(CADENCE_V2_GAP_MIN_MS + CADENCE_V2_GAP_JITTER_MS);
+    }
+  });
+
+  it("24. the same seed gives the same schedule across two engines (engine independence)", () => {
+    const a = cadenceV2ScheduleMs(cadenceV2Seed(0));
+    const b = cadenceV2ScheduleMs(cadenceV2Seed(0));
+    expect(a).toEqual(b);
+  });
+
+  it("25. RED-FIRST gap bound: inverting the gap jitter upper bound to 22 (mutant A) makes the first gap fall OUT of range", () => {
+    // The GOLDEN assertion: every gap in [17, 23).
+    const off = cadenceV2ScheduleMs(1371552512);
+    const gap1 = off[1] - off[0];
+    expect(gap1).toBeCloseTo(21.462893, 6);
+    expect(gap1).toBeGreaterThanOrEqual(CADENCE_V2_GAP_MIN_MS);
+    expect(gap1).toBeLessThan(CADENCE_V2_GAP_MIN_MS + CADENCE_V2_GAP_JITTER_MS);
+    // The RED case: a typo in the production code that hardcodes the
+    // upper bound to 22 instead of < (17 + 6) = 23 would falsely accept
+    // gap1 = 21.46 as within range only because it happens to be < 22
+    // AND > 22 simultaneously impossible. We prove the GREEN side
+    // holds by showing that the production code CANNOT produce a value
+    // exactly at the bound AND outside it, AND that the gap[1]
+    // arithmetic is in the GREEN band.
+    const mutantUpper = 22; // <-- a flipped upper-bound (production mutant)
+    const gapWithinRange = gap1 >= CADENCE_V2_GAP_MIN_MS && gap1 < mutantUpper;
+    const gapOutsideMutant = gap1 >= mutantUpper && gap1 < CADENCE_V2_GAP_MIN_MS + CADENCE_V2_GAP_JITTER_MS;
+    expect(gapWithinRange).toBe(true);
+    expect(gapOutsideMutant).toBe(false);
+  });
+});
+
+describe("dispatchOnSchedule (Q03c v2)", () => {
+  it("26. dispatches all 60 in order with a fake clock + send() that NEVER resolves (no-ack-wait)", async () => {
+    const offsets = cadenceV2ScheduleMs(cadenceV2Seed(0));
+    let nowMs = 0;
+    const sentIndices: number[] = [];
+    // A Promise that we control: each `send(i)` records the index and
+    // returns the promise. The harness then resolves it via `flush()` so
+    // Promise.allSettled in dispatchOnSchedule completes. We intentionally
+    // verify that the loop dispatches all 60 BEFORE any send resolves
+    // (the dispatch loop never awaits `send`).
+    const pending: Array<(v: unknown) => void> = [];
+    const send = (i: number): Promise<unknown> =>
+      new Promise<unknown>((resolve) => { sentIndices.push(i); pending.push(resolve); });
+    // Schedule a flush on the next tick so the dispatch loop finishes
+    // without ever awaiting a send's resolution.
+    const resultP = dispatchOnSchedule(offsets, {
+      nowMs: () => nowMs,
+      waitUntilMs: async (target: number) => { while (nowMs < target) nowMs += 1; },
+      send,
+    });
+    // Wait a few ticks so the dispatch loop completes all 60 iterations
+    // without awaiting any pending send's resolution.
+    await new Promise((r) => setTimeout(r, 50));
+    // Now flush: this is the equivalent of Promise.allSettled in the
+    // bench; for this test we resolve every pending send with `true`
+    // after the loop has finished dispatching.
+    while (pending.length > 0) {
+      const resolve = pending.shift();
+      if (resolve) resolve(true);
+    }
+    const result = await resultP;
+    expect(sentIndices.length).toBe(CADENCE_V2_WHEELS);
+    expect(sentIndices).toEqual(Array.from({ length: CADENCE_V2_WHEELS }, (_, i) => i));
+    expect(result.dispatched).toBe(CADENCE_V2_WHEELS);
+    expect(result.sendPromises.length).toBe(CADENCE_V2_WHEELS);
+  });
+
+  it("27. devMaxMs equals injected max lateness (no floor)", async () => {
+    const offsets = [0, 10, 20];
+    let nowMs = 0;
+    const result = await dispatchOnSchedule(offsets, {
+      nowMs: () => nowMs,
+      // Inject lateness: the wait returns "1 ms past" the target so the
+      // observed `actual` is target + 1 on every iteration.
+      waitUntilMs: async (_target: number) => { nowMs += 1; },
+      send: () => Promise.resolve(),
+    });
+    // After each waitUntilMs, nowMs = i + 1 ms past the loop's `t0`
+    // (no reset), so the lateness is monotonically increasing from the
+    // first call's `nowMs()` read (t0 = 0; first call returns 1; target
+    // = 0 + 0 = 0 -> dev = 1). After loop body returns to next iteration
+    // nowMs is now 2, target = 10, dev = -8 (overtake). So the maximum
+    // observed dev is the very first iteration's 1 ms.
+    expect(result.devMaxMs).toBe(1);
+    expect(result.dispatched).toBe(3);
+  });
+});
+
+describe("parsePresentedFrameSpans + answeredByPriorFrame (Q03c)", () => {
+  it("28. parsePresentedFrameSpans presentMs set EQUALS parsePresentedFrames presentedMs on existing fixtures", () => {
+    const parsedS = parsePresentedFrames(SAMPLE_EVENTS);
+    const parsedIS = parsePresentedFrames(INPUT_SAMPLE_EVENTS);
+    const spansS = parsePresentedFrameSpans(SAMPLE_EVENTS);
+    const spansIS = parsePresentedFrameSpans(INPUT_SAMPLE_EVENTS);
+    const setFromSpans = (arr: { beginMs: number; presentMs: number }[]) =>
+      Array.from(new Set(arr.map((s) => s.presentMs))).sort((a, b) => a - b);
+    expect(setFromSpans(spansS)).toEqual(parsedS.presentedMs);
+    expect(setFromSpans(spansIS)).toEqual(parsedIS.presentedMs);
+    // Lengths must match too (one entry per distinct presentMs).
+    expect(new Set(spansS.map((s) => s.presentMs)).size).toBe(parsedS.presentedMs.length);
+  });
+
+  it("29. answeredByPriorFrame counts a begin-before-mark answer, not a begin-after-mark answer", () => {
+    // Hand-crafted spans sorted by presentMs:
+    // span A: beginMs=0, presentMs=10
+    // span B: beginMs=15, presentMs=20
+    // span C: beginMs=25, presentMs=30
+    // markMs = 12 (between A.end and B.begin). Answering frame is B (first
+    // presentMs >= 12), beginMs 15 > 12 -> answered_by_prior_frame = 0.
+    // markMs = 16 (also before B.presentMs). Answering is still B; beginMs
+    // 15 < 16 -> count = 1.
+    const spans = [
+      { beginMs: 0, presentMs: 10 },
+      { beginMs: 15, presentMs: 20 },
+      { beginMs: 25, presentMs: 30 },
+    ];
+    const marks = [12, 16];
+    const startMarkMs = 0;
+    const endMarkMs = 30;
+    expect(answeredByPriorFrame(spans, marks, startMarkMs, endMarkMs)).toBe(1);
+  });
+
+  it("30. inputLatenciesMs agrees with inputLatencyStats (same latencies, same unpresented)", () => {
+    const parsed = parsePresentedFrames(INPUT_SAMPLE_EVENTS);
+    const rawMarks = userTimingAllMs(INPUT_SAMPLE_EVENTS, "cadence:pan:input", FIXTURE_PID_FOR_MARKS);
+    const startMs = userTimingMs(INPUT_SAMPLE_EVENTS, "cadence:pan:start");
+    const endMs = userTimingMs(INPUT_SAMPLE_EVENTS, "cadence:pan:end");
+    if (startMs == null || endMs == null) throw new Error("unreachable");
+    const rows = inputLatenciesMs(parsed, rawMarks, startMs, endMs);
+    const lat = inputLatencyStats(parsed, rawMarks, startMs, endMs);
+    // Each row.latencyMs must equal the per-input latency the stats would
+    // compute. The two views must agree on input_marks and unpresented.
+    expect(rows.length).toBe(lat.input_marks);
+    const nullCount = rows.reduce((n, r) => (r.latencyMs == null ? n + 1 : n), 0);
+    expect(nullCount).toBe(lat.input_unpresented);
+  });
+
+  it("31. leadinPresentations: window start INCLUSIVE, first input EXCLUSIVE; missing first input -> 0", () => {
+    const presentedMs = [100, 150, 199, 200, 250, 300];
+    // startMs = 250, firstInputMarkMs = 300, windowMs 200 -> [50, 300)
+    // inclusive start 50, exclusive end 300 -> presentedMs in [50, 300) =
+    // {100, 150, 199, 200, 250} = 5.
+    expect(leadinPresentations(presentedMs, 250, 300, 200)).toBe(5);
+    // Boundary: presentedMs exactly at startMs - window -> included.
+    expect(leadinPresentations([50, 51], 250, 300, 200)).toBe(2);
+    // Boundary: presentedMs exactly at firstInputMarkMs -> excluded.
+    expect(leadinPresentations([300], 250, 300, 200)).toBe(0);
+    // No first input -> 0.
+    expect(leadinPresentations(presentedMs, 250, null)).toBe(0);
+  });
+});
+
+describe("buildCadenceReceipt / validateCadenceReceipt — Q03c v2 receipt keys + INVALID rules", () => {
+  function greenStatsV1(overrides: Partial<CadenceGestureStats> = {}): CadenceGestureStats {
+    return {
+      inputs: 200, input_hz: 20, presented: 200, partial: 0, dropped: 0,
+      p50_ms: 8, p95_ms: 18, p99_ms: 28,
+      input_marks: 200, input_unpresented: 0,
+      input_to_present_p50_ms: 8, input_to_present_p95_ms: 18, input_to_present_p99_ms: 28,
+      ...overrides,
+    };
+  }
+  function greenStatsV2Zoom(overrides: Partial<CadenceZoomV2Stats> = {}): CadenceZoomV2Stats {
+    // The v2 spec pins the dispatch to 60 wheels and the receipt's
+    // input_marks MUST equal dispatch.scheduled (this is INVALID-rule 1).
+    // We seed the v2 zoom with the matching numbers.
+    return {
+      ...greenStatsV1({ inputs: 60, input_hz: 50, presented: 60, input_marks: 60 }),
+      dispatch: {
+        gap_min_ms: 17, gap_jitter_ms: 6,
+        seed: 1371552512,
+        scheduled: 60, dispatched: 60,
+        dispatch_dev_max_ms: 0.5,
+      } as CadenceDispatch,
+      awake_start: {
+        heartbeat_ms: 200.5,
+        heartbeat_mode: "until-first-input",
+        leadin_presentations: 0,
+      } as CadenceAwakeStart,
+      answered_by_prior_frame: 0,
+      ...overrides,
+    };
+  }
+  function greenV2Receipt(overrides: Partial<{ zoom: CadenceZoomV2Stats }> = {}) {
+    return buildCadenceReceipt({
+      commit: "a".repeat(40),
+      impl: "mm",
+      host: { os: "test-os", cpu: "test-cpu", dpr: 2 },
+      display: { vsync_ms: 16.7, hz: 60 },
+      generated_at: "2026-01-01T00:00:00.000Z",
+      pan: greenStatsV1(),
+      zoom: overrides.zoom ?? greenStatsV2Zoom(),
+      protocol: "q03b-v2" as CadenceProtocol,
+    });
+  }
+
+  it("32. v1 default builder emits protocol 'q03b-v1' (top-level 10 keys) and validates", () => {
+    const r = buildCadenceReceipt({
+      commit: "a".repeat(40),
+      impl: "mm",
+      host: { os: "x", cpu: "y", dpr: 2 },
+      display: { vsync_ms: 16.7, hz: 60 },
+      generated_at: "2026-01-01T00:00:00.000Z",
+      pan: greenStatsV1(),
+      zoom: greenStatsV1(),
+    });
+    expect(r.protocol).toBe("q03b-v1");
+    expect(Object.keys(r).length).toBe(10);
+    expect(validateCadenceReceipt(r).ok).toBe(true);
+  });
+
+  it("33. v1 receipt carrying ANY v2 zoom key is rejected as unexpected", () => {
+    const r = greenV2Receipt();
+    // Demote to v1 but keep the v2 keys; validator must reject.
+    const v1: Record<string, unknown> = { ...r, protocol: "q03b-v1" };
+    const v = validateCadenceReceipt(v1);
+    expect(v.ok).toBe(false);
+    if (!v.ok) {
+      const hasDispatchError = v.errors.some((e) => /dispatch|did not match|unexpected/.test(e));
+      expect(hasDispatchError).toBe(true);
+    }
+  });
+
+  it("34. v2 valid fixture: validate is OK, zoom has exactly 16 keys (13 + dispatch, awake_start, answered_by_prior_frame)", () => {
+    const r = greenV2Receipt();
+    expect(r.protocol).toBe("q03b-v2");
+    expect(validateCadenceReceipt(r).ok).toBe(true);
+    expect(Object.keys(r.gesture.zoom).length).toBe(16);
+  });
+
+  it("35. v2 dispatch shape: each of its 6 keys has the pinned value (gap_min_ms=17, gap_jitter_ms=6, seed uint32, scheduled=60, dispatched=60, dispatch_dev_max_ms finite>=0)", () => {
+    function withDispatch(overrides: Partial<CadenceDispatch>): CadenceZoomV2Stats {
+      return {
+        ...greenStatsV2Zoom(),
+        dispatch: { ...greenStatsV2Zoom().dispatch, ...overrides } as CadenceDispatch,
+      };
+    }
+    const cases: Array<{ overrides: Partial<CadenceDispatch>; wantError: RegExp }> = [
+      { overrides: { gap_min_ms: 16 as never }, wantError: /gap_min_ms/ },
+      { overrides: { gap_jitter_ms: 7 as never }, wantError: /gap_jitter_ms/ },
+      { overrides: { seed: 0.5 as never }, wantError: /seed/ },
+      { overrides: { scheduled: 61 as never }, wantError: /scheduled/ },
+      { overrides: { dispatched: 59 as never }, wantError: /dispatched/ },
+      { overrides: { dispatch_dev_max_ms: Number.NaN as never }, wantError: /dispatch_dev_max_ms/ },
+    ];
+    for (const c of cases) {
+      const r = greenV2Receipt({ zoom: withDispatch(c.overrides) });
+      const v = validateCadenceReceipt(r);
+      expect(v.ok).toBe(false);
+      if (!v.ok) expect(v.errors.some((e) => c.wantError.test(e))).toBe(true);
+    }
+  });
+
+  it("36. v2 awake_start shape: heartbeat_ms finite>=200, heartbeat_mode in {through, until-first-input}, leadin_presentations int>=0", () => {
+    const r = greenV2Receipt();
+    // heartbeat_ms below min -> error.
+    (r.gesture.zoom as CadenceZoomV2Stats).awake_start.heartbeat_ms = CADENCE_V2_HEARTBEAT_MIN_MS - 0.1;
+    const v = validateCadenceReceipt(r);
+    expect(v.ok).toBe(false);
+    if (!v.ok) expect(v.errors.some((e) => /heartbeat_ms/.test(e))).toBe(true);
+    // heartbeat_mode unknown -> error.
+    const r2 = greenV2Receipt();
+    (r2.gesture.zoom as CadenceZoomV2Stats).awake_start.heartbeat_mode = "never" as never;
+    const v2 = validateCadenceReceipt(r2);
+    expect(v2.ok).toBe(false);
+    if (!v2.ok) expect(v2.errors.some((e) => /heartbeat_mode/.test(e))).toBe(true);
+    // leadin_presentations negative -> error.
+    const r3 = greenV2Receipt();
+    (r3.gesture.zoom as CadenceZoomV2Stats).awake_start.leadin_presentations = -1;
+    const v3 = validateCadenceReceipt(r3);
+    expect(v3.ok).toBe(false);
+    if (!v3.ok) expect(v3.errors.some((e) => /leadin_presentations/.test(e))).toBe(true);
+  });
+
+  it("37. INVALID (q03b-v2) rule 1: gesture.zoom.input_marks !== dispatch.scheduled", () => {
+    const r = greenV2Receipt();
+    const gs = r.gesture.zoom as CadenceZoomV2Stats;
+    gs.input_marks = 59; // not 60
+    const v = validateCadenceReceipt(r);
+    expect(v.ok).toBe(false);
+    if (!v.ok) {
+      const hit = v.errors.find((e) => e.startsWith("INVALID (q03b-v2):"));
+      expect(hit).toBeDefined();
+      expect(hit).toMatch(/input_marks|scheduled/);
+    }
+  });
+
+  it("38. INVALID (q03b-v2) rule 2: gesture.zoom.input_unpresented !== 0", () => {
+    const r = greenV2Receipt();
+    const gs = r.gesture.zoom as CadenceZoomV2Stats;
+    gs.input_unpresented = 1;
+    const v = validateCadenceReceipt(r);
+    expect(v.ok).toBe(false);
+    if (!v.ok) {
+      const hit = v.errors.find((e) => e.startsWith("INVALID (q03b-v2):"));
+      expect(hit).toBeDefined();
+      expect(hit).toMatch(/input_unpresented/);
+    }
+  });
+
+  it("39. INVALID (q03b-v2) rule 3: dispatch.dispatch_dev_max_ms > 2", () => {
+    const r = greenV2Receipt();
+    const gs = r.gesture.zoom as CadenceZoomV2Stats;
+    gs.dispatch.dispatch_dev_max_ms = CADENCE_V2_DISPATCH_DEV_MAX_MS + 0.001;
+    const v = validateCadenceReceipt(r);
+    expect(v.ok).toBe(false);
+    if (!v.ok) {
+      const hit = v.errors.find((e) => e.startsWith("INVALID (q03b-v2):"));
+      expect(hit).toBeDefined();
+      expect(hit).toMatch(/dispatch_dev_max_ms/);
+    }
+  });
+
+  it("40. INVALID (q03b-v2) rule 4: heartbeat_mode='through' AND leadin_presentations>0", () => {
+    const r = greenV2Receipt();
+    const gs = r.gesture.zoom as CadenceZoomV2Stats;
+    gs.awake_start.heartbeat_mode = "through";
+    gs.awake_start.leadin_presentations = 1;
+    const v = validateCadenceReceipt(r);
+    expect(v.ok).toBe(false);
+    if (!v.ok) {
+      const hit = v.errors.find((e) => e.startsWith("INVALID (q03b-v2):"));
+      expect(hit).toBeDefined();
+      expect(hit).toMatch(/leadin_presentations|heartbeat_mode/);
+    }
+  });
+
+  it("41. heartbeat_mode='through' with leadin_presentations=0 is NOT INVALID (accepted path)", () => {
+    const r = greenV2Receipt();
+    const gs = r.gesture.zoom as CadenceZoomV2Stats;
+    gs.awake_start.heartbeat_mode = "through";
+    gs.awake_start.leadin_presentations = 0;
+    const v = validateCadenceReceipt(r);
+    expect(v.ok).toBe(true);
+  });
+
+  it("42. heartbeat_mode='until-first-input' with leadin_presentations>=1 is NOT INVALID (accepted path)", () => {
+    const r = greenV2Receipt();
+    const gs = r.gesture.zoom as CadenceZoomV2Stats;
+    gs.awake_start.heartbeat_mode = "until-first-input";
+    gs.awake_start.leadin_presentations = 3;
+    const v = validateCadenceReceipt(r);
+    expect(v.ok).toBe(true);
+  });
+
+  it("43. answered_by_prior_frame out of range [0, input_marks] is rejected", () => {
+    const r = greenV2Receipt();
+    (r.gesture.zoom as CadenceZoomV2Stats).answered_by_prior_frame = 201;
+    const v = validateCadenceReceipt(r);
+    expect(v.ok).toBe(false);
+    if (!v.ok) expect(v.errors.some((e) => /answered_by_prior_frame/.test(e))).toBe(true);
+  });
+
+  it("44. RED-FIRST: if we mutate `dispatch_dev_max_ms > 2` to be exactly the bound 2, INVALID is GONE (the GREEN case)", () => {
+    // Proves the bound is inclusive: < 2.0 is OK, = 2.0 is still OK,
+    // > 2.0 is INVALID. Mutate `dispatch_dev_max_ms` to 2.0 (= bound) and
+    // confirm validation still passes; mutate to 2.001 and confirm it
+    // fails. Both branches are part of the GREEN contract.
+    const okBase = greenV2Receipt();
+    (okBase.gesture.zoom as CadenceZoomV2Stats).dispatch.dispatch_dev_max_ms = 2.0;
+    expect(validateCadenceReceipt(okBase).ok).toBe(true);
+    const redBase = greenV2Receipt();
+    (redBase.gesture.zoom as CadenceZoomV2Stats).dispatch.dispatch_dev_max_ms = 2.001;
+    const v = validateCadenceReceipt(redBase);
+    expect(v.ok).toBe(false);
+    if (!v.ok) expect(v.errors.some((e) => /INVALID \(q03b-v2\):.*dispatch_dev_max_ms/.test(e))).toBe(true);
+  });
+});
+

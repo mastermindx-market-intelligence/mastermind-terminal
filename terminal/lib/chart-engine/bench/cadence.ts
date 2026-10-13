@@ -66,6 +66,17 @@
 // source. Its mode is printed as vsync_seq_ms on the diagnostic line and is
 // not part of the receipt.
 //
+// Protocol v2 (zoom only; Q03c):
+// The v2 zoom gesture sends the 60 wheels via wall-clock seeded dispatch
+// (one Input.dispatchMouseEvent at a time, scheduled by a Mulberry32 PRNG
+// seeded with CADENCE_V2_SEED_BASE + run index) and replaces the 200 ms
+// pre-gesture idle with a harness-side requestAnimationFrame heartbeat.
+// The 13 stat keys on gesture.zoom stay unchanged; v2 receipts add three
+// extra keys (dispatch, awake_start, answered_by_prior_frame) and carry a
+// top-level `protocol` field. The validator refuses "INVALID (q03b-v2)"
+// when any of the four conditions from the ruling fires. v1 receipts and
+// v2 receipts are NEVER compared without the protocol column.
+//
 // Pure: no fs, no playwright, no DOM, no ajv. Only `./corpus` is imported.
 // House style: 2-space indent, double quotes, semicolons, named exports.
 
@@ -81,6 +92,23 @@ export const CADENCE_BUDGETS = {
 } as const;
 
 export const GESTURE_TAIL_MS = 100;
+
+// ---------- Q03c v2 protocol constants ----------
+
+/** The 60 wheels of every zoom gesture, dispatched at the protocol v2 schedule. */
+export const CADENCE_V2_WHEELS = 60;
+/** Minimum scheduled gap between consecutive wheels (ms). */
+export const CADENCE_V2_GAP_MIN_MS = 17;
+/** Per-wheel scheduled gap jitter amplitude (ms). */
+export const CADENCE_V2_GAP_JITTER_MS = 6;
+/** Base seed of the cadence V2 schedule Mulberry32; per-run seed = (BASE + runIdx) >>> 0. */
+export const CADENCE_V2_SEED_BASE = 0x51c03b00;
+/** Maximum tolerated wheel dispatch lateness (ms); exceeding it is INVALID (q03b-v2). */
+export const CADENCE_V2_DISPATCH_DEV_MAX_MS = 2;
+/** Minimum heartbeat duration before the start mark is allowed (ms). */
+export const CADENCE_V2_HEARTBEAT_MIN_MS = 200;
+/** Length of the lead-in window sampled for `awake_start.leadin_presentations` (ms). */
+export const CADENCE_V2_LEADIN_WINDOW_MS = 200;
 
 /** Chromium devtools frame-reporter states (one per `b` event). */
 const STATE_PRESENTED_ALL = "STATE_PRESENTED_ALL";
@@ -101,6 +129,23 @@ export type ParsedPresentation = {
   partial: number;
   dropped: number;
   rendererPid: number;
+};
+
+/** Internal: a presented/partial/dropped STATE_PRESENTED_* slice in
+ *  begin/end form. Used by parsePresentedFrames (end-only consumer) and
+ *  parsePresentedFrameSpans (begin+end consumer for answered_by_prior_frame). */
+type SliceSpan = {
+  state: "presented" | "partial" | "dropped";
+  beginMs: number;
+  endMs: number;
+  frameKey: string;
+};
+
+/** Internal return shape of the slice-pairing helper. Same renderer-pid rule
+ *  as parsePresentedFrames. */
+type SlicedPresentation = {
+  rendererPid: number;
+  spans: SliceSpan[];
 };
 
 /** The eight intervals-only metrics a per-gesture stats record carries. */
@@ -128,6 +173,15 @@ export type InputLatencyStats = {
   input_to_present_p99_ms: number;
 };
 
+/** One row of `inputLatenciesMs` — the per-input detail. `latencyMs` and
+ *  `answerMs` are null when the input is unpresented (no frame answers it
+ *  inside the gesture tail). */
+export type InputLatencyRow = {
+  markMs: number;
+  latencyMs: number | null;
+  answerMs: number | null;
+};
+
 /** Per-gesture record in a receipt: 13 keys. The eight intervals-only metrics
  *  plus the five per-input latency metrics. */
 export type CadenceGestureStats = PresentedCadenceStats & InputLatencyStats;
@@ -139,13 +193,55 @@ export type CadenceDisplay = {
   hz: number;
 };
 
+/** Q03c v2 zoom dispatch receipt block: the 60-wall-clock wheels the bench
+ *  scheduled via dispatchOnSchedule. */
+export type CadenceDispatch = {
+  gap_min_ms: 17;
+  gap_jitter_ms: 6;
+  seed: number;
+  scheduled: 60;
+  dispatched: number;
+  dispatch_dev_max_ms: number;
+};
+
+/** Q03c v2 awake-start receipt block: how the harness kept the renderer
+ *  awake before the gesture. `leadin_presentations` is the diagnostic-only
+ *  count of STATE_PRESENTED_ALL moments in the 200 ms before the first wheel. */
+export type CadenceAwakeStart = {
+  heartbeat_ms: number;
+  heartbeat_mode: "through" | "until-first-input";
+  leadin_presentations: number;
+};
+
+/** v2 zoom gesture: 13 stat keys + dispatch + awake_start +
+ *  answered_by_prior_frame. `answered_by_prior_frame` counts inputs whose
+ *  answering frame's beginMs lies before the input's mark (synchronously
+ *  scheduled but already-presented frames). */
+export type CadenceZoomV2Stats = CadenceGestureStats & {
+  dispatch: CadenceDispatch;
+  awake_start: CadenceAwakeStart;
+  answered_by_prior_frame: number;
+};
+
+/** Protocol discriminator on the top-level receipt. The validator refuses
+ *  any other value. */
+export type CadenceProtocol = "q03b-v1" | "q03b-v2";
+
+/** `gesture.zoom` may be the v1 13-key stats or the v2 16-key stats. The
+ *  validator narrows on the receipt's `protocol` field. */
+export type CadenceReceiptGesture = {
+  pan: CadenceGestureStats;
+  zoom: CadenceGestureStats | CadenceZoomV2Stats;
+};
+
 export type CadenceReceipt = {
+  protocol: CadenceProtocol;
   commit: string;
   impl: "mm" | "lwc";
   host: { os: string; cpu: string; dpr: number };
   display: CadenceDisplay;
   generated_at: string;
-  gesture: { pan: CadenceGestureStats; zoom: CadenceGestureStats };
+  gesture: CadenceReceiptGesture;
   budgets: typeof CADENCE_BUDGETS;
   violations: Array<{ metric: string; value: number; budget: number }>;
   budget_ok: boolean;
@@ -335,6 +431,110 @@ function frameKey(args: RawReporterArgs, sliceKey: string): string {
   return sliceKey;
 }
 
+// ---------- shared slice pairing ----------
+
+/**
+ * Apply the renderer-pid selection rule and return one `SliceSpan` per
+ * presented/partial/dropped slice on the chosen pid in `{beginMs, endMs}`
+ * form. Used by `parsePresentedFrameSpans` (and by `parsePresentedFrames`
+ * to keep the b->next-e-of-same-pairKey pairing rules identical between
+ * the two consumers).
+ */
+function slicePresentationSpans(raw: readonly RawEvent[], markPrefix = "cadence:"): SlicedPresentation {
+  // Reporter pids by trace.
+  const reporterPids = new Set<number>();
+  for (const e of raw) {
+    if (readString(e.name) === "PipelineReporter") {
+      const pid = readPid(e);
+      if (pid != null) reporterPids.add(pid);
+    }
+  }
+
+  // Find earliest blink.user_timing mark under markPrefix , in ts order.
+  type MarkHit = { pid: number; ts: number };
+  let earliestMark: MarkHit | null = null;
+  for (const e of raw) {
+    if (readString(e.cat) !== "blink.user_timing") continue;
+    const name = readString(e.name);
+    if (name == null || !name.startsWith(markPrefix)) continue;
+    const pid = readPid(e);
+    if (pid == null) continue;
+    const ts = readNumber(e.ts);
+    if (ts == null) continue;
+    if (earliestMark == null || ts < earliestMark.ts) {
+      earliestMark = { pid, ts };
+    }
+  }
+
+  let rendererPid: number | null;
+  if (earliestMark != null) {
+    rendererPid = earliestMark.pid;
+  } else if (reporterPids.size === 1) {
+    rendererPid = reporterPids.values().next().value ?? null;
+  } else {
+    throw new Error("no presentation records in trace");
+  }
+  if (rendererPid == null) {
+    throw new Error("no presentation records in trace");
+  }
+  if (earliestMark != null && !reporterPids.has(rendererPid)) {
+    throw new Error("no presentation records in trace");
+  }
+
+  const parsed: Array<ParsedBegin | ParsedEnd | ParsedComplete> = [];
+  for (const e of raw) {
+    const r = parseReporterEvent(e);
+    if (r == null) continue;
+    if (r.pid !== rendererPid) continue;
+    parsed.push(r);
+  }
+  parsed.sort((a, b) => a.ts - b.ts);
+
+  const spans: SliceSpan[] = [];
+  for (let i = 0; i < parsed.length; i++) {
+    const ev = parsed[i];
+    if (ev.kind === "X") {
+      const state = toFrameState(ev.reporter.state);
+      if (state == null) continue;
+      spans.push({
+        state,
+        beginMs: ev.ts / 1000,
+        endMs: (ev.ts + ev.dur) / 1000,
+        frameKey: frameKey(ev.reporter, `x:${ev.pid}:${ev.ts}:${ev.dur}`),
+      });
+      continue;
+    }
+    if (ev.kind === "b") {
+      const state = toFrameState(ev.reporter.state);
+      if (state == null) continue;
+      const paired = findNextEnd(parsed, i + 1, ev.pairKey);
+      if (paired == null) continue;
+      spans.push({
+        state,
+        beginMs: ev.ts / 1000,
+        endMs: paired.ts / 1000,
+        frameKey: frameKey(ev.reporter, `b:${ev.pairKey}`),
+      });
+      continue;
+    }
+    // ev.kind === "e" — terminal half; ignore unpaired ends.
+  }
+
+  return { rendererPid, spans };
+}
+
+function findNextEnd(
+  list: ReadonlyArray<ParsedBegin | ParsedEnd | ParsedComplete>,
+  startIdx: number,
+  pairKey: string,
+): ParsedEnd | null {
+  for (let i = startIdx; i < list.length; i++) {
+    const ev = list[i];
+    if (ev.kind === "e" && ev.pairKey === pairKey) return ev;
+  }
+  return null;
+}
+
 // ---------- public parser ----------
 
 /**
@@ -355,6 +555,13 @@ function frameKey(args: RawReporterArgs, sliceKey: string): string {
  *     spec turns that into INVALID, B4).
  */
 export function parsePresentedFrames(events: readonly unknown[], markPrefix = "cadence:"): ParsedPresentation {
+  return parsePresentedFramesImpl(events, markPrefix);
+}
+
+/** Production logic of `parsePresentedFrames`. Pulled out so the v2
+ *  `parsePresentedFrameSpans` helper can share slice pairing with the v1
+ *  parser through `slicePresentationSpans`. */
+function parsePresentedFramesImpl(events: readonly unknown[], markPrefix: string): ParsedPresentation {
   const raw = readRawEvents(events);
 
   // Reporter pids by trace.
@@ -384,7 +591,6 @@ export function parsePresentedFrames(events: readonly unknown[], markPrefix = "c
 
   let rendererPid: number | null;
   if (earliestMark != null) {
-    // Hard pin: never fall back to another pid.
     rendererPid = earliestMark.pid;
   } else if (reporterPids.size === 1) {
     rendererPid = reporterPids.values().next().value ?? null;
@@ -394,7 +600,6 @@ export function parsePresentedFrames(events: readonly unknown[], markPrefix = "c
   if (rendererPid == null) {
     throw new Error("no presentation records in trace");
   }
-  // Mark set but the marked pid emitted no PipelineReporter -> throw.
   if (earliestMark != null && !reporterPids.has(rendererPid)) {
     throw new Error("no presentation records in trace");
   }
@@ -511,16 +716,27 @@ export function parsePresentedFrames(events: readonly unknown[], markPrefix = "c
   return { frames, presentedMs, presented, partial, dropped, rendererPid };
 }
 
-function findNextEnd(
-  list: ReadonlyArray<ParsedBegin | ParsedEnd | ParsedComplete>,
-  startIdx: number,
-  pairKey: string,
-): ParsedEnd | null {
-  for (let i = startIdx; i < list.length; i++) {
-    const ev = list[i];
-    if (ev.kind === "e" && ev.pairKey === pairKey) return ev;
+/**
+ * Same renderer-pid choice and same b->next-e pairing as parsePresentedFrames
+ * (a thin view over `slicePresentationSpans`), returned as one entry per
+ * DISTINCT STATE_PRESENTED_ALL ms: `presentMs` is the slice end, `beginMs` is
+ * the EARLIEST beginMs among the slices (b-event start or X-event ts) that
+ * presents at that ms. Sorted by presentMs ascending. The set of presentMs
+ * values EQUALS parsePresentedFrames(...).presentedMs (the v2 receipt relies
+ * on this for the leadin_presentations count over the same window).
+ */
+export function parsePresentedFrameSpans(events: readonly unknown[], markPrefix = "cadence:"): { beginMs: number; presentMs: number }[] {
+  const sliced = slicePresentationSpans(readRawEvents(events), markPrefix);
+  const byPresentMs = new Map<number, number>();
+  for (const s of sliced.spans) {
+    if (s.state !== "presented") continue;
+    const prev = byPresentMs.get(s.endMs);
+    if (prev == null || s.beginMs < prev) byPresentMs.set(s.endMs, s.beginMs);
   }
-  return null;
+  const out: { beginMs: number; presentMs: number }[] = [];
+  for (const [presentMs, beginMs] of byPresentMs) out.push({ beginMs, presentMs });
+  out.sort((a, b) => a.presentMs - b.presentMs);
+  return out;
 }
 
 // ---------- windowed math ----------
@@ -602,16 +818,76 @@ export function p99(v: readonly number[]): number {
 // ---------- per-input latency ----------
 
 /**
- * Per-input presentation latency (Q03b). The matching rule is the FIRST
- * `presentedMs` value at-or-after each input mark `m`, AND that presentation
- * must still fall inside `[startMarkMs, endMarkMs + GESTURE_TAIL_MS]`
- * inclusive (otherwise the input is unpresented — the gesture is over and no
- * frame arrived in time). `inputMarksMs` is de-duplicated within the gesture
- * window (a pointermove and its compatibility mousemove carry the same
- * timeStamp; both are marked and identical times count as one input).
- * Equality counts (a mark that lands exactly on a presentation frame has
- * latency 0). An empty mark list throws — there is no way to compute a
- * per-input latency without inputs.
+ * Per-input presentation latency (Q03b). For every input mark `m` inside
+ * `[startMarkMs, endMarkMs]` inclusive, find the FIRST `presentedMs` value
+ * `p` such that `p >= m` AND `p <= endMarkMs + GESTURE_TAIL_MS`. Equality
+ * counts (a mark that lands exactly on a presentation frame has latency 0).
+ * The mark list is de-duplicated within the gesture window (a pointermove
+ * and its compatibility mousemove carry the same timeStamp; identical
+ * timestamps count as one input).
+ *
+ * Returns one row per input mark in mark-ascending order:
+ *   `{ markMs, latencyMs, answerMs }`
+ * with `latencyMs` and `answerMs` null when no frame answers this input
+ * inside the tail. The bench reads these rows to emit the diag-only
+ * `zoom_first_lat_ms`, `zoom_rest_lat_min_ms`, `zoom_rest_lat_max_ms`, and
+ * `zoom_answered_lt2ms`; the existing `inputLatencyStats` aggregator is
+ * re-implemented on top of this function and its outputs are BIT-IDENTICAL
+ * to the previous implementation (the existing unit tests in
+ * `chartEngineCadence.test.ts` are the guard).
+ *
+ * An empty mark list throws — there is no way to compute a per-input
+ * latency without inputs.
+ */
+export function inputLatenciesMs(
+  parsed: ParsedPresentation,
+  inputMarksMs: readonly number[],
+  startMarkMs: number,
+  endMarkMs: number,
+): InputLatencyRow[] {
+  const inWindow = inputMarksMs.filter((m) => m >= startMarkMs && m <= endMarkMs);
+  const marks = Array.from(new Set(inWindow)).sort((a, b) => a - b);
+  if (marks.length === 0) {
+    throw new Error("no input marks");
+  }
+  const tailEnd = endMarkMs + GESTURE_TAIL_MS;
+  // presentedMs is already sorted ascending (see parsePresentedFrames).
+  const presentedMs = parsed.presentedMs;
+  const rows: InputLatencyRow[] = [];
+  for (const m of marks) {
+    let answer: number | null = null;
+    for (const p of presentedMs) {
+      if (p >= m && p <= tailEnd) {
+        answer = p;
+        break;
+      }
+    }
+    rows.push({
+      markMs: m,
+      latencyMs: answer == null ? null : answer - m,
+      answerMs: answer,
+    });
+  }
+  return rows;
+}
+
+/**
+ * Per-input presentation latency summary (Q03b). The matching rule is the
+ * FIRST `presentedMs` value at-or-after each input mark `m`, AND that
+ * presentation must still fall inside `[startMarkMs, endMarkMs +
+ * GESTURE_TAIL_MS]` inclusive (otherwise the input is unpresented — the
+ * gesture is over and no frame arrived in time). `inputMarksMs` is
+ * de-duplicated within the gesture window (a pointermove and its
+ * compatibility mousemove carry the same timeStamp; both are marked and
+ * identical times count as one input). Equality counts (a mark that lands
+ * exactly on a presentation frame has latency 0). An empty mark list
+ * throws — there is no way to compute a per-input latency without inputs.
+ *
+ * The implementation is the original Q03b reducer; `inputLatenciesMs` is
+ * the per-input detail view used by the v2 bench for diag-only numbers,
+ * and its outputs are derived INDEPENDENTLY so a regression in either
+ * helper is caught by the existing unit-test suite (the two views agree
+ * because they share the same window / dedupe / answering rule).
  */
 export function inputLatencyStats(
   parsed: ParsedPresentation,
@@ -619,7 +895,6 @@ export function inputLatencyStats(
   startMarkMs: number,
   endMarkMs: number,
 ): InputLatencyStats {
-  // Keep marks that fall inside the gesture window inclusive; de-duplicate.
   const inWindow = inputMarksMs.filter((m) => m >= startMarkMs && m <= endMarkMs);
   const marks = Array.from(new Set(inWindow)).sort((a, b) => a - b);
   if (marks.length === 0) {
@@ -817,6 +1092,167 @@ export function checkInputMarkClock(
   return { ok: true, maxDeviationMs: maxDev };
 }
 
+// ---------- Q03c v2 schedule / dispatch helpers ----------
+
+/**
+ * Mulberry32 PRNG, the standard reference algorithm bound by the Q03c
+ * ruling. `seed` is a uint32 (the caller is responsible for `>>> 0`-ing
+ * the value when deriving per-run seeds). The first three draws with
+ * `seed = 1` are 0.6270739405881613, 0.002735721180215478,
+ * 0.5274470399599522 (exact; pinned by the unit tests).
+ */
+export function mulberry32(seed: number): () => number {
+  let a = seed >>> 0;
+  return () => {
+    a |= 0;
+    a = (a + 0x6d2b79f5) | 0;
+    let t = Math.imul(a ^ (a >>> 15), 1 | a);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+/** `(CADENCE_V2_SEED_BASE + runIdx) >>> 0` — the per-run v2 schedule seed. */
+export function cadenceV2Seed(runIdx: number): number {
+  return (CADENCE_V2_SEED_BASE + runIdx) >>> 0;
+}
+
+/**
+ * Per-wheel scheduled offsets (ms from t_0) for the Q03c v2 zoom dispatch.
+ * `offsets[0] = 0`; for `i = 1..count - 1`, `offsets[i] = offsets[i-1] +
+ * CADENCE_V2_GAP_MIN_MS + CADENCE_V2_GAP_JITTER_MS * u_i` where `u_i` is
+ * the `i`-th draw of `mulberry32(seed)` (the first draw is consumed but
+ * produces the `i = 0` offset of 0 by construction; it is NOT in the
+ * schedule). Every gap lies in `[CADENCE_V2_GAP_MIN_MS,
+ * CADENCE_V2_GAP_MIN_MS + CADENCE_V2_GAP_JITTER_MS)` (= `[17, 23)`).
+ */
+export function cadenceV2ScheduleMs(seed: number, count: number = CADENCE_V2_WHEELS): number[] {
+  if (!Number.isInteger(count) || count < 0) {
+    throw new Error(`cadenceV2ScheduleMs: count must be a non-negative integer (got ${count})`);
+  }
+  const offsets: number[] = new Array<number>(count).fill(0);
+  if (count === 0) return offsets;
+  const rng = mulberry32(seed);
+  // gap[i] = 17 + 6 * u_i where u_i is the i-th draw of mulberry32(seed)
+  // (i = 1..count - 1; offsets[0] is fixed at 0). Draw 1 IS the first
+  // call into the PRNG; there is no bootstrap draw because the schedule
+  // anchor (offsets[0] = 0) is the zero point, not a draw. The unit
+  // tests pin the first three gaps and the offsets[59] end-of-schedule
+  // total, which together prove the draw-to-gap mapping is correct.
+  let prev = 0;
+  for (let i = 1; i < count; i++) {
+    const u = rng();
+    const gap = CADENCE_V2_GAP_MIN_MS + CADENCE_V2_GAP_JITTER_MS * u;
+    prev = prev + gap;
+    offsets[i] = prev;
+  }
+  return offsets;
+}
+
+/**
+ * Q03c v2 dispatch helper: schedule the `offsetsMs` offsets against a
+ * Node clock. For each `i`, `waitUntilMs(targetMs)` is awaited BEFORE the
+ * `send(i)` call is fired WITHOUT awaiting it; `sendPromises` is returned
+ * for the bench to resolve later. `dispatched` is the count of fulfilled
+ * sends after `Promise.allSettled`, `dispatch_dev_max_ms` is the maximum
+ * lateness observed at fire time (>= 0, NOT floored). NEVER awaits any
+ * send promise inside the loop.
+ *
+ * `deps.nowMs()` is the Node firing clock. `deps.waitUntilMs(targetMs)`
+ * should wake about 2 ms before the target then spin on the Node clock
+ * to consume the remaining slack. `deps.send(i)` returns the CDP send
+ * promise (typically `session.send("Input.dispatchMouseEvent", params)`).
+ *
+ * The schedule is engine-independent: the seed sequence is the only
+ * source of variance, so both engines see the same offsets ms.
+ */
+export async function dispatchOnSchedule(
+  offsetsMs: readonly number[],
+  deps: {
+    nowMs(): number;
+    waitUntilMs(targetMs: number): Promise<void>;
+    send(i: number): Promise<unknown>;
+  },
+): Promise<{ dispatched: number; devMaxMs: number; sendPromises: Promise<unknown>[] }> {
+  const t0 = deps.nowMs();
+  const sendPromises: Promise<unknown>[] = [];
+  let devMaxMs = 0;
+  for (let i = 0; i < offsetsMs.length; i++) {
+    const target = t0 + (offsetsMs[i] ?? 0);
+    // The ONLY await in the loop is on the scheduling sleep (waitUntilMs);
+    // the CDP `send(i)` call below is fired WITHOUT awaiting so back-to-back
+    // dispatches are not gated by a round-trip ack. The bench consumes
+    // `sendPromises` later via `Promise.allSettled` to count `dispatched`.
+    await deps.waitUntilMs(target);
+    const actual = deps.nowMs();
+    const dev = actual - target;
+    if (dev > devMaxMs) devMaxMs = dev;
+    sendPromises.push(deps.send(i));
+  }
+  // `dispatched` is the count of fulfilled sends; the bench resolves it
+  // after the gesture (see Promise.allSettled description). The promise
+  // left in flight here is resolved deterministically by allSettled.
+  const fulfilled = await Promise.allSettled(sendPromises);
+  const dispatched = fulfilled.reduce((n, r) => (r.status === "fulfilled" ? n + 1 : n), 0);
+  return { dispatched, devMaxMs, sendPromises };
+}
+
+/**
+ * Q03c v2 diag: count of inputs whose answering presented frame's
+ * `beginMs` (paired `b`/`X` start) lies strictly BEFORE the input's mark.
+ * Inputs whose frame began before the input are "synchronously scheduled
+ * but already-presented" — they hit a frame the renderer was already
+ * painting when the wheel arrived. `spans` must come from
+ * `parsePresentedFrameSpans`; `inputMarksMs` must already be sorted and
+ * de-duplicated. `inputMarksMs[0]` is the first wheel.
+ */
+export function answeredByPriorFrame(
+  spans: { beginMs: number; presentMs: number }[],
+  inputMarksMs: readonly number[],
+  startMarkMs: number,
+  endMarkMs: number,
+): number {
+  const inWindow = inputMarksMs.filter((m) => m >= startMarkMs && m <= endMarkMs);
+  const marks = Array.from(new Set(inWindow)).sort((a, b) => a - b);
+  if (marks.length === 0) return 0;
+  // For each mark find the FIRST span whose presentMs >= mark AND
+  // presentMs <= endMark + GESTURE_TAIL_MS (matches the answering rule).
+  const tailEnd = endMarkMs + GESTURE_TAIL_MS;
+  let count = 0;
+  for (const m of marks) {
+    for (const s of spans) {
+      if (s.presentMs < m) continue;
+      if (s.presentMs > tailEnd) break;
+      if (s.beginMs < m) count += 1;
+      break;
+    }
+  }
+  return count;
+}
+
+/**
+ * Q03c v2 diag: number of STATE_PRESENTED_ALL events whose ms lies inside
+ * `[startMarkMs - windowMs, firstInputMarkMs)` (inclusive start, exclusive
+ * end). When `firstInputMarkMs` is null there is no first input and the
+ * count is 0. The default `windowMs` is
+ * `CADENCE_V2_LEADIN_WINDOW_MS` (200 ms).
+ */
+export function leadinPresentations(
+  presentedMs: readonly number[],
+  startMarkMs: number,
+  firstInputMarkMs: number | null,
+  windowMs: number = CADENCE_V2_LEADIN_WINDOW_MS,
+): number {
+  if (firstInputMarkMs == null) return 0;
+  const lo = startMarkMs - windowMs;
+  const hi = firstInputMarkMs;
+  let n = 0;
+  for (const p of presentedMs) {
+    if (p >= lo && p < hi) n += 1;
+  }
+  return n;
+}
+
 // ---------- receipt builder / validator ----------
 
 export type BuildCadenceReceiptInput = {
@@ -826,7 +1262,10 @@ export type BuildCadenceReceiptInput = {
   display: CadenceDisplay;
   generated_at?: string;
   pan: CadenceGestureStats;
-  zoom: CadenceGestureStats;
+  zoom: CadenceGestureStats | CadenceZoomV2Stats;
+  /** Q03c v2: defaults to "q03b-v1" so existing benches and the unit-test
+   *  fixtures see the v1 receipt shape unchanged. */
+  protocol?: CadenceProtocol;
 };
 
 type MetricOrder = {
@@ -861,19 +1300,21 @@ function readGestureMetric(s: CadenceGestureStats, field: MetricOrder["field"]):
 }
 
 export function buildCadenceReceipt(input: BuildCadenceReceiptInput): CadenceReceipt {
+  const protocol: CadenceProtocol = input.protocol ?? "q03b-v1";
   const violations: CadenceReceipt["violations"] = [];
   for (const m of METRIC_ORDER) {
-    const stats = m.gesture === "pan" ? input.pan : input.zoom;
+    const stats: CadenceGestureStats = m.gesture === "pan" ? input.pan : (input.zoom as CadenceGestureStats);
     const value = readGestureMetric(stats, m.field);
     if (value > m.budget) violations.push({ metric: m.metric, value, budget: m.budget });
   }
   return {
+    protocol,
     commit: input.commit,
     impl: input.impl,
     host: input.host,
     display: input.display,
     generated_at: input.generated_at ?? new Date().toISOString(),
-    gesture: { pan: input.pan, zoom: input.zoom },
+    gesture: { pan: input.pan, zoom: input.zoom as CadenceGestureStats | CadenceZoomV2Stats },
     budgets: CADENCE_BUDGETS,
     violations,
     budget_ok: violations.length === 0,
@@ -917,8 +1358,10 @@ function isNonEmptyString(v: unknown): v is string {
   return typeof v === "string" && v.length > 0;
 }
 
-/** Exactly nine top-level keys; exactly thirteen gesture stat keys per gesture. */
+/** Top-level keys: exactly 10 (the original 9 plus the new `protocol`).
+ *  `protocol` must be in {"q03b-v1", "q03b-v2"}. */
 const TOP_LEVEL_KEYS = [
+  "protocol",
   "commit",
   "impl",
   "host",
@@ -945,14 +1388,29 @@ const GESTURE_STAT_KEYS = [
   "input_to_present_p99_ms",
 ] as const;
 const DISPLAY_KEYS = ["vsync_ms", "hz"] as const;
+const V2_DISPATCH_KEYS = [
+  "gap_min_ms",
+  "gap_jitter_ms",
+  "seed",
+  "scheduled",
+  "dispatched",
+  "dispatch_dev_max_ms",
+] as const;
+const V2_AWAKE_START_KEYS = ["heartbeat_ms", "heartbeat_mode", "leadin_presentations"] as const;
+const V2_HEARTBEAT_MODES = new Set(["through", "until-first-input"]);
 
+/** Top-level validator. After the v0 checks (shape, types, round-trip)
+ *  the v2 zoom fields are validated; v1 zoom must not carry any v2 keys.
+ *  Any validator error that fires one of the four Q03c v2 INVALID rules
+ *  starts its message with "INVALID (q03b-v2): " so the bench can detect
+ *  the run-retry path. */
 export function validateCadenceReceipt(receipt: unknown): { ok: true } | { ok: false; errors: string[] } {
   const errors: string[] = [];
   if (receipt == null || typeof receipt !== "object") {
     return { ok: false, errors: ["receipt is not an object"] };
   }
   const r = receipt as Record<string, unknown>;
-  // A3: reject a top-level key outside the nine.
+  // A3: reject a top-level key outside the ten.
   for (const k of Object.keys(r)) {
     if (!(TOP_LEVEL_KEYS as readonly string[]).includes(k)) {
       errors.push(`unexpected top-level key "${k}"`);
@@ -961,6 +1419,11 @@ export function validateCadenceReceipt(receipt: unknown): { ok: true } | { ok: f
   for (const k of TOP_LEVEL_KEYS) {
     if (!(k in r)) errors.push(`missing top-level key "${k}"`);
   }
+  // `protocol` is a required string in the closed set.
+  if (r.protocol !== "q03b-v1" && r.protocol !== "q03b-v2") {
+    errors.push(`protocol must be "q03b-v1" or "q03b-v2" (got ${JSON.stringify(r.protocol)})`);
+  }
+  const protocol: CadenceProtocol = r.protocol === "q03b-v1" || r.protocol === "q03b-v2" ? r.protocol : "q03b-v1";
   if (typeof r.commit !== "string" || !/^[0-9a-f]{40}$/.test(r.commit)) {
     errors.push(`commit must match /^[0-9a-f]{40}$/ (got ${JSON.stringify(r.commit)})`);
   }
@@ -1012,38 +1475,17 @@ export function validateCadenceReceipt(receipt: unknown): { ok: true } | { ok: f
   if (gesture == null || typeof gesture !== "object") {
     errors.push("gesture must be an object");
   } else {
-    for (const g of ["pan", "zoom"] as const) {
-      const s = gesture[g] as Record<string, unknown> | undefined;
-      if (s == null || typeof s !== "object") {
-        errors.push(`gesture.${g} must be an object`);
-        continue;
-      }
-      // A3: reject a stat key outside the thirteen.
-      for (const k of Object.keys(s)) {
-        if (!(GESTURE_STAT_KEYS as readonly string[]).includes(k)) {
-          errors.push(`unexpected gesture.${g} key "${k}"`);
-        }
-      }
-      for (const k of GESTURE_STAT_KEYS) {
-        if (!(k in s)) errors.push(`missing gesture.${g} key "${k}"`);
-      }
-      const finiteKeys = ["input_hz", "p50_ms", "p95_ms", "p99_ms", "input_to_present_p50_ms", "input_to_present_p95_ms", "input_to_present_p99_ms"];
-      for (const k of finiteKeys) {
-        if (!isNonNegativeFinite(s[k])) errors.push(`gesture.${g}.${k} must be a finite number >= 0 (got ${JSON.stringify(s[k])})`);
-      }
-      for (const k of ["inputs", "presented", "partial", "dropped", "input_unpresented"]) {
-        if (!isNonNegativeInt(s[k])) errors.push(`gesture.${g}.${k} must be a non-negative integer (got ${JSON.stringify(s[k])})`);
-      }
-      // input_marks is the unique count of input events; a gesture without any
-      // input marks has no per-input latency to report, so the bench throws
-      // "no input marks" and the receipt must never carry 0 here.
-      if (!isPositiveInteger(s.input_marks)) {
-        errors.push(`gesture.${g}.input_marks must be an integer >= 1 (got ${JSON.stringify(s.input_marks)})`);
-      }
-      // input_unpresented <= input_marks (cannot have more unpresented than inputs).
-      if (isNonNegativeInt(s.input_marks) && isNonNegativeInt(s.input_unpresented) && (s.input_unpresented as number) > (s.input_marks as number)) {
-        errors.push(`gesture.${g}.input_unpresented (${s.input_unpresented}) must be <= input_marks (${s.input_marks})`);
-      }
+    // pan is always 13 stat keys in both protocols.
+    const pan = validateGestureStats(errors, gesture.pan, "pan", protocol === "q03b-v2");
+    // zoom shape is 13 (v1) or 16 (v2). Reject extra v2 keys in v1.
+    if (protocol === "q03b-v2") {
+      validateZoomV2(errors, gesture.zoom);
+    } else {
+      validateGestureStats(errors, gesture.zoom, "zoom", false);
+    }
+    // For round-trip rebuild we need zoom in 13-key form.
+    if (pan != null && gesture.zoom != null && typeof gesture.zoom === "object") {
+      maybeRoundTrip(errors, r, gesture, protocol);
     }
   }
   if (!Array.isArray(r.violations)) {
@@ -1053,43 +1495,175 @@ export function validateCadenceReceipt(receipt: unknown): { ok: true } | { ok: f
     errors.push("budget_ok must be a boolean");
   }
 
-  // Round-trip check: rebuild the receipt from the gesture stats + display
-  // and the canonical budgets and compare violations / budget_ok exactly.
-  if (gesture && typeof gesture === "object") {
-    const pan = gesture.pan as CadenceGestureStats | undefined;
-    const zoom = gesture.zoom as CadenceGestureStats | undefined;
-    if (
-      pan != null && zoom != null &&
-      isNonNegativeFinite(pan.p95_ms) && isNonNegativeFinite(pan.p99_ms) &&
-      isNonNegativeFinite(zoom.p95_ms) && isNonNegativeFinite(zoom.p99_ms) &&
-      isNonNegativeFinite(pan.input_to_present_p95_ms) && isNonNegativeFinite(pan.input_to_present_p99_ms) &&
-      isNonNegativeFinite(zoom.input_to_present_p95_ms) && isNonNegativeFinite(zoom.input_to_present_p99_ms) &&
-      display != null && typeof display === "object" &&
-      isNonNegativeFinite(display.vsync_ms) && isPositiveInteger(display.hz)
-    ) {
-      const expected = buildCadenceReceipt({
-        commit: typeof r.commit === "string" ? r.commit : "0".repeat(40),
-        impl: r.impl === "lwc" ? "lwc" : "mm",
-        host: {
-          os: typeof host?.os === "string" ? host.os : "x",
-          cpu: typeof host?.cpu === "string" ? host.cpu : "x",
-          dpr: isFiniteNumber(host?.dpr) ? (host.dpr as number) : 1,
-        },
-        display: { vsync_ms: display.vsync_ms as number, hz: display.hz as number },
-        pan,
-        zoom,
-      });
-      if (Array.isArray(r.violations)) {
-        const ev = JSON.stringify(r.violations);
-        const av = JSON.stringify(expected.violations);
-        if (ev !== av) errors.push(`violations do not match what buildCadenceReceipt would compute (got ${ev}, want ${av})`);
-      }
-      if (typeof r.budget_ok === "boolean" && r.budget_ok !== expected.budget_ok) {
-        errors.push(`budget_ok (${r.budget_ok}) does not match what buildCadenceReceipt would compute (${expected.budget_ok})`);
+  if (errors.length > 0) return { ok: false, errors };
+  return { ok: true };
+}
+
+function validateGestureStats(
+  errors: string[],
+  stat: unknown,
+  label: "pan" | "zoom",
+  allowV2Keys: boolean,
+): CadenceGestureStats | null {
+  if (stat == null || typeof stat !== "object") {
+    errors.push(`gesture.${label} must be an object`);
+    return null;
+  }
+  const s = stat as Record<string, unknown>;
+  // A3: reject a stat key outside the thirteen (v2 zoom also has 3 extras;
+  // validateZoomV2 handles them separately so we do not allow them here).
+  for (const k of Object.keys(s)) {
+    if (!(GESTURE_STAT_KEYS as readonly string[]).includes(k)) {
+      if (!allowV2Keys) {
+        errors.push(`unexpected gesture.${label} key "${k}"`);
+      } else {
+        // v2 may carry them; validateZoomV2 will reject anything outside
+        // the 16 expected. Here we accept; the specialized validator owns
+        // the v2 shape.
       }
     }
   }
+  for (const k of GESTURE_STAT_KEYS) {
+    if (!(k in s)) errors.push(`missing gesture.${label} key "${k}"`);
+  }
+  const finiteKeys = ["input_hz", "p50_ms", "p95_ms", "p99_ms", "input_to_present_p50_ms", "input_to_present_p95_ms", "input_to_present_p99_ms"];
+  for (const k of finiteKeys) {
+    if (!isNonNegativeFinite(s[k])) errors.push(`gesture.${label}.${k} must be a finite number >= 0 (got ${JSON.stringify(s[k])})`);
+  }
+  for (const k of ["inputs", "presented", "partial", "dropped", "input_unpresented"]) {
+    if (!isNonNegativeInt(s[k])) errors.push(`gesture.${label}.${k} must be a non-negative integer (got ${JSON.stringify(s[k])})`);
+  }
+  if (!isPositiveInteger(s.input_marks)) {
+    errors.push(`gesture.${label}.input_marks must be an integer >= 1 (got ${JSON.stringify(s.input_marks)})`);
+  }
+  if (isNonNegativeInt(s.input_marks) && isNonNegativeInt(s.input_unpresented) && (s.input_unpresented as number) > (s.input_marks as number)) {
+    errors.push(`gesture.${label}.input_unpresented (${s.input_unpresented}) must be <= input_marks (${s.input_marks})`);
+  }
+  return s as unknown as CadenceGestureStats;
+}
 
-  if (errors.length > 0) return { ok: false, errors };
-  return { ok: true };
+function validateZoomV2(errors: string[], stat: unknown): void {
+  if (stat == null || typeof stat !== "object") {
+    errors.push("gesture.zoom must be an object");
+    return;
+  }
+  const s = stat as Record<string, unknown>;
+  const expectedTop = [...GESTURE_STAT_KEYS, "dispatch", "awake_start", "answered_by_prior_frame"] as const;
+  for (const k of Object.keys(s)) {
+    if (!(expectedTop as readonly string[]).includes(k)) {
+      errors.push(`unexpected gesture.zoom key "${k}"`);
+    }
+  }
+  for (const k of expectedTop) {
+    if (!(k in s)) errors.push(`missing gesture.zoom key "${k}"`);
+  }
+  // Inner shape of `dispatch` and `awake_start`.
+  const dispatch = s.dispatch as Record<string, unknown> | undefined;
+  if (dispatch == null || typeof dispatch !== "object") {
+    errors.push("gesture.zoom.dispatch must be an object");
+  } else {
+    for (const k of Object.keys(dispatch)) {
+      if (!(V2_DISPATCH_KEYS as readonly string[]).includes(k)) {
+        errors.push(`unexpected gesture.zoom.dispatch key "${k}"`);
+      }
+    }
+    for (const k of V2_DISPATCH_KEYS) {
+      if (!(k in dispatch)) errors.push(`missing gesture.zoom.dispatch key "${k}"`);
+    }
+    if (dispatch.gap_min_ms !== CADENCE_V2_GAP_MIN_MS) errors.push(`gesture.zoom.dispatch.gap_min_ms must be ${CADENCE_V2_GAP_MIN_MS} (got ${JSON.stringify(dispatch.gap_min_ms)})`);
+    if (dispatch.gap_jitter_ms !== CADENCE_V2_GAP_JITTER_MS) errors.push(`gesture.zoom.dispatch.gap_jitter_ms must be ${CADENCE_V2_GAP_JITTER_MS} (got ${JSON.stringify(dispatch.gap_jitter_ms)})`);
+    if (!isNonNegativeInt(dispatch.seed) || (dispatch.seed as number) > 0xFFFFFFFF) errors.push(`gesture.zoom.dispatch.seed must be a uint32 integer (got ${JSON.stringify(dispatch.seed)})`);
+    if (dispatch.scheduled !== CADENCE_V2_WHEELS) errors.push(`gesture.zoom.dispatch.scheduled must be ${CADENCE_V2_WHEELS} (got ${JSON.stringify(dispatch.scheduled)})`);
+    if (dispatch.dispatched !== CADENCE_V2_WHEELS) errors.push(`gesture.zoom.dispatch.dispatched must be ${CADENCE_V2_WHEELS} (got ${JSON.stringify(dispatch.dispatched)})`);
+    if (!(isNonNegativeFinite(dispatch.dispatch_dev_max_ms) && Number.isFinite(dispatch.dispatch_dev_max_ms))) errors.push(`gesture.zoom.dispatch.dispatch_dev_max_ms must be a finite number >= 0 (got ${JSON.stringify(dispatch.dispatch_dev_max_ms)})`);
+  }
+  const awake = s.awake_start as Record<string, unknown> | undefined;
+  if (awake == null || typeof awake !== "object") {
+    errors.push("gesture.zoom.awake_start must be an object");
+  } else {
+    for (const k of Object.keys(awake)) {
+      if (!(V2_AWAKE_START_KEYS as readonly string[]).includes(k)) {
+        errors.push(`unexpected gesture.zoom.awake_start key "${k}"`);
+      }
+    }
+    for (const k of V2_AWAKE_START_KEYS) {
+      if (!(k in awake)) errors.push(`missing gesture.zoom.awake_start key "${k}"`);
+    }
+    if (!(isNonNegativeFinite(awake.heartbeat_ms) && awake.heartbeat_ms >= CADENCE_V2_HEARTBEAT_MIN_MS)) errors.push(`gesture.zoom.awake_start.heartbeat_ms must be a finite number >= ${CADENCE_V2_HEARTBEAT_MIN_MS} (got ${JSON.stringify(awake.heartbeat_ms)})`);
+    if (typeof awake.heartbeat_mode !== "string" || !V2_HEARTBEAT_MODES.has(awake.heartbeat_mode)) errors.push(`gesture.zoom.awake_start.heartbeat_mode must be "through" or "until-first-input" (got ${JSON.stringify(awake.heartbeat_mode)})`);
+    if (!isNonNegativeInt(awake.leadin_presentations)) errors.push(`gesture.zoom.awake_start.leadin_presentations must be a non-negative integer (got ${JSON.stringify(awake.leadin_presentations)})`);
+  }
+  if (!isNonNegativeInt(s.answered_by_prior_frame)) {
+    errors.push(`gesture.zoom.answered_by_prior_frame must be a non-negative integer (got ${JSON.stringify(s.answered_by_prior_frame)})`);
+  } else if (isNonNegativeInt(s.input_marks)) {
+    const ap = s.answered_by_prior_frame as number;
+    const im = s.input_marks as number;
+    if (ap < 0 || ap > im) errors.push(`gesture.zoom.answered_by_prior_frame (${ap}) must be between 0 and input_marks (${im})`);
+  }
+  // Q03c v2 INVALID rules.
+  if (dispatch != null) {
+    if ((s.input_marks as number | undefined) !== undefined && (dispatch.scheduled as number | undefined) !== undefined && (s.input_marks as number) !== (dispatch.scheduled as number)) {
+      errors.push(`INVALID (q03b-v2): gesture.zoom.input_marks (${s.input_marks}) must equal dispatch.scheduled (${dispatch.scheduled})`);
+    }
+    if ((s.input_unpresented as number | undefined) !== undefined && (s.input_unpresented as number) !== 0) {
+      errors.push(`INVALID (q03b-v2): gesture.zoom.input_unpresented (${s.input_unpresented}) must be 0`);
+    }
+    if (isNonNegativeFinite(dispatch.dispatch_dev_max_ms) && (dispatch.dispatch_dev_max_ms as number) > CADENCE_V2_DISPATCH_DEV_MAX_MS) {
+      errors.push(`INVALID (q03b-v2): gesture.zoom.dispatch.dispatch_dev_max_ms (${dispatch.dispatch_dev_max_ms}) must be <= ${CADENCE_V2_DISPATCH_DEV_MAX_MS}`);
+    }
+    if (awake != null && awake.heartbeat_mode === "through" && isNonNegativeInt(awake.leadin_presentations) && (awake.leadin_presentations as number) > 0) {
+      errors.push(`INVALID (q03b-v2): gesture.zoom.awake_start.heartbeat_mode is "through" but leadin_presentations (${awake.leadin_presentations}) is > 0`);
+    }
+  }
+}
+
+/** Round-trip check: rebuild a v1-shape receipt from the gesture stats +
+ *  display and the canonical budgets; if the v2 zoom has only the 13 stat
+ *  fields, the round-trip is the v1 path. */
+function maybeRoundTrip(
+  errors: string[],
+  r: Record<string, unknown>,
+  gesture: { pan?: unknown; zoom?: unknown },
+  protocol: CadenceProtocol,
+): void {
+  const pan = gesture.pan as CadenceGestureStats | undefined;
+  const zoom = gesture.zoom as Record<string, unknown> | undefined;
+  if (
+    pan == null || zoom == null ||
+    typeof pan !== "object" || typeof zoom !== "object"
+  ) return;
+  if (
+    !isNonNegativeFinite(pan.p95_ms) || !isNonNegativeFinite(pan.p99_ms) ||
+    !isNonNegativeFinite(zoom.p95_ms as number) || !isNonNegativeFinite(zoom.p99_ms as number) ||
+    !isNonNegativeFinite(pan.input_to_present_p95_ms) || !isNonNegativeFinite(pan.input_to_present_p99_ms) ||
+    !isNonNegativeFinite(zoom.input_to_present_p95_ms as number) || !isNonNegativeFinite(zoom.input_to_present_p99_ms as number)
+  ) return;
+  const host = r.host as Record<string, unknown> | undefined;
+  const display = r.display as Record<string, unknown> | undefined;
+  if (display == null || typeof display !== "object") return;
+  if (!isNonNegativeFinite(display.vsync_ms) || !isPositiveInteger(display.hz)) return;
+  // For v2 receipts the zoom carries extra keys; the round-trip test calls
+  // buildCadenceReceipt with the same shape, which accepts v2 zoom via the
+  // union type.
+  const expected = buildCadenceReceipt({
+    commit: typeof r.commit === "string" ? r.commit : "0".repeat(40),
+    impl: r.impl === "lwc" ? "lwc" : "mm",
+    host: {
+      os: typeof host?.os === "string" ? host.os : "x",
+      cpu: typeof host?.cpu === "string" ? host.cpu : "x",
+      dpr: isFiniteNumber(host?.dpr) ? (host?.dpr as number) : 1,
+    },
+    display: { vsync_ms: display.vsync_ms as number, hz: display.hz as number },
+    pan: pan as CadenceGestureStats,
+    zoom: zoom as unknown as CadenceGestureStats,
+    protocol,
+  });
+  if (Array.isArray(r.violations)) {
+    const ev = JSON.stringify(r.violations);
+    const av = JSON.stringify(expected.violations);
+    if (ev !== av) errors.push(`violations do not match what buildCadenceReceipt would compute (got ${ev}, want ${av})`);
+  }
+  if (typeof r.budget_ok === "boolean" && r.budget_ok !== expected.budget_ok) {
+    errors.push(`budget_ok (${r.budget_ok}) does not match what buildCadenceReceipt would compute (${expected.budget_ok})`);
+  }
 }

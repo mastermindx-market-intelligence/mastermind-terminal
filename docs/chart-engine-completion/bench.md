@@ -379,6 +379,66 @@ Known limits:
     of 60", not as a tail over a population. Pan has 200 inputs, where p99
     is the 198th value.
 
+### Protocol v2 (zoom)
+
+Q03c binds a v2 protocol for the zoom gesture; the pan gesture stays v1.
+Decision record: `DEC:CHART-ENGINE-Q03B-PROTOCOL-V2-WALL-CLOCK-INPUT`
+(see docs/receipts). v1 and v2 receipts are NEVER compared without the
+`protocol` column (the validator's `protocol` field is `"q03b-v1"` or
+`"q03b-v2"`).
+
+The v2 protocol changes only how zoom inputs are delivered and what
+state the renderer is in when the gesture starts. It leaves unchanged
+every budget (input_to_present p95 ≤ 20 ms, p99 ≤ 33.4 ms), the 60
+`wheel(0,-120)` pulses at the chart centre, the pan gesture, the run
+count (3, median run by pan.p95), `deviceScaleFactor` 2, the latency
+definition (first STATE_PRESENTED_ALL frame at or after the input mark,
+within end mark + 100 ms) and the rule that the first input is in the
+sample with no exclusions.
+
+(1) **Wall-clock dispatch.** The 60 wheels are sent through ONE CDP
+session per gesture as `Input.dispatchMouseEvent` (type `mouseWheel`,
+deltaY -120 at the chart centre, the parameters `page.mouse.wheel`
+sends) at scheduled wall-clock times `t_i = t_(i-1) + g_i` with
+`g_i = 17 + 6 × u_i` ms, `u_i` drawn from `[0, 1)` by Mulberry32 seeded
+with `CADENCE_V2_SEED_BASE + run index` (0x51C03B00 + runIdx). The same
+seed sequence is used for both engines. The harness arms a timer to
+about 2 ms before each target and spins on the Node clock to the target
+(never in the page). The next dispatch never waits for the previous
+send to acknowledge, and all dispatch promises are awaited after the
+end mark.
+
+(2) **Awake start.** The 200 ms pre-gesture idle is replaced by a
+harness-side `requestAnimationFrame` heartbeat (empty callback,
+installed by `page.evaluate` after `installInputMarks` and before
+tracing starts); the start mark is written after at least 200 ms of
+heartbeat. Product code is unchanged. Two modes (`env
+BENCH_HEARTBEAT_MODE=through|until-first-input`, default `through`):
+`through` keeps the heartbeat running through the end mark,
+`until-first-input` cancels the pending rAF at the first wheel. The
+receipt records the mode and `awake_start.leadin_presentations` (the
+count of STATE_PRESENTED_ALL slices in the 200 ms lead-in).
+
+(3) **Receipt.** Top-level `protocol: "q03b-v2"`; under `gesture.zoom`:
+`dispatch: { gap_min_ms, gap_jitter_ms, seed, scheduled, dispatched,
+dispatch_dev_max_ms }`, `awake_start: { heartbeat_ms, heartbeat_mode,
+leadin_presentations }`, and the diag-only `answered_by_prior_frame`
+count (inputs whose answering frame began before their mark).
+`validateCadenceReceipt` REQUIRES `protocol` and refuses (INVALID,
+neither PASS nor FAIL) a v2 receipt whose
+`zoom.input_marks !== dispatch.scheduled`, whose
+`zoom.input_unpresented !== 0`, whose `dispatch.dispatch_dev_max_ms`
+exceeds 2 ms, or whose `heartbeat_mode` is `"through"` with
+`leadin_presentations > 0`. An INVALID run is repeated (up to 3
+attempts, never counted and never read); any other validation error is
+a bug and throws.
+
+(4) **Diagnostic control.** `BENCH_AWAKE_START=idle200` disables the
+heartbeat (the v1-style 200 ms idle before the start mark). The
+dispatch is identical; the run prints a `CADENCE_CONTROL` line with
+`awake_start=idle200` and `heartbeat_mode=none`, `heartbeat_ms=0`, no
+per-run or median receipt, and no test failure for that reason.
+
 ### Dumping the trace
 
 `BENCH_DUMP_TRACE=1 BENCH_RUNS=1 BENCH_IMPLS=mm` writes
