@@ -40,7 +40,7 @@ import {
   autoscaleRange,
   coordinateToPrice as scaleCoordinateToPrice,
   priceToCoordinate as scalePriceToCoordinate,
-  type PriceScaleState as ScalePriceState,
+  type PriceScaleState,
 } from "./scales";
 import {
   applyBarSpacingToWindow,
@@ -61,6 +61,7 @@ import {
 } from "./modelTime";
 
 export type { ModelClock };
+export type { PriceScaleState };
 
 export type LogicalIndex = number;
 export type TimeScaleState = {
@@ -69,17 +70,6 @@ export type TimeScaleState = {
   barSpacing: number;
   rightOffset: number;
   widthPx: number;
-};
-export type PriceScaleState = {
-  mode: "normal" | "log" | "percent" | "indexed100";
-  inverted: boolean;
-  from: number;
-  to: number;
-  heightPx: number;
-  margins: { top: number; bottom: number };
-  autoScale: boolean;
-  /** First visible series value; percent / indexed100 are relative to this (LWC §2.4). */
-  baseValue?: number;
 };
 export type Projection = {
   generation: number;
@@ -131,10 +121,10 @@ export function logicalOfX(x: number, ts: TimeScaleState): number {
 /** Named seam: T02 scales.ts owns log/percent/indexed100 (and the linear fallback). */
 export const priceScaleMath = {
   yOfPrice(price: number, scale: PriceScaleState): number {
-    return scalePriceToCoordinate(price, scale as ScalePriceState);
+    return scalePriceToCoordinate(price, scale);
   },
   priceOfY(y: number, scale: PriceScaleState): number {
-    return scaleCoordinateToPrice(y, scale as ScalePriceState);
+    return scaleCoordinateToPrice(y, scale);
   },
   autoscale(values: number[], scale?: PriceScaleState): { from: number; to: number } {
     let min = Infinity;
@@ -145,7 +135,7 @@ export const priceScaleMath = {
       if (v > max) max = v;
     }
     const extents = Number.isFinite(min) && Number.isFinite(max) ? { min, max } : null;
-    const state: ScalePriceState = scale ?? {
+    const state: PriceScaleState = scale ?? {
       mode: "normal",
       inverted: false,
       from: 0,

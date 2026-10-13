@@ -27,11 +27,12 @@ import {
   type AxisMargins,
   type AxisRange,
 } from "../axisZoom";
+import type { EnginePriceScaleMode } from "../options";
 
 /** Fractional bar index; 0 = first row of the primary series. */
 export type LogicalIndex = number;
 
-export type PriceScaleMode = "normal" | "log" | "percent" | "indexed100";
+export type PriceScaleMode = EnginePriceScaleMode;
 
 export type PriceScaleState = {
   mode: PriceScaleMode;
