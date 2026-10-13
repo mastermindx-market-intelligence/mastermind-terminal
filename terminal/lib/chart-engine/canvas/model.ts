@@ -1582,6 +1582,20 @@ function assertPriceScaleModeSupported(opts: Record<string, unknown>): void {
   throw new EngineRefusalError(`unsupported option groups: ${token}`, [token]);
 }
 
+/**
+ * The price scale a pane actually DISPLAYS. ChartPanel's scaleLeft hides "right" and shows
+ * "left" and moves the price series with it (ChartPanel.tsx:9735-9736), so paint and gestures
+ * must resolve the SAME id or the axis the user sees is not the axis the user drags.
+ */
+export function displayedPriceScaleId(model: ChartModel): string {
+  const opts = model.options as {
+    leftPriceScale?: { visible?: boolean };
+    rightPriceScale?: { visible?: boolean };
+  };
+  if (opts.leftPriceScale?.visible === true && opts.rightPriceScale?.visible === false) return "left";
+  return "right";
+}
+
 class ModelPriceScaleHandle implements PriceScaleHandle {
   constructor(private readonly m: ChartModel, private readonly id: string, private readonly paneIdx: number) {}
   width(): number { return 0; }

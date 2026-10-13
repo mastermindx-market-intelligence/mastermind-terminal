@@ -16,7 +16,7 @@ import {
   type InputRegion,
 } from "./input";
 import { maxBarSpacingPx } from "./modelTime";
-import type { ChartModel } from "./model";
+import { displayedPriceScaleId, type ChartModel } from "./model";
 
 /** Matches frame.ts's minimum price-axis strip so plot pans stay off the labels. */
 export const PRICE_AXIS_HIT_WIDTH_PX = 40;
@@ -193,14 +193,9 @@ function layoutOf(model: ChartModel): {
   };
 }
 
-/** The price scale this pane actually displays (ChartPanel scaleLeft flips it). */
+/** The price scale this pane actually displays — the SAME id frame.ts paints (W4-F1). */
 function displayedScaleId(model: ChartModel): string {
-  const opts = model.options as {
-    leftPriceScale?: { visible?: boolean };
-    rightPriceScale?: { visible?: boolean };
-  };
-  if (opts.leftPriceScale?.visible === true && opts.rightPriceScale?.visible === false) return "left";
-  return "right";
+  return displayedPriceScaleId(model);
 }
 
 function buildDeps(

@@ -16,6 +16,7 @@ import {
 import { priceAxisWidthFor } from "./layout";
 import type { ChartModel, SeriesModel } from "./model";
 import {
+  displayedPriceScaleId,
   priceScaleMath,
   seriesClose,
   seriesIndexOfTime,
@@ -286,7 +287,7 @@ function paintGrid(ctx: CanvasRenderingContext2D, model: ChartModel, paneIndex: 
   const grid = model.options.grid;
   if (!grid || typeof grid !== "object") return;
   const g = grid as { vertLines?: unknown; horzLines?: unknown };
-  const scale = displayScale(model, paneIndex, "right") as TickPriceScale;
+  const scale = displayScale(model, paneIndex, displayedPriceScaleId(model)) as TickPriceScale;
   if (bagVisible(g.horzLines)) {
     ctx.strokeStyle = bagColor(g.horzLines, CANVAS_NEUTRAL_DEFAULTS.gridColor);
     ctx.lineWidth = 1;
@@ -357,7 +358,7 @@ function paintInPaneAxes(
   const { font, textColor } = layoutFont(model.options);
   const measure = measureFor(ctx);
   const dpr = model.dpr;
-  const scale = displayScale(model, paneIndex, "right") as TickPriceScale;
+  const scale = displayScale(model, paneIndex, displayedPriceScaleId(model)) as TickPriceScale;
   const pTicks = priceTicks(scale, { minLabelGapPx: 24 });
   const strip = Math.max(40, priceAxisWidthFor(
     [axisWidthForLabels(pTicks.map((t) => t.label), measure, font, 4)],
