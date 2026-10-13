@@ -1,6 +1,86 @@
+// Screen-space drawing gestures: angle constraints, anchor translation, handle hit-tests.
+// Hit tolerance is expressed in CSS pixels (not device pixels) so high-DPR viewports
+// match the same finger targets as desktop.
+
+import type { DrawingAnchor } from "@/lib/chart-engine/drawingBridge";
+import type { EngineTime } from "@/lib/chart-engine/api";
 import type { Drawing, Pt } from "@/lib/drawings";
 
 export type ScreenPoint = { x: number; y: number };
+
+/** Handle hit radius in CSS pixels (matches ChartPanel grip r=5 + slack). */
+export const DRAWING_HANDLE_HIT_RADIUS_CSS = 12;
+
+export type DrawingHandleHit = {
+  drawingId: string;
+  handleIndex: number;
+  distanceCss: number;
+};
+
+export type DrawingHandleTarget = {
+  drawingId: string;
+  handleIndex: number;
+  /** Chart-root SVG user-space centre (CSS px). */
+  cx: number;
+  cy: number;
+};
+
+/**
+ * Pick the nearest handle within tolerance. Coordinates are chart-root CSS pixels;
+ * `devicePixelRatio` is accepted only to prove the tolerance is NOT multiplied by DPR
+ * (mutant tests invert that).
+ */
+export function hitTestDrawingHandles(
+  px: number,
+  py: number,
+  handles: readonly DrawingHandleTarget[],
+  toleranceCss = DRAWING_HANDLE_HIT_RADIUS_CSS,
+  _devicePixelRatio = 1,
+): DrawingHandleHit | null {
+  if (!Number.isFinite(px) || !Number.isFinite(py) || !handles.length) return null;
+  void _devicePixelRatio;
+  const slack = toleranceCss;
+  let best: DrawingHandleHit | null = null;
+  for (const handle of handles) {
+    const dx = px - handle.cx;
+    const dy = py - handle.cy;
+    const distance = Math.hypot(dx, dy);
+    if (distance > slack) continue;
+    if (!best || distance < best.distanceCss) {
+      best = { drawingId: handle.drawingId, handleIndex: handle.handleIndex, distanceCss: distance };
+    }
+  }
+  return best;
+}
+
+/** Build a pane-scoped bridge anchor from a persisted drawing point. */
+export function drawingPointToAnchor(
+  paneIndex: number,
+  point: Pt,
+  logical: number,
+  time: EngineTime | null,
+  futureSlot?: number,
+): DrawingAnchor {
+  return {
+    paneIndex,
+    time,
+    logical,
+    price: point.p,
+    ...(futureSlot != null && futureSlot >= 0 ? { future: { slot: futureSlot } } : {}),
+  };
+}
+
+/** Recover a persisted `{t,p}` from a bridge anchor (caller supplies time labels). */
+export function anchorToDrawingPoint(
+  anchor: DrawingAnchor,
+  resolveTime: (logical: number, futureSlot: number | null) => string,
+): Pt {
+  const slot = anchor.future?.slot;
+  const t = anchor.time != null
+    ? String(anchor.time)
+    : resolveTime(anchor.logical, slot ?? null);
+  return { t, p: anchor.price };
+}
 
 /**
  * Constrain an endpoint to the nearest angular increment in screen space.

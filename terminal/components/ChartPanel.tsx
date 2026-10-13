@@ -17,6 +17,7 @@ import {
 import {
   createEngine,
   type ChartEngine,
+  type EngineTime,
   type MarkerSpec,
   type PriceLineHandle,
   type SeriesHandle,
@@ -47,12 +48,17 @@ import {
   pineOutcome,
 } from "@/lib/pineChartLayer";
 import { ORACLE_V1_PINE } from "@/lib/pine";
-import { DRAWING_SCHEMA_VERSION, MAX_DRAWING_PAYLOAD_BYTES, type Drawing, type DrawKind, type Bar as DBar, uid, autoTrendlines, autoFib, srDrawings, mtfaDrawings } from "@/lib/drawings";
+import { DRAWING_SCHEMA_VERSION, MAX_DRAWING_PAYLOAD_BYTES, type Drawing, type DrawKind, type Bar as DBar, type Pt, uid, autoTrendlines, autoFib, srDrawings, mtfaDrawings } from "@/lib/drawings";
 import { drawingToolFromShortcut, getDrawingTool, FREEHAND_DRAWING_KINDS, type DrawingToolCapability } from "@/lib/drawingTools";
 import { DRAWING_RENDERER_FAMILY, materializeSemanticPoints } from "@/lib/drawing-engine/geometry";
 import { calculateAnchoredVwap, calculateFixedRangeVolumeProfile, calculateRegressionChannel, generateGhostFeed } from "@/lib/drawing-engine/analytics";
-import { cloneDrawing, constrainScreenAngle, translateDrawingAnchors } from "@/lib/drawing-engine/interaction";
-import { paneDrawingScaleReady, watchPaneDrawingReadiness } from "@/lib/drawingPaneReadiness";
+import {
+  cloneDrawing,
+  constrainScreenAngle,
+  drawingPointToAnchor,
+  translateDrawingAnchors,
+} from "@/lib/drawing-engine/interaction";
+import { createDrawingBridge, type DrawingAnchor, type DrawingBridge } from "@/lib/chart-engine/drawingBridge";
 import { calculatePositionMetrics, fibonacciSettings, positionSettings, type FibonacciLabelMode } from "@/lib/drawing-engine/settings";
 import { registerPane, broadcastCrosshair, broadcastRange, peerValueAt } from "@/lib/paneSync";
 import {
@@ -4651,6 +4657,34 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
     tagTimerRef.current = window.setInterval(() => { if (!dead) renderAllPriceTags(); }, 1000);
 
     // ── coordinate helpers (read *Ref.current so they stay valid across reloads) ──
+    const drawingBridge: DrawingBridge = createDrawingBridge(engine, {
+      primaryByPane: (paneIndex: number) => {
+        try {
+          const priceH = priceSeriesHandleRef.current;
+          if (priceH && priceH.paneIndex() === paneIndex) return priceH;
+          return engine.panes()[paneIndex]?.getSeries()?.[0] ?? null;
+        } catch {
+          return null;
+        }
+      },
+      cadence: () => futureGrid().cadence,
+      lastBarTime: () => {
+        const last = barsRef.current.at(-1);
+        return last ? (last.time as EngineTime) : null;
+      },
+    });
+    const drawingReadinessUnsubs = new Map<number, () => void>();
+    const syncDrawingReadiness = (pendingPaneIndexes: ReadonlySet<number>) => {
+      for (const [pi, unsub] of drawingReadinessUnsubs) {
+        if (!pendingPaneIndexes.has(pi)) { unsub(); drawingReadinessUnsubs.delete(pi); }
+      }
+      for (const pi of pendingPaneIndexes) {
+        if (drawingReadinessUnsubs.has(pi)) continue;
+        drawingReadinessUnsubs.set(pi, drawingBridge.subscribeReadiness(pi, () => {
+          if (!dead) { measureRef.current(); renderTagRef.current?.(); }
+        }));
+      }
+    };
     const dcol = (d: Drawing) => d.color?.startsWith("var(") ? css(d.color.slice(4, -1)) : (d.color || tokensRef.current.brand2);
     // Bar/drawing times span two families: daily bars are "YYYY-MM-DD" strings, intraday
     // bars are numeric epoch-seconds. Reduce EITHER to ms so a daily-anchored drawing snaps
@@ -4676,15 +4710,39 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
       const x = toMs(tm); if (!Number.isFinite(x)) return b[0].time;
       let best = b[0].time, bd = Infinity; for (const r of b) { const dd = Math.abs(toMs(r.time) - x); if (dd < bd) { bd = dd; best = r.time; } } return best;
     };
-    const xOf = (tm: string) => {
-      // The series has no data point past the newest candle, so a future anchor
-      // is projected from its logical index instead of from its timestamp.
+    const barIndex = (tm: string) => {
+      const idx = barIdxMap().get(tm as any) ?? barIdxMap().get(String(tm));
+      if (idx != null) return idx;
       const offset = futureOffset(tm);
-      if (offset >= 0) {
-        const logical = barsRef.current.length + offset;
-        return chart.timeScale().logicalToCoordinate(logical as any) as number | null;
+      if (offset >= 0) return barsRef.current.length + offset;
+      const tt = snapT(tm); const j = barIdxMap().get(tt as any); return j == null ? -1 : j;
+    };
+    const PRICE_PANE_KEY = "__price__";
+    const paneIndexForKey = (paneKey?: string | null) => {
+      if (!paneKey || paneKey === PRICE_PANE_KEY) {
+        try { return priceSeriesHandleRef.current?.paneIndex() ?? 0; } catch { return 0; }
       }
-      return chart.timeScale().timeToCoordinate(snapT(tm) as any) as number | null;
+      return paneLayoutRef.current.find((pane) => pane.key === paneKey)?.paneIndex ?? 0;
+    };
+    const ptToAnchor = (paneKey: string | null | undefined, pt: Pt): DrawingAnchor => {
+      const paneIndex = paneIndexForKey(paneKey);
+      const bi = barIndex(pt.t);
+      const offset = futureOffset(pt.t);
+      const logical = bi >= 0 ? bi : barsRef.current.length + Math.max(0, offset);
+      const time: EngineTime | null = offset < 0 ? (snapT(pt.t) as EngineTime) : (pt.t as EngineTime);
+      return drawingPointToAnchor(
+        paneIndex,
+        pt,
+        logical,
+        time,
+        offset >= 0 ? offset : undefined,
+      );
+    };
+    const xOf = (tm: string) => {
+      const bars = barsRef.current;
+      const refPrice = bars[Math.max(0, barIndex(tm))]?.c ?? bars.at(-1)?.c ?? 0;
+      const px = drawingBridge.anchorToPixel(ptToAnchor(PRICE_PANE_KEY, { t: tm, p: refPrice }));
+      return px?.x ?? null;
     };
     // ── pane-scoped price projection ────────────────────────────────────────
     // A drawing placed over an indicator sub-pane used to store the price the
@@ -4693,12 +4751,11 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
     // that value and slid the object vertically (the "my brush circles move when
     // I scroll" report), until it eventually drifted off screen. Anchors now
     // record the pane they were drawn in and project through THAT pane's series.
-    const PRICE_PANE_KEY = "__price__";
-    const seriesForPane = (key: string | null | undefined): ISeriesApi<any> | null => {
-      if (!key || key === PRICE_PANE_KEY) return priceSeriesRef.current ?? null;
+    const seriesForPane = (key: string | null | undefined): SeriesHandle | null => {
+      if (!key || key === PRICE_PANE_KEY) return priceSeriesHandleRef.current ?? null;
       const info = paneLayoutRef.current.find((pane) => pane.key === key);
       if (!info) return null;
-      try { return chartRef.current?.panes()[info.paneIndex]?.getSeries()?.[0] ?? null; } catch { return null; }
+      try { return engine.panes()[info.paneIndex]?.getSeries()?.[0] ?? null; } catch { return null; }
     };
     const normalizedPaneKey = (paneKey?: string | null) => paneKey || PRICE_PANE_KEY;
     const paneLayoutFor = (paneKey?: string | null) =>
@@ -4720,49 +4777,44 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
     // pane-local API; inverse+forward projection happened to cancel until that
     // pane's y-range changed, then the stored anchor shot out of the pane.
     const yOfIn = (p: number, paneKey?: string | null) => {
-      const s = seriesForPane(paneKey);
-      if (!s) return null;
-      const localY = s.priceToCoordinate(p) as number | null;
-      if (localY == null || !Number.isFinite(localY)) return null;
-      const pane = paneLayoutFor(paneKey);
-      // Before first layout measurement only pane 0 can be addressed safely.
-      if (!pane) return normalizedPaneKey(paneKey) === PRICE_PANE_KEY ? localY : null;
-      return pane.top + localY;
-    };
-    const priceAtIn = (py: number, paneKey?: string | null) => {
-      const s = seriesForPane(paneKey);
-      if (!s) return null;
+      const bars = barsRef.current;
+      const tm = bars.at(-1)?.time ?? "";
+      const px = drawingBridge.anchorToPixel(ptToAnchor(paneKey, { t: String(tm), p }));
+      if (!px) return null;
       const pane = paneLayoutFor(paneKey);
       if (!pane && normalizedPaneKey(paneKey) !== PRICE_PANE_KEY) return null;
+      return (pane?.top ?? 0) + px.y;
+    };
+    const priceAtIn = (py: number, paneKey?: string | null) => {
+      const pane = paneLayoutFor(paneKey);
+      if (!pane && normalizedPaneKey(paneKey) !== PRICE_PANE_KEY) return null;
+      const paneIndex = paneIndexForKey(paneKey);
       const localY = pane ? py - pane.top : py;
-      return s.coordinateToPrice(localY) as number | null;
+      const clamped = drawingBridge.clampToPane(paneIndex, 0, localY);
+      const anchor = drawingBridge.pixelToAnchor(paneIndex, clamped.x, clamped.y, "raw");
+      return anchor?.price ?? null;
     };
     // PR #481 began persisting the owning pane before the root↔pane Y transform
     // itself was corrected. Those documents have meta.pane but no coordinate-space
     // marker, and their p values encode coordinateToPrice(ROOT_Y). Convert them
     // once, at the first measured pane layout, while preserving their current
     // on-screen position. Persisting the marker prevents repeat conversion.
-    const paneDrawingReadiness = watchPaneDrawingReadiness(() => epochRef.current, () => {
-      if (!dead) { measureRef.current(); renderTagRef.current?.(); }
-    });
     const migrateLegacyPaneDrawings = () => {
       let changed = false;
-      const pendingSeries = new Set<ISeriesApi<any>>();
+      const pendingPanes = new Set<number>();
       const next = drawRef.current.map((drawing) => {
         const paneKey = drawingPaneKey(drawing);
         if (!paneKey || drawing.meta?.paneCoordSpace === PANE_VALUE_SPACE) return drawing;
         const pane = paneLayoutFor(paneKey);
         const series = seriesForPane(paneKey);
         if (!series) return drawing;
-        const deferred = () => { pendingSeries.add(series); return drawing; };
-        // A measured pane can still have an empty price range: LWC returns
-        // finite zero coordinates then. Never persist that lossy conversion.
-        if (!pane || !(pane.height > 0) || !paneDrawingScaleReady(series)) return deferred();
+        const deferred = () => { pendingPanes.add(pane?.paneIndex ?? paneIndexForKey(paneKey)); return drawing; };
+        if (!pane || !(pane.height > 0) || !drawingBridge.ready(pane.paneIndex)) return deferred();
         const migrated: Drawing["points"] = [];
         for (const point of drawing.points) {
-          const legacyRootY = series.priceToCoordinate(point.p) as number | null;
+          const legacyRootY = series.priceToCoordinate(point.p);
           if (legacyRootY == null || !Number.isFinite(legacyRootY)) return deferred();
-          const corrected = series.coordinateToPrice(legacyRootY - pane.top) as number | null;
+          const corrected = series.coordinateToPrice(legacyRootY - pane.top);
           if (corrected == null || !Number.isFinite(corrected)) return deferred();
           migrated.push({ ...point, p: corrected });
         }
@@ -4773,20 +4825,13 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
           meta: { ...(drawing.meta ?? {}), paneCoordSpace: PANE_VALUE_SPACE },
         };
       });
-      paneDrawingReadiness.sync(pendingSeries);
+      syncDrawingReadiness(pendingPanes);
       if (!changed) return false;
       drawRef.current = next;
       onChangeRef.current?.([...next]);
       return true;
     };
     const yOf = (p: number) => yOfIn(p, null);
-    const barIndex = (tm: string) => {
-      const idx = barIdxMap().get(tm as any) ?? barIdxMap().get(String(tm));
-      if (idx != null) return idx;
-      const offset = futureOffset(tm);
-      if (offset >= 0) return barsRef.current.length + offset;
-      const tt = snapT(tm); const j = barIdxMap().get(tt as any); return j == null ? -1 : j;
-    };
 
     // ── signal badges: BUY/SELL (★) + RE-BUY pill; GC v2 keeper quality/tier styling + CUT caution ──
     const renderSignals = () => {
@@ -5162,7 +5207,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
       const bars = barsRef.current;
       // LWC logical coordinates map directly to the loaded bar array. This replaces the
       // former O(bars) scan on every pointer event with one projection + clamp.
-      const logical = chart.timeScale().coordinateToLogical(px);
+      const logical = engine.timeScale().coordinateToLogical(px);
       const future = futureGrid().times;
       const bi = Math.max(0, Math.min(bars.length - 1 + future.length, Math.round(logical == null ? bars.length - 1 : logical)));
       // Past the newest candle the anchor takes a future-grid slot, which is a
@@ -7068,16 +7113,15 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
       // a safe fast Y mapper. Log/custom modes retain the authoritative API.
       const xCache = new Map<string, number | null>();
       const yCache = new Map<number, number | null>();
-      const timeScale = chart.timeScale();
+      const timeScale = engine.timeScale();
       const projectX = (time: string) => {
         const key = String(time); if (xCache.has(key)) return xCache.get(key)!;
-        const index = barIndex(time);
-        const coordinate = index < 0 ? null : timeScale.logicalToCoordinate(index as any) as number | null;
+        const coordinate = xOf(time);
         xCache.set(key, coordinate); return coordinate;
       };
       let affineY: ((price: number) => number) | null = null;
       try {
-        const series = priceSeriesRef.current;
+        const series = priceSeriesHandleRef.current;
         const mode = series?.priceScale().options().mode;
         const base = barsRef.current[barsRef.current.length - 1]?.c ?? 1;
         const step = Math.max(Math.abs(base) * .001, .01);
@@ -8432,7 +8476,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
         const referenceY = reference ? yOf(reference.p) : null;
         const offsetPrice = referenceY == null
           ? 0
-          : ((priceSeriesRef.current?.coordinateToPrice(referenceY + 10) as number | null) ?? reference.p) - reference.p;
+          : (priceSeriesHandleRef.current?.coordinateToPrice(referenceY + 10) ?? reference.p) - reference.p;
         const points = translateDrawingAnchors(source, times, 2, offsetPrice, precRef.current);
         const copy = cloneDrawing(source, uid(), points);
         const paneAnchor = paneAnchorOf(source.meta);
@@ -8472,7 +8516,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
           const targetY = referenceY == null ? null
             : referenceY + (e.key === "ArrowUp" ? -amount : e.key === "ArrowDown" ? amount : 0);
           const targetPrice = targetY == null ? reference?.p
-            : (priceSeriesRef.current?.coordinateToPrice(targetY) as number | null) ?? reference?.p;
+            : priceSeriesHandleRef.current?.coordinateToPrice(targetY) ?? reference?.p;
           const deltaPrice = requestedBars || reference == null || targetPrice == null ? 0 : targetPrice - reference.p;
           const points = translateDrawingAnchors(selected, semanticTimes(), requestedBars, deltaPrice, precRef.current);
           drawRef.current = drawRef.current.map((drawing) => drawing.id === sel ? { ...drawing, points } : drawing);
@@ -8489,6 +8533,10 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
         try { window.dispatchEvent(new CustomEvent("mm:set-tool", { detail: shortcut })); } catch {}
       }
     };
+    const onDrawingWindowBlur = () => {
+      if (pending) cancelPendingDrawingRef.current();
+    };
+    window.addEventListener("blur", onDrawingWindowBlur);
     window.addEventListener("keydown", onKey);
 
     // Container resize → resize the chart, preserving the visible range. Coalesced through rAF so a
@@ -8516,7 +8564,9 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
     // ── mount teardown (base line-416 logic + the new refs) ──
     return () => {
       dead = true; if (rafId != null) cancelAnimationFrame(rafId); if (measRaf != null) cancelAnimationFrame(measRaf);
-      paneDrawingReadiness.dispose();
+      for (const unsub of drawingReadinessUnsubs.values()) unsub();
+      drawingReadinessUnsubs.clear();
+      drawingBridge.dispose();
       try { engine.unsubscribeCrosshairMove(onTagCrosshair); } catch {}
       try { engine.unsubscribeCrosshairMove(onVisualCrosshair); } catch {}
       if (drawRaf != null) cancelAnimationFrame(drawRaf); if (resizeRaf != null) cancelAnimationFrame(resizeRaf);
@@ -8541,6 +8591,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
           delete devWindow.__mmLiveBarGeneration;
         } catch {}
       }
+      window.removeEventListener("blur", onDrawingWindowBlur);
       if (onKey) window.removeEventListener("keydown", onKey);
       if (winDown) window.removeEventListener("pointerdown", winDown);
       window.removeEventListener("pointerup", onProjectionPointerEnd);
