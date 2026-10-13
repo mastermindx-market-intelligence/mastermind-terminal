@@ -11,10 +11,9 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { createCanvasEngine, createManualScheduler } from "@/lib/chart-engine/canvas";
 import { ChartModel, type ModelClock } from "@/lib/chart-engine/canvas/model";
-import { correctRightOffset } from "@/lib/chart-engine/canvas/modelTime";
 import { priceToDisplay, displayToPrice } from "@/lib/chart-engine/canvas/scales";
 import { barTimeFacts } from "@/lib/chart-engine/time";
-import type { EngineSeriesRow } from "@/lib/chart-engine/api";
+import type { EngineSeriesKind, EngineSeriesRow } from "@/lib/chart-engine/api";
 
 type CtxCall = { method: string; args: unknown[] };
 type FakeCtx = CanvasRenderingContext2D & { __calls: CtxCall[] };
@@ -65,9 +64,6 @@ function makeFakeCtx(): FakeCtx {
 }
 
 const ctxByCanvas = new WeakMap<HTMLCanvasElement, FakeCtx>();
-function ctxOf(canvas: HTMLCanvasElement): FakeCtx | undefined {
-  return ctxByCanvas.get(canvas);
-}
 
 function makeClock(): ModelClock & { nowMs: number; flush(): void } {
   const queued: Array<() => void> = [];
@@ -405,7 +401,7 @@ describe("model2 F-7 — dataByIndex returns null at whitespace and skips whites
     expect(s.dataByIndex(1.5, "nearest-left")).toEqual({ time: 1000, value: 1 });
   });
 
-  it("dataByIndex(0.5, nearest-right) returns the first valued row (time 1000), not the whitespace", () => {
+  it("dataByIndex(0.5, nearest-right) returns the next valued row (time 3000), not the whitespace at index 1", () => {
     const m = mounted();
     const s = m.addSeries("line");
     s.setData([
@@ -413,40 +409,22 @@ describe("model2 F-7 — dataByIndex returns null at whitespace and skips whites
       { time: 2000 }, // whitespace
       { time: 3000, value: 3 },
     ]);
-    // nearest-right of 0.5 over a valued list [1000, 3000] returns index 0 (time 1000).
+    // nearest-right of 0.5 over valuedAt [0, 2] returns the smallest valued
+    // index where valuedAt[i] >= 0.5, i.e. index 2 (time 3000).
     // At H2 Math.ceil(0.5)=1 returns the whitespace row.
-    expect(s.dataByIndex(0.5, "nearest-right")).toEqual({ time: 1000, value: 1 });
+    expect(s.dataByIndex(0.5, "nearest-right")).toEqual({ time: 3000, value: 3 });
   });
 });
 
 // ============================================================================
 // F-8 — timeToIndex findNearest tie-break
 // ============================================================================
-// LWC dev:6043-6051: lowerBound on `key(time)`, then if findNearest and a strict
-// miss, return the (next) lowerBound index. The canvas returns the closest-by-
-// |distance| row, which is the wrong neighbour from the midpoint of a gap.
-describe("model2 F-8 — timeToIndex findNearest returns the NEXT index for a strict miss (LWC lowerBound)", () => {
-  // times [1000, 2000, 3000, 4000]: lowerBound(2400) = 2 (3000).
-  it("findNearest for t=2400 returns index 2 (the next row), not 1 (the closer-by-|d| row)", () => {
-    const m = mounted();
-    const ts = m.timeScaleHandleFor();
-    expect(ts.timeToIndex(2400, true)).toBe(2);
-  });
-
-  it("findNearest for t=1100 returns index 1 (the next row), not 0 (the closer row)", () => {
-    const m = mounted();
-    const ts = m.timeScaleHandleFor();
-    expect(ts.timeToIndex(1100, true)).toBe(1);
-  });
-
-  // Past the last row: LWC returns n-1 (the last index), not null.
-  it("findNearest past the last row returns n-1", () => {
-    const m = mounted();
-    const ts = m.timeScaleHandleFor();
-    // rows are at times 1000..10000; t=20000 is past the last
-    expect(ts.timeToIndex(20000, true)).toBe(9);
-  });
-});
+// DECISION_NEEDED: the fix breaks chartEngineCanvasC02.test.ts:148 which
+// pins `expect(ts.timeToIndex("2026-01-06T15:00:00Z", true)).toBe(1)` —
+// LWC's lowerBound rule returns 2 for that input (next index after a
+// strict miss), and the C02 assertion would have to move to 2 to land
+// the fix. C02 is not in OWNED FILES. Unified diff + the C02 correction
+// are in RESULT.md PROPOSED_PATCHES.
 
 // ============================================================================
 // F-10 — barTimeFacts display-basis: openUtcMs is in the record's basis
@@ -479,26 +457,8 @@ describe("model2 F-10 — barTimeFacts records the keyBasis it was extracted und
 // ============================================================================
 // F-4 — correctRightOffset always clamps + setVisibleLogicalRange clamps spacing
 // ============================================================================
-// This finding is filed DECISION_NEEDED (see RESULT.md): applying the fix breaks
-// existing assertions in chartEngineCanvasModelF15.test.ts (rightOffset 10 /
-// {from:10,to:20}) that this lane does not own. The test below is the falsifier
-// the review proposed; it is RED at H2 with the unclamped body.
-describe("model2 F-4 — correctRightOffset clamps unconditionally and setVisibleLogicalRange clamps spacing", () => {
-  // Pure-function path: the C02 test pins rightOffset 4 (which is inside both
-  // windows), so this assertion does not move.
-  it("correctRightOffset clamps to one viewport above -n when fixLeftEdge is false (dev:6589-6597)", () => {
-    // n=10, span=200/6=33.33, LWC max ≈ 31.33, LWC min ≈ -8
-    // Patch expectations: always clamp to [min(2,n)-n, span - min(2,n)] when
-    // no fix* flag, i.e. [-8, 31.33] for n=10.
-    const got = correctRightOffset(1000, 10, 200, 6, false, false);
-    // The pre-existing-C02-pin exception is rightOffset 4 (in-range); out-of-range
-    // values must be clamped, not preserved.
-    expect(got).not.toBe(1000);
-    expect(got).toBeLessThanOrEqual(31);
-  });
-
-  it("correctRightOffset clamps a negative -1000 to the min bar bound (-8)", () => {
-    const got = correctRightOffset(-1000, 10, 200, 6, false, false);
-    expect(got).toBeGreaterThanOrEqual(-8);
-  });
-});
+// DECISION_NEEDED: the fix breaks existing assertions in
+// chartEngineCanvasModelF15.test.ts (F-15 rightOffset 10 / {from:10,to:20}).
+// The unified diff (implementation + the two F15 assertion corrections) is
+// filed in RESULT.md PROPOSED_PATCHES. No test is committed for this finding.
+// See RESULT.md DECISIONS for the option matrix.
