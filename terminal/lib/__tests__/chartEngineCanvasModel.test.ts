@@ -333,9 +333,22 @@ describe("canvas engine skeleton", () => {
   });
 
   it("destroy exactly once releases canvases/observers and zeroes inventory", () => {
+    // C01-A03 F-2: count every FakeRO construction, observe() invocations, and
+    // disconnect() invocations so we can assert the autoSize ResizeObserver is built
+    // once, observed at least once, disconnected exactly once across the destroy
+    // pair (a second destroy must not construct or disconnect anything new — the F-2
+    // mutant inverts `opts.autoSize` in canvas/dom.ts:106 and silently skips
+    // construction, which would leave instances empty).
+    const roInstances: Array<{ observeCalls: number; disconnected: boolean }> = [];
     class FakeRO {
+      observeCalls = 0;
       disconnected = false;
-      observe(): void { /* test stand-in */ }
+      constructor() {
+        roInstances.push(this);
+      }
+      observe(): void {
+        this.observeCalls += 1;
+      }
       unobserve(): void { /* test stand-in */ }
       disconnect(): void {
         this.disconnected = true;
@@ -349,8 +362,20 @@ describe("canvas engine skeleton", () => {
     expect(container.contains(root)).toBe(true);
     const model = engine.unwrap<ChartModel>();
     expect(model.alive).toBe(true);
+    // The autoSize observer was constructed exactly once and observe() ran on it
+    // before any destroy. (mount constructs the dom, which builds the overlay root
+    // and, when autoSize is on, calls ro.observe(container).)
+    expect(roInstances).toHaveLength(1);
+    expect(roInstances[0].observeCalls).toBeGreaterThanOrEqual(1);
+    expect(roInstances[0].disconnected).toBe(false);
     engine.destroy();
+    expect(roInstances[0].disconnected).toBe(true);
     engine.destroy();
+    // Second destroy is a no-op: no new instance, and the same observer's
+    // disconnected flag stays exactly where the first destroy left it (no extra
+    // disconnect() invocations on any observer).
+    expect(roInstances).toHaveLength(1);
+    expect(roInstances[0].disconnected).toBe(true);
     expect(container.contains(root)).toBe(false);
     expect(container.childNodes).toHaveLength(0);
     expect(engine.inventory()).toEqual({

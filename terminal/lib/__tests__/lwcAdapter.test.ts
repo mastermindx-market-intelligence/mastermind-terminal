@@ -388,6 +388,30 @@ describe("lwc adapter — construction & options", () => {
     expect(H.createChart.mock.calls[0][1]).toEqual({});
   });
 
+  it("forwards every modelled EngineOptions group verbatim, kineticScroll included (ChartPanel:4040, C01-A03 F-1)", () => {
+    // Full bag mirrors the subset of EngineOptions groups ChartPanel actually sets on
+    // its createChart call (layout / grid / crosshair / timeScale / rightPriceScale /
+    // leftPriceScale / localization / handleScroll / handleScale / kineticScroll,
+    // plus width/height/autoSize). The adapter must forward every group 1:1 — a
+    // dropped group (the F-1 mutant: strip kineticScroll before forwarding) breaks
+    // `expect(createChart.mock.calls[0][1]).toEqual(bag)` via deep equality.
+    const bag = {
+      width: 900,
+      height: 600,
+      kineticScroll: { mouse: true, touch: true },
+      rightPriceScale: { borderVisible: true, borderColor: "#3a3f4b" },
+      leftPriceScale: { visible: false },
+      localization: { locale: "en-GB" },
+      handleScroll: { mouseWheel: true },
+      handleScale: { mouseWheel: true },
+      autoSize: false,
+    };
+    createEngine(container, bag);
+    expect(H.createChart).toHaveBeenCalledTimes(1);
+    expect(H.createChart.mock.calls[0][0]).toBe(container);
+    expect(H.createChart.mock.calls[0][1]).toEqual(bag);
+  });
+
   it("createEngine throws on an unknown impl", () => {
     // The impl union is "lwc"-only; force an invalid value to hit the exhaustiveness guard.
     expect(() => createEngine(container, undefined, "canvas" as unknown as "lwc")).toThrow(/unknown impl/);
