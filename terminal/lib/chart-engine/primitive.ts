@@ -130,6 +130,38 @@ export function projectionReady(proj: EngineProjection | null | undefined): bool
   return priceMapNonDegenerate(proj);
 }
 
+// ── Shape guard ────────────────────────────────────────────────────────────────
+
+const Z_ORDER_VALUES: readonly PrimitiveZOrder[] = ["bottom", "normal", "top"];
+
+/**
+ * The ONE structural test for "is this an EnginePrimitive", shared by every host
+ * (lwc/index.ts routes on it; canvas/refusal.ts's assertEnginePrimitive throws
+ * with it) so the two engines can never disagree about what they accept. Returns
+ * the offending member names, empty when the shape is acceptable. Renderer-
+ * agnostic by construction (no LWC import — contract law 1).
+ */
+export function enginePrimitiveShapeErrors(value: unknown): string[] {
+  if (value == null || typeof value !== "object") return ["object"];
+  const bag = value as Record<string, unknown>;
+  const missing: string[] = [];
+  if (typeof bag.id !== "string") missing.push("id");
+  if (typeof bag.attached !== "function") missing.push("attached");
+  if (typeof bag.detached !== "function") missing.push("detached");
+  if (typeof bag.update !== "function") missing.push("update");
+  if (bag.paint != null && typeof bag.paint !== "function") missing.push("paint");
+  if (bag.hitTest != null && typeof bag.hitTest !== "function") missing.push("hitTest");
+  if (bag.zOrder != null && !Z_ORDER_VALUES.includes(bag.zOrder as PrimitiveZOrder)) {
+    missing.push("zOrder");
+  }
+  return missing;
+}
+
+/** Boolean form of enginePrimitiveShapeErrors, for hosts that route instead of refuse. */
+export function isEnginePrimitiveShape(value: unknown): value is EnginePrimitive {
+  return enginePrimitiveShapeErrors(value).length === 0;
+}
+
 // ── Lifecycle helper ───────────────────────────────────────────────────────────
 
 export interface PrimitiveLifecycleOptions {

@@ -41,6 +41,11 @@ const REPO_ROOT = path.resolve(TERMINAL_ROOT, "..");
 const RECEIPTS_DIR = path.join(REPO_ROOT, "docs", "chart-engine-completion", "receipts");
 const SCHEMA_PATH = path.join(REPO_ROOT, "docs", "chart-engine-completion", "performance-receipt.schema.json");
 
+/** receipts/README.md:8-14 naming contract. The schema carries no `impl`, so the filename is
+ *  the only impl identity a committed receipt has — pin its shape or the A3 gate can be fed an
+ *  lwc receipt named receipt-mm-*.json. */
+const RECEIPT_NAME_RE = /^receipt-(mm|lwc)-[0-9a-f]{40}-[a-z0-9][a-z0-9-]*\.json$/;
+
 /** FNV-1a of the default 40k corpus — fixture constant; a seed change reds this. */
 const CORPUS_DIGEST_FIXTURE = "401f56d4";
 
@@ -226,12 +231,14 @@ describe("chart-engine bench receipt (A2)", () => {
 });
 
 describe("chart-engine committed receipts gate (A3)", () => {
-  it("validates every committed receipt json and reports a red mm receipt by name", () => {
+  it("validates every committed receipt json, its filename, and reports a red mm receipt by name", () => {
     expect(existsSync(RECEIPTS_DIR), "docs/chart-engine-completion/receipts/ must exist").toBe(true);
     const files = readdirSync(RECEIPTS_DIR).filter((f) => f.endsWith(".json")).sort();
     const invalid: string[] = [];
     const redMm: string[] = [];
+    const misnamed: string[] = [];
     for (const file of files) {
+      if (!RECEIPT_NAME_RE.test(file)) misnamed.push(file);
       const raw = JSON.parse(readFileSync(path.join(RECEIPTS_DIR, file), "utf8")) as unknown;
       const result = validateReceipt(raw);
       if (!result.ok) invalid.push(`${file}: ${result.errors.join("; ")}`);
@@ -245,6 +252,10 @@ describe("chart-engine committed receipts gate (A3)", () => {
       }
     }
     expect(invalid, `invalid committed receipts:\n${invalid.join("\n")}`).toEqual([]);
+    expect(
+      misnamed,
+      `receipt filenames must be receipt-<mm|lwc>-<40-hex commit>-<host>.json (the schema has no impl field, so the name is the only impl identity):\n${misnamed.join("\n")}`,
+    ).toEqual([]);
     expect(redMm, `committed mm receipts with budget_ok:false: ${redMm.join(", ")}`).toEqual([]);
   });
 });

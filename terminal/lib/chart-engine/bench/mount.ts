@@ -14,7 +14,9 @@ import {
   type SeriesHandle,
 } from "@/lib/chart-engine";
 import {
+  BENCH_HANDLE_SCROLL,
   DAILY_40K,
+  UNMEASURED,
   buildDailyCorpus,
   frameWorkMs,
   planTick,
@@ -32,6 +34,9 @@ export type MmBenchHook = {
   heapBefore: number;
   firstPaintMs: number;
   log: string[];
+  paintRefusals(): number;
+  /** False when performance.memory is absent, so heap_mb is UNMEASURED, not 1e-9. */
+  heapSupported(): boolean;
   plotCenter(): { x: number; y: number };
   startFrameLog(): void;
   stopFrameLog(): FrameRecord[];
@@ -40,6 +45,19 @@ export type MmBenchHook = {
   screenshot(): ScreenshotResult;
   anchorTimeAt(x: number): EngineTime | null;
   timeToCoordinate(time: EngineTime): number | null;
+  /** Float-index anchor under a pointer x (PERF-RR2 ruling 3): the LWC public
+   *  API is not float-exact, so the metric interpolates from the two
+   *  neighbouring integer logicals the engine reports. x is the PAGE/client
+   *  coordinate — the hook subtracts rect.left itself, exactly like
+   *  anchorTimeAt. Returns null when any call is non-finite or the two anchor
+   *  pixels coincide (zoom extremes). */
+  floatAnchorAt(x: number): { x: number; logical: number } | null;
+  /** coordOf(L) for a float logical L: x = d0 + (L - j) * (d1 - d0) where
+   *  j = floor(L) and d0, d1 are logicalToCoordinate(j), logicalToCoordinate(j+1).
+   *  Returns null when the engine cannot answer or d1 === d0. */
+  coordinateOfLogical(logical: number): number | null;
+  /** Visible logical range, or null — the protocol uses it to prove pan/zoom did something. */
+  visibleLogicalRange(): { from: number; to: number } | null;
   inventory(): EngineInventory;
 };
 
@@ -54,6 +72,12 @@ type MemoryPerformance = Performance & { memory?: { usedJSHeapSize: number } };
 function heapSize(): number {
   const mem = (performance as MemoryPerformance).memory;
   return mem && typeof mem.usedJSHeapSize === "number" ? mem.usedJSHeapSize : 0;
+}
+
+/** True only when performance.memory really reports a number (Chrome-only API). */
+function heapMeasurable(): boolean {
+  const mem = (performance as MemoryPerformance).memory;
+  return typeof mem?.usedJSHeapSize === "number";
 }
 
 function readError(err: unknown): string {
@@ -106,18 +130,21 @@ export function mountBench(container: HTMLElement, impl: EngineImpl): MountBench
   const origCancel = window.cancelAnimationFrame.bind(window);
   let logging = false;
   const records: FrameRecord[] = [];
-  let paintRefused = false;
+  let paintRefusalCount = 0;
 
   window.requestAnimationFrame = ((cb: FrameRequestCallback): number => {
     return origRaf((frameTs) => {
-      const invoke = () => {
+      /** False when the callback threw: that frame presented nothing. */
+      const invoke = (): boolean => {
         try {
           cb(frameTs);
+          return true;
         } catch (err) {
-          if (!paintRefused) {
-            refuse("paint", err);
-            paintRefused = true;
+          paintRefusalCount++;
+          if (paintRefusalCount === 1) {
+            refuse("paint", err); // the first occurrence carries the message
           }
+          return false;
         }
       };
       if (!logging) {
@@ -125,9 +152,12 @@ export function mountBench(container: HTMLElement, impl: EngineImpl): MountBench
         return;
       }
       const start = performance.now();
-      invoke();
+      const painted = invoke();
       const end = performance.now();
-      records.push({ frameTs, start, end });
+      // A frame whose paint threw did no work. Recording it would price a
+      // failure as a fast frame and feed the pan/zoom/live p95s with
+      // numbers no renderer produced.
+      if (painted) records.push({ frameTs, start, end });
     });
   }) as typeof window.requestAnimationFrame;
 
@@ -152,6 +182,7 @@ export function mountBench(container: HTMLElement, impl: EngineImpl): MountBench
         },
         timeScale: { borderColor: "#2a2a2c", timeVisible: false },
         rightPriceScale: { borderColor: "#2a2a2c" },
+        handleScroll: { mouseWheel: BENCH_HANDLE_SCROLL.mouseWheel },
       },
       impl,
     );
@@ -240,6 +271,8 @@ export function mountBench(container: HTMLElement, impl: EngineImpl): MountBench
     heapBefore,
     firstPaintMs: 0,
     log,
+    paintRefusals: () => paintRefusalCount,
+    heapSupported: heapMeasurable,
     plotCenter() {
       const el = engine?.chartElement() ?? container;
       const rect = el.getBoundingClientRect();
@@ -301,14 +334,14 @@ export function mountBench(container: HTMLElement, impl: EngineImpl): MountBench
       lastBar = corpus.candles[corpus.candles.length - 1];
     },
     screenshot() {
-      if (!engine) return { ms: 1e-9, width: 0, height: 0 };
+      if (!engine) return { ms: UNMEASURED, width: 0, height: 0 };
       const t0 = performance.now();
       let canvas: HTMLCanvasElement;
       try {
         canvas = engine.takeScreenshot();
       } catch (err) {
         refuse("takeScreenshot", err);
-        return { ms: 1e-9, width: 0, height: 0 };
+        return { ms: UNMEASURED, width: 0, height: 0 };
       }
       const ms = Math.max(performance.now() - t0, 1e-9);
       return { ms, width: canvas.width, height: canvas.height };
@@ -331,6 +364,63 @@ export function mountBench(container: HTMLElement, impl: EngineImpl): MountBench
         return null;
       }
     },
+    floatAnchorAt(x: number) {
+      // Mirrors the integer interpolation documented in
+      // docs/chart-engine-completion/lwc-reference-semantics.md dev:6283-6286.
+      // The LWC public API is not float-exact (coordinateToLogical returns the
+      // ceiling of the float index, logicalToCoordinate is only defined for
+      // integer logicals), so the metric is built by linear interpolation
+      // between the two neighbouring integer logicals the engine reports.
+      try {
+        const ts = engine?.timeScale();
+        if (!ts) return null;
+        const el = engine?.chartElement() ?? container;
+        const rect = el.getBoundingClientRect();
+        const localX = x - rect.left;
+        const i = ts.coordinateToLogical(localX);
+        if (i == null) return null;
+        const c0 = ts.logicalToCoordinate(i);
+        const c1 = ts.logicalToCoordinate(i + 1);
+        if (c0 == null || c1 == null) return null;
+        if (!Number.isFinite(c0) || !Number.isFinite(c1)) return null;
+        if (c1 === c0) return null;
+        const logical = i + (localX - c0) / (c1 - c0);
+        if (!Number.isFinite(logical)) return null;
+        return { x: localX, logical };
+      } catch (err) {
+        refuse("floatAnchorAt", err);
+        return null;
+      }
+    },
+    coordinateOfLogical(logical: number) {
+      // Inverse of floatAnchorAt: same integer-interpolation convention so the
+      // bench measures the exact pixel the engine would paint for the float
+      // index, not an integer logical it would quantise.
+      try {
+        const ts = engine?.timeScale();
+        if (!ts) return null;
+        if (!Number.isFinite(logical)) return null;
+        const j = Math.floor(logical);
+        const d0 = ts.logicalToCoordinate(j);
+        const d1 = ts.logicalToCoordinate(j + 1);
+        if (d0 == null || d1 == null) return null;
+        if (!Number.isFinite(d0) || !Number.isFinite(d1)) return null;
+        if (d1 === d0) return null;
+        const x = d0 + (logical - j) * (d1 - d0);
+        return Number.isFinite(x) ? x : null;
+      } catch (err) {
+        refuse("coordinateOfLogical", err);
+        return null;
+      }
+    },
+    visibleLogicalRange() {
+      try {
+        return engine?.timeScale().getVisibleLogicalRange() ?? null;
+      } catch (err) {
+        refuse("getVisibleLogicalRange", err);
+        return null;
+      }
+    },
     inventory() {
       try {
         return engine?.inventory() ?? { alive: false, panes: 0, series: 0, seriesByPane: [], priceLines: 0, watermarks: 0 };
@@ -349,12 +439,13 @@ export function mountBench(container: HTMLElement, impl: EngineImpl): MountBench
       try {
         performance.measure("engine:first-paint", "engine:create", "engine:first-frame");
         const entry = performance.getEntriesByName("engine:first-paint")[0];
-        hook.firstPaintMs = entry && "duration" in entry ? Math.max(entry.duration, 1e-9) : 1e-9;
+        hook.firstPaintMs = entry && "duration" in entry ? Math.max(entry.duration, 1e-9) : UNMEASURED;
       } catch (err) {
         refuse("performance.measure", err);
-        hook.firstPaintMs = 1e-9;
+        hook.firstPaintMs = UNMEASURED;
       }
       log.push(`corpus=${DAILY_40K.name} bars=${DAILY_40K.bars} impl=${impl}`);
+      log.push(`paint_refusals=${paintRefusalCount}`);
       resolveReady();
     });
   });
@@ -385,7 +476,7 @@ function waitNextWorkFrame(
         return;
       }
       if (performance.now() - started > 500) {
-        resolve(1e-9);
+        resolve(UNMEASURED);
         return;
       }
       origRaf(poll);
