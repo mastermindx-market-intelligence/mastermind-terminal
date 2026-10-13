@@ -15,10 +15,16 @@ beforeEach(() => {
   (globalThis as unknown as { IS_REACT_ACT_ENVIRONMENT: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
   vi.useFakeTimers(); fetchSnapshot.mockReset();
   Object.defineProperty(document, "visibilityState", { configurable: true, value: "visible" });
-  try { localStorage.removeItem("mm.optionsCompanion.v1"); } catch { /* storage is optional */ }
+  const storage = new Map<string, string>();
+  vi.stubGlobal("localStorage", {
+    getItem: (key: string) => storage.get(key) ?? null,
+    setItem: (key: string, value: string) => { storage.set(key, value); },
+    removeItem: (key: string) => { storage.delete(key); },
+    clear: () => storage.clear(),
+  });
   element = document.createElement("div"); document.body.appendChild(element); root = createRoot(element);
 });
-afterEach(async () => { await act(async () => root.unmount()); element.remove(); vi.useRealTimers(); });
+afterEach(async () => { await act(async () => root.unmount()); element.remove(); vi.useRealTimers(); vi.unstubAllGlobals(); });
 const doc = { schema: "options_structure.matrix/v1", root: "NVDA", spot: 193, asof: "2026-09-25T20:21:00Z",
   _build_meta: { asof_date: "2026-09-25" }, cells: [
     { strike: 192, expiry: "2026-09-25", gex: 1_000_000, call_oi: 2, put_oi: 1 },
@@ -72,6 +78,32 @@ describe("options companion host", () => {
     // The selected-node strip still offers the inspector, so the page keeps a selected-node action.
     expect(element.querySelector('[data-testid="options-selected-summary"] [data-testid="options-inspect-node"]')).toBeTruthy();
     expect(pressEscape().defaultPrevented).toBe(false);
+  });
+
+  it("page host opens on the gamma map and leaves the rail's saved perspective alone", async () => {
+    localStorage.setItem("mm.optionsCompanion.v1", JSON.stringify({ perspective: "flow", matrix: { expiries: "6", window: 12, norm: "column" }, oi: "oi", flow: "tape" }));
+    await renderHost("page");
+    const selected = element.querySelector('[role="tab"][aria-selected="true"]');
+    expect(selected?.id.endsWith("-gamma")).toBe(true);
+    expect(element.querySelector("[data-options-grid]")).toBeTruthy();
+    const stored = JSON.parse(localStorage.getItem("mm.optionsCompanion.v1") ?? "null");
+    expect(stored.perspective).toBe("flow");
+    // The scope is shared with the rail, so the saved scope still applies on the page.
+    expect(stored.matrix).toEqual({ expiries: "6", window: 12, norm: "column" });
+    const vanna = element.querySelector<HTMLButtonElement>('[role="tab"][id$="-vanna"]')!;
+    await act(async () => vanna.click());
+    expect(JSON.parse(localStorage.getItem("mm.optionsCompanion.v1") ?? "null").perspective).toBe("flow");
+  });
+
+  it("rail host keeps applying the saved perspective", async () => {
+    localStorage.setItem("mm.optionsCompanion.v1", JSON.stringify({ perspective: "vanna", matrix: { expiries: "3", window: 6, norm: "global" }, oi: "oi", flow: "tape" }));
+    fetchSnapshot.mockResolvedValue(asData(doc));
+    await act(async () => root.render(
+      <LangProvider>
+        <OptionsCompanion symbol="NVDA" access="allowed" host="rail" onClose={() => {}} pinned={null} onPin={NO_PIN} replayActive={false} />
+      </LangProvider>,
+    ));
+    expect(element.querySelector('[role="tab"][aria-selected="true"]')?.id.endsWith("-vanna")).toBe(true);
   });
 
   it("puts the size container on a wrapper so the two-column map rule can apply", async () => {

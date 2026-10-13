@@ -38,8 +38,18 @@ export default function OptionsCompanion({ symbol, onClose, access, host = "rail
   const root = optionsRoot(symbol);
   const id = useId();
   // This leaf is dynamic({ssr:false}); localStorage is not a server-rendered authority.
-  const [prefs, setPrefs] = useState(loadPreferences);
-  useEffect(() => { try { localStorage.setItem(PREF_KEY, JSON.stringify(prefs)); } catch { /* storage is optional */ } }, [prefs]);
+  // The desk's Matrix view always opens on the gamma map: on the page host the perspective is a
+  // page choice, so the rail's saved perspective is neither applied nor overwritten from there.
+  const [prefs, setPrefs] = useState<Preferences>(() => {
+    const saved = loadPreferences();
+    return host === "page" ? { ...saved, perspective: "gamma" } : saved;
+  });
+  useEffect(() => {
+    try {
+      const stored = host === "page" ? { ...prefs, perspective: loadPreferences().perspective } : prefs;
+      localStorage.setItem(PREF_KEY, JSON.stringify(stored));
+    } catch { /* storage is optional */ }
+  }, [prefs, host]);
   const { onPin } = pin;
   useEffect(() => { onPin(null); return () => onPin(null); }, [symbol, access, onPin]);
   function perspective(next: OptionsPerspective) { setPrefs((p) => ({ ...p, perspective: next })); onPin(null); }
