@@ -223,8 +223,8 @@ const chgStr = (c: number | null | undefined) => (c == null || !isFinite(c) ? "�
 
 // Shallow equality over the UNION of both quotes' keys (a/b are the /api/quote entries, whose
 // shape varies by asset class — last/chg/basis/vol/ts/prevClose/…). Returns true only when every
-// field is identical, so setQuotes can keep the prior object reference and let React bail out
-// on a no-op 6s poll. `null`/`undefined` are treated as "no quote".
+// field is identical, so updateQuotes can reject a no-op before enqueueing React work.
+// `null`/`undefined` are treated as "no quote".
 // `lagMs` is excluded on purpose. It is a STOPWATCH READING of `asOfMs` taken when the response
 // was assembled, so it advances on every 6s poll even when the tape has not moved — comparing it
 // would defeat this bail-out entirely for any snapshot-served symbol during a quiet session.
@@ -1400,6 +1400,18 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
   // symbol-keyed live top-of-book — ONE source for the header AND every watchlist row (via a single
   // batched /api/quote?syms= poll), so the detail pane and the watchlist can't disagree on a price.
   const [quotes, setQuotes] = useState<Record<string, any>>({});
+  // Quote polls can settle while a slower chart/preferences render is pending. Reject a
+  // no-op before enqueueing React work, so it cannot interrupt that pending render.
+  // Keep the last published snapshot here until commit; the two poll lanes must merge
+  // against each other's pending values rather than overwrite them with rendered state.
+  const publishedQuotesRef = useRef(quotes);
+  const updateQuotes = useCallback((update: (previous: typeof quotes) => typeof quotes) => {
+    const previous = publishedQuotesRef.current;
+    const next = update(previous);
+    if (next === previous) return;
+    publishedQuotesRef.current = next;
+    setQuotes(next);
+  }, []);
   // item-26/27: symbol-keyed extended/overnight ext prints — polled from /api/ext-quote (separate
   // from the main quote poll so the Quote Hub lane surface stays clean).
   // Each entry: { extPrice, extChg, extTs, extSession? } | null. `extSession` ('pre'|'post'|
@@ -2647,10 +2659,10 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
           if (d.quotes[k]) delete misses[k];
           else if ((misses[k] = (misses[k] ?? 0) + 1) >= 3) { drop.add(k); delete misses[k]; }
         }
-        setQuotes((prev) => {
+        updateQuotes((prev) => {
           // (a) Unchanged-value suppression: only touch symbols whose quote actually changed,
-          // reusing the prior object reference otherwise. If nothing changed, return `prev`
-          // unchanged so React bails out and the whole pane grid / watchlist skips re-render.
+          // reusing the prior object reference otherwise. updateQuotes rejects that no-op
+          // before it can interrupt an unrelated pending chart/preferences render.
           let changed = false;
           const n: Record<string, any> = { ...prev };
           for (const k of Object.keys(d.quotes)) {
@@ -2662,7 +2674,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
         });
       })
       .catch(() => {});
-  }, []);
+  }, [updateQuotes]);
   // stable 6s interval, mounted once. Pauses while the tab is hidden and fires an immediate
   // catch-up poll on re-show so a returning user sees fresh prices without waiting a full cycle.
   useEffect(() => {
@@ -2726,7 +2738,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
       .then((r) => (r.ok ? r.json() : null))
       .then((d) => {
         if (!chartQuoteAliveRef.current || !d?.quotes) return;
-        setQuotes((prev) => {
+        updateQuotes((prev) => {
           let changed = false;
           const next = { ...prev };
           for (const [sym, quote] of Object.entries<any>(d.quotes)) {
@@ -2747,7 +2759,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
           pollChartQuotes();
         }, 0);
       });
-  }, []);
+  }, [updateQuotes]);
   useEffect(() => {
     chartQuoteAliveRef.current = true;
     const id = setInterval(pollChartQuotes, 1_000);
@@ -5543,7 +5555,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
             replayCursor={replayOn && replayCutoff ? `${replayCutoff.clock}:${replayCutoff.at}` : null}
             onBack={() => setTableViewOpen(false)}
             onShowOnChart={(time, label) => {
-              void requestPaneFocus(activePane, { tf, time }).then((r) => {
+              void requestPaneFocus(activePane, { symbol: active, tf, time }).then((r) => {
                 const msg = dataInspectorFocusMessage(r.status, label, lang);
                 if (msg) showDtmToast(msg);
               });

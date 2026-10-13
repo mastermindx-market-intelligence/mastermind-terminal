@@ -41,6 +41,8 @@ const MO_QUERY = "mo_from=transmission&mo_chain=chain-1&mo_focus=leg-3&mo_asof=2
 const RETURN_HREF = "https://www.mastermind-x.com/transmission.html#tx-chain-chain-1";
 const NVDA_ID = "11111111-1111-4111-8111-111111111111";
 const MSFT_ID = "22222222-2222-4222-8222-222222222222";
+const NVDA_B_ID = "33333333-3333-4333-8333-333333333333";
+const NVDA_C_ID = "44444444-4444-4444-8444-444444444444";
 
 function listingSubject(key: string): ThesisSubjectRef {
   return {
@@ -67,16 +69,28 @@ function opaqueSubject(key: string): ThesisSubjectRef {
   };
 }
 
-function summary(id: string, subject: ThesisSubjectRef, title: string): ThesisSummary {
-  return { id, currentVersion: 1, lifecycleState: "active", subject, title, updatedAt: "2026-09-01T00:00:00.000Z" };
+function summary(
+  id: string,
+  subject: ThesisSubjectRef,
+  title: string,
+  extras: Partial<Pick<ThesisSummary, "currentVersion" | "lifecycleState">> = {},
+): ThesisSummary {
+  return {
+    id,
+    currentVersion: extras.currentVersion ?? 1,
+    lifecycleState: extras.lifecycleState ?? "active",
+    subject,
+    title,
+    updatedAt: "2026-09-01T00:00:00.000Z",
+  };
 }
 
 function detailFor(row: ThesisSummary): ThesisDetail {
   const current: ThesisVersion = {
     id: `${row.id}-v1`,
     thesisId: row.id,
-    version: 1,
-    previousVersion: null,
+    version: row.currentVersion,
+    previousVersion: row.currentVersion > 1 ? row.currentVersion - 1 : null,
     transition: "create",
     lifecycleState: row.lifecycleState,
     subject: row.subject,
@@ -222,6 +236,20 @@ afterEach(() => {
 });
 
 describe("ThesisWorkspace reopen with MarketOntology context", () => {
+  it("a late same-id read cannot restore the candidate from a different history entry", async () => {
+    const nvda = summary(NVDA_ID, listingSubject("NVDA"), "NVDA thesis");
+    let answer: ((response: Response) => void) | undefined;
+    installFetch({ theses: [nvda], detailFor: () => new Promise<Response>((resolve) => { answer = resolve; }) });
+    const el = await mountAt(`/analysis?view=theses&symbol=NVDA&thesis=${NVDA_ID}&${MO_QUERY}`, { initialSymbol: "NVDA" });
+    const destination = `/analysis?view=theses&symbol=NVDA&thesis=${NVDA_ID}&${MO_QUERY.replace("chain-1", "chain-2")}`;
+    window.history.replaceState(null, "", destination);
+    const destinationUrl = window.location.href;
+    await act(async () => answer!(jsonResponse({ thesis: detailFor(nvda) })));
+    await flush();
+    expect(window.location.href).toBe(destinationUrl);
+    expect(strip(el), "the old candidate must remain withheld").toBeNull();
+  });
+
   it.each(["unmount-success", "unmount-failure", "another-route"])("a late detail cannot rewrite the destination URL after %s", async (departure) => {
     const nvda = summary(NVDA_ID, listingSubject("NVDA"), "NVDA thesis");
     let answer: ((response: Response) => void) | undefined;
@@ -255,6 +283,43 @@ describe("ThesisWorkspace reopen with MarketOntology context", () => {
     });
     expect(strip(el)).toBeNull();
     expect(moKeys()).toEqual([]);
+    expect(new URL(window.location.href).searchParams.get("symbol")).toBeNull();
+  });
+
+  it("a cross-company selection clears the whole candidate before its URL is reloaded", async () => {
+    const nvda = summary(NVDA_ID, listingSubject("NVDA"), "NVDA thesis");
+    const msft = summary(MSFT_ID, listingSubject("MSFT"), "MSFT thesis");
+    installFetch({ theses: [nvda, msft], detailFor: (id) => id === MSFT_ID
+      ? jsonResponse({ thesis: detailFor(msft) }) : undefined });
+    const el = await mountAt(`/analysis?view=theses&symbol=NVDA&${MO_QUERY}`, { initialSymbol: "NVDA" });
+    await act(async () => thesisRow(el, "MSFT thesis").click());
+    await flush();
+    const actualUrl = new URL(window.location.href);
+    expect(actualUrl.searchParams.get("thesis")).toBe(MSFT_ID);
+    expect(actualUrl.searchParams.get("symbol"), "a disproved company must not survive in a shared or reloaded URL").toBeNull();
+    expect(moKeys()).toEqual([]);
+    expect(strip(el)).toBeNull();
+
+    await act(async () => root!.unmount());
+    container!.remove();
+    root = null;
+    container = null;
+    let answer: ((response: Response) => void) | undefined;
+    installFetch({ theses: [nvda, msft], detailFor: () => new Promise<Response>((resolve) => { answer = resolve; }) });
+    const reloaded = await mountAt(actualUrl.href, {
+      initialSymbol: actualUrl.searchParams.get("symbol") ?? undefined,
+      initialThesisId: actualUrl.searchParams.get("thesis") ?? undefined,
+    });
+    const header = reloaded.querySelector('[data-testid="thesis-workspace"] > header')!;
+    const claim = reloaded.querySelector('[data-testid="claim-entry-button"]') as HTMLButtonElement;
+    expect(header.textContent).not.toContain("NVDA");
+    expect(claim.disabled, "a pending canonical read must not seed a claim with the previous company").toBe(true);
+    expect(strip(reloaded)).toBeNull();
+    await act(async () => answer!(jsonResponse({ thesis: detailFor(msft) })));
+    await flush();
+    expect(header.textContent).toContain("MSFT");
+    expect(claim.disabled).toBe(false);
+    expect(strip(reloaded)).toBeNull();
   });
 
   it("a lazy composer mount does not keep a thesis selected from stale server props", async () => {
@@ -380,7 +445,9 @@ describe("ThesisWorkspace reopen with MarketOntology context", () => {
     // The response has not landed: nothing may claim this detail belongs to the
     // anchored company yet — not even the truth that is about to arrive.
     expect(strip(el), "an unconfirmed detail must withhold the strip").toBeNull();
-    expect(moKeys()).toEqual([]);
+    // Keep only the candidate in the URL so a reload can confirm it independently.
+    // This is never sent to the thesis API or displayed before canonical matching.
+    expect(moKeys()).toEqual(["mo_from", "mo_chain", "mo_focus", "mo_asof", "mo_kc"]);
 
     await act(async () => {
       release!(jsonResponse({ thesis: detailFor(nvda) }));
@@ -586,6 +653,7 @@ describe("ThesisWorkspace reopen with MarketOntology context", () => {
     expect(el.textContent).toContain("MSFT");
     expect(strip(el), "a wrong-company deep link must never carry the strip").toBeNull();
     expect(moKeys()).toEqual([]);
+    expect(new URL(window.location.href).searchParams.get("symbol")).toBeNull();
   });
 
   it("browser back to the composer entry and forward to the confirmed thesis entry keep the context honest", async () => {
@@ -614,6 +682,224 @@ describe("ThesisWorkspace reopen with MarketOntology context", () => {
     expect(strip(el), "the confirmed detail entry keeps its context across history travel").not.toBeNull();
     expect(strip(el)!.querySelector("a")!.getAttribute("href")).toBe(RETURN_HREF);
     expect(new URL(window.location.href).searchParams.get("thesis")).toBe(NVDA_ID);
+    expect(moKeys()).toEqual(["mo_from", "mo_chain", "mo_focus", "mo_asof", "mo_kc"]);
+  });
+
+  it("Forward before A settles then a same-company B click keeps B and the candidate context", async () => {
+    const thesisA = summary(NVDA_ID, listingSubject("NVDA"), "MU A archived", { currentVersion: 3, lifecycleState: "archived" });
+    const thesisB = summary(NVDA_B_ID, listingSubject("NVDA"), "MU B current", { currentVersion: 2 });
+    let releaseA: ((value: Response) => void) | null = null;
+    let aLoads = 0;
+    installFetch({
+      theses: [thesisA, thesisB],
+      detailFor: (id) => {
+        if (id === NVDA_ID) {
+          aLoads += 1;
+          if (aLoads === 1) return jsonResponse({ thesis: detailFor(thesisA) });
+          return new Promise<Response>((resolve) => { releaseA = resolve; });
+        }
+        if (id === NVDA_B_ID) return jsonResponse({ thesis: detailFor(thesisB) });
+        return undefined;
+      },
+    });
+    const el = await mountAt(`/analysis?view=theses&symbol=NVDA&${MO_QUERY}`, { initialSymbol: "NVDA" });
+    await act(async () => thesisRow(el, "MU A archived").click());
+    await flush();
+    expect(strip(el)).not.toBeNull();
+    const detailUrl = window.location.href;
+    const composerUrl = `/analysis?view=theses&symbol=NVDA&${MO_QUERY}`;
+
+    await popTo(composerUrl, 0);
+    expect(strip(el), "composer history keeps its own context").not.toBeNull();
+
+    // Forward restores A, but do not wait for canonical A detail before the B click.
+    await act(async () => {
+      window.history.replaceState({ [HISTORY_POSITION_KEY]: 1 }, "", detailUrl);
+      window.dispatchEvent(new PopStateEvent("popstate", { state: { [HISTORY_POSITION_KEY]: 1 } }));
+    });
+    await act(async () => { await new Promise((resolve) => setTimeout(resolve, 0)); });
+    expect(releaseA, "Forward must start A's detail read").toBeTypeOf("function");
+    expect(strip(el), "unconfirmed Forward detail must withhold the strip").toBeNull();
+
+    await act(async () => thesisRow(el, "MU B current").click());
+    await flush();
+    await act(async () => releaseA!(jsonResponse({ thesis: detailFor(thesisA) })));
+    await flush();
+
+    expect(new URL(window.location.href).searchParams.get("thesis")).toBe(NVDA_B_ID);
+    expect(el.textContent).toContain("MU B current");
+    expect(el.textContent).toContain("Version 2");
+    expect(strip(el), "newest same-company selection must keep the candidate context").not.toBeNull();
+    expect(strip(el)!.querySelector("a")!.getAttribute("href")).toBe(RETURN_HREF);
+    expect(moKeys()).toEqual(["mo_from", "mo_chain", "mo_focus", "mo_asof", "mo_kc"]);
+  });
+
+  it("a remounted Forward URL still lets a later same-company click win with context", async () => {
+    const thesisA = summary(NVDA_ID, listingSubject("NVDA"), "MU A archived", { currentVersion: 3, lifecycleState: "archived" });
+    const thesisB = summary(NVDA_B_ID, listingSubject("NVDA"), "MU B current", { currentVersion: 2 });
+    let releaseA: ((value: Response) => void) | null = null;
+    installFetch({
+      theses: [thesisA, thesisB],
+      detailFor: (id) => {
+        if (id === NVDA_ID) return new Promise<Response>((resolve) => { releaseA = resolve; });
+        if (id === NVDA_B_ID) return jsonResponse({ thesis: detailFor(thesisB) });
+        return undefined;
+      },
+    });
+    const detailUrl = `/analysis?view=theses&symbol=NVDA&thesis=${NVDA_ID}&${MO_QUERY}`;
+    const el = await mountAt(detailUrl, { initialSymbol: "NVDA" });
+    expect(strip(el), "lazy remount must withhold unconfirmed detail context").toBeNull();
+    expect(releaseA).toBeTypeOf("function");
+
+    await act(async () => thesisRow(el, "MU B current").click());
+    await flush();
+    await act(async () => releaseA!(jsonResponse({ thesis: detailFor(thesisA) })));
+    await flush();
+
+    expect(new URL(window.location.href).searchParams.get("thesis")).toBe(NVDA_B_ID);
+    expect(el.textContent).toContain("MU B current");
+    expect(strip(el), "candidate context must survive remount-then-B").not.toBeNull();
+    expect(moKeys()).toEqual(["mo_from", "mo_chain", "mo_focus", "mo_asof", "mo_kc"]);
+  });
+
+  it("a cross-company click during pending Forward restore clears context and never flashes it", async () => {
+    const thesisA = summary(NVDA_ID, listingSubject("NVDA"), "NVDA thesis");
+    const msft = summary(MSFT_ID, listingSubject("MSFT"), "MSFT thesis");
+    let releaseA: ((value: Response) => void) | null = null;
+    installFetch({
+      theses: [thesisA, msft],
+      detailFor: (id) => {
+        if (id === NVDA_ID) return new Promise<Response>((resolve) => { releaseA = resolve; });
+        if (id === MSFT_ID) return jsonResponse({ thesis: detailFor(msft) });
+        return undefined;
+      },
+    });
+    const el = await mountAt(`/analysis?view=theses&symbol=NVDA&thesis=${NVDA_ID}&${MO_QUERY}`, { initialSymbol: "NVDA" });
+    expect(strip(el)).toBeNull();
+    await act(async () => thesisRow(el, "MSFT thesis").click());
+    await flush();
+    expect(strip(el), "another company must not flash the strip while A is pending").toBeNull();
+    await act(async () => releaseA!(jsonResponse({ thesis: detailFor(thesisA) })));
+    await flush();
+    expect(el.textContent).toContain("MSFT thesis");
+    expect(new URL(window.location.href).searchParams.get("thesis")).toBe(MSFT_ID);
+    expect(strip(el)).toBeNull();
+    expect(moKeys()).toEqual([]);
+  });
+
+  it("a failed later detail during pending Forward restore clears context", async () => {
+    const thesisA = summary(NVDA_ID, listingSubject("NVDA"), "NVDA thesis");
+    const thesisB = summary(NVDA_B_ID, listingSubject("NVDA"), "NVDA B thesis");
+    let releaseA: ((value: Response) => void) | null = null;
+    installFetch({
+      theses: [thesisA, thesisB],
+      detailFor: (id) => {
+        if (id === NVDA_ID) return new Promise<Response>((resolve) => { releaseA = resolve; });
+        if (id === NVDA_B_ID) return jsonResponse({ error: "thesis_not_found" }, 404);
+        return undefined;
+      },
+    });
+    const el = await mountAt(`/analysis?view=theses&symbol=NVDA&thesis=${NVDA_ID}&${MO_QUERY}`, { initialSymbol: "NVDA" });
+    await act(async () => thesisRow(el, "NVDA B thesis").click());
+    await flush();
+    await act(async () => releaseA!(jsonResponse({ thesis: detailFor(thesisA) })));
+    await flush();
+    expect(el.textContent).toContain("Thesis not found");
+    expect(new URL(window.location.href).searchParams.get("thesis")).toBe(NVDA_B_ID);
+    expect(strip(el), "a failed later read must clear the candidate").toBeNull();
+    expect(moKeys()).toEqual([]);
+  });
+
+  it("context-free history does not inherit the previous detail candidate", async () => {
+    const a = summary(NVDA_ID, listingSubject("NVDA"), "Anchored A");
+    const b = summary(NVDA_B_ID, listingSubject("NVDA"), "Unanchored B");
+    installFetch({ theses: [a, b], detailFor: (id) => jsonResponse({ thesis: detailFor(id === NVDA_ID ? a : b) }) });
+    const el = await mountAt(`/analysis?view=theses&symbol=NVDA&${MO_QUERY}`, { initialSymbol: "NVDA" });
+    await act(async () => thesisRow(el, "Anchored A").click());
+    await flush();
+    expect(strip(el)).not.toBeNull();
+    await popTo(`/analysis?view=theses&thesis=${NVDA_B_ID}`, 8);
+    expect(new URL(window.location.href).searchParams.get("thesis")).toBe(NVDA_B_ID);
+    expect(strip(el), "a context-free history entry must stay context-free").toBeNull();
+    expect(moKeys()).toEqual([]);
+  });
+
+  it("a pending selection retains its candidate through a real component remount", async () => {
+    const a = summary(NVDA_ID, listingSubject("NVDA"), "Anchored A");
+    const b = summary(NVDA_B_ID, listingSubject("NVDA"), "Remounted B");
+    let bLoads = 0;
+    installFetch({ theses: [a, b], detailFor: (id) => {
+      if (id === NVDA_ID) return jsonResponse({ thesis: detailFor(a) });
+      if (id === NVDA_B_ID && ++bLoads === 1) return new Promise<Response>(() => {});
+      return jsonResponse({ thesis: detailFor(b) });
+    } });
+    const el = await mountAt(`/analysis?view=theses&symbol=NVDA&${MO_QUERY}`, { initialSymbol: "NVDA" });
+    await act(async () => thesisRow(el, "Anchored A").click());
+    await flush();
+    await act(async () => thesisRow(el, "Remounted B").click());
+    await flush();
+    expect(bLoads).toBe(1);
+    expect(strip(el), "pending B cannot display unconfirmed context").toBeNull();
+    const pendingUrl = window.location.href;
+    await act(async () => root!.unmount());
+    container!.remove();
+    root = null;
+    const remounted = await mountAt(pendingUrl, { initialThesisId: NVDA_B_ID });
+    expect(new URL(window.location.href).searchParams.get("thesis")).toBe(NVDA_B_ID);
+    expect(strip(remounted), "the current URL must carry the candidate across disposal").not.toBeNull();
+    expect(moKeys()).toEqual(["mo_from", "mo_chain", "mo_focus", "mo_asof", "mo_kc"]);
+  });
+
+  it("a new history candidate keeps its own company during a later pending selection", async () => {
+    const a = summary(NVDA_ID, listingSubject("NVDA"), "Original NVDA");
+    const history = summary(MSFT_ID, listingSubject("MSFT"), "Pending MSFT");
+    const later = summary(NVDA_B_ID, listingSubject("MSFT"), "Later MSFT");
+    installFetch({ theses: [a, history, later], detailFor: (id) => {
+      if (id === NVDA_ID) return jsonResponse({ thesis: detailFor(a) });
+      if (id === MSFT_ID) return new Promise<Response>(() => {});
+      return jsonResponse({ thesis: detailFor(later) });
+    } });
+    const el = await mountAt(`/analysis?view=theses&symbol=NVDA&${MO_QUERY}`, { initialSymbol: "NVDA" });
+    await act(async () => thesisRow(el, "Original NVDA").click());
+    await flush();
+    await popTo(`/analysis?view=theses&symbol=MSFT&thesis=${MSFT_ID}&${MO_QUERY.replace("chain-1", "chain-2")}`, 8);
+    expect(strip(el)).toBeNull();
+    await act(async () => thesisRow(el, "Later MSFT").click());
+    await flush();
+    expect(strip(el), "new MSFT context must not be paired with the old NVDA anchor").not.toBeNull();
+    expect(new URL(window.location.href).searchParams.get("symbol")).toBe("MSFT");
+    expect(new URL(window.location.href).searchParams.get("mo_chain")).toBe("chain-2");
+  });
+
+  it("the latest ordinary selection wins when earlier detail reads complete out of order", async () => {
+    const thesisA = summary(NVDA_ID, listingSubject("NVDA"), "NVDA A thesis");
+    const thesisB = summary(NVDA_B_ID, listingSubject("NVDA"), "NVDA B thesis");
+    const thesisC = summary(NVDA_C_ID, listingSubject("NVDA"), "NVDA C thesis");
+    let releaseA: ((value: Response) => void) | null = null;
+    let releaseB: ((value: Response) => void) | null = null;
+    installFetch({
+      theses: [thesisA, thesisB, thesisC],
+      detailFor: (id) => {
+        if (id === NVDA_ID) return new Promise<Response>((resolve) => { releaseA = resolve; });
+        if (id === NVDA_B_ID) return new Promise<Response>((resolve) => { releaseB = resolve; });
+        if (id === NVDA_C_ID) return jsonResponse({ thesis: detailFor(thesisC) });
+        return undefined;
+      },
+    });
+    const el = await mountAt(`/analysis?view=theses&symbol=NVDA&${MO_QUERY}`, { initialSymbol: "NVDA" });
+    await act(async () => thesisRow(el, "NVDA A thesis").click());
+    await flush();
+    await act(async () => thesisRow(el, "NVDA B thesis").click());
+    await flush();
+    await act(async () => thesisRow(el, "NVDA C thesis").click());
+    await flush();
+    await act(async () => releaseB!(jsonResponse({ thesis: detailFor(thesisB) })));
+    await flush();
+    await act(async () => releaseA!(jsonResponse({ thesis: detailFor(thesisA) })));
+    await flush();
+    expect(new URL(window.location.href).searchParams.get("thesis")).toBe(NVDA_C_ID);
+    expect(el.textContent).toContain("NVDA C thesis");
+    expect(strip(el), "latest same-company selection keeps the arrival context").not.toBeNull();
     expect(moKeys()).toEqual(["mo_from", "mo_chain", "mo_focus", "mo_asof", "mo_kc"]);
   });
 });
