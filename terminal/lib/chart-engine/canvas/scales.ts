@@ -132,6 +132,12 @@ function finiteNumber(value: number | undefined, fallback: number): number {
   return value != null && Number.isFinite(value) ? value : fallback;
 }
 
+/**
+ * LWC divides by the base verbatim, so base 0 yields Infinity/NaN and the
+ * scale goes empty (dev:4192, dev:5055-5057). We deliberately substitute 1
+ * to keep the scale finite and the round-trip invertible; documented
+ * deviation, pinned by chartEngineCanvasPatch3Model.test.ts F-6.
+ */
 function usableBase(baseValue: number | undefined): number {
   const base = finiteNumber(baseValue, 1);
   return base === 0 ? 1 : base;
