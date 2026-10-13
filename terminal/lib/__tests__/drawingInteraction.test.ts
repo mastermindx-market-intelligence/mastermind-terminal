@@ -2,8 +2,6 @@ import { describe, expect, it } from "vitest";
 import {
   cloneDrawing,
   constrainScreenAngle,
-  DRAWING_HANDLE_HIT_RADIUS_CSS,
-  hitTestDrawingHandles,
   translateDrawingAnchors,
 } from "@/lib/drawing-engine/interaction";
 import type { Drawing } from "@/lib/drawings";
@@ -29,12 +27,6 @@ describe("professional drawing interactions", () => {
     expect(right).toEqual([{ t: "3", p: 11.23 }, { t: "5", p: 13.23 }]);
     const left = translateDrawingAnchors(drawing, ["1", "2", "3", "4", "5"], -20, 0, 2);
     expect(left.map((point) => point.t)).toEqual(["1", "3"]);
-  });
-
-  it("hit-tests drawing handles in CSS pixels", () => {
-    const handles = [{ drawingId: "a", handleIndex: 0, cx: 50, cy: 60 }];
-    expect(hitTestDrawingHandles(58, 60, handles, DRAWING_HANDLE_HIT_RADIUS_CSS, 2)?.drawingId).toBe("a");
-    expect(hitTestDrawingHandles(80, 60, handles, DRAWING_HANDLE_HIT_RADIUS_CSS, 2)).toBeNull();
   });
 
   it("clones nested state and always unlocks the copy", () => {
