@@ -10,6 +10,8 @@ import css from "./futuresLab.module.css";
 
 const DATASETS: Record<"ES" | "NQ", FuturesLabDataset> = { ES: esData as FuturesLabDataset, NQ: nqData as FuturesLabDataset };
 const L = {
+  chartView: ["Chart view", "图表视图"],
+  gammaHeading: ["Gamma exposure", "伽马敞口"],
   cvd: ["Show cumulative delta", "显示累积净量"],
   title: ["Futures microstructure", "期货微观结构"], lab: ["RESEARCH LAB · SYNTHETIC DATA", "研究实验室 · 合成数据"],
   warning: ["Development preview only. These are generated fixtures, not live CME data or trading evidence.", "仅为开发预览。数据为生成的测试样本，并非 CME 实时行情或交易证据。"],
@@ -54,7 +56,7 @@ export default function FuturesResearchLab() {
       <button onClick={() => setLang(lang ? 0 : 1)} aria-label="Language">{lang ? "English" : "中文"}</button></header>
     <p className={css.warning}>{t("warning")}</p>
     <section className={css.controls} aria-label={t("title")}>
-      <div className={css.tabs} role="tablist" aria-label="Chart view">
+      <div className={css.tabs} role="tablist" aria-label={t("chartView")}>
         {(["depth", "footprint"] as const).map(v => <button role="tab" key={v} aria-selected={mode === v} onClick={() => setMode(v)}>{t(v)}</button>)}
       </div>
       <label>{t("instrument")}<select aria-label="Instrument" value={pair} onChange={e => { setPair(e.target.value as "ES" | "NQ"); setZoom(1); }}>
@@ -90,7 +92,7 @@ export default function FuturesResearchLab() {
         <p className={css.receipt}>{dataset.contract} · {current.projection.method} · F−S {current.projection.basis.toFixed(4)} · F/S {current.projection.ratio.toFixed(7)} · {t("quoteAge")} {current.provenance.quoteAgeMs}ms</p>
         <p className={css.receipt} data-testid="futures-source-reference">{current.provenance.artifactId}{current.provenance.matrixArtifactId ? ` · ${current.provenance.matrixArtifactId}` : ""}</p>
         <table><thead><tr><th>{dataset.indexRoot} {lang ? "行权价" : "strike"}</th><th>{pair} {lang ? "价位" : "level"}</th>
-          <th>GEX ($M / 1% {dataset.indexRoot})</th></tr></thead><tbody>
+          <th>{t("gammaHeading")} ($M / 1% {dataset.indexRoot})</th></tr></thead><tbody>
           {current.projection.mapped.map(row => <tr key={row.sourceStrike}><td>{row.sourceStrike}</td>
             <td data-testid="mapped-level">{row.futuresPrice.toFixed(4)}</td><td data-testid="mapped-exposure">{row.gammaNetMn === null ? "—" : row.gammaNetMn.toFixed(2)}</td></tr>)}
         </tbody></table></>}

@@ -2,6 +2,10 @@
 
 Research as of 2026-10-12 UTC / 2026-10-11 Pacific. Current Chairman continuation explicitly requests deeper Pro research and implementation. This is an extension of Terminal's existing Options/Market Structure and Quote Hub owners, not another product backend or control plane.
 
+## Latest continuation: production source/API bridge
+
+Original PR/carrier retained. Added a digest-bound capture publication reader to the EXISTING Quote Hub and an authenticated /api/futures consumer. No live source, vendor account, source directory or permission setting was activated. Closed cash sessions explicitly withhold gamma. 62 source/API and 15 publication tests passed; full typecheck and the repaired plain-language guard passed. Evidence: `docs/evidence/futures-production-bridge-20261012/`. Next safe phase is the production-route client in the existing Options shell. Prior refused review-discovery action remains held; no worker/review claim. No unknown modifying effect.
+
 ## Current recoverable frontier (supersedes earlier open-item lists)
 
 As of 2026-10-12; source head `582111f5fb4e52e76704973e640e40fb529b2f76`,

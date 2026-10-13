@@ -10,6 +10,7 @@ export default function FuturesMicrostructureChart({ frames, mode, showGex, zoom
   frames: FuturesChartFrame[]; mode: "depth" | "footprint"; showGex: boolean; zoom: number;
   lowTick: number; highTick: number; priceStepTicks: number; lang: 0 | 1; contract: string; method: string; showCvd?: boolean;
 }) {
+  const pick = (en: string, zh: string) => lang ? zh : en;
   const wrap = useRef<HTMLDivElement>(null), width = useChartWidth(wrap, 640);
   const id = useId().replace(/:/g, ""), clipId = `futures-plot-${id}`, gapId = `futures-gap-${id}`;
   const priceHeight = width < 700 ? 460 : 530;
@@ -47,7 +48,7 @@ export default function FuturesMicrostructureChart({ frames, mode, showGex, zoom
   const cvdY = (v: number) => cvdBottom - (v - cvdLo) / (cvdHi - cvdLo) * (cvdBottom - cvdTop);
   const cvdPath = visible.map((f, i) => `${i === 0 ? "M" : "L"}${x(i)},${cvdY(f.bar.cvdKnown)}`).join(" ");
   return <div className={css.chart} ref={wrap} data-contract={contract} data-testid="futures-chart">
-    {!current && <p role="status" className={css.empty}>{lang ? "截止时间内没有已完成的时间区间。" : "No completed intervals at this replay cutoff."}</p>}
+    {!current && <p role="status" className={css.empty}>{pick("No completed intervals at this replay cutoff.", "截止时间内没有已完成的时间区间。")}</p>}
     <svg width={width} height={height} viewBox={`0 0 ${width} ${height}`} role="img"
       aria-label={`${contract} ${mode === "depth" ? (lang ? "深度" : "Depth") : (lang ? "足迹" : "Footprint")} · ${current ? time(current.endMs) : "—"} UTC`}>
       <defs><clipPath id={clipId}><rect x={left} y={top} width={right - left} height={bottom - top} /></clipPath>
@@ -88,14 +89,14 @@ export default function FuturesMicrostructureChart({ frames, mode, showGex, zoom
           <title>{`${tick / 4}: ${cell.sell} / ${cell.buy}; ${cell.unknown} ${unknownText}`}</title>
         </g>)}
       </g>}
-      {showGex && <text x={gammaX} y={16} fill="#a9b6cf" fontSize="9">GEX</text>}
+      {showGex && <text x={gammaX} y={16} fill="#a9b6cf" fontSize="9">{pick("Gamma", "伽马")}</text>}
       {showGex && current?.gex.status === "ok" && current.gex.projection.mapped.map(level =>
         level.gammaNetMn === null || y(level.futuresPrice) < top || y(level.futuresPrice) > bottom ? null : <g key={level.sourceStrike}>
           <rect x={gammaX} y={y(level.futuresPrice) - 3} width={Math.min(gammaWidth, Math.abs(level.gammaNetMn) / 400 * gammaWidth)} height="6" fill={color(level.gammaNetMn)} />
           <text x={gammaX} y={y(level.futuresPrice) - 8} fill={color(level.gammaNetMn)} fontSize="10">{level.gammaNetMn.toFixed(1)}M</text></g>)}
       {showCvd && current && <g data-testid="futures-cvd" data-cvd={current.bar.cvdKnown}>
         <line x1={left} x2={right} y1={cvdTop - 9} y2={cvdTop - 9} stroke="#334259" />
-        <text x={left} y={cvdTop - 14} fill="#a9b6cf" fontSize="10">{lang ? "已知方向累积净量 · 观测窗口" : "Known-side CVD · captured window"}</text>
+        <text x={left} y={cvdTop - 14} fill="#a9b6cf" fontSize="10">{pick("Known-side CVD · captured window", "已知方向累积净量 · 观测窗口")}</text>
         <line x1={left} x2={right} y1={cvdY(0)} y2={cvdY(0)} stroke="#344057" strokeDasharray="3 4" />
         <path d={cvdPath} fill="none" stroke="#77bbf4" strokeWidth="1.5" />
         <text x={right + 6} y={cvdY(current.bar.cvdKnown) + 4} fill="#77bbf4" fontSize="10">{current.bar.cvdKnown}</text>
