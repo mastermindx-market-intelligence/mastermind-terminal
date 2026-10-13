@@ -4,8 +4,12 @@ import { createRoot, type Root } from "react-dom/client";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import Ajv from "ajv/dist/2020";
 import addFormats from "ajv-formats";
+import { readFileSync } from "node:fs";
+import { resolve } from "node:path";
 import { LangProvider, type Lang } from "@/lib/i18n";
 import { OptionsAlphaCandidatePanel } from "@/components/prophet/OptionsAlphaCandidatePanel";
+import { OptionsAlphaView } from "@/components/prophet/OptionsAlphaView";
+import { flowGetResult, flowInvalidate } from "@/lib/flowClientCache";
 import feedSchema from "@/contracts/options/options.alpha_candidate_feed.v2.schema.json";
 import candidateFeedJson from "@/lib/__tests__/fixtures/candidate_feed.json";
 import candidateReceiptJson from "@/lib/__tests__/fixtures/candidate_feed.receipt.json";
@@ -761,5 +765,179 @@ describe("OptionsAlphaCandidatePanel — campaign context rendering", () => {
     renderPanel();
     await flushMicrotasks(8);
     expect(host!.querySelector('[data-testid="options-alpha-candidate-count"]')?.textContent).toBe("—");
+  });
+});
+
+const NBBO_SENTENCE: Record<Lang, string> = {
+  en: "No valid bid/ask quote was measured for this campaign, so no candidate was formed.",
+  zh: "该活动没有测到有效的买卖报价，因此未形成候选。",
+};
+const FALLBACK_SENTENCE: Record<Lang, string> = {
+  en: "Reason not recognised by this version of the page.",
+  zh: "此版本页面无法识别该原因。",
+};
+const RECEIPT_MISSING_EN = "No receipt entry exists for this candidate, so its first publication time is unknown and it is not counted as published.";
+const EMPTY_NO_ABSTENTION = /no abstention was recorded/i;
+
+function textOutsideDetails(root: Element): string {
+  const clone = root.cloneNode(true) as HTMLElement;
+  clone.querySelectorAll("details").forEach((node) => node.remove());
+  return clone.textContent ?? "";
+}
+
+function feedWithAbstentionReasons(reasons: string[]) {
+  const feed = structuredClone(baseFeed);
+  feed.abstentions = [{ ...baseFeed.abstentions[0], reasons: [...reasons] }];
+  return feed;
+}
+
+describe("OATRUTH candidate panel truth", () => {
+  for (const lang of ["en", "zh"] as const) {
+    it(`R1 abstention NO_VALID_NBBO_MEASUREMENT is a plain sentence outside details (${lang})`, async () => {
+      fetchMock.mockResolvedValueOnce(jsonResponse({
+        status: 200,
+        body: validResponse({ feed: feedWithAbstentionReasons(["NO_VALID_NBBO_MEASUREMENT"]) }),
+      }));
+      renderPanel({ lang });
+      await flushMicrotasks(8);
+      const row = host!.querySelector('[data-testid="options-alpha-candidate-abstention"]');
+      expect(row).toBeTruthy();
+      const visible = textOutsideDetails(row!);
+      expect(visible).toContain(NBBO_SENTENCE[lang]);
+      expect(visible).not.toContain("NO_VALID_NBBO_MEASUREMENT");
+    });
+
+    it(`R2 unknown reason code uses the fallback and hides the raw code outside details (${lang})`, async () => {
+      fetchMock.mockResolvedValueOnce(jsonResponse({
+        status: 200,
+        body: validResponse({ feed: feedWithAbstentionReasons(["SOMETHING_NEW"]) }),
+      }));
+      renderPanel({ lang });
+      await flushMicrotasks(8);
+      const row = host!.querySelector('[data-testid="options-alpha-candidate-abstention"]');
+      expect(row).toBeTruthy();
+      const visible = textOutsideDetails(row!);
+      expect(visible).toContain(FALLBACK_SENTENCE[lang]);
+      expect(visible).not.toContain("SOMETHING_NEW");
+      const disclosed = row!.querySelector("details")?.textContent ?? "";
+      expect(disclosed).toContain("SOMETHING_NEW");
+    });
+  }
+
+  it("R3 a formed candidate with no receipt entry names that gap, and one with an entry does not", async () => {
+    fetchMock.mockResolvedValueOnce(jsonResponse({ status: 200, body: validResponse({ candidates: {} }) }));
+    renderPanel();
+    await flushMicrotasks(8);
+    expect(host!.querySelector('[data-testid="options-alpha-candidate-item"]')).toBeTruthy();
+    const missing = host!.querySelector('[data-testid="options-alpha-candidate-receipt-missing"]');
+    expect(missing).toBeTruthy();
+    expect(missing?.textContent).toContain(RECEIPT_MISSING_EN);
+
+    act(() => root!.unmount());
+    root = null;
+    fetchMock.mockResolvedValueOnce(jsonResponse({ status: 200, body: validResponse() }));
+    renderPanel();
+    await flushMicrotasks(8);
+    expect(host!.querySelector('[data-testid="options-alpha-candidate-item"]')).toBeTruthy();
+    expect(host!.querySelector('[data-testid="options-alpha-candidate-receipt-missing"]')).toBeNull();
+  });
+
+  it("R4 an empty run says no abstention was recorded", async () => {
+    fetchMock.mockResolvedValueOnce(jsonResponse({ status: 200, body: validResponse({ feed: verifiedEmptyFeed() }) }));
+    renderPanel();
+    await flushMicrotasks(8);
+    const empty = host!.querySelector(".obs-options-alpha-empty");
+    const text = empty?.textContent ?? "";
+    expect(text).toMatch(/^No formed candidates in this run/);
+    expect(text).toMatch(EMPTY_NO_ABSTENTION);
+    expect(text).toMatch(/No executable contract or trade was issued/);
+  });
+});
+
+function requestUrl(input: RequestInfo | URL): string {
+  if (typeof input === "string") return input;
+  if (input instanceof URL) return input.toString();
+  return input.url;
+}
+
+function shadowFixtureBody(): unknown {
+  return JSON.parse(readFileSync(resolve(process.cwd(), "public/data/options_prophet_fixture.json"), "utf8"));
+}
+
+function installShadowFetch(prophet: { status: number; body: unknown } | "reject", invalidate = true) {
+  if (invalidate) flowInvalidate();
+  fetchMock.mockImplementation(async (input: RequestInfo | URL) => {
+    const url = requestUrl(input);
+    if (url.includes("f=options_prophet_idx")) {
+      if (prophet === "reject") throw new TypeError("Failed to fetch");
+      return jsonResponse({ status: prophet.status, body: prophet.body });
+    }
+    return jsonResponse({ status: 503, body: { error: "feed unavailable" } });
+  });
+}
+
+function renderAlphaView() {
+  root = createRoot(host!);
+  act(() => {
+    root!.render(
+      <LangProvider>
+        <OptionsAlphaView />
+      </LangProvider>,
+    );
+  });
+}
+
+describe("OATRUTH shadow read absent versus failed", () => {
+  afterEach(() => {
+    flowInvalidate();
+  });
+
+  it("R6 a 404 shadow read renders the absent state and no retry button", async () => {
+    installShadowFetch({ status: 404, body: { error: "not published" } });
+    renderAlphaView();
+    await flushMicrotasks(12);
+    const absent = host!.querySelector('[data-testid="options-alpha-shadow-absent"]');
+    expect(absent).toBeTruthy();
+    expect(absent?.textContent).toContain("No Options Alpha shadow projection is published right now.");
+    expect(absent?.querySelector("button")).toBeNull();
+    expect(host!.querySelector('[data-testid="options-alpha-shadow-unavailable"]')).toBeNull();
+    expect(host!.textContent ?? "").not.toContain("Could not load Options Alpha data.");
+  });
+
+  it("R6 a 503 shadow read renders the unavailable state with a retry button", async () => {
+    installShadowFetch({ status: 503, body: { error: "feed unavailable" } });
+    renderAlphaView();
+    await flushMicrotasks(12);
+    const block = host!.querySelector('[data-testid="options-alpha-shadow-unavailable"]');
+    expect(block).toBeTruthy();
+    expect(block?.textContent).toContain("Could not load Options Alpha data.");
+    expect(block?.querySelector("button")).toBeTruthy();
+    expect(host!.querySelector('[data-testid="options-alpha-shadow-absent"]')).toBeNull();
+  });
+
+  it("R6 retry asks again and can fail even when a shadow payload is already cached", async () => {
+    installShadowFetch({ status: 503, body: { error: "feed unavailable" } });
+    renderAlphaView();
+    await flushMicrotasks(12);
+    const retry = host!.querySelector('[data-testid="options-alpha-shadow-unavailable"] button');
+    expect(retry).toBeTruthy();
+
+    installShadowFetch({ status: 200, body: shadowFixtureBody() });
+    await flowGetResult("options_prophet_idx");
+    // Keep the seeded cache. A retry that omits refresh answers from it and cannot fail.
+    installShadowFetch({ status: 503, body: { error: "feed unavailable" } }, false);
+    const prophetCallsBefore = fetchMock.mock.calls.filter((call) => requestUrl(call[0] as RequestInfo | URL).includes("f=options_prophet_idx")).length;
+
+    await act(async () => {
+      (retry as HTMLButtonElement).click();
+    });
+    await flushMicrotasks(12);
+
+    const prophetCallsAfter = fetchMock.mock.calls.filter((call) => requestUrl(call[0] as RequestInfo | URL).includes("f=options_prophet_idx")).length;
+    expect(prophetCallsAfter).toBeGreaterThan(prophetCallsBefore);
+    const block = host!.querySelector('[data-testid="options-alpha-shadow-unavailable"]');
+    expect(block, "retry must not treat a cached shadow payload as a successful reload").toBeTruthy();
+    expect(block?.querySelector("button")).toBeTruthy();
+    expect(host!.querySelector('[data-testid="options-alpha-fires-section"]')).toBeNull();
   });
 });
