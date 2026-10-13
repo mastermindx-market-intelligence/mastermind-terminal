@@ -144,7 +144,10 @@ const hasReady = (page: Page, symbol: string, tf?: string): Promise<boolean> =>
     (e) => e.symbol === sym && (timeframe == null || e.timeframe === timeframe) && e.state === "data",
   ) ?? false, [symbol, tf ?? null]);
 
-const chartRows = (page: Page) => page.evaluate(() => (window as EngineWindow & Window).__mmChartAxisOpts?.()?.rowCount ?? 0);
+// -1, never 0, when the read-back is not there (a production build — the hook is installed only
+// under `process.env.NODE_ENV !== "production"`, ChartPanel.tsx:3751 — or no chart is mounted).
+// A missing hook must not satisfy the "a dead-end draws no bars" assertions by default.
+const chartRows = (page: Page) => page.evaluate(() => (window as EngineWindow & Window).__mmChartAxisOpts?.()?.rowCount ?? -1);
 const indicatorSeries = (page: Page) => page.evaluate(() => (window as OwnWindow & Window).__mmChartOwnership?.()?.owned.indicators ?? -1);
 const priceTag = (page: Page) => page.evaluate(() => document.querySelector<HTMLElement>(".mm-ptag")?.textContent?.trim() ?? "");
 
@@ -273,15 +276,15 @@ test("K1: symbol, timeframe, indicator toggle and drawing tool are keyboard-reac
   const input = page.locator(".sh input");
   await expect(input).toBeVisible({ timeout: 15_000 });
   if (phone) {
-    // The phone search surface is tap-to-focus (SearchModal's own touch-first rule, like the
-    // hub-entry comment in SearchModal.tsx:165-173); from the tap, keyboard mechanics are
-    // identical to desktop. Tablet/desktop keep the full keyboard auto-focus path below.
-    await input.click();
+    // MobileSheet.tsx:181-185 focuses the SHEET on a rAF that lands after SearchModal.tsx:172-173's
+    // 10ms input focus, so the seeded input is not focused on the phone — but the sheet's own Tab
+    // trap (MobileSheet.tsx:195-216) makes it the first stop. Keyboard-only, like every other step.
+    await tabUntil(page, input, "the seeded search input");
   } else {
     await expect.poll(async () => (await focusProbe(page)).tag, { timeout: 10_000, message: "the seeded search takes keyboard focus" }).toBe("INPUT");
   }
-  await expectNamedFocus(page, "symbol search input", { visible: !phone });
-  await page.keyboard.press("Control+a");
+  await expectNamedFocus(page, "symbol search input");
+  await page.keyboard.press("ControlOrMeta+a"); // select-all on macOS too (Control+a only moves the caret there)
   await page.keyboard.type("MSFT");
   await expect(page.locator(".sres .r").first()).toBeVisible({ timeout: 20_000 });
   await expectNamedFocus(page, "symbol search while typing");
@@ -552,7 +555,12 @@ test("H1: a fixture data 404 renders the honest unavailable state, never an empt
   await expect(page.locator(".chart-empty")).toBeVisible({ timeout: 45_000 });
   const msg = (await page.locator(".chart-empty .ce-msg").textContent()) ?? "";
   expect(msg, "the honest state must name the symbol").toContain("NVDA");
-  expect(/could not load|no daily history/i.test(msg), `expected the existing unavailable/absence copy, got "${msg}"`).toBe(true);
+  // A 404/410 is AUTHORITATIVE ABSENCE, not a failure (lib/dataCache.ts:257 -> {status:"absent"}),
+  // so ChartPanel.tsx:8952-8957 renders the ABSENCE copy and announces an "empty" edge. Assert that
+  // exactly. The old disjunction also accepted the FAILURE copy, so a genuine 5xx/network failure
+  // downgraded to "this symbol has no history" — the conflation lib/dataCache.ts:170-180 exists to
+  // prevent — would have kept this test green. The failure branch is covered by H1b below.
+  expect(msg, `a 404 is absence, not failure — expected the absence copy, got "${msg}"`).toBe("No daily history for NVDA yet.");
   await expect.poll(() => chartRows(page)).toBe(0);
   const lied = await page.evaluate(() => (window as ReadyWindow & Window).__mmQ04ReadyEvents?.some(
     (e) => e.symbol === "NVDA" && e.state === "data") ?? false);
@@ -572,6 +580,34 @@ test("H1: a fixture data 404 renders the honest unavailable state, never an empt
   await expect.poll(() => priceTag(page)).toContain("AAPL");
   await expect(page.locator(".chart-empty")).toBeHidden();
   await recordEngine(page, "engine=mm (after recovery)");
+});
+
+test("H1b: a 5xx on the fixture read renders the FAILURE copy and earns NO ready edge at all", async ({ page }) => {
+  // lib/dataCache.ts:256-258: only 404/410 are authoritative absence; a 5xx/429/403 says NOTHING
+  // about existence and resolves to {status:"unavailable"}. ChartPanel.tsx:8942-8950 answers it with
+  // the failure copy and — the failure-state truth law — announces NO ready edge at all. H1's 404
+  // can never reach that branch, so without this case the failure state has zero coverage.
+  await page.addInitScript((bag) => {
+    for (const [k, v] of Object.entries(bag)) localStorage.setItem(k, v);
+    const w = window as ReadyWindow & Window;
+    w.__mmQ04ReadyEvents = [];
+    window.addEventListener("mm:terminal-visual-ready", (event) => { w.__mmQ04ReadyEvents?.push((event as CustomEvent).detail); });
+  }, DEFAULT_SEED);
+  await page.route(NVDA_DATA, (route: Route) => route.fulfill({
+    status: 503, contentType: "application/json", body: JSON.stringify({ error: "upstream down" }),
+  }));
+  await page.goto("/terminal?symbol=NVDA&engine=mm");
+  await expect(page.locator(".chart-wrap canvas").first()).toBeVisible({ timeout: 60_000 });
+  await expect.poll(() => mountedImpl(page), { timeout: 30_000 }).not.toBeNull();
+  await recordEngine(page, "engine=mm (503 case)");
+  await expect(page.locator(".chart-empty")).toBeVisible({ timeout: 45_000 });
+  const msg = (await page.locator(".chart-empty .ce-msg").textContent()) ?? "";
+  expect(msg, "a failed read must say it FAILED, never that the symbol has no history")
+    .toBe("Could not load NVDA price history. Try again shortly.");
+  const edges = await page.evaluate(() => ((window as ReadyWindow & Window).__mmQ04ReadyEvents ?? [])
+    .filter((e) => e.symbol === "NVDA"));
+  expect(edges, "failure-state law: an unavailable read earns NO ready edge, data OR empty").toEqual([]);
+  await expect.poll(() => chartRows(page)).toBe(0);
 });
 
 test("H2: a revoked entitlement renders the existing gated state honestly — bars stay real, the gated overlay says so", async ({ page }) => {
@@ -639,16 +675,24 @@ test("Z: a deviceScaleFactor-2 (200% zoom) context renders sharp, keyboard-reach
       dpr: window.devicePixelRatio,
     }))));
     expect(canvases.length).toBeGreaterThan(0);
+    const dpr = await page.evaluate(() => window.devicePixelRatio);
+    const impl = await mountedImpl(page);
     for (const c of canvases) {
       if (c.ratio == null) continue;
-      // Never DOWN-scaled: the backing store covers at least the CSS box at 200% zoom.
-      expect(c.ratio, `canvas "${c.tag}" backing store must at least cover its CSS box`).toBeGreaterThanOrEqual(1);
+      if (impl === "mm") {
+        // The mm renderer scales its backing store by devicePixelRatio EXACTLY (measured on the
+        // migration2 head: 4/4 canvases ratio 2 at dpr 2, w 967 -> cw 1934). Hold it to the law.
+        expect(c.ratio, `canvas "${c.tag}" backing store must equal devicePixelRatio`).toBe(dpr);
+      } else {
+        // Never DOWN-scaled. The rented renderer measures ratio 1 at dpr 2 under emulated DSF
+        // (7/7 canvases at HEAD), so `=== dpr` is not assertable for it yet — floor it and record.
+        expect(c.ratio, `canvas "${c.tag}" backing store must at least cover its CSS box`).toBeGreaterThanOrEqual(1);
+      }
     }
-    // Record the actual backing ratio — the sharpness law (ratio === devicePixelRatio) is
-    // environment-dependent for the rented renderer under emulated DSF (FINDINGS P3); the
-    // mounted impl is what the annotation says, and this spec never asserts "mm".
+    // Record the actual backing ratio. This conditions the SHARPNESS LAW on the impl that really
+    // mounted; it never asserts that mm mounted.
     const worst = Math.min(...canvases.filter((c) => c.ratio != null).map((c) => c.ratio as number));
-    test.info().annotations.push({ type: "dsf2-canvas-backing", description: `dpr=${await page.evaluate(() => window.devicePixelRatio)} worstCanvasRatio=${Math.round(worst * 100) / 100} impl=${await mountedImpl(page)}` });
+    test.info().annotations.push({ type: "dsf2-canvas-backing", description: `dpr=${dpr} worstCanvasRatio=${Math.round(worst * 100) / 100} impl=${impl}` });
 
     // keyboard still rules at 200%: Tab to the timeframe, Enter, watch the chart re-binned.
     const rowsBefore = await chartRows(page);
