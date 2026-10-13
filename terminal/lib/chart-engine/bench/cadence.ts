@@ -77,6 +77,13 @@
 // when any of the four conditions from the ruling fires. v1 receipts and
 // v2 receipts are NEVER compared without the protocol column.
 //
+// A refused (INVALID) v2 run is repeated, never counted and never read, so
+// `cadenceInvalidLine` formats its one allowed log line: dispatch identity,
+// the four INVALID-rule inputs and the two end-mark diagnostics only — no
+// latency, percentile, cadence or answered number. `dispatchOnSchedule`
+// settles as soon as the last send is fired and NEVER awaits a send; the
+// bench counts fulfilled sends with `countDispatched` AFTER the end mark.
+//
 // Pure: no fs, no playwright, no DOM, no ajv. Only `./corpus` is imported.
 // House style: 2-space indent, double quotes, semicolons, named exports.
 
@@ -591,6 +598,7 @@ function parsePresentedFramesImpl(events: readonly unknown[], markPrefix: string
 
   let rendererPid: number | null;
   if (earliestMark != null) {
+    // Hard pin: never fall back to another pid.
     rendererPid = earliestMark.pid;
   } else if (reporterPids.size === 1) {
     rendererPid = reporterPids.values().next().value ?? null;
@@ -600,6 +608,7 @@ function parsePresentedFramesImpl(events: readonly unknown[], markPrefix: string
   if (rendererPid == null) {
     throw new Error("no presentation records in trace");
   }
+  // Mark set but the marked pid emitted no PipelineReporter -> throw.
   if (earliestMark != null && !reporterPids.has(rendererPid)) {
     throw new Error("no presentation records in trace");
   }
@@ -1152,11 +1161,18 @@ export function cadenceV2ScheduleMs(seed: number, count: number = CADENCE_V2_WHE
 /**
  * Q03c v2 dispatch helper: schedule the `offsetsMs` offsets against a
  * Node clock. For each `i`, `waitUntilMs(targetMs)` is awaited BEFORE the
- * `send(i)` call is fired WITHOUT awaiting it; `sendPromises` is returned
- * for the bench to resolve later. `dispatched` is the count of fulfilled
- * sends after `Promise.allSettled`, `dispatch_dev_max_ms` is the maximum
- * lateness observed at fire time (>= 0, NOT floored). NEVER awaits any
- * send promise inside the loop.
+ * `send(i)` call is fired WITHOUT awaiting it. The returned promise
+ * SETTLES as soon as the last send has been fired: it NEVER awaits a send
+ * promise anywhere, so a slow CDP ack can never delay the gesture's end
+ * mark (the ruling: "all dispatch promises are awaited after the end
+ * mark"). `devMaxMs` is the maximum lateness observed at fire time
+ * (>= 0, NOT floored).
+ *
+ * `sendPromises` holds the ORIGINAL send promises so `countDispatched`
+ * still sees a rejection as a rejection. Each one additionally gets a
+ * no-op rejection handler attached to a DERIVED promise
+ * (`p.catch(() => undefined)`) so a failed send can never surface as an
+ * unhandled rejection before the bench counts it.
  *
  * `deps.nowMs()` is the Node firing clock. `deps.waitUntilMs(targetMs)`
  * should wake about 2 ms before the target then spin on the Node clock
@@ -1173,7 +1189,7 @@ export async function dispatchOnSchedule(
     waitUntilMs(targetMs: number): Promise<void>;
     send(i: number): Promise<unknown>;
   },
-): Promise<{ dispatched: number; devMaxMs: number; sendPromises: Promise<unknown>[] }> {
+): Promise<{ devMaxMs: number; sendPromises: Promise<unknown>[] }> {
   const t0 = deps.nowMs();
   const sendPromises: Promise<unknown>[] = [];
   let devMaxMs = 0;
@@ -1182,19 +1198,28 @@ export async function dispatchOnSchedule(
     // The ONLY await in the loop is on the scheduling sleep (waitUntilMs);
     // the CDP `send(i)` call below is fired WITHOUT awaiting so back-to-back
     // dispatches are not gated by a round-trip ack. The bench consumes
-    // `sendPromises` later via `Promise.allSettled` to count `dispatched`.
+    // `sendPromises` AFTER the end mark via `countDispatched`.
     await deps.waitUntilMs(target);
     const actual = deps.nowMs();
     const dev = actual - target;
     if (dev > devMaxMs) devMaxMs = dev;
-    sendPromises.push(deps.send(i));
+    const sendPromise = deps.send(i);
+    sendPromises.push(sendPromise);
+    // No-op rejection handler on a DERIVED promise. The raw promise above
+    // is what the bench counts, so a rejection is still visible there.
+    sendPromise.catch(() => undefined);
   }
-  // `dispatched` is the count of fulfilled sends; the bench resolves it
-  // after the gesture (see Promise.allSettled description). The promise
-  // left in flight here is resolved deterministically by allSettled.
-  const fulfilled = await Promise.allSettled(sendPromises);
-  const dispatched = fulfilled.reduce((n, r) => (r.status === "fulfilled" ? n + 1 : n), 0);
-  return { dispatched, devMaxMs, sendPromises };
+  return { devMaxMs, sendPromises };
+}
+
+/**
+ * Q03c v2: how many of the fired sends actually fulfilled. The bench calls
+ * this AFTER the end mark, never before — the ruling awaits every dispatch
+ * promise after the end mark. A rejected send counts as NOT dispatched.
+ */
+export async function countDispatched(sendPromises: readonly Promise<unknown>[]): Promise<number> {
+  const settled = await Promise.allSettled(sendPromises);
+  return settled.reduce((n, r) => (r.status === "fulfilled" ? n + 1 : n), 0);
 }
 
 /**
@@ -1666,4 +1691,78 @@ function maybeRoundTrip(
   if (typeof r.budget_ok === "boolean" && r.budget_ok !== expected.budget_ok) {
     errors.push(`budget_ok (${r.budget_ok}) does not match what buildCadenceReceipt would compute (${expected.budget_ok})`);
   }
+}
+
+// ---------- Q03c v2 diagnostic line formatting ----------
+
+/** The two end-mark diagnostics computed from the trace. DIAG-only: they
+ *  are printed on CADENCE_DIAG / CADENCE_CONTROL / CADENCE_INVALID and are
+ *  NEVER part of a receipt.
+ *  - `zoom_marks_after_end`: de-duplicated renderer-pid zoom input marks
+ *    whose time is strictly AFTER the end mark (expected 0).
+ *  - `zoom_end_minus_last_mark_ms`: end mark minus the last zoom input mark
+ *    at-or-before it, rounded to 0.001 (expected a few ms, never ~1000). */
+export type CadenceEndMarkDiag = {
+  zoom_marks_after_end: number;
+  zoom_end_minus_last_mark_ms: number;
+};
+
+/** The field keys `cadenceInvalidLine` prints, in order. Exported so the
+ *  unit test can pin the ordering without re-typing the list. */
+export const CADENCE_INVALID_FIELDS = [
+  "run",
+  "attempt",
+  "seed",
+  "input_marks",
+  "scheduled",
+  "dispatched",
+  "dispatch_dev_max_ms",
+  "heartbeat_mode",
+  "leadin_presentations",
+  "input_unpresented",
+  "zoom_marks_after_end",
+  "zoom_end_minus_last_mark_ms",
+  "errors",
+] as const;
+
+function round3ms(n: number): number {
+  return Math.round(n * 1000) / 1000;
+}
+
+/**
+ * One `CADENCE_INVALID` line for a discarded q03b-v2 run. The ruling says an
+ * INVALID run is "repeated, never counted and never read", so this line
+ * deliberately carries NO latency, percentile, cadence or answered number:
+ * only the dispatch identity, the four INVALID-rule inputs, the two
+ * end-mark diagnostics, and the validator errors joined with `|`.
+ * Pure: no I/O, no clock, no rounding of anything but the two ms fields.
+ */
+export function cadenceInvalidLine(
+  impl: string,
+  run: number,
+  attempt: number,
+  receipt: CadenceReceipt,
+  diag: CadenceEndMarkDiag,
+  errors: readonly string[],
+): string {
+  const zoom = receipt.gesture.zoom as CadenceGestureStats & Partial<CadenceZoomV2Stats>;
+  const dispatch = zoom.dispatch;
+  const awake = zoom.awake_start;
+  return [
+    "CADENCE_INVALID",
+    impl,
+    `run=${run}`,
+    `attempt=${attempt}`,
+    `seed=${dispatch == null ? "null" : dispatch.seed}`,
+    `input_marks=${zoom.input_marks}`,
+    `scheduled=${dispatch == null ? "null" : dispatch.scheduled}`,
+    `dispatched=${dispatch == null ? "null" : dispatch.dispatched}`,
+    `dispatch_dev_max_ms=${dispatch == null ? "null" : round3ms(dispatch.dispatch_dev_max_ms)}`,
+    `heartbeat_mode=${awake == null ? "null" : awake.heartbeat_mode}`,
+    `leadin_presentations=${awake == null ? "null" : awake.leadin_presentations}`,
+    `input_unpresented=${zoom.input_unpresented}`,
+    `zoom_marks_after_end=${diag.zoom_marks_after_end}`,
+    `zoom_end_minus_last_mark_ms=${round3ms(diag.zoom_end_minus_last_mark_ms)}`,
+    `errors=${errors.join("|")}`,
+  ].join(" ");
 }

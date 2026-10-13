@@ -404,9 +404,34 @@ sends) at scheduled wall-clock times `t_i = t_(i-1) + g_i` with
 with `CADENCE_V2_SEED_BASE + run index` (0x51C03B00 + runIdx). The same
 seed sequence is used for both engines. The harness arms a timer to
 about 2 ms before each target and spins on the Node clock to the target
-(never in the page). The next dispatch never waits for the previous
-send to acknowledge, and all dispatch promises are awaited after the
-end mark.
+(never in the page). The clock is `performance.now()` (Node
+high-resolution); `Date.now()` counts whole milliseconds and would
+round the measured dispatch lateness. The next dispatch never waits for
+the previous send to acknowledge, and all dispatch promises are awaited
+after the end mark.
+
+**End-mark ordering (binding).** There is NO barrier between the last
+send and the end mark — no in-page wheel counter, no in-page timer, no
+polling. Inside the traced body the order is exactly:
+
+1. the start mark (`cadence:zoom:start`),
+2. `dispatchOnSchedule(...)`, which settles as soon as the last
+   `Input.dispatchMouseEvent` has been *fired* and never awaits a send,
+3. the end mark (`cadence:zoom:end`),
+4. in `through` mode only, stopping the heartbeat (so the heartbeat
+   genuinely runs *through* the end mark),
+5. `dispatched = await countDispatched(sendPromises)`.
+
+Why (3) is safe without a barrier: `installInputMarks` writes each mark
+with `performance.mark(name, { startTime: ev.timeStamp })`; Chromium
+stamps an `Input.dispatchMouseEvent` when the browser processes the
+command, which happens before it processes the end mark's later
+`Runtime.evaluate` on the same connection; and `captureTrace` keeps
+tracing 250 ms after the body, so a late handler's mark is still in the
+trace at its earlier `startTime`. If that reasoning ever failed,
+`input_marks` would drop below 60 and INVALID rule 1 would discard and
+repeat the run, so the failure mode is safe. Two diag-only numbers make
+it visible (see below).
 
 (2) **Awake start.** The 200 ms pre-gesture idle is replaced by a
 harness-side `requestAnimationFrame` heartbeat (empty callback,
@@ -417,7 +442,13 @@ BENCH_HEARTBEAT_MODE=through|until-first-input`, default `through`):
 `through` keeps the heartbeat running through the end mark,
 `until-first-input` cancels the pending rAF at the first wheel. The
 receipt records the mode and `awake_start.leadin_presentations` (the
-count of STATE_PRESENTED_ALL slices in the 200 ms lead-in).
+count of STATE_PRESENTED_ALL slices in the lead-in window
+`[start mark − 200 ms, first input mark)` — start inclusive, first
+input exclusive, where "first input mark" is the first de-duplicated
+renderer-pid zoom input mark inside the gesture window). Stopping in
+`until-first-input` mode really stops: the page heartbeat cancels the
+pending `requestAnimationFrame` by id and removes its wheel listener,
+which a flag alone does not do.
 
 (3) **Receipt.** Top-level `protocol: "q03b-v2"`; under `gesture.zoom`:
 `dispatch: { gap_min_ms, gap_jitter_ms, seed, scheduled, dispatched,
@@ -430,8 +461,36 @@ neither PASS nor FAIL) a v2 receipt whose
 `zoom.input_unpresented !== 0`, whose `dispatch.dispatch_dev_max_ms`
 exceeds 2 ms, or whose `heartbeat_mode` is `"through"` with
 `leadin_presentations > 0`. An INVALID run is repeated (up to 3
-attempts, never counted and never read); any other validation error is
-a bug and throws.
+attempts, with the SAME run index and seed in a fresh context, never
+counted and never read); any other validation error is a bug and
+throws.
+
+Because an INVALID run is never read, the bench validates the receipt
+BEFORE it prints anything, and the only line an INVALID attempt may
+produce is `CADENCE_INVALID` (formatted by the pure
+`cadenceInvalidLine(impl, run, attempt, receipt, diag, errors)`). That
+line carries NO latency, percentile, cadence or `answered_*` number —
+no `p50`/`p95`/`p99`, no `*_lat_*`, no `vsync`, no
+`answered_by_prior_frame` — only:
+
+```
+CADENCE_INVALID <impl> run=<n> attempt=<k> seed=<s> input_marks=<m>
+  scheduled=<60> dispatched=<d> dispatch_dev_max_ms=<x>
+  heartbeat_mode=<mode> leadin_presentations=<l> input_unpresented=<u>
+  zoom_marks_after_end=<a> zoom_end_minus_last_mark_ms=<e> errors=<joined>
+```
+
+**End-mark diagnostics** (diag-only, printed on `CADENCE_DIAG`,
+`CADENCE_CONTROL` and `CADENCE_INVALID`, never in a receipt):
+
+- `zoom_marks_after_end` — the number of de-duplicated renderer-pid zoom
+  input marks whose time is strictly after the end mark. Expected `0`;
+  anything else means a wheel was still being handled when the end mark
+  was written.
+- `zoom_end_minus_last_mark_ms` — end mark minus the last zoom input mark
+  at-or-before it, rounded to 0.001 ms. Expected a few ms. A value near
+  1000 means something re-introduced a barrier or a page-side cap between
+  the last wheel and the end mark.
 
 (4) **Diagnostic control.** `BENCH_AWAKE_START=idle200` disables the
 heartbeat (the v1-style 200 ms idle before the start mark). The

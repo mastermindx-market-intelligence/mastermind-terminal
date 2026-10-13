@@ -1016,6 +1016,9 @@ import {
   cadenceV2Seed,
   cadenceV2ScheduleMs,
   dispatchOnSchedule,
+  countDispatched,
+  cadenceInvalidLine,
+  CADENCE_INVALID_FIELDS,
   parsePresentedFrameSpans,
   answeredByPriorFrame,
   leadinPresentations,
@@ -1025,7 +1028,9 @@ import {
   CADENCE_V2_GAP_JITTER_MS,
   CADENCE_V2_DISPATCH_DEV_MAX_MS,
   CADENCE_V2_HEARTBEAT_MIN_MS,
+  CADENCE_V2_SEED_BASE,
   type CadenceProtocol,
+  type CadenceEndMarkDiag,
   type CadenceDispatch,
   type CadenceAwakeStart,
   type CadenceZoomV2Stats,
@@ -1066,63 +1071,98 @@ describe("mulberry32 / cadenceV2Seed / cadenceV2ScheduleMs (Q03c)", () => {
     expect(a).toEqual(b);
   });
 
-  it("25. RED-FIRST gap bound: inverting the gap jitter upper bound to 22 (mutant A) makes the first gap fall OUT of range", () => {
-    // The GOLDEN assertion: every gap in [17, 23).
+  it("25. gap bound: every gap over the first 10 per-run seeds lies in [17, 23) and offsets[0] === 0", () => {
+    // The GOLDEN assertion: the first gap of the reference seed, exactly.
     const off = cadenceV2ScheduleMs(1371552512);
     const gap1 = off[1] - off[0];
     expect(gap1).toBeCloseTo(21.462893, 6);
     expect(gap1).toBeGreaterThanOrEqual(CADENCE_V2_GAP_MIN_MS);
     expect(gap1).toBeLessThan(CADENCE_V2_GAP_MIN_MS + CADENCE_V2_GAP_JITTER_MS);
-    // The RED case: a typo in the production code that hardcodes the
-    // upper bound to 22 instead of < (17 + 6) = 23 would falsely accept
-    // gap1 = 21.46 as within range only because it happens to be < 22
-    // AND > 22 simultaneously impossible. We prove the GREEN side
-    // holds by showing that the production code CANNOT produce a value
-    // exactly at the bound AND outside it, AND that the gap[1]
-    // arithmetic is in the GREEN band.
-    const mutantUpper = 22; // <-- a flipped upper-bound (production mutant)
-    const gapWithinRange = gap1 >= CADENCE_V2_GAP_MIN_MS && gap1 < mutantUpper;
-    const gapOutsideMutant = gap1 >= mutantUpper && gap1 < CADENCE_V2_GAP_MIN_MS + CADENCE_V2_GAP_JITTER_MS;
-    expect(gapWithinRange).toBe(true);
-    expect(gapOutsideMutant).toBe(false);
+    // The real pin (replaces the old self-referential `mutantUpper`
+    // expectations, which only compared local variables and so could never
+    // fail): across the ten per-run seeds the bench actually uses, EVERY
+    // gap is inside the half-open band and the schedule always anchors at 0.
+    for (let runIdx = 0; runIdx < 10; runIdx++) {
+      const seed = (CADENCE_V2_SEED_BASE + runIdx) >>> 0;
+      expect(cadenceV2Seed(runIdx)).toBe(seed);
+      const offsets = cadenceV2ScheduleMs(seed);
+      expect(offsets.length).toBe(CADENCE_V2_WHEELS);
+      expect(offsets[0]).toBe(0);
+      for (let i = 1; i < offsets.length; i++) {
+        const gap = offsets[i] - offsets[i - 1];
+        expect(gap).toBeGreaterThanOrEqual(CADENCE_V2_GAP_MIN_MS);
+        expect(gap).toBeLessThan(CADENCE_V2_GAP_MIN_MS + CADENCE_V2_GAP_JITTER_MS);
+      }
+    }
   });
 });
 
-describe("dispatchOnSchedule (Q03c v2)", () => {
-  it("26. dispatches all 60 in order with a fake clock + send() that NEVER resolves (no-ack-wait)", async () => {
+describe("dispatchOnSchedule / countDispatched (Q03c v2)", () => {
+  it("26. SETTLES while every send is still pending; all 60 fired in order (no-ack-wait)", async () => {
     const offsets = cadenceV2ScheduleMs(cadenceV2Seed(0));
     let nowMs = 0;
     const sentIndices: number[] = [];
-    // A Promise that we control: each `send(i)` records the index and
-    // returns the promise. The harness then resolves it via `flush()` so
-    // Promise.allSettled in dispatchOnSchedule completes. We intentionally
-    // verify that the loop dispatches all 60 BEFORE any send resolves
-    // (the dispatch loop never awaits `send`).
-    const pending: Array<(v: unknown) => void> = [];
+    // Sends that NEVER resolve. dispatchOnSchedule must settle right after
+    // the last send is fired; if it awaited a send promise anywhere (the
+    // bbde8e90 shape ended with `await Promise.allSettled(sendPromises)`)
+    // the race below reports "timeout" instead of "settled".
     const send = (i: number): Promise<unknown> =>
-      new Promise<unknown>((resolve) => { sentIndices.push(i); pending.push(resolve); });
-    // Schedule a flush on the next tick so the dispatch loop finishes
-    // without ever awaiting a send's resolution.
+      new Promise<unknown>(() => {
+        sentIndices.push(i);
+      });
     const resultP = dispatchOnSchedule(offsets, {
       nowMs: () => nowMs,
       waitUntilMs: async (target: number) => { while (nowMs < target) nowMs += 1; },
       send,
     });
-    // Wait a few ticks so the dispatch loop completes all 60 iterations
-    // without awaiting any pending send's resolution.
-    await new Promise((r) => setTimeout(r, 50));
-    // Now flush: this is the equivalent of Promise.allSettled in the
-    // bench; for this test we resolve every pending send with `true`
-    // after the loop has finished dispatching.
-    while (pending.length > 0) {
-      const resolve = pending.shift();
-      if (resolve) resolve(true);
-    }
+    const outcome = await Promise.race([
+      resultP.then(() => "settled" as const),
+      new Promise<"timeout">((r) => setTimeout(() => r("timeout"), 200)),
+    ]);
+    expect(outcome).toBe("settled");
     const result = await resultP;
+    // All 60 indices were sent, in order, and every raw promise is returned
+    // for the bench to count AFTER the end mark.
     expect(sentIndices.length).toBe(CADENCE_V2_WHEELS);
     expect(sentIndices).toEqual(Array.from({ length: CADENCE_V2_WHEELS }, (_, i) => i));
-    expect(result.dispatched).toBe(CADENCE_V2_WHEELS);
     expect(result.sendPromises.length).toBe(CADENCE_V2_WHEELS);
+  });
+
+  it("26b. countDispatched counts fulfilments only: [resolved, rejected, resolved] === 2", async () => {
+    const rejected: Promise<unknown> = Promise.reject(new Error("cdp send failed"));
+    // Handled here so this test does not itself emit an unhandled rejection;
+    // countDispatched still sees it as rejected.
+    rejected.catch(() => undefined);
+    const sends: Promise<unknown>[] = [Promise.resolve("a"), rejected, Promise.resolve("b")];
+    expect(await countDispatched(sends)).toBe(2);
+    expect(await countDispatched([])).toBe(0);
+    expect(await countDispatched([Promise.resolve()])).toBe(1);
+  });
+
+  it("26c. rejecting sends neither hang dispatchOnSchedule nor surface as an unhandled rejection", async () => {
+    const seen: unknown[] = [];
+    const onUnhandled = (reason: unknown): void => {
+      seen.push(reason);
+    };
+    process.on("unhandledRejection", onUnhandled);
+    try {
+      const offsets = [0, 5, 10];
+      let nowMs = 0;
+      const result = await dispatchOnSchedule(offsets, {
+        nowMs: () => nowMs,
+        waitUntilMs: async () => { nowMs += 1; },
+        send: () => Promise.reject(new Error("cdp send failed")),
+      });
+      expect(result.sendPromises.length).toBe(3);
+      // A full macrotask turn: Node only reports a rejection that nothing
+      // handled by the end of the turn in which it was created. The no-op
+      // `.catch()` dispatchOnSchedule attaches is what keeps this empty.
+      await new Promise((r) => setTimeout(r, 50));
+      expect(seen).toEqual([]);
+      expect(await countDispatched(result.sendPromises)).toBe(0);
+    } finally {
+      process.off("unhandledRejection", onUnhandled);
+    }
   });
 
   it("27. devMaxMs equals injected max lateness (no floor)", async () => {
@@ -1130,9 +1170,9 @@ describe("dispatchOnSchedule (Q03c v2)", () => {
     let nowMs = 0;
     const result = await dispatchOnSchedule(offsets, {
       nowMs: () => nowMs,
-      // Inject lateness: the wait returns "1 ms past" the target so the
-      // observed `actual` is target + 1 on every iteration.
-      waitUntilMs: async (_target: number) => { nowMs += 1; },
+      // Inject lateness: the wait advances the fake clock 1 ms per call, so
+      // the observed `actual` is target + 1 on the first iteration only.
+      waitUntilMs: async () => { nowMs += 1; },
       send: () => Promise.resolve(),
     });
     // After each waitUntilMs, nowMs = i + 1 ms past the loop's `t0`
@@ -1142,7 +1182,8 @@ describe("dispatchOnSchedule (Q03c v2)", () => {
     // nowMs is now 2, target = 10, dev = -8 (overtake). So the maximum
     // observed dev is the very first iteration's 1 ms.
     expect(result.devMaxMs).toBe(1);
-    expect(result.dispatched).toBe(3);
+    expect(result.sendPromises.length).toBe(3);
+    expect(await countDispatched(result.sendPromises)).toBe(3);
   });
 });
 
@@ -1411,8 +1452,8 @@ describe("buildCadenceReceipt / validateCadenceReceipt — Q03c v2 receipt keys 
     if (!v.ok) expect(v.errors.some((e) => /answered_by_prior_frame/.test(e))).toBe(true);
   });
 
-  it("44. RED-FIRST: if we mutate `dispatch_dev_max_ms > 2` to be exactly the bound 2, INVALID is GONE (the GREEN case)", () => {
-    // Proves the bound is inclusive: < 2.0 is OK, = 2.0 is still OK,
+  it("44. the dispatch_dev_max_ms bound is inclusive: 2.0 validates, 2.001 is INVALID", () => {
+    // Boundary pin, not a falsifier: < 2.0 is OK, = 2.0 is still OK,
     // > 2.0 is INVALID. Mutate `dispatch_dev_max_ms` to 2.0 (= bound) and
     // confirm validation still passes; mutate to 2.001 and confirm it
     // fails. Both branches are part of the GREEN contract.
@@ -1424,6 +1465,47 @@ describe("buildCadenceReceipt / validateCadenceReceipt — Q03c v2 receipt keys 
     const v = validateCadenceReceipt(redBase);
     expect(v.ok).toBe(false);
     if (!v.ok) expect(v.errors.some((e) => /INVALID \(q03b-v2\):.*dispatch_dev_max_ms/.test(e))).toBe(true);
+  });
+
+  it("45. cadenceInvalidLine prints exactly the pinned field keys in order and carries no latency number", () => {
+    // A refused run is "repeated, never counted and never read", so its one
+    // allowed log line must not leak a single latency / percentile / cadence
+    // / answered value. The fixture stats carry distinctive ones.
+    const zoom = greenStatsV2Zoom({
+      input_marks: 59,
+      input_to_present_p50_ms: 1.234,
+      input_to_present_p95_ms: 12.345,
+      input_to_present_p99_ms: 67.891,
+      p95_ms: 67.891,
+      p99_ms: 67.891,
+    });
+    const receipt = greenV2Receipt({ zoom });
+    const v = validateCadenceReceipt(receipt);
+    expect(v.ok).toBe(false);
+    const errors = v.ok ? [] : v.errors.filter((e) => e.startsWith("INVALID (q03b-v2):"));
+    expect(errors.length).toBeGreaterThan(0);
+    const diag: CadenceEndMarkDiag = { zoom_marks_after_end: 0, zoom_end_minus_last_mark_ms: 3.5 };
+    const line = cadenceInvalidLine("mm", 2, 3, receipt, diag, errors);
+    expect(line.startsWith("CADENCE_INVALID mm ")).toBe(true);
+    expect(line).toContain("run=2 attempt=3");
+    // Exactly the pinned keys, in the pinned order.
+    let prev = -1;
+    for (const key of CADENCE_INVALID_FIELDS) {
+      const idx = line.indexOf(`${key}=`);
+      expect(idx, `field "${key}" missing or out of order in: ${line}`).toBeGreaterThan(prev);
+      prev = idx;
+    }
+    expect(line).toContain("zoom_end_minus_last_mark_ms=3.5");
+    // No latency, percentile, cadence or answered value of any kind.
+    expect(line).not.toContain("12.345");
+    expect(line).not.toContain("67.891");
+    expect(line).not.toContain("1.234");
+    expect(line).not.toContain("p95");
+    expect(line).not.toContain("p99");
+    expect(line).not.toContain("lat");
+    expect(line).not.toContain("answered");
+    expect(line).not.toContain("vsync");
+    expect(line).not.toContain("CADENCE_DIAG");
   });
 });
 
