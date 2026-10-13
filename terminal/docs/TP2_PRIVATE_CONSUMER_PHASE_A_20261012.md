@@ -51,6 +51,14 @@ The additive reproducible offline check `terminal/scripts/verify-tp2-readout-bro
 
 **PASS:** ten responsive/language/palette scenarios (390px mobile, 768px tablet, 1440px desktop; English/Chinese, dark/experimental-light tokens). Real Chromium computed **one column below lg, three columns at desktop**, no horizontal document overflow, retained source-separated $250k/$500k observations without a false sum, and computed readable foreground/panel contrast of **13.7–16.35:1** for this fixture's shell. The private-authorization-false DOM withheld ticker, original notional and proxy values. Five additional rendered fixture states passed: no source, corrected historical calibration stale, partial RTH daily rank suppression, mismatched-symbol R0 withheld and Chinese corrected-state copy. The **light palette is simulated token compatibility**: Terminal's current application styles are dark-only. This fixture-only browser test is **not** a production route, actual mobile device test, screen-reader certification, licensed source proof, real auth, current market evidence, or an authenticated browser session with end-to-end live TP1/R2.
 
+The following two **synthetic fixture-only** screenshots were inspected in Chromium after the compact exact-decimal presentation repair. They demonstrate a source-free visual review at the recorded widths, **not an authorized market-data screen, production installation or authenticated app browser proof**. They are deliberately kept inside this draft's design/acceptance documentation rather than a public runtime asset path:
+
+![Synthetic TP-2 private readout, 1440px desktop](./images/tp2-private-synthetic-desktop-1440.png)
+
+![Synthetic TP-2 private readout, 390px mobile](./images/tp2-private-synthetic-mobile-390.png)
+
+Source screenshots: desktop SHA256 `4cce3f1575180b0afdccaee6505d2b580646d591ee205892704a1f3f9d004b8e`; mobile SHA256 `6a5c5cf4c49d32ed221744aa7c1001a8b039926fbf8f2392fee84e14b55a393a`. Their input TP-2/R0 JSON fixture digests are recorded in the table above. No live data, names of ATS participants, native trade IDs or credentials appear.
+
 Run from `terminal/`:
 
 ```sh
