@@ -7,20 +7,31 @@
  * fixed at H2 (RESOLVED), with a deliberate mutant receipt quoted in
  * RESULT.md EVIDENCE.
  */
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { existsSync, readdirSync, readFileSync } from "node:fs";
 import path from "node:path";
 import {
   BUDGETS,
+  applyRefusals,
   buildReceipt,
   validateReceipt,
   type ReceiptMetrics,
 } from "../chart-engine/bench/receipt";
 import {
+  BENCH_HANDLE_SCROLL,
+  UNMEASURED as CORPUS_UNMEASURED,
   frameDeltas,
   median,
   p95,
+  panMoved,
+  runMedian,
+  zoomChangedSpan,
+  type VisibleSpan,
 } from "../chart-engine/bench/corpus";
+import {
+  createInputController,
+  type InputControllerOptions,
+} from "../chart-engine/canvas/input";
 
 const TERMINAL_ROOT = path.resolve(__dirname, "..", "..");
 const REPO_ROOT = path.resolve(TERMINAL_ROOT, "..");
@@ -89,6 +100,44 @@ describe("F1 P1 — unmeasured / refused metrics are recorded as UNMEASURED, nev
     );
     // Schema-compatible: UNMEASURED is a finite positive number on a known metric name.
     expect(validateReceipt(receipt)).toEqual({ ok: true });
+  });
+
+  it("the exported sentinel is the one the reducers use", () => {
+    expect(CORPUS_UNMEASURED).toBe(UNMEASURED);
+    expect(p95([])).toBe(CORPUS_UNMEASURED);
+  });
+
+  it("a refusal taints the metric it invalidated, so the receipt cannot stay green", () => {
+    const green: ReceiptMetrics = { ...GREEN_METRICS };
+    expect(applyRefusals(green, []).pan_frame_p95_ms).toBe(green.pan_frame_p95_ms);
+    const shot = applyRefusals(green, ["refused:takeScreenshot RangeError: boom"]);
+    expect(shot.screenshot_ms).toBe(UNMEASURED);
+    expect(shot.first_paint_ms).toBe(green.first_paint_ms);
+    const unmapped = applyRefusals(green, ["refused:somethingNew"]);
+    expect(unmapped.first_paint_ms, "any refusal must redden the receipt").toBe(UNMEASURED);
+    const receipt = buildReceipt({
+      commit: "b".repeat(40),
+      generated_at: "2026-10-13T00:00:00.000Z",
+      host: { os: "linux", cpu: "cpu", dpr: 2 },
+      metrics: shot,
+    });
+    expect(receipt.budget_ok).toBe(false);
+    expect(receipt.violations.map((v) => v.metric)).toEqual(["screenshot_ms"]);
+    expect(validateReceipt(receipt)).toEqual({ ok: true });
+  });
+
+  it("runMedian is absorbing: one unmeasured run out of three cannot be averaged away", () => {
+    expect(runMedian([16, UNMEASURED, 16]), "median() alone would hide the refusal").toBe(UNMEASURED);
+    expect(median([16, UNMEASURED, 16]), "the plain median is the hole runMedian closes").toBe(16);
+    expect(runMedian([])).toBe(UNMEASURED);
+    expect(runMedian([16, 17, 18])).toBe(17);
+    const receipt = buildReceipt({
+      commit: "c".repeat(40),
+      generated_at: "2026-10-13T00:00:00.000Z",
+      host: { os: "linux", cpu: "cpu", dpr: 2 },
+      metrics: { ...GREEN_METRICS, pan_frame_p95_ms: runMedian([16, UNMEASURED, 16]) },
+    });
+    expect(receipt.budget_ok).toBe(false);
   });
 });
 
@@ -169,6 +218,17 @@ describe("F2 P2 — a throwing rAF paint must NOT be recorded as a WORKING frame
     expect(refLog.filter((l) => l.startsWith("refused:paint")), "exactly one refused:paint line for the run (the latch)").toHaveLength(1);
     expect(paintRefusalCount, "the counter reflects every throwing paint").toBe(2);
   });
+
+  it("mount.ts logs refused:paint once per run, not once per throwing frame (source pin)", () => {
+    const mountSrc = readFileSync(
+      path.join(TERMINAL_ROOT, "lib", "chart-engine", "bench", "mount.ts"),
+      "utf8",
+    );
+    expect(
+      /if\s*\(\s*paintRefusalCount === 1\s*\)\s*\{/.test(mountSrc),
+      "the latch must keep exactly one refused:paint line per run; a per-frame refusal would multiply the refusals the receipt is built from",
+    ).toBe(true);
+  });
 });
 
 // -------------------------------------------------------------------- F3 P2
@@ -210,18 +270,57 @@ describe("F3 P2 — the mm zoom-anchor drift assertion is a no-op when no pointe
     expect(benchSrc).toMatch(/zoomChangedSpan\s*\(\s*rangeBeforeZoom\s*,\s*rangeAfterZoom\s*\)/);
   });
 
-  it("helper compares visible logical ranges by whitespace-free span delta", () => {
-    type VisRange = { from: number; to: number } | null;
-    const rangeBeforeZoom: VisRange = { from: 0, to: 100 };
-    // No-op engine: identical span after the wheel pulses.
-    const rangeAfterZoom: VisRange = { from: 0, to: 100 };
-    const spanChanged = (a: VisRange, b: VisRange): boolean => {
-      if (a == null || b == null) return false;
-      return Math.abs((a.to - a.from) - (b.to - b.from)) > 1e-6;
+  it("panMoved / zoomChangedSpan are the REAL helpers the bench spec imports", () => {
+    const before: VisibleSpan = { from: 0, to: 100 };
+    expect(panMoved(before, { from: 0, to: 100 }), "a no-op engine did not pan").toBe(false);
+    expect(panMoved(before, { from: -12, to: 88 }), "a scroll moved the window").toBe(true);
+    expect(panMoved(null, before)).toBe(false);
+    expect(zoomChangedSpan(before, { from: 0, to: 100 }), "a scroll leaves the span alone").toBe(false);
+    expect(zoomChangedSpan(before, { from: 6.7, to: 93.3 }), "a zoom narrows the span").toBe(true);
+    expect(zoomChangedSpan(null, before)).toBe(false);
+  });
+
+  it("the bench wheel gesture really ZOOMS with BENCH_HANDLE_SCROLL (F3 gesture fix)", () => {
+    const ts = { visibleFrom: 0, visibleTo: 100, barSpacing: 10, rightOffset: 0, widthPx: 1000 };
+    const calls: Array<{ from: number; to: number }> = [];
+    const options: InputControllerOptions = {
+      handleScroll: {
+        mouseWheel: BENCH_HANDLE_SCROLL.mouseWheel,
+        pressedMouseMove: true,
+        horzTouchDrag: true,
+        vertTouchDrag: true,
+      },
+      handleScale: { mouseWheel: true, pinch: true, axisPressedMouseMove: true },
+      kineticScroll: { mouse: true, touch: true },
     };
-    expect(spanChanged(rangeBeforeZoom, rangeAfterZoom)).toBe(false);
-    // And a real change passes the helper.
-    expect(spanChanged({ from: 0, to: 100 }, { from: 5, to: 90 })).toBe(true);
+    const controller = createInputController({
+      getTimeScale: () => ({ ...ts }),
+      setVisibleLogicalRange: (range) => { calls.push(range); },
+      getPriceScale: () => null,
+      setPriceRange: () => {},
+      isPriceScaleAuto: () => true,
+      now: () => 0,
+      schedule: () => () => {},
+      options,
+    });
+    const before: VisibleSpan = { from: ts.visibleFrom, to: ts.visibleTo };
+    controller.handleEvent({
+      type: "wheel", pointerId: 1, pointerType: "mouse", x: 500, y: 300, timeStamp: 1,
+      deltaX: 0, deltaY: -120, deltaMode: 0, region: "plot", paneIndex: 0,
+    });
+    const after: VisibleSpan = calls[calls.length - 1] ?? null;
+    expect(after, "the controller must write a new visible range").not.toBe(null);
+    expect(zoomChangedSpan(before, after)).toBe(true);
+    controller.dispose();
+  });
+
+  it("mount.ts feeds BENCH_HANDLE_SCROLL to createEngine (source pin)", () => {
+    const mountSrc = readFileSync(
+      path.join(TERMINAL_ROOT, "lib", "chart-engine", "bench", "mount.ts"),
+      "utf8",
+    );
+    expect(mountSrc).toMatch(/handleScroll:\s*\{\s*mouseWheel:\s*BENCH_HANDLE_SCROLL\.mouseWheel\s*\}/);
+    expect(BENCH_HANDLE_SCROLL.mouseWheel).toBe(false);
   });
 });
 
@@ -402,5 +501,28 @@ describe("F7 P2 — one 12-minute test must split into independent impls × RUNS
       /for\s*\(\s*let\s+i\s*=\s*1\s*;\s*i\s*<=\s*(?:SOAK_SWITCHES|soakCount)\s*;\s*i\s*\+\+\s*\)/.test(text),
       "bench spec loop bound must read SOAK_SWITCHES (or soakCount passed from it) — the literal 50 was the bug",
     ).toBe(true);
+  });
+});
+
+// -------------------------------------------------------- REVIEW ADDITIONS (F7)
+
+describe("REVIEW F7 — the bench config timeout is finite and refuses a non-numeric BENCH_RUNS", () => {
+  async function loadConfig(runs: string | undefined): Promise<{ timeout?: number }> {
+    if (runs === undefined) delete process.env.BENCH_RUNS;
+    else process.env.BENCH_RUNS = runs;
+    vi.resetModules();
+    const mod = (await import("../../playwright.bench.config")) as { default: { timeout?: number } };
+    return mod.default;
+  }
+
+  it("defaults to impls(2) x runs(3) x 8 minutes and is finite", async () => {
+    const cfg = await loadConfig(undefined);
+    expect(Number.isFinite(cfg.timeout)).toBe(true);
+    expect(cfg.timeout).toBe(2 * 3 * 8 * 60 * 1000);
+  });
+
+  it("a non-numeric BENCH_RUNS throws at config load instead of producing timeout=NaN", async () => {
+    await expect(loadConfig("abc")).rejects.toThrow(/BENCH_RUNS must be a number/);
+    delete process.env.BENCH_RUNS;
   });
 });

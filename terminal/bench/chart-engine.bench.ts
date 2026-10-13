@@ -15,12 +15,17 @@ import os from "node:os";
 import path from "node:path";
 import {
   DAILY_40K,
+  UNMEASURED,
   frameDeltas,
-  median,
   p95,
+  panMoved,
+  runMedian,
+  zoomChangedSpan,
   type FrameRecord,
+  type VisibleSpan,
 } from "../lib/chart-engine/bench/corpus";
 import {
+  applyRefusals,
   buildReceipt,
   validateReceipt,
   type ReceiptMetrics,
@@ -56,20 +61,8 @@ const HOST = os.hostname().toLowerCase().replace(/[^a-z0-9-]/g, "-");
 const CPU = `${os.cpus().length} x ${os.cpus()[0]?.model ?? "unknown"}`;
 const OS_LABEL = `${os.type()} ${os.release()}`;
 
-type VisRange = { from: number; to: number } | null;
-
-async function readRange(page: Page): Promise<VisRange> {
-  return benchEval(page, () => (window as unknown as { __mmBench: { visibleLogicalRange: () => VisRange } }).__mmBench.visibleLogicalRange());
-}
-
-function panMoved(a: VisRange, b: VisRange): boolean {
-  if (a == null || b == null) return false;
-  return Math.abs(a.from - b.from) > 1e-6 || Math.abs(a.to - b.to) > 1e-6;
-}
-
-function zoomChangedSpan(a: VisRange, b: VisRange): boolean {
-  if (a == null || b == null) return false;
-  return Math.abs((a.to - a.from) - (b.to - b.from)) > 1e-6;
+async function readRange(page: Page): Promise<VisibleSpan> {
+  return benchEval(page, () => (window as unknown as { __mmBench: { visibleLogicalRange: () => VisibleSpan } }).__mmBench.visibleLogicalRange());
 }
 
 function ensureOutDir(): void {
@@ -223,15 +216,16 @@ async function measureImpl(page: Page, impl: EngineImpl, logFile: string): Promi
   const shotP95 = p95(shot.times);
 
   const heap = await benchEval(page, () => {
-    const w = window as unknown as { __mmBench: { resetData: () => void; heapBefore: number } };
+    const w = window as unknown as { __mmBench: { resetData: () => void; heapBefore: number; heapSupported: () => boolean } };
     w.__mmBench.resetData();
     w.__mmBench.resetData();
     w.__mmBench.resetData();
     const mem = (performance as Performance & { memory?: { usedJSHeapSize: number } }).memory;
     const after = mem && typeof mem.usedJSHeapSize === "number" ? mem.usedJSHeapSize : 0;
-    return { before: w.__mmBench.heapBefore, after };
+    return { before: w.__mmBench.heapBefore, after, supported: w.__mmBench.heapSupported() };
   });
-  const heapMb = Math.max((heap.after - heap.before) / 1048576, 1e-9);
+  const heapMb = heap.supported ? Math.max((heap.after - heap.before) / 1048576, 1e-9) : UNMEASURED;
+  if (!heap.supported) appendLog(logFile, `[${impl}] performance.memory unavailable \u2014 heap_mb=UNMEASURED`);
 
   const soak = await benchEval(page, (soakCount: number) => {
     const w = window as unknown as { __mmBench: { resetData: () => void } };
@@ -256,13 +250,17 @@ async function measureImpl(page: Page, impl: EngineImpl, logFile: string): Promi
   });
   for (const line of refusals) appendLog(logFile, `[${impl}] ${line}`);
 
-  return {
+  const measured: ReceiptMetrics = {
     first_paint_ms: Math.max(firstPaint.ms, 1e-9),
     pan_frame_p95_ms: panP95,
     zoom_frame_p95_ms: zoomP95,
     live_commit_ms: liveP95,
     screenshot_ms: shotP95,
     heap_mb: heapMb,
+  };
+
+  return {
+    ...applyRefusals(measured, refusals),
     zoomDriftPx,
     screenshotWidth: shot.last.width,
     screenshotHeight: shot.last.height,
@@ -272,14 +270,15 @@ async function measureImpl(page: Page, impl: EngineImpl, logFile: string): Promi
 }
 
 function aggregate(runs: RunMetrics[]): ReceiptMetrics {
-  const pick = (key: Exclude<keyof ReceiptMetrics, "heap_mb">) => median(runs.map((r) => r[key]));
+  const pick = (key: Exclude<keyof ReceiptMetrics, "heap_mb">) => runMedian(runs.map((r) => r[key]));
+  const heaps = runs.map((r) => r.heap_mb);
   return {
     first_paint_ms: pick("first_paint_ms"),
     pan_frame_p95_ms: pick("pan_frame_p95_ms"),
     zoom_frame_p95_ms: pick("zoom_frame_p95_ms"),
     live_commit_ms: pick("live_commit_ms"),
     screenshot_ms: pick("screenshot_ms"),
-    heap_mb: Math.max(...runs.map((r) => r.heap_mb), 1e-9),
+    heap_mb: heaps.length === 0 || heaps.some((v) => v >= UNMEASURED) ? UNMEASURED : Math.max(...heaps, 1e-9),
   };
 }
 

@@ -14,7 +14,9 @@ import {
   type SeriesHandle,
 } from "@/lib/chart-engine";
 import {
+  BENCH_HANDLE_SCROLL,
   DAILY_40K,
+  UNMEASURED,
   buildDailyCorpus,
   frameWorkMs,
   planTick,
@@ -33,6 +35,8 @@ export type MmBenchHook = {
   firstPaintMs: number;
   log: string[];
   paintRefusals(): number;
+  /** False when performance.memory is absent, so heap_mb is UNMEASURED, not 1e-9. */
+  heapSupported(): boolean;
   plotCenter(): { x: number; y: number };
   startFrameLog(): void;
   stopFrameLog(): FrameRecord[];
@@ -57,6 +61,12 @@ type MemoryPerformance = Performance & { memory?: { usedJSHeapSize: number } };
 function heapSize(): number {
   const mem = (performance as MemoryPerformance).memory;
   return mem && typeof mem.usedJSHeapSize === "number" ? mem.usedJSHeapSize : 0;
+}
+
+/** True only when performance.memory really reports a number (Chrome-only API). */
+function heapMeasurable(): boolean {
+  const mem = (performance as MemoryPerformance).memory;
+  return typeof mem?.usedJSHeapSize === "number";
 }
 
 function readError(err: unknown): string {
@@ -161,6 +171,7 @@ export function mountBench(container: HTMLElement, impl: EngineImpl): MountBench
         },
         timeScale: { borderColor: "#2a2a2c", timeVisible: false },
         rightPriceScale: { borderColor: "#2a2a2c" },
+        handleScroll: { mouseWheel: BENCH_HANDLE_SCROLL.mouseWheel },
       },
       impl,
     );
@@ -250,6 +261,7 @@ export function mountBench(container: HTMLElement, impl: EngineImpl): MountBench
     firstPaintMs: 0,
     log,
     paintRefusals: () => paintRefusalCount,
+    heapSupported: heapMeasurable,
     plotCenter() {
       const el = engine?.chartElement() ?? container;
       const rect = el.getBoundingClientRect();
@@ -311,14 +323,14 @@ export function mountBench(container: HTMLElement, impl: EngineImpl): MountBench
       lastBar = corpus.candles[corpus.candles.length - 1];
     },
     screenshot() {
-      if (!engine) return { ms: 1e-9, width: 0, height: 0 };
+      if (!engine) return { ms: UNMEASURED, width: 0, height: 0 };
       const t0 = performance.now();
       let canvas: HTMLCanvasElement;
       try {
         canvas = engine.takeScreenshot();
       } catch (err) {
         refuse("takeScreenshot", err);
-        return { ms: 1e-9, width: 0, height: 0 };
+        return { ms: UNMEASURED, width: 0, height: 0 };
       }
       const ms = Math.max(performance.now() - t0, 1e-9);
       return { ms, width: canvas.width, height: canvas.height };
@@ -367,10 +379,10 @@ export function mountBench(container: HTMLElement, impl: EngineImpl): MountBench
       try {
         performance.measure("engine:first-paint", "engine:create", "engine:first-frame");
         const entry = performance.getEntriesByName("engine:first-paint")[0];
-        hook.firstPaintMs = entry && "duration" in entry ? Math.max(entry.duration, 1e-9) : 1e-9;
+        hook.firstPaintMs = entry && "duration" in entry ? Math.max(entry.duration, 1e-9) : UNMEASURED;
       } catch (err) {
         refuse("performance.measure", err);
-        hook.firstPaintMs = 1e-9;
+        hook.firstPaintMs = UNMEASURED;
       }
       log.push(`corpus=${DAILY_40K.name} bars=${DAILY_40K.bars} impl=${impl}`);
       log.push(`paint_refusals=${paintRefusalCount}`);
@@ -404,7 +416,7 @@ function waitNextWorkFrame(
         return;
       }
       if (performance.now() - started > 500) {
-        resolve(1e-9);
+        resolve(UNMEASURED);
         return;
       }
       origRaf(poll);

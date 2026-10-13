@@ -16,7 +16,13 @@ const impls = Math.max(
     .split(",")
     .filter((s) => s.trim() === "mm" || s.trim() === "lwc").length,
 );
-const runs = Math.max(1, Number(process.env.BENCH_RUNS ?? 3));
+// A typo'd BENCH_RUNS must fail at config load, not silently become a NaN
+// timeout (Playwright would then time the test out immediately).
+const runsRaw = Number(process.env.BENCH_RUNS ?? 3);
+if (!Number.isFinite(runsRaw) || runsRaw < 1) {
+  throw new Error(`BENCH_RUNS must be a number >= 1, got "${process.env.BENCH_RUNS ?? ""}"`);
+}
+const runs = Math.max(1, Math.floor(runsRaw));
 const PER_RUN_MINUTES = 8;
 
 const benchEnv = {

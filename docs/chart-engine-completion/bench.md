@@ -60,7 +60,8 @@ build time.
 | Knob | Default | Meaning |
 |---|---|---|
 | `BENCH_IMPLS` | `mm,lwc` | Comma-separated impls to measure. |
-| `BENCH_RUNS` | `3` | Fresh pages per impl; receipt = median of the per-run p95s (`heap_mb` = max). |
+| `BENCH_RUNS` | `3` | Fresh pages per impl; receipt = median of the per-run p95s (`heap_mb` = max). A non-numeric value fails at config load rather than producing a `NaN` timeout. |
+| `BENCH_SOAK` | `50` | `resetData` switches per impl in the B6 leak soak (floor 2). Samples every 10th switch. |
 | `BENCH_OUT_DIR` | `terminal/test-results/bench/` | Receipt + log directory. |
 | `BENCH_BASE_URL` | unset | When set, no `webServer`; hit that origin (prod-build path). |
 | `BENCH_HEADLESS` | unset (headed) | `1` forces headless. |
@@ -75,9 +76,17 @@ JSON (schema miss) always fails.
 
 See `performance-budget.md` §1 for the ceilings (150 / 18 / 18 / 4 / 50 / 60).
 The receipt carries the **median of three per-run p95s** except `heap_mb` (max
-of the three deltas). The 50-switch soak trend, build mode, zoom-anchor drift,
-screenshot dimensions, and any `refused:<member>` lines go to stdout and
-`test-results/bench/<run>.log`, never into the receipt (`additionalProperties: false`).
+of the three deltas); both aggregates are `UNMEASURED`-absorbing (`runMedian`),
+so one run that measured nothing reddens the receipt instead of being averaged
+away by the healthy runs. The soak trend, build mode, zoom-anchor drift,
+screenshot dimensions and the raw `refused:<member>` lines go to stdout and
+`test-results/bench/<run>.log`; refusals reach the receipt only through
+`violations` (`additionalProperties: false`).
+
+B4's wheel phase needs `handleScroll.mouseWheel: false` (set by
+`BENCH_HANDLE_SCROLL` in `corpus.ts`): the canvas controller mirrors LWC's rule
+`zoom = handleScale.mouseWheel && (ctrlKey || !handleScroll.mouseWheel)`, so a
+plain `page.mouse.wheel()` would scroll and leave the visible span unchanged.
 
 - **B1 `first_paint_ms`** — `engine:create` mark immediately before `createEngine`,
   `engine:first-frame` after the double-rAF settle (below). Corpus is inlined.
@@ -126,15 +135,20 @@ approximates:
 4. **Live-commit frame slice.** Per tick, `live_commit_ms` is the synchronous
    `update()` duration plus the summed `(end − start)` of rAF callbacks that
    share the next recorded `frameTs`. If the engine schedules no rAF within
-   500 ms, the frame slice is recorded as a tiny epsilon so the receipt stays
-   schema-valid (`exclusiveMinimum: 0`).
+   500 ms, the frame slice is `UNMEASURED` (1e9) so the receipt stays
+   schema-valid (`exclusiveMinimum: 0`) while the metric is an explicit
+   violation instead of the fastest number the schema can express.
 
 5. **Heap.** `performance.memory.usedJSHeapSize` is Chrome-only. When the API
-   is missing the delta is recorded as a tiny epsilon and the log says so.
+   is missing the hook reports `heapSupported() === false`, the delta is
+   recorded as `UNMEASURED` (1e9) and the log says so.
 
 Engine members that throw (`EngineRefusalError` or a pre-repair TODO) are
-caught in `mount.ts`, recorded as `refused:<member>`, and skipped. The
-harness does not patch the engine.
+caught in `mount.ts`, recorded as `refused:<member>`, and skipped. A frame
+whose paint threw is **not** recorded as work. Every refusal also taints the
+metric it invalidated (`REFUSAL_TAINTS` in `receipt.ts`) to `UNMEASURED`, so a
+refusing renderer cannot print a green receipt. The harness does not patch the
+engine.
 
 ## Files
 
