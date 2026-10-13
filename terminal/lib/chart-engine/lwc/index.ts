@@ -926,6 +926,10 @@ class LwcChartEngine implements ChartEngine {
   constructor(container: HTMLElement, options?: EngineOptions) {
     this.container = container;
     this.chart = createChart(container, (options ?? {}) as DeepPartial<ChartOptions>);
+    // Identity marker: only after createChart() has returned (a thrown mount must
+    // leave the host untouched). Read by Playwright `[data-chart-engine="mm"]` and
+    // the live proofs. Guarded for test stubs whose `{} as HTMLElement` has no dataset.
+    if (container.dataset) container.dataset.chartEngine = "lwc";
   }
 
   private ensure(): IChartApi {
@@ -1152,6 +1156,10 @@ class LwcChartEngine implements ChartEngine {
     this.timeScaleHandle = null;
     const chart = this.chart;
     this.chart = null;
+    // Identity marker: only clear if it still reads THIS impl — never wipe a newer
+    // engine's marker that took over the same host. Idempotent: missing attr is fine.
+    const ds = this.container.dataset;
+    if (ds && ds.chartEngine === "lwc") delete ds.chartEngine;
     chart.remove();
   }
 }
