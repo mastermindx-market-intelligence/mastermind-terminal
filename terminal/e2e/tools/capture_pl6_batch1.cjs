@@ -173,7 +173,9 @@ async function cropBox(page, box, outPath, pad) {
   const y = Math.max(0, Math.floor(box.y - pad));
   const width = Math.max(8, Math.min(vp.width - x, Math.ceil(box.width + pad * 2)));
   const height = Math.max(8, Math.min(vp.height - y, Math.ceil(box.height + pad * 2)));
-  await page.screenshot({ path: outPath, clip: { x, y, width, height } });
+  // Park the pointer so no hover state (crosshair, tooltip) leaks into the crop.
+  await page.mouse.move(0, 0);
+  await page.screenshot({ path: outPath, clip: { x, y, width, height }, animations: "disabled" });
 }
 
 async function cropLocator(page, locator, outPath, pad = 18) {
@@ -300,6 +302,10 @@ async function captureAnalysis(page, width, lang, outPath) {
   await cropLocator(page, target, outPath, 12);
 }
 
+// Default-on Terminal studies for a fresh SPY chart (see the legend: Moving Averages,
+// Volume, TW · Mastermind Candles, Stochastic RSI, MACD-RSI).
+const DEFAULT_STUDY_COUNT = 5;
+
 async function captureChartChrome(page, width, lang, outPath) {
   await gotoReady(page, "/terminal?symbol=SPY", lang);
   await page.locator(".workspace").waitFor({ state: "visible", timeout: 45_000 });
@@ -311,6 +317,13 @@ async function captureChartChrome(page, width, lang, outPath) {
   const ohlc = oracle.locator(".status-ohlc b");
   await expect(ohlc).toHaveCount(4);
   for (const value of await ohlc.all()) await expect(value).toHaveText(/\d/);
+  // The default study set attaches asynchronously: "TW · Mastermind Candles" lands
+  // after the first paint and recolours every candle. Shooting before it attaches
+  // records a 4-study, red/green frame that is not the settled chart. Wait for
+  // the full default legend (MA, Volume, Mastermind Candles, Stoch RSI, MACD-RSI),
+  // then let the chart commit that repaint before the crop.
+  await expect(page.locator(".lg-row")).toHaveCount(DEFAULT_STUDY_COUNT, { timeout: 45_000 });
+  await page.evaluate(() => new Promise((done) => requestAnimationFrame(() => requestAnimationFrame(done))));
   const dayVisible = (await day.count()) > 0 && (await day.isVisible().catch(() => false));
   const loc = dayVisible ? day : oracle;
   await loc.waitFor({ state: "visible", timeout: 20_000 });
@@ -339,7 +352,9 @@ async function main() {
   let failed = 0;
   try {
     await waitForServer(180_000);
-    const browser = await chromium.launch({ headless: true });
+    // Partial raster tiles land at nondeterministic times; force full-tile rasterisation
+    // so a crop never records a half-painted frame (memory: screenshot-partial-raster-drift).
+    const browser = await chromium.launch({ headless: true, args: ["--disable-partial-raster"] });
     try {
       for (const width of [1440, 390]) {
         for (const lang of ["en", "zh"]) {

@@ -6,6 +6,7 @@ import ChartFrameBar, { DEFAULT_CHART_SETTINGS, type ChartSettings } from "@/com
 import ChartSettingsModal, { type ChartSettingsTab } from "@/components/ChartSettingsModal";
 import { type Drawing, type DrawKind } from "@/lib/drawings";
 import { drawingPanelInstanceKey } from "@/lib/drawingOwnership";
+import { useElementStableList } from "@/lib/elementStableList";
 import { type CmpCfg } from "@/lib/compare";
 import { type IChartApi } from "lightweight-charts";
 import { useLang } from "@/lib/i18n";
@@ -117,10 +118,14 @@ export default function ChartPane({ idx, symbol, drawingOwnerKey, isActive, onAc
     };
   }, [symbol]);
   useEffect(() => { onDetectedDrawingCount?.(auto.length); }, [auto.length, onDetectedDrawingCount]);
-  const merged = useMemo(() => {
+  const mergedNow = useMemo(() => {
     if (!drawingsVisible) return [];
     return auto.length ? [...drawings, ...auto] : drawings;
   }, [drawingsVisible, drawings, auto]);
+  // TerminalShell spreads a new `drawings` array on each of its renders. Keep ChartPanel's prop
+  // identity while the drawings themselves are unchanged, so a shell render that touches no
+  // drawing (a save starting or finishing, a quote tick) does not redraw every drawing node.
+  const merged = useElementStableList(mergedNow);
   const handleChange = useCallback((d: Drawing[]) => {
     const hand: Drawing[] = [], au: Drawing[] = [];
     for (const x of d) {

@@ -211,7 +211,7 @@ amendment, only a README edit.
 | `0028` | `0028_investigations.sql` | `IW2-G1-INVESTIGATION`, converged from `INTL-R10-SAVED-RESEARCH`, #777 | applied 2026-10-04; [catalog receipt](https://github.com/mastermindx-market-intelligence/mastermind-terminal/pull/777#issuecomment-5977275494) |
 | `0029` | `investigation_thesis_refs` | existing PR #804, IW2-G5 | open PR; its own applied receipt remains authoritative |
 | `0030` | `investigation_kernel` | existing PR #804, IW2-G1 repair | open PR; not applied |
-| `0031` | `drawings_atomic_replace` | existing PR #858, TERMINAL-AUDIT20-A04 | open PR; not applied |
+| `0031` | `drawings_atomic_replace` | existing PR #858, TERMINAL-AUDIT20-A04 | open PR; not applied; source ships unapplied and #858 keeps the application and catalog receipts |
 | `0032` | `thesis_proposal_state_qualification` | PR #946, B-F11-PROPOSAL-STATE-SQL | merged `2957bd64`; applied 2026-10-11 ([catalog receipt](https://github.com/mastermindx-market-intelligence/mastermind-terminal/pull/946#issuecomment-6112592004)) |
 | `0033` | `watchlist_annotations` | packet E05 (program `terminal-enhancements20-20261011-opus`, #916), PR #927; numbered by rule (b) above `0029`–`0032`, which PRs #804, #858 and #946 hold | open PR; applied 2026-10-11 21:52Z through `scripts/supabase_apply.py` ([catalog receipt](https://github.com/mastermindx-market-intelligence/mastermind-terminal/pull/927#issuecomment-6114211528)): RLS on, four own-row policies, anon select = f; row flips to merged in the post-squash ledger follow-up PR |
 
@@ -360,3 +360,11 @@ receipts are in `terminal/docs/verification/iw2-g1/`. Application deployment and
 real authenticated acceptance are separate gates. Rollback revokes the mutation
 RPC grant and retains heads, revisions, receipts and captures. Current layouts
 are not changed by the migration.
+
+### 0031 — Audit20 drawing snapshot and atomic replacement
+
+Reserved for `TERMINAL-AUDIT20-A04`, root `01a10f92`. Prefixes 0029 and 0030 remain with #804. Source qualification and any production application have separate receipts.
+
+`0031_drawings_atomic_replace.sql` adds three invoker functions on the existing `drawings` table, with no table or RLS changes. GET returns an opaque revision for one coherent owner/symbol snapshot. PUT compares that revision inside the replacement transaction and keeps at most 32 prior operation receipts. Legacy rows are never assigned invented receipts. A table write fence covers old direct INSERTs; this serializes drawing writes across accounts while reads remain available.
+
+Readback: the `-- readback:` block at the end of `0031_drawings_atomic_replace.sql` is the canonical readback (it also checks RLS and the table write fence). Its function query is `SELECT p.oid::regprocedure, p.prosecdef, p.proconfig, has_function_privilege('authenticated', p.oid, 'EXECUTE') AS authenticated_execute, has_function_privilege('anon', p.oid, 'EXECUTE') AS anonymous_execute FROM pg_proc p JOIN pg_namespace n ON n.oid=p.pronamespace WHERE n.nspname='public' AND p.proname IN ('validate_drawing_replace_input','read_drawings_collection','replace_drawings_collection');` Verify all three are invoker (`prosecdef=false`), with `search_path=pg_catalog`, EXECUTE for authenticated and not for anon (service_role keeps its default grant, as in 0028), and `public.drawings` still has RLS enabled. Application status remains **unapplied** until the owning PR receives apply and catalog receipts. Rollback drops only these functions after rolling back the API; drawing rows are preserved.
