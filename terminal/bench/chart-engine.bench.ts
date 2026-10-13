@@ -55,6 +55,22 @@ const HOST = os.hostname().toLowerCase().replace(/[^a-z0-9-]/g, "-");
 const CPU = `${os.cpus().length} x ${os.cpus()[0]?.model ?? "unknown"}`;
 const OS_LABEL = `${os.type()} ${os.release()}`;
 
+type VisRange = { from: number; to: number } | null;
+
+async function readRange(page: Page): Promise<VisRange> {
+  return benchEval(page, () => (window as unknown as { __mmBench: { visibleLogicalRange: () => VisRange } }).__mmBench.visibleLogicalRange());
+}
+
+function panMoved(a: VisRange, b: VisRange): boolean {
+  if (a == null || b == null) return false;
+  return Math.abs(a.from - b.from) > 1e-6 || Math.abs(a.to - b.to) > 1e-6;
+}
+
+function zoomChangedSpan(a: VisRange, b: VisRange): boolean {
+  if (a == null || b == null) return false;
+  return Math.abs((a.to - a.from) - (b.to - b.from)) > 1e-6;
+}
+
 function ensureOutDir(): void {
   fs.mkdirSync(OUT_DIR, { recursive: true });
 }
@@ -94,6 +110,7 @@ async function measureImpl(page: Page, impl: EngineImpl, logFile: string): Promi
   await benchEval(page, () => {
     (window as unknown as { __mmBench: { startFrameLog: () => void } }).__mmBench.startFrameLog();
   });
+  const rangeBeforePan = await readRange(page);
   await page.mouse.move(center.x, center.y);
   await page.mouse.down();
   for (let i = 1; i <= 200; i++) {
@@ -105,12 +122,20 @@ async function measureImpl(page: Page, impl: EngineImpl, logFile: string): Promi
   const panRecords = await benchEval(page, () => {
     return (window as unknown as { __mmBench: { stopFrameLog: () => FrameRecord[] } }).__mmBench.stopFrameLog();
   });
+  const rangeAfterPan = await readRange(page);
   await page.mouse.move(10, 10);
   const panP95 = p95(frameDeltas(panRecords));
+  if (impl === "mm") {
+    expect(
+      panMoved(rangeBeforePan, rangeAfterPan),
+      `mm drag-pan must move the visible range (before=${JSON.stringify(rangeBeforePan)} after=${JSON.stringify(rangeAfterPan)}) — a no-op engine must fail here, not price 0 frames as fast`,
+    ).toBe(true);
+  }
 
   await benchEval(page, () => {
     (window as unknown as { __mmBench: { startFrameLog: () => void } }).__mmBench.startFrameLog();
   });
+  const rangeBeforeZoom = await readRange(page);
   const beforeAnchor = await benchEval(page, () => {
     const w = window as unknown as {
       __mmBench: {
@@ -141,6 +166,18 @@ async function measureImpl(page: Page, impl: EngineImpl, logFile: string): Promi
     zoomDriftPx = Math.abs(afterX - beforeAnchor.x);
   }
   appendLog(logFile, `[${impl}] zoom_anchor_drift_px=${zoomDriftPx ?? "n/a"}`);
+  const rangeAfterZoom = await readRange(page);
+  appendLog(logFile, `[${impl}] visible_range before_zoom=${JSON.stringify(rangeBeforeZoom)} after_zoom=${JSON.stringify(rangeAfterZoom)}`);
+  if (impl === "mm") {
+    expect(
+      zoomChangedSpan(rangeBeforeZoom, rangeAfterZoom),
+      `mm wheel zoom must change the visible-range width (before=${JSON.stringify(rangeBeforeZoom)} after=${JSON.stringify(rangeAfterZoom)}) — pointer-anchor drift is meaningless on an engine that did not zoom`,
+    ).toBe(true);
+    expect(
+      zoomDriftPx,
+      "mm pointer-anchor drift must be MEASURABLE: coordinateToTime/timeToCoordinate returned null, so the <=1px law was never checked",
+    ).not.toBe(null);
+  }
   await page.mouse.move(10, 10);
   const zoomP95 = p95(frameDeltas(zoomRecords));
 
@@ -292,6 +329,10 @@ test("chart-engine performance protocol B1-B6", async ({ browser }) => {
         }
       }
     }
+    expect(
+      mmDrifts,
+      `every mm run must yield a measurable zoom-anchor drift (got ${mmDrifts.length} of ${RUNS})`,
+    ).toHaveLength(RUNS);
     for (const drift of mmDrifts) {
       expect(drift, "mm pointer-anchor drift after wheel zoom").toBeLessThanOrEqual(1);
     }

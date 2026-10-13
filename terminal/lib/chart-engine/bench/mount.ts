@@ -41,6 +41,8 @@ export type MmBenchHook = {
   screenshot(): ScreenshotResult;
   anchorTimeAt(x: number): EngineTime | null;
   timeToCoordinate(time: EngineTime): number | null;
+  /** Visible logical range, or null — the protocol uses it to prove pan/zoom did something. */
+  visibleLogicalRange(): { from: number; to: number } | null;
   inventory(): EngineInventory;
 };
 
@@ -336,6 +338,14 @@ export function mountBench(container: HTMLElement, impl: EngineImpl): MountBench
         return engine?.timeScale().timeToCoordinate(time) ?? null;
       } catch (err) {
         refuse("timeToCoordinate", err);
+        return null;
+      }
+    },
+    visibleLogicalRange() {
+      try {
+        return engine?.timeScale().getVisibleLogicalRange() ?? null;
+      } catch (err) {
+        refuse("getVisibleLogicalRange", err);
         return null;
       }
     },

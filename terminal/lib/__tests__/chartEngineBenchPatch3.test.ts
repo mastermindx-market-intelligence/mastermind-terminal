@@ -148,7 +148,7 @@ describe("F2 P2 — a throwing rAF paint must NOT be recorded as a WORKING frame
           return true;
         } catch (err) {
           paintRefusalCount++;
-          if (paintRefusalCount === 1) refuse("paint", err);
+          if (paintRefusalCount === 1) refuse("paint");
           return false;
         }
       };
@@ -326,8 +326,8 @@ describe("F5 P2 — the harness must assert devicePixelRatio = 2 (B5 dimensions 
 
   it("a dpr-1 source would be flagged by the new bench-side assertion (logic)", () => {
     // Standalone check on the assertion semantics.
-    const seenDpr = 1; // simulated dpr-1 page
-    const ok = seenDpr === 2;
+    const seenDpr: number = 1; // simulated dpr-1 page
+    const ok: boolean = seenDpr === 2;
     expect(ok, "a dpr-1 page must fail the new bench-side assertion").toBe(false);
   });
 });
