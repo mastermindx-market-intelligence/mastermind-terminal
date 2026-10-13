@@ -516,7 +516,12 @@ class CanvasEngine implements CanvasChartEngine {
       if (cancelClick) return;
       this.model.emitMouse("click", param(ev));
     };
-    const dbl: EventListener = (ev) => this.model.emitMouse("dblclick", param(ev));
+    const dbl: EventListener = (ev) => {
+      // LWC also cancels the double click once a pressed move travelled >= 5px
+      // (dev :8269-8270 mouse, :8030-8031 touch): `!this._cancelClick` guards both.
+      if (cancelClick) return;
+      this.model.emitMouse("dblclick", param(ev));
+    };
     overlay.addEventListener("pointerdown", latchDown);
     overlay.addEventListener("pointermove", latchMove);
     overlay.addEventListener("mousemove", move);
