@@ -81,6 +81,9 @@ import {
 } from "@/lib/markerTooltip";
 import { paintCandleData } from "@/lib/indicator-canvas/candlePaint";
 import { paintSnapshotTables } from "@/lib/chartSnapshotTables";
+import LargeTradesOverlay, { type LargeTradesOverlayHandle } from "@/components/LargeTradesOverlay";
+import { resolveLargeTradesPricePane } from "@/lib/largeTrades/visibility";
+import { layoutLargeTradesFooter, paintLargeTradesFooter, paintLargeTradesSnapshot } from "@/lib/largeTrades/snapshot";
 import { SUITE_DEFS, getSuiteDef, isSuiteKey as isSuiteKeyReg, paneSuiteKeys } from "@/lib/suites/registry";
 import { ensureSuiteRuntime, peekSuiteRuntime, type SuiteRuntimeProfile } from "@/lib/suites/compute";
 import {
@@ -101,7 +104,7 @@ import { dailyMultipleOf, groupSessionBars, parseSessionAnchor, resolveBarAnchor
 import { ichimoku, supertrend, avwap as computeAvwap, rollingVwap, weekAnchoredVwap, vprofile, volbox, rsiStack, accumPct, trendRibbon, buyShare as mfBuyShare } from "@/lib/indicatorMath";
 import ChartOverlays, { type PaneInfo, type LegendEntry } from "@/components/ChartOverlays";
 import DayStatsStrip from "@/components/DayStatsStrip";
-import { tPlain, useT } from "@/lib/i18n";
+import { tPlain, useLang, useT } from "@/lib/i18n";
 import { verdictLabel, type PlainLang } from "@/lib/plainLabels";
 import { listTemplates } from "@/lib/chartTemplates";
 import {
@@ -613,6 +616,8 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
     userTier?: SuiteTier;
   }) {
   const t = useT();
+  const { lang } = useLang();
+  const chartLanguageRef = useRef(lang); chartLanguageRef.current = lang;
   const ref = useRef<HTMLDivElement>(null);
   const statusRef = useRef<HTMLSpanElement>(null);
   // Only phone-web CSS consumes this measurement. Observe the painted header:
@@ -621,13 +626,17 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
     const line = statusRef.current?.closest<HTMLElement>(".statusline");
     const host = line?.parentElement;
     if (!line || !host) return;
-    const measure = () => host.style.setProperty("--statusline-height", `${line.getBoundingClientRect().height}px`);
+    const measure = () => {
+      host.style.setProperty("--statusline-height", `${line.getBoundingClientRect().height}px`);
+      largeTradesRef.current?.reposition();
+    };
     measure();
     const observer = new ResizeObserver(measure);
     observer.observe(line);
     return () => { observer.disconnect(); host.style.removeProperty("--statusline-height"); };
   }, []);
   const visualPanelRef = useRef<VisualIntelligenceHandle | null>(null);
+  const largeTradesRef = useRef<LargeTradesOverlayHandle | null>(null);
   const visualSeriesRef = useRef<VisualSeries | null>(null);
   const visualSelectedTimeRef = useRef<string | null>(null);
   // Accepted data identity, not merely the currently REQUESTED React symbol/timeframe.
@@ -1324,8 +1333,16 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
   // and re-read on the Up/Down flip (Effect 5); the literals cover only the pre-mount window.
   const dirUp = () => tokensRef.current.up || "#26c281";
   const dirDown = () => tokensRef.current.down || "#f0566b";
-  // A lone instance keeps its registry label; siblings of one type read "RSI 1 (14)" / "RSI 2 (7)".
-  const labelOf = (k: string) => studyInstanceMeta(k, indicatorsRef.current, indParamsRef.current[k])?.label ?? (isIndKey(k) ? IND_DEFS[k].label : k);
+  // Preserve instance-specific sibling titles and the localized label of a lone built-in.
+  const labelOf = (k: string) => {
+    const meta = studyInstanceMeta(k, indicatorsRef.current, indParamsRef.current[k]);
+    const def = isIndKey(k) ? IND_DEFS[k] : null;
+    return meta && meta.siblings > 1
+      ? meta.label
+      : chartLanguageRef.current === "zh" && def?.labelZh
+        ? def.labelZh
+        : meta?.label ?? def?.label ?? k;
+  };
 
   // ── indicator builders (param-driven; params flow from the Settings dialog via indParams) ──
   // Each returns the list of ISeriesApi it created, tracked in indSeriesRef under its indKey.
@@ -2281,6 +2298,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
       }
       overlayEntries.push({ key: k, label: labelOf(k), kind: "overlay", isPine: false });
     }
+    if (inds.has("largeTrades")) overlayEntries.push({ key: "largeTrades", label: labelOf("largeTrades"), kind: "overlay", isPine: false, noSource: true });
     // Gaps & Demand: signal-layer overlay (no plotted series, like the oracle) — drawn in renderSignals.
     // Registry-backed, so it keeps its Settings/Source/eye/remove menu.
     if (inds.has("gaps")) overlayEntries.push({ key: "gaps", label: labelOf("gaps"), kind: "overlay", isPine: false });
@@ -2398,6 +2416,13 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
     if (subPaneCount !== lastPaneCountRef.current) { lastPaneCountRef.current = subPaneCount; onPaneCountRef.current?.(subPaneCount); }
   };
 
+  // The legend registry is imperative; repaint this feature's bilingual title when
+  // the canonical language changes without rebuilding the chart or fetching data.
+  useEffect(() => {
+    if (indicatorsRef.current.has("largeTrades")) rebuildPaneMeta();
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- imperative reader, language is the trigger
+  }, [lang]);
+
   // ── pane-control operations (read chart refs; safe to recreate every render) ──
   const keyOfPaneIndex = (pi: number) => { const m = panesMeta.current.find((x) => { try { return x.pane.paneIndex() === pi; } catch { return false; } }); return m?.key ?? null; };
   const measure = () => measureRef.current();
@@ -2406,7 +2431,12 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
   // after toggling, re-render the price-pane-anchored overlay layers (signals/gap zones, drawings,
   // ind fills, price tag) — they gate themselves off while a sub-pane is maximized and must clear/
   // restore NOW, not on the next pan/zoom.
-  const rerenderOverlays = () => { try { renderSignalsRef.current(); renderRef.current(); renderTagRef.current?.(); } catch {} };
+  const rerenderOverlays = () => {
+    // Drawing renderers can return early for a hidden price pane. Its sibling trade layer must
+    // still clear synchronously, before the next measured pane layout is available.
+    largeTradesRef.current?.reposition();
+    try { renderSignalsRef.current(); renderRef.current(); renderTagRef.current?.(); } catch {}
+  };
 
   const doMaximize = (pi: number) => { const key = keyOfPaneIndex(pi); if (!key) return; const ctl = paneCtl.current; if (ctl.maximized === key) ctl.maximized = null; else { if (panesMeta.current.length <= 1) return; ctl.maximized = key; ctl.collapsed.delete(key); } applyStretch(); rerenderOverlays(); requestAnimationFrame(() => { measure(); rerenderOverlays(); }); };
   const doCollapse = (pi: number) => { const key = keyOfPaneIndex(pi); if (!key) return; const ctl = paneCtl.current; ctl.maximized = null; if (ctl.collapsed.has(key)) ctl.collapsed.delete(key); else ctl.collapsed.add(key); applyStretch(); rerenderOverlays(); requestAnimationFrame(() => { measure(); rerenderOverlays(); }); };
@@ -3045,6 +3075,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
    * symbol-guarded consumer (splice, options levels, drawings) that this pane is unpainted.
    */
   const clearChartData = () => {
+    largeTradesRef.current?.clear();
     try { episodeMarkersRef.current?.detach(); } catch {}
     episodeMarkersRef.current = null;
     barsRef.current = []; fullBarsRef.current = []; fullBarsTfRef.current = ""; dailyBarsRef.current = []; closesRef.current = [];
@@ -3442,7 +3473,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
     let onSigUp: ((e: PointerEvent) => void) | null = null, onSigCancel: (() => void) | null = null, onSigLeave: ((e: PointerEvent) => void) | null = null;
     // ── snapshot: composite the chart with per-pane labels + brand logo + timestamp ──
     // action = "download" | "copy" | "share" | "tab" (from event detail; default = "download")
-    // Reads live refs so labels match the on-screen state.
+    // Freeze the accepted native owner, overlays, labels and provenance synchronously before image decoding.
     // Scale: takeScreenshot() returns a canvas at lightweight-charts' own pixel ratio (may be 1:1).
     // We derive realScale from src.width / wrap.clientWidth and upscale the output to TARGET_SCALE (2x)
     // for crispness. Custom indicators (z-index:2), signals (z-index:3), and user drawings
@@ -3525,13 +3556,32 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
       if (review && !barsRef.current.length) { respond({ ok: false, reason: "no_data" }); return; }
       (async () => {
         try {
-          // Repaint the DOM overlay layer immediately before capture so a just-added indicator,
-          // live-bar update, or settings change cannot export the previous render.
+          const chart = chartRef.current, wrap = wrapElRef.current;
+          const snapSym = symbolRef.current, tf = timeframeRef.current;
+          const requestedReplay = replayIdxRef.current;
+          const expectedCount = requestedReplay == null ? fullBarsRef.current.length
+            : replayVisibleCount(fullBarsRef.current, fullBarsTfRef.current || tf, requestedReplay);
+          // A symbol/TF request can retain the previous native raster until its read completes.
+          // Replay props can likewise precede the canonical slice effect. Refuse a mixed frame.
+          if (!chart || !wrap || !barsRef.current.length || chartDataSymRef.current !== snapSym
+            || fullBarsTfRef.current !== tf || (requestedReplay != null
+              ? barsRef.current.length !== expectedCount : barsRef.current.length < expectedCount)) {
+            if (statusRef.current) statusRef.current.textContent = tPlain("loading", "Loading…");
+            // A review has no accepted frame to describe yet; it says so instead of waiting out its timeout.
+            respond({ ok: false, reason: "no_data" });
+            return;
+          }
           renderSignalsRef.current?.();
           renderRef.current?.();
-          const src = chartRef.current!.takeScreenshot();   // HTMLCanvasElement — all panes (lightweight-charts' own px ratio)
+          const src = chart.takeScreenshot(); // HTMLCanvasElement — all panes; flushes pending native layout synchronously
+          // The queued measurement may still describe pre-flush pane tops/heights. Read the
+          // captured native layout now, before marker admission and pane-label copies.
+          measureRef.current?.();
+          // Coordinate-only repaint after the flush; do not run indicator/native data builders here.
+          renderSignalsRef.current?.(); renderRef.current?.();
           // One clock reading for this raster: every time stamped on the image is THIS instant, and a
-          // review reads the scene it describes in the same task, before anything below can await.
+          // review reads the scene it describes in the same task (after the flush and re-measure
+          // above, so it describes the captured layout), before anything below can await.
           const rasterAt = new Date();
           const before = review ? captureScene() : null;
           const painted: CapturePainted = {
@@ -3543,9 +3593,22 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
               ...(shownOnChart(countdownChipRef.current) ? ["countdown"] : []),
             ] : [],
           };
-          const wrap = wrapElRef.current;
-          const cssW = wrap ? wrap.clientWidth : src.width;
-          const cssH = wrap ? wrap.clientHeight : src.height;
+          const tradeFrame = largeTradesRef.current?.captureSnapshot(wrap, rasterAt.getTime()) ?? null;
+          if (process.env.NODE_ENV !== "production") {
+            // Primitive, read-only capture witness; the tests also inspect the actual saved pixels.
+            (window as unknown as { __mmLargeTradesSnapshot?: unknown }).__mmLargeTradesSnapshot = tradeFrame;
+          }
+          const cssW = wrap.clientWidth, cssH = wrap.clientHeight;
+          if (!cssW || !cssH) { respond({ ok: false, reason: "render_failed" }); return; }
+          const coName = (companyNameRef.current || "").trim();
+          const pLayout = paneLayoutRef.current.map((pane) => ({ top: pane.top,
+            entries: pane.entries.filter((entry) => !entry.hidden).map((entry) => ({
+              label: entry.label, color: (entry as { color?: string }).color,
+            })) }));
+          const snapshotTables: TableSpec[] = JSON.parse(JSON.stringify(suiteTablesRef.current));
+          const tablePalette = { panel: css("--panel") || "#101217", line: css("--line-3") || "#30343d",
+            text: css("--text") || "#d6dae3", text2: css("--text-2") || "#b8beca",
+            textDim: css("--text-dim") || "#747b89", muted: tokensRef.current.mut || css("--muted") || "#5a616f" };
           // Output scale for the final PNG: always TARGET_SCALE (2x) for crisp sharing.
           // takeScreenshot() may return a 1:1 canvas (lightweight-charts' own ratio); we upscale
           // via drawImage so the final PNG is always 2x regardless of the chart's native resolution.
@@ -3563,6 +3626,10 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
           const brand2 = tokensRef.current.brand2 || css("--brand-2") || "#4d82ff";
           const fam = css("--font-ui") || "system-ui, sans-serif";
           const numFam = css("--font-num") || fam;
+          const footer = tradeFrame ? layoutLargeTradesFooter(g, tradeFrame.footer, cssW, fam) : null;
+          const footerH = footer ? Math.ceil(footer.cssHeight * chartH / cssH) : 0;
+          out.height = HDR + chartH + footerH;
+          // All primitive state above and SVG clones below are frozen before the first await.
           // ── background ──
           g.fillStyle = bg;
           g.fillRect(0, 0, out.width, out.height);
@@ -3630,23 +3697,20 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
           // Premium Market/MTF dashboards are live DOM tables rather than chart/SVG primitives.
           // Repaint their current TableSpec data directly so every first-class indicator surface
           // participates in the export without depending on a lagging React commit or DOM rasterizer.
-          painted.tables = paintSnapshotTables(g, suiteTablesRef.current, {
-            outputWidth: out.width,
-            outputHeight: out.height,
+          painted.tables = paintSnapshotTables(g, snapshotTables, {
+            outputWidth: chartW,
+            // Bottom tables remain inside the chart; the new provenance footer is outside it.
+            outputHeight: HDR + chartH,
             scale: dpr,
             chartBodyTop: HDR,
-            palette: {
-              panel: css("--panel") || "#101217",
-              line: css("--line-3") || "#30343d",
-              text,
-              text2: css("--text-2") || "#b8beca",
-              textDim: css("--text-dim") || "#747b89",
-              muted: mut,
-            },
+            palette: tablePalette,
             fonts: { ui: fam, numeric: numFam },
           }).length;
+          // The live quantity layer (z9) paints above dashboard tables (z6); controls are excluded.
+          if (tradeFrame) paintLargeTradesSnapshot(g, tradeFrame, { x: 0, y: HDR, width: chartW, height: chartH });
+          if (footer) paintLargeTradesFooter(g, footer, { x: 0, y: HDR + chartH, width: chartW, height: footerH },
+            cssW, { background: bg, text: tablePalette.text2, line: tablePalette.line });
           // ── header band ──
-          const tf = timeframeRef.current;
           const pad = Math.round(14 * dpr);
           g.textBaseline = "middle";
           g.textAlign = "left";
@@ -3681,10 +3745,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
           g.font = `500 ${Math.round(9 * dpr)}px ${fam}`;
           g.fillText("TERMINAL", logoRight, Math.round(HDR / 2 + 6 * dpr));
           // symbol + tf (right of logo) — full timestamp right-aligned
-          // Effect 1 mounts once and the panel is deliberately NOT keyed by symbol, so the `symbol`
-          // prop captured here is frozen at mount. Read symbolRef (synced every render) or a
-          // snapshot taken after switching tickers stamps the header with the mount-time symbol.
-          const snapSym = symbolRef.current || symbol;
+          // Identity was admitted and copied with the native bitmap, before any asynchronous decode.
           const symX = logoRight + g.measureText("MASTERMIND").width + Math.round(18 * dpr);
           g.fillStyle = text;
           g.font = `700 ${Math.round(13 * dpr)}px ${fam}`;
@@ -3699,7 +3760,8 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
           if (process.env.NODE_ENV !== "production") {
             (window as unknown as { __mmSnapshotHeader?: { symbol: string; timeframe: string } }).__mmSnapshotHeader = { symbol: snapSym, timeframe: tf };
           }
-          // full timestamp in viewer's local timezone — the raster's instant, not the end of the composite
+          // Capture timestamp in viewer's local timezone, frozen with the bitmap — the raster's
+          // instant, not the end of the composite.
           const now = rasterAt;
           const tzOffset = -now.getTimezoneOffset() / 60;
           const tzSign = tzOffset >= 0 ? "+" : "-";
@@ -3713,7 +3775,6 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
           g.fillText(tsStr, out.width - pad, Math.round(HDR / 2 + 4 * dpr));
           // company name (proper name; zh preferred over English) on a second line under the symbol,
           // truncated with an ellipsis so a long name never runs into the right-aligned timestamp.
-          const coName = (companyNameRef.current || "").trim();
           if (coName) {
             g.textAlign = "left"; g.textBaseline = "middle";
             g.font = `500 ${Math.round(9 * dpr)}px ${fam}`;
@@ -3729,11 +3790,10 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
           // ── per-pane indicator labels (top-left of each pane, matching live view) ──
           // paneLayoutRef holds CSS-pixel positions; we convert to output-px using dpr (TARGET_SCALE),
           // not realScale — so label positions align with the upscaled chart raster.
-          const pLayout = paneLayoutRef.current;
           if (pLayout.length) {
             g.textAlign = "left"; g.textBaseline = "top";
             for (const pane of pLayout) {
-              const visEntries = pane.entries.filter((e) => !e.hidden);
+              const visEntries = pane.entries;
               if (!visEntries.length) continue;
               // pane.top is CSS-px; multiply by dpr (output scale) and offset by HDR
               const paneTopDev = Math.round(pane.top * dpr) + HDR;
@@ -3884,6 +3944,8 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
           volumeTop: g(() => c.priceScale("volume").options().scaleMargins?.top) ?? null,
           watermarkVisible: watermarkVisibleRef.current,
           rowCount: barsRef.current.length,
+          leftScaleWidth: g(() => c.priceScale("left").width()),
+          timeBarSpacing: g(() => c.timeScale().options().barSpacing),
           // Bounded readback of the REAL canvas series for default-style integration tests.
           // Reuses the existing dev-only diagnostics; unavailable in production and never a writer.
           contextProof: g(() => ({
@@ -7204,6 +7266,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
       }
       positionBar();
       renderAllPriceTags();  // keep persistent and foreground scale labels in step with data/pan/style renders
+      largeTradesRef.current?.reposition();
     };
     renderRef.current = renderDraw;
     clearDrawingSelectionRef.current = () => {
@@ -8676,6 +8739,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
       ttmsqMarkersRef.current = null; macdMarkersRef.current = null;
       try { episodeMarkersRef.current?.detach(); } catch {}
       episodeMarkersRef.current = null;
+      largeTradesRef.current?.clear();
       priceSeriesRef.current = null; priceFamilyRef.current = null;
       futureAxisRef.current = null;   // the engine disposes every series with the chart
       watermarkPluginRef.current = null;   // plugin is attached to a pane; engine.destroy() tears it down
@@ -8878,6 +8942,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
         applyFutureAxis();   // future dates on the time axis follow the loaded bars
         cpMark(`chart-painted[${symbol}@${effectiveTimeframe}:intraday]`);
         chartDataSymRef.current = symbol;
+        largeTradesRef.current?.sourceChanged();
         clearAllIndicators();
         buildAllIndicators(onChart, closes);
         buildIndDataMap(onChart, closes);
@@ -9065,6 +9130,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
       applyFutureAxis();   // future dates on the time axis follow the loaded bars
       cpMark(`chart-painted[${symbol}@${effectiveTimeframe}:daily]`);   // first candle on canvas
       chartDataSymRef.current = symbol;
+      largeTradesRef.current?.sourceChanged();
       // ── PERF-FIX (a): indicators — on same-symbol TF/chartType switch, update series data in-place
       //    (setData only, no removeSeries/addSeries lifecycle). On symbol change, do a full rebuild. ──
       // updateAllIndicators() only re-setData's the "inplace-series" keys; every other DT-suite
@@ -9141,6 +9207,14 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
         return idx == null ? null : (barsRef.current[idx]?.c ?? null);
       },
       tf: timeframeRef.current,
+      focusOwner: () => {
+        const acceptedSymbol = chartDataSymRef.current;
+        const acceptedTf = fullBarsTfRef.current;
+        if (chartRef.current !== chart || priceSeriesRef.current !== priceS
+          || !acceptedSymbol || acceptedSymbol !== symbolRef.current
+          || !acceptedTf || acceptedTf !== timeframeRef.current || !barsRef.current.length) return null;
+        return { symbol: acceptedSymbol, tf: acceptedTf };
+      },
       // A mirrored crosshair draws with no crosshairMove event behind it. Feed the independent
       // foreground DOM label directly while keeping both persistent badges untouched.
       onCrosshair: (price, time) => {
@@ -9644,6 +9718,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
     // exiting replay returns to the live series → re-apply the splice (self-guards under replay/EOD/intraday)
     applyLiveSplice();
     applyExtendedPriceLine();
+    largeTradesRef.current?.refresh();
     // eslint-disable-next-line
   }, [replayKey]);
 
@@ -10084,6 +10159,35 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
       </div>
       <div ref={ref} style={{ position: "absolute", inset: 0 }} />
       <ChartTables tables={suiteTables} />
+      {indicators.has("largeTrades") && !hidden.has("largeTrades") && tfVisible("largeTrades") && (
+        <LargeTradesOverlay ref={largeTradesRef} symbol={symbol} timeframe={effectiveTimeframe}
+          params={indParams.largeTrades || EMPTY_OBJ} replayCutoff={replayCutoff} interactive={!tool}
+          onSettings={onOpenSettings ? () => onOpenSettings("largeTrades") : undefined}
+          getContext={() => {
+            let nativePaneIndex: number | null = null;
+            try { nativePaneIndex = priceSeriesRef.current?.getPane().paneIndex() ?? null; } catch {}
+            // The header belongs to this chart, and can wrap without a pane resize.
+            // Normalize its painted bottom into the overlay's local CSS coordinates.
+            let statusHeaderBottom = 0;
+            const wrap = wrapElRef.current;
+            const line = statusRef.current?.closest<HTMLElement>(".statusline");
+            if (wrap && line) {
+              const lineRect = line.getBoundingClientRect(), wrapRect = wrap.getBoundingClientRect();
+              const style = getComputedStyle(line);
+              if (lineRect.width > 0 && lineRect.height > 0 && style.display !== "none"
+                && style.visibility !== "hidden" && Number(style.opacity) !== 0) {
+                statusHeaderBottom = wrapRect.height > 0
+                  ? (lineRect.bottom - wrapRect.top) * wrap.clientHeight / wrapRect.height : NaN;
+              }
+            }
+            return { chart: chartRef.current, series: priceSeriesRef.current, statusHeaderBottom,
+              bars: barsRef.current, sourceSymbol: chartDataSymRef.current,
+              timeframe: fullBarsTfRef.current, replayCutoff: replayIdxRef.current,
+              pricePane: resolveLargeTradesPricePane(paneLayoutRef.current.find((pane) => pane.isPrice) ?? null,
+                paneCtl.current, nativePaneIndex) };
+          }}
+        />
+      )}
       <VisualIntelligencePanel ref={visualPanelRef} symbol={symbol} timeframe={timeframe}
         visible={isActive && !!onVisualSettings && !paneLayout.some((pane) => pane.maximized && !pane.isPrice)}
         replay={replayCutoff !== null} settings={visualSettings(chartSettings)}

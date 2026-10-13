@@ -1,12 +1,12 @@
-# Terminal Visual Intelligence Layer — E20 landing train 3 fold round 2 recapture (E20 #953 + #957 ledger + E19 fonts #952 folded)
+# Terminal Visual Intelligence Layer — pane readiness source recapture
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
 # Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
-# capturedAtHead: c8b7b5847afc585aa7e931e6b448b28d4c70a1fb
-# capturedAt: 2026-10-12T03:07:46Z
+# capturedAtHead: 3b18fd7360903f2a3a7097700f0d0182e6294386
+# capturedAt: 2026-10-12T03:54:28.092006+00:00
 # Actual fresh local fixture captures; source identity remains the capture commit when artifacts are committed later.
 # Content-addressed layoutFiles + cropFiles, not ancestry, identify this capture.
 layoutFiles:
-  terminal/components/ChartPanel.tsx: "62108c3656468348a227b3e1189b1af5f5bb58d11d6417d95698d8bfb5af882c"
+  terminal/components/ChartPanel.tsx: "579ba00f36210e1de19b95b5295eb75cc9a58e8e5979ed50b314bb2715857bb3"
   terminal/components/ChartSettingsModal.tsx: "f26bd7dcbb9bd23e96546e835dec4c62c593b9c4d7412c411511005e7418146e"
   terminal/components/ChartSettingsModal.module.css: "a1685d103511e11882f8d379b22570f018e47aed88266db5ca6fec8808100b0a"
   terminal/components/DrawingSidebar.tsx: "95910121c08efa2a41bcaac02ec626a48bc98021bbbf9e611ff0b61f7baaf6d9"
@@ -20,13 +20,12 @@ layoutFiles:
   terminal/lib/suites/trend/candlePainter.ts: "8384d2bce3af939a51e88584b1436ee2898a89f0fbf1aedc09ffee624a3e12e1"
   terminal/lib/indicator-canvas/host.ts: "4f2949efb22b8c378cab1ff9d176466c4857073c14a36ee4f0eeab4ec1015a25"
 cropFiles:
-  desktop-context.png: "1efe10c831c6c9852c14cdaff012a7062ea23165a42029ada7575e92be8c5d49"
-  desktop-context-zh.png: "97e8a373efe2b10b62e558e17298b5b1f5f228e2625a06756a935c6c1a772a17"
-  tablet-context.png: "389e4468b8a48cd80bfbdc3b70a9f3c8d9fda91aa47a03eb36018b69dfd6ee1c"
-  tablet-context-zh.png: "c01b4de9b65cc794fb94a51bab33bcd91714a0c72a411a96f4e936ca58541cbd"
-  mobile-context.png: "0b805d938bf91b6928dbbe11995be2df5f07fb3c09b435a655eb59285b3a03da"
-  mobile-context-zh.png: "8fce8bf95ed6fd712b1b6af727a4b8fd2f2eae603b393f84bcc24ba5542e3f33"
-
+  desktop-context-zh.png: "8953711ea0d6a85373c2edb1e1156aa33020a1573791ff659570c39a3982a334"
+  desktop-context.png: "d99a712c10c50dbf8c3dba623abce1722c22bbba482118f5c3d50da046c35521"
+  mobile-context-zh.png: "15596fc86c4e13de64c62fc168906ab00af5a94458e0e8e49ab3297a1ab70b78"
+  mobile-context.png: "bd248abb692e383d9c72d81693470ac55f7ba949faea739cd5f24b7fb45c7738"
+  tablet-context-zh.png: "546bab1100ab1a872407b0fdc00c9178e74fa6a169654eb294ae75b47cd86a7e"
+  tablet-context.png: "6218ef617b8fccedf0cc21516a8602367f74fd86c20d23e52a593a24ff3733a1"
 theme: dark
 languages: [en, zh]
 viewports:
@@ -38,47 +37,26 @@ harness: /terminal?symbol=NVDA
 capture_flag: TERMINAL_E2E_FIXTURE
 capture_flag_law: Standard Playwright fixture also disables the Next.js dev indicator.
 commands:
-  - TERMINAL_E2E_PORT=47404 npm run test:e2e:responsive -- e2e/replay-statusline-responsive.spec.ts e2e/responsive.spec.ts e2e/shell-mode.spec.ts e2e/visual-intelligence.spec.ts e2e/chart-view-reset.spec.ts --grep "Replay status|canonical Terminal shell|D · identity|E · legend|saved startup timeframe|default context explains|classic candles retain|historical crosshair inspection|real candle colors|context can be restored|table and CSV|replay consumer excludes|unavailable calendar|Chinese context|New chart tickers reserve space" --project=desktop --project=tablet --project=mobile --workers=1 --retries=0 --reporter=list,json
+  - TERMINAL_E2E_PORT=3117 ./node_modules/.bin/playwright test e2e/visual-intelligence.spec.ts --project=desktop --project=tablet --project=mobile --workers=1 --retries=0 --reporter=list,json
 browserResults:
   desktop: 10/10 passed
   tablet: 10/10 passed
   mobile: 10/10 passed
   mobileCrosshairRegression: 1/1 passed
-  visualIntelligenceMatrix: 30 passed; zero failures
+  mobileCrosshairScope: Exact named mobile case within the same 30-case report; no separate rerun
+  visualIntelligenceMatrix: 30 passed; zero failures, skips, retries or flaky cases
 browserReportHashes:
-  visualReport: "45f2611b8151a15a90b08cbe13fd7cd455969ed7017aaaee46131569c5684288"
-  mobileCrosshairReport: "45f2611b8151a15a90b08cbe13fd7cd455969ed7017aaaee46131569c5684288"
+  visualReport: "ef9c182f35914cced55e33b0ce6dd2d4fa3a2261450bc85f2868793cdfdbf500"
+  mobileCrosshairReport: "ef9c182f35914cced55e33b0ce6dd2d4fa3a2261450bc85f2868793cdfdbf500"
 currentLocalGates:
-  sourceHead: c8b7b5847afc585aa7e931e6b448b28d4c70a1fb
-  sourceIdentity: E20 landing train 3 fold round 2 tree (origin/master c923cc46d179dd92cb6e3bd6d10c03c9bac17c76 + E20 #953 @27df75b81 + #957 @c011934ad + E19 fonts #952 @789f15847)
-  captureServer: own landing-train-3 fixture next dev on 127.0.0.1:47404; lsof-verified owner
-  typecheck: PASS; next typegen then tsc --noEmit on the folded train-3 tree
-  visualCompatibility: 48 passed, 0 failed, 0 flaky, 0 skipped (desktop, tablet, mobile; retries off)
-  focusedEvidenceGuards: lib/__tests__ Evidence gates rerun after this recapture
-  baselineDisposition: E20 adds a visible palette trigger to the shell and MobileNav; crops regenerated on the folded tree, never copied from either parent
-priorTrain3MasterSyncLocalGates:
-  sourceHead: 523a7f117f45e5f46e448bb0f8f775e03784793e
-  sourceIdentity: E20 landing train 3 merged tree after merging origin/master 85ad93866dcd9daf203c89a7d5e23280b5d6ed50 (train 2 #936)
-  captureServer: own landing-train-3 fixture next dev on 127.0.0.1:47321; lsof-verified owner
-  typecheck: PASS; next typegen then tsc --noEmit on the master-synced train-3 tree
-  visualCompatibility: 48 passed (16 desktop, 16 tablet, 16 mobile); zero failures, skips or flaky cases
-  focusedEvidenceGuards: lib/__tests__ Evidence gates rerun after this recapture
-  baselineDisposition: this EVIDENCE.yml conflicted in the origin/master sync (train 2 #936 touched TerminalShell, hub and alert sources); per PROGRAM_RULES §5 crops regenerated on the merged tree, never copied from either parent
-priorTrain3PreSyncLocalGates:
-  sourceHead: e6f4a64003f09bea43cd52fc893f76f99c223c1d
-  captureServer: own landing-train-3 fixture next dev on 127.0.0.1:47321; lsof-verified owner
-  typecheck: PASS; next typegen then tsc --noEmit on the merged train-3 tree
-  visualCompatibility: 48 passed (16 desktop, 16 tablet, 16 mobile); zero failures, skips or flaky cases
-  focusedEvidenceGuards: lib/__tests__ Evidence gates rerun after this recapture
-  baselineDisposition: train 3 merged E08 (#924) and E19 (#952) ChartPanel edits; ChartPanel-bound packets recaptured on the merged tree
-priorE08MergeLocalGates:
-  sourceHead: 486836fef6bcea287dc2e63624ea19083461acf2
-  captureServer: own merged-tree fixture next dev on 127.0.0.1:47181; lsof-verified owner; warmup /api/me, /api/watchlist, /api/layouts 200
-  typecheck: PASS; next typegen then tsc --noEmit on actual capture source
-  vitestFull: 545/546 files passed; 9011 tests passed; 2 failed (this packet's crop/layout hash rows before this recapture); 4 todo
-  visualCompatibility: 48 passed; zero failures, skips or flaky cases
-  baselineDisposition: E08 merge changed ChartPanel.tsx; three ChartPanel-bound packets recaptured on the merged tree
-priorTrain2MasterLocalGates:
+  sourceHead: 3b18fd7360903f2a3a7097700f0d0182e6294386
+  visualIntelligenceMatrix: 30 passed; zero failures, skips, retries or flaky cases; actual EN/ZH at three viewports
+  postCaptureGates: NOT_RUN_BY_THIS_CAPTURE_WRAPPER; separate final evidence readers, typecheck and release gates are required
+  scope: Fresh local fixture captures; no production or live-provider assertion
+priorProtectedc923cc46d179LocalGates:
+  retainedFromProtectedHead: c923cc46d179dd92cb6e3bd6d10c03c9bac17c76
+  retainedManifestSha256: c0bb67ebd2e3a50c6a8266fd9fdfbc840c0e499532baf7a0ccc23aa4a9af20e7
+  retainedScope: Historical previous currentLocalGates; original source and qualification claims preserved
   sourceHead: e4b64a840997b368d2d602518d31a04716533484
   sourceIdentity: E20 landing train 2 merged tree; source identical to merge 76b43cae770421ca03791bf22c324d473282bbc0 (only evidence docs differ)
   typecheck: PASS; next typegen then tsc --noEmit exit0 on 76b43cae7 source
@@ -86,7 +64,7 @@ priorTrain2MasterLocalGates:
   compatibilityCases: 18 passed; zero failures, skips or flaky cases (chart-view-reset, replay status EN/ZH, responsive shell, shell D/E at three viewports)
   run: rm -rf .next/dev; cold Playwright webServer; --workers=1 --retries=0; 48 passed
   baselineDisposition: recaptured after the train 2 merge changed locked sources; crops regenerated, never copied from either parent
-priorMasterSourceLocalGates:
+priorCaptureLocalGates:
   sourceHead: e669c889eaa004f580ae0b5a21bae6b55414d8a1
   typecheck: PASS; tsc --noEmit exit0 on actual capture source
   drawingReadiness: 11 focused tests and 3 existing owner lifecycle tests passed
