@@ -21,11 +21,18 @@ import {
   gestureStats,
   gestureIntervals,
   userTimingMs,
+  userTimingAllMs,
+  inputLatencyStats,
+  presentedIntervals,
+  measureVsync,
+  checkInputMarkClock,
   validateCadenceReceipt,
   CADENCE_BUDGETS,
   type CadenceGestureStats,
+  type CadenceDisplay,
+  type ParsedPresentation,
 } from "../chart-engine/bench/cadence";
-import { percentile } from "../chart-engine/bench/corpus";
+import { percentile, UNMEASURED } from "../chart-engine/bench/corpus";
 import { BUDGETS } from "../chart-engine/bench/receipt";
 
 const FIX_DIR = path.resolve(__dirname, "fixtures", "chart-engine");
@@ -270,7 +277,131 @@ describe("percentile shims and BUDGETS (Q03 / Q02 interop)", () => {
   });
 });
 
+describe("inputLatencyStats / presentedIntervals / measureVsync / checkInputMarkClock (Q03b)", () => {
+  // Test 9 first case: presentedMs [10, 20, 30, 40], start 5, end 35, marks
+  // [5, 12, 12, 20, 33, 34.5, 50]. 50 lies outside [5, 35]. Two marks at 12
+  // de-duplicate. So marks = [5, 12, 20, 33, 34.5]. For each, find the
+  // FIRST presentedMs >= m with p <= 35 + 100 = 135 (no tail effect here).
+  //   m=5   -> p=10   -> 5
+  //   m=12  -> p=20   -> 8
+  //   m=20  -> p=20   -> 0 (equality counts)
+  //   m=33  -> p=40   -> 7
+  //   m=34.5 -> p=40  -> 5.5
+  // Sorted latencies = [0, 5, 5.5, 7, 8]. p50 = 5.5, p95 = 8, p99 = 8.
+  // input_marks = 5, input_unpresented = 0.
+  function parsedWithPresented(presentedMs: number[], extraFrames: ParsedPresentation["frames"] = []): ParsedPresentation {
+    const presentedSet = new Set(presentedMs);
+    const partial = extraFrames.filter((f) => f.state === "partial");
+    const dropped = extraFrames.filter((f) => f.state === "dropped");
+    const frames: ParsedPresentation["frames"] = [
+      ...partial,
+      ...dropped,
+      ...presentedMs.map((ms) => ({ ms, state: "presented" as const })),
+    ].sort((a, b) => a.ms - b.ms);
+    return {
+      frames,
+      presentedMs,
+      presented: presentedSet.size,
+      partial: partial.length,
+      dropped: dropped.length,
+      rendererPid: 2,
+    };
+  }
+
+  it("9a. first case: marks are de-duplicated and bounded by the window; at-or-after rule counts equality; latencies correct", () => {
+    const parsed = parsedWithPresented([10, 20, 30, 40]);
+    const stats = inputLatencyStats(parsed, [5, 12, 12, 20, 33, 34.5, 50], 5, 35);
+    expect(stats.input_marks).toBe(5);
+    expect(stats.input_unpresented).toBe(0);
+    expect(stats.input_to_present_p50_ms).toBe(5.5);
+    expect(stats.input_to_present_p95_ms).toBe(8);
+    expect(stats.input_to_present_p99_ms).toBe(8);
+  });
+
+  // 9b: presentedMs [10, 200], start 0, end 50. mark 15 -> p must be >= 15 AND
+  // <= 50 + 100 = 150. 10 is too early; 200 > 150, too late. So unpresented.
+  // p95 is the percentile over the empty list -> UNMEASURED (a violation,
+  // never NaN).
+  it("9b. second case: input with no presentation in tail -> unpresented; p95 is UNMEASURED, never NaN", () => {
+    const parsed = parsedWithPresented([10, 200]);
+    const stats = inputLatencyStats(parsed, [15], 0, 50);
+    expect(stats.input_marks).toBe(1);
+    expect(stats.input_unpresented).toBe(1);
+    expect(stats.input_to_present_p50_ms).toBe(UNMEASURED);
+    expect(stats.input_to_present_p95_ms).toBe(UNMEASURED);
+    expect(stats.input_to_present_p99_ms).toBe(UNMEASURED);
+    expect(Number.isNaN(stats.input_to_present_p95_ms)).toBe(false);
+  });
+
+  // 9c: partial / dropped frames in parsed.frames must NEVER answer an
+  // input — only presentedMs (which holds STATE_PRESENTED_ALL) does.
+  it("9c. partial and dropped frames never answer an input; presentedMs is the only source", () => {
+    const parsed: ParsedPresentation = {
+      frames: [
+        { ms: 10, state: "presented" },
+        { ms: 20, state: "partial" },
+        { ms: 30, state: "dropped" },
+      ],
+      presentedMs: [10],
+      presented: 1,
+      partial: 1,
+      dropped: 1,
+      rendererPid: 2,
+    };
+    // The mark at 15 must NOT pick up the partial at 20 or the dropped at
+    // 30; only the presented frame at 10 is too early so input is
+    // unpresented.
+    const stats = inputLatencyStats(parsed, [15], 0, 50);
+    expect(stats.input_unpresented).toBe(1);
+    expect(stats.input_to_present_p95_ms).toBe(UNMEASURED);
+  });
+
+  it("10. inputLatencyStats throws 'no input marks' for [] and for marks all outside [start, end]", () => {
+    const parsed = parsedWithPresented([10, 20, 30]);
+    expect(() => inputLatencyStats(parsed, [], 0, 50)).toThrow(/no input marks/);
+    expect(() => inputLatencyStats(parsed, [200, 300], 0, 50)).toThrow(/no input marks/);
+    expect(() => inputLatencyStats(parsed, [-100, -50], 0, 50)).toThrow(/no input marks/);
+  });
+
+  it("11. presentedIntervals / measureVsync: rounded-mode ties -> smallest value; [0,-1,NaN] and [] throw; mean does not win", () => {
+    expect(presentedIntervals([1, 1, 5, 9])).toEqual([4, 4]);
+    // 16.66 -> 16.7, 16.68 -> 16.7, 16.71 -> 16.7, 33.4 -> 33.4, 8.3 -> 8.3.
+    // counts: 16.7 x3, 33.4 x1, 8.3 x1. mode = 16.7, hz = round(1000/16.7) = 60.
+    expect(measureVsync([16.66, 16.68, 16.71, 33.4, 8.3])).toEqual({ vsync_ms: 16.7, hz: 60 });
+    // 10 x2, 20 x2 -> tie -> smallest -> 10 -> hz 100.
+    expect(measureVsync([10, 10, 20, 20])).toEqual({ vsync_ms: 10, hz: 100 });
+    // 10 x3, 40 x1 -> 10 / 100. Mean of rounded values would be
+    // (10+10+10+40)/4 = 17.5 which is neither 60 Hz nor 120 Hz.
+    expect(measureVsync([10, 10, 10, 40])).toEqual({ vsync_ms: 10, hz: 100 });
+    expect(() => measureVsync([0, -1, Number.NaN])).toThrow(/no presented intervals/);
+    expect(() => measureVsync([])).toThrow(/no presented intervals/);
+  });
+
+  it("12. checkInputMarkClock: equal deltas ok; one off by 0.5 fails; count mismatch fails; [] [] ok; userTimingAllMs returns sorted ascending marks", () => {
+    // userTimingAllMs: sample fixture has the cadence:pan:start mark on the
+    // renderer pid; we verify it returns a sorted ascending array.
+    const marks = userTimingAllMs(SAMPLE_EVENTS, "cadence:pan:start", ORACLE.rendererPid);
+    expect(marks.length).toBeGreaterThan(0);
+    for (let i = 1; i < marks.length; i++) {
+      expect(marks[i]).toBeGreaterThanOrEqual(marks[i - 1] as number);
+    }
+    // Equal deltas -> ok.
+    expect(checkInputMarkClock([1000, 1010, 1020], [1000, 1010, 1020])).toEqual({ ok: true, maxDeviationMs: 0 });
+    // One delta off by 0.5 ms -> fail.
+    const off = checkInputMarkClock([1000, 1010.5, 1020], [1000, 1010, 1020]);
+    expect(off.ok).toBe(false);
+    if (!off.ok) expect(off.reason).toMatch(/deviation at i=1/);
+    // Count mismatch -> fail.
+    const cm = checkInputMarkClock([1000, 1010], [1000, 1010, 1020]);
+    expect(cm.ok).toBe(false);
+    if (!cm.ok) expect(cm.reason).toMatch(/count mismatch trace=2 page=3/);
+    // Empty -> ok.
+    expect(checkInputMarkClock([], [])).toEqual({ ok: true, maxDeviationMs: 0 });
+  });
+});
+
 describe("buildCadenceReceipt / validateCadenceReceipt (Q03)", () => {
+  const GREEN_DISPLAY: CadenceDisplay = { vsync_ms: 16.7, hz: 60 };
   function greenStats(overrides: Partial<CadenceGestureStats> = {}): CadenceGestureStats {
     return {
       inputs: 200,
@@ -281,6 +412,11 @@ describe("buildCadenceReceipt / validateCadenceReceipt (Q03)", () => {
       p50_ms: 8,
       p95_ms: 18,
       p99_ms: 28,
+      input_marks: 200,
+      input_unpresented: 0,
+      input_to_present_p50_ms: 8,
+      input_to_present_p95_ms: 18,
+      input_to_present_p99_ms: 28,
       ...overrides,
     };
   }
@@ -289,6 +425,7 @@ describe("buildCadenceReceipt / validateCadenceReceipt (Q03)", () => {
       commit: "a".repeat(40),
       impl: "mm",
       host: { os: "test-os", cpu: "test-cpu", dpr: 2 },
+      display: { ...GREEN_DISPLAY },
       generated_at: "2026-01-01T00:00:00.000Z",
       pan: greenStats(),
       zoom: greenStats(),
@@ -300,6 +437,7 @@ describe("buildCadenceReceipt / validateCadenceReceipt (Q03)", () => {
       commit: "a".repeat(40),
       impl: "mm",
       host: { os: "x", cpu: "y", dpr: 2 },
+      display: { ...GREEN_DISPLAY },
       generated_at: "2026-01-01T00:00:00.000Z",
       pan: greenStats({ p95_ms: 21 }), // over pan_p95 budget
       zoom: greenStats({ p99_ms: 40 }), // over zoom_p99 budget
@@ -353,6 +491,7 @@ describe("buildCadenceReceipt / validateCadenceReceipt (Q03)", () => {
         commit: "a".repeat(40),
         impl: "mm",
         host: { os: "x", cpu: "y", dpr: 2 },
+        display: { ...GREEN_DISPLAY },
         generated_at: "2026-01-01T00:00:00.000Z",
         pan: greenStats({ p95_ms: 21 }),
         zoom: greenStats(),
@@ -373,6 +512,113 @@ describe("buildCadenceReceipt / validateCadenceReceipt (Q03)", () => {
       const nan = JSON.parse(JSON.stringify(r));
       nan.gesture.pan.p95_ms = Number.NaN;
       expect(validateCadenceReceipt(nan).ok).toBe(false);
+    }
+  });
+
+  it("13. Q03b receipt: 9 top-level keys, 13 stat keys, METRIC_ORDER adds 4 input_to_present rows; rejects display / budgets / latency shape errors", () => {
+    const r = greenReceipt();
+    expect(validateCadenceReceipt(r).ok).toBe(true);
+    // Violations order: pan.presented_p95_ms, pan.presented_p99_ms,
+    // zoom.presented_p95_ms, zoom.presented_p99_ms, pan.input_to_present_p95_ms,
+    // pan.input_to_present_p99_ms, zoom.input_to_present_p95_ms,
+    // zoom.input_to_present_p99_ms. We trigger only the input-to-present ones
+    // by raising those metrics while keeping the presented ones at 18 / 28.
+    const viol = buildCadenceReceipt({
+      commit: "a".repeat(40),
+      impl: "mm",
+      host: { os: "x", cpu: "y", dpr: 2 },
+      display: { vsync_ms: 16.7, hz: 60 },
+      generated_at: "2026-01-01T00:00:00.000Z",
+      pan: greenStats({ input_to_present_p95_ms: 25, input_to_present_p99_ms: 40 }),
+      zoom: greenStats({ input_to_present_p95_ms: 25, input_to_present_p99_ms: 40 }),
+    });
+    expect(viol.violations.map((v) => v.metric)).toEqual([
+      "pan.input_to_present_p95_ms",
+      "pan.input_to_present_p99_ms",
+      "zoom.input_to_present_p95_ms",
+      "zoom.input_to_present_p99_ms",
+    ]);
+
+    // 9 top-level keys, 13 gesture stat keys.
+    const keyCount = (o: unknown) => (o && typeof o === "object" ? Object.keys(o as Record<string, unknown>).length : 0);
+    expect(keyCount(r)).toBe(9);
+    expect(keyCount(r.gesture.pan)).toBe(13);
+    expect(keyCount(r.gesture.zoom)).toBe(13);
+
+    // display missing.
+    {
+      const bad = JSON.parse(JSON.stringify(r));
+      delete bad.display;
+      const v = validateCadenceReceipt(bad);
+      expect(v.ok).toBe(false);
+      if (!v.ok) expect(v.errors.some((e) => /display/.test(e))).toBe(true);
+    }
+    // display extra key.
+    {
+      const bad = JSON.parse(JSON.stringify(r));
+      bad.display.extra = 1;
+      const v = validateCadenceReceipt(bad);
+      expect(v.ok).toBe(false);
+      if (!v.ok) expect(v.errors.some((e) => /display key "extra"/.test(e))).toBe(true);
+    }
+    // hz 61 with vsync_ms 16.7 -> mismatch.
+    {
+      const bad = JSON.parse(JSON.stringify(r));
+      bad.display.hz = 61;
+      const v = validateCadenceReceipt(bad);
+      expect(v.ok).toBe(false);
+      if (!v.ok) expect(v.errors.some((e) => /display\.hz/.test(e))).toBe(true);
+    }
+    // vsync_ms 0.
+    {
+      const bad = JSON.parse(JSON.stringify(r));
+      bad.display.vsync_ms = 0;
+      const v = validateCadenceReceipt(bad);
+      expect(v.ok).toBe(false);
+      if (!v.ok) expect(v.errors.some((e) => /vsync_ms/.test(e))).toBe(true);
+    }
+    // budgets missing input_to_present_p99_ms.
+    {
+      const bad = JSON.parse(JSON.stringify(r));
+      const budgets: Record<string, number> = { ...r.budgets };
+      delete budgets.input_to_present_p99_ms;
+      bad.budgets = budgets;
+      const v = validateCadenceReceipt(bad);
+      expect(v.ok).toBe(false);
+      if (!v.ok) expect(v.errors.some((e) => /budgets/.test(e))).toBe(true);
+    }
+    // budgets with an extra key.
+    {
+      const bad = JSON.parse(JSON.stringify(r));
+      bad.budgets = { ...r.budgets, extra: 10 };
+      const v = validateCadenceReceipt(bad);
+      expect(v.ok).toBe(false);
+      if (!v.ok) expect(v.errors.some((e) => /budgets/.test(e))).toBe(true);
+    }
+    // input_to_present_p95_ms set to 21 in budgets (canonical handshake).
+    {
+      const bad = JSON.parse(JSON.stringify(r));
+      bad.budgets = { ...r.budgets, input_to_present_p95_ms: 21 };
+      const v = validateCadenceReceipt(bad);
+      expect(v.ok).toBe(false);
+      if (!v.ok) expect(v.errors.some((e) => /budgets/.test(e))).toBe(true);
+    }
+    // input_unpresented > input_marks.
+    {
+      const bad = JSON.parse(JSON.stringify(r));
+      bad.gesture.pan.input_marks = 10;
+      bad.gesture.pan.input_unpresented = 11;
+      const v = validateCadenceReceipt(bad);
+      expect(v.ok).toBe(false);
+      if (!v.ok) expect(v.errors.some((e) => /input_unpresented/.test(e))).toBe(true);
+    }
+    // missing latency stat key.
+    {
+      const bad = JSON.parse(JSON.stringify(r));
+      delete bad.gesture.zoom.input_to_present_p95_ms;
+      const v = validateCadenceReceipt(bad);
+      expect(v.ok).toBe(false);
+      if (!v.ok) expect(v.errors.some((e) => /input_to_present_p95_ms/.test(e))).toBe(true);
     }
   });
 });

@@ -34,6 +34,29 @@
 // schema, no ajv. Percentiles delegate to `corpus.percentile` so an empty
 // sample set yields UNMEASURED — a violation, never `NaN`.
 //
+// Per-input presentation latency (Q03b):
+// The bench installs a single capture-phase listener for pointermove/mousemove
+// (pan) and wheel (zoom) on `document`. For a PointerEvent whose
+// getCoalescedEvents() is non-empty we record one mark per coalesced event;
+// otherwise one mark on the event itself. Each mark is placed at the input's
+// timeStamp via `performance.mark(name, { startTime })`, so the mark clock
+// is the INPUT clock, not the listener-clock. The matching rule for an input
+// mark m is the FIRST presented frame at or after m (presentedMs holds only
+// STATE_PRESENTED_ALL), and only if that frame still falls inside the gesture
+// tail. An input whose first qualifying presentation never arrives inside
+// the tail is "unpresented" (counted, never dropped). The interval quantity
+// is bounded by the input rate (~20 ms) because the wheel/pointer dispatch
+// does not fire faster than that; per-input latency is a different metric and
+// it does not inherit that bound (the renderer can answer the input on any
+// frame, presented or not, up to one tail later).
+//
+// Measured vsync:
+// The presented-frame interval distribution IS the vsync signal. We round
+// each finite positive interval to 0.1 ms, take the MODE (ties -> the
+// smallest value), and report `vsync_ms = mode`, `hz = round(1000/vsync_ms)`.
+// The mode is measured, never declared; nothing here assumes 60 Hz / 120 Hz
+// / 16.7 ms.
+//
 // Pure: no fs, no playwright, no DOM, no ajv. Only `./corpus` is imported.
 // House style: 2-space indent, double quotes, semicolons, named exports.
 
@@ -71,7 +94,8 @@ export type ParsedPresentation = {
   rendererPid: number;
 };
 
-export type CadenceGestureStats = {
+/** The eight intervals-only metrics a per-gesture stats record carries. */
+export type PresentedCadenceStats = {
   inputs: number;
   input_hz: number;
   presented: number;
@@ -82,10 +106,35 @@ export type CadenceGestureStats = {
   p99_ms: number;
 };
 
+/** Per-input presentation latency (Q03b): how long each input waited for a
+ *  presented frame. `input_marks` is the unique count of input events; any
+ *  input that finds no presented frame at-or-after it inside the gesture tail
+ *  is counted in `input_unpresented`. Empty latency -> p50/p95/p99 are
+ *  UNMEASURED (a violation, never `NaN`). */
+export type InputLatencyStats = {
+  input_marks: number;
+  input_unpresented: number;
+  input_to_present_p50_ms: number;
+  input_to_present_p95_ms: number;
+  input_to_present_p99_ms: number;
+};
+
+/** Per-gesture record in a receipt: 13 keys. The eight intervals-only metrics
+ *  plus the five per-input latency metrics. */
+export type CadenceGestureStats = PresentedCadenceStats & InputLatencyStats;
+
+/** Top-level display signal: measured vsync. Never declared from a constant;
+ *  computed from the union of presented-frame intervals across both gestures. */
+export type CadenceDisplay = {
+  vsync_ms: number;
+  hz: number;
+};
+
 export type CadenceReceipt = {
   commit: string;
   impl: "mm" | "lwc";
   host: { os: string; cpu: string; dpr: number };
+  display: CadenceDisplay;
   generated_at: string;
   gesture: { pan: CadenceGestureStats; zoom: CadenceGestureStats };
   budgets: typeof CADENCE_BUDGETS;
@@ -167,6 +216,32 @@ export function userTimingMs(events: readonly unknown[], name: string): number |
     }
   }
   return null;
+}
+
+/**
+ * EVERY blink.user_timing event whose `name` equals `name` exactly, presented
+ * as `ts / 1000` ms, sorted ascending. Duplicates are kept (NOT de-duplicated)
+ * so the caller can tell how many marks Chromium actually emitted. When `pid`
+ * is supplied, only marks on that pid count; the bench passes the renderer
+ * pid so a Browser-pid copy of the same mark name cannot leak into the input
+ * set. `userTimingMs` is the FIRST-of-NAME view; `userTimingAllMs` is the
+ * EVERY view.
+ */
+export function userTimingAllMs(events: readonly unknown[], name: string, pid?: number): number[] {
+  const raw = readRawEvents(events);
+  const out: number[] = [];
+  for (const e of raw) {
+    if (readString(e.cat) !== "blink.user_timing") continue;
+    if (readString(e.name) !== name) continue;
+    if (pid != null) {
+      const p = readNumber(e.pid);
+      if (p !== pid) continue;
+    }
+    const ts = readNumber(e.ts);
+    if (ts != null) out.push(ts / 1000);
+  }
+  out.sort((a, b) => a - b);
+  return out;
 }
 
 // ---------- renderer pid selection ----------
@@ -493,6 +568,11 @@ export function gestureStats(
     p50_ms: p50(intervals),
     p95_ms: p95(intervals),
     p99_ms: p99(intervals),
+    input_marks: 0,
+    input_unpresented: 0,
+    input_to_present_p50_ms: percentile([], 0.5),
+    input_to_present_p95_ms: percentile([], 0.95),
+    input_to_present_p99_ms: percentile([], 0.99),
   };
 }
 
@@ -510,29 +590,187 @@ export function p99(v: readonly number[]): number {
   return percentile([...v], 0.99);
 }
 
+// ---------- per-input latency ----------
+
+/**
+ * Per-input presentation latency (Q03b). The matching rule is the FIRST
+ * `presentedMs` value at-or-after each input mark `m`, AND that presentation
+ * must still fall inside `[startMarkMs, endMarkMs + GESTURE_TAIL_MS]`
+ * inclusive (otherwise the input is unpresented — the gesture is over and no
+ * frame arrived in time). `inputMarksMs` is de-duplicated within the gesture
+ * window (pointermove and the compatibility mousemove of the same input both
+ * carry the same timeStamp; Chromium pairs them through coalesced events but
+ * the trace records both). Equality counts (a mark that lands exactly on a
+ * presentation frame has latency 0). An empty mark list throws — there is
+ * no way to compute a per-input latency without inputs.
+ */
+export function inputLatencyStats(
+  parsed: ParsedPresentation,
+  inputMarksMs: readonly number[],
+  startMarkMs: number,
+  endMarkMs: number,
+): InputLatencyStats {
+  // Keep marks that fall inside the gesture window inclusive; de-duplicate.
+  const inWindow = inputMarksMs.filter((m) => m >= startMarkMs && m <= endMarkMs);
+  const marks = Array.from(new Set(inWindow)).sort((a, b) => a - b);
+  if (marks.length === 0) {
+    throw new Error("no input marks");
+  }
+  const tailEnd = endMarkMs + GESTURE_TAIL_MS;
+  const latencies: number[] = [];
+  let unpresented = 0;
+  // presentedMs is already sorted ascending (see parsePresentedFrames).
+  const presentedMs = parsed.presentedMs;
+  for (const m of marks) {
+    let found = false;
+    for (const p of presentedMs) {
+      if (p >= m && p <= tailEnd) {
+        latencies.push(p - m);
+        found = true;
+        break;
+      }
+    }
+    if (!found) unpresented += 1;
+  }
+  return {
+    input_marks: marks.length,
+    input_unpresented: unpresented,
+    input_to_present_p50_ms: percentile(latencies, 0.5),
+    input_to_present_p95_ms: percentile(latencies, 0.95),
+    input_to_present_p99_ms: percentile(latencies, 0.99),
+  };
+}
+
+// ---------- presented intervals / measured vsync ----------
+
+/**
+ * Consecutive deltas `b - a` over the WHOLE `presentedMs` array; zero and
+ * negative deltas are dropped (a malformed frame and an out-of-order one).
+ * Unlike `gestureIntervals`, there is NO window — this feeds vsync detection,
+ * which must see every consecutive frame pair.
+ */
+export function presentedIntervals(presentedMs: readonly number[]): number[] {
+  const out: number[] = [];
+  for (let i = 1; i < presentedMs.length; i++) {
+    const a = presentedMs[i - 1];
+    const b = presentedMs[i];
+    if (a == null || b == null) continue;
+    const d = b - a;
+    if (d > 0) out.push(d);
+  }
+  return out;
+}
+
+/**
+ * The mode of the rounded (0.1 ms) presented-frame intervals across both
+ * gestures is the vsync period; ties go to the SMALLEST rounded value (so a
+ * 120 Hz / 8.3 ms mode wins over a 60 Hz / 16.7 ms tail). Empty or all-non-
+ * finite -> throw; the bench never produces zero intervals because every
+ * gesture requires >= 2 presented frames. Measured, never declared: there is
+ * no constant 60 / 120 / 16.7 anywhere in this function.
+ */
+export function measureVsync(intervalsMs: readonly number[]): CadenceDisplay {
+  const counts = new Map<number, number>();
+  for (const v of intervalsMs) {
+    if (!Number.isFinite(v) || v <= 0) continue;
+    const rounded = Math.round(v * 10) / 10;
+    counts.set(rounded, (counts.get(rounded) ?? 0) + 1);
+  }
+  if (counts.size === 0) {
+    throw new Error("no presented intervals");
+  }
+  let modeValue = Number.NaN;
+  let modeCount = -1;
+  for (const [value, count] of counts) {
+    if (count > modeCount || (count === modeCount && value < modeValue)) {
+      modeValue = value;
+      modeCount = count;
+    }
+  }
+  const vsyncMs = Math.round(modeValue * 10) / 10;
+  return { vsync_ms: vsyncMs, hz: Math.round(1000 / vsyncMs) };
+}
+
+// ---------- input-mark clock check ----------
+
+/**
+ * The bench listener stamps each mark with `ev.timeStamp` via
+ * `performance.mark(name, { startTime })`. The trace should carry every
+ * mark at exactly that ts, so the two views — CDP trace ts/1000 and the
+ * page-side `performance.getEntriesByName(name, "mark")` startTimes — must
+ * agree. Sort both ascending, require equal lengths, and verify every
+ * delta-from-first agrees within `toleranceMs` (default 0.01 ms — the mark
+ * clock is microsecond-precision, 0.01 ms is two-decimal headroom). An empty
+ * pair is ok (no marks to disagree on). On ok:false, `reason` names the
+ * failure shape so the bench can dump the offending trace.
+ */
+export function checkInputMarkClock(
+  traceMarksMs: readonly number[],
+  pageStartTimesMs: readonly number[],
+  toleranceMs = 0.01,
+): { ok: true; maxDeviationMs: number } | { ok: false; reason: string } {
+  if (traceMarksMs.length === 0 && pageStartTimesMs.length === 0) {
+    return { ok: true, maxDeviationMs: 0 };
+  }
+  const trace = [...traceMarksMs].sort((a, b) => a - b);
+  const page = [...pageStartTimesMs].sort((a, b) => a - b);
+  if (trace.length !== page.length) {
+    return { ok: false, reason: `count mismatch trace=${trace.length} page=${page.length}` };
+  }
+  const traceBase = trace[0] ?? 0;
+  const pageBase = page[0] ?? 0;
+  let maxDev = 0;
+  for (let i = 0; i < trace.length; i++) {
+    const dev = Math.abs((trace[i] - traceBase) - (page[i] - pageBase));
+    if (dev > maxDev) maxDev = dev;
+    if (dev > toleranceMs) {
+      return { ok: false, reason: `deviation at i=${i} is ${dev} ms (> ${toleranceMs} ms tolerance)` };
+    }
+  }
+  return { ok: true, maxDeviationMs: maxDev };
+}
+
 // ---------- receipt builder / validator ----------
 
 export type BuildCadenceReceiptInput = {
   commit: string;
   impl: "mm" | "lwc";
   host: { os: string; cpu: string; dpr: number };
+  display: CadenceDisplay;
   generated_at?: string;
   pan: CadenceGestureStats;
   zoom: CadenceGestureStats;
 };
 
-type MetricOrder = { metric: string; gesture: "pan" | "zoom"; field: "p95_ms" | "p99_ms"; budget: number };
+type MetricOrder = {
+  metric: string;
+  gesture: "pan" | "zoom";
+  field: "p95_ms" | "p99_ms" | "input_to_present_p95_ms" | "input_to_present_p99_ms";
+  budget: number;
+};
 
 const METRIC_ORDER: readonly MetricOrder[] = [
   { metric: "pan.presented_p95_ms", gesture: "pan", field: "p95_ms", budget: CADENCE_BUDGETS.presented_p95_ms },
   { metric: "pan.presented_p99_ms", gesture: "pan", field: "p99_ms", budget: CADENCE_BUDGETS.presented_p99_ms },
   { metric: "zoom.presented_p95_ms", gesture: "zoom", field: "p95_ms", budget: CADENCE_BUDGETS.presented_p95_ms },
   { metric: "zoom.presented_p99_ms", gesture: "zoom", field: "p99_ms", budget: CADENCE_BUDGETS.presented_p99_ms },
+  { metric: "pan.input_to_present_p95_ms", gesture: "pan", field: "input_to_present_p95_ms", budget: CADENCE_BUDGETS.input_to_present_p95_ms },
+  { metric: "pan.input_to_present_p99_ms", gesture: "pan", field: "input_to_present_p99_ms", budget: CADENCE_BUDGETS.input_to_present_p99_ms },
+  { metric: "zoom.input_to_present_p95_ms", gesture: "zoom", field: "input_to_present_p95_ms", budget: CADENCE_BUDGETS.input_to_present_p95_ms },
+  { metric: "zoom.input_to_present_p99_ms", gesture: "zoom", field: "input_to_present_p99_ms", budget: CADENCE_BUDGETS.input_to_present_p99_ms },
 ];
 
 function readGestureMetric(s: CadenceGestureStats, field: MetricOrder["field"]): number {
-  if (field === "p95_ms") return s.p95_ms;
-  return s.p99_ms;
+  switch (field) {
+    case "p95_ms":
+      return s.p95_ms;
+    case "p99_ms":
+      return s.p99_ms;
+    case "input_to_present_p95_ms":
+      return s.input_to_present_p95_ms;
+    case "input_to_present_p99_ms":
+      return s.input_to_present_p99_ms;
+  }
 }
 
 export function buildCadenceReceipt(input: BuildCadenceReceiptInput): CadenceReceipt {
@@ -546,6 +784,7 @@ export function buildCadenceReceipt(input: BuildCadenceReceiptInput): CadenceRec
     commit: input.commit,
     impl: input.impl,
     host: input.host,
+    display: input.display,
     generated_at: input.generated_at ?? new Date().toISOString(),
     gesture: { pan: input.pan, zoom: input.zoom },
     budgets: CADENCE_BUDGETS,
@@ -554,32 +793,49 @@ export function buildCadenceReceipt(input: BuildCadenceReceiptInput): CadenceRec
   };
 }
 
-function deepEqualBudgets(a: unknown): boolean {
-  if (a == null || typeof a !== "object") return false;
+function deepEqualBudgets(a: unknown): { ok: true } | { ok: false; reason: string } {
+  if (a == null || typeof a !== "object") return { ok: false, reason: "budgets must be an object" };
   const obj = a as Record<string, unknown>;
-  return (
-    obj.presented_p95_ms === CADENCE_BUDGETS.presented_p95_ms &&
-    obj.presented_p99_ms === CADENCE_BUDGETS.presented_p99_ms
-  );
+  const keys = Object.keys(obj);
+  const required = ["presented_p95_ms", "presented_p99_ms", "input_to_present_p95_ms", "input_to_present_p99_ms"] as const;
+  for (const k of required) {
+    if (!(k in obj)) return { ok: false, reason: `missing budgets key "${k}"` };
+    if (obj[k] !== (CADENCE_BUDGETS as Record<string, number>)[k]) {
+      return { ok: false, reason: `budgets.${k} must equal ${(CADENCE_BUDGETS as Record<string, number>)[k]} (got ${JSON.stringify(obj[k])})` };
+    }
+  }
+  for (const k of keys) {
+    if (!(required as readonly string[]).includes(k)) return { ok: false, reason: `unexpected budgets key "${k}"` };
+  }
+  return { ok: true };
 }
 
 function isFiniteNumber(v: unknown): v is number {
   return typeof v === "number" && Number.isFinite(v);
 }
 
+function isPositiveInteger(v: unknown): v is number {
+  return typeof v === "number" && Number.isFinite(v) && Math.floor(v) === v && v > 0;
+}
+
 function isNonNegativeInt(v: unknown): v is number {
   return typeof v === "number" && Number.isFinite(v) && Math.floor(v) === v && v >= 0;
+}
+
+function isNonNegativeFinite(v: unknown): v is number {
+  return typeof v === "number" && Number.isFinite(v) && v >= 0;
 }
 
 function isNonEmptyString(v: unknown): v is string {
   return typeof v === "string" && v.length > 0;
 }
 
-/** Exactly eight top-level keys; exactly eight gesture stat keys per gesture. */
+/** Exactly nine top-level keys; exactly thirteen gesture stat keys per gesture. */
 const TOP_LEVEL_KEYS = [
   "commit",
   "impl",
   "host",
+  "display",
   "generated_at",
   "gesture",
   "budgets",
@@ -595,7 +851,13 @@ const GESTURE_STAT_KEYS = [
   "p50_ms",
   "p95_ms",
   "p99_ms",
+  "input_marks",
+  "input_unpresented",
+  "input_to_present_p50_ms",
+  "input_to_present_p95_ms",
+  "input_to_present_p99_ms",
 ] as const;
+const DISPLAY_KEYS = ["vsync_ms", "hz"] as const;
 
 export function validateCadenceReceipt(receipt: unknown): { ok: true } | { ok: false; errors: string[] } {
   const errors: string[] = [];
@@ -603,7 +865,7 @@ export function validateCadenceReceipt(receipt: unknown): { ok: true } | { ok: f
     return { ok: false, errors: ["receipt is not an object"] };
   }
   const r = receipt as Record<string, unknown>;
-  // A3: reject a top-level key outside the eight.
+  // A3: reject a top-level key outside the nine.
   for (const k of Object.keys(r)) {
     if (!(TOP_LEVEL_KEYS as readonly string[]).includes(k)) {
       errors.push(`unexpected top-level key "${k}"`);
@@ -631,8 +893,33 @@ export function validateCadenceReceipt(receipt: unknown): { ok: true } | { ok: f
       errors.push(`host.dpr must be a positive number (got ${JSON.stringify(host.dpr)})`);
     }
   }
-  if (!deepEqualBudgets(r.budgets)) {
-    errors.push(`budgets must deep-equal CADENCE_BUDGETS (got ${JSON.stringify(r.budgets)})`);
+  const display = r.display as Record<string, unknown> | undefined;
+  if (display == null || typeof display !== "object") {
+    errors.push("display must be an object");
+  } else {
+    for (const k of Object.keys(display)) {
+      if (!(DISPLAY_KEYS as readonly string[]).includes(k)) {
+        errors.push(`unexpected display key "${k}"`);
+      }
+    }
+    for (const k of DISPLAY_KEYS) {
+      if (!(k in display)) errors.push(`missing display key "${k}"`);
+    }
+    if (!isNonNegativeFinite(display.vsync_ms) || display.vsync_ms <= 0) {
+      errors.push(`display.vsync_ms must be a finite number > 0 (got ${JSON.stringify(display.vsync_ms)})`);
+    }
+    if (!isPositiveInteger(display.hz)) {
+      errors.push(`display.hz must be a positive integer (got ${JSON.stringify(display.hz)})`);
+    } else if (isNonNegativeFinite(display.vsync_ms) && display.vsync_ms > 0) {
+      const expected = Math.round(1000 / (display.vsync_ms as number));
+      if (display.hz !== expected) {
+        errors.push(`display.hz (${display.hz}) must equal round(1000/vsync_ms) (${expected})`);
+      }
+    }
+  }
+  const budgetCheck = deepEqualBudgets(r.budgets);
+  if (!budgetCheck.ok) {
+    errors.push(budgetCheck.reason);
   }
   const gesture = r.gesture as { pan?: unknown; zoom?: unknown } | undefined;
   if (gesture == null || typeof gesture !== "object") {
@@ -644,18 +931,25 @@ export function validateCadenceReceipt(receipt: unknown): { ok: true } | { ok: f
         errors.push(`gesture.${g} must be an object`);
         continue;
       }
-      // A3: reject a stat key outside the eight.
+      // A3: reject a stat key outside the thirteen.
       for (const k of Object.keys(s)) {
         if (!(GESTURE_STAT_KEYS as readonly string[]).includes(k)) {
           errors.push(`unexpected gesture.${g} key "${k}"`);
         }
       }
-      const finiteKeys = ["input_hz", "p50_ms", "p95_ms", "p99_ms"];
-      for (const k of finiteKeys) {
-        if (!isFiniteNumber(s[k])) errors.push(`gesture.${g}.${k} must be a finite number (got ${JSON.stringify(s[k])})`);
+      for (const k of GESTURE_STAT_KEYS) {
+        if (!(k in s)) errors.push(`missing gesture.${g} key "${k}"`);
       }
-      for (const k of ["inputs", "presented", "partial", "dropped"]) {
+      const finiteKeys = ["input_hz", "p50_ms", "p95_ms", "p99_ms", "input_to_present_p50_ms", "input_to_present_p95_ms", "input_to_present_p99_ms"];
+      for (const k of finiteKeys) {
+        if (!isNonNegativeFinite(s[k])) errors.push(`gesture.${g}.${k} must be a finite number >= 0 (got ${JSON.stringify(s[k])})`);
+      }
+      for (const k of ["inputs", "presented", "partial", "dropped", "input_marks", "input_unpresented"]) {
         if (!isNonNegativeInt(s[k])) errors.push(`gesture.${g}.${k} must be a non-negative integer (got ${JSON.stringify(s[k])})`);
+      }
+      // input_unpresented <= input_marks (cannot have more unpresented than inputs).
+      if (isNonNegativeInt(s.input_marks) && isNonNegativeInt(s.input_unpresented) && (s.input_unpresented as number) > (s.input_marks as number)) {
+        errors.push(`gesture.${g}.input_unpresented (${s.input_unpresented}) must be <= input_marks (${s.input_marks})`);
       }
     }
   }
@@ -666,15 +960,19 @@ export function validateCadenceReceipt(receipt: unknown): { ok: true } | { ok: f
     errors.push("budget_ok must be a boolean");
   }
 
-  // Round-trip check: rebuild the receipt from the gesture stats and the
-  // canonical budgets and compare violations / budget_ok exactly.
+  // Round-trip check: rebuild the receipt from the gesture stats + display
+  // and the canonical budgets and compare violations / budget_ok exactly.
   if (gesture && typeof gesture === "object") {
     const pan = gesture.pan as CadenceGestureStats | undefined;
     const zoom = gesture.zoom as CadenceGestureStats | undefined;
     if (
       pan != null && zoom != null &&
-      isFiniteNumber(pan.p95_ms) && isFiniteNumber(pan.p99_ms) &&
-      isFiniteNumber(zoom.p95_ms) && isFiniteNumber(zoom.p99_ms)
+      isNonNegativeFinite(pan.p95_ms) && isNonNegativeFinite(pan.p99_ms) &&
+      isNonNegativeFinite(zoom.p95_ms) && isNonNegativeFinite(zoom.p99_ms) &&
+      isNonNegativeFinite(pan.input_to_present_p95_ms) && isNonNegativeFinite(pan.input_to_present_p99_ms) &&
+      isNonNegativeFinite(zoom.input_to_present_p95_ms) && isNonNegativeFinite(zoom.input_to_present_p99_ms) &&
+      display != null && typeof display === "object" &&
+      isNonNegativeFinite(display.vsync_ms) && isPositiveInteger(display.hz)
     ) {
       const expected = buildCadenceReceipt({
         commit: typeof r.commit === "string" ? r.commit : "0".repeat(40),
@@ -684,6 +982,7 @@ export function validateCadenceReceipt(receipt: unknown): { ok: true } | { ok: f
           cpu: typeof host?.cpu === "string" ? host.cpu : "x",
           dpr: isFiniteNumber(host?.dpr) ? (host.dpr as number) : 1,
         },
+        display: { vsync_ms: display.vsync_ms as number, hz: display.hz as number },
         pan,
         zoom,
       });
