@@ -147,7 +147,7 @@ describe("PP2-UI-c (u1) matrixForExactScope", () => {
     expect(result.cells!.filter((c) => c.strike === 103 && c.expiry === "2026-07-09").length).toBeGreaterThan(0); // in-range kept
     expect(result.cells!.some((c) => c.strike === 100 || c.strike === 104 || c.expiry === "2026-07-16")).toBe(false);
     // Derived-grid (no declared axes) — never rewritten to "declared-grid"
-    const derived = { ...declaredFixture(), strikes: undefined, expiries: undefined } as unknown;
+    const derived = { ...declaredFixture(), strikes: undefined, expiries: undefined } as Parameters<typeof matrixForExactScope>[0];
     const derivedResult = matrixForExactScope(derived, [101], ["2026-07-09"]);
     expect(derivedResult.strikes).toBeUndefined();
     expect(derivedResult.expiries).toBeUndefined();

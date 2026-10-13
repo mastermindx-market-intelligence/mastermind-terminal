@@ -33,9 +33,12 @@ const chartPin = (page: Page) => page.evaluate(() => (window as ChartDebugWindow
 async function editScope(panel: Locator, lang: "en" | "zh", change: { expiries?: string; norm?: "global" | "column"; window?: string }, apply = true) {
   await panel.getByTestId("options-scope-toggle").click();
   const editor = panel.getByTestId("options-scope-editor"); await expect(editor).toBeVisible();
-  if (change.expiries) await editor.getByLabel(lang === "zh" ? "到期日" : "Expiries", { exact: true }).selectOption(change.expiries);
-  if (change.norm) await editor.getByLabel(lang === "zh" ? "颜色尺度" : "Color scale").selectOption(change.norm);
-  if (change.window) await editor.getByLabel(lang === "zh" ? "行权价范围" : "Strike window").selectOption(change.window);
+  // Use testids instead of label text: the PP2-UI-c preset-mode radio shares the
+  // word "Strike window" with the preset's select, which made getByLabel match both
+  // and trip strict mode after the radio group was introduced.
+  if (change.expiries) await editor.getByTestId("options-scope-expiries").selectOption(change.expiries);
+  if (change.norm) await editor.getByTestId("options-scope-norm").selectOption(change.norm);
+  if (change.window) await editor.getByTestId("options-scope-window").selectOption(change.window);
   await editor.getByTestId(apply ? "options-scope-apply" : "options-scope-cancel").click();
   await expect(editor).toHaveCount(0);
   await expect(panel.getByTestId("options-scope-toggle")).toBeFocused();
@@ -574,6 +577,24 @@ for (const lang of ["en", "zh"] as const) {
     expect(stampClosed.buttonHeight).not.toBeNull();
     expect(stampClosed.rowHeight!).toBeLessThanOrEqual(stampClosed.buttonHeight! + 1);
 
+    // PP2-UI-c item 4b (closed): the stamp row does not overflow horizontally;
+    // every direct child sits inside the row's right edge.
+    const closedRow = await panel.evaluate(() => {
+      const row = document.querySelector("[data-options-session]") as HTMLElement | null;
+      if (!row) return null;
+      const r = row.getBoundingClientRect();
+      const children = [...row.querySelectorAll<HTMLElement>(":scope > *")].map((el) => {
+        const cr = el.getBoundingClientRect();
+        return { right: Math.round(cr.right), bottom: Math.round(cr.bottom) };
+      });
+      return { rowRight: Math.round(r.right), scrollWidth: row.scrollWidth, clientWidth: row.clientWidth, children };
+    });
+    expect(closedRow).not.toBeNull();
+    expect(closedRow!.scrollWidth).toBeLessThanOrEqual(closedRow!.clientWidth + 1);
+    for (const child of closedRow!.children) {
+      expect.soft(child.right).toBeLessThanOrEqual(closedRow!.rowRight + 1);
+    }
+
     // Open the receipts and check the Map build / End-of-day prices rows.
     const details = panel.getByTestId("options-receipts");
     await expect(details).toBeVisible();
@@ -607,6 +628,28 @@ for (const lang of ["en", "zh"] as const) {
       return c ? c.scrollWidth - c.clientWidth : 0;
     });
     expect(openOverflow).toBeLessThanOrEqual(1);
+
+    // PP2-UI-c item 4b (open): the <details> box drops to its own line and fits
+    // the row's right edge; the tabpanel itself never overflows horizontally.
+    const openRow = await panel.evaluate(() => {
+      const row = document.querySelector("[data-options-session]") as HTMLElement | null;
+      const details = row?.querySelector("details") as HTMLElement | null;
+      const button = row?.querySelector("button") as HTMLElement | null;
+      const tabpanel = document.querySelector("[data-options-companion] [role='tabpanel']") as HTMLElement | null;
+      if (!row || !details || !button || !tabpanel) return null;
+      const dr = details.getBoundingClientRect();
+      const br = button.getBoundingClientRect();
+      const rr = row.getBoundingClientRect();
+      return {
+        detailsTop: Math.round(dr.top), buttonBottom: Math.round(br.bottom),
+        detailsRight: Math.round(dr.right), rowRight: Math.round(rr.right),
+        tabpanelScroll: tabpanel.scrollWidth - tabpanel.clientWidth,
+      };
+    });
+    expect(openRow).not.toBeNull();
+    expect.soft(openRow!.detailsTop).toBeGreaterThanOrEqual(openRow!.buttonBottom - 1);
+    expect.soft(openRow!.detailsRight).toBeLessThanOrEqual(openRow!.rowRight + 1);
+    expect.soft(openRow!.tabpanelScroll).toBeLessThanOrEqual(1);
 
     // Snapshot the receipts-open state, then close the details.
     await page.screenshot({ path: `${crops}/pp2a-${project}-${lang}-receipts.png`, fullPage: false });
@@ -671,5 +714,97 @@ for (const lang of ["en", "zh"] as const) {
     await expect(banner2).toHaveCount(0);
     const sessionEl = cPanel.locator("[data-options-session]");
     await expect(sessionEl).toHaveAttribute("data-options-session", reviewLater);
+  });
+
+  test(`[${lang}] PP2-UI-c exact scope`, async ({ page }, info) => {
+    const project = info.project.name;
+    mkdirSync(crops, { recursive: true });
+    // Declared-grid fixture with strikes [770..774] × expiries [session, later, last].
+    // All 15 positions publish a value, so the exact-scope total is 15/15.
+    const pp2cStrikes = [770, 771, 772, 773, 774];
+    const pp2cCellValues: Array<[number, string, number]> = [
+      [770, reviewSession, 1e6], [771, reviewSession, 2e6], [772, reviewSession, 3e6], [773, reviewSession, 4e6], [774, reviewSession, 5e6],
+      [770, reviewLater, 1e6], [771, reviewLater, -1e6], [772, reviewLater, 2e6], [773, reviewLater, -2e6], [774, reviewLater, 3e6],
+      [770, reviewLast, 5e5], [771, reviewLast, -5e5], [772, reviewLast, 1e6], [773, reviewLast, -1e6], [774, reviewLast, 5e5],
+    ];
+    const pp2cCells = pp2cCellValues.map(([s, e, g]) => reviewCell(s, e, g));
+    await serveReviewMatrix(page, reviewMatrix(pp2cCells, pp2cStrikes, [reviewSession, reviewLater, reviewLast]));
+    await prepare(page, lang);
+    const panel = await openPanel(page);
+    await expect(panel.locator("[data-options-grid] table")).toBeVisible({ timeout: 20_000 });
+
+    // Open the scope editor and switch to exact mode. The four inputs prefill
+    // from the APPLIED scope (preset mode's 3 nearest expiries × 5 displayed strikes).
+    await panel.getByTestId("options-scope-toggle").click();
+    await expect(panel.getByTestId("options-scope-editor")).toBeVisible();
+    await panel.getByTestId("options-scope-mode-exact").click();
+    await expect(panel.getByTestId("options-scope-from")).toHaveValue("770");
+    await expect(panel.getByTestId("options-scope-to")).toHaveValue("774");
+    await expect(panel.getByTestId("options-scope-dte-min")).toHaveValue("0");
+    await expect(panel.getByTestId("options-scope-dte-max")).toHaveValue("4");
+
+    // Inverted range blocks Apply and shows the issue sentence.
+    const fromInput = panel.getByTestId("options-scope-from");
+    const toInput = panel.getByTestId("options-scope-to");
+    await fromInput.fill("774");
+    await toInput.fill("770");
+    await expect(panel.getByTestId("options-scope-apply")).toBeDisabled();
+    await expect(panel.getByTestId("options-scope-issues")).toBeVisible();
+    if (lang === "zh") {
+      await expect(panel.getByTestId("options-scope-issues")).toContainText("不得超过");
+    } else {
+      await expect(panel.getByTestId("options-scope-issues")).toContainText("must not exceed");
+    }
+    await page.screenshot({ path: `${crops}/pp2c-${project}-${lang}-invalid.png`, fullPage: false });
+
+    // Fix the range and assert the preview text.
+    await fromInput.fill("770");
+    await toInput.fill("774");
+    await panel.getByTestId("options-scope-dte-min").fill("0");
+    await panel.getByTestId("options-scope-dte-max").fill("4");
+    await expect(panel.getByTestId("options-scope-apply")).toBeEnabled();
+    await expect(panel.getByTestId("options-scope-preview")).toContainText(
+      lang === "zh" ? "5 个行权价 · 3 个到期日 · 0–4 到期天数" : "5 strikes · 3 expiries · 0–4 days to expiry",
+    );
+
+    // Apply.
+    await panel.getByTestId("options-scope-apply").click();
+    await expect(panel.getByTestId("options-scope-editor")).toHaveCount(0);
+    await expect(panel.locator("[data-options-scope]")).toHaveAttribute("data-options-scope", "applied");
+    await expect(panel.locator("[data-options-scope-mode]")).toHaveAttribute("data-options-scope-mode", "exact");
+    await expect(panel.getByTestId("options-scope-toggle")).toBeFocused();
+    expect(await panel.locator("[data-options-grid] tbody tr").count()).toBe(5);
+    expect(await panel.locator("[data-options-grid] thead th").count() - 1).toBe(3);
+    // All 15 positions publish a value: known/expected = 15/15.
+    await expect(panel.locator("[data-options-total]").locator("..")).toContainText("15/15");
+    await page.screenshot({ path: `${crops}/pp2c-${project}-${lang}-applied.png`, fullPage: false });
+
+    // Reopen, edit, press Escape: applied range is unchanged, focus is on the toggle.
+    await panel.getByTestId("options-scope-toggle").click();
+    await expect(panel.getByTestId("options-scope-editor")).toBeVisible();
+    await panel.getByTestId("options-scope-from").fill("771");
+    await panel.getByTestId("options-scope-from").press("Escape");
+    await expect(panel.getByTestId("options-scope-editor")).toHaveCount(0);
+    await expect(panel.getByTestId("options-scope-toggle")).toBeFocused();
+    await expect(panel.getByTestId("options-scope-meta")).toContainText("770–774");
+
+    // Touch targets and overflow check on tablet/mobile.
+    if (project === "tablet" || project === "mobile") {
+      await panel.getByTestId("options-scope-toggle").click();
+      const editor = panel.getByTestId("options-scope-editor");
+      const measurements = await editor.evaluate((root) => {
+        const inputs = [...root.querySelectorAll<HTMLInputElement>("input[type='text']")];
+        const radios = [...root.querySelectorAll<HTMLInputElement>("input[type='radio']")]
+          .map((radio) => radio.closest("label"))
+          .filter((el): el is HTMLLabelElement => el != null);
+        const all = [...inputs, ...radios];
+        return {
+          scrollOverflow: root.scrollWidth - root.clientWidth,
+          heights: all.map((el) => Math.round(el.getBoundingClientRect().height)),
+        };
+      });
+      for (const h of measurements.heights) expect(h).toBeGreaterThanOrEqual(44);
+      expect(measurements.scrollOverflow).toBeLessThanOrEqual(1);
+    }
   });
 }
