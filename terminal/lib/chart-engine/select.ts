@@ -106,6 +106,22 @@ export function engineQueryFromUrl(search: string): EngineImplId | null {
  * table in the module header; the returned `reason` is a stable, human-readable string
  * suitable for the status line or diagnostics.
  */
+/**
+ * Opt-in mount selector for ChartPanel (F-13). Built on resolveEngineImpl with
+ * stored = null and buildDefault "lwc", so a persisted mm.engine value can never
+ * change production. Returns "mm" only when the URL query selects mm under
+ * engineQueryFromUrl's existing parsing: URLSearchParams.get("engine") (leading
+ * "?" optional; first occurrence wins), then trim + lower-case. Absent, "",
+ * "lwc", and garbage all resolve to "lwc". "?engine=MM" / "?engine= mm " → "mm".
+ */
+export function resolveMountEngineImpl(search: string | null | undefined): EngineImplId {
+  return resolveEngineImpl({
+    search: search ?? undefined,
+    stored: null,
+    buildDefault: "lwc",
+  }).impl;
+}
+
 export function resolveEngineImpl(input: ResolveEngineInput): EngineSelection {
   if (input.killSwitch) {
     return {

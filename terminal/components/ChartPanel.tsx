@@ -22,6 +22,7 @@ import {
   type SeriesHandle,
   type WatermarkSpec,
 } from "@/lib/chart-engine";
+import { resolveMountEngineImpl } from "@/lib/chart-engine/select";
 import {
   axisLogFormulaForRange,
   axisRangeFromLog,
@@ -4017,7 +4018,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
     cpMark(`chart-create[${symbol}]`);
     tokensRef.current = readTokens();
     const t = tokensRef.current;
-    const engine = createEngine(el, {
+    const engineOptions = {
       width: el.clientWidth || 900, height: el.clientHeight || 600,
       // fontSize matches the settings effect (Effect 7) so the axis does not reflow one frame after mount.
       layout: { background: { color: "transparent" }, textColor: t.axis, fontSize: shellAxisFontSize(), attributionLogo: false, panes: { separatorColor: css("--pane-sep"), separatorHoverColor: css("--pane-sep-h") } },
@@ -4034,7 +4035,31 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
       },
       // momentum glide on pan release (LWC ships mouse:false — that reads as a hard stop)
       kineticScroll: { mouse: true, touch: true },
-    });
+    };
+    // F-13: URL ?engine=mm is opt-in only. Default / "lwc" is the BASE createEngine call
+    // (impl absent). mm unwrap() is ChartModel, so remaining chartRef sites cannot drive
+    // it — destroy the attempt, warn once, mount lwc.
+    const requestedImpl = resolveMountEngineImpl(window.location.search);
+    let engine: ChartEngine | undefined;
+    if (requestedImpl === "mm") {
+      try {
+        engine = createEngine(el, engineOptions, "mm");
+        const raw = engine.unwrap() as { panes?: unknown; timeScale?: unknown; addSeries?: unknown };
+        if (typeof raw?.panes !== "function" || typeof raw?.timeScale !== "function" || typeof raw?.addSeries !== "function") {
+          try { engine.destroy(); } catch {}
+          // eslint-disable-next-line no-console
+          console.warn("chart-engine: mm mount fell back to lwc: unwrap() is ChartModel, not a vendor chart instance");
+          engine = createEngine(el, engineOptions);
+        }
+      } catch (err) {
+        try { engine?.destroy(); } catch {}
+        // eslint-disable-next-line no-console
+        console.warn(`chart-engine: mm mount fell back to lwc: ${err instanceof Error ? err.message : String(err)}`);
+        engine = createEngine(el, engineOptions);
+      }
+    } else {
+      engine = createEngine(el, engineOptions);
+    }
     engineRef.current = engine;
     // engine-unwrap: M02 studies/compare/volume + M03 markers/watermark/price-lines (M02, M03)
     // The raw chart stays populated so clusters outside M01 still compile. This is the
