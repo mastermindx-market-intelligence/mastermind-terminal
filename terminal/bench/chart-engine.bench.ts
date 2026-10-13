@@ -42,6 +42,7 @@ const IMPLS: EngineImpl[] = (process.env.BENCH_IMPLS ?? "mm,lwc")
   .filter((s): s is EngineImpl => s === "mm" || s === "lwc");
 
 const RUNS = Math.max(1, Number(process.env.BENCH_RUNS ?? 3));
+const SOAK_SWITCHES = Math.max(2, Number(process.env.BENCH_SOAK ?? 50));
 const ENFORCE = process.env.BENCH_ENFORCE === "1";
 const OUT_DIR = process.env.BENCH_OUT_DIR
   ?? path.resolve(__dirname, "..", "test-results", "bench");
@@ -87,8 +88,12 @@ async function waitReady(page: Page): Promise<void> {
   await page.evaluate(() => (window as unknown as { __mmBench: { ready: Promise<void> } }).__mmBench.ready);
 }
 
-async function benchEval<T>(page: Page, fn: () => T | Promise<T>): Promise<T> {
-  return page.evaluate(fn);
+async function benchEval<T>(page: Page, fn: (arg: number) => T | Promise<T>, arg: number): Promise<T>;
+async function benchEval<T>(page: Page, fn: () => T | Promise<T>): Promise<T>;
+async function benchEval<T>(page: Page, fn: ((arg: number) => T | Promise<T>) | (() => T | Promise<T>), arg?: number): Promise<T> {
+  return arg === undefined
+    ? page.evaluate(fn as () => T)
+    : page.evaluate(fn as (a: number) => T, arg);
 }
 
 async function measureImpl(page: Page, impl: EngineImpl, logFile: string): Promise<RunMetrics> {
@@ -228,10 +233,10 @@ async function measureImpl(page: Page, impl: EngineImpl, logFile: string): Promi
   });
   const heapMb = Math.max((heap.after - heap.before) / 1048576, 1e-9);
 
-  const soak = await benchEval(page, () => {
+  const soak = await benchEval(page, (soakCount: number) => {
     const w = window as unknown as { __mmBench: { resetData: () => void } };
     const samples: number[] = [];
-    for (let i = 1; i <= 50; i++) {
+    for (let i = 1; i <= soakCount; i++) {
       w.__mmBench.resetData();
       if (i % 10 === 0) {
         const mem = (performance as Performance & { memory?: { usedJSHeapSize: number } }).memory;
@@ -239,7 +244,7 @@ async function measureImpl(page: Page, impl: EngineImpl, logFile: string): Promi
       }
     }
     return samples;
-  });
+  }, SOAK_SWITCHES);
   let soakSlope: number | null = null;
   if (soak.length >= 2) {
     soakSlope = (soak[soak.length - 1] - soak[0]) / (soak.length - 1);

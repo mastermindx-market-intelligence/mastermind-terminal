@@ -404,6 +404,11 @@ describe("F7 P2 — one 12-minute test must split into independent impls × RUNS
     const benchPath = path.join(TERMINAL_ROOT, "bench", "chart-engine.bench.ts");
     const text = readFileSync(benchPath, "utf8");
     expect(text).toMatch(/SOAK_SWITCHES\s*=\s*Math\.max\(\s*2\s*,\s*Number\(process\.env\.BENCH_SOAK\s*\?\?\s*50\s*\)\)/);
-    expect(text).toMatch(/for\s*\(\s*let\s+i\s*=\s*1\s*;\s*i\s*<=\s*SOAK_SWITCHES\s*;\s*i\+\+\)/);
+    // The loop bound must read SOAK_SWITCHES (outer) or a closure-arg
+    // passed from SOAK_SWITCHES — never the literal 50.
+    expect(
+      /for\s*\(\s*let\s+i\s*=\s*1\s*;\s*i\s*<=\s*(?:SOAK_SWITCHES|soakCount)\s*;\s*i\s*\+\+\s*\)/.test(text),
+      "bench spec loop bound must read SOAK_SWITCHES (or soakCount passed from it) — the literal 50 was the bug",
+    ).toBe(true);
   });
 });
