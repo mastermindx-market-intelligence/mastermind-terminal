@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 // D02 — drawing gestures project through createDrawingBridge over both engine impls.
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { createDrawingBridge, type DrawingAnchor } from "@/lib/chart-engine/drawingBridge";
+import { createDrawingBridge } from "@/lib/chart-engine/drawingBridge";
 import { createEngine } from "@/lib/chart-engine";
 import { createCanvasEngine, createManualScheduler } from "@/lib/chart-engine/canvas";
 import type {
@@ -95,6 +95,21 @@ describe("chart-engine drawings (D02)", () => {
   beforeEach(() => {
     container = document.createElement("div");
     document.body.appendChild(container);
+    // jsdom has no matchMedia; lightweight-charts' fancy-canvas DPR observer calls it
+    // asynchronously and an unstubbed window turns every extra engine into an unhandled
+    // rejection that fails the whole vitest run.
+    if (!window.matchMedia) {
+      window.matchMedia = ((query: string) => ({
+        matches: false,
+        media: query,
+        onchange: null,
+        addListener: () => {},
+        removeListener: () => {},
+        addEventListener: () => {},
+        removeEventListener: () => {},
+        dispatchEvent: () => false,
+      })) as unknown as typeof window.matchMedia;
+    }
     vi.spyOn(HTMLCanvasElement.prototype, "getContext").mockImplementation(function (
       this: HTMLCanvasElement,
       type: string,
@@ -180,5 +195,70 @@ describe("hitTestDrawingHandles falsifier", () => {
     expect(hit).not.toBeNull();
     const correct = hitTestDrawingHandles(115, 200, handles, DRAWING_HANDLE_HIT_RADIUS_CSS, dpr);
     expect(correct).toBeNull();
+  });
+});
+
+describe("chart-engine drawings (D02) — review additions", () => {
+  let box: HTMLDivElement;
+  beforeEach(() => {
+    box = document.createElement("div");
+    document.body.appendChild(box);
+    vi.spyOn(HTMLCanvasElement.prototype, "getContext").mockImplementation(function (
+      this: HTMLCanvasElement,
+      type: string,
+    ) {
+      if (type !== "2d") return null;
+      let ctx = ctxByCanvas.get(this);
+      if (!ctx) {
+        ctx = makeFakeCtx();
+        ctxByCanvas.set(this, ctx);
+      }
+      return ctx as unknown as CanvasRenderingContext2D;
+    });
+  });
+  afterEach(() => {
+    vi.restoreAllMocks();
+    box.remove();
+  });
+
+  it("picks the NEAREST handle when several sit inside the tolerance", () => {
+    const handles: DrawingHandleTarget[] = [
+      { drawingId: "far", handleIndex: 1, cx: 100, cy: 200 },
+      { drawingId: "near", handleIndex: 0, cx: 106, cy: 200 },
+    ];
+    const hit = hitTestDrawingHandles(108, 200, handles, DRAWING_HANDLE_HIT_RADIUS_CSS, 2);
+    expect(hit?.drawingId).toBe("near");
+    expect(hit?.handleIndex).toBe(0);
+    expect(hit?.distanceCss).toBeCloseTo(2, 6);
+  });
+
+  it("A01b: pixel -> anchor -> pixel round-trips within 1 CSS px on both impls", () => {
+    for (const impl of ["lwc", "mm"] as const) {
+      let engine = createEngine(box, { width: 600, height: 300 }, "lwc");
+      let flush = () => {};
+      if (impl === "mm") {
+        const scheduler = createManualScheduler();
+        engine = createCanvasEngine(box, { width: 600, height: 300, devicePixelRatio: 1, scheduler });
+        flush = () => scheduler.flush();
+      }
+      const series = engine.addSeries("line", {}, 0);
+      series.setData(TIMES.map((time, i) => ({ time, value: 100 + i })));
+      flush();
+      const bridge = createDrawingBridge(engine, {
+        primaryByPane: (paneIndex) => engine.panes()[paneIndex]?.getSeries()?.[0] ?? series,
+        cadence: () => futureCadence(TIMES),
+        lastBarTime: () => TIMES[TIMES.length - 1],
+      });
+      for (const [x, y] of [[120, 90], [300, 150], [480, 210]] as const) {
+        const anchor = bridge.pixelToAnchor(0, x, y, "raw");
+        expect(anchor, `${impl} minted an anchor at ${x},${y}`).not.toBeNull();
+        const back = bridge.anchorToPixel(anchor!);
+        expect(back, `${impl} re-projected the anchor at ${x},${y}`).not.toBeNull();
+        expect(Math.abs(back!.x - x), `${impl} x round trip at ${x},${y}`).toBeLessThanOrEqual(1);
+        expect(Math.abs(back!.y - y), `${impl} y round trip at ${x},${y}`).toBeLessThanOrEqual(1);
+      }
+      bridge.dispose();
+      engine.destroy();
+    }
   });
 });

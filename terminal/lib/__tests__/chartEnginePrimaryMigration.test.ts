@@ -468,7 +468,7 @@ describe("M01 ratchet — ChartPanel raw-LWC site ceilings (BASE_SHA)", () => {
     ".unwrap(": 4,
     "chartRef.current": 25,
     IChartApi: 4,
-    "ISeriesApi<": 10,
+    "ISeriesApi<": 8,
     "createSeriesMarkers(": 0,
     "createTextWatermark(": 0,
   } as const;

@@ -70,18 +70,6 @@ export function drawingPointToAnchor(
   };
 }
 
-/** Recover a persisted `{t,p}` from a bridge anchor (caller supplies time labels). */
-export function anchorToDrawingPoint(
-  anchor: DrawingAnchor,
-  resolveTime: (logical: number, futureSlot: number | null) => string,
-): Pt {
-  const slot = anchor.future?.slot;
-  const t = anchor.time != null
-    ? String(anchor.time)
-    : resolveTime(anchor.logical, slot ?? null);
-  return { t, p: anchor.price };
-}
-
 /**
  * Constrain an endpoint to the nearest angular increment in screen space.
  * Screen space is deliberate: a visually horizontal/vertical/diagonal line

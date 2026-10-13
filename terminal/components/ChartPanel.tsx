@@ -4673,16 +4673,24 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
         return last ? (last.time as EngineTime) : null;
       },
     });
-    const drawingReadinessUnsubs = new Map<number, () => void>();
+    // subscribeReadiness is ONE-SHOT (the bridge retires its watcher when the pane
+    // becomes ready), so the entry left behind is a no-op unsub. watchPaneDrawingReadiness
+    // re-armed on every epoch; keying on the epoch keeps that behaviour, otherwise a
+    // later symbol/timeframe's pending pane inherits the stale entry and is never watched.
+    const drawingReadinessUnsubs = new Map<number, { epoch: number; unsub: () => void }>();
     const syncDrawingReadiness = (pendingPaneIndexes: ReadonlySet<number>) => {
-      for (const [pi, unsub] of drawingReadinessUnsubs) {
-        if (!pendingPaneIndexes.has(pi)) { unsub(); drawingReadinessUnsubs.delete(pi); }
+      const epoch = epochRef.current;
+      for (const [pi, entry] of drawingReadinessUnsubs) {
+        if (!pendingPaneIndexes.has(pi) || entry.epoch !== epoch) { entry.unsub(); drawingReadinessUnsubs.delete(pi); }
       }
       for (const pi of pendingPaneIndexes) {
         if (drawingReadinessUnsubs.has(pi)) continue;
-        drawingReadinessUnsubs.set(pi, drawingBridge.subscribeReadiness(pi, () => {
-          if (!dead) { measureRef.current(); renderTagRef.current?.(); }
-        }));
+        drawingReadinessUnsubs.set(pi, {
+          epoch,
+          unsub: drawingBridge.subscribeReadiness(pi, () => {
+            if (!dead) { measureRef.current(); renderTagRef.current?.(); }
+          }),
+        });
       }
     };
     const dcol = (d: Drawing) => d.color?.startsWith("var(") ? css(d.color.slice(4, -1)) : (d.color || tokensRef.current.brand2);
@@ -4742,7 +4750,17 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
       const bars = barsRef.current;
       const refPrice = bars[Math.max(0, barIndex(tm))]?.c ?? bars.at(-1)?.c ?? 0;
       const px = drawingBridge.anchorToPixel(ptToAnchor(PRICE_PANE_KEY, { t: tm, p: refPrice }));
-      return px?.x ?? null;
+      if (px) return px.x;
+      // anchorToPixel gates x on the PRICE pane's round-trip health. x is a time-scale
+      // fact, so a pure-x consumer (locked vertical line, placement guides) must not
+      // vanish while the price scale is mid-rebuild: fall back to the contract's own
+      // time-scale mapping, which is exactly what this helper did before the bridge.
+      const offset = futureOffset(tm);
+      const ts = engine.timeScale();
+      const coord = offset >= 0
+        ? ts.logicalToCoordinate(bars.length + offset)
+        : ts.timeToCoordinate(snapT(tm) as EngineTime);
+      return coord == null || !Number.isFinite(coord) ? null : coord;
     };
     // ── pane-scoped price projection ────────────────────────────────────────
     // A drawing placed over an indicator sub-pane used to store the price the
@@ -7113,7 +7131,6 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
       // a safe fast Y mapper. Log/custom modes retain the authoritative API.
       const xCache = new Map<string, number | null>();
       const yCache = new Map<number, number | null>();
-      const timeScale = engine.timeScale();
       const projectX = (time: string) => {
         const key = String(time); if (xCache.has(key)) return xCache.get(key)!;
         const coordinate = xOf(time);
@@ -8564,7 +8581,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
     // ── mount teardown (base line-416 logic + the new refs) ──
     return () => {
       dead = true; if (rafId != null) cancelAnimationFrame(rafId); if (measRaf != null) cancelAnimationFrame(measRaf);
-      for (const unsub of drawingReadinessUnsubs.values()) unsub();
+      for (const entry of drawingReadinessUnsubs.values()) entry.unsub();
       drawingReadinessUnsubs.clear();
       drawingBridge.dispose();
       try { engine.unsubscribeCrosshairMove(onTagCrosshair); } catch {}
