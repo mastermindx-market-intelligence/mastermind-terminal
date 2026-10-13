@@ -287,6 +287,13 @@ export function createDrawingBridge(
         const logical = logicalOfFutureSlot(slot, projection);
         if (logical != null) return projection.xOfLogical(logical);
       }
+      // A time-keyed, NON-future anchor whose time the scale no longer addresses
+      // has NO x: its stored logical is a stale row index from a series that no
+      // longer holds that time (emptied via setData([]), a symbol switch, or a
+      // re-aggregation that dropped the anchor's bar). Falling through to step 3
+      // would paint the drawing off-pane at a confident pixel — drawing review
+      // F5; row D01-A02 forbids the accidental row-index rebinding.
+      if (anchor.future == null) return null;
     }
     // 3. Raw positions (and future anchors holding only a stored slot) carry x
     //    in the fractional logical index.
