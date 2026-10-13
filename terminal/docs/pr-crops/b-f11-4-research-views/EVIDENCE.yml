@@ -1,8 +1,9 @@
+# 2026-10-13 #996 (U02 data-origin readout) source hash reconciliation: preserves captured PNG bytes/provenance; the only i18n change is the added origin*/originChip*/originCode_* keys, read solely by DataOriginChip inside the /terminal ChartFrameBar; /analysis?view=theses does not mount TerminalShell, ChartPane or ChartFrameBar (the /terminal fetch is a readiness probe only).
 # B-F11-4 research management views — capture evidence
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
 # Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
-# capturedAtHead: 9d904874fb330f1071db986e8ee9dcc225db7065
-# capturedAt: 2026-10-12T21:20:25.048Z
+# capturedAtHead: 3a27290b29da76daf312aa6567f31867852c921d
+# capturedAt: 2026-10-12T07:49:11.157Z
 # capturedAtHead is informational. The lock is layoutFiles.
 layoutFiles:
   terminal/components/workspaces/ThesisWorkspace.tsx: "996cfc62493b59626de79cdae138a5360b5c14833dfe0a74132d21dd5454dfff"
@@ -10,7 +11,7 @@ layoutFiles:
   terminal/lib/rmsViews.ts: "fd5f025806c5a4b1b27e7d99a026e82f555767f0d96b6a2766a5b363961897cb"
   terminal/lib/savedViews.ts: "16e2914a032cba50cce999d1802c53e51098ce76dd82931925ef41b8e0f7af54"
   terminal/lib/plainLabels.ts: "8f57e32a21abcae530075b7c4da72f170afff8ea38084026995887b4a18fe29a"
-  terminal/lib/i18n.tsx: "af45118c980cad0c274c23577df30482bff911b3caa3c53683e53c4fa87c2b85"
+  terminal/lib/i18n.tsx: "9bcded1313e75ca37fa7ab67f256ad3b568daa61aaf0d10fa1907a4751a371c1"
 theme: dark
 languages: [en, zh]
 viewports:

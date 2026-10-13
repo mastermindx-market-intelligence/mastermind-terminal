@@ -27,11 +27,13 @@ import {
   type AxisMargins,
   type AxisRange,
 } from "../axisZoom";
+import { clampBarSpacingValue } from "./modelTime";
+import type { EnginePriceScaleMode } from "../options";
 
 /** Fractional bar index; 0 = first row of the primary series. */
 export type LogicalIndex = number;
 
-export type PriceScaleMode = "normal" | "log" | "percent" | "indexed100";
+export type PriceScaleMode = EnginePriceScaleMode;
 
 export type PriceScaleState = {
   mode: PriceScaleMode;
@@ -44,7 +46,34 @@ export type PriceScaleState = {
   margins: { top: number; bottom: number };
   /** First visible series value; percent and indexed100 are relative to this. */
   baseValue?: number;
+  /** When true, autoscaleRange rewrites from/to from visible extents. */
+  autoScale?: boolean;
 };
+
+/**
+ * Accept the contract strings and LWC's numeric PriceScaleMode
+ * (0 Normal, 1 Log, 2 Percent, 3 IndexedTo100 — dev:12328 / types PriceScaleMode).
+ */
+export function coercePriceScaleMode(mode: unknown): PriceScaleMode | undefined {
+  if (mode === "normal" || mode === 0) return "normal";
+  if (mode === "log" || mode === 1) return "log";
+  if (mode === "percent" || mode === 2) return "percent";
+  if (mode === "indexed100" || mode === 3) return "indexed100";
+  return undefined;
+}
+
+/** Merge a price-scale option bag (mode / invertScale / autoScale / scaleMargins) into state. */
+export function applyPriceScaleOptionBag(state: PriceScaleState, opts: Record<string, unknown>): void {
+  const mode = coercePriceScaleMode(opts.mode);
+  if (mode !== undefined) state.mode = mode;
+  if (typeof opts.invertScale === "boolean") state.inverted = opts.invertScale;
+  if (typeof opts.autoScale === "boolean") state.autoScale = opts.autoScale;
+  if (opts.scaleMargins && typeof opts.scaleMargins === "object") {
+    const mg = opts.scaleMargins as { top?: number; bottom?: number };
+    if (typeof mg.top === "number" && Number.isFinite(mg.top)) state.margins.top = mg.top;
+    if (typeof mg.bottom === "number" && Number.isFinite(mg.bottom)) state.margins.bottom = mg.bottom;
+  }
+}
 
 export type TimeScaleState = {
   visibleFrom: number;
@@ -104,6 +133,12 @@ function finiteNumber(value: number | undefined, fallback: number): number {
   return value != null && Number.isFinite(value) ? value : fallback;
 }
 
+/**
+ * LWC divides by the base verbatim, so base 0 yields Infinity/NaN and the
+ * scale goes empty (dev:4192, dev:5055-5057). We deliberately substitute 1
+ * to keep the scale finite and the round-trip invertible; documented
+ * deviation, pinned by chartEngineCanvasPatch3Model.test.ts F-6.
+ */
 function usableBase(baseValue: number | undefined): number {
   const base = finiteNumber(baseValue, 1);
   return base === 0 ? 1 : base;
@@ -128,11 +163,17 @@ export function priceToDisplay(price: number, state: PriceScaleState): number {
       return axisPriceToLog(price, logFormulaOf(state));
     case "percent": {
       const base = usableBase(state.baseValue);
-      return (price / base - 1) * 100;
+      // LWC dev:4191-4194: a negative base flips the sign so the series stays
+      // upright on screen (dossier:278-281). Without this, an oscillator or
+      // a below-zero spread renders upside down.
+      const result = 100 * (price - base) / base;
+      return base < 0 ? -result : result;
     }
     case "indexed100": {
       const base = usableBase(state.baseValue);
-      return (price / base) * 100;
+      // LWC dev:4207-4210: same sign-flip rule as percent for negative base.
+      const result = 100 * (price - base) / base + 100;
+      return base < 0 ? -result : result;
     }
     default:
       return price;
@@ -147,11 +188,16 @@ export function displayToPrice(display: number, state: PriceScaleState): number 
       return axisLogToPrice(display, logFormulaOf(state));
     case "percent": {
       const base = usableBase(state.baseValue);
-      return base * (display / 100 + 1);
+      // LWC dev:4185-4189: mirror the sign-flip when base < 0.
+      const value = base < 0 ? -display : display;
+      return (value / 100) * base + base;
     }
     case "indexed100": {
       const base = usableBase(state.baseValue);
-      return base * (display / 100);
+      // LWC dev:4200-4205: index base is 100, so the offset flips with base.
+      let value = display - 100;
+      if (base < 0) value = -value;
+      return (value / 100) * base + base;
     }
     default:
       return display;
@@ -366,11 +412,9 @@ export function logicalOfX(x: number, state: TimeScaleState): number {
 }
 
 function clampBarSpacing(spacing: number, minSpacing: number, maxSpacing: number): number {
-  let next = spacing;
-  if (!Number.isFinite(next) || next <= 0) next = MIN_BAR_SPACING;
-  if (next < minSpacing) next = minSpacing;
-  if (next > maxSpacing) next = maxSpacing;
-  return next;
+  // PERF-A F6: delegate to the single modelTime clamp so every spacing bound
+  // in canvas/ has one source (identical semantics to the former local body).
+  return clampBarSpacingValue(spacing, minSpacing, maxSpacing);
 }
 
 function clampLogicalWindow(
