@@ -95,11 +95,30 @@ const round2 = (n: number): number => Math.round(n * 100) / 100;
 
 // ── R03-A02 helpers (mm) ─────────────────────────────────────────────────────
 
-/** Returns the painted centerline y-geometry for the bar at logical index `i`,
- *  sampled from the renderer's most-recent paint of the primary pane. Pure read of
- *  the fake 2D context trace. (Reserved for future per-bar pixel checks; the
- *  R03-A02 row asserts at the priceToCoordinate level, which is renderer-stable.)
- */
+/** Recorded 2D-context ops that carry painted candle/rect GEOMETRY (bodies and
+ *  wicks). Fingerprinting only these keeps a comparison about where the renderer
+ *  put pixels rather than about bookkeeping calls. */
+const GEOMETRY_OPS = new Set(["fillRect", "moveTo", "lineTo"]);
+
+/** Number of 2D-context calls recorded for one canvas so far (0 if never painted). */
+function traceLength(canvas: HTMLCanvasElement): number {
+  return ctxByCanvas.get(canvas)?.__calls.length ?? 0;
+}
+
+/** Fingerprint of the painted geometry the fake 2D context recorded for one canvas
+ *  over the call range [from, to). Pure read of the installFake2D() trace: two
+ *  fingerprints that differ are proof the renderer re-projected, which is exactly
+ *  what R03-A02's "affected geometry invalidate correctly" has to observe. */
+function paintedGeometry(canvas: HTMLCanvasElement, from: number, to: number): string {
+  const calls = ctxByCanvas.get(canvas)?.__calls ?? [];
+  return calls
+    .slice(from, to)
+    .filter((call) => GEOMETRY_OPS.has(call.method))
+    .map((call) => call.args
+      .map((v) => (typeof v === "number" ? Math.round(v * 100) / 100 : v))
+      .join(","))
+    .join("|");
+}
 
 // ── LWC stand-in (Q02-A02, R03-A04) ──────────────────────────────────────────
 
@@ -476,6 +495,16 @@ describe("R03-A02: Historical correction changes visible extrema", () => {
     expect(psBefore).not.toBeNull();
     void modelBefore;
 
+    // Required observation, geometry half: fingerprint what the renderer PAINTED
+    // for the pre-correction range, and record where an UNTOUCHED bar projects.
+    const paneCanvases = [...containerEl.querySelectorAll("canvas")];
+    expect(paneCanvases.length).toBeGreaterThan(0);
+    const cut = paneCanvases.map((c) => traceLength(c));
+    const paintedBefore = paneCanvases.map((c, i) => paintedGeometry(c, 0, cut[i])).join("#");
+    expect(paintedBefore.length).toBeGreaterThan(0);
+    const yUntouchedBefore = series.priceToCoordinate(rows[7].close);
+    expect(yUntouchedBefore).not.toBeNull();
+
     // Historical correction: rewrite bar index 3 (a mid-visibility bar) so its
     // high is 20% above the prior visible max.
     const preMaxHi = Math.max(...rows.map((r) => r.high));
@@ -488,17 +517,24 @@ describe("R03-A02: Historical correction changes visible extrema", () => {
     expect(psAfter).not.toBeNull();
     expect(psAfter!.to).toBeGreaterThanOrEqual(spike);
 
-    // The corrected bar itself must re-project to a higher y after the spike;
-    // untouched bars must re-project consistently with the new range (priceToCoordinate
-    // is deterministic w.r.t. the visible range, so the same price yields the same
-    // ratio between bars before and after).
+    // The corrected bar must re-project, and so must a bar nobody touched: the
+    // range expanded, so the same price lands on a different y.
     const yCorrected = series.priceToCoordinate(spike);
     expect(yCorrected).not.toBeNull();
     const yUntouched = series.priceToCoordinate(rows[7].close);
     expect(yUntouched).not.toBeNull();
-    // After the re-scale, untouched bars map to a higher (closer-to-top) y only if
-    // the range actually shifted; with autoscale on, the spike must push the ceiling
-    // up. Both their absolute positions change and so does the gap between them.
+    // The PAINTED geometry recorded after the correction differs from the
+    // fingerprint taken before it: the pane really re-projected, it did not merely
+    // widen the reported range.
+    const paintedAfter = paneCanvases
+      .map((c, i) => paintedGeometry(c, cut[i], traceLength(c)))
+      .join("#");
+    expect(paintedAfter.length).toBeGreaterThan(0);
+    expect(paintedAfter).not.toBe(paintedBefore);
+    // The UNTOUCHED bar re-projected as well: same price, different y. y grows
+    // downward, so the corrected spike sits above it.
+    expect(yUntouched).not.toBe(yUntouchedBefore);
+    expect(yCorrected!).toBeLessThan(yUntouched!);
     expect(engine.priceScale("right", 0).getVisibleRange()!.to).toBeGreaterThanOrEqual(spike);
 
     engine.destroy();
