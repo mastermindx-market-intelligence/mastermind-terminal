@@ -1,5 +1,5 @@
 -- E05 (terminal-enhancements20-20261011-opus, #916): cross-device watchlist notes and flags.
--- Ledger row: NONE: unapplied at authoring (packet E05); the applier records applied_in_production/applied_date and the readback receipt in RESERVATIONS.json
+-- Ledger row: 0033_watchlist_annotations / PR #927 (merged 857a5076, packet E05); applied 2026-10-11
 -- Rollback: NONE: forward-safe and additive; disable by reverting the Terminal consumer (GET/POST /api/watchlist/annotations answers 503 annotations_unavailable without this table) and RETAIN public.watchlist_annotations rows; the commented down block below is destructive and requires a verified backup first.
 -- Re-runnable source. Apply this file explicitly, never the entire migration directory.
 --
