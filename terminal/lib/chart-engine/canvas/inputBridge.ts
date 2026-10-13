@@ -191,6 +191,16 @@ function layoutOf(model: ChartModel): {
   };
 }
 
+/** The price scale this pane actually displays (ChartPanel scaleLeft flips it). */
+function displayedScaleId(model: ChartModel): string {
+  const opts = model.options as {
+    leftPriceScale?: { visible?: boolean };
+    rightPriceScale?: { visible?: boolean };
+  };
+  if (opts.leftPriceScale?.visible === true && opts.rightPriceScale?.visible === false) return "left";
+  return "right";
+}
+
 function buildDeps(
   host: EngineInputHost,
   options: InputControllerOptions,
@@ -203,7 +213,7 @@ function buildDeps(
     },
     getPriceScale: (paneIndex) => {
       if (!model.alive || paneIndex < 0 || paneIndex >= model.panes.length) return null;
-      const s = model.scale(paneIndex, "right");
+      const s = model.scale(paneIndex, displayedScaleId(model));
       return {
         mode: s.mode,
         inverted: s.inverted,
@@ -214,9 +224,9 @@ function buildDeps(
       };
     },
     setPriceRange: (paneIndex, range) => {
-      model.priceScaleHandle("right", paneIndex).setVisibleRange(range);
+      model.priceScaleHandle(displayedScaleId(model), paneIndex).setVisibleRange(range);
     },
-    isPriceScaleAuto: (paneIndex) => model.scale(paneIndex, "right").autoScale ?? false,
+    isPriceScaleAuto: (paneIndex) => model.scale(paneIndex, displayedScaleId(model)).autoScale ?? false,
     now: () => host.now(),
     schedule: (cb) => {
       const handle = host.scheduler.schedule(cb);
