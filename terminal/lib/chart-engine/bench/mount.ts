@@ -106,15 +106,26 @@ export function mountBench(container: HTMLElement, impl: EngineImpl): MountBench
   const origCancel = window.cancelAnimationFrame.bind(window);
   let logging = false;
   const records: FrameRecord[] = [];
+  let paintRefused = false;
 
   window.requestAnimationFrame = ((cb: FrameRequestCallback): number => {
     return origRaf((frameTs) => {
+      const invoke = () => {
+        try {
+          cb(frameTs);
+        } catch (err) {
+          if (!paintRefused) {
+            refuse("paint", err);
+            paintRefused = true;
+          }
+        }
+      };
       if (!logging) {
-        cb(frameTs);
+        invoke();
         return;
       }
       const start = performance.now();
-      cb(frameTs);
+      invoke();
       const end = performance.now();
       records.push({ frameTs, start, end });
     });

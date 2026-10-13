@@ -64,7 +64,10 @@ function appendLog(file: string, line: string): void {
 }
 
 async function waitReady(page: Page): Promise<void> {
-  await page.waitForFunction(() => Boolean((window as unknown as { __mmBench?: { ready: Promise<void> } }).__mmBench));
+  await page.waitForFunction(
+    () => Boolean((window as unknown as { __mmBench?: { ready: Promise<void> } }).__mmBench),
+    { timeout: 120_000 },
+  );
   await page.evaluate(() => (window as unknown as { __mmBench: { ready: Promise<void> } }).__mmBench.ready);
 }
 
@@ -241,6 +244,7 @@ test("chart-engine performance protocol B1-B6", async ({ browser }) => {
     viewport: { width: 1440, height: 900 },
     deviceScaleFactor: 2,
   });
+  const mmDrifts: number[] = [];
 
   try {
     for (const impl of IMPLS) {
@@ -256,9 +260,6 @@ test("chart-engine performance protocol B1-B6", async ({ browser }) => {
             if (metrics.screenshotWidth !== 2880 || metrics.screenshotHeight !== 1800) {
               appendLog(logFile, `[${impl}] screenshot backing store ${metrics.screenshotWidth}x${metrics.screenshotHeight} (expected 2880x1800 at 1440x900 dpr2)`);
             }
-          }
-          if (impl === "mm" && metrics.zoomDriftPx != null) {
-            expect(metrics.zoomDriftPx, "mm pointer-anchor drift after wheel zoom").toBeLessThanOrEqual(1);
           }
         } finally {
           await page.close();
@@ -285,6 +286,14 @@ test("chart-engine performance protocol B1-B6", async ({ browser }) => {
       const summary = `BENCH ${impl} commit=${COMMIT} first_paint_ms=${metrics.first_paint_ms} pan=${metrics.pan_frame_p95_ms} zoom=${metrics.zoom_frame_p95_ms} live=${metrics.live_commit_ms} shot=${metrics.screenshot_ms} heap=${metrics.heap_mb} budget_ok=${receipt.budget_ok} violations=${receipt.violations.length} file=${file}`;
       console.log(summary);
       appendLog(logFile, summary);
+      if (impl === "mm") {
+        for (const run of runs) {
+          if (run.zoomDriftPx != null) mmDrifts.push(run.zoomDriftPx);
+        }
+      }
+    }
+    for (const drift of mmDrifts) {
+      expect(drift, "mm pointer-anchor drift after wheel zoom").toBeLessThanOrEqual(1);
     }
   } finally {
     await context.close();
