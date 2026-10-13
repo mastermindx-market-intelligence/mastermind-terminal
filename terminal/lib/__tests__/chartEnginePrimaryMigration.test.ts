@@ -461,9 +461,11 @@ describe("M01-A03 replace primary series family without orphans", () => {
 describe("M01 ratchet — ChartPanel raw-LWC site ceilings (BASE_SHA)", () => {
   // Closed after M01+M02+M03+selector on current ChartPanel. Each ceiling is the
   // measured substring count (ratchet only closes). unwrap< remains the one
-  // create-site tag; createSeriesMarkers(/createTextWatermark( hit 0 with M03.
+  // create-site tag; .unwrap( bounds untyped raw-vendor escapes that unwrap<
+  // cannot see; createSeriesMarkers(/createTextWatermark( hit 0 with M03.
   const CEILINGS = {
     "unwrap<": 1,
+    ".unwrap(": 4,
     "chartRef.current": 32,
     IChartApi: 4,
     "ISeriesApi<": 10,

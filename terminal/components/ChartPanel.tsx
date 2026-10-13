@@ -4045,10 +4045,9 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
     if (requestedImpl === "mm") {
       try {
         engine = createEngine(el, engineOptions, "mm");
-        const raw = engine.unwrap() as { panes?: unknown; timeScale?: unknown; addSeries?: unknown };
-        if (typeof raw?.panes !== "function" || typeof raw?.timeScale !== "function" || typeof raw?.addSeries !== "function") {
+        if (engine.impl !== "lwc") {
           try { engine.destroy(); } catch {}
-          console.warn("chart-engine: mm mount fell back to lwc: unwrap() is ChartModel, not a vendor chart instance");
+          console.warn("chart-engine: mm mount fell back to lwc: ChartPanel still needs the raw lwc bridge (F-13)");
           engine = createEngine(el, engineOptions);
         }
       } catch (err) {
