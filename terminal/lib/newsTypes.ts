@@ -29,10 +29,20 @@ export type TickerNewsSourceHealth = {
   last_successful_catchup: string | null;
 };
 
+export type TickerNewsRightsBasis = {
+  receipt_id: string;
+  source: string;
+  provider: string;
+  effective_at: string;
+  expires_at: string;
+};
+
 export type TickerNewsSnapshot = {
   schema: "ticker_news.snapshot.v1";
   ticker: string;
   security_id: string;
+  universe_known_at?: string | null;
+  rights_basis?: TickerNewsRightsBasis | null;
   state: TickerNewsState;
   rows: TickerNewsStoryRow[];
   next_cursor: number | null;
