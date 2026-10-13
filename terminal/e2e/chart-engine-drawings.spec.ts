@@ -108,28 +108,26 @@ test.describe("chart-engine drawings [mobile A03 handle grab]", () => {
       const layer = page.locator(".pane.on .drawing-layer");
       const drawing = layer.locator(`g[data-drawing-id="${SEED_TRENDLINE.id}"]`);
       await expect(drawing).toBeVisible({ timeout: 45_000 });
-      const hitLine = drawing.locator('line[data-segment="1"]').first();
-      const hitBox = await hitLine.boundingBox();
-      expect(hitBox).not.toBeNull();
-      const selectX = hitBox!.x + hitBox!.width * 0.5;
-      const selectY = hitBox!.y + hitBox!.height * 0.5;
-      await hitLine.dispatchEvent("pointerdown", {
-        bubbles: true, pointerId: 11, pointerType: "touch", isPrimary: true, button: 0, buttons: 1,
-        clientX: selectX, clientY: selectY,
+      const visibleLine = drawing.locator('line[data-geometry="1"]').first();
+      await expect(visibleLine).toBeVisible({ timeout: 15_000 });
+      const select = await visibleLine.evaluate((el) => {
+        const rect = el.getBoundingClientRect();
+        return { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 };
       });
-      await hitLine.dispatchEvent("pointerup", {
-        bubbles: true, pointerId: 11, pointerType: "touch", isPrimary: true, button: 0, buttons: 0,
-        clientX: selectX, clientY: selectY,
-      });
+      expect(select.x).toBeGreaterThan(0);
+      expect(select.y).toBeGreaterThan(0);
+      await page.mouse.click(select.x, select.y);
 
       const grip = drawing.locator("circle[data-handle]").first();
       await expect(grip).toBeVisible({ timeout: 15_000 });
-      const gripBox = await grip.boundingBox();
-      expect(gripBox).not.toBeNull();
+      const gripCenter = await grip.evaluate((el) => {
+        const rect = el.getBoundingClientRect();
+        return { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 };
+      });
 
       const before = JSON.parse(JSON.stringify(store.drawings[0])) as { points: { t: string; p: number }[] };
-      const startX = gripBox!.x + gripBox!.width / 2 + 3;
-      const startY = gripBox!.y + gripBox!.height / 2;
+      const startX = gripCenter.x + 3;
+      const startY = gripCenter.y;
       const pointerId = 12;
       await grip.dispatchEvent("pointerdown", {
         bubbles: true, pointerId, pointerType: "touch", isPrimary: true, button: 0, buttons: 1,
