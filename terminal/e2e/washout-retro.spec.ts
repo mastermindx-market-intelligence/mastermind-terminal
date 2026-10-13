@@ -94,11 +94,20 @@ async function waitForTerminalVisualReady(page: Page, refusalExpected = true) {
   ).toBe(true);
   const receipt = await page.evaluate(() =>
     (window as Window & { __mmResponsiveVisualReady?: ReadyReceipt | null }).__mmResponsiveVisualReady);
-  expect(receipt?.refusalAttached,
-    refusalExpected
-      ? `visual-ready must not release while the seeded Oracle refusal is absent; receipt=${JSON.stringify(receipt)}`
-      : "an ordinary no-signal generation must not invent an Oracle refusal",
-  ).toBe(refusalExpected);
+  // Visual-ready is earned by the REQUIRED bars alone (T08): the slice, which carries the Oracle
+  // stream, is optional and may still be in flight at the ready edge. So the refusal is never read
+  // off the ready instant — it is asserted once THIS generation has adopted the COST slice.
+  await expect(page.locator('.chart-wrap[data-slice-symbol="COST"]').first(),
+    `the COST slice should be adopted after the ready edge; receipt=${JSON.stringify(receipt)}`,
+  ).toHaveAttribute("data-slice-state", "data", { timeout: 20_000 });
+  const refusal = page.locator('[data-sig-layer] circle[fill="none"]');
+  if (refusalExpected) {
+    await expect(refusal.first(), "the seeded Oracle refusal should draw once the slice is adopted")
+      .toBeAttached({ timeout: 20_000 });
+  } else {
+    await expect(refusal, "an ordinary no-signal generation must not invent an Oracle refusal")
+      .toHaveCount(0, { timeout: 20_000 });
+  }
   return receipt!;
 }
 
@@ -233,6 +242,10 @@ async function openTerminal(page: Page, opts: { zh: boolean; zhPreseed?: boolean
   });
   await page.route(/\/data\/COST\.slice\.json(?:\?.*)?$/, async (route) => {
     await route.fulfill({ contentType: "application/json", body: JSON.stringify(slice) });
+  });
+  // Market context is independent of these three signal states; keep its absence explicit.
+  await page.route(/\/data\/market_risk\.json(?:\?.*)?$/, async (route) => {
+    await route.fulfill({ status: 404, contentType: "application/json", body: "{}" });
   });
   // Golden Oracle markers are an OPT-IN study (TerminalShell item-28) — seed the saved
   // indicator set so the marker geometry actually renders on the price series.
@@ -505,8 +518,13 @@ async function assertThreeStates(page: Page, zh: boolean, tag: string, testInfo:
     await expect(quality).toHaveText("Reclaim waived");
   }
   await expect(go.locator(".sig-dims .sig-dim-v").nth(1)).toHaveText(zh ? "优质" : "Quality");
+  // The independent market context shares this styling class, but is not a signal warning.
+  const marketRisk = go.getByTestId("market-risk-chip");
+  await expect(marketRisk).toBeVisible();
+  await expect(marketRisk.locator("summary"))
+    .toContainText(zh ? "市场风险不可用" : "Market risk unavailable");
   // the refusal's own "⃠ Entry blocked" strip belongs to a blocked LATEST signal — not here
-  await expect(go.locator(".sig-conflict")).toHaveCount(0);
+  await expect(go.locator('.sig-conflict:not([data-testid="market-risk-chip"])')).toHaveCount(0);
   await go.locator(".sig-card").screenshot({ path: out("card-reclaim-waived") });
 
   // ── the signal history: three rows, three different rows ────────────────────────────────
@@ -612,6 +630,74 @@ test("an ordinary no-indicator no-signal generation still publishes truthful dat
   const receipt = await waitForTerminalVisualReady(page, false);
   expect(receipt.detail).toMatchObject({ symbol: "COST", timeframe: "D", state: "data" });
   expect(receipt.detail.generation).toBeGreaterThan(0);
+});
+
+// ── a slice that lands AFTER the bars painted ─────────────────────────────────────────────
+// Ready is earned by the bars alone, so the Oracle stream can arrive into a chart that is already
+// painted and announced. This arm holds the COST slice past the ready edge and proves the late
+// slice is drawn into THAT generation — the refusal ring appears, the chip leaves its loading
+// word — with no second ready edge. The dataset attribute alone is not the witness: the marker is.
+test("a slice that lands after the ready edge draws its refusal into the same generation", async ({ page }) => {
+  let releaseSlice!: () => void;
+  const sliceGate = new Promise<void>((done) => { releaseSlice = done; });
+  await page.route(/\/data\/COST\.json(?:\?.*)?$/, async (route) => {
+    await route.fulfill({ contentType: "application/json", body: JSON.stringify(OHLC) });
+  });
+  await page.route(/\/data\/COST\.slice\.json(?:\?.*)?$/, async (route) => {
+    await sliceGate;
+    await route.fulfill({ contentType: "application/json", body: JSON.stringify(sliceFixture(true)) })
+      .catch(() => {});
+  });
+  await page.route(/\/data\/market_risk\.json(?:\?.*)?$/, async (route) => {
+    await route.fulfill({ status: 404, contentType: "application/json", body: "{}" });
+  });
+  await page.addInitScript(() => {
+    localStorage.setItem("mm.inds", JSON.stringify(["_oracle"]));
+    localStorage.setItem("mm.startTf", JSON.stringify("D"));
+  });
+  await armTerminalVisualReady(page);
+
+  const wrap = page.locator('.chart-wrap[data-slice-symbol="COST"]').first();
+  const refusal = page.locator('[data-sig-layer] circle[fill="none"]');
+  const markerGroups = page.locator("[data-sig-layer] g");
+  const chip = page.locator(".statusline > .mm").first().locator(":scope > span");
+  const readyEvents = () => page.evaluate(() =>
+    ((window as Window & { __mmVisualReadyEvents?: VisualReadyDetail[] }).__mmVisualReadyEvents ?? [])
+      .filter((detail) => detail.symbol === "COST" && detail.timeframe === "D"));
+  let receipt: ReadyReceipt | null = null;
+  try {
+    await page.goto("/terminal?symbol=COST");
+    await expect.poll(
+      () => page.evaluate(() =>
+        Boolean((window as Window & { __mmResponsiveVisualReady?: boolean }).__mmResponsiveVisualReady)),
+      { message: "the bars should announce ready while the slice is still held", timeout: 30_000 },
+    ).toBe(true);
+    receipt = await page.evaluate(() =>
+      (window as Window & { __mmResponsiveVisualReady?: ReadyReceipt | null }).__mmResponsiveVisualReady ?? null);
+    // At the ready edge the slice is pending: nothing slice-derived exists yet, and nothing was
+    // invented in its place — no refusal ring, no client-fallback marker, a loading word on the chip.
+    expect(receipt!.refusalAttached).toBe(false);
+    await expect(wrap).toHaveAttribute("data-slice-state", "pending", { timeout: 20_000 });
+    await expect(refusal).toHaveCount(0, { timeout: 20_000 });
+    await expect(markerGroups).toHaveCount(0, { timeout: 20_000 });
+    await expect(chip).toContainText("Signals loading", { timeout: 20_000 });
+  } finally {
+    releaseSlice();
+  }
+
+  // Released: the same generation adopts it and DRAWS it.
+  await expect(wrap).toHaveAttribute("data-slice-state", "data", { timeout: 20_000 });
+  await expect(refusal.first(), "the late slice's refusal must be drawn into the painted chart")
+    .toBeAttached({ timeout: 20_000 });
+  const m = await readMarkers(page, { plain: PLAIN_TS, retro: RETRO_TS, waived: TAKE_TS });
+  expect(m.plain?.ringSlashes ?? 0).toBeGreaterThanOrEqual(1);
+  expect(m.waived, "the late slice's waived entry should draw too").not.toBeNull();
+  await expect(chip).not.toContainText("Signals loading", { timeout: 20_000 });
+  await expect(chip).toContainText("Buy", { timeout: 20_000 });
+  // …and it was not re-announced: one data edge, the same generation the bars earned.
+  const edges = (await readyEvents()).filter((detail) => detail.state === "data");
+  expect(edges).toHaveLength(1);
+  expect(edges[0].generation).toBe(receipt!.detail.generation);
 });
 
 test("a retro projection, a refusal and a waived entry read as three different things", async ({ page }, testInfo) => {

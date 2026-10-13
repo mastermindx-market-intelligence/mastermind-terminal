@@ -1,8 +1,9 @@
 "use client";
 
-import { useMemo, useRef, type CSSProperties, type KeyboardEvent } from "react";
+import { useEffect, useMemo, useRef, useState, type CSSProperties, type KeyboardEvent } from "react";
 import { useLang } from "@/lib/i18n";
-import { formatValue, number, object, text, type FeedStatus, type Row, type SectorRotationMode } from "@/lib/sectorIntelligence";
+import { formatValue, number, object, text, type FeedPayload, type FeedStatus, type Row, type SectorRotationMode } from "@/lib/sectorIntelligence";
+import { qualifyRiskEnvelope, riskEnvelopeCopy } from "@/lib/marketRisk";
 import styles from "./SectorRotationMap.module.css";
 
 export type RotationQuadrant = "leading" | "improving" | "lagging" | "weakening";
@@ -31,6 +32,7 @@ export interface SectorRotationMapProps {
   rows: readonly Row[];
   status: FeedStatus;
   asOf: string | null;
+  risk?: FeedPayload;
   selected: string;
   mode: SectorRotationMode;
   query: string;
@@ -49,6 +51,7 @@ const COPY = {
   filter: ["Filter sectors", "筛选板块"],
   query: ["Find a sector", "搜索板块"], clear: ["Clear search", "清除搜索"],
   sourceDate: ["Source date", "来源日期"], unknownDate: ["Date unavailable", "日期不可用"],
+  unavailableObservationDate: ["Unavailable source observation date:", "不可用来源的观测日期："],
   sectors: ["sectors", "个板块"], shown: ["shown", "已显示"],
   coordinates: ["coordinates available", "个坐标可用"],
   currentOnly: ["Current source snapshot; no historical trail is inferred.", "当前来源快照；不推断历史轨迹。"],
@@ -184,6 +187,13 @@ function sign(value: number | null, digits = 1, suffix = "%"): string {
 
 export default function SectorRotationMap(props: SectorRotationMapProps) {
   const { lang } = useLang();
+  const [qualificationTime, setQualificationTime] = useState(Date.now);
+  useEffect(() => {
+    const recheck = () => setQualificationTime(Date.now());
+    const timer = window.setInterval(recheck, 60_000);
+    window.addEventListener("focus", recheck);
+    return () => { window.clearInterval(timer); window.removeEventListener("focus", recheck); };
+  }, []);
   const t = (key: keyof typeof COPY) => COPY[key][lang === "zh" ? 1 : 0];
   const points = useMemo(() => props.status === "ready" ? sectorRotationPoints(props.rows) : [], [props.rows, props.status]);
   const filtered = useMemo(() => filterRotationPoints(points, props.query), [points, props.query]);
@@ -194,6 +204,9 @@ export default function SectorRotationMap(props: SectorRotationMapProps) {
   const language = lang === "zh" ? "zh" : "en";
   const synthesis = useMemo(() => rotationSynthesis(points, language), [points, language]);
   const receipt = rotationReceipt(props.asOf, points.length, language);
+  const riskRead = props.risk?.receipt.status === "ready" && !props.risk.receipt.stale
+    ? qualifyRiskEnvelope(props.risk.data, undefined, qualificationTime) : null;
+  const riskCopy = riskEnvelopeCopy(riskRead?.envelope ?? null, lang === "zh");
   const refs = useRef<Record<string, HTMLButtonElement | null>>({});
   const name = (point: SectorRotationPoint) => lang === "zh" ? point.nameZh || point.name : point.name;
   const quadrantName = (point: SectorRotationPoint) => point.quadrant ? t(point.quadrant) : t("unavailable");
@@ -225,6 +238,7 @@ export default function SectorRotationMap(props: SectorRotationMapProps) {
     </header>
     {synthesis && <div className={styles.answer} data-testid="rotation-answer">
       <span>{t("answerLabel")}</span><p>{synthesis}</p>
+      <p className={styles.context} data-testid="rotation-risk-context">{riskCopy.caption}</p>
     </div>}
     <div className={styles.controls}>
       <div className={styles.mode} role="group" aria-label={t("viewMode")}>
@@ -277,7 +291,13 @@ export default function SectorRotationMap(props: SectorRotationMapProps) {
 
     <div className={styles.disclosures}>
       <details data-rotation-method><summary>{t("method")}</summary><div className={styles.methodBody}>
-        <p>{t("methodCopy")}</p><p>{t("sourceBoundary")}</p><p>{t("currentOnly")} {t("displayOnly")}</p>
+        <p>{t("methodCopy")}</p>
+        <div data-testid="rotation-risk-detail">
+          {riskCopy.details.map(detail => <p key={detail}>{detail}</p>)}
+          {(!riskRead?.qualified || props.risk?.receipt.stale) && props.risk?.receipt.asOf && <p>
+            {t("unavailableObservationDate")} {props.risk.receipt.asOf}
+          </p>}
+        </div><p>{t("sourceBoundary")}</p><p>{t("currentOnly")} {t("displayOnly")}</p>
         <p><strong>{t("noTrail")}</strong> · {t("noTrailCopy")}</p>
         <p>{allPlotted.length} / {points.length} {t("coordinates")}{points.some(point => point.quadrant === null)
           ? ` · ${points.filter(point => point.quadrant === null).length} ${t("missingCoordinates")}` : ""}.</p>

@@ -15,6 +15,11 @@
 # live dir (atomic per file). Logs to /var/log/terminal-data.log (cron 30 21 * * *).
 
 set -u
+# Volume-backed hosts must admit storage before env, lock or data effects.
+# The separate host guard survives this wrapper's canonical reinstall.
+if [ -e /usr/local/sbin/terminal-volume-guard ] || [ -L /usr/local/sbin/terminal-volume-guard ]; then
+  /usr/local/sbin/terminal-volume-guard || exit $?
+fi
 cd /opt/terminal || exit 1
 set -a; [ -f /opt/terminal/.env ] && . /opt/terminal/.env; set +a
 export MACRO_REPO=/opt/macro
@@ -47,6 +52,10 @@ run(){ echo "[$(ts)] -> $*"; "$@" || { local rc=$?; echo "[$(ts)] WARN: '$*' exi
 BAK="$D/manifest.json.bak-nightly"
 START_N=$(count "$LIVE")
 [ "$START_N" -gt 0 ] && cp -f "$LIVE" "$BAK"
+
+# Source-owned market context belongs to this existing refresh lane. It is
+# independent of per-name signal emission and cannot gate the universe refresh.
+run "$PY" ingest/pull_macro_risk.py
 
 # ── PHASE 1: flagship + fast price refresh (~5 min) ──
 # flagship 37 -> staging manifest + fresh real-OHLC/slices/verdicts (OHLC/slices go to live dir)

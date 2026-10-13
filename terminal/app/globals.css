@@ -1,4 +1,9 @@
 @import "tailwindcss";
+/* public/data is the generated market-data cache (~89k files, 6.1 GB on the VPS), not source.
+   Tailwind reads every file no ignore rule excludes, and no committed ignore file covers
+   public/data, so the deploy build scanned all of it inside this file's PostCSS step. That
+   step can then outlast Turbopack's 5-minute worker deadline and panic `next build`. */
+@source not "../public/data";
 
 /* ===== Mastermind Terminal design system (locked v5) ===== */
 :root{
@@ -342,6 +347,22 @@ svg{display:block}
 .status-market-dot{width:6px;height:6px;flex:none;border-radius:50%;background:var(--text-dim);box-shadow:0 0 0 3px color-mix(in srgb,var(--text-dim) 16%,transparent)}.status-market-dot.is-live{background:var(--buy);box-shadow:0 0 0 3px color-mix(in srgb,var(--buy) 18%,transparent)}.status-market-dot.is-delayed{background:var(--signal);box-shadow:0 0 0 3px color-mix(in srgb,var(--signal) 18%,transparent)}
 .statusline .mm{display:inline-flex;align-items:center;gap:5px;padding:2px 8px;border-radius:var(--r);background:rgba(38,194,129,.12);border:1px solid rgba(38,194,129,.3);color:var(--buy);font:600 10px/1 var(--font-ui);letter-spacing:.05em}
 .statusline .mm i{width:5px;height:5px;border-radius:50%;background:var(--buy)}
+
+/* Phone web keeps the complete status inside its chart. Identity and chips share
+   the first row; OHLC/change/Vol/Day wrap below without suppressing any values.
+   The right gutter clears the existing intelligence and fullscreen controls. */
+@media (max-width:640px){
+  html:not([data-shell="app"]) .statusline{left:0;right:112px;box-sizing:border-box;flex-wrap:wrap;gap:4px 6px;padding:8px 10px;font-size:11px}
+  html:not([data-shell="app"]) .statusline>span:first-child{display:contents}
+  html:not([data-shell="app"]) .status-identity{flex:1 1 90px;min-width:0}
+  html:not([data-shell="app"]) .status-symbol-logo{flex:none}
+  html:not([data-shell="app"]) .status-values{order:2;flex:1 0 100%;min-width:0;flex-wrap:wrap;gap:3px 6px;white-space:normal}
+  html:not([data-shell="app"]) .status-values>span,html:not([data-shell="app"]) .status-change{white-space:nowrap}
+  html:not([data-shell="app"]) .statusline .mm{flex:none;white-space:nowrap}
+  /* The price legend's baseline starts 49px below the chart top. Grow its
+     clearance with the measured header instead of guessing the number of rows. */
+  html:not([data-shell="app"]) .chart-overlays>div:first-child .lg-block{margin-top:max(0px,calc(var(--statusline-height,49px) - 49px))}
+}
 
 .rail-resizer{grid-column:3;grid-row:2;justify-self:start;align-self:stretch;width:12px;margin-left:-6px;z-index:18;cursor:col-resize;display:flex;align-items:stretch;justify-content:center}
 .rail-resizer span{width:1px;background:linear-gradient(180deg,transparent,var(--line-3),transparent);opacity:.55;transition:width var(--t),opacity var(--t),background var(--t)}
@@ -2534,6 +2555,9 @@ table.scr2 tbody tr.empty-row:hover,table.scr2 tbody tr.scr2-skel-row:hover,tabl
      (legend mobile block further down). */
   /* pane ops icons (top-right strip — positioned clear of the legend, keeps its 40px floor) */
   .po-ic{min-width:40px;min-height:40px}
+  /* Keep pane Restore beside the workspace fullscreen button; both retain their pointer targets.
+     The phone rule below still hides the maximize strip and keeps its double-tap ownership. */
+  .app:not(.shell-app) .pane-ops{margin-right:48px}
   /* drawer nav links */
   .m-nav a,.m-nav button{min-height:44px}
   /* ── Fix 7: scripts / Pine editor — contain wide pre-formatted code inside viewport ── */
@@ -2874,6 +2898,8 @@ body.col-resizing .wl-rz::after{background:var(--brand)}
 /* Options Hub sector sparkline card */
 .hub-sector-card{border:1px solid var(--line);border-radius:var(--r-lg);background:var(--panel);padding:10px 12px;text-align:left;cursor:pointer;transition:background var(--t),border-color var(--t)}
 .hub-sector-card:hover{background:var(--panel-2)}
+/* Load-error Retry (a failed read is re-read in place — Volatility, GEX desk, Levels, Heatmap): the touch floor every coarse-pointer control meets. */
+@media (pointer:coarse){.vol-retry,.load-retry{min-height:44px}}
 /* Options Hub placeholder tabs */
 .hub-placeholder{flex:1;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:12px;color:var(--muted)}
 @media(max-width:640px){
@@ -5355,3 +5381,18 @@ html[data-shell="app"] .mm-brandbug{
     overflow: visible !important;
   }
 }
+
+/* ── data-origin chip (Data OS U02): derived from the OHLC view contract, replaces the static ADJ chip ── */
+.cfb-origin-host{position:relative}
+.cfb-chip.cfb-origin{cursor:pointer;pointer-events:auto;opacity:1}
+.cfb-origin.cfb-origin-partial{border-color:var(--warn);color:var(--warn)}
+.cfb-origin.cfb-origin-unknown,.cfb-origin.cfb-origin-refused,.cfb-origin.cfb-origin-unavailable,.cfb-origin.cfb-origin-composite,.cfb-origin.cfb-origin-pending{color:var(--muted)}
+.cfb-origin-pop{padding:10px 12px;min-width:260px;max-width:min(320px,calc(100vw - 24px));user-select:text;cursor:default}
+.cfb-origin-head{font:700 11px/1.2 var(--font-ui);color:var(--text);margin-bottom:4px}
+.cfb-origin-state{font:500 11px/1.35 var(--font-ui);color:var(--text-2);margin-bottom:8px}
+.cfb-origin-dl{display:grid;grid-template-columns:auto 1fr;gap:4px 10px;margin:0 0 8px;font:500 11px/1.35 var(--font-ui)}
+.cfb-origin-dl dt{color:var(--muted)}
+.cfb-origin-dl dd{margin:0;color:var(--text);overflow-wrap:anywhere}
+.cfb-origin-dl code{font:500 10.5px/1.35 var(--font-num)}
+.cfb-origin-note{margin:0 0 4px;font:500 10.5px/1.35 var(--font-ui);color:var(--text-2)}
+.cfb-origin-foot{margin:6px 0 0;padding-top:6px;border-top:1px solid var(--line);font:600 10.5px/1.35 var(--font-ui);color:var(--text-2)}

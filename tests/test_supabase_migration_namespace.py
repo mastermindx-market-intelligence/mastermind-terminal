@@ -1305,6 +1305,81 @@ def _pr_branch_doc(entry_pr=514):
 PR_BRANCH_FILES = ["0017_personal_accuracy_ledger.sql"]
 
 
+@pytest.mark.parametrize("injected_number", [None, "514", "9999", "514,9999", "0"])
+def test_merge_group_rejects_open_files_without_frozen_membership(injected_number):
+    """A queue ref or injected PR number cannot prove who owns this group SHA."""
+    env = {
+        "GITHUB_EVENT_NAME": "merge_group",
+        "GITHUB_SHA": "a" * 40,
+        "GITHUB_REF": "refs/heads/gh-readonly-queue/master/pr-514-fixture",
+    }
+    if injected_number is not None:
+        env["PR_NUMBER"] = injected_number
+    strict, pr, mode = resolve_run_mode(env)
+    findings = check_open_pr_state_for_present_files(
+        PR_BRANCH_FILES, _pr_branch_doc(entry_pr=514), strict_master=strict, pr_number=pr
+    )
+    assert any(f.code == "OPEN_PR_STATE_WITH_FILE_PRESENT" for f in findings)
+    assert (strict, pr) == (True, None)
+    assert "merge_group" in mode and "membership" in mode
+    # A missing membership proof does not prove that this PR has already merged.
+    assert "means the owning pull request merged" not in findings[0].detail
+
+
+@pytest.mark.parametrize("entry_pr", [514, 9999, None, True])
+def test_merge_group_does_not_attribute_an_open_owner_from_the_ledger(entry_pr):
+    strict, pr, _ = resolve_run_mode({"GITHUB_EVENT_NAME": "merge_group"})
+    findings = check_open_pr_state_for_present_files(
+        PR_BRANCH_FILES, _pr_branch_doc(entry_pr=entry_pr), strict_master=strict, pr_number=pr
+    )
+    assert any(f.code == "OPEN_PR_STATE_WITH_FILE_PRESENT" for f in findings)
+
+
+def test_merge_group_blocks_multiple_unqualified_open_owners():
+    doc = _pr_branch_doc()
+    doc["prefixes"]["0018"] = {
+        **doc["prefixes"]["0017"],
+        "file": "0018_other.sql",
+        "pr": 9999,
+    }
+    strict, pr, _ = resolve_run_mode({"GITHUB_EVENT_NAME": "merge_group", "PR_NUMBER": "514"})
+    findings = check_open_pr_state_for_present_files(
+        PR_BRANCH_FILES + ["0018_other.sql"], doc, strict_master=strict, pr_number=pr
+    )
+    assert {f.prefix for f in findings} == {"0017", "0018"}
+
+
+@pytest.mark.parametrize("present", [True, False])
+def test_merge_group_keeps_truthful_merged_and_absent_open_controls(present):
+    doc = _pr_branch_doc()
+    if present:
+        doc["prefixes"]["0017"]["pr_state"] = "merged"
+    strict, pr, _ = resolve_run_mode({"GITHUB_EVENT_NAME": "merge_group"})
+    assert check_open_pr_state_for_present_files(
+        PR_BRANCH_FILES if present else [], doc, strict_master=strict, pr_number=pr
+    ) == []
+
+
+@pytest.mark.parametrize("event", ["pull_request", "workflow_dispatch"])
+def test_single_pr_routes_still_allow_their_own_open_migration(event):
+    strict, pr, _ = resolve_run_mode({"GITHUB_EVENT_NAME": event, "PR_NUMBER": "514"})
+    assert check_open_pr_state_for_present_files(
+        PR_BRANCH_FILES, _pr_branch_doc(), strict_master=strict, pr_number=pr
+    ) == []
+    foreign = check_open_pr_state_for_present_files(
+        PR_BRANCH_FILES, _pr_branch_doc(entry_pr=9999), strict_master=strict, pr_number=pr
+    )
+    assert any(f.code == "OPEN_PR_STATE_STALE" for f in foreign)
+
+
+def test_merge_group_strict_scope_reaches_the_full_namespace_checker():
+    strict, pr, _ = resolve_run_mode({"GITHUB_EVENT_NAME": "merge_group"})
+    doc = _pr_branch_doc()
+    texts = {PR_BRANCH_FILES[0]: "-- Ledger row: 0017\n-- Rollback: NONE: fixture\n"}
+    findings = check_all(PR_BRANCH_FILES, texts, doc, strict_master=strict, pr_number=pr)
+    assert any(f.code == "OPEN_PR_STATE_WITH_FILE_PRESENT" for f in findings)
+
+
 def test_pull_request_mode_flags_a_present_open_entry_owned_by_another_pr():
     """The staleness this packet exists to prevent, caught in the mode CI runs.
 

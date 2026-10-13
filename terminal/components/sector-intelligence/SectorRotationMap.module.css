@@ -119,3 +119,5 @@
   .tableWrap td { display: flex; flex-direction: column; gap: 3px; padding: 0; border: 0; text-align: left; }
   .tableWrap td::before { content: attr(data-label); color: var(--text-2); font-size: 9px; }
 }
+
+.answer p.context { margin-top: 8px; color: var(--text-2); font-size: 12px; font-weight: 450; line-height: 1.55; letter-spacing: 0; }
