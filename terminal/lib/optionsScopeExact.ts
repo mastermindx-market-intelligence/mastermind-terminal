@@ -13,9 +13,28 @@ import type { StrikeExpiryDoc } from "@/components/shared/StrikeExpiryMatrix";
  * - Preserves "derived-grid" for a doc without axes; never upgrades it to "declared-grid".
  * - Does not mutate its input.
  */
-export function matrixForExactScope(matrix: unknown, strikes: readonly number[], expiries: readonly string[]): StrikeExpiryDoc {
-  void matrix; void strikes; void expiries;
-  throw new Error("matrixForExactScope not implemented (PP2-UI-c RED)");
+export function matrixForExactScope(
+  matrix: StrikeExpiryDoc,
+  strikes: readonly number[],
+  expiries: readonly string[],
+): StrikeExpiryDoc {
+  const strikeSet = new Set(strikes);
+  const expirySet = new Set(expiries);
+  const declaredStrikes = Array.isArray(matrix.strikes);
+  const declaredExpiries = Array.isArray(matrix.expiries);
+  const filteredStrikes = declaredStrikes
+    ? (matrix.strikes as readonly number[]).filter((k) => strikeSet.has(k))
+    : undefined;
+  const filteredExpiries = declaredExpiries
+    ? (matrix.expiries as readonly string[]).filter((e) => expirySet.has(e))
+    : undefined;
+  const cells = Array.isArray(matrix.cells)
+    ? matrix.cells.filter((cell) => strikeSet.has(cell.strike) && expirySet.has(cell.expiry))
+    : matrix.cells;
+  const out: StrikeExpiryDoc = { ...matrix, cells };
+  if (filteredStrikes) (out as { strikes?: number[] }).strikes = [...filteredStrikes];
+  if (filteredExpiries) (out as { expiries?: string[] }).expiries = [...filteredExpiries];
+  return out;
 }
 
 /**

@@ -94,6 +94,32 @@ export const OPTIONS_LEX = {
   receiptsMixedHidden: ["Source dates differ from the map session.", "数据源日期与热力图交易日不一致。"],
   newerSnapshot: ["A newer snapshot is ready: {session} · built {build}. The selected node stays on the current snapshot.", "新快照已就绪：{session} · 生成于 {build}。所选节点仍停留在当前快照。"],
   applyNewer: ["Show newer snapshot", "显示新快照"],
+  // PP2-UI-c: Range mode radio, the four text inputs, and exact-mode scope copy.
+  modeLegend: ["Range", "范围"],
+  presetScope: ["Nearest expiries and strike window", "最近到期日与行权价窗口"],
+  exactScope: ["Exact strikes and days to expiry", "精确行权价与到期天数"],
+  fromStrike: ["From strike", "起始行权价"],
+  toStrike: ["To strike", "截止行权价"],
+  dteMinScope: ["Min days to expiry", "最短到期天数"],
+  dteMaxScope: ["Max days to expiry", "最长到期天数"],
+  scopePreview: ["{strikes} strikes · {expiries} expiries · {min}–{max} days to expiry", "{strikes} 个行权价 · {expiries} 个到期日 · {min}–{max} 到期天数"],
+  daysToExpiry: ["days to expiry", "到期天数"],
+  editScope: ["Edit scope", "编辑范围"],
+  scopeEmptyTitle: ["Scope outside the published session", "范围超出已发布交易日"],
+  scopeEmptyBody: ["The applied exact strikes or days-to-expiry no longer match a published session. Edit the scope to continue.", "已应用的确切行权价或到期天数已不再匹配已发布的交易日。请编辑范围以继续。"],
+  // Twelve issue sentences — one per BoundsIssue code in optionsScopeBounds.ts.
+  scopeIssueFromMissing: ["Enter a From strike.", "请输入起始行权价。"],
+  scopeIssueToMissing: ["Enter a To strike.", "请输入截止行权价。"],
+  scopeIssueFromNotNumber: ["From strike must be a positive number.", "起始行权价必须为正数。"],
+  scopeIssueToNotNumber: ["To strike must be a positive number.", "截止行权价必须为正数。"],
+  scopeIssueNotPositive: ["Strikes must be positive.", "行权价必须为正。"],
+  scopeIssueInverted: ["From strike must not exceed To strike.", "起始行权价不得超过截止行权价。"],
+  scopeIssueDteNotWhole: ["Days to expiry must be whole numbers.", "到期天数必须为整数。"],
+  scopeIssueDteNegative: ["Days to expiry cannot be negative.", "到期天数不能为负。"],
+  scopeIssueDteInverted: ["Min days must not exceed Max days.", "最短天数不得超过最长天数。"],
+  scopeIssueSessionInvalid: ["Snapshot session is invalid.", "快照交易日不存在。"],
+  scopeIssueNoStrikes: ["No strikes in the selected range.", "所选范围内没有行权价。"],
+  scopeIssueNoExpiries: ["No expiries in the selected days-to-expiry range.", "所选到期天数范围内没有到期日。"],
 } as const;
 export type OptionsWord = keyof typeof OPTIONS_LEX;
 export type OptionsT = (key: OptionsWord) => string;

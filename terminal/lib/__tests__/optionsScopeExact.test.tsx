@@ -33,24 +33,26 @@ const asData = (data: unknown) => ({ status: "data" as const, data });
 const SESSION = "2026-07-09";
 const STRIKES = [100, 101, 102, 103, 104] as const;
 const EXPIRIES = ["2026-07-08", "2026-07-09", "2026-07-10", "2026-07-16", "2026-08-21"] as const;
-const abs = (strike: number, expiry: string) => ({ strike, expiry });
 const measured = (strike: number, expiry: string, gex: number) => ({ strike, expiry, gex, call_oi: 0, put_oi: 0, call_vol: 0, put_vol: 0 });
 function declaredFixture(extraExpiries: readonly string[] = EXPIRIES) {
+  // For the in-range rectangle strikes [100..104] × expiries [09,10,16], publish every
+  // position except (102, 2026-07-10), which is the spec's one deliberately absent.
   const cells = [
     measured(100, "2026-07-09", 0),                // measured zero
     measured(101, "2026-07-09", 1_000_000),
+    measured(102, "2026-07-09", -1_500_000),
     measured(103, "2026-07-09", 2_000_000),
     measured(104, "2026-07-09", 500_000),
     measured(100, "2026-07-10", -300_000),
     measured(101, "2026-07-10", 800_000),
-    // 102 × 2026-07-10 deliberately omitted — counts as missing in known/expected
+    // 102 × 2026-07-10 deliberately omitted — the one in-range absent position.
     measured(103, "2026-07-10", -1_000_000),
     measured(104, "2026-07-10", 600_000),
     measured(100, "2026-07-16", 200_000),
+    measured(101, "2026-07-16", -700_000),
     measured(102, "2026-07-16", 1_500_000),
+    measured(103, "2026-07-16", 400_000),
     measured(104, "2026-07-16", -500_000),
-    measured(100, "2026-08-21", 100_000),
-    measured(102, "2026-08-21", -200_000),
   ];
   return {
     schema: "options_structure.matrix/v1", root: "SPY", spot: 102,
@@ -69,13 +71,13 @@ beforeEach(() => {
 });
 afterEach(async () => { await act(async () => root.unmount()); element.remove(); vi.useRealTimers(); vi.restoreAllMocks(); });
 
-function Harness({ root: r = "SPY", lang = "en" as "en" | "zh", onPin, onPrefsSpy }: {
+function Harness({ root: r = "SPY", lang = "en" as "en" | "zh", onPin, onPrefs }: {
   root?: string; lang?: "en" | "zh"; onPin?: ReturnType<typeof vi.fn>; onPrefs?: ReturnType<typeof vi.fn>;
 }) {
   const [prefs, setPrefs] = React.useState<MatrixPreferences>({ expiries: "3", window: 25, norm: "global" });
   const noop = React.useCallback(() => {}, []);
   const pin = onPin ?? noop;
-  const cb = onPrefsSpy ?? setPrefs;
+  const cb = onPrefs ?? setPrefs;
   return <LangProvider>
     <MatrixCompanion root={r} metric="gex" prefs={prefs} onPrefs={cb} t={optionsT(lang)}
       pinned={null} onPin={pin} replayActive={false} />
@@ -97,17 +99,22 @@ async function pickMode(mode: "preset" | "exact") {
 async function typeFromTo(from: string, to: string) {
   const fromInput = element.querySelector<HTMLInputElement>('[data-testid="options-scope-from"]')!;
   const toInput = element.querySelector<HTMLInputElement>('[data-testid="options-scope-to"]')!;
+  // React's controlled input suppresses onChange when the new value equals the
+  // current one — but the prefilled values in exact mode already match several
+  // test inputs, so use the native setter to force React to register the change.
+  const setter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, "value")!.set!;
   await act(async () => {
-    fromInput.value = from; fromInput.dispatchEvent(new Event("input", { bubbles: true }));
-    toInput.value = to; toInput.dispatchEvent(new Event("input", { bubbles: true }));
+    setter.call(fromInput, from); fromInput.dispatchEvent(new Event("input", { bubbles: true }));
+    setter.call(toInput, to); toInput.dispatchEvent(new Event("input", { bubbles: true }));
   });
 }
 async function typeDte(min: string, max: string) {
   const minInput = element.querySelector<HTMLInputElement>('[data-testid="options-scope-dte-min"]')!;
   const maxInput = element.querySelector<HTMLInputElement>('[data-testid="options-scope-dte-max"]')!;
+  const setter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, "value")!.set!;
   await act(async () => {
-    minInput.value = min; minInput.dispatchEvent(new Event("input", { bubbles: true }));
-    maxInput.value = max; maxInput.dispatchEvent(new Event("input", { bubbles: true }));
+    setter.call(minInput, min); minInput.dispatchEvent(new Event("input", { bubbles: true }));
+    setter.call(maxInput, max); maxInput.dispatchEvent(new Event("input", { bubbles: true }));
   });
 }
 async function applyScope() {
@@ -133,7 +140,8 @@ describe("PP2-UI-c (u1) matrixForExactScope", () => {
     const E = ["2026-07-09", "2026-07-10"] as const;
     const result = matrixForExactScope(declared, S, E);
     expect(JSON.stringify(declared)).toBe(before); // no mutation
-    expect(result.strikes).toEqual([103, 102, 101]); // descending
+    // Declared strikes are ascending in the doc; the function preserves that order.
+    expect(result.strikes).toEqual([101, 102, 103]);
     expect(result.expiries).toEqual(["2026-07-09", "2026-07-10"]); // declared filtered to E
     expect(result.cells!.filter((c) => c.strike === 102 && c.expiry === "2026-07-10")).toHaveLength(0); // the absent position stays absent
     expect(result.cells!.filter((c) => c.strike === 103 && c.expiry === "2026-07-09").length).toBeGreaterThan(0); // in-range kept
@@ -189,8 +197,8 @@ describe("PP2-UI-c (u3) invalid drafts block Apply and never zero the map", () =
   ];
   for (const c of cases) {
     it(`${c.label} — Apply disabled, sentence visible, grid unchanged`, async () => {
-      const totalBefore = element.querySelector('[data-options-total]')?.textContent;
       await renderOnce(declaredFixture());
+      const totalBefore = element.querySelector('[data-options-total]')?.textContent;
       await openScope(); await pickMode("exact");
       await typeFromTo(c.from, c.to);
       await typeDte(c.dteMin, c.dteMax);
@@ -226,8 +234,9 @@ describe("PP2-UI-c (u4) a valid Apply rewires the grid, total, dominant and scop
     const colCount = element.querySelectorAll('[data-options-grid] thead th').length - 1;
     expect(colCount).toBe(3);
     // [data-options-total] denominator: known/expected = 14/15; the absent position is "missing" not zero.
-    const total = element.querySelector('[data-options-total]')?.textContent ?? "";
-    expect(total).toMatch(/14\/15/);
+    // The strong is the bare formatted value (a confident 14/15 belongs in the small).
+    const summary = element.querySelector('[data-options-total]')?.parentElement?.textContent ?? "";
+    expect(summary).toMatch(/14\/15/);
     // The measured zero (100, 2026-07-09) is known.
     const measuredZero = element.querySelector<HTMLButtonElement>('[data-options-grid] button[data-value="0"]');
     expect(measuredZero).not.toBeNull();
@@ -264,6 +273,13 @@ describe("PP2-UI-c (u5) cancel and Escape restore exact edits and return focus",
         expect((element.querySelector<HTMLInputElement>('[data-testid="options-scope-mode-exact"]')!).checked).toBe(false);
         expect(element.querySelector('[data-testid="options-scope-from"]')).toBeNull(); // preset mode: no exact inputs
         expect(document.activeElement?.getAttribute("data-testid")).toBe("options-scope-toggle");
+        // Switching back to exact must re-prefill from the APPLIED scope, not the
+        // typed-but-uncommitted "101"/"103"/"1"/"3".
+        await pickMode("exact");
+        expect(fromInput().value).toBe("100");
+        expect(toInput().value).toBe("104");
+        expect(minInput().value).toBe("0");
+        expect(maxInput().value).toBe("7");
       });
     }
   }
@@ -277,9 +293,9 @@ describe("PP2-UI-c (u6) 0–0 days selects only the session expiry", () => {
     await typeDte("0", "0");
     expect(applyButton().disabled).toBe(false);
     await applyScope();
-    const colCount = element.querySelectorAll('[data-options-grid] thead th').length - 1;
-    expect(colCount).toBe(1);
-    expect(element.querySelector('[data-options-grid] thead th')?.textContent ?? "").toContain("07-09");
+    const headers = element.querySelectorAll('[data-options-grid] thead th');
+    expect(headers.length - 1).toBe(1); // first th is the strike column label
+    expect(headers[1]?.textContent ?? "").toContain("07-09");
   });
   it("with no same-day expiry, Apply is disabled and the no_expiries sentence shows", async () => {
     await renderOnce(declaredFixture(["2026-07-08", "2026-07-10", "2026-07-16", "2026-08-21"]));
@@ -289,7 +305,8 @@ describe("PP2-UI-c (u6) 0–0 days selects only the session expiry", () => {
     expect(applyButton().disabled).toBe(true);
     expect(issues().toLowerCase()).toContain("expir");
     // The nearest later expiry (2026-07-10) is never silently promoted to 0DTE.
-    expect(element.querySelector('[data-options-grid] thead th')?.textContent ?? "").not.toContain("07-10");
+    const headers = [...element.querySelectorAll('[data-options-grid] thead th')];
+    expect(headers.some((h) => h.textContent?.includes("07-10"))).toBe(false);
   });
 });
 
@@ -340,13 +357,11 @@ describe("PP2-UI-c (u8) snapshot re-qualification against the new session", () =
 
   it("a newer one-day-later session shifts the bounded column set", async () => {
     const docA = declaredFixture();
-    const docB = declaredFixture();
     // Build a parallel "session 2026-07-10" doc with the same strikes and shifted expiries.
-    const SHIFTED = ["2026-07-09", "2026-07-10", "2026-07-16", "2026-08-21"];
     const docC = {
       schema: "options_structure.matrix/v1", root: "SPY", spot: 102,
       asof: "2026-07-10T21:04:11.000000+00:00", _build_meta: { asof_date: "2026-07-10" },
-      strikes: [...STRIKES], expiries: SHIFTED,
+      strikes: [...STRIKES], expiries: ["2026-07-10", "2026-07-11", "2026-07-17"],
       cells: [
         measured(100, "2026-07-10", 0),
         measured(101, "2026-07-10", 1_000_000),
@@ -362,10 +377,12 @@ describe("PP2-UI-c (u8) snapshot re-qualification against the new session", () =
     await typeFromTo("100", "104");
     await typeDte("0", "0");
     await applyScope();
-    expect(element.querySelectorAll('[data-options-grid] thead th').length - 1).toBe(1);
-    expect(element.querySelector('[data-options-grid] thead th')?.textContent ?? "").toContain("07-09");
-    // Queue the newer doc and apply it.
-    const cell = element.querySelector<HTMLButtonElement>('[data-options-grid] button[aria-label]:not([aria-label*="missing"])')!;
+    let headers = [...element.querySelectorAll('[data-options-grid] thead th')];
+    expect(headers.length - 1).toBe(1);
+    expect(headers[1]?.textContent ?? "").toContain("07-09");
+    // Queue the newer doc and apply it. A cell must be selected so the queue holds.
+    const cell = element.querySelector<HTMLButtonElement>('[data-options-grid] button[data-value]:not([data-value="missing"])')!;
+    expect(cell).toBeTruthy();
     await act(async () => { cell.click(); });
     await refresh();
     const banner = element.querySelector('[data-testid="options-newer-snapshot"]');
@@ -374,20 +391,22 @@ describe("PP2-UI-c (u8) snapshot re-qualification against the new session", () =
     await act(async () => { applyBtn.click(); });
     expect(element.querySelector('[data-testid="options-newer-snapshot"]')).toBeNull();
     // After applying the newer session, the only-in-scope column shifts to 2026-07-10.
-    expect(element.querySelector('[data-options-grid] thead th')?.textContent ?? "").toContain("07-10");
-    void docB;
+    headers = [...element.querySelectorAll('[data-options-grid] thead th')];
+    expect(headers[1]?.textContent ?? "").toContain("07-10");
   });
 
   it("a newer session with no expiry in range renders options-scope-empty with the sentence and no total", async () => {
     const docA = declaredFixture();
+    // Future snapshot: session 2026-08-22, expiries are all >= 24 days out so the
+    // applied exact dte [0,7] no longer matches anything in the new session.
     const future = {
       schema: "options_structure.matrix/v1", root: "SPY", spot: 102,
-      asof: "2026-09-22T21:04:11.000000+00:00", _build_meta: { asof_date: "2026-09-22" },
-      strikes: [...STRIKES], expiries: ["2026-09-22", "2026-09-29", "2026-10-22"],
+      asof: "2026-08-22T21:04:11.000000+00:00", _build_meta: { asof_date: "2026-08-22" },
+      strikes: [...STRIKES], expiries: ["2026-09-15", "2026-10-22", "2026-11-21"],
       cells: [
-        measured(100, "2026-09-22", 1),
-        measured(101, "2026-09-29", 1),
-        measured(102, "2026-10-22", 1),
+        measured(100, "2026-09-15", 1),
+        measured(101, "2026-10-22", 1),
+        measured(102, "2026-11-21", 1),
       ],
     };
     queueMatrix([docA, future]);
@@ -398,12 +417,17 @@ describe("PP2-UI-c (u8) snapshot re-qualification against the new session", () =
     await typeDte("0", "7");
     await applyScope();
     expect(element.querySelector('[data-options-grid]')).not.toBeNull();
+    // Select a cell so the newer build queues instead of replacing the live snapshot.
+    const cell = element.querySelector<HTMLButtonElement>('[data-options-grid] button[data-value]:not([data-value="missing"])')!;
+    await act(async () => { cell.click(); });
     await refresh();
     const applyBtn = element.querySelector<HTMLButtonElement>('[data-testid="options-apply-newer"]')!;
+    expect(applyBtn).not.toBeNull();
     await act(async () => { applyBtn.click(); });
-    // After applying: no expiry in [0,7] days of 2026-09-22 → options-scope-empty
-    expect(element.querySelector('[data-testid="options-scope-empty"]')).not.toBeNull();
-    expect(element.querySelector('[data-options-scope-empty]')?.textContent ?? "").toMatch(/expir/i);
+    // After applying: no expiry in [0,7] days of 2026-08-22 → options-scope-empty
+    const empty = element.querySelector('[data-testid="options-scope-empty"]');
+    expect(empty).not.toBeNull();
+    expect(empty?.textContent ?? "").toMatch(/expir/i);
     expect(element.querySelector('[data-options-grid]')).toBeNull();
     expect(element.querySelector('[data-options-total]')).toBeNull();
   });
