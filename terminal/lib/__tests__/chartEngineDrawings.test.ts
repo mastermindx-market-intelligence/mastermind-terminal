@@ -13,12 +13,7 @@ import type {
   TimeScaleHandle,
 } from "@/lib/chart-engine/api";
 import { futureCadence } from "@/lib/chart-engine/futureTime";
-import {
-  DRAWING_HANDLE_HIT_RADIUS_CSS,
-  drawingPointToAnchor,
-  hitTestDrawingHandles,
-  type DrawingHandleTarget,
-} from "@/lib/drawing-engine/interaction";
+import { drawingPointToAnchor } from "@/lib/drawing-engine/interaction";
 
 const TIMES = ["2026-09-01", "2026-09-02", "2026-09-03", "2026-09-04", "2026-09-05"];
 
@@ -161,14 +156,6 @@ describe("chart-engine drawings (D02)", () => {
     assertRawTravel(mm);
   });
 
-  it("A03: handle hit-test uses CSS px tolerance (not device pixels)", () => {
-    const handles: DrawingHandleTarget[] = [{ drawingId: "d1", handleIndex: 0, cx: 100, cy: 200 }];
-    const near = hitTestDrawingHandles(108, 200, handles, DRAWING_HANDLE_HIT_RADIUS_CSS, 2);
-    expect(near?.handleIndex).toBe(0);
-    const ghost = hitTestDrawingHandles(140, 200, handles, DRAWING_HANDLE_HIT_RADIUS_CSS, 2);
-    expect(ghost).toBeNull();
-  });
-
   it("A01 anchor minting preserves pane-scoped logical geometry", () => {
     const anchor = drawingPointToAnchor(0, { t: TIMES[2], p: 42 }, 2, TIMES[2], undefined);
     const engine = linearBridgeEngine();
@@ -183,18 +170,6 @@ describe("chart-engine drawings (D02)", () => {
     const px = bridge.anchorToPixel(anchor);
     bridge.dispose();
     expect(px?.x).not.toBeNull();
-  });
-});
-
-describe("hitTestDrawingHandles falsifier", () => {
-  it("RED when tolerance is scaled by devicePixelRatio (mutant)", () => {
-    const handles: DrawingHandleTarget[] = [{ drawingId: "d1", handleIndex: 0, cx: 100, cy: 200 }];
-    const dpr = 2;
-    const wrongTolerance = DRAWING_HANDLE_HIT_RADIUS_CSS * dpr;
-    const hit = hitTestDrawingHandles(115, 200, handles, wrongTolerance, dpr);
-    expect(hit).not.toBeNull();
-    const correct = hitTestDrawingHandles(115, 200, handles, DRAWING_HANDLE_HIT_RADIUS_CSS, dpr);
-    expect(correct).toBeNull();
   });
 });
 
@@ -219,17 +194,6 @@ describe("chart-engine drawings (D02) — review additions", () => {
   afterEach(() => {
     vi.restoreAllMocks();
     box.remove();
-  });
-
-  it("picks the NEAREST handle when several sit inside the tolerance", () => {
-    const handles: DrawingHandleTarget[] = [
-      { drawingId: "far", handleIndex: 1, cx: 100, cy: 200 },
-      { drawingId: "near", handleIndex: 0, cx: 106, cy: 200 },
-    ];
-    const hit = hitTestDrawingHandles(108, 200, handles, DRAWING_HANDLE_HIT_RADIUS_CSS, 2);
-    expect(hit?.drawingId).toBe("near");
-    expect(hit?.handleIndex).toBe(0);
-    expect(hit?.distanceCss).toBeCloseTo(2, 6);
   });
 
   it("A01b: pixel -> anchor -> pixel round-trips within 1 CSS px on both impls", () => {

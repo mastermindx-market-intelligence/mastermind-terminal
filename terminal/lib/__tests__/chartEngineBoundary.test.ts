@@ -42,24 +42,19 @@ const CHART_PANEL = path.join(TERMINAL_ROOT, "components", "ChartPanel.tsx");
 // Paths are relative to terminal/. Ratchet down only: entries leave this list, they
 // never join it without an explicit, justified edit of this constant.
 const LWC_IMPORT_ALLOWLIST: readonly string[] = [
+  // Standalone embed chart (not the main ChartPanel engine path).
   "app/embed/chart/EmbedChart.tsx",
+  // M04-interim: ChartFrameBar keeps its raw IChartApi prop until the next migration2
+  // commit retypes it to ChartEngine; the entry is a BASE one, not a ratchet raise.
   "components/ChartFrameBar.tsx",
-  "components/ChartPanel.tsx",
-  "components/ChartPane.tsx",
-  "components/ChartSettingsModal.tsx",
-  // Added on master by #929 (transaction-backed Large Trades) AFTER the c923cc46 cut:
-  // a type-only `import type { IChartApi, ISeriesApi }` — no runtime LWC call. It
-  // joins the list because it pre-exists the chart-engine integration, not as a new
-  // consumer; the ChartPanel migration wave retargets it to the contract types.
-  "components/LargeTradesOverlay.tsx",
+  // Lazy-loaded tide mini-chart (standalone LWC instance).
   "components/TideChartLazy.tsx",
+  // Options surface panes — separate createChart lifecycles from the main terminal chart.
   "components/surface/SessionFlowPane.tsx",
   "components/surface/StrikeEvolutionModal.tsx",
   "components/surface/SurfacePane.tsx",
   "lib/chartTimeAxis.ts",
-  "lib/drawingPaneReadiness.ts",
   "lib/heatSeries.ts",
-  "lib/paneSync.ts",
   "lib/sessionShading.ts",
   "lib/surfaceContract.ts",
 ];
@@ -67,7 +62,7 @@ const LWC_IMPORT_ALLOWLIST: readonly string[] = [
 // Masterplan law 2: every unwrap() call site carries a `// engine-unwrap:` tag. Baseline
 // (c923cc46): 7 in lib/chart-engine/** (6 handle declarations + 1 prose mention in
 // api.ts's unwrap doc) + 1 bridge in ChartPanel.tsx = 8. P2 drives this to 0.
-const ENGINE_UNWRAP_BUDGET = 8;
+const ENGINE_UNWRAP_BUDGET = 7;
 
 const SOURCE_EXT = new Set([".ts", ".tsx"]);
 const SKIP_DIRS = new Set([

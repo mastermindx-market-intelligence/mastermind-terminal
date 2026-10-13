@@ -94,3 +94,87 @@ test.describe("chart-engine drawings [mobile A03]", () => {
     expect(box!.height).toBeGreaterThan(4);
   });
 });
+
+test.describe("chart-engine drawings [mobile A03 handle grab]", () => {
+  test.use({ deviceScaleFactor: 2 });
+
+  for (const impl of IMPL_QUERY) {
+    test(`A03: DOM handle grab at DPR 2 [${impl.label}]`, async ({ page }, testInfo) => {
+      test.skip(testInfo.project.name !== "mobile", "A03 handle grab runs in the mobile project.");
+      const dpr = await page.evaluate(() => window.devicePixelRatio);
+      test.info().annotations.push({ type: "devicePixelRatio", description: String(dpr) });
+
+      const store = await bootChart(page, impl.query, [SEED_TRENDLINE]);
+      const layer = page.locator(".pane.on .drawing-layer");
+      const drawing = layer.locator(`g[data-drawing-id="${SEED_TRENDLINE.id}"]`);
+      await expect(drawing).toBeVisible({ timeout: 45_000 });
+      const visibleLine = drawing.locator('line[data-geometry="1"]').first();
+      await expect(visibleLine).toBeVisible({ timeout: 15_000 });
+      const select = await visibleLine.evaluate((el) => {
+        const rect = el.getBoundingClientRect();
+        return { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 };
+      });
+      expect(select.x).toBeGreaterThan(0);
+      expect(select.y).toBeGreaterThan(0);
+      await page.mouse.click(select.x, select.y);
+
+      const grip = drawing.locator("circle[data-handle]").first();
+      await expect(grip).toBeVisible({ timeout: 15_000 });
+      const gripCenter = await grip.evaluate((el) => {
+        const rect = el.getBoundingClientRect();
+        return { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 };
+      });
+
+      const before = JSON.parse(JSON.stringify(store.drawings[0])) as { points: { t: string; p: number }[] };
+      const startX = gripCenter.x + 3;
+      const startY = gripCenter.y;
+      const pointerId = 12;
+      await grip.dispatchEvent("pointerdown", {
+        bubbles: true, pointerId, pointerType: "touch", isPrimary: true, button: 0, buttons: 1,
+        clientX: startX, clientY: startY,
+      });
+      await page.evaluate(({ pointerId, x, y }) => {
+        window.dispatchEvent(new PointerEvent("pointermove", {
+          bubbles: true, pointerId, pointerType: "touch", isPrimary: true, buttons: 1, clientX: x, clientY: y,
+        }));
+      }, { pointerId, x: startX + 40, y: startY + 40 });
+      await page.evaluate(({ pointerId, x, y }) => {
+        window.dispatchEvent(new PointerEvent("pointerup", {
+          bubbles: true, pointerId, pointerType: "touch", isPrimary: true, button: 0, buttons: 0, clientX: x, clientY: y,
+        }));
+      }, { pointerId, x: startX + 40, y: startY + 40 });
+      await expect.poll(() => {
+        const row = store.drawings[0] as { points: { t: string; p: number }[] };
+        return row.points[0].p !== before.points[0].p || row.points[0].t !== before.points[0].t;
+      }, { timeout: 15_000 }).toBe(true);
+      const afterGrab = store.drawings[0] as { points: { t: string; p: number }[] };
+      expect(afterGrab.points[1]).toEqual(before.points[1]);
+
+      const grips = drawing.locator("circle[data-handle]");
+      const boxes = await grips.evaluateAll((nodes) =>
+        nodes.map((node) => node.getBoundingClientRect()),
+      );
+      expect(boxes.length).toBeGreaterThanOrEqual(2);
+      const ghostX = (boxes[0].left + boxes[1].right) / 2;
+      const ghostY = boxes[0].top - 20;
+      const ghostBefore = JSON.parse(JSON.stringify(store.drawings[0]));
+      const ghostPointer = 13;
+      await page.evaluate(({ pointerId, x, y }) => {
+        window.dispatchEvent(new PointerEvent("pointerdown", {
+          bubbles: true, pointerId, pointerType: "touch", isPrimary: true, button: 0, buttons: 1, clientX: x, clientY: y,
+        }));
+      }, { pointerId: ghostPointer, x: ghostX, y: ghostY });
+      await page.evaluate(({ pointerId, x, y }) => {
+        window.dispatchEvent(new PointerEvent("pointermove", {
+          bubbles: true, pointerId, pointerType: "touch", isPrimary: true, buttons: 1, clientX: x, clientY: y,
+        }));
+      }, { pointerId: ghostPointer, x: ghostX + 30, y: ghostY + 30 });
+      await page.evaluate(({ pointerId, x, y }) => {
+        window.dispatchEvent(new PointerEvent("pointerup", {
+          bubbles: true, pointerId, pointerType: "touch", isPrimary: true, button: 0, buttons: 0, clientX: x, clientY: y,
+        }));
+      }, { pointerId: ghostPointer, x: ghostX + 30, y: ghostY + 30 });
+      await expect.poll(() => JSON.stringify(store.drawings[0])).toBe(JSON.stringify(ghostBefore));
+    });
+  }
+});

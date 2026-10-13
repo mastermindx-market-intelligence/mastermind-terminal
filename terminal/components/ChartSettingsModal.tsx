@@ -2,7 +2,8 @@
 
 import { useEffect, useId, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
-import { PriceScaleMode, type IChartApi } from "lightweight-charts";
+import type { ChartEngine } from "@/lib/chart-engine/api";
+import { EnginePriceScaleMode } from "@/lib/chart-engine";
 import { DEFAULT_CHART_SETTINGS, type ChartSettings } from "@/components/ChartFrameBar";
 import { visualText } from "@/lib/visualIntelligenceCopy";
 import { useLang, useT } from "@/lib/i18n";
@@ -44,7 +45,7 @@ export default function ChartSettingsModal({
   settings: ChartSettings;
   onSettings: Patch;
   onClose: () => void;
-  chartApi?: IChartApi | null;
+  chartApi?: ChartEngine | null;
   extendedEligible?: boolean;
   intraday?: boolean;
 }) {
@@ -361,7 +362,7 @@ function StatusTab({ settings: s, onSettings }: { settings: ChartSettings; onSet
   </div>;
 }
 
-function ScalesTab({ settings: s, onSettings, chartApi }: { settings: ChartSettings; onSettings: Patch; chartApi?: IChartApi | null }) {
+function ScalesTab({ settings: s, onSettings, chartApi }: { settings: ChartSettings; onSettings: Patch; chartApi?: ChartEngine | null }) {
   function applyAuto(value: boolean) {
     onSettings({ autoScale: value });
     try { chartApi?.priceScale(s.scaleLeft ? "left" : "right").setAutoScale(value); } catch {}
@@ -369,8 +370,8 @@ function ScalesTab({ settings: s, onSettings, chartApi }: { settings: ChartSetti
   const t = useT();
   return <div className="sm-section-list">
     <Section title={t("smPriceScale")}>
-      <SelectRow label={t("smScaleMode")} value={s.mode} onChange={(value) => onSettings({ mode: Number(value) as PriceScaleMode })}
-        options={[{ value: PriceScaleMode.Normal, label: t("qsgRegular") }, { value: PriceScaleMode.Percentage, label: t("qsgPercent") }, { value: PriceScaleMode.IndexedTo100, label: t("qsgIndexed") }, { value: PriceScaleMode.Logarithmic, label: t("qsgLog") }]} />
+      <SelectRow label={t("smScaleMode")} value={s.mode} onChange={(value) => onSettings({ mode: Number(value) as EnginePriceScaleMode })}
+        options={[{ value: EnginePriceScaleMode.Normal, label: t("qsgRegular") }, { value: EnginePriceScaleMode.Percentage, label: t("qsgPercent") }, { value: EnginePriceScaleMode.IndexedTo100, label: t("qsgIndexed") }, { value: EnginePriceScaleMode.Logarithmic, label: t("qsgLog") }]} />
       <SelectRow label={t("smScalePlacement")} value={s.scaleLeft ? "left" : "right"} onChange={(value) => onSettings({ scaleLeft: value === "left" })}
         options={[{ value: "right", label: t("smPlacementRight") }, { value: "left", label: t("smPlacementLeft") }]} />
       <CheckRow label={t("smAutoScale")} value={s.autoScale} onChange={applyAuto} />

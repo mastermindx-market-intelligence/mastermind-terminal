@@ -1029,10 +1029,33 @@ class LwcChartEngine implements ChartEngine {
     this.ensure().applyOptions(options as DeepPartial<ChartOptions>);
   }
 
+  private remapMouseParams(p: MouseEventParams): EngineMouseEventParams {
+    const out: EngineMouseEventParams = {
+      time: p.time as EngineTime | undefined,
+      logical: p.logical as number | undefined,
+      point: p.point ? { x: p.point.x, y: p.point.y } : undefined,
+    };
+    if (p.seriesData) {
+      const mapped = new Map<SeriesHandle, unknown>();
+      for (const [raw, row] of p.seriesData) {
+        const handle = this.lookupSeries(raw as ISeriesApi<SeriesType>);
+        if (handle) mapped.set(handle, row);
+      }
+      out.seriesData = mapped;
+    }
+    if (p.hoveredSeries) {
+      const hovered = this.lookupSeries(p.hoveredSeries as ISeriesApi<SeriesType>);
+      if (hovered) out.hoveredSeries = hovered;
+      else out.hoveredSeries = null;
+    }
+    if (p.paneIndex != null) out.paneIndex = p.paneIndex;
+    return out;
+  }
+
   private wrapMouse(handler: EngineMouseHandler): (p: MouseEventParams) => void {
     let w = this.mouseWrappers.get(handler);
     if (!w) {
-      w = (p: MouseEventParams) => handler(p as unknown as EngineMouseEventParams);
+      w = (p: MouseEventParams) => handler(this.remapMouseParams(p));
       this.mouseWrappers.set(handler, w);
     }
     return w;

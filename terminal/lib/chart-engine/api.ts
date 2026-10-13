@@ -45,6 +45,46 @@ export type EngineSeriesRow = EngineBarRow | EnginePointRow;
 // lightweight-charts; the adapter maps these strings onto the numeric enum.
 export type EngineMismatchDirection = "none" | "nearest-left" | "nearest-right";
 
+// Runtime mirrors of lightweight-charts enum values (forwarded 1:1 in option bags).
+// ChartPanel and tests use these instead of importing from "lightweight-charts".
+export const EngineCrosshairMode = {
+  Normal: 0,
+  Magnet: 1,
+  Hidden: 2,
+  MagnetOHLC: 3,
+} as const;
+export type EngineCrosshairMode = (typeof EngineCrosshairMode)[keyof typeof EngineCrosshairMode];
+
+export const EngineColorType = {
+  Solid: "solid",
+  VerticalGradient: "gradient",
+} as const;
+export type EngineColorType = (typeof EngineColorType)[keyof typeof EngineColorType];
+
+export const EngineLineStyle = {
+  Solid: 0,
+  Dotted: 1,
+  Dashed: 2,
+  LargeDashed: 3,
+  SparseDotted: 4,
+} as const;
+export type EngineLineStyle = (typeof EngineLineStyle)[keyof typeof EngineLineStyle];
+
+export const EngineLineType = {
+  Simple: 0,
+  WithSteps: 1,
+  Curved: 2,
+} as const;
+export type EngineLineType = (typeof EngineLineType)[keyof typeof EngineLineType];
+
+export const EnginePriceScaleMode = {
+  Normal: 0,
+  Logarithmic: 1,
+  Percentage: 2,
+  IndexedTo100: 3,
+} as const;
+export type EnginePriceScaleMode = (typeof EnginePriceScaleMode)[keyof typeof EnginePriceScaleMode];
+
 // ── Series kinds ────────────────────────────────────────────────────────────────
 export type EngineSeriesKind = "candles" | "bars" | "line" | "area" | "histogram" | "baseline";
 

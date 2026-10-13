@@ -54,15 +54,17 @@ class SyntheticPane {
 
   get series() {
     return {
-      dataByIndex: (index: number, mismatch?: number) => {
+      dataByIndex: (index: number, mismatch?: number | string) => {
         const n = this.bars.length;
         if (index >= 0 && index < n && Number.isInteger(index)) {
           return { time: this.bars[index], close: this.priceBase + index };
         }
-        if (mismatch === -1) {
+        const dir = mismatch === "nearest-left" || mismatch === -1 ? -1
+          : mismatch === "nearest-right" || mismatch === 1 ? 1 : 0;
+        if (dir === -1) {
           return index >= n && n ? { time: this.bars[n - 1], close: this.priceBase + n - 1 } : null;
         }
-        if (mismatch === 1) {
+        if (dir === 1) {
           return index < 0 && n ? { time: this.bars[0], close: this.priceBase } : null;
         }
         return null;
