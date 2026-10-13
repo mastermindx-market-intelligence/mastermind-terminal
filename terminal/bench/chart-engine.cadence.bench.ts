@@ -12,18 +12,20 @@
  * uses the real browser clock.
  */
 
-import { test, expect, type BrowserContext, type Page } from "@playwright/test";
+import { test, expect, type BrowserContext, type CDPSession, type Page } from "@playwright/test";
 import { execSync } from "node:child_process";
 import fs from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import {
   buildCadenceReceipt,
+  gestureStats,
   asTraceEvents,
   parsePresentedFrames,
   userTimingMs,
   validateCadenceReceipt,
   type CadenceGestureStats,
+  type CadenceReceipt,
 } from "../lib/chart-engine/bench/cadence";
 import {
   panMoved,
@@ -59,6 +61,31 @@ const CPU = `${os.cpus().length} x ${os.cpus()[0]?.model ?? "unknown"}`;
 const OS_LABEL = `${os.type()} ${os.release()}`;
 const DPR = 2;
 
+/**
+ * `Tracing.dataCollected` payload shape Chromium 149 actually emits when the
+ * trace is started with `transferMode: "ReportEvents"`:
+ *   { value: Array<TraceEvent> }.
+ * The Playwright-bound `@playwright/types` protocol declaration `Tracing.data
+ * CollectedPayload = { value: { [key: string]: string }[] }` describes the
+ * older key/value wire format and types our callback incorrectly. Use the
+ * actual runtime shape so `eslint` and `tsc --strict` stay green without an
+ * `any` or `eslint-disable`.
+ */
+interface TraceDataCollectedPayload {
+  value?: unknown[];
+}
+type TraceCompletePayload = Record<string, never>;
+
+interface TraceEventSession {
+  on(event: "Tracing.dataCollected", cb: (p: TraceDataCollectedPayload) => void): void;
+  on(event: "Tracing.tracingComplete", cb: (p: TraceCompletePayload) => void): void;
+  off(event: "Tracing.dataCollected", cb: (p: TraceDataCollectedPayload) => void): void;
+  off(event: "Tracing.tracingComplete", cb: (p: TraceCompletePayload) => void): void;
+  send(method: "Tracing.start", params?: Record<string, unknown>): Promise<void>;
+  send(method: "Tracing.end"): Promise<void>;
+  detach(): Promise<void>;
+}
+
 function ensureOutDir(): void {
   fs.mkdirSync(OUT_DIR, { recursive: true });
 }
@@ -91,6 +118,10 @@ async function readRange(page: Page): Promise<VisibleSpan> {
   return benchEval(page, () => (window as unknown as { __mmBench: { visibleLogicalRange: () => VisibleSpan } }).__mmBench.visibleLogicalRange());
 }
 
+function receiptPathFor(impl: EngineImpl): string {
+  return path.join(OUT_DIR, `cadence-${impl}-${COMMIT}-${HOST}.json`);
+}
+
 /**
  * Start a CDP trace covering only the two frame-reporter + user_timing
  * categories, run `body`, then collect via the `Tracing.dataCollected` event
@@ -104,6 +135,8 @@ async function captureTrace<T>(
   body: () => Promise<T>,
 ): Promise<{ value: T; events: unknown[] }> {
   const cdp = await context.newCDPSession(page);
+  // Cast through unknown to the actual runtime shape (see TraceEventSession).
+  const trace = cdp as unknown as TraceEventSession;
   const traceConfig = {
     includedCategories: [
       "disabled-by-default-devtools.timeline.frame",
@@ -115,28 +148,27 @@ async function captureTrace<T>(
   const complete = new Promise<void>((resolve) => {
     completeResolve = resolve;
   });
-  const onData = (chunk: { value?: Array<unknown> }) => {
+  const onData = (chunk: TraceDataCollectedPayload) => {
     if (Array.isArray(chunk.value)) {
       for (const ev of chunk.value) collected.push(ev);
     }
   };
   const onEnd = () => completeResolve();
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const cdpAny = cdp as any;
-  cdpAny.on("Tracing.dataCollected", onData);
-  cdpAny.on("Tracing.tracingComplete", onEnd);
-  await cdpAny.send("Tracing.start", { transferMode: "ReportEvents", traceConfig });
+  trace.on("Tracing.dataCollected", onData);
+  trace.on("Tracing.tracingComplete", onEnd);
+  await trace.send("Tracing.start", { transferMode: "ReportEvents", traceConfig });
   let value: T;
   try {
     value = await body();
   } finally {
     await page.waitForTimeout(250);
-    await cdpAny.send("Tracing.end");
+    await trace.send("Tracing.end");
     await complete;
   }
-  cdpAny.off("Tracing.dataCollected", onData);
-  cdpAny.off("Tracing.tracingComplete", onEnd);
-  await cdpAny.detach().catch(() => undefined);
+  trace.off("Tracing.dataCollected", onData);
+  trace.off("Tracing.tracingComplete", onEnd);
+  // CDPSession.detach exists; the structural type narrows the union.
+  await (cdp as CDPSession).detach().catch(() => undefined);
   return { value, events: asTraceEvents({ traceEvents: collected }) };
 }
 
@@ -148,12 +180,11 @@ async function panGesture(
   runIdx: number,
 ): Promise<{ stats: CadenceGestureStats; events: unknown[]; rangeBefore: VisibleSpan; rangeAfter: VisibleSpan }> {
   const rangeBefore = await readRange(page);
-  await page.mouse.move(center.x, center.y);
-  await page.waitForTimeout(200);
   const { events } = await captureTrace(context, page, "pan", async () => {
+    await page.mouse.move(center.x, center.y);
+    await page.waitForTimeout(200);
     await page.evaluate((n: string) => performance.mark(n), "cadence:pan:start");
     await page.mouse.down();
-    // ONE composite move with 200 steps. NO waits so the trace is dense.
     await page.mouse.move(center.x + 1600, center.y, { steps: 200 });
     await page.mouse.up();
     await page.evaluate((n: string) => performance.mark(n), "cadence:pan:end");
@@ -176,7 +207,11 @@ async function panGesture(
     writeTrace(events, impl, runIdx, "pan");
     throw new Error(`INVALID: ${(err as Error).message} (${impl} pan run ${runIdx + 1})`);
   }
-  const stats = gestureStatsOrThrow(parsed, startMs, endMs, 200, `${impl} pan run ${runIdx + 1}`);
+  const stats = gestureStats(parsed, startMs, endMs, 200);
+  // B4: window must hold >= 2 presented frames, else INVALID.
+  if (stats.presented < 2) {
+    throw new Error(`INVALID: fewer than 2 presented frames in the pan window (${impl})`);
+  }
   if (DUMP_TRACE) writeTrace(events, impl, runIdx, "pan");
   return { stats, events, rangeBefore, rangeAfter };
 }
@@ -189,11 +224,10 @@ async function zoomGesture(
   runIdx: number,
 ): Promise<{ stats: CadenceGestureStats; events: unknown[]; rangeBefore: VisibleSpan; rangeAfter: VisibleSpan }> {
   const rangeBefore = await readRange(page);
-  await page.mouse.move(center.x, center.y);
-  await page.waitForTimeout(200);
   const { events } = await captureTrace(context, page, "zoom", async () => {
+    await page.mouse.move(center.x, center.y);
+    await page.waitForTimeout(200);
     await page.evaluate((n: string) => performance.mark(n), "cadence:zoom:start");
-    // 60 wheel pulses, NO waits.
     for (let i = 0; i < 60; i++) {
       await page.mouse.wheel(0, -120);
     }
@@ -215,7 +249,10 @@ async function zoomGesture(
     writeTrace(events, impl, runIdx, "zoom");
     throw new Error(`INVALID: ${(err as Error).message} (${impl} zoom run ${runIdx + 1})`);
   }
-  const stats = gestureStatsOrThrow(parsed, startMs, endMs, 60, `${impl} zoom run ${runIdx + 1}`);
+  const stats = gestureStats(parsed, startMs, endMs, 60);
+  if (stats.presented < 2) {
+    throw new Error(`INVALID: fewer than 2 presented frames in the zoom window (${impl})`);
+  }
   if (DUMP_TRACE) writeTrace(events, impl, runIdx, "zoom");
   return { stats, events, rangeBefore, rangeAfter };
 }
@@ -223,21 +260,6 @@ async function zoomGesture(
 function writeTrace(events: unknown[], impl: EngineImpl, runIdx: number, kind: "pan" | "zoom"): void {
   const file = path.join(OUT_DIR, `cadence-trace-${impl}-r${runIdx + 1}-${kind}-${COMMIT.slice(0, 12)}.json`);
   fs.writeFileSync(file, JSON.stringify({ traceEvents: events }, null, 2) + "\n");
-}
-
-function gestureStatsOrThrow(
-  parsed: ReturnType<typeof parsePresentedFrames>,
-  startMs: number,
-  endMs: number,
-  inputs: number,
-  ctx: string,
-): CadenceGestureStats {
-  // Local re-export to keep this file dependency-free of the parser internals.
-  // gestureStats is itself an exported API; calling it directly is fine.
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
-  const mod = require("../lib/chart-engine/bench/cadence") as { gestureStats: typeof import("../lib/chart-engine/bench/cadence").gestureStats };
-  return mod.gestureStats(parsed, startMs, endMs, inputs);
-  void ctx;
 }
 
 async function runGesture(
@@ -255,23 +277,17 @@ async function runGesture(
   return { pan: pan.stats, zoom: zoom.stats };
 }
 
-/** Per-run: would this run's stats satisfy CADENCE_BUDGETS? Used only for
- *  the per-run print line, never the receipt. The receipt itself uses
- *  buildCadenceReceipt's canonical computation. */
-function perRunBudgetOk(s: RunStats): boolean {
-  return (
-    s.pan.p95_ms <= 20 && s.pan.p99_ms <= 33.4 &&
-    s.zoom.p95_ms <= 20 && s.zoom.p99_ms <= 33.4
-  );
-}
-
-function perRunViolationCount(s: RunStats): number {
-  let n = 0;
-  if (s.pan.p95_ms > 20) n++;
-  if (s.pan.p99_ms > 33.4) n++;
-  if (s.zoom.p95_ms > 20) n++;
-  if (s.zoom.p99_ms > 33.4) n++;
-  return n;
+/** Per-run receipt over (pan, zoom) stats; same canonical budgets as the
+ *  receipt that will be persisted for that impl. */
+function perRunReceipt(stats: RunStats, impl: EngineImpl): CadenceReceipt {
+  return buildCadenceReceipt({
+    commit: COMMIT,
+    impl,
+    host: { os: OS_LABEL, cpu: CPU, dpr: DPR },
+    generated_at: new Date().toISOString(),
+    pan: stats.pan,
+    zoom: stats.zoom,
+  });
 }
 
 test("chart-engine presented-frame cadence protocol (Q03)", async ({ browser }) => {
@@ -283,6 +299,7 @@ test("chart-engine presented-frame cadence protocol (Q03)", async ({ browser }) 
   try {
     for (const impl of IMPLS) {
       const runs: RunStats[] = [];
+      const file = receiptPathFor(impl);
       for (let i = 0; i < RUNS; i++) {
         const context = await browser.newContext({
           viewport: { width: 1440, height: 900 },
@@ -305,7 +322,8 @@ test("chart-engine presented-frame cadence protocol (Q03)", async ({ browser }) 
           appendLog(logFile, `[${impl}] run ${i + 1} start`);
           const stats = await runGesture(context, page, impl, i);
           runs.push(stats);
-          const line = `CADENCE ${impl} commit=${COMMIT} pan_p95=${round1(stats.pan.p95_ms)} pan_p99=${round1(stats.pan.p99_ms)} zoom_p95=${round1(stats.zoom.p95_ms)} zoom_p99=${round1(stats.zoom.p99_ms)} presented=${stats.pan.presented} partial=${stats.pan.partial} dropped=${stats.pan.dropped} input_hz=${round1(stats.pan.input_hz)} budget_ok=${perRunBudgetOk(stats)} violations=${perRunViolationCount(stats)} file=${OUT_DIR}`;
+          const r = perRunReceipt(stats, impl);
+          const line = `CADENCE ${impl} commit=${COMMIT} pan_p95=${round1(stats.pan.p95_ms)} pan_p99=${round1(stats.pan.p99_ms)} zoom_p95=${round1(stats.zoom.p95_ms)} zoom_p99=${round1(stats.zoom.p99_ms)} presented=${stats.pan.presented} partial=${stats.pan.partial} dropped=${stats.pan.dropped} input_hz=${round1(stats.pan.input_hz)} budget_ok=${r.budget_ok} violations=${r.violations.length} file=${file}`;
           console.log(line);
           appendLog(logFile, `[${impl}] run ${i + 1} ${line}`);
         } finally {
@@ -336,7 +354,6 @@ test("chart-engine presented-frame cadence protocol (Q03)", async ({ browser }) 
       if (!valid.ok) {
         throw new Error(`receipt for ${impl} failed validation:\n${valid.errors.join("\n")}`);
       }
-      const file = path.join(OUT_DIR, `cadence-${impl}-${COMMIT}-${HOST}.json`);
       fs.writeFileSync(file, JSON.stringify(receipt, null, 2) + "\n");
       const medianLine = `CADENCE_MEDIAN ${impl} run=${medianPick!.idx + 1} pan_p95=${round1(medianRun.pan.p95_ms)} file=${file}`;
       console.log(medianLine);

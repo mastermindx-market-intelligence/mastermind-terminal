@@ -1,12 +1,32 @@
 // Chart-engine presented-frame cadence parser (Q03).
 //
 // Pure, browser-safe helper that turns a Chromium devtools CDP trace into
-// per-pid presented-frame slices, with a strict renderer-pid choice (the
-// Renderer's pid is identified by blink.user_timing marks under the
-// `markPrefix`; only when no such mark exists AND exactly one pid emitted
-// PipelineReporter is that pid chosen). NO_UPDATE_DESIRED slices are omitted
-// from `frames`. Frames are sorted ascending by presentation time (ms);
-// `presentedMs` is the unique sorted ms of the "presented" subset only.
+// per-pid presented-frame records, with a strict renderer-pid choice. The
+// Renderer's pid is identified by the EARLIEST blink.user_timing event whose
+// name starts with `markPrefix` (any such mark, with no fallback); only when
+// there is NO such mark in the trace is the single PipelineReporter pid used.
+//
+// Chromium FORKS the frame reporter: one display presentation can be reported
+// by two PipelineReporter slices with different `frame_sequence` values (one of
+// them carries `frame_type: "FORKED"` in `args.frame_reporter`). Per
+// frame_source:frame_sequence ("the key") the gesture held e.g.:
+//   192x {STATE_PRESENTED_ALL on main, STATE_DROPPED on forked}
+//   183x {STATE_PRESENTED_ALL on forked, STATE_NO_UPDATE_DESIRED on main}
+//   76x  {STATE_DROPPED on main}
+//   27x  {STATE_PRESENTED_ALL on main}
+// so the 402 ALL slices = 202 distinct presentation times (one per input),
+// and counting DROPPED slices would over-report drops by 192. We therefore
+// count FRAMES, not slices: the per-key reducer collapses forked duplicates.
+//
+// Frames:
+//   presented  — unique sorted endMs of every ALL slice (each endMs is one frame)
+//   partial    — unique sorted endMs of PARTIAL slices whose key has no ALL
+//                 and whose endMs is not in presentedMs
+//   dropped    — keys holding >= 1 DROPPED slice and no ALL or PARTIAL slice;
+//                 one frame per key at the max endMs of its DROPPED slices
+//
+// presentedMs stays the unique sorted ms of the "presented" subset only.
+// NO_UPDATE_DESIRED never counts.
 //
 // `gestureIntervals` excludes idle gaps outside [windowStart, windowEnd]
 // inclusive; `gestureStats` works over [startMarkMs, endMarkMs + GESTURE_TAIL_MS].
@@ -82,8 +102,18 @@ type RawEvent = {
   id?: unknown;
   id2?: { local?: unknown; global?: unknown };
   args?: {
-    frame_reporter?: { state?: unknown };
-    chrome_frame_reporter?: { state?: unknown };
+    frame_reporter?: {
+      state?: unknown;
+      frame_source?: unknown;
+      frame_sequence?: unknown;
+      frame_type?: unknown;
+    };
+    chrome_frame_reporter?: {
+      state?: unknown;
+      frame_source?: unknown;
+      frame_sequence?: unknown;
+      frame_type?: unknown;
+    };
   };
 };
 
@@ -141,8 +171,31 @@ function readPid(e: RawEvent): number | null {
   return readNumber(e.pid);
 }
 
-/** Key used to pair `b`/`e` events of the SAME frame-reporter track. */
-function trackKeyOf(e: RawEvent, pid: number): string {
+type RawReporterArgs = {
+  state: string | null;
+  frame_source: number | null;
+  frame_sequence: number | null;
+};
+
+/**
+ * Read the `frame_reporter` (or `chrome_frame_reporter`) sub-object of a
+ * PipelineReporter event's args. Anything missing or wrong-typed becomes
+ * null; the per-slice key is then a unique per-slice fallback.
+ */
+function readReporterArgs(e: RawEvent): RawReporterArgs {
+  const args = e.args;
+  if (args == null || typeof args !== "object") return { state: null, frame_source: null, frame_sequence: null };
+  const inner = (args.frame_reporter ?? args.chrome_frame_reporter) as Record<string, unknown> | undefined;
+  if (inner == null || typeof inner !== "object") return { state: null, frame_source: null, frame_sequence: null };
+  return {
+    state: typeof inner.state === "string" ? inner.state : null,
+    frame_source: typeof inner.frame_source === "number" && Number.isFinite(inner.frame_source) ? inner.frame_source : null,
+    frame_sequence: typeof inner.frame_sequence === "number" && Number.isFinite(inner.frame_sequence) ? inner.frame_sequence : null,
+  };
+}
+
+/** Local-pairing key for `b`/`e` halves (Chromium puts it on `id2.local`). */
+function pairKeyOf(e: RawEvent, pid: number): string {
   const id2 = e.id2;
   const local = id2 ? readString(id2.local) : null;
   if (local != null) return `${pid}:${local}`;
@@ -152,9 +205,9 @@ function trackKeyOf(e: RawEvent, pid: number): string {
   return `${pid}:${id ?? "?"}`;
 }
 
-type ParsedBegin = { kind: "b"; pid: number; key: string; ts: number; state: string | null };
-type ParsedEnd = { kind: "e"; pid: number; key: string; ts: number };
-type ParsedComplete = { kind: "X"; pid: number; ts: number; dur: number; state: string | null };
+type ParsedBegin = { kind: "b"; pid: number; pairKey: string; ts: number; reporter: RawReporterArgs };
+type ParsedEnd = { kind: "e"; pid: number; pairKey: string; ts: number };
+type ParsedComplete = { kind: "X"; pid: number; ts: number; dur: number; reporter: RawReporterArgs };
 
 function parseReporterEvent(e: RawEvent): ParsedBegin | ParsedEnd | ParsedComplete | null {
   if (readString(e.name) !== "PipelineReporter") return null;
@@ -164,21 +217,15 @@ function parseReporterEvent(e: RawEvent): ParsedBegin | ParsedEnd | ParsedComple
   const ts = readNumber(e.ts);
   if (ts == null) return null;
   if (ph === "b") {
-    const args = e.args;
-    const inner = args?.frame_reporter ?? args?.chrome_frame_reporter;
-    const state = inner ? (typeof inner.state === "string" ? inner.state : null) : null;
-    return { kind: "b", pid, key: trackKeyOf(e, pid), ts, state };
+    return { kind: "b", pid, pairKey: pairKeyOf(e, pid), ts, reporter: readReporterArgs(e) };
   }
   if (ph === "e") {
-    return { kind: "e", pid, key: trackKeyOf(e, pid), ts };
+    return { kind: "e", pid, pairKey: pairKeyOf(e, pid), ts };
   }
   if (ph === "X") {
     const dur = readNumber(e.dur);
     if (dur == null) return null;
-    const args = e.args;
-    const inner = args?.frame_reporter ?? args?.chrome_frame_reporter;
-    const state = inner ? (typeof inner.state === "string" ? inner.state : null) : null;
-    return { kind: "X", pid, ts, dur, state };
+    return { kind: "X", pid, ts, dur, reporter: readReporterArgs(e) };
   }
   return null;
 }
@@ -190,20 +237,39 @@ function toFrameState(state: string | null): "presented" | "partial" | "dropped"
   return null; // STATE_NO_UPDATE_DESIRED or anything unknown: omit
 }
 
+/** A1 frame key = `${frame_source}:${frame_sequence}` when both are numbers;
+ *  otherwise a unique per-slice key (still de-dupes a forked pair that lacks
+ *  the IDs). */
+function frameKey(args: RawReporterArgs, sliceKey: string): string {
+  if (args.frame_source != null && args.frame_sequence != null) {
+    return `${args.frame_source}:${args.frame_sequence}`;
+  }
+  return sliceKey;
+}
+
 // ---------- public parser ----------
 
 /**
- * Pair `b` with the next `e` of the same key after sorting by ts; unpaired
- * halves are ignored. `X` uses ts+dur. Renderer pid = the pid of a
- * blink.user_timing event whose name starts with `markPrefix` AND that also
- * emitted PipelineReporter; if no such mark exists and exactly one pid
- * emitted PipelineReporter, that pid is used. NO_UPDATE_DESIRED is omitted.
- * Throws when no Presentation records can be produced for the chosen pid.
+ * Pair `b` with the next `e` of the same `pairKey` (no overlapping slices per
+ * track, per the trace contract). `X` uses ts+dur. Then group the slices by
+ * A1 frame key (frame_source:frame_sequence) and reduce to one frame per
+ * presentation time; see the per-frame rules in the header comment.
+ *
+ * Renderer pid:
+ *   - If ANY blink.user_timing event whose name starts with `markPrefix`
+ *     exists, rendererPid = the pid of the EARLIEST such mark, and if that
+ *     pid emitted NO PipelineReporter -> throw (no fallback).
+ *   - Only when no such mark exists: exactly one PipelineReporter pid in
+ *     the trace -> that pid, else throw.
+ *   - Throw "no presentation records in trace" when the chosen pid has zero
+ *     PipelineReporter slices of any state.
+ *   - A pid whose slices are all NO_UPDATE_DESIRED returns frames [] (the
+ *     spec turns that into INVALID, B4).
  */
 export function parsePresentedFrames(events: readonly unknown[], markPrefix = "cadence:"): ParsedPresentation {
   const raw = readRawEvents(events);
 
-  // Renderer pid selection.
+  // Reporter pids by trace.
   const reporterPids = new Set<number>();
   for (const e of raw) {
     if (readString(e.name) === "PipelineReporter") {
@@ -212,25 +278,36 @@ export function parsePresentedFrames(events: readonly unknown[], markPrefix = "c
     }
   }
 
-  let rendererPid: number | null = null;
-  // First pass: pid of any blink.user_timing whose name starts with markPrefix
-  // AND that pid also appears in reporterPids. Take the first such mark.
+  // Find earliest blink.user_timing mark under markPrefix (if any), in ts order.
+  type MarkHit = { pid: number; ts: number };
+  let earliestMark: MarkHit | null = null;
   for (const e of raw) {
     if (readString(e.cat) !== "blink.user_timing") continue;
     const name = readString(e.name);
     if (name == null || !name.startsWith(markPrefix)) continue;
     const pid = readPid(e);
     if (pid == null) continue;
-    if (reporterPids.has(pid)) {
-      rendererPid = pid;
-      break;
+    const ts = readNumber(e.ts);
+    if (ts == null) continue;
+    if (earliestMark == null || ts < earliestMark.ts) {
+      earliestMark = { pid, ts };
     }
   }
-  // Fallback: exactly one pid emitted PipelineReporter.
-  if (rendererPid == null && reporterPids.size === 1) {
+
+  let rendererPid: number | null;
+  if (earliestMark != null) {
+    // Hard pin: never fall back to another pid.
+    rendererPid = earliestMark.pid;
+  } else if (reporterPids.size === 1) {
     rendererPid = reporterPids.values().next().value ?? null;
+  } else {
+    throw new Error("no presentation records in trace");
   }
   if (rendererPid == null) {
+    throw new Error("no presentation records in trace");
+  }
+  // Mark set but the marked pid emitted no PipelineReporter -> throw.
+  if (earliestMark != null && !reporterPids.has(rendererPid)) {
     throw new Error("no presentation records in trace");
   }
 
@@ -244,48 +321,104 @@ export function parsePresentedFrames(events: readonly unknown[], markPrefix = "c
   }
   parsed.sort((a, b) => a.ts - b.ts);
 
-  // Pair `b` with the next `e` of the same key (no overlapping slices per
-  // track, per the trace contract).
-  const frames: PresentedFrame[] = [];
-  let presented = 0;
-  let partial = 0;
-  let dropped = 0;
+  // Track whether the chosen pid emitted any reporter events at all. When
+  // this is true but every slice filtered out as NO_UPDATE_DESIRED the spec
+  // wants frames [] (a "no frames" trace is INVALID only because the bench
+  // needs >= 2 presented frames, not because the trace is malformed).
+  const hadAnyReporter = parsed.some((ev) => ev.kind === "b" || ev.kind === "X");
+
+  // Pair `b` with the next `e` of the same pairKey; produce per-slice
+  // records carrying {state, endMs, key}.
+  type SliceRecord = { state: "presented" | "partial" | "dropped"; endMs: number; frameKey: string };
+  const slices: SliceRecord[] = [];
   for (let i = 0; i < parsed.length; i++) {
     const ev = parsed[i];
     if (ev.kind === "X") {
-      const state = toFrameState(ev.state);
+      const state = toFrameState(ev.reporter.state);
       if (state == null) continue;
-      const ms = (ev.ts + ev.dur) / 1000;
-      frames.push({ ms, state });
-      if (state === "presented") presented++;
-      else if (state === "partial") partial++;
-      else dropped++;
+      slices.push({
+        state,
+        endMs: (ev.ts + ev.dur) / 1000,
+        // X events: no id2 paired-key, so the frame key has to come from
+        // frame_reporter.frame_source:frame_sequence or fall back to a
+        // per-slice unique key.
+        frameKey: frameKey(ev.reporter, `x:${ev.pid}:${ev.ts}:${ev.dur}`),
+      });
       continue;
     }
     if (ev.kind === "b") {
-      const state = toFrameState(ev.state);
+      const state = toFrameState(ev.reporter.state);
       if (state == null) continue;
-      const paired = findNextEnd(parsed, i + 1, ev.key);
+      const paired = findNextEnd(parsed, i + 1, ev.pairKey);
       if (paired == null) continue;
-      const ms = paired.ts / 1000;
-      frames.push({ ms, state });
-      if (state === "presented") presented++;
-      else if (state === "partial") partial++;
-      else dropped++;
+      slices.push({
+        state,
+        endMs: paired.ts / 1000,
+        frameKey: frameKey(ev.reporter, `b:${ev.pairKey}`),
+      });
       continue;
     }
     // ev.kind === "e" — terminal half; ignore unpaired ends.
   }
-  if (frames.length === 0) {
+
+  if (slices.length === 0) {
+    // The chosen pid emitted PipelineReporter events but every one was
+    // NO_UPDATE_DESIRED; the spec wants frames=[] (the bench's B4 INVALID
+    // gate is the right place to reject fewer-than-2 frames).
+    if (hadAnyReporter) {
+      return { frames: [], presentedMs: [], presented: 0, partial: 0, dropped: 0, rendererPid };
+    }
     throw new Error("no presentation records in trace");
   }
 
+  // A1 reducer: group slices by frame key; reduce each key into at most one
+  // frame of any state.
+  type KeyAgg = {
+    endMsAll: number[];
+    endMsPartial: number[];
+    endMsDropped: number[];
+  };
+  const byKey = new Map<string, KeyAgg>();
+  for (const s of slices) {
+    let agg = byKey.get(s.frameKey);
+    if (agg == null) {
+      agg = { endMsAll: [], endMsPartial: [], endMsDropped: [] };
+      byKey.set(s.frameKey, agg);
+    }
+    if (s.state === "presented") agg.endMsAll.push(s.endMs);
+    else if (s.state === "partial") agg.endMsPartial.push(s.endMs);
+    else agg.endMsDropped.push(s.endMs);
+  }
+
+  // Unique sorted ms of every ALL slice across keys (one frame per endMs).
+  const presentedMsSet = new Set<number>();
+  for (const agg of byKey.values()) {
+    for (const ms of agg.endMsAll) presentedMsSet.add(ms);
+  }
+  const presentedMs = Array.from(presentedMsSet).sort((a, b) => a - b);
+
+  // Build the per-key frames (dropped at max endMs; partial = unique endMs
+  // not already in presentedMs when the key has no ALL slice).
+  const frames: PresentedFrame[] = [];
+  for (const agg of byKey.values()) {
+    if (agg.endMsAll.length > 0) continue;
+    if (agg.endMsPartial.length > 0) {
+      for (const ms of new Set(agg.endMsPartial)) {
+        if (!presentedMsSet.has(ms)) frames.push({ ms, state: "partial" });
+      }
+      continue;
+    }
+    // No ALL, no PARTIAL — keyed dropped frame at max endMs of its DROPPED slices.
+    const maxD = agg.endMsDropped.reduce((m, v) => (v > m ? v : m), -Infinity);
+    if (Number.isFinite(maxD)) frames.push({ ms: maxD, state: "dropped" });
+  }
+  // Append the presented frames (one per presented ms).
+  for (const ms of presentedMs) frames.push({ ms, state: "presented" });
   frames.sort((a, b) => a.ms - b.ms);
 
-  // Unique sorted ms of "presented" frames only.
-  const presentedSet = new Set<number>();
-  for (const f of frames) if (f.state === "presented") presentedSet.add(f.ms);
-  const presentedMs = Array.from(presentedSet).sort((a, b) => a - b);
+  const presented = frames.reduce((n, f) => (f.state === "presented" ? n + 1 : n), 0);
+  const partial = frames.reduce((n, f) => (f.state === "partial" ? n + 1 : n), 0);
+  const dropped = frames.reduce((n, f) => (f.state === "dropped" ? n + 1 : n), 0);
 
   return { frames, presentedMs, presented, partial, dropped, rendererPid };
 }
@@ -293,11 +426,11 @@ export function parsePresentedFrames(events: readonly unknown[], markPrefix = "c
 function findNextEnd(
   list: ReadonlyArray<ParsedBegin | ParsedEnd | ParsedComplete>,
   startIdx: number,
-  key: string,
+  pairKey: string,
 ): ParsedEnd | null {
   for (let i = startIdx; i < list.length; i++) {
     const ev = list[i];
-    if (ev.kind === "e" && ev.key === key) return ev;
+    if (ev.kind === "e" && ev.pairKey === pairKey) return ev;
   }
   return null;
 }
@@ -324,8 +457,8 @@ export function gestureIntervals(presentedMs: readonly number[], windowStartMs: 
 
 /**
  * Window = `[startMarkMs, endMarkMs + GESTURE_TAIL_MS]` inclusive.
- * Whole-trace counts: `presented`/`partial`/`dropped` are the slices of
- * `parsed.frames` whose ms lies in the window. `input_hz` = dispatch rate.
+ * Whole-trace counts: `presented`/`partial`/`dropped` are the frames
+ * whose ms lies in the window. `input_hz` = dispatch rate.
  * Percentiles use `corpus.percentile` (returns UNMEASURED on empty).
  */
 export function gestureStats(
@@ -438,14 +571,41 @@ function isNonEmptyString(v: unknown): v is string {
   return typeof v === "string" && v.length > 0;
 }
 
+/** Exactly eight top-level keys; exactly eight gesture stat keys per gesture. */
+const TOP_LEVEL_KEYS = [
+  "commit",
+  "impl",
+  "host",
+  "generated_at",
+  "gesture",
+  "budgets",
+  "violations",
+  "budget_ok",
+] as const;
+const GESTURE_STAT_KEYS = [
+  "inputs",
+  "input_hz",
+  "presented",
+  "partial",
+  "dropped",
+  "p50_ms",
+  "p95_ms",
+  "p99_ms",
+] as const;
+
 export function validateCadenceReceipt(receipt: unknown): { ok: true } | { ok: false; errors: string[] } {
   const errors: string[] = [];
   if (receipt == null || typeof receipt !== "object") {
     return { ok: false, errors: ["receipt is not an object"] };
   }
   const r = receipt as Record<string, unknown>;
-  const keys = ["commit", "impl", "host", "generated_at", "gesture", "budgets", "violations", "budget_ok"];
-  for (const k of keys) {
+  // A3: reject any top-level key outside the eight.
+  for (const k of Object.keys(r)) {
+    if (!(TOP_LEVEL_KEYS as readonly string[]).includes(k)) {
+      errors.push(`unexpected top-level key "${k}"`);
+    }
+  }
+  for (const k of TOP_LEVEL_KEYS) {
     if (!(k in r)) errors.push(`missing top-level key "${k}"`);
   }
   if (typeof r.commit !== "string" || !/^[0-9a-f]{40}$/.test(r.commit)) {
@@ -479,6 +639,12 @@ export function validateCadenceReceipt(receipt: unknown): { ok: true } | { ok: f
       if (s == null || typeof s !== "object") {
         errors.push(`gesture.${g} must be an object`);
         continue;
+      }
+      // A3: reject any stat key outside the eight.
+      for (const k of Object.keys(s)) {
+        if (!(GESTURE_STAT_KEYS as readonly string[]).includes(k)) {
+          errors.push(`unexpected gesture.${g} key "${k}"`);
+        }
       }
       const finiteKeys = ["input_hz", "p50_ms", "p95_ms", "p99_ms"];
       for (const k of finiteKeys) {
