@@ -480,6 +480,14 @@ function paintDecorForSeries(
   }, { dpr: proj.dpr });
 }
 
+/** A series the caller hid (ChartPanel.tsx:2471 hides a compare series with
+ *  applyOptions({ visible: false })) paints nothing at all: not its own geometry,
+ *  not its price lines, not its markers. Autoscale and the crosshair are out of
+ *  scope here - they read the model, not this frame. */
+function seriesPaintable(s: SeriesModel | undefined): s is SeriesModel {
+  return s != null && !s.removed && s.options.visible !== false;
+}
+
 export type PanePaintArgs = {
   ctx: CanvasRenderingContext2D;
   model: ChartModel;
@@ -516,7 +524,7 @@ export function paintPaneFrame(args: PanePaintArgs): void {
   const view = { dpr: model.dpr, clipRect: { x: 0, y: 0, width: w, height: h } };
   for (const sid of pane.seriesIds) {
     const s = model.getSeries(sid);
-    if (!s || s.removed) continue;
+    if (!seriesPaintable(s)) continue;
     const proj = engineProjectionFor(model, s);
     const style = resolveSeriesPaintStyle(s.options, s.kind, CANVAS_NEUTRAL_DEFAULTS);
     if (style) paintKind(ctx as unknown as PaintContext, s, proj, style, view);
@@ -525,7 +533,7 @@ export function paintPaneFrame(args: PanePaintArgs): void {
   for (const part of ["priceLines", "markers"] as const) {
     for (const sid of pane.seriesIds) {
       const s = model.getSeries(sid);
-      if (!s || s.removed) continue;
+      if (!seriesPaintable(s)) continue;
       paintDecorForSeries(ctx, s, engineProjectionFor(model, s), w, h, part);
     }
   }
