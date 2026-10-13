@@ -190,6 +190,31 @@ describe("key mappings", () => {
     expect(h.ranges[0][1]).toBeCloseTo(220 + 1 / 12, 10);
   });
 
+  it("zoom keeps a FRACTIONAL anchor's float index fixed (no bar snap, ruling 3)", () => {
+    // Case 1: no crosshair, range (100.3, 340.3) → centre 220.3, with the
+    // harness's widthPx 2400 / span 240. The float-index pixel-centre law
+    // (x = (anchor - from + 0.5) * (width / span)) keeps the centre under
+    // the pointer across a zoom — bar-snap would have rounded 220.3 → 220 and
+    // the assertion below would fail.
+    const h1 = makeHarness({ timeScale: { visibleFrom: 100.3, visibleTo: 340.3, barSpacing: 10, rightOffset: 24, widthPx: 2400 } });
+    h1.controller.focus();
+    const xc1 = (220.3 - 100.3 + 0.5) * (2400 / 240);
+    h1.controller.handleKey(key({ key: "+", timeStamp: 0 }));
+    const [f1, t1] = h1.ranges[0];
+    // Float-index invariant: the centre pixel xc1 is still the centre.
+    expect(Math.abs(f1 + xc1 * (t1 - f1) / 2400 - 0.5 - 220.3)).toBeLessThan(1e-9);
+
+    // Case 2: crosshair logical 220.4, range (100, 340) → anchor 220.4, with
+    // the same harness. The float-index pixel-centre law still pins xc2 =
+    // (220.4 - 100 + 0.5) * 10 under the crosshair.
+    const h2 = makeHarness({ timeScale: { visibleFrom: 100, visibleTo: 340, barSpacing: 10, rightOffset: 24, widthPx: 2400 }, crosshair: { logical: 220.4 } });
+    h2.controller.focus();
+    const xc2 = (220.4 - 100 + 0.5) * (2400 / 240);
+    h2.controller.handleKey(key({ key: "+", timeStamp: 0 }));
+    const [f2, t2] = h2.ranges[0];
+    expect(Math.abs(f2 + xc2 * (t2 - f2) / 2400 - 0.5 - 220.4)).toBeLessThan(1e-9);
+  });
+
   it("zoom floors the span at 2 bars and never collapses the range", () => {
     const h = makeHarness({ timeScale: { visibleFrom: 0, visibleTo: 2 }, crosshair: { logical: 1 } });
     h.controller.focus();

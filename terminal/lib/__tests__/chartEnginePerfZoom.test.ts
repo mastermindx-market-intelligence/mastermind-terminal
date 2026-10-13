@@ -1,17 +1,19 @@
 // @vitest-environment jsdom
-// PERF-A C2 tests (T4/T5): pointer-anchored zoom keeps the bar under the
-// pointer at its own pixel centre (<= 1 CSS px drift over 60 wheel notches,
-// bench/chart-engine.bench.ts drift construction), pinch and keyboard zoom
-// keep their anchor bar, and the time-axis drag keeps the RIGHT edge
-// (LWC _internal_scaleTo, dev:6305-6317). 40,000-row daily fixture, 1378 CSS
-// px time scale, dpr 2, real DOM listeners, createEngine(..., "mm").
+// PERF-A C2 / PERF-RR2 ruling 3 tests (T4/T5): pointer-anchored zoom keeps the
+// FLOAT INDEX under the pointer fixed (the continuous time coordinate — LWC
+// _internal_zoom dev:6277-6288, performance-budget.md line 62 'the pointer
+// must stay the anchor'), so the drift metric built only from integer
+// logicals (coordOf) measures the engine against the <= 1 CSS px law at every
+// barSpacing. Bar-centre anchoring breaks the law once barSpacing grows past
+// ~13 px. 40,000-row daily fixture, 1378 CSS px time scale, dpr 2, real DOM
+// listeners, createEngine(..., "mm").
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { createEngine } from "@/lib/chart-engine";
 import { createManualScheduler } from "@/lib/chart-engine/canvas";
 import type { ChartModel } from "@/lib/chart-engine/canvas/model";
 import { createKeyboardController } from "@/lib/chart-engine/canvas/keyboard";
-import type { EngineSeriesRow, EngineTime } from "@/lib/chart-engine/api";
+import type { EngineSeriesRow } from "@/lib/chart-engine/api";
 
 type CtxCall = { method: string; args: unknown[] };
 type FakeCtx = CanvasRenderingContext2D & { __calls: CtxCall[] };
@@ -125,13 +127,38 @@ function dispatchWheel(el: EventTarget, x: number, y: number, deltaY: number): v
   }));
 }
 
-/** The bench's anchor construction (bench/mount.ts anchorTimeAt + drift). */
-function anchorBarAt(m: Mount, x: number): { time: EngineTime; x0: number } {
-  const t = m.engine.timeScale().coordinateToTime(x);
-  expect(t).not.toBeNull();
-  const x0 = m.engine.timeScale().timeToCoordinate(t as EngineTime);
-  expect(x0).not.toBeNull();
-  return { time: t as EngineTime, x0: x0 as number };
+/** Float-index anchor under x (mirrors bench/mount.ts floatAnchorAt). The
+ *  engine's coordinateToLogical is float-exact; the interpolation matches
+ *  the bench so the same metric is asserted here. In jsdom the overlay's
+ *  rect.left is 0, so clientX === x. */
+function floatAnchorAt(m: Mount, x: number): { x: number; logical: number } {
+  const ts = m.engine.timeScale();
+  const i = ts.coordinateToLogical(x);
+  expect(i).not.toBeNull();
+  const c0 = ts.logicalToCoordinate(i as number);
+  const c1 = ts.logicalToCoordinate((i as number) + 1);
+  expect(c0).not.toBeNull();
+  expect(c1).not.toBeNull();
+  if ((c0 as number) === (c1 as number)) {
+    throw new Error("floatAnchorAt: degenerate spacing, cannot interpolate");
+  }
+  const logical = (i as number) + (x - (c0 as number)) / ((c1 as number) - (c0 as number));
+  return { x, logical };
+}
+
+/** coordOf(L): the pixel the engine would paint for the float index L
+ *  (mirrors bench/mount.ts coordinateOfLogical). */
+function coordOfLogical(m: Mount, logical: number): number {
+  const ts = m.engine.timeScale();
+  const j = Math.floor(logical);
+  const d0 = ts.logicalToCoordinate(j);
+  const d1 = ts.logicalToCoordinate(j + 1);
+  expect(d0).not.toBeNull();
+  expect(d1).not.toBeNull();
+  if ((d0 as number) === (d1 as number)) {
+    throw new Error("coordOfLogical: degenerate spacing, cannot interpolate");
+  }
+  return (d0 as number) + (logical - j) * ((d1 as number) - (d0 as number));
 }
 
 describe("PERF-A anchored zoom (T4): wheel drift <= 1 CSS px", () => {
@@ -152,18 +179,21 @@ describe("PERF-A anchored zoom (T4): wheel drift <= 1 CSS px", () => {
     host.remove();
   });
 
-  it("T4 60 wheel notches at the plot centre keep the anchor bar within 1 px, saturate at the max clamp (F4, dev:6277-6289)", () => {
+  it("T4 60 wheel notches at the plot centre keep the float index within 1 px, saturate at the max clamp (F4, dev:6277-6289)", () => {
     const m = mountPerf();
     expect(m.model.time.barSpacing).toBe(0.5);
     const centre = WIDTH_PX / 2;
     const spanBefore = m.model.time.visibleTo - m.model.time.visibleFrom;
-    const { time, x0 } = anchorBarAt(m, centre);
+    // TEST-CORRECTION (seat ruling 3, float-index law): the bar-centre
+    // quantity this test previously measured (anchorBarAt) moves by
+    // d*(ratio-1) under float anchoring, so the assertion becomes invalid.
+    // The new metric is the float index under the pointer.
+    const a = floatAnchorAt(m, centre);
     for (let i = 0; i < 60; i++) {
       dispatchWheel(m.overlay, centre, 300, -120);
     }
-    const after = m.engine.timeScale().timeToCoordinate(time);
-    expect(after).not.toBeNull();
-    expect(Math.abs((after as number) - x0)).toBeLessThanOrEqual(1);
+    const afterX = coordOfLogical(m, a.logical);
+    expect(Math.abs(afterX - a.x)).toBeLessThanOrEqual(1);
     // The zoom genuinely happened and the spacing clamped at width * 0.5.
     expect(m.model.time.visibleTo - m.model.time.visibleFrom).toBeLessThan(spanBefore - 100);
     expect(m.model.time.barSpacing).toBeLessThanOrEqual(MAX_SPACING + 1e-9);
@@ -171,27 +201,51 @@ describe("PERF-A anchored zoom (T4): wheel drift <= 1 CSS px", () => {
     m.engine.destroy();
   });
 
-  it("T4b pointer 0.3 bar right of a bar centre: same law (the bar under the pointer is the anchor, F4)", () => {
+  it("T4b pointer 0.3 bar right of a bar centre: same law (the float index under the pointer is the anchor, F4)", () => {
     const m = mountPerf();
     const centre = WIDTH_PX / 2;
     // Bar 38622's centre sits at centre + 0.25 px; 0.3 bar at spacing 0.5 is
     // 0.15 px, so the pointer lands 0.3 bar right of that bar centre.
     const pointerX = centre + 0.4;
-    const { time, x0 } = anchorBarAt(m, pointerX);
+    // TEST-CORRECTION (seat ruling 3, float-index law): same metric swap.
+    const a = floatAnchorAt(m, pointerX);
     for (let i = 0; i < 60; i++) {
       dispatchWheel(m.overlay, pointerX, 300, -120);
     }
-    const after = m.engine.timeScale().timeToCoordinate(time);
-    expect(after).not.toBeNull();
-    expect(Math.abs((after as number) - x0)).toBeLessThanOrEqual(1);
+    const afterX = coordOfLogical(m, a.logical);
+    expect(Math.abs(afterX - a.x)).toBeLessThanOrEqual(1);
     expect(m.model.time.barSpacing).toBe(MAX_SPACING);
     m.engine.destroy();
   });
 
-  it("T5a a two-finger pinch keeps the bar under the start midpoint within 1 px over 20 spread steps (§5.2)", () => {
+  it("T4c at barSpacing 50 a pointer 0.3 bar right of a bar centre keeps its float index within 1 px over 5 wheel notches (ruling 3)", () => {
+    const m = mountPerf();
+    m.engine.timeScale().applyOptions({ barSpacing: 50 });
+    expect(m.model.time.barSpacing).toBeCloseTo(50, 9);
+    const ts = m.engine.timeScale();
+    const b = Math.round((ts.coordinateToLogical(WIDTH_PX / 2) as number));
+    const x = (ts.logicalToCoordinate(b) as number) + 15; // 15 px = 0.3 bar at spacing 50
+    const setup = floatAnchorAt(m, x);
+    // The metric must start on the float index it claims to anchor — 0.3 bar
+    // right of an integer bar centre.
+    expect(Math.abs(setup.logical - (b + 0.3))).toBeLessThan(1e-9);
+    for (let i = 0; i < 5; i++) {
+      dispatchWheel(m.overlay, x, 300, -120);
+    }
+    const afterX = coordOfLogical(m, setup.logical);
+    expect(Math.abs(afterX - setup.x)).toBeLessThanOrEqual(1);
+    // A real, unclamped zoom (the model's MAX_SPACING is WIDTH_PX/2 = 689, so
+    // a 5-notch step from barSpacing 50 stays well under it).
+    expect(m.model.time.barSpacing).toBeGreaterThan(50);
+    expect(m.model.time.barSpacing).toBeLessThan(MAX_SPACING);
+    m.engine.destroy();
+  });
+
+  it("T5a a two-finger pinch keeps the float index under the start midpoint within 1 px over 20 spread steps (§5.2)", () => {
     const m = mountPerf();
     const mid = WIDTH_PX / 2;
-    const { time, x0 } = anchorBarAt(m, mid);
+    // TEST-CORRECTION (seat ruling 3, float-index law): same metric swap.
+    const a = floatAnchorAt(m, mid);
     let t = 1_000;
     dispatchPointer(m.overlay, "pointerdown", mid - 89, 200, { pointerId: 1, pointerType: "touch", timeStamp: t });
     dispatchPointer(m.overlay, "pointerdown", mid + 89, 200, { pointerId: 2, pointerType: "touch", timeStamp: t });
@@ -202,10 +256,34 @@ describe("PERF-A anchored zoom (T4): wheel drift <= 1 CSS px", () => {
     }
     dispatchPointer(m.overlay, "pointerup", mid - 89 - 200, 200, { pointerId: 2, pointerType: "touch", timeStamp: t });
     dispatchPointer(m.overlay, "pointerup", mid + 89 + 200, 200, { pointerId: 1, pointerType: "touch", timeStamp: t });
-    const after = m.engine.timeScale().timeToCoordinate(time);
-    expect(after).not.toBeNull();
-    expect(Math.abs((after as number) - x0)).toBeLessThanOrEqual(1);
+    const afterX = coordOfLogical(m, a.logical);
+    expect(Math.abs(afterX - a.x)).toBeLessThanOrEqual(1);
     expect(m.model.time.barSpacing).toBeGreaterThan(0.5);
+    m.engine.destroy();
+  });
+
+  it("T5d at barSpacing 50 a pinch whose midpoint is 0.3 bar right of a bar centre keeps its float index within 1 px (ruling 3)", () => {
+    const m = mountPerf();
+    m.engine.timeScale().applyOptions({ barSpacing: 50 });
+    expect(m.model.time.barSpacing).toBeCloseTo(50, 9);
+    const ts = m.engine.timeScale();
+    const b = Math.round((ts.coordinateToLogical(WIDTH_PX / 2) as number));
+    const mid = (ts.logicalToCoordinate(b) as number) + 15; // 0.3 bar at spacing 50
+    const setup = floatAnchorAt(m, mid);
+    expect(Math.abs(setup.logical - (b + 0.3))).toBeLessThan(1e-9);
+    let t = 1_000;
+    dispatchPointer(m.overlay, "pointerdown", mid - 89, 200, { pointerId: 1, pointerType: "touch", timeStamp: t });
+    dispatchPointer(m.overlay, "pointerdown", mid + 89, 200, { pointerId: 2, pointerType: "touch", timeStamp: t });
+    for (let i = 1; i <= 10; i++) {
+      t += 20;
+      dispatchPointer(m.overlay, "pointermove", mid - 89 - i * 10, 200, { pointerId: 1, pointerType: "touch", timeStamp: t });
+      dispatchPointer(m.overlay, "pointermove", mid + 89 + i * 10, 200, { pointerId: 2, pointerType: "touch", timeStamp: t });
+    }
+    dispatchPointer(m.overlay, "pointerup", mid - 89 - 100, 200, { pointerId: 2, pointerType: "touch", timeStamp: t });
+    dispatchPointer(m.overlay, "pointerup", mid + 89 + 100, 200, { pointerId: 1, pointerType: "touch", timeStamp: t });
+    const afterX = coordOfLogical(m, setup.logical);
+    expect(Math.abs(afterX - setup.x)).toBeLessThanOrEqual(1);
+    expect(m.model.time.barSpacing).toBeGreaterThan(50);
     m.engine.destroy();
   });
 

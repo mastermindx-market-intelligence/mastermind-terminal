@@ -366,29 +366,23 @@ export function createKeyboardController(deps: KeyboardControllerDeps): Keyboard
     const span = to - from;
     if (!(span > 0)) return;
     const cross = deps.getCrosshair();
-    const floatAnchor =
+    // PERF-RR2 ruling 3 (LWC _internal_zoom dev:6277-6288): the float index
+    // under the anchor is the invariant across a zoom — we never snap it to
+    // a bar centre, even on data. With a crosshair the anchor is its logical;
+    // without one it is the centre of the visible range. Either way the
+    // pixel-position law below keeps the anchor x fixed across every step.
+    const anchor =
       cross.logical != null && Number.isFinite(cross.logical)
         ? (cross.logical as number)
         : (from + to) / 2;
-    // PERF-A C2/F4: anchor the BAR under the crosshair (or the nearest bar to
-    // the centre of the visible range) when it is on data, so the anchored
-    // logical is an exact bar centre and cannot drift across steps; float only
-    // off data.
-    let anchor = floatAnchor;
-    const count = deps.barCount?.();
-    if (count != null && Number.isFinite(count)) {
-      const bar = Math.round(floatAnchor);
-      if (bar >= 0 && bar < count) anchor = bar;
-    }
     const steps = barsForEvent(1, streak);
     const factor = Math.pow(ZOOM_FACTOR_PER_STEP, direction * steps);
     const newSpan = Math.min(MAX_VISIBLE_SPAN, Math.max(MIN_VISIBLE_SPAN, span * factor));
     const width = finiteOr(ts.widthPx, 0);
     if (width > 0 && newSpan > 0) {
-      // PERF-A C2/T5: pin the anchor BAR's pixel centre —
-      // x = (anchor - from + 0.5) * spacing must stay fixed, otherwise the
-      // anchored bar (and the keyboard crosshair on it) slides by half the
-      // spacing gain on every step.
+      // Float-index pixel-centre law: x = (anchor - from + 0.5) * spacing stays
+      // fixed. For a non-integer anchor this is float-exact; for an integer
+      // anchor it is the bar-centre law (a special case, not the anchor).
       const nextSpacing = width / newSpan;
       const anchorX = (anchor - from + 0.5) * (width / span);
       let newFrom = anchor - anchorX / nextSpacing + 0.5;
