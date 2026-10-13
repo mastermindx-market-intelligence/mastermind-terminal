@@ -744,7 +744,7 @@ describe("R03-A04: Deliberately orphan one series/line", () => {
     H.reg.reset();
   });
 
-  it("mm: an external ledger compared to inventory() catches a deliberately orphan series", () => {
+  it("mm: ledger vs inventory() catches a series the engine dropped but the ledger still holds", () => {
     const ctxByCanvas = installFake2D();
     const containerEl = document.createElement("div");
     document.body.appendChild(containerEl);
@@ -807,7 +807,7 @@ describe("R03-A04: Deliberately orphan one series/line", () => {
     }
   });
 
-  it("lwc: an external ledger diverges from inventory() when the caller forgets to remove a price line", () => {
+  it("lwc: ledger vs inventory() catches a price line the engine dropped but the ledger still counts", () => {
     H.reg.reset();
     const engine = createEngine({} as unknown as HTMLElement, { width: 800, height: 600 }, "lwc");
     const s1 = engine.addSeries("candles");
@@ -835,6 +835,86 @@ describe("R03-A04: Deliberately orphan one series/line", () => {
     // R03-A04 names.
     const ledgerBelieves = 2;
     expect(inv1.priceLines).not.toBe(ledgerBelieves);
+    engine.destroy();
+  });
+
+  it("mm: inventory() exceeds the caller ledger by exactly 1 for a series and a line made through unwrap()", () => {
+    const restoreFake = installFake2D();
+    const containerEl = document.createElement("div");
+    document.body.appendChild(containerEl);
+    try {
+      const scheduler = createManualScheduler();
+      const engine = createCanvasEngine(containerEl, {
+        width: 200,
+        height: 100,
+        devicePixelRatio: 1,
+        scheduler,
+      });
+      const tracked = engine.addSeries("candles");
+      tracked.setData(candleWalk(31, 5));
+      tracked.createPriceLine({ price: 12 });
+      // The caller's ledger: it created exactly one series and exactly one line.
+      const ledger = { series: 1, priceLines: 1 };
+      scheduler.flush();
+      expect(engine.inventory().series).toBe(ledger.series);
+      expect(engine.inventory().priceLines).toBe(ledger.priceLines);
+
+      // ORPHAN direction: create one series and one price line on the model itself,
+      // exactly as a consumer that reached through engine.unwrap() would. No engine
+      // handle and no ledger entry ever sees them, so only a census that reads the
+      // renderer (not the adapter's own registry) can report the mismatch.
+      const model = engine.unwrap<{
+        addSeries(kind: EngineSeriesKind): SeriesHandle;
+        createPriceLine(seriesId: number, spec: { price: number }): unknown;
+      }>();
+      const orphanSeries = model.addSeries("line");
+      const orphanId = Number(orphanSeries.unwrap<{ id: number }>().id);
+      model.createPriceLine(orphanId, { price: 99 });
+      scheduler.flush();
+
+      const inv = engine.inventory();
+      // Renderer census is ledger+1 on BOTH counts ...
+      expect(inv.series).toBe(ledger.series + 1);
+      expect(inv.priceLines).toBe(ledger.priceLines + 1);
+      // ... while the ledger never moved: that disagreement is the mismatch.
+      expect(inv.series).not.toBe(ledger.series);
+      expect(inv.priceLines).not.toBe(ledger.priceLines);
+      engine.destroy();
+    } finally {
+      restoreFake();
+      containerEl.remove();
+    }
+  });
+
+  it("lwc: inventory() exceeds the caller ledger by exactly 1 for a series made through unwrap()", () => {
+    H.reg.reset();
+    const engine = createEngine({} as unknown as HTMLElement, { width: 800, height: 600 }, "lwc");
+    engine.addSeries("candles");
+    const ledgerSeries = 1; // the caller tracked exactly one handle
+    expect(engine.inventory().series).toBe(ledgerSeries);
+    // ORPHAN: created on the RAW chart through unwrap(), so neither the adapter's
+    // handle registry nor the caller ledger ever sees it.
+    const chart = engine.unwrap<{
+      addSeries(def: unknown, opts: unknown, paneIndex?: number): unknown;
+    }>();
+    chart.addSeries({ seriesType: "Line" }, {});
+    expect(engine.inventory().series).toBe(ledgerSeries + 1);
+    expect(engine.inventory().series).not.toBe(ledgerSeries);
+    engine.destroy();
+  });
+
+  it("lwc: inventory() exceeds the caller ledger by exactly 1 for a price line made through unwrap()", () => {
+    H.reg.reset();
+    const engine = createEngine({} as unknown as HTMLElement, { width: 800, height: 600 }, "lwc");
+    const s = engine.addSeries("candles");
+    s.createPriceLine({ price: 10 });
+    const ledgerLines = 1;
+    expect(engine.inventory().priceLines).toBe(ledgerLines);
+    // ORPHAN price line, created on the raw LWC series behind the handle.
+    const native = s.unwrap<{ createPriceLine(opts: unknown): unknown }>();
+    native.createPriceLine({ price: 99 });
+    expect(engine.inventory().priceLines).toBe(ledgerLines + 1);
+    expect(engine.inventory().priceLines).not.toBe(ledgerLines);
     engine.destroy();
   });
 });
