@@ -9,17 +9,21 @@
 // CanvasRenderingContext2D is handed in by the renderer, which also owns the frame
 // loop. This module must never import "lightweight-charts" (masterplan law 1).
 //
-// LOCAL STRUCTURAL TYPES: lane C03 is concurrently landing
-// lib/chart-engine/primitive.ts (EnginePrimitive / EngineProjection). It does not
-// exist at this lane's base SHA, so the Host* shapes below mirror it structurally;
-// the integration parent should alias them to C03's declarations instead of keeping
-// a second copy (see RESULT.md INTEGRATION_NOTES).
+// Host* types alias the engine-neutral primitive.ts vocabulary (F-10). EngineProjection
+// is a superset of the original HostProjection (adds timeToX / xToTime); the canvas
+// renderer must supply those from model.timeToCoordinate / model.coordinateToTime.
+
+import type {
+  EngineProjection,
+  PrimitiveAttachContext,
+  PrimitiveZOrder,
+} from "../primitive";
 
 /** Fractional bar index into the primary series (shared canvas-lane vocabulary). */
 export type LogicalIndex = number;
 
 /** Z tiers, mirroring LWC's PrimitivePaneViewZOrder so an adapter maps 1:1. */
-export type HostZOrder = "bottom" | "normal" | "top";
+export type HostZOrder = PrimitiveZOrder;
 
 /** Which axis strip an axis-view paint is targeting. */
 export type HostAxisSide = "price" | "time";
@@ -27,18 +31,8 @@ export type HostAxisSide = "price" | "time";
 /** A pixel rect in CSS (media) coordinates on the canvas being painted. */
 export type HostRect = { x: number; y: number; width: number; height: number };
 
-/** Per-frame projection delivered to every primitive (structural mirror of C03's
- *  EngineProjection; coordinate conventions in the programme briefing / axisZoom.ts). */
-export interface HostProjection {
-  generation: number;
-  dpr: number;
-  widthPx: number;
-  heightPx: number;
-  xOfLogical(i: LogicalIndex): number;
-  logicalOfX(x: number): LogicalIndex;
-  yOfPrice(p: number): number;
-  priceOfY(y: number): number;
-}
+/** Per-frame projection delivered to every primitive (alias of EngineProjection). */
+export type HostProjection = EngineProjection;
 
 /** What a primitive reports when the pointer falls inside it. */
 export interface HostHit {
@@ -48,14 +42,10 @@ export interface HostHit {
 }
 
 /** Context handed to attached(); `paneIndex` is read live through requestUpdate. */
-export interface HostAttachContext {
-  paneIndex: number;
-  seriesId: string;
-  /** Ask the renderer for a repaint of this primitive's pane (no-op without a hook). */
-  requestUpdate(): void;
-}
+export type HostAttachContext = PrimitiveAttachContext;
 
-/** The engine-neutral primitive shape this host consumes (mirror of C03's EnginePrimitive). */
+/** The engine-neutral primitive shape this host consumes. EnginePrimitive is assignable
+ *  when the extra EngineProjection methods are present on the delivered projection. */
 export interface HostPrimitive {
   id: string;
   zOrder?: HostZOrder;

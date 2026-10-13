@@ -80,8 +80,12 @@ export interface AnchorViolation {
   readonly next: number | string;
 }
 
-/** Epoch-seconds magnitudes beyond this are millisecond leaks, not seconds (year ~5138). */
-const MS_EPOCH_FLAG = 1e11;
+/**
+ * Inclusive ceiling for numeric bar keys in unix seconds (year ~5138).
+ * Values above this are millisecond leaks, not seconds. Shared with
+ * canvas/model.ts `timeToMs` so both sides use one epoch-basis constant.
+ */
+export const EPOCH_SECONDS_MAX = 1e11;
 
 function isoDateUtc(ms: number): string {
   return new Date(ms).toISOString().slice(0, 10);
@@ -118,7 +122,7 @@ export function toBarKey(time: EngineTime): BarKey | null {
   if (typeof time === "number") {
     if (!Number.isFinite(time)) return null;
     if (!Number.isInteger(time)) return null;
-    if (time > MS_EPOCH_FLAG) return null;
+    if (time > EPOCH_SECONDS_MAX) return null;
     return time as BarKey;
   }
   if (typeof time === "string") {
@@ -171,7 +175,7 @@ export function validateTimeKeys(
       if (!Number.isInteger(time)) {
         return { ok: false, reason: `fractional seconds (${time}); engine epoch keys are integer unix seconds`, index: i };
       }
-      if (time > MS_EPOCH_FLAG) {
+      if (time > EPOCH_SECONDS_MAX) {
         return { ok: false, reason: `millisecond epoch leak (${time}); engine epoch keys are unix seconds`, index: i };
       }
     } else if (typeof time === "string") {
@@ -201,6 +205,14 @@ export function validateTimeKeys(
   return { ok: true, kind: kind ?? "epochSec" };
 }
 
+/**
+ * How numeric row keys should be read.
+ * - "utc": true UTC epoch seconds (default; liveDisplayEpoch is applied once).
+ * - "display": the app's display-epoch keys (liveCandle.ts:71-88). The key
+ *   already IS the axis coordinate; liveDisplayEpoch must not run again.
+ */
+export type TimeKeyBasis = "utc" | "display";
+
 /** Build the frozen facts record; the one place display shifting is applied. */
 function freezeFacts(
   key: BarKey,
@@ -209,8 +221,12 @@ function freezeFacts(
   market: Market,
   cadenceSec: number,
   isSynthetic: boolean,
+  keyBasis: TimeKeyBasis = "utc",
 ): BarTimeFacts {
-  const displayEpochSec = liveDisplayEpoch(openUtcMs, market) ?? Math.floor(openUtcMs / 1000);
+  const alreadyDisplay = keyBasis === "display" && typeof key === "number";
+  const displayEpochSec = alreadyDisplay
+    ? (key as number)
+    : (liveDisplayEpoch(openUtcMs, market) ?? Math.floor(openUtcMs / 1000));
   const sessionId = typeof key === "number" ? isoDateUtc(displayEpochSec * 1000) : (key as string);
   return Object.freeze({
     key,
@@ -225,12 +241,19 @@ function freezeFacts(
 
 /**
  * Extract the six time facts of one row (T01-A03: displayEpochSec IS
- * liveDisplayEpoch(openUtcMs, market) for every market). Numeric keys are read as
- * true UTC epoch seconds; business-day keys canonicalize to UTC noon of the
+ * liveDisplayEpoch(openUtcMs, market) for every market when keyBasis is "utc").
+ * Numeric keys default to true UTC epoch seconds; pass keyBasis "display" when
+ * the row already carries the app's display-epoch key so the shift is not
+ * applied a second time. Business-day keys canonicalize to UTC noon of the
  * session date, and their sessionId is the key itself. Returns null for a key
  * toBarKey rejects — validate first, then extract.
  */
-export function barTimeFacts(row: BarTimeRow, market: Market, cadenceSec: number): BarTimeFacts | null {
+export function barTimeFacts(
+  row: BarTimeRow,
+  market: Market,
+  cadenceSec: number,
+  keyBasis: TimeKeyBasis = "utc",
+): BarTimeFacts | null {
   const key = toBarKey(row.time);
   if (key === null) return null;
   const openUtcMs = keyOpenUtcMs(key);
@@ -243,7 +266,7 @@ export function barTimeFacts(row: BarTimeRow, market: Market, cadenceSec: number
   const closeKey = row.closeTime === undefined ? null : toBarKey(row.closeTime);
   const closeUtcMs = closeKey !== null ? keyOpenUtcMs(closeKey) : openUtcMs + span * 1000;
 
-  return freezeFacts(key, openUtcMs, closeUtcMs, market, span, row.isSynthetic === true);
+  return freezeFacts(key, openUtcMs, closeUtcMs, market, span, row.isSynthetic === true, keyBasis);
 }
 
 /**

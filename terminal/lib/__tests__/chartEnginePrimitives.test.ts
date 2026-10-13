@@ -54,6 +54,8 @@ function makeProj(overrides: Partial<HostProjection> = {}): HostProjection {
     logicalOfX: (x: number) => x / 10,
     yOfPrice: (p: number) => 300 - p,
     priceOfY: (y: number) => 300 - y,
+    timeToX: () => null,
+    xToTime: () => null,
     ...overrides,
   };
 }
