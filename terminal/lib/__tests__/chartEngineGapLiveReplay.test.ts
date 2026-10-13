@@ -151,7 +151,7 @@ describe("L01-A02: Old-symbol HTTP/script response arrives late -> No visible or
   // a visible or persisted write (setX state setter, series.setData/update/createPriceLine,
   // localStorage/sessionStorage/persist/save calls) MUST be preceded by a `cancelled` or
   // `epochRef.current !== epoch` guard. The checker below reads the effect body and lists
-  // every such guarded site; the assertion is that the count is >= 1 (a non-trivial count of
+  // every such guarded site; the assertion is that the count is >= 14 (the measured count of
   // actually-protected sites). The mutant receipt removes ONE guard, re-runs the checker
   // against an in-memory copy, and shows the unguarded site.
 
@@ -177,7 +177,10 @@ describe("L01-A02: Old-symbol HTTP/script response arrives late -> No visible or
 
   // Every state setter (setX), series.setData/update/createPriceLine, localStorage / sessionStorage
   // / persist / save — the categories the row's Required observation names.
-  const WRITE = /(set[A-Z]\w*\(|setData\(|\.update\(|applyOptions\(|setSliceState\(|setStripDailyBars\(|setStripBars\(|localStorage\.|sessionStorage\.|\bpersist\w*\(|\bsave\w*\(|createPriceLine\()/;
+  // A call to a ChartPanel helper whose OWN body performs one of those writes counts as the write:
+  // adoptSlice (setSliceState), clearChartData (setSliceState + setData), applyExtendedPriceLine,
+  // buildSlevels and buildPivots (createPriceLine). The guard must dominate the helper call site.
+  const WRITE = /(set[A-Z]\w*\(|setData\(|\.update\(|applyOptions\(|setSliceState\(|setStripDailyBars\(|setStripBars\(|localStorage\.|sessionStorage\.|\bpersist\w*\(|\bsave\w*\(|createPriceLine\(|\badoptSlice\(|\bclearChartData\(|\bapplyExtendedPriceLine\(|\bbuildSlevels\(|\bbuildPivots\()/;
 
   // A continuation is either (a) the code after an `await`, running to the next suspension
   // point, or (b) the body of a callback handed to .then/.catch/.finally or a timer. Each
@@ -231,7 +234,7 @@ describe("L01-A02: Old-symbol HTTP/script response arrives late -> No visible or
     return sites.map((s) => ({ ...s, line: s.line + iifeBaseLine }));
   }
 
-  it("every async-continuation visible/persisted write is preceded by a cancelled/epoch guard (>= 4 guarded sites, zero unguarded)", () => {
+  it("every async-continuation visible/persisted write is preceded by a cancelled/epoch guard (>= 14 guarded sites, zero unguarded)", () => {
     const sites = findGuardedWriteSites();
     const guarded = sites.filter((s) => s.ok);
     const unguarded = sites.filter((s) => !s.ok);
@@ -240,7 +243,7 @@ describe("L01-A02: Old-symbol HTTP/script response arrives late -> No visible or
       unguarded: 0,
       unguardedSites: [],
     });
-    expect(guarded.length).toBeGreaterThanOrEqual(4);
+    expect(guarded.length).toBeGreaterThanOrEqual(14);
   });
 
   it("falsifier: deleting the first `if (cancelled || epochRef.current !== epoch) return;` guard in the async IIFE produces an unguarded write the checker can name", () => {

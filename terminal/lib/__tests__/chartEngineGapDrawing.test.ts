@@ -673,7 +673,7 @@ describe("D01-A04: Source disappears then returns -> Document remains recoverabl
       expect(mmBridge.pixelToAnchor(a.paneIndex, 100, 100, "raw")).toBeNull();
       expect(lwcBridge.pixelToAnchor(a.paneIndex, 100, 100, "raw")).toBeNull();
     }
-    // Open product defect F5, see ce-gap-drawing-rev-1013 (stale-logical fallback, drawingBridge.ts:293-294): the emptied-series path is NOT asserted here.
+    // The emptied-series / source-swap refusal is pinned in chartEngineGapDrawingAnchor.test.ts (drawingBridge.ts stale-logical guard, drawing review F5).
 
     // Restore source on both engines.
     mm.primaryByPane = (paneIndex: number) => mm.engine.panes()[paneIndex]?.getSeries()[0] ?? null;
