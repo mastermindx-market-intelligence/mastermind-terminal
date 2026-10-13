@@ -363,6 +363,9 @@ import type { EngineSeriesKind } from "../chart-engine";
 
 const container = {} as unknown as HTMLElement;
 
+/** Shared detach spy for the primitive-bridge block. */
+const detachedSpy = vi.fn();
+
 beforeEach(() => {
   H.reg.reset();
   vi.clearAllMocks();
@@ -1017,5 +1020,72 @@ describe("lwc adapter — C02 identity + capabilities", () => {
       screenshot: true,
       kineticScroll: true,
     });
+  });
+});
+
+// ── Primitive bridge (lane LWCPRIM) ──────────────────────────────────────────
+// The lifecycle semantics of the wrapper (attached once, one update per generation,
+// paint through the pane view, detach exactly once) are tested in
+// chartEngineLwcPrimitive.test.ts, whose stand-in drives the LWC plugin hooks. This
+// stand-in records the calls only, so what is checked here is delegation: which
+// object reaches the native series.
+
+type PrimitiveSpy = ReturnType<typeof vi.fn>;
+
+describe("lwc adapter — SeriesHandle primitive bridge", () => {
+  it("forwards a native LWC primitive to the series untouched, both directions", () => {
+    const e = createEngine(container);
+    const s = e.addSeries("candles", {}, 0);
+    const raw = s.unwrap<{ attachPrimitive: PrimitiveSpy; detachPrimitive: PrimitiveSpy }>();
+    const plugin = { paneViews: () => [], attached: () => undefined };
+
+    s.attachPrimitive(plugin);
+    expect(raw.attachPrimitive).toHaveBeenCalledTimes(1);
+    expect(raw.attachPrimitive.mock.calls[0][0]).toBe(plugin);
+
+    s.detachPrimitive(plugin);
+    expect(raw.detachPrimitive).toHaveBeenCalledTimes(1);
+    expect(raw.detachPrimitive.mock.calls[0][0]).toBe(plugin);
+  });
+
+  it("wraps an EnginePrimitive, ignores a repeat attach, and detaches the same wrapper", () => {
+    const e = createEngine(container);
+    const s = e.addSeries("candles", {}, 0);
+    const raw = s.unwrap<{ attachPrimitive: PrimitiveSpy; detachPrimitive: PrimitiveSpy }>();
+    const primitive = {
+      id: "engine-overlay",
+      attached: () => undefined,
+      detached: detachedSpy,
+      update: () => undefined,
+    };
+
+    s.attachPrimitive(primitive);
+    expect(raw.attachPrimitive).toHaveBeenCalledTimes(1);
+    const wrapper = raw.attachPrimitive.mock.calls[0][0];
+    expect(wrapper).not.toBe(primitive);
+
+    s.attachPrimitive(primitive); // same object again: the first attach owns it
+    expect(raw.attachPrimitive).toHaveBeenCalledTimes(1);
+
+    s.detachPrimitive(primitive);
+    expect(raw.detachPrimitive).toHaveBeenCalledTimes(1);
+    expect(raw.detachPrimitive.mock.calls[0][0]).toBe(wrapper);
+  });
+
+  it("releases bridges on destroy() without detaching what was never wired", () => {
+    const e = createEngine(container);
+    const s = e.addSeries("candles", {}, 0);
+    const primitive = {
+      id: "never-wired",
+      attached: () => undefined,
+      detached: detachedSpy,
+      update: () => undefined,
+    };
+    s.attachPrimitive(primitive);
+    // This stand-in never calls the wrapper's attached() (no render pass), so the
+    // engine primitive was never wired: C03-A03 forbids a detached() for it.
+    e.destroy();
+    expect(detachedSpy).not.toHaveBeenCalled();
+    detachedSpy.mockClear();
   });
 });
