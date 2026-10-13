@@ -194,7 +194,7 @@ function buildDeps(
     setPriceRange: (paneIndex, range) => {
       model.priceScaleHandle("right", paneIndex).setVisibleRange(range);
     },
-    isPriceScaleAuto: (paneIndex) => model.scale(paneIndex, "right").autoScale,
+    isPriceScaleAuto: (paneIndex) => model.scale(paneIndex, "right").autoScale ?? false,
     now: () => host.now(),
     schedule: (cb) => {
       const handle = host.scheduler.schedule(cb);
