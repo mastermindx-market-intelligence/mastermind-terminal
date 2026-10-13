@@ -50,6 +50,16 @@ export interface HostHit {
  */
 export type HostHitOrPrimitiveHit = HostHit | PrimitiveHit;
 
+/**
+ * Route a hit back to its primitive whichever shape answered: the host's legacy
+ * `HostHit.id` or the contract's `PrimitiveHit.primitiveId` (primitive.ts:68-74).
+ * Callers of `hitTest()` MUST use this instead of reading `.id`, which is undefined
+ * on a contract-shaped hit (PAINT2-rev F2's routing hazard, still open at HEAD).
+ */
+export function hostHitId(hit: HostHitOrPrimitiveHit): string {
+  return typeof (hit as HostHit).id === "string" ? (hit as HostHit).id : (hit as PrimitiveHit).primitiveId;
+}
+
 /** Context handed to attached(); `paneIndex` is read live through requestUpdate. */
 export type HostAttachContext = PrimitiveAttachContext;
 

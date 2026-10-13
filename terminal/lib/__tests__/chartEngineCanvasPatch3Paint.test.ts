@@ -14,7 +14,7 @@ import {
 } from "@/lib/chart-engine/canvas";
 import { engineProjectionFor } from "@/lib/chart-engine/canvas/frame";
 import { priceToDisplay, type PriceScaleState } from "@/lib/chart-engine/canvas/scales";
-import type { HostPrimitive } from "@/lib/chart-engine/canvas/primitives";
+import { hostHitId, type HostPrimitive } from "@/lib/chart-engine/canvas/primitives";
 import type { EnginePrimitive } from "@/lib/chart-engine/primitive";
 import type { EngineSeriesKind, EngineSeriesRow } from "@/lib/chart-engine/api";
 
@@ -554,5 +554,15 @@ describe("F10 (P2) crosshair mouse payload carries seriesData + hoveredSeries + 
     ).toBe(true);
     engine.unsubscribeCrosshairMove(handler);
     engine.destroy();
+  });
+});
+
+// ============================================================================
+// RV-7 — hostHitId normalises HostHit.id / PrimitiveHit.primitiveId (F2, PATCH3P2)
+// ============================================================================
+describe("RV-7 — hostHitId normalises whichever shape a hit arrives as", () => {
+  it("answers the same id for a HostHit and a contract PrimitiveHit", () => {
+    expect(hostHitId({ id: "h", cursor: "pointer" })).toBe("h");
+    expect(hostHitId({ primitiveId: "c", cursor: "crosshair" })).toBe("c");
   });
 });
