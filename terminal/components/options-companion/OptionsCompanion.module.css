@@ -142,7 +142,7 @@
 :global(html[data-theme="light"]) .root.page{background:transparent}
 @media(max-width:860px){.overview{flex:none;overflow:visible}.railSwitch{display:none}.root{padding:8px 12px}.sheet .root{height:100%}.summary strong{font-size:22px}.view{gap:6px}.summary{padding-bottom:4px}}
 @media(max-width:640px){.view{gap:4px}.scopeBar{padding:0}.summary{gap:2px 8px;padding:0 0 2px}.summary strong{font-size:18px;line-height:1.1}.legend{gap:1px 8px;line-height:1.2}.mapColumn{gap:4px}.root{padding-bottom:2px}}
-@media(pointer:coarse),(max-width:860px){.railSwitch button,.tabs button,.lens button,.action,.link,.deskLink,.method summary,.controls select,.scopeButton,.scopeBriefGrid>button,.close,.receipt button{min-height:44px}.receipt button{width:44px}.receipts>summary{min-height:44px}.profile>button{min-height:44px}.tabs button{font-size:12px}.notice,.warning,.inspector p,.method p{font-size:11px}.controls label>span,.viewCaption{font-size:10px}}
+@media(pointer:coarse),(max-width:860px){.railSwitch button,.tabs button,.lens button,.action,.link,.deskLink,.method summary,.controls select,.scopeButton,.scopeBriefGrid>button,.close,.receipt button{min-height:44px}.receipt button{width:44px}.receipts>summary{min-height:44px}.profile>button{min-height:44px}.tabs button{font-size:12px}.notice,.warning,.inspector p,.method p{font-size:11px}.controls label>span,.viewCaption{font-size:10px}.root:not(.page) .mapHost{--matrix-rail-max-touch:311px}}
 @media(prefers-reduced-motion:no-preference){.tabs button,.lens button,.action,.close{transition:background-color 120ms ease,border-color 120ms ease}}
 
 .railSwitch[hidden]{display:none}
