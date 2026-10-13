@@ -587,48 +587,80 @@ describe("R03-A03: Idle or destroyed chart", () => {
     containerEl.remove();
   });
 
-  it("mm: after a frame loop runs once with the real default scheduler, the queue is empty and no further work is scheduled", () => {
+  it("mm: one requestPaint arms exactly one frame and an idle engine arms no further frames", async () => {
     const rafCalls: number[] = [];
-    const cancelCalls: number[] = [];
+    // A recording queue that ACTUALLY fires every callback it hands out, capped so a
+    // runaway loop terminates instead of hanging the runner. A self-arming frame loop
+    // then shows up as rafCalls.length > 1 instead of staying invisible.
+    const MAX_FIRED_FRAMES = 10;
+    let fired = 0;
     vi.stubGlobal("requestAnimationFrame", (cb: FrameRequestCallback) => {
       const handle = rafCalls.length + 1;
       rafCalls.push(handle);
-      // schedule the callback to run synchronously the FIRST time the test asks,
-      // so the post-construct paint actually happens — after that the queue must
-      // stay empty.
-      (handleCb as { __run?: boolean }).__run ??= true;
-      if ((handleCb as { __run?: boolean }).__run) {
+      if (fired < MAX_FIRED_FRAMES) {
+        fired += 1;
         queueMicrotask(() => cb(performance.now()));
-        (handleCb as { __run?: boolean }).__run = false;
       }
       return handle;
     });
-    const handleCb = { __run: true };
-    vi.stubGlobal("cancelAnimationFrame", (h: number) => cancelCalls.push(h));
+    vi.stubGlobal("cancelAnimationFrame", () => { /* the destroy test below records cancels */ });
 
-    const engine = createCanvasEngine(containerEl, {
-      width: 200,
-      height: 100,
-      devicePixelRatio: 1,
-    });
-    const series = engine.addSeries("candles");
-    series.setData(candleWalk(7, 6));
-
-    // Let the first paint fire synchronously.
-    return new Promise<void>((resolve) => {
-      queueMicrotask(() => {
-        // No pending frames should remain after the initial paint consumed them;
-        // the engine must not self-arm a continuing frame loop.
-        // Cancel may or may not have been called depending on the scheduler's
-        // disarm-on-flush policy; what matters is that no NEW frame was queued.
-        const initialHandleCount = rafCalls.length;
-        // Trigger a phantom input that is no-op — must not re-arm the scheduler.
-        engine.priceScale("right");
-        expect(rafCalls.length).toBe(initialHandleCount);
-        engine.destroy();
-        resolve();
+    try {
+      const engine = createCanvasEngine(containerEl, {
+        width: 200,
+        height: 100,
+        devicePixelRatio: 1,
       });
-    });
+      const series = engine.addSeries("candles");
+      series.setData(candleWalk(7, 6));
+
+      // Macrotask, so the whole microtask chain of queued frames settles first.
+      await new Promise<void>((resolve) => { setTimeout(resolve, 0); });
+
+      const armed = rafCalls.length;
+      // A read must not re-arm the scheduler ...
+      engine.priceScale("right");
+      expect(rafCalls.length).toBe(armed);
+      // ... and an idle chart arms EXACTLY one frame in its whole life: construct
+      // plus setData coalesce into one paint and nothing self-arms once that frame
+      // has run. A continuing renderer frame loop fails both of these.
+      expect(armed).toBe(1);
+      expect(fired).toBe(1);
+      engine.destroy();
+      // destroy() arms no replacement frame either.
+      expect(rafCalls.length).toBe(1);
+    } finally {
+      vi.unstubAllGlobals();
+    }
+  });
+
+  it("mm: destroy() cancels the renderer's own scroll-animation timer, leaving zero pending timers", () => {
+    // No frame ever runs here; this test observes the model's setTimeout clock only.
+    vi.stubGlobal("requestAnimationFrame", () => 1);
+    vi.stubGlobal("cancelAnimationFrame", () => { /* nothing to cancel */ });
+    vi.useFakeTimers();
+    try {
+      const engine = createCanvasEngine(containerEl, {
+        width: 200,
+        height: 100,
+        devicePixelRatio: 1,
+      });
+      const series = engine.addSeries("candles");
+      series.setData(candleWalk(23, 8));
+      // Nothing has armed a timer yet: the rAF stub above never fires.
+      expect(vi.getTimerCount()).toBe(0);
+      // Arm the model's OWN clock: an animated scroll schedules a setTimeout chain
+      // (model.scrollToPosition -> clock.schedule). That is the renderer timer this
+      // row names, and it is the only timer this test creates.
+      engine.timeScale().scrollToPosition(3, true);
+      expect(vi.getTimerCount()).toBeGreaterThan(0);
+      engine.destroy();
+      // A destroyed chart owns no pending timer: destroy() cancelled the animation.
+      expect(vi.getTimerCount()).toBe(0);
+    } finally {
+      vi.useRealTimers();
+      vi.unstubAllGlobals();
+    }
   });
 
   it("mm: a queued frame is cancelled (cancelAnimationFrame called) when destroy() runs before flush", () => {
