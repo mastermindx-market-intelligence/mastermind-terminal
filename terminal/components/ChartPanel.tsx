@@ -9097,10 +9097,6 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
     if (syncCleanupRef.current) { try { syncCleanupRef.current(); } catch {} syncCleanupRef.current = null; }
     const engine = engineRef.current, priceS = priceSeriesHandleRef.current, syncId = syncIdRef.current;
     if (syncId == null || !engine || !priceS) return;
-    // engine-unwrap: paneSync (lib/paneSync.ts PROPOSED_PATCH — contract PaneRegistration)
-    type PaneSyncReg = Parameters<typeof registerPane>[1];
-    const chart = engine.unwrap() as PaneSyncReg["chart"];
-    const series = priceS.unwrap() as PaneSyncReg["series"];
     // Resolve the peer's value at LOOKUP time, not at registration time. A snapshot Map taken here
     // froze sync's lookup domain to the bar set that existed when the pane registered: a live splice
     // that moved the developing close mirrored a stale price, and one that APPENDED a new session /
@@ -9109,7 +9105,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
     // derivation boundary invalidates it), so this tracks the bars by construction and needs no
     // per-tick re-registration.
     const cleanup = registerPane(syncId, {
-      chart, series,
+      chart: engine, series: priceS,
       valueAt: (tm: any) => {
         const idx = barIdxMap().get(tm as any) ?? barIdxMap().get(String(tm));
         return idx == null ? null : (barsRef.current[idx]?.c ?? null);
@@ -10090,11 +10086,9 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
                   ? (lineRect.bottom - wrapRect.top) * wrap.clientHeight / wrapRect.height : NaN;
               }
             }
-            // engine-unwrap: LargeTradesOverlay (components/LargeTradesOverlay.tsx PROPOSED_PATCH)
-            type LtCtx = import("@/components/LargeTradesOverlay").LargeTradesChartContext;
             return {
-              chart: engineRef.current?.unwrap() as unknown as LtCtx["chart"],
-              series: priceSeriesHandleRef.current?.unwrap() as unknown as LtCtx["series"],
+              chart: engineRef.current,
+              series: priceSeriesHandleRef.current,
               statusHeaderBottom,
               bars: barsRef.current, sourceSymbol: chartDataSymRef.current,
               timeframe: fullBarsTfRef.current, replayCutoff: replayIdxRef.current,
