@@ -24,8 +24,9 @@ jobs. That held suite is the one the pull request's required-check rollup reads,
 green checks from any other run on the same commit leave the pull request BLOCKED
 (#874, 2026-10-13). The controller therefore re-runs that exact held run. Measured
 on 2026-10-13 (throwaway probe PR #988): a GITHUB_TOKEN ``POST /actions/runs/{id}/rerun``
-answers 201 and attempt 2 executes every job, and its checks appear in the pull
-request's rollup as required contexts.
+answers 201 and attempt 2 executes every job (runs 38378802229 and 38379271205), and
+its checks appear in the pull request's rollup as required contexts. Every held run
+seen (those two and #874's 38370600573) has ``actor.login == github-actions[bot]``.
 """
 from __future__ import annotations
 
@@ -240,11 +241,12 @@ class GitHubApi:
         # checks land on the same commit but do NOT satisfy that rollup (#874), so
         # this is ordered only when no pull_request run appeared for the new head.
         #
-        # That dispatched run is therefore the ONLY CI run for the sha that then
-        # merges, and on a workflow_dispatch `github.event.pull_request.number` is
-        # empty -- so the migration-namespace guard fell to its LENIENT rule set on
-        # exactly the gating run (round 4, MAJOR 2). ci.yml now takes a `pr_number`
-        # input and the number is passed here.
+        # On that path the dispatched run may be the only CI run that has executed
+        # for the sha, and on a workflow_dispatch `github.event.pull_request.number`
+        # is empty -- so the migration-namespace guard fell to its LENIENT rule set
+        # in it (round 4, MAJOR 2). ci.yml now takes a `pr_number` input and the
+        # number is passed here. The merge itself still waits for the pull_request
+        # run's required checks.
         payload: dict[str, Any] = {"ref": branch}
         if pr_number is not None:
             payload["inputs"] = {"pr_number": str(pr_number)}
@@ -459,18 +461,24 @@ def start_refreshed_ci(
     head and its pull_request run a bounded number of times. A held run is re-run;
     a run that is already queued or running needs nothing.
     """
+    advanced = False
     for attempt in range(REFRESH_RUN_POLLS):
         if attempt:
             wait(REFRESH_RUN_POLL_SECONDS)
         new_head = str(api.pull(number)["head"]["sha"])
         if new_head == old_head:
             continue
+        advanced = True
         run = newest_pull_request_run(api.pull_request_ci_runs(new_head), new_head, api.repo)
         if run is None:
             continue
         if is_held(run):
             return release_held_run(api, run)
         return f"pull_request CI run {run['id']} is {run.get('status')}; awaiting PR-linked CI"
+    if not advanced:
+        # Dispatching now would only prove the old head. A later sweep sees either
+        # the new head (and releases its held run) or a still-behind branch.
+        return "update-branch has not written a new head yet; a later sweep re-checks it"
     # No pull_request run appeared in time. Order the checks explicitly so the head
     # is not left without any. If a held run appears later, a later sweep re-runs it.
     api.dispatch_ci(branch, number)

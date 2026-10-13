@@ -11,8 +11,9 @@ on:
   # fallback for when no pull_request run appears for the refreshed head.
   workflow_dispatch:
     inputs:
-      # On that fallback path the dispatched run is the ONLY CI run for the sha
-      # that then merges, so the migration-namespace guard has to be able to earn
+      # On that fallback path the dispatched run may be the only CI run that has
+      # executed for the sha (its checks alone do not satisfy the pull request's
+      # rollup), so the migration-namespace guard has to be able to earn
       # PULL_REQUEST mode in it. github.event.pull_request.number does not exist on a dispatch, so the
       # controller passes the number it already knows (scripts/merge_on_green.py,
       # dispatch_ci). Optional: a hand-run dispatch that omits it stays LENIENT

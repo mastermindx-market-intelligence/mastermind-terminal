@@ -1010,6 +1010,24 @@ def test_a_refused_re_run_inside_a_refresh_line_still_exits_non_zero(monkeypatch
     assert "declined: re-run" in capsys.readouterr().out
 
 
+def test_a_refused_re_run_after_a_real_refresh_exits_non_zero(monkeypatch, capsys):
+    monkeypatch.setenv("GH_REPO", "owner/repo")
+    monkeypatch.setenv("MERGE_TOKEN", "token")
+    monkeypatch.delenv("TRIGGER_PR_NUMBER", raising=False)
+    api = FakeApi(
+        [pull(mergeable_state="behind")],
+        rerun_errors={9101: (403, "Resource not accessible by integration")},
+    )
+    monkeypatch.setattr(mog, "GitHubApi", lambda repo, token: api)
+
+    assert mog.main() == 1
+    assert api.actions == [("update", 7, "head-7"), ("rerun", 9101)]
+    assert (
+        "#7: updated onto current master; declined: re-run of held pull_request CI run 9101"
+        in capsys.readouterr().out
+    )
+
+
 def test_a_waiting_or_merge_declined_line_alone_does_not_exit_non_zero(monkeypatch):
     monkeypatch.setenv("GH_REPO", "owner/repo")
     monkeypatch.setenv("MERGE_TOKEN", "token")
@@ -1054,7 +1072,13 @@ class LateHeadApi(FakeApi):
 
 
 def test_the_refresh_path_waits_for_the_new_head_before_looking_for_its_run():
-    api = LateHeadApi([pull(mergeable_state="behind")], stale_reads=2)
+    # The old head carries its own held attempt-1 run: reading runs before the
+    # head moves would re-run the wrong head's CI.
+    api = LateHeadApi(
+        [pull(mergeable_state="behind")],
+        ci_runs={"head-7": [ci_run(9001, sha="head-7")]},
+        stale_reads=2,
+    )
     waits = []
 
     result = sweep(api, wait=waits.append)
@@ -1062,6 +1086,21 @@ def test_the_refresh_path_waits_for_the_new_head_before_looking_for_its_run():
     assert waits == [mog.REFRESH_RUN_POLL_SECONDS] * 2
     assert api.actions == [("update", 7, "head-7"), ("rerun", 9101)]
     assert result == ["#7: " + REFRESHED.format(n=7)]
+
+
+def test_a_head_that_never_moves_is_not_dispatched_against():
+    api = LateHeadApi([pull(mergeable_state="behind")], stale_reads=mog.REFRESH_RUN_POLLS)
+    waits = []
+
+    result = sweep(api, wait=waits.append)
+
+    assert waits == [mog.REFRESH_RUN_POLL_SECONDS] * (mog.REFRESH_RUN_POLLS - 1)
+    assert api.actions == [("update", 7, "head-7")]
+    assert api.dispatched == []
+    assert result == [
+        "#7: updated onto current master; "
+        "update-branch has not written a new head yet; a later sweep re-checks it"
+    ]
 
 
 def test_runs_lookup_is_bound_to_ci_yml_pull_request_events_and_the_exact_head():
