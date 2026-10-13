@@ -414,6 +414,60 @@ describe("model2 F-7 — dataByIndex returns null at whitespace and skips whites
     // At H2 Math.ceil(0.5)=1 returns the whitespace row.
     expect(s.dataByIndex(0.5, "nearest-right")).toEqual({ time: 3000, value: 3 });
   });
+
+  // P-5 / REV-F1: setData must invalidate the valuedIdx cache. After a primed
+  // read on data A, switching to data B (same times, but rows 2 and 3 are
+  // whitespace) must NOT serve a stale index. Without invalidation the cached
+  // valuedAt of A still points at row index 2 (which is whitespace in B).
+  it("[P-5] setData invalidates valuedIdx so a primed cache cannot answer an after-stale nearest-right", () => {
+    const m = mounted();
+    const s = m.addSeries("line");
+    // Data A: 5 valued rows at times 1000..5000.
+    s.setData([
+      { time: 1000, value: 1 },
+      { time: 2000, value: 2 },
+      { time: 3000, value: 3 },
+      { time: 4000, value: 4 },
+      { time: 5000, value: 5 },
+    ]);
+    // Prime the cache.
+    const primed = s.dataByIndex(1.2, "nearest-right");
+    expect(primed).toEqual({ time: 3000, value: 3 });
+    // Data B: same times, but rows 2 and 3 are whitespace.
+    s.setData([
+      { time: 1000, value: 1 },
+      { time: 2000, value: 2 },
+      { time: 3000 }, // whitespace
+      { time: 4000 }, // whitespace
+      { time: 5000, value: 5 },
+    ]);
+    // nearest-right of 1.2 over B's valued list [0, 1, 4] must return row 4
+    // (time 5000), not the stale row 2 (whitespace in B).
+    expect(s.dataByIndex(1.2, "nearest-right")).toEqual({ time: 5000, value: 5 });
+  });
+
+  // P-5 / REV-F1: update() must invalidate the valuedIdx cache. After a primed
+  // read on data A, an update that turns a previously valued row into
+  // whitespace (or appends a row) must NOT serve a stale index. The F-7
+  // semantics pin the answer: nearest-right of 1.2 over B's valuedAt [0, 3]
+  // returns row index 3 (time 4000, value 4).
+  it("[P-5] update() invalidates valuedIdx so a primed cache cannot answer an after-stale nearest-right", () => {
+    const m = mounted();
+    const s = m.addSeries("line");
+    // Data A: 4 valued rows at times 1000..4000.
+    s.setData([
+      { time: 1000, value: 1 },
+      { time: 2000, value: 2 },
+      { time: 3000, value: 3 },
+      { time: 4000, value: 4 },
+    ]);
+    const primed = s.dataByIndex(1.2, "nearest-right");
+    expect(primed).toEqual({ time: 3000, value: 3 });
+    // Historical update at time 3000 turns that row into whitespace (drops the value).
+    s.update({ time: 3000 }, true);
+    // nearest-right of 1.2 over valuedAt [0, 1, 3] returns row index 3.
+    expect(s.dataByIndex(1.2, "nearest-right")).toEqual({ time: 4000, value: 4 });
+  });
 });
 
 // ============================================================================

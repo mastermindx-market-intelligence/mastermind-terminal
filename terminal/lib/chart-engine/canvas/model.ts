@@ -95,6 +95,8 @@ export type SeriesModel = {
   paneIndex: number;
   priceScaleId: string;
   removed: boolean;
+  /** Ascending indices of valued (non-whitespace) rows; null = dirty. */
+  valuedIdx?: number[] | null;
 };
 export type PaneModel = {
   index: number;
@@ -222,6 +224,24 @@ export function seriesClose(row: EngineSeriesRow): number | null {
   if ("close" in row && typeof (row as { close: unknown }).close === "number") return (row as { close: number }).close;
   if ("value" in row && typeof (row as { value: unknown }).value === "number") return (row as { value: number }).value;
   return null;
+}
+
+/** Ascending valued-row indices: the PlotList index LWC searches (dev:3015-3039). */
+export function valuedIndicesOf(rows: EngineSeriesRow[]): number[] {
+  const out: number[] = [];
+  for (let i = 0; i < rows.length; i++) if (seriesClose(rows[i]) != null) out.push(i);
+  return out;
+}
+
+/** First position in `list` whose value is >= target (LWC lowerBound). */
+function lowerBoundOf(list: number[], target: number): number {
+  let lo = 0;
+  let hi = list.length;
+  while (lo < hi) {
+    const mid = (lo + hi) >> 1;
+    if ((list[mid] as number) < target) lo = mid + 1; else hi = mid;
+  }
+  return lo;
 }
 
 export type ModelHooks = { onInvalidate: () => void; onStructure: () => void; clock?: ModelClock };
@@ -768,6 +788,7 @@ export class ChartModel {
     const s = this.series.get(id);
     if (!this.alive || !s || s.removed) return;
     s.rows = rows.slice();
+    s.valuedIdx = null;
     if (!this.rangeExplicit && this.primarySeries()?.id === id) {
       this.time.visibleFrom = 0;
       this.time.visibleTo = Math.max(1, s.rows.length);
@@ -810,6 +831,7 @@ export class ChartModel {
         }
       }
     }
+    s.valuedIdx = null;
     this.bump();
   }
 
@@ -984,31 +1006,22 @@ class ModelSeriesHandle implements SeriesHandle {
     // Mirror that over the valued subset of s.rows. The default direction
     // preserves the canvas precedent of rounding non-integer logicals to the
     // nearest integer (P-1: chartEngineCanvasC02.test.ts:105 pins this).
-    const valued: EngineSeriesRow[] = [];
-    const valuedAt: number[] = [];
-    for (let i = 0; i < s.rows.length; i++) {
-      if (seriesClose(s.rows[i]) != null) { valued.push(s.rows[i]); valuedAt.push(i); }
-    }
-    const n = valued.length;
+    const valuedAt = s.valuedIdx ?? (s.valuedIdx = valuedIndicesOf(s.rows));
+    const n = valuedAt.length;
     if (n === 0) return null;
-    const lookupExact = (i: number): EngineSeriesRow | null => {
-      for (let k = 0; k < n; k++) if (valuedAt[k] === i) return valued[k];
-      return null;
-    };
+    const lo = lowerBoundOf(valuedAt, logicalIndex);
+    const hit = lo < n && (valuedAt[lo] as number) === logicalIndex ? (valuedAt[lo] as number) : -1;
     if (mismatchDirection === "nearest-left") {
-      let lo = 0;
-      while (lo < n && valuedAt[lo] < logicalIndex) lo++;
-      if (lo < n && valuedAt[lo] === logicalIndex) return valued[lo];
-      return lo > 0 ? valued[lo - 1] : null;
+      if (hit >= 0) return s.rows[hit] as EngineSeriesRow;
+      return lo > 0 ? (s.rows[valuedAt[lo - 1] as number] as EngineSeriesRow) : null;
     }
     if (mismatchDirection === "nearest-right") {
-      let lo = 0;
-      while (lo < n && valuedAt[lo] < logicalIndex) lo++;
-      if (lo < n && valuedAt[lo] === logicalIndex) return valued[lo];
-      return lo < n ? valued[lo] : null;
+      if (hit >= 0) return s.rows[hit] as EngineSeriesRow;
+      return lo < n ? (s.rows[valuedAt[lo] as number] as EngineSeriesRow) : null;
     }
     const rounded = Math.round(logicalIndex);
-    return lookupExact(rounded);
+    const at = lowerBoundOf(valuedAt, rounded);
+    return at < n && (valuedAt[at] as number) === rounded ? (s.rows[rounded] as EngineSeriesRow) : null;
   }
   createPriceLine(opts: PriceLineSpec): PriceLineHandle { return this.m.createPriceLine(this.id, opts); }
   removePriceLine(line: PriceLineHandle): void {
