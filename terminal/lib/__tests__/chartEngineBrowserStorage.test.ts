@@ -11,6 +11,33 @@ import {
 } from "@/lib/chart-engine/select";
 import { browserEngineStorage } from "@/lib/chart-engine/browserStorage";
 
+// vitest's jsdom env forwards jsdom's own `localStorage` onto the global ONLY when the runner's
+// Node has no global by that name: getWindowKeys() drops a jsdom key that is already `in global`
+// unless vitest's fixed KEYS list names it, and that list has no "localStorage". Node >= 22 ships
+// an experimental `localStorage` accessor that is undefined without --localstorage-file, so on
+// those runners window.localStorage is undefined and all five cases below would fail for a reason
+// that has nothing to do with browserStorage.ts. Pin the real jsdom Storage first (house
+// precedent: thesisProposalReadState.test.tsx). No-op on runners where jsdom's Storage already
+// arrived, e.g. CI's Node 20.
+function hostStorageUsable(): boolean {
+  try {
+    const candidate: unknown = window.localStorage;
+    return (
+      typeof candidate === "object" &&
+      candidate !== null &&
+      typeof (candidate as { getItem?: unknown }).getItem === "function"
+    );
+  } catch {
+    return false;
+  }
+}
+if (!hostStorageUsable()) {
+  const dom = (globalThis as unknown as { jsdom?: { window: Window } }).jsdom;
+  if (!dom) throw new Error("chartEngineBrowserStorage.test.ts: no jsdom window to source a Storage from");
+  const real = dom.window.localStorage;
+  Object.defineProperty(window, "localStorage", { configurable: true, get: () => real });
+}
+
 const nativeDesc = Object.getOwnPropertyDescriptor(window, "localStorage") ??
   Object.getOwnPropertyDescriptor(Object.getPrototypeOf(window), "localStorage");
 
