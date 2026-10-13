@@ -491,12 +491,44 @@ class CanvasEngine implements CanvasChartEngine {
       const escalate = this.lastCrosshairLevel === "light" && this.primHost.inventory().primitives > 0;
       this.requestPaint({ level: escalate ? "light" : "cursor", panes: "all" });
     };
-    const click: EventListener = (ev) => this.model.emitMouse("click", param(ev));
+    // LWC 5.2.0 (dist dev build 8169-8173, 8275-8277) cancels the click that a
+    // mouseup would emit once a pressed move has travelled >= 5 manhattan px.
+    // Pointer events are latched (not mouse events) so touch and pen drags are
+    // covered as well; `buttons === 1` keeps hover moves from arming the latch.
+    const CANCEL_CLICK_MANHATTAN_PX = 5;
+    let cancelClick = false;
+    let downX = 0;
+    let downY = 0;
+    const latchDown: EventListener = (ev) => {
+      const e = ev as MouseEvent;
+      cancelClick = false;
+      downX = e.clientX;
+      downY = e.clientY;
+    };
+    const latchMove: EventListener = (ev) => {
+      const e = ev as MouseEvent;
+      if (cancelClick || e.buttons !== 1) return;
+      if (Math.abs(e.clientX - downX) + Math.abs(e.clientY - downY) >= CANCEL_CLICK_MANHATTAN_PX) {
+        cancelClick = true;
+      }
+    };
+    const click: EventListener = (ev) => {
+      if (cancelClick) return;
+      this.model.emitMouse("click", param(ev));
+    };
     const dbl: EventListener = (ev) => this.model.emitMouse("dblclick", param(ev));
+    overlay.addEventListener("pointerdown", latchDown);
+    overlay.addEventListener("pointermove", latchMove);
     overlay.addEventListener("mousemove", move);
     overlay.addEventListener("click", click);
     overlay.addEventListener("dblclick", dbl);
-    this.overlayListeners.push(["mousemove", move], ["click", click], ["dblclick", dbl]);
+    this.overlayListeners.push(
+      ["pointerdown", latchDown],
+      ["pointermove", latchMove],
+      ["mousemove", move],
+      ["click", click],
+      ["dblclick", dbl],
+    );
   }
 
   chartElement(): HTMLElement {
