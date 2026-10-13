@@ -5,6 +5,8 @@ import { DEFAULT_CHART_RIGHT_OFFSET, withChartFutureOffset } from "@/lib/chart-e
 import { isIntradayTf } from "@/lib/intradaySources";
 import { VISUAL_INTELLIGENCE_DEFAULTS, type VisualIntelligenceSettings } from "@/lib/visualIntelligence";
 import { useT } from "@/lib/i18n";
+import DataOriginChip from "@/components/DataOriginChip";
+import type { DataOrigin } from "@/lib/dataOrigin";
 
 // Chart scale/display settings persisted alongside user prefs (key: mm.chartSettings).
 export type ChartSettings = {
@@ -212,6 +214,8 @@ export default function ChartFrameBar({
   onSettings,
   onOpenSettingsModal,
   extendedEligible = false,
+  symbol,
+  dataOrigin,
 }: {
   timeframe: string;
   chartApi: IChartApi | null;
@@ -219,6 +223,9 @@ export default function ChartFrameBar({
   onSettings: (patch: Partial<ChartSettings>) => void;
   onOpenSettingsModal?: (tab?: string) => void;
   extendedEligible?: boolean;
+  /** Data OS U02: the mounted chart's symbol + its derived origin readout (drives the origin chip). */
+  symbol?: string;
+  dataOrigin?: DataOrigin | null;
 }) {
   const t = useT();
   // Client-only clock: render nothing until mounted to avoid SSR/hydration mismatch.
@@ -441,8 +448,9 @@ export default function ChartFrameBar({
           title={isIntraday && extendedEligible ? (s.extHours ? t("ethOff") : t("ethOn")) : undefined}
           aria-label={t("cfbExtendedHours")}
         >ETH</button>
-        {/* ADJ chip — always passive (display-only; we only serve adjusted data) */}
-        <span className="cfb-chip cfb-chip-adj" title={t("adjTip")}>ADJ</span>
+        {/* Data OS U02 — the origin chip replaces the static ADJ span: label and explanation are
+            derived from the OHLC file's view contract, never a hardcoded claim. */}
+        <DataOriginChip symbol={symbol} origin={dataOrigin ?? null} />
         {/* Gear: quick settings */}
         <div className="cfb-gear-host" ref={gearRef}>
           <button
