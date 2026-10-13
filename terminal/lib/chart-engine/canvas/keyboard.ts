@@ -383,6 +383,23 @@ export function createKeyboardController(deps: KeyboardControllerDeps): Keyboard
     const steps = barsForEvent(1, streak);
     const factor = Math.pow(ZOOM_FACTOR_PER_STEP, direction * steps);
     const newSpan = Math.min(MAX_VISIBLE_SPAN, Math.max(MIN_VISIBLE_SPAN, span * factor));
+    const width = finiteOr(ts.widthPx, 0);
+    if (width > 0 && newSpan > 0) {
+      // PERF-A C2/T5: pin the anchor BAR's pixel centre —
+      // x = (anchor - from + 0.5) * spacing must stay fixed, otherwise the
+      // anchored bar (and the keyboard crosshair on it) slides by half the
+      // spacing gain on every step.
+      const nextSpacing = width / newSpan;
+      const anchorX = (anchor - from + 0.5) * (width / span);
+      let newFrom = anchor - anchorX / nextSpacing + 0.5;
+      let newTo = newFrom + newSpan;
+      if (newFrom < 0) {
+        newFrom = 0;
+        newTo = newSpan;
+      }
+      deps.setVisibleLogicalRange(newFrom, newTo);
+      return;
+    }
     const ratio = newSpan / span;
     let newFrom = anchor - (anchor - from) * ratio;
     let newTo = anchor + (to - anchor) * ratio;
