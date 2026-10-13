@@ -61,6 +61,7 @@ import {
 } from "@/lib/priceTagPlacement";
 import { hoverTagPaint } from "@/lib/hoverTagPaint";
 import { setActivePaneCoords, getActivePaneCoords } from "@/lib/paneCoords";
+import { nearestMagnetY } from "@/lib/crosshairMagnet";
 import { getJSON, getSliceAndOhlc, getCompositeOhlc, getOhlc, type CacheOutcome } from "@/lib/dataCache";
 import { parseComposite, alignAndSum } from "@/lib/composite";
 import { CMP_PALETTE, type CmpCfg, defaultCmpCfg, cmpKey } from "@/lib/compare";
@@ -4694,10 +4695,13 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
     renderHoverTagRef.current = renderHoverTag;
     // `point.y` is PANE-relative — the same space priceToCoordinate returns — but LWC reports the
     // ORIGINAL pointer point even after Magnet has snapped its horizontal line. Mirror LWC's own
-    // Magnet candidate selection from the event's public seriesData — keyed by the OWNED handles
-    // the engine registered (M03-A03): visible, non-overlay series in this pane, using each
-    // series' close/value transformed through its own scale. This covers Heikin-Ashi and
-    // price-pane studies without reaching into Lightweight Charts internals.
+    // Magnet candidate selection from the event's public seriesData — keyed by raw lwc series in
+    // the shipping adapter (MIG-FIX R1; wrapMouse is a pass-through of lightweight-charts'
+    // MouseEventParams so the keys are ISeriesApi objects, not owned handles), and by the OWNED
+    // SeriesHandles the engine registers once the adapter re-keys. nearestMagnetY accepts both
+    // shapes via lib/crosshairMagnet: visible, in-pane, non-overlay series, transformed through
+    // their own scale (priceToCoordinate). Covers Heikin-Ashi and price-pane studies without
+    // reaching into Lightweight Charts internals.
     const onTagCrosshair = (p: any) => {
       let y: number | null = null;
       let snappedPrice: number | null = null;
@@ -4706,24 +4710,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
         y = pt.y;
         if (chartSettingsRef.current.crosshairMode === 1) {
           const s = priceSeriesHandleRef.current;
-          let nearestY: number | null = null;
-          let nearestDistance = Infinity;
-          const data = p?.seriesData;
-          if (data instanceof Map) {
-            for (const [candidate, datum] of data as Map<SeriesHandle, any>) {
-              try {
-                if (candidate.options()?.visible === false || candidate.paneIndex() !== priceIdx()) continue;
-                const scaleId = candidate.options()?.priceScaleId;
-                if (scaleId && scaleId !== "left" && scaleId !== "right") continue; // explicit overlay scale
-                const value = Number.isFinite(datum?.close) ? datum.close : Number.isFinite(datum?.value) ? datum.value : null;
-                if (value == null) continue;
-                const candidateY = candidate.priceToCoordinate(value) as number | null;
-                if (candidateY == null || !Number.isFinite(candidateY)) continue;
-                const distance = Math.abs(candidateY - pt.y);
-                if (distance < nearestDistance) { nearestDistance = distance; nearestY = candidateY; }
-              } catch {}
-            }
-          }
+          const nearestY = nearestMagnetY(p?.seriesData, pt.y, priceIdx());
           if (nearestY != null) {
             y = nearestY;
             const snapped = s ? (s.coordinateToPrice(nearestY) as number | null) : null;
