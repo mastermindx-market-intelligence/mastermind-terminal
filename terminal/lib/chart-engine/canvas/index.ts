@@ -70,7 +70,7 @@ export const CANVAS_ENGINE_IMPL = "mm" as const;
 
 export const CANVAS_CAPABILITIES = {
   seriesKinds: ["candles", "bars", "line", "area", "histogram", "baseline"] as const,
-  priceScaleModes: ["normal"] as const,
+  priceScaleModes: ["normal", "log", "percent", "indexed100"] as const,
   watermark: true,
   markers: true,
   primitives: true,

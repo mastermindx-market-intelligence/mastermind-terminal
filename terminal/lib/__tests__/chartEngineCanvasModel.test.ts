@@ -393,17 +393,17 @@ describe("canvas engine skeleton", () => {
   });
 
   it("EngineRefusalError leaves no DOM (R01-A04)", () => {
-    expect(CANVAS_CAPABILITIES.priceScaleModes).toEqual(["normal"]);
+    expect(CANVAS_CAPABILITIES.priceScaleModes).toEqual(["normal", "log", "percent", "indexed100"]);
     expect(() =>
-      createCanvasEngine(container, { width: 100, height: 50, rightPriceScale: { mode: "log" } }),
+      createCanvasEngine(container, { width: 100, height: 50, kineticScroll: { touch: true } }),
     ).toThrow(EngineRefusalError);
     try {
-      createCanvasEngine(container, { width: 100, height: 50, rightPriceScale: { mode: "log" } });
+      createCanvasEngine(container, { width: 100, height: 50, kineticScroll: { touch: true } });
     } catch (err) {
       expect(err).toBeInstanceOf(EngineRefusalError);
       const e = err as EngineRefusalError;
-      expect(e.reason).toMatch(/log/);
-      expect(e.unsupported).toContain("priceScaleMode:log");
+      expect(e.reason).toMatch(/kinetic/);
+      expect(e.unsupported).toContain("kineticScroll");
     }
     expect(container.childNodes).toHaveLength(0);
   });
