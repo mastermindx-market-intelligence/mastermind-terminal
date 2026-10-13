@@ -897,16 +897,29 @@ describe("conformance harness — declared skip table (F-16)", () => {
     expect(results.filter((r) => r.status === "pass")).toHaveLength(results.length - 1);
   });
 
-  it("accepts every real check id and refuses a reason-less runtime self-skip", () => {
+  it("accepts every real check id", () => {
     const ids = collectEngineConformance(anyEngine).map((r) => r.id);
     expect(ids).toContain("Q01-C15");
     expect(declaredSkipDetails(ids.map((id) => ({ id, reason: "declared" }))).size).toBe(ids.length);
-    // A runtime self-skip still has to carry its reason into the results.
-    const reasonless = collectEngineConformance((c) => new FakeEngine(c, []));
-    for (const r of reasonless.filter((x) => x.status === "skip")) {
-      expect(typeof r.detail).toBe("string");
-      expect((r.detail ?? "").trim().length).toBeGreaterThan(0);
+  });
+
+  it("a runtime self-skip (CheckHarness.skip) still carries its reason", () => {
+    // Neither engine at HEAD exposes no readback, so the self-skip path is
+    // provoked here: the handle answers neither data() nor unwrap().data().
+    const noReadback = (container: HTMLElement): ChartEngine => {
+      const engine = new FakeEngine(container, []);
+      return proxyDefect(engine, {
+        addSeries: (kind: EngineSeriesKind, options?: EngineSeriesOptions, paneIndex?: number): SeriesHandle =>
+          proxyDefect(engine.addSeries(kind, options, paneIndex), { data: undefined, unwrap: () => ({}) }),
+      });
+    };
+    const results = collectEngineConformance(noReadback);
+    const skips = results.filter((r) => r.status === "skip");
+    expect(skips.map((r) => r.id)).toEqual(["Q01-C03", "Q01-C04", "Q01-C05", "Q01-C15"]);
+    for (const s of skips) {
+      expect(s.detail).toBe("engine exposes no data() readback (handle.data()/unwrap().data())");
     }
+    expect(results.filter((r) => r.status === "fail")).toEqual([]);
   });
 });
 
