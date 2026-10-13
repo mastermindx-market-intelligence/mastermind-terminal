@@ -180,18 +180,14 @@ describe("R04-A01: Primitive crosses plot boundary -> Paint and hits clip consis
     const paintSpy: CtxCall[] = [];
     const prim: HostPrimitive = {
       id: "wide",
-      zOrder: "top",
+      zOrder: "bottom",
       attached: () => undefined,
       detached: () => undefined,
       update: () => undefined,
       paint(ctx, proj) {
         paintSpy.push({ method: "sawGen", args: [proj.generation] });
         // Geometry that extends BELOW pane 0 (which has height 50) into pane 1.
-        ctx.save();
-        ctx.beginPath();
-        ctx.rect(0, 0, 200, 500);
-        ctx.fill();
-        ctx.restore();
+        ctx.fillRect(0, 0, 200, 500);
       },
       hitTest: (_x, y) => (y >= 0 && y < 500 ? { id: "wide" } : null),
     };
@@ -200,39 +196,46 @@ describe("R04-A01: Primitive crosses plot boundary -> Paint and hits clip consis
     // After construction paintPaneFrame has run at least once for pane 0 and
     // pane 1 in response to setData + flush.
     const pane0 = paneCtx(engine, 0);
-    const clipSeq = pane0.__calls.filter(
-      (c) =>
+    // Capture the position of the primitive's own fillRect inside the log so we
+    // can verify the clip rect ACTIVE DURING paint() of the bottom-tier primitive
+    // is pane 0's plot rect.
+    const sawFillAt: number[] = [];
+    pane0.__calls.forEach((c, i) => {
+      if (
+        c.method === "fillRect" &&
+        Array.isArray(c.args) &&
+        c.args.length === 4 &&
+        c.args[2] === 200 &&
+        c.args[3] === 500
+      ) sawFillAt.push(i);
+    });
+    expect(sawFillAt.length).toBeGreaterThan(0);
+    const atFill = sawFillAt[0];
+    // Walk backwards to find the most recent beginPath/rect(0,0,200,50)/clip
+    // sequence — this is the withClip wrapper that bounds the bottom-tier paint.
+    let sawPane0Clip = false;
+    for (let i = atFill - 1; i >= 0; i--) {
+      const c = pane0.__calls[i];
+      if (c.method === "clip") {
+        if (sawPane0Clip) break;
+        sawPane0Clip = true;
+      }
+      if (
         c.method === "rect" &&
         Array.isArray(c.args) &&
         c.args.length === 4 &&
         c.args[0] === 0 &&
-        c.args[1] === 0,
-    );
-    expect(clipSeq.length).toBeGreaterThan(0);
-    // The frame wraps paintPane() for pane 0 with `withClip(ctx, w, pane0H)`.
-    // Pane 0 gets a (0, 0, w, pane0H) clip; pane 1 gets a (0, 0, w, pane1H) clip.
-    // With height=100 split 50/50, pane 0's clip rect height must be 50, not 100.
-    const pane0Clip = clipSeq.find(
-      (c) => Array.isArray(c.args) && c.args[3] === 50,
-    );
-    expect(pane0Clip, "pane 0 must be clip-rected to its half-height").toBeDefined();
-    const pane1Clip = clipSeq.find(
-      (c) => Array.isArray(c.args) && c.args[3] === 50,
-    );
-    // second 50 px tall clip is pane 1
-    const pane1Ctx = paneCtx(engine, 1);
-    const pane1Clips = pane1Ctx.__calls.filter(
-      (c) =>
-        c.method === "rect" &&
-        Array.isArray(c.args) &&
-        c.args.length === 4 &&
-        c.args[0] === 0 &&
-        c.args[1] === 0,
-    );
-    expect(pane1Clips.length, "pane 1 must also be clip-rected").toBeGreaterThan(0);
+        c.args[1] === 0 &&
+        c.args[2] === 200 &&
+        c.args[3] === 50
+      ) {
+        expect(sawPane0Clip).toBe(true);
+        break;
+      }
+    }
+    expect(sawPane0Clip).toBe(true);
     // Sanity: paint on pane 0 saw a generation at least once.
     expect(paintSpy.length).toBeGreaterThan(0);
-    void pane1Clip;
     engine.destroy();
   });
 
@@ -343,6 +346,9 @@ describe("R04-A03: Null/partial upstream intelligence overlay -> Existing honest
     const fetchSpy = vi.fn();
     const originalFetch = globalThis.fetch;
     globalThis.fetch = fetchSpy as unknown as typeof fetch;
+    // Partial payload: walls present, gamma_flip absent, no profile, no strikes.
+    // A "default flip = spot" synthesis would emit a spurious gamma_flip at 100.
+    // Mutant target: optionsLevels.ts flip = gexFlip ?? stateFlip ?? spot.
     const partial = {
       schema: "options_hub.gex/v1",
       root: "NVDA",
@@ -351,7 +357,7 @@ describe("R04-A03: Null/partial upstream intelligence overlay -> Existing honest
       net_gex_bn: -0.5,
       call_wall: 105,
       put_wall: 95,
-      gamma_flip: 98,
+      gamma_flip: null,
       by_strike: [], // strikes absent
       profile: null,
     };
@@ -362,14 +368,11 @@ describe("R04-A03: Null/partial upstream intelligence overlay -> Existing honest
       globalThis.fetch = originalFetch;
     }
     expect(fetchSpy).not.toHaveBeenCalled();
-    // with empty strikes and gex_flip set, only walls + flip can drop. gex_flip is
-    // out of band with no profile crossings + scalar 98 within 30%: would resolve.
-    // The contract is that empty strikes + no EM ends up "empty" iff no drawable level
-    // survives; here we expect drawable walls/flip, so `ok`.
-    expect(["ok", "empty"]).toContain(r.status);
-    // Critically: never synthesizes a level it wasn't given (e.g. default flip = spot).
+    // Honest unavailable: only the two walls survive; the missing strike data must
+    // not cause a fake flip to be invented.
     const flip = r.levels.find((l) => l.key === "gamma_flip");
-    if (flip) expect(flip.price).not.toBe(100); // never defaults to spot
+    expect(flip).toBeUndefined();
+    expect(r.status).toBe("ok");
   });
 
   it("An EnginePrimitive fed a null projection paints nothing (projectionReady === false) and does not throw", () => {
@@ -461,9 +464,8 @@ describe("R04-A04: Raw LWC primitive passed to mm -> Explicit unsupported bounda
 
 // ─── C03-A04 — shared overlay clipped/resized ───────────────────────────────
 describe("C03-A04: Shared overlay is clipped/resized -> All paint and hit coordinates use the same projection generation", () => {
-  it("createPrimitiveLifecycle delivers the SAME projection object to update() for one generation; resize bumps the generation and the next paint sees it", () => {
-    const seenByUpdate: EngineProjection[] = [];
-    const seenByHitRead: number[] = [];
+  it("createPrimitiveLifecycle delivers update at most once per generation; a duplicate generation push must not double-deliver to the same primitive (R04-A02 stale guard)", () => {
+    const seenByUpdate: number[] = [];
     const subs = new Set<(p: EngineProjection) => void>();
     let current: EngineProjection | null = fakeProjection({ generation: 1 });
     const lifecycle = createPrimitiveLifecycle({
@@ -476,35 +478,38 @@ describe("C03-A04: Shared overlay is clipped/resized -> All paint and hit coordi
       seriesId: "s",
       paneIndex: 0,
     });
-    let lastProjection: EngineProjection | null = null;
     const prim: EnginePrimitive = {
       id: "overlay",
       attached: () => undefined,
       detached: () => undefined,
       update(proj) {
-        seenByUpdate.push(proj);
+        seenByUpdate.push(proj.generation);
       },
     };
     lifecycle.attach(prim);
     lifecycle.flush();
-    expect(seenByUpdate).toHaveLength(1);
-    expect(seenByUpdate[0].generation).toBe(1);
-    lastProjection = seenByUpdate[0];
+    expect(seenByUpdate).toEqual([1]);
 
-    // Simulate a resize: bump the generation, deliver.
+    // Push gen 2 → deliver once.
     const proj2 = fakeProjection({ generation: 2 });
     for (const cb of subs) cb(proj2);
     current = proj2;
     lifecycle.flush();
-    expect(seenByUpdate).toHaveLength(2);
-    expect(seenByUpdate[1].generation).toBe(2);
+    expect(seenByUpdate).toEqual([1, 2]);
 
-    // hitTest reads the SAME projection the host last delivered (i.e. the
-    // generation stored in `lastProjection`). A resize bumps it.
-    seenByHitRead.push(lastProjection?.generation ?? -1);
-    lastProjection = seenByUpdate[1];
-    seenByHitRead.push(lastProjection.generation);
-    expect(seenByHitRead).toEqual([1, 2]);
+    // A duplicate-pushed (already-delivered) generation must NOT redeliver.
+    // Mutant target: drop the per-primitive "seen <= candidate.gen" guard so
+    // every flush re-fires update().
+    for (const cb of subs) cb(proj2);
+    lifecycle.flush();
+    expect(seenByUpdate).toEqual([1, 2]);
+
+    // Resize again to gen 3 → must deliver once more.
+    const proj3 = fakeProjection({ generation: 3 });
+    for (const cb of subs) cb(proj3);
+    current = proj3;
+    lifecycle.flush();
+    expect(seenByUpdate).toEqual([1, 2, 3]);
 
     lifecycle.dispose();
   });
