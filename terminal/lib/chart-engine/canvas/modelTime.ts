@@ -88,6 +88,94 @@ export function correctRightOffset(
   return next;
 }
 
+export type VisibleWindowClampInputs = {
+  /** Requested window (exclusive right edge, house convention). */
+  from: number;
+  to: number;
+  widthPx: number;
+  rowCount: number;
+  minBarSpacing: number;
+  maxBarSpacing: number;
+  fixLeftEdge: boolean;
+  fixRightEdge: boolean;
+  /** Spacing kept when widthPx is still 0 (pre-layout writes). */
+  fallbackSpacing?: number;
+};
+
+export type VisibleWindowClamp = {
+  from: number;
+  to: number;
+  barSpacing: number;
+  rightOffset: number;
+};
+
+/**
+ * THE single choke-point every time-scale window write goes through (PERF-A C1).
+ *
+ * Mirrors LWC TimeScale._internal_setVisibleRange (dev:6389-6402):
+ *   (a) bar spacing = width / requestedSpan, clamped by _private__correctBarSpacing
+ *       (dev:6526-6531) to [minBarSpacing, maxBarSpacing] where min is
+ *       width/points when fixLeftEdge && fixRightEdge (dev:6545-6550) and max is
+ *       the option when > 0, else width * 0.5 (dev:6533-6541);
+ *   (b) the RIGHT edge of the requested range is kept (rightOffset =
+ *       range.right - baseIndex, dev:6393) and the window is re-derived from the
+ *       clamped spacing and width (dev:6510-6524);
+ *   (c) the always-on _private__correctOffset bounds (dev:6574-6603) apply with
+ *       no fix* flag required: rightOffset ∈ [firstIndex - baseIndex - 1 +
+ *       barsEstimation, width/barSpacing - min(2, n)] with barsEstimation =
+ *       width/barSpacing when fixLeftEdge else min(2, n), and max 0 when
+ *       fixRightEdge. In this model's convention rightOffset = visibleTo - n,
+ *       so the bounds become visibleTo ∈ [barsEstimation, n + span - min(2, n)]
+ *       (fixRightEdge caps at n).
+ *
+ * A request that is already inside every bound round-trips BITWISE (from/to are
+ * kept verbatim, the offset bound only shifts the window) so an already-clamped
+ * zoom anchor is never re-quantised (PERF-A F4).
+ */
+export function clampVisibleWindow(inputs: VisibleWindowClampInputs): VisibleWindowClamp {
+  const { to, widthPx, rowCount } = inputs;
+  const from = inputs.from;
+  const spanRequested = to - from;
+  const n = Math.max(0, rowCount);
+  const minS = minSpacingOf(inputs);
+  const maxS = maxBarSpacingPx(inputs.maxBarSpacing, widthPx, minS);
+  let spacing: number;
+  let span = spanRequested;
+  if (widthPx > 0 && spanRequested > 0) {
+    const raw = widthPx / spanRequested;
+    spacing = clampBarSpacingValue(raw, minS, maxS);
+    // Re-derive the span from the clamped spacing ONLY when the clamp fired;
+    // otherwise keep the requested window verbatim (no re-quantisation).
+    if (spacing !== raw) span = widthPx / spacing;
+  } else {
+    const fallback = inputs.fallbackSpacing;
+    const seed = fallback != null && Number.isFinite(fallback) && fallback > 0
+      ? fallback
+      : minS;
+    spacing = clampBarSpacingValue(seed, minS, maxS);
+  }
+  let nextTo = to;
+  if (n > 0 && widthPx > 0 && spacing > 0 && span > 0) {
+    const minBars = Math.min(2, n);
+    const barsEstimation = inputs.fixLeftEdge ? widthPx / spacing : minBars;
+    const minTo = barsEstimation;
+    const maxTo = inputs.fixRightEdge ? n : n + span - minBars;
+    if (nextTo < minTo) nextTo = minTo;
+    if (nextTo > maxTo) nextTo = maxTo;
+  }
+  const nextFrom = nextTo - span;
+  return { from: nextFrom, to: nextTo, barSpacing: spacing, rightOffset: nextTo - n };
+}
+
+/** LWC _private__minBarSpacing (dev:6545-6550): width/points when both edges fixed. */
+function minSpacingOf(inputs: VisibleWindowClampInputs): number {
+  if (inputs.fixLeftEdge && inputs.fixRightEdge && inputs.rowCount > 0 && inputs.widthPx > 0) {
+    return inputs.widthPx / inputs.rowCount;
+  }
+  const min = inputs.minBarSpacing;
+  return Number.isFinite(min) && min > 0 ? min : 0.5;
+}
+
 export function mergeTimeScaleBag(current: TimeScaleBehaviour, opts: Record<string, unknown>): TimeScaleBehaviour {
   const next: TimeScaleBehaviour = { ...current };
   if (typeof opts.rightOffset === "number" && Number.isFinite(opts.rightOffset)) next.rightOffset = opts.rightOffset;
@@ -165,6 +253,9 @@ export function lastBarIsVisible(visibleFrom: number, visibleTo: number, rowCoun
 
 /** LWC TimeScale.scrollToPosition animated duration (dev:12862-12868). */
 export const SCROLL_TO_POSITION_MS = 1000;
+
+/** LWC TimeScale.scrollToRealTime animated duration (dev:6347-6350). */
+export const SCROLL_TO_REALTIME_MS = 400;
 
 /** Injectable clock so scroll animation can be driven without real timers. */
 export type ModelClock = {
