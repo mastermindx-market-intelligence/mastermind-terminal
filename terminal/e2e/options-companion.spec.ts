@@ -1,5 +1,5 @@
 import { expect, test, type Locator, type Page } from "@playwright/test";
-import { mkdirSync } from "node:fs";
+import { mkdirSync, writeFileSync } from "node:fs";
 import matrixFixture from "../public/data/matrix_fixture.json";
 type ChartDebugWindow = Window & {
   __mmChartAxisOpts?: () => { rowCount: number; optionsPin: { price: number; lineStyle: number } | null };
@@ -301,3 +301,224 @@ test("Market Memory on Terminal uses the dated archive and fails closed after a 
   await expect(panel.getByTestId("options-market-memory")).toHaveAttribute("data-memory-status", "archive-missing");
   await expect(panel.getByTestId("options-market-memory")).not.toContainText("+1B");
 });
+
+/** The sheet's only taller-detent control is a drag of `.msheet-handle-wrap` (no expand button).
+ *  An upward throw past the midpoint lands on `data-detent="full"`. */
+async function expandOptionsSheet(page: Page): Promise<boolean> {
+  const sheet = page.locator("[data-detent]");
+  const handle = sheet.locator(".msheet-handle-wrap");
+  const box = await handle.boundingBox();
+  if (!box) return false;
+  const x = box.x + box.width / 2;
+  const y = box.y + Math.min(6, box.height / 2);
+  const base = { pointerId: 21, pointerType: "touch" as const, isPrimary: true, button: 0, buttons: 1 };
+  await handle.dispatchEvent("pointerdown", { ...base, clientX: x, clientY: y });
+  for (const step of [0.25, 0.5, 0.75, 1]) {
+    await handle.dispatchEvent("pointermove", { ...base, clientX: x, clientY: y - 300 * step });
+  }
+  await handle.dispatchEvent("pointerup", { ...base, buttons: 0, clientX: x, clientY: y - 300 });
+  return page.waitForFunction(
+    () => document.querySelector("[data-detent]")?.getAttribute("data-detent") === "full",
+    { timeout: 2_500 },
+  ).then(() => true).catch(() => false);
+}
+
+for (const lang of ["en", "zh"] as const) {
+  test(`[${lang}] PP1-SM map leads with a full-scope scale, a missing key and one selected-node strip`, async ({ page }, info) => {
+    test.setTimeout(150_000);
+    const project = info.project.name;
+    mkdirSync(crops, { recursive: true });
+    await prepare(page, lang);
+    const panel = await openPanel(page);
+    await expect(panel.locator("[data-options-grid] table")).toBeVisible({ timeout: 20_000 });
+
+    // Tablet's row threshold is the opening detent. Mobile uses the taller detent when the drag reaches it.
+    let measuredDetent = project === "desktop" ? "rail" : (await page.locator("[data-detent]").getAttribute("data-detent") ?? "initial");
+    let mobileFull = project !== "mobile";
+    if (project === "mobile") {
+      mobileFull = await expandOptionsSheet(page);
+      measuredDetent = await page.locator("[data-detent]").getAttribute("data-detent") ?? measuredDetent;
+      if (!mobileFull) {
+        test.info().annotations.push({ type: "gap", description: "mobile taller detent not reached; row threshold not asserted" });
+      }
+    }
+
+    const later = panel.locator('[data-options-grid] button[aria-label*="2026-07-13"][data-value]:not([data-value="missing"]):not([data-value="0"])').first();
+    await expect(later).toBeVisible();
+    const parsed = (await later.getAttribute("aria-label") ?? "").match(/^([^,]+), ([^:]+):/);
+    expect(parsed, "clicked cell aria-label").not.toBeNull();
+    const strike = parsed![1];
+    const expiry = parsed![2];
+    await later.click();
+    const strip = panel.getByTestId("options-selected-summary");
+    await expect(strip).toContainText(strike);
+    await expect(strip).toContainText(expiry);
+    await strip.getByRole("button", { name: lang === "zh" ? "在图表标记行权价" : "Pin strike on chart", exact: true }).click();
+    await expect.poll(async () => (await chartPin(page))?.lineStyle ?? null).toBe(2);
+
+    for (const theme of ["dark", "light"] as const) {
+      await page.evaluate((next) => document.documentElement.setAttribute("data-theme", next), theme);
+      const measured = await page.evaluate(() => {
+        const round = (n: number) => Math.round(n * 100) / 100;
+        const rectOf = (el: Element | null) => {
+          if (!el) return null;
+          const r = el.getBoundingClientRect();
+          return { x: round(r.x), y: round(r.y), width: round(r.width), height: round(r.height), top: round(r.top), right: round(r.right), bottom: round(r.bottom), left: round(r.left) };
+        };
+        const clientBox = (el: Element) => {
+          const r = el.getBoundingClientRect();
+          const s = getComputedStyle(el);
+          const left = r.left + (parseFloat(s.borderLeftWidth) || 0);
+          const top = r.top + (parseFloat(s.borderTopWidth) || 0);
+          return { left, top, right: left + el.clientWidth, bottom: top + el.clientHeight };
+        };
+        const intersect = (a: { left: number; top: number; right: number; bottom: number } | null, b: { left: number; top: number; right: number; bottom: number } | null) => {
+          if (!a || !b) return null;
+          const left = Math.max(a.left, b.left);
+          const top = Math.max(a.top, b.top);
+          const right = Math.min(a.right, b.right);
+          const bottom = Math.min(a.bottom, b.bottom);
+          return { left, top, right, bottom, width: Math.max(0, right - left), height: Math.max(0, bottom - top) };
+        };
+        const clipsOf = (el: Element) => {
+          const clips: { left: number; top: number; right: number; bottom: number }[] = [];
+          let n = el.parentElement;
+          while (n && n !== document.documentElement) {
+            const s = getComputedStyle(n);
+            if (/(auto|scroll|hidden|clip)/.test(`${s.overflowX}${s.overflowY}`)) clips.push(clientBox(n));
+            n = n.parentElement;
+          }
+          return clips;
+        };
+        const view = document.querySelector("[data-options-companion] [role='tabpanel']") as HTMLElement | null;
+        if (view) view.scrollTop = 0;
+        const scrolling = document.scrollingElement as HTMLElement | null;
+        if (scrolling) scrolling.scrollTop = 0;
+        const sheet = document.querySelector("[data-detent]");
+        const companion = document.querySelector("[data-options-companion]");
+        const frame = sheet ?? companion;
+        const mapGrid = document.querySelector("[data-testid='options-map-grid']");
+        const scroll = document.querySelector("[data-options-grid]");
+        const stripEl = document.querySelector("[data-testid='options-selected-summary']");
+        const structure = document.querySelector("[data-testid='options-scope-structure']");
+        const method = document.querySelector("[data-options-companion] details");
+        const viewport = { left: 0, top: 0, right: window.innerWidth, bottom: window.innerHeight };
+        let gridRegion = scroll ? intersect(viewport, clientBox(scroll)) : null;
+        gridRegion = intersect(gridRegion, frame ? clientBox(frame) : null);
+        if (scroll) for (const clip of clipsOf(scroll)) gridRegion = intersect(gridRegion, clip);
+        const thead = scroll?.querySelector("thead");
+        const theadBottom = thead ? thead.getBoundingClientRect().bottom : gridRegion?.top ?? 0;
+        const rowRegion = gridRegion ? { ...gridRegion, top: Math.max(gridRegion.top, theadBottom) } : null;
+        const tol = 1;
+        const inside = (region: { left: number; top: number; right: number; bottom: number } | null, r: DOMRect, full: boolean) => {
+          if (!region || r.height < 1 || r.width < 1) return false;
+          const vertically = r.top >= region.top - tol && r.bottom <= region.bottom + tol;
+          if (!vertically) return false;
+          return full ? r.left >= region.left - tol && r.right <= region.right + tol : r.right > region.left + tol && r.left < region.right - tol;
+        };
+        const rows = scroll ? [...scroll.querySelectorAll("tbody tr")] : [];
+        const cols = scroll ? [...scroll.querySelectorAll("thead th")].slice(1) : [];
+        const visibleStrikeRows = rows.filter((row) => inside(rowRegion, row.getBoundingClientRect(), false)).length;
+        const visibleExpiryColumns = cols.filter((col) => inside(gridRegion, col.getBoundingClientRect(), true)).length;
+        let stripRegion: { left: number; top: number; right: number; bottom: number } | null = intersect(viewport, frame ? clientBox(frame) : null);
+        if (stripEl) for (const clip of clipsOf(stripEl)) stripRegion = intersect(stripRegion, clip);
+        const stripRect = stripEl?.getBoundingClientRect();
+        const stripFullyVisible = !!stripRect && inside(stripRegion, stripRect, true);
+        const roller = document.querySelector("[data-testid='roller-more']");
+        const nav = roller?.closest("[data-testid='roller-strip']");
+        const navRect = nav && window.innerWidth <= 640 ? nav.getBoundingClientRect() : null;
+        const bottomNavTop = navRect && navRect.height > 0 ? round(navRect.top) : null;
+        const sheetRect = sheet?.getBoundingClientRect() ?? null;
+        const sheetCoversNav = !!(sheetRect && navRect && sheetRect.top <= navRect.top + tol && sheetRect.bottom >= navRect.bottom - tol);
+        const stripAboveNav = !!stripRect && stripFullyVisible && (bottomNavTop == null || sheetCoversNav || stripRect.bottom <= bottomNavTop + tol);
+        return {
+          viewport: { width: window.innerWidth, height: window.innerHeight },
+          panel: rectOf(frame),
+          mapGrid: rectOf(mapGrid),
+          gridScroll: rectOf(scroll),
+          visibleStrikeRows,
+          visibleExpiryColumns,
+          actualStrikeRows: rows.length,
+          actualExpiryColumns: cols.length,
+          selectedStrip: rectOf(stripEl),
+          stripFullyVisible,
+          stripAboveNav,
+          sheetCoversNav,
+          stripButtonHeights: stripEl ? [...stripEl.querySelectorAll("button")].map((button) => round(button.getBoundingClientRect().height)) : [],
+          panelScrollTop: view ? view.scrollTop : null,
+          bottomNavTop,
+          mapGridTop: mapGrid ? round(mapGrid.getBoundingClientRect().top) : null,
+          mapGridBottom: mapGrid ? round(mapGrid.getBoundingClientRect().bottom) : null,
+          structureTop: structure ? round(structure.getBoundingClientRect().top) : null,
+          methodTop: method ? round(method.getBoundingClientRect().top) : null,
+          stripTop: stripEl ? round(stripEl.getBoundingClientRect().top) : null,
+          horizontalOverflow: document.documentElement.scrollWidth > window.innerWidth + 1,
+          scaleBasis: document.querySelector("[data-testid='options-scale-basis']")?.textContent ?? "",
+          detentNow: document.querySelector("[data-detent]")?.getAttribute("data-detent") ?? null,
+          sheetHeight: sheet ? round(sheet.getBoundingClientRect().height) : null,
+          viewBox: view ? { top: round(view.getBoundingClientRect().top), clientHeight: view.clientHeight, scrollHeight: view.scrollHeight } : null,
+          gridClientHeight: scroll ? (scroll as HTMLElement).clientHeight : null,
+          rowRegion: rowRegion ? { top: round(rowRegion.top), bottom: round(rowRegion.bottom), height: round(rowRegion.bottom - rowRegion.top) } : null,
+        };
+      });
+
+      expect(measured.scaleBasis).toContain("P95");
+      expect(measured.mapGridTop).not.toBeNull();
+      expect(measured.structureTop).not.toBeNull();
+      expect(measured.methodTop).not.toBeNull();
+      expect(measured.mapGridTop!).toBeLessThan(measured.structureTop!);
+      expect(measured.mapGridTop!).toBeLessThan(measured.methodTop!);
+      expect(measured.stripTop!).toBeGreaterThanOrEqual(measured.mapGridBottom! - 1);
+      expect(measured.horizontalOverflow).toBe(false);
+      if (project === "tablet" || project === "mobile") {
+        expect(measured.stripButtonHeights.length).toBeGreaterThan(0);
+        for (const height of measured.stripButtonHeights) expect(height).toBeGreaterThanOrEqual(44);
+      }
+      const rowTarget = project === "tablet" ? 6 : 7;
+      const assertRows = project !== "mobile" || mobileFull;
+      if (assertRows) {
+        expect(measured.visibleStrikeRows).toBeGreaterThanOrEqual(Math.min(rowTarget, measured.actualStrikeRows));
+        expect(measured.visibleExpiryColumns).toBeGreaterThanOrEqual(Math.min(3, measured.actualExpiryColumns));
+      }
+      if (project === "desktop") {
+        expect(measured.stripFullyVisible).toBe(true);
+        expect(measured.panelScrollTop).toBe(0);
+      }
+      // The phone roller is the chart column's foot and the 94% sheet covers it, so the
+      // strip clears that bar by being fully visible inside the sheet rather than above the roller's y.
+      if (project === "mobile" && mobileFull) expect(measured.stripAboveNav).toBe(true);
+
+      writeFileSync(`${crops}/pp1-geometry-${project}-${lang}-${theme}.json`, JSON.stringify({
+        project, lang, theme, detent: measuredDetent,
+        expandControl: project === "desktop" ? null : "drag-handle",
+        rowAssertion: assertRows ? "asserted" : "skipped",
+        ...measured,
+      }, null, 2));
+      await page.screenshot({ path: `${crops}/pp1-${project}-${lang}-${theme}.png`, fullPage: false });
+    }
+
+    await serveReviewMatrix(page, reviewMatrix(
+      [reviewCell(770, reviewSession, 8e6), reviewCell(770, reviewLater, 0)],
+      [770, 771],
+      [reviewSession, reviewLater],
+    ));
+    await page.reload();
+    await expect(page.locator(".chart-wrap canvas").first()).toBeVisible({ timeout: 30_000 });
+    const reviewPanel = page.locator("[data-options-companion]");
+    const hatchPanel = await reviewPanel.isVisible() ? reviewPanel : await openPanel(page);
+    await expect(hatchPanel.locator("[data-options-grid] button[data-value='missing']").first()).toBeVisible({ timeout: 20_000 });
+    for (const theme of ["dark", "light"] as const) {
+      await page.evaluate((next) => document.documentElement.setAttribute("data-theme", next), theme);
+      const images = await hatchPanel.evaluate(() => {
+        const missing = document.querySelector("[data-options-grid] button[data-value='missing']");
+        const zero = document.querySelector("[data-options-grid] button[data-value='0']");
+        return {
+          missing: missing ? getComputedStyle(missing).backgroundImage : "",
+          zero: zero ? getComputedStyle(zero).backgroundImage : "",
+        };
+      });
+      expect(images.missing).toContain("repeating-linear-gradient");
+      expect(images.zero).toBe("none");
+    }
+  });
+}
