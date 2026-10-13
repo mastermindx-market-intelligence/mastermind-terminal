@@ -254,9 +254,17 @@ describe("F3 — destroy() cancels the armed glide frame and balances bridge lis
     container.remove();
   });
 
-  it("destroy removes every bridge listener once and cancels the armed glide frame", () => {
-    const added: Array<[string, boolean]> = [];
-    const removed: Array<[string, boolean]> = [];
+  // Shared harness: returns the counters plus a mounted engine with an armed glide.
+  // When `opts.release === false` the harness leaves the gesture in a pressed
+  // (still-dragging) state — no `pointerup`, and no `armed.length > 0` check —
+  // so a caller can drive `engine.destroy()` mid-drag and still observe the
+  // post-destroy behaviour. `m` is the unwrapped model handle (used to read
+  // `m.time.visibleFrom` in the RF-5 active-drag test).
+  function mountDragged(
+    added: Array<[string, boolean]>,
+    removed: Array<[string, boolean]>,
+    opts: { release?: boolean } = {},
+  ) {
     const origAdd = HTMLCanvasElement.prototype.addEventListener;
     const origRemove = HTMLCanvasElement.prototype.removeEventListener;
     vi.spyOn(HTMLCanvasElement.prototype, "addEventListener").mockImplementation(
@@ -296,7 +304,6 @@ describe("F3 — destroy() cancels the armed glide frame and balances bridge lis
         inner.flush();
       },
     };
-    const scheduler = createManualScheduler();
     const engine = createCanvasEngine(container, {
       width: 200,
       height: 100,
@@ -311,14 +318,26 @@ describe("F3 — destroy() cancels the armed glide frame and balances bridge lis
     inner.flush();
     const overlay = engine.chartElement().querySelector("[data-mm-overlay]") as HTMLCanvasElement;
     expect(overlay).toBeTruthy();
+    const m = engine.unwrap<{ time: { visibleFrom: number } }>();
     dispatchPointer(overlay, "pointerdown", 40, 30, { timeStamp: 1000 });
     dispatchPointer(overlay, "pointermove", 100, 30, { timeStamp: 1020 });
     dispatchPointer(overlay, "pointermove", 180, 30, { timeStamp: 1040 });
+    if (opts.release === false) {
+      // Mid-drag: leave the gesture pressed so callers can destroy() in this state.
+      return { engine, inner, armed, overlay, m };
+    }
     nowMs = 1040;
     dispatchPointer(overlay, "pointerup", 180, 30, { timeStamp: 1040 });
     inner.flush();
     // The release armed an inertia frame on the recorder.
     expect(armed.length).toBeGreaterThan(0);
+    return { engine, inner, armed, overlay, m };
+  }
+
+  it("destroy() cancels the armed glide frame", () => {
+    const added: Array<[string, boolean]> = [];
+    const removed: Array<[string, boolean]> = [];
+    const { engine, inner, armed } = mountDragged(added, removed);
     engine.destroy();
     engine.destroy();
     // destroy() must cancel the armed frame: any scheduled callback that the
@@ -327,12 +346,19 @@ describe("F3 — destroy() cancels the armed glide frame and balances bridge lis
     const armedBeforeFlush = armed.length;
     inner.flush();
     expect(armed.length).toBe(armedBeforeFlush);
+  });
+
+  it("destroy() removes every bridge listener exactly once", () => {
+    const added: Array<[string, boolean]> = [];
+    const removed: Array<[string, boolean]> = [];
+    const { engine } = mountDragged(added, removed);
+    engine.destroy();
+    engine.destroy();
     for (const type of ["pointerdown", "pointermove", "pointerup", "pointercancel", "wheel", "dblclick"]) {
       const a = added.filter(([t, isOverlay]) => t === type && isOverlay).length;
       const r = removed.filter(([t, isOverlay]) => t === type && isOverlay).length;
       expect({ type, a, r }).toEqual({ type, a, r: a });
     }
-    void scheduler;
   });
 });
 
