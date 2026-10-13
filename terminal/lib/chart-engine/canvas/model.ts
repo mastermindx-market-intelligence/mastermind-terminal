@@ -34,6 +34,13 @@ import type {
   WatermarkSpec,
 } from "../api";
 import { futureBarTimes, futureCadence, futureSlotOf } from "../futureTime";
+import {
+  applyPriceScaleOptionBag,
+  autoscaleRange,
+  coordinateToPrice as scaleCoordinateToPrice,
+  priceToCoordinate as scalePriceToCoordinate,
+  type PriceScaleState as ScalePriceState,
+} from "./scales";
 
 export type LogicalIndex = number;
 export type TimeScaleState = {
@@ -51,6 +58,8 @@ export type PriceScaleState = {
   heightPx: number;
   margins: { top: number; bottom: number };
   autoScale: boolean;
+  /** First visible series value; percent / indexed100 are relative to this (LWC §2.4). */
+  baseValue?: number;
 };
 export type Projection = {
   generation: number;
@@ -99,29 +108,15 @@ export function logicalOfX(x: number, ts: TimeScaleState): number {
   return x / spacing + ts.visibleFrom - 0.5;
 }
 
-/** Named seam: T02's scales.ts replaces these implementations. R01 is linear/normal. */
+/** Named seam: T02 scales.ts owns log/percent/indexed100 (and the linear fallback). */
 export const priceScaleMath = {
   yOfPrice(price: number, scale: PriceScaleState): number {
-    const { from, to, heightPx, margins, inverted } = scale;
-    const span = to - from;
-    if (!(heightPx > 0) || span === 0 || !Number.isFinite(span)) return heightPx / 2;
-    const topPx = margins.top * heightPx;
-    const plot = heightPx - topPx - margins.bottom * heightPx;
-    if (!(plot > 0)) return heightPx / 2;
-    const y = topPx + (1 - (price - from) / span) * plot;
-    return inverted ? heightPx - y : y;
+    return scalePriceToCoordinate(price, scale as ScalePriceState);
   },
   priceOfY(y: number, scale: PriceScaleState): number {
-    const { from, to, heightPx, margins, inverted } = scale;
-    const span = to - from;
-    if (!(heightPx > 0) || span === 0 || !Number.isFinite(span)) return (from + to) / 2;
-    const topPx = margins.top * heightPx;
-    const plot = heightPx - topPx - margins.bottom * heightPx;
-    if (!(plot > 0)) return (from + to) / 2;
-    const yAdj = inverted ? heightPx - y : y;
-    return to - ((yAdj - topPx) / plot) * span;
+    return scaleCoordinateToPrice(y, scale as ScalePriceState);
   },
-  autoscale(values: number[]): { from: number; to: number } {
+  autoscale(values: number[], scale?: PriceScaleState): { from: number; to: number } {
     let min = Infinity;
     let max = -Infinity;
     for (const v of values) {
@@ -129,9 +124,17 @@ export const priceScaleMath = {
       if (v < min) min = v;
       if (v > max) max = v;
     }
-    if (!Number.isFinite(min) || !Number.isFinite(max)) return { from: 0, to: 1 };
-    if (min === max) return { from: min - 1, to: max + 1 };
-    return { from: min, to: max };
+    const extents = Number.isFinite(min) && Number.isFinite(max) ? { min, max } : null;
+    const state: ScalePriceState = scale ?? {
+      mode: "normal",
+      inverted: false,
+      from: 0,
+      to: 1,
+      heightPx: 0,
+      margins: { ...DEFAULT_SCALE_MARGINS },
+    };
+    const next = autoscaleRange(extents, state);
+    return { from: next.from, to: next.to };
   },
 };
 
@@ -310,17 +313,25 @@ export class ChartModel {
 
   autoscaleScale(paneIndex: number, priceScaleId: string): PriceScaleState {
     const scale = this.scale(paneIndex, priceScaleId);
-    if (scale.mode !== "normal" || !scale.autoScale) return scale;
+    if (!scale.autoScale) return scale;
     const vals: number[] = [];
+    let baseValue: number | undefined;
+    let baseIndex = Infinity;
     const pane = this.panes[paneIndex];
     if (pane) {
       for (const sid of pane.seriesIds) {
         const s = this.series.get(sid);
         if (!s || s.removed || s.priceScaleId !== priceScaleId) continue;
         vals.push(...this.visibleValues(s));
+        const first = this.firstVisibleClose(s);
+        if (first && first.index < baseIndex) {
+          baseIndex = first.index;
+          baseValue = first.value;
+        }
       }
     }
-    const next = priceScaleMath.autoscale(vals);
+    if (baseValue != null) scale.baseValue = baseValue;
+    const next = priceScaleMath.autoscale(vals, scale);
     scale.from = next.from;
     scale.to = next.to;
     return scale;
@@ -332,6 +343,16 @@ export class ChartModel {
     const vals: number[] = [];
     for (let i = start; i <= end; i++) vals.push(...rowNumbers(s.rows[i]));
     return vals;
+  }
+
+  /** First valued close at or after the visible left (LWC firstBar = NearestRight, dev:3559-3566). */
+  firstVisibleClose(s: SeriesModel): { index: number; value: number } | null {
+    const start = Math.max(0, Math.floor(this.time.visibleFrom));
+    for (let i = start; i < s.rows.length; i++) {
+      const v = seriesClose(s.rows[i]);
+      if (v != null && Number.isFinite(v)) return { index: i, value: v };
+    }
+    return null;
   }
 
   projectionFor(series: SeriesModel): Projection {
@@ -354,9 +375,21 @@ export class ChartModel {
     const idx = Math.min(this.panes.length, Math.max(0, requested));
     if (idx < this.panes.length) return idx;
     this.panes.push(freshPane(idx, 0));
+    this.hydratePriceScaleGroups(this.panes[idx]);
     this.layoutHeights(this.totalHeight);
     this.structure();
     return idx;
+  }
+
+  private hydratePriceScaleGroups(pane: PaneModel): void {
+    const right = this.options.rightPriceScale;
+    if (right && typeof right === "object") {
+      applyPriceScaleOptionBag(this.scale(pane.index, "right"), right as Record<string, unknown>);
+    }
+    const left = this.options.leftPriceScale;
+    if (left && typeof left === "object") {
+      applyPriceScaleOptionBag(this.scale(pane.index, "left"), left as Record<string, unknown>);
+    }
   }
 
   addSeries(kind: EngineSeriesKind, options?: EngineSeriesOptions, paneIndex?: number): SeriesHandle {
@@ -446,7 +479,17 @@ export class ChartModel {
       const bag = ts as Record<string, unknown>;
       if (typeof bag.rightOffset === "number") this.time.rightOffset = bag.rightOffset;
     }
+    if (options.rightPriceScale && typeof options.rightPriceScale === "object") {
+      this.applyPriceScaleGroup("right", options.rightPriceScale as Record<string, unknown>);
+    }
+    if (options.leftPriceScale && typeof options.leftPriceScale === "object") {
+      this.applyPriceScaleGroup("left", options.leftPriceScale as Record<string, unknown>);
+    }
     this.bump();
+  }
+
+  private applyPriceScaleGroup(id: string, opts: Record<string, unknown>): void {
+    for (const pane of this.panes) applyPriceScaleOptionBag(this.scale(pane.index, id), opts);
   }
 
   setVisibleLogicalRange(range: EngineLogicalRange): void {
@@ -851,17 +894,7 @@ class ModelPriceScaleHandle implements PriceScaleHandle {
   width(): number { return 0; }
   applyOptions(opts: Record<string, unknown>): void {
     if (!this.m.alive) return;
-    const scale = this.m.scale(this.paneIdx, this.id);
-    if (typeof opts.invertScale === "boolean") scale.inverted = opts.invertScale;
-    if (typeof opts.autoScale === "boolean") scale.autoScale = opts.autoScale;
-    if (opts.scaleMargins && typeof opts.scaleMargins === "object") {
-      const mg = opts.scaleMargins as { top?: number; bottom?: number };
-      if (typeof mg.top === "number") scale.margins.top = mg.top;
-      if (typeof mg.bottom === "number") scale.margins.bottom = mg.bottom;
-    }
-    if (opts.mode === "log" || opts.mode === 1) scale.mode = "log";
-    else if (opts.mode === "percent" || opts.mode === 2) scale.mode = "percent";
-    else if (opts.mode === "indexed100" || opts.mode === 3) scale.mode = "indexed100";
+    applyPriceScaleOptionBag(this.m.scale(this.paneIdx, this.id), opts);
     this.m.bump();
   }
   options(): Record<string, unknown> {
