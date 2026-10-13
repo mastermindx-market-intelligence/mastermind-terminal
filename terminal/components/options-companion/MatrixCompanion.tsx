@@ -53,6 +53,7 @@ export function MatrixCompanion({ root, metric, prefs, onPrefs, t, ...pin }: Pin
 }) {
   const snapshot = useOptionsSnapshot(`matrix:${root}`);
   const receipt = useMemo(() => readCompanionMatrix(snapshot.data, root), [snapshot.data, root]);
+  const fetchStatus = snapshot.status;
   const data = receipt.ok ? receipt.value : null;
   const scopedDoc = useMemo(() => data ? matrixForExpiry(data, prefs.expiries === "0dte" ? "0dte" : "all") : null,
     [data, prefs.expiries]);
@@ -109,7 +110,7 @@ export function MatrixCompanion({ root, metric, prefs, onPrefs, t, ...pin }: Pin
 
   return <>
     {data ? <SnapshotStamp session={data.session} t={t} refresh={snapshot.refresh} loading={snapshot.loading} />
-      : <SnapshotEmpty issue={receipt.ok ? "unavailable" : receipt.reason} fetchStatus={snapshot.status} t={t} loading={snapshot.loading} refresh={snapshot.refresh} />}
+      : <SnapshotEmpty issue={receipt.ok ? "unavailable" : receipt.reason} fetchStatus={fetchStatus} t={t} loading={snapshot.loading} refresh={snapshot.refresh} />}
     {snapshot.failed && data && <p className={styles.warning} role="status">{t("failed")}</p>}
     <div className={styles.scopeBar} data-options-scope={scopeOpen ? "editing" : "applied"}>
       <button ref={scopeToggleRef} type="button" className={styles.scopeButton} data-testid="options-scope-toggle" aria-expanded={scopeOpen} aria-controls="options-scope-editor"
