@@ -57,6 +57,7 @@ import {
   nextScrollFrameDelayMs,
   resizeTimeScaleWidth,
   SCROLL_TO_POSITION_MS,
+  SCROLL_TO_REALTIME_MS,
   type ModelClock,
   type TimeScaleBehaviour,
 } from "./modelTime";
@@ -291,7 +292,6 @@ export class ChartModel {
   private syncRightOffsetFromWindow(): void {
     const n = this.primarySeries()?.rows.length ?? 0;
     this.time.rightOffset = this.time.visibleTo - n;
-    this.timeScaleBehaviour.rightOffset = this.time.rightOffset;
   }
 
   layoutHeights(totalHeight: number): void {
@@ -643,11 +643,9 @@ export class ChartModel {
   }
   scrollToRealtime(): void {
     if (!this.alive) return;
-    const n = this.primarySeries()?.rows.length ?? 0;
-    const span = this.time.visibleTo - this.time.visibleFrom;
-    const width = span > 0 ? span : Math.max(1, n);
-    const right = this.time.rightOffset;
-    this.setVisibleLogicalRange({ from: n - width + right, to: n + right });
+    // LWC dev:6347-6350: scrollToOffsetAnimated(timeScaleBehaviour.rightOffset) over 400 ms.
+    // Targeting the live rightOffset made this a no-op after any pan.
+    this.scrollToPosition(this.timeScaleBehaviour.rightOffset, true, SCROLL_TO_REALTIME_MS);
   }
   private applyRightOffsetNow(position: number, spanOverride?: number): void {
     const n = this.primarySeries()?.rows.length ?? 0;
@@ -666,7 +664,7 @@ export class ChartModel {
     this.scrollAnim = null;
   }
 
-  scrollToPosition(position: number, animated = false): void {
+  scrollToPosition(position: number, animated = false, durationMs: number = SCROLL_TO_POSITION_MS): void {
     if (!this.alive) return;
     const n = this.primarySeries()?.rows.length ?? 0;
     const clamped = correctRightOffset(
@@ -702,7 +700,7 @@ export class ChartModel {
       from,
       to: clamped,
       startMs: this.clock.now(),
-      durationMs: SCROLL_TO_POSITION_MS,
+      durationMs,
       span,
       handle: null,
     };
@@ -808,7 +806,6 @@ export class ChartModel {
             this.time.visibleTo += 1;
           } else {
             this.time.rightOffset -= 1;
-            this.timeScaleBehaviour.rightOffset = this.time.rightOffset;
           }
         }
       }
