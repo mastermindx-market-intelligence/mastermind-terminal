@@ -45,6 +45,18 @@ The readout uses Mastermind's existing `--panel`, `--line`, `--text`, `--muted` 
 
 `terminal/lib/__tests__/tp2ResearchReadout.test.ts` contains **16 pure SSR tests**: gated source non-disclosure, metric-grain distinction and no $250k+$500k summation, observed history sample counts, Chinese/English copy, delayed ATS absence, source-unavailable not equal to market-zero, mismatched R0 withholding, responsive theme classes and absence of fake actions/vendor URLs. An initial test-only assertion mistakenly matched the negated Chinese disclosure "not an institutional buyer"; it was corrected after direct markup inspection. The corrected one-worker suite passed **16/16**. This validates React HTML semantics and source honesty, **not** real browser layout, source-licensed data, responsive interaction or production deployment. No per-print chart markers, absorption claims or recurring-price shelves are rendered because upstream original data is absent.
 
+## Offline headless Chromium responsive fixture evidence (not production)
+
+The additive reproducible offline check `terminal/scripts/verify-tp2-readout-browser.mjs` compiles this **actual server component and decoder** using the already-installed `esbuild`, builds its real Tailwind utility classes with `@tailwindcss/postcss`, and uses installed Playwright **Chromium 149.0.7827.55** to render the two original SHA-pinned Macro synthetic private artifacts. It neither launches the Terminal app nor contacts any URL, credential, R2 bucket, data provider or backend. Temporary compilation files are scoped to a fresh local directory and deleted in `finally`.
+
+**PASS:** ten responsive/language/palette scenarios (390px mobile, 768px tablet, 1440px desktop; English/Chinese, dark/experimental-light tokens). Real Chromium computed **one column below lg, three columns at desktop**, no horizontal document overflow, retained source-separated $250k/$500k observations without a false sum, and computed readable foreground/panel contrast of **13.7–16.35:1** for this fixture's shell. The private-authorization-false DOM withheld ticker, original notional and proxy values. Five additional rendered fixture states passed: no source, corrected historical calibration stale, partial RTH daily rank suppression, mismatched-symbol R0 withheld and Chinese corrected-state copy. The **light palette is simulated token compatibility**: Terminal's current application styles are dark-only. This fixture-only browser test is **not** a production route, actual mobile device test, screen-reader certification, licensed source proof, real auth, current market evidence, or an authenticated browser session with end-to-end live TP1/R2.
+
+Run from `terminal/`:
+
+```sh
+node scripts/verify-tp2-readout-browser.mjs
+```
+
 ## Verification and next implementation owner
 
 Run from `terminal/` on an isolated source checkout:
