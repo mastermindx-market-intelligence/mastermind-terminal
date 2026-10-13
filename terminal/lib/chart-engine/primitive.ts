@@ -19,8 +19,9 @@
 //     no synchronous re-entry from requestUpdate() (C03-A04).
 //
 // Contract law 1 applies: like api.ts, this file must NOT import
-// "lightweight-charts". The one LWC-facing bridge (toLwcPrimitive) is a typed
-// stub here; the parent implements it in lwc/index.ts, which owns LWC types.
+// "lightweight-charts". The LWC-facing bridge (toLwcPrimitive) therefore lives
+// in lwc/index.ts — the only module allowed to name LWC types — and hosts on
+// the canvas renderer wire these primitives through createPrimitiveLifecycle.
 
 import type { EngineTime } from "./api";
 
@@ -315,25 +316,9 @@ export function createPrimitiveLifecycle(opts: PrimitiveLifecycleOptions): Primi
   };
 }
 
-// ── LWC bridge (stub) ──────────────────────────────────────────────────────────
-
-/**
- * Adapts an EnginePrimitive onto an LWC ISeriesPrimitive<Time>.
- *
- * TODO(parent, P2): implement in lib/chart-engine/lwc/index.ts — a wrapper whose
- * attached()/updateAllViews()/paneViews() route onto the engine primitive's
- * attached/update/paint through `projectionFromLwc()` (which builds an
- * EngineProjection from the LWC pane/scale APIs and feeds a
- * createPrimitiveLifecycle instance). The body MUST stay here as a stub: this
- * file is contract-layer and cannot import "lightweight-charts" (law 1).
- */
-export function toLwcPrimitive(
-  primitive: EnginePrimitive,
-  projectionFromLwc: () => EngineProjection | null,
-): unknown {
-  void primitive;
-  void projectionFromLwc;
-  throw new Error(
-    "chart-engine: toLwcPrimitive is a typed stub — the lwc/ adapter implements it (see TODO in primitive.ts)",
-  );
-}
+// ── LWC bridge ─────────────────────────────────────────────────────────────────
+//
+// toLwcPrimitive — the ISeriesPrimitive<Time> wrapper that drives an EnginePrimitive
+// through lightweight-charts' plugin lifecycle — lives in lwc/index.ts, because this
+// file may not name LWC types (contract law 1). Its behaviour is tested in
+// lib/__tests__/chartEngineLwcPrimitive.test.ts.

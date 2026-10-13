@@ -27,11 +27,12 @@ import {
   type AxisMargins,
   type AxisRange,
 } from "../axisZoom";
+import type { EnginePriceScaleMode } from "../options";
 
 /** Fractional bar index; 0 = first row of the primary series. */
 export type LogicalIndex = number;
 
-export type PriceScaleMode = "normal" | "log" | "percent" | "indexed100";
+export type PriceScaleMode = EnginePriceScaleMode;
 
 export type PriceScaleState = {
   mode: PriceScaleMode;
@@ -44,7 +45,34 @@ export type PriceScaleState = {
   margins: { top: number; bottom: number };
   /** First visible series value; percent and indexed100 are relative to this. */
   baseValue?: number;
+  /** When true, autoscaleRange rewrites from/to from visible extents. */
+  autoScale?: boolean;
 };
+
+/**
+ * Accept the contract strings and LWC's numeric PriceScaleMode
+ * (0 Normal, 1 Log, 2 Percent, 3 IndexedTo100 — dev:12328 / types PriceScaleMode).
+ */
+export function coercePriceScaleMode(mode: unknown): PriceScaleMode | undefined {
+  if (mode === "normal" || mode === 0) return "normal";
+  if (mode === "log" || mode === 1) return "log";
+  if (mode === "percent" || mode === 2) return "percent";
+  if (mode === "indexed100" || mode === 3) return "indexed100";
+  return undefined;
+}
+
+/** Merge a price-scale option bag (mode / invertScale / autoScale / scaleMargins) into state. */
+export function applyPriceScaleOptionBag(state: PriceScaleState, opts: Record<string, unknown>): void {
+  const mode = coercePriceScaleMode(opts.mode);
+  if (mode !== undefined) state.mode = mode;
+  if (typeof opts.invertScale === "boolean") state.inverted = opts.invertScale;
+  if (typeof opts.autoScale === "boolean") state.autoScale = opts.autoScale;
+  if (opts.scaleMargins && typeof opts.scaleMargins === "object") {
+    const mg = opts.scaleMargins as { top?: number; bottom?: number };
+    if (typeof mg.top === "number" && Number.isFinite(mg.top)) state.margins.top = mg.top;
+    if (typeof mg.bottom === "number" && Number.isFinite(mg.bottom)) state.margins.bottom = mg.bottom;
+  }
+}
 
 export type TimeScaleState = {
   visibleFrom: number;
