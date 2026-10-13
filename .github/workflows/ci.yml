@@ -230,8 +230,11 @@ jobs:
     runs-on: ubuntu-latest
     # 6h default masked a 70-min job. Bound it. On 2026-10-04 the slowest shards measured
     # tablet ~35-36 min and each desktop half ~28-31 min (from the old whole-desktop runs).
+    # By 2026-10-12 the whole tablet project ran 47-59 min and the whole mobile project
+    # 44-56 min on green runs, and both were cancelled at the cap on slower runners
+    # (#953, #954, #959, #960), so they are split into halves below exactly like desktop.
     # This cap is a hang detector, not a budget to grow into: when a shard creeps toward it,
-    # split that shard (as desktop is below), never just raise the number.
+    # split that shard (as desktop, tablet and mobile are below), never just raise the number.
     timeout-minutes: 60
     strategy:
       # NEVER fail-fast. One red shard must not delete the other shards' evidence — the
@@ -250,10 +253,21 @@ jobs:
             projects: "--project=desktop --shard=1/2"
           - shard: desktop-2
             projects: "--project=desktop --shard=2/2"
-          - shard: tablet
-            projects: "--project=tablet"
-          - shard: mobile
-            projects: "--project=mobile"
+          # tablet and mobile outgrew one job the same way. On 2026-10-12 the last eight green
+          # runs measured tablet 47-59 min and mobile 44-56 min, and train 3 (#960, head
+          # 1dc6c48e9) lost both at the 60-min cap: jobs 114632507605 (tablet) and
+          # 114632507580 (mobile) were cancelled after 60m17s with the orphan
+          # `npm run test:e2e:responsive --project=tablet` process terminated and no test
+          # failure (#954 and #959 heads lost tablet the same way). Same contiguous
+          # `--shard` halves as desktop; tests/test_ci_e2e_shards.py guards these too.
+          - shard: tablet-1
+            projects: "--project=tablet --shard=1/2"
+          - shard: tablet-2
+            projects: "--project=tablet --shard=2/2"
+          - shard: mobile-1
+            projects: "--project=mobile --shard=1/2"
+          - shard: mobile-2
+            projects: "--project=mobile --shard=2/2"
           # The company-intelligence chain uses Playwright `dependencies`
           # (playwright.config.ts:69-87) and MUST stay whole inside one shard, or the
           # dependency projects re-run in every shard that touches them.

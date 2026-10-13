@@ -28,11 +28,13 @@ import {
   BaselineSeries,
   createSeriesMarkers,
   createTextWatermark,
+  MismatchDirection,
   type IChartApi,
   type ISeriesApi,
   type IPaneApi,
   type ITimeScaleApi,
   type IPriceLine,
+  type IPriceScaleApi,
   type ISeriesMarkersPluginApi,
   type ITextWatermarkPluginApi,
   type SeriesType,
@@ -43,6 +45,7 @@ import {
   type SeriesPartialOptionsMap,
   type MouseEventParams,
   type LogicalRange,
+  type Logical,
   type DeepPartial,
   type ChartOptions,
   type TextWatermarkOptions,
@@ -51,6 +54,7 @@ import {
 import type {
   ChartEngine,
   EngineInventory,
+  EngineMismatchDirection,
   EngineOptions,
   EngineSeriesKind,
   EngineSeriesOptions,
@@ -70,8 +74,50 @@ import type {
   WatermarkLine,
   WatermarkSpec,
 } from "../api";
+import type { EngineCapabilities } from "../options";
 
 const DISPOSED = "chart-engine: disposed";
+
+export const LWC_CAPABILITIES: EngineCapabilities = {
+  seriesKinds: ["candles", "bars", "line", "area", "histogram", "baseline"],
+  priceScaleModes: ["normal", "log", "percent", "indexed100"],
+  watermark: true,
+  markers: true,
+  primitives: true,
+  screenshot: true,
+  kineticScroll: true,
+};
+
+const MISMATCH_TO_LWC: Record<EngineMismatchDirection, MismatchDirection> = {
+  none: MismatchDirection.None,
+  "nearest-left": MismatchDirection.NearestLeft,
+  "nearest-right": MismatchDirection.NearestRight,
+};
+
+function bag(value: unknown): Record<string, unknown> {
+  if (value && typeof value === "object" && !Array.isArray(value)) {
+    return { ...(value as Record<string, unknown>) };
+  }
+  return {};
+}
+
+function quietQuery<T>(ok: () => boolean, fallback: T, read: () => T): T {
+  if (!ok()) return fallback;
+  try {
+    return read();
+  } catch {
+    return fallback;
+  }
+}
+
+function quietMutate(ok: () => boolean, write: () => void): void {
+  if (!ok()) return;
+  try {
+    write();
+  } catch {
+    // disposed / removed — C02-A02 no-op
+  }
+}
 
 // kind → LWC series-definition. The definition is what addSeries takes; the string
 // literal type parameter (T extends SeriesType) is what threads through ISeriesApi.
@@ -99,10 +145,22 @@ class LwcPriceLineHandle implements PriceLineHandle {
     private readonly line: IPriceLine,
     private readonly aliveCheck: () => void,
   ) {}
+  private ok(): boolean {
+    if (this.removed) return false;
+    try {
+      this.aliveCheck();
+      return true;
+    } catch {
+      return false;
+    }
+  }
   applyOptions(opts: Partial<PriceLineSpec>): void {
     this.aliveCheck();
     if (this.removed) return;
     this.line.applyOptions(opts);
+  }
+  options(): Record<string, unknown> {
+    return quietQuery(() => this.ok(), {}, () => bag(this.line.options()));
   }
   remove(): void {
     if (this.removed) return;
@@ -120,6 +178,10 @@ class LwcPriceLineHandle implements PriceLineHandle {
 }
 
 // ── Series handle ─────────────────────────────────────────────────────────────
+type SeriesLookup = (raw: ISeriesApi<SeriesType>) => SeriesHandle | null;
+type LineLookup = (raw: IPriceLine) => PriceLineHandle | null;
+type LineRegister = (raw: IPriceLine, handle: LwcPriceLineHandle) => void;
+
 class LwcSeriesHandle implements SeriesHandle {
   private removed = false;
   private markersPlugin: ISeriesMarkersPluginApi<Time> | null = null;
@@ -129,11 +191,23 @@ class LwcSeriesHandle implements SeriesHandle {
     private readonly series: ISeriesApi<SeriesType>,
     private readonly aliveCheck: () => void,
     private readonly onRemove: (h: LwcSeriesHandle) => void,
+    private readonly lookupSeries: SeriesLookup,
+    private readonly lookupLine: LineLookup,
+    private readonly registerLine: LineRegister,
   ) {}
 
   private live(): void {
     this.aliveCheck();
     if (this.removed) throw new Error("chart-engine: series removed");
+  }
+  private ok(): boolean {
+    if (this.removed) return false;
+    try {
+      this.aliveCheck();
+      return true;
+    } catch {
+      return false;
+    }
   }
 
   setData(rows: EngineSeriesRow[]): void {
@@ -147,6 +221,22 @@ class LwcSeriesHandle implements SeriesHandle {
   applyOptions(opts: EngineSeriesOptions): void {
     this.live();
     this.series.applyOptions(opts as unknown as LwcSeriesOptions);
+  }
+  options(): EngineSeriesOptions {
+    return quietQuery(() => this.ok(), {}, () => bag(this.series.options()));
+  }
+  data(): readonly EngineSeriesRow[] {
+    return quietQuery(() => this.ok(), [] as EngineSeriesRow[], () => {
+      const rows = this.series.data();
+      return rows.slice() as unknown as EngineSeriesRow[];
+    });
+  }
+  dataByIndex(logicalIndex: number, mismatchDirection?: EngineMismatchDirection): EngineSeriesRow | null {
+    return quietQuery(() => this.ok(), null, () => {
+      const mapped = mismatchDirection === undefined ? undefined : MISMATCH_TO_LWC[mismatchDirection];
+      const row = this.series.dataByIndex(logicalIndex, mapped);
+      return (row ?? null) as EngineSeriesRow | null;
+    });
   }
   setMarkers(marks: MarkerSpec[]): void {
     this.live();
@@ -162,7 +252,28 @@ class LwcSeriesHandle implements SeriesHandle {
   createPriceLine(opts: PriceLineSpec): PriceLineHandle {
     this.live();
     const line = this.series.createPriceLine(opts);
-    return new LwcPriceLineHandle(this.series, line, () => this.live());
+    const handle = new LwcPriceLineHandle(this.series, line, () => this.live());
+    this.registerLine(line, handle);
+    return handle;
+  }
+  removePriceLine(line: PriceLineHandle): void {
+    quietMutate(() => this.ok(), () => line.remove());
+  }
+  priceLines(): PriceLineHandle[] {
+    return quietQuery(() => this.ok(), [] as PriceLineHandle[], () => {
+      const out: PriceLineHandle[] = [];
+      for (const raw of this.series.priceLines()) {
+        const handle = this.lookupLine(raw);
+        if (handle) out.push(handle);
+      }
+      return out;
+    });
+  }
+  priceScale(): PriceScaleHandle {
+    return new LwcPriceScaleHandle(() => {
+      this.live();
+      return this.series.priceScale();
+    });
   }
   priceToCoordinate(price: number): number | null {
     this.live();
@@ -180,7 +291,7 @@ class LwcSeriesHandle implements SeriesHandle {
     this.live();
     // Resolve by index, not by caching the IPaneApi — pane objects dangle after a pane
     // collapse (see LwcPaneHandle).
-    return new LwcPaneHandle(this.chart, this.series.getPane().paneIndex(), this.aliveCheck);
+    return new LwcPaneHandle(this.chart, this.series.getPane().paneIndex(), this.aliveCheck, this.lookupSeries);
   }
   moveToPane(paneIndex: number): void {
     this.live();
@@ -227,6 +338,7 @@ class LwcPaneHandle implements PaneHandle {
     private readonly chart: IChartApi,
     private readonly idx: number,
     private readonly aliveCheck: () => void,
+    private readonly lookupSeries: SeriesLookup,
   ) {}
   private pane(): IPaneApi<Time> {
     this.aliveCheck();
@@ -234,6 +346,14 @@ class LwcPaneHandle implements PaneHandle {
     const p = panes[this.idx];
     if (!p) throw new Error(`chart-engine: pane ${this.idx} no longer exists`);
     return p;
+  }
+  private ok(): boolean {
+    try {
+      this.aliveCheck();
+      return true;
+    } catch {
+      return false;
+    }
   }
   index(): number {
     return this.idx;
@@ -253,6 +373,19 @@ class LwcPaneHandle implements PaneHandle {
   getHTMLElement(): HTMLElement | null {
     return this.pane().getHTMLElement();
   }
+  getSeries(): SeriesHandle[] {
+    return quietQuery(() => this.ok(), [] as SeriesHandle[], () => {
+      const out: SeriesHandle[] = [];
+      for (const raw of this.pane().getSeries()) {
+        const handle = this.lookupSeries(raw);
+        if (handle) out.push(handle);
+      }
+      return out;
+    });
+  }
+  priceScale(priceScaleId: string): PriceScaleHandle {
+    return new LwcPriceScaleHandle(() => this.pane().priceScale(priceScaleId));
+  }
   unwrap<T>(): T {
     return this.pane() as unknown as T;
   }
@@ -262,19 +395,44 @@ class LwcPaneHandle implements PaneHandle {
 // Resolved live per call by (id, paneIndex) — scales are chart-owned; holding the raw
 // IPriceScaleApi across pane churn is safe in LWC but resolving keeps disposal honest.
 class LwcPriceScaleHandle implements PriceScaleHandle {
-  constructor(
-    private readonly getChart: () => IChartApi,
-    private readonly id: string,
-    private readonly paneIdx: number | undefined,
-  ) {}
+  constructor(private readonly resolve: () => IPriceScaleApi) {}
   private scale() {
-    return this.getChart().priceScale(this.id, this.paneIdx);
+    return this.resolve();
   }
   width(): number {
     return this.scale().width();
   }
   applyOptions(opts: Record<string, unknown>): void {
-    this.scale().applyOptions(opts as Parameters<ReturnType<IChartApi["priceScale"]>["applyOptions"]>[0]);
+    this.scale().applyOptions(opts as Parameters<IPriceScaleApi["applyOptions"]>[0]);
+  }
+  options(): Record<string, unknown> {
+    try {
+      return bag(this.scale().options());
+    } catch {
+      return {};
+    }
+  }
+  getVisibleRange(): { from: number; to: number } | null {
+    try {
+      const r = this.scale().getVisibleRange();
+      return r ? { from: r.from, to: r.to } : null;
+    } catch {
+      return null;
+    }
+  }
+  setVisibleRange(range: { from: number; to: number }): void {
+    try {
+      this.scale().setVisibleRange(range);
+    } catch {
+      // disposed / removed — C02-A02 no-op
+    }
+  }
+  setAutoScale(on: boolean): void {
+    try {
+      this.scale().setAutoScale(on);
+    } catch {
+      // disposed / removed — C02-A02 no-op
+    }
   }
   unwrap<T>(): T {
     return this.scale() as unknown as T;
@@ -328,6 +486,42 @@ class LwcTimeScaleHandle implements TimeScaleHandle {
     this.aliveCheck();
     this.ts.fitContent();
   }
+  private ok(): boolean {
+    try {
+      this.aliveCheck();
+      return true;
+    } catch {
+      return false;
+    }
+  }
+  getVisibleRange(): { from: EngineTime; to: EngineTime } | null {
+    return quietQuery(() => this.ok(), null, () => {
+      const r = this.ts.getVisibleRange();
+      return r ? { from: r.from as EngineTime, to: r.to as EngineTime } : null;
+    });
+  }
+  setVisibleRange(range: { from: EngineTime; to: EngineTime }): void {
+    quietMutate(() => this.ok(), () => this.ts.setVisibleRange(range as { from: Time; to: Time }));
+  }
+  logicalToCoordinate(logical: number): number | null {
+    return quietQuery(() => this.ok(), null, () => this.ts.logicalToCoordinate(logical as Logical) as number | null);
+  }
+  coordinateToLogical(x: number): number | null {
+    return quietQuery(() => this.ok(), null, () => this.ts.coordinateToLogical(x) as number | null);
+  }
+  width(): number {
+    return quietQuery(() => this.ok(), 0, () => this.ts.width());
+  }
+  timeToIndex(time: EngineTime, findNearest?: boolean): number | null {
+    return quietQuery(
+      () => this.ok(),
+      null,
+      () => this.ts.timeToIndex(time as Time, findNearest) as number | null,
+    );
+  }
+  options(): Record<string, unknown> {
+    return quietQuery(() => this.ok(), {}, () => bag(this.ts.options()));
+  }
   unwrap<T>(): T {
     return this.ts as unknown as T;
   }
@@ -348,8 +542,13 @@ class LwcTimeScaleHandle implements TimeScaleHandle {
 
 // ── Engine ──────────────────────────────────────────────────────────────────
 class LwcChartEngine implements ChartEngine {
+  readonly impl = "lwc" as const;
   private chart: IChartApi | null;
+  private readonly container: HTMLElement;
+  private chartEl: HTMLElement | null = null;
   private readonly series = new Set<LwcSeriesHandle>();
+  private readonly byNativeSeries = new WeakMap<ISeriesApi<SeriesType>, LwcSeriesHandle>();
+  private readonly byNativeLine = new WeakMap<IPriceLine, LwcPriceLineHandle>();
   private readonly watermarks = new Map<number, ITextWatermarkPluginApi<Time>>();
   private timeScaleHandle: LwcTimeScaleHandle | null = null;
 
@@ -358,6 +557,7 @@ class LwcChartEngine implements ChartEngine {
   private readonly mouseWrappers = new WeakMap<EngineMouseHandler, (p: MouseEventParams) => void>();
 
   constructor(container: HTMLElement, options?: EngineOptions) {
+    this.container = container;
     this.chart = createChart(container, (options ?? {}) as DeepPartial<ChartOptions>);
   }
 
@@ -365,6 +565,16 @@ class LwcChartEngine implements ChartEngine {
     if (!this.chart) throw new Error(DISPOSED);
     return this.chart;
   }
+  private alive(): boolean {
+    return this.chart !== null;
+  }
+  private lookupSeries = (raw: ISeriesApi<SeriesType>): SeriesHandle | null =>
+    this.byNativeSeries.get(raw) ?? null;
+  private lookupLine = (raw: IPriceLine): PriceLineHandle | null =>
+    this.byNativeLine.get(raw) ?? null;
+  private registerLine = (raw: IPriceLine, handle: LwcPriceLineHandle): void => {
+    this.byNativeLine.set(raw, handle);
+  };
 
   addSeries(kind: EngineSeriesKind, options?: EngineSeriesOptions, paneIndex?: number): SeriesHandle {
     const chart = this.ensure();
@@ -376,14 +586,23 @@ class LwcChartEngine implements ChartEngine {
       s,
       () => this.ensure(),
       (h) => this.series.delete(h),
+      this.lookupSeries,
+      this.lookupLine,
+      this.registerLine,
     );
     this.series.add(handle);
+    this.byNativeSeries.set(s, handle);
     return handle;
+  }
+
+  removeSeries(series: SeriesHandle): void {
+    if (!this.chart) return;
+    series.remove();
   }
 
   panes(): PaneHandle[] {
     const chart = this.ensure();
-    return chart.panes().map((_p, i) => new LwcPaneHandle(chart, i, () => this.ensure()));
+    return chart.panes().map((_p, i) => new LwcPaneHandle(chart, i, () => this.ensure(), this.lookupSeries));
   }
 
   timeScale(): TimeScaleHandle {
@@ -398,7 +617,28 @@ class LwcChartEngine implements ChartEngine {
 
   priceScale(priceScaleId: string, paneIndex?: number): PriceScaleHandle {
     this.ensure();
-    return new LwcPriceScaleHandle(() => this.ensure(), priceScaleId, paneIndex);
+    return new LwcPriceScaleHandle(() => this.ensure().priceScale(priceScaleId, paneIndex));
+  }
+
+  chartElement(): HTMLElement {
+    if (!this.chart) return this.chartEl ?? this.container;
+    const el = this.chart.chartElement();
+    this.chartEl = el;
+    return el;
+  }
+
+  options(): EngineOptions {
+    return quietQuery(() => this.alive(), {}, () => bag(this.chart!.options()));
+  }
+
+  setCrosshairPosition(price: number, time: EngineTime, series: SeriesHandle): void {
+    quietMutate(() => this.alive(), () => {
+      this.chart!.setCrosshairPosition(price, time as Time, series.unwrap());
+    });
+  }
+
+  clearCrosshairPosition(): void {
+    quietMutate(() => this.alive(), () => this.chart!.clearCrosshairPosition());
   }
 
   paneSize(paneIndex?: number): { width: number; height: number } {

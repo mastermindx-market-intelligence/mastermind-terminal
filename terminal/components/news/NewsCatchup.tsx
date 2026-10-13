@@ -122,20 +122,30 @@ export function NewsReviewChange({ cls, lang }: { cls: ReviewClass | null; lang:
   return <p className={styles.change} data-news-change>{text}</p>;
 }
 
-/** Per-story "Mark reviewed" — a local write only; it never touches the story or the network. */
+/** Per-story "Mark reviewed" — a local write only; it never touches the story or the network.
+ *  `title` (the story headline) only feeds the accessible name, so each button is
+ *  distinguishable in a screen-reader button list; the visible text stays ncMarkOne. */
 export function NewsMarkReviewed({
   cls,
   lang,
   onMark,
+  title,
 }: {
   cls: ReviewClass | null;
   lang: NewsCatchupLang;
   onMark: () => void;
+  title?: string;
 }) {
   if (!cls || cls.status === "reviewed") return null;
-  const t = (key: NewsCatchupKey) => newsCatchupText(key, lang);
+  const t = (key: NewsCatchupKey, vars?: Record<string, string | number>) => newsCatchupText(key, lang, vars);
   return (
-    <button type="button" className={styles.markOne} onClick={onMark} data-news-mark-one>
+    <button
+      type="button"
+      className={styles.markOne}
+      onClick={onMark}
+      data-news-mark-one
+      aria-label={title ? t("ncMarkOneFor", { title }) : undefined}
+    >
       {t("ncMarkOne")}
     </button>
   );
