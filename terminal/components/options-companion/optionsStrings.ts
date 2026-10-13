@@ -52,6 +52,7 @@ export const OPTIONS_LEX = {
   measuredZero: ["measured zero", "实测为零"],
   coverage: ["{shownStrikes} of {scopeStrikes} strikes · {shownExpiries} of {scopeExpiries} expiries shown", "已显示 {shownStrikes}/{scopeStrikes} 个行权价 · {shownExpiries}/{scopeExpiries} 个到期日"],
   positive: ["Positive", "正值"], negative: ["Negative", "负值"], magnitude: ["Intensity = magnitude", "强度代表规模"],
+  positiveGamma: ["Positive gamma", "正 Gamma"], negativeGamma: ["Negative gamma", "负 Gamma"],
   build: ["Build", "增仓"], unwind: ["Unwind", "减仓"], fewer: ["Fewer", "较少"], more: ["More", "较多"],
   visibleGex: ["Visible net GEX", "可见净 GEX"], visibleOi: ["Visible open interest", "可见持仓量"],
   visibleDoi: ["Visible OI change", "可见持仓变化"], visibleVolume: ["Visible session volume", "可见时段成交量"],
@@ -80,6 +81,19 @@ export const OPTIONS_LEX = {
   openFlow: ["Open Flow desk", "打开资金流工作台"], untimed: ["Source timing unavailable", "源数据时间不可用"],
   old: ["Older snapshot", "较早快照"],
   publishedOnly: ["published cells only", "仅已发布单元格"],
+  receipts: ["Sources", "数据来源"],
+  receiptUnavailable: ["unavailable", "不可用"],
+  receiptBuild: ["Map build", "热力图生成时间"],
+  receiptEod: ["End-of-day prices", "收盘价格"],
+  receiptGreeks: ["Option greeks", "期权希腊值"],
+  receiptOiPublication: ["Open-interest publication", "持仓量发布日"],
+  receiptPreviousOiPublication: ["Previous open-interest publication", "上一持仓量发布日"],
+  receiptLatestOiPublication: ["Latest open-interest publication", "最新持仓量发布日"],
+  receiptSpotClock: ["Spot price clock", "现价时间"],
+  receiptsMixed: ["Source dates differ from the map session.", "数据源日期与热力图交易日不一致。"],
+  receiptsMixedHidden: ["Source dates differ from the map session.", "数据源日期与热力图交易日不一致。"],
+  newerSnapshot: ["A newer snapshot is ready: {session} · built {build}. The selected node stays on the current snapshot.", "新快照已就绪：{session} · 生成于 {build}。所选节点仍停留在当前快照。"],
+  applyNewer: ["Show newer snapshot", "显示新快照"],
 } as const;
 export type OptionsWord = keyof typeof OPTIONS_LEX;
 export type OptionsT = (key: OptionsWord) => string;

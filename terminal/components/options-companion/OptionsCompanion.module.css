@@ -1,4 +1,16 @@
 /* Options companion: the chart stays dominant. Canonical Terminal tokens own the material. */
+.newerSnapshot{display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:8px 10px;border-radius:4px;background:var(--panel-2);border:1px solid var(--line);color:var(--text-2);font-size:11px;line-height:1.5;flex:none;overflow-wrap:anywhere}
+.newerSnapshot .action{margin-left:auto}
+.receipts{flex:1 0 100%;font-size:10px;color:var(--text-2)}
+.receipts[open]{flex:1 0 100%}
+.receipts>summary{display:flex;align-items:center;gap:6px;min-height:30px;cursor:pointer;list-style:none}
+.receipts>summary::-webkit-details-marker{display:none}
+.receiptsList{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.1fr);gap:4px 12px;margin:0;padding:8px 0 0;font-size:10px;color:var(--text-2)}
+.receiptsRow{display:contents}
+.receiptsList dt,.receiptsList dd{margin:0;padding:0;min-width:0;overflow-wrap:anywhere;font-variant-numeric:tabular-nums}
+.receiptsList dd{color:var(--text)}
+.receiptsMixed{margin:8px 0 0;padding:8px 10px;border-radius:4px;color:var(--warn);background:color-mix(in srgb,var(--warn) 7%,var(--panel));border-left:2px solid var(--warn);font-size:10px;line-height:1.55}
+.receiptsVisuallyHidden{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
 .railSwitch{display:flex;align-items:center;gap:4px;padding:5px 8px;border-bottom:1px solid var(--line);flex:none}
 .railSwitch button{display:flex;align-items:center;justify-content:center;gap:7px;min-height:32px;padding:6px 12px;border-radius:5px;font-size:11px;font-weight:600;color:var(--text-2)}
 .railSwitch button[aria-pressed="true"]{background:var(--panel-3);color:var(--text)}

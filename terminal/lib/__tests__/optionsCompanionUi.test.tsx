@@ -262,7 +262,7 @@ describe("PP1-SM map lead", () => {
       return accessible.replace(/\s+/g, " ").trim() === name;
     });
   }
-  async function renderCompanion(metric: "gex" | "oi", payload: unknown) {
+  async function renderCompanion(metric: "gex" | "oi" | "doi" | "vol", payload: unknown) {
     fetchSnapshot.mockResolvedValue(asData(payload));
     function Harness() {
       const [prefs, setPrefs] = React.useState<MatrixPreferences>({ expiries: "3", window: 25, norm: "global" });
@@ -327,8 +327,7 @@ describe("PP1-SM map lead", () => {
     await renderCompanion("oi", doc);
     const oiLegend = element.querySelector('[data-testid="options-missing-key"]')!.parentElement!.textContent ?? "";
     expect(oiLegend).not.toContain("gamma");
-    const doiDoc = { ...doc, cells: doc.cells.map((c) => ({ ...c, doi: c.gex ?? null })) };
-    await renderCompanion("gex", doiDoc);
+    await renderCompanion("doi", doc);
     const doiLegend = element.querySelector('[data-testid="options-missing-key"]')!.parentElement!.textContent ?? "";
     expect(doiLegend).toContain("Build");
     expect(doiLegend).toContain("Unwind");

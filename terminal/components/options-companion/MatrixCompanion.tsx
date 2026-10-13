@@ -1,8 +1,8 @@
 "use client";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { StrikeExpiryMatrix, buildMatrixGrid, matrixExactScopeStats, matrixScopeStructure, matrixSelectedNodeContext, matrixCellValue, fmtMatrixCell, isSignedMetric,
   type MatrixCellSelection, type MatrixDisplayMetric, type MatrixNorm } from "@/components/shared/StrikeExpiryMatrix";
-import { readCompanionMatrix, matrixForExpiry, type CompanionIssue, type OptionsChartLevel } from "@/lib/optionsCompanion";
+import { readCompanionMatrix, matrixForExpiry, readMatrixReceipts, matrixSnapshotKey, type CompanionIssue, type OptionsChartLevel } from "@/lib/optionsCompanion";
 import { useOptionsSnapshot } from "./useOptionsSnapshot";
 import { type OptionsT } from "./optionsStrings";
 import { GexMarketMemory } from "./GexMarketMemory";
@@ -14,10 +14,11 @@ export interface PinProps { pinned: OptionsChartLevel | null; onPin: (level: Opt
 const samePrefs = (a: MatrixPreferences, b: MatrixPreferences) =>
   a.expiries === b.expiries && a.window === b.window && a.norm === b.norm;
 
-export function SnapshotStamp({ session, t, refresh, loading }: { session: string; t: OptionsT; refresh: () => void; loading: boolean }) {
+export function SnapshotStamp({ session, t, refresh, loading, children }: { session: string; t: OptionsT; refresh: () => void; loading: boolean; children?: React.ReactNode }) {
   return <div className={styles.receipt} data-options-session={session}>
     <strong>{t("eod")}</strong><time dateTime={session}>{session}</time>
     <button type="button" onClick={refresh} disabled={loading} aria-label={t("refresh")} title={t("refresh")}>↻</button>
+    {children}
   </div>;
 }
 export function SnapshotEmpty({ issue = "unavailable", fetchStatus, t, loading, refresh }: {
@@ -56,7 +57,9 @@ export function MatrixCompanion({ root, metric, prefs, onPrefs, t, ...pin }: Pin
   root: string; metric: MatrixDisplayMetric; prefs: MatrixPreferences; onPrefs: (prefs: MatrixPreferences) => void; t: OptionsT;
 }) {
   const host = useOptionsHost();
-  const snapshot = useOptionsSnapshot(`matrix:${root}`);
+  const [selection, setSelection] = useState<(MatrixCellSelection & { session: string }) | null>(null);
+  const holdKey = useCallback((raw: unknown) => matrixSnapshotKey(raw, root), [root]);
+  const snapshot = useOptionsSnapshot(`matrix:${root}`, { active: selection != null, key: holdKey });
   const receipt = useMemo(() => readCompanionMatrix(snapshot.data, root), [snapshot.data, root]);
   const fetchStatus = snapshot.status;
   const data = receipt.ok ? receipt.value : null;
@@ -72,7 +75,6 @@ export function MatrixCompanion({ root, metric, prefs, onPrefs, t, ...pin }: Pin
   const scopeGrid = useMemo(() => scopedDoc ? buildMatrixGrid({ matrix: scopedDoc, metric, maxCols, windowPct: prefs.window,
     maxRows: 10_000, exactStrikes: true, normalization: prefs.norm, scope: "all" }) : null,
   [scopedDoc, metric, maxCols, prefs.norm, prefs.window]);
-  const [selection, setSelection] = useState<(MatrixCellSelection & { session: string }) | null>(null);
   const [scopeOpen, setScopeOpen] = useState(false);
   const [draftPrefs, setDraftPrefs] = useState<MatrixPreferences>(prefs);
   const selectionCurrent = selection && selection.session === data?.session ? selection : null;
@@ -84,6 +86,13 @@ export function MatrixCompanion({ root, metric, prefs, onPrefs, t, ...pin }: Pin
     setSelection(cell && data ? { ...cell, session: data.session } : null);
     onPin(null);
   }
+  const receipts = useMemo(() => data ? readMatrixReceipts(data) : null, [data]);
+  const pendingReceipt = useMemo(() => {
+    if (!snapshot.pending) return null;
+    const r = readCompanionMatrix(snapshot.pending.data, root);
+    if (!r.ok) return null;
+    return readMatrixReceipts(r.value);
+  }, [snapshot.pending, root]);
   const scopeToggleRef = useRef<HTMLButtonElement>(null);
   const inspectorHeadingRef = useRef<HTMLDivElement>(null);
   function focusInspector() {
@@ -125,10 +134,44 @@ export function MatrixCompanion({ root, metric, prefs, onPrefs, t, ...pin }: Pin
     ? t("coverage").replace("{shownStrikes}", String(grid.strikes.length)).replace("{scopeStrikes}", String(scopeGrid.strikes.length))
       .replace("{shownExpiries}", String(grid.exps.length)).replace("{scopeExpiries}", String(grid.nExpAll))
     : "";
+  const unavailableText = t("receiptUnavailable");
+  const renderReceipts = (r: typeof receipts) => {
+    if (!r) return null;
+    const row = (label: string, value: React.ReactNode, key: string) => (
+      <div className={styles.receiptsRow} key={key}><dt>{label}</dt><dd>{value ?? unavailableText}</dd></div>
+    );
+    const buildTime = <time dateTime={r.build ?? ""}>{r.build ?? unavailableText}</time>;
+    return <details className={styles.receipts} data-testid="options-receipts">
+      <summary>{r.mixed && <span aria-hidden="true">⚠</span>}{t("receipts")}<span className={styles.receiptsVisuallyHidden}>{t("receiptsMixedHidden")}</span></summary>
+      <dl className={styles.receiptsList}>
+        {row(t("receiptBuild"), buildTime, "build")}
+        {row(t("receiptEod"), r.eod, "eod")}
+        {row(t("receiptGreeks"), r.greeks, "greeks")}
+        {row(t("receiptOiPublication"), r.oiPublication, "oi")}
+        {r.previousOiPublication && row(t("receiptPreviousOiPublication"), r.previousOiPublication, "previousOi")}
+        {r.latestOiPublication && row(t("receiptLatestOiPublication"), r.latestOiPublication, "latestOi")}
+        {row(t("receiptSpotClock"), null, "spot")}
+      </dl>
+      {r.mixed && <p className={styles.receiptsMixed} data-testid="options-receipts-mixed">{t("receiptsMixed")}</p>}
+    </details>;
+  };
+  const applyNewer = () => {
+    snapshot.applyPending();
+    select(null);
+    setReveal(null);
+  };
 
   return <>
-    {data ? <SnapshotStamp session={data.session} t={t} refresh={snapshot.refresh} loading={snapshot.loading} />
+    {data ? <SnapshotStamp session={data.session} t={t} refresh={snapshot.refresh} loading={snapshot.loading}>
+      {renderReceipts(receipts)}
+    </SnapshotStamp>
       : <SnapshotEmpty issue={receipt.ok ? "unavailable" : receipt.reason} fetchStatus={fetchStatus} t={t} loading={snapshot.loading} refresh={snapshot.refresh} />}
+    {snapshot.pending && pendingReceipt && <div className={styles.newerSnapshot} data-testid="options-newer-snapshot" role="status">
+      <span>{t("newerSnapshot")
+        .replace("{session}", pendingReceipt.session)
+        .replace("{build}", pendingReceipt.build ?? unavailableText)}</span>
+      <button type="button" className={styles.action} data-testid="options-apply-newer" onClick={applyNewer}>{t("applyNewer")}</button>
+    </div>}
     {snapshot.failed && data && <p className={styles.warning} role="status">{t("failed")}</p>}
     <div className={styles.scopeBar} data-options-scope={scopeOpen ? "editing" : "applied"}>
       <button ref={scopeToggleRef} type="button" className={styles.scopeButton} data-testid="options-scope-toggle" aria-expanded={scopeOpen} aria-controls="options-scope-editor"
@@ -161,14 +204,6 @@ export function MatrixCompanion({ root, metric, prefs, onPrefs, t, ...pin }: Pin
         <div><span>{t(headline)}</span><strong data-options-total className={metric === "gex" && stats.total != null ? (stats.total < 0 ? styles.negative : stats.total > 0 ? styles.positive : undefined) : undefined}>
           {stats.total == null ? "—" : fmtMatrixCell(stats.total, metric)}</strong><small title={stats.missing ? t("partial") : undefined}>{stats.expected ? `${stats.known}/${stats.expected} · ` : ""}{units}{stats.missing ? ` · ${t("publishedOnly")}` : ""}</small></div>
         <div className={styles.reference}><span>{t("reference")}</span><b>{grid.spotRef?.toLocaleString("en-US", { maximumFractionDigits: 2 }) ?? "—"}</b><small>{t("notIntraday")}</small></div>
-        <p className={styles.coverage} data-testid="options-coverage">{coverageText}</p>
-      </div>
-      <div className={styles.legend}>
-        <span className={metric === "gex" ? styles.positive : styles.neutral}>● {t(metric === "gex" ? "positive" : metric === "doi" ? "build" : "more")}</span>
-        {(metric === "gex" || metric === "doi") && <span className={metric === "gex" ? styles.negative : styles.unwind}>● {t(metric === "gex" ? "negative" : "unwind")}</span>}
-        <span>{t("magnitude")}</span>
-        <span className={styles.missingKey} data-testid="options-missing-key"><i className={styles.missingSwatch} aria-hidden="true" />{t("missing")}<b>0</b>{t("measuredZero")}</span>
-        <span data-testid="options-scale-basis">{scaleBasis}</span>
       </div>
       {prefs.norm === "column" && <p className={styles.warning}>{t("columnNote")}</p>}
       <div className={styles.mapHost}><div className={styles.mapLayout} data-testid="options-map-layout">
@@ -185,6 +220,14 @@ export function MatrixCompanion({ root, metric, prefs, onPrefs, t, ...pin }: Pin
               <button type="button" className={styles.action} data-testid="options-inspect-node" onClick={focusInspector}>{t("inspectNode")}</button>
             </> : <strong>{t("select")}</strong>}
           </div>
+          <div className={styles.legend}>
+            <span className={metric === "gex" ? styles.positive : styles.neutral}>● {t(metric === "gex" ? "positiveGamma" : metric === "doi" ? "build" : "more")}</span>
+            {(metric === "gex" || metric === "doi") && <span className={metric === "gex" ? styles.negative : styles.unwind}>● {t(metric === "gex" ? "negativeGamma" : "unwind")}</span>}
+            <span>{t("magnitude")}</span>
+            <span className={styles.missingKey} data-testid="options-missing-key"><i className={styles.missingSwatch} aria-hidden="true" />{t("missing")}<b>0</b>{t("measuredZero")}</span>
+            <span data-testid="options-scale-basis">{scaleBasis}</span>
+          </div>
+          <p className={styles.coverage} data-testid="options-coverage">{coverageText}</p>
         </div>
         <div className={styles.inspector} data-options-inspector>
           {selectionCurrent ? <>

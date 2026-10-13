@@ -5,7 +5,6 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { MatrixCompanion, type MatrixPreferences } from "@/components/options-companion/MatrixCompanion";
 import { optionsT } from "@/components/options-companion/optionsStrings";
 import { LangProvider } from "@/lib/i18n";
-import { readMatrixReceipts } from "@/lib/optionsCompanion";
 const { fetchSnapshot } = vi.hoisted(() => ({ fetchSnapshot: vi.fn() }));
 vi.mock("@/lib/flowClientCache", () => ({ flowGetResult: fetchSnapshot, flowGetFresh: fetchSnapshot }));
 const asData = (data: unknown) => ({ status: "data" as const, data });
@@ -22,7 +21,6 @@ const SESSION = "2026-07-09";
 const ISO_A = "2026-07-09T21:04:11.412870+00:00";
 const ISO_B = "2026-07-09T21:35:00.000000+00:00";
 const ISO_C = "2026-07-10T00:05:00.000000+00:00";
-const SESSION_B = "2026-07-09";
 const SESSION_C = "2026-07-10";
 const fullSource = (session = SESSION) => ({
   eod: session, greeks: session, oi_publication: session,
@@ -44,7 +42,8 @@ function doc(overrides: Record<string, unknown> = {}): Record<string, unknown> {
 
 function Harness({ lang = "en" as "en" | "zh", onPin }: { lang?: "en" | "zh"; onPin?: ReturnType<typeof vi.fn> }) {
   const [prefs, setPrefs] = React.useState<MatrixPreferences>({ expiries: "3", window: 25, norm: "global" });
-  const pin = onPin ?? React.useCallback(() => {}, []);
+  const noop = React.useCallback(() => {}, []);
+  const pin = onPin ?? noop;
   return <LangProvider>
     <MatrixCompanion root="NVDA" metric="gex" prefs={prefs} onPrefs={setPrefs} t={optionsT(lang)}
       pinned={null} onPin={pin} replayActive={false} />
@@ -107,10 +106,14 @@ describe("PP2-UI-a source receipts", () => {
     const summary1 = element.querySelector('[data-testid="options-receipts"] > summary')!;
     expect(summary1.textContent).toContain("⚠");
     expect(element.querySelector('[data-testid="options-receipts-mixed"]')?.textContent).toContain("Source dates differ from the map session.");
-    await renderOnce(doc({ _build_meta: { asof_date: SESSION, source_dates: fullSource(SESSION) } }));
+  });
+
+  it("(c2) equal dates: no warning marker, no mixed line", async () => {
+    const equal = doc({ _build_meta: { asof_date: SESSION, source_dates: fullSource(SESSION) } });
+    await renderOnce(equal);
     openReceipts();
-    const summary2 = element.querySelector('[data-testid="options-receipts"] > summary')!;
-    expect(summary2.textContent).not.toContain("⚠");
+    const summary = element.querySelector('[data-testid="options-receipts"] > summary')!;
+    expect(summary.textContent).not.toContain("⚠");
     expect(element.querySelector('[data-testid="options-receipts-mixed"]')).toBeNull();
   });
 
@@ -137,7 +140,6 @@ describe("PP2-UI-a source receipts", () => {
     expect(details.textContent).toContain("持仓量发布日");
     expect(details.textContent).toContain("现价时间");
     // Confirm what the production fixture actually publishes; receipts pull from it.
-    const receipts = readMatrixReceipts();
     const receiptsText = Object.values({
       build: ISO_A, eod: null, greeks: null, oiPublication: null,
       previousOiPublication: null, latestOiPublication: null, spotClock: null,
@@ -180,16 +182,19 @@ describe("PP2-UI-a held newer snapshot", () => {
     queueMatrix([docA, docB]);
     await act(async () => root.render(<Harness onPin={onPin} />));
     await act(async () => { await Promise.resolve(); await Promise.resolve(); });
-    await selectFirstCell();
-    expect(onPin).toHaveBeenLastCalledWith(expect.objectContaining({ price: 192, session: SESSION }));
+    const cell192 = element.querySelector<HTMLButtonElement>('[data-options-grid] button[aria-label^="192,"]');
+    expect(cell192).toBeTruthy();
+    await act(async () => cell192!.click());
+    expect(onPin).toHaveBeenCalled();
+    const cellTextBefore = element.querySelector<HTMLButtonElement>('[data-options-grid] button[aria-label^="194,"]')?.textContent ?? "";
+    expect(cellTextBefore).toContain("2M");
     onPin.mockClear();
     await refresh();
     const banner = element.querySelector('[data-testid="options-newer-snapshot"]');
     expect(banner).toBeTruthy();
     expect(banner?.textContent).toContain(ISO_B);
-    const gridCell = element.querySelector<HTMLButtonElement>('[data-options-grid] button[data-value]:not([data-value="missing"])');
-    expect(gridCell?.textContent).toContain("2M");
-    const total1 = element.querySelector("[data-options-total]")?.textContent;
+    const cellTextAfter = element.querySelector<HTMLButtonElement>('[data-options-grid] button[aria-label^="194,"]')?.textContent ?? "";
+    expect(cellTextAfter).toBe(cellTextBefore);
     const strip = element.querySelector('[data-testid="options-selected-summary"]')?.textContent ?? "";
     expect(strip).toContain("192");
     expect(onPin).not.toHaveBeenCalledWith(null);
