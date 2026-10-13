@@ -7,6 +7,24 @@ import { defineConfig } from "@playwright/test";
 const port = Number(process.env.TERMINAL_E2E_PORT || 3110);
 const baseURL = process.env.BENCH_BASE_URL || `http://127.0.0.1:${port}`;
 
+// The protocol is ONE test that measures IMPLS × RUNS pages, each with a 500-tick live pass
+// and a BENCH_SOAK-switch resetData soak over five 40k-row series. Scale the cap with that
+// work instead of pinning 12 min for the whole matrix.
+const impls = Math.max(
+  1,
+  (process.env.BENCH_IMPLS ?? "mm,lwc")
+    .split(",")
+    .filter((s) => s.trim() === "mm" || s.trim() === "lwc").length,
+);
+// A typo'd BENCH_RUNS must fail at config load, not silently become a NaN
+// timeout (Playwright would then time the test out immediately).
+const runsRaw = Number(process.env.BENCH_RUNS ?? 3);
+if (!Number.isFinite(runsRaw) || runsRaw < 1) {
+  throw new Error(`BENCH_RUNS must be a number >= 1, got "${process.env.BENCH_RUNS ?? ""}"`);
+}
+const runs = Math.max(1, Math.floor(runsRaw));
+const PER_RUN_MINUTES = 8;
+
 const benchEnv = {
   ANALYSIS_LOCAL_PREVIEW: "1",
   ADMIN_DEV: "1",
@@ -27,7 +45,7 @@ export default defineConfig({
   fullyParallel: false,
   workers: 1,
   retries: 0,
-  timeout: 12 * 60 * 1000,
+  timeout: impls * runs * PER_RUN_MINUTES * 60 * 1000,
   reporter: "list",
   use: {
     baseURL,

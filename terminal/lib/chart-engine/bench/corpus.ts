@@ -19,6 +19,14 @@ const START_UNIX = Date.UTC(2000, 0, 3) / 1000;
 /** Deltas larger than this are parked-idle gaps, not frames that did work. */
 export const IDLE_GAP_MS = 50;
 
+/**
+ * "Never measured" sentinel. Far above every budget, so a metric with no
+ * samples always yields a violation and `budget_ok=false`; still a finite
+ * positive number, so the receipt stays schema-valid (each metric has
+ * `exclusiveMinimum: 0` and the schema is not ours to extend).
+ */
+export const UNMEASURED = 1e9;
+
 export type FrameRecord = {
   frameTs: number;
   start: number;
@@ -212,7 +220,7 @@ export function p95(values: number[]): number {
 }
 
 export function median(values: number[]): number {
-  if (values.length === 0) return 1e-9;
+  if (values.length === 0) return UNMEASURED;
   const sorted = [...values].sort((a, b) => a - b);
   const mid = Math.floor(sorted.length / 2);
   if (sorted.length % 2 === 1) return sorted[mid];
@@ -220,11 +228,46 @@ export function median(values: number[]): number {
 }
 
 export function percentile(values: number[], p: number): number {
-  if (values.length === 0) return 1e-9;
+  if (values.length === 0) return UNMEASURED;
   const sorted = [...values].sort((a, b) => a - b);
   const idx = Math.min(sorted.length - 1, Math.max(0, Math.ceil(p * sorted.length) - 1));
   return sorted[idx];
 }
+
+/**
+ * Cross-run aggregate with UNMEASURED absorbing (F1). A plain `median()` would
+ * average a run that measured nothing away behind the runs that did, so one
+ * refused run out of three could still print a green receipt.
+ */
+export function runMedian(values: readonly number[]): number {
+  if (values.length === 0) return UNMEASURED;
+  if (values.some((v) => v >= UNMEASURED)) return UNMEASURED;
+  return median([...values]);
+}
+
+/** Visible logical range as the protocol reads it from the mount hook. */
+export type VisibleSpan = { from: number; to: number } | null;
+
+/** True when a drag really moved the visible window (F3: a no-op engine must fail). */
+export function panMoved(a: VisibleSpan, b: VisibleSpan): boolean {
+  if (a == null || b == null) return false;
+  return Math.abs(a.from - b.from) > 1e-6 || Math.abs(a.to - b.to) > 1e-6;
+}
+
+/** True when a wheel gesture changed the visible SPAN, i.e. really zoomed (F3). */
+export function zoomChangedSpan(a: VisibleSpan, b: VisibleSpan): boolean {
+  if (a == null || b == null) return false;
+  return Math.abs((a.to - a.from) - (b.to - b.from)) > 1e-6;
+}
+
+/**
+ * Bench input option (F3). canvas/input.ts mirrors LWC's rule
+ * `zoom = handleScale.mouseWheel && (ctrlKey || !handleScroll.mouseWheel)`, so a
+ * plain `page.mouse.wheel()` only ZOOMS when handleScroll.mouseWheel is false.
+ * With the default (true) the same gesture scrolls: the visible span never
+ * changes and B4's pointer-anchor zoom law is never exercised.
+ */
+export const BENCH_HANDLE_SCROLL = { mouseWheel: false } as const;
 
 /**
  * Inter-frame deltas of frames that did work. Distinct `frameTs` values are
