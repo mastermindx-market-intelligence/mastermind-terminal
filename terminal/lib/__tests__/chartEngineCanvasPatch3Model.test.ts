@@ -12,6 +12,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { createCanvasEngine, createManualScheduler } from "@/lib/chart-engine/canvas";
 import { ChartModel, type ModelClock } from "@/lib/chart-engine/canvas/model";
 import { priceToDisplay, displayToPrice } from "@/lib/chart-engine/canvas/scales";
+import { EngineRefusalError } from "@/lib/chart-engine/canvas/refusal";
 import { barTimeFacts } from "@/lib/chart-engine/time";
 import type { EngineSeriesKind, EngineSeriesRow } from "@/lib/chart-engine/api";
 
@@ -238,6 +239,52 @@ describe("model2 F-2 — model.autoscaleScale and series.ts extentsOf agree on t
     expect(range).not.toBeNull();
     expect(range!.from).toBeLessThanOrEqual(0);
     expect(range!.to).toBeGreaterThanOrEqual(12);
+    engine.destroy();
+  });
+});
+
+// ============================================================================
+// RV-5 — PriceScaleHandle.applyOptions refuses an unsupported mode like the
+// engine-options gate (PAINT2-rev F4, corrected)
+// ============================================================================
+describe("RV-5 — PriceScaleHandle.applyOptions refuses an unsupported mode like the engine-options gate", () => {
+  let container: HTMLDivElement;
+  beforeEach(() => {
+    container = document.createElement("div");
+    document.body.appendChild(container);
+    vi.spyOn(HTMLCanvasElement.prototype, "getContext").mockImplementation(function (
+      this: HTMLCanvasElement,
+      type: string,
+    ) {
+      if (type !== "2d") return null;
+      let ctx = ctxByCanvas.get(this);
+      if (!ctx) {
+        ctx = makeFakeCtx();
+        ctxByCanvas.set(this, ctx);
+      }
+      return ctx;
+    });
+  });
+  afterEach(() => {
+    vi.restoreAllMocks();
+    container.remove();
+  });
+
+  it("applyOptions(mode: 'bogus') throws EngineRefusalError; log is honoured", () => {
+    const scheduler = createManualScheduler();
+    const engine = createCanvasEngine(container, {
+      width: 200,
+      height: 100,
+      devicePixelRatio: 1,
+      scheduler,
+    });
+    const s = engine.addSeries("line", { color: "c" });
+    s.setData([{ time: 1, value: 1 }, { time: 2, value: 2 }, { time: 3, value: 3 }]);
+    expect(() => s.priceScale().applyOptions({ mode: "bogus" })).toThrow(EngineRefusalError);
+    expect(() => engine.applyOptions({ rightPriceScale: { mode: "bogus" } } as never))
+      .toThrow(EngineRefusalError);
+    expect(() => s.priceScale().applyOptions({ mode: "log" })).not.toThrow();
+    expect(s.priceScale().options().mode).toBe("log");
     engine.destroy();
   });
 });

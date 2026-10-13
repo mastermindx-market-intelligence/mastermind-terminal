@@ -38,11 +38,12 @@ import { EPOCH_SECONDS_MAX } from "../time";
 import {
   applyPriceScaleOptionBag,
   autoscaleRange,
+  coercePriceScaleMode,
   coordinateToPrice as scaleCoordinateToPrice,
   priceToCoordinate as scalePriceToCoordinate,
   type PriceScaleState,
 } from "./scales";
-import { assertEnginePrimitive } from "./refusal";
+import { EngineRefusalError, assertEnginePrimitive } from "./refusal";
 import {
   applyBarSpacingToWindow,
   applyRightOffsetToWindow,
@@ -599,6 +600,7 @@ export class ChartModel {
   }
 
   private applyPriceScaleGroup(id: string, opts: Record<string, unknown>): void {
+    assertPriceScaleModeSupported(opts);
     for (const pane of this.panes) applyPriceScaleOptionBag(this.scale(pane.index, id), opts);
   }
 
@@ -1115,11 +1117,24 @@ class ModelPaneHandle implements PaneHandle {
   }
 }
 
+/**
+ * ONE option gate also covers the scale handle: an `mode` the renderer cannot
+ * coerce is a typed refusal, never a silent no-op (PAINT2-rev F4). The token and
+ * the reason string mirror options.ts:79-88 / :109-115 so both paths answer alike.
+ */
+function assertPriceScaleModeSupported(opts: Record<string, unknown>): void {
+  if (!("mode" in opts) || opts.mode === undefined) return;
+  if (coercePriceScaleMode(opts.mode) !== undefined) return;
+  const token = `priceScaleMode:${String(opts.mode)}`;
+  throw new EngineRefusalError(`unsupported option groups: ${token}`, [token]);
+}
+
 class ModelPriceScaleHandle implements PriceScaleHandle {
   constructor(private readonly m: ChartModel, private readonly id: string, private readonly paneIdx: number) {}
   width(): number { return 0; }
   applyOptions(opts: Record<string, unknown>): void {
     if (!this.m.alive) return;
+    assertPriceScaleModeSupported(opts);
     applyPriceScaleOptionBag(this.m.scale(this.paneIdx, this.id), opts);
     this.m.bump();
   }
