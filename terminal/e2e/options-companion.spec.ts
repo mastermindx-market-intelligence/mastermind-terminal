@@ -649,6 +649,10 @@ for (const lang of ["en", "zh"] as const) {
     expect(openRow).not.toBeNull();
     expect.soft(openRow!.detailsTop).toBeGreaterThanOrEqual(openRow!.buttonBottom - 1);
     expect.soft(openRow!.detailsRight).toBeLessThanOrEqual(openRow!.rowRight + 1);
+    // PP2-UI-c repair 1 (R3): the open <details> must span the full row width.
+    // With `.receipts[open]{flex:none}` the box shrinks to its content width and
+    // the right edge falls short of the row's right edge — this is the falsifier.
+    expect(openRow!.detailsRight).toBeGreaterThanOrEqual(openRow!.rowRight - 1);
     expect.soft(openRow!.tabpanelScroll).toBeLessThanOrEqual(1);
 
     // Snapshot the receipts-open state, then close the details.
