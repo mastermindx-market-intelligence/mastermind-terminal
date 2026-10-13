@@ -1,7 +1,7 @@
 {
   "schema": "mastermind.options_level_axis_evidence/v1",
-  "capturedAt": "2026-10-13T12:58:49.217Z",
-  "sourceHead": "6a3b923c237a49baa54d7645baed2218ad12052e",
+  "capturedAt": "2026-10-13T15:51:10.420Z",
+  "sourceHead": "7dbbd4aff93d3ebce826a14b25bea59f9f811c7c",
   "baseURL": "http://127.0.0.1:3575",
   "classification": "LOCAL_BROWSER_WITH_INTERCEPTED_OPTIONS_CONTRACT_PAYLOADS_NOT_PRODUCTION_DATA",
   "expectedLinePrices": [
@@ -13,7 +13,7 @@
     192.6
   ],
   "sourceFiles": {
-    "components/ChartPanel.tsx": "5b737593a1102f57a82184b40bdd3bb79435d2ecba7120a6703db8bf65fc5ce9",
+    "components/ChartPanel.tsx": "fe1e1338d3ce51b605e8eb537d6afacfa156e7d0f60a2a8527c0a594feade2d3",
     "lib/optionsLevels.ts": "f6e333449a16fde02736dbff905342e22330e1629a7c69c0ad632997daa593ec",
     "lib/priceTagPlacement.ts": "75798f32a3b1cf6432c38e076b4a9fac580e2ef402cb862596525a86a09465ff"
   },
@@ -23,7 +23,7 @@
       "width": 1440,
       "height": 900,
       "screenshot": "desktop.png",
-      "sha256": "1813b1237b1267ff68572f08e7c2b3e0fbe08e3016982b6b49d3c090568ae476",
+      "sha256": "7aaa8587a99f1ecf0a4cb76ba5540539c6eb10920aed8af43a5852d176e815ac",
       "proof": {
         "labels": {
           "primaryTop": 106,
@@ -132,7 +132,7 @@
       "width": 820,
       "height": 1180,
       "screenshot": "tablet.png",
-      "sha256": "cb31279072cee08ededbce5a0d45980dab9a7d31726e728efc2a7afe9174a3d1",
+      "sha256": "797613797ba67ba3c408954e7290fb4c34b00e23ca38eb793c79e464801c6134",
       "proof": {
         "labels": {
           "primaryTop": 38,
@@ -241,7 +241,7 @@
       "width": 390,
       "height": 844,
       "screenshot": "mobile.png",
-      "sha256": "f07cb144af8748939a5aede38d92376e6a6de2708944b74ec8be0e210b61e6be",
+      "sha256": "1a553f241f80ab12c7f97e2b9b327207ce30e82bd355c67dc40a7329644ab482",
       "proof": {
         "labels": {
           "primaryTop": 46,
@@ -352,7 +352,7 @@
       "left": true,
       "percentage": true,
       "screenshot": "desktop-left-percentage.png",
-      "sha256": "117ecc2d058f4d10c4b86200a78e234d894143a05453c32455f2cb6b729815e9",
+      "sha256": "fac0e0a618298d51e6ebb2326e79a6a798bf447a7c0cf3709be2c7ba08afcb7b",
       "proof": {
         "labels": {
           "primaryTop": 106,
@@ -461,7 +461,7 @@
       "width": 1440,
       "height": 430,
       "screenshot": "desktop-compact.png",
-      "sha256": "ed85a984f03797c1a9674630b75be41bf4ae369dd32d142e31cb0de1fd0b66b7",
+      "sha256": "d6b3f64ca44bd087ecc873dc32f0030cf658200cab6007983defed0ac6e8232f",
       "proof": {
         "labels": {
           "primaryTop": 48,
