@@ -3,7 +3,7 @@ import "server-only";
 import { createHash } from "node:crypto";
 import { buildFuturesGexFrame, type FuturesGexFrameInput } from "./futuresGexFrame";
 import { isRecord, validClockMs } from "./futuresGexProjection";
-import { parseFuturesPublishedView, futuresRef, type FuturesPublishedView } from "./futuresTransport";
+import { parseFuturesPublishedView, futuresRef, FUTURES_MAX_BYTES, type FuturesPublishedView } from "./futuresTransport";
 import { requestExpiryLens, type FuturesRequest } from "./futuresRequest";
 
 export type FuturesSourceResult = { status: "data"; data: FuturesPublishedView } | {
@@ -17,13 +17,21 @@ function boundJson(object: unknown): unknown {
   return JSON.parse(object.json);
 }
 /** Bad gamma must not erase independently valid observed futures flow. */
-function joinGamma(raw: unknown, request: FuturesRequest, contract: string, endMs: number) {
+function joinGamma(raw: unknown, request: FuturesRequest, contract: string, endMs: number, definition: unknown) {
   const missing = { status: "unavailable" as const, reason: "source_unavailable" as const };
   if (!isRecord(raw)) return missing;
   if (raw.cashSession !== "open") return { status: "unavailable" as const, reason: "cash_closed" as const };
   if (!isRecord(raw.input) || !isRecord(raw.input.quotes) || raw.input.quotes.futuresContract !== contract ||
       raw.input.quotes.pair !== request.pair || !isRecord(raw.input.sourceReceipt)) return missing;
   try {
+    const c = raw.input.contract;
+    // The quote attachment must use the SAME admitted futures definition, not merely
+    // a matching display symbol. A narrower millisecond validity range is safe.
+    if (!isRecord(c) || !isRecord(definition) || c.symbol !== contract || c.definitionId !== definition.id ||
+        !validClockMs(c.validFromMs) || !validClockMs(c.validUntilMs) ||
+        typeof definition.validFromNs !== "string" || typeof definition.validUntilNs !== "string" ||
+        BigInt(c.validFromMs) * BigInt(1000000) < BigInt(definition.validFromNs) ||
+        BigInt(c.validUntilMs) * BigInt(1000000) > BigInt(definition.validUntilNs)) return missing;
     const source = boundJson(raw.payload);
     const input = structuredClone(raw.input) as unknown as FuturesGexFrameInput;
     input.source = source;
@@ -62,12 +70,13 @@ export function joinFuturesSource(raw: unknown, request: FuturesRequest, nowMs: 
     v.priceStepTicks === request.priceStepTicks && validClockMs(v.cutoffMs) && v.cutoffMs <= nowMs).map(v => (v as Record<string, number>).cutoffMs))].sort((a, b) => a - b);
   const frames = selected.frames.map(f => isRecord(f) ? {
     endMs: f.endMs, bar: f.bar, depth: f.depth,
-    gex: joinGamma(f.gammaAttachment, request, String(raw.contract), Number(f.endMs)),
+    gex: joinGamma(f.gammaAttachment ?? (futuresRef(f.gammaAttachmentRef) && isRecord(raw.gammaAttachments) ? raw.gammaAttachments[f.gammaAttachmentRef] : null), request, String(raw.contract), Number(f.endMs), raw.definition),
   } : null);
   const candidate = { schema: "terminal.futures_published_view/v1", request,
-    contract: raw.contract, sessionId: raw.sessionId, basis: raw.basis, availabilityBasis: raw.availabilityBasis,
+    contract: raw.contract, sessionId: raw.sessionId, definition: raw.definition, tradeCoverage: selected.tradeCoverage, basis: raw.basis, availabilityBasis: raw.availabilityBasis,
     sourceId: raw.sourceId, sourceAsOfMs: raw.sourceAsOfMs, publishedAtMs: raw.publishedAtMs,
     cutoffMs: selected.cutoffMs, freshUntilMs: raw.freshUntilMs, lowTick: raw.lowTick, highTick: raw.highTick, replayCutoffsMs, frames };
   const data = parseFuturesPublishedView(candidate, request, nowMs);
-  return data ? { status: "data", data } : refused("source_invalid");
+  return data && Buffer.byteLength(JSON.stringify(data), "utf8") <= FUTURES_MAX_BYTES
+    ? { status: "data", data } : refused("source_invalid");
 }

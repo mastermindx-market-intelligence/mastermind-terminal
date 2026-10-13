@@ -25,14 +25,14 @@ describe("actual HTTP source-to-Terminal API vertical", () => {
       vi.stubEnv("HUB_PORT", String(address.port)); vi.mocked(hasLiveOptions).mockResolvedValue(true);
       const publish = async (pair: "ES" | "NQ", audience = "subscriber_display", corrupt = false) => {
         const source = sourceFixture(pair); source.audience = audience; const payloadJson = JSON.stringify(source);
-        await writeFile(path.join(root, pair + ".json"), JSON.stringify({ schema: "hub.futures_publication/v1", payloadJson,
+        await writeFile(path.join(root, `${pair}-${pair === "NQ" ? 5 : 1}-${pair === "NQ" ? 4 : 1}.json`), JSON.stringify({ schema: "hub.futures_publication/v1", payloadJson,
           payloadSha256: corrupt ? "0".repeat(64) : createHash("sha256").update(payloadJson).digest("hex") }));
       };
       await publish("ES");
       const ask = (query = "pair=ES") => GET(new Request(`http://127.0.0.1/api/futures?${query}`));
       const es = await ask(); expect(es.status).toBe(200); const data = await es.json();
       expect(data.contract).toBe("ESZ6"); expect(data.frames).toHaveLength(24);
-      expect(data.frames.at(-1).gex.status).toBe("ok"); expect(data.frames.reduce((v: number, f: any) => v + f.bar.total, 0)).toBe(4203);
+      expect(data.frames.at(-1).gex.status).toBe("ok"); expect(data.frames.reduce((v: number, f: { bar: { total: number } }) => v + f.bar.total, 0)).toBe(4203);
       await publish("NQ"); const nq = await ask("pair=NQ&expiry=zero&interval=5&rows=4");
       expect(nq.status).toBe(200); const nqd = await nq.json(); expect(nqd.contract).toBe("NQZ6");
       expect(nqd.frames.at(-1).gex.provenance.expiryLens).toBe("zero");
@@ -42,6 +42,22 @@ describe("actual HTTP source-to-Terminal API vertical", () => {
       const restricted = await ask(); expect(restricted.status).toBe(503); expect(await restricted.text()).not.toContain("frames");
       await publish("ES", "subscriber_display", true); const altered = await ask(); expect(altered.status).toBe(503);
       expect(altered.headers.get("cache-control")).toBe("private, no-store");
+      // The complete domain path starts with generated native-shaped source records,
+      // not hand-written candle/depth output. Distribution is a simulated test decision.
+      const { fixture } = createRequire(import.meta.url)("../../../hub/tests/fixtures/futuresCapture.js");
+      const { buildFuturesWorkspacePublication } = createRequire(import.meta.url)("../../../hub/lib/futuresWorkspaceProjection.js");
+      const { capture, selection } = fixture();
+      const internal = buildFuturesWorkspacePublication(capture, selection); expect(internal.status).toBe("ok");
+      await writeFile(path.join(root, internal.leaf), JSON.stringify(internal.envelope));
+      expect((await ask()).status).toBe(503);
+      capture.distribution = { audience: "subscriber_display", evidenceRef: "fixture:simulated-permission-not-a-license" };
+      const published = buildFuturesWorkspacePublication(capture, selection); expect(published.status).toBe("ok");
+      await writeFile(path.join(root, published.leaf), JSON.stringify(published.envelope));
+      const projected = await ask(); expect(projected.status).toBe(200); const projectedData = await projected.json();
+      expect(projectedData.tradeCoverage).toBe("partial");
+      expect(projectedData.definition.id).toBe(capture.binding.definitionId);
+      expect(projectedData.frames.reduce((n: number, f: { bar: { total: number } }) => n + f.bar.total, 0)).toBe(20);
+      expect(projectedData.frames.every((f: { gex: { status: string }; bar: { cvd: number | null } }) => f.gex.status === "unavailable" && f.bar.cvd === null)).toBe(true);
     } finally {
       server.closeAllConnections(); await new Promise<void>(resolve => server.close(() => resolve()));
       await rm(root, { recursive: true, force: true });

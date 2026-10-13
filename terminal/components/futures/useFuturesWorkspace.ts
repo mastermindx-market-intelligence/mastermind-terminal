@@ -1,7 +1,7 @@
 "use client";
 import { useEffect, useState } from "react";
 import { futuresQuery, type FuturesRequest } from "@/lib/futuresRequest";
-import { parseFuturesPublishedView, FUTURES_MAX_BYTES, type FuturesPublishedView } from "@/lib/futuresTransport";
+import { parseFuturesPublishedView, readFuturesJson, type FuturesPublishedView } from "@/lib/futuresTransport";
 import { publicFuturesReason, type FuturesCopyKey } from "@/lib/futuresUiCopy";
 
 type State = { key: string; status: "loading" | "data" | "unavailable"; data?: FuturesPublishedView; reason?: FuturesCopyKey };
@@ -11,35 +11,53 @@ export function useFuturesWorkspace(request: FuturesRequest, ownerKey: string, r
   const [state, setState] = useState<State>({ key: "", status: "loading" });
   const [now, setNow] = useState(() => Date.now());
   useEffect(() => {
-    let alive = true, busy = false, denied = false;
+    let alive = true, busy = false, stopped = false;
+    const hidden = () => document.visibilityState === "hidden";
     let poll: ReturnType<typeof setTimeout> | undefined;
     let controller: AbortController | undefined;
     const load = async () => {
-      if (!alive || busy || denied || document.visibilityState === "hidden") return;
+      if (!alive || busy || stopped || hidden()) return;
       busy = true;
+      let nextPollMs: number | null = request.cutoffMs === null ? 15000 : null;
       const activeController = new AbortController(); controller = activeController;
       const deadline = setTimeout(() => activeController.abort(), 6000);
       try {
-        const response = await fetch(`/api/futures?${query}`, { cache: "no-store", signal: activeController.signal });
-        const text = await response.text();
+        const response = await fetch(`/api/futures?${query}`, { cache: "no-store", redirect: "error", signal: activeController.signal });
+        if (!alive) { await response.body?.cancel(); return; }
+        // A denied account is cleared immediately, even when its error body is malformed.
+        if (response.status === 401 || response.status === 403) {
+          stopped = true; setState({ key, status: "unavailable", reason: "access_required" });
+          await response.body?.cancel().catch(() => {}); return;
+        }
+        // Do not automatically replay a malformed request or a rate-limit refusal.
+        if (response.status === 400 || response.status === 429) stopped = true;
+        const raw = await readFuturesJson(response);
         if (!alive) return;
-        if (text.length > FUTURES_MAX_BYTES) throw Error("response_size");
-        let raw: unknown; try { raw = JSON.parse(text); } catch { raw = null; }
         if (!response.ok) {
-          denied = response.status === 401 || response.status === 403;
-          const reason = denied ? "access_required" : publicFuturesReason(raw && typeof raw === "object" && "error" in raw ? raw.error : null);
+          const reason = publicFuturesReason(raw && typeof raw === "object" && "error" in raw ? raw.error : null);
           setState({ key, status: "unavailable", reason }); return;
         }
         const data = parseFuturesPublishedView(raw, request, Date.now());
         if (!data) { setState({ key, status: "unavailable", reason: "source_invalid" }); return; }
         setNow(Date.now());
         setState({ key, status: "data", data });
-        if (data.basis !== "historical" && request.cutoffMs === null) poll = setTimeout(load, 5000);
+        nextPollMs = data.basis !== "historical" && request.cutoffMs === null ? 5000 : null;
       } catch {
         if (alive) setState({ key, status: "unavailable", reason: "source_unavailable" });
-      } finally { clearTimeout(deadline); busy = false; }
+      } finally {
+        clearTimeout(deadline); busy = false;
+        // One existing poll loop, no overlapping requests. A transient 503/timeout must
+        // not strand a current chart forever; denied/rate-limited access stays stopped.
+        if (alive && !stopped && nextPollMs !== null && !hidden()) {
+          clearTimeout(poll); poll = setTimeout(load, nextPollMs);
+        }
+      }
     };
-    const visible = () => { if (document.visibilityState === "visible") { clearTimeout(poll); void load(); } };
+    const visible = () => {
+      clearTimeout(poll);
+      if (document.visibilityState === "visible") void load();
+      else controller?.abort();
+    };
     document.addEventListener("visibilitychange", visible);
     void load();
     return () => { alive = false; controller?.abort(); clearTimeout(poll); document.removeEventListener("visibilitychange", visible); };

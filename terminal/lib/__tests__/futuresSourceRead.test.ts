@@ -14,7 +14,7 @@ const ask = () => { vi.stubGlobal("fetch", fetcher); return readFuturesSource(DE
 describe("source relay remains bound to the existing loopback Quote Hub", () => {
   it("accepts exact source bytes and never follows redirects or sends user credentials", async () => {
     vi.stubEnv("HUB_PORT", "3100"); fetcher.mockResolvedValue(response()); const result = await ask(); expect(result.status).toBe("data");
-    expect(fetcher.mock.calls[0][0]).toBe("http://127.0.0.1:3100/futures?pair=ES");
+    expect(fetcher.mock.calls[0][0]).toBe("http://127.0.0.1:3100/futures?pair=ES&interval=1&rows=1");
     expect(fetcher.mock.calls[0][1]).toMatchObject({ redirect: "error", cache: "no-store" });
     expect(fetcher.mock.calls[0][1]).not.toHaveProperty("headers.Authorization");
   });
@@ -38,5 +38,16 @@ describe("source relay remains bound to the existing loopback Quote Hub", () => 
   });
   it("network errors return no source values", async () => {
     fetcher.mockRejectedValue(Error("offline")); expect(await ask()).toEqual({ status: "unavailable", reason: "source_unavailable" });
+  });
+});
+
+describe("source refusal meaning survives the existing relay", () => {
+  for (const reason of ["source_restricted", "source_invalid"] as const) it(`retains ${reason} without data`, async () => {
+    fetcher.mockResolvedValue(new Response(JSON.stringify({ error: reason }), { status: 503 }));
+    expect(await ask()).toEqual({ status: "unavailable", reason });
+  });
+  it("does not forward arbitrary upstream diagnostics", async () => {
+    fetcher.mockResolvedValue(new Response(JSON.stringify({ error: "private-path-or-token" }), { status: 503 }));
+    expect(await ask()).toEqual({ status: "unavailable", reason: "source_unavailable" });
   });
 });

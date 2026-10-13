@@ -57,6 +57,7 @@ export default function FuturesWorkspaceView({ initialRequest }: { initialReques
       {state.status === "loading" ? <p role="status" data-testid="futures-loading" className={css.warning}>{t("loading")}</p>
         : !data ? <p role="status" data-testid="futures-unavailable" className={css.warning}>{t(state.reason ?? "source_unavailable")}</p> : <>
         <p className={css.warning} data-testid="futures-basis">{t(data.basis)} · {data.contract} · {t("through")}: {date(data.cutoffMs)}</p>
+        {data.tradeCoverage !== "complete" && <p className={css.warning} data-testid="futures-partial-coverage">{t("partialCoverage")}</p>}
         <section className={css.metrics}>
           <div><span>{t("volume")}</span><strong data-testid="futures-volume">{volume?.toLocaleString("en-US")}</strong></div>
           <div><span>{t("delta")}</span><strong>{delta?.toLocaleString("en-US")}</strong></div>

@@ -21,10 +21,12 @@ export function sourceFixture(pair: "ES" | "NQ" = "ES") {
           matrix: input.matrix ? { json: matrixJson, sha256: hash(matrixJson),
             receipt: { ...input.matrix.receipt, payloadSha256: hash(matrixJson) } } : null } };
     });
-    views.push({ cutoffMs, intervalMinutes, priceStepTicks, frames });
+    views.push({ cutoffMs, intervalMinutes, priceStepTicks, tradeCoverage: "complete", frames });
   }
   return { schema: "hub.futures_workspace_source/v1", audience: "subscriber_display", distributionEvidenceRef: "fixture:not-a-license",
-    pair, contract: dataset.contract, sessionId: dataset.sessionId, sourceId: "fixture:synthetic-publisher",
+    pair, contract: dataset.contract, sessionId: dataset.sessionId,
+    definition: { id: dataset.frameInputs[0].contract.definitionId, contract: dataset.contract, validFromNs: String(BigInt(dataset.baseMs - 86400000) * BigInt(1000000)), validUntilNs: String(BigInt(dataset.baseMs + 86400000) * BigInt(1000000)), availableAtNs: String(BigInt(dataset.baseMs - 86400000) * BigInt(1000000)) },
+    sourceId: "fixture:synthetic-publisher",
     basis: "historical", availabilityBasis: "source_observed", sourceAsOfMs: fixtureNow - 1000,
     publishedAtMs: fixtureNow - 100, freshUntilMs: fixtureNow + 4000, lowTick: dataset.lowTick, highTick: dataset.highTick, views };
 }

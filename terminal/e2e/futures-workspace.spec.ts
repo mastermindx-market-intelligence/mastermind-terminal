@@ -34,9 +34,10 @@ async function reply(page: Page, outcome: () => string = () => "ok") {
   await page.route("**/api/futures?*", async route => {
     const query = parseFuturesRequest(new URL(route.request().url()).searchParams); if (!query) throw Error("bad UI query");
     const result = outcome();
-    if (result !== "ok" && result !== "wrong-root" && result !== "stale") return route.fulfill({ status: result === "denied" ? 403 : 503,
+    if (result !== "ok" && result !== "wrong-root" && result !== "stale" && result !== "partial") return route.fulfill({ status: result === "denied" ? 403 : 503,
       json: { error: result === "denied" ? "access_required" : result } });
     const data = browserFuturesFixture(query);
+    if (result === "partial") { data.tradeCoverage = "partial"; for (const f of data.frames) f.bar.cvd = null; }
     if (result === "wrong-root") data.contract = query.pair === "ES" ? "NQZ6" : "ESZ6";
     if (result === "stale") { data.basis = "delayed"; data.availabilityBasis = "source_observed"; }
     await route.fulfill({ json: data, headers: { "Cache-Control": "private, no-store" } });
@@ -75,6 +76,10 @@ test("denied refresh and wrong-root data clear previously visible chart values",
   await expect(page.getByTestId("futures-unavailable")).toContainText("source checks"); await expect(page.getByTestId("futures-chart")).toHaveCount(0);
   outcome = "stale"; await page.getByRole("button", { name: "Refresh source", exact: true }).click();
   await expect(page.getByTestId("futures-unavailable")).toContainText("out of date"); await expect(page.getByTestId("futures-chart")).toHaveCount(0);
+  outcome = "partial"; await page.getByRole("button", { name: "Refresh source", exact: true }).click();
+  await expect(page.getByTestId("futures-chart")).toBeVisible();
+  await expect(page.getByTestId("futures-partial-coverage")).toContainText("only the captured trades");
+  await crop(page, `${info.project.name}-options-futures-partial-coverage`);
   await noOverflow(page);
 });
 test("missing source, replay cutoff and shared-language labels remain honest", async ({ page }, info) => {
@@ -123,4 +128,32 @@ test("an old instrument response cannot overwrite a newer selection", async ({ p
     await expect(page.getByTestId("futures-chart")).toHaveAttribute("data-contract", "NQZ6");
     expect(errors).toEqual([]); await noOverflow(page);
   } finally { releaseOld(); }
+});
+
+
+test("a transient source outage recovers without a manual refresh", async ({ page }) => {
+  await prepare(page); await page.clock.install();
+  let outcome = "source_unavailable", requests = 0;
+  await reply(page, () => { requests++; return outcome; });
+  await page.goto("/options/futures?pair=ES");
+  await expect(page.getByTestId("futures-unavailable")).toContainText("No sample data");
+  const before = requests; outcome = "ok";
+  await page.clock.fastForward(16000);
+  await expect(page.getByTestId("futures-chart")).toBeVisible();
+  await expect(page.getByTestId("futures-volume")).toHaveText("4,203");
+  expect(requests).toBe(before + 1);
+});
+
+test("an access denial is never automatically retried or kept on the chart", async ({ page }) => {
+  await prepare(page); await page.clock.install();
+  let outcome = "denied", requests = 0;
+  await reply(page, () => { requests++; return outcome; });
+  await page.goto("/options/futures?pair=ES");
+  await expect(page.getByTestId("futures-unavailable")).toContainText("access could not be confirmed");
+  const deniedRequests = requests; outcome = "ok";
+  await page.clock.fastForward(60000);
+  expect(requests).toBe(deniedRequests);
+  await expect(page.getByTestId("futures-chart")).toHaveCount(0);
+  await page.getByRole("button", { name: "Refresh source", exact: true }).click();
+  await expect(page.getByTestId("futures-chart")).toBeVisible();
 });

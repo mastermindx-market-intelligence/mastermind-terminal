@@ -13,7 +13,11 @@ describe("internal historical sample is not a production feature", () => {
     await expect(SamplePage()).rejects.toThrow("TEST_NEXT_NOT_FOUND");
   });
   it("production file traces exclude all local sample bytes", () => {
-    expect(config.outputFileTracingExcludes?.["/*"]).toContain("../.local-futures/**/*");
+    const excludes = config.outputFileTracingExcludes?.["/*"] ?? [];
+    expect(excludes).toContain(".local-futures/**/*");
+    expect(excludes).toContain("**/.local-futures/**/*");
+    expect(excludes.some(pattern => pattern.startsWith("../"))).toBe(false);
+    expect(config.turbopack?.root).toBe(path.resolve(__dirname, "../.."));
   });
   it("the server loader has no user-supplied path or API key", () => {
     const source = fs.readFileSync(path.resolve(__dirname, "../futuresSampleLoader.ts"), "utf8");

@@ -11,7 +11,9 @@ export function browserFuturesFixture(request: FuturesRequest) {
   const cutoffMs = request.cutoffMs === null ? last : possible.filter(t => t <= request.cutoffMs!).at(-1);
   if (cutoffMs === undefined) throw Error("fixture_no_cutoff");
   const candidate = { schema: "terminal.futures_published_view/v1", request,
-    contract: dataset.contract, sessionId: dataset.sessionId, basis: "historical", availabilityBasis: "vendor_capture_retrospective",
+    contract: dataset.contract, sessionId: dataset.sessionId, tradeCoverage: "complete",
+    definition: { id: dataset.frameInputs[0].contract.definitionId, contract: dataset.contract, validFromNs: String(BigInt(dataset.baseMs - 86400000) * BigInt(1000000)), validUntilNs: String(BigInt(dataset.baseMs + 86400000) * BigInt(1000000)), availableAtNs: String(BigInt(dataset.baseMs - 86400000) * BigInt(1000000)) },
+    basis: "historical", availabilityBasis: "vendor_capture_retrospective",
     sourceId: "fixture:synthetic-browser-test-not-market-data", sourceAsOfMs: last,
     publishedAtMs: nowMs - 1, cutoffMs, freshUntilMs: last + 5000,
     lowTick: dataset.lowTick, highTick: dataset.highTick, replayCutoffsMs: possible,

@@ -9,14 +9,15 @@ const object = x => x && typeof x === 'object' && !Array.isArray(x);
 const ref = x => typeof x === 'string' && /^[A-Za-z0-9][A-Za-z0-9._:-]{0,159}$/.test(x);
 const hash = x => createHash('sha256').update(x).digest('hex');
 
-async function readFuturesPublication(pair, { root = '', nowMs = Date.now() } = {}) {
-  if (pair !== 'ES' && pair !== 'NQ') return { status: 'unavailable', reason: 'bad_request' };
+async function readFuturesPublication(pair, { root = '', nowMs = Date.now(), intervalMinutes = 1, priceStepTicks = 1 } = {}) {
+  if ((pair !== 'ES' && pair !== 'NQ') || ![1, 5].includes(intervalMinutes) || ![1, 4, 8].includes(priceStepTicks)) return { status: 'unavailable', reason: 'bad_request' };
   if (!root) return { status: 'unavailable', reason: 'source_unavailable' };
   if (!path.isAbsolute(root) || !Number.isSafeInteger(nowMs)) return { status: 'unavailable', reason: 'source_invalid' };
   let file;
   try {
-    // Only two fixed leaves; no arbitrary URL, contract, source path, or symlink from a caller.
-    file = await fs.open(path.join(root, pair + '.json'), constants.O_RDONLY | constants.O_NOFOLLOW);
+    // Twelve closed pair/interval/row leaves; no arbitrary path, URL or contract from a caller.
+    // A malformed FIFO leaf must not block a libuv worker before fstat rejects it.
+    file = await fs.open(path.join(root, `${pair}-${intervalMinutes}-${priceStepTicks}.json`), constants.O_RDONLY | constants.O_NOFOLLOW | constants.O_NONBLOCK);
     const before = await file.stat();
     if (!before.isFile() || before.size < 2 || before.size > MAX_FILE_BYTES) throw Error('size');
     const bytes = Buffer.alloc(before.size + 1); let read = 0;
@@ -47,8 +48,10 @@ async function handleFuturesRequest(res, url, options) {
     const body = JSON.stringify({ error: reason });
     res.writeHead(reason === 'bad_request' ? 400 : 503, { 'Content-Type': 'application/json', 'Cache-Control': 'private, no-store' }); res.end(body);
   };
-  if ([...url.searchParams.keys()].some(k => k !== 'pair') || url.searchParams.getAll('pair').length !== 1) return fail('bad_request');
-  const result = await readFuturesPublication(url.searchParams.get('pair'), options);
+  if ([...url.searchParams.keys()].some(k => !['pair', 'interval', 'rows'].includes(k) || url.searchParams.getAll(k).length !== 1) || url.searchParams.getAll('pair').length !== 1) return fail('bad_request');
+  const interval = url.searchParams.get('interval') ?? '1', rows = url.searchParams.get('rows') ?? '1';
+  if (!['1', '5'].includes(interval) || !['1', '4', '8'].includes(rows)) return fail('bad_request');
+  const result = await readFuturesPublication(url.searchParams.get('pair'), { ...options, intervalMinutes: Number(interval), priceStepTicks: Number(rows) });
   if (result.status !== 'data') return fail(result.reason);
   res.writeHead(200, { 'Content-Type': 'application/json', 'Cache-Control': 'private, no-store',
     'Content-Length': Buffer.byteLength(result.raw), 'X-Futures-Source-SHA256': result.sha256 }); res.end(result.raw);

@@ -2,6 +2,34 @@
 
 Research as of 2026-10-12 UTC / 2026-10-11 Pacific. Current Chairman continuation explicitly requests deeper Pro research and implementation. This is an extension of Terminal's existing Options/Market Structure and Quote Hub owners, not another product backend or control plane.
 
+## Recovery continuation 2026-10-13: tested capture and production-boundary hardening
+
+Recovered remote head fb241fb91e19ce8da82ddc6603b55d940c63606c and its pending edits
+on the original RDC M2 workspace. No other modifier or unresolved remote effect was
+observed. The production Options route/API already existed; do not rebuild them.
+The pure capture-publication composer and explicit coverage/definition contract are
+now tested through the real loopback API. Added shared-definition gamma binding,
+byte/point/provenance budgets, safe source errors, partial-coverage flag handling,
+FIFO refusal, expired-current-contract withholding and transient client recovery.
+401/403 and rate-limit refusals are not automatically replayed. Current-view recovery
+uses only the existing mounted client's bounded polling; there is no new retry plane.
+
+Evidence: docs/evidence/futures-recovery-20261013/; 569 Hub tests, 195 focused Terminal
+tests, typecheck/lint and 21 synthetic production-route browser cases passed. New
+screenshots are in docs/pr-crops/futures-recovery-20261013/. The first server-startup
+timeout was reconciled and one bounded rerun passed; no reload workaround.
+
+Independent review attempt terminal-futures-pr964-source-review-20261013-r1 found no
+admitted remote provider/host (telemetry, qualification, disk/load/thermal constraints),
+with same-ID readback NOT_FOUND. No worker/review/result/wake was fabricated, no host
+or provider forced. Root/parent labels refer to this attended WEB mission/PR, not an
+unobserved native Codex thread. The older refused compound discovery remains held.
+
+Next safe phase: full-candidate regression and compiled local production guest/API/
+private-trace verification, then exact-head CI and independent review when admitted.
+Real source licensing, capture/status/continuity and options/quote publication owners
+remain unactivated. No merge, deployment, live-data or subscriber-rights claim.
+
 ## Latest continuation: production-route futures workspace
 
 The existing Options shell now links to /options/futures with the canonical paid gate, dynamic client mount, source-bound API, ES/NQ/expiry/aggregation/replay controls, safe old-request cancellation, denied-access clearing and freshness withholding. 15 responsive browser cases and a real loopback source-to-API integration case passed. Source/data were synthetic acceptance fixtures; nothing was deployed or activated. Evidence: docs/pr-crops/futures-production-workspace-20261012/. Nested mobile clipping was found visually, fixed, and tested at the inner chart/control rectangles. Next: strengthen the capture-owner output adapter with explicit coverage/definition validity, then full-candidate qualification. No active worker or unresolved modification.

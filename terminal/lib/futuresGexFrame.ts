@@ -30,7 +30,7 @@ export type FuturesGexFrameInput = {
     maxClockSkewMs: number; method: FuturesGexMapping;
   };
 };
-export type FuturesGexFrameReason = FuturesLensReason | "source_unavailable" | "invalid_input" | "invalid_policy" | "invalid_contract" |
+export type FuturesGexFrameReason = FuturesLensReason | "cash_closed" | "source_unavailable" | "invalid_input" | "invalid_policy" | "invalid_contract" |
   "contract_inactive" | "missing_receipt" | "invalid_clock" | "not_yet_available" |
   "stale_quote" | "stale_exposure" | "source_schema" | "source_root" |
   "source_session" | "source_rows" | "empty_source" | "invalid_projection";
