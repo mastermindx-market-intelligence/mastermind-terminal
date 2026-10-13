@@ -969,6 +969,18 @@ describe("conformance harness — canvas registration falsifier (ACCEPT2 W3)", (
   it("positive control: the real canvas factory has zero failures", () => {
     const results = collectEngineConformance(makeCanvasEngine, { skips: CANVAS_CONFORMANCE_SKIPS });
     expect(results.filter((r) => r.status === "fail")).toEqual([]);
+    // The census grades C01-A01 PROVEN / C02-A03 PARTIAL on "both engines print
+    // 15 pass / 0 skip / 0 fail". A declared skip (or a runtime self-skip that
+    // starts firing) must fail here, not silently shrink that evidence.
+    expect(results.filter((r) => r.status === "skip")).toEqual([]);
+    expect(results.filter((r) => r.status === "pass")).toHaveLength(15);
+  });
+
+  it("positive control: the LWC factory also answers all 15 checks with no skip", () => {
+    const results = collectEngineConformance((c) => createLwcEngine(c));
+    expect(results.filter((r) => r.status === "fail")).toEqual([]);
+    expect(results.filter((r) => r.status === "skip")).toEqual([]);
+    expect(results.filter((r) => r.status === "pass")).toHaveLength(15);
   });
 
   it("series.data() returning [] turns the data-readback checks RED", () => {
