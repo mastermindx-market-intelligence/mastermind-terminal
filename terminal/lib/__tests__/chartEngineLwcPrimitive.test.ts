@@ -815,8 +815,10 @@ describe("LwcSeriesHandle — bridge bookkeeping and detach", () => {
 
     handle.detachPrimitive(spy.primitive); // unknown to the bridge now: a no-op
     expect(spy.detached).toHaveBeenCalledTimes(1);
-    expect(native.detachPrimitive).toHaveBeenCalledTimes(2);
-    expect(native.detachPrimitive.mock.calls[1][0]).toBe(spy.primitive);
+    // LWC calls detached() unconditionally (dev :12802-12807), so an engine-shaped value
+    // this handle does not own must never reach it — the second detach is a true no-op.
+    expect(native.detachPrimitive).toHaveBeenCalledTimes(1);
+    expect(native.detachPrimitive.mock.calls.map((c) => c[0])).not.toContain(spy.primitive);
   });
 
   it("detaches when the series is removed, and stays quiet on a repeat remove", () => {
