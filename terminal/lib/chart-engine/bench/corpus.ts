@@ -19,6 +19,14 @@ const START_UNIX = Date.UTC(2000, 0, 3) / 1000;
 /** Deltas larger than this are parked-idle gaps, not frames that did work. */
 export const IDLE_GAP_MS = 50;
 
+/**
+ * "Never measured" sentinel. Far above every budget, so a metric with no
+ * samples always yields a violation and `budget_ok=false`; still a finite
+ * positive number, so the receipt stays schema-valid (each metric has
+ * `exclusiveMinimum: 0` and the schema is not ours to extend).
+ */
+export const UNMEASURED = 1e9;
+
 export type FrameRecord = {
   frameTs: number;
   start: number;
@@ -212,7 +220,7 @@ export function p95(values: number[]): number {
 }
 
 export function median(values: number[]): number {
-  if (values.length === 0) return 1e-9;
+  if (values.length === 0) return UNMEASURED;
   const sorted = [...values].sort((a, b) => a - b);
   const mid = Math.floor(sorted.length / 2);
   if (sorted.length % 2 === 1) return sorted[mid];
@@ -220,7 +228,7 @@ export function median(values: number[]): number {
 }
 
 export function percentile(values: number[], p: number): number {
-  if (values.length === 0) return 1e-9;
+  if (values.length === 0) return UNMEASURED;
   const sorted = [...values].sort((a, b) => a - b);
   const idx = Math.min(sorted.length - 1, Math.max(0, Math.ceil(p * sorted.length) - 1));
   return sorted[idx];

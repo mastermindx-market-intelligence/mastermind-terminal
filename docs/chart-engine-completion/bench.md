@@ -6,9 +6,12 @@ Playwright protocol. **Official receipts are measured later by the seat** on the
 reference Mac after the P1 canvas repair and the ChartPanel migration land. A
 green number from a laptop or a CI shard is not the gate.
 
-`ajv` 8.20.0 and `ajv-formats` are already resolvable from `terminal/` (they
-are runtime dependencies of other contracts). Follow-up: promote them to
-`devDependencies` so the harness does not lean on that coincidence.
+`ajv` 8.20.0 and `ajv-formats` resolve from `terminal/` because they are real
+**runtime** dependencies (`terminal/package.json:24-25`): `app/api/flow/route.ts`
+-> `lib/optionsAlphaCandidatePair.ts:3-4` compiles and validates with them on every
+request. Do NOT move them to `devDependencies` — a `--omit=dev` production install
+would then break `/api/flow`. `bench/receipt.ts` is a second, dev-only consumer of
+the same production dependency; that is fine and needs no package.json change.
 
 ## How to run
 
