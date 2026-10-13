@@ -1,141 +1,56 @@
-// /api/ext-quote — the thin proxy over the Quote Hub's extended-hours fields.
-//
-// The route stripped `extSession`, so the UI had no way to know WHICH out-of-hours window a
-// print came from and labelled everything "Overnight" — including an 08:15 ET pre-market
-// print. This locks the passthrough, and the two things that must not change with it: the
-// route never fetches an upstream of its own (the hub owns all ext data), and a symbol with
-// no ext print stays `null` rather than acquiring a fabricated shape.
-//
-// LOCATION NOTE: this file lives in lib/__tests__/ — terminal/vitest.config.ts includes ONLY
-// "lib/__tests__/**/*.test.ts", so a colocated app/api/.../route.test.ts would never be
-// collected (same constraint documented in lib/__tests__/brainProxy.test.ts).
-import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
-import { GET } from "@/app/api/ext-quote/route";
-
-let calls: string[];
-let realFetch: typeof globalThis.fetch;
-
-/** Fake Quote Hub returning `body` for /quotes. */
-function installHub(body: Record<string, unknown>, status = 200) {
-  globalThis.fetch = vi.fn(async (url: any) => {
-    calls.push(String(url));
-    return new Response(JSON.stringify(body), { status, headers: { "content-type": "application/json" } });
-  }) as any;
-}
-
-/** Each case uses a DISTINCT client IP so the module-global rate-limit buckets never bleed. */
-let ipSeq = 0;
-const req = (syms: string) =>
-  new Request(`http://localhost/api/ext-quote?syms=${encodeURIComponent(syms)}`, {
-    headers: { "cf-connecting-ip": `203.0.113.${++ipSeq}` },
-  });
-
-const quotes = async (syms: string) => (await (await GET(req(syms))).json()).quotes;
-
-const extRow = (extra: Record<string, unknown> = {}) => ({
-  sym: "NVDA", last: 180, extPrice: 181.5, extChg: 0.83, extTs: 1_800_000_000, ...extra,
-});
-
-beforeEach(() => {
-  calls = [];
-  realFetch = globalThis.fetch;
-});
-afterEach(() => {
-  globalThis.fetch = realFetch;
-  vi.restoreAllMocks();
-});
-
-describe("/api/ext-quote — extSession passthrough", () => {
-  it("relays each of the hub's three session values", async () => {
-    for (const session of ["pre", "post", "overnight"]) {
-      installHub({ NVDA: extRow({ extSession: session }) });
-      const q = await quotes("NVDA");
-      expect(q.NVDA.extSession, session).toBe(session);
-      expect(q.NVDA.extPrice).toBe(181.5);
-      expect(q.NVDA.extChg).toBe(0.83);
-      expect(q.NVDA.extTs).toBe(1_800_000_000);
-    }
-  });
-
-  it("omits the field entirely when the hub does not classify the print", async () => {
-    installHub({ NVDA: extRow() });
-    const q = await quotes("NVDA");
-    expect(q.NVDA).toEqual({ extPrice: 181.5, extChg: 0.83, extTs: 1_800_000_000 });
-    expect("extSession" in q.NVDA).toBe(false);
-  });
-
-  it("drops a session value it does not recognise instead of relaying it into a label", async () => {
-    // The UI maps this straight onto a plain-word label; an unknown string would surface raw.
-    installHub({ NVDA: extRow({ extSession: "weekend-crossing" }) });
-    const q = await quotes("NVDA");
-    expect("extSession" in q.NVDA).toBe(false);
-    expect(q.NVDA.extPrice).toBe(181.5);
-  });
-
-  it("keeps the null shape for a symbol the hub has no ext print for", async () => {
-    installHub({ NVDA: extRow({ extSession: "post" }), AAPL: { sym: "AAPL", last: 220 } });
-    const q = await quotes("NVDA,AAPL");
-    expect(q.AAPL).toBeNull();
-    expect(q.NVDA.extSession).toBe("post");
-  });
-
-  it("returns 503 when the hub is unreachable so clients retain their last-good ext quote", async () => {
-    globalThis.fetch = vi.fn(async () => { throw new Error("ECONNREFUSED"); }) as any;
-    const response = await GET(req("NVDA,AAPL"));
-    expect(response.status).toBe(503);
-    expect(await response.json()).toEqual({ error: "quote_hub_unavailable" });
-  });
-
-  it("returns 503 when the hub rejects the request instead of fabricating an all-null snapshot", async () => {
-    installHub({ error: "overloaded" }, 500);
-    const response = await GET(req("NVDA,AAPL"));
-    expect(response.status).toBe(503);
-    expect(await response.json()).toEqual({ error: "quote_hub_unavailable" });
-  });
-
-  it("only ever talks to the hub — no upstream feed of its own", async () => {
-    installHub({ NVDA: extRow({ extSession: "pre" }) });
-    await quotes("NVDA");
-    expect(calls).toHaveLength(1);
-    expect(calls[0]).toContain("127.0.0.1");
-    expect(calls[0]).toContain("/quotes?syms=NVDA");
-  });
-
-  it("falls back to the quote timestamp when extTs is absent", async () => {
-    installHub({ NVDA: { sym: "NVDA", extPrice: 181.5, extChg: 0.83, ts: 1_799_999_000, extSession: "post" } });
-    expect((await quotes("NVDA")).NVDA.extTs).toBe(1_799_999_000);
-  });
-});
-
-
-describe("/api/ext-quote — source and price basis", () => {
-  it("preserves the hub's source and basis across live, delayed and unofficial legs", async () => {
-    for (const [source, basis] of [
-      ["tiingo_boats", "LIVE"],
-      ["alpaca_overnight", "DELAYED_15M"],
-      ["webull", "UNOFFICIAL"],
-    ]) {
-      installHub({ NVDA: extRow({ extSession: "overnight", extSource: source, extBasis: basis }) });
-      const q = await quotes("NVDA");
-      expect(q.NVDA.extSource).toBe(source);
-      expect(q.NVDA.extBasis).toBe(basis);
-      expect(calls.at(-1)).toContain("127.0.0.1");
-    }
-  });
-
-  it("preserves the source without inventing a LIVE basis when the hub does not supply one", async () => {
-    installHub({ NVDA: extRow({ extSource: "tiingo_boats" }) });
-    const q = await quotes("NVDA");
-    expect(q.NVDA.extSource).toBe("tiingo_boats");
-    expect("extBasis" in q.NVDA).toBe(false);
-  });
-
-  it("omits malformed source and unknown basis without changing the price or null semantics", async () => {
-    installHub({ NVDA: extRow({ extSource: { name: "tiingo_boats" }, extBasis: "guaranteed_live" }), AAPL: {} });
-    const q = await quotes("NVDA,AAPL");
-    expect(q.NVDA.extPrice).toBe(181.5);
-    expect("extSource" in q.NVDA).toBe(false);
-    expect("extBasis" in q.NVDA).toBe(false);
-    expect(q.AAPL).toBeNull();
-  });
+/** The existing public extended-quote route admits only cleared BOATS facts. */
+import {describe,it,expect,vi,beforeEach,afterEach} from "vitest";
+import {GET} from "@/app/api/ext-quote/route";
+const now=Date.UTC(2026,9,12,0,1);
+const row={extPrice:100,extChg:1,extTs:now/1000,extSource:"tiingo_boats",extBasis:"LIVE",
+ extSession:"overnight",extVenue:"BOATS",extPriceKind:"LAST_TRADE",extReceivedTs:now/1000,
+ extPublishedTs:now/1000,extExpiresTs:now/1000+30,extCaptureId:"12345678-1234-1234-1234-123456789abc",extGeneration:1};
+let originalFetch:typeof fetch;let calls:string[];let ip=0;
+const req=(syms:string)=>new Request(`http://localhost/api/ext-quote?syms=${syms}`,{headers:{"cf-connecting-ip":`203.0.113.${++ip}`}});
+function hub(body:unknown,status=200){globalThis.fetch=vi.fn(async(url:any)=>{
+ calls.push(String(url));return new Response(JSON.stringify(body),{status,headers:{"content-type":"application/json"}});
+}) as any;}
+const quotes=async(syms="AMD")=>(await(await GET(req(syms))).json()).quotes;
+beforeEach(()=>{originalFetch=globalThis.fetch;calls=[];vi.spyOn(Date,"now").mockReturnValue(now);});
+afterEach(()=>{globalThis.fetch=originalFetch;vi.restoreAllMocks();});
+describe("BOATS public boundary",()=>{
+ it("relays only the approved provenance/clock fields and preserves null semantics",async()=>{
+  hub({AMD:{...row,raw_message:"synthetic fixture",last:90},AAPL:{last:200}});
+  expect(await quotes("AMD,AAPL")).toEqual({AMD:row,AAPL:null});
+ });
+ it.each(["yahoo-relay","webull","alpaca_overnight","polygon_live",undefined])("does not infer rights from source %s",async(source)=>{
+  hub({AMD:{...row,extSource:source}});expect((await quotes()).AMD).toBeNull();
+ });
+ it.each(["extBasis","extVenue","extPriceKind","extReceivedTs","extPublishedTs","extExpiresTs","extCaptureId","extGeneration"])("rejects missing %s",async(field)=>{
+  const q:Record<string,unknown>={...row};delete q[field];hub({AMD:q});expect((await quotes()).AMD).toBeNull();
+ });
+ it("expires a retained trade without a new publication",async()=>{
+  vi.spyOn(Date,"now").mockReturnValue(now+30_000);hub({AMD:row});expect((await quotes()).AMD).toBeNull();
+ });
+ it.each([
+  {extPrice:0},{extPrice:-1},{extChg:"invalid"},{extTs:now/1000+1},
+  {extPublishedTs:now/1000+1},{extExpiresTs:now/1000+31},{extSession:"post"},
+  {extBasis:"UNOFFICIAL"},{extVenue:"NASDAQ"},{extGeneration:0},{extCaptureId:"guessed-id"},
+ ])("rejects invalid price/provenance/time %#",async(extra)=>{
+  hub({AMD:{...row,...extra}});expect((await quotes()).AMD).toBeNull();
+ });
+ it("can serve the price with no invented change when the regular close is missing",async()=>{
+  hub({AMD:{...row,extChg:null}});expect((await quotes()).AMD.extChg).toBeNull();
+ });
+ it("uses only the incumbent hub with explicit source eligibility",async()=>{
+  hub({AMD:row});await quotes();expect(calls).toHaveLength(1);
+  expect(calls[0]).toContain("127.0.0.1");expect(calls[0]).toContain("extSource=tiingo_boats");
+ });
+ it("returns 503 for transport failure rather than an authoritative empty snapshot",async()=>{
+  globalThis.fetch=vi.fn(async()=>{throw new Error("ECONNREFUSED");}) as any;
+  const r=await GET(req("AMD"));expect(r.status).toBe(503);expect(await r.json()).toEqual({error:"quote_hub_unavailable"});
+ });
+ it("returns 503 for hub failure or malformed response",async()=>{
+  hub({error:"busy"},500);expect((await GET(req("AMD"))).status).toBe(503);
+  hub([]);expect((await GET(req("AMD"))).status).toBe(503);
+ });
+ it("disables cache for both nonempty and empty successful requests",async()=>{
+  hub({AMD:row});expect((await GET(req("AMD"))).headers.get("Cache-Control")).toBe("no-store");
+  expect((await GET(req(""))).headers.get("Cache-Control")).toBe("no-store");
+ });
 });
