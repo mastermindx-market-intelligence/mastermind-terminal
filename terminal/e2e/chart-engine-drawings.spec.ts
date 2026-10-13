@@ -82,6 +82,8 @@ for (const impl of IMPL_QUERY) {
 }
 
 test.describe("chart-engine drawings [mobile A03]", () => {
+  test.use({ deviceScaleFactor: 2 });
+
   test("A03: seeded drawing projects on 390×844 mobile viewport", async ({ page }, testInfo) => {
     test.skip(testInfo.project.name !== "mobile", "A03 runs in the mobile project.");
     const layer = page.locator(".pane.on .drawing-layer");
@@ -93,4 +95,51 @@ test.describe("chart-engine drawings [mobile A03]", () => {
     expect(box!.width).toBeGreaterThan(4);
     expect(box!.height).toBeGreaterThan(4);
   });
+
+  for (const impl of IMPL_QUERY) {
+    test(`A03: DOM handle grab at DPR 2 [${impl.label}]`, async ({ page }, testInfo) => {
+      test.skip(testInfo.project.name !== "mobile", "A03 handle grab runs in the mobile project.");
+      const dpr = await page.evaluate(() => window.devicePixelRatio);
+      test.info().annotations.push({ type: "devicePixelRatio", description: String(dpr) });
+
+      const store = await bootChart(page, impl.query, [SEED_TRENDLINE]);
+      const layer = page.locator(".pane.on .drawing-layer");
+      const drawing = layer.locator(`g[data-drawing-id="${SEED_TRENDLINE.id}"]`);
+      await expect(drawing).toBeVisible({ timeout: 45_000 });
+      await drawing.click({ force: true });
+
+      const grip = layer.locator(`g[data-drawing-id="${SEED_TRENDLINE.id}"] [data-handle]`).first();
+      await expect(grip).toBeVisible({ timeout: 15_000 });
+      const gripBox = await grip.boundingBox();
+      expect(gripBox).not.toBeNull();
+
+      const before = JSON.parse(JSON.stringify(store.drawings[0])) as { points: { t: string; p: number }[] };
+      const startX = gripBox!.x + gripBox!.width / 2 + 3;
+      const startY = gripBox!.y + gripBox!.height / 2;
+      await page.mouse.move(startX, startY);
+      await page.mouse.down();
+      await page.mouse.move(startX + 40, startY + 40, { steps: 8 });
+      await page.mouse.up();
+      await expect.poll(() => {
+        const row = store.drawings[0] as { points: { t: string; p: number }[] };
+        return row.points[0].p !== before.points[0].p || row.points[0].t !== before.points[0].t;
+      }, { timeout: 15_000 }).toBe(true);
+      const afterGrab = store.drawings[0] as { points: { t: string; p: number }[] };
+      expect(afterGrab.points[1]).toEqual(before.points[1]);
+
+      const grips = layer.locator(`g[data-drawing-id="${SEED_TRENDLINE.id}"] [data-handle]`);
+      const boxes = await grips.evaluateAll((nodes) =>
+        nodes.map((node) => node.getBoundingClientRect()),
+      );
+      expect(boxes.length).toBeGreaterThanOrEqual(2);
+      const ghostX = (boxes[0].left + boxes[1].right) / 2;
+      const ghostY = boxes[0].top - 20;
+      const ghostBefore = JSON.parse(JSON.stringify(store.drawings[0]));
+      await page.mouse.move(ghostX, ghostY);
+      await page.mouse.down();
+      await page.mouse.move(ghostX + 30, ghostY + 30, { steps: 6 });
+      await page.mouse.up();
+      await expect.poll(() => JSON.stringify(store.drawings[0])).toBe(JSON.stringify(ghostBefore));
+    });
+  }
 });

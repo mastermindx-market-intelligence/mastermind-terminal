@@ -465,7 +465,7 @@ describe("M01 ratchet — ChartPanel raw-LWC site ceilings (BASE_SHA)", () => {
   // cannot see; createSeriesMarkers(/createTextWatermark( hit 0 with M03.
   const CEILINGS = {
     "unwrap<": 0,
-    ".unwrap(": 4,
+    ".unwrap(": 0,
     "chartRef.current": 0,
     IChartApi: 0,
     "ISeriesApi<": 0,
