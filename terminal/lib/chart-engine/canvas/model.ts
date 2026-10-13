@@ -340,7 +340,8 @@ export class ChartModel {
   autoscaleScale(paneIndex: number, priceScaleId: string): PriceScaleState {
     const scale = this.scale(paneIndex, priceScaleId);
     if (!scale.autoScale) return scale;
-    const vals: number[] = [];
+    let min = Infinity;
+    let max = -Infinity;
     let baseValue: number | undefined;
     let baseIndex = Infinity;
     const pane = this.panes[paneIndex];
@@ -348,7 +349,11 @@ export class ChartModel {
       for (const sid of pane.seriesIds) {
         const s = this.series.get(sid);
         if (!s || s.removed || s.priceScaleId !== priceScaleId) continue;
-        vals.push(...this.visibleValues(s));
+        const ext = this.visiblePriceExtents(s);
+        if (ext) {
+          if (ext.min < min) min = ext.min;
+          if (ext.max > max) max = ext.max;
+        }
         const first = this.firstVisibleClose(s);
         if (first && first.index < baseIndex) {
           baseIndex = first.index;
@@ -357,17 +362,75 @@ export class ChartModel {
       }
     }
     if (baseValue != null) scale.baseValue = baseValue;
-    const next = priceScaleMath.autoscale(vals, scale);
+    const extents = Number.isFinite(min) && Number.isFinite(max) ? { min, max } : null;
+    const next = autoscaleRange(extents, scale);
     scale.from = next.from;
     scale.to = next.to;
     return scale;
+  }
+
+  /**
+   * Kind-aware visible min/max (series.ts extentsOf: OHLC for candles/bars,
+   * value for points, histogram includes `base` default 0, baseline includes
+   * its base price). Inclusive indices follow LWC visibleStrictRange
+   * (lwc-reference-semantics.md §1.7): [floor(visibleFrom), ceil(visibleTo)],
+   * so a partially visible last bar whose slot intersects the right edge is
+   * included.
+   */
+  visiblePriceExtents(s: SeriesModel): { min: number; max: number } | null {
+    const start = Math.max(0, Math.floor(this.time.visibleFrom));
+    const end = Math.min(s.rows.length - 1, Math.ceil(this.time.visibleTo));
+    if (start > end) return null;
+    let min = Infinity;
+    let max = -Infinity;
+    const ohlc = s.kind === "candles" || s.kind === "bars";
+    for (let i = start; i <= end; i++) {
+      const row = s.rows[i];
+      if (!row) continue;
+      if (ohlc) {
+        const b = row as { open?: unknown; high?: unknown; low?: unknown; close?: unknown };
+        const open = b.open;
+        const high = b.high;
+        const low = b.low;
+        const close = b.close;
+        if (typeof high === "number" && Number.isFinite(high)) { if (high < min) min = high; if (high > max) max = high; }
+        if (typeof low === "number" && Number.isFinite(low)) { if (low < min) min = low; if (low > max) max = low; }
+        if (typeof open === "number" && Number.isFinite(open)) { if (open < min) min = open; if (open > max) max = open; }
+        if (typeof close === "number" && Number.isFinite(close)) { if (close < min) min = close; if (close > max) max = close; }
+      } else if ("value" in row && typeof (row as { value: unknown }).value === "number") {
+        const v = (row as { value: number }).value;
+        if (Number.isFinite(v)) {
+          if (v < min) min = v;
+          if (v > max) max = v;
+        }
+      }
+    }
+    if (s.kind === "histogram") {
+      const raw = s.options.base;
+      const base = typeof raw === "number" && Number.isFinite(raw) ? raw : 0;
+      if (base < min) min = base;
+      if (base > max) max = base;
+    } else if (s.kind === "baseline") {
+      const raw = s.options.baseValue;
+      const price = raw && typeof raw === "object" && typeof (raw as { price?: unknown }).price === "number"
+        && Number.isFinite((raw as { price: number }).price)
+        ? (raw as { price: number }).price
+        : (typeof s.options.base === "number" && Number.isFinite(s.options.base) ? s.options.base : 0);
+      if (price < min) min = price;
+      if (price > max) max = price;
+    }
+    if (!Number.isFinite(min) || !Number.isFinite(max)) return null;
+    return { min, max };
   }
 
   visibleValues(s: SeriesModel): number[] {
     const start = Math.max(0, Math.floor(this.time.visibleFrom));
     const end = Math.min(s.rows.length - 1, Math.ceil(this.time.visibleTo));
     const vals: number[] = [];
-    for (let i = start; i <= end; i++) vals.push(...rowNumbers(s.rows[i]));
+    for (let i = start; i <= end; i++) {
+      const nums = rowNumbers(s.rows[i]);
+      for (let j = 0; j < nums.length; j++) vals.push(nums[j]);
+    }
     return vals;
   }
 
