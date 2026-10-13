@@ -8,8 +8,18 @@
  * sorted ascending set; tie -> lower run index). Invalid results fail;
  * BENCH_ENFORCE=1 fails the whole test on budget_ok=false.
  *
- * Measurement path MUST NOT call page.clock.install() (F7) — the CDP trace
- * uses the real browser clock.
+ * Measurement path MUST NOT install the Playwright clock fixture (F7) — the
+ * CDP trace uses the real browser clock.
+ *
+ * Per-input marks (Q03b): for each gesture we install a single capture-phase
+ * listener on `document` that records one `performance.mark` per coalesced
+ * event (pointermove/mousemove for pan, wheel for zoom) using the input's
+ * own timeStamp as the startTime. The trace-side ts and the page-side
+ * performance entry are compared via `checkInputMarkClock` and a > 0.01 ms
+ * deviation FAILS the run. Per-input latency is then the FIRST presented
+ * frame at-or-after each input mark, bounded by the gesture tail; the
+ * interval quantity is bounded by the dispatch rate but per-input latency is
+ * not, so a separate budget (20 / 33.4 ms) gates it.
  */
 
 import { test, expect, type BrowserContext, type CDPSession, type Page } from "@playwright/test";
@@ -23,9 +33,16 @@ import {
   asTraceEvents,
   parsePresentedFrames,
   userTimingMs,
+  userTimingAllMs,
   validateCadenceReceipt,
+  inputLatencyStats,
+  presentedIntervals,
+  measureVsync,
+  frameSequenceIntervals,
+  checkInputMarkClock,
   type CadenceGestureStats,
   type CadenceReceipt,
+  type CadenceDisplay,
 } from "../lib/chart-engine/bench/cadence";
 import {
   panMoved,
@@ -38,6 +55,10 @@ type EngineImpl = "mm" | "lwc";
 type RunStats = {
   pan: CadenceGestureStats;
   zoom: CadenceGestureStats;
+  display: CadenceDisplay;
+  panClockMaxDevMs: number;
+  zoomClockMaxDevMs: number;
+  vsyncSeqMs: number | null;
 };
 
 const IMPLS: EngineImpl[] = (process.env.BENCH_IMPLS ?? "mm,lwc")
@@ -98,6 +119,10 @@ function round1(n: number): number {
   return Math.round(n * 10) / 10;
 }
 
+function round3(n: number): number {
+  return Math.round(n * 1000) / 1000;
+}
+
 async function waitReady(page: Page): Promise<void> {
   await page.waitForFunction(
     () => Boolean((window as unknown as { __mmBench?: { ready: Promise<void> } }).__mmBench),
@@ -120,6 +145,53 @@ async function readRange(page: Page): Promise<VisibleSpan> {
 
 function receiptPathFor(impl: EngineImpl): string {
   return path.join(OUT_DIR, `cadence-${impl}-${COMMIT}-${HOST}.json`);
+}
+
+/**
+ * Install a capture-phase listener on `document` that records one
+ * `performance.mark(name, { startTime: ev.timeStamp })` per coalesced event.
+ * For PointerEvents with non-empty `getCoalescedEvents()` we record each
+ * coalesced entry separately; otherwise one mark on the event itself. The
+ * remover lives on `window` under a bench-only key and `removeInputMarks`
+ * calls it. Stored globally so the listener survives the function returning.
+ */
+async function installInputMarks(page: Page, gesture: "pan" | "zoom"): Promise<void> {
+  await page.evaluate((g: string) => {
+    type MinimalEv = { timeStamp: number; getCoalescedEvents?: () => ReadonlyArray<{ timeStamp: number }> };
+    type MinimalDoc = { addEventListener(name: string, fn: (e: MinimalEv) => void, opts: { capture: boolean; passive: boolean }): void };
+    type WindowSlot = { __cadenceInputMarksRemover?: () => void };
+    const win = window as unknown as WindowSlot;
+    const name = `cadence:${g}:input`;
+    const handler = (ev: MinimalEv) => {
+      const coalesced = ev.getCoalescedEvents?.() ?? [];
+      if (coalesced.length > 0) {
+        for (const c of coalesced) {
+          performance.mark(name, { startTime: c.timeStamp });
+        }
+      } else {
+        performance.mark(name, { startTime: ev.timeStamp });
+      }
+    };
+    const events: string[] = g === "pan" ? ["pointermove", "mousemove"] : ["wheel"];
+    const doc = document as unknown as MinimalDoc;
+    for (const evt of events) {
+      doc.addEventListener(evt, handler, { capture: true, passive: true });
+    }
+    win.__cadenceInputMarksRemover = () => {
+      for (const evt of events) {
+        document.removeEventListener(evt, handler, { capture: true });
+      }
+      delete win.__cadenceInputMarksRemover;
+    };
+  }, gesture);
+}
+
+async function removeInputMarks(page: Page): Promise<void> {
+  await page.evaluate(() => {
+    type WindowSlot = { __cadenceInputMarksRemover?: () => void };
+    const win = window as unknown as WindowSlot;
+    win.__cadenceInputMarksRemover?.();
+  });
 }
 
 /**
@@ -161,14 +233,33 @@ async function captureTrace<T>(
   try {
     value = await body();
   } finally {
-    await page.waitForTimeout(250);
-    await trace.send("Tracing.end");
-    await complete;
+    try {
+      await page.waitForTimeout(250);
+      await trace.send("Tracing.end");
+      // Bound the wait: Tracing.tracingComplete should arrive within ~hundreds
+      // of ms after Tracing.end. 30 s is a hard wall so a stuck CDP session
+      // cannot hang the bench forever. The timer is cleared on success so it
+      // never fires spuriously.
+      let timer: ReturnType<typeof setTimeout> | null = null;
+      const timedOut = new Promise<never>((_, reject) => {
+        timer = setTimeout(() => reject(new Error(`INVALID: Tracing.tracingComplete not received within 30 s (${label})`)), 30_000);
+      });
+      try {
+        await Promise.race([complete, timedOut]);
+      } finally {
+        if (timer != null) clearTimeout(timer);
+      }
+    } finally {
+      // Teardown on EVERY path: the 30 s timeout and a Tracing.end rejection
+      // both propagate out of the block above, so without this inner finally
+      // the stuck session that F6 exists to bound would still leak its two
+      // listeners and its CDPSession.
+      trace.off("Tracing.dataCollected", onData);
+      trace.off("Tracing.tracingComplete", onEnd);
+      // CDPSession.detach exists; the structural type narrows the union.
+      await (cdp as CDPSession).detach().catch(() => undefined);
+    }
   }
-  trace.off("Tracing.dataCollected", onData);
-  trace.off("Tracing.tracingComplete", onEnd);
-  // CDPSession.detach exists; the structural type narrows the union.
-  await (cdp as CDPSession).detach().catch(() => undefined);
   return { value, events: asTraceEvents({ traceEvents: collected }) };
 }
 
@@ -178,16 +269,21 @@ async function panGesture(
   center: { x: number; y: number },
   impl: EngineImpl,
   runIdx: number,
-): Promise<{ stats: CadenceGestureStats; events: unknown[]; rangeBefore: VisibleSpan; rangeAfter: VisibleSpan }> {
+): Promise<{ stats: CadenceGestureStats; events: unknown[]; rangeBefore: VisibleSpan; rangeAfter: VisibleSpan; presentedMs: number[]; clockMaxDevMs: number; seqIntervals: number[] }> {
   const rangeBefore = await readRange(page);
   const { events } = await captureTrace(context, page, "pan", async () => {
     await page.mouse.move(center.x, center.y);
     await page.waitForTimeout(200);
-    await page.evaluate((n: string) => performance.mark(n), "cadence:pan:start");
-    await page.mouse.down();
-    await page.mouse.move(center.x + 1600, center.y, { steps: 200 });
-    await page.mouse.up();
-    await page.evaluate((n: string) => performance.mark(n), "cadence:pan:end");
+    await installInputMarks(page, "pan");
+    try {
+      await page.evaluate((n: string) => performance.mark(n), "cadence:pan:start");
+      await page.mouse.down();
+      await page.mouse.move(center.x + 1600, center.y, { steps: 200 });
+      await page.mouse.up();
+      await page.evaluate((n: string) => performance.mark(n), "cadence:pan:end");
+    } finally {
+      await removeInputMarks(page).catch(() => undefined);
+    }
     return true;
   });
   const rangeAfter = await readRange(page);
@@ -207,13 +303,31 @@ async function panGesture(
     writeTrace(events, impl, runIdx, "pan");
     throw new Error(`INVALID: ${(err as Error).message} (${impl} pan run ${runIdx + 1})`);
   }
-  const stats = gestureStats(parsed, startMs, endMs, 200);
+  const baseStats = gestureStats(parsed, startMs, endMs, 200);
   // B4: window must hold >= 2 presented frames, else INVALID.
-  if (stats.presented < 2) {
+  if (baseStats.presented < 2) {
     throw new Error(`INVALID: fewer than 2 presented frames in the pan window (${impl})`);
   }
+  // Per-input latency + clock check.
+  const rawMarks = userTimingAllMs(events, `cadence:pan:input`, parsed.rendererPid);
+  const pageEntries = await page.evaluate(() =>
+    performance.getEntriesByName(`cadence:pan:input`, "mark").map((e: { startTime: number }) => e.startTime),
+  );
+  const clock = checkInputMarkClock(rawMarks, pageEntries);
+  if (!clock.ok) {
+    writeTrace(events, impl, runIdx, "pan");
+    throw new Error(`INVALID: input-mark clock check failed (${impl} pan): ${clock.reason}`);
+  }
+  let latency;
+  try {
+    latency = inputLatencyStats(parsed, rawMarks, startMs, endMs);
+  } catch (err) {
+    writeTrace(events, impl, runIdx, "pan");
+    throw new Error(`INVALID: no input marks in the pan window (${impl}): ${(err as Error).message}`);
+  }
+  const stats: CadenceGestureStats = { ...baseStats, ...latency };
   if (DUMP_TRACE) writeTrace(events, impl, runIdx, "pan");
-  return { stats, events, rangeBefore, rangeAfter };
+  return { stats, events, rangeBefore, rangeAfter, presentedMs: parsed.presentedMs, clockMaxDevMs: clock.maxDeviationMs, seqIntervals: frameSequenceIntervals(events, parsed.rendererPid) };
 }
 
 async function zoomGesture(
@@ -222,16 +336,21 @@ async function zoomGesture(
   center: { x: number; y: number },
   impl: EngineImpl,
   runIdx: number,
-): Promise<{ stats: CadenceGestureStats; events: unknown[]; rangeBefore: VisibleSpan; rangeAfter: VisibleSpan }> {
+): Promise<{ stats: CadenceGestureStats; events: unknown[]; rangeBefore: VisibleSpan; rangeAfter: VisibleSpan; presentedMs: number[]; clockMaxDevMs: number; seqIntervals: number[] }> {
   const rangeBefore = await readRange(page);
   const { events } = await captureTrace(context, page, "zoom", async () => {
     await page.mouse.move(center.x, center.y);
     await page.waitForTimeout(200);
-    await page.evaluate((n: string) => performance.mark(n), "cadence:zoom:start");
-    for (let i = 0; i < 60; i++) {
-      await page.mouse.wheel(0, -120);
+    await installInputMarks(page, "zoom");
+    try {
+      await page.evaluate((n: string) => performance.mark(n), "cadence:zoom:start");
+      for (let i = 0; i < 60; i++) {
+        await page.mouse.wheel(0, -120);
+      }
+      await page.evaluate((n: string) => performance.mark(n), "cadence:zoom:end");
+    } finally {
+      await removeInputMarks(page).catch(() => undefined);
     }
-    await page.evaluate((n: string) => performance.mark(n), "cadence:zoom:end");
     return true;
   });
   const rangeAfter = await readRange(page);
@@ -249,12 +368,29 @@ async function zoomGesture(
     writeTrace(events, impl, runIdx, "zoom");
     throw new Error(`INVALID: ${(err as Error).message} (${impl} zoom run ${runIdx + 1})`);
   }
-  const stats = gestureStats(parsed, startMs, endMs, 60);
-  if (stats.presented < 2) {
+  const baseStats = gestureStats(parsed, startMs, endMs, 60);
+  if (baseStats.presented < 2) {
     throw new Error(`INVALID: fewer than 2 presented frames in the zoom window (${impl})`);
   }
+  const rawMarks = userTimingAllMs(events, `cadence:zoom:input`, parsed.rendererPid);
+  const pageEntries = await page.evaluate(() =>
+    performance.getEntriesByName(`cadence:zoom:input`, "mark").map((e: { startTime: number }) => e.startTime),
+  );
+  const clock = checkInputMarkClock(rawMarks, pageEntries);
+  if (!clock.ok) {
+    writeTrace(events, impl, runIdx, "zoom");
+    throw new Error(`INVALID: input-mark clock check failed (${impl} zoom): ${clock.reason}`);
+  }
+  let latency;
+  try {
+    latency = inputLatencyStats(parsed, rawMarks, startMs, endMs);
+  } catch (err) {
+    writeTrace(events, impl, runIdx, "zoom");
+    throw new Error(`INVALID: no input marks in the zoom window (${impl}): ${(err as Error).message}`);
+  }
+  const stats: CadenceGestureStats = { ...baseStats, ...latency };
   if (DUMP_TRACE) writeTrace(events, impl, runIdx, "zoom");
-  return { stats, events, rangeBefore, rangeAfter };
+  return { stats, events, rangeBefore, rangeAfter, presentedMs: parsed.presentedMs, clockMaxDevMs: clock.maxDeviationMs, seqIntervals: frameSequenceIntervals(events, parsed.rendererPid) };
 }
 
 function writeTrace(events: unknown[], impl: EngineImpl, runIdx: number, kind: "pan" | "zoom"): void {
@@ -274,16 +410,39 @@ async function runGesture(
   });
   const pan = await panGesture(context, page, center, impl, runIdx);
   const zoom = await zoomGesture(context, page, center, impl, runIdx);
-  return { pan: pan.stats, zoom: zoom.stats };
+  // Measured vsync is one number per run, derived from the union of presented
+  // intervals across both gestures. It MUST NOT be computed across the trace
+  // boundary (an interval from the last pan presentation to the first zoom
+  // presentation would be a pure idle gap).
+  const display = measureVsync([...presentedIntervals(pan.presentedMs), ...presentedIntervals(zoom.presentedMs)]);
+  // Input-independent vsync cross-check: mode of (begin-time diff / frame_sequence diff)
+  // across both gestures. NOT part of the receipt; printed on the diagnostic line as
+  // vsync_seq_ms. When inputs arrive slower than refreshes, the cross-check is the
+  // true per-slot reading and the receipt's vsync_ms is a multiple of it.
+  let vsyncSeqMs: number | null = null;
+  try {
+    vsyncSeqMs = measureVsync([...pan.seqIntervals, ...zoom.seqIntervals]).vsync_ms;
+  } catch {
+    vsyncSeqMs = null;
+  }
+  return {
+    pan: pan.stats,
+    zoom: zoom.stats,
+    display,
+    panClockMaxDevMs: pan.clockMaxDevMs,
+    zoomClockMaxDevMs: zoom.clockMaxDevMs,
+    vsyncSeqMs,
+  };
 }
 
-/** Per-run receipt over (pan, zoom) stats; same canonical budgets as the
- *  receipt that will be persisted for that impl. */
+/** Per-run receipt over (pan, zoom) stats + display; same canonical budgets as
+ *  the receipt that will be persisted for that impl. */
 function perRunReceipt(stats: RunStats, impl: EngineImpl): CadenceReceipt {
   return buildCadenceReceipt({
     commit: COMMIT,
     impl,
     host: { os: OS_LABEL, cpu: CPU, dpr: DPR },
+    display: stats.display,
     generated_at: new Date().toISOString(),
     pan: stats.pan,
     zoom: stats.zoom,
@@ -323,7 +482,7 @@ test("chart-engine presented-frame cadence protocol (Q03)", async ({ browser }) 
           const stats = await runGesture(context, page, impl, i);
           runs.push(stats);
           const r = perRunReceipt(stats, impl);
-          const line = `CADENCE ${impl} commit=${COMMIT} pan_p95=${round1(stats.pan.p95_ms)} pan_p99=${round1(stats.pan.p99_ms)} zoom_p95=${round1(stats.zoom.p95_ms)} zoom_p99=${round1(stats.zoom.p99_ms)} presented=${stats.pan.presented} partial=${stats.pan.partial} dropped=${stats.pan.dropped} input_hz=${round1(stats.pan.input_hz)} budget_ok=${r.budget_ok} violations=${r.violations.length} file=${file}`;
+          const line = `CADENCE ${impl} commit=${COMMIT} pan_p95=${round1(stats.pan.p95_ms)} pan_p99=${round1(stats.pan.p99_ms)} zoom_p95=${round1(stats.zoom.p95_ms)} zoom_p99=${round1(stats.zoom.p99_ms)} pan_lat_p95=${round1(stats.pan.input_to_present_p95_ms)} pan_lat_p99=${round1(stats.pan.input_to_present_p99_ms)} zoom_lat_p95=${round1(stats.zoom.input_to_present_p95_ms)} zoom_lat_p99=${round1(stats.zoom.input_to_present_p99_ms)} vsync_ms=${round1(stats.display.vsync_ms)} presented=${stats.pan.presented} partial=${stats.pan.partial} dropped=${stats.pan.dropped} input_hz=${round1(stats.pan.input_hz)} budget_ok=${r.budget_ok} violations=${r.violations.length} file=${file}`;
           console.log(line);
           appendLog(logFile, `[${impl}] run ${i + 1} ${line}`);
           // Diagnostic only: never part of the receipt. `input_floor_ms` is
@@ -333,7 +492,7 @@ test("chart-engine presented-frame cadence protocol (Q03)", async ({ browser }) 
           // frame per dispatched input, i.e. no renderer-induced starvation.
           const floor = (hz: number) => (hz > 0 ? round1(1000 / hz) : 0);
           const perInput = (st: CadenceGestureStats) => (st.inputs > 0 ? round1(st.presented / st.inputs) : 0);
-          const diag = `CADENCE_DIAG ${impl} run=${i + 1} pan_input_hz=${round1(stats.pan.input_hz)} pan_input_floor_ms=${floor(stats.pan.input_hz)} pan_presented_per_input=${perInput(stats.pan)} zoom_input_hz=${round1(stats.zoom.input_hz)} zoom_input_floor_ms=${floor(stats.zoom.input_hz)} zoom_presented_per_input=${perInput(stats.zoom)}`;
+          const diag = `CADENCE_DIAG ${impl} run=${i + 1} pan_input_hz=${round1(stats.pan.input_hz)} pan_input_floor_ms=${floor(stats.pan.input_hz)} pan_presented_per_input=${perInput(stats.pan)} zoom_input_hz=${round1(stats.zoom.input_hz)} zoom_input_floor_ms=${floor(stats.zoom.input_hz)} zoom_presented_per_input=${perInput(stats.zoom)} pan_input_marks=${stats.pan.input_marks} pan_unpresented=${stats.pan.input_unpresented} zoom_input_marks=${stats.zoom.input_marks} zoom_unpresented=${stats.zoom.input_unpresented} hz=${stats.display.hz} vsync_seq_ms=${stats.vsyncSeqMs == null ? "unmeasured" : round1(stats.vsyncSeqMs)} pan_clock_dev_ms=${round3(stats.panClockMaxDevMs)} zoom_clock_dev_ms=${round3(stats.zoomClockMaxDevMs)}`;
           console.log(diag);
           appendLog(logFile, `[${impl}] run ${i + 1} ${diag}`);
         } finally {
@@ -356,6 +515,7 @@ test("chart-engine presented-frame cadence protocol (Q03)", async ({ browser }) 
         commit: COMMIT,
         impl,
         host: { os: OS_LABEL, cpu: CPU, dpr: DPR },
+        display: medianRun.display,
         generated_at: new Date().toISOString(),
         pan: medianRun.pan,
         zoom: medianRun.zoom,
