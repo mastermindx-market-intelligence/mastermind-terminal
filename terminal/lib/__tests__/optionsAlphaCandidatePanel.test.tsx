@@ -859,6 +859,97 @@ describe("OATRUTH candidate panel truth", () => {
   });
 });
 
+const HORIZON_REASON_SENTENCE: Record<string, Record<Lang, string>> = {
+  quarantined_campaign_outcome: {
+    en: "This campaign's outcome was quarantined, so no return is shown for this horizon.",
+    zh: "该活动的结果已被隔离，因此此期限不显示回报。",
+  },
+  admitted_campaign_outcome_not_yet_present: {
+    en: "This campaign's outcome has not been published for this horizon yet.",
+    zh: "此期限的活动结果尚未发布。",
+  },
+  SOME_FUTURE_CODE: {
+    en: "This horizon has a recorded reason this version of the page does not recognise.",
+    zh: "此期限有一条本版本页面无法识别的记录原因。",
+  },
+};
+
+function feedWithHorizonReason(reason: string) {
+  const feed = structuredClone(baseFeed);
+  const horizon = feed.formed_candidates[0].post_formation_outcomes.horizons.h60 as { reason: string | null };
+  horizon.reason = reason;
+  return feed;
+}
+
+function rerenderPanel(props: { cadenceMs?: number; lang?: Lang }) {
+  act(() => {
+    root!.render(
+      <Provider key="x">
+        <LangProvider>
+          <OptionsAlphaCandidatePanel {...props} />
+        </LangProvider>
+      </Provider>,
+    );
+  });
+}
+
+describe("OATRUTH-R1 horizon reasons", () => {
+  for (const lang of ["en", "zh"] as const) {
+    for (const reason of ["quarantined_campaign_outcome", "admitted_campaign_outcome_not_yet_present", "SOME_FUTURE_CODE"] as const) {
+      it(`R8 horizon reason ${reason} is a plain sentence outside details (${lang})`, async () => {
+        fetchMock.mockResolvedValueOnce(jsonResponse({
+          status: 200,
+          body: validResponse({ feed: feedWithHorizonReason(reason) }),
+        }));
+        renderPanel({ lang });
+        await flushMicrotasks(8);
+        const horizon = host!.querySelector('[data-testid="options-alpha-candidate-horizon-h60"]');
+        expect(horizon).toBeTruthy();
+        const clone = horizon!.cloneNode(true) as HTMLElement;
+        clone.querySelectorAll("details").forEach((node) => node.remove());
+        const visible = clone.textContent ?? "";
+        expect(visible).toContain(HORIZON_REASON_SENTENCE[reason][lang]);
+        expect(visible).not.toContain(reason);
+        if (reason === "SOME_FUTURE_CODE") {
+          const disclosed = horizon!.querySelector("details")?.textContent ?? "";
+          expect(disclosed).toContain(reason);
+        }
+      });
+    }
+  }
+});
+
+describe("OATRUTH-R1 status language", () => {
+  it("R9 first-load 503 unavailable sentence follows a language rerender without a new fetch", async () => {
+    fetchMock.mockResolvedValueOnce(jsonResponse({ status: 503, body: { error: "feed unavailable" } }));
+    renderPanel({ lang: "en" });
+    await flushMicrotasks(8);
+    const unavailable = host!.querySelector('[data-testid="options-alpha-candidate-unavailable"]');
+    expect(unavailable?.textContent).toBe(UNAVAILABLE.en);
+    const calls = fetchMock.mock.calls.length;
+    rerenderPanel({ lang: "zh" });
+    await flushMicrotasks(4);
+    expect(host!.querySelector('[data-testid="options-alpha-candidate-unavailable"]')?.textContent).toBe(UNAVAILABLE.zh);
+    expect(fetchMock.mock.calls.length).toBe(calls);
+  });
+
+  it("R9 stale sentence follows a language rerender without a new fetch", async () => {
+    vi.useFakeTimers();
+    fetchMock.mockResolvedValueOnce(jsonResponse({ status: 200, body: validResponse() }));
+    renderPanel({ lang: "en" });
+    await flushMicrotasks(8);
+    fetchMock.mockResolvedValueOnce(jsonResponse({ status: 503, body: { error: "feed unavailable" } }));
+    await act(async () => { await vi.advanceTimersByTimeAsync(60_000); });
+    await flushMicrotasks(8);
+    expect(host!.querySelector('[data-testid="options-alpha-candidate-stale"]')?.textContent).toBe(STALE.en);
+    const calls = fetchMock.mock.calls.length;
+    rerenderPanel({ lang: "zh" });
+    await flushMicrotasks(4);
+    expect(host!.querySelector('[data-testid="options-alpha-candidate-stale"]')?.textContent).toBe(STALE.zh);
+    expect(fetchMock.mock.calls.length).toBe(calls);
+  });
+});
+
 function requestUrl(input: RequestInfo | URL): string {
   if (typeof input === "string") return input;
   if (input instanceof URL) return input.toString();
