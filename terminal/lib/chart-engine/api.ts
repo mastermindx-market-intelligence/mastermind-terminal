@@ -41,6 +41,10 @@ export type EngineBarRow = EngineBar | EngineWhitespace;
 export type EnginePointRow = EnginePoint | EngineWhitespace;
 export type EngineSeriesRow = EngineBarRow | EnginePointRow;
 
+// Structural mirror of LWC's MismatchDirection enum. The contract never imports
+// lightweight-charts; the adapter maps these strings onto the numeric enum.
+export type EngineMismatchDirection = "none" | "nearest-left" | "nearest-right";
+
 // ── Series kinds ────────────────────────────────────────────────────────────────
 export type EngineSeriesKind = "candles" | "bars" | "line" | "area" | "histogram" | "baseline";
 
@@ -167,10 +171,27 @@ export type EngineInventory = {
   watermarks: number;
 };
 
+// ── Disposed semantics ──────────────────────────────────────────────────────────
+// After engine.destroy() or series.remove(), the C02 surface is deterministic and
+// never throws:
+//   • mutators (apply/set/remove/subscribe/swap/crosshair/…) are no-ops
+//   • queries return null, [] or 0 (options bags return {})
+//   • subscriptions neither attach nor invoke
+//   • inventory() stays safe (alive:false, zeroes) — already true since P0
+// Double destroy / double remove remains a no-op. Handles obtained before disposal
+// stay callable: they do not throw, they go quiet. Native objects are never leaked
+// from the C02 methods (data() / dataByIndex / getSeries return owned shapes).
+//
+// P0/P0.5 methods that already existed on this contract still go through ensure()
+// and throw Error("chart-engine: disposed") / "series removed" so the original
+// adapter tests stay byte-identical. New methods listed below follow this block.
+
 // ── Handles ─────────────────────────────────────────────────────────────────────
 
 export interface PriceLineHandle {
   applyOptions(opts: Partial<PriceLineSpec>): void;
+  // Currently applied options (open bag; `price` is always present while live).
+  options(): Record<string, unknown>;
   // Removes this price line from its series. Idempotent.
   remove(): void;
   unwrap<T>(): T; // engine-unwrap: raw IPriceLine
@@ -185,6 +206,11 @@ export interface PaneHandle {
   // The pane's live DOM element (legend/overlay positioning hooks anchor to it).
   // null while the pane is not laid out yet.
   getHTMLElement(): HTMLElement | null;
+  // Series currently on this pane, in renderer order. Returns the SAME SeriesHandle
+  // objects the caller created through addSeries (identity holds across lookups).
+  getSeries(): SeriesHandle[];
+  // Price scale on this pane by id ("right" | "left" | overlay id).
+  priceScale(priceScaleId: string): PriceScaleHandle;
   unwrap<T>(): T; // engine-unwrap: raw IPaneApi
 }
 
@@ -193,6 +219,10 @@ export interface PaneHandle {
 export interface PriceScaleHandle {
   width(): number;
   applyOptions(opts: Record<string, unknown>): void;
+  options(): Record<string, unknown>;
+  getVisibleRange(): EngineRange<number> | null;
+  setVisibleRange(range: EngineRange<number>): void;
+  setAutoScale(on: boolean): void;
   unwrap<T>(): T; // engine-unwrap: raw IPriceScaleApi
 }
 
@@ -209,6 +239,15 @@ export interface TimeScaleHandle {
   scrollToPosition(position: number, animated?: boolean): void;
   applyOptions(opts: Record<string, unknown>): void;
   fitContent(): void;
+  getVisibleRange(): EngineRange<EngineTime> | null;
+  setVisibleRange(range: EngineRange<EngineTime>): void;
+  logicalToCoordinate(logical: number): number | null;
+  coordinateToLogical(x: number): number | null;
+  width(): number;
+  // Exact time→index (findNearest=false) is what paneSync uses to share a calendar
+  // instant across peers; findNearest=true is LWC's nearest-bar fallback.
+  timeToIndex(time: EngineTime, findNearest?: boolean): number | null;
+  options(): Record<string, unknown>;
   unwrap<T>(): T; // engine-unwrap: raw ITimeScaleApi
 }
 
@@ -217,10 +256,20 @@ export interface SeriesHandle {
   setData(rows: EngineSeriesRow[]): void;
   update(row: EngineSeriesRow, historicalUpdate?: boolean): void;
   applyOptions(opts: EngineSeriesOptions): void;
+  options(): EngineSeriesOptions;
+  // Snapshot of the rows last passed to setData/update. Never a native series object.
+  data(): readonly EngineSeriesRow[];
+  // Row at a logical index. `mismatchDirection` is a string union; the adapter maps
+  // it onto LWC's numeric MismatchDirection. Missing index with "none" → null.
+  dataByIndex(logicalIndex: number, mismatchDirection?: EngineMismatchDirection): EngineSeriesRow | null;
   // Replaces the full marker set on this series. First call lazily creates the markers
   // primitive; subsequent calls reuse it. Cleared on remove().
   setMarkers(marks: MarkerSpec[]): void;
   createPriceLine(opts: PriceLineSpec): PriceLineHandle;
+  removePriceLine(line: PriceLineHandle): void;
+  priceLines(): PriceLineHandle[];
+  // The price scale this series is currently attached to (resolved live).
+  priceScale(): PriceScaleHandle;
   priceToCoordinate(price: number): number | null;
   coordinateToPrice(y: number): number | null;
   paneIndex(): number;
@@ -239,10 +288,20 @@ export interface SeriesHandle {
 }
 
 export interface ChartEngine {
+  // Renderer identity (R01-A02). "lwc" is the rented adapter; "mm" is the owned canvas.
+  readonly impl: "lwc" | "mm";
   addSeries(kind: EngineSeriesKind, options?: EngineSeriesOptions, paneIndex?: number): SeriesHandle;
+  // Same as series.remove(); kept so ChartPanel's chart.removeSeries(s) cluster maps 1:1.
+  removeSeries(series: SeriesHandle): void;
   panes(): PaneHandle[];
   timeScale(): TimeScaleHandle;
   priceScale(priceScaleId: string, paneIndex?: number): PriceScaleHandle;
+  // Generated chart root element (LWC's chartElement(); used for measuring/listeners).
+  chartElement(): HTMLElement;
+  // Currently applied chart options (open bag, same groups as EngineOptions).
+  options(): EngineOptions;
+  setCrosshairPosition(price: number, time: EngineTime, series: SeriesHandle): void;
+  clearCrosshairPosition(): void;
   // {width,height} of a pane's plotting area (throws for a missing pane, matching the
   // renderer — callers that probe speculatively own their try/catch, as ChartPanel does).
   paneSize(paneIndex?: number): { width: number; height: number };
