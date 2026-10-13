@@ -54,13 +54,12 @@ class SyntheticPane {
 
   get series() {
     return {
-      dataByIndex: (index: number, mismatch?: number | string) => {
+      dataByIndex: (index: number, mismatch?: "none" | "nearest-left" | "nearest-right") => {
         const n = this.bars.length;
         if (index >= 0 && index < n && Number.isInteger(index)) {
           return { time: this.bars[index], close: this.priceBase + index };
         }
-        const dir = mismatch === "nearest-left" || mismatch === -1 ? -1
-          : mismatch === "nearest-right" || mismatch === 1 ? 1 : 0;
+        const dir = mismatch === "nearest-left" ? -1 : mismatch === "nearest-right" ? 1 : 0;
         if (dir === -1) {
           return index >= n && n ? { time: this.bars[n - 1], close: this.priceBase + n - 1 } : null;
         }

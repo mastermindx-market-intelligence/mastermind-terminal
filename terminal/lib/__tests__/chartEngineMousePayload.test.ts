@@ -120,6 +120,7 @@ describe("M04-A02 mouse payload sanitization", () => {
       point: { x: 1, y: 2 },
       seriesData: new Map([[rawKey, row]]),
       hoveredSeries: rawKey,
+      sourceEvent: { clientX: 1, clientY: 2 },
     });
 
     expect(handler).toHaveBeenCalledTimes(1);
@@ -135,5 +136,11 @@ describe("M04-A02 mouse payload sanitization", () => {
     }
     expect(param.hoveredSeries).toBe(s1);
     expect(isRawLwcSeries(param.hoveredSeries)).toBe(false);
+    // The payload is REBUILT, not forwarded: no native key may survive (sourceEvent included).
+    expect(Object.keys(param).sort()).toEqual(
+      ["hoveredSeries", "logical", "point", "seriesData", "time"].sort(), // this payload has no paneIndex
+    );
+    // click/dblclick share wrapMouse, so the same sanitising must hold there.
+    expect(typeof (param as { sourceEvent?: unknown }).sourceEvent).toBe("undefined");
   });
 });

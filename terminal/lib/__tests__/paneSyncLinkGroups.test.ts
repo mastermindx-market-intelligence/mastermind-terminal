@@ -94,11 +94,10 @@ class FakePane {
   get series() {
     const pane = this; // eslint-disable-line @typescript-eslint/no-this-alias
     return pane.audit("series.", {
-      dataByIndex: (i: number, mismatch?: number | string) => {
+      dataByIndex: (i: number, mismatch?: "none" | "nearest-left" | "nearest-right") => {
         const n = pane.bars.length;
         if (i >= 0 && i < n && Number.isInteger(i)) return { time: pane.bars[i], close: 100 + i };
-        const dir = mismatch === "nearest-left" || mismatch === -1 ? -1
-          : mismatch === "nearest-right" || mismatch === 1 ? 1 : 0;
+        const dir = mismatch === "nearest-left" ? -1 : mismatch === "nearest-right" ? 1 : 0;
         if (dir === -1) return i >= n ? { time: pane.bars[n - 1], close: 100 + n - 1 } : null;
         if (dir === 1) return i < 0 ? { time: pane.bars[0], close: 100 } : null;
         return null;

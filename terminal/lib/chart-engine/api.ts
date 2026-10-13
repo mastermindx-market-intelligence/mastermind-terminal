@@ -174,7 +174,8 @@ export type EngineOptions = {
 // The crosshair/click/dbl-click callback payload. LWC's MouseEventParams is rich
 // (point, time, logical, seriesData map, hoveredSeries, …); the contract exposes the
 // same object shape structurally as an open record so consumers read what they need.
-// The adapter passes LWC's param through untouched.
+// The lwc adapter REBUILDS it (remapMouseParams): seriesData/hoveredSeries are re-keyed to
+// the owned SeriesHandles and no native key (sourceEvent included) survives.
 export type EngineMouseEventParams = {
   time?: EngineTime;
   logical?: number;

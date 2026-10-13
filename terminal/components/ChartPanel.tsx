@@ -26,7 +26,6 @@ import {
   EngineCrosshairMode,
   EngineLineStyle,
   EngineLineType,
-  EngineMismatchDirection,
   EnginePriceScaleMode,
 } from "@/lib/chart-engine/api";
 import { ENGINE_REFUSAL_PROBE_OPTIONS, isRefusalProbeRequested, resolveMountEngineImpl } from "@/lib/chart-engine/select";
@@ -80,7 +79,7 @@ import {
 } from "@/lib/priceTagPlacement";
 import { hoverTagPaint } from "@/lib/hoverTagPaint";
 import { setActivePaneCoords, getActivePaneCoords } from "@/lib/paneCoords";
-import { nearestMagnetY } from "@/lib/crosshairMagnet";
+import { candidatePaneIndex, nearestMagnetY } from "@/lib/crosshairMagnet";
 import { getJSON, getSliceAndOhlc, getCompositeOhlc, getOhlc, type CacheOutcome } from "@/lib/dataCache";
 import { parseComposite, alignAndSum } from "@/lib/composite";
 import { CMP_PALETTE, type CmpCfg, defaultCmpCfg, cmpKey } from "@/lib/compare";
@@ -9133,7 +9132,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
           try { candidates = priceS.pane().getSeries(); } catch {}
           for (const candidate of candidates) {
             try {
-              if (index == null || candidate.options()?.visible === false || candidate.paneIndex() !== priceS.paneIndex()) continue;
+              if (index == null || candidate.options()?.visible === false || candidatePaneIndex(candidate) !== priceS.paneIndex()) continue;
               const scaleId = candidate.options()?.priceScaleId;
               if (scaleId && scaleId !== "left" && scaleId !== "right") continue;
               const datum = candidate.dataByIndex(index) as any;

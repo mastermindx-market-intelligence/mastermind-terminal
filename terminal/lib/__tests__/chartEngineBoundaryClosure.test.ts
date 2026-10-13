@@ -101,10 +101,11 @@ describe("chart-engine M04 boundary closure", () => {
     expect(LWC_IMPORT_RE.test(stripComments(mutant))).toBe(true);
   });
 
-  it("detects raw plugin injection symbols in ChartPanel-shaped source (A01 mutant)", () => {
-    const mutant = "createSeriesMarkers(series, []);";
-    expect(/createSeriesMarkers\s*\(/.test(mutant)).toBe(true);
-    expect(/createTextWatermark\s*\(/.test('createTextWatermark(pane, {});')).toBe(true);
-    expect(/\.attachPrimitive\s*\(/.test("series.attachPrimitive(p);")).toBe(true);
+  it("ChartPanel injects no vendor plugin directly (A01)", () => {
+    const stripped = stripComments(readFileSync(CHART_PANEL, "utf8"));
+    // attachPrimitive is a CONTRACT member (SeriesHandle.attachPrimitive) and stays allowed.
+    expect(/createSeriesMarkers\s*\(/.test(stripped)).toBe(false);
+    expect(/createTextWatermark\s*\(/.test(stripped)).toBe(false);
+    expect(/\bnew\s+[A-Z][A-Za-z]*Primitive\b/.test(stripped)).toBe(false);
   });
 });

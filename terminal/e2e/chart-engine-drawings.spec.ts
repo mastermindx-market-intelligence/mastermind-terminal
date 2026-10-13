@@ -110,20 +110,30 @@ test.describe("chart-engine drawings [mobile A03 handle grab]", () => {
       await expect(drawing).toBeVisible({ timeout: 45_000 });
       const visibleLine = drawing.locator('line[data-geometry="1"]').first();
       await expect(visibleLine).toBeVisible({ timeout: 15_000 });
-      const select = await visibleLine.evaluate((el) => {
-        const rect = el.getBoundingClientRect();
-        return { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 };
-      });
+      // The drawing layer re-renders (React replaces the <g>) while the chart settles, so one
+      // measurement right after toBeVisible can land on a fresh, unlaid-out node and read 0.
+      let select = { x: 0, y: 0 };
+      await expect.poll(async () => {
+        select = await visibleLine.evaluate((el) => {
+          const rect = el.getBoundingClientRect();
+          return { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 };
+        });
+        return select.x > 0 && select.y > 0;
+      }, { timeout: 15_000 }).toBe(true);
       expect(select.x).toBeGreaterThan(0);
       expect(select.y).toBeGreaterThan(0);
       await page.mouse.click(select.x, select.y);
 
       const grip = drawing.locator("circle[data-handle]").first();
       await expect(grip).toBeVisible({ timeout: 15_000 });
-      const gripCenter = await grip.evaluate((el) => {
-        const rect = el.getBoundingClientRect();
-        return { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 };
-      });
+      let gripCenter = { x: 0, y: 0 };
+      await expect.poll(async () => {
+        gripCenter = await grip.evaluate((el) => {
+          const rect = el.getBoundingClientRect();
+          return { x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 };
+        });
+        return gripCenter.x > 0 && gripCenter.y > 0;
+      }, { timeout: 15_000 }).toBe(true);
 
       const before = JSON.parse(JSON.stringify(store.drawings[0])) as { points: { t: string; p: number }[] };
       const startX = gripCenter.x + 3;
