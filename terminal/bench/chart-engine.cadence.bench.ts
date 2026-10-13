@@ -233,25 +233,32 @@ async function captureTrace<T>(
   try {
     value = await body();
   } finally {
-    await page.waitForTimeout(250);
-    await trace.send("Tracing.end");
-    // Bound the wait: Tracing.tracingComplete should arrive within ~hundreds
-    // of ms after Tracing.end. 30 s is a hard wall so a stuck CDP session
-    // cannot hang the bench forever. The timer is cleared on success so it
-    // never fires spuriously.
-    let timer: ReturnType<typeof setTimeout> | null = null;
-    const timedOut = new Promise<never>((_, reject) => {
-      timer = setTimeout(() => reject(new Error(`INVALID: Tracing.tracingComplete not received within 30 s (${label})`)), 30_000);
-    });
     try {
-      await Promise.race([complete, timedOut]);
+      await page.waitForTimeout(250);
+      await trace.send("Tracing.end");
+      // Bound the wait: Tracing.tracingComplete should arrive within ~hundreds
+      // of ms after Tracing.end. 30 s is a hard wall so a stuck CDP session
+      // cannot hang the bench forever. The timer is cleared on success so it
+      // never fires spuriously.
+      let timer: ReturnType<typeof setTimeout> | null = null;
+      const timedOut = new Promise<never>((_, reject) => {
+        timer = setTimeout(() => reject(new Error(`INVALID: Tracing.tracingComplete not received within 30 s (${label})`)), 30_000);
+      });
+      try {
+        await Promise.race([complete, timedOut]);
+      } finally {
+        if (timer != null) clearTimeout(timer);
+      }
     } finally {
-      if (timer != null) clearTimeout(timer);
+      // Teardown on EVERY path: the 30 s timeout and a Tracing.end rejection
+      // both propagate out of the block above, so without this inner finally
+      // the stuck session that F6 exists to bound would still leak its two
+      // listeners and its CDPSession.
+      trace.off("Tracing.dataCollected", onData);
+      trace.off("Tracing.tracingComplete", onEnd);
+      // CDPSession.detach exists; the structural type narrows the union.
+      await (cdp as CDPSession).detach().catch(() => undefined);
     }
-    trace.off("Tracing.dataCollected", onData);
-    trace.off("Tracing.tracingComplete", onEnd);
-    // CDPSession.detach exists; the structural type narrows the union.
-    await (cdp as CDPSession).detach().catch(() => undefined);
   }
   return { value, events: asTraceEvents({ traceEvents: collected }) };
 }

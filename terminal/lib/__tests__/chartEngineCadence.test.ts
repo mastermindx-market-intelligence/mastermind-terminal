@@ -43,6 +43,9 @@ const INPUT_SAMPLE = JSON.parse(readFileSync(path.join(FIX_DIR, "cadence-trace.i
 
 const SAMPLE_EVENTS = asTraceEvents(SAMPLE);
 const INPUT_SAMPLE_EVENTS = asTraceEvents(INPUT_SAMPLE);
+// The single pid the Q03b fixture carries (its renderer); used by 12b to
+// derive a Browser-pid copy without hardcoding it twice.
+const FIXTURE_PID_FOR_MARKS = 2;
 
 // Pin the oracle literals computed in the throwaway script in $TMPDIR.
 // The script never touches cadence.ts; the literals are the contract.
@@ -400,6 +403,23 @@ describe("inputLatencyStats / presentedIntervals / measureVsync / checkInputMark
     if (!cm.ok) expect(cm.reason).toMatch(/count mismatch trace=2 page=3/);
     // Empty -> ok.
     expect(checkInputMarkClock([], [])).toEqual({ ok: true, maxDeviationMs: 0 });
+  });
+
+  // The bench passes the renderer pid so a Browser-pid copy of the same mark
+  // name cannot leak into the input set (and so cannot inflate input_marks or
+  // trip the clock check's equal-count rule). Derived here from the real
+  // fixture; the fixture itself stays a single-pid trace.
+  it("12b. userTimingAllMs drops a Browser-pid copy of the same mark name when a pid is given", () => {
+    const rendererPid = FIXTURE_PID_FOR_MARKS;
+    const browserPid = rendererPid + 99;
+    const copies = INPUT_SAMPLE_EVENTS.filter((e) => {
+      const r = e as { cat?: unknown; name?: unknown };
+      return r.cat === "blink.user_timing" && r.name === "cadence:pan:input";
+    }).map((e) => ({ ...(e as Record<string, unknown>), pid: browserPid }));
+    const withBrowser = [...INPUT_SAMPLE_EVENTS, ...copies];
+    expect(userTimingAllMs(withBrowser, "cadence:pan:input", rendererPid).length).toBe(48);
+    expect(userTimingAllMs(withBrowser, "cadence:pan:input").length).toBe(96);
+    expect(userTimingAllMs(INPUT_SAMPLE_EVENTS, "cadence:pan:input", browserPid)).toEqual([]);
   });
 });
 
@@ -947,8 +967,9 @@ describe("frameSequenceIntervals (Q03b vsync cross-check)", () => {
   });
 
   it("19. frameSequenceIntervals on the real fixture: 47 intervals and measureVsync -> {16.7, 60}", () => {
-    // The trimmed Chromium 149 pan fixture carries a single source
-    // (frame_source = 4294967296) with 48 distinct sequence keys -> 47
+    // The Q03 fixture (cadence-trace.sample.json, SAMPLE_EVENTS), not the
+    // Q03b input fixture: a trimmed Chromium 149 pan trace with a single
+    // source (frame_source = 4294967296) and 48 distinct sequence keys -> 47
     // consecutive (begin-time diff / sequence diff) values; the mode is
     // 16.7 ms -> hz 60.
     const out = frameSequenceIntervals(SAMPLE_EVENTS, ORACLE.rendererPid);

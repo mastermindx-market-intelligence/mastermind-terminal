@@ -58,8 +58,9 @@
 // gestures; hz = round(1000 / vsync_ms). Measured, never declared: nothing
 // here assumes 60 Hz / 120 Hz / 16.7 ms. When inputs arrive more slowly
 // than the display refreshes, every presented interval spans several
-// refreshes and this mode is a multiple of the true slot (a slow headless
-// host read 43.5 ms on a 16.7 ms clock). `frameSequenceIntervals` is the
+// refreshes and this mode tracks the modal INPUT GAP, which is generally
+// NOT a whole multiple of the slot (a slow headless host read 43.5 ms on a
+// 16.666 ms clock = 2.6 slots). `frameSequenceIntervals` is the
 // cross-check that does not depend on input: begin-time difference divided
 // by frame_sequence difference between consecutive frames of one BeginFrame
 // source. Its mode is printed as vsync_seq_ms on the diagnostic line and is
