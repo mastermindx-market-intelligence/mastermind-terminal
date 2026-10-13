@@ -125,15 +125,35 @@ function money(value: string | null, lang: Lang): string {
   const grouped=BigInt(whole).toLocaleString(lang==="zh"?"en-US":"en-US");
   return "$"+grouped+(fraction?"."+fraction:"");
 }
+/** Compact display rounding uses exact integer math, never float conversion.
+ * Source precision remains unchanged in the decoded object and tooltip.
+ */
+function compactDecimal(value: string | null, multiplier: bigint, places: number): string {
+  if(value===null) return "—";
+  const minus=value.startsWith("-");
+  const [whole, fraction=""]=(minus?value.slice(1):value).split(".");
+  const original=BigInt(whole+fraction);
+  const denominator=BigInt(10)**BigInt(fraction.length);
+  const precision=BigInt(10)**BigInt(places);
+  const numerator=original*multiplier*precision;
+  const rounded=(numerator*BigInt(2)+denominator)/(denominator*BigInt(2));
+  if(original>BigInt(0) && rounded===BigInt(0)) return "≈0";
+  const integer=rounded/precision;
+  const remainder=(rounded%precision).toString().padStart(places,"0").replace(/0+$/,"");
+  return (minus&&rounded!==BigInt(0)?"-":"")+integer.toString()+
+    (remainder?"."+remainder:"");
+}
 function percent(value: string | null): string {
-  if (value===null) return "—";
+  if(value===null) return "—";
   const [whole, fraction=""]=value.split(".");
-  const scale=BigInt(10)**BigInt(fraction.length);
-  const numerator=BigInt(whole+fraction)*BigInt(100);
-  const integer=numerator/scale;
-  const remainder=numerator%scale;
-  const rest=remainder.toString().padStart(fraction.length,"0").replace(/0+$/,"");
-  return integer.toString()+(rest?"."+rest:"")+"%";
+  const magnitude=BigInt(whole+fraction);
+  const denominator=BigInt(10)**BigInt(fraction.length);
+  const compact=compactDecimal(value,BigInt(100),1);
+  // Do not make a tiny nonzero fraction look like zero, or 99.95%
+  // coverage look like mathematically complete 100%.
+  if(magnitude>BigInt(0)&&compact==="≈0") return "<0.1%";
+  if(magnitude<denominator&&compact==="100") return ">99.9%";
+  return compact+"%";
 }
 function stamp(value: bigint | null, lang: Lang): string | null {
   if(value===null) return null;
@@ -274,7 +294,10 @@ export function Tp2ResearchReadout({evidence,r0,lang,privateViewAuthorized}:Prop
                 <p className="mt-2 text-xs" style={COLORS.mute}>
                   {t.minute} {s.minuteBaseline.minuteIndex}
                   <span> · {t.cumulative}: </span>
-                  <strong style={COLORS.num}>{percent(s.minuteBaseline.cumulativeOffexchangeShare)}</strong>
+                  <strong style={COLORS.num}
+                    title={s.minuteBaseline.cumulativeOffexchangeShare??undefined}>
+                    {percent(s.minuteBaseline.cumulativeOffexchangeShare)}
+                  </strong>
                   <span> · {s.minuteBaseline.sampleN} {t.prior}</span>
                 </p>
               )}
@@ -310,8 +333,9 @@ export function Tp2ResearchReadout({evidence,r0,lang,privateViewAuthorized}:Prop
           <div className="mt-2 flex flex-wrap items-center gap-x-6 gap-y-2 text-xs">
             <span style={COLORS.mute}>{t.balance}: <strong style={COLORS.num}
               title={r0View.pressure.pressureBalance??undefined}>
-              {r0View.pressure.pressureBalance??"—"}</strong></span>
-            <span style={COLORS.mute}>{t.coverage}: <strong style={COLORS.num}>
+              {compactDecimal(r0View.pressure.pressureBalance,BigInt(1),3)}</strong></span>
+            <span style={COLORS.mute}>{t.coverage}: <strong style={COLORS.num}
+              title={r0View.pressure.coverage??undefined}>
               {percent(r0View.pressure.coverage)}</strong></span>
             <span className="text-[11px]" style={COLORS.warning}>
               {t.researchOnly} · {t.noEdge}</span>

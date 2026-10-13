@@ -38,6 +38,10 @@ function contrastRatio(foreground,background) {
  const a=luminance(foreground),b=luminance(background);
  return (Math.max(a,b)+0.05)/(Math.min(a,b)+0.05);
 }
+const screenshotDir=process.env.TP2_BROWSER_SCREENSHOT_DIR;
+if(screenshotDir && (!path.isAbsolute(screenshotDir) ||
+   !screenshotDir.startsWith(path.join(terminal,".tp2-"))))
+ throw new Error("Screenshots must stay in a local .tp2- review path");
 const temporary=fs.mkdtempSync(path.join(terminal,".tp2-browser-review-"));
 let browser;
 try {
@@ -105,6 +109,11 @@ try {
   results.push({width,lang,theme,columns:actual.columns,scrollWidth:actual.width,
     contrast:Number(contrast.toFixed(2)),background:actual.background,
     foreground:actual.foreground});
+  if(screenshotDir && lang==="en" && theme==="dark" && (width===390||width===1440)){
+   fs.mkdirSync(screenshotDir,{recursive:true});
+   await page.screenshot({path:path.join(screenshotDir,
+     "tp2-private-synthetic-"+width+".png"),fullPage:true});
+  }
   await page.close();
  }
  const g=await browser.newPage({viewport:{width:390,height:844}});

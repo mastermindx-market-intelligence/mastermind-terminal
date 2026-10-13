@@ -79,6 +79,28 @@ describe("Terminal TP-2 private source-aware readout",()=>{
     expect(html).toContain("No validated directional edge");
     expect(html).not.toContain("Entry level");
   });
+  it("keeps original precision available while using concise research display figures",()=>{
+    const html=render(authorized());
+    expect(html).toContain('title="0.3333333333333333333333333333"');
+    expect(html).toContain(">0.333</strong>");
+    expect(html).toContain(">78.9%</strong>");
+    expect(html).not.toContain(">78.94736842105263157894736842%</strong>");
+    expect(html).toContain("40%");
+  });
+  it("does not round tiny or nearly complete observed coverage into false zero or full source",()=>{
+    const source=r0();
+    if(!source.pressure) throw new Error("fixture R0 context absent");
+    const almost={...source,pressure:{
+      ...source.pressure,pressureBalance:"-0.0001",coverage:"0.9996"}};
+    const html=render({...authorized(),r0:almost});
+    expect(html).toContain(">≈0</strong>");
+    expect(html).toContain("&gt;99.9%</strong>");
+    expect(html).toContain('title="0.9996"');
+    const tiny={...source,pressure:{...source.pressure,coverage:"0.000001"}};
+    const tinyHtml=render({...authorized(),r0:tiny});
+    expect(tinyHtml).toContain("&lt;0.1%");
+    expect(tinyHtml).not.toContain(">0%</strong>");
+  });
   it("uses approved Mastermind design tokens and responsive layout classes",()=>{
     const html=render(authorized());
     expect(html).toContain("var(--panel)");
