@@ -99,6 +99,19 @@ export type SeriesModel = {
   removed: boolean;
   /** Ascending indices of valued (non-whitespace) rows; null = dirty. */
   valuedIdx?: number[] | null;
+  // ── PERF-B index caches (one per series, bounded by rows.length; see
+  // ensureMsKeys / maintainValuedIdx / maintainExtentsOnInPlace). Lazy: built
+  // only when a lookup actually needs them, never rebuilt per tick.
+  /** epoch-ms keys parallel to rows (capacity may exceed msKeyCount); null = dirty. */
+  msKeys?: Float64Array | null;
+  /** Valid prefix length of msKeys (== rows.length when clean). */
+  msKeyCount?: number;
+  /** False when keys are not strictly ascending finite — lookups fall back to the linear scan. */
+  msKeysSorted?: boolean;
+  /** Bumped on every rows mutation so extent caches can memo per row-content. */
+  rowVersion?: number;
+  /** Cached visible-slice price extents for (from, to, rowVersion); null = dirty. */
+  extentsCache?: { from: number; to: number; rowVersion: number; min: number; max: number } | null;
 };
 export type PaneModel = {
   index: number;
@@ -155,6 +168,7 @@ export const priceScaleMath = {
 };
 
 export function timeToMs(t: EngineTime): number {
+  __perfCounters.timeToMsCalls += 1;
   if (typeof t === "number") return t <= EPOCH_SECONDS_MAX ? t * 1000 : t;
   if (typeof t === "object") return Date.UTC(t.year, t.month - 1, t.day, 12, 0, 0);
   if (/^\d+$/.test(t)) return Number(t) * 1000;
@@ -173,14 +187,39 @@ export type FutureSlotResolver = (
   primaryTimes: readonly EngineTime[],
 ) => { logical: number; time: EngineTime } | null;
 
+// PERF-B: memoise the O(N) cadence map and the 200-slot future grid per data
+// generation. Keyed on the times-array REFERENCE the model passes in (stable
+// across in-place ticks and appends), so a custom .resolve override still sees
+// the same array while the default resolve stops re-mapping per call.
+const cadenceTimesMemo = new WeakMap<readonly EngineTime[], (string | number)[]>();
+const futureBarsMemo = new WeakMap<readonly (string | number)[], (string | number)[]>();
+
+function cadenceTimesOf(primaryTimes: readonly EngineTime[]): (string | number)[] {
+  let times = cadenceTimesMemo.get(primaryTimes);
+  if (!times) {
+    times = primaryTimes.map(asCadenceTime);
+    cadenceTimesMemo.set(primaryTimes, times);
+  }
+  return times;
+}
+
+function futureBarsOf(times: readonly (string | number)[]): (string | number)[] {
+  let bars = futureBarsMemo.get(times);
+  if (!bars) {
+    bars = futureBarTimes(times);
+    futureBarsMemo.set(times, bars);
+  }
+  return bars;
+}
+
 /** Named seam: replace `.resolve` to plug a different future-time cadence. */
 export const futureSlotResolver: { resolve: FutureSlotResolver } = {
   resolve(time, primaryTimes) {
     if (primaryTimes.length < 2) return null;
-    const times = primaryTimes.map(asCadenceTime);
+    const times = cadenceTimesOf(primaryTimes);
     const slot = futureSlotOf(futureCadence(times), asCadenceTime(time));
     if (slot < 0) return null;
-    const ft = futureBarTimes(times)[slot];
+    const ft = futureBarsOf(times)[slot];
     return ft == null ? null : { logical: primaryTimes.length + slot, time: ft };
   },
 };
@@ -244,6 +283,291 @@ function lowerBoundOf(list: number[], target: number): number {
     if ((list[mid] as number) < target) lo = mid + 1; else hi = mid;
   }
   return lo;
+}
+
+// ── PERF-B: O(log n) time lookups over a cached per-series key index ──────────
+
+/**
+ * Test-only instrumentation (documented PERF-B hook): cheap increments on the
+ * hot lookup/scan paths so N-independence tests can count work. Product code
+ * only ever increments; tests reset and read. Never gates behaviour.
+ */
+export const __perfCounters = {
+  /** timeToMs() invocations (row-key conversions and query conversions). */
+  timeToMsCalls: 0,
+  /** Row visits spent inside a LINEAR fallback scan (disordered/NaN keys only). */
+  rowsScanned: 0,
+  /** Row visits spent rebuilding the valued index (allowed once per data generation). */
+  valuedRowsBuilt: 0,
+  /** Row visits spent in a full visible-extents rescan. */
+  extentsRowsScanned: 0,
+};
+
+/** First key position with keys[i] >= target (Float64Array lowerBound). */
+function lowerBoundMs(keys: Float64Array, count: number, target: number): number {
+  let lo = 0;
+  let hi = count;
+  while (lo < hi) {
+    const mid = (lo + hi) >>> 1;
+    if (keys[mid] < target) lo = mid + 1;
+    else hi = mid;
+  }
+  return lo;
+}
+
+/** First key position with keys[i] > target (Float64Array upperBound). */
+function upperBoundMs(keys: Float64Array, count: number, target: number): number {
+  let lo = 0;
+  let hi = count;
+  while (lo < hi) {
+    const mid = (lo + hi) >>> 1;
+    if (keys[mid] <= target) lo = mid + 1;
+    else hi = mid;
+  }
+  return lo;
+}
+
+function rowVersionOf(s: SeriesModel): number {
+  return s.rowVersion ?? 0;
+}
+
+function bumpRowVersion(s: SeriesModel): void {
+  s.rowVersion = rowVersionOf(s) + 1;
+}
+
+/**
+ * Ensure s.msKeys covers s.rows (lazy, once per data generation; an append
+ * extends the tail in O(1) amortised). Keys are epoch-ms via timeToMs so
+ * lookups answer in exactly the domain the previous linear scans used.
+ * Disorder or a non-finite key clears msKeysSorted and every lookup falls
+ * back to the original scan (correctness over speed for invalid data).
+ */
+function ensureMsKeys(s: SeriesModel): void {
+  const n = s.rows.length;
+  if (s.msKeys != null && s.msKeyCount === n) return;
+  if (s.msKeys == null || s.msKeysSorted !== true || (s.msKeyCount ?? 0) > n) {
+    let keys = s.msKeys;
+    if (keys == null || keys.length < n) {
+      let cap = Math.max(16, n);
+      cap += cap >> 1; // growth headroom so appends extend in place
+      keys = new Float64Array(cap);
+    }
+    let sorted = true;
+    for (let i = 0; i < n; i++) {
+      const ms = timeToMs(s.rows[i].time);
+      keys[i] = ms;
+      if (!Number.isFinite(ms) || (i > 0 && !(ms > keys[i - 1]))) sorted = false;
+    }
+    s.msKeys = keys;
+    s.msKeyCount = n;
+    s.msKeysSorted = sorted;
+    return;
+  }
+  // Clean sorted prefix shorter than rows: appended rows only — extend the tail.
+  let keys = s.msKeys as Float64Array;
+  if (keys.length < n) {
+    let cap = Math.max(16, n);
+    cap += cap >> 1;
+    const grown = new Float64Array(cap);
+    grown.set(keys.subarray(0, s.msKeyCount ?? 0));
+    keys = grown;
+    s.msKeys = keys;
+  }
+  let sorted = s.msKeysSorted === true;
+  for (let i = s.msKeyCount ?? 0; i < n; i++) {
+    const ms = timeToMs(s.rows[i].time);
+    keys[i] = ms;
+    if (!Number.isFinite(ms) || !(ms > keys[i - 1])) sorted = false;
+  }
+  s.msKeyCount = n;
+  s.msKeysSorted = sorted;
+}
+
+/**
+ * O(log n) row lookup on the cached ms-key index, with the ORIGINAL linear
+ * scan as the fallback for disordered/non-finite keys. Semantics are pinned
+ * against that scan: exact = first row whose ms equals the query's;
+ * nearest keeps the EARLIER row on ties; nearest-left/right as in lod.
+ */
+export function seriesIndexOfTime(
+  s: SeriesModel,
+  time: EngineTime,
+  mode: "exact" | "nearest" | "nearest-left" | "nearest-right",
+): number | null {
+  const n = s.rows.length;
+  if (n === 0) return null;
+  const target = timeToMs(time);
+  __perfCounters.timeToMsCalls += 1;
+  if (!Number.isFinite(target)) return null;
+  ensureMsKeys(s);
+  if (s.msKeysSorted !== true) {
+    // Fallback: the pre-PERF-B linear scan, byte-for-byte semantics.
+    let best = -1;
+    let bestDist = Infinity;
+    for (let i = 0; i < n; i++) {
+      const d = Math.abs(timeToMs(s.rows[i].time) - target);
+      if (d === 0) return i;
+      if (d < bestDist) { bestDist = d; best = i; }
+    }
+    __perfCounters.rowsScanned += n;
+    return mode === "exact" ? null : mode === "nearest" || mode === "nearest-left" || mode === "nearest-right"
+      ? best >= 0 ? best : null
+      : null;
+  }
+  const keys = s.msKeys as Float64Array;
+  if (mode === "exact") {
+    const i = lowerBoundMs(keys, n, target);
+    return i < n && keys[i] === target ? i : null;
+  }
+  if (mode === "nearest-left") {
+    const i = upperBoundMs(keys, n, target) - 1;
+    return i >= 0 ? i : null;
+  }
+  if (mode === "nearest-right") {
+    const i = lowerBoundMs(keys, n, target);
+    return i < n ? i : null;
+  }
+  const left = upperBoundMs(keys, n, target) - 1;
+  const right = lowerBoundMs(keys, n, target);
+  if (left < 0) return right < n ? right : null;
+  if (right >= n) return left;
+  return target - keys[left] <= keys[right] - target ? left : right;
+}
+
+/** Time-source view over a series for ticks.ts: no per-frame times copy. */
+export type SeriesTimeSource = {
+  readonly length: number;
+  timeAt(i: number): EngineTime;
+  /** Cached epoch-ms key at i (NaN when the row's time is malformed). */
+  msAt?(i: number): number;
+};
+
+/** Cached {timeAt, msAt} accessor over s.rows — O(1) per call after ensureMsKeys. */
+export function seriesTimeSource(s: SeriesModel): SeriesTimeSource {
+  ensureMsKeys(s);
+  const keys = s.msKeys as Float64Array;
+  return {
+    length: s.rows.length,
+    timeAt: (i: number) => s.rows[i].time,
+    msAt: keys != null ? (i: number) => keys[i] : undefined,
+  };
+}
+
+/** Ensure the valued index exists (builds once per data generation). */
+function ensureValuedIdx(s: SeriesModel): number[] {
+  if (s.valuedIdx == null) {
+    s.valuedIdx = valuedIndicesOf(s.rows);
+    __perfCounters.valuedRowsBuilt += s.rows.length;
+  }
+  return s.valuedIdx;
+}
+
+/**
+ * Maintain s.valuedIdx across a rows mutation WITHOUT a full rebuild.
+ * Only the in-place last-row update and the append are O(1); a historical
+ * whitespace<->valued flip (or anything else) dirties the cache and the next
+ * dataByIndex rebuilds it lazily — exactly the pre-PERF-B behaviour.
+ */
+function maintainValuedIdx(
+  s: SeriesModel,
+  at: number,
+  wasValued: boolean,
+  isValued: boolean,
+): void {
+  const idx = s.valuedIdx;
+  if (idx == null) return; // dirty stays dirty; lazy rebuild later
+  if (wasValued && !isValued) {
+    const last = idx.length - 1;
+    if (last >= 0 && idx[last] === at) idx.pop();
+    else s.valuedIdx = null; // interior flip: rebuild lazily
+    return;
+  }
+  if (!wasValued && isValued) {
+    const last = idx.length - 1;
+    if (last >= 0 && idx[last] > at) {
+      s.valuedIdx = null; // interior insertion: rebuild lazily
+      return;
+    }
+    if (last < 0 || idx[last] !== at) idx.push(at);
+  }
+}
+
+/** Finite numbers the visible-extents scan would consider for `row` (kind-aware). */
+function rowExtentNumbers(s: SeriesModel, row: EngineSeriesRow): number[] {
+  const out: number[] = [];
+  const b = row as { open?: unknown; high?: unknown; low?: unknown; close?: unknown; value?: unknown };
+  if (s.kind === "candles" || s.kind === "bars") {
+    for (const k of ["high", "low", "open", "close"] as const) {
+      const v = b[k];
+      if (typeof v === "number" && Number.isFinite(v)) out.push(v);
+    }
+  } else if (typeof b.value === "number" && Number.isFinite(b.value)) {
+    out.push(b.value);
+  }
+  return out;
+}
+
+/**
+ * O(1) incremental maintenance of the visible-extents cache across an in-place
+ * last-row update. If the OLD row held (equalled) a cached extreme the min/max
+ * may have been its alone, so the cache is dropped and the next read rescans
+ * ONLY the visible slice; otherwise the new row's values can only extend it.
+ */
+function maintainExtentsOnInPlace(
+  s: SeriesModel,
+  window: { from: number; to: number },
+  oldRow: EngineSeriesRow,
+  newRow: EngineSeriesRow,
+  prevVersion: number,
+): void {
+  const c = s.extentsCache;
+  if (!c) return;
+  if (c.rowVersion !== prevVersion) { s.extentsCache = null; return; }
+  if (c.from !== window.from || c.to !== window.to) { s.extentsCache = null; return; }
+  const oldNums = rowExtentNumbers(s, oldRow);
+  for (const v of oldNums) {
+    if (v === c.min || v === c.max) { s.extentsCache = null; return; }
+  }
+  let min = c.min;
+  let max = c.max;
+  for (const v of rowExtentNumbers(s, newRow)) {
+    if (v < min) min = v;
+    if (v > max) max = v;
+  }
+  s.extentsCache = { from: window.from, to: window.to, rowVersion: rowVersionOf(s), min, max };
+}
+
+/** Current inclusive visible row window for a series (matches visiblePriceExtents). */
+function visibleWindowFor(s: SeriesModel, time: TimeScaleState): { from: number; to: number } {
+  return {
+    from: Math.max(0, Math.floor(time.visibleFrom)),
+    to: Math.min(s.rows.length - 1, Math.ceil(time.visibleTo)),
+  };
+}
+
+/**
+ * Apply the kind-specific unions (histogram base / baseline base price) to RAW
+ * row extents. Applied per read so option changes take effect without touching
+ * the row-scan cache; union BEFORE the finite check, exactly like the
+ * pre-PERF-B single-pass scan.
+ */
+function finishPriceExtents(s: SeriesModel, min: number, max: number): { min: number; max: number } | null {
+  if (s.kind === "histogram") {
+    const raw = s.options.base;
+    const base = typeof raw === "number" && Number.isFinite(raw) ? raw : 0;
+    if (base < min) min = base;
+    if (base > max) max = base;
+  } else if (s.kind === "baseline") {
+    const raw = s.options.baseValue;
+    const price = raw && typeof raw === "object" && typeof (raw as { price?: unknown }).price === "number"
+      && Number.isFinite((raw as { price: number }).price)
+      ? (raw as { price: number }).price
+      : (typeof s.options.base === "number" && Number.isFinite(s.options.base) ? s.options.base : 0);
+    if (price < min) min = price;
+    if (price > max) max = price;
+  }
+  if (!Number.isFinite(min) || !Number.isFinite(max)) return null;
+  return { min, max };
 }
 
 export type ModelHooks = { onInvalidate: () => void; onStructure: () => void; clock?: ModelClock };
@@ -440,6 +764,12 @@ export class ChartModel {
     const start = Math.max(0, Math.floor(this.time.visibleFrom));
     const end = Math.min(s.rows.length - 1, Math.ceil(this.time.visibleTo));
     if (start > end) return null;
+    // PERF-B: memo per (window, rowVersion). The kind unions below depend on
+    // options only, so they are re-applied on every read from cached raw extents.
+    const c = s.extentsCache;
+    if (c && c.from === start && c.to === end && c.rowVersion === rowVersionOf(s)) {
+      return finishPriceExtents(s, c.min, c.max);
+    }
     let min = Infinity;
     let max = -Infinity;
     const ohlc = s.kind === "candles" || s.kind === "bars";
@@ -464,22 +794,9 @@ export class ChartModel {
         }
       }
     }
-    if (s.kind === "histogram") {
-      const raw = s.options.base;
-      const base = typeof raw === "number" && Number.isFinite(raw) ? raw : 0;
-      if (base < min) min = base;
-      if (base > max) max = base;
-    } else if (s.kind === "baseline") {
-      const raw = s.options.baseValue;
-      const price = raw && typeof raw === "object" && typeof (raw as { price?: unknown }).price === "number"
-        && Number.isFinite((raw as { price: number }).price)
-        ? (raw as { price: number }).price
-        : (typeof s.options.base === "number" && Number.isFinite(s.options.base) ? s.options.base : 0);
-      if (price < min) min = price;
-      if (price > max) max = price;
-    }
-    if (!Number.isFinite(min) || !Number.isFinite(max)) return null;
-    return { min, max };
+    __perfCounters.extentsRowsScanned += end - start + 1;
+    s.extentsCache = { from: start, to: end, rowVersion: rowVersionOf(s), min, max };
+    return finishPriceExtents(s, min, max);
   }
 
   visibleValues(s: SeriesModel): number[] {
@@ -496,11 +813,13 @@ export class ChartModel {
   /** First valued close at or after the visible left (LWC firstBar = NearestRight, dev:3559-3566). */
   firstVisibleClose(s: SeriesModel): { index: number; value: number } | null {
     const start = Math.max(0, Math.floor(this.time.visibleFrom));
-    for (let i = start; i < s.rows.length; i++) {
-      const v = seriesClose(s.rows[i]);
-      if (v != null && Number.isFinite(v)) return { index: i, value: v };
-    }
-    return null;
+    // PERF-B: binary over the cached valued index instead of scanning rows.
+    const valued = ensureValuedIdx(s);
+    const at = lowerBoundOf(valued, start);
+    if (at >= valued.length) return null;
+    const index = valued[at] as number;
+    const v = seriesClose(s.rows[index]);
+    return v != null && Number.isFinite(v) ? { index, value: v } : null;
   }
 
   projectionFor(series: SeriesModel): Projection {
@@ -842,7 +1161,14 @@ export class ChartModel {
     const s = this.series.get(id);
     if (!this.alive || !s || s.removed) return;
     s.rows = rows.slice();
+    // PERF-B: a new data generation invalidates every per-series cache.
     s.valuedIdx = null;
+    s.msKeys = null;
+    s.msKeyCount = 0;
+    s.msKeysSorted = false;
+    s.extentsCache = null;
+    this.primaryTimesCache = null;
+    bumpRowVersion(s);
     if (!this.rangeExplicit && this.primarySeries()?.id === id) {
       this.time.visibleFrom = 0;
       this.time.visibleTo = Math.max(1, s.rows.length);
@@ -856,21 +1182,59 @@ export class ChartModel {
     if (!this.alive || !s || s.removed) return;
     const t = timeToMs(row.time);
     if (historicalUpdate) {
-      const idx = s.rows.findIndex((r) => timeToMs(r.time) === t);
+      // PERF-B: O(log n) via the key index (same first-equal-on-ms semantics as
+      // the previous findIndex); disordered keys fall back to the same scan.
+      let idx = -1;
+      if (s.rows.length > 0) {
+        ensureMsKeys(s);
+        if (s.msKeysSorted === true && Number.isFinite(t)) {
+          const keys = s.msKeys as Float64Array;
+          const at = lowerBoundMs(keys, s.rows.length, t);
+          if (at < s.rows.length && keys[at] === t) idx = at;
+        } else {
+          idx = s.rows.findIndex((r) => timeToMs(r.time) === t);
+          __perfCounters.rowsScanned += s.rows.length;
+        }
+      }
       if (idx < 0) {
         throw new Error("Cannot update non-existing data point when historicalUpdate is true");
       }
+      const wasValued = seriesClose(s.rows[idx]) != null;
+      const prevTime = s.rows[idx].time;
       s.rows[idx] = row;
+      // An in-row time swap is impossible here (idx matched on ms equality), so
+      // the key index stays valid; only a whitespace<->valued flip dirties it.
+      const isValued = seriesClose(row) != null;
+      if (wasValued !== isValued) s.valuedIdx = null;
+      if (prevTime !== row.time) this.primaryTimesCache = null;
+      bumpRowVersion(s);
+      s.extentsCache = null; // interior row replaced: conservative full rescan of the visible slice
     } else if (s.rows.length === 0) {
       s.rows.push(row);
+      if (seriesClose(row) != null) maintainValuedIdx(s, 0, false, true);
+      s.msKeys = null; // lazily rebuilt (single push is O(1) anyway)
+      s.extentsCache = null;
+      bumpRowVersion(s);
     } else {
       const last = s.rows[s.rows.length - 1];
       const lastT = timeToMs(last.time);
       if (t < lastT) {
         throw new Error(`Cannot update oldest data, last time=${String(last.time)}, new time=${String(row.time)}`);
       }
-      if (t === lastT) s.rows[s.rows.length - 1] = row;
-      else {
+      if (t === lastT) {
+        // LIVE TICK: O(1) amortised — no index rebuild, extents maintained in place.
+        const wasValued = seriesClose(last) != null;
+        const windowBefore = visibleWindowFor(s, this.time);
+        s.rows[s.rows.length - 1] = row;
+        // An equal-ms time with a different representation can change how the
+        // future cadence renders (`typeof last === "number"`), so drop the
+        // snapshot; it rebuilds lazily on the next future-slot request.
+        if (last.time !== row.time) this.primaryTimesCache = null;
+        const prevVersion = rowVersionOf(s);
+        bumpRowVersion(s);
+        maintainValuedIdx(s, s.rows.length - 1, wasValued, seriesClose(row) != null);
+        maintainExtentsOnInPlace(s, windowBefore, last, row, prevVersion);
+      } else {
         const nBefore = s.rows.length;
         const follow = this.primarySeries()?.id === id
           && lastBarIsVisible(this.time.visibleFrom, this.time.visibleTo, nBefore);
@@ -883,9 +1247,29 @@ export class ChartModel {
             this.time.rightOffset -= 1;
           }
         }
+        // PERF-B: extend a CLEAN key index tail in O(1) amortised; a dirty one
+        // stays dirty (rebuilt lazily on the next lookup, never per tick).
+        if (s.msKeys != null && s.msKeysSorted === true && (s.msKeyCount ?? 0) === nBefore) {
+          let keys = s.msKeys;
+          if (keys.length <= nBefore) {
+            let cap = Math.max(16, s.rows.length);
+            cap += cap >> 1;
+            const grown = new Float64Array(cap);
+            grown.set(keys.subarray(0, nBefore));
+            keys = grown;
+            s.msKeys = grown;
+          }
+          keys[nBefore] = t;
+          if (!(t > keys[nBefore - 1])) s.msKeysSorted = false;
+          s.msKeyCount = s.rows.length;
+        }
+        if (seriesClose(row) != null) maintainValuedIdx(s, nBefore, false, true);
+        bumpRowVersion(s);
+        // Window may shift (shiftVisibleRangeOnNewBar) — drop rather than risk a
+        // stale min/max; the next read rescans ONLY the visible slice.
+        s.extentsCache = null;
       }
     }
-    s.valuedIdx = null;
     this.bump();
   }
 
@@ -933,21 +1317,14 @@ export class ChartModel {
   /**
    * Exact logical index of `time` on the primary series (dev:6037-6053).
    * Off-grid — including future times — is null unless findNearest.
+   * PERF-B: O(log n) via the cached ms-key index (semantics pinned by the
+   * pre-change scan: first exact ms match; nearest keeps the earlier row).
    */
   timeToIndex(time: EngineTime, findNearest?: boolean): number | null {
     if (!this.alive) return null;
     const primary = this.primarySeries();
     if (!primary || primary.rows.length === 0) return null;
-    const target = timeToMs(time);
-    if (!Number.isFinite(target)) return null;
-    let best = -1;
-    let bestDist = Infinity;
-    for (let i = 0; i < primary.rows.length; i++) {
-      const d = Math.abs(timeToMs(primary.rows[i].time) - target);
-      if (d === 0) return i;
-      if (d < bestDist) { bestDist = d; best = i; }
-    }
-    return findNearest && best >= 0 ? best : null;
+    return seriesIndexOfTime(primary, time, findNearest ? "nearest" : "exact");
   }
 
   /** Time at a logical index on the primary series. Out-of-range logicals clamp to the first/last row (no future leak). */
@@ -976,7 +1353,7 @@ export class ChartModel {
     if (!this.alive) return null;
     const primary = this.primarySeries();
     if (!primary || primary.rows.length < 2) return null;
-    return futureSlotResolver.resolve(time, primary.rows.map((r) => r.time))?.logical ?? null;
+    return futureSlotResolver.resolve(time, this.primaryTimesSnapshot(primary))?.logical ?? null;
   }
 
   /** Drawing-only: time of a synthetic future slot at `logical`, or null when that slot is a real bar. */
@@ -987,8 +1364,30 @@ export class ChartModel {
     const n = primary.rows.length;
     const i = Math.round(logical);
     if (i < n) return null;
-    const futures = futureBarTimes(primary.rows.map((r) => asCadenceTime(r.time)));
-    return futures[i - n] ?? null;
+    return futureBarsOf(cadenceTimesOf(this.primaryTimesSnapshot(primary)))[i - n] ?? null;
+  }
+
+  /**
+   * PERF-B: stable times-array snapshot of the primary rows, cached per data
+   * generation (rows-array identity + length). In-place ticks hit; appends
+   * extend the tail lazily; setData rebuilds. The stable reference is what
+   * makes the cadence/futures WeakMap memos in futureSlotResolver hit.
+   */
+  private primaryTimesCache: { rowsRef: EngineSeriesRow[]; n: number; times: EngineTime[] } | null = null;
+
+  private primaryTimesSnapshot(primary: SeriesModel): EngineTime[] {
+    const n = primary.rows.length;
+    const c = this.primaryTimesCache;
+    if (c && c.rowsRef === primary.rows) {
+      if (c.n === n) return c.times;
+      // Same rows array, more rows (append): extend the tail in place.
+      for (let i = c.n; i < n; i++) c.times.push(primary.rows[i].time);
+      c.n = n;
+      return c.times;
+    }
+    const times = primary.rows.map((r) => r.time);
+    this.primaryTimesCache = { rowsRef: primary.rows, n, times };
+    return times;
   }
 }
 
@@ -1060,7 +1459,7 @@ class ModelSeriesHandle implements SeriesHandle {
     // Mirror that over the valued subset of s.rows. The default direction
     // preserves the canvas precedent of rounding non-integer logicals to the
     // nearest integer (P-1: chartEngineCanvasC02.test.ts:105 pins this).
-    const valuedAt = s.valuedIdx ?? (s.valuedIdx = valuedIndicesOf(s.rows));
+    const valuedAt = ensureValuedIdx(s);
     const n = valuedAt.length;
     if (n === 0) return null;
     const lo = lowerBoundOf(valuedAt, logicalIndex);
