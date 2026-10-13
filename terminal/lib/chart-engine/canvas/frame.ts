@@ -363,6 +363,7 @@ function paintInPaneAxes(
     [axisWidthForLabels(pTicks.map((t) => t.label), measure, font, 4)],
     0,
   ));
+  model.priceAxisStripPx[paneIndex] = strip;
   const placed = layoutPriceLabels(
     pTicks.map((t) => ({ value: t.value, y: t.y, label: t.label })),
     { heightPx: h, widthPx: strip, paddingPx: 4, font, dpr },

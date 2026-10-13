@@ -254,9 +254,17 @@ describe("F3 — destroy() cancels the armed glide frame and balances bridge lis
     container.remove();
   });
 
-  it("destroy removes every bridge listener once and cancels the armed glide frame", () => {
-    const added: Array<[string, boolean]> = [];
-    const removed: Array<[string, boolean]> = [];
+  // Shared harness: returns the counters plus a mounted engine with an armed glide.
+  // When `opts.release === false` the harness leaves the gesture in a pressed
+  // (still-dragging) state — no `pointerup`, and no `armed.length > 0` check —
+  // so a caller can drive `engine.destroy()` mid-drag and still observe the
+  // post-destroy behaviour. `m` is the unwrapped model handle (used to read
+  // `m.time.visibleFrom` in the RF-5 active-drag test).
+  function mountDragged(
+    added: Array<[string, boolean]>,
+    removed: Array<[string, boolean]>,
+    opts: { release?: boolean } = {},
+  ) {
     const origAdd = HTMLCanvasElement.prototype.addEventListener;
     const origRemove = HTMLCanvasElement.prototype.removeEventListener;
     vi.spyOn(HTMLCanvasElement.prototype, "addEventListener").mockImplementation(
@@ -296,7 +304,6 @@ describe("F3 — destroy() cancels the armed glide frame and balances bridge lis
         inner.flush();
       },
     };
-    const scheduler = createManualScheduler();
     const engine = createCanvasEngine(container, {
       width: 200,
       height: 100,
@@ -311,14 +318,26 @@ describe("F3 — destroy() cancels the armed glide frame and balances bridge lis
     inner.flush();
     const overlay = engine.chartElement().querySelector("[data-mm-overlay]") as HTMLCanvasElement;
     expect(overlay).toBeTruthy();
+    const m = engine.unwrap<{ time: { visibleFrom: number } }>();
     dispatchPointer(overlay, "pointerdown", 40, 30, { timeStamp: 1000 });
     dispatchPointer(overlay, "pointermove", 100, 30, { timeStamp: 1020 });
     dispatchPointer(overlay, "pointermove", 180, 30, { timeStamp: 1040 });
+    if (opts.release === false) {
+      // Mid-drag: leave the gesture pressed so callers can destroy() in this state.
+      return { engine, inner, armed, overlay, m };
+    }
     nowMs = 1040;
     dispatchPointer(overlay, "pointerup", 180, 30, { timeStamp: 1040 });
     inner.flush();
     // The release armed an inertia frame on the recorder.
     expect(armed.length).toBeGreaterThan(0);
+    return { engine, inner, armed, overlay, m };
+  }
+
+  it("destroy() cancels the armed glide frame", () => {
+    const added: Array<[string, boolean]> = [];
+    const removed: Array<[string, boolean]> = [];
+    const { engine, inner, armed } = mountDragged(added, removed);
     engine.destroy();
     engine.destroy();
     // destroy() must cancel the armed frame: any scheduled callback that the
@@ -327,12 +346,40 @@ describe("F3 — destroy() cancels the armed glide frame and balances bridge lis
     const armedBeforeFlush = armed.length;
     inner.flush();
     expect(armed.length).toBe(armedBeforeFlush);
+  });
+
+  it("destroy() removes every bridge listener exactly once", () => {
+    const added: Array<[string, boolean]> = [];
+    const removed: Array<[string, boolean]> = [];
+    const { engine } = mountDragged(added, removed);
+    engine.destroy();
+    engine.destroy();
     for (const type of ["pointerdown", "pointermove", "pointerup", "pointercancel", "wheel", "dblclick"]) {
       const a = added.filter(([t, isOverlay]) => t === type && isOverlay).length;
       const r = removed.filter(([t, isOverlay]) => t === type && isOverlay).length;
       expect({ type, a, r }).toEqual({ type, a, r: a });
     }
-    void scheduler;
+  });
+
+  it("destroy() during an active drag leaves no listener and no armed frame", () => {
+    const added: Array<[string, boolean]> = [];
+    const removed: Array<[string, boolean]> = [];
+    const { engine, inner, armed, overlay, m } = mountDragged(added, removed, { release: false });
+    const draggedFrom = m.time.visibleFrom;
+    engine.destroy();
+    const armedAtDestroy = armed.length;
+    inner.flush();
+    expect(armed.length).toBe(armedAtDestroy);
+    dispatchPointer(overlay, "pointermove", 180, 30, { timeStamp: 1040 });
+    dispatchPointer(overlay, "pointerup", 180, 30, { timeStamp: 1060 });
+    inner.flush();
+    expect(armed.length).toBe(armedAtDestroy);
+    expect(m.time.visibleFrom).toBeCloseTo(draggedFrom, 10);
+    for (const type of ["pointerdown", "pointermove", "pointerup", "pointercancel", "wheel", "dblclick"]) {
+      const a = added.filter(([t, isOverlay]) => t === type && isOverlay).length;
+      const r = removed.filter(([t, isOverlay]) => t === type && isOverlay).length;
+      expect({ type, a, r }).toEqual({ type, a, r: a });
+    }
   });
 });
 
@@ -388,6 +435,83 @@ describe("F4 — wheel deltaMode is forwarded and reaches the controller", () =>
   });
 });
 
+describe("F5b — producer side: each pane's painted price-axis strip reaches the hit test (RF-1/RF-2)", () => {
+  let container: HTMLDivElement;
+  let nowMs: number;
+
+  beforeEach(() => {
+    container = document.createElement("div");
+    document.body.appendChild(container);
+    nowMs = 0;
+    installCtxSpy();
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+    container.remove();
+  });
+
+  // End-to-end half of kinetic-rev F5. RED at HEAD (no producer): the drag pans
+  // 0.1 bar, measured as `AssertionError: expected 0.1 to be less than 0.001`.
+  // GREEN with the model.ts + frame.ts producer hunks above.
+  it("(i) a drag inside the painted strip zooms price and never pans time", () => {
+    const scheduler = createManualScheduler();
+    const engine = createCanvasEngine(container, {
+      width: 200, height: 100, devicePixelRatio: 1, scheduler,
+      now: () => nowMs, kineticScroll: { mouse: true, touch: true },
+    });
+    const series = engine.addSeries("candles", { upColor: "U", downColor: "D" });
+    series.setData(ROWS);
+    engine.timeScale().setVisibleLogicalRange({ from: 0, to: 20 });
+    const pane = engine.chartElement().querySelector("canvas[data-mm-pane-canvas='0']") as HTMLCanvasElement;
+    const pctx = pane.getContext("2d") as unknown as FakeCtx;
+    pctx.measureText = (() => ({ width: 60 })) as unknown as typeof pctx.measureText;
+    scheduler.flush();                       // frame.ts now paints strip = max(40, ceil(60 + 8)) = 68
+    const m = engine.unwrap<{ time: { visibleFrom: number; visibleTo: number }; priceAxisStripPx: readonly number[] }>();
+    expect(m.priceAxisStripPx[0]).toBe(68);
+    const overlay = engine.chartElement().querySelector("[data-mm-overlay]") as HTMLCanvasElement;
+    const from0 = m.time.visibleFrom;
+    const to0 = m.time.visibleTo;
+    // x=140 is inside the painted strip (>= 200 - 68 = 132) but outside the 40px floor (< 160).
+    dispatchPointer(overlay, "pointerdown", 140, 30, { timeStamp: 10 });
+    dispatchPointer(overlay, "pointermove", 141, 70, { timeStamp: 30 });
+    expect(m.time.visibleFrom).toBe(from0);
+    expect(m.time.visibleTo).toBe(to0);
+    engine.destroy();
+  });
+
+  // Multi-pane half: the strip is per pane, so a scalar publication leaves pane 0
+  // broken. RED with a scalar `priceAxisStripPx = 0` field (measured:
+  // `AssertionError: expected 40 not to be 40` — pane 1's floor overwrote pane 0's
+  // 68); GREEN with the per-pane array above.
+  it("(ii) each pane is hit-tested against its own painted strip", () => {
+    const scheduler = createManualScheduler();
+    const engine = createCanvasEngine(container, {
+      width: 200, height: 100, devicePixelRatio: 1, scheduler,
+      now: () => nowMs, kineticScroll: { mouse: true, touch: true },
+    });
+    const a = engine.addSeries("candles", { upColor: "U", downColor: "D" });
+    a.setData(ROWS);
+    const b = engine.addSeries("histogram", { color: "#abc" }, 1);
+    b.setData(ROWS.map((r) => ({ time: r.time, value: "close" in r ? r.close : 0 })) as unknown as EngineSeriesRow[]);
+    engine.timeScale().setVisibleLogicalRange({ from: 0, to: 20 });
+    const root = engine.chartElement();
+    const c0 = (root.querySelector("canvas[data-mm-pane-canvas='0']") as HTMLCanvasElement).getContext("2d") as unknown as FakeCtx;
+    const c1 = (root.querySelector("canvas[data-mm-pane-canvas='1']") as HTMLCanvasElement).getContext("2d") as unknown as FakeCtx;
+    c0.measureText = (() => ({ width: 60 })) as unknown as typeof c0.measureText;  // pane 0 strip 68
+    c1.measureText = (() => ({ width: 4 })) as unknown as typeof c1.measureText;   // pane 1 strip 40
+    scheduler.flush();
+    const m = engine.unwrap<{ time: { visibleFrom: number }; priceAxisStripPx: readonly number[] }>();
+    expect([...m.priceAxisStripPx]).toEqual([68, 40]);
+    const overlay = root.querySelector("[data-mm-overlay]") as HTMLCanvasElement;
+    const from0 = m.time.visibleFrom;
+    dispatchPointer(overlay, "pointerdown", 140, 20, { timeStamp: 10 });   // y=20 -> pane 0
+    dispatchPointer(overlay, "pointermove", 141, 40, { timeStamp: 30 });
+    expect(Math.abs(m.time.visibleFrom - from0)).toBeLessThan(0.001);
+    engine.destroy();
+  });
+});
+
 describe("F5 — inputBridge consumer side honours an optional measured price-axis strip", () => {
   it("hitTestEngineInput uses max(40, priceAxisWidthPx ?? 0) — a 68-px axis claims the outer 22 px", () => {
     // The hit test takes a CSS-px width argument; the bridge forwards it from
@@ -418,4 +542,92 @@ describe("F5 — inputBridge consumer side honours an optional measured price-ax
     expect(insideFloor.region).toBe("priceAxis");
     expect(outsideFloor.region).toBe("plot");
   });
+});
+
+describe("F13 — a pan drag does not emit a consumer click (LWC cancelClick parity)", () => {
+  let container: HTMLDivElement;
+  let nowMs: number;
+
+  beforeEach(() => {
+    container = document.createElement("div");
+    document.body.appendChild(container);
+    nowMs = 0;
+    installCtxSpy();
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+    container.remove();
+  });
+
+  function mountWithClick() {
+    const scheduler = createManualScheduler();
+    const engine = createCanvasEngine(container, {
+      width: 200,
+      height: 100,
+      devicePixelRatio: 1,
+      scheduler,
+      now: () => nowMs,
+      kineticScroll: { mouse: true, touch: true },
+    });
+    const series = engine.addSeries("candles", { upColor: "U", downColor: "D" });
+    series.setData(ROWS);
+    engine.timeScale().setVisibleLogicalRange({ from: 0, to: 20 });
+    scheduler.flush();
+    const overlay = engine.chartElement().querySelector("[data-mm-overlay]") as HTMLCanvasElement;
+    expect(overlay).toBeTruthy();
+    const m = engine.unwrap<{ time: { visibleFrom: number } }>();
+    return { engine, overlay, m };
+  }
+
+  it("(i) a plain click without a drag still reaches subscribeClick", () => {
+    const { engine, overlay } = mountWithClick();
+    const clicks: number[] = [];
+    engine.subscribeClick(() => {
+      clicks.push(1);
+    });
+    gesture(overlay, [50, 30], null); // down/up/click, no move
+    expect(clicks.length).toBe(1);
+    engine.destroy();
+  });
+
+  it("(ii) a >=5px pan drag cancels the click, matching LWC cancelClick", () => {
+    const { engine, overlay, m } = mountWithClick();
+    const clicks: number[] = [];
+    engine.subscribeClick(() => {
+      clicks.push(1);
+    });
+    const from0 = m.time.visibleFrom;
+    gesture(overlay, [40, 30], [120, 30]); // 80px pan, then the browser click
+    expect(Math.abs(m.time.visibleFrom - from0)).toBeGreaterThan(0.5);
+    expect(clicks.length).toBe(0);
+    engine.destroy();
+  });
+
+  // `gesture` dispatches BOTH event families a real browser fires, with buttons:1 while pressed —
+  // the latch reads pointer events, the pan reads pointer events, the click reads the mouse family.
+  function gesture(overlay: HTMLCanvasElement, from: [number, number], to: [number, number] | null): void {
+    const mk = (type: string, x: number, y: number, buttons: number) => {
+      const ev = new MouseEvent(type, {
+        clientX: x,
+        clientY: y,
+        bubbles: true,
+        cancelable: true,
+        button: 0,
+        buttons,
+      });
+      Object.defineProperty(ev, "pointerId", { value: 1 });
+      Object.defineProperty(ev, "pointerType", { value: "mouse" });
+      return ev;
+    };
+    const both = (mouseType: string, pointerType: string, x: number, y: number, buttons: number) => {
+      overlay.dispatchEvent(mk(mouseType, x, y, buttons));
+      overlay.dispatchEvent(mk(pointerType, x, y, buttons));
+    };
+    both("mousedown", "pointerdown", from[0], from[1], 1);
+    if (to) both("mousemove", "pointermove", to[0], to[1], 1);
+    const end = to ?? from;
+    both("mouseup", "pointerup", end[0], end[1], 0);
+    overlay.dispatchEvent(mk("click", end[0], end[1], 0));
+  }
 });

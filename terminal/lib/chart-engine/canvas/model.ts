@@ -578,6 +578,8 @@ export class ChartModel {
   alive = true;
   generation = 0;
   dpr = 1;
+  /** Per-pane CSS px width of the painted right price-axis strip (empty until the first paint). */
+  priceAxisStripPx: number[] = [];
   options: EngineOptions = {};
   panes: PaneModel[] = [];
   series = new Map<number, SeriesModel>();

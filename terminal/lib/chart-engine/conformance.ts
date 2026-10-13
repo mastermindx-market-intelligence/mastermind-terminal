@@ -16,6 +16,9 @@
 //   collectEngineConformance(factory, opts?)   — runs the same checks
 //     headlessly and returns per-id results, so the suite can assert that a
 //     deliberately broken engine FAILS (the built-in falsifier).
+// Both entry points take the SAME declared skip table (ConformanceOpts.skips):
+// a skip must name a real check id and carry a reason, so an opt-out is an
+// audited decision (F-16) instead of a free-form id list.
 //
 // Requires a DOM (jsdom): factories receive a container element and the
 // crosshair probe dispatches a real mousemove on it.
@@ -126,6 +129,25 @@ export type ConformanceCheckResult = {
 class ConformanceSkipSignal {
   constructor(public readonly reason: string) {}
 }
+
+// Declared skip table (F-16). A skip is an audited decision, never a free-form
+// opt-out: every entry must name a real check id (an unknown id throws at
+// registration, so a typo cannot silently hide a gap) and must carry a
+// non-empty reason (an empty reason throws too). `finding` optionally
+// attributes the skip to a finding id (e.g. "ACCEPT2-F1") so a later lane can
+// correlate the gap with the report that named it. Runtime self-skips
+// (CheckHarness.skip) stay allowed and still need a reason; both kinds are
+// printed in the summary table with their reason.
+export type ConformanceSkip = {
+  readonly id: string;
+  readonly reason: string;
+  readonly finding?: string;
+};
+
+// Options shared by the vitest runner and the headless collector.
+export type ConformanceOpts = {
+  readonly skips?: readonly ConformanceSkip[];
+};
 
 interface CheckHarness {
   readonly engine: ChartEngine;
@@ -450,6 +472,43 @@ const CHECKS: ConformanceCheck[] = [
 
 // ── Vitest runner ──────────────────────────────────────────────────────────────
 
+const KNOWN_CHECK_IDS: ReadonlySet<string> = new Set(CHECKS.map((c) => c.id));
+
+/**
+ * Validates a declared skip table and returns check id -> printed detail.
+ * Throws at registration on: an entry that is not an object, an empty or
+ * unknown check id, an empty reason, an empty `finding` tag, or the same id
+ * declared twice. Exported so a suite can assert the guard without having to
+ * register (and therefore run) a whole engine suite.
+ */
+export function declaredSkipDetails(skips: readonly ConformanceSkip[] | undefined): Map<string, string> {
+  const out = new Map<string, string>();
+  for (const entry of skips ?? []) {
+    if (!entry || typeof entry !== "object") {
+      throw new Error(`conformance: a skip entry must be an object, got ${String(entry)}`);
+    }
+    if (typeof entry.id !== "string" || entry.id.trim().length === 0) {
+      throw new Error("conformance: every skip entry needs a non-empty check id");
+    }
+    if (!KNOWN_CHECK_IDS.has(entry.id)) {
+      throw new Error(
+        `conformance: unknown skip id "${entry.id}" (known ids: ${[...KNOWN_CHECK_IDS].join(", ")})`,
+      );
+    }
+    if (typeof entry.reason !== "string" || entry.reason.trim().length === 0) {
+      throw new Error(`conformance: skip "${entry.id}" carries an empty reason`);
+    }
+    if (entry.finding !== undefined && (typeof entry.finding !== "string" || entry.finding.trim().length === 0)) {
+      throw new Error(`conformance: skip "${entry.id}" carries an empty finding tag`);
+    }
+    if (out.has(entry.id)) {
+      throw new Error(`conformance: skip "${entry.id}" is declared twice`);
+    }
+    out.set(entry.id, `declared skip — ${entry.reason}${entry.finding ? ` [finding ${entry.finding}]` : ""}`);
+  }
+  return out;
+}
+
 function printSummary(name: string, marks: Map<string, { status: ConformanceStatus; detail?: string }>): void {
   let pass = 0;
   let skip = 0;
@@ -489,22 +548,22 @@ function makeHarness(engine: ChartEngine, container: HTMLElement): CheckHarness 
 /**
  * Registers a vitest suite that runs every conformance check against the
  * engine built by `factory` (a fresh container + engine per check), then
- * prints a pass/skip/fail summary table of the check ids. `opts.skip` lists
- * check ids to opt out of; they are reported as SKIP, never silently dropped.
+ * prints a pass/skip/fail summary table of the check ids. `opts.skips` is the
+ * declared skip table (F-16): every entry must name a real check id and carry
+ * a non-empty reason (validation throws at registration), and every skipped
+ * check is reported as SKIP with that declared reason, never silently dropped.
  */
 export function runEngineConformance(
   name: string,
   factory: (container: HTMLElement) => ChartEngine,
-  opts: { skip?: string[] } = {},
+  opts: ConformanceOpts = {},
 ): void {
-  const skipped = new Set(opts.skip ?? []);
+  const declared = declaredSkipDetails(opts.skips);
   const marks = new Map<string, { status: ConformanceStatus; detail?: string }>();
-  for (const id of skipped) {
-    if (CHECKS.some((c) => c.id === id)) marks.set(id, { status: "skip", detail: "opted out via opts.skip" });
-  }
+  for (const [id, detail] of declared) marks.set(id, { status: "skip", detail });
   describe(`engine conformance: ${name}`, () => {
     for (const check of CHECKS) {
-      const register = skipped.has(check.id) ? it.skip : it;
+      const register = declared.has(check.id) ? it.skip : it;
       register(`${check.id} — ${check.title}`, (ctx) => {
         const container = document.createElement("div");
         const engine = factory(container);
@@ -542,13 +601,14 @@ export function runEngineConformance(
  */
 export function collectEngineConformance(
   factory: (container: HTMLElement) => ChartEngine,
-  opts: { skip?: string[] } = {},
+  opts: ConformanceOpts = {},
 ): ConformanceCheckResult[] {
-  const skipped = new Set(opts.skip ?? []);
+  const declared = declaredSkipDetails(opts.skips);
   const results: ConformanceCheckResult[] = [];
   for (const check of CHECKS) {
-    if (skipped.has(check.id)) {
-      results.push({ id: check.id, title: check.title, status: "skip", detail: "opted out via opts.skip" });
+    const declaredDetail = declared.get(check.id);
+    if (declaredDetail) {
+      results.push({ id: check.id, title: check.title, status: "skip", detail: declaredDetail });
       continue;
     }
     const container = document.createElement("div");
