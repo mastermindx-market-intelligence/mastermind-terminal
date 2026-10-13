@@ -1,0 +1,67 @@
+<!doctype html>
+<!--
+  Q03C-D2 bare page (F1p / F1n).
+  One 1440x900 element; each wheel (or pointermove for pan) mutates the element
+  in a requestAnimationFrame so every input produces a presented frame. The
+  capture-phase input-mark listener is the same as the official spec (separate
+  pas / noop copies are produced by the harness via URL params).
+
+  Served via page.setContent or file:// URL; never added to the Next app.
+-->
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Q03C bare wheel</title>
+<style>
+  html, body { margin: 0; padding: 0; height: 100%; background: #0b0b0c; overflow: hidden; }
+  #box { width: 1440px; height: 900px; background: #222; will-change: transform, background-color; }
+  #box.x { background: #2a4a6a; }
+  #box.y { background: #6a2a4a; }
+</style>
+</head>
+<body>
+<div id="box"></div>
+<script>
+(function () {
+  // Bare-page params:
+  //   ?passive=1 -> wheel listener registered { passive: true }, no preventDefault
+  //   ?passive=0 -> wheel listener registered { passive: false }, calls preventDefault()
+  //   ?mode=wheel (default) or ?mode=pan
+  const params = new URLSearchParams(window.location.search);
+  const passive = params.get("passive") !== "0"; // default true
+  const mode = params.get("mode") === "pan" ? "pan" : "wheel";
+
+  const box = document.getElementById("box");
+  let hue = 0;
+  let lastX = 0;
+  let lastY = 0;
+
+  function tickPaint() {
+    hue = (hue + 11) & 0xff;
+    box.style.background = `rgb(${hue},${(hue * 7) & 0xff},${(hue * 13) & 0xff})`;
+    if (mode === "pan") {
+      box.style.transform = `translate(${lastX - 720}px, ${lastY - 450}px)`;
+    }
+  }
+
+  if (mode === "wheel") {
+    const opts = passive ? { passive: true } : { passive: false };
+    box.addEventListener("wheel", (ev) => {
+      if (!passive && ev.cancelable) ev.preventDefault();
+      requestAnimationFrame(tickPaint);
+    }, opts);
+  } else {
+    // pan: pointermove updates the element on the next frame
+    box.addEventListener("pointermove", (ev) => {
+      lastX = ev.clientX;
+      lastY = ev.clientY;
+      requestAnimationFrame(tickPaint);
+    }, { passive: true });
+  }
+
+  // Expose a ready signal for the harness.
+  window.__bareReady = Promise.resolve(true);
+})();
+</script>
+</body>
+</html>
