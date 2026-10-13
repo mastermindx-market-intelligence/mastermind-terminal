@@ -2,6 +2,39 @@
 
 Research as of 2026-10-12 UTC / 2026-10-11 Pacific. Current Chairman continuation explicitly requests deeper Pro research and implementation. This is an extension of Terminal's existing Options/Market Structure and Quote Hub owners, not another product backend or control plane.
 
+## CURRENT FRONTIER: qualified candidate awaiting real activation/release gates
+
+Functional source `12222289f8b19be11929e402a9a96b1c16adc660`, Terminal tree `f654a4e61ff1120fcb1b89b8f2422d6ffe42dc4e`.
+Full Terminal regression: 10,799 passed / zero failed / four existing TODOs, 633 files.
+Hub closure remains byte-identical to the 569-pass qualified source. New focused tests
+264; browser cases 27 production-route synthetic + 15 synthetic lab + six actual
+historical. Optimized build and actual local compiled guest/private-data checks pass.
+Evidence: `docs/evidence/futures-final-production-20261013/`. Sample files stay private;
+all owned test servers are stopped. No active child, open process, unknown effect or
+background wake is claimed. Original source carrier is still the RDC M2 worktree/PR964.
+
+DO_NOT_REDO: real ES BBO/top-ten and trade-conservation canary; SDK/event kernels;
+source-bounded production API; Options-route navigation; expiry/aggregation/replay;
+partial-coverage and denial isolation; recovery polling; source-owned named levels;
+observed-window POC; final local build/regression/guest/tracing proof at the exact tree.
+Revisit only after relevant code/source changes, not because a new chat begins.
+
+The remaining live-source and release actions are genuinely gated: no approved CME
+real-time capture/subscriber grant or canonical live publication was established; no
+matching authenticated options/quote/cash-market/definition/status inputs are active.
+The attempted independent Fabric review was refused admission on current qualification/
+telemetry/resource conditions, status NOT_FOUND, and no worker ran. Preserve its ID,
+root/parent and explicit refusal instead of forcing another placement. Earlier author
+checks are not independent review. Current-head hosted CI is not inferred from older
+heads. No merge, deployment or paid-session/live proof exists.
+
+NEXT ACTION: eligible independent release review and the named source owners' approved
+activation inputs, then exact-head CI/normal deployment and live acceptance. Keep the
+same branch and records. Do not turn the source JSON flags, a date-only gamma snapshot,
+a public sample, or the local guest config into a license or authenticated market event.
+Retain Pro/Extra High as the user-selected attended surface; no model switch, runtime
+budget, native session identity or automatic return is asserted by this checkpoint.
+
 ## Named levels / POC continuation 2026-10-13
 
 The source-owned call wall, put wall and gamma flip are now passed through the validated

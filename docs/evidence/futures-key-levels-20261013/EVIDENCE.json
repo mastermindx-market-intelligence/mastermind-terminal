@@ -78,7 +78,7 @@
     "pocScope": "observed captured window; includes unknown-side volume; lower price tie; grouped row lower edge",
     "modelledSupportResistanceGuarantee": false
   },
-  "productionQualification": "Previous exact source 4c469196cf7271986d03d5ef0e463dfac7ed374e passed; final changed candidate not yet compiled.",
+  "productionQualification": "Completed for functional source 12222289f8b19be11929e402a9a96b1c16adc660; see ../futures-final-production-20261013/",
   "sourceGrantActivated": false,
   "deployed": false
 }
