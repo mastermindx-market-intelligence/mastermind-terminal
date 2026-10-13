@@ -11,8 +11,8 @@
  * API validated the screen with.
  */
 
-import { useCallback, useId, useMemo, useState, type FormEvent } from "react";
-import type { AccountIdentity } from "@/lib/accountIdentity";
+import { useCallback, useEffect, useId, useMemo, useState, type FormEvent } from "react";
+import { identityOwnerKey, type AccountIdentity } from "@/lib/accountIdentity";
 import { ALL_MARKETS, MARKET_TKEY, type MarketId } from "@/lib/markets";
 import { browserStorage } from "@/lib/ownerStorage";
 import { useLang } from "@/lib/i18n";
@@ -26,6 +26,8 @@ import {
 import { buildReview, diffScreen, type ChangeGroup, type ScreenChange } from "@/lib/smartScreen/review";
 import { MAX_NAME_CHARS, MAX_SCREENS, normalizeScreenName, type ScreenRecord } from "@/lib/smartScreen/record";
 import { readDevicePresets, type DevicePreset } from "@/lib/smartScreen/devicePresets";
+import { captureAssumptionSnapshot, type AssumptionCapture } from "@/lib/smartScreen/assumptionPreview";
+import ScreenAssumptionPreview, { previewLabel } from "./ScreenAssumptionPreview";
 import styles from "./SmartScreensPanel.module.css";
 
 type Props = {
@@ -79,6 +81,34 @@ export default function SmartScreensPanel(props: Props) {
   const [explainSym, setExplainSym] = useState("");
   const [explained, setExplained] = useState<Explained>(null);
   const [devicePresets, setDevicePresets] = useState<DevicePreset[]>([]);
+
+  // J6 candidate: a fixed in-memory A/B threshold preview. It is captured ONCE, on a deliberate
+  // click, from the rows and asOf this panel holds at that moment, and it never writes
+  // anything: the owner actions below remain the only paths to save/review/delete.
+  const [storedPreview, setPreview] = useState<(AssumptionCapture & { owner: string }) | null>(null);
+  const previewOwner = identityOwnerKey(identity);
+  // Render fence: clearing later in an effect is insufficient when a screen ID is reused
+  // by another owner. No captured definition or row survives even the transition render.
+  const preview = storedPreview?.owner === previewOwner && snap.owner === previewOwner
+    && snap.readFailure !== "unauthenticated" ? storedPreview : null;
+  const canPreview = ready && asOf.trim().length > 0 && identity.kind === "account"
+    && snap.owner === previewOwner && !!snap.ack && snap.readFailure !== "unauthenticated";
+  // A different owner partition ends the preview — a capture taken under one owner is never
+  // shown under another — and an explicit unauthenticated read failure closes it too.
+  useEffect(() => { setPreview(null); }, [previewOwner]);
+  useEffect(() => {
+    if (snap.readFailure === "unauthenticated") setPreview(null);
+  }, [snap.readFailure]);
+  // Drift is a disclosure, never a refresh: the comparison keeps the captured rows even when
+  // this panel's scan is replaced (newer generation, same-date republication, or unload).
+  const previewDrifted = preview !== null && (!ready || asOf !== preview.asOf || rows !== preview.sourceRows);
+
+  const openAssumptionPreview = (screen: ScreenRecord) => {
+    if (!canPreview) return;
+    setExplained(null);
+    setPreview({ ...captureAssumptionSnapshot({ screenId: screen.id, name: screen.name, def: screen.def, asOf, rows }), owner: previewOwner });
+  };
+  const closeAssumptionPreview = () => setPreview(null);
 
   const ack = snap.ack;
   const screens = useMemo(() => ack?.screens ?? [], [ack]);
@@ -446,6 +476,16 @@ export default function SmartScreensPanel(props: Props) {
                       >
                         {showingDiff ? t("ssHideChanges") : t("ssChanges")}
                       </button>
+                      <button
+                        type="button"
+                        className={`chip ${styles.btn}`}
+                        aria-expanded={preview?.screenId === screen.id}
+                        disabled={!canPreview && preview?.screenId !== screen.id}
+                        onClick={() => (preview?.screenId === screen.id ? closeAssumptionPreview() : openAssumptionPreview(screen))}
+                        data-ss-compare
+                      >
+                        {preview?.screenId === screen.id ? previewLabel(lang, "close") : previewLabel(lang, "open")}
+                      </button>
                       <button type="button" className={`chip ${styles.btn}`} disabled={!canWrite || locked} onClick={() => void markReviewed(screen)} data-ss-review>
                         {t("ssMarkReviewed")}
                       </button>
@@ -547,6 +587,19 @@ export default function SmartScreensPanel(props: Props) {
                           </div>
                         )}
                       </div>
+                    )}
+
+                    {preview?.screenId === screen.id && (
+                      <ScreenAssumptionPreview
+                        capture={preview}
+                        drifted={previewDrifted}
+                        liveAsOf={asOf}
+                        liveReady={ready}
+                        lang={lang}
+                        describeLeaf={conditionText}
+                        describeDefinition={definitionText}
+                        onClose={closeAssumptionPreview}
+                      />
                     )}
                   </li>
                 );
