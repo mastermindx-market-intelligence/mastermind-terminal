@@ -1134,7 +1134,7 @@ log "next build (staging) ..."
 # every static chunk uses the same ?dpl= value. The Date.now fallback is only for
 # ad-hoc local builds. NODE_OPTIONS carries the heap ceiling (see build_node_options).
 BUILD_NODE_OPTIONS=$(build_node_options "${NODE_OPTIONS:-}")
-( cd "$STAGE" && GIT_SHA="$FULL_SHA" NEXT_DEPLOYMENT_ID="$FULL_SHA" NODE_OPTIONS="$BUILD_NODE_OPTIONS" npm run build )
+( cd "$STAGE" && NODE_OPTIONS="$BUILD_NODE_OPTIONS" GIT_SHA="$FULL_SHA" NEXT_DEPLOYMENT_ID="$FULL_SHA" npm run build )
 
 # 4) verify the new build is complete before touching anything live.
 if [ ! -f "$STAGE/.next/BUILD_ID" ]; then

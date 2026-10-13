@@ -997,6 +997,8 @@ def test_next_build_runs_with_the_raised_heap_ceiling() -> None:
     body = _deploy_body(code_only=True)
     build_line = next(line for line in body.splitlines() if "npm run build" in line)
     assert 'NODE_OPTIONS="$BUILD_NODE_OPTIONS"' in build_line
+    # The deployment-id contract (terminalBoot.test.ts A5) pins this exact run.
+    assert 'GIT_SHA="$FULL_SHA" NEXT_DEPLOYMENT_ID="$FULL_SHA" npm run build' in build_line
     computed = body.index('BUILD_NODE_OPTIONS=$(build_node_options "${NODE_OPTIONS:-}")')
     assert computed < body.index("npm run build")
 
