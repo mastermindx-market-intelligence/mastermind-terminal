@@ -305,7 +305,9 @@ describe("model2 F-5 — percent / indexed100 sign-flip for negative base", () =
     expect(priceToDisplay(-50, state)).toBeCloseTo(75, 9);
   });
 
-  // indexed100 with base -200: -50 should map to +75 (NOT 25).
+  // indexed100 with base -200: the LWC rule is "100 + 100*(price-base)/base, then
+  // flip sign when base<0" (dev:4200-4205, 4207-4210). -200 (== base) maps to
+  // -100 (the index baseline flipped); -50 maps to -25 (not +25).
   it("indexed100 priceToDisplay flips sign when base is negative", () => {
     const state = {
       mode: "indexed100" as const,
@@ -316,8 +318,8 @@ describe("model2 F-5 — percent / indexed100 sign-flip for negative base", () =
       margins: { top: 0.1, bottom: 0.1 },
       baseValue: -200,
     };
-    expect(priceToDisplay(-200, state)).toBeCloseTo(0, 9);
-    expect(priceToDisplay(-50, state)).toBeCloseTo(75, 9);
+    expect(priceToDisplay(-200, state)).toBeCloseTo(-100, 9);
+    expect(priceToDisplay(-50, state)).toBeCloseTo(-25, 9);
   });
 
   // displayToPrice must be the inverse: -50 -> +75 -> -50.
