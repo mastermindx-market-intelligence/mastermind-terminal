@@ -1,0 +1,49 @@
+.transport {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 7px 14px;
+  border-bottom: 1px solid var(--line);
+  background: var(--bg);
+}
+
+@media (max-width: 860px) {
+  /* Leave room for the workspace's existing floating fullscreen button. */
+  .transport {
+    padding-right: 60px;
+  }
+}
+
+@media (max-width: 640px) {
+  .transport {
+    flex-wrap: wrap;
+    gap: 6px;
+    padding: 8px 60px 8px 10px;
+  }
+
+  .transport > :global(.icbtn) {
+    flex: none;
+    width: 44px;
+    height: 44px;
+  }
+
+  .transport > :global(.seg) {
+    flex: none;
+    height: 44px !important;
+  }
+
+  .transport > :global(.seg) button {
+    min-width: 44px;
+    height: 44px;
+  }
+
+  .transport > input[type="range"] {
+    order: 1;
+    flex: 1 0 calc(100% - 86px) !important;
+    min-width: 80px;
+  }
+
+  .transport > :global(.num) {
+    order: 2;
+  }
+}

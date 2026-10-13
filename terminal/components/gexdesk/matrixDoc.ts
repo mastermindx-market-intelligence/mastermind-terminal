@@ -78,6 +78,17 @@ export interface MatrixDoc {
   _build_meta?: { asof_date?: string | null } | null;
 }
 
+/**
+ * One matrix read as the desk saw it. `data` carries the admitted doc — null when bytes
+ * landed but are not this root's matrix, which reads as "no matrix" exactly as before.
+ * `absent` is a published 404/410. `unavailable` is a read that did not land: it says
+ * nothing about whether the matrix exists and must never render as "not available".
+ */
+export type MatrixRead =
+  | { status: "data"; doc: MatrixDoc | null }
+  | { status: "absent" }
+  | { status: "unavailable" };
+
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === "object" && value !== null && !Array.isArray(value);
 

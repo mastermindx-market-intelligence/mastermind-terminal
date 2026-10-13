@@ -48,6 +48,26 @@ async function pickSymbol(page: Page, symbol: string) {
   await dialog.locator(".r", { hasText: symbol }).first().click();
 }
 
+/** Create one thesis in this test's isolated fixture store; local only, never production. */
+async function createFixtureThesis(page: Page, clientRequestId: string, key: string, title: string) {
+  const createResponse = await page.request.post("/api/theses", { data: {
+    action: "create",
+    clientRequestId,
+    subject: {
+      schema: "mastermind.thesis-subject-ref/v1", kind: "issuer", owner: "terminal.analysis_symbol",
+      key, identityState: "listing_scoped", listing: { symbol: key, mic: null, securityId: null },
+      companyId: null, display: `${key} · listing scoped`,
+    },
+    content: {
+      schema: "mastermind.thesis-content/v1", title,
+      statement: "This existing thesis is reopened while a MarketOntology context is on screen.",
+      catalysts: [], falsifiers: [], risks: [], horizon: "unspecified", effectiveAt: null, revisionNote: null,
+    },
+  } });
+  if (!createResponse.ok()) throw new Error(`The thesis could not be created (${createResponse.status()}): ${await createResponse.text()}.`);
+  return ((await createResponse.json()) as { thesisId: string }).thesisId;
+}
+
 function proofShotPath(proofDir: string, testInfo: TestInfo, name: string, locale: "en" | "zh") {
   const suffix = locale === "zh" ? "-zh" : "";
   return path.join(proofDir, `${testInfo.project.name}-${name}${suffix}.png`);
@@ -79,6 +99,15 @@ function expectContextParams(url: URL) {
   expect(url.searchParams.get("mo_focus")).toBe("context-node");
   expect(url.searchParams.get("mo_asof")).toBe("2026-09-23");
   expect(url.searchParams.get("mo_kc")).toBe("2026-08-31");
+}
+
+function expectTransmissionContextParams(url: URL) {
+  expect(url.searchParams.get("mo_from")).toBe("transmission");
+  expect(url.searchParams.get("mo_chain")).toBe("context-chain");
+  expect(url.searchParams.get("mo_focus")).toBe("leg-3");
+  expect(url.searchParams.get("mo_path_rev")).toBe("12");
+  expect(url.searchParams.get("mo_asof")).toBe("2026-10-01");
+  expect(url.searchParams.get("mo_security")).toBe("SEC:US");
 }
 
 function expectCapturedThesisPayloads(payloads: string[]) {
@@ -376,4 +405,201 @@ test("leaving Analysis and returning without context shows no persisted strip", 
   await page.goto("/analysis?symbol=NVDA");
   await expect(page.locator(".analysis-shell")).toBeVisible();
   await expect(page.getByTestId("mo-context-strip")).toHaveCount(0);
+});
+
+test("reopening an existing thesis of the same company keeps the Transmission context", async ({ page, baseURL }, testInfo) => {
+  test.skip(testInfo.project.name !== "desktop", "The MarketOntology context contract is scoped to the desktop project.");
+  await prepare(page, testInfo, baseURL);
+  const apiPayloads: string[] = [];
+  page.on("request", (request) => {
+    if (new URL(request.url()).pathname.startsWith("/api/")) {
+      apiPayloads.push(`${request.url()} ${request.postData() ?? ""}`);
+    }
+  });
+  await createFixtureThesis(page, "a1000000-0000-4000-8000-00000000c0de", "NVDA", "Same-company reopen thesis");
+  await createFixtureThesis(page, "a1000000-0000-4000-8000-00000000c1de", "MSFT", "Another company reopen thesis");
+
+  await page.goto(`/analysis?view=theses&symbol=NVDA&${TRANSMISSION_QUERY}`);
+  await expect(page.getByTestId("thesis-workspace")).toBeVisible({ timeout: 45_000 });
+  const strip = page.getByTestId("mo-context-strip");
+  await expect(strip).toBeVisible();
+  await expect(strip.getByRole("link", { name: "Back to Transmission" })).toHaveAttribute("href", TRANSMISSION_RETURN_HREF);
+
+  // Reopen an EXISTING thesis of the SAME company from the list: the transient context
+  // and its return link must survive (this used to strip every mo_* key unconditionally).
+  await page.getByRole("button", { name: "Same-company reopen thesis" }).click();
+  await expect(page.getByText("Version 1 · Current")).toBeVisible({ timeout: 30_000 });
+  await expect(strip).toBeVisible();
+  await expect(strip).toContainText("Opened from Transmission");
+  await expect(strip.getByRole("link", { name: "Back to Transmission" })).toHaveAttribute("href", TRANSMISSION_RETURN_HREF);
+  expectTransmissionContextParams(new URL(page.url()));
+
+  // Another company's thesis clears it — no flash, no stale strip, no keys in the URL.
+  await page.getByRole("button", { name: "Another company reopen thesis" }).click();
+  await expect(page.getByText("MSFT · Listing-scoped identity")).toBeVisible({ timeout: 30_000 });
+  await expect(strip).toHaveCount(0);
+  expect([...new URL(page.url()).searchParams.keys()].filter((key) => key.startsWith("mo_"))).toEqual([]);
+
+  // Disproof clears the company as well as the context; a shared/reloaded URL
+  // must not seed the previous company's subject or Claim form.
+  expect(new URL(page.url()).searchParams.get("symbol")).toBeNull();
+  await page.reload();
+  await expect(page.getByText("MSFT · Listing-scoped identity")).toBeVisible({ timeout: 30_000 });
+  await expect(page.getByLabel("Title")).toHaveValue("Another company reopen thesis");
+  await expect(strip).toHaveCount(0);
+  expect(new URL(page.url()).searchParams.get("symbol")).toBeNull();
+
+  // Browser Back returns to the confirmed same-company entry, context still honest.
+  await page.goBack();
+  await expect(page.getByText("Version 1 · Current")).toBeVisible({ timeout: 30_000 });
+  await expect(page.getByTestId("mo-context-strip")).toBeVisible();
+  expectTransmissionContextParams(new URL(page.url()));
+  expectCapturedThesisPayloads(apiPayloads);
+});
+
+test("the natural saved-thesis path retains context through reload and history at all three sizes", async ({ page, browser, baseURL }, testInfo) => {
+  test.skip(testInfo.project.name !== "desktop", "This case cycles the six language and viewport cells.");
+  await prepare(page, testInfo, baseURL);
+  await createFixtureThesis(page, "a1000000-0000-4000-8000-00000000c2de", "NVDA", "Responsive reopen thesis");
+  const proofDir = path.join(process.cwd(), "e2e/proof/mo-context-strip");
+  mkdirSync(proofDir, { recursive: true });
+
+  const verify = async (workspace: Page, locale: "en" | "zh", width: number, height: number) => {
+    await workspace.setViewportSize({ width, height });
+    await workspace.goto(`/analysis?view=theses&symbol=NVDA&${TRANSMISSION_QUERY}`);
+    const strip = workspace.getByTestId("mo-context-strip");
+    await expect(strip).toBeVisible({ timeout: 45_000 });
+    if (width === 390) {
+      await workspace.getByRole("button", { name: locale === "zh" ? "打开已保存的论点" : "Open saved theses" }).click();
+      await expect(workspace.getByTestId("thesis-workspace")).toHaveAttribute("data-mobile-pane", "list");
+      await expect(strip).toBeVisible();
+    }
+    await workspace.getByRole("button", { name: "Responsive reopen thesis" }).click();
+    const currentVersion = locale === "zh" ? "版本 1 · 当前" : "Version 1 · Current";
+    await expect(workspace.getByText(currentVersion)).toBeVisible({ timeout: 30_000 });
+    await expect(strip).toBeVisible();
+    expect(new URL(workspace.url()).searchParams.get("symbol")).toBe("NVDA");
+    expectTransmissionContextParams(new URL(workspace.url()));
+    // Reload the actual selected URL; do not manufacture a symbol-bearing deep link.
+    await workspace.reload();
+    await expect(workspace.getByText(currentVersion)).toBeVisible({ timeout: 30_000 });
+    await expect(strip).toBeVisible();
+    await workspace.goBack();
+    await expect(strip).toBeVisible({ timeout: 30_000 });
+    await expect(workspace.getByText(currentVersion)).toHaveCount(0);
+    await expect(workspace.getByRole("textbox", { name: locale === "zh" ? "标的" : "Subject", exact: true })).toHaveValue("NVDA");
+    await workspace.goForward();
+    await expect(workspace.getByText(currentVersion)).toBeVisible({ timeout: 30_000 });
+    await expect(strip).toBeVisible();
+    await expect(strip.getByRole("link", { name: locale === "zh" ? "返回传导" : "Back to Transmission" }))
+      .toHaveAttribute("href", TRANSMISSION_RETURN_HREF);
+    expectTransmissionContextParams(new URL(workspace.url()));
+    expect(await workspace.evaluate(() => document.documentElement.scrollWidth <= window.innerWidth)).toBe(true);
+    await workspace.screenshot({ path: proofShotPath(proofDir, testInfo, `reopen-thesis-${width}`, locale), fullPage: true });
+  };
+
+  for (const [width, height] of [[1440, 900], [820, 1180], [390, 844]]) await verify(page, "en", width, height);
+  const zhPage = await browser.newPage();
+  try {
+    await prepare(zhPage, testInfo, baseURL, true);
+    for (const [width, height] of [[1440, 900], [820, 1180], [390, 844]]) await verify(zhPage, "zh", width, height);
+  } finally {
+    await zhPage.close();
+  }
+});
+
+
+test("rapid Back and Forward during a lazy mount settles on the current thesis URL", async ({ page, baseURL }, testInfo) => {
+  test.skip(testInfo.project.name !== "desktop", "The remount race is independent of viewport.");
+  await prepare(page, testInfo, baseURL);
+  await createFixtureThesis(page, "a1000000-0000-4000-8000-00000000c3de", "NVDA", "Rapid history thesis");
+  await page.goto(`/analysis?view=theses&symbol=NVDA&${TRANSMISSION_QUERY}`);
+  await page.getByRole("button", { name: "Rapid history thesis" }).click();
+  await expect(page.getByText("Version 1 · Current")).toBeVisible();
+  await expect(page.getByTestId("mo-context-strip")).toBeVisible();
+  const selectedUrl = page.url();
+  await page.reload();
+  await expect(page.getByText("Version 1 · Current")).toBeVisible();
+  await page.goBack();
+  // Deliberately reverse before the new workspace finishes its lazy mount.
+  await page.goForward();
+  await expect(page).toHaveURL(selectedUrl);
+  await expect(page.getByText("Version 1 · Current")).toBeVisible();
+  await expect(page.getByTestId("mo-context-strip")).toBeVisible();
+});
+
+test("Forward before A settles then a same-company B click keeps B and Transmission context", async ({ page, browser, baseURL }, testInfo) => {
+  test.skip(testInfo.project.name !== "desktop", "Focused EN/ZH820 control; parent owns the full matrix.");
+  const run = async (workspace: Page, locale: "en" | "zh", width: number, height: number, aReq: string, bReq: string) => {
+    await workspace.setViewportSize({ width, height });
+    const titleA = locale === "zh" ? `已归档论点 A ${width}` : `Archived thesis A ${width}`;
+    const titleB = locale === "zh" ? `当前论点 B ${width}` : `Current thesis B ${width}`;
+    const thesisA = await createFixtureThesis(workspace, aReq, "NVDA", titleA);
+    const thesisB = await createFixtureThesis(workspace, bReq, "NVDA", titleB);
+    await workspace.goto(`/analysis?view=theses&symbol=NVDA&${TRANSMISSION_QUERY}`);
+    await expect(workspace.getByTestId("thesis-workspace")).toBeVisible({ timeout: 45_000 });
+    const list = workspace.getByTestId("thesis-list-pane");
+    await list.getByRole("button", { name: titleA }).click();
+    const currentVersion = locale === "zh" ? "版本 1 · 当前" : "Version 1 · Current";
+    await expect(workspace.getByText(currentVersion)).toBeVisible({ timeout: 30_000 });
+    await workspace.reload();
+    await expect(workspace.getByText(currentVersion)).toBeVisible({ timeout: 30_000 });
+    await workspace.goBack();
+    await expect(workspace.getByTestId("mo-context-strip")).toBeVisible({ timeout: 30_000 });
+    await expect(workspace.getByText(currentVersion)).toHaveCount(0);
+
+    const releasesA: (() => void)[] = [];
+    let sawA: (() => void) | undefined;
+    const aRequested = new Promise<void>((resolve) => { sawA = resolve; });
+    let holdA = true;
+    await workspace.route((url) => url.pathname === "/api/theses" && url.searchParams.get("id") === thesisA, async (route) => {
+      if (holdA) {
+        sawA!();
+        await new Promise<void>((resolve) => { releasesA.push(resolve); });
+      }
+      await route.continue();
+    });
+
+    await workspace.goForward();
+    const bRow = list.getByRole("button", { name: titleB });
+    await expect(bRow).toBeVisible({ timeout: 30_000 });
+    await aRequested;
+    // Do not wait for A's canonical detail. Click B while that read is still held.
+    await expect(workspace.getByText(currentVersion)).toHaveCount(0);
+    const bAnswered = workspace.waitForResponse((response) => {
+      const url = new URL(response.url());
+      return url.pathname === "/api/theses" && url.searchParams.get("id") === thesisB;
+    });
+    await bRow.click();
+    await bAnswered;
+    await expect(workspace.getByLabel(locale === "zh" ? "标题" : "Title", { exact: true })).toHaveValue(titleB);
+    const lateAAnswered = workspace.waitForResponse((response) => {
+      const url = new URL(response.url());
+      return url.pathname === "/api/theses" && url.searchParams.get("id") === thesisA;
+    });
+    holdA = false;
+    expect(releasesA.length, "A must still be held when B settles").toBeGreaterThan(0);
+    releasesA.forEach((release) => release());
+    await lateAAnswered;
+
+    await expect(workspace.getByLabel(locale === "zh" ? "标题" : "Title", { exact: true })).toHaveValue(titleB);
+    await expect(workspace.getByText(currentVersion)).toBeVisible({ timeout: 30_000 });
+    expect(new URL(workspace.url()).searchParams.get("thesis")).toBe(thesisB);
+    await expect(workspace.getByTestId("mo-context-strip")).toBeVisible();
+    await expect(workspace.getByTestId("mo-context-strip").getByRole("link", {
+      name: locale === "zh" ? "返回传导" : "Back to Transmission",
+    })).toHaveAttribute("href", TRANSMISSION_RETURN_HREF);
+    expectTransmissionContextParams(new URL(workspace.url()));
+  };
+
+  await prepare(page, testInfo, baseURL);
+  await run(page, "en", 1440, 900, "a1000000-0000-4000-8000-00000000c4de", "a1000000-0000-4000-8000-00000000c5de");
+  await run(page, "en", 820, 1180, "a1000000-0000-4000-8000-00000000c6de", "a1000000-0000-4000-8000-00000000c7de");
+  const zhPage = await browser.newPage();
+  try {
+    await prepare(zhPage, testInfo, baseURL, true);
+    await run(zhPage, "zh", 820, 1180, "a1000000-0000-4000-8000-00000000cade", "a1000000-0000-4000-8000-00000000cbde");
+  } finally {
+    await zhPage.close();
+  }
 });

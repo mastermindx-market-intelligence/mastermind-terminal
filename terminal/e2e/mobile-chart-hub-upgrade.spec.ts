@@ -1,4 +1,5 @@
 import { expect, test, type Locator, type Page, type TestInfo } from "@playwright/test";
+import { chooseToolbarSplit } from "./terminalToolbar";
 
 const PHONE_PROJECT = "mobile";
 
@@ -36,6 +37,8 @@ function supportedHubControls(hub: Locator) {
     hub.getByTestId("hub-tile-alerts"),
     hub.getByTestId("hub-tile-chartType"),
     hub.getByTestId("hub-tile-workspaces"),
+    hub.getByTestId("hub-tile-replay"),
+    hub.getByTestId("hub-tile-dataTable"),
     hub.getByTestId("hub-tile-symbolDetails"),
   ];
 }
@@ -57,6 +60,26 @@ async function dragHubDown(page: Page, hub: Locator) {
 
 test.beforeEach(async ({}, testInfo: TestInfo) => {
   test.skip(testInfo.project.name !== PHONE_PROJECT, "Session B runs once in the phone project and resizes explicitly for tablet/desktop parity.");
+});
+
+test("phone Replay preserves the single-chart gate after a workspace resize", async ({ page }) => {
+  await openTerminal(page);
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await chooseToolbarSplit(page, 2);
+  await page.setViewportSize({ width: 390, height: 844 });
+  const { hub } = await openHub(page);
+  const replay = hub.getByTestId("hub-tile-replay");
+  await expect(replay).toBeDisabled();
+  await expect(replay).toHaveAttribute("data-replay-blocked", "multi-chart");
+  await expect(replay).toHaveAttribute("aria-pressed", "false");
+  await expect(page.locator("[data-replay-rail]")).toHaveCount(0);
+  await page.keyboard.press("Escape");
+  await page.setViewportSize({ width: 1440, height: 900 });
+  await chooseToolbarSplit(page, 1);
+  await page.setViewportSize({ width: 390, height: 844 });
+  await openHub(page);
+  await expect(replay).toBeEnabled();
+  await expect(replay).not.toHaveAttribute("data-replay-blocked");
 });
 
 test("MM-005: the hub owns the complete keyboard cycle and returns focus on dismissal", async ({ page }) => {
@@ -117,7 +140,7 @@ test("MM-006: only supported tools are actionable and chart type uses canonical 
   await openTerminal(page);
   const { hub, trigger } = await openHub(page);
 
-  await expect(hub.locator(".mhub-grid .mhub-tile")).toHaveCount(6);
+  await expect(hub.locator(".mhub-grid .mhub-tile")).toHaveCount(8);
   await expect(hub.getByTestId("hub-tile-objectTree")).toHaveCount(0);
   await expect(hub.getByTestId("hub-tile-templates")).toHaveCount(0);
   await expect(hub.getByTestId("hub-unavailable-tools")).toContainText("This panel isn't available in this version");
@@ -201,6 +224,8 @@ test("MM-006: Alerts and Symbol details act on the current symbol", async ({ pag
 test("MM-006: EN and ZH expose the same truthful capability decisions", async ({ page }) => {
   await openTerminal(page, "zh");
   const { hub } = await openHub(page);
+
+  await expect(hub.getByTestId("hub-tile-replay")).toHaveText("回放");
 
   await expect(hub.getByTestId("hub-unavailable-tools")).toContainText("此面板在当前版本中不可用");
   await expect(hub.getByTestId("hub-unavailable-tools")).toContainText("对象树");
