@@ -52,6 +52,7 @@ import {
 import { createPrimitiveHost, type HostPrimitive, type PrimitiveHost } from "./primitives";
 import { EngineRefusalError } from "./refusal";
 import { crosshairInvalidation, dataAt, resolveCrosshair, snapLogicalToBar } from "./crosshair";
+import { attachEngineInput, type EngineInputBinding } from "./inputBridge";
 
 export { ChartModel, priceScaleMath, futureSlotResolver, xOfLogical, logicalOfX } from "./model";
 export type {
@@ -75,7 +76,7 @@ export const CANVAS_CAPABILITIES = {
   markers: true,
   primitives: true,
   screenshot: true,
-  kineticScroll: false,
+  kineticScroll: true,
 };
 
 export type PaintScheduler = {
@@ -84,19 +85,21 @@ export type PaintScheduler = {
 };
 
 export function createManualScheduler(): PaintScheduler & { flush(): void } {
-  let pending: (() => void) | null = null;
+  const pending = new Map<unknown, () => void>();
+  let seq = 0;
   return {
     schedule(cb) {
-      pending = cb;
-      return cb;
+      const handle = ++seq;
+      pending.set(handle, cb);
+      return handle;
     },
-    cancel() {
-      pending = null;
+    cancel(handle) {
+      pending.delete(handle);
     },
     flush() {
-      const p = pending;
-      pending = null;
-      if (p) p();
+      const batch = [...pending.values()];
+      pending.clear();
+      for (const p of batch) p();
     },
   };
 }
@@ -112,23 +115,26 @@ export type CanvasEngineOptions = EngineOptions & {
   scheduler?: PaintScheduler;
   resizeObserverCtor?: ResizeObserverCtor | null;
   devicePixelRatio?: number;
+  now?: () => number;
 };
 
-const LOCAL_KEYS = ["scheduler", "resizeObserverCtor", "devicePixelRatio"] as const;
+const LOCAL_KEYS = ["scheduler", "resizeObserverCtor", "devicePixelRatio", "now"] as const;
 
 function stripLocalKeys(options: CanvasEngineOptions | undefined): {
   engine: EngineOptions;
   scheduler?: PaintScheduler;
   resizeObserverCtor?: ResizeObserverCtor | null;
   devicePixelRatio?: number;
+  now?: () => number;
 } {
   if (!options) return { engine: {} };
   const bag = { ...options } as Record<string, unknown>;
   const scheduler = bag.scheduler as PaintScheduler | undefined;
   const resizeObserverCtor = bag.resizeObserverCtor as ResizeObserverCtor | null | undefined;
   const devicePixelRatio = bag.devicePixelRatio as number | undefined;
+  const now = bag.now as (() => number) | undefined;
   for (const k of LOCAL_KEYS) delete bag[k];
-  return { engine: bag, scheduler, resizeObserverCtor, devicePixelRatio };
+  return { engine: bag, scheduler, resizeObserverCtor, devicePixelRatio, now };
 }
 
 function gateEngineOptions(options: EngineOptions): EngineOptions {
@@ -178,11 +184,15 @@ class CanvasEngine implements CanvasChartEngine {
   private readonly invalidator: Invalidator;
   private snaps = new Map<number, SeriesSnap>();
   private lastPrimGen = -1;
+  private input: EngineInputBinding | null = null;
+  private readonly nowFn: () => number;
 
   constructor(container: HTMLElement, options: CanvasEngineOptions | undefined, dpr: number) {
     const width = typeof options?.width === "number" ? options.width : container.clientWidth || 0;
     const height = typeof options?.height === "number" ? options.height : container.clientHeight || 0;
     this.scheduler = options?.scheduler ?? rafScheduler();
+    this.nowFn = options?.now
+      ?? (() => (typeof performance !== "undefined" ? performance.now() : Date.now()));
 
     this.primHost = createPrimitiveHost({
       onRequestUpdate: () => this.requestPaint({ level: "light", panes: "all" }),
@@ -228,6 +238,17 @@ class CanvasEngine implements CanvasChartEngine {
     this.lastRoot = this.dom.root;
     this.model.paneElementLookup = (i) => (this.dom ? paneElement(this.dom, i) : null);
     this.bindOverlay();
+    this.input = attachEngineInput({
+      model: this.model,
+      getTarget: () => this.dom?.overlay ?? null,
+      scheduler: this.scheduler,
+      now: () => this.nowFn(),
+      options: this.model.options,
+      onPointerPoint: (point) => {
+        this.lastPoint = point;
+        this.requestPaint({ level: "cursor", panes: "all" });
+      },
+    });
     this.syncStructure();
     this.requestPaint({ level: "full", panes: "all" });
   }
@@ -479,6 +500,7 @@ class CanvasEngine implements CanvasChartEngine {
   applyOptions(options: EngineOptions): void {
     const gated = gateEngineOptions(options);
     this.model.applyOptions(gated);
+    this.input?.applyOptions(gated);
     if (typeof gated.width === "number" || typeof gated.height === "number") {
       this.syncStructure();
     }
@@ -525,6 +547,8 @@ class CanvasEngine implements CanvasChartEngine {
   }
   destroy(): void {
     if (!this.dom) return;
+    this.input?.dispose();
+    this.input = null;
     this.invalidator.dispose();
     this.primHost.dispose();
     if (this.paintHandle != null) {
@@ -556,6 +580,7 @@ export function createCanvasEngine(
     scheduler: local.scheduler,
     resizeObserverCtor: local.resizeObserverCtor,
     devicePixelRatio: local.devicePixelRatio,
+    now: local.now,
   }, dpr);
 }
 
