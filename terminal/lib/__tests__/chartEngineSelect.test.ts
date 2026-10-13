@@ -349,6 +349,26 @@ describe("resolveMountEngineSelection (P03 storage-aware)", () => {
     // "no storage" instead of throwing — select.ts itself never reads a global.
     expect(browserEngineStorage()).toBeNull();
   });
+
+  // F1 (P03 repair round 1): the fourth parameter is the pin a consumer that cannot
+  // drive "mm" yet needs — without it, "keep lwc" would mean editing the build default
+  // and every lever would move with it. A pinned default is still only a DEFAULT: the
+  // kill switch and a valid url win over it, and only a `source === "url"` selection
+  // ever writes to storage.
+  it("F1: a consumer that cannot drive mm pins buildDefault without losing the levers", () => {
+    expect(BUILD_DEFAULT_ENGINE).toBe("mm"); // the flip itself is untouched
+    const s = recordingStorage();
+    expect(resolveMountEngineSelection("", s, false, "lwc")).toMatchObject({ impl: "lwc", source: "default" });
+    expect(s.dump().size).toBe(0); // a pinned default still never persists
+    const t = recordingStorage();
+    expect(resolveMountEngineSelection("?engine=mm", t, false, "lwc")).toMatchObject({ impl: "mm", source: "url" });
+    expect(t.dump().get(STORAGE_KEY)).toBe("mm"); // …but the opt-in lever still works and sticks
+    expect(resolveMountEngineSelection("", recordingStorage({ [STORAGE_KEY]: "mm" }), false, "lwc"))
+      .toMatchObject({ impl: "mm", source: "stored" });
+    const k = recordingStorage({ [STORAGE_KEY]: "mm" });
+    expect(resolveMountEngineSelection("?engine=mm", k, true, "mm")).toMatchObject({ impl: "lwc", source: "killswitch" });
+    expect(k.calls()).toEqual([]); // kill switch still reads nothing under a pinned default
+  });
 });
 
 describe("engineQueryFromUrl", () => {
