@@ -354,7 +354,7 @@ export function futureAnchors(
     // its own session.
     const spanSec = numeric ? stepMs / 1000 : 0;
     const closeUtcMs = numeric ? openUtcMs + stepMs : openUtcMs;
-    out.push(freezeFacts(barKey, openUtcMs, closeUtcMs, market, spanSec, true));
+    out.push(freezeFacts(barKey, openUtcMs, closeUtcMs, market, spanSec, true, lastFacts.keyBasis));
   }
   return Object.freeze(out);
 }
