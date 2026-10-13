@@ -39,6 +39,13 @@ import { FUTURE_ANCHOR_BARS, futureBarTimes, futureCadence, futureSlotOf, type F
 import { keepIndicatorPaneAxisLabelsOnly } from "@/lib/indicatorPaneSeries";
 import { runPine, type RunResult } from "@/lib/pine-engine";
 import { createPineHost, type PineHost, type PineResult } from "@/lib/pine-engine/host";
+import {
+  buildAllPineOnEngine,
+  buildPineScriptOnEngine,
+  clearPineLayer,
+  paintPineFromCacheOnEngine,
+  pineOutcome,
+} from "@/lib/pineChartLayer";
 import { ORACLE_V1_PINE } from "@/lib/pine";
 import { DRAWING_SCHEMA_VERSION, MAX_DRAWING_PAYLOAD_BYTES, type Drawing, type DrawKind, type Bar as DBar, uid, autoTrendlines, autoFib, srDrawings, mtfaDrawings } from "@/lib/drawings";
 import { drawingToolFromShortcut, getDrawingTool, FREEHAND_DRAWING_KINDS, type DrawingToolCapability } from "@/lib/drawingTools";
@@ -137,6 +144,8 @@ type ChartDevWindow = Window & {
   __mmPriceLabels?: unknown;
   __mmPaneMaximized?: unknown;
   __mmChartOwnership?: unknown;
+  __mmChartEngineImpl?: () => string | null;
+  __mmPineWitness?: () => { errors: Record<string, string>; warnings: string[] };
   __mmLiveBarGeneration?: unknown;
 };
 
@@ -1481,14 +1490,6 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
     const cached = pineCacheRef.current.get(script.id);
     return cached && cached.key === pineCacheKey(script, rows) ? { result: cached.result, error: cached.error } : null;
   };
-  // Translate a host PineResult (or a caught crash) into the cache's { result, error } shape.
-  const pineOutcome = (out: PineResult | null, crash?: unknown): { result: RunResult | null; error: string | null } => {
-    if (crash !== undefined) return { result: null, error: (crash as any)?.message ? String((crash as any).message) : "Script crashed" };
-    if (!out) return { result: null, error: "Script produced no output" };
-    if (out.budgetExceeded) return { result: null, error: "Script exceeded the run budget (cancelled)" };
-    if (!out.ok) { const e = out.errors[0]; return { result: null, error: e ? (e.line ? `Line ${e.line}: ${e.message}` : e.message) : "Script failed to run" }; }
-    return { result: out.result, error: null };
-  };
   // Launch an async host run for one script on `rows`, caching the outcome under the (script,data) key.
   // Returns the cache-shaped outcome. `cancelled` results (superseded by a newer same-slot run) are
   // dropped WITHOUT touching the cache so the newer run owns the entry. compile() is fire-and-forget to
@@ -1526,140 +1527,49 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
     try { priceH.setMarkers(all); } catch {}
   };
 
-  // Map a Pine PlotKind → an owned-contract series on `pane` (M02+M03). Histogram/columns →
-  // histogram; area → area; everything else → line. Returns the owned handle (or null).
-  const addPinePlot = (chart: ChartEngine, plot: RunResult["plots"][number], pane: number): SeriesHandle | null => {
-    const data = plot.data.filter((d) => d.value != null && isFinite(d.value));
-    if (!data.length) return null;
-    const lw = Math.max(1, plot.linewidth || 1) as any;
-    if (plot.kind === "histogram" || plot.kind === "columns") {
-      const h = chart.addSeries("histogram", { priceLineVisible: false, lastValueVisible: false, title: plot.title }, pane);
-      h.setData(data.map((d) => ({ time: d.time, value: d.value, color: d.color || plot.color })) as any);
-      return h;
-    }
-    if (plot.kind === "area") {
-      const h = chart.addSeries("area", { lineColor: plot.color, topColor: plot.color, bottomColor: "rgba(0,0,0,0)", lineWidth: lw, priceLineVisible: false, lastValueVisible: false, crosshairMarkerVisible: false }, pane);
-      h.setData(data.map((d) => ({ time: d.time, value: d.value })) as any);
-      return h;
-    }
-    const h = chart.addSeries("line", { color: plot.color, lineWidth: lw, lineStyle: plot.kind === "stepline" ? 0 : 0, priceLineVisible: false, lastValueVisible: false, crosshairMarkerVisible: false, title: plot.title }, pane);
-    h.setData(data.map((d) => ({ time: d.time, value: d.value })));
-    return h;
-  };
+  const pineLayerMaps = () => ({
+    series: pineSeriesRef.current,
+    priceShapes: pinePriceShapesRef.current,
+    paneMap: pinePaneMapRef.current,
+    errors: pineErrRef.current,
+  });
+  const pinePriceLinePool = () => ({
+    removeAllPineKeys: () => {
+      for (const key of [...indPriceLinesRef.current.keys()]) if (isPineKey(key)) removeIndPriceLines(key);
+    },
+    removeForScript: (id: string) => removeIndPriceLines(pineKeyOf(id)),
+    track: (id: string, pl: PriceLineHandle) => pushIndPriceLine(pineKeyOf(id), pl),
+  });
+  const readPineCache = (script: PineScript, rows: Bar[]) => pineCached(script, rows);
 
-  // Build ONE script's series onto the chart. Overlay scripts (meta.overlay) plot on the price pane
-  // (pane 0); non-overlay scripts get their own sub-pane at index `subPane` (caller-assigned). hlines
-  // → createPriceLine on the first series' OWNED handle (or the price series' handle for empty
-  // overlay scripts); shapes → setMarkers on the anchor handle. Records series/pane in the pine
-  // refs. Returns true if it got a pane.
-  const buildPineScript = (script: PineScript, rows: Bar[], subPane: number): { ok: boolean; usedPane: boolean } => {
-    const chart = engineRef.current, priceH = priceSeriesHandleRef.current; if (!chart || !priceH) return { ok: false, usedPane: false };
-    // Consume the memoized outcome (a fresh cache hit). Callers (buildAllPine) only invoke this for
-    // scripts already resolved into pineCacheRef; a miss here means the async run hasn't landed yet.
-    const outcome = pineCached(script, rows);
-    if (!outcome) return { ok: false, usedPane: false };
-    const { result, error } = outcome;
-    if (error || !result) { pineErrRef.current.set(script.id, error || "Script produced no output"); return { ok: false, usedPane: false }; }
-    pineErrRef.current.delete(script.id);
-    const overlay = result.meta.overlay;
-    const pane = overlay ? 0 : subPane;
-    const series: SeriesHandle[] = [];
-    for (const plot of result.plots) { const s = addPinePlot(chart, plot, pane); if (s) series.push(s); }
-    // hlines → price lines on the anchor (first plot series' handle, else the price handle for overlays)
-    const anchor: SeriesHandle | null = series[0] || (overlay ? priceH : null);
-    // OWNERSHIP: a line on the script's OWN series is disposed when clearAllPine removes that
-    // series. An overlay script that rendered no series at all — an hline-only levels script, or
-    // one whose plots are entirely `na` over the loaded bars — anchors on the SHARED price series,
-    // which outlives every rebuild. Those lines survive clearAllPine, so they must be pooled and
-    // removed by key, exactly like slevels/pivots/optlevels. Without that, each build strands
-    // another full set (and buildAllPine's slow path paints twice per build), growing without
-    // bound for the life of the tab.
-    const anchoredOnPrice = anchor != null && anchor === priceH;
-    if (anchoredOnPrice) removeIndPriceLines(pineKeyOf(script.id));   // defensive: never double-draw
-    if (anchor) for (const hl of result.hlines) {
-      try {
-        const pl = anchor.createPriceLine({ price: hl.price, color: hl.color, lineWidth: 1, lineStyle: hl.style === "dashed" ? 2 : hl.style === "dotted" ? 1 : 0, axisLabelVisible: true, title: hl.title });
-        if (anchoredOnPrice) pushIndPriceLine(pineKeyOf(script.id), pl);
-      } catch {}
-    }
-    // shapes → markers on the anchor handle (only meaningful with a series to hang them on).
-    // A script with its OWN series owns that series' whole marker set (it dies with the
-    // series); a price-anchored script's shapes join the SHARED set via applyPriceMarkers.
-    if (anchor && result.shapes.length) {
-      try {
-        const markers: MarkerSpec[] = result.shapes.map((sh) => ({ time: sh.time as MarkerSpec["time"], position: sh.position, shape: sh.shape, color: sh.color, text: sh.text }));
-        if (anchoredOnPrice) {
-          pinePriceShapesRef.current.set(script.id, markers);
-          applyPriceMarkers();
-        } else {
-          anchor.setMarkers(markers);
-        }
-      } catch {}
-    }
-    pineSeriesRef.current.set(script.id, series);
-    // a non-overlay script claims its pane only if it actually rendered at least one series there
-    const usedPane = !overlay && series.length > 0;
-    if (usedPane) pinePaneMapRef.current.set(script.id, subPane);
-    return { ok: true, usedPane };
-  };
+  const clearAllPine = () => clearPineLayer(pineLayerMaps(), pinePriceLinePool(), applyPriceMarkers);
 
-  // Remove EVERY tracked pine series + markers (price/compare/built-ins/drawings survive).
-  const clearAllPine = () => {
-    const chart = chartRef.current; if (!chart) return;
-    pinePriceShapesRef.current.clear();
-    applyPriceMarkers();   // price-anchored shapes leave the shared marker set now
-    // Price lines an overlay script anchored on the shared price series are NOT reclaimed by
-    // removing the script's own series — that series is not where they live (see buildPineScript).
-    // Read the pool rather than pineSeriesRef so the removal still happens for a script whose
-    // series registry was already emptied by another path.
-    for (const key of [...indPriceLinesRef.current.keys()]) if (isPineKey(key)) removeIndPriceLines(key);
-    for (const arr of pineSeriesRef.current.values()) for (const s of arr) { try { s.remove(); } catch {} }
-    pineSeriesRef.current.clear(); pinePaneMapRef.current.clear();
-  };
+  const buildPineScript = (script: PineScript, rows: Bar[], subPane: number) =>
+    buildPineScriptOnEngine(
+      engineRef.current, priceSeriesHandleRef.current, script, rows, subPane,
+      pineLayerMaps(), pinePriceLinePool(), applyPriceMarkers, readPineCache,
+    );
 
-  // Render every enabled script's series from the memo cache (synchronous). Non-overlay scripts append
-  // sub-panes AFTER any built-in sub-panes (rsi/macd/…) in array order. Scripts without a fresh cache
-  // entry are skipped (their series simply don't appear until the async run lands + triggers a rebuild).
   const paintPineFromCache = (rows: Bar[]) => {
-    const chart = chartRef.current; if (!chart) return;
-    const scripts = pineScriptsRef.current; if (!scripts.length) return;
-    // next free pane = 1 + max(any built-in sub-pane index already assigned)
     let pane = 1;
     for (const idx of paneMapRef.current.values()) pane = Math.max(pane, idx + 1);
-    for (const s of scripts) {
-      const { usedPane } = buildPineScript(s, rows, pane);
-      if (usedPane) pane++;
-    }
+    paintPineFromCacheOnEngine(
+      engineRef.current, priceSeriesHandleRef.current, pineScriptsRef.current, rows,
+      pineLayerMaps(), pinePriceLinePool(), applyPriceMarkers, readPineCache, pane,
+    );
   };
 
-  // Build ALL enabled scripts onto `rows` via the worker host. FAST PATH: when every script already
-  // has a fresh cache entry for this bar set (pan / indicator toggle — bars unchanged), paint
-  // synchronously with no worker round-trip. SLOW PATH: any cache miss (replay tick, live splice,
-  // edited/added script, TF/symbol change) launches async host runs; when the batch for THIS epoch
-  // settles, clear + repaint the pine layer from the now-complete cache — guarded by pineEpochRef so a
-  // stale batch (superseded by a newer rebuild) never paints over the current bars. Errors are captured
-  // per-script (surfaced in the legend), never thrown. Callers invoke clearAllPine() before this, so on
-  // the sync fast path we paint straight away; on the async path clearAllPine already emptied the layer.
   const buildAllPine = (rows: Bar[]) => {
-    const chart = chartRef.current; if (!chart) return;
-    const scripts = pineScriptsRef.current; if (!scripts.length) return;
-    const epoch = ++pineEpochRef.current;
-    const misses = scripts.filter((s) => pineCached(s, rows) === null);
-    // paint whatever is already cached now (avoids a blank flash when only SOME scripts changed)
-    paintPineFromCache(rows);
-    if (!misses.length) return;   // fast path: everything was cached
-    // slow path: run the misses off-thread, then rebuild the pine layer once they all resolve
-    Promise.all(misses.map((s) => runPineHost(s, rows).catch(() => null))).then(() => {
-      // Epoch guard: any newer buildAllPine() bumped pineEpochRef, so a stale batch (superseded by a
-      // newer bar set / replay tick / edit) is dropped here and never paints over the current bars.
-      if (pineEpochRef.current !== epoch) return;
-      if (!chartRef.current) return;
-      clearAllPine();
-      paintPineFromCache(rows);
-      normalizeStretch();
-      applyHidden();
-      renderSignalsRef.current();
-      measureRef.current();
+    buildAllPineOnEngine(rows, {
+      getEngine: () => engineRef.current,
+      getScripts: () => pineScriptsRef.current,
+      bumpEpoch: () => ++pineEpochRef.current,
+      getEpoch: () => pineEpochRef.current,
+      readCache: readPineCache,
+      clear: clearAllPine,
+      paint: paintPineFromCache,
+      runMisses: async (misses) => { await Promise.all(misses.map((s) => runPineHost(s, rows).catch(() => null))); },
+      afterSlowRepaint: () => { normalizeStretch(); applyHidden(); renderSignalsRef.current(); measureRef.current(); },
     });
   };
 
@@ -3383,7 +3293,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
     if (pineLiveTimerRef.current != null) clearTimeout(pineLiveTimerRef.current);
     pineLiveTimerRef.current = setTimeout(() => {
       pineLiveTimerRef.current = null;
-      const chart = chartRef.current; if (!chart || isIntradayRef.current || replayIdxRef.current != null) return;
+      const engine = engineRef.current; if (!engine || isIntradayRef.current || replayIdxRef.current != null) return;
       pineCacheRef.current.clear();   // force a re-run against the developing bar (last close moved in place)
       buildAllPine(barsRef.current);  // async: epoch-guarded, repaints when the worker batch settles
     }, PINE_LIVE_DEBOUNCE_MS);
@@ -3966,6 +3876,16 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
       // still hold a handle the renderer already dropped (a stale owner). Zero heap bytes are
       // involved — this counts owners, so it cannot be fooled by GC timing.
       (window as any).__mmChartOwnership = () => chartOwnershipCensus();
+      (window as any).__mmChartEngineImpl = () => engineRef.current?.impl ?? null;
+      (window as any).__mmPineWitness = () => {
+        const errors: Record<string, string> = {};
+        for (const [id, err] of pineErrRef.current) errors[id] = err;
+        const warnings: string[] = [];
+        for (const cached of pineCacheRef.current.values()) {
+          if (cached.result?.warnings?.length) warnings.push(...cached.result.warnings);
+        }
+        return { errors, warnings };
+      };
       // Dislocation episode marks witness (product spec §4.3 e2e): the episode the pane drew and the exact bar
       // times of its marks — a canvas screenshot cannot show that the marks sit on the knowable-at bars.
       (window as any).__mmEpisodeMarks = () => ({ episodeId: episodeRef.current?.episode_id ?? null, count: episodeSpecsRef.current.length, times: episodeSpecsRef.current.map((s) => s.time) });
@@ -8611,6 +8531,8 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
           delete devWindow.__mmPriceLabels;
           delete devWindow.__mmPaneMaximized;
           delete devWindow.__mmChartOwnership;
+          delete devWindow.__mmChartEngineImpl;
+          delete devWindow.__mmPineWitness;
           delete devWindow.__mmLiveBarGeneration;
         } catch {}
       }
@@ -9559,8 +9481,8 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
   const pineMounted = useRef(false);
   useEffect(() => {
     if (!pineMounted.current) { pineMounted.current = true; return; }
-    const chart = chartRef.current; if (!chart || !barsRef.current.length) return;
-    const saved = PRESERVE_VIEW_ON_INDICATOR_TOGGLE ? (() => { try { const r = chart.timeScale().getVisibleLogicalRange(); return r ? { from: r.from as number, to: r.to as number } : null; } catch { return null; } })() : null;
+    const engine = engineRef.current; if (!engine || !barsRef.current.length) return;
+    const saved = PRESERVE_VIEW_ON_INDICATOR_TOGGLE ? (() => { try { const r = engine.timeScale().getVisibleLogicalRange(); return r ? { from: r.from as number, to: r.to as number } : null; } catch { return null; } })() : null;
     // drop cache entries for scripts that are no longer enabled (frees memory; a re-add re-runs fresh)
     const live = new Set(pineScriptsRef.current.map((s) => s.id));
     for (const id of Array.from(pineCacheRef.current.keys())) if (!live.has(id)) pineCacheRef.current.delete(id);
@@ -9572,7 +9494,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
     normalizeStretch();
     applyHidden();
     renderSignalsRef.current(); renderRef.current();
-    if (saved) { try { chart.timeScale().setVisibleLogicalRange(saved); } catch {} }
+    if (saved) { try { engine.timeScale().setVisibleLogicalRange(saved); } catch {} }
     // eslint-disable-next-line
   }, [pineKey]);
 
