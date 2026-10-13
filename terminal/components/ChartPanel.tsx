@@ -7300,7 +7300,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
       const ch = engineRef.current, w = wrapElRef.current; if (!ch || dead || !w) return;
       const wr = w.getBoundingClientRect();
       // match panes by current index, not object identity — lightweight-charts hands back fresh
-      // IPaneApi wrappers, so series.getPane() !== chart.panes()[i]; paneIndex() stays consistent
+      // Fresh pane handle wrappers each read, so series.pane() !== chart.panes()[i]; index() stays consistent
       // for the same underlying pane (and updates together after swapPanes reorders).
       const metaByIndex = new Map<number, typeof panesMeta.current[number]>();
       for (const m of panesMeta.current) { let mi = -1; try { mi = m.pane.index(); } catch {} if (mi >= 0) metaByIndex.set(mi, m); }
