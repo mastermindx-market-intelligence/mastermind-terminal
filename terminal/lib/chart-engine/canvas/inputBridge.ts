@@ -84,15 +84,25 @@ export function engineToInputOptions(engine: EngineOptions): InputControllerOpti
 export function hitTestEngineInput(
   x: number,
   y: number,
-  layout: { widthPx: number; paneHeights: readonly number[]; priceAxisWidthPx?: number },
+  layout: {
+    widthPx: number;
+    paneHeights: readonly number[];
+    priceAxisWidthPx?: number | readonly number[];
+  },
 ): { region: InputRegion; paneIndex: number } {
   const { widthPx, paneHeights: heights } = layout;
-  // Measured axis strip from frame.ts (sibling-owned) falls back to the 40-px
-  // floor so this stays a no-op for callers that never publish a strip.
-  const axisPx = Math.max(PRICE_AXIS_HIT_WIDTH_PX, layout.priceAxisWidthPx ?? 0);
   const last = Math.max(0, heights.length - 1);
+  // frame.ts measures each pane's own price labels, so the painted strip is
+  // per pane and callers may publish an array. A scalar is honoured for every
+  // pane; an unpublished strip falls back to the 40-px floor frame.ts paints.
+  const axisPxFor = (paneIndex: number): number => {
+    const raw = Array.isArray(layout.priceAxisWidthPx)
+      ? layout.priceAxisWidthPx[paneIndex] ?? 0
+      : layout.priceAxisWidthPx ?? 0;
+    return Math.max(PRICE_AXIS_HIT_WIDTH_PX, raw);
+  };
   const total = heights.reduce((a, h) => a + h, 0);
-  if (y >= total - TIME_AXIS_HIT_HEIGHT_PX && x < widthPx - axisPx) {
+  if (y >= total - TIME_AXIS_HIT_HEIGHT_PX && x < widthPx - axisPxFor(last)) {
     return { region: "timeAxis", paneIndex: last };
   }
   let top = 0;
@@ -102,7 +112,7 @@ export function hitTestEngineInput(
     if (y < bottom || i === last) { paneIndex = i; break; }
     top = bottom;
   }
-  if (x >= widthPx - axisPx) return { region: "priceAxis", paneIndex };
+  if (x >= widthPx - axisPxFor(paneIndex)) return { region: "priceAxis", paneIndex };
   return { region: "plot", paneIndex };
 }
 
@@ -126,7 +136,11 @@ export function domEventToInputEvent(
   ev: Event,
   target: HTMLElement,
   type: InputEventType,
-  layout: { widthPx: number; paneHeights: readonly number[]; priceAxisWidthPx?: number },
+  layout: {
+    widthPx: number;
+    paneHeights: readonly number[];
+    priceAxisWidthPx?: number | readonly number[];
+  },
 ): InputEvent {
   const point = cssPoint(ev, target);
   const hit = hitTestEngineInput(point.x, point.y, layout);
@@ -168,13 +182,12 @@ function capturePointer(target: HTMLElement, pointerId: number): void {
 function layoutOf(model: ChartModel): {
   widthPx: number;
   paneHeights: number[];
-  priceAxisWidthPx: number;
+  priceAxisWidthPx: readonly number[];
 } {
-  const strip = (model as unknown as { priceAxisStripPx?: number }).priceAxisStripPx;
   return {
     widthPx: model.time.widthPx,
     paneHeights: model.panes.map((p) => p.height),
-    priceAxisWidthPx: typeof strip === "number" ? strip : 0,
+    priceAxisWidthPx: model.priceAxisStripPx,
   };
 }
 
