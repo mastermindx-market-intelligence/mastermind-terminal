@@ -114,23 +114,49 @@ A `request.security(sym, tf, expr, …)` call to a **coarser** `tf` than the cha
    — and its value is recorded per HTF bar;
 3. each chart bar shows the recorded value of the HTF bar it may see. The chart pass never
    evaluates the expression itself, so chart-bar state cannot leak into the requested context.
+   `time` inside the requested expression is the HTF period's opening session; `time_close` is
+   its last session. Chart-TF `time_close` uses a bar's `timeClose` when present, otherwise the
+   ChartPanel session-group `closeTime`, otherwise `time`.
 
 Admitted contexts — each has an explicit grouping and confirmation rule:
 
 | chart | requested | grouping | confirmed at |
 | --- | --- | --- | --- |
-| daily | `W` | ISO week (keyed by its last session) | its last session, once a session in a later week is loaded |
-| daily | `M`, `3M`, `12M` | calendar month / quarter / year | its last session, once a session in a later period is loaded |
-| `1M`/`3M`/`12M` | a coarser `1M`/`3M`/`12M` multiple | calendar quarter / year of whole monthly bars | same as above |
-| daily | `nD` (n ≥ 2) | `lib/sessionBars` session grid at the chart's session anchor | the session whose global index is a multiple of n |
+| daily | `W` | ISO week (`time` = first LOADED session of the ISO week, `time_close` = last session) | its last session, once a session in a later week is loaded |
+| daily | `M`, `3M`, `12M` | calendar month / quarter / year (`time` = first LOADED session, `time_close` = last session) | its last session, once a session in a later period is loaded |
+| `1M`/`3M`/`12M` | a coarser `1M`/`3M`/`12M` multiple | calendar quarter / year of whole monthly bars (`time` = first loaded session of the period) | same as above |
+| daily | `nD` (n ≥ 2) | `lib/sessionBars` session grid at the chart's session anchor (`time` = open, `time_close` = last session) | the session whose global index is a multiple of n |
 
 The `nD` grid is phased by `RunOpts.sessionAnchor`, the symbol's published `session_anchor`
 (`{ v, date, index, basis }`, see `lib/sessionBars`): the anchor's session is located in the chart
 rows and gives row 0's global session index, the same way `ChartPanel.resampleTf` builds the
-chart's own `nD` bars. Without an anchor, or when its session is not among the loaded rows or it is
-malformed, the grid falls back to the canonical owner's feed phase (the first loaded session) and
-every run that uses it says which of those happened in a warning — the group boundaries can then
-differ from the chart's own `nD` bars. ChartPanel does not pass the anchor yet.
+chart's own `nD` bars. ChartPanel parses the OHLC document's `session_anchor` with
+`parseSessionAnchor` into `sessionAnchorRef`, and passes `sessionAnchor: sessionAnchorRef.current`
+into every Pine run: the worker-backed `host.run` and the ORACLE_V1 `runPine` fallback. Without an
+anchor, or when its session is not among the loaded rows or it is malformed, the grid falls back to
+the canonical owner's feed phase (the first loaded session) and every run that uses it says which
+of those happened in a warning — the group boundaries can then differ from the chart's own `nD`
+bars.
+
+`time` inside `request.security` is the first **loaded** session of the period, not a wall-clock
+Monday open. The ISO-week / calendar-month key is computed from each bar's stamped date, and
+the period's opening session is whatever the loaded rows gave the engine first — a weekly chart
+that starts on Wednesday reports the first loaded Wednesday's session as `time`, not Monday.
+A session stamped with the previous calendar date (a Sunday-evening futures session whose
+`time` is Sunday) groups into the prior ISO week, not the next: ISO weeks are Mon-anchored, so
+the period key is derived from the stamped date regardless of when the bar's session actually
+ran. Calendar W/M grouping is fixed on the loaded sessions' date stamps and is NOT re-phased by
+`session_anchor` — only the `nD` session grid honours the anchor (it tells the engine where the
+loaded rows sit on the symbol's session grid, but W/M key off the date stamp of each session).
+
+`W` / `M` / `3M` / `12M` grouping requires **date-only** bar stamps (`YYYY-MM-DD`). ISO
+date-time stamps (`YYYY-MM-DDTHH:MM:SSZ` / `±HH:MM`) are admitted for the chart-TF `time` /
+`time_close` and for `nD` session grouping, but the calendar-week / calendar-month key
+cannot be derived from an instant in time without a wall-clock definition that the loaded
+data does not carry. A daily chart whose bars carry ISO date-time stamps therefore refuses `W`,
+`M`, `3M` and `12M` with a deduplicated warning naming the date-only requirement; `nD` still
+works (its session grid reads each stamp's date portion). ISO date-time W/M grouping is not
+implemented in this engine — the date-only contract is the documented refusal boundary.
 
 Publication (historical bars, `isrealtime=false`): default `lookahead_off` shows a period's value
 from its confirming session on and carries the previous confirmed value before that (`gaps_off`);
@@ -144,9 +170,19 @@ cutoff, except one documented correction — the session that closes a calendar 
 to close it once a later session loads, so at the cutoff itself the prefix still shows the previous
 period. Session-count periods (`nD`) have no correction.
 
+Timeframe grammar (one parser, used by `tfParts`, `parseTfSecStrict`, and `tfSeconds` /
+`timeframe.in_seconds`): the Terminal's chart vocabulary is case-sensitive. `<n>m` is n minutes,
+`<n>M` is n months (≈ 30 days), `<n>s`/`<n>S` is seconds, `<n>h`/`<n>H` is hours, `D` and `W`
+as today, and a bare number is minutes (Pine). So `tfSeconds("1m")` is 60, `tfSeconds("15m")`
+is 900, `tfSeconds("1M")` is 2592000. On a `1m` chart, `request.security(timeframe.period)` is
+in-place; `request.security("W")` / `("1D")` is a coarser request (not finer, not unparseable).
+On a daily chart, `request.security("1m")` is refused as finer than the chart — never read as a
+month.
+
 Refused with `na` and a warning that names the reason (never an approximate value):
 multi-week periods (`2W`, `3W`, … — no calendar phase is known in the loaded bars), other month
-counts (`2M`, `5M`, …), minute/second/hour units, any coarser request from a `W`, `2W` or `nD`
+counts (`2M`, `5M`, …), minute/second/hour units requested from a daily chart (finer than the
+chart; lowercase `m` is minutes, not an unknown unit), any coarser request from a `W`, `2W` or `nD`
 chart (its bars cannot be regrouped without splitting a chart bar), bar times that are not
 ascending `YYYY-MM-DD` dates, a request inside a `for` loop,
 a request inside a function called from a `for` loop, a call site that the requested timeframe's
@@ -154,7 +190,24 @@ re-run did not reach on every requested bar up to the one shown (for example und
 `ta.*` and `[n]` history would run over a thinned series), a request in a different unit of the same
 length as the chart (`7D` on a `W` chart, `30D` on an `M` chart, `1440` or `24H` on a daily chart),
 and a request nested inside another coarser request. Finer-than-chart requests are refused the
-same way.
+same way. `nz()` does not turn a refused request into a definite value (`nz(refused, 0)` stays
+`na`); ordinary `na` (warmup, `gaps_on`) is still replaced. Refusal is sticky through arithmetic,
+`math.*` (including variadic `math.avg` / `math.max` — any refused argument refuses the result)
+and `fixnan`. `str.*` treats a refused value as ordinary `na`. An `input.*` default that is refused
+is stored in `RunResult.inputs` as ordinary `na` (NaN), so the sentinel object never crosses the
+worker boundary. `ta.*` currently coerces a refused input to ordinary `na` (so
+`nz(ta.sma(refused, 3), 0)` is `0`); making refusal stick through `ta.*` history buffers is not
+done, because a refused higher-timeframe series is already consumed by crossovers and windows in
+shipped scripts.
+
+A refused higher-timeframe value is a gap through the non-comparison operators that previously
+leaked it as a definite number: `r ? 1 : 0` and `na(r) ? 0 : r` paint a gap (not 0); `not r`,
+`true and r`, `r and true`, `false or r`, `r or false` all stay a gap. A **comparison** against a
+refused value, by contrast, is `na` like plain `na` today — the shipped signal scripts rely on
+this Pine semantic, e.g. `leadBullState = k_l >= d_l` and `confirmBullTrend = not useMTF or
+(macd_c >= sig_c) or b1FromOS`, where the lead / confirm higher-timeframe is refused on the
+chart's timeframe. `r > 0 ? 1 : 0` therefore paints `0` (Pine `na` semantics, required by the
+golden); test the value with `na(r) ? 0 : r` first if a gap is what you want.
 
 Deferred / no-op (clearly reported, never throws):
 - Tables, labels, lines, boxes, `fill`, `bgcolor`, `alertcondition` are parsed but draw nothing

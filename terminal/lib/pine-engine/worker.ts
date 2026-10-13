@@ -4,6 +4,7 @@
 // this file stays simple — it parses once, caches the AST per source hash, and executes on request.
 //
 // PROTOCOL (see host.ts for the typed contract):
+//   ← { kind: "ready" }                                            (once, after this module evaluates)
 //   → { kind: "compile", reqId, source }
 //        ← { kind: "compiled", reqId, ok, errors, astId }         (astId = source hash, AST cached here)
 //   → { kind: "run", reqId, astId?, source?, bars, inputs, opts }
@@ -80,3 +81,6 @@ ctx.onmessage = (e: MessageEvent<InMsg>) => {
     ctx.postMessage({ kind: "ran", reqId: (msg as any).reqId ?? -1, ok: false, errors: [{ line: 0, col: 0, message, phase: "runtime" }], result: null });
   }
 };
+
+// Host wall budgets start only after this fires — module load is not charged to the run budget.
+ctx.postMessage({ kind: "ready" });
