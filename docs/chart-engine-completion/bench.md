@@ -150,6 +150,148 @@ metric it invalidated (`REFUSAL_TAINTS` in `receipt.ts`) to `UNMEASURED`, so a
 refusing renderer cannot print a green receipt. The harness does not patch the
 engine.
 
+## Presented-frame cadence (Q03)
+
+Q03 measures the cost of a gesture in actual presentation times, not rAF
+times. Chromium's compositor `PipelineReporter` emits one slice per presentation
+even when the engine's rAF callback fired with no visible work; counting rAF
+times would over-report smoothness. `enabled-by-default-devtools.timeline.frame`
+covers the same domain but is not enabled by default for CDP `Tracing.start`,
+so the protocol asks for `disabled-by-default-devtools.timeline.frame`
+plus `blink.user_timing` and reads the `args.frame_reporter` payload.
+
+Chromium forks the frame reporter: one display presentation can be reported
+by two `PipelineReporter` slices with different `frame_sequence` values
+(one of them carrying `frame_type: "FORKED"`). The parser de-duplicates
+those into one frame per `frame_source:frame_sequence` key, then collapses
+to presentation times (`STATE_PRESENTED_ALL` slices) plus the keyed drop
+and partial frames; the count is FRAMES, not slices — over-reporting drops
+by ~192 per gesture in the E1 trace.
+
+### How to run
+
+```
+BENCH_RUNS=3 npx playwright test -c playwright.bench.config.ts bench/chart-engine.cadence.bench.ts
+```
+
+The official receipt is taken with `BENCH_HEADLESS=0` (headed) against a
+prod build (`NEXT_PUBLIC_CHART_BENCH=1 npm run build && npm run start -- -p …`),
+exactly like the B1–B6 protocol above. Chromium 149 launched with
+`--disable-partial-raster`, viewport 1440×900 at `deviceScaleFactor` 2.
+The seat copies the per-impl receipt into `docs/chart-engine-completion/receipts/`
+and commits it. **Never commit dev-mode, rehearsal, or `budget_ok: false`
+receipts — receipts ship only when measured on the reference Mac when the
+host load1 < 24.**
+
+### What it measures
+
+For each impl:
+  - ONE pan gesture of 200 × 8 px mouse moves (`center.x` → `center.x + 1600`)
+    over 200 dispatch steps (no waits), bracketed by `cadence:pan:start` /
+    `cadence:pan:end` `performance.mark`s.
+  - ONE zoom gesture of 60 × `wheel(0,-120)` pulses at the plot center,
+    bracketed by `cadence:zoom:start` / `cadence:zoom:end`.
+
+Each gesture is a fresh CDP `Tracing.start` (transferMode: `ReportEvents`)
+that opens BEFORE the 200 ms idle so any presentation drift in the pre-gesture
+200 ms idle is captured, and closes 250 ms after the end mark so the last
+presentation lands inside the trace. The window for stats is
+`[cadence:<gesture>:start, cadence:<gesture>:end + 100 ms]`.
+
+Compositor presentation times come from `PipelineReporter` `STATE_PRESENTED_ALL`
+slices de-duplicated to presentation timestamps; the receipt carries the
+in-window p95/p99, the per-frame count, and `input_hz`. Percentiles delegate
+to `corpus.percentile` so an empty intervals array yields `UNMEASURED` (1e9),
+a violation, never `NaN`.
+
+### Budgets
+
+```
+CADENCE_BUDGETS = { presented_p95_ms: 20, presented_p99_ms: 33.4 }
+```
+
+A budget violation is recorded on the receipt and the test stays green
+unless `BENCH_ENFORCE=1`, which fails the test on `budget_ok: false`. The
+median-run receipt uses the canonical `buildCadenceReceipt` math against
+`CADENCE_BUDGETS` — never hardcoded 20 / 33.4 anywhere in the spec.
+
+### Input-rate floor (read the p95/p99 with this in mind)
+
+`presented_p95_ms` / `presented_p99_ms` are intervals between consecutive
+*presented* frames, so they are bounded below by whichever is slower: the
+renderer, or the arrival of the next input. Both gestures dispatch every
+event as an awaited CDP round trip (200 `mouse.move` steps, 60
+`mouse.wheel` pulses, no waits), so on a busy host the dispatch rate — not
+the engine — sets the floor:
+
+```
+input_floor_ms = 1000 / input_hz
+```
+
+Measured examples: on a 100 Hz display with `input_hz` 49.3 the zoom p50 is
+20 ms (the wheel spacing) for BOTH engines, while pan p95 is 10 ms; on a
+loaded Linux dev host with `input_hz` 22.3 the pan p50 is 44.3 ms and
+`presented == inputs` for zoom (60 == 60), i.e. the renderer presented
+exactly one frame per wheel pulse and every interval is an input gap.
+
+Consequences for the seat:
+
+  - Read `CADENCE_DIAG` (console only, never in the receipt) next to the
+    `CADENCE` line: when `p95_ms` sits at or just above `input_floor_ms`
+    and `presented_per_input` is ~1.0, the number is measuring the harness,
+    not the engine.
+  - `budget_ok: false` on `zoom.presented_p95_ms` is expected on any host
+    whose dispatch rate is below 50 Hz, because the 20 ms budget is under
+    the input floor. It is not by itself evidence of an engine regression.
+  - Compare engines at a matched `input_hz` (same host, same session), and
+    prefer pan for renderer attribution: its 200 dispatch steps keep the
+    compositor busy continuously, whereas the 60 wheel pulses do not.
+
+Attributing an interval to the renderer alone would need one
+`performance.mark` per dispatched input (already on the captured
+`blink.user_timing` category) and dropping intervals with no input pending.
+That changes what the receipt means, so it is a commission decision, not a
+patch to this lane. `CADENCE_BUDGETS`, the gesture definition and the
+receipt shape are fixed by D10 and are unchanged here.
+
+### INVALID gates
+
+The bench fails when any of these is true:
+
+  - `window.devicePixelRatio !== 2` (every cadence number is scale-dependent).
+  - The pan/zoom range did not change (engine ignored the gesture).
+  - `cadence:<gesture>:start` or `:end` mark absent.
+  - `parsePresentedFrames` throws "no presentation records in trace" (the
+    chosen renderer pid emitted no `PipelineReporter`, or no marks and no
+    pipeline reporters exist).
+  - Fewer than 2 presented frames land in the gesture window:
+    `INVALID: fewer than 2 presented frames in the <pan|zoom> window (<impl>)`.
+
+### Dumping the trace
+
+`BENCH_DUMP_TRACE=1 BENCH_RUNS=1 BENCH_IMPLS=mm` writes
+`test-results/bench/cadence-trace-{impl}-r1-<pan|zoom>-<commit-prefix>.json`.
+Use the dump to confirm the protocol against a real Chromium; do NOT
+commit dumps or anything under `test-results/`.
+
+### Receipt path
+
+The canonical per-impl receipt is
+
+```
+test-results/bench/cadence-<impl>-<commit>-<host>.json
+```
+
+written by the run whose `pan.p95_ms` is the median of the sorted-ascending
+per-run p95s (tie → lower run index, `Math.floor((RUNS - 1) / 2)` of the
+sorted set). Receipts are valid only against `validateCadenceReceipt`,
+which rejects any top-level key outside the eight and any per-gesture key
+outside the eight stat keys.
+
+Use an odd `BENCH_RUNS` (the default is 3). With an even count the rule
+above picks the lower of the two middle runs, which is the better result,
+not a true median.
+
 ## Files
 
 | File | Role |
@@ -157,7 +299,13 @@ engine.
 | `terminal/lib/chart-engine/bench/corpus.ts` | Seeded daily-40k generator + pure helpers (browser-safe). |
 | `terminal/lib/chart-engine/bench/receipt.ts` | `BUDGETS`, `computeViolations`, `buildReceipt`, `validateReceipt` (Node-only). |
 | `terminal/lib/chart-engine/bench/mount.ts` | `mountBench(container, impl)` + `window.__mmBench`. |
+| `terminal/lib/chart-engine/bench/cadence.ts` | Q03 parser + per-frame reducer + receipt builder/validator. |
 | `terminal/app/dev/chart-bench/page.tsx` | `/dev/chart-bench?engine=mm\|lwc`. |
 | `terminal/playwright.bench.config.ts` | Dedicated Playwright config. |
 | `terminal/bench/chart-engine.bench.ts` | B1–B6 protocol. |
+| `terminal/bench/chart-engine.cadence.bench.ts` | Q03 protocol. |
+| `terminal/lib/__tests__/chartEngineCadence.test.ts` | Q03 parser unit tests + 4 falsifiers. |
+| `terminal/lib/__tests__/chartEngineLocalization.test.ts` | F-4 `localization.locale` on canvas time-axis labels (the locale is passed through `terminal/lib/chart-engine/canvas/frame.ts`). |
+| `terminal/lib/__tests__/fixtures/chart-engine/cadence-trace.sample.json` | Trimmed Q03 fixture (real Chromium 149 pan trace, ≤ 300 events, scrubbed). Its p95/p99 literals come from the gaps the trimming left, not from a real cadence. |
+| `terminal/lib/__tests__/fixtures/chart-engine/cadence-trace.raf-only.sample.json` | Same fixture with PipelineReporter removed + FireAnimationFrame events per presented time. |
 | `docs/chart-engine-completion/receipts/` | Official receipts (seat only); ships with README. |
