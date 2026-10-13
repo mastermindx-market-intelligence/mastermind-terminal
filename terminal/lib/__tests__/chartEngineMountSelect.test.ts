@@ -1,6 +1,13 @@
 import { describe, expect, it } from "vitest";
 import { readFileSync } from "node:fs";
 import path from "node:path";
+import {
+  ENGINE_PROBE_URL_PARAM,
+  ENGINE_REFUSAL_PROBE_OPTIONS,
+  isRefusalProbeRequested,
+} from "../chart-engine/select";
+import { normalizeEngineOptions } from "../chart-engine/options";
+import { CANVAS_CAPABILITIES } from "../chart-engine/canvas";
 
 // F-13 source contract: ChartPanel's create site is opt-in ?engine=mm with an
 // lwc fallback. The default path must stay the plain two-arg createEngine call.
@@ -97,5 +104,55 @@ describe("ChartPanel mount engine selector (F-13)", () => {
     // No browser storage reads.
     expect(mountSlice).not.toMatch(/localStorage/);
     expect(mountSlice).not.toMatch(/sessionStorage/);
+  });
+});
+
+// P01-A03 live probe (production acceptance "forced refusal → lwc fallback"): the
+// probe lives in the engineOptions literal ABOVE the F-13 slice, so the mount block's
+// structure (four createEngine( sites, catch branch) is unchanged and the refusal
+// travels the real production fallback path.
+const optionsStartIdx = chartPanelSrc.indexOf("const engineOptions = {");
+const optionsSlice = chartPanelSrc.slice(optionsStartIdx, mountStartIdx);
+
+describe("ChartPanel forced-refusal probe (P01-A03)", () => {
+  it("isRefusalProbeRequested: only ?engine=mm + engineProbe=refuse", () => {
+    expect(ENGINE_PROBE_URL_PARAM).toBe("engineProbe");
+    expect(isRefusalProbeRequested("?engine=mm&engineProbe=refuse")).toBe(true);
+    expect(isRefusalProbeRequested("engine=MM&engineProbe=%20Refuse%20")).toBe(true);
+    expect(isRefusalProbeRequested("?symbol=NVDA&engine=mm&engineProbe=refuse")).toBe(true);
+    expect(isRefusalProbeRequested("?engine=mm")).toBe(false);
+    expect(isRefusalProbeRequested("?engineProbe=refuse")).toBe(false);
+    expect(isRefusalProbeRequested("?engine=lwc&engineProbe=refuse")).toBe(false);
+    expect(isRefusalProbeRequested("?engine=bogus&engineProbe=refuse")).toBe(false);
+    expect(isRefusalProbeRequested("?engine=mm&engineProbe=yes")).toBe(false);
+    expect(isRefusalProbeRequested("")).toBe(false);
+    expect(isRefusalProbeRequested(null)).toBe(false);
+    expect(isRefusalProbeRequested(undefined)).toBe(false);
+  });
+
+  it("the probe option group is one the mm renderer refuses (normalizer contract)", () => {
+    const result = normalizeEngineOptions({ ...ENGINE_REFUSAL_PROBE_OPTIONS }, CANVAS_CAPABILITIES);
+    expect(result.ok).toBe(false);
+    if (result.ok) return;
+    expect(result.unsupported).toEqual(["trackingMode"]);
+    expect(result.reason).toBe("unsupported option group: trackingMode");
+    // Negative: the same capabilities accept the groups ChartPanel always sends.
+    const clean = normalizeEngineOptions({ width: 1, height: 1, layout: {}, grid: {} }, CANVAS_CAPABILITIES);
+    expect(clean.ok).toBe(true);
+  });
+
+  it("ChartPanel spreads the probe into engineOptions only via isRefusalProbeRequested(window.location.search)", () => {
+    expect(optionsStartIdx).toBeGreaterThan(0);
+    expect(optionsStartIdx).toBeLessThan(mountStartIdx);
+    expect(chartPanelSrc).toMatch(
+      /import\s*\{[^}]*\bENGINE_REFUSAL_PROBE_OPTIONS\b[^}]*\bisRefusalProbeRequested\b[^}]*\}\s*from\s*["']@\/lib\/chart-engine\/select["']/,
+    );
+    expect(optionsSlice).toMatch(
+      /\.\.\.\(\s*isRefusalProbeRequested\(\s*window\.location\.search\s*\)\s*\?\s*ENGINE_REFUSAL_PROBE_OPTIONS\s*:\s*\{\}\s*\)/,
+    );
+    // Exactly one probe site, no hand-written trackingMode, and the F-13 slice stays probe-free.
+    expect((chartPanelSrc.match(/isRefusalProbeRequested\(/g) ?? []).length).toBe(1);
+    expect(chartPanelSrc).not.toMatch(/trackingMode\s*:/);
+    expect(mountSlice).not.toMatch(/isRefusalProbeRequested|ENGINE_REFUSAL_PROBE_OPTIONS|engineProbe/);
   });
 });
