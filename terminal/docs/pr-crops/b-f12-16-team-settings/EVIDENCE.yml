@@ -1,11 +1,11 @@
 # B-F12-16 Team settings block — capture evidence
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
 # Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
-# capturedAtHead: bffa04d428d29ff225958899050bc40753c61954
-# capturedAt: 2026-10-12T00:32:36.527Z
+# capturedAtHead: 304b74d9c4dfd5f77ec98b5d9f734c96ad7a0742
+# capturedAt: 2026-10-12T22:13:58.406Z
 # capturedAtHead is informational. The lock is layoutFiles (hash-only).
 layoutFiles:
-  terminal/components/settings/SectionTeam.tsx: "00f61441215f0cdb8c6b40536e66e243d0ae83ffa54d6f19ae8a67dd99d7a79d"
+  terminal/components/settings/SectionTeam.tsx: "add785974e9872100f912b96f21e28d48819f39eef221b9efe887752ba51e3e6"
   terminal/components/settings/SectionTeam.module.css: "069056ff7ac4274a57ae9a835a0fdda178e9625a591b4374e855b9d41a3fd5bc"
   terminal/components/settings/SettingsPanel.tsx: "526725b37af04f1092359a8aca1e6d3d6d62815b5913b3a7eba754e4ca020329"
   terminal/components/settings/SettingsProvider.tsx: "a4c829c956ca7ffd89bbc3158009b1148bb613569a9716b092dd9a27d449d910"
