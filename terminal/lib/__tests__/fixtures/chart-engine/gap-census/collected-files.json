@@ -291,6 +291,9 @@
     "file": "terminal/lib/__tests__/chartEngineGapDrawing.test.ts"
   },
   {
+    "file": "terminal/lib/__tests__/chartEngineGapDrawingAnchor.test.ts"
+  },
+  {
     "file": "terminal/lib/__tests__/chartEngineGapLifecycle.test.ts"
   },
   {
