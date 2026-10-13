@@ -41,6 +41,18 @@ import {
   priceToCoordinate as scalePriceToCoordinate,
   type PriceScaleState as ScalePriceState,
 } from "./scales";
+import {
+  applyBarSpacingToWindow,
+  applyRightOffsetToWindow,
+  clampBarSpacingValue,
+  correctRightOffset,
+  defaultTimeScaleBehaviour,
+  lastBarIsVisible,
+  maxBarSpacingPx,
+  mergeTimeScaleBag,
+  resizeTimeScaleWidth,
+  type TimeScaleBehaviour,
+} from "./modelTime";
 
 export type LogicalIndex = number;
 export type TimeScaleState = {
@@ -225,6 +237,7 @@ export class ChartModel {
   series = new Map<number, SeriesModel>();
   seriesOrder: number[] = [];
   time: TimeScaleState = { visibleFrom: 0, visibleTo: 1, barSpacing: 1, rightOffset: 0, widthPx: 0 };
+  timeScaleBehaviour: TimeScaleBehaviour = defaultTimeScaleBehaviour();
   totalHeight = 0;
   paneElementLookup: PaneElementLookup | null = null;
   readonly crosshairHandlers = new Set<EngineMouseHandler>();
@@ -266,6 +279,12 @@ export class ChartModel {
     this.time.barSpacing = span !== 0 ? this.time.widthPx / span : this.time.barSpacing;
   }
 
+  private syncRightOffsetFromWindow(): void {
+    const n = this.primarySeries()?.rows.length ?? 0;
+    this.time.rightOffset = this.time.visibleTo - n;
+    this.timeScaleBehaviour.rightOffset = this.time.rightOffset;
+  }
+
   layoutHeights(totalHeight: number): void {
     this.totalHeight = Math.max(0, totalHeight);
     const n = this.panes.length;
@@ -282,8 +301,7 @@ export class ChartModel {
   }
 
   setWidth(widthPx: number): void {
-    this.time.widthPx = Math.max(0, widthPx);
-    this.recomputeSpacing();
+    resizeTimeScaleWidth(this.time, widthPx, this.timeScaleBehaviour.lockVisibleTimeRangeOnResize);
   }
 
   primarySeries(): SeriesModel | null {
@@ -472,13 +490,13 @@ export class ChartModel {
   applyOptions(options: EngineOptions): void {
     if (!this.alive) return;
     this.options = { ...this.options, ...options };
-    if (typeof options.width === "number") this.setWidth(options.width);
-    if (typeof options.height === "number") this.layoutHeights(options.height);
     const ts = options.timeScale;
     if (ts && typeof ts === "object") {
-      const bag = ts as Record<string, unknown>;
-      if (typeof bag.rightOffset === "number") this.time.rightOffset = bag.rightOffset;
+      this.timeScaleBehaviour = mergeTimeScaleBag(this.timeScaleBehaviour, ts as Record<string, unknown>);
     }
+    if (typeof options.width === "number") this.setWidth(options.width);
+    if (typeof options.height === "number") this.layoutHeights(options.height);
+    if (ts && typeof ts === "object") this.applyTimeScaleOptions(ts as Record<string, unknown>);
     if (options.rightPriceScale && typeof options.rightPriceScale === "object") {
       this.applyPriceScaleGroup("right", options.rightPriceScale as Record<string, unknown>);
     }
@@ -500,6 +518,7 @@ export class ChartModel {
     this.time.visibleTo = to;
     this.rangeExplicit = true;
     this.recomputeSpacing();
+    this.syncRightOffsetFromWindow();
     this.generation += 1;
     this.hooks.onInvalidate();
     for (const h of this.rangeHandlers) h({ from, to });
@@ -560,17 +579,46 @@ export class ChartModel {
   }
   scrollToPosition(position: number): void {
     if (!this.alive) return;
-    this.time.rightOffset = position;
+    const n = this.primarySeries()?.rows.length ?? 0;
+    const clamped = correctRightOffset(
+      position,
+      n,
+      this.time.widthPx,
+      this.time.barSpacing,
+      this.timeScaleBehaviour.fixLeftEdge,
+      this.timeScaleBehaviour.fixRightEdge,
+    );
+    this.time.rightOffset = clamped;
+    this.timeScaleBehaviour.rightOffset = clamped;
     this.scrollToRealtime();
   }
   applyTimeScaleOptions(opts: Record<string, unknown>): void {
     if (!this.alive) return;
-    if (typeof opts.rightOffset === "number") this.time.rightOffset = opts.rightOffset;
-    if (typeof opts.barSpacing === "number") {
-      this.time.barSpacing = opts.barSpacing;
-      if (this.time.widthPx > 0 && opts.barSpacing > 0) {
-        this.time.visibleTo = this.time.visibleFrom + this.time.widthPx / opts.barSpacing;
-      }
+    this.timeScaleBehaviour = mergeTimeScaleBag(this.timeScaleBehaviour, opts);
+    const n = this.primarySeries()?.rows.length ?? 0;
+    const minS = this.timeScaleBehaviour.minBarSpacing;
+    const maxS = maxBarSpacingPx(this.timeScaleBehaviour.maxBarSpacing, this.time.widthPx, minS);
+    const spacingTouched =
+      opts.barSpacing !== undefined || opts.minBarSpacing !== undefined || opts.maxBarSpacing !== undefined;
+    if (spacingTouched) {
+      const raw = typeof opts.barSpacing === "number" ? opts.barSpacing : this.time.barSpacing;
+      const clamped = clampBarSpacingValue(raw, minS, maxS);
+      applyBarSpacingToWindow(this.time, clamped, this.timeScaleBehaviour.rightBarStaysOnScroll);
+      this.syncRightOffsetFromWindow();
+    }
+    const offsetTouched = opts.rightOffset !== undefined || opts.fixLeftEdge !== undefined || opts.fixRightEdge !== undefined;
+    if (offsetTouched) {
+      const raw = typeof opts.rightOffset === "number" ? opts.rightOffset : this.time.rightOffset;
+      const clamped = correctRightOffset(
+        raw,
+        n,
+        this.time.widthPx,
+        this.time.barSpacing,
+        this.timeScaleBehaviour.fixLeftEdge,
+        this.timeScaleBehaviour.fixRightEdge,
+      );
+      applyRightOffsetToWindow(this.time, clamped, n);
+      this.timeScaleBehaviour.rightOffset = clamped;
     }
     this.bump();
   }
@@ -633,7 +681,21 @@ export class ChartModel {
         throw new Error(`Cannot update oldest data, last time=${String(last.time)}, new time=${String(row.time)}`);
       }
       if (t === lastT) s.rows[s.rows.length - 1] = row;
-      else s.rows.push(row);
+      else {
+        const nBefore = s.rows.length;
+        const follow = this.primarySeries()?.id === id
+          && lastBarIsVisible(this.time.visibleFrom, this.time.visibleTo, nBefore);
+        s.rows.push(row);
+        if (follow) {
+          if (this.timeScaleBehaviour.shiftVisibleRangeOnNewBar) {
+            this.time.visibleFrom += 1;
+            this.time.visibleTo += 1;
+          } else {
+            this.time.rightOffset -= 1;
+            this.timeScaleBehaviour.rightOffset = this.time.rightOffset;
+          }
+        }
+      }
     }
     this.bump();
   }
@@ -995,11 +1057,10 @@ class ModelTimeScaleHandle implements TimeScaleHandle {
   }
   options(): Record<string, unknown> {
     if (!this.m.alive) return {};
-    const ts = this.m.options.timeScale;
     return {
+      ...this.m.timeScaleBehaviour,
       rightOffset: this.m.time.rightOffset,
       barSpacing: this.m.time.barSpacing,
-      ...(ts && typeof ts === "object" ? (ts as Record<string, unknown>) : {}),
     };
   }
   unwrap<T>(): T { return this.m.time as unknown as T; }
