@@ -47,7 +47,7 @@ vi.mock("lightweight-charts", () => ({
 
 // Imported AFTER mock registration.
 import { createEngine } from "../chart-engine";
-import { createManualScheduler } from "../chart-engine/canvas";
+import { createCanvasEngine, createManualScheduler } from "../chart-engine/canvas";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Canvas stub — recording 2D context per HTMLCanvasElement.
@@ -272,5 +272,79 @@ describe("identity marker: ownership when engines swap on the same host", () => 
     expect(container.dataset.chartEngine).toBe("lwc");
 
     lwc.destroy();
+  });
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// I6 — coexistence: the ENGID marker (data-chart-engine="mm") and the KINETIC
+//      input controller live on the same host. After createEngine(el, opts, "mm"),
+//      the marker is on the host AND a pointer drag on the overlay pans the chart.
+//      After destroy(), the marker is gone AND a later drag is a no-op.
+//
+//      This is the FOLD3 coexistence assertion: ENGID wrote the marker, KINETIC
+//      attached the listeners; the parent guarantees both stay right on the same
+//      element. Mutant receipt lives in the implementation file — commenting out
+//      the marker write in canvas/index.ts makes this test red, restoring it makes
+//      it green.
+// ─────────────────────────────────────────────────────────────────────────────
+describe("identity marker: coexistence with KINETIC input controller", () => {
+  const ROWS = Array.from({ length: 40 }, (_, i) => ({
+    time: 1700000000 + i * 3600,
+    open: 100 + i,
+    high: 101 + i,
+    low: 99 + i,
+    close: 100.5 + i,
+  }));
+
+  function dispatchPointer(
+    el: EventTarget,
+    type: string,
+    x: number,
+    y: number,
+    extra: { pointerId?: number; pointerType?: string; timeStamp?: number } = {},
+  ): void {
+    const ev = new MouseEvent(type, { clientX: x, clientY: y, bubbles: true, cancelable: true });
+    Object.defineProperty(ev, "pointerId", { value: extra.pointerId ?? 1 });
+    Object.defineProperty(ev, "pointerType", { value: extra.pointerType ?? "mouse" });
+    if (extra.timeStamp != null) Object.defineProperty(ev, "timeStamp", { value: extra.timeStamp });
+    el.dispatchEvent(ev);
+  }
+
+  it("marker write and pointer drag co-exist on the same 'mm' engine", () => {
+    const scheduler = createManualScheduler();
+    const engine = createCanvasEngine(container, {
+      width: 200,
+      height: 100,
+      devicePixelRatio: 1,
+      scheduler,
+      kineticScroll: { mouse: true, touch: true },
+    });
+
+    // ENGID half — the marker is on the host element.
+    expect(container.dataset.chartEngine).toBe("mm");
+
+    // KINETIC half — pointer drag pans the visible logical range.
+    const series = engine.addSeries("candles", { upColor: "U", downColor: "D" });
+    series.setData(ROWS);
+    engine.timeScale().setVisibleLogicalRange({ from: 0, to: 20 });
+    scheduler.flush();
+    const overlay = engine.chartElement().querySelector("[data-mm-overlay]") as HTMLCanvasElement;
+    expect(overlay).toBeTruthy();
+    const before = engine.timeScale().getVisibleLogicalRange();
+    dispatchPointer(overlay, "pointerdown", 40, 30, { timeStamp: 10 });
+    dispatchPointer(overlay, "pointermove", 140, 30, { timeStamp: 30 });
+    const during = engine.timeScale().getVisibleLogicalRange();
+    expect(during).not.toBeNull();
+    expect(during!.from).not.toBe(before!.from);
+    expect(during!.to).not.toBe(before!.to);
+    dispatchPointer(overlay, "pointerup", 140, 30, { timeStamp: 30 });
+
+    // Destroy: marker gone AND a later drag changes nothing.
+    engine.destroy();
+    expect(container.hasAttribute("data-chart-engine")).toBe(false);
+    const rangeAfterDestroy = engine.timeScale().getVisibleLogicalRange();
+    dispatchPointer(overlay, "pointerdown", 40, 30, { timeStamp: 100 });
+    dispatchPointer(overlay, "pointermove", 140, 30, { timeStamp: 120 });
+    expect(engine.timeScale().getVisibleLogicalRange()).toBe(rangeAfterDestroy);
   });
 });
