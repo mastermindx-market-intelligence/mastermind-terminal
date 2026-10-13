@@ -42,6 +42,7 @@ import {
   priceToCoordinate as scalePriceToCoordinate,
   type PriceScaleState,
 } from "./scales";
+import { assertEnginePrimitive } from "./refusal";
 import {
   applyBarSpacingToWindow,
   applyRightOffsetToWindow,
@@ -1035,6 +1036,7 @@ class ModelSeriesHandle implements SeriesHandle {
   attachPrimitive(primitive: unknown): void {
     const s = this.live();
     if (!s) return;
+    assertEnginePrimitive(primitive);
     s.primitives.push(primitive);
     this.m.bump();
   }
