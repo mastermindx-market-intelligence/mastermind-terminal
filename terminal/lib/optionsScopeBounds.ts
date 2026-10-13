@@ -1,8 +1,8 @@
-import { dteRaw } from "@/lib/dte";
+import { dteRaw, isoSession } from "@/lib/dte";
 
 /** Machine-readable reasons a strike or days-to-expiry bound cannot be applied. */
 export type BoundsIssue = "from_missing" | "to_missing" | "from_not_number" | "to_not_number" | "not_positive"
-  | "inverted" | "dte_not_whole" | "dte_negative" | "dte_inverted" | "no_strikes" | "no_expiries";
+  | "inverted" | "dte_not_whole" | "dte_negative" | "dte_inverted" | "session_invalid" | "no_strikes" | "no_expiries";
 
 export interface ScopeBoundsInput {
   from: string;
@@ -55,6 +55,7 @@ function parseDte(text: string, empty: number | null): DteParse {
 /**
  * Validate exact strike bounds and a days-to-expiry range against the source session.
  * Issue codes stay in declaration order. An expiry before that session is never selected.
+ * The session and every expiry must be a real calendar date before any expiry is selected.
  */
 export function parseScopeBounds(
   input: ScopeBoundsInput,
@@ -80,14 +81,18 @@ export function parseScopeBounds(
   if (issues.length > 0 || from.kind !== "ok" || to.kind !== "ok" || dteMin.kind !== "ok" || dteMax.kind !== "ok") {
     return { ok: false, issues };
   }
+  const session = isoSession(ctx.session);
+  if (session === null) return { ok: false, issues: ["session_invalid"] };
   const minDte = dteMin.value ?? 0;
   const maxDte = dteMax.value;
   const strikes = ctx.strikes.filter((strike) => strike >= from.value && strike <= to.value).sort((a, b) => b - a);
   const expiries = ctx.expiries.filter((exp) => {
-    const days = dteRaw(exp, ctx.session);
+    const expiry = isoSession(exp);
+    if (expiry === null) return false;
+    const days = dteRaw(expiry, session);
     if (days < 0 || days < minDte) return false;
     return maxDte === null || days <= maxDte;
-  }).sort((a, b) => dteRaw(a, ctx.session) - dteRaw(b, ctx.session) || (a < b ? -1 : a > b ? 1 : 0));
+  }).sort((a, b) => dteRaw(a, session) - dteRaw(b, session) || (a < b ? -1 : a > b ? 1 : 0));
   if (strikes.length === 0) issues.push("no_strikes");
   if (expiries.length === 0) issues.push("no_expiries");
   if (issues.length > 0) return { ok: false, issues };
