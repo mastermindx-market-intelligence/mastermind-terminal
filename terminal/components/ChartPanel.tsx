@@ -22,7 +22,7 @@ import {
   type SeriesHandle,
   type WatermarkSpec,
 } from "@/lib/chart-engine";
-import { resolveMountEngineImpl } from "@/lib/chart-engine/select";
+import { ENGINE_REFUSAL_PROBE_OPTIONS, isRefusalProbeRequested, resolveMountEngineImpl } from "@/lib/chart-engine/select";
 import {
   axisLogFormulaForRange,
   axisRangeFromLog,
@@ -4036,6 +4036,9 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
       },
       // momentum glide on pan release (LWC ships mouse:false — that reads as a hard stop)
       kineticScroll: { mouse: true, touch: true },
+      // P01-A03 live probe: ?engine=mm&engineProbe=refuse adds the group the mm renderer
+      // refuses, so the catch branch below mounts lwc on the wire (same data, same documents).
+      ...(isRefusalProbeRequested(window.location.search) ? ENGINE_REFUSAL_PROBE_OPTIONS : {}),
     };
     // F-13: URL ?engine=mm is opt-in only. Default / "lwc" is the BASE createEngine call
     // (impl absent). mm unwrap() is ChartModel, so remaining chartRef sites cannot drive

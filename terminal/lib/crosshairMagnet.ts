@@ -30,7 +30,7 @@ export type MagnetDatumLike = { close?: unknown; value?: unknown } | null | unde
  *   the value (non-finite gets nulled out, throws get caught and nulled).
  * - Raw lightweight-charts `ISeriesApi` has no `paneIndex()`; the pane lives
  *   on `getPane().paneIndex()` (see node_modules/lightweight-charts/dist/
- *   typings.d.ts ISeriesApi#paneIndex getter and IPaneApi#paneIndex).
+ *   typings.d.ts ISeriesApi#getPane and IPaneApi#paneIndex).
  *
  * Any non-finite / missing value, OR a throwing call, returns null. The scan
  * treats a null result as "not in our pane" and skips the candidate.

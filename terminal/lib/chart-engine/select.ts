@@ -186,6 +186,33 @@ export function resolveMountEngineImpl(
   return resolveMountEngineSelection(search, storage, killSwitch).impl;
 }
 
+/**
+ * URL query parameter of the P01-A03 live probe (docs/CHART_ENGINE_MASTERPLAN.md,
+ * production acceptance "forced refusal → lwc fallback"). Only honoured together with
+ * `?engine=mm`; it never affects the default / lwc mount and never touches storage.
+ */
+export const ENGINE_PROBE_URL_PARAM = "engineProbe";
+
+/**
+ * The option group the mm renderer declares unsupported (lib/chart-engine/options.ts
+ * ALLOWED_GROUPS; `trackingMode` is an LWC-native leftover). Spread into the mount
+ * options only when isRefusalProbeRequested() is true, so createEngine(…, "mm") throws
+ * EngineRefusalError on the wire and ChartPanel's production fallback mounts lwc with
+ * the same data and documents. lwc tolerates the group (touch crosshair exit mode).
+ */
+export const ENGINE_REFUSAL_PROBE_OPTIONS = { trackingMode: { exitMode: 0 } } as const;
+
+/**
+ * True only when the url selects mm (engineQueryFromUrl semantics) AND carries
+ * `engineProbe=refuse` (trim + lower-case, first occurrence wins). Pure: no globals.
+ */
+export function isRefusalProbeRequested(search: string | null | undefined): boolean {
+  if (!search) return false;
+  if (engineQueryFromUrl(search) !== "mm") return false;
+  const raw = new URLSearchParams(search).get(ENGINE_PROBE_URL_PARAM);
+  return raw !== null && raw.trim().toLowerCase() === "refuse";
+}
+
 export function resolveEngineImpl(input: ResolveEngineInput): EngineSelection {
   if (input.killSwitch) {
     return {
