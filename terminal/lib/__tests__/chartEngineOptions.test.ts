@@ -2,6 +2,7 @@ import { describe, it, expect } from "vitest";
 import type { EngineCapabilities } from "../chart-engine/options";
 import { normalizeEngineOptions } from "../chart-engine/options";
 import { LWC_CAPABILITIES } from "../chart-engine/lwc";
+import { CANVAS_CAPABILITIES } from "../chart-engine/canvas";
 
 const FULL: EngineCapabilities = {
   seriesKinds: ["candles", "bars", "line", "area", "histogram", "baseline"],
@@ -80,6 +81,26 @@ describe("normalizeEngineOptions — refuse native-only / unknown groups (C02-A0
     const result = normalizeEngineOptions({ kineticScroll: { touch: true } }, FULL);
     expect(result.ok).toBe(true);
   });
+
+  it("accepts kineticScroll:false and all-false objects when the cap is off", () => {
+    expect(normalizeEngineOptions({ kineticScroll: { mouse: false, touch: false } }, NO_KINETIC).ok).toBe(true);
+    expect(normalizeEngineOptions({ kineticScroll: false as unknown as Record<string, unknown> }, NO_KINETIC).ok).toBe(true);
+  });
+
+  it("refuses a price-scale mode the caps do not advertise (token is mode-as-given)", () => {
+    const mm: EngineCapabilities = { ...FULL, priceScaleModes: ["normal"] };
+    const named = normalizeEngineOptions({ rightPriceScale: { mode: "log" } }, mm);
+    expect(named.ok).toBe(false);
+    if (!named.ok) {
+      expect(named.unsupported).toContain("priceScaleMode:log");
+      expect(named.reason).toMatch(/log/);
+    }
+    const numeric = normalizeEngineOptions({ leftPriceScale: { mode: 1 } }, mm);
+    expect(numeric.ok).toBe(false);
+    if (!numeric.ok) expect(numeric.unsupported).toContain("priceScaleMode:1");
+    expect(normalizeEngineOptions({ rightPriceScale: { mode: 0 } }, mm).ok).toBe(true);
+    expect(normalizeEngineOptions({ rightPriceScale: { mode: "log" } }, FULL).ok).toBe(true);
+  });
 });
 
 describe("normalizeEngineOptions — immutability", () => {
@@ -126,5 +147,9 @@ describe("EngineCapabilities — LWC adapter", () => {
     expect(result.ok).toBe(false);
     if (result.ok) return;
     expect(result.unsupported).toEqual(["kineticScroll"]);
+  });
+
+  it("CANVAS_CAPABILITIES advertises kineticScroll", () => {
+    expect(CANVAS_CAPABILITIES.kineticScroll).toBe(true);
   });
 });
