@@ -145,6 +145,7 @@ describe("ephemeral chart price pin", () => {
     const host = { createPriceLine: vi.fn(() => ({ id: "line" })), removePriceLine: vi.fn() };
     const pin = syncOptionsPricePin(null, host as never, level, "NVDA", true, "#aaa");
     expect(pin).not.toBeNull(); expect(host.createPriceLine).toHaveBeenCalledTimes(1);
+    expect(host.createPriceLine).toHaveBeenCalledWith(expect.objectContaining({ price: 195, lineStyle: 2, lineWidth: 1, axisLabelVisible: true, title: "Strike 195 · EOD" }));
     expect(syncOptionsPricePin(pin, host as never, level, "NVDA", true, "#aaa")).toBe(pin);
     expect(syncOptionsPricePin(pin, host as never, level, "SPY", true, "#aaa")).toBeNull();
     expect(host.removePriceLine).toHaveBeenCalledTimes(1);
