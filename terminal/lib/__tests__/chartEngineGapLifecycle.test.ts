@@ -95,11 +95,30 @@ const round2 = (n: number): number => Math.round(n * 100) / 100;
 
 // ── R03-A02 helpers (mm) ─────────────────────────────────────────────────────
 
-/** Returns the painted centerline y-geometry for the bar at logical index `i`,
- *  sampled from the renderer's most-recent paint of the primary pane. Pure read of
- *  the fake 2D context trace. (Reserved for future per-bar pixel checks; the
- *  R03-A02 row asserts at the priceToCoordinate level, which is renderer-stable.)
- */
+/** Recorded 2D-context ops that carry painted candle/rect GEOMETRY (bodies and
+ *  wicks). Fingerprinting only these keeps a comparison about where the renderer
+ *  put pixels rather than about bookkeeping calls. */
+const GEOMETRY_OPS = new Set(["fillRect", "moveTo", "lineTo"]);
+
+/** Number of 2D-context calls recorded for one canvas so far (0 if never painted). */
+function traceLength(canvas: HTMLCanvasElement): number {
+  return ctxByCanvas.get(canvas)?.__calls.length ?? 0;
+}
+
+/** Fingerprint of the painted geometry the fake 2D context recorded for one canvas
+ *  over the call range [from, to). Pure read of the installFake2D() trace: two
+ *  fingerprints that differ are proof the renderer re-projected, which is exactly
+ *  what R03-A02's "affected geometry invalidate correctly" has to observe. */
+function paintedGeometry(canvas: HTMLCanvasElement, from: number, to: number): string {
+  const calls = ctxByCanvas.get(canvas)?.__calls ?? [];
+  return calls
+    .slice(from, to)
+    .filter((call) => GEOMETRY_OPS.has(call.method))
+    .map((call) => call.args
+      .map((v) => (typeof v === "number" ? Math.round(v * 100) / 100 : v))
+      .join(","))
+    .join("|");
+}
 
 // ── LWC stand-in (Q02-A02, R03-A04) ──────────────────────────────────────────
 
@@ -476,6 +495,16 @@ describe("R03-A02: Historical correction changes visible extrema", () => {
     expect(psBefore).not.toBeNull();
     void modelBefore;
 
+    // Required observation, geometry half: fingerprint what the renderer PAINTED
+    // for the pre-correction range, and record where an UNTOUCHED bar projects.
+    const paneCanvases = [...containerEl.querySelectorAll("canvas")];
+    expect(paneCanvases.length).toBeGreaterThan(0);
+    const cut = paneCanvases.map((c) => traceLength(c));
+    const paintedBefore = paneCanvases.map((c, i) => paintedGeometry(c, 0, cut[i])).join("#");
+    expect(paintedBefore.length).toBeGreaterThan(0);
+    const yUntouchedBefore = series.priceToCoordinate(rows[7].close);
+    expect(yUntouchedBefore).not.toBeNull();
+
     // Historical correction: rewrite bar index 3 (a mid-visibility bar) so its
     // high is 20% above the prior visible max.
     const preMaxHi = Math.max(...rows.map((r) => r.high));
@@ -488,17 +517,24 @@ describe("R03-A02: Historical correction changes visible extrema", () => {
     expect(psAfter).not.toBeNull();
     expect(psAfter!.to).toBeGreaterThanOrEqual(spike);
 
-    // The corrected bar itself must re-project to a higher y after the spike;
-    // untouched bars must re-project consistently with the new range (priceToCoordinate
-    // is deterministic w.r.t. the visible range, so the same price yields the same
-    // ratio between bars before and after).
+    // The corrected bar must re-project, and so must a bar nobody touched: the
+    // range expanded, so the same price lands on a different y.
     const yCorrected = series.priceToCoordinate(spike);
     expect(yCorrected).not.toBeNull();
     const yUntouched = series.priceToCoordinate(rows[7].close);
     expect(yUntouched).not.toBeNull();
-    // After the re-scale, untouched bars map to a higher (closer-to-top) y only if
-    // the range actually shifted; with autoscale on, the spike must push the ceiling
-    // up. Both their absolute positions change and so does the gap between them.
+    // The PAINTED geometry recorded after the correction differs from the
+    // fingerprint taken before it: the pane really re-projected, it did not merely
+    // widen the reported range.
+    const paintedAfter = paneCanvases
+      .map((c, i) => paintedGeometry(c, cut[i], traceLength(c)))
+      .join("#");
+    expect(paintedAfter.length).toBeGreaterThan(0);
+    expect(paintedAfter).not.toBe(paintedBefore);
+    // The UNTOUCHED bar re-projected as well: same price, different y. y grows
+    // downward, so the corrected spike sits above it.
+    expect(yUntouched).not.toBe(yUntouchedBefore);
+    expect(yCorrected!).toBeLessThan(yUntouched!);
     expect(engine.priceScale("right", 0).getVisibleRange()!.to).toBeGreaterThanOrEqual(spike);
 
     engine.destroy();
@@ -551,48 +587,80 @@ describe("R03-A03: Idle or destroyed chart", () => {
     containerEl.remove();
   });
 
-  it("mm: after a frame loop runs once with the real default scheduler, the queue is empty and no further work is scheduled", () => {
+  it("mm: one requestPaint arms exactly one frame and an idle engine arms no further frames", async () => {
     const rafCalls: number[] = [];
-    const cancelCalls: number[] = [];
+    // A recording queue that ACTUALLY fires every callback it hands out, capped so a
+    // runaway loop terminates instead of hanging the runner. A self-arming frame loop
+    // then shows up as rafCalls.length > 1 instead of staying invisible.
+    const MAX_FIRED_FRAMES = 10;
+    let fired = 0;
     vi.stubGlobal("requestAnimationFrame", (cb: FrameRequestCallback) => {
       const handle = rafCalls.length + 1;
       rafCalls.push(handle);
-      // schedule the callback to run synchronously the FIRST time the test asks,
-      // so the post-construct paint actually happens — after that the queue must
-      // stay empty.
-      (handleCb as { __run?: boolean }).__run ??= true;
-      if ((handleCb as { __run?: boolean }).__run) {
+      if (fired < MAX_FIRED_FRAMES) {
+        fired += 1;
         queueMicrotask(() => cb(performance.now()));
-        (handleCb as { __run?: boolean }).__run = false;
       }
       return handle;
     });
-    const handleCb = { __run: true };
-    vi.stubGlobal("cancelAnimationFrame", (h: number) => cancelCalls.push(h));
+    vi.stubGlobal("cancelAnimationFrame", () => { /* the destroy test below records cancels */ });
 
-    const engine = createCanvasEngine(containerEl, {
-      width: 200,
-      height: 100,
-      devicePixelRatio: 1,
-    });
-    const series = engine.addSeries("candles");
-    series.setData(candleWalk(7, 6));
-
-    // Let the first paint fire synchronously.
-    return new Promise<void>((resolve) => {
-      queueMicrotask(() => {
-        // No pending frames should remain after the initial paint consumed them;
-        // the engine must not self-arm a continuing frame loop.
-        // Cancel may or may not have been called depending on the scheduler's
-        // disarm-on-flush policy; what matters is that no NEW frame was queued.
-        const initialHandleCount = rafCalls.length;
-        // Trigger a phantom input that is no-op — must not re-arm the scheduler.
-        engine.priceScale("right");
-        expect(rafCalls.length).toBe(initialHandleCount);
-        engine.destroy();
-        resolve();
+    try {
+      const engine = createCanvasEngine(containerEl, {
+        width: 200,
+        height: 100,
+        devicePixelRatio: 1,
       });
-    });
+      const series = engine.addSeries("candles");
+      series.setData(candleWalk(7, 6));
+
+      // Macrotask, so the whole microtask chain of queued frames settles first.
+      await new Promise<void>((resolve) => { setTimeout(resolve, 0); });
+
+      const armed = rafCalls.length;
+      // A read must not re-arm the scheduler ...
+      engine.priceScale("right");
+      expect(rafCalls.length).toBe(armed);
+      // ... and an idle chart arms EXACTLY one frame in its whole life: construct
+      // plus setData coalesce into one paint and nothing self-arms once that frame
+      // has run. A continuing renderer frame loop fails both of these.
+      expect(armed).toBe(1);
+      expect(fired).toBe(1);
+      engine.destroy();
+      // destroy() arms no replacement frame either.
+      expect(rafCalls.length).toBe(1);
+    } finally {
+      vi.unstubAllGlobals();
+    }
+  });
+
+  it("mm: destroy() cancels the renderer's own scroll-animation timer, leaving zero pending timers", () => {
+    // No frame ever runs here; this test observes the model's setTimeout clock only.
+    vi.stubGlobal("requestAnimationFrame", () => 1);
+    vi.stubGlobal("cancelAnimationFrame", () => { /* nothing to cancel */ });
+    vi.useFakeTimers();
+    try {
+      const engine = createCanvasEngine(containerEl, {
+        width: 200,
+        height: 100,
+        devicePixelRatio: 1,
+      });
+      const series = engine.addSeries("candles");
+      series.setData(candleWalk(23, 8));
+      // Nothing has armed a timer yet: the rAF stub above never fires.
+      expect(vi.getTimerCount()).toBe(0);
+      // Arm the model's OWN clock: an animated scroll schedules a setTimeout chain
+      // (model.scrollToPosition -> clock.schedule). That is the renderer timer this
+      // row names, and it is the only timer this test creates.
+      engine.timeScale().scrollToPosition(3, true);
+      expect(vi.getTimerCount()).toBeGreaterThan(0);
+      engine.destroy();
+      // A destroyed chart owns no pending timer: destroy() cancelled the animation.
+      expect(vi.getTimerCount()).toBe(0);
+    } finally {
+      vi.useRealTimers();
+      vi.unstubAllGlobals();
+    }
   });
 
   it("mm: a queued frame is cancelled (cancelAnimationFrame called) when destroy() runs before flush", () => {
@@ -676,7 +744,7 @@ describe("R03-A04: Deliberately orphan one series/line", () => {
     H.reg.reset();
   });
 
-  it("mm: an external ledger compared to inventory() catches a deliberately orphan series", () => {
+  it("mm: ledger vs inventory() catches a series the engine dropped but the ledger still holds", () => {
     const ctxByCanvas = installFake2D();
     const containerEl = document.createElement("div");
     document.body.appendChild(containerEl);
@@ -725,10 +793,8 @@ describe("R03-A04: Deliberately orphan one series/line", () => {
       expect(orphanReport.seriesLeft).toBe(1);
       expect(orphanReport.ledgerSeries).toBe(2);
 
-      // Falsifier seed: knowing the in-memory id of s2 (kept in the ledger) is
-      // proof the orphan is a divergence, not a forget. We rebuild the ledger
-      // fairly by reducing the handled series set as we drop them, then check
-      // they now agree.
+      // Knowing s2's in-memory id (still in the ledger) is proof this is a
+      // divergence, not a forget: drop it from the ledger and they agree again.
       ledger.seriesIds.delete(Number((s2.unwrap<{ id: number }>().id)));
       expect(lC.series).toBe(ledger.seriesIds.size);
 
@@ -739,7 +805,7 @@ describe("R03-A04: Deliberately orphan one series/line", () => {
     }
   });
 
-  it("lwc: an external ledger diverges from inventory() when the caller forgets to remove a price line", () => {
+  it("lwc: ledger vs inventory() catches a price line the engine dropped but the ledger still counts", () => {
     H.reg.reset();
     const engine = createEngine({} as unknown as HTMLElement, { width: 800, height: 600 }, "lwc");
     const s1 = engine.addSeries("candles");
@@ -769,19 +835,98 @@ describe("R03-A04: Deliberately orphan one series/line", () => {
     expect(inv1.priceLines).not.toBe(ledgerBelieves);
     engine.destroy();
   });
+
+  it("mm: inventory() exceeds the caller ledger by exactly 1 for a series and a line made through unwrap()", () => {
+    const restoreFake = installFake2D();
+    const containerEl = document.createElement("div");
+    document.body.appendChild(containerEl);
+    try {
+      const scheduler = createManualScheduler();
+      const engine = createCanvasEngine(containerEl, {
+        width: 200,
+        height: 100,
+        devicePixelRatio: 1,
+        scheduler,
+      });
+      const tracked = engine.addSeries("candles");
+      tracked.setData(candleWalk(31, 5));
+      tracked.createPriceLine({ price: 12 });
+      // The caller's ledger: it created exactly one series and exactly one line.
+      const ledger = { series: 1, priceLines: 1 };
+      scheduler.flush();
+      expect(engine.inventory().series).toBe(ledger.series);
+      expect(engine.inventory().priceLines).toBe(ledger.priceLines);
+
+      // ORPHAN direction: create one series and one price line on the model itself,
+      // exactly as a consumer that reached through engine.unwrap() would. No engine
+      // handle and no ledger entry ever sees them, so only a census that reads the
+      // renderer (not the adapter's own registry) can report the mismatch.
+      const model = engine.unwrap<{
+        addSeries(kind: EngineSeriesKind): SeriesHandle;
+        createPriceLine(seriesId: number, spec: { price: number }): unknown;
+      }>();
+      const orphanSeries = model.addSeries("line");
+      const orphanId = Number(orphanSeries.unwrap<{ id: number }>().id);
+      model.createPriceLine(orphanId, { price: 99 });
+      scheduler.flush();
+
+      const inv = engine.inventory();
+      // Renderer census is ledger+1 on BOTH counts ...
+      expect(inv.series).toBe(ledger.series + 1);
+      expect(inv.priceLines).toBe(ledger.priceLines + 1);
+      // ... while the ledger never moved: that disagreement is the mismatch.
+      expect(inv.series).not.toBe(ledger.series);
+      expect(inv.priceLines).not.toBe(ledger.priceLines);
+      engine.destroy();
+    } finally {
+      restoreFake();
+      containerEl.remove();
+    }
+  });
+
+  it("lwc: inventory() exceeds the caller ledger by exactly 1 for a series made through unwrap()", () => {
+    H.reg.reset();
+    const engine = createEngine({} as unknown as HTMLElement, { width: 800, height: 600 }, "lwc");
+    engine.addSeries("candles");
+    const ledgerSeries = 1; // the caller tracked exactly one handle
+    expect(engine.inventory().series).toBe(ledgerSeries);
+    // ORPHAN: created on the RAW chart through unwrap(), so neither the adapter's
+    // handle registry nor the caller ledger ever sees it.
+    const chart = engine.unwrap<{
+      addSeries(def: unknown, opts: unknown, paneIndex?: number): unknown;
+    }>();
+    chart.addSeries({ seriesType: "Line" }, {});
+    expect(engine.inventory().series).toBe(ledgerSeries + 1);
+    expect(engine.inventory().series).not.toBe(ledgerSeries);
+    engine.destroy();
+  });
+
+  it("lwc: inventory() exceeds the caller ledger by exactly 1 for a price line made through unwrap()", () => {
+    H.reg.reset();
+    const engine = createEngine({} as unknown as HTMLElement, { width: 800, height: 600 }, "lwc");
+    const s = engine.addSeries("candles");
+    s.createPriceLine({ price: 10 });
+    const ledgerLines = 1;
+    expect(engine.inventory().priceLines).toBe(ledgerLines);
+    // ORPHAN price line, created on the raw LWC series behind the handle.
+    const native = s.unwrap<{ createPriceLine(opts: unknown): unknown }>();
+    native.createPriceLine({ price: 99 });
+    expect(engine.inventory().priceLines).toBe(ledgerLines + 1);
+    expect(engine.inventory().priceLines).not.toBe(ledgerLines);
+    engine.destroy();
+  });
 });
 
 // ── Q02-A02 (mm + lwc) ───────────────────────────────────────────────────────
 
-/** Build a minimal EnginePrimitive shape — id + attached/detached/update methods.
- *  Canvas's assertEnginePrimitive throws on anything missing the structural contract,
- *  which is exactly what R03-A04's "deliberately orphan" need not cover (the orphan
- *  is on SERIES/PRICE-LINES, not on primitives). */
-function makeMinimalEnginePrimitive(id: string): EnginePrimitive {
+/** Minimal EnginePrimitive shape (id + attached/detached/update); canvas's
+ *  assertEnginePrimitive throws on anything missing that structural contract.
+ *  `detached` records the id so a caller can prove detached() ran exactly once. */
+function makeMinimalEnginePrimitive(id: string, detached?: string[]): EnginePrimitive {
   return {
     id,
     attached: () => { /* host will queue until first projection */ },
-    detached: () => { /* release handle */ },
+    detached: () => { detached?.push(id); },
     update: () => { /* drop stale projection */ },
   };
 }
@@ -795,6 +940,38 @@ describe("Q02-A02: 52 transitions plus owner churn", () => {
     const restoreFake = installFake2D();
     const containerEl = document.createElement("div");
     document.body.appendChild(containerEl);
+    // Listener ownership: EngineInventory cannot express it, so record every
+    // add/remove on any ELEMENT (the engine's DOM lives inside containerEl) and
+    // require a net-zero balance once destroy() has run.
+    const listenerBalance = new Map<string, number>();
+    const elementIds = new WeakMap<EventTarget, number>();
+    let nextElementId = 0;
+    const listenerKey = (target: EventTarget, type: string): string | null => {
+      if (!(target instanceof Element)) return null;
+      let id = elementIds.get(target);
+      if (id === undefined) { nextElementId += 1; id = nextElementId; elementIds.set(target, id); }
+      return `el${id}:${type}`;
+    };
+    const realAdd = EventTarget.prototype.addEventListener;
+    const realRemove = EventTarget.prototype.removeEventListener;
+    const addSpy = vi.spyOn(EventTarget.prototype, "addEventListener").mockImplementation(
+      function (this: EventTarget, type: string, cb: EventListenerOrEventListenerObject | null, opts?: boolean | AddEventListenerOptions) {
+        const key = listenerKey(this, type);
+        if (key !== null) listenerBalance.set(key, (listenerBalance.get(key) ?? 0) + 1);
+        realAdd.call(this, type, cb, opts);
+      },
+    );
+    const removeSpy = vi.spyOn(EventTarget.prototype, "removeEventListener").mockImplementation(
+      function (this: EventTarget, type: string, cb: EventListenerOrEventListenerObject | null, opts?: boolean | EventListenerOptions) {
+        const key = listenerKey(this, type);
+        if (key !== null) listenerBalance.set(key, (listenerBalance.get(key) ?? 0) - 1);
+        realRemove.call(this, type, cb, opts);
+      },
+    );
+    // Primitive ownership: ids the engine accepted vs ids it detached.
+    const attachedIds: string[] = [];
+    const detachedIds: string[] = [];
+
     try {
       const scheduler = createManualScheduler();
       let disconnectedTimes = 0;
@@ -814,20 +991,18 @@ describe("Q02-A02: 52 transitions plus owner churn", () => {
         resizeObserverCtor: CountingResizeObserver as unknown as null,
       });
 
-      type Owner = { id: number; series: SeriesHandle[]; lines: unknown[] };
+      type Owner = { id: number; series: SeriesHandle[]; lines: unknown[]; prims: EnginePrimitive[] };
       const owners: Owner[] = [];
       const kinds: EngineSeriesKind[] = ["candles", "bars", "line", "area", "histogram", "baseline"];
 
-      // 52 transitions drawn from the matrix, rotating the owner between rows.
-      // Each owner releases ONLY its own resources; we compare against the engine
-      // inventory at every step.
+      // 52 transitions from the matrix, rotating the owner between rows.
       let txn = 0;
       const step = (op: () => void) => { op(); scheduler.flush(); txn += 1; };
 
       // Seed owners up front so the rotating lookup stays a plain array index.
-      owners.push({ id: 0, series: [], lines: [] });
-      owners.push({ id: 1, series: [], lines: [] });
-      owners.push({ id: 2, series: [], lines: [] });
+      owners.push({ id: 0, series: [], lines: [], prims: [] });
+      owners.push({ id: 1, series: [], lines: [], prims: [] });
+      owners.push({ id: 2, series: [], lines: [], prims: [] });
       const [o0, o1, o2] = owners;
 
       // Owner 0 creates 2 series + 2 lines.
@@ -894,12 +1069,31 @@ describe("Q02-A02: 52 transitions plus owner churn", () => {
             if (line) { step(() => { line.remove(); ledger.lines -= 1; }); } else { step(() => {}); }
             break;
           }
-          case 5:
-            step(() => { (owner.series[0] as unknown as { attachPrimitive(p: EnginePrimitive): void }).attachPrimitive(makeMinimalEnginePrimitive(`p-o${owner.id}-${txn}`)); });
+          case 5: {
+            const host = owners.find((o) => o.series.length > 0);
+            const prim = makeMinimalEnginePrimitive(`p-o${owner.id}-${txn}`, detachedIds);
+            if (host) {
+              step(() => {
+                (host.series[0] as unknown as { attachPrimitive(p: EnginePrimitive): void }).attachPrimitive(prim);
+                attachedIds.push(prim.id);
+                host.prims.push(prim);
+              });
+            } else {
+              step(() => { owner.series.push(engine.addSeries(kind)); ledger.series += 1; });
+            }
             break;
+          }
           case 6: {
-            const prim = makeMinimalEnginePrimitive(`p-o${owner.id}-${txn - 1}`);
-            step(() => { (owner.series[0] as unknown as { detachPrimitive(p: EnginePrimitive): void }).detachPrimitive(prim); });
+            // Detach the SAME object case 5 attached (identity, not a look-alike id).
+            const donor = owners.find((o) => o.prims.length > 0 && o.series.length > 0);
+            const prim = donor?.prims.pop();
+            if (donor && prim) {
+              step(() => {
+                (donor.series[0] as unknown as { detachPrimitive(p: EnginePrimitive): void }).detachPrimitive(prim);
+              });
+            } else {
+              step(() => { owner.series.push(engine.addSeries(kind)); ledger.series += 1; });
+            }
             break;
           }
           case 7:
@@ -934,6 +1128,23 @@ describe("Q02-A02: 52 transitions plus owner churn", () => {
 
       agreeNow(0, 0, 0);
 
+      // A series + primitive NO owner releases: its detached() can then only come
+      // from the engine's own primitive-host teardown, so "zero owned primitives
+      // after destroy" is observed instead of implied by the release loop below.
+      const probe = engine.addSeries("line");
+      const probePrim = makeMinimalEnginePrimitive("destroy-probe", detachedIds);
+      (probe as unknown as { attachPrimitive(p: EnginePrimitive): void }).attachPrimitive(probePrim);
+      attachedIds.push(probePrim.id);
+      ledger.series += 1;
+      scheduler.flush();
+
+      // Timer ownership: arm the engine's own scroll-animation clock (a real
+      // setTimeout the renderer owns) so the post-destroy zero is an observation.
+      vi.useFakeTimers();
+      engine.timeScale().scrollToPosition(3, true);
+      scheduler.flush();
+      expect(vi.getTimerCount()).toBeGreaterThan(0);
+
       // Now each owner releases its own resources.
       for (const owner of owners) {
         for (const ln of owner.lines) {
@@ -950,9 +1161,8 @@ describe("Q02-A02: 52 transitions plus owner churn", () => {
       expect(engine.inventory().series).toBe(ledger.series);
       expect(engine.inventory().priceLines).toBe(ledger.lines);
 
-      // ResizeObserver / canvas / listener accounting at destroy. The
-      // CountingResizeObserver declared above recorded the live observe() call
-      // and counts the destroy() disconnect(). The canvas engine MUST release it.
+      // ResizeObserver accounting at destroy: the CountingResizeObserver above
+      // recorded observe() and counts the disconnect() the engine MUST make.
       engine.destroy();
       expect(disconnectedTimes).toBeGreaterThanOrEqual(1);
       expect(containerEl.querySelectorAll("canvas").length).toBe(0);
@@ -960,17 +1170,33 @@ describe("Q02-A02: 52 transitions plus owner churn", () => {
       expect(inv.alive).toBe(false);
       expect(inv.series).toBe(0);
       expect(inv.priceLines).toBe(0);
+      // Timers: destroy() cancelled the scroll-animation clock it owned.
+      expect(vi.getTimerCount()).toBe(0);
+      // Primitives: every id the engine accepted came back detached, exactly once,
+      // including the one no owner released.
+      expect(detachedIds.slice().sort()).toEqual(attachedIds.slice().sort());
+      expect(new Set(detachedIds).size).toBe(detachedIds.length);
+      expect(detachedIds).toContain("destroy-probe");
+      // Listeners: net live listener keys on the engine's elements is empty, and the
+      // map is non-empty so that zero is an observation, not a vacuous truth.
+      expect(listenerBalance.size).toBeGreaterThan(0);
+      expect([...listenerBalance.entries()].filter(([, n]) => n !== 0)).toEqual([]);
 
-      // Double destroy is a no-op.
+      // Double destroy is a no-op: no primitive is detached a second time.
       engine.destroy();
       expect(engine.inventory().alive).toBe(false);
+      expect(detachedIds.slice().sort()).toEqual(attachedIds.slice().sort());
     } finally {
+      addSpy.mockRestore();
+      removeSpy.mockRestore();
+      vi.useRealTimers();
+      vi.unstubAllGlobals();
       restoreFake();
       containerEl.remove();
     }
   });
 
-  it("lwc: 52 transitions drive the registry to zero live series / lines / primitives; chart.remove called exactly once", () => {
+  it("lwc: 52 transitions drive the registry to zero live series / lines; chart.remove called exactly once", () => {
     H.reg.reset();
     const engine = createEngine({} as unknown as HTMLElement, { width: 800, height: 600 }, "lwc");
     const s1 = engine.addSeries("candles");
