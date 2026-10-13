@@ -2,8 +2,9 @@
 Playwright project in terminal/playwright.config.ts exactly once.
 
 The desktop project outgrew one 60-minute job (PR #677: 55.3 min green, then
-cancelled at the cap on a slower runner), so it is split with Playwright's own
-`--shard=i/N`. A split adds a new way to lose coverage silently: a half that is
+cancelled at the cap on a slower runner), and tablet and mobile followed on
+2026-10-12 (47-59 and 44-56 min green, then cancelled at the cap on #960, #954
+and #959), so each is split with Playwright's own `--shard=i/N`. A split adds a new way to lose coverage silently: a half that is
 deleted, renumbered, or given a different total still leaves every remaining
 job green, and the required "Terminal typecheck + tests" check aggregates only
 the jobs that exist. These tests parse the real workflow and config and fail on
@@ -121,17 +122,23 @@ def test_every_playwright_project_runs_exactly_once_across_the_e2e_matrix():
     assert matrix_coverage_errors(e2e_matrix(ci_workflow()), playwright_projects()) == []
 
 
-@pytest.mark.parametrize("project", ["desktop", "tablet", "mobile"])
-def test_compact_and_desktop_projects_are_split_before_the_job_cap(project):
-    desktop = [
+# Every project that has already been cancelled at the 60-minute cap. A project
+# that creeps toward the cap joins this tuple together with its matrix halves;
+# the cap itself is never raised (see the comment on `timeout-minutes`).
+SPLIT_PROJECTS = ("desktop", "tablet", "mobile")
+
+
+@pytest.mark.parametrize("project", SPLIT_PROJECTS)
+def test_each_large_project_is_split_so_no_single_job_carries_it_whole(project):
+    entries = [
         item for item in e2e_matrix(ci_workflow())
         if f"--project={project}" in str(item["projects"]).split()
     ]
-    assert len(desktop) >= 2
+    assert len(entries) >= 2, f"{project} must run as --shard halves, not one whole job"
     assert all(
         any(SHARD_FLAG.match(token) for token in str(item["projects"]).split())
-        for item in desktop
-    )
+        for item in entries
+    ), f"every {project} entry must carry a --shard=i/N flag"
 
 
 def test_the_required_aggregate_still_gates_every_e2e_shard():
@@ -142,7 +149,8 @@ def test_the_required_aggregate_still_gates_every_e2e_shard():
     assert "terminal-e2e" in aggregate["needs"]
     assert aggregate["if"] == "always()"
     # A matrix job's `needs.<job>.result` is success only when EVERY entry is,
-    # so both desktop halves feed the required check without a needs change.
+    # so every desktop/tablet/mobile half feeds the required check without a
+    # needs change.
     assert jobs["terminal-e2e"]["strategy"]["fail-fast"] is False
     run_steps = [step.get("run", "") for step in jobs["terminal-e2e"]["steps"]]
     assert any("test:e2e:responsive -- ${{ matrix.projects }}" in step for step in run_steps)
@@ -154,9 +162,9 @@ def mutated() -> list[dict[str, Any]]:
     return deepcopy(e2e_matrix(ci_workflow()))
 
 
-@pytest.mark.parametrize("project", ["desktop", "tablet", "mobile"])
-def test_a_missing_project_half_is_reported(project):
-    include = [item for item in mutated() if item["shard"] != f"{project}-2"]
+@pytest.mark.parametrize("half", ("desktop-2", "tablet-2", "mobile-2"))
+def test_a_missing_half_is_reported(half):
+    include = [item for item in mutated() if item["shard"] != half]
     errors = matrix_coverage_errors(include, playwright_projects())
     assert any("do not cover 1..2" in error for error in errors), errors
 
@@ -184,7 +192,7 @@ def test_mismatched_shard_totals_are_reported():
 
 
 def test_a_project_no_entry_runs_is_reported():
-    include = [item for item in mutated() if "--project=mobile" not in str(item["projects"]).split()]
+    include = [item for item in mutated() if item["shard"] not in {"mobile-1", "mobile-2"}]
     errors = matrix_coverage_errors(include, playwright_projects())
     assert "mobile: no e2e matrix entry runs it" in errors
 
