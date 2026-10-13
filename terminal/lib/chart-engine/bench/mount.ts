@@ -47,9 +47,10 @@ export type MmBenchHook = {
   timeToCoordinate(time: EngineTime): number | null;
   /** Float-index anchor under a pointer x (PERF-RR2 ruling 3): the LWC public
    *  API is not float-exact, so the metric interpolates from the two
-   *  neighbouring integer logicals the engine reports. x is the container
-   *  coordinate (already past rect.left). Returns null when any call is
-   *  non-finite or the two anchor pixels coincide (zoom extremes). */
+   *  neighbouring integer logicals the engine reports. x is the PAGE/client
+   *  coordinate — the hook subtracts rect.left itself, exactly like
+   *  anchorTimeAt. Returns null when any call is non-finite or the two anchor
+   *  pixels coincide (zoom extremes). */
   floatAnchorAt(x: number): { x: number; logical: number } | null;
   /** coordOf(L) for a float logical L: x = d0 + (L - j) * (d1 - d0) where
    *  j = floor(L) and d0, d1 are logicalToCoordinate(j), logicalToCoordinate(j+1).
@@ -373,16 +374,16 @@ export function mountBench(container: HTMLElement, impl: EngineImpl): MountBench
       try {
         const ts = engine?.timeScale();
         if (!ts) return null;
-        const i = ts.coordinateToLogical(x);
+        const el = engine?.chartElement() ?? container;
+        const rect = el.getBoundingClientRect();
+        const localX = x - rect.left;
+        const i = ts.coordinateToLogical(localX);
         if (i == null) return null;
         const c0 = ts.logicalToCoordinate(i);
         const c1 = ts.logicalToCoordinate(i + 1);
         if (c0 == null || c1 == null) return null;
         if (!Number.isFinite(c0) || !Number.isFinite(c1)) return null;
         if (c1 === c0) return null;
-        const el = engine?.chartElement() ?? container;
-        const rect = el.getBoundingClientRect();
-        const localX = x - rect.left;
         const logical = i + (localX - c0) / (c1 - c0);
         if (!Number.isFinite(logical)) return null;
         return { x: localX, logical };

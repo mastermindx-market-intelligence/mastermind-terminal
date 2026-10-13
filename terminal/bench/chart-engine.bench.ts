@@ -190,8 +190,8 @@ async function measureImpl(page: Page, impl: EngineImpl, logFile: string): Promi
       `mm wheel zoom must change the visible-range width (before=${JSON.stringify(rangeBeforeZoom)} after=${JSON.stringify(rangeAfterZoom)}) — pointer-anchor drift is meaningless on an engine that did not zoom`,
     ).toBe(true);
     expect(
-      beforeAnchor,
-      "mm pointer-anchor drift must be MEASURABLE: coordinateToLogical/logicalToCoordinate returned null, so the <=1px law was never checked",
+      zoomDriftPx,
+      "mm pointer-anchor drift must be MEASURABLE: floatAnchorAt/coordinateOfLogical returned null (before or after the zoom), so the <=1px law was never checked",
     ).not.toBe(null);
   }
   await page.mouse.move(10, 10);
