@@ -47,10 +47,10 @@ const LWC_IMPORT_ALLOWLIST: readonly string[] = [
   "components/ChartPanel.tsx",
   "components/ChartPane.tsx",
   "components/ChartSettingsModal.tsx",
-  // Joined via master #929 (b4095c3de, LargeTradesOverlay type-only IChartApi/ISeriesApi
-  // import), which predates this ratchet reaching master; admitted at the
-  // ce-migration-1013 base merge so the measured set stays truthful. Ratchet it out
-  // with the overlay's move onto SeriesHandle.
+  // Added on master by #929 (transaction-backed Large Trades) AFTER the c923cc46 cut:
+  // a type-only `import type { IChartApi, ISeriesApi }` — no runtime LWC call. It
+  // joins the list because it pre-exists the chart-engine integration, not as a new
+  // consumer; the ChartPanel migration wave retargets it to the contract types.
   "components/LargeTradesOverlay.tsx",
   "components/TideChartLazy.tsx",
   "components/surface/SessionFlowPane.tsx",
