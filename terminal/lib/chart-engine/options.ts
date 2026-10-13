@@ -45,11 +45,47 @@ const ALLOWED_GROUPS = new Set<string>([
   "kineticScroll",
 ]);
 
+const MODE_BY_NUMBER: Record<number, EnginePriceScaleMode> = {
+  0: "normal",
+  1: "log",
+  2: "percent",
+  3: "indexed100",
+};
+
 function cloneValue(value: unknown): unknown {
   if (value && typeof value === "object" && !Array.isArray(value)) {
     return { ...(value as Record<string, unknown>) };
   }
   return value;
+}
+
+function resolvePriceScaleMode(mode: unknown): EnginePriceScaleMode | null {
+  if (typeof mode === "number" && Number.isFinite(mode) && MODE_BY_NUMBER[mode] != null) {
+    return MODE_BY_NUMBER[mode];
+  }
+  if (mode === "normal" || mode === "Normal") return "normal";
+  if (mode === "log" || mode === "percent" || mode === "indexed100") return mode;
+  return null;
+}
+
+/** true / `{… any true value}` request kinetic behaviour; `{mouse:false,touch:false}` does not. */
+export function kineticScrollRequested(k: unknown): boolean {
+  if (k == null || k === false) return false;
+  if (k === true) return true;
+  if (typeof k !== "object") return false;
+  return Object.values(k as Record<string, unknown>).some((v) => v === true);
+}
+
+function priceScaleModeUnsupported(
+  scale: unknown,
+  caps: EngineCapabilities,
+): string | null {
+  if (!scale || typeof scale !== "object") return null;
+  const mode = (scale as { mode?: unknown }).mode;
+  if (mode == null) return null;
+  const resolved = resolvePriceScaleMode(mode);
+  if (resolved != null && caps.priceScaleModes.includes(resolved)) return null;
+  return `priceScaleMode:${String(mode)}`;
 }
 
 export function normalizeEngineOptions(
@@ -62,9 +98,13 @@ export function normalizeEngineOptions(
       unsupported.push(key);
       continue;
     }
-    if (key === "kineticScroll" && !caps.kineticScroll) {
+    if (key === "kineticScroll" && !caps.kineticScroll && kineticScrollRequested(options.kineticScroll)) {
       unsupported.push(key);
     }
+  }
+  for (const key of ["rightPriceScale", "leftPriceScale"] as const) {
+    const token = priceScaleModeUnsupported(options[key], caps);
+    if (token) unsupported.push(token);
   }
   if (unsupported.length > 0) {
     const groups = unsupported.join(", ");
