@@ -1,12 +1,12 @@
 # Terminal Visual Intelligence Layer — pane readiness source recapture
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
 # Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
-# capturedAtHead: 3b18fd7360903f2a3a7097700f0d0182e6294386
-# capturedAt: 2026-10-12T03:54:28.092006+00:00
+# capturedAtHead: f72b99bbdf86651350d9aaefd9920390bb037278
+# capturedAt: 2026-10-13T03:10:39.601+00:00
 # Actual fresh local fixture captures; source identity remains the capture commit when artifacts are committed later.
 # Content-addressed layoutFiles + cropFiles, not ancestry, identify this capture.
 layoutFiles:
-  terminal/components/ChartPanel.tsx: "579ba00f36210e1de19b95b5295eb75cc9a58e8e5979ed50b314bb2715857bb3"
+  terminal/components/ChartPanel.tsx: "dc5568900a94388b2973ccb19c9faaaddadee6766bac9552adf898b0afa176bd"
   terminal/components/ChartSettingsModal.tsx: "f26bd7dcbb9bd23e96546e835dec4c62c593b9c4d7412c411511005e7418146e"
   terminal/components/ChartSettingsModal.module.css: "a1685d103511e11882f8d379b22570f018e47aed88266db5ca6fec8808100b0a"
   terminal/components/DrawingSidebar.tsx: "95910121c08efa2a41bcaac02ec626a48bc98021bbbf9e611ff0b61f7baaf6d9"
@@ -20,12 +20,12 @@ layoutFiles:
   terminal/lib/suites/trend/candlePainter.ts: "8384d2bce3af939a51e88584b1436ee2898a89f0fbf1aedc09ffee624a3e12e1"
   terminal/lib/indicator-canvas/host.ts: "4f2949efb22b8c378cab1ff9d176466c4857073c14a36ee4f0eeab4ec1015a25"
 cropFiles:
-  desktop-context-zh.png: "8953711ea0d6a85373c2edb1e1156aa33020a1573791ff659570c39a3982a334"
-  desktop-context.png: "d99a712c10c50dbf8c3dba623abce1722c22bbba482118f5c3d50da046c35521"
-  mobile-context-zh.png: "15596fc86c4e13de64c62fc168906ab00af5a94458e0e8e49ab3297a1ab70b78"
-  mobile-context.png: "bd248abb692e383d9c72d81693470ac55f7ba949faea739cd5f24b7fb45c7738"
-  tablet-context-zh.png: "546bab1100ab1a872407b0fdc00c9178e74fa6a169654eb294ae75b47cd86a7e"
-  tablet-context.png: "6218ef617b8fccedf0cc21516a8602367f74fd86c20d23e52a593a24ff3733a1"
+  desktop-context-zh.png: "ddf999813d2dd92397ed690c71299777c046243047272e522825e3aab4f535fd"
+  desktop-context.png: "1840f514d0bd388ed3198795a5878cee18c4f2b796d5ddaa1308494730ed139e"
+  mobile-context-zh.png: "a50407fbcd82ec1ac95efc8de1cdecf8c387f4b52496caeba5762030be155ddf"
+  mobile-context.png: "b744a2c63193a18a0c999b85e20634349f393e953a450e0c70092f1ba2272dd3"
+  tablet-context-zh.png: "e5b87ca88232e2368d488d5ca205eb8e682dfda1d02e3e03df29805e0e4fec12"
+  tablet-context.png: "3610c8c8a19b96beb92b8026b24a390b9dfc5457d5e00c67274bd8845b134bf9"
 theme: dark
 languages: [en, zh]
 viewports:
@@ -46,9 +46,14 @@ browserResults:
   mobileCrosshairScope: Exact named mobile case within the same 30-case report; no separate rerun
   visualIntelligenceMatrix: 30 passed; zero failures, skips, retries or flaky cases
 browserReportHashes:
-  visualReport: "ef9c182f35914cced55e33b0ce6dd2d4fa3a2261450bc85f2868793cdfdbf500"
-  mobileCrosshairReport: "ef9c182f35914cced55e33b0ce6dd2d4fa3a2261450bc85f2868793cdfdbf500"
+  visualReport: "3a7198b48025efd78ff70d017904480f652f0dd20ad174ffc17238858e05b86b"
+  mobileCrosshairReport: "3a7198b48025efd78ff70d017904480f652f0dd20ad174ffc17238858e05b86b"
 currentLocalGates:
+  sourceHead: f72b99bbdf86651350d9aaefd9920390bb037278
+  visualIntelligenceMatrix: 30 passed; zero failures, skips, retries or flaky cases; actual EN/ZH at three viewports
+  postCaptureGates: NOT_RUN_BY_THIS_CAPTURE_WRAPPER; separate final evidence readers, typecheck and release gates are required
+  scope: Fresh local fixture captures; no production or live-provider assertion
+demotedCaptureLocalGates:
   sourceHead: 3b18fd7360903f2a3a7097700f0d0182e6294386
   visualIntelligenceMatrix: 30 passed; zero failures, skips, retries or flaky cases; actual EN/ZH at three viewports
   postCaptureGates: NOT_RUN_BY_THIS_CAPTURE_WRAPPER; separate final evidence readers, typecheck and release gates are required
