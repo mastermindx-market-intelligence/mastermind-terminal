@@ -39,8 +39,10 @@ import { BUDGETS } from "../chart-engine/bench/receipt";
 const FIX_DIR = path.resolve(__dirname, "fixtures", "chart-engine");
 const SAMPLE = JSON.parse(readFileSync(path.join(FIX_DIR, "cadence-trace.sample.json"), "utf8"));
 const RAF_ONLY = JSON.parse(readFileSync(path.join(FIX_DIR, "cadence-trace.raf-only.sample.json"), "utf8"));
+const INPUT_SAMPLE = JSON.parse(readFileSync(path.join(FIX_DIR, "cadence-trace.input.sample.json"), "utf8"));
 
 const SAMPLE_EVENTS = asTraceEvents(SAMPLE);
+const INPUT_SAMPLE_EVENTS = asTraceEvents(INPUT_SAMPLE);
 
 // Pin the oracle literals computed in the throwaway script in $TMPDIR.
 // The script never touches cadence.ts; the literals are the contract.
@@ -631,6 +633,164 @@ describe("buildCadenceReceipt / validateCadenceReceipt (Q03)", () => {
     const v = validateCadenceReceipt(bad);
     expect(v.ok).toBe(false);
     if (!v.ok) expect(v.errors.some((e) => /input_marks/.test(e))).toBe(true);
+  });
+});
+
+describe("input-mark fixture (cadence-trace.input.sample.json) — Q03b", () => {
+  // Oracle literals computed in the throwaway script in $TMPDIR. The script
+  // never imports cadence.ts; nearest-rank percentile idx = min(n-1, max(0,
+  // ceil(p*n)-1)) on the ascending list; 0.1 ms rounding as round(x*10)/10.
+  const FIXTURE_ORACLE = {
+    rendererPid: 2,
+    presented: 30,
+    partial: 0,
+    dropped: 19,
+    presentedMsLen: 30,
+    presentedMsFirst: 1777316219.821,
+    presentedMsLast: 1777325348.308,
+    // in-window gestureStats numbers (window = [start, end + 100] ms):
+    winPresented: 28,
+    winPartial: 0,
+    winDropped: 19,
+    winIntervalsCount: 27,
+    winP50: 46.35800004005432,
+    winP95: 57.301000118255615,
+    winP99: 7746.933000087738,
+    winInputHz: 22.5,
+    // raw input-mark count on pid 2:
+    panRawMarksCount: 48,
+    // inputLatencyStats numbers (the fixture has 24 unique marks in [start, end]):
+    panInputMarks: 24,
+    panInputUnpresented: 0,
+    panP50: 7.929,
+    panP95: 8.616,
+    panP99: 8.687,
+    // vsync numbers:
+    vsyncMs: 36.8,
+    vsyncHz: 27,
+    seqIntervalsCount: 77,
+    seqVsyncMs: 16.7,
+    seqVsyncHz: 60,
+  } as const;
+
+  it("14. real input fixture: parsePresentedFrames, userTimingAllMs, inputLatencyStats return the oracle literals", () => {
+    const parsed = parsePresentedFrames(INPUT_SAMPLE_EVENTS);
+    expect(parsed.rendererPid).toBe(FIXTURE_ORACLE.rendererPid);
+    expect(parsed.presented).toBe(FIXTURE_ORACLE.presented);
+    expect(parsed.partial).toBe(FIXTURE_ORACLE.partial);
+    expect(parsed.dropped).toBe(FIXTURE_ORACLE.dropped);
+    expect(parsed.presentedMs.length).toBe(FIXTURE_ORACLE.presentedMsLen);
+    expect(parsed.presentedMs[0]).toBeCloseTo(FIXTURE_ORACLE.presentedMsFirst, 6);
+    expect(parsed.presentedMs[parsed.presentedMs.length - 1]).toBeCloseTo(FIXTURE_ORACLE.presentedMsLast, 6);
+
+    const rawMarks = userTimingAllMs(INPUT_SAMPLE_EVENTS, "cadence:pan:input", FIXTURE_ORACLE.rendererPid);
+    expect(rawMarks.length).toBe(FIXTURE_ORACLE.panRawMarksCount);
+
+    const startMs = userTimingMs(INPUT_SAMPLE_EVENTS, "cadence:pan:start");
+    const endMs = userTimingMs(INPUT_SAMPLE_EVENTS, "cadence:pan:end");
+    expect(startMs).not.toBeNull();
+    expect(endMs).not.toBeNull();
+    if (startMs == null || endMs == null) throw new Error("unreachable");
+
+    const lat = inputLatencyStats(parsed, rawMarks, startMs, endMs);
+    expect(lat.input_marks).toBe(FIXTURE_ORACLE.panInputMarks);
+    expect(lat.input_unpresented).toBe(FIXTURE_ORACLE.panInputUnpresented);
+    expect(lat.input_to_present_p50_ms).toBeCloseTo(FIXTURE_ORACLE.panP50, 6);
+    expect(lat.input_to_present_p95_ms).toBeCloseTo(FIXTURE_ORACLE.panP95, 6);
+    expect(lat.input_to_present_p99_ms).toBeCloseTo(FIXTURE_ORACLE.panP99, 6);
+
+    // Cross-check: gestureStats over the same window yields the in-window
+    // counts and percentiles the oracle computed.
+    const stats = gestureStats(parsed, startMs, endMs, 200);
+    expect(stats.presented).toBe(FIXTURE_ORACLE.winPresented);
+    expect(stats.partial).toBe(FIXTURE_ORACLE.winPartial);
+    expect(stats.dropped).toBe(FIXTURE_ORACLE.winDropped);
+    expect(stats.p50_ms).toBeCloseTo(FIXTURE_ORACLE.winP50, 6);
+    expect(stats.p95_ms).toBeCloseTo(FIXTURE_ORACLE.winP95, 6);
+    expect(stats.p99_ms).toBeCloseTo(FIXTURE_ORACLE.winP99, 6);
+    expect(stats.input_hz).toBeCloseTo(FIXTURE_ORACLE.winInputHz, 6);
+  });
+
+  it("15. real fixture vsync: measureVsync(presented intervals) and measureVsync(frame-sequence intervals) match the oracle", () => {
+    const parsed = parsePresentedFrames(INPUT_SAMPLE_EVENTS);
+    const display = measureVsync(presentedIntervals(parsed.presentedMs));
+    expect(display).toEqual({ vsync_ms: FIXTURE_ORACLE.vsyncMs, hz: FIXTURE_ORACLE.vsyncHz });
+    const seq = frameSequenceIntervals(INPUT_SAMPLE_EVENTS, FIXTURE_ORACLE.rendererPid);
+    expect(seq.length).toBe(FIXTURE_ORACLE.seqIntervalsCount);
+    expect(measureVsync(seq)).toEqual({ vsync_ms: FIXTURE_ORACLE.seqVsyncMs, hz: FIXTURE_ORACLE.seqVsyncHz });
+  });
+
+  it("16. derived cases on the real fixture: removing all input marks throws; identical-ts duplicate does not change numbers; clock check ok on constant shift, fail on 0.5 ms shift", () => {
+    const parsed = parsePresentedFrames(INPUT_SAMPLE_EVENTS);
+    const rawMarks = userTimingAllMs(INPUT_SAMPLE_EVENTS, "cadence:pan:input", FIXTURE_ORACLE.rendererPid);
+    const startMs = userTimingMs(INPUT_SAMPLE_EVENTS, "cadence:pan:start")!;
+    const endMs = userTimingMs(INPUT_SAMPLE_EVENTS, "cadence:pan:end")!;
+
+    // (a) every input mark removed -> inputLatencyStats throws "no input marks".
+    expect(() => inputLatencyStats(parsed, [], startMs, endMs)).toThrow(/no input marks/);
+
+    // (b) every input mark duplicated with an identical ts (a derived
+    // pointermove + compatibility mousemove pair) -> input_marks and all
+    // percentiles unchanged.
+    const duplicated: number[] = [];
+    for (const m of rawMarks) duplicated.push(m, m);
+    const statsD = inputLatencyStats(parsed, duplicated, startMs, endMs);
+    expect(statsD.input_marks).toBe(FIXTURE_ORACLE.panInputMarks);
+    expect(statsD.input_unpresented).toBe(FIXTURE_ORACLE.panInputUnpresented);
+    expect(statsD.input_to_present_p50_ms).toBeCloseTo(FIXTURE_ORACLE.panP50, 6);
+    expect(statsD.input_to_present_p95_ms).toBeCloseTo(FIXTURE_ORACLE.panP95, 6);
+    expect(statsD.input_to_present_p99_ms).toBeCloseTo(FIXTURE_ORACLE.panP99, 6);
+
+    // (c) checkInputMarkClock accepts equal deltas after a constant shift;
+    // rejects when one entry is moved by 0.5 ms.
+    const shift = 1000;
+    const shifted = rawMarks.map((m) => m + shift);
+    expect(checkInputMarkClock(rawMarks, shifted)).toEqual({ ok: true, maxDeviationMs: 0 });
+    const moved = [...shifted];
+    moved[5] = (moved[5] ?? 0) + 0.5;
+    const bad = checkInputMarkClock(rawMarks, moved);
+    expect(bad.ok).toBe(false);
+    if (!bad.ok) expect(bad.reason).toMatch(/deviation at i=/);
+  });
+
+  it("17. receipt round-trip: build a receipt from the fixture stats (both slots), validateCadenceReceipt ok; violations match what the literals imply", () => {
+    const parsed = parsePresentedFrames(INPUT_SAMPLE_EVENTS);
+    const startMs = userTimingMs(INPUT_SAMPLE_EVENTS, "cadence:pan:start")!;
+    const endMs = userTimingMs(INPUT_SAMPLE_EVENTS, "cadence:pan:end")!;
+    const rawMarks = userTimingAllMs(INPUT_SAMPLE_EVENTS, "cadence:pan:input", FIXTURE_ORACLE.rendererPid);
+    const display = measureVsync(presentedIntervals(parsed.presentedMs));
+
+    // pan slot: real fixture stats.
+    const panBase = gestureStats(parsed, startMs, endMs, 200);
+    const panLat = inputLatencyStats(parsed, rawMarks, startMs, endMs);
+    const pan = { ...panBase, ...panLat };
+
+    // zoom slot: the fixture only carries pan data; the cadence display is
+    // the same so we use the same per-gesture numbers for both slots.
+    const zoom = { ...panBase, ...panLat };
+
+    const receipt = buildCadenceReceipt({
+      commit: "a".repeat(40),
+      impl: "mm",
+      host: { os: "test-os", cpu: "test-cpu", dpr: 2 },
+      display,
+      generated_at: "2026-01-01T00:00:00.000Z",
+      pan,
+      zoom,
+    });
+    const v = validateCadenceReceipt(receipt);
+    expect(v.ok).toBe(true);
+
+    // pan.presented_p95_ms and pan.presented_p99_ms both EXCEED their budgets;
+    // the input-to-present percentiles do not; the zoom slot mirrors the pan
+    // slot. The expected violation list is therefore:
+    expect(receipt.violations.map((x) => x.metric)).toEqual([
+      "pan.presented_p95_ms",
+      "pan.presented_p99_ms",
+      "zoom.presented_p95_ms",
+      "zoom.presented_p99_ms",
+    ]);
+    expect(receipt.budget_ok).toBe(false);
   });
 });
 

@@ -207,7 +207,12 @@ a violation, never `NaN`.
 ### Budgets
 
 ```
-CADENCE_BUDGETS = { presented_p95_ms: 20, presented_p99_ms: 33.4 }
+CADENCE_BUDGETS = {
+  presented_p95_ms: 20,
+  presented_p99_ms: 33.4,
+  input_to_present_p95_ms: 20,
+  input_to_present_p99_ms: 33.4,
+}
 ```
 
 A budget violation is recorded on the receipt and the test stays green
@@ -267,6 +272,92 @@ The bench fails when any of these is true:
   - Fewer than 2 presented frames land in the gesture window:
     `INVALID: fewer than 2 presented frames in the <pan|zoom> window (<impl>)`.
 
+## Per-input presentation latency (Q03b)
+
+The presented-frame interval is bounded below by whichever is slower: the
+renderer, or the arrival of the next input. A zoom that dispatches
+~50 wheel events per second cannot show intervals under ~20 ms, so the
+interval quantity cannot attribute anything to the renderer. Per-input
+presentation latency (Q03b) is the matching rule that escapes this floor.
+
+How the inputs are marked. Before each gesture the bench installs a
+capture-phase listener on `document`, after the 200 ms idle and removed after
+the end mark. The same `finally` block also removes the listener when the gesture
+throws, so a failing pan never leaves the listener behind. For the pan, the
+listener receives `pointermove` and `mousemove`; a `PointerEvent` with
+coalesced events gets one `performance.mark` per coalesced event, every other
+event gets one mark of its own. A pointermove and its compatibility
+mousemove carry the same `timeStamp`, so identical timestamps are one input.
+For the zoom, the listener receives `wheel` only, one mark per event. Each
+mark is written with `performance.mark(name, { startTime: ev.timeStamp })`, so
+the mark clock is the input clock, not the listener clock.
+
+The latency rule. For every input mark `m` inside `[start mark, end mark]`,
+latency = the first presented frame (`STATE_PRESENTED_ALL`) at or after `m`,
+minus `m`, provided that frame arrives by `end mark + 100 ms`. An input with
+no such frame is counted in `input_unpresented` (reported, never budgeted).
+Percentiles are p50/p95/p99 over inputs.
+
+The clock check and its INVALID. The bench reads the trace's
+`blink.user_timing` marks and the page-side `performance.getEntriesByName`
+startTimes and compares them via `checkInputMarkClock`. A deviation above
+0.01 ms FAILS the run with `INVALID: input-mark clock check failed`.
+
+Measured vsync. `vsync_ms` is the mode of the positive rounded (0.1 ms)
+presented-frame intervals pooled over both gestures, `hz = round(1000 /
+vsync_ms)`. Measured, never declared: nothing assumes 60 / 120 / 16.7 ms.
+The cross-check `vsync_seq_ms` uses `frameSequenceIntervals` (begin-time
+difference divided by `frame_sequence` difference between consecutive frames
+of one BeginFrame source); its mode is printed as `vsync_seq_ms` on the
+diagnostic line and is not part of the receipt. **Reading rule:** when
+`vsync_ms` and `vsync_seq_ms` differ, the presented intervals were
+input-bound and `vsync_ms` is a multiple of the refresh slot, so that run's
+`vsync_ms` is not a display reading. A slow headless host printed
+`vsync_ms 43.5` on a `16.7` ms frame clock; the diagnostic line showed the
+disagreement. Latency is bounded below by the vsync slot, not by input rate.
+
+Budgets:
+
+```
+CADENCE_BUDGETS = {
+  presented_p95_ms: 20,
+  presented_p99_ms: 33.4,
+  input_to_present_p95_ms: 20,
+  input_to_present_p99_ms: 33.4,
+}
+```
+
+Receipt additions. The receipt's `display` field carries `vsync_ms` and
+`hz`. Each gesture record carries 13 keys (the eight intervals-only keys
+plus the five per-input latency keys: `input_marks`, `input_unpresented`,
+`input_to_present_p50_ms`, `input_to_present_p95_ms`,
+`input_to_present_p99_ms`). `input_marks` must be `>= 1`; a gesture with
+none throws `"no input marks"` and never reaches the receipt. Four new
+violation metrics are added after the four presented ones, one per
+(input-to-present) budget per gesture.
+
+The bench prints `CADENCE` once per run with all eleven numeric fields
+(`pan_p95`, `pan_p99`, `zoom_p95`, `zoom_p99`, `pan_lat_p95`, `pan_lat_p99`,
+`zoom_lat_p95`, `zoom_lat_p99`, `vsync_ms`, `presented`, `input_hz`) plus
+`budget_ok`, `violations`, and `file`. `CADENCE_DIAG` adds
+`*_input_marks`, `*_unpresented`, `hz`, `vsync_seq_ms`, and `*_clock_dev_ms`
+so a host can see how many inputs were marked, how many found a presented
+frame, the cross-check vsync, and the page-vs-trace clock deviation.
+
+Known limits:
+
+  - The first presentation at or after a mark may not yet contain that
+    input, so latency can be under-stated by up to one frame.
+  - The interval mode can be a multiple of the true vsync when inputs are
+    slower than refreshes; both gestures are pooled, and `vsync_seq_ms`
+    shows it.
+  - The browser may merge wheel events, so `input_marks` can be below the
+    dispatched count.
+  - Event timestamps are coarsened by the browser (about 0.1 ms).
+  - The listener itself costs one `performance.mark` per input.
+  - The receipt's run is the median by `pan.p95_ms`, so its zoom numbers
+    come from that same run.
+
 ### Dumping the trace
 
 `BENCH_DUMP_TRACE=1 BENCH_RUNS=1 BENCH_IMPLS=mm` writes
@@ -285,8 +376,8 @@ test-results/bench/cadence-<impl>-<commit>-<host>.json
 written by the run whose `pan.p95_ms` is the median of the sorted-ascending
 per-run p95s (tie → lower run index, `Math.floor((RUNS - 1) / 2)` of the
 sorted set). Receipts are valid only against `validateCadenceReceipt`,
-which rejects any top-level key outside the eight and any per-gesture key
-outside the eight stat keys.
+which rejects any top-level key outside the nine and any per-gesture key
+outside the thirteen stat keys.
 
 Use an odd `BENCH_RUNS` (the default is 3). With an even count the rule
 above picks the lower of the two middle runs, which is the better result,
@@ -307,5 +398,6 @@ not a true median.
 | `terminal/lib/__tests__/chartEngineCadence.test.ts` | Q03 parser unit tests + 4 falsifiers. |
 | `terminal/lib/__tests__/chartEngineLocalization.test.ts` | F-4 `localization.locale` on canvas time-axis labels (the locale is passed through `terminal/lib/chart-engine/canvas/frame.ts`). |
 | `terminal/lib/__tests__/fixtures/chart-engine/cadence-trace.sample.json` | Trimmed Q03 fixture (real Chromium 149 pan trace, ≤ 300 events, scrubbed). Its p95/p99 literals come from the gaps the trimming left, not from a real cadence. |
+| `terminal/lib/__tests__/fixtures/chart-engine/cadence-trace.input.sample.json` | Trimmed Q03b fixture (real headless pan trace with `pointermove`/`mousemove` input-mark pairs, ≤ 300 events, scrubbed). Carries the start/end marks, a head run and a tail run of input marks, and the renderer PipelineReporter pairs needed to answer every kept mark. |
 | `terminal/lib/__tests__/fixtures/chart-engine/cadence-trace.raf-only.sample.json` | Same fixture with PipelineReporter removed + FireAnimationFrame events per presented time. |
 | `docs/chart-engine-completion/receipts/` | Official receipts (seat only); ships with README. |
