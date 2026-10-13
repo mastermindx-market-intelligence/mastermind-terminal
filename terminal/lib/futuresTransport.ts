@@ -71,6 +71,7 @@ export function parseFuturesPublishedView(raw: unknown, request: FuturesRequest,
       !validClockMs(raw.sourceAsOfMs) || !validClockMs(raw.publishedAtMs) || !validClockMs(raw.cutoffMs) || !validClockMs(raw.freshUntilMs) ||
       raw.sourceAsOfMs > raw.publishedAtMs || raw.publishedAtMs > nowMs || raw.cutoffMs > nowMs ||
       (request.cutoffMs !== null && raw.cutoffMs > request.cutoffMs) ||
+      (request.cutoffMs === null && raw.basis !== "historical" && raw.sourceAsOfMs - raw.cutoffMs > request.intervalMinutes * 60000 + 15000) ||
       raw.freshUntilMs < raw.sourceAsOfMs || raw.freshUntilMs - raw.sourceAsOfMs > (raw.basis === "realtime" ? 15000 : 900000) ||
       !positive(raw.lowTick) || !positive(raw.highTick) || raw.highTick < raw.lowTick || raw.highTick - raw.lowTick >= 2048 ||
       !Array.isArray(raw.replayCutoffsMs) || raw.replayCutoffsMs.length > 192 ||

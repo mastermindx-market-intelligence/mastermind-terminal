@@ -2,6 +2,10 @@
 
 Research as of 2026-10-12 UTC / 2026-10-11 Pacific. Current Chairman continuation explicitly requests deeper Pro research and implementation. This is an extension of Terminal's existing Options/Market Structure and Quote Hub owners, not another product backend or control plane.
 
+## Latest continuation: production-route futures workspace
+
+The existing Options shell now links to /options/futures with the canonical paid gate, dynamic client mount, source-bound API, ES/NQ/expiry/aggregation/replay controls, safe old-request cancellation, denied-access clearing and freshness withholding. 15 responsive browser cases and a real loopback source-to-API integration case passed. Source/data were synthetic acceptance fixtures; nothing was deployed or activated. Evidence: docs/pr-crops/futures-production-workspace-20261012/. Nested mobile clipping was found visually, fixed, and tested at the inner chart/control rectangles. Next: strengthen the capture-owner output adapter with explicit coverage/definition validity, then full-candidate qualification. No active worker or unresolved modification.
+
 ## Latest continuation: production source/API bridge
 
 Original PR/carrier retained. Added a digest-bound capture publication reader to the EXISTING Quote Hub and an authenticated /api/futures consumer. No live source, vendor account, source directory or permission setting was activated. Closed cash sessions explicitly withhold gamma. 62 source/API and 15 publication tests passed; full typecheck and the repaired plain-language guard passed. Evidence: `docs/evidence/futures-production-bridge-20261012/`. Next safe phase is the production-route client in the existing Options shell. Prior refused review-discovery action remains held; no worker/review claim. No unknown modifying effect.

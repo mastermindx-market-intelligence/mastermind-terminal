@@ -1,5 +1,7 @@
 "use client";
 import { useCallback, useEffect, useState } from "react";
+import Link from "next/link";
+import { useFuturesText } from "@/lib/futuresUiCopy";
 import { useSearchParams } from "next/navigation";
 import WorkspaceTabs, { type WorkspaceTab } from "@/components/chrome/WorkspaceTabs";
 import OptionsHubView, { type TabKey } from "@/components/OptionsHubView";
@@ -73,6 +75,7 @@ function writeTabToUrl(pageKey: string) {
 export default function OptionsWorkspace() {
   const { lang } = useLang();
   const t = useT();
+  const futuresText = useFuturesText();
   const searchParams = useSearchParams();
   const rawTab = searchParams.get("tab");
   const [activeView, setActiveView] = useState<OptionsWorkspaceViewKey>(
@@ -163,6 +166,10 @@ export default function OptionsWorkspace() {
             </div>
           )}
         </div>
+        <Link href="/options/futures" data-testid="options-futures-link"
+          style={{ display: "inline-flex", alignItems: "center", minHeight: 44, padding: "4px 12px", fontSize: 13 }}>
+          {futuresText("title")}
+        </Link>
       </header>
 
       {activeView === "statistics" ? (
