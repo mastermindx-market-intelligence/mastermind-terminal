@@ -34,6 +34,7 @@ import { FUTURE_ANCHOR_BARS, futureBarTimes, futureCadence, futureSlotOf, type F
 import { keepIndicatorPaneAxisLabelsOnly } from "@/lib/indicatorPaneSeries";
 import { runPine, type RunResult } from "@/lib/pine-engine";
 import { createPineHost, type PineHost, type PineResult } from "@/lib/pine-engine/host";
+import { hashSource } from "@/lib/pine-engine/host-shared";
 import { ORACLE_V1_PINE } from "@/lib/pine";
 import { DRAWING_SCHEMA_VERSION, MAX_DRAWING_PAYLOAD_BYTES, type Drawing, type DrawKind, type Bar as DBar, uid, autoTrendlines, autoFib, srDrawings, mtfaDrawings } from "@/lib/drawings";
 import { drawingToolFromShortcut, getDrawingTool, FREEHAND_DRAWING_KINDS, type DrawingToolCapability } from "@/lib/drawingTools";
@@ -1465,16 +1466,15 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
   };
   // Launch an async host run for one script on `rows`, caching the outcome under the (script,data) key.
   // Returns the cache-shaped outcome. `cancelled` results (superseded by a newer same-slot run) are
-  // dropped WITHOUT touching the cache so the newer run owns the entry. compile() is fire-and-forget to
-  // warm the AST cache — run() also carries `source` so it self-compiles if the astId isn't cached yet.
+  // dropped WITHOUT touching the cache so the newer run owns the entry. A run self-compiles on a
+  // cache miss; a parallel compile would reset the shared worker and could cancel this or another run.
   const runPineHost = async (script: PineScript, rows: Bar[]): Promise<{ result: RunResult | null; error: string | null } | null> => {
     const key = pineCacheKey(script, rows);
     const host = pineHost();
-    // warm/refresh the AST cache when the source changed for this script
+    // Address the worker cache by source without starting a competing compile request.
     const prevAst = pineAstRef.current.get(script.id);
     if (!prevAst || prevAst.source !== script.source) {
-      pineAstRef.current.set(script.id, { source: script.source, astId: null });
-      host.compile(script.source).then((c) => { if (pineAstRef.current.get(script.id)?.source === script.source) pineAstRef.current.set(script.id, { source: script.source, astId: c.astId }); }).catch(() => {});
+      pineAstRef.current.set(script.id, { source: script.source, astId: hashSource(script.source) });
     }
     let out: PineResult | null = null; let crash: unknown;
     try {
