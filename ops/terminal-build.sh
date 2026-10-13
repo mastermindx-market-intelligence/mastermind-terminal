@@ -84,6 +84,20 @@ validate_target_sha(){
   fi
 }
 
+# Next's TypeScript check runs in a forked build worker that inherits NODE_OPTIONS.
+# On this 3.9 GB host Node's default old-space ceiling is ~2 GB, and the f7bce8dc
+# release (#972) aborted at 1952 MB during "Running TypeScript" (2026-10-13) — a
+# pre-swap failure that shipped nothing. Raise the ceiling for the build unless the
+# caller already chose one; the host's 8 GB swap absorbs overlap with `next start`.
+BUILD_NODE_HEAP_MB=3072
+build_node_options(){
+  local inherited=${1:-}
+  case " $inherited " in
+    *" --max-old-space-size"*|*" --max_old_space_size"*) printf '%s\n' "$inherited" ;;
+    *) printf '%s\n' "${inherited:+$inherited }--max-old-space-size=$BUILD_NODE_HEAP_MB" ;;
+  esac
+}
+
 # First adoption executes the exact protected ops/ artifact from a temporary
 # directory. Later releases use the currently deployed canonical checkout. The
 # script and policy always come from one complete, real, non-symlink directory;
@@ -1118,8 +1132,9 @@ log "next build (staging) ..."
 # next.config.ts is evaluated in more than one build worker. Pin both supported
 # deployment-id inputs to the ONE deployed commit so every HTML/RSC response and
 # every static chunk uses the same ?dpl= value. The Date.now fallback is only for
-# ad-hoc local builds.
-( cd "$STAGE" && GIT_SHA="$FULL_SHA" NEXT_DEPLOYMENT_ID="$FULL_SHA" npm run build )
+# ad-hoc local builds. NODE_OPTIONS carries the heap ceiling (see build_node_options).
+BUILD_NODE_OPTIONS=$(build_node_options "${NODE_OPTIONS:-}")
+( cd "$STAGE" && NODE_OPTIONS="$BUILD_NODE_OPTIONS" GIT_SHA="$FULL_SHA" NEXT_DEPLOYMENT_ID="$FULL_SHA" npm run build )
 
 # 4) verify the new build is complete before touching anything live.
 if [ ! -f "$STAGE/.next/BUILD_ID" ]; then
