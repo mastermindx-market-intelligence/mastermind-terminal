@@ -97,11 +97,11 @@ import { createEngine } from "@/lib/chart-engine";
 import type { SeriesHandle, EngineSeriesKind } from "@/lib/chart-engine/api";
 import {
   applyLiveOp, liveStateFromRows, reduceLiveTick,
-  type LiveGenerationState,
+  type LiveBar, type LiveGenerationState,
 } from "@/lib/chart-engine/liveGeneration";
 import {
   applyLiveCommit, createReplayState, enterReplay, exitReplay,
-  seek, stepBack, stepForward, type ReplayRow, type ReplayState,
+  seek, stepBack, stepForward, type ReplayRefusalCode, type ReplayRow, type ReplayState,
 } from "@/lib/chart-engine/replayGeneration";
 import { deriveOptLevels, sessionsOldEt } from "@/lib/optionsLevels";
 import { createCanvasEngine, createManualScheduler } from "@/lib/chart-engine/canvas";
@@ -177,64 +177,44 @@ describe("L01-A02: Old-symbol HTTP/script response arrives late -> No visible or
 
   // Every state setter (setX), series.setData/update/createPriceLine, localStorage / sessionStorage
   // / persist / save — the categories the row's Required observation names.
-  const WRITE = /(set[A-Z]\w*\(|setData\(|setSliceState\(|setStripDailyBars\(|setStripBars\(|localStorage\.|sessionStorage\.|persist\(|save\(|createPriceLine\()/;
+  const WRITE = /(set[A-Z]\w*\(|setData\(|\.update\(|applyOptions\(|setSliceState\(|setStripDailyBars\(|setStripBars\(|localStorage\.|sessionStorage\.|\bpersist\w*\(|\bsave\w*\(|createPriceLine\()/;
 
-  // Identify the boundaries of every async continuation: each starts at an `await` line
-  // (and runs to the next await or .then or function-top), or at a `.then(` callback (and
-  // runs to its matching `});`).
-  // A write is "in a continuation" if its line index falls within a known continuation. A
-  // write is "guarded" if a standard `if (cancelled || epochRef.current !== epoch) return;`
-  // appears between the continuation's start and the write.
+  // A continuation is either (a) the code after an `await`, running to the next suspension
+  // point, or (b) the body of a callback handed to .then/.catch/.finally or a timer. Each
+  // callback is its OWN continuation: a guard inside a sibling callback does not dominate a
+  // write here, so the INNERMOST (latest-opening) continuation containing a write wins.
+  // `await x.catch(() => null)` is an await, not a callback continuation.
+  const CALLBACK = /\.(then|catch|finally)\(|\b(setTimeout|setInterval|requestAnimationFrame|queueMicrotask|requestIdleCallback)\s*\(/;
   function scanGuardedWrites(body: string): { line: number; ok: boolean; write: string; guard?: string }[] {
     const lines = body.split("\n");
-    // Build continuation ranges (start-inclusive, end-exclusive line indices, 0-based).
     const ranges: { from: number; to: number }[] = [];
-    let i = 0;
-    while (i < lines.length) {
-      const ln = lines[i];
-      // `.then((...) => {` opens a callback. Find the matching `});` (heuristic: line that
-      // ends with `});` or `})` and has brace count back to 0 relative to the .then).
-      if (/\.then\(/.test(ln)) {
-        // Find the .then body: from this line, scan for the closing `});` with brace balance
-        // returning to 0. Count `(` opens and `)` closes for the .then's arg list too.
+    for (let i = 0; i < lines.length; i++) {
+      const cb = lines[i].search(CALLBACK);
+      const aw = lines[i].search(/\bawait\b/);
+      if (cb >= 0 && (aw < 0 || aw > cb)) {
         let depth = 0;
         let j = i;
         for (; j < lines.length; j++) {
-          // naive: count `(` and `)` and `{` and `}` on each line.
-          const open = (lines[j].match(/[\(\{]/g) || []).length;
-          const close = (lines[j].match(/[\)\}]/g) || []).length;
-          depth += open - close;
+          depth += (lines[j].match(/[\(\{]/g) || []).length - (lines[j].match(/[\)\}]/g) || []).length;
           if (depth <= 0 && j > i) break;
         }
         ranges.push({ from: i, to: j + 1 });
-        i = j + 1;
         continue;
       }
-      // `await X` opens a continuation. The continuation runs until the next `await` or `.then`
-      // or the end of the IIFE. A statement ends at `;` at the top level of the IIFE — but
-      // a chain like `const x = await y; f(x); await z; g();` is one logical sequence. For
-      // simplicity, take "after the first await, all subsequent writes are in the same
-      // continuation" — the awaits themselves are the writes the guard protects.
-      if (/\bawait\b/.test(ln)) {
-        // Find the next .then or await, whichever comes first.
+      if (aw >= 0) {
         let j = i + 1;
-        while (j < lines.length && !/\bawait\b/.test(lines[j]) && !/\.then\(/.test(lines[j])) j++;
+        while (j < lines.length && lines[j].search(/\bawait\b/) < 0 && lines[j].search(CALLBACK) < 0) j++;
         ranges.push({ from: i, to: j });
-        i = j;
-        continue;
       }
-      i++;
     }
-    // For each write, find which range contains it and whether a guard precedes it in that range.
     const guardRe = /if\s*\(\s*(cancelled|epochRef\.current\s*!==\s*epoch)/;
     const out: { line: number; ok: boolean; write: string; guard?: string }[] = [];
     for (let k = 0; k < lines.length; k++) {
       const m = lines[k].match(WRITE);
       if (!m) continue;
-      // Find the range containing this line.
-      const range = ranges.find((r) => k >= r.from && k < r.to);
-      if (!range) continue;
-      // Look for a guard in the range, on any line between range.from and k (inclusive).
+      const containing = ranges.filter((r) => k >= r.from && k < r.to);
+      if (!containing.length) continue;
+      const range = containing.reduce((a, b) => (b.from > a.from ? b : a));
       let ok = false;
       let guard: string | undefined;
       for (let g = range.from; g <= k; g++) {
@@ -273,16 +253,20 @@ describe("L01-A02: Old-symbol HTTP/script response arrives late -> No visible or
     const mutated = iifeBody.slice(0, m.index) + iifeBody.slice(m.index + m[0].length);
     const linesBefore = effectBody.slice(0, iifeOpen).split("\n");
     const fullMutated = linesBefore.join("\n") + "\n" + mutated + effectBody.slice(iifeClose);
-    const original = findGuardedWriteSites().filter((s) => s.ok).length;
+    const originalSites = findGuardedWriteSites().filter((s) => s.ok);
+    const original = originalSites.length;
     // Reuse the scan on the mutated body.
     const iifeOpenM = fullMutated.indexOf("(async () => {");
     const iifeCloseM = fullMutated.indexOf("})();", iifeOpenM);
     const iifeBaseLineM = fullMutated.slice(0, iifeOpenM).split("\n").length - 1;
     const iifeBodyM = fullMutated.slice(iifeOpenM, iifeCloseM);
-    const mutatedSites = scanGuardedWrites(iifeBodyM)
-      .map((s) => ({ ...s, line: s.line + iifeBaseLineM }))
-      .filter((s) => s.ok).length;
-    expect(mutatedSites).toBeLessThan(original);
+    const mutatedAll = scanGuardedWrites(iifeBodyM).map((s) => ({ ...s, line: s.line + iifeBaseLineM }));
+    const mutatedGuarded = mutatedAll.filter((s) => s.ok).length;
+    const mutatedUnguarded = mutatedAll.filter((s) => !s.ok);
+    expect(mutatedGuarded).toBeLessThan(original);
+    // The checker must NAME the write the deleted guard protected, not merely count fewer.
+    expect(mutatedUnguarded.length).toBeGreaterThan(0);
+    expect(mutatedUnguarded.map((u) => `${u.line}:${u.write}`)).toContain(`${originalSites[0].line}:${originalSites[0].write}`);
   });
 });
 
@@ -523,17 +507,29 @@ describe("L02-A02: Replay->live after intervening updates -> Latest accepted liv
     // entered.state.visibleRows (the truncated knowability view).
     const projectedTimes = entered.state.visibleRows.map((r) => r.time);
     for (const c of out.flush) expect(projectedTimes).not.toContain(c.row.time);
-    // Applying to a series: one update() per key, zero setData/createPriceLine (no duplicate subscription).
+    // Applying the flush through the PRODUCTION applier (applyLiveOp) rather than a loop the
+    // test writes itself: one update() per bar key, zero setData/createPriceLine, so the flush
+    // cannot rebuild the series or stack a duplicate subscription. LiveCommit and LiveOp are
+    // structural twins (op/row <-> kind/bar); the mapping below is the caller's own boundary.
     const series = spyHandle("candles");
-    const createPriceLineSpy = vi.spyOn(series, "createPriceLine");
+    const updateSpy = vi.spyOn(series, "update");
     const setDataSpy = vi.spyOn(series, "setData");
-    const beforeCreatePriceLine = createPriceLineSpy.mock.calls.length;
+    const createPriceLineSpy = vi.spyOn(series, "createPriceLine");
+    let mutations = 0;
     for (const c of out.flush) {
-      series.update(c.op === "append" ? c.row : { time: c.row.time, value: c.row.close });
+      const bar: LiveBar = {
+        time: c.row.time, open: c.row.open, high: c.row.high, low: c.row.low,
+        close: c.row.close, volume: c.row.volume ?? 0,
+      };
+      const op = c.op === "append"
+        ? { kind: "append" as const, bar, closedPrev: null }
+        : { kind: "inplace" as const, bar };
+      mutations += applyLiveOp(series, op).mutations;
     }
-    expect(series.update).toHaveBeenCalledTimes(out.flush.length);
+    expect(updateSpy).toHaveBeenCalledTimes(out.flush.length);
+    expect(mutations).toBe(out.flush.length);
     expect(setDataSpy).not.toHaveBeenCalled();
-    expect(createPriceLineSpy.mock.calls.length).toBe(beforeCreatePriceLine);
+    expect(createPriceLineSpy).not.toHaveBeenCalled();
     // Base rows outside the queued keys are unchanged.
     const queuedTimes = new Set([T(3), T(5), T(6)]);
     const baseOutside = out.rows.filter((r) => !queuedTimes.has(r.time as number));
@@ -572,5 +568,22 @@ describe("L02-A04: Missing captured knowledge-time metadata -> View states recon
     expect(res.refusal.code).toBe("no_rows");
     expect(res.state.mode).toBe(before.mode);
     expect(res.state.generation).toBe(before.generation);
+  });
+  // CAPABILITY_MISSING — the half of this row that is NOT observable at HEAD: ReplayState
+  // carries no "reconstructed" view-state label and no PIT-certification flag, and
+  // ReplayRefusalCode is only pane_sync_active | no_rows | cursor_before_first. Only the
+  // UNAVAILABLE half of the row can therefore be proved. This test pins the gap so the
+  // acceptance record cannot silently claim the reconstructed half, and it goes red the
+  // moment such a label is added — at which point the row must be re-proved against it.
+  it("CAPABILITY_MISSING: ReplayState exposes no reconstructed / PIT-certification label, so only the unavailable half of this row is observable", () => {
+    const state = createReplayState([rowAt(0, 10)]);
+    expect(Object.keys(state).sort()).toEqual([
+      "atLiveEdge", "cursorMs", "generation", "mode", "queue", "refusal",
+      "rows", "showPartial", "visibleRows",
+    ]);
+    expect("reconstructed" in state).toBe(false);
+    expect("pitCertified" in state).toBe(false);
+    const codes: ReplayRefusalCode[] = ["pane_sync_active", "no_rows", "cursor_before_first"];
+    expect(codes.some((c) => /reconstruct|pit|certif/i.test(c))).toBe(false);
   });
 });
