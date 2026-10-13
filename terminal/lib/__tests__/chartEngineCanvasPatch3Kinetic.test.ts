@@ -360,6 +360,27 @@ describe("F3 — destroy() cancels the armed glide frame and balances bridge lis
       expect({ type, a, r }).toEqual({ type, a, r: a });
     }
   });
+
+  it("destroy() during an active drag leaves no listener and no armed frame", () => {
+    const added: Array<[string, boolean]> = [];
+    const removed: Array<[string, boolean]> = [];
+    const { engine, inner, armed, overlay, m } = mountDragged(added, removed, { release: false });
+    const draggedFrom = m.time.visibleFrom;
+    engine.destroy();
+    const armedAtDestroy = armed.length;
+    inner.flush();
+    expect(armed.length).toBe(armedAtDestroy);
+    dispatchPointer(overlay, "pointermove", 180, 30, { timeStamp: 1040 });
+    dispatchPointer(overlay, "pointerup", 180, 30, { timeStamp: 1060 });
+    inner.flush();
+    expect(armed.length).toBe(armedAtDestroy);
+    expect(m.time.visibleFrom).toBeCloseTo(draggedFrom, 10);
+    for (const type of ["pointerdown", "pointermove", "pointerup", "pointercancel", "wheel", "dblclick"]) {
+      const a = added.filter(([t, isOverlay]) => t === type && isOverlay).length;
+      const r = removed.filter(([t, isOverlay]) => t === type && isOverlay).length;
+      expect({ type, a, r }).toEqual({ type, a, r: a });
+    }
+  });
 });
 
 describe("F4 — wheel deltaMode is forwarded and reaches the controller", () => {
