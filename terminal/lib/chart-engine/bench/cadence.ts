@@ -27,9 +27,9 @@ export const CADENCE_BUDGETS = {
 export const GESTURE_TAIL_MS = 100;
 
 /** Chromium devtools frame-reporter states (one per `b` event). */
-const STATE_PRESENTED_ALL = "PresentedAll";
-const STATE_PRESENTED_PARTIAL = "PresentedPartial";
-const STATE_DROPPED = "Dropped";
+const STATE_PRESENTED_ALL = "STATE_PRESENTED_ALL";
+const STATE_PRESENTED_PARTIAL = "STATE_PRESENTED_PARTIAL";
+const STATE_DROPPED = "STATE_DROPPED";
 // STATE_NO_UPDATE_DESIRED is recognised and OMITTED from `frames`; no symbol
 // needed, just the literal in toFrameState below.
 
@@ -384,22 +384,26 @@ export type BuildCadenceReceiptInput = {
   zoom: CadenceGestureStats;
 };
 
-type MetricOrder = { metric: string; get: (s: CadenceGestureStats) => number; budget: number };
+type MetricOrder = { metric: string; gesture: "pan" | "zoom"; field: "p95_ms" | "p99_ms"; budget: number };
 
 const METRIC_ORDER: readonly MetricOrder[] = [
-  { metric: "pan.presented_p95_ms", get: (s) => s.p95_ms, budget: CADENCE_BUDGETS.presented_p95_ms },
-  { metric: "pan.presented_p99_ms", get: (s) => s.p99_ms, budget: CADENCE_BUDGETS.presented_p99_ms },
-  { metric: "zoom.presented_p95_ms", get: (s) => s.p95_ms, budget: CADENCE_BUDGETS.presented_p95_ms },
-  { metric: "zoom.presented_p99_ms", get: (s) => s.p99_ms, budget: CADENCE_BUDGETS.presented_p99_ms },
+  { metric: "pan.presented_p95_ms", gesture: "pan", field: "p95_ms", budget: CADENCE_BUDGETS.presented_p95_ms },
+  { metric: "pan.presented_p99_ms", gesture: "pan", field: "p99_ms", budget: CADENCE_BUDGETS.presented_p99_ms },
+  { metric: "zoom.presented_p95_ms", gesture: "zoom", field: "p95_ms", budget: CADENCE_BUDGETS.presented_p95_ms },
+  { metric: "zoom.presented_p99_ms", gesture: "zoom", field: "p99_ms", budget: CADENCE_BUDGETS.presented_p99_ms },
 ];
+
+function readGestureMetric(s: CadenceGestureStats, field: MetricOrder["field"]): number {
+  if (field === "p95_ms") return s.p95_ms;
+  return s.p99_ms;
+}
 
 export function buildCadenceReceipt(input: BuildCadenceReceiptInput): CadenceReceipt {
   const violations: CadenceReceipt["violations"] = [];
   for (const m of METRIC_ORDER) {
-    const pValue = m.get(input.pan);
-    if (pValue > m.budget) violations.push({ metric: m.metric, value: pValue, budget: m.budget });
-    const zValue = m.get(input.zoom);
-    if (zValue > m.budget) violations.push({ metric: m.metric, value: zValue, budget: m.budget });
+    const stats = m.gesture === "pan" ? input.pan : input.zoom;
+    const value = readGestureMetric(stats, m.field);
+    if (value > m.budget) violations.push({ metric: m.metric, value, budget: m.budget });
   }
   return {
     commit: input.commit,

@@ -93,7 +93,9 @@ async function readRange(page: Page): Promise<VisibleSpan> {
 
 /**
  * Start a CDP trace covering only the two frame-reporter + user_timing
- * categories, run `body`, then drain the IO stream and JSON.parse.
+ * categories, run `body`, then collect via the `Tracing.dataCollected` event
+ * stream (transferMode: "ReportEvents"). When the browser emits
+ * `Tracing.tracingComplete`, all events have been delivered.
  */
 async function captureTrace<T>(
   context: BrowserContext,
@@ -108,45 +110,34 @@ async function captureTrace<T>(
       "blink.user_timing",
     ],
   };
-  await cdp.send("Tracing.start", { transferMode: "ReturnAsStream", traceConfig });
+  const collected: unknown[] = [];
+  let completeResolve: () => void = () => {};
+  const complete = new Promise<void>((resolve) => {
+    completeResolve = resolve;
+  });
+  const onData = (chunk: { value?: Array<unknown> }) => {
+    if (Array.isArray(chunk.value)) {
+      for (const ev of chunk.value) collected.push(ev);
+    }
+  };
+  const onEnd = () => completeResolve();
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const cdpAny = cdp as any;
+  cdpAny.on("Tracing.dataCollected", onData);
+  cdpAny.on("Tracing.tracingComplete", onEnd);
+  await cdpAny.send("Tracing.start", { transferMode: "ReportEvents", traceConfig });
   let value: T;
   try {
     value = await body();
   } finally {
     await page.waitForTimeout(250);
-    await cdp.send("Tracing.end");
+    await cdpAny.send("Tracing.end");
+    await complete;
   }
-  // Drain the stream. tracingComplete signals the stream handle; we read
-  // until EOF then close.
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const cdpAny = cdp as any;
-  const complete = (await cdpAny.send("Tracing.tracingComplete")) as { stream?: string };
-  const streamId = complete.stream;
-  if (typeof streamId !== "string") {
-    throw new Error(`Tracing.tracingComplete returned no stream handle for ${label}`);
-  }
-  const io = await cdpAny.send("IO.read", { handle: streamId }) as { data?: string; eof?: boolean };
-  const chunks: string[] = [];
-  while (typeof io.data === "string") {
-    chunks.push(io.data);
-    if (io.eof) break;
-    const next = (await cdpAny.send("IO.read", { handle: streamId })) as { data?: string; eof?: boolean };
-    if (typeof next.data === "string") chunks.push(next.data);
-    if (next.eof) {
-      io.eof = true;
-      break;
-    }
-  }
-  await cdpAny.send("IO.close", { handle: streamId }).catch(() => undefined);
-  await cdp.detach().catch(() => undefined);
-  const text = chunks.join("");
-  let events: unknown[];
-  try {
-    events = asTraceEvents(JSON.parse(text));
-  } catch (err) {
-    throw new Error(`failed to JSON.parse trace for ${label}: ${(err as Error).message}`);
-  }
-  return { value, events };
+  cdpAny.off("Tracing.dataCollected", onData);
+  cdpAny.off("Tracing.tracingComplete", onEnd);
+  await cdpAny.detach().catch(() => undefined);
+  return { value, events: asTraceEvents({ traceEvents: collected }) };
 }
 
 async function panGesture(
@@ -159,9 +150,8 @@ async function panGesture(
   const rangeBefore = await readRange(page);
   await page.mouse.move(center.x, center.y);
   await page.waitForTimeout(200);
-  // mark "cadence:pan:start"
-  await page.evaluate((n: string) => performance.mark(n), "cadence:pan:start");
-  const { value, events } = await captureTrace(context, page, "pan", async () => {
+  const { events } = await captureTrace(context, page, "pan", async () => {
+    await page.evaluate((n: string) => performance.mark(n), "cadence:pan:start");
     await page.mouse.down();
     // ONE composite move with 200 steps. NO waits so the trace is dense.
     await page.mouse.move(center.x + 1600, center.y, { steps: 200 });
@@ -181,12 +171,14 @@ async function panGesture(
   try {
     parsed = parsePresentedFrames(events);
   } catch (err) {
+    // Always dump on parse failure so the host sees what arrived; useful for
+    // a Chromium version whose category name or mark clock changed.
+    writeTrace(events, impl, runIdx, "pan");
     throw new Error(`INVALID: ${(err as Error).message} (${impl} pan run ${runIdx + 1})`);
   }
   const stats = gestureStatsOrThrow(parsed, startMs, endMs, 200, `${impl} pan run ${runIdx + 1}`);
   if (DUMP_TRACE) writeTrace(events, impl, runIdx, "pan");
   return { stats, events, rangeBefore, rangeAfter };
-  void value;
 }
 
 async function zoomGesture(
@@ -199,8 +191,8 @@ async function zoomGesture(
   const rangeBefore = await readRange(page);
   await page.mouse.move(center.x, center.y);
   await page.waitForTimeout(200);
-  await page.evaluate((n: string) => performance.mark(n), "cadence:zoom:start");
-  const { value, events } = await captureTrace(context, page, "zoom", async () => {
+  const { events } = await captureTrace(context, page, "zoom", async () => {
+    await page.evaluate((n: string) => performance.mark(n), "cadence:zoom:start");
     // 60 wheel pulses, NO waits.
     for (let i = 0; i < 60; i++) {
       await page.mouse.wheel(0, -120);
@@ -220,12 +212,12 @@ async function zoomGesture(
   try {
     parsed = parsePresentedFrames(events);
   } catch (err) {
+    writeTrace(events, impl, runIdx, "zoom");
     throw new Error(`INVALID: ${(err as Error).message} (${impl} zoom run ${runIdx + 1})`);
   }
   const stats = gestureStatsOrThrow(parsed, startMs, endMs, 60, `${impl} zoom run ${runIdx + 1}`);
   if (DUMP_TRACE) writeTrace(events, impl, runIdx, "zoom");
   return { stats, events, rangeBefore, rangeAfter };
-  void value;
 }
 
 function writeTrace(events: unknown[], impl: EngineImpl, runIdx: number, kind: "pan" | "zoom"): void {
@@ -263,6 +255,25 @@ async function runGesture(
   return { pan: pan.stats, zoom: zoom.stats };
 }
 
+/** Per-run: would this run's stats satisfy CADENCE_BUDGETS? Used only for
+ *  the per-run print line, never the receipt. The receipt itself uses
+ *  buildCadenceReceipt's canonical computation. */
+function perRunBudgetOk(s: RunStats): boolean {
+  return (
+    s.pan.p95_ms <= 20 && s.pan.p99_ms <= 33.4 &&
+    s.zoom.p95_ms <= 20 && s.zoom.p99_ms <= 33.4
+  );
+}
+
+function perRunViolationCount(s: RunStats): number {
+  let n = 0;
+  if (s.pan.p95_ms > 20) n++;
+  if (s.pan.p99_ms > 33.4) n++;
+  if (s.zoom.p95_ms > 20) n++;
+  if (s.zoom.p99_ms > 33.4) n++;
+  return n;
+}
+
 test("chart-engine presented-frame cadence protocol (Q03)", async ({ browser }) => {
   expect(COMMIT, "git rev-parse HEAD must be 40 hex").toMatch(/^[0-9a-f]{40}$/);
   ensureOutDir();
@@ -294,7 +305,7 @@ test("chart-engine presented-frame cadence protocol (Q03)", async ({ browser }) 
           appendLog(logFile, `[${impl}] run ${i + 1} start`);
           const stats = await runGesture(context, page, impl, i);
           runs.push(stats);
-          const line = `CADENCE ${impl} commit=${COMMIT} pan_p95=${round1(stats.pan.p95_ms)} pan_p99=${round1(stats.pan.p99_ms)} zoom_p95=${round1(stats.zoom.p95_ms)} zoom_p99=${round1(stats.zoom.p99_ms)} presented=${stats.pan.presented} partial=${stats.pan.partial} dropped=${stats.pan.dropped} input_hz=${round1(stats.pan.input_hz)} budget_ok=? violations=0 file=${OUT_DIR}`;
+          const line = `CADENCE ${impl} commit=${COMMIT} pan_p95=${round1(stats.pan.p95_ms)} pan_p99=${round1(stats.pan.p99_ms)} zoom_p95=${round1(stats.zoom.p95_ms)} zoom_p99=${round1(stats.zoom.p99_ms)} presented=${stats.pan.presented} partial=${stats.pan.partial} dropped=${stats.pan.dropped} input_hz=${round1(stats.pan.input_hz)} budget_ok=${perRunBudgetOk(stats)} violations=${perRunViolationCount(stats)} file=${OUT_DIR}`;
           console.log(line);
           appendLog(logFile, `[${impl}] run ${i + 1} ${line}`);
         } finally {
