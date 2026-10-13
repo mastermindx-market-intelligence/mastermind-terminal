@@ -15,7 +15,14 @@ import {
 } from "./decorations";
 import { priceAxisWidthFor } from "./layout";
 import type { ChartModel, SeriesModel } from "./model";
-import { priceScaleMath, seriesClose, timeToMs } from "./model";
+import {
+  displayedPriceScaleId,
+  priceScaleMath,
+  seriesClose,
+  seriesIndexOfTime,
+  seriesTimeSource,
+  timeToMs,
+} from "./model";
 import {
   paintSeries as paintSeriesKind,
   type BarGeom,
@@ -136,14 +143,9 @@ function yOfRow(row: EngineSeriesRow | undefined, key: "high" | "low" | "close",
 
 function rowsIndexFor(series: SeriesModel, proj: { yOfPrice(p: number): number }): RowsIndex {
   return {
-    indexOfTime(t: EngineTime) {
-      const target = timeToMs(t);
-      if (!Number.isFinite(target)) return null;
-      for (let i = 0; i < series.rows.length; i++) {
-        if (timeToMs(series.rows[i].time) === target) return i;
-      }
-      return null;
-    },
+    // PERF-B: O(log n) over the series' cached ms-key index (was a linear scan
+    // calling timeToMs per row — the marker layout's dominant per-paint cost).
+    indexOfTime: (t: EngineTime) => seriesIndexOfTime(series, t, "exact"),
     highY: (i) => yOfRow(series.rows[i], "high", proj),
     lowY: (i) => yOfRow(series.rows[i], "low", proj),
     closeY: (i) => yOfRow(series.rows[i], "close", proj),
@@ -285,7 +287,7 @@ function paintGrid(ctx: CanvasRenderingContext2D, model: ChartModel, paneIndex: 
   const grid = model.options.grid;
   if (!grid || typeof grid !== "object") return;
   const g = grid as { vertLines?: unknown; horzLines?: unknown };
-  const scale = displayScale(model, paneIndex, "right") as TickPriceScale;
+  const scale = displayScale(model, paneIndex, displayedPriceScaleId(model)) as TickPriceScale;
   if (bagVisible(g.horzLines)) {
     ctx.strokeStyle = bagColor(g.horzLines, CANVAS_NEUTRAL_DEFAULTS.gridColor);
     ctx.lineWidth = 1;
@@ -299,8 +301,9 @@ function paintGrid(ctx: CanvasRenderingContext2D, model: ChartModel, paneIndex: 
   if (bagVisible(g.vertLines)) {
     ctx.strokeStyle = bagColor(g.vertLines, CANVAS_NEUTRAL_DEFAULTS.gridColor);
     ctx.lineWidth = 1;
-    const times = (model.primarySeries()?.rows ?? []).map((r) => r.time);
-    for (const tick of timeTicks(times, model.time, { minGapPx: 48, hourFormat: "24" })) {
+    // PERF-B: cached time accessor — no per-frame map over every row time.
+    const primary = model.primarySeries();
+    for (const tick of timeTicks(primary ? seriesTimeSource(primary) : [], model.time, { minGapPx: 48, hourFormat: "24" })) {
       ctx.beginPath();
       ctx.moveTo(tick.x, 0);
       ctx.lineTo(tick.x, h);
@@ -309,11 +312,23 @@ function paintGrid(ctx: CanvasRenderingContext2D, model: ChartModel, paneIndex: 
   }
 }
 
-function timeAxisTicks(model: ChartModel): TimeTick[] {
+// F-4 localization: read the caller's `localization.locale` so the canvas engine
+// honours the same locale the LWC adapter forwards. Non-empty strings only;
+// anything else (undefined, "", non-string) collapses to the previous "en-US"
+// default so untouched engines stay byte-identical.
+function localizationLocaleOf(model: ChartModel): string {
+  const bag = model.options.localization;
+  if (!bag || typeof bag !== "object") return "en-US";
+  const loc = (bag as { locale?: unknown }).locale;
+  return typeof loc === "string" && loc !== "" ? loc : "en-US";
+}
+
+export function timeAxisTicks(model: ChartModel): TimeTick[] {
   const primary = model.primarySeries();
-  const times = (primary?.rows ?? []).map((r) => r.time);
   const ts = (model.options.timeScale ?? {}) as Record<string, unknown>;
-  let ticks = timeTicks(times, model.time, { minGapPx: 56, hourFormat: "24" });
+  const locale = localizationLocaleOf(model);
+  // PERF-B: cached time accessor — no per-frame map over every row time.
+  let ticks = timeTicks(primary ? seriesTimeSource(primary) : [], model.time, { minGapPx: 56, hourFormat: "24", locale });
   if (ts.timeVisible === false) {
     ticks = ticks.filter((t) => t.weight >= TIME_TICK_WEIGHT.day);
   } else if (ts.secondsVisible === true && primary) {
@@ -333,7 +348,7 @@ function timeAxisTicks(model: ChartModel): TimeTick[] {
         const label = (fmt as (time: EngineTime, mark: number, locale: string) => string)(
           row?.time ?? t.label,
           t.weight,
-          "en-US",
+          locale,
         );
         return typeof label === "string" && label !== "" ? { ...t, label } : t;
       } catch {
@@ -355,7 +370,7 @@ function paintInPaneAxes(
   const { font, textColor } = layoutFont(model.options);
   const measure = measureFor(ctx);
   const dpr = model.dpr;
-  const scale = displayScale(model, paneIndex, "right") as TickPriceScale;
+  const scale = displayScale(model, paneIndex, displayedPriceScaleId(model)) as TickPriceScale;
   const pTicks = priceTicks(scale, { minLabelGapPx: 24 });
   const strip = Math.max(40, priceAxisWidthFor(
     [axisWidthForLabels(pTicks.map((t) => t.label), measure, font, 4)],
