@@ -76,6 +76,7 @@ export const LIVE_BAR_PROJECTION: Record<IndKey, LiveBarProjection> = {
   // Options levels come from the nightly options build keyed on the symbol; a developing bar
   // carries no information they read, so re-running the builder per quote would be pure waste.
   optlevels: "not-bar-derived",
+  largeTrades: "not-bar-derived",
 };
 
 /** Keys `updateAllIndicators()` re-setData's directly. Also gates Effect 2's in-place TF switch. */

@@ -47,6 +47,11 @@ const LWC_IMPORT_ALLOWLIST: readonly string[] = [
   "components/ChartPanel.tsx",
   "components/ChartPane.tsx",
   "components/ChartSettingsModal.tsx",
+  // Joined via master #929 (b4095c3de, LargeTradesOverlay type-only IChartApi/ISeriesApi
+  // import), which predates this ratchet reaching master; admitted at the
+  // ce-migration-1013 base merge so the measured set stays truthful. Ratchet it out
+  // with the overlay's move onto SeriesHandle.
+  "components/LargeTradesOverlay.tsx",
   "components/TideChartLazy.tsx",
   "components/surface/SessionFlowPane.tsx",
   "components/surface/StrikeEvolutionModal.tsx",
