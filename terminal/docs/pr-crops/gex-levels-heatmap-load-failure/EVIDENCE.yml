@@ -1,12 +1,11 @@
-# 2026-10-13 #996 (U02 data-origin readout) source hash reconciliation: preserves captured PNG bytes/provenance; the only globals.css change is the added .cfb-origin* selectors, which style only that chip; the only dataCache.ts change is additive OHLC-view exports (OhlcView, CURRENT_TRADJ_VIEW, ohlcViewKey, isSupportedOhlcView, OhlcViewOutcome, getOhlcView) consumed only by ChartPanel/ChartPane on /terminal; existing exports unchanged; the element crops on /options?tab=gex|levels and /discover?tab=heatmap mount no ChartPanel, ChartPane or ChartFrameBar.
 # GEX desk, Levels and Heatmap failure-state truth — capture evidence
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
 # Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
-# capturedAtHead: 70b4778936bf90f8177c587b3de77b1b571339c9
-# capturedAt: 2026-10-11T15:49:48.526Z
+# capturedAtHead: 3c4d40b177c649ceed1d78ee48363198558f4013
+# capturedAt: 2026-10-13T21:18:33.225Z
 # capturedAtHead is informational. The lock is layoutFiles.
 layoutFiles:
-  terminal/app/globals.css: "987a8879025429b131570ea4eeffed29bdd013c9218d65f5e4867aea2903d748"
+  terminal/app/globals.css: "44d173b3e1845ab17fec5728d8f9dec04007f6c0c6b3c3ffce61bc85d4b0d493"
   terminal/components/gexdesk/GexDeskView.tsx: "f9e037eb90cb10ea0a943a9c16d11849c429b66f5b548f055b8860d83f938ef5"
   terminal/components/gexdesk/HeatSeekerCard.tsx: "308295e2b0143fe933948c97a14584e1e0d1eff9249a58104dd3587a2642c93a"
   terminal/components/gexdesk/MarketStateCard.tsx: "069c4a2f1a5f53e8f611e3231b78751948cc0264c8af6efd167f7b3e4902bbe2"

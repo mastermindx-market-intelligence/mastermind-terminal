@@ -1,9 +1,8 @@
-# 2026-10-13 #996 (U02 data-origin readout) source hash reconciliation: preserves captured PNG bytes/provenance; the only i18n change is the added origin*/originChip*/originCode_* keys, read solely by DataOriginChip inside the /terminal ChartFrameBar; /dev/settings?s=team does not mount TerminalShell, ChartPane or ChartFrameBar.
 # B-F12-8 Team roles v1 — capture evidence
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
 # Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
-# capturedAtHead: 304b74d9c4dfd5f77ec98b5d9f734c96ad7a0742
-# capturedAt: 2026-10-12T22:13:29.788Z
+# capturedAtHead: 5b4ae19b08234e371c5327222e77d10fc98c7404
+# capturedAt: 2026-10-13T20:57:25.303Z
 # capturedAtHead is informational. The lock is layoutFiles.
 layoutFiles:
   terminal/components/settings/SectionTeam.tsx: "add785974e9872100f912b96f21e28d48819f39eef221b9efe887752ba51e3e6"
@@ -11,7 +10,7 @@ layoutFiles:
   terminal/components/settings/SettingsPanel.tsx: "526725b37af04f1092359a8aca1e6d3d6d62815b5913b3a7eba754e4ca020329"
   terminal/components/settings/icons.tsx: "7f3e17e45cb92545437ade898fe47a92cf6a65d1682cec9b9cea7a5bb8bd4d83"
   terminal/app/settings.css: "2a15b7704f1c6ec62671ec84723063dcce367c7998bbea56e04b50c9bda2252c"
-  terminal/lib/i18n.tsx: "9bcded1313e75ca37fa7ab67f256ad3b568daa61aaf0d10fa1907a4751a371c1"
+  terminal/lib/i18n.tsx: "ffa0a6d8104d05fdad7244fadaa800d340afcb107c8c39a7f8311af3301367b9"
 theme: dark
 languages: [en, zh]
 viewports:

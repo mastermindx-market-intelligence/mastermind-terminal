@@ -1,12 +1,11 @@
-# 2026-10-13 #996 (U02 data-origin readout) source hash reconciliation: preserves captured PNG bytes/provenance; the only globals.css change is the added .cfb-origin* selectors, which style only that chip; the only dataCache.ts change is additive OHLC-view exports (OhlcView, CURRENT_TRADJ_VIEW, ohlcViewKey, isSupportedOhlcView, OhlcViewOutcome, getOhlcView) consumed only by ChartPanel/ChartPane on /terminal; existing exports unchanged; the element crops on /options?tab=gex|desk and /discover?tab=heatmap mount no ChartPanel, ChartPane or ChartFrameBar.
 # EOD belt, Flow Desk chain heat and Heatmap flow layer failure-state truth — capture evidence
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
 # Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
-# capturedAtHead: 70b4778936bf90f8177c587b3de77b1b571339c9
-# capturedAt: 2026-10-11T15:53:28.995Z
+# capturedAtHead: 3c4d40b177c649ceed1d78ee48363198558f4013
+# capturedAt: 2026-10-13T21:15:03.478Z
 # capturedAtHead is informational. The lock is layoutFiles.
 layoutFiles:
-  terminal/app/globals.css: "987a8879025429b131570ea4eeffed29bdd013c9218d65f5e4867aea2903d748"
+  terminal/app/globals.css: "44d173b3e1845ab17fec5728d8f9dec04007f6c0c6b3c3ffce61bc85d4b0d493"
   terminal/components/eodcontext/DarkPoolMini.tsx: "1a32c139addae19531a4c9463e6f9b278e0c6b6626c59d0092bc2a0a45527420"
   terminal/components/eodcontext/EodContextBelt.tsx: "983b21e1a030ab66aada5d773a9d0ae9abccf0e796452e9cd6e3df62d6761013"
   terminal/components/eodcontext/StructureStrip.tsx: "e4edc9df9e58a544a30930ac3369c77491e0d5323748b3c1ac600adfc7ee23d3"
