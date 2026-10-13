@@ -128,6 +128,10 @@ export interface PrimitiveHost {
    *  generation (proj.generation <= that primitive's last delivered generation is a
    *  no-op — R04-A01). A throwing update is isolated and recorded (R04-A03). */
   deliver(proj: HostProjection): void;
+  /** PATCH3P2 F11 — deliver one generation to exactly this pane's primitives (same
+   *  once-per-generation + record-on-throw guards as `deliver`). The frame calls
+   *  this once per pane instead of re-rolling a bare `try { p.update } catch {}`. */
+  deliverPane(paneIndex: number, proj: HostProjection): void;
   /** Re-home every primitive attached via seriesId to toPane. */
   moveSeries(seriesId: string, toPane: number): void;
   /** Detach every primitive of seriesId, each with detached() exactly once. */
@@ -217,6 +221,23 @@ export function createPrimitiveHost(hooks: PrimitiveHostHooks = {}): PrimitiveHo
           TIER_RANK[tierOf(a.primitive)] - TIER_RANK[tierOf(b.primitive)] || a.seq - b.seq,
       );
 
+  // PATCH3P2 F11 — shared once-per-generation + record-on-throw delivery helper.
+  // R04-A01: <= last delivered generation for THIS primitive is a no-op.
+  // The negated > also makes a NaN generation a no-op instead of a retry loop.
+  // Advance the guard BEFORE the call so a throw is not retried within the same generation.
+  const deliverTo = (list: Entry[], proj: HostProjection): void => {
+    for (const e of list) {
+      if (!(proj.generation > e.lastGeneration)) continue;
+      e.lastGeneration = proj.generation;
+      if (!e.primitive.update) continue;
+      try {
+        e.primitive.update(proj);
+      } catch (error) {
+        record(e, "update", proj.generation, error);
+      }
+    }
+  };
+
   const host: PrimitiveHost = {
     attach(paneIndex, seriesId, p) {
       if (disposed) return () => undefined;
@@ -302,23 +323,12 @@ export function createPrimitiveHost(hooks: PrimitiveHostHooks = {}): PrimitiveHo
     deliver(proj) {
       // Slice: an update() that attaches another primitive must not also deliver
       // this same generation to it mid-iteration (it gets it on the next deliver).
-      for (const e of entries.slice()) {
-        // R04-A01: <= last delivered generation for THIS primitive is a no-op.
-        // The negated > also makes a NaN generation a no-op instead of a retry loop.
-        // R04-A01: <= last delivered generation for THIS primitive is a no-op.
-        // The negated > also makes a NaN generation a no-op instead of a retry loop.
-        if (!(proj.generation > e.lastGeneration)) continue;
-        // Advance the guard before the call: "once per primitive per generation"
-        // holds even when update() throws (a throw is not retried within the
-        // generation; the error is recorded below instead).
-        e.lastGeneration = proj.generation;
-        if (!e.primitive.update) continue;
-        try {
-          e.primitive.update(proj);
-        } catch (error) {
-          record(e, "update", proj.generation, error);
-        }
-      }
+      deliverTo(entries.slice(), proj);
+    },
+
+    deliverPane(paneIndex, proj) {
+      // Same once-per-generation + record-on-throw guards, only this pane's entries.
+      deliverTo(entries.slice().filter((e) => e.paneIndex === paneIndex), proj);
     },
 
     moveSeries(seriesId, toPane) {

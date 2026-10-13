@@ -102,8 +102,13 @@ export function resolveSeriesPaintStyle(
   const line = optStr(opts, "lineColor") ?? color ?? defaults.seriesColor;
   const fill = optStr(opts, "topColor") ?? optStr(opts, "topFillColor1") ?? line;
   const bottomFill = optStr(opts, "bottomColor") ?? optStr(opts, "bottomFillColor1") ?? line;
-  const upC = up ?? line;
-  const downC = down ?? line;
+  // PATCH3P2 F5: a directional series given only ONE side is monochrome in that colour,
+  // exactly like the `color`-only case; CANVAS_NEUTRAL_DEFAULTS.seriesColor must never be
+  // reached as an up/down colour through the asymmetric path.
+  const monoSide = up ?? down;
+  const mono = directional && monoSide != null ? monoSide : line;
+  const upC = up ?? mono;
+  const downC = down ?? mono;
   return {
     upColor: upC,
     downColor: downC,
@@ -578,11 +583,11 @@ export function paintOverlayFrame(args: OverlayPaintArgs): void {
 }
 
 export function deliverPrimitiveUpdates(model: ChartModel, primHost: PrimitiveHost, generation: number): void {
+  // PATCH3P2 F11 — route per-pane delivery through the host so the once-per-generation
+  // guard (R04-A01) and the record-on-throw error log (R04-A03) survive. The bare
+  // `catch {}` here used to swallow errors silently.
   for (let i = 0; i < model.panes.length; i++) {
     const paneProj = { ...engineProjectionForPane(model, i), generation };
-    for (const p of primHost.forPane(i)) {
-      if (!p.update) continue;
-      try { p.update(paneProj); } catch { /* isolate: a throwing update must not abort the frame */ }
-    }
+    primHost.deliverPane(i, paneProj);
   }
 }
