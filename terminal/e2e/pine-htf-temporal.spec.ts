@@ -63,6 +63,7 @@ type ProbeWindow = Window & {
   __t01Runs?: Run[];
   __t01Ready?: VisualReady[];
   __t01Painted?: (id: string) => Plot[] | null;
+  __t01WorkerHostReady?: boolean;
   __mmChartOwnership?: () => { owned: { pine: number } };
 };
 
@@ -127,6 +128,7 @@ async function installProbes(page: Page, scriptId: string) {
         private t01Pending = new Map<number, Run>();
         constructor(url: string | URL, opts?: WorkerOptions) {
           super(url, opts);
+          w.__t01WorkerHostReady = true;
           this.addEventListener("message", (event: MessageEvent) => {
             const d = event.data as { kind?: string; reqId?: number; ok?: boolean; errors?: Array<{ message?: string }>; result?: { plots: Array<{ title: string; data: Array<{ time: unknown; value: unknown }> }>; warnings?: string[] } | null };
             if (!d || d.kind !== "ran" || typeof d.reqId !== "number") return;
@@ -235,6 +237,21 @@ const runsMeta = (page: Page, id: string) => page.evaluate((scriptId) => {
     htf: last.inputs.htf, replied: !!last.reply, match,
   } satisfies RunMeta;
 }, id);
+
+/**
+ * Gate the first chart run on signals the Worker tap already exposes: the host constructed a
+ * Worker (`__t01WorkerHostReady`) and that Worker posted a `ran` reply (`replied`). Cold Worker
+ * module compile and the first interpreter pass finish here; they are not charged to the 45s
+ * two-consecutive-signature poll. Later steps call `settledRun` directly.
+ */
+async function awaitFirstRepliedRun(page: Page, id: string, want: (m: RunMeta) => boolean, label: string) {
+  await expect.poll(async () => {
+    const hostReady = await page.evaluate(() => !!(window as unknown as ProbeWindow).__t01WorkerHostReady);
+    const m = await runsMeta(page, id);
+    if (hostReady && m && m.replied && want(m)) return "replied";
+    return `hostReady=${hostReady} count=${m?.count ?? 0} tf=${m?.timeframe ?? ""} htf=${String(m?.htf ?? "")} replied=${!!m?.replied}`;
+  }, { timeout: 120_000, intervals: [200, 400, 800, 1200], message: `${label}: the Worker never replied after cold compile` }).toBe("replied");
+}
 
 /**
  * Wait until the LATEST script run matching `want` has replied AND the chart paints exactly that
@@ -406,6 +423,7 @@ test.describe("T01 — Pine higher-timeframe values are published only after the
     const symbol = await settleChart(page, "D", 0);
 
     // ── A. Full daily chart, monthly request ─────────────────────────────────────────────────
+    await awaitFirstRepliedRun(page, id, (m) => m.timeframe === "D" && m.htf === "M", "A");
     const full = await settledRun(page, id, (m) => m.timeframe === "D" && m.htf === "M", "A");
     expectThreeWitnessesAgree(full, "A (D chart, htf M)");
     expect(full.run.symbol, "the script runs on the chart's own symbol").toBe(symbol);
