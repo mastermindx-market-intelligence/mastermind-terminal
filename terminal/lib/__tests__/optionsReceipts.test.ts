@@ -232,3 +232,41 @@ describe("matrixSnapshotKey", () => {
     expect(walked).toBe(0);
   });
 });
+
+describe("readMatrixReceipts build clock admission (PP2L-R1)", () => {
+  const admitted = [
+    "2026-10-09T21:04:11.412870+00:00",
+    "2026-10-09T21:04:11Z",
+    "2026-10-09T21:04:11.412870Z",
+    "2026-10-09T21:04:11-04:00",
+    ISO,
+  ];
+  const rejected = [
+    "2026-02-30T21:04:11Z",
+    "2026-10-09T21:04:11",
+    "2026-10-09T24:00:00Z",
+    "2026-10-09T21:60:11Z",
+    "2026-10-09T21:04:60Z",
+    "2026-10-09T21:04:11+0000",
+    "2026-10-09T21:04:11+25:00",
+    "2026-10-09T21:04:11z",
+    "2026-10-09t21:04:11Z",
+    "2026-10-09T21:04Z",
+    " 2026-10-09T21:04:11Z",
+    "2026-10-09T21:04:11Z ",
+    "2026-10-09T21:04:11.Z",
+  ];
+
+  function buildOf(asof: string): string | null {
+    return readMatrixReceipts()(receipt({ asof, _build_meta: { asof_date: SESSION } })).build;
+  }
+
+  it.each(admitted)("(C1) %j is returned verbatim", (value) => {
+    expect(buildOf(value), value).toBe(value);
+  });
+
+  it.each(rejected)("(C2) %j is null", (value) => {
+    const read = readMatrixReceipts();
+    expect(read(receipt({ asof: value, _build_meta: { asof_date: SESSION } })).build, value).toBeNull();
+  });
+});

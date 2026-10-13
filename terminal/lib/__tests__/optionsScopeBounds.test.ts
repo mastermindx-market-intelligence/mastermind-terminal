@@ -89,3 +89,51 @@ describe("parseScopeBounds", () => {
     )).toEqual({ ok: false, issues: ["no_strikes", "no_expiries"] });
   });
 });
+
+describe("parseScopeBounds date qualification (PP2L-R1)", () => {
+  const strikes = Object.freeze([100]);
+  const bounds = { from: "90", to: "110", dteMin: "0", dteMax: "0" };
+
+  function at(session: string, expiries: readonly string[], input = bounds) {
+    return parse(input, { session, strikes, expiries });
+  }
+
+  it("(B1) a real session keeps only the same-day expiry", () => {
+    expect(at("2026-10-09", ["2026-10-08", "2026-10-09", "2026-10-16"])).toEqual({
+      ok: true,
+      value: { from: 90, to: 110, dteMin: 0, dteMax: 0 },
+      strikes: [100],
+      expiries: ["2026-10-09"],
+    });
+  });
+
+  it("(B2) an unreadable expiry is not selected as same-day", () => {
+    expect(at("2026-10-09", ["not-a-date"])).toEqual({ ok: false, issues: ["no_expiries"] });
+  });
+
+  it("(B3) an unreadable expiry is dropped and a later real expiry remains", () => {
+    const result = at("2026-10-09", ["not-a-date", "2026-10-16"], { from: "90", to: "110", dteMin: "", dteMax: "" });
+    expect({ ok: result.ok, expiries: result.ok ? result.expiries : result }).toEqual({
+      ok: true,
+      expiries: ["2026-10-16"],
+    });
+  });
+
+  it.each(["not-a-date", "2026-02-30", "", "2026-10-09T00:00:00Z"])(
+    "(B4) session %j is session_invalid",
+    (session) => {
+      expect(at(session, ["2026-10-16"]), session).toEqual({ ok: false, issues: ["session_invalid"] });
+    },
+  );
+
+  it("(B5) an impossible expiry date is not selected as same-day", () => {
+    expect(at("2026-03-02", ["2026-02-30"])).toEqual({ ok: false, issues: ["no_expiries"] });
+  });
+
+  it("(B6) a missing from is reported before the session is qualified", () => {
+    expect(at("not-a-date", ["2026-10-16"], { from: "", to: "110", dteMin: "0", dteMax: "0" })).toEqual({
+      ok: false,
+      issues: ["from_missing"],
+    });
+  });
+});
