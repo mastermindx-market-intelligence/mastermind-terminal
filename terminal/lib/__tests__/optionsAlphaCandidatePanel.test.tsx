@@ -424,8 +424,13 @@ describe("OptionsAlphaCandidatePanel — verified pair render", () => {
     fetchMock.mockResolvedValueOnce(jsonResponse({ status: 200, body: validResponse() }));
     renderPanel();
     await flushMicrotasks(8);
-    expect(host!.querySelector('[data-testid="options-alpha-candidate-abstention"]')).toBeTruthy();
-    expect(host!.innerHTML).toContain("NO_VALID_NBBO_MEASUREMENT");
+    const row = host!.querySelector('[data-testid="options-alpha-candidate-abstention"]');
+    expect(row).toBeTruthy();
+    const visible = textOutsideDetails(row!);
+    expect(visible).toContain("No valid bid/ask quote was measured for this campaign, so no candidate was formed.");
+    expect(visible).toContain("This campaign was recorded before the formation policy was frozen, so no candidate was formed.");
+    expect(visible).not.toContain("NO_VALID_NBBO_MEASUREMENT");
+    expect(visible).not.toContain("BEFORE_POLICY_FREEZE");
   });
 
   it("renders the historical clock from the receipt (not the external last-modified)", async () => {

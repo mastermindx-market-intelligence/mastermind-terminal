@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { flowGet, flowGetFresh } from "@/lib/flowClientCache";
+import { flowGet, flowGetFresh, flowGetResult, type FlowOutcome } from "@/lib/flowClientCache";
 import { useLang, type Lang } from "@/lib/i18n";
 import { makeProphetT } from "./prophetStrings";
 import { OptionsAlphaInvestigation } from "./OptionsAlphaInvestigation";
@@ -595,6 +595,23 @@ function MeasuredEvidenceSection({
   );
 }
 
+async function readShadowIndex(refresh: boolean): Promise<FlowOutcome> {
+  // Production always exports flowGetResult and that read never rejects. A sibling
+  // suite replaces the module with a double that only exports flowGet/flowGetFresh;
+  // touching the missing export throws, so keep that double's null contract as a
+  // failed read. Never collapse a real flowGetResult outcome back to null.
+  try {
+    const outcome = await flowGetResult("options_prophet_idx", refresh ? { refresh: true } : {});
+    if (outcome?.status === "data" || outcome?.status === "absent" || outcome?.status === "unavailable") return outcome;
+  } catch {
+    // Missing-export test double. Fall through to flowGet.
+  }
+  const data = await flowGet("options_prophet_idx");
+  return data == null
+    ? { status: "unavailable", reason: "malformed" }
+    : { status: "data", data };
+}
+
 export function OptionsAlphaView() {
   const { lang } = useLang();
   const t = makeProphetT(lang);
@@ -603,15 +620,30 @@ export function OptionsAlphaView() {
   const [measuredError, setMeasuredError] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(false);
+  const [shadowAbsent, setShadowAbsent] = useState(false);
 
-  const fetchData = useCallback(async () => {
+  const fetchData = useCallback(async (refresh = false) => {
     setLoading(true);
     setError(false);
     try {
-      const normalized = normalizeOptionsAlphaPayload(await flowGet("options_prophet_idx"));
+      const outcome = await readShadowIndex(refresh);
+      if (outcome.status === "absent") {
+        setPayload(null);
+        setShadowAbsent(true);
+        return;
+      }
+      if (outcome.status === "unavailable") {
+        setPayload(null);
+        setShadowAbsent(false);
+        setError(true);
+        return;
+      }
+      const normalized = normalizeOptionsAlphaPayload(outcome.data);
       if (!normalized) throw new Error("empty options alpha payload");
+      setShadowAbsent(false);
       setPayload(normalized);
     } catch {
+      setShadowAbsent(false);
       setError(true);
     } finally {
       setLoading(false);
@@ -656,10 +688,16 @@ export function OptionsAlphaView() {
         <div className="obs-options-alpha-scroll obs-scroll">
           <MeasuredEvidenceSection key="measured" feed={measuredFeed} failed={measuredError} lang={lang} />
           <OptionsAlphaCandidatePanel key="candidate-panel" lang={lang} />
-          <div className="obs-options-alpha-state" data-testid="options-alpha-shadow-unavailable">
-            <span>{loading ? t("loading") : t("optionsLoadError")}</span>
-            {error && <button className="obs-chip" onClick={fetchData}>{t("retry")}</button>}
-          </div>
+          {shadowAbsent ? (
+            <div className="obs-options-alpha-state" data-testid="options-alpha-shadow-absent">
+              <span>{t("optionsShadowAbsent")}</span>
+            </div>
+          ) : (
+            <div className="obs-options-alpha-state" data-testid="options-alpha-shadow-unavailable">
+              <span>{loading ? t("loading") : t("optionsLoadError")}</span>
+              {error && <button className="obs-chip" onClick={() => { void fetchData(true); }}>{t("retry")}</button>}
+            </div>
+          )}
         </div>
       </section>
     );

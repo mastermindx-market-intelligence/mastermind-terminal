@@ -68,6 +68,81 @@ function fenceLabel(fence: string, t: T): string {
   return t("candidateFencePostActivation");
 }
 
+const CANDIDATE_REASON_FALLBACK: readonly [string, string] = [
+  "Reason not recognised by this version of the page.",
+  "此版本页面无法识别该原因。",
+];
+
+const CANDIDATE_REASON_LABELS: Record<string, readonly [string, string]> = {
+  BEFORE_POLICY_FREEZE: [
+    "This campaign was recorded before the formation policy was frozen, so no candidate was formed.",
+    "该活动记录于形成策略冻结之前，因此未形成候选。",
+  ],
+  BEFORE_ACTIVATION_BOUNDARY: [
+    "This campaign was recorded before the activation boundary, so no candidate was formed.",
+    "该活动记录于激活边界之前，因此未形成候选。",
+  ],
+  CAMPAIGN_RECEIPT_INVALID: [
+    "The campaign receipt did not check out, so no candidate was formed.",
+    "该活动的凭据未通过校验，因此未形成候选。",
+  ],
+  CAMPAIGN_NOT_PROSPECTIVE: [
+    "This campaign was not a forward-looking campaign at the decision time, so no candidate was formed.",
+    "该活动在决策时不是向前看的活动，因此未形成候选。",
+  ],
+  INSUFFICIENT_CAMPAIGN_MEMBERS: [
+    "This campaign did not have enough members, so no candidate was formed.",
+    "该活动的成员数量不足，因此未形成候选。",
+  ],
+  FINAL_MEMBER_MICROSTRUCTURE_MISSING: [
+    "The last member of this campaign had no measured quote record, so no candidate was formed.",
+    "该活动最后一名成员没有已测量的报价记录，因此未形成候选。",
+  ],
+  NO_VALID_NBBO_MEASUREMENT: [
+    "No valid bid/ask quote was measured for this campaign, so no candidate was formed.",
+    "该活动没有测到有效的买卖报价，因此未形成候选。",
+  ],
+  EVIDENCE_CLOCK_INVALID: [
+    "The evidence clock for this campaign was not a valid time, so no candidate was formed.",
+    "该活动的证据时间不是有效时间，因此未形成候选。",
+  ],
+  SOURCE_EXPLICITLY_STALE_OR_UNAVAILABLE: [
+    "The source marked this campaign's evidence as stale or unavailable, so no candidate was formed.",
+    "来源标明该活动的证据已过期或不可用，因此未形成候选。",
+  ],
+  UPSTREAM_AUTHORITY_VIOLATION: [
+    "An upstream rule blocked this campaign from forming a candidate.",
+    "上游规则阻止该活动形成候选。",
+  ],
+};
+
+export function candidateReasonLabel(code: string, zh: boolean): string {
+  const pair = CANDIDATE_REASON_LABELS[code];
+  if (!pair?.[0] || !pair[1]) return zh ? CANDIDATE_REASON_FALLBACK[1] : CANDIDATE_REASON_FALLBACK[0];
+  return zh ? pair[1] : pair[0];
+}
+
+function ReasonList({ reasons, t, zh }: { reasons: string[]; t: T; zh: boolean }) {
+  return (
+    <ul className="obs-options-alpha-why">
+      {reasons.map((reason) => {
+        const recognised = Object.prototype.hasOwnProperty.call(CANDIDATE_REASON_LABELS, reason);
+        return (
+          <li key={reason}>
+            {candidateReasonLabel(reason, zh)}
+            {recognised ? null : (
+              <details>
+                <summary>{t("candidateReasonCode")}</summary>
+                <span>{reason}</span>
+              </details>
+            )}
+          </li>
+        );
+      })}
+    </ul>
+  );
+}
+
 function dispositionLabel(state: string, t: T): string {
   if (state === "research_candidate") return t("candidateDispositionResearch");
   if (state === "abstain") return t("candidateDispositionAbstain");
@@ -240,12 +315,14 @@ function CandidateCard({
   currentReceiptId,
   externalLastModified,
   t,
+  zh,
 }: {
   item: OptionsAlphaCandidateItem;
   receiptEntry: OptionsAlphaCandidateReceiptEntry | null;
   currentReceiptId: string | null;
   externalLastModified: string | null;
   t: T;
+  zh: boolean;
 }) {
   const frozen = item.frozen_formation;
   const micro = item.measured;
@@ -278,6 +355,9 @@ function CandidateCard({
             : <b>{firstConsumerClock}</b>}
         </div>
       </div>
+      {receiptEntry == null ? (
+        <p className="obs-options-alpha-footnote" data-testid="options-alpha-candidate-receipt-missing">{t("candidateReceiptMissing")}</p>
+      ) : null}
       <div className="obs-options-alpha-metrics">
         <Metric label={t("candidatePolicyVersion")} value={frozen.policy_version == null ? "—" : String(frozen.policy_version)} />
         <Metric label={t("candidateMicrostructure")} value={micro ? `${fmtPercent(micro.nbbo_premium_coverage, 1)}` : t("candidateNoMicrostructure")} />
@@ -287,9 +367,7 @@ function CandidateCard({
       </div>
       <p className="obs-options-alpha-footnote" data-testid="options-alpha-candidate-nbbo-caption">{t("candidateNbboPrintsCaption")}</p>
       {item.current_disposition.reasons.length > 0 && (
-        <ul className="obs-options-alpha-why">
-          {item.current_disposition.reasons.map((reason) => <li key={reason}>{reason}</li>)}
-        </ul>
+        <ReasonList reasons={item.current_disposition.reasons} t={t} zh={zh} />
       )}
       <CampaignContextBlock item={item} t={t} />
       {item.post_formation_outcomes ? (
@@ -317,16 +395,14 @@ function CandidateCard({
   );
 }
 
-function AbstentionRow({ item, t }: { item: OptionsAlphaCandidateAbstention; t: T }) {
+function AbstentionRow({ item, t, zh }: { item: OptionsAlphaCandidateAbstention; t: T; zh: boolean }) {
   return (
     <article className="obs-options-alpha-candidate is-watch" data-testid="options-alpha-candidate-abstention">
       <div className="obs-options-alpha-candidate-head">
         <strong>{item.campaign_id}</strong>
         <span className="obs-tag" style={{ "--c": "var(--warn)" } as React.CSSProperties}>{t("candidateAbstention")}</span>
       </div>
-      <ul className="obs-options-alpha-why">
-        {item.reasons.map((reason) => <li key={reason}>{reason}</li>)}
-      </ul>
+      <ReasonList reasons={item.reasons} t={t} zh={zh} />
     </article>
   );
 }
@@ -502,6 +578,7 @@ export function OptionsAlphaCandidatePanel(props: OptionsAlphaCandidatePanelProp
                   currentReceiptId={source.receipt.receipt_id}
                   externalLastModified={source.metadata.receipt_last_modified}
                   t={t}
+                  zh={lang === "zh"}
                 />
               ))}
             </div>
@@ -509,7 +586,7 @@ export function OptionsAlphaCandidatePanel(props: OptionsAlphaCandidatePanelProp
           {source.feed.abstentions.length > 0 ? (
             <div className="obs-options-alpha-candidate-grid">
               {source.feed.abstentions.map((item) => (
-                <AbstentionRow key={`${item.campaign_id}-${item.campaign_revision_id}`} item={item} t={t} />
+                <AbstentionRow key={`${item.campaign_id}-${item.campaign_revision_id}`} item={item} t={t} zh={lang === "zh"} />
               ))}
             </div>
           ) : null}
