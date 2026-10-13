@@ -100,9 +100,9 @@ describe("TP-2 private derived-view decoder (no storage or authentication)", () 
   it("keeps all nanosecond clocks exact BigInts, not JS Numbers", () => {
     const out = decodeTp2();
     expect(out.viewAsOfNs).toBe(BigInt(TP2_ASOF));
-    expect(out.observationAsOfNs).toBe(1791478860000000000n);
-    expect(out.provisional?.minuteStartNs).toBe(1791466200000000000n);
-    expect(out.provisional?.minuteDecisionNs).toBe(1791466290000000000n);
+    expect(out.observationAsOfNs).toBe(BigInt("1791478860000000000"));
+    expect(out.provisional?.minuteStartNs).toBe(BigInt("1791466200000000000"));
+    expect(out.provisional?.minuteDecisionNs).toBe(BigInt("1791466290000000000"));
     expect(typeof out.provisional?.minuteStartNs).toBe("bigint");
   });
 
@@ -224,8 +224,8 @@ describe("separately versioned R0 descriptive sidecar (not a numeric join)",()=>
   it("keeps source clocks lossless",()=>{
     const view=decodeR0();
     expect(view.viewAsOfNs).toBe(BigInt(R0_ASOF));
-    expect(view.originalStartNs).toBe(1791466200000000000n);
-    expect(view.originalDecisionNs).toBe(1791466270000000000n);
+    expect(view.originalStartNs).toBe(BigInt("1791466200000000000"));
+    expect(view.originalDecisionNs).toBe(BigInt("1791466270000000000"));
   });
   it("blocks point-in-time reversal",()=>{
     expect(()=>decodeTp2R0Sidecar({bytes:rawR0,expectedSha256:R0_SHA,

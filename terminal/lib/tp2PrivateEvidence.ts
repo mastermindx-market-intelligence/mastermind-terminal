@@ -15,7 +15,7 @@ import { parseUnsignedNanoseconds, NanosecondContractError } from "./tp1Nanoseco
 
 const TP2_SCHEMA = "darkpool.tp2_private_offexchange_view/v0";
 const R0_SCHEMA = "darkpool.tp2_r0_observed_research/v0";
-const MINUTE_NS = 60_000_000_000n;
+const MINUTE_NS = BigInt(60000000000);
 const SHA = /^[a-f0-9]{64}$/;
 const SESSION = /^(\d{4})-(\d{2})-(\d{2}):RTH$/;
 const SYMBOL = /^[A-Z][A-Z0-9.-]{0,19}$/;
@@ -228,7 +228,7 @@ function count(x: unknown, name: string, maximum = 20000): number {
 function ns(x: unknown, name: string): bigint {
   try {
     const value=parseUnsignedNanoseconds(x,name);
-    if (value<=0n) return fail(name + ":nonpositive_ns");
+    if (value<=BigInt(0)) return fail(name + ":nonpositive_ns");
     return value;
   } catch (error) {
     if (error instanceof NanosecondContractError) return fail(name + ":unsafe_ns");
@@ -248,19 +248,19 @@ function numeric(x: unknown, name: string, {signed=false,maxWidth=280}: {
 }
 function cmp(a:Exact,b:Exact):number {
   const scale=Math.max(a.scale,b.scale);
-  const an=a.numerator*10n**BigInt(scale-a.scale);
-  const bn=b.numerator*10n**BigInt(scale-b.scale);
+  const an=a.numerator*BigInt(10)**BigInt(scale-a.scale);
+  const bn=b.numerator*BigInt(10)**BigInt(scale-b.scale);
   return an===bn?0:an>bn?1:-1;
 }
 function fraction(x: unknown,name:string): string {
   const v=numeric(x,name);
-  if(cmp(v.exact,{numerator:1n,scale:0})>0) return fail(name+":exceeds_one");
+  if(cmp(v.exact,{numerator:BigInt(1),scale:0})>0) return fail(name+":exceeds_one");
   return v.text;
 }
 function signedRange(x:unknown,name:string):string {
   const v=numeric(x,name,{signed:true,maxWidth:1024});
-  if(cmp(v.exact,{numerator:1n,scale:0})>0 ||
-     cmp(v.exact,{numerator:-1n,scale:0})<0) return fail(name+":outside_unit");
+  if(cmp(v.exact,{numerator:BigInt(1),scale:0})>0 ||
+     cmp(v.exact,{numerator:BigInt(-1),scale:0})<0) return fail(name+":outside_unit");
   return v.text;
 }
 function optionalFraction(x: unknown,name:string):string|null {
@@ -319,7 +319,7 @@ function sessionOpen(s:unknown):bigint {
   const match=/^GMT([+-])(\d{1,2})(?::(\d{2}))?$/.exec(tz||"");
   if(!match) return fail("session:timezone");
   const offset=(match[1]==="+"?1:-1)*(Number(match[2])*60+Number(match[3]||0));
-  return BigInt(Date.UTC(year,month-1,day,9,30)-offset*60000)*1000000n;
+  return BigInt(Date.UTC(year,month-1,day,9,30)-offset*60000)*BigInt(1000000);
 }
 function sourceIdentity(doc:RecordValue):{ticker:string;session:string} {
   const ticker=asString(doc.ticker,"ticker");
@@ -342,8 +342,8 @@ function readObserved(x:unknown):ObservedSource {
   const one=numeric(o.largest_individual_print_usd,"single_print_usd");
   const all=numeric(o.measured_rth_trf_notional_usd,"trf_daily_total");
   const shares=numeric(o.measured_rth_trf_shares,"trf_measured_shares");
-  if(cmp(one.exact,all.exact)>0 || all.exact.numerator<=0n ||
-     shares.exact.numerator<=0n) fail("observed:total_below_print");
+  if(cmp(one.exact,all.exact)>0 || all.exact.numerator<=BigInt(0) ||
+     shares.exact.numerator<=BigInt(0)) fail("observed:total_below_print");
   const cluster=o.largest_same_level_cluster_usd===null?null:
        numeric(o.largest_same_level_cluster_usd,"cluster_usd");
   if(cluster&&cmp(cluster.exact,all.exact)>0) fail("observed:total_below_cluster");
@@ -395,11 +395,11 @@ function readMinute(x:unknown):MinuteBaseline {
   if(state==="OBSERVED_COVERAGE_ONLY"){
     if(n<2||share===null||median===null||mad===null||
        midrank===null||z===null||
-       cmp(numeric(mad,"minute:mad").exact,{numerator:0n,scale:0})<=0)
+       cmp(numeric(mad,"minute:mad").exact,{numerator:BigInt(0),scale:0})<=0)
       fail("minute:incomplete_robust_evidence");
   }else if(state==="NO_ROBUST_DISPERSION"){
     if(n<2||share===null||median===null||mad===null||midrank===null||
-       cmp(numeric(mad,"minute:mad").exact,{numerator:0n,scale:0})!==0||
+       cmp(numeric(mad,"minute:mad").exact,{numerator:BigInt(0),scale:0})!==0||
        z!==null) fail("minute:false_dispersion");
   }else if(median!==null||mad!==null||midrank!==null||z!==null) fail("minute:unqualified_statistic");
   return Object.freeze({state,minuteIndex:minute,sampleN:n,
@@ -420,8 +420,8 @@ function readProvisional(x:unknown,identity:{ticker:string;session:string},cutof
   const decision=ns(p.minute_decision_ns_decimal,"tp1.decision");
   const watermark=ns(p.watermark_available_ns_decimal,"tp1.watermark");
   const open=sessionOpen(identity.session);
-  if(start<open||start%MINUTE_NS!==0n||end-start!==MINUTE_NS||
-     end>open+390n*MINUTE_NS||decision<end||watermark>decision||
+  if(start<open||start%MINUTE_NS!==BigInt(0)||end-start!==MINUTE_NS||
+     end>open+BigInt(390)*MINUTE_NS||decision<end||watermark>decision||
      decision>cutoff) fail("tp1:future_or_misaligned_clock");
   const total=count(p.sampled_prints,"tp1.count",10000);
   const lit=count(p.sampled_lit_prints,"tp1.lit",total);
@@ -429,7 +429,7 @@ function readProvisional(x:unknown,identity:{ticker:string;session:string},cutof
   const located=count(p.lit_quote_located_le5s_prints,"tp1.located",lit);
   if(lit+trf>total) fail("tp1:sampled_print_denominator");
   const raw=numeric(p.provisional_trf_any_condition_notional_usd,"tp1.raw_TRF_notional");
-  if(trf===0 && raw.exact.numerator!==0n) fail("tp1:nonzero_without_TRF");
+  if(trf===0 && raw.exact.numerator!==BigInt(0)) fail("tp1:nonzero_without_TRF");
   return Object.freeze({minuteStartNs:start,minuteEndNs:end,minuteDecisionNs:decision,
     watermarkAvailableNs:watermark,sampledLitPrints:lit,sampledTrfPrints:trf,
     locatedLitQuotePrintsLe5s:located,trfAnyConditionNotionalUsd:raw.text,
@@ -543,10 +543,10 @@ export function decodeTp2R0Sidecar(input:PrivateBytesInput):Tp2R0Projection {
     originalStart=ns(d.source_start_ns_decimal,"r0.start");
     const end=ns(d.source_end_ns_decimal,"r0.end");
     originalDecision=ns(d.source_decision_ns_decimal,"r0.decision");
-    if(originalStart<open||originalStart%MINUTE_NS!==0n||
-       end<=originalStart||end>open+390n*MINUTE_NS||
-       end-originalStart>5n*MINUTE_NS||
-       (end-originalStart)%MINUTE_NS!==0n||
+    if(originalStart<open||originalStart%MINUTE_NS!==BigInt(0)||
+       end<=originalStart||end>open+BigInt(390)*MINUTE_NS||
+       end-originalStart>BigInt(5)*MINUTE_NS||
+       (end-originalStart)%MINUTE_NS!==BigInt(0)||
        originalDecision<end||originalDecision>view)
       fail("r0:source_window_or_future");
     assertSha(d.source_manifest_sha256,"r0.manifest");

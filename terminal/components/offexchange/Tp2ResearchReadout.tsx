@@ -128,8 +128,8 @@ function money(value: string | null, lang: Lang): string {
 function percent(value: string | null): string {
   if (value===null) return "—";
   const [whole, fraction=""]=value.split(".");
-  const scale=10n**BigInt(fraction.length);
-  const numerator=BigInt(whole+fraction)*100n;
+  const scale=BigInt(10)**BigInt(fraction.length);
+  const numerator=BigInt(whole+fraction)*BigInt(100);
   const integer=numerator/scale;
   const remainder=numerator%scale;
   const rest=remainder.toString().padStart(fraction.length,"0").replace(/0+$/,"");
@@ -139,7 +139,7 @@ function stamp(value: bigint | null, lang: Lang): string | null {
   if(value===null) return null;
   // Display-only truncation after exact bigint contract validation. NEVER
   // return display milliseconds into source as-of, replay or receipt pairing.
-  const millis=Number(value/1_000_000n);
+  const millis=Number(value/BigInt(1000000));
   if(!Number.isSafeInteger(millis)) return value.toString()+" ns";
   return new Intl.DateTimeFormat(lang==="zh"?"zh-CN":"en-US", {
     timeZone:"America/New_York",month:"short",day:"numeric",year:"numeric",
