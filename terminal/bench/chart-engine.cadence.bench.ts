@@ -8,8 +8,8 @@
  * sorted ascending set; tie -> lower run index). Invalid results fail;
  * BENCH_ENFORCE=1 fails the whole test on budget_ok=false.
  *
- * Measurement path MUST NOT call page.clock.install() (F7) — the CDP trace
- * uses the real browser clock.
+ * Measurement path MUST NOT install the Playwright clock fixture (F7) — the
+ * CDP trace uses the real browser clock.
  *
  * Per-input marks (Q03b): for each gesture we install a single capture-phase
  * listener on `document` that records one `performance.mark` per coalesced
@@ -233,7 +233,19 @@ async function captureTrace<T>(
   } finally {
     await page.waitForTimeout(250);
     await trace.send("Tracing.end");
-    await complete;
+    // Bound the wait: Tracing.tracingComplete should arrive within ~hundreds
+    // of ms after Tracing.end. 30 s is a hard wall so a stuck CDP session
+    // cannot hang the bench forever. The timer is cleared on success so it
+    // never fires spuriously.
+    let timer: ReturnType<typeof setTimeout> | null = null;
+    const timedOut = new Promise<never>((_, reject) => {
+      timer = setTimeout(() => reject(new Error(`INVALID: Tracing.tracingComplete not received within 30 s (${label})`)), 30_000);
+    });
+    try {
+      await Promise.race([complete, timedOut]);
+    } finally {
+      if (timer != null) clearTimeout(timer);
+    }
     trace.off("Tracing.dataCollected", onData);
     trace.off("Tracing.tracingComplete", onEnd);
     // CDPSession.detach exists; the structural type narrows the union.

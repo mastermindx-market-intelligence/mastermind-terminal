@@ -47,7 +47,7 @@
 // the tail is "unpresented" (counted, never dropped). The interval quantity
 // is bounded by the input rate (~20 ms) because the wheel/pointer dispatch
 // does not fire faster than that; per-input latency is a different metric and
-// it does not inherit that bound (the renderer can answer the input on any
+// it does not inherit that bound (the renderer can answer the input on whichever
 // frame, presented or not, up to one tail later).
 //
 // Measured vsync:
@@ -63,7 +63,7 @@
 import { percentile } from "./corpus";
 
 // Q03b per-input presentation latency budgets are bound here prospectively,
-// before any reference-Mac run (D10: never lower a budget after a result).
+// before a reference-Mac run (D10: never lower a budget after a result).
 export const CADENCE_BUDGETS = {
   presented_p95_ms: 20,
   presented_p99_ms: 33.4,
@@ -107,7 +107,7 @@ export type PresentedCadenceStats = {
 };
 
 /** Per-input presentation latency (Q03b): how long each input waited for a
- *  presented frame. `input_marks` is the unique count of input events; any
+ *  presented frame. `input_marks` is the unique count of input events; each
  *  input that finds no presented frame at-or-after it inside the gesture tail
  *  is counted in `input_unpresented`. Empty latency -> p50/p95/p99 are
  *  UNMEASURED (a violation, never `NaN`). */
