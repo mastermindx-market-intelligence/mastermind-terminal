@@ -38,13 +38,21 @@ type T = ReturnType<typeof makeProphetT>;
 type Source = OptionsAlphaCandidateFeedSource | null;
 type FetchStatus = "idle" | "loading" | "stale" | "purge" | "unavailable";
 
+type PanelMessageKey = "auth" | "stale" | "unavailable";
+
 interface PanelState {
   source: Source;
   status: FetchStatus;
-  message: string | null;
+  messageKey: PanelMessageKey | null;
 }
 
-const EMPTY_STATE: PanelState = { source: null, status: "idle", message: null };
+const EMPTY_STATE: PanelState = { source: null, status: "idle", messageKey: null };
+
+const PANEL_STATUS_MESSAGES = {
+  auth: "candidatePanelAuthPurged",
+  stale: "candidatePanelStale",
+  unavailable: "candidatePanelUnavailable",
+} as const satisfies Record<PanelMessageKey, ProphetKey>;
 
 export interface OptionsAlphaCandidatePanelProps {
   /** Optional override for the refresh cadence (ms). Defaults to 60s — the desk's existing pace. */
@@ -72,6 +80,22 @@ const CANDIDATE_REASON_FALLBACK: readonly [string, string] = [
   "Reason not recognised by this version of the page.",
   "此版本页面无法识别该原因。",
 ];
+
+const HORIZON_REASON_FALLBACK: readonly [string, string] = [
+  "This horizon has a recorded reason this version of the page does not recognise.",
+  "此期限有一条本版本页面无法识别的记录原因。",
+];
+
+const HORIZON_REASON_LABELS: Record<string, readonly [string, string]> = {
+  quarantined_campaign_outcome: [
+    "This campaign's outcome was quarantined, so no return is shown for this horizon.",
+    "该活动的结果已被隔离，因此此期限不显示回报。",
+  ],
+  admitted_campaign_outcome_not_yet_present: [
+    "This campaign's outcome has not been published for this horizon yet.",
+    "此期限的活动结果尚未发布。",
+  ],
+};
 
 const CANDIDATE_REASON_LABELS: Record<string, readonly [string, string]> = {
   BEFORE_POLICY_FREEZE: [
@@ -119,6 +143,12 @@ const CANDIDATE_REASON_LABELS: Record<string, readonly [string, string]> = {
 export function candidateReasonLabel(code: string, zh: boolean): string {
   const pair = CANDIDATE_REASON_LABELS[code];
   if (!pair?.[0] || !pair[1]) return zh ? CANDIDATE_REASON_FALLBACK[1] : CANDIDATE_REASON_FALLBACK[0];
+  return zh ? pair[1] : pair[0];
+}
+
+function horizonReasonLabel(code: string, zh: boolean): string {
+  const pair = HORIZON_REASON_LABELS[code];
+  if (!pair?.[0] || !pair[1]) return zh ? HORIZON_REASON_FALLBACK[1] : HORIZON_REASON_FALLBACK[0];
   return zh ? pair[1] : pair[0];
 }
 
@@ -198,7 +228,9 @@ function Metric({ label, value }: { label: string; value: string }) {
   );
 }
 
-function HorizonRow({ horizon, outcome, t }: { horizon: OptionsAlphaCandidateHorizon; outcome: OptionsAlphaCandidateHorizonOutcome; t: T }) {
+function HorizonRow({ horizon, outcome, t, zh }: { horizon: OptionsAlphaCandidateHorizon; outcome: OptionsAlphaCandidateHorizonOutcome; t: T; zh: boolean }) {
+  const reason = outcome.reason;
+  const recognised = reason != null && Object.prototype.hasOwnProperty.call(HORIZON_REASON_LABELS, reason);
   return (
     <article className="obs-options-alpha-horizon" data-testid={`options-alpha-candidate-horizon-${horizon}`}>
       <div>
@@ -208,7 +240,13 @@ function HorizonRow({ horizon, outcome, t }: { horizon: OptionsAlphaCandidateHor
       <strong>{underlyingLabel(outcome, t)}</strong>
       <small>
         {outcome.campaign_available_at ? `${t("candidateHorizonEvidence")} ${outcome.campaign_available_at}` : t("optionsClockUnavailable")}
-        {outcome.reason ? ` · ${outcome.reason}` : ""}
+        {reason ? ` · ${horizonReasonLabel(reason, zh)}` : ""}
+        {reason && !recognised ? (
+          <details>
+            <summary>{t("candidateReasonCode")}</summary>
+            <span>{reason}</span>
+          </details>
+        ) : null}
       </small>
     </article>
   );
@@ -373,7 +411,7 @@ function CandidateCard({
       {item.post_formation_outcomes ? (
         <div className="obs-options-alpha-horizons" data-testid="options-alpha-candidate-horizons">
           {OPTIONS_ALPHA_CANDIDATE_HORIZONS.map((horizon) => (
-            <HorizonRow key={horizon} horizon={horizon} outcome={item.post_formation_outcomes![horizon]} t={t} />
+            <HorizonRow key={horizon} horizon={horizon} outcome={item.post_formation_outcomes![horizon]} t={t} zh={zh} />
           ))}
         </div>
       ) : null}
@@ -417,20 +455,6 @@ export function OptionsAlphaCandidatePanel(props: OptionsAlphaCandidatePanelProp
   const seqRef = useRef(0);
   const inflightRef = useRef(false);
   const controllerRef = useRef<AbortController | null>(null);
-  // Capture messages at effect-time. The strings are stable for a given lang, so
-  // we snapshot them once and let setState use the snapshot — this prevents the
-  // effect from re-firing whenever `t` gets a new function reference from the
-  // makeProphetT rerender.
-  const messagesRef = useRef({
-    auth: t("candidatePanelAuthPurged"),
-    stale: t("candidatePanelStale"),
-    unavailable: t("candidatePanelUnavailable"),
-  });
-  messagesRef.current = {
-    auth: t("candidatePanelAuthPurged"),
-    stale: t("candidatePanelStale"),
-    unavailable: t("candidatePanelUnavailable"),
-  };
 
   const fetchOnce = useCallback(async () => {
     if (inflightRef.current) return;
@@ -439,9 +463,8 @@ export function OptionsAlphaCandidatePanel(props: OptionsAlphaCandidatePanelProp
     controllerRef.current = controller;
     const seq = seqRef.current + 1;
     seqRef.current = seq;
-    const messages = messagesRef.current;
     try {
-      setState((prev) => ({ source: prev.source, status: prev.source ? "stale" : "loading", message: null }));
+      setState((prev) => ({ source: prev.source, status: prev.source ? "stale" : "loading", messageKey: null }));
       const response = await fetch("/api/flow?f=options_alpha_candidate_feed", {
         cache: "no-store",
         credentials: "same-origin",
@@ -451,14 +474,14 @@ export function OptionsAlphaCandidatePanel(props: OptionsAlphaCandidatePanelProp
       if (response.status === 401 || response.status === 403) {
         seqRef.current++;
         controllerRef.current?.abort();
-        setState({ source: null, status: "purge", message: messages.auth });
+        setState({ source: null, status: "purge", messageKey: "auth" });
         return;
       }
       if (!response.ok) {
         setState((prev) => ({
           source: prev.source,
           status: prev.source ? "stale" : "unavailable",
-          message: prev.source ? messages.stale : messages.unavailable,
+          messageKey: prev.source ? "stale" : "unavailable",
         }));
         return;
       }
@@ -468,7 +491,7 @@ export function OptionsAlphaCandidatePanel(props: OptionsAlphaCandidatePanelProp
         setState((prev) => ({
           source: prev.source,
           status: prev.source ? "stale" : "unavailable",
-          message: prev.source ? messages.stale : messages.unavailable,
+          messageKey: prev.source ? "stale" : "unavailable",
         }));
         return;
       }
@@ -477,17 +500,17 @@ export function OptionsAlphaCandidatePanel(props: OptionsAlphaCandidatePanelProp
         setState((prev) => ({
           source: prev.source,
           status: prev.source ? "stale" : "unavailable",
-          message: prev.source ? messages.stale : messages.unavailable,
+          messageKey: prev.source ? "stale" : "unavailable",
         }));
         return;
       }
-      setState({ source: normalized, status: "idle", message: null });
+      setState({ source: normalized, status: "idle", messageKey: null });
     } catch (err) {
       if (controller.signal.aborted || seqRef.current !== seq) return;
       setState((prev) => ({
         source: prev.source,
         status: prev.source ? "stale" : "unavailable",
-        message: prev.source ? messages.stale : messages.unavailable,
+        messageKey: prev.source ? "stale" : "unavailable",
       }));
       void err;
     } finally {
@@ -527,13 +550,13 @@ export function OptionsAlphaCandidatePanel(props: OptionsAlphaCandidatePanelProp
         <span data-testid="options-alpha-candidate-count">{candidateCount}</span>
       </div>
       {state.status === "purge" ? (
-        <p className="obs-options-alpha-footnote" role="status" data-testid="options-alpha-candidate-purge">{state.message}</p>
+        <p className="obs-options-alpha-footnote" role="status" data-testid="options-alpha-candidate-purge">{state.messageKey ? t(PANEL_STATUS_MESSAGES[state.messageKey]) : null}</p>
       ) : null}
-      {state.status === "stale" && state.message ? (
-        <p className="obs-options-alpha-footnote" role="status" data-testid="options-alpha-candidate-stale">{state.message}</p>
+      {state.status === "stale" && state.messageKey ? (
+        <p className="obs-options-alpha-footnote" role="status" data-testid="options-alpha-candidate-stale">{t(PANEL_STATUS_MESSAGES[state.messageKey])}</p>
       ) : null}
-      {state.status === "unavailable" && state.message ? (
-        <p className="obs-options-alpha-footnote" role="status" data-testid="options-alpha-candidate-unavailable">{state.message}</p>
+      {state.status === "unavailable" && state.messageKey ? (
+        <p className="obs-options-alpha-footnote" role="status" data-testid="options-alpha-candidate-unavailable">{t(PANEL_STATUS_MESSAGES[state.messageKey])}</p>
       ) : null}
       {source ? (
         <>

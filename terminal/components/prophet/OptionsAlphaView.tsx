@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { flowGet, flowGetFresh, flowGetResult, type FlowOutcome } from "@/lib/flowClientCache";
+import { flowGetFresh, flowGetResult } from "@/lib/flowClientCache";
 import { useLang, type Lang } from "@/lib/i18n";
 import { makeProphetT } from "./prophetStrings";
 import { OptionsAlphaInvestigation } from "./OptionsAlphaInvestigation";
@@ -595,23 +595,6 @@ function MeasuredEvidenceSection({
   );
 }
 
-async function readShadowIndex(refresh: boolean): Promise<FlowOutcome> {
-  // Production always exports flowGetResult and that read never rejects. A sibling
-  // suite replaces the module with a double that only exports flowGet/flowGetFresh;
-  // touching the missing export throws, so keep that double's null contract as a
-  // failed read. Never collapse a real flowGetResult outcome back to null.
-  try {
-    const outcome = await flowGetResult("options_prophet_idx", refresh ? { refresh: true } : {});
-    if (outcome?.status === "data" || outcome?.status === "absent" || outcome?.status === "unavailable") return outcome;
-  } catch {
-    // Missing-export test double. Fall through to flowGet.
-  }
-  const data = await flowGet("options_prophet_idx");
-  return data == null
-    ? { status: "unavailable", reason: "malformed" }
-    : { status: "data", data };
-}
-
 export function OptionsAlphaView() {
   const { lang } = useLang();
   const t = makeProphetT(lang);
@@ -626,13 +609,14 @@ export function OptionsAlphaView() {
     setLoading(true);
     setError(false);
     try {
-      const outcome = await readShadowIndex(refresh);
+      const outcome = await flowGetResult("options_prophet_idx", refresh ? { refresh: true } : {});
       if (outcome.status === "absent") {
         setPayload(null);
         setShadowAbsent(true);
         return;
       }
-      if (outcome.status === "unavailable") {
+      // A status other than data or absent is a failed read.
+      if (outcome.status !== "data") {
         setPayload(null);
         setShadowAbsent(false);
         setError(true);
