@@ -15,6 +15,7 @@ import {
   type InputPointerType,
   type InputRegion,
 } from "./input";
+import { maxBarSpacingPx } from "./modelTime";
 import type { ChartModel } from "./model";
 
 /** Matches frame.ts's minimum price-axis strip so plot pans stay off the labels. */
@@ -60,7 +61,8 @@ const SCALE_DEFAULTS = {
   axisPressedMouseMove: true,
 } as const;
 
-const KINETIC_DEFAULTS = { mouse: true, touch: true } as const;
+/** LWC kineticScrollDefaults (dev:12417-12420): mouse inertia off, touch on. */
+const KINETIC_DEFAULTS = { mouse: false, touch: true } as const;
 
 function coerceBoolMap<T extends Record<string, boolean>>(defaults: T, raw: unknown): T {
   if (raw === true || raw === false) {
@@ -210,24 +212,51 @@ function buildDeps(
       return () => host.scheduler.cancel(handle);
     },
     options,
+    zoomLimits: () => {
+      const primary = model.primarySeries();
+      const barCount = primary && !primary.removed ? primary.rows.length : 0;
+      const minS = model.timeScaleBehaviour.minBarSpacing;
+      const maxS = maxBarSpacingPx(model.timeScaleBehaviour.maxBarSpacing, model.time.widthPx, minS);
+      return { minBarSpacing: minS, maxBarSpacing: maxS, barCount };
+    },
   };
 }
 
 /**
  * Attach the input controller to the overlay (or whatever getTarget returns).
  * Idempotent dispose; double dispose is a no-op.
+ *
+ * Pointer delivery (PERF-A C3 / F3 root cause): pointerdown / wheel / dblclick
+ * stay on the target surface, but pointermove / pointerup / pointercancel are
+ * taken on the WINDOW for pointers that went down on this surface. Relying on
+ * the target plus best-effort setPointerCapture lost the pointerup once the
+ * cursor left the element, so the controller kept the pointer "down" and a
+ * later stray move applied its whole opposite-sign dx — a captured drag now
+ * keeps panning (and, critically, ends) with the correct sign until release
+ * wherever the pointer physically travels. Window events are gated by the
+ * active-pointer set so co-resident engines never react to each other's
+ * pointers.
  */
 export function attachEngineInput(host: EngineInputHost): EngineInputBinding {
   const options = engineToInputOptions(host.options);
   const controller: InputController = createInputController(buildDeps(host, options));
   let disposed = false;
   const listeners: ListenerRec[] = [];
+  const windowListeners: ListenerRec[] = [];
+  const activePointerIds = new Set<number>();
   let target: HTMLElement | null = host.getTarget();
 
   const toEvent = (ev: Event, type: InputEventType): InputEvent | null => {
     const surface = host.getTarget();
     if (!surface) return null;
     return domEventToInputEvent(ev, surface, type, layoutOf(host.model));
+  };
+
+  const dispatchPointer = (type: InputEventType, input: InputEvent): void => {
+    if (type === "pointerdown") activePointerIds.add(input.pointerId);
+    else if (type === "pointerup" || type === "pointercancel") activePointerIds.delete(input.pointerId);
+    host.onPointerPoint?.({ x: input.x, y: input.y });
+    controller.handleEvent(input);
   };
 
   const onPointer = (type: InputEventType) => (ev: Event): void => {
@@ -238,8 +267,18 @@ export function attachEngineInput(host: EngineInputHost): EngineInputBinding {
       const surface = host.getTarget();
       if (surface) capturePointer(surface, input.pointerId);
     }
-    host.onPointerPoint?.({ x: input.x, y: input.y });
-    controller.handleEvent(input);
+    dispatchPointer(type, input);
+  };
+
+  // Window-level continuation of a drag that started on the target: forwards
+  // only this surface's active pointers (see header).
+  const onWindowPointer = (type: InputEventType) => (ev: Event): void => {
+    if (disposed) return;
+    if (!activePointerIds.size) return;
+    const input = toEvent(ev, type);
+    if (!input) return;
+    if (!activePointerIds.has(input.pointerId)) return;
+    dispatchPointer(type, input);
   };
 
   const onWheel: EventListener = (ev: Event): void => {
@@ -264,11 +303,17 @@ export function attachEngineInput(host: EngineInputHost): EngineInputBinding {
       listeners.push({ type, listener, options: extra });
     };
     add("pointerdown", onPointer("pointerdown"));
-    add("pointermove", onPointer("pointermove"));
-    add("pointerup", onPointer("pointerup"));
-    add("pointercancel", onPointer("pointercancel"));
     add("wheel", onWheel, { passive: false });
     add("dblclick", onDblClick);
+  }
+  if (typeof window !== "undefined") {
+    const addWindow = (type: string, listener: EventListener): void => {
+      window.addEventListener(type, listener);
+      windowListeners.push({ type, listener });
+    };
+    addWindow("pointermove", onWindowPointer("pointermove"));
+    addWindow("pointerup", onWindowPointer("pointerup"));
+    addWindow("pointercancel", onWindowPointer("pointercancel"));
   }
 
   return {
@@ -294,7 +339,12 @@ export function attachEngineInput(host: EngineInputHost): EngineInputBinding {
           target.removeEventListener(rec.type, rec.listener, rec.options);
         }
       }
+      for (const rec of windowListeners) {
+        window.removeEventListener(rec.type, rec.listener);
+      }
       listeners.length = 0;
+      windowListeners.length = 0;
+      activePointerIds.clear();
       target = null;
     },
   };

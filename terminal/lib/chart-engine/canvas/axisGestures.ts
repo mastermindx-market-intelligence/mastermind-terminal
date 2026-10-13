@@ -19,6 +19,7 @@ import {
   type AxisLogFormula,
   type AxisRange,
 } from "../axisZoom";
+import { clampBarSpacingValue, maxBarSpacingPx } from "./modelTime";
 
 // ── Documented constants ──────────────────────────────────────────────────────
 
@@ -200,9 +201,13 @@ function clampPriceSpan(range: AxisRange, anchor: number): AxisRange {
 }
 
 function clampBarSpacing(spacing: number, widthPx: number): number {
-  const max = Math.max(MIN_BAR_SPACING, widthPx * MAX_BAR_SPACING_WIDTH_FRACTION);
-  if (!Number.isFinite(spacing)) return MIN_BAR_SPACING;
-  return Math.min(max, Math.max(MIN_BAR_SPACING, spacing));
+  // PERF-A F6: one clamp source — modelTime's LWC helpers (option 0 means
+  // width * 0.5, exactly the MAX_BAR_SPACING_WIDTH_FRACTION law above).
+  return clampBarSpacingValue(
+    spacing,
+    MIN_BAR_SPACING,
+    maxBarSpacingPx(0, widthPx, MIN_BAR_SPACING),
+  );
 }
 
 function paneLayout(layout: AxisLayout | null, paneIndex: number): PaneHitLayout | null {

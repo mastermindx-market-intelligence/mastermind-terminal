@@ -62,10 +62,14 @@ describe("F-15 scrollToPosition animated + epoch constant", () => {
     expect(m.getVisibleLogicalRange()).toEqual({ from: 5, to: 15 });
     clock.nowMs = 1000;
     clock.flush();
-    expect(m.time.rightOffset).toBe(10);
-    expect(m.getVisibleLogicalRange()).toEqual({ from: 10, to: 20 });
+    // PERF-A TEST-CORRECTION (LWC dev:6574-6603): the always-on correctOffset
+    // bound caps rightOffset at width/barSpacing - min(2, n) = 10 - 2 = 8 for
+    // this fixture (10 rows, spacing 20, width 200), so the animation lands on
+    // 8, not the unclamped 10 the previous pin encoded.
+    expect(m.time.rightOffset).toBe(8);
+    expect(m.getVisibleLogicalRange()).toEqual({ from: 8, to: 18 });
     clock.flush();
-    expect(m.time.rightOffset).toBe(10);
+    expect(m.time.rightOffset).toBe(8);
   });
 
   it("a new scroll cancels a running animation", () => {

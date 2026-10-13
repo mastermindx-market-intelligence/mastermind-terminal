@@ -366,10 +366,20 @@ export function createKeyboardController(deps: KeyboardControllerDeps): Keyboard
     const span = to - from;
     if (!(span > 0)) return;
     const cross = deps.getCrosshair();
-    const anchor =
+    const floatAnchor =
       cross.logical != null && Number.isFinite(cross.logical)
         ? (cross.logical as number)
         : (from + to) / 2;
+    // PERF-A C2/F4: anchor the BAR under the crosshair (or the nearest bar to
+    // the centre of the visible range) when it is on data, so the anchored
+    // logical is an exact bar centre and cannot drift across steps; float only
+    // off data.
+    let anchor = floatAnchor;
+    const count = deps.barCount?.();
+    if (count != null && Number.isFinite(count)) {
+      const bar = Math.round(floatAnchor);
+      if (bar >= 0 && bar < count) anchor = bar;
+    }
     const steps = barsForEvent(1, streak);
     const factor = Math.pow(ZOOM_FACTOR_PER_STEP, direction * steps);
     const newSpan = Math.min(MAX_VISIBLE_SPAN, Math.max(MIN_VISIBLE_SPAN, span * factor));
