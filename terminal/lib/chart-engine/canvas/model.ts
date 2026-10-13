@@ -34,6 +34,34 @@ import type {
   WatermarkSpec,
 } from "../api";
 import { futureBarTimes, futureCadence, futureSlotOf } from "../futureTime";
+import { EPOCH_SECONDS_MAX } from "../time";
+import {
+  applyPriceScaleOptionBag,
+  autoscaleRange,
+  coordinateToPrice as scaleCoordinateToPrice,
+  priceToCoordinate as scalePriceToCoordinate,
+  type PriceScaleState,
+} from "./scales";
+import {
+  applyBarSpacingToWindow,
+  applyRightOffsetToWindow,
+  clampBarSpacingValue,
+  correctRightOffset,
+  defaultModelClock,
+  defaultTimeScaleBehaviour,
+  lastBarIsVisible,
+  linearScrollOffset,
+  maxBarSpacingPx,
+  mergeTimeScaleBag,
+  nextScrollFrameDelayMs,
+  resizeTimeScaleWidth,
+  SCROLL_TO_POSITION_MS,
+  type ModelClock,
+  type TimeScaleBehaviour,
+} from "./modelTime";
+
+export type { ModelClock };
+export type { PriceScaleState };
 
 export type LogicalIndex = number;
 export type TimeScaleState = {
@@ -42,15 +70,6 @@ export type TimeScaleState = {
   barSpacing: number;
   rightOffset: number;
   widthPx: number;
-};
-export type PriceScaleState = {
-  mode: "normal" | "log" | "percent" | "indexed100";
-  inverted: boolean;
-  from: number;
-  to: number;
-  heightPx: number;
-  margins: { top: number; bottom: number };
-  autoScale: boolean;
 };
 export type Projection = {
   generation: number;
@@ -99,29 +118,15 @@ export function logicalOfX(x: number, ts: TimeScaleState): number {
   return x / spacing + ts.visibleFrom - 0.5;
 }
 
-/** Named seam: T02's scales.ts replaces these implementations. R01 is linear/normal. */
+/** Named seam: T02 scales.ts owns log/percent/indexed100 (and the linear fallback). */
 export const priceScaleMath = {
   yOfPrice(price: number, scale: PriceScaleState): number {
-    const { from, to, heightPx, margins, inverted } = scale;
-    const span = to - from;
-    if (!(heightPx > 0) || span === 0 || !Number.isFinite(span)) return heightPx / 2;
-    const topPx = margins.top * heightPx;
-    const plot = heightPx - topPx - margins.bottom * heightPx;
-    if (!(plot > 0)) return heightPx / 2;
-    const y = topPx + (1 - (price - from) / span) * plot;
-    return inverted ? heightPx - y : y;
+    return scalePriceToCoordinate(price, scale);
   },
   priceOfY(y: number, scale: PriceScaleState): number {
-    const { from, to, heightPx, margins, inverted } = scale;
-    const span = to - from;
-    if (!(heightPx > 0) || span === 0 || !Number.isFinite(span)) return (from + to) / 2;
-    const topPx = margins.top * heightPx;
-    const plot = heightPx - topPx - margins.bottom * heightPx;
-    if (!(plot > 0)) return (from + to) / 2;
-    const yAdj = inverted ? heightPx - y : y;
-    return to - ((yAdj - topPx) / plot) * span;
+    return scaleCoordinateToPrice(y, scale);
   },
-  autoscale(values: number[]): { from: number; to: number } {
+  autoscale(values: number[], scale?: PriceScaleState): { from: number; to: number } {
     let min = Infinity;
     let max = -Infinity;
     for (const v of values) {
@@ -129,14 +134,22 @@ export const priceScaleMath = {
       if (v < min) min = v;
       if (v > max) max = v;
     }
-    if (!Number.isFinite(min) || !Number.isFinite(max)) return { from: 0, to: 1 };
-    if (min === max) return { from: min - 1, to: max + 1 };
-    return { from: min, to: max };
+    const extents = Number.isFinite(min) && Number.isFinite(max) ? { min, max } : null;
+    const state: PriceScaleState = scale ?? {
+      mode: "normal",
+      inverted: false,
+      from: 0,
+      to: 1,
+      heightPx: 0,
+      margins: { ...DEFAULT_SCALE_MARGINS },
+    };
+    const next = autoscaleRange(extents, state);
+    return { from: next.from, to: next.to };
   },
 };
 
 export function timeToMs(t: EngineTime): number {
-  if (typeof t === "number") return t < 1e12 ? t * 1000 : t;
+  if (typeof t === "number") return t <= EPOCH_SECONDS_MAX ? t * 1000 : t;
   if (typeof t === "object") return Date.UTC(t.year, t.month - 1, t.day, 12, 0, 0);
   if (/^\d+$/.test(t)) return Number(t) * 1000;
   return Date.parse(t.includes("T") ? t : `${t}T12:00:00Z`);
@@ -209,7 +222,7 @@ export function seriesClose(row: EngineSeriesRow): number | null {
   return null;
 }
 
-export type ModelHooks = { onInvalidate: () => void; onStructure: () => void };
+export type ModelHooks = { onInvalidate: () => void; onStructure: () => void; clock?: ModelClock };
 export type PaneElementLookup = (index: number) => HTMLElement | null;
 type MouseKind = "crosshair" | "click" | "dblclick";
 
@@ -222,6 +235,7 @@ export class ChartModel {
   series = new Map<number, SeriesModel>();
   seriesOrder: number[] = [];
   time: TimeScaleState = { visibleFrom: 0, visibleTo: 1, barSpacing: 1, rightOffset: 0, widthPx: 0 };
+  timeScaleBehaviour: TimeScaleBehaviour = defaultTimeScaleBehaviour();
   totalHeight = 0;
   paneElementLookup: PaneElementLookup | null = null;
   readonly crosshairHandlers = new Set<EngineMouseHandler>();
@@ -232,6 +246,15 @@ export class ChartModel {
   private nextSeriesId = 1;
   private nextLineId = 1;
   private readonly hooks: ModelHooks;
+  private readonly clock: ModelClock;
+  private scrollAnim: {
+    from: number;
+    to: number;
+    startMs: number;
+    durationMs: number;
+    span: number;
+    handle: unknown;
+  } | null = null;
   private tsHandle: TimeScaleHandle | null = null;
   // Handle identity: the contract (C02) promises that pane.getSeries() and
   // series.priceLines() return the SAME handle objects the engine handed out.
@@ -243,6 +266,7 @@ export class ChartModel {
 
   constructor(hooks: ModelHooks) {
     this.hooks = hooks;
+    this.clock = hooks.clock ?? defaultModelClock();
     this.panes.push(freshPane(0, 0));
   }
 
@@ -263,6 +287,12 @@ export class ChartModel {
     this.time.barSpacing = span !== 0 ? this.time.widthPx / span : this.time.barSpacing;
   }
 
+  private syncRightOffsetFromWindow(): void {
+    const n = this.primarySeries()?.rows.length ?? 0;
+    this.time.rightOffset = this.time.visibleTo - n;
+    this.timeScaleBehaviour.rightOffset = this.time.rightOffset;
+  }
+
   layoutHeights(totalHeight: number): void {
     this.totalHeight = Math.max(0, totalHeight);
     const n = this.panes.length;
@@ -279,8 +309,7 @@ export class ChartModel {
   }
 
   setWidth(widthPx: number): void {
-    this.time.widthPx = Math.max(0, widthPx);
-    this.recomputeSpacing();
+    resizeTimeScaleWidth(this.time, widthPx, this.timeScaleBehaviour.lockVisibleTimeRangeOnResize);
   }
 
   primarySeries(): SeriesModel | null {
@@ -310,17 +339,25 @@ export class ChartModel {
 
   autoscaleScale(paneIndex: number, priceScaleId: string): PriceScaleState {
     const scale = this.scale(paneIndex, priceScaleId);
-    if (scale.mode !== "normal" || !scale.autoScale) return scale;
+    if (!scale.autoScale) return scale;
     const vals: number[] = [];
+    let baseValue: number | undefined;
+    let baseIndex = Infinity;
     const pane = this.panes[paneIndex];
     if (pane) {
       for (const sid of pane.seriesIds) {
         const s = this.series.get(sid);
         if (!s || s.removed || s.priceScaleId !== priceScaleId) continue;
         vals.push(...this.visibleValues(s));
+        const first = this.firstVisibleClose(s);
+        if (first && first.index < baseIndex) {
+          baseIndex = first.index;
+          baseValue = first.value;
+        }
       }
     }
-    const next = priceScaleMath.autoscale(vals);
+    if (baseValue != null) scale.baseValue = baseValue;
+    const next = priceScaleMath.autoscale(vals, scale);
     scale.from = next.from;
     scale.to = next.to;
     return scale;
@@ -332,6 +369,16 @@ export class ChartModel {
     const vals: number[] = [];
     for (let i = start; i <= end; i++) vals.push(...rowNumbers(s.rows[i]));
     return vals;
+  }
+
+  /** First valued close at or after the visible left (LWC firstBar = NearestRight, dev:3559-3566). */
+  firstVisibleClose(s: SeriesModel): { index: number; value: number } | null {
+    const start = Math.max(0, Math.floor(this.time.visibleFrom));
+    for (let i = start; i < s.rows.length; i++) {
+      const v = seriesClose(s.rows[i]);
+      if (v != null && Number.isFinite(v)) return { index: i, value: v };
+    }
+    return null;
   }
 
   projectionFor(series: SeriesModel): Projection {
@@ -354,9 +401,21 @@ export class ChartModel {
     const idx = Math.min(this.panes.length, Math.max(0, requested));
     if (idx < this.panes.length) return idx;
     this.panes.push(freshPane(idx, 0));
+    this.hydratePriceScaleGroups(this.panes[idx]);
     this.layoutHeights(this.totalHeight);
     this.structure();
     return idx;
+  }
+
+  private hydratePriceScaleGroups(pane: PaneModel): void {
+    const right = this.options.rightPriceScale;
+    if (right && typeof right === "object") {
+      applyPriceScaleOptionBag(this.scale(pane.index, "right"), right as Record<string, unknown>);
+    }
+    const left = this.options.leftPriceScale;
+    if (left && typeof left === "object") {
+      applyPriceScaleOptionBag(this.scale(pane.index, "left"), left as Record<string, unknown>);
+    }
   }
 
   addSeries(kind: EngineSeriesKind, options?: EngineSeriesOptions, paneIndex?: number): SeriesHandle {
@@ -439,14 +498,24 @@ export class ChartModel {
   applyOptions(options: EngineOptions): void {
     if (!this.alive) return;
     this.options = { ...this.options, ...options };
-    if (typeof options.width === "number") this.setWidth(options.width);
-    if (typeof options.height === "number") this.layoutHeights(options.height);
     const ts = options.timeScale;
     if (ts && typeof ts === "object") {
-      const bag = ts as Record<string, unknown>;
-      if (typeof bag.rightOffset === "number") this.time.rightOffset = bag.rightOffset;
+      this.timeScaleBehaviour = mergeTimeScaleBag(this.timeScaleBehaviour, ts as Record<string, unknown>);
+    }
+    if (typeof options.width === "number") this.setWidth(options.width);
+    if (typeof options.height === "number") this.layoutHeights(options.height);
+    if (ts && typeof ts === "object") this.applyTimeScaleOptions(ts as Record<string, unknown>);
+    if (options.rightPriceScale && typeof options.rightPriceScale === "object") {
+      this.applyPriceScaleGroup("right", options.rightPriceScale as Record<string, unknown>);
+    }
+    if (options.leftPriceScale && typeof options.leftPriceScale === "object") {
+      this.applyPriceScaleGroup("left", options.leftPriceScale as Record<string, unknown>);
     }
     this.bump();
+  }
+
+  private applyPriceScaleGroup(id: string, opts: Record<string, unknown>): void {
+    for (const pane of this.panes) applyPriceScaleOptionBag(this.scale(pane.index, id), opts);
   }
 
   setVisibleLogicalRange(range: EngineLogicalRange): void {
@@ -457,6 +526,7 @@ export class ChartModel {
     this.time.visibleTo = to;
     this.rangeExplicit = true;
     this.recomputeSpacing();
+    this.syncRightOffsetFromWindow();
     this.generation += 1;
     this.hooks.onInvalidate();
     for (const h of this.rangeHandlers) h({ from, to });
@@ -490,37 +560,18 @@ export class ChartModel {
   }
 
   timeToCoordinate(time: EngineTime): number | null {
-    if (!this.alive) return null;
-    const primary = this.primarySeries();
-    if (!primary || primary.rows.length === 0) return null;
-    const target = timeToMs(time);
-    if (!Number.isFinite(target)) return null;
-    const times = primary.rows.map((r) => timeToMs(r.time));
-    const lo = Math.min(times[0], times[times.length - 1]);
-    const hi = Math.max(times[0], times[times.length - 1]);
-    if (target < lo || target > hi) {
-      const fut = futureSlotResolver.resolve(time, primary.rows.map((r) => r.time));
-      return fut ? this.xOfLogical(fut.logical) : null;
-    }
-    let best = 0;
-    let bestDist = Infinity;
-    for (let i = 0; i < times.length; i++) {
-      const d = Math.abs(times[i] - target);
-      if (d < bestDist) { bestDist = d; best = i; }
-    }
-    return this.xOfLogical(best);
+    // §1.6 / dev:12931-12936: indexToCoordinate(timeToIndex(t, false)) — null off-grid.
+    const idx = this.timeToIndex(time, false);
+    return idx == null ? null : this.xOfLogical(idx);
   }
 
   coordinateToTime(x: number): EngineTime | null {
     if (!this.alive) return null;
     const primary = this.primarySeries();
     if (!primary || primary.rows.length === 0) return null;
-    const n = primary.rows.length;
     const i = Math.round(this.logicalOfX(x));
-    if (i < 0) return null;
-    if (i < n) return primary.rows[i].time;
-    const futures = futureBarTimes(primary.rows.map((r) => asCadenceTime(r.time)));
-    return futures[i - n] ?? null;
+    if (i < 0 || i >= primary.rows.length) return null;
+    return primary.rows[i].time;
   }
 
   fitContent(): void {
@@ -534,19 +585,92 @@ export class ChartModel {
     const right = this.time.rightOffset;
     this.setVisibleLogicalRange({ from: n - width + right, to: n + right });
   }
-  scrollToPosition(position: number): void {
-    if (!this.alive) return;
+  private applyRightOffsetNow(position: number, spanOverride?: number): void {
+    const n = this.primarySeries()?.rows.length ?? 0;
+    const span = spanOverride != null && spanOverride > 0
+      ? spanOverride
+      : (this.time.visibleTo - this.time.visibleFrom);
+    const width = span > 0 ? span : Math.max(1, n);
     this.time.rightOffset = position;
-    this.scrollToRealtime();
+    this.timeScaleBehaviour.rightOffset = position;
+    this.setVisibleLogicalRange({ from: n - width + position, to: n + position });
+  }
+
+  private cancelScrollAnim(): void {
+    if (!this.scrollAnim) return;
+    this.clock.cancel(this.scrollAnim.handle);
+    this.scrollAnim = null;
+  }
+
+  scrollToPosition(position: number, animated = false): void {
+    if (!this.alive) return;
+    const n = this.primarySeries()?.rows.length ?? 0;
+    const clamped = correctRightOffset(
+      position,
+      n,
+      this.time.widthPx,
+      this.time.barSpacing,
+      this.timeScaleBehaviour.fixLeftEdge,
+      this.timeScaleBehaviour.fixRightEdge,
+    );
+    this.cancelScrollAnim();
+    if (!animated) {
+      this.applyRightOffsetNow(clamped);
+      return;
+    }
+    const from = this.time.rightOffset;
+    const span = this.time.visibleTo - this.time.visibleFrom;
+    const tick = (): void => {
+      if (!this.alive || !this.scrollAnim) return;
+      const elapsed = this.clock.now() - this.scrollAnim.startMs;
+      this.applyRightOffsetNow(
+        linearScrollOffset(this.scrollAnim.from, this.scrollAnim.to, elapsed, this.scrollAnim.durationMs),
+        this.scrollAnim.span,
+      );
+      const delay = nextScrollFrameDelayMs(elapsed, this.scrollAnim.durationMs);
+      if (delay == null) {
+        this.scrollAnim = null;
+        return;
+      }
+      this.scrollAnim.handle = this.clock.schedule(tick, delay);
+    };
+    this.scrollAnim = {
+      from,
+      to: clamped,
+      startMs: this.clock.now(),
+      durationMs: SCROLL_TO_POSITION_MS,
+      span,
+      handle: null,
+    };
+    this.scrollAnim.handle = this.clock.schedule(tick, 0);
   }
   applyTimeScaleOptions(opts: Record<string, unknown>): void {
     if (!this.alive) return;
-    if (typeof opts.rightOffset === "number") this.time.rightOffset = opts.rightOffset;
-    if (typeof opts.barSpacing === "number") {
-      this.time.barSpacing = opts.barSpacing;
-      if (this.time.widthPx > 0 && opts.barSpacing > 0) {
-        this.time.visibleTo = this.time.visibleFrom + this.time.widthPx / opts.barSpacing;
-      }
+    this.timeScaleBehaviour = mergeTimeScaleBag(this.timeScaleBehaviour, opts);
+    const n = this.primarySeries()?.rows.length ?? 0;
+    const minS = this.timeScaleBehaviour.minBarSpacing;
+    const maxS = maxBarSpacingPx(this.timeScaleBehaviour.maxBarSpacing, this.time.widthPx, minS);
+    const spacingTouched =
+      opts.barSpacing !== undefined || opts.minBarSpacing !== undefined || opts.maxBarSpacing !== undefined;
+    if (spacingTouched) {
+      const raw = typeof opts.barSpacing === "number" ? opts.barSpacing : this.time.barSpacing;
+      const clamped = clampBarSpacingValue(raw, minS, maxS);
+      applyBarSpacingToWindow(this.time, clamped, this.timeScaleBehaviour.rightBarStaysOnScroll);
+      this.syncRightOffsetFromWindow();
+    }
+    const offsetTouched = opts.rightOffset !== undefined || opts.fixLeftEdge !== undefined || opts.fixRightEdge !== undefined;
+    if (offsetTouched) {
+      const raw = typeof opts.rightOffset === "number" ? opts.rightOffset : this.time.rightOffset;
+      const clamped = correctRightOffset(
+        raw,
+        n,
+        this.time.widthPx,
+        this.time.barSpacing,
+        this.timeScaleBehaviour.fixLeftEdge,
+        this.timeScaleBehaviour.fixRightEdge,
+      );
+      applyRightOffsetToWindow(this.time, clamped, n);
+      this.timeScaleBehaviour.rightOffset = clamped;
     }
     this.bump();
   }
@@ -596,17 +720,33 @@ export class ChartModel {
     const t = timeToMs(row.time);
     if (historicalUpdate) {
       const idx = s.rows.findIndex((r) => timeToMs(r.time) === t);
-      if (idx >= 0) s.rows[idx] = row;
-      else { s.rows.push(row); s.rows.sort((a, b) => timeToMs(a.time) - timeToMs(b.time)); }
+      if (idx < 0) {
+        throw new Error("Cannot update non-existing data point when historicalUpdate is true");
+      }
+      s.rows[idx] = row;
     } else if (s.rows.length === 0) {
       s.rows.push(row);
     } else {
-      const lastT = timeToMs(s.rows[s.rows.length - 1].time);
+      const last = s.rows[s.rows.length - 1];
+      const lastT = timeToMs(last.time);
+      if (t < lastT) {
+        throw new Error(`Cannot update oldest data, last time=${String(last.time)}, new time=${String(row.time)}`);
+      }
       if (t === lastT) s.rows[s.rows.length - 1] = row;
-      else if (t > lastT) s.rows.push(row);
       else {
-        const idx = s.rows.findIndex((r) => timeToMs(r.time) === t);
-        if (idx >= 0) s.rows[idx] = row;
+        const nBefore = s.rows.length;
+        const follow = this.primarySeries()?.id === id
+          && lastBarIsVisible(this.time.visibleFrom, this.time.visibleTo, nBefore);
+        s.rows.push(row);
+        if (follow) {
+          if (this.timeScaleBehaviour.shiftVisibleRangeOnNewBar) {
+            this.time.visibleFrom += 1;
+            this.time.visibleTo += 1;
+          } else {
+            this.time.rightOffset -= 1;
+            this.timeScaleBehaviour.rightOffset = this.time.rightOffset;
+          }
+        }
       }
     }
     this.bump();
@@ -632,6 +772,7 @@ export class ChartModel {
 
   destroy(): void {
     if (!this.alive) return;
+    this.cancelScrollAnim();
     this.alive = false;
     this.crosshairHandlers.clear();
     this.clickHandlers.clear();
@@ -652,7 +793,10 @@ export class ChartModel {
     return handle;
   }
 
-  /** Exact logical index of `time` in the primary series; nearest when asked; future slot via the cadence seam. */
+  /**
+   * Exact logical index of `time` on the primary series (dev:6037-6053).
+   * Off-grid — including future times — is null unless findNearest.
+   */
   timeToIndex(time: EngineTime, findNearest?: boolean): number | null {
     if (!this.alive) return null;
     const primary = this.primarySeries();
@@ -666,12 +810,10 @@ export class ChartModel {
       if (d === 0) return i;
       if (d < bestDist) { bestDist = d; best = i; }
     }
-    const fut = futureSlotResolver.resolve(time, primary.rows.map((r) => r.time));
-    if (fut) return fut.logical;
     return findNearest && best >= 0 ? best : null;
   }
 
-  /** Time at a logical index: a primary row, or a future cadence slot past the last row. */
+  /** Time at a logical index on the primary series. Out-of-range logicals clamp to the first/last row (no future leak). */
   timeAtLogical(logical: number): EngineTime | null {
     if (!this.alive) return null;
     const primary = this.primarySeries();
@@ -679,7 +821,35 @@ export class ChartModel {
     const n = primary.rows.length;
     const i = Math.round(logical);
     if (i < 0) return primary.rows[0].time;
-    if (i < n) return primary.rows[i].time;
+    if (i >= n) return primary.rows[n - 1].time;
+    return primary.rows[i].time;
+  }
+
+  /** True iff round-to-nearest-bar logical lands on an existing primary-series row. */
+  hasBarAtLogical(logical: number): boolean {
+    if (!this.alive || !Number.isFinite(logical)) return false;
+    const primary = this.primarySeries();
+    if (!primary) return false;
+    const i = Math.round(logical);
+    return i >= 0 && i < primary.rows.length;
+  }
+
+  /** Drawing-only: logical index of a synthetic future slot, or null when `time` is not past the last bar. */
+  futureSlotLogical(time: EngineTime): number | null {
+    if (!this.alive) return null;
+    const primary = this.primarySeries();
+    if (!primary || primary.rows.length < 2) return null;
+    return futureSlotResolver.resolve(time, primary.rows.map((r) => r.time))?.logical ?? null;
+  }
+
+  /** Drawing-only: time of a synthetic future slot at `logical`, or null when that slot is a real bar. */
+  logicalToFutureTime(logical: number): EngineTime | null {
+    if (!this.alive || !Number.isFinite(logical)) return null;
+    const primary = this.primarySeries();
+    if (!primary || primary.rows.length < 2) return null;
+    const n = primary.rows.length;
+    const i = Math.round(logical);
+    if (i < n) return null;
     const futures = futureBarTimes(primary.rows.map((r) => asCadenceTime(r.time)));
     return futures[i - n] ?? null;
   }
@@ -749,10 +919,23 @@ class ModelSeriesHandle implements SeriesHandle {
     const s = this.live();
     if (!s || s.rows.length === 0 || !Number.isFinite(logicalIndex)) return null;
     const n = s.rows.length;
+    // LWC PlotList (dev:3014-3037): NearestLeft = largest index < logical (floor
+    // for a dense integer grid); NearestRight = smallest index > logical (ceil).
+    // An integer that exists is an exact hit and returns itself.
+    if (mismatchDirection === "nearest-left") {
+      const i = Math.floor(logicalIndex);
+      if (i >= n) return s.rows[n - 1];
+      if (i >= 0 && i < n) return s.rows[i];
+      return null;
+    }
+    if (mismatchDirection === "nearest-right") {
+      const i = Math.ceil(logicalIndex);
+      if (i < 0) return s.rows[0];
+      if (i >= 0 && i < n) return s.rows[i];
+      return null;
+    }
     const i = Math.round(logicalIndex);
     if (i >= 0 && i < n) return s.rows[i];
-    if (mismatchDirection === "nearest-left" && i >= n) return s.rows[n - 1];
-    if (mismatchDirection === "nearest-right" && i < 0) return s.rows[0];
     return null;
   }
   createPriceLine(opts: PriceLineSpec): PriceLineHandle { return this.m.createPriceLine(this.id, opts); }
@@ -851,17 +1034,7 @@ class ModelPriceScaleHandle implements PriceScaleHandle {
   width(): number { return 0; }
   applyOptions(opts: Record<string, unknown>): void {
     if (!this.m.alive) return;
-    const scale = this.m.scale(this.paneIdx, this.id);
-    if (typeof opts.invertScale === "boolean") scale.inverted = opts.invertScale;
-    if (typeof opts.autoScale === "boolean") scale.autoScale = opts.autoScale;
-    if (opts.scaleMargins && typeof opts.scaleMargins === "object") {
-      const mg = opts.scaleMargins as { top?: number; bottom?: number };
-      if (typeof mg.top === "number") scale.margins.top = mg.top;
-      if (typeof mg.bottom === "number") scale.margins.bottom = mg.bottom;
-    }
-    if (opts.mode === "log" || opts.mode === 1) scale.mode = "log";
-    else if (opts.mode === "percent" || opts.mode === 2) scale.mode = "percent";
-    else if (opts.mode === "indexed100" || opts.mode === 3) scale.mode = "indexed100";
+    applyPriceScaleOptionBag(this.m.scale(this.paneIdx, this.id), opts);
     this.m.bump();
   }
   options(): Record<string, unknown> {
@@ -908,7 +1081,7 @@ class ModelTimeScaleHandle implements TimeScaleHandle {
   timeToCoordinate(time: EngineTime): number | null { return this.m.timeToCoordinate(time); }
   coordinateToTime(x: number): EngineTime | null { return this.m.coordinateToTime(x); }
   scrollToRealtime(): void { this.m.scrollToRealtime(); }
-  scrollToPosition(position: number, animated?: boolean): void { void animated; this.m.scrollToPosition(position); }
+  scrollToPosition(position: number, animated?: boolean): void { this.m.scrollToPosition(position, animated === true); }
   applyOptions(opts: Record<string, unknown>): void { this.m.applyTimeScaleOptions(opts); }
   fitContent(): void { this.m.fitContent(); }
   getVisibleRange(): EngineRange<EngineTime> | null {
@@ -937,11 +1110,10 @@ class ModelTimeScaleHandle implements TimeScaleHandle {
   }
   options(): Record<string, unknown> {
     if (!this.m.alive) return {};
-    const ts = this.m.options.timeScale;
     return {
+      ...this.m.timeScaleBehaviour,
       rightOffset: this.m.time.rightOffset,
       barSpacing: this.m.time.barSpacing,
-      ...(ts && typeof ts === "object" ? (ts as Record<string, unknown>) : {}),
     };
   }
   unwrap<T>(): T { return this.m.time as unknown as T; }
