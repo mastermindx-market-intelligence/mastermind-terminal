@@ -517,10 +517,11 @@ function maintainExtentsOnInPlace(
   window: { from: number; to: number },
   oldRow: EngineSeriesRow,
   newRow: EngineSeriesRow,
+  prevVersion: number,
 ): void {
   const c = s.extentsCache;
   if (!c) return;
-  if (c.rowVersion !== rowVersionOf(s)) { s.extentsCache = null; return; }
+  if (c.rowVersion !== prevVersion) { s.extentsCache = null; return; }
   if (c.from !== window.from || c.to !== window.to) { s.extentsCache = null; return; }
   const oldNums = rowExtentNumbers(s, oldRow);
   for (const v of oldNums) {
@@ -532,7 +533,7 @@ function maintainExtentsOnInPlace(
     if (v < min) min = v;
     if (v > max) max = v;
   }
-  s.extentsCache = { from: window.from, to: window.to, rowVersion: c.rowVersion, min, max };
+  s.extentsCache = { from: window.from, to: window.to, rowVersion: rowVersionOf(s), min, max };
 }
 
 /** Current inclusive visible row window for a series (matches visiblePriceExtents). */
@@ -1177,9 +1178,10 @@ export class ChartModel {
         // future cadence renders (`typeof last === "number"`), so drop the
         // snapshot; it rebuilds lazily on the next future-slot request.
         if (last.time !== row.time) this.primaryTimesCache = null;
+        const prevVersion = rowVersionOf(s);
         bumpRowVersion(s);
         maintainValuedIdx(s, s.rows.length - 1, wasValued, seriesClose(row) != null);
-        maintainExtentsOnInPlace(s, windowBefore, last, row);
+        maintainExtentsOnInPlace(s, windowBefore, last, row, prevVersion);
       } else {
         const nBefore = s.rows.length;
         const follow = this.primarySeries()?.id === id
