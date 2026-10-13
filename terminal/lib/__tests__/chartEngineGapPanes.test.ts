@@ -263,8 +263,6 @@ describe("I03-A02: Register/unregister/reuse pane slot -> Old queued crosshair c
     const offSource = registerPane(1, source.peer);
     const offTarget = registerPane(2, target.peer);
     setPaneLinks({ 1: link("A"), 2: link("A") });
-    // setPaneLinks fires clearMirroredCrosshairs; reset the recorder so the
-    // assertion below measures ONLY the queued flush.
     target.onCrosshair.mockClear();
     target.setCrosshairPosition.mockClear();
 
@@ -294,9 +292,11 @@ describe("I03-A02: Register/unregister/reuse pane slot -> Old queued crosshair c
     expect(frames).toHaveLength(1);
 
     // The slot is re-registered (symbol switch, remount) BEFORE the frame
-    // fires. The new owner's setCrosshairPosition MUST NOT be invoked for the
-    // sample the retired registration queued.
-    offOld();
+    // fires — this is the case the identity check exists for. The new owner's
+    // setCrosshairPosition MUST NOT be invoked for the sample the retired
+    // registration queued. The unregister of the old owner is delayed until
+    // after the flush, otherwise the cancel-on-unregister path would preempt
+    // the identity check.
     const offNew = registerPane(1, newSource.peer);
     runFrames();
     expect(target.setCrosshairPosition).toHaveBeenCalledTimes(0);
@@ -313,6 +313,7 @@ describe("I03-A02: Register/unregister/reuse pane slot -> Old queued crosshair c
       target.peer.series,
     );
 
+    offOld();
     offNew();
     offTarget();
   });
@@ -364,18 +365,22 @@ describe("I03-A03: Group plan changes before RAF fires -> Old-plan event is disc
 
   it("a queued crosshair under the legacy plan is discarded when setPaneSync advances the plan before paint", () => {
     manualFrames();
-    setPaneSync(true);
+    // A non-null plan is required first: setPaneSync(true) bumps planEpoch
+    // (and switches to the legacy plan) WITHOUT calling cancelPendingCrosshair.
+    // The queued sample therefore survives to flush, where the `next.epoch ===
+    // planEpoch` check in flushCrosshairFrame is the sole defence.
+    setPaneLinks({ 0: link("A"), 1: link("A") });
     const a = mockPeer(100);
     const b = mockPeer(200);
     registerPane(0, a.peer);
     registerPane(1, b.peer);
+    b.setCrosshairPosition.mockClear();
 
     broadcastCrosshair(0, "2026-09-19" as unknown as Parameters<typeof broadcastCrosshair>[1]);
     expect(frames).toHaveLength(1);
 
-    // The legacy switch: bumping setPaneSync(false) → setPaneSync(true)
-    // advances planEpoch and must cancel the queued mirror.
-    setPaneSync(false);
+    // Switch to the legacy plan: planEpoch advances, the queued sample keeps
+    // its old epoch. flush must discard it on the epoch guard.
     setPaneSync(true);
     runFrames();
     expect(b.setCrosshairPosition).toHaveBeenCalledTimes(0);
