@@ -34,6 +34,7 @@ import type {
   WatermarkSpec,
 } from "../api";
 import { futureBarTimes, futureCadence, futureSlotOf } from "../futureTime";
+import { EPOCH_SECONDS_MAX } from "../time";
 import {
   applyPriceScaleOptionBag,
   autoscaleRange,
@@ -46,13 +47,20 @@ import {
   applyRightOffsetToWindow,
   clampBarSpacingValue,
   correctRightOffset,
+  defaultModelClock,
   defaultTimeScaleBehaviour,
   lastBarIsVisible,
+  linearScrollOffset,
   maxBarSpacingPx,
   mergeTimeScaleBag,
+  nextScrollFrameDelayMs,
   resizeTimeScaleWidth,
+  SCROLL_TO_POSITION_MS,
+  type ModelClock,
   type TimeScaleBehaviour,
 } from "./modelTime";
+
+export type { ModelClock };
 
 export type LogicalIndex = number;
 export type TimeScaleState = {
@@ -151,7 +159,7 @@ export const priceScaleMath = {
 };
 
 export function timeToMs(t: EngineTime): number {
-  if (typeof t === "number") return t < 1e12 ? t * 1000 : t;
+  if (typeof t === "number") return t <= EPOCH_SECONDS_MAX ? t * 1000 : t;
   if (typeof t === "object") return Date.UTC(t.year, t.month - 1, t.day, 12, 0, 0);
   if (/^\d+$/.test(t)) return Number(t) * 1000;
   return Date.parse(t.includes("T") ? t : `${t}T12:00:00Z`);
@@ -224,7 +232,7 @@ export function seriesClose(row: EngineSeriesRow): number | null {
   return null;
 }
 
-export type ModelHooks = { onInvalidate: () => void; onStructure: () => void };
+export type ModelHooks = { onInvalidate: () => void; onStructure: () => void; clock?: ModelClock };
 export type PaneElementLookup = (index: number) => HTMLElement | null;
 type MouseKind = "crosshair" | "click" | "dblclick";
 
@@ -248,6 +256,15 @@ export class ChartModel {
   private nextSeriesId = 1;
   private nextLineId = 1;
   private readonly hooks: ModelHooks;
+  private readonly clock: ModelClock;
+  private scrollAnim: {
+    from: number;
+    to: number;
+    startMs: number;
+    durationMs: number;
+    span: number;
+    handle: unknown;
+  } | null = null;
   private tsHandle: TimeScaleHandle | null = null;
   // Handle identity: the contract (C02) promises that pane.getSeries() and
   // series.priceLines() return the SAME handle objects the engine handed out.
@@ -259,6 +276,7 @@ export class ChartModel {
 
   constructor(hooks: ModelHooks) {
     this.hooks = hooks;
+    this.clock = hooks.clock ?? defaultModelClock();
     this.panes.push(freshPane(0, 0));
   }
 
@@ -577,7 +595,24 @@ export class ChartModel {
     const right = this.time.rightOffset;
     this.setVisibleLogicalRange({ from: n - width + right, to: n + right });
   }
-  scrollToPosition(position: number): void {
+  private applyRightOffsetNow(position: number, spanOverride?: number): void {
+    const n = this.primarySeries()?.rows.length ?? 0;
+    const span = spanOverride != null && spanOverride > 0
+      ? spanOverride
+      : (this.time.visibleTo - this.time.visibleFrom);
+    const width = span > 0 ? span : Math.max(1, n);
+    this.time.rightOffset = position;
+    this.timeScaleBehaviour.rightOffset = position;
+    this.setVisibleLogicalRange({ from: n - width + position, to: n + position });
+  }
+
+  private cancelScrollAnim(): void {
+    if (!this.scrollAnim) return;
+    this.clock.cancel(this.scrollAnim.handle);
+    this.scrollAnim = null;
+  }
+
+  scrollToPosition(position: number, animated = false): void {
     if (!this.alive) return;
     const n = this.primarySeries()?.rows.length ?? 0;
     const clamped = correctRightOffset(
@@ -588,9 +623,36 @@ export class ChartModel {
       this.timeScaleBehaviour.fixLeftEdge,
       this.timeScaleBehaviour.fixRightEdge,
     );
-    this.time.rightOffset = clamped;
-    this.timeScaleBehaviour.rightOffset = clamped;
-    this.scrollToRealtime();
+    this.cancelScrollAnim();
+    if (!animated) {
+      this.applyRightOffsetNow(clamped);
+      return;
+    }
+    const from = this.time.rightOffset;
+    const span = this.time.visibleTo - this.time.visibleFrom;
+    const tick = (): void => {
+      if (!this.alive || !this.scrollAnim) return;
+      const elapsed = this.clock.now() - this.scrollAnim.startMs;
+      this.applyRightOffsetNow(
+        linearScrollOffset(this.scrollAnim.from, this.scrollAnim.to, elapsed, this.scrollAnim.durationMs),
+        this.scrollAnim.span,
+      );
+      const delay = nextScrollFrameDelayMs(elapsed, this.scrollAnim.durationMs);
+      if (delay == null) {
+        this.scrollAnim = null;
+        return;
+      }
+      this.scrollAnim.handle = this.clock.schedule(tick, delay);
+    };
+    this.scrollAnim = {
+      from,
+      to: clamped,
+      startMs: this.clock.now(),
+      durationMs: SCROLL_TO_POSITION_MS,
+      span,
+      handle: null,
+    };
+    this.scrollAnim.handle = this.clock.schedule(tick, 0);
   }
   applyTimeScaleOptions(opts: Record<string, unknown>): void {
     if (!this.alive) return;
@@ -720,6 +782,7 @@ export class ChartModel {
 
   destroy(): void {
     if (!this.alive) return;
+    this.cancelScrollAnim();
     this.alive = false;
     this.crosshairHandlers.clear();
     this.clickHandlers.clear();
@@ -1028,7 +1091,7 @@ class ModelTimeScaleHandle implements TimeScaleHandle {
   timeToCoordinate(time: EngineTime): number | null { return this.m.timeToCoordinate(time); }
   coordinateToTime(x: number): EngineTime | null { return this.m.coordinateToTime(x); }
   scrollToRealtime(): void { this.m.scrollToRealtime(); }
-  scrollToPosition(position: number, animated?: boolean): void { void animated; this.m.scrollToPosition(position); }
+  scrollToPosition(position: number, animated?: boolean): void { this.m.scrollToPosition(position, animated === true); }
   applyOptions(opts: Record<string, unknown>): void { this.m.applyTimeScaleOptions(opts); }
   fitContent(): void { this.m.fitContent(); }
   getVisibleRange(): EngineRange<EngineTime> | null {

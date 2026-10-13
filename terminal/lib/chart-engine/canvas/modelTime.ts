@@ -162,3 +162,44 @@ export function lastBarIsVisible(visibleFrom: number, visibleTo: number, rowCoun
   const last = rowCount - 1;
   return last >= visibleFrom && last <= visibleTo;
 }
+
+/** LWC TimeScale.scrollToPosition animated duration (dev:12862-12868). */
+export const SCROLL_TO_POSITION_MS = 1000;
+
+/** Injectable clock so scroll animation can be driven without real timers. */
+export type ModelClock = {
+  now(): number;
+  schedule(cb: () => void, delayMs?: number): unknown;
+  cancel(handle: unknown): void;
+};
+
+export function defaultModelClock(): ModelClock {
+  return {
+    now() {
+      // Date.now() is faked by vi.useFakeTimers(); performance.now() is not
+      // in vitest 2.1's default toFake set, so a rAF/performance clock would
+      // stall the 1000 ms animation under fake timers.
+      return Date.now();
+    },
+    schedule(cb, delayMs = 16) {
+      return setTimeout(cb, delayMs);
+    },
+    cancel(handle) {
+      clearTimeout(handle as ReturnType<typeof setTimeout>);
+    },
+  };
+}
+
+/** Linear interpolation of rightOffset; snaps to `to` at/after duration. */
+export function linearScrollOffset(from: number, to: number, elapsedMs: number, durationMs: number): number {
+  if (!(durationMs > 0) || elapsedMs >= durationMs) return to;
+  if (elapsedMs <= 0) return from;
+  return from + (to - from) * (elapsedMs / durationMs);
+}
+
+/** Next frame delay, or null when the animation has finished. */
+export function nextScrollFrameDelayMs(elapsedMs: number, durationMs: number, frameMs = 16): number | null {
+  const remaining = durationMs - elapsedMs;
+  if (remaining <= 0) return null;
+  return Math.min(frameMs, remaining);
+}

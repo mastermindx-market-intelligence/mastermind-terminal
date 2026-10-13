@@ -80,8 +80,12 @@ export interface AnchorViolation {
   readonly next: number | string;
 }
 
-/** Epoch-seconds magnitudes beyond this are millisecond leaks, not seconds (year ~5138). */
-const MS_EPOCH_FLAG = 1e11;
+/**
+ * Inclusive ceiling for numeric bar keys in unix seconds (year ~5138).
+ * Values above this are millisecond leaks, not seconds. Shared with
+ * canvas/model.ts `timeToMs` so both sides use one epoch-basis constant.
+ */
+export const EPOCH_SECONDS_MAX = 1e11;
 
 function isoDateUtc(ms: number): string {
   return new Date(ms).toISOString().slice(0, 10);
@@ -118,7 +122,7 @@ export function toBarKey(time: EngineTime): BarKey | null {
   if (typeof time === "number") {
     if (!Number.isFinite(time)) return null;
     if (!Number.isInteger(time)) return null;
-    if (time > MS_EPOCH_FLAG) return null;
+    if (time > EPOCH_SECONDS_MAX) return null;
     return time as BarKey;
   }
   if (typeof time === "string") {
@@ -171,7 +175,7 @@ export function validateTimeKeys(
       if (!Number.isInteger(time)) {
         return { ok: false, reason: `fractional seconds (${time}); engine epoch keys are integer unix seconds`, index: i };
       }
-      if (time > MS_EPOCH_FLAG) {
+      if (time > EPOCH_SECONDS_MAX) {
         return { ok: false, reason: `millisecond epoch leak (${time}); engine epoch keys are unix seconds`, index: i };
       }
     } else if (typeof time === "string") {
