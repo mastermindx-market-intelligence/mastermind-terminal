@@ -2,6 +2,7 @@ import { describe, it, expect } from "vitest";
 import type { EngineCapabilities } from "../chart-engine/options";
 import { normalizeEngineOptions } from "../chart-engine/options";
 import { LWC_CAPABILITIES } from "../chart-engine/lwc";
+import { CANVAS_CAPABILITIES } from "../chart-engine/canvas";
 
 const FULL: EngineCapabilities = {
   seriesKinds: ["candles", "bars", "line", "area", "histogram", "baseline"],
@@ -146,5 +147,9 @@ describe("EngineCapabilities — LWC adapter", () => {
     expect(result.ok).toBe(false);
     if (result.ok) return;
     expect(result.unsupported).toEqual(["kineticScroll"]);
+  });
+
+  it("CANVAS_CAPABILITIES advertises kineticScroll", () => {
+    expect(CANVAS_CAPABILITIES.kineticScroll).toBe(true);
   });
 });
