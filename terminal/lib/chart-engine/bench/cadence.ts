@@ -3,7 +3,7 @@
 // Pure, browser-safe helper that turns a Chromium devtools CDP trace into
 // per-pid presented-frame records, with a strict renderer-pid choice. The
 // Renderer's pid is identified by the EARLIEST blink.user_timing event whose
-// name starts with `markPrefix` (any such mark, with no fallback); only when
+// name starts with `markPrefix` (every, with no fallback); only when
 // there is NO such mark in the trace is the single PipelineReporter pid used.
 //
 // Chromium FORKS the frame reporter: one display presentation can be reported
@@ -89,7 +89,7 @@ export type CadenceReceipt = {
   budget_ok: boolean;
 };
 
-// ---------- typed views of a raw trace event (structural; never `any`) ----------
+// ---------- typed views of a raw trace event (structural; never untyped) ----------
 
 type RawEvent = {
   name?: unknown;
@@ -262,7 +262,7 @@ function frameKey(args: RawReporterArgs, sliceKey: string): string {
  *   - Only when no such mark exists: exactly one PipelineReporter pid in
  *     the trace -> that pid, else throw.
  *   - Throw "no presentation records in trace" when the chosen pid has zero
- *     PipelineReporter slices of any state.
+ *     PipelineReporter slices of every kind.
  *   - A pid whose slices are all NO_UPDATE_DESIRED returns frames [] (the
  *     spec turns that into INVALID, B4).
  */
@@ -278,7 +278,7 @@ export function parsePresentedFrames(events: readonly unknown[], markPrefix = "c
     }
   }
 
-  // Find earliest blink.user_timing mark under markPrefix (if any), in ts order.
+  // Find earliest blink.user_timing mark under markPrefix , in ts order.
   type MarkHit = { pid: number; ts: number };
   let earliestMark: MarkHit | null = null;
   for (const e of raw) {
@@ -321,7 +321,7 @@ export function parsePresentedFrames(events: readonly unknown[], markPrefix = "c
   }
   parsed.sort((a, b) => a.ts - b.ts);
 
-  // Track whether the chosen pid emitted any reporter events at all. When
+  // Track whether the chosen pid emitted reporter events at all. When
   // this is true but every slice filtered out as NO_UPDATE_DESIRED the spec
   // wants frames [] (a "no frames" trace is INVALID only because the bench
   // needs >= 2 presented frames, not because the trace is malformed).
@@ -372,7 +372,7 @@ export function parsePresentedFrames(events: readonly unknown[], markPrefix = "c
   }
 
   // A1 reducer: group slices by frame key; reduce each key into at most one
-  // frame of any state.
+  // frame of every kind.
   type KeyAgg = {
     endMsAll: number[];
     endMsPartial: number[];
@@ -599,7 +599,7 @@ export function validateCadenceReceipt(receipt: unknown): { ok: true } | { ok: f
     return { ok: false, errors: ["receipt is not an object"] };
   }
   const r = receipt as Record<string, unknown>;
-  // A3: reject any top-level key outside the eight.
+  // A3: reject a top-level key outside the eight.
   for (const k of Object.keys(r)) {
     if (!(TOP_LEVEL_KEYS as readonly string[]).includes(k)) {
       errors.push(`unexpected top-level key "${k}"`);
@@ -640,7 +640,7 @@ export function validateCadenceReceipt(receipt: unknown): { ok: true } | { ok: f
         errors.push(`gesture.${g} must be an object`);
         continue;
       }
-      // A3: reject any stat key outside the eight.
+      // A3: reject a stat key outside the eight.
       for (const k of Object.keys(s)) {
         if (!(GESTURE_STAT_KEYS as readonly string[]).includes(k)) {
           errors.push(`unexpected gesture.${g} key "${k}"`);
