@@ -22,10 +22,13 @@
  *   oi/vol — magnitudes → one neutral ramp (--brand-2). A magnitude must never look
  *            directional.
  *
- * NORMALISATION: colour saturates at the 5-95th percentile of the VISIBLE window,
- * through a sqrt intensity curve, so one monster strike cannot wash out the field.
- * `normalization: "column"` runs that scale per expiry column instead of once over
- * the whole grid (the PRISM control, kept).
+ * NORMALISATION: colour saturates at the 5-95th percentile through a sqrt intensity
+ * curve, so one monster strike cannot wash out the field. The default scale is the
+ * DISPLAYED rows (what this grid returns). `scaleOver: "selected-scope"` measures
+ * that same percentile over the full selected window before the row cap, so
+ * recentring the display cannot change colour. `normalization: "column"` runs the
+ * chosen scale per expiry column instead of once over the whole grid (the PRISM
+ * control, kept).
  *
  * EXPIRY SCOPE is anchored to the PAYLOAD'S OWN SESSION (`_build_meta.asof_date`),
  * never the wall clock — an EOD snapshot's "0DTE" is a property of the snapshot's
@@ -351,6 +354,15 @@ export interface BuildMatrixGridOpts {
   exactStrikes?: boolean;
   /** Presentation-only recentering inside the already-selected analytical domain. */
   displayCenterStrike?: number | null;
+  /**
+   * Which strikes the colour scale, the per-expiry scales and the sigma scale use.
+   * "displayed" (default) keeps today's output: only the rows this grid returns, so
+   * the Positioning card and the Exposure desk stay the same.
+   * "selected-scope" measures every strike in the selected window and every selected
+   * expiry before the maxRows cap, and ignores displayCenterStrike. Returned strikes,
+   * byKey and sigma still describe only the displayed rows.
+   */
+  scaleOver?: "displayed" | "selected-scope";
 }
 
 export interface MatrixScale {
@@ -402,6 +414,7 @@ export function buildMatrixGrid(opts: BuildMatrixGridOpts): MatrixGridModel | nu
     withSigma = false,
     exactStrikes = false,
     displayCenterStrike = null,
+    scaleOver = "displayed",
   } = opts;
 
   const signed = isSignedMetric(metric);
@@ -452,6 +465,8 @@ export function buildMatrixGrid(opts: BuildMatrixGridOpts): MatrixGridModel | nu
     ? [...new Set(allStrikes.filter((k) => Math.abs(k - spotRef) / spotRef <= windowPct / 100).map(toBucket))]
     : [...new Set(allStrikes.map(toBucket))];
   if (!exactStrikes && strikes.length < 5) strikes = [...new Set(allStrikes.map(toBucket))];
+  // Selected window before the row cap. The cap below may sort this array in place.
+  const scopeStrikes = strikes.slice();
   if (strikes.length > maxRows) {
     const center = displayCenterStrike != null && strikes.includes(displayCenterStrike) ? displayCenterStrike : spotRef;
     strikes = center
@@ -483,9 +498,36 @@ export function buildMatrixGrid(opts: BuildMatrixGridOpts): MatrixGridModel | nu
     }
   }
 
-  // Normalisation over the VISIBLE field only (the window is what the eye compares).
+  // Colour scale. "displayed" measures the rows this grid returns. "selected-scope"
+  // measures every strike in the selected window × every selected expiry, before the
+  // maxRows cap and independent of displayCenterStrike. byKey itself stays displayed.
+  let scaleByKey: Map<string, MatrixHeatCell> = byKey;
+  let scaleStrikes = strikes;
+  if (scaleOver === "selected-scope") {
+    scaleStrikes = scopeStrikes;
+    scaleByKey = new Map();
+    const scopeSet = new Set(scopeStrikes);
+    for (const c of cells) {
+      if (!Number.isFinite(c.strike) || !expSet.has(c.expiry)) continue;
+      const kb = toBucket(c.strike);
+      if (!scopeSet.has(kb)) continue;
+      const key = `${kb}|${c.expiry}`;
+      let acc = scaleByKey.get(key);
+      if (!acc) {
+        acc = { strike: kb, expiry: c.expiry };
+        scaleByKey.set(key, acc);
+      }
+      for (const f of FIELDS) {
+        const v = f === "delta_oi" ? numDoi(c.delta_oi) : num(c[f]);
+        if (v != null) {
+          acc[f] = ((f === "delta_oi" ? numDoi(acc.delta_oi) : num(acc[f])) ?? 0) + v;
+        }
+      }
+    }
+  }
+
   const mags: number[] = [];
-  for (const c of byKey.values()) {
+  for (const c of scaleByKey.values()) {
     const v = matrixCellValue(c, metric);
     if (v != null && v !== 0) mags.push(Math.abs(v));
   }
@@ -496,8 +538,8 @@ export function buildMatrixGrid(opts: BuildMatrixGridOpts): MatrixGridModel | nu
     perCol = new Map();
     for (const e of exps) {
       const colMags: number[] = [];
-      for (const k of strikes) {
-        const c = byKey.get(`${k}|${e}`);
+      for (const k of scaleStrikes) {
+        const c = scaleByKey.get(`${k}|${e}`);
         const v = c ? matrixCellValue(c, metric) : null;
         if (v != null && v !== 0) colMags.push(Math.abs(v));
       }
@@ -524,7 +566,23 @@ export function buildMatrixGrid(opts: BuildMatrixGridOpts): MatrixGridModel | nu
       // render as a confident "flat", the same reason heatSeekerConfPct returns null.
       const complete = known === exps.length && known > 0 && Number.isFinite(total);
       sigma.set(k, complete ? total : null);
-      if (complete && total !== 0) sigMags.push(Math.abs(total));
+      if (scaleOver !== "selected-scope" && complete && total !== 0) sigMags.push(Math.abs(total));
+    }
+    if (scaleOver === "selected-scope") {
+      for (const k of scopeStrikes) {
+        let total = 0;
+        let known = 0;
+        for (const e of exps) {
+          const c = scaleByKey.get(`${k}|${e}`);
+          const v = c ? matrixCellValue(c, metric) : null;
+          if (v != null) {
+            total += v;
+            known++;
+          }
+        }
+        const complete = known === exps.length && known > 0 && Number.isFinite(total);
+        if (complete && total !== 0) sigMags.push(Math.abs(total));
+      }
     }
     sigmaScale = scaleOf(sigMags, signed);
   }
@@ -1171,7 +1229,8 @@ function RailMatrix({ grid, metric, interaction }: {
     scrollRef.current?.querySelector<HTMLButtonElement>(`[data-row="${r}"][data-col="${c}"]`)?.focus();
   }
 
-  return <div className={railStyles.scroll} ref={scrollRef} data-options-grid>
+  return <div className={railStyles.scroll} ref={scrollRef} data-options-grid
+    data-scale-hi={String(grid.scaleHi)} data-scale-lo={String(grid.scaleLo)}>
     <table className={railStyles.table} aria-label={interaction.name}>
       <thead><tr><th scope="col">{interaction.strikeLabel}</th>{grid.exps.map((exp) =>
         <th scope="col" key={exp}><time dateTime={exp}>{exp.slice(5)}</time><small>{dteLabel(exp, grid.sessionDate)}</small></th>)}</tr></thead>
