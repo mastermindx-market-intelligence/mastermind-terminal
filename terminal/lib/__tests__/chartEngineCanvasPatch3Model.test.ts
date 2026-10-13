@@ -200,9 +200,9 @@ describe("model2 F-2 — model.autoscaleScale and series.ts extentsOf agree on t
       const s = engine.addSeries(kind, opts as never);
       const makeRow = (i: number): EngineSeriesRow => {
         if (kind === "candles" || kind === "bars") {
-          return { time: i, open: 10, high: 12, low: 9, close: 11 };
+          return { time: i, open: 10 + i, high: 12 + i, low: 9 + i, close: 11 + i };
         }
-        return { time: i, value: 11 };
+        return { time: i, value: 11 + i };
       };
       s.setData([0, 1, 2, 3, 4].map((i) => makeRow(i)));
       engine.timeScale().setVisibleLogicalRange({ from: 0, to: 2.5 });
@@ -211,7 +211,8 @@ describe("model2 F-2 — model.autoscaleScale and series.ts extentsOf agree on t
       expect(range, `kind=${kind}`).not.toBeNull();
       // Close of row 2 is 11; last partial row 2 (to:2.5) must be in range.
       // Pad/contracted to >= 11 in normal mode (autoscale pads up).
-      expect(range!.to, `kind=${kind}`).toBeGreaterThanOrEqual(11);
+      const want = kind === "candles" || kind === "bars" ? 15 : 14;
+      expect(range!.to, `kind=${kind}`).toBeGreaterThanOrEqual(want);
       engine.destroy();
     }
   });
