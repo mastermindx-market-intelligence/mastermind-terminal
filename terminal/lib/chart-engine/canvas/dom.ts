@@ -4,6 +4,9 @@
 // sizes are integer CSS-px × devicePixelRatio; the 2d context is transformed
 // with setTransform(dpr,0,0,dpr,0,0) so painting stays in CSS pixels.
 // ResizeObserver is used when available (constructor injectable for tests).
+// Screenshots go through snapshot.ts composeSnapshot — the one compositor (F-06).
+
+import { composeSnapshot, layersFromPanes } from "./snapshot";
 
 export type ResizeObserverCtor = new (cb: ResizeObserverCallback) => {
   observe(target: Element, options?: ResizeObserverOptions): void;
@@ -168,23 +171,28 @@ export function paneElement(dom: ChartDom, index: number): HTMLElement | null {
   return dom.panes[index]?.wrapper ?? null;
 }
 
-export function takeDomScreenshot(dom: ChartDom): HTMLCanvasElement {
-  const shot = document.createElement("canvas");
-  let bw = 1;
-  let bh = 0;
-  for (const pane of dom.panes) {
-    bw = Math.max(bw, pane.canvas.width);
-    bh += pane.canvas.height;
-  }
-  shot.width = bw;
-  shot.height = Math.max(1, bh);
-  const ctx = shot.getContext("2d");
-  if (ctx) {
-    let y = 0;
-    for (const pane of dom.panes) {
-      ctx.drawImage(pane.canvas, 0, y);
-      y += pane.canvas.height;
-    }
-  }
-  return shot;
+function cssDim(canvas: HTMLCanvasElement, dpr: number, which: "width" | "height"): number {
+  const raw = which === "width" ? canvas.style.width : canvas.style.height;
+  const parsed = raw ? parseFloat(raw) : Number.NaN;
+  if (Number.isFinite(parsed)) return parsed;
+  const bitmap = which === "width" ? canvas.width : canvas.height;
+  return dpr > 0 ? bitmap / dpr : bitmap;
+}
+
+/** Composite pane bitmaps (and the overlay only when `includeOverlay` is true). */
+export function takeDomScreenshot(dom: ChartDom, includeOverlay = false): HTMLCanvasElement {
+  const dpr = dom.dpr > 0 ? dom.dpr : 1;
+  let top = 0;
+  const panes = dom.panes.map((p) => {
+    const height = cssDim(p.canvas, dpr, "height");
+    const layer = { canvas: p.canvas, top, height };
+    top += height;
+    return layer;
+  });
+  const width = cssDim(dom.panes[0]?.canvas ?? dom.overlay, dpr, "width");
+  const overlays = includeOverlay ? [{ canvas: dom.overlay }] : [];
+  return composeSnapshot(
+    layersFromPanes(panes, overlays, width),
+    { widthPx: Math.max(0, width), heightPx: Math.max(0, top), dpr },
+  );
 }
