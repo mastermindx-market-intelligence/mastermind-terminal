@@ -15,7 +15,13 @@ import {
 } from "./decorations";
 import { priceAxisWidthFor } from "./layout";
 import type { ChartModel, SeriesModel } from "./model";
-import { priceScaleMath, seriesClose, timeToMs } from "./model";
+import {
+  priceScaleMath,
+  seriesClose,
+  seriesIndexOfTime,
+  seriesTimeSource,
+  timeToMs,
+} from "./model";
 import {
   paintSeries as paintSeriesKind,
   type BarGeom,
@@ -136,14 +142,9 @@ function yOfRow(row: EngineSeriesRow | undefined, key: "high" | "low" | "close",
 
 function rowsIndexFor(series: SeriesModel, proj: { yOfPrice(p: number): number }): RowsIndex {
   return {
-    indexOfTime(t: EngineTime) {
-      const target = timeToMs(t);
-      if (!Number.isFinite(target)) return null;
-      for (let i = 0; i < series.rows.length; i++) {
-        if (timeToMs(series.rows[i].time) === target) return i;
-      }
-      return null;
-    },
+    // PERF-B: O(log n) over the series' cached ms-key index (was a linear scan
+    // calling timeToMs per row — the marker layout's dominant per-paint cost).
+    indexOfTime: (t: EngineTime) => seriesIndexOfTime(series, t, "exact"),
     highY: (i) => yOfRow(series.rows[i], "high", proj),
     lowY: (i) => yOfRow(series.rows[i], "low", proj),
     closeY: (i) => yOfRow(series.rows[i], "close", proj),
@@ -299,8 +300,9 @@ function paintGrid(ctx: CanvasRenderingContext2D, model: ChartModel, paneIndex: 
   if (bagVisible(g.vertLines)) {
     ctx.strokeStyle = bagColor(g.vertLines, CANVAS_NEUTRAL_DEFAULTS.gridColor);
     ctx.lineWidth = 1;
-    const times = (model.primarySeries()?.rows ?? []).map((r) => r.time);
-    for (const tick of timeTicks(times, model.time, { minGapPx: 48, hourFormat: "24" })) {
+    // PERF-B: cached time accessor — no per-frame map over every row time.
+    const primary = model.primarySeries();
+    for (const tick of timeTicks(primary ? seriesTimeSource(primary) : [], model.time, { minGapPx: 48, hourFormat: "24" })) {
       ctx.beginPath();
       ctx.moveTo(tick.x, 0);
       ctx.lineTo(tick.x, h);
@@ -311,9 +313,9 @@ function paintGrid(ctx: CanvasRenderingContext2D, model: ChartModel, paneIndex: 
 
 function timeAxisTicks(model: ChartModel): TimeTick[] {
   const primary = model.primarySeries();
-  const times = (primary?.rows ?? []).map((r) => r.time);
   const ts = (model.options.timeScale ?? {}) as Record<string, unknown>;
-  let ticks = timeTicks(times, model.time, { minGapPx: 56, hourFormat: "24" });
+  // PERF-B: cached time accessor — no per-frame map over every row time.
+  let ticks = timeTicks(primary ? seriesTimeSource(primary) : [], model.time, { minGapPx: 56, hourFormat: "24" });
   if (ts.timeVisible === false) {
     ticks = ticks.filter((t) => t.weight >= TIME_TICK_WEIGHT.day);
   } else if (ts.secondsVisible === true && primary) {
