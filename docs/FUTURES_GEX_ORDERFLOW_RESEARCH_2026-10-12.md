@@ -2,6 +2,25 @@
 
 Research as of 2026-10-12 UTC / 2026-10-11 Pacific. Current Chairman continuation explicitly requests deeper Pro research and implementation. This is an extension of Terminal's existing Options/Market Structure and Quote Hub owners, not another product backend or control plane.
 
+## Compiled qualification 2026-10-13 (current frontier)
+
+Integrated current Terminal master 792405edce606d4047a6dc7dd7f4711f9e77aba6 without
+conflicts or changing futures math. Candidate 4c469196cf7271986d03d5ef0e463dfac7ed374e
+passed 10,780 full Terminal tests (four existing TODOs), 569 Hub tests and an optimized
+production build. The actual compiled guest path passed three viewports: existing
+paywall, no futures client requests, API 403/private-no-store, diagnostic/sample
+routes 404 and zero private sample files in 116 compiled traces. Evidence is in
+docs/evidence/futures-production-build-20261013/. Non-secret loopback public client
+settings were required by the shared shell; no authentication/entitlement bypass.
+Owned servers are stopped. No deployment, paid session or live license is proven.
+
+Newly inherited CME modules were inspected: offline MNQ TradeMsg/container diagnostics
+remain private and explicitly unadmitted; they do not supply a live full-depth feed.
+Do not replace or activate that owner in this lane. Fabric review remains unstarted
+under its recorded admission blocker. Next useful bounded implementation: source-owned
+call-wall/put-wall/gamma-flip labeling and captured-volume POC, with correct scope and
+no current-level backpainting. The parent live-source/review/release obligations remain.
+
 ## Recovery continuation 2026-10-13: tested capture and production-boundary hardening
 
 Recovered remote head fb241fb91e19ce8da82ddc6603b55d940c63606c and its pending edits
