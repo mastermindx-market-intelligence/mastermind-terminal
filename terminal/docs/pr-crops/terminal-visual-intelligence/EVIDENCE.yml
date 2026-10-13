@@ -1,12 +1,12 @@
-# Terminal Visual Intelligence Layer — Pine publication source recapture
+# Terminal Visual Intelligence Layer — pane readiness source recapture
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
 # Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
-# capturedAtHead: b9b137243a872cb4e7679090d691a70a050e7ee3
-# capturedAt: 2026-10-13T12:37:55.654832+00:00
+# capturedAtHead: a8b99b1e32a1bf21aa7334823cee0aad2d86e452
+# capturedAt: 2026-10-13T07:10:53.000Z
 # Actual fresh local fixture captures; source identity remains the capture commit when artifacts are committed later.
 # Content-addressed layoutFiles + cropFiles, not ancestry, identify this capture.
 layoutFiles:
-  terminal/components/ChartPanel.tsx: "0f1ad46ec6307053f690f65c4c7332fbeab4044949a5301d49f654c4145bfaaa"
+  terminal/components/ChartPanel.tsx: "b4fc3baed095c974875cbc0db82cba058a78ee1eb48aa1dfdcec9f024ae47574"
   terminal/components/ChartSettingsModal.tsx: "f26bd7dcbb9bd23e96546e835dec4c62c593b9c4d7412c411511005e7418146e"
   terminal/components/ChartSettingsModal.module.css: "a1685d103511e11882f8d379b22570f018e47aed88266db5ca6fec8808100b0a"
   terminal/components/DrawingSidebar.tsx: "95910121c08efa2a41bcaac02ec626a48bc98021bbbf9e611ff0b61f7baaf6d9"
@@ -20,12 +20,12 @@ layoutFiles:
   terminal/lib/suites/trend/candlePainter.ts: "8384d2bce3af939a51e88584b1436ee2898a89f0fbf1aedc09ffee624a3e12e1"
   terminal/lib/indicator-canvas/host.ts: "4f2949efb22b8c378cab1ff9d176466c4857073c14a36ee4f0eeab4ec1015a25"
 cropFiles:
-  desktop-context-zh.png: "f8fc2789cc3dfac1547e9a75fa4ba417bdfe1b64ff401c6e41f6d6eccf7a28dc"
-  desktop-context.png: "39f5dd2e02f5578234e9c8ba3c4942f1b46b9e79f099bd81153e2be3eba82d75"
-  mobile-context-zh.png: "ffdd0b33181714d09e39881bb0fceef32f2e1c164444bd8ab40ced76cf80942b"
-  mobile-context.png: "29f110d1780ffd8c9ddd46628593faf3135f8e3d2d5bac1bac62a6247ac7d76d"
-  tablet-context-zh.png: "e716913cc4db316dd798696382ae8104d87f9a33c06901f1674bea382bfa0aaa"
-  tablet-context.png: "2bcf11ae8ee63a550713490404044de2e3235560ae8d97ba787ca4cbed38ee8b"
+  desktop-context.png: "4aad0b565a87dd532937c7b1ee5b3598f379be399df3b6e313d52ea43bf83d9d"
+  desktop-context-zh.png: "8d52110c4d73ec65abf42fbe0f1ee65bf176a4f52d94ae685d8b6c531d04de79"
+  mobile-context.png: "11070cba05b607d969a3509e45fc302c2363bcaa32ca9e9276156a70627d18d2"
+  mobile-context-zh.png: "bf36c1d2b52f46724002869dc82028e7bb951589742a95fa9266ec1cd0ca1016"
+  tablet-context.png: "7273e131f576a662aed330e14430ce36611646fbb1f3d230c31d85a72add9d07"
+  tablet-context-zh.png: "6b4a2f2ce1fd22f4694d861036e9172e0b15e7c32ac7fb20cabfa3e8d23d0918"
 theme: dark
 languages: [en, zh]
 viewports:
@@ -37,7 +37,7 @@ harness: /terminal?symbol=NVDA
 capture_flag: TERMINAL_E2E_FIXTURE
 capture_flag_law: Standard Playwright fixture also disables the Next.js dev indicator.
 commands:
-  - TERMINAL_E2E_PORT=3586 ./node_modules/.bin/playwright test --config /Volumes/Mastermind/evidence/iw2-initiation-01a104c8/continuation-20261013/pine-ci-failure-1201/visual.config.ts --project=desktop --project=tablet --project=mobile
+  - TERMINAL_E2E_PORT=3117 ./node_modules/.bin/playwright test e2e/visual-intelligence.spec.ts --project=desktop --project=tablet --project=mobile --workers=1 --retries=0 --reporter=list,json
 browserResults:
   desktop: 10/10 passed
   tablet: 10/10 passed
@@ -46,14 +46,9 @@ browserResults:
   mobileCrosshairScope: Exact named mobile case within the same 30-case report; no separate rerun
   visualIntelligenceMatrix: 30 passed; zero failures, skips, retries or flaky cases
 browserReportHashes:
-  visualReport: "8f21c81ff7d038e5b9fd7e20a0a5a43a75a2519a691e47d9da75a74b1eff8256"
-  mobileCrosshairReport: "8f21c81ff7d038e5b9fd7e20a0a5a43a75a2519a691e47d9da75a74b1eff8256"
+  visualReport: "ef9c182f35914cced55e33b0ce6dd2d4fa3a2261450bc85f2868793cdfdbf500"
+  mobileCrosshairReport: "ef9c182f35914cced55e33b0ce6dd2d4fa3a2261450bc85f2868793cdfdbf500"
 currentLocalGates:
-  sourceHead: b9b137243a872cb4e7679090d691a70a050e7ee3
-  visualIntelligenceMatrix: 30 passed; zero failures, skips, retries or flaky cases; actual EN/ZH at three viewports
-  postCaptureGates: Recorded separately after actual pixels and this manifest; no inherited whole-suite count claimed
-  scope: Fresh local fixture capture at immutable source; no live-provider or production assertion
-prior3b18SourceCaptureGates:
   sourceHead: 3b18fd7360903f2a3a7097700f0d0182e6294386
   visualIntelligenceMatrix: 30 passed; zero failures, skips, retries or flaky cases; actual EN/ZH at three viewports
   postCaptureGates: NOT_RUN_BY_THIS_CAPTURE_WRAPPER; separate final evidence readers, typecheck and release gates are required
