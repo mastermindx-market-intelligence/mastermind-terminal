@@ -241,3 +241,78 @@ export function readCompanionFlow(raw: unknown, root: string): CompanionFlowEven
   }
   return rows.sort((a, b) => Date.parse(b.ts) - Date.parse(a.ts));
 }
+
+/** Clocks carried on a matrix receipt. A missing field stays null; nothing is inferred from another clock. */
+export interface MatrixReceipts {
+  session: string;
+  build: string | null;
+  eod: string | null;
+  greeks: string | null;
+  oiPublication: string | null;
+  previousOiPublication: string | null;
+  latestOiPublication: string | null;
+  spotClock: null;
+  mixed: boolean;
+}
+
+/** Admits a real date, a clock time and an explicit zone, and returns that text unchanged. */
+function buildClock(value: unknown): string | null {
+  if (typeof value !== "string") return null;
+  const match = /^(\d{4}-\d{2}-\d{2})T(\d{2}):(\d{2}):(\d{2})(\.\d{1,9})?(Z|[+-]\d{2}:\d{2})$/.exec(value);
+  if (!match) return null;
+  const date = match[1];
+  const hour = Number(match[2]);
+  const minute = Number(match[3]);
+  const second = Number(match[4]);
+  const zone = match[6];
+  if (isoSession(date) === null) return null;
+  if (hour > 23 || minute > 59 || second > 59) return null;
+  if (zone !== "Z") {
+    const zoneHour = Number(zone.slice(1, 3));
+    const zoneMinute = Number(zone.slice(4, 6));
+    if (zoneHour > 23 || zoneMinute > 59) return null;
+  }
+  return Number.isFinite(Date.parse(value)) ? value : null;
+}
+
+function sourceClock(source: Record<string, unknown> | null, field: string): string | null {
+  return source ? isoSession(source[field]) : null;
+}
+
+/** Read source, build and open-interest clocks only where this receipt actually carries them. */
+export function readMatrixReceipts(receipt: CompanionMatrix): MatrixReceipts {
+  let session = "";
+  try {
+    session = typeof receipt?.session === "string" ? receipt.session : "";
+    const docUnknown: unknown = receipt?.doc;
+    const doc = object(docUnknown) ? docUnknown : null;
+    const build = doc ? buildClock(doc.asof) : null;
+    const metaUnknown: unknown = doc?._build_meta;
+    const meta = object(metaUnknown) ? metaUnknown : null;
+    const source = meta && object(meta.source_dates) ? meta.source_dates : null;
+    const eod = sourceClock(source, "eod");
+    const greeks = sourceClock(source, "greeks");
+    const oiPublication = sourceClock(source, "oi_publication");
+    const previousOiPublication = sourceClock(source, "previous_oi_publication");
+    const latestOiPublication = sourceClock(source, "latest_oi_publication");
+    const mixed = [eod, greeks, oiPublication].some((clock) => clock !== null && clock !== session);
+    return { session, build, eod, greeks, oiPublication, previousOiPublication, latestOiPublication, spotClock: null, mixed };
+  } catch {
+    return {
+      session, build: null, eod: null, greeks: null, oiPublication: null,
+      previousOiPublication: null, latestOiPublication: null, spotClock: null, mixed: false,
+    };
+  }
+}
+
+/** Identity of one published matrix build. Two reads of that build match; a new asof or session does not. Cells are not visited. */
+export function matrixSnapshotKey(raw: unknown, root: string): string | null {
+  try {
+    if (!isMatrixDocForRoot(raw, root)) return null;
+    const session = isoSession(raw._build_meta?.asof_date);
+    if (!session) return null;
+    return `${root}|${session}|${typeof raw.asof === "string" ? raw.asof : ""}`;
+  } catch {
+    return null;
+  }
+}
