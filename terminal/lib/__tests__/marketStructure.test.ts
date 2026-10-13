@@ -161,7 +161,7 @@ describe("scenarioGrid", () => {
 
   it("is antisymmetric in the spot axis when vanna and time are held at zero", () => {
     const g = scenarioGrid(aggregate(ROWS), { dsPct: [-2, 2], dVolPts: [0], dtDays: 0 });
-    expect(g.cells[0][0]).toBeCloseTo(-g.cells[0][1], 10);
+    expect(g.cells[0][0]).toBeCloseTo(-g.cells[0][1]!, 10);
   });
 
   it("reports the colour-scale anchor and lens availability", () => {
