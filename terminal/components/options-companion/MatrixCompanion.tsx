@@ -205,6 +205,9 @@ export function MatrixCompanion({ root, metric, prefs, onPrefs, t, ...pin }: Pin
         session: data.session, strikes: domain.strikes, expiries: domain.expiries,
       });
       if (result.ok) {
+        // Norm change in exact mode is a prefs transaction: replace only the
+        // norm key on the CURRENT prefs; never leak the four exact strings.
+        if (draftPrefs.norm !== prefs.norm) onPrefs({ ...prefs, norm: draftPrefs.norm });
         setAppliedMode("exact");
         setAppliedExact(fields);
       }
@@ -257,7 +260,8 @@ export function MatrixCompanion({ root, metric, prefs, onPrefs, t, ...pin }: Pin
 
   const draftChanged = draftMode !== appliedMode
     || (draftMode === "preset" && !samePrefs(draftPrefs, prefs))
-    || (draftMode === "exact" && (!appliedExact || !sameExact(appliedExact, draftExact)));
+    || (draftMode === "exact" && (!appliedExact || !sameExact(appliedExact, draftExact)))
+    || (draftMode === "exact" && draftPrefs.norm !== prefs.norm);
   const applyValid = draftMode === "exact" ? (parseDraft?.ok ?? false) : true;
   const applyDisabled = !draftChanged || !applyValid;
 
@@ -361,19 +365,21 @@ export function MatrixCompanion({ root, metric, prefs, onPrefs, t, ...pin }: Pin
           <label><span>{t("strikes")}</span><select data-testid="options-scope-window" aria-label={t("strikes")} value={draftPrefs.window} onChange={(e) => setDraftPrefs({ ...draftPrefs, window: Number(e.target.value) as MatrixPreferences["window"] })}>
             {[3, 6, 12, 25].map((n) => <option value={n} key={n}>±{n}%</option>)}
           </select></label>
-          <label><span>{t("normalization")}</span><select data-testid="options-scope-norm" aria-label={t("normalization")} value={draftPrefs.norm} onChange={(e) => setDraftPrefs({ ...draftPrefs, norm: e.target.value as MatrixNorm })}>
-            <option value="global">{t("global")}</option><option value="column">{t("column")}</option>
-          </select></label>
         </> : <div className={styles.exactGrid}>
           <label><span>{t("fromStrike")}</span><input type="text" inputMode="decimal" data-testid="options-scope-from" aria-label={t("fromStrike")} aria-invalid={issueByField.from ? "true" : "false"} aria-describedby={parseDraft && !parseDraft.ok ? "options-scope-issues" : undefined} value={draftExact.from} onChange={(e) => setExactField("from", e.target.value)} /></label>
           <label><span>{t("toStrike")}</span><input type="text" inputMode="decimal" data-testid="options-scope-to" aria-label={t("toStrike")} aria-invalid={issueByField.to ? "true" : "false"} aria-describedby={parseDraft && !parseDraft.ok ? "options-scope-issues" : undefined} value={draftExact.to} onChange={(e) => setExactField("to", e.target.value)} /></label>
           <label><span>{t("dteMinScope")}</span><input type="text" inputMode="numeric" data-testid="options-scope-dte-min" aria-label={t("dteMinScope")} aria-invalid={issueByField.min ? "true" : "false"} aria-describedby={parseDraft && !parseDraft.ok ? "options-scope-issues" : undefined} value={draftExact.dteMin} onChange={(e) => setExactField("dteMin", e.target.value)} /></label>
           <label><span>{t("dteMaxScope")}</span><input type="text" inputMode="numeric" data-testid="options-scope-dte-max" aria-label={t("dteMaxScope")} aria-invalid={issueByField.max ? "true" : "false"} aria-describedby={parseDraft && !parseDraft.ok ? "options-scope-issues" : undefined} value={draftExact.dteMax} onChange={(e) => setExactField("dteMax", e.target.value)} /></label>
         </div>}
+        <label><span>{t("normalization")}</span><select data-testid="options-scope-norm" aria-label={t("normalization")} value={draftPrefs.norm} onChange={(e) => setDraftPrefs({ ...draftPrefs, norm: e.target.value as MatrixNorm })}>
+          <option value="global">{t("global")}</option><option value="column">{t("column")}</option>
+        </select></label>
       </div>
       {draftMode === "exact" && (parseDraft?.ok
         ? <p className={styles.scopeHint} data-testid="options-scope-preview">{previewText}</p>
-        : <p className={styles.warning} data-testid="options-scope-issues" aria-live="polite" role="status">{issueSentences}</p>)}
+        : parseDraft && !parseDraft.ok
+          ? <p className={styles.warning} data-testid="options-scope-issues" aria-live="polite" role="status">{issueSentences}</p>
+          : null)}
       <p className={styles.scopeHint}>{t("pending")}</p>
       <div className={styles.scopeActions}>
         <button type="button" className={styles.link} data-testid="options-scope-cancel" onClick={cancelScope}>{t("cancel")}</button>
