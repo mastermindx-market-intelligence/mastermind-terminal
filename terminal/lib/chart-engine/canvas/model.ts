@@ -1198,7 +1198,6 @@ class ModelTimeScaleHandle implements TimeScaleHandle {
     if (!this.m.alive) return {};
     return {
       ...this.m.timeScaleBehaviour,
-      rightOffset: this.m.time.rightOffset,
       barSpacing: this.m.time.barSpacing,
     };
   }

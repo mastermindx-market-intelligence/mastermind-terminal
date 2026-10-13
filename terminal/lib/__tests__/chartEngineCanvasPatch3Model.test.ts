@@ -281,6 +281,21 @@ describe("model2 F-3 — scrollToRealtime targets the OPTION rightOffset", () =>
     expect(m.time.rightOffset).toBeGreaterThan(0);
     expect(m.time.rightOffset).toBeLessThan(8);
   });
+
+  it("REV-F3 after a pan, options().rightOffset still reports the OPTION rightOffset", () => {
+    const m = mounted();
+    const ts = m.timeScaleHandleFor();
+    ts.applyOptions({ rightOffset: 5 });
+    expect(m.time.rightOffset).toBe(5);
+    // Pan so the live offset differs from the option slot.
+    ts.setVisibleLogicalRange({ from: -5, to: 5 });
+    expect(m.time.rightOffset).toBe(-5);
+    // LWC dev:13370-13375: options() reports the option-bag rightOffset;
+    // barSpacing is the only field overridden live. The canvas handle must match.
+    const opts = ts.options();
+    expect(opts.rightOffset).toBe(5);
+    expect(opts.barSpacing).toBe(m.time.barSpacing);
+  });
 });
 
 // ============================================================================
