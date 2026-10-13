@@ -13,7 +13,7 @@ import { dteRaw } from "@/lib/dte";
 import styles from "./OptionsCompanion.module.css";
 
 export interface MatrixPreferences { expiries: "3" | "6" | "12" | "0dte"; window: 3 | 6 | 12 | 25; norm: MatrixNorm }
-export interface PinProps { pinned: OptionsChartLevel | null; onPin: (level: OptionsChartLevel | null) => void; replayActive: boolean }
+export interface PinProps { pinned: OptionsChartLevel | null; onPin: (level: OptionsChartLevel | null) => void; replayActive: boolean; onShowChart?: () => void }
 const samePrefs = (a: MatrixPreferences, b: MatrixPreferences) =>
   a.expiries === b.expiries && a.window === b.window && a.norm === b.norm;
 
@@ -413,6 +413,13 @@ export function MatrixCompanion({ root, metric, prefs, onPrefs, t, ...pin }: Pin
               <strong>{selectionCurrent.strike} · {selectionCurrent.expiry} · {selectedValue == null ? t("missing") : fmtMatrixCell(selectedValue, metric)}</strong>
               <PinButton {...pin} root={root} strike={selectionCurrent.strike} session={data.session} label={`${t("strike")} ${selectionCurrent.strike} · EOD`} t={t} />
               <button type="button" className={styles.action} data-testid="options-inspect-node" onClick={focusInspector}>{t("inspectNode")}</button>
+              {pin.onShowChart && host !== "page" && <button type="button" className={styles.action} data-testid="options-show-on-chart"
+                disabled={pin.replayActive}
+                onClick={() => {
+                  const isPinned = pin.pinned?.root === root && pin.pinned.price === selectionCurrent.strike && pin.pinned.session === data?.session;
+                  if (!isPinned) pin.onPin({ root, price: selectionCurrent.strike, session: data.session, label: `${t("strike")} ${selectionCurrent.strike} · EOD` });
+                  pin.onShowChart?.();
+                }}>{t("showOnChart")}</button>}
             </> : <strong>{t("select")}</strong>}
           </div>
           <div className={styles.legend}>

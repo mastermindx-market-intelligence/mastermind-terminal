@@ -159,71 +159,46 @@ describe("mobileSheetKeepMounted (k3) parked sheet swallows no keystrokes", () =
 describe("mobileSheetKeepMounted (k4) re-presenting restores the last inner focus without overwriting previousFocusRef", () => {
   it("a button focused inside the sheet, parked, then re-presented regains focus", async () => {
     const onClose = vi.fn();
-    const Opener = () => <button type="button" data-opener>Outside</button>;
-    const Inner = () => {
-      // insert an extra button to focus
-      const [shown, setShown] = React.useState(false);
-      return (
-        <div>
-          <button type="button" data-pp2b-inner onClick={() => setShown(true)}>Inner</button>
-          {shown && <span data-pp2b-after>After</span>}
-        </div>
-      );
-    };
-    await act(async () => {
-      host.render(
-        <div>
-          <Opener />
-          <MobileSheet open keepMounted={false} onClose={onClose} initialFocus="sheet">
-            <Inner />
-          </MobileSheet>
-        </div>,
-      );
-    });
+    function Wrapper({ open, keepMounted }: { open: boolean; keepMounted?: boolean }) {
+      return <div>
+        <button type="button" data-opener>Outside</button>
+        <MobileSheet open={open} keepMounted={keepMounted} onClose={onClose} initialFocus="sheet">
+          <div>
+            <button type="button" data-pp2b-inner>Inner</button>
+          </div>
+        </MobileSheet>
+      </div>;
+    }
+    // 1) initial mount closed so previousFocus is recorded as the opener on the OPEN
+    // transition below, the same path as a real launcher click.
+    await act(async () => { host.render(<Wrapper open={false} />); });
+    await flushFrames();
+    const opener = document.querySelector<HTMLButtonElement>("[data-opener]")!;
+    expect(opener).not.toBeNull();
+
+    // 2) open the sheet — focus is on the opener at commit, then the effect snaps it
+    // into the sheet (recording opener as previousFocusRef).
+    await act(async () => { opener.focus(); });
+    await act(async () => { host.render(<Wrapper open={true} />); });
     await flushFrames();
     const inner = document.querySelector<HTMLButtonElement>("[data-pp2b-inner]")!;
     expect(inner).not.toBeNull();
     await act(async () => { inner.focus(); });
     expect(document.activeElement).toBe(inner);
-    // park
-    await act(async () => {
-      host.render(
-        <div>
-          <Opener />
-          <MobileSheet open={false} keepMounted={true} onClose={onClose} initialFocus="sheet">
-            <Inner />
-          </MobileSheet>
-        </div>,
-      );
-    });
+
+    // 3) park (open=false, keepMounted=true)
+    await act(async () => { host.render(<Wrapper open={false} keepMounted={true} />); });
     await flushFrames();
-    // re-present
-    await act(async () => {
-      host.render(
-        <div>
-          <Opener />
-          <MobileSheet open={true} keepMounted={true} onClose={onClose} initialFocus="sheet">
-            <Inner />
-          </MobileSheet>
-        </div>,
-      );
-    });
+
+    // 4) re-present (open=true) → focus moves back to the last inner element.
+    await act(async () => { host.render(<Wrapper open={true} keepMounted={true} />); });
     await flushFrames();
     expect(document.activeElement).toBe(inner);
 
-    // Final close refocuses the opener (not the inner).
-    await act(async () => {
-      host.render(
-        <div>
-          <Opener />
-          <MobileSheet open={false} keepMounted={false} onClose={onClose} initialFocus="sheet">
-            <Inner />
-          </MobileSheet>
-        </div>,
-      );
-    });
+    // 5) final close (open=false, keepMounted=false) refocuses the opener.
+    await act(async () => { host.render(<Wrapper open={false} keepMounted={false} />); });
     await flushFrames();
-    expect(document.activeElement).toBe(document.querySelector<HTMLButtonElement>("[data-opener]"));
+    expect(document.activeElement).toBe(opener);
   });
 });
 

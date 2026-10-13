@@ -31,8 +31,7 @@ vi.mock("next/dynamic", () => ({
     // Required by next/dynamic: returns a wrapper component that accepts the props.
     const StubCompanion = (props: Record<string, unknown>) => {
       stubState.setLatestProps(props);
-      stubState.inc();
-      React.useEffect(() => () => stubState.dec(), []);
+      React.useEffect(() => { stubState.inc(); return () => stubState.dec(); }, []);
       return (
         <div data-testid="stub-companion">
           <button type="button" data-testid="stub-call-show" onClick={() => (props.onShowChart as () => void | undefined)?.()}>
@@ -179,7 +178,7 @@ describe("optionsChartReturn (r1) small viewport — Show on chart parks the she
 });
 
 describe("optionsChartReturn (r2) clicking the chip clears the park and keeps the mount", () => {
-  it("removes the chip, clears data-parked, stub still mounted", async () => {
+  it("removes the chip, the stub stays mounted; the sheet is re-presented", async () => {
     const onPin = vi.fn();
     const mm = installMatchMedia(true, true);
     try {
@@ -192,10 +191,16 @@ describe("optionsChartReturn (r2) clicking the chip clears the park and keeps th
       await act(async () => { (props.onShowChart as () => void)(); });
       await flush();
       const chip = document.querySelector<HTMLButtonElement>('[data-testid="options-chart-return"]')!;
+      expect(chip).not.toBeNull();
+      // before re-present: dialog exists but is parked
+      expect(document.querySelector('[data-detent]')!.getAttribute("data-parked")).toBe("true");
       await act(async () => { chip.click(); });
       await flush();
       expect(document.querySelector('[data-testid="options-chart-return"]')).toBeNull();
-      expect(document.querySelector('[data-detent]')).toBeNull();
+      // K4: re-presenting re-arms the dialog — the dialog is back, no longer parked.
+      const dialog = document.querySelector('[role="dialog"]');
+      expect(dialog).not.toBeNull();
+      expect(dialog!.getAttribute("data-parked")).toBeNull();
       expect(stubState.mountCount()).toBe(1);
       await act(async () => { root.unmount(); }); el.remove();
     } finally { mm.restore(); }

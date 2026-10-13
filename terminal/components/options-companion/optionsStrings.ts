@@ -120,6 +120,10 @@ export const OPTIONS_LEX = {
   scopeIssueSessionInvalid: ["Snapshot session is invalid.", "快照交易日不存在。"],
   scopeIssueNoStrikes: ["No strikes in the selected range.", "所选范围内没有行权价。"],
   scopeIssueNoExpiries: ["No expiries in the selected days-to-expiry range.", "所选到期天数范围内没有到期日。"],
+  // PP2-UI-b: Show on chart (selected-summary → parks the MobileSheet on small viewports)
+  // and the parked "Back to options map" chip that re-presents it.
+  showOnChart: ["Show on chart", "在图表上显示"],
+  chartReturn: ["Back to options map", "返回期权地图"],
 } as const;
 export type OptionsWord = keyof typeof OPTIONS_LEX;
 export type OptionsT = (key: OptionsWord) => string;

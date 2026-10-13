@@ -157,3 +157,9 @@
 
 .railSwitch[hidden]{display:none}
 .sheetTitle{display:flex;align-items:center;justify-content:space-between;width:100%;gap:12px}
+/* PP2-UI-b: the "Back to options map" chip rendered while the MobileSheet is parked on a phone.
+   Fixed so it sits above the chart's roller strip; centred; safe-area aware; below the sheet
+   scrim (220); 44px tap floor. */
+.chartReturn{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(var(--mrs-h,46px) + env(safe-area-inset-bottom,0px) + 12px);z-index:219;min-height:44px;padding:8px 16px;border-radius:22px;background:var(--bg);color:var(--text);border:1px solid var(--line-3);box-shadow:0 4px 14px rgb(0 0 0 / 18%);font:600 12px/1 var(--font-ui);cursor:pointer;max-width:calc(100vw - 32px);display:inline-flex;align-items:center;gap:8px}
+.chartReturn:hover{border-color:var(--brand-2);color:var(--brand-2)}
+.chartReturn:focus-visible{outline:2px solid var(--brand-2);outline-offset:2px}
