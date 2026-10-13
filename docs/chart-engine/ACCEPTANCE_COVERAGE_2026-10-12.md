@@ -205,20 +205,20 @@ Delta vs the previous census (ce-accept-1012 @ 8fb010a91, 43/13/4/3): PROVEN 43 
 
 ## Run evidence (every cited file, run once on this branch)
 
-All commands from `terminal/` at HEAD `9ba1fb50` (the harness commit; the census commit changes docs only) with
+All commands from `terminal/` at HEAD `3c6cbca3` (the harness commits; the census commits change docs only) with
 `VITEST_MAX_THREADS=3 npx vitest run <files>`. The 47 files are exactly the de-duplicated set cited in
 `acceptance_coverage_2026-10-12.json` (`items[].tests[].file`):
 
 - Batch 1 (16 files: axisZoom, chartEngineAxes, chartEngineAxisGestures, chartEngineBench, chartEngineBoundary, chartEngineCanvasC02, chartEngineCanvasKinetic, chartEngineCanvasModel, chartEngineCanvasModelF02, chartEngineCanvasModelF04, chartEngineCanvasModelF05, chartEngineCanvasModelF07, chartEngineCanvasModelF10, chartEngineCanvasPaint, chartEngineCanvasPaintGuard, chartEngineCanvasScaleTruth)
   `Test Files  16 passed (16)` . `Tests  156 passed (156)`
 - Batch 2 (16 files: chartEngineConformance, chartEngineDecorationMigration, chartEngineDrawingBridge, chartEngineFutureAnchors, chartEngineHandles, chartEngineIdentityMarker, chartEngineInput, chartEngineInvalidation, chartEngineKeyboard, chartEngineLiveGeneration, chartEngineLod, chartEngineOptions, chartEnginePaint, chartEnginePrimaryMigration, chartEnginePrimitiveLifecycle, chartEnginePrimitives)
-  `Test Files  16 passed (16)` . `Tests  362 passed (362)`
+  `Test Files  16 passed (16)` . `Tests  363 passed (363)`
 - Batch 3 (15 files: chartEngineReplay, chartEngineScales, chartEngineSeriesGeometry, chartEngineSnapshot, chartEngineStudyMigration, chartEngineTime, drawingPaneReadiness, futureTime, liveCandle, lwcAdapter, paneSyncFrame, paneSyncLinkGroups, paneSyncTimeAxis, priceTagPlacement, sessionBars)
   `Test Files  15 passed (15)` . `Tests  328 passed (328)`
 
-Total: 47 files, 846 tests, 0 failures. Whole-glob gate at the same HEAD:
+Total: 47 files, 847 tests, 0 failures. Whole-glob gate at the same HEAD:
 `VITEST_MAX_THREADS=3 npx vitest run lib/__tests__/chartEngine*.test.ts lib/__tests__/lwcAdapter.test.ts`
-. `Test Files  45 passed (45)` . `Tests  886 passed (886)`; `npx tsc --noEmit` exits 0.
+. `Test Files  45 passed (45)` . `Tests  887 passed (887)`; `npx tsc --noEmit` exits 0.
 
 Harness summary printed by `chartEngineConformance.test.ts` at HEAD (both registrations; the canvas
 declared skip table is EMPTY, so nothing is opted out):
