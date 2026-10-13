@@ -584,10 +584,11 @@ import { buildVisualSeries, participationColor, visualOverlayBundle, visualReado
 import { candleVolumeRank } from "@/lib/suites/trend/candlePainter";
 import { eodSnapshotKnown, replayAxisOf, replayChipAnchor, replayDayChangePct, replayEarlyDotAdmission, replayReceiptAdmission, replaySignalAdmission, replayVisibleCount, replayWarningAdmission, type ReplayAxis, type ReplayCutoff } from "@/lib/replayContract";
 import { detectGapZones, gapZonesAsOf, type GapZone } from "@/lib/gapZones";
+import { deriveDataOrigin, originComposite, originNotCovered, originUnavailable, type DataOrigin } from "@/lib/dataOrigin";
 
 export default function ChartPanel({ symbol, chartType = "candles", indicators, timeframe = "D", replayCutoff = null, onMeta, tool = null, toolActivation = 0, drawingSticky = false, drawingCreationDisabled = false, drawStyle, drawings = [], onDrawingsChange, detectCmd = null, magnet = "off", compare = [], compareCfg = EMPTY_OBJ, isActive = true, syncId = null, liveQuote = null,
   indParams = EMPTY_OBJ, hidden = EMPTY_SET, onToggleHidden, onRemoveInd, onOpenSettings, onOpenSource, pineScripts = EMPTY_PINE, chartSettings, onVisualSettings, onChartApi, extHours = false, episodeId = null,
-  instrumentName, instrumentMarket, instrumentColor, onAddAlert, onTableView, onObjectTree, onOpenSettingsModal, lockedVLine = null, onSetLockedVLine, onIndRowsAt, dayMode = false, onPaneCount, companyName = "", userTier = "free", dataReady = true, initialTimeframe = null }:
+  instrumentName, instrumentMarket, instrumentColor, onAddAlert, onTableView, onObjectTree, onOpenSettingsModal, lockedVLine = null, onSetLockedVLine, onIndRowsAt, dayMode = false, onPaneCount, companyName = "", userTier = "free", dataReady = true, initialTimeframe = null, onDataOrigin }:
   { symbol: string; companyName?: string; chartType?: string; indicators: Set<string>; timeframe?: string; replayCutoff?: ReplayCutoff | null; onMeta?: (m: { symbol: string; timeframe: string; axis: ReplayAxis }) => void;
     /** False until the shell has COMMITTED its persisted prefs. See `effectiveTimeframe`. */
     dataReady?: boolean;
@@ -615,6 +616,8 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
     onPaneCount?: (n: number) => void;
     /** Entitlement tier (UI gate for premium suite modules — authority stays server-side). */
     userTier?: SuiteTier;
+    /** Data OS U02: emits the derived data-origin readout for the data this generation accepted. */
+    onDataOrigin?: (o: DataOrigin) => void;
   }) {
   const t = useT();
   const { lang } = useLang();
@@ -996,6 +999,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
     typeof window !== "undefined" ? window.matchMedia("(max-width:860px)").matches : false
   );
   const onPaneCountRef = useRef(onPaneCount); onPaneCountRef.current = onPaneCount;
+  const onDataOriginRef = useRef(onDataOrigin); onDataOriginRef.current = onDataOrigin;
   const lastPaneCountRef = useRef<number>(-1);   // last reported count to avoid redundant calls
 
   const suiteRuntimeProfile = (key: string): SuiteRuntimeProfile => {
@@ -8804,6 +8808,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
           if (!r.ok || j?.error) feedErr = String(j?.error || `HTTP ${r.status}`);
         } catch (e: any) { feedErr = e?.message || "network error"; }
         if (cancelled || epochRef.current !== epoch) return;
+        onDataOriginRef.current?.(originNotCovered(symbol, "INTRADAY_NOT_IN_V1"));
         sliceRef.current = null;                 // no daily slice on intraday → no sig marks
         setSliceState("none", symbol);
         sessionAnchorRef.current = null; ohlcSrcRef.current = null;   // daily-multiple grid does not apply here
@@ -8914,6 +8919,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
       if (compositeLegs) {
         const legOhlcs = await getCompositeOhlc(compositeLegs);
         if (cancelled || epochRef.current !== epoch) return;
+        onDataOriginRef.current?.(originComposite(symbol));
         const legBars = legOhlcs.map((o: any) =>
           o?.bars?.length ? (o.bars as any[][]).map((b) => ({ time: b[0] as string, o: b[1] as number, h: b[2] as number, l: b[3] as number, c: b[4] as number, v: b[5] as number })) : []
         );
@@ -8950,6 +8956,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
         cpMark(`ohlc-fetch-done[${symbol}]`);
         if (cancelled || epochRef.current !== epoch) return;
         if (ohlcRead.status === "unavailable") {
+          onDataOriginRef.current?.(originUnavailable(symbol));
           // A failed read is not an empty history (failure-state law): say the bars could not be
           // loaded, and announce nothing — no ready edge, data or empty, was earned.
           clearChartData();
@@ -8959,6 +8966,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
           return;
         }
         const ohlc = ohlcRead.status === "data" ? ohlcRead.data : null;
+        onDataOriginRef.current?.(deriveDataOrigin(symbol, ohlc));
         if (!ohlc?.bars?.length) {
           clearChartData();
           if (statusRef.current) statusRef.current.textContent = "No data for this symbol.";
