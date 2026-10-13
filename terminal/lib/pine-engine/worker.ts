@@ -4,6 +4,7 @@
 // this file stays simple — it parses once, caches the AST per source hash, and executes on request.
 //
 // PROTOCOL (see host.ts for the typed contract):
+//   ← { kind: "ready" }                                            (once, after this module evaluates)
 //   → { kind: "compile", reqId, source }
 //        ← { kind: "compiled", reqId, ok, errors, astId }         (astId = source hash, AST cached here)
 //   → { kind: "run", reqId, astId?, source?, bars, inputs, opts }
@@ -13,7 +14,7 @@
 //
 // bars arrive columnar (Float64Array time/o/h/l/c/v + an ISO-time string[] for the engine's date
 // math) — transferable-friendly, so the host can hand ownership of the numeric columns to the worker.
-import { compile, runCompiled, type ParseResult, type Bar } from "./index";
+import { compile, runCompiled, type ParseResult, type Bar, type RunOpts } from "./index";
 import { hashSource, type ColumnarBars, columnsToBars } from "./host-shared";
 
 // AST cache keyed by source hash — a data-only re-run (replay tick, param edit, live splice) reuses
@@ -28,7 +29,7 @@ function cacheAst(id: string, ast: ParseResult) {
 
 type InMsg =
   | { kind: "compile"; reqId: number; source: string }
-  | { kind: "run"; reqId: number; astId?: string; source?: string; bars: ColumnarBars; inputs?: Record<string, any>; opts?: { timeframe?: string; symbol?: string; budgetMs?: number } }
+  | { kind: "run"; reqId: number; astId?: string; source?: string; bars: ColumnarBars; inputs?: Record<string, any>; opts?: { timeframe?: string; symbol?: string; budgetMs?: number; sessionAnchor?: RunOpts["sessionAnchor"] } }
   | { kind: "evict"; astId: string }
   | { kind: "clear" };
 
@@ -80,3 +81,6 @@ ctx.onmessage = (e: MessageEvent<InMsg>) => {
     ctx.postMessage({ kind: "ran", reqId: (msg as any).reqId ?? -1, ok: false, errors: [{ line: 0, col: 0, message, phase: "runtime" }], result: null });
   }
 };
+
+// Host wall budgets start only after this fires — module load is not charged to the run budget.
+ctx.postMessage({ kind: "ready" });

@@ -1445,11 +1445,13 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
   // per-(script,data) result is memoized in pineCacheRef so a re-render with the SAME bar set (pan,
   // indicator toggle) rebuilds synchronously from cache with no worker round-trip or flicker.
   //
-  // Cache key = source · params · symbol · tf · (len:lastTime). The AST cache inside the host is keyed
-  // on source alone, so a bar-count change (replay/live) reuses the compiled AST and only re-runs.
+  // Cache key = source · params · symbol · tf · (len:lastTime) · sessionAnchor. The AST cache inside
+  // the host is keyed on source alone, so a bar-count change (replay/live) reuses the compiled AST
+  // and only re-runs. The published session_anchor is in the key because nD request.security groups
+  // on it — a corrected document with the same last bar would otherwise replay a stale grid.
   const pineDataSig = (rows: Bar[]) => (rows.length ? `${rows.length}:${rows[rows.length - 1].time}` : "0");
   const pineCacheKey = (script: PineScript, rows: Bar[]) =>
-    `${script.source}\0${JSON.stringify(script.params)}\0${symbol}\0${timeframeRef.current}\0${pineDataSig(rows)}`;
+    `${script.source}\0${JSON.stringify(script.params)}\0${symbol}\0${timeframeRef.current}\0${pineDataSig(rows)}\0${JSON.stringify(sessionAnchorRef.current)}`;
   // Cache READER: fresh hit → { result, error }; miss → null (caller launches an async run).
   const pineCached = (script: PineScript, rows: Bar[]): { result: RunResult | null; error: string | null } | null => {
     const cached = pineCacheRef.current.get(script.id);
@@ -1478,7 +1480,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
     }
     let out: PineResult | null = null; let crash: unknown;
     try {
-      out = await host.run({ slot: script.id, source: script.source, astId: pineAstRef.current.get(script.id)?.astId ?? undefined, bars: rows as any, inputs: script.params || {}, opts: { timeframe: timeframeRef.current, symbol }, budgetMs: PINE_RUNTIME_CAP_MS });
+      out = await host.run({ slot: script.id, source: script.source, astId: pineAstRef.current.get(script.id)?.astId ?? undefined, bars: rows as any, inputs: script.params || {}, opts: { timeframe: timeframeRef.current, symbol, sessionAnchor: sessionAnchorRef.current }, budgetMs: PINE_RUNTIME_CAP_MS });
     } catch (e) { crash = e; }
     if (out && out.cancelled) return null;   // superseded → let the newer run win; don't cache
     if (out && out.astId && pineAstRef.current.get(script.id)?.source === script.source) pineAstRef.current.set(script.id, { source: script.source, astId: out.astId });
@@ -2704,13 +2706,13 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
   // Client-Pine FALLBACK: run the ungated v1 confluence Pine (ORACLE_V1_PINE) on the DAILY bars and
   // map its ★ / CUT / RE-BUY plotshapes to signal dates. Reached only when the slice ships no signal
   // history (resolveSigMarks) — the v1 lane is unscored, so its marks carry no quality/tier. Memoized
-  // per (symbol · daily length · last daily date) so the Pine runs at most once per symbol load.
+  // per (symbol · daily length · last daily date · sessionAnchor) so the Pine runs at most once per symbol load.
   const oracleSignals = (daily: Bar[]) => {
-    const key = `${symbolRef.current}|${daily.length}|${daily[daily.length - 1]?.time ?? ""}`;
+    const key = `${symbolRef.current}|${daily.length}|${daily[daily.length - 1]?.time ?? ""}|${JSON.stringify(sessionAnchorRef.current)}`;
     if (oracleMemoRef.current.key === key) return oracleMemoRef.current.sig;
     const sig: { ts: string; type: string }[] = [];
     try {
-      const out = runPine(ORACLE_V1_PINE, daily as any, { timeframe: "D", symbol: symbolRef.current });
+      const out = runPine(ORACLE_V1_PINE, daily as any, { timeframe: "D", symbol: symbolRef.current, sessionAnchor: sessionAnchorRef.current });
       if (out.ok && out.result) {
         for (const sh of out.result.shapes) {
           // ★ discriminates BUY (below the bar) vs SELL (above); CUT / RE-BUY carry their own label.
