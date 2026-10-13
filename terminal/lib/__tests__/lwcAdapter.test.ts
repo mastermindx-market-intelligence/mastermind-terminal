@@ -406,10 +406,16 @@ describe("lwc adapter — construction & options", () => {
       handleScale: { mouseWheel: true },
       autoSize: false,
     };
+    // Snapshot BEFORE the call: `createChart.mock.calls[0][1]` is the very object we
+    // handed in, so asserting against `bag` would also match an adapter that strips a
+    // group IN PLACE (`delete options.kineticScroll`) — the caller's bag loses the key
+    // and both sides of toEqual() agree. A pre-call deep copy pins what was forwarded.
+    const expected = structuredClone(bag);
     createEngine(container, bag);
     expect(H.createChart).toHaveBeenCalledTimes(1);
     expect(H.createChart.mock.calls[0][0]).toBe(container);
-    expect(H.createChart.mock.calls[0][1]).toEqual(bag);
+    expect(H.createChart.mock.calls[0][1]).toEqual(expected);
+    expect(bag).toEqual(expected); // the adapter must not mutate the caller's options
   });
 
   it("createEngine throws on an unknown impl", () => {

@@ -339,9 +339,10 @@ describe("canvas engine skeleton", () => {
     // pair (a second destroy must not construct or disconnect anything new — the F-2
     // mutant inverts `opts.autoSize` in canvas/dom.ts:106 and silently skips
     // construction, which would leave instances empty).
-    const roInstances: Array<{ observeCalls: number; disconnected: boolean }> = [];
+    const roInstances: Array<{ observeCalls: number; disconnectCalls: number; disconnected: boolean }> = [];
     class FakeRO {
       observeCalls = 0;
+      disconnectCalls = 0;
       disconnected = false;
       constructor() {
         roInstances.push(this);
@@ -352,6 +353,7 @@ describe("canvas engine skeleton", () => {
       unobserve(): void { /* test stand-in */ }
       disconnect(): void {
         this.disconnected = true;
+        this.disconnectCalls += 1;
       }
     }
     const { engine } = mount({
@@ -370,12 +372,14 @@ describe("canvas engine skeleton", () => {
     expect(roInstances[0].disconnected).toBe(false);
     engine.destroy();
     expect(roInstances[0].disconnected).toBe(true);
+    expect(roInstances[0].disconnectCalls).toBe(1);
     engine.destroy();
     // Second destroy is a no-op: no new instance, and the same observer's
     // disconnected flag stays exactly where the first destroy left it (no extra
     // disconnect() invocations on any observer).
     expect(roInstances).toHaveLength(1);
     expect(roInstances[0].disconnected).toBe(true);
+    expect(roInstances[0].disconnectCalls).toBe(1);
     expect(container.contains(root)).toBe(false);
     expect(container.childNodes).toHaveLength(0);
     expect(engine.inventory()).toEqual({
