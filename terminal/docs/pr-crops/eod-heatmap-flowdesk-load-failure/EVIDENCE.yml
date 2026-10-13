@@ -1,3 +1,4 @@
+# 2026-10-13 #996 (U02 data-origin readout) source hash reconciliation: preserves captured PNG bytes/provenance; the only globals.css change is the added .cfb-origin* selectors, which style only that chip; the only dataCache.ts change is additive OHLC-view exports (OhlcView, CURRENT_TRADJ_VIEW, ohlcViewKey, isSupportedOhlcView, OhlcViewOutcome, getOhlcView) consumed only by ChartPanel/ChartPane on /terminal; existing exports unchanged; the element crops on /options?tab=gex|desk and /discover?tab=heatmap mount no ChartPanel, ChartPane or ChartFrameBar.
 # EOD belt, Flow Desk chain heat and Heatmap flow layer failure-state truth — capture evidence
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
 # Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
@@ -5,7 +6,7 @@
 # capturedAt: 2026-10-11T15:53:28.995Z
 # capturedAtHead is informational. The lock is layoutFiles.
 layoutFiles:
-  terminal/app/globals.css: "4a141b28f9c4755c9ba812dace23b963415934b57abe59c4dbf4e90c8a189fc6"
+  terminal/app/globals.css: "987a8879025429b131570ea4eeffed29bdd013c9218d65f5e4867aea2903d748"
   terminal/components/eodcontext/DarkPoolMini.tsx: "1a32c139addae19531a4c9463e6f9b278e0c6b6626c59d0092bc2a0a45527420"
   terminal/components/eodcontext/EodContextBelt.tsx: "983b21e1a030ab66aada5d773a9d0ae9abccf0e796452e9cd6e3df62d6761013"
   terminal/components/eodcontext/StructureStrip.tsx: "e4edc9df9e58a544a30930ac3369c77491e0d5323748b3c1ac600adfc7ee23d3"
@@ -13,7 +14,7 @@ layoutFiles:
   terminal/components/flowdesk/FlowDeskView.tsx: "7c4ee44e695dbf928ebe5f7991bf7d0a7e8745420852c6773a3aa51456bae021"
   terminal/components/gexdesk/GexDeskView.tsx: "f9e037eb90cb10ea0a943a9c16d11849c429b66f5b548f055b8860d83f938ef5"
   terminal/components/heatmap/HeatmapView.tsx: "3b3ab5049715a33f167e344d3013b8f880356e8b96077b38c9a517c57b7a54cb"
-  terminal/lib/dataCache.ts: "bdc57d88c8387223b2e1cf5b11bb47c88782c9ee2fbfb8a468aab52876b8f116"
+  terminal/lib/dataCache.ts: "f8a7f978049e64482b385d43c13d49d05ddec2525e36457b365a2d083060e1be"
   terminal/lib/eodContext.ts: "a942505fa38c3bb86242508d3c88cb75e13160054c4e8dbf79088d44a6ae9032"
   terminal/lib/flowdeskStrings.ts: "ef323513f39c37a55a152642bfc7c7ac5dfa0de50dde2c32244e7d171bf868fa"
   terminal/lib/heatmapStrings.ts: "26bb75eccce7429e5a37154f07f7f68faf9652da1f6f3560074cb558f0dda9c2"
