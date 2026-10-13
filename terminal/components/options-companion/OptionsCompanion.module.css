@@ -56,7 +56,10 @@
 .missingKey{display:inline-flex;align-items:center;gap:4px}
 .missingKey b{font-weight:600;color:var(--text);font-variant-numeric:tabular-nums}
 .missingSwatch{width:14px;height:10px;flex:none;border:1px solid var(--line-3);border-radius:2px;background-color:transparent;background-image:repeating-linear-gradient(-45deg,transparent,transparent 2px,var(--line-3) 2px,var(--line-3) 3px)}
-.mapLayout{container-type:inline-size;display:flex;flex-direction:column;gap:8px;min-width:0}
+/* The size container is the wrapper, never .mapLayout itself: an @container rule cannot restyle the
+   element that declares the container, which left the two-column rule inert. */
+.mapHost{container-type:inline-size;min-width:0;flex:none}
+.mapLayout{display:flex;flex-direction:column;gap:8px;min-width:0}
 .mapColumn{display:flex;flex-direction:column;gap:6px;min-width:0}
 .selectedSummary{display:flex;align-items:center;flex-wrap:wrap;gap:8px;min-width:0;min-height:32px}
 .selectedSummary strong{min-width:0;font:600 12px/1.35 var(--font-num);font-variant-numeric:tabular-nums}
@@ -114,11 +117,17 @@
 .flowRow footer{margin-top:2px}.flowRow footer span,.flowRow footer time{font-size:9px}
 .flowReceipt{font-size:10px;line-height:1.5;overflow-wrap:anywhere;flex:none}
 .sheet .header{display:none}.sheet .root{min-height:0;height:100%;padding-top:4px}.sheet .view{overflow:auto}
+/* Page host: the companion is the /options Exposure desk body, not a rail. The page scrolls, so the
+   view does not own a scroll box, and the perspective tabs size to their labels. */
+.root.page{flex:none;padding:0;background:transparent}
+.page .view{flex:none;overflow:visible;padding-bottom:0}
+@media(min-width:641px){.page .tabs{display:inline-grid;grid-template-columns:repeat(4,minmax(88px,auto));align-self:flex-start}}
 /* A deliberately scoped light material for the companion. This does not add or advertise
    a new Terminal-wide theme switch; the existing chart theme remains its own owner. */
 :global(html[data-theme="light"]) .root{--bg:#f7f8fa;--panel:#fff;--panel-2:#fff;--panel-3:#eef1f6;--text:#1c2430;--text-2:#536174;--line:#e1e5eb;--line-3:#c9d0da;--brand-2:#285fff;--warn:#8a5b11;--exposure-positive:#0b7580;--exposure-negative:#843a9a;background:var(--bg)}
 :global(html[data-theme="light"]) .inspector{box-shadow:0 2px 8px rgb(30 45 70 / 7%)}
 :global(html[data-theme="light"]) .tabs button[aria-selected="true"]{background:var(--panel);box-shadow:0 1px 4px rgb(30 45 70 / 12%)}
+:global(html[data-theme="light"]) .root.page{background:transparent}
 @media(max-width:860px){.overview{flex:none;overflow:visible}.railSwitch{display:none}.root{padding:8px 12px}.sheet .root{height:100%}.summary strong{font-size:22px}.view{gap:6px}.summary{padding-bottom:4px}}
 @media(max-width:640px){.view{gap:4px}.scopeBar{padding:0}.summary{gap:2px 8px;padding:0 0 2px}.summary strong{font-size:18px;line-height:1.1}.legend{gap:1px 8px;line-height:1.2}.mapColumn{gap:4px}.root{padding-bottom:2px}}
 @media(pointer:coarse),(max-width:860px){.railSwitch button,.tabs button,.lens button,.action,.link,.deskLink,.method summary,.controls select,.scopeButton,.scopeBriefGrid>button,.close,.receipt button{min-height:44px}.receipt button{width:44px}.profile>button{min-height:44px}.tabs button{font-size:12px}.notice,.warning,.inspector p,.method p{font-size:11px}.controls label>span,.viewCaption{font-size:10px}}

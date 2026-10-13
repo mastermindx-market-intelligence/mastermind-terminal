@@ -6,6 +6,7 @@ import { readCompanionMatrix, matrixForExpiry, type CompanionIssue, type Options
 import { useOptionsSnapshot } from "./useOptionsSnapshot";
 import { type OptionsT } from "./optionsStrings";
 import { GexMarketMemory } from "./GexMarketMemory";
+import { useOptionsHost } from "./optionsHost";
 import styles from "./OptionsCompanion.module.css";
 
 export interface MatrixPreferences { expiries: "3" | "6" | "12" | "0dte"; window: 3 | 6 | 12 | 25; norm: MatrixNorm }
@@ -41,7 +42,10 @@ export function SnapshotEmpty({ issue = "unavailable", fetchStatus, t, loading, 
 export function PinButton({ root, strike, session, label, pinned, onPin, replayActive, t }: PinProps & {
   root: string; strike: number; session: string; label: string; t: OptionsT;
 }) {
+  const host = useOptionsHost();
   const isPinned = pinned?.root === root && pinned.price === strike && pinned.session === session;
+  // The desk page has no chart beside it, so there is nothing to pin a level to.
+  if (host === "page") return null;
   return <button type="button" className={styles.action} disabled={replayActive}
     aria-pressed={isPinned} onClick={() => onPin(isPinned ? null : { root, price: strike, session, label })}>
     {t(isPinned ? "unpin" : "pin")}
@@ -51,6 +55,7 @@ export function PinButton({ root, strike, session, label, pinned, onPin, replayA
 export function MatrixCompanion({ root, metric, prefs, onPrefs, t, ...pin }: PinProps & {
   root: string; metric: MatrixDisplayMetric; prefs: MatrixPreferences; onPrefs: (prefs: MatrixPreferences) => void; t: OptionsT;
 }) {
+  const host = useOptionsHost();
   const snapshot = useOptionsSnapshot(`matrix:${root}`);
   const receipt = useMemo(() => readCompanionMatrix(snapshot.data, root), [snapshot.data, root]);
   const fetchStatus = snapshot.status;
@@ -166,7 +171,7 @@ export function MatrixCompanion({ root, metric, prefs, onPrefs, t, ...pin }: Pin
         <span data-testid="options-scale-basis">{scaleBasis}</span>
       </div>
       {prefs.norm === "column" && <p className={styles.warning}>{t("columnNote")}</p>}
-      <div className={styles.mapLayout} data-testid="options-map-layout">
+      <div className={styles.mapHost}><div className={styles.mapLayout} data-testid="options-map-layout">
         <div className={styles.mapColumn}>
           <div data-testid="options-map-grid">
             <StrikeExpiryMatrix grid={grid} metric={metric} variant="rail" rail={{ selected: selectedVisible, onSelect: select,
@@ -219,7 +224,7 @@ export function MatrixCompanion({ root, metric, prefs, onPrefs, t, ...pin }: Pin
             <div className={styles.actions}><button type="button" onClick={() => select(null)} className={styles.link}>{t("clear")}</button></div>
           </> : <><strong>{t("select")}</strong><p>{t("keyboard")}</p></>}
         </div>
-      </div>
+      </div></div>
       {stats.missing && stats.knownTotal != null && <p className={styles.warning} data-testid="options-scope-partial" role="status">
         {t("knownSubtotal")} {fmtMatrixCell(stats.knownTotal, metric)} · {stats.known}/{stats.expected} {t("gridPositions")}. {t("totalIncomplete")}
       </p>}
@@ -255,6 +260,6 @@ export function MatrixCompanion({ root, metric, prefs, onPrefs, t, ...pin }: Pin
         <p>{grid.exps.length} / {grid.nExpAll} {t("visible")} · {grid.strikes.length} / {grid.nAll} {t("strike")}</p>
       </details>
     </> : data && <p className={styles.empty}>{t(prefs.expiries === "0dte" ? "noExpiry" : "unavailableBody")}</p>}
-    <a className={styles.deskLink} href="/options?tab=prism">{t("expand")} ↗</a>
+    {host === "rail" && <a className={styles.deskLink} href="/options?tab=prism">{t("expand")} ↗</a>}
   </>;
 }

@@ -7,6 +7,7 @@ import { MatrixCompanion, type MatrixPreferences, type PinProps } from "./Matrix
 import { VannaCompanion } from "./VannaCompanion";
 import { FlowCompanion } from "./FlowCompanion";
 import { optionsT } from "./optionsStrings";
+import { OptionsHostContext, type OptionsHost } from "./optionsHost";
 import styles from "./OptionsCompanion.module.css";
 
 const PERSPECTIVES: OptionsPerspective[] = ["gamma", "vanna", "oi", "flow"];
@@ -29,8 +30,8 @@ function loadPreferences(): Preferences {
   } catch { return DEFAULTS; }
 }
 
-export default function OptionsCompanion({ symbol, onClose, access, ...pin }: PinProps & {
-  symbol: string; onClose: () => void; access: "loading" | "allowed" | "locked";
+export default function OptionsCompanion({ symbol, onClose, access, host = "rail", ...pin }: PinProps & {
+  symbol: string; onClose?: () => void; access: "loading" | "allowed" | "locked"; host?: OptionsHost;
 }) {
   const { lang } = useLang();
   const t = optionsT(lang);
@@ -42,11 +43,14 @@ export default function OptionsCompanion({ symbol, onClose, access, ...pin }: Pi
   const { onPin } = pin;
   useEffect(() => { onPin(null); return () => onPin(null); }, [symbol, access, onPin]);
   function perspective(next: OptionsPerspective) { setPrefs((p) => ({ ...p, perspective: next })); onPin(null); }
-  return <section className={styles.root} data-options-companion data-options-root={root ?? "unsupported"} aria-label={`${t("options")} ${symbol}`} onKeyDown={(event) => {
-    if (event.key === "Escape" && !event.defaultPrevented) { event.preventDefault(); event.stopPropagation(); onClose(); }
-  }}>
-    <header className={styles.header}><h2>{t("options")}</h2><span className={styles.rootSymbol}>↔ {symbol}</span>
-      <button type="button" onClick={onClose} className={styles.close} aria-label={t("close")}>×</button></header>
+  // On the desk page the page itself owns identity and has nothing to close, so there is no header
+  // and Escape is left to the page; inside the scope editor it still closes the editor first.
+  return <OptionsHostContext.Provider value={host}><section className={host === "page" ? `${styles.root} ${styles.page}` : styles.root} data-options-companion
+    data-options-host={host} data-options-root={root ?? "unsupported"} aria-label={`${t("options")} ${symbol}`} onKeyDown={(event) => {
+      if (onClose && event.key === "Escape" && !event.defaultPrevented) { event.preventDefault(); event.stopPropagation(); onClose(); }
+    }}>
+    {onClose && host === "rail" && <header className={styles.header}><h2>{t("options")}</h2><span className={styles.rootSymbol}>↔ {symbol}</span>
+      <button type="button" onClick={onClose} className={styles.close} aria-label={t("close")}>×</button></header>}
     <div className={styles.tabs} role="tablist" aria-label={t("perspectives")}>
       {PERSPECTIVES.map((key, index) => <button type="button" key={key} role="tab" id={`${id}-${key}`} aria-controls={`${id}-view`} aria-selected={prefs.perspective === key}
         tabIndex={prefs.perspective === key ? 0 : -1} onClick={() => perspective(key)} onKeyDown={(event) => {
@@ -76,5 +80,5 @@ export default function OptionsCompanion({ symbol, onClose, access, ...pin }: Pi
         {prefs.perspective === "flow" && prefs.flow === "tape" && <FlowCompanion key={root} root={root} t={t} lang={lang === "zh" ? "zh" : "en"} />}
       </>}
     </div>
-  </section>;
+  </section></OptionsHostContext.Provider>;
 }

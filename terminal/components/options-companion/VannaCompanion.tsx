@@ -4,9 +4,11 @@ import { formatExposureMn, readVannaProfile } from "@/lib/optionsCompanion";
 import { useOptionsSnapshot } from "./useOptionsSnapshot";
 import { PinButton, SnapshotEmpty, SnapshotStamp, type PinProps } from "./MatrixCompanion";
 import type { OptionsT } from "./optionsStrings";
+import { useOptionsHost } from "./optionsHost";
 import styles from "./OptionsCompanion.module.css";
 
 export function VannaCompanion({ root, t, windowPct, ...pin }: PinProps & { root: string; t: OptionsT; windowPct: number }) {
+  const host = useOptionsHost();
   const snapshot = useOptionsSnapshot(`gex:${root}`);
   const receipt = useMemo(() => readVannaProfile(snapshot.data, root), [snapshot.data, root]);
   const data = receipt.ok ? receipt.value : null;
@@ -47,6 +49,6 @@ export function VannaCompanion({ root, t, windowPct, ...pin }: PinProps & { root
       <p>{t("unitsVanna")} · {data.session}</p><PinButton {...pin} root={root} strike={selected.strike} session={data.session} label={`${t("strike")} ${selected.strike} · EOD`} t={t} /></div>}
     <div className={styles.notice}>{t("vannaNote")}</div>
     <details className={styles.method}><summary>{t("basis")}</summary><p>{t("model")}</p><p>{t("estimate")}</p>{published.length !== rows.length && <p>{t("partial")}</p>}</details>
-    <a className={styles.deskLink} href="/options?tab=gex">{t("expand")} ↗</a>
+    {host === "rail" && <a className={styles.deskLink} href="/options?tab=gex">{t("expand")} ↗</a>}
   </>;
 }
