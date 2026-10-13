@@ -903,9 +903,13 @@ export class ChartModel {
   }
 
   paneHandles(): PaneHandle[] {
-    return this.alive ? this.panes.map((_, i) => new ModelPaneHandle(this, i)) : [];
+    return this.alive ? this.panes.map((pane) => new ModelPaneHandle(this, pane)) : [];
   }
-  paneHandle(index: number): PaneHandle { return new ModelPaneHandle(this, index); }
+  paneHandle(index: number): PaneHandle {
+    const pane = this.panes[index];
+    if (!pane) throw new Error(`chart-engine: pane ${index} does not exist`);
+    return new ModelPaneHandle(this, pane);
+  }
   timeScaleHandleFor(): TimeScaleHandle {
     return (this.tsHandle ??= new ModelTimeScaleHandle(this));
   }
@@ -1537,12 +1541,42 @@ class ModelSeriesHandle implements SeriesHandle {
 }
 
 class ModelPaneHandle implements PaneHandle {
-  constructor(private readonly m: ChartModel, private readonly idx: number) {}
-  private pane(): PaneModel | null { return this.m.alive ? this.m.panes[this.idx] ?? null : null; }
-  index(): number { return this.idx; }
-  height(): number { return this.pane()?.height ?? 0; }
+  // A PaneHandle denotes ONE pane for its lifetime. We hold the PaneModel object
+  // directly (ChartModel.swapPanes moves the same PaneModel between slots), so
+  // every method keeps acting on that same pane across reorders.
+  //
+  // Disposal ladder (mirrors LwcPaneHandle):
+  //   • engine destroyed  → quiet no-op (C02 "disposed"; matches the prior
+  //                          baseline of `m.panes[idx] ?? null`)
+  //   • pane removed but  → throw the existing "no longer exists" error
+  //     engine alive         (the orchestrator's binding; tests pin it).
+  constructor(private readonly m: ChartModel, private readonly pane: PaneModel) {}
+  private resolve(): PaneModel | null {
+    if (!this.m.alive) return null;
+    const i = this.m.panes.indexOf(this.pane);
+    return i === -1 ? null : this.pane;
+  }
+  private require(): PaneModel {
+    if (!this.m.alive) {
+      throw new Error(`chart-engine: pane ${this.pane.index} no longer exists`);
+    }
+    const i = this.m.panes.indexOf(this.pane);
+    if (i === -1) {
+      throw new Error(`chart-engine: pane ${this.pane.index} no longer exists`);
+    }
+    return this.pane;
+  }
+  index(): number {
+    // Disposed: return -1 to mirror LwcPaneHandle. A live pane that's been
+    // removed also returns -1 (the underlying PaneModel is no longer in the
+    // chart's array). The acting methods distinguish disposed (no-op) from
+    // removed-alive (throw) via `this.m.alive`.
+    if (!this.m.alive) return -1;
+    return this.m.panes.indexOf(this.pane);
+  }
+  height(): number { return this.resolve()?.height ?? 0; }
   setHeight(px: number): void {
-    const p = this.pane();
+    const p = this.resolve();
     if (!p) return;
     p.height = px;
     p.stretchFactor = Math.max(1e-6, px);
@@ -1550,18 +1584,21 @@ class ModelPaneHandle implements PaneHandle {
     this.m.bump();
   }
   setStretchFactor(factor: number): void {
-    const p = this.pane();
+    const p = this.resolve();
     if (!p) return;
     p.stretchFactor = factor;
     this.m.layoutHeights(this.m.totalHeight);
     this.m.structure();
   }
-  stretchFactor(): number { return this.pane()?.stretchFactor ?? 0; }
+  stretchFactor(): number { return this.resolve()?.stretchFactor ?? 0; }
   getHTMLElement(): HTMLElement | null {
-    return this.m.alive ? this.m.paneElementLookup?.(this.idx) ?? null : null;
+    if (!this.m.alive) return null;
+    const i = this.m.panes.indexOf(this.pane);
+    if (i === -1) return null;
+    return this.m.paneElementLookup?.(i) ?? null;
   }
   getSeries(): SeriesHandle[] {
-    const p = this.pane();
+    const p = this.resolve();
     if (!p) return [];
     const out: SeriesHandle[] = [];
     for (const sid of p.seriesIds) {
@@ -1571,10 +1608,13 @@ class ModelPaneHandle implements PaneHandle {
     return out;
   }
   priceScale(priceScaleId: string): PriceScaleHandle {
-    return this.m.priceScaleHandle(priceScaleId, this.idx);
+    // priceScaleHandle needs the pane's CURRENT index — not the snapshot in
+    // this.pane.index (which only updates after a layout pass). Resolve live.
+    const i = this.index();
+    return this.m.priceScaleHandle(priceScaleId, i === -1 ? 0 : i);
   }
   unwrap<T>(): T {
-    return (this.pane() ?? { index: this.idx, height: 0, stretchFactor: 0, seriesIds: [] }) as unknown as T;
+    return this.pane as unknown as T;
   }
 }
 

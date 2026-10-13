@@ -239,6 +239,15 @@ export interface PriceLineHandle {
 }
 
 export interface PaneHandle {
+  // A PaneHandle denotes ONE pane for its lifetime. After the chart's swapPanes
+  // (or any other move that reorders panes), `index()` MUST return that pane's
+  // CURRENT index, and every other method MUST keep acting on the same pane.
+  // This is the IDENTITY semantic; positional handles that re-resolve through
+  // the renderer at a stored slot index would address the wrong pane after a
+  // swap and silently corrupt overlay metrics, stretch factors, and snapshot
+  // capture. If the pane itself is removed, `index()` returns -1 and the acting
+  // methods throw the engine's "no longer exists" error — they do NOT silently
+  // point at another pane.
   index(): number;
   height(): number;
   setHeight(px: number): void;
