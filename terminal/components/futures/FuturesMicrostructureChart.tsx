@@ -3,6 +3,8 @@
 import { useId, useRef } from "react";
 import { useChartWidth, padDomain, niceTicks, fmtTick, thinLabels } from "@/components/charts/svgChart";
 import type { FuturesChartFrame } from "@/lib/futuresWorkspace";
+import { layoutPriceAxisBadges, priceTagRowTop } from "@/lib/priceTagPlacement";
+import { observedFuturesProfile } from "@/lib/futuresVolumeProfile";
 import css from "./futuresLab.module.css";
 
 export default function FuturesMicrostructureChart({ frames, mode, showGex, zoom, lowTick, highTick, priceStepTicks,
@@ -16,10 +18,14 @@ export default function FuturesMicrostructureChart({ frames, mode, showGex, zoom
   const priceHeight = width < 700 ? 460 : 530;
   const height = priceHeight + (showCvd ? 110 : 0);
   const gutter = mode === "footprint" ? (width < 700 ? 156 : 210) : (width < 700 ? 112 : 170);
-  const visibleCount = mode === "footprint" ? Math.max(2, Math.floor((width - gutter - 12) / 66)) : 120;
+  const visibleCount = mode === "footprint" ? Math.max(2, Math.floor((width - gutter - 96) / 66)) : 120;
   const start = Math.max(0, frames.length - visibleCount), visible = frames.slice(start), current = frames.at(-1);
   const left = 12, right = Math.max(left + 60, width - gutter), top = 26, bottom = priceHeight - 48;
-  const step = (right - left) / Math.max(visible.length, 1);
+  // Reserve a label column outside plotted observations. Never cover the last
+  // footprint's bid/ask numbers with a POC or options-landmark badge.
+  const reserveTags = mode === "footprint" || showGex && current?.gex.status === "ok" && !!current.gex.landmarks?.length;
+  const dataRight = Math.max(left + 60, right - (reserveTags ? 84 : 0));
+  const step = (dataRight - left) / Math.max(visible.length, 1);
   const center = current ? current.bar.closeTicks / 4 : (lowTick + highTick) / 8;
   const half = mode === "footprint" ? Math.max(zoom === 1 ? 3 : 1.75, priceStepTicks / 2) : 4;
   const [lo, hi] = padDomain(mode === "depth" && zoom === 1 ? lowTick / 4 - .125 : center - half,
@@ -32,11 +38,8 @@ export default function FuturesMicrostructureChart({ frames, mode, showGex, zoom
     : size >= 180 ? `rgba(79,211,221,${Math.min(.85, size / 400)})` : `rgba(72,105,204,${Math.min(.6, size / 300)})`;
   const time = (ms: number) => new Date(ms).toISOString().slice(11, 16);
   const times = thinLabels(visible.map((_, i) => i), x, 65);
-  const profile = new Map<number, { buy: number; sell: number; unknown: number }>();
-  for (const frame of frames) for (const cell of frame.bar.cells) {
-    const old = profile.get(cell.priceTicks) ?? { buy: 0, sell: 0, unknown: 0 };
-    old.buy += cell.buy; old.sell += cell.sell; old.unknown += cell.unknown; profile.set(cell.priceTicks, old);
-  }
+  const observedProfile = observedFuturesProfile(frames);
+  const profile = new Map(observedProfile.cells.map(cell => [cell.priceTicks, cell]));
   const peak = Math.max(1, ...[...profile.values()].map(v => Math.max(v.buy, v.sell)));
   const profileX = right + (width < 700 ? 84 : 100), profileHalf = width < 700 ? 22 : 32;
   const gammaX = mode === "footprint" ? right + (width < 700 ? 118 : 144) : right + 64;
@@ -47,6 +50,22 @@ export default function FuturesMicrostructureChart({ frames, mode, showGex, zoom
   const cvdTop = priceHeight - 18, cvdBottom = height - 48;
   const cvdY = (v: number) => cvdBottom - (v - cvdLo) / (cvdHi - cvdLo) * (cvdBottom - cvdTop);
   const cvdPath = visible.map((f, i) => `${i === 0 ? "M" : "L"}${x(i)},${cvdY(f.bar.cvdKnown)}`).join(" ");
+  const titles = { call_wall: pick("Call wall", "\u770b\u6da8\u5899"), put_wall: pick("Put wall", "\u770b\u8dcc\u5899"),
+    gamma_flip: pick("Gamma flip", "\u4f3d\u9a6c\u7ffb\u8f6c") };
+  const shorts = { call_wall: pick("CW \u00b7 all", "\u770b\u6da8\u00b7\u5168"), put_wall: pick("PW \u00b7 all", "\u770b\u8dcc\u00b7\u5168"),
+    gamma_flip: pick("ZG \u00b7 all", "\u7ffb\u8f6c\u00b7\u5168") };
+  const keyLevels = showGex && current?.gex.status === "ok" ? current.gex.landmarks ?? [] : [];
+  const poc = mode === "footprint" ? observedProfile.pointOfControl : null;
+  const tagData = [
+    ...keyLevels.map(level => ({ id: level.key, price: level.futuresPrice, short: shorts[level.key],
+      title: `${titles[level.key]} \u00b7 ${pick("all expiries", "\u5168\u90e8\u5230\u671f\u65e5")} \u00b7 ${level.sourcePrice} \u2192 ${level.futuresPrice.toFixed(4)}`, tone: "#adbbd6" })),
+    ...(poc ? [{ id: "poc", price: poc.priceTicks / 4, short: pick("POC \u00b7 obs", "\u63a7\u70b9\u00b7\u89c2\u6d4b"),
+      title: `${pick("Observed volume peak; captured window; lower price wins ties", "\u89c2\u6d4b\u7a97\u53e3\u6210\u4ea4\u91cf\u5cf0\u503c\uff1b\u5e76\u5217\u53d6\u8f83\u4f4e\u4ef7")} \u00b7 ${poc.priceTicks / 4}${priceStepTicks > 1 ? `-${(poc.priceTicks + priceStepTicks - 1) / 4}` : ""} \u00b7 ${poc.total}`, tone: "#bda5ff" }] : []),
+  ].filter(tag => y(tag.price) >= top && y(tag.price) <= bottom);
+  const tagWidth = Math.max(48, Math.min(76, right - left - 8));
+  const placements = layoutPriceAxisBadges({ paneHeight: bottom - top, activeTop: priceTagRowTop(y(center) - top),
+    activeHeight: 0, rowHeight: 16, gap: 2, badges: tagData.map(tag => ({ id: tag.id,
+      anchorY: y(tag.price) - top, naturalTop: priceTagRowTop(y(tag.price) - top, 16) })) });
   return <div className={css.chart} ref={wrap} data-contract={contract} data-testid="futures-chart">
     {!current && <p role="status" className={css.empty}>{pick("No completed intervals at this replay cutoff.", "截止时间内没有已完成的时间区间。")}</p>}
     <svg width={width} height={height} viewBox={`0 0 ${width} ${height}`} role="img"
@@ -74,6 +93,11 @@ export default function FuturesMicrostructureChart({ frames, mode, showGex, zoom
               {cell.unknown > 0 && <circle cx={x(n)} cy={y(cell.priceTicks / 4) - 8} r="3" fill="#ffd47a"><title>{`${cell.unknown} ${unknownText}`}</title></circle>}
             </g>)}
         </g>)}
+        {showGex && visible.map(({ gex }, n) => gex.status !== "ok" ? null : (gex.landmarks ?? []).map(level =>
+          <line key={`landmark:${n}:${level.key}`} data-testid="futures-landmark-segment" data-level-key={level.key}
+            data-mapped-price={level.futuresPrice} data-frame-end={visible[n].endMs}
+            x1={x(n) - step / 2} x2={x(n) + step / 2} y1={y(level.futuresPrice)} y2={y(level.futuresPrice)}
+            stroke="#adbbd6" strokeWidth="1" strokeDasharray="3 4" opacity=".55" />))}
         {showGex && visible.map(({ gex }, n) => gex.status !== "ok" ? null : gex.projection.mapped.map(level =>
           level.gammaNetMn === null ? null : <circle key={`${n}:${level.sourceStrike}`} data-testid="gex-bubble" cx={x(n)} cy={y(level.futuresPrice)}
             data-source-strike={level.sourceStrike} data-mapped-price={level.futuresPrice}
@@ -94,6 +118,19 @@ export default function FuturesMicrostructureChart({ frames, mode, showGex, zoom
         level.gammaNetMn === null || y(level.futuresPrice) < top || y(level.futuresPrice) > bottom ? null : <g key={level.sourceStrike}>
           <rect x={gammaX} y={y(level.futuresPrice) - 3} width={Math.min(gammaWidth, Math.abs(level.gammaNetMn) / 400 * gammaWidth)} height="6" fill={color(level.gammaNetMn)} />
           <text x={gammaX} y={y(level.futuresPrice) - 8} fill={color(level.gammaNetMn)} fontSize="10">{level.gammaNetMn.toFixed(1)}M</text></g>)}
+      <g clipPath={`url(#${clipId})`}>
+        {placements.map(placement => {
+          const tag = tagData.find(item => item.id === placement.id)!;
+          const tagX = right - tagWidth - 8, tagY = top + placement.top;
+          return <g key={tag.id} data-testid={tag.id === "poc" ? "futures-poc" : "futures-key-level"}
+            data-level-key={tag.id} data-mapped-price={tag.price} data-expiry-scope={tag.id === "poc" ? "observed_window" : "all"}>
+            <line x1={tagX + tagWidth} x2={right} y1={tagY + 8} y2={top + placement.anchorY} stroke={tag.tone} strokeWidth="1" />
+            <rect x={tagX} y={tagY} width={tagWidth} height="16" rx="2" fill="#18243a" stroke={tag.tone} strokeWidth=".5" />
+            <text x={tagX + 4} y={tagY + 11} fontSize="10" fill={tag.tone}>{tag.short}</text>
+            <title>{tag.title}</title>
+          </g>;
+        })}
+      </g>
       {showCvd && current && <g data-testid="futures-cvd" data-cvd={current.bar.cvdKnown}>
         <line x1={left} x2={right} y1={cvdTop - 9} y2={cvdTop - 9} stroke="#334259" />
         <text x={left} y={cvdTop - 14} fill="#a9b6cf" fontSize="10">{pick("Known-side CVD · captured window", "已知方向累积净量 · 观测窗口")}</text>

@@ -2,6 +2,26 @@
 
 Research as of 2026-10-12 UTC / 2026-10-11 Pacific. Current Chairman continuation explicitly requests deeper Pro research and implementation. This is an extension of Terminal's existing Options/Market Structure and Quote Hub owners, not another product backend or control plane.
 
+## Named levels / POC continuation 2026-10-13
+
+The source-owned call wall, put wall and gamma flip are now passed through the validated
+frame/API and drawn with historical frame-local segments and all-expiry scope. Existing
+Options Levels owns their values; existing badge placement owns collision geometry.
+Observed captured-window POC uses admitted trades only and remains independent of GEX.
+A visual overlap with the final footprint cells was fixed by reserving a label column,
+with a geometry assertion. Derived frame availability and exposure-age consistency now
+survive the wire boundary. Source-restricted responses are not automatically retried.
+
+Evidence: docs/evidence/futures-key-levels-20261013/; 264 focused tests (50 incumbent),
+27 production-route synthetic, 15 synthetic lab and six real historical browser cases
+pass. Public charts are captioned synthetic; nine actual-price PNGs remain ignored.
+No new public-sample acquisition. A targeted Project-files search for an approved CME/
+Databento grant returned no records; this does not prove no grant exists elsewhere and
+no source entitlement is inferred. Next: freeze this source, qualify the optimized
+production build and whole-candidate regression, then preserve exact-head CI/review and
+approved-source activation as real outstanding gates. Do not claim earlier-build proof
+covers changed chart/frame code. All original carrier/source and denied-review fences remain.
+
 ## Compiled qualification 2026-10-13 (current frontier)
 
 Integrated current Terminal master 792405edce606d4047a6dc7dd7f4711f9e77aba6 without

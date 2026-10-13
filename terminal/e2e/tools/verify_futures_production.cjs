@@ -8,7 +8,9 @@ const { execFileSync } = require('node:child_process');
 const { chromium } = require('@playwright/test');
 const root = path.resolve(__dirname, '../..');
 const base = 'http://127.0.0.1:3597';
-const evidence = path.resolve(root, '../docs/evidence/futures-production-build-20261013');
+const evidence = process.env.FUTURES_PRODUCTION_EVIDENCE_DIR
+  ? path.resolve(process.env.FUTURES_PRODUCTION_EVIDENCE_DIR)
+  : path.resolve(root, '../docs/evidence/futures-production-build-20261013');
 const hash = bytes => createHash('sha256').update(bytes).digest('hex');
 async function main() {
   assert.ok(fs.existsSync(path.join(root, '.next/BUILD_ID')), 'run the normal production build first');

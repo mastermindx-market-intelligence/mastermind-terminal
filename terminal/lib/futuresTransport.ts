@@ -1,3 +1,4 @@
+import type { FuturesNamedLevel } from "./futuresGexLevels";
 /** Bounded read-only view contract. Does not grant source rights or create publication receipts. */
 import { isRecord, finiteNumber, validClockMs, isFuturesGexContract, FUTURES_GEX_UNIT } from "./futuresGexProjection";
 import type { FuturesChartFrame, FuturesFootprintBar, FuturesDepthColumn } from "./futuresWorkspace";
@@ -45,7 +46,13 @@ function gamma(value: unknown, request: FuturesRequest, contract: string, endMs:
   if (v.expiryLens !== expectedLens) return null;
   if (v.selectedExpiries !== undefined && (!Array.isArray(v.selectedExpiries) || v.selectedExpiries.length > 400 || !v.selectedExpiries.every(isSessionDate))) return null;
   if (v.expirySessionDate !== undefined && !isSessionDate(v.expirySessionDate)) return null;
-  if (expectedLens !== "all" && (!futuresRef(v.matrixArtifactId) || !validClockMs(v.matrixAvailableAtMs) || v.matrixAvailableAtMs > endMs)) return null;
+  if (expectedLens !== "all" && (!futuresRef(v.matrixArtifactId) || !validClockMs(v.matrixAvailableAtMs) || v.matrixAvailableAtMs > endMs ||
+      !validClockMs(v.matrixAsOfMs) || v.matrixAsOfMs > v.matrixAvailableAtMs)) return null;
+  const frameAvailableAtMs = Math.max(v.sourceAvailableAtMs, v.indexAvailableAtMs, v.futuresAvailableAtMs,
+    expectedLens !== "all" ? v.matrixAvailableAtMs as number : 0);
+  const exposureAgeMs = Math.max(endMs - v.sourceAsOfMs, expectedLens !== "all" ? endMs - (v.matrixAsOfMs as number) : 0);
+  if (v.exposureAgeMs !== exposureAgeMs || (v.frameAvailableAtMs !== undefined && v.frameAvailableAtMs !== frameAvailableAtMs) ||
+      (v.expiryCutBasis !== undefined && v.expiryCutBasis !== "source_session_date_not_trading_cutoff")) return null;
   const strikes = new Set<number>();
   const mapped = [];
   for (const row of p.mapped) {
@@ -57,12 +64,28 @@ function gamma(value: unknown, request: FuturesRequest, contract: string, endMs:
     strikes.add(row.sourceStrike);
     mapped.push({ sourceStrike: row.sourceStrike, futuresPrice: row.futuresPrice, displayTickPrice: row.displayTickPrice as number, gammaNetMn: row.gammaNetMn as number | null });
   }
-  const allowedProvenance = ["artifactId", "definitionId", "sourceAsOf", "sourceAsOfMs", "sourceAvailableAtMs", "decisionTimeMs", "indexAvailableAtMs", "futuresAvailableAtMs", "indexFeedBasis", "futuresFeedBasis", "quoteAgeMs", "exposureAgeMs", "inventoryBasis", "expiryLens", "dealerPositioning", "matrixArtifactId", "matrixAvailableAtMs", "matrixAsOfMs", "expirySessionDate", "selectedExpiries"];
-  return { status: "ok", schema: "terminal.futures_gex_frame/v1", projection: {
+  const allowedProvenance = ["artifactId", "definitionId", "sourceAsOf", "sourceAsOfMs", "sourceAvailableAtMs", "decisionTimeMs", "indexAvailableAtMs", "futuresAvailableAtMs", "indexFeedBasis", "futuresFeedBasis", "quoteAgeMs", "exposureAgeMs", "inventoryBasis", "expiryLens", "dealerPositioning", "matrixArtifactId", "matrixAvailableAtMs", "matrixAsOfMs", "expirySessionDate", "selectedExpiries", "expiryCutBasis"];
+  const landmarks: FuturesNamedLevel[] = [];
+  if (value.landmarks !== undefined) {
+    if (!Array.isArray(value.landmarks) || value.landmarks.length > 3) return null;
+    const seen = new Set<string>();
+    for (const level of value.landmarks) {
+      if (!isRecord(level) || !["call_wall", "put_wall", "gamma_flip"].includes(String(level.key)) ||
+          seen.has(String(level.key)) || level.expiryScope !== "all" ||
+          !finiteNumber(level.sourcePrice) || level.sourcePrice <= 0 ||
+          !finiteNumber(level.futuresPrice) || !finiteNumber(level.displayTickPrice)) return null;
+      const expected = p.method === "ratio" ? level.sourcePrice * p.ratio : level.sourcePrice + p.basis;
+      if (expected <= 0 || Math.abs(level.futuresPrice - expected) > 1e-8 || Math.abs(level.displayTickPrice - Math.round(expected * 4) / 4) > 1e-8) return null;
+      seen.add(String(level.key)); landmarks.push({ key: level.key as FuturesNamedLevel["key"],
+        sourcePrice: level.sourcePrice, futuresPrice: level.futuresPrice,
+        displayTickPrice: level.displayTickPrice, expiryScope: "all" });
+    }
+  }
+  return { status: "ok", schema: "terminal.futures_gex_frame/v1", landmarks, projection: {
     pair: request.pair, indexRoot: request.pair === "ES" ? "SPX" : "NDX", futuresContract: contract, method: request.method,
     exposureUnit: FUTURES_GEX_UNIT, basis: p.basis, ratio: p.ratio, observedAtMs: p.observedAtMs,
     skewMs: p.skewMs as number, indexTimestampMs: p.indexTimestampMs, futuresTimestampMs: p.futuresTimestampMs, mapped,
-  }, provenance: Object.fromEntries(allowedProvenance.filter(k => k in v).map(k => [k, v[k]])) as never };
+  }, provenance: { ...Object.fromEntries(allowedProvenance.filter(k => k in v).map(k => [k, v[k]])), frameAvailableAtMs } as never };
 }
 
 /** Validate math, time, identity and cell budgets. Unknown depth/greeks stay unknown. */

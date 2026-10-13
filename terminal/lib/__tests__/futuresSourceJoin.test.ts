@@ -161,3 +161,38 @@ it("does not keep an expired contract current merely because the feed heartbeat 
   const replay = { ...request, cutoffMs: p.cutoffMs }; p.request = replay;
   expect(parseFuturesPublishedView(p, replay, now)).not.toBeNull();
 });
+
+describe("named level wire boundary", () => {
+  it("retains source and mapped prices with explicit all-expiry scope", () => {
+    const got = parseFuturesPublishedView(packet(), request, now); expect(got).not.toBeNull();
+    const last = got!.frames.at(-1)!.gex; if (last.status !== "ok") throw Error("fixture");
+    expect(last.landmarks).toHaveLength(3); expect(last.landmarks!.every(v => v.expiryScope === "all")).toBe(true);
+  });
+  for (const fault of ["wrong_price", "wrong_scope", "duplicate_role", "unknown_role"] as const)
+    it(`refuses ${fault} before named level rendering`, () => {
+      const p = packet(), g = p.frames[0].gex; if (g.status !== "ok" || !g.landmarks?.length) throw Error("fixture");
+      if (fault === "wrong_price") g.landmarks[0].futuresPrice += .25;
+      if (fault === "wrong_scope") Object.assign(g.landmarks[0], { expiryScope: "zero" });
+      if (fault === "duplicate_role") g.landmarks[1].key = g.landmarks[0].key;
+      if (fault === "unknown_role") Object.assign(g.landmarks[0], { key: "unsupported_wall" });
+      expect(parseFuturesPublishedView(p, request, now)).toBeNull();
+    });
+  it("keeps old publications without named levels compatible", () => {
+    const p = packet(); for (const f of p.frames) if (f.gex.status === "ok") delete f.gex.landmarks;
+    const got = parseFuturesPublishedView(p, request, now); expect(got).not.toBeNull();
+    const g = got!.frames[0].gex; if (g.status === "ok") expect(g.landmarks).toEqual([]);
+  });
+});
+
+it("retains the derived frame-availability clock and cannot relabel old exposure as fresh", () => {
+  const p = packet(), g = p.frames[0].gex; if (g.status !== "ok") throw Error("fixture");
+  const result = parseFuturesPublishedView(p, request, now); expect(result).not.toBeNull();
+  const parsed = result!.frames[0].gex; if (parsed.status !== "ok") throw Error("fixture");
+  expect(parsed.provenance.frameAvailableAtMs).toBe(Math.max(g.provenance.sourceAvailableAtMs,
+    g.provenance.indexAvailableAtMs, g.provenance.futuresAvailableAtMs));
+  g.provenance.exposureAgeMs = 0; expect(parseFuturesPublishedView(p, request, now)).toBeNull();
+});
+it("rejects fabricated frame availability rather than silently stripping it", () => {
+  const p = packet(), g = p.frames[0].gex; if (g.status !== "ok") throw Error("fixture");
+  g.provenance.frameAvailableAtMs += 1; expect(parseFuturesPublishedView(p, request, now)).toBeNull();
+});

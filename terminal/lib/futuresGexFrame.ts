@@ -10,6 +10,7 @@ import {
 } from "./futuresGexProjection";
 
 import { selectFuturesGexLens, validFuturesLens, type FuturesMatrixSource, type FuturesLensReason } from "./futuresGexLens";
+import { deriveFuturesNamedLevels, type FuturesNamedLevel } from "./futuresGexLevels";
 import type { ExpiryLens } from "./gexLadder";
 
 export type FuturesGexFrameInput = {
@@ -38,6 +39,7 @@ export type FuturesGexFrame = { status: "unavailable"; reason: FuturesGexFrameRe
   status: "ok";
   schema: "terminal.futures_gex_frame/v1";
   projection: FuturesGexProjection;
+  landmarks?: FuturesNamedLevel[];
   provenance: {
     artifactId: string; definitionId: string; sourceAsOf: string;
     sourceAsOfMs: number; sourceAvailableAtMs: number; decisionTimeMs: number;
@@ -118,7 +120,8 @@ export function buildFuturesGexFrame(input: FuturesGexFrameInput): FuturesGexFra
   const projection = projectFuturesGex(q, rows, p.maxClockSkewMs, p.method);
   if (!projection) return unavailable("invalid_projection");
   const coverage = isRecord(source.coverage) ? source.coverage : null;
-  return { status: "ok", schema: "terminal.futures_gex_frame/v1", projection, provenance: {
+  return { status: "ok", schema: "terminal.futures_gex_frame/v1", projection,
+    landmarks: deriveFuturesNamedLevels(source, q, p.maxClockSkewMs, p.method), provenance: {
     artifactId: r.artifactId, definitionId: c.definitionId, sourceAsOf: source.asof,
     sourceAsOfMs: r.sourceAsOfMs, sourceAvailableAtMs: r.availableAtMs,
     decisionTimeMs: p.decisionTimeMs, indexAvailableAtMs: a.indexAvailableAtMs,

@@ -5,7 +5,7 @@ import path from "node:path";
 // Requires an independently prepared local public-sample prefix. Never downloads
 // market data in CI or commits actual-price images to the public repository.
 test.skip(process.env.RUN_FUTURES_PUBLIC_SAMPLE !== "1", "Local historical source canary only");
-const evidence = path.resolve(__dirname, "../../.local-futures/browser-evidence");
+const evidence = process.env.FUTURES_SAMPLE_EVIDENCE_DIR || path.resolve(__dirname, "../../.local-futures/browser-evidence");
 async function capture(page: import("@playwright/test").Page, name: string) {
   fs.mkdirSync(evidence, { recursive: true });
   await page.screenshot({ path: path.join(evidence, name + ".png"), fullPage: true });
@@ -30,6 +30,8 @@ test("actual historical executions and event-integrated depth render without gen
   await page.getByRole("tab", { name: "Footprint", exact: true }).click();
   await expect(page.getByTestId("footprint-cell")).not.toHaveCount(0);
   await expect(page.getByTestId("futures-volume-profile")).toHaveCount(1);
+  await expect(page.getByTestId("futures-poc")).toHaveCount(1);
+  await expect(page.getByTestId("futures-key-level")).toHaveCount(0);
   await capture(page, `${info.project.name}-historical-footprint-en`);
   const slider = page.locator("#futures-sample-replay");
   await slider.focus(); await slider.press("Home");

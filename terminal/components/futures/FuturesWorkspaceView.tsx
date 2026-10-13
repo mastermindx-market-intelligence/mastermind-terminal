@@ -83,6 +83,14 @@ export default function FuturesWorkspaceView({ initialRequest }: { initialReques
             <table><thead><tr><th>{t("strike")}</th><th>{t("level")}</th><th>{t("gammaHeading")}</th></tr></thead>
               <tbody>{current.projection.mapped.map(row => <tr key={row.sourceStrike}><td>{row.sourceStrike}</td>
                 <td data-testid="mapped-level">{row.futuresPrice.toFixed(4)}</td><td>{row.gammaNetMn === null ? "—" : row.gammaNetMn.toFixed(2)}</td></tr>)}</tbody></table>}
+          {current?.status === "ok" && !!current.landmarks?.length && <details data-testid="futures-key-level-details">
+            <summary style={{ minHeight: 44, display: "flex", alignItems: "center", cursor: "pointer" }}>{t("keyLevels")}</summary>
+            <p>{t("keyLevelNotice")}</p>
+            <table><thead><tr><th>{t("keyLevels")}</th><th>{t("strike")}</th><th>{t("level")}</th></tr></thead>
+              <tbody>{current.landmarks.map(level => <tr key={level.key} data-testid="futures-landmark-row" data-level-key={level.key}>
+                <td>{t(level.key)}</td><td>{level.sourcePrice}</td><td>{level.futuresPrice.toFixed(4)}</td>
+              </tr>)}</tbody></table>
+          </details>}
         </section>
       </>}
       <p className={css.warning}>{t("notice")}</p>

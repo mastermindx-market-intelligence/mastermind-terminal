@@ -35,6 +35,7 @@ export function useFuturesWorkspace(request: FuturesRequest, ownerKey: string, r
         if (!alive) return;
         if (!response.ok) {
           const reason = publicFuturesReason(raw && typeof raw === "object" && "error" in raw ? raw.error : null);
+          if (reason === "source_restricted") stopped = true;
           setState({ key, status: "unavailable", reason }); return;
         }
         const data = parseFuturesPublishedView(raw, request, Date.now());

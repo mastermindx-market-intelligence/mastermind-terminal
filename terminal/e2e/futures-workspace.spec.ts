@@ -30,6 +30,19 @@ async function crop(page: Page, name: string) {
   });
   await page.screenshot({ path: path.join(dir, name + ".png"), fullPage: true });
 }
+async function chartCrop(page: Page, name: string) {
+  const dir = process.env.FUTURES_WORKSPACE_EVIDENCE_DIR; if (!dir) return;
+  mkdirSync(dir, { recursive: true });
+  const chart = page.getByTestId("futures-chart");
+  await chart.evaluate(host => {
+    if (host.querySelector('[data-chart-fixture-caption]')) return;
+    const label = document.createElement("p"); label.dataset.chartFixtureCaption = "true";
+    label.textContent = "SYNTHETIC HTTP FIXTURE - CHART VERIFICATION";
+    label.style.cssText = "margin:0;padding:6px 10px;color:#e6cd8c;font-size:11px;background:#182033";
+    host.prepend(label);
+  });
+  await chart.screenshot({ path: path.join(dir, name + ".png") });
+}
 async function reply(page: Page, outcome: () => string = () => "ok") {
   await page.route("**/api/futures?*", async route => {
     const query = parseFuturesRequest(new URL(route.request().url()).searchParams); if (!query) throw Error("bad UI query");
@@ -156,4 +169,66 @@ test("an access denial is never automatically retried or kept on the chart", asy
   await expect(page.getByTestId("futures-chart")).toHaveCount(0);
   await page.getByRole("button", { name: "Refresh source", exact: true }).click();
   await expect(page.getByTestId("futures-chart")).toBeVisible();
+});
+
+
+test("source-owned walls and flip retain all-expiry scope, while POC survives without gamma", async ({ page }, info) => {
+  await prepare(page); await reply(page);
+  const errors: string[] = [];
+  page.on("pageerror", error => errors.push(error.message));
+  page.on("console", message => { if (message.type() === "error") errors.push(message.text()); });
+  await page.goto("/options/futures?pair=ES");
+  await expect(page.getByTestId("futures-chart")).toBeVisible();
+  await expect(page.getByTestId("futures-key-level")).toHaveCount(3);
+  await expect(page.getByTestId("futures-landmark-segment")).toHaveCount(72);
+  const details = page.getByTestId("futures-key-level-details");
+  await details.locator("summary").click();
+  await expect(page.getByTestId("futures-landmark-row")).toHaveCount(3);
+  const levels = await page.getByTestId("futures-landmark-row").allTextContents();
+  await expect(details).toContainText("all-expiry scope");
+  const segments = await page.getByTestId("futures-landmark-segment").evaluateAll(elements => elements
+    .filter(el => el.getAttribute("data-level-key") === "call_wall")
+    .map(el => ({ price: el.getAttribute("data-mapped-price"), end: el.getAttribute("data-frame-end") })));
+  expect(new Set(segments.map(s => s.price)).size).toBeGreaterThan(1);
+  expect(new Set(segments.map(s => s.end)).size).toBe(24);
+  const before = await page.getByTestId("gex-bubble").last().locator("title").textContent();
+  await page.getByLabel("Expiry lens", { exact: true }).selectOption("zero");
+  await expect(page.getByTestId("futures-landmark-row")).toHaveCount(3);
+  expect(await page.getByTestId("futures-landmark-row").allTextContents()).toEqual(levels);
+  const after = await page.getByTestId("gex-bubble").last().locator("title").textContent();
+  expect(after).not.toBe(before);
+  const misplaced = await page.getByTestId("futures-key-level").evaluateAll(elements => elements
+    .filter(el => el.getAttribute("data-expiry-scope") !== "all").length);
+  expect(misplaced).toBe(0);
+  await crop(page, `${info.project.name}-key-levels-all-scope`);
+  await chartCrop(page, `${info.project.name}-key-levels-chart`);
+  await page.getByRole("tab", { name: "Footprint", exact: true }).click();
+  await expect(page.getByTestId("futures-poc")).toHaveCount(1);
+  const clearLabels = await page.getByTestId("futures-chart").evaluate(host => {
+    const cells = [...host.querySelectorAll('[data-testid="footprint-cell"] > rect')].map(el => el.getBoundingClientRect().right);
+    const labels = [...host.querySelectorAll('[data-testid="futures-poc"] > rect, [data-testid="futures-key-level"] > rect')]
+      .map(el => el.getBoundingClientRect().left);
+    return cells.length > 0 && labels.every(left => left >= Math.max(...cells));
+  });
+  expect(clearLabels).toBe(true);
+  const poc = await page.getByTestId("futures-poc").getAttribute("data-mapped-price");
+  await page.getByRole("checkbox", { name: "Show options gamma", exact: true }).uncheck();
+  await expect(page.getByTestId("futures-key-level")).toHaveCount(0);
+  await expect(page.getByTestId("gex-bubble")).toHaveCount(0);
+  await expect(page.getByTestId("futures-poc")).toHaveAttribute("data-mapped-price", poc!);
+  await expect(page.getByTestId("futures-poc")).toHaveAttribute("data-expiry-scope", "observed_window");
+  await crop(page, `${info.project.name}-observed-poc-gamma-off`);
+  await chartCrop(page, `${info.project.name}-poc-chart-gamma-off`);
+  await noOverflow(page); expect(errors).toEqual([]);
+});
+
+
+test("a source-distribution restriction is not treated as a transient outage", async ({ page }) => {
+  await prepare(page); await page.clock.install();
+  let requests = 0; await reply(page, () => { requests++; return "source_restricted"; });
+  await page.goto("/options/futures?pair=ES");
+  await expect(page.getByTestId("futures-unavailable")).toContainText("not cleared for subscriber display");
+  const deniedRequests = requests; await page.clock.fastForward(60000);
+  expect(requests).toBe(deniedRequests);
+  await expect(page.getByTestId("futures-chart")).toHaveCount(0);
 });

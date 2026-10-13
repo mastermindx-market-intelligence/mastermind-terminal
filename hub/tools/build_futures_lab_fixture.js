@@ -62,7 +62,9 @@ function build({ pair, indexRoot, instrumentId, baseTick, basis, strikes, filena
         indexFeedBasis: 'realtime', futuresFeedBasis: 'realtime' },
       contract: { symbol: context.contract, definitionId: binding.definitionId,
         validFromMs: baseMs - 86400000, validUntilMs: baseMs + 86400000 },
-      source: { schema: 'options_hub.gex/v1', root: indexRoot, asof: '2026-10-09', coverage: { oi_date: 't-1' }, by_strike: byStrike },
+      source: { schema: 'options_hub.gex/v1', root: indexRoot, asof: '2026-10-09', spot_ref: index,
+        call_wall: strikes[2], put_wall: strikes[0], gamma_flip: strikes[1],
+        coverage: { oi_date: 't-1' }, by_strike: byStrike },
       sourceReceipt: { ...receipt, artifactId: `synthetic:${pair}:gex:${minute}` },
       matrix: { payload: matrix, receipt: { ...receipt, artifactId: `synthetic:${pair}:matrix:${minute}` } },
       policy: { decisionTimeMs: time, maxQuoteAgeMs: 5000, maxExposureAgeMs: 60000, maxClockSkewMs: 2000, method: 'ratio' } });
