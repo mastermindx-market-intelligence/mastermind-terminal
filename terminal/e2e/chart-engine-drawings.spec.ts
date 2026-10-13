@@ -108,7 +108,7 @@ test.describe("chart-engine drawings [mobile A03 handle grab]", () => {
       const layer = page.locator(".pane.on .drawing-layer");
       const drawing = layer.locator(`g[data-drawing-id="${SEED_TRENDLINE.id}"]`);
       await expect(drawing).toBeVisible({ timeout: 45_000 });
-      const hitLine = drawing.locator('line[stroke="transparent"]').first();
+      const hitLine = drawing.locator('line[data-segment="1"]').first();
       const hitBox = await hitLine.boundingBox();
       expect(hitBox).not.toBeNull();
       const selectX = hitBox!.x + hitBox!.width * 0.5;
