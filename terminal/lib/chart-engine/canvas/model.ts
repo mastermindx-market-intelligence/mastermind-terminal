@@ -46,8 +46,8 @@ import {
 import { EngineRefusalError, assertEnginePrimitive } from "./refusal";
 import {
   applyBarSpacingToWindow,
-  applyRightOffsetToWindow,
   clampBarSpacingValue,
+  clampVisibleWindow,
   correctRightOffset,
   defaultModelClock,
   defaultTimeScaleBehaviour,
@@ -61,6 +61,7 @@ import {
   SCROLL_TO_REALTIME_MS,
   type ModelClock,
   type TimeScaleBehaviour,
+  type VisibleWindowClamp,
 } from "./modelTime";
 
 export type { ModelClock };
@@ -305,9 +306,41 @@ export class ChartModel {
     this.bump();
   }
 
+  /**
+   * Clamp a requested window through the single LWC-exact choke-point
+   * (modelTime.clampVisibleWindow, PERF-A C1): bar-spacing bounds first, right
+   * edge kept, always-on correctOffset bounds, window derived from the clamped
+   * spacing and width. An in-bounds request round-trips bitwise.
+   */
+  private clampWindow(from: number, to: number): VisibleWindowClamp {
+    return clampVisibleWindow({
+      from,
+      to,
+      widthPx: this.time.widthPx,
+      rowCount: this.primarySeries()?.rows.length ?? 0,
+      minBarSpacing: this.timeScaleBehaviour.minBarSpacing,
+      maxBarSpacing: this.timeScaleBehaviour.maxBarSpacing,
+      fixLeftEdge: this.timeScaleBehaviour.fixLeftEdge,
+      fixRightEdge: this.timeScaleBehaviour.fixRightEdge,
+      fallbackSpacing: this.time.barSpacing,
+    });
+  }
+
+  private commitWindow(next: VisibleWindowClamp): void {
+    this.time.visibleFrom = next.from;
+    this.time.visibleTo = next.to;
+    this.time.barSpacing = next.barSpacing;
+    this.time.rightOffset = next.rightOffset;
+  }
+
+  /**
+   * Re-derive spacing from the CURRENT window under the clamp rules. Called by
+   * the setData auto-fit (sibling-owned), so the very first frame after a bulk
+   * load is already O(visible): a 40k-row fit lands on minBarSpacing and shows
+   * width/0.5 bars instead of walking every row (PERF-A F1).
+   */
   private recomputeSpacing(): void {
-    const span = this.time.visibleTo - this.time.visibleFrom;
-    this.time.barSpacing = span !== 0 ? this.time.widthPx / span : this.time.barSpacing;
+    this.commitWindow(this.clampWindow(this.time.visibleFrom, this.time.visibleTo));
   }
 
   private syncRightOffsetFromWindow(): void {
@@ -332,6 +365,10 @@ export class ChartModel {
 
   setWidth(widthPx: number): void {
     resizeTimeScaleWidth(this.time, widthPx, this.timeScaleBehaviour.lockVisibleTimeRangeOnResize);
+    // A width change moves the maxBarSpacing bound (width * 0.5 when the
+    // option is 0) and the correctOffset max (width/barSpacing): re-run the
+    // same clamp every other window write goes through (PERF-A C1).
+    this.recomputeSpacing();
   }
 
   primarySeries(): SeriesModel | null {
@@ -607,15 +644,15 @@ export class ChartModel {
   setVisibleLogicalRange(range: EngineLogicalRange): void {
     if (!this.alive) return;
     const { from, to } = range;
-    if (from === this.time.visibleFrom && to === this.time.visibleTo) return;
-    this.time.visibleFrom = from;
-    this.time.visibleTo = to;
+    if (!Number.isFinite(from) || !Number.isFinite(to)) return;
+    if (!(to - from > 0)) return;
+    const next = this.clampWindow(from, to);
+    if (next.from === this.time.visibleFrom && next.to === this.time.visibleTo) return;
+    this.commitWindow(next);
     this.rangeExplicit = true;
-    this.recomputeSpacing();
-    this.syncRightOffsetFromWindow();
     this.generation += 1;
     this.hooks.onInvalidate();
-    for (const h of this.rangeHandlers) h({ from, to });
+    for (const h of this.rangeHandlers) h({ from: next.from, to: next.to });
   }
 
   getVisibleLogicalRange(): EngineLogicalRange | null {
@@ -661,7 +698,14 @@ export class ChartModel {
   }
 
   fitContent(): void {
-    if (this.alive) this.setVisibleLogicalRange({ from: 0, to: Math.max(1, this.primarySeries()?.rows.length ?? 0) });
+    if (!this.alive) return;
+    const n = this.primarySeries()?.rows.length ?? 0;
+    // LWC _internal_fitContent (dev:6404-6413): setVisibleRange(first,
+    // last + options.rightOffset, applyDefaultOffset=true). In this model's
+    // exclusive convention that is {0, n + rightOffset}; the clamp then lands
+    // the spacing at its bound and keeps the requested right edge (dev:6393).
+    if (n <= 0) return;
+    this.setVisibleLogicalRange({ from: 0, to: n + this.timeScaleBehaviour.rightOffset });
   }
   scrollToRealtime(): void {
     if (!this.alive) return;
@@ -740,12 +784,22 @@ export class ChartModel {
       const raw = typeof opts.barSpacing === "number" ? opts.barSpacing : this.time.barSpacing;
       const clamped = clampBarSpacingValue(raw, minS, maxS);
       applyBarSpacingToWindow(this.time, clamped, this.timeScaleBehaviour.rightBarStaysOnScroll);
+      // Re-run the full clamp so min/max changes and the always-on offset
+      // bounds apply to the resulting window (PERF-A C1).
+      this.recomputeSpacing();
       this.syncRightOffsetFromWindow();
     }
     const offsetTouched = opts.rightOffset !== undefined || opts.fixLeftEdge !== undefined || opts.fixRightEdge !== undefined;
     if (offsetTouched) {
       const raw = typeof opts.rightOffset === "number" ? opts.rightOffset : this.time.rightOffset;
-      const clamped = correctRightOffset(
+      // Always-on correctOffset bounds (dev:6574-6603) via the shared
+      // choke-point govern the LIVE window. The option slot keeps the legacy
+      // fix-flag clamp (C02 / F-11 pin): fixRightEdge floors the stored option
+      // at 0, fixLeftEdge raises it to barsEstimation - n.
+      const span = this.time.visibleTo - this.time.visibleFrom;
+      const target = n + raw;
+      this.commitWindow(this.clampWindow(target - span, target));
+      this.timeScaleBehaviour.rightOffset = correctRightOffset(
         raw,
         n,
         this.time.widthPx,
@@ -753,8 +807,6 @@ export class ChartModel {
         this.timeScaleBehaviour.fixLeftEdge,
         this.timeScaleBehaviour.fixRightEdge,
       );
-      applyRightOffsetToWindow(this.time, clamped, n);
-      this.timeScaleBehaviour.rightOffset = clamped;
     }
     this.bump();
   }

@@ -29,6 +29,7 @@ import {
   zoomAxisRange,
   type AxisRange,
 } from "../axisZoom";
+import { clampBarSpacingValue } from "./modelTime";
 
 export type LogicalIndex = number;
 
@@ -90,6 +91,8 @@ export type InputControllerDeps = {
   schedule(cb: () => void): () => void;
   options: InputControllerOptions;
   onGesture?: (gesture: InputGesture) => void;
+  /** Spacing bounds + data length for clamp-before-anchor zooms (C2). */
+  zoomLimits?: () => ZoomLimits;
 };
 
 export type InputOptionsPatch = {
@@ -123,7 +126,9 @@ const AXIS_ZOOM_EXPONENT_PER_PX = 0.0012;
 const DEFAULT_OPTIONS: InputControllerOptions = {
   handleScroll: { mouseWheel: true, pressedMouseMove: true, horzTouchDrag: true, vertTouchDrag: true },
   handleScale: { mouseWheel: true, pinch: true, axisPressedMouseMove: true },
-  kineticScroll: { mouse: true, touch: true },
+  // LWC kineticScrollDefaults (dev:12417-12420): mouse inertia is OFF, touch
+  // stays on. Callers that pass an explicit kineticScroll bag still win.
+  kineticScroll: { mouse: false, touch: true },
 };
 
 export function logicalOfX(x: number, ts: TimeScaleState): LogicalIndex {
@@ -150,14 +155,71 @@ export function zoomTimeAround(
   return { from: nextFrom, to: nextFrom + nextSpan };
 }
 
+// ── PERF-A C2: pointer-anchored zoom with LWC spacing bounds ───────────────────
+
+/** Spacing bounds + data length for clamp-before-anchor zooms. */
+export type ZoomLimits = { minBarSpacing: number; maxBarSpacing: number; barCount: number };
+
+/**
+ * Zoom anchor: the logical point plus the CSS px it must stay at. On data the
+ * anchor is the EXISTING bar under the pointer pinned at its own pixel centre
+ * (PERF-A F4); off data it is the float index under the pointer.
+ */
+export type ZoomAnchor = { anchorLogical: LogicalIndex; anchorX: number };
+
+/** Bar-centre anchor for a pointer at `x` (float fallback off data / no data). */
+export function barCentreAnchor(ts: TimeScaleState, x: number, barCount?: number): ZoomAnchor {
+  const floatLogical = logicalOfX(x, ts);
+  if (ts.barSpacing > 0 && barCount != null && Number.isFinite(barCount)) {
+    const bar = Math.round(floatLogical);
+    if (bar >= 0 && bar < barCount) {
+      return { anchorLogical: bar, anchorX: (bar - ts.visibleFrom + 0.5) * ts.barSpacing };
+    }
+  }
+  return { anchorLogical: floatLogical, anchorX: x };
+}
+
+/**
+ * zoomTimeAround with the new spacing CLAMPED BEFORE the anchor is placed
+ * (PERF-A F4): the clamped spacing is the one the model will accept, so the
+ * model's own clamp never re-quantises the anchored range. Without limits the
+ * legacy float-anchor law (zoomTimeAround) applies unchanged.
+ */
+export function zoomTimeAroundAt(
+  ts: TimeScaleState,
+  anchor: ZoomAnchor,
+  factor: number,
+  limits?: ZoomLimits,
+): { from: number; to: number } {
+  const span = ts.visibleTo - ts.visibleFrom;
+  if (!(factor > 0) || !Number.isFinite(factor) || !(span > 0) || !(ts.barSpacing > 0)) {
+    return { from: ts.visibleFrom, to: ts.visibleTo };
+  }
+  let nextSpacing = ts.barSpacing / factor;
+  if (limits) {
+    const min = Number.isFinite(limits.minBarSpacing) && limits.minBarSpacing > 0 ? limits.minBarSpacing : 0.5;
+    const max = Math.max(min, Number.isFinite(limits.maxBarSpacing) && limits.maxBarSpacing > 0
+      ? limits.maxBarSpacing
+      : min);
+    nextSpacing = clampBarSpacingValue(nextSpacing, min, max);
+  }
+  const nextSpan = ts.widthPx > 0 ? ts.widthPx / nextSpacing : span * factor;
+  if (!(nextSpan > 0) || !(nextSpacing > 0) || !Number.isFinite(nextSpan) || !Number.isFinite(nextSpacing)) {
+    return { from: ts.visibleFrom, to: ts.visibleTo };
+  }
+  const nextFrom = anchor.anchorLogical - anchor.anchorX / nextSpacing + 0.5;
+  if (!Number.isFinite(nextFrom)) return { from: ts.visibleFrom, to: ts.visibleTo };
+  return { from: nextFrom, to: nextFrom + nextSpan };
+}
+
 type Pointer = {
   id: number; pointerType: InputPointerType; x: number; y: number;
   downX: number; downY: number; downTs: number; region: InputRegion; paneIndex: number;
   dragging: boolean; longPress: boolean;
-  originFrom: number; originTo: number; originBarSpacing: number; originLogical: number;
+  originFrom: number; originTo: number; originBarSpacing: number; originWidthPx: number;
   originPriceFrom: number; originPriceTo: number; originPriceAnchor: number;
 };
-type Pinch = { ids: [number, number]; startDist: number; startSpan: number; startBarSpacing: number; anchorLogical: number };
+type Pinch = { ids: [number, number]; startDist: number; startSpan: number; startBarSpacing: number; anchorLogical: LogicalIndex };
 type Sample = { t: number; x: number };
 type Inertia = { v: number; startT: number; lastT: number };
 
@@ -258,14 +320,31 @@ export function createInputController(deps: InputControllerDeps): InputControlle
 
   const applyTimeAxisZoom = (pointer: Pointer): void => {
     if (!options.handleScale.axisPressedMouseMove) return;
-    const factor = Math.exp((pointer.downX - pointer.x) * AXIS_ZOOM_EXPONENT_PER_PX);
-    const ts: TimeScaleState = {
-      ...deps.getTimeScale(),
-      visibleFrom: pointer.originFrom,
-      visibleTo: pointer.originTo,
-      barSpacing: pointer.originBarSpacing,
-    };
-    deps.setVisibleLogicalRange(zoomTimeAround(ts, pointer.originLogical, pointer.downX, factor));
+    // LWC TimeScale._internal_scaleTo (dev:6305-6317): the RIGHT edge is the
+    // anchor — barSpacing scales by (width - x) / (width - startPoint), both
+    // distances clamped to [0, width]; a zero start distance is a no-op. The
+    // requested spacing is clamped to the LWC bounds before the window is
+    // derived, and visibleTo (the right edge) stays pinned (§5.5, PERF-A C2).
+    const width = pointer.originWidthPx;
+    if (!(width > 0)) return;
+    const startFromRight = Math.min(width, Math.max(0, width - pointer.downX));
+    const currentFromRight = Math.min(width, Math.max(0, width - pointer.x));
+    if (!(startFromRight > 0) || !(currentFromRight > 0)) return;
+    const limits = deps.zoomLimits?.();
+    const min = limits && limits.minBarSpacing > 0 ? limits.minBarSpacing : 0.5;
+    const max = limits && limits.maxBarSpacing > 0
+      ? limits.maxBarSpacing
+      : Math.max(min, width * 0.5);
+    const nextSpacing = clampBarSpacingValue(
+      pointer.originBarSpacing * (currentFromRight / startFromRight),
+      min,
+      max,
+    );
+    if (!(nextSpacing > 0) || !Number.isFinite(nextSpacing)) return;
+    deps.setVisibleLogicalRange({
+      from: pointer.originTo - width / nextSpacing,
+      to: pointer.originTo,
+    });
   };
 
   const applyPriceAxisZoom = (pointer: Pointer): void => {
@@ -296,8 +375,11 @@ export function createInputController(deps: InputControllerDeps): InputControlle
       visibleTo: pinch.startSpan,
       barSpacing: pinch.startBarSpacing,
     };
-    // Place the pinch-start midpoint logical under the current midpoint.
-    deps.setVisibleLogicalRange(zoomTimeAround(ts, pinch.anchorLogical, midX, factor));
+    // Place the pinch-start anchor bar (bar centre on data, PERF-A C2) under
+    // the current midpoint, with the new spacing clamped before the anchor.
+    deps.setVisibleLogicalRange(
+      zoomTimeAroundAt(ts, { anchorLogical: pinch.anchorLogical, anchorX: midX }, factor, deps.zoomLimits?.()),
+    );
   };
 
   const velocityPxPerMs = (): number => {
@@ -363,12 +445,15 @@ export function createInputController(deps: InputControllerDeps): InputControlle
     }
     const ts = deps.getTimeScale();
     const midX = (a.x + b.x) / 2;
+    // Anchor the bar under the pinch-start midpoint at its own centre when it
+    // is on data (PERF-A F4); float logical off data.
+    const anchorLogical = barCentreAnchor(ts, midX, deps.zoomLimits?.().barCount).anchorLogical;
     pinch = {
       ids: [a.id, b.id],
       startDist: dist,
       startSpan: ts.visibleTo - ts.visibleFrom,
       startBarSpacing: ts.barSpacing,
-      anchorLogical: logicalOfX(midX, ts),
+      anchorLogical,
     };
     samples.length = 0;
     emit("pinchstart");
@@ -393,7 +478,7 @@ export function createInputController(deps: InputControllerDeps): InputControlle
       originFrom: ts.visibleFrom,
       originTo: ts.visibleTo,
       originBarSpacing: ts.barSpacing,
-      originLogical: ts.barSpacing > 0 ? logicalOfX(e.x, ts) : 0,
+      originWidthPx: ts.widthPx,
       originPriceFrom: ps?.from ?? 0,
       originPriceTo: ps?.to ?? 0,
       originPriceAnchor: ps ? priceAtY(ps, e.y) : 0,
@@ -501,6 +586,7 @@ export function createInputController(deps: InputControllerDeps): InputControlle
     if (e.region === "priceAxis" && options.handleScale.mouseWheel) {
       const ps = deps.getPriceScale(e.paneIndex);
       if (!ps) return;
+      stopInertia(true);
       const factor = wheelDeltaToZoomFactor(delta, deltaMode, ps.heightPx);
       deps.setPriceRange(e.paneIndex, zoomPrice(ps, priceAtY(ps, e.y), factor));
       return;
@@ -508,12 +594,20 @@ export function createInputController(deps: InputControllerDeps): InputControlle
 
     const zoom = options.handleScale.mouseWheel && (Boolean(e.ctrlKey) || !options.handleScroll.mouseWheel);
     if (zoom && ts.barSpacing > 0) {
+      // LWC stops a running kinetic scroll when a new scale gesture starts
+      // (dev:6319-6328); a wheel notch is a scale start (PERF-A C3 / F5).
+      stopInertia(true);
       const factor = wheelDeltaToZoomFactor(delta, deltaMode, ts.widthPx);
-      const anchor = logicalOfX(e.x, ts);
-      deps.setVisibleLogicalRange(zoomTimeAround(ts, anchor, e.x, factor));
+      const limits = deps.zoomLimits?.();
+      // Bar-centre anchor on data (F4): the bar under the pointer stays at its
+      // own pixel centre, float anchor off data; spacing clamped BEFORE the
+      // anchor is placed so the model clamp never re-quantises it.
+      const anchor = barCentreAnchor(ts, e.x, limits?.barCount);
+      deps.setVisibleLogicalRange(zoomTimeAroundAt(ts, anchor, factor, limits));
       return;
     }
     if (options.handleScroll.mouseWheel && ts.barSpacing > 0) {
+      stopInertia(true);
       const panDelta = (e.deltaX ?? 0) !== 0 ? (e.deltaX as number) : delta;
       shiftTime(panDelta / ts.barSpacing);
     }

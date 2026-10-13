@@ -162,28 +162,32 @@ describe("key mappings", () => {
     };
     const inAtCrosshair = zoomH(220);
     inAtCrosshair.controller.handleKey(key({ key: "+", timeStamp: 0 }));
-    // Span 240 → 200, anchor 220 preserved at its 0.5 relative position.
-    expect(inAtCrosshair.ranges[0][0]).toBeCloseTo(120, 10);
-    expect(inAtCrosshair.ranges[0][1]).toBeCloseTo(320, 10);
+    // PERF-A C2/T5 correction: zoom pins the anchor bar's PIXEL CENTRE
+    // (x = (anchor - from + 0.5) * spacing stays fixed), replacing the old
+    // ratio anchoring that slid the anchored bar by 0.5 * Δspacing per step.
+    // Span 240 → 200: from = 220.5 - 120.5 * (200/240) = 120.08333…
+    expect(inAtCrosshair.ranges[0][0]).toBeCloseTo(120 + 1 / 12, 9);
+    expect(inAtCrosshair.ranges[0][1]).toBeCloseTo(320 + 1 / 12, 9);
 
     const inAtEquals = zoomH(220);
     inAtEquals.controller.handleKey(key({ key: "=", timeStamp: 0 }));
-    expect(inAtEquals.ranges[0][0]).toBeCloseTo(120, 10);
-    expect(inAtEquals.ranges[0][1]).toBeCloseTo(320, 10);
+    expect(inAtEquals.ranges[0][0]).toBeCloseTo(120 + 1 / 12, 9);
+    expect(inAtEquals.ranges[0][1]).toBeCloseTo(320 + 1 / 12, 9);
 
     const out = zoomH(220);
     out.controller.handleKey(key({ key: "-", timeStamp: 0 }));
-    // Span 240 → 288 around anchor 220: 220 - 120×1.2 = 76, 220 + 120×1.2 = 364.
-    expect(out.ranges[0][0]).toBeCloseTo(76, 10);
-    expect(out.ranges[0][1]).toBeCloseTo(364, 10);
+    // Span 240 → 288 around anchor 220: from = 220.5 - 120.5 * 1.2 = 75.9.
+    expect(out.ranges[0][0]).toBeCloseTo(75.9, 9);
+    expect(out.ranges[0][1]).toBeCloseTo(363.9, 9);
   });
 
   it("zoom anchors at the visible centre when no crosshair is set", () => {
     const h = makeHarness(); // range (0,240), centre 120
     h.controller.focus();
     h.controller.handleKey(key({ key: "+", timeStamp: 0 }));
-    expect(h.ranges[0][0]).toBeCloseTo(20, 10);
-    expect(h.ranges[0][1]).toBeCloseTo(220, 10);
+    // PERF-A C2/T5: pixel-centre anchoring (see the zoom test above).
+    expect(h.ranges[0][0]).toBeCloseTo(20 + 1 / 12, 9);
+    expect(h.ranges[0][1]).toBeCloseTo(220 + 1 / 12, 9);
   });
 
   it("zoom floors the span at 2 bars and never collapses the range", () => {
