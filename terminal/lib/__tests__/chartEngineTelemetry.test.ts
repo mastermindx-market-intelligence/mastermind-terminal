@@ -52,6 +52,27 @@ describe("reportEngineMount", () => {
     expect((meta.refusal as string)).toBe(long.slice(0, 200));
   });
 
+  // F4 (P03 repair round 1): the field is typed `string | null` but a JS producer can
+  // still hand over `undefined` (an unset variable, a spread from a partial report). The
+  // old `refusal === null ? null : refusal.slice(...)` threw on it inside the try, so the
+  // whole chart_engine_mount event silently vanished — exactly the failure mode the flip
+  // observability must not have. refusalField is total: nullish → null, still ONE event.
+  it("F4: an undefined refusal is emitted as null, not a thrown TypeError and not a dropped event", () => {
+    reportEngineMount({
+      impl: "mm",
+      source: "default",
+      fallback: false,
+      refusal: undefined as unknown as string,
+    });
+    expect(trackMock).toHaveBeenCalledTimes(1); // …the event was NOT dropped
+    const ev = trackMock.mock.calls[0][0];
+    expect(ev.type).toBe("chart_engine_mount");
+    const meta = ev.meta as Record<string, unknown>;
+    expect("refusal" in meta).toBe(true);
+    expect(meta.refusal).toBeNull();
+    expect(Object.keys(meta).sort()).toEqual(["fallback", "impl", "refusal", "source"]);
+  });
+
   it("a throwing track() is swallowed — telemetry never breaks a mount", () => {
     trackMock.mockImplementationOnce(() => {
       throw new Error("beacon exploded");
@@ -77,6 +98,19 @@ describe("reportEngineFallback", () => {
     reportEngineFallback({ requested: "mm", impl: "lwc", refusal: "y".repeat(500) });
     const meta = trackMock.mock.calls[0][0].meta as Record<string, unknown>;
     expect((meta.refusal as string).length).toBe(200);
+  });
+
+  // F4 counterpart on the fallback event: same totality requirement.
+  it("F4: an undefined refusal on a fallback event is emitted as null too", () => {
+    reportEngineFallback({
+      requested: "mm",
+      impl: "lwc",
+      refusal: undefined as unknown as string,
+    });
+    expect(trackMock).toHaveBeenCalledTimes(1);
+    const meta = trackMock.mock.calls[0][0].meta as Record<string, unknown>;
+    expect(meta.refusal).toBeNull();
+    expect(Object.keys(meta).sort()).toEqual(["impl", "refusal", "requested"]);
   });
 
   it("a throwing track() is swallowed", () => {
