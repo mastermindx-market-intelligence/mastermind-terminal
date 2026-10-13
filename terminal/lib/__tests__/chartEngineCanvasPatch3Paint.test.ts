@@ -11,10 +11,9 @@ import {
   createCanvasEngine,
   createManualScheduler,
   type ChartModel,
-  priceScaleMath,
 } from "@/lib/chart-engine/canvas";
 import { engineProjectionFor } from "@/lib/chart-engine/canvas/frame";
-import type { EnginePrimitive, PrimitiveAttachContext } from "@/lib/chart-engine/primitive";
+import type { EnginePrimitive } from "@/lib/chart-engine/primitive";
 import type { EngineSeriesKind, EngineSeriesRow } from "@/lib/chart-engine/api";
 
 type CtxCall = { method: string; args: unknown[] };
@@ -76,9 +75,14 @@ const OHLC: EngineSeriesRow[] = [
   { time: 1_700_000_120, open: 13, high: 15, low: 12, close: 12 },
 ];
 
+function paneCtx(engine: ReturnType<typeof createCanvasEngine>, index = 0): FakeCtx {
+  const canvas = engine.chartElement().querySelectorAll("canvas[data-mm-pane-canvas]")[index] as HTMLCanvasElement;
+  const ctx = ctxOf(canvas);
+  if (!ctx) throw new Error("no ctx for pane canvas");
+  return ctx;
+}
+
 function mount(opts: Record<string, unknown> = {}) {
-  const container = document.createElement("div");
-  document.body.appendChild(container);
   const scheduler = createManualScheduler();
   const engine = createCanvasEngine(container, {
     width: 200,
@@ -87,19 +91,7 @@ function mount(opts: Record<string, unknown> = {}) {
     scheduler,
     ...opts,
   });
-  return { container, engine, scheduler };
-}
-
-function paneCtx(engine: ReturnType<typeof createCanvasEngine>, index = 0): FakeCtx {
-  const canvas = engine.chartElement().querySelectorAll("canvas[data-mm-pane-canvas]")[index] as HTMLCanvasElement;
-  const ctx = ctxOf(canvas);
-  if (!ctx) throw new Error("no ctx for pane canvas");
-  return ctx;
-}
-
-function unmount(container: HTMLDivElement, engine: ReturnType<typeof createCanvasEngine>) {
-  engine.destroy();
-  container.remove();
+  return { engine, scheduler };
 }
 
 let container: HTMLDivElement;
@@ -234,11 +226,11 @@ describe("F7 (P2) paint order: in-pane axes come LAST (after series/decorations/
     const TOP: EnginePrimitive = {
       id: "top",
       zOrder: "top",
-      attached(_ctx: PrimitiveAttachContext): void {},
+      attached(): void {},
       detached(): void {},
-      update(_proj: Parameters<NonNullable<EnginePrimitive["update"]>>[0]): void {},
-      paint(ctx: CanvasRenderingContext2D): void {
-        (ctx as unknown as FakeCtx).__calls.push({ method: "marker", args: ["TOP-PRIM"] });
+      update(): void {},
+      paint(c: CanvasRenderingContext2D): void {
+        (c as unknown as FakeCtx).__calls.push({ method: "marker", args: ["TOP-PRIM"] });
       },
     };
     s.attachPrimitive(TOP);
