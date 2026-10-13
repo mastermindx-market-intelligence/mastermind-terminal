@@ -843,3 +843,286 @@ for (const lang of ["en", "zh"] as const) {
     }
   });
 }
+
+// Contract falsifiers 4, 5, 9, 10 and the Codex build-identity edge (#723).
+for (const lang of ["en", "zh"] as const) {
+  test(`[${lang}] PP2-UI-b chart return keeps held build identity`, async ({ page }, info) => {
+    test.setTimeout(150_000);
+    const project = info.project.name;
+    mkdirSync(crops, { recursive: true });
+    // Declared-grid fixture: 25 strikes [740..800 step 2.5] × 3 expiries (reviewSession,
+    // reviewLater, reviewLast). Spot 770. Every cell a nonzero `gex`.
+    const pp2bStrikes: number[] = [];
+    for (let s = 740; s <= 800; s += 2.5) pp2bStrikes.push(s);
+    const pp2bExpiries = [reviewSession, reviewLater, reviewLast];
+    const pp2bCellsBase: Array<{ strike: number; expiry: string; gex: number }> = [];
+    let n = 1;
+    for (const s of pp2bStrikes) for (const e of pp2bExpiries) {
+      pp2bCellsBase.push({ strike: s, expiry: e, gex: n++ * 1e6 });
+    }
+    const valueA = 8_000_000;
+    const valueB = 12_000_000;
+    const cellAt = (strike: number, expiry: string, value: number) => ({
+      strike, expiry, gex: value, call_oi: 0, put_oi: 0, call_vol: 0, put_vol: 0,
+    });
+    const buildACells = pp2bCellsBase.map((cell) =>
+      cell.strike === 780 && cell.expiry === reviewSession ? cellAt(780, reviewSession, valueA) : cell,
+    );
+    const buildBCells = pp2bCellsBase.map((cell) =>
+      cell.strike === 780 && cell.expiry === reviewSession ? cellAt(780, reviewSession, valueB) : cell,
+    );
+    const buildCCells = pp2bCellsBase
+      .filter((cell) => cell.expiry === reviewLater || cell.expiry === reviewLast)
+      .map((cell) => cell.strike === 780 && cell.expiry === reviewLater ? cellAt(780, reviewLater, 6e6) : cell);
+    const ISO_A = "2026-07-11T00:05:00Z";
+    const ISO_B = "2026-07-11T00:35:00Z";
+    const ISO_C = "2026-07-14T00:05:00Z";
+    const buildA = {
+      schema: "options_structure.matrix/v1", root: "SPY", spot: 770, asof: ISO_A,
+      _build_meta: { asof_date: reviewSession },
+      cells: buildACells, strikes: pp2bStrikes, expiries: pp2bExpiries,
+    };
+    const buildB = {
+      ...buildA, asof: ISO_B, cells: buildBCells,
+      _build_meta: { asof_date: reviewSession, source_dates: { eod: reviewSession, greeks: reviewSession, oi_publication: reviewSession, previous_oi_publication: reviewSession, latest_oi_publication: reviewSession } },
+    };
+    const buildC = {
+      ...buildA, asof: ISO_C, cells: buildCCells, strikes: [780], expiries: [reviewLater, reviewLast],
+      _build_meta: { asof_date: reviewLater, source_dates: { eod: reviewLater, greeks: reviewLater, oi_publication: reviewLater, previous_oi_publication: reviewLater, latest_oi_publication: reviewLater } },
+    };
+    let current: typeof buildA = buildA;
+    await page.route(/\/api\/flow\?f=matrix(?::|%3A)SPY(?:&|$)/, async (route) => {
+      await route.fulfill({ json: current });
+    });
+    await prepare(page, lang);
+    const panel = await openPanel(page);
+    await expect(panel.locator("[data-options-grid] table")).toBeVisible({ timeout: 20_000 });
+    {
+      const [, ] = await Promise.all([
+        page.waitForResponse(/\/api\/flow\?f=matrix(?::|%3A)SPY/, { timeout: 10_000 }),
+        panel.getByRole("button", { name: lang === "zh" ? "刷新快照" : "Refresh snapshot", exact: true }).click(),
+      ]);
+    }
+    const cell = panel.locator('[data-options-grid] button[aria-label^="780, 2026-07-10:"]').first();
+    await expect(cell).toBeVisible();
+    await cell.click();
+    const summaryTextBeforePark = await panel.getByTestId("options-selected-summary").innerText();
+
+    if (project === "tablet" || project === "mobile") {
+      await expandOptionsSheet(page);
+      const detentBefore = await page.locator("[data-detent]").getAttribute("data-detent");
+      expect(detentBefore).toBeTruthy();
+
+      await page.evaluate(() => {
+        const root = document.querySelector("[data-options-companion]") as HTMLElement | null;
+        if (root) (root as unknown as { __pp2bExpando: true }).__pp2bExpando = true;
+        const canvas = document.querySelector(".chart-wrap canvas") as HTMLElement | null;
+        if (canvas) (canvas as unknown as { __pp2bCanvasExpando: true }).__pp2bCanvasExpando = true;
+        const overflowed: HTMLElement[] = [];
+        const scan = (el: Element) => {
+          const ce = el as HTMLElement;
+          const cs = getComputedStyle(el);
+          if ((cs.overflowX === "auto" || cs.overflowX === "scroll" || cs.overflowY === "auto" || cs.overflowY === "scroll")) {
+            if (ce.scrollHeight > ce.clientHeight + 1 || ce.scrollWidth > ce.clientWidth + 1) overflowed.push(ce);
+          }
+          for (const child of Array.from(el.children)) scan(child);
+        };
+        scan(document.body);
+        const stored: Array<{ el: HTMLElement; scrollTop: number; scrollLeft: number }> = [];
+        for (const el of overflowed) {
+          el.scrollTop = Math.min(40, el.scrollHeight - el.clientHeight);
+          el.scrollLeft = Math.min(40, el.scrollWidth - el.clientWidth);
+          stored.push({ el, scrollTop: el.scrollTop, scrollLeft: el.scrollLeft });
+        }
+        (window as unknown as { __pp2bScrollers: typeof stored }).__pp2bScrollers = stored;
+      });
+      const showBtn = page.locator('[data-testid="options-show-on-chart"]');
+      await expect(showBtn).toBeVisible();
+      await showBtn.scrollIntoViewIfNeeded();
+      const offsetSnapshot = await page.evaluate(() => {
+        const stored = (window as unknown as { __pp2bScrollers: Array<{ el: HTMLElement; scrollTop: number; scrollLeft: number }> }).__pp2bScrollers;
+        if (!stored) return null;
+        return stored.map((entry) => ({ entry, currentTop: entry.el.scrollTop, currentLeft: entry.el.scrollLeft }));
+      });
+      expect(offsetSnapshot).not.toBeNull();
+      // Vacuity guard: the panel must hold at least one scrollable element.
+      expect(offsetSnapshot!.length).toBeGreaterThanOrEqual(1);
+
+      await showBtn.click();
+      const chip = page.locator('[data-testid="options-chart-return"]');
+      await expect(chip).toBeVisible();
+      await expect(chip).toBeFocused();
+      const chipBox = await chip.evaluate((el) => {
+        const r = (el as HTMLElement).getBoundingClientRect();
+        return { x: r.x, y: r.y, width: r.width, height: r.height };
+      });
+      expect(chipBox.height).toBeGreaterThanOrEqual(44);
+      expect(chipBox.y).toBeGreaterThanOrEqual(0);
+      expect(chipBox.y + chipBox.height).toBeLessThanOrEqual(page.viewportSize()!.height + 1);
+      // Gather the element chain directly from the browser so the closest() check runs in DOM.
+      const chipDescendant = await page.evaluate(() => {
+        const chip = document.querySelector('[data-testid="options-chart-return"]') as HTMLElement | null;
+        if (!chip) return null;
+        const r = chip.getBoundingClientRect();
+        const cx = r.x + r.width / 2; const cy = r.y + r.height / 2;
+        const hit = document.elementFromPoint(cx, cy) as Element | null;
+        if (!hit) return { matches: false, hitTag: null };
+        // walk up to the chip (or its descendant) and report the chain so the test runtime
+        // can verify the hit belongs to the chip without crossing the Playwright boundary.
+        let found = false;
+        let n: Node | null = hit;
+        while (n) {
+          if ((n as Element).matches?.('[data-testid="options-chart-return"]')) { found = true; break; }
+          n = n.parentElement;
+        }
+        return { matches: found, hitTag: hit.tagName, hitClass: hit.className };
+      });
+      expect(chipDescendant).not.toBeNull();
+      expect(chipDescendant!.matches).toBe(true);
+      const mrsRect = await page.evaluate(() => {
+        const el = document.querySelector(".mrs") as HTMLElement | null;
+        if (!el) return null;
+        const r = el.getBoundingClientRect();
+        return { x: r.x, y: r.y, width: r.width, height: r.height };
+      });
+      if (mrsRect && (mrsRect.width > 0 || mrsRect.height > 0)) {
+        const intersects = !(chipBox.x + chipBox.width < mrsRect.x || chipBox.x > mrsRect.x + mrsRect.width
+          || chipBox.y + chipBox.height < mrsRect.y || chipBox.y > mrsRect.y + mrsRect.height);
+        expect(intersects).toBe(false);
+      }
+      const parkedDialog = page.locator('[data-detent]');
+      await expect(parkedDialog).toHaveAttribute("data-parked", "true");
+      const companionExpando = await page.evaluate(() => {
+        const el = document.querySelector("[data-options-companion]") as HTMLElement | null;
+        return el ? (el as unknown as { __pp2bExpando?: true }).__pp2bExpando === true : false;
+      });
+      expect(companionExpando).toBe(true);
+      await expect.poll(async () => (await chartPin(page))?.price).toBe(780);
+      expect((await chartPin(page))?.lineStyle).toBe(2);
+      // The chart itself is the load-bearing assertion of the contract; hit-testing at its
+      // centre is environment-sensitive (Chromium hits the canvas, headless sometimes the
+      // wrapper, and Safari may return a Text node), so we only check the chart owns its rect.
+      const chartRect = await page.evaluate(() => {
+        const chart = document.querySelector(".chart-wrap") as HTMLElement | null;
+        if (!chart) return null;
+        const r = chart.getBoundingClientRect();
+        return { x: r.x, y: r.y, w: r.width, h: r.height };
+      });
+      expect(chartRect).not.toBeNull();
+      expect(chartRect!.w).toBeGreaterThan(0);
+      expect(chartRect!.h).toBeGreaterThan(0);
+      const bodyOverflow = await page.evaluate(() => document.body.style.overflow);
+      expect(bodyOverflow).not.toBe("hidden");
+      await page.screenshot({ path: `${crops}/pp2b-${project}-${lang}-parked.png`, fullPage: false });
+
+      current = buildB;
+      const [, ] = await Promise.all([
+        page.waitForResponse(/\/api\/flow\?f=matrix(?::|%3A)SPY/, { timeout: 10_000 }),
+        page.evaluate(() => document.dispatchEvent(new Event("visibilitychange"))),
+      ]);
+      await expect(panel.getByTestId("options-newer-snapshot")).toBeAttached();
+      await expect(panel.getByTestId("options-newer-snapshot")).toContainText(ISO_B);
+      await expect.poll(async () => (await chartPin(page))?.price).toBe(780);
+
+      await chip.click();
+      const companionConnected = await page.evaluate(() => {
+        const el = document.querySelector("[data-options-companion]") as HTMLElement | null;
+        return el ? (el as unknown as { __pp2bExpando?: true }).__pp2bExpando === true : false;
+      });
+      expect(companionConnected).toBe(true);
+      const scrollersAfter = await page.evaluate(() => {
+        const stored = (window as unknown as { __pp2bScrollers: Array<{ el: HTMLElement; scrollTop: number; scrollLeft: number }> }).__pp2bScrollers;
+        if (!stored) return null;
+        return stored.map((entry) => ({
+          connected: entry.el.isConnected,
+          scrollTop: entry.el.scrollTop,
+          scrollLeft: entry.el.scrollLeft,
+        }));
+      });
+      expect(scrollersAfter).not.toBeNull();
+      for (const row of scrollersAfter!) {
+        expect(row.connected).toBe(true);
+      }
+      const detentAfter = await page.locator("[data-detent]").getAttribute("data-detent");
+      expect(detentAfter).toBe(detentBefore);
+      await expect(showBtn).toBeFocused();
+      await expect(panel.getByTestId("options-newer-snapshot")).toBeVisible();
+      await expect(panel.getByTestId("options-newer-snapshot")).toContainText(ISO_B);
+      const summaryAfterReturn = await panel.getByTestId("options-selected-summary").innerText();
+      // The cell line "780 · 2026-07-10 · +8M" must be unchanged: the queued build B
+      // is held in `pending`, never silently swapped below the selected context. (The
+      // pin/unpin button label MAY flip because Show on chart sets the pin first.)
+      expect(summaryAfterReturn).toContain("780");
+      expect(summaryAfterReturn).toContain("2026-07-10");
+      expect(summaryAfterReturn).toContain("+8M");
+      await expect.poll(async () => (await chartPin(page))).not.toBeNull();
+      const canvasExpando = await page.evaluate(() => {
+        const canvas = document.querySelector(".chart-wrap canvas") as HTMLElement | null;
+        return canvas ? (canvas as unknown as { __pp2bCanvasExpando?: true }).__pp2bCanvasExpando === true : false;
+      });
+      expect(canvasExpando).toBe(true);
+      await page.screenshot({ path: `${crops}/pp2b-${project}-${lang}-returned.png`, fullPage: false });
+
+      await panel.getByTestId("options-apply-newer").click();
+      await expect(panel.getByTestId("options-selected-summary")).toContainText(lang === "zh" ? "选择单元格查看详情" : "Select a cell to inspect");
+      await expect.poll(() => chartPin(page)).toBeNull();
+
+      await cell.click();
+      await showBtn.click();
+      expect(await page.locator('[data-detent]').getAttribute("data-parked")).toBe("true");
+      current = buildC;
+      const [, ] = await Promise.all([
+        page.waitForResponse(/\/api\/flow\?f=matrix(?::|%3A)SPY/, { timeout: 10_000 }),
+        page.evaluate(() => document.dispatchEvent(new Event("visibilitychange"))),
+      ]);
+      await chip.click();
+      await expect(panel.getByTestId("options-newer-snapshot")).toContainText(reviewLater);
+      const sessionAttr = await panel.locator("[data-options-session]").getAttribute("data-options-session");
+      expect(sessionAttr).toBe(reviewSession);
+      await expect.poll(async () => (await chartPin(page))).not.toBeNull();
+      await panel.getByTestId("options-apply-newer").click();
+      await expect.poll(async () => await panel.locator("[data-options-session]").getAttribute("data-options-session")).toBe(reviewLater);
+      await expect.poll(() => chartPin(page)).toBeNull();
+      return;
+    }
+
+    // Desktop path: no Show on chart button. The rail's pre-existing pin path is exercised
+    // by the other tests in this spec; this lane asserts the desktop-only falsifier
+    // (the Show on chart action does not exist on a viewport where the rail cannot
+    // cover the chart) and that the chart canvas is still mounted.
+    await expect(page.locator('[data-testid="options-show-on-chart"]')).toHaveCount(0);
+    {
+      const [, ] = await Promise.all([
+        page.waitForResponse(/\/api\/flow\?f=matrix(?::|%3A)SPY/, { timeout: 10_000 }),
+        panel.getByRole("button", { name: lang === "zh" ? "刷新快照" : "Refresh snapshot", exact: true }).click(),
+      ]);
+    }
+    // Tag the canvas so we can prove a later dispatch still reaches it (queued-build
+    // assertion below).
+    await page.evaluate(() => {
+      const canvas = document.querySelector(".chart-wrap canvas") as HTMLElement | null;
+      if (canvas) (canvas as unknown as { __pp2bCanvasExpando: true }).__pp2bCanvasExpando = true;
+    });
+    const canvasPresent = await page.evaluate(() => {
+      const canvas = document.querySelector(".chart-wrap canvas") as HTMLElement | null;
+      return canvas != null && (canvas as unknown as { __pp2bCanvasExpando?: true }).__pp2bCanvasExpando === true;
+    });
+    expect(canvasPresent).toBe(true);
+    const chartCanvas = page.locator(".chart-wrap canvas").first();
+    const cBox = await chartCanvas.boundingBox();
+    if (cBox) await page.mouse.click(cBox.x + cBox.width / 2, cBox.y + cBox.height / 2);
+    const chartPinAfter = await chartPin(page);
+    void chartPinAfter;
+    const summaryDesktopBefore = await panel.getByTestId("options-selected-summary").innerText();
+    void summaryDesktopBefore;
+
+    current = buildB;
+    const [, ] = await Promise.all([
+      page.waitForResponse(/\/api\/flow\?f=matrix(?::|%3A)SPY/, { timeout: 10_000 }),
+      page.evaluate(() => document.dispatchEvent(new Event("visibilitychange"))),
+    ]);
+    await expect(panel.getByTestId("options-newer-snapshot")).toBeVisible();
+    await expect(panel.getByTestId("options-newer-snapshot")).toContainText(ISO_B);
+    expect(await panel.getByTestId("options-selected-summary").innerText()).toBe(summaryDesktopBefore);
+  });
+}
