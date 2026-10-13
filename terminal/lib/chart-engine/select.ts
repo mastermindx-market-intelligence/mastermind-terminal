@@ -25,6 +25,9 @@
 // on top of resolveEngineImpl and defaults its storage to browserEngineStorage()
 // (browserStorage.ts) — the ONLY module in this corner that touches browser globals, so
 // the purity guarantee above (and its test) holds here unchanged.
+//
+// CAVEAT: resolveMountEngineSelection() is NOT pure — it persists an explicit url
+// choice; call it once per mount, never from a render body.
 
 import { browserEngineStorage } from "./browserStorage";
 
@@ -136,8 +139,10 @@ export function engineQueryFromUrl(search: string): EngineImplId | null {
  */
 /**
  * Storage-aware mount selector for ChartPanel (P03 default flip). Resolution goes
- * through resolveEngineImpl with buildDefault = BUILD_DEFAULT_ENGINE, then the flip's
- * persistence rules apply:
+ * through resolveEngineImpl with buildDefault = BUILD_DEFAULT_ENGINE unless the caller
+ * pins its own build default (the F1 lever: a consumer that cannot drive "mm" yet
+ * passes "lwc" without losing the kill switch, the url or the stored lever), then the
+ * flip's persistence rules apply:
  *   - kill switch on: pure short-circuit to "lwc" — nothing is READ and nothing is
  *     WRITTEN (no storage call at all) and the url is never consulted;
  *   - valid url value: that impl wins AND persistEngineChoice(storage, impl) writes
@@ -149,21 +154,26 @@ export function engineQueryFromUrl(search: string): EngineImplId | null {
  * storage, which means "no stored value, nothing to persist". Every storage touch
  * goes through the never-throwing read/persist wrappers, so this can never take down a
  * mount. killSwitch defaults to isEngineKillSwitchOn() (build-inlined flag).
+ * A pinned buildDefault never persists: only a `source === "url"` selection writes.
+ *
+ * NOT pure: it persists an explicit url choice. Call it once per mount, never from a
+ * render body.
  */
 export function resolveMountEngineSelection(
   search: string | null | undefined,
   storage: EngineStorage | null = browserEngineStorage(),
   killSwitch: boolean = isEngineKillSwitchOn(),
+  buildDefault: EngineImplId = BUILD_DEFAULT_ENGINE,
 ): EngineSelection {
   if (killSwitch) {
     // Deliberately constructed WITHOUT search/stored so the kill switch reads nothing
     // (resolveEngineImpl's own short-circuit already ignores both — belt and braces).
-    return resolveEngineImpl({ buildDefault: BUILD_DEFAULT_ENGINE, killSwitch: true });
+    return resolveEngineImpl({ buildDefault, killSwitch: true });
   }
   const selection = resolveEngineImpl({
     search: search ?? undefined,
     stored: readStoredEngine(storage),
-    buildDefault: BUILD_DEFAULT_ENGINE,
+    buildDefault,
   });
   if (selection.source === "url" && storage !== null) {
     persistEngineChoice(storage, selection.impl);
@@ -182,8 +192,9 @@ export function resolveMountEngineImpl(
   search: string | null | undefined,
   storage: EngineStorage | null = browserEngineStorage(),
   killSwitch: boolean = isEngineKillSwitchOn(),
+  buildDefault: EngineImplId = BUILD_DEFAULT_ENGINE,
 ): EngineImplId {
-  return resolveMountEngineSelection(search, storage, killSwitch).impl;
+  return resolveMountEngineSelection(search, storage, killSwitch, buildDefault).impl;
 }
 
 /**

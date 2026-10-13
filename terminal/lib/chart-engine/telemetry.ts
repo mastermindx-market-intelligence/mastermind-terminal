@@ -15,11 +15,15 @@
 //
 // Privacy by shape: `meta` carries ONLY the selection fields below — no symbol, no
 // price, no drawing data, no URL, no user data (the session id / path enrichment
-// lives in lib/analytics, outside this lane). Refusal reasons are renderer error
-// strings; they are truncated to 200 chars to bound the payload. Both helpers wrap
-// their entire body in try/catch and NEVER throw: telemetry must not take down a
-// chart. This module reads no browser globals either — it delegates transport to
-// track() from "@/lib/analytics".
+// lives in lib/analytics, outside this lane). `refusal` is a free-form renderer error
+// string: it is TRUNCATED to MAX_REFUSAL_CHARS (200) to bound the payload but never
+// REDACTED — the text is passed through as the renderer wrote it. Producers today are
+// EngineRefusalError.message (the options normalizer's refusal) and ChartPanel's mount
+// catch's err.message; neither carries user data.
+//
+// Both helpers wrap their entire body in try/catch and NEVER throw: telemetry must not
+// take down a chart. This module reads no browser globals either — it delegates
+// transport to track() from "@/lib/analytics".
 
 import { track } from "@/lib/analytics";
 import type { EngineImplId, EngineSelectionSource } from "./select";
@@ -31,18 +35,25 @@ export type EngineMountReport = {
   impl: EngineImplId;
   source: EngineSelectionSource;
   fallback: boolean;
+  /** Free-form renderer error string — truncated to MAX_REFUSAL_CHARS, never redacted. */
   refusal: string | null;
 };
 
 export type EngineFallbackReport = {
   requested: EngineImplId;
   impl: EngineImplId;
+  /** Free-form renderer error string — truncated to MAX_REFUSAL_CHARS, never redacted. */
   refusal: string | null;
 };
 
-/** refusal as it may enter an event: null stays null, anything else is capped. */
-function refusalField(refusal: string | null): string | null {
-  return refusal === null ? null : refusal.slice(0, MAX_REFUSAL_CHARS);
+/**
+ * refusal as it may enter an event: anything nullish is emitted as an explicit null,
+ * anything else is capped. `String(...)` (not a bare .slice) keeps this total for a
+ * producer that handed over a non-string or left the field undefined at runtime — the
+ * event is still emitted, with refusal null rather than the whole mount event dropped.
+ */
+function refusalField(refusal: string | null | undefined): string | null {
+  return refusal == null ? null : String(refusal).slice(0, MAX_REFUSAL_CHARS);
 }
 
 /** Emit the single per-mount "chart_engine_mount" event. Never throws. */
