@@ -222,11 +222,10 @@ const H = vi.hoisted(() => {
         return plugin;
       }),
       detachPrimitive: vi.fn((plugin: FakePlugin) => {
-        // LWC ignores a plugin it does not know — only a real detachment calls
-        // detached(), which is what makes the bridge's own guard observable.
         const at = s.__plugins.findIndex((entry) => entry.plugin === plugin);
-        if (at === -1) return;
-        s.__plugins.splice(at, 1);
+        if (at !== -1) s.__plugins.splice(at, 1);
+        // SeriesApi.detachPrimitive (5.2.0 dev :12802-12807) calls primitive.detached()
+        // UNCONDITIONALLY, even for a plugin it never saw.
         plugin.detached?.();
       }),
     };
@@ -255,8 +254,9 @@ const H = vi.hoisted(() => {
         return series;
       }),
       removeSeries: vi.fn((series: FakeSeries) => {
-        // LWC disposes a series together with the plugins hanging off it.
-        for (const entry of series.__plugins.slice()) entry.plugin.detached?.();
+        // Model._internal_removeSeries (dev :7160-7173) -> Series._internal_destroy
+        // (dev :3409-3413) clears an animation timeout only: a series-attached
+        // primitive never sees detached(). The handle's releaseBridges() must cover it.
         series.__plugins.length = 0;
         const at = chart.__series.indexOf(series);
         if (at !== -1) chart.__series.splice(at, 1);
@@ -276,10 +276,10 @@ const H = vi.hoisted(() => {
       options: vi.fn(() => ({ layout: { fontSize: 12 } })),
       applyOptions: vi.fn(),
       remove: vi.fn(() => {
-        for (const series of chart.__series.slice()) {
-          for (const entry of series.__plugins.slice()) entry.plugin.detached?.();
-          series.__plugins.length = 0;
-        }
+        // ChartApi.remove (dev :13082-13093) -> ChartWidget._internal_destroy (:10674)
+        // -> Model._internal_destroy (:7130-7131) -> Pane._internal_destroy (:5286-5301)
+        // detaches PANE-level primitives only; series-level ones are never notified.
+        for (const series of chart.__series.slice()) series.__plugins.length = 0;
       }),
       takeScreenshot: vi.fn(() => ({ __canvas: true })),
     };
@@ -815,8 +815,10 @@ describe("LwcSeriesHandle — bridge bookkeeping and detach", () => {
 
     handle.detachPrimitive(spy.primitive); // unknown to the bridge now: a no-op
     expect(spy.detached).toHaveBeenCalledTimes(1);
-    expect(native.detachPrimitive).toHaveBeenCalledTimes(2);
-    expect(native.detachPrimitive.mock.calls[1][0]).toBe(spy.primitive);
+    // LWC calls detached() unconditionally (dev :12802-12807), so an engine-shaped value
+    // this handle does not own must never reach it — the second detach is a true no-op.
+    expect(native.detachPrimitive).toHaveBeenCalledTimes(1);
+    expect(native.detachPrimitive.mock.calls.map((c) => c[0])).not.toContain(spy.primitive);
   });
 
   it("detaches when the series is removed, and stays quiet on a repeat remove", () => {
@@ -935,7 +937,9 @@ describe("LwcSeriesHandle — bridge bookkeeping and detach", () => {
     handle.detachPrimitive(spy.primitive);
     handle.remove();
     expect(spy.detached).toHaveBeenCalledTimes(1);
-    expect(native2.detached).toHaveBeenCalledTimes(1);
+    // Real LWC never detaches a series plugin on removeSeries/chart.remove, and the
+    // handle only tracks engine bridges (pre-existing gap, see RESULT.md F12).
+    expect(native2.detached).toHaveBeenCalledTimes(0);
   });
 });
 

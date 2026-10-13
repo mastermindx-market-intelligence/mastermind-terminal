@@ -8,7 +8,7 @@ import { existsSync, readFileSync } from "node:fs";
 import path from "node:path";
 import Ajv2020 from "ajv/dist/2020";
 import addFormats from "ajv-formats";
-import { DAILY_40K } from "./corpus";
+import { DAILY_40K, UNMEASURED } from "./corpus";
 
 export type ReceiptMetricName =
   | "first_paint_ms"
@@ -163,4 +163,27 @@ export function validateReceipt(receipt: unknown): ReceiptValidation {
     ok: false,
     errors: errors.map((e) => `${e.instancePath || "/"} ${e.message ?? "invalid"} (${e.schemaPath ?? ""})`),
   };
+}
+
+/**
+ * Which metric a `refused:<member>` line invalidates (F1). A refusal means the
+ * number was never produced, so the metric becomes UNMEASURED (an explicit
+ * violation) instead of keeping whatever the reducer returned. Anything unmapped
+ * taints first_paint_ms, so ANY refusal reddens the receipt.
+ */
+export const REFUSAL_TAINTS: ReadonlyArray<[RegExp, ReceiptMetricName]> = [
+  [/^refused:(?:createEngine|addSeries|setData|resize|paint|performance\.measure)/, "first_paint_ms"],
+  [/^refused:update/, "live_commit_ms"],
+  [/^refused:takeScreenshot/, "screenshot_ms"],
+  [/^refused:(?:coordinateToTime|timeToCoordinate|getVisibleLogicalRange)/, "zoom_frame_p95_ms"],
+];
+
+/** Copy of `metrics` with every refusal-tainted metric set to UNMEASURED. */
+export function applyRefusals(metrics: ReceiptMetrics, refusals: readonly string[]): ReceiptMetrics {
+  const next: ReceiptMetrics = { ...metrics };
+  for (const line of refusals) {
+    const hit = REFUSAL_TAINTS.find(([re]) => re.test(line));
+    next[hit ? hit[1] : "first_paint_ms"] = UNMEASURED;
+  }
+  return next;
 }

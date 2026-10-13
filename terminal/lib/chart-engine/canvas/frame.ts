@@ -9,7 +9,6 @@ import { axisWidthForLabels, layoutPriceLabels, layoutTimeLabels, type Measure a
 import {
   layoutMarkers,
   layoutPriceLines,
-  layoutSessionShading,
   layoutWatermark,
   paintDecorations,
   type RowsIndex,
@@ -102,8 +101,13 @@ export function resolveSeriesPaintStyle(
   const line = optStr(opts, "lineColor") ?? color ?? defaults.seriesColor;
   const fill = optStr(opts, "topColor") ?? optStr(opts, "topFillColor1") ?? line;
   const bottomFill = optStr(opts, "bottomColor") ?? optStr(opts, "bottomFillColor1") ?? line;
-  const upC = up ?? line;
-  const downC = down ?? line;
+  // PATCH3P2 F5: a directional series given only ONE side is monochrome in that colour,
+  // exactly like the `color`-only case; CANVAS_NEUTRAL_DEFAULTS.seriesColor must never be
+  // reached as an up/down colour through the asymmetric path.
+  const monoSide = up ?? down;
+  const mono = directional && monoSide != null ? monoSide : line;
+  const upC = up ?? mono;
+  const downC = down ?? mono;
   return {
     upColor: upC,
     downColor: downC,
@@ -357,6 +361,7 @@ function paintInPaneAxes(
     [axisWidthForLabels(pTicks.map((t) => t.label), measure, font, 4)],
     0,
   ));
+  model.priceAxisStripPx[paneIndex] = strip;
   const placed = layoutPriceLabels(
     pTicks.map((t) => ({ value: t.value, y: t.y, label: t.label })),
     { heightPx: h, widthPx: strip, paddingPx: 4, font, dpr },
@@ -498,13 +503,14 @@ export function paintPaneFrame(args: PanePaintArgs): void {
   }
   paintGrid(ctx, model, paneIndex, w, h);
 
+  // PATCH3P2 F12 — delete the dead session-shading branch. The list was hardcoded
+  // `[]` so layoutSessionShading always returned `[]` and paintDecorations({sessionShading})
+  // never ran. The full fix also needs a `pane.sessionShading` field on the model
+  // (MODEL2-owned — see PROPOSED_PATCHES).
   const paneProj = engineProjectionForPane(model, paneIndex);
   const plotRect = { x: 0, y: 0, width: w, height: h };
-  const primary = model.primarySeries();
-  if (primary && !primary.removed) {
-    const shading = layoutSessionShading([], paneProj, rowsIndexFor(primary, paneProj), plotRect);
-    if (shading.length > 0) paintDecorations(ctx, { sessionShading: shading }, { dpr: model.dpr });
-  }
+  void plotRect; // unused now; kept for the named binding when the model-side lands
+
   withClip(ctx, w, h, () => primHost.paintPane(ctx, paneIndex, paneProj, "bottom"));
 
   const view = { dpr: model.dpr, clipRect: { x: 0, y: 0, width: w, height: h } };
@@ -578,11 +584,11 @@ export function paintOverlayFrame(args: OverlayPaintArgs): void {
 }
 
 export function deliverPrimitiveUpdates(model: ChartModel, primHost: PrimitiveHost, generation: number): void {
+  // PATCH3P2 F11 — route per-pane delivery through the host so the once-per-generation
+  // guard (R04-A01) and the record-on-throw error log (R04-A03) survive. The bare
+  // `catch {}` here used to swallow errors silently.
   for (let i = 0; i < model.panes.length; i++) {
     const paneProj = { ...engineProjectionForPane(model, i), generation };
-    for (const p of primHost.forPane(i)) {
-      if (!p.update) continue;
-      try { p.update(paneProj); } catch { /* isolate: a throwing update must not abort the frame */ }
-    }
+    primHost.deliverPane(i, paneProj);
   }
 }
