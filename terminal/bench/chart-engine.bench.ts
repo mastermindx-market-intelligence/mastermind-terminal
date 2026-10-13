@@ -94,6 +94,14 @@ async function benchEval<T>(page: Page, fn: () => T | Promise<T>): Promise<T> {
 async function measureImpl(page: Page, impl: EngineImpl, logFile: string): Promise<RunMetrics> {
   await page.goto(`/dev/chart-bench?engine=${impl}`, { waitUntil: "domcontentloaded", timeout: 120_000 });
   await waitReady(page);
+  // The budget assumes a dpr-2 raster (performance-budget.md §3). A run at dpr 1 measures a
+  // quarter of the pixels and would still be schema-valid, so pin the scale before measuring.
+  const dpr = await benchEval(page, () => window.devicePixelRatio);
+  appendLog(logFile, `[${impl}] window.devicePixelRatio=${dpr}`);
+  expect(
+    dpr,
+    `deviceScaleFactor must reach the page (got window.devicePixelRatio=${dpr}); every B1-B6 number is scale-dependent`,
+  ).toBe(2);
   await page.mouse.move(10, 10);
 
   const firstPaint = await benchEval(page, () => {

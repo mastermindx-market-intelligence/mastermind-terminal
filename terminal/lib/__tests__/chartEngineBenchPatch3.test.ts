@@ -196,8 +196,11 @@ describe("F3 P2 — the mm zoom-anchor drift assertion is a no-op when no pointe
       path.join(TERMINAL_ROOT, "lib", "chart-engine", "bench", "mount.ts"),
       "utf8",
     );
-    // The hook type must declare visibleLogicalRange.
-    expect(mountSrc).toMatch(/visibleLogicalRange\s*\(\s*\)\s*:\s*\{\s*from:\s*number;\s*to:\s*number;\s*\}\s*\|\s*null/);
+    // The hook type must declare visibleLogicalRange returning { from, to } | null.
+    expect(
+      /visibleLogicalRange\s*\(\s*\)\s*:\s*\{\s*from:\s*number;\s*to:\s*number[;\s]*\}\s*\|\s*null/.test(mountSrc),
+      "mount.ts must declare visibleLogicalRange(): { from: number; to: number } | null on the MmBenchHook",
+    ).toBe(true);
     // And the implementation must read timeScale().getVisibleLogicalRange().
     expect(mountSrc).toMatch(/getVisibleLogicalRange\s*\(\s*\)/);
   });
@@ -314,11 +317,21 @@ describe("F5 P2 — the harness must assert devicePixelRatio = 2 (B5 dimensions 
 
   it("the bench spec asserts window.devicePixelRatio === 2 in the page (source pin)", () => {
     // After the fix, the bench spec reads window.devicePixelRatio and
-    // expects 2 — so a dpr-1 run reddens.
-    const benchSrc = readFileSync(
+    // expects 2 — so a dpr-1 run reddens. Strip line comments so a comment
+    // cannot hide the assertion from the regex (F5 mutant test would
+    // otherwise pass after dropping the .toBe(2) in favour of
+    // .toBeGreaterThan(0)).
+    const raw = readFileSync(
       path.join(TERMINAL_ROOT, "bench", "chart-engine.bench.ts"),
       "utf8",
     );
+    const benchSrc = raw
+      .split("\n")
+      .map((line) => {
+        const i = line.indexOf("//");
+        return i >= 0 ? line.slice(0, i) : line;
+      })
+      .join("\n");
     expect(benchSrc).toMatch(/window\.devicePixelRatio/);
     expect(benchSrc).toMatch(/expect\(\s*dpr\s*,\s*`deviceScaleFactor must reach the page/);
     expect(benchSrc).toMatch(/\.toBe\(2\)/);
