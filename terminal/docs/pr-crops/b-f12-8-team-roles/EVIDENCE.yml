@@ -1,16 +1,16 @@
 # B-F12-8 Team roles v1 — capture evidence
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
 # Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
-# capturedAtHead: 198a62d5193ba9a221f0052c3f370494d71d1876
-# capturedAt: 2026-10-12T05:32:49.980Z
+# capturedAtHead: 304b74d9c4dfd5f77ec98b5d9f734c96ad7a0742
+# capturedAt: 2026-10-12T22:13:29.788Z
 # capturedAtHead is informational. The lock is layoutFiles.
 layoutFiles:
-  terminal/components/settings/SectionTeam.tsx: "00f61441215f0cdb8c6b40536e66e243d0ae83ffa54d6f19ae8a67dd99d7a79d"
+  terminal/components/settings/SectionTeam.tsx: "add785974e9872100f912b96f21e28d48819f39eef221b9efe887752ba51e3e6"
   terminal/components/settings/SectionTeam.module.css: "069056ff7ac4274a57ae9a835a0fdda178e9625a591b4374e855b9d41a3fd5bc"
   terminal/components/settings/SettingsPanel.tsx: "526725b37af04f1092359a8aca1e6d3d6d62815b5913b3a7eba754e4ca020329"
   terminal/components/settings/icons.tsx: "7f3e17e45cb92545437ade898fe47a92cf6a65d1682cec9b9cea7a5bb8bd4d83"
   terminal/app/settings.css: "2a15b7704f1c6ec62671ec84723063dcce367c7998bbea56e04b50c9bda2252c"
-  terminal/lib/i18n.tsx: "af45118c980cad0c274c23577df30482bff911b3caa3c53683e53c4fa87c2b85"
+  terminal/lib/i18n.tsx: "cfad0a8290b9b872fe919b7b9855bbd3a4cee095eb26ebd902c399942196a65d"
 theme: dark
 languages: [en, zh]
 viewports:
