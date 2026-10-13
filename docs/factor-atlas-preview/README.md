@@ -340,3 +340,60 @@ S1 `factor_atlas_read.v1`, capital-pressure S2, options S3,
 evidence S4 and evaluation S6 remain original upstream owners. The Terminal
 consumer enforces presentation semantics only and never mutates their
 stores, payloads or original release ceilings.
+
+## R6: source-native coverage, breadth and concentration (synthetic-only)
+
+The native S1 history candidate already carries diagnostics with each interval.
+Factor Atlas previously dropped those values. This revision preserves **only the
+native source fields** in the read projection and renders them inside the
+accessible, horizontally scrollable observation table:
+
+- **Eligible / valid count:** source-native numerator and denominator, not a
+  renormalized percentage over whichever names remain visible.
+- **Held-weight coverage:** the native fraction using **declared start weights**;
+  this is not turnover, capital flow or end-weight coverage.
+- **Advancing share:** source-native fraction conditional on the original
+  breadth status. A PARTIAL/UNAVAILABLE breadth status displays a dash rather
+  than promoting an incomplete fraction to an all-name observation.
+- **Concentration:** native HHI, effective N (native producer calculates
+  `1 / HHI`), largest held end weight and qualified security count. The
+  end-weight concentration basis is distinct from the held-start-weight
+  coverage denominator. An absent concentration object renders **unknown**,
+  never a fabricated equal-weight estimate.
+
+The projection rejects non-finite/out-of-range ratios, contradictory counts,
+unsupported method bases, cross-field disagreement between coverage and
+breadth denominators, and inconsistent HHI/effective-N arithmetic. A missing
+held valuation yields no rendered diagnostics for that date. Every field is
+copied from the established `factor_atlas_read.v1` source contract; the
+Terminal client does not infer dealer flow, portfolio trading economics,
+constituent selection or predictive alpha. Percentage-share formatting never
+adds a return-like plus sign. English and Chinese labels are inherited from
+the component's existing language input; no second locale store was added.
+
+Source: S1 original native implementation `engine/factor_atlas_read.py` at
+Macro `ddf1f07f2059caebb4bfa6b1db6c4008dd97859c`, where the same
+per-member return collection calculates count/weight coverage and breadth,
+and `_concentration()` calculates end-held-weight HHI and effective N.
+This source is an internal synthetic reference, **not** an authenticated
+customer data receipt or a historical PIT rights approval.
+
+The source-backed behavior is covered by new
+`terminal/lib/__tests__/factorAtlasDiagnostics.test.ts`, expanded preview
+DOM tests, and the incumbent history/navigation tests. The 13 original RED
+cases and three additional discriminating HHI/denominator RED witnesses
+preceded implementation. The combined focused suite passed **141/141**;
+ESLint, TypeScript, plain-language, and browser evidence are separate gates.
+
+## R6 browser-proof boundary
+
+The standalone real-component browser proof has **24/24 contexts and 529 checks**
+for current native coverage/breadth/concentration fields. The latest real Next.js
+development-shell browser proof is **NOT VERIFIED**: Turbopack's WebKit HMR
+chunk-loading exceptions and a separate Webpack first-navigation timeout are
+recorded instead of waived. A previous R5 passing full-shell run does not
+prove this changed R6 implementation. See
+[R6 verification limitations](R6_EVIDENCE_LIMITATIONS.md) and the exact
+[verification receipt](verification.json). The optimized production build and
+negative production route checks remain separate positive evidence; none of
+these tests admits actual market sources or authorizes customer publication.

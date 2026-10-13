@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { fmtTick, niceTicks, padDomain, thinLabels, useChartWidth } from "../charts/svgChart";
 import { decodeFactorLocation, encodeFactorLocation } from "../../lib/factorAtlasLocation";
-import { compareFactorHistories, formatFactorPercent, formatFactorPoints, prepareFactorHistory, splitFactorSegments,
+import { compareFactorHistories, formatFactorPercent, formatFactorShare, formatFactorPoints, prepareFactorHistory, splitFactorSegments,
   type FactorComparison, type HistoryWindowRequest } from "../../lib/factorAtlasHistory";
 import styles from "./FactorHistoryPreview.module.css";
 
@@ -29,6 +29,11 @@ const LEX = {
   rule: ["Dates change the reference, not the holdings. Missing valuations are never filled.", "日期只改变参考点，不改变持仓。缺失估值不会被补齐。"],
   observations: ["Observations & provenance", "观测值与来源"],
   date: ["Date", "日期"], interval: ["Source interval return", "源区间收益"], rebased: ["Rebased return", "重新标定收益"], state: ["State", "状态"],
+  namesCoverage: ["Valid names", "有效成员"], startWeightCoverage: ["Held start weight", "期初持仓权重覆盖"],
+  advancing: ["Advancing share", "上涨占比"], largest: ["Largest end weight", "期末最大权重"],
+  effective: ["Effective names", "有效持仓数量"], hhi: ["HHI", "赫芬达尔指数"],
+  diagnosticBasis: ["Native measurement: held-weight coverage uses start weights; concentration uses end weights. These are not institutional flows.",
+    "原生测量：持仓覆盖率使用期初权重，集中度使用期末权重；这些指标不代表机构资金流向。"],
   observed: ["Observed", "已有观测"], gap: ["Unavailable", "不可用"],
   construction: ["Source construction", "源构建方法"], inception: ["Construction inception", "构建起始日期"],
   digest: ["Source digest reference — not authenticated", "源摘要引用 — 尚未认证"],
@@ -221,13 +226,29 @@ export function FactorHistoryPreview({ items, initialWindow, audience, lang = "e
           <dl className={styles.provenance}><dt>{pick("construction", lang)}</dt><dd>{history.constructionRef}</dd>
             <dt>{pick("inception", lang)}</dt><dd>{history.seriesInception}</dd>
             <dt>{pick("digest", lang)}</dt><dd><code>{history.sourceDigest}</code></dd></dl>
-          <div className={styles.tableWrap}><table><thead><tr>
+          <p className={styles.caption}>{pick("diagnosticBasis", lang)}</p>
+          <div className={styles.tableWrap}><table className={styles.diagnosticsTable}><thead><tr>
             <th scope="col">{pick("date", lang)}</th><th scope="col">{pick("interval", lang)}</th>
             <th scope="col">{pick("rebased", lang)}</th><th scope="col">{pick("state", lang)}</th>
+            <th scope="col">{pick("namesCoverage", lang)}</th><th scope="col">{pick("startWeightCoverage", lang)}</th>
+            <th scope="col">{pick("advancing", lang)}</th><th scope="col">{pick("largest", lang)}</th>
+            <th scope="col">{pick("effective", lang)}</th><th scope="col">{pick("hhi", lang)}</th>
           </tr></thead><tbody>{range.points.map((point, i) => <tr key={point.date} data-observation={point.date}>
             <th scope="row">{point.date}</th><td>{i === 0 ? "—" : formatFactorPercent(point.returnFraction, lang)}</td>
             <td>{formatFactorPercent(point.rebasedPercent === null ? null : point.rebasedPercent / 100, lang)}</td>
             <td>{pick(point.level === null ? "gap" : "observed", lang)}</td>
+            <td data-source="count-coverage">{point.diagnostics?.coverage.validCount !== null
+              && point.diagnostics?.coverage.validCount !== undefined
+              && point.diagnostics.coverage.eligibleCount !== null
+              ? String(point.diagnostics.coverage.validCount) + " / " + String(point.diagnostics.coverage.eligibleCount) : "—"}</td>
+            <td data-source="weight-coverage">{formatFactorShare(point.diagnostics?.coverage.weightFraction ?? null, lang)}</td>
+            <td data-source="advance-fraction">{formatFactorShare(point.diagnostics?.breadth.advanceFraction ?? null, lang)}</td>
+            <td data-source="largest-weight">{formatFactorShare(point.diagnostics?.concentration?.largestWeight ?? null, lang)}</td>
+            <td data-source="effective-n">{point.diagnostics?.concentration
+              ? point.diagnostics.concentration.effectiveN.toFixed(2) : "—"}</td>
+            <td data-source="hhi">{point.diagnostics?.concentration?.hhi !== null
+              && point.diagnostics?.concentration?.hhi !== undefined
+              ? point.diagnostics.concentration.hhi.toFixed(3) : "—"}</td>
           </tr>)}</tbody></table></div>
         </section>)}
       </details>}

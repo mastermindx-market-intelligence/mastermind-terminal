@@ -46,6 +46,16 @@ try {
           assert(Math.abs(geometry.width-geometry.viewBox)<1 && !geometry.distorted,"pixel-space SVG");
           const tickLabels=await page.locator("svg text").allTextContents();const yLabels=tickLabels.filter(t=>t.endsWith("%"));
           assert.equal(new Set(yLabels).size,yLabels.length,"duplicate axis labels");
+          await page.locator("summary").click();
+          const source = page.locator('[data-observation="2026-01-29"]');
+          await expect(source.locator('[data-source="count-coverage"]')).toHaveText("3 / 3");
+          await expect(source.locator('[data-source="weight-coverage"]')).toHaveText("100.0%");
+          await expect(source.locator('[data-source="advance-fraction"]')).toHaveText("33.3%");
+          await expect(source.locator('[data-source="largest-weight"]')).toHaveText("50.0%");
+          await expect(source.locator('[data-source="effective-n"]')).toHaveText("2.67");
+          await expect(source.locator('[data-source="hhi"]')).toHaveText("0.375");
+          await checkWidth();
+          row.checks.push("native_coverage_denominators","native_breadth_status","native_concentration","diagnostics_scoped_horizontal_scroll");
           await page.screenshot({path:resolve(proofDirectory,"screenshots",id+".png"),fullPage:true});
           row.checks.push("synthetic_label","source_round_trip","pixel_space_svg","unique_ticks","no_overflow");
           const anchor=page.getByLabel(lang==="zh"?"参考日期":"Comparison anchor",{exact:true});

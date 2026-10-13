@@ -4,9 +4,28 @@
  */
 export type HistoryMode = "CURRENT_ROSTER" | "PIT_AS_KNOWN";
 export type SourceStatus = "READY" | "PARTIAL" | "UNAVAILABLE";
+/** Native source-native measurement, never re-estimated by the Terminal client. */
+export interface FactorDiagnostics {
+  coverage: {
+    eligibleCount: number | null; validCount: number | null;
+    countFraction: number | null; weightFraction: number | null;
+    weightBasis: "declared_start_weights";
+  };
+  breadth: {
+    status: SourceStatus; eligibleCount: number | null; validCount: number | null;
+    advanceFraction: number | null;
+  };
+  concentration: null | {
+    basis: "end_of_interval_security_weights"; securityCount: number;
+    hhi: number | null; effectiveN: number; largestWeight: number | null;
+    top5Weight: number | null;
+  };
+}
 export interface FactorPoint {
   date: string; level: number | null; returnFraction: number | null;
   segmentId: number; reasons: string[];
+  /** Null for the anchor or an unavailable held-weight valuation. */
+  diagnostics: FactorDiagnostics | null;
 }
 export interface FactorHistory {
   basketId: string; historyMode: HistoryMode; sourceStatus: SourceStatus;
@@ -69,6 +88,60 @@ function reasons(v: unknown): string[] {
   }
   return v.slice();
 }
+/** Validate S1 diagnostics as supplied, without reconstructing constituents. */
+function sourceDiagnostics(point: Record<string, unknown>): FactorDiagnostics {
+  const c = object(point.coverage), b = object(point.breadth);
+  const count = (value: unknown): number | null => {
+    if (value === null) return null;
+    if (typeof value !== "number" || !Number.isSafeInteger(value) || value < 0) throw new Error("INVALID_COUNT");
+    return value;
+  };
+  const fraction = (value: unknown): number | null => {
+    if (value === null) return null;
+    if (typeof value !== "number" || !Number.isFinite(value) || value < 0 || value > 1 + 1e-12)
+      throw new Error("INVALID_FRACTION");
+    return value;
+  };
+  const eligibleCount = count(c.eligible_count), validCount = count(c.valid_count);
+  const countFraction = fraction(c.count), weightFraction = fraction(c.weight);
+  if (c.weight_basis !== "declared_start_weights"
+    || (eligibleCount !== null && validCount !== null && validCount > eligibleCount)
+    || (eligibleCount !== null && validCount !== null && countFraction !== null
+      && Math.abs(countFraction - (eligibleCount ? validCount / eligibleCount : 0)) > 1e-8)) {
+    throw new Error("INVALID_NATIVE_COVERAGE");
+  }
+  const bEligible = count(b.eligible_count), bValid = count(b.valid_count), advance = fraction(b.advance_fraction);
+  if (!["READY", "PARTIAL", "UNAVAILABLE"].includes(String(b.status))
+    || (bEligible !== null && bValid !== null && bValid > bEligible)
+    || (b.status === "READY" && advance === null)
+    || (eligibleCount !== null && bEligible !== null && eligibleCount !== bEligible)
+    || (validCount !== null && bValid !== null && validCount !== bValid)) {
+    throw new Error("INVALID_NATIVE_BREADTH");
+  }
+  let concentration: FactorDiagnostics["concentration"] = null;
+  if (point.concentration !== null) {
+    const x = object(point.concentration), securityCount = count(x.security_count);
+    const effectiveN = x.effective_n, hhi = fraction(x.hhi);
+    const largestWeight = fraction(x.largest_weight), top5Weight = fraction(x.top5_weight);
+    if (x.basis !== "end_of_interval_security_weights" || securityCount === null || securityCount < 3
+      || typeof effectiveN !== "number" || !Number.isFinite(effectiveN) || effectiveN < 1
+      || effectiveN > securityCount + 1e-8
+      || (hhi !== null && (hhi <= 0 || Math.abs(1 / hhi - effectiveN) > 1e-7 * Math.max(1, effectiveN)))
+      || (largestWeight !== null && top5Weight !== null && largestWeight > top5Weight + 1e-12)) {
+      throw new Error("INVALID_NATIVE_CONCENTRATION");
+    }
+    concentration = { basis: "end_of_interval_security_weights", securityCount,
+      hhi, effectiveN, largestWeight, top5Weight };
+  }
+  return {
+    coverage: { eligibleCount, validCount, countFraction, weightFraction,
+      weightBasis: "declared_start_weights" },
+    breadth: { status: b.status as SourceStatus, eligibleCount: bEligible, validCount: bValid,
+      advanceFraction: b.status === "READY" ? advance : null },
+    concentration,
+  };
+}
+
 const blocked = (kind: "withheld" | "invalid", reason: string): HistoryRead =>
   ({ kind, reasons: [reason], history: null, mayPublish: false });
 
@@ -106,7 +179,7 @@ export function prepareFactorHistory(raw: unknown, options: {
     const firstSegment = object(d.points[0]).segment_id;
     if (typeof firstSegment !== "number" || !Number.isInteger(firstSegment) || firstSegment < 0) throw new Error("INVALID_SEGMENT");
     const points: FactorPoint[] = [{ date: start, level: numberOrNull(anchor.index_level, 0),
-      returnFraction: null, segmentId: firstSegment, reasons: [] }];
+      returnFraction: null, segmentId: firstSegment, reasons: [], diagnostics: null }];
     let previousEnd: number | null = null, broken = points[0].level === null;
     for (const value of d.points) {
       const p = object(value), date = day(p.date), previous = points[points.length - 1];
@@ -118,6 +191,10 @@ export function prepareFactorHistory(raw: unknown, options: {
       }
       const level = numberOrNull(p.index_level, 0), ret = numberOrNull(p.return, -1);
       const segment = p.segment_id, why = reasons(p.reasons);
+      // Preserve native eligibility and concentration, not a Terminal-derived estimator.
+      // The source may carry diagnostics for a missing NAV, but a numeric chart
+      // observation must not be constructed from that unavailable valuation.
+      const diagnostics = sourceDiagnostics(p);
       if (typeof segment !== "number" || !Number.isInteger(segment) || segment < previous.segmentId) throw new Error("INVALID_SEGMENT");
       if (broken && level !== null) throw new Error("BROKEN_NAV_RECONNECTED");
       if (level !== null && ret === null) throw new Error("LEVEL_WITHOUT_RETURN");
@@ -129,7 +206,8 @@ export function prepareFactorHistory(raw: unknown, options: {
         }
       }
       if (level === null) broken = true;
-      points.push({ date, level, returnFraction: ret, segmentId: segment, reasons: why });
+      points.push({ date, level, returnFraction: ret, segmentId: segment, reasons: why,
+        diagnostics: level === null ? null : diagnostics });
       previousEnd = to;
     }
     if (points[points.length - 1].date !== end || (d.status === "READY"
@@ -205,6 +283,14 @@ export function formatFactorPercent(value: number | null, locale: "en" | "zh" = 
   }).format(value);
 }
 
+
+/** Native participation/coverage fractions are shares, not signed returns. */
+export function formatFactorShare(value: number | null, locale: "en" | "zh" = "en"): string {
+  if (value === null || !Number.isFinite(value) || value < 0 || value > 1 + 1e-12) return "—";
+  return new Intl.NumberFormat(locale === "zh" ? "zh-CN" : "en-US", {
+    style: "percent", minimumFractionDigits: 1, maximumFractionDigits: 1,
+  }).format(value);
+}
 
 /** A difference between two return fractions, displayed in percentage points.
  * Format its numeric value directly; no percent-sign escaping/replacement.

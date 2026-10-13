@@ -38,6 +38,39 @@ describe("native Factor Atlas preview component", () => {
     expect(container.querySelector('svg[role="img"]')).not.toBeNull();
     expect(container.innerHTML).not.toContain('preserveAspectRatio="none"');
   });
+  it("displays native observation coverage, breadth and concentration with denominators", async () => {
+    await mount();
+    const source = container.querySelector('[data-observation="2026-01-29"]');
+    expect(source?.querySelector('[data-source="count-coverage"]')?.textContent).toBe("3 / 3");
+    expect(source?.querySelector('[data-source="weight-coverage"]')?.textContent).toBe("100.0%");
+    expect(source?.querySelector('[data-source="advance-fraction"]')?.textContent).toBe("33.3%");
+    expect(source?.querySelector('[data-source="largest-weight"]')?.textContent).toBe("50.0%");
+    expect(source?.querySelector('[data-source="effective-n"]')?.textContent).toBe("2.67");
+    expect(source?.querySelector('[data-source="hhi"]')?.textContent).toBe("0.375");
+    expect(container.textContent).toContain("Held start weight");
+    expect(container.textContent).toContain("end weights");
+  });
+  it("shows a partial native breadth assessment as unavailable rather than 33% participation", async () => {
+    const props=baseProps();props.items[0].payload.points[0].breadth.status="PARTIAL";
+    await mount(props);
+    const source=container.querySelector('[data-observation="2026-01-29"]');
+    expect(source?.querySelector('[data-source="advance-fraction"]')?.textContent).toBe("—");
+    expect(source?.querySelector('[data-source="count-coverage"]')?.textContent).toBe("3 / 3");
+  });
+  it("uses an unknown marker instead of fabricated concentration from a null native object", async () => {
+    const props=baseProps();Object.assign(props.items[0].payload.points[0],{concentration:null});
+    await mount(props);
+    const source=container.querySelector('[data-observation="2026-01-29"]');
+    expect(source?.querySelector('[data-source="largest-weight"]')?.textContent).toBe("—");
+    expect(source?.querySelector('[data-source="effective-n"]')?.textContent).toBe("—");
+  });
+  it("labels native diagnostics in Chinese without renaming its source basis", async () => {
+    await mount({ ...baseProps(), lang:"zh" });
+    expect(container.textContent).toContain("有效成员");
+    expect(container.textContent).toContain("期初持仓权重覆盖");
+    expect(container.textContent).toContain("期末最大权重");
+    expect(container.querySelector('[data-observation="2026-01-29"] [data-source="count-coverage"]')?.textContent).toBe("3 / 3");
+  });
   it("keeps customer mode entirely withheld", async () => {
     await mount({ ...baseProps(), audience: "customer" });
     expect(container.textContent).toContain("Source admission required");

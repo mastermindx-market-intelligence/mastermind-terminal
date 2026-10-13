@@ -1,4 +1,4 @@
-.shell { max-width:1120px; margin:0 auto; padding:clamp(18px,3vw,36px); color:var(--text,#d6dae3); background:var(--bg,#0a0b0e); font-family:var(--font-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif); line-height:1.5; }
+.shell { box-sizing:border-box; width:100%; max-width:1120px; min-width:0; margin:0 auto; padding:clamp(18px,3vw,36px); color:var(--text,#d6dae3); background:var(--bg,#0a0b0e); font-family:var(--font-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif); line-height:1.5; }
 .shell * { box-sizing:border-box; }
 .header { display:flex; flex-wrap:wrap; align-items:flex-start; justify-content:space-between; gap:20px; margin-bottom:28px; }
 .header h2 { margin:5px 0 9px; font-size:clamp(28px,4vw,40px); font-weight:600; letter-spacing:-.045em; }
@@ -45,16 +45,17 @@
 .notice { padding:13px 16px; border:1px solid var(--line,#23262f); border-radius:8px; color:var(--text-2,#9ba3b4); font-size:12px; }
 .difference { display:flex; flex-wrap:wrap; align-items:baseline; gap:8px; font-size:12px; }
 .difference span { width:100%; color:var(--muted,#717a8e); font-size:11px; }
-.details { margin-top:24px; border-top:1px solid var(--line,#23262f); }
+.details { min-width:0; max-width:100%; margin-top:24px; border-top:1px solid var(--line,#23262f); }
 .details summary { cursor:pointer; padding:18px 0; min-height:48px; font-size:13px; color:var(--text-2,#9ba3b4); }
-.observations { padding:8px 0 24px; }
+.observations { min-width:0; max-width:100%; padding:8px 0 24px; }
 .observations h3 { font-size:14px; margin:0 0 12px; }
 .provenance { display:grid; grid-template-columns:minmax(120px,1fr) 2fr; gap:6px 14px; font-size:11px; margin:0 0 16px; }
 .provenance dt { color:var(--muted,#717a8e); }
 .provenance dd { margin:0; overflow-wrap:anywhere; }
 .provenance code { font-size:10px; font-family:var(--font-code,monospace); }
-.tableWrap { width:100%; overflow:auto; }
+.tableWrap { width:100%; min-width:0; max-width:100%; overflow-x:auto; overflow-y:hidden; }
 .tableWrap table { width:100%; border-collapse:collapse; font-size:12px; font-variant-numeric:tabular-nums; }
+.diagnosticsTable { min-width:1020px; }
 .tableWrap th, .tableWrap td { padding:10px 8px; border-bottom:1px solid var(--line,#23262f); text-align:right; }
 .tableWrap th { color:var(--text-2,#9ba3b4); font-weight:500; }
 .tableWrap th:first-child { text-align:left; white-space:nowrap; }

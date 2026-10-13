@@ -69,7 +69,17 @@ try {
           await expect(page.getByLabel(lang==="zh"?"查找因子":"Find factors",{exact:true})).toBeVisible();
           await expect(page.locator('svg[role="img"]')).toHaveCount(1);
           assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),"horizontal overflow");
-          r.checks.push("real_next_shell","dev_owner_gate","localized_synthetic_label","source_return","search","svg","no_overflow");
+          await page.locator("summary").click();
+          const native = page.locator('[data-observation="2026-01-29"]');
+          await expect(native.locator('[data-source="count-coverage"]')).toHaveText("3 / 3");
+          await expect(native.locator('[data-source="weight-coverage"]')).toHaveText("100.0%");
+          await expect(native.locator('[data-source="advance-fraction"]')).toHaveText("33.3%");
+          await expect(native.locator('[data-source="largest-weight"]')).toHaveText("50.0%");
+          await expect(native.locator('[data-source="effective-n"]')).toHaveText("2.67");
+          await expect(native.locator('[data-source="hhi"]')).toHaveText("0.375");
+          assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth+1),"diagnostics table overflow");
+          r.checks.push("real_next_shell","dev_owner_gate","localized_synthetic_label","source_return","search","svg","no_overflow",
+            "native_coverage_denominators","native_breadth_status","native_concentration","diagnostics_no_document_overflow");
           if ((width===1440 || width===390) && name==="chromium") {
             await page.screenshot({path:resolve(captures,label+".png"),fullPage:true});
           }
