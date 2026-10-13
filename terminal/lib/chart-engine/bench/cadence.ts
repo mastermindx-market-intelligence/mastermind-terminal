@@ -35,27 +35,35 @@
 // sample set yields UNMEASURED — a violation, never `NaN`.
 //
 // Per-input presentation latency (Q03b):
-// The bench installs a single capture-phase listener for pointermove/mousemove
-// (pan) and wheel (zoom) on `document`. For a PointerEvent whose
-// getCoalescedEvents() is non-empty we record one mark per coalesced event;
-// otherwise one mark on the event itself. Each mark is placed at the input's
-// timeStamp via `performance.mark(name, { startTime })`, so the mark clock
-// is the INPUT clock, not the listener-clock. The matching rule for an input
-// mark m is the FIRST presented frame at or after m (presentedMs holds only
-// STATE_PRESENTED_ALL), and only if that frame still falls inside the gesture
-// tail. An input whose first qualifying presentation never arrives inside
-// the tail is "unpresented" (counted, never dropped). The interval quantity
-// is bounded by the input rate (~20 ms) because the wheel/pointer dispatch
-// does not fire faster than that; per-input latency is a different metric and
-// it does not inherit that bound (the renderer can answer the input on whichever
-// frame, presented or not, up to one tail later).
+// Before each gesture the bench installs a capture-phase listener on
+// `document` for pointermove and mousemove (pan) or wheel (zoom). A pointer
+// event with coalesced events gets one mark per coalesced event; any other
+// event gets one mark of its own. Each mark is written with
+// `performance.mark(name, { startTime: ev.timeStamp })`, so it sits at the
+// time the input happened, not at the time the listener ran. A pointermove
+// and its compatibility mousemove carry the same timeStamp, so identical
+// times count as one input. For every input mark m inside [start mark, end
+// mark], latency = the first presented frame (STATE_PRESENTED_ALL) at or
+// after m, minus m, provided that frame arrives by end mark +
+// GESTURE_TAIL_MS; an input with no such frame is counted in
+// input_unpresented. The presented interval cannot be shorter than the time
+// between inputs (a zoom that dispatches ~50 wheel events per second cannot
+// show intervals under ~20 ms), so it says little about the renderer.
+// Latency has no such floor: it is bounded below by the vsync slot, not by
+// the input rate.
 //
 // Measured vsync:
-// The presented-frame interval distribution IS the vsync signal. We round
-// each finite positive interval to 0.1 ms, take the MODE (ties -> the
-// smallest value), and report `vsync_ms = mode`, `hz = round(1000/vsync_ms)`.
-// The mode is measured, never declared; nothing here assumes 60 Hz / 120 Hz
-// / 16.7 ms.
+// vsync_ms is the MODE of the finite positive presented-frame intervals,
+// rounded to 0.1 ms (ties -> the smallest value), pooled over both
+// gestures; hz = round(1000 / vsync_ms). Measured, never declared: nothing
+// here assumes 60 Hz / 120 Hz / 16.7 ms. When inputs arrive more slowly
+// than the display refreshes, every presented interval spans several
+// refreshes and this mode is a multiple of the true slot (a slow headless
+// host read 43.5 ms on a 16.7 ms clock). `frameSequenceIntervals` is the
+// cross-check that does not depend on input: begin-time difference divided
+// by frame_sequence difference between consecutive frames of one BeginFrame
+// source. Its mode is printed as vsync_seq_ms on the diagnostic line and is
+// not part of the receipt.
 //
 // Pure: no fs, no playwright, no DOM, no ajv. Only `./corpus` is imported.
 // House style: 2-space indent, double quotes, semicolons, named exports.
@@ -539,13 +547,18 @@ export function gestureIntervals(presentedMs: readonly number[], windowStartMs: 
  * Whole-trace counts: `presented`/`partial`/`dropped` are the frames
  * whose ms lies in the window. `input_hz` = dispatch rate.
  * Percentiles use `corpus.percentile` (returns UNMEASURED on empty).
+ * Returns ONLY the eight intervals-only metrics of `PresentedCadenceStats`;
+ * the per-input latency keys (`input_marks`, `input_unpresented`, the three
+ * `input_to_present_*_ms` percentiles) come from `inputLatencyStats` and the
+ * spec merges them with `{ ...baseStats, ...latency }` to build a gesture
+ * record.
  */
 export function gestureStats(
   parsed: ParsedPresentation,
   startMarkMs: number,
   endMarkMs: number,
   inputs: number,
-): CadenceGestureStats {
+): PresentedCadenceStats {
   const windowEnd = endMarkMs + GESTURE_TAIL_MS;
   let presented = 0;
   let partial = 0;
@@ -568,11 +581,6 @@ export function gestureStats(
     p50_ms: p50(intervals),
     p95_ms: p95(intervals),
     p99_ms: p99(intervals),
-    input_marks: 0,
-    input_unpresented: 0,
-    input_to_present_p50_ms: percentile([], 0.5),
-    input_to_present_p95_ms: percentile([], 0.95),
-    input_to_present_p99_ms: percentile([], 0.99),
   };
 }
 
@@ -598,11 +606,11 @@ export function p99(v: readonly number[]): number {
  * must still fall inside `[startMarkMs, endMarkMs + GESTURE_TAIL_MS]`
  * inclusive (otherwise the input is unpresented — the gesture is over and no
  * frame arrived in time). `inputMarksMs` is de-duplicated within the gesture
- * window (pointermove and the compatibility mousemove of the same input both
- * carry the same timeStamp; Chromium pairs them through coalesced events but
- * the trace records both). Equality counts (a mark that lands exactly on a
- * presentation frame has latency 0). An empty mark list throws — there is
- * no way to compute a per-input latency without inputs.
+ * window (a pointermove and its compatibility mousemove carry the same
+ * timeStamp; both are marked and identical times count as one input).
+ * Equality counts (a mark that lands exactly on a presentation frame has
+ * latency 0). An empty mark list throws — there is no way to compute a
+ * per-input latency without inputs.
  */
 export function inputLatencyStats(
   parsed: ParsedPresentation,
@@ -689,6 +697,84 @@ export function measureVsync(intervalsMs: readonly number[]): CadenceDisplay {
   }
   const vsyncMs = Math.round(modeValue * 10) / 10;
   return { vsync_ms: vsyncMs, hz: Math.round(1000 / vsyncMs) };
+}
+
+/**
+ * Cross-check vsync signal that does NOT depend on the dispatched input rate.
+ * Chromium's frame reporter assigns each issued BeginFrame a `frame_sequence`
+ * number; one BeginFrame -> one new sequence number, regardless of whether
+ * the frame was presented, dropped, or forked. By looking at BEGIN-time
+ * difference divided by SEQUENCE-difference between consecutive frames of
+ * ONE BeginFrame source, we recover the wall-clock per-refresh slot the
+ * compositor was using. Input-independent: a frame's sequence number counts
+ * BeginFrame ticks, one per refresh, whether or not the frame was presented,
+ * and skips numbers for ticks it did not issue.
+ *
+ * Rules:
+ *  - Only `PipelineReporter` `b` and `X` events whose `pid` equals
+ *    `rendererPid` and whose `args.frame_reporter.frame_source` AND
+ *    `args.frame_reporter.frame_sequence` are both numbers are considered.
+ *    `e` events carry no args and are ignored; events on other pids are
+ *    ignored.
+ *  - One entry per `frame_source:frame_sequence` key, taken at the EARLIEST
+ *    `ts` of that key (a forked pair repeats the key on the same frame; we
+ *    keep the first `b` / `X` we see).
+ *  - Group by `frame_source`. Within each source, sort by
+ *    `frame_sequence` ascending. For each consecutive pair with
+ *    `dSeq > 0` and `dTs > 0`, push `(dTs_us / 1000) / dSeq` (milliseconds
+ *    per refresh slot). Never pair across sources; no window; return `[]`
+ *    when nothing qualifies — the caller decides what that means.
+ *
+ * The result feeds `measureVsync` for the mode (`vsync_seq_ms`); `vsync_ms`
+ * (the receipt value) stays the mode of the presented intervals.
+ */
+export function frameSequenceIntervals(events: readonly unknown[], rendererPid: number): number[] {
+  const raw = readRawEvents(events);
+  // Key = `${frame_source}:${frame_sequence}` -> earliest ts (microseconds).
+  const earliest = new Map<string, number>();
+  for (const e of raw) {
+    const r = parseReporterEvent(e);
+    if (r == null) continue;
+    if (r.pid !== rendererPid) continue;
+    if (r.kind !== "b" && r.kind !== "X") continue; // "e" carries no args
+    const src = r.reporter.frame_source;
+    const seq = r.reporter.frame_sequence;
+    if (src == null || seq == null) continue;
+    const key = `${src}:${seq}`;
+    const prev = earliest.get(key);
+    if (prev == null || r.ts < prev) earliest.set(key, r.ts);
+  }
+  if (earliest.size === 0) return [];
+  // Group by frame_source.
+  type SeqTs = { seq: number; ts: number };
+  const bySource = new Map<number, SeqTs[]>();
+  for (const [key, ts] of earliest) {
+    const sep = key.indexOf(":");
+    if (sep < 0) continue;
+    const src = Number(key.slice(0, sep));
+    const seq = Number(key.slice(sep + 1));
+    if (!Number.isFinite(src) || !Number.isFinite(seq)) continue;
+    let list = bySource.get(src);
+    if (list == null) {
+      list = [];
+      bySource.set(src, list);
+    }
+    list.push({ seq, ts });
+  }
+  const out: number[] = [];
+  for (const list of bySource.values()) {
+    list.sort((a, b) => a.seq - b.seq);
+    for (let i = 1; i < list.length; i++) {
+      const a = list[i - 1];
+      const b = list[i];
+      if (a == null || b == null) continue;
+      const dSeq = b.seq - a.seq;
+      const dTs = b.ts - a.ts;
+      if (dSeq <= 0 || dTs <= 0) continue;
+      out.push((dTs / 1000) / dSeq);
+    }
+  }
+  return out;
 }
 
 // ---------- input-mark clock check ----------
@@ -944,8 +1030,14 @@ export function validateCadenceReceipt(receipt: unknown): { ok: true } | { ok: f
       for (const k of finiteKeys) {
         if (!isNonNegativeFinite(s[k])) errors.push(`gesture.${g}.${k} must be a finite number >= 0 (got ${JSON.stringify(s[k])})`);
       }
-      for (const k of ["inputs", "presented", "partial", "dropped", "input_marks", "input_unpresented"]) {
+      for (const k of ["inputs", "presented", "partial", "dropped", "input_unpresented"]) {
         if (!isNonNegativeInt(s[k])) errors.push(`gesture.${g}.${k} must be a non-negative integer (got ${JSON.stringify(s[k])})`);
+      }
+      // input_marks is the unique count of input events; a gesture without any
+      // input marks has no per-input latency to report, so the bench throws
+      // "no input marks" and the receipt must never carry 0 here.
+      if (!isPositiveInteger(s.input_marks)) {
+        errors.push(`gesture.${g}.input_marks must be an integer >= 1 (got ${JSON.stringify(s.input_marks)})`);
       }
       // input_unpresented <= input_marks (cannot have more unpresented than inputs).
       if (isNonNegativeInt(s.input_marks) && isNonNegativeInt(s.input_unpresented) && (s.input_unpresented as number) > (s.input_marks as number)) {

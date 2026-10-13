@@ -38,6 +38,7 @@ import {
   inputLatencyStats,
   presentedIntervals,
   measureVsync,
+  frameSequenceIntervals,
   checkInputMarkClock,
   type CadenceGestureStats,
   type CadenceReceipt,
@@ -57,6 +58,7 @@ type RunStats = {
   display: CadenceDisplay;
   panClockMaxDevMs: number;
   zoomClockMaxDevMs: number;
+  vsyncSeqMs: number | null;
 };
 
 const IMPLS: EngineImpl[] = (process.env.BENCH_IMPLS ?? "mm,lwc")
@@ -177,7 +179,7 @@ async function installInputMarks(page: Page, gesture: "pan" | "zoom"): Promise<v
     }
     win.__cadenceInputMarksRemover = () => {
       for (const evt of events) {
-        document.removeEventListener(evt, handler, { capture: true } as unknown as boolean);
+        document.removeEventListener(evt, handler, { capture: true });
       }
       delete win.__cadenceInputMarksRemover;
     };
@@ -260,18 +262,21 @@ async function panGesture(
   center: { x: number; y: number },
   impl: EngineImpl,
   runIdx: number,
-): Promise<{ stats: CadenceGestureStats; events: unknown[]; rangeBefore: VisibleSpan; rangeAfter: VisibleSpan; presentedMs: number[]; clockMaxDevMs: number }> {
+): Promise<{ stats: CadenceGestureStats; events: unknown[]; rangeBefore: VisibleSpan; rangeAfter: VisibleSpan; presentedMs: number[]; clockMaxDevMs: number; seqIntervals: number[] }> {
   const rangeBefore = await readRange(page);
   const { events } = await captureTrace(context, page, "pan", async () => {
     await page.mouse.move(center.x, center.y);
     await page.waitForTimeout(200);
     await installInputMarks(page, "pan");
-    await page.evaluate((n: string) => performance.mark(n), "cadence:pan:start");
-    await page.mouse.down();
-    await page.mouse.move(center.x + 1600, center.y, { steps: 200 });
-    await page.mouse.up();
-    await page.evaluate((n: string) => performance.mark(n), "cadence:pan:end");
-    await removeInputMarks(page);
+    try {
+      await page.evaluate((n: string) => performance.mark(n), "cadence:pan:start");
+      await page.mouse.down();
+      await page.mouse.move(center.x + 1600, center.y, { steps: 200 });
+      await page.mouse.up();
+      await page.evaluate((n: string) => performance.mark(n), "cadence:pan:end");
+    } finally {
+      await removeInputMarks(page).catch(() => undefined);
+    }
     return true;
   });
   const rangeAfter = await readRange(page);
@@ -315,7 +320,7 @@ async function panGesture(
   }
   const stats: CadenceGestureStats = { ...baseStats, ...latency };
   if (DUMP_TRACE) writeTrace(events, impl, runIdx, "pan");
-  return { stats, events, rangeBefore, rangeAfter, presentedMs: parsed.presentedMs, clockMaxDevMs: clock.maxDeviationMs };
+  return { stats, events, rangeBefore, rangeAfter, presentedMs: parsed.presentedMs, clockMaxDevMs: clock.maxDeviationMs, seqIntervals: frameSequenceIntervals(events, parsed.rendererPid) };
 }
 
 async function zoomGesture(
@@ -324,18 +329,21 @@ async function zoomGesture(
   center: { x: number; y: number },
   impl: EngineImpl,
   runIdx: number,
-): Promise<{ stats: CadenceGestureStats; events: unknown[]; rangeBefore: VisibleSpan; rangeAfter: VisibleSpan; presentedMs: number[]; clockMaxDevMs: number }> {
+): Promise<{ stats: CadenceGestureStats; events: unknown[]; rangeBefore: VisibleSpan; rangeAfter: VisibleSpan; presentedMs: number[]; clockMaxDevMs: number; seqIntervals: number[] }> {
   const rangeBefore = await readRange(page);
   const { events } = await captureTrace(context, page, "zoom", async () => {
     await page.mouse.move(center.x, center.y);
     await page.waitForTimeout(200);
     await installInputMarks(page, "zoom");
-    await page.evaluate((n: string) => performance.mark(n), "cadence:zoom:start");
-    for (let i = 0; i < 60; i++) {
-      await page.mouse.wheel(0, -120);
+    try {
+      await page.evaluate((n: string) => performance.mark(n), "cadence:zoom:start");
+      for (let i = 0; i < 60; i++) {
+        await page.mouse.wheel(0, -120);
+      }
+      await page.evaluate((n: string) => performance.mark(n), "cadence:zoom:end");
+    } finally {
+      await removeInputMarks(page).catch(() => undefined);
     }
-    await page.evaluate((n: string) => performance.mark(n), "cadence:zoom:end");
-    await removeInputMarks(page);
     return true;
   });
   const rangeAfter = await readRange(page);
@@ -375,7 +383,7 @@ async function zoomGesture(
   }
   const stats: CadenceGestureStats = { ...baseStats, ...latency };
   if (DUMP_TRACE) writeTrace(events, impl, runIdx, "zoom");
-  return { stats, events, rangeBefore, rangeAfter, presentedMs: parsed.presentedMs, clockMaxDevMs: clock.maxDeviationMs };
+  return { stats, events, rangeBefore, rangeAfter, presentedMs: parsed.presentedMs, clockMaxDevMs: clock.maxDeviationMs, seqIntervals: frameSequenceIntervals(events, parsed.rendererPid) };
 }
 
 function writeTrace(events: unknown[], impl: EngineImpl, runIdx: number, kind: "pan" | "zoom"): void {
@@ -400,12 +408,23 @@ async function runGesture(
   // boundary (an interval from the last pan presentation to the first zoom
   // presentation would be a pure idle gap).
   const display = measureVsync([...presentedIntervals(pan.presentedMs), ...presentedIntervals(zoom.presentedMs)]);
+  // Input-independent vsync cross-check: mode of (begin-time diff / frame_sequence diff)
+  // across both gestures. NOT part of the receipt; printed on the diagnostic line as
+  // vsync_seq_ms. When inputs arrive slower than refreshes, the cross-check is the
+  // true per-slot reading and the receipt's vsync_ms is a multiple of it.
+  let vsyncSeqMs: number | null = null;
+  try {
+    vsyncSeqMs = measureVsync([...pan.seqIntervals, ...zoom.seqIntervals]).vsync_ms;
+  } catch {
+    vsyncSeqMs = null;
+  }
   return {
     pan: pan.stats,
     zoom: zoom.stats,
     display,
     panClockMaxDevMs: pan.clockMaxDevMs,
     zoomClockMaxDevMs: zoom.clockMaxDevMs,
+    vsyncSeqMs,
   };
 }
 
@@ -466,7 +485,7 @@ test("chart-engine presented-frame cadence protocol (Q03)", async ({ browser }) 
           // frame per dispatched input, i.e. no renderer-induced starvation.
           const floor = (hz: number) => (hz > 0 ? round1(1000 / hz) : 0);
           const perInput = (st: CadenceGestureStats) => (st.inputs > 0 ? round1(st.presented / st.inputs) : 0);
-          const diag = `CADENCE_DIAG ${impl} run=${i + 1} pan_input_hz=${round1(stats.pan.input_hz)} pan_input_floor_ms=${floor(stats.pan.input_hz)} pan_presented_per_input=${perInput(stats.pan)} zoom_input_hz=${round1(stats.zoom.input_hz)} zoom_input_floor_ms=${floor(stats.zoom.input_hz)} zoom_presented_per_input=${perInput(stats.zoom)} pan_input_marks=${stats.pan.input_marks} pan_unpresented=${stats.pan.input_unpresented} zoom_input_marks=${stats.zoom.input_marks} zoom_unpresented=${stats.zoom.input_unpresented} hz=${stats.display.hz} pan_clock_dev_ms=${round3(stats.panClockMaxDevMs)} zoom_clock_dev_ms=${round3(stats.zoomClockMaxDevMs)}`;
+          const diag = `CADENCE_DIAG ${impl} run=${i + 1} pan_input_hz=${round1(stats.pan.input_hz)} pan_input_floor_ms=${floor(stats.pan.input_hz)} pan_presented_per_input=${perInput(stats.pan)} zoom_input_hz=${round1(stats.zoom.input_hz)} zoom_input_floor_ms=${floor(stats.zoom.input_hz)} zoom_presented_per_input=${perInput(stats.zoom)} pan_input_marks=${stats.pan.input_marks} pan_unpresented=${stats.pan.input_unpresented} zoom_input_marks=${stats.zoom.input_marks} zoom_unpresented=${stats.zoom.input_unpresented} hz=${stats.display.hz} vsync_seq_ms=${stats.vsyncSeqMs == null ? "unmeasured" : round1(stats.vsyncSeqMs)} pan_clock_dev_ms=${round3(stats.panClockMaxDevMs)} zoom_clock_dev_ms=${round3(stats.zoomClockMaxDevMs)}`;
           console.log(diag);
           appendLog(logFile, `[${impl}] run ${i + 1} ${diag}`);
         } finally {

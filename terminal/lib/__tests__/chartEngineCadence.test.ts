@@ -25,6 +25,7 @@ import {
   inputLatencyStats,
   presentedIntervals,
   measureVsync,
+  frameSequenceIntervals,
   checkInputMarkClock,
   validateCadenceReceipt,
   CADENCE_BUDGETS,
@@ -620,5 +621,178 @@ describe("buildCadenceReceipt / validateCadenceReceipt (Q03)", () => {
       expect(v.ok).toBe(false);
       if (!v.ok) expect(v.errors.some((e) => /input_to_present_p95_ms/.test(e))).toBe(true);
     }
+  });
+
+  it("20. input_marks >= 1: a gesture.pan.input_marks of 0 is rejected with an error matching /input_marks/", () => {
+    const r = greenReceipt();
+    const bad = JSON.parse(JSON.stringify(r));
+    bad.gesture.pan.input_marks = 0;
+    bad.gesture.pan.input_unpresented = 0;
+    const v = validateCadenceReceipt(bad);
+    expect(v.ok).toBe(false);
+    if (!v.ok) expect(v.errors.some((e) => /input_marks/.test(e))).toBe(true);
+  });
+});
+
+describe("frameSequenceIntervals (Q03b vsync cross-check)", () => {
+  // Helper to build a synthetic PipelineReporter `b` event on pid 2 with
+  // explicit src/seq/ts (used by the synthetic-trace tests).
+  function bEvent(ts: number, src: number, seq: number, state: string): unknown {
+    return {
+      name: "PipelineReporter",
+      cat: "cc,benchmark,disabled-by-default-devtools.timeline.frame",
+      ph: "b",
+      ts,
+      pid: 2,
+      tid: 11,
+      id2: { local: `0x${seq.toString(16)}` },
+      args: { frame_reporter: { state, frame_source: src, frame_sequence: seq } },
+    };
+  }
+  function eEvent(ts: number, seq: number): unknown {
+    return {
+      name: "PipelineReporter",
+      cat: "cc,benchmark,disabled-by-default-devtools.timeline.frame",
+      ph: "e",
+      ts,
+      pid: 2,
+      tid: 11,
+      id2: { local: `0x${seq.toString(16)}` },
+    };
+  }
+  // Wrap a list of `b` events into the (b, e) pair shape parsePresentedFrames
+  // expects; the cross-check itself only needs the b side.
+  function pairBs(events: readonly unknown[]): unknown[] {
+    const out: unknown[] = [];
+    for (const e of events) {
+      out.push(e);
+      const r = e as { ts?: number; id2?: { local?: string } };
+      const seqMatch = r.id2?.local?.match(/^0x([0-9a-f]+)$/i);
+      const seq = seqMatch ? Number(seqMatch[1]) : 0;
+      out.push(eEvent((r.ts ?? 0) + 1000, seq));
+    }
+    return out;
+  }
+
+  it("18a. source 1: seqs 1,4,7,10,11 at 0,30,60,90,100 ms -> [10,10,10,10]; measureVsync -> {10,100}; raw begin-time differences yield 30", () => {
+    const seqs = [1, 4, 7, 10, 11];
+    const tss = [0, 30, 60, 90, 100]; // ms (microseconds)
+    const us = tss.map((t) => t * 1000);
+    const events = pairBs(seqs.map((s, i) => bEvent(us[i] ?? 0, 1, s, "STATE_PRESENTED_ALL")));
+    const out = frameSequenceIntervals(events, 2);
+    expect(out.length).toBe(4);
+    expect(out[0]).toBeCloseTo(10, 9);
+    expect(out[1]).toBeCloseTo(10, 9);
+    expect(out[2]).toBeCloseTo(10, 9);
+    expect(out[3]).toBeCloseTo(10, 9);
+    // measureVsync of these four values -> {10, 100}.
+    expect(measureVsync(out)).toEqual({ vsync_ms: 10, hz: 100 });
+    // The raw begin-time differences are [30,30,30,10]; their mode is 30,
+    // which is NOT the slot — proving the division matters.
+    expect(measureVsync(tss.slice(1).map((t, i) => t - (tss[i] ?? 0)))).toEqual({ vsync_ms: 30, hz: 33 });
+  });
+
+  it("18b. adding a forked repeat of key 1:7 at a different ts leaves the result unchanged", () => {
+    const seqs = [1, 4, 7, 10, 11];
+    const tss = [0, 30, 60, 90, 100];
+    const us = tss.map((t) => t * 1000);
+    const base = seqs.map((s, i) => bEvent(us[i] ?? 0, 1, s, "STATE_PRESENTED_ALL"));
+    // A forked repeat of key 1:7 at a later ts (a second `b` with the same key).
+    const forked = bEvent(62 * 1000, 1, 7, "STATE_DROPPED");
+    const events = pairBs([...base, forked]);
+    const out = frameSequenceIntervals(events, 2);
+    expect(out.length).toBe(4);
+    expect(out[0]).toBeCloseTo(10, 9);
+    expect(out[1]).toBeCloseTo(10, 9);
+    expect(out[2]).toBeCloseTo(10, 9);
+    expect(out[3]).toBeCloseTo(10, 9);
+  });
+
+  it("18c. adding a second source 2 with sequences 1,2,3 -> [10,10] appended; never pairs across sources", () => {
+    const seqs1 = [1, 4, 7, 10, 11];
+    const tss1 = [0, 30, 60, 90, 100];
+    const seqs2 = [1, 2, 3];
+    const tss2 = [5, 15, 25];
+    const us1 = tss1.map((t) => t * 1000);
+    const us2 = tss2.map((t) => t * 1000);
+    const events1 = seqs1.map((s, i) => bEvent(us1[i] ?? 0, 1, s, "STATE_PRESENTED_ALL"));
+    const events2 = seqs2.map((s, i) => bEvent(us2[i] ?? 0, 2, s, "STATE_PRESENTED_ALL"));
+    const out = frameSequenceIntervals([...pairBs(events1), ...pairBs(events2)], 2);
+    // Sorted ascending over the full result: four 10s from source 1 and two
+    // 10s from source 2, none of which may be from a cross-source pair.
+    expect(out.length).toBe(6);
+    const sorted = [...out].sort((a, b) => a - b);
+    for (const v of sorted) expect(v).toBeCloseTo(10, 9);
+    // The source groups are reported in insertion order (source 1 first,
+    // source 2 second); the assertion is the sorted multiset.
+    expect([...out].sort((a, b) => a - b)).toEqual(sorted);
+  });
+
+  it("18d. other pids, an 'e' event, and a 'b' without frame_sequence change nothing", () => {
+    const seqs = [1, 4, 7, 10, 11];
+    const tss = [0, 30, 60, 90, 100];
+    const us = tss.map((t) => t * 1000);
+    const base = seqs.map((s, i) => bEvent(us[i] ?? 0, 2, s, "STATE_PRESENTED_ALL"));
+    // Reporter on a different pid -> ignored.
+    const otherPid = bEvent(60_000, 1, 99, "STATE_PRESENTED_ALL");
+    // An 'e' event carries no args -> ignored.
+    const eOnly = eEvent(60_000, 7);
+    // A `b` without frame_source or without frame_sequence -> ignored.
+    const noFrameSeq = {
+      name: "PipelineReporter",
+      cat: "cc,benchmark,disabled-by-default-devtools.timeline.frame",
+      ph: "b",
+      ts: 60_000,
+      pid: 2,
+      tid: 11,
+      id2: { local: "0xff" },
+      args: { frame_reporter: { state: "STATE_PRESENTED_ALL", frame_source: 1 } },
+    };
+    const noFrameSrc = {
+      name: "PipelineReporter",
+      cat: "cc,benchmark,disabled-by-default-devtools.timeline.frame",
+      ph: "b",
+      ts: 60_000,
+      pid: 2,
+      tid: 11,
+      id2: { local: "0xfe" },
+      args: { frame_reporter: { state: "STATE_PRESENTED_ALL", frame_sequence: 5 } },
+    };
+    // Also: a cadence:input mark on pid 2 must not enter the cross-check.
+    const userTiming = {
+      name: "cadence:pan:input",
+      cat: "blink.user_timing",
+      ph: "I",
+      ts: 60_000,
+      pid: 2,
+      tid: 10,
+      s: "t",
+    };
+    const out = frameSequenceIntervals(
+      [...pairBs(base), otherPid, eOnly, noFrameSeq, noFrameSrc, userTiming],
+      2,
+    );
+    expect(out.length).toBe(4);
+    expect(out[0]).toBeCloseTo(10, 9);
+    expect(out[1]).toBeCloseTo(10, 9);
+    expect(out[2]).toBeCloseTo(10, 9);
+    expect(out[3]).toBeCloseTo(10, 9);
+  });
+
+  it("18e. a single key returns [] and measureVsync([]) throws", () => {
+    const events = pairBs([bEvent(0, 1, 1, "STATE_PRESENTED_ALL")]);
+    const out = frameSequenceIntervals(events, 2);
+    expect(out).toEqual([]);
+    expect(() => measureVsync(out)).toThrow(/no presented intervals/);
+  });
+
+  it("19. frameSequenceIntervals on the real fixture: 47 intervals and measureVsync -> {16.7, 60}", () => {
+    // The trimmed Chromium 149 pan fixture carries a single source
+    // (frame_source = 4294967296) with 48 distinct sequence keys -> 47
+    // consecutive (begin-time diff / sequence diff) values; the mode is
+    // 16.7 ms -> hz 60.
+    const out = frameSequenceIntervals(SAMPLE_EVENTS, ORACLE.rendererPid);
+    expect(out.length).toBe(47);
+    expect(measureVsync(out)).toEqual({ vsync_ms: 16.7, hz: 60 });
   });
 });
