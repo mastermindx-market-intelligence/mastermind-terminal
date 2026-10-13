@@ -401,7 +401,10 @@ for (const lang of ["en", "zh"] as const) {
         const scroll = document.querySelector("[data-options-grid]");
         const stripEl = document.querySelector("[data-testid='options-selected-summary']");
         const structure = document.querySelector("[data-testid='options-scope-structure']");
-        const method = document.querySelector("[data-options-companion] details");
+        const inspector = document.querySelector("[data-options-inspector]");
+        const missingKey = document.querySelector("[data-testid='options-missing-key']");
+        const keyRowRect = missingKey ? (missingKey.closest("[data-testid='options-missing-key']")?.parentElement ?? missingKey.parentElement) : null;
+        const method = document.querySelectorAll("[data-options-companion] details").length > 0 ? document.querySelectorAll("[data-options-companion] details").item(document.querySelectorAll("[data-options-companion] details").length - 1) : null;
         const viewport = { left: 0, top: 0, right: window.innerWidth, bottom: window.innerHeight };
         let gridRegion = scroll ? intersect(viewport, clientBox(scroll)) : null;
         gridRegion = intersect(gridRegion, frame ? clientBox(frame) : null);
@@ -443,6 +446,8 @@ for (const lang of ["en", "zh"] as const) {
           selectedStrip: rectOf(stripEl),
           stripFullyVisible,
           stripAboveNav,
+          inspectorRect: rectOf(inspector),
+          keyRowRect: rectOf(keyRowRect),
           sheetCoversNav,
           stripButtonHeights: stripEl ? [...stripEl.querySelectorAll("button")].map((button) => round(button.getBoundingClientRect().height)) : [],
           panelScrollTop: view ? view.scrollTop : null,
@@ -484,6 +489,16 @@ for (const lang of ["en", "zh"] as const) {
         expect(measured.stripFullyVisible).toBe(true);
         expect(measured.panelScrollTop).toBe(0);
       }
+      if (project === "tablet") {
+        expect(measured.stripFullyVisible).toBe(true);
+        // Side by side: inspector starts at or after the map grid's right edge, and
+        // the two rects overlap vertically so the inspector reads from the strip.
+        expect(measured.inspectorRect).not.toBeNull();
+        expect(measured.mapGrid).not.toBeNull();
+        expect(measured.inspectorRect!.left).toBeGreaterThanOrEqual(measured.mapGrid!.right - 1);
+        const verticalOverlap = Math.min(measured.inspectorRect!.bottom, measured.mapGrid!.bottom) - Math.max(measured.inspectorRect!.top, measured.mapGrid!.top);
+        expect(verticalOverlap).toBeGreaterThan(0);
+      }
       // The phone roller is the chart column's foot and the 94% sheet covers it, so the
       // strip clears that bar by being fully visible inside the sheet rather than above the roller's y.
       if (project === "mobile" && mobileFull) expect(measured.stripAboveNav).toBe(true);
@@ -520,5 +535,141 @@ for (const lang of ["en", "zh"] as const) {
       expect(images.missing).toContain("repeating-linear-gradient");
       expect(images.zero).toBe("none");
     }
+  });
+
+  test(`[${lang}] PP2-UI-a sources receipt and held newer snapshot`, async ({ page }, info) => {
+    const project = info.project.name;
+    mkdirSync(crops, { recursive: true });
+    const ISO_A = "2026-07-11T00:05:00Z";
+    const ISO_B = "2026-07-11T00:35:00Z";
+    const ISO_C = "2026-07-14T00:05:00Z";
+    const cellA = reviewCell(780, reviewSession, 8e6);
+    const cellBNewValue = reviewCell(780, reviewSession, 12e6);
+    const cellC = reviewCell(780, reviewLater, 6e6);
+    const cellC2 = reviewCell(780, reviewLast, 5e6);
+    const buildA: ReturnType<typeof reviewMatrix> = {
+      schema: "options_structure.matrix/v1", root: "SPY", spot: 770, asof: ISO_A, _build_meta: { asof_date: reviewSession }, cells: [cellA], strikes: [780], expiries: [reviewSession],
+    };
+    const buildB: ReturnType<typeof reviewMatrix> = {
+      ...buildA, asof: ISO_B, cells: [cellBNewValue], _build_meta: { asof_date: reviewSession, source_dates: { eod: reviewSession, greeks: reviewSession, oi_publication: reviewSession, previous_oi_publication: reviewSession, latest_oi_publication: reviewSession } } as ReturnType<typeof reviewMatrix>["_build_meta"],
+    };
+    const buildC: ReturnType<typeof reviewMatrix> = {
+      ...buildA, asof: ISO_C, cells: [cellC, cellC2], strikes: [780], expiries: [reviewLater, reviewLast], _build_meta: { asof_date: reviewLater, source_dates: { eod: reviewLater, greeks: reviewLater, oi_publication: reviewLater, previous_oi_publication: reviewLater, latest_oi_publication: reviewLater } } as ReturnType<typeof reviewMatrix>["_build_meta"],
+    };
+    let current: ReturnType<typeof reviewMatrix> = buildA;
+    await page.route(/\/api\/flow\?f=matrix(?::|%3A)SPY(?:&|$)/, async route => {
+      await route.fulfill({ json: current });
+    });
+    await prepare(page, lang);
+    const panel = await openPanel(page);
+    await expect(panel.locator("[data-options-grid] table")).toBeVisible({ timeout: 20_000 });
+
+    // R3: with the receipts CLOSED, the stamp row is one line.
+    const stampClosed = await panel.evaluate(() => {
+      const row = document.querySelector("[data-options-session]") as HTMLElement | null;
+      const button = row?.querySelector("button") as HTMLElement | null;
+      return { rowHeight: row ? Math.round(row.getBoundingClientRect().height) : null, buttonHeight: button ? Math.round(button.getBoundingClientRect().height) : null };
+    });
+    expect(stampClosed.rowHeight).not.toBeNull();
+    expect(stampClosed.buttonHeight).not.toBeNull();
+    expect(stampClosed.rowHeight!).toBeLessThanOrEqual(stampClosed.buttonHeight! + 1);
+
+    // Open the receipts and check the Map build / End-of-day prices rows.
+    const details = panel.getByTestId("options-receipts");
+    await expect(details).toBeVisible();
+    await details.locator("summary").click();
+    await expect(details).toHaveJSProperty("open", true);
+    if (lang === "zh") {
+      await expect(details).toContainText("数据来源");
+      await expect(details).toContainText("不可用");
+      await expect(details).toContainText("热力图生成时间");
+    } else {
+      await expect(details).toContainText("Sources");
+      await expect(details).toContainText("unavailable");
+      await expect(details).toContainText("Map build");
+    }
+    // Build A has no source_dates, so the receipts show "Map build" = ISO_A and every other row reads "unavailable".
+    await expect(details).toContainText(ISO_A);
+    await expect(details.locator("time")).toHaveCount(1);
+    // "Spot price clock" always reads unavailable and "previous/latest" are absent on the fixture.
+    await expect(details).toContainText(lang === "zh" ? "现价时间" : "Spot price clock");
+    await expect(details.locator("dd").filter({ hasText: lang === "zh" ? "不可用" : "unavailable" })).toHaveCount(4);
+
+    // R4: receipts summary is a 44px tap target under (pointer:coarse),(max-width:860px).
+    if (project === "tablet" || project === "mobile") {
+      const summaryHeight = await details.locator("summary").evaluate(el => Math.round(el.getBoundingClientRect().height));
+      expect(summaryHeight).toBeGreaterThanOrEqual(44);
+    }
+
+    // Receipts-open: no horizontal overflow INSIDE the rail.
+    const openOverflow = await panel.evaluate(() => {
+      const c = document.querySelector("[data-options-companion]") as HTMLElement | null;
+      return c ? c.scrollWidth - c.clientWidth : 0;
+    });
+    expect(openOverflow).toBeLessThanOrEqual(1);
+
+    // Snapshot the receipts-open state, then close the details.
+    await page.screenshot({ path: `${crops}/pp2a-${project}-${lang}-receipts.png`, fullPage: false });
+    await details.locator("summary").click();
+    await expect(details).toHaveJSProperty("open", false);
+
+    // Select a published cell, pin it, assert lineStyle=2.
+    const cell = panel.locator(`[data-options-grid] button[aria-label^="780, ${reviewSession}:"]`).first();
+    await expect(cell).toBeVisible();
+    await cell.click();
+    await panel.getByRole("button", { name: lang === "zh" ? "在图表标记行权价" : "Pin strike on chart", exact: true }).click();
+    await expect.poll(async () => (await chartPin(page))?.lineStyle ?? null).toBe(2);
+
+    // Switch the route to build B and click the refresh button.
+    current = buildB;
+    await panel.getByRole("button", { name: lang === "zh" ? "刷新快照" : "Refresh snapshot", exact: true }).click();
+    const banner = panel.getByTestId("options-newer-snapshot");
+    await expect(banner).toBeVisible();
+    await expect(banner).toContainText(ISO_B);
+    // The selected cell still shows A's value (8M → "8M $ / +1% spot" in EN).
+    const cellAfterRefresh = panel.locator(`[data-options-grid] button[aria-label^="780, ${reviewSession}:"]`).first();
+    await expect(cellAfterRefresh).toContainText(lang === "zh" ? "8M" : "8M");
+    // The pin survives the queued read.
+    expect((await chartPin(page))?.lineStyle).toBe(2);
+    // The receipts' Map build is still A.
+    await details.locator("summary").click();
+    await expect(details).toContainText(ISO_A);
+    await details.locator("summary").click();
+    // Snapshot the banner state.
+    await page.screenshot({ path: `${crops}/pp2a-${project}-${lang}-held.png`, fullPage: false });
+
+    // Apply the newer snapshot.
+    await panel.getByTestId("options-apply-newer").click();
+    await expect(banner).toHaveCount(0);
+    const cellAfterApply = panel.locator(`[data-options-grid] button[aria-label^="780, ${reviewSession}:"]`).first();
+    await expect(cellAfterApply).toContainText(lang === "zh" ? "12M" : "12M");
+    await details.locator("summary").click();
+    await expect(details).toContainText(ISO_B);
+    // "End-of-day prices" now reads the session (source_dates were filled on build B).
+    await expect(details).toContainText(reviewSession);
+    // Selection is cleared; the strip shows the select prompt.
+    await expect(panel.getByTestId("options-selected-summary")).toContainText(lang === "zh" ? "选择单元格查看详情" : "Select a cell to inspect");
+    // The pin is dropped.
+    await expect.poll(() => chartPin(page)).toBeNull();
+
+    // Session-change variant: pick a cell, then queue a build C with a different session.
+    current = buildA; // restore A so we can pick a cell again
+    await page.reload();
+    await expect(page.locator(".chart-wrap canvas").first()).toBeVisible({ timeout: 30_000 });
+    const panel2 = page.locator("[data-options-companion]");
+    const cPanel = (await panel2.isVisible()) ? panel2 : await openPanel(page);
+    await expect(cPanel.locator("[data-options-grid] table")).toBeVisible({ timeout: 20_000 });
+    const cell2 = cPanel.locator(`[data-options-grid] button[aria-label^="780, ${reviewSession}:"]`).first();
+    await expect(cell2).toBeVisible();
+    await cell2.click();
+    current = buildC;
+    await cPanel.getByRole("button", { name: lang === "zh" ? "刷新快照" : "Refresh snapshot", exact: true }).click();
+    const banner2 = cPanel.getByTestId("options-newer-snapshot");
+    await expect(banner2).toBeVisible();
+    await expect(banner2).toContainText(reviewLater);
+    await cPanel.getByTestId("options-apply-newer").click();
+    await expect(banner2).toHaveCount(0);
+    const sessionEl = cPanel.locator("[data-options-session]");
+    await expect(sessionEl).toHaveAttribute("data-options-session", reviewLater);
   });
 }
