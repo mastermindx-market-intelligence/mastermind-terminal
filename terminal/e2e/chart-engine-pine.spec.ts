@@ -94,12 +94,6 @@ async function census(page: Page): Promise<Census> {
 const setSymbol = (page: Page, symbol: string) =>
   page.evaluate((s) => window.dispatchEvent(new CustomEvent("mm:embedded-symbol", { detail: { symbol: s } })), symbol);
 
-async function setEnabledPine(page: Page, id: string, engineQuery: string) {
-  await page.evaluate((scriptId) => { localStorage.setItem("mm.pineOn", JSON.stringify([scriptId])); }, id);
-  await page.goto(`/terminal?symbol=${SYMBOLS[0]}${engineQuery}`);
-  await expect(page.locator(".chart-wrap canvas").first()).toBeVisible({ timeout: 60_000 });
-}
-
 for (const impl of IMPL_QUERY) {
   test.describe(`pine chart-engine [${impl.label}]`, () => {
     test("overlay hline script keeps pooled price-line ownership sound", async ({ page }) => {
