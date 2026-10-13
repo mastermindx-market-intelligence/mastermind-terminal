@@ -7,7 +7,7 @@ import OptionsCompanion from "@/components/options-companion/OptionsCompanion";
 import { VannaCompanion } from "@/components/options-companion/VannaCompanion";
 import { MatrixCompanion, type MatrixPreferences } from "@/components/options-companion/MatrixCompanion";
 import { optionsT } from "@/components/options-companion/optionsStrings";
-import { StrikeExpiryMatrix, buildMatrixGrid } from "@/components/shared/StrikeExpiryMatrix";
+import { StrikeExpiryMatrix, buildMatrixGrid, type StrikeExpiryDoc } from "@/components/shared/StrikeExpiryMatrix";
 import { LangProvider } from "@/lib/i18n";
 const { fetchSnapshot } = vi.hoisted(() => ({ fetchSnapshot: vi.fn() }));
 vi.mock("@/lib/flowClientCache", () => ({ flowGetResult: fetchSnapshot, flowGetFresh: fetchSnapshot }));
@@ -237,5 +237,85 @@ describe("vanna visible total", () => {
     expect(total?.textContent).toBe("+6M");
     expect(summary?.textContent ?? "").not.toContain(PARTIAL);
     expect(element.querySelector("details")?.textContent ?? "").not.toContain(PARTIAL);
+  });
+});
+
+/** Same ladder as matrixScopeScale.test.ts (a): extreme |gex| sits outside the 101 rows nearest spot. */
+function wideScopeMatrix(): StrikeExpiryDoc & { schema: string; root: string } {
+  const expiries = ["2026-09-25", "2026-10-02", "2026-10-16"];
+  const strikes = Array.from({ length: 160 }, (_, i) => 80 + i * 0.25);
+  const band = (index: number) => index >= 60 && index <= 100 ? 1e6
+    : (index >= 48 && index <= 59) || (index >= 101 && index <= 112) ? 50e6
+    : (index >= 30 && index <= 47) || (index >= 113 && index <= 130) ? 4e6
+    : 100e6;
+  return {
+    schema: "options_structure.matrix/v1", root: "NVDA", spot: 100, asof: "2026-09-25T21:00:00Z",
+    _build_meta: { asof_date: "2026-09-25" }, strikes, expiries,
+    cells: strikes.flatMap((strike, index) => expiries.map((expiry) => ({ strike, expiry, gex: band(index) }))),
+  };
+}
+
+describe("PP1-SM map lead", () => {
+  function buttonsNamed(name: string): HTMLButtonElement[] {
+    return [...element.querySelectorAll("button")].filter((button) => {
+      const accessible = button.getAttribute("aria-label") ?? button.textContent ?? "";
+      return accessible.replace(/\s+/g, " ").trim() === name;
+    });
+  }
+  async function renderCompanion(metric: "gex" | "oi", payload: unknown) {
+    fetchSnapshot.mockResolvedValue(asData(payload));
+    function Harness() {
+      const [prefs, setPrefs] = React.useState<MatrixPreferences>({ expiries: "3", window: 25, norm: "global" });
+      const onPin = React.useCallback(() => {}, []);
+      return <MatrixCompanion root="NVDA" metric={metric} prefs={prefs} onPrefs={setPrefs} t={optionsT("en")}
+        pinned={null} onPin={onPin} replayActive={false} />;
+    }
+    await act(async () => root.render(<Harness />));
+    await act(async () => { await Promise.resolve(); await Promise.resolve(); });
+  }
+
+  it("(e) puts the only pin button inside the selected-node strip", async () => {
+    await renderCompanion("gex", doc);
+    const cell = element.querySelector<HTMLButtonElement>('[data-options-grid] button[data-value]:not([data-value="missing"])')!;
+    expect(cell).toBeTruthy();
+    await act(async () => cell.click());
+    const pins = buttonsNamed("Pin strike on chart");
+    expect(pins).toHaveLength(1);
+    expect(pins[0].closest('[data-testid="options-selected-summary"]')).toBeTruthy();
+  });
+
+  it("(f) names the real scale law and never asinh", async () => {
+    await renderCompanion("gex", doc);
+    const signed = element.querySelector('[data-testid="options-scale-basis"]')!;
+    expect(signed.textContent).toContain("P95");
+    expect(signed.textContent).toContain("square-root");
+    expect(signed.textContent).not.toContain("asinh");
+    await renderCompanion("oi", doc);
+    expect(element.querySelector('[data-testid="options-scale-basis"]')!.textContent).toContain("P5–P95");
+  });
+
+  it("(g) keys a missing cell apart from a measured zero", async () => {
+    await renderCompanion("gex", doc);
+    const key = element.querySelector('[data-testid="options-missing-key"]')!;
+    expect(key.textContent).toContain("Not published");
+    expect(key.textContent).toContain("0");
+  });
+
+  it("(h) paints the rail with the uncapped scope scale", async () => {
+    const payload = wideScopeMatrix();
+    await renderCompanion("gex", payload);
+    const uncapped = buildMatrixGrid({
+      matrix: payload, metric: "gex", maxCols: 3, windowPct: 25, maxRows: 10_000,
+      exactStrikes: true, normalization: "global", scope: "all",
+    })!;
+    expect(element.querySelector("[data-options-grid]")!.getAttribute("data-scale-hi")).toBe(String(uncapped.scaleHi));
+  });
+
+  it("(i) leads with the map and puts the selected strip directly under the grid", async () => {
+    await renderCompanion("gex", doc);
+    const map = element.querySelector('[data-testid="options-map-grid"]')!;
+    const structure = element.querySelector('[data-testid="options-scope-structure"]')!;
+    expect(map.compareDocumentPosition(structure) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(map.nextElementSibling).toBe(element.querySelector('[data-testid="options-selected-summary"]'));
   });
 });
