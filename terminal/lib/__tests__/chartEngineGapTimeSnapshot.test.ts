@@ -14,6 +14,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { readFileSync } from "node:fs";
 import { resolve as resolvePath } from "node:path";
 
+import type { EngineMouseEventParams } from "@/lib/chart-engine/api";
 import { createCanvasEngine, createManualScheduler } from "@/lib/chart-engine/canvas";
 import {
   barTimeFacts,
@@ -103,6 +104,74 @@ afterEach(() => {
 
 function callsOf(canvas: HTMLCanvasElement): Call[] {
   return ctxOf(canvas).__calls;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Shared mm-engine mount helpers (T03-A03 / R05-A03 / M03-A04 mounted legs).
+// The engine is always driven by the manual scheduler (canvas/index.ts:96) so a
+// frame happens only when the test says so — no rAF, no wall clock.
+// ─────────────────────────────────────────────────────────────────────────────
+
+let host: HTMLDivElement;
+
+beforeEach(() => {
+  host = document.createElement("div");
+  document.body.appendChild(host);
+});
+
+afterEach(() => { host.remove(); });
+
+function mountEngine(width = 320, height = 200) {
+  const scheduler = createManualScheduler();
+  const engine = createCanvasEngine(host, {
+    width, height, devicePixelRatio: 1, scheduler,
+  });
+  return { engine, scheduler };
+}
+
+function paneCanvasOf(index: number): HTMLCanvasElement {
+  const found = host.querySelector(`canvas[data-mm-pane-canvas="${index}"]`);
+  if (!found) throw new Error(`no pane canvas ${index} in the mounted engine`);
+  return found as HTMLCanvasElement;
+}
+
+function overlayCanvasOf(): HTMLCanvasElement {
+  const found = host.querySelector("canvas[data-mm-overlay]");
+  if (!found) throw new Error("no overlay canvas in the mounted engine");
+  return found as HTMLCanvasElement;
+}
+
+function engineCanvases(): HTMLCanvasElement[] {
+  return Array.from(host.querySelectorAll("canvas")) as HTMLCanvasElement[];
+}
+
+function clearCalls(canvases: readonly HTMLCanvasElement[]): void {
+  for (const c of canvases) ctxOf(c).__calls.length = 0;
+}
+
+/** Ops on `canvas` drawn in one of `colors`.
+ *  A path op (moveTo/lineTo/stroke) is drawn in the CURRENT strokeStyle and a
+ *  fill/rect/text op in the CURRENT fillStyle. The recording fake stores both
+ *  properties on every call, so attribution must go through the property the
+ *  canvas would actually use for that method — otherwise a later axis label
+ *  would be blamed on the series colour that happened to be in strokeStyle. */
+function opsWithColors(canvas: HTMLCanvasElement, colors: readonly string[]): Call[] {
+  const wanted = colors.map((c) => c.toUpperCase());
+  return ctxOf(canvas).__calls.filter((op) => {
+    const drawn = op.method === "moveTo" || op.method === "lineTo" || op.method === "stroke"
+      ? String(op.strokeStyle ?? "")
+      : String(op.fillStyle ?? "");
+    return wanted.includes(drawn.toUpperCase());
+  });
+}
+
+/** The x coordinate an op puts on the canvas (method-aware). */
+function xsOf(op: Call): number[] {
+  if (op.method === "fillText") {
+    return typeof op.args[1] === "number" ? [op.args[1]] : [];
+  }
+  const first = op.args.find((a): a is number => typeof a === "number");
+  return first === undefined ? [] : [first];
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -220,8 +289,8 @@ describe("T03-A03: Future whitespace with no observed value", () => {
   const proj = {
     logicalOfX: (x: number) => x / spacing - 0.5,
     xOfLogical: (i: number) => (i + 0.5) * spacing,
-    priceOfY: (_paneIndex: number, _y: number) => Number.NaN,
-    yOfPrice: (_paneIndex: number, _p: number) => Number.NaN,
+    priceOfY: () => Number.NaN,
+    yOfPrice: () => Number.NaN,
   };
 
   function stateAt(slot: number) {
@@ -275,6 +344,89 @@ describe("T03-A03: Future whitespace with no observed value", () => {
     const sd = params.seriesData as Map<string, unknown>;
     expect(sd.size).toBe(0);
   });
+
+  // ── Mounted leg: the same Required observation on the real mm engine ─────────
+  //
+  // setData accepts time-only rows (api.ts:22 EngineWhitespace) and the model
+  // stores them verbatim (model.ts:794 `s.rows = rows.slice()`), so a trailing
+  // whitespace slot EXISTS on the time axis while carrying no observed value.
+  const REAL_ROWS = 3;
+  const WS_SLOT = REAL_ROWS + 1;                 // second whitespace slot
+  const CANDLE_COLOR = "#T03-CDL";
+  const STUDY_COLOR = "#T03-STDY";
+  const WS_TIME = "2026-10-15";
+
+  function mountWhitespaceChart() {
+    const { engine, scheduler } = mountEngine(300, 200);
+    const candles = engine.addSeries("candles", {
+      color: CANDLE_COLOR, upColor: CANDLE_COLOR, downColor: CANDLE_COLOR,
+    }, 0);
+    const study = engine.addSeries("line", { color: STUDY_COLOR }, 0);
+    // Both series end at the SAME last real bar (2026-10-13) and then carry
+    // three trailing whitespace rows.
+    candles.setData([
+      { time: "2026-10-09", open: 10, high: 11, low: 9, close: 10.5 },
+      { time: "2026-10-12", open: 10.5, high: 11.5, low: 10.2, close: 11.2 },
+      { time: "2026-10-13", open: 11.2, high: 12, low: 11, close: 11.8 },
+      { time: "2026-10-14" }, { time: WS_TIME }, { time: "2026-10-16" },
+    ]);
+    study.setData([
+      { time: "2026-10-09", value: 9.5 },
+      { time: "2026-10-12", value: 10.8 },
+      { time: "2026-10-13", value: 11.5 },
+      { time: "2026-10-14" }, { time: WS_TIME }, { time: "2026-10-16" },
+    ]);
+    scheduler.flush();
+    return { engine, scheduler, candles, study };
+  }
+
+  it("on the mm engine the crosshair payload at a trailing whitespace slot carries no seriesData entry for either series, and still names the slot's time", () => {
+    const { engine, scheduler, candles, study } = mountWhitespaceChart();
+    const seen: EngineMouseEventParams[] = [];
+    engine.subscribeCrosshairMove((p) => { seen.push(p); });
+    // Programmatic crosshair parked on the whitespace slot (index.ts:547) ...
+    engine.setCrosshairPosition(12, WS_TIME, candles);
+    scheduler.flush();
+    // ... then the engine's delivery path for crosshair payloads: a pointer move
+    // on the overlay at that slot's x (index.ts:485-492 → buildMouseParams).
+    const x = engine.timeScale().logicalToCoordinate(WS_SLOT) as number;
+    overlayCanvasOf().dispatchEvent(new MouseEvent("mousemove", { clientX: x, clientY: 50 }));
+    expect(seen.length).toBeGreaterThan(0);
+    const params = seen[seen.length - 1];
+    // seriesData is re-keyed onto SeriesHandles (index.ts:474-482). Both series
+    // are ABSENT from it — not present with an undefined/NaN value field.
+    const sd = params.seriesData as Map<unknown, unknown>;
+    expect(sd.size).toBe(0);
+    expect(sd.has(candles)).toBe(false);
+    expect(sd.has(study)).toBe(false);
+    expect(params.hoveredSeries).toBeNull();
+    // The slot's own time key is a fact about the axis, not a fabricated value.
+    expect(params.time).toBe(WS_TIME);
+    expect(params.logical).toBe(WS_SLOT);
+    engine.destroy();
+  });
+
+  it("on the mm engine a full repaint of that chart draws no candle or study pixel right of the last real bar's centre plus half a bar spacing", () => {
+    const { engine, scheduler } = mountWhitespaceChart();
+    const timeScale = engine.timeScale();
+    // xOfLogical convention (frame/model): bar i is centred at
+    // logicalToCoordinate(i); the last REAL bar is index REAL_ROWS - 1.
+    const lastRealX = timeScale.logicalToCoordinate(REAL_ROWS - 1) as number;
+    const spacing = (timeScale.logicalToCoordinate(1) as number)
+      - (timeScale.logicalToCoordinate(0) as number);
+    const bound = lastRealX + spacing / 2;
+    expect(timeScale.logicalToCoordinate(WS_SLOT)).toBeGreaterThan(bound);
+    const pane = paneCanvasOf(0);
+    clearCalls([pane]);
+    engine.resize(300, 200, true);   // full repaint covering the whitespace slots
+    scheduler.flush();
+    const ops = opsWithColors(pane, [CANDLE_COLOR, STUDY_COLOR]);
+    expect(ops.length).toBeGreaterThan(0);   // the bound below is not vacuous
+    for (const op of ops) {
+      for (const px of xsOf(op)) expect(px).toBeLessThanOrEqual(bound);
+    }
+    engine.destroy();
+  });
 });
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -326,6 +478,12 @@ describe("T03-A04: Zero/one input time", () => {
 // SnapshotUnavailableError; the implementation must NEVER hand back a blank
 // canvas the caller might file as evidence, and MUST NEVER bypass remote-origin
 // by setting img.crossOrigin, creating a remote <img>, or fetching.
+//
+// Browser semantics this row relies on: drawImage of a tainted source canvas
+// does NOT throw - it taints the DESTINATION. So a tainted capture cannot fail
+// inside takeScreenshot(); the typed failure surfaces at the single export site
+// (snapshotDataUrl, snapshot.ts:221-240), which is also the only toDataURL /
+// toBlob / getImageData call anywhere under lib/chart-engine.
 // ─────────────────────────────────────────────────────────────────────────────
 
 describe("R05-A03: Tainted/unavailable image resource", () => {
@@ -362,7 +520,7 @@ describe("R05-A03: Tainted/unavailable image resource", () => {
     expect(() => snapshotDataUrl(canvas)).toThrowError(SnapshotUnavailableError);
   });
 
-  it("snapshotDataUrl on a host that returns 'data:,' (no payload) also throws SnapshotUnavailableError", () => {
+  it("snapshotDataUrl on a host that returns a payload-less 'data:image/png,' also throws SnapshotUnavailableError", () => {
     const canvas = document.createElement("canvas");
     canvas.width = 4;
     canvas.height = 4;
@@ -408,26 +566,69 @@ describe("R05-A03: Tainted/unavailable image resource", () => {
     }
   });
 
-  it("composeSnapshot never goes through the cross-origin / remote-image bypass path during capture", () => {
-    // A second runtime check that complements the static source scan above:
-    // even if the source were to introduce an <img> via the public API, the
-    // fetch spy would observe any HTTP side-effect triggered by that bypass.
-    // The source-level check (no fetch, no img, no crossOrigin) plus the
-    // runtime fetch-spy together cover the no-remote-origin-bypass invariant.
+  it("on the mm engine a tainted capture surfaces SnapshotUnavailableError caused by that SecurityError, with no fetch, no <img> and no crossOrigin assignment", () => {
+    const { engine, scheduler } = mountEngine();
+    const candles = engine.addSeries("candles", {
+      color: "#R05-CDL", upColor: "#R05-CDL", downColor: "#R05-CDL",
+    }, 0);
+    candles.setData([{ time: "2026-10-13", open: 10, high: 11, low: 9, close: 10.5 }]);
+    scheduler.flush();
+
+    // Spies are armed BEFORE the capture so they observe takeScreenshot AND the
+    // export that follows it.
+    let imgCreates = 0;
+    const realCreateElement = document.createElement.bind(document);
+    const createSpy = vi.spyOn(document, "createElement").mockImplementation(((tag: string) => {
+      if (tag.toLowerCase() === "img") imgCreates += 1;
+      return realCreateElement(tag);
+    }) as never);
+    const crossOriginDescriptor = Object.getOwnPropertyDescriptor(
+      HTMLImageElement.prototype, "crossOrigin",
+    );
+    // The spy is only meaningful if the platform really exposes the setter.
+    expect(typeof crossOriginDescriptor?.set).toBe("function");
+    const realCrossOriginSet = crossOriginDescriptor!.set!;
+    let crossOriginSets = 0;
+    Object.defineProperty(HTMLImageElement.prototype, "crossOrigin", {
+      configurable: true,
+      enumerable: crossOriginDescriptor!.enumerable,
+      get: crossOriginDescriptor!.get,
+      set(this: HTMLImageElement, value: string | null) {
+        crossOriginSets += 1;
+        realCrossOriginSet.call(this, value);
+      },
+    });
     const fetchSpy = vi.spyOn(globalThis, "fetch").mockImplementation(() => {
       throw new Error("fetch was not expected during capture");
     });
     try {
-      const src = document.createElement("canvas");
-      src.width = 4; src.height = 4;
-      const out = composeSnapshot(
-        [{ canvas: src, x: 0, y: 0, width: 4, height: 4 }],
-        { widthPx: 4, heightPx: 4, dpr: 1 },
-      );
+      const out = engine.takeScreenshot();
       expect(out).toBeInstanceOf(HTMLCanvasElement);
+      const tainted = new DOMException(
+        "Tainted canvases may not be exported.",
+        "SecurityError",
+      );
+      vi.spyOn(out, "toDataURL").mockImplementation(() => {
+        throw tainted;
+      });
+      let caught: unknown = null;
+      try {
+        snapshotDataUrl(out);
+      } catch (e) { caught = e; }
+      expect(caught).toBeInstanceOf(SnapshotUnavailableError);
+      // The typed failure carries the host's own SecurityError as its cause —
+      // the caller can tell "tainted" from "no encoder" without string parsing.
+      expect((caught as SnapshotUnavailableError).cause).toBe(tainted);
       expect(fetchSpy).not.toHaveBeenCalled();
+      expect(imgCreates).toBe(0);
+      expect(crossOriginSets).toBe(0);
     } finally {
+      Object.defineProperty(
+        HTMLImageElement.prototype, "crossOrigin", crossOriginDescriptor!,
+      );
+      createSpy.mockRestore();
       fetchSpy.mockRestore();
+      engine.destroy();
     }
   });
 });
@@ -451,25 +652,11 @@ describe("M03-A04: Hidden decoration and screenshot", () => {
     markerVis: "#MRK-VIS",
     markerHidden: "#MRK-HID",
     watermarkVis: "#WMK-VIS",
+    watermarkHidden: "#WMK-HID",
     primBottom: "#PRM-BOTTOM",
     primNormal: "#PRM-NORMAL",
     primTop: "#PRM-TOP",
   } as const;
-
-  let container: HTMLDivElement;
-  beforeEach(() => {
-    container = document.createElement("div");
-    document.body.appendChild(container);
-  });
-  afterEach(() => { container.remove(); });
-
-  function mount() {
-    const scheduler = createManualScheduler();
-    const engine = createCanvasEngine(container, {
-      width: 320, height: 200, devicePixelRatio: 1, scheduler,
-    });
-    return { engine, scheduler };
-  }
 
   it("layersFromPanes puts each pane layer strictly before every overlay layer", () => {
     // The screenshot compositing order is documented:
@@ -503,143 +690,146 @@ describe("M03-A04: Hidden decoration and screenshot", () => {
     ).toThrowError(RangeError);
   });
 
-  // The compositional hidden/visible test mounted against a real mm engine.
-  // Each primitive carries the EnginePrimitive shape the host asserts on
-  // attach: id (string), attached/detached/update (functions), and optional
-  // paint / hitTest / zOrder.
-  it("mm engine takeScreenshot() draws visible items once each, never hidden ones", () => {
-    // The "visible:false" honour-matrix at BASE: PriceLineSpec.lineVisible
-    // (decorations.ts paintPriceLine guard) and WatermarkSpec.visible
-    // (layoutWatermark guard) BOTH suppress. Series-level visible:false is
-    // NOT honoured by canvas/frame.ts paintPaneFrame at BASE — that gap is
-    // noted under CAPABILITY_MISSING, not relied on here.
-    const { engine, scheduler } = mount();
-    const visibleSeries = engine.addSeries("candles", {
+  // ── Mounted legs on a real mm engine ─────────────────────────────────────────
+  //
+  // Scene: pane 0 carries a VISIBLE candles series (own colour, own price line,
+  // own marker, three primitives at the three z-tiers) and the visible watermark;
+  // pane 1 carries a series hidden the way ChartPanel.tsx:2471 hides a compare
+  // series — applyOptions({ visible: false }) — with its own colour, its own
+  // price line and its own markers, plus a visible:false watermark.
+  // buildScene leaves the frame PENDING so each leg can clear the recorded call
+  // logs and observe exactly ONE flush (no cumulative log can satisfy an assert).
+  const ROW_TIME = "2026-10-13";
+
+  function buildScene() {
+    const { engine, scheduler } = mountEngine();
+    const visible = engine.addSeries("candles", {
       color: COL.seriesVis, upColor: COL.seriesVis, downColor: COL.seriesVis,
-    });
-    visibleSeries.setData([
-      { time: "2026-10-13", open: 10, high: 11, low: 9, close: 10.5 },
+    }, 0);
+    visible.setData([{ time: ROW_TIME, open: 10, high: 11, low: 9, close: 10.5 }]);
+    visible.createPriceLine({ price: 10.2, color: COL.lineVis });
+    visible.setMarkers([
+      { time: ROW_TIME, position: "aboveBar", shape: "circle", color: COL.markerVis, text: "M" },
     ]);
-    // Hidden price line via the supported path: lineVisible:false + the
-    // label is also suppressed (lineVisible:false skips the stroke but the
-    // painter still emits an axis-label cell; turning both off means the
-    // hidden line's colour never reaches the canvas at all).
-    visibleSeries.createPriceLine({ price: 10.2, color: COL.lineVis });
-    visibleSeries.createPriceLine({
-      price: 10.7, color: COL.lineHidden,
-      lineVisible: false, axisLabelVisible: false,
-    });
-    visibleSeries.setMarkers([
-      { time: "2026-10-13", position: "aboveBar", shape: "circle", color: COL.markerVis, text: "M" },
+    const hidden = engine.addSeries("line", { color: COL.seriesHidden }, 1);
+    hidden.setData([{ time: ROW_TIME, value: 5 }]);
+    hidden.createPriceLine({ price: 5, color: COL.lineHidden });
+    hidden.setMarkers([
+      { time: ROW_TIME, position: "aboveBar", shape: "circle", color: COL.markerHidden, text: "H" },
     ]);
+    hidden.applyOptions({ visible: false });
     engine.setWatermark(0, {
       visible: true,
-      lines: [{ text: "X", color: COL.watermarkVis }],
+      lines: [{ text: "VIS", color: COL.watermarkVis }],
     });
-    engine.setWatermark(0, {
+    engine.setWatermark(1, {
       visible: false,
-      lines: [{ text: "Y", color: COL.lineHidden }],
+      lines: [{ text: "HID", color: COL.watermarkHidden }],
     });
-    // 3 primitives — one per zOrder — paint with unique fill colours tagged
-    // to their unique source id (the EnginePrimitive shape the host asserts).
-    const primBottom = {
-      id: "primBottom",
-      zOrder: "bottom",
-      attached(c: unknown) {},
+    const paints = { bottom: 0, normal: 0, top: 0 };
+    const prim = (id: string, zOrder: "bottom" | "normal" | "top", color: string) => ({
+      id,
+      zOrder,
+      attached() {},
       detached() {},
-      update(p: unknown) {},
+      update() {},
       paint(ctx: CanvasRenderingContext2D) {
-        ctx.fillStyle = COL.primBottom;
+        paints[zOrder] += 1;
+        ctx.fillStyle = color;
         ctx.fillRect(0, 0, 1, 1);
       },
+    });
+    visible.attachPrimitive(prim("primBottom", "bottom", COL.primBottom));
+    visible.attachPrimitive(prim("primNormal", "normal", COL.primNormal));
+    visible.attachPrimitive(prim("primTop", "top", COL.primTop));
+    return { engine, scheduler, visible, hidden, paints };
+  }
+
+  it("the mm engine paints the visible watermark and never paints the visible:false watermark", () => {
+    const { engine, scheduler } = buildScene();
+    clearCalls(engineCanvases());
+    scheduler.flush();                       // ONE frame
+    expect(opsWithColors(paneCanvasOf(0), [COL.watermarkVis]).length).toBeGreaterThan(0);
+    for (const canvas of engineCanvases()) {
+      const leaked = opsWithColors(canvas, [COL.watermarkHidden]);
+      expect(leaked.map((op) => [op.method, op.fillStyle, op.args])).toEqual([]);
+    }
+    engine.destroy();
+  });
+
+  it("the mm engine keeps a series hidden with applyOptions({ visible: false }), its price line and its markers off every canvas", () => {
+    const { engine, scheduler } = buildScene();
+    clearCalls(engineCanvases());
+    scheduler.flush();                       // ONE frame
+    for (const canvas of engineCanvases()) {
+      const leaked = opsWithColors(canvas, [
+        COL.seriesHidden, COL.lineHidden, COL.markerHidden,
+      ]);
+      expect(leaked.map((op) => [op.method, op.fillStyle, op.strokeStyle, op.args])).toEqual([]);
+    }
+    // Control: in the same frame the visible series' own colour DOES reach pane 0,
+    // so the empty result above is not an artefact of a chart that painted nothing.
+    expect(opsWithColors(paneCanvasOf(0), [COL.seriesVis]).length).toBeGreaterThan(0);
+    expect(opsWithColors(paneCanvasOf(0), [COL.lineVis]).length).toBeGreaterThan(0);
+    expect(opsWithColors(paneCanvasOf(0), [COL.markerVis]).length).toBeGreaterThan(0);
+    engine.destroy();
+  });
+
+  it("one flush paints each visible primitive exactly once and pane 0 follows the documented z-order", () => {
+    const { engine, scheduler, paints } = buildScene();
+    clearCalls(engineCanvases());
+    scheduler.flush();                       // ONE frame
+    // Each primitive counts its own paint() calls: exactly one per tier per frame.
+    expect(paints).toEqual({ bottom: 1, normal: 1, top: 1 });
+    const pane0 = paneCanvasOf(0);
+    const all = ctxOf(pane0).__calls;
+    const firstOpOf = (color: string): number => {
+      const ops = opsWithColors(pane0, [color]);
+      expect(ops.length).toBeGreaterThan(0);
+      return all.indexOf(ops[0]);
     };
-    const primNormal = {
-      id: "primNormal",
-      zOrder: "normal",
-      attached(c: unknown) {},
-      detached() {},
-      update(p: unknown) {},
-      paint(ctx: CanvasRenderingContext2D) {
-        ctx.fillStyle = COL.primNormal;
-        ctx.fillRect(0, 0, 1, 1);
-      },
-    };
-    const primTop = {
-      id: "primTop",
-      zOrder: "top",
-      attached(c: unknown) {},
-      detached() {},
-      update(p: unknown) {},
-      paint(ctx: CanvasRenderingContext2D) {
-        ctx.fillStyle = COL.primTop;
-        ctx.fillRect(0, 0, 1, 1);
-      },
-    };
-    visibleSeries.attachPrimitive(primBottom);
-    visibleSeries.attachPrimitive(primNormal);
-    visibleSeries.attachPrimitive(primTop);
+    const bottom = firstOpOf(COL.primBottom);
+    const series = firstOpOf(COL.seriesVis);
+    const normal = firstOpOf(COL.primNormal);
+    const watermark = firstOpOf(COL.watermarkVis);
+    const top = firstOpOf(COL.primTop);
+    // Paint order documented at frame.ts:2-3 — bottom primitives → series →
+    // price lines → markers → normal primitives → watermark → top primitives.
+    expect(bottom).toBeLessThan(series);
+    expect(series).toBeLessThan(normal);
+    expect(normal).toBeLessThan(watermark);
+    expect(watermark).toBeLessThan(top);
+    engine.destroy();
+  });
+
+  it("takeScreenshot() blits the pane canvases in pane order and then the overlay, each exactly once", () => {
+    const { engine, scheduler, visible } = buildScene();
     scheduler.flush();
-    engine.resize(320, 200, true);
+    // A parked external crosshair is what makes the overlay part of the
+    // composite (index.ts:582 `overlayOn`).
+    engine.setCrosshairPosition(10.4, ROW_TIME, visible);
     scheduler.flush();
     const out = engine.takeScreenshot();
     expect(out).toBeInstanceOf(HTMLCanvasElement);
-
-    // Inspect every recorded draw across every canvas the engine touched.
-    const canvases = document.getElementsByTagName("canvas");
-    const tagsSeen: Map<string, number> = new Map();
-    let sawHiddenLine = false;
-    let sawHiddenWatermark = false;
-    for (let i = 0; i < canvases.length; i++) {
-      const c = canvases[i] as HTMLCanvasElement;
-      const ctx = ctxByCanvas.get(c);
-      if (!ctx) continue;
-      for (const op of ctx.__calls) {
-        const fs = String(op.fillStyle ?? "").toUpperCase();
-        const ss = String(op.strokeStyle ?? "").toUpperCase();
-        for (const tag of [fs, ss]) {
-          if (tag === COL.lineHidden.toUpperCase()) sawHiddenLine = true;
-          if (tag === COL.watermarkVis.toUpperCase()) sawHiddenWatermark = false;
-        }
-        for (const tag of [fs, ss]) {
-          if (
-            tag === COL.seriesVis.toUpperCase() || tag === COL.lineVis.toUpperCase() ||
-            tag === COL.markerVis.toUpperCase() || tag === COL.watermarkVis.toUpperCase() ||
-            tag === COL.primBottom.toUpperCase() || tag === COL.primNormal.toUpperCase() ||
-            tag === COL.primTop.toUpperCase()
-          ) {
-            tagsSeen.set(tag, (tagsSeen.get(tag) ?? 0) + 1);
-          }
-        }
-      }
-    }
-    // Visible items drew at least once each.
-    for (const expected of [
-      COL.seriesVis.toUpperCase(),
-      COL.lineVis.toUpperCase(),
-      COL.markerVis.toUpperCase(),
-      COL.primBottom.toUpperCase(),
-      COL.primNormal.toUpperCase(),
-      COL.primTop.toUpperCase(),
-    ]) {
-      expect(tagsSeen.get(expected) ?? 0).toBeGreaterThan(0);
-    }
-    // No HIDDEN price line drew (lineVisible:false path).
-    expect(sawHiddenLine).toBe(false);
-    // The hidden watermark did not paint (visible:false path).
-    void sawHiddenWatermark;
-
-    // Layer order on the composed bitmap: panes in array order, overlays at end.
-    const outCalls = callsOf(out);
-    const drawImages = outCalls.filter((c) => c.method === "drawImage");
-    expect(drawImages.length).toBeGreaterThanOrEqual(1);
-
+    const pane0 = paneCanvasOf(0);
+    const pane1 = paneCanvasOf(1);
+    const overlay = overlayCanvasOf();
+    const sources = callsOf(out)
+      .filter((c) => c.method === "drawImage")
+      .map((c) => c.args[0]);
+    // Exactly the engine's own layer canvases: panes first in pane order, then
+    // the overlay — each drawn exactly once (no foreign bitmap, no double blit).
+    expect(sources).toHaveLength(3);
+    expect(sources[0]).toBe(pane0);
+    expect(sources[1]).toBe(pane1);
+    expect(sources[2]).toBe(overlay);
     engine.destroy();
   });
 
   it("WatermarkSpec.visible=false suppresses that watermark's paints (no fabricated text)", () => {
     // Direct test on layoutWatermark (decorations.ts:367) so the row's
     // watermark-honesty observation is asserted without engine-mount overhead.
-    const measure = (t: string, _f: string) => t.length * 7;
+    const measure = (t: string) => t.length * 7;
     const hidden = layoutWatermark(
       { visible: false, lines: [{ text: "X" }] },
       { x: 0, y: 0, width: 100, height: 100 },

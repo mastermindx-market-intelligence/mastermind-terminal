@@ -465,8 +465,14 @@ class CanvasEngine implements CanvasChartEngine {
         );
         if (row) time = row.time;
       }
+      const built = buildMouseParams(resolved, series, ev);
+      // GAP-TSFIX: a trailing-whitespace slot HAS a row (so resolveCrosshair knows
+      // its time key) but no valued data, so the dataAt(..., "none") lookup above
+      // leaves `time` undefined there. Fall back to the slot's own time key instead
+      // of dropping it: LWC reports the whitespace time alongside an empty
+      // seriesData, and a time key is an axis fact, not a fabricated value.
       const params: EngineMouseEventParams =
-        { ...buildMouseParams(resolved, series, ev), point: p, logical, time };
+        { ...built, point: p, logical, time: time ?? built.time };
       // RV-1: LWC keys seriesData by the ISeriesApi instance (typings.d.ts:3419) and the
       // consumer reads it that way (ChartPanel.tsx:4642 calls candidate.options() /
       // priceToCoordinate()). Re-key the id-keyed map onto the handles this engine hands
