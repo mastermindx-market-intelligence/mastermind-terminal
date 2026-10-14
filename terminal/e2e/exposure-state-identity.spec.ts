@@ -27,7 +27,12 @@ for (const oldFails of [false, true]) {
       const qqq = page.getByRole("button", { name: "QQQ", exact: true });
       const chooserSummary = page.locator("details.obs-gexdesk-root-chooser > summary");
       await expect(qqq.or(chooserSummary).first()).toBeVisible();
-      if (await chooserSummary.isVisible()) await chooserSummary.click();
+      if (await chooserSummary.isVisible()) {
+        await chooserSummary.click();
+        for (const root of await page.locator("details.obs-gexdesk-root-chooser button").all()) {
+          await expect(root).toBeInViewport({ ratio: 1 });
+        }
+      }
       await qqq.click();
       const belt = page.getByRole("region", { name: zh ? "收盘期权结构背景" : "End-of-day options structure context", exact: true });
       const flip = belt.getByText(zh ? "伽马翻转" : "Gamma flip", { exact: true }).locator("..");
