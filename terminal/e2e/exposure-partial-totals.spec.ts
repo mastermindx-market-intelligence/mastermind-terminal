@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, test, type Page } from "@playwright/test";
 import gexFixture from "../public/data/gex_fixture.json";
 
 // T09 — expiry partial-total integrity on the mounted Exposure desk. Synthetic source data
@@ -12,6 +12,17 @@ const gex = {
   // The later expiration has no delta value: it must stay in the population under DEX.
   by_expiry: [{ exp: session, gamma_net: 10, delta_net: 0 }, { exp: later, gamma_net: 15 }],
 };
+
+async function openStrikeView(page: Page, zh: boolean) {
+  // The shared live map opens first; its real view chooser discloses the legacy
+  // strike branch. Keep the population/partial-total assertions on that branch.
+  const chooser = page.locator(".obs-gexdesk-view-chooser");
+  await expect(chooser).not.toHaveAttribute("open", "");
+  await chooser.locator("summary").click();
+  const strike = page.getByRole("button", { name: zh ? "按行权价" : "By Strike", exact: true });
+  await strike.click();
+  await expect(strike).toHaveAttribute("aria-pressed", "true");
+}
 
 for (const complete of [false, true]) {
   test(`Exposure 0DTE ${complete ? "complete grid shows its total" : "unknown cell withholds the total"}`, async ({ page }, info) => {
@@ -46,7 +57,7 @@ for (const complete of [false, true]) {
       } else await route.fallback();
     });
     await page.goto("/options?tab=prism");
-    await page.getByRole("button", { name: zh ? "按行权价" : "By Strike", exact: true }).click();
+    await openStrikeView(page, zh);
 
     // (a) 0DTE: one unknown required cell withholds the whole selected total.
     const zero = page.getByRole("button", { name: zh ? "当日到期" : "0DTE", exact: true });
@@ -116,7 +127,7 @@ test("Exposure All except 0DTE withholds the total when a chain expiration is ou
     } else await route.fallback();
   });
   await page.goto("/options?tab=prism");
-  await page.getByRole("button", { name: zh ? "按行权价" : "By Strike", exact: true }).click();
+  await openStrikeView(page, zh);
 
   const zero = page.getByRole("button", { name: zh ? "当日到期" : "0DTE", exact: true });
   await expect(zero).toHaveAttribute("aria-disabled", "false", { timeout: 20_000 });
