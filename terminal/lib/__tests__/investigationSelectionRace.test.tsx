@@ -179,14 +179,27 @@ describe("auth-owner lifetime gates the reviewed-baseline settlement",()=>{
  });
  it.each([["USER_UPDATED",sessionA],["PASSWORD_RECOVERY",sessionA],["SIGNED_IN",syntheticSession("account-A","session-B")]] as const)("a same-user %s before settlement rejects the successful read even without a rerender",async(event,changed)=>{
   await mountWorkspace();await click("Boundary select");
-  await act(async()=>{auth.change!(event,changed as Session);});
-  expect(captured?.snapshot.availability,"React's projected snapshot must still lag as ready").toBe("ready");
-  await act(async()=>{selectionCompleters[0](response(next));});
-  expect(host.querySelector("form")).toBeNull();
-  expect(host.textContent).not.toContain(newHash);
-  expect(host.textContent).not.toContain("The reviewed evidence could not be reopened");
-  expect(host.textContent).toContain(oldHash);
-  expect(commands).toHaveLength(0);
+  const admitted=captured!.getSnapshot()!;
+  // The owner invalidates synchronously but notifies React on a timer. Hold that
+  // timer through settlement so async act cannot race the stale-projection premise.
+  vi.useFakeTimers({toFake:["setTimeout","clearTimeout"]});
+  try {
+   await act(async()=>{auth.change!(event,changed as Session);});
+   expect(captured?.snapshot.availability,"React's projected snapshot must still lag as ready").toBe("ready");
+   const current=captured!.getSnapshot()!;
+   expect(current.availability).toBe("unverified");
+   expect(current.principal_partition).toBe(admitted.principal_partition);
+   expect(current.auth_epoch).not.toBe(admitted.auth_epoch);
+   await act(async()=>{selectionCompleters[0](response(next));});
+   expect(captured?.snapshot.availability,"settlement ran before the deferred notification").toBe("ready");
+   expect(host.querySelector("form")).toBeNull();
+   expect(host.textContent).not.toContain(newHash);
+   expect(host.textContent).not.toContain("The reviewed evidence could not be reopened");
+   expect(host.textContent).toContain(oldHash);
+   expect(commands).toHaveLength(0);
+   await act(async()=>{vi.runOnlyPendingTimers();});
+   expect(captured?.snapshot.availability).toBe("unverified");
+  } finally {vi.useRealTimers();}
  });
  it("signing out and back in as the same account cannot admit the old selection",async()=>{
   await mountWorkspace();await click("Boundary select");
