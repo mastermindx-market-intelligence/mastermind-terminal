@@ -371,7 +371,7 @@ describe("existing next-observation draft field", () => {
   await act(async()=>root.unmount());root=createRoot(host);await mount();expect(observation()?.value).toBe("Retained unsaved observation");expect(posts).toHaveLength(1);
  });
  it("blocks an over-limit observation before any owner write",async()=>{
-  await mount(SOURCE_ID);await click("Duplicate as new research");await change("x".repeat(4001));await click("Save research");expect(posts).toHaveLength(0);expect(puts).toHaveLength(0);expect(observation()?.value).toHaveLength(4001);
+  await mount(SOURCE_ID);await click("Duplicate as new research");await change("x".repeat(4001));await click("Save research");expect(posts).toHaveLength(0);expect(puts).toHaveLength(0);expect(observation()?.value).toHaveLength(4001);expect(host.textContent).toContain("Next observation is too long. Use 4000 characters or fewer. Your draft is unchanged.");
  });
  it("uses the existing revise command and exact expected revision",async()=>{
   detailReply={status:200,body:{...foundBody,current_revision:2}};await mount(SOURCE_ID);await click("Edit saved question");expect(observation()?.value).toBe("Observation preserved");await change("Revised observation");expect(posts).toHaveLength(0);await click("Save research");expect(posts).toHaveLength(1);expect(posts[0]).toMatchObject({action:"revise",id:SOURCE_ID,expected_revision:2});expect(posts[0].manifest).toEqual({...manifest,continuation:{...manifest.continuation,next_observation:"Revised observation"}});
