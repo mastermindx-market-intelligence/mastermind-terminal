@@ -1501,7 +1501,7 @@ export function validateCadenceReceipt(receipt: unknown): { ok: true } | { ok: f
     errors.push("gesture must be an object");
   } else {
     // pan is always 13 stat keys in both protocols.
-    const pan = validateGestureStats(errors, gesture.pan, "pan", protocol === "q03b-v2");
+    const pan = validateGestureStats(errors, gesture.pan, "pan", false);
     // zoom shape is 13 (v1) or 16 (v2). Reject extra v2 keys in v1.
     if (protocol === "q03b-v2") {
       validateZoomV2(errors, gesture.zoom);

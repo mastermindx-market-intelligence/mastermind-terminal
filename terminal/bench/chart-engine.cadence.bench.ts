@@ -757,7 +757,7 @@ test("chart-engine presented-frame cadence protocol (Q03)", async ({ browser }) 
             }
 
             // Build a v2 receipt (the protocol is hard-coded in
-            // CADENCE_PROTOCOl; idle200 skips this path).
+            // CADENCE_PROTOCOL; idle200 skips this path).
             const zoomV2Stats = stats.zoomV2Extra
               ? ({
                   ...stats.zoom,

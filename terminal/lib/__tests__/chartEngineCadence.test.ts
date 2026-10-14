@@ -538,7 +538,7 @@ describe("buildCadenceReceipt / validateCadenceReceipt (Q03)", () => {
     }
   });
 
-  it("13. Q03b receipt: 9 top-level keys, 13 stat keys, METRIC_ORDER adds 4 input_to_present rows; rejects display / budgets / latency shape errors", () => {
+  it("13. Q03b receipt: 10 top-level keys, 13 stat keys, METRIC_ORDER adds 4 input_to_present rows; rejects display / budgets / latency shape errors", () => {
     const r = greenReceipt();
     expect(validateCadenceReceipt(r).ok).toBe(true);
     // Violations order: pan.presented_p95_ms, pan.presented_p99_ms,
@@ -1185,6 +1185,20 @@ describe("dispatchOnSchedule / countDispatched (Q03c v2)", () => {
     expect(result.sendPromises.length).toBe(3);
     expect(await countDispatched(result.sendPromises)).toBe(3);
   });
+
+  it("27b. devMaxMs is measured against the TARGET, not the previous send", async () => {
+    const offsets = [0, 100];
+    let nowMs = 0;
+    const result = await dispatchOnSchedule(offsets, {
+      nowMs: () => nowMs,
+      // Each wait lands exactly 3 ms after its OWN target.
+      waitUntilMs: async (t: number) => { nowMs = t + 3; },
+      send: () => Promise.resolve(),
+    });
+    // i=0: target 0 -> actual 3 -> dev 3;  i=1: target 100 -> actual 103 -> dev 3.
+    // A `dev = actual - previousActual` mutant gives i=1 dev = 103 - 3 = 100.
+    expect(result.devMaxMs).toBe(3);
+  });
 });
 
 describe("parsePresentedFrameSpans + answeredByPriorFrame (Q03c)", () => {
@@ -1219,6 +1233,13 @@ describe("parsePresentedFrameSpans + answeredByPriorFrame (Q03c)", () => {
     const startMarkMs = 0;
     const endMarkMs = 30;
     expect(answeredByPriorFrame(spans, marks, startMarkMs, endMarkMs)).toBe(1);
+  });
+
+  it("29b. answeredByPriorFrame uses a STRICT begin < mark (begin === mark does not count)", () => {
+    // D-e: "answering frame's earliest PipelineReporter begin < mark".
+    // A begin exactly at the mark must NOT count; a begin just before it must.
+    expect(answeredByPriorFrame([{ beginMs: 20, presentMs: 30 }], [20], 0, 40)).toBe(0);
+    expect(answeredByPriorFrame([{ beginMs: 19.999, presentMs: 30 }], [20], 0, 40)).toBe(1);
   });
 
   it("30. inputLatenciesMs agrees with inputLatencyStats (same latencies, same unpresented)", () => {
@@ -1465,6 +1486,14 @@ describe("buildCadenceReceipt / validateCadenceReceipt — Q03c v2 receipt keys 
     const v = validateCadenceReceipt(redBase);
     expect(v.ok).toBe(false);
     if (!v.ok) expect(v.errors.some((e) => /INVALID \(q03b-v2\):.*dispatch_dev_max_ms/.test(e))).toBe(true);
+  });
+
+  it("44b. a v2 receipt rejects an unexpected gesture.pan key (pan is always 13 keys)", () => {
+    const r = greenV2Receipt();
+    (r.gesture.pan as Record<string, unknown>).__extra_pan_key = 1;
+    const v = validateCadenceReceipt(r);
+    expect(v.ok).toBe(false);
+    if (!v.ok) expect(v.errors.some((e) => /unexpected gesture\.pan key/.test(e))).toBe(true);
   });
 
   it("45. cadenceInvalidLine prints exactly the pinned field keys in order and carries no latency number", () => {

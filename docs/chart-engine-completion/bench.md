@@ -383,7 +383,7 @@ Known limits:
 
 Q03c binds a v2 protocol for the zoom gesture; the pan gesture stays v1.
 Decision record: `DEC:CHART-ENGINE-Q03B-PROTOCOL-V2-WALL-CLOCK-INPUT`
-(see docs/receipts). v1 and v2 receipts are NEVER compared without the
+(see docs/chart-engine-completion/receipts/). v1 and v2 receipts are NEVER compared without the
 `protocol` column (the validator's `protocol` field is `"q03b-v1"` or
 `"q03b-v2"`).
 
