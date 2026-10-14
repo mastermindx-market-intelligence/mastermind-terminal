@@ -15,3 +15,7 @@ These are isolated authenticated fixture/API browser proofs, not production pers
 ## Character-limit feedback
 
 Source `afc6210ed3305813220104e8dd8089a193ddf8c2` adds a precise status message when the observation exceeds the existing 4000-codepoint limit. The draft is not truncated. Six new EN/ZH D/T/M cases reject 4001 codepoints without a write, then explicitly save 4000 codepoints (8000 UTF-16 units) and reopen the untouched old revision. The original mounted and browser message failures are retained externally, separately from an earlier local route/cache 404. All six new message captures were reviewed. 148 affected unit cases and TypeScript passed; lint findings remain identical inherited findings. Earlier 28 captures retain their original source pins; they were not recaptured or relabelled.
+
+## Bilingual heading routing
+
+The plain-language CI gate rejected the inline bilingual heading at the previous source. The heading now uses the repository’s local `LEX` pair pattern. Its exact rendered HTML is unchanged across eight English/Chinese empty, missing, literal and markup cases; the six existing SSR checks, guard self-check, forward-only guard, TypeScript and focused lint all pass. Earlier pixel evidence is reused at its original source; no guard or acceptance requirement was weakened.
