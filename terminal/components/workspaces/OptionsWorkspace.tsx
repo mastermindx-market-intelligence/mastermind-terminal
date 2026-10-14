@@ -146,6 +146,10 @@ export default function OptionsWorkspace() {
               aria-label={t("optionsCategoriesAria")}
               className="options-category-tabs"
             />
+            <Link href="/options/futures" data-testid="options-futures-link"
+              className={s.futuresLink} aria-label={futuresText("title")}>
+              {futuresText("navTitle")}
+            </Link>
             <OptionsWorkflowGuide activeView={activeView} onOpenView={selectView} />
           </div>
         </div>
@@ -166,10 +170,6 @@ export default function OptionsWorkspace() {
             </div>
           )}
         </div>
-        <Link href="/options/futures" data-testid="options-futures-link"
-          style={{ display: "inline-flex", alignItems: "center", minHeight: 44, padding: "4px 12px", fontSize: 13 }}>
-          {futuresText("title")}
-        </Link>
       </header>
 
       {activeView === "statistics" ? (

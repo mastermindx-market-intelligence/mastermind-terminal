@@ -2,38 +2,29 @@
 
 Research as of 2026-10-12 UTC / 2026-10-11 Pacific. Current Chairman continuation explicitly requests deeper Pro research and implementation. This is an extension of Terminal's existing Options/Market Structure and Quote Hub owners, not another product backend or control plane.
 
-## CURRENT FRONTIER: qualified candidate awaiting real activation/release gates
+## CURRENT FRONTIER: hosted regression repaired; independent reviews active
 
-Functional source `12222289f8b19be11929e402a9a96b1c16adc660`, Terminal tree `f654a4e61ff1120fcb1b89b8f2422d6ffe42dc4e`.
-Full Terminal regression: 10,799 passed / zero failed / four existing TODOs, 633 files.
-Hub closure remains byte-identical to the 569-pass qualified source. New focused tests
-264; browser cases 27 production-route synthetic + 15 synthetic lab + six actual
-historical. Optimized build and actual local compiled guest/private-data checks pass.
-Evidence: `docs/evidence/futures-final-production-20261013/`. Sample files stay private;
-all owned test servers are stopped. No active child, open process, unknown effect or
-background wake is claimed. Original source carrier is still the RDC M2 worktree/PR964.
+The finished hosted desktop-2 CI exposed five deterministic Options geometry
+regressions from the new standalone 44px futures link row. All five reproduced;
+the link now lives inside the existing category row. Five unchanged regression
+cases and 27 responsive futures browser cases pass. Evidence:
+`docs/evidence/futures-ci-repair-20261014/`. Exact reviewed core remains frozen at
+`5ea5d2851477ba502c46d78af53b36cfe9fa211f`; the navigation repair does not alter it.
 
-DO_NOT_REDO: real ES BBO/top-ten and trade-conservation canary; SDK/event kernels;
-source-bounded production API; Options-route navigation; expiry/aggregation/replay;
-partial-coverage and denial isolation; recovery polling; source-owned named levels;
-observed-window POC; final local build/regression/guest/tracing proof at the exact tree.
-Revisit only after relevant code/source changes, not because a new chat begins.
+Original carrier: M2 RDC worktree, branch `claude/futures-gex-projection-20261011`,
+PR964. Original attended Web root AND parent: `terminal-futures-gex-pr964`.
+Two independent read-only Fabric reviews were admitted after refreshed placement:
+`terminal-futures-pr964-source-review-20261013-r1` (same original formerly-unstarted
+ID), and `terminal-futures-pr964-domain-review-20261014-r1` (distinct domain/UI scope).
+Both currently ACTIVE_OR_WAITING; retain original carriers and collect/verify their
+results. No review acceptance, merge, deployment, or live-source activation yet.
 
-The remaining live-source and release actions are genuinely gated: no approved CME
-real-time capture/subscriber grant or canonical live publication was established; no
-matching authenticated options/quote/cash-market/definition/status inputs are active.
-The attempted independent Fabric review was refused admission on current qualification/
-telemetry/resource conditions, status NOT_FOUND, and no worker ran. Preserve its ID,
-root/parent and explicit refusal instead of forcing another placement. Earlier author
-checks are not independent review. Current-head hosted CI is not inferred from older
-heads. No merge, deployment or paid-session/live proof exists.
-
-NEXT ACTION: eligible independent release review and the named source owners' approved
-activation inputs, then exact-head CI/normal deployment and live acceptance. Keep the
-same branch and records. Do not turn the source JSON flags, a date-only gamma snapshot,
-a public sample, or the local guest config into a license or authenticated market event.
-Retain Pro/Extra High as the user-selected attended surface; no model switch, runtime
-budget, native session identity or automatic return is asserted by this checkpoint.
+DO_NOT_REDO: previous real ES top-ten/BBO/conservation, SDK kernels, guest/private
+compiled guards and unaffected tests. Preserve the new failed-CI evidence. Next:
+consume both exact retained review results, reproduce/adjudicate findings, then
+finish exact-candidate CI and ordinary release. Approved live publication and
+matching real options/quotes/contract/status inputs remain a separate unsatisfied
+gate. No data-purchase, source grant, native identity or background wake is inferred.
 
 ## Named levels / POC continuation 2026-10-13
 

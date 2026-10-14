@@ -60,6 +60,24 @@ test("existing Options navigation opens the production futures route and shares 
   await prepare(page); await reply(page);
   await page.goto("/options?tab=gex");
   const link = page.getByTestId("options-futures-link"); await expect(link).toBeVisible();
+  const navigation = await link.evaluate(el => {
+    const nav = el.closest('.options-ia-nav')!, row = el.closest('.options-ia-row')!;
+    const lastRow = nav.querySelector('.options-ia-view-row')!;
+    const rect = el.getBoundingClientRect();
+    return { insideExistingRow: !!row, extraRowPixels: nav.getBoundingClientRect().bottom - lastRow.getBoundingClientRect().bottom,
+      linkLeft: rect.left, linkRight: rect.right, height: rect.height, viewport: innerWidth };
+  });
+  expect(navigation.insideExistingRow).toBe(true);
+  expect(navigation.extraRowPixels).toBeLessThanOrEqual(1);
+  expect(navigation.linkLeft).toBeGreaterThanOrEqual(0);
+  expect(navigation.linkRight).toBeLessThanOrEqual(navigation.viewport);
+  if (navigation.viewport <= 640) expect(navigation.height).toBeGreaterThanOrEqual(44);
+  if (process.env.FUTURES_WORKSPACE_EVIDENCE_DIR) {
+    mkdirSync(process.env.FUTURES_WORKSPACE_EVIDENCE_DIR, { recursive: true });
+    await page.locator('.options-ia-nav').screenshot({ path: path.join(process.env.FUTURES_WORKSPACE_EVIDENCE_DIR, `${info.project.name}-options-inline-navigation.png`) });
+  }
+
+
   const errors: string[] = []; page.on("pageerror", e => errors.push(e.message));
   await link.click(); await expect(page).toHaveURL(/\/options\/futures/);
   const view = page.getByTestId("futures-workspace"); await expect(view).toBeVisible();
