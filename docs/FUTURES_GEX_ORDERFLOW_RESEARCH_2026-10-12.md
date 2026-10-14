@@ -2,6 +2,27 @@
 
 Research as of 2026-10-12 UTC / 2026-10-11 Pacific. Current Chairman continuation explicitly requests deeper Pro research and implementation. This is an extension of Terminal's existing Options/Market Structure and Quote Hub owners, not another product backend or control plane.
 
+## Latest qualification and source-release disposition
+
+Functional candidate 3a8bb176281f629669ee0cda6e0348cddcb6bbc2 is qualified: 11,332
+full Terminal tests, 595 Hub, 232 focused futures; browser no-trade 6, production-route
+synthetic 27, synthetic lab 15, actual ES historical 6; optimized build, compiled guest
+privacy, typecheck and lint pass. All local servers stopped. New exact receipts are in
+docs/evidence/futures-no-trade-qualification-20261014/.
+
+Principal disposition: release the verified source through normal protected checks,
+not a live-feed activation. No unresolved reproducible source blocker remains in the
+adjudicated scopes; the unexecuted atomic-book/event-adapter reviews remain disclosed,
+not represented as complete. Do not make optional full external-review coverage a
+new universal veto or bypass a refused review. Next effect is normal Ready/native
+merge-on-green on PR #964, after publishing this evidence. Confirm actual resulting
+state before claiming armed/merged. Keep the exact source owner through release.
+
+Code merge, VPS deployment, market-source installation, data rights and paid/live
+acceptance are distinct. No new feed/source configuration is activated. The earlier
+source-configuration read refusal remains held; do not deploy or enable an unknown
+publication to circumvent it. The requested live outcome remains incomplete.
+
 ## CURRENT FRONTIER: captured-window recovery and exact review adjudication
 
 Original writer: M2 RDC worktree and branch claude/futures-gex-projection-20261011,
