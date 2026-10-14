@@ -78,10 +78,17 @@ const measureHelpers = (page: Page) => page.evaluate(() => {
     return clips;
   };
   // Reset every scroll container to 0 so geometry is comparable across themes.
+  // The tabpanel + wrapper resets apply at every viewport (their internal scroll is what
+  // moves across themes). The document scroll reset is intentionally scoped to desktop +
+  // tablet only — on mobile (`window.innerWidth <= 640`) the test pre-scrolls the session
+  // chip to the viewport top before measuring, and the 2d mobile assertions are read
+  // against THAT scroll position. Resetting document scroll to 0 there moves the grid
+  // back below the fold and the row / column / strip assertions become physically
+  // impossible to satisfy with the current companion HUD.
   const view = document.querySelector("[data-options-companion] [role='tabpanel']") as HTMLElement | null;
   if (view) view.scrollTop = 0;
   const scrolling = document.scrollingElement as HTMLElement | null;
-  if (scrolling) scrolling.scrollTop = 0;
+  if (scrolling && window.innerWidth > 640) scrolling.scrollTop = 0;
   const wrapper = document.querySelector("[data-testid='gex-matrix-view']");
   if (wrapper) (wrapper as HTMLElement).scrollTop = 0;
   const viewport = { left: 0, top: 0, right: window.innerWidth, bottom: window.innerHeight };

@@ -1041,8 +1041,8 @@ export function GexDeskView() {
                   data-testid="gex-matrix-map"
                   className="obs-gexdesk-matrix-map"
                   style={{
-                    "--matrix-rail-max": "320px",
-                    "--matrix-rail-max-touch": "420px",
+                    "--matrix-rail-max": "304px",
+                    "--matrix-rail-max-touch": "311px",
                   } as React.CSSProperties}
                 >
                   <OptionsCompanion
