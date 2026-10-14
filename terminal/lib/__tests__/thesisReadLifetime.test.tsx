@@ -6,7 +6,7 @@ import ThesisWorkspace from "@/components/workspaces/ThesisWorkspace";
 import { LangProvider } from "@/lib/i18n";
 
 (globalThis as unknown as { IS_REACT_ACT_ENVIRONMENT?: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
-type Read = { path: string; signal: AbortSignal | null | undefined; resolve: (value: Response) => void; reject: (error: Error) => void };
+type Read = { path: string; method: string; body: BodyInit | null | undefined; signal: AbortSignal | null | undefined; resolve: (value: Response) => void; reject: (error: Error) => void };
 let root: Root | null = null, container: HTMLDivElement, reads: Read[];
 const response = (body: unknown, status = 200): Response => ({ ok: status >= 200 && status < 300, status, json: async () => body }) as Response;
 const summary = (title: string) => ({ id: title, currentVersion: 1, lifecycleState: "active", title, updatedAt: "2026-10-14T00:00:00.000Z", subject: { schema: "mastermind.thesis-subject-ref/v1", kind: "issuer", owner: "data_os.security_master", key: title, identityState: "resolved", display: title } });
@@ -33,7 +33,7 @@ beforeEach(() => {
   window.localStorage.clear(); window.sessionStorage.clear(); window.history.replaceState(null, "", "/analysis?view=theses");
   vi.stubGlobal("fetch", vi.fn((input: string | URL | Request, init?: RequestInit) => new Promise<Response>((resolve, reject) => {
     const url = new URL(typeof input === "string" ? input : input instanceof URL ? input.href : input.url, "https://fixture.test");
-    reads.push({ path: url.pathname, signal: init?.signal, resolve, reject });
+    reads.push({ path: url.pathname, method: init?.method ?? "GET", body: init?.body, signal: init?.signal, resolve, reject });
   })));
   if (!window.matchMedia) window.matchMedia = ((media: string) => ({ matches: false, media, addListener() {}, removeListener() {}, addEventListener() {}, removeEventListener() {}, dispatchEvent() { return false; } })) as typeof window.matchMedia;
   container = document.createElement("div"); document.body.appendChild(container); root = createRoot(container);
@@ -97,4 +97,25 @@ describe("Thesis entry read lifetime", () => {
     await act(async () => { list(reads).resolve(response({ theses: [] })); views(reads).reject(new TypeError("current network failure")); }); await flush();
     expect(container.querySelector('[data-testid="rms-saved-views-retry"]')).not.toBeNull();
   });
+  it("does not borrow a later same-owner lifetime for a delayed saved-view refresh", async () => {
+    const id = "33333333-3333-4333-8333-333333333333";
+    const saved = { id, name: "Old lifetime view", filter: { lifecycle: "active" }, createdAt: "2026-10-14T00:00:00.000Z", updatedAt: "2026-10-14T00:00:00.000Z" };
+    vi.stubGlobal("confirm", () => true);
+    await render("owner-a");
+    await act(async () => { list(reads).resolve(response({ theses: [] })); views(reads).resolve(response({ views: [saved] })); }); await flush();
+    const chip = container.querySelector(`[data-saved-view="${id}"]`)!;
+    const remove = [...chip.querySelectorAll("button")].find(button => button.textContent === "Delete this view")!;
+    expect(remove).toBeDefined(); await act(async () => remove.click()); await flush();
+    const write = reads.find(read => read.method === "PUT")!;
+    expect(write.signal).toBeUndefined(); expect(JSON.parse(String(write.body))).toEqual({ action: "delete", id });
+    let offset = reads.length;
+    await render("owner-b"); await answer(reads.slice(offset), "Bravo");
+    offset = reads.length;
+    await render("owner-a"); await answer(reads.slice(offset), "CurrentAlpha");
+    const beforeCompletion = reads.length;
+    await act(async () => write.resolve(response({ ok: true }))); await flush();
+    expect(reads.slice(beforeCompletion).filter(read => read.method === "GET")).toEqual([]);
+    expect(renderedTitles()).toContain("CurrentAlpha");
+  });
+
 });

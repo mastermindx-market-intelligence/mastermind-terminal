@@ -59,6 +59,8 @@ import {
 } from "@/lib/thesisAmendmentProposals";
 import { describeThesisDelta, thesisVersionDeltaForHistory, type ThesisDelta, type ThesisDeltaCopy } from "@/lib/thesisDelta";
 
+type EntryReadScope = { ownerKey: string; controller: AbortController };
+
 export interface ThesisWorkspaceProps {
   ownerKey: string;
   initialSymbol?: string;
@@ -629,7 +631,7 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
   const lensRefs = useRef<Partial<Record<RmsViewId, HTMLButtonElement | null>>>({});
   const detailRequest = useRef(0);
   // Only entry GETs share this lifetime. Mutations retain their original recovery carrier.
-  const entryReadScope = useRef<{ ownerKey: string; controller: AbortController } | null>(null);
+  const entryReadScope = useRef<EntryReadScope | null>(null);
   const statementEditRevision = useRef(0);
   const routeDiscardAuthorized = useRef(false);
   const historyPositionRef = useRef(0);
@@ -1201,8 +1203,7 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
   // mutations. `deleteView` now re-reads the list through it (a delete can resolve
   // the truncation state and the save controls with it), so it has to exist before
   // that callback's dependency array is evaluated during render.
-  const loadSavedViews = useCallback(async () => {
-    const scope = entryReadScope.current;
+  const loadSavedViews = useCallback(async (scope: EntryReadScope | null) => {
     if (!scope || scope.ownerKey !== ownerKey || scope.controller.signal.aborted) return;
     const current = () => entryReadScope.current === scope && !scope.controller.signal.aborted;
     try {
@@ -1307,6 +1308,7 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
   }, [filterToSave, nameDraft, savedViews.length, readRouteError]);
 
   const renameView = useCallback(async (id: string, name: string) => {
+    const readScope = entryReadScope.current;
     // Round-3 review (Meta-CEO B ruling R4): the create form has always carried this
     // trim guard; the rename form had none, so a blank name reached the route, came back
     // 400, and the client's only branch reported "Your saved views did not load." — of
@@ -1347,7 +1349,7 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
         setSavedViews((current) => current.filter((view) => view.id !== id));
         setActivePreset((current) => (current?.kind === "saved" && current.id === id ? null : current));
         setRenamingId(null);
-        await loadSavedViews();
+        await loadSavedViews(readScope);
         setSavedViewGone(true);
         return;
       }
@@ -1371,7 +1373,7 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
       // the read sorts `updatedAt` descending — so spec 2.6's frozen "updatedAt desc"
       // order was broken until the next page load. `deleteView` already re-reads for the
       // same reason; the map stays so the new name shows even if this read fails.
-      await loadSavedViews();
+      await loadSavedViews(readScope);
     } catch {
       setSavedViewsUnavailable(true);
     }
@@ -1379,6 +1381,7 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
 
   const deleteView = useCallback(async (id: string) => {
     if (!window.confirm(rms["savedViews.confirmDelete"])) return;
+    const readScope = entryReadScope.current;
     setSavedViewGone(false);
     setSavedViewSaveFailed(false);
     try {
@@ -1399,7 +1402,7 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
       if (response.status === 404 || response.status === 400) {
         setSavedViews((current) => current.filter((view) => view.id !== id));
         setActivePreset((current) => (current?.kind === "saved" && current.id === id ? null : current));
-        await loadSavedViews();
+        await loadSavedViews(readScope);
         // Round-5 review (ruling R3c): raised AFTER the re-read, which now clears the
         // notice. This is the one place the sentence is true, so it is set last.
         setSavedViewGone(true);
@@ -1418,7 +1421,7 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
       // however many rows they deleted. `savedViewsTruncated` has exactly one writer —
       // this read — so the list is re-read, which also brings the previously hidden rows
       // into the strip the sentence promised.
-      await loadSavedViews();
+      await loadSavedViews(readScope);
     } catch {
       setSavedViewsUnavailable(true);
     }
@@ -1510,8 +1513,7 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
     };
   }, [copy.confirmDiscard, isDirty, pending]);
 
-  const loadList = useCallback(async () => {
-    const scope = entryReadScope.current;
+  const loadList = useCallback(async (scope: EntryReadScope | null) => {
     if (!scope || scope.ownerKey !== ownerKey || scope.controller.signal.aborted) return;
     const current = () => entryReadScope.current === scope && !scope.controller.signal.aborted;
     try {
@@ -1701,8 +1703,8 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
     const scope = entryReadScope.current;
     let active = true;
     const current = () => active && entryReadScope.current === scope && !!scope && !scope.controller.signal.aborted;
-    void Promise.resolve().then(() => { if (current()) return loadList(); });
-    void Promise.resolve().then(() => { if (current()) return loadSavedViews(); });
+    void Promise.resolve().then(() => { if (current()) return loadList(scope); });
+    void Promise.resolve().then(() => { if (current()) return loadSavedViews(scope); });
     // A lazy workspace can mount after a quick Back/Forward has already changed
     // the browser route. Reconcile that route rather than missing the earlier popstate.
     const params = new URLSearchParams(window.location.search);
@@ -1977,7 +1979,7 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
     return true;
   }, [copy.carrierUnavailable]);
 
-  const consumeResponse = useCallback(async (response: Response, pendingMutation: Pending) => {
+  const consumeResponse = useCallback(async (response: Response, pendingMutation: Pending, readScope: EntryReadScope | null) => {
     let payload: Record<string, unknown>;
     try {
       const decoded = await response.json();
@@ -2060,11 +2062,13 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
     setSelectedId(id);
     setMobilePane("detail");
     setMessage(`${copy.saved} ${version}${payload.replayed ? ` · ${copy.replayed}` : ""}`);
-    await loadList();
+    await loadList(readScope);
     await loadDetail(id);
   }, [copy.ambiguous, copy.invalid, copy.replayed, copy.saved, copy.transition, loadDetail, loadList, removeTerminalPending, writeRoute]);
 
   const send = useCallback(async (pendingMutation: Pending) => {
+    // Retain only the refresh lifetime; the mutation and its original receipt still settle.
+    const readScope = entryReadScope.current;
     if (!storePending(pendingMutation)) {
       setSaving(false);
       setCarrierBlocked(true);
@@ -2079,7 +2083,7 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
         headers: { "content-type": "application/json" },
         body: pendingMutation.serializedBody,
       });
-      await consumeResponse(response, pendingMutation);
+      await consumeResponse(response, pendingMutation, readScope);
     } catch {
       setSaving(false);
       setMessage(copy.ambiguous);
@@ -2119,7 +2123,7 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
   const reloadAfterConflict = useCallback(() => {
     if (!selectedId || !window.confirm(copy.confirmReload)) return;
     openDetail(selectedId, "none");
-    void loadList();
+    void loadList(entryReadScope.current);
   }, [copy.confirmReload, loadList, openDetail, selectedId]);
 
   const copyLink = useCallback(async () => {
@@ -2382,7 +2386,7 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
                 <div className={styles.savedViewsFault} role="status">
                   <p className={styles.savedViewsNote}>{rms["savedViews.unavailable"]}</p>
                   <button type="button" className={styles.savedViewAction} data-testid="rms-saved-views-retry"
-                    onClick={() => { void loadSavedViews(); }}>
+                    onClick={() => { void loadSavedViews(entryReadScope.current); }}>
                     {copy.retry}
                   </button>
                 </div>
@@ -2457,7 +2461,7 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
               {listState === "unavailable" && (
                 <div className={styles.railState} role="status" data-testid="rms-unavailable">
                   <strong>{copy.unavailable}</strong><p>{rms.unavailableLens}</p>
-                  <button onClick={() => { setListState("loading"); void loadList(); }}>{copy.retry}</button>
+                  <button onClick={() => { setListState("loading"); void loadList(entryReadScope.current); }}>{copy.retry}</button>
                 </div>
               )}
               {/* Round-2 review r3 MAJOR-1: a fault gates only the PENDING increment.
