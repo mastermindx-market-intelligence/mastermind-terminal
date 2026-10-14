@@ -174,6 +174,12 @@ const META: Record<SuiteModuleId, PickerMetadata> = {
     aliases: ["volatility bands", "voltix", "overextension", "reversal bands"],
     aliasesZh: ["波动带", "过度延伸", "反转带"],
   },
+  "suite:trend/nine": {
+    description: "Close-versus-four-bars-back exhaustion counts with finalized rising and falling nines.",
+    descriptionZh: "基于收盘价与前四根K线比较的衰竭计数，标记已确认的上涨与下跌九转。",
+    aliases: ["nine bar", "nine count", "magic nine", "TDS 9", "DeMark setup", "exhaustion", "reversal count"],
+    aliasesZh: ["神奇九转", "九转序列", "九计数", "衰竭", "反转计数"],
+  },
   "suite:trend/cp": {
     description: "Paints candles by trend, momentum, volume, or combined market state.",
     descriptionZh: "按趋势、动量、成交量或综合市场状态为蜡烛着色。",

@@ -6,7 +6,7 @@
 // implementation graph in through a dynamic import, so a suite's code is fetched only once that
 // suite is actually active on the chart.
 //
-// WHY IT MATTERS: `registry.ts` used to import all 31 module implementations eagerly, so
+// WHY IT MATTERS: `registry.ts` used to import all 32 module implementations eagerly, so
 // /terminal shipped ~562 KB of suite computation before a single premium suite was switched on.
 // TerminalShell only ever needed identity and defaults.
 //

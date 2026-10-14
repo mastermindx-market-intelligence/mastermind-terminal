@@ -397,6 +397,50 @@
   to { stroke-dashoffset: 0; }
 }
 
+/* Nine-Bar Exhaustion: formula bridge, count ladder, and the finalized ninth bar. */
+.figure :global(.gp-visual-nine-comparison > path) {
+  fill: none;
+  stroke: var(--gp-visual-accent);
+  stroke-width: 1.6;
+  stroke-dasharray: 5 4;
+  stroke-linecap: round;
+}
+
+.figure :global(.gp-visual-nine-counts text) {
+  fill: var(--down);
+  font: 750 12px/1 var(--font-num);
+  paint-order: stroke;
+  stroke: color-mix(in srgb, var(--panel) 82%, transparent);
+  stroke-width: 4px;
+  stroke-linejoin: round;
+}
+
+.figure :global(.gp-visual-nine-final rect) {
+  fill: color-mix(in srgb, var(--warn) 22%, var(--panel));
+  stroke: var(--warn);
+  stroke-width: 1.6;
+  filter: drop-shadow(0 0 7px color-mix(in srgb, var(--warn) 40%, transparent));
+}
+
+.figure :global(.gp-visual-nine-final text) {
+  fill: var(--text);
+  font: 800 13px/1 var(--font-num);
+}
+
+.figure[data-motion="full"] :global(.gp-visual-nine-counts text) {
+  animation: proofReveal 420ms var(--proof-ease) both;
+}
+
+.figure[data-motion="full"] :global(.gp-visual-nine-counts text:nth-child(1)) { animation-delay: 180ms; }
+.figure[data-motion="full"] :global(.gp-visual-nine-counts text:nth-child(2)) { animation-delay: 260ms; }
+.figure[data-motion="full"] :global(.gp-visual-nine-counts text:nth-child(3)) { animation-delay: 340ms; }
+.figure[data-motion="full"] :global(.gp-visual-nine-counts text:nth-child(4)) { animation-delay: 420ms; }
+.figure[data-motion="full"] :global(.gp-visual-nine-counts text:nth-child(5)) { animation-delay: 500ms; }
+.figure[data-motion="full"] :global(.gp-visual-nine-counts text:nth-child(6)) { animation-delay: 580ms; }
+.figure[data-motion="full"] :global(.gp-visual-nine-counts text:nth-child(7)) { animation-delay: 660ms; }
+.figure[data-motion="full"] :global(.gp-visual-nine-counts text:nth-child(8)) { animation-delay: 740ms; }
+.figure[data-motion="full"] :global(.gp-visual-nine-final) { animation: signalLock 680ms var(--proof-ease) 900ms both; }
+
 @media (prefers-reduced-motion: reduce) {
   .proofScene * {
     animation: none !important;

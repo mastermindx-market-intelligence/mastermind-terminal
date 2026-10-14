@@ -80,7 +80,8 @@ import { isAdditionalStudyId, studyParamsWithDefaults, studyTypeOf } from "@/lib
 import { expandStudyOrder, renderableStudyIds, studyInstanceMeta } from "@/lib/studyInstanceView";
 import { flowGet, flowGetFresh } from "@/lib/flowClientCache";
 import { deriveOptLevels, sessionsOldEt, type OptLevelKey, type OptLevelsResult } from "@/lib/optionsLevels";
-import { computeSuite, resolveSuiteColors } from "@/lib/indicator-canvas/host";
+import { computeSuite, resolveSuiteColors, type SuiteHostInput } from "@/lib/indicator-canvas/host";
+import { suiteFormingBarIndex, suiteSessionIdentity } from "@/lib/suiteChartContext";
 import { renderPrims, ensureTooltipHost } from "@/lib/indicator-canvas/render";
 import {
   hitTestMarkers, placeMarkerTip, gestureStamp, isTapSample, reanchorMarker,
@@ -916,7 +917,7 @@ export default function ChartPanel({ symbol, optionsLevel = null, chartType = "c
   const applySuitePaintRef = useRef<(() => void) | null>(null);
   // ── B7: suite COMPUTATION is fetched per suite, on first use ───────────────────────────────
   //
-  // The registry used to import all 31 module implementations eagerly, so /terminal shipped the
+  // The registry used to import all 32 module implementations eagerly, so /terminal shipped the
   // whole premium-suite compute before one was switched on. Metadata still comes from the static
   // graph; only the computation is deferred.
   //
@@ -1038,6 +1039,24 @@ export default function ChartPanel({ symbol, optionsLevel = null, chartType = "c
     }
     return next;
   };
+
+  // One chart→suite boundary for every render/paint/table pass. An accepted live tick is the
+  // evidence that the final source row is developing; replay and untouched source tails are never
+  // guessed forming. Finality and session ride the host memo key so a forming 9 cannot be reused
+  // after the same OHLC bar becomes final.
+  const suiteHostInput = (rows: Bar[], lang: "en" | "zh"): SuiteHostInput => ({
+    bars: rows as unknown as SuiteHostInput["bars"],
+    tf: timeframeRef.current,
+    symbol: symbolRef.current,
+    isIntraday: isIntradayRef.current,
+    lang,
+    formingBarIndex: suiteFormingBarIndex({
+      barCount: rows.length,
+      replayActive: replayIdxRef.current !== null,
+      acceptedLiveTick: liveTickRef.current !== null,
+    }),
+    session: suiteSessionIdentity(classify(symbolRef.current), extHoursRef.current, isIntradayRef.current),
+  });
   // B1: double-tap + synthetic-hover suppression refs
   const lastDblHandledRef = useRef<number>(0);   // performance.now() of last touch-driven double-tap
   const lastTouchTsRef = useRef<number>(0);       // performance.now() of last touch pointerdown
@@ -1766,7 +1785,7 @@ export default function ChartPanel({ symbol, optionsLevel = null, chartType = "c
       for (const k of active) {
         const def = peekSuiteRuntime(k, suiteRuntimeProfile(k)); if (!def) { requestSuiteRuntime(k); continue; }   // fetch + repaint when it lands
         try {
-          const b = computeSuite(def, suiteRenderParams(k), { bars: rows as any, tf: timeframeRef.current, symbol: symbolRef.current, isIntraday: isIntradayRef.current, lang }, userTierRef.current, suiteColorsRef.current!);
+          const b = computeSuite(def, suiteRenderParams(k), suiteHostInput(rows, lang), userTierRef.current, suiteColorsRef.current!);
           if (b.candlePaint.length) paint = paint.concat(b.candlePaint);
         } catch { /* module errors surface via the render path */ }
       }
@@ -6779,10 +6798,7 @@ export default function ChartPanel({ symbol, optionsLevel = null, chartType = "c
             if (paneH < 12) continue;   // collapsed/hidden pane
             const yP = (pv: number): number | null => { try { const v = anchor.priceToCoordinate(pv); return v == null || !isFinite(v as number) ? null : (v as number) + paneTop; } catch { return null; } };
             try {
-              const bundle = computeSuite(def, suiteRenderParams(k), {
-                bars: barsRef.current as any, tf: timeframeRef.current, symbol: symbolRef.current,
-                isIntraday: isIntradayRef.current, lang: langP,
-              }, userTierRef.current, suiteColorsRef.current!);
+              const bundle = computeSuite(def, suiteRenderParams(k), suiteHostInput(barsRef.current, langP), userTierRef.current, suiteColorsRef.current!);
               // clip id must be DOCUMENT-unique: multi-chart layouts mount several ChartPanels and
               // url(#…) resolves against the whole document, not this SVG
               const clipId = `ic-clip-${syncIdRef.current ?? "x"}-${k}`;
@@ -6813,13 +6829,7 @@ export default function ChartPanel({ symbol, optionsLevel = null, chartType = "c
           for (const k of tableOnlyKeys) {
             const def = peekSuiteRuntime(k, suiteRuntimeProfile(k)); if (!def) { requestSuiteRuntime(k); continue; }   // fetch + repaint when it lands
             try {
-              const bundle = computeSuite(def, suiteRenderParams(k), {
-                bars: barsRef.current as any,
-                tf: timeframeRef.current,
-                symbol: symbolRef.current,
-                isIntraday: isIntradayRef.current,
-                lang,
-              }, userTierRef.current, suiteColorsRef.current!);
+              const bundle = computeSuite(def, suiteRenderParams(k), suiteHostInput(barsRef.current, lang), userTierRef.current, suiteColorsRef.current!);
               if (bundle.tables.length) collectedTables.push(...bundle.tables);
             } catch (e) { console.warn(`[suite:${k}] dashboard render skipped:`, e); }
           }
@@ -7118,10 +7128,7 @@ export default function ChartPanel({ symbol, optionsLevel = null, chartType = "c
           for (const k of activeSuites) {
             const def = peekSuiteRuntime(k, suiteRuntimeProfile(k)); if (!def) { requestSuiteRuntime(k); continue; }   // fetch + repaint when it lands
             try {
-              const bundle = computeSuite(def, suiteRenderParams(k), {
-                bars: barsRef.current as any, tf: timeframeRef.current, symbol: symbolRef.current,
-                isIntraday: isIntradayRef.current, lang,
-              }, userTierRef.current, suiteColorsRef.current);
+              const bundle = computeSuite(def, suiteRenderParams(k), suiteHostInput(barsRef.current, lang), userTierRef.current, suiteColorsRef.current);
               renderPrims(priceSuiteGroup, bundle, m);
               if (bundle.tables.length) collectedTables.push(...bundle.tables);
             } catch (e) { console.warn(`[suite:${k}] render skipped:`, e); }

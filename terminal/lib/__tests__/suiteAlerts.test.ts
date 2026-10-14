@@ -171,9 +171,9 @@ describe("SUITE_ALERT_EVENTS catalog", () => {
     // Pinned on purpose: the "carries no direction" reject branch is unreachable while this holds.
     // If a directionless event is ever added, this flips and the reject test below must gain a case.
     expect(SUITE_ALERT_EVENTS.filter((d) => !d.dirs).map((d) => d.event)).toEqual([]);
-    // Four events are scored-free — those ARE reachable by the minStrength reject branch.
+    // Five events are scored-free — those ARE reachable by the minStrength reject branch.
     expect(SUITE_ALERT_EVENTS.filter((d) => !d.strength).map((d) => d.event))
-      .toEqual(["bos", "choch", "cisd"]);
+      .toEqual(["bos", "choch", "cisd", "nine_rising", "nine_falling"]);
   });
 
   it("contains no clock and no randomness", () => {

@@ -75,7 +75,15 @@ export async function suiteEventsAtDefaults(
 ): Promise<SuiteEvent[]> {
   const def = await ensureSuiteRuntime(suiteKey);
   if (!def) throw new Error(`suite runtime unavailable: "${suiteKey}"`);
-  const input: SuiteHostInput = { bars: data.bars, tf: "D", symbol, isIntraday: false, lang: "en" };
+  const input: SuiteHostInput = {
+    bars: data.bars,
+    tf: "D",
+    symbol,
+    isIntraday: false,
+    lang: "en",
+    formingBarIndex: null,
+    session: "daily",
+  };
   const params: Record<string, unknown> = suiteDefaults(suiteKey);
   for (const mod of def.modules) params[`${mod.key}.on`] = true;
   return computeSuite(def, params, input, "pro", resolveSuiteColors()).events;

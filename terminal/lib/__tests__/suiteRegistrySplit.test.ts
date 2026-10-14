@@ -1,7 +1,7 @@
 /**
  * suiteRegistrySplit.test.ts — the metadata/compute split has ONE identity and no leak (B7).
  *
- * `lib/suites/registry.ts` used to import all 31 module implementations and expose identity AND
+ * `lib/suites/registry.ts` used to import all 32 module implementations and expose identity AND
  * computation through one graph, so reading a suite's label pulled its compute: ~562 KB of
  * premium-suite computation entered /terminal before a single suite was switched on.
  *

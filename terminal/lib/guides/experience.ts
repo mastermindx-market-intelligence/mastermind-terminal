@@ -43,6 +43,7 @@ export const GUIDE_VISUAL_IDS = [
   "trend/te",
   "trend/fb",
   "trend/vb",
+  "trend/nine",
   "trend/cp",
   "trend/dash",
   "pulse/wave",
@@ -271,6 +272,20 @@ export const GUIDE_VISUALS: Readonly<Record<GuideVisualId, GuideVisualMetadata>>
       legend("Volatility envelope", "波动包络", "accent"),
       legend("Overextension", "过度延伸", "warn"),
       legend("Re-entry confirmation", "回归确认", "bull"),
+    ],
+  ),
+  "trend/nine": visual(
+    "trend/nine",
+    text("Count pressure without pretending it predicts the turn", "计数持续压力，而不假装能预测拐点"),
+    text("Nine-bar exhaustion anatomy", "九转衰竭结构"),
+    text(
+      "Each qualifying close compares with four chart bars earlier; the finalized 9 marks possible exhaustion, while reversal still requires independent evidence.",
+      "每根合格K线都与前四根图表K线收盘价比较；最终确认的 9 只表示可能衰竭，反转仍需独立证据。",
+    ),
+    [
+      legend("Four-bar comparison", "前四根比较", "accent"),
+      legend("Directional counts", "方向计数", "bear"),
+      legend("Finalized 9", "最终确认的 9", "warn"),
     ],
   ),
   "trend/cp": visual(

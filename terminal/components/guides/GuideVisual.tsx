@@ -736,6 +736,50 @@ function TrendVoltScene({ lang }: { lang: GuideLanguage }) {
   );
 }
 
+function TrendNineBarScene({ lang }: { lang: GuideLanguage }) {
+  const l = (en: string, zh: string) => lang === "zh" ? zh : en;
+  const sequence: readonly CandleDatum[] = [
+    [70, 250, 242, 258, 235],
+    [116, 243, 232, 250, 226],
+    [162, 233, 226, 241, 218],
+    [208, 228, 214, 236, 206],
+    [254, 218, 201, 226, 193],
+    [300, 204, 188, 212, 180],
+    [346, 190, 176, 198, 168],
+    [392, 178, 163, 186, 155],
+    [438, 166, 150, 174, 142],
+    [484, 153, 139, 161, 130],
+    [530, 142, 126, 150, 117],
+    [576, 129, 112, 137, 103],
+    [622, 115, 98, 123, 88],
+  ];
+  const numbered = sequence.slice(4);
+  return (
+    <>
+      <Grid />
+      <Candles data={sequence} opacity={0.9} />
+      <g className="gp-visual-nine-comparison">
+        <path d="M70 242L254 201" />
+        <Tag x={72} y={176} tone="accent" width={176}>CLOSE &gt; CLOSE[4]</Tag>
+        <Arrow x1={208} y1={186} x2={250} y2={201} tone="accent" />
+      </g>
+      <g className="gp-visual-nine-counts" aria-label={l("Rising counts one through nine", "上涨计数一至九")}>
+        {numbered.slice(0, 8).map(([x, _open, _close, high], index) => (
+          <text key={x} x={x} y={high - 10} textAnchor="middle">{index + 1}</text>
+        ))}
+      </g>
+      <g className="gp-visual-nine-final" transform="translate(622 68) rotate(45)">
+        <rect x="-15" y="-15" width="30" height="30" rx="7" />
+        <text transform="rotate(-45)" x="0" y="5" textAnchor="middle">9</text>
+      </g>
+      <Tag x={421} y={267} tone="muted" width={210}>{l("REVEAL 1–6 AT COUNT 6", "第6根时揭示 1–6")}</Tag>
+      <Tag x={500} y={37} tone="warn" width={142}>{l("FINALIZED 9", "最终确认 9")}</Tag>
+      <Arrow x1={574} y1={61} x2={614} y2={67} tone="warn" />
+      <AxisLabel x={70} y={307}>{l("POSSIBLE EXHAUSTION · NOT A GUARANTEED REVERSAL", "可能衰竭 · 不保证反转")}</AxisLabel>
+    </>
+  );
+}
+
 function TrendCandlePainterScene({ lang }: { lang: GuideLanguage }) {
   const l = (en: string, zh: string) => lang === "zh" ? zh : en;
   return (
@@ -966,6 +1010,7 @@ function VisualScene({ id, lang }: { id: GuideVisualId; lang: GuideLanguage }) {
     case "trend/te": return <TrendEngineScene lang={lang} />;
     case "trend/fb": return <TrendFlowBandScene lang={lang} />;
     case "trend/vb": return <TrendVoltScene lang={lang} />;
+    case "trend/nine": return <TrendNineBarScene lang={lang} />;
     case "trend/cp": return <TrendCandlePainterScene lang={lang} />;
     case "trend/dash": return <DashboardScene lang={lang} />;
     case "pulse/wave": return <PulseWaveScene lang={lang} />;

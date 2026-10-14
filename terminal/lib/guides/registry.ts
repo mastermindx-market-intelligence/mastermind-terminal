@@ -33,6 +33,7 @@ const LOADERS: Record<string, () => Promise<GuideDoc>> = {
   "trend/cp": () => import("./trend/cp"),
   "trend/dash": () => import("./trend/dash"),
   "trend/fb": () => import("./trend/fb"),
+  "trend/nine": () => import("./trend/nine"),
   "trend/te": () => import("./trend/te"),
   "trend/vb": () => import("./trend/vb"),
 };

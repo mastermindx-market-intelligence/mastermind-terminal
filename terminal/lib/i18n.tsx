@@ -1186,6 +1186,8 @@ export const LEX: Record<string, [string, string]> = {
   suiteEvTeSlHit: ["Trend Engine stop hit", "趋势引擎止损触发"],
   suiteEvFbTurn: ["Flow Band turn", "流向带转向"],
   suiteEvVbRetest: ["Voltix band retest", "波动带回测"],
+  suiteEvNineRising: ["Rising nine completed", "上涨九转完成"],
+  suiteEvNineFalling: ["Falling nine completed", "下跌九转完成"],
   suiteEvPulseBuy: ["Pulse buy signal", "脉冲买入信号"],
   suiteEvPulseSell: ["Pulse sell signal", "脉冲卖出信号"],
   suiteEvPulseDiv: ["Pulse divergence", "脉冲背离"],

@@ -24,6 +24,7 @@
 
 export interface SuiteBar {
   t: number; // numeric epoch seconds (host converts ChartPanel's string|number times once)
+  availableT?: number; // earliest source availability/close time when the host can prove it
   o: number; h: number; l: number; c: number; v: number;
 }
 
@@ -51,6 +52,10 @@ export interface ModuleCtx {
   suite: Record<string, any>;
   colors: SuiteColors;
   lang: "en" | "zh";
+  /** Only the final input bar may be unfinished. Modules must not emit confirmed events from it. */
+  formingBarIndex?: number | null;
+  /** Optional market/session identity supplied by the host. */
+  session?: string;
 }
 
 // ---------------------------------------------------------------------------------- draw-list prims
@@ -198,6 +203,8 @@ export interface TableSpec {
 }
 
 export interface SuiteEvent {
+  /** Optional canonical identity when the owning module can prove one across chart/replay/alerts. */
+  eventId?: string;
   type: string;              // e.g. "bos", "choch", "ob_created", "ob_touch", "fvg_retest"
   dir: "bull" | "bear" | "neutral";
   i: number; p?: number;      // geometric/source anchor; delayed signals may reference an older bar

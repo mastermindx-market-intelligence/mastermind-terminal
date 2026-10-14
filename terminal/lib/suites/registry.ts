@@ -1,6 +1,6 @@
 // Premium suite registry — the METADATA façade every consumer already imports.
 //
-// This file used to import all 31 module implementations and expose identity AND computation
+// This file used to import all 32 module implementations and expose identity AND computation
 // through one graph. Reading a suite's label therefore pulled its compute, and TerminalShell —
 // which needs nothing but suite keys, defaults and labels to boot — dragged ~562 KB of premium
 // suite computation into /terminal before any suite was switched on.
