@@ -121,6 +121,42 @@ describe("reopening a revise that the saved-research limit refused", () => {
   });
 });
 
+describe("retained rejected observation", () => {
+  for (const lang of ["en", "zh"] as const) {
+    it.each([undefined, "  Watch <5% & the next report.\nKeep the original condition  "])(`shows only the original request observation in ${lang}: %s`, async observation => {
+      i18n.lang = lang;
+      const command = structuredClone(original);
+      command.action = "revise"; command.expected_revision = 3;
+      if (observation !== undefined) command.manifest.continuation.next_observation = observation;
+      const retained = JSON.stringify({ owner, command, phase: "rejected", reason: "limit_reached" });
+      sessionStorage.setItem(key, retained);
+      await mount();
+      const details = host.querySelector("details")!;
+      expect(details).not.toBeNull();
+      const section = details.querySelector("section");
+      if (observation) {
+        expect(section?.querySelector("h3")?.textContent).toBe(lang === "en" ? "Next observation" : "下一项观察");
+        expect(section?.querySelector("p")?.textContent).toBe(observation);
+        expect(section?.querySelector("script")).toBeNull();
+      } else expect(section).toBeNull();
+      const field = host.querySelector<HTMLTextAreaElement>(`textarea[aria-label="${lang === "en" ? "Next observation (optional)" : "下一项观察（可选）"}"]`)!;
+      expect(field.value).toBe(observation ?? "");
+      await act(async () => {
+        Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, "value")!.set!.call(field, "A later unsaved draft");
+        field.dispatchEvent(new Event("input", { bubbles: true }));
+      });
+      expect(field.value).toBe("A later unsaved draft");
+      expect(details.textContent).not.toContain("A later unsaved draft");
+      expect(section?.querySelector("p")?.textContent).toBe(observation || undefined);
+      expect(sessionStorage.getItem(key)).toBe(retained);
+      expect(posts).toEqual([]); expect(reconciles).toEqual([]); expect(receiptReads).toEqual([]);
+      act(() => root.unmount()); root = createRoot(host); await mount();
+      expect(sessionStorage.getItem(key)).toBe(retained);
+      expect(host.querySelector<HTMLTextAreaElement>(`textarea[aria-label="${lang === "en" ? "Next observation (optional)" : "下一项观察（可选）"}"]`)?.value).toBe(observation ?? "");
+    });
+  }
+});
+
 
 describe("IW2 exact-source calendar-context cutover counterexamples", () => {
   it.each(["2026-10-04", "2026-10-04T00:00:00.000Z", undefined])("editing saved research preserves its existing as-of value %s", async asOf => {
