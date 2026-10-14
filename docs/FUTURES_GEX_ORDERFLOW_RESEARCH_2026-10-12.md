@@ -16,8 +16,7 @@ PR964. Original attended Web root AND parent: `terminal-futures-gex-pr964`.
 Two independent read-only Fabric reviews were admitted after refreshed placement:
 `terminal-futures-pr964-source-review-20261013-r1` (same original formerly-unstarted
 ID), and `terminal-futures-pr964-domain-review-20261014-r1` (distinct domain/UI scope).
-Both currently ACTIVE_OR_WAITING; retain original carriers and collect/verify their
-results. No review acceptance, merge, deployment, or live-source activation yet.
+Source/API review returned and was adjudicated with 58 passing actual-module controls; its bounded return is ACCEPTED/deterministic, not blanket release approval. The domain/renderer review remains ACTIVE_OR_WAITING on its original carrier. A bounded current-output request refused original_current_output_unconfirmed; do not bypass or duplicate it. No review acceptance, merge, deployment, or live-source activation yet.
 
 DO_NOT_REDO: previous real ES top-ten/BBO/conservation, SDK kernels, guest/private
 compiled guards and unaffected tests. Preserve the new failed-CI evidence. Next:

@@ -66,6 +66,8 @@ export function joinFuturesSource(raw: unknown, request: FuturesRequest, nowMs: 
   const selected = eligible[0];
   if (!isRecord(selected) || !validClockMs(selected.cutoffMs) || !Array.isArray(selected.frames) || selected.frames.length > 240) return refused("no_replay_frame");
   if (eligible.length > 1 && (eligible[1] as Record<string, unknown>).cutoffMs === selected.cutoffMs) return refused("source_invalid");
+  // Validate the complete selected frame set before any gamma work; never drop malformed rows.
+  if (selected.frames.some(f => !isRecord(f) || !validClockMs(f.endMs))) return refused("source_invalid");
   const replayCutoffsMs = [...new Set(raw.views.filter(v => isRecord(v) && v.intervalMinutes === request.intervalMinutes &&
     v.priceStepTicks === request.priceStepTicks && validClockMs(v.cutoffMs) && v.cutoffMs <= nowMs).map(v => (v as Record<string, number>).cutoffMs))].sort((a, b) => a - b);
   const frames = selected.frames.map(f => isRecord(f) ? {
