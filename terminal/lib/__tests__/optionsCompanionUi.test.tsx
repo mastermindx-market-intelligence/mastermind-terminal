@@ -262,7 +262,7 @@ describe("PP1-SM map lead", () => {
       return accessible.replace(/\s+/g, " ").trim() === name;
     });
   }
-  async function renderCompanion(metric: "gex" | "oi", payload: unknown) {
+  async function renderCompanion(metric: "gex" | "oi" | "doi" | "vol", payload: unknown) {
     fetchSnapshot.mockResolvedValue(asData(payload));
     function Harness() {
       const [prefs, setPrefs] = React.useState<MatrixPreferences>({ expiries: "3", window: 25, norm: "global" });
@@ -317,5 +317,36 @@ describe("PP1-SM map lead", () => {
     const structure = element.querySelector('[data-testid="options-scope-structure"]')!;
     expect(map.compareDocumentPosition(structure) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
     expect(map.nextElementSibling).toBe(element.querySelector('[data-testid="options-selected-summary"]'));
+  });
+
+  it("(k) names the gamma legend with gamma and keeps the doi legend on build/unwind", async () => {
+    await renderCompanion("gex", doc);
+    const legend = element.querySelector('[data-testid="options-missing-key"]')!.parentElement!.textContent ?? "";
+    expect(legend).toContain("Positive gamma");
+    expect(legend).toContain("Negative gamma");
+    await renderCompanion("oi", doc);
+    const oiLegend = element.querySelector('[data-testid="options-missing-key"]')!.parentElement!.textContent ?? "";
+    expect(oiLegend).not.toContain("gamma");
+    await renderCompanion("doi", doc);
+    const doiLegend = element.querySelector('[data-testid="options-missing-key"]')!.parentElement!.textContent ?? "";
+    expect(doiLegend).toContain("Build");
+    expect(doiLegend).toContain("Unwind");
+  });
+
+  it("(l) puts the key row and coverage inside the map column under the selected strip", async () => {
+    await renderCompanion("gex", doc);
+    const layout = element.querySelector('[data-testid="options-map-layout"]')!;
+    const summary = element.querySelector('[data-testid="options-selected-summary"]')!;
+    const key = element.querySelector('[data-testid="options-missing-key"]')!;
+    const coverage = element.querySelector('[data-testid="options-coverage"]')!;
+    const structure = element.querySelector('[data-testid="options-scope-structure"]')!;
+    expect(layout.contains(summary)).toBe(true);
+    expect(layout.contains(key)).toBe(true);
+    expect(layout.contains(coverage)).toBe(true);
+    expect(coverage.closest('[data-testid="options-map-layout"]')).not.toBeNull();
+    const order = (a: Element, b: Element) => !!(a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING);
+    expect(order(summary, key)).toBe(true);
+    expect(order(key, coverage)).toBe(true);
+    expect(order(coverage, structure)).toBe(true);
   });
 });

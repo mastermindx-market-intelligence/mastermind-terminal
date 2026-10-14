@@ -33,9 +33,12 @@ const chartPin = (page: Page) => page.evaluate(() => (window as ChartDebugWindow
 async function editScope(panel: Locator, lang: "en" | "zh", change: { expiries?: string; norm?: "global" | "column"; window?: string }, apply = true) {
   await panel.getByTestId("options-scope-toggle").click();
   const editor = panel.getByTestId("options-scope-editor"); await expect(editor).toBeVisible();
-  if (change.expiries) await editor.getByLabel(lang === "zh" ? "到期日" : "Expiries", { exact: true }).selectOption(change.expiries);
-  if (change.norm) await editor.getByLabel(lang === "zh" ? "颜色尺度" : "Color scale").selectOption(change.norm);
-  if (change.window) await editor.getByLabel(lang === "zh" ? "行权价范围" : "Strike window").selectOption(change.window);
+  // Use testids instead of label text: the PP2-UI-c preset-mode radio shares the
+  // word "Strike window" with the preset's select, which made getByLabel match both
+  // and trip strict mode after the radio group was introduced.
+  if (change.expiries) await editor.getByTestId("options-scope-expiries").selectOption(change.expiries);
+  if (change.norm) await editor.getByTestId("options-scope-norm").selectOption(change.norm);
+  if (change.window) await editor.getByTestId("options-scope-window").selectOption(change.window);
   await editor.getByTestId(apply ? "options-scope-apply" : "options-scope-cancel").click();
   await expect(editor).toHaveCount(0);
   await expect(panel.getByTestId("options-scope-toggle")).toBeFocused();
@@ -401,7 +404,10 @@ for (const lang of ["en", "zh"] as const) {
         const scroll = document.querySelector("[data-options-grid]");
         const stripEl = document.querySelector("[data-testid='options-selected-summary']");
         const structure = document.querySelector("[data-testid='options-scope-structure']");
-        const method = document.querySelector("[data-options-companion] details");
+        const inspector = document.querySelector("[data-options-inspector]");
+        const missingKey = document.querySelector("[data-testid='options-missing-key']");
+        const keyRowRect = missingKey ? (missingKey.closest("[data-testid='options-missing-key']")?.parentElement ?? missingKey.parentElement) : null;
+        const method = document.querySelectorAll("[data-options-companion] details").length > 0 ? document.querySelectorAll("[data-options-companion] details").item(document.querySelectorAll("[data-options-companion] details").length - 1) : null;
         const viewport = { left: 0, top: 0, right: window.innerWidth, bottom: window.innerHeight };
         let gridRegion = scroll ? intersect(viewport, clientBox(scroll)) : null;
         gridRegion = intersect(gridRegion, frame ? clientBox(frame) : null);
@@ -443,6 +449,8 @@ for (const lang of ["en", "zh"] as const) {
           selectedStrip: rectOf(stripEl),
           stripFullyVisible,
           stripAboveNav,
+          inspectorRect: rectOf(inspector),
+          keyRowRect: rectOf(keyRowRect),
           sheetCoversNav,
           stripButtonHeights: stripEl ? [...stripEl.querySelectorAll("button")].map((button) => round(button.getBoundingClientRect().height)) : [],
           panelScrollTop: view ? view.scrollTop : null,
@@ -484,6 +492,16 @@ for (const lang of ["en", "zh"] as const) {
         expect(measured.stripFullyVisible).toBe(true);
         expect(measured.panelScrollTop).toBe(0);
       }
+      if (project === "tablet") {
+        expect(measured.stripFullyVisible).toBe(true);
+        // Side by side: inspector starts at or after the map grid's right edge, and
+        // the two rects overlap vertically so the inspector reads from the strip.
+        expect(measured.inspectorRect).not.toBeNull();
+        expect(measured.mapGrid).not.toBeNull();
+        expect(measured.inspectorRect!.left).toBeGreaterThanOrEqual(measured.mapGrid!.right - 1);
+        const verticalOverlap = Math.min(measured.inspectorRect!.bottom, measured.mapGrid!.bottom) - Math.max(measured.inspectorRect!.top, measured.mapGrid!.top);
+        expect(verticalOverlap).toBeGreaterThan(0);
+      }
       // The phone roller is the chart column's foot and the 94% sheet covers it, so the
       // strip clears that bar by being fully visible inside the sheet rather than above the roller's y.
       if (project === "mobile" && mobileFull) expect(measured.stripAboveNav).toBe(true);
@@ -520,5 +538,686 @@ for (const lang of ["en", "zh"] as const) {
       expect(images.missing).toContain("repeating-linear-gradient");
       expect(images.zero).toBe("none");
     }
+  });
+
+  test(`[${lang}] PP2-UI-a sources receipt and held newer snapshot`, async ({ page }, info) => {
+    const project = info.project.name;
+    mkdirSync(crops, { recursive: true });
+    const ISO_A = "2026-07-11T00:05:00Z";
+    const ISO_B = "2026-07-11T00:35:00Z";
+    const ISO_C = "2026-07-14T00:05:00Z";
+    const cellA = reviewCell(780, reviewSession, 8e6);
+    const cellBNewValue = reviewCell(780, reviewSession, 12e6);
+    const cellC = reviewCell(780, reviewLater, 6e6);
+    const cellC2 = reviewCell(780, reviewLast, 5e6);
+    const buildA: ReturnType<typeof reviewMatrix> = {
+      schema: "options_structure.matrix/v1", root: "SPY", spot: 770, asof: ISO_A, _build_meta: { asof_date: reviewSession }, cells: [cellA], strikes: [780], expiries: [reviewSession],
+    };
+    const buildB: ReturnType<typeof reviewMatrix> = {
+      ...buildA, asof: ISO_B, cells: [cellBNewValue], _build_meta: { asof_date: reviewSession, source_dates: { eod: reviewSession, greeks: reviewSession, oi_publication: reviewSession, previous_oi_publication: reviewSession, latest_oi_publication: reviewSession } } as ReturnType<typeof reviewMatrix>["_build_meta"],
+    };
+    const buildC: ReturnType<typeof reviewMatrix> = {
+      ...buildA, asof: ISO_C, cells: [cellC, cellC2], strikes: [780], expiries: [reviewLater, reviewLast], _build_meta: { asof_date: reviewLater, source_dates: { eod: reviewLater, greeks: reviewLater, oi_publication: reviewLater, previous_oi_publication: reviewLater, latest_oi_publication: reviewLater } } as ReturnType<typeof reviewMatrix>["_build_meta"],
+    };
+    let current: ReturnType<typeof reviewMatrix> = buildA;
+    await page.route(/\/api\/flow\?f=matrix(?::|%3A)SPY(?:&|$)/, async route => {
+      await route.fulfill({ json: current });
+    });
+    await prepare(page, lang);
+    const panel = await openPanel(page);
+    await expect(panel.locator("[data-options-grid] table")).toBeVisible({ timeout: 20_000 });
+
+    // R3: with the receipts CLOSED, the stamp row is one line.
+    const stampClosed = await panel.evaluate(() => {
+      const row = document.querySelector("[data-options-session]") as HTMLElement | null;
+      const button = row?.querySelector("button") as HTMLElement | null;
+      return { rowHeight: row ? Math.round(row.getBoundingClientRect().height) : null, buttonHeight: button ? Math.round(button.getBoundingClientRect().height) : null };
+    });
+    expect(stampClosed.rowHeight).not.toBeNull();
+    expect(stampClosed.buttonHeight).not.toBeNull();
+    expect(stampClosed.rowHeight!).toBeLessThanOrEqual(stampClosed.buttonHeight! + 1);
+
+    // PP2-UI-c item 4b (closed): the stamp row does not overflow horizontally;
+    // every direct child sits inside the row's right edge.
+    const closedRow = await panel.evaluate(() => {
+      const row = document.querySelector("[data-options-session]") as HTMLElement | null;
+      if (!row) return null;
+      const r = row.getBoundingClientRect();
+      const children = [...row.querySelectorAll<HTMLElement>(":scope > *")].map((el) => {
+        const cr = el.getBoundingClientRect();
+        return { right: Math.round(cr.right), bottom: Math.round(cr.bottom) };
+      });
+      return { rowRight: Math.round(r.right), scrollWidth: row.scrollWidth, clientWidth: row.clientWidth, children };
+    });
+    expect(closedRow).not.toBeNull();
+    expect(closedRow!.scrollWidth).toBeLessThanOrEqual(closedRow!.clientWidth + 1);
+    for (const child of closedRow!.children) {
+      expect.soft(child.right).toBeLessThanOrEqual(closedRow!.rowRight + 1);
+    }
+
+    // Open the receipts and check the Map build / End-of-day prices rows.
+    const details = panel.getByTestId("options-receipts");
+    await expect(details).toBeVisible();
+    await details.locator("summary").click();
+    await expect(details).toHaveJSProperty("open", true);
+    if (lang === "zh") {
+      await expect(details).toContainText("数据来源");
+      await expect(details).toContainText("不可用");
+      await expect(details).toContainText("热力图生成时间");
+    } else {
+      await expect(details).toContainText("Sources");
+      await expect(details).toContainText("unavailable");
+      await expect(details).toContainText("Map build");
+    }
+    // Build A has no source_dates, so the receipts show "Map build" = ISO_A and every other row reads "unavailable".
+    await expect(details).toContainText(ISO_A);
+    await expect(details.locator("time")).toHaveCount(1);
+    // "Spot price clock" always reads unavailable and "previous/latest" are absent on the fixture.
+    await expect(details).toContainText(lang === "zh" ? "现价时间" : "Spot price clock");
+    await expect(details.locator("dd").filter({ hasText: lang === "zh" ? "不可用" : "unavailable" })).toHaveCount(4);
+
+    // R4: receipts summary is a 44px tap target under (pointer:coarse),(max-width:860px).
+    if (project === "tablet" || project === "mobile") {
+      const summaryHeight = await details.locator("summary").evaluate(el => Math.round(el.getBoundingClientRect().height));
+      expect(summaryHeight).toBeGreaterThanOrEqual(44);
+    }
+
+    // Receipts-open: no horizontal overflow INSIDE the rail.
+    const openOverflow = await panel.evaluate(() => {
+      const c = document.querySelector("[data-options-companion]") as HTMLElement | null;
+      return c ? c.scrollWidth - c.clientWidth : 0;
+    });
+    expect(openOverflow).toBeLessThanOrEqual(1);
+
+    // PP2-UI-c item 4b (open): the <details> box drops to its own line and fits
+    // the row's right edge; the tabpanel itself never overflows horizontally.
+    const openRow = await panel.evaluate(() => {
+      const row = document.querySelector("[data-options-session]") as HTMLElement | null;
+      const details = row?.querySelector("details") as HTMLElement | null;
+      const button = row?.querySelector("button") as HTMLElement | null;
+      const tabpanel = document.querySelector("[data-options-companion] [role='tabpanel']") as HTMLElement | null;
+      if (!row || !details || !button || !tabpanel) return null;
+      const dr = details.getBoundingClientRect();
+      const br = button.getBoundingClientRect();
+      const rr = row.getBoundingClientRect();
+      return {
+        detailsTop: Math.round(dr.top), buttonBottom: Math.round(br.bottom),
+        detailsRight: Math.round(dr.right), rowRight: Math.round(rr.right),
+        tabpanelScroll: tabpanel.scrollWidth - tabpanel.clientWidth,
+      };
+    });
+    expect(openRow).not.toBeNull();
+    expect.soft(openRow!.detailsTop).toBeGreaterThanOrEqual(openRow!.buttonBottom - 1);
+    expect.soft(openRow!.detailsRight).toBeLessThanOrEqual(openRow!.rowRight + 1);
+    // PP2-UI-c repair 1 (R3): the open <details> must span the full row width.
+    // With `.receipts[open]{flex:none}` the box shrinks to its content width and
+    // the right edge falls short of the row's right edge — this is the falsifier.
+    expect(openRow!.detailsRight).toBeGreaterThanOrEqual(openRow!.rowRight - 1);
+    expect.soft(openRow!.tabpanelScroll).toBeLessThanOrEqual(1);
+
+    // Snapshot the receipts-open state, then close the details.
+    await page.screenshot({ path: `${crops}/pp2a-${project}-${lang}-receipts.png`, fullPage: false });
+    await details.locator("summary").click();
+    await expect(details).toHaveJSProperty("open", false);
+
+    // Select a published cell, pin it, assert lineStyle=2.
+    const cell = panel.locator(`[data-options-grid] button[aria-label^="780, ${reviewSession}:"]`).first();
+    await expect(cell).toBeVisible();
+    await cell.click();
+    await panel.getByRole("button", { name: lang === "zh" ? "在图表标记行权价" : "Pin strike on chart", exact: true }).click();
+    await expect.poll(async () => (await chartPin(page))?.lineStyle ?? null).toBe(2);
+
+    // Switch the route to build B and click the refresh button.
+    current = buildB;
+    await panel.getByRole("button", { name: lang === "zh" ? "刷新快照" : "Refresh snapshot", exact: true }).click();
+    const banner = panel.getByTestId("options-newer-snapshot");
+    await expect(banner).toBeVisible();
+    await expect(banner).toContainText(ISO_B);
+    // The selected cell still shows A's value (8M → "8M $ / +1% spot" in EN).
+    const cellAfterRefresh = panel.locator(`[data-options-grid] button[aria-label^="780, ${reviewSession}:"]`).first();
+    await expect(cellAfterRefresh).toContainText(lang === "zh" ? "8M" : "8M");
+    // The pin survives the queued read.
+    expect((await chartPin(page))?.lineStyle).toBe(2);
+    // The receipts' Map build is still A.
+    await details.locator("summary").click();
+    await expect(details).toContainText(ISO_A);
+    await details.locator("summary").click();
+    // Snapshot the banner state.
+    await page.screenshot({ path: `${crops}/pp2a-${project}-${lang}-held.png`, fullPage: false });
+
+    // Apply the newer snapshot.
+    await panel.getByTestId("options-apply-newer").click();
+    await expect(banner).toHaveCount(0);
+    const cellAfterApply = panel.locator(`[data-options-grid] button[aria-label^="780, ${reviewSession}:"]`).first();
+    await expect(cellAfterApply).toContainText(lang === "zh" ? "12M" : "12M");
+    await details.locator("summary").click();
+    await expect(details).toContainText(ISO_B);
+    // "End-of-day prices" now reads the session (source_dates were filled on build B).
+    await expect(details).toContainText(reviewSession);
+    // Selection is cleared; the strip shows the select prompt.
+    await expect(panel.getByTestId("options-selected-summary")).toContainText(lang === "zh" ? "选择单元格查看详情" : "Select a cell to inspect");
+    // The pin is dropped.
+    await expect.poll(() => chartPin(page)).toBeNull();
+
+    // Session-change variant: pick a cell, then queue a build C with a different session.
+    current = buildA; // restore A so we can pick a cell again
+    await page.reload();
+    await expect(page.locator(".chart-wrap canvas").first()).toBeVisible({ timeout: 30_000 });
+    const panel2 = page.locator("[data-options-companion]");
+    const cPanel = (await panel2.isVisible()) ? panel2 : await openPanel(page);
+    await expect(cPanel.locator("[data-options-grid] table")).toBeVisible({ timeout: 20_000 });
+    const cell2 = cPanel.locator(`[data-options-grid] button[aria-label^="780, ${reviewSession}:"]`).first();
+    await expect(cell2).toBeVisible();
+    await cell2.click();
+    current = buildC;
+    await cPanel.getByRole("button", { name: lang === "zh" ? "刷新快照" : "Refresh snapshot", exact: true }).click();
+    const banner2 = cPanel.getByTestId("options-newer-snapshot");
+    await expect(banner2).toBeVisible();
+    await expect(banner2).toContainText(reviewLater);
+    await cPanel.getByTestId("options-apply-newer").click();
+    await expect(banner2).toHaveCount(0);
+    const sessionEl = cPanel.locator("[data-options-session]");
+    await expect(sessionEl).toHaveAttribute("data-options-session", reviewLater);
+  });
+
+  test(`[${lang}] PP2-UI-c exact scope`, async ({ page }, info) => {
+    const project = info.project.name;
+    mkdirSync(crops, { recursive: true });
+    // Declared-grid fixture with strikes [770..774] × expiries [session, later, last].
+    // All 15 positions publish a value, so the exact-scope total is 15/15.
+    const pp2cStrikes = [770, 771, 772, 773, 774];
+    const pp2cCellValues: Array<[number, string, number]> = [
+      [770, reviewSession, 1e6], [771, reviewSession, 2e6], [772, reviewSession, 3e6], [773, reviewSession, 4e6], [774, reviewSession, 5e6],
+      [770, reviewLater, 1e6], [771, reviewLater, -1e6], [772, reviewLater, 2e6], [773, reviewLater, -2e6], [774, reviewLater, 3e6],
+      [770, reviewLast, 5e5], [771, reviewLast, -5e5], [772, reviewLast, 1e6], [773, reviewLast, -1e6], [774, reviewLast, 5e5],
+    ];
+    const pp2cCells = pp2cCellValues.map(([s, e, g]) => reviewCell(s, e, g));
+    await serveReviewMatrix(page, reviewMatrix(pp2cCells, pp2cStrikes, [reviewSession, reviewLater, reviewLast]));
+    await prepare(page, lang);
+    const panel = await openPanel(page);
+    await expect(panel.locator("[data-options-grid] table")).toBeVisible({ timeout: 20_000 });
+
+    // Open the scope editor and switch to exact mode. The four inputs prefill
+    // from the APPLIED scope (preset mode's 3 nearest expiries × 5 displayed strikes).
+    await panel.getByTestId("options-scope-toggle").click();
+    await expect(panel.getByTestId("options-scope-editor")).toBeVisible();
+    await panel.getByTestId("options-scope-mode-exact").click();
+    await expect(panel.getByTestId("options-scope-from")).toHaveValue("770");
+    await expect(panel.getByTestId("options-scope-to")).toHaveValue("774");
+    await expect(panel.getByTestId("options-scope-dte-min")).toHaveValue("0");
+    await expect(panel.getByTestId("options-scope-dte-max")).toHaveValue("4");
+
+    // Inverted range blocks Apply and shows the issue sentence.
+    const fromInput = panel.getByTestId("options-scope-from");
+    const toInput = panel.getByTestId("options-scope-to");
+    await fromInput.fill("774");
+    await toInput.fill("770");
+    await expect(panel.getByTestId("options-scope-apply")).toBeDisabled();
+    await expect(panel.getByTestId("options-scope-issues")).toBeVisible();
+    if (lang === "zh") {
+      await expect(panel.getByTestId("options-scope-issues")).toContainText("不得超过");
+    } else {
+      await expect(panel.getByTestId("options-scope-issues")).toContainText("must not exceed");
+    }
+    await page.screenshot({ path: `${crops}/pp2c-${project}-${lang}-invalid.png`, fullPage: false });
+
+    // Fix the range and assert the preview text.
+    await fromInput.fill("770");
+    await toInput.fill("774");
+    await panel.getByTestId("options-scope-dte-min").fill("0");
+    await panel.getByTestId("options-scope-dte-max").fill("4");
+    await expect(panel.getByTestId("options-scope-apply")).toBeEnabled();
+    await expect(panel.getByTestId("options-scope-preview")).toContainText(
+      lang === "zh" ? "5 个行权价 · 3 个到期日 · 0–4 到期天数" : "5 strikes · 3 expiries · 0–4 days to expiry",
+    );
+
+    // Apply.
+    await panel.getByTestId("options-scope-apply").click();
+    await expect(panel.getByTestId("options-scope-editor")).toHaveCount(0);
+    await expect(panel.locator("[data-options-scope]")).toHaveAttribute("data-options-scope", "applied");
+    await expect(panel.locator("[data-options-scope-mode]")).toHaveAttribute("data-options-scope-mode", "exact");
+    await expect(panel.getByTestId("options-scope-toggle")).toBeFocused();
+    expect(await panel.locator("[data-options-grid] tbody tr").count()).toBe(5);
+    expect(await panel.locator("[data-options-grid] thead th").count() - 1).toBe(3);
+    // All 15 positions publish a value: known/expected = 15/15.
+    await expect(panel.locator("[data-options-total]").locator("..")).toContainText("15/15");
+    await page.screenshot({ path: `${crops}/pp2c-${project}-${lang}-applied.png`, fullPage: false });
+
+    // Reopen, edit, press Escape: applied range is unchanged, focus is on the toggle.
+    await panel.getByTestId("options-scope-toggle").click();
+    await expect(panel.getByTestId("options-scope-editor")).toBeVisible();
+    await panel.getByTestId("options-scope-from").fill("771");
+    await panel.getByTestId("options-scope-from").press("Escape");
+    await expect(panel.getByTestId("options-scope-editor")).toHaveCount(0);
+    await expect(panel.getByTestId("options-scope-toggle")).toBeFocused();
+    await expect(panel.getByTestId("options-scope-meta")).toContainText("770–774");
+
+    // PP2-UI-c repair 1 (R1 + R2): the norm select is also visible in exact mode.
+    // Reopen, assert exactly one norm select, switch to "Per expiry" / "各到期日",
+    // Apply, and verify the scope meta and mode are unchanged. Then assert no
+    // localStorage value contains any of the four typed strings.
+    await panel.getByTestId("options-scope-toggle").click();
+    await expect(panel.getByTestId("options-scope-editor")).toBeVisible();
+    const normSelects = panel.locator('[data-testid="options-scope-norm"]');
+    expect(await normSelects.count()).toBe(1);
+    await expect(normSelects).toBeVisible();
+    await normSelects.selectOption({ label: lang === "zh" ? "各到期日" : "Per expiry" });
+    await panel.getByTestId("options-scope-apply").click();
+    await expect(panel.getByTestId("options-scope-editor")).toHaveCount(0);
+    await expect(panel.locator("[data-options-scope-mode]")).toHaveAttribute("data-options-scope-mode", "exact");
+    await expect(panel.getByTestId("options-scope-meta")).toContainText(lang === "zh" ? "各到期日" : "Per expiry");
+    const localStorageLeak = await page.evaluate(() => {
+      // Same invariant the (u9) vitest test asserts: the four typed values never
+      // appear as JSON pairs of from/to/dteMin/dteMax. The raw substrings "0" and
+      // "4" would falsely match unrelated chart settings, so check the typed
+      // strings in the context they were typed in.
+      const pairs = ['"from":"770"', '"to":"774"', '"dteMin":"0"', '"dteMax":"4"'];
+      const hits: string[] = [];
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (!key) continue;
+        const value = localStorage.getItem(key) ?? "";
+        for (const p of pairs) if (value.includes(p)) hits.push(`${key}:${p}`);
+      }
+      return hits;
+    });
+    expect(localStorageLeak).toEqual([]);
+
+    // Touch targets and overflow check on tablet/mobile.
+    if (project === "tablet" || project === "mobile") {
+      await panel.getByTestId("options-scope-toggle").click();
+      const editor = panel.getByTestId("options-scope-editor");
+      const measurements = await editor.evaluate((root) => {
+        const inputs = [...root.querySelectorAll<HTMLInputElement>("input[type='text']")];
+        const radios = [...root.querySelectorAll<HTMLInputElement>("input[type='radio']")]
+          .map((radio) => radio.closest("label"))
+          .filter((el): el is HTMLLabelElement => el != null);
+        const all = [...inputs, ...radios];
+        return {
+          scrollOverflow: root.scrollWidth - root.clientWidth,
+          heights: all.map((el) => Math.round(el.getBoundingClientRect().height)),
+        };
+      });
+      for (const h of measurements.heights) expect(h).toBeGreaterThanOrEqual(44);
+      expect(measurements.scrollOverflow).toBeLessThanOrEqual(1);
+    }
+  });
+}
+
+// Contract falsifiers 4, 5, 9, 10 and the Codex build-identity edge (#723).
+for (const lang of ["en", "zh"] as const) {
+  test(`[${lang}] PP2-UI-b chart return keeps held build identity`, async ({ page }, info) => {
+    test.setTimeout(150_000);
+    const project = info.project.name;
+    mkdirSync(crops, { recursive: true });
+    // Declared-grid fixture: 25 strikes [740..800 step 2.5] × 3 expiries (reviewSession,
+    // reviewLater, reviewLast). Spot 770. Every cell a nonzero `gex`.
+    const pp2bStrikes: number[] = [];
+    for (let s = 740; s <= 800; s += 2.5) pp2bStrikes.push(s);
+    const pp2bExpiries = [reviewSession, reviewLater, reviewLast];
+    const pp2bCellsBase: Array<{ strike: number; expiry: string; gex: number }> = [];
+    let n = 1;
+    for (const s of pp2bStrikes) for (const e of pp2bExpiries) {
+      pp2bCellsBase.push({ strike: s, expiry: e, gex: n++ * 1e6 });
+    }
+    const valueA = 8_000_000;
+    const valueB = 12_000_000;
+    const cellAt = (strike: number, expiry: string, value: number) => ({
+      strike, expiry, gex: value, call_oi: 0, put_oi: 0, call_vol: 0, put_vol: 0,
+    });
+    const buildACells = pp2bCellsBase.map((cell) =>
+      cell.strike === 780 && cell.expiry === reviewSession ? cellAt(780, reviewSession, valueA) : cell,
+    );
+    const buildBCells = pp2bCellsBase.map((cell) =>
+      cell.strike === 780 && cell.expiry === reviewSession ? cellAt(780, reviewSession, valueB) : cell,
+    );
+    const buildCCells = pp2bCellsBase
+      .filter((cell) => cell.expiry === reviewLater || cell.expiry === reviewLast)
+      .map((cell) => cell.strike === 780 && cell.expiry === reviewLater ? cellAt(780, reviewLater, 6e6) : cell);
+    const ISO_A = "2026-07-11T00:05:00Z";
+    const ISO_B = "2026-07-11T00:35:00Z";
+    const ISO_C = "2026-07-14T00:05:00Z";
+    const buildA = {
+      schema: "options_structure.matrix/v1", root: "SPY", spot: 770, asof: ISO_A,
+      _build_meta: { asof_date: reviewSession },
+      cells: buildACells, strikes: pp2bStrikes, expiries: pp2bExpiries,
+    };
+    const buildB = {
+      ...buildA, asof: ISO_B, cells: buildBCells,
+      _build_meta: { asof_date: reviewSession, source_dates: { eod: reviewSession, greeks: reviewSession, oi_publication: reviewSession, previous_oi_publication: reviewSession, latest_oi_publication: reviewSession } },
+    };
+    const buildC = {
+      ...buildA, asof: ISO_C, cells: buildCCells, strikes: [780], expiries: [reviewLater, reviewLast],
+      _build_meta: { asof_date: reviewLater, source_dates: { eod: reviewLater, greeks: reviewLater, oi_publication: reviewLater, previous_oi_publication: reviewLater, latest_oi_publication: reviewLater } },
+    };
+    let current: typeof buildA = buildA;
+    await page.route(/\/api\/flow\?f=matrix(?::|%3A)SPY(?:&|$)/, async (route) => {
+      await route.fulfill({ json: current });
+    });
+    await prepare(page, lang);
+    const panel = await openPanel(page);
+    await expect(panel.locator("[data-options-grid] table")).toBeVisible({ timeout: 20_000 });
+    {
+      const [, ] = await Promise.all([
+        page.waitForResponse(/\/api\/flow\?f=matrix(?::|%3A)SPY/, { timeout: 10_000 }),
+        panel.getByRole("button", { name: lang === "zh" ? "刷新快照" : "Refresh snapshot", exact: true }).click(),
+      ]);
+    }
+    const cell = panel.locator('[data-options-grid] button[aria-label^="780, 2026-07-10:"]').first();
+    await expect(cell).toBeVisible();
+    await cell.click();
+    const summaryTextBeforePark = await panel.getByTestId("options-selected-summary").innerText();
+
+    if (project === "tablet" || project === "mobile") {
+      await expandOptionsSheet(page);
+      const detentBefore = await page.locator("[data-detent]").getAttribute("data-detent");
+      expect(detentBefore).toBeTruthy();
+
+      await page.evaluate(() => {
+        const root = document.querySelector("[data-options-companion]") as HTMLElement | null;
+        if (root) (root as unknown as { __pp2bExpando: true }).__pp2bExpando = true;
+        const canvas = document.querySelector(".chart-wrap canvas") as HTMLElement | null;
+        if (canvas) (canvas as unknown as { __pp2bCanvasExpando: true }).__pp2bCanvasExpando = true;
+        // The scan is scoped to the SHEET ROOT — the parked surface whose scroll offsets
+        // must survive park → return — not to the whole document.
+        const sheetRoot = document.querySelector("[data-detent]") as HTMLElement | null;
+        const overflowed: HTMLElement[] = [];
+        const scan = (el: Element) => {
+          const ce = el as HTMLElement;
+          const cs = getComputedStyle(el);
+          if (el !== sheetRoot && (cs.overflowX === "auto" || cs.overflowX === "scroll" || cs.overflowY === "auto" || cs.overflowY === "scroll")) {
+            if (ce.scrollHeight > ce.clientHeight + 1 || ce.scrollWidth > ce.clientWidth + 1) overflowed.push(ce);
+          }
+          for (const child of Array.from(el.children)) scan(child);
+        };
+        if (sheetRoot) scan(sheetRoot);
+        const stored: Array<{ el: HTMLElement; scrollTop: number; scrollLeft: number }> = [];
+        for (const el of overflowed) {
+          el.scrollTop = Math.min(40, el.scrollHeight - el.clientHeight);
+          el.scrollLeft = Math.min(40, el.scrollWidth - el.clientWidth);
+          stored.push({ el, scrollTop: el.scrollTop, scrollLeft: el.scrollLeft });
+        }
+        (window as unknown as { __pp2bScrollers: typeof stored }).__pp2bScrollers = stored;
+      });
+      const showBtn = page.locator('[data-testid="options-show-on-chart"]');
+      await expect(showBtn).toBeVisible();
+      await showBtn.scrollIntoViewIfNeeded();
+      const offsetSnapshot = await page.evaluate(() => {
+        const stored = (window as unknown as { __pp2bScrollers: Array<{ el: HTMLElement; scrollTop: number; scrollLeft: number }> }).__pp2bScrollers;
+        if (!stored) return null;
+        return stored.map((entry) => {
+          entry.scrollTop = entry.el.scrollTop;
+          entry.scrollLeft = entry.el.scrollLeft;
+          return { recordedTop: entry.scrollTop, recordedLeft: entry.scrollLeft, beforeTop: entry.scrollTop, beforeLeft: entry.scrollLeft };
+        });
+      });
+      expect(offsetSnapshot).not.toBeNull();
+      // Vacuity guard: the sheet must hold at least one scrollable element with a
+      // RECORDED NONZERO offset — a count of scrollers alone proves nothing.
+      expect(offsetSnapshot!.length).toBeGreaterThanOrEqual(1);
+      expect(offsetSnapshot!.some((o) => o.beforeTop !== 0 || o.beforeLeft !== 0)).toBe(true);
+
+      await showBtn.click();
+      const chip = page.locator('[data-testid="options-chart-return"]');
+      await expect(chip).toBeVisible();
+      await expect(chip).toBeFocused();
+      const chipBox = await chip.evaluate((el) => {
+        const r = (el as HTMLElement).getBoundingClientRect();
+        return { x: r.x, y: r.y, width: r.width, height: r.height };
+      });
+      expect(chipBox.height).toBeGreaterThanOrEqual(44);
+      expect(chipBox.y).toBeGreaterThanOrEqual(0);
+      expect(chipBox.y + chipBox.height).toBeLessThanOrEqual(page.viewportSize()!.height + 1);
+      // Gather the element chain directly from the browser so the closest() check runs in DOM.
+      const chipDescendant = await page.evaluate(() => {
+        const chip = document.querySelector('[data-testid="options-chart-return"]') as HTMLElement | null;
+        if (!chip) return null;
+        const r = chip.getBoundingClientRect();
+        const cx = r.x + r.width / 2; const cy = r.y + r.height / 2;
+        const hit = document.elementFromPoint(cx, cy) as Element | null;
+        if (!hit) return { matches: false, hitTag: null };
+        // walk up to the chip (or its descendant) and report the chain so the test runtime
+        // can verify the hit belongs to the chip without crossing the Playwright boundary.
+        let found = false;
+        let n: Node | null = hit;
+        while (n) {
+          if ((n as Element).matches?.('[data-testid="options-chart-return"]')) { found = true; break; }
+          n = n.parentElement;
+        }
+        return { matches: found, hitTag: hit.tagName, hitClass: hit.className };
+      });
+      expect(chipDescendant).not.toBeNull();
+      expect(chipDescendant!.matches).toBe(true);
+      const mrsRect = await page.evaluate(() => {
+        const el = document.querySelector(".mrs") as HTMLElement | null;
+        if (!el) return null;
+        const r = el.getBoundingClientRect();
+        return { x: r.x, y: r.y, width: r.width, height: r.height };
+      });
+      if (mrsRect && (mrsRect.width > 0 || mrsRect.height > 0)) {
+        const intersects = !(chipBox.x + chipBox.width < mrsRect.x || chipBox.x > mrsRect.x + mrsRect.width
+          || chipBox.y + chipBox.height < mrsRect.y || chipBox.y > mrsRect.y + mrsRect.height);
+        expect(intersects).toBe(false);
+      }
+      const parkedDialog = page.locator('[data-detent]');
+      await expect(parkedDialog).toHaveAttribute("data-parked", "true");
+      const companionExpando = await page.evaluate(() => {
+        const el = document.querySelector("[data-options-companion]") as HTMLElement | null;
+        return el ? (el as unknown as { __pp2bExpando?: true }).__pp2bExpando === true : false;
+      });
+      expect(companionExpando).toBe(true);
+      await expect.poll(async () => (await chartPin(page))?.price).toBe(780);
+      expect((await chartPin(page))?.lineStyle).toBe(2);
+      // The chart itself is the load-bearing assertion of the contract; hit-testing at its
+      // centre is environment-sensitive (Chromium hits the canvas, headless sometimes the
+      // wrapper, and Safari may return a Text node), so we only check the chart owns its rect.
+      const chartRect = await page.evaluate(() => {
+        const chart = document.querySelector(".chart-wrap") as HTMLElement | null;
+        if (!chart) return null;
+        const r = chart.getBoundingClientRect();
+        return { x: r.x, y: r.y, w: r.width, h: r.height };
+      });
+      expect(chartRect).not.toBeNull();
+      expect(chartRect!.w).toBeGreaterThan(0);
+      expect(chartRect!.h).toBeGreaterThan(0);
+      // The parked sheet is invisible (visibility:hidden), so hit-testing THROUGH it
+      // must land on chart content. Inert can preserve this even if visibility is
+      // removed, so assert the parked visibility independently below.
+      // Only exercised when the chart's clamped centre lies under the parked sheet's
+      // rect; otherwise the geometry does not reach the sheet and the case is skipped.
+      const chartHit = await page.evaluate(() => {
+        const chart = document.querySelector(".chart-wrap") as HTMLElement | null;
+        const sheet = document.querySelector("[data-detent]") as HTMLElement | null;
+        if (!chart || !sheet) return null;
+        const r = chart.getBoundingClientRect();
+        const s = sheet.getBoundingClientRect();
+        const cx = Math.min(Math.max(r.left + r.width / 2, 1), innerWidth - 1);
+        const cy = Math.min(Math.max(r.top + r.height / 2, 1), innerHeight - 1);
+        const underSheet = cx >= s.left && cx <= s.right && cy >= s.top && cy <= s.bottom;
+        if (!underSheet) return { exercised: false, inside: false, hitTag: null };
+        const hit = document.elementFromPoint(cx, cy) as Element | null;
+        return { exercised: true, inside: !!(hit && hit.closest(".chart-wrap")), hitTag: hit?.tagName ?? null };
+      });
+      expect(chartHit).not.toBeNull();
+      if (chartHit!.exercised) expect(chartHit!.inside).toBe(true);
+      await expect(page.locator('[data-detent]')).toHaveCSS("visibility", "hidden");
+      const bodyOverflow = await page.evaluate(() => document.body.style.overflow);
+      expect(bodyOverflow).not.toBe("hidden");
+      await page.screenshot({ path: `${crops}/pp2b-${project}-${lang}-parked.png`, fullPage: false });
+
+      current = buildB;
+      const [, ] = await Promise.all([
+        page.waitForResponse(/\/api\/flow\?f=matrix(?::|%3A)SPY/, { timeout: 10_000 }),
+        page.evaluate(() => document.dispatchEvent(new Event("visibilitychange"))),
+      ]);
+      await expect(panel.getByTestId("options-newer-snapshot")).toBeAttached();
+      await expect(panel.getByTestId("options-newer-snapshot")).toContainText(ISO_B);
+      await expect.poll(async () => (await chartPin(page))?.price).toBe(780);
+
+      await chip.click();
+      const companionConnected = await page.evaluate(() => {
+        const el = document.querySelector("[data-options-companion]") as HTMLElement | null;
+        return el ? (el as unknown as { __pp2bExpando?: true }).__pp2bExpando === true : false;
+      });
+      expect(companionConnected).toBe(true);
+      const scrollersAfter = await page.evaluate(() => {
+        const stored = (window as unknown as { __pp2bScrollers: Array<{ el: HTMLElement; scrollTop: number; scrollLeft: number }> }).__pp2bScrollers;
+        if (!stored) return null;
+        return stored.map((entry) => ({
+          connected: entry.el.isConnected,
+          recordedTop: entry.scrollTop,
+          recordedLeft: entry.scrollLeft,
+          afterTop: entry.el.scrollTop,
+          afterLeft: entry.el.scrollLeft,
+        }));
+      });
+      expect(scrollersAfter).not.toBeNull();
+      // D3: the before/after offset table is persisted next to the other evidence and
+      // EVERY recorded scroller must come back connected with its offsets intact (±1).
+      mkdirSync(crops, { recursive: true });
+      writeFileSync(`${crops}/pp2b-offsets-${project}-${lang}.json`, JSON.stringify(scrollersAfter, null, 2));
+      for (const row of scrollersAfter!) {
+        expect(row.connected).toBe(true);
+        expect(Math.abs(row.afterTop - row.recordedTop)).toBeLessThanOrEqual(1);
+        expect(Math.abs(row.afterLeft - row.recordedLeft)).toBeLessThanOrEqual(1);
+      }
+      const detentAfter = await page.locator("[data-detent]").getAttribute("data-detent");
+      expect(detentAfter).toBe(detentBefore);
+      await expect(showBtn).toBeFocused();
+      await expect(panel.getByTestId("options-newer-snapshot")).toBeVisible();
+      await expect(panel.getByTestId("options-newer-snapshot")).toContainText(ISO_B);
+      const summaryAfterReturn = await panel.getByTestId("options-selected-summary").innerText();
+      // The cell line "780 · 2026-07-10 · +8M" must be unchanged: the queued build B
+      // is held in `pending`, never silently swapped below the selected context. (The
+      // pin/unpin button label MAY flip because Show on chart sets the pin first, so
+      // the strip is compared on its first non-empty line — A's held cell line,
+      // recorded before parking — plus the A-value tokens.)
+      const heldCellLine = summaryTextBeforePark.split("\n").map((line) => line.trim()).find((line) => line.length > 0) ?? "";
+      expect(heldCellLine).not.toBe("");
+      expect(summaryAfterReturn).toContain(heldCellLine);
+      expect(summaryAfterReturn).toContain("780");
+      expect(summaryAfterReturn).toContain("2026-07-10");
+      expect(summaryAfterReturn).toContain("+8M");
+      await expect.poll(async () => (await chartPin(page))).not.toBeNull();
+      const canvasExpando = await page.evaluate(() => {
+        const canvas = document.querySelector(".chart-wrap canvas") as HTMLElement | null;
+        return canvas ? (canvas as unknown as { __pp2bCanvasExpando?: true }).__pp2bCanvasExpando === true : false;
+      });
+      expect(canvasExpando).toBe(true);
+      await page.screenshot({ path: `${crops}/pp2b-${project}-${lang}-returned.png`, fullPage: false });
+
+      await panel.getByTestId("options-apply-newer").click();
+      await expect(panel.getByTestId("options-selected-summary")).toContainText(lang === "zh" ? "选择单元格查看详情" : "Select a cell to inspect");
+      await expect.poll(() => chartPin(page)).toBeNull();
+
+      await cell.click();
+      await showBtn.click();
+      expect(await page.locator('[data-detent]').getAttribute("data-parked")).toBe("true");
+      current = buildC;
+      const [, ] = await Promise.all([
+        page.waitForResponse(/\/api\/flow\?f=matrix(?::|%3A)SPY/, { timeout: 10_000 }),
+        page.evaluate(() => document.dispatchEvent(new Event("visibilitychange"))),
+      ]);
+      await chip.click();
+      await expect(panel.getByTestId("options-newer-snapshot")).toContainText(reviewLater);
+      const sessionAttr = await panel.locator("[data-options-session]").getAttribute("data-options-session");
+      expect(sessionAttr).toBe(reviewSession);
+      await expect.poll(async () => (await chartPin(page))).not.toBeNull();
+      await panel.getByTestId("options-apply-newer").click();
+      await expect.poll(async () => await panel.locator("[data-options-session]").getAttribute("data-options-session")).toBe(reviewLater);
+      await expect.poll(() => chartPin(page)).toBeNull();
+      return;
+    }
+
+    // Desktop path: no Show on chart button — the rail never covers the chart on a
+    // viewport wide enough for it. The desktop falsifier still needs a real held pin,
+    // so the cell is pinned through the selected-summary strip's pressed toggle, the
+    // rail's scroll offsets and the chart canvas instance are tagged, the chart centre
+    // is clicked, and NOTHING (offsets, summary, pin, expando) may move.
+    await expect(page.locator('[data-testid="options-show-on-chart"]')).toHaveCount(0);
+    {
+      const [, ] = await Promise.all([
+        page.waitForResponse(/\/api\/flow\?f=matrix(?::|%3A)SPY/, { timeout: 10_000 }),
+        panel.getByRole("button", { name: lang === "zh" ? "刷新快照" : "Refresh snapshot", exact: true }).click(),
+      ]);
+    }
+    const pinToggle = panel.locator('[data-testid="options-selected-summary"] button[aria-pressed]').first();
+    await expect(pinToggle).toBeVisible();
+    await pinToggle.click();
+    await expect(pinToggle).toHaveAttribute("aria-pressed", "true");
+    await expect.poll(async () => (await chartPin(page))?.price).toBe(780);
+    expect((await chartPin(page))?.lineStyle).toBe(2);
+    // Tag the canvas instance and record the rail's scrollable offsets inside
+    // [data-options-companion], with a nonzero vacuity proof.
+    await page.evaluate(() => {
+      const canvas = document.querySelector(".chart-wrap canvas") as HTMLElement | null;
+      if (canvas) (canvas as unknown as { __pp2bCanvasExpando: true }).__pp2bCanvasExpando = true;
+      const companion = document.querySelector("[data-options-companion]") as HTMLElement | null;
+      const overflowed: HTMLElement[] = [];
+      const scan = (el: Element) => {
+        const ce = el as HTMLElement;
+        const cs = getComputedStyle(el);
+        if (cs.overflowX === "auto" || cs.overflowX === "scroll" || cs.overflowY === "auto" || cs.overflowY === "scroll") {
+          if (ce.scrollHeight > ce.clientHeight + 1 || ce.scrollWidth > ce.clientWidth + 1) overflowed.push(ce);
+        }
+        for (const child of Array.from(el.children)) scan(child);
+      };
+      if (companion) scan(companion);
+      const stored: Array<{ el: HTMLElement; scrollTop: number; scrollLeft: number }> = [];
+      for (const el of overflowed) {
+        el.scrollTop = Math.min(40, el.scrollHeight - el.clientHeight);
+        el.scrollLeft = Math.min(40, el.scrollWidth - el.clientWidth);
+        stored.push({ el, scrollTop: el.scrollTop, scrollLeft: el.scrollLeft });
+      }
+      (window as unknown as { __pp2bRailScrollers: typeof stored }).__pp2bRailScrollers = stored;
+    });
+    const railOffsets = await page.evaluate(() => {
+      const stored = (window as unknown as { __pp2bRailScrollers: Array<{ el: HTMLElement; scrollTop: number; scrollLeft: number }> }).__pp2bRailScrollers ?? [];
+      return stored.map((entry) => ({ recordedTop: entry.scrollTop, recordedLeft: entry.scrollLeft, beforeTop: entry.el.scrollTop, beforeLeft: entry.el.scrollLeft }));
+    });
+    expect(railOffsets.length).toBeGreaterThanOrEqual(1);
+    expect(railOffsets.some((o) => o.beforeTop !== 0 || o.beforeLeft !== 0)).toBe(true);
+    mkdirSync(crops, { recursive: true });
+    writeFileSync(`${crops}/pp2b-offsets-${project}-${lang}.json`, JSON.stringify(railOffsets, null, 2));
+    const canvasPresent = await page.evaluate(() => {
+      const canvas = document.querySelector(".chart-wrap canvas") as HTMLElement | null;
+      return canvas != null && (canvas as unknown as { __pp2bCanvasExpando?: true }).__pp2bCanvasExpando === true;
+    });
+    expect(canvasPresent).toBe(true);
+    const summaryDesktopBefore = await panel.getByTestId("options-selected-summary").innerText();
+    const chartCanvas = page.locator(".chart-wrap canvas").first();
+    const cBox = await chartCanvas.boundingBox();
+    expect(cBox).not.toBeNull();
+    expect(cBox!.width).toBeGreaterThan(0);
+    expect(cBox!.height).toBeGreaterThan(0);
+    await page.mouse.click(cBox!.x + cBox!.width / 2, cBox!.y + cBox!.height / 2);
+    const railDeltas = await page.evaluate(() => {
+      const stored = (window as unknown as { __pp2bRailScrollers: Array<{ el: HTMLElement; scrollTop: number; scrollLeft: number }> }).__pp2bRailScrollers ?? [];
+      return stored.map((entry) => ({ connected: entry.el.isConnected, dTop: entry.el.scrollTop - entry.scrollTop, dLeft: entry.el.scrollLeft - entry.scrollLeft }));
+    });
+    for (const row of railDeltas) {
+      expect(row.connected).toBe(true);
+      expect(Math.abs(row.dTop)).toBeLessThanOrEqual(1);
+      expect(Math.abs(row.dLeft)).toBeLessThanOrEqual(1);
+    }
+    expect(await panel.getByTestId("options-selected-summary").innerText()).toBe(summaryDesktopBefore);
+    await expect.poll(async () => (await chartPin(page))?.price).toBe(780);
+    expect((await chartPin(page))?.lineStyle).toBe(2);
+    const canvasExpandoAfterClick = await page.evaluate(() => {
+      const canvas = document.querySelector(".chart-wrap canvas") as HTMLElement | null;
+      return canvas ? (canvas as unknown as { __pp2bCanvasExpando?: true }).__pp2bCanvasExpando === true : false;
+    });
+    expect(canvasExpandoAfterClick).toBe(true);
+
+    // A newer same-session build queues while the desktop rail holds A: the banner
+    // names B and the selected summary still reads A's held cell.
+    current = buildB;
+    const [, ] = await Promise.all([
+      page.waitForResponse(/\/api\/flow\?f=matrix(?::|%3A)SPY/, { timeout: 10_000 }),
+      page.evaluate(() => document.dispatchEvent(new Event("visibilitychange"))),
+    ]);
+    await expect(panel.getByTestId("options-newer-snapshot")).toBeVisible();
+    await expect(panel.getByTestId("options-newer-snapshot")).toContainText(ISO_B);
+    expect(await panel.getByTestId("options-selected-summary").innerText()).toBe(summaryDesktopBefore);
   });
 }
