@@ -3574,7 +3574,7 @@ export default function ChartPanel({ symbol, chartType = "candles", indicators, 
     const captureScene = (): CaptureScene => {
       const wrapEl = wrapElRef.current;
       let visibleRange: { from: unknown; to: unknown } | null = null;
-      try { visibleRange = chartRef.current?.timeScale().getVisibleRange() ?? null; } catch {}
+      try { visibleRange = engineRef.current?.timeScale().getVisibleRange() ?? null; } catch {}
       const replaying = replayIdxRef.current != null;
       return composeCaptureScene({
         source: visualSourceRef.current,

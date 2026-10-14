@@ -6,7 +6,7 @@
 // chart's visible range after the moment the user asked for it.
 
 import { useEffect, useId, useMemo, useRef, useState, type Dispatch, type KeyboardEvent, type SetStateAction } from "react";
-import type { IChartApi } from "lightweight-charts";
+import type { TimeScaleHandle } from "@/lib/chart-engine";
 import { defaultCmpCfg, type CmpAnchorSrc, type CmpCfg } from "@/lib/compare";
 import { anchorSpecOf, isAnchorDate, legComparabilityMark, visibleStartDate, withAnchor, type CmpLegReceipt, type CompareStudy } from "@/lib/compareAnchor";
 import { useCompareT } from "@/lib/compareAnchorLex";
@@ -40,13 +40,18 @@ export function receiptIsCurrent(study: CompareStudy | null, host: string, timef
 const pct = (v: number) => `${v >= 0 ? "+" : ""}${(v * 100).toFixed(2)}%`;
 const pp = (v: number) => `${v >= 0 ? "+" : ""}${v.toFixed(2)}`;
 
+/** The only chart surface the strip reads: the visible time range at the moment the user asks
+ *  to pin the window. Typed against the chart-engine contract (G01: no lightweight-charts
+ *  importer outside lib/chart-engine/); ChartPane's raw chart handle satisfies it structurally. */
+export type CompareAnchorChart = { timeScale(): Pick<TimeScaleHandle, "getVisibleRange"> };
+
 export default function CompareAnchorStrip({ host, timeframe, legs, compareCfg, study, chartApi, percentAxis, onCompareCfgChange }: {
   host: string;
   timeframe: string;
   legs: CompareAnchorLeg[];
   compareCfg?: Record<string, CmpCfg>;
   study: CompareStudy | null;
-  chartApi: IChartApi | null;
+  chartApi: CompareAnchorChart | null;
   /** The price axis is in Percentage / Indexed-to-100 mode — it counts from the first visible bar. */
   percentAxis: boolean;
   onCompareCfgChange?: Dispatch<SetStateAction<Record<string, CmpCfg>>>;
