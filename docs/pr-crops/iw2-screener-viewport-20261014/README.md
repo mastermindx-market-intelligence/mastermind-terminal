@@ -16,10 +16,14 @@ The full count remains 100 or 9,500. The +3% filter returns exactly 50 or 4,750 
 
 Each fixture case observed one successful whole-manifest response and one absent flow-index response before interaction, with no additional financial request after filtering, searching, sorting or scrolling. There were no observed per-symbol requests, external requests, or owner writes. A synthetic request verifies the request classifier separately. The fulfilled manifest bodies are 10,399 and 1,003,549 bytes; these are response-body sizes, not measured wire-transfer sizes or cache-attempt counts.
 
-The six PNGs show the 9,500-symbol search result and the full-universe tail, and were directly reviewed. Mobile retains its existing horizontal scroll for later columns; these images do not establish that all columns fit simultaneously. The 100-symbol cases have functional measurements but their screenshots are not claimed as visually reviewed here.
+The six PNGs show the 9,500-symbol search result and the full-universe tail, and were directly reviewed. The existing mobile stylesheet hides columns five onward at widths up to 640 px, leaving Symbol, Last, Chg%, and $ Vol visible. There is no horizontal overflow in this fixture. The earlier horizontal-scroll description was incorrect; no all-column mobile acceptance is claimed. The 100-symbol cases have functional measurements but their screenshots are not claimed as visually reviewed here.
 
 TypeScript passes. The new browser test has zero lint errors or warnings. Nine existing component lint errors remain identical to the baseline. Earlier harness mistakes, a startup 404/cache failure, and the first filter-transition timeout are retained in the original evidence capsule; no independent cause is claimed for the latter two failures.
 
 This is local fixture evidence on a prewarmed development server with a fresh browser context per case. It does not establish production latency, provider traffic, cache deduplication, the complete saved-screen workflow, accessibility, or release acceptance. All release and live-access holds remain.
 
 The original 403 image corpus and its manifests, capture recipes, evidence tests and before images are unchanged. Original receipts and raw measurements remain in the IW2 evidence capsule `fable-commission-20261013/screener-request-scaling/mobile-virtualization`.
+
+## Additional keyboard proof
+
+Native Tab navigation focuses the table without programmatic focus. End reaches `IW09499`, and Home returns to `IW00000`, on desktop, tablet and mobile with zero owner writes. Desktop and tablet passed in the initial run. The initial mobile run correctly failed an invalid horizontal-scroll assumption; the corrected mobile-only run passed after asserting the existing four-column responsive layout. No product source changed between these runs. Three keyboard-tail PNGs were directly reviewed, and `keyboard-measurements.json` retains focus, scroll geometry, tab paths and the evidence correction.
