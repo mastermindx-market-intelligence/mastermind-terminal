@@ -4,6 +4,7 @@ import { useLang, type Lang } from "./i18n";
 export function futuresTextFor(lang: Lang) {
   const pick = (en: string, zh: string) => lang === "zh" ? zh : en;
   return {
+    emptyIntervals: pick("Intervals without captured executions retain their observed depth. No candle prices are invented.", "未捕获成交的时段保留已观测深度，不虚构蜡烛价格。"),
     partialCoverage: pick("Execution coverage is incomplete. Totals and cumulative delta describe only the captured trades, not the entire market window.", "成交覆盖不完整。总量与累积净量仅描述已捕获成交，不代表整个市场时段。"),
     navTitle: pick("Futures", "期货"),
     title: pick("Futures depth & footprint", "期货深度与足迹"),

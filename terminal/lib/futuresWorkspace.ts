@@ -5,9 +5,12 @@ import type { ExpiryLens } from "./gexLadder";
 
 export type FuturesVolumeCell = { priceTicks: number; buy: number; sell: number; unknown: number; total: number;
   buyImbalance?: boolean; sellImbalance?: boolean };
-export type FuturesFootprintBar = { startNs: string; endNs: string; availableAtNs: string;
-  openTicks: number; highTicks: number; lowTicks: number; closeTicks: number;
+type FuturesBarObservations = { startNs: string; endNs: string; availableAtNs: string;
   cells: FuturesVolumeCell[]; buy: number; sell: number; unknown: number; total: number; deltaKnown: number; cvdKnown: number; cvd: number | null };
+export type FuturesFootprintBar = FuturesBarObservations & (
+  { kind?: "executed"; openTicks: number; highTicks: number; lowTicks: number; closeTicks: number } |
+  { kind: "no_captured_trades"; openTicks: null; highTicks: null; lowTicks: null; closeTicks: null }
+);
 export type FuturesDepthColumn = { startNs: string; endNs: string; coverage: string; coverageFraction: number;
   levels: { priceTicks: number; bidMean: number | null; askMean: number | null }[] };
 export type FuturesChartFrame = { endMs: number; bar: FuturesFootprintBar; depth: FuturesDepthColumn | null; gex: FuturesGexFrame };

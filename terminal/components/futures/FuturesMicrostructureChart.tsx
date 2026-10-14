@@ -27,7 +27,9 @@ export default function FuturesMicrostructureChart({ frames, mode, showGex, zoom
   const reserveTags = mode === "footprint" || showGex && current?.gex.status === "ok" && !!current.gex.landmarks?.length;
   const dataRight = Math.max(left + 60, right - (reserveTags ? 84 : 0));
   const step = (dataRight - left) / Math.max(visible.length, 1);
-  const center = current ? current.bar.closeTicks / 4 : (lowTick + highTick) / 8;
+  // A last traded price may center the viewport, but is never drawn as a made-up candle.
+  const lastTradePrice = frames.slice().reverse().find(f => f.bar.kind !== "no_captured_trades")?.bar.closeTicks;
+  const center = typeof lastTradePrice === "number" ? lastTradePrice / 4 : (lowTick + highTick) / 8;
   const half = mode === "footprint" ? Math.max(zoom === 1 ? 3 : 1.75, priceStepTicks / 2) : 4;
   const [lo, hi] = padDomain(mode === "depth" && zoom === 1 ? lowTick / 4 - .125 : center - half,
     mode === "depth" && zoom === 1 ? highTick / 4 + .125 : center + half, { padFrac: .02 });
@@ -84,8 +86,11 @@ export default function FuturesMicrostructureChart({ frames, mode, showGex, zoom
           {(!frame.depth || frame.depth.coverage !== "full") && <rect data-testid="depth-gap" x={x(n) - step / 2} y={top}
             width={step} height={bottom - top} fill={`url(#${gapId})`} opacity=".6"><title>{frame.depth?.coverage ?? "gap"}</title></rect>}
         </g>)}
-        {visible.map(({ bar }, n) => <g key={bar.startNs} data-testid="futures-bar">
-          {mode === "depth" ? <><line x1={x(n)} x2={x(n)} y1={y(bar.highTicks / 4)} y2={y(bar.lowTicks / 4)} stroke={color(bar.closeTicks - bar.openTicks)} />
+        {visible.map(({ bar }, n) => <g key={bar.startNs} data-testid={bar.kind === "no_captured_trades" ? "futures-empty-interval" : "futures-bar"}>
+          {bar.kind === "no_captured_trades" ? <>
+            <title>{pick("No captured executions in this interval; any observed depth remains visible.", "本时段未捕获成交；已观测深度仍可见。")}</title>
+            <line x1={x(n) - step * .2} x2={x(n) + step * .2} y1={bottom - 2} y2={bottom - 2} stroke="#a9b6cf" strokeWidth="1" />
+          </> : mode === "depth" ? <><line x1={x(n)} x2={x(n)} y1={y(bar.highTicks / 4)} y2={y(bar.lowTicks / 4)} stroke={color(bar.closeTicks - bar.openTicks)} />
             <rect x={x(n) - Math.min(5, step * .25)} y={Math.min(y(bar.openTicks / 4), y(bar.closeTicks / 4))}
               width={Math.min(10, step * .5)} height={Math.max(2, Math.abs(y(bar.openTicks / 4) - y(bar.closeTicks / 4)))} fill={color(bar.closeTicks - bar.openTicks)} /></>
             : bar.cells.map(cell => <g key={cell.priceTicks} data-testid="footprint-cell"><rect x={x(n) - step * .45}

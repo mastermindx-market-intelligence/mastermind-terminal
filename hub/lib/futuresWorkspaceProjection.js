@@ -51,14 +51,25 @@ function buildFuturesWorkspacePublication(capture, selection) {
         coverage: capture.tradeCoverage, lowTick: selection.lowTick, highTick: selection.highTick, maxAgeNs: selection.maxBookAgeNs };
       const footprint = aggregateFootprint(capture.trades, common), depth = buildLiquidityTiles(capture.depthSamples, common);
       check(footprint.status !== 'unavailable' && depth.status === 'ok', 'projection_unavailable');
-      check(footprint.bars.length <= 240, 'frame_capacity');
+      check(depth.columns.length <= 240, 'frame_capacity');
       retainedCells += footprint.bars.reduce((n, b) => n + b.cells.length, 0) + depth.columns.reduce((n, c) => n + c.levels.length, 0);
       check(retainedCells <= 80000, 'publication_cell_capacity');
-      const columns = new Map(depth.columns.map(column => [column.startNs, column]));
-      const frames = footprint.bars.map(bar => {
+      // The timeline belongs to the captured window, not to trade occurrence.
+      // Keep observed resting liquidity even when a period has no captured trade.
+      const bars = new Map(footprint.bars.map(bar => [bar.startNs, bar]));
+      let cvdKnown = 0, cvd = capture.tradeCoverage === 'complete' ? 0 : null;
+      const frames = depth.columns.map(column => {
+        const observed = bars.get(column.startNs);
+        if (observed) { cvdKnown = observed.cvdKnown; cvd = observed.cvd; }
+        const bar = observed ?? { kind: 'no_captured_trades', startNs: column.startNs,
+          endNs: column.endNs, availableAtNs: column.endNs,
+          openTicks: null, highTicks: null, lowTicks: null, closeTicks: null,
+          cells: [], buy: 0, sell: 0, unknown: 0, total: 0, deltaKnown: 0,
+          delta: capture.tradeCoverage === 'complete' ? 0 : null, cvdKnown, cvd };
+        check(bar.endNs === column.endNs, 'interval_alignment');
         check(BigInt(bar.endNs) % 1000000n === 0n, 'submillisecond_bar_end');
         const endMs = Number(BigInt(bar.endNs) / 1000000n);
-        const frame = { endMs, bar, depth: columns.get(bar.startNs) ?? null };
+        const frame = { endMs, bar, depth: column };
         const attachment = capture.gammaByEndMs?.[String(endMs)];
         if (attachment !== undefined) {
           check(object(attachment), 'invalid_gamma_attachment');

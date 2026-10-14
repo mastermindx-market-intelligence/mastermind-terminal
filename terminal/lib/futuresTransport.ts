@@ -120,16 +120,22 @@ export function parseFuturesPublishedView(raw: unknown, request: FuturesRequest,
   for (const f of raw.frames) {
     if (!isRecord(f) || !validClockMs(f.endMs) || !isRecord(f.bar)) return null;
     const b = f.bar;
+    const noTrades = b.kind === "no_captured_trades";
+    if (b.kind !== undefined && b.kind !== "executed" && !noTrades) return null;
+    const prices = [b.openTicks, b.highTicks, b.lowTicks, b.closeTicks];
+    if (noTrades ? !prices.every(v => v === null) : !prices.every(positive)) return null;
+
     if (!nano(b.startNs) || !nano(b.endNs) || !nano(b.availableAtNs) || BigInt(b.endNs) <= BigInt(b.startNs) ||
         BigInt(b.startNs) < previousEnd || BigInt(b.startNs) < BigInt(definition.validFromNs) ||
         BigInt(b.endNs) > BigInt(definition.validUntilNs) || BigInt(b.endNs) < BigInt(definition.availableAtNs) ||
         BigInt(b.endNs) > cutoff || BigInt(b.availableAtNs) > cutoff ||
         BigInt(b.endNs) !== nsm(f.endMs) || BigInt(b.endNs) - BigInt(b.startNs) > BigInt(request.intervalMinutes * 60000000000) ||
-        ![b.openTicks, b.highTicks, b.lowTicks, b.closeTicks].every(positive) ||
-        (b.lowTicks as number) > Math.min(b.openTicks as number, b.closeTicks as number) || (b.highTicks as number) < Math.max(b.openTicks as number, b.closeTicks as number) ||
+        (!noTrades && ((b.lowTicks as number) > Math.min(b.openTicks as number, b.closeTicks as number) || (b.highTicks as number) < Math.max(b.openTicks as number, b.closeTicks as number))) ||
         ![b.buy, b.sell, b.unknown, b.total].every(uint) || !uint((b.buy as number) + (b.sell as number) + (b.unknown as number)) ||
         b.total !== (b.buy as number) + (b.sell as number) + (b.unknown as number) || b.deltaKnown !== (b.buy as number) - (b.sell as number) ||
         !Array.isArray(b.cells) || b.cells.length > 2048 || (cellsTotal += b.cells.length) > 40000) return null;
+    if (noTrades && (b.total !== 0 || b.cells.length !== 0 || b.deltaKnown !== 0)) return null;
+    if (!noTrades && (b.total === 0 || b.cells.length === 0)) return null;
     previousEnd = BigInt(b.endNs); previousCvd += b.deltaKnown as number; unknownTotal += b.unknown as number; volumeTotal += b.total as number;
     if (!uint(volumeTotal) || !uint(unknownTotal)) return null;
     if (!Number.isSafeInteger(previousCvd) || b.cvdKnown !== previousCvd || !(b.cvd === null || b.cvd === previousCvd && unknownTotal === 0 && raw.tradeCoverage === "complete")) return null;
@@ -159,9 +165,12 @@ export function parseFuturesPublishedView(raw: unknown, request: FuturesRequest,
     }
     const gex = gamma(f.gex, request, raw.contract, f.endMs, definition.id); if (!gex) return null;
     if (gex.status === "ok" && (gammaPoints += gex.projection.mapped.length) > 40000) return null;
-    frames.push({ endMs: f.endMs, bar: { startNs: b.startNs, endNs: b.endNs, availableAtNs: b.availableAtNs,
-      openTicks: b.openTicks as number, highTicks: b.highTicks as number, lowTicks: b.lowTicks as number, closeTicks: b.closeTicks as number,
-      buy, sell, unknown, total: b.total as number, deltaKnown: b.deltaKnown as number, cvdKnown: previousCvd, cvd: b.cvd as number | null, cells }, depth, gex });
+    const observations = { startNs: b.startNs, endNs: b.endNs, availableAtNs: b.availableAtNs,
+      buy, sell, unknown, total: b.total as number, deltaKnown: b.deltaKnown as number, cvdKnown: previousCvd, cvd: b.cvd as number | null, cells };
+    const bar: FuturesFootprintBar = noTrades
+      ? { ...observations, kind: "no_captured_trades", openTicks: null, highTicks: null, lowTicks: null, closeTicks: null }
+      : { ...observations, openTicks: b.openTicks as number, highTicks: b.highTicks as number, lowTicks: b.lowTicks as number, closeTicks: b.closeTicks as number };
+    frames.push({ endMs: f.endMs, bar, depth, gex });
   }
   return { schema: "terminal.futures_published_view/v1", request, contract: raw.contract, sessionId: raw.sessionId,
     basis: raw.basis as FuturesPublishedView["basis"], availabilityBasis: raw.availabilityBasis as FuturesPublishedView["availabilityBasis"],

@@ -2,39 +2,47 @@
 
 Research as of 2026-10-12 UTC / 2026-10-11 Pacific. Current Chairman continuation explicitly requests deeper Pro research and implementation. This is an extension of Terminal's existing Options/Market Structure and Quote Hub owners, not another product backend or control plane.
 
-## CURRENT FRONTIER: hosted regression repaired; independent reviews active
+## CURRENT FRONTIER: captured-window recovery and exact review adjudication
 
-Current subsequent delta: dense-source display qualification now culls offscreen
-SVG circles without dropping inspector rows; disclosed visible-range scaling
-replaces the saturating 400M limit. Three viewport falsifiers pass (4,872 -> 72
-circles with 203 source rows retained). R2 still reviews immutable 5ea5 bytes,
-not this later display delta. Current master1408943 was integrated with no overlap
-in the reviewed subsets. Exact evidence: docs/evidence/futures-density-20261014/.
-A read-only production configuration preflight was safety-blocked and not replayed;
-source activation is still unestablished. Do not infer an absent license from that
-blocked read or call it a global tool outage.
+Original writer: M2 RDC worktree and branch claude/futures-gex-projection-20261011,
+PR #964. Original attended Web root AND parent remain terminal-futures-gex-pr964.
+Protected procedure pin 85807cf48e29e2fe5df19534d6b181fc25b9746f is retained.
 
+Recovered published head 54bf1bc931832655b7c0ca4de24e26fbab598d11 plus its unfinished
+no-captured-trade interval work. The completed delta preserves valid depth and
+chronology without invented candle prices, with explicit coverage and known-side
+CVD continuity. 595 Hub tests, 232 focused futures tests, six responsive no-trade
+browser cases, typecheck and scoped lint pass. Exact delta evidence lives in
+docs/evidence/futures-no-trade-recovery-20261014/. Earlier full/head-54 qualification
+(11,322 Terminal tests and compiled guest proof) is retained under
+futures-release-qualification-20261014, not relabeled as current-delta proof.
 
-The finished hosted desktop-2 CI exposed five deterministic Options geometry
-regressions from the new standalone 44px futures link row. All five reproduced;
-the link now lives inside the existing category row. Five unchanged regression
-cases and 27 responsive futures browser cases pass. Evidence:
-`docs/evidence/futures-ci-repair-20261014/`. Exact reviewed core remains frozen at
-`5ea5d2851477ba502c46d78af53b36cfe9fa211f`; the navigation repair does not alter it.
+Independent source/API and display reviews were returned and adjudicated earlier.
+Aggregation and gamma/client reviews have now returned, been falsified against the
+actual modules/hook and ACCEPTED/deterministic. Their proposed changes would break
+known zero/fractional data or fix an already-correct poll interval; exact returns,
+tests and reasoning summaries are retained in futures-independent-review-20261014.
+This is not an external review of every file. The combined book review ended rc=1
+at the output limit without findings. Its smaller atomic-book request was blocked
+by OpenAI safety checks before dispatch; same-ID status NOT_FOUND, no output file.
+Do not retry that effect or route it through another actor. The independent event-
+adapter R3 request is TERMINAL_FAILURE rc=75/prelaunch (critical policy mismatch).
+No support/host limits were changed. No external worker remains running.
 
-Original carrier: M2 RDC worktree, branch `claude/futures-gex-projection-20261011`,
-PR964. Original attended Web root AND parent: `terminal-futures-gex-pr964`.
-Two independent read-only Fabric reviews were admitted after refreshed placement:
-`terminal-futures-pr964-source-review-20261013-r1` (same original formerly-unstarted
-ID), and `terminal-futures-pr964-domain-review-20261014-r1` (distinct domain/UI scope).
-Source/API review returned and was adjudicated with 58 passing actual-module controls; its bounded return is ACCEPTED/deterministic, not blanket release approval. The domain/renderer review remains ACTIVE_OR_WAITING on its original carrier. A bounded current-output request refused original_current_output_unconfirmed; do not bypass or duplicate it. No review acceptance, merge, deployment, or live-source activation yet.
+All required hosted contexts passed at recovered head54; two ancillary Vercel
+previews failed: macro-eiz4 rate-limited, mastermind-terminal configured FastAPI at
+repo root exceeds function bundle size (623.80MB vs 500MB). This is not the canonical
+VPS release path; no Vercel settings were changed. New source requires its own CI.
+The prior production source-configuration safety refusal remains held; do not infer
+an absent grant from that refused read. Real futures publication, matched actual
+options/quotes and licensed subscriber display remain unestablished/never activated.
 
-DO_NOT_REDO: previous real ES top-ten/BBO/conservation, SDK kernels, guest/private
-compiled guards and unaffected tests. Preserve the new failed-CI evidence. Next:
-consume both exact retained review results, reproduce/adjudicate findings, then
-finish exact-candidate CI and ordinary release. Approved live publication and
-matching real options/quotes/contract/status inputs remain a separate unsatisfied
-gate. No data-purchase, source grant, native identity or background wake is inferred.
+Next: finish exact-delta whole-candidate/build verification, inspect the relevant
+current integration proof and preserve actual release gates. No production, purchase,
+authentication, live-feed activation or predictive edge is claimed. DO_NOT_REDO:
+unchanged actual ES BBO/top-ten comparisons, sample acquisition, core decoder tests,
+and settled review findings absent a material invalidator. Private market rows stay
+ignored. This save returns to execution; the requested live capability is incomplete.
 
 ## Named levels / POC continuation 2026-10-13
 

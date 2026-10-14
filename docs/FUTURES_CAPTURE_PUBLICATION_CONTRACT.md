@@ -50,6 +50,12 @@ Quantity closure, price-row uniqueness, raw-price OHLC, cumulative known-side de
 
 The client has no cross-account cache. Changing instrument/request or owner invalidates the rendered state immediately; an older asynchronous response cannot replace the selected instrument. Denial on refresh clears prior prices/levels. Current views have a visible freshness boundary, pause polling while hidden, and recheck on visibility return. Access revocation follows the existing canonical entitlement/cache semantics; this is not a claim of zero-latency revocation.
 
+## Operational gap: implementation is not installation
+
+This branch supplies event-domain adapters, the pure publication composer, an existing-Hub read route and the authenticated consumer. It does not install or prove a continuously running CME MBO capture/publication process. The next activation must identify and reuse the actual capture owner, or add the missing provider adapter inside the existing Quote Hub lifecycle, and bind its real approved inputs. No independent queue, scheduler, data-rights registry or source clock may be fabricated to fill that gap. A publication-shaped JSON file is not evidence that a live feed is installed.
+
+The current client refreshes published snapshots at a five-second cadence. Minute-grouped snapshot/replay qualification is not a claim of tick-by-tick streaming, complete full-session retention, measured burst capacity or instantaneous access revocation. Those production behaviors need admitted source and end-to-end measurements before being advertised.
+
 ## Verification versus activation
 
 Local tests cover native-shaped generated records through actual source reducers, projection/envelope, the real loopback Hub HTTP handler, server fetch/digest verification, canonical-access API and rendered production-route component. Permission results and source data are deliberately generated fixtures in those tests. The actual historical ES canary remains separate: real source math was qualified, but its sample has neither subscriber rights nor contemporaneous real gamma and is not promoted into this subscriber path.

@@ -21,3 +21,14 @@ controls are parent-run evidence, not tests run by the external reviewer. Accept
 the bounded review return does not approve real data rights, the live publisher,
 all remaining files or deployment. The separately admitted domain/renderer/client
 review has its own result obligation and remains active at this save.
+
+## Resumed exact returns
+
+The broad domain review and its combined book replacement ended at the provider
+output limit without findings. Display review completed and was accepted on its
+recorded narrow scope. Aggregation and gamma/client returns completed, were tested
+with actual-module/real-hook counterexamples, and their bounded returns were
+accepted after adjudication. See aggregation-adjudication.json, gamma-adjudication.json
+and their retained original returns. This does not imply that every core file had
+a successful external review. The two R3 action boundaries are explicitly retained
+in r3-action-boundaries.json; no remaining child is active.
