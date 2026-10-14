@@ -918,16 +918,19 @@ for (const lang of ["en", "zh"] as const) {
         if (root) (root as unknown as { __pp2bExpando: true }).__pp2bExpando = true;
         const canvas = document.querySelector(".chart-wrap canvas") as HTMLElement | null;
         if (canvas) (canvas as unknown as { __pp2bCanvasExpando: true }).__pp2bCanvasExpando = true;
+        // The scan is scoped to the SHEET ROOT — the parked surface whose scroll offsets
+        // must survive park → return — not to the whole document.
+        const sheetRoot = document.querySelector("[data-detent]") as HTMLElement | null;
         const overflowed: HTMLElement[] = [];
         const scan = (el: Element) => {
           const ce = el as HTMLElement;
           const cs = getComputedStyle(el);
-          if ((cs.overflowX === "auto" || cs.overflowX === "scroll" || cs.overflowY === "auto" || cs.overflowY === "scroll")) {
+          if (el !== sheetRoot && (cs.overflowX === "auto" || cs.overflowX === "scroll" || cs.overflowY === "auto" || cs.overflowY === "scroll")) {
             if (ce.scrollHeight > ce.clientHeight + 1 || ce.scrollWidth > ce.clientWidth + 1) overflowed.push(ce);
           }
           for (const child of Array.from(el.children)) scan(child);
         };
-        scan(document.body);
+        if (sheetRoot) scan(sheetRoot);
         const stored: Array<{ el: HTMLElement; scrollTop: number; scrollLeft: number }> = [];
         for (const el of overflowed) {
           el.scrollTop = Math.min(40, el.scrollHeight - el.clientHeight);
@@ -942,11 +945,17 @@ for (const lang of ["en", "zh"] as const) {
       const offsetSnapshot = await page.evaluate(() => {
         const stored = (window as unknown as { __pp2bScrollers: Array<{ el: HTMLElement; scrollTop: number; scrollLeft: number }> }).__pp2bScrollers;
         if (!stored) return null;
-        return stored.map((entry) => ({ entry, currentTop: entry.el.scrollTop, currentLeft: entry.el.scrollLeft }));
+        return stored.map((entry) => {
+          entry.scrollTop = entry.el.scrollTop;
+          entry.scrollLeft = entry.el.scrollLeft;
+          return { recordedTop: entry.scrollTop, recordedLeft: entry.scrollLeft, beforeTop: entry.scrollTop, beforeLeft: entry.scrollLeft };
+        });
       });
       expect(offsetSnapshot).not.toBeNull();
-      // Vacuity guard: the panel must hold at least one scrollable element.
+      // Vacuity guard: the sheet must hold at least one scrollable element with a
+      // RECORDED NONZERO offset — a count of scrollers alone proves nothing.
       expect(offsetSnapshot!.length).toBeGreaterThanOrEqual(1);
+      expect(offsetSnapshot!.some((o) => o.beforeTop !== 0 || o.beforeLeft !== 0)).toBe(true);
 
       await showBtn.click();
       const chip = page.locator('[data-testid="options-chart-return"]');
@@ -1011,6 +1020,27 @@ for (const lang of ["en", "zh"] as const) {
       expect(chartRect).not.toBeNull();
       expect(chartRect!.w).toBeGreaterThan(0);
       expect(chartRect!.h).toBeGreaterThan(0);
+      // The parked sheet is invisible (visibility:hidden), so hit-testing THROUGH it
+      // must land on chart content. Inert can preserve this even if visibility is
+      // removed, so assert the parked visibility independently below.
+      // Only exercised when the chart's clamped centre lies under the parked sheet's
+      // rect; otherwise the geometry does not reach the sheet and the case is skipped.
+      const chartHit = await page.evaluate(() => {
+        const chart = document.querySelector(".chart-wrap") as HTMLElement | null;
+        const sheet = document.querySelector("[data-detent]") as HTMLElement | null;
+        if (!chart || !sheet) return null;
+        const r = chart.getBoundingClientRect();
+        const s = sheet.getBoundingClientRect();
+        const cx = Math.min(Math.max(r.left + r.width / 2, 1), innerWidth - 1);
+        const cy = Math.min(Math.max(r.top + r.height / 2, 1), innerHeight - 1);
+        const underSheet = cx >= s.left && cx <= s.right && cy >= s.top && cy <= s.bottom;
+        if (!underSheet) return { exercised: false, inside: false, hitTag: null };
+        const hit = document.elementFromPoint(cx, cy) as Element | null;
+        return { exercised: true, inside: !!(hit && hit.closest(".chart-wrap")), hitTag: hit?.tagName ?? null };
+      });
+      expect(chartHit).not.toBeNull();
+      if (chartHit!.exercised) expect(chartHit!.inside).toBe(true);
+      await expect(page.locator('[data-detent]')).toHaveCSS("visibility", "hidden");
       const bodyOverflow = await page.evaluate(() => document.body.style.overflow);
       expect(bodyOverflow).not.toBe("hidden");
       await page.screenshot({ path: `${crops}/pp2b-${project}-${lang}-parked.png`, fullPage: false });
@@ -1035,13 +1065,21 @@ for (const lang of ["en", "zh"] as const) {
         if (!stored) return null;
         return stored.map((entry) => ({
           connected: entry.el.isConnected,
-          scrollTop: entry.el.scrollTop,
-          scrollLeft: entry.el.scrollLeft,
+          recordedTop: entry.scrollTop,
+          recordedLeft: entry.scrollLeft,
+          afterTop: entry.el.scrollTop,
+          afterLeft: entry.el.scrollLeft,
         }));
       });
       expect(scrollersAfter).not.toBeNull();
+      // D3: the before/after offset table is persisted next to the other evidence and
+      // EVERY recorded scroller must come back connected with its offsets intact (±1).
+      mkdirSync(crops, { recursive: true });
+      writeFileSync(`${crops}/pp2b-offsets-${project}-${lang}.json`, JSON.stringify(scrollersAfter, null, 2));
       for (const row of scrollersAfter!) {
         expect(row.connected).toBe(true);
+        expect(Math.abs(row.afterTop - row.recordedTop)).toBeLessThanOrEqual(1);
+        expect(Math.abs(row.afterLeft - row.recordedLeft)).toBeLessThanOrEqual(1);
       }
       const detentAfter = await page.locator("[data-detent]").getAttribute("data-detent");
       expect(detentAfter).toBe(detentBefore);
@@ -1051,7 +1089,12 @@ for (const lang of ["en", "zh"] as const) {
       const summaryAfterReturn = await panel.getByTestId("options-selected-summary").innerText();
       // The cell line "780 · 2026-07-10 · +8M" must be unchanged: the queued build B
       // is held in `pending`, never silently swapped below the selected context. (The
-      // pin/unpin button label MAY flip because Show on chart sets the pin first.)
+      // pin/unpin button label MAY flip because Show on chart sets the pin first, so
+      // the strip is compared on its first non-empty line — A's held cell line,
+      // recorded before parking — plus the A-value tokens.)
+      const heldCellLine = summaryTextBeforePark.split("\n").map((line) => line.trim()).find((line) => line.length > 0) ?? "";
+      expect(heldCellLine).not.toBe("");
+      expect(summaryAfterReturn).toContain(heldCellLine);
       expect(summaryAfterReturn).toContain("780");
       expect(summaryAfterReturn).toContain("2026-07-10");
       expect(summaryAfterReturn).toContain("+8M");
@@ -1086,10 +1129,11 @@ for (const lang of ["en", "zh"] as const) {
       return;
     }
 
-    // Desktop path: no Show on chart button. The rail's pre-existing pin path is exercised
-    // by the other tests in this spec; this lane asserts the desktop-only falsifier
-    // (the Show on chart action does not exist on a viewport where the rail cannot
-    // cover the chart) and that the chart canvas is still mounted.
+    // Desktop path: no Show on chart button — the rail never covers the chart on a
+    // viewport wide enough for it. The desktop falsifier still needs a real held pin,
+    // so the cell is pinned through the selected-summary strip's pressed toggle, the
+    // rail's scroll offsets and the chart canvas instance are tagged, the chart centre
+    // is clicked, and NOTHING (offsets, summary, pin, expando) may move.
     await expect(page.locator('[data-testid="options-show-on-chart"]')).toHaveCount(0);
     {
       const [, ] = await Promise.all([
@@ -1097,25 +1141,76 @@ for (const lang of ["en", "zh"] as const) {
         panel.getByRole("button", { name: lang === "zh" ? "刷新快照" : "Refresh snapshot", exact: true }).click(),
       ]);
     }
-    // Tag the canvas so we can prove a later dispatch still reaches it (queued-build
-    // assertion below).
+    const pinToggle = panel.locator('[data-testid="options-selected-summary"] button[aria-pressed]').first();
+    await expect(pinToggle).toBeVisible();
+    await pinToggle.click();
+    await expect(pinToggle).toHaveAttribute("aria-pressed", "true");
+    await expect.poll(async () => (await chartPin(page))?.price).toBe(780);
+    expect((await chartPin(page))?.lineStyle).toBe(2);
+    // Tag the canvas instance and record the rail's scrollable offsets inside
+    // [data-options-companion], with a nonzero vacuity proof.
     await page.evaluate(() => {
       const canvas = document.querySelector(".chart-wrap canvas") as HTMLElement | null;
       if (canvas) (canvas as unknown as { __pp2bCanvasExpando: true }).__pp2bCanvasExpando = true;
+      const companion = document.querySelector("[data-options-companion]") as HTMLElement | null;
+      const overflowed: HTMLElement[] = [];
+      const scan = (el: Element) => {
+        const ce = el as HTMLElement;
+        const cs = getComputedStyle(el);
+        if (cs.overflowX === "auto" || cs.overflowX === "scroll" || cs.overflowY === "auto" || cs.overflowY === "scroll") {
+          if (ce.scrollHeight > ce.clientHeight + 1 || ce.scrollWidth > ce.clientWidth + 1) overflowed.push(ce);
+        }
+        for (const child of Array.from(el.children)) scan(child);
+      };
+      if (companion) scan(companion);
+      const stored: Array<{ el: HTMLElement; scrollTop: number; scrollLeft: number }> = [];
+      for (const el of overflowed) {
+        el.scrollTop = Math.min(40, el.scrollHeight - el.clientHeight);
+        el.scrollLeft = Math.min(40, el.scrollWidth - el.clientWidth);
+        stored.push({ el, scrollTop: el.scrollTop, scrollLeft: el.scrollLeft });
+      }
+      (window as unknown as { __pp2bRailScrollers: typeof stored }).__pp2bRailScrollers = stored;
     });
+    const railOffsets = await page.evaluate(() => {
+      const stored = (window as unknown as { __pp2bRailScrollers: Array<{ el: HTMLElement; scrollTop: number; scrollLeft: number }> }).__pp2bRailScrollers ?? [];
+      return stored.map((entry) => ({ recordedTop: entry.scrollTop, recordedLeft: entry.scrollLeft, beforeTop: entry.el.scrollTop, beforeLeft: entry.el.scrollLeft }));
+    });
+    expect(railOffsets.length).toBeGreaterThanOrEqual(1);
+    expect(railOffsets.some((o) => o.beforeTop !== 0 || o.beforeLeft !== 0)).toBe(true);
+    mkdirSync(crops, { recursive: true });
+    writeFileSync(`${crops}/pp2b-offsets-${project}-${lang}.json`, JSON.stringify(railOffsets, null, 2));
     const canvasPresent = await page.evaluate(() => {
       const canvas = document.querySelector(".chart-wrap canvas") as HTMLElement | null;
       return canvas != null && (canvas as unknown as { __pp2bCanvasExpando?: true }).__pp2bCanvasExpando === true;
     });
     expect(canvasPresent).toBe(true);
+    const summaryDesktopBefore = await panel.getByTestId("options-selected-summary").innerText();
     const chartCanvas = page.locator(".chart-wrap canvas").first();
     const cBox = await chartCanvas.boundingBox();
-    if (cBox) await page.mouse.click(cBox.x + cBox.width / 2, cBox.y + cBox.height / 2);
-    const chartPinAfter = await chartPin(page);
-    void chartPinAfter;
-    const summaryDesktopBefore = await panel.getByTestId("options-selected-summary").innerText();
-    void summaryDesktopBefore;
+    expect(cBox).not.toBeNull();
+    expect(cBox!.width).toBeGreaterThan(0);
+    expect(cBox!.height).toBeGreaterThan(0);
+    await page.mouse.click(cBox!.x + cBox!.width / 2, cBox!.y + cBox!.height / 2);
+    const railDeltas = await page.evaluate(() => {
+      const stored = (window as unknown as { __pp2bRailScrollers: Array<{ el: HTMLElement; scrollTop: number; scrollLeft: number }> }).__pp2bRailScrollers ?? [];
+      return stored.map((entry) => ({ connected: entry.el.isConnected, dTop: entry.el.scrollTop - entry.scrollTop, dLeft: entry.el.scrollLeft - entry.scrollLeft }));
+    });
+    for (const row of railDeltas) {
+      expect(row.connected).toBe(true);
+      expect(Math.abs(row.dTop)).toBeLessThanOrEqual(1);
+      expect(Math.abs(row.dLeft)).toBeLessThanOrEqual(1);
+    }
+    expect(await panel.getByTestId("options-selected-summary").innerText()).toBe(summaryDesktopBefore);
+    await expect.poll(async () => (await chartPin(page))?.price).toBe(780);
+    expect((await chartPin(page))?.lineStyle).toBe(2);
+    const canvasExpandoAfterClick = await page.evaluate(() => {
+      const canvas = document.querySelector(".chart-wrap canvas") as HTMLElement | null;
+      return canvas ? (canvas as unknown as { __pp2bCanvasExpando?: true }).__pp2bCanvasExpando === true : false;
+    });
+    expect(canvasExpandoAfterClick).toBe(true);
 
+    // A newer same-session build queues while the desktop rail holds A: the banner
+    // names B and the selected summary still reads A's held cell.
     current = buildB;
     const [, ] = await Promise.all([
       page.waitForResponse(/\/api\/flow\?f=matrix(?::|%3A)SPY/, { timeout: 10_000 }),

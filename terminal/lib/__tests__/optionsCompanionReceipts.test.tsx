@@ -40,12 +40,12 @@ function doc(overrides: Record<string, unknown> = {}): Record<string, unknown> {
   };
 }
 
-function Harness({ lang = "en" as "en" | "zh", onPin }: { lang?: "en" | "zh"; onPin?: ReturnType<typeof vi.fn> }) {
+function Harness({ lang = "en" as "en" | "zh", onPin, metric = "gex" }: { lang?: "en" | "zh"; onPin?: ReturnType<typeof vi.fn>; metric?: "gex" | "oi" }) {
   const [prefs, setPrefs] = React.useState<MatrixPreferences>({ expiries: "3", window: 25, norm: "global" });
   const noop = React.useCallback(() => {}, []);
   const pin = onPin ?? noop;
   return <LangProvider>
-    <MatrixCompanion root="NVDA" metric="gex" prefs={prefs} onPrefs={setPrefs} t={optionsT(lang)}
+    <MatrixCompanion root="NVDA" metric={metric} prefs={prefs} onPrefs={setPrefs} t={optionsT(lang)}
       pinned={null} onPin={pin} replayActive={false} />
   </LangProvider>;
 }
@@ -67,6 +67,27 @@ const buttonsByLabel = (name: string): HTMLButtonElement[] =>
     .filter((button) => (button.getAttribute("aria-label") ?? button.textContent ?? "").replace(/\s+/g, " ").trim() === name);
 
 describe("PP2-UI-a source receipts", () => {
+  for (const lang of ["en", "zh"] as const) {
+    it(`(NP1) ${lang} signed and unsigned scale receipts name the actual square-root ranges`, async () => {
+      await renderOnce(doc(), lang);
+      const basis = () => element.querySelector('[data-testid="options-scale-basis"]')!.textContent!;
+      expect(basis()).toContain(lang === "en" ? "square-root" : "平方根");
+      expect(basis()).toContain(lang === "en" ? "0–P95 of |value|" : "|数值| 0–P95");
+      expect(element.textContent).not.toContain("asinh");
+      await act(async () => root.render(<Harness lang={lang} metric="oi" />));
+      await act(async () => { await Promise.resolve(); await Promise.resolve(); });
+      expect(basis()).toContain("P5–P95");
+      expect(basis()).toContain(lang === "en" ? "square-root" : "平方根");
+      expect(element.textContent).not.toContain("asinh");
+    });
+    it(`(NP2) ${lang} Gamma legend retains the metric-specific sign meaning`, async () => {
+      await renderOnce(doc(), lang);
+      const labels = [...element.querySelectorAll("span")].map((span) => span.textContent?.trim());
+      expect(labels).toContain(lang === "en" ? "● Positive gamma" : "● 正 Gamma");
+      expect(labels).toContain(lang === "en" ? "● Negative gamma" : "● 负 Gamma");
+      for (const label of ["● Positive", "● Negative", "● 正值", "● 负值"]) expect(labels).not.toContain(label);
+    });
+  }
   it("(a) full source_dates renders each clock in its row and both previous/latest rows", async () => {
     await renderOnce(doc({ asof: ISO_A, _build_meta: { asof_date: SESSION, source_dates: fullSource() } }));
     openReceipts();

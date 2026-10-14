@@ -140,6 +140,47 @@ async function cancelScope() {
   const button = element.querySelector<HTMLButtonElement>('[data-testid="options-scope-cancel"]')!;
   await act(async () => { button.click(); });
 }
+describe("PP2-UI-c (NP3) exact edits remain page-local", () => {
+  it("Apply, Cancel and Escape preserve unrelated local and all session storage", async () => {
+    // Observe every storage write, including an unexpected key, through the same
+    // Storage interface used by the consumer (Node's storage globals vary by version).
+    const makeStorage = (): Storage => {
+      const values = new Map<string, string>();
+      return { get length() { return values.size; }, key: (index) => [...values.keys()][index] ?? null,
+        getItem: (key) => values.get(key) ?? null, setItem: (key, value) => { values.set(key, String(value)); },
+        removeItem: (key) => { values.delete(key); }, clear: () => { values.clear(); } };
+    };
+    vi.stubGlobal("localStorage", makeStorage());
+    vi.stubGlobal("sessionStorage", makeStorage());
+    const snapshot = (storage: Storage) => Object.fromEntries(Array.from({ length: storage.length }, (_, index) => storage.key(index)!).sort().map((key) => [key, storage.getItem(key)]));
+    const originalLocal = snapshot(localStorage), originalSession = snapshot(sessionStorage);
+    try {
+      localStorage.setItem("mm.unrelated.a", "1");
+      localStorage.setItem("mm.activeSymbol", "SPY");
+      const beforeLocal = snapshot(localStorage), beforeSession = snapshot(sessionStorage);
+      await renderOnce(declaredFixture());
+      await openScope(); await pickMode("exact");
+      await typeFromTo("100", "104"); await typeDte("0", "7"); await applyScope();
+      await openScope(); await typeFromTo("101", "103"); await cancelScope();
+      await openScope(); await typeFromTo("102", "104");
+      await act(async () => {
+        const input = element.querySelector<HTMLInputElement>('[data-testid="options-scope-from"]')!;
+        input.focus(); input.dispatchEvent(new KeyboardEvent("keydown", { key: "Escape", bubbles: true, cancelable: true }));
+      });
+      const afterLocal = snapshot(localStorage);
+      delete beforeLocal["mm.optionsCompanion.v1"]; delete afterLocal["mm.optionsCompanion.v1"];
+      expect(afterLocal).toEqual(beforeLocal);
+      expect(snapshot(sessionStorage)).toEqual(beforeSession);
+      const own = localStorage.getItem("mm.optionsCompanion.v1") ?? "";
+      for (const forbidden of ['"100"', '"104"', '"dteMin"', '"dteMax"', '"from"', '"to"']) expect(own).not.toContain(forbidden);
+    } finally {
+      localStorage.clear(); sessionStorage.clear();
+      for (const [key, value] of Object.entries(originalLocal)) localStorage.setItem(key, value!);
+      for (const [key, value] of Object.entries(originalSession)) sessionStorage.setItem(key, value!);
+      vi.unstubAllGlobals();
+    }
+  });
+});
 function issues() { return element.querySelector('[data-testid="options-scope-issues"]')?.textContent ?? ""; }
 function applyButton() { return element.querySelector<HTMLButtonElement>('[data-testid="options-scope-apply"]')!; }
 async function changeNorm(value: "global" | "column") {

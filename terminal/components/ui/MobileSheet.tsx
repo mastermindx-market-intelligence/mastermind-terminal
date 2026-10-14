@@ -282,6 +282,21 @@ export default function MobileSheet({
     };
   }, [mounted, open, initialFocus, escapeKey]);
 
+  // A final close taken straight from parking (`open` stays false while `keepMounted`
+  // flips true→false) does not re-run the focus effect above — none of its deps changed —
+  // so its cleanup never fires and the opener restore plus the ref resets are lost into
+  // the next presentation. This effect owns that transition: on every real close it
+  // clears both refs and restores focus. When the sheet closes directly from the open
+  // state, the cleanup above has already consumed `previousFocusRef`, which makes this
+  // a no-op for that path.
+  useEffect(() => {
+    if (open || keepMounted) return;
+    const previousFocus = previousFocusRef.current;
+    previousFocusRef.current = null;
+    lastInnerFocusRef.current = null;
+    if (previousFocus?.isConnected) previousFocus.focus({ preventScroll: true });
+  }, [open, keepMounted]);
+
   function clearCloseTimer() {
     if (closeTimerRef.current === null) return;
     window.clearTimeout(closeTimerRef.current);

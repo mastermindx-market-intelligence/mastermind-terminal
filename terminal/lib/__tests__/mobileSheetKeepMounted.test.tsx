@@ -204,29 +204,79 @@ describe("mobileSheetKeepMounted (k4) re-presenting restores the last inner focu
 
 describe("mobileSheetKeepMounted (k5) detent state survives parking and resets on the final close", () => {
   it("the detent state survives park→re-present, and a final close resets it", async () => {
-    // We only test the survival behaviour; the detent reset logic is gated by
-    // `!open && !keepMounted`, so we can verify it indirectly. Initial state is "initial";
-    // after park→re-present it must still equal what was set, and after a final close
-    // a fresh open must show "initial" again.
     const onClose = vi.fn();
     await render({ open: true, keepMounted: false, onClose, detents: [60, 94] });
     await flushFrames();
     expect(document.querySelector('[data-detent]')!.getAttribute("data-detent")).toBe("initial");
 
-    // park while at initial → sheet root preserves data-detent
+    const sheet = document.querySelector<HTMLElement>('[data-detent]')!;
+    const handle = sheet.querySelector<HTMLElement>('[data-handle="1"]')!;
+    vi.spyOn(sheet, "getBoundingClientRect").mockReturnValue({ height: window.innerHeight * 0.6 } as DOMRect);
+    await act(async () => {
+      handle.dispatchEvent(new PointerEvent("pointerdown", { bubbles: true, pointerId: 1, pointerType: "touch", isPrimary: true, clientY: 600 }));
+      handle.dispatchEvent(new PointerEvent("pointermove", { bubbles: true, pointerId: 1, pointerType: "touch", isPrimary: true, clientY: 100 }));
+      handle.dispatchEvent(new PointerEvent("pointerup", { bubbles: true, pointerId: 1, pointerType: "touch", isPrimary: true, clientY: 100 }));
+    });
+    expect(sheet.getAttribute("data-detent")).toBe("full");
+
+    // Park from full: an initial-only test cannot detect detent loss.
     await render({ open: false, keepMounted: true, onClose, detents: [60, 94] });
     await flushFrames();
-    expect(document.querySelector('[data-detent="initial"]')).not.toBeNull();
+    expect(document.querySelector('[data-detent="full"]')).not.toBeNull();
 
     // re-present keeps the detent intact
     await render({ open: true, keepMounted: true, onClose, detents: [60, 94] });
     await flushFrames();
-    expect(document.querySelector('[data-detent="initial"]')).not.toBeNull();
+    expect(document.querySelector('[data-detent="full"]')).not.toBeNull();
 
     // final close (no keepMounted) mounts the sheet afresh with the initial detent
     await render({ open: false, keepMounted: false, onClose, detents: [60, 94] });
     await render({ open: true, keepMounted: false, onClose, detents: [60, 94] });
     await flushFrames();
     expect(document.querySelector('[data-detent]')!.getAttribute("data-detent")).toBe("initial");
+  });
+});
+
+describe("mobileSheetKeepMounted (k6) final close taken directly from parking restores the opener", () => {
+  it("park → final close refocuses opener1; a later open from opener2 closes back to opener2", async () => {
+    const onClose = vi.fn();
+    function TwoOpeners({ open, keepMounted }: { open: boolean; keepMounted?: boolean }) {
+      return <div>
+        <button type="button" data-opener-1>Opener one</button>
+        <button type="button" data-opener-2>Opener two</button>
+        <MobileSheet open={open} keepMounted={keepMounted} onClose={onClose} initialFocus="sheet">
+          <div><button type="button" data-pp2b-inner>Inner</button></div>
+        </MobileSheet>
+      </div>;
+    }
+    // Mount closed, then open from opener1 so previousFocusRef records opener1.
+    await act(async () => { host.render(<TwoOpeners open={false} />); });
+    await flushFrames();
+    const opener1 = document.querySelector<HTMLButtonElement>("[data-opener-1]")!;
+    const opener2 = document.querySelector<HTMLButtonElement>("[data-opener-2]")!;
+    await act(async () => { opener1.focus(); });
+    await act(async () => { host.render(<TwoOpeners open={true} />); });
+    await flushFrames();
+    const inner = document.querySelector<HTMLButtonElement>("[data-pp2b-inner]")!;
+    await act(async () => { inner.focus(); });
+    expect(document.activeElement).toBe(inner);
+
+    // Park, then final-close DIRECTLY from parking: open never becomes true in between,
+    // so the focus effect's deps do not change, it never re-runs, and its cleanup —
+    // the only place that refocuses the opener and clears the refs — never executes.
+    await act(async () => { host.render(<TwoOpeners open={false} keepMounted={true} />); });
+    await flushFrames();
+    await act(async () => { host.render(<TwoOpeners open={false} keepMounted={false} />); });
+    await flushFrames();
+    expect(document.activeElement).toBe(opener1);
+
+    // The refs must have been cleared by that close: a later open from opener2 must
+    // close back to opener2, not to the stale opener1 still held by previousFocusRef.
+    await act(async () => { opener2.focus(); });
+    await act(async () => { host.render(<TwoOpeners open={true} />); });
+    await flushFrames();
+    await act(async () => { host.render(<TwoOpeners open={false} />); });
+    await flushFrames();
+    expect(document.activeElement).toBe(opener2);
   });
 });

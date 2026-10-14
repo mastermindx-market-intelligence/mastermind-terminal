@@ -8,9 +8,9 @@
 // a newer snapshot announced while parked queues and is applied by explicit Apply.
 
 import React, { act } from "react";
-import { createRoot, type Root } from "react-dom/client";
+import { createRoot } from "react-dom/client";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import OptionsRail, { type OptionsRailHandle } from "@/components/options-companion/OptionsRail";
+import OptionsRail from "@/components/options-companion/OptionsRail";
 import { LangProvider } from "@/lib/i18n";
 
 // Stub the lazy-loaded OptionsCompanion so we can observe mount count and props.
@@ -107,7 +107,7 @@ function makeRail(props: RailProps) {
   </LangProvider>;
 }
 
-function renderInto(node: React.ReactNode) {
+function renderInto() {
   const el = document.createElement("div"); document.body.appendChild(el);
   const root = createRoot(el);
   return { el, root };
@@ -146,13 +146,10 @@ describe("optionsChartReturn (r1) small viewport — Show on chart parks the she
     const onPin = vi.fn();
     const mm = installMatchMedia(true, true);
     try {
-      const { el, root } = renderInto(makeRail({ onPin }));
+      const { el, root } = renderInto();
       await act(async () => { root.render(makeRail({ onPin })); });
       await flush();
-      // open the rail
-      const ref = (el.querySelector("aside") as unknown as { __refs?: never }) as unknown;
-      // The ref is forwarded; get it from the rendered tree via React internals alternative:
-      // use the document's launcher button.
+      // open the rail through the launcher button (the rail's handle is reached via DOM).
       const launcher = el.querySelector<HTMLButtonElement>('[data-testid="options-rail-toggle"]')!;
       // phone (small=true && phone=true) → mobileSheet
       await act(async () => { launcher.click(); });
@@ -182,7 +179,7 @@ describe("optionsChartReturn (r2) clicking the chip clears the park and keeps th
     const onPin = vi.fn();
     const mm = installMatchMedia(true, true);
     try {
-      const { el, root } = renderInto(makeRail({ onPin }));
+      const { el, root } = renderInto();
       await act(async () => { root.render(makeRail({ onPin })); });
       await flush();
       await act(async () => { el.querySelector<HTMLButtonElement>('[data-testid="options-rail-toggle"]')!.click(); });
@@ -212,7 +209,7 @@ describe("optionsChartReturn (r3) desktop never exposes onShowChart", () => {
     const onPin = vi.fn();
     const mm = installMatchMedia(false, false);
     try {
-      const { el, root } = renderInto(makeRail({ onPin }));
+      const { el, root } = renderInto();
       await act(async () => { root.render(makeRail({ onPin })); });
       await flush();
       await act(async () => { el.querySelector<HTMLButtonElement>('[data-testid="options-rail-toggle"]')!.click(); });
@@ -229,7 +226,7 @@ describe("optionsChartReturn (r4) while parked, signal-change closes the sheet, 
     const onPin = vi.fn();
     const mm = installMatchMedia(true, true);
     try {
-      const { el, root } = renderInto(makeRail({ symbol: "SPY", onPin }));
+      const { el, root } = renderInto();
       await act(async () => { root.render(makeRail({ symbol: "SPY", onPin })); });
       await flush();
       await act(async () => { el.querySelector<HTMLButtonElement>('[data-testid="options-rail-toggle"]')!.click(); });
@@ -252,7 +249,7 @@ describe("optionsChartReturn (r4) while parked, signal-change closes the sheet, 
     const onPin = vi.fn();
     const mm = installMatchMedia(true, true);
     try {
-      const { el, root } = renderInto(makeRail({ onPin }));
+      const { el, root } = renderInto();
       await act(async () => { root.render(makeRail({ onPin })); });
       await flush();
       await act(async () => { el.querySelector<HTMLButtonElement>('[data-testid="options-rail-toggle"]')!.click(); });
@@ -273,7 +270,7 @@ describe("optionsChartReturn (r4) while parked, signal-change closes the sheet, 
     const onPin = vi.fn();
     const mm = installMatchMedia(true, true);
     try {
-      const { el, root } = renderInto(makeRail({ onPin }));
+      const { el, root } = renderInto();
       await act(async () => { root.render(makeRail({ onPin })); });
       await flush();
       await act(async () => { el.querySelector<HTMLButtonElement>('[data-testid="options-rail-toggle"]')!.click(); });
@@ -294,7 +291,7 @@ describe("optionsChartReturn (r4) while parked, signal-change closes the sheet, 
     const onPin = vi.fn();
     const mm = installMatchMedia(true, true);
     try {
-      const { el, root } = renderInto(makeRail({ onPin }));
+      const { el, root } = renderInto();
       await act(async () => { root.render(makeRail({ onPin })); });
       await flush();
       await act(async () => { el.querySelector<HTMLButtonElement>('[data-testid="options-rail-toggle"]')!.click(); });
@@ -318,7 +315,7 @@ describe("optionsChartReturn (r5) matchMedia changes to not-small removes the ch
     const onPin = vi.fn();
     const mm = installMatchMedia(true, true);
     try {
-      const { el, root } = renderInto(makeRail({ onPin }));
+      const { el, root } = renderInto();
       await act(async () => { root.render(makeRail({ onPin })); });
       await flush();
       await act(async () => { el.querySelector<HTMLButtonElement>('[data-testid="options-rail-toggle"]')!.click(); });
