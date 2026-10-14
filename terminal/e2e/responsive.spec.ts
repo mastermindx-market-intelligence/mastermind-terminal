@@ -870,6 +870,11 @@ test("the retired ?tab=prism deep-link opens the Exposure matrix", async ({ page
     await expect.poll(() => unusualTrack.evaluate((el) => el.scrollLeft)).toBe(0);
   }
 
+  // PP1-D — the legacy dealer-hedge grid now sits behind a closed <details> in the
+  // Matrix view. Open the disclosure so the Strike table the legacy assertions target
+  // is actually on the page; do NOT change the assertion itself.
+  await page.getByTestId("gex-legacy-hedge-matrix").locator("summary").click();
+
   const matrix = page.locator("table").filter({
     has: page.getByRole("columnheader", { name: zh ? "行权价" : "Strike", exact: true }),
   });
@@ -908,6 +913,11 @@ test("an archived session withholds the matrix instead of captioning today's gri
   // adjacency replay mode exists to prevent) — and must not silently switch the user's
   // view either: the gap is named.
   await page.goto("/options?tab=prism");
+
+  // PP1-D — the legacy dealer-hedge grid now sits behind a closed <details>; open it
+  // before the test asserts the Strike table is visible, so the legacy assertions
+  // still describe a real DOM.
+  await page.getByTestId("gex-legacy-hedge-matrix").locator("summary").click();
 
   const matrix = page.locator("table").filter({
     has: page.getByRole("columnheader", { name: "Strike", exact: true }),

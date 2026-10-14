@@ -159,13 +159,6 @@ for (const lang of ["en", "zh"] as const) {
     const order = await page.evaluate(() => {
       const wrapper = document.querySelector("[data-testid='gex-matrix-view']");
       if (!wrapper) return null;
-      const findByText = (re: RegExp) => {
-        const candidates = wrapper.querySelectorAll("*");
-        for (const el of candidates) {
-          if (el.children.length === 0 && re.test(el.textContent || "")) return el;
-        }
-        return null;
-      };
       const mapEl = wrapper.querySelector("[data-testid='gex-matrix-map']");
       const companionEl = wrapper.querySelector("[data-options-companion][data-options-host='page']");
       const disclosureEl = wrapper.querySelector("[data-testid='gex-legacy-hedge-matrix']");
@@ -199,7 +192,6 @@ for (const lang of ["en", "zh"] as const) {
     const historyAboveCompanion = await page.evaluate(() => {
       const c = document.querySelector("[data-options-companion][data-options-host='page']");
       if (!c) return -1;
-      const root = document.querySelector("[data-testid='gex-matrix-view']");
       // Search outside the wrapper too — the spec requires NO part of GexHistory or belt
       // precedes the companion anywhere.
       const historyPickers = Array.from(document.querySelectorAll("select[aria-label='Archived session'], select[aria-label='已归档交易日']"));
@@ -306,8 +298,8 @@ for (const lang of ["en", "zh"] as const) {
     }
     // e. history still works: scroll picker in, pick oldest, expect gex-archived-matrix.
     await page.evaluate(() => {
-      const picker = document.querySelector("select[aria-label='Archived session'], select[aria-label='已归档交易日']") as HTMLSelectElement | null;
-      picker?.scrollIntoViewIfNeeded();
+      const picker = document.querySelector("select[aria-label='Archived session'], select[aria-label='已归档交易日']") as HTMLElement | null;
+      picker?.scrollIntoView();
     });
     const picker = page.locator("select[aria-label='Archived session'], select[aria-label='已归档交易日']");
     await expect(picker).toBeVisible();

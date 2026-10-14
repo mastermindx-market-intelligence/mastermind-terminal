@@ -35,6 +35,7 @@ import React, {
   useRef,
   useState,
 } from "react";
+import dynamic from "next/dynamic";
 import { flowGetResult, flowInvalidate, type FlowOutcome } from "@/lib/flowClientCache";
 import { isValidRoot } from "@/lib/flowRoot";
 import { useFlowStream } from "@/lib/flowStream";
@@ -62,6 +63,28 @@ import {
 } from "./matrixDoc";
 import { EodContextBelt } from "@/components/eodcontext/EodContextBelt";
 import { isGexDates, gexSessionOf } from "@/lib/gexSessions";
+// PP1-D — Matrix view opens on the shared gamma map. The desk mounts the same
+// companion the rail uses (lib/__tests__/optionsCompanionHost.test.tsx locks host=page
+// behavior: no header, no close button, no chart pin button, no link back to the desk,
+// Escape left to the page, gamma perspective forced without overwriting the rail's
+// saved perspective, scope (expiries/window/normalisation) shared through localStorage).
+// The desk passes access="allowed" because the page already rendered the entitlement
+// gate (app/(shell)/options/page.tsx: FLOW_FIXTURE=1 OR hasLiveOptions() — the same gate
+// as /api/flow), so anything inside the desk is already entitled.
+// The map and its inspector go side by side when the companion's .mapHost container is
+// at least 640px wide (the inspector column is clamp(288px,28%,320px)). The companion's
+// grid height is set by its host through custom properties --matrix-rail-max /
+// --matrix-rail-max-touch / --matrix-rail-max-phone (components/shared/
+// StrikeExpiryMatrixRail.module.css, which we do NOT edit). We set the desktop and
+// tablet values inline on a wrapper we own; the phone default applies unless item 5's
+// phone threshold fails. The companion calls onPin(null) on mount and when symbol/access
+// changes, so onPin MUST be a stable no-op — a per-render closure would force the
+// companion to re-pin and reset scope on every parent render.
+const OptionsCompanion = dynamic(
+  () => import("@/components/options-companion/OptionsCompanion"),
+  { ssr: false },
+);
+const NO_PIN = () => {};
 import {
   LENS_ALL,
   fmtMn,
@@ -262,6 +285,10 @@ export function GexDeskView() {
   const sessionReqRef = useRef(0);
   // One retry of the dates-index fetch per ticker (see the payload-arrival effect below).
   const datesRetryRef = useRef(false);
+  // PP1-D — the legacy dealer-hedge grid sits behind a closed disclosure inside the
+  // Matrix view. Mounting it only when the user opens the disclosure keeps the desk
+  // payload off the first paint. Page-local state, reset to closed on ticker change.
+  const [hedgeDisclosureOpen, setHedgeDisclosureOpen] = useState(false);
 
   // GEX payload now arrives over the SSE live spine (push) instead of a 60s poll;
   // the hook falls back to flowGet polling if SSE is unavailable, so this is never
@@ -432,6 +459,9 @@ export function GexDeskView() {
     setStatePayload(null);
     setLens(LENS_ALL);
     setMatrix(null);
+    // PP1-D — reset the hedge-grid disclosure every ticker change so a new root never
+    // inherits the previous root's "open" state.
+    setHedgeDisclosureOpen(false);
     // Ticker change always lands on the LIVE session; invalidate in-flight probes.
     sessionReqRef.current++;
     datesRetryRef.current = false;
@@ -504,6 +534,14 @@ export function GexDeskView() {
   // that session's past by construction).
   const isArchived = sessionDate != null;
   const activePayload = isArchived ? archivedPayload : gexPayload;
+  // PP1-D — exactly the condition under which the :973 branch (the live Matrix view)
+  // renders today. The matrix view paints a SHARED gamma map instead of the legacy
+  // ExposureMatrix; the history strip and EOD belt move below the map; the legacy
+  // dealer-hedge grid moves into a closed disclosure below the map. The branches above
+  // (archived loading / error / missing; live loading / unavailable / absent; archived
+  // matrix) all keep their own rendering and stay reachable, so the session picker is
+  // always on the page.
+  const mapFirst = !isArchived && liveStatus === "data" && view === "matrix";
 
   const spot = activePayload?.spot_ref ?? null;
   const asof = activePayload?.asof ?? null;
@@ -821,7 +859,13 @@ export function GexDeskView() {
 
       {/* ── GEX history strip — the session scrubber, now also the date picker for the
              dated-ladder plane (R0.10). Deliberately reads the LIVE payload's history in
-             both modes: it is the navigation surface, not part of the replay. ────── */}
+             both modes: it is the navigation surface, not part of the replay. ──────
+          PP1-D — in the Matrix view the strip sits BELOW the shared gamma map (the
+          user reaches it by scrolling the wrapper). mapFirst gates the top-level
+          render; the Matrix view renders the same component with the same props
+          inside the wrapper. Picking an archived session turns mapFirst off and the
+          strip remounts at the top — its internal `sel` resets by design (see DEVIATIONS). */}
+      {!mapFirst && (
       <GexHistory
         history={gexPayload?.history}
         lang={lang}
@@ -833,6 +877,7 @@ export function GexDeskView() {
           liveStatus === "loading" ? "pending" : liveStatus === "unavailable" ? "unavailable" : undefined
         }
       />
+      )}
 
       {/* ── EOD context belt (OEU T-E) ───────────────────────────────────────
           Settled-close structure + off-exchange positioning for the SAME root, sitting
@@ -843,7 +888,10 @@ export function GexDeskView() {
       {/* Hidden during replay: every belt store (gex_state, moves, vol) is a CURRENT-
           session read with no dated twin — an archived ladder wearing today's context
           would be the exact cross-session adjacency the belt exists to prevent. */}
-      {!isArchived && (
+      {/* PP1-D — in the Matrix view the belt sits BELOW the shared gamma map (under
+          the session picker). It is rendered here for every non-Matrix state so the
+          non-Matrix views keep their belt on the ladder's first paint. */}
+      {!isArchived && !mapFirst && (
         <EodContextBelt
           root={ticker}
           gexState={visibleStatePayload}
@@ -902,8 +950,13 @@ export function GexDeskView() {
               desk (and, crucially, without changing the RIGHT column's height at all).
               The class carries the ≤860px floor (observatory.css): in the phone/tablet
               page-scroll mode every ancestor height is auto, so flex:1 1 0px resolves to
-              a 0px band and the whole ladder vanishes. */}
-          <div style={LADDER_REGION} className="obs-gexdesk-ladder-region">
+              a 0px band and the whole ladder vanishes. PP1-D — when the Matrix view
+              mounts inside, the additional class lets the ≤860px rule grow the region
+              to fit the matrix content (the inner matrix view is page content too). */}
+          <div
+            style={LADDER_REGION}
+            className={`obs-gexdesk-ladder-region${mapFirst ? " obs-gexdesk-matrix-region" : ""}`}
+          >
             {isArchived && archivedLoading ? (
               <div style={LADDER_LOADING}>{t("archivedLoading")}</div>
             ) : isArchived && archivedError ? (
@@ -971,16 +1024,74 @@ export function GexDeskView() {
                 <div style={LADDER_EMPTY_WHY}>{t("archivedMatrixNote")}</div>
               </div>
             ) : view === "matrix" ? (
-              <ExposureMatrix
-                matrix={visibleMatrix}
-                levels={matrixLevels}
-                spot={spot}
-                fetchMatrix={readMatrix}
-                lang={lang}
-                matrixUnread={matrixUnread}
-                onRetry={retryMatrix}
-                sym={ticker}
-              />
+              /* PP1-D — Matrix view opens on the shared gamma map (OptionsCompanion with
+                 host="page"). Map first; legacy dealer-hedge grid in a closed named
+                 disclosure below the map; session picker and EOD belt below the map.
+                 Companion reuses the rail's localStorage scope; its grid height is set by
+                 the wrapper's --matrix-rail-max / --matrix-rail-max-touch custom
+                 properties. Picking an archived session turns mapFirst off (liveStatus
+                 becomes "data" still, but the wrapper is unmounted) and the session
+                 picker is re-rendered at the top — it is the navigation surface. */
+              <div
+                data-testid="gex-matrix-view"
+                className="obs-gexdesk-matrix-view"
+                style={MATRIX_VIEW}
+              >
+                <div
+                  data-testid="gex-matrix-map"
+                  className="obs-gexdesk-matrix-map"
+                  style={{
+                    "--matrix-rail-max": "320px",
+                    "--matrix-rail-max-touch": "420px",
+                  } as React.CSSProperties}
+                >
+                  <OptionsCompanion
+                    host="page"
+                    symbol={ticker}
+                    access="allowed"
+                    pinned={null}
+                    onPin={NO_PIN}
+                    replayActive={false}
+                  />
+                </div>
+                <details
+                  data-testid="gex-legacy-hedge-matrix"
+                  className="obs-gexdesk-hedge-disclosure"
+                  open={hedgeDisclosureOpen}
+                  onToggle={(e) => setHedgeDisclosureOpen((e.currentTarget as HTMLDetailsElement).open)}
+                >
+                  <summary>{t("matrixHedgeDisclosure")}</summary>
+                  {hedgeDisclosureOpen && (
+                    <ExposureMatrix
+                      matrix={visibleMatrix}
+                      levels={matrixLevels}
+                      spot={spot}
+                      fetchMatrix={readMatrix}
+                      lang={lang}
+                      matrixUnread={matrixUnread}
+                      onRetry={retryMatrix}
+                      sym={ticker}
+                    />
+                  )}
+                </details>
+                <GexHistory
+                  history={gexPayload?.history}
+                  lang={lang}
+                  sessionDates={sessionDates}
+                  activeSession={sessionDate}
+                  liveDate={gexSessionOf(gexPayload?.asof)}
+                  onLoadSession={loadSession}
+                  historyState={undefined}
+                />
+                <EodContextBelt
+                  root={ticker}
+                  gexState={visibleStatePayload}
+                  gex={gexPayload}
+                  lang={lang}
+                  levelReads={beltLevelReads}
+                  onRetryLevels={retryBeltLevels}
+                />
+              </div>
             ) : view === "strike" ? (
               <StrikeLadder
                 strikes={activePayload?.by_strike ?? []}
@@ -1363,6 +1474,24 @@ const LADDER_REGION: React.CSSProperties = {
   display: "flex",
   flexDirection: "column",
   overflow: "hidden",
+};
+
+/**
+ * PP1-D — the Matrix view's stacked region. On desktop (>860px) it is an INNER
+ * scroller: the companion's grid, the closed hedge-grid disclosure, the session
+ * picker and the EOD belt sit in document order and the map is visible at scrollTop 0.
+ * On ≤860px the observatory.css rule overrides this to content-sized — the matrix
+ * view is page content, not an inner scroller, because the ≤860px page-scroll mode
+ * collapses flex:1 1 0px ancestors to 0px.
+ */
+const MATRIX_VIEW: React.CSSProperties = {
+  flex: "1 1 0px",
+  minHeight: 0,
+  display: "flex",
+  flexDirection: "column",
+  gap: "var(--sp-3)",
+  overflowY: "auto",
+  overflowX: "hidden",
 };
 
 /**

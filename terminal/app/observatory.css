@@ -2872,6 +2872,21 @@
    .obs-surf-chart-area floor above). */
 @media (max-width: 860px) {
   .obs-gexdesk-ladder-region { min-height: min(430px, 62dvh) !important; }
+  /* PP1-D — when the Matrix view mounts inside the ladder region, the matrix view is
+     page content (not an inner scroller). Drop the flex:1 inner scroller, the overflow
+     clip and the 0px min-height so the region grows with the content; the ladder
+     region's own ≤860 floor above stays the floor for the strike/expiry views. The
+     additional class scopes the override so the strike/expiry views keep their
+     inner-scroll behaviour on those pages. */
+  .obs-gexdesk-ladder-region.obs-gexdesk-matrix-region { flex: 0 0 auto !important; overflow: visible !important; }
+  .obs-gexdesk-matrix-view { flex: 0 0 auto !important; overflow: visible !important; min-height: 0 !important; }
+}
+
+/* PP1-D — the Matrix view's hedge-grid disclosure. The summary names the dealer
+   hedge and never borrows a gamma or price-direction word. A coarse pointer on a
+   phone still gets the 44px tap-target floor (ruling 2). */
+@media (pointer: coarse), (max-width: 860px) {
+  .obs-gexdesk-hedge-disclosure > summary { min-height: 44px; display: flex; align-items: center; }
 }
 
 /* Exposure Matrix: exact-side EOD volume baseline rail.

@@ -453,6 +453,14 @@ const GEX_LEX = {
     "Market state and the EOD context belt describe the current session only — hidden while replaying an archived ladder.",
     "市场状态与收盘背景条仅描述当前交易日——回放已归档梯图时予以隐藏。",
   ],
+  // ── PP1-D — the legacy dealer-hedge grid sits below the shared gamma map inside a
+  //    closed disclosure so a reader who actually wants the raw ±1% hedge per cell can
+  //    still reach it without giving it the desk's first paint. The label names the
+  //    grid as a dealer-hedge read and never borrows a gamma or price-direction word.
+  matrixHedgeDisclosure: [
+    "Dealer hedge grid by strike and expiry",
+    "做市商对冲网格（行权价 × 到期日）",
+  ],
 
   // ══ §5.3 — the matrix view, merged in from the retired PRISM tab ═══════════
   // Copy moved from components/prism/prismStrings.ts with its zh translations intact.
