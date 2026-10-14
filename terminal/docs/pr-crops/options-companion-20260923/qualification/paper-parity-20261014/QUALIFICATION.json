@@ -1,0 +1,162 @@
+{
+  "recordedAt": "2026-10-14T04:59:40.561482+00:00",
+  "sourceHead": "1abc95d53d3f305ccaa3c85a1c119d46be611280",
+  "reviewedBrowserSource": "b3b30feb3b06729ab5fee932cb2c8f837af42ef0",
+  "postBrowserChanges": [
+    "terminal/app/dev/theater/page.tsx",
+    "terminal/e2e/responsive.spec.ts"
+  ],
+  "productionRenderingBytesUnchangedSinceBrowser": true,
+  "paperReference": {
+    "file": "01M3NSZGE8JWN2EZCSF0DT05RM",
+    "page": "p-2-0",
+    "artboards": [
+      "BPN-0",
+      "F21-0",
+      "CYI-0"
+    ],
+    "acceptedScope": "Map first, adjacent inspector and compact phone selected strip, truthful partial and missing data, visible44px Inspect; chart companion owns pin and return; held features remain held."
+  },
+  "actualBrowser": {
+    "b3Full": {
+      "passed": 131,
+      "failed": 1,
+      "existingSkipped": 6,
+      "flaky": 0,
+      "failure": "Obsolete legacy outer-scroll assertion; corrected test atf168 targets actual outer and nested grid owners without weakening row/clipping checks."
+    },
+    "f168AffectedDeepLink": {
+      "passed": 3,
+      "failed": 0,
+      "skipped": 0,
+      "flaky": 0
+    },
+    "paperPageCasesWithinB3": {
+      "passed": 6,
+      "failed": 0,
+      "skipped": 0,
+      "viewports": [
+        [
+          1440,
+          900
+        ],
+        [
+          820,
+          1180
+        ],
+        [
+          390,
+          844
+        ]
+      ],
+      "languages": [
+        "en",
+        "zh"
+      ]
+    },
+    "chartWorkflow": "Actual pin, Candles-Line-Candles ready-generation retention, signed census, disposal and chart/sheet-return cases passed in b3 report. Root-switch case remains desktop-only with2existing smaller-viewport skips.",
+    "remainingSkipped": "Existing search-watchlist desktop, Pro entitlement tablet/mobile, archived mobile matrix; not new omissions.",
+    "light": "Forced-light compatibility of scoped component only; production remains dark."
+  },
+  "freshEvidencePacks": {
+    "axis": 5,
+    "visualCrops": 6,
+    "visualCases": 30,
+    "pl6": 24,
+    "conductor": 6,
+    "eod": 126,
+    "gex": 114,
+    "evidenceLockAssertions": 28
+  },
+  "qualification": "LOCAL_SOURCE_AND_BROWSER_ACCEPTED; protected CI, merge, deploy and authenticated production acceptance remain required.",
+  "files": {
+    "pp1d-desktop-en-dark.png": {
+      "bytes": 171204,
+      "sha256": "2806097cbd16b3a6bbe6b2f2497b25bfd61fd70e5a03a5571a26f83189425e37"
+    },
+    "pp1d-desktop-en-initial-dark.png": {
+      "bytes": 155116,
+      "sha256": "0b296f2c3348a690abba5d54e5c1b73b0939602b78eae21eb7f68b569c592ab4"
+    },
+    "pp1d-desktop-en-light.png": {
+      "bytes": 177217,
+      "sha256": "7e367c66a12c8eafd241ebf5cdc723d67335520ca0a42aec3a08125274381793"
+    },
+    "pp1d-desktop-zh-dark.png": {
+      "bytes": 189331,
+      "sha256": "cb0f0dcd884d387e403541cfea35bcf977e94d43624de4595f1d6db89e10c948"
+    },
+    "pp1d-desktop-zh-initial-dark.png": {
+      "bytes": 170395,
+      "sha256": "bfe407005583dfbcc5f8aefd379d69c42fb2d242468c00a279abfc03ebf78caf"
+    },
+    "pp1d-desktop-zh-light.png": {
+      "bytes": 195487,
+      "sha256": "b23e8e5ffb651eff1f2769d4f7dd297603ec8bca112f5d827bcc89dfea2e717c"
+    },
+    "pp1d-mobile-en-dark.png": {
+      "bytes": 93438,
+      "sha256": "bf00286b12921052e22cc57b9e304ae3367a3a4ea638b9c0166cc5f52b05812d"
+    },
+    "pp1d-mobile-en-initial-dark.png": {
+      "bytes": 99164,
+      "sha256": "5f0fcfe01ef2ac6abeae63863c9ca8840d024b2197e4616986461cb71f9f4f50"
+    },
+    "pp1d-mobile-en-light.png": {
+      "bytes": 96120,
+      "sha256": "59ceb443400f52c569cc0e0c77aa6459460529d671dc0d4b243dd5709fd1dc74"
+    },
+    "pp1d-mobile-zh-dark.png": {
+      "bytes": 98939,
+      "sha256": "34aa953e07719abcda337f604fb9119a639c8843210f389a749b8c86b0467b08"
+    },
+    "pp1d-mobile-zh-initial-dark.png": {
+      "bytes": 106625,
+      "sha256": "e37198b340b16ed43aeb16289f1bf828c27614827ee897955d6f195bf26b90b6"
+    },
+    "pp1d-mobile-zh-light.png": {
+      "bytes": 102249,
+      "sha256": "3d11effa126c59a048d8a4b5e9111a07aa602d1648bb5854867554f4fb62703b"
+    },
+    "pp1d-tablet-en-dark.png": {
+      "bytes": 160261,
+      "sha256": "8be7cd8ff20721d8edb1c16dfb202cbe1a8276f2cb5515a26c2fc1be888be499"
+    },
+    "pp1d-tablet-en-initial-dark.png": {
+      "bytes": 147274,
+      "sha256": "98520ac07f6dfc24732e04b4706460bb60bbf2a88301e6b72224b0b3b6e6b94a"
+    },
+    "pp1d-tablet-en-light.png": {
+      "bytes": 166583,
+      "sha256": "2fffc4af5ec3045351eab8dd4542fe59c8117b8d96efa97af9d3f21e6ed4391b"
+    },
+    "pp1d-tablet-zh-dark.png": {
+      "bytes": 178908,
+      "sha256": "3a4b9e022ac5baceadc9509c1aa552289765952c638e05b5c39ec7a98bf425e1"
+    },
+    "pp1d-tablet-zh-initial-dark.png": {
+      "bytes": 162891,
+      "sha256": "92ea2d1ab89d59e78440b3d1b61f9f113d1bc4495002e7a2e187dea9032cbc9f"
+    },
+    "pp1d-tablet-zh-light.png": {
+      "bytes": 185315,
+      "sha256": "ac8702997bb6ae21b10011ceafac2c08c127b2571fb6f2d5df3b8db5594ac1a6"
+    },
+    "browser-b3-report.json": {
+      "bytes": 165265,
+      "sha256": "cdf2f0c157a1dcd6fab917b7974da76592102a97eda286bfcc69cd24ca1972c7"
+    },
+    "deep-link-f168-report.json": {
+      "bytes": 9930,
+      "sha256": "70a65e73e8585e2e6bb5419eb2b9a65c5e4b33c67da651932c0a0b5dc7615305"
+    },
+    "vendor-b3-report.json": {
+      "bytes": 2183,
+      "sha256": "78e8ea8f95456d4af3c5635f8512f2512f882984193392d2eaa1af54b8d76c85"
+    },
+    "final-local-gates.json": {
+      "bytes": 1355,
+      "sha256": "ed8fc346b3dde85a1379790cc466f1999c7aea75c20afe5fe26f58d944842d79"
+    }
+  }
+}
