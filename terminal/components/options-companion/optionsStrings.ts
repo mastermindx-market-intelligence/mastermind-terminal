@@ -1,4 +1,5 @@
 export const OPTIONS_LEX = {
+  referenceShort: ["Snapshot spot", "快照现价"],
   eodShort: ["EOD", "收盘"], scopeShort: ["Scope", "范围"], partialShort: ["partial", "不完整"],
   knownSubtotal: ["Known subtotal", "已知小计"], gridPositions: ["grid positions", "网格位置"],
   totalIncomplete: ["Complete total unavailable.", "完整合计不可用。"],

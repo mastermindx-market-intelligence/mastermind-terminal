@@ -5383,3 +5383,18 @@ html[data-shell="app"] .mm-brandbug{
     overflow: visible !important;
   }
 }
+
+/* ── data-origin chip (Data OS U02): derived from the OHLC view contract, replaces the static ADJ chip ── */
+.cfb-origin-host{position:relative}
+.cfb-chip.cfb-origin{cursor:pointer;pointer-events:auto;opacity:1}
+.cfb-origin.cfb-origin-partial{border-color:var(--warn);color:var(--warn)}
+.cfb-origin.cfb-origin-unknown,.cfb-origin.cfb-origin-refused,.cfb-origin.cfb-origin-unavailable,.cfb-origin.cfb-origin-composite,.cfb-origin.cfb-origin-pending{color:var(--muted)}
+.cfb-origin-pop{padding:10px 12px;min-width:260px;max-width:min(320px,calc(100vw - 24px));user-select:text;cursor:default}
+.cfb-origin-head{font:700 11px/1.2 var(--font-ui);color:var(--text);margin-bottom:4px}
+.cfb-origin-state{font:500 11px/1.35 var(--font-ui);color:var(--text-2);margin-bottom:8px}
+.cfb-origin-dl{display:grid;grid-template-columns:auto 1fr;gap:4px 10px;margin:0 0 8px;font:500 11px/1.35 var(--font-ui)}
+.cfb-origin-dl dt{color:var(--muted)}
+.cfb-origin-dl dd{margin:0;color:var(--text);overflow-wrap:anywhere}
+.cfb-origin-dl code{font:500 10.5px/1.35 var(--font-num)}
+.cfb-origin-note{margin:0 0 4px;font:500 10.5px/1.35 var(--font-ui);color:var(--text-2)}
+.cfb-origin-foot{margin:6px 0 0;padding-top:6px;border-top:1px solid var(--line);font:600 10.5px/1.35 var(--font-ui);color:var(--text-2)}

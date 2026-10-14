@@ -1,3 +1,4 @@
+import {boatsQuote} from "./fixtures/boatsQuote";
 import { expect, test, type Page } from "@playwright/test";
 
 async function armTerminalVisualReady(page: Page) {
@@ -315,7 +316,7 @@ test("regular-session performance stays primary while extended pricing is separa
   });
   await page.route("**/api/ext-quote?**", async (route) => {
     await route.fulfill({ json: { quotes: {
-      NVDA: { extPrice: 421.14, extChg: 7.84, extTs: 1_785_533_400, extSession: "post" },
+      NVDA: boatsQuote(421.14,7.84),
     } } });
   });
 
@@ -333,7 +334,7 @@ test("regular-session performance stays primary while extended pricing is separa
     const extended = page.locator('[data-quote-lane="extended"]');
     await expect(regular).toContainText("390.54");
     await expect(regular).toContainText("-0.71%");
-    await expect(extended).toContainText("After hours");
+    await expect(extended).toContainText("BOATS");
     await expect(extended).toContainText("421.14");
     await expect(extended).toContainText("+7.84%");
   }

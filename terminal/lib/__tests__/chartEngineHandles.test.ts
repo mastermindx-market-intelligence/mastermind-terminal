@@ -404,6 +404,24 @@ describe("chart-engine C02 — series data / options / price lines / priceScale"
     expect(s.priceLines()).toEqual([b]);
   });
 
+  it("priceLines() OMITS native lines created outside the handle (raw unwrap path)", () => {
+    // ChartPanel's options pin must pass the SeriesHandle — not the raw unwrap view — as
+    // its pin host: a native line created behind the adapter's back is invisible to
+    // priceLines(), so creating raw while counting through the handle would silently
+    // orphan the pin (orphanPricePaneLines drifts without any error).
+    const e = createEngine(container);
+    const s = e.addSeries("line");
+    const tracked = s.createPriceLine({ price: 10, color: "#111" });
+    const rogue = {
+      __opts: { price: 99 },
+      applyOptions: vi.fn(),
+      options: vi.fn(() => ({ price: 99 })),
+    };
+    rawSeries().__priceLines.push(rogue);
+    expect(rawSeries().__priceLines).toHaveLength(2); // the native series sees both
+    expect(s.priceLines()).toEqual([tracked]);        // the handle only vouches for its own
+  });
+
   it("series.priceScale forwards options / range / autoScale without leaking the native scale", () => {
     const e = createEngine(container);
     const s = e.addSeries("candles");

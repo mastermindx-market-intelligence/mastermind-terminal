@@ -1,18 +1,19 @@
+# 2026-10-13 #996 (U02 data-origin readout) source hash reconciliation: preserves captured PNG bytes/provenance; the only globals.css change is the added .cfb-origin* selectors, which style only that chip; the only dataCache.ts change is additive OHLC-view exports (OhlcView, CURRENT_TRADJ_VIEW, ohlcViewKey, isSupportedOhlcView, OhlcViewOutcome, getOhlcView) consumed only by ChartPanel/ChartPane on /terminal; existing exports unchanged; the element crops on /options?tab=gex|levels and /discover?tab=heatmap mount no ChartPanel, ChartPane or ChartFrameBar.
 # GEX desk, Levels and Heatmap failure-state truth — capture evidence
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
 # Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
-# capturedAtHead: f72b99bbdf86651350d9aaefd9920390bb037278
-# capturedAt: 2026-10-13T03:08:20.561Z
+# capturedAtHead: 70b4778936bf90f8177c587b3de77b1b571339c9
+# capturedAt: 2026-10-11T15:49:48.526Z
 # capturedAtHead is informational. The lock is layoutFiles.
 layoutFiles:
-  terminal/app/globals.css: "b574a3837f5ad00986752ed8612c40b5b890c083611ea6e5479ff545f1947740"
-  terminal/components/gexdesk/GexDeskView.tsx: "8b5c2236faf317438f65c8c981166555314c46d5b99c90a0f8061c4f9740bac4"
+  terminal/app/globals.css: "987a8879025429b131570ea4eeffed29bdd013c9218d65f5e4867aea2903d748"
+  terminal/components/gexdesk/GexDeskView.tsx: "f9e037eb90cb10ea0a943a9c16d11849c429b66f5b548f055b8860d83f938ef5"
   terminal/components/gexdesk/HeatSeekerCard.tsx: "308295e2b0143fe933948c97a14584e1e0d1eff9249a58104dd3587a2642c93a"
   terminal/components/gexdesk/MarketStateCard.tsx: "069c4a2f1a5f53e8f611e3231b78751948cc0264c8af6efd167f7b3e4902bbe2"
-  terminal/components/gexdesk/StrikeLadder.tsx: "55dccbef4e3bfebc09477f6d9a0133cf0bc5d70531d32d532e760ff214ed4596"
-  terminal/components/gexdesk/gexStrings.ts: "d91bdbcdf57aa221380e45508eb7c121d8ce5f65ee475fb50205b72eb38a7a62"
+  terminal/components/gexdesk/StrikeLadder.tsx: "a8ff63f3e50b033828ce3b82ecd7b87e7e3bbd3f69f9a47716b3c276334d8934"
+  terminal/components/gexdesk/gexStrings.ts: "7c60146790f218dc94c8f12f24bcda8657f15deb3664e5f666fbdc75416edc9b"
   terminal/components/heatmap/HeatmapView.tsx: "3b3ab5049715a33f167e344d3013b8f880356e8b96077b38c9a517c57b7a54cb"
-  terminal/lib/dataCache.ts: "bdc57d88c8387223b2e1cf5b11bb47c88782c9ee2fbfb8a468aab52876b8f116"
+  terminal/lib/dataCache.ts: "f8a7f978049e64482b385d43c13d49d05ddec2525e36457b365a2d083060e1be"
   terminal/components/levels/LevelsView.tsx: "91a4d6fd86b12225e657c8a9c4b2b185e3940356af3cd11466ca30e04f05b0c9"
   terminal/components/levels/levelsLabels.ts: "361124ec9293623fefe69128212f5a25bfddf2c3d716252126d56ec5f356d0d9"
   terminal/lib/heatmapStrings.ts: "26bb75eccce7429e5a37154f07f7f68faf9652da1f6f3560074cb558f0dda9c2"

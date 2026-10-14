@@ -7,6 +7,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 const state = vi.hoisted(() => ({
   calls: [] as Array<{ syms: string[]; view?: string }>,
+  extra: {} as Record<string,unknown>,
 }));
 
 vi.mock("@/lib/supabase/server", () => ({
@@ -19,7 +20,7 @@ vi.mock("@/lib/intradaySources", () => ({
   fetchQuotes: vi.fn(async (syms: string[], options?: { view?: string }) => {
     state.calls.push({ syms: [...syms], view: options?.view });
     return Object.fromEntries(syms.map((sym) => [sym, {
-      sym, last: 100, prevClose: 99, chg: 1.0101, basis: "DELAYED_15M",
+      sym, last: 100, prevClose: 99, chg: 1.0101, basis: "DELAYED_15M", ...state.extra,
     }]));
   }),
 }));
@@ -33,7 +34,7 @@ import { GET } from "@/app/api/quote/route";
 
 const call = (query: string) => GET(new Request(`https://app.mastermind-x.com/api/quote?${query}`));
 
-beforeEach(() => { state.calls = []; });
+beforeEach(() => { state.calls = []; state.extra={}; });
 
 describe("/api/quote view routing", () => {
   it("forwards view=regular to the hub quote fetch", async () => {
@@ -71,4 +72,19 @@ describe("/api/quote view routing", () => {
       { syms: [sym], view: "full" },
     ]);
   });
+});
+
+describe("BOATS cannot bypass its public API through the mixed quote cache",()=>{
+ it("strips every BOATS ext field on both fresh and cached responses and retains regular prices",async()=>{
+  state.extra={extSource:"tiingo_boats",extPrice:105,extTs:1800000000,extVenue:"BOATS",extUnknown:"poison"};
+  for(let i=0;i<2;i++){
+   const r=await call("syms=BOATSPUBLICBOUNDARY1");const q=(await r.json()).quotes.BOATSPUBLICBOUNDARY1;
+   expect(q.last).toBe(100);expect(q.regularPrice).toBe(100);expect(Object.keys(q).some(k=>k.startsWith("ext"))).toBe(false);
+  }
+  expect(state.calls).toHaveLength(1);
+ });
+ it("keeps the existing unrelated provider behavior",async()=>{
+  state.extra={extSource:"webull",extPrice:101};const r=await call("syms=LEGACYQUOTEBOUNDARY1");
+  expect((await r.json()).quotes.LEGACYQUOTEBOUNDARY1.extSource).toBe("webull");
+ });
 });

@@ -166,6 +166,8 @@ for (const lang of ["en", "zh"] as const) {
     await expect(companion).toBeVisible({ timeout: 15000 });
     await expect(companion).toHaveAttribute("data-options-root", "SPY");
 
+    await expect(companion.locator("[data-options-grid] table")).toBeVisible({ timeout: 20_000 });
+    await page.waitForTimeout(250);
     const initial = await measureHelpers(page);
     expect(initial.documentScrollTop).toBe(0);
     expect(initial.wrapperScrollTop).toBe(0);

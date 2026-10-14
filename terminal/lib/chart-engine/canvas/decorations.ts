@@ -112,7 +112,57 @@ const MARKER_MAX_PX = 14;
 // its text label (CSS px).
 const MARKER_GAP_PX = 2;
 
+// PERF-B: single-slot layout memo per markers array. Layout depends only on
+// (markers content, projection geometry, rows anchors); the fingerprint below
+// covers everything observable — generation for data/rows identity, the
+// window/width/height/dpr/barSpacing for geometry. A WeakMap keyed on the
+// markers array keeps the entry bounded by the live arrays (setMarkers always
+// installs a fresh array). The memoised result object is shared between paints
+// and must only be read.
+type MarkerMemo = {
+  generation: number;
+  from: number;
+  to: number;
+  widthPx: number;
+  heightPx: number;
+  dpr: number;
+  barSpacing: number;
+  result: MarkerLayoutResult;
+};
+const markerMemo = new WeakMap<MarkerSpec[], MarkerMemo>();
+
 export function layoutMarkers(markers: MarkerSpec[], ctx: MarkerLayoutCtx): MarkerLayoutResult {
+  if (markers.length === 0) return { markers: [], dropped: 0 };
+  const { projection, barSpacing, dpr } = ctx;
+  const leftLogical = projection.logicalOfX(0);
+  const rightLogical = projection.logicalOfX(projection.widthPx);
+  const from = Number.isFinite(leftLogical) ? Math.floor(leftLogical) : 0;
+  const to = Number.isFinite(rightLogical) ? Math.ceil(rightLogical) : 0;
+  const memo = markerMemo.get(markers);
+  if (memo
+    && memo.generation === projection.generation
+    && memo.from === from && memo.to === to
+    && memo.widthPx === projection.widthPx
+    && memo.heightPx === projection.heightPx
+    && memo.dpr === dpr
+    && memo.barSpacing === barSpacing) {
+    return memo.result;
+  }
+  const result = layoutMarkersUncached(markers, ctx);
+  markerMemo.set(markers, {
+    generation: projection.generation,
+    from,
+    to,
+    widthPx: projection.widthPx,
+    heightPx: projection.heightPx,
+    dpr,
+    barSpacing,
+    result,
+  });
+  return result;
+}
+
+function layoutMarkersUncached(markers: MarkerSpec[], ctx: MarkerLayoutCtx): MarkerLayoutResult {
   const { projection, rowsIndex, barSpacing, dpr } = ctx;
   const base = clampNum(barSpacing * MARKER_SIZE_RATIO, MARKER_MIN_PX, MARKER_MAX_PX);
   const out: MarkerLayout[] = [];

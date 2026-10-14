@@ -892,7 +892,7 @@ export function GexDeskView({ onMapFirstChange }: { onMapFirstChange?: (active: 
               {GEX_AUTOCOMPLETE_ROOTS.map((r) => <option key={r} value={r} />)}
             </datalist>
           </div>
-          {spot != null && (
+          {!mapFirst && spot != null && (
             <span style={SPOT_DISPLAY}>
               {spotStr}
             </span>

@@ -205,6 +205,21 @@ describe("barTimeFacts", () => {
     expect(Reflect.set(f, "sessionId", "1999-01-01")).toBe(false);
     expect(f.sessionId).toBe("2026-10-09");
   });
+
+  it("F-12: the same bar as utc vs display-epoch yields the same displayEpochSec and different sourceUtc", () => {
+    const asUtc = barTimeFacts({ time: US_RTH_OPEN_UTC }, "us", 60, "utc");
+    const asDisplay = barTimeFacts({ time: ET_0930 }, "us", 60, "display");
+    expect(asUtc).not.toBeNull();
+    expect(asDisplay).not.toBeNull();
+    expect(asUtc?.displayEpochSec).toBe(ET_0930);
+    expect(asDisplay?.displayEpochSec).toBe(ET_0930);
+    expect(asUtc?.displayEpochSec).toBe(asDisplay?.displayEpochSec);
+    expect(asUtc?.openUtcMs).toBe(US_RTH_OPEN_UTC * 1000);
+    expect(asDisplay?.openUtcMs).toBe(ET_0930 * 1000);
+    expect(asUtc?.openUtcMs).not.toBe(asDisplay?.openUtcMs);
+    // Default basis stays true UTC so existing callers are unchanged.
+    expect(barTimeFacts({ time: US_RTH_OPEN_UTC }, "us", 60)?.displayEpochSec).toBe(ET_0930);
+  });
 });
 
 describe("preserveSessionAnchors", () => {
