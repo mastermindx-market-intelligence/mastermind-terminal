@@ -108,6 +108,7 @@ const COPY = {
   nativeEpisodeCutoff: ["Historical view filters closure and source receipt dates through", "历史视图按事件结束日期和来源记录日期筛选截至"],
   nativeEpisodeEmpty: ["No closed episodes for this sector in this bounded source window; not an all-clear.", "该来源限定窗口内没有此板块的已结束交棒事件；不代表风险解除。"],
   nativeEpisodeUnavailable: ["Native episode source unavailable; no episode state can be inferred.", "原生事件来源不可用；不得推断事件状态。"],
+  nativeEpisodeExcluded: ["Closure records in this source not shown here (cross-sector pairs or records that failed source checks):", "此来源中未在此显示的已结束记录（跨板块交棒或未通过来源检查的记录）："],
   nativeEpisodeFrom: ["From", "原方向"], nativeEpisodeTo: ["To", "目标方向"],
   nativeEpisodeClosed: ["Closed", "结束"], nativeEpisodeRecorded: ["Receipt", "记录时间"],
   nativeEpisodeReason: ["Owner reason", "来源原因"],
@@ -464,6 +465,12 @@ export default function SectorRotationMap(props: SectorRotationMapProps) {
           {t("nativeEpisodeCutoff")} <time dateTime={episodeCutoff}>{rotationHistoryDate(episodeCutoff, language)}</time>.
         </p>}
         {props.asOf && nativeEpisodes.sourceAsOf < props.asOf && <p>{t("nativeEpisodeLag")}</p>}
+        {nativeEpisodes.closedRecentExcluded.crossPair + nativeEpisodes.closedRecentExcluded.invalid > 0
+          && <p className={styles.nativeSourceClock} data-testid="rotation-native-episodes-excluded"
+            data-excluded-cross-pair={nativeEpisodes.closedRecentExcluded.crossPair}
+            data-excluded-invalid={nativeEpisodes.closedRecentExcluded.invalid}>
+            {t("nativeEpisodeExcluded")} {nativeEpisodes.closedRecentExcluded.crossPair + nativeEpisodes.closedRecentExcluded.invalid}
+          </p>}
         {recentClosures.length ? <ol>{recentClosures.map(event =>
           <li key={event.pairId + ":" + event.started + ":" + event.recordedAt}>
             <div className={styles.nativeEpisodePair}>
