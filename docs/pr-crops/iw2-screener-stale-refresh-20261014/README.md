@@ -17,3 +17,9 @@ The source hashes bind the tested component and regression files before the evid
 ## Native text-only enlargement and keyboard
 
 One additional English 320x844 case passes in the pinned external Firefox 151 runtime: native textZoom=2, fullZoom=1, unchanged viewport/DPR, CSS zoom=1, and a measured 10.5px -> 21px font. Native Tab reaches Retry and Enter recovers the fresh scan with the same filter. The entire warning fits its 320px container with no local overflow. Both new screenshots were directly reviewed. No owner mutations occurred; one analytics POST to `/api/collect` was observed separately. This accepts the new warning and Retry only: existing truncated filter labels and table reach at enlarged text are not full-control/accessibility acceptance. Chinese native enlargement is not claimed.
+
+## Review boundary
+
+The original read-only Fabric review was consumed and adjudicated by the root after the local controls above. Its diagnosis and lifecycle cautions were useful; its proposed patch was not adopted literally and was not browser-tested by the worker. The root's implementation and evidence are the accepted artifact.
+
+The generic cache still accepts any parseable JSON before this consumer checks manifest shape. Consequently, an invalid manifest can replace the persisted cache even though this mounted Screener keeps its prior usable rows and discloses failure. Subsequent-mount cache preservation is a separate unaccepted obligation. Existing 404 negative-cache behavior and explicit Retry's cold-load failure semantics are also unchanged. These limitations do not claim a new permission gate or full cache-policy repair.
