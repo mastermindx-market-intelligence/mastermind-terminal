@@ -22,3 +22,7 @@ TERMINAL_E2E_PORT=3187 npx playwright test e2e/alerts-mutation-races.spec.ts --p
 ```
 
 This run used a task-local config derived from the checked-in configuration, omitting unrelated route warmup, using `/alerts` for server readiness, and preserving the existing fixture environment and viewport definitions. It was removed after use. `evidence.json` binds the tested source and twelve captures. Captures ending `newer-draft` show the saved100 and retained200; `deleted-row` shows the remaining TSLA row with truthful failed-refresh copy. Representative desktopEN and mobileZH captures were visually inspected.
+
+## Recapture on E20 landing train 2
+
+Train 2 merged E17 into `AlertsView.tsx`, a locked source, so all twelve captures were regenerated on the merged tree (capture head `1bfb1c7f4`, Terminal master `2957bd64e` merged in). No PNG or hash was copied from either parent. The spec passed 12 of 12 across desktop, tablet and mobile with retries off. All twelve captures, EN and ZH, were viewed. E17's dry-run panel only renders for the suite category, so these signal-category states look the same as before. `evidence.json` now carries the new source and capture hashes plus a `recapture` block.

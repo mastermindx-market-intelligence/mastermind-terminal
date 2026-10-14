@@ -24,6 +24,8 @@ import { intradayCapable } from "@/components/ChartPanel";
 import { classify, SECOND_TFS, isSecondTf } from "@/lib/intradaySources";
 import { isMacroSymbol } from "@/lib/macroSymbols";
 import { freshnessLabel } from "@/lib/feedFreshness";
+import { boatsLatestTradeLabel } from "@/lib/extQuoteCopy";
+import { isExtQuoteCurrent, isPublicBoatsQuote, extQuotePollMs, type ExtProvenance } from "@/lib/extQuoteFreshness";
 import { flowGet } from "@/lib/flowClientCache";
 // R3.2 glance layer: the rail block's per-root gexstate read. Entitlement-gated at
 // /api/flow — a 403 nulls out and the rail renders exactly as before (free UX unchanged).
@@ -105,6 +107,9 @@ const IndicatorSource = dynamic(() => import("@/components/IndicatorSource"), { 
 const CompareSettings = dynamic(() => import("@/components/CompareSettings"), { ssr: false });
 const ChartObjectTree = dynamic(() => import("@/components/ChartObjectTree"), { ssr: false });
 const TickerNewsPanel = dynamic(() => import("@/components/news/TickerNewsPanel"), { ssr: false });
+// E05: cross-device note/flag sync for a signed-in owner. Lazy and client-only, so the guest
+// bundle never carries it; it renders inside the watchlist bar and owns no watchlist state.
+const WatchlistAnnotationSync = dynamic(() => import("@/components/watchlist/WatchlistAnnotationSync"), { ssr: false });
 // Phone-only chart chrome (R2): the bottom roller strip and the two sheets it raises. Never
 // server-rendered — the phone breakpoint is a client media query, and shell mode brings its own.
 const RollerStrip = dynamic(() => import("@/components/mobile/RollerStrip"), { ssr: false });
@@ -123,7 +128,7 @@ import WashoutTurnRow from "@/components/WashoutTurnRow";
 import { oracleVerdict, deskVerdict } from "@/lib/signalVerdict";
 import { computeTrendState } from "@/lib/trend";
 import { useLive } from "@/lib/live";
-import { setPaneLinks, subscribePaneRegistry, registeredPaneIds, subscribePaneVisibleWindow } from "@/lib/paneSync";
+import { requestPaneFocus, setPaneLinks, subscribePaneRegistry, registeredPaneIds, subscribePaneVisibleWindow } from "@/lib/paneSync";
 import { assignPaneGroup, chartLinkView, fitLinkState, legacyLinkState, normalizeLinkState, pickLinkPanes, projectLegacySync, setGroupShare, type ChartLinkState, type LinkDimension, type LinkGroupId } from "@/lib/chartLinkGroups";
 import ChartLinkControl from "@/components/ChartLinkControl";
 import { REPLAY_MIN_IDX, replayIsAvailable, replayChartKey, resolveReplayTotal, replayHasSpan, clampReplayIdx, initialReplayIdx,
@@ -168,7 +173,8 @@ import { type PineScript } from "@/components/ChartPanel";
 
 type ShellDrawingStyle = { color: string; width: number; dash: Dash };
 import { visualReadoutColumns, type ChartReadoutMeta } from "@/lib/visualIntelligence";
-import ChartTableView from "@/components/ChartTableView";
+import DataInspector from "@/components/dataInspector/DataInspector";
+import { dataInspectorFocusMessage } from "@/lib/dataInspectorLex";
 import { type OTEntry } from "@/components/ChartObjectTree";
 // E07: study templates — the host owns the save dialog, the library and the menu events.
 import StudyTemplatesHost from "@/components/studyTemplates/StudyTemplatesHost";
@@ -205,7 +211,7 @@ type Row ={ name: string; sec: string; col: string; mkt?: string; zh?: string; l
 type Manifest = { as_of: string | null; symbols: Record<string, Row> };
 // /api/ext-quote entry. extSession mirrors the Quote Hub's own window classification.
 type ExtSession = "pre" | "post" | "overnight";
-type ExtQuote = { extPrice: number; extChg: number; extTs: number; extSession?: ExtSession };
+type ExtQuote = ExtProvenance & { extPrice: number; extChg: number | null; extTs: number; extSession?: ExtSession };
 
 const normalizeWatchlistRows = (rows: readonly { symbol: string; section?: unknown }[]) => rows
   .filter((row) => typeof row.symbol === "string" && !!row.symbol)
@@ -217,8 +223,8 @@ const chgStr = (c: number | null | undefined) => (c == null || !isFinite(c) ? "�
 
 // Shallow equality over the UNION of both quotes' keys (a/b are the /api/quote entries, whose
 // shape varies by asset class — last/chg/basis/vol/ts/prevClose/…). Returns true only when every
-// field is identical, so setQuotes can keep the prior object reference and let React bail out
-// on a no-op 6s poll. `null`/`undefined` are treated as "no quote".
+// field is identical, so updateQuotes can reject a no-op before enqueueing React work.
+// `null`/`undefined` are treated as "no quote".
 // `lagMs` is excluded on purpose. It is a STOPWATCH READING of `asOfMs` taken when the response
 // was assembled, so it advances on every 6s poll even when the tape has not moved — comparing it
 // would defeat this bail-out entirely for any snapshot-served symbol during a quiet session.
@@ -1229,6 +1235,11 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
       // across a page load, where the incoming owner now reads its own namespace and nothing else.
       setLists((current) => ({ ...current, [DEFAULT_LIST]: serverDefault }));
       setActiveList(DEFAULT_LIST);
+      // E05: notes and flags do NOT ride that promotion. They are the account's own (and sync
+      // across its devices); the guest's stay in the guest slot until the user previews and
+      // explicitly imports them — never silently written into whichever account signs in next.
+      setFlags(readOwnerStringMap(localStorage, WL_FLAGS_KEY, wlOwner));
+      setSymbolNotes(readOwnerStringMap(localStorage, WL_NOTES_KEY, wlOwner));
     } else {
       // Sign-out, or a straight account→account switch: load the INCOMING owner's own state.
       // Nothing carries over — a signed-out browser must not inherit the account's cache, and
@@ -1384,11 +1395,24 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
   // symbol-keyed live top-of-book — ONE source for the header AND every watchlist row (via a single
   // batched /api/quote?syms= poll), so the detail pane and the watchlist can't disagree on a price.
   const [quotes, setQuotes] = useState<Record<string, any>>({});
+  // Quote polls can settle while a slower chart/preferences render is pending. Reject a
+  // no-op before enqueueing React work, so it cannot interrupt that pending render.
+  // Keep the last published snapshot here until commit; the two poll lanes must merge
+  // against each other's pending values rather than overwrite them with rendered state.
+  const publishedQuotesRef = useRef(quotes);
+  const updateQuotes = useCallback((update: (previous: typeof quotes) => typeof quotes) => {
+    const previous = publishedQuotesRef.current;
+    const next = update(previous);
+    if (next === previous) return;
+    publishedQuotesRef.current = next;
+    setQuotes(next);
+  }, []);
   // item-26/27: symbol-keyed extended/overnight ext prints — polled from /api/ext-quote (separate
   // from the main quote poll so the Quote Hub lane surface stays clean).
   // Each entry: { extPrice, extChg, extTs, extSession? } | null. `extSession` ('pre'|'post'|
   // 'overnight') is the hub's classification of the window; absent when the hub does not say.
   const [extQuotes, setExtQuotes] = useState<Record<string, ExtQuote | null>>({});
+  const [extClockMs, setExtClockMs] = useState(() => Date.now());
   const [slice, setSlice] = useState<any>(null);
   const [fund, setFund] = useState<Fund | null>(null);
   const [fundLoading, setFundLoading] = useState(true);   // true from symbol reset until getFund settles — MegaPane/ForecastPage skeleton gate
@@ -1823,45 +1847,9 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
       window.removeEventListener(TERMINAL_VISUAL_READY_EVENT, loadManifest);
     };
   }, []);
-  // The saved studies (mm.inds / mm.indParams / mm.indHidden, with the one-time Mastermind Candles
-  // rollout) are restored in a LAYOUT effect, not in the passive restore below. The shell hydrates
-  // inside the route's loading boundary at offscreen priority, so a setState in its passive mount
-  // effects lands in React's idle lane: every other boot update preempts it and the restored render is
-  // thrown away and started again — for seconds on a busy machine, indefinitely on a slow one. While it
-  // waits, the chart, the Settings dialog and a study-template apply all see the default studies, and
-  // the late commit then rewrites mm.indParams long after the page looked idle. React flushes updates
-  // scheduled in a layout effect before paint, so the first painted frame already holds them.
+  // Commit persisted preference authority before chart passive work. Continuous chart updates
+  // can starve a passive mount restore and leave a painted generation waiting on dataReady.
   useLayoutEffect(() => {
-    const savedInds = load("mm.inds", ["ema", "vol", "macd", "stochrsi"]) as string[];
-    const savedParams = load("mm.indParams", {}) as Record<string, Record<string, unknown>>;
-    const savedHidden = load("mm.indHidden", []) as string[];
-    const candlesMigrated = load(MASTERMIND_CANDLES_MIGRATION_KEY, null) === 1;
-    const rollout = migrateMastermindCandlesDefault(savedInds, savedParams, savedHidden, candlesMigrated);
-    // A one-time read of the browser's saved studies at mount, before paint (see above).
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setInds(new Set(rollout.indicators));
-    const base = allDefaults();
-    for (const k of IND_ORDER) base[k] = withDefaults(k, rollout.params[k]);
-    for (const k of Object.keys(rollout.params)) {
-      if (isSuiteKey(k)) base[k] = { ...suiteDefaults(k), ...rollout.params[k] };
-    }
-    // Additional study instances ("rsi__<token>", E06) keep THEIR OWN saved params.
-    setIndParams(withStudyInstanceParams(base, rollout.indicators, rollout.params));
-    setHidden(new Set(rollout.hidden));
-    // Releases the guest study cap above, in the same pre-paint batch as the restored set.
-    setStudiesRestored(true);
-    // Commit the one-time rollout before the mount-skip persistence effects. The marker is written
-    // last so an interrupted/blocked storage write retries rather than falsely claiming success.
-    if (rollout.changed) {
-      try {
-        localStorage.setItem("mm.inds", JSON.stringify(rollout.indicators));
-        localStorage.setItem("mm.indParams", JSON.stringify(rollout.params));
-        localStorage.setItem("mm.indHidden", JSON.stringify(rollout.hidden));
-        localStorage.setItem(MASTERMIND_CANDLES_MIGRATION_KEY, "1");
-      } catch { /* storage blocked: keep the in-memory default and retry next visit */ }
-    }
-  }, []);
-  useEffect(() => {
     // Settings → Terminal → Default timeframe (3D unless changed). Resolved against the landing
     // symbol's functional set, since the workspace restore below can land on a symbol other than seed0.
     const savedStartTf = readStartTf();
@@ -1873,6 +1861,34 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
     // paneTfs — same effect, same React batch, so the chart sees one commit either way.
     setPaneTfs([startTf]);
     setPrefsHydrated(true);
+    {
+      const savedInds = load("mm.inds", ["ema", "vol", "macd", "stochrsi"]) as string[];
+      const savedParams = load("mm.indParams", {}) as Record<string, Record<string, unknown>>;
+      const savedHidden = load("mm.indHidden", []) as string[];
+      const candlesMigrated = load(MASTERMIND_CANDLES_MIGRATION_KEY, null) === 1;
+      const rollout = migrateMastermindCandlesDefault(savedInds, savedParams, savedHidden, candlesMigrated);
+      setInds(new Set(rollout.indicators));
+      const base = allDefaults();
+      for (const k of IND_ORDER) base[k] = withDefaults(k, rollout.params[k]);
+      for (const k of Object.keys(rollout.params)) {
+        if (isSuiteKey(k)) base[k] = { ...suiteDefaults(k), ...rollout.params[k] };
+      }
+      // Additional study instances ("rsi__<token>", E06) keep THEIR OWN saved params.
+      setIndParams(withStudyInstanceParams(base, rollout.indicators, rollout.params));
+      setHidden(new Set(rollout.hidden));
+      // Releases the guest study cap above, in the same pre-paint batch as the restored set (E07).
+      setStudiesRestored(true);
+      // Commit the one-time rollout before the mount-skip persistence effects. The marker is written
+      // last so an interrupted/blocked storage write retries rather than falsely claiming success.
+      if (rollout.changed) {
+        try {
+          localStorage.setItem("mm.inds", JSON.stringify(rollout.indicators));
+          localStorage.setItem("mm.indParams", JSON.stringify(rollout.params));
+          localStorage.setItem("mm.indHidden", JSON.stringify(rollout.hidden));
+          localStorage.setItem(MASTERMIND_CANDLES_MIGRATION_KEY, "1");
+        } catch { /* storage blocked: keep the in-memory default and retry next visit */ }
+      }
+    }
     setChartType(load("mm.ct", "candles"));
     // Hidden-state is restored with the studies in the layout effect above, inside the rollout, so the
     // one-time enable also makes Mastermind Candles visible for users who had hidden the old Candle Painter.
@@ -2660,10 +2676,10 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
           if (d.quotes[k]) delete misses[k];
           else if ((misses[k] = (misses[k] ?? 0) + 1) >= 3) { drop.add(k); delete misses[k]; }
         }
-        setQuotes((prev) => {
+        updateQuotes((prev) => {
           // (a) Unchanged-value suppression: only touch symbols whose quote actually changed,
-          // reusing the prior object reference otherwise. If nothing changed, return `prev`
-          // unchanged so React bails out and the whole pane grid / watchlist skips re-render.
+          // reusing the prior object reference otherwise. updateQuotes rejects that no-op
+          // before it can interrupt an unrelated pending chart/preferences render.
           let changed = false;
           const n: Record<string, any> = { ...prev };
           for (const k of Object.keys(d.quotes)) {
@@ -2675,7 +2691,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
         });
       })
       .catch(() => {});
-  }, []);
+  }, [updateQuotes]);
   // stable 6s interval, mounted once. Pauses while the tab is hidden and fires an immediate
   // catch-up poll on re-show so a returning user sees fresh prices without waiting a full cycle.
   useEffect(() => {
@@ -2739,7 +2755,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
       .then((r) => (r.ok ? r.json() : null))
       .then((d) => {
         if (!chartQuoteAliveRef.current || !d?.quotes) return;
-        setQuotes((prev) => {
+        updateQuotes((prev) => {
           let changed = false;
           const next = { ...prev };
           for (const [sym, quote] of Object.entries<any>(d.quotes)) {
@@ -2760,7 +2776,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
           pollChartQuotes();
         }, 0);
       });
-  }, []);
+  }, [updateQuotes]);
   useEffect(() => {
     chartQuoteAliveRef.current = true;
     const id = setInterval(pollChartQuotes, 1_000);
@@ -2804,19 +2820,28 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
   const extSymsKeyRef = useRef(extSymsKey);
   extSymsKeyRef.current = extSymsKey;
   const extAliveRef = useRef(true);
+  const extRequestSequence = useRef(0);
+  const extAcceptedSequence = useRef(0);
   const pollExtQuotes = useCallback(() => {
     if (typeof document !== "undefined" && document.hidden) return; // don't poll a backgrounded tab
     const key = extSymsKeyRef.current;
     if (!key) return;
+    const requestSequence = ++extRequestSequence.current;
     fetch(`/api/ext-quote?syms=${encodeURIComponent(key)}`)
       .then((r) => (r.ok ? r.json() : null))
       .then((d) => {
-        if (!extAliveRef.current || !d?.quotes) return;
+        if (!extAliveRef.current || !d?.quotes || requestSequence < extAcceptedSequence.current) return;
+        // Only authoritative successful responses advance this barrier. A 503
+        // retains last-good until expiry but cannot undo a newer null snapshot.
+        extAcceptedSequence.current = requestSequence;
         setExtQuotes((prev) => {
           // reuse prior reference when every incoming ext quote is byte-identical
           let changed = false;
-          const n: Record<string, any> = { ...prev };
-          for (const k of Object.keys(d.quotes)) { if (!quoteEq(prev[k], d.quotes[k])) { n[k] = d.quotes[k]; changed = true; } }
+          const n: Record<string, ExtQuote | null> = { ...prev };
+          for (const k of Object.keys(d.quotes)) {
+            const incoming = isPublicBoatsQuote(d.quotes[k]) ? d.quotes[k] : null;
+            if (!quoteEq(prev[k], incoming)) { n[k] = incoming; changed = true; }
+          }
           return changed ? n : prev;
         });
       })
@@ -2824,11 +2849,30 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
   }, []);
   useEffect(() => {
     extAliveRef.current = true;
-    const id = setInterval(pollExtQuotes, 30_000);
+    let id: ReturnType<typeof setTimeout>;
+    const schedule = () => { id = setTimeout(() => { pollExtQuotes(); schedule(); }, extQuotePollMs()); };
+    schedule();
     const onVis = () => { if (!document.hidden) pollExtQuotes(); };
     document.addEventListener("visibilitychange", onVis);
-    return () => { extAliveRef.current = false; clearInterval(id); document.removeEventListener("visibilitychange", onVis); };
+    return () => { extAliveRef.current = false; clearTimeout(id); document.removeEventListener("visibilitychange", onVis); };
   }, [pollExtQuotes]);
+  const hasBoatsDisplay = Object.values(extQuotes).some(q => q?.extSource === "tiingo_boats");
+  useEffect(() => {
+    if (!hasBoatsDisplay) return;
+    const id = setInterval(() => {
+      const now = Date.now();
+      setExtClockMs(now);
+      setExtQuotes(prev => {
+        let changed = false;
+        const next = {...prev};
+        for (const [symbol, q] of Object.entries(prev)) {
+          if (q?.extSource === "tiingo_boats" && !isExtQuoteCurrent(q, now)) { next[symbol] = null; changed = true; }
+        }
+        return changed ? next : prev;
+      });
+    }, 1_000);
+    return () => clearInterval(id);
+  }, [hasBoatsDisplay]);
   useEffect(() => {
     if (!extSymsKey) return;
     const id = setTimeout(pollExtQuotes, 500);
@@ -3455,10 +3499,6 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
   // regular-session values; the hub's ext* namespace drives the secondary line.
   const regularQuote = resolveRegularSessionDisplay(liveQuote);
   const isSuspended = liveQuote?.suspended === true;
-  const hubExtPrice = liveQuote?.extPrice as number | undefined;
-  const hubExtChg = liveQuote?.extChg as number | undefined;
-  const hubExtTs = liveQuote?.extTs as number | undefined;
-  const hubExtSession = liveQuote?.extSession as ExtSession | undefined;
   // F2: for composites, use summed composite quote; for singles, use existing logic.
   const lastPx: number | undefined = activeIsComposite
     ? (compositeQ?.last ?? undefined)
@@ -4986,30 +5026,21 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
   // is both the third value and the honest fallback when the hub does not say which window.
   const extSessionLabel = (s?: ExtSession) =>
     s === "pre" ? t("extSessionPre") : s === "post" ? t("extSessionPost") : t("overnight");
-  // One extended-hours display object feeds both the responsive mobile symbol bar and the
-  // desktop/detail card. The hub namespace wins; the dedicated poll is a compatibility fallback.
+  // One audited API result feeds both responsive extended-price surfaces.
+  // The mixed /api/quote namespace cannot revive a missing or expired BOATS fact.
   const activeExtData = (() => {
-    const hubExt = hubExtPrice != null && Number.isFinite(hubExtPrice) ? {
-      price: hubExtPrice,
-      chg: hubExtChg ?? null,
-      ts: hubExtTs ?? null,
-      session: hubExtSession,
+    const q = !isComposite(active) && classify(active) === "us" ? extQuotes[active] : null;
+    return q && isPublicBoatsQuote(q) ? {
+      price:q.extPrice, chg:q.extChg, ts:q.extTs, session:q.extSession, source:q.extSource,
     } : null;
-    const pollExt = !isComposite(active) && classify(active) === "us"
-      ? extQuotes[active]
-      : null;
-    return hubExt ?? (pollExt ? {
-      price: pollExt.extPrice,
-      chg: pollExt.extChg,
-      ts: pollExt.extTs,
-      session: pollExt.extSession,
-    } : null);
   })();
   // Ext column tooltip: which session, and the move — the % the cell no longer prints itself.
   const extTitle = (sym: string): string | undefined => {
     const eq = extQuotes[sym];
-    if (!eq || eq.extPrice == null || !isFinite(eq.extPrice)) return undefined;
-    const label = extSessionLabel(eq.extSession);
+    if (!eq || !isExtQuoteCurrent(eq) || eq.extPrice == null || !isFinite(eq.extPrice)) return undefined;
+    const label = eq.extSource === "tiingo_boats"
+      ? `${boatsLatestTradeLabel(lang)} · ${Math.max(0, Math.floor(Math.max(extClockMs, Date.now()) / 1000 - eq.extTs))}${lang === "zh" ? "秒前" : "s ago"}`
+      : extSessionLabel(eq.extSession);
     if (eq.extChg == null || !isFinite(eq.extChg)) return label;
     return `${label} · ${eq.extChg >= 0 ? "+" : ""}${fmt(eq.extChg)}%`;
   };
@@ -5030,14 +5061,14 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
     // name. Dash when there is no ext print; never a fabricated value.
     if (key === "ext") {
       const eq = extQuotes[sym];
-      if (!eq || eq.extPrice == null || !isFinite(eq.extPrice)) return "—";
+      if (!eq || !isExtQuoteCurrent(eq) || eq.extPrice == null || !isFinite(eq.extPrice)) return "—";
       return fmt(eq.extPrice, eq.extPrice < 10 ? 4 : 2);
     }
     // extChg is already percentage-points versus the Quote Hub's authoritative close
     // reference. Display it directly; recomputing from Last would mix regular and ext lanes.
     if (key === "extPct") {
       const eq = extQuotes[sym];
-      if (!eq || eq.extChg == null || !isFinite(eq.extChg)) return "—";
+      if (!eq || !isExtQuoteCurrent(eq) || eq.extChg == null || !isFinite(eq.extChg)) return "—";
       return `${eq.extChg >= 0 ? "+" : ""}${fmt(eq.extChg)}%`;
     }
     return "";
@@ -5240,7 +5271,9 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
             : <span className={`cg num ${(chgNow ?? 0) >= 0 ? "up" : "down"}`}>{chgStr(chgNow)}</span>}</span>
           {activeExtData && (
             <span className="m-ext" data-quote-lane="extended">
-              <span className="m-ext-label">{extSessionLabel(activeExtData.session)}</span>
+              <span className="m-ext-label" title={extTitle(active)}>{activeExtData.source === "tiingo_boats"
+                ? `BOATS · ${Math.max(0, Math.floor(Math.max(extClockMs, Date.now()) / 1000 - (activeExtData.ts ?? 0)))}${lang === "zh" ? "秒" : "s"}`
+                : extSessionLabel(activeExtData.session)}</span>
               <span className="num">{fmt(activeExtData.price, activeExtData.price < 10 ? 4 : 2)}</span>
               {activeExtData.chg != null && <span className={`num ${activeExtData.chg >= 0 ? "up" : "down"}`}>{chgStr(activeExtData.chg)}</span>}
             </span>
@@ -5254,7 +5287,9 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
       {/* Dossier mode renders NO chart workspace — the native sheet owns the chart above us. */}
       {!dossierMode && (
       <section className="workspace">
-        {!shellMode && (
+        {/* The table view replaces the chart, so its float would only cover the table's header;
+            it stays while fullscreen is on because it is also the way out. */}
+        {!shellMode && (!tableViewOpen || fullChart) && (
         <button className={`chart-fs-float${fullChart ? " on" : ""}`} title={fullChart ? t("exitFullscreen") : t("fullscreenChart")} onClick={() => setFullChart((f) => !f)}>
           {fullChart
             ? <svg viewBox="0 0 24 24"><path d="M9 4v5H4M20 9h-5V4M15 20v-5h5M4 15h5v5" /></svg>
@@ -5515,18 +5550,31 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
             intel={intel}
           />
         ) : tableViewOpen ? (
-          /* D3: Table view replaces the chart body */
-          <ChartTableView
+          /* D3 → E10: the time-aware Data Inspector replaces the chart body. It reads only what the
+             active pane published (bars + its own readout map) and returns to the chart through
+             paneSync's time-keyed focus, so no indicator is recomputed and no row number travels. */
+          <DataInspector
             symbol={active}
             timeframe={tf}
             bars={chartReadoutMeta?.symbol === active && chartReadoutMeta.timeframe === tf ? chartReadoutMeta.bars : []}
-            indCols={[...[...inds].filter((k) => !isSuiteKey(k) && !hidden.has(k) && (!isAdditionalStudyId(k) || isRenderableStudyInstance(k, inds))).map((k) => {
+            columns={[...[...inds].filter((k) => !isSuiteKey(k) && !hidden.has(k) && (!isAdditionalStudyId(k) || isRenderableStudyInstance(k, inds))).map((k) => {
               const def = (IND_DEFS as any)[k];
               const meta = studyInstanceMeta(k, inds, indParams[k]);   // one column per study instance (E06)
               return { key: k, label: meta?.label ?? def?.label ?? k, tag: meta?.tag ?? def?.tag ?? k };
             }), ...visualReadoutColumns(lang)]}
-            indRowsAt={indRowsAt ?? undefined}
+            valuesAt={indRowsAt ?? undefined}
+            feedBasis={isSuspended ? t("suspended") : freshnessLabel(
+              { basis: liveQuote?.basis ?? (liveStatus === "live" ? "LIVE" : "EOD"), lagMs: liveQuote?.lagMs, asOfMs: liveQuote?.asOfMs, marketSession: liveQuote?.marketSession }, t).label}
+            replay={replayOn}
+            replayCursor={replayOn && replayCutoff ? `${replayCutoff.clock}:${replayCutoff.at}` : null}
             onBack={() => setTableViewOpen(false)}
+            onShowOnChart={(time, label) => {
+              void requestPaneFocus(activePane, { symbol: active, tf, time }).then((r) => {
+                const msg = dataInspectorFocusMessage(r.status, label, lang);
+                if (msg) showDtmToast(msg);
+              });
+              setTableViewOpen(false);
+            }}
           />
         ) : (
           <div className="chart-body" style={{ "--subpanes": subPanes } as React.CSSProperties}>
@@ -5717,6 +5765,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
             else if (action === "chartType") setCtOpen(true);
             else if (action === "workspaces") setPhoneWorkspacesOpen(true);
             else if (action === "replay") toggleReplay();
+            else if (action === "dataTable") setTableViewOpen(true);
             else if (action === "alerts") window.location.assign(`/alerts?sym=${encodeURIComponent(active)}`);
             else if (action === "symbolDetails") {
               setFullChart(false);
@@ -5844,7 +5893,7 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
               </div>
             </div>
           )}
-          {loggedIn && newsRailEnabled && railTab === "news" && <TickerNewsPanel symbol={active} lang={lang} />}
+          {loggedIn && newsRailEnabled && railTab === "news" && <TickerNewsPanel symbol={active} lang={lang} userId={userId} />}
           <div className={`board wl-board${loggedIn && railTab !== "watchlists" ? " rail-hidden" : ""}`}
             id="rail-panel-watchlists" {...(loggedIn ? { role: "tabpanel", "aria-labelledby": "rail-tab-watchlists" } : {})}>
             <div className="wl-bar pophost">
@@ -5895,6 +5944,9 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
                 <div className="menu-row" onClick={() => importList()}><svg viewBox="0 0 24 24"><path d="M12 15V3M8 7l4-4 4 4M4 19h16" /></svg>{t("importCsv")}</div>
                 <div className="menu-row danger" onClick={() => clearList(activeList)}><svg viewBox="0 0 24 24"><path d="M4 7h16M9 7V5h6v2M6 7l1 13h10l1-13" /></svg>{t("clearWatchlist")}</div>
               </div>
+              {loggedIn && wlOwner !== GUEST_OWNER && (
+                <WatchlistAnnotationSync key={wlOwner} owner={wlOwner} ready={wlsRestored} flags={flags} notes={symbolNotes} setFlags={setFlags} setNotes={setSymbolNotes} hubOpen={searchOpen} />
+              )}
               <div className={`wl-acts${selectedWlCount >= 2 ? " wl-acts-selection" : ""}`}>
                 <button title={t("addSymbol")} onClick={(e) => { e.stopPropagation(); addSymbolTargetRef.current = null; setSeed(""); setAddSymOpen(true); }}><svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14" /></svg></button>
                 <button title={t("settings")} onClick={(e) => { e.stopPropagation(); const willOpen = !wlSetOpen; closeAll(); setWlSetOpen(willOpen); }}><svg viewBox="0 0 24 24"><circle cx="5" cy="12" r="1.5" /><circle cx="12" cy="12" r="1.5" /><circle cx="19" cy="12" r="1.5" /></svg></button>
@@ -6138,7 +6190,10 @@ export default function TerminalShell({ symbols, email, userId, initialSymbol, i
                       )}
                     </div>
                     <div className="ah-meta">
-                      <span>{extSessionLabel(session)}</span>
+                      <span>{activeExtData.source === "tiingo_boats"
+                        ? boatsLatestTradeLabel(lang)
+                        : extSessionLabel(session)}</span>
+                      {activeExtData.source === "tiingo_boats" && ts != null && <span> · {Math.max(0, Math.floor(Math.max(extClockMs, Date.now()) / 1000 - ts))}{lang === "zh" ? "秒前" : "s ago"}</span>}
                       {tsStr && <span> · {t("extLastUpdate").replace("{time}", tsStr)}</span>}
                     </div>
                   </div>

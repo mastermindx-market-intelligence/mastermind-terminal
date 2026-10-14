@@ -282,7 +282,9 @@ test("table, CSV and templates carry each instance under its own column and reco
   const download = await pending;
   const path = await download.path();
   expect(path).not.toBeNull();
-  const [header, ...rows] = readFileSync(path!, "utf8").trim().split("\n").map((line) => line.split(","));
+  // The export opens with a byte-order mark and "# key: value" provenance lines (E10).
+  const [header, ...rows] = readFileSync(path!, "utf8").replace(/^\uFEFF/, "").trim().split("\n")
+    .filter((line) => !line.startsWith("#")).map((line) => line.split(","));
   expect(rows[0][0]).toBe(LAST_SESSION);
   expect(Number(rows[0][header.indexOf("RSI 1 (21)")])).toBeCloseTo(RSI21, 3);
   expect(Number(rows[0][header.indexOf("RSI 2 (7)")])).toBeCloseTo(RSI7, 3);

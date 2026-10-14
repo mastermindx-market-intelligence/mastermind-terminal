@@ -1,0 +1,188 @@
+{
+  "host": {
+    "left": 0,
+    "right": 390,
+    "top": 231.671875,
+    "bottom": 577.28125,
+    "width": 390,
+    "height": 345.609375
+  },
+  "line": {
+    "left": 0,
+    "right": 278,
+    "top": 231.671875,
+    "bottom": 306.546875,
+    "width": 278,
+    "height": 74.875
+  },
+  "badge": {
+    "left": 197.625,
+    "right": 268,
+    "top": 241.671875,
+    "bottom": 257.671875,
+    "width": 70.375,
+    "height": 16
+  },
+  "values": [
+    {
+      "text": "NNVIDIA Corp · 3D · Equities",
+      "left": 10,
+      "right": 191.625,
+      "top": 239.671875,
+      "bottom": 259.671875,
+      "width": 181.625,
+      "height": 20
+    },
+    {
+      "text": "O173.64H174.25L164.58C167.03",
+      "left": 10,
+      "right": 205.875,
+      "top": 263.671875,
+      "bottom": 279.609375,
+      "width": 195.875,
+      "height": 15.9375
+    },
+    {
+      "text": "-5.97 (-3.45%)",
+      "left": 13,
+      "right": 98.15625,
+      "top": 282.609375,
+      "bottom": 298.546875,
+      "width": 85.15625,
+      "height": 15.9375
+    },
+    {
+      "text": "Vol462.7M",
+      "left": 104.15625,
+      "right": 164.34375,
+      "top": 282.609375,
+      "bottom": 298.546875,
+      "width": 60.1875,
+      "height": 15.9375
+    },
+    {
+      "text": "Day-2.54%",
+      "left": 170.34375,
+      "right": 233.359375,
+      "top": 282.609375,
+      "bottom": 298.546875,
+      "width": 63.015625,
+      "height": 15.9375
+    }
+  ],
+  "renderers": [
+    {
+      "left": 0,
+      "right": 390,
+      "top": 231.671875,
+      "bottom": 577.671875,
+      "width": 390,
+      "height": 346
+    },
+    {
+      "left": 0,
+      "right": 328,
+      "top": 231.671875,
+      "bottom": 549.671875,
+      "width": 328,
+      "height": 318
+    },
+    {
+      "left": 0,
+      "right": 328,
+      "top": 231.671875,
+      "bottom": 549.671875,
+      "width": 328,
+      "height": 318
+    },
+    {
+      "left": 328,
+      "right": 390,
+      "top": 231.671875,
+      "bottom": 549.671875,
+      "width": 62,
+      "height": 318
+    },
+    {
+      "left": 328,
+      "right": 390,
+      "top": 231.671875,
+      "bottom": 549.671875,
+      "width": 62,
+      "height": 318
+    },
+    {
+      "left": 0,
+      "right": 328,
+      "top": 549.671875,
+      "bottom": 577.671875,
+      "width": 328,
+      "height": 28
+    },
+    {
+      "left": 0,
+      "right": 328,
+      "top": 549.671875,
+      "bottom": 577.671875,
+      "width": 328,
+      "height": 28
+    },
+    {
+      "left": 328,
+      "right": 390,
+      "top": 549.671875,
+      "bottom": 577.671875,
+      "width": 62,
+      "height": 28
+    }
+  ],
+  "legend": {
+    "left": 8,
+    "right": 130.8125,
+    "top": 306.546875,
+    "bottom": 334.546875,
+    "width": 122.8125,
+    "height": 28
+  },
+  "fullscreen": {
+    "left": 341,
+    "right": 381,
+    "top": 150,
+    "bottom": 190,
+    "width": 40,
+    "height": 40
+  },
+  "controls": [
+    {
+      "left": 294,
+      "right": 338,
+      "top": 235.671875,
+      "bottom": 279.671875,
+      "width": 44,
+      "height": 44
+    },
+    {
+      "left": 277.21875,
+      "right": 389,
+      "top": 295.671875,
+      "bottom": 312.671875,
+      "width": 111.78125,
+      "height": 17
+    }
+  ],
+  "chips": [
+    {
+      "left": 197.625,
+      "right": 268,
+      "top": 241.671875,
+      "bottom": 257.671875,
+      "width": 70.375,
+      "height": 16
+    }
+  ],
+  "viewport": {
+    "width": 390,
+    "height": 844
+  },
+  "overflow": false
+}

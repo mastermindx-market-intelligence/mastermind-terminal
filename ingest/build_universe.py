@@ -50,6 +50,11 @@ from pathlib import Path
 
 import pandas as pd
 
+try:
+    from ingest.polygon_bars import load_view_contract, view_block  # package context (tests)
+except ImportError:  # run as `python ingest/build_universe.py` — same-dir import
+    from polygon_bars import load_view_contract, view_block
+
 ROOT = Path(__file__).resolve().parents[1]                       # charting-app/
 OUT = Path(os.environ.get("TERMINAL_DATA_DIR") or (ROOT / "terminal" / "public" / "data"))
 # manifest path override — the nightly refresh stages the manifest then atomically swaps it
@@ -139,9 +144,15 @@ def _drop_non_trading_placeholders(df: pd.DataFrame) -> pd.DataFrame:
     return df.loc[~(finite_prices & flat & explicit_zero_volume)]
 
 
-def build_ohlc_json(ticker: str, df: pd.DataFrame) -> dict:
+def build_ohlc_json(ticker: str, df: pd.DataFrame, view_contract: dict | None = None,
+                    contract_refusals=("VIEW_CONTRACT_ABSENT",)) -> dict:
     """Candle contract; reconstruct open = prior close and clamp h/l to include it
-    (verbatim with the macro build_chart_data.py / sample_from_macro.py)."""
+    (verbatim with the macro build_chart_data.py / sample_from_macro.py).
+
+    U01: adds the `view` provenance block (one deep synthetic-open segment) built from
+    the Macro-emitted contract passed in — the producer never re-derives basis/as-of
+    itself. The legacy t/o/src/bar_quality/bars output is unchanged.
+    """
     df = _drop_non_trading_placeholders(df.dropna(subset=["close"])).sort_index().tail(MAX_BARS)
     closes = df["close"].astype(float)
     prev = closes.shift(1).fillna(closes)
@@ -153,7 +164,11 @@ def build_ohlc_json(ticker: str, df: pd.DataFrame) -> dict:
         lo = min(_round(lo) or c, c, o)
         vol = _round(df.at[dt, "volume"], 0) if "volume" in df else None
         bars.append([dt.strftime("%Y-%m-%d"), _round(o), hi, lo, _round(c), vol])
-    return {"t": ticker, "o": 1, "src": "deep", "bar_quality": "synthetic_open_deepstore", "bars": bars}
+    segments = ([{"from": bars[0][0], "to": bars[-1][0],
+                  "src": "deep", "bar_quality": "synthetic_open_deepstore"}] if bars else [])
+    doc = {"t": ticker, "o": 1, "src": "deep", "bar_quality": "synthetic_open_deepstore", "bars": bars}
+    doc["view"] = view_block(ticker, view_contract, tuple(contract_refusals), segments)
+    return doc
 
 
 # ---------------------------------------------------------------- polygon exchange map
@@ -382,6 +397,9 @@ def main(argv: list[str]) -> None:
         meta = pd.read_parquet(mp)
         tickers = list(meta.index.astype(str))
         ohlc_dir = MACRO / ohlc_rel
+        # U01: ONE contract read per store — the producer copies Macro's emitted view
+        # contract verbatim; absence (today, pre-C01) is reported, never invented.
+        view_contract, contract_refusals = load_view_contract(ohlc_dir)
 
         # decide which tickers get OHLC this run
         do_ohlc = key in ohlc_markets
@@ -425,7 +443,7 @@ def main(argv: list[str]) -> None:
                     try:
                         df = pd.read_parquet(p)
                         if "close" in df and len(df.dropna(subset=["close"])):
-                            oj = build_ohlc_json(tk, df)
+                            oj = build_ohlc_json(tk, df, view_contract, contract_refusals)
                             out_path.write_text(json.dumps(oj, separators=(",", ":")))
                             ohlc_written[key] += 1
                             last_dates.append(oj["bars"][-1][0])
