@@ -850,7 +850,9 @@ export default function ScreenerView({ identity }: { identity: AccountIdentity }
         )}
       </div>
 
-      <div className="scr2-table" ref={tableRef}>
+      {/* Page-scroll layouts have no definite parent height. Keep the measured
+          viewport bounded rather than letting it grow with the full manifest. */}
+      <div className="scr2-table" ref={tableRef} style={{ maxHeight: "100dvh" }}>
         <table className="scr2">
           <thead>
             <tr>
