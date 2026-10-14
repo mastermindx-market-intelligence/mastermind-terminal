@@ -1,8 +1,8 @@
 {
   "task": "B-J1-HISTORY-SELECTION",
-  "capturedAtHead": "3743f9d02e8c65a28609766883dfba703a75c760",
+  "capturedAtHead": "88c346e955fc8c11080332b851228de03cac36a2",
   "layoutFiles": {
-    "terminal/components/workspaces/ThesisWorkspace.tsx": "3ae0839c038727533aec840d4300ee8f978a22165420028c6104530da3b12da3",
+    "terminal/components/workspaces/ThesisWorkspace.tsx": "1d70249bb8a4e409fac4610675fca7b75eccd9bb29d2b6159f1302da7b71de96",
     "terminal/components/workspaces/ThesisWorkspace.module.css": "9d2f361302f0c644614e8da2c5e095f9f8a9629be86c1a350051a4fdb9305fa8",
     "terminal/e2e/market-ontology-context.spec.ts": "aa25bbce7bfde624c2facb548c937a08ea83b344c7512fe3a069628305d1bce3"
   },
@@ -20,21 +20,21 @@
   "command": "cd terminal && TERMINAL_E2E_PORT=3586 npx playwright test e2e/market-ontology-context.spec.ts --project=desktop --grep 'carries through Analysis|reopening an existing|natural saved-thesis|Forward before A settles' --workers=1 --retries=0",
   "producer": "terminal/e2e/market-ontology-context.spec.ts",
   "files": {
-    "terminal/e2e/proof/mo-context-strip/desktop-reopen-thesis-1440-zh.png": "3e38986fb0afc361b49e6a020a006b3023cee2d1fafb5149459d1d57559ce4b0",
-    "terminal/e2e/proof/mo-context-strip/desktop-reopen-thesis-820.png": "ec73ed8e9c8c36f9f3bfa391a94e131b1d42ad57c61637ee77fb5ad524072772",
-    "terminal/e2e/proof/mo-context-strip/desktop-reopen-thesis-1440.png": "151b477e87579ca0cbfab892533d442ca06a0d724d114562fe470f4b801ccdbc",
-    "terminal/e2e/proof/mo-context-strip/desktop-reopen-thesis-820-zh.png": "208d7f1b2c30e120dc390ea19ba86271f77024862db39d30e5ed6ada01aabab0",
-    "terminal/e2e/proof/mo-context-strip/desktop-reopen-thesis-390.png": "38f72d948ed1402c58940f1f38a802ef68413895e95e635a75f026822c698f86",
-    "terminal/e2e/proof/mo-context-strip/desktop-reopen-thesis-390-zh.png": "8ebfcf0497e4df4fc35f3957fa11bf414739e36bff729d16c41d3f0740d8fde0"
+    "terminal/e2e/proof/mo-context-strip/desktop-reopen-thesis-1440-zh.png": "d061d94824adbe1ddd5a498ae0bbf4f735ad5d07817c536e00f086b3ef7fc398",
+    "terminal/e2e/proof/mo-context-strip/desktop-reopen-thesis-820.png": "773ebc0b97c75ad345cc4be8bcc14fabb6cad1c14383ce51110e4160af866fba",
+    "terminal/e2e/proof/mo-context-strip/desktop-reopen-thesis-1440.png": "00b27816e2829709f44e4c1e4ad9b086398d8b5edfcbc2912f0f73287be24b42",
+    "terminal/e2e/proof/mo-context-strip/desktop-reopen-thesis-820-zh.png": "b827d3692329296c99cb32e590651c08c2bf36366b7cb8a1574ea3fd0a14122e",
+    "terminal/e2e/proof/mo-context-strip/desktop-reopen-thesis-390.png": "fd8d1df0fed0c7ac51d138a4c79672eef60981831a1c09e1fa0cbdba2daf91c1",
+    "terminal/e2e/proof/mo-context-strip/desktop-reopen-thesis-390-zh.png": "d03fe9a8acef0b31ca7df0624e79cc3a2beb4748f1837addaa1aa15958ee4d81"
   },
-  "adjudication": "All six original EN/ZH 1440/820/390 PNGs freshly captured at source3743f9d02. Four changed tablet/mobile images directly reviewed; two desktop images byte-identical to prior accepted captures. Context, return action, precise retained version and empty optional date field remain readable. The populated date readout has separate nine-case actual browser proof; these empty-date captures do not prove it.",
+  "adjudication": "All six original EN/ZH 1440/820/390 PNGs freshly captured at source 88c346e955fc8c11080332b851228de03cac36a2. All six changed images directly reviewed: context, return action, version1 and editor/history remain readable. Proposal loading in some frames is retained as observed and does not prove settled proposal state. Original four reopening/history/API-isolation browser cases passed.",
   "scope": "Actual local fixture browser captures. Controlled request ordering is not evidence of natural production timing; postmerge live proof remains required.",
   "checks": [
     "Four unchanged original fixture browser cases passed workers1/retries0.",
-    "Date readout separately verified by native EN text200 D/T/M3 and standard EN/ZH D/T/M6; exact draft milliseconds, owner, zero implicit writes, clipping negative control."
+    "Entry GET cancellation separately verified in actual D/T/M browser; owner/StrictMode/late-body fences verified by seven mounted regressions; mutation protocol unchanged."
   ],
   "liveAcceptance": "Required after protected merge through existing release owner, using only the two archived MU records read-only.",
-  "capturedAt": "2026-10-14T09:50:12.535850+00:00",
+  "capturedAt": "2026-10-14T12:52:47.768801+00:00",
   "priorChecksRetained": [
     "35 mounted J1 controls pass, including seven reproduced symbol-disproof regressions now green",
     "184 research/context/token neighbors and 25 proposal completion/read controls remain accepted for unchanged paths",
