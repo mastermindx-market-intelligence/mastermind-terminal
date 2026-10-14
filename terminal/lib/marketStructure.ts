@@ -88,8 +88,10 @@ const isNum = (v: unknown): v is number => typeof v === "number" && Number.isFin
 // ─── Aggregates ──────────────────────────────────────────────────────────────────────
 
 export interface AggregateResult {
-  /** Σ gamma_net — $mn dealer delta per +1% spot. */
+  /** Σ gamma_net — $mn dealer delta per +1% spot. Stays a number so other consumers keep compiling. */
   gammaMn: number;
+  /** Rows with a finite `gamma_net`. A zero counts; NaN and a missing value do not. */
+  gammaKnown: number;
   /** Σ vanna_net — $mn dealer delta per +1 vol point. `null` when the lens is absent. */
   vannaMn: number | null;
   /** Σ charm_net — $mn dealer delta per +1 calendar day. `null` when the lens is absent. */
@@ -113,6 +115,7 @@ export function aggregate(
   fullN?: number | null,
 ): AggregateResult {
   let gammaMn = 0;
+  let gammaKnown = 0;
   let callAbsMn = 0;
   let putAbsMn = 0;
   let vSum = 0;
@@ -125,7 +128,10 @@ export function aggregate(
 
   for (const r of rows ?? []) {
     if (!r) continue;
-    if (isNum(r.gamma_net)) gammaMn += r.gamma_net;
+    if (isNum(r.gamma_net)) {
+      gammaMn += r.gamma_net;
+      gammaKnown += 1;
+    }
     if (isNum(r.gamma_call)) callAbsMn += Math.abs(r.gamma_call);
     if (isNum(r.gamma_put)) putAbsMn += Math.abs(r.gamma_put);
     if (isNum(r.vanna_net)) { vSum += r.vanna_net; vSeen = true; }
@@ -137,6 +143,7 @@ export function aggregate(
   const nStrikesFull = isNum(fullN) && fullN > 0 ? fullN : null;
   return {
     gammaMn,
+    gammaKnown,
     vannaMn: vSeen ? vSum : null,
     charmMn: cSeen ? cSum : null,
     deltaMn: dSeen ? dSum : null,
@@ -211,24 +218,40 @@ export function signSensitivity(agg: AggregateResult): SignSensitivity {
 
 // ─── R0.2 — hedge-flow scenario grid (Tier B) ────────────────────────────────────────
 
+/** How many strikes actually fed the gamma in a scenario grid. */
+export interface ScenarioCoverage {
+  /** Rows with a finite `gamma_net`. */
+  known: number;
+  /** Strikes on the ladder that was summed. */
+  offered: number;
+  /** Uncut strike count when the payload discloses it. */
+  full: number | null;
+  /** True when the ladder is a window over a larger book. */
+  windowed: boolean;
+  /** Every offered strike had finite gamma, and the ladder is not a window. */
+  complete: boolean;
+}
+
 export interface ScenarioGrid {
   /** Spot-move axis, in percent. */
   dsPct: number[];
-  /** IV-shock axis, in vol points. */
+  /** IV-shock axis, in vol points. One row (`[0]`) when vanna was not measured. */
   dVolPts: number[];
   /** Time axis used for the charm column, in calendar days. */
   dtDays: number;
   /**
    * cells[volIdx][spotIdx] = estimated dealer hedge flow in $mn.
    * POSITIVE = dealers must BUY the underlying; negative = must SELL.
+   * `null` when no strike carried a finite gamma — unknown is not a flat book.
    */
-  cells: number[][];
+  cells: (number | null)[][];
   /** Hedge flow from one calendar day of decay alone, $mn. `null` without a charm lens. */
   charmPerDayMn: number | null;
-  /** Largest |cell| — the colour-scale anchor. */
+  /** Largest |cell| — the colour-scale anchor. `0` when every cell is null. */
   maxAbs: number;
   hasVanna: boolean;
   hasCharm: boolean;
+  coverage: ScenarioCoverage;
 }
 
 export interface ScenarioOpts {
@@ -256,8 +279,34 @@ const DEFAULT_DVOL = [5, 2, 0, -2, -5];
  */
 export function scenarioGrid(agg: AggregateResult, opts: ScenarioOpts = {}): ScenarioGrid {
   const dsPct = opts.dsPct ?? DEFAULT_DS;
-  const dVolPts = opts.dVolPts ?? DEFAULT_DVOL;
+  // No vanna lens means an IV row was never measured. Keep the no-change row only,
+  // even when the caller passed a longer axis.
+  const dVolPts = agg.vannaMn == null ? [0] : (opts.dVolPts ?? DEFAULT_DVOL);
   const dtDays = opts.dtDays ?? 0;
+  const coverage: ScenarioCoverage = {
+    known: agg.gammaKnown,
+    offered: agg.nStrikes,
+    full: agg.nStrikesFull,
+    windowed: agg.windowed,
+    complete: agg.gammaKnown === agg.nStrikes && !agg.windowed,
+  };
+  const charmPerDayMn = agg.charmMn == null ? null : agg.charmMn === 0 ? 0 : -agg.charmMn;
+  const hasVanna = agg.vannaMn != null;
+  const hasCharm = agg.charmMn != null;
+
+  if (agg.gammaKnown === 0) {
+    return {
+      dsPct,
+      dVolPts,
+      dtDays,
+      cells: dVolPts.map(() => dsPct.map(() => null)),
+      charmPerDayMn,
+      maxAbs: 0,
+      hasVanna,
+      hasCharm,
+      coverage,
+    };
+  }
 
   const g = agg.gammaMn;
   const v = agg.vannaMn ?? 0;
@@ -281,10 +330,11 @@ export function scenarioGrid(agg: AggregateResult, opts: ScenarioOpts = {}): Sce
     dVolPts,
     dtDays,
     cells,
-    charmPerDayMn: agg.charmMn == null ? null : agg.charmMn === 0 ? 0 : -agg.charmMn,
+    charmPerDayMn,
     maxAbs,
-    hasVanna: agg.vannaMn != null,
-    hasCharm: agg.charmMn != null,
+    hasVanna,
+    hasCharm,
+    coverage,
   };
 }
 
