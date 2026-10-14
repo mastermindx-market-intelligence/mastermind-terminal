@@ -861,8 +861,8 @@ test("the retired ?tab=prism deep-link opens the Exposure matrix", async ({ page
   await expect(unusualRail.getByText("3.00×", { exact: true })).toBeVisible();
 
   // The rail owns any horizontal overflow. On mobile it is intentionally swipeable;
-  // no width may leak into the page. The matrix keeps a real vertical viewport even on
-  // desktop's short two-pane track, where the whole dossier becomes locally scrollable.
+  // no width may leak into the page. The expanded dealer grid keeps its own vertical
+  // viewport inside the map-first desk's scrollable content area.
   const unusualTrack = unusualRail.locator(".obs-mtx-unusual-track");
   const railGeometry = await unusualTrack.evaluate((el) => ({
     clientWidth: el.clientWidth,
@@ -890,11 +890,25 @@ test("the retired ?tab=prism deep-link opens the Exposure matrix", async ({ page
   await expect(matrixViewport).toBeVisible();
   expect(await matrixViewport.evaluate((el) => el.getBoundingClientRect().height)).toBeGreaterThanOrEqual(139);
   if (testInfo.project.name === "desktop") {
-    const dossier = page.locator(".obs-mtx-exposure");
-    await expect.poll(() => dossier.evaluate((el) => el.scrollHeight - el.clientHeight)).toBeGreaterThan(0);
-    await dossier.evaluate((el) => el.scrollTo({ top: el.scrollHeight }));
-    await expect.poll(() => dossier.evaluate((el) => el.scrollTop)).toBeGreaterThan(0);
-    await dossier.evaluate((el) => el.scrollTo({ top: 0 }));
+    const deskContent = page.getByTestId("gex-matrix-view");
+    await expect.poll(() => deskContent.evaluate((el) => el.scrollHeight - el.clientHeight)).toBeGreaterThan(0);
+    await deskContent.evaluate((el) => el.scrollTo({ top: el.scrollHeight }));
+    await expect.poll(() => deskContent.evaluate((el) => el.scrollTop)).toBeGreaterThan(0);
+    await matrixViewport.scrollIntoViewIfNeeded();
+    await matrixViewport.evaluate((el) => el.scrollTo({ top: el.scrollHeight }));
+    await expect.poll(() => matrixViewport.evaluate((el) => el.scrollTop)).toBeGreaterThan(0);
+    const lastRow = await matrixViewport.evaluate((el) => {
+      const row = el.querySelector("tbody > tr:last-child")!.getBoundingClientRect();
+      const grid = el.getBoundingClientRect();
+      const owner = el.closest("[data-testid='gex-matrix-view']")!.getBoundingClientRect();
+      return { top: row.top, bottom: row.bottom,
+        clipTop: Math.max(0, grid.top, owner.top),
+        clipBottom: Math.min(window.innerHeight, grid.bottom, owner.bottom) };
+    });
+    expect(lastRow.top).toBeGreaterThanOrEqual(lastRow.clipTop);
+    expect(lastRow.bottom).toBeLessThanOrEqual(lastRow.clipBottom + 1);
+    await matrixViewport.evaluate((el) => el.scrollTo({ top: 0 }));
+    await deskContent.evaluate((el) => el.scrollTo({ top: 0 }));
   }
 
   const overflow = await page.evaluate(() => ({
