@@ -1523,6 +1523,7 @@ export default function OptionsHubView({
   const t = useT();
 
   const controlled = onTab !== undefined;
+  const [exposureMapFirst, setExposureMapFirst] = useState(false);
 
   // Tabs the hub is permitted to render. `tickers` is always reachable when
   // leaders/radar are allowed so their row → ticker-drill cross-jump survives
@@ -2285,8 +2286,9 @@ export default function OptionsHubView({
           // hub's own header wherever the hub is acting as a HUB — standalone or inside the
           // workspace. A Discover single-tab embed (one allowed tab) is a bare mount of one
           // surface, not a hub header, and must stay bare.
-          const showVol = stripTabs.length > 1;
-          if (!showStrip && !showFlowTiming && !activeAsof && !showVol) return null;
+          const showVol = stripTabs.length > 1 && !(activeTab === "gex" && exposureMapFirst);
+          const showAsof = !!activeAsof && !(activeTab === "gex" && exposureMapFirst);
+          if (!showStrip && !showFlowTiming && !showAsof && !showVol) return null;
           return (
         <div className="options-flow-status-row" style={{ display: "flex", alignItems: "center", padding: "8px 14px", borderBottom: "1px solid var(--line)", flexShrink: 0, gap: 8 }}>
           {showStrip && (
@@ -2320,7 +2322,7 @@ export default function OptionsHubView({
               className="options-flow-freshness"
             />
           )}
-          {activeAsof && (
+          {showAsof && (
             <span style={{ color: "var(--text-dim)", fontSize: 11 }}>
               {t("asOf", "as of")} {fmtAsof(activeAsof)}
               {activeStale && (
@@ -3929,7 +3931,7 @@ export default function OptionsHubView({
               ──────────────────────────────────────────────────────────────────── */}
           {(activeTab === "gex" || visitedTabs.has("gex")) && (
             <div style={{ flex: 1, overflow: "hidden", display: activeTab === "gex" ? "flex" : "none", minHeight: 0 }}>
-              <GexDeskView />
+              <GexDeskView onMapFirstChange={setExposureMapFirst} />
             </div>
           )}
 
