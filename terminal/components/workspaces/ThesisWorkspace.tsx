@@ -628,6 +628,8 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
   const [missingIds, setMissingIds] = useState<Set<string>>(new Set());
   const lensRefs = useRef<Partial<Record<RmsViewId, HTMLButtonElement | null>>>({});
   const detailRequest = useRef(0);
+  // Only entry GETs share this lifetime. Mutations retain their original recovery carrier.
+  const entryReadScope = useRef<{ ownerKey: string; controller: AbortController } | null>(null);
   const statementEditRevision = useRef(0);
   const routeDiscardAuthorized = useRef(false);
   const historyPositionRef = useRef(0);
@@ -655,6 +657,8 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
   }, [invalidLink]);
   const autoHydrationAttempted = useRef(false);
   useEffect(() => {
+    const scope = { ownerKey, controller: new AbortController() };
+    entryReadScope.current = scope;
     autoHydrationAttempted.current = false;
     // Round-2 review r3 minor 5: a prior owner's stale fault must not survive into a
     // new owner's hydration — otherwise switching `ownerKey` within one mount could
@@ -709,7 +713,11 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
     // for an invalid link. Both are now derived together, in the same tick.
     setTheses([]);
     setListState(invalidLinkRef.current ? "ready" : "loading");
-    return () => { detailRequest.current += 1; };
+    return () => {
+      scope.controller.abort();
+      if (entryReadScope.current === scope) entryReadScope.current = null;
+      detailRequest.current += 1;
+    };
   }, [ownerKey]);
   // Round-2 review r3 minor 1/2: the rail's ARIA orientation must track the same
   // 600px breakpoint the CSS switches the tablist to a horizontal scroller at — read
@@ -1194,13 +1202,18 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
   // the truncation state and the save controls with it), so it has to exist before
   // that callback's dependency array is evaluated during render.
   const loadSavedViews = useCallback(async () => {
+    const scope = entryReadScope.current;
+    if (!scope || scope.ownerKey !== ownerKey || scope.controller.signal.aborted) return;
+    const current = () => entryReadScope.current === scope && !scope.controller.signal.aborted;
     try {
-      const response = await fetch("/api/thesis-saved-views", { cache: "no-store" });
+      const response = await fetch("/api/thesis-saved-views", { cache: "no-store", signal: scope.controller.signal });
+      if (!current()) return;
       if (!response.ok) {
         setSavedViewsUnavailable(true);
         return;
       }
       const payload = await response.json();
+      if (!current()) return;
       if (!Array.isArray(payload.views)) {
         setSavedViewsUnavailable(true);
         return;
@@ -1223,9 +1236,10 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
       setSavedViewsTruncated(truncated);
       setSavedViewsLimit(!truncated && payload.views.length >= MAX_SAVED_VIEWS);
     } catch {
+      if (!current()) return;
       setSavedViewsUnavailable(true);
     }
-  }, []);
+  }, [ownerKey]);
 
   // Round-5 review (Meta-CEO B ruling R3b): the route answers every rejection with
   // `{ error }`; a body that is not JSON at all (a proxy's own 400 page) resolves to
@@ -1497,8 +1511,12 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
   }, [copy.confirmDiscard, isDirty, pending]);
 
   const loadList = useCallback(async () => {
+    const scope = entryReadScope.current;
+    if (!scope || scope.ownerKey !== ownerKey || scope.controller.signal.aborted) return;
+    const current = () => entryReadScope.current === scope && !scope.controller.signal.aborted;
     try {
-      const response = await fetch("/api/theses", { cache: "no-store" });
+      const response = await fetch("/api/theses", { cache: "no-store", signal: scope.controller.signal });
+      if (!current()) return;
       if (response.status === 401) return setListState("session_expired");
       if (!response.ok) {
         setListState("unavailable");
@@ -1506,6 +1524,7 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
         return;
       }
       const payload = await response.json();
+      if (!current()) return;
       if (!Array.isArray(payload.theses)) {
         setListState("unavailable");
         setMobilePane("list");
@@ -1515,10 +1534,11 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
       setTruncated(payload.truncated === true);
       setListState("ready");
     } catch {
+      if (!current()) return;
       setListState("unavailable");
       setMobilePane("list");
     }
-  }, []);
+  }, [ownerKey]);
 
   const writeRoute = useCallback((url: URL, mode: "push" | "replace") => {
     if (url.href === window.location.href) return;
@@ -1678,8 +1698,11 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
     if (invalidLink) return;
     // Start external synchronization in a microtask: the effect itself performs no synchronous
     // React state transition, and both loaders update only after their first network boundary.
-    void Promise.resolve().then(() => loadList());
-    void Promise.resolve().then(() => loadSavedViews());
+    const scope = entryReadScope.current;
+    let active = true;
+    const current = () => active && entryReadScope.current === scope && !!scope && !scope.controller.signal.aborted;
+    void Promise.resolve().then(() => { if (current()) return loadList(); });
+    void Promise.resolve().then(() => { if (current()) return loadSavedViews(); });
     // A lazy workspace can mount after a quick Back/Forward has already changed
     // the browser route. Reconcile that route rather than missing the earlier popstate.
     const params = new URLSearchParams(window.location.search);
@@ -1693,13 +1716,14 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
       const mountedContext = company ? parseMarketOntologyContext(params) : null;
       const contextCandidate = mountedContext ? { context: mountedContext, company } : null;
       void Promise.resolve().then(() => {
-        if (token !== detailRequest.current) return;
+        if (!current() || token !== detailRequest.current) return;
         setSelectedId(thesisId);
         setDetailState("loading");
         setMobilePane("detail");
         return loadDetail(thesisId, token, contextCandidate);
       });
     }
+    return () => { active = false; };
   }, [initialSymbolKey, initialThesisId, invalidLink, loadDetail, loadList, loadSavedViews, ownerKey]);
 
   useEffect(() => {
