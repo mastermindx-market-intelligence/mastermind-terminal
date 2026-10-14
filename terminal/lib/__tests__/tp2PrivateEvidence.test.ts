@@ -247,3 +247,76 @@ describe("separately versioned R0 descriptive sidecar (not a numeric join)",()=>
       expect(()=>decodeR0(alteredR0(edit))).toThrow(Tp2PrivateRefusal);
     });
 });
+
+// Fixed source-boundary regressions; no market/source authentication is asserted.
+import { describe as boundaryDescribe, it as boundaryIt, expect as boundaryExpect } from "vitest";
+import { readFileSync as boundaryReadFile } from "node:fs";
+import { createHash as boundaryHash } from "node:crypto";
+import { decodeTp2PrivateArtifact as boundaryTp2, decodeTp2R0Sidecar as boundaryR0 } from "../tp2PrivateEvidence";
+
+boundaryDescribe("TP2 original-clock and R0 signed-width boundaries", () => {
+  type BoundaryDoc = Record<string, unknown> & {
+    view_asof_ns_decimal: string;
+    tp1_provisional_minute: Record<string, string>;
+    observed_proxy: Record<string, unknown>;
+    intraday_minute_baseline: Record<string, unknown>;
+  };
+  function fixture(kind: "tp2" | "r0"): BoundaryDoc {
+    const name = kind === "tp2" ? "tp2PrivateView" : "tp2R0Sidecar";
+    const raw = boundaryReadFile(new URL(`./fixtures/${name}.synthetic.v0.json`, import.meta.url));
+    boundaryExpect(raw.length).toBe(kind === "tp2" ? 3394 : 1541);
+    boundaryExpect(boundaryHash("sha256").update(raw).digest("hex")).toBe(kind === "tp2"
+      ? "8c1ee4f865566f013d7a5805fccdd11c031223d39c6d8ec6b66968cbdc35f60b"
+      : "fe03401a908d26230aa6f8426f9dd9318249a0cdd2eac256ed93786a0a48b715");
+    return JSON.parse(raw.toString("utf8")) as BoundaryDoc;
+  }
+  function canonical(value: unknown): string {
+    if (value === null || typeof value !== "object") {
+      const text = JSON.stringify(value);
+      if (text === undefined) throw new Error("Fixture contains undefined");
+      return text;
+    }
+    if (Array.isArray(value)) return "[" + value.map(canonical).join(",") + "]";
+    return "{" + Object.keys(value).sort().map(key => JSON.stringify(key) + ":" + canonical((value as Record<string, unknown>)[key])).join(",") + "}";
+  }
+  function read(kind: "tp2" | "r0", doc: BoundaryDoc) {
+    const bytes = Buffer.from(canonical(doc) + "\n");
+    const input = { bytes, expectedSha256: boundaryHash("sha256").update(bytes).digest("hex"),
+      expectedLength: bytes.length, requestedAsOfNs: doc.view_asof_ns_decimal };
+    return kind === "tp2" ? boundaryTp2(input) : boundaryR0(input);
+  }
+  function decimal(width: number, negative: boolean): string {
+    const value = (negative ? "-" : "") + "0." + "0".repeat(width - (negative ? 4 : 3)) + "1";
+    boundaryExpect(value.length).toBe(width);
+    return value;
+  }
+  boundaryIt.each(["tp2", "r0"] as const)("preserves frozen %s bytes", kind => {
+    boundaryExpect(() => read(kind, fixture(kind))).not.toThrow();
+  });
+  boundaryIt.each([-1, 0, 1])("checks watermark minus minute end = %s ns", delta => {
+    const doc = fixture("tp2");
+    const minute = doc.tp1_provisional_minute;
+    minute.watermark_available_ns_decimal = (BigInt(minute.minute_end_ns_decimal) + BigInt(delta)).toString();
+    if (delta < 0) boundaryExpect(() => read("tp2", doc)).toThrow("tp2_private:tp1:future_or_misaligned_clock");
+    else boundaryExpect(() => read("tp2", doc)).not.toThrow();
+  });
+  for (const field of ["pressure_balance", "completed_window_midpoint_response_bps"] as const) {
+    for (const negative of [false, true]) {
+      boundaryIt.each([543, 544, 545, 1024])(`${field} negative=${negative}, width=%s`, width => {
+        const doc = fixture("r0");
+        doc.observed_proxy[field] = decimal(width, negative);
+        const reason = field === "pressure_balance" ? "r0.pressure_balance" : "r0.window_response";
+        if (width > 544) boundaryExpect(() => read("r0", doc)).toThrow(`tp2_private:${reason}:bounded_decimal`);
+        else boundaryExpect(() => read("r0", doc)).not.toThrow();
+      });
+    }
+  }
+  for (const negative of [false, true]) {
+    boundaryIt.each([545, 1024, 1025])(`preserves distinct TP-B z width, negative=${negative}, width=%s`, width => {
+      const doc = fixture("tp2");
+      doc.intraday_minute_baseline.robust_z = decimal(width, negative);
+      if (width > 1024) boundaryExpect(() => read("tp2", doc)).toThrow("tp2_private:minute:robust_z:bounded_decimal");
+      else boundaryExpect(() => read("tp2", doc)).not.toThrow();
+    });
+  }
+});

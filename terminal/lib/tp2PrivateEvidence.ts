@@ -258,7 +258,7 @@ function fraction(x: unknown,name:string): string {
   return v.text;
 }
 function signedRange(x:unknown,name:string):string {
-  const v=numeric(x,name,{signed:true,maxWidth:1024});
+  const v=numeric(x,name,{signed:true,maxWidth:544});
   if(cmp(v.exact,{numerator:BigInt(1),scale:0})>0 ||
      cmp(v.exact,{numerator:BigInt(-1),scale:0})<0) return fail(name+":outside_unit");
   return v.text;
@@ -421,7 +421,7 @@ function readProvisional(x:unknown,identity:{ticker:string;session:string},cutof
   const watermark=ns(p.watermark_available_ns_decimal,"tp1.watermark");
   const open=sessionOpen(identity.session);
   if(start<open||start%MINUTE_NS!==BigInt(0)||end-start!==MINUTE_NS||
-     end>open+BigInt(390)*MINUTE_NS||decision<end||watermark>decision||
+     end>open+BigInt(390)*MINUTE_NS||decision<end||watermark<end||watermark>decision||
      decision>cutoff) fail("tp1:future_or_misaligned_clock");
   const total=count(p.sampled_prints,"tp1.count",10000);
   const lit=count(p.sampled_lit_prints,"tp1.lit",total);
@@ -572,7 +572,7 @@ export function decodeTp2R0Sidecar(input:PrivateBytesInput):Tp2R0Projection {
     const balance=p.pressure_balance===null?null:
       signedRange(p.pressure_balance,"r0.pressure_balance");
     const response=p.completed_window_midpoint_response_bps===null?null:
-      numeric(p.completed_window_midpoint_response_bps,"r0.window_response",{signed:true,maxWidth:1024}).text;
+      numeric(p.completed_window_midpoint_response_bps,"r0.window_response",{signed:true,maxWidth:544}).text;
     ns(p.quote_age_policy_ns_decimal,"r0.quote_age_policy");
     const recoveryStates=[
       "UNKNOWN","MEASURED_NBBO_SIZE_PROXY_NOT_ORDER_REPLENISHMENT"];
