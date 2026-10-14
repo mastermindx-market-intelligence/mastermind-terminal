@@ -1,13 +1,22 @@
 /* LOCAL browser qualification for the Rotation measured-coverage receipt + A42/A45.
  * Composes real owner bytes from INPUT_DIR, intercepts /api/sector-intelligence in a
  * local Next dev server, and proves the receipt line, state matrix and access loss.
- * Never a production proof. From terminal: node e2e/tools/qualify_sector_measured_receipt.cjs INPUT_DIR PORT RUN_NAME
+ * Never a production proof. From terminal: node e2e/tools/qualify_sector_measured_receipt.cjs INPUT_DIR PORT RUN_NAME [--capture tall]
+ *
+ * --capture tall (LR-T18-TERM-EV2): for every 1440 cell, before screenshotting, find any
+ * scroll-overflow container, grow the viewport to its full content height, and screenshot
+ * with fullPage:false. Without this flag the harness preserves the original r1 capture.
  */
 const fs = require("node:fs"), path = require("node:path"), crypto = require("node:crypto");
 const { chromium, webkit, expect } = require("@playwright/test");
 const input = process.argv[2], port = process.argv[3] || "3171", run = process.argv[4] || "r1";
+const tallMode = (() => {
+  const a = process.argv[5], b = process.argv[6];
+  if (!a) return false;
+  return a === "--capture" ? b === "tall" : /^tall/i.test(a);
+})();
 if (!input || !/^\d{4,5}$/.test(port) || !/^[a-z0-9-]+$/.test(run)) {
-  console.error("usage: node e2e/tools/qualify_sector_measured_receipt.cjs INPUT_DIR PORT RUN_NAME"); process.exit(2);
+  console.error("usage: node e2e/tools/qualify_sector_measured_receipt.cjs INPUT_DIR PORT RUN_NAME [--capture tall]"); process.exit(2);
 }
 const origin = `http://localhost:${port}`;
 const out = path.resolve(`../docs/pr-crops/lr-t18-terminal-measured/${run}`);
@@ -28,6 +37,123 @@ const report = { transport: "local interception", productionProof: false, inputs
 function check(name, ok, details) { report.checks.push({ name, passed: !!ok, details }); return !!ok; }
 function gap(name, details) { report.gaps.push({ name, details }); }
 function shot(file) { report.screenshots.push({ name: path.basename(file), sha256: crypto.createHash("sha256").update(fs.readFileSync(file)).digest("hex") }); }
+
+// --- LR-T18-TERM-EV2 tall capture helpers ---
+function selectorOf(el) {
+  const parts = [];
+  let cur = el, depth = 0;
+  while (cur && cur.nodeType === 1 && cur !== document.body && parts.length < 6) {
+    let s = cur.tagName.toLowerCase();
+    const id = cur.getAttribute && cur.getAttribute("id");
+    if (id) s += `#${id}`;
+    else {
+      const cls = (cur.getAttribute && cur.getAttribute("class")) || "";
+      if (cls) s += "." + cls.split(/\s+/).filter(Boolean).slice(0, 2).join(".");
+    }
+    const tid = cur.getAttribute && cur.getAttribute("data-testid");
+    if (tid) s += `[data-testid="${tid}"]`;
+    parts.unshift(s);
+    cur = cur.parentElement; depth++;
+  }
+  return parts.join(" > ");
+}
+async function findOverflows(page) {
+  return await page.evaluate(() => {
+    const out = [];
+    const all = document.querySelectorAll("*");
+    for (const el of all) {
+      const cs = getComputedStyle(el);
+      if (cs.overflowY !== "auto" && cs.overflowY !== "scroll") continue;
+      if (el.scrollHeight <= el.clientHeight + 2) continue;
+      const rect = el.getBoundingClientRect();
+      out.push({
+        selector: (() => {
+          const parts = [];
+          let cur = el, n = 0;
+          while (cur && cur.nodeType === 1 && cur !== document.body && parts.length < 6) {
+            let s = cur.tagName.toLowerCase();
+            const id = cur.getAttribute && cur.getAttribute("id");
+            if (id) s += `#${id}`;
+            else {
+              const cls = (cur.getAttribute && cur.getAttribute("class")) || "";
+              if (cls) s += "." + cls.split(/\s+/).filter(Boolean).slice(0, 2).join(".");
+            }
+            const tid = cur.getAttribute && cur.getAttribute("data-testid");
+            if (tid) s += `[data-testid="${tid}"]`;
+            parts.unshift(s);
+            cur = cur.parentElement; n++;
+          }
+          return parts.join(" > ");
+        })(),
+        scrollHeight: el.scrollHeight,
+        clientHeight: el.clientHeight,
+        top: rect.top + window.scrollY,
+        bottom: rect.top + window.scrollY + el.scrollHeight,
+      });
+    }
+    return { docH: document.documentElement.scrollHeight, vpH: window.innerHeight, overflows: out };
+  });
+}
+async function tallExpand(page, width, label) {
+  const initial = await findOverflows(page);
+  const overflowsBottom = initial.overflows.map(o => o.bottom);
+  const need = Math.min(4200, 24 + Math.max(initial.docH, initial.vpH, ...(overflowsBottom.length ? overflowsBottom : [0])));
+  console.log(`[tall] ${label} width=${width} docH=${initial.docH} vpH=${initial.vpH} overflows=${JSON.stringify(initial.overflows)} → need=${need}`);
+  await page.setViewportSize({ width, height: need });
+  await page.waitForTimeout(500);
+  const after = await findOverflows(page);
+  const stillOver = after.overflows.filter(o => o.bottom > after.vpH + 2);
+  console.log(`[tall] ${label} after resize vpH=${after.vpH} stillOver=${JSON.stringify(stillOver)}`);
+  return { ok: stillOver.length === 0, need, after, initial };
+}
+async function rotationBottomEdge(page) {
+  return await page.evaluate(() => {
+    const rot = document.querySelector('[data-testid="sector-rotation"]');
+    if (!rot) return null;
+    const rect = rot.getBoundingClientRect();
+    return { top: rect.top + window.scrollY, bottom: rect.bottom + window.scrollY, vh: window.innerHeight };
+  });
+}
+async function historyPaneRect(page) {
+  return await page.evaluate(() => {
+    const pane = document.querySelector('[data-testid="rotation-history"]');
+    if (!pane) return null;
+    const rect = pane.getBoundingClientRect();
+    return { top: rect.top, bottom: rect.bottom, left: rect.left, right: rect.right, vh: window.innerHeight,
+      visible: rect.top >= 0 && rect.bottom <= window.innerHeight };
+  });
+}
+async function pixelSanity(browser, file) {
+  const buf = fs.readFileSync(file);
+  const dataUrl = `data:image/png;base64,${buf.toString("base64")}`;
+  const context = await browser.newContext();
+  try {
+    const page = await context.newPage();
+    const result = await page.evaluate(async (url) => {
+      const img = new Image();
+      await new Promise((res, rej) => { img.onload = res; img.onerror = rej; img.src = url; });
+      const w = img.naturalWidth, h = img.naturalHeight;
+      const canvas = document.createElement("canvas"); canvas.width = w; canvas.height = h;
+      const ctx = canvas.getContext("2d"); ctx.drawImage(img, 0, 0);
+      const data = ctx.getImageData(0, 0, w, h).data;
+      const bottomStart = Math.floor(h * 0.75);
+      let uniformRows = 0;
+      for (let y = bottomStart; y < h; y++) {
+        const counts = new Map();
+        for (let x = 0; x < w; x++) {
+          const i = (y * w + x) * 4;
+          const key = (data[i] << 16) | (data[i + 1] << 8) | data[i + 2];
+          counts.set(key, (counts.get(key) || 0) + 1);
+        }
+        let max = 0; for (const c of counts.values()) if (c > max) max = c;
+        if (max / w >= 0.98) uniformRows++;
+      }
+      const total = h - bottomStart;
+      return { width: w, height: h, uniformRows, total, fraction: total ? uniformRows / total : 0 };
+    }, dataUrl);
+    return result;
+  } finally { await context.close(); }
+}
 
 // --- inputs: frozen bytes only ---
 const raw = {};
@@ -181,7 +307,13 @@ async function rotationReady(page, variant, lang = "en") {
           const lineHeight = parseFloat(style.lineHeight) || parseFloat(style.fontSize) * 1.4;
           check(`${label}: coverage line wraps on the 390 viewport`, style.height >= lineHeight * 1.9, { height: style.height, lineHeight });
         }
-        await page.screenshot({ path: path.join(out, `chromium-${width}-${lang}-${theme}-aligned.png`), fullPage: true });
+        if (tallMode && width === 1440) {
+          const expand = await tallExpand(page, width, `A/chromium-${width}-${lang}-${theme}`);
+          check(`${label}: tall viewport resize leaves no overflowing container`, expand.ok, { need: expand.need, vpH: expand.after.vpH });
+          const rotEdge = await rotationBottomEdge(page);
+          check(`${label}: rotation root bottom edge ≤ viewport height`, rotEdge && rotEdge.bottom <= rotEdge.vh + 2, rotEdge);
+        }
+        await page.screenshot({ path: path.join(out, `chromium-${width}-${lang}-${theme}-aligned.png`), fullPage: !tallMode || width !== 1440 });
         shot(path.join(out, `chromium-${width}-${lang}-${theme}-aligned.png`));
       } catch (error) { report.errors.push({ label, message: error.message }); check(`${label}: cell completed`, false, error.message); }
       await context.close();
@@ -208,6 +340,12 @@ async function rotationReady(page, variant, lang = "en") {
           check(`${label}: coverage line equals the ${state} oracle exactly`, text === oracle(state, lang), text);
           lines[`${state}-${lang}`] = text;
         }
+        if (tallMode) {
+          const expand = await tallExpand(page, 1440, `B/state-${state}-1440-${lang}-${theme}`);
+          check(`${label}: tall viewport resize leaves no overflowing container`, expand.ok, { need: expand.need, vpH: expand.after.vpH });
+          const rotEdge = await rotationBottomEdge(page);
+          check(`${label}: rotation root bottom edge ≤ viewport height`, rotEdge && rotEdge.bottom <= rotEdge.vh + 2, rotEdge);
+        }
         const file = path.join(out, `state-${state}-1440-${lang}-${theme}.png`);
         await rotation.screenshot({ path: file }); shot(file);
       } catch (error) { report.errors.push({ label, message: error.message }); check(`${label}: cell completed`, false, error.message); }
@@ -218,6 +356,12 @@ async function rotationReady(page, variant, lang = "en") {
       const { context, page } = await openCell(browser, { width: 1440, height: 900, lang: "en", theme, variant: "aligned" });
       try {
         const { rotation } = await rotationReady(page, "aligned", "en");
+        if (tallMode) {
+          const expand = await tallExpand(page, 1440, `B/aligned-1440-en-${theme}`);
+          check(`B/aligned-1440-en-${theme}: tall viewport resize leaves no overflowing container`, expand.ok, { need: expand.need, vpH: expand.after.vpH });
+          const rotEdge = await rotationBottomEdge(page);
+          check(`B/aligned-1440-en-${theme}: rotation root bottom edge ≤ viewport height`, rotEdge && rotEdge.bottom <= rotEdge.vh + 2, rotEdge);
+        }
         const file = path.join(out, `state-aligned-1440-en-${theme}.png`);
         await rotation.screenshot({ path: file }); shot(file);
       } catch (error) { report.errors.push({ label: `B/aligned-1440-en-${theme}`, message: error.message }); }
@@ -243,6 +387,14 @@ async function rotationReady(page, variant, lang = "en") {
         await rotation.locator('[data-sector-rotation-point="xlk"]').click();
         await expect(page).toHaveURL(/sector=xlk/);
         check(`${label}: sector selection still responds while history fails`, new URL(page.url()).searchParams.get("sector") === "xlk", page.url());
+        if (tallMode) {
+          const expand = await tallExpand(page, 1440, `C/a42-history-error-1440-en-${theme}`);
+          check(`${label}: tall viewport resize leaves no overflowing container`, expand.ok, { need: expand.need, vpH: expand.after.vpH });
+          const rotEdge = await rotationBottomEdge(page);
+          check(`${label}: rotation root bottom edge ≤ viewport height`, rotEdge && rotEdge.bottom <= rotEdge.vh + 2, rotEdge);
+          const histRect = await historyPaneRect(page);
+          check(`${label}: history pane is inside the viewport and visible`, !!histRect && histRect.visible, histRect);
+        }
         const file = path.join(out, `a42-history-error-1440-en-${theme}.png`);
         await rotation.screenshot({ path: file }); shot(file);
       } catch (error) { report.errors.push({ label, message: error.message }); check(`${label}: cell completed`, false, error.message); }
@@ -255,6 +407,36 @@ async function rotationReady(page, variant, lang = "en") {
         const { rotation, coverage } = await rotationReady(page, "aligned", "en");
         check(`${label}: receipt status unavailable also keeps the full plotted population`, await rotation.locator("[data-sector-rotation-point]").count() === 11, "11 points");
         check(`${label}: coverage line unaffected by the unavailable receipt status`, (await coverage.innerText()) === oracle("aligned", "en"), await coverage.innerText());
+        if (tallMode) {
+          const expand = await tallExpand(page, 1440, `C/a42-history-unavailable-1440-en-dark`);
+          check(`${label}: tall viewport resize leaves no overflowing container`, expand.ok, { need: expand.need, vpH: expand.after.vpH });
+          const rotEdge = await rotationBottomEdge(page);
+          check(`${label}: rotation root bottom edge ≤ viewport height`, rotEdge && rotEdge.bottom <= rotEdge.vh + 2, rotEdge);
+          const histRect = await historyPaneRect(page);
+          check(`${label}: history pane is inside the viewport and visible`, !!histRect && histRect.visible, histRect);
+          const file = path.join(out, `a42-history-unavailable-1440-en-dark.png`);
+          await rotation.screenshot({ path: file }); shot(file);
+        }
+      } catch (error) { report.errors.push({ label, message: error.message }); check(`${label}: cell completed`, false, error.message); }
+      await context.close();
+    }
+    {
+      const label = "C/a42-history-unavailable-1440-en-light";
+      const { context, page } = await openCell(browser, { width: 1440, height: 900, lang: "en", theme: "light", variant: "aligned", historyFailure: { http: 503, receiptStatus: "unavailable" } });
+      try {
+        const { rotation, coverage } = await rotationReady(page, "aligned", "en");
+        check(`${label}: receipt status unavailable also keeps the full plotted population`, await rotation.locator("[data-sector-rotation-point]").count() === 11, "11 points");
+        check(`${label}: coverage line unaffected by the unavailable receipt status`, (await coverage.innerText()) === oracle("aligned", "en"), await coverage.innerText());
+        if (tallMode) {
+          const expand = await tallExpand(page, 1440, `C/a42-history-unavailable-1440-en-light`);
+          check(`${label}: tall viewport resize leaves no overflowing container`, expand.ok, { need: expand.need, vpH: expand.after.vpH });
+          const rotEdge = await rotationBottomEdge(page);
+          check(`${label}: rotation root bottom edge ≤ viewport height`, rotEdge && rotEdge.bottom <= rotEdge.vh + 2, rotEdge);
+          const histRect = await historyPaneRect(page);
+          check(`${label}: history pane is inside the viewport and visible`, !!histRect && histRect.visible, histRect);
+          const file = path.join(out, `a42-history-unavailable-1440-en-light.png`);
+          await rotation.screenshot({ path: file }); shot(file);
+        }
       } catch (error) { report.errors.push({ label, message: error.message }); check(`${label}: cell completed`, false, error.message); }
       await context.close();
     }
@@ -273,6 +455,12 @@ async function rotationReady(page, variant, lang = "en") {
         const leaked = [...measuredNumbers].filter(value => text.includes(value));
         check(`${label}: none of the fixture's measured rs numbers appear`, leaked.length === 0, { checked: measuredNumbers.size, leaked });
         check(`${label}: no measured vocabulary renders`, !text.includes("Measured") && !text.includes("已测"), text.slice(0, 120));
+        if (tallMode) {
+          const expand = await tallExpand(page, 1440, `D/access-1440-en-dark`);
+          check(`${label}: tall viewport resize leaves no overflowing container`, expand.ok, { need: expand.need, vpH: expand.after.vpH });
+          const rotEdge = await rotationBottomEdge(page);
+          check(`${label}: rotation root bottom edge ≤ viewport height`, rotEdge && rotEdge.bottom <= rotEdge.vh + 2, rotEdge);
+        }
         const file = path.join(out, `access-1440-en-dark.png`);
         await rotation.screenshot({ path: file }); shot(file);
       } catch (error) { report.errors.push({ label, message: error.message }); check(`${label}: cell completed`, false, error.message); }
@@ -362,14 +550,30 @@ async function rotationReady(page, variant, lang = "en") {
     }
 
     check("zero page exceptions", report.errors.length === 0, report.errors);
+
+    // --- LR-T18-TERM-EV2 pixel sanity: fraction of bottom rows that are ≥98% one colour ---
+    if (tallMode) {
+      const sanity = [];
+      for (const shot of report.screenshots) {
+        const file = path.join(out, shot.name);
+        try {
+          const s = await pixelSanity(browser, file);
+          sanity.push({ name: shot.name, width: s.width, height: s.height, fraction: Number(s.fraction.toFixed(4)) });
+          const isLight1440 = /^chromium-1440-.*-aligned\.(png)$/.test(shot.name);
+          if (isLight1440) check(`pixel/${shot.name}: bottom-25% uniform-row fraction < 0.5`, s.fraction < 0.5, { width: s.width, height: s.height, uniformRows: s.uniformRows, total: s.total, fraction: s.fraction });
+        } catch (error) { report.errors.push({ label: `pixel/${shot.name}`, message: error.message }); }
+      }
+      report.pixelSanity = sanity;
+    }
   } finally {
     if (browser) await browser.close();
     const failed = report.checks.filter(row => !row.passed);
     const receiptWrong = failed.some(row => /oracle/.test(row.name));
     const mapBroken = failed.some(row => /plotted population|selection still responds/.test(row.name));
-    report.verdict = receiptWrong || mapBroken ? "FAILED" : failed.length ? "PASS-WITH-GAPS" : "PASS";
+    const pixelBroken = failed.some(row => /^pixel\/chromium-1440-.*light/.test(row.name));
+    report.verdict = receiptWrong || mapBroken || pixelBroken ? "FAILED" : failed.length ? "PASS-WITH-GAPS" : "PASS";
     if (report.gaps.length && report.verdict === "PASS") report.verdict = "PASS-WITH-GAPS";
     fs.writeFileSync(path.join(out, "qualification.json"), JSON.stringify(report, null, 2) + "\n");
-    console.log(JSON.stringify({ verdict: report.verdict, checks: `${report.checks.length - failed.length}/${report.checks.length}`, failed, errors: report.errors, gaps: report.gaps, keyboard: report.keyboard, touch: report.touch, screenshots: report.screenshots.length }, null, 2));
+    console.log(JSON.stringify({ verdict: report.verdict, checks: `${report.checks.length - failed.length}/${report.checks.length}`, failed, errors: report.errors, gaps: report.gaps, keyboard: report.keyboard, touch: report.touch, screenshots: report.screenshots.length, pixelSanity: report.pixelSanity || null }, null, 2));
   }
 })();
