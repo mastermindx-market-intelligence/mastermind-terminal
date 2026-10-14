@@ -1,0 +1,181 @@
+{
+  "title": "Nine-Bar Exhaustion browser acceptance evidence",
+  "capturedAt": "2026-10-14T04:37:59.363429+00:00",
+  "sourceHead": "ccf1ecf014228c1cd34589a360fdbe52b52cb752",
+  "implementationFiles": {
+    "terminal/components/ChartPanel.tsx": "72fc6fa159b70752f619d87623c3f1d43a9971328d951016ed90a43d64ab4160",
+    "terminal/components/IndicatorSettings.tsx": "3855f2de534c1c64957c8964e8af7df432fc35ffc65f790b4de6e0006dcde88e",
+    "terminal/components/IndicatorsModal.tsx": "803b2773b4d1f769864936a7affc5e5a1c13d0e0b15a44ad4f0c1cf252a1acea",
+    "terminal/lib/indicator-canvas/host.ts": "e1338de4fa8a1df62aa3acb83fb8848f5526b53b91956e0a23cc929ebabc7946",
+    "terminal/lib/indicator-canvas/types.ts": "f8af9259bce3ca3bdb442c2adc19666d1bd270c2775ee272f58f56e9c5ab1e9c",
+    "terminal/lib/nineBarExhaustion.ts": "828f4b220af0c3f9a73697fff94a245f80047069507d29ddfb6412978c2b667d",
+    "terminal/lib/suiteAlertInputs.ts": "e1707d235a61e4575e63eeaab6caa21103c5c7f40c6eaa868930342e018c7628",
+    "terminal/lib/suiteAlerts.ts": "13a3725cc760266ea147b479d5caebdbd3e9c21d2140c936e3140c32ee772e8a",
+    "terminal/lib/suiteChartContext.ts": "7e535a45bd61b0f8e84ad9df63e89bc82c2c639771e0abece73872f22768e86f",
+    "terminal/lib/suites/catalog.ts": "e2df80c943ed44e54428d2a7b4bd9d53e3090958e315b060ad824c653e10c54c",
+    "terminal/lib/suites/trend/nineBarExhaustion.meta.ts": "119c8247de97d6da9aa45ec58a4315178af9b411b9cac0557fe7d78759c6477c",
+    "terminal/lib/suites/trend/nineBarExhaustion.ts": "93b642d0fc9a69e93e90ab034d5f40e6b03cacdfc32348f7a3cf14e145c4065b",
+    "terminal/e2e/nine-bar-exhaustion.spec.ts": "88a880305c1ecc9bb5ab4b9944442ac2207594f747342043b45cc527c8c6e9b6"
+  },
+  "capture": {
+    "surface": "Terminal Chart native study",
+    "harness": "/terminal?symbol=NVDA with deterministic Playwright route fixture",
+    "theme": "dark",
+    "viewports": {
+      "desktop": "1440x900",
+      "tablet": "820x1180",
+      "mobile": "390x844"
+    },
+    "languages": [
+      "en",
+      "zh"
+    ],
+    "directionModes": [
+      "west",
+      "east"
+    ],
+    "cases": [
+      "desktop/en/west",
+      "desktop/zh/east",
+      "tablet/en/west",
+      "tablet/zh/east",
+      "mobile/en/west",
+      "mobile/zh/east"
+    ],
+    "command": "PLAYWRIGHT_JSON_OUTPUT_NAME=<evidence>/nine-bar-e2e-report.json TERMINAL_E2E_PORT=3133 playwright test e2e/nine-bar-exhaustion.spec.ts --project=desktop --project=tablet --project=mobile --workers=1 --retries=0 --reporter=list,json"
+  },
+  "browserResults": {
+    "expected": 6,
+    "unexpected": 0,
+    "skipped": 0,
+    "flaky": 0,
+    "durationMs": 110240.58,
+    "reportSha256": "c6a197acbd42462b543d55846eca1f32add0b65e0ff9d8791d7180e5e08c0e6c"
+  },
+  "claimsVerified": [
+    "indicator-library discovery and enablement",
+    "localized module title, settings fields, options, tips, and tooltip copy",
+    "rising and falling finalized nine annotations",
+    "possible-exhaustion disclaimer rather than reversal guarantee",
+    "replay excludes future completions",
+    "timeframe switch rebuilds from current bars",
+    "saved settings survive reload",
+    "western and East-Asian directional color modes",
+    "desktop, tablet, and mobile layouts fit without horizontal overflow"
+  ],
+  "scope": {
+    "data": "deterministic local fixture; not a live-provider freshness claim",
+    "deployment": "local browser acceptance; not production deployment evidence",
+    "alerts": "alert logic is covered separately by canonical-kernel unit/integration tests"
+  },
+  "crops": {
+    "desktop-en-west-persisted.png": {
+      "sha256": "96a3886f010226cb2890ecb3bbf5422dd0311e644a0b1a767c4dee588037a407",
+      "bytes": 199727,
+      "width": 1440,
+      "height": 900
+    },
+    "desktop-en-west-replay.png": {
+      "sha256": "3a3deee78a7fc05bd4475ad33e6f06dadf69f31ff804f131452c27680f98528a",
+      "bytes": 197713,
+      "width": 1440,
+      "height": 900
+    },
+    "desktop-en-west-tooltip.png": {
+      "sha256": "a027575abbf0c4c5ff675c216e104e1919e748b7f76addb9de116ea4078808aa",
+      "bytes": 215818,
+      "width": 1440,
+      "height": 900
+    },
+    "desktop-zh-east-persisted.png": {
+      "sha256": "b0217254b35cd12e20b8ac07b055a51045b9bcb56ec6c8619b99f35fc5638b54",
+      "bytes": 205290,
+      "width": 1440,
+      "height": 900
+    },
+    "desktop-zh-east-replay.png": {
+      "sha256": "f022a70aa118b5481caacd6b6c1cc77a4bd44e503a54cf6a5ec5ded10faeb121",
+      "bytes": 204023,
+      "width": 1440,
+      "height": 900
+    },
+    "desktop-zh-east-tooltip.png": {
+      "sha256": "f96a3048c712482e05e59337122ab2709b0064df333628fd66d4f89733c944e0",
+      "bytes": 226747,
+      "width": 1440,
+      "height": 900
+    },
+    "mobile-en-west-persisted.png": {
+      "sha256": "0addc764dc2380d0ba209c0dac7ba9a42e0ff8a729359a73ce9c950f23354fa9",
+      "bytes": 81250,
+      "width": 390,
+      "height": 844
+    },
+    "mobile-en-west-replay.png": {
+      "sha256": "3c4792fcc77d7f09fbdd7d434d5868b90a10e91164464d35ef26f0df73ad2d7b",
+      "bytes": 102906,
+      "width": 390,
+      "height": 844
+    },
+    "mobile-en-west-tooltip.png": {
+      "sha256": "59f7a7f92c2e84999f0a8d8bbb463f2d32fd5215f70cabe0671d6d2fcbaf9148",
+      "bytes": 103315,
+      "width": 390,
+      "height": 844
+    },
+    "mobile-zh-east-persisted.png": {
+      "sha256": "7c17e71a2c9edcc9e6dbc04587cabb2d33d90bccc80e97358b74f6f8d7834f14",
+      "bytes": 83349,
+      "width": 390,
+      "height": 844
+    },
+    "mobile-zh-east-replay.png": {
+      "sha256": "fa0052ce588a4bb6f042c774760a156c7fba454f365a53efa23c5872564a844f",
+      "bytes": 99664,
+      "width": 390,
+      "height": 844
+    },
+    "mobile-zh-east-tooltip.png": {
+      "sha256": "e5512a194ca4855da3f99b7f44474b8d3c7bb64c5150894fa0c3bc74f17e5433",
+      "bytes": 100986,
+      "width": 390,
+      "height": 844
+    },
+    "tablet-en-west-persisted.png": {
+      "sha256": "4d1a72ef5846bbd51aae688c3a64b9ba156ef10ce60bec06a21bd953eab72a39",
+      "bytes": 147638,
+      "width": 820,
+      "height": 1180
+    },
+    "tablet-en-west-replay.png": {
+      "sha256": "07e51986b3b47db116f87ad186507af908c2f04696042cba48cf0bf09186475d",
+      "bytes": 136399,
+      "width": 820,
+      "height": 1180
+    },
+    "tablet-en-west-tooltip.png": {
+      "sha256": "c9704a7c1266b3cf2bc5e3c50c6efe3f09ed41eb1cc218eca107c9edb562f568",
+      "bytes": 167259,
+      "width": 820,
+      "height": 1180
+    },
+    "tablet-zh-east-persisted.png": {
+      "sha256": "85f63e186aa04b16c348e8642ee0be8909d23182762061adf4a67e0570395917",
+      "bytes": 145131,
+      "width": 820,
+      "height": 1180
+    },
+    "tablet-zh-east-replay.png": {
+      "sha256": "c8c53445a98958e25ec3705f53c3d2b8cbc98745dbca6c3e2ffc2a3d770171a5",
+      "bytes": 137492,
+      "width": 820,
+      "height": 1180
+    },
+    "tablet-zh-east-tooltip.png": {
+      "sha256": "dc9e3f6f6f23592033febcc88867c04e370a308b0cf9700d7579ea8a1d3a66d5",
+      "bytes": 165365,
+      "width": 820,
+      "height": 1180
+    }
+  }
+}
