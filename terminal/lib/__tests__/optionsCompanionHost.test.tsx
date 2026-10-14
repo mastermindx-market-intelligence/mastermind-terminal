@@ -36,14 +36,15 @@ const NO_PIN = () => {};
 const buttonsNamed = (name: string) => [...element.querySelectorAll<HTMLButtonElement>("button")]
   .filter((button) => (button.getAttribute("aria-label") ?? button.textContent ?? "").replace(/\s+/g, " ").trim() === name);
 
-async function renderHost(host: "rail" | "page", onClose?: () => void) {
-  fetchSnapshot.mockResolvedValue(asData(doc));
+async function renderHost(host: "rail" | "page", onClose?: () => void, payload: unknown = doc, selectCell = true) {
+  fetchSnapshot.mockResolvedValue(asData(payload));
   await act(async () => root.render(
     <LangProvider>
       <OptionsCompanion symbol="NVDA" access="allowed" host={host} onClose={onClose} pinned={null} onPin={NO_PIN} replayActive={false} />
     </LangProvider>,
   ));
   await act(async () => { await Promise.resolve(); await Promise.resolve(); });
+  if (!selectCell) return;
   const cell = element.querySelector<HTMLButtonElement>('[data-options-grid] button[data-value]:not([data-value="missing"])');
   expect(cell).toBeTruthy();
   await act(async () => cell!.click());
@@ -56,6 +57,41 @@ function pressEscape() {
 }
 
 describe("options companion host", () => {
+  it("page host shows 0/N coverage and an unavailable subtotal when every scoped metric is missing", async () => {
+    await renderHost("page", undefined, { ...doc, strikes: [192, 194], expiries: ["2026-09-25"], cells: [
+      { strike: 192, expiry: "2026-09-25", gex: null },
+      { strike: 194, expiry: "2026-09-25", gex: null },
+    ] }, false);
+    expect(element.querySelector("[data-options-grid]")).toBeTruthy();
+    const subtotal = element.querySelector('[data-testid="options-known-subtotal"]');
+    expect(subtotal).not.toBeNull();
+    expect(subtotal?.querySelector("b")?.textContent).toBe("—");
+    expect(subtotal?.querySelector("small")?.textContent).toContain("0/2");
+    expect(subtotal?.textContent).toContain("partial");
+    expect(element.querySelector("[data-options-total]")?.textContent).toBe("—");
+  });
+
+  it("page host counts a measured zero as known while withholding the incomplete total", async () => {
+    await renderHost("page", undefined, { ...doc, strikes: [192, 194], expiries: ["2026-09-25"], cells: [
+      { strike: 192, expiry: "2026-09-25", gex: 0 },
+      { strike: 194, expiry: "2026-09-25", gex: null },
+    ] });
+    const subtotal = element.querySelector('[data-testid="options-known-subtotal"]');
+    expect(subtotal?.querySelector("b")?.textContent).toBe("0");
+    expect(subtotal?.querySelector("small")?.textContent).toContain("1/2");
+    expect(subtotal?.textContent).toContain("partial");
+    expect(element.querySelector("[data-options-total]")?.textContent).toBe("—");
+  });
+
+  it("page host reports a complete measured zero without a partial subtotal", async () => {
+    await renderHost("page", undefined, { ...doc, strikes: [192, 194], expiries: ["2026-09-25"], cells: [
+      { strike: 192, expiry: "2026-09-25", gex: 0 },
+      { strike: 194, expiry: "2026-09-25", gex: 0 },
+    ] });
+    expect(element.querySelector('[data-testid="options-known-subtotal"]')).toBeNull();
+    expect(element.querySelector("[data-options-total]")?.textContent).toBe("0");
+  });
+
   it("rail host keeps the close button, chart pin, desk link and Escape-to-close", async () => {
     const onClose = vi.fn();
     await renderHost("rail", onClose);

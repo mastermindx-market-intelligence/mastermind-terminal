@@ -396,8 +396,8 @@ export function MatrixCompanion({ root, metric, prefs, onPrefs, t, ...pin }: Pin
       </div>
     ) : data && grid && grid.strikes.length > 0 && grid.exps.length > 0 ? <>
       <div className={styles.summary}>
-        {host === "page" && stats.missing && stats.knownTotal != null && <div className={styles.partialHeadline} data-testid="options-known-subtotal">
-          <span>{t("knownSubtotal")} · {t("partialShort")}</span><b>{fmtMatrixCell(stats.knownTotal, metric)}</b>
+        {host === "page" && stats.missing && stats.expected > 0 && <div className={styles.partialHeadline} data-testid="options-known-subtotal">
+          <span>{t("knownSubtotal")} · {t("partialShort")}</span><b>{stats.knownTotal == null ? "—" : fmtMatrixCell(stats.knownTotal, metric)}</b>
           <small>{stats.known}/{stats.expected} {t("gridPositions")}</small>
         </div>}
         <div><span>{t(headline)}</span><strong data-options-total className={metric === "gex" && stats.total != null ? (stats.total < 0 ? styles.negative : stats.total > 0 ? styles.positive : undefined) : undefined}>

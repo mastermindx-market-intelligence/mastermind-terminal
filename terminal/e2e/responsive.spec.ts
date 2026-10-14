@@ -799,11 +799,19 @@ test("the retired ?tab=prism deep-link opens the Exposure matrix", async ({ page
 
   // Named by its VISIBLE text. The chip deliberately carries no aria-label — one would
   // outrank the text in accessible-name computation and make this locator unmatchable.
+  await expect(page.getByTestId("gex-matrix-map")).toBeVisible({ timeout: 15_000 });
+  const views = page.locator(".obs-gexdesk-view-chooser");
+  await views.locator("summary").click();
   const matrixChip = page.getByRole("button", { name: zh ? "矩阵" : "Matrix", exact: true });
   await expect(matrixChip).toBeVisible({ timeout: 15_000 });
   await expect(matrixChip).toHaveAttribute("aria-pressed", "true");
 
-  // The matrix opens on the mid strike window.
+  await views.locator("summary").click();
+  const disclosure = page.getByTestId("gex-legacy-hedge-matrix");
+  await expect(disclosure).not.toHaveAttribute("open", "");
+  await disclosure.locator("summary").click();
+
+  // The legacy dealer grid opens on the mid strike window.
   await expect(page.getByRole("button", { name: "±6%", exact: true })).toHaveAttribute("aria-pressed", "true");
   await expect(page.getByRole("button", { name: "±3%", exact: true })).toHaveAttribute("aria-pressed", "false");
 
@@ -871,12 +879,9 @@ test("the retired ?tab=prism deep-link opens the Exposure matrix", async ({ page
     await expect.poll(() => unusualTrack.evaluate((el) => el.scrollLeft)).toBe(0);
   }
 
-  // PP1-D — the legacy dealer-hedge grid now sits behind a closed <details> in the
-  // Matrix view. Open the disclosure so the Strike table the legacy assertions target
-  // is actually on the page; do NOT change the assertion itself.
-  await page.getByTestId("gex-legacy-hedge-matrix").locator("summary").click();
-
-  const matrix = page.locator("table").filter({
+  // The shared gamma map also has a Strike table. Assert the explicitly opened
+  // dealer grid here, preserving its independent provenance and exact-side receipts.
+  const matrix = disclosure.locator("table").filter({
     has: page.getByRole("columnheader", { name: zh ? "行权价" : "Strike", exact: true }),
   });
   await expect(matrix).toBeVisible();
@@ -920,7 +925,7 @@ test("an archived session withholds the matrix instead of captioning today's gri
   // still describe a real DOM.
   await page.getByTestId("gex-legacy-hedge-matrix").locator("summary").click();
 
-  const matrix = page.locator("table").filter({
+  const matrix = page.getByTestId("gex-legacy-hedge-matrix").locator("table").filter({
     has: page.getByRole("columnheader", { name: "Strike", exact: true }),
   });
   await expect(matrix).toBeVisible({ timeout: 15_000 });

@@ -3,7 +3,8 @@ import { mkdirSync, writeFileSync } from "node:fs";
 import matrixFixture from "../public/data/matrix_fixture.json";
 type ChartDebugWindow = Window & {
   __mmChartAxisOpts?: () => { rowCount: number; optionsPin: { price: number; lineStyle: number } | null };
-  __mmChartOwnership?: () => { orphanPricePaneLines: number };
+  __mmChartOwnership?: () => { orphanPricePaneLines: number; orphanSeries: number; pricePaneLines: number; trackedPricePaneLines: number; live: { priceLines: number; series: number } };
+  __mmOptionsReady?: { symbol: string; timeframe: string; state: string; generation: number }[];
 };
 const crops = process.env.OPTIONS_COMPANION_CROPS || "docs/pr-crops/options-companion-20260923";
 const spy = matrixFixture.SPY;
@@ -37,6 +38,9 @@ async function prepare(page: Page, lang = "en", symbol = "SPY") {
   await page.addInitScript((locale) => {
     localStorage.setItem("mm.lang", locale); localStorage.removeItem("mm.optionsCompanion.v1");
     document.documentElement?.setAttribute("data-lang", locale);
+    const target = window as ChartDebugWindow;
+    target.__mmOptionsReady = [];
+    window.addEventListener("mm:terminal-visual-ready", (event) => target.__mmOptionsReady!.push((event as CustomEvent).detail));
   }, lang);
   await page.goto(`/terminal?symbol=${symbol}`);
   await expect(page.locator(".chart-wrap canvas").first()).toBeVisible({ timeout: 30_000 });
@@ -91,6 +95,47 @@ for (const lang of ["en", "zh"] as const) {
     const pinned = await chartPin(page); if (!pinned) throw new Error("Missing native price pin"); expect(pinned.price).toBeGreaterThan(0); expect(pinned.lineStyle).toBe(2);
     expect(await page.evaluate(() => (window as ChartDebugWindow).__mmChartOwnership?.()?.orphanPricePaneLines)).toBe(0);
     expect(await originalCanvas!.evaluate((canvas) => canvas.isConnected)).toBe(true);
+    if (info.project.name === "desktop" && lang === "en") {
+      const samples: unknown[] = [];
+      const readyGeneration = () => page.evaluate(() => Math.max(-1, ...(window as ChartDebugWindow).__mmOptionsReady?.filter(e => e.symbol === "SPY" && e.state === "data").map(e => e.generation) ?? []));
+      await expect.poll(readyGeneration, { timeout: 30_000 }).toBeGreaterThanOrEqual(0);
+      await expect(page.locator('.chart-type-pop .chart-type-row:has(span:text-is("Candles"))')).toHaveClass(/\bon\b/);
+      const census = () => page.evaluate(() => (window as ChartDebugWindow).__mmChartOwnership?.() ?? null);
+      const qualifyPin = async (label: string) => {
+        await expect.poll(async () => (await chartPin(page))?.price).toBe(pinned.price);
+        await expect.poll(async () => { const c = await census(); return c != null && c.orphanSeries === 0 && c.orphanPricePaneLines === 0 && c.pricePaneLines === c.trackedPricePaneLines; }).toBe(true);
+        const withPin = (await census())!;
+        await panel.getByRole("button", { name: "Remove chart pin", exact: true }).click();
+        await expect.poll(() => chartPin(page)).toBeNull();
+        await expect.poll(async () => { const c = await census(); return c != null && c.pricePaneLines === withPin.pricePaneLines - 1 && c.live.priceLines === withPin.live.priceLines - 1 && c.orphanPricePaneLines === 0; }).toBe(true);
+        const withoutPin = (await census())!;
+        await panel.getByRole("button", { name: "Pin strike on chart", exact: true }).click();
+        await expect.poll(async () => (await chartPin(page))?.price).toBe(pinned.price);
+        await expect.poll(async () => { const c = await census(); return c != null && c.pricePaneLines === withoutPin.pricePaneLines + 1 && c.live.priceLines === withoutPin.live.priceLines + 1 && c.orphanSeries === 0 && c.orphanPricePaneLines === 0; }).toBe(true);
+        samples.push({ label, withPin, withoutPin, repinned: await census() });
+      };
+      await qualifyPin("candles before switch");
+      const baseline = (await census())!;
+      for (const kind of ["Line", "Candles"]) {
+        const priorGeneration = await readyGeneration();
+        const since = await page.evaluate(() => (window as ChartDebugWindow).__mmOptionsReady?.length ?? 0);
+        await page.locator(".pophost:has(.chart-type-pop) > button.tbtn").first().click();
+        await page.locator(`.chart-type-row:has(span:text-is("${kind}"))`).first().click();
+        await expect(page.locator(`.chart-type-pop .chart-type-row:has(span:text-is("${kind}"))`)).toHaveClass(/\bon\b/);
+        await expect.poll(() => page.evaluate(({ from, previous }) => (window as ChartDebugWindow).__mmOptionsReady?.slice(from).some(e => e.symbol === "SPY" && e.state === "data" && e.generation > previous) ?? false, { from: since, previous: priorGeneration }), { timeout: 30_000 }).toBe(true);
+        samples.push({ selectedChartType: kind, priorGeneration, settledGeneration: await readyGeneration() });
+        await qualifyPin(kind);
+        const current = (await census())!;
+        expect(current.live.series, "settled replacement does not strand an old series").toBe(baseline.live.series);
+        expect(current.orphanSeries).toBe(0);
+        expect(await originalCanvas!.evaluate((canvas) => canvas.isConnected)).toBe(true);
+      }
+      mkdirSync(crops, { recursive: true });
+      writeFileSync(`${crops}/engine-owned-pin-candles-line-candles.json`, JSON.stringify({
+        sourceHead: process.env.OPTIONS_SOURCE_HEAD, sourceDiffSha256: process.env.OPTIONS_SOURCE_DIFF_SHA256,
+        testEnvironment: "dev/e2e ownership hooks; production remains disabled", samples,
+      }, null, 2));
+    }
     mkdirSync(crops, { recursive: true });
     await page.screenshot({ path: `${crops}/${info.project.name}-${lang}-gamma-pin.png`, fullPage: false });
     // The companion's scoped light treatment; this is not a new Terminal-wide theme switch.
@@ -1059,8 +1104,8 @@ for (const lang of ["en", "zh"] as const) {
       // The parked sheet is invisible (visibility:hidden), so hit-testing THROUGH it
       // must land on chart content. Inert can preserve this even if visibility is
       // removed, so assert the parked visibility independently below.
-      // Only exercised when the chart's clamped centre lies under the parked sheet's
-      // rect; otherwise the geometry does not reach the sheet and the case is skipped.
+      // A visible point in the chart / parked-sheet intersection is mandatory;
+      // missing overlap fails rather than silently skipping the hit-test proof.
       const chartHit = await page.evaluate(() => {
         const chart = document.querySelector(".chart-wrap") as HTMLElement | null;
         const sheet = document.querySelector("[data-detent]") as HTMLElement | null;
