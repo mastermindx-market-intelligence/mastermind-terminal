@@ -33,6 +33,7 @@ for (const oldFails of [false, true]) {
           await expect(root).toBeInViewport({ ratio: 1 });
         }
       }
+      await page.screenshot({ path: info.outputPath(`${info.project.name}-root-chooser-${oldFails ? "error" : "success"}.png`), fullPage: false });
       await qqq.click();
       const belt = page.getByRole("region", { name: zh ? "收盘期权结构背景" : "End-of-day options structure context", exact: true });
       const flip = belt.getByText(zh ? "伽马翻转" : "Gamma flip", { exact: true }).locator("..");
@@ -41,6 +42,11 @@ for (const oldFails of [false, true]) {
       release();
       await (await response).finished();
       await page.evaluate(() => new Promise<void>((resolve) => requestAnimationFrame(() => requestAnimationFrame(() => resolve()))));
+      await expect(page.getByRole("combobox", { name: zh ? "代码" : "Ticker", exact: true })).toHaveValue("QQQ");
+      // Switching the route root remounts the desk with its chooser closed.
+      if (await chooserSummary.isVisible() && await chooserSummary.locator("..").getAttribute("open") === null) {
+        await chooserSummary.click();
+      }
       await expect(page.getByRole("button", { name: "QQQ", exact: true })).toHaveClass(/\bon\b/);
       await expect(flip).toContainText("701");
       await expect(flip).not.toContainText("760");
