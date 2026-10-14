@@ -751,3 +751,39 @@ export function getSliceAndOhlc(sym: string): ChartDataReads {
 export async function getCompositeOhlc(legs: string[]): Promise<(any | null)[]> {
   return Promise.all(legs.map((leg) => getOhlc(leg).catch(() => null)));
 }
+
+// ── Data OS U02: view-aware OHLC identity ─────────────────────────────────────
+// v1 publishes exactly one view per URL (CURRENT_TRADJ_VIEW); the view key exists so
+// a future second view can never alias today's cache entry.
+
+export type OhlcView = { basis: string; revision: string; mode: string };
+export const CURRENT_TRADJ_VIEW: OhlcView = Object.freeze({ basis: "tradj", revision: "latest", mode: "CURRENT" });
+
+/** Identity of one OHLC read: canonical symbol + basis + revision + mode, or null for an unusable symbol. */
+export function ohlcViewKey(sym: string, view: OhlcView): string | null {
+  const symbol = canonicalChartSymbol(sym);
+  return symbol ? `${symbol}|${view.basis}|${view.revision}|${view.mode}` : null;
+}
+
+/** v1 serves exactly the CURRENT tradj view; anything else is refused before any fetch. */
+export function isSupportedOhlcView(view: OhlcView): boolean {
+  return view.basis === CURRENT_TRADJ_VIEW.basis
+    && view.revision === CURRENT_TRADJ_VIEW.revision
+    && view.mode === CURRENT_TRADJ_VIEW.mode;
+}
+
+export type OhlcViewOutcome = CacheOutcome | { status: "refused"; reason: "VIEW_UNSUPPORTED"; view: OhlcView };
+
+/**
+ * getOhlcView — the same /data/<SYM>.json read the chart performs, addressed by view.
+ * The supported view goes through the SAME getJSONResult/dataFileUrl path as
+ * getSliceAndOhlc(sym).ohlc (same URL, same cache entry, same in-flight collapse);
+ * an unsupported view refuses without a fetch and without writing any cache entry.
+ */
+export function getOhlcView(sym: string, view: OhlcView = CURRENT_TRADJ_VIEW): Promise<OhlcViewOutcome> {
+  if (!isSupportedOhlcView(view)) {
+    return Promise.resolve({ status: "refused", reason: "VIEW_UNSUPPORTED", view });
+  }
+  const url = dataFileUrl(sym, ".json");
+  return url ? getJSONResult(url) : Promise.resolve({ status: "absent" });
+}
