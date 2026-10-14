@@ -1,7 +1,7 @@
 {
   "schema": "mastermind.options_level_axis_evidence/v1",
-  "capturedAt": "2026-10-13T21:23:51.379Z",
-  "sourceHead": "3c4d40b177c649ceed1d78ee48363198558f4013",
+  "capturedAt": "2026-10-14T08:36:40.455Z",
+  "sourceHead": "2da4388fa54d3e63556193e5b4bcec301e481e51",
   "baseURL": "http://127.0.0.1:3586",
   "classification": "LOCAL_BROWSER_WITH_INTERCEPTED_OPTIONS_CONTRACT_PAYLOADS_NOT_PRODUCTION_DATA",
   "expectedLinePrices": [
@@ -13,7 +13,7 @@
     192.6
   ],
   "sourceFiles": {
-    "components/ChartPanel.tsx": "9024648be66ba5ac7cc53fd6cdd77f05ab3d664c7260244df6681706a1886d0a",
+    "components/ChartPanel.tsx": "fe4b3b6b1c8358b924b9bba956daa0b35a599fe274c605d10e18e6521e0ff80e",
     "lib/optionsLevels.ts": "f6e333449a16fde02736dbff905342e22330e1629a7c69c0ad632997daa593ec",
     "lib/priceTagPlacement.ts": "75798f32a3b1cf6432c38e076b4a9fac580e2ef402cb862596525a86a09465ff"
   },
@@ -23,7 +23,7 @@
       "width": 1440,
       "height": 900,
       "screenshot": "desktop.png",
-      "sha256": "47f4df2a1c0fb9e15462cfd1e3ada6016c3c164964f4c5ac45c37c3f8b1d34bc",
+      "sha256": "a36c3166f6e19c01b3c78da35142afb976e032e6a5fafac128334bc5faba7f67",
       "proof": {
         "labels": {
           "primaryTop": 106,
@@ -132,7 +132,7 @@
       "width": 820,
       "height": 1180,
       "screenshot": "tablet.png",
-      "sha256": "8aba59c10991f756879f9a202be3b2fff4595471b6ed5cffa7128feee8b9f16b",
+      "sha256": "0481bb9de2a1e01c79c1e5ec316a578e64450b020dc5ee35e3777b6f207d1148",
       "proof": {
         "labels": {
           "primaryTop": 38,
@@ -226,8 +226,8 @@
         "wrap": {
           "left": 0,
           "right": 820,
-          "top": 160,
-          "bottom": 606.796875,
+          "top": 146,
+          "bottom": 592.796875,
           "width": 820,
           "height": 446.796875
         }
@@ -241,7 +241,7 @@
       "width": 390,
       "height": 844,
       "screenshot": "mobile.png",
-      "sha256": "dbd58c2816edaa3c3b852089f51c33b0f463dbcd57599232cd48941da3f564ab",
+      "sha256": "0a4083c5f813f4f6121c82ed8f27267e21093e0ab57af1e6d86ac4fc04c7f7b6",
       "proof": {
         "labels": {
           "primaryTop": 46,
@@ -335,8 +335,8 @@
         "wrap": {
           "left": 0,
           "right": 390,
-          "top": 112,
-          "bottom": 457.609375,
+          "top": 98,
+          "bottom": 443.609375,
           "width": 390,
           "height": 345.609375
         }
@@ -352,7 +352,7 @@
       "left": true,
       "percentage": true,
       "screenshot": "desktop-left-percentage.png",
-      "sha256": "038579f39a17267a155c70a91ff5eab195add3ce20e9292e2e50e6a8ccf4fa94",
+      "sha256": "3226ed7ecb645eb9d267c6ed5d0a1ec9be11db0d9e7a4bea6ce4968f076923bf",
       "proof": {
         "labels": {
           "primaryTop": 106,
@@ -461,7 +461,7 @@
       "width": 1440,
       "height": 430,
       "screenshot": "desktop-compact.png",
-      "sha256": "943f729622dcf40daf9af935f48bb35d817523687adc02f8d3a8646dca56c112",
+      "sha256": "5852f713713dcc0635495fab209e947601e17c492098f93ad608c3e9dc6f9059",
       "proof": {
         "labels": {
           "primaryTop": 48,

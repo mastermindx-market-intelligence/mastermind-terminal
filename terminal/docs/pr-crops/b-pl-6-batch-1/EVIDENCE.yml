@@ -1,15 +1,15 @@
 # B-PL-6 batch 1 — capture evidence
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
 # Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
-# capturedAtHead: 5b4ae19b08234e371c5327222e77d10fc98c7404
-# capturedAt: 2026-10-13T20:59:18.449Z
+# capturedAtHead: 2da4388fa54d3e63556193e5b4bcec301e481e51
+# capturedAt: 2026-10-14T07:45:18.459Z
 # capturedAtHead is informational. The lock is layoutFiles.
 layoutFiles:
-  terminal/components/OptionsHubView.tsx: "7c194ce6ed4d67bae366db36b9ae5257a34ed283a9e1e8a079a101dd995f6e3c"
+  terminal/components/OptionsHubView.tsx: "041d1434d478a3a9adddc744948e286dfd76b17cc5e5146dab75a947207e35e3"
   terminal/components/SearchModal.tsx: "51b7b514f169a40db9644b502ddd0d933100a305aea55ea0f6a1fb028dbe69ad"
   terminal/components/StockAnalysis.tsx: "376a907d0d8ea3dc5819e0092f02e19ce56fa1f4b71a3489551adf52fddb35c0"
   terminal/components/workspaces/AnalysisWorkspace.tsx: "f98764b71e4e1301d6149aef0d3e47615455801f95a9691b4d8807febe92226e"
-  terminal/components/ChartPanel.tsx: "9024648be66ba5ac7cc53fd6cdd77f05ab3d664c7260244df6681706a1886d0a"
+  terminal/components/ChartPanel.tsx: "fe4b3b6b1c8358b924b9bba956daa0b35a599fe274c605d10e18e6521e0ff80e"
   terminal/components/DayRange.tsx: "c84724652783da1897ab4eeb98550eaf3dbd7942eefe3ce127b6ada2b16dd672"
   terminal/lib/plainLabels.ts: "8f57e32a21abcae530075b7c4da72f170afff8ea38084026995887b4a18fe29a"
   terminal/lib/i18n.tsx: "ffa0a6d8104d05fdad7244fadaa800d340afcb107c8c39a7f8311af3301367b9"

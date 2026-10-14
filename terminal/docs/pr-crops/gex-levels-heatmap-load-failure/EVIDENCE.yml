@@ -1,16 +1,16 @@
 # GEX desk, Levels and Heatmap failure-state truth — capture evidence
 # Terminal is dark-only: DEC:TERMINAL-SHELL-IS-DARK-ONLY-EVIDENCE-MATRIX-2026-09-06
 # Dev-indicator law: DSC:TERMINAL-N-BUBBLE-IN-390-CROPS-IS-THE-NEXTJS-DEV-INDICATOR
-# capturedAtHead: 3c4d40b177c649ceed1d78ee48363198558f4013
-# capturedAt: 2026-10-13T21:18:33.225Z
+# capturedAtHead: 2da4388fa54d3e63556193e5b4bcec301e481e51
+# capturedAt: 2026-10-14T07:52:52.970Z
 # capturedAtHead is informational. The lock is layoutFiles.
 layoutFiles:
-  terminal/app/globals.css: "44d173b3e1845ab17fec5728d8f9dec04007f6c0c6b3c3ffce61bc85d4b0d493"
-  terminal/components/gexdesk/GexDeskView.tsx: "f9e037eb90cb10ea0a943a9c16d11849c429b66f5b548f055b8860d83f938ef5"
+  terminal/app/globals.css: "8231d62d901189eaaa64a54f9beca566da161dd04305952e22dc2d41df732944"
+  terminal/components/gexdesk/GexDeskView.tsx: "4b7481f824085c0b7f79d57a00a0e013efeecf6d8942ab065e34149e408ce1bc"
   terminal/components/gexdesk/HeatSeekerCard.tsx: "308295e2b0143fe933948c97a14584e1e0d1eff9249a58104dd3587a2642c93a"
   terminal/components/gexdesk/MarketStateCard.tsx: "069c4a2f1a5f53e8f611e3231b78751948cc0264c8af6efd167f7b3e4902bbe2"
-  terminal/components/gexdesk/StrikeLadder.tsx: "a8ff63f3e50b033828ce3b82ecd7b87e7e3bbd3f69f9a47716b3c276334d8934"
-  terminal/components/gexdesk/gexStrings.ts: "7c60146790f218dc94c8f12f24bcda8657f15deb3664e5f666fbdc75416edc9b"
+  terminal/components/gexdesk/StrikeLadder.tsx: "55dccbef4e3bfebc09477f6d9a0133cf0bc5d70531d32d532e760ff214ed4596"
+  terminal/components/gexdesk/gexStrings.ts: "95b230ae321eaeac2d91f8172d569b913eb405a2398253d847384b222838afe1"
   terminal/components/heatmap/HeatmapView.tsx: "3b3ab5049715a33f167e344d3013b8f880356e8b96077b38c9a517c57b7a54cb"
   terminal/lib/dataCache.ts: "f8a7f978049e64482b385d43c13d49d05ddec2525e36457b365a2d083060e1be"
   terminal/components/levels/LevelsView.tsx: "91a4d6fd86b12225e657c8a9c4b2b185e3940356af3cd11466ca30e04f05b0c9"
