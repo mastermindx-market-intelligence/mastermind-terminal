@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
 import { useLang, useT } from "@/lib/i18n";
 import { subjectKindLabel } from "@/lib/plainLabels";
 import { parseAnalysisSearchParams } from "@/lib/analysisRoute";
@@ -116,7 +116,7 @@ const COPY = {
     notFound: "Thesis not found", notFoundBody: "That thesis does not exist or belongs to another account.",
     subject: "Subject", listingScoped: "Listing-scoped identity", titleLabel: "Title", statement: "Thesis statement",
     catalysts: "Catalysts", falsifiers: "What would prove this wrong", risks: "Risks", onePerLine: "One item per line",
-    horizon: "Horizon", effective: "Effective as of (optional)", effectiveHistory: "Effective as of", revision: "Revision note",
+    horizon: "Horizon", effective: "Effective as of (optional)", effectiveHistory: "Effective as of", localDateTime: "Local date and time", revision: "Revision note",
     save: "Save", saving: "Saving…", archive: "Archive", invalidate: "Invalidate", reopen: "Reopen",
     copyLink: "Copy link", copied: "Link copied", version: "Version", current: "Current",
     active: "Active", archived: "Archived", invalidated: "Invalidated", history: "Version history",
@@ -176,7 +176,7 @@ const COPY = {
     notFound: "未找到论点", notFoundBody: "该论点不存在，或属于另一个账户。",
     subject: "标的", listingScoped: "上市代码范围身份", titleLabel: "标题", statement: "论点陈述",
     catalysts: "催化因素", falsifiers: "什么情况会推翻这个判断", risks: "风险", onePerLine: "每行一项",
-    horizon: "时间范围", effective: "生效时间（可选）", effectiveHistory: "生效时间", revision: "修订说明",
+    horizon: "时间范围", effective: "生效时间（可选）", effectiveHistory: "生效时间", localDateTime: "本地日期和时间", revision: "修订说明",
     save: "保存", saving: "保存中…", archive: "归档", invalidate: "判定失效", reopen: "重新打开",
     copyLink: "复制链接", copied: "链接已复制", version: "版本", current: "当前",
     active: "有效", archived: "已归档", invalidated: "已失效", history: "版本历史",
@@ -545,6 +545,7 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
   const { lang } = useLang();
   const t = useT();
   const copy = COPY[lang];
+  const effectiveReadoutId = useId();
   const initialSymbolKey = normalizeAnalysisSymbol(initialSymbol) ?? "";
   const [listState, setListState] = useState<LoadState>(invalidLink ? "ready" : "loading");
   const [detailState, setDetailState] = useState<DetailState>(initialThesisId ? "loading" : "idle");
@@ -2690,7 +2691,9 @@ export default function ThesisWorkspace({ ownerKey, initialSymbol, initialThesis
                       <label className={styles.full}>{copy.statement}<textarea aria-label={copy.statement} value={draft.statement} disabled={!editable || carrierLocked} maxLength={12000} rows={8} onChange={(event) => changeDraft("statement", event.target.value)} /></label>
                       {(["catalysts", "falsifiers", "risks"] as const).map((field) => <label key={field}>{copy[field]}<small>{copy.onePerLine}</small><textarea aria-label={copy[field]} value={draft[field]} disabled={!editable || carrierLocked} rows={5} onChange={(event) => changeDraft(field, event.target.value)} /></label>)}
                       <label>{copy.horizon}<select aria-label={copy.horizon} value={draft.horizon} disabled={!editable || carrierLocked} onChange={(event) => changeDraft("horizon", event.target.value as ThesisHorizon)}>{(["unspecified", "days", "weeks", "months", "quarters", "years"] as ThesisHorizon[]).map((value) => <option key={value} value={value}>{HORIZON_LABELS[lang][value]}</option>)}</select></label>
-                      <label className={styles.full}>{copy.effective}<input aria-label={copy.effective} type="datetime-local" step="0.001" value={draft.effectiveAt} disabled={!editable || carrierLocked} onChange={(event) => { setEffectiveEdited(true); changeDraft("effectiveAt", event.target.value); }} /></label>
+                      <label className={styles.full}>{copy.effective}<input aria-label={copy.effective} aria-describedby={draft.effectiveAt ? effectiveReadoutId : undefined} type="datetime-local" step="0.001" value={draft.effectiveAt} disabled={!editable || carrierLocked} onChange={(event) => { setEffectiveEdited(true); changeDraft("effectiveAt", event.target.value); }} />
+                        {draft.effectiveAt && <span id={effectiveReadoutId} className={styles.effectiveReadout}>{copy.localDateTime}: <time dateTime={draft.effectiveAt}>{draft.effectiveAt.replace("T", " ")}</time></span>}
+                      </label>
                       <label className={styles.full}>{copy.revision}<textarea aria-label={copy.revision} value={draft.revisionNote} disabled={carrierLocked} maxLength={1000} rows={3} onChange={(event) => changeDraft("revisionNote", event.target.value)} /></label>
                       <div className={`${styles.actions} ${styles.full}`}>
                         {editable && <button className={styles.primaryButton} type="submit" disabled={saving || ambiguous || carrierLocked}>{saving ? copy.saving : copy.save}</button>}
