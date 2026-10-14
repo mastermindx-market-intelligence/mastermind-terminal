@@ -258,6 +258,7 @@ export default function ScreenerView({ identity }: { identity: AccountIdentity }
   // "the manifest is not published" (absent) and "we could not reach it" (unavailable). The
   // last two both mean NO SCAN — but they are different facts, so the why-line names which.
   const [err, setErr] = useState<ScreenerFault | null>(null);
+  const [refreshFailed, setRefreshFailed] = useState(false);
   const [reloadN, setReloadN] = useState(0);
 
   // ── filter state ───────────────────────────────────────────────────────
@@ -317,6 +318,8 @@ export default function ScreenerView({ identity }: { identity: AccountIdentity }
   // ── fetch manifest via dataCache (dedup + SWR) + mounted guard ─────────
   useEffect(() => {
     let alive = true;
+    let refreshed = false;
+    let invalidRefresh = false;
     // onRevalidate: dataCache serves the persisted manifest stale on every load, so without
     // it the screener — including the "as of" date it prints — would show whatever board
     // this browser last cached. An honest-looking date on a stale table is the worst case.
@@ -358,20 +361,42 @@ export default function ScreenerView({ identity }: { identity: AccountIdentity }
         );
         setLoaded(true);
     };
-    // A background revalidation that FAILS leaves the last good scan on screen (it is still a
-    // real answer, just older) — onRevalidate only ever fires with data.
-    getJSONResult("/data/manifest.json", {
-      onRevalidate: (m: any) => { if (alive && isManifestShape(m)) apply(m); },
-    })
-      .then((res) => {
-        if (!alive) return;
-        if (res.status === "data" && isManifestShape(res.data)) { apply(res.data); return; }
-        // No scan. `absent` = the manifest is not published at this address; anything else
-        // (network, 5xx, unparseable body, a 200 that is not a manifest) = we could not find out.
-        setErr(res.status === "absent" ? "absent" : "unavailable");
-        setLoaded(true);
+    // Keep the last good scan on a failed refresh, but disclose that it could not be refreshed.
+    // JSON transport success alone is not proof of a usable manifest.
+    // The discarded StrictMode setup must not own the shared background refresh.
+    queueMicrotask(() => {
+      if (!alive) return;
+      getJSONResult("/data/manifest.json", {
+        onRevalidate: (m: unknown) => {
+          if (!alive) return;
+          if (isManifestShape(m)) {
+            refreshed = true;
+            apply(m);
+            setRefreshFailed(false);
+          } else {
+            invalidRefresh = true;
+            setRefreshFailed(true);
+          }
+        },
       })
-      .catch(() => { if (alive) { setErr("unavailable"); setLoaded(true); } });
+        .then((res) => {
+          if (!alive) return;
+          if (res.status === "data" && isManifestShape(res.data)) {
+            // A refresh delivered before this continuation already owns the displayed scan.
+            if (!refreshed) apply(res.data);
+            setRefreshFailed(invalidRefresh);
+            void res.stale?.revalidation.then((result) => {
+              if (alive && result === "failed") setRefreshFailed(true);
+            });
+            return;
+          }
+          // No scan. `absent` = the manifest is not published at this address; anything else
+          // (network, 5xx, unparseable body, a 200 that is not a manifest) = we could not find out.
+          setErr(res.status === "absent" ? "absent" : "unavailable");
+          setLoaded(true);
+        })
+        .catch(() => { if (alive) { setErr("unavailable"); setLoaded(true); } });
+    });
     return () => { alive = false; };
   }, [reloadN]);
 
@@ -399,6 +424,7 @@ export default function ScreenerView({ identity }: { identity: AccountIdentity }
   const retry = useCallback(() => {
     invalidate("/data/manifest.json");
     setErr(null);
+    setRefreshFailed(false);
     setLoaded(false);
     setReloadN((n) => n + 1);
   }, []);
@@ -852,6 +878,12 @@ export default function ScreenerView({ identity }: { identity: AccountIdentity }
 
       {/* Page-scroll layouts have no definite parent height. Keep the measured
           viewport bounded rather than letting it grow with the full manifest. */}
+      {loaded && !err && refreshFailed && (
+        <div className="scr2-status" data-scr-refresh="failed" role="status">
+          <span style={{ color: "var(--warn)" }}>{t("admStale")}</span>
+          <button type="button" className="chip" onClick={retry}>{t("scr2Retry")}</button>
+        </div>
+      )}
       <div className="scr2-table" ref={tableRef} style={{ maxHeight: "100dvh" }}>
         <table className="scr2">
           <thead>

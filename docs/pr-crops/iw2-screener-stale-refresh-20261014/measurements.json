@@ -1,0 +1,855 @@
+{
+  "source_parent": "a50f162ab46dddb14863cd9571613758bb7def7d",
+  "source_sha256": {
+    "terminal/components/ScreenerView.tsx": "e32bb4ed1ec8602143481993229a805462f31d2a4ac4ef695ada292752757789",
+    "terminal/e2e/screener-stale-refresh.spec.ts": "351c810d8ecedae491fdf4830e27a9c8809854fe4900bd40add8a6eb30541654",
+    "terminal/lib/__tests__/screenerStaleRefresh.test.tsx": "3368fce201b88ea46cc6a23bf7acf5b6e231fff60d51d3a0a938c182747a5728"
+  },
+  "cases": [
+    {
+      "case": "screener-stale-refresh-cac-096ac-resh-preserves-predicate-EN-desktop",
+      "mode": "fresh",
+      "browser": "149.0.7827.55",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "zh": false,
+      "seeded": {
+        "as_of": "2026-10-12",
+        "symbols": {
+          "IWCACHE": {
+            "name": "Cached scan",
+            "last": 111,
+            "chg": 4,
+            "vol": 1000,
+            "sec": "Equities",
+            "mkt": "NASDAQ"
+          }
+        }
+      },
+      "events": [
+        {
+          "request": 1
+        },
+        {
+          "response": 1
+        }
+      ],
+      "writes": [],
+      "telemetryRequests": [],
+      "attempt": 1,
+      "error": null,
+      "scope": "Local native IndexedDB persisted-manifest fixture and routed failure; no live, auth, shared owner, or full V3 acceptance"
+    },
+    {
+      "case": "screener-stale-refresh-cac-096ac-resh-preserves-predicate-EN-mobile",
+      "mode": "fresh",
+      "browser": "149.0.7827.55",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "zh": false,
+      "seeded": {
+        "as_of": "2026-10-12",
+        "symbols": {
+          "IWCACHE": {
+            "name": "Cached scan",
+            "last": 111,
+            "chg": 4,
+            "vol": 1000,
+            "sec": "Equities",
+            "mkt": "NASDAQ"
+          }
+        }
+      },
+      "events": [
+        {
+          "request": 1
+        },
+        {
+          "response": 1
+        }
+      ],
+      "writes": [],
+      "telemetryRequests": [],
+      "attempt": 1,
+      "error": null,
+      "scope": "Local native IndexedDB persisted-manifest fixture and routed failure; no live, auth, shared owner, or full V3 acceptance"
+    },
+    {
+      "case": "screener-stale-refresh-cac-096ac-resh-preserves-predicate-EN-tablet",
+      "mode": "fresh",
+      "browser": "149.0.7827.55",
+      "viewport": {
+        "width": 820,
+        "height": 1180
+      },
+      "zh": false,
+      "seeded": {
+        "as_of": "2026-10-12",
+        "symbols": {
+          "IWCACHE": {
+            "name": "Cached scan",
+            "last": 111,
+            "chg": 4,
+            "vol": 1000,
+            "sec": "Equities",
+            "mkt": "NASDAQ"
+          }
+        }
+      },
+      "events": [
+        {
+          "request": 1
+        },
+        {
+          "response": 1
+        }
+      ],
+      "writes": [],
+      "telemetryRequests": [],
+      "attempt": 1,
+      "error": null,
+      "scope": "Local native IndexedDB persisted-manifest fixture and routed failure; no live, auth, shared owner, or full V3 acceptance"
+    },
+    {
+      "case": "screener-stale-refresh-cac-29a56--503-preserves-predicate-EN-desktop",
+      "mode": "503",
+      "browser": "149.0.7827.55",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "zh": false,
+      "seeded": {
+        "as_of": "2026-10-12",
+        "symbols": {
+          "IWCACHE": {
+            "name": "Cached scan",
+            "last": 111,
+            "chg": 4,
+            "vol": 1000,
+            "sec": "Equities",
+            "mkt": "NASDAQ"
+          }
+        }
+      },
+      "events": [
+        {
+          "request": 1
+        },
+        {
+          "response": 1
+        },
+        {
+          "request": 2
+        },
+        {
+          "response": 2
+        }
+      ],
+      "writes": [],
+      "telemetryRequests": [],
+      "attempt": 2,
+      "error": null,
+      "scope": "Local native IndexedDB persisted-manifest fixture and routed failure; no live, auth, shared owner, or full V3 acceptance"
+    },
+    {
+      "case": "screener-stale-refresh-cac-29a56--503-preserves-predicate-EN-mobile",
+      "mode": "503",
+      "browser": "149.0.7827.55",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "zh": false,
+      "seeded": {
+        "as_of": "2026-10-12",
+        "symbols": {
+          "IWCACHE": {
+            "name": "Cached scan",
+            "last": 111,
+            "chg": 4,
+            "vol": 1000,
+            "sec": "Equities",
+            "mkt": "NASDAQ"
+          }
+        }
+      },
+      "events": [
+        {
+          "request": 1
+        },
+        {
+          "response": 1
+        },
+        {
+          "request": 2
+        },
+        {
+          "response": 2
+        }
+      ],
+      "writes": [],
+      "telemetryRequests": [],
+      "attempt": 2,
+      "error": null,
+      "scope": "Local native IndexedDB persisted-manifest fixture and routed failure; no live, auth, shared owner, or full V3 acceptance"
+    },
+    {
+      "case": "screener-stale-refresh-cac-29a56--503-preserves-predicate-EN-tablet",
+      "mode": "503",
+      "browser": "149.0.7827.55",
+      "viewport": {
+        "width": 820,
+        "height": 1180
+      },
+      "zh": false,
+      "seeded": {
+        "as_of": "2026-10-12",
+        "symbols": {
+          "IWCACHE": {
+            "name": "Cached scan",
+            "last": 111,
+            "chg": 4,
+            "vol": 1000,
+            "sec": "Equities",
+            "mkt": "NASDAQ"
+          }
+        }
+      },
+      "events": [
+        {
+          "request": 1
+        },
+        {
+          "response": 1
+        },
+        {
+          "request": 2
+        },
+        {
+          "response": 2
+        }
+      ],
+      "writes": [],
+      "telemetryRequests": [],
+      "attempt": 2,
+      "error": null,
+      "scope": "Local native IndexedDB persisted-manifest fixture and routed failure; no live, auth, shared owner, or full V3 acceptance"
+    },
+    {
+      "case": "screener-stale-refresh-cac-8074c-alid-preserves-predicate-EN-desktop",
+      "mode": "invalid",
+      "browser": "149.0.7827.55",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "zh": false,
+      "seeded": {
+        "as_of": "2026-10-12",
+        "symbols": {
+          "IWCACHE": {
+            "name": "Cached scan",
+            "last": 111,
+            "chg": 4,
+            "vol": 1000,
+            "sec": "Equities",
+            "mkt": "NASDAQ"
+          }
+        }
+      },
+      "events": [
+        {
+          "request": 1
+        },
+        {
+          "response": 1
+        },
+        {
+          "request": 2
+        },
+        {
+          "response": 2
+        }
+      ],
+      "writes": [],
+      "telemetryRequests": [],
+      "attempt": 2,
+      "error": null,
+      "scope": "Local native IndexedDB persisted-manifest fixture and routed failure; no live, auth, shared owner, or full V3 acceptance"
+    },
+    {
+      "case": "screener-stale-refresh-cac-8074c-alid-preserves-predicate-EN-mobile",
+      "mode": "invalid",
+      "browser": "149.0.7827.55",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "zh": false,
+      "seeded": {
+        "as_of": "2026-10-12",
+        "symbols": {
+          "IWCACHE": {
+            "name": "Cached scan",
+            "last": 111,
+            "chg": 4,
+            "vol": 1000,
+            "sec": "Equities",
+            "mkt": "NASDAQ"
+          }
+        }
+      },
+      "events": [
+        {
+          "request": 1
+        },
+        {
+          "response": 1
+        },
+        {
+          "request": 2
+        },
+        {
+          "response": 2
+        }
+      ],
+      "writes": [],
+      "telemetryRequests": [],
+      "attempt": 2,
+      "error": null,
+      "scope": "Local native IndexedDB persisted-manifest fixture and routed failure; no live, auth, shared owner, or full V3 acceptance"
+    },
+    {
+      "case": "screener-stale-refresh-cac-8074c-alid-preserves-predicate-EN-tablet",
+      "mode": "invalid",
+      "browser": "149.0.7827.55",
+      "viewport": {
+        "width": 820,
+        "height": 1180
+      },
+      "zh": false,
+      "seeded": {
+        "as_of": "2026-10-12",
+        "symbols": {
+          "IWCACHE": {
+            "name": "Cached scan",
+            "last": 111,
+            "chg": 4,
+            "vol": 1000,
+            "sec": "Equities",
+            "mkt": "NASDAQ"
+          }
+        }
+      },
+      "events": [
+        {
+          "request": 1
+        },
+        {
+          "response": 1
+        },
+        {
+          "request": 2
+        },
+        {
+          "response": 2
+        }
+      ],
+      "writes": [],
+      "telemetryRequests": [],
+      "attempt": 2,
+      "error": null,
+      "scope": "Local native IndexedDB persisted-manifest fixture and routed failure; no live, auth, shared owner, or full V3 acceptance"
+    },
+    {
+      "case": "screener-stale-refresh-cac-9e2b9-resh-preserves-predicate-ZH-desktop",
+      "mode": "fresh",
+      "browser": "149.0.7827.55",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "zh": true,
+      "seeded": {
+        "as_of": "2026-10-12",
+        "symbols": {
+          "IWCACHE": {
+            "name": "Cached scan",
+            "last": 111,
+            "chg": 4,
+            "vol": 1000,
+            "sec": "Equities",
+            "mkt": "NASDAQ"
+          }
+        }
+      },
+      "events": [
+        {
+          "request": 1
+        },
+        {
+          "response": 1
+        }
+      ],
+      "writes": [],
+      "telemetryRequests": [],
+      "attempt": 1,
+      "error": null,
+      "scope": "Local native IndexedDB persisted-manifest fixture and routed failure; no live, auth, shared owner, or full V3 acceptance"
+    },
+    {
+      "case": "screener-stale-refresh-cac-9e2b9-resh-preserves-predicate-ZH-mobile",
+      "mode": "fresh",
+      "browser": "149.0.7827.55",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "zh": true,
+      "seeded": {
+        "as_of": "2026-10-12",
+        "symbols": {
+          "IWCACHE": {
+            "name": "Cached scan",
+            "last": 111,
+            "chg": 4,
+            "vol": 1000,
+            "sec": "Equities",
+            "mkt": "NASDAQ"
+          }
+        }
+      },
+      "events": [
+        {
+          "request": 1
+        },
+        {
+          "response": 1
+        }
+      ],
+      "writes": [],
+      "telemetryRequests": [],
+      "attempt": 1,
+      "error": null,
+      "scope": "Local native IndexedDB persisted-manifest fixture and routed failure; no live, auth, shared owner, or full V3 acceptance"
+    },
+    {
+      "case": "screener-stale-refresh-cac-9e2b9-resh-preserves-predicate-ZH-tablet",
+      "mode": "fresh",
+      "browser": "149.0.7827.55",
+      "viewport": {
+        "width": 820,
+        "height": 1180
+      },
+      "zh": true,
+      "seeded": {
+        "as_of": "2026-10-12",
+        "symbols": {
+          "IWCACHE": {
+            "name": "Cached scan",
+            "last": 111,
+            "chg": 4,
+            "vol": 1000,
+            "sec": "Equities",
+            "mkt": "NASDAQ"
+          }
+        }
+      },
+      "events": [
+        {
+          "request": 1
+        },
+        {
+          "response": 1
+        }
+      ],
+      "writes": [],
+      "telemetryRequests": [],
+      "attempt": 1,
+      "error": null,
+      "scope": "Local native IndexedDB persisted-manifest fixture and routed failure; no live, auth, shared owner, or full V3 acceptance"
+    },
+    {
+      "case": "screener-stale-refresh-cac-b9d50--503-preserves-predicate-ZH-desktop",
+      "mode": "503",
+      "browser": "149.0.7827.55",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "zh": true,
+      "seeded": {
+        "as_of": "2026-10-12",
+        "symbols": {
+          "IWCACHE": {
+            "name": "Cached scan",
+            "last": 111,
+            "chg": 4,
+            "vol": 1000,
+            "sec": "Equities",
+            "mkt": "NASDAQ"
+          }
+        }
+      },
+      "events": [
+        {
+          "request": 1
+        },
+        {
+          "response": 1
+        },
+        {
+          "request": 2
+        },
+        {
+          "response": 2
+        }
+      ],
+      "writes": [],
+      "telemetryRequests": [],
+      "attempt": 2,
+      "error": null,
+      "scope": "Local native IndexedDB persisted-manifest fixture and routed failure; no live, auth, shared owner, or full V3 acceptance"
+    },
+    {
+      "case": "screener-stale-refresh-cac-b9d50--503-preserves-predicate-ZH-mobile",
+      "mode": "503",
+      "browser": "149.0.7827.55",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "zh": true,
+      "seeded": {
+        "as_of": "2026-10-12",
+        "symbols": {
+          "IWCACHE": {
+            "name": "Cached scan",
+            "last": 111,
+            "chg": 4,
+            "vol": 1000,
+            "sec": "Equities",
+            "mkt": "NASDAQ"
+          }
+        }
+      },
+      "events": [
+        {
+          "request": 1
+        },
+        {
+          "response": 1
+        },
+        {
+          "request": 2
+        },
+        {
+          "response": 2
+        }
+      ],
+      "writes": [],
+      "telemetryRequests": [],
+      "attempt": 2,
+      "error": null,
+      "scope": "Local native IndexedDB persisted-manifest fixture and routed failure; no live, auth, shared owner, or full V3 acceptance"
+    },
+    {
+      "case": "screener-stale-refresh-cac-b9d50--503-preserves-predicate-ZH-tablet",
+      "mode": "503",
+      "browser": "149.0.7827.55",
+      "viewport": {
+        "width": 820,
+        "height": 1180
+      },
+      "zh": true,
+      "seeded": {
+        "as_of": "2026-10-12",
+        "symbols": {
+          "IWCACHE": {
+            "name": "Cached scan",
+            "last": 111,
+            "chg": 4,
+            "vol": 1000,
+            "sec": "Equities",
+            "mkt": "NASDAQ"
+          }
+        }
+      },
+      "events": [
+        {
+          "request": 1
+        },
+        {
+          "response": 1
+        },
+        {
+          "request": 2
+        },
+        {
+          "response": 2
+        }
+      ],
+      "writes": [],
+      "telemetryRequests": [],
+      "attempt": 2,
+      "error": null,
+      "scope": "Local native IndexedDB persisted-manifest fixture and routed failure; no live, auth, shared owner, or full V3 acceptance"
+    },
+    {
+      "case": "screener-stale-refresh-cac-ea265-alid-preserves-predicate-ZH-desktop",
+      "mode": "invalid",
+      "browser": "149.0.7827.55",
+      "viewport": {
+        "width": 1440,
+        "height": 900
+      },
+      "zh": true,
+      "seeded": {
+        "as_of": "2026-10-12",
+        "symbols": {
+          "IWCACHE": {
+            "name": "Cached scan",
+            "last": 111,
+            "chg": 4,
+            "vol": 1000,
+            "sec": "Equities",
+            "mkt": "NASDAQ"
+          }
+        }
+      },
+      "events": [
+        {
+          "request": 1
+        },
+        {
+          "response": 1
+        },
+        {
+          "request": 2
+        },
+        {
+          "response": 2
+        }
+      ],
+      "writes": [],
+      "telemetryRequests": [],
+      "attempt": 2,
+      "error": null,
+      "scope": "Local native IndexedDB persisted-manifest fixture and routed failure; no live, auth, shared owner, or full V3 acceptance"
+    },
+    {
+      "case": "screener-stale-refresh-cac-ea265-alid-preserves-predicate-ZH-mobile",
+      "mode": "invalid",
+      "browser": "149.0.7827.55",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "zh": true,
+      "seeded": {
+        "as_of": "2026-10-12",
+        "symbols": {
+          "IWCACHE": {
+            "name": "Cached scan",
+            "last": 111,
+            "chg": 4,
+            "vol": 1000,
+            "sec": "Equities",
+            "mkt": "NASDAQ"
+          }
+        }
+      },
+      "events": [
+        {
+          "request": 1
+        },
+        {
+          "response": 1
+        },
+        {
+          "request": 2
+        },
+        {
+          "response": 2
+        }
+      ],
+      "writes": [],
+      "telemetryRequests": [],
+      "attempt": 2,
+      "error": null,
+      "scope": "Local native IndexedDB persisted-manifest fixture and routed failure; no live, auth, shared owner, or full V3 acceptance"
+    },
+    {
+      "case": "screener-stale-refresh-cac-ea265-alid-preserves-predicate-ZH-tablet",
+      "mode": "invalid",
+      "browser": "149.0.7827.55",
+      "viewport": {
+        "width": 820,
+        "height": 1180
+      },
+      "zh": true,
+      "seeded": {
+        "as_of": "2026-10-12",
+        "symbols": {
+          "IWCACHE": {
+            "name": "Cached scan",
+            "last": 111,
+            "chg": 4,
+            "vol": 1000,
+            "sec": "Equities",
+            "mkt": "NASDAQ"
+          }
+        }
+      },
+      "events": [
+        {
+          "request": 1
+        },
+        {
+          "response": 1
+        },
+        {
+          "request": 2
+        },
+        {
+          "response": 2
+        }
+      ],
+      "writes": [],
+      "telemetryRequests": [],
+      "attempt": 2,
+      "error": null,
+      "scope": "Local native IndexedDB persisted-manifest fixture and routed failure; no live, auth, shared owner, or full V3 acceptance"
+    }
+  ],
+  "pixels": {
+    "9856a56cc7945c0c0b575567537e6d960be7a07741c2a5f3bea14e14dfb2d384": {
+      "published": "mobile-zh-fresh-recovered.png",
+      "originals": [
+        "clean-matrix-output/screener-stale-refresh-cac-9e2b9-resh-preserves-predicate-ZH-mobile/recovered.png"
+      ]
+    },
+    "0f09dbe83d00e9491f7f9372ad1bd50a6ec00079157f4f399d735f02521811e4": {
+      "published": "tablet-en-invalid-failed-refresh.png",
+      "originals": [
+        "clean-matrix-output/screener-stale-refresh-cac-8074c-alid-preserves-predicate-EN-tablet/failed-refresh.png"
+      ]
+    },
+    "6738493abbd4ec68af9006b8fa0cdff2283411a60a64a0381d85931f968b1f56": {
+      "published": "tablet-en-invalid-recovered.png",
+      "originals": [
+        "clean-matrix-output/screener-stale-refresh-cac-8074c-alid-preserves-predicate-EN-tablet/recovered.png"
+      ]
+    },
+    "682600c03992009fc86787b72dfc0958c0391c3ac9d45517fbb6f386c207bb96": {
+      "published": "mobile-en-fresh-recovered.png",
+      "originals": [
+        "clean-matrix-output/screener-stale-refresh-cac-096ac-resh-preserves-predicate-EN-mobile/recovered.png"
+      ]
+    },
+    "0abdcc93134e7f45be687a808e80e995e1ccd7a2ec986d68bcacf9643140976d": {
+      "published": "mobile-zh-503-failed-refresh.png",
+      "originals": [
+        "clean-matrix-output/screener-stale-refresh-cac-b9d50--503-preserves-predicate-ZH-mobile/failed-refresh.png",
+        "clean-matrix-output/screener-stale-refresh-cac-ea265-alid-preserves-predicate-ZH-mobile/failed-refresh.png"
+      ]
+    },
+    "10a34e298e5c40d542f14427acefc8ebdfcaf93846a667e89033c9402a959d74": {
+      "published": "mobile-zh-503-recovered.png",
+      "originals": [
+        "clean-matrix-output/screener-stale-refresh-cac-b9d50--503-preserves-predicate-ZH-mobile/recovered.png",
+        "clean-matrix-output/screener-stale-refresh-cac-ea265-alid-preserves-predicate-ZH-mobile/recovered.png"
+      ]
+    },
+    "6c85011bf35a1f7c04a04f8043ce2fab6c72361bd031716509ddab5e332852ea": {
+      "published": "tablet-zh-invalid-failed-refresh.png",
+      "originals": [
+        "clean-matrix-output/screener-stale-refresh-cac-ea265-alid-preserves-predicate-ZH-tablet/failed-refresh.png",
+        "clean-matrix-output/screener-stale-refresh-cac-b9d50--503-preserves-predicate-ZH-tablet/failed-refresh.png"
+      ]
+    },
+    "91d835081b9511c031b50856c5c91fc92ce546b97254c131714b9f5d78c33f9f": {
+      "published": "tablet-zh-invalid-recovered.png",
+      "originals": [
+        "clean-matrix-output/screener-stale-refresh-cac-ea265-alid-preserves-predicate-ZH-tablet/recovered.png",
+        "clean-matrix-output/screener-stale-refresh-cac-9e2b9-resh-preserves-predicate-ZH-tablet/recovered.png",
+        "clean-matrix-output/screener-stale-refresh-cac-b9d50--503-preserves-predicate-ZH-tablet/recovered.png"
+      ]
+    },
+    "04db03cb79066eca3d8b93603466c25d51ac424c77e210dfe69c7c38b9149435": {
+      "published": "mobile-en-503-failed-refresh.png",
+      "originals": [
+        "clean-matrix-output/screener-stale-refresh-cac-29a56--503-preserves-predicate-EN-mobile/failed-refresh.png",
+        "clean-matrix-output/screener-stale-refresh-cac-8074c-alid-preserves-predicate-EN-mobile/failed-refresh.png"
+      ]
+    },
+    "339da74e1938ca5615e968f4daf27ba62af1361552cad74b62653ab004f88c6d": {
+      "published": "mobile-en-503-recovered.png",
+      "originals": [
+        "clean-matrix-output/screener-stale-refresh-cac-29a56--503-preserves-predicate-EN-mobile/recovered.png"
+      ]
+    },
+    "d1eae66d9d188215db13b5511d3ec346839651749f8621806f988d5458d32b13": {
+      "published": "desktop-zh-503-failed-refresh.png",
+      "originals": [
+        "clean-matrix-output/screener-stale-refresh-cac-b9d50--503-preserves-predicate-ZH-desktop/failed-refresh.png",
+        "clean-matrix-output/screener-stale-refresh-cac-ea265-alid-preserves-predicate-ZH-desktop/failed-refresh.png"
+      ]
+    },
+    "793f97e064d3c9d48eaf8df09504cb41c92c1850904d14def23dc4aca892ac08": {
+      "published": "desktop-zh-503-recovered.png",
+      "originals": [
+        "clean-matrix-output/screener-stale-refresh-cac-b9d50--503-preserves-predicate-ZH-desktop/recovered.png",
+        "clean-matrix-output/screener-stale-refresh-cac-9e2b9-resh-preserves-predicate-ZH-desktop/recovered.png",
+        "clean-matrix-output/screener-stale-refresh-cac-ea265-alid-preserves-predicate-ZH-desktop/recovered.png"
+      ]
+    },
+    "38f1105d6d8690fee7be0aa03cfa72683fb6a88dc0971e4bbffad2841debf88c": {
+      "published": "desktop-en-503-failed-refresh.png",
+      "originals": [
+        "clean-matrix-output/screener-stale-refresh-cac-29a56--503-preserves-predicate-EN-desktop/failed-refresh.png",
+        "clean-matrix-output/screener-stale-refresh-cac-8074c-alid-preserves-predicate-EN-desktop/failed-refresh.png"
+      ]
+    },
+    "0698b8c64366286491a95009467700825e8840247a0bc2c27fdfe0301bb90afb": {
+      "published": "desktop-en-503-recovered.png",
+      "originals": [
+        "clean-matrix-output/screener-stale-refresh-cac-29a56--503-preserves-predicate-EN-desktop/recovered.png",
+        "clean-matrix-output/screener-stale-refresh-cac-096ac-resh-preserves-predicate-EN-desktop/recovered.png",
+        "clean-matrix-output/screener-stale-refresh-cac-8074c-alid-preserves-predicate-EN-desktop/recovered.png"
+      ]
+    },
+    "c21f5910083c492f9ba67952f4a2bc11cd7f40520dde9a5e10708dd149cb4bf1": {
+      "published": "tablet-en-fresh-recovered.png",
+      "originals": [
+        "clean-matrix-output/screener-stale-refresh-cac-096ac-resh-preserves-predicate-EN-tablet/recovered.png",
+        "clean-matrix-output/screener-stale-refresh-cac-29a56--503-preserves-predicate-EN-tablet/recovered.png"
+      ]
+    },
+    "17f4d1ce8ef1ea36a3c6ff993cae5ac127d317cdb24374707ca3d5b53d1d8cf6": {
+      "published": "mobile-en-invalid-recovered.png",
+      "originals": [
+        "clean-matrix-output/screener-stale-refresh-cac-8074c-alid-preserves-predicate-EN-mobile/recovered.png"
+      ]
+    },
+    "d986008ed9cd79d245c00ab526868b557a5b4faf1f6da5a88811ffdff2a70173": {
+      "published": "tablet-en-503-failed-refresh.png",
+      "originals": [
+        "clean-matrix-output/screener-stale-refresh-cac-29a56--503-preserves-predicate-EN-tablet/failed-refresh.png"
+      ]
+    }
+  },
+  "proof": "Local Chromium native persisted IndexedDB fixture; read-only failed-refresh and explicit Retry. No live rights, credentials, owner mutation, full V3 or production acceptance.",
+  "original_evidence_root": "/Volumes/Mastermind/evidence/iw2-initiation-01a104c8/fable-commission-20261013/screener-stale-refresh",
+  "pixel_review": {
+    "fresh": 30,
+    "unique_viewed": 17,
+    "identical_reused": 13
+  },
+  "existing_corpus": "403 accepted original images and 15 manifests remain unchanged; new proof is separate."
+}
